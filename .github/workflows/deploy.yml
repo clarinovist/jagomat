@@ -50,6 +50,8 @@ jobs:
         with:
           ref: 90c1aa128c2d124e4056c5f99a1407729fcd55fa
           path: recovery
+          # Suite recovery masih menguji kompatibilitas baseline sebelumnya.
+          fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
