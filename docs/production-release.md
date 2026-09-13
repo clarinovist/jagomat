@@ -27,15 +27,26 @@ kompatibel. Menurunkan user_version atau menghapus catatan eksekusi bukan solusi
 
 Workflow tetap **uji → bangun → pasang**:
 
-1. **uji:** palang privasi + full pytest candidate; checkout recovery pinned
-   full SHA, cwd terpisah, canary lokasi import, palang dan full pytest recovery.
-2. **bangun:** build/publish candidate serta recovery; tarik berdasarkan digest
+1. **uji:** job `uji` (candidate) dan `uji_recovery` berjalan independen pada
+   runner Ubuntu/Python 3.12 terpisah. Keduanya menjalankan palang privasi dan
+   full pytest dengan warning sebagai error. Recovery tetap checkout pinned
+   full SHA, cwd terpisah dan canary lokasi import. Test dalam masing-masing
+   suite tetap serial; `--durations=20` mencatat 20 fase test paling lambat.
+2. **bangun:** wajib menunggu **kedua job uji sukses**; salah satu gagal,
+   dibatalkan, atau dilewati berarti build tidak berjalan. Build/publish
+   candidate serta recovery; tarik berdasarkan digest
    output build yang sama; verifikasi image sebenarnya dengan probe sintetis.
    Salah satu gagal berarti job gagal, tidak lanjut pasang.
 3. **pasang:** hanya pada `refs/heads/main` jika repository variable
    `OSN_DEPLOY_RUTIN_SIAP` **persis `1`**. Default kosong berarti skip seluruh
    job, termasuk akses secret SSH. Variable lama `PENDAMPING_ROLLOUT_SIAP` tidak
    dipakai lagi. CI memanggil `deploy-rutin-v1 <candidate-digest> <recovery-digest>`.
+
+Paralelisme antar-runner memperpendek jalur tunggu, bukan mengurangi cakupan test
+atau otomatis menghemat menit komputasi. Durasi aktual tetap dipengaruhi antrean
+runner; keuntungan harus diukur pada run CI sesudah perubahan diterapkan.
+Tidak ada seleksi test berdasarkan file berubah, cache hasil test, atau
+pengaktifan kembali `xdist` dalam suite pada perubahan penjadwalan ini.
 
 Publikasi tidak mengganti `latest`. Identitas kedua image selalu digest output
 build yang sama dengan verifikasi dan artifact manifest, bukan tag berubah.

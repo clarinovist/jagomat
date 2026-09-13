@@ -30,12 +30,12 @@ def test_pasang_tertahan_sampai_deployer_dan_policy_rutin_siap():
 
 def test_build_candidate_dan_recovery_pakai_digest_yang_sama_untuk_verifikasi():
     teks=WORKFLOW.read_text()
-    uji=_job(teks,'uji');bangun=_job(teks,'bangun')
-    assert 'needs: uji' in bangun
+    uji=_job(teks,'uji');recovery=_job(teks,'uji_recovery');bangun=_job(teks,'bangun')
+    assert 'needs: [uji, uji_recovery]' in bangun
     # Checkout yang diuji/dibangun dan revision manifest wajib snapshot sama.
     assert re.findall(r'^          ref: ([0-9a-f]{40})$', teks, re.M) == [RECOVERY_SHA] * 2
     assert re.findall(r'^  RECOVERY_SHA: ([0-9a-f]{40})$', teks, re.M) == [RECOVERY_SHA]
-    assert RECOVERY_SHA in uji and RECOVERY_SHA in bangun
+    assert RECOVERY_SHA in recovery and RECOVERY_SHA in bangun
     assert 'recovery_digest: ${{ steps.recovery.outputs.digest }}' in bangun
     assert 'digest: ${{ steps.dorong.outputs.digest }}' in bangun
     assert 'scripts/verify_release_image.py' in bangun
@@ -44,10 +44,11 @@ def test_build_candidate_dan_recovery_pakai_digest_yang_sama_untuk_verifikasi():
     assert '--revision "$GITHUB_SHA"' in bangun
     assert '--revision "$RECOVERY_SHA"' in bangun
     assert 'python -m pytest mesin/__tests__/' in uji
-    assert 'working-directory: recovery' in uji
-    assert 'python -m pytest --rootdir . mesin/__tests__/' in uji
-    assert 'Canary: import recovery terisolasi, schema v4' in uji
-    assert 'VPS_DEPLOY_KEY' not in uji+bangun
+    assert 'working-directory: recovery' in recovery
+    assert '          path: recovery\n' in recovery
+    assert 'python -m pytest --rootdir . mesin/__tests__/' in recovery
+    assert 'Canary: import recovery terisolasi, schema v4' in recovery
+    assert 'VPS_DEPLOY_KEY' not in uji+recovery+bangun
 
 
 def test_persiapan_tidak_memutakhirkan_latest_atau_memakai_tag_berubah():
@@ -77,13 +78,14 @@ def test_gate_job_hanya_menerima_izin_exact_dan_main(flag, ref):
 
 def test_dependencies_gagal_tidak_dibypass_ke_build_atau_deploy():
     teks=WORKFLOW.read_text()
-    for nama in ('uji','bangun','pasang'):
+    for nama in ('uji','uji_recovery','bangun','pasang'):
         job=_job(teks,nama)
         assert 'continue-on-error:' not in job
         assert 'always()' not in job and '|| true' not in job
     assert teks.index('Verifikasi image berdasarkan digest') < teks.index('  pasang:')
     assert 'if:' not in _job(teks,'bangun')  # Tak ada bypass verifikasi image.
-    assert 'working-directory: recovery' in _job(teks,'uji')
+    assert 'working-directory: recovery' in _job(teks,'uji_recovery')
+    assert 'needs: [uji, uji_recovery]' in _job(teks,'bangun')
 
 
 def test_healthcheck_publik_tiga_permukaan_tetap_diperiksa():

@@ -22,8 +22,9 @@ env:
   RECOVERY_SHA: bc9c973b50eb1fb04edd37df62f71ba0123f29c6
 
 jobs:
+  # Kedua suite memakai runner terpisah; build menunggu keduanya lulus.
   uji:
-    name: Test kandidat dan recovery
+    name: Test kandidat
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -38,14 +39,25 @@ jobs:
       - name: Pastikan tidak ada data siswa ter-commit
         run: python scripts/check_repo.py
       - name: Jalankan seluruh test
-        run: python -m pytest mesin/__tests__/ -q -W error
+        run: python -m pytest mesin/__tests__/ -q -W error --durations=20
+
+  uji_recovery:
+    name: Test recovery
+    runs-on: ubuntu-latest
+    steps:
       - name: Checkout recovery backend v4 dengan UI sebelumnya
         uses: actions/checkout@v7
         with:
           ref: bc9c973b50eb1fb04edd37df62f71ba0123f29c6
           path: recovery
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Pasang pytest
+        run: pip install --quiet pytest pytest-xdist
       - name: Palang dan seluruh test recovery terisolasi
         working-directory: recovery
+        shell: bash
         run: |
           python scripts/check_repo.py
           python - <<'PY'
@@ -57,11 +69,11 @@ jobs:
           assert assistant_schema.VERSI_SKEMA == 4
           print('Canary: import recovery terisolasi, schema v4')
           PY
-          python -m pytest --rootdir . mesin/__tests__/ -q -W error -p no:cacheprovider
+          python -m pytest --rootdir . mesin/__tests__/ -q -W error -p no:cacheprovider --durations=20
 
   bangun:
     name: Build & Push
-    needs: uji
+    needs: [uji, uji_recovery]
     runs-on: ubuntu-latest
     permissions:
       contents: read
