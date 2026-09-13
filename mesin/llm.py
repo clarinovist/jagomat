@@ -22,6 +22,8 @@ Pemanggil yang menyambungkannya ke web.py/generator.py — bukan modul ini.
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+from contextvars import ContextVar
 import hashlib
 import json
 import os
@@ -34,7 +36,21 @@ from typing import Any
 from templates import Soal
 import presentation_lock
 import question_views
+import ai_service as ai_control
 from visual_contract import buat_penyajian
+
+_bucket_ai = ContextVar("bucket_ai_llm", default=None)
+
+
+@contextmanager
+def gunakan_bucket_akun(nilai):
+    """Ikat bucket pemilik tanpa mengubah kontrak fungsi publik/fixture lama."""
+    token = _bucket_ai.set(nilai)
+    try:
+        yield
+    finally:
+        _bucket_ai.reset(token)
+
 
 # ── Konfigurasi lingkungan ──────────────────────────────────────────────
 
@@ -354,7 +370,7 @@ def parse_respons(data: bytes | bytearray | str | dict) -> str | None:
 
 
 def _panggil(pesan: list[dict[str, str]]) -> str | None:
-    """POST /chat/completions. Error apa pun -> None, jangan raise."""
+    """POST cerita melalui guard biaya. Error apa pun -> None."""
     cfg = konfigurasi()
     url = cfg["base_url"] + "/chat/completions"
     tubuh = json.dumps(
@@ -376,9 +392,11 @@ def _panggil(pesan: list[dict[str, str]]) -> str | None:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=BATAS_WAKTU_DETIK) as resp:
-            return parse_respons(resp.read())
-    except (urllib.error.URLError, OSError, ValueError):
+        def kirim():
+            with urllib.request.urlopen(req, timeout=BATAS_WAKTU_DETIK) as resp:
+                return parse_respons(resp.read())
+        return ai_control.panggil("cerita", _bucket_ai.get(), kirim)
+    except (urllib.error.URLError, OSError, ValueError, ai_control.AIUnavailable):
         # HTTPError turunan URLError; socket.timeout turunan OSError;
         # JSON rusak tertangani parse_respons, ValueError sisa pengaman.
         return None
@@ -623,11 +641,13 @@ def ekstrak_lembar(soal_konteks: list[str], gambar_b64: str) -> list[dict] | Non
         method="POST",
     )
     try:
-        with urllib.request.urlopen(
-            req, timeout=BATAS_WAKTU_DETIK * 4
-        ) as resp:
-            konten = parse_respons(resp.read())
-    except (urllib.error.URLError, OSError, ValueError):
+        def kirim():
+            with urllib.request.urlopen(
+                req, timeout=BATAS_WAKTU_DETIK * 4
+            ) as resp:
+                return parse_respons(resp.read())
+        konten = ai_control.panggil("lampiran", _bucket_ai.get(), kirim)
+    except (urllib.error.URLError, OSError, ValueError, ai_control.AIUnavailable):
         return None
     if konten is None:
         return None
@@ -811,6 +831,11 @@ def bungkus_sesi(kon, sesi_id: int, ambil_soal) -> tuple[int, int, str]:
         return 0, 0, "Saldo DeepSeek di bawah ambang — permintaan ditahan."
 
     ensure_table(kon)
+    pemilik_baris = kon.execute(
+        """SELECT w.pemilik FROM sesi se JOIN siswa w ON w.id=se.siswa_id
+           WHERE se.id=?""", (sesi_id,),
+    ).fetchone()
+    bucket_akun = pemilik_baris["pemilik"] if pemilik_baris else None
     target = kon.execute(
         """SELECT ss.id AS sesi_soal_id, ss.nomor,
                   ss.teks_soal, ss.bagian_soal, ss.tantangan_soal,
@@ -843,7 +868,8 @@ def bungkus_sesi(kon, sesi_id: int, ambil_soal) -> tuple[int, int, str]:
         soal_ini = ambil_soal(b)
         kalimat = None
         for putaran in range(PERCOBAAN_LATAR):
-            kalimat = bungkus(kon, soal_ini, putaran)
+            with gunakan_bucket_akun(bucket_akun):
+                kalimat = bungkus(kon, soal_ini, putaran)
             if kalimat:
                 break
         if kalimat:

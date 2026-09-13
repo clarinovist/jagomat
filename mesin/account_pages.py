@@ -824,6 +824,7 @@ def halaman_admin(
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">RUANG PENGELOLA</p>'
         '<h1 id="judul-admin">Panel Pengelola</h1>'
         '<p class="sub">Keluarga, akses akun, dan aktivitas belajar.</p></header>'
+        '<p><a class="tombol-sekunder" href="/admin/ai">Pengaturan AI</a></p>'
         f'{kabar}'
         f"{ringkas}"
         f'<div class="kartu">'

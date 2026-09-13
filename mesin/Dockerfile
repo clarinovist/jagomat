@@ -40,6 +40,7 @@ ENV OSN_BERKAS_SANDI=/data/sandi.json \
     OSN_BERKAS_SESI=/data/sesi.json \
     OSN_BERKAS_DB=/data/latihan.db \
     PENDAMPING_BERKAS_DB=/data/pendamping.db \
+    AI_BERKAS_DB=/data/ai-control.db \
     PENDAMPING_AKTIF=0 \
     OSN_FOLDER_LEMBAR=/data/lembar \
     PYTHONUNBUFFERED=1 \

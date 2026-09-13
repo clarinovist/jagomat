@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from contextvars import ContextVar
 import json
 import os
 import time
 
+import ai_service
 import assistant_actions
 import assistant_catalog
 import assistant_client
@@ -15,6 +17,9 @@ import assistant_store
 
 class GalatPendamping(RuntimeError):
     """Kegagalan aman yang boleh diterjemahkan menjadi pesan UI umum."""
+
+
+_konteks_ai = ContextVar("konteks_ai_pendamping", default=(None, None))
 
 
 def konfigurasi() -> assistant_client.Konfigurasi:
@@ -35,7 +40,12 @@ def tersedia() -> bool:
 
 
 def panggil_provider_default(pesan):
-    return assistant_client.kirim(konfigurasi(), pesan)
+    account_id, operasi_id = _konteks_ai.get()
+    return ai_service.panggil(
+        "pendamping", account_id,
+        lambda: assistant_client.kirim(konfigurasi(), pesan),
+        operasi_id=operasi_id,
+    )
 
 
 def _pesan_provider(
@@ -196,6 +206,7 @@ def kirim_pesan(
         )
 
     pemanggil = panggil_provider or panggil_provider_default
+    token_ai = _konteks_ai.set((account_id, "pendamping:" + request_id))
     try:
         mentah = pemanggil(pesan)
         respons = assistant_policy.validasi_respons(mentah)
@@ -206,7 +217,7 @@ def kirim_pesan(
                 and validasi_konteks() == konteks.versi
             )
         )
-    except (assistant_client.GalatProvider, ValueError) as galat:
+    except (assistant_client.GalatProvider, ai_service.AIUnavailable, ValueError) as galat:
         try:
             with kon:
                 assistant_store.gagalkan_operasi(
@@ -215,6 +226,8 @@ def kirim_pesan(
         except Exception:
             kon.rollback()
         raise GalatPendamping("Pendamping belum bisa menjawab. Coba lagi nanti.") from galat
+    finally:
+        _konteks_ai.reset(token_ai)
 
     try:
         with kon:

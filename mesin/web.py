@@ -469,8 +469,11 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _rute_get(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/") or "/"
+        import ai_http
         import assistant_http
 
+        if ai_http.tangani_get(self, jalur):
+            return
         if assistant_http.tangani_get(self, jalur):
             return
         if jalur.startswith("/mulai/"):
@@ -1120,8 +1123,11 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _rute_post(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/")
+        import ai_http
         import assistant_http
 
+        if ai_http.tangani_post(self, jalur):
+            return
         if assistant_http.tangani_inline_post(self, jalur):
             return
         if assistant_http.tangani_post(self, jalur):

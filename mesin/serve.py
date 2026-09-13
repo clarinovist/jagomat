@@ -15,6 +15,7 @@ import socket
 import sys
 from http.server import ThreadingHTTPServer
 
+import ai_store
 import database
 import auth
 import sessions
@@ -73,6 +74,10 @@ def main() -> int:
         return 0
 
     database.siapkan()
+    # Storage AI di-bootstrap eksplisit saat startup. Kehilangan berkas saat
+    # proses sudah berjalan tetap fail-closed di guard; bukan dibuat ulang per call.
+    ai_store.siapkan()
+    ai_store.purge()
     # Token kedaluwarsa yang menumpuk di sesi.json ikut terbuang tiap kali
     # server dinyalakan (tanda lapangan: belasan token dari masuk-ulang).
     sessions.bersihkan()

@@ -13,6 +13,9 @@ kodenya identik dengan produksi.
 """
 
 import os
+import tempfile
+
+import pytest
 
 os.environ.setdefault("OSN_PBKDF2_ITERASI", "1000")
 
@@ -20,3 +23,21 @@ os.environ.setdefault("OSN_PBKDF2_ITERASI", "1000")
 # yang dibuat saat collection. Test rollout menghapus/mengganti env ini untuk
 # menguji default image jembatan dan override warisan. Tidak masuk image app.
 os.environ.setdefault("OSN_MATEMATIKA_VERSI", "2")
+
+
+@pytest.fixture(autouse=True)
+def storage_ai_sintetis(monkeypatch):
+    """Setiap test memakai ledger AI privat sendiri; tidak pernah /data/nyata."""
+    import sys
+    from pathlib import Path
+
+    mesin = str(Path(__file__).resolve().parent.parent)
+    if mesin not in sys.path:
+        sys.path.insert(0, mesin)
+    import ai_store
+
+    with tempfile.TemporaryDirectory(prefix="osn-ai-test-") as direktori:
+        path = Path(direktori) / "ai-control.db"
+        monkeypatch.setenv("AI_BERKAS_DB", str(path))
+        ai_store.siapkan(path, sekarang=1)
+        yield

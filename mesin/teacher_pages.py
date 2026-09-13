@@ -357,11 +357,12 @@ def _topbar(pengguna: str, peran: str) -> str:
 
     Menu dari <details> CSS-only — tanpa JS. Gemboknya nama akun + badge
     peran supaya keluhan "cuma teks polos" hilang: batas menunya jelas.
-    Isinya menyesuaikan peran (guru: pintu keluarga; admin: dashboard
-    admin + ganti sandi), dan keluar tinggal satu pintu yang sama."""
+    Isinya menyesuaikan peran (guru: pintu keluarga; admin: dashboard,
+    pengaturan AI, dan ganti sandi), lalu satu pintu keluar."""
     if peran == "admin":
         brand_href, item = "/admin", (
             '<a href="/admin">Dashboard admin</a>'
+            '<a href="/admin/ai">Pengaturan AI</a>'
             '<a href="/akun?section=akun">Ganti sandi</a>'
         )
     else:
@@ -391,6 +392,7 @@ def _topbar_stitch(pengguna: str, peran: str) -> str:
     if peran == "admin":
         brand_href, item = "/admin", (
             '<a href="/admin">Dashboard admin</a>'
+            '<a href="/admin/ai">Pengaturan AI</a>'
             '<a href="/akun?section=akun">Ganti sandi</a>'
         )
     else:

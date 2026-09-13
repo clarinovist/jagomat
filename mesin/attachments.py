@@ -190,7 +190,12 @@ def _ekstraksi_untuk(kon, sesi_id: int, isi: bytes) -> tuple[str, str]:
     total = len(database.isi_sesi(kon, sesi_id))
     b64 = base64.b64encode(isi).decode()
     konteks = _teks_konteks(kon, sesi_id)
-    hasil = llm.ekstrak_lembar(konteks, b64)
+    pemilik = kon.execute(
+        """SELECT w.pemilik FROM sesi se JOIN siswa w ON w.id=se.siswa_id
+           WHERE se.id=?""", (sesi_id,),
+    ).fetchone()
+    with llm.gunakan_bucket_akun(pemilik["pemilik"] if pemilik else None):
+        hasil = llm.ekstrak_lembar(konteks, b64)
     if hasil is None:
         return "", (
             "Foto tersimpan, tapi AI tidak bisa membaca lembar dengan yakin. "

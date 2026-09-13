@@ -38,13 +38,20 @@ class _TanpaRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def kirim(config: Konfigurasi, pesan: list[dict[str, str]]) -> dict:
+def kirim(
+    config: Konfigurasi, pesan: list[dict[str, str]], *, max_tokens: int = 1200,
+    timeout: int = BATAS_WAKTU_DETIK,
+) -> dict:
     """Kirim request terbatas; redirect, response besar, dan JSON rusak gagal."""
+    if type(max_tokens) is not int or not 1 <= max_tokens <= 8000:
+        raise ValueError("Batas token provider tidak sah.")
+    if type(timeout) is not int or not 1 <= timeout <= BATAS_WAKTU_DETIK:
+        raise ValueError("Batas waktu provider tidak sah.")
     tubuh = json.dumps({
         "model": config.model,
         "messages": pesan,
         "temperature": 0.4,
-        "max_tokens": 1200,
+        "max_tokens": max_tokens,
         "response_format": {"type": "json_object"},
     }, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     req = urllib.request.Request(
@@ -58,7 +65,7 @@ def kirim(config: Konfigurasi, pesan: list[dict[str, str]]) -> dict:
     )
     try:
         pembuka = urllib.request.build_opener(_TanpaRedirect())
-        with pembuka.open(req, timeout=BATAS_WAKTU_DETIK) as respons:
+        with pembuka.open(req, timeout=timeout) as respons:
             panjang = respons.headers.get("Content-Length") if respons.headers else None
             if panjang and int(panjang) > BATAS_RESPONS_BYTE:
                 raise GalatProvider("respons terlalu besar")
