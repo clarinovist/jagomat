@@ -104,11 +104,11 @@ record anak.
    atau `RECOVERY_SHA` hanya agar candidate lolos.
 2. Fingerprint candidate/recovery wajib identik sebelum stop pada **kedua jalur**
    rutin dan `deploy-v2`; approval operator bukan bukti recovery kompatibel.
-   Recovery pinned lama masih AI1 dan tidak memenuhi kontrak kandidat admin baru:
-   rilis ini **tertahan sebelum swap**, bukan mencoba rollback binary lama setelah
-   startup migrasi. Routine juga menuntut current/policy cocok. Jangan mengganti
-   pin/hash policy demi lolos. Versi deployer yang ditingkatkan pun belum dipasang
-   di VPS; rollout admin membutuhkan prosedur dan approval exact tersendiri.
+   Recovery workflow dipin ke `33e241c18024190f41ebca1986e35af26c0397fd`, baseline
+   pertama dengan admin4/AI2 dan aplikasi yang sama. Kedua image tetap wajib
+   lolos probe schema/auth dan fingerprint; pin sendiri bukan bukti compatibility.
+   Routine juga menuntut current/policy cocok. Status instalasi deployer dan
+   hasil rollout dicatat terpisah; migrasi tetap perlu approval exact.
 3. Jalankan migrasi hanya di bawah write hold menggunakan jalur `deploy-v2` dan
    approval sekali pakai exact pair. Jangan membuka writer sebelum schema/readiness
    serta integrity/FK seluruh durable state lolos.
