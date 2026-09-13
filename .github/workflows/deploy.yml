@@ -18,8 +18,8 @@ permissions:
 env:
   REGISTRI: ghcr.io
   IMAGE: ${{ github.repository }}
-  # Turunan be4ab00: UI sebelumnya/backend v4 + fix penutupan transport HTTP.
-  RECOVERY_SHA: bc9c973b50eb1fb04edd37df62f71ba0123f29c6
+  # Baseline recovery pertama yang memahami storage pengendali AI terpisah.
+  RECOVERY_SHA: 90c1aa128c2d124e4056c5f99a1407729fcd55fa
 
 jobs:
   # Kedua suite memakai runner terpisah; build menunggu keduanya lulus.
@@ -45,10 +45,10 @@ jobs:
     name: Test recovery
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout recovery backend v4 dengan UI sebelumnya
+      - name: Checkout recovery yang memahami pengendali AI
         uses: actions/checkout@v7
         with:
-          ref: bc9c973b50eb1fb04edd37df62f71ba0123f29c6
+          ref: 90c1aa128c2d124e4056c5f99a1407729fcd55fa
           path: recovery
       - uses: actions/setup-python@v7
         with:
@@ -85,7 +85,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/checkout@v7
         with:
-          ref: bc9c973b50eb1fb04edd37df62f71ba0123f29c6
+          ref: 90c1aa128c2d124e4056c5f99a1407729fcd55fa
           path: recovery
       - uses: docker/setup-buildx-action@v4
       - name: Masuk ke GHCR

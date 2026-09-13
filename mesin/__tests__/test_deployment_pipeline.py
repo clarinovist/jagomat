@@ -6,7 +6,7 @@ import pytest
 
 AKAR = Path(__file__).resolve().parents[2]
 WORKFLOW = AKAR / '.github/workflows/deploy.yml'
-RECOVERY_SHA = 'bc9c973b50eb1fb04edd37df62f71ba0123f29c6'
+RECOVERY_SHA = '90c1aa128c2d124e4056c5f99a1407729fcd55fa'
 
 
 def _job(teks, nama):

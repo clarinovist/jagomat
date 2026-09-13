@@ -58,7 +58,8 @@ PENGAMAN = ("--user", "10001:10001", "--cap-drop", "ALL", "--security-opt",
 ENV_TETAP = (
     "OSN_BERKAS_SANDI=/data/sandi.json", "OSN_BERKAS_SESI=/data/sesi.json",
     "OSN_BERKAS_DB=/data/latihan.db", "PENDAMPING_BERKAS_DB=/data/pendamping.db",
-    "OSN_FOLDER_LEMBAR=/data/lembar", "PENDAMPING_AKTIF=1",
+    "AI_BERKAS_DB=/data/ai-control.db", "OSN_FOLDER_LEMBAR=/data/lembar",
+    "PENDAMPING_AKTIF=1",
     "DEEPSEEK_MODEL=deepseek-flash", "DEEPSEEK_VISION_MODEL=deepseek-flash",
     "PYTHONDONTWRITEBYTECODE=1",
     "PYTHONUNBUFFERED=1",
@@ -67,12 +68,15 @@ ENV_TETAP = (
 # Hanya berjalan dalam container synthetic network-none, tanpa mount/secret host.
 PROBE_IMAGE = '''import sqlite3
 from pathlib import Path
+import ai_store
 import assistant_schema
 import database
 assert assistant_schema.VERSI_SKEMA == 4
+assert ai_store.VERSI_SKEMA == 1
 for _ in range(2):
     assistant_schema.siapkan(Path('/data/pendamping.db'))
     database.siapkan(Path('/data/latihan.db'))
+    ai_store.siapkan(Path('/data/ai-control.db'), sekarang=1)
 with sqlite3.connect('file:/data/pendamping.db?mode=ro', uri=True) as kon:
     kon.execute('PRAGMA query_only = ON')
     assert kon.execute('PRAGMA user_version').fetchone()[0] == 4
@@ -80,7 +84,11 @@ with sqlite3.connect('file:/data/pendamping.db?mode=ro', uri=True) as kon:
 with sqlite3.connect('file:/data/latihan.db?mode=ro', uri=True) as kon:
     kon.execute('PRAGMA query_only = ON')
     assert kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='eksekusi_pendamping'").fetchone()
-print('OSN_IMAGE_V4_OK')
+with sqlite3.connect('file:/data/ai-control.db?mode=ro', uri=True) as kon:
+    kon.execute('PRAGMA query_only = ON')
+    assert kon.execute('PRAGMA user_version').fetchone()[0] == 1
+    assert kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='ledger'").fetchone()
+print('OSN_IMAGE_V4_AI1_OK')
 '''
 
 # Tidak mengimpor aplikasi: import/startup tertentu dapat melakukan migrasi.
@@ -88,11 +96,14 @@ print('OSN_IMAGE_V4_OK')
 PROBE_SKEMA = '''import ast
 import sqlite3
 from pathlib import Path
-pohon = ast.parse(Path('/app/assistant_schema.py').read_text())
-versi = [node.value.value for node in pohon.body
-         if isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant)
-         and any(isinstance(t, ast.Name) and t.id == 'VERSI_SKEMA' for t in node.targets)]
-assert versi == [4]
+akar_app = Path('/app')
+def versi_source(nama):
+    pohon = ast.parse((akar_app / nama).read_text())
+    return [node.value.value for node in pohon.body
+            if isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant)
+            and any(isinstance(t, ast.Name) and t.id == 'VERSI_SKEMA' for t in node.targets)]
+assert versi_source('assistant_schema.py') == [4]
+assert versi_source('ai_store.py') == [1]
 for nama, tabel in [('pendamping.db', 'tinjauan_usulan'), ('latihan.db', 'eksekusi_pendamping')]:
     kon = sqlite3.connect('file:/data/' + nama + '?mode=ro', uri=True, timeout=2)
     try:
@@ -102,7 +113,14 @@ for nama, tabel in [('pendamping.db', 'tinjauan_usulan'), ('latihan.db', 'ekseku
         assert kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (tabel,)).fetchone()
     finally:
         kon.close()
-print('OSN_SCHEMA_V4_OK')
+kon = sqlite3.connect('file:/data/ai-control.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only = ON')
+    assert kon.execute('PRAGMA user_version').fetchone()[0] == 1
+    assert kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='ledger'").fetchone()
+finally:
+    kon.close()
+print('OSN_SCHEMA_V4_AI1_OK')
 '''
 
 
@@ -404,7 +422,7 @@ class Docker:
             ["image", "inspect", "--format", "{{json .RepoDigests}}", image]))
         if not isinstance(daftar, list) or image not in daftar:
             raise Ditolak()
-        if self._probe(image, PROBE_IMAGE) != "OSN_IMAGE_V4_OK":
+        if self._probe(image, PROBE_IMAGE) != "OSN_IMAGE_V4_AI1_OK":
             raise Ditolak()
         return identitas
 
@@ -484,7 +502,7 @@ class Docker:
         return self._panggil(
             ["exec", "-i", KONTAINER, "python", "-E", "-B", "-"],
             batas=10, masukan=PROBE_SKEMA,
-        ) == "OSN_SCHEMA_V4_OK"
+        ) == "OSN_SCHEMA_V4_AI1_OK"
 
 
 class _TanpaRedirect(urllib.request.HTTPRedirectHandler):

@@ -91,7 +91,7 @@ def test_verifier_recovery_memilih_kontrak_pinned_dan_meneruskan_revision(
         run=subprocess.CompletedProcess([], 0, json.dumps(ringkasan), ""),
     )
     hasil = verifier.verifikasi(IMAGE, RECOVERY_REVISION)
-    assert hasil["probe"]["http_contract"] == verifier.KONTRAK_RECOVERY
+    assert hasil["probe"]["http_contract"] == verifier.KONTRAK_RECOVERY_LEGACY
     argv = panggilan[1][0]
     assert "OSN_RELEASE_REVISION=" + RECOVERY_REVISION in argv
 

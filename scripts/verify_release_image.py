@@ -15,14 +15,17 @@ import subprocess
 import sys
 
 REPOSITORI = "ghcr.io/clarinovist/osn-mesin-latihan"
-REVISION_RECOVERY = "bc9c973b50eb1fb04edd37df62f71ba0123f29c6"
+REVISION_RECOVERY_LEGACY = "bc9c973b50eb1fb04edd37df62f71ba0123f29c6"
 KONTRAK_CANDIDATE = "candidate-inline-v1"
-KONTRAK_RECOVERY = "recovery-standalone-v1"
+KONTRAK_RECOVERY_LEGACY = "recovery-standalone-v1"
 
 
 def kontrak_untuk_revision(revision: str) -> str:
     """Pilih kontrak HTTP berdasarkan revision image yang sudah diverifikasi."""
-    return KONTRAK_RECOVERY if revision == REVISION_RECOVERY else KONTRAK_CANDIDATE
+    return (
+        KONTRAK_RECOVERY_LEGACY
+        if revision == REVISION_RECOVERY_LEGACY else KONTRAK_CANDIDATE
+    )
 
 
 def ringkasan_untuk_revision(revision: str) -> dict:

@@ -129,7 +129,7 @@ class RunnerPalsu:
                 hasil = "b" * 40
         elif a[0] == "run" and "--rm" in a:
             label = "probe-" + self.image_nama(a[a.index("--entrypoint") + 2])
-            hasil = "OSN_IMAGE_V4_OK"
+            hasil = "OSN_IMAGE_V4_AI1_OK"
             if kwargs["input"] == d.PROBE_KONTRAK:
                 label = "contract-" + self.image_nama(a[a.index("--entrypoint") + 2])
                 hasil = "f" * 64
@@ -171,7 +171,7 @@ class RunnerPalsu:
                     self.exists = False
         elif a[0] == "exec":
             label = "schema-" + self.current
-            hasil = "OSN_SCHEMA_V4_OK"
+            hasil = "OSN_SCHEMA_V4_AI1_OK"
         else:
             raise AssertionError("argv tak dikenal")
         self.jejak.append(label)
@@ -620,8 +620,11 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
     # Tidak import aplikasi sehingga tidak mungkin menjalankan startup/migrasi.
     schema = tmp_path / "assistant_schema.py"
     schema.write_text("VERSI_SKEMA = 4\nraise RuntimeError('jangan import')\n")
+    ai_schema = tmp_path / "ai_store.py"
+    ai_schema.write_text("VERSI_SKEMA = 1\nraise RuntimeError('jangan import')\n")
     privat = tmp_path / "pendamping.db"
     belajar = tmp_path / "latihan.db"
+    ai = tmp_path / "ai-control.db"
     with sqlite3.connect(privat) as kon:
         kon.execute("PRAGMA user_version = " + str(versi))
         kon.execute("CREATE TABLE tinjauan_usulan (id TEXT)")
@@ -629,15 +632,19 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
         kon.execute("CREATE TABLE sesi (id INTEGER)")
         if ledger:
             kon.execute("CREATE TABLE eksekusi_pendamping (id TEXT)")
-    sebelum = (privat.read_bytes(), belajar.read_bytes())
-    script = d.PROBE_SKEMA.replace("/app/assistant_schema.py", str(schema)).replace(
-        "file:/data/", "file:" + str(tmp_path) + "/")
+    with sqlite3.connect(ai) as kon:
+        kon.execute("PRAGMA user_version = 1")
+        kon.execute("CREATE TABLE ledger (id TEXT)")
+    sebelum = (privat.read_bytes(), belajar.read_bytes(), ai.read_bytes())
+    script = d.PROBE_SKEMA.replace(
+        "akar_app = Path('/app')", "akar_app = Path(" + repr(str(tmp_path)) + ")"
+    ).replace("file:/data/", "file:" + str(tmp_path) + "/")
     hasil = subprocess.run([sys.executable, "-E", "-B", "-"], input=script,
                            capture_output=True, text=True, timeout=10, check=False, shell=False)
     assert hasil.returncode == expected
-    assert (privat.read_bytes(), belajar.read_bytes()) == sebelum
+    assert (privat.read_bytes(), belajar.read_bytes(), ai.read_bytes()) == sebelum
     if expected == 0:
-        assert hasil.stdout.strip() == "OSN_SCHEMA_V4_OK"
+        assert hasil.stdout.strip() == "OSN_SCHEMA_V4_AI1_OK"
     else:
         assert "AssertionError" in hasil.stderr
     assert "mode=ro" in d.PROBE_SKEMA and "query_only = ON" in d.PROBE_SKEMA
@@ -764,16 +771,20 @@ def test_probe_image_synthetic_subprocess_python_saja(tmp_path):
                            cwd=tmp_path, capture_output=True, text=True,
                            timeout=30, check=False, shell=False)
     assert hasil.returncode == 0, hasil.stderr
-    assert hasil.stdout.strip() == "OSN_IMAGE_V4_OK"
+    assert hasil.stdout.strip() == "OSN_IMAGE_V4_AI1_OK"
     assert (tmp_path / "latihan.db").exists()
     assert (tmp_path / "pendamping.db").exists()
+    assert (tmp_path / "ai-control.db").exists()
 
 
 def test_health_db_hilang_tidak_dibuat(tmp_path):
     schema = tmp_path / "assistant_schema.py"
     schema.write_text("VERSI_SKEMA = 4\n")
-    script = d.PROBE_SKEMA.replace("/app/assistant_schema.py", str(schema)).replace(
-        "file:/data/", "file:" + str(tmp_path) + "/")
+    ai_schema = tmp_path / "ai_store.py"
+    ai_schema.write_text("VERSI_SKEMA = 1\n")
+    script = d.PROBE_SKEMA.replace(
+        "akar_app = Path('/app')", "akar_app = Path(" + repr(str(tmp_path)) + ")"
+    ).replace("file:/data/", "file:" + str(tmp_path) + "/")
     hasil = subprocess.run([sys.executable, "-E", "-B", "-"], input=script,
                            capture_output=True, text=True, timeout=10, check=False, shell=False)
     assert hasil.returncode != 0
@@ -1075,7 +1086,8 @@ def test_env_tetap_known_live_tanpa_semantic_baru():
     assert set(d.ENV_TETAP) == {
         "OSN_BERKAS_SANDI=/data/sandi.json", "OSN_BERKAS_SESI=/data/sesi.json",
         "OSN_BERKAS_DB=/data/latihan.db", "PENDAMPING_BERKAS_DB=/data/pendamping.db",
-        "OSN_FOLDER_LEMBAR=/data/lembar", "PENDAMPING_AKTIF=1",
+        "AI_BERKAS_DB=/data/ai-control.db", "OSN_FOLDER_LEMBAR=/data/lembar",
+        "PENDAMPING_AKTIF=1",
         "DEEPSEEK_MODEL=deepseek-flash", "DEEPSEEK_VISION_MODEL=deepseek-flash",
         "PYTHONDONTWRITEBYTECODE=1", "PYTHONUNBUFFERED=1",
     }

@@ -1,11 +1,11 @@
 # Rilis Pendamping v4 — deploy rutin dan migrasi terkontrol
 
-Status inspeksi **12 September 2026 sekitar 14.00 WIB**: migrasi v4 sudah selesai,
-container sehat revision `91d928979c8aa36284da591d28e4e57c9103cdf3`, digest
-`sha256:605e820e0ceba5b24c66dac2f8dce0e1534f6ffc84cbbcf95dd4a63317c00179`.
-Kedua DB integrity OK/FK 0; recovery revision `bc9c973b50eb1fb04edd37df62f71ba0123f29c6`
-tersedia. Ini snapshot read-only, bukan jaminan keadaan live setelah tanggal itu.
-**Pengaktifan deploy rutin masih tahap bootstrap terpisah**, bukan sudah aktif.
+Status inspeksi **13 September 2026 sekitar 09.50 WIB**: produksi masih sehat
+di revision `4d5618d5fbb162f72c9a88397976c353ee62b88e`. Deploy kandidat
+`90c1aa128c2d124e4056c5f99a1407729fcd55fa` ditolak pada preflight karena
+menambah kontrak persistensi `ai-control.db`; container lama tidak disentuh.
+Repository variable deploy rutin sudah dinonaktifkan selama rollout terkontrol.
+Snapshot ini bukan jaminan keadaan live setelah tanggal tersebut.
 Panduan [CLAUDE.md](../CLAUDE.md), [kontrak runtime](pendamping-runtime.md), dan
 izin operasi produksi tetap berlaku. Data keluarga/credential tidak masuk repo.
 
@@ -115,10 +115,16 @@ fingerprint atau mengganti hash policy sekadar agar deploy hijau.
    mencabut izin host di bawah lock deploy (menghentikan kelayakan baru, bukan
    membatalkan swap yang sudah berjalan). Tidak menghapus receipt/backup lama.
 
-Recovery pinned berarti versi UI/backend yang dipulihkan dapat lebih lama dari
-rilis terakhir. Setiap pembaruan recovery harus diuji dan direview; label revision
+Recovery pinned untuk rollout pengendali AI adalah
+`90c1aa128c2d124e4056c5f99a1407729fcd55fa`, baseline pertama yang memahami
+`ai-control.db`. Setiap pembaruan recovery harus diuji dan direview; label revision
 sendiri bukan bukti kompatibilitas. Preflight kontrak/live readiness tetap wajib.
 Deploy rutin tidak menyediakan restore data atau zero-downtime.
+
+Rollout satu kali ini wajib memakai `deploy-v2`: backup konsisten DB belajar dan
+Pendamping lebih dulu, lalu migrasi/startup membuat DB pengendali AI. Sesudah
+candidate sehat, backup berikutnya mencakup ketiga DB dan policy rutin diperbarui
+ke fingerprint kandidat/recovery yang identik.
 
 ## Recovery berbeda dari candidate
 
