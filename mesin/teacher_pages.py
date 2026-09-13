@@ -920,7 +920,10 @@ def halaman_anak(
         '<div class="kepala-riwayat-st">'
         '<h2 class="st">Riwayat latihan</h2>'
         f'<a class="tautan-laporan-st" href="/laporan/{siswa["id"]}">'
-        '<span class="material-symbols-outlined" aria-hidden="true">trending_up</span>'
+        '<svg class="ikon-laporan-st" viewBox="0 0 24 24" aria-hidden="true" '
+        'focusable="false" fill="none" stroke="currentColor" stroke-width="2" '
+        'stroke-linecap="round" stroke-linejoin="round">'
+        '<path d="M4 19V10M10 19V5M16 19v-7M22 19V8"/></svg>'
         'Lihat laporan perkembangan <span aria-hidden="true">&rarr;</span></a>'
         "</div>"
         f'<div class="daftar-anak">{item}</div>'

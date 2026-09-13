@@ -602,7 +602,9 @@ tr.sorot-baru, div.sorot-baru {{
   min-height: {T.TARGET_SENTUH};
 }}
 .tautan-laporan-st:hover {{ text-decoration: underline; }}
-.tautan-laporan-st .material-symbols-outlined {{ font-size: 1.1rem; }}
+.tautan-laporan-st .ikon-laporan-st {{
+  width: 1.1rem; height: 1.1rem; flex: none;
+}}
 
 .kartu-sesi-guru {{
   align-items: flex-start; padding: {T.SP_4};

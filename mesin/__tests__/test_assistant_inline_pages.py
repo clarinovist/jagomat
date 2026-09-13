@@ -86,12 +86,14 @@ def test_persetujuan_memuat_retensi_penerima_dan_kebijakan_lengkap():
     assert 'href="/kebijakan-privasi"' in panel
 
 
-@pytest.mark.parametrize("jenis,teks_wajib,teks_dilarang", [
-    ("anak", "tahap, level, dan tanggal ketersediaan", "jumlah soal sesi"),
-    ("sesi", "topik, status, level, dan jumlah soal sesi", "tanggal ketersediaan"),
-    ("soal", "Teks soal resmi, kunci, dan pembahasan", "jumlah soal sesi"),
+@pytest.mark.parametrize("jenis,teks_wajib,pengecualian,teks_dilarang", [
+    ("anak", "tahap, level, dan tanggal ketersediaan", "bukan seluruh catatan anak", "jumlah soal sesi"),
+    ("sesi", "topik, status, level, dan jumlah soal sesi", "bukan jawaban atau koreksi anak", "tanggal ketersediaan"),
+    ("soal", "Teks soal resmi, kunci, dan pembahasan", "Jawaban dan cara anak tidak ikut dikirim", "jumlah soal sesi"),
 ])
-def test_copy_konteks_tepat_untuk_tiga_jenis(jenis, teks_wajib, teks_dilarang):
+def test_copy_konteks_tepat_untuk_tiga_jenis(
+    jenis, teks_wajib, pengecualian, teks_dilarang
+):
     target = (assistant_inline.tujuan_anak(7) if jenis == "anak" else
               assistant_inline.tujuan_sesi(42) if jenis == "sesi" else
               assistant_inline.tujuan_sesi(42, nomor=3))
@@ -103,6 +105,9 @@ def test_copy_konteks_tepat_untuk_tiga_jenis(jenis, teks_wajib, teks_dilarang):
         target, konteks, sumber={"label": jenis, "level": "P3"}
     )
     assert teks_wajib in panel
+    assert pengecualian in panel
+    assert "layanan AI eksternal untuk Pendamping Jagomat" in panel
+    assert "DeepSeek" not in panel
     assert teks_dilarang not in panel
 
 

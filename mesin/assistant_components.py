@@ -52,9 +52,9 @@ def panel_persetujuan(target, *, sumber, dalam_form: bool = False, galat: str = 
 
 def panel_konteks(target, konteks, *, sumber, dalam_form: bool = False, galat: str = "") -> str:
     penjelasan = {
-        "soal": "Teks soal resmi, kunci, dan pembahasan akan dikirim ke DeepSeek. Jawaban dan cara anak tidak ikut dikirim.",
-        "sesi": "Ringkasan topik, status, level, dan jumlah soal sesi akan dikirim ke DeepSeek; bukan jawaban atau koreksi anak.",
-        "anak": "Ringkasan netral tahap, level, dan tanggal ketersediaan akan dikirim ke DeepSeek; bukan seluruh catatan anak.",
+        "soal": "Teks soal resmi, kunci, dan pembahasan akan dikirim ke layanan AI eksternal untuk Pendamping Jagomat. Jawaban dan cara anak tidak ikut dikirim.",
+        "sesi": "Ringkasan topik, status, level, dan jumlah soal sesi akan dikirim ke layanan AI eksternal untuk Pendamping Jagomat; bukan jawaban atau koreksi anak.",
+        "anak": "Ringkasan netral tahap, level, dan tanggal ketersediaan akan dikirim ke layanan AI eksternal untuk Pendamping Jagomat; bukan seluruh catatan anak.",
     }[konteks.jenis]
     isi = (
         _identitas_target(target)

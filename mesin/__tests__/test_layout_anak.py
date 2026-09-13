@@ -276,16 +276,26 @@ def test_halaman_anak_kembali_ke_semua_anak(anak):
     assert "&larr; Daftar anak" not in markup
 
 
-def test_kepala_riwayat_memuat_tautan_laporan(anak):
-    """Laporan adalah tindakan dari riwayat, bukan anak kalimat di bawah nama."""
+@pytest.mark.parametrize("privat", [False, True])
+def test_kepala_riwayat_memuat_tautan_laporan_dengan_svg_inline(anak, privat):
+    """Ikon laporan tetap nyata tanpa bergantung pada font di host privat."""
     db, sid = anak
-    markup = _tanpa_gaya(_render_anak(db, sid))
+    with database.buka(db) as kon:
+        siswa = kon.execute("SELECT * FROM siswa WHERE id = ?", (sid,)).fetchone()
+        markup = _tanpa_gaya(teacher_pages.halaman_anak(
+            kon, siswa, peran="guru", pengguna="ortu", privat=privat,
+        ).decode())
     kepala = markup[markup.index('class="kepala-riwayat-st"'):]
     kepala = kepala[:kepala.index("</div>")]
     assert "Riwayat latihan" in kepala
-    assert f'href="/laporan/{sid}"' in kepala
+    assert f'<a class="tautan-laporan-st" href="/laporan/{sid}">' in kepala
     assert "Lihat laporan perkembangan" in kepala
     assert "History latihan" not in markup
+    assert "trending_up" not in kepala
+    assert '<svg class="ikon-laporan-st"' in kepala
+    assert 'aria-hidden="true"' in kepala
+    assert 'focusable="false"' in kepala
+    assert 'stroke="currentColor"' in kepala
 
 
 def test_kartu_sesi_mengutamakan_topik_dan_metadata_ramah(db):
