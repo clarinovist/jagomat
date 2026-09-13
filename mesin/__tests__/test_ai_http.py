@@ -36,6 +36,10 @@ def test_hanya_admin_bisa_membaca_dan_angka_default_tampil(server):
     assert "DEEPSEEK_API_KEY" not in isi
     assert 'name="request_akun_harian"' in isi
     assert 'value="20"' in isi
+    assert header["Cache-Control"] == "no-store"
+    assert header["Referrer-Policy"] == "no-referrer"
+    assert header["X-Frame-Options"] == "DENY"
+    assert "noindex" in header["X-Robots-Tag"]
 
 
 def test_get_admin_ai_tidak_memanggil_provider(server, monkeypatch):

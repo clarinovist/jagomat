@@ -82,15 +82,15 @@ def tangani_get(penangan, jalur):
         return False
     principal = _principal_admin(penangan)
     if principal is None:
-        penangan._kirim(b"Tidak diizinkan", 404)
+        penangan._kirim_privat(b"Tidak diizinkan", 404)
         return True
     if not ai_service.siap():
-        penangan._kirim(b"Penyimpanan pengaturan AI belum disiapkan.", 503)
+        penangan._kirim_privat(b"Penyimpanan pengaturan AI belum disiapkan.", 503)
         return True
     isi = ai_pages.halaman(
         ai_service.path_store(), pengguna=principal[0], csrf=_csrf(penangan, principal[1]) or "",
     )
-    penangan._kirim(isi)
+    penangan._kirim_privat(isi)
     return True
 
 
@@ -99,7 +99,7 @@ def tangani_post(penangan, jalur):
         return False
     principal = _principal_admin(penangan)
     if principal is None:
-        penangan._kirim(b"Tidak diizinkan", 404)
+        penangan._kirim_privat(b"Tidak diizinkan", 404)
         return True
     try:
         data = _baca_form(penangan)
@@ -138,13 +138,13 @@ def tangani_post(penangan, jalur):
                 raise ValueError("Respons tes tidak sesuai kontrak.")
             lokasi = "/admin/ai?pesan=" + urllib.parse.quote("Koneksi sintetis berhasil.")
     except ai_store.Ditolak as galat:
-        penangan._kirim(html.escape(str(galat)).encode(), 409)
+        penangan._kirim_privat(html.escape(str(galat)).encode(), 409)
         return True
     except PermissionError as galat:
-        penangan._kirim(html.escape(str(galat)).encode(), 403)
+        penangan._kirim_privat(html.escape(str(galat)).encode(), 403)
         return True
     except (ValueError, KeyError, ai_service.AIUnavailable, assistant_client.GalatProvider) as galat:
-        penangan._kirim(html.escape(str(galat)).encode(), 400)
+        penangan._kirim_privat(html.escape(str(galat)).encode(), 400)
         return True
     penangan.send_response(303)
     penangan.send_header("Location", lokasi)
