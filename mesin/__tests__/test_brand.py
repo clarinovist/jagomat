@@ -27,6 +27,9 @@ ROOT = Path(__file__).resolve().parent.parent
 @pytest.fixture()
 def server(tmp_path, monkeypatch):
     s = ServerUji(tmp_path, monkeypatch)
+    # Pendaftaran terbuka membutuhkan penandatangan admin, sebagaimana startup.
+    import auth
+    auth.tambah_akun("pengelola-brand", "sandi-brand-sintetis-123", "admin")
     with s.buka() as kon:
         # pemilik distempel eksplisit — palang kepemilikan menolak id yang
         # bukan milik guru dengan 404, dan itu bukan yang sedang diuji.

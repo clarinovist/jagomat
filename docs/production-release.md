@@ -128,12 +128,16 @@ ke fingerprint kandidat/recovery yang identik.
 
 ## Recovery berbeda dari candidate
 
-Recovery dibangun dari pinned commit backend v4
+Recovery historis rollout Pendamping v4 dibangun dari commit backend
 `bc9c973b50eb1fb04edd37df62f71ba0123f29c6`: UI sebelum redesign, guard
 tinjauan server, catatan eksekusi dan idempotensi tahan crash, ditambah perbaikan
 penutupan transport HTTP yang sama dengan kandidat.
-Recovery bukan image produksi lama, bukan perubahan konstanta schema saja,
-dan bukan memilih kembali candidate yang sama ketika gagal.
+Recovery historis itu bukan image produksi lama, bukan perubahan konstanta
+schema saja, dan bukan memilih kembali candidate yang sama ketika gagal.
+**Pin workflow saat ini adalah `90c1aa128c2d124e4056c5f99a1407729fcd55fa`**, seperti
+bagian pengendali AI di atas, bukan commit historis `bc9c973`. Keduanya bukan
+recovery kompatibel otomatis untuk admin-control schema4/AI2; rilis admin baru
+tertahan sampai pasangan recovery dan approval rollout yang sesuai tersedia.
 
 `verify_release_image.py` menjalankan probe stdlib lewat stdin ke image digest
 tertentu, non-root, filesystem read-only, tmpfs sintetis dan `--network none`.

@@ -70,7 +70,8 @@ def _topbar_publik_st() -> str:
 
 
 def halaman_daftar(
-    pesan: str = "", galat: bool = False, nama: str = ""
+    pesan: str = "", galat: bool = False, nama: str = "", *,
+    pendaftaran_dibuka: bool = True, token_form: str = "", belum_tersedia: bool = False,
 ) -> bytes:
     """Form pendaftaran mandiri pendamping (orang tua / guru / les).
 
@@ -87,7 +88,22 @@ def halaman_daftar(
             f'<b>{judul_pesan}</b><p>{html.escape(pesan)}</p></div>'
         )
     deskripsi = ' aria-describedby="pesan-daftar"' if pesan else ""
+    if not pendaftaran_dibuka:
+        judul_status = 'Pendaftaran sementara belum tersedia' if belum_tersedia else 'Pendaftaran baru sedang ditutup'
+        isi = f"""
+<main class="daftar-editorial-st" aria-labelledby="judul-daftar">
+{_topbar_publik_st()}<div class="daftar-panel-st">
+<section class="publik-kartu-st daftar-kartu-st" aria-labelledby="judul-daftar">
+<p class="daftar-alis-st">PENDAFTARAN</p><h1 id="judul-daftar">{judul_status}</h1>
+<p class="publik-sub-st">Akun yang sudah terdaftar tetap bisa masuk.</p>{kotak}
+<p><a class="masuk-tombol-st" href="/masuk">Masuk ke akun</a></p>
+</section></div></main>"""
+        return _halaman_publik_stitch(f"Daftar — {T.NAMA_PRODUK}", isi)
 
+    token = (
+        f'<input type="hidden" name="token_form" value="{html.escape(token_form, quote=True)}">'
+        if token_form else ""
+    )
     isi = f"""
 <main class="daftar-editorial-st" aria-labelledby="judul-daftar">
 {_topbar_publik_st()}
@@ -115,6 +131,7 @@ Akun anak dibuat setelah ini, dari dalam aplikasi.</p>
 </div>
 {kotak}
 <form class="masuk-form-st" method="post" action="/daftar"{deskripsi}>
+  {token}
   <div class="masuk-field-st">
     <label for="nama">Nama pengguna</label>
     <input type="text" id="nama" name="nama" autocomplete="username" required

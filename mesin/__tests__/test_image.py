@@ -69,6 +69,22 @@ def test_copy_dockerfile_paket_utuh_wildcard():
     )
 
 
+def test_helper_readiness_admin_ikut_wildcard_tanpa_state_privat():
+    """Helper F harus tersedia di image tanpa COPY manual atau data backup."""
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    assert (ROOT / "admin_backup.py").is_file()
+    assert "COPY --chown=osn:osn *.py /app/" in dockerfile
+    assert "admin_backup.py" not in dockerfile
+    perintah_copy = "\n".join(
+        baris for baris in dockerfile.splitlines()
+        if baris.lstrip().startswith("COPY ")
+    )
+    assert "sandi.json" not in perintah_copy
+    assert "sesi.json" not in perintah_copy
+    assert "admin-control.db" not in perintah_copy
+    assert "admin-drafts.db" not in perintah_copy
+
+
 def test_semua_modul_root_yang_diimpor_tersalin_wildcard():
     """Wildcard menyalin semua .py root — pastikan tidak ada modul lokal
     yang diimpor titik masuk tapi TIDAK berada di root (subfolder/spesifik

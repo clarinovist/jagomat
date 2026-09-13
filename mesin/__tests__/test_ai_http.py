@@ -67,7 +67,8 @@ def test_admin_bisa_mengubah_semua_pagu_yang_tampil(server):
     import re
     csrf = re.search(r'name="csrf" value="([^"]+)"', isi).group(1)
     data = {
-        "csrf": csrf, "revisi": "1", "request_akun_harian": "25",
+        "csrf": csrf, "tinjauan": re.search(r'name="tinjauan" value="([^"]+)"', isi).group(1),
+        "reauth": SANDI_ADMIN, "revisi": "1", "request_akun_harian": "25",
         "uji_harian": "4", "uji_cooldown_menit": "15",
     }
     for fitur in ("pendamping", "cerita", "lampiran", "uji_sintetis"):

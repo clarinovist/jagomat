@@ -8,11 +8,14 @@ import os
 from pathlib import Path
 import sqlite3
 import time
+import re
+import hashlib
+import json
 
 import ai_policy
 
 BAWAAN = Path(os.environ.get("AI_BERKAS_DB", "/data/ai-control.db"))
-VERSI_SKEMA = 1
+VERSI_SKEMA = 2
 
 _DDL = """
 CREATE TABLE IF NOT EXISTS konfigurasi (
@@ -60,6 +63,22 @@ CREATE TABLE IF NOT EXISTS ledger (
 );
 CREATE INDEX IF NOT EXISTS idx_ledger_periode ON ledger(periode_hari, periode_bulan, fitur);
 CREATE INDEX IF NOT EXISTS idx_ledger_akun ON ledger(bucket_akun, periode_hari);
+CREATE TABLE IF NOT EXISTS audit_uji_admin (
+    operasi_id TEXT PRIMARY KEY,
+    actor_id TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('dicadangkan','selesai','gagal','tak_pasti','dibatalkan')),
+    dibuat INTEGER NOT NULL,
+    selesai INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_uji_admin_waktu ON audit_uji_admin(dibuat);
+CREATE TABLE IF NOT EXISTS operasi_pengaturan_admin (
+    operasi_id TEXT PRIMARY KEY,
+    actor_id TEXT NOT NULL,
+    sidik TEXT NOT NULL,
+    revisi_awal INTEGER NOT NULL,
+    revisi_hasil INTEGER NOT NULL UNIQUE,
+    dibuat INTEGER NOT NULL
+);
 """
 
 
@@ -103,7 +122,7 @@ def siapkan(path=None, *, sekarang=None):
                 "INSERT OR IGNORE INTO batas_fitur VALUES (?,?,?,?)",
                 (fitur, 1, harian, bulanan),
             )
-        kon.execute("PRAGMA user_version = 1")
+        kon.execute("PRAGMA user_version = 2")
     try:
         tujuan.chmod(0o600)
     except OSError:
@@ -139,7 +158,10 @@ def _terpakai(kon, *, hari, bulan, fitur=None):
     return int(harian), int(bulanan)
 
 
-def reservasi(path, operasi_id, fitur, bucket_akun, model, jumlah, *, sekarang=None):
+def reservasi(path, operasi_id, fitur, bucket_akun, model, jumlah, *, sekarang=None, actor_id=None):
+    if actor_id is not None and (fitur != "uji_sintetis" or type(actor_id) is not str
+                                 or re.fullmatch(r"akun_[0-9a-f]{32}", actor_id) is None):
+        raise ValueError("Identitas pengelola tes tidak sah.")
     if fitur not in ai_policy.FITUR or jumlah < 0:
         raise ValueError("Reservasi AI tidak sah.")
     kini = int(time.time()) if sekarang is None else int(sekarang)
@@ -189,6 +211,11 @@ def reservasi(path, operasi_id, fitur, bucket_akun, model, jumlah, *, sekarang=N
             (operasi_id, fitur, bucket_akun, utama["revisi"], model, jumlah,
              hari, bulan, kini),
         )
+        if actor_id is not None:
+            kon.execute(
+                "INSERT INTO audit_uji_admin(operasi_id,actor_id,status,dibuat) VALUES(?,?,'dicadangkan',?)",
+                (operasi_id, actor_id, kini),
+            )
         return Reservasi(operasi_id, fitur, utama["revisi"], jumlah)
 
 
@@ -225,13 +252,33 @@ def selesaikan(path, operasi_id, *, status, biaya=None, input_tokens=None,
                durasi_ms=?, kategori=?, selesai=? WHERE operasi_id=?""",
             (status, biaya, input_tokens, output_tokens, durasi_ms, kategori, kini, operasi_id),
         )
+        kon.execute(
+            "UPDATE audit_uji_admin SET status=?, selesai=? WHERE operasi_id=?",
+            (status, kini, operasi_id),
+        )
         return True
 
 
-def ubah(path, data, actor_id, *, revisi, sekarang=None):
+def ubah(path, data, actor_id, *, revisi, sekarang=None, operasi_id=None):
     kini = int(time.time()) if sekarang is None else int(sekarang)
+    sidik = None
+    if operasi_id is not None:
+        if (type(operasi_id) is not str or re.fullmatch(r'op_[0-9a-f]{32}', operasi_id) is None
+                or type(actor_id) is not str or re.fullmatch(r'akun_[0-9a-f]{32}', actor_id) is None):
+            raise ValueError('Identitas operasi pengaturan tidak sah.')
+        # Nilai sudah berupa konfigurasi nonrahasia terkontrol dari parser.
+        sidik = hashlib.sha256(json.dumps(
+            {'data': data, 'actor': actor_id, 'revisi': revisi},
+            sort_keys=True, separators=(',', ':'), allow_nan=False,
+        ).encode()).hexdigest()
     with buka(path) as kon:
         kon.execute("BEGIN IMMEDIATE")
+        if operasi_id is not None:
+            lama = kon.execute('SELECT sidik,revisi_hasil FROM operasi_pengaturan_admin WHERE operasi_id=?', (operasi_id,)).fetchone()
+            if lama is not None:
+                if lama['sidik'] != sidik:
+                    raise Ditolak('Identitas operasi berubah.')
+                return lama['revisi_hasil']
         utama, batas = konfigurasi(kon)
         if int(utama["revisi"]) != int(revisi):
             raise Ditolak("Pengaturan berubah di tab lain. Tinjau ulang.")
@@ -286,6 +333,11 @@ def ubah(path, data, actor_id, *, revisi, sekarang=None):
             "INSERT INTO audit_konfigurasi(revisi,actor_id,field,lama,baru,dibuat) VALUES(?,?,?,?,?,?)",
             [(revisi_baru, actor_id, n, l, b, kini) for n, l, b in perubahan],
         )
+        if operasi_id is not None:
+            kon.execute(
+                'INSERT INTO operasi_pengaturan_admin VALUES(?,?,?,?,?,?)',
+                (operasi_id, actor_id, sidik, int(revisi), revisi_baru, kini),
+            )
         return revisi_baru
 
 
@@ -305,3 +357,4 @@ def purge(path=None, *, sekarang=None):
     with buka(path) as kon:
         kon.execute("DELETE FROM ledger WHERE dibuat < ? AND status!='dicadangkan'", (kini - 90 * 86400,))
         kon.execute("DELETE FROM audit_konfigurasi WHERE dibuat < ?", (kini - 180 * 86400,))
+        kon.execute("DELETE FROM audit_uji_admin WHERE dibuat < ? AND status!='dicadangkan'", (kini - 180 * 86400,))

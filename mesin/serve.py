@@ -11,17 +11,62 @@ alamat WiFi berubah tiap ganti jaringan, sehingga dicetak saat dijalankan.
 from __future__ import annotations
 
 import argparse
+import os
+import signal
 import socket
 import sys
+from threading import Event, Thread
 from http.server import ThreadingHTTPServer
 
 import ai_store
+import admin_bulk
+import admin_store
+import admin_students
 import database
 import auth
 import sessions
 from web import Penangan
 
 PORT = 8724
+INTERVAL_PEMELIHARAAN_ADMIN = 60
+
+
+class PemeliharaanAdmin:
+    """Purge bounded saat startup dan berkala, bukan bagian permintaan HTTP.
+
+    Draft berlaku 900 detik; penghapusan dijadwalkan paling lambat putaran
+    berikutnya (60 detik), selama storage tersedia dan helper tidak terblokir.
+    Tidak menyimpan rincian galat yang mungkin mengandung path atau data privat.
+    """
+
+    def __init__(self, path_admin, path_transient):
+        self.path_admin = path_admin
+        self.path_transient = path_transient
+        self.berhenti = Event()
+        self.ulir = None
+
+    def _putaran(self):
+        import admin_maintenance
+        try:
+            admin_maintenance.jalankan(self.path_admin, self.path_transient)
+        except Exception:
+            print("Pemeliharaan admin tertunda; akan dicoba pada putaran berikutnya.", file=sys.stderr)
+
+    def _berkala(self):
+        while not self.berhenti.wait(INTERVAL_PEMELIHARAAN_ADMIN):
+            self._putaran()
+
+    def mulai(self):
+        if self.ulir is not None:
+            raise RuntimeError("Pemeliharaan admin sudah dimulai.")
+        self._putaran()
+        self.ulir = Thread(target=self._berkala, name="pemeliharaan-admin", daemon=False)
+        self.ulir.start()
+
+    def tutup(self):
+        self.berhenti.set()
+        if self.ulir is not None:
+            self.ulir.join()
 
 
 def alamat_wifi() -> str:
@@ -46,7 +91,7 @@ def siapkan_admin_dan_pemilik() -> str | None:
     mendapat ID generasi stabil sebelum sesi baru dibuat. Tanpa berkas sandi
     (mode lokal) tidak ada yang diubah.
     """
-    auth.pastikan_id_akun()
+    auth.pastikan_metadata_auth()
     admin = auth.pastikan_admin()
     if admin is None:
         return None
@@ -78,6 +123,13 @@ def main() -> int:
     # proses sudah berjalan tetap fail-closed di guard; bukan dibuat ulang per call.
     ai_store.siapkan()
     ai_store.purge()
+    # Store admin dan receipt siswa hanya dibuat saat startup, bukan dari GET.
+    admin_store.siapkan()
+    admin_students.siapkan(database.BAWAAN)
+    path_transient = os.environ.get(
+        "ADMIN_TRANSIENT_DB", str(admin_store.BAWAAN.parent / "transient" / "admin-drafts.db")
+    )
+    admin_bulk.siapkan_transient(path_transient)
     # Token kedaluwarsa yang menumpuk di sesi.json ikut terbuang tiap kali
     # server dinyalakan (tanda lapangan: belasan token dari masuk-ulang).
     sessions.bersihkan()
@@ -119,12 +171,21 @@ def main() -> int:
     print("Ctrl-C untuk berhenti.")
 
     server = ThreadingHTTPServer((inang, arg.port), Penangan)
+    pemeliharaan = PemeliharaanAdmin(admin_store.BAWAAN, path_transient)
+    def hentikan_teratur(_nomor, _frame):
+        raise KeyboardInterrupt()
+    handler_lama = signal.signal(signal.SIGTERM, hentikan_teratur)
     try:
+        pemeliharaan.mulai()
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nberhenti.")
     finally:
-        server.server_close()
+        try:
+            pemeliharaan.tutup()
+        finally:
+            server.server_close()
+            signal.signal(signal.SIGTERM, handler_lama)
     return 0
 
 

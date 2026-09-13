@@ -33,9 +33,7 @@ import design_tokens as T
 from assistant_navigation import tujuan_lanjut
 from account_pages import (
     PETA_SECTION_AKUN,
-    halaman_admin,
     halaman_akun,
-    proses_admin,
     proses_akun,
 )
 from generator import LEVEL_BAWAAN
@@ -231,47 +229,33 @@ class Penangan(BaseHTTPRequestHandler):
     def _kredensial(self):
         return auth.dari_header(self.headers.get("Authorization"))
 
-    def _sesi_atau_basic(self, peran_wajib: str | None = None):
-        """Kembalikan (pengguna, peran) bila lolos via cookie ATAU Basic.
-
-        Helper kecil untuk rute murid — dipakai di _rute_murid_get dan
-        POST /murid/kerjakan/. Nilai peran_wajib bila perlu (mis. "murid").
-        """
-        tok = self._ambil_token()
-        if tok:
-            got = sessions.ambil(tok)
-            if got and (peran_wajib is None or got[1] == peran_wajib):
-                return got
-        kred = self._kredensial()
-        if not kred:
+    def _principal(self):
+        """Principal cookie atau Basic yang telah divalidasi dan dikanonkan."""
+        if not auth.wajib_sandi():
             return None
-        # kred adalah (pengguna, sandi) dari header Basic
-        peran = auth.peran_dari(*kred)
-        if peran and (peran_wajib is None or peran == peran_wajib):
-            return (kred[0], peran)
-        return None
+        principal = sessions.ambil_principal(self._ambil_token())
+        if principal is not None:
+            return principal
+        kred = self._kredensial()
+        return sessions.principal_basic(*kred) if kred else None
+
+    def _sesi_atau_basic(self, peran_wajib: str | None = None):
+        """Adapter tuple untuk rute murid dari principal bersama."""
+        principal = self._principal()
+        if principal is None or (
+            peran_wajib is not None and principal.peran != peran_wajib
+        ):
+            return None
+        return principal.pengguna, principal.peran
 
     def _identitas(self) -> tuple[str, str] | None:
-        """(pengguna, peran) pengunjung ini, atau None bila anonim.
-
-        Mode lokal (tanpa berkas sandi) = satu akun bawaan "guru": semua
-        halaman terbuka seperti semula, dan data yang dibuat tercatat atas
-        nama "guru" pula — konsisten dengan pembuatnya.
-        """
+        """(pengguna kanonik, peran), atau identitas guru mode lokal."""
         if not auth.wajib_sandi():
             return ("guru", "guru")
-        tok = self._ambil_token()
-        if tok:
-            got = sessions.ambil(tok)
-            if got:
-                return got
-        kred = self._kredensial()
-        if not kred:
+        principal = self._principal()
+        if principal is None:
             return None
-        peran = auth.peran_dari(*kred)
-        if peran:
-            return (kred[0], peran)
-        return None
+        return principal.pengguna, principal.peran
 
     def _peran_saya(self) -> str | None:
         ident = self._identitas()
@@ -469,11 +453,18 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _rute_get(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/") or "/"
+        import admin_http
         import ai_http
         import assistant_http
 
+        if admin_http.tangani_get(self, jalur):
+            return
+        if jalur == "/akun" and admin_http.tangani_akun_admin(self):
+            return
         if ai_http.tangani_get(self, jalur):
             return
+        if jalur == "/admin" or jalur.startswith("/admin/"):
+            return admin_http.tidak_ada(self)
         if assistant_http.tangani_get(self, jalur):
             return
         if jalur.startswith("/mulai/"):
@@ -527,9 +518,26 @@ class Penangan(BaseHTTPRequestHandler):
                     kon, pesan=pesan, pemilik=ident[0], peran=ident[1], sorot=sorot,
                 ))
         if jalur == "/daftar":
+            import admin_http
+            import admin_registration
+            import admin_store
             from landing import halaman_daftar
 
-            return self._kirim(halaman_daftar())
+            try:
+                status = admin_registration.status(admin_store.BAWAAN)
+                token_form = admin_http.buat_token_pendaftaran() if status.dibuka else ''
+            except admin_store.StoreBelumSiap:
+                return self._kirim(
+                    halaman_daftar(
+                        "Pendaftaran sementara belum tersedia. Akun yang sudah ada tetap bisa masuk.",
+                        galat=True, pendaftaran_dibuka=False, belum_tersedia=True,
+                    ),
+                    503,
+                )
+            return self._kirim(halaman_daftar(
+                pendaftaran_dibuka=status.dibuka,
+                token_form=token_form,
+            ))
         if jalur == "/kebijakan-privasi":
             # Publik: tujuan checkbox persetujuan di /daftar & form anak,
             # dan footer landing. Statis, tanpa membaca basis data.
@@ -556,26 +564,6 @@ class Penangan(BaseHTTPRequestHandler):
             try:
                 with database.buka() as kon:
                     return self._rute_murid_get(kon, jalur, self.path)
-            except (ValueError, IndexError):
-                pass
-            self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
-            return
-        if jalur == "/admin":
-            if self._peran_saya() != "admin":
-                return self._kirim(
-                    _halaman(
-                        "Perlu masuk",
-                        "<h1>Halaman pengelola</h1>"
-                        "<p>Hanya akun pengelola yang boleh membuka halaman ini.</p>",
-                    ),
-                    401,
-                )
-            try:
-                ident = self._identitas()
-                with database.buka() as kon:
-                    return self._kirim(
-                        halaman_admin(kon, pengguna=ident[0] if ident else "")
-                    )
             except (ValueError, IndexError):
                 pass
             self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
@@ -1074,17 +1062,21 @@ class Penangan(BaseHTTPRequestHandler):
             galat = "Centang persetujuan Kebijakan Privasi dulu, ya."
         else:
             try:
-                auth.tambah_akun(nama, pw, "guru")
+                principal = auth.tambah_akun_dan_principal(nama, pw, "guru")
             except ValueError:
                 galat = f"Nama {nama} sudah dipakai. Pakai nama lain, atau masuk bila memang akunmu."
         if galat:
             return self._kirim(halaman_daftar(galat, galat=True, nama=nama))
 
-        akun = auth.cari_akun(nama)
-        nama_sesi = akun["pengguna"] if akun else nama
-        token = sessions.buat(
-            nama_sesi, "guru", id_akun=akun.get("id_akun") if akun else None
-        )
+        token = sessions.buat_dari_principal(principal)
+        if token is None:
+            return self._kirim(
+                halaman_daftar(
+                    "Akun berubah saat pendaftaran. Silakan masuk lagi.", galat=True,
+                    nama=nama,
+                ),
+                409,
+            )
         self.send_response(303)
         self.send_header("Location", "/guru")
         self.send_header("Set-Cookie", self._set_cookie(token))
@@ -1100,16 +1092,21 @@ class Penangan(BaseHTTPRequestHandler):
             return self._kirim(self._halaman_masuk_stitch("Nama dan sandi wajib diisi.", lanjut=lanjut))
         if sessions.sedang_diblokir(nama, ip):
             return self._kirim(self._halaman_masuk_stitch("Terlalu banyak percobaan. Coba lagi 15 menit lagi.", lanjut=lanjut), 429)
-        peran = auth.peran_dari(nama, pw)
-        if not peran:
+        principal = auth.autentikasi(nama, pw)
+        if principal is None:
             sessions.catat_gagal(nama, ip)
             return self._kirim(self._halaman_masuk_stitch("Nama atau sandi belum cocok. Coba lagi, atau minta gurumu.", lanjut=lanjut))
-        sessions.catat_berhasil(nama, ip)
-        akun = auth.cari_akun(nama)
-        nama_sesi = akun["pengguna"] if akun else nama
-        token = sessions.buat(
-            nama_sesi, peran, id_akun=akun.get("id_akun") if akun else None
-        )
+        token = sessions.buat_dari_principal(principal)
+        if token is None:
+            sessions.catat_gagal(nama, ip)
+            return self._kirim(
+                self._halaman_masuk_stitch(
+                    "Akun berubah saat masuk. Coba lagi.", lanjut=lanjut
+                ),
+                409,
+            )
+        sessions.catat_berhasil(principal.pengguna, ip)
+        peran = principal.peran
         tujuan = "/murid" if peran == "murid" else (
             "/admin" if peran == "admin" else "/guru"
         )
@@ -1123,11 +1120,16 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _rute_post(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/")
+        import admin_http
         import ai_http
         import assistant_http
 
+        if admin_http.tangani_post(self, jalur):
+            return
         if ai_http.tangani_post(self, jalur):
             return
+        if jalur == "/admin" or jalur.startswith("/admin/"):
+            return admin_http.tidak_ada(self)
         if assistant_http.tangani_inline_post(self, jalur):
             return
         if assistant_http.tangani_post(self, jalur):
@@ -1223,15 +1225,118 @@ class Penangan(BaseHTTPRequestHandler):
 
         # pendaftaran mandiri + login + logout — terbuka, tanpa palang
         if jalur == "/daftar":
-            panjang = int(self.headers.get("Content-Length", 0) or 0)
-            mentah = self.rfile.read(panjang).decode("utf-8") if panjang else ""
-            data = {
-                k: v[0]
-                for k, v in urllib.parse.parse_qs(
-                    mentah, keep_blank_values=True
-                ).items()
-            }
-            return self._handle_daftar(data)
+            import admin_registration
+            import admin_store
+            from admin_accounts import DomainAkunTidakSah
+            from admin_contracts import KontrakTidakSah
+            from landing import halaman_daftar
+
+            try:
+                import admin_http
+                import admin_security
+                data = admin_security.baca_form(self)
+                if set(data) - {"nama", "sandi", "setuju", "token_form"} or not {
+                    "nama", "sandi"
+                } <= set(data):
+                    raise ValueError("Isian pendaftaran tidak sah.")
+                nama = data["nama"].strip()
+                sandi = data["sandi"]
+                token_baru = admin_http.buat_token_pendaftaran()
+                status_daftar = admin_registration.status(admin_store.BAWAAN)
+                if not status_daftar.dibuka:
+                    raise PermissionError("Pendaftaran ditutup.")
+                if not nama:
+                    return self._kirim(halaman_daftar(
+                        "Nama wajib diisi.", galat=True, nama=nama,
+                        token_form=token_baru,
+                    ))
+                if len(sandi) < 8:
+                    return self._kirim(halaman_daftar(
+                        "Kata sandi minimal 8 karakter.", galat=True, nama=nama,
+                        token_form=token_baru,
+                    ))
+                if data.get("setuju") != "1":
+                    return self._kirim(halaman_daftar(
+                        "Centang persetujuan Kebijakan Privasi dulu, ya.",
+                        galat=True, nama=nama, token_form=token_baru,
+                    ))
+                if sessions.sedang_diblokir(nama, self.client_address[0]):
+                    return self._kirim(
+                        halaman_daftar(
+                            "Terlalu banyak percobaan. Coba lagi 15 menit lagi.",
+                            galat=True, nama=nama,
+                            token_form=data.get("token_form", token_baru),
+                        ),
+                        429,
+                    )
+                tinjauan = admin_http.periksa_token_pendaftaran(
+                    data.get("token_form", "")
+                )
+                akun_baru = admin_registration.daftar_publik(
+                    admin_store.BAWAAN, auth.BERKAS_SANDI, database.BAWAAN,
+                    operasi_id=tinjauan["op"], alias=nama,
+                    sandi=sandi,
+                    token_form=admin_http.token_domain(data["token_form"]),
+                )
+                token = sessions.buat_dari_principal(akun_baru)
+                if token is None:
+                    return self._kirim(
+                        halaman_daftar(
+                            "Akun berubah saat pendaftaran. Silakan masuk lagi.",
+                            galat=True, nama=nama,
+                            token_form=admin_http.buat_token_pendaftaran(),
+                        ),
+                        409,
+                    )
+            except admin_store.StoreBelumSiap:
+                return self._kirim(
+                    halaman_daftar(
+                        "Pendaftaran sementara belum tersedia. Akun yang sudah ada tetap bisa masuk.",
+                        galat=True, pendaftaran_dibuka=False, belum_tersedia=True,
+                    ),
+                    503,
+                )
+            except PermissionError as galat:
+                ditutup = "ditutup" in str(galat)
+                return self._kirim(
+                    halaman_daftar(
+                        "Pendaftaran baru sedang ditutup. Akun yang sudah terdaftar tetap bisa masuk."
+                        if ditutup else
+                        "Form pendaftaran sudah tidak berlaku. Buka ulang halaman pendaftaran.",
+                        galat=True, nama=locals().get("nama", ""),
+                        pendaftaran_dibuka=not ditutup,
+                        token_form=(
+                            "" if ditutup else admin_http.buat_token_pendaftaran()
+                        ),
+                    ),
+                    403,
+                )
+            except (ValueError, KontrakTidakSah, DomainAkunTidakSah) as galat:
+                teks_galat = str(galat)
+                aman = teks_galat
+                status = 200
+                if "alias tidak tersedia" in teks_galat:
+                    aman = "Nama sudah dipakai. Pakai nama lain, atau masuk bila memang akunmu."
+                elif aman not in (
+                    "Nama wajib diisi.", "Kata sandi minimal 8 karakter.",
+                    "Centang persetujuan Kebijakan Privasi dulu, ya.",
+                ):
+                    aman = "Isian pendaftaran belum dapat digunakan."
+                    status = 400
+                return self._kirim(
+                    halaman_daftar(
+                        aman, galat=True,
+                        nama=locals().get("nama", ""),
+                        token_form=admin_http.buat_token_pendaftaran(),
+                    ),
+                    status,
+                )
+            self.send_response(303)
+            self.send_header("Location", "/guru")
+            self.send_header("Set-Cookie", self._set_cookie(token))
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         if jalur == "/masuk":
             panjang = int(self.headers.get("Content-Length", 0) or 0)
             mentah = self.rfile.read(panjang).decode("utf-8") if panjang else ""
@@ -1384,17 +1489,29 @@ class Penangan(BaseHTTPRequestHandler):
             return
 
         if jalur == "/akun":
-            panjang = int(self.headers.get("Content-Length", 0))
-            mentah = self.rfile.read(panjang).decode("utf-8")
-            data = {
-                k: v[0]
-                for k, v in urllib.parse.parse_qs(
-                    mentah, keep_blank_values=True
-                ).items()
-            }
             ident = self._identitas()
             pengguna = ident[0] if ident else "guru"
             peran = ident[1] if ident else "guru"
+            if peran == "admin":
+                # Jalur lama hanya untuk sandi sendiri, bukan bypass layanan admin.
+                import admin_security
+                try:
+                    data = admin_security.baca_form(self)
+                    if data.get("aksi") != "sandi" or set(data) - {
+                        "aksi", "section", "lama", "baru", "ulang"
+                    }:
+                        return admin_http.arahkan_admin(self)
+                except (ValueError, PermissionError):
+                    return self._kirim_privat(b"Form tidak sah.", 400)
+            else:
+                panjang = int(self.headers.get("Content-Length", 0))
+                mentah = self.rfile.read(panjang).decode("utf-8")
+                data = {
+                    k: v[0]
+                    for k, v in urllib.parse.parse_qs(
+                        mentah, keep_blank_values=True
+                    ).items()
+                }
             with database.buka() as kon:
                 pesan, galat = proses_akun(kon, data, pengguna, peran)
                 section = data.get("section") or PETA_SECTION_AKUN.get(
@@ -1491,53 +1608,6 @@ class Penangan(BaseHTTPRequestHandler):
             import learning_cycle_http
 
             return learning_cycle_http.tangani(self, jalur, _halaman)
-
-        if jalur == "/admin":
-            if self._peran_saya() != "admin":
-                return self._kirim(
-                    _halaman("Perlu masuk", "<h1>Halaman pengelola</h1>"), 401
-                )
-            panjang = int(self.headers.get("Content-Length", 0) or 0)
-            mentah = self.rfile.read(panjang).decode("utf-8")
-            data = {
-                k: v[0]
-                for k, v in urllib.parse.parse_qs(
-                    mentah, keep_blank_values=True
-                ).items()
-            }
-            pesan, galat = "", ""
-            if data.get("aksi") == "guru_baru":
-                nama = (data.get("pengguna") or "").strip()
-                pw = data.get("sandi") or ""
-                if not nama:
-                    galat = "Nama akun tidak boleh kosong."
-                elif len(pw) < 12:
-                    galat = "Kata sandi minimal 12 karakter."
-                else:
-                    try:
-                        auth.tambah_akun(nama, pw, "guru")
-                        pesan = (
-                            f"Akun orang tua {nama} dibuat. Orang tua bisa "
-                            f"masuk lewat /masuk."
-                        )
-                    except ValueError as e:
-                        galat = str(e)
-            elif data.get("aksi") in ("guru_sandi", "guru_hapus"):
-                # Tulisan domain admin di berkas sandi: setel ulang sandi
-                # atau hapus akun orang tua yang typo. Keduanya murni
-                # urusan auth.json — anak & sesinya tetap. Detail di
-                # proses_admin.
-                pesan, galat = proses_admin(data)
-            else:
-                galat = "Aksi tidak dikenal."
-            ident = self._identitas()
-            with database.buka() as kon:
-                return self._kirim(
-                    halaman_admin(
-                        kon, pesan, galat,
-                        pengguna=ident[0] if ident else "",
-                    )
-                )
 
         if jalur.startswith("/cerita/"):
             import llm

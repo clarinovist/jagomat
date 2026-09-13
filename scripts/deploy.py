@@ -72,7 +72,7 @@ import ai_store
 import assistant_schema
 import database
 assert assistant_schema.VERSI_SKEMA == 4
-assert ai_store.VERSI_SKEMA == 1
+assert ai_store.VERSI_SKEMA in (1, 2)
 for _ in range(2):
     assistant_schema.siapkan(Path('/data/pendamping.db'))
     database.siapkan(Path('/data/latihan.db'))
@@ -86,8 +86,13 @@ with sqlite3.connect('file:/data/latihan.db?mode=ro', uri=True) as kon:
     assert kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='eksekusi_pendamping'").fetchone()
 with sqlite3.connect('file:/data/ai-control.db?mode=ro', uri=True) as kon:
     kon.execute('PRAGMA query_only = ON')
-    assert kon.execute('PRAGMA user_version').fetchone()[0] == 1
+    assert kon.execute('PRAGMA user_version').fetchone()[0] == ai_store.VERSI_SKEMA
     assert kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='ledger'").fetchone()
+    if ai_store.VERSI_SKEMA == 2:
+        assert kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='audit_uji_admin'").fetchone()
+        assert kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='operasi_pengaturan_admin'").fetchone()
+# Marker wire kompatibel; readiness live/policy tetap ketat AI1 dan akan
+# menahan kandidat persistensi baru sampai rollout exact disetujui.
 print('OSN_IMAGE_V4_AI1_OK')
 '''
 
@@ -559,6 +564,10 @@ def deploy(teks, *, docker=None, berkas=None, sekarang=time.time,
             id_kandidat = docker.siapkan_image(kandidat)
             id_pemulihan = docker.siapkan_image(pemulihan)
             if id_kandidat == id_pemulihan:
+                raise Ditolak()
+            # Berlaku pada rutin DAN deploy-v2. Approval operator tidak membuat
+            # recovery lama kompatibel dengan schema/receipt kandidat baru.
+            if docker.kontrak_image(id_kandidat) != docker.kontrak_image(id_pemulihan):
                 raise Ditolak()
             id_lama = docker.image_saat_ini()  # Bukan fallback otomatis schema3.
             berkas.ruang()  # Pull dapat menghabiskan ruang yang tadi masih tersedia.

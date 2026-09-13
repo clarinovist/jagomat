@@ -28,6 +28,7 @@ SANDI_BARU = "sandi-panjang-ortu-123"
 @pytest.fixture()
 def server(tmp_path, monkeypatch):
     s = ServerUji(tmp_path, monkeypatch)
+    auth.tambah_akun("admin-register", "sandi-admin-register-123", "admin")
     yield s
     s.berhenti()
 
@@ -58,10 +59,13 @@ def test_post_daftar_membuat_akun_guru_dan_login(server):
             return None
 
     opener = urllib.request.build_opener(TanpaIkut)
+    halaman = server.minta("/daftar")[1]
+    import re
+    token_form = re.search(r'name="token_form" value="([^"]+)"', halaman).group(1)
     req = urllib.request.Request(
         server.alamat + "/daftar",
         data=urllib.parse.urlencode(
-            {"nama": "orangtua-budi", "sandi": SANDI_BARU, "setuju": "1"}
+            {"nama": "orangtua-budi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token_form}
         ).encode(),
         method="POST",
     )
@@ -79,53 +83,46 @@ def test_post_daftar_membuat_akun_guru_dan_login(server):
     assert any("osn_sesi=" in v for k, v in header.items() if k.lower() == "set-cookie")
 
 
-def test_post_daftar_nama_duplikat_ditolak(server):
-    s_minta(
-        server,
-        "/daftar",
-        data={"nama": "budi", "sandi": SANDI_BARU, "setuju": "1"},
-    )
+
+def test_post_daftar_lama_tanpa_token_ditolak(server):
     kode, isi, header = s_minta(
-        server,
-        "/daftar",
-        data={"nama": "BUDI", "sandi": "sandi-lain-panjang-999"},
+        server, "/daftar",
+        data={"nama": "tanpa-token", "sandi": SANDI_BARU, "setuju": "1"},
     )
-    assert kode == 200  # form kembali dengan galat, bukan 500
+    assert kode in (400, 403)
+    assert auth.cari_akun("tanpa-token") is None
+    assert "Set-Cookie" not in header
+
+
+def _token_daftar(server):
+    import re
+    return re.search(r'name="token_form" value="([^"]+)"', server.minta("/daftar")[1]).group(1)
+
+
+def test_post_daftar_nama_duplikat_ditolak(server):
+    token = _token_daftar(server)
+    server.minta("/daftar", data={"nama": "budi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token})
     assert auth.cari_akun("budi") is not None
-    # tidak ada akun kedua yang dibuat dengan sandi kedua
+    sebelum = auth.BERKAS_SANDI.read_bytes()
+    kode, _, header = server.minta("/daftar", data={
+        "nama": "BUDI", "sandi": "sandi-lain-panjang-999", "setuju": "1", "token_form": _token_daftar(server),
+    })
+    assert kode == 200
+    assert auth.BERKAS_SANDI.read_bytes() == sebelum
+    assert "Set-Cookie" not in header
     assert not auth.periksa("budi", "sandi-lain-panjang-999")
-    # tidak di-login-kan
-    assert not any(
-        "osn_sesi=" in v and "Max-Age=0" not in v
-        for k, v in header.items()
-        if k.lower() == "set-cookie"
-    )
 
 
-def test_post_daftar_tanpa_persetujuan_ditolak(server):
-    kode, isi, _ = s_minta(
-        server, "/daftar", data={"nama": "tanpa-setuju", "sandi": SANDI_BARU}
-    )
-    assert kode == 200
-    assert auth.cari_akun("tanpa-setuju") is None
-    assert "persetujuan" in isi.lower() or "setuju" in isi.lower()
-
-
-def test_post_daftar_sandi_pendek_ditolak(server):
-    kode, _, _ = s_minta(
-        server,
-        "/daftar",
-        data={"nama": "sandipendek", "sandi": "pendek", "setuju": "1"},
-    )
-    assert kode == 200
-    assert auth.cari_akun("sandipendek") is None
-
-
-def test_post_daftar_nama_kosong_ditolak(server):
-    kode, _, _ = s_minta(
-        server,
-        "/daftar",
-        data={"nama": "   ", "sandi": SANDI_BARU, "setuju": "1"},
-    )
-    assert kode == 200
-    assert auth.cari_akun("   ") is None and auth.cari_akun("") is None
+@pytest.mark.parametrize("ubah,nama", [
+    ({"setuju": ""}, "tanpa-setuju"),
+    ({"sandi": "pendek"}, "sandipendek"),
+    ({"nama": "   "}, ""),
+])
+def test_post_daftar_validasi_asli_dengan_token_sah(server, ubah, nama):
+    sebelum = auth.BERKAS_SANDI.read_bytes()
+    kode, _, header = server.minta("/daftar", data={
+        "nama": nama, "sandi": SANDI_BARU, "setuju": "1", "token_form": _token_daftar(server), **ubah,
+    })
+    assert kode == 200 and "Set-Cookie" not in header
+    assert auth.BERKAS_SANDI.read_bytes() == sebelum
+    assert auth.cari_akun(nama) is None

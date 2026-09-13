@@ -36,6 +36,14 @@ def server(tmp_path, monkeypatch):
     s.berhenti()
 
 
+def _token(nama, peran):
+    akun = auth.cari_akun(nama)
+    return sessions.buat(
+        akun["pengguna"], peran, id_akun=akun["id_akun"],
+        revisi_auth=akun["revisi_auth"],
+    )
+
+
 def _minta(s, jalur, data=None, token=None):
     """Jangan ikuti redirect agar Location dan kuki benar-benar diperiksa."""
     alamat = urllib.parse.urlsplit(s.alamat)
@@ -73,8 +81,11 @@ def test_fixture_sesi_beranda_terisolasi(server, tmp_path):
 
 
 def test_daftar_langsung_ke_beranda_guru(server):
+    halaman = _minta(server, "/daftar")[1]
+    token_form = re.search(r'name="token_form" value="([^"]+)"', halaman).group(1)
     kode, _, tajuk = _minta(server, "/daftar", {
-        "nama": "pendamping-baru", "sandi": "sandi-sintetis-123", "setuju": "on",
+        "nama": "pendamping-baru", "sandi": "sandi-sintetis-123",
+        "setuju": "1", "token_form": token_form,
     })
     assert kode == 303
     assert tajuk["Location"] == "/guru"
@@ -90,7 +101,7 @@ def test_gagal_login_tidak_menerbitkan_kuki(server):
 
 @pytest.mark.parametrize("jalur", ["/", "/ortu", "/ortu/"])
 def test_alias_guru_mempertahankan_pesan_tanpa_redirect_bebas(server, jalur):
-    token = sessions.buat("guru", "guru")
+    token = _token("guru", "guru")
     kode, _, tajuk = _minta(server, jalur + "?pesan=Halo&sorot=7&next=https://contoh.invalid", token=token)
     assert kode == 303
     assert tajuk["Location"] == "/guru?pesan=Halo&sorot=7"
@@ -99,7 +110,7 @@ def test_alias_guru_mempertahankan_pesan_tanpa_redirect_bebas(server, jalur):
 @pytest.mark.parametrize("jalur", ["/guru", "/guru/", "/ortu", "/ortu/"])
 @pytest.mark.parametrize("ident", [None, ("feby", "murid"), ("tidak-sah", None)])
 def test_palang_beranda_tidak_membuka_db(server, monkeypatch, jalur, ident):
-    token = sessions.buat(*ident) if ident and ident[1] else (ident[0] if ident else None)
+    token = _token(*ident) if ident and ident[1] else (ident[0] if ident else None)
 
     def dilarang(*args, **kwargs):
         raise AssertionError("Palang beranda membuka DB sebelum menolak pengunjung")
@@ -112,7 +123,7 @@ def test_palang_beranda_tidak_membuka_db(server, monkeypatch, jalur, ident):
 
 @pytest.mark.parametrize("jalur", ["/", "/guru", "/ortu"])
 def test_pengelola_tetap_menuju_panel_sendiri(server, jalur):
-    kode, _, tajuk = _minta(server, jalur, token=sessions.buat("pengelola", "admin"))
+    kode, _, tajuk = _minta(server, jalur, token=_token("pengelola", "admin"))
     assert kode == 303
     assert tajuk["Location"] == "/admin"
 

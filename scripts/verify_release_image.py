@@ -293,7 +293,14 @@ def uji_http(akar, database, skema, kontrak_http):
     auth.simpan_sandi('sandi-sintetis-probe-123', 'guru', path=auth.BERKAS_SANDI)
     auth.pastikan_id_akun(path=auth.BERKAS_SANDI)
     akun = auth.cari_akun('guru')
-    token = sessions.buat('guru', 'guru', id_akun=akun['id_akun'])
+    # Recovery pinned lama belum mengenal revisi; candidate wajib memakai
+    # penerbitan principal yang memeriksa snapshot autentikasi mutakhir.
+    if hasattr(sessions, 'buat_dari_principal'):
+        principal = auth.autentikasi('guru', 'sandi-sintetis-probe-123')
+        pastikan(principal is not None, 'principal_probe_tidak_sah')
+        token = sessions.buat_dari_principal(principal)
+    else:
+        token = sessions.buat('guru', 'guru', id_akun=akun['id_akun'])
     with database.buka() as kon:
         anak = database.tambah_siswa(kon, 'Anak HTTP Sintetis', 'P3', pemilik='guru')
     # Semua aset yang diumumkan image wajib terkemas; tidak mengunci markup UI.

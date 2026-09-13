@@ -190,6 +190,8 @@ def halaman_akun(
     if section not in ("akun", "siswa", "akun-murid", "arsip-pendamping"):
         # Nilai asing dari URL jatuh ke bawaan.
         section = "akun"
+    if peran == "admin" and section not in ("akun", "arsip-pendamping"):
+        section = "akun"
 
     daftar = "".join(
         f'<tr><td data-label="Nama">{html.escape(s["nama"])}</td>'
@@ -311,9 +313,9 @@ def halaman_akun(
         f"malam pukul 22:00.</p></div>"
     )
 
-    if section == "siswa":
+    if section == "siswa" and peran != "admin":
         isi_section = kartu_siswa + kartu_anak + kartu_catatan
-    elif section == "akun-murid":
+    elif section == "akun-murid" and peran != "admin":
         isi_section = _kartu_akun_murid(kon, pengguna, peran)
     elif section == "arsip-pendamping":
         isi_section = arsip_pendamping or kartu_sandi
@@ -329,11 +331,9 @@ def halaman_akun(
                 '</details></div>'
             )
 
-    item = [
-        ("akun", "Akun saya"),
-        ("siswa", "Siswa"),
-        ("akun-murid", "Akun latihan"),
-    ]
+    item = [("akun", "Akun saya")]
+    if peran != "admin":
+        item.extend((("siswa", "Siswa"), ("akun-murid", "Akun latihan")))
     if arsip_pendamping:
         item.append(("arsip-pendamping", "Arsip percakapan lama"))
     nav = "".join(

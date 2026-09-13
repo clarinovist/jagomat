@@ -157,7 +157,10 @@ def test_pending_contextual_owner_only_dan_tanpa_retry_provider(server_usulan):
 
     auth.tambah_akun("ortu-lain", "sandi-sintetis-lain", "guru")
     lain = auth.cari_akun("ortu-lain")
-    token_b = sessions.buat(lain["pengguna"], "guru", id_akun=lain["id_akun"])
+    token_b = sessions.buat(
+        lain["pengguna"], "guru", id_akun=lain["id_akun"],
+        revisi_auth=lain["revisi_auth"],
+    )
     _consent(server, token_b)
     asing = server.minta(
         "/pendamping/operasi/req_pending_sintetis", cookie=token_b,

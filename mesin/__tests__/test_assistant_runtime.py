@@ -327,7 +327,8 @@ def server(tmp_path, monkeypatch):
 def _token_guru(server):
     akun = auth.cari_akun("guru")
     return sessions.buat(
-        akun["pengguna"], "guru", id_akun=akun["id_akun"]
+        akun["pengguna"], "guru", id_akun=akun["id_akun"],
+        revisi_auth=akun["revisi_auth"],
     )
 
 
@@ -386,7 +387,8 @@ def test_http_hanya_cookie_guru_stabil(server):
     # Tidak menyunting fixture akun: cukup sesi admin dengan ID guru, reader
     # principal wajib tetap menolak karena peran sesi bukan guru.
     token_admin = sessions.buat(
-        "guru", "admin", id_akun=akun_admin["id_akun"]
+        "guru", "admin", id_akun=akun_admin["id_akun"],
+        revisi_auth=akun_admin["revisi_auth"],
     )
     assert server.minta("/pendamping", cookie=token_admin)[0] == 401
     assert server.minta("/pendamping", cookie=_token_guru(server))[0] == 200
@@ -506,7 +508,8 @@ def test_arsip_chat_umum_hanya_baca_owner_only_dan_tanpa_composer(server):
     auth.tambah_akun("ortu-arsip", "sandi-ortu-arsip-123", "guru")
     akun_lain = auth.cari_akun("ortu-arsip")
     token_lain = sessions.buat(
-        akun_lain["pengguna"], "guru", id_akun=akun_lain["id_akun"]
+        akun_lain["pengguna"], "guru", id_akun=akun_lain["id_akun"],
+        revisi_auth=akun_lain["revisi_auth"],
     )
     asing = server.minta(
         f"/akun?section=arsip-pendamping&chat={umum.id}", cookie=token_lain,
@@ -531,7 +534,10 @@ def test_http_akun_lain_tidak_bisa_membaca_chat(server):
 
     auth.tambah_akun("ortu-b", "sandi-ortu-b-123", "guru")
     akun_b = auth.cari_akun("ortu-b")
-    token_b = sessions.buat("ortu-b", "guru", id_akun=akun_b["id_akun"])
+    token_b = sessions.buat(
+        "ortu-b", "guru", id_akun=akun_b["id_akun"],
+        revisi_auth=akun_b["revisi_auth"],
+    )
     _consent(server, token_b)
     kode_asing, isi_asing, _ = server.minta(
         f"/pendamping/chat/{chat_id}", cookie=token_b

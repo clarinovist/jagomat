@@ -309,7 +309,10 @@ def test_hash_atau_owner_asing_gagal_tanpa_sesi(server):
 
     auth.tambah_akun("ortu-b", "sandi-ortu-b-123", "guru")
     akun_b = auth.cari_akun("ortu-b")
-    token_b = sessions.buat("ortu-b", "guru", id_akun=akun_b["id_akun"])
+    token_b = sessions.buat(
+        "ortu-b", "guru", id_akun=akun_b["id_akun"],
+        revisi_auth=akun_b["revisi_auth"],
+    )
     _consent(server, token_b)
     kode_asing, isi_asing, _ = server.minta(
         f"/pendamping/usulan/{usulan_id}", cookie=token_b

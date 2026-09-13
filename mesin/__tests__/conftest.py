@@ -14,8 +14,16 @@ kodenya identik dengan produksi.
 
 import os
 import tempfile
+import sys
+from pathlib import Path
 
 import pytest
+
+# Scoped test juga harus dapat mengimpor modul aplikasi saat collection,
+# bukan bergantung file test lain lebih dulu menambah sys.path.
+_AKAR_MESIN = str(Path(__file__).resolve().parent.parent)
+if _AKAR_MESIN not in sys.path:
+    sys.path.insert(0, _AKAR_MESIN)
 
 os.environ.setdefault("OSN_PBKDF2_ITERASI", "1000")
 

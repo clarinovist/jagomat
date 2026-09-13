@@ -303,12 +303,21 @@ def test_approval_dicek_ulang_setelah_pull(kasus, approval_baru):
     assert "stop-lama" not in kasus.jejak
 
 
+def test_migrasi_menolak_recovery_kontrak_berbeda_sebelum_stop(kasus):
+    kasus.r.malformed['contract-recovery'] = 'e' * 64
+    assert kasus.jalan() == 2
+    assert 'stop' not in kasus.jejak
+    assert kasus.r.current == 'lama' and kasus.r.running
+    assert not kasus.b.consumed
+
+
 def test_sukses_ordering_secret_dan_argv_tetap(kasus):
     assert kasus.jalan() == 0
     assert kasus.jejak == [
         "host", "lock", "config", "approval1", "disk",
         "pull-candidate", "image-candidate", "repo-candidate", "probe-candidate",
         "pull-recovery", "image-recovery", "repo-recovery", "probe-recovery",
+        "contract-candidate", "contract-recovery",
         "state-lama", "image-lama", "disk", "approval2", "consume", "stop-lama", "rm-lama",
         "run-candidate", "state-candidate", "schema-candidate", "config-clean", "unlock",
     ]
@@ -335,7 +344,7 @@ def test_sukses_ordering_secret_dan_argv_tetap(kasus):
         if "--rm" in argv:
             assert "--network" in argv and "none" in argv
             assert "--mount" not in argv and "--env-file" not in argv
-            assert opsi["input"] == d.PROBE_IMAGE
+            assert opsi["input"] in (d.PROBE_IMAGE, d.PROBE_KONTRAK)
         if argv[1] == "exec":
             assert "-B" in argv and "-E" in argv
             assert opsi["input"] == d.PROBE_SKEMA
@@ -1097,7 +1106,7 @@ def test_probe_unik_per_invocation_dan_label_bukan_nama_tetap(kasus):
     assert kasus.jalan() == 0
     probes = [a for a, _ in kasus.r.calls if "--rm" in a]
     names = [a[a.index("--name") + 1] for a in probes]
-    assert len(set(names)) == 2
+    assert len(set(names)) == 4  # Dua probe image + dua fingerprint recovery.
     for a, nama in zip(probes, names):
         assert nama.startswith(d.PROBE + "-") and nama != d.PROBE
         assert a[a.index("--label") + 1] == d.LABEL_PROBE + "=" + nama[len(d.PROBE) + 1:]

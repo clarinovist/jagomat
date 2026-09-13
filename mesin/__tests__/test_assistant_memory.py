@@ -248,7 +248,10 @@ def test_http_memori_akun_lain_tidak_bisa_diubah(server):
 
     auth.tambah_akun("ortu-b", "sandi-ortu-b-123", "guru")
     akun_b = auth.cari_akun("ortu-b")
-    token_b = sessions.buat("ortu-b", "guru", id_akun=akun_b["id_akun"])
+    token_b = sessions.buat(
+        "ortu-b", "guru", id_akun=akun_b["id_akun"],
+        revisi_auth=akun_b["revisi_auth"],
+    )
     _consent(server, token_b)
     kode, _, _ = server.minta(
         f"/pendamping/memori/{memori.id}/konfirmasi", cookie=token_b,

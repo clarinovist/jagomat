@@ -16,8 +16,12 @@ import urllib.request
 from contextlib import contextmanager
 from http.server import ThreadingHTTPServer
 
+import admin_bulk  # noqa: E402
+import admin_store  # noqa: E402
+import admin_students  # noqa: E402
 import database  # noqa: E402
 import auth  # noqa: E402
+import sessions  # noqa: E402
 import web  # noqa: E402
 
 SANDI_GURU = "sandi-guru-panjang-123"
@@ -40,6 +44,13 @@ class ServerUji:
         # monkeypatch BAWAAN tidak mengubah pemanggilan buka() tanpa argumen.
         # Test HARUS memakai server.buka(), bukan database.buka().
         self.db = db
+        admin_db = tmp_path / "admin-control.db"
+        transient_db = tmp_path / "admin-drafts.db"
+        monkeypatch.setattr(admin_store, "BAWAAN", admin_db)
+        monkeypatch.setenv("ADMIN_TRANSIENT_DB", str(transient_db))
+        admin_store.siapkan(admin_db, sekarang=1)
+        admin_bulk.siapkan_transient(transient_db)
+        admin_students.siapkan(db)
 
         berkas = tmp_path / "sandi.json"
         auth.simpan_sandi(SANDI_GURU, "guru", path=berkas)
@@ -51,6 +62,8 @@ class ServerUji:
         else:
             auth.tambah_akun("feby", SANDI_MURID, "murid", path=berkas)
         monkeypatch.setattr(auth, "BERKAS_SANDI", berkas)
+        monkeypatch.setattr(sessions, "BERKAS_SESI", tmp_path / "sesi.json")
+        auth.pastikan_metadata_auth(berkas)
 
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), web.Penangan)
         self.alamat = f"http://127.0.0.1:{self.server.server_address[1]}"

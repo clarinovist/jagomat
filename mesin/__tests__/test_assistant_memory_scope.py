@@ -229,7 +229,10 @@ def test_http_koreksi_foreign_missing_identik_nol_efek(server, isi):
     _, _, _, memori = _siapkan_memori(server)
     auth.tambah_akun("ortu-b", "sandi-sintetis-ortu-b-123", "guru")
     akun_b = auth.cari_akun("ortu-b")
-    token_b = sessions.buat("ortu-b", "guru", id_akun=akun_b["id_akun"])
+    token_b = sessions.buat(
+        "ortu-b", "guru", id_akun=akun_b["id_akun"],
+        revisi_auth=akun_b["revisi_auth"],
+    )
     assert _consent(server, token_b)[0] == 200
     sebelum = _snapshot(server)
     asing = _ubah(server, token_b, memori.id, memori.versi, isi)

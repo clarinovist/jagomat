@@ -15,6 +15,8 @@ codebase. Kode dan tes di `../mesin/` membuktikan perilaku yang tersedia;
   konteks, riwayat, dan memori; belum diimplementasikan.
 - [Referensi workflow](workflow-reference.md): prosedur soal/malrule, test/mutation,
   preview sintetis, dan batas klaim produk; jalur risiko/gate tetap di `../CLAUDE.md`.
+- [Rilis pusat kendali admin](admin-control-release.md): kontrak persistensi,
+  validasi bundle backup, rehearsal migrasi, dan batas klaim produksi.
 - [Verifikasi siklus belajar](verifikasi-siklus-belajar.md).
 - [Verifikasi penyajian soal](verifikasi-penyajian-soal.md).
 - [Verifikasi soal visual](verifikasi-soal-visual.md).

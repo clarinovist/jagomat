@@ -127,6 +127,7 @@ def server(tmp_path,monkeypatch):
     monkeypatch.setattr(sessions,'BERKAS_SESI',tmp_path/'sessions.json')
     monkeypatch.setattr(sessions,'_jalur_dari_kunci_ip',{})
     s=ServerUji(tmp_path,monkeypatch)
+    auth.tambah_akun('admin-register','sandi-admin-register-123','admin')
     try: yield s
     finally: s.berhenti()
 
@@ -137,10 +138,17 @@ def _keadaan(server):
     return auth.BERKAS_SANDI.read_bytes(), (sessions.BERKAS_SESI.read_bytes() if sessions.BERKAS_SESI.exists() else None),db
 
 
+def _token_form(server):
+    import re
+    isi = server.minta('/daftar')[1]
+    return re.search(r'name="token_form" value="([^"]+)"', isi).group(1)
+
+
 def test_pendaftaran_diblokir_mengembalikan_429_tanpa_akun_sesi(server):
     for _ in range(5): sessions.catat_gagal('pendamping-demo','127.0.0.1')
+    token_form = _token_form(server)
     sebelum=_keadaan(server)
-    kode,isi,header=server.minta('/daftar',data={'nama':'pendamping-demo','sandi':'sandi-sintetis-jangan-pantulkan','setuju':'1'})
+    kode,isi,header=server.minta('/daftar',data={'nama':'pendamping-demo','sandi':'sandi-sintetis-jangan-pantulkan','setuju':'1','token_form':token_form})
     assert kode == 429
     assert 'Terlalu banyak percobaan' in isi
     assert 'role="alert"' in isi
@@ -158,6 +166,7 @@ def test_pendaftaran_diblokir_mengembalikan_429_tanpa_akun_sesi(server):
 ])
 def test_galat_http_tidak_membuat_akun_atau_memantulkan_sandi(server,data,pesan):
     sebelum=_keadaan(server)
+    data = {**data, 'token_form': _token_form(server)}
     kode,isi,header=server.minta('/daftar',data=data)
     assert kode == 200 and pesan in isi
     m=Markup(isi)

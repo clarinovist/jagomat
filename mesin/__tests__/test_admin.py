@@ -35,14 +35,14 @@ def server(tmp_path, monkeypatch):
 
 
 def test_bukan_admin_ditolak(server):
-    assert server.minta("/admin")[0] == 401
+    assert server.minta("/admin")[0] == 404
     kode, isi, _ = server.minta("/admin", auth=("guru", SANDI_GURU))
-    assert kode == 401
+    assert kode == 404
     assert "BimaA" not in isi, "daftar keluarga bocor ke guru"
     kode, _, _ = server.minta("/admin", auth=("feby", SANDI_MURID))
-    assert kode == 401
+    assert kode == 404
     kode, _, _ = server.minta("/admin", method="POST", data={})
-    assert kode == 401
+    assert kode == 404
 
 
 def test_admin_melihat_daftar_keluarga(server):
@@ -50,12 +50,15 @@ def test_admin_melihat_daftar_keluarga(server):
     assert kode == 200
     assert "ortu-a" in isi
     assert "BimaA" in isi
-    assert "guru" in isi  # akun "guru" bawaan ServerUji ikut terdaftar
-    assert 'name="pengguna"' in isi  # form buat akun orang tua
+    assert "Panel Pengelola" in isi
+    kode, keluarga, _ = server.minta(
+        "/admin?section=keluarga", auth=("pengelola", SANDI_ADMIN)
+    )
+    assert kode == 200 and "guru" in keluarga
 
 
-def test_admin_membuat_akun_orang_tua(server):
-    kode, isi, _ = server.minta(
+def test_post_admin_lama_tidak_bisa_membuat_akun_orang_tua(server):
+    kode, _, _ = server.minta(
         "/admin",
         auth=("pengelola", SANDI_ADMIN),
         data={
@@ -64,9 +67,8 @@ def test_admin_membuat_akun_orang_tua(server):
             "sandi": "sandi-ortu-baru-123",
         },
     )
-    assert kode == 200
-    assert "ortu-baru" in isi
-    assert auth.periksa_peran("ortu-baru", "sandi-ortu-baru-123", "guru")
+    assert kode == 400
+    assert auth.cari_akun("ortu-baru") is None
 
 
 def test_guru_baru_nama_ganda_ditolak_tanpa_mengubah_lama(server):
@@ -88,8 +90,7 @@ def test_guru_baru_sandi_pendek_ditolak(server):
         auth=("pengelola", SANDI_ADMIN),
         data={"aksi": "guru_baru", "pengguna": "pendek", "sandi": "pendek"},
     )
-    assert kode == 200
-    assert "12 karakter" in isi
+    assert kode == 400
     assert auth.cari_akun("pendek") is None
 
 
@@ -226,18 +227,18 @@ def test_admin_boleh_variasi_cerita_dan_lampiran(server):
     assert kode != 404, "rute lampiran masih menutup admin"
 
 
-def test_admin_boleh_ubah_tingkat_dan_ganti_sandi_di_akun(server):
-    """Admin full-write: aksi tulis /akun jalan untuk data keluarga mana pun."""
+def test_admin_ubah_tingkat_lama_ditolak_sandi_sendiri_tetap_di_akun(server):
+    """Pengelolaan lintas keluarga wajib panel baru; sandi sendiri tetap tersedia."""
     siswa_a, _ = _ids_siswa_dan_sesi(server)
+    awal = server.db.read_bytes()
     kode, isi, _ = server.minta(
         "/akun",
         auth=("pengelola", SANDI_ADMIN),
         data={"aksi": "tingkat", "siswa_id": siswa_a, "tingkat": "P4"},
     )
     assert kode == 200
-    # Tulisnya commit sesaat setelah respons (pola konteks buka()), jadi
-    # yang diassert pesannya — bukan baca-ulang yang balapan dengan commit.
-    assert "sekarang Kelas 4" in isi, "ubah kelas admin tidak jalan"
+    assert "Panel Pengelola" in isi  # urllib mengikuti redirect kanonis
+    assert server.db.read_bytes() == awal
 
     kode, isi, _ = server.minta(
         "/akun",
@@ -272,15 +273,14 @@ def test_halaman_sesi_admin_bisa_tulis(server):
     assert "Lembar soal" in isi2, "jalur baca harus tetap ada"
 
 
-def test_admin_menghapus_akun_orang_tua_tanpa_menghapus_anaknya(server):
-    """Aksi guru_hapus: akun ortu hilang, anak & sesinya tetap ada."""
-    kode, isi, _ = server.minta(
+def test_post_admin_lama_tidak_menghapus_akun_orang_tua_atau_anaknya(server):
+    kode, _, _ = server.minta(
         "/admin",
         auth=("pengelola", SANDI_ADMIN),
         data={"aksi": "guru_hapus", "nama": "ortu-a"},
     )
-    assert kode == 200
-    assert auth.cari_akun("ortu-a") is None, "akun ortu-a masih ada"
+    assert kode == 400
+    assert auth.cari_akun("ortu-a") is not None
     with server.buka() as kon:
         n_siswa = kon.execute(
             "SELECT COUNT(*) AS n FROM siswa WHERE pemilik = 'ortu-a'"
@@ -298,8 +298,7 @@ def test_admin_tidak_bisa_hapus_akun_pengelola(server):
         auth=("pengelola", SANDI_ADMIN),
         data={"aksi": "guru_hapus", "nama": "pengelola-2"},
     )
-    assert kode == 200
-    assert "tidak ditemukan" in isi
+    assert kode == 400
     assert auth.cari_akun("pengelola-2") is not None, "akun pengelola ikut terhapus!"
 
 
@@ -311,8 +310,11 @@ def test_admin_laporan_tetap_terbuka(server):
     assert kode == 200, "admin masih boleh MEMBACA laporan"
 
 
-def test_admin_panel_anak_ditautkan_ke_laporan(server):
+def test_admin_detail_anak_ditautkan_ke_laporan(server):
     siswa_a, _ = _ids_siswa_dan_sesi(server)
-    kode, isi, _ = server.minta("/admin", auth=("pengelola", SANDI_ADMIN))
+    kode, isi, _ = server.minta(
+        f"/admin?section=siswa&id={siswa_a}",
+        auth=("pengelola", SANDI_ADMIN),
+    )
     assert kode == 200
-    assert f'href="/laporan/{siswa_a}"' in isi, "nama anak harus jadi tautan"
+    assert f'href="/laporan/{siswa_a}"' in isi

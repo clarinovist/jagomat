@@ -53,7 +53,8 @@ def test_http_admin_tidak_mendapat_jalur_konteks(server):
     anak, _, _, _ = server.konteks_ids
     akun = auth.cari_akun("guru")
     token_admin = sessions.buat(
-        akun["pengguna"], "admin", id_akun=akun["id_akun"]
+        akun["pengguna"], "admin", id_akun=akun["id_akun"],
+        revisi_auth=akun["revisi_auth"],
     )
     sebelum = len(server.provider.panggilan)
     kode, isi, _ = server.minta(
@@ -316,7 +317,8 @@ def test_http_context_tidak_ada_di_permukaan_murid(server):
     anak, sesi, _, _ = server.konteks_ids
     akun = auth.cari_akun("feby")
     token = sessions.buat(
-        akun["pengguna"], "murid", id_akun=akun["id_akun"]
+        akun["pengguna"], "murid", id_akun=akun["id_akun"],
+        revisi_auth=akun["revisi_auth"],
     )
     for jalur in (
         f"/pendamping/konteks/anak/{anak}",

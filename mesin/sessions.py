@@ -7,21 +7,26 @@ membawa kuki sesi. Polanya mengikuti sandi.json: chmod 600, tulis atomik.
 from __future__ import annotations
 
 import hashlib
-import json
 import os
+import math
 import secrets
-import tempfile
 import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
+
+from json_storage import (
+    GalatPenyimpananJSON,
+    baca_json_ketat,
+    transaksi_json,
+    tulis_json_atomik,
+)
 
 BERKAS_SESI = Path(
     os.environ.get("OSN_BERKAS_SESI", Path(__file__).resolve().parent / "sesi.json")
 )
 TTL_DETIK = 14 * 24 * 3600  # dua minggu; iPhone anak dipakai bergantian
 
-_kunci_tulis = threading.Lock()
 _jalur_dari_kunci_ip: dict[tuple[str, str], list[float]] = {}
 
 # Umpan waktu-tetap untuk akun tak dikenal (B3): PBKDF2 satu kali ini agar
@@ -42,74 +47,232 @@ _BATAS_TUNGGU = 15 * 60
 
 
 @dataclass(frozen=True)
+class Principal:
+    """Identitas kanonik yang diverifikasi terhadap akun mutakhir."""
+
+    pengguna: str
+    peran: str
+    id_akun: str
+    revisi_auth: int
+    metode: str
+
+
+@dataclass(frozen=True)
 class PrincipalPendamping:
-    """Identitas akun terverifikasi untuk storage privat Pendamping."""
+    """Identitas guru terverifikasi untuk storage privat Pendamping."""
 
     pengguna: str
     peran: str
     id_akun: str
 
 
+def _data_sesi_sah(data) -> bool:
+    import auth
+
+    if not isinstance(data, dict):
+        return False
+    for token, entri in data.items():
+        if not isinstance(token, str) or not isinstance(entri, dict):
+            return False
+        kedaluarsa = entri.get("kedaluarsa")
+        id_akun = entri.get("id_akun")
+        revisi = entri.get("revisi_auth")
+        punya_id = "id_akun" in entri
+        punya_revisi = "revisi_auth" in entri
+        legacy = not punya_id and not punya_revisi
+        if (
+            not token
+            or not isinstance(entri.get("pengguna"), str)
+            or not entri.get("pengguna")
+            or entri.get("peran") not in auth.PERAN
+            or isinstance(kedaluarsa, bool)
+            or not isinstance(kedaluarsa, (int, float))
+            or not math.isfinite(kedaluarsa)
+            or not (
+                legacy
+                or (
+                    punya_id
+                    and punya_revisi
+                    and auth.id_akun_sah(id_akun)
+                    and type(revisi) is int
+                    and revisi >= 0
+                )
+            )
+        ):
+            return False
+    return True
+
+
 def muat(path: Path | None = None) -> dict:
     p = path or BERKAS_SESI
-    if not p.exists():
-        return {}
     try:
-        return json.loads(p.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
+        data = baca_json_ketat(p, bawaan={})
+    except GalatPenyimpananJSON:
+        # Reader autentikasi tetap fail-closed tanpa membuka detail storage.
         return {}
+    return data if _data_sesi_sah(data) else {}
+
+
+def _muat_untuk_tulis(path: Path) -> dict:
+    """Writer membedakan state kosong dari state rusak agar tidak overwrite."""
+    try:
+        data = baca_json_ketat(path, bawaan={})
+    except GalatPenyimpananJSON as galat:
+        raise ValueError("berkas sesi tidak sah") from galat
+    if not _data_sesi_sah(data):
+        raise ValueError("berkas sesi tidak sah")
+    return data
 
 
 def _tulis(data: dict, path: Path | None = None) -> None:
-    p = path or BERKAS_SESI
-    with _kunci_tulis:
-        # Tulis atomik: file sementara di direktori yang sama dengan tujuan
-        # akhir, lalu os.replace. Direktori harus bisa ditulis (rw) — di
-        # kontainer, sesi.json tinggal di /data (volume rw), bukan /app
-        # (bind-mount read-only). Lihat ENV OSN_BERKAS_SESI di Dockerfile.
-        fd, nama_sementara = tempfile.mkstemp(dir=p.parent, prefix=".sesi-")
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                json.dump(data, f)
-            os.replace(nama_sementara, p)
-            p.chmod(0o600)
-        except Exception:
-            try:
-                os.unlink(nama_sementara)
-            except FileNotFoundError:
-                pass
-            raise
+    """Tulis sesi privat; aman dipanggil di dalam transaksi yang sama."""
+    tulis_json_atomik(data, path or BERKAS_SESI)
 
 
 def buat(pengguna: str, peran: str, path: Path | None = None,
-         sekarang: float | None = None, id_akun: str | None = None) -> str:
-    token = secrets.token_urlsafe(32)
-    data = muat(path)
+         sekarang: float | None = None, id_akun: str | None = None,
+         revisi_auth: int | None = None) -> str:
+    import auth
+
+    if peran not in auth.PERAN:
+        raise ValueError("peran sesi tidak sah")
+    if not auth.id_akun_sah(id_akun):
+        raise ValueError("id_akun sesi tidak sah")
+    if type(revisi_auth) is not int or revisi_auth < 0:
+        raise ValueError("revisi_auth sesi tidak sah")
     entri = {
         "pengguna": pengguna,
         "peran": peran,
+        "id_akun": id_akun,
+        "revisi_auth": revisi_auth,
         "kedaluarsa": (sekarang if sekarang is not None else time.time()) + TTL_DETIK,
     }
-    if id_akun is not None:
-        import auth
+    p = path or BERKAS_SESI
+    with transaksi_json(p) as tujuan:
+        data = _muat_untuk_tulis(tujuan)
+        token = secrets.token_urlsafe(32)
+        while token in data:
+            token = secrets.token_urlsafe(32)
+        data[token] = entri
+        _tulis(data, tujuan)
+        return token
 
-        if not auth.id_akun_sah(id_akun):
-            raise ValueError("id_akun sesi tidak sah")
-        entri["id_akun"] = id_akun
-    data[token] = entri
-    _tulis(data, path)
-    return token
+
+def _cocok_principal_akun(entri: dict, akun: dict) -> bool:
+    """Semua dimensi cookie harus cocok record akun mutakhir."""
+    import auth
+
+    revisi_sesi = entri.get("revisi_auth")
+    try:
+        revisi_akun = auth.revisi_auth(akun)
+    except ValueError:
+        return False
+    return (
+        type(entri.get("pengguna")) is str
+        and entri["pengguna"] == akun.get("pengguna")
+        and entri.get("peran") in auth.PERAN
+        and entri.get("peran") == akun.get("peran", "guru")
+        and auth.id_akun_sah(entri.get("id_akun"))
+        and entri.get("id_akun") == akun.get("id_akun")
+        and type(revisi_sesi) is int
+        and revisi_sesi >= 0
+        and revisi_sesi == revisi_akun
+    )
 
 
-def ambil(token: str | None, path: Path | None = None,
-          sekarang: float | None = None) -> tuple[str, str] | None:
+def ambil_principal(
+    token: str | None, path: Path | None = None,
+    sekarang: float | None = None, path_akun: Path | None = None,
+) -> Principal | None:
+    """Validasi cookie terhadap akun mutakhir tanpa menulis atau migrasi."""
     if not token:
         return None
     kini = sekarang if sekarang is not None else time.time()
     entri = muat(path).get(token)
-    if not entri or entri.get("kedaluarsa", 0) <= kini:
+    if not isinstance(entri, dict) or entri.get("kedaluarsa", 0) <= kini:
         return None
-    return entri["pengguna"], entri["peran"]
+
+    import auth
+
+    akun = auth.cari_akun(entri.get("pengguna", ""), path_akun)
+    if akun is None or not _cocok_principal_akun(entri, akun):
+        return None
+    return Principal(
+        pengguna=akun["pengguna"],
+        peran=akun.get("peran", "guru"),
+        id_akun=akun["id_akun"],
+        revisi_auth=auth.revisi_auth(akun),
+        metode="cookie",
+    )
+
+
+def principal_basic(
+    pengguna: str, sandi: str, path_akun: Path | None = None
+) -> Principal | None:
+    """Verifikasi Basic setiap request dan kembalikan nama record kanonik."""
+    import auth
+
+    akun = auth.autentikasi(pengguna, sandi, path_akun)
+    if akun is None:
+        return None
+    return Principal(
+        pengguna=akun.pengguna,
+        peran=akun.peran,
+        id_akun=akun.id_akun,
+        revisi_auth=akun.revisi_auth,
+        metode="basic",
+    )
+
+
+def buat_dari_principal(
+    principal_akun, path: Path | None = None, sekarang: float | None = None,
+    path_akun: Path | None = None,
+) -> str | None:
+    """Terbitkan sesi jika snapshot credential tetap mutakhir saat commit.
+
+    Urutan lock selalu akun lalu sesi. Reset yang menunggu lock akun akan
+    menaikkan revisi setelah sesi ditulis, sehingga sesi itu langsung stale.
+    """
+    import auth
+
+    tujuan_akun = path_akun or auth.BERKAS_SANDI
+    with transaksi_json(tujuan_akun) as path_akun_terkunci:
+        try:
+            _mentah, daftar, _multi = auth._baca_akun_untuk_tulis(
+                path_akun_terkunci
+            )
+            akun = next(
+                (
+                    item for item in daftar
+                    if item.get("id_akun") == principal_akun.id_akun
+                ),
+                None,
+            )
+            cocok = (
+                akun is not None
+                and akun.get("pengguna") == principal_akun.pengguna
+                and akun.get("peran", "guru") == principal_akun.peran
+                and auth.revisi_auth(akun) == principal_akun.revisi_auth
+            )
+        except (AttributeError, ValueError):
+            return None
+        if not cocok:
+            return None
+        return buat(
+            principal_akun.pengguna, principal_akun.peran, path=path,
+            sekarang=sekarang, id_akun=principal_akun.id_akun,
+            revisi_auth=principal_akun.revisi_auth,
+        )
+
+
+def ambil(token: str | None, path: Path | None = None,
+          sekarang: float | None = None,
+          path_akun: Path | None = None) -> tuple[str, str] | None:
+    """Adapter tuple lama; cookie legacy kini sengaja fail-closed."""
+    principal = ambil_principal(token, path, sekarang, path_akun)
+    if principal is None:
+        return None
+    return principal.pengguna, principal.peran
 
 
 def ambil_principal_pendamping(
@@ -118,56 +281,49 @@ def ambil_principal_pendamping(
     sekarang: float | None = None,
     path_akun: Path | None = None,
 ) -> PrincipalPendamping | None:
-    """Principal guru yang ID generasinya masih cocok dengan berkas akun.
+    """Adapter guru-only untuk storage privat Pendamping."""
+    principal = ambil_principal(token, path, sekarang, path_akun)
+    if principal is None or principal.peran != "guru":
+        return None
+    return PrincipalPendamping(
+        pengguna=principal.pengguna,
+        peran=principal.peran,
+        id_akun=principal.id_akun,
+    )
 
-    Sesi lama tanpa ID tetap sah untuk aplikasi lama melalui ``ambil()``, tetapi
-    fail closed di sini. Admin, murid, mode lokal tanpa berkas akun, serta akun
-    yang dihapus/dibuat ulang juga ditolak.
+
+def cabut_akun(id_akun: str, path_akun: Path | None = None) -> int | None:
+    """Cabut seluruh cookie akun secara logis lewat kenaikan revisi.
+
+    Fungsi tidak mengambil lock sesi; validasi cookie membaca revisi akun setiap
+    request, sehingga commit auth menjadi titik pencabutan untuk semua token.
     """
-    if not token:
-        return None
-    kini = sekarang if sekarang is not None else time.time()
-    entri = muat(path).get(token)
-    if not isinstance(entri, dict) or entri.get("kedaluarsa", 0) <= kini:
-        return None
-    pengguna = entri.get("pengguna")
-    peran = entri.get("peran")
-    id_akun = entri.get("id_akun")
-    if type(pengguna) is not str or peran != "guru" or type(id_akun) is not str:
-        return None
-
     import auth
 
-    tujuan_akun = path_akun or auth.BERKAS_SANDI
-    if not tujuan_akun.exists() or not auth.id_akun_sah(id_akun):
-        return None
-    akun = auth.cari_akun(pengguna, tujuan_akun)
-    if not akun:
-        return None
-    if akun.get("peran", "guru") != peran or akun.get("id_akun") != id_akun:
-        return None
-    if akun.get("pengguna") != pengguna:
-        return None
-    return PrincipalPendamping(pengguna=pengguna, peran=peran, id_akun=id_akun)
+    return auth.naikkan_revisi_auth(id_akun, path_akun)
 
 
 def hapus(token: str, path: Path | None = None) -> bool:
-    data = muat(path)
-    if token not in data:
-        return False
-    del data[token]
-    _tulis(data, path)
-    return True
+    p = path or BERKAS_SESI
+    with transaksi_json(p) as tujuan:
+        data = _muat_untuk_tulis(tujuan)
+        if token not in data:
+            return False
+        del data[token]
+        _tulis(data, tujuan)
+        return True
 
 
 def bersihkan(path: Path | None = None) -> int:
-    kini = time.time()
-    data = muat(path)
-    sisa = {t: e for t, e in data.items() if e.get("kedaluarsa", 0) > kini}
-    dihapus = len(data) - len(sisa)
-    if dihapus:
-        _tulis(sisa, path)
-    return dihapus
+    p = path or BERKAS_SESI
+    with transaksi_json(p) as tujuan:
+        kini = time.time()
+        data = _muat_untuk_tulis(tujuan)
+        sisa = {t: e for t, e in data.items() if e.get("kedaluarsa", 0) > kini}
+        dihapus = len(data) - len(sisa)
+        if dihapus:
+            _tulis(sisa, tujuan)
+        return dihapus
 
 
 # ── rate limit percobaan masuk ──────────────────────────────────────────────

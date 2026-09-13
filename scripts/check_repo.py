@@ -30,6 +30,7 @@ def alasan_larangan(nama: str) -> Optional[str]:
     if FOLDER_LOKAL.intersection(kecil[:-1]):
         return 'folder lokal atau non-codebase'
     if (berkas in ('sandi.json', 'sesi.json', '.ds_store', 'local.properties')
+            or (berkas.startswith('.') and berkas.endswith('.json.lock'))
             or berkas.startswith('.env') or '-isi.' in berkas
             or (berkas.startswith('prompt-') and berkas.endswith('.md'))
             or POLA_DATA.search(berkas)

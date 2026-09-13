@@ -565,12 +565,8 @@ def test_section_tak_dikenal_jatuh_ke_akun(siap):
     assert "Tambah siswa" not in h
 
 
-def test_admin_melihat_semua_section(siap):
-    """Admin full-write (4 Sep 2026): sidebar penuh + daftar lintas keluarga.
-
-    Dulu admin dikunci ke section "akun" (baca-semua-tulis-tidak); kini ia
-    menulis seperti guru, jadi section siswa & akun-murid dibuka — dengan
-    daftar SEMUA keluarga, bukan keluarganya sendiri."""
+def test_admin_hanya_melihat_akun_sendiri_di_halaman_akun_lama(siap):
+    """Pengelolaan lintas keluarga admin pindah ke pusat kendali kanonik."""
     with database.buka(siap) as kon:
         database.tambah_siswa(kon, "AnakA", pemilik="ortu-a")
         h = account_pages.halaman_akun(kon, pengguna="pengelola", peran="admin").decode()
@@ -578,9 +574,9 @@ def test_admin_melihat_semua_section(siap):
             kon, pengguna="pengelola", peran="admin", section="siswa"
         ).decode()
     assert "Ganti sandi" in h
-    assert 'href="/akun?section=siswa"' in h
-    assert 'href="/akun?section=akun-murid"' in h
-    assert "AnakA" in h2
+    assert 'href="/akun?section=siswa"' not in h
+    assert 'href="/akun?section=akun-murid"' not in h
+    assert "AnakA" not in h2
 
 
 def test_peta_aksi_ke_section_lengkap():

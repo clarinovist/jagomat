@@ -561,7 +561,11 @@ def test_http_anonim_dan_murid_tidak_bisa_membuat(server, auth_data, pakai_token
     with server.buka() as kon:
         _siswa, sumber, butir = _hasil_t(kon)
         sebelum = _jumlah_domain(kon)
-    token = sessions.buat("feby", "murid") if pakai_token else None
+    akun_murid = auth.cari_akun("feby")
+    token = sessions.buat(
+        akun_murid["pengguna"], "murid", id_akun=akun_murid["id_akun"],
+        revisi_auth=akun_murid["revisi_auth"],
+    ) if pakai_token else None
     kode, isi, _ = server.minta(
         f"/sesi/{sumber}/latihan-serupa",
         auth=auth_data,

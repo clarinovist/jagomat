@@ -42,6 +42,7 @@ hasil/
 *.sqlite3-shm
 sandi.json
 sesi.json
+.*.json.lock
 .env
 .env.*
 *.pem

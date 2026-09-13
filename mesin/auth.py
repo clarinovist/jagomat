@@ -20,12 +20,18 @@ import base64
 import binascii
 import hashlib
 import hmac
-import json
 import os
 import secrets
-import tempfile
-import threading
+from dataclasses import dataclass
 from pathlib import Path
+
+from json_storage import (
+    GalatPenyimpananJSON,
+    TIDAK_ADA,
+    baca_json_ketat,
+    transaksi_json,
+    tulis_json_atomik,
+)
 
 BERKAS_SANDI = Path(
     os.environ.get("OSN_BERKAS_SANDI", Path(__file__).resolve().parent / "sandi.json")
@@ -52,9 +58,19 @@ _ITERASI = int(os.environ.get("OSN_PBKDF2_ITERASI", "600000"))
 # Nilai konstan ini membuat PBKDF2 tetap dijalankan walau nama tidak ada.
 _UMPAN_GARAM = bytes.fromhex("aa" * 16)
 _UMPAN_KUNCI = bytes.fromhex("bb" * 32)
-_KUNCI_TULIS = threading.Lock()
 _AWAL_ID_AKUN = "akun_"
 _PANJANG_HEX_ID_AKUN = 32
+PERAN = ("admin", "guru", "murid")
+
+
+@dataclass(frozen=True)
+class PrincipalAkun:
+    """Snapshot akun kanonik setelah credential diverifikasi."""
+
+    pengguna: str
+    peran: str
+    id_akun: str
+    revisi_auth: int
 
 
 def id_akun_sah(nilai) -> bool:
@@ -72,22 +88,107 @@ def _buat_id_akun() -> str:
 
 
 def _tulis_akun_atomik(data: dict, path: Path) -> None:
-    """Tulis JSON privat secara atomik di direktori tujuan."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with _KUNCI_TULIS:
-        fd, nama_sementara = tempfile.mkstemp(dir=path.parent, prefix=".sandi-")
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as berkas:
-                json.dump(data, berkas, indent=2)
-            os.chmod(nama_sementara, 0o600)
-            os.replace(nama_sementara, path)
-            path.chmod(0o600)
-        except Exception:
-            try:
-                os.unlink(nama_sementara)
-            except FileNotFoundError:
-                pass
-            raise
+    """Tulis JSON privat; aman dipanggil di dalam transaksi yang sama."""
+    tulis_json_atomik(data, path, indent=2)
+
+
+def revisi_auth(akun: dict) -> int:
+    """Revisi efektif akun; akun legacy tanpa field bernilai nol."""
+    nilai = akun.get("revisi_auth", 0)
+    if type(nilai) is not int or nilai < 0:
+        raise ValueError("revisi_auth akun tidak sah")
+    return nilai
+
+
+def _validasi_daftar_akun(akun: list[dict], *, bentuk_multi: bool) -> None:
+    nama_terlihat = set()
+    id_terlihat = set()
+    for item in akun:
+        if not isinstance(item, dict):
+            raise ValueError("berkas akun tidak sah")
+        pengguna = item.get("pengguna")
+        if type(pengguna) is not str or not pengguna.strip():
+            raise ValueError("berkas akun tidak sah")
+        nama = pengguna.strip().casefold()
+        if nama in nama_terlihat:
+            raise ValueError("nama akun duplikat")
+        nama_terlihat.add(nama)
+        peran = item.get("peran", "guru")
+        if peran not in PERAN or (bentuk_multi and "peran" not in item):
+            raise ValueError("peran akun tidak sah")
+        revisi_auth(item)
+        id_akun = item.get("id_akun")
+        if id_akun is not None:
+            if not id_akun_sah(id_akun):
+                raise ValueError("id_akun tidak sah")
+            if id_akun in id_terlihat:
+                raise ValueError("id_akun duplikat")
+            id_terlihat.add(id_akun)
+
+
+def _data_akun_valid(data) -> bool:
+    if not isinstance(data, dict):
+        return False
+    try:
+        if "akun" in data:
+            isi = data["akun"]
+            if not isinstance(isi, list):
+                return False
+            akun = [dict(item) if isinstance(item, dict) else item for item in isi]
+            _validasi_daftar_akun(akun, bentuk_multi=True)
+        elif isinstance(data.get("pengguna"), str):
+            _validasi_daftar_akun([dict(data)], bentuk_multi=False)
+        else:
+            return False
+    except ValueError:
+        return False
+    return True
+
+
+def _baca_akun_untuk_tulis(path: Path) -> tuple[dict | None, list[dict], bool]:
+    """Baca state writer ketat; ``null`` bukan berkas yang belum ada."""
+    try:
+        mentah = baca_json_ketat(path, bawaan=TIDAK_ADA)
+    except GalatPenyimpananJSON as galat:
+        raise ValueError("berkas akun tidak sah") from galat
+    if mentah is TIDAK_ADA:
+        return None, [], False
+    if not isinstance(mentah, dict):
+        raise ValueError("berkas akun tidak sah")
+    if "akun" in mentah:
+        isi = mentah["akun"]
+        if not isinstance(isi, list):
+            raise ValueError("berkas akun tidak sah")
+        akun = [dict(item) if isinstance(item, dict) else item for item in isi]
+        _validasi_daftar_akun(akun, bentuk_multi=True)
+        return mentah, akun, True
+    if isinstance(mentah.get("pengguna"), str):
+        akun = [dict(mentah)]
+        _validasi_daftar_akun(akun, bentuk_multi=False)
+        return mentah, akun, False
+    raise ValueError("berkas akun tidak sah")
+
+
+def _bungkus_akun(mentah: dict | None, akun: list[dict]) -> dict:
+    """Pertahankan envelope; konversi legacy memberi peran eksplisit.
+
+    ``operasi_admin`` selalu metadata envelope, termasuk jika ditambahkan pada
+    bentuk legacy oleh adapter recovery sebelum akun kedua dibuat.
+    """
+    bentuk_multi = bool(mentah and "akun" in mentah)
+    hasil = dict(mentah) if bentuk_multi else {}
+    if bentuk_multi:
+        hasil["akun"] = akun
+    else:
+        if mentah and "operasi_admin" in mentah:
+            hasil["operasi_admin"] = mentah["operasi_admin"]
+        hasil["akun"] = []
+        for item in akun:
+            salinan = dict(item)
+            salinan.pop("operasi_admin", None)
+            salinan["peran"] = salinan.get("peran", "guru")
+            hasil["akun"].append(salinan)
+    return hasil
 
 
 def buat_hash(sandi: str) -> dict:
@@ -113,52 +214,66 @@ def simpan_sandi(sandi: str, pengguna: str = "guru", path: Path | None = None) -
     bersangkutan yang diperbarui; sisanya dibiarkan apa adanya.
     """
     p = path or BERKAS_SANDI
-    akun = _normalisasi(muat_sandi(p))
+    hash_baru = buat_hash(sandi)
+    with transaksi_json(p) as tujuan:
+        mentah, akun, bentuk_multi = _baca_akun_untuk_tulis(tujuan)
 
-    # Berkas belum ada / masih bentuk lama satu-akun untuk pengguna yang sama:
-    # pertahankan bentuk lama supaya format tidak berubah tanpa alasan.
-    if not akun:
-        _tulis_akun_atomik(
-            {"pengguna": pengguna, "id_akun": _buat_id_akun(), **buat_hash(sandi)},
-            p,
-        )
+        # Berkas belum ada / masih bentuk lama satu-akun untuk pengguna yang sama:
+        # pertahankan bentuk lama supaya format tidak berubah tanpa alasan.
+        if mentah is None:
+            _tulis_akun_atomik(
+                {
+                    "pengguna": pengguna,
+                    "id_akun": _buat_id_akun(),
+                    "revisi_auth": 1,
+                    **hash_baru,
+                },
+                tujuan,
+            )
+            return p
+        if not bentuk_multi and len(akun) == 1 and akun[0]["pengguna"] == pengguna:
+            satu = dict(akun[0])
+            satu.update(hash_baru)
+            satu.setdefault("id_akun", _buat_id_akun())
+            satu["revisi_auth"] = revisi_auth(satu) + 1
+            # Pertahankan bentuk lama satu-akun dan semantik peran implisitnya.
+            satu.pop("peran", None)
+            _tulis_akun_atomik(satu, tujuan)
+            return p
+
+        ketemu = False
+        for a in akun:
+            if a["pengguna"].strip().lower() == pengguna.strip().lower():
+                a.update(hash_baru)
+                a.setdefault("peran", "guru")
+                a.setdefault("id_akun", _buat_id_akun())
+                a["revisi_auth"] = revisi_auth(a) + 1
+                ketemu = True
+        if not ketemu:
+            id_akun = _buat_id_akun()
+            while any(a.get("id_akun") == id_akun for a in akun):
+                id_akun = _buat_id_akun()
+            akun.append({
+                "pengguna": pengguna,
+                "peran": "guru",
+                "id_akun": id_akun,
+                "revisi_auth": 1,
+                **hash_baru,
+            })
+
+        _tulis_akun_atomik(_bungkus_akun(mentah, akun), tujuan)
         return p
-    if len(akun) == 1 and akun[0]["pengguna"] == pengguna:
-        satu = dict(akun[0])
-        satu.update(buat_hash(sandi))
-        satu.setdefault("id_akun", _buat_id_akun())
-        # Pertahankan bentuk lama satu-akun dan semantik peran implisitnya.
-        satu.pop("peran", None)
-        _tulis_akun_atomik(satu, p)
-        return p
-
-    ketemu = False
-    for a in akun:
-        if a["pengguna"].strip().lower() == pengguna.strip().lower():
-            a.update(buat_hash(sandi))
-            a.setdefault("peran", "guru")
-            a.setdefault("id_akun", _buat_id_akun())
-            ketemu = True
-    if not ketemu:
-        akun.append({
-            "pengguna": pengguna,
-            "peran": "guru",
-            "id_akun": _buat_id_akun(),
-            **buat_hash(sandi),
-        })
-
-    _tulis_akun_atomik({"akun": akun}, p)
-    return p
 
 
 def muat_sandi(path: Path | None = None) -> dict | None:
     p = path or BERKAS_SANDI
-    if not p.exists():
-        return None
     try:
-        return json.loads(p.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
+        data = baca_json_ketat(p, bawaan=TIDAK_ADA)
+    except GalatPenyimpananJSON:
         return None
+    if data is TIDAK_ADA or not _data_akun_valid(data):
+        return None
+    return data
 
 
 def periksa(pengguna: str, sandi: str, data: dict | None = None) -> bool:
@@ -196,7 +311,15 @@ def periksa(pengguna: str, sandi: str, data: dict | None = None) -> bool:
     else:
         d = data
 
-    if not d or "pengguna" not in d:
+    if (
+        not d or type(d.get("pengguna")) is not str
+        or d.get("peran", "guru") not in PERAN
+    ):
+        return False
+    try:
+        revisi_auth(d)
+        _validasi_hash_akun(d)
+    except ValueError:
         return False
 
     nama_cocok = hmac.compare_digest(pengguna.encode(), d["pengguna"].encode())
@@ -211,7 +334,9 @@ def periksa(pengguna: str, sandi: str, data: dict | None = None) -> bool:
             int(d.get("iterasi", _ITERASI)),
             dklen=len(harap),
         )
-    except (binascii.Error, ValueError):
+    except (binascii.Error, KeyError, OverflowError, TypeError, ValueError):
+        return False
+    if len(garam) < 1 or len(harap) < 1:
         return False
 
     sandi_cocok = hmac.compare_digest(coba, harap)
@@ -265,9 +390,6 @@ def wajib_sandi() -> bool:
 # lewat simpan_akun() yang selalu menulis bentuk baru.
 
 
-PERAN = ("admin", "guru", "murid")
-
-
 def _normalisasi(data: dict | None) -> list[dict]:
     """Bentuk lama atau baru -> daftar akun seragam."""
     if not data:
@@ -282,57 +404,61 @@ def muat_akun(path: Path | None = None) -> list[dict]:
     return _normalisasi(muat_sandi(path))
 
 
-def pastikan_id_akun(path: Path | None = None) -> bool:
-    """Migrasikan akun lama ke ID generasi stabil secara atomik/idempoten.
-
-    Berkas rusak, bentuk asing, ID cacat, atau ID duplikat gagal tertutup dan
-    tidak ditulis ulang. Nilai hash/peran/siswa serta field lain dipertahankan.
-    """
-    p = path or BERKAS_SANDI
-    if not p.exists():
-        return False
+def _validasi_hash_akun(akun: dict) -> None:
+    """Pastikan hash dapat dibaca sebelum akun dipakai sebagai principal."""
     try:
-        mentah = json.loads(p.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError) as galat:
-        raise ValueError("berkas akun tidak sah") from galat
-    if not isinstance(mentah, dict):
-        raise ValueError("berkas akun tidak sah")
-    if "akun" in mentah:
-        if not isinstance(mentah["akun"], list) or not all(
-            isinstance(akun, dict) for akun in mentah["akun"]
-        ):
-            raise ValueError("berkas akun tidak sah")
-        akun = [dict(item) for item in mentah["akun"]]
-        bentuk_multi = True
-    elif isinstance(mentah.get("pengguna"), str):
-        akun = [dict(mentah)]
-        bentuk_multi = False
-    else:
-        raise ValueError("berkas akun tidak sah")
+        garam_teks = akun["garam"]
+        kunci_teks = akun["kunci"]
+        if type(garam_teks) is not str or type(kunci_teks) is not str:
+            raise ValueError("hash akun tidak sah")
+        garam = binascii.unhexlify(garam_teks)
+        kunci = binascii.unhexlify(kunci_teks)
+        iterasi = akun.get("iterasi", _ITERASI)
+    except (KeyError, TypeError, ValueError, binascii.Error) as galat:
+        raise ValueError("hash akun tidak sah") from galat
+    if (
+        len(garam) < 1 or len(kunci) < 1 or type(iterasi) is not int
+        or iterasi < 1
+    ):
+        raise ValueError("hash akun tidak sah")
 
-    terlihat = set()
-    berubah = False
-    for item in akun:
-        nilai = item.get("id_akun")
-        if nilai is None:
-            nilai = _buat_id_akun()
-            item["id_akun"] = nilai
-            berubah = True
-        elif not id_akun_sah(nilai):
-            raise ValueError("id_akun tidak sah")
-        if nilai in terlihat:
-            raise ValueError("id_akun duplikat")
-        terlihat.add(nilai)
-    if not berubah:
-        return False
 
-    if bentuk_multi:
-        hasil = dict(mentah)
-        hasil["akun"] = akun
-    else:
-        hasil = akun[0]
-    _tulis_akun_atomik(hasil, p)
-    return True
+def pastikan_metadata_auth(path: Path | None = None) -> bool:
+    """Migrasikan ID dan revisi akun legacy secara atomik/idempoten."""
+    p = path or BERKAS_SANDI
+    with transaksi_json(p) as tujuan:
+        mentah, akun, bentuk_multi = _baca_akun_untuk_tulis(tujuan)
+        if mentah is None:
+            return False
+
+        terlihat = {
+            item["id_akun"] for item in akun if item.get("id_akun") is not None
+        }
+        berubah = False
+        for item in akun:
+            _validasi_hash_akun(item)
+            nilai = item.get("id_akun")
+            if nilai is None:
+                nilai = _buat_id_akun()
+                while nilai in terlihat:
+                    nilai = _buat_id_akun()
+                item["id_akun"] = nilai
+                terlihat.add(nilai)
+                berubah = True
+            if "revisi_auth" not in item:
+                item["revisi_auth"] = 0
+                berubah = True
+        if not berubah:
+            return False
+
+        hasil = _bungkus_akun(mentah, akun) if bentuk_multi else akun[0]
+        _tulis_akun_atomik(hasil, tujuan)
+        return True
+
+
+def pastikan_id_akun(path: Path | None = None) -> bool:
+    """Alias kompatibilitas untuk migrasi metadata autentikasi."""
+    return pastikan_metadata_auth(path)
 
 
 def cari_akun(pengguna: str, path: Path | None = None) -> dict | None:
@@ -349,35 +475,95 @@ def cari_akun(pengguna: str, path: Path | None = None) -> dict | None:
 def periksa_peran(
     pengguna: str, sandi_diberikan: str, peran: str, path: Path | None = None
 ) -> bool:
-    """Login + cocokkan peran sekaligus.
+    """Login + cocokkan peran sekaligus tanpa mempercayai input role."""
+    principal = autentikasi(pengguna, sandi_diberikan, path)
+    return principal is not None and principal.peran == peran
 
-    Sandi diverifikasi dulu dengan waktu tetap SEBELUM peran dibandingkan:
-    mengembalikan False lebih awal untuk peran yang salah akan memberi tahu
-    penyerang bahwa nama penggunanya ada.
-    """
-    a = cari_akun(pengguna, path)
-    if not a:
-        _ = hashlib.pbkdf2_hmac("sha256", sandi_diberikan.encode(), _UMPAN_GARAM, _ITERASI, dklen=32)
+
+def autentikasi(
+    pengguna: str, sandi_diberikan: str, path: Path | None = None
+) -> PrincipalAkun | None:
+    """Verifikasi credential dan ambil snapshot canonical tanpa menulis state."""
+    try:
+        data = baca_json_ketat(path or BERKAS_SANDI, bawaan=TIDAK_ADA)
+        if data is TIDAK_ADA or not _data_akun_valid(data):
+            akun = []
+        else:
+            akun = _normalisasi(data)
+    except GalatPenyimpananJSON:
+        akun = []
+    kandidat = next(
+        (
+            item for item in akun
+            if item["pengguna"].strip().casefold()
+            == pengguna.strip().casefold()
+        ),
+        None,
+    )
+    if kandidat is None:
+        _ = hashlib.pbkdf2_hmac(
+            "sha256", sandi_diberikan.encode(), _UMPAN_GARAM,
+            _ITERASI, dklen=32,
+        )
         hmac.compare_digest(_, _UMPAN_KUNCI)
-        return False
-    if not periksa(a["pengguna"], sandi_diberikan, data=a):
-        return False
-    return a.get("peran", "guru") == peran
+        return None
+    try:
+        _validasi_hash_akun(kandidat)
+    except ValueError:
+        return None
+    if not periksa(kandidat["pengguna"], sandi_diberikan, data=kandidat):
+        return None
+    id_akun = kandidat.get("id_akun")
+    if not id_akun_sah(id_akun):
+        return None
+    return PrincipalAkun(
+        pengguna=kandidat["pengguna"],
+        peran=kandidat.get("peran", "guru"),
+        id_akun=id_akun,
+        revisi_auth=revisi_auth(kandidat),
+    )
 
 
 def peran_dari(
     pengguna: str, sandi_diberikan: str, path: Path | None = None
 ) -> str | None:
-    """Peran akun yang kredensialnya benar, atau None. Untuk rute yang
-    melayani dua peran sekaligus."""
-    a = cari_akun(pengguna, path)
-    if not a:
-        _ = hashlib.pbkdf2_hmac("sha256", sandi_diberikan.encode(), _UMPAN_GARAM, _ITERASI, dklen=32)
-        hmac.compare_digest(_, _UMPAN_KUNCI)
-        return None
-    if not periksa(a["pengguna"], sandi_diberikan, data=a):
-        return None
-    return a.get("peran", "guru")
+    """Peran akun yang kredensialnya benar, atau None."""
+    principal = autentikasi(pengguna, sandi_diberikan, path)
+    return principal.peran if principal else None
+
+
+def tambah_akun_dan_principal(
+    pengguna: str,
+    sandi_baru: str,
+    peran: str,
+    path: Path | None = None,
+    siswa_id: int | None = None,
+) -> PrincipalAkun:
+    """Tambah akun dan kembalikan snapshot persis yang baru di-commit."""
+    if peran not in PERAN:
+        raise ValueError(f"peran tidak dikenal: {peran}")
+    hash_baru = buat_hash(sandi_baru)
+    p = path or BERKAS_SANDI
+    with transaksi_json(p) as tujuan:
+        mentah, akun, _bentuk_multi = _baca_akun_untuk_tulis(tujuan)
+        for a in akun:
+            if a["pengguna"].strip().lower() == pengguna.strip().lower():
+                raise ValueError(f"nama pengguna sudah dipakai: {pengguna}")
+        id_akun = _buat_id_akun()
+        while any(a.get("id_akun") == id_akun for a in akun):
+            id_akun = _buat_id_akun()
+        baru: dict = {
+            "pengguna": pengguna,
+            "peran": peran,
+            "id_akun": id_akun,
+            "revisi_auth": 1,
+            **hash_baru,
+        }
+        if siswa_id is not None:
+            baru["siswa_id"] = int(siswa_id)
+        akun.append(baru)
+        _tulis_akun_atomik(_bungkus_akun(mentah, akun), tujuan)
+        return PrincipalAkun(pengguna, peran, id_akun, 1)
 
 
 def tambah_akun(
@@ -387,30 +573,9 @@ def tambah_akun(
     path: Path | None = None,
     siswa_id: int | None = None,
 ) -> Path:
-    """Tambah akun baru. Nama ganda ditolak — duplikat nama membuat
-    pencarian ambigu dan itu risiko keamanan, bukan sekadar rapi.
-
-    Untuk akun murid, `siswa_id` mengikat akun ke baris tabel `siswa`
-    secara eksplisit; tanpa itu, tautan jatuh ke pencocokan nama lama.
-    """
-    if peran not in PERAN:
-        raise ValueError(f"peran tidak dikenal: {peran}")
-    akun = muat_akun(path)
-    for a in akun:
-        if a["pengguna"].strip().lower() == pengguna.strip().lower():
-            raise ValueError(f"nama pengguna sudah dipakai: {pengguna}")
-    baru: dict = {
-        "pengguna": pengguna,
-        "peran": peran,
-        "id_akun": _buat_id_akun(),
-        **buat_hash(sandi_baru),
-    }
-    if siswa_id is not None:
-        baru["siswa_id"] = int(siswa_id)
-    akun.append(baru)
-    p = path or BERKAS_SANDI
-    _tulis_akun_atomik({"akun": akun}, p)
-    return p
+    """Tambah akun; pertahankan return path untuk caller lama."""
+    tambah_akun_dan_principal(pengguna, sandi_baru, peran, path, siswa_id)
+    return path or BERKAS_SANDI
 
 
 def pastikan_admin(path: Path | None = None) -> str | None:
@@ -423,17 +588,34 @@ def pastikan_admin(path: Path | None = None) -> str | None:
     menebak. Tanpa berkas sandi (mode lokal) pun None — palang memang
     belum aktif.
     """
-    akun = muat_akun(path)
-    for a in akun:
-        if a.get("peran", "guru") == "admin":
-            return a["pengguna"]
-    for a in akun:
-        if a.get("peran", "guru") == "guru":
-            a["peran"] = "admin"
-            p = path or BERKAS_SANDI
-            _tulis_akun_atomik({"akun": akun}, p)
-            return a["pengguna"]
-    return None
+    p = path or BERKAS_SANDI
+    with transaksi_json(p) as tujuan:
+        mentah, akun, _bentuk_multi = _baca_akun_untuk_tulis(tujuan)
+        for a in akun:
+            if a.get("peran", "guru") == "admin":
+                return a["pengguna"]
+        for a in akun:
+            if a.get("peran", "guru") == "guru":
+                a["peran"] = "admin"
+                a["revisi_auth"] = revisi_auth(a) + 1
+                _tulis_akun_atomik(_bungkus_akun(mentah, akun), tujuan)
+                return a["pengguna"]
+        return None
+
+
+def naikkan_revisi_auth(id_akun: str, path: Path | None = None) -> int | None:
+    """Cabut semua sesi akun dengan menaikkan revisi tanpa mengganti ID."""
+    if not id_akun_sah(id_akun):
+        raise ValueError("id_akun tidak sah")
+    p = path or BERKAS_SANDI
+    with transaksi_json(p) as tujuan:
+        mentah, akun, _bentuk_multi = _baca_akun_untuk_tulis(tujuan)
+        target = next((item for item in akun if item.get("id_akun") == id_akun), None)
+        if target is None:
+            return None
+        target["revisi_auth"] = revisi_auth(target) + 1
+        _tulis_akun_atomik(_bungkus_akun(mentah, akun), tujuan)
+        return target["revisi_auth"]
 
 
 def hapus_akun(pengguna: str, path: Path | None = None) -> bool:
@@ -448,20 +630,21 @@ def hapus_akun(pengguna: str, path: Path | None = None) -> bool:
     terikat ke tabel `siswa`, bukan ke akun. Anak yang akunnya dihapus tetap
     punya riwayat lengkap, dan akunnya bisa dibuat ulang kapan saja.
     """
-    akun = muat_akun(path)
-    sisa = [
-        a
-        for a in akun
-        if not (
-            a["pengguna"].strip().lower() == pengguna.strip().lower()
-            and a.get("peran", "guru") == "murid"
-        )
-    ]
-    if len(sisa) == len(akun):
-        return False
     p = path or BERKAS_SANDI
-    _tulis_akun_atomik({"akun": sisa}, p)
-    return True
+    with transaksi_json(p) as tujuan:
+        mentah, akun, _bentuk_multi = _baca_akun_untuk_tulis(tujuan)
+        sisa = [
+            a
+            for a in akun
+            if not (
+                a["pengguna"].strip().lower() == pengguna.strip().lower()
+                and a.get("peran", "guru") == "murid"
+            )
+        ]
+        if len(sisa) == len(akun):
+            return False
+        _tulis_akun_atomik(_bungkus_akun(mentah, sisa), tujuan)
+        return True
 
 
 def hapus_akun_guru(pengguna: str, path: Path | None = None) -> bool:
@@ -474,20 +657,21 @@ def hapus_akun_guru(pengguna: str, path: Path | None = None) -> bool:
 
     Mengembalikan True kalau ada yang terhapus.
     """
-    akun = muat_akun(path)
-    sisa = [
-        a
-        for a in akun
-        if not (
-            a["pengguna"].strip().lower() == pengguna.strip().lower()
-            and a.get("peran", "guru") == "guru"
-        )
-    ]
-    if len(sisa) == len(akun):
-        return False
     p = path or BERKAS_SANDI
-    _tulis_akun_atomik({"akun": sisa}, p)
-    return True
+    with transaksi_json(p) as tujuan:
+        mentah, akun, _bentuk_multi = _baca_akun_untuk_tulis(tujuan)
+        sisa = [
+            a
+            for a in akun
+            if not (
+                a["pengguna"].strip().lower() == pengguna.strip().lower()
+                and a.get("peran", "guru") == "guru"
+            )
+        ]
+        if len(sisa) == len(akun):
+            return False
+        _tulis_akun_atomik(_bungkus_akun(mentah, sisa), tujuan)
+        return True
 
 
 def setel_sandi_murid(
@@ -499,20 +683,23 @@ def setel_sandi_murid(
     dipakai, bukan diakali dengan menghapus lalu membuat ulang akun (yang
     membuat guru mengira riwayat anak ikut hilang).
     """
-    akun = muat_akun(path)
-    ubah = False
-    for a in akun:
-        if (
-            a["pengguna"].strip().lower() == pengguna.strip().lower()
-            and a.get("peran", "guru") == "murid"
-        ):
-            a.update(buat_hash(sandi_baru))
-            ubah = True
-    if not ubah:
-        return False
+    hash_baru = buat_hash(sandi_baru)
     p = path or BERKAS_SANDI
-    _tulis_akun_atomik({"akun": akun}, p)
-    return True
+    with transaksi_json(p) as tujuan:
+        mentah, akun, _bentuk_multi = _baca_akun_untuk_tulis(tujuan)
+        ubah = False
+        for a in akun:
+            if (
+                a["pengguna"].strip().lower() == pengguna.strip().lower()
+                and a.get("peran", "guru") == "murid"
+            ):
+                a.update(hash_baru)
+                a["revisi_auth"] = revisi_auth(a) + 1
+                ubah = True
+        if not ubah:
+            return False
+        _tulis_akun_atomik(_bungkus_akun(mentah, akun), tujuan)
+        return True
 
 
 def setel_sandi_guru(
@@ -531,17 +718,20 @@ def setel_sandi_guru(
     Mengembalikan False bila tidak ada akun guru yang cocok — pemanggil
     (proses_admin) yang menerjemahkannya jadi pesan galat yang jelas.
     """
-    akun = muat_akun(path)
-    ubah = False
-    for a in akun:
-        if (
-            a["pengguna"].strip().lower() == pengguna.strip().lower()
-            and a.get("peran", "guru") == "guru"
-        ):
-            a.update(buat_hash(sandi_baru))
-            ubah = True
-    if not ubah:
-        return False
+    hash_baru = buat_hash(sandi_baru)
     p = path or BERKAS_SANDI
-    _tulis_akun_atomik({"akun": akun}, p)
-    return True
+    with transaksi_json(p) as tujuan:
+        mentah, akun, _bentuk_multi = _baca_akun_untuk_tulis(tujuan)
+        ubah = False
+        for a in akun:
+            if (
+                a["pengguna"].strip().lower() == pengguna.strip().lower()
+                and a.get("peran", "guru") == "guru"
+            ):
+                a.update(hash_baru)
+                a["revisi_auth"] = revisi_auth(a) + 1
+                ubah = True
+        if not ubah:
+            return False
+        _tulis_akun_atomik(_bungkus_akun(mentah, akun), tujuan)
+        return True

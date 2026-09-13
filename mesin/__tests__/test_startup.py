@@ -51,6 +51,20 @@ def test_startup_mempromosikan_admin_dan_backfill_pemilik(pasangan):
     assert pemilik == {"Rara": "guru", "Bima": "guru"}
 
 
+def test_startup_memigrasikan_revisi_auth_legacy_ke_nol(pasangan):
+    _db, berkas = pasangan
+    auth.simpan_sandi(SANDI_GURU, "guru", berkas)
+    data = __import__("json").loads(berkas.read_text())
+    data.pop("revisi_auth", None)
+    berkas.write_text(__import__("json").dumps(data), encoding="utf-8")
+
+    assert serve.siapkan_admin_dan_pemilik() == "guru"
+    akun = auth.cari_akun("guru", berkas)
+    # Migrasi 0 lalu promosi role menaikkan revisi untuk mencabut snapshot lama.
+    assert akun["revisi_auth"] == 1
+    assert akun["peran"] == "admin"
+
+
 def test_startup_idempoten(pasangan):
     db, berkas = pasangan
     with database.buka(db) as kon:
@@ -63,6 +77,7 @@ def test_startup_idempoten(pasangan):
     akun = auth.muat_akun(berkas)
     assert len(akun) == 1
     assert akun[0]["peran"] == "admin"
+    assert akun[0]["revisi_auth"] == 2
     assert auth.id_akun_sah(akun[0]["id_akun"])
     with database.buka(db) as kon:
         pemilik = [

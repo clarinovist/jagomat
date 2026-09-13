@@ -77,6 +77,8 @@ def penjaga():
 @pytest.mark.parametrize('nama', [
     'mesin/data.db', 'mesin/data.DB-SHM', 'mesin/data.db-journal',
     'mesin/data.sqlite', 'mesin/data.sqlite3-wal', 'mesin/sandi.json',
+    'mesin/.sandi.json.lock', 'mesin/.sesi.json.lock',
+    'mesin/.akun-uji.json.lock',
     'mesin/arsip/sesi.json', 'mesin/kejadian/salinan.json',
     'mesin/turunan/a.png', 'mesin/cache_llm/a.json', 'mesin/hasil/a.md',
     'mesin/soal-ISI.md', 'mesin/.env', 'mesin/.env.production',

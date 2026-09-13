@@ -207,7 +207,11 @@ def test_admin_diarahkan_ke_panel_semua_keluarga(dua_keluarga):
     assert "RaraB" in isi
     assert "Pengelola" in isi
     assert "Buat sesi baru" not in isi
-    assert f'href="/laporan/{ids["b"]}"' in isi, "anak harus jadi tautan baca"
+    kode_siswa, daftar_siswa, _ = s.minta(
+        "/admin?section=siswa", auth=("pengelola", SANDI_ADMIN)
+    )
+    assert kode_siswa == 200
+    assert f'href="/admin?section=siswa&amp;id={ids["b"]}"' in daftar_siswa, "anak harus jadi tautan detail admin"
 
 
 def test_murid_keluarga_a_tak_bisa_menjangkau_sesi_keluarga_b(dua_keluarga):
