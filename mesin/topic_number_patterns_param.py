@@ -13,7 +13,6 @@ import random
 from templates import HARI
 
 WARNA = ("merah", "kuning", "hijau", "biru", "putih", "ungu")
-HURUF = ("A", "B", "C", "D")
 
 LEVEL_BAWAAN = "P3"
 

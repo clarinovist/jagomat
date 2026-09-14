@@ -24,7 +24,6 @@ from topics import Topik, daftarkan
 def skala_peta(varian: str, sebenarnya: int, peta: int, skala: int) -> Soal:
     """Skala = peta:sebenarnya (cm:cm). Dua arah: cari skala, peta, atau sebenarnya."""
     # skala = peta:sebenarnya_cm — sebenarnya dalam km, konversi ke cm ×100.000
-    sebenarnya_cm = sebenarnya * 100000
     if varian == "cari_skala":
         # skala = peta : sebenarnya_cm → sederhanakan
         kunci = f"1:{skala}"

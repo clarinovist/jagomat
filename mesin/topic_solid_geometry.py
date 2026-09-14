@@ -572,27 +572,23 @@ def perbandingan_volume(varian: str, k: int, s: int = 0,
         teks = f"Kubus dengan panjang rusuk {s} cm. Jika panjang rusuk diperbesar {k} kali, berapa kali lipat volumenya?"
         k_kali = str(k * s)  # lupa pangkat 3
         k_kuadrat = str(k ** 2 * s)  # k² bukan k³
-        k_lupa = str(k)
     elif varian == "cari_k":
         kunci = str(k)
         teks = f"Volume kubus diperbesar {V_baru} kali. Berapa kali panjang rusuknya diperbesar?"
         k_kali = str(V_baru // 3)  # V/3
         k_kuadrat = str(int(V_baru ** (1/3)) + 1)  # akar pangkat 3 + 1
-        k_lupa = str(V_baru)
     elif varian == "balok_V_baru":
         V_baru = k ** 3 * s
         kunci = str(V_baru)
         teks = f"Balok diperbesar {k} kali pada setiap ukurannya. Volume awal {s} cm³. Berapa volume barunya (cm³)?"
         k_kali = str(k * s)
         k_kuadrat = str(k ** 2 * s)
-        k_lupa = str(k)
     else:
         V_baru = k ** 3 * s
         kunci = str(V_baru)
         teks = f"Sebuah bangun ruang diperbesar {k} kali pada setiap dimensinya. Volume awal {s} cm³. Berapa volume barunya (cm³)?"
         k_kali = str(k * s)
         k_kuadrat = str(k ** 2 * s)
-        k_lupa = str(k)
 
     # Jaga malrule tidak bertabrakan
     if k_kuadrat == kunci or k_kuadrat == k_kali:

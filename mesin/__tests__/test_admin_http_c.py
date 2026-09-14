@@ -321,6 +321,98 @@ def test_target_admin_tidak_dapat_ditinjau_atau_dimutasi(server):
     assert kode == 404 and 'name="sandi_baru"' not in isi
 
 
+@pytest.mark.parametrize("aksi", ["account_password_reset", "account_login_delete"])
+def test_tinjauan_target_kosong_hilang_dan_admin_tanpa_efek(server, aksi):
+    """Kontrak penolakan panel lama dipindah ke rute bertoken yang aktif."""
+    token = _login(server, "Admin-C", SANDI_ADMIN)
+    auth_awal = auth.BERKAS_SANDI.read_bytes()
+    audit_awal = admin_store.BAWAAN.read_bytes()
+    respons = []
+    for target in ("", "akun_" + "f" * 32, auth.cari_akun("Admin-C")["id_akun"]):
+        respons.append(_minta(
+            server, "/admin/tinjau?aksi=" + aksi + "&id=" + target, cookie=token,
+        )[:2])
+    assert all(r == respons[0] for r in respons)
+    assert respons[0][0] == 404
+    assert auth.BERKAS_SANDI.read_bytes() == auth_awal
+    assert admin_store.BAWAAN.read_bytes() == audit_awal
+
+
+def test_reset_guru_sandi_pendek_ditolak_lalu_sukses_terisolasi(server):
+    token = _login(server, "Admin-C", SANDI_ADMIN)
+    target = auth.cari_akun("Ortu-C")
+    _, review, _ = _minta(
+        server, "/admin/tinjau?aksi=account_password_reset&id=" + target["id_akun"],
+        cookie=token,
+    )
+    assert 'action="/admin/akun"' in review
+    assert 'minlength="12"' in review and 'name="sandi_baru"' in review
+    assert "Sandi baru untuk Ortu-C" in review
+    awal = auth.BERKAS_SANDI.read_bytes()
+    data = {
+        "aksi": "account_password_reset", "csrf": _hidden(review, "csrf"),
+        "tinjauan": _hidden(review, "tinjauan"), "reauth": SANDI_ADMIN,
+        "sandi_baru": "pendek",
+    }
+    kode, _, _ = _minta(server, "/admin/akun", cookie=token, data=data,
+                         headers={"Origin": server.alamat})
+    assert kode == 400 and auth.BERKAS_SANDI.read_bytes() == awal
+    # Tinjauan baru: penolakan tidak diubah menjadi replay operasi sukses.
+    _, review, _ = _minta(
+        server, "/admin/tinjau?aksi=account_password_reset&id=" + target["id_akun"],
+        cookie=token,
+    )
+    data.update(tinjauan=_hidden(review, "tinjauan"), sandi_baru="sandi-baru-cleanup-123")
+    kode, isi, header = _minta(server, "/admin/akun", cookie=token, data=data,
+                               headers={"Origin": server.alamat})
+    assert kode == 200 and "Simpan akses sekarang" in isi
+    assert header["Cache-Control"] == "no-store"
+    assert auth.periksa("Ortu-C", data["sandi_baru"])
+    assert not auth.periksa("Ortu-C", SANDI_ORANG_TUA)
+    assert auth.periksa("Admin-C", SANDI_ADMIN)
+    assert auth.periksa("guru", SANDI_GURU)
+    assert auth.periksa("feby", SANDI_MURID)
+
+
+def test_hapus_login_guru_tidak_menghapus_siswa_atau_riwayat(server):
+    token = _login(server, "Admin-C", SANDI_ADMIN)
+    target = auth.cari_akun("Ortu-C")
+    with server.buka() as kon:
+        database.buat_sesi(kon, server.siswa_c, seed=17)
+        sebelum = tuple(kon.iterdump())
+    _, review, _ = _minta(
+        server, "/admin/tinjau?aksi=account_login_delete&id=" + target["id_akun"], cookie=token,
+    )
+    kode, _, _ = _minta(server, "/admin/akun", cookie=token, data={
+        "aksi": "account_login_delete", "csrf": _hidden(review, "csrf"),
+        "tinjauan": _hidden(review, "tinjauan"), "reauth": SANDI_ADMIN,
+        "konfirmasi": "1",
+    }, headers={"Origin": server.alamat})
+    assert kode == 303 and auth.cari_akun("Ortu-C") is None
+    with server.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum
+    assert auth.periksa("Admin-C", SANDI_ADMIN)
+    assert auth.periksa("feby", SANDI_MURID)
+    assert admin_store.daftar_riwayat(admin_store.BAWAAN, aksi="account_login_delete").total == 1
+
+
+def test_aksi_akun_tidak_dikenal_ditolak_tanpa_efek(server):
+    token = _login(server, "Admin-C", SANDI_ADMIN)
+    awal = auth.BERKAS_SANDI.read_bytes(), admin_store.BAWAAN.read_bytes()
+    kode, _, _ = _minta(server, "/admin/akun", cookie=token,
+                         data={"aksi": "hapus-semua"}, headers={"Origin": server.alamat})
+    assert kode == 400
+    assert (auth.BERKAS_SANDI.read_bytes(), admin_store.BAWAAN.read_bytes()) == awal
+
+
+def test_riwayat_kosong_jujur_dan_tanpa_kontrol_mutasi(server):
+    token = _login(server, "Admin-C", SANDI_ADMIN)
+    kode, isi, _ = _minta(server, "/admin?section=riwayat", cookie=token)
+    assert kode == 200 and "Belum ada tindakan admin." in isi
+    assert 'action="/admin/akun"' not in isi
+    assert admin_store.daftar_riwayat(admin_store.BAWAAN).total == 0
+
+
 def test_ubah_kelas_dan_create_login_murid_actual_domain(server):
     token = _login(server, "Admin-C", SANDI_ADMIN)
     _, review, _ = _minta(

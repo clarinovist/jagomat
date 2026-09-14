@@ -2672,16 +2672,6 @@ CSS_SESI = f"""
   display: flex; align-items: center; gap: {T.SP_1};
 }}
 
-/* Baris dua kolom: jawaban singkat | kode yang butuh ruang label/pilihan. */
-.koreksi-baris-st {{
-  display: grid; grid-template-columns: 1fr;
-  gap: {T.SP_3}; align-items: end;
-}}
-@media (min-width: 40rem) {{
-  .koreksi-baris-st {{
-    grid-template-columns: minmax(8rem, 10rem) minmax(0, 1fr);
-  }}
-}}
 .koreksi-input-st {{
   font: inherit; font-size: 1rem; min-height: {T.TARGET_SENTUH};
   border-radius: {T.RADIUS_SEDANG}; border: 1px solid {T.BORDER_VARIAN};

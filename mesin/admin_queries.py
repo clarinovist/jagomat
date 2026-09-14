@@ -16,7 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import math
-from typing import Iterable, Mapping, Optional, Sequence, Tuple
+from typing import Iterable, Mapping, Optional, Tuple
 
 
 BATAS_BAWAAN = 25
@@ -29,19 +29,6 @@ STATUS_SISWA = frozenset((
     "owner_without_account",
     "owner_empty",
     "owner_admin",
-    "legacy_login_unverified",
-    "legacy_same_name_ambiguous",
-))
-STATUS_KELUARGA = frozenset((
-    "account_missing_id",
-    "no_students",
-    "owner_without_account",
-    "owner_empty",
-    "owner_admin",
-))
-STATUS_LOGIN = frozenset((
-    "orphan_login",
-    "legacy_orphan_login",
     "legacy_login_unverified",
     "legacy_same_name_ambiguous",
 ))
@@ -430,11 +417,6 @@ def _cari(nilai: str) -> str:
     if type(nilai) is not str or len(nilai) > 80 or any(ord(c) < 32 for c in nilai):
         raise InputQueryTidakSah("pencarian tidak sah")
     return nilai.strip()
-
-
-def _pola_like_literal(nilai: str) -> str:
-    """Escape wildcard SQL agar `%`, `_`, dan `\\` dicari sebagai karakter."""
-    return "%" + nilai.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
 
 
 def ringkasan_admin(

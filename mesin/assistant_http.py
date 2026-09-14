@@ -1029,123 +1029,14 @@ def tangani_get(penangan, jalur: str) -> bool:
         if not assistant_service.tersedia():
             _kirim_privat(penangan, assistant_pages.halaman_tidak_aktif(), 503)
             return True
-        cocok_konteks = _POLA_KONTEKS.fullmatch(jalur)
-        if cocok_konteks:
-            if query or not assistant_navigation.tujuan_lanjut(jalur):
-                raise LookupError('sumber tidak tersedia')
-            import database
-            jenis, resource_id = cocok_konteks.groups()
-            with database.buka() as kon_data:
-                sumber = assistant_view.sumber_tampilan(kon_data,jenis,resource_id,pemilik=principal.pengguna)
-            if sumber is None:
-                raise LookupError('sumber tidak tersedia')
+        # Semua pola URL yang dikenal sudah ditangani di atas. Pertahankan
+        # fallback lama: provider belum siap -> 503, belum consent -> form,
+        # selebihnya 404. Tidak ada renderer standalone kedua setelah redirect.
         with _siapkan_db() as kon:
-            consent = _consent(kon, principal.id_akun)
-            if cocok_konteks:
-                if query or not assistant_navigation.tujuan_lanjut(jalur):
-                    raise LookupError('sumber tidak tersedia')
-                import database
-                jenis, resource_id = cocok_konteks.groups()
-                with database.buka() as kon_data:
-                    sumber = assistant_view.sumber_tampilan(
-                        kon_data, jenis, resource_id, pemilik=principal.pengguna
-                    )
-                    konteks = assistant_context.ambil(
-                        kon_data, jenis, resource_id, pemilik=principal.pengguna
-                    ) if sumber is not None else None
-                if sumber is None or konteks is None:
-                    raise LookupError('sumber tidak tersedia')
-                if not consent:
-                    _kirim_privat(penangan, assistant_pages.halaman_persetujuan(lanjut=jalur,sumber=sumber))
-                else:
-                    _kirim_privat(penangan, assistant_pages.halaman_pilih_konteks(konteks, sumber=sumber))
-                return True
-            if not consent:
+            if not _consent(kon, principal.id_akun):
                 _kirim_privat(penangan, assistant_pages.halaman_persetujuan())
                 return True
-            if jalur == '/pendamping/riwayat':
-                if set(query) - {'halaman'}:
-                    raise LookupError('parameter tidak tersedia')
-                nomor = query.get('halaman','1')
-                if not re.fullmatch(r'[1-9][0-9]{0,2}', nomor):
-                    raise LookupError('halaman tidak tersedia')
-                chats, ada_lagi = assistant_view.riwayat(kon, principal.id_akun, halaman=int(nomor))
-                _kirim_privat(penangan, assistant_pages.halaman_riwayat(chats, halaman=int(nomor), ada_lagi=ada_lagi))
-                return True
-            cocok_memori = _POLA_MEMORI.fullmatch(jalur)
-            if jalur in ('/pendamping/memori','/pendamping/memori/hapus-semua') or cocok_memori:
-                if set(query) - {'kembali'}:
-                    raise LookupError('parameter tidak tersedia')
-                kembali = _kembali_sah(kon, principal, query.get('kembali',''))
-                daftar = assistant_store.daftar_memori(kon, principal.id_akun)
-                versi = assistant_store.versi_memori(kon, principal.id_akun)
-                if jalur == '/pendamping/memori':
-                    isi = assistant_pages.halaman_memori(daftar,
-                        aktif=assistant_store.penggunaan_memori_aktif(kon, principal.id_akun),
-                        versi=versi, kembali=kembali)
-                elif jalur.endswith('hapus-semua'):
-                    isi = assistant_pages.halaman_hapus_memori(daftar, versi=versi, semua=True, kembali=kembali)
-                else:
-                    memori_id, aksi = cocok_memori.groups()
-                    item = next((m for m in daftar if m.id == memori_id), None)
-                    if item is None or aksi not in ('ubah','hapus'):
-                        raise LookupError('memori tidak tersedia')
-                    isi = (assistant_pages.halaman_edit_memori(item, kembali=kembali) if aksi == 'ubah' else
-                           assistant_pages.halaman_hapus_memori((item,), versi=item.versi, kembali=kembali))
-                _kirim_privat(penangan, isi)
-                return True
-            cocok_usulan = _POLA_USULAN.fullmatch(jalur)
-            if cocok_usulan:
-                if query:
-                    raise LookupError('parameter tidak tersedia')
-                usulan = assistant_store.ambil_usulan(kon, principal.id_akun, cocok_usulan[1])
-                if usulan is None:
-                    raise LookupError('usulan tidak tersedia')
-                chat = assistant_store.ambil_chat(kon, principal.id_akun, usulan.chat_id)
-                if chat is None:
-                    raise LookupError('chat tidak tersedia')
-                sumber = _sumber(chat, principal.pengguna)
-                try:
-                    sesi_id = assistant_actions.ambil_hasil_usulan(kon, principal.id_akun, principal.pengguna, usulan.id)
-                    if sesi_id is not None:
-                        _kirim_privat(penangan, assistant_pages.halaman_hasil_usulan(usulan, sesi_id=sesi_id, sumber=sumber))
-                        return True
-                    request_id = assistant_actions.tinjau_usulan(kon, principal.id_akun, principal.pengguna, usulan.id, sekarang=int(time.time()))
-                except assistant_actions.GalatTindakan as galat:
-                    _usulan_berubah(penangan, galat, chat_id=chat.id, usulan_id=usulan.id)
-                    return True
-                konteks = _konteks_chat(chat, principal.pengguna)
-                if konteks is None:
-                    _kirim_privat(penangan, assistant_pages.halaman_konteks_berubah(sumber=sumber),409)
-                    return True
-                pesan_sumber = assistant_store.pesan_dari_request(kon, principal.id_akun, usulan.sumber_request_id, peran='pengguna')
-                if pesan_sumber is not None and pesan_sumber.chat_id != chat.id:
-                    raise LookupError('sumber tidak tersedia')
-                _kirim_privat(penangan, assistant_pages.halaman_tinjau_usulan(usulan, chat, konteks,
-                    request_id=request_id, sumber=sumber, pesan_sumber=pesan_sumber))
-                return True
-            cocok_operasi = re.fullmatch(r'/pendamping/operasi/(req_[0-9A-Za-z_-]{8,80})',jalur)
-            if cocok_operasi:
-                if query:
-                    raise LookupError('parameter tidak tersedia')
-                operasi = kon.execute('SELECT chat_id,status FROM operasi WHERE request_id=? AND account_id=?',
-                                      (cocok_operasi[1],principal.id_akun)).fetchone()
-                chat = None if operasi is None else assistant_store.ambil_chat(kon,principal.id_akun,operasi['chat_id'])
-                if chat is None or not assistant_view.hak_baca_chat(kon,principal.id_akun,chat,pemilik=principal.pengguna):
-                    raise LookupError('operasi tidak tersedia')
-                if operasi['status']=='selesai':
-                    _redirect(penangan,'/pendamping/chat/'+chat.id)
-                else:
-                    _kirim_privat(penangan,assistant_pages.halaman_status_operasi(operasi['status'],chat_id=chat.id,request_id=cocok_operasi[1]))
-                return True
-            cocok = _POLA_CHAT.fullmatch(jalur)
-            if not cocok or query:
-                raise LookupError('chat tidak tersedia')
-            chat = assistant_store.ambil_chat(kon,principal.id_akun,cocok[1])
-            if chat is None:
-                raise LookupError('chat tidak tersedia')
-            isi,kode = _chat_html(kon,principal,chat)
-            _kirim_privat(penangan,isi,kode)
+            raise LookupError('chat tidak tersedia')
     except (LookupError, GalatForm):
         _tidak_ada(penangan)
     except ValueError:

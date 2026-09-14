@@ -355,6 +355,37 @@ def test_http_provider_tidak_lengkap_tidak_membuat_db(tmp_path, monkeypatch):
         s.berhenti()
 
 
+@pytest.mark.parametrize("provider,consent,status", [
+    (False, False, 503), (False, True, 503),
+    (True, False, 200), (True, True, 404),
+])
+def test_fallback_get_asing_mempertahankan_ketersediaan_dan_consent(
+    server, monkeypatch, provider, consent, status,
+):
+    """Cleanup cabang mati tidak mengubah fallback URL yang tidak dikenal."""
+    token = _token_guru(server)
+    if consent:
+        _consent(server, token)
+    if not provider:
+        monkeypatch.setattr(assistant_service, "tersedia", lambda: False)
+    ada_db = assistant_schema.BAWAAN.exists()
+    sebelum = None
+    if ada_db:
+        with assistant_schema.buka() as kon:
+            sebelum = tuple(kon.iterdump())
+    kode, isi, header = server.minta("/pendamping/tidak-dikenal", cookie=token)
+    assert kode == status
+    assert header["Cache-Control"] == "no-store"
+    if status == 200:
+        assert 'action="/pendamping/persetujuan"' in isi
+    assert server.provider.panggilan == []
+    if sebelum is not None:
+        with assistant_schema.buka() as kon:
+            assert tuple(kon.iterdump()) == sebelum
+    elif not provider:
+        assert not assistant_schema.BAWAAN.exists()
+
+
 def test_http_feature_flag_default_nonaktif(tmp_path, monkeypatch):
     monkeypatch.delenv("PENDAMPING_AKTIF", raising=False)
     monkeypatch.setattr(sessions, "BERKAS_SESI", tmp_path / "sesi.json")
@@ -436,13 +467,6 @@ def test_post_pesan_chat_umum_lama_ditolak_tanpa_pesan_atau_provider(server):
     with assistant_schema.buka() as kon:
         assert tuple(kon.iterdump()) == sebelum
         assert assistant_store.daftar_pesan(kon, akun, chat.id) == ()
-
-
-def urllib_parse_path_from_html(isi):
-    import re
-    cocok = re.search(r'action="(/pendamping/chat/([^/"]+)/pesan)"', isi)
-    assert cocok, isi[:500]
-    return cocok.group(1).rsplit("/pesan", 1)[0]
 
 
 def test_http_cross_site_duplikat_besar_ditolak_sebelum_provider(server):

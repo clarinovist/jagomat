@@ -276,7 +276,6 @@ def susun_bilangan_syarat(varian: str, angka: tuple[int, ...], N: int | None = N
         else (lambda u: _angka_ke_bil(u) > N),
     )
     if varian == "genap":
-        genap = [d for d in angka if d % 2 == 0]
         ganjil = [d for d in angka if d % 2 == 1]
         mal = [
             Malrule(

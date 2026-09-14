@@ -141,17 +141,6 @@ def _chart_tren(ring) -> str:
         f"</svg>"
     )
 
-def _topik_terlemah(ring) -> str:
-    """Topik dengan jumlah K terbanyak di ringkasan. Data nyata, bukan tebakan."""
-    agregat: dict[str, int] = {}
-    for r in ring:
-        t = _ambil(r, "topik", TOPIK_BAWAAN) or TOPIK_BAWAAN
-        agregat[t] = agregat.get(t, 0) + (r["k"] or 0)
-    if not agregat or not any(agregat.values()):
-        return "tidak ada"
-    return max(agregat, key=agregat.get)
-
-
 # Kamus kode diagnosis dalam bahasa sehari-hari (untuk orang tua).
 # Kunci = kode di basis data; nilai = (sebutan ramah, arti 1 kalimat).
 # Dipakai panel "Cara membaca laporan" — bebas jargon teknis (malrule,

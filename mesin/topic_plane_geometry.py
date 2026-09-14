@@ -15,8 +15,6 @@ yang ditulis LLM. Malrule lulus `saring_malrule` dengan jalur K dan H
 
 from __future__ import annotations
 
-import random
-
 from templates import Malrule, Soal, putar, saring_malrule
 from topics import Topik, daftarkan
 from topic_plane_geometry_param import _parameter

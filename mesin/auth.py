@@ -715,8 +715,8 @@ def setel_sandi_guru(
     menggantinya, satu sesi admin yang bocor berarti sandi penjaga
     tertinggi ikut bisa ditukar.
 
-    Mengembalikan False bila tidak ada akun guru yang cocok — pemanggil
-    (proses_admin) yang menerjemahkannya jadi pesan galat yang jelas.
+    Adapter kompatibilitas: False bila tidak ada akun guru yang cocok.
+    Panel admin aktif memakai layanan bertoken/audit di admin_service.
     """
     hash_baru = buat_hash(sandi_baru)
     p = path or BERKAS_SANDI

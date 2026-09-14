@@ -1035,56 +1035,6 @@ class Penangan(BaseHTTPRequestHandler):
 </body></html>"""
         return body.encode()
 
-    def _handle_daftar(self, data: dict) -> None:
-        """Pendaftaran mandiri pengelola (guru les / orang tua).
-
-        Publik tapi tidak ringan hati: nama ganda ditolak (ambigu = risiko
-        keamanan, bukan gaya), sandi minimal 8, dan checkbox persetujuan
-        wajib. Gagal = form kembali dengan pesan, BUKAN akun setengah jadi.
-        """
-        from landing import halaman_daftar
-
-        nama = (data.get("nama") or "").strip()
-        pw = data.get("sandi") or ""
-        ip = self.client_address[0] if self.client_address else "unknown"
-        if sessions.sedang_diblokir(nama, ip):
-            return self._kirim(
-                halaman_daftar(
-                    "Terlalu banyak percobaan. Coba lagi 15 menit lagi.",
-                    galat=True, nama=nama,
-                ),
-                429,
-            )
-        galat = None
-        if not nama:
-            galat = "Nama wajib diisi."
-        elif len(pw) < 8:
-            galat = "Kata sandi minimal 8 karakter."
-        elif not data.get("setuju"):
-            galat = "Centang persetujuan Kebijakan Privasi dulu, ya."
-        else:
-            try:
-                principal = auth.tambah_akun_dan_principal(nama, pw, "guru")
-            except ValueError:
-                galat = f"Nama {nama} sudah dipakai. Pakai nama lain, atau masuk bila memang akunmu."
-        if galat:
-            return self._kirim(halaman_daftar(galat, galat=True, nama=nama))
-
-        token = sessions.buat_dari_principal(principal)
-        if token is None:
-            return self._kirim(
-                halaman_daftar(
-                    "Akun berubah saat pendaftaran. Silakan masuk lagi.", galat=True,
-                    nama=nama,
-                ),
-                409,
-            )
-        self.send_response(303)
-        self.send_header("Location", "/guru")
-        self.send_header("Set-Cookie", self._set_cookie(token))
-        self.send_header("Content-Length", "0")
-        self.end_headers()
-
     def _handle_masuk(self, data: dict) -> None:
         nama = (data.get("nama") or "").strip()
         pw = data.get("sandi") or ""

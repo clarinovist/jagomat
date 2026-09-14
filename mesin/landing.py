@@ -171,7 +171,6 @@ def halaman_kebijakan() -> bytes:
     termasuk pengiriman foto lembar ke layanan AI — bukan janji yang
     belum diimplementasi.
     """
-    n = html.escape(T.NAMA_PRODUK)
     isi = f"""
 <main class="dukungan-editorial-st privasi-editorial-st" aria-labelledby="judul-privasi">
 {_topbar_publik_st()}

@@ -1112,20 +1112,6 @@ def _buat_batch_durable_kon(
     return _snapshot_batch_durable_kon(kon, batch_id)
 
 
-def buat_batch_durable(
-    path, *, batch_id, actor_id, actor_revisi, session_hash, aksi,
-    target_peran, item, sekarang=None,
-) -> SnapshotBatchDurable:
-    """Buat identitas batch/item tanpa alias atau secret pada store durable."""
-    kini = int(time.time()) if sekarang is None else int(sekarang)
-    with _transaksi(path) as kon:
-        return _buat_batch_durable_kon(
-            kon, batch_id=batch_id, actor_id=actor_id,
-            actor_revisi=actor_revisi, session_hash=session_hash, aksi=aksi,
-            target_peran=target_peran, item=item, sekarang=kini,
-        )
-
-
 def baca_batch_durable(path, batch_id) -> Optional[SnapshotBatchDurable]:
     """Reader audit detail; sengaja tidak memerlukan session operasional."""
     validasi_id(batch_id, "batch_id")
@@ -1427,12 +1413,6 @@ def batalkan_batch_aktif_durable(path, *, batch_id, sekarang=None) -> None:
         )
 
 
-def hentikan_batch_durable(path, *, batch_id, sekarang=None) -> None:
-    kini = int(time.time()) if sekarang is None else int(sekarang)
-    with _transaksi(path) as kon:
-        _hentikan_batch_durable_kon(kon, batch_id=batch_id, sekarang=kini)
-
-
 def hentikan_batch_durable_dengan_guard(
     path, *, batch_id, sekarang, guard, setelah=None,
 ) -> None:
@@ -1502,19 +1482,6 @@ def _konfirmasi_penyerahan_durable_kon(
            WHERE batch_id=? AND item_id IN (%s)""" % placeholder,
         (sekarang, batch_id, *daftar),
     )
-
-
-def konfirmasi_penyerahan_durable(
-    path, *, operasi_id, batch_id, actor_id, actor_revisi, item_ids,
-    sekarang=None,
-) -> None:
-    kini = int(time.time()) if sekarang is None else int(sekarang)
-    with _transaksi(path) as kon:
-        _konfirmasi_penyerahan_durable_kon(
-            kon, operasi_id=operasi_id, batch_id=batch_id,
-            actor_id=actor_id, actor_revisi=actor_revisi,
-            item_ids=item_ids, sekarang=kini,
-        )
 
 
 def konfirmasi_penyerahan_durable_dengan_guard(

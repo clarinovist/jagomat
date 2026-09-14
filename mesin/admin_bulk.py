@@ -668,16 +668,6 @@ def _status_item(status):
     return "uncertain"
 
 
-def _status_batch(statuses):
-    if "uncertain" in statuses:
-        return "attention"
-    if "pending" in statuses:
-        return "partial"
-    if statuses and all(status == "succeeded" for status in statuses):
-        return "succeeded"
-    return "partial"
-
-
 def _batalkan_pending(path_transient, batch_id, kini):
     with _transaksi(path_transient) as kon:
         kon.execute(
@@ -770,12 +760,6 @@ def _sinkronkan_transient_durable_kon(kon, snapshot, kini):
         "UPDATE draft_bulk SET status=?,diperbarui=? WHERE batch_id=?",
         (snapshot.batch.status, int(kini), snapshot.batch.batch_id),
     )
-
-
-def _sinkronkan_transient_durable(path_transient, snapshot, kini):
-    """Best-effort projection durable untuk stop/handover yang sudah commit."""
-    with _transaksi(path_transient) as kon:
-        _sinkronkan_transient_durable_kon(kon, snapshot, kini)
 
 
 def proses_kelompok(path_admin, path_auth, path_db, *, path_transient,

@@ -168,10 +168,6 @@ input:disabled, textarea:disabled, select:disabled {{
   .nav-samping {{ flex-direction: row; flex-wrap: wrap; position: static; }}
 }}
 
-/* Kartu berdampingan — kini hanya dipakai landing.py; dashboard keluarga
-   pindah ke .daftar-anak (band per anak). */
-.grid-utama {{ display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }}
-@media (max-width: 46rem) {{ .grid-utama {{ grid-template-columns: 1fr; }} }}
 /* Band per anak (dashboard keluarga): satu anak satu baris penuh. Dulu
    1fr 1fr memaksa dua kartu berdampingan — tabel 7 kolom terjepit di
    ±460px (tanggal dan nomor sesi wrap dua baris) sementara form
@@ -198,12 +194,6 @@ input:disabled, textarea:disabled, select:disabled {{
 }}
 .strip-sesi .pengaturan-timer {{ flex-basis: 100%; }}
 .strip-sesi button {{ padding: .55rem 1.2rem; }}
-.kartu-siswa {{ margin-bottom: 0; }}
-.siswa-kepala {{
-  display: flex; align-items: center; justify-content: space-between;
-  gap: .6rem; margin-bottom: .7rem;
-}}
-.siswa-kepala h2 {{ margin: 0; font-size: 1.15rem; }}
 .badge-tingkat {{
   font-size: .78rem; font-weight: 700; color: {T.AKSEN_TEAL_TUA};
   background: {T.LATAR_KARTU_SEKUNDER}; padding: .15rem .5rem;
@@ -216,7 +206,6 @@ input:disabled, textarea:disabled, select:disabled {{
   background: {T.BADGE_ADMIN_BG};
   padding: .12rem .5rem; border-radius: {T.RADIUS_PIL}; white-space: nowrap;
 }}
-.siswa-kepala a {{ font-size: .85rem; white-space: nowrap; }}
 .kosong-hint-guru {{
   border: 1.5px dashed {T.BORDER_HALUS}; text-align: center;
   color: {T.TEKS_SUBTLE}; font-size: 1rem; padding: 2.5rem;
@@ -564,11 +553,6 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .status-buruk {{ color: {T.AKSEN_KORAL_TUA}; }}
 
 /* ── Halaman masuk (mockup guru-masuk) ─────────────────────────────── */
-.layout-masuk {{
-  display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100vh - 6rem);
-  align-items: center; gap: 2rem; max-width: 860px; margin: 0 auto;
-}}
-@media (max-width: 46rem) {{ .layout-masuk {{ grid-template-columns: 1fr; min-height: auto; }} }}
 .masuk-kiri {{ text-align: center; }}
 .masuk-kiri img {{ width: 200px; height: 200px; max-width: 70vw; }}
 .masuk-kiri h1 {{

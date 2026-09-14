@@ -21,6 +21,8 @@ codebase. Kode dan tes di `../mesin/` membuktikan perilaku yang tersedia;
 - [Verifikasi penyajian soal](verifikasi-penyajian-soal.md).
 - [Verifikasi soal visual](verifikasi-soal-visual.md).
 - [Verifikasi statistika visual](verifikasi-statistika-visual.md).
+- [Keputusan cleanup dead code](dead-code-cleanup.md): bukti penghapusan,
+  migrasi assertion ke jalur aktif, dan kandidat yang sengaja dipertahankan.
 
 ## Berkas lokal
 

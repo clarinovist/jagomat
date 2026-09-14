@@ -10,6 +10,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import account_pages
+import admin_pages
+import admin_queries
 import assistant_components
 import assistant_inline
 import attachments
@@ -72,7 +74,11 @@ def _halaman(db):
         "akun": account_pages.halaman_akun(kon, pengguna="pendamping-uji"),
         "siswa": account_pages.halaman_akun(kon, pengguna="pendamping-uji", section="siswa"),
         "akun-murid": account_pages.halaman_akun(kon, pengguna="pendamping-uji", section="akun-murid"),
-        "admin": account_pages.halaman_admin(kon, pengguna="pengelola-uji"),
+        "admin": admin_pages.halaman_admin(
+            "ringkasan", admin_pages.render_ringkasan(admin_queries.ringkasan_admin(
+                kon, admin_queries.buat_konteks(kon, auth.muat_akun()),
+            )), pengguna="pengelola-uji",
+        ),
         "cetak": teacher_pages.halaman_sesi_cetak(kon, sesi),
         "lampiran": teacher_pages.halaman_sesi_lampiran(kon, sesi),
         "foto": attachments.halaman_konfirmasi(kon, lamp),
@@ -86,7 +92,10 @@ def test_sebelas_tampilan_punya_landmark_dan_wrapper_scoped(db):
         assert len(markup.pilih("main")) == 1, nama
         assert len(markup.pilih("h1")) == 1, nama
         assert markup.pilih("main")[0]["aria-labelledby"] == markup.pilih("h1")[0]["id"], nama
-        assert any("pendamping-editorial-st" in a.get("class", "").split() for a in markup.pilih("div")), nama
+        if nama == "admin":
+            assert "admin-readonly" in markup.pilih("body")[0]["class"].split()
+        else:
+            assert any("pendamping-editorial-st" in a.get("class", "").split() for a in markup.pilih("div")), nama
         assert 'Tunas <b>' not in isi.decode(), nama
 
 

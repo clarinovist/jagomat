@@ -37,10 +37,6 @@ def db(tmp_path, monkeypatch):
     return p
 
 
-def _sesi_drill(kon, siswa_id: int, seed: int = 7, **kw) -> int:
-    return database.buat_sesi(kon, siswa_id, seed=seed, mode="drill", **kw)
-
-
 # ── 1.1 Skema & migrasi ──────────────────────────────────────────────
 
 

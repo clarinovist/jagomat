@@ -32,7 +32,6 @@ def halaman(path, *, pengguna, csrf, pesan="", galat="",
     baris = []
     for fitur in ai_policy.FITUR:
         profil = ai_policy.profil(fitur)
-        izin_server = ai_policy.deployment_mengizinkan(fitur)
         efektif, alasan = ai_service.status_fitur(fitur)
         if batas[fitur]["batas_harian"] == 0 or batas[fitur]["batas_bulanan"] == 0:
             efektif = False

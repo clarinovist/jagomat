@@ -175,15 +175,16 @@ def test_detail_menyebut_keluarga_dan_hanya_tautan_existing():
     assert '<form' not in html_siswa
 
 
-def test_section_belum_tersedia_jujur_tanpa_kontrol_palsu():
-    for section in ("pendaftaran", "riwayat"):
-        isi = pages.render_belum_tersedia(section)
-        html = pages.halaman_admin(section, isi, pengguna="admin-demo").decode()
-        assert "Belum tersedia" in html
-        assert "Tidak ada kontrol tulis" in html
-        assert "<form" not in isi
-        assert "<button" not in isi
-    assert "Tidak ada kejadian lama yang direka ulang" in pages.render_belum_tersedia("riwayat")
+def test_tindakan_tanpa_target_tidak_menyediakan_form_reset():
+    """Panel aktif tidak lagi memiliki dropdown target kosong versi lama."""
+    isi = pages.form_tindakan_akun("", "guru", "csrf-sintetis", {})
+    assert "<form" not in isi
+    assert 'name="sandi_baru"' not in isi
+    assert '<button' not in isi
+    admin = pages.form_tindakan_akun("admin-demo", "admin", "csrf", {
+        "account_password_reset": "token-sintetis",
+    })
+    assert "hanya dapat dibaca" in admin and "<form" not in admin
 
 
 def test_css_scoped_memakai_token_dan_responsif():

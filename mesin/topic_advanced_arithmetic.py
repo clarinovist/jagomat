@@ -55,12 +55,6 @@ def satuan_konversi(varian: str, nilai: int) -> Soal:
     Varian: "km_ke_m", "m_ke_km", "jam_ke_menit", "menit_ke_jam",
     "kg_ke_g", "g_ke_kg", "liter_ke_ml", "ml_ke_liter".
     """
-    faktor = {
-        "km_ke_m": 1000, "m_ke_km": 0.001,
-        "jam_ke_menit": 60, "menit_ke_jam": 1/60,
-        "kg_ke_g": 1000, "g_ke_kg": 0.001,
-        "liter_ke_ml": 1000, "ml_ke_liter": 0.001,
-    }
     tabel = {
         "km_ke_m": ("km", "m", "×", 1000),
         "m_ke_km": ("m", "km", "÷", 1000),

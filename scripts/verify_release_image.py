@@ -12,7 +12,6 @@ import json
 import re
 import secrets
 import subprocess
-import sys
 
 REPOSITORI = "ghcr.io/clarinovist/osn-mesin-latihan"
 REVISION_RECOVERY_LEGACY = "bc9c973b50eb1fb04edd37df62f71ba0123f29c6"

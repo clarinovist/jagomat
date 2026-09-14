@@ -5,12 +5,9 @@ import html
 import secrets
 
 import admin_bulk
-import admin_pages
 import admin_security
 import auth
 from admin_contracts import AKSI_CABUT_SESI, AKSI_RESET_SANDI
-
-BATAS_BODY = 64 * 1024
 
 
 def _e(nilai):

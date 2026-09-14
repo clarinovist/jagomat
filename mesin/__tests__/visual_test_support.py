@@ -6,7 +6,6 @@ from dataclasses import replace
 
 import topics
 from templates import REGISTRI
-from visual_inventory import identitas_varian
 
 KELUARGA = ("statistika", "geometri-datar", "geometri-ruang", "pengukuran",
             "kombinatorik", "pola-bilangan")
@@ -25,21 +24,6 @@ def buat_soal(nama, level, tid, seed):
     assert paket.parameter_untuk is not None
     parameter = paket.parameter_untuk(tid, random.Random(seed), level)
     return replace(REGISTRI[tid](**parameter), level=level)
-
-
-def contoh_varian():
-    """Pilih contoh pertama tiap template/varian, dengan batas sampling tegas."""
-    ditemukan = {}
-    for nama, level, tid in pasangan_aktif():
-        if nama == "campuran":
-            continue
-        for seed in range(100):
-            soal = buat_soal(nama, level, tid, seed)
-            varian = identitas_varian(tid, soal.parameter)
-            kunci = (tid, varian)
-            if kunci not in ditemukan:
-                ditemukan = {**ditemukan, kunci: (nama, level, seed, soal)}
-    return tuple(ditemukan.values())
 
 
 def gambar(badan):

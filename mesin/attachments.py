@@ -37,7 +37,6 @@ import design_tokens as T
 
 # Batas ukuran berkas: foto HP 8MP JPEG biasanya 2–5 MB; 8 MB longgar.
 BATAS_UKURAN = 8 * 1024 * 1024
-MIME_SAH = ("image/jpeg", "image/png", "image/webp")
 # Cek magic bytes — Content-Type dari klien tidak boleh dipercaya.
 MAGIC = {
     b"\xff\xd8\xff": "image/jpeg",

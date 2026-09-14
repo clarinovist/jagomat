@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-import re
 import sqlite3
 import sys
 import threading
@@ -268,10 +267,6 @@ def test_chat_awal_tanpa_consent_rollback_chat(privat):
         assert kon.execute("SELECT COUNT(*) FROM chat").fetchone()[0] == 0
         assert kon.execute("SELECT COUNT(*) FROM operasi").fetchone()[0] == 0
         assert provider.panggilan == []
-
-
-def _id_chat(isi):
-    return re.search(r'/pendamping/chat/(chat_[0-9a-f]{32})/pesan', isi).group(1)
 
 
 def _snapshot_privat():

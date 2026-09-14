@@ -14,20 +14,11 @@ import auth
 import question_views
 from database import isi_sesi
 from templates import Soal
-from topics import dari_sesi
 
 
 
 def _escape(t: str) -> str:
     return html.escape(str(t))
-
-def _ambil_topik(baris) -> str:
-    """Label topik untuk baris sesi; kolom belum ada / aneh -> bawaan."""
-    try:
-        nilai = baris["topik"]
-    except (IndexError, KeyError):
-        return dari_sesi(None).id
-    return dari_sesi(nilai).id
 
 def beranda_murid(kon, siswa_id: int) -> dict:
     """Proyeksi metadata beranda tanpa membaca hasil atau alasan guru.
@@ -386,10 +377,3 @@ PILIHAN_CARA: tuple[tuple[str, str], ...] = (
 AWALAN_PILIHAN = "[pilihan] "
 
 AWALAN_DRILL = "[drill] "
-
-def label_pilihan(kode: str) -> str:
-    """Label yang dibaca guru untuk sebuah kode pilihan."""
-    for k, teks in PILIHAN_CARA:
-        if k == kode:
-            return teks
-    return kode

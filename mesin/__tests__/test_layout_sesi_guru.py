@@ -1,9 +1,8 @@
 """Regresi layout halaman koreksi sesi guru.
 
-Audit visual 4 Sep 2026 menemukan kolom jawaban singkat mengambil ruang lebih
-besar daripada dropdown kode, label kode turun, dan tiap kartu terlalu tinggi.
-Test ini mengunci proporsi, kepadatan, serta ringkasan status agar masalah itu
-tidak kembali saat CSS dirapikan.
+Layout aktif memasangkan jawaban singkat dengan Caraku; penilaian terpisah
+pada details. Test mengunci DOM pemakai CSS, proporsi, kepadatan, serta
+ringkasan status agar tidak sekadar mempertahankan selector yang sudah mati.
 """
 
 from __future__ import annotations
@@ -47,18 +46,27 @@ def _buat_sesi(db, seed=7):
     return sesi_id
 
 
-def test_kolom_jawaban_ringkas_dan_kode_mengambil_sisa_ruang():
-    css = style_stitch.CSS_SESI
-    assert "grid-template-columns: minmax(8rem, 10rem) minmax(0, 1fr)" in css
-    assert "align-items: end" in _blok(css, ".koreksi-baris-st")
+def test_kolom_jawaban_ringkas_dan_caraku_memakai_grid_aktif(db):
+    sesi_id = _buat_sesi(db)
+    with database.buka(db) as kon:
+        halaman = teacher_pages.halaman_sesi_stitch(kon, sesi_id).decode()
+    badan = halaman.split("</style>", 1)[-1]
+    bukti = re.findall(r'<div class="koreksi-bukti-st">(.*?)</div>\s*</div>', badan, re.S)
+    assert bukti, "grid harus dipakai kartu koreksi, bukan CSS tanpa elemen"
+    for isi in bukti:
+        assert 'class="koreksi-input-st"' in isi
+        assert 'class="koreksi-textarea-st"' in isi
+        assert 'name="kode_' not in isi
+    assert 'class="koreksi-opsi-st koreksi-penilaian-st"' in badan
+    assert "grid-template-columns: minmax(8rem, 10rem) minmax(0, 1fr)" in style_stitch.CSS_SESI
 
 
 def test_form_tetap_satu_kolom_sebelum_breakpoint_desktop():
     css = style_stitch.CSS_SESI
-    dasar = _blok(css, ".koreksi-baris-st")
-    assert "grid-template-columns: 1fr" in dasar
-    bagian_grid = css.split("/* Baris dua kolom:", 1)[1].split(
-        ".koreksi-input-st", 1
+    dasar = _blok(css, ".koreksi-bukti-st")
+    assert "grid-template-columns: minmax(0, 1fr)" in dasar
+    bagian_grid = css.split("/* Hierarki koreksi:", 1)[1].split(
+        ".koreksi-catatan-st", 1
     )[0]
     assert "@media (min-width: 40rem)" in bagian_grid
     assert "@media (min-width: 30rem)" not in bagian_grid

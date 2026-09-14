@@ -13,7 +13,6 @@ from urllib.parse import urlencode
 
 import admin_queries as Q
 import brand
-from teacher_style import SKRIP_MATA_SANDI
 from admin_style import GAYA_ADMIN
 import design_tokens as T
 
@@ -867,24 +866,4 @@ def render_hasil_credential(alias: str, sandi: str) -> str:
         '<dt>Sandi baru</dt><dd><input type="password" readonly value="%s" aria-label="Sandi baru"></dd></dl>'
         '<p><a class="admin-tautan" href="/admin?section=keluarga">Selesai</a></p></section>'
         % (_e(alias), _e(sandi))
-    )
-
-
-def render_belum_tersedia(section: str) -> str:
-    if section == "pendaftaran":
-        isi = (
-            "Status dan pengaturan pendaftaran belum tersedia pada tampilan ini. "
-            "Integrasi penyimpanan sedang disiapkan."
-        )
-    elif section == "riwayat":
-        isi = (
-            "Riwayat admin belum tersedia sebelum store audit, retensi, dan "
-            "protokol recovery terintegrasi. Tidak ada kejadian lama yang direka ulang."
-        )
-    else:
-        raise ValueError("section belum tersedia tidak dikenal")
-    return (
-        '<section class="admin-kartu admin-catatan"><h2>Belum tersedia</h2>'
-        '<p>%s</p><p class="admin-meta">Tidak ada kontrol tulis pada versi readonly ini.</p></section>'
-        % _e(isi)
     )

@@ -15,8 +15,7 @@ Sumber malrule: arsip lokal ~/Documents/osn-resources/referensi/latihan/2026-08-
 
 from __future__ import annotations
 
-import html
-from typing import Any, Callable
+from typing import Callable
 
 from templates import HARI, Malrule, Soal, _deret, saring_malrule
 from topics import Topik, daftarkan
@@ -1237,15 +1236,6 @@ URUTAN_PER_LEVEL: dict[str, tuple[str, ...]] = {
     ),
 }
 
-
-def susun_lembar(level: str) -> tuple[str, ...]:
-    """Daftar template untuk satu lembar di level tertentu.
-
-    Level tak dikenal jatuh ke P3 — sama alasannya dengan `generator.profil`:
-    satu nilai aneh di kolom `siswa.tingkat` tidak boleh membuat guru gagal
-    membuat sesi.
-    """
-    return URUTAN_PER_LEVEL.get(level, URUTAN_LEMBAR)
 
 # ── Judul & catatan bagian (dipindah dari render.py) ──
 
