@@ -53,23 +53,28 @@ Tidak ada pemanggil aktif/test/dokumen untuk simbol berikut setelah AST, referen
 teks, registrasi, dan caller dinamis relevan diperiksa:
 
 - `admin_store.buat_batch_durable`, `hentikan_batch_durable`,
-  `konfirmasi_penyerahan_durable`: hanya wrapper; helper `_..._kon` dan varian
-  `_dengan_guard` yang dipanggil `admin_bulk` tetap utuh.
+  `konfirmasi_penyerahan_durable`, dan
+  `assistant_store.versi_persetujuan_konteks` terdeteksi sebagai wrapper tanpa
+  pemanggil aktif, tetapi sengaja **dipertahankan** sampai recovery/policy kontrak
+  produksi diputar melalui jalur migrasi tersendiri. Cleanup rutin tidak boleh
+  mengubah fingerprint persistensi secara sepihak.
 - `admin_bulk._status_batch`, `_sinkronkan_transient_durable`;
-  `admin_queries._pola_like_literal`; `assistant_store.versi_persetujuan_konteks`;
-  `reports._topik_terlemah`; `students._ambil_topik`, `label_pilihan`.
+  `admin_queries._pola_like_literal`; `reports._topik_terlemah`;
+  `students._ambil_topik`, `label_pilihan`.
 - `topic_number_patterns.susun_lembar`: adapter `templates.__getattr__` sebenarnya
   mengarah ke **method `Topik.susun_lembar`**, bukan fungsi modul ini.
-- `sessions._garam_dummy` dan `_ITERASI` lokal: hasil PBKDF2 startup tidak dipakai.
-  Proteksi timing per login di `auth.autentikasi`/`periksa` tetap utuh.
+- `sessions._garam_dummy` dan `_ITERASI` lokal terdeteksi tanpa pembaca, tetapi
+  dipertahankan bersama berkas kontrak sampai recovery/policy diputar. Proteksi
+  timing per login di `auth.autentikasi`/`periksa` tetap utuh.
 - Konstanta `BATAS_BODY`, `AKSI_DOMAIN_C`, `STATUS_KELUARGA`, `STATUS_LOGIN`,
   `MIME_SAH`, `_BATAS_TUNGGU`, dan `topic_number_patterns_param.HURUF`.
-- Sepuluh import audit: `admin_bulk_http.admin_pages`,
+- Import audit yang dibuang: `admin_bulk_http.admin_pages`,
   `admin_pages.SKRIP_MATA_SANDI`, `admin_queries.Sequence`, `render.GAYA_LAYAR`,
-  `sessions.threading`, `templates.Callable`, `topic_number_patterns.html`/`Any`,
-  `topic_plane_geometry.random`, `verify_release_image.sys`.
-  Import yang kehilangan pemakai setelah cleanup juga dibuang:
-  `sessions.hashlib`, `students.dari_sesi`, `test_assistant_retry_guards.re`,
+  `topic_number_patterns.html`/`Any`, `topic_plane_geometry.random`, dan
+  `verify_release_image.sys`. `sessions.threading`/`hashlib` serta
+  `templates.Callable` dipertahankan bersama berkas kontrak sampai rotasi
+  recovery/policy. Import non-kontrak yang kehilangan pemakai juga dibuang:
+  `students.dari_sesi`, `test_assistant_retry_guards.re`, dan
   `visual_test_support.identitas_varian`.
 - Assignment murni tak dibaca: `faktor` pada `satuan_konversi`, `sebenarnya_cm`
   pada `skala_peta`, `genap` pada `susun_bilangan_syarat`, empat `k_lupa` pada

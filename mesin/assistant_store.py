@@ -644,6 +644,17 @@ def beri_persetujuan_konteks(
     return _persetujuan_konteks_dari_baris(baris)
 
 
+def versi_persetujuan_konteks(
+    kon: sqlite3.Connection, account_id: str
+) -> int:
+    account_id = _wajib_account_id(account_id)
+    return int(kon.execute(
+        """SELECT COALESCE(MAX(versi), 0) FROM persetujuan_konteks
+           WHERE account_id = ?""",
+        (account_id,),
+    ).fetchone()[0])
+
+
 def persetujuan_konteks_aktif(
     kon: sqlite3.Connection,
     account_id: str,
