@@ -11,6 +11,7 @@ import database
 import interventions
 import topics
 from learning_cycle import rencana_berikutnya
+from teacher_corrections import pilihan_tersimpan, cara_dari_form
 
 _AWALAN_BUTIR = (
     "jwb_",
@@ -50,10 +51,11 @@ def validasi_form_konfirmasi(
     kon: sqlite3.Connection, sesi_id: int, data: Mapping[str, str]
 ) -> None:
     """Validasi seluruh payload sebelum koreksi pertama ditulis."""
-    id_sah = {
-        int(baris["sesi_soal_id"])
+    butir_sah = {
+        int(baris["sesi_soal_id"]): baris
         for baris in database.isi_sesi(kon, sesi_id)
     }
+    id_sah = set(butir_sah)
     if not id_sah:
         raise ValueError("sesi tidak memiliki butir")
     for nama, nilai in data.items():
@@ -66,8 +68,14 @@ def validasi_form_konfirmasi(
             raise ValueError("referensi butir tidak dikenal")
         if nama.startswith("kode_") and nilai not in _KODE_SAH:
             raise ValueError("kode koreksi tidak dikenal")
+        if nama.startswith("kode_") and nilai == "T":
+            lama = butir_sah[butir_id]
+            if not (lama["manual"] and lama["kode_final"] == "T"):
+                raise ValueError("pengenalan baru dicatat melalui pengalaman anak")
         if nama.startswith("cek_pemahaman_") and nilai not in _PEMAHAMAN_SAH:
             raise ValueError("cek pemahaman tidak dikenal")
+        if nama.startswith(("belum_", "dilewati_")) and nilai != "1":
+            raise ValueError("penanda butir tidak dikenal")
 
 
 def _koreksi_form(kon, sesi_id, data):
@@ -79,9 +87,10 @@ def _koreksi_form(kon, sesi_id, data):
         lama = {
             f"jwb_{sid}": butir["jawaban"] or "",
             f"cara_{sid}": butir["cara"] or "",
-            f"kode_{sid}": "benar" if butir["benar"] else butir["kode_final"] or "",
+            f"kode_{sid}": pilihan_tersimpan(butir),
         }
         baru = {kunci: data.get(kunci, nilai).strip() for kunci, nilai in lama.items()}
+        baru[f"cara_{sid}"] = cara_dari_form(baru[f"cara_{sid}"], lama[f"cara_{sid}"])
         penuh = f"jwb_{sid}" in data
         belum = f"belum_{sid}" in data if penuh else bool(butir["belum_pernah"])
         berubah = berubah or baru != lama or belum != bool(butir["belum_pernah"])

@@ -84,7 +84,9 @@ def test_label_kode_ringkas_dan_nama_template_ramah(db):
         halaman = teacher_pages.halaman_sesi_stitch(kon, sesi_id).decode()
 
     badan = halaman.split("</style>", 1)[-1]
-    assert "Kode (kosong = usulan mesin)" in badan
+    assert "Kode (kosong = usulan mesin)" not in badan
+    assert "Penilaian yang dipakai" in badan
+    assert "Usulan mesin:" in badan
     assert "kosongkan = pakai usulan mesin" not in badan
     assert "median_modus" not in badan
     assert "Median &amp; modus" in badan

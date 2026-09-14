@@ -229,5 +229,6 @@ def test_marker_penjelasan_koreksi_lama_tetap_ada(db):
         _isi_benar(kon, butir)
         halaman = _badan(teacher_pages.halaman_sesi_stitch(kon, sesi_id))
 
-    assert "Diagnosis awal dibuat otomatis" in halaman
-    assert "Simpan hanya jika kamu mengubah koreksi" in halaman
+    assert "Periksa catatan anak dan usulan mesin" in halaman
+    assert "menyimpan seluruh isian sekaligus mengesahkan bukti belajar" in halaman
+    assert ">Simpan koreksi</button>" not in halaman

@@ -38,9 +38,11 @@ def test_default_submit_koreksi_tidak_berubah_menjadi_konfirmasi(db):
         sesi = database.buat_sesi(kon, siswa, seed=194, level='P3', jumlah_soal=1)
         database.tandai_selesai(kon, sesi)
         isi = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
-    # Hierarki visual boleh menonjolkan konfirmasi, tetapi Enter pada isian
-    # tetap memilih tombol submit pertama yang lama: simpan, bukan bukti baru.
-    assert isi.index('>Simpan koreksi</button>') < isi.index('>Konfirmasi hasil</button>')
+    # Default submit native disabled: Enter tidak membuat bukti atau menyimpan
+    # sebagian isian. Konfirmasi hanya lewat tombol yang dipilih eksplisit.
+    palang = f'<button type="submit" form="form-koreksi-{sesi}" hidden disabled'
+    assert isi.index(palang) < isi.index('>Konfirmasi hasil</button>')
+    assert '>Simpan koreksi</button>' not in isi
 
 
 def test_hierarki_tombol_panduan_memakai_selector_editorial_yang_menang():

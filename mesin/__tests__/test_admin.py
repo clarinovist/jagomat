@@ -263,7 +263,7 @@ def test_halaman_sesi_admin_bisa_tulis(server):
         f"/sesi/{sesi_a}", auth=("pengelola", SANDI_ADMIN)
     )
     assert kode == 200
-    assert "Simpan koreksi" in isi, "form tulis hilang untuk admin"
+    assert "Konfirmasi hasil" in isi, "form tulis hilang untuk admin"
     assert "Hapus sesi" in isi
     # alat sesi pindah ke /cetak & /lampiran — /sesi hanya koreksi
     kode2, isi2, _ = server.minta(

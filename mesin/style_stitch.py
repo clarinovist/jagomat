@@ -2649,6 +2649,22 @@ CSS_SESI = f"""
   border-radius: {T.RADIUS_KECIL};
 }}
 
+/* Hierarki koreksi: bukti anak, usulan, lalu observasi pendamping. */
+.koreksi-bukti-st {{ display: grid; gap: {T.SP_4}; grid-template-columns: minmax(0, 1fr); }}
+.koreksi-bukti-st > div {{ min-width: 0; }}
+@media (min-width: 40rem) {{
+  .koreksi-bukti-st {{ grid-template-columns: minmax(8rem, 10rem) minmax(0, 1fr); }}
+}}
+.koreksi-catatan-st {{ margin: {T.SP_2} 0 0; font-size: .85rem; line-height: 1.55; color: {T.TEKS_VARIAN}; }}
+.koreksi-pemahaman-st {{ min-width: 0; margin: 0; padding: {T.SP_3} {T.SP_4}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG}; }}
+.koreksi-pemahaman-st legend {{ font: 600 .85rem/1.5 {T.FONT_HEADLINE}; padding-inline: {T.SP_2}; color: {T.TEKS_JUDUL}; }}
+.koreksi-pemahaman-st .koreksi-centang-st {{ margin-top: {T.SP_2}; }}
+.koreksi-opsi-st {{ min-width: 0; }}
+.koreksi-opsi-st summary {{ cursor: pointer; min-height: {T.TARGET_SENTUH}; padding-block: {T.SP_3}; font-size: .9rem; color: {T.AKSEN_TEAL_TUA}; }}
+.koreksi-opsi-st summary:focus-visible {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+.koreksi-opsi-st .pembahasan-soal-st {{ margin-top: {T.SP_2}; }}
+.koreksi-simpan-st .koreksi-catatan-st {{ margin: 0; }}
+
 /* Label kecil di kartu koreksi. */
 .koreksi-label-st {{
   display: block; font-family: {T.FONT_HEADLINE}; font-weight: 600;

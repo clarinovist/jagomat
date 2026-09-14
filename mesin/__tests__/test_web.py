@@ -206,7 +206,7 @@ def test_kode_t_tidak_bisa_dipilih_guru_tanpa_centang(db):
     assert not hasil["belum_pernah"]
 
 
-def test_kode_t_lama_dipindahkan_ke_centang_dari_anak(db):
+def test_kode_t_lama_tetap_tanpa_mengarang_pengakuan_anak(db):
     """Data lama dengan T manual tidak boleh hilang saat form disimpan ulang."""
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Data T lama")
@@ -229,20 +229,22 @@ def test_kode_t_lama_dipindahkan_ke_centang_dari_anak(db):
         halaman = teacher_pages.halaman_sesi_stitch(kon, sesi_id).decode()
 
         potongan = halaman.split(f'name="belum_{b["sesi_soal_id"]}"', 1)[1]
-        assert "checked" in potongan.split(">", 1)[0]
+        assert "checked" not in potongan.split(">", 1)[0]
+        assert '<option value="T" selected>' in halaman
 
         teacher_pages.simpan_sesi(
             kon,
             sesi_id,
             {
                 f"jwb_{b['sesi_soal_id']}": "jawaban lama",
-                f"belum_{b['sesi_soal_id']}": "on",
+                f"kode_{b['sesi_soal_id']}": "T",
             },
         )
         hasil = database.isi_sesi(kon, sesi_id)[-1]
 
     assert hasil["kode_final"] == "T"
-    assert hasil["belum_pernah"]
+    assert hasil["manual"]
+    assert not hasil["belum_pernah"]
 
 
 # ── Halaman tampil ──────────────────────────────────────────────────────
