@@ -180,8 +180,11 @@ selalu membahas masa lalu.
 - Usulan latihan hanya muncul bila relevan dan telah tervalidasi. Satu tindakan
   memiliki satu entry point; opsi perbaikan hanya saat diperlukan.
 - Pengiriman, galat, dan hasil tindakan harus punya status teks yang aksesibel.
-  Produksi zero-JS adalah batas awal; streaming, auto-scroll, textarea auto-grow,
-  atau interaksi JS lain memerlukan persetujuan tersendiri.
+  Zero-JS adalah batas awal. Pengecualian yang disetujui: Kirim/Periksa status
+  inline tanpa reload, status menunggu, dan pemulihan pesan gagal; fallback native
+  tetap tersedia. Streaming, auto-scroll ke balasan, textarea auto-grow, atau
+  interaksi JS lain memerlukan persetujuan tersendiri. Lihat
+  [kontrak runtime](pendamping-runtime.md#kirim-tanpa-reload).
 
 Mockup lokal: `../../osn-resources/referensi/desain-ui/pendamping-2026-09-11/`.
 Folder tersebut opsional dan tidak diperlukan untuk clone, test, atau build.

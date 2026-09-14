@@ -15,7 +15,9 @@ berparameter, diagnosis B/K/H/E/T/N, lembar cetak, dan laporan per anak.
 - **Pure Python stdlib**, tanpa framework/dependensi pihak ketiga. Dev dependency hanya
   `pytest` + `pytest-xdist`. Paket tambahan harus diajukan ke user dulu.
 - **Zero-JS default**: menu `<details>`, navigasi `?section=` server-side. Pengecualian
-  disetujui: toggle mata sandi dan `confirm()` aksi destruktif; perlu approval untuk tambahan.
+  disetujui: toggle mata sandi, `confirm()` aksi destruktif, serta Kirim/Periksa status
+  Pendamping inline tanpa reload (skrip berhash CSP, koneksi same-origin, fallback
+  form native; bukan streaming). Perlu approval untuk tambahan.
 - `mesin/`: aplikasi, `__tests__/`, aset, Dockerfile, cadangan. `scripts/`: otomasi/palang.
   `docs/`: spesifikasi teknis; `docs/plan/` lokal/gitignored. `.github/`: CI/deploy.
 - Riset/materi/kurikulum/mockup/bisnis/eksperimen berada di `../osn-resources/referensi/` lokal,

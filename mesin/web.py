@@ -94,7 +94,9 @@ class Penangan(BaseHTTPRequestHandler):
         self.wfile.write(isi)
 
     def _kirim_privat(self, isi: bytes, kode: int = 200) -> None:
-        """Respons host chat/draf privat dengan CSP ketat tanpa aset eksternal."""
+        """Respons privat; hanya skrip chat berhash boleh mengakses origin sendiri."""
+        import assistant_browser
+        isi, izin_chat = assistant_browser.lengkapi_respons(isi)
         self.send_response(kode)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(isi)))
@@ -105,7 +107,7 @@ class Penangan(BaseHTTPRequestHandler):
         self.send_header(
             "Content-Security-Policy",
             "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; "
-            "form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+            + izin_chat + "form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
         )
         self.end_headers()
         self.wfile.write(isi)

@@ -112,8 +112,10 @@ Source inline menyediakan:
   payload provider, storage Pendamping, cookie, atau URL.
 - History dibatasi exact-resource dan seluruh aksi dalam form koreksi memakai
   submit POST yang membawa kembali draf. Mode tanpa memori tetap menyimpan history.
-- Host assisted memakai header no-store/no-referrer/noindex/frame/CSP tanpa
-  script dan tidak meminta resource pihak ketiga. Respons Tutup tetap privat;
+- Host assisted memakai header no-store/no-referrer/noindex/frame/CSP dan tidak
+  meminta resource pihak ketiga. Hanya panel chat mendapat skrip berhash CSP
+  dengan `connect-src 'self'` untuk Kirim/Periksa status tanpa reload. Halaman
+  consent, arsip, dan respons Tutup tetap tanpa skrip chat. Respons Tutup tetap privat;
   tindakan destruktif memakai fallback native dengan konsekuensi dan konfirmasi
   eksplisit, bukan handler JavaScript yang diblokir. Draf dipulihkan dalam request
   yang sama.
@@ -146,11 +148,29 @@ Adapter warisan yang masih dipertahankan:
   tinjauan dan catatan eksekusi yang sudah dijelaskan di atas.
 - GET status operasi owner-scoped membedakan pending/gagal; pending tidak
   menawarkan pengiriman ulang otomatis. Status selesai menuju chat yang sama.
-  Tidak ada spinner hidup/streaming/penyimpanan draft browser.
+  Tidak ada streaming atau penyimpanan draf di storage browser.
+
+### Kirim tanpa reload
+
+- Progressive enhancement terbatas pada Kirim/Periksa status. POST form native
+  tetap fallback jika JavaScript tidak tersedia; endpoint dan guard server sama.
+- Browser menampilkan status menunggu dan mengunci pengiriman ganda. Respons HTML
+  server hanya mengganti panel dengan ID host dan ID chat yang sama. Form host
+  tidak diganti: perubahan latihan/koreksi selama menunggu tetap ada, tanpa autosave.
+- Pesan gagal dipertahankan di DOM selama halaman terbuka. Gangguan jaringan tidak
+  memicu pengiriman ulang otomatis. Coba lagi memakai payload/request ID yang sama;
+  bila server masih pending, lanjutkan dengan Periksa status tanpa provider kedua.
+- Sesi berakhir/akses ditolak menampilkan penjelasan generik tanpa menempelkan
+  respons ke panel. Pengguna diminta menyalin pesan sebelum masuk/membuka ulang.
+- Balasan utuh tampil setelah validasi server, bukan token mentah model. Tidak
+  memakai library, aset eksternal, localStorage, sessionStorage, atau cookie draf.
+- Skrip berada di modul Python agar termasuk COPY wildcard image; izin CSP hanya
+  hash tepat skrip tersebut, bukan `unsafe-inline` atau seluruh script same-origin.
 
 **Belum termasuk:** hapus chat/cabut izin melalui UI baru, pengelolaan saat
 provider tidak dikonfigurasi, picker keluarga langsung, editor parameter,
-streaming atau JS tambahan. Semua tetap paket terpisah, bukan tombol palsu.
+streaming atau interaksi JS di luar Kirim/Periksa status. Semua tetap paket
+terpisah, bukan tombol palsu.
 
 Wireframe/prototype lokal opsional, bukan dependensi aplikasi/build/test.
 Walkthrough user, Safari/keyboard HP fisik dan aksesibilitas menyeluruh tetap

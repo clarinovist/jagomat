@@ -2505,6 +2505,8 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
 .pendamping-inline button, .pendamping-inline a {{ min-height: {T.TARGET_SENTUH}; }}
 .pendamping-inline .pendamping-tombol {{ display: inline-flex; align-items: center; justify-content: center; padding: {T.SP_2} {T.SP_4}; border: 1px solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_SEDANG}; background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; font: inherit; font-weight: 700; cursor: pointer; }}
 .pendamping-inline .pendamping-sekunder {{ background: transparent; color: {T.AKSEN_TEAL_TUA}; }}
+.pendamping-inline button[hidden] {{ display: none; }}
+.pendamping-inline button:disabled {{ opacity: .6; cursor: wait; }}
 .pendamping-inline .pendamping-tautan {{ display: inline-flex; align-items: center; padding: {T.SP_2}; border: 0; background: transparent; color: {T.AKSEN_TEAL_TUA}; font: inherit; text-decoration: underline; cursor: pointer; }}
 .pendamping-inline .pendamping-cek {{ display: flex; align-items: flex-start; gap: {T.SP_2}; width: 100%; min-height: {T.TARGET_SENTUH}; margin: {T.SP_3} 0; padding-block: {T.SP_2}; }}
 .pendamping-inline .pendamping-cek input {{ width: 1.25rem; height: 1.25rem; flex: none; margin-top: .15rem; }}

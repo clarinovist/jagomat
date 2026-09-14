@@ -182,7 +182,8 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
         if dalam_form else ""
     )
     transkrip = "".join(
-        '<article class="pendamping-pesan ' + ("pengguna" if item.peran == "pengguna" else "asisten") + '">'
+        '<article class="pendamping-pesan ' + ("pengguna" if item.peran == "pengguna" else "asisten") + '"'
+        f' data-request-id="{_esc(getattr(item, "request_id", None) or "")}">'
         f'<h3 class="pendamping-peran">{"Kamu" if item.peran == "pengguna" else "Pendamping"}</h3>'
         f'<p class="pendamping-teks">{_esc(item.teks)}</p></article>'
         for item in pesan
@@ -256,7 +257,7 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
         + f'<div class="pendamping-transkrip">{transkrip}</div>'
         + _kartu_usulan_inline(target, chat, usulan, dalam_form=dalam_form)
         + draft_memori_html + composer + kontrol_memori,
-        sumber=sumber, dalam_form=dalam_form,
+        sumber=sumber, dalam_form=dalam_form, chat_id=chat.id,
     )
 
 
@@ -420,7 +421,8 @@ def tombol_buka(
     return isi if (dalam_form or form_id) else f'<form method="post" action="{_esc(action)}">{isi}</form>'
 
 
-def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False) -> str:
+def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False,
+           chat_id: str = "") -> str:
     label = " · ".join(str(sumber[k]) for k in ("label", "level") if sumber and sumber.get(k))
     if dalam_form:
         tutup = (
@@ -434,8 +436,9 @@ def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False) ->
             "/pendamping/inline/tutup", dalam_form=False,
         )
     return (
-        f'<aside class="pendamping-inline" id="{_esc(target.anchor)}" aria-labelledby="judul-{_esc(target.anchor)}">'
-        '<details open><summary>Bantuan Pendamping</summary><div class="pendamping-inline-isi">'
+        f'<aside class="pendamping-inline" id="{_esc(target.anchor)}" aria-labelledby="judul-{_esc(target.anchor)}"'
+        + (f' data-pendamping-chat="{_esc(chat_id)}"' if chat_id else "") + '>'
+        + '<details open><summary>Bantuan Pendamping</summary><div class="pendamping-inline-isi">'
         f'<h3 id="judul-{_esc(target.anchor)}">{_esc(judul)}</h3>'
         + (f'<p class="pendamping-sumber">{_esc(label)}</p>' if label else "")
         + isi + tutup + '</div></details></aside>'
