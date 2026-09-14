@@ -22,7 +22,8 @@ env:
   RECOVERY_SHA: 33e241c18024190f41ebca1986e35af26c0397fd
 
 jobs:
-  # Kedua suite memakai runner terpisah; build menunggu keduanya lulus.
+  # Kandidat dan empat shard recovery memakai runner terisolasi. Setiap shard
+  # tetap serial agar test HTTP tidak berkompetisi socket dalam satu runner.
   uji:
     name: Test kandidat
     runs-on: ubuntu-latest
@@ -42,9 +43,15 @@ jobs:
         run: python -m pytest mesin/__tests__/ -q -W error --durations=20
 
   uji_recovery:
-    name: Test recovery
+    name: Test recovery ${{ matrix.shard }}/4
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
+      # Helper shard berasal dari candidate yang juga melewati full suite.
+      - uses: actions/checkout@v7
       - name: Checkout recovery yang memahami pengendali AI
         uses: actions/checkout@v7
         with:
@@ -57,7 +64,7 @@ jobs:
           python-version: "3.12"
       - name: Pasang pytest
         run: pip install --quiet pytest pytest-xdist
-      - name: Palang dan seluruh test recovery terisolasi
+      - name: Palang dan shard recovery terisolasi
         working-directory: recovery
         shell: bash
         run: |
@@ -71,7 +78,9 @@ jobs:
           assert assistant_schema.VERSI_SKEMA == 4
           print('Canary: import recovery terisolasi, schema v4')
           PY
-          python -m pytest --rootdir . mesin/__tests__/ -q -W error -p no:cacheprovider --durations=20
+          python ../scripts/pytest_shard.py \
+            --shard "${{ matrix.shard }}" --total 4 -- \
+            --rootdir . mesin/__tests__/ -q -W error -p no:cacheprovider --durations=20
 
   bangun:
     name: Build & Push

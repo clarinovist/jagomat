@@ -27,11 +27,14 @@ kompatibel. Menurunkan user_version atau menghapus catatan eksekusi bukan solusi
 
 Workflow tetap **uji → bangun → pasang**:
 
-1. **uji:** job `uji` (candidate) dan `uji_recovery` berjalan independen pada
-   runner Ubuntu/Python 3.12 terpisah. Keduanya menjalankan palang privasi dan
-   full pytest dengan warning sebagai error. Recovery tetap checkout pinned
-   full SHA, cwd terpisah dan canary lokasi import. Test dalam masing-masing
-   suite tetap serial; `--durations=20` mencatat 20 fase test paling lambat.
+1. **uji:** job `uji` (candidate) dan matrix empat `uji_recovery` berjalan
+   independen pada runner Ubuntu/Python 3.12 terpisah. Keduanya menjalankan
+   palang privasi dan pytest dengan warning sebagai error. Recovery tetap
+   checkout pinned full SHA, cwd terpisah dan canary lokasi import. Helper
+   candidate memetakan setiap nodeid recovery secara stateless dan deterministik;
+   union empat shard mencakup full suite tepat sekali. Test dalam setiap runner tetap
+   serial agar server HTTP tidak berkompetisi socket; `--durations=20` mencatat
+   20 fase test paling lambat per shard.
 2. **bangun:** wajib menunggu **kedua job uji sukses**; salah satu gagal,
    dibatalkan, atau dilewati berarti build tidak berjalan. Build/publish
    candidate serta recovery; tarik berdasarkan digest
@@ -45,8 +48,8 @@ Workflow tetap **uji → bangun → pasang**:
 Paralelisme antar-runner memperpendek jalur tunggu, bukan mengurangi cakupan test
 atau otomatis menghemat menit komputasi. Durasi aktual tetap dipengaruhi antrean
 runner; keuntungan harus diukur pada run CI sesudah perubahan diterapkan.
-Tidak ada seleksi test berdasarkan file berubah, cache hasil test, atau
-pengaktifan kembali `xdist` dalam suite pada perubahan penjadwalan ini.
+Tidak ada seleksi berdasarkan file berubah, cache hasil test, atau pengaktifan
+kembali `xdist` dalam satu runner pada perubahan penjadwalan ini.
 
 Publikasi tidak mengganti `latest`. Identitas kedua image selalu digest output
 build yang sama dengan verifikasi dan artifact manifest, bukan tag berubah.
