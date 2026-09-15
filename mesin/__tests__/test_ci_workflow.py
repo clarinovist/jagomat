@@ -30,19 +30,21 @@ def _skrip_recovery(teks):
 
 
 def test_ci_menjalankan_seluruh_test_secara_stabil():
-    teks = _job(ALUR.read_text(), "uji")
-    bagian = teks.split("- name: Jalankan seluruh test\n", 1)[1]
-    baris = bagian.splitlines()[0].strip()
-    assert baris.startswith("run: ")
-    assert shlex.split(baris[len("run: "):]) == [
-        "python", "-m", "pytest", "mesin/__tests__/", "-q", "-W", "error",
-        "--durations=20",
+    teks = _job(ALUR.read_text(), "uji_kandidat")
+    bagian = teks.split("- name: Jalankan shard kandidat dan catat manifest\n", 1)[1]
+    blok = bagian.split("        run: |\n", 1)[1].split("      - name:", 1)[0]
+    perintah = " ".join(baris.strip().rstrip("\\").strip() for baris in blok.splitlines())
+    assert shlex.split(perintah) == [
+        "python", "scripts/pytest_shard.py", "--shard", "${{ matrix.shard }}",
+        "--total", "4", "--manifest", "shard-manifests/kandidat-${{ matrix.shard }}.json",
+        "--revision", "$GITHUB_SHA", "--", "--rootdir", ".", "mesin/__tests__/",
+        "-q", "-W", "error", "-p", "no:cacheprovider", "--durations=20",
     ]
 
 
 def test_checkout_candidate_menyediakan_history_untuk_probe_recovery_pinned():
     teks = ALUR.read_text()
-    bagian_uji = _job(teks, "uji")
+    bagian_uji = _job(teks, "uji_kandidat")
     checkout = bagian_uji.split("- uses: actions/checkout@v7", 1)[1].split(
         "- uses: actions/setup-python@v7", 1
     )[0]
@@ -52,9 +54,18 @@ def test_checkout_candidate_menyediakan_history_untuk_probe_recovery_pinned():
 def test_ci_tetap_menguji_sebelum_build_dan_memasang_digest_yang_sama():
     teks = ALUR.read_text()
     assert teks.index("run: python scripts/check_repo.py") < teks.index(
-        "- name: Jalankan seluruh test"
+        "- name: Jalankan shard kandidat dan catat manifest"
     )
     assert "  bangun:\n    name: Build & Push\n    needs: [uji, uji_recovery]\n" in teks
+    agregat = _job(teks, "uji")
+    assert "    needs: uji_kandidat\n" in agregat
+    assert not re.search(r"^\s+(if|continue-on-error):", agregat, re.M)
+    assert "always()" not in agregat
+    assert 'python scripts/verify_pytest_shards.py' in agregat
+    assert '--directory shard-manifests --total 4 --revision "$GITHUB_SHA"' in agregat
+    assert "actions/download-artifact@v4" in agregat
+    assert "pattern: kandidat-shard-*" in agregat
+    assert "merge-multiple: true" in agregat
     assert "  pasang:\n    name: Deploy ke VPS\n    needs: bangun\n" in teks
     assert "digest: ${{ steps.dorong.outputs.digest }}" in teks
     assert '"deploy-rutin-v1 ${{ needs.bangun.outputs.digest }} ${{ needs.bangun.outputs.recovery_digest }}"' in teks
@@ -62,7 +73,7 @@ def test_ci_tetap_menguji_sebelum_build_dan_memasang_digest_yang_sama():
     assert "- name: Pastikan situs hidup dari luar" in teks
 
 
-@pytest.mark.parametrize("nama", ["uji", "uji_recovery"])
+@pytest.mark.parametrize("nama", ["uji_kandidat", "uji_recovery"])
 def test_suite_independen_dengan_runtime_sendiri(nama):
     job = _job(ALUR.read_text(), nama)
     assert "    runs-on: ubuntu-latest\n" in job
@@ -75,12 +86,19 @@ def test_suite_independen_dengan_runtime_sendiri(nama):
     assert "secrets." not in job
     assert "PYTEST_ADDOPTS" not in job
     assert "-n " not in job  # Paralel antar-runner, bukan antarsocket satu runner.
-    if nama == "uji":
-        assert "strategy:" not in job
+    assert "      fail-fast: false\n" in job
+    assert "        shard: [1, 2, 3, 4]\n" in job
+    if nama == "uji_kandidat":
+        assert "    name: Test kandidat ${{ matrix.shard }}/4\n" in job
         assert job.count("uses: actions/checkout@v7") == 1
         assert "          ref:" not in job
-        assert "          path:" not in job
+        assert "          path: shard-manifests/kandidat-${{ matrix.shard }}.json" in job
         assert "working-directory:" not in job
+        assert "name: kandidat-shard-${{ matrix.shard }}" in job
+        assert "if-no-files-found: error" in job
+        assert "retention-days: 7" in job
+        assert job.index("scripts/check_repo.py") < job.index("scripts/pytest_shard.py")
+        assert job.index("scripts/pytest_shard.py") < job.index("actions/upload-artifact@v4")
     else:
         assert "    name: Test recovery ${{ matrix.shard }}/4\n" in job
         assert "      fail-fast: false\n" in job
