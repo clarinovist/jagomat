@@ -22,11 +22,15 @@ env:
   RECOVERY_SHA: 33e241c18024190f41ebca1986e35af26c0397fd
 
 jobs:
-  # Kandidat dan empat shard recovery memakai runner terisolasi. Setiap shard
-  # tetap serial agar test HTTP tidak berkompetisi socket dalam satu runner.
-  uji:
-    name: Test kandidat
+  # Kandidat dan recovery masing-masing memakai empat runner terisolasi.
+  # Tiap runner serial; jangan xdist karena test HTTP berbagi socket.
+  uji_kandidat:
+    name: Test kandidat ${{ matrix.shard }}/4
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -39,8 +43,41 @@ jobs:
         run: pip install --quiet pytest pytest-xdist
       - name: Pastikan tidak ada data siswa ter-commit
         run: python scripts/check_repo.py
-      - name: Jalankan seluruh test
-        run: python -m pytest mesin/__tests__/ -q -W error --durations=20
+      - name: Jalankan shard kandidat dan catat manifest
+        run: |
+          python scripts/pytest_shard.py \
+            --shard "${{ matrix.shard }}" --total 4 \
+            --manifest "shard-manifests/kandidat-${{ matrix.shard }}.json" \
+            --revision "$GITHUB_SHA" -- \
+            --rootdir . mesin/__tests__/ -q -W error -p no:cacheprovider --durations=20
+      - name: Simpan bukti shard kandidat
+        uses: actions/upload-artifact@v4
+        with:
+          name: kandidat-shard-${{ matrix.shard }}
+          path: shard-manifests/kandidat-${{ matrix.shard }}.json
+          if-no-files-found: error
+          retention-days: 7
+
+  uji:
+    name: Test kandidat
+    needs: uji_kandidat
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Pasang pytest untuk helper verifikasi
+        run: pip install --quiet pytest
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: kandidat-shard-*
+          path: shard-manifests
+          merge-multiple: true
+      - name: Buktikan semua test kandidat lulus tepat sekali
+        run: >-
+          python scripts/verify_pytest_shards.py
+          --directory shard-manifests --total 4 --revision "$GITHUB_SHA"
 
   uji_recovery:
     name: Test recovery ${{ matrix.shard }}/4

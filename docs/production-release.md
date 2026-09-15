@@ -27,14 +27,20 @@ kompatibel. Menurunkan user_version atau menghapus catatan eksekusi bukan solusi
 
 Workflow tetap **uji → bangun → pasang**:
 
-1. **uji:** job `uji` (candidate) dan matrix empat `uji_recovery` berjalan
-   independen pada runner Ubuntu/Python 3.12 terpisah. Keduanya menjalankan
+1. **uji:** matrix empat `uji_kandidat` dan empat `uji_recovery` berjalan
+   independen pada runner Ubuntu/Python 3.12 terpisah. Setiap runner menjalankan
    palang privasi dan pytest dengan warning sebagai error. Recovery tetap
    checkout pinned full SHA, cwd terpisah dan canary lokasi import. Helper
-   candidate memetakan setiap nodeid recovery secara stateless dan deterministik;
-   union empat shard mencakup full suite tepat sekali. Test dalam setiap runner tetap
+   memetakan setiap nodeid secara stateless dan deterministik; union empat
+   shard per suite mencakup seluruh test tepat sekali. Test di setiap runner tetap
    serial agar server HTTP tidak berkompetisi socket; `--durations=20` mencatat
-   20 fase test paling lambat per shard.
+   20 fase test paling lambat per shard. Setelah semua shard kandidat sukses,
+   job agregat `uji` (nama check tetap **Test kandidat**) memeriksa manifest:
+   revision dan koleksi penuh harus sama, pembagian harus sesuai hash, dan setiap
+   test harus lulus tepat sekali termasuk setup/call/teardown. Manifest hilang,
+   koleksi berbeda, skip/xfail, test gagal atau eksekusi tidak lengkap ditolak.
+   Artifact manifest hanya berisi identitas test sintetis dan status, bukan data
+   keluarga, body HTTP, atau credential. Manifest disimpan selama tujuh hari.
 2. **bangun:** wajib menunggu **kedua job uji sukses**; salah satu gagal,
    dibatalkan, atau dilewati berarti build tidak berjalan. Build/publish
    candidate serta recovery; tarik berdasarkan digest

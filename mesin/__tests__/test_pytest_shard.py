@@ -1,6 +1,7 @@
 """Pembagian recovery menjaga cakupan penuh tanpa xdist satu runner."""
 
 import importlib.util
+import os
 import random
 import re
 import subprocess
@@ -79,10 +80,14 @@ def test_koleksi_recovery_pinned_stabil_dan_seluruh_shard_exact_once(tmp_path):
     salinan = tmp_path / "recovery"
     salinan.mkdir()
     subprocess.run(["tar", "-xf", str(arsip), "-C", str(salinan)], check=True)
+    lingkungan = os.environ.copy()
+    lingkungan.pop("PYTEST_ADDOPTS", None)
+    lingkungan.pop("PYTEST_PLUGINS", None)
+    lingkungan["TMPDIR"] = str(tmp_path)
     hasil = subprocess.run(
         [sys.executable, "-m", "pytest", "mesin/__tests__/", "--collect-only", "-q",
          "-p", "no:cacheprovider"],
-        cwd=salinan, capture_output=True, text=True, check=True, timeout=180,
+        cwd=salinan, env=lingkungan, capture_output=True, text=True, check=True, timeout=180,
     )
     nodeids = [baris for baris in hasil.stdout.splitlines() if "::" in baris]
     assert len(nodeids) == 9851
@@ -114,6 +119,37 @@ def test_plugin_memilih_union_disjoint_dan_melaporkan_deselected():
     assert semua == set(nodeids)
 
 
+def test_koleksi_kandidat_nyata_identik_lintas_hashseed(tmp_path):
+    """Setiap runner harus mengoleksi himpunan kandidat yang sama."""
+    akar = Path(__file__).resolve().parents[2]
+    acuan = None
+    for seed in ("17", "9281"):
+        lingkungan = os.environ.copy()
+        lingkungan.pop("PYTEST_ADDOPTS", None)
+        lingkungan.pop("PYTEST_PLUGINS", None)
+        lingkungan.update(PYTHONHASHSEED=seed, TMPDIR=str(tmp_path))
+        hasil = subprocess.run(
+            [sys.executable, "-m", "pytest", "mesin/__tests__/", "--collect-only",
+             "-q", "-W", "error", "-p", "no:cacheprovider"],
+            cwd=akar, env=lingkungan, capture_output=True, text=True, timeout=180,
+        )
+        assert hasil.returncode == 0, hasil.stdout + hasil.stderr
+        nodeids = sorted(baris for baris in hasil.stdout.splitlines() if "::" in baris)
+        assert len(nodeids) >= 9910
+        assert len(nodeids) == len(set(nodeids))
+        if acuan is None:
+            acuan = nodeids
+        assert nodeids == acuan
+        partisi = [
+            {nodeid for nodeid in nodeids if pytest_shard.shard_untuk_nodeid(nodeid, 4) == n}
+            for n in range(1, 5)
+        ]
+        assert all(partisi)
+        assert sum(map(len, partisi)) == len(nodeids)
+        assert set().union(*partisi) == set(nodeids)
+        assert all(partisi[a].isdisjoint(partisi[b]) for a in range(4) for b in range(a + 1, 4))
+
+
 @pytest.mark.parametrize(
     "argv",
     [
@@ -121,8 +157,33 @@ def test_plugin_memilih_union_disjoint_dan_melaporkan_deselected():
         ["--shard", "5", "--total", "4", "--", "tests"],
         ["--shard", "1", "--total", "0", "--", "tests"],
         ["--shard", "1", "--total", "4"],
+        ["--shard", "1", "--total", "4", "--manifest", "sintetis.json", "--", "tests"],
+        ["--shard", "1", "--total", "4", "--manifest", "sintetis.json",
+         "--revision", "", "--", "tests"],
+        ["--shard", "1", "--total", "4", "--manifest", "sintetis.json",
+         "--revision", " ", "--", "tests"],
     ],
 )
 def test_argumen_tidak_aman_ditolak(argv):
     with pytest.raises(SystemExit):
         pytest_shard.parse_argumen(argv)
+
+
+@pytest.mark.parametrize("opsi", [[], ["--manifest", "sintetis.json", "--revision", "a" * 40]])
+def test_parse_argumen_mempertahankan_tuple_recovery(opsi):
+    assert pytest_shard.parse_argumen(
+        ["--shard", "2", "--total", "4"] + opsi + ["--", "tests", "-q"]
+    ) == (2, 4, ["tests", "-q"])
+
+
+def test_pemanggilan_recovery_tanpa_manifest_tidak_memasang_pencatat(monkeypatch):
+    def jalankan(argumen, plugins):
+        assert argumen == ["tests", "-q"]
+        assert len(plugins) == 1
+        assert type(plugins[0]) is pytest_shard.PemilihShard
+        assert plugins[0].shard == 2
+        assert plugins[0].total == 4
+        return 5
+
+    monkeypatch.setattr(pytest_shard.pytest, "main", jalankan)
+    assert pytest_shard.main(["--shard", "2", "--total", "4", "--", "tests", "-q"]) == 5

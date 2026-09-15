@@ -43,7 +43,12 @@ def test_build_candidate_dan_recovery_pakai_digest_yang_sama_untuk_verifikasi():
     assert '${{ steps.recovery.outputs.digest }}' in bangun
     assert '--revision "$GITHUB_SHA"' in bangun
     assert '--revision "$RECOVERY_SHA"' in bangun
-    assert 'python -m pytest mesin/__tests__/' in uji
+    kandidat=_job(teks,'uji_kandidat')
+    assert 'needs: uji_kandidat' in uji
+    assert 'python scripts/verify_pytest_shards.py' in uji
+    assert 'python scripts/pytest_shard.py' in kandidat
+    assert '--rootdir . mesin/__tests__/ -q -W error' in kandidat
+    assert 'VPS_DEPLOY_KEY' not in kandidat
     assert 'working-directory: recovery' in recovery
     assert '          path: recovery\n' in recovery
     assert 'python ../scripts/pytest_shard.py' in recovery
@@ -79,7 +84,7 @@ def test_gate_job_hanya_menerima_izin_exact_dan_main(flag, ref):
 
 def test_dependencies_gagal_tidak_dibypass_ke_build_atau_deploy():
     teks=WORKFLOW.read_text()
-    for nama in ('uji','uji_recovery','bangun','pasang'):
+    for nama in ('uji_kandidat','uji','uji_recovery','bangun','pasang'):
         job=_job(teks,nama)
         assert 'continue-on-error:' not in job
         assert 'always()' not in job and '|| true' not in job
