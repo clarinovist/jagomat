@@ -9,12 +9,17 @@ import time
 import sqlite3
 from contextlib import contextmanager, nullcontext
 
+import ai_errors
 import ai_policy
 import ai_store
 
 
 class AIUnavailable(RuntimeError):
     """Panggilan ditahan tanpa membocorkan konfigurasi internal."""
+
+    def __init__(self, pesan, *, kategori="ai_tertahan"):
+        super().__init__(pesan)
+        self.kategori = kategori
 
 
 def path_store():
@@ -58,11 +63,11 @@ def panggil(fitur, bucket_akun, pemanggil, *, operasi_id=None, actor_id=None, ac
     """Reservasi sebelum network dan pertahankan debit konservatif saat tak pasti."""
     profil = ai_policy.profil(fitur)
     if not ai_policy.deployment_mengizinkan(fitur):
-        raise AIUnavailable("Fitur AI sedang tidak tersedia.")
+        raise AIUnavailable("Fitur AI sedang tidak tersedia.", kategori="ai_nonaktif")
     if not os.environ.get("DEEPSEEK_API_KEY", "").strip():
-        raise AIUnavailable("Fitur AI sedang tidak tersedia.")
+        raise AIUnavailable("Fitur AI sedang tidak tersedia.", kategori="ai_konfigurasi")
     if not siap():
-        raise AIUnavailable("Penyimpanan pengendali AI belum siap.")
+        raise AIUnavailable("Penyimpanan pengendali AI belum siap.", kategori="ai_storage")
     oid = operasi_id or ("ai_" + secrets.token_hex(16))
     try:
         with _kunci_actor(actor_id, actor_revisi) if actor_revisi is not None else nullcontext():
@@ -72,16 +77,26 @@ def panggil(fitur, bucket_akun, pemanggil, *, operasi_id=None, actor_id=None, ac
             )
     except PermissionError:
         raise
-    except (ai_store.Ditolak, OSError, sqlite3.Error) as galat:
-        raise AIUnavailable('Panggilan AI ditahan atau storage tidak tersedia.') from galat
+    except ai_store.Ditolak as galat:
+        # Pesan store berasal dari konstanta lokal; hanya kategori tertutup diteruskan.
+        kategori = {
+            "Fitur AI sedang dihentikan.": "ai_nonaktif",
+            "Kuota AI harian habis.": "ai_kuota",
+            "Kuota AI bulanan habis.": "ai_kuota",
+            "Kuota fitur AI habis.": "ai_kuota",
+            "Batas request harian akun tercapai.": "ai_kuota",
+        }.get(str(galat), "ai_tertahan")
+        raise AIUnavailable('Panggilan AI ditahan atau storage tidak tersedia.', kategori=kategori) from galat
+    except (OSError, sqlite3.Error) as galat:
+        raise AIUnavailable('Panggilan AI ditahan atau storage tidak tersedia.', kategori="ai_storage") from galat
     mulai = time.monotonic()
     try:
         hasil = pemanggil()
-    except Exception:
+    except Exception as galat:
         ai_store.selesaikan(
             path_store(), oid, status="tak_pasti",
             durasi_ms=int((time.monotonic() - mulai) * 1000),
-            kategori="network_atau_provider",
+            kategori=ai_errors.kategori_aman(galat) if fitur == "pendamping" else "network_atau_provider",
         )
         raise
     ai_store.selesaikan(
@@ -89,7 +104,7 @@ def panggil(fitur, bucket_akun, pemanggil, *, operasi_id=None, actor_id=None, ac
         durasi_ms=int((time.monotonic() - mulai) * 1000), kategori="terukur_konservatif",
     )
     if not ai_store.admission_masih_sah(path_store(), oid):
-        raise AIUnavailable("Pengaturan AI berubah saat permintaan berjalan; hasil dibuang.")
+        raise AIUnavailable("Pengaturan AI berubah saat permintaan berjalan; hasil dibuang.", kategori="ai_pengaturan_berubah")
     if actor_revisi is not None:
         with _kunci_actor(actor_id, actor_revisi):
             pass

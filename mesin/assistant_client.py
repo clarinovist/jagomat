@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import socket
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -13,7 +14,11 @@ BATAS_RESPONS_BYTE = 128_000
 
 
 class GalatProvider(RuntimeError):
-    """Kegagalan provider yang aman ditampilkan sebagai kategori umum."""
+    """Kegagalan provider dengan kategori statis, tanpa body atau credential."""
+
+    def __init__(self, pesan: str, *, kategori: str = "network_atau_provider"):
+        super().__init__(pesan)
+        self.kategori = kategori
 
 
 @dataclass(frozen=True)
@@ -68,23 +73,38 @@ def kirim(
         with pembuka.open(req, timeout=timeout) as respons:
             panjang = respons.headers.get("Content-Length") if respons.headers else None
             if panjang and int(panjang) > BATAS_RESPONS_BYTE:
-                raise GalatProvider("respons terlalu besar")
+                raise GalatProvider("respons terlalu besar", kategori="respons_terlalu_besar")
             mentah = respons.read(BATAS_RESPONS_BYTE + 1)
             if len(mentah) > BATAS_RESPONS_BYTE:
-                raise GalatProvider("respons terlalu besar")
+                raise GalatProvider("respons terlalu besar", kategori="respons_terlalu_besar")
     except urllib.error.HTTPError as galat:
+        # Tutup body HTTP tanpa membaca atau mencatat isinya.
+        galat.close()
         if 300 <= galat.code < 400:
-            raise GalatProvider("redirect provider ditolak") from None
+            raise GalatProvider("redirect provider ditolak", kategori="provider_redirect") from None
         if galat.code == 429:
-            raise GalatProvider("batas provider tercapai") from None
-        raise GalatProvider("provider tidak tersedia") from None
+            raise GalatProvider("batas provider tercapai", kategori="provider_batas") from None
+        kategori = "provider_otorisasi" if galat.code in (401, 403) else "provider_gagal"
+        raise GalatProvider("provider tidak tersedia", kategori=kategori) from None
     except GalatProvider:
         raise
-    except (urllib.error.URLError, OSError, ValueError):
-        raise GalatProvider("provider tidak tersedia") from None
+    except (socket.timeout, TimeoutError):
+        raise GalatProvider("provider terlalu lama merespons", kategori="provider_timeout") from None
+    except urllib.error.URLError as galat:
+        kategori = "provider_timeout" if isinstance(galat.reason, (socket.timeout, TimeoutError)) else "provider_koneksi"
+        raise GalatProvider("provider tidak tersedia", kategori=kategori) from None
+    except OSError:
+        raise GalatProvider("provider tidak tersedia", kategori="provider_koneksi") from None
+    except ValueError:
+        raise GalatProvider("respons provider tidak sah", kategori="respons_json") from None
     try:
         data = json.loads(mentah.decode("utf-8"))
-        konten = data["choices"][0]["message"]["content"]
+        pilihan = data["choices"][0]
+        if type(pilihan) is not dict:
+            raise ValueError
+        if pilihan.get("finish_reason") == "length":
+            raise GalatProvider("respons provider terpotong", kategori="respons_terpotong")
+        konten = pilihan["message"]["content"]
         if type(konten) is not str:
             raise ValueError
         hasil = json.loads(konten)
@@ -92,4 +112,4 @@ def kirim(
             raise ValueError
         return hasil
     except (UnicodeDecodeError, json.JSONDecodeError, KeyError, IndexError, TypeError, ValueError):
-        raise GalatProvider("respons provider tidak sah") from None
+        raise GalatProvider("respons provider tidak sah", kategori="respons_json") from None

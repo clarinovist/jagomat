@@ -531,9 +531,11 @@ def test_tutup_draf_koreksi_blank_checkbox_caraku_pemahaman_dan_galat_privat(ser
     _privat(header)
     assert f'name="jwb_{ids[0]}"\n               value=""' in isi
     assert "Baris satu\nbaris dua" in isi
-    assert '<option value="ragu" selected>Masih ragu</option>' in isi
-    assert f'name="belum_{ids[0]}" value="1"\n             checked' in isi
-    assert f'name="dilewati_{ids[0]}" value="1"\n             checked' not in isi
+    from test_teacher_corrections import FormKoreksi
+    pulih = FormKoreksi(isi, sesi).data
+    assert pulih[f'cek_pemahaman_{ids[0]}'] == 'ragu'
+    assert pulih[f'belum_{ids[0]}'] == '1'
+    assert f'dilewati_{ids[0]}' not in pulih
     kode, galat, header = server.minta(
         "/pendamping/inline/tutup", cookie=token,
         data={**dasar, **draf, f"kode_{ids[0]}": "asing"}, headers=_origin(server),
@@ -565,8 +567,10 @@ def test_draf_koreksi_request_local_melintasi_consent_tanpa_autosave(server):
     assert kode == 200
     assert f'name="jwb_{ids[0]}"\n               value=""' in isi
     assert "Baris satu\nbaris dua" in isi
-    assert f'name="belum_{ids[0]}" value="1"\n             checked' in isi
-    assert f'name="dilewati_{ids[0]}" value="1"\n             checked' not in isi
+    from test_teacher_corrections import FormKoreksi
+    pulih = FormKoreksi(isi, sesi).data
+    assert pulih[f'belum_{ids[0]}'] == '1'
+    assert f'dilewati_{ids[0]}' not in pulih
     with server.buka() as kon:
         sesudah = tuple(tuple(r) for r in kon.execute(
             "SELECT jawaban, cara FROM jawaban WHERE sesi_soal_id IN (?,?) ORDER BY sesi_soal_id", ids

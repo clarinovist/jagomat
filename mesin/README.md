@@ -36,14 +36,20 @@ kotak Caraku, padahal itu inti lembarnya.
 kotak "Caraku". Kode diagnosis muncul otomatis; kolom Kode hanya diisi kalau
 kamu tidak setuju dengan usulan mesin.
 
-**4. Baca laporan** — tautan "Lihat laporan" di tiap anak. Dibuka dengan
-ringkasan 3 kalimat + kartu arti nilai (bahasa sehari-hari), lalu angka
-dan grafik, lalu detail teknis yang dilipat:
+**4. Baca laporan** — tautan "Lihat laporan perkembangan" di profil anak:
 
-- **Ringkasan untuk orang tua** — kondisi, pola kesalahan, langkah berikut
-- **Arti nilai anak** — kamus 7 sebutan tanpa jargon
-- **Tren per sesi / Yang perlu dilatih / Materi baru** — tabel teknis
-  (dilipat di `<details>`, tetap ada untuk guru)
+- **Aktivitas 7 hari terakhir** — soal dikerjakan, benar, salah, dan persentase
+  dari jawaban yang dinilai. Belum dinilai/perlu cek pengenalan/dilewati bukan salah.
+- **Hasil dan tren per materi** — jumlah dasar terlihat; perubahan dalam poin
+  persentase hanya untuk kelompok latihan sebanding. Bukan persentase pemahaman.
+- **Lihat rencana belajar** — buka resume di laporan: tugas belum selesai, posisi
+  belajar, materi/langkah berikutnya, jadwal, dan satu tindakan utama.
+- **Perjalanan dan bukti / Detail per sesi** — rincian opsional dalam `<details>`.
+  Panduan hitungan ada di bawah data, kamus penilaian ada di rincian teknis.
+
+Tanggal aktivitas mengikuti pencatatan jawaban pertama, termasuk latihan berjalan;
+untuk hasil kertas, ini tanggal input. Koreksi dapat mengubah hasil statistik, tetapi
+status belajar tetap memakai bukti terkonfirmasi dan reducer yang sama dengan profil.
 
 ## Membaca kodenya
 

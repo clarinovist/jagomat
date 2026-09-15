@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from contextvars import ContextVar
 import json
+import logging
 import os
 import time
 
+import ai_errors
 import ai_service
 import assistant_actions
 import assistant_catalog
@@ -41,10 +43,21 @@ def tersedia() -> bool:
 
 def panggil_provider_default(pesan):
     account_id, operasi_id = _konteks_ai.get()
+    try:
+        config = konfigurasi()
+    except ValueError:
+        raise ai_service.AIUnavailable(
+            "Konfigurasi provider belum tersedia.", kategori="ai_konfigurasi"
+        ) from None
+
+    def kirim_dan_validasi():
+        mentah = assistant_client.kirim(config, pesan)
+        # Meter selesai berarti kontrak balasan lolos, bukan sekadar HTTP/JSON sah.
+        assistant_policy.validasi_respons(mentah)
+        return mentah
+
     return ai_service.panggil(
-        "pendamping", account_id,
-        lambda: assistant_client.kirim(konfigurasi(), pesan),
-        operasi_id=operasi_id,
+        "pendamping", account_id, kirim_dan_validasi, operasi_id=operasi_id,
     )
 
 
@@ -225,7 +238,10 @@ def kirim_pesan(
                 )
         except Exception:
             kon.rollback()
-        raise GalatPendamping("Pendamping belum bisa menjawab. Coba lagi nanti.") from galat
+        kategori = ai_errors.kategori_aman(galat)
+        # Jangan sertakan exception/traceback, request ID, akun, atau teks chat.
+        logging.getLogger(__name__).warning("Pendamping gagal: kategori=%s", kategori)
+        raise GalatPendamping(ai_errors.pesan_pendamping(kategori)) from None
     finally:
         _konteks_ai.reset(token_ai)
 

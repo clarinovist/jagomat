@@ -86,8 +86,8 @@ def test_benar_biasa_menggabungkan_pendampingan_tertutup_dan_form_utuh(server, t
     assert 'Catatan pendampingan (opsional)' in isi
     for nama in (f'cara_{s.sid}', f'cek_pemahaman_{s.sid}', f'belum_{s.sid}'):
         assert m.tertutup(nama)
-        assert len(m.kontrol[nama]) == 1
-        assert 'disabled' not in m.kontrol[nama][0][0]
+        assert len(m.kontrol[nama]) == (4 if nama.startswith('cek_pemahaman_') else 1)
+        assert all('disabled' not in a for a, _ in m.kontrol[nama])
     assert not m.tertutup(f'jwb_{s.sid}')
     assert len(m.ids) == len(set(m.ids))
     assert isi.count(f'id="form-koreksi-{s.sesi}"') == 1
@@ -119,7 +119,8 @@ def test_salah_nt_dan_belum_dinilai_tidak_diringkas(server, cara, kode, jawaban,
     s = server
     isi_awal(s, cara=cara, kode=kode, jawaban=jawaban, belum=belum)
     m = Struktur(halaman(s))
-    assert not m.tertutup(f'cara_{s.sid}')
+    perhatian = cara.startswith('[pilihan]') or belum
+    assert m.tertutup(f'cara_{s.sid}') == (not perhatian)
     assert not m.tertutup(f'cek_pemahaman_{s.sid}')
 
 
@@ -271,4 +272,4 @@ def test_error_dan_dilewati_membuka_kontrol_walaupun_override_benar(server):
     draf = DrafKoreksi(((s.sid, DrafButir(s.butir['kunci'], 'benar', 'Cara', '', True, False)),), False)
     isi = halaman(s, draf_koreksi=draf)
     assert not Struktur(isi).tertutup(f'cek_pemahaman_{s.sid}')
-    assert 'Opsi lain — butir ditandai dilewati' in isi
+    assert 'Dilewati dari penilaian — ubah' in isi

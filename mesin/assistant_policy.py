@@ -28,6 +28,15 @@ credential, atau ringkasan curhatan. Gunakan kalimat preferensi sederhana sepert
 "Jawab singkat dengan satu analogi." atau "Gunakan kalimat pendek." tanpa nama,
 alasan personal, atau tambahan cerita. Draft belum tersimpan sebagai memori aktif
 sebelum orang tua mengonfirmasi.
+Contoh balasan lengkap tanpa usulan/memori:
+{"jawaban":"Mari bahas satu langkah dulu.","draft_memori":null,"usulan_latihan":null,"butuh_klarifikasi":false}
+Selalu kirim tepat empat field tersebut, tanpa field tambahan atau pagar kode.
+jawaban berupa teks ringkas, maksimal 6000 karakter, tanpa HTML, kontak, atau
+credential. butuh_klarifikasi wajib boolean true/false, bukan teks.
+Jika tidak perlu memori atau usulan, gunakan null, bukan objek/string kosong.
+Jumlah soal usulan hanya 10, 15, 20, 25, atau 30; template_ids maksimal 8 ID unik,
+semuanya milik topik dan level yang sama sesuai katalog. Bila belum yakin dengan
+pilihan, gunakan usulan_latihan null dan tanyakan klarifikasi, jangan mengarang ID.
 """
 
 _EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
@@ -126,23 +135,40 @@ def validasi_draft_memori(data) -> Optional[DraftMemori]:
     return DraftMemori(lingkup=data["lingkup"], isi=isi)
 
 
+class GalatRespons(ValueError):
+    """Kategori validasi balasan tanpa menyertakan konten model yang ditolak."""
+
+    def __init__(self, pesan: str, *, kategori: str):
+        super().__init__(pesan)
+        self.kategori = kategori
+
+
 def validasi_respons(data) -> ResponsTerstruktur:
     """Terima hanya bentuk response MVP yang eksplisit dan aman."""
     if type(data) is not dict or set(data) != {
         "jawaban", "draft_memori", "usulan_latihan", "butuh_klarifikasi"
     }:
-        raise ValueError("Respons provider tidak sesuai kontrak.")
-    jawaban = pastikan_teks_aman(data["jawaban"], batas=6000)
-    if _TAG.search(jawaban):
-        raise ValueError("Respons provider memuat markup.")
-    draft = validasi_draft_memori(data["draft_memori"])
+        raise GalatRespons("Respons provider tidak sesuai kontrak.", kategori="respons_bentuk")
+    try:
+        jawaban = pastikan_teks_aman(data["jawaban"], batas=6000)
+        if _TAG.search(jawaban):
+            raise ValueError("Respons provider memuat markup.")
+    except ValueError:
+        raise GalatRespons("Jawaban provider tidak sah.", kategori="respons_jawaban") from None
+    try:
+        draft = validasi_draft_memori(data["draft_memori"])
+    except ValueError:
+        raise GalatRespons("Draft memori tidak sah.", kategori="respons_memori") from None
     usulan = None
     if data["usulan_latihan"] is not None:
         import assistant_actions
 
-        usulan = assistant_actions.validasi_usulan(data["usulan_latihan"])
+        try:
+            usulan = assistant_actions.validasi_usulan(data["usulan_latihan"])
+        except ValueError:
+            raise GalatRespons("Usulan latihan tidak sah.", kategori="respons_usulan") from None
     if type(data["butuh_klarifikasi"]) is not bool:
-        raise ValueError("Status klarifikasi tidak sah.")
+        raise GalatRespons("Status klarifikasi tidak sah.", kategori="respons_klarifikasi")
     return ResponsTerstruktur(
         jawaban=jawaban,
         draft_memori=draft,

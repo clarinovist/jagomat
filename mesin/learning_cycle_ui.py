@@ -11,6 +11,7 @@ import interventions
 import topics
 from learning_cycle import BuktiSiklus, RencanaBelajar, StatusFokus, rencana_berikutnya
 from learning_history import catatan_histori_beda_level
+from template_labels import nama_tipe_soal as _nama_template
 
 KunciFokus = Tuple[str, str, Optional[str]]
 
@@ -42,15 +43,6 @@ _TAHAP_TINDAKAN = {
     "putaran_baru": 5,
     "eskalasi": 5,
 }
-
-
-def _nama_template(template_id: str) -> str:
-    khusus = {
-        "median_modus": "Median & modus",
-        "diagram_batang_garis": "Diagram batang & garis",
-        "soal_umur": "Soal tentang umur",
-    }
-    return khusus.get(template_id, template_id.replace("_", " ").capitalize())
 
 
 def _fokus_utama(rencana: RencanaBelajar) -> Optional[KunciFokus]:

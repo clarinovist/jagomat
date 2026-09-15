@@ -41,6 +41,29 @@ tetap berlaku. Seluruh verifikasi lokal menggunakan DB, akun, dan provider sinte
 - Pemulihan request bukan izin menghidupkan chat yang dihapus atau konteks yang
   dicabut. Mode tanpa memori tetap immutable.
 
+## Kegagalan balasan dan metadata teknis
+
+- Callback Pendamping memvalidasi kontrak balasan sebelum ledger AI berstatus
+  `selesai`. Status ini bukan bukti chat tersimpan: revalidasi izin, konteks, dan
+  transaksi penyimpanan Pendamping tetap sesudahnya.
+- JSON sah saja belum cukup. Jawaban, draft memori, usulan latihan, dan boolean
+  klarifikasi tetap divalidasi ketat sebagai satu paket; field invalid tidak
+  dibuang atau dinormalisasi diam-diam. Balasan terpotong (`finish_reason=length`)
+  ditolak, meskipun potongannya kebetulan bisa dibaca sebagai JSON.
+- Kategori teknis membedakan timeout/koneksi/status provider, JSON/terpotong,
+  serta bagian kontrak balasan. Ledger memakai kolom kategori existing; tidak ada
+  migrasi atau salinan isi chat. Kegagalan setelah outbound tetap `tak_pasti`
+  untuk debit konservatif, bukan refund atau klaim biaya provider terukur.
+- Log Pendamping hanya satu kategori dari allow-list, tanpa isi exception,
+  traceback, prompt/balasan, credential, atau identitas keluarga/request.
+  Kegagalan admission sebelum reservasi tidak membuat ledger baru; kategori
+  aman tetap tersedia di log. Fitur AI lain mempertahankan kategori existing.
+- Pesan UI memberi arahan berbeda untuk kuota/pengaturan, timeout, pembatasan
+  provider, dan format balasan. Tidak ada retry otomatis, kenaikan timeout,
+  pelemahan guard, atau pengiriman ulang balasan gagal ke layanan AI.
+- Metadata baru tidak merekonstruksi kegagalan historis. Perilaku ini merupakan
+  kontrak source; kehadirannya di produksi harus diverifikasi sesudah deploy.
+
 ## Isi memori
 
 Koreksi manual dan draft model menggunakan validator isi yang sama. Memori

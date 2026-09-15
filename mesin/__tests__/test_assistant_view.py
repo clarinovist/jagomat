@@ -19,7 +19,6 @@ import assistant_schema
 import assistant_service
 import assistant_store
 import database
-import rumus
 import topics
 
 import assistant_view as view
@@ -341,16 +340,17 @@ def _payload(template_ids=None, jumlah=10):
             "level": "P3", "jumlah_soal": jumlah}
 
 
-def test_ringkasan_label_resmi_bukan_tebakan_slug():
+def test_ringkasan_memakai_nama_tipe_bukan_judul_kartu_umum():
     assert view.ringkasan_usulan(json.dumps(_payload())) == {
         "topik": "Pola Bilangan", "level": "P3", "jumlah": 10,
-        "materi": (("Pola bilangan", 10, "deret_aritmetika"),),
+        "materi": (("Deret aritmetika", 10, "deret_aritmetika"),),
     }
 
 
 @pytest.mark.parametrize("jumlah", [10, 15, 20, 25, 30])
 def test_ringkasan_distribusi_sama_eksekusi_tanpa_generator(jumlah, monkeypatch):
     import generator
+    from template_labels import nama_tipe_soal
     monkeypatch.setattr(generator, "buat_lembar", lambda *_a, **_k: pytest.fail("generator"))
     monkeypatch.setattr(database, "buat_sesi", lambda *_a, **_k: pytest.fail("buat sesi"))
     for topik_id in topics.daftar_topik():
@@ -367,7 +367,7 @@ def test_ringkasan_distribusi_sama_eksekusi_tanpa_generator(jumlah, monkeypatch)
             urutan = assistant_actions._urutan(assistant_actions.validasi_usulan(data))
             assert ringkasan["topik"] == topik.nama
             assert ringkasan["materi"] == tuple(
-                (rumus.kartu_untuk(tid).judul, urutan.count(tid), tid) for tid in dasar
+                (nama_tipe_soal(tid), urutan.count(tid), tid) for tid in dasar
             )
             assert sum(item[1] for item in ringkasan["materi"]) == jumlah
 

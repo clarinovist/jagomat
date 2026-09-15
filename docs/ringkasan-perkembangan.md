@@ -6,9 +6,10 @@ bersyarat: spike lebih dahulu, lalu berhenti sebelum kompleksitas penuh jika
 manfaat AI dibanding deterministik belum berarti.
 
 **Hasil palang manfaat: TAHAN implementasi AI v1.** Spike sintetis tidak memberikan
-bukti peningkatan berarti. Ringkasan **deterministik** tiga bagian kini tersedia di
-source aplikasi berdasarkan perjalanan/reducer yang sudah ada; ini bukan fitur AI
-dan belum merupakan klaim sudah ter-deploy. DB, schema, consent, cache, payload,
+bukti peningkatan berarti. Ringkasan **deterministik** tiga bagian pernah diterapkan
+berdasarkan perjalanan/reducer yang sudah ada. Revisi dashboard 15 September 2026
+memindahkan informasi tersebut ke resume rencana belajar (lihat bagian berikut);
+ini bukan fitur AI dan bukan klaim sudah ter-deploy. DB, schema, consent, cache, payload,
 dan konfigurasi provider tidak diubah. Mengaktifkan ringkasan AI produksi belum
 boleh dilakukan; izin Pendamping existing bukan izin baru untuk data laporan.
 
@@ -51,16 +52,44 @@ Tanggal aktual dan tautan **Lihat rencana belajar** ditambahkan server. Jika
 bukti belum cukup, tampilkan penjelasan deterministik serta tindakan resmi,
 bukan memanggil AI untuk membuat paragraf umum.
 
-### Implementasi deterministik yang tersedia di source
+### Dashboard perkembangan — revisi 15 September 2026
 
-Laporan orang tua merender **Yang terlihat**, **Yang masih perlu diperiksa**, dan
-**Langkah berikutnya** langsung dari `learning_journey.PerjalananBelajar`. Maksimal
-dua fokus tetap dipisahkan, jadwal dan tindakan mengikuti rekomendasi reducer,
-serta satu tautan **Lihat rencana belajar** menuju profil existing. Statistik semua
-latihan tetap tampil sebagai bagian terpisah dan tidak dipakai sebagai bukti.
+Laporan mengutamakan aktivitas anak: **soal dikerjakan, butir benar, butir salah,
+dan persentase jawaban benar**, diikuti hasil/tren per materi. Blok tersendiri
+“Ringkasan untuk orang tua” tidak lagi ditampilkan.
 
-Render GET tidak menyimpan ringkasan, tidak membuat cache, dan tidak memanggil
-network atau AI. Keputusan spike dan batas AI di bawah tetap berlaku.
+- Default 7 hari terakhir WIB dibanding 7 hari sebelumnya. Tanggal mengikuti
+  pencatatan jawaban pertama, bukan pembuatan sesi. Hasil kertas mengikuti waktu
+  input, bukan klaim waktu pengerjaan sebenarnya. Koreksi tidak dihitung ulang
+  sebagai aktivitas baru; hasil statistik periode lama dapat ikut berubah.
+- Dikerjakan berarti ada jawaban atau coretan cara, termasuk sesi berjalan.
+  Memilih status saja belum dihitung. Kerja berstatus perlu cek pengenalan atau
+  dilewati tetap aktivitas, tetapi bukan hasil benar/salah.
+- Persentase = benar / (benar + salah). N/menebak, penilaian belum jelas,
+  materi perlu cek pengenalan, dan dilewati tidak masuk penyebut. Kode T bisa
+  berasal dari pengakuan bingung, bukan kepastian belum pernah diajarkan.
+  Tanpa penilaian tampil **—**, bukan 0%. Jumlah hasil sementara vs terkonfirmasi
+  ditampilkan; angka bukan persentase pemahaman atau kelulusan fokus.
+- Tren memakai kelompok tipe soal, kelas, mode, tujuan, dan representasi sama.
+  Minimal lima butir dinilai pada masing-masing periode adalah batas kecukupan
+  tampilan, bukan signifikansi statistik. Selisih memakai **poin persentase**,
+  dengan jumlah dasar terlihat. Kelompok tidak digabung menjadi skor penguasaan.
+- **Lihat rencana belajar** membuka resume native di laporan, bukan redirect:
+  tugas belum selesai, posisi belajar, hal yang perlu diperiksa, materi/langkah
+  berikutnya dan jadwal. Tugas manual/kelas lama tetap sekunder. Satu aksi utama
+  menuju sesi yang direkomendasikan atau langkah belajar pada profil.
+- Posisi dua fokus, status dan rekomendasi tetap berasal dari
+  `learning_journey.PerjalananBelajar`/reducer. Clock rekomendasi sama dengan
+  profil/POST existing; WIB khusus batas statistik, bukan mengubah jadwal domain.
+  Perjalanan/bukti lengkap tetap dapat dibuka. Penjelasan hitungan berada di bawah
+  data terkait; kamus kode berada di rincian teknis, bukan kartu utama terpisah.
+
+Implementasi: `report_metrics.py` (query deskriptif read-only),
+`report_dashboard.py` (presentasi), dan `reports.py` (komposisi halaman).
+Renderer lama `report_summary.py` masih menjadi helper bahasa kompatibel, bukan
+sumber keputusan pedagogis. GET tidak menyimpan, membuat cache, atau memanggil
+network/AI. Keputusan spike dan batas AI di bawah tetap berlaku sebagai histori
+serta batas untuk pengembangan AI mendatang, bukan bentuk dashboard terkini.
 
 ## 2. Baseline AI v1 yang disepakati, belum dibangun
 

@@ -18,6 +18,7 @@ import assistant_store
 import database
 import rumus
 import topics
+from template_labels import nama_tipe_soal
 
 
 _WIB = timezone(timedelta(hours=7))
@@ -197,7 +198,7 @@ def ringkasan_usulan(payload_json: str) -> dict:
         kartu = rumus.kartu_untuk(template_id)
         if kartu is None:
             raise ValueError("Materi usulan belum tersedia.")
-        materi.append((kartu.judul, dasar + (indeks < sisa), template_id))
+        materi.append((nama_tipe_soal(template_id), dasar + (indeks < sisa), template_id))
     return {
         "topik": topics.ambil(usulan.topik_id).nama,
         "level": usulan.level, "jumlah": usulan.jumlah_soal,

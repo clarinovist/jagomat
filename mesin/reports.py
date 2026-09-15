@@ -11,11 +11,12 @@ from datetime import datetime
 
 import database
 from learning_journey import perjalanan_belajar
-from cycle_report import render_perjalanan
-from report_summary import render_ringkasan
+from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_resume
+from report_metrics import hari_wib, statistik_laporan, tugas_belum_selesai
 import design_tokens as T
 from diagnosis import diagnosa
 from generator import LEVEL_BAWAAN
+from template_labels import nama_tipe_soal as _nama_tipe_soal
 from templates import label_kelas
 from topics import TOPIK_BAWAAN
 from teacher_pages import _ambil, _halaman, _soal_dari_baris
@@ -151,7 +152,7 @@ KAMUS_ORTU = (
     ("B", "Salah baca soal", "yang ditanya disalahartikan — latih membaca soal, bukan materinya."),
     ("H", "Salah hitung", "caranya sudah benar, berhitungnya meleset — latihan saja."),
     ("E", "Salah tulis akhir", "hitungan benar tapi salah menyalin ke jawaban — kecerobohan, bukan tak paham."),
-    ("T", "Belum pernah lihat", "tipe soalnya memang belum diajarkan — bukan kegagalan anak."),
+    ("T", "Perlu cek pengenalan", "anak menandai belum pernah melihat atau masih bingung — periksa pengalamannya, bukan langsung dianggap salah."),
     ("N", "Menebak", "jawab tanpa menunjukkan cara — tanyakan langsung sebelum dinilai."),
 )
 
@@ -170,26 +171,10 @@ def _nama_topik(topik_id: str) -> str:
         return topik_id
 
 
-NAMA_TIPE_SOAL = {
-    "benar_salah_pengandaian": "Pengandaian benar atau salah",
-    "luas_kotak_satuan": "Menghitung luas dengan kotak satuan",
-    "simetri_bangun": "Simetri bangun datar",
-    "soal_umur": "Soal tentang umur",
-    "fpb_kpk_hubungan": "Hubungan FPB dan KPK",
-}
-
 BULAN_PENDEK = (
     "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
     "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
 )
-
-def _nama_tipe_soal(template_id: str) -> str:
-    """Terjemahkan ID internal menjadi nama yang wajar bagi orang tua."""
-    return NAMA_TIPE_SOAL.get(
-        template_id,
-        template_id.replace("_", " ").replace("-", " ").capitalize(),
-    )
-
 
 def _rapikan_kalimat(teks: str) -> str:
     """Kapitalisasi awal dan akhiri kalimat tanpa merusak singkatan."""
@@ -237,17 +222,19 @@ def halaman_laporan(
         return _halaman("Tidak ada", "<h1>Siswa tidak ditemukan</h1>")
 
     ring = database.ringkasan(kon, siswa_id)
-    total_sesi = len(ring)
-    benar_sum = sum(r["benar"] or 0 for r in ring)
-    soal_sum = sum(r["jumlah_soal"] or 0 for r in ring)
-    persen = round(benar_sum / soal_sum * 100) if soal_sum else 0
+    hari = hari_wib()
+    statistik = statistik_laporan(kon, siswa_id, hari)
 
     mis_semua = database.miskonsepsi_berulang(kon, siswa_id)
     # Statistik mentah hanya untuk rincian semua latihan, bukan status fokus.
     mis = [m for m in mis_semua if m["jumlah_sesi"] > 1]
+    # Clock rekomendasi harus sama dengan profil/POST orkestrator existing.
+    # WIB khusus batas statistik; jangan majukan jadwal hanya pada laporan.
     perjalanan = perjalanan_belajar(database.muat_bukti_siklus(kon, siswa_id), siswa_id)
-    jumlah_fokus = str(len(perjalanan.fokus))
-    perjalanan_html = render_perjalanan(perjalanan, _nama_tipe_soal, _tanggal_pendek)
+    resume = render_resume(
+        perjalanan, tugas_belum_selesai(kon, siswa_id), siswa_id,
+        _nama_tipe_soal, _nama_topik, _tanggal_pendek,
+    )
 
     tren = "".join(
         f'<tr><td data-label="Sesi"><a href="/sesi/{r["sesi_id"]}">#{r["sesi_id"]}</a></td>'
@@ -282,49 +269,27 @@ def halaman_laporan(
         for p in peta
     ) or '<tr><td colspan="4" class="kosong">tidak ada</td></tr>'
 
-    chart = _chart_tren(ring)
-    blok_chart = chart or (
-        '<p class="sub">Belum cukup data untuk menggambar tren — '
-        "butuh minimal 2 sesi.</p>"
-    )
-    total_k = sum(r["k"] or 0 for r in ring)
-
     nama_siswa = html.escape(siswa["nama"])
     return _halaman(
         f"Laporan {siswa['nama']}",
+        f'<style>{GAYA_LAPORAN}</style>'
         f'<div class="jejak"><a href="/anak/{siswa_id}">&larr; Riwayat '
         f"{nama_siswa}</a></div>"
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">CATATAN PERKEMBANGAN</p>'
         f'<h1 id="judul-laporan">Laporan perkembangan {nama_siswa}</h1></header>'
-        f'{perjalanan_html}'
-        '<div class="ringkasan-dashboard-laporan">'
-        f'<div class="kartu-stat">'
-        f'<div class="stat"><div class="angka-besar">{total_sesi}</div>'
-        f'<div class="stat-label">sesi dinilai</div></div>'
-        f'<div class="stat"><div class="angka-besar">{total_k}</div>'
-        f'<div class="stat-label">kekeliruan konsep</div></div>'
-        f'<div class="stat"><div class="stat-nilai-utama">'
-        f"{html.escape(jumlah_fokus)}</div>"
-        f'<div class="stat-label">fokus aktif</div></div>'
-        f"</div>"
-        f'{render_ringkasan(siswa["nama"], perjalanan, siswa_id, _nama_tipe_soal, _tanggal_pendek)}'
-        "</div>"
-        f'<div class="kartu"><h2>Perkembangan jawaban tepat</h2>'
-        f'<p class="sub">Semua latihan — termasuk latihan manual dan sesi '
-        f'belum dikonfirmasi. Bukan ukuran kelulusan fokus.</p>'
-        f'<p class="sub skor-sekunder"><b>{persen}% jawaban tepat</b> dari '
-        f'{soal_sum} soal pada {total_sesi} sesi. Angka ini membantu melihat '
-        f"tren, tetapi tidak menentukan sendiri apa yang perlu dilatih.</p>"
-        f'<div class="chart-wrap">{blok_chart}</div></div>'
-        f"{_kartu_kamus()}"
+        f'{render_aktivitas(statistik, _tanggal_pendek)}'
+        f'{render_materi(statistik, _nama_tipe_soal, _tanggal_pendek)}'
+        f'{resume}'
         f'<details class="kartu detail-teknis-laporan"><summary><h2>'
         f"Detail per sesi (teknis)</h2>"
         f'<span class="sub">Rincian untuk guru</span></summary>'
         f'<p class="sub">Rincian semua latihan: jumlah <b>K</b> dan jenis '
-        f"kesalahan adalah catatan, bukan skor kelulusan atau penetapan fokus.</p>"
+        f"kesalahan adalah catatan, bukan skor kelulusan atau penetapan fokus. "
+        f"Kolom Benar di tabel sesi memakai pembanding soal tersedia, termasuk "
+        f"yang belum dijawab; bukan penyebut persentase dashboard.</p>"
         f'<p class="legenda-teknis"><b>K = keliru konsep</b> · '
         f'B = salah baca · H = salah hitung · E = salah tulis akhir · '
-        f"T = belum pernah lihat · N = menebak</p>"
+        f"T = perlu cek pengenalan · N = menebak</p>"
         f'<div class="tabel-wrap tabel-tren"><h3>Tren per sesi</h3><table>'
         f'<caption class="sr-only">Rincian hasil dan jenis kekeliruan setiap sesi</caption>'
         f'<thead><tr><th scope="col">Sesi</th><th scope="col">Tanggal</th>'
@@ -340,13 +305,14 @@ def halaman_laporan(
         f'<th scope="col">Tipe soal</th><th scope="col">Topik</th>'
         f'<th scope="col">Jumlah sesi</th><th scope="col">Rentang</th>'
         f'</tr></thead><tbody>{daftar_mis}</tbody></table></div>'
-        f'<div class="tabel-wrap"><h3>Materi baru untuk anak</h3>'
-        f'<p class="sub">Rincian soal yang ditandai belum pernah dilihat.</p>'
-        f'<table><caption class="sr-only">Materi yang belum pernah dilihat anak</caption>'
+        f'<div class="tabel-wrap"><h3>Catatan pengenalan materi</h3>'
+        f'<p class="sub">Ditandai belum pernah melihat atau masih bingung; '
+        f'perlu diperiksa, bukan kepastian materi belum diajarkan.</p>'
+        f'<table><caption class="sr-only">Materi yang perlu cek pengenalan</caption>'
         f'<thead><tr><th scope="col">Tipe soal</th>'
         f'<th scope="col">Topik</th><th scope="col">Berapa kali</th>'
         f'<th scope="col">Terakhir</th></tr></thead>'
-        f'<tbody>{daftar_peta}</tbody></table></div></details>',
+        f'<tbody>{daftar_peta}</tbody></table></div>{_kartu_kamus()}</details>',
         ident=(pengguna, peran) if pengguna else None,
         stitch=True,
         kelas_bungkus="laporan-lebar pendamping-editorial-st laporan-editorial-st",

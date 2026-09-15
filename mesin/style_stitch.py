@@ -2664,7 +2664,7 @@ CSS_SESI = f"""
   border-radius: {T.RADIUS_KECIL};
 }}
 
-/* Hierarki koreksi: bukti anak, usulan, lalu observasi pendamping. */
+/* Hierarki koreksi: jawaban, pendampingan, lalu penilaian. */
 .koreksi-bukti-st {{ display: grid; gap: {T.SP_4}; grid-template-columns: minmax(0, 1fr); }}
 .koreksi-bukti-st > div {{ min-width: 0; }}
 @media (min-width: 40rem) {{
@@ -2679,6 +2679,17 @@ CSS_SESI = f"""
 .koreksi-pemahaman-st {{ min-width: 0; margin: 0; padding: {T.SP_3} {T.SP_4}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG}; }}
 .koreksi-pemahaman-st legend {{ font: 600 .85rem/1.5 {T.FONT_HEADLINE}; padding-inline: {T.SP_2}; color: {T.TEKS_JUDUL}; }}
 .koreksi-pemahaman-st .koreksi-centang-st {{ margin-top: {T.SP_2}; }}
+.koreksi-tanya-st {{ margin: 0 0 {T.SP_3}; color: {T.TEKS_JUDUL}; font-weight: 600; }}
+.koreksi-radio-paham-st {{ min-width: 0; padding: 0; margin: 0; border: 0; }}
+.koreksi-radio-paham-st legend {{ padding: 0; margin-bottom: {T.SP_2}; }}
+.koreksi-pilihan-paham-grid-st {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: {T.SP_2}; }}
+.koreksi-pilihan-paham-st {{ position: relative; min-width: 0; }}
+.koreksi-pilihan-paham-st input {{ position: absolute; left: {T.SP_3}; top: 50%; transform: translateY(-50%); margin: 0; accent-color: {T.AKSEN_TEAL_TUA}; }}
+.koreksi-pilihan-paham-st label {{ display: flex; align-items: center; min-height: {T.TARGET_SENTUH}; height: 100%; padding: {T.SP_2} {T.SP_3} {T.SP_2} {T.SP_6}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL}; background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; font-size: .85rem; line-height: 1.5; cursor: pointer; overflow-wrap: anywhere; }}
+.koreksi-pilihan-paham-st input:checked + label {{ border-color: {T.AKSEN_TEAL_TUA}; background: {T.LATAR_SEKUNDER_LEMBUT}; font-weight: 600; }}
+.koreksi-pilihan-paham-st input:focus-visible + label {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+.koreksi-pemahaman-st .koreksi-centang-st label {{ min-height: {T.TARGET_SENTUH}; }}
+.koreksi-perbaikan-st .koreksi-centang-st label {{ min-height: {T.TARGET_SENTUH}; }}
 .koreksi-opsi-st {{ min-width: 0; }}
 .koreksi-opsi-st summary {{ cursor: pointer; min-height: {T.TARGET_SENTUH}; padding-block: {T.SP_3}; font-size: .9rem; color: {T.AKSEN_TEAL_TUA}; }}
 .koreksi-opsi-st summary:focus-visible {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}

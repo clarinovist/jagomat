@@ -94,7 +94,17 @@ def _jalankan(kon, jenis, identitas, aksi, guru, data):
             layanan.konfirmasi_dari_form(
                 kon, identitas, guru, _tanpa_marker_transport(kon, identitas, data)
             )
-            return f"/sesi/{identitas}"
+            from mapping_results import bukti_pemetaan, sesi_pemetaan_aktif
+            siswa_id = kon.execute(
+                "SELECT siswa_id FROM sesi WHERE id = ?", (identitas,)
+            ).fetchone()["siswa_id"]
+            bukti = database.muat_bukti_siklus(kon, int(siswa_id))
+            tampil_hasil = (
+                sesi_pemetaan_aktif(bukti, identitas) is not None
+                and identitas in {s.id for s in bukti_pemetaan(bukti)}
+            )
+            anchor = "#hasil-pemetaan" if tampil_hasil else ""
+            return f"/sesi/{identitas}{anchor}"
         if set(data) - {"alasan"}:
             raise ValueError("Isian pembatalan tidak dikenal.")
         siswa_id = layanan.batalkan_sesi(kon, identitas, data.get("alasan", ""))

@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from learning_visuals import BantuanVisual
+from template_labels import nama_tipe_soal
 
 
 @dataclass(frozen=True)
@@ -75,7 +76,7 @@ KARTU: dict[str, Kartu] = {
         bantuan=BantuanVisual("titik"),
     ),
     "pola_geometri": Kartu(
-        judul="Pola dikali",
+        judul=nama_tipe_soal("deret_geometri"),
         inti="Kalau tiap suku didapat dengan DIKALI angka yang sama, "
              "kalikan lagi untuk suku berikutnya.",
         contoh="1, 3, 9, 27, … dikali 3 → berikutnya 27 × 3 = 81.",

@@ -79,7 +79,7 @@ def test_gagal_menampilkan_semua_nomor_dan_draf_tanpa_menyimpan(server):
     for b in s.butir[2:]:
         assert f'href="#tinjau-soal-{b["sesi_soal_id"]}"' not in isi
     assert isi.count(">Konfirmasi hasil</button>") == 1
-    assert '<option value="" selected>Gunakan usulan mesin</option>' not in isi.split('id="kode-', 1)[1].split('</select>', 1)[0]
+    assert '<option value="" selected>Gunakan usulan Jagomat</option>' not in isi.split('id="kode-', 1)[1].split('</select>', 1)[0]
 
     pulih = FormKoreksi(isi, s.sesi).data
     for b in s.butir[:2]:

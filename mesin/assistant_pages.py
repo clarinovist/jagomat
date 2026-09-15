@@ -357,7 +357,7 @@ def _kartu_usulan(usulan) -> str:
             f'<p>{_esc(data["topik"])} · {_esc(data["level"])} · {_esc(data["jumlah"])} soal</p>'
             '<p class="pendamping-catatan">'
             + ('Latihan sudah pernah dibuat. Buka hasil untuk memeriksa sesi yang tersedia.' if selesai else
-               'Usulan sudah divalidasi mesin. Belum ada sesi yang dibuat.') + '</p>'
+               'Usulan sudah divalidasi Jagomat. Belum ada sesi yang dibuat.') + '</p>'
             + _tautan(f'/pendamping/usulan/{item.id}', 'Buka hasil latihan' if selesai else 'Tinjau usulan',
                       'pendamping-tombol pendamping-sekunder') + '</aside>'
         )

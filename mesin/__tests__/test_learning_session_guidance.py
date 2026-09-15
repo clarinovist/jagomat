@@ -173,9 +173,11 @@ def test_selesai_meminta_tinjau_lalu_satu_jalan_kembali_setelah_sah(server):
 
     sah = _halaman(uji, sesi_id)
     assert "Hasil sudah dikonfirmasi" in sah
-    assert sah.count("Lihat rencana berikutnya") == 1
+    assert "Lihat rencana berikutnya" not in sah
+    assert sah.count('class="kartu-rencana-st"') == 1
+    assert 'id="hasil-pemetaan"' in sah
     assert f'href="/anak/{siswa_id}"' in sah
-    assert "Semua sesi Anak Sintetis" not in sah
+    assert "Semua sesi Anak Sintetis" in sah
     detail_edit = re.search(
         r'<details class="panduan-edit-hasil-st">(.*?)</form></details>', sah, re.S
     )

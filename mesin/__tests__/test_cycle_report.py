@@ -52,11 +52,11 @@ def _fokus(kon, sid):
 def _utama(teks):
     assert 'id="perjalanan-belajar"' in teks
     return teks.split('id="perjalanan-belajar"', 1)[1].split(
-        '<div class="ringkasan-dashboard-laporan">', 1
+        '<details class="kartu detail-teknis-laporan">', 1
     )[0]
 
 
-def test_ringkasan_laporan_tiga_bagian_bersumber_dari_perjalanan_bukan_statistik(db):
+def test_resume_laporan_bersumber_dari_perjalanan_bukan_statistik(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Ringkas Uji", pemilik="guru")
         _pemetaan(kon, sid, database.buat_putaran_fokus(kon, sid, "P3"), 1)
@@ -65,12 +65,12 @@ def test_ringkasan_laporan_tiga_bagian_bersumber_dari_perjalanan_bukan_statistik
     ringkasan = h.split('<div class="kartu ringkasan-laporan">', 1)[1].split(
         "</div>", 1
     )[0]
-    assert "Yang terlihat" in ringkasan
-    assert "Yang masih perlu diperiksa" in ringkasan
-    assert "Langkah berikutnya" in ringkasan
-    assert 'href="#perjalanan-belajar"' in ringkasan
+    assert "Posisi belajar saat ini" in ringkasan
+    assert "Masih perlu diperiksa" in ringkasan
+    assert "Berikutnya dipelajari" in ringkasan
+    assert "Belum selesai dikerjakan" in ringkasan
     assert f'href="/anak/{sid}#judul-rencana-belajar"' in ringkasan
-    assert ringkasan.count("Lihat rencana belajar") == 1
+    assert h.count("<summary>Lihat rencana belajar</summary>") == 1
     assert "1 sesi dinilai" not in ringkasan
     assert "kekeliruan konsep" not in ringkasan
 
@@ -85,7 +85,7 @@ def test_laporan_baru_meminta_pemetaan_bukan_menyimpulkan_penguasaan(db):
     assert "Pemetaan 0 dari 3" in _utama(h)
     assert "belum cukup bukti" in _utama(h).lower()
     assert "Semua latihan" in h
-    assert h.index("Perjalanan fokus belajar") < h.index("Perkembangan jawaban tepat")
+    assert h.index("Hasil dan tren per materi") < h.index("Perjalanan fokus belajar")
 
 
 def test_hasil_belum_disahkan_tidak_menjadi_fokus_laporan(db):
@@ -187,7 +187,7 @@ def test_actual_report_memisahkan_dua_fokus_dengan_status_reducer_berbeda(db):
     ringkasan = h.split('<div class="kartu ringkasan-laporan">', 1)[1].split(
         "</div>", 1
     )[0]
-    terlihat = ringkasan.split("Yang terlihat", 1)[1].split("</section>", 1)[0]
+    terlihat = ringkasan.split("Posisi belajar saat ini", 1)[1].split("</section>", 1)[0]
     assert terlihat.count('<li class="item-fokus-ringkasan">') == 2
     fokus_1, fokus_2 = terlihat.split("Fokus 1", 1)[1].split("Fokus 2", 1)
     assert "mulai membaik" in fokus_1

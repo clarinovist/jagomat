@@ -67,13 +67,14 @@ def test_pemahaman_dan_status_dilewati_dipulihkan_dari_snapshot_terakhir(db):
         halaman = _badan(teacher_pages.halaman_sesi_stitch(kon, sesi_id))
 
     pilihan = re.search(
-        rf'name="cek_pemahaman_{sid}"[^>]*>(.*?)</select>', halaman, re.S
+        rf'<input[^>]+name="cek_pemahaman_{sid}" value="ragu"[^>]*>', halaman
     )
     centang = re.search(rf'<input[^>]+name="dilewati_{sid}"[^>]*>', halaman, re.S)
     assert pilihan
-    assert '<option value="ragu" selected>Masih ragu</option>' in pilihan.group(1)
+    assert 'type="radio"' in pilihan.group(0) and 'checked' in pilihan.group(0)
+    assert f'<label for="paham-{sid}-ragu">Masih ragu</label>' in halaman
     assert centang and "checked" in centang.group(0)
-    assert "Lewati butir ini dari hasil" in halaman
+    assert "Jangan sertakan soal ini dalam penilaian" in halaman
 
 
 def test_semua_butir_menyediakan_checkbox_dilewati(db):
@@ -229,6 +230,6 @@ def test_marker_penjelasan_koreksi_lama_tetap_ada(db):
         _isi_benar(kon, butir)
         halaman = _badan(teacher_pages.halaman_sesi_stitch(kon, sesi_id))
 
-    assert "Periksa catatan anak dan usulan mesin" in halaman
+    assert "Periksa catatan anak dan usulan Jagomat" in halaman
     assert "menyimpan seluruh isian sekaligus mengesahkan bukti belajar" in halaman
     assert ">Simpan koreksi</button>" not in halaman

@@ -1,6 +1,6 @@
 """Regresi layout halaman koreksi sesi guru.
 
-Layout aktif memasangkan jawaban singkat dengan Caraku; penilaian terpisah
+Layout aktif memisahkan jawaban singkat dari pendampingan; penilaian terpisah
 pada details. Test mengunci DOM pemakai CSS, proporsi, kepadatan, serta
 ringkasan status agar tidak sekadar mempertahankan selector yang sudah mati.
 """
@@ -46,19 +46,21 @@ def _buat_sesi(db, seed=7):
     return sesi_id
 
 
-def test_kolom_jawaban_ringkas_dan_caraku_memakai_grid_aktif(db):
+def test_jawaban_satu_kolom_dan_cara_di_pendampingan(db):
     sesi_id = _buat_sesi(db)
     with database.buka(db) as kon:
         halaman = teacher_pages.halaman_sesi_stitch(kon, sesi_id).decode()
     badan = halaman.split("</style>", 1)[-1]
-    bukti = re.findall(r'<div class="koreksi-bukti-st">(.*?)</div>\s*</div>', badan, re.S)
+    bukti = re.findall(r'<div class="koreksi-bukti-st koreksi-bukti-tunggal-st">(.*?)</div>\s*</div>', badan, re.S)
     assert bukti, "grid harus dipakai kartu koreksi, bukan CSS tanpa elemen"
     for isi in bukti:
         assert 'class="koreksi-input-st"' in isi
-        assert 'class="koreksi-textarea-st"' in isi
+        assert 'class="koreksi-textarea-st"' not in isi
         assert 'name="kode_' not in isi
     assert 'class="koreksi-opsi-st koreksi-penilaian-st"' in badan
-    assert "grid-template-columns: minmax(8rem, 10rem) minmax(0, 1fr)" in style_stitch.CSS_SESI
+    assert 'class="koreksi-opsi-st koreksi-cara-st"' in badan
+    assert 'class="koreksi-textarea-st"' in badan
+    assert 'koreksi-bukti-tunggal-st' in style_stitch.CSS_SESI
 
 
 def test_form_tetap_satu_kolom_sebelum_breakpoint_desktop():
@@ -94,7 +96,8 @@ def test_label_kode_ringkas_dan_nama_template_ramah(db):
     badan = halaman.split("</style>", 1)[-1]
     assert "Kode (kosong = usulan mesin)" not in badan
     assert "Penilaian yang dipakai" in badan
-    assert "Usulan mesin:" in badan
+    assert "Usulan Jagomat: Perlu penilaian" not in badan
+    assert "Tentukan penilaian — belum dipilih" in badan
     assert "kosongkan = pakai usulan mesin" not in badan
     assert "median_modus" not in badan
     assert "Median &amp; modus" in badan
@@ -148,7 +151,7 @@ def test_alasan_mesin_benar_tetap_tampil_saat_guru_mengoreksi_manual(db):
 
     assert hasil["manual"]
     assert hasil["alasan"] == "jawaban benar"
-    assert '<b>Mesin:</b> jawaban benar' in halaman
+    assert '<b>Jagomat:</b> jawaban benar' in halaman
 
 
 def test_alasan_mesin_tetap_tampil_saat_guru_menandai_benar_manual(db):
@@ -169,7 +172,7 @@ def test_alasan_mesin_tetap_tampil_saat_guru_menandai_benar_manual(db):
 
     assert hasil["benar"]
     assert hasil["alasan"] != "jawaban benar"
-    assert f'<b>Mesin:</b> {hasil["alasan"]}' in halaman
+    assert f'<b>Jagomat:</b> {hasil["alasan"]}' in halaman
 
 
 def test_alasan_mesin_yang_membantu_tetap_tampil(db):
@@ -189,7 +192,7 @@ def test_alasan_mesin_yang_membantu_tetap_tampil(db):
         halaman = teacher_pages.halaman_sesi_stitch(kon, sesi_id).decode()
 
     assert hasil["alasan"]
-    assert f'<b>Mesin:</b> {hasil["alasan"]}' in halaman
+    assert f'<b>Jagomat:</b> {hasil["alasan"]}' in halaman
 
 
 def test_status_menyatu_dengan_nomor_dan_jenis_soal(db):

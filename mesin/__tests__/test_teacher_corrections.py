@@ -100,7 +100,7 @@ def test_default_mesin_roundtrip_tidak_menciptakan_override_atau_pengakuan(serve
     data, isi = form(s)
     assert data[f"kode_{s.sid}"] == ""
     assert f"belum_{s.sid}" not in data
-    assert "Usulan mesin:" in isi
+    assert "Usulan Jagomat:" in isi
     assert "Dipakai otomatis saat konfirmasi" in isi
     assert kirim(s, data)[0] == 200
     hasil, snapshot, bukti = keadaan(s)
@@ -184,7 +184,7 @@ def test_mesin_belum_yakin_dan_lewati_aman(server):
     s = server
     isi_awal(s, "Cara tidak terpetakan", jawaban="999999")
     data, isi = form(s)
-    assert '<details class="koreksi-opsi-st koreksi-penilaian-st" open>' in isi
+    assert '<summary>Tentukan penilaian — belum dipilih</summary>' in isi
     sebelum = keadaan(s)
     assert kirim(s, data)[0] == 400
     assert keadaan(s) == sebelum
@@ -194,7 +194,7 @@ def test_mesin_belum_yakin_dan_lewati_aman(server):
     assert hasil["jawaban"] == "999999"
     assert snapshot[0]["dilewati"] == 1
     assert snapshot[0]["jawaban"] == "" and snapshot[0]["kode_final"] is None
-    assert "Opsi lain — butir ditandai dilewati" in form(s)[1]
+    assert "Dilewati dari penilaian — ubah" in form(s)[1]
 
 
 @pytest.mark.parametrize("pilihan,kode", [("tebak", "N"), ("bingung", "T")])
@@ -254,7 +254,7 @@ def test_diagnosis_warisan_tak_diedit_sesuai_usulan_yang_ditampilkan(server):
         b = database.isi_sesi(kon, s.sesi)[0]
         database.simpan_diagnosis(kon, b["jawaban_id"], False, "H", "H", alasan="Usulan tersimpan")
     data, isi = form(s)
-    assert "Usulan mesin: Perlu memeriksa hitungan" in isi
+    assert "Usulan Jagomat: Perlu memeriksa hitungan" in isi
     assert kirim(s, data)[0] == 200
     assert keadaan(s)[0]["kode_final"] == "H"
 
@@ -272,11 +272,12 @@ def test_hierarki_form_tunggal_dan_palang_enter(server):
     assert badan.count(">Konfirmasi hasil</button>") == 1
     assert re.search(r'<button type="submit" form="form-koreksi-\d+" hidden disabled', badan)
     paham = re.search(r'<fieldset class="koreksi-pemahaman-st">(.*?)</fieldset>', badan, re.S)[1]
-    assert f'name="belum_{s.sid}"' in paham
+    pengalaman = re.search(r'<details class="koreksi-opsi-st koreksi-pengalaman-st"[^>]*>(.*?)</details>', badan, re.S)[1]
+    assert f'name="belum_{s.sid}"' in pengalaman
     assert "Apakah anak bisa menjelaskan caranya?" in paham
     lewati = re.search(r'<details class="koreksi-opsi-st koreksi-perbaikan-st">(.*?)</details>', badan, re.S)[1]
     assert f'name="dilewati_{s.sid}"' in lewati
-    assert "Catatan asli tetap tersimpan" in lewati
+    assert "Jawaban dan catatan asli tetap tersimpan" in lewati
 
 
 @pytest.mark.parametrize("field,nilai", [
@@ -341,5 +342,5 @@ def test_murid_dan_butir_asing_tidak_bisa_mengubah_hasil(server):
     assert kirim(s, {**data, "kode_999999": "benar"})[0] == 400
     status, badan, _ = kirim(s, data, akun=("feby", SANDI_MURID))
     assert status == 401  # Basic murid tidak membuka permukaan guru.
-    assert "Usulan mesin:" not in badan and "Cara awal" not in badan
+    assert "Usulan Jagomat:" not in badan and "Cara awal" not in badan
     assert keadaan(s) == sebelum
