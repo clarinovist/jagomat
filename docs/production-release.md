@@ -119,7 +119,7 @@ fingerprint atau mengganti hash policy sekadar agar deploy hijau.
    membatalkan swap yang sudah berjalan). Tidak menghapus receipt/backup lama.
 
 Recovery pinned untuk rollout pengendali AI adalah
-`90c1aa128c2d124e4056c5f99a1407729fcd55fa`, baseline pertama yang memahami
+`33e241c18024190f41ebca1986e35af26c0397fd`, baseline pertama yang memahami
 `ai-control.db`. Setiap pembaruan recovery harus diuji dan direview; label revision
 sendiri bukan bukti kompatibilitas. Preflight kontrak/live readiness tetap wajib.
 Deploy rutin tidak menyediakan restore data atau zero-downtime.
@@ -137,10 +137,11 @@ tinjauan server, catatan eksekusi dan idempotensi tahan crash, ditambah perbaika
 penutupan transport HTTP yang sama dengan kandidat.
 Recovery historis itu bukan image produksi lama, bukan perubahan konstanta
 schema saja, dan bukan memilih kembali candidate yang sama ketika gagal.
-**Pin workflow saat ini adalah `90c1aa128c2d124e4056c5f99a1407729fcd55fa`**, seperti
-bagian pengendali AI di atas, bukan commit historis `bc9c973`. Keduanya bukan
-recovery kompatibel otomatis untuk admin-control schema4/AI2; rilis admin baru
-tertahan sampai pasangan recovery dan approval rollout yang sesuai tersedia.
+**Pin workflow saat ini adalah `33e241c18024190f41ebca1986e35af26c0397fd`**, seperti
+bagian pengendali AI di atas, bukan commit historis `bc9c973`. Pin aktif telah
+diverifikasi untuk admin-control schema4/AI2, tetapi setiap perubahan kontrak
+berikutnya tetap tertahan sampai pasangan recovery dan approval rollout yang sesuai
+tersedia.
 
 `verify_release_image.py` menjalankan probe stdlib lewat stdin ke image digest
 tertentu, non-root, filesystem read-only, tmpfs sintetis dan `--network none`.
