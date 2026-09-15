@@ -2599,6 +2599,21 @@ CSS_SESI = f"""
   background: {T.LATAR_TERSIMPAN}; border-color: {T.BORDER_TERSIMPAN};
 }}
 
+/* Pemulihan konfirmasi: ringkasan bertaut dan penanda nonwarna per soal. */
+.koreksi-galat-st, .koreksi-masalah-st {{
+  padding: {T.SP_4}; border: 1px solid {T.BORDER_CATATAN};
+  border-left: 4px solid {T.AKSEN_KORAL_TUA}; border-radius: {T.RADIUS_SEDANG};
+  background: {T.LATAR_CATATAN}; color: {T.TEKS_UTAMA}; overflow-wrap: anywhere;
+}}
+.koreksi-galat-st {{ margin-bottom: {T.SP_4}; }}
+.koreksi-galat-st h2 {{ margin: 0; font: 700 1.15rem/1.4 {T.FONT_HEADLINE}; }}
+.koreksi-galat-st p {{ margin: {T.SP_2} 0; line-height: 1.55; }}
+.koreksi-galat-st ul {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; padding: 0; margin: {T.SP_3} 0 0; list-style: none; }}
+.koreksi-galat-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3}; color: {T.AKSEN_TEAL_TUA}; background: {T.LATAR_KARTU}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL}; }}
+.koreksi-galat-st a:focus-visible, .koreksi-kartu-st[tabindex]:focus {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
+.koreksi-kartu-st[tabindex] {{ scroll-margin-top: {T.SP_6}; }}
+.koreksi-masalah-st {{ margin: 0; font-size: .9rem; line-height: 1.55; }}
+
 /* Kartu soal koreksi — satu kolom. Status menyatu dengan nomor dan jenis
    soal di kepala kartu agar hasil dapat dipindai tanpa menoleh ke sisi kanan. */
 .koreksi-kartu-st {{

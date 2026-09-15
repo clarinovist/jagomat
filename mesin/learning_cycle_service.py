@@ -125,6 +125,56 @@ def _cabut_opt_in_bila_diminta(kon, sesi_id, data):
     kon.execute("UPDATE sesi SET dikonfirmasi_guru = NULL, fingerprint_konfirmasi = NULL WHERE id = ?", (sesi_id,))
 
 
+class KonfirmasiBelumLengkap(ValueError):
+    """Pemulihan request-local setelah validasi, tanpa persistensi draf."""
+
+    def __init__(self, masalah, draf):
+        super().__init__("Hasil perlu ditinjau sebelum dikonfirmasi.")
+        self.masalah = masalah
+        self.draf = draf
+
+
+def _masalah_kelengkapan(kon, sesi_id, dilewati):
+    """Jelaskan butir setelah DB menolak; bukan pengganti validasi bukti."""
+    masalah = []
+    for butir in database.isi_sesi(kon, sesi_id):
+        sid = int(butir["sesi_soal_id"])
+        if sid in dilewati:
+            continue
+        alasan = None
+        if (butir["jawaban_id"] is None or butir["benar"] is None
+                or (not bool(butir["benar"]) and butir["kode_final"] is None)):
+            alasan = (
+                "kosong" if not (butir["jawaban"] or "").strip()
+                and not (butir["cara"] or "").strip() else "penilaian"
+            )
+        elif bool(butir["benar"]) and (
+            butir["kode_final"] is not None or butir["malrule_id"] is not None
+        ):
+            alasan = "tidak_konsisten"
+        if alasan:
+            masalah.append((sid, int(butir["nomor"]), alasan))
+    return tuple(masalah)
+
+
+def _draf_pemulihan(kon, sesi_id, data, koreksi):
+    """Pertahankan input yang sah dan fallback parsial sesuai kontrak koreksi."""
+    from assistant_inline import DrafButir, DrafKoreksi
+
+    butir = []
+    for baris in database.isi_sesi(kon, sesi_id):
+        sid = int(baris["sesi_soal_id"])
+        butir.append((sid, DrafButir(
+            data.get(f"jwb_{sid}", koreksi[f"jwb_{sid}"]),
+            data.get(f"kode_{sid}", koreksi[f"kode_{sid}"]),
+            data.get(f"cara_{sid}", koreksi[f"cara_{sid}"]),
+            data.get(f"cek_pemahaman_{sid}", ""),
+            f"dilewati_{sid}" in data,
+            f"belum_{sid}" in koreksi,
+        )))
+    return DrafKoreksi(tuple(butir), data.get("sertakan_pemetaan") == "1")
+
+
 def konfirmasi_dari_form(
     kon: sqlite3.Connection,
     sesi_id: int,
@@ -162,13 +212,23 @@ def konfirmasi_dari_form(
             for butir_id in (_id_butir_dari_field(nama),)
             if butir_id is not None
         }
-        konfirmasi_id = database.konfirmasi_hasil(
-            kon,
-            sesi_id,
-            guru=guru,
-            dilewati=dilewati,
-            cek_pemahaman=cek_pemahaman,
-        )
+        try:
+            konfirmasi_id = database.konfirmasi_hasil(
+                kon,
+                sesi_id,
+                guru=guru,
+                dilewati=dilewati,
+                cek_pemahaman=cek_pemahaman,
+            )
+        except ValueError as galat:
+            if str(galat) != "outcome belum lengkap":
+                raise
+            masalah = _masalah_kelengkapan(kon, sesi_id, dilewati)
+            if not masalah:
+                raise
+            raise KonfirmasiBelumLengkap(
+                masalah, _draf_pemulihan(kon, sesi_id, data, koreksi)
+            ) from galat
         if data.get("sertakan_pemetaan") == "1":
             if sesi["mode"] != "diagnostik" or sesi["tujuan"] != "bebas":
                 raise ValueError("hanya sesi diagnostik bebas dapat disertakan")
