@@ -7,6 +7,8 @@ import sys
 import tarfile
 from pathlib import Path
 
+from test_release_image import ekstrak_tar_aman
+
 
 AKAR = Path(__file__).resolve().parents[2]
 ALUR = AKAR / ".github/workflows/deploy.yml"
@@ -34,7 +36,7 @@ def _fingerprint(akar_mesin: Path) -> str:
     return fingerprint
 
 
-def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path):
+def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path, monkeypatch):
     """Cegah deploy rutin mencapai VPS dengan fingerprint yang pasti ditolak."""
     cocok = re.search(
         r"^  RECOVERY_SHA: ([0-9a-f]{40})$", ALUR.read_text(), re.MULTILINE
@@ -53,8 +55,13 @@ def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path):
         )
     recovery = tmp_path / "recovery"
     recovery.mkdir()
+
+    def tolak_extractall(*args, **kwargs):
+        raise AssertionError("Gunakan ekstraktor aman yang kompatibel Python 3.9.")
+
+    monkeypatch.setattr(tarfile.TarFile, "extractall", tolak_extractall)
     with tarfile.open(arsip) as tar:
-        tar.extractall(recovery, filter="data")
+        ekstrak_tar_aman(tar, recovery)
 
     fingerprint_candidate = _fingerprint(AKAR / "mesin")
     fingerprint_recovery = _fingerprint(recovery / "mesin")

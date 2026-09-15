@@ -125,6 +125,15 @@ def tangani(penangan, jalur: str, halaman) -> None:
             data = _baca_form(penangan)
             kon.execute("BEGIN IMMEDIATE")
             tujuan = _jalankan(kon, jenis, identitas, aksi, guru[0], data)
+        except layanan.KonfirmasiBelumLengkap as galat:
+            kon.rollback()
+            from teacher_pages import halaman_sesi_stitch
+
+            return penangan._kirim_privat(halaman_sesi_stitch(
+                kon, identitas, peran=guru[1], pengguna=guru[0],
+                draf_koreksi=galat.draf, masalah_konfirmasi=galat.masalah,
+                privat=True,
+            ), 400)
         except (ValueError, GalatForm) as galat:
             kon.rollback()
             status = getattr(galat, "status", 409 if aksi in {"buat", "batalkan"} else 400)
