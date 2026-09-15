@@ -1324,6 +1324,7 @@ def halaman_sesi_stitch(
     pengiriman_sesi = review_store.pengiriman(kon, sesi_id)
     ada_foto = kon.execute('SELECT 1 FROM lampiran WHERE sesi_id=? LIMIT 1', (sesi_id,)).fetchone() is not None
     kartu = []
+    antrean_tinjauan = []
     outcome_tampilan = []
     for b in database.isi_sesi(kon, sesi_id):
         soal = _soal_dari_baris(b)
@@ -1419,10 +1420,9 @@ def halaman_sesi_stitch(
         masalah_butir = masalah_per_butir.get(int(b["sesi_soal_id"]))
         petunjuk_masalah = ""
         atribut_penilaian = ""
-        atribut_kartu = ""
+        sid = int(b["sesi_soal_id"])
+        atribut_kartu = f' id="tinjau-soal-{sid}" tabindex="-1" aria-label="Soal {int(b["nomor"])}"'
         if masalah_butir:
-            sid = int(b["sesi_soal_id"])
-            atribut_kartu = f' id="tinjau-soal-{sid}" tabindex="-1"'
             atribut_penilaian = f' aria-invalid="true" aria-describedby="masalah-soal-{sid}"'
             petunjuk_masalah = (
                 f'<p class="koreksi-masalah-st" id="masalah-soal-{sid}">'
@@ -1481,6 +1481,16 @@ def halaman_sesi_stitch(
             bool(tinjauan_butir['dilewati']) if tinjauan_butir else
             bool(snapshot_butir is not None and snapshot_butir["dilewati"])
         )
+        # Antrean hanya memandu navigasi dari keadaan efektif yang tampil.
+        # Tidak menilai ulang, menyembunyikan kartu, atau mengesahkan outcome.
+        sumber_tampil = review_pages.nilai(tinjauan_butir, draf_butir, 'provenance')
+        perlu_tinjauan = (
+            not benar_tampil and not kode_efektif
+            or kode_efektif == 'T' and not kode_tampil
+            or sumber_tampil == 'setelah_bantuan'
+        )
+        if perlu_tinjauan and not dilewati_terpilih:
+            antrean_tinjauan.append((sid, int(b['nomor'])))
         outcome_tampilan.append(OutcomeSiklus(
             b["template_id"], benar_tampil, kode_efektif,
             dilewati=dilewati_terpilih,
@@ -1635,7 +1645,7 @@ def halaman_sesi_stitch(
   </div>
 </div>""")
 
-    kabar = f'<div class="pesan-st">{html.escape(pesan)}</div>' if pesan else ""
+    kabar = f'<div class="pesan-st" role="status">{html.escape(pesan)}</div>' if pesan else ""
     if masalah_konfirmasi:
         tautan_masalah = "".join(
             f'<li><a href="#tinjau-soal-{sid}">Tinjau soal {nomor}</a></li>'
@@ -1781,9 +1791,15 @@ def halaman_sesi_stitch(
                 f'<button type="submit" class="sekunder" formaction="/sesi/{sesi_id}/tinjauan">Simpan tinjauan</button>'
                 f'{aksi_konfirmasi}'
             )
+            from review_navigation import render_antrean
+            navigasi_tinjauan = (
+                render_antrean(antrean_tinjauan, draf=draf_koreksi is not None)
+                if not masalah_konfirmasi and (not konfirmasi_masih_aktif or draf_koreksi is not None)
+                else ''
+            )
             form_hasil = (
                 f'<form id="form-koreksi-{sesi_id}" method="post" action="/sesi/{sesi_id}">'
-                f'{"".join(kartu)}<input type="hidden" name="hadir_sertakan_pemetaan" value="1">{opsi_pemetaan}'
+                f'{navigasi_tinjauan}{"".join(kartu)}<input type="hidden" name="hadir_sertakan_pemetaan" value="1">{opsi_pemetaan}'
                 f'<div class="koreksi-simpan-st">{urutan_aksi}</div></form>'
             )
             blok_isi = (

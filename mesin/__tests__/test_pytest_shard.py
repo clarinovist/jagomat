@@ -18,6 +18,13 @@ pytest_shard = importlib.util.module_from_spec(SPEK)
 assert SPEK.loader is not None
 SPEK.loader.exec_module(pytest_shard)
 
+# Anchor koleksi snapshot immutable yang diuji/dibangun CI, bukan jumlah kandidat.
+# Recovery baru harus diukur dan direview sebelum dimasukkan; tidak ada fallback.
+JUMLAH_RECOVERY = {
+    "33e241c18024190f41ebca1986e35af26c0397fd": 9851,
+    "0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c": 10635,
+}
+
 
 class ItemPalsu:
     def __init__(self, nodeid):
@@ -71,6 +78,7 @@ def test_koleksi_recovery_pinned_stabil_dan_seluruh_shard_exact_once(tmp_path):
     cocok = re.search(r"^  RECOVERY_SHA: ([0-9a-f]{40})$", workflow, re.M)
     assert cocok is not None
     recovery = cocok.group(1)
+    assert recovery in JUMLAH_RECOVERY, "Ukur dan tinjau anchor koleksi recovery baru."
     arsip = tmp_path / "recovery.tar"
     with arsip.open("wb") as keluaran:
         subprocess.run(
@@ -90,7 +98,7 @@ def test_koleksi_recovery_pinned_stabil_dan_seluruh_shard_exact_once(tmp_path):
         cwd=salinan, env=lingkungan, capture_output=True, text=True, check=True, timeout=180,
     )
     nodeids = [baris for baris in hasil.stdout.splitlines() if "::" in baris]
-    assert len(nodeids) == 9851
+    assert len(nodeids) == JUMLAH_RECOVERY[recovery]
     assert len(nodeids) == len(set(nodeids))
     tujuan = pytest_shard.petakan_nodeid(nodeids, 4)
     acak = list(reversed(nodeids))

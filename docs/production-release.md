@@ -1,19 +1,31 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
-## Mode source saat ini: persiapan baseline (15 September 2026)
+## Mode source saat ini: kandidat migrasi (15 September 2026)
 
-`release-metadata.json` di `scripts/` menetapkan mode **persiapan** dengan anchor
-recovery historis `33e241c18024190f41ebca1986e35af26c0397fd`. Job `pasang` sekarang
-memakai **`if: ${{ false }}` secara literal**. Push/main maupun dispatch dan nilai
-`OSN_DEPLOY_RUTIN_SIAP=1` tidak dapat mengaktifkan job itu. Semua test kandidat dan
-recovery serta build/probe kedua image tetap dijalankan. Ini state source baru,
-bukan klaim konfigurasi atau deployment produksi sudah berubah.
+`release-metadata.json` di `scripts/` menetapkan mode **migrasi**, dengan baseline
+recovery B `0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c` dan kontrak
+`18bbd4f57675cf28900a39c96f8af13cee785ce74d5f6198529b7760bd266b4d`.
+Anchor ini cocok antara probe source B dan manifest image CI B
+[run 34988722784](https://github.com/clarinovist/osn-mesin-latihan/actions/runs/34988722784).
+Run B selesai sukses: seluruh test kandidat/recovery dan build/probe image lulus,
+job pasang dilewati sesuai mode persiapan. Image B yang diperiksa mempunyai digest
+`sha256:6e5d101ed69012c48dcf27f94f2a98b8d2c0b732b9cf6ebe7a582e389187162f`.
+Build recovery berikutnya boleh menghasilkan digest berbeda; wajib diverifikasi
+lagi dan memakai digest output build pasangan C/B yang sama, bukan meminjam bukti B.
 
-Perbedaan kontrak boleh tercatat pada artefak persiapan, tetapi tidak boleh
-menghasilkan pemasangan atau klaim recovery kompatibel. `scripts/release_metadata.py`
-memvalidasi konfigurasi JSON tertutup, pin workflow, gate pasang, identitas image,
-dan fingerprint dari **PROBE_KONTRAK yang sama dengan deployer**. Hash anchor lama
-tetap harus cocok dengan recovery lama; tidak diganti menjadi hash kandidat baru.
+Job `pasang` tetap **`if: ${{ false }}` secara literal**. Push/main maupun dispatch
+dan `OSN_DEPLOY_RUTIN_SIAP=1` tidak dapat mengaktifkannya. Semua test kandidat dan
+recovery serta build/probe kedua image tetap dijalankan. Pada mode migrasi,
+**kontrak kandidat wajib identik dengan B dan uji lintas image wajib lulus**.
+Pin source ini belum membuktikan image pasangan C/B atau deployment produksi.
+Cutover tetap menunggu pasangan exact, backup/rehearsal, dan persetujuan spesifik.
+
+Pada tahap persiapan B sebelumnya, mismatch terhadap recovery historis33e241
+tercatat jujur (`compatible=false`, `pair_verified=false`, `siap_pasang=false`).
+Tidak ada klaim recovery historis cocok dengan schema baru. Kini
+`scripts/release_metadata.py` memvalidasi konfigurasi JSON tertutup, pin workflow,
+gate pasang, identitas image, dan fingerprint dari **PROBE_KONTRAK yang sama dengan
+deployer** terhadap anchor B yang sudah terukur.
 
 | Mode | Kontrak pasangan | Job pasang rutin | Manifest |
 |---|---|---|---|
@@ -53,7 +65,7 @@ aplikasi tetap berjalan; mode persiapan bukan skip test atau pelemahan probe.
 
 Bagian berikut merekam kontrak dan prosedur rutin/migrasi existing. Deskripsi
 eligibility rutin berlaku **setelah** aktivasi mode rutin, bukan pada snapshot
-persiapan saat ini.
+migrasi saat ini.
 
 Status inspeksi **13 September 2026 sekitar 09.50 WIB**: produksi masih sehat
 di revision `4d5618d5fbb162f72c9a88397976c353ee62b88e`. Deploy kandidat
@@ -199,11 +211,14 @@ tinjauan server, catatan eksekusi dan idempotensi tahan crash, ditambah perbaika
 penutupan transport HTTP yang sama dengan kandidat.
 Recovery historis itu bukan image produksi lama, bukan perubahan konstanta
 schema saja, dan bukan memilih kembali candidate yang sama ketika gagal.
-**Pin workflow saat ini adalah `33e241c18024190f41ebca1986e35af26c0397fd`**, seperti
-bagian pengendali AI di atas, bukan commit historis `bc9c973`. Pin aktif telah
-diverifikasi untuk admin-control schema4/AI2, tetapi setiap perubahan kontrak
-berikutnya tetap tertahan sampai pasangan recovery dan approval rollout yang sesuai
-tersedia.
+**Pin workflow saat ini adalah baseline B
+`0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c`**, yang juga memahami arsip pengiriman dan
+provenance tinjauan. Recovery pengendali AI33e241 dan Pendampingbc9c973 di atas
+merupakan histori, bukan fallback schema pengiriman baru. Baseline B menyediakan
+seluruh kartu koreksi; kandidat C menambah navigasi antrean tinjauan server-side.
+Delta navigasi tidak boleh mengubah persistensi atau guard B. Kompatibilitas
+source tetap harus dibuktikan kembali pada image pasangan C/B dan recovery data
+hasil kandidat sebelum meminta approval cutover.
 
 `verify_release_image.py` menjalankan probe stdlib lewat stdin ke image digest
 tertentu, non-root, filesystem read-only, tmpfs sintetis dan `--network none`.

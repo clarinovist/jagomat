@@ -2699,6 +2699,24 @@ CSS_SESI = f"""
 .koreksi-opsi-st .pembahasan-soal-st {{ margin-top: {T.SP_2}; }}
 .koreksi-simpan-st .koreksi-catatan-st {{ margin: 0; }}
 
+/* Navigasi kandidat C tetap opsional: kartu dan form tidak bergantung padanya. */
+.koreksi-editorial-st .antrean-tinjauan-st {{
+  margin-bottom: {T.SP_5}; padding: {T.SP_4}; border: 1px solid {T.BORDER_VARIAN};
+  border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_KARTU};
+}}
+.koreksi-editorial-st .antrean-tinjauan-st h2 {{ font-size: 1.05rem; margin: 0 0 {T.SP_2}; }}
+.koreksi-editorial-st .antrean-tinjauan-st p {{ margin: {T.SP_2} 0; }}
+.koreksi-editorial-st .antrean-tinjauan-st ul {{
+  display: flex; flex-wrap: wrap; gap: {T.SP_2}; padding: 0; margin: {T.SP_3} 0; list-style: none;
+}}
+.koreksi-editorial-st .antrean-tinjauan-st a {{
+  display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3};
+  color: {T.AKSEN_TEAL_TUA}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL};
+}}
+.koreksi-editorial-st .antrean-tinjauan-st a:focus-visible,
+.koreksi-editorial-st .koreksi-kartu-st[tabindex]:focus {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
+.koreksi-editorial-st .koreksi-kartu-st[tabindex] {{ scroll-margin-top: {T.SP_6}; }}
+
 /* Label kecil di kartu koreksi. */
 .koreksi-label-st {{
   display: block; font-family: {T.FONT_HEADLINE}; font-weight: 600;

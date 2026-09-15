@@ -702,8 +702,15 @@ class Penangan(BaseHTTPRequestHandler):
                                 (sesi_id,),
                             )
                             kon.commit()
+                    # Redirect simpan memakai pesan tetap. Query bebas/ganda
+                    # tidak boleh menjadi isi banner atau mengklaim konfirmasi.
+                    pesan_tinjauan = (
+                        'Tinjauan tersimpan. Konfirmasi hasil tetap merupakan langkah terpisah.'
+                        if [nilai for kunci, nilai in pasangan if kunci == 'pesan'] == ['Tinjauan tersimpan']
+                        else ''
+                    )
                     hasil = halaman_sesi_stitch(
-                        kon, sesi_id,
+                        kon, sesi_id, pesan=pesan_tinjauan,
                         peran=ident[1] if ident else "guru",
                         pengguna=ident[0] if ident else "",
                         bantuan=fragmen_inline,

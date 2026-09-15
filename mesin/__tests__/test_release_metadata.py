@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -77,10 +78,26 @@ def test_artefak_tidak_bisa_memalsukan_anchor(salah):
         metadata.buat_manifest(config(), kandidat, recovery)
 
 
-def test_workflow_persiapan_literal_false_dan_pin_config():
+def _workflow_mode(mode):
+    """Fixture semua mode independen dari mode snapshot checkout."""
     konfigurasi = metadata.baca_config(AKAR / "scripts/release-metadata.json")
-    assert konfigurasi["mode"] == "persiapan"
+    konfigurasi["mode"] = mode
     teks = (AKAR / ".github/workflows/deploy.yml").read_text()
+    awal, pasang = teks.split("  pasang:\n", 1)
+    kondisi = metadata.GATE_RUTIN if mode == "rutin" else "false"
+    pasang, jumlah = re.subn(r"^    if: .+$", "    if: ${{ " + kondisi + " }}", pasang, count=1, flags=re.M)
+    assert jumlah == 1
+    return konfigurasi, awal + "  pasang:\n" + pasang
+
+
+def test_workflow_aktual_cocok_dengan_mode_dan_pin_config():
+    konfigurasi = metadata.baca_config(AKAR / "scripts/release-metadata.json")
+    metadata.validasi_workflow((AKAR / ".github/workflows/deploy.yml").read_text(), konfigurasi)
+
+
+@pytest.mark.parametrize("mode", ["persiapan", "migrasi"])
+def test_workflow_nonrutin_literal_false_dan_pin_config(mode):
+    konfigurasi, teks = _workflow_mode(mode)
     metadata.validasi_workflow(teks, konfigurasi)
     assert "    if: ${{ false }}" in teks
     rusak = teks.replace("    if: ${{ false }}", "    if: ${{ vars.OSN_DEPLOY_RUTIN_SIAP == '1' && github.ref == 'refs/heads/main' }}")
@@ -124,13 +141,9 @@ def test_verifier_gagal_tidak_diteruskan_ke_fingerprint(monkeypatch):
 
 @pytest.mark.parametrize("mode", ["persiapan", "migrasi", "rutin"])
 def test_cli_manifest_terikat_semua_artefak_dan_proof(tmp_path, monkeypatch, mode):
-    cfg = metadata.baca_config(AKAR / "scripts/release-metadata.json")
-    cfg["mode"] = mode
+    cfg, teks = _workflow_mode(mode)
     p = tmp_path / "config.json"
     p.write_text(json.dumps(cfg))
-    teks = (AKAR / ".github/workflows/deploy.yml").read_text()
-    if mode == "rutin":
-        teks = teks.replace("    if: ${{ false }}", "    if: ${{ " + metadata.GATE_RUTIN + " }}")
     workflow = tmp_path / "workflow.yml"
     workflow.write_text(teks)
     output = tmp_path / "manifest.json"
@@ -167,14 +180,20 @@ def test_cli_manifest_terikat_semua_artefak_dan_proof(tmp_path, monkeypatch, mod
 
 
 def test_cli_probe_gagal_tidak_menerbitkan_manifest(tmp_path, monkeypatch):
+    panggilan = []
     def gagal(*_):
+        panggilan.append(True)
         raise ValueError("keluaran_sensitif_sintetis")
     monkeypatch.setattr(metadata, "probe_artefak", gagal)
-    cfg = metadata.baca_config(AKAR / "scripts/release-metadata.json")
+    cfg, teks = _workflow_mode("persiapan")
+    config_path, workflow = tmp_path / "config.json", tmp_path / "workflow.yml"
+    config_path.write_text(json.dumps(cfg))
+    workflow.write_text(teks)
     output = tmp_path / "manifest.json"
-    assert metadata.main(["--output", str(output),
+    assert metadata.main(["--config", str(config_path), "--workflow", str(workflow), "--output", str(output),
                           "--candidate-revision", "a" * 40, "--candidate-digest", "sha256:" + "a" * 64,
                           "--recovery-revision", cfg["recovery_revision"], "--recovery-digest", "sha256:" + "b" * 64]) == 1
+    assert panggilan == [True]
     assert not output.exists()
 
 
@@ -212,11 +231,7 @@ def test_bukti_pair_tertutup_dan_terikat_revision(field, nilai):
 
 @pytest.mark.parametrize("mode", ["persiapan", "migrasi", "rutin"])
 def test_gate_actual_semua_mode_dan_duplikat(mode):
-    konfigurasi = metadata.baca_config(AKAR / "scripts/release-metadata.json")
-    konfigurasi["mode"] = mode
-    teks = (AKAR / ".github/workflows/deploy.yml").read_text()
-    if mode == "rutin":
-        teks = teks.replace("    if: ${{ false }}", "    if: ${{ " + metadata.GATE_RUTIN + " }}")
+    konfigurasi, teks = _workflow_mode(mode)
     metadata.validasi_workflow(teks, konfigurasi)
     with pytest.raises(ValueError):
         metadata.validasi_workflow(teks.replace("    if: ${{", "    if: true\n    if: ${{"), konfigurasi)
