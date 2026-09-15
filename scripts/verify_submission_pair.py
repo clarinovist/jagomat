@@ -16,6 +16,7 @@ AWALAN = 'osn-submission-pair-'
 SUMBER_TULIS = r'''
 import os,sys,json,hashlib,sqlite3
 from pathlib import Path
+os.chmod('/data',0o700)
 os.environ['OSN_BERKAS_DB']='/data/probe.db'
 os.environ['OSN_PBKDF2_ITERASI']='1000'
 import database,student_submissions,review_store
@@ -123,7 +124,7 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
         if pemilik != token:
             raise GalatVerifikasi('pemilik_volume_tidak_sah')
         _jalankan(candidate_image, volume,
-                  "import os; os.chmod('/data',0o700); os.chown('/data',10001,10001)",
+                  "import os; os.chown('/data',10001,10001)",
                   token, 0, siapkan_izin=True)
         if _jalankan(candidate_image, volume, SUMBER_TULIS, token, 1) != 'OSN_SUBMISSION_WRITER_OK':
             raise GalatVerifikasi('probe_penulis_gagal')

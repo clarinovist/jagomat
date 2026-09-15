@@ -19,7 +19,7 @@ def test_probe_pasangan_subprocess_data_sintetis(tmp_path):
     for sumber, marker in ((pair.SUMBER_TULIS,'OSN_SUBMISSION_WRITER_OK'),
                            (pair.SUMBER_BACA,'OSN_SUBMISSION_RECOVERY_OK')):
         hasil = subprocess.run([sys.executable,'-B','-'],
-            input=sumber.replace('/data/', str(tmp_path)+'/'),
+            input=sumber.replace('/data/', str(tmp_path)+'/').replace("'/data'", repr(str(tmp_path))),
             capture_output=True,text=True,env=env,timeout=30)
         assert hasil.returncode == 0, hasil.stderr
         assert hasil.stdout.strip() == marker
@@ -61,6 +61,8 @@ def test_volume_probe_sendiri_dan_urutan_write_read_cleanup(docker):
         assert mount.startswith('type=volume,src=osn-submission-pair-')
         assert '/opt/osn' not in mount and 'type=bind' not in mount
     assert runs[0][0][runs[0][0].index('--user')+1]=='0:0'
+    assert 'os.chmod' not in runs[0][1]  # Root tanpa FOWNER tidak dapat chmod copy-up UID10001.
+    assert "os.chmod('/data',0o700)" in runs[1][1]
     assert all(a[a.index('--user')+1]=='10001:10001' for a,_ in runs[1:])
     assert runs[1][1]==pair.SUMBER_TULIS and runs[2][1]==pair.SUMBER_BACA
     assert calls[-1][0][:2]==['volume','rm']
