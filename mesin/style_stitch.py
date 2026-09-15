@@ -2670,6 +2670,11 @@ CSS_SESI = f"""
 @media (min-width: 40rem) {{
   .koreksi-bukti-st {{ grid-template-columns: minmax(8rem, 10rem) minmax(0, 1fr); }}
 }}
+.koreksi-bukti-st.koreksi-bukti-tunggal-st {{ grid-template-columns: minmax(0, 1fr); }}
+.koreksi-bukti-tunggal-st .koreksi-input-st {{ max-width: 20rem; }}
+.koreksi-ringkasan-catatan-st {{ display: block; margin-top: {T.SP_1}; font-size: .85rem; line-height: 1.55; color: {T.TEKS_VARIAN}; overflow-wrap: anywhere; }}
+.koreksi-pendampingan-isi-st {{ min-width: 0; }}
+.koreksi-pendampingan-isi-st .koreksi-pemahaman-st {{ margin-top: {T.SP_4}; }}
 .koreksi-catatan-st {{ margin: {T.SP_2} 0 0; font-size: .85rem; line-height: 1.55; color: {T.TEKS_VARIAN}; }}
 .koreksi-pemahaman-st {{ min-width: 0; margin: 0; padding: {T.SP_3} {T.SP_4}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG}; }}
 .koreksi-pemahaman-st legend {{ font: 600 .85rem/1.5 {T.FONT_HEADLINE}; padding-inline: {T.SP_2}; color: {T.TEKS_JUDUL}; }}

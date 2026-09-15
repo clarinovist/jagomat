@@ -1323,35 +1323,6 @@ def halaman_sesi_stitch(
         kode = b["kode_final"]
         benar = b["benar"]
 
-        if sudah and (benar or kode):
-            kelas_isi = "sudah"
-            bulat_cls = "benar" if benar else (kode or "N")
-            lencana = (
-                '<span class="kode benar">BENAR</span>' if benar
-                else f'<span class="kode {kode}">{kode}</span>'
-            )
-            bulat_label = (
-                "Tepat" if benar
-                else "Salah konsep" if kode == "K"
-                else "Salah baca" if kode == "B"
-                else "Salah hitung" if kode == "H"
-                else "Salah tulis" if kode == "E"
-                else "Perlu pengenalan" if kode == "T"
-                else "Menebak" if kode == "N"
-                else ""
-            )
-        elif sudah:
-            kelas_isi, bulat_cls, lencana, bulat_label = "", "N", '<span class="kode N">?</span>', "Belum dinilai"
-        else:
-            kelas_isi, bulat_cls, lencana, bulat_label = "", "", "", ""
-
-        status = ""
-        if lencana:
-            status = (
-                f'<span class="koreksi-status-st {bulat_cls}">{lencana}'
-                f'<span class="koreksi-status-label-st">{bulat_label}</span></span>'
-            )
-
         restate = ""
         if b["restatement"]:
             restate = (
@@ -1382,6 +1353,24 @@ def halaman_sesi_stitch(
                 and belum_terpilih == bool(b["belum_pernah"])):
             # Diagnosis warisan yang tak diedit tetap dipakai oleh jalur no-op.
             rekomendasi = Usulan(bool(benar), kode, b["malrule_id"], b["alasan"] or "", bool(benar or kode))
+        # Status dan disclosure memakai penilaian efektif, bukan lencana DB
+        # sebelum draf. Ini hanya presentasi; konfirmasi tetap menilai ulang.
+        benar_tampil = kode_tampil == "benar" if kode_tampil else rekomendasi.benar
+        kode_efektif = None if benar_tampil else (kode_tampil or rekomendasi.kode)
+        kelas_isi = "sudah" if benar_tampil or kode_efektif else ""
+        bulat_cls = "benar" if benar_tampil else (kode_efektif or "N")
+        lencana = (
+            '<span class="kode benar">BENAR</span>' if benar_tampil
+            else f'<span class="kode {bulat_cls}">{kode_efektif or "?"}</span>'
+        )
+        bulat_label = "Tepat" if benar_tampil else {
+            "K": "Salah konsep", "B": "Salah baca", "H": "Salah hitung",
+            "E": "Salah tulis", "T": "Perlu pengenalan", "N": "Menebak",
+        }.get(kode_efektif, "Belum dinilai")
+        status = (
+            f'<span class="koreksi-status-st {bulat_cls}">{lencana}'
+            f'<span class="koreksi-status-label-st">{bulat_label}</span></span>'
+        ) if sudah or draf_butir else ""
         label_usulan = label_penilaian("benar" if rekomendasi.benar else rekomendasi.kode)
         belum_dinilai = not rekomendasi.benar and not rekomendasi.kode
         keterangan_otomatis = (
@@ -1484,33 +1473,7 @@ def halaman_sesi_stitch(
                 ("menghafal", "Cenderung menghafal"),
             )
         )
-        kartu.append(f"""
-<div class="koreksi-kartu-st"{atribut_kartu}>
-  <div class="koreksi-isi-st {kelas_isi}">
-    <div class="koreksi-kepala-st">{nomor}{tipe}{status}</div>
-    {petunjuk_masalah}
-    <div class="teks-soal-st">{visual_renderer.render_pertanyaan(question_views.penyajian_dari_baris(b), gaya="guru", namespace=str(b["nomor"]))}</div>
-    <details class="koreksi-opsi-st"><summary>Lihat kunci &amp; pembahasan</summary>
-      <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b["kunci"])}</span></div>
-      {pembahasan_html}
-    </details>
-    {restate}
-    <div class="koreksi-bukti-st">
-      <div>
-        <label class="koreksi-label-st" for="jwb-{b["sesi_soal_id"]}">Jawaban anak</label>
-        <input type="text" class="koreksi-input-st" id="jwb-{b["sesi_soal_id"]}" name="jwb_{b["sesi_soal_id"]}"
-               value="{html.escape(jawaban_tampil)}">
-      </div>
-      <div>{cara_html}</div>
-    </div>
-    {usulan}
-    <details class="koreksi-opsi-st koreksi-penilaian-st"{" open" if kode_tampil or belum_dinilai or masalah_butir else ""}>
-      <summary>{"Pilih penilaian" if belum_dinilai and not kode_tampil else "Ganti penilaian"}</summary>
-      <label class="koreksi-label-st" for="kode-{b["sesi_soal_id"]}">Penilaian yang dipakai</label>
-      <select class="koreksi-select-st" id="kode-{b["sesi_soal_id"]}" name="kode_{b["sesi_soal_id"]}"{atribut_penilaian}>{pilih}</select>
-      <p class="koreksi-catatan-st">Otomatis menilai ulang jawaban dan cara saat konfirmasi. Pilihan lain adalah keputusan guru, bukan usulan mesin.</p>
-      <p class="koreksi-catatan-st"><b>Mesin:</b> {html.escape(rekomendasi.alasan)}</p>
-    </details>
+        pemahaman_html = f"""
     <fieldset class="koreksi-pemahaman-st">
       <legend>Saat mendampingi anak</legend>
       <label class="koreksi-label-st" for="paham-{b["sesi_soal_id"]}">Apakah anak bisa menjelaskan caranya?</label>
@@ -1524,7 +1487,87 @@ def halaman_sesi_stitch(
         <label for="bp{b["sesi_soal_id"]}"><span class="info-anak-label-st">Dari anak:</span> Belum pernah melihat soal seperti ini</label>
       </div>
       <p class="koreksi-catatan-st">Centang hanya jika anak mengatakannya, bukan karena ia bingung. Pada penilaian otomatis, ini mengarah ke pengenalan materi, bukan kesalahan anak.</p>
-    </fieldset>
+    </fieldset>"""
+        cek_penguasaan = info["tujuan"] in {"evaluasi", "checkpoint"}
+        petunjuk_pemahaman = (
+            '<p class="koreksi-catatan-st">Pada evaluasi dan cek kembali, '
+            'catatan pemahaman pada soal fokus dipakai untuk menilai penguasaan. '
+            'Jawaban benar saja belum cukup; catat setelah anak menjelaskan.</p>'
+            if cek_penguasaan else ""
+        )
+        catatan = []
+        label_pemahaman = {
+            "bisa_menjelaskan": "Bisa menjelaskan", "ragu": "Masih ragu",
+            "menghafal": "Cenderung menghafal",
+        }
+        if pemahaman_terpilih:
+            catatan.append(label_pemahaman[pemahaman_terpilih])
+        cara_asli = cara_dari_form(cara_tampil.strip(), b["cara"] or "")
+        menebak = cara_asli.startswith("[pilihan] tebak")
+        bingung = cara_asli.startswith("[pilihan] bingung")
+        if menebak:
+            catatan.append("Anak menandai menebak")
+        if bingung:
+            catatan.append("Anak menandai bingung")
+        if belum_terpilih:
+            catatan.append("Belum pernah melihat soal seperti ini")
+        perlu_perhatian = (
+            pemahaman_terpilih in {"ragu", "menghafal"}
+            or menebak or bingung or belum_terpilih
+        )
+        ringkas = bool(benar_tampil and not (
+            cek_penguasaan or perlu_perhatian or masalah_butir or dilewati_terpilih
+        ))
+        pendampingan = petunjuk_pemahaman + pemahaman_html
+        kolom_cara = f"<div>{cara_html}</div>" if cara_html else ""
+        if benar_tampil:
+            judul_catatan = (
+                "Cek pemahaman" if cek_penguasaan else
+                "Catatan pendampingan — perlu perhatian" if perlu_perhatian else
+                "Catatan pendampingan (opsional)"
+            )
+            if cara_tampil.strip() or catatan:
+                catatan.append("catatan belum disimpan" if draf_butir else "catatan tersimpan")
+            ringkasan_catatan = (
+                '<span class="koreksi-ringkasan-catatan-st">'
+                + html.escape(" · ".join(catatan)) + '</span>' if catatan else ""
+            )
+            pendampingan = (
+                f'<details class="koreksi-opsi-st koreksi-pendampingan-st"{"" if ringkas else " open"}>'
+                f'<summary>{judul_catatan}{ringkasan_catatan}</summary>'
+                f'<div class="koreksi-pendampingan-isi-st">{cara_html}{pendampingan}</div></details>'
+            )
+            kolom_cara = ""
+        kelas_bukti = "koreksi-bukti-st" + (" koreksi-bukti-tunggal-st" if not kolom_cara else "")
+        kartu.append(f"""
+<div class="koreksi-kartu-st"{atribut_kartu}>
+  <div class="koreksi-isi-st {kelas_isi}">
+    <div class="koreksi-kepala-st">{nomor}{tipe}{status}</div>
+    {petunjuk_masalah}
+    <div class="teks-soal-st">{visual_renderer.render_pertanyaan(question_views.penyajian_dari_baris(b), gaya="guru", namespace=str(b["nomor"]))}</div>
+    <details class="koreksi-opsi-st"><summary>Lihat kunci &amp; pembahasan</summary>
+      <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b["kunci"])}</span></div>
+      {pembahasan_html}
+    </details>
+    {restate}
+    <div class="{kelas_bukti}">
+      <div>
+        <label class="koreksi-label-st" for="jwb-{b["sesi_soal_id"]}">Jawaban anak</label>
+        <input type="text" class="koreksi-input-st" id="jwb-{b["sesi_soal_id"]}" name="jwb_{b["sesi_soal_id"]}"
+               value="{html.escape(jawaban_tampil)}">
+      </div>
+      {kolom_cara}
+    </div>
+    {"" if ringkas else usulan}
+    <details class="koreksi-opsi-st koreksi-penilaian-st"{" open" if (not ringkas and (kode_tampil or belum_dinilai)) or masalah_butir else ""}>
+      <summary>{"Pilih penilaian" if belum_dinilai and not kode_tampil else "Ganti penilaian"}</summary>
+      {usulan if ringkas else ""}
+      <label class="koreksi-label-st" for="kode-{b["sesi_soal_id"]}">Penilaian yang dipakai</label>
+      <select class="koreksi-select-st" id="kode-{b["sesi_soal_id"]}" name="kode_{b["sesi_soal_id"]}"{atribut_penilaian}>{pilih}</select>
+      <p class="koreksi-catatan-st">Otomatis menilai ulang jawaban dan cara saat konfirmasi. Pilihan lain adalah keputusan guru, bukan usulan mesin.</p>
+      <p class="koreksi-catatan-st"><b>Mesin:</b> {html.escape(rekomendasi.alasan)}</p>
+    </details>
+    {pendampingan}
     <details class="koreksi-opsi-st koreksi-perbaikan-st">
       <summary>{"Opsi lain — butir ditandai dilewati" if dilewati_terpilih else "Opsi lain"}</summary>
       <div class="koreksi-centang-st">
