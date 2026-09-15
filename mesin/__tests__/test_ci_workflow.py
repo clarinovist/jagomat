@@ -9,6 +9,7 @@ import textwrap
 
 import pytest
 
+UJI_SHARD = "3"
 
 ALUR = Path(__file__).resolve().parents[2] / ".github/workflows/deploy.yml"
 
@@ -21,7 +22,7 @@ def _job(teks, nama):
 
 def _skrip_recovery(teks):
     job = _job(teks, "uji_recovery")
-    assert "      - name: Palang dan seluruh test recovery terisolasi\n" in job
+    assert "      - name: Palang dan shard recovery terisolasi\n" in job
     assert "        working-directory: recovery\n" in job
     assert "        shell: bash\n" in job
     skrip = job.split("        run: |\n", 1)[1]
@@ -62,7 +63,7 @@ def test_ci_tetap_menguji_sebelum_build_dan_memasang_digest_yang_sama():
 
 
 @pytest.mark.parametrize("nama", ["uji", "uji_recovery"])
-def test_dua_suite_independen_dengan_runtime_sendiri(nama):
+def test_suite_independen_dengan_runtime_sendiri(nama):
     job = _job(ALUR.read_text(), nama)
     assert "    runs-on: ubuntu-latest\n" in job
     assert '          python-version: "3.12"\n' in job
@@ -70,15 +71,21 @@ def test_dua_suite_independen_dengan_runtime_sendiri(nama):
     assert job.index("actions/checkout@v7") < job.index("actions/setup-python@v7")
     assert job.index("actions/setup-python@v7") < job.index("pip install")
     assert job.index("pip install") < job.index("python scripts/check_repo.py")
-    assert not re.search(r"^\s+(needs|if|continue-on-error|strategy):", job, re.M)
+    assert not re.search(r"^\s+(needs|if|continue-on-error):", job, re.M)
     assert "secrets." not in job
     assert "PYTEST_ADDOPTS" not in job
     assert "-n " not in job  # Paralel antar-runner, bukan antarsocket satu runner.
-    assert job.count("uses: actions/checkout@v7") == 1
     if nama == "uji":
+        assert "strategy:" not in job
+        assert job.count("uses: actions/checkout@v7") == 1
         assert "          ref:" not in job
         assert "          path:" not in job
         assert "working-directory:" not in job
+    else:
+        assert "    name: Test recovery ${{ matrix.shard }}/4\n" in job
+        assert "      fail-fast: false\n" in job
+        assert "        shard: [1, 2, 3, 4]\n" in job
+        assert job.count("uses: actions/checkout@v7") == 2
 
 
 def test_recovery_tetap_full_suite_dan_canary_isolasi():
@@ -89,11 +96,16 @@ def test_recovery_tetap_full_suite_dan_canary_isolasi():
     assert "assert pathlib.Path(assistant_schema.__file__).resolve().parent == pathlib.Path('mesin').resolve()" in skrip
     assert "assert assistant_schema.VERSI_SKEMA == 4" in skrip
     assert skrip.index("python scripts/check_repo.py") < skrip.index("import assistant_schema")
-    assert skrip.index("assert assistant_schema.VERSI_SKEMA == 4") < skrip.index("python -m pytest")
-    assert shlex.split(skrip.splitlines()[-1]) == [
-        "python", "-m", "pytest", "--rootdir", ".", "mesin/__tests__/",
+    assert skrip.index("assert assistant_schema.VERSI_SKEMA == 4") < skrip.index("pytest_shard.py")
+    perintah = " ".join(
+        baris.strip().rstrip("\\").strip() for baris in skrip.splitlines()[-3:]
+    )
+    assert shlex.split(perintah) == [
+        "python", "../scripts/pytest_shard.py", "--shard", "${{ matrix.shard }}",
+        "--total", "4", "--", "--rootdir", ".", "mesin/__tests__/",
         "-q", "-W", "error", "-p", "no:cacheprovider", "--durations=20",
     ]
+    assert "-n" not in shlex.split(perintah)
 
 
 @pytest.mark.parametrize("gagal,urutan", [
@@ -118,7 +130,7 @@ def test_shell_recovery_berhenti_pada_kegagalan(tmp_path, gagal, urutan):
         elif argumen == ["-"]:
             sys.stdin.read()
             tahap = "canary"
-        elif argumen[:2] == ["-m", "pytest"]:
+        elif argumen[:1] == ["../scripts/pytest_shard.py"]:
             tahap = "suite"
         else:
             raise SystemExit(99)
@@ -128,8 +140,11 @@ def test_shell_recovery_berhenti_pada_kegagalan(tmp_path, gagal, urutan):
     '''))
     python.chmod(0o700)
     jejak = tmp_path / "jejak.txt"
+    # Tiru substitusi GitHub Actions: blok run menerima shard konkret, bukan ekspresi.
+    skrip_siap = skrip.replace("${{ matrix.shard }}", UJI_SHARD)
+    assert "${{" not in skrip_siap
     hasil = subprocess.run(
-        ["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", skrip],
+        ["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", skrip_siap],
         cwd=tmp_path, capture_output=True, text=True,
         env={**os.environ, "PATH": str(binari) + os.pathsep + os.environ["PATH"],
              "GAGAL_UJI": gagal, "JEJAK_UJI": str(jejak)},

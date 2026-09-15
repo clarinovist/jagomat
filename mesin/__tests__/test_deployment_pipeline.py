@@ -46,7 +46,8 @@ def test_build_candidate_dan_recovery_pakai_digest_yang_sama_untuk_verifikasi():
     assert 'python -m pytest mesin/__tests__/' in uji
     assert 'working-directory: recovery' in recovery
     assert '          path: recovery\n' in recovery
-    assert 'python -m pytest --rootdir . mesin/__tests__/' in recovery
+    assert 'python ../scripts/pytest_shard.py' in recovery
+    assert '--shard "${{ matrix.shard }}" --total 4 --' in recovery
     assert 'Canary: import recovery terisolasi, schema v4' in recovery
     assert 'VPS_DEPLOY_KEY' not in uji+recovery+bangun
 
@@ -85,6 +86,7 @@ def test_dependencies_gagal_tidak_dibypass_ke_build_atau_deploy():
     assert teks.index('Verifikasi image berdasarkan digest') < teks.index('  pasang:')
     assert 'if:' not in _job(teks,'bangun')  # Tak ada bypass verifikasi image.
     assert 'working-directory: recovery' in _job(teks,'uji_recovery')
+    assert 'shard: [1, 2, 3, 4]' in _job(teks,'uji_recovery')
     assert 'needs: [uji, uji_recovery]' in _job(teks,'bangun')
 
 
