@@ -84,8 +84,8 @@ def test_laporan_baru_meminta_pemetaan_bukan_menyimpulkan_penguasaan(db):
     assert 'id="perjalanan-belajar"' in h
     assert "Pemetaan 0 dari 3" in _utama(h)
     assert "belum cukup bukti" in _utama(h).lower()
-    assert "Semua latihan" in h
-    assert h.index("Hasil dan tren per materi") < h.index("Perjalanan fokus belajar")
+    assert "Aktivitas 7 hari terakhir" in h
+    assert h.index("Progres penguasaan materi Jagomat") < h.index("Perjalanan fokus belajar")
 
 
 def test_hasil_belum_disahkan_tidak_menjadi_fokus_laporan(db):

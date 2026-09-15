@@ -54,9 +54,17 @@ bukan memanggil AI untuk membuat paragraf umum.
 
 ### Dashboard perkembangan — revisi 15 September 2026
 
-Laporan mengutamakan aktivitas anak: **soal dikerjakan, butir benar, butir salah,
-dan persentase jawaban benar**, diikuti hasil/tren per materi. Blok tersendiri
-“Ringkasan untuk orang tua” tidak lagi ditampilkan.
+Revisi lanjutan mengutamakan **progres penguasaan target materi Jagomat** sesuai
+kelas anak, bukan persentase jawaban pada sebagian soal. Katalog target eksplisit
+menjaga seluruh materi tetap terlihat, termasuk belum dinilai. Grafik status
+bertumpuk dan rincian seluruh topik berada paling atas, lalu resume rencana dan
+aktivitas mingguan. Blok tersendiri “Ringkasan untuk orang tua” tidak ditampilkan.
+
+Progres = target yang menunjukkan pemahaman / seluruh target kelas dalam katalog
+Jagomat. Setiap pola dalam target wajib memiliki bukti yang cukup, bervariasi dan
+bisa menjelaskan; keputusan milik reducer. Peta bukan klaim seluruh kurikulum sekolah
+atau penguasaan permanen. Kriteria pemetaan/evaluasi/checkpoint, invalidasi, pergantian
+kelas dan pemeriksaan ulang ada di [kontrak siklus](siklus-belajar-terpandu.md).
 
 - Default 7 hari terakhir WIB dibanding 7 hari sebelumnya. Tanggal mengikuti
   pencatatan jawaban pertama, bukan pembuatan sesi. Hasil kertas mengikuti waktu
@@ -68,8 +76,9 @@ dan persentase jawaban benar**, diikuti hasil/tren per materi. Blok tersendiri
 - Persentase = benar / (benar + salah). N/menebak, penilaian belum jelas,
   materi perlu cek pengenalan, dan dilewati tidak masuk penyebut. Kode T bisa
   berasal dari pengakuan bingung, bukan kepastian belum pernah diajarkan.
-  Tanpa penilaian tampil **—**, bukan 0%. Jumlah hasil sementara vs terkonfirmasi
-  ditampilkan; angka bukan persentase pemahaman atau kelulusan fokus.
+  Tanpa penilaian tampil **—**, bukan 0%. Hasil yang belum seluruhnya dikonfirmasi
+  memakai label singkat **Hasil sementara**, tanpa paragraf jumlah konfirmasi atau
+  rumus. Ketepatan jawaban hanya catatan aktivitas sekunder, bukan penguasaan.
 - Tren memakai kelompok tipe soal, kelas, mode, tujuan, dan representasi sama.
   Minimal lima butir dinilai pada masing-masing periode adalah batas kecukupan
   tampilan, bukan signifikansi statistik. Selisih memakai **poin persentase**,
@@ -82,10 +91,15 @@ dan persentase jawaban benar**, diikuti hasil/tren per materi. Blok tersendiri
   `learning_journey.PerjalananBelajar`/reducer. Clock rekomendasi sama dengan
   profil/POST existing; WIB khusus batas statistik, bukan mengubah jadwal domain.
   Perjalanan/bukti lengkap tetap dapat dibuka. Penjelasan hitungan berada di bawah
-  data terkait; kamus kode berada di rincian teknis, bukan kartu utama terpisah.
+  data terkait; paragraf panjang “Dasar hitungan dan total seluruh catatan” dihapus,
+  total seluruh catatan tetap angka ringkas. Kamus kode di rincian teknis.
 
-Implementasi: `report_metrics.py` (query deskriptif read-only),
-`report_dashboard.py` (presentasi), dan `reports.py` (komposisi halaman).
+Implementasi: `mastery_catalog.py` (target kelas), `learning_cycle.py` (keputusan
+penguasaan), `mastery_report.py` (peta/grafik), `report_metrics.py` (statistik aktivitas
+read-only), `report_dashboard.py` (presentasi aktivitas/resume), dan `reports.py`
+(komposisi halaman). Adapter baca khusus `mastery_evidence.py` membawa
+mode/pola/fingerprint matematis dari penyajian immutable, bukan menurunkan
+penguasaan dari diagnosis mutable. Kontrak adapter database umum tidak berubah.
 Renderer lama `report_summary.py` masih menjadi helper bahasa kompatibel, bukan
 sumber keputusan pedagogis. GET tidak menyimpan, membuat cache, atau memanggil
 network/AI. Keputusan spike dan batas AI di bawah tetap berlaku sebagai histori

@@ -29,6 +29,7 @@ class OutcomeSiklus:
     target_fokus: Optional[KunciFokus] = None
     mode_representasi: str = "teks-v1"
     fingerprint_penyajian: Optional[str] = None
+    fingerprint_matematis: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,8 @@ class SesiSiklus:
     konfirmasi_id: Optional[int] = None
     selesai_pada: Optional[date] = None
     dikonfirmasi_pada: Optional[date] = None
+    mode: str = "diagnostik"
+    pola_tersedia: Tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -859,3 +862,229 @@ def rencana_berikutnya(
             intervensi=intervensi_untuk("T"),
         )
     return RencanaBelajar("mixed_maintenance", "Tidak ada fokus aktif", putaran=status)
+
+
+@dataclass(frozen=True)
+class StatusPolaMateri:
+    template_id: str
+    status: str
+    sesi_ids: Tuple[int, ...] = ()
+    terakhir: Optional[date] = None
+
+
+@dataclass(frozen=True)
+class StatusTargetMateri:
+    id: str
+    status: str
+    pola: Tuple[StatusPolaMateri, ...]
+
+
+def _lulus_pola_materi(outcomes, minimum):
+    """Pakai ambang reducer, dengan penolakan eksplisit outcome belum jelas."""
+    return (_lulus(outcomes, minimum)
+            and all(not o.dilewati and (
+                (o.benar is True and o.kode_final is None)
+                or (o.benar is False and o.kode_final in {"B", "H", "E"})
+            ) for o in outcomes))
+
+
+def _sidik_beragam(outcomes, minimum):
+    """Parafrase atau pengulangan parameter sama tidak menjadi probe baru."""
+    sidik = tuple(o.fingerprint_matematis for o in outcomes)
+    return (len(sidik) >= minimum and all(sidik)
+            and len(set(sidik)) == len(sidik))
+
+
+def _sesi_peta_materi(bukti, hari):
+    """Bukti seluruh target kelas aktif; bukan hanya dua fokus putaran aktif."""
+    opt_in = {(e.sesi_id, e.konfirmasi_id) for e in bukti.kejadian
+              if e.jenis == "sertakan_pemetaan" and e.konfirmasi_id is not None}
+    putaran = {p.id for p in bukti.putaran
+               if p.siswa_id == bukti.siswa_id and p.level == bukti.level_aktif}
+    # Kembali ke kelas lama tidak menghidupkan sertifikasi kelas lama.
+    batas = max((e.tanggal for e in bukti.kejadian if e.jenis == "diganti_level"), default=None)
+    return tuple(s for s in bukti.sesi
+                 if s.siswa_id == bukti.siswa_id and s.level == bukti.level_aktif
+                 and s.mode == "diagnostik" and s.dibatalkan is None
+                 and s.selesai is not None and s.dikonfirmasi is not None
+                 and s.konfirmasi_id is not None and s.tanggal <= hari
+                 and (batas is None or s.tanggal > batas)
+                 and ((s.tujuan == "bebas" and (s.id, s.konfirmasi_id) in opt_in)
+                      or (s.tujuan in {"pemetaan", "evaluasi", "checkpoint"}
+                          and s.putaran_id in putaran)))
+
+
+def _pola_terkoreksi(bukti):
+    """Invalidasi bukan hasil buruk, tetapi bukti lama tidak lagi cukup pasti."""
+    ids = {e.sesi_id for e in bukti.kejadian if e.jenis == "konfirmasi_dibatalkan"}
+    # Koreksi drill/latihan terbimbing tidak menginvalidasi bukti penguasaan.
+    opt_in = {e.sesi_id for e in bukti.kejadian if e.jenis == "sertakan_pemetaan"}
+    batas = max((e.tanggal for e in bukti.kejadian if e.jenis == "diganti_level"), default=None)
+    return frozenset(t for s in bukti.sesi
+                     if s.id in ids and s.siswa_id == bukti.siswa_id
+                     and s.level == bukti.level_aktif and s.dibatalkan is None
+                     and s.mode == "diagnostik" and (batas is None or s.tanggal > batas)
+                     and (s.tujuan in {"pemetaan", "evaluasi", "checkpoint"}
+                          or (s.tujuan == "bebas" and s.id in opt_in))
+                     and s.dikonfirmasi is None
+                     for t in s.pola_tersedia)
+
+
+def _pola_fokus_tertahan(bukti, hari):
+    """Dua miskonsepsi satu pola tidak boleh lulus karena salah satunya pulih."""
+    terbaru = {}
+    batas = max((e.tanggal for e in bukti.kejadian if e.jenis == "diganti_level"), default=None)
+    for p in sorted(bukti.putaran, key=lambda p: (p.dibuka, p.id)):
+        if (p.siswa_id != bukti.siswa_id or p.level != bukti.level_aktif
+                or (batas is not None and p.dibuka <= batas)):
+            continue
+        efektif = _putaran_dengan_override(p, bukti.kejadian)
+        for kunci in efektif.fokus:
+            terbaru[kunci] = efektif
+    tertahan = set()
+    # Fokus otomatis yang sudah disarankan juga belum selesai hanya karena
+    # ada latihan benar berikutnya; pemulihan tetap mengikuti reducer fokus.
+    aktif = _putaran_aktif(bukti)
+    kandidat = _ringkas_kandidat(_sesi_bukti_pemetaan(bukti, aktif))
+    tertahan.update(k[0] for k, jumlah, _ in kandidat if jumlah >= 2 and k not in terbaru)
+    for kunci, p in terbaru.items():
+        status = PutaranFokus(p.id, p.level, (StatusFokus(kunci, "perlu_dipelajari"),))
+        rencana = _rencana_fokus(bukti, replace(p, fokus=(kunci,)), status, hari)
+        baik = (rencana is not None and rencana.putaran is not None
+                and rencana.tindakan != "putaran_baru"
+                and rencana.putaran.fokus[0].status in {"mulai_membaik", "bertahan"})
+        if not baik:
+            tertahan.add(kunci[0])
+    return frozenset(tertahan)
+
+
+def _nilai_pola_materi(template_id, sesi, bukti, hari, tertahan, dikoreksi):
+    relevan = tuple(s for s in sesi
+                    if any(o.template_id == template_id and not o.dilewati for o in s.outcomes))
+    if not relevan:
+        return StatusPolaMateri(template_id, "perlu_cek" if template_id in dikoreksi else "belum_dinilai")
+    # Pelewatan seluruh probe baru tidak membuktikan gagal, tetapi jangan
+    # tampilkan sertifikasi lama seolah pemeriksaan terbaru sudah berhasil.
+    pemeriksaan_terbaru = max(
+        (s for s in sesi if any(o.template_id == template_id for o in s.outcomes)
+         and (s.tujuan in {"pemetaan", "bebas"}
+              or any(k[0] == template_id for k in s.target_fokus))),
+        key=lambda s: (s.tanggal, s.id), default=None,
+    )
+    if pemeriksaan_terbaru is not None:
+        probe = tuple(o for o in pemeriksaan_terbaru.outcomes if o.template_id == template_id)
+        if probe and all(o.dilewati for o in probe):
+            return StatusPolaMateri(template_id, "perlu_cek", (pemeriksaan_terbaru.id,), pemeriksaan_terbaru.tanggal)
+    # Mode terbaru dipilih sesudah palang bukti; mode ambigu tidak boleh kembali
+    # ke mode lama yang lebih menguntungkan.
+    terpilih = sesi_satu_representasi(relevan)
+    relevan = tuple(s for s in terpilih
+                    if any(o.template_id == template_id and not o.dilewati for o in s.outcomes))
+    if not relevan:
+        return StatusPolaMateri(template_id, "perlu_cek")
+    urut = sorted(relevan, key=lambda s: (s.tanggal, s.id))
+    # Soal pembanding evaluasi/checkpoint boleh menjadi catatan paparan, tetapi
+    # tidak mengubah kelulusan atau tanggal bukti pola lain.
+    pemetaan = []
+    keberhasilan = None
+    penghalang = None
+    dipakai = ()
+    putaran = {p.id: p for p in bukti.putaran}
+    for s in urut:
+        outcomes = tuple(o for o in s.outcomes if o.template_id == template_id and not o.dilewati)
+        if s.tujuan in {"pemetaan", "bebas"}:
+            pemetaan.append(s)
+            # Dua pemeriksaan terbaru, bukan mengambil empat terbaik dari histori.
+            pasangan = pemetaan[-2:]
+            bukti_pasangan = tuple(o for p in pasangan for o in p.outcomes
+                                  if o.template_id == template_id and not o.dilewati)
+            baik = (len(pasangan) == 2
+                    and (pasangan[1].tanggal - pasangan[0].tanggal).days >= 3
+                    and all(_lulus_pola_materi(tuple(o for o in p.outcomes
+                                         if o.template_id == template_id), 1)
+                            for p in pasangan)
+                    and _sidik_beragam(bukti_pasangan, 4)
+                    and _lulus_pola_materi(bukti_pasangan, 4))
+            if baik:
+                keberhasilan, dipakai = (s.tanggal, s.id), tuple(p.id for p in pasangan)
+            elif any(o.dilewati or o.benar is not True or o.kode_final is not None
+                     or o.cek_pemahaman != "bisa_menjelaskan"
+                     for o in s.outcomes if o.template_id == template_id):
+                penghalang = (s.tanggal, s.id)
+        elif s.tujuan == "evaluasi":
+            fokus = tuple(k for k in s.target_fokus if k[0] == template_id)
+            # Soal pembanding tidak mensertifikasi pola yang bukan target evaluasi.
+            if not fokus:
+                continue
+            baik = (not any(o.dilewati for o in s.outcomes if o.template_id == template_id)
+                    and all(_lulus_pola_materi(_hasil_fokus(s, k), 4)
+                            and _sidik_beragam(_hasil_fokus(s, k), 4) for k in fokus))
+            if baik:
+                keberhasilan, dipakai = (s.tanggal, s.id), (s.id,)
+            else:
+                penghalang = (s.tanggal, s.id)
+        elif s.tujuan == "checkpoint":
+            fokus = tuple(k for k in s.target_fokus if k[0] == template_id)
+            p = putaran.get(s.putaran_id)
+            if not fokus or p is None or s.bagian_checkpoint != 2:
+                continue
+            sebelum = replace(bukti, sesi=tuple(x for x in sesi
+                               if (x.tanggal, x.id) <= (s.tanggal, s.id)))
+            bagian = tuple(x for x in sebelum.sesi if x.putaran_id == p.id
+                           and x.tujuan == "checkpoint" and x.occurrence == s.occurrence
+                           and x.bagian_checkpoint in {1, 2})
+            if {x.bagian_checkpoint for x in bagian} != {1, 2}:
+                continue
+            baik = (not any(o.dilewati for x in bagian for o in x.outcomes
+                            if o.template_id == template_id)
+                    and all(_checkpoint_sukses(sebelum, p, k)[0] == s.tanggal
+                            and _sidik_beragam(tuple(o for x in bagian for o in _hasil_fokus(x, k)), 3)
+                            for k in fokus))
+            if baik:
+                keberhasilan, dipakai = (s.tanggal, s.id), tuple(x.id for x in bagian)
+            else:
+                penghalang = (s.tanggal, s.id)
+    akhir = urut[-1].tanggal
+    semua_ids = tuple(s.id for s in urut)
+    if template_id in dikoreksi:
+        return StatusPolaMateri(template_id, "perlu_cek", semua_ids, akhir)
+    if (keberhasilan is None or template_id in tertahan
+            or (penghalang is not None and penghalang >= keberhasilan)):
+        return StatusPolaMateri(template_id, "dipelajari", semua_ids, akhir)
+    if (hari - keberhasilan[0]).days >= 28:
+        return StatusPolaMateri(template_id, "perlu_cek", dipakai, keberhasilan[0])
+    return StatusPolaMateri(template_id, "terbukti", dipakai, keberhasilan[0])
+
+
+def penguasaan_target(bukti: BuktiSiklus, siswa_id: int, target,
+                      hari_ini: Optional[date] = None) -> Tuple[StatusTargetMateri, ...]:
+    """Progres target katalog, bukan skor kecerdasan atau rekomendasi baru.
+
+    Setiap pola dalam satu target wajib terbukti. Target belum diuji tetap di
+    denominator katalog tetapi dilabel belum dinilai, bukan tidak mampu.
+    """
+    if siswa_id != bukti.siswa_id:
+        raise ValueError("bukti bukan milik siswa")
+    hari = hari_ini or date.today()
+    sesi = _sesi_peta_materi(bukti, hari)
+    sumber = replace(bukti, sesi=sesi)
+    from cycle_carry import bukti_lanjutan
+    # Carry dipakai untuk status fokus saja; jangan gandakan probe di katalog.
+    tertahan = _pola_fokus_tertahan(bukti_lanjutan(sumber), hari)
+    dikoreksi = _pola_terkoreksi(bukti)
+    pola = {tid: _nilai_pola_materi(tid, sesi, sumber, hari, tertahan, dikoreksi)
+            for item in target for tid in item.pola}
+    hasil = []
+    for item in target:
+        rincian = tuple(pola[t] for t in item.pola)
+        status = {p.status for p in rincian}
+        if status == {"terbukti"}:
+            nilai = "terbukti"
+        elif status == {"belum_dinilai"}:
+            nilai = "belum_dinilai"
+        elif "dipelajari" in status or "belum_dinilai" in status:
+            nilai = "dipelajari"
+        else:
+            nilai = "perlu_cek"
+        hasil.append(StatusTargetMateri(item.id, nilai, rincian))
+    return tuple(hasil)

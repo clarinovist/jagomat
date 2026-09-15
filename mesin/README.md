@@ -38,10 +38,13 @@ kamu tidak setuju dengan usulan mesin.
 
 **4. Baca laporan** — tautan "Lihat laporan perkembangan" di profil anak:
 
-- **Aktivitas 7 hari terakhir** — soal dikerjakan, benar, salah, dan persentase
-  dari jawaban yang dinilai. Belum dinilai/perlu cek pengenalan/dilewati bukan salah.
-- **Hasil dan tren per materi** — jumlah dasar terlihat; perubahan dalam poin
-  persentase hanya untuk kelompok latihan sebanding. Bukan persentase pemahaman.
+- **Progres penguasaan materi Jagomat** — seluruh target keterampilan kelas anak,
+  bukan hanya yang sudah dikerjakan. Grafik memisahkan target menunjukkan pemahaman,
+  masih dipelajari, perlu cek kembali, dan belum dinilai. Bukan seluruh kurikulum sekolah.
+- **Penguasaan per materi** — persentase target yang sudah terbukti; buka topik untuk
+  melihat target, pola, dan bukti. Belum dinilai bukan berarti tidak mampu.
+- **Aktivitas 7 hari terakhir** — soal dikerjakan, benar, salah, dan ketepatan jawaban
+  sebagai catatan sekunder. Rincian/tren latihan dapat dibuka, bukan skor penguasaan.
 - **Lihat rencana belajar** — buka resume di laporan: tugas belum selesai, posisi
   belajar, materi/langkah berikutnya, jadwal, dan satu tindakan utama.
 - **Perjalanan dan bukti / Detail per sesi** — rincian opsional dalam `<details>`.

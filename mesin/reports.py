@@ -13,6 +13,8 @@ import database
 from learning_journey import perjalanan_belajar
 from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_resume
 from report_metrics import hari_wib, statistik_laporan, tugas_belum_selesai
+from mastery_report import GAYA_PETA, peta_penguasaan, render_peta
+from mastery_evidence import lengkapi_bukti_materi
 import design_tokens as T
 from diagnosis import diagnosa
 from generator import LEVEL_BAWAAN
@@ -230,7 +232,9 @@ def halaman_laporan(
     mis = [m for m in mis_semua if m["jumlah_sesi"] > 1]
     # Clock rekomendasi harus sama dengan profil/POST orkestrator existing.
     # WIB khusus batas statistik; jangan majukan jadwal hanya pada laporan.
-    perjalanan = perjalanan_belajar(database.muat_bukti_siklus(kon, siswa_id), siswa_id)
+    bukti = database.muat_bukti_siklus(kon, siswa_id)
+    perjalanan = perjalanan_belajar(bukti, siswa_id)
+    peta_target = peta_penguasaan(lengkapi_bukti_materi(kon, bukti), siswa_id)
     resume = render_resume(
         perjalanan, tugas_belum_selesai(kon, siswa_id), siswa_id,
         _nama_tipe_soal, _nama_topik, _tanggal_pendek,
@@ -272,14 +276,16 @@ def halaman_laporan(
     nama_siswa = html.escape(siswa["nama"])
     return _halaman(
         f"Laporan {siswa['nama']}",
-        f'<style>{GAYA_LAPORAN}</style>'
+        f'<style>{GAYA_LAPORAN}{GAYA_PETA}</style>'
         f'<div class="jejak"><a href="/anak/{siswa_id}">&larr; Riwayat '
         f"{nama_siswa}</a></div>"
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">CATATAN PERKEMBANGAN</p>'
         f'<h1 id="judul-laporan">Laporan perkembangan {nama_siswa}</h1></header>'
-        f'{render_aktivitas(statistik, _tanggal_pendek)}'
-        f'{render_materi(statistik, _nama_tipe_soal, _tanggal_pendek)}'
+        f'{render_peta(peta_target, _tanggal_pendek)}'
         f'{resume}'
+        f'{render_aktivitas(statistik, _tanggal_pendek)}'
+        '<details class="kartu"><summary>Rincian hasil latihan mingguan</summary>'
+        f'{render_materi(statistik, _nama_tipe_soal, _tanggal_pendek)}</details>'
         f'<details class="kartu detail-teknis-laporan"><summary><h2>'
         f"Detail per sesi (teknis)</h2>"
         f'<span class="sub">Rincian untuk guru</span></summary>'

@@ -100,38 +100,23 @@ def render_aktivitas(data, tanggal) -> str:
             (str(kini.dikerjakan), "soal dikerjakan"),
             (str(kini.benar), "butir benar"),
             (str(kini.salah), "butir salah"),
-            (html.escape(persen(kini.persen)), "jawaban benar dari yang dinilai"),
+            (html.escape(persen(kini.persen)), "ketepatan jawaban latihan"),
         )
     )
-    catatan_tanggal = (
-        f'<p class="laporan-catatan">{data.tanpa_tanggal} catatan tanpa tanggal valid '
-        'hanya masuk total seluruh catatan, bukan periode mingguan.</p>'
-        if data.tanpa_tanggal else ""
-    )
+    label_sementara = '<span class="laporan-catatan">Hasil sementara</span>' if kini.dinilai > kini.terkonfirmasi else ''
     return (
         '<section aria-labelledby="judul-aktivitas">'
         '<h2 id="judul-aktivitas">Aktivitas 7 hari terakhir</h2>'
         f'<p class="laporan-periode">{tanggal(data.mulai.isoformat())} – '
         f'{tanggal(data.akhir.isoformat())} · WIB</p>'
-        f'<div class="kartu-stat laporan-metrik">{kartu}</div>'
+        f'<div class="kartu-stat laporan-metrik">{kartu}</div>{label_sementara}'
         '<p class="laporan-catatan">'
         f'{kini.perlu_ditinjau} jawaban perlu ditinjau · '
         f'{kini.belum_dikenalkan} perlu cek pengenalan materi · {kini.dilewati} dilewati.</p>'
-        f'<p class="laporan-catatan">Dari {kini.dinilai} butir dinilai, '
-        f'{kini.terkonfirmasi} sudah dikonfirmasi; '
-        f'{kini.dinilai - kini.terkonfirmasi} masih sementara. '
-        'Persentase = benar ÷ (benar + salah).</p>'
-        '<details class="laporan-dasar"><summary>Dasar hitungan dan total seluruh catatan</summary>'
-        '<p class="laporan-catatan">Belum dinilai, menebak, perlu cek pengenalan, dan dilewati '
-        'tidak dihitung sebagai salah. Perlu cek pengenalan bisa berarti belum belajar atau '
-        'mengaku bingung; bukan kepastian materi belum diajarkan. Semua latihan, termasuk sesi berjalan. '
-        'Dikerjakan berarti ada jawaban atau coretan cara; memilih status saja belum dihitung. '
-        'Kerja yang perlu cek pengenalan atau dilewati tetap masuk aktivitas, bukan hasil benar/salah. Tanggal mengikuti '
-        'pencatatan pertama; hasil kertas mengikuti waktu input, bukan waktu pengerjaan sebenarnya. '
-        'Koreksi dapat mengubah hasil statistik, bukan menambah jumlah soal dikerjakan.</p>'
+
         f'<p class="laporan-catatan laporan-seluruh">Total seluruh catatan: <b>{data.semua.dikerjakan} soal dikerjakan</b> '
         f'· {data.semua.benar} benar · {data.semua.salah} salah '
-        f'· {data.semua.perlu_ditinjau} perlu ditinjau.</p>{catatan_tanggal}</details></section>'
+        f'· {data.semua.perlu_ditinjau} perlu ditinjau.</p></section>'
     )
 
 

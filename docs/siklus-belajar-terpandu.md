@@ -206,6 +206,50 @@ Permukaan anak hanya menampilkan istilah netral seperti **Pelajari bersama**,
 **Coba mandiri**, dan **Latihan campuran**. Jangan tampilkan kode diagnosis,
 label kelemahan, alasan internal, kunci, atau malrule.
 
+### Peta penguasaan target Jagomat (15 September 2026)
+
+Angka utama laporan adalah **progres target keterampilan Jagomat di kelas aktif**,
+bukan rasio jawaban benar atau klaim seluruh kurikulum sekolah. Katalog eksplisit
+`mastery_catalog.py` mengelompokkan pola terkait; semua pola yang tersedia pada
+kelas tersebut wajib terbukti sebelum target dihitung menunjukkan pemahaman.
+Target berbobot sama, terlepas jumlah soal yang dikerjakan. Penyebut tidak menyusut
+menjadi hanya materi yang pernah dicoba. Topik menampilkan progres targetnya sendiri.
+
+API murni `learning_cycle.penguasaan_target` memutuskan status, tanpa mengubah
+rekomendasi/fokus siklus existing. Kontrak bukti:
+
+- Hanya snapshot aktif dari sesi selesai, terkonfirmasi, kelas/siswa benar, bukan
+  dibatalkan, mode diagnostik. Latihan manual perlu opt-in pemetaan pada konfirmasi
+  yang sama. Drill/terbimbing/penguatan/pengenalan bukan sertifikasi penguasaan.
+- Satu pola dapat menunjukkan pemahaman dari dua pemetaan terbaru berjarak minimal
+  tiga hari, minimal empat probe total dengan fingerprint matematis berbeda, tiap
+  pemeriksaan minimal75% benar, tanpa K/N/T/hasil belum jelas, dan seluruh probe
+  memiliki catatan bisa menjelaskan. Sidik hilang/duplikat tidak dianggap variasi.
+- Alternatifnya evaluasi terpandu: minimal empat probe per fokus kanonis, ambang
+  reducer75%, tanpa K/N/T/hasil belum jelas, bisa menjelaskan, dan soal bervariasi.
+  Soal pembanding bukan bukti penguasaan pola lain. Dua fokus pada pola yang sama
+  tidak disatukan; fokus belum pulih menghalangi klaim pola tersebut.
+- Checkpoint mengikuti pasangan occurrence dan kelulusan reducer existing,
+  minimal tiga probe bervariasi. Bagian belum lengkap tidak memperbarui bukti.
+- Representasi tidak dicampur. Koreksi yang belum dikonfirmasi ulang membutuhkan
+  cek kembali, bukan diam-diam memilih keberhasilan lama. Bukti baru yang tidak
+  mendukung pemahaman menahan klaim; drill/latihan terbimbing tidak membuat kelemahan.
+- Bukti penguasaan berumur28hari ditandai **perlu cek kembali**; tidak permanen.
+  Pergantian kelas memulai cakupan bukti kelas aktif yang baru, bukan menghidupkan
+  sertifikasi kelas lama saat profil kembali ke kelas tersebut.
+
+Status target: **menunjukkan pemahaman**, **masih dipelajari** (termasuk sebagian pola
+belum diperiksa), **perlu cek kembali**, atau **belum dinilai**. Tanpa catatan bukti,
+persentase tampil—dan label belum dinilai; itu bukan ketidakmampuan anak. Bila ada
+bukti sebagian, persentase menunjukkan bagian dari seluruh target yang telah
+terbukti. Grafik komposisi menampilkan semua status; bukan rekonstruksi tren waktu
+atau tes psikometrik. Penambahan target katalog memperluas bagian belum dinilai,
+bukan bukti anak mengalami penurunan kemampuan.
+
+Cakupan ini tidak menjadwalkan target baru otomatis. Resume tetap mengikuti prioritas
+siklus existing. Katalog menyajikan sasaran yang belum memiliki bukti, bukan membuat
+kurikulum/soal baru atau mengubah sesi manual menjadi bukti tanpa persetujuan.
+
 ## 11. Batas MVP
 
 MVP tidak mencakup graf prasyarat adaptif penuh, AI pemilih kurikulum,

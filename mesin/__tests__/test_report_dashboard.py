@@ -104,7 +104,7 @@ def test_hanya_pilihan_cepat_tanpa_jawaban_bukan_dikerjakan(db):
     isi = tampilan.render_aktivitas(h, reports._tanggal_pendek)
     assert "1 perlu cek pengenalan materi" in isi
     assert "ditandai belum dikenalkan" not in isi
-    assert "bukan kepastian materi belum diajarkan" in isi
+    assert "Dasar hitungan dan total seluruh catatan" not in isi
 
 
 def test_guard_representasi_beda_tidak_dibandingkan(db):
