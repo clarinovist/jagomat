@@ -83,7 +83,7 @@ menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
 - Full test: `mesin/.venv/bin/python -m pytest mesin/__tests__/ -q -n auto -W error -p no:cacheprovider`.
   `-n auto` hanya bila resource cukup; jangan menjalankan suite berat ganda.
 - Kompilasi file terkait dengan `compile()` tanpa import/menjalankan aplikasi, lihat referensi.
-  Repo ini **tidak** punya gate npm/lint/coverage seperti Polyflow; jangan menambah dependency
+  Repo ini **tidak** punya gate npm/lint/coverage; jangan menambah dependency
   atau mengklaim coverage global diperiksa CI. Trace/mutation domain mengikuti scope.
 - `.project-gate.json` adalah preset lengkap untuk Kritis/audit penuh, bukan ritual manual
   setiap edit Ringan/Normal. Jika harness mewajibkan preset, **jangan bypass**; laporkan jika
