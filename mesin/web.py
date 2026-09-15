@@ -395,12 +395,10 @@ class Penangan(BaseHTTPRequestHandler):
                 "<h1>Isian terlalu besar</h1><p>Coba muat ulang halaman.</p>",
             ), 413)
         mentah = self.rfile.read(panjang).decode("utf-8")
-        data = {
-            k: v[0]
-            for k, v in urllib.parse.parse_qs(
-                mentah, keep_blank_values=True
-            ).items()
-        }
+        pasangan = urllib.parse.parse_qs(mentah, keep_blank_values=True)
+        if any(len(v) != 1 for v in pasangan.values()):
+            return self._kirim_tautan(_halaman("Isian tidak sah", "<h1>Isian ganda tidak diizinkan</h1>"), 400)
+        data = {k: v[0] for k, v in pasangan.items()}
         with database.buka() as kon:
             # Kunci tulis mencegah pencabutan menang/kalah di antara validasi
             # dan penyimpanan jawaban pada dua permintaan yang bersamaan.
@@ -417,18 +415,33 @@ class Penangan(BaseHTTPRequestHandler):
                 return self._kirim_tautan(
                     json.dumps({"mulai": True}).encode("utf-8")
                 )
-            hasil = students.simpan_jawaban_murid(
-                kon, siswa_id, sesi_id, data
-            )
+            import student_submissions as kiriman
+            aksi = data.get("aksi", "simpan")
+            if aksi not in ("simpan", "selesai", "kirim_latihan", "kembali"):
+                aksi = "simpan"
+            try:
+                kiriman.validasi_versi(kon, sesi_id, data)
+                if aksi in ("kirim_latihan", "kembali"):
+                    kiriman.simpan_refleksi(kon, sesi_id, data)
+                    hasil = 0
+                else:
+                    hasil = students.simpan_jawaban_murid(kon, siswa_id, sesi_id, data)
+            except ValueError as galat:
+                kon.rollback()
+                return self._kirim_tautan(_halaman("Belum tersimpan", f"<h1>Belum tersimpan</h1><p>{html.escape(str(galat))}</p>"), getattr(galat, "status", 400))
             if hasil is None:
                 return self._kirim_tautan(tidak_ada, 404)
-            aksi = data.get("aksi", "simpan")
-            if aksi not in ("simpan", "selesai"):
-                aksi = "simpan"
+            info_sesi = students.sesi_murid(kon, siswa_id, sesi_id)
+            if aksi == "selesai" and kiriman.perlu_refleksi(kon, info_sesi, data):
+                from submission_pages import halaman_refleksi
+                isi = halaman_refleksi(kon, siswa_id, sesi_id, f"/mulai/{token}")
+                kon.commit()
+                return self._kirim_tautan(isi)
             if hasil:
                 database.tandai_mulai(kon, sesi_id)
-            selesai = aksi == "selesai"
+            selesai = aksi in ("selesai", "kirim_latihan")
             if selesai:
+                kiriman.arsipkan(kon, sesi_id, "tautan")
                 diagnosa_murid(kon, sesi_id)
                 database.tandai_mulai(kon, sesi_id)
                 database.tandai_selesai(kon, sesi_id)
@@ -1099,16 +1112,16 @@ class Penangan(BaseHTTPRequestHandler):
                     _halaman("Perlu masuk", "<h1>Halaman murid</h1>"), 401
                 )
             panjang = int(self.headers.get("Content-Length", 0))
+            if panjang < 0 or panjang > 1_000_000:
+                return self._kirim(_halaman('Isian terlalu besar', '<h1>Isian terlalu besar</h1>'), 413)
             mentah = self.rfile.read(panjang).decode("utf-8")
-            data = {
-                k: v[0]
-                for k, v in urllib.parse.parse_qs(
-                    mentah, keep_blank_values=True
-                ).items()
-            }
+            pasangan = urllib.parse.parse_qs(mentah, keep_blank_values=True)
+            if any(len(v) != 1 for v in pasangan.values()):
+                return self._kirim(_halaman("Isian tidak sah", "<h1>Isian ganda tidak diizinkan</h1>"), 400)
+            data = {k: v[0] for k, v in pasangan.items()}
             sesi_id = int(jalur.split("/")[3])
             aksi = data.get("aksi", "simpan")
-            if aksi not in ("simpan", "selesai"):
+            if aksi not in ("simpan", "selesai", "kirim_latihan", "kembali"):
                 aksi = "simpan"
             with database.buka() as kon:
                 # Kunci pemeriksaan+penyimpanan agar POST simpan dan final
@@ -1120,7 +1133,9 @@ class Penangan(BaseHTTPRequestHandler):
                     if siswa_id is not None
                     else None
                 )
-                if info_sesi and info_sesi.get("selesai"):
+                if not info_sesi or info_sesi.get("dibatalkan"):
+                    return self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
+                if info_sesi.get("selesai"):
                     return self._kirim(
                         _halaman(
                             "Sudah dikirim",
@@ -1129,16 +1144,27 @@ class Penangan(BaseHTTPRequestHandler):
                         ),
                         409,
                     )
-                hasil = (
-                    students.simpan_jawaban_murid(kon, siswa_id, sesi_id, data)
-                    if siswa_id is not None
-                    else None
-                )
+                import student_submissions as kiriman
+                try:
+                    kiriman.validasi_versi(kon, sesi_id, data)
+                    if aksi in ("kirim_latihan", "kembali"):
+                        kiriman.simpan_refleksi(kon, sesi_id, data)
+                        hasil = 0
+                    else:
+                        hasil = students.simpan_jawaban_murid(kon, siswa_id, sesi_id, data)
+                except ValueError as galat:
+                    kon.rollback()
+                    return self._kirim(_halaman("Belum tersimpan", f"<h1>Belum tersimpan</h1><p>{html.escape(str(galat))}</p>"), getattr(galat, "status", 400))
+                if aksi == "selesai" and kiriman.perlu_refleksi(kon, info_sesi, data):
+                    from submission_pages import halaman_refleksi
+                    isi = halaman_refleksi(kon, siswa_id, sesi_id, f"/murid/kerjakan/{sesi_id}")
+                    kon.commit()
+                    return self._kirim_privat(isi)
                 # Diagnosis otomatis: jawaban baru dari HP langsung dinilai
                 # mesin (usulan). Keputusan manual guru tidak pernah
                 # ditimpa — lihat web.diagnosa_murid. Guru membuka halaman
                 # sesi dan membaca hasil, bukan menekan tombol dulu.
-                selesai = aksi == "selesai"
+                selesai = aksi in ("selesai", "kirim_latihan")
                 if hasil:
                     # Waktu mulai sudah dicatat saat lembar dibuka. POST tetap
                     # idempoten untuk klien lama yang langsung mengirim tanpa GET.
@@ -1147,6 +1173,7 @@ class Penangan(BaseHTTPRequestHandler):
                 # Draft boleh berubah atau dikosongkan tanpa meninggalkan nilai
                 # sementara di dashboard orang tua.
                 if selesai:
+                    kiriman.arsipkan(kon, sesi_id, "akun")
                     diagnosa_murid(kon, sesi_id)
                     database.tandai_mulai(kon, sesi_id)
                     database.tandai_selesai(kon, sesi_id)
@@ -1555,7 +1582,7 @@ class Penangan(BaseHTTPRequestHandler):
         if (
             jalur.startswith("/siklus/")
             or (jalur.startswith("/sesi/")
-                and jalur.endswith(("/konfirmasi", "/batalkan")))
+                and jalur.endswith(("/konfirmasi", "/tinjauan", "/batalkan")))
         ):
             import learning_cycle_http
 
@@ -1637,12 +1664,23 @@ class Penangan(BaseHTTPRequestHandler):
                     "SELECT nama, tingkat FROM siswa WHERE id = ?", (siswa_id,)
                 ).fetchone()
                 nama_siswa = baris["nama"] if baris else ""
+                # Gabungan baru default cepat; pilihan diagnostik tetap eksplisit.
+                # Jangan memilih nilai pertama ketika form mengirim mode ganda.
+                mode_dikirim = data.get("mode", ["drill"])
+                if len(mode_dikirim) != 1 or mode_dikirim[0] not in ("drill", "diagnostik"):
+                    return self._kirim(
+                        _halaman(
+                            "Mode tidak dikenal",
+                            "<h1>Mode tidak dikenal</h1>"
+                            "<p>Pilih satu mode: Latihan Cepat atau Diagnostik.</p>",
+                        ), 400,
+                    )
                 sesi_id = database.buat_sesi_gabungan(
                     kon, siswa_id,
                     seed=random.randint(1, 9_999_999),
                     topik_ids=dipilih,
                     level=(baris["tingkat"] if baris else LEVEL_BAWAAN),
-                    jumlah_soal=jumlah,
+                    mode=mode_dikirim[0], jumlah_soal=jumlah,
                 )
             qs = urllib.parse.urlencode({
                 "pesan": f"Latihan gabungan untuk {nama_siswa} dibuat — "
@@ -2016,6 +2054,7 @@ class Penangan(BaseHTTPRequestHandler):
 
         sesi_id = int(jalur.split("/")[2])
         with database.buka() as kon:
+            kon.execute('BEGIN IMMEDIATE')
             if not self._bisa_lihat_sesi(kon, sesi_id):
                 return self._kirim(
                     _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
@@ -2032,7 +2071,12 @@ class Penangan(BaseHTTPRequestHandler):
                     ),
                     409,
                 )
-            pesan = simpan_sesi(kon, sesi_id, data)
+            ident = self._identitas()
+            try:
+                pesan = simpan_sesi(kon, sesi_id, data, guru=ident[0])
+            except ValueError as galat:
+                kon.rollback()
+                return self._kirim(_halaman('Tinjauan belum tersimpan', '<h1>Tinjauan belum tersimpan</h1><p>' + html.escape(str(galat)) + '</p>'), 400)
             kon.commit()  # Respons sukses harus melihat invalidasi yang sudah tersimpan.
             ident = self._identitas()
             self._kirim(

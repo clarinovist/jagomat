@@ -653,6 +653,8 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
   </div>
 </div>
 <form method="post" action="{aksi}">
+<input type="hidden" name="flow_kosong" value="1">
+<input type="hidden" name="revisi_pekerjaan" value="{__import__('student_submissions').revisi(kon, sesi_id)}">
 {" ".join(kartu)}
 <div class="kerja-simpan-strip-st hanya-layar">
   <button type="submit" name="aksi" value="simpan" class="sekunder">Simpan sementara</button>
@@ -695,6 +697,9 @@ def halaman_hasil_murid(kon, siswa_id: int, sesi_id: int) -> bytes | None:
         elif b["benar"]:
             status = '<span class="st-badge diagnostik">Benar</span>'
             kelas = "hasil-soal-st benar"
+        elif b.get('perlu_ditinjau'):
+            status = '<span class="st-badge baru">Perlu ditinjau bersama</span>'
+            kelas = "hasil-soal-st kosong"
         else:
             status = '<span class="st-badge baru">Belum tepat</span>'
             kelas = "hasil-soal-st salah"
@@ -731,6 +736,8 @@ def halaman_hasil_murid(kon, siswa_id: int, sesi_id: int) -> bytes | None:
     # "sudah dikoreksi, ini caranya", bukan skor telanjang.
     if n_benar == n_soal:
         pesan = "Semua benar! Baca juga caranya supaya makin mantap."
+    elif any(b.get('perlu_ditinjau') for b in hasil['soal']):
+        pesan = "Ada pekerjaan yang perlu ditinjau bersama. Ceritakan caramu kepada guru."
     elif n_benar == 0:
         pesan = "Belum ada yang tepat — tidak apa-apa. Baca caranya, lalu coba lagi."
     else:

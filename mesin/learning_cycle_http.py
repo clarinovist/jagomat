@@ -10,8 +10,8 @@ import urllib.parse
 import database
 import learning_cycle_service as layanan
 
-_POLA = re.compile(r"/(sesi|siklus)/([1-9][0-9]*)/(konfirmasi|batalkan|aksi|buat)")
-_AKSI = {"sesi": {"konfirmasi", "batalkan"}, "siklus": {"aksi", "buat"}}
+_POLA = re.compile(r"/(sesi|siklus)/([1-9][0-9]*)/(konfirmasi|tinjauan|batalkan|aksi|buat)")
+_AKSI = {"sesi": {"konfirmasi", "tinjauan", "batalkan"}, "siklus": {"aksi", "buat"}}
 _BATAS_FORM = 1_000_000
 _BATAS_PER_MENIT = 120
 _riwayat = {}
@@ -84,12 +84,30 @@ def _tanpa_marker_transport(kon, sesi_id, data):
         if nama.startswith("hadir_"):
             if cocok is None or int(cocok[1]) not in ids or hasil[nama] != "1":
                 raise ValueError("marker formulir tidak sah")
+            # Marker parsial sah juga berarti unchecked yang eksplisit.
+            # Lengkapi field jawaban dari DB agar boundary lama memahami form penuh.
+            if cocok:
+                sid = int(cocok[1])
+                if f'jwb_{sid}' not in hasil:
+                    import review_store
+                    b = next(b for b in database.isi_sesi(kon, sesi_id) if int(b['sesi_soal_id']) == sid)
+                    hasil[f'jwb_{sid}'] = b['jawaban'] or ''
+                    # Hanya marker yang hadir menyatakan unchecked; checkbox
+                    # lain yang tidak dikirim tetap memakai keadaan tersimpan.
+                    if f'hadir_belum_{sid}' not in data and b['belum_pernah']:
+                        hasil.setdefault(f'belum_{sid}', '1')
+                    t = review_store.muat(kon, sesi_id).get(sid, {})
+                    if f'hadir_dilewati_{sid}' not in data and t.get('dilewati'):
+                        hasil.setdefault(f'dilewati_{sid}', '1')
             del hasil[nama]
     return hasil
 
 
 def _jalankan(kon, jenis, identitas, aksi, guru, data):
     if jenis == "sesi":
+        if aksi == "tinjauan":
+            layanan.simpan_tinjauan_dari_form(kon, identitas, guru, _tanpa_marker_transport(kon, identitas, data))
+            return f"/sesi/{identitas}?pesan=Tinjauan%20tersimpan"
         if aksi == "konfirmasi":
             layanan.konfirmasi_dari_form(
                 kon, identitas, guru, _tanpa_marker_transport(kon, identitas, data)

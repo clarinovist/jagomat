@@ -494,8 +494,12 @@ def buat_sesi_gabungan(
     Kolom `sesi.topik` menyimpan id gabungan ("gabungan:a,b") sehingga
     sesi lama tetap bisa dibaca: `topics.dari_sesi` mengurainya kembali.
     Soalnya sendiri sudah tersimpan baris-per-baris di tabel soal, jadi
-    replay tidak bergantung pada paket ad-hoc ini.
+    replay tidak bergantung pada paket ad-hoc ini. Default diagnostik dijaga
+    untuk pemanggil internal lama; form gabungan mengirim mode secara eksplisit.
     """
+    if mode not in ("diagnostik", "drill"):
+        raise ValueError(f"mode tidak dikenal: {mode!r}")
+
     from topics import gabungan
 
     paket = gabungan(topik_ids)
@@ -1218,6 +1222,8 @@ def _konfirmasi_hasil(
         ):
             raise ValueError("outcome belum lengkap")
 
+    import review_store
+    tinjauan = review_store.validasi_bukti(kon, sesi_id, outcome, dilewati)
     target_per_butir = _target_per_butir(kon, sesi_id)
     kanonis = []
     for butir in outcome:
@@ -1240,7 +1246,8 @@ def _konfirmasi_hasil(
                 "target_malrule_id": None if target_fokus is None else target_fokus[2],
             }
         )
-    serial = json.dumps(kanonis, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    isi_fingerprint = {"outcome": kanonis, "tinjauan": tinjauan} if tinjauan else kanonis
+    serial = json.dumps(isi_fingerprint, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     fingerprint = hashlib.sha256(serial.encode("utf-8")).hexdigest()
     aktif = kon.execute(
         """SELECT kh.id
@@ -1271,6 +1278,9 @@ def _konfirmasi_hasil(
         (sesi_id, nomor_urut, guru, fingerprint),
     )
     konfirmasi_id = int(cur.lastrowid)
+    if tinjauan:
+        kon.execute("INSERT INTO tinjauan_outcome VALUES (?,?)",
+                    (konfirmasi_id, json.dumps(tinjauan, ensure_ascii=False, sort_keys=True)))
     for butir, salinan in zip(outcome, kanonis):
         kon.execute(
             """INSERT INTO snapshot_outcome

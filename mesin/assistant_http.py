@@ -12,6 +12,8 @@ import threading
 import time
 import urllib.parse
 
+import ai_errors
+import ai_service
 import assistant_actions
 import assistant_components
 import assistant_inline
@@ -384,10 +386,14 @@ def fragmen_inline(
                 usulan.append(item)
         operasi = kon.execute(
             """SELECT request_id, status FROM operasi
-               WHERE account_id=? AND chat_id=? AND status IN ('pending','gagal')
-               ORDER BY dibuat DESC LIMIT 1""",
+               WHERE account_id=? AND chat_id=?
+               ORDER BY dibuat DESC, rowid DESC LIMIT 1""",
             (principal.id_akun, chat.id),
         ).fetchone()
+        if not galat and not hanya_baca and operasi is not None and operasi["status"] == "gagal":
+            kategori = ai_service.kategori_gagal_pendamping(principal.id_akun, operasi["request_id"])
+            if kategori:
+                galat = ai_errors.pesan_pendamping(kategori)
         riwayat, ada_lagi = assistant_view.riwayat(
             kon, principal.id_akun, halaman=halaman_riwayat,
             jenis_resource=target.jenis_resource,
@@ -492,7 +498,7 @@ def _pisahkan_draf_inline(data, target):
             ids = tuple(int(b["sesi_soal_id"]) for b in database.isi_sesi(kon_data, target.host_id))
         if info is None:
             raise LookupError("host tidak tersedia")
-        awalan = ("jwb_", "kode_", "cara_", "cek_pemahaman_", "hadir_dilewati_", "dilewati_", "hadir_belum_", "belum_")
+        awalan = ("jwb_", "kode_", "cara_", "cek_pemahaman_", "hadir_dilewati_", "dilewati_", "hadir_belum_", "belum_", "catatan_tinjauan_", "provenance_", "jawaban_bantuan_", "versi_tinjauan_")
         nama = {
             k for k in data
             if k.startswith(awalan)

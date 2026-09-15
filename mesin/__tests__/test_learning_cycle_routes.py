@@ -115,6 +115,16 @@ def test_koreksi_menginvalidasi_tanpa_menghapus_snapshot_lama(server):
         lama = tuple(tuple(b) for b in kon.execute("SELECT * FROM snapshot_outcome"))
     kode_field = next(k for k in payload if k.startswith("kode_"))
     koreksi = {**payload, kode_field: "H"}
+    # Tinjauan pemahaman sudah tersimpan: payload lama tanpa versi harus
+    # ditolak, bukan diberi izin menimpa tab yang lebih baru.
+    with s.buka() as kon:
+        sebelum = tuple(kon.iterdump())
+    assert _post(s, f"/sesi/{sesi}", urllib.parse.urlencode(koreksi).encode())[0] == 400
+    with s.buka() as kon:
+        import review_store
+        assert tuple(kon.iterdump()) == sebelum
+        sid = int(kode_field.removeprefix('kode_'))
+        koreksi[f'versi_tinjauan_{sid}'] = review_store.tanda(kon, sid)
     assert _post(s, f"/sesi/{sesi}", urllib.parse.urlencode(koreksi).encode())[0] == 200
     with s.buka() as kon:
         assert kon.execute("SELECT dikonfirmasi_guru FROM sesi WHERE id = ?", (sesi,)).fetchone()[0] is None

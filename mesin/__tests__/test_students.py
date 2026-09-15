@@ -320,12 +320,12 @@ def test_menebak_tapi_kebetulan_benar_tetap_n(db_terjaga):
     assert not u.benar
 
 
-def test_mengaku_bingung_jadi_kode_t(db_terjaga):
-    """Bingung bukan menebak dan bukan salah konsep: ia peta materi."""
+def test_mengaku_bingung_perlu_ditinjau_tanpa_kode(db_terjaga):
+    """Bingung belum membuktikan kebutuhan pengenalan materi."""
     from diagnosis import diagnosa
 
     u = diagnosa("24", "", students.AWALAN_PILIHAN + "bingung", "", False, [])
-    assert u.kode == "T"
+    assert u.kode is None and not u.yakin
 
 
 def test_konfirmasi_tersimpan_muncul_dengan_jumlah(db_terjaga):

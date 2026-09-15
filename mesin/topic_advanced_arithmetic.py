@@ -233,8 +233,17 @@ def menyusul(jarak: int, v1: int, v2: int) -> Soal:
     )
 
 
-def debit(varian: str, volume: int, waktu: int, d: int) -> Soal:
-    """Debit = volume/waktu; dua arah (cari volume atau waktu)."""
+def debit(
+    varian: str, volume: int, waktu: int, d: int | None = None,
+    *, debit: int | None = None,
+) -> Soal:
+    """Debit = volume/waktu; alias tersimpan dibaca tanpa mengubah parameter lama."""
+    if debit is not None:
+        if type(debit) is not int or debit <= 0 or (d is not None and d != debit):
+            raise ValueError("parameter debit tidak sah atau berkonflik")
+        d = debit
+    if type(d) is not int or d <= 0:
+        raise ValueError("parameter debit harus bilangan bulat positif")
     if varian == "cari_debit":
         kunci = volume // waktu
         teks = f"Volume {volume} liter mengalir dalam {waktu} menit. Berapa debitnya (liter/menit)?"

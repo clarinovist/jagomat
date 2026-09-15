@@ -288,7 +288,7 @@ def test_belum_pernah_hanya_satu_kontrol_dari_anak(db):
         halaman = teacher_pages.halaman_sesi_stitch(kon, sesi_id).decode()
 
     sid = baris["sesi_soal_id"]
-    assert '<option value="T"' not in halaman
+    assert '<option value="T"' in halaman  # Keputusan guru terpisah dari pengalaman anak.
     assert halaman.count(f'name="belum_{sid}"') == 1
     assert '<span class="info-anak-label-st">Dari anak:</span>' in halaman
     assert "Belum pernah melihat soal seperti ini" in halaman

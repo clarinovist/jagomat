@@ -1,8 +1,8 @@
 name: Build & Deploy
 
-# Deploy rutin pascamigrasi v4. Aktifkan variable hanya setelah deployer dan
-# policy root dipasang sesuai docs/production-release.md. Perubahan kontrak
-# persistensi ditolak sebelum swap; migrasi tetap jalur approval tersendiri.
+# Persiapan baseline: full suite dan build tetap wajib, pasang literal false.
+# Mode/anchor pada scripts/release-metadata.json; pin baru dan migrasi hanya
+# setelah baseline mempunyai SHA + bukti CI. Tidak memberi approval VPS.
 on:
   push:
     branches: [main]
@@ -129,12 +129,25 @@ jobs:
     outputs:
       digest: ${{ steps.dorong.outputs.digest }}
       recovery_digest: ${{ steps.recovery.outputs.digest }}
+      siap_pasang: ${{ steps.metadata.outputs.siap_pasang }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/checkout@v7
         with:
           ref: 33e241c18024190f41ebca1986e35af26c0397fd
           path: recovery
+      - name: Validasi mode dan gate rilis sebelum build
+        id: mode
+        run: |
+          set -euo pipefail
+          python scripts/release_metadata.py --check
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          mode = json.loads(Path('scripts/release-metadata.json').read_text())['mode']
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              print('mode=' + mode, file=output)
+          PY
       - uses: docker/setup-buildx-action@v4
       - name: Masuk ke GHCR
         uses: docker/login-action@v4
@@ -153,7 +166,7 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha,scope=candidate
           cache-to: type=gha,scope=candidate,mode=max
-      - name: Bangun dan dorong recovery kompatibel v4
+      - name: Bangun dan dorong baseline recovery pinned
         id: recovery
         uses: docker/build-push-action@v7
         with:
@@ -181,33 +194,52 @@ jobs:
             echo "Candidate: \`$GITHUB_SHA\` / \`$CANDIDATE_DIGEST\`"
             echo "Recovery: \`$RECOVERY_SHA\` / \`$RECOVERY_DIGEST\`"
             echo "Tidak memakai tag latest sebagai identitas rilis."
-            echo "Pasang tertahan selama OSN_DEPLOY_RUTIN_SIAP belum bernilai 1; policy VPS juga wajib cocok."
+            echo "Artefak belum memberi izin pemasangan; lihat mode, kompatibilitas, dan kesiapan pada manifest."
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Simpan manifest pasangan image
+      - name: Verifikasi recovery terhadap data hasil candidate
+        if: ${{ steps.mode.outputs.mode == 'migrasi' || steps.mode.outputs.mode == 'rutin' }}
         env:
           CANDIDATE_DIGEST: ${{ steps.dorong.outputs.digest }}
           RECOVERY_DIGEST: ${{ steps.recovery.outputs.digest }}
         run: |
+          set -euo pipefail
+          python scripts/verify_submission_pair.py \
+            --candidate-image "$REGISTRI/$IMAGE@$CANDIDATE_DIGEST" --candidate-revision "$GITHUB_SHA" \
+            --recovery-image "$REGISTRI/$IMAGE@$RECOVERY_DIGEST" --recovery-revision "$RECOVERY_SHA" > submission-pair.json
+      - name: Simpan manifest pasangan image
+        id: metadata
+        env:
+          CANDIDATE_DIGEST: ${{ steps.dorong.outputs.digest }}
+          RECOVERY_DIGEST: ${{ steps.recovery.outputs.digest }}
+          RELEASE_MODE: ${{ steps.mode.outputs.mode }}
+        run: |
+          set -euo pipefail
+          bukti=()
+          if [ "$RELEASE_MODE" != 'persiapan' ]; then
+            bukti=(--pair-proof submission-pair.json)
+          fi
+          python scripts/release_metadata.py --output release-manifest.json "${bukti[@]}" \
+            --candidate-revision "$GITHUB_SHA" --candidate-digest "$CANDIDATE_DIGEST" \
+            --recovery-revision "$RECOVERY_SHA" --recovery-digest "$RECOVERY_DIGEST"
           python - <<'PY'
           import json, os
           from pathlib import Path
-          Path('release-manifest.json').write_text(json.dumps({
-              'candidate_revision': os.environ['GITHUB_SHA'],
-              'candidate_digest': os.environ['CANDIDATE_DIGEST'],
-              'recovery_revision': os.environ['RECOVERY_SHA'],
-              'recovery_digest': os.environ['RECOVERY_DIGEST'],
-          }, indent=2))
+          hasil = json.loads(Path('release-manifest.json').read_text())
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              print('mode=' + hasil['mode'], file=output)
+              print('siap_pasang=' + str(hasil['siap_pasang']).lower(), file=output)
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: release-manifest-${{ github.sha }}
           path: release-manifest.json
+          if-no-files-found: error
           retention-days: 30
 
   pasang:
     name: Deploy ke VPS
     needs: bangun
-    if: ${{ vars.OSN_DEPLOY_RUTIN_SIAP == '1' && github.ref == 'refs/heads/main' }}
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

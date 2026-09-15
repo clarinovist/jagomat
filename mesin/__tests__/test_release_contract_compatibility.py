@@ -1,4 +1,4 @@
-"""Kontrak kandidat rutin harus tetap identik dengan recovery pinned."""
+"""Kontrak pasangan diukur; mismatch hanya boleh pada artefak build-only."""
 
 import importlib.util
 import re
@@ -17,6 +17,9 @@ SPEK = importlib.util.spec_from_file_location("deploy_kontrak_uji", DEPLOY)
 assert SPEK is not None and SPEK.loader is not None
 deploy = importlib.util.module_from_spec(SPEK)
 SPEK.loader.exec_module(deploy)
+SPEK_METADATA = importlib.util.spec_from_file_location("metadata_kontrak_uji", AKAR / "scripts/release_metadata.py")
+metadata = importlib.util.module_from_spec(SPEK_METADATA)
+SPEK_METADATA.loader.exec_module(metadata)
 
 
 def _fingerprint(akar_mesin: Path) -> str:
@@ -65,5 +68,21 @@ def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path, monkeypatch)
 
     fingerprint_candidate = _fingerprint(AKAR / "mesin")
     fingerprint_recovery = _fingerprint(recovery / "mesin")
-    assert fingerprint_candidate == fingerprint_recovery
-    assert fingerprint_candidate == "2c96f5a7717d772dc6326eddd1fa393d9db2684d646dbe9c189ad97a08a43603"
+    config = metadata.baca_config(AKAR / "scripts/release-metadata.json")
+    metadata.validasi_workflow(ALUR.read_text(), config)
+    assert recovery_sha == config["recovery_revision"]
+    assert fingerprint_recovery == config["recovery_contract"]
+    # SHA historical tetap anchor, bukan diganti agar mismatch source tampak hijau.
+    if recovery_sha == "33e241c18024190f41ebca1986e35af26c0397fd":
+        assert fingerprint_recovery == "2c96f5a7717d772dc6326eddd1fa393d9db2684d646dbe9c189ad97a08a43603"
+    hasil = metadata.buat_manifest(config,
+        {"revision": "a" * 40, "digest": "sha256:" + "a" * 64, "contract": fingerprint_candidate},
+        {"revision": recovery_sha, "digest": "sha256:" + "b" * 64, "contract": fingerprint_recovery},
+        pasangan_teruji=config["mode"] != "persiapan")
+    assert hasil["compatible"] is (fingerprint_candidate == fingerprint_recovery)
+    if config["mode"] == "persiapan":
+        # Tidak mengaku compatible. Job pasang literal false wajib terbukti di atas.
+        assert hasil["siap_pasang"] is False
+    else:
+        assert fingerprint_candidate == fingerprint_recovery
+        assert hasil["siap_pasang"] is (config["mode"] == "rutin")

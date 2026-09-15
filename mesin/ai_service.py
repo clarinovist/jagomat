@@ -7,7 +7,7 @@ from pathlib import Path
 import secrets
 import time
 import sqlite3
-from contextlib import contextmanager, nullcontext
+from contextlib import closing, contextmanager, nullcontext
 
 import ai_errors
 import ai_policy
@@ -24,6 +24,32 @@ class AIUnavailable(RuntimeError):
 
 def path_store():
     return Path(os.environ.get("AI_BERKAS_DB", str(ai_store.BAWAAN)))
+
+
+def kategori_gagal_pendamping(account_id, request_id):
+    """Baca kategori tertutup untuk request pemilik; tidak membuat storage.
+
+    Pemanggil tetap memeriksa chat, resource, dan consent sebelum fungsi ini.
+    Metadata hilang/rusak tidak boleh menghalangi halaman belajar.
+    """
+    tujuan = path_store()
+    if not account_id or not request_id:
+        return ""
+    try:
+        if not tujuan.is_file():
+            return ""
+        with closing(sqlite3.connect(tujuan.resolve().as_uri() + "?mode=ro", uri=True)) as kon:
+            kon.execute("PRAGMA query_only=ON")
+            baris = kon.execute(
+                """SELECT kategori FROM ledger
+                   WHERE operasi_id=? AND bucket_akun=? AND fitur='pendamping'
+                     AND status IN ('tak_pasti','gagal')""",
+                ("pendamping:" + request_id, account_id),
+            ).fetchone()
+            kategori = baris[0] if baris else None
+            return kategori if kategori in ai_errors.KATEGORI else ""
+    except (OSError, sqlite3.Error):
+        return ""
 
 
 def siap() -> bool:

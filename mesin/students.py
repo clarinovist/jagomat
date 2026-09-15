@@ -108,7 +108,7 @@ def sesi_murid(kon, siswa_id: int, sesi_id: int) -> dict | None:
     baris = kon.execute(
         """SELECT s.id, s.tanggal, s.seed, s.level, s.topik,
                   s.mode, s.tujuan, s.timer_mode, s.durasi_menit, s.timer_auto,
-                  s.mulai, s.selesai,
+                  s.mulai, s.selesai, s.dibatalkan,
                   CASE WHEN s.mulai IS NULL THEN 0 ELSE MAX(0,
                     CAST(strftime('%s', datetime('now', '+7 hours')) AS INTEGER)
                     - CAST(strftime('%s', s.mulai) AS INTEGER)) END AS detik_lalu,
@@ -217,6 +217,8 @@ def hasil_murid(kon, siswa_id: int, sesi_id: int) -> dict | None:
                 "penyajian": soal.penyajian,
                 "jawabanku": (b["jawaban"] or ""),
                 "benar": ini_benar,
+                "perlu_ditinjau": not ini_benar and b['jawaban_id'] is not None
+                    and (not (b['jawaban'] or '').strip() or b['belum_pernah'] or (b['cara'] or '').startswith('[pilihan] bingung')),
                 "dijawab": b["jawaban_id"] is not None,
                 "pembahasan": soal.pembahasan or "",
                 "template_id": b["template_id"],
@@ -270,7 +272,8 @@ def simpan_jawaban_murid(kon, siswa_id: int, sesi_id: int, data: dict) -> int | 
     benar-benar masuk. "Berhasil" saja tidak cukup: anak yang mengira sudah
     mengisi 12 soal tapi ternyata 9 perlu tahu sekarang, bukan nanti.
     """
-    if not sesi_murid(kon, siswa_id, sesi_id):
+    info = sesi_murid(kon, siswa_id, sesi_id)
+    if not info or info.get('selesai') or info.get('dibatalkan'):
         return None
     kode_sah = {k for k, _ in PILIHAN_CARA}
     jumlah = 0
@@ -280,13 +283,29 @@ def simpan_jawaban_murid(kon, siswa_id: int, sesi_id: int, data: dict) -> int | 
            WHERE ss.sesi_id = ? ORDER BY ss.nomor""",
         (sesi_id,),
     ).fetchall()
+    id_sah = {str(b['sesi_soal_id']) for b in baris_soal}
+    awalan_field = ('jwb_', 'cara_', 'pilih_', 'restate_', 'blm_', 'hadir_blm_')
+    for nama, nilai in data.items():
+        if nama.startswith(awalan_field) and nama.rsplit('_', 1)[-1] not in id_sah:
+            raise ValueError('Butir bukan milik sesi ini.')
+        if len(nilai) > 8000:
+            raise ValueError('Isian terlalu panjang.')
     for b in baris_soal:
         ssid = b["sesi_soal_id"]
-        jawaban = data.get(f"jwb_{ssid}", "").strip()
-        teks_cara = data.get(f"cara_{ssid}", "").strip()
+        lama = kon.execute(
+            "SELECT jawaban, cara, restatement, belum_pernah FROM jawaban WHERE sesi_soal_id=?",
+            (ssid,),
+        ).fetchone()
+        lama = dict(lama) if lama else {}
+        jawaban = data.get(f"jwb_{ssid}", lama.get("jawaban", "")).strip()
+        cara_lama = lama.get('cara', '')
+        if f'pilih_{ssid}' in data and cara_lama.startswith(AWALAN_PILIHAN):
+            cara_lama = cara_lama.partition(' — ')[2]
+        teks_cara = data.get(f"cara_{ssid}", cara_lama).strip()
         pilihan = data.get(f"pilih_{ssid}", "").strip()
-        restate = data.get(f"restate_{ssid}", "").strip()
-        belum = f"blm_{ssid}" in data
+        restate = data.get(f"restate_{ssid}", lama.get("restatement", "")).strip()
+        penuh = f"jwb_{ssid}" in data or f"hadir_blm_{ssid}" in data
+        belum = f"blm_{ssid}" in data if penuh else bool(lama.get("belum_pernah")) or f"blm_{ssid}" in data
 
         # Pilihan cepat digabung ke kolom `cara` yang sama, bukan kolom baru.
         # Alasannya: seluruh alur diagnosis (diagnosis.py) dan laporan guru
@@ -306,9 +325,11 @@ def simpan_jawaban_murid(kon, siswa_id: int, sesi_id: int, data: dict) -> int | 
             k in data
             for k in (
                 f"jwb_{ssid}", f"cara_{ssid}", f"pilih_{ssid}",
-                f"restate_{ssid}", f"blm_{ssid}",
+                f"restate_{ssid}", f"blm_{ssid}", f"hadir_blm_{ssid}",
             )
         )
+        if not punya_field:
+            continue
         if not (jawaban or cara or restate or belum):
             if punya_field:
                 # Form mengirim field kosong ketika anak menghapus isian lama.
@@ -328,6 +349,8 @@ def simpan_jawaban_murid(kon, siswa_id: int, sesi_id: int, data: dict) -> int | 
             restatement=restate,
             belum_pernah=belum,
         )
+        if jawaban:
+            kon.execute('DELETE FROM refleksi_jawaban WHERE sesi_soal_id=?', (ssid,))
         jumlah += 1
     return jumlah
 

@@ -20,6 +20,7 @@ _AWALAN_BUTIR = (
     "cek_pemahaman_",
     "belum_",
     "dilewati_",
+    "catatan_tinjauan_", "provenance_", "jawaban_bantuan_", "versi_tinjauan_",
 )
 _KODE_SAH = {"", "benar", "B", "K", "H", "E", "N", "T"}
 _PEMAHAMAN_SAH = {"", "bisa_menjelaskan", "ragu", "menghafal"}
@@ -68,10 +69,6 @@ def validasi_form_konfirmasi(
             raise ValueError("referensi butir tidak dikenal")
         if nama.startswith("kode_") and nilai not in _KODE_SAH:
             raise ValueError("kode koreksi tidak dikenal")
-        if nama.startswith("kode_") and nilai == "T":
-            lama = butir_sah[butir_id]
-            if not (lama["manual"] and lama["kode_final"] == "T"):
-                raise ValueError("pengenalan baru dicatat melalui pengalaman anak")
         if nama.startswith("cek_pemahaman_") and nilai not in _PEMAHAMAN_SAH:
             raise ValueError("cek pemahaman tidak dikenal")
         if nama.startswith(("belum_", "dilewati_")) and nilai != "1":
@@ -91,8 +88,8 @@ def _koreksi_form(kon, sesi_id, data):
         }
         baru = {kunci: data.get(kunci, nilai).strip() for kunci, nilai in lama.items()}
         baru[f"cara_{sid}"] = cara_dari_form(baru[f"cara_{sid}"], lama[f"cara_{sid}"])
-        penuh = f"jwb_{sid}" in data
-        belum = f"belum_{sid}" in data if penuh else bool(butir["belum_pernah"])
+        penuh = f"jwb_{sid}" in data or f"hadir_belum_{sid}" in data
+        belum = f"belum_{sid}" in data if penuh else bool(butir["belum_pernah"]) or f"belum_{sid}" in data
         berubah = berubah or baru != lama or belum != bool(butir["belum_pernah"])
         pasangan.extend(baru.items())
         if belum:
@@ -171,8 +168,17 @@ def _draf_pemulihan(kon, sesi_id, data, koreksi):
             data.get(f"cek_pemahaman_{sid}", ""),
             f"dilewati_{sid}" in data,
             f"belum_{sid}" in koreksi,
+            data.get(f'catatan_tinjauan_{sid}'), data.get(f'provenance_{sid}'),
+            data.get(f'jawaban_bantuan_{sid}'), data.get(f'versi_tinjauan_{sid}'),
         )))
     return DrafKoreksi(tuple(butir), data.get("sertakan_pemetaan") == "1")
+
+
+def _masalah_tinjauan(kon, sesi_id, galat):
+    sid = getattr(galat, 'sid', None)
+    return tuple((int(b['sesi_soal_id']), int(b['nomor']), str(galat))
+                 for b in database.isi_sesi(kon, sesi_id)
+                 if sid is None or int(b['sesi_soal_id']) == sid)
 
 
 def konfirmasi_dari_form(
@@ -194,24 +200,35 @@ def konfirmasi_dari_form(
     try:
         from teacher_pages import simpan_sesi
 
+        import review_store
         _cabut_opt_in_bila_diminta(kon, sesi_id, data)
         koreksi, berubah = _koreksi_form(kon, sesi_id, data)
+        try:
+            review_store.simpan(kon, sesi_id, data, guru)
+        except ValueError as galat:
+            raise KonfirmasiBelumLengkap(_masalah_tinjauan(kon, sesi_id, galat), _draf_pemulihan(kon, sesi_id, data, koreksi)) from galat
         if berubah:
-            simpan_sesi(kon, sesi_id, koreksi)
+            simpan_sesi(kon, sesi_id, koreksi, tinjauan_disimpan=True)
+        tersimpan = review_store.muat(kon, sesi_id)
         dilewati = {
+            sid for sid, t in tersimpan.items()
+            if t['dilewati'] and f'jwb_{sid}' not in data and f'dilewati_{sid}' not in data
+        } | {
             butir_id
             for nama, nilai in data.items()
             if nama.startswith("dilewati_") and nilai == "1"
             for butir_id in (_id_butir_dari_field(nama),)
             if butir_id is not None
         }
-        cek_pemahaman = {
+        cek_pemahaman = {sid: t['pemahaman'] for sid, t in tersimpan.items()
+                         if t['pemahaman'] and f'cek_pemahaman_{sid}' not in data}
+        cek_pemahaman.update({
             butir_id: nilai
             for nama, nilai in data.items()
             if nama.startswith("cek_pemahaman_") and nilai
             for butir_id in (_id_butir_dari_field(nama),)
             if butir_id is not None
-        }
+        })
         try:
             konfirmasi_id = database.konfirmasi_hasil(
                 kon,
@@ -221,9 +238,11 @@ def konfirmasi_dari_form(
                 cek_pemahaman=cek_pemahaman,
             )
         except ValueError as galat:
-            if str(galat) != "outcome belum lengkap":
-                raise
             masalah = _masalah_kelengkapan(kon, sesi_id, dilewati)
+            if str(galat) in {'sesi belum selesai', 'sesi dibatalkan', 'sesi tidak dikenal', 'sesi tidak memiliki butir'}:
+                raise
+            if str(galat) != "outcome belum lengkap":
+                masalah = _masalah_tinjauan(kon, sesi_id, galat)
             if not masalah:
                 raise
             raise KonfirmasiBelumLengkap(
@@ -256,6 +275,30 @@ def konfirmasi_dari_form(
     except Exception:
         kon.execute("ROLLBACK TO SAVEPOINT konfirmasi_http")
         kon.execute("RELEASE SAVEPOINT konfirmasi_http")
+        raise
+
+
+def simpan_tinjauan_dari_form(kon, sesi_id, guru, data):
+    """Simpan draft tinjauan tanpa membuat bukti, opt-in, atau kelulusan."""
+    validasi_form_konfirmasi(kon, sesi_id, data)
+    status = kon.execute('SELECT selesai,dibatalkan FROM sesi WHERE id=?', (sesi_id,)).fetchone()
+    if not status or not status['selesai'] or status['dibatalkan']:
+        raise ValueError('Sesi belum tersedia untuk ditinjau.')
+    kon.execute('SAVEPOINT tinjauan_http')
+    try:
+        import review_store
+        from teacher_pages import simpan_sesi
+        koreksi, berubah = _koreksi_form(kon, sesi_id, data)
+        try:
+            review_store.simpan(kon, sesi_id, data, guru)
+        except ValueError as galat:
+            raise KonfirmasiBelumLengkap(_masalah_tinjauan(kon, sesi_id, galat), _draf_pemulihan(kon, sesi_id, data, koreksi)) from galat
+        if berubah:
+            simpan_sesi(kon, sesi_id, koreksi, tinjauan_disimpan=True)
+        kon.execute('RELEASE SAVEPOINT tinjauan_http')
+    except Exception:
+        kon.execute('ROLLBACK TO SAVEPOINT tinjauan_http')
+        kon.execute('RELEASE SAVEPOINT tinjauan_http')
         raise
 
 

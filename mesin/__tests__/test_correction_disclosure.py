@@ -121,7 +121,7 @@ def test_salah_nt_dan_belum_dinilai_tidak_diringkas(server, cara, kode, jawaban,
     m = Struktur(halaman(s))
     perhatian = cara.startswith('[pilihan]') or belum
     assert m.tertutup(f'cara_{s.sid}') == (not perhatian)
-    assert not m.tertutup(f'cek_pemahaman_{s.sid}')
+    assert m.tertutup(f'cek_pemahaman_{s.sid}') == (jawaban == '' and not cara)
 
 
 @pytest.mark.parametrize('cara,paham,belum,indikator', [

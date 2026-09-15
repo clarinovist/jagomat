@@ -46,6 +46,10 @@ tetap berlaku. Seluruh verifikasi lokal menggunakan DB, akun, dan provider sinte
 - Callback Pendamping memvalidasi kontrak balasan sebelum ledger AI berstatus
   `selesai`. Status ini bukan bukti chat tersimpan: revalidasi izin, konteks, dan
   transaksi penyimpanan Pendamping tetap sesudahnya.
+- Transport Pendamping mengirim `thinking: {type: disabled}` secara eksplisit.
+  Model DeepSeek mengaktifkan penalaran secara bawaan, sementara budget keluaran
+  Pendamping tetap 1.200 token dan timeout 25 detik. Mode ini hanya untuk chat
+  Pendamping; cerita/lampiran, reservasi biaya, dan batas penggunaan tidak berubah.
 - JSON sah saja belum cukup. Jawaban, draft memori, usulan latihan, dan boolean
   klarifikasi tetap divalidasi ketat sebagai satu paket; field invalid tidak
   dibuang atau dinormalisasi diam-diam. Balasan terpotong (`finish_reason=length`)
@@ -58,11 +62,46 @@ tetap berlaku. Seluruh verifikasi lokal menggunakan DB, akun, dan provider sinte
   traceback, prompt/balasan, credential, atau identitas keluarga/request.
   Kegagalan admission sebelum reservasi tidak membuat ledger baru; kategori
   aman tetap tersedia di log. Fitur AI lain mempertahankan kategori existing.
-- Pesan UI memberi arahan berbeda untuk kuota/pengaturan, timeout, pembatasan
-  provider, dan format balasan. Tidak ada retry otomatis, kenaikan timeout,
+- Pesan UI membedakan kuota/pengaturan, timeout, pembatasan provider, format rusak,
+  dan balasan terpotong. Galat ada setelah transkrip, dekat area menulis, tanpa
+  pesan gagal ganda. Browser menyebut **balasan belum tersedia**, bukan mengklaim
+  pesan pasti belum sampai server. Tidak ada retry otomatis, kenaikan timeout,
   pelemahan guard, atau pengiriman ulang balasan gagal ke layanan AI.
-- Metadata baru tidak merekonstruksi kegagalan historis. Perilaku ini merupakan
+- Saat membuka ulang, alasan teknis dibaca dari kategori ledger existing dengan
+  koneksi read-only setelah pemeriksaan chat/resource/consent. Hanya operasi yang
+  tepat, akun sama, fitur Pendamping, status gagal/tak pasti, dan kategori tertutup
+  yang diterima. Storage hilang/rusak atau kategori tak tersedia menghasilkan
+  pesan generik; GET tidak membuat storage atau memanggil provider. Status memakai
+  operasi terbaru (termasuk sukses), dengan urutan deterministik pada detik sama,
+  sehingga kegagalan lama tidak tertinggal setelah balasan baru sukses.
+- Tidak ada kolom baru, salinan prompt/balasan gagal, atau klaim draft pesan
+  bertahan setelah reload. Kategori yang dulu tidak dicatat tetap tidak diketahui.
+  Perilaku ini merupakan
   kontrak source; kehadirannya di produksi harus diverifikasi sesudah deploy.
+
+### Verifikasi transport sintetis — 15 September 2026
+
+Enam panggilan berizin memakai katalog source dan pertanyaan buatan, tanpa data
+anak/riwayat pengguna. Pengaturan lama default-thinking/1.200 token menghasilkan
+`length`: 848 dari 1.200 token keluaran dipakai reasoning, JSON tidak lengkap.
+Dengan thinking nonaktif, empat uji 1.200 token serta satu pembanding 2.000 token
+selesai dan lolos validator penuh. Tiga uji terakhir menjalankan byte client patch
+sebenarnya (dimuat sementara dalam proses uji, bukan dipasang ke aplikasi).
+
+Skenario: bantuan pemetaan pola, contoh penjelasan pecahan dengan kertas, dan
+usulan latihan manual dari template katalog. Respons patch menggunakan 127–200
+output token dan 1,53–2,06 detik pada tiga sampel tersebut. Ini bukan benchmark
+latensi umum atau jaminan mutu pedagogis: contoh pola masih mencampur istilah
+posisi suku dan siklus, sehingga evaluasi kualitas penjelasan tetap follow-up.
+Tidak ada alasan menaikkan budget, timeout, atau menerima JSON parsial.
+
+Total enam request: 100.547 input dan 2.033 output token; estimasi biaya memakai
+usage cache dan tarif peak saat pemeriksaan sekitar USD 0,0084, bukan audit
+invoice. Credential tetap dalam proses server; eksperimen tidak membuka DB atau
+mengubah konfigurasi layanan. Artefak sintetis lokal tidak menjadi dependensi test.
+Acuan provider: [thinking mode](https://api-docs.deepseek.com/guides/thinking_mode)
+dan [tarif](https://api-docs.deepseek.com/quick_start/pricing), diakses 15 September
+2026. Sampel kecil ini tidak membuktikan seluruh percakapan bebas truncation.
 
 ## Isi memori
 

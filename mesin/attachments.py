@@ -374,6 +374,8 @@ def terapkan(kon, lampiran_id: int, data: dict) -> tuple[int, str]:
             (sesi_id,),
         ).fetchone()[0]
         if n_soal and terisi >= n_soal:
+            from student_submissions import arsipkan
+            arsipkan(kon, sesi_id, 'foto')
             database.tandai_selesai(kon, sesi_id)
     return jumlah, f"{jumlah} soal dari foto masuk dan didiagnosis."
 

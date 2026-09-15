@@ -94,3 +94,23 @@ def test_draf_menolak_duplikat_enum_marker_id_asing_dan_batas(ubah):
     ubah(data)
     with pytest.raises(assistant_inline.GalatInline):
         assistant_inline.parse_draf_koreksi(data, (11, 12))
+
+
+def test_draf_tinjauan_tetap_request_local_lengkap():
+    data = _data()
+    data.update({'catatan_tinjauan_11': ['Catatan lokal <sintetis>'],
+                 'provenance_11': ['setelah_bantuan'], 'jawaban_bantuan_11': ['42'],
+                 'versi_tinjauan_11': ['a' * 64]})
+    draf = assistant_inline.parse_draf_koreksi(data, (11, 12))
+    b = draf.untuk(11)
+    assert (b.catatan_tinjauan, b.provenance, b.jawaban_bantuan, b.versi_tinjauan) == (
+        'Catatan lokal <sintetis>', 'setelah_bantuan', '42', 'a' * 64)
+    assert draf.untuk(12).catatan_tinjauan is None
+
+
+@pytest.mark.parametrize('field,nilai', [('provenance_11', 'mandiri_palsu'), ('versi_tinjauan_11', '123')])
+def test_draf_tinjauan_tidak_sah_ditolak(field, nilai):
+    data = _data()
+    data[field] = [nilai]
+    with pytest.raises(assistant_inline.GalatInline):
+        assistant_inline.parse_draf_koreksi(data, (11, 12))

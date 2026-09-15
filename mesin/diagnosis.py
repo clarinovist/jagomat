@@ -20,6 +20,20 @@ import re
 import sqlite3
 import unicodedata
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from templates import Soal
+
+
+# Hanya varian konversi yang kontraknya sudah diketahui. Bukan penghapus
+# satuan umum: satuan tujuan berasal dari parameter soal, bukan isian anak.
+_SATUAN_TUJUAN = {
+    "km_ke_m": "m", "m_ke_km": "km",
+    "jam_ke_menit": "menit", "menit_ke_jam": "jam",
+    "kg_ke_g": "g", "g_ke_kg": "kg",
+    "liter_ke_ml": "ml", "ml_ke_liter": "liter",
+}
 
 
 @dataclass(frozen=True)
@@ -29,6 +43,12 @@ class Usulan:
     malrule_id: str | None
     alasan: str
     yakin: bool  # False -> guru perlu memutuskan sendiri
+
+
+def _rapikan_teks(teks: str) -> str:
+    """Samakan Unicode dan tanda minus tanpa menafsirkan tanda koma."""
+    t = unicodedata.normalize("NFKC", teks).strip().lower()
+    return t.replace("−", "-").replace("–", "-")
 
 
 def normalisasi(teks: str) -> str:
@@ -41,9 +61,9 @@ def normalisasi(teks: str) -> str:
     Yang disamakan: huruf besar-kecil, spasi berlebih, koma/titik desimal,
     spasi antara angka dan huruf, serta tanda baca di ujung.
     """
-    t = unicodedata.normalize("NFKC", teks).strip().lower()
-    t = t.replace("−", "-").replace("–", "-")
-    # desimal koma -> titik, hanya di antara dua angka (bukan pemisah daftar)
+    t = _rapikan_teks(teks)
+    # Konteks skalar: koma rapat dibaca sebagai desimal. Daftar bilangan
+    # ditangani setara() SEBELUM normalisasi ini, dengan metadata soal.
     t = re.sub(r"(?<=\d),(?=\d)", ".", t)
     # sisipkan spasi di batas angka<->huruf: "25menit" -> "25 menit"
     t = re.sub(r"(?<=\d)(?=[a-z])", " ", t)
@@ -52,13 +72,49 @@ def normalisasi(teks: str) -> str:
     return t.strip(" .;:")
 
 
-def setara(a: str, b: str) -> bool:
+def _daftar_bulat(teks: str) -> list[str] | None:
+    """Baca seluruh daftar, tanpa mengabaikan isian kosong atau angka desimal."""
+    t = _rapikan_teks(teks).rstrip(" .;:")
+    angka = r"[+-]?[0-9]+"
+    pemisah = r"(?:\s*,\s*|\s+dan\s+|\s+)"
+    if not re.fullmatch(angka + "(?:" + pemisah + angka + ")*", t):
+        return None
+    return re.split(pemisah, t)
+
+
+def _angka_bersatuan(teks: str, satuan: str) -> str | None:
+    """Terima angka saja atau angka dengan tepat satu satuan tujuan."""
+    cocok = re.fullmatch(
+        r"([+-]?[0-9]+(?:[.,][0-9]+)?)(?:\s*" + re.escape(satuan) + r")?",
+        _rapikan_teks(teks).rstrip(" .;:"),
+    )
+    return cocok.group(1).replace(",", ".") if cocok else None
+
+
+def setara(a: str, b: str, *, soal: Soal | None = None) -> bool:
     """Bandingkan dua jawaban dengan toleransi penulisan.
 
     Untuk jawaban berisi beberapa bagian ("27, 31"), urutan tetap penting —
     "31, 27" bukan jawaban yang sama, karena yang diminta suku berikutnya
-    secara berurutan.
+    secara berurutan. Metadata soal dari server memberi konteks daftar
+    bilangan atau satuan; tanpa konteks, pertahankan pencocokan lama.
+    Kunci pembanding tetap argumen b (termasuk kunci tersimpan/warisan),
+    bukan kunci yang dihitung ulang pada objek soal.
     """
+    if soal is not None:
+        if (soal.template_id == "deret_aritmetika"
+                and isinstance(soal.parameter.get("n_minta"), int)
+                and soal.parameter["n_minta"] > 1):
+            # Malrule hanya-satu-isian juga berupa daftar panjang satu.
+            pa, pb = _daftar_bulat(a), _daftar_bulat(b)
+            return pa is not None and pb is not None and pa == pb
+        if soal.template_id == "satuan_konversi":
+            satuan = _SATUAN_TUJUAN.get(soal.parameter.get("varian"))
+            if satuan:
+                angka_a = _angka_bersatuan(a, satuan)
+                angka_b = _angka_bersatuan(b, satuan)
+                return angka_a is not None and angka_b is not None and angka_a == angka_b
+
     na, nb = normalisasi(a), normalisasi(b)
     if na == nb:
         return True
@@ -79,10 +135,12 @@ def diagnosa(
     belum_pernah: bool,
     malrule: list[sqlite3.Row] | list[dict],
     minta_restatement: bool = False,
+    *,
+    soal: Soal | None = None,
 ) -> Usulan:
     """Alur baca 5 langkah. Berhenti di kecocokan pertama.
 
-    1. centang "belum pernah lihat"      -> T
+    1. pengalaman belum pernah / bingung -> perlu tinjauan guru, tanpa kode
     2. ada jawaban tanpa "Caraku"        -> N  (jangan dinilai, tanya lisan)
     3. restatement salah menyebut        -> B  (walaupun caranya benar)
     4. jawaban cocok malrule             -> kode malrule itu
@@ -92,13 +150,17 @@ def diagnosa(
     jwb = jawaban.strip()
     crk = cara.strip()
 
-    # 1 — T mengesampingkan apa pun. Ini peta materi, bukan kegagalan.
+    # Pengalaman/bingung adalah ucapan anak, bukan keputusan pengenalan.
+    # T baru ditentukan guru setelah percakapan, bukan dari checkbox semata.
     if belum_pernah:
-        return Usulan(False, "T", None, "ditandai belum pernah melihat tipe soal ini", True)
+        return Usulan(False, None, None, "anak mencatat belum pernah melihat tipe soal ini — perlu ditinjau guru", False)
+    if crk.startswith("[pilihan] bingung"):
+        return Usulan(False, None, None, "anak menandai bingung — tanyakan bagian yang membingungkan", False)
 
-    # Kosong sama sekali: bukan T (tidak diakui), bukan N (tidak menebak).
-    if not jwb and not crk:
-        return Usulan(False, None, None, "tidak dikerjakan sama sekali", False)
+    # Jawaban kosong tidak cukup untuk menebak penyebab, termasuk bila
+    # ada coretan atau pengakuan menebak tanpa hasil akhir.
+    if not jwb:
+        return Usulan(False, None, None, "jawaban akhir belum diisi — tinjau pekerjaan dan catatan anak", False)
 
     # 2 — jawaban muncul tanpa jejak cara: tebakan sampai terbukti sebaliknya.
     if jwb and not crk:
@@ -125,15 +187,7 @@ def diagnosa(
             True,
         )
 
-    # 2c — anak mengaku bingung: bukan menebak, bukan salah konsep. Ia berhenti.
-    if crk.startswith("[pilihan] bingung"):
-        return Usulan(
-            False, "T", None,
-            "anak menandai bingung — periksa apakah tipe soal ini sudah diajarkan",
-            True,
-        )
-
-    benar = bool(jwb) and setara(jwb, kunci)
+    benar = bool(jwb) and setara(jwb, kunci, soal=soal)
 
     if benar:
         return Usulan(True, None, None, "jawaban benar", True)
@@ -151,7 +205,7 @@ def diagnosa(
     # memang bisa diprediksi, seperti menjawab nilainya pada soal terbalik.
     for m in malrule:
         m_jwb = m["jawaban"] if isinstance(m, sqlite3.Row) else m.get("jawaban", "")
-        if setara(jwb, m_jwb):
+        if setara(jwb, m_jwb, soal=soal):
             kode = m["kode"] if isinstance(m, sqlite3.Row) else m["kode"]
             mid = m["malrule_id"] if isinstance(m, sqlite3.Row) else m["malrule_id"]
             alasan = m["alasan"] if isinstance(m, sqlite3.Row) else m["alasan"]

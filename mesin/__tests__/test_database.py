@@ -219,7 +219,8 @@ def test_materi_bertanda_t_masuk_peta_bukan_nilai(db):
             kon, baris["sesi_soal_id"], jawaban="", belum_pernah=True
         )
         u = diagnosa(baris["kunci"], "", "", "", True, [], False)
-        database.simpan_diagnosis(kon, jid, u.benar, u.kode, u.kode, None, u.alasan)
+        assert u.kode is None  # Catatan anak belum berarti keputusan T.
+        database.simpan_diagnosis(kon, jid, False, u.kode, 'T', None, 'Guru memastikan perlu pengenalan', manual=True)
         database.tandai_selesai(kon, sesi_id)
 
         peta = database.peta_materi_baru(kon, sid)

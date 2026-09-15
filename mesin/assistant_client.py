@@ -56,6 +56,9 @@ def kirim(
         "model": config.model,
         "messages": pesan,
         "temperature": 0.4,
+        # DeepSeek menyalakan thinking secara bawaan; budget ini untuk JSON
+        # jawaban Pendamping, bukan reasoning yang tidak ditampilkan.
+        "thinking": {"type": "disabled"},
         "max_tokens": max_tokens,
         "response_format": {"type": "json_object"},
     }, ensure_ascii=False, separators=(",", ":")).encode("utf-8")

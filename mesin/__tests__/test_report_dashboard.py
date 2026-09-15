@@ -154,6 +154,10 @@ def test_kategori_terkonfirmasi_tetap_bukan_salah(db,kode):
     with database.buka(db) as kon:
         sid=database.tambah_siswa(kon,"Kode Sah")
         ses=sesi(kon,sid,(kode,),selesai=True)
+        if kode == 'T':
+            b=database.isi_sesi(kon,ses)[0]
+            database.simpan_diagnosis(kon,b['jawaban_id'],False,None,'T',manual=True,
+                                     alasan='Guru memastikan kebutuhan pengenalan')
         database.konfirmasi_hasil(kon,ses,"guru")
         hasil=metrik.statistik_laporan(kon,sid,HARI)
     assert hasil.kini.dinilai == hasil.kini.terkonfirmasi == 0

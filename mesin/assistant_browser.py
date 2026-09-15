@@ -19,7 +19,7 @@ var ulang = document.createElement('button');
 ulang.type = 'button';
 ulang.className = 'pendamping-tombol pendamping-sekunder';
 ulang.hidden = true;
-var bidang = /^(inline_host|inline_host_id|inline_posisi|inline_nomor|chat|request_id|pesan|topik|jumlah_soal|mode|hadir_timer_mode|timer_mode|durasi_menit|timer_auto|sertakan_pemetaan|hadir_sertakan_pemetaan|(?:jwb_|kode_|cara_|cek_pemahaman_|hadir_dilewati_|dilewati_|hadir_belum_|belum_)\d+)$/;
+var bidang = /^(inline_host|inline_host_id|inline_posisi|inline_nomor|chat|request_id|pesan|topik|jumlah_soal|mode|hadir_timer_mode|timer_mode|durasi_menit|timer_auto|sertakan_pemetaan|hadir_sertakan_pemetaan|(?:jwb_|kode_|cara_|cek_pemahaman_|hadir_dilewati_|dilewati_|hadir_belum_|belum_|catatan_tinjauan_|provenance_|jawaban_bantuan_|versi_tinjauan_)\d+)$/;
 function pesanStatus(panel, teks) {
   var tempat = panel.querySelector('.pendamping-composer') || panel.querySelector('.pendamping-inline-isi');
   tempat.appendChild(statusUI);
@@ -97,7 +97,7 @@ async function kirim(permintaan) {
     var inputBaru = baru.querySelector('[name="pesan"]');
     if (!selesai && !inputBaru && permintaan.teks) {
       var salinan = document.createElement('label');
-      salinan.textContent = 'Pesan belum terkirim — salin sebelum meninggalkan halaman';
+      salinan.textContent = 'Balasan belum tersedia — salin pesanmu sebelum meninggalkan halaman';
       inputBaru = document.createElement('textarea');
       inputBaru.readOnly = true;
       salinan.appendChild(inputBaru);
@@ -109,7 +109,7 @@ async function kirim(permintaan) {
     tertunda = null;
     kunci(baru, false);
     pesanStatus(baru, selesai ? 'Jawaban sudah tersedia.' :
-      'Pesan belum terkirim. Teks tetap ada; periksa keterangan di atas sebelum mencoba lagi.');
+      'Balasan belum tersedia. Teks pesanmu tetap ada; periksa keterangan di atas sebelum mencoba lagi.');
     if (fokusDiChat) {
       var tujuan = inputBaru || baru.querySelector('summary');
       if (tujuan) tujuan.focus({preventScroll: true});

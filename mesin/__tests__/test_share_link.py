@@ -193,7 +193,7 @@ def test_post_tanpa_jawaban_tidak_memulai_timer(server):
         assert kon.execute("SELECT COUNT(*) FROM jawaban").fetchone()[0] == 0
 
 
-def test_post_mengabaikan_id_soal_dari_sesi_lain(server):
+def test_post_menolak_id_soal_dari_sesi_lain(server):
     s, _, sesi_id = server
     with s.buka() as kon:
         siswa_lain = database.tambah_siswa(
@@ -208,7 +208,7 @@ def test_post_mengabaikan_id_soal_dari_sesi_lain(server):
 
     kode, _, _ = s.minta(jalur, data={f"jwb_{ssid_lain}": "disusupkan"})
 
-    assert kode == 200
+    assert kode == 400
     with s.buka() as kon:
         assert kon.execute("SELECT COUNT(*) FROM jawaban").fetchone()[0] == 0
 

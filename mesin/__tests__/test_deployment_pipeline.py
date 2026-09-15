@@ -2,11 +2,14 @@
 from pathlib import Path
 import re
 import itertools
+import json
 import pytest
 
 AKAR = Path(__file__).resolve().parents[2]
 WORKFLOW = AKAR / '.github/workflows/deploy.yml'
-RECOVERY_SHA = '33e241c18024190f41ebca1986e35af26c0397fd'
+CONFIG = json.loads((AKAR / 'scripts/release-metadata.json').read_text())
+RECOVERY_SHA = CONFIG['recovery_revision']
+GATE_RUTIN = "needs.bangun.outputs.siap_pasang == 'true' && vars.OSN_DEPLOY_RUTIN_SIAP == '1' && github.ref == 'refs/heads/main'"
 
 
 def _job(teks, nama):
@@ -18,7 +21,8 @@ def _job(teks, nama):
 def test_pasang_tertahan_sampai_deployer_dan_policy_rutin_siap():
     teks=WORKFLOW.read_text()
     pasang=_job(teks,'pasang')
-    assert "if: ${{ vars.OSN_DEPLOY_RUTIN_SIAP == '1' && github.ref == 'refs/heads/main' }}" in pasang
+    harapan = GATE_RUTIN if CONFIG['mode'] == 'rutin' else 'false'
+    assert '    if: ${{ ' + harapan + ' }}' in pasang
     assert 'needs: bangun' in pasang
     assert 'deploy-rutin-v1 ' in pasang
     assert 'deploy-v2 ' not in pasang
@@ -75,11 +79,13 @@ def test_gate_job_hanya_menerima_izin_exact_dan_main(flag, ref):
     pasang=_job(WORKFLOW.read_text(),'pasang')
     expr=re.search(r'    if: \$\{\{ (.+) \}\}',pasang).group(1)
     # Evaluasi subset ekspresi yang sengaja sempit, bukan parser YAML/deploy baru.
-    assert expr == "vars.OSN_DEPLOY_RUTIN_SIAP == '1' && github.ref == 'refs/heads/main'"
-    bagian=expr.split(' && ')
-    nilai={'vars.OSN_DEPLOY_RUTIN_SIAP':flag,'github.ref':ref}
-    lolos=all(nilai[k.strip()]==v.strip().strip("'") for k,v in (b.split(' == ') for b in bagian))
-    assert lolos == (flag=='1' and ref=='refs/heads/main')
+    assert expr == (GATE_RUTIN if CONFIG['mode'] == 'rutin' else 'false')
+    nilai={'vars.OSN_DEPLOY_RUTIN_SIAP':flag,'github.ref':ref,
+           'needs.bangun.outputs.siap_pasang':'true'}
+    lolos = False if expr == 'false' else all(
+        nilai[k.strip()]==v.strip().strip("'")
+        for k,v in (b.split(' == ') for b in expr.split(' && ')))
+    assert lolos == (CONFIG['mode']=='rutin' and flag=='1' and ref=='refs/heads/main')
 
 
 def test_dependencies_gagal_tidak_dibypass_ke_build_atau_deploy():
@@ -89,10 +95,27 @@ def test_dependencies_gagal_tidak_dibypass_ke_build_atau_deploy():
         assert 'continue-on-error:' not in job
         assert 'always()' not in job and '|| true' not in job
     assert teks.index('Verifikasi image berdasarkan digest') < teks.index('  pasang:')
-    assert 'if:' not in _job(teks,'bangun')  # Tak ada bypass verifikasi image.
+    bangun = _job(teks, 'bangun')
+    assert re.findall(r'^        if: (.+)$', bangun, re.M) == [
+        "${{ steps.mode.outputs.mode == 'migrasi' || steps.mode.outputs.mode == 'rutin' }}"]
+    assert not re.search(r'^    if:', bangun, re.M)  # Job build/per-image tidak dilewati.
     assert 'working-directory: recovery' in _job(teks,'uji_recovery')
     assert 'shard: [1, 2, 3, 4]' in _job(teks,'uji_recovery')
     assert 'needs: [uji, uji_recovery]' in _job(teks,'bangun')
+
+
+def test_manifest_setelah_pair_dan_kegagalan_pair_menahan_upload():
+    bangun = _job(WORKFLOW.read_text(), 'bangun')
+    assert bangun.index('Validasi mode dan gate') < bangun.index('Bangun dan dorong candidate')
+    assert bangun.index('Verifikasi image berdasarkan digest') < bangun.index('Verifikasi recovery terhadap data hasil candidate')
+    assert bangun.index('verify_submission_pair.py') < bangun.index('release_metadata.py --output')
+    assert bangun.index('release_metadata.py --output') < bangun.index('actions/upload-artifact@v4')
+    assert '--pair-proof submission-pair.json' in bangun
+    assert '> submission-pair.json' in bangun
+    assert 'set -euo pipefail' in bangun
+    assert 'siap_pasang: ${{ steps.metadata.outputs.siap_pasang }}' in bangun
+    assert 'scripts/release_metadata.py --check' in bangun
+    assert 'siap_pasang=true' not in bangun
 
 
 def test_healthcheck_publik_tiga_permukaan_tetap_diperiksa():

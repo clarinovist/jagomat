@@ -67,6 +67,33 @@ ENV_TETAP = (
     "PYTHONUNBUFFERED=1",
 )
 
+# Metadata wajib generasi pengiriman; tidak import aplikasi atau membuka rekaman.
+PROBE_PENGIRIMAN_SKEMA = '''
+kon = sqlite3.connect('file:/data/latihan.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only = ON')
+    wajib = {
+        'refleksi_jawaban': {'sesi_soal_id', 'alasan'},
+        'versi_pekerjaan': {'sesi_id', 'revisi'},
+        'pengiriman_sesi': {'sesi_id', 'sumber', 'dibuat', 'lampiran_json'},
+        'pengiriman_butir': {'sesi_id', 'sesi_soal_id', 'nomor', 'jawaban', 'cara',
+                             'restatement', 'belum_pernah', 'alasan', 'penyajian_json'},
+        'tinjauan_guru': {'sesi_soal_id', 'revisi', 'catatan', 'provenance',
+                         'jawaban_bantuan', 'pemahaman', 'dilewati', 'guru'},
+        'tinjauan_outcome': {'konfirmasi_id', 'data_json'},
+    }
+    for tabel, kolom in wajib.items():
+        assert kolom <= {r[1] for r in kon.execute('PRAGMA table_info(' + tabel + ')')}
+    trigger = {'pengiriman_butir_validasi'}
+    for tabel in ('pengiriman_sesi', 'pengiriman_butir', 'tinjauan_outcome'):
+        trigger.update(tabel + '_tolak_' + aksi for aksi in ('update', 'replace', 'delete'))
+    for tabel in ('jawaban', 'refleksi_jawaban'):
+        trigger.update(tabel + '_versi_' + aksi for aksi in ('insert', 'update', 'delete'))
+    assert trigger <= {r[0] for r in kon.execute("SELECT name FROM sqlite_master WHERE type='trigger'")}
+finally:
+    kon.close()
+'''
+
 # Hanya berjalan dalam container synthetic network-none, tanpa mount/secret host.
 PROBE_IMAGE = '''import sqlite3
 from pathlib import Path
@@ -117,8 +144,7 @@ token = sessions.buat_dari_principal(principal, path=sesi_path, path_akun=akun_p
 assert sessions.ambil_principal(token, path=sesi_path, path_akun=akun_path)
 auth.naikkan_revisi_auth(principal.id_akun, akun_path)
 assert sessions.ambil_principal(token, path=sesi_path, path_akun=akun_path) is None
-print('OSN_IMAGE_ADMIN4_AI2_OK')
-'''
+'''+ PROBE_PENGIRIMAN_SKEMA + "\nprint('OSN_IMAGE_ADMIN4_AI2_OK')\n"
 
 # Tidak mengimpor aplikasi: import/startup tertentu dapat melakukan migrasi.
 # Jangan immutable=1: DB belajar memakai WAL; mode=ro harus melihat WAL juga.
@@ -169,8 +195,7 @@ akun = json.loads(Path('/data/sandi.json').read_text())
 for item in akun.get('akun', [akun]):
     assert type(item.get('revisi_auth')) is int and item['revisi_auth'] >= 0
     assert isinstance(item.get('id_akun'), str) and item['id_akun'].startswith('akun_')
-print('OSN_SCHEMA_ADMIN4_AI2_OK')
-'''
+'''+ PROBE_PENGIRIMAN_SKEMA + "\nprint('OSN_SCHEMA_ADMIN4_AI2_OK')\n"
 
 
 # Konservatif: perubahan byte pada schema/startup/persistensi perlu review ulang

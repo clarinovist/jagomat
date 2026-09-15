@@ -58,7 +58,8 @@ def _sesi_pemetaan(kon, siswa_id, putaran_id, nomor, *, salah=True, kode="H"):
             benar=False,
             kode_usulan=kode,
             kode_final=kode,
-            alasan="diagnosis uji",
+            alasan="Guru memastikan pengenalan" if kode == "T" else "diagnosis uji",
+            manual=kode == "T",
         )
         database.konfirmasi_hasil(kon, sesi_id, guru="guru")
     else:

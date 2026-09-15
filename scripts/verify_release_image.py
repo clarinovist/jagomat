@@ -32,6 +32,9 @@ def ringkasan_untuk_revision(revision: str) -> dict:
         "ok": True, "kontrak": 1, "skema": 4, "skenario_migrasi": 2,
         "skenario_tindakan": 7, "http_checks": 7, "provider_calls": 0,
         "http_contract": kontrak_untuk_revision(revision),
+        "pengiriman_checks": 0 if revision in {
+            REVISION_RECOVERY_LEGACY, "33e241c18024190f41ebca1986e35af26c0397fd",
+        } else 6,
     }
 
 
@@ -48,6 +51,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import sqlite3
 import tempfile
 import threading
 from http.server import ThreadingHTTPServer
@@ -372,6 +376,70 @@ def uji_http(akar, database, skema, kontrak_http):
     pastikan(not ulir.is_alive() and not galat_server, 'http_server')
 
 
+def uji_pengiriman(akar, database):
+    """Migrasi additive dan provenance diuji pada data sintetis, bukan keluarga."""
+    import student_submissions
+    import review_store
+    akar.mkdir()
+    database.BAWAAN = akar / 'belajar.db'
+    database.siapkan(database.BAWAAN)
+    with database.buka() as kon:
+        siswa = database.tambah_siswa(kon, 'Anak Probe Pengiriman', 'P3', pemilik='guru')
+        sesi = database.buat_sesi_dari_urutan(kon, siswa, 73, ('deret_aritmetika',), level='P3')
+        sid = database.isi_sesi(kon, sesi)[0]['sesi_soal_id']
+        # Turunkan fixture menjadi schema pra-pengiriman, tanpa mengubah tabel lama.
+        tabel_baru = ('tinjauan_outcome', 'tinjauan_guru', 'pengiriman_butir',
+                      'pengiriman_sesi', 'refleksi_jawaban', 'versi_pekerjaan')
+        triggers = [r[0] for r in kon.execute("SELECT name FROM sqlite_master WHERE type='trigger'")
+                    if r[0].startswith(('pengiriman_', 'tinjauan_outcome_', 'jawaban_versi_', 'refleksi_jawaban_versi_'))]
+        for nama in triggers:
+            kon.execute('DROP TRIGGER "' + nama + '"')
+        for nama in tabel_baru:
+            kon.execute('DROP TABLE ' + nama)
+    lama = baris_lama(database.buka)
+    for _ in range(2):
+        database.siapkan(database.BAWAAN)
+        baru = baris_lama(database.buka)
+        pastikan(all(baru.get(t) == isi for t, isi in lama.items()), 'pengiriman_migrasi_preservasi')
+        sehat(database.buka)
+    awal = snapshot(database.buka)
+    database.siapkan(database.BAWAAN)
+    pastikan(snapshot(database.buka) == awal, 'pengiriman_migrasi_idempoten')
+    with database.buka() as kon:
+        student_submissions.arsipkan(kon, sesi, 'akun')
+        database.tandai_selesai(kon, sesi)
+        arsip = tuple(kon.execute('SELECT * FROM pengiriman_butir WHERE sesi_id=?', (sesi,)).fetchone())
+        pastikan(kon.execute('SELECT jawaban FROM pengiriman_butir WHERE sesi_id=?', (sesi,)).fetchone()[0] == '', 'pengiriman_kosong')
+        for sql in (
+            "UPDATE pengiriman_butir SET jawaban='123' WHERE sesi_id=?",
+            'DELETE FROM pengiriman_butir WHERE sesi_id=?',
+        ):
+            try:
+                kon.execute(sql, (sesi,))
+            except sqlite3.IntegrityError:
+                pass
+            else:
+                raise RuntimeError('pengiriman_immutable')
+        review_store.simpan(kon, sesi, {f'catatan_tinjauan_{sid}': 'Anak mendapat contoh awal.',
+            f'provenance_{sid}': 'setelah_bantuan', f'jawaban_bantuan_{sid}': '123'}, 'guru')
+        pastikan(kon.execute('SELECT COUNT(*) FROM konfirmasi_hasil').fetchone()[0] == 0, 'tinjauan_bukan_bukti')
+        jid = database.simpan_jawaban(kon, sid, '123', 'Setelah mendapat contoh')
+        for benar, kode in ((True, None), (False, 'K'), (False, 'H')):
+            if not benar:
+                database.simpan_jawaban(kon, sid, '', '')
+            database.simpan_diagnosis(kon, jid, benar, None, kode, manual=True)
+            try:
+                database.konfirmasi_hasil(kon, sesi, guru='guru')
+            except ValueError:
+                pass
+            else:
+                raise RuntimeError('bantuan_menjadi_bukti')
+        pastikan(tuple(kon.execute('SELECT * FROM pengiriman_butir WHERE sesi_id=?', (sesi,)).fetchone()) == arsip, 'pengiriman_berubah')
+        identitas = database.konfirmasi_hasil(kon, sesi, guru='guru', dilewati={sid})
+        pastikan(kon.execute('SELECT COUNT(*) FROM tinjauan_outcome WHERE konfirmasi_id=?', (identitas,)).fetchone()[0] == 1, 'tinjauan_provenance_hilang')
+    sehat(database.buka)
+
+
 def jalankan_probe(akar):
     # Tetapkan path SEBELUM impor; tidak pernah membuka konfigurasi/DB bawaan host.
     os.environ.update({
@@ -421,12 +489,17 @@ def jalankan_probe(akar):
         for jenis in ('retry', 'batal', 'hapus', 'pemilik', 'izin', 'pemilik_baru', 'izin_baru'):
             uji_tindakan(akar / jenis, jenis, modul)
         uji_http(akar / 'http', modul[0], modul[1], kontrak_http)
+        pengiriman_checks = 0
+        if revision not in ('bc9c973b50eb1fb04edd37df62f71ba0123f29c6',
+                            '33e241c18024190f41ebca1986e35af26c0397fd'):
+            uji_pengiriman(akar / 'pengiriman', modul[0])
+            pengiriman_checks = 6
         pastikan(not panggilan, 'provider_terpanggil')
     finally:
         socket.socket.connect, socket.socket.connect_ex, socket.getaddrinfo = asli_connect, asli_connect_ex, asli_resolve
     return {'ok': True, 'kontrak': 1, 'skema': 4, 'skenario_migrasi': 2,
             'skenario_tindakan': 7, 'http_checks': 7, 'provider_calls': 0,
-            'http_contract': kontrak_http}
+            'http_contract': kontrak_http, 'pengiriman_checks': pengiriman_checks}
 
 
 def main():

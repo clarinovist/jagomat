@@ -2021,6 +2021,8 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
 }}
 .kerja-editorial-st .kerja-cara-pilih-st {{ min-width: 0; border: 0; padding: 0; margin: {T.SP_4} 0 0; }}
 .kerja-editorial-st .kerja-cara-pilih-st legend {{ padding: 0; }}
+.kerja-editorial-st .refleksi-pilihan-st {{ display: grid; grid-template-columns: minmax(0, 1fr); gap: {T.SP_2}; margin-top: {T.SP_3}; }}
+.kerja-editorial-st .refleksi-pilihan-st .kerja-pill-st {{ white-space: normal; overflow-wrap: anywhere; justify-content: flex-start; }}
 .kerja-editorial-st .kerja-pill-grup-st {{ grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 0; }}
 .kerja-editorial-st .kerja-pill-st {{ border-radius: {T.RADIUS_KECIL}; font-size: .85rem; }}
 .kerja-editorial-st .kerja-pill-st:has(input:checked) {{
@@ -2390,6 +2392,7 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
 .koreksi-editorial-st .koreksi-centang-st label {{ padding-block: {T.SP_2}; }}
 .pendamping-editorial-st .koreksi-simpan-st {{ background: {T.LATAR_MURID}; border-top: 1px solid {T.BORDER_CATATAN}; }}
 .pendamping-editorial-st .koreksi-simpan-st button {{ background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH}; box-shadow: none; }}
+.pendamping-editorial-st .koreksi-simpan-st button.sekunder {{ background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; border: 1px solid {T.BORDER_VARIAN}; }}
 .koreksi-editorial-st .koreksi-simpan-st:has(button[formaction]) button:not([formaction]) {{ background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; border: 1px solid {T.BORDER_VARIAN}; }}
 .koreksi-editorial-st .danger-zone-st {{ margin-top: {T.SP_6}; }}
 .koreksi-editorial-st .danger-zone-st form {{ max-width: 34rem; }}

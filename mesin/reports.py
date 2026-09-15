@@ -66,7 +66,7 @@ def diagnosa_murid(kon, sesi_id: int) -> int:
                 b["kunci"], b["jawaban"] or "", _cara(b),
                 b["restatement"] or "", bool(b["belum_pernah"]),
                 database.malrule_soal(kon, b["soal_id"]),
-                soal.minta_restatement,
+                soal.minta_restatement, soal=soal,
             )
             kon.execute(
                 """UPDATE diagnosis SET kode_usulan = ?, alasan = ?
@@ -79,7 +79,7 @@ def diagnosa_murid(kon, sesi_id: int) -> int:
             b["kunci"], b["jawaban"] or "", _cara(b),
             b["restatement"] or "", bool(b["belum_pernah"]),
             database.malrule_soal(kon, b["soal_id"]),
-            soal.minta_restatement,
+            soal.minta_restatement, soal=soal,
         )
         database.simpan_diagnosis(
             kon, b["jawaban_id"],

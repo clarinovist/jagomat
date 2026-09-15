@@ -692,6 +692,11 @@ LEFT JOIN diagnosis d  ON d.jawaban_id = j.id
 GROUP BY s.id;
 """
 
+# Tabel baru additive: sesi warisan tidak diberi arsip pengiriman palsu.
+from submission_schema import SKEMA_PENGIRIMAN
+
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_PENGIRIMAN + '\n-- Ringkasan per sesi supaya laporan')
+
 # Migrasi untuk basis data yang SUDAH berisi data.
 #
 # `CREATE TABLE IF NOT EXISTS` di atas tidak menyentuh tabel yang sudah ada —

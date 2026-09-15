@@ -53,7 +53,7 @@ def test_gagal_menampilkan_semua_nomor_dan_draf_tanpa_menyimpan(server):
     s = server
     data = _belum_lengkap(s, _form(s))
     ketiga, keempat = [b["sesi_soal_id"] for b in s.butir[2:]]
-    data.update({f"cek_pemahaman_{ketiga}": "ragu", f"belum_{ketiga}": "1",
+    data.update({f"cek_pemahaman_{ketiga}": "ragu", f"belum_{ketiga}": "1", f"kode_{ketiga}": "T",
                  f"dilewati_{keempat}": "1", "sertakan_pemetaan": "1"})
     sebelum = _keadaan(s)
     kode, isi, header = _kirim(s, data)

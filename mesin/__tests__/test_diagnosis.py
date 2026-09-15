@@ -68,15 +68,11 @@ def test_jawaban_beda_tetap_beda():
 # ── Alur baca 5 langkah: tiap langkah mengesampingkan yang di bawahnya ───
 
 
-def test_centang_belum_pernah_lihat_menang_atas_segalanya():
-    """T mengesampingkan apa pun, bahkan kalau ada jawaban dan cara terisi.
-
-    Anak yang mengakui belum pernah melihat tipe soal ini memberi informasi
-    kurikulum, bukan sinyal kegagalan.
-    """
+def test_pengalaman_anak_perlu_dipastikan_guru():
+    """Catatan pengalaman tidak cukup untuk otomatis memberi T."""
     u = diagnosa("39", "36", "6x6=36", "", True, [], False)
-    assert u.kode == "T"
-    assert u.yakin
+    assert u.kode is None
+    assert not u.yakin and not u.benar
 
 
 def test_jawaban_tanpa_cara_adalah_menebak():

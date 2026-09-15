@@ -656,6 +656,11 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
             kon.execute('PRAGMA user_version='+str(v))
             for tabel in tables:kon.execute('CREATE TABLE '+tabel+' (id TEXT)')
     (tmp_path/'sandi.json').write_text(json.dumps({'akun':[{'id_akun':'akun_'+'a'*32,'revisi_auth':0}]}))
+    from submission_schema import SKEMA_PENGIRIMAN
+    with sqlite3.connect(belajar) as kon:
+        kon.execute('CREATE TABLE sesi_soal (id INTEGER, sesi_id INTEGER, nomor INTEGER)')
+        kon.execute('CREATE TABLE jawaban (sesi_soal_id INTEGER, jawaban TEXT, cara TEXT, restatement TEXT, belum_pernah INTEGER)')
+        kon.executescript(SKEMA_PENGIRIMAN)
     sebelum = (privat.read_bytes(), belajar.read_bytes(), ai.read_bytes())
     script = d.PROBE_SKEMA.replace(
         "akar_app = Path('/app')", "akar_app = Path(" + repr(str(tmp_path)) + ")"

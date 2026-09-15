@@ -368,6 +368,9 @@ def test_konfirmasi_dan_snapshot_raw_sql_menerima_n_t_sebagai_salah_berkode(
         _isi_dan_selesaikan(
             kon, sesi_id, butir, kode=kode_final, malrule_id=None
         )
+        if kode_final == 'T':
+            jid = database.isi_sesi(kon, sesi_id)[0]['jawaban_id']
+            database.simpan_diagnosis(kon, jid, False, None, 'T', manual=True, alasan='Guru memastikan kebutuhan pengenalan')
         konfirmasi_service = database.konfirmasi_hasil(
             kon, sesi_id, guru="guru"
         )

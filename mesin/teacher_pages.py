@@ -804,6 +804,18 @@ def halaman_anak(
         '<p class="sub">Centang dua topik atau lebih. Soalnya dicampur '
         "bergantian antar-topik yang kamu pilih.</p>"
         f'<div class="mode-pilih">{centang_topik}</div></div>'
+        '<div class="strip-kolom">'
+        '<span id="gabungan-mode-label">Mode latihan</span>'
+        '<div class="mode-pilih" role="radiogroup" aria-labelledby="gabungan-mode-label">'
+        '<label class="mode-opsi"><input type="radio" name="mode" value="drill" checked>'
+        '<span class="mode-teks">Latihan Cepat'
+        '<span class="mode-desk">Anak langsung mengisi jawaban, tanpa menuliskan cara.</span>'
+        '</span></label>'
+        '<label class="mode-opsi"><input type="radio" name="mode" value="diagnostik">'
+        '<span class="mode-teks">Diagnostik'
+        '<span class="mode-desk">Jawaban dan cara berpikir anak ikut diperiksa.</span>'
+        '</span></label>'
+        '</div></div>'
         '<div class="strip-kolom"><label for="gabungan-jumlah">Jumlah Soal</label>'
         '<select id="gabungan-jumlah" name="jumlah_soal" class="st-input">'
         '<option value="10" selected>10 soal (± 30 mnt)</option>'
@@ -1300,11 +1312,17 @@ def halaman_sesi_stitch(
             (sesi_id, konfirmasi_terakhir["id"]),
         ).fetchone() is not None
     pesan_masalah = {
+        "provenance": "Periksa sumber koreksi dan versi tinjauan. Catatan asli tidak boleh ditimpa hasil bantuan; pengalaman anak perlu dipastikan guru. Jika tab lain sudah berubah, muat ulang sebelum menyimpan.",
         "kosong": "Belum ada jawaban atau cara yang bisa dinilai. Catat yang benar-benar dikerjakan anak; bila tidak dikerjakan, buka Lewati soal ini dari penilaian.",
         "penilaian": "Penilaian belum ditentukan. Tanyakan cara anak, lalu pilih penilaian yang sesuai. Jangan menebak penilaian hanya agar bisa lanjut.",
         "tidak_konsisten": "Penilaian tersimpan belum konsisten. Periksa jawaban dan cara anak, lalu pilih kembali penilaian yang sesuai.",
     }
-    masalah_per_butir = {sid: pesan_masalah[alasan] for sid, _, alasan in masalah_konfirmasi}
+    masalah_per_butir = {sid: pesan_masalah.get(alasan, alasan) for sid, _, alasan in masalah_konfirmasi}
+    import review_store
+    import review_pages
+    tinjauan_sesi = review_store.muat(kon, sesi_id)
+    pengiriman_sesi = review_store.pengiriman(kon, sesi_id)
+    ada_foto = kon.execute('SELECT 1 FROM lampiran WHERE sesi_id=? LIMIT 1', (sesi_id,)).fetchone() is not None
     kartu = []
     outcome_tampilan = []
     for b in database.isi_sesi(kon, sesi_id):
@@ -1326,6 +1344,11 @@ def halaman_sesi_stitch(
         jawaban_tampil = draf_butir.jawaban if draf_butir else (b["jawaban"] or "")
         kode_tampil = draf_butir.kode if draf_butir else pilihan_tersimpan(b)
         cara_tampil = cara_untuk_form(draf_butir.cara if draf_butir else b["cara"] or "")
+        tinjauan_butir = tinjauan_sesi.get(int(b['sesi_soal_id']), {})
+        sumber_asli, pertanyaan_tinjauan, kosong_asli = review_pages.sumber_html(
+            pengiriman_sesi.get(int(b['sesi_soal_id'])), b, ada_foto,
+        )
+        kontrol_tinjauan = review_pages.kontrol(kon, int(b['sesi_soal_id']), tinjauan_butir, draf_butir)
         belum_terpilih = (
             draf_butir.belum_pernah if draf_butir else bool(b["belum_pernah"])
         )
@@ -1336,6 +1359,7 @@ def halaman_sesi_stitch(
         rekomendasi = diagnosa(
             b["kunci"], jawaban_tampil, cara_diagnosis, b["restatement"] or "",
             belum_terpilih, database.malrule_soal(kon, b["soal_id"]), soal.minta_restatement,
+            soal=soal,
         )
         if (sudah and b["benar"] is not None and not b["manual"]
                 and jawaban_tampil.strip() == (b["jawaban"] or "")
@@ -1384,8 +1408,8 @@ def halaman_sesi_stitch(
             "Belum yakin — perlu ditinjau" if belum_dinilai else "Gunakan usulan Jagomat"
         )
         pilihan_kode = [v for v, _ in KODE_PILIHAN if not (drill and v == "N")]
-        if kode_tampil == "T":
-            pilihan_kode.append("T")  # Override warisan, bukan kontrol pengalaman baru.
+        if "T" not in pilihan_kode:
+            pilihan_kode.append("T")  # Pengalaman anak saja tidak menentukan kode ini.
         pilih = "".join(
             f'<option value="{v}"{" selected" if v == kode_tampil else ""}>'
             f'{html.escape(label_otomatis if not v else dict(KODE_PILIHAN).get(v, "Perlu pengenalan").split(" — ")[-1].capitalize())}</option>'
@@ -1437,7 +1461,7 @@ def halaman_sesi_stitch(
         cara_html = ""
         if not drill:
             cara_html = (
-                f'<label class="koreksi-label-st" for="cara-{b["sesi_soal_id"]}">Bagaimana anak mendapatkan jawabannya?</label>'
+                f'<label class="koreksi-label-st" for="cara-{b["sesi_soal_id"]}">{"Catatan pekerjaan sebagian" if kosong_asli else "Bagaimana anak mendapatkan jawabannya?"}</label>'
                 f'<textarea class="koreksi-textarea-st" id="cara-{b["sesi_soal_id"]}" name="cara_{b["sesi_soal_id"]}" '
                 f'aria-describedby="cara-info-{b["sesi_soal_id"]}" placeholder="Catat penjelasan anak, jika ada.">'
                 f'{html.escape(cara_tampil)}</textarea>'
@@ -1449,10 +1473,12 @@ def halaman_sesi_stitch(
         snapshot_butir = snapshot_terakhir.get(int(b["sesi_soal_id"]))
         pemahaman_terpilih = (
             draf_butir.pemahaman if draf_butir else
+            tinjauan_butir['pemahaman'] if tinjauan_butir else
             snapshot_butir["cek_pemahaman"] if snapshot_butir is not None else None
         )
         dilewati_terpilih = (
             draf_butir.dilewati if draf_butir else
+            bool(tinjauan_butir['dilewati']) if tinjauan_butir else
             bool(snapshot_butir is not None and snapshot_butir["dilewati"])
         )
         outcome_tampilan.append(OutcomeSiklus(
@@ -1512,15 +1538,17 @@ def halaman_sesi_stitch(
         pendampingan = f"""
     <fieldset class="koreksi-pemahaman-st">
       <legend>Tinjau bersama anak</legend>
-      <p class="koreksi-tanya-st">Tanyakan: “Kamu dapat jawaban ini dari mana?”</p>
+      <p class="koreksi-tanya-st">Tanyakan: “{html.escape(pertanyaan_tinjauan)}”</p>
       {petunjuk_pemahaman}
+      {"<details class='koreksi-opsi-st'><summary>Catat pemahaman bila sudah diamati</summary>" if kosong_asli else ""}
       <fieldset class="koreksi-radio-paham-st">
         <legend>Apakah anak bisa menjelaskan caranya?</legend>
         <div class="koreksi-pilihan-paham-grid-st">{pilihan_pemahaman}</div>
       </fieldset>
+      {"</details>" if kosong_asli else ""}
       {cara_html}
       <details class="koreksi-opsi-st koreksi-pengalaman-st"{" open" if belum_terpilih else ""}>
-        <summary>{"Anak belum mengenal soal ini — dicatat" if belum_terpilih else "Anak belum mengenal soal ini?"}</summary>
+        <summary>{"Catatan pengalaman anak — tersimpan" if belum_terpilih else "Catatan pengalaman anak (opsional)"}</summary>
         <div class="koreksi-centang-st">
           <input type="hidden" name="hadir_belum_{b["sesi_soal_id"]}" value="1">
           <input type="checkbox" id="bp{b["sesi_soal_id"]}"
@@ -1528,7 +1556,7 @@ def halaman_sesi_stitch(
                {"checked" if belum_terpilih else ""} aria-describedby="belum-info-{b["sesi_soal_id"]}">
           <label for="bp{b["sesi_soal_id"]}"><span class="info-anak-label-st">Dari anak:</span> Belum pernah melihat soal seperti ini</label>
         </div>
-        <p class="koreksi-catatan-st" id="belum-info-{b["sesi_soal_id"]}">Centang hanya jika anak mengatakannya, bukan karena ia bingung. Pada penilaian otomatis, ini mengarah ke pengenalan materi, bukan kesalahan anak.</p>
+        <p class="koreksi-catatan-st" id="belum-info-{b["sesi_soal_id"]}">Centang hanya jika anak mengatakannya, bukan karena ia bingung. Ini catatan pengalaman anak, bukan keputusan pengenalan. Pilih Perlu pengenalan hanya setelah guru memastikannya.</p>
       </details>
     </fieldset>"""
         if benar_tampil:
@@ -1562,15 +1590,17 @@ def halaman_sesi_stitch(
       <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b["kunci"])}</span></div>
       {pembahasan_html}
     </details>
+    {sumber_asli}
     {restate}
     <div class="koreksi-bukti-st koreksi-bukti-tunggal-st">
       <div>
-        <label class="koreksi-label-st" for="jwb-{b["sesi_soal_id"]}">Jawaban anak</label>
+        <label class="koreksi-label-st" for="jwb-{b["sesi_soal_id"]}">Jawaban anak (koreksi salinan bila perlu)</label>
         <input type="text" class="koreksi-input-st" id="jwb-{b["sesi_soal_id"]}" name="jwb_{b["sesi_soal_id"]}"
                value="{html.escape(jawaban_tampil)}">
       </div>
     </div>
     {pendampingan}
+    {kontrol_tinjauan}
     <details class="koreksi-opsi-st koreksi-penilaian-st"{" open" if masalah_butir else ""}>
       <summary>{judul_penilaian}</summary>
       {usulan}
@@ -1746,8 +1776,9 @@ def halaman_sesi_stitch(
             # Submit default disabled memblokir implicit Enter secara native.
             # Hanya tombol konfirmasi yang dipilih eksplisit mengesahkan bukti.
             urutan_aksi = (
-                '<p class="koreksi-catatan-st">Konfirmasi menyimpan jawaban, penilaian, '
-                'cek pemahaman, dan pilihan lewati sekaligus. Tidak perlu menyimpan terpisah.</p>'
+                '<p class="koreksi-catatan-st">Simpan tinjauan untuk melanjutkan nanti, tanpa mengesahkan bukti. '
+                'Konfirmasi hasil hanya setelah penilaian sudah lengkap.</p>'
+                f'<button type="submit" class="sekunder" formaction="/sesi/{sesi_id}/tinjauan">Simpan tinjauan</button>'
                 f'{aksi_konfirmasi}'
             )
             form_hasil = (
@@ -1976,8 +2007,20 @@ def halaman_sesi_stitch(
     ).encode()
 
 
-def simpan_sesi(kon, sesi_id: int, data: dict) -> str:
-    """Simpan koreksi guru tanpa mengubah kontrak mode sesi."""
+def simpan_sesi(kon, sesi_id: int, data: dict, *, tinjauan_disimpan: bool = False, guru: str = 'guru') -> str:
+    """Simpan koreksi guru tanpa menimpa arsip dan provenance pekerjaan asli."""
+    if not tinjauan_disimpan:
+        import review_store
+        kon.execute('SAVEPOINT koreksi_lokal')
+        try:
+            review_store.simpan(kon, sesi_id, data, guru)
+            hasil = simpan_sesi(kon, sesi_id, data, tinjauan_disimpan=True, guru=guru)
+            kon.execute('RELEASE SAVEPOINT koreksi_lokal')
+            return hasil
+        except Exception:
+            kon.execute('ROLLBACK TO SAVEPOINT koreksi_lokal')
+            kon.execute('RELEASE SAVEPOINT koreksi_lokal')
+            raise
     mode_baris = kon.execute(
         "SELECT mode FROM sesi WHERE id = ?", (sesi_id,)
     ).fetchone()
@@ -1990,14 +2033,15 @@ def simpan_sesi(kon, sesi_id: int, data: dict) -> str:
     diubah = 0
     for b in database.isi_sesi(kon, sesi_id):
         sid = b["sesi_soal_id"]
-        jwb = data.get(f"jwb_{sid}", "").strip()
-        cara = cara_dari_form(data.get(f"cara_{sid}", "").strip(), b["cara"] or "")
+        if not any(nama in data for nama in (f'jwb_{sid}', f'cara_{sid}', f'kode_{sid}', f'belum_{sid}')):
+            continue
+        jwb = data.get(f"jwb_{sid}", b['jawaban'] or "").strip()
+        cara = cara_dari_form(data.get(f"cara_{sid}", b['cara'] or "").strip(), b["cara"] or "")
         restate = b["restatement"] or ""
-        belum = f"belum_{sid}" in data
-        pilihan = data.get(f"kode_{sid}", "").strip()
+        belum = f"belum_{sid}" in data if f'jwb_{sid}' in data else bool(b['belum_pernah']) or f'belum_{sid}' in data
+        pilihan = data.get(f"kode_{sid}", pilihan_tersimpan(b)).strip()
         kode_diizinkan = {nilai for nilai, _label in KODE_PILIHAN if nilai}
-        if b["manual"] and b["kode_final"] == "T":
-            kode_diizinkan.add("T")  # Hanya mempertahankan override warisan.
+        kode_diizinkan.add("T")  # Keputusan pengenalan eksplisit oleh guru.
         if drill:
             kode_diizinkan.discard("N")
         if pilihan not in kode_diizinkan:
@@ -2020,7 +2064,7 @@ def simpan_sesi(kon, sesi_id: int, data: dict) -> str:
         u = diagnosa(
             b["kunci"], jwb, cara_diagnosis, restate, belum,
             database.malrule_soal(kon, b["soal_id"]),
-            soal.minta_restatement,
+            soal.minta_restatement, soal=soal,
         )
 
         if pilihan == "benar":

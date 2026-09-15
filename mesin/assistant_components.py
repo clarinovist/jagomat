@@ -233,7 +233,7 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
     elif not provider_aktif:
         status += '<p class="pendamping-info" role="status">Pengiriman AI sedang tidak tersedia. Pekerjaan belajar tetap dapat digunakan.</p>'
     else:
-        if operasi is not None and operasi["status"] == "gagal":
+        if not galat and operasi is not None and operasi["status"] == "gagal":
             status += '<p class="pendamping-galat" role="status">Jawaban sebelumnya belum tersedia. Kamu boleh menulis pesan baru.</p>'
         isi = (
             ("" if dalam_form else _identitas_target(target) + _hidden("chat", chat.id))
@@ -253,8 +253,8 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
         target, chat, draft_memori, dalam_form=dalam_form,
     ) if not hanya_baca and chat.mode_memori != "tanpa_memori" else ""
     return _panel(
-        target, "Bantuan terkait", identitas_form + status + histori
-        + f'<div class="pendamping-transkrip">{transkrip}</div>'
+        target, "Bantuan terkait", identitas_form + histori
+        + f'<div class="pendamping-transkrip">{transkrip}</div>' + status
         + _kartu_usulan_inline(target, chat, usulan, dalam_form=dalam_form)
         + draft_memori_html + composer + kontrol_memori,
         sumber=sumber, dalam_form=dalam_form, chat_id=chat.id,

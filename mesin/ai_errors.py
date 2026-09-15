@@ -29,6 +29,8 @@ def pesan_pendamping(kategori: str) -> str:
         return awal + "Layanan AI terlalu lama merespons. Coba lagi nanti."
     if kategori == "provider_batas":
         return awal + "Layanan AI sedang membatasi permintaan. Tunggu sebentar sebelum mencoba lagi."
+    if kategori == "respons_terpotong":
+        return awal + "Balasan AI terpotong sebelum selesai, jadi tidak ditampilkan. Kamu boleh mencoba lagi; pesan tidak dikirim ulang otomatis."
     if kategori.startswith("respons_") and kategori in KATEGORI:
         return awal + "Format balasan AI belum sesuai, jadi balasan tidak ditampilkan. Kamu boleh mencoba lagi."
     if kategori == "ai_pengaturan_berubah":

@@ -1,4 +1,59 @@
-# Rilis Pendamping v4 — deploy rutin dan migrasi terkontrol
+# Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
+
+## Mode source saat ini: persiapan baseline (15 September 2026)
+
+`release-metadata.json` di `scripts/` menetapkan mode **persiapan** dengan anchor
+recovery historis `33e241c18024190f41ebca1986e35af26c0397fd`. Job `pasang` sekarang
+memakai **`if: ${{ false }}` secara literal**. Push/main maupun dispatch dan nilai
+`OSN_DEPLOY_RUTIN_SIAP=1` tidak dapat mengaktifkan job itu. Semua test kandidat dan
+recovery serta build/probe kedua image tetap dijalankan. Ini state source baru,
+bukan klaim konfigurasi atau deployment produksi sudah berubah.
+
+Perbedaan kontrak boleh tercatat pada artefak persiapan, tetapi tidak boleh
+menghasilkan pemasangan atau klaim recovery kompatibel. `scripts/release_metadata.py`
+memvalidasi konfigurasi JSON tertutup, pin workflow, gate pasang, identitas image,
+dan fingerprint dari **PROBE_KONTRAK yang sama dengan deployer**. Hash anchor lama
+tetap harus cocok dengan recovery lama; tidak diganti menjadi hash kandidat baru.
+
+| Mode | Kontrak pasangan | Job pasang rutin | Manifest |
+|---|---|---|---|
+| `persiapan` | Diukur; mismatch tidak disamarkan | Literal false | `siap_pasang=false`, `pair_verified=false`, kompatibilitas sebenarnya |
+| `migrasi` | Wajib identik dan uji lintas image lulus | Literal false | Pasangan teruji, `requires_controlled_migration=true`, belum izin rutin |
+| `rutin` | Wajib identik dan uji lintas image lulus | Memerlukan readiness output **dan** variable exact1 **dan** main | Tetap menjalani preflight policy/current VPS |
+
+Mode hilang/tidak dikenal/duplikat ditolak, bukan default ke rutin. Manifest hanya
+terbit setelah identitas revision/digest dan fingerprint kedua image diverifikasi.
+Pada migrasi/rutin, `verify_submission_pair.py` terlebih dahulu menguji kandidat
+menulis pengiriman/tinjauan sintetis lalu recovery membaca/menulis dengan arsip dan
+palang bukti tetap. Bukti pair terikat **revision dan digest exact kedua image**;
+rebuild revision yang sama tidak boleh meminjam bukti image lain. Bukti hilang,
+invalid, atau pair gagal menahan penerbitan manifest/upload/deploy.
+
+Manifest mencatat candidate/recovery revision, digest, contract, mode, kompatibilitas,
+`pair_verified`, `siap_pasang`, dan kebutuhan migrasi terkontrol. Boolean diturunkan
+oleh helper, bukan input dispatch. Manifest lama tidak ditimpa/dipakai ulang.
+`siap_pasang` hanya eligibility CI rutin; **bukan approval migrasi atau izin mengubah
+policy VPS**. Equality preflight deployer tetap berlaku pada rutin dan `deploy-v2`.
+
+Urutan bootstrap:
+1. Freeze baseline B yang fungsional penuh dan aman untuk schema baru; full gate
+   lokal dalam mode persiapan. Commit/push B hanya oleh koordinator, CI build-only.
+2. Setelah CI dan image B terverifikasi, kandidat C mematok SHA B dan fingerprint
+   terukurnya. B dan C punya persistensi sama, dengan delta aplikasi nyata yang
+   menyediakan recovery bermakna; bukan beda label/cosmetic untuk dua digest.
+3. Mode migrasi tetap literal false untuk auto-routine. Kedua image, schema upgrade,
+   dan uji pair harus lulus. Jalankan cutover `deploy-v2` dengan approval exact pair,
+   backup/drain/rehearsal dan recovery sesuai runbook di bawah.
+4. Setelah current sehat dan policy terverifikasi, pengaktifan mode/gate rutin
+   adalah perubahan tersendiri yang direview. Jangan mengaktifkan variable saja.
+
+Suite recovery B kelak membaca mode/pin historis dari source B sendiri; itu bukan
+izin menggunakan recovery historis33e241 untuk schema baru. Seluruh pengujian
+aplikasi tetap berjalan; mode persiapan bukan skip test atau pelemahan probe.
+
+Bagian berikut merekam kontrak dan prosedur rutin/migrasi existing. Deskripsi
+eligibility rutin berlaku **setelah** aktivasi mode rutin, bukan pada snapshot
+persiapan saat ini.
 
 Status inspeksi **13 September 2026 sekitar 09.50 WIB**: produksi masih sehat
 di revision `4d5618d5fbb162f72c9a88397976c353ee62b88e`. Deploy kandidat
@@ -46,9 +101,10 @@ Workflow tetap **uji → bangun → pasang**:
    candidate serta recovery; tarik berdasarkan digest
    output build yang sama; verifikasi image sebenarnya dengan probe sintetis.
    Salah satu gagal berarti job gagal, tidak lanjut pasang.
-3. **pasang:** hanya pada `refs/heads/main` jika repository variable
-   `OSN_DEPLOY_RUTIN_SIAP` **persis `1`**. Default kosong berarti skip seluruh
-   job, termasuk akses secret SSH. Variable lama `PENDAMPING_ROLLOUT_SIAP` tidak
+3. **pasang saat mode rutin:** hanya pada `refs/heads/main` jika output readiness
+   build `siap_pasang` **persis `true`** dan repository variable
+   `OSN_DEPLOY_RUTIN_SIAP` **persis `1`**. Pada persiapan/migrasi, job memakai
+   literal false. Default variable kosong berarti skip seluruh job, termasuk SSH. Variable lama `PENDAMPING_ROLLOUT_SIAP` tidak
    dipakai lagi. CI memanggil `deploy-rutin-v1 <candidate-digest> <recovery-digest>`.
 
 Paralelisme antar-runner memperpendek jalur tunggu, bukan mengurangi cakupan test

@@ -60,6 +60,10 @@ class DrafButir:
     pemahaman: str
     dilewati: bool
     belum_pernah: bool
+    catatan_tinjauan: Optional[str] = None
+    provenance: Optional[str] = None
+    jawaban_bantuan: Optional[str] = None
+    versi_tinjauan: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -206,7 +210,7 @@ def parse_draf_koreksi(
     diizinkan = {"sertakan_pemetaan", "hadir_sertakan_pemetaan"}
     wajib = {"hadir_sertakan_pemetaan"}
     for sid in ids:
-        for awal in ("jwb", "kode", "cara", "cek_pemahaman", "hadir_dilewati", "dilewati", "hadir_belum", "belum"):
+        for awal in ("jwb", "kode", "cara", "cek_pemahaman", "hadir_dilewati", "dilewati", "hadir_belum", "belum", "catatan_tinjauan", "provenance", "jawaban_bantuan", "versi_tinjauan"):
             diizinkan.add(f"{awal}_{sid}")
         wajib.update((f"jwb_{sid}", f"kode_{sid}", f"cek_pemahaman_{sid}",
                       f"hadir_dilewati_{sid}", f"hadir_belum_{sid}"))
@@ -234,9 +238,15 @@ def parse_draf_koreksi(
         for nama in (f"dilewati_{sid}", f"belum_{sid}"):
             if nama in data and satu(nama) != "1":
                 raise GalatInline("Nilai checkbox tidak sah.")
+        tambahan = [satu(f'{awal}_{sid}') if f'{awal}_{sid}' in data else None
+                    for awal in ('catatan_tinjauan', 'provenance', 'jawaban_bantuan', 'versi_tinjauan')]
+        if tambahan[1] not in (None, '', 'penjelasan_asli', 'koreksi_transkripsi', 'setelah_bantuan'):
+            raise GalatInline('Provenance tinjauan tidak sah.')
+        if tambahan[3] is not None and not re.fullmatch(r'[0-9a-f]{64}', tambahan[3]):
+            raise GalatInline('Versi tinjauan tidak sah.')
         hasil.append((sid, DrafButir(
             satu(f"jwb_{sid}"), kode, satu(f"cara_{sid}") if f"cara_{sid}" in data else "", pemahaman,
-            f"dilewati_{sid}" in data, f"belum_{sid}" in data,
+            f"dilewati_{sid}" in data, f"belum_{sid}" in data, *tambahan,
         )))
     if satu("hadir_sertakan_pemetaan") != "1":
         raise GalatInline("Marker pemetaan tidak sah.")

@@ -37,6 +37,25 @@ Bukti pedagogis hanya berasal dari sesi yang:
 Membuka halaman hanya mengisi `direview`; itu bukan konfirmasi. `kode_final`
 yang masih mutable juga bukan bukti permanen.
 
+Anak boleh mengirim latihan dengan jawaban kosong dan tanpa alasan. Refleksi kosong
+opsional tersimpan terpisah dari jawaban/cara. Bingung atau catatan belum pernah
+melihat soal bukan diagnosis otomatis: guru memastikan kebutuhan pengenalan sebelum
+memilih T. Pekerjaan sebagian tetap diakui, bukan dilabeli tidak dikerjakan.
+
+Pengiriman baru mengarsipkan seluruh butir secara immutable, termasuk yang kosong;
+arsip ini bukan bukti pedagogis. Sesi warisan tanpa arsip diberi keterangan jujur
+bahwa rekaman saat pengiriman belum tersedia. Koreksi transkripsi pekerjaan asli
+memerlukan sumber; jawaban setelah diberi bantuan dicatat terpisah dan tidak boleh
+disahkan sebagai bukti mandiri, baik benar maupun salah. Hasil setelah bantuan
+tidak boleh menambah bukti kelemahan K/H atau kategori lain. Gunakan probe berikutnya
+untuk bukti mandiri; penanda dilewati tetap harus eksplisit.
+
+**Simpan tinjauan** menjaga catatan/keputusan sementara agar dapat dilanjutkan,
+tanpa snapshot bukti atau pemetaan. **Konfirmasi hasil** tetap mengharuskan outcome
+lengkap atau penanda dilewati eksplisit. Tinjauan dan provenance yang dipakai diikat
+pada fingerprint/snapshot konfirmasi; perubahan relevan mencabut bukti aktif tanpa
+mengubah snapshot lama. Tab lama yang berbeda tidak boleh menimpa tinjauan terbaru.
+
 Setiap konfirmasi membuat snapshot kanonis append-only berisi outcome tiap
 butir, kode final, malrule, penanda dilewati, level efektif, dan cek pemahaman.
 Bukti putaran merujuk `konfirmasi_id`. Koreksi berikutnya menginvalidasi bukti

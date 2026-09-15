@@ -89,7 +89,7 @@ def keadaan(s):
 
 @pytest.mark.parametrize("cara,benar,kode", [
     ("Aku menghitung.", 1, None),
-    ("[pilihan] bingung", 0, "T"),
+    ("[pilihan] bingung", 0, None),
     ("[pilihan] tebak — aku belum tahu", 0, "N"),
     ("", 0, "N"),
 ])
@@ -100,6 +100,11 @@ def test_default_mesin_roundtrip_tidak_menciptakan_override_atau_pengakuan(serve
     data, isi = form(s)
     assert data[f"kode_{s.sid}"] == ""
     assert f"belum_{s.sid}" not in data
+    if cara == '[pilihan] bingung':
+        assert kirim(s, data)[0] == 400
+        assert keadaan(s)[0] == sebelum
+        assert keadaan(s)[1] == []
+        return
     assert "Usulan Jagomat:" in isi
     assert "Dipakai otomatis saat konfirmasi" in isi
     assert kirim(s, data)[0] == 200
@@ -156,6 +161,7 @@ def test_otomatis_menilai_ulang_jawaban_dan_override_guru_menyimpan_usulan(serve
     assert kirim(s, data)[0] == 200
     hasil = keadaan(s)[0]
     assert hasil["manual"] == 0 and hasil["kode_final"] == malrule["kode"]
+    data, _ = form(s)  # Muat versi baru; tab lama tidak boleh menimpa.
     data[f"kode_{s.sid}"] = "E"
     assert kirim(s, data)[0] == 200
     hasil = keadaan(s)[0]
@@ -169,11 +175,15 @@ def test_pemahaman_dan_belum_pernah_satu_konfirmasi(server, pemahaman):
     isi_awal(s, "Cara tertulis")
     data, _ = form(s)
     data.update({f"cek_pemahaman_{s.sid}": pemahaman, f"belum_{s.sid}": "1"})
+    assert kirim(s, data)[0] == 400  # Pengalaman saja belum keputusan T.
+    data[f"kode_{s.sid}"] = 'T'
     assert kirim(s, data)[0] == 200
     hasil, snapshots, _ = keadaan(s)
     assert hasil["belum_pernah"] == 1 and hasil["kode_final"] == "T"
-    assert hasil["manual"] == 0
+    assert hasil["manual"] == 1
     assert snapshots[0]["cek_pemahaman"] == (pemahaman or None)
+    data, _ = form(s)
+    data[f"kode_{s.sid}"] = ''
     del data[f"belum_{s.sid}"]
     assert kirim(s, data)[0] == 200
     hasil = keadaan(s)[0]
@@ -197,13 +207,13 @@ def test_mesin_belum_yakin_dan_lewati_aman(server):
     assert "Dilewati dari penilaian — ubah" in form(s)[1]
 
 
-@pytest.mark.parametrize("pilihan,kode", [("tebak", "N"), ("bingung", "T")])
+@pytest.mark.parametrize("pilihan,kode", [("tebak", "N"), ("bingung", None)])
 def test_tambahan_catatan_tidak_menghilangkan_pengakuan_pilihan(server, pilihan, kode):
     s = server
     isi_awal(s, "[pilihan] " + pilihan)
     data, _ = form(s)
     data[f"cara_{s.sid}"] += " — catatan tambahan"
-    assert kirim(s, data)[0] == 200
+    assert kirim(s, data, jalur='/tinjauan')[0] == 200
     hasil = keadaan(s)[0]
     assert hasil["cara"] == "[pilihan] " + pilihan + " — catatan tambahan"
     assert hasil["kode_final"] == kode and hasil["manual"] == 0
@@ -282,7 +292,7 @@ def test_hierarki_form_tunggal_dan_palang_enter(server):
 
 @pytest.mark.parametrize("field,nilai", [
     ("belum", "0"), ("belum", "on"), ("dilewati", "0"),
-    ("cek_pemahaman", "paham"), ("kode", "X"), ("kode", "T"),
+    ("cek_pemahaman", "paham"), ("kode", "X"),
 ])
 def test_post_manipulatif_ditolak_sebelum_efek(server, field, nilai):
     s = server
@@ -295,24 +305,23 @@ def test_post_manipulatif_ditolak_sebelum_efek(server, field, nilai):
     assert keadaan(s) == sebelum
 
 
-def test_t_baru_http_ditolak_meski_outcome_otomatis_valid(server):
+def test_t_baru_http_adalah_keputusan_manual_guru(server):
     s = server
     isi_awal(s, "Cara awal")
     data, _ = form(s)
     data[f"kode_{s.sid}"] = "T"
-    sebelum = keadaan(s)
-    assert kirim(s, data)[0] == 400
-    assert keadaan(s) == sebelum
+    assert kirim(s, data)[0] == 200
+    assert keadaan(s)[0]['manual'] == 1 and keadaan(s)[0]['kode_final'] == 'T'
 
 
-def test_t_baru_handler_lama_tidak_menciptakan_override(server):
+def test_t_baru_handler_lama_mencatat_override_guru(server):
     s = server
     isi_awal(s, "Cara awal")
     data, _ = form(s)
     data[f"kode_{s.sid}"] = "T"
     assert kirim(s, data, jalur="")[0] == 200
     hasil = keadaan(s)[0]
-    assert hasil["kode_final"] != "T" and hasil["manual"] == 0
+    assert hasil["kode_final"] == "T" and hasil["manual"] == 1
     assert hasil["belum_pernah"] == 0
 
 

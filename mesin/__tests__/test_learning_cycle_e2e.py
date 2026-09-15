@@ -65,7 +65,7 @@ def konfirmasi(alur, sesi, salah=None, paham="bisa_menjelaskan", kode_salah="K")
     payload = {nama: nilai for sid, kunci, tid in pasangan for nama, nilai in (
         (f"jwb_{sid}", "-999999" if tid == salah else kunci),
         (f"cara_{sid}", "Langkah sintetis untuk pengujian"),
-        (f"kode_{sid}", ("" if kode_salah == "T" else kode_salah) if tid == salah else "benar"),
+        (f"kode_{sid}", kode_salah if tid == salah else "benar"),
         (f"cek_pemahaman_{sid}", paham),
     )}
     if kode_salah == "T":

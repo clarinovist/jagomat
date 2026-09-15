@@ -72,7 +72,8 @@ def _hasil_t(
         )
         database.simpan_diagnosis(
             kon, jawaban_id, benar=False, kode_usulan=kode,
-            kode_final=kode, alasan="Data sintetis",
+            kode_final=kode, alasan="Guru memastikan pengenalan" if kode == "T" else "Data sintetis",
+            manual=kode == "T",
         )
     if selesai:
         database.tandai_selesai(kon, sesi_id)

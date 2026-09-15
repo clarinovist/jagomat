@@ -131,6 +131,7 @@ def test_client_request_exact_dan_api_key_hanya_header(monkeypatch):
                      {"role": "user", "content": "halo"}],
         "temperature": 0.4,
         "max_tokens": 1200,
+        "thinking": {"type": "disabled"},
         "response_format": {"type": "json_object"},
     }
     assert "kunci-sintetis" not in req.data.decode()

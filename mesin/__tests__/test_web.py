@@ -175,7 +175,7 @@ def test_soal_dilewati_tidak_membuat_baris_kosong(db):
     assert n == 1
 
 
-def test_centang_belum_pernah_lihat_jadi_kode_t(db):
+def test_centang_pengalaman_perlu_ditinjau_tanpa_kode(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Tidak")
         sesi_id = database.buat_sesi(kon, sid, seed=10)
@@ -183,11 +183,11 @@ def test_centang_belum_pernah_lihat_jadi_kode_t(db):
         teacher_pages.simpan_sesi(kon, sesi_id, {f"belum_{b['sesi_soal_id']}": "on"})
         hasil = database.isi_sesi(kon, sesi_id)[-1]
 
-    assert hasil["kode_final"] == "T"
+    assert hasil["kode_final"] is None
 
 
-def test_kode_t_tidak_bisa_dipilih_guru_tanpa_centang(db):
-    """T adalah informasi dari anak, bukan diagnosis manual guru."""
+def test_kode_t_dipilih_guru_tanpa_memalsukan_pengalaman_anak(db):
+    """T adalah keputusan guru, bukan checkbox yang diatribusikan kepada anak."""
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Tidak manual")
         sesi_id = database.buat_sesi(kon, sid, seed=10)
@@ -202,7 +202,7 @@ def test_kode_t_tidak_bisa_dipilih_guru_tanpa_centang(db):
         )
         hasil = database.isi_sesi(kon, sesi_id)[-1]
 
-    assert hasil["kode_final"] != "T"
+    assert hasil["kode_final"] == "T" and hasil['manual'] == 1
     assert not hasil["belum_pernah"]
 
 
