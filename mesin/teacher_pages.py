@@ -1323,7 +1323,9 @@ def halaman_sesi_stitch(
     tinjauan_sesi = review_store.muat(kon, sesi_id)
     pengiriman_sesi = review_store.pengiriman(kon, sesi_id)
     ada_foto = kon.execute('SELECT 1 FROM lampiran WHERE sesi_id=? LIMIT 1', (sesi_id,)).fetchone() is not None
+    from review_navigation import tindakan_tinjauan, render_progres
     kartu = []
+    kartu_tercatat = []
     antrean_tinjauan = []
     outcome_tampilan = []
     for b in database.isi_sesi(kon, sesi_id):
@@ -1331,15 +1333,6 @@ def halaman_sesi_stitch(
         sudah = b["jawaban_id"] is not None
         kode = b["kode_final"]
         benar = b["benar"]
-
-        restate = ""
-        if b["restatement"]:
-            restate = (
-                '<div class="info-anak-st">'
-                '<span class="info-anak-label-st">Dari anak:</span> '
-                f'{html.escape(b["restatement"])}'
-                "</div>"
-            )
 
         draf_butir = draf_koreksi.untuk(int(b["sesi_soal_id"])) if draf_koreksi else None
         jawaban_tampil = draf_butir.jawaban if draf_butir else (b["jawaban"] or "")
@@ -1349,7 +1342,6 @@ def halaman_sesi_stitch(
         sumber_asli, pertanyaan_tinjauan, kosong_asli = review_pages.sumber_html(
             pengiriman_sesi.get(int(b['sesi_soal_id'])), b, ada_foto,
         )
-        kontrol_tinjauan = review_pages.kontrol(kon, int(b['sesi_soal_id']), tinjauan_butir, draf_butir)
         belum_terpilih = (
             draf_butir.belum_pernah if draf_butir else bool(b["belum_pernah"])
         )
@@ -1481,16 +1473,32 @@ def halaman_sesi_stitch(
             bool(tinjauan_butir['dilewati']) if tinjauan_butir else
             bool(snapshot_butir is not None and snapshot_butir["dilewati"])
         )
-        # Antrean hanya memandu navigasi dari keadaan efektif yang tampil.
-        # Tidak menilai ulang, menyembunyikan kartu, atau mengesahkan outcome.
+        # Proyeksi pekerjaan bukan palang konfirmasi. Semua nilai form tetap
+        # dikirim, termasuk saat kartu dilipat; server memvalidasi ulang.
         sumber_tampil = review_pages.nilai(tinjauan_butir, draf_butir, 'provenance')
-        perlu_tinjauan = (
-            not benar_tampil and not kode_efektif
-            or kode_efektif == 'T' and not kode_tampil
+        awal = pengiriman_sesi.get(sid)
+        koreksi_jawaban = bool(awal and jawaban_tampil.strip() != awal['jawaban'].strip())
+        koreksi_cara = bool(awal and cara_dari_form(cara_tampil.strip(), b['cara'] or '').strip() != awal['cara'].strip())
+        sumber_perlu_diperiksa = (
+            (benar_tampil and not jawaban_tampil.strip())
             or sumber_tampil == 'setelah_bantuan'
+            or koreksi_jawaban and not (sumber_tampil == 'koreksi_transkripsi'
+                and review_pages.nilai(tinjauan_butir, draf_butir, 'catatan_tinjauan').strip())
+            or koreksi_cara and sumber_tampil not in {'penjelasan_asli', 'koreksi_transkripsi'}
         )
-        if perlu_tinjauan and not dilewati_terpilih:
+        tindakan = tindakan_tinjauan(
+            benar=benar_tampil, kode=kode_efektif, pilihan=kode_tampil,
+            pemahaman=pemahaman_terpilih, dilewati=dilewati_terpilih,
+            masalah=bool(masalah_butir), sumber_perlu_diperiksa=sumber_perlu_diperiksa,
+            terkonfirmasi=konfirmasi_masih_aktif and draf_butir is None,
+        )
+        if tindakan:
             antrean_tinjauan.append((sid, int(b['nomor'])))
+        buka_kartu = bool(
+            (tindakan and len(antrean_tinjauan) == 1) or masalah_butir
+            or (sumber_perlu_diperiksa and not dilewati_terpilih)
+            or bantuan_nomor == int(b['nomor'])
+        )
         outcome_tampilan.append(OutcomeSiklus(
             b["template_id"], benar_tampil, kode_efektif,
             dilewati=dilewati_terpilih,
@@ -1535,9 +1543,18 @@ def halaman_sesi_stitch(
             pemahaman_terpilih in {"ragu", "menghafal"}
             or menebak or bingung or belum_terpilih
         )
-        ringkas = bool(benar_tampil and not (
-            cek_penguasaan or perlu_perhatian or masalah_butir or dilewati_terpilih
-        ))
+        ringkas = not (tindakan or cek_penguasaan or perlu_perhatian or masalah_butir or dilewati_terpilih)
+        pengalaman_html = f"""
+      <details class="koreksi-opsi-st koreksi-pengalaman-st"{" open" if belum_terpilih else ""}>
+        <summary>{"Catatan pengalaman anak — tersimpan" if belum_terpilih else "Catatan pengalaman anak (opsional)"}</summary>
+        <div class="koreksi-centang-st">
+          <input type="hidden" name="hadir_belum_{sid}" value="1">
+          <input type="checkbox" id="bp{sid}" name="belum_{sid}" value="1"
+                 {"checked" if belum_terpilih else ""} aria-describedby="belum-info-{sid}">
+          <label for="bp{sid}"><span class="info-anak-label-st">Dari anak:</span> Belum pernah melihat soal seperti ini</label>
+        </div>
+        <p class="koreksi-catatan-st" id="belum-info-{sid}">Centang hanya jika anak mengatakannya, bukan karena ia bingung. Ini catatan pengalaman anak, bukan keputusan pengenalan. Pilih Perlu pengenalan hanya setelah guru memastikannya.</p>
+      </details>"""
         if cara_html:
             buka_cara = cek_penguasaan or perlu_perhatian or masalah_butir or dilewati_terpilih
             judul_cara = "Catatan cara anak" if cara_tampil.strip() else "Catat penjelasan anak (opsional)"
@@ -1557,23 +1574,12 @@ def halaman_sesi_stitch(
       </fieldset>
       {"</details>" if kosong_asli else ""}
       {cara_html}
-      <details class="koreksi-opsi-st koreksi-pengalaman-st"{" open" if belum_terpilih else ""}>
-        <summary>{"Catatan pengalaman anak — tersimpan" if belum_terpilih else "Catatan pengalaman anak (opsional)"}</summary>
-        <div class="koreksi-centang-st">
-          <input type="hidden" name="hadir_belum_{b["sesi_soal_id"]}" value="1">
-          <input type="checkbox" id="bp{b["sesi_soal_id"]}"
-               name="belum_{b["sesi_soal_id"]}" value="1"
-               {"checked" if belum_terpilih else ""} aria-describedby="belum-info-{b["sesi_soal_id"]}">
-          <label for="bp{b["sesi_soal_id"]}"><span class="info-anak-label-st">Dari anak:</span> Belum pernah melihat soal seperti ini</label>
-        </div>
-        <p class="koreksi-catatan-st" id="belum-info-{b["sesi_soal_id"]}">Centang hanya jika anak mengatakannya, bukan karena ia bingung. Ini catatan pengalaman anak, bukan keputusan pengenalan. Pilih Perlu pengenalan hanya setelah guru memastikannya.</p>
-      </details>
     </fieldset>"""
         if benar_tampil:
             judul_catatan = (
                 "Cek pemahaman" if cek_penguasaan else
                 "Catatan pendampingan — perlu perhatian" if perlu_perhatian else
-                "Catatan pendampingan (opsional)"
+                "Periksa cara anak" if tindakan else "Catatan pendampingan (opsional)"
             )
             if cara_tampil.strip() or catatan:
                 catatan.append("catatan belum disimpan" if draf_butir else "catatan tersimpan")
@@ -1590,18 +1596,41 @@ def halaman_sesi_stitch(
             "Tentukan penilaian — belum dipilih" if belum_dinilai and not kode_tampil else
             "Penilaian: " + label_penilaian("benar" if benar_tampil else kode_efektif) + " — ubah"
         )
-        kartu.append(f"""
-<div class="koreksi-kartu-st"{atribut_kartu}>
+        ringkasan_hasil = 'Dilewati dari penilaian' if dilewati_terpilih else (
+            'Jawaban tepat' if benar_tampil else bulat_label
+        )
+        sinyal = [teks for teks in catatan if not teks.startswith('catatan ')]
+        if sinyal and not dilewati_terpilih:
+            ringkasan_hasil += ' · ' + ' · '.join(sinyal)
+        label_tindakan = tindakan or 'Tinjauan tercatat'
+        buka_sumber = bool(masalah_butir or sumber_perlu_diperiksa or koreksi_jawaban
+                           or draf_butir and jawaban_tampil != (b['jawaban'] or ''))
+        buka_lanjutan = bool(masalah_butir or sumber_perlu_diperiksa or dilewati_terpilih
+                             or not benar_tampil and not kode_efektif
+                             or belum_terpilih
+                             or kode_efektif == 'T' and not kode_tampil)
+        kontrol_tinjauan = review_pages.kontrol(
+            kon, sid, tinjauan_butir, draf_butir,
+            perlu_sumber=bool(sumber_perlu_diperiksa or masalah_butir),
+        )
+        kartu_html = f"""
+<details class="koreksi-kartu-st koreksi-lipat-st"{atribut_kartu} data-tindakan="{html.escape(label_tindakan)}"{' open' if buka_kartu else ''}>
+  <summary class="koreksi-ringkas-st">
+    <span class="koreksi-ringkas-kepala-st">{nomor}{tipe}<span class="koreksi-tindakan-st">{html.escape(label_tindakan)}</span></span>
+    <span class="koreksi-ringkas-hasil-st">{html.escape(ringkasan_hasil)}</span>
+  </summary>
   <div class="koreksi-isi-st {kelas_isi}">
-    <div class="koreksi-kepala-st">{nomor}{tipe}{status}</div>
+    <div class="koreksi-kepala-st">{status}</div>
     {petunjuk_masalah}
     <div class="teks-soal-st">{visual_renderer.render_pertanyaan(question_views.penyajian_dari_baris(b), gaya="guru", namespace=str(b["nomor"]))}</div>
+    {review_pages.jawaban_utama(jawaban_tampil, dikoreksi=koreksi_jawaban)}
     <details class="koreksi-opsi-st"><summary>Lihat kunci &amp; pembahasan</summary>
       <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b["kunci"])}</span></div>
       {pembahasan_html}
     </details>
+    <details class="koreksi-opsi-st koreksi-sumber-st"{' open' if buka_sumber else ''}>
+    <summary>Sumber &amp; koreksi salinan</summary>
     {sumber_asli}
-    {restate}
     <div class="koreksi-bukti-st koreksi-bukti-tunggal-st">
       <div>
         <label class="koreksi-label-st" for="jwb-{b["sesi_soal_id"]}">Jawaban anak (koreksi salinan bila perlu)</label>
@@ -1609,9 +1638,13 @@ def halaman_sesi_stitch(
                value="{html.escape(jawaban_tampil)}">
       </div>
     </div>
+    </details>
     {pendampingan}
+    <details class="koreksi-opsi-st koreksi-lanjutan-st"{' open' if buka_lanjutan else ''}>
+    <summary>Catatan &amp; penilaian lanjutan</summary>
+    {pengalaman_html}
     {kontrol_tinjauan}
-    <details class="koreksi-opsi-st koreksi-penilaian-st"{" open" if masalah_butir else ""}>
+    <details class="koreksi-opsi-st koreksi-penilaian-st"{" open" if buka_lanjutan else ""}>
       <summary>{judul_penilaian}</summary>
       {usulan}
       <label class="koreksi-label-st" for="kode-{b["sesi_soal_id"]}">Penilaian yang dipakai</label>
@@ -1641,9 +1674,11 @@ def halaman_sesi_stitch(
       </div>
       <p class="koreksi-catatan-st" id="lewati-info-{b["sesi_soal_id"]}">Saat dikonfirmasi, soal dicatat sebagai dilewati, bukan benar atau salah, dan bukan bukti pemahaman. Jawaban dan catatan asli tetap tersimpan.</p>
     </details>
+    </details>
     {bantuan if bantuan_nomor == int(b["nomor"]) else ""}
   </div>
-</div>""")
+</details>"""
+        (kartu if tindakan or buka_kartu else kartu_tercatat).append(kartu_html)
 
     kabar = f'<div class="pesan-st" role="status">{html.escape(pesan)}</div>' if pesan else ""
     if masalah_konfirmasi:
@@ -1736,11 +1771,9 @@ def halaman_sesi_stitch(
                 '</div></div>'
                 if sudah_dikonfirmasi
                 else (
-                    '<div class="status-sesi-st selesai">'
-                    '<span class="material-symbols-outlined">rule</span>'
+                    '<div class="status-sesi-st koreksi-pengantar-st">'
                     f'<div><b>{"Koreksi berubah — konfirmasi ulang diperlukan" if pernah_dikonfirmasi else "Tinjau jawaban, cara, dan pemahaman anak"}</b>'
-                    '<p>Periksa catatan anak dan usulan Jagomat. Jika sudah sesuai, '
-                    'konfirmasi hasil untuk menyimpan seluruh isian sekaligus mengesahkan bukti belajar.</p>'
+                    '<p>Periksa jawaban dan dengarkan cara anak sebelum mengonfirmasi hasil sesi.</p>'
                     '</div></div>'
                 )
             )
@@ -1775,21 +1808,33 @@ def halaman_sesi_stitch(
             )
         aksi_konfirmasi = ""
         if not sesi_dibatalkan:
-            label_konfirmasi = "Konfirmasi ulang" if pernah_dikonfirmasi else "Konfirmasi hasil"
+            label_konfirmasi = "Konfirmasi ulang hasil sesi" if pernah_dikonfirmasi else "Konfirmasi hasil sesi"
             aksi_konfirmasi = (
                 f'<button type="submit" formaction="/sesi/{sesi_id}/konfirmasi">'
                 f'{label_konfirmasi}</button>'
             )
+        kumpulan_kartu = ''.join(kartu)
+        if kartu_tercatat:
+            kumpulan_kartu += (
+                '<details class="koreksi-opsi-st koreksi-tercatat-st">'
+                f'<summary>{len(kartu_tercatat)} soal dengan tinjauan tercatat</summary>'
+                '<p class="koreksi-catatan-st">Termasuk jawaban belum tepat yang sudah diperiksa. '
+                'Buka kembali bila perlu mengoreksi.</p>'
+                + ''.join(kartu_tercatat) + '</details>'
+            )
         if sesi_dibatalkan:
-            blok_isi = "".join(kartu)
+            blok_isi = kumpulan_kartu
         else:
             # Submit default disabled memblokir implicit Enter secara native.
             # Hanya tombol konfirmasi yang dipilih eksplisit mengesahkan bukti.
             urutan_aksi = (
-                '<p class="koreksi-catatan-st">Simpan tinjauan untuk melanjutkan nanti, tanpa mengesahkan bukti. '
-                'Konfirmasi hasil hanya setelah penilaian sudah lengkap.</p>'
-                f'<button type="submit" class="sekunder" formaction="/sesi/{sesi_id}/tinjauan">Simpan tinjauan</button>'
-                f'{aksi_konfirmasi}'
+                '<p class="koreksi-catatan-st">Berlaku untuk seluruh sesi. '
+                'Simpan draf untuk melanjutkan nanti, tanpa mengesahkan hasil.</p>'
+                '<div class="koreksi-aksi-sesi-st">'
+                f'<button type="submit" class="sekunder" formaction="/sesi/{sesi_id}/tinjauan">Simpan draf</button>'
+                f'{aksi_konfirmasi}</div>'
+                '<p class="koreksi-catatan-st">Konfirmasi menyimpan semua isian dan mengesahkan hasil sesi. '
+                'Isian yang belum lengkap akan ditandai.</p>'
             )
             from review_navigation import render_antrean
             navigasi_tinjauan = (
@@ -1799,7 +1844,7 @@ def halaman_sesi_stitch(
             )
             form_hasil = (
                 f'<form id="form-koreksi-{sesi_id}" method="post" action="/sesi/{sesi_id}">'
-                f'{navigasi_tinjauan}{"".join(kartu)}<input type="hidden" name="hadir_sertakan_pemetaan" value="1">{opsi_pemetaan}'
+                f'{navigasi_tinjauan}{kumpulan_kartu}<input type="hidden" name="hadir_sertakan_pemetaan" value="1">{opsi_pemetaan}'
                 f'<div class="koreksi-simpan-st">{urutan_aksi}</div></form>'
             )
             blok_isi = (
@@ -1938,8 +1983,12 @@ def halaman_sesi_stitch(
                     bukti_siklus, int(info["siswa_id"]),
                 )
         else:
-            hasil_pemetaan = mapping_results.render_sementara(
-                outcome_tampilan, draf_gagal=bool(masalah_konfirmasi),
+            hasil_pemetaan = (
+                '<details class="koreksi-opsi-st koreksi-ringkasan-sesi-st">'
+                '<summary>Ringkasan jawaban &amp; cara penilaian</summary>'
+                + mapping_results.render_sementara(
+                    outcome_tampilan, draf_gagal=bool(masalah_konfirmasi),
+                ) + '</details>'
             )
     if hasil_pemetaan:
         label_tab = "Hasil pemetaan" if rencana_pemetaan else "Ringkasan &amp; tinjauan"
@@ -1982,6 +2031,11 @@ def halaman_sesi_stitch(
         f'<button type="submit" form="form-koreksi-{sesi_id}" hidden disabled aria-hidden="true"></button>'
         if sudah_dikirim and not sesi_dibatalkan else ""
     )
+    progres_tinjauan = (
+        render_progres(len(outcome_tampilan), len(outcome_tampilan) - len(antrean_tinjauan),
+                       draf=draf_koreksi is not None)
+        if sudah_dikirim and not sesi_dibatalkan and not konfirmasi_masih_aktif else ''
+    )
     isi = (
         f'<main class="sesi-badan-st" aria-labelledby="judul-koreksi">'
         f'{jejak}'
@@ -1992,7 +2046,7 @@ def halaman_sesi_stitch(
         f'{int(info["jumlah_soal"])} soal {badge_mode} {badge_remedial}</p></header>'
         f"{kabar}"
         f"{palang_enter}{pil}{konteks_pendamping}"
-        f"{status_sesi}"
+        f"{status_sesi}{progres_tinjauan}"
         f"{hasil_pemetaan}{rencana_pemetaan}"
         f"{aksi_rencana}"
         f"{blok_isi}"

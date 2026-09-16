@@ -160,7 +160,7 @@ def test_selesai_meminta_tinjau_lalu_satu_jalan_kembali_setelah_sah(server):
 
     perlu_tinjau = _halaman(uji, sesi_id)
     assert "Tinjau jawaban, cara, dan pemahaman anak" in perlu_tinjau
-    assert perlu_tinjau.count(">Konfirmasi hasil</button>") == 1
+    assert perlu_tinjau.count(">Konfirmasi hasil sesi</button>") == 1
     assert ">Simpan koreksi</button>" not in perlu_tinjau
 
     with uji.buka() as kon:
@@ -184,7 +184,7 @@ def test_selesai_meminta_tinjau_lalu_satu_jalan_kembali_setelah_sah(server):
     assert detail_edit and "open" not in detail_edit.group(0).split(">", 1)[0]
     assert "Koreksi hasil — perlu konfirmasi ulang bila diubah" in detail_edit.group(1)
     assert f'action="/sesi/{sesi_id}"' in detail_edit.group(1)
-    assert ">Konfirmasi ulang</button>" in detail_edit.group(1)
+    assert ">Konfirmasi ulang hasil sesi</button>" in detail_edit.group(1)
 
 
 def test_koreksi_setelah_konfirmasi_meminta_konfirmasi_ulang(server):
@@ -208,7 +208,7 @@ def test_koreksi_setelah_konfirmasi_meminta_konfirmasi_ulang(server):
     halaman = _halaman(uji, sesi_id)
 
     assert "Koreksi berubah — konfirmasi ulang diperlukan" in halaman
-    assert halaman.count(">Konfirmasi ulang</button>") == 1
+    assert halaman.count(">Konfirmasi ulang hasil sesi</button>") == 1
     assert '<details class="panduan-edit-hasil-st">' not in halaman
     assert ">Simpan koreksi</button>" not in halaman
     assert 'hidden disabled aria-hidden="true"' in halaman

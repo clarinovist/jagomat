@@ -279,7 +279,7 @@ def test_hierarki_form_tunggal_dan_palang_enter(server):
     assert "Kode (kosong" not in badan and "— pilih —" not in badan
     assert badan.count(f'action="/sesi/{s.sesi}"') == 1
     assert ">Simpan koreksi</button>" not in badan
-    assert badan.count(">Konfirmasi hasil</button>") == 1
+    assert badan.count(">Konfirmasi hasil sesi</button>") == 1
     assert re.search(r'<button type="submit" form="form-koreksi-\d+" hidden disabled', badan)
     paham = re.search(r'<fieldset class="koreksi-pemahaman-st">(.*?)</fieldset>', badan, re.S)[1]
     pengalaman = re.search(r'<details class="koreksi-opsi-st koreksi-pengalaman-st"[^>]*>(.*?)</details>', badan, re.S)[1]

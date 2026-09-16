@@ -116,8 +116,8 @@ def test_tombol_konfirmasi_tetap_ada_setelah_dikonfirmasi_dan_setelah_koreksi(db
             teacher_pages.halaman_sesi_stitch(kon, sesi_id)
         )
 
-    assert halaman_terkonfirmasi.count(">Konfirmasi ulang</button>") == 1
-    assert halaman_setelah_koreksi.count(">Konfirmasi ulang</button>") == 1
+    assert halaman_terkonfirmasi.count(">Konfirmasi ulang hasil sesi</button>") == 1
+    assert halaman_setelah_koreksi.count(">Konfirmasi ulang hasil sesi</button>") == 1
     assert 'formaction="/sesi/{}/konfirmasi"'.format(sesi_id) in halaman_setelah_koreksi
 
 
@@ -230,6 +230,6 @@ def test_marker_penjelasan_koreksi_lama_tetap_ada(db):
         _isi_benar(kon, butir)
         halaman = _badan(teacher_pages.halaman_sesi_stitch(kon, sesi_id))
 
-    assert "Periksa catatan anak dan usulan Jagomat" in halaman
-    assert "menyimpan seluruh isian sekaligus mengesahkan bukti belajar" in halaman
+    assert "Periksa jawaban dan dengarkan cara anak" in halaman
+    assert "Konfirmasi menyimpan semua isian dan mengesahkan hasil sesi." in halaman
     assert ">Simpan koreksi</button>" not in halaman

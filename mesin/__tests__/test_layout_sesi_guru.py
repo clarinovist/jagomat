@@ -211,8 +211,11 @@ def test_status_menyatu_dengan_nomor_dan_jenis_soal(db):
 
     kepala = re.search(r'<div class="koreksi-kepala-st">(.*?)</div>', halaman, re.S)
     assert kepala
-    assert "koreksi-nomor-st" in kepala.group(1)
-    assert "koreksi-tipe-st" in kepala.group(1)
+    ringkas = re.search(r'<summary class="koreksi-ringkas-st">(.*?)</summary>', halaman, re.S)
+    assert ringkas
+    assert "koreksi-nomor-st" in ringkas.group(1)
+    assert "koreksi-tipe-st" in ringkas.group(1)
+    assert "Periksa cara anak" in ringkas.group(1)
     assert "koreksi-status-st" in kepala.group(1)
     assert '<span class="kode benar">BENAR</span>' in kepala.group(1)
     assert '<span class="koreksi-status-label-st">Tepat</span>' in kepala.group(1)

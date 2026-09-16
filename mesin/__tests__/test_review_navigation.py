@@ -71,8 +71,8 @@ def test_antrean_kosong_dan_pekerjaan_sebagian_tanpa_mengubah_form_atau_data(db)
         sebelum = tuple(kon.iterdump())
         html = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
         nav = Navigasi(html)
-        assert nav.tautan == [f'#tinjau-soal-{sid}' for sid in ids[1:]]
-        assert '2 soal perlu ditinjau' in html
+        assert nav.tautan == [f'#tinjau-soal-{sid}' for sid in ids]
+        assert '3 soal perlu ditinjau' in html
         assert len(nav.kartu) == 3
         assert len(nav.ids) == len(set(nav.ids))
         for sid in ids:
@@ -80,8 +80,8 @@ def test_antrean_kosong_dan_pekerjaan_sebagian_tanpa_mengubah_form_atau_data(db)
             assert kartu['tabindex'] == '-1'
         form = FormKoreksi(html, sesi).data
         assert all(f'jwb_{sid}' in form for sid in ids)
-        assert html.count('>Simpan tinjauan</button>') == 1
-        assert html.count('>Konfirmasi hasil</button>') == 1
+        assert html.count('>Simpan draf</button>') == 1
+        assert html.count('>Konfirmasi hasil sesi</button>') == 1
         assert tuple(kon.iterdump()) == sebelum
 
 
@@ -91,7 +91,7 @@ def test_draf_efektif_mengubah_antrean_tanpa_menilai_ulang_db(db):
         draf = DrafKoreksi(tuple((sid, DrafButir('123', 'benar' if n else '',
                     'Cara', '', n == 2, False)) for n, sid in enumerate(ids)), False)
         html = teacher_pages.halaman_sesi_stitch(kon,sesi,draf_koreksi=draf).decode()
-        assert Navigasi(html).tautan == [f'#tinjau-soal-{ids[0]}']
+        assert Navigasi(html).tautan == [f'#tinjau-soal-{sid}' for sid in ids[:2]]
         assert 'Antrean mengikuti isian yang sedang ditampilkan' in html
         assert database.isi_sesi(kon,sesi)[0]['benar'] == 1
 
@@ -122,7 +122,7 @@ def test_antrean_tidak_muncul_pada_keadaan_yang_tidak_memerlukan_nav(db, keadaan
         elif keadaan == 'dikonfirmasi':
             database.konfirmasi_hasil(kon,sesi,'guru',dilewati=set(ids[1:]))
         else:
-            for sid in ids[1:]:
+            for sid in ids:
                 kon.execute('INSERT INTO tinjauan_guru(sesi_soal_id,revisi,dilewati,guru) VALUES (?,1,1,\'guru\')',(sid,))
         html=teacher_pages.halaman_sesi_stitch(kon,sesi).decode()
         assert not Navigasi(html).tautan
@@ -159,8 +159,8 @@ def test_simpan_tinjauan_redirect_get_menampilkan_status_tetap(server):
     status,html,_=s.minta(f'/sesi/{s.sesi}/tinjauan',auth=('guru',SANDI_GURU),data=data)
     assert status==200
     assert 'Tinjauan tersimpan. Konfirmasi hasil tetap merupakan langkah terpisah.' in html
-    assert html.count('>Simpan tinjauan</button>')==1
-    assert html.count('>Konfirmasi hasil</button>')==1
+    assert html.count('>Simpan draf</button>')==1
+    assert html.count('>Konfirmasi hasil sesi</button>')==1
     assert FormKoreksi(html,s.sesi).data[f'catatan_tinjauan_{s.ids[1]}']=='Catatan tinjauan sintetis'
     with s.buka() as kon:
         assert kon.execute('SELECT count(*) FROM snapshot_outcome').fetchone()[0]==0

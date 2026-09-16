@@ -29,6 +29,9 @@ def sumber_html(awal, b, foto=False):
     pengalaman = awal['belum_pernah'] if awal else b['belum_pernah']
     if cara.startswith('[pilihan] bingung'):
         cara = 'Aku bingung' + cara[len('[pilihan] bingung'):]
+    else:
+        from teacher_corrections import cara_untuk_form
+        cara = cara_untuk_form(cara)
     tambahan = ''
     label_catatan = 'Catatan dari anak' if awal else 'Catatan tersimpan (sumber awal belum tersedia)'
     if cara:
@@ -51,7 +54,17 @@ def sumber_html(awal, b, foto=False):
             PERTANYAAN.get(alasan, 'Tadi waktu mengerjakan soal ini, apa yang membuatmu belum menjawab?') if kosong else 'Kamu dapat jawaban ini dari mana?', kosong)
 
 
-def kontrol(kon, sid, tinjauan, draf):
+def jawaban_utama(jawaban, *, dikoreksi=False):
+    """Ringkas nilai efektif; rekaman pengiriman tetap ada pada detail sumber."""
+    label = 'Jawaban anak — salinan dikoreksi' if dikoreksi else 'Jawaban anak'
+    return (
+        '<section class="koreksi-jawaban-utama-st">'
+        f'<span class="koreksi-label-st">{label}</span>'
+        f'<p>{escape(jawaban) if jawaban.strip() else "Belum diisi"}</p></section>'
+    )
+
+
+def kontrol(kon, sid, tinjauan, draf, *, perlu_sumber=False):
     catatan = nilai(tinjauan, draf, 'catatan_tinjauan')
     provenance = nilai(tinjauan, draf, 'provenance')
     bantuan = nilai(tinjauan, draf, 'jawaban_bantuan')
@@ -60,12 +73,12 @@ def kontrol(kon, sid, tinjauan, draf):
         ('', 'Belum dicatat'), ('penjelasan_asli', 'Penjelasan pekerjaan asli, tanpa bantuan'),
         ('koreksi_transkripsi', 'Koreksi salinan pekerjaan asli'), ('setelah_bantuan', 'Hasil setelah diberi petunjuk atau contoh'),
     ))
-    buka = bool(catatan or provenance or bantuan)
+    buka = bool(catatan or provenance or bantuan or perlu_sumber)
     return f'''<details class="koreksi-opsi-st koreksi-tinjauan-st"{' open' if buka else ''}><summary>Catatan tinjauan guru (opsional)</summary>
 <fieldset class="koreksi-pemahaman-st"><legend>Catatan tinjauan guru</legend>
 <label class="koreksi-label-st" for="tinjauan-{sid}">Catatan percakapan (boleh dilanjutkan nanti)</label>
 <textarea class="koreksi-textarea-st" name="catatan_tinjauan_{sid}" id="tinjauan-{sid}" maxlength="8000">{escape(catatan)}</textarea>
-<details class="koreksi-opsi-st"{' open' if provenance or bantuan else ''}><summary>Catat sumber koreksi atau hasil setelah dibantu</summary>
+<details class="koreksi-opsi-st"{' open' if provenance or bantuan or perlu_sumber else ''}><summary>Catat sumber koreksi atau hasil setelah dibantu</summary>
 <label class="koreksi-label-st" for="provenance-{sid}">Sumber penjelasan atau koreksi</label>
 <select class="koreksi-select-st" name="provenance_{sid}" id="provenance-{sid}">{opsi}</select>
 <label class="koreksi-label-st" for="bantuan-{sid}">Jawaban setelah dibantu (jika ada, bukan jawaban mandiri)</label>

@@ -78,7 +78,7 @@ def test_gagal_menampilkan_semua_nomor_dan_draf_tanpa_menyimpan(server):
         assert f'aria-describedby="masalah-soal-{sid}"' in kontrol
     for b in s.butir[2:]:
         assert f'href="#tinjau-soal-{b["sesi_soal_id"]}"' not in isi
-    assert isi.count(">Konfirmasi hasil</button>") == 1
+    assert isi.count(">Konfirmasi hasil sesi</button>") == 1
     assert '<option value="" selected>Gunakan usulan Jagomat</option>' not in isi.split('id="kode-', 1)[1].split('</select>', 1)[0]
 
     pulih = FormKoreksi(isi, s.sesi).data
@@ -114,7 +114,7 @@ def test_konfirmasi_ulang_gagal_membuka_draf_dan_mempertahankan_bukti(server, op
     assert "Hasil saat ini sudah sah" not in isi
     assert "Lihat rencana berikutnya" not in isi
     assert '<details class="panduan-edit-hasil-st">' not in isi
-    assert isi.count(">Konfirmasi ulang</button>") == 1
+    assert isi.count(">Konfirmasi ulang hasil sesi</button>") == 1
     assert "Pilihan ini belum disimpan" in isi
 
 

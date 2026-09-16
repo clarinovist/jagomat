@@ -2717,6 +2717,42 @@ CSS_SESI = f"""
 .koreksi-editorial-st .koreksi-kartu-st[tabindex]:focus {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
 .koreksi-editorial-st .koreksi-kartu-st[tabindex] {{ scroll-margin-top: {T.SP_6}; }}
 
+/* Tinjauan progresif: kontrol di details tetap dikirim oleh form native. */
+.koreksi-editorial-st .koreksi-pengantar-st {{ background: none; border: 0; padding: {T.SP_2} 0; margin-bottom: {T.SP_3}; }}
+.koreksi-editorial-st .koreksi-lipat-st {{ display: block; padding: 0; box-shadow: none; }}
+.koreksi-editorial-st .koreksi-lipat-st > summary {{
+  cursor: pointer; min-height: {T.TARGET_SENTUH}; padding: {T.SP_4};
+  color: {T.TEKS_JUDUL}; overflow-wrap: anywhere;
+}}
+.koreksi-lipat-st > summary:focus-visible {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+.koreksi-ringkas-kepala-st {{ display: inline-flex; align-items: center; gap: {T.SP_2}; flex-wrap: wrap; width: calc(100% - 2rem); vertical-align: middle; }}
+.koreksi-ringkas-kepala-st .koreksi-tipe-st {{ background: none; padding: 0; font-size: 1rem; color: {T.TEKS_JUDUL}; }}
+.koreksi-tindakan-st {{ margin-left: auto; font-size: .8rem; color: {T.TEKS_JUDUL}; background: {T.LATAR_CATATAN}; padding: {T.SP_1} {T.SP_2}; border-radius: {T.RADIUS_PIL}; }}
+.koreksi-ringkas-hasil-st {{ display: block; margin: {T.SP_2} 0 0 {T.SP_6}; font-size: .85rem; color: {T.TEKS_VARIAN}; }}
+.koreksi-lipat-st[open] > summary {{ border-bottom: 1px solid {T.BORDER_VARIAN}; }}
+.koreksi-lipat-st[open] > summary .koreksi-ringkas-hasil-st {{ display: none; }}
+.koreksi-editorial-st .koreksi-lipat-st > .koreksi-isi-st {{ padding: {T.SP_4}; opacity: 1; }}
+.koreksi-lipat-st .koreksi-kepala-st {{ justify-content: flex-end; }}
+.koreksi-lipat-st .koreksi-pendampingan-st {{ border-top: 1px solid {T.BORDER_VARIAN}; }}
+.koreksi-lipat-st .koreksi-pemahaman-st {{ border: 0; padding: 0; }}
+.koreksi-lipat-st .koreksi-pendampingan-st[open] > summary {{ padding-bottom: {T.SP_2}; }}
+.koreksi-lipat-st .koreksi-lanjutan-st {{ border-top: 1px solid {T.BORDER_VARIAN}; }}
+.koreksi-jawaban-utama-st {{ background: {T.LATAR_SEKUNDER_LEMBUT}; border-radius: {T.RADIUS_SEDANG}; padding: {T.SP_4}; overflow-wrap: anywhere; }}
+.koreksi-jawaban-utama-st p {{ margin: 0; font-size: 1.35rem; font-weight: 700; color: {T.TEKS_JUDUL}; white-space: pre-wrap; }}
+.koreksi-progres-st {{ padding: {T.SP_4}; margin-bottom: {T.SP_3}; background: {T.LATAR_KARTU}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU}; }}
+.koreksi-progres-st h2 {{ font-size: 1.3rem; margin: {T.SP_2} 0; }}
+.koreksi-progres-st progress {{ width: 100%; height: .6rem; accent-color: {T.AKSEN_TEAL_TUA}; }}
+.koreksi-progres-st .editorial-alis-st {{ margin: 0; }}
+.koreksi-ringkasan-sesi-st {{ margin-bottom: {T.SP_4}; }}
+.koreksi-editorial-st .antrean-tinjauan-st {{ border: 0; background: none; padding: {T.SP_3} 0; margin-bottom: {T.SP_3}; }}
+.koreksi-editorial-st .koreksi-tercatat-st {{ padding: {T.SP_3} {T.SP_4}; background: {T.LATAR_KARTU}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG}; margin-bottom: {T.SP_4}; }}
+.koreksi-tercatat-st .koreksi-tindakan-st {{ background: {T.LATAR_SEKUNDER_LEMBUT}; }}
+.koreksi-tercatat-st > p {{ margin-bottom: {T.SP_3}; }}
+@media (max-width: 30rem) {{
+  .koreksi-ringkas-kepala-st {{ align-items: flex-start; }}
+  .koreksi-ringkas-kepala-st .koreksi-tindakan-st {{ margin-left: {T.SP_6}; }}
+}}
+
 /* Label kecil di kartu koreksi. */
 .koreksi-label-st {{
   display: block; font-family: {T.FONT_HEADLINE}; font-weight: 600;
@@ -2825,6 +2861,14 @@ CSS_SESI = f"""
 .koreksi-simpan-st:has(button[formaction]) button:not([formaction]) {{
   background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
   border: 1px solid {T.BORDER_HALUS}; box-shadow: none;
+}}
+
+/* Satu area aksi sesi, tidak mengambang di atas kartu yang sedang dibaca. */
+.koreksi-editorial-st .koreksi-simpan-st {{ position: static; padding: {T.SP_4} 0; gap: {T.SP_3}; }}
+.koreksi-aksi-sesi-st {{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: {T.SP_3}; }}
+.koreksi-aksi-sesi-st button:focus-visible {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+@media (max-width: 30rem) {{
+  .koreksi-aksi-sesi-st {{ grid-template-columns: minmax(0, 1fr); }}
 }}
 
 /* Rencana belajar jelas — panduan sesi */

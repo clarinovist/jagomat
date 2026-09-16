@@ -41,7 +41,7 @@ def test_default_submit_koreksi_tidak_berubah_menjadi_konfirmasi(db):
     # Default submit native disabled: Enter tidak membuat bukti atau menyimpan
     # sebagian isian. Konfirmasi hanya lewat tombol yang dipilih eksplisit.
     palang = f'<button type="submit" form="form-koreksi-{sesi}" hidden disabled'
-    assert isi.index(palang) < isi.index('>Konfirmasi hasil</button>')
+    assert isi.index(palang) < isi.index('>Konfirmasi hasil sesi</button>')
     assert '>Simpan koreksi</button>' not in isi
 
 

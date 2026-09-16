@@ -48,8 +48,8 @@ def test_kosong_ui_pertanyaan_relevan_dan_roundtrip_tinjauan(server):
     data, html = _form(s)
     assert 'apa yang membuatmu belum menjawab?' in html
     assert 'Kamu dapat jawaban ini dari mana?' not in html
-    assert html.count('>Simpan tinjauan</button>') == 1
-    assert html.count('>Konfirmasi hasil</button>') == 1
+    assert html.count('>Simpan draf</button>') == 1
+    assert html.count('>Konfirmasi hasil sesi</button>') == 1
     assert 'Jawaban saat dikirim' in html
     data[f'catatan_tinjauan_{s.sid}'] = 'Belum sempat <script>contoh</script>'
     status, _, _ = s.minta(f'/sesi/{s.sesi}/tinjauan', auth=('guru', SANDI_GURU), data=data)
