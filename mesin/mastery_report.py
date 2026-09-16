@@ -38,7 +38,6 @@ GAYA_PETA = f"""
 .peta-materi-st .peta-nilai {{text-align:right;white-space:nowrap;color:{T.TEKS_JUDUL};font-weight:700;}}
 .peta-materi-st .peta-target {{list-style:none;padding:0;margin:0;}}
 .peta-materi-st .peta-target > li {{padding:{T.SP_3} 0;border-top:1px solid {T.BORDER_HALUS};overflow-wrap:anywhere;}}
-.peta-materi-st .peta-target summary {{cursor:pointer;min-height:{T.TARGET_SENTUH};padding:{T.SP_2} 0;}}
 .peta-materi-st .peta-target p {{margin:{T.SP_2} 0;}}
 .peta-materi-st .peta-bukti {{padding-left:{T.SP_5};}}
 .peta-materi-st .peta-aktivitas {{font-size:.95rem;}}
@@ -104,12 +103,12 @@ def _rincian_target(target, hasil, tanggal):
     terpenuhi = sum(p.status == "terbukti" for p in hasil.pola)
     return (
         f'<li><b>{html.escape(target.nama)}</b> — {LABEL[hasil.status]}'
-        f'<details><summary>{terpenuhi}/{len(target.pola)} pola menunjukkan pemahaman</summary>'
-        '<ul class="peta-bukti">' + ''.join(bukti) + '</ul></details></li>'
+        f'<p class="peta-catatan">{terpenuhi}/{len(target.pola)} pola menunjukkan pemahaman</p>'
+        '<ul class="peta-bukti">' + ''.join(bukti) + '</ul></li>'
     )
 
 
-def render_peta(peta, tanggal):
+def render_peta(peta, tanggal, ringkas=False):
     kelas = html.escape(label_kelas(peta.level))
     if not peta.target:
         return ('<section class="kartu peta-materi-st" id="peta-penguasaan">'
@@ -128,7 +127,7 @@ def render_peta(peta, tanggal):
     topik_dinilai = sum(any(s.status != "belum_dinilai" for _, s in pasangan)
                         for pasangan in per_topik.values())
     rincian = []
-    for (_, nama), pasangan in per_topik.items():
+    for (_, nama), pasangan in (() if ringkas else per_topik.items()):
         hasil = tuple(s for _, s in pasangan)
         terbukti = sum(s.status == "terbukti" for s in hasil)
         belum = sum(s.status == "belum_dinilai" for s in hasil)
@@ -142,7 +141,7 @@ def render_peta(peta, tanggal):
             + ''.join(_rincian_target(t, s, tanggal) for t, s in pasangan) + '</ul></details>'
         )
     label_angka = "Belum dinilai" if peta.persen is None else "target menunjukkan pemahaman"
-    return (
+    kepala = (
         '<section class="kartu peta-materi-st" id="peta-penguasaan" aria-labelledby="judul-peta">'
         '<div class="peta-kepala"><div><h2 id="judul-peta">Progres penguasaan materi Jagomat</h2>'
         f'<p>{kelas} · {total} target keterampilan dalam {len(per_topik)} materi</p></div>'
@@ -153,7 +152,16 @@ def render_peta(peta, tanggal):
         f'· {sudah_dinilai}/{total} target memiliki catatan penilaian atau pemeriksaan.</p>'
         '<p class="peta-catatan">Belum dinilai bukan berarti tidak mampu. Angka ini menunjukkan '
         'kemajuan target Jagomat, bukan nilai seluruh kurikulum sekolah.</p>'
-        '<h3>Penguasaan per materi</h3>' + ''.join(rincian) +
+        '<p class="peta-catatan">Target menunjukkan pemahaman jika semua polanya memiliki bukti '
+        'terkonfirmasi yang memenuhi kriteria, termasuk anak bisa menjelaskan; bukan hanya jawaban benar sekali.</p>'
+    )
+    if peta.persen is None:
+        kepala += ('<p class="peta-catatan">Belum ada bukti yang memenuhi syarat penilaian penguasaan. '
+                   'Mulai dari langkah pada rencana belajar.</p>')
+    if ringkas:
+        return kepala + '</section>'
+    return (
+        kepala + '<h3>Penguasaan per materi</h3>' + ''.join(rincian) +
         '<details class="laporan-dasar"><summary>Kriteria target menunjukkan pemahaman</summary>'
         '<ul><li>Semua pola dalam target telah diperiksa dengan soal bervariasi.</li>'
         '<li>Bukti terkonfirmasi, hasil cukup baik, dan anak bisa menjelaskan; '

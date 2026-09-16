@@ -215,7 +215,7 @@ def test_laporan_menampilkan_kolom_topik(db):
         sid = database.tambah_siswa(kon, "Laporan Bertopik")
         sesi_id = database.buat_sesi(kon, sid, seed=79)
         database.tandai_selesai(kon, sesi_id)
-        isi = reports.halaman_laporan(kon, sid).decode()
+        isi = reports.halaman_laporan(kon, sid, section="riwayat").decode()
     assert '<th scope="col">Topik</th>' in isi
     assert "Pola Bilangan" in isi
 
@@ -263,7 +263,7 @@ def test_alur_aritmetika_memakai_judul_dan_laporan_topik_sendiri(server):
     )
     assert kode == 200
 
-    kode, isi, _ = server.minta(f"/laporan/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = server.minta(f"/laporan/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU))
     assert kode == 200
     assert "Aritmetika Dasar" in isi
 
@@ -289,7 +289,7 @@ def test_laporan_detail_menampilkan_topik_pada_dua_tabel(db):
                 alasan="uji topik",
             )
             database.tandai_selesai(kon, sesi_id)
-        isi = reports.halaman_laporan(kon, sid).decode()
+        isi = reports.halaman_laporan(kon, sid, section="riwayat").decode()
 
     assert isi.count('<th scope="col">Topik</th>') == 3
     assert "Aritmetika Dasar" in isi
@@ -364,7 +364,7 @@ def test_alur_guru_murid_jawab_laporan_bertopik(server):
     )
     assert kode == 200
 
-    kode, isi, _ = server.minta(f"/laporan/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = server.minta(f"/laporan/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU))
     assert kode == 200
     assert '<th scope="col">Topik</th>' in isi
     assert "Pola Bilangan" in isi
@@ -472,6 +472,6 @@ def test_alur_geometri_datar_guru_murid_laporan(server):
     assert kode == 200
 
     # laporan guru menampilkan nama ramah, bukan ID internal
-    kode, isi, _ = server.minta(f"/laporan/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = server.minta(f"/laporan/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU))
     assert kode == 200
     assert "Geometri Datar" in isi

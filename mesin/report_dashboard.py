@@ -5,7 +5,7 @@ import html
 from datetime import timedelta
 
 import design_tokens as T
-from cycle_report import JENIS, judul_tindakan, render_perjalanan
+from cycle_report import JENIS, judul_tindakan
 from report_summary import _langkah, _perlu_diperiksa, _terlihat
 from templates import label_kelas
 
@@ -32,14 +32,33 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .laporan-materi progress {{
   width:100%; max-width:10rem; accent-color:{T.AKSEN_TEAL_TUA}; display:block; margin-top:{T.SP_2};
 }}
-.laporan-editorial-st .laporan-resume summary,.laporan-editorial-st .laporan-bukti summary {{
-  min-height:{T.TARGET_SENTUH}; cursor:pointer; padding:{T.SP_3} 0; font-weight:700;
+.laporan-editorial-st .laporan-navigasi {{
+  display:flex; flex-wrap:wrap; gap:{T.SP_2}; margin:0 0 {T.SP_5};
+  border-bottom:1px solid {T.BORDER_CATATAN}; padding-bottom:{T.SP_3};
 }}
-.laporan-editorial-st .laporan-resume > summary {{
-  background:{T.LATAR_KARTU_SEKUNDER}; color:{T.TEKS_JUDUL}; border-radius:{T.RADIUS_KECIL};
-  padding:{T.SP_4}; font-size:1.1rem;
+.laporan-editorial-st .laporan-navigasi a {{
+  display:inline-flex; align-items:center; justify-content:center; min-height:{T.TARGET_SENTUH};
+  padding:{T.SP_3} {T.SP_4}; border-radius:{T.RADIUS_KECIL}; text-decoration:none; font-weight:600;
 }}
-.laporan-editorial-st .laporan-resume summary:focus-visible {{outline:2px solid {T.AKSEN_TEAL_TUA};}}
+.laporan-editorial-st .laporan-navigasi a[aria-current="page"] {{background:{T.AKSEN_TEAL_TUA};color:{T.TEKS_PUTIH};}}
+.laporan-editorial-st .laporan-resume {{border-top:3px solid {T.AKSEN_TEAL_TUA};}}
+.laporan-editorial-st .resume-langkah {{font-size:1.12rem; font-weight:600;}}
+.laporan-editorial-st .resume-konteks {{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:{T.SP_5};
+  border-top:1px solid {T.BORDER_CATATAN};margin-top:{T.SP_5};padding-top:{T.SP_3};
+}}
+.laporan-editorial-st .laporan-mingguan > section {{border:0;padding:0;margin:{T.SP_4} 0 0;}}
+.laporan-editorial-st .laporan-dasar {{border-top:1px solid {T.BORDER_CATATAN};margin-top:{T.SP_4};padding-top:{T.SP_3};}}
+.laporan-editorial-st .laporan-materi {{overflow-wrap:normal;}}
+.laporan-editorial-st .tabel-tren table {{min-width:0;table-layout:auto;overflow-wrap:normal;}}
+.laporan-editorial-st .tabel-tren th {{white-space:nowrap;}}
+.laporan-editorial-st .tabel-tren td {{vertical-align:top;}}
+.laporan-editorial-st .tabel-tren th:nth-child(3) {{text-align:right;}}
+.laporan-editorial-st .tabel-tren small {{display:block;color:{T.TEKS_SUBTLE};margin-top:{T.SP_1};}}
+.laporan-editorial-st .rasio-laporan {{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700;}}
+.laporan-editorial-st .tabel-tren td:last-child a {{white-space:nowrap;gap:{T.SP_2};}}
+.laporan-editorial-st .laporan-metrik .metrik-dasar {{font-size:.8rem;color:{T.TEKS_SUBTLE};}}
+.laporan-editorial-st .riwayat-putaran-laporan {{border-top:1px solid {T.BORDER_CATATAN};margin-top:{T.SP_5};}}
 .laporan-editorial-st .aksi-rencana-laporan {{
   display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH};
   background:{T.AKSEN_TEAL_TUA}; color:{T.LATAR_KARTU}; padding:{T.SP_3} {T.SP_4};
@@ -57,6 +76,11 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .editorial-kepala-st h1 {{overflow-wrap:anywhere;}}
 @media(max-width:46rem) {{
   .laporan-editorial-st .laporan-metrik {{grid-template-columns:repeat(2,minmax(0,1fr)); gap:{T.SP_3};}}
+  .laporan-editorial-st .resume-konteks {{grid-template-columns:minmax(0,1fr);gap:{T.SP_2};}}
+  .laporan-editorial-st .laporan-navigasi a {{flex:1 1 auto;font-size:.9rem;padding:{T.SP_2} {T.SP_3};}}
+  .laporan-editorial-st .tabel-tren td > span {{min-width:0;overflow-wrap:anywhere;}}
+  .laporan-editorial-st .tabel-tren td[colspan]::before {{display:none;}}
+  .laporan-editorial-st .tabel-tren thead {{display:table-header-group;position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}}
   .laporan-editorial-st .laporan-materi thead {{position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%);}}
   .laporan-editorial-st .laporan-materi,.laporan-editorial-st .laporan-materi tbody,
   .laporan-editorial-st .laporan-materi tr,.laporan-editorial-st .laporan-materi td {{display:block;}}
@@ -95,7 +119,9 @@ def _perubahan(materi) -> str:
 def render_aktivitas(data, tanggal) -> str:
     kini = data.kini
     kartu = "".join(
-        f'<div class="stat"><strong>{nilai}</strong><span>{label}</span></div>'
+        f'<div class="stat"><strong>{nilai}</strong><span>{label}</span>'
+        + (f'<span class="metrik-dasar">{kini.benar} benar dari {kini.dinilai} soal dinilai</span>'
+           if label == "ketepatan jawaban latihan" else '') + '</div>'
         for nilai, label in (
             (str(kini.dikerjakan), "soal dikerjakan"),
             (str(kini.benar), "butir benar"),
@@ -110,6 +136,9 @@ def render_aktivitas(data, tanggal) -> str:
         f'<p class="laporan-periode">{tanggal(data.mulai.isoformat())} – '
         f'{tanggal(data.akhir.isoformat())} · WIB</p>'
         f'<div class="kartu-stat laporan-metrik">{kartu}</div>{label_sementara}'
+        '<p class="laporan-catatan">Ketepatan dihitung dari jawaban yang sudah dinilai benar atau salah, '
+        'bukan seluruh soal tersedia. Ini bukan persentase pemahaman. '
+        'Tanda — berarti belum ada jawaban yang bisa dinilai.</p>'
         '<p class="laporan-catatan">'
         f'{kini.perlu_ditinjau} jawaban perlu ditinjau · '
         f'{kini.belum_dikenalkan} perlu cek pengenalan materi · {kini.dilewati} dilewati.</p>'
@@ -157,13 +186,13 @@ def render_materi(data, nama_tipe, tanggal) -> str:
         f'{tanggal(akhir_lalu.isoformat())}. {len(data.sebanding)} kelompok latihan memiliki data sebanding.</p>'
         f'{isi}<p class="laporan-catatan">Persentase adalah hasil jawaban, bukan persentase pemahaman. '
         'Tanda — berarti belum ada jawaban yang bisa dinilai.</p>'
-        '<details class="laporan-dasar"><summary>Dasar perbandingan</summary>'
+        '<div class="laporan-dasar"><h3>Dasar perbandingan</h3>'
         '<p class="laporan-catatan">Perubahan hanya dibandingkan pada tipe soal, kelas, jenis latihan, tujuan, dan representasi yang sama, '
         'dengan minimal 5 butir dinilai per periode. Ini batas kecukupan tampilan, bukan bukti peningkatan kemampuan. '
         'Jumlah soal dasar selalu ditampilkan; komposisi kelompok tidak digabung menjadi skor penguasaan.</p>'
         '<p class="laporan-catatan">Contoh cara baca: 80% menjadi 85% berarti naik 5 poin persentase. '
         'Status pemahaman dan jadwal pemeriksaan ada di rencana belajar.</p>'
-        '</details></section>'
+        '</div></section>'
     )
 
 
@@ -177,8 +206,13 @@ def render_resume(perjalanan, tugas, siswa_id, nama_tipe, nama_topik, tanggal) -
         if satu["id"] != rencana.sesi_id:
             nama = f'<a href="/sesi/{int(satu["id"])}">{nama}</a>'
         daftar.append(f'<li>{nama}: {satu["terisi"]}/{satu["tersedia"]} soal terisi.</li>')
-    belum = ('<ul class="laporan-tugas">' + ''.join(daftar) + '</ul>' if daftar else
-             '<p>Tidak ada sesi latihan yang belum selesai.</p>')
+    belum = (
+        '<details class="laporan-tugas-rincian"><summary>Belum selesai dikerjakan '
+        f'({len(daftar)} sesi)</summary><ul class="laporan-tugas">' + ''.join(daftar) + '</ul>'
+        '<p class="laporan-catatan">Terisi juga mencakup pilihan status, bukan berarti selesai dikerjakan. '
+        'Latihan manual atau kelas lama tidak menghalangi langkah utama.</p></details>'
+        if daftar else ''
+    )
     materi = tuple(dict.fromkeys(kunci[0] for kunci in rencana.kandidat))
     materi_html = (
         '<p>Materi berikutnya: <b>' + ', '.join(html.escape(nama_tipe(t)) for t in materi) + '</b>.</p>'
@@ -189,21 +223,16 @@ def render_resume(perjalanan, tugas, siswa_id, nama_tipe, nama_topik, tanggal) -
         label = "Lanjutkan latihan" if rencana.tindakan == "lanjutkan_sesi" else "Tinjau hasil latihan"
     else:
         tujuan = f'/anak/{int(siswa_id)}#judul-rencana-belajar'
-        label = "Buka langkah belajar ini"
+        label = "Buka rencana di profil anak"
     return (
-        '<details class="kartu laporan-resume" id="rencana-belajar-laporan">'
-        '<summary>Lihat rencana belajar</summary>'
+        '<section class="kartu laporan-resume" id="rencana-belajar-laporan" aria-labelledby="judul-resume">'
         '<div class="kartu ringkasan-laporan">'
-        '<h2>Rencana belajar berikutnya</h2>'
-        '<h3>Belum selesai dikerjakan</h3>' + belum +
-        '<p class="laporan-catatan">Terisi juga mencakup pilihan status, bukan berarti selesai dikerjakan. '
-        'Latihan manual atau kelas lama tidak menghalangi langkah utama.</p>'
-        '<section><h3>Posisi belajar saat ini</h3>' + _terlihat(perjalanan, nama_tipe) + '</section>'
-        '<section><h3>Masih perlu diperiksa</h3>' + _perlu_diperiksa(perjalanan, nama_tipe) + '</section>'
-        '<section><h3>Berikutnya dipelajari</h3>'
-        f'{materi_html}<p>{_langkah(perjalanan, tanggal)}</p></section>'
+        '<h2 id="judul-resume">Rencana belajar berikutnya</h2>'
+        f'{materi_html}<p class="resume-langkah">{_langkah(perjalanan, tanggal)}</p>'
         f'<a class="tombol aksi-rencana-laporan" href="{tujuan}">{label}</a>'
-        '</div></details>'
-        '<details class="kartu laporan-bukti"><summary>Perjalanan dan bukti belajar</summary>'
-        + render_perjalanan(perjalanan, nama_tipe, tanggal) + '</details>'
+        '<div class="resume-konteks"><section><h3>Posisi belajar saat ini</h3>'
+        f'<p class="laporan-catatan">Pemetaan {min(len(perjalanan.tanggal_pemetaan), 3)} dari 3 tanggal.</p>'
+        + _terlihat(perjalanan, nama_tipe) + '</section>'
+        '<section><h3>Masih perlu diperiksa</h3>' + _perlu_diperiksa(perjalanan, nama_tipe)
+        + '</section></div>' + belum + '</div></section>'
     )

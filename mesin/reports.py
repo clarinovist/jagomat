@@ -11,6 +11,7 @@ from datetime import datetime
 
 import database
 from learning_journey import perjalanan_belajar
+from cycle_report import render_perjalanan
 from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_resume
 from report_metrics import hari_wib, statistik_laporan, tugas_belum_selesai
 from mastery_report import GAYA_PETA, peta_penguasaan, render_peta
@@ -146,7 +147,7 @@ def _chart_tren(ring) -> str:
 
 # Kamus kode diagnosis dalam bahasa sehari-hari (untuk orang tua).
 # Kunci = kode di basis data; nilai = (sebutan ramah, arti 1 kalimat).
-# Dipakai panel "Cara membaca laporan" — bebas jargon teknis (malrule,
+# Dipakai panel "Arti kode penilaian" — bebas jargon teknis (malrule,
 # miskonsepsi, diagnosis tidak boleh muncul di sini).
 KAMUS_ORTU = (
     ("BENAR", "Tepat", "jawabannya cocok dengan kunci."),
@@ -167,6 +168,9 @@ def _nama_topik(topik_id: str) -> str:
     """
     from topics import ambil
 
+    if topik_id.startswith("gabungan:"):
+        jumlah = len([t for t in topik_id.split(":", 1)[1].split(",") if t])
+        return f"Gabungan {jumlah} topik"
     try:
         return ambil(topik_id).nama
     except KeyError:
@@ -204,121 +208,126 @@ def _tanggal_pendek(nilai) -> str:
 def _kartu_kamus() -> str:
     baris = "".join(
         f'<li><span class="dot {"kuat" if kode == "BENAR" else ("salah" if kode == "K" else "lemah")}"></span>'
-        f"<span><b>{html.escape(sebutan)}</b> — {html.escape(arti)}</span></li>"
+        f"<span><b>{'' if kode == 'BENAR' else kode + ' — '}{html.escape(sebutan)}</b> — {html.escape(arti)}</span></li>"
         for kode, sebutan, arti in KAMUS_ORTU
     )
     return (
         f'<details class="kartu cara-baca-laporan"><summary><h2>'
-        f"Cara membaca laporan</h2>"
-        f'<span class="sub">Arti istilah penilaian</span></summary>'
+        f'Arti kode penilaian</h2></summary>'
         f'<p class="sub">Tiap soal dinilai dengan salah satu sebutan ini:</p>'
         f'<ul class="diagnosis-lis">{baris}</ul></details>'
     )
 
 
+def _riwayat_latihan(kon, siswa_id: int) -> str:
+    """Riwayat mentah tetap terpisah dari bukti penguasaan dan rekomendasi."""
+    ring = database.ringkasan(kon, siswa_id)
+    tren = "".join(
+        f'<tr><td data-label="Sesi"><span><b>Sesi #{r["sesi_id"]}</b>'
+        f'<small>{_tanggal_pendek(r["tanggal"])}</small></span></td>'
+        f'<td data-label="Topik"><span>{html.escape(_nama_topik(_ambil(r, "topik", TOPIK_BAWAAN) or TOPIK_BAWAAN))}'
+        f'<small>{html.escape(label_kelas(str(_ambil(r, "level", LEVEL_BAWAAN))))}</small></span></td>'
+        f'<td class="angka" data-label="Benar / tersedia"><span class="rasio-laporan">{r["benar"] or 0} / {r["jumlah_soal"]}</span></td>'
+        f'<td data-label="Rincian"><a href="/sesi/{r["sesi_id"]}" '
+        f'aria-label="Buka sesi {r["sesi_id"]}">Buka sesi <span aria-hidden="true">↗</span></a></td></tr>'
+        for r in ring
+    ) or '<tr><td colspan="4" class="kosong">Belum ada sesi yang selesai dikirim.</td></tr>'
+    mis = [m for m in database.miskonsepsi_berulang(kon, siswa_id) if m["jumlah_sesi"] > 1]
+    daftar_mis = "".join(
+        f'<tr><td data-label="Kekeliruan:">{html.escape(m["alasan"] or "Cara yang dipakai belum tepat")}</td>'
+        f'<td data-label="Tipe soal:">{html.escape(_nama_tipe_soal(m["template_id"]))}</td>'
+        f'<td data-label="Topik:">{html.escape(_nama_topik(m["topik"]))}</td>'
+        f'<td data-label="Jumlah sesi:" class="angka">{m["jumlah_sesi"]}</td>'
+        f'<td data-label="Rentang:">{_tanggal_pendek(m["pertama"])} &rarr; '
+        f'{_tanggal_pendek(m["terakhir"])}</td></tr>' for m in mis
+    ) or '<tr><td colspan="5" class="kosong">Belum ada pola keliru berulang yang tercatat.</td></tr>'
+    daftar_peta = "".join(
+        f'<tr><td data-label="Tipe soal:">{html.escape(_nama_tipe_soal(p["template_id"]))}</td>'
+        f'<td data-label="Topik:">{html.escape(_nama_topik(p["topik"]))}</td>'
+        f'<td data-label="Berapa kali:" class="angka">{p["kali"]}</td>'
+        f'<td data-label="Terakhir:">{_tanggal_pendek(p["terakhir"])}</td></tr>'
+        for p in database.peta_materi_baru(kon, siswa_id)
+    ) or '<tr><td colspan="4" class="kosong">Belum ada catatan pengenalan materi.</td></tr>'
+    return (
+        '<section class="kartu detail-teknis-laporan" id="riwayat-hasil-sesi" aria-labelledby="judul-riwayat-sesi">'
+        '<h2 id="judul-riwayat-sesi">Riwayat hasil sesi</h2>'
+        '<p class="laporan-catatan" id="penjelasan-hasil-sesi">Benar / tersedia menunjukkan jumlah jawaban benar '
+        'dibandingkan semua soal tersedia, termasuk yang belum dijawab. '
+        'Ini bukan persentase pemahaman atau tren kemampuan antar topik. '
+        'Buka sesi untuk melihat jawaban dan rincian penilaiannya.</p>'
+        '<div class="tabel-wrap tabel-tren"><table aria-describedby="penjelasan-hasil-sesi">'
+        '<caption class="sr-only">Hasil sesi dari yang terbaru, beserta tanggal dan kelas latihan</caption>'
+        '<thead><tr><th scope="col">Sesi / tanggal</th><th scope="col">Topik</th>'
+        '<th scope="col">Benar / tersedia</th><th scope="col">Rincian</th></tr></thead>'
+        f'<tbody>{tren}</tbody></table></div></section>'
+        '<details class="kartu catatan-latihan-laporan"><summary>Catatan pola pada semua latihan</summary>'
+        '<p class="laporan-catatan">Rincian pola keliru yang sama dan muncul kembali. Jumlah K '
+        'dan jenis kesalahan adalah catatan, bukan skor kelulusan atau penetapan fokus.</p>'
+        '<table class="laporan-materi"><caption class="sr-only">Pola keliru yang berulang lintas sesi</caption>'
+        '<thead><tr><th scope="col">Kekeliruan</th><th scope="col">Tipe soal</th><th scope="col">Topik</th>'
+        '<th scope="col">Jumlah sesi</th><th scope="col">Rentang</th></tr></thead>'
+        f'<tbody>{daftar_mis}</tbody></table></details>'
+        '<details class="kartu catatan-latihan-laporan"><summary>Catatan pengenalan materi</summary>'
+        '<p class="laporan-catatan">Ditandai belum pernah melihat atau masih bingung; '
+        'perlu diperiksa, bukan kepastian materi belum diajarkan.</p>'
+        '<table class="laporan-materi"><caption class="sr-only">Materi yang perlu cek pengenalan</caption>'
+        '<thead><tr><th scope="col">Tipe soal</th><th scope="col">Topik</th>'
+        '<th scope="col">Berapa kali</th><th scope="col">Terakhir</th></tr></thead>'
+        f'<tbody>{daftar_peta}</tbody></table></details>'
+    )
+
+
+BAGIAN_LAPORAN = (
+    ("ringkasan", "Ringkasan"),
+    ("penguasaan", "Penguasaan materi"),
+    ("riwayat", "Riwayat latihan"),
+)
+
+
 def halaman_laporan(
-    kon, siswa_id: int, pengguna: str = "", peran: str = "guru"
+    kon, siswa_id: int, pengguna: str = "", peran: str = "guru", section: str = "ringkasan"
 ) -> bytes:
+    """Tiga bagian laporan server-side; sumber hitungan dan bukti tidak berubah."""
     siswa = kon.execute("SELECT * FROM siswa WHERE id = ?", (siswa_id,)).fetchone()
     if not siswa:
         return _halaman("Tidak ada", "<h1>Siswa tidak ditemukan</h1>")
-
-    ring = database.ringkasan(kon, siswa_id)
-    hari = hari_wib()
-    statistik = statistik_laporan(kon, siswa_id, hari)
-
-    mis_semua = database.miskonsepsi_berulang(kon, siswa_id)
-    # Statistik mentah hanya untuk rincian semua latihan, bukan status fokus.
-    mis = [m for m in mis_semua if m["jumlah_sesi"] > 1]
-    # Clock rekomendasi harus sama dengan profil/POST orkestrator existing.
-    # WIB khusus batas statistik; jangan majukan jadwal hanya pada laporan.
-    bukti = database.muat_bukti_siklus(kon, siswa_id)
-    perjalanan = perjalanan_belajar(bukti, siswa_id)
-    peta_target = peta_penguasaan(lengkapi_bukti_materi(kon, bukti), siswa_id)
-    resume = render_resume(
-        perjalanan, tugas_belum_selesai(kon, siswa_id), siswa_id,
-        _nama_tipe_soal, _nama_topik, _tanggal_pendek,
-    )
-
-    tren = "".join(
-        f'<tr><td data-label="Sesi"><a href="/sesi/{r["sesi_id"]}">#{r["sesi_id"]}</a></td>'
-        f'<td data-label="Tanggal">{_tanggal_pendek(r["tanggal"])}</td>'
-        f'<td class="tipe" data-label="Kelas">{html.escape(label_kelas(str(_ambil(r, "level", LEVEL_BAWAAN))))}</td>'
-        f'<td data-label="Topik">{html.escape(_nama_topik(_ambil(r, "topik", TOPIK_BAWAAN) or TOPIK_BAWAAN))}</td>'
-        f'<td class="angka" data-label="Benar">{r["benar"] or 0}/{r["jumlah_soal"]}</td>'
-        f'<td class="angka" data-label="K"><b>{r["k"] or 0}</b></td>'
-        f'<td class="angka" data-label="B">{r["b"] or 0}</td><td class="angka" data-label="H">{r["h"] or 0}</td>'
-        f'<td class="angka" data-label="E">{r["e"] or 0}</td><td class="angka" data-label="T">{r["t"] or 0}</td>'
-        f'<td class="angka" data-label="N">{r["n"] or 0}</td></tr>'
-        for r in ring
-    ) or '<tr><td colspan="11" class="kosong">belum ada sesi dinilai</td></tr>'
-
-    daftar_mis = "".join(
-        f'<tr><td>{html.escape(m["alasan"] or "Cara yang dipakai belum tepat")}</td>'
-        f'<td>{html.escape(_nama_tipe_soal(m["template_id"]))}</td>'
-        f'<td>{html.escape(_nama_topik(m["topik"]))}</td>'
-        f'<td class="angka">{m["jumlah_sesi"]}</td>'
-        f'<td>{_tanggal_pendek(m["pertama"])} &rarr; '
-        f'{_tanggal_pendek(m["terakhir"])}</td></tr>'
-        for m in mis
-    ) or ('<tr><td colspan="5" class="kosong">belum ada kekeliruan '
-          "yang bertahan</td></tr>")
-
-    peta = database.peta_materi_baru(kon, siswa_id)
-    daftar_peta = "".join(
-        f'<tr><td>{html.escape(_nama_tipe_soal(p["template_id"]))}</td>'
-        f'<td>{html.escape(_nama_topik(p["topik"]))}</td>'
-        f'<td class="angka">{p["kali"]}</td>'
-        f'<td>{_tanggal_pendek(p["terakhir"])}</td></tr>'
-        for p in peta
-    ) or '<tr><td colspan="4" class="kosong">tidak ada</td></tr>'
-
+    if section not in dict(BAGIAN_LAPORAN):
+        section = "ringkasan"
+    navigasi = '<nav class="laporan-navigasi" aria-label="Bagian laporan">' + "".join(
+        f'<a href="/laporan/{siswa_id}?section={kode}"'
+        + (' aria-current="page"' if kode == section else '')
+        + f'>{label}</a>' for kode, label in BAGIAN_LAPORAN
+    ) + '</nav>'
+    if section == "riwayat":
+        statistik = statistik_laporan(kon, siswa_id, hari_wib())
+        isi = (
+            _riwayat_latihan(kon, siswa_id)
+            + '<details class="kartu laporan-mingguan"><summary>Rincian hasil latihan mingguan</summary>'
+            + render_materi(statistik, _nama_tipe_soal, _tanggal_pendek) + '</details>'
+            + _kartu_kamus()
+        )
+    else:
+        # Clock rekomendasi sama dengan profil; WIB hanya untuk statistik aktivitas.
+        bukti = database.muat_bukti_siklus(kon, siswa_id)
+        perjalanan = perjalanan_belajar(bukti, siswa_id)
+        peta_target = peta_penguasaan(lengkapi_bukti_materi(kon, bukti), siswa_id)
+        isi = render_peta(peta_target, _tanggal_pendek, ringkas=section == "ringkasan")
+        if section == "penguasaan":
+            isi += render_perjalanan(perjalanan, _nama_tipe_soal, _tanggal_pendek)
+        else:
+            isi += render_resume(
+                perjalanan, tugas_belum_selesai(kon, siswa_id), siswa_id,
+                _nama_tipe_soal, _nama_topik, _tanggal_pendek,
+            )
+            isi += render_aktivitas(statistik_laporan(kon, siswa_id, hari_wib()), _tanggal_pendek)
     nama_siswa = html.escape(siswa["nama"])
     return _halaman(
         f"Laporan {siswa['nama']}",
         f'<style>{GAYA_LAPORAN}{GAYA_PETA}</style>'
-        f'<div class="jejak"><a href="/anak/{siswa_id}">&larr; Riwayat '
-        f"{nama_siswa}</a></div>"
+        f'<div class="jejak"><a href="/anak/{siswa_id}">&larr; Riwayat {nama_siswa}</a></div>'
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">CATATAN PERKEMBANGAN</p>'
         f'<h1 id="judul-laporan">Laporan perkembangan {nama_siswa}</h1></header>'
-        f'{render_peta(peta_target, _tanggal_pendek)}'
-        f'{resume}'
-        f'{render_aktivitas(statistik, _tanggal_pendek)}'
-        '<details class="kartu"><summary>Rincian hasil latihan mingguan</summary>'
-        f'{render_materi(statistik, _nama_tipe_soal, _tanggal_pendek)}</details>'
-        f'<details class="kartu detail-teknis-laporan"><summary><h2>'
-        f"Detail per sesi (teknis)</h2>"
-        f'<span class="sub">Rincian untuk guru</span></summary>'
-        f'<p class="sub">Rincian semua latihan: jumlah <b>K</b> dan jenis '
-        f"kesalahan adalah catatan, bukan skor kelulusan atau penetapan fokus. "
-        f"Kolom Benar di tabel sesi memakai pembanding soal tersedia, termasuk "
-        f"yang belum dijawab; bukan penyebut persentase dashboard.</p>"
-        f'<p class="legenda-teknis"><b>K = keliru konsep</b> · '
-        f'B = salah baca · H = salah hitung · E = salah tulis akhir · '
-        f"T = perlu cek pengenalan · N = menebak</p>"
-        f'<div class="tabel-wrap tabel-tren"><h3>Tren per sesi</h3><table>'
-        f'<caption class="sr-only">Rincian hasil dan jenis kekeliruan setiap sesi</caption>'
-        f'<thead><tr><th scope="col">Sesi</th><th scope="col">Tanggal</th>'
-        f'<th scope="col">Kelas</th><th scope="col">Topik</th>'
-        f'<th scope="col">Benar</th><th scope="col">K</th>'
-        f'<th scope="col">B</th><th scope="col">H</th>'
-        f'<th scope="col">E</th><th scope="col">T</th>'
-        f'<th scope="col">N</th></tr></thead><tbody>{tren}</tbody></table></div>'
-        f'<div class="tabel-wrap"><h3>Catatan pola pada semua latihan</h3>'
-        f'<p class="sub">Rincian pola keliru yang sama dan muncul kembali.</p>'
-        f'<table><caption class="sr-only">Pola keliru yang berulang lintas sesi</caption>'
-        f'<thead><tr><th scope="col">Kekeliruan</th>'
-        f'<th scope="col">Tipe soal</th><th scope="col">Topik</th>'
-        f'<th scope="col">Jumlah sesi</th><th scope="col">Rentang</th>'
-        f'</tr></thead><tbody>{daftar_mis}</tbody></table></div>'
-        f'<div class="tabel-wrap"><h3>Catatan pengenalan materi</h3>'
-        f'<p class="sub">Ditandai belum pernah melihat atau masih bingung; '
-        f'perlu diperiksa, bukan kepastian materi belum diajarkan.</p>'
-        f'<table><caption class="sr-only">Materi yang perlu cek pengenalan</caption>'
-        f'<thead><tr><th scope="col">Tipe soal</th>'
-        f'<th scope="col">Topik</th><th scope="col">Berapa kali</th>'
-        f'<th scope="col">Terakhir</th></tr></thead>'
-        f'<tbody>{daftar_peta}</tbody></table></div>{_kartu_kamus()}</details>',
+        + navigasi + isi,
         ident=(pengguna, peran) if pengguna else None,
         stitch=True,
         kelas_bungkus="laporan-lebar pendamping-editorial-st laporan-editorial-st",

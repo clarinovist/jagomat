@@ -270,14 +270,13 @@ def test_halaman_sesi_menampilkan_kunci_untuk_guru(db):
         assert b["kunci"] in h
 
 
-def test_laporan_menonjolkan_k_bukan_skor(db):
-    """Metrik utama proyek ini jumlah K, dan halamannya harus mengatakan itu
-    dengan jelas — guru secara naluriah menghitung jawaban benar."""
+def test_catatan_k_laporan_bukan_skor_kelulusan(db):
+    """Catatan K bukan skor penguasaan; tetap dijelaskan pada riwayat."""
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Lapor")
         database.buat_sesi(kon, sid, seed=14)
-        h = reports.halaman_laporan(kon, sid).decode()
-    assert "jumlah <b>K</b>" in h or "jumlah K" in h
+        h = reports.halaman_laporan(kon, sid, section="riwayat").decode()
+    assert "Jumlah K" in h
     assert "bukan skor" in h.lower()
 
 

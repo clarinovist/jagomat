@@ -146,9 +146,9 @@ def _histori(perjalanan: PerjalananBelajar, nama_tipe: Callable, tanggal: Callab
             f'<p class="sub">{catatan}</p>{rincian}</li>'
         )
     return (
-        '<details class="kartu"><summary>Riwayat putaran sebelumnya</summary>'
+        '<section class="riwayat-putaran-laporan"><h3>Riwayat putaran sebelumnya</h3>'
         '<p>Putaran lama tetap tercatat meskipun fokus perlu diperkuat lagi.</p>'
-        '<ul class="daftar-aksi-laporan">' + "".join(item) + '</ul></details>'
+        '<ul class="daftar-aksi-laporan">' + "".join(item) + '</ul></section>'
     )
 
 

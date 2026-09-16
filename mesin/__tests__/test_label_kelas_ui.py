@@ -134,17 +134,17 @@ def test_ringkasan_actual_report_tidak_memakai_istilah_level_internal(db):
     )[0]
     assert "level berikutnya" not in ringkasan.lower()
     assert ">P5<" not in ringkasan
-    assert "Buka langkah belajar ini" in ringkasan
-    assert "<summary>Lihat rencana belajar</summary>" in isi
+    assert "Buka rencana di profil anak" in ringkasan
+    assert '<section class="kartu laporan-resume"' in isi
 
 
-def test_laporan_menampilkan_kelas_dan_nama_kolom_kelas(db):
+def test_laporan_menampilkan_kelas_sebagai_metadata_topik(db):
     with database.buka(db) as kon:
         siswa_id = database.tambah_siswa(kon, "Alya", "P5")
         sesi_id = database.buat_sesi(kon, siswa_id, seed=11, level="P5", topik="statistika")
         database.tandai_selesai(kon, sesi_id)
-        isi = _badan(reports.halaman_laporan(kon, siswa_id).decode())
+        isi = _badan(reports.halaman_laporan(kon, siswa_id, section="riwayat").decode())
 
-    assert 'data-label="Kelas">Kelas 5</td>' in isi
-    assert '<th scope="col">Kelas</th>' in isi
+    assert '<small>Kelas 5</small>' in isi
+    assert '<th scope="col">Topik</th>' in isi
     assert 'data-label="Level"' not in isi

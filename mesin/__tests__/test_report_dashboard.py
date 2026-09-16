@@ -48,9 +48,9 @@ def test_resume_native_tidak_redirect_dan_manual_tidak_mengganti_rekomendasi(db)
         awal = tuple(kon.iterdump())
         h = reports.halaman_laporan(kon, sid).decode()
         assert tuple(kon.iterdump()) == awal
-    assert '<summary>Lihat rencana belajar</summary>' in h
-    assert '<a' not in h.split('<summary>Lihat rencana belajar',1)[1].split('</summary>',1)[0]
-    resume = h.split('id="rencana-belajar-laporan"',1)[1].split('class="kartu laporan-bukti"',1)[0]
+    assert '<section class="kartu laporan-resume"' in h
+    assert '<summary>Lihat rencana belajar</summary>' not in h
+    resume = h.split('id="rencana-belajar-laporan"',1)[1].split('aria-labelledby="judul-aktivitas"',1)[0]
     assert f'/sesi/{ses}' in resume
     assert "1/2 soal terisi" in resume
     assert 'href="/anak/' in resume

@@ -51,9 +51,7 @@ def _fokus(kon, sid):
 
 def _utama(teks):
     assert 'id="perjalanan-belajar"' in teks
-    return teks.split('id="perjalanan-belajar"', 1)[1].split(
-        '<details class="kartu detail-teknis-laporan">', 1
-    )[0]
+    return teks.split('id="perjalanan-belajar"', 1)[1]
 
 
 def test_resume_laporan_bersumber_dari_perjalanan_bukan_statistik(db):
@@ -67,10 +65,10 @@ def test_resume_laporan_bersumber_dari_perjalanan_bukan_statistik(db):
     )[0]
     assert "Posisi belajar saat ini" in ringkasan
     assert "Masih perlu diperiksa" in ringkasan
-    assert "Berikutnya dipelajari" in ringkasan
-    assert "Belum selesai dikerjakan" in ringkasan
+    assert 'class="resume-langkah"' in ringkasan
     assert f'href="/anak/{sid}#judul-rencana-belajar"' in ringkasan
-    assert h.count("<summary>Lihat rencana belajar</summary>") == 1
+    assert h.count('<section class="kartu laporan-resume"') == 1
+    assert '<summary>Lihat rencana belajar</summary>' not in h
     assert "1 sesi dinilai" not in ringkasan
     assert "kekeliruan konsep" not in ringkasan
 
@@ -79,12 +77,12 @@ def test_laporan_baru_meminta_pemetaan_bukan_menyimpulkan_penguasaan(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Anak Uji", pemilik="guru")
         sebelum = kon.total_changes
-        h = reports.halaman_laporan(kon, sid).decode()
+        h = reports.halaman_laporan(kon, sid, section="penguasaan").decode()
         assert kon.total_changes == sebelum
     assert 'id="perjalanan-belajar"' in h
     assert "Pemetaan 0 dari 3" in _utama(h)
     assert "belum cukup bukti" in _utama(h).lower()
-    assert "Aktivitas 7 hari terakhir" in h
+    assert 'id="judul-peta"' in h
     assert h.index("Progres penguasaan materi Jagomat") < h.index("Perjalanan fokus belajar")
 
 
@@ -94,7 +92,7 @@ def test_hasil_belum_disahkan_tidak_menjadi_fokus_laporan(db):
         putaran = database.buat_putaran_fokus(kon, sid, "P3")
         for n in (1, 2, 3):
             _pemetaan(kon, sid, putaran, n, konfirmasi=False)
-        h = reports.halaman_laporan(kon, sid).decode()
+        h = reports.halaman_laporan(kon, sid, section="penguasaan").decode()
     utama = _utama(h)
     assert "Konfirmasi hasil" in utama
     assert "Perlu dipelajari" not in utama
@@ -130,7 +128,7 @@ def test_laporan_memakai_bukti_sah_dan_tidak_menulis_db(db):
         sid = database.tambah_siswa(kon, "Fokus Uji", pemilik="guru")
         putaran, sumber = _fokus(kon, sid)
         sebelum = kon.total_changes
-        h = reports.halaman_laporan(kon, sid).decode()
+        h = reports.halaman_laporan(kon, sid, section="penguasaan").decode()
         assert kon.total_changes == sebelum
     utama = _utama(h)
     assert f"Putaran #{putaran}" in utama
@@ -202,7 +200,7 @@ def test_invalidasi_tidak_menghilangkan_riwayat_atau_mengaku_bukti_aktif(db):
         sesi, jawaban = sumber[-1]
         database.simpan_diagnosis(kon, jawaban, True, None, None, None, "benar")
         sebelum = kon.execute("SELECT COUNT(*) FROM snapshot_outcome").fetchone()[0]
-        h = reports.halaman_laporan(kon, sid).decode()
+        h = reports.halaman_laporan(kon, sid, section="penguasaan").decode()
         assert kon.execute("SELECT COUNT(*) FROM snapshot_outcome").fetchone()[0] == sebelum
     assert "Konfirmasi hasil" in _utama(h)
     assert "konfirmasi ulang" in _utama(h).lower()
@@ -221,7 +219,7 @@ def test_rekonfirmasi_setelah_putaran_ditutup_tidak_disebut_pending(db):
         database.simpan_diagnosis(kon, jawaban, True, None, None, None, "benar")
         database.konfirmasi_hasil(kon, sesi, "guru")
         sebelum = kon.total_changes
-        h = reports.halaman_laporan(kon, sid).decode()
+        h = reports.halaman_laporan(kon, sid, section="penguasaan").decode()
         assert kon.total_changes == sebelum
     histori = h.split("Riwayat putaran sebelumnya", 1)[1]
     assert "sudah dikonfirmasi ulang" in histori
@@ -369,7 +367,8 @@ def test_bukti_lama_dilipat_tanpa_menggandakan_tautan_sesi():
     assert all(h.count(f'href="/sesi/{n}"') == 1 for n in range(1, 7))
 
 
-def test_get_laporan_lewat_http_menjaga_kepemilikan(tmp_path, monkeypatch):
+@pytest.mark.parametrize("bagian", ["ringkasan", "penguasaan", "riwayat"])
+def test_get_laporan_lewat_http_menjaga_kepemilikan(tmp_path, monkeypatch, bagian):
     import assistant_client
     import assistant_service
     import llm
@@ -390,14 +389,14 @@ def test_get_laporan_lewat_http_menjaga_kepemilikan(tmp_path, monkeypatch):
             asing = database.tambah_siswa(kon, "Jangan Bocor", pemilik="lain")
             _fokus(kon, sid)
             sebelum = tuple(kon.iterdump())
-        kode, h, _ = server.minta(f"/laporan/{sid}", auth=("guru", SANDI_GURU))
+        kode, h, _ = server.minta(f"/laporan/{sid}?section={bagian}", auth=("guru", SANDI_GURU))
         kode_ulang, h_ulang, _ = server.minta(
-            f"/laporan/{sid}", auth=("guru", SANDI_GURU)
+            f"/laporan/{sid}?section={bagian}", auth=("guru", SANDI_GURU)
         )
         assert kode == kode_ulang == 200
         assert h == h_ulang
         assert isinstance(h, str)
-        assert "Perjalanan fokus belajar" in h
+        assert ("Perjalanan fokus belajar" in h) == (bagian == "penguasaan")
         kode_asing, h_asing, _ = server.minta(f"/laporan/{asing}", auth=("guru", SANDI_GURU))
         kode_hilang, h_hilang, _ = server.minta("/laporan/999999", auth=("guru", SANDI_GURU))
         assert kode_asing == kode_hilang == 404

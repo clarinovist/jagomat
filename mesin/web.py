@@ -793,6 +793,9 @@ class Penangan(BaseHTTPRequestHandler):
                             kon, siswa_id,
                             pengguna=ident[0] if ident else "",
                             peran=ident[1] if ident else "guru",
+                            section=urllib.parse.parse_qs(
+                                urllib.parse.urlsplit(self.path).query
+                            ).get("section", ["ringkasan"])[0],
                         )
                     )
                 if jalur == "/akun":
