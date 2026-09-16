@@ -8,6 +8,7 @@ import design_tokens as T
 from cycle_report import JENIS, judul_tindakan
 from report_summary import _langkah, _perlu_diperiksa, _terlihat
 from templates import label_kelas
+from report_navigation import halaman_daftar, navigasi_halaman, url_laporan
 
 
 GAYA_LAPORAN = f"""
@@ -64,9 +65,28 @@ GAYA_LAPORAN = f"""
   background:{T.AKSEN_TEAL_TUA}; color:{T.LATAR_KARTU}; padding:{T.SP_3} {T.SP_4};
   border-radius:{T.RADIUS_KECIL}; font-weight:700; text-decoration:none;
 }}
-.laporan-editorial-st .laporan-dasar summary {{
-  min-height:{T.TARGET_SENTUH}; cursor:pointer; padding:{T.SP_3} 0;
-  color:{T.TEKS_JUDUL}; font-weight:600;
+.laporan-editorial-st .laporan-ringkasan-grid {{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:{T.SP_5};align-items:start;}}
+.laporan-editorial-st .laporan-ringkasan-grid > section {{margin:0;min-width:0;}}
+.laporan-editorial-st .laporan-ringkasan-grid .peta-kepala {{grid-template-columns:minmax(0,1fr);gap:{T.SP_2};}}
+.laporan-editorial-st .laporan-ringkasan-grid p {{margin:{T.SP_2} 0;}}
+.laporan-editorial-st .laporan-ringkasan-grid .peta-grafik {{height:1.5rem;margin:{T.SP_3} 0;}}
+.laporan-editorial-st .laporan-ringkasan-grid .peta-legenda {{font-size:.9rem;gap:{T.SP_2} {T.SP_3};margin:{T.SP_3} 0;}}
+.laporan-editorial-st .laporan-ringkasan-grid .resume-konteks {{margin-top:{T.SP_4};padding-top:{T.SP_2};}}
+.laporan-editorial-st .laporan-ringkasan-grid h3 {{margin:{T.SP_2} 0;}}
+.laporan-editorial-st .laporan-ringkasan-grid .resume-langkah {{margin:{T.SP_3} 0;}}
+.laporan-editorial-st .laporan-ringkasan-grid .resume-konteks {{grid-template-columns:minmax(0,1fr);gap:{T.SP_2};}}
+.laporan-editorial-st .laporan-pilihan,.laporan-editorial-st .laporan-paginasi {{display:flex;flex-wrap:wrap;align-items:center;gap:{T.SP_2};margin:{T.SP_3} 0 {T.SP_5};}}
+.laporan-editorial-st .laporan-pilihan a,.laporan-editorial-st .laporan-paginasi a,.laporan-editorial-st .laporan-tautan {{display:inline-flex;align-items:center;min-height:{T.TARGET_SENTUH};padding:{T.SP_2} {T.SP_3};}}
+.laporan-editorial-st .laporan-pilihan a {{border:1px solid {T.BORDER_HALUS};border-radius:{T.RADIUS_KECIL};background:{T.LATAR_KARTU};text-decoration:none;color:{T.TEKS_SUBTLE};}}
+.laporan-editorial-st .laporan-pilihan a[aria-current="true"] {{border:2px solid {T.AKSEN_TEAL_TUA};padding:calc({T.SP_2} - 1px) calc({T.SP_3} - 1px);color:{T.AKSEN_TEAL_TUA};background:{T.LATAR_TERSIMPAN};font-weight:700;}}
+.laporan-editorial-st #konten-laporan a:focus-visible {{outline:3px solid {T.AKSEN_TEAL_TUA};outline-offset:3px;}}
+.laporan-editorial-st .peta-bukti a,.laporan-editorial-st #perjalanan-belajar li a,.laporan-editorial-st .tabel-tren a {{display:inline-flex;align-items:center;min-height:{T.TARGET_SENTUH};}}
+.laporan-editorial-st #konten-laporan {{min-width:0;}}
+.laporan-editorial-st .laporan-paginasi span {{white-space:nowrap;}}
+.laporan-editorial-st .laporan-ringkasan-grid .laporan-resume {{background:{T.LATAR_TERSIMPAN};}}
+.laporan-editorial-st .laporan-resume .ringkasan-laporan {{background:transparent;}}
+@media(min-width:46.01rem) and (max-width:63.99rem) {{
+ .laporan-editorial-st .laporan-ringkasan-grid {{grid-template-columns:minmax(0,1fr);}}
 }}
 .laporan-editorial-st .laporan-seluruh {{border-top:1px solid {T.BORDER_HALUS}; padding-top:{T.SP_3};}}
 .laporan-editorial-st .laporan-resume .ringkasan-laporan {{border:0; padding:0; margin:0; box-shadow:none;}}
@@ -75,9 +95,11 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .laporan-periode {{color:{T.TEKS_SUBTLE};}}
 .laporan-editorial-st .editorial-kepala-st h1 {{overflow-wrap:anywhere;}}
 @media(max-width:46rem) {{
+  .laporan-editorial-st .laporan-ringkasan-grid {{grid-template-columns:minmax(0,1fr);}}
   .laporan-editorial-st .laporan-metrik {{grid-template-columns:repeat(2,minmax(0,1fr)); gap:{T.SP_3};}}
   .laporan-editorial-st .resume-konteks {{grid-template-columns:minmax(0,1fr);gap:{T.SP_2};}}
-  .laporan-editorial-st .laporan-navigasi a {{flex:1 1 auto;font-size:.9rem;padding:{T.SP_2} {T.SP_3};}}
+  .laporan-editorial-st .laporan-navigasi {{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}}
+  .laporan-editorial-st .laporan-navigasi a {{font-size:.85rem;padding:{T.SP_2};text-align:center;}}
   .laporan-editorial-st .tabel-tren td > span {{min-width:0;overflow-wrap:anywhere;}}
   .laporan-editorial-st .tabel-tren td[colspan]::before {{display:none;}}
   .laporan-editorial-st .tabel-tren thead {{display:table-header-group;position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}}
@@ -136,7 +158,9 @@ def render_aktivitas(data, tanggal) -> str:
         f'<p class="laporan-periode">{tanggal(data.mulai.isoformat())} – '
         f'{tanggal(data.akhir.isoformat())} · WIB</p>'
         f'<div class="kartu-stat laporan-metrik">{kartu}</div>{label_sementara}'
-        '<p class="laporan-catatan">Ketepatan dihitung dari jawaban yang sudah dinilai benar atau salah, '
+        '<p class="laporan-catatan">Aktivitas mengikuti pencatatan jawaban pertama '
+        '(atau konfirmasi untuk butir tanpa jawaban), bukan tanggal sesi. '
+        'Ketepatan dihitung dari jawaban yang sudah dinilai benar atau salah, '
         'bukan seluruh soal tersedia. Ini bukan persentase pemahaman. '
         'Tanda — berarti belum ada jawaban yang bisa dinilai.</p>'
         '<p class="laporan-catatan">'
@@ -182,6 +206,12 @@ def render_materi(data, nama_tipe, tanggal) -> str:
     return (
         '<section class="kartu" aria-labelledby="judul-hasil-materi">'
         '<h2 id="judul-hasil-materi">Hasil dan tren per materi</h2>'
+        f'<p class="laporan-catatan">Periode kini: {tanggal(data.mulai.isoformat())} – '
+        f'{tanggal(data.akhir.isoformat())} · WIB.</p>'
+        '<p class="laporan-catatan">Berdasarkan tanggal pencatatan jawaban pertama, '
+        'atau tanggal konfirmasi jika tidak ada jawaban. Bukan tanggal sesi. '
+        'Tampilan ini selalu membandingkan 7 hari terakhir dengan 7 hari sebelumnya, '
+        'untuk semua topik; filter pada tampilan Sesi tidak berlaku di sini.</p>'
         f'<p class="laporan-catatan">Pembanding: {tanggal(awal_lalu.isoformat())} – '
         f'{tanggal(akhir_lalu.isoformat())}. {len(data.sebanding)} kelompok latihan memiliki data sebanding.</p>'
         f'{isi}<p class="laporan-catatan">Persentase adalah hasil jawaban, bukan persentase pemahaman. '
@@ -196,22 +226,33 @@ def render_materi(data, nama_tipe, tanggal) -> str:
     )
 
 
+def render_tugas(tugas, siswa_id, nama_topik, halaman='1') -> str:
+    """Tugas sekunder dipilih lewat URL; tidak menentukan CTA utama."""
+    bagian, nomor, jumlah = halaman_daftar(tugas, halaman, 20)
+    daftar = ''.join(
+        f'<li><a class="laporan-tautan" href="/sesi/{int(satu["id"])}">'
+        f'Sesi #{satu["id"]} · {html.escape(nama_topik(satu["topik"]))} · '
+        f'{html.escape(label_kelas(satu["level"]))}</a>: '
+        f'<span class="rasio-laporan">{satu["terisi"]}/{satu["tersedia"]}</span> soal terisi.</li>'
+        for satu in bagian
+    )
+    return (
+        f'<a class="laporan-tautan" href="{url_laporan(siswa_id)}">← Kembali ke ringkasan</a>'
+        '<section class="kartu" id="rincian-tugas"><h2>Belum selesai dikerjakan '
+        f'({len(tugas)} sesi)</h2>'
+        + ('<ul class="laporan-tugas">' + daftar + '</ul>' if daftar else '<p>Tidak ada tugas yang belum selesai.</p>')
+        + '<p class="laporan-catatan">Terisi juga mencakup pilihan status, bukan berarti selesai dikerjakan. '
+        'Latihan manual atau kelas lama tidak menghalangi langkah utama.</p>'
+        + navigasi_halaman(nomor, jumlah, lambda n: url_laporan(siswa_id, tampilan='tugas', halaman=n))
+        + '</section>'
+    )
+
+
 def render_resume(perjalanan, tugas, siswa_id, nama_tipe, nama_topik, tanggal) -> str:
     rencana = perjalanan.rekomendasi
-    daftar = []
-    for satu in tugas:
-        label = f'Sesi #{satu["id"]} · {nama_topik(satu["topik"])} · {label_kelas(satu["level"])}'
-        # CTA utama sudah menuju sesi ini; hindari entry point ganda.
-        nama = html.escape(label)
-        if satu["id"] != rencana.sesi_id:
-            nama = f'<a href="/sesi/{int(satu["id"])}">{nama}</a>'
-        daftar.append(f'<li>{nama}: {satu["terisi"]}/{satu["tersedia"]} soal terisi.</li>')
     belum = (
-        '<details class="laporan-tugas-rincian"><summary>Belum selesai dikerjakan '
-        f'({len(daftar)} sesi)</summary><ul class="laporan-tugas">' + ''.join(daftar) + '</ul>'
-        '<p class="laporan-catatan">Terisi juga mencakup pilihan status, bukan berarti selesai dikerjakan. '
-        'Latihan manual atau kelas lama tidak menghalangi langkah utama.</p></details>'
-        if daftar else ''
+        f'<a class="laporan-tautan" href="{url_laporan(siswa_id, tampilan="tugas")}">'
+        f'Rincian tugas · {len(tugas)} sesi belum selesai →</a>' if tugas else ''
     )
     materi = tuple(dict.fromkeys(kunci[0] for kunci in rencana.kandidat))
     materi_html = (

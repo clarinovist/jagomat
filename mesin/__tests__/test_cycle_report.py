@@ -77,13 +77,13 @@ def test_laporan_baru_meminta_pemetaan_bukan_menyimpulkan_penguasaan(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Anak Uji", pemilik="guru")
         sebelum = kon.total_changes
-        h = reports.halaman_laporan(kon, sid, section="penguasaan").decode()
+        h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
         assert kon.total_changes == sebelum
     assert 'id="perjalanan-belajar"' in h
     assert "Pemetaan 0 dari 3" in _utama(h)
     assert "belum cukup bukti" in _utama(h).lower()
-    assert 'id="judul-peta"' in h
-    assert h.index("Progres penguasaan materi Jagomat") < h.index("Perjalanan fokus belajar")
+    assert 'tampilan=materi' in h and 'tampilan=kriteria' in h
+    assert 'id="judul-peta"' not in h
 
 
 def test_hasil_belum_disahkan_tidak_menjadi_fokus_laporan(db):
@@ -92,7 +92,7 @@ def test_hasil_belum_disahkan_tidak_menjadi_fokus_laporan(db):
         putaran = database.buat_putaran_fokus(kon, sid, "P3")
         for n in (1, 2, 3):
             _pemetaan(kon, sid, putaran, n, konfirmasi=False)
-        h = reports.halaman_laporan(kon, sid, section="penguasaan").decode()
+        h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
     utama = _utama(h)
     assert "Konfirmasi hasil" in utama
     assert "Perlu dipelajari" not in utama
@@ -128,7 +128,7 @@ def test_laporan_memakai_bukti_sah_dan_tidak_menulis_db(db):
         sid = database.tambah_siswa(kon, "Fokus Uji", pemilik="guru")
         putaran, sumber = _fokus(kon, sid)
         sebelum = kon.total_changes
-        h = reports.halaman_laporan(kon, sid, section="penguasaan").decode()
+        h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
         assert kon.total_changes == sebelum
     utama = _utama(h)
     assert f"Putaran #{putaran}" in utama
@@ -200,7 +200,7 @@ def test_invalidasi_tidak_menghilangkan_riwayat_atau_mengaku_bukti_aktif(db):
         sesi, jawaban = sumber[-1]
         database.simpan_diagnosis(kon, jawaban, True, None, None, None, "benar")
         sebelum = kon.execute("SELECT COUNT(*) FROM snapshot_outcome").fetchone()[0]
-        h = reports.halaman_laporan(kon, sid, section="penguasaan").decode()
+        h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
         assert kon.execute("SELECT COUNT(*) FROM snapshot_outcome").fetchone()[0] == sebelum
     assert "Konfirmasi hasil" in _utama(h)
     assert "konfirmasi ulang" in _utama(h).lower()
@@ -219,7 +219,7 @@ def test_rekonfirmasi_setelah_putaran_ditutup_tidak_disebut_pending(db):
         database.simpan_diagnosis(kon, jawaban, True, None, None, None, "benar")
         database.konfirmasi_hasil(kon, sesi, "guru")
         sebelum = kon.total_changes
-        h = reports.halaman_laporan(kon, sid, section="penguasaan").decode()
+        h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
         assert kon.total_changes == sebelum
     histori = h.split("Riwayat putaran sebelumnya", 1)[1]
     assert "sudah dikonfirmasi ulang" in histori
@@ -347,7 +347,7 @@ def test_usulan_fokus_tanpa_putaran_tidak_disebut_pemetaan_awal():
     assert "Pemetaan awal" not in h
 
 
-def test_bukti_lama_dilipat_tanpa_menggandakan_tautan_sesi():
+def test_bukti_lama_terbuka_tanpa_menggandakan_tautan_sesi():
     from datetime import date
     from learning_cycle import RencanaBelajar
     from learning_journey import BuktiFokusPerjalanan, FokusPerjalanan, PerjalananBelajar
@@ -360,8 +360,9 @@ def test_bukti_lama_dilipat_tanpa_menggandakan_tautan_sesi():
         putaran_id=1,
     )
     h = render_perjalanan(data, reports._nama_tipe_soal, reports._tanggal_pendek)
-    assert '<details class="bukti-lainnya">' in h
-    ringkas = h.split('<details class="bukti-lainnya">', 1)[0]
+    assert '<details' not in h
+    assert '<section class="bukti-lainnya">' in h
+    ringkas = h.split('<section class="bukti-lainnya">', 1)[0]
     assert '/sesi/6' in ringkas
     assert '/sesi/1"' not in ringkas
     assert all(h.count(f'href="/sesi/{n}"') == 1 for n in range(1, 7))
@@ -396,7 +397,7 @@ def test_get_laporan_lewat_http_menjaga_kepemilikan(tmp_path, monkeypatch, bagia
         assert kode == kode_ulang == 200
         assert h == h_ulang
         assert isinstance(h, str)
-        assert ("Perjalanan fokus belajar" in h) == (bagian == "penguasaan")
+        assert ('tampilan=perjalanan' in h) == (bagian == "penguasaan")
         kode_asing, h_asing, _ = server.minta(f"/laporan/{asing}", auth=("guru", SANDI_GURU))
         kode_hilang, h_hilang, _ = server.minta("/laporan/999999", auth=("guru", SANDI_GURU))
         assert kode_asing == kode_hilang == 404

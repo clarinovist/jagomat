@@ -1,4 +1,4 @@
-"""Dashboard aktivitas anak, resume rencana, dan rincian bukti yang dilipat."""
+"""Dashboard aktivitas anak, resume rencana, dan rincian bukti lewat pilihan URL."""
 
 from __future__ import annotations
 
@@ -82,7 +82,7 @@ def test_kamus_tanpa_jargon(db):
     """
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Kamus")
-        h = reports.halaman_laporan(kon, sid, section="riwayat").decode()
+        h = reports.halaman_laporan(kon, sid, section="riwayat", query='tampilan=catatan').decode()
     assert "Arti kode penilaian" in h
     for kata in ("salah konsep", "salah baca", "salah hitung",
                  "salah tulis", "belum pernah", "menebak"):
@@ -115,7 +115,7 @@ def test_kartu_perhatian_tidak_bilang_kuat_saat_ada_k(db):
     assert "persentase pemahaman" in isi
 
 
-def test_tabel_riwayat_terbuka_dan_rincian_sekunder_dilipat(db):
+def test_tabel_riwayat_terbuka_dan_rincian_sekunder_dipilih(db):
     """Tabel sesi langsung terlihat, catatan panjang tetap opsional."""
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Lipat")
@@ -124,7 +124,8 @@ def test_tabel_riwayat_terbuka_dan_rincian_sekunder_dilipat(db):
     assert '<section class="kartu detail-teknis-laporan"' in h
     assert '<th scope="col">Topik</th>' in h
     isi = h.split('<main ', 1)[1]
-    assert isi.index('<th scope="col">Topik</th>') < isi.index("<details")
+    assert '<details' not in isi
+    assert 'tampilan=catatan' in isi and 'tampilan=mingguan' in isi
 
 
 def test_topik_tak_dikenal_tidak_500(db):
@@ -295,7 +296,7 @@ def test_hierarki_utama_memisahkan_penguasaan_dari_aktivitas(db):
     assert "Persentase = benar" not in utama
     assert "Dasar hitungan dan total seluruh catatan" not in utama
     assert "Cara membaca laporan" not in utama
-    assert '<details class="kartu cara-baca-laporan">' in detail
+    assert 'tampilan=catatan#arti-kode' in detail
     assert "Arti kode penilaian" in detail
     assert 'id="riwayat-hasil-sesi"' not in utama
     assert "Arti nilai anak" not in utama
@@ -371,7 +372,7 @@ def test_riwayat_semantik_dan_kamus_terpisah(db):
         )
         detail = reports.halaman_laporan(kon, sid, section="riwayat").decode()
 
-    assert "K — Keliru konsep" in detail
+    assert 'tampilan=catatan#arti-kode' in detail
     assert '<th scope="col">Sesi / tanggal</th>' in detail
     assert "<thead>" in detail and "<tbody>" in detail
     assert '<time class="tanggal-ringkas" datetime="2026-09-04">4 Sep 2026</time>' in detail

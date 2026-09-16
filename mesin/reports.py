@@ -7,14 +7,15 @@ identik. Frame halaman diimpor dari teacher_pages.
 from __future__ import annotations
 
 import html
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 import database
 from learning_journey import perjalanan_belajar
 from cycle_report import render_perjalanan
-from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_resume
+from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_resume, render_tugas
+from report_navigation import halaman_daftar, navigasi_halaman, parameter_laporan, pilihan, url_laporan
 from report_metrics import hari_wib, statistik_laporan, tugas_belum_selesai
-from mastery_report import GAYA_PETA, peta_penguasaan, render_peta
+from mastery_report import GAYA_PETA, peta_penguasaan, render_kriteria, render_peta
 from mastery_evidence import lengkapi_bukti_materi
 import design_tokens as T
 from diagnosis import diagnosa
@@ -212,16 +213,59 @@ def _kartu_kamus() -> str:
         for kode, sebutan, arti in KAMUS_ORTU
     )
     return (
-        f'<details class="kartu cara-baca-laporan"><summary><h2>'
-        f'Arti kode penilaian</h2></summary>'
+        f'<section class="kartu cara-baca-laporan" id="arti-kode"><h2>'
+        f'Arti kode penilaian</h2>'
         f'<p class="sub">Tiap soal dinilai dengan salah satu sebutan ini:</p>'
-        f'<ul class="diagnosis-lis">{baris}</ul></details>'
+        f'<ul class="diagnosis-lis">{baris}</ul></section>'
     )
 
 
-def _riwayat_latihan(kon, siswa_id: int) -> str:
-    """Riwayat mentah tetap terpisah dari bukti penguasaan dan rekomendasi."""
-    ring = database.ringkasan(kon, siswa_id)
+def _riwayat_latihan(kon, siswa_id: int, periode='semua', topik='semua', halaman='1') -> str:
+    """Filter tanggal sesi; tidak mengubah statistik aktivitas jawaban."""
+    semua = database.ringkasan(kon, siswa_id)
+
+    def kelompok(r):
+        kode = _ambil(r, 'topik', TOPIK_BAWAAN) or TOPIK_BAWAAN
+        return 'gabungan' if kode.startswith('gabungan:') else kode
+
+    topik_ada = sorted({kelompok(r) for r in semua})
+    if topik not in topik_ada:
+        topik = 'semua'
+    if periode not in {'7', '30', 'semua'}:
+        periode = 'semua'
+    akhir = hari_wib()
+    mulai = akhir - timedelta(days=int(periode) - 1) if periode != 'semua' else None
+
+    def masuk(r):
+        if topik != 'semua' and kelompok(r) != topik:
+            return False
+        if mulai is None:
+            return True
+        try:
+            tanggal_sesi = date.fromisoformat(str(r['tanggal']))
+        except ValueError:
+            return False
+        return mulai <= tanggal_sesi <= akhir
+
+    tersaring = [r for r in semua if masuk(r)]
+    ring, nomor, jumlah = halaman_daftar(tersaring, halaman, 20)
+
+    def url(**opsi):
+        return url_laporan(siswa_id, 'riwayat', **opsi)
+
+    filter_html = (
+        '<h3>Periode</h3>' + pilihan('Periode sesi',
+            [('7', '7 hari'), ('30', '30 hari'), ('semua', 'Semua waktu')], periode,
+            lambda k: url(periode=k, topik=topik))
+        + '<h3>Topik</h3>' + pilihan('Topik sesi', [('semua', 'Semua')] + [
+            (k, 'Gabungan' if k == 'gabungan' else _nama_topik(k)) for k in topik_ada],
+            topik, lambda k: url(periode=periode, topik=k))
+        + '<p class="laporan-catatan">Periode berdasarkan tanggal sesi, bukan tanggal aktivitas jawaban '
+        'atau tanggal pengiriman. Hanya sesi yang selesai dikirim. '
+        + (f'{_tanggal_pendek(mulai.isoformat())} – {_tanggal_pendek(akhir.isoformat())} · WIB. '
+           'Tanggal sesi yang tidak valid tidak masuk periode ini.' if mulai else 'Semua tanggal, termasuk catatan tanggal warisan.')
+        + f'</p><p>{len(tersaring)} sesi sesuai filter · {len(semua)} sesi seluruh catatan.</p>'
+    )
     tren = "".join(
         f'<tr><td data-label="Sesi"><span><b>Sesi #{r["sesi_id"]}</b>'
         f'<small>{_tanggal_pendek(r["tanggal"])}</small></span></td>'
@@ -231,7 +275,27 @@ def _riwayat_latihan(kon, siswa_id: int) -> str:
         f'<td data-label="Rincian"><a href="/sesi/{r["sesi_id"]}" '
         f'aria-label="Buka sesi {r["sesi_id"]}">Buka sesi <span aria-hidden="true">↗</span></a></td></tr>'
         for r in ring
-    ) or '<tr><td colspan="4" class="kosong">Belum ada sesi yang selesai dikirim.</td></tr>'
+    ) or '<tr><td colspan="4" class="kosong">Tidak ada sesi yang cocok dengan filter. Belum ada sesi yang selesai dikirim pada pilihan ini.</td></tr>'
+    return (
+        filter_html
+        + '<section class="kartu detail-teknis-laporan" id="riwayat-hasil-sesi" aria-labelledby="judul-riwayat-sesi">'
+        '<h2 id="judul-riwayat-sesi">Riwayat hasil sesi</h2>'
+        '<p class="laporan-catatan" id="penjelasan-hasil-sesi">Benar / tersedia menunjukkan jumlah jawaban benar '
+        'dibandingkan semua soal tersedia, termasuk yang belum dijawab. '
+        'Ini bukan persentase pemahaman atau tren kemampuan antar topik. '
+        'Buka sesi untuk melihat jawaban dan rincian penilaiannya.</p>'
+        '<div class="tabel-wrap tabel-tren"><table aria-describedby="penjelasan-hasil-sesi">'
+        '<caption class="sr-only">Hasil sesi dari yang terbaru, beserta tanggal dan kelas latihan</caption>'
+        '<thead><tr><th scope="col">Sesi / tanggal</th><th scope="col">Topik</th>'
+        '<th scope="col">Benar / tersedia</th><th scope="col">Rincian</th></tr></thead>'
+        f'<tbody>{tren}</tbody></table></div></section>'
+        + f'<p class="laporan-catatan">Menampilkan {len(ring)} dari {len(tersaring)} sesi sesuai filter.</p>'
+        + navigasi_halaman(nomor, jumlah, lambda n: url(periode=periode, topik=topik, halaman=n))
+    )
+
+
+def _catatan_latihan(kon, siswa_id):
+    """Catatan seluruh latihan dipisahkan dari filter tanggal sesi."""
     mis = [m for m in database.miskonsepsi_berulang(kon, siswa_id) if m["jumlah_sesi"] > 1]
     daftar_mis = "".join(
         f'<tr><td data-label="Kekeliruan:">{html.escape(m["alasan"] or "Cara yang dipakai belum tepat")}</td>'
@@ -249,31 +313,22 @@ def _riwayat_latihan(kon, siswa_id: int) -> str:
         for p in database.peta_materi_baru(kon, siswa_id)
     ) or '<tr><td colspan="4" class="kosong">Belum ada catatan pengenalan materi.</td></tr>'
     return (
-        '<section class="kartu detail-teknis-laporan" id="riwayat-hasil-sesi" aria-labelledby="judul-riwayat-sesi">'
-        '<h2 id="judul-riwayat-sesi">Riwayat hasil sesi</h2>'
-        '<p class="laporan-catatan" id="penjelasan-hasil-sesi">Benar / tersedia menunjukkan jumlah jawaban benar '
-        'dibandingkan semua soal tersedia, termasuk yang belum dijawab. '
-        'Ini bukan persentase pemahaman atau tren kemampuan antar topik. '
-        'Buka sesi untuk melihat jawaban dan rincian penilaiannya.</p>'
-        '<div class="tabel-wrap tabel-tren"><table aria-describedby="penjelasan-hasil-sesi">'
-        '<caption class="sr-only">Hasil sesi dari yang terbaru, beserta tanggal dan kelas latihan</caption>'
-        '<thead><tr><th scope="col">Sesi / tanggal</th><th scope="col">Topik</th>'
-        '<th scope="col">Benar / tersedia</th><th scope="col">Rincian</th></tr></thead>'
-        f'<tbody>{tren}</tbody></table></div></section>'
-        '<details class="kartu catatan-latihan-laporan"><summary>Catatan pola pada semua latihan</summary>'
+        '<p class="laporan-catatan">Catatan mencakup seluruh sesi yang selesai dikirim, '
+        'lintas tanggal dan kelas. Filter pada tampilan Sesi tidak berlaku di sini.</p>'
+        '<section class="kartu catatan-latihan-laporan"><h2>Catatan pola pada semua latihan</h2>'
         '<p class="laporan-catatan">Rincian pola keliru yang sama dan muncul kembali. Jumlah K '
         'dan jenis kesalahan adalah catatan, bukan skor kelulusan atau penetapan fokus.</p>'
         '<table class="laporan-materi"><caption class="sr-only">Pola keliru yang berulang lintas sesi</caption>'
         '<thead><tr><th scope="col">Kekeliruan</th><th scope="col">Tipe soal</th><th scope="col">Topik</th>'
         '<th scope="col">Jumlah sesi</th><th scope="col">Rentang</th></tr></thead>'
-        f'<tbody>{daftar_mis}</tbody></table></details>'
-        '<details class="kartu catatan-latihan-laporan"><summary>Catatan pengenalan materi</summary>'
+        f'<tbody>{daftar_mis}</tbody></table></section>'
+        '<section class="kartu catatan-latihan-laporan"><h2>Catatan pengenalan materi</h2>'
         '<p class="laporan-catatan">Ditandai belum pernah melihat atau masih bingung; '
         'perlu diperiksa, bukan kepastian materi belum diajarkan.</p>'
         '<table class="laporan-materi"><caption class="sr-only">Materi yang perlu cek pengenalan</caption>'
         '<thead><tr><th scope="col">Tipe soal</th><th scope="col">Topik</th>'
         '<th scope="col">Berapa kali</th><th scope="col">Terakhir</th></tr></thead>'
-        f'<tbody>{daftar_peta}</tbody></table></details>'
+        f'<tbody>{daftar_peta}</tbody></table></section>'
     )
 
 
@@ -285,12 +340,17 @@ BAGIAN_LAPORAN = (
 
 
 def halaman_laporan(
-    kon, siswa_id: int, pengguna: str = "", peran: str = "guru", section: str = "ringkasan"
+    kon, siswa_id: int, pengguna: str = "", peran: str = "guru", section: str = "ringkasan",
+    query: str = "",
 ) -> bytes:
     """Tiga bagian laporan server-side; sumber hitungan dan bukti tidak berubah."""
     siswa = kon.execute("SELECT * FROM siswa WHERE id = ?", (siswa_id,)).fetchone()
     if not siswa:
         return _halaman("Tidak ada", "<h1>Siswa tidak ditemukan</h1>")
+    parameter = parameter_laporan(query)
+    section = parameter.get('section', section)
+    tampilan = parameter.get('tampilan', '')
+    halaman = parameter.get('halaman', '1')
     if section not in dict(BAGIAN_LAPORAN):
         section = "ringkasan"
     navigasi = '<nav class="laporan-navigasi" aria-label="Bagian laporan">' + "".join(
@@ -299,26 +359,50 @@ def halaman_laporan(
         + f'>{label}</a>' for kode, label in BAGIAN_LAPORAN
     ) + '</nav>'
     if section == "riwayat":
-        statistik = statistik_laporan(kon, siswa_id, hari_wib())
-        isi = (
-            _riwayat_latihan(kon, siswa_id)
-            + '<details class="kartu laporan-mingguan"><summary>Rincian hasil latihan mingguan</summary>'
-            + render_materi(statistik, _nama_tipe_soal, _tanggal_pendek) + '</details>'
-            + _kartu_kamus()
-        )
+        opsi = [('sesi', 'Sesi'), ('mingguan', 'Mingguan'), ('catatan', 'Catatan')]
+        if tampilan not in dict(opsi):
+            tampilan = 'sesi'
+        isi = pilihan('Tampilan riwayat', opsi, tampilan,
+                      lambda k: url_laporan(siswa_id, section, tampilan=k))
+        if tampilan == 'sesi':
+            isi += _riwayat_latihan(kon, siswa_id, parameter.get('periode', 'semua'),
+                                   parameter.get('topik', 'semua'), halaman)
+        elif tampilan == 'mingguan':
+            isi += render_materi(statistik_laporan(kon, siswa_id, hari_wib()), _nama_tipe_soal, _tanggal_pendek)
+        else:
+            isi += _catatan_latihan(kon, siswa_id) + _kartu_kamus()
+        if tampilan != 'catatan':
+            isi += (f'<a class="laporan-tautan" href="{url_laporan(siswa_id, section, tampilan="catatan")}#arti-kode">'
+                    'Arti kode penilaian →</a>')
     else:
         # Clock rekomendasi sama dengan profil; WIB hanya untuk statistik aktivitas.
         bukti = database.muat_bukti_siklus(kon, siswa_id)
         perjalanan = perjalanan_belajar(bukti, siswa_id)
         peta_target = peta_penguasaan(lengkapi_bukti_materi(kon, bukti), siswa_id)
-        isi = render_peta(peta_target, _tanggal_pendek, ringkas=section == "ringkasan")
         if section == "penguasaan":
-            isi += render_perjalanan(perjalanan, _nama_tipe_soal, _tanggal_pendek)
+            opsi = [('materi', 'Materi'), ('kriteria', 'Kriteria'), ('perjalanan', 'Perjalanan belajar')]
+            if tampilan not in dict(opsi):
+                tampilan = 'materi'
+            isi = pilihan('Tampilan penguasaan', opsi, tampilan,
+                          lambda k: url_laporan(siswa_id, section, tampilan=k))
+            if tampilan == 'kriteria':
+                isi += render_kriteria()
+            elif tampilan == 'perjalanan':
+                isi += render_perjalanan(perjalanan, _nama_tipe_soal, _tanggal_pendek,
+                                         siswa_id=siswa_id, halaman=halaman)
+            else:
+                isi += render_peta(peta_target, _tanggal_pendek, siswa_id=siswa_id,
+                                   materi=parameter.get('materi', ''), status=parameter.get('status', 'semua'),
+                                   halaman=halaman)
+        elif tampilan == 'tugas':
+            isi = render_tugas(tugas_belum_selesai(kon, siswa_id), siswa_id, _nama_topik, halaman)
         else:
+            isi = '<div class="laporan-ringkasan-grid">'
+            isi += render_peta(peta_target, _tanggal_pendek, ringkas=True)
             isi += render_resume(
                 perjalanan, tugas_belum_selesai(kon, siswa_id), siswa_id,
                 _nama_tipe_soal, _nama_topik, _tanggal_pendek,
-            )
+            ) + '</div>'
             isi += render_aktivitas(statistik_laporan(kon, siswa_id, hari_wib()), _tanggal_pendek)
     nama_siswa = html.escape(siswa["nama"])
     return _halaman(
@@ -327,7 +411,7 @@ def halaman_laporan(
         f'<div class="jejak"><a href="/anak/{siswa_id}">&larr; Riwayat {nama_siswa}</a></div>'
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">CATATAN PERKEMBANGAN</p>'
         f'<h1 id="judul-laporan">Laporan perkembangan {nama_siswa}</h1></header>'
-        + navigasi + isi,
+        + navigasi + '<div id="konten-laporan">' + isi + '</div>',
         ident=(pengguna, peran) if pengguna else None,
         stitch=True,
         kelas_bungkus="laporan-lebar pendamping-editorial-st laporan-editorial-st",

@@ -6,6 +6,7 @@ from typing import Callable
 
 from learning_journey import PerjalananBelajar
 from templates import label_kelas
+from report_navigation import halaman_daftar, navigasi_halaman, url_laporan
 
 
 TAHAP = {
@@ -88,7 +89,7 @@ def _daftar_bukti(bukti, tanggal: Callable) -> str:
 
 
 def _bukti_ringkas(bukti, tanggal: Callable) -> str:
-    """Tampilkan bukti awal dan tahap terbaru; sisanya tetap dapat dibuka."""
+    """Tampilkan bukti awal/terbaru dan bukti sebelumnya tanpa lipatan."""
     jenis = {satu.jenis for satu in bukti}
     terpilih = {
         next(i for i, satu in enumerate(bukti) if satu.jenis == nama)
@@ -99,8 +100,8 @@ def _bukti_ringkas(bukti, tanggal: Callable) -> str:
     ringkas = tuple(satu for i, satu in enumerate(bukti) if i in terpilih)
     lainnya = tuple(satu for i, satu in enumerate(bukti) if i not in terpilih)
     detail = (
-        '<details class="bukti-lainnya"><summary>Bukti sebelumnya</summary>'
-        + _daftar_bukti(lainnya, tanggal) + '</details>' if lainnya else ""
+        '<section class="bukti-lainnya"><h4>Bukti sebelumnya</h4>'
+        + _daftar_bukti(lainnya, tanggal) + '</section>' if lainnya else ""
     )
     return _daftar_bukti(ringkas, tanggal) + detail
 
@@ -115,11 +116,13 @@ def _kartu_fokus(fokus, nomor: int, nama_tipe: Callable, tanggal: Callable) -> s
     )
 
 
-def _histori(perjalanan: PerjalananBelajar, nama_tipe: Callable, tanggal: Callable) -> str:
+def _histori(perjalanan: PerjalananBelajar, nama_tipe: Callable, tanggal: Callable,
+             siswa_id=0, halaman='1') -> str:
     if not perjalanan.histori:
         return ""
     item = []
-    for putaran in perjalanan.histori:
+    bagian, nomor, jumlah = halaman_daftar(perjalanan.histori, halaman, 5)
+    for putaran in bagian:
         nama = ", ".join(html.escape(nama_tipe(kunci[0])) for kunci in putaran.fokus)
         kelas = html.escape(label_kelas(putaran.level))
         alasan = PENUTUP.get(putaran.alasan_penutupan, "Putaran ditutup")
@@ -148,7 +151,9 @@ def _histori(perjalanan: PerjalananBelajar, nama_tipe: Callable, tanggal: Callab
     return (
         '<section class="riwayat-putaran-laporan"><h3>Riwayat putaran sebelumnya</h3>'
         '<p>Putaran lama tetap tercatat meskipun fokus perlu diperkuat lagi.</p>'
-        '<ul class="daftar-aksi-laporan">' + "".join(item) + '</ul></section>'
+        '<ul class="daftar-aksi-laporan">' + "".join(item) + '</ul>'
+        + navigasi_halaman(nomor, jumlah, lambda n: url_laporan(
+            siswa_id, 'penguasaan', tampilan='perjalanan', halaman=n)) + '</section>'
     )
 
 
@@ -168,7 +173,8 @@ def _tanpa_fokus(perjalanan: PerjalananBelajar, nama_tipe: Callable) -> str:
     )
 
 
-def render_perjalanan(perjalanan: PerjalananBelajar, nama_tipe: Callable, tanggal: Callable) -> str:
+def render_perjalanan(perjalanan: PerjalananBelajar, nama_tipe: Callable, tanggal: Callable,
+                      *, siswa_id=0, halaman='1') -> str:
     """Render hanya data proyeksi; tidak membaca diagnosis atau menulis basis data."""
     rencana = perjalanan.rekomendasi
     putaran = (
@@ -198,5 +204,5 @@ def render_perjalanan(perjalanan: PerjalananBelajar, nama_tipe: Callable, tangga
         f'{jadwal}{catatan}{isi}'
         '<p class="sub">Status menggambarkan bukti saat ini. Mulai membaik perlu '
         'diperiksa lagi; bertahan tetap mendapat checkpoint berkala.</p>'
-        f'{_histori(perjalanan, nama_tipe, tanggal)}</section>'
+        f'{_histori(perjalanan, nama_tipe, tanggal, siswa_id, halaman)}</section>'
     )

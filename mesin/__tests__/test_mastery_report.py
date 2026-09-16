@@ -46,10 +46,12 @@ def test_peta_memuat_semua_materi_dan_progres_bukan_rasio():
     assert peta.jumlah["terbukti"]==1
     assert peta.persen==pytest.approx(100/len(peta.target))
     h=mr.render_peta(peta,reports._tanggal_pendek)
-    for nama in {t.topik for t in peta.target}:assert html.escape(nama) in h
-    assert 'role="img"' in h and 'class="peta-grafik"' in h
+    kedua=mr.render_peta(peta,reports._tanggal_pendek,halaman='2')
+    for nama in {t.topik for t in peta.target}:assert html.escape(nama) in h + kedua
+    ringkas=mr.render_peta(peta,reports._tanggal_pendek,ringkas=True)
+    assert 'role="img"' in ringkas and 'class="peta-grafik"' in ringkas
     assert f'1 dari {len(peta.target)} target' in h
-    assert "1/10 materi" in h
+    assert "1/10 materi" in ringkas
     assert "Belum dinilai" in h
 
 
@@ -85,8 +87,8 @@ def test_peta_snapshot_sah_dan_koreksi_mengubah_status_tanpa_write(db):
 
 def test_skor_topik_tidak_memakai_jenis_soal_yang_sudah_dikerjakan_saja():
     peta=mr.peta_penguasaan(_bukti(_baik()),1,HARI)
-    h=mr.render_peta(peta,reports._tanggal_pendek)
-    bagian=h.split('<b>Statistika</b>',1)[1].split('</summary>',1)[0]
+    h=mr.render_peta(peta,reports._tanggal_pendek,materi='statistika')
+    bagian=h.split('<b>Statistika</b>',1)[1].split('</a>',1)[0]
     assert "1/5 target" in bagian and "20%" in bagian
     assert "100%" not in bagian
 
@@ -95,7 +97,9 @@ def test_peta_kosong_dan_kelas_asing_tidak_pura_pura_nol_kemampuan():
     peta=mr.peta_penguasaan(_bukti(()),1,HARI)
     assert peta.persen is None
     h=mr.render_peta(peta,reports._tanggal_pendek)
-    assert 'peta-angka">—' in h and 'peta-angka">0%' not in h
+    ringkas=mr.render_peta(peta,reports._tanggal_pendek,ringkas=True)
+    assert 'peta-persentase">— · Belum dinilai' in ringkas
+    assert 'peta-persentase">0%' not in ringkas
     assert "Belum dinilai bukan berarti tidak mampu" in h
     asing=mr.peta_penguasaan(replace(_bukti(()),level_aktif="asing"),1,HARI)
     assert "belum tersedia" in mr.render_peta(asing,reports._tanggal_pendek)

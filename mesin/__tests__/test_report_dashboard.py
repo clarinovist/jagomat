@@ -47,12 +47,14 @@ def test_resume_native_tidak_redirect_dan_manual_tidak_mengganti_rekomendasi(db)
         rekomendasi = perjalanan_belajar(asli, sid).rekomendasi
         awal = tuple(kon.iterdump())
         h = reports.halaman_laporan(kon, sid).decode()
+        tugas = reports.halaman_laporan(kon, sid, query='tampilan=tugas').decode()
         assert tuple(kon.iterdump()) == awal
     assert '<section class="kartu laporan-resume"' in h
     assert '<summary>Lihat rencana belajar</summary>' not in h
     resume = h.split('id="rencana-belajar-laporan"',1)[1].split('aria-labelledby="judul-aktivitas"',1)[0]
-    assert f'/sesi/{ses}' in resume
-    assert "1/2 soal terisi" in resume
+    assert 'tampilan=tugas' in resume
+    assert f'/sesi/{ses}' in tugas
+    assert 'class="rasio-laporan">1/2</span> soal terisi' in tugas
     assert 'href="/anak/' in resume
     assert resume.count('class="tombol aksi-rencana-laporan"') == 1
     assert tampilan.judul_tindakan(PerjalananBelajar(rekomendasi)) in resume

@@ -1,4 +1,4 @@
-"""Regresi navigasi laporan, lipatan tunggal, dan angka yang terbaca."""
+"""Regresi navigasi laporan tanpa lipatan dan angka yang terbaca."""
 from html.parser import HTMLParser
 from pathlib import Path
 import sys
@@ -58,7 +58,7 @@ def test_peta_target_tidak_memiliki_lipatan_di_dalam_lipatan(db):
         sid = database.tambah_siswa(kon, 'Peta', 'P5', pemilik='guru')
         peta = mastery_report.peta_penguasaan(database.muat_bukti_siklus(kon, sid), sid)
     h = mastery_report.render_peta(peta, reports._tanggal_pendek)
-    assert Struktur(h).maksimum == 1
+    assert Struktur(h).maksimum == 0
     assert 'class="peta-bukti"' in h
 
 
@@ -78,7 +78,7 @@ def test_section_hanya_merender_bagian_terpilih_tanpa_write(db, bagian):
     terpilih = [a for a, _ in struktur.tautan if a.get('aria-current') == 'page']
     assert len(terpilih) == 1 and terpilih[0]['href'] == f'/laporan/{sid}?section={aktif}'
     assert ('id="rencana-belajar-laporan"' in h) == (aktif == 'ringkasan')
-    assert ('class="peta-topik"' in h) == (aktif == 'penguasaan')
+    assert ('class="peta-pilihan"' in h) == (aktif == 'penguasaan')
     assert ('id="riwayat-hasil-sesi"' in h) == (aktif == 'riwayat')
     assert struktur.maksimum <= 1
     assert '<script>x</script>' not in h
@@ -118,7 +118,7 @@ def test_histori_panjang_tetap_terbaca_tanpa_lipatan_bersarang():
                             'putaran_ditutup', (kunci,), perjalanan_fokus=(fokus,))
     perjalanan = PerjalananBelajar(RencanaBelajar('pemetaan', ''), histori=(histori,))
     h = render_perjalanan(perjalanan, reports._nama_tipe_soal, reports._tanggal_pendek)
-    assert Struktur(h).maksimum == 1
+    assert Struktur(h).maksimum == 0
     assert all(h.count(f'href="/sesi/{n}"') == 1 for n in range(1, 7))
     assert 'Riwayat putaran sebelumnya' in h and 'Bukti sebelumnya' in h
 

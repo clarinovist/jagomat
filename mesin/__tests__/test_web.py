@@ -275,7 +275,7 @@ def test_catatan_k_laporan_bukan_skor_kelulusan(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Lapor")
         database.buat_sesi(kon, sid, seed=14)
-        h = reports.halaman_laporan(kon, sid, section="riwayat").decode()
+        h = reports.halaman_laporan(kon, sid, section="riwayat", query='tampilan=catatan').decode()
     assert "Jumlah K" in h
     assert "bukan skor" in h.lower()
 

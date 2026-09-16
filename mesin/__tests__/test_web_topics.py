@@ -291,7 +291,11 @@ def test_laporan_detail_menampilkan_topik_pada_dua_tabel(db):
             database.tandai_selesai(kon, sesi_id)
         isi = reports.halaman_laporan(kon, sid, section="riwayat").decode()
 
-    assert isi.count('<th scope="col">Topik</th>') == 3
+        catatan = reports.halaman_laporan(kon, sid, section="riwayat", query='tampilan=catatan').decode()
+
+    assert isi.count('<th scope="col">Topik</th>') == 1
+    assert catatan.count('<th scope="col">Topik</th>') == 2
+    assert 'Aritmetika Dasar' in catatan
     assert "Aritmetika Dasar" in isi
     assert "Pola Bilangan" in isi
 
