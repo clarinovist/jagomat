@@ -1,8 +1,24 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
-## Mode source saat ini: kandidat migrasi (15 September 2026)
+## Mode source saat ini: kandidat migrasi PG (16 September 2026)
 
-`release-metadata.json` di `scripts/` menetapkan mode **migrasi**, dengan baseline
+Metadata source kini mematok baseline recovery PG
+`e38e2e150c514c54db5470820561e69654c699bf`, kontrak persistensi
+`a65060bc3ae65e4c78011499137508f6a873a6d19b0f77395efa0a7936424acf`, mode
+**migrasi**, dan `pasang: if false`. Baseline tersebut telah lolos build-only
+[run 35106204469](https://github.com/clarinovist/osn-mesin-latihan/actions/runs/35106204469).
+Kandidat meniadakan overlay toolbar pada PG agar opsi bawah tidak tertutup;
+recovery mempertahankan tampilan sebelumnya dengan persistensi yang sama.
+
+Uji pasangan sekarang wajib mencakup isian **dan PG**: opsi 3/4/5, draft yang
+ dilanjutkan recovery, arsip/konfirmasi immutable, revisi tab, dan penolakan opt-in
+pemetaan. Bukti tanpa `pilihan_pair_checks=8` ditolak. Pin sendiri bukan bukti live;
+cutover tetap backup/rehearsal/migrasi `deploy-v2` exact digest yang lolos CI.
+Auto-deploy permanen tidak diaktifkan oleh perubahan ini.
+
+## Riwayat baseline pengiriman (15 September 2026)
+
+Pada rilis pengiriman sebelumnya, metadata menetapkan baseline
 recovery B `0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c` dan kontrak
 `18bbd4f57675cf28900a39c96f8af13cee785ce74d5f6198529b7760bd266b4d`.
 Anchor ini cocok antara probe source B dan manifest image CI B

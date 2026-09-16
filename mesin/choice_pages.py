@@ -78,6 +78,8 @@ def gaya_pilihan():
 .pg-opsi:focus-within, .pg-kosong:focus-within {{ outline: 2px solid {T.TEKS_JUDUL}; outline-offset: 2px; }}
 .pg-kosong {{ color: {T.TEKS_SUBTLE}; border-style: dashed; }}
 .pg-daftar p {{ white-space: pre-wrap; overflow-wrap: anywhere; }}
+/* PG tidak memakai overlay: opsi bawah harus menerima klik, bukan tombol simpan. */
+.kerja-editorial-st:has(.pg-pilihan) .kerja-simpan-strip-st {{ position: static; }}
 '''
 
 

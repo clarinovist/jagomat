@@ -18,8 +18,8 @@ permissions:
 env:
   REGISTRI: ghcr.io
   IMAGE: ${{ github.repository }}
-  # Baseline B memahami arsip pengiriman dan provenance tinjauan.
-  RECOVERY_SHA: 0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c
+  # Baseline PG memahami opsi, arsip pengiriman, dan konfirmasi pilihan.
+  RECOVERY_SHA: e38e2e150c514c54db5470820561e69654c699bf
 
 jobs:
   # Kandidat dan recovery masing-masing memakai empat runner terisolasi.
@@ -92,9 +92,9 @@ jobs:
       - name: Checkout baseline recovery pengiriman dan tinjauan
         uses: actions/checkout@v7
         with:
-          ref: 0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c
+          ref: e38e2e150c514c54db5470820561e69654c699bf
           path: recovery
-          # Suite B mempertahankan mode persiapan dan pin historisnya sendiri.
+          # Suite baseline PG mempertahankan mode persiapan dan pin historisnya.
           fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
@@ -134,7 +134,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/checkout@v7
         with:
-          ref: 0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c
+          ref: e38e2e150c514c54db5470820561e69654c699bf
           path: recovery
       - name: Validasi mode dan gate rilis sebelum build
         id: mode

@@ -23,6 +23,7 @@ SPEK.loader.exec_module(pytest_shard)
 JUMLAH_RECOVERY = {
     "33e241c18024190f41ebca1986e35af26c0397fd": 9851,
     "0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c": 10635,
+    "e38e2e150c514c54db5470820561e69654c699bf": 10851,
 }
 
 

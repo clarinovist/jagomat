@@ -36,6 +36,31 @@ with database.buka(p) as kon:
     assert not kon.execute('PRAGMA foreign_key_check').fetchall()
     assert kon.execute('PRAGMA integrity_check').fetchone()[0]=='ok'
 Path('/data/manifest.json').write_text(json.dumps({'sesi':sesi,'sid':sid,'bukti':bukti},sort_keys=True))
+# PG: data sungguhan sintetis, termasuk draft yang diteruskan recovery.
+import choice_store,students,reports
+with database.buka(p) as kon:
+    pg=database.buat_sesi(kon,siswa,43,topik='logika',jumlah_soal=12,format_jawaban='pilihan_ganda')
+    angka=database.buat_sesi(kon,siswa,44,topik='pola-bilangan',format_jawaban='pilihan_ganda')
+    jumlah_opsi=set()
+    for sesi_pg in (pg,angka):
+        pilihan=choice_store.daftar_pilihan(kon,sesi_pg)
+        data={'revisi_pekerjaan':str(student_submissions.revisi(kon,sesi_pg))}
+        for b in database.isi_sesi(kon,sesi_pg):
+            opsi=pilihan[b['sesi_soal_id']]
+            jumlah_opsi.add(len(opsi.opsi))
+            data['opsi_'+str(b['sesi_soal_id'])]=next(o.id for o in opsi.opsi if o.nilai==b['kunci'])
+        students.simpan_jawaban_murid(kon,siswa,sesi_pg,data)
+    assert jumlah_opsi=={3,4,5}
+    student_submissions.arsipkan(kon,pg,'akun')
+    reports.diagnosa_murid(kon,pg)
+    database.tandai_selesai(kon,pg)
+    kh_pg=database.konfirmasi_hasil(kon,pg,'guru')
+    tabel_pg=('pilihan_butir','pengiriman_pilihan','konfirmasi_pilihan')
+    salinan={t:[tuple(r) for r in kon.execute('SELECT * FROM '+t+' ORDER BY rowid')] for t in tabel_pg}
+    assert all(salinan.values())
+    bukti={t:[tuple(r) for r in kon.execute('SELECT * FROM '+t+' ORDER BY rowid')] for t in tabel}
+Path('/data/manifest.json').write_text(json.dumps({'sesi':sesi,'sid':sid,'bukti':bukti},sort_keys=True))
+Path('/data/pg-manifest.json').write_text(json.dumps({'siswa':siswa,'sesi':pg,'draft':angka,'kh':kh_pg,'bukti':salinan},sort_keys=True))
 print('OSN_SUBMISSION_WRITER_OK')
 '''
 
@@ -69,6 +94,38 @@ with database.buka(p) as kon:
         else: raise AssertionError('bantuan_menjadi_bukti')
     for t,rows in awal['bukti'].items():
         assert [list(r) for r in kon.execute('SELECT * FROM '+t+' ORDER BY rowid')]==rows
+    assert not kon.execute('PRAGMA foreign_key_check').fetchall()
+    assert kon.execute('PRAGMA integrity_check').fetchone()[0]=='ok'
+# Recovery wajib memahami PG, bukan hanya membiarkan tabel baru tetap ada.
+import choice_store,students,reports
+from choice_contract import serialisasi
+from learning_cycle_service import konfirmasi_dari_form
+pg=json.loads(Path('/data/pg-manifest.json').read_text())
+with database.buka(p) as kon:
+    for t,rows in pg['bukti'].items():
+        assert [list(r) for r in kon.execute('SELECT * FROM '+t+' ORDER BY rowid')]==rows
+    pilihan=choice_store.daftar_pilihan(kon,pg['sesi'])
+    assert pilihan and database.konfirmasi_hasil(kon,pg['sesi'],'guru')==pg['kh']
+    choice_store.validasi_arsip(kon,pg['sesi'],pg['kh'])
+    halaman=__import__('student_pages').halaman_kerja_baru(kon,pg['siswa'],pg['draft'])
+    assert b'name="opsi_' in halaman and b'name="jwb_' not in halaman
+    for tabel in ('pilihan_butir','pengiriman_pilihan','konfirmasi_pilihan'):
+        try: kon.execute('UPDATE '+tabel+" SET snapshot_json='{}'")
+        except sqlite3.IntegrityError: pass
+        else: raise AssertionError('arsip_pg_mutable')
+    try: konfirmasi_dari_form(kon,pg['sesi'],'guru',{'sertakan_pemetaan':'1'})
+    except ValueError: pass
+    else: raise AssertionError('pg_menjadi_pemetaan')
+    draft=pg['draft']; opsi=choice_store.daftar_pilihan(kon,draft)
+    sid=next(iter(opsi)); rev=student_submissions.revisi(kon,draft)
+    students.simpan_jawaban_murid(kon,pg['siswa'],draft,{'revisi_pekerjaan':str(rev),'opsi_'+str(sid):''})
+    assert not kon.execute('SELECT jawaban FROM jawaban WHERE sesi_soal_id=?',(sid,)).fetchone()
+    try: students.simpan_jawaban_murid(kon,pg['siswa'],draft,{'revisi_pekerjaan':str(rev),'opsi_'+str(sid):'opsi_1'})
+    except ValueError: pass
+    else: raise AssertionError('revisi_pg_diabaikan')
+    student_submissions.arsipkan(kon,draft,'akun')
+    reports.diagnosa_murid(kon,draft); database.tandai_selesai(kon,draft)
+    assert all(b['kode_final'] is None for b in database.isi_sesi(kon,draft))
     assert not kon.execute('PRAGMA foreign_key_check').fetchall()
     assert kon.execute('PRAGMA integrity_check').fetchone()[0]=='ok'
 print('OSN_SUBMISSION_RECOVERY_OK')
@@ -139,6 +196,7 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'candidate_digest': candidate_image.split('@')[1],
             'recovery_revision': recovery_revision,
             'recovery_digest': recovery_image.split('@')[1], 'pengiriman_pair_checks': 6,
+            'pilihan_pair_checks': 8,
             'provider_calls': 0}
 
 

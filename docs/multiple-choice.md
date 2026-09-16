@@ -47,6 +47,7 @@ mendapat penanda opsi benar, ID malrule, kode diagnosis, atau alasan guru.
 ## Rilis
 
 Perubahan skema membutuhkan pasangan recovery baru yang diuji sebelum pemasangan.
-Metadata rilis patch ini **persiapan/build-only**; job pasang tetap nonaktif.
-Push tidak sama dengan deploy. Jangan downgrade ke pembaca pra-PG setelah data PG
+Metadata rilis kini **migrasi terkontrol** dengan baseline recovery PG yang
+memahami skema yang sama; job pasang otomatis tetap nonaktif. Uji pasangan
+mencakup sesi PG dan arsipnya. Push tidak sama dengan deploy. Jangan downgrade ke pembaca pra-PG setelah data PG
 terbuat. Pemulihan mempertahankan reader dan arsip, bukan menghapus data PG.
