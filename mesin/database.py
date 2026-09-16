@@ -51,6 +51,8 @@ def buka(path: Path | str | None = None) -> Iterator[sqlite3.Connection]:
     kon.row_factory = sqlite3.Row
     kon.execute("PRAGMA foreign_keys = ON")
     outcome_presentations.daftarkan_validasi(kon)
+    import choice_store
+    choice_store.daftarkan_validasi(kon)
     try:
         yield kon
         kon.commit()
@@ -367,6 +369,7 @@ def buat_sesi(
     durasi_menit: int = 15,
     timer_auto: int = 0,
     jumlah_soal: int | None = None,
+    format_jawaban: str = 'isian',
 ) -> int:
     """Bangkitkan lembar dari seed, simpan soalnya ke bank, rangkai jadi sesi."""
     MODE_SAH = ("diagnostik", "drill")
@@ -382,7 +385,11 @@ def buat_sesi(
     if not isinstance(durasi_menit, int) or not 1 <= durasi_menit <= 180:
         raise ValueError(f"durasi_menit tidak wajar: {durasi_menit!r}")
 
-    lembar = buat_lembar(seed, level=level, topik=topik, jumlah_soal=jumlah_soal)
+    from choice_store import validasi_format
+    validasi_format(format_jawaban)
+    from choice_generation import buat_lembar_pilihan
+    pembuat = buat_lembar_pilihan if format_jawaban == 'pilihan_ganda' else buat_lembar
+    lembar = pembuat(seed, level=level, topik=topik, jumlah_soal=jumlah_soal)
     # Level yang DICATAT adalah level yang benar-benar dipakai generator,
     # bukan yang diminta. `siswa.tingkat` teks bebas, dan `_level_efektif`
     # menormalkan nilai tak dikenal ke level paket — menyimpan yang mentah
@@ -396,23 +403,26 @@ def buat_sesi(
         if tanggal:
             cur = kon.execute(
                 """INSERT INTO sesi (siswa_id, seed, topik, level, mode,
-                                     timer_mode, durasi_menit, timer_auto, tanggal)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                     timer_mode, durasi_menit, timer_auto, tanggal, format_jawaban)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (siswa_id, seed, topik, level, mode,
-                 timer_mode, durasi_menit, timer_auto, tanggal),
+                 timer_mode, durasi_menit, timer_auto, tanggal, format_jawaban),
             )
         else:
             cur = kon.execute(
                 """INSERT INTO sesi (siswa_id, seed, topik, level, mode,
-                                     timer_mode, durasi_menit, timer_auto)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                                     timer_mode, durasi_menit, timer_auto, format_jawaban)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (siswa_id, seed, topik, level, mode,
-                 timer_mode, durasi_menit, timer_auto),
+                 timer_mode, durasi_menit, timer_auto, format_jawaban),
             )
         sesi_id = int(cur.lastrowid)
 
         for nomor, soal in enumerate(lembar.soal, start=1):
             _simpan_butir_sesi(kon, sesi_id, nomor, soal)
+        if format_jawaban == 'pilihan_ganda':
+            import choice_store
+            choice_store.lengkapi_sesi(kon, siswa_id, sesi_id, lembar)
         kon.execute("RELEASE SAVEPOINT buat_sesi_snapshot")
         return sesi_id
     except Exception:
@@ -488,6 +498,7 @@ def buat_sesi_gabungan(
     level: str = LEVEL_BAWAAN,
     mode: str = "diagnostik",
     jumlah_soal: int | None = None,
+    format_jawaban: str = 'isian',
 ) -> int:
     """Sesi lintas BEBERAPA topik pilihan guru (poin 4 tahap 2).
 
@@ -510,20 +521,25 @@ def buat_sesi_gabungan(
     # bukan pilihan pengguna dinormalkan, bukan ditolak.
     if level not in paket.komposisi:
         level = _level_terdekat(level, paket.komposisi)
-    lembar = buat_lembar(
-        seed, level=level, topik=paket, jumlah_soal=jumlah_soal
-    )
+    from choice_store import validasi_format
+    from choice_generation import buat_lembar_pilihan
+    validasi_format(format_jawaban)
+    pembuat = buat_lembar_pilihan if format_jawaban == 'pilihan_ganda' else buat_lembar
+    lembar = pembuat(seed, level=level, topik=paket, jumlah_soal=jumlah_soal)
     kon.execute("SAVEPOINT buat_sesi_gabungan_snapshot")
     try:
         cur = kon.execute(
             """INSERT INTO sesi (siswa_id, seed, topik, level, mode,
-                                 timer_mode, durasi_menit, timer_auto)
-               VALUES (?, ?, ?, ?, ?, 'tanpa', 15, 0)""",
-            (siswa_id, seed, paket.id, lembar.level, mode),
+                                 timer_mode, durasi_menit, timer_auto, format_jawaban)
+               VALUES (?, ?, ?, ?, ?, 'tanpa', 15, 0, ?)""",
+            (siswa_id, seed, paket.id, lembar.level, mode, format_jawaban),
         )
         sesi_id = int(cur.lastrowid)
         for nomor, soal in enumerate(lembar.soal, start=1):
             _simpan_butir_sesi(kon, sesi_id, nomor, soal)
+        if format_jawaban == 'pilihan_ganda':
+            import choice_store
+            choice_store.lengkapi_sesi(kon, siswa_id, sesi_id, lembar)
         kon.execute("RELEASE SAVEPOINT buat_sesi_gabungan_snapshot")
         return sesi_id
     except Exception:
@@ -555,7 +571,7 @@ def _baris_sasaran_remedial(
            JOIN sesi_soal ss ON ss.id = j.sesi_soal_id
            JOIN sesi se      ON se.id = ss.sesi_id
            JOIN soal s       ON s.id = ss.soal_id
-           WHERE se.siswa_id = ?
+           WHERE se.siswa_id = ? AND se.format_jawaban='isian'
              AND se.selesai IS NOT NULL
              AND se.direview IS NOT NULL"""
         + syarat_sesi
@@ -651,7 +667,7 @@ def sasaran_remedial(
            JOIN sesi_soal ss ON ss.id = j.sesi_soal_id
            JOIN sesi se      ON se.id = ss.sesi_id
            JOIN soal s       ON s.id  = ss.soal_id
-           WHERE se.siswa_id = ?
+           WHERE se.siswa_id = ? AND se.format_jawaban='isian'
              AND se.selesai IS NOT NULL
              AND d.benar = 0
              AND IFNULL(d.kode_final, IFNULL(d.kode_usulan, '')) <> 'T'
@@ -1222,6 +1238,9 @@ def _konfirmasi_hasil(
         ):
             raise ValueError("outcome belum lengkap")
 
+    if sesi['format_jawaban'] == 'pilihan_ganda':
+        from choice_store import validasi_arsip
+        validasi_arsip(kon, sesi_id)
     import review_store
     tinjauan = review_store.validasi_bukti(kon, sesi_id, outcome, dilewati)
     target_per_butir = _target_per_butir(kon, sesi_id)
@@ -1247,6 +1266,9 @@ def _konfirmasi_hasil(
             }
         )
     isi_fingerprint = {"outcome": kanonis, "tinjauan": tinjauan} if tinjauan else kanonis
+    if sesi['format_jawaban'] == 'pilihan_ganda':
+        from choice_store import proyeksi_konfirmasi
+        isi_fingerprint = {'hasil': isi_fingerprint, 'pilihan': proyeksi_konfirmasi(kon, sesi_id)}
     serial = json.dumps(isi_fingerprint, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     fingerprint = hashlib.sha256(serial.encode("utf-8")).hexdigest()
     aktif = kon.execute(
@@ -1262,6 +1284,8 @@ def _konfirmasi_hasil(
         (sesi_id, fingerprint),
     ).fetchone()
     if aktif is not None:
+        if sesi['format_jawaban'] == 'pilihan_ganda':
+            validasi_arsip(kon, sesi_id, int(aktif['id']))
         outcome_presentations.lengkapi(kon, int(aktif["id"]))
         return int(aktif["id"])
     nomor_urut = int(
@@ -1307,6 +1331,8 @@ def _konfirmasi_hasil(
             ),
         )
     outcome_presentations.lengkapi(kon, konfirmasi_id)
+    from choice_store import arsipkan_pilihan
+    arsipkan_pilihan(kon, sesi_id, konfirmasi_id)
     kon.execute(
         """INSERT INTO kejadian_belajar
                (siswa_id, putaran_id, sesi_id, konfirmasi_id, jenis, data)
@@ -1430,7 +1456,7 @@ def muat_bukti_siklus(kon: sqlite3.Connection, siswa_id: int):
 
     sesi_hasil = []
     sesi_baris = kon.execute(
-        """SELECT id, level, tujuan, tanggal, dibuat, selesai, direview,
+        """SELECT id, level, tujuan, tanggal, dibuat, selesai, direview, format_jawaban,
                   dikonfirmasi_guru, putaran_id, bagian_checkpoint, dibatalkan,
                   fingerprint_konfirmasi
            FROM sesi WHERE siswa_id = ? ORDER BY tanggal, id""",
@@ -1457,6 +1483,9 @@ def muat_bukti_siklus(kon: sqlite3.Connection, siswa_id: int):
                 (baris["id"], baris["fingerprint_konfirmasi"]),
             ).fetchone()
             if aktif is not None:
+                if baris['format_jawaban'] == 'pilihan_ganda':
+                    from choice_store import validasi_arsip
+                    validasi_arsip(kon, baris['id'], int(aktif['id']))
                 outcome = tuple(
                     OutcomeSiklus(
                         item["template_id"],
@@ -1499,6 +1528,7 @@ def muat_bukti_siklus(kon: sqlite3.Connection, siswa_id: int):
                 None if aktif is None else int(aktif["id"]),
                 _tanggal_domain_opsional(baris["selesai"]),
                 _tanggal_domain_opsional(baris["dikonfirmasi_guru"]),
+                format_jawaban=baris['format_jawaban'],
             )
         )
     import interventions
@@ -1633,7 +1663,7 @@ def miskonsepsi_berulang(
            JOIN sesi_soal ss ON ss.id = j.sesi_soal_id
            JOIN sesi se      ON se.id = ss.sesi_id
            JOIN soal s       ON s.id  = ss.soal_id
-           WHERE se.siswa_id = ?
+           WHERE se.siswa_id = ? AND se.format_jawaban='isian'
              AND se.selesai IS NOT NULL
              AND d.kode_final = 'K'
              AND d.malrule_id IS NOT NULL
@@ -1654,7 +1684,7 @@ def peta_materi_baru(kon: sqlite3.Connection, siswa_id: int) -> list[sqlite3.Row
            JOIN sesi_soal ss ON ss.id = j.sesi_soal_id
            JOIN sesi se      ON se.id = ss.sesi_id
            JOIN soal s       ON s.id  = ss.soal_id
-           WHERE se.siswa_id = ? AND se.selesai IS NOT NULL
+           WHERE se.siswa_id = ? AND se.format_jawaban='isian' AND se.selesai IS NOT NULL
              AND d.kode_final = 'T'
            GROUP BY s.template_id, se.topik
            ORDER BY kali DESC""",

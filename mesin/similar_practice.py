@@ -34,7 +34,7 @@ def kandidat_sesi(
            JOIN soal so ON so.id = ss.soal_id
            JOIN jawaban j ON j.sesi_soal_id = ss.id
            JOIN diagnosis d ON d.jawaban_id = j.id
-           WHERE se.id = ?
+           WHERE se.id = ? AND se.format_jawaban='isian'
              AND se.selesai IS NOT NULL
              AND se.dibatalkan IS NULL
              AND se.level = sw.tingkat

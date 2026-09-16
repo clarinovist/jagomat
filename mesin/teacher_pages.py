@@ -244,6 +244,8 @@ def _nama_topik_sesi(topik_id: str) -> tuple[str, str]:
 
 
 def _mode_sesi(baris) -> str:
+    if _ambil(baris, 'format_jawaban', 'isian') == 'pilihan_ganda':
+        return 'Pilihan ganda · latihan manual'
     if _ambil(baris, "mode", "diagnostik") == "drill":
         return "Latihan Cepat"
     return "Mode Diagnosa"
@@ -631,7 +633,7 @@ def halaman_anak(
         for t in _topik_untuk_level(siswa["tingkat"])
     )
     sesi = kon.execute(
-        """SELECT s.id, s.tanggal, s.seed, s.level, s.topik, s.mode,
+        """SELECT s.id, s.tanggal, s.seed, s.level, s.topik, s.mode, s.format_jawaban,
                   s.jenis, s.sumber_sesi_id,
                   s.mulai, s.selesai, s.direview, s.dibatalkan,
                   s.dikonfirmasi_guru, s.fingerprint_konfirmasi,
@@ -768,6 +770,7 @@ def halaman_anak(
             f"{html.escape(siapa)}</span>"
         )
 
+    from choice_pages import kontrol_format
     strip_sesi = (
         f'<form method="post" action="/sesi-baru/{siswa["id"]}" class="strip-sesi">'
         f'<div class="strip-kolom"><label for="manual-topik">Topik</label>'
@@ -782,7 +785,7 @@ def halaman_anak(
                                  ("15", "15 soal (± 45 mnt)"), ("20", "20 soal (± 60 mnt)"),
                                  ("25", "25 soal (± 75 mnt)"), ("30", "30 soal (± 90 mnt)"))
         )
-        + f'</select></div>{_kontrol_mode_sesi(draf_latihan)}'
+        + f'</select></div>{kontrol_format("manual", getattr(draf_latihan, "format_jawaban", "isian"))}{_kontrol_mode_sesi(draf_latihan)}'
         + (bantuan_latihan or (
             __import__("assistant_components").tombol_buka(
                 __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "latihan"),
@@ -824,7 +827,7 @@ def halaman_anak(
         "<label>Latihan gabungan — pilih beberapa topik</label>"
         '<p class="sub">Centang dua topik atau lebih. Soalnya dicampur '
         "bergantian antar-topik yang kamu pilih.</p>"
-        f'<div class="mode-pilih">{centang_topik}</div></div>'
+        f'<div class="mode-pilih">{centang_topik}</div></div>{kontrol_format("gabungan")}'
         '<div class="strip-kolom">'
         '<span id="gabungan-mode-label">Mode latihan</span>'
         '<div class="mode-pilih" role="radiogroup" aria-labelledby="gabungan-mode-label">'
@@ -1341,6 +1344,9 @@ def halaman_sesi_stitch(
     masalah_per_butir = {sid: pesan_masalah.get(alasan, alasan) for sid, _, alasan in masalah_konfirmasi}
     import review_store
     import review_pages
+    from choice_store import daftar_pilihan
+    from choice_pages import select_guru, ringkas_opsi, pertanyaan
+    pilihan_pg = daftar_pilihan(kon, sesi_id)
     tinjauan_sesi = review_store.muat(kon, sesi_id)
     pengiriman_sesi = review_store.pengiriman(kon, sesi_id)
     ada_foto = kon.execute('SELECT 1 FROM lampiran WHERE sesi_id=? LIMIT 1', (sesi_id,)).fetchone() is not None
@@ -1357,6 +1363,11 @@ def halaman_sesi_stitch(
 
         draf_butir = draf_koreksi.untuk(int(b["sesi_soal_id"])) if draf_koreksi else None
         jawaban_tampil = draf_butir.jawaban if draf_butir else (b["jawaban"] or "")
+        pg_butir = pilihan_pg.get(b['sesi_soal_id'])
+        teks_pertanyaan = pertanyaan(question_views.penyajian_dari_baris(b), pg_butir, b['template_id'], 'guru', str(b['nomor']))
+        label_jawaban = next((o.label + ' — ' + o.teks for o in pg_butir.opsi if o.nilai == jawaban_tampil), jawaban_tampil) if pg_butir else jawaban_tampil
+        input_jawaban = (select_guru(pg_butir, jawaban_tampil) if pg_butir else
+                         f'<input type="text" class="koreksi-input-st" id="jwb-{b["sesi_soal_id"]}" name="jwb_{b["sesi_soal_id"]}"\n               value="{html.escape(jawaban_tampil)}">')
         kode_tampil = draf_butir.kode if draf_butir else pilihan_tersimpan(b)
         cara_tampil = cara_untuk_form(draf_butir.cara if draf_butir else b["cara"] or "")
         tinjauan_butir = tinjauan_sesi.get(int(b['sesi_soal_id']), {})
@@ -1370,11 +1381,15 @@ def halaman_sesi_stitch(
         if drill:
             from students import AWALAN_DRILL
             cara_diagnosis = AWALAN_DRILL + cara_diagnosis
-        rekomendasi = diagnosa(
-            b["kunci"], jawaban_tampil, cara_diagnosis, b["restatement"] or "",
-            belum_terpilih, database.malrule_soal(kon, b["soal_id"]), soal.minta_restatement,
-            soal=soal,
-        )
+        if pg_butir:
+            from choice_assessment import nilai_pilihan
+            rekomendasi = nilai_pilihan(b['kunci'], jawaban_tampil)
+        else:
+            rekomendasi = diagnosa(
+                b["kunci"], jawaban_tampil, cara_diagnosis, b["restatement"] or "",
+                belum_terpilih, database.malrule_soal(kon, b["soal_id"]), soal.minta_restatement,
+                soal=soal,
+            )
         if (sudah and b["benar"] is not None and not b["manual"]
                 and jawaban_tampil.strip() == (b["jawaban"] or "")
                 and cara_dari_form(cara_tampil.strip(), b["cara"] or "") == (b["cara"] or "")
@@ -1465,14 +1480,15 @@ def halaman_sesi_stitch(
 <div class="koreksi-kartu-st pratinjau">
   <div class="koreksi-isi-st">
     <div class="koreksi-kepala-st">{nomor}{tipe}</div>
-    <div class="teks-soal-st">{visual_renderer.render_pertanyaan(question_views.penyajian_dari_baris(b), gaya="guru", namespace=str(b["nomor"]))}</div>
+    <div class="teks-soal-st">{teks_pertanyaan}</div>
+    {ringkas_opsi(pg_butir, b['template_id'])}
     <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b["kunci"])}</span></div>
   </div>
 </div>""")
             continue
 
         cara_html = ""
-        if not drill:
+        if not drill or pg_butir:
             cara_html = (
                 f'<label class="koreksi-label-st" for="cara-{b["sesi_soal_id"]}">{"Catatan pekerjaan sebagian" if kosong_asli else "Bagaimana anak mendapatkan jawabannya?"}</label>'
                 f'<textarea class="koreksi-textarea-st" id="cara-{b["sesi_soal_id"]}" name="cara_{b["sesi_soal_id"]}" '
@@ -1643,8 +1659,10 @@ def halaman_sesi_stitch(
   <div class="koreksi-isi-st {kelas_isi}">
     <div class="koreksi-kepala-st">{status}</div>
     {petunjuk_masalah}
-    <div class="teks-soal-st">{visual_renderer.render_pertanyaan(question_views.penyajian_dari_baris(b), gaya="guru", namespace=str(b["nomor"]))}</div>
-    {review_pages.jawaban_utama(jawaban_tampil, dikoreksi=koreksi_jawaban)}
+    <div class="teks-soal-st">{teks_pertanyaan}</div>
+    {ringkas_opsi(pg_butir, b['template_id'])}
+    {'<p>Pilihan ganda · latihan manual, bukan bukti penguasaan.</p>' if pg_butir else ''}
+    {review_pages.jawaban_utama(label_jawaban, dikoreksi=koreksi_jawaban)}
     <details class="koreksi-opsi-st"><summary>Lihat kunci &amp; pembahasan</summary>
       <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b["kunci"])}</span></div>
       {pembahasan_html}
@@ -1655,8 +1673,7 @@ def halaman_sesi_stitch(
     <div class="koreksi-bukti-st koreksi-bukti-tunggal-st">
       <div>
         <label class="koreksi-label-st" for="jwb-{b["sesi_soal_id"]}">Jawaban anak (koreksi salinan bila perlu)</label>
-        <input type="text" class="koreksi-input-st" id="jwb-{b["sesi_soal_id"]}" name="jwb_{b["sesi_soal_id"]}"
-               value="{html.escape(jawaban_tampil)}">
+        {input_jawaban}
       </div>
     </div>
     </details>
@@ -1810,6 +1827,7 @@ def halaman_sesi_stitch(
         if (
             not sesi_dibatalkan
             and info["mode"] == "diagnostik"
+            and not pilihan_pg
             and info["tujuan"] == "bebas"
         ):
             pilihan_pemetaan_draf = draf_koreksi.sertakan_pemetaan if draf_koreksi else opt_in_pemetaan_aktif
@@ -2152,11 +2170,16 @@ def simpan_sesi(kon, sesi_id: int, data: dict, *, tinjauan_disimpan: bool = Fals
 
         cara_diagnosis = awalan_drill + cara if drill else cara
         soal = _soal_dari_baris(b)
-        u = diagnosa(
-            b["kunci"], jwb, cara_diagnosis, restate, belum,
-            database.malrule_soal(kon, b["soal_id"]),
-            soal.minta_restatement, soal=soal,
-        )
+        from choice_store import format_sesi
+        if format_sesi(kon, sesi_id) == 'pilihan_ganda':
+            from choice_assessment import nilai_pilihan
+            u = nilai_pilihan(b['kunci'], jwb)
+        else:
+            u = diagnosa(
+                b["kunci"], jwb, cara_diagnosis, restate, belum,
+                database.malrule_soal(kon, b["soal_id"]),
+                soal.minta_restatement, soal=soal,
+            )
 
         if pilihan == "benar":
             benar, final, manual = True, None, True
@@ -2183,6 +2206,7 @@ def buat_sesi_seed_baru(
     durasi_menit: int = 15,
     timer_auto: int = 0,
     jumlah_soal: int | None = None,
+    format_jawaban: str = 'isian',
 ) -> int:
     """Sesi baru dengan seed yang belum pernah dipakai siswa ini."""
     if level is None:
@@ -2207,7 +2231,7 @@ def buat_sesi_seed_baru(
             return database.buat_sesi(
                 kon, siswa_id, seed, level=level, topik=topik, mode=mode,
                 timer_mode=timer_mode, durasi_menit=durasi_menit,
-                timer_auto=timer_auto, jumlah_soal=jumlah_soal,
+                timer_auto=timer_auto, jumlah_soal=jumlah_soal, format_jawaban=format_jawaban,
             )
     raise RuntimeError("gagal menemukan seed baru")
 
@@ -2233,6 +2257,10 @@ def halaman_lembar(kon, sesi_id: int, untuk_guru: bool = False) -> bytes | None:
     # kegagalan render menggulung pembekuan bersama transaksi ini.
     if not presentation_lock.bekukan_penyajian(kon, sesi_id):
         return None
+    from choice_store import format_sesi
+    if format_sesi(kon, sesi_id) == 'pilihan_ganda':
+        from choice_pages import lembar_pilihan
+        return lembar_pilihan(kon, sesi_id, untuk_guru)
     soal = [_soal_dari_baris(b) for b in database.isi_sesi(kon, sesi_id)]
     # Judul dari paket topik sesi ini — bukan selalu paket bawaan. Sesi lama
     # dengan nilai kolom aneh jatuh ke bawaan lewat dari_sesi(), sesuai

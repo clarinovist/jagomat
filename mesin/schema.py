@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS sesi (
     topik     TEXT    NOT NULL DEFAULT 'pola-bilangan',
     level     TEXT    NOT NULL DEFAULT 'P3',
     mode      TEXT    NOT NULL DEFAULT 'diagnostik',
+    format_jawaban TEXT NOT NULL DEFAULT 'isian' CHECK(format_jawaban IN ('isian','pilihan_ganda')),
     timer_mode    TEXT    NOT NULL DEFAULT 'tanpa',
     durasi_menit  INTEGER NOT NULL DEFAULT 15,
     timer_auto    INTEGER NOT NULL DEFAULT 0,
@@ -695,7 +696,9 @@ GROUP BY s.id;
 # Tabel baru additive: sesi warisan tidak diberi arsip pengiriman palsu.
 from submission_schema import SKEMA_PENGIRIMAN
 
-SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_PENGIRIMAN + '\n-- Ringkasan per sesi supaya laporan')
+from choice_schema import SKEMA_PILIHAN
+
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_PENGIRIMAN + '\n' + SKEMA_PILIHAN + '\n-- Ringkasan per sesi supaya laporan')
 
 # Migrasi untuk basis data yang SUDAH berisi data.
 #
@@ -714,6 +717,7 @@ SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_PENGIRIMAN +
 # tidak memperbarui view lama.
 MIGRASI: list[tuple[str, str, str]] = [
     # (tabel, kolom, pernyataan ALTER)
+    ('sesi', 'format_jawaban', "ALTER TABLE sesi ADD COLUMN format_jawaban TEXT NOT NULL DEFAULT 'isian' CHECK(format_jawaban IN ('isian','pilihan_ganda'))"),
     ("soal", "level", "ALTER TABLE soal ADD COLUMN level TEXT NOT NULL DEFAULT 'P3'"),
     ("sesi", "level", "ALTER TABLE sesi ADD COLUMN level TEXT NOT NULL DEFAULT 'P3'"),
     ("soal", "cerita", "ALTER TABLE soal ADD COLUMN cerita TEXT NOT NULL DEFAULT ''"),

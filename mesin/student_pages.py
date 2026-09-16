@@ -93,7 +93,8 @@ def _penanda_beranda(sesi: dict) -> str:
             f'<span class="st-progres-isi" style="width:{persen}%"></span>'
             '</span>'
         )
-    return f'<span class="murid-jumlah-st">{jumlah} soal</span>'
+    format_label = ' · Pilihan ganda' if sesi.get('format_jawaban') == 'pilihan_ganda' else ''
+    return f'<span class="murid-jumlah-st">{jumlah} soal{format_label}</span>'
 
 
 def _kartu_beranda(sesi: dict, utama: bool = False) -> str:
@@ -333,9 +334,19 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
         belum = " checked" if t.get("belum_pernah") else ""
         bintang = '<span class="kerja-bintang-st">★</span>' if s["tantangan"] else ""
         nomor = f'<span class="kerja-nomor-st">{s["nomor"]}</span>'
-        teks = visual_renderer.render_pertanyaan(
-            s["penyajian"], gaya="stitch", namespace=str(s["nomor"])
-        )
+        from choice_pages import pertanyaan, radio_pilihan
+        teks = pertanyaan(s['penyajian'], s.get('pilihan'), s['template_id'], namespace=str(s['nomor']))
+        if s.get('pilihan') is not None:
+            restate_pg = (f'<label class="kerja-label-st" for="restate-{ssid}">Soal ini mintanya apa?</label>'
+                          f'<textarea class="kerja-restate-st" id="restate-{ssid}" name="restate_{ssid}">{_escape(t.get("restatement", ""))}</textarea>'
+                          if s['minta_restatement'] and not drill else '')
+            kartu.append(f'<div class="kerja-soal-st">{nomor}{bintang}{teks}'
+                         + radio_pilihan(s['pilihan'], t.get('jawaban', ''), s['template_id']) + restate_pg
+                         + f'<label class="kerja-label-st" for="cara-{ssid}">Caraku (boleh dikosongkan)</label>'
+                         f'<textarea class="kerja-cara-st" id="cara-{ssid}" name="cara_{ssid}">{_escape(t.get("cara", ""))}</textarea>'
+                         f'<input type="hidden" name="hadir_blm_{ssid}" value="1">'
+                         f'<label class="kerja-centang-st"><input type="checkbox" name="blm_{ssid}"{belum}> belum pernah lihat soal seperti ini</label></div>')
+            continue
 
         if drill:
             catatan_soal = ""
@@ -440,6 +451,9 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
             "<p>Tidak apa-apa ada yang kosong. Jangan menebak asal. Kalau sudah selesai, "
             "tekan <b>Selesai &amp; kirim</b> di paling bawah. Kamu juga bisa menyimpan sementara dulu.</p>"
         )
+
+    if info.get('format_jawaban') == 'pilihan_ganda':
+        petunjuk = '<p>Pilih satu jawaban tiap soal. Kamu boleh menuliskan caramu. Pilih <b>Belum menjawab</b> untuk mengosongkan pilihan. Tidak apa-apa ada yang belum bisa.</p>'
 
     # Timer Latihan Cepat — strip id timer-strip & timer-tampil dipertahankan
     # supaya test drill & JS tetap mengenali elemen yang sama.

@@ -189,6 +189,9 @@ def konfirmasi_dari_form(
 ) -> int:
     """Simpan koreksi dan snapshot sebagai satu transaksi kecil atomik."""
     validasi_form_konfirmasi(kon, sesi_id, data)
+    from choice_store import format_sesi
+    if data.get('sertakan_pemetaan') == '1' and format_sesi(kon, sesi_id) == 'pilihan_ganda':
+        raise ValueError('Pilihan ganda belum menjadi bukti pemetaan atau penguasaan.')
     sesi = kon.execute(
         "SELECT siswa_id, putaran_id, mode, tujuan FROM sesi WHERE id = ?",
         (sesi_id,),

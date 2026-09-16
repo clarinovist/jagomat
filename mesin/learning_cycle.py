@@ -54,6 +54,7 @@ class SesiSiklus:
     dikonfirmasi_pada: Optional[date] = None
     mode: str = "diagnostik"
     pola_tersedia: Tuple[str, ...] = ()
+    format_jawaban: str = 'isian'
 
 
 @dataclass(frozen=True)
@@ -168,6 +169,7 @@ def _sesi_pemblokir(
             s
             for s in bukti.sesi
             if s.siswa_id == bukti.siswa_id
+            and s.format_jawaban == 'isian'
             and s.putaran_id == putaran.id
             and s.tujuan != "bebas"
             and s.dibatalkan is None
@@ -203,7 +205,7 @@ def _sesi_bukti_pemetaan(
     }
     hasil = []
     for sesi in bukti.sesi:
-        if sesi.siswa_id != bukti.siswa_id or sesi.level != bukti.level_aktif:
+        if sesi.format_jawaban != 'isian' or sesi.siswa_id != bukti.siswa_id or sesi.level != bukti.level_aktif:
             continue
         if sesi.dibatalkan is not None or sesi.selesai is None or sesi.dikonfirmasi is None:
             continue
@@ -905,6 +907,7 @@ def _sesi_peta_materi(bukti, hari):
     batas = max((e.tanggal for e in bukti.kejadian if e.jenis == "diganti_level"), default=None)
     return tuple(s for s in bukti.sesi
                  if s.siswa_id == bukti.siswa_id and s.level == bukti.level_aktif
+                 and s.format_jawaban == 'isian'
                  and s.mode == "diagnostik" and s.dibatalkan is None
                  and s.selesai is not None and s.dikonfirmasi is not None
                  and s.konfirmasi_id is not None and s.tanggal <= hari
@@ -923,6 +926,7 @@ def _pola_terkoreksi(bukti):
     return frozenset(t for s in bukti.sesi
                      if s.id in ids and s.siswa_id == bukti.siswa_id
                      and s.level == bukti.level_aktif and s.dibatalkan is None
+                     and s.format_jawaban == 'isian'
                      and s.mode == "diagnostik" and (batas is None or s.tanggal > batas)
                      and (s.tujuan in {"pemetaan", "evaluasi", "checkpoint"}
                           or (s.tujuan == "bebas" and s.id in opt_in))

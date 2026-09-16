@@ -2948,6 +2948,10 @@ CSS_SESI = f"""
 """
 
 
+from choice_pages import gaya_pilihan
+GAYA_STITCH += gaya_pilihan()
+
+
 def gaya_stitch() -> str:
     """
     Kembalikan string CSS lengkap untuk halaman yang difase-in ke Stitch.

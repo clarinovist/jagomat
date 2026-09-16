@@ -24,6 +24,9 @@ def muat(kon, sesi_id):
 
 
 def pengiriman(kon, sesi_id):
+    if kon.execute('SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?', (sesi_id,)).fetchone():
+        from choice_store import validasi_arsip
+        validasi_arsip(kon, sesi_id)
     return {int(b['sesi_soal_id']): dict(b) for b in kon.execute(
         'SELECT * FROM pengiriman_butir WHERE sesi_id=?', (sesi_id,))}
 
@@ -51,6 +54,12 @@ def simpan(kon, sesi_id, data, guru='guru'):
     from database import isi_sesi
     from teacher_corrections import pilihan_tersimpan
     butir = {int(b['sesi_soal_id']): b for b in isi_sesi(kon, sesi_id)}
+    from choice_store import daftar_pilihan
+    for sid, p in daftar_pilihan(kon, sesi_id).items():
+        if f'jwb_{sid}' in data:
+            nilai = data[f'jwb_{sid}'].strip()
+            if nilai and nilai not in {o.nilai for o in p.opsi}:
+                raise TinjauanTidakSah(sid, 'Jawaban harus sesuai opsi pada lembar.')
     tinjauan = muat(kon, sesi_id)
     arsip = pengiriman(kon, sesi_id)
     for nama in data:

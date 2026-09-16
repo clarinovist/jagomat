@@ -341,6 +341,15 @@ def terapkan(kon, lampiran_id: int, data: dict) -> tuple[int, str]:
         return 0, "Lampiran tidak ditemukan."
     sesi_id = lampiran["sesi_id"]
 
+    from choice_store import daftar_pilihan
+    pilihan_pg = daftar_pilihan(kon, sesi_id)
+    if pilihan_pg:
+        if kon.execute('SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?', (sesi_id,)).fetchone():
+            raise ValueError('Latihan sudah dikirim. Koreksi salinan melalui tinjauan dengan sumber koreksi.')
+        for sid, p in pilihan_pg.items():
+            nilai = (data.get(f'jwb_{sid}') or '').strip()
+            if nilai and nilai not in {o.nilai for o in p.opsi}:
+                raise ValueError('Pilih jawaban foto sesuai opsi pada lembar.')
     jumlah = 0
     for b in database.isi_sesi(kon, sesi_id):
         ssid = b["sesi_soal_id"]
@@ -413,11 +422,17 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
         except (ValueError, KeyError, TypeError):
             usulan = {}
 
+    from choice_store import daftar_pilihan
+    from choice_pages import select_guru
+    pilihan_pg = daftar_pilihan(kon, sesi_id)
     kartu: list[str] = []
     for s in _soal_konteks(kon, sesi_id):
         u = usulan.get(s["nomor"], {})
         jwb_u = html.escape(u.get("jawaban", ""))
         cara_u = html.escape(u.get("caraku", ""))
+        pg = pilihan_pg.get(s['sesi_soal_id'])
+        input_jawaban = (select_guru(pg, s['jawaban_lama'], f'foto-jwb-{s["sesi_soal_id"]}') if pg else
+                         f'<input id="foto-jwb-{s["sesi_soal_id"]}" type="text" name="jwb_{s["sesi_soal_id"]}" value="{jwb_u}">')
         tanda = (
             f'<span class="tanda">{"?" if u.get("caraku") == "?" else ""}</span>'
             if u.get("caraku") == "?"
@@ -432,7 +447,8 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
   {_blok_jawaban_lama(s)}
   <div class="baris">
     <div><label for="foto-jwb-{s['sesi_soal_id']}">Jawaban (bacaan AI)</label>
-      <input id="foto-jwb-{s['sesi_soal_id']}" type="text" name="jwb_{s['sesi_soal_id']}" value="{jwb_u}"></div>
+      {input_jawaban}
+      {'<small>Pilih sesuai foto; bacaan AI tidak diterapkan otomatis.</small>' if pg else ''}</div>
     <div><label for="foto-cara-{s['sesi_soal_id']}">Caraku (bacaan AI)</label>
       <input id="foto-cara-{s['sesi_soal_id']}" type="text" name="cara_{s['sesi_soal_id']}" value="{cara_u}"></div>
   </div>

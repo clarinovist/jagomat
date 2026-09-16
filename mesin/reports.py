@@ -44,6 +44,16 @@ def diagnosa_murid(kon, sesi_id: int) -> int:
     (soal yang anak lewati) tidak dibuat — aturan yang sama dengan guru.
     """
     jumlah = 0
+    from choice_store import format_sesi
+    if format_sesi(kon, sesi_id) == 'pilihan_ganda':
+        from choice_assessment import nilai_pilihan
+        for b in database.isi_sesi(kon, sesi_id):
+            if b['jawaban_id'] is None or b['manual'] == 1:
+                continue
+            u = nilai_pilihan(b['kunci'], b['jawaban'] or '')
+            database.simpan_diagnosis(kon, b['jawaban_id'], u.benar, None, None, None, u.alasan, False)
+            jumlah += 1
+        return jumlah
     # Mode sesi: drill (Latihan Cepat) tidak meminta Caraku, jadi diagnosis
     # memakai cara sintetis supaya aturan "jawaban tanpa cara = N (menebak)"
     # tidak salah menuduh. Storage tetap cara='' — lihat students.AWALAN_DRILL.

@@ -308,7 +308,7 @@ def test_progres_menghitung_cara_dan_centang_tetapi_bukan_baris_kosong(db):
         data = students.beranda_murid(kon, siswa)
         html = _html(kon, siswa)
     assert set(data["sesi"][0]) == {"id", "tanggal", "level", "topik", "mode", "jenis", "tujuan",
-                                    "selesai", "direview", "jumlah", "terisi"}
+                                    "selesai", "direview", "jumlah", "terisi", "format_jawaban"}
     assert data["sesi"][0]["terisi"] == 2
     assert "2 dari 4 soal tersimpan" in html
     assert 'aria-valuenow="2"' in html

@@ -1683,13 +1683,16 @@ class Penangan(BaseHTTPRequestHandler):
                             "<p>Pilih satu mode: Latihan Cepat atau Diagnostik.</p>",
                         ), 400,
                     )
-                sesi_id = database.buat_sesi_gabungan(
-                    kon, siswa_id,
-                    seed=random.randint(1, 9_999_999),
-                    topik_ids=dipilih,
-                    level=(baris["tingkat"] if baris else LEVEL_BAWAAN),
-                    mode=mode_dikirim[0], jumlah_soal=jumlah,
-                )
+                try:
+                    from choice_pages import format_dari_form
+                    sesi_id = database.buat_sesi_gabungan(
+                        kon, siswa_id, seed=random.randint(1, 9_999_999), topik_ids=dipilih,
+                        level=(baris['tingkat'] if baris else LEVEL_BAWAAN),
+                        mode=mode_dikirim[0], jumlah_soal=jumlah,
+                        format_jawaban=format_dari_form(data),
+                    )
+                except ValueError as galat:
+                    return self._kirim(_halaman('Latihan belum dibuat', '<p>' + html.escape(str(galat)) + '</p>'), 400)
             qs = urllib.parse.urlencode({
                 "pesan": f"Latihan gabungan untuk {nama_siswa} dibuat — "
                          f"sesi #{sesi_id}, {jumlah} soal dari "
@@ -1879,12 +1882,16 @@ class Penangan(BaseHTTPRequestHandler):
                         timer_auto = 1 if (data.get("timer_auto") or ["0"])[0] == "1" else 0
                 nilai_jumlah = (data.get("jumlah_soal") or [""])[0].strip()
                 jumlah_soal = int(nilai_jumlah) if nilai_jumlah.isdigit() and 1 <= int(nilai_jumlah) <= 50 else None
-                sesi_id = buat_sesi_seed_baru(
-                    kon, siswa_id, level=level, topik=pilihan_topik,
-                    mode=pilihan_mode, timer_mode=timer_mode,
-                    durasi_menit=durasi_menit, timer_auto=timer_auto,
-                    jumlah_soal=jumlah_soal,
-                )
+                try:
+                    from choice_pages import format_dari_form
+                    sesi_id = buat_sesi_seed_baru(
+                        kon, siswa_id, level=level, topik=pilihan_topik,
+                        mode=pilihan_mode, timer_mode=timer_mode,
+                        durasi_menit=durasi_menit, timer_auto=timer_auto,
+                        jumlah_soal=jumlah_soal, format_jawaban=format_dari_form(data),
+                    )
+                except ValueError as galat:
+                    return self._kirim(_halaman('Latihan belum dibuat', '<p>' + html.escape(str(galat)) + '</p>'), 400)
             # Sesi baru = history anak (feedback Filia 1 Sep 2026 no. 6):
             # PRG kini ke /anak/<id> tempat strip buat sesi & daftar sesi
             # berada. Banner + sorotan menunjukkan sesi yang baru; PRG tetap

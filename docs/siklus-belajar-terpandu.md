@@ -66,6 +66,14 @@ Sesi diagnostik bebas hanya masuk pemetaan bila guru memilih **Sertakan dalam
 pemetaan** saat konfirmasi. Latihan terbimbing dan penguatan tidak pernah
 memperbesar skor kelemahan.
 
+**Pilihan ganda manual** adalah format latihan tambahan (3–5 opsi sesuai pola),
+bukan bukti pemetaan atau penguasaan. Hasil boleh ditinjau dan dikonfirmasi sebagai
+riwayat, tetapi tidak dapat opt-in pemetaan, memicu remedial otomatis, atau mengubah
+fokus/evaluasi/checkpoint. Pilihan tepat hanya menunjukkan kecocokan jawaban;
+penyebab salah dan pemahaman tetap memerlukan tinjauan orang tua. Format isian
+pada alur terpandu tidak berubah. Opsi serta urutannya disimpan per butir dan
+ikut arsip pengiriman/konfirmasi agar cetak ulang dan koreksi dapat ditelusuri.
+
 ## 3. Pemetaan dan fokus
 
 Pemetaan awal memakai tiga sesi 15 soal pada tiga tanggal berbeda:

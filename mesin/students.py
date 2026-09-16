@@ -44,7 +44,7 @@ def beranda_murid(kon, siswa_id: int) -> dict:
 
     baris = kon.execute(
         """SELECT s.id, s.siswa_id, s.tanggal, s.dibuat, s.level, s.topik,
-                  s.mode, s.jenis, s.tujuan, s.putaran_id, s.selesai, s.direview,
+                  s.mode, s.format_jawaban, s.jenis, s.tujuan, s.putaran_id, s.selesai, s.direview,
                   s.dibatalkan,
                   (SELECT COUNT(*) FROM sesi_soal ss WHERE ss.sesi_id=s.id) AS jumlah,
                   (SELECT COUNT(*) FROM sesi_soal ss JOIN jawaban j ON j.sesi_soal_id=ss.id
@@ -91,7 +91,7 @@ def beranda_murid(kon, siswa_id: int) -> dict:
             utama_id = max(manual, key=lambda b: (b["terisi"] > 0, b["id"]))["id"]
     # Renderer hanya menerima kolom daftar putih; metadata putaran tidak
     # diteruskan ke template atau atribut HTML.
-    kolom_aman = ("id", "tanggal", "level", "topik", "mode", "jenis", "tujuan",
+    kolom_aman = ("id", "tanggal", "level", "topik", "mode", "format_jawaban", "jenis", "tujuan",
                   "selesai", "direview", "jumlah", "terisi")
     return {"level": siswa["tingkat"],
             "sesi": [{k: b[k] for k in kolom_aman} for b in tersedia],
@@ -107,7 +107,7 @@ def sesi_murid(kon, siswa_id: int, sesi_id: int) -> dict | None:
     """
     baris = kon.execute(
         """SELECT s.id, s.tanggal, s.seed, s.level, s.topik,
-                  s.mode, s.tujuan, s.timer_mode, s.durasi_menit, s.timer_auto,
+                  s.mode, s.format_jawaban, s.tujuan, s.timer_mode, s.durasi_menit, s.timer_auto,
                   s.mulai, s.selesai, s.dibatalkan,
                   CASE WHEN s.mulai IS NULL THEN 0 ELSE MAX(0,
                     CAST(strftime('%s', datetime('now', '+7 hours')) AS INTEGER)
@@ -131,6 +131,8 @@ def soal_murid(kon, sesi_id: int, siswa_id: int) -> list[dict]:
     """
     if not sesi_murid(kon, siswa_id, sesi_id):
         return []
+    from choice_store import daftar_pilihan
+    pilihan_sesi = daftar_pilihan(kon, sesi_id)
     baris_baris = kon.execute(
         """SELECT ss.id AS sesi_soal_id, ss.nomor,
                   ss.teks_soal, ss.bagian_soal, ss.tantangan_soal,
@@ -166,6 +168,7 @@ def soal_murid(kon, sesi_id: int, siswa_id: int) -> list[dict]:
                 "tantangan": penyajian.tantangan_soal,
                 "minta_restatement": penyajian.minta_restatement,
                 "terjawab": dict(jawab) if jawab else None,
+                "pilihan": pilihan_sesi.get(b['sesi_soal_id']),
             }
         )
     return keluar
@@ -203,6 +206,8 @@ def hasil_murid(kon, siswa_id: int, sesi_id: int) -> dict | None:
     if not ditinjau or not ditinjau["direview"]:
         return None
 
+    from choice_store import daftar_pilihan
+    pilihan_pg = daftar_pilihan(kon, sesi_id)
     butir: list[dict] = []
     benar = 0
     for b in isi_sesi(kon, sesi_id):
@@ -215,7 +220,7 @@ def hasil_murid(kon, siswa_id: int, sesi_id: int) -> dict | None:
                 "nomor": b["nomor"],
                 "teks": soal.teks,
                 "penyajian": soal.penyajian,
-                "jawabanku": (b["jawaban"] or ""),
+                "jawabanku": next((o.label + ' — ' + o.teks for o in pilihan_pg[b['sesi_soal_id']].opsi if o.nilai == b['jawaban']), '') if b['sesi_soal_id'] in pilihan_pg else (b['jawaban'] or ''),
                 "benar": ini_benar,
                 "perlu_ditinjau": not ini_benar and b['jawaban_id'] is not None
                     and (not (b['jawaban'] or '').strip() or b['belum_pernah'] or (b['cara'] or '').startswith('[pilihan] bingung')),
@@ -275,6 +280,22 @@ def simpan_jawaban_murid(kon, siswa_id: int, sesi_id: int, data: dict) -> int | 
     info = sesi_murid(kon, siswa_id, sesi_id)
     if not info or info.get('selesai') or info.get('dibatalkan'):
         return None
+    if info['format_jawaban'] == 'pilihan_ganda':
+        import student_submissions
+        from choice_store import daftar_pilihan
+        student_submissions.validasi_versi(kon, sesi_id, data)
+        opsi = daftar_pilihan(kon, sesi_id)
+        data = dict(data)
+        for nama in list(data):
+            if nama.startswith('jwb_'):
+                raise ValueError('Gunakan pilihan jawaban yang tersedia.')
+            if nama.startswith('opsi_'):
+                sid = nama[5:]
+                if not sid.isascii() or not sid.isdigit() or int(sid) not in opsi:
+                    raise ValueError('Butir bukan milik sesi ini.')
+                data[f'jwb_{sid}'] = opsi[int(sid)].nilai_untuk(data.pop(nama))
+    elif any(nama.startswith('opsi_') for nama in data):
+        raise ValueError('Sesi ini memakai jawaban isian.')
     kode_sah = {k for k, _ in PILIHAN_CARA}
     jumlah = 0
     baris_soal = kon.execute(

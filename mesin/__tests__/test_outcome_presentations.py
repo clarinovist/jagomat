@@ -170,7 +170,8 @@ def _skema_tanpa_sidecar(kon, *, pra_snapshot):
         bagian += baris
         if not sqlite3.complete_statement(bagian):
             continue
-        if "penyajian_outcome" not in bagian and not (
+        # Fixture pra-PG tidak memasang trigger baru yang membutuhkan snapshot.
+        if 'penyajian_outcome' not in bagian and not ('CREATE TRIGGER' in bagian and 'pilihan_' in bagian) and not (
                 pra_snapshot and "sesi_soal_snapshot" in bagian):
             kon.execute(bagian)
         bagian = ""

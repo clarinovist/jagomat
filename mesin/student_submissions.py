@@ -24,6 +24,9 @@ def revisi(kon, sesi_id):
 
 def validasi_versi(kon, sesi_id, data):
     if 'revisi_pekerjaan' not in data:
+        from choice_store import format_sesi
+        if format_sesi(kon, sesi_id) == 'pilihan_ganda':
+            raise VersiBerubah('Muat ulang latihan sebelum menyimpan pilihan.')
         return  # Klien lama: tetap dapat mengirim langsung tanpa refleksi.
     nilai = data['revisi_pekerjaan']
     if not re.fullmatch(r'[0-9]{1,12}', nilai) or int(nilai) != revisi(kon, sesi_id):
@@ -103,3 +106,5 @@ def _arsipkan(kon, sesi_id, sumber):
                COALESCE(ss.penyajian_json,'')
         FROM sesi_soal ss LEFT JOIN jawaban j ON j.sesi_soal_id=ss.id
         LEFT JOIN refleksi_jawaban r ON r.sesi_soal_id=ss.id WHERE ss.sesi_id=?""", (sesi_id,))
+    from choice_store import arsipkan_pilihan
+    arsipkan_pilihan(kon, sesi_id)

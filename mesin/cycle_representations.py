@@ -50,7 +50,7 @@ def sesi_bukti_sah(bukti, putaran):
     opt_in = frozenset((e.sesi_id, e.konfirmasi_id) for e in bukti.kejadian
                       if e.jenis == "sertakan_pemetaan" and e.konfirmasi_id is not None)
     kandidat = tuple(s for s in bukti.sesi
-        if s.siswa_id == bukti.siswa_id and s.level == bukti.level_aktif
+        if s.format_jawaban == 'isian' and s.siswa_id == bukti.siswa_id and s.level == bukti.level_aktif
         and s.dibatalkan is None and s.selesai is not None and s.dikonfirmasi is not None
         and ((s.tujuan == "bebas" and (s.id, s.konfirmasi_id) in opt_in)
              or (s.tujuan != "bebas" and (putaran is None or s.putaran_id == putaran.id))))
