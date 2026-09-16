@@ -123,6 +123,11 @@ def _judul(rencana: RencanaBelajar, fokus: Optional[KunciFokus], bukti: BuktiSik
 
 
 def _alasan(rencana: RencanaBelajar, fokus: Optional[KunciFokus]) -> str:
+    if rencana.tindakan == "konfirmasi_hasil":
+        return (
+            "Hasil belum dikonfirmasi. Tinjau jawaban dan cara anak sebelum hasil ini "
+            "digunakan untuk menentukan langkah belajar berikutnya."
+        )
     if rencana.tindakan == "pemetaan":
         jumlah = len(set(rencana.putaran.tanggal_pemetaan)) if rencana.putaran else 0
         if jumlah == 0:
@@ -186,6 +191,20 @@ def _tanggal_indonesia(nilai: date) -> str:
         "Juli", "Agustus", "September", "Oktober", "November", "Desember",
     )
     return f"{nilai.day} {bulan[nilai.month - 1]} {nilai.year}"
+
+
+def _identitas_sesi(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
+    """Kenalkan sesi yang dituju CTA, bukan sesi paling baru dalam riwayat."""
+    if rencana.tindakan not in {"lanjutkan_sesi", "konfirmasi_hasil"}:
+        return ""
+    sesi = next((item for item in bukti.sesi if item.id == rencana.sesi_id), None)
+    if sesi is None:
+        return ""
+    return (
+        '<p class="identitas-sesi-rencana-st">'
+        f'Sesi #{sesi.id} · <time datetime="{sesi.tanggal.isoformat()}">'
+        f'{_tanggal_indonesia(sesi.tanggal)}</time></p>'
+    )
 
 
 def _indeks_tahap(rencana: RencanaBelajar, bukti: BuktiSiklus) -> int:
@@ -260,7 +279,7 @@ def _tindakan_orang_tua(rencana: RencanaBelajar, materi) -> str:
         return materi.instruksi_orang_tua
     return {
         "lanjutkan_sesi": "Dampingi anak menyelesaikan sesi yang sudah dimulai.",
-        "konfirmasi_hasil": "Periksa hasil dan cara anak, lalu konfirmasi agar menjadi bukti belajar.",
+        "konfirmasi_hasil": 'Tanyakan, “Bagaimana kamu mendapat jawaban ini?” Dengarkan caranya tanpa memberi jawaban.',
         "pemetaan": "Biarkan anak mencoba dengan caranya sendiri. Setelah selesai, periksa hasil dan konfirmasikan.",
         "tunggu_pemetaan": "Beri jeda sampai tanggal berikutnya agar pemetaan tidak menumpuk di satu hari.",
         "probe_diagnostik": "Ajak anak mengerjakan probe baru tanpa memberi tahu jawaban sebelumnya.",
@@ -469,17 +488,21 @@ def render_rencana(
     )
     kelas_judul = "st judul-tugas-rencana-st" if pemetaan_pertama else "st"
     cta = _cta(rencana, bukti, siswa_id, fokus, materi)
-    petunjuk = (
-        '<p class="petunjuk-sesudah-cta-st">Sesudah ini, ikuti petunjuk agar anak mulai mengerjakan.</p>'
-        if rencana.tindakan == "pemetaan" else ""
-    )
+    petunjuk = ""
+    if rencana.tindakan == "pemetaan":
+        petunjuk = '<p class="petunjuk-sesudah-cta-st">Sesudah ini, ikuti petunjuk agar anak mulai mengerjakan.</p>'
+    elif rencana.tindakan == "konfirmasi_hasil":
+        petunjuk = (
+            '<p class="petunjuk-sesudah-cta-st">Belum yakin? Pilih <b>Simpan draf</b> '
+            'di halaman hasil untuk melanjutkan nanti. Konfirmasi hanya setelah hasil diperiksa.</p>'
+        )
     return (
         '<section class="kartu-rencana-st" aria-labelledby="judul-rencana-belajar">'
         '<div class="studio-layout-st">'
         '<div class="studio-utama-st">'
         '<p class="label-rencana-st">Rencana belajar hari ini</p>'
         f'<h2 class="{kelas_judul}" id="judul-rencana-belajar">{html.escape(judul_tampil)}</h2>'
-        f'{penanda_judul_lama}'
+        f'{penanda_judul_lama}{_identitas_sesi(rencana, bukti)}'
         f'<p class="alasan-rencana-st">{html.escape(_alasan(rencana, fokus))}</p>'
         f'{_konteks_pemetaan(rencana)}'
         f'{catatan_histori}{catatan_mode}{contoh}{catatan_materi}{tanggal}'

@@ -344,8 +344,8 @@ def test_status_sesi_mengikuti_pengiriman_final_bukan_jumlah_isian():
     }
 
     assert "Sedang Dikerjakan" in teacher_pages._badge_review_status(tersimpan_penuh)
-    assert "Belum Direview" in teacher_pages._badge_review_status(terkirim_sebagian)
-    assert "Belum Direview" in teacher_pages._badge_review_status(terkirim_kosong)
+    assert "Belum ditinjau" in teacher_pages._badge_review_status(terkirim_sebagian)
+    assert "Belum ditinjau" in teacher_pages._badge_review_status(terkirim_kosong)
 
 
 @pytest.mark.parametrize("keadaan", ["baru", "sebagian", "selesai", "direview", "warisan"])
@@ -366,7 +366,7 @@ def test_badge_riwayat_mendahulukan_pembatalan(db, keadaan):
     markup = _tanpa_gaya(_render_anak(db, siswa))
     kartu = re.search(r'<article class="st-kartu-baris kartu-sesi-guru .*?</article>', markup, re.S).group()
     assert ">Dibatalkan</span>" in kartu
-    for status in ("Belum Dikerjakan", "Sedang Dikerjakan", "Belum Direview", "Sudah Direview"):
+    for status in ("Belum Dikerjakan", "Sedang Dikerjakan", "Belum ditinjau", "Hasil dikonfirmasi", "belum dikonfirmasi"):
         assert status not in kartu
     assert f'href="/sesi/{sesi}"' in kartu
     assert "data-bagikan-url" not in kartu

@@ -2308,6 +2308,9 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
 .profil-editorial-st .label-rencana-st {{ color: {T.AKSEN_TEAL_TUA}; }}
 .profil-editorial-st #judul-rencana-belajar {{ font-size: clamp(1.8rem, 3vw, 2.5rem); letter-spacing: -.045em; max-width: 22ch; }}
 .profil-editorial-st .alasan-rencana-st {{ font-size: 1.04rem; }}
+.profil-editorial-st .identitas-sesi-rencana-st {{
+  margin: 0; color: {T.TEKS_JUDUL}; font-weight: 600;
+}}
 .profil-editorial-st .konteks-pemetaan-jelas-st {{
   background: transparent; border: 0; border-block: 1px solid {T.BORDER_CATATAN};
   border-radius: 0; padding: {T.SP_3} 0;
@@ -2374,7 +2377,13 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
 .profil-editorial-st .tautan-laporan-st {{ min-height: {T.TARGET_SENTUH}; color: {T.AKSEN_TEAL_TUA}; }}
 .profil-editorial-st .kartu-sesi-guru {{ border: 0; border-bottom: 1px solid {T.BORDER_CATATAN}; background: transparent; box-shadow: none; border-radius: 0; padding: {T.SP_4} 0; }}
 .profil-editorial-st .judul-sesi-st {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
-.profil-editorial-st .badge-direview {{ color: {T.TEKS_VARIAN} !important; }}
+.profil-editorial-st .badge-direview {{
+  display: inline-block; max-width: 19rem; white-space: normal; overflow-wrap: anywhere;
+  padding: {T.SP_1} {T.SP_2}; border-radius: {T.RADIUS_KECIL};
+  font-size: .8rem; line-height: 1.5; color: {T.TEKS_VARIAN}; background: {T.LATAR_INTI};
+}}
+.profil-editorial-st .badge-direview.perlu {{ background: {T.LATAR_CATATAN}; color: {T.TEKS_JUDUL}; }}
+.profil-editorial-st .badge-direview.sudah {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; }}
 .profil-editorial-st .buat-latihan-st:has(#tab-baru:checked) [for=tab-baru],
 .profil-editorial-st .buat-latihan-st:has(#tab-ulang:checked) [for=tab-ulang],
 .profil-editorial-st .buat-latihan-st:has(#tab-gabungan:checked) [for=tab-gabungan] {{ color: {T.AKSEN_TEAL_TUA}; }}

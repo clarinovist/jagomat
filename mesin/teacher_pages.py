@@ -283,19 +283,33 @@ def _topik_untuk_level(level: str) -> list[str]:
     return daftar
 
 def _badge_review_status(baris) -> str:
+    """Bedakan dibuka, draf, dan konfirmasi aktif tanpa menyatakan penguasaan."""
     if _ambil(baris, "dibatalkan", None) is not None:
         return '<span class="badge-direview batal st-badge selesai">Dibatalkan</span>'
-    direview = _ambil(baris, "direview", None)
-    selesai = _ambil(baris, "selesai", None)
-    terisi = _ambil(baris, "terisi", 0)
-    if direview is not None:
-        return '<span class="badge-direview sudah" style="background:#d4edda;color:#155724;padding:0.2rem 0.45rem;border-radius:4px;font-size:0.78rem;font-weight:bold;">✓ Sudah Direview</span>'
-    elif selesai is not None:
-        return '<span class="badge-direview perlu" style="background:#fff3cd;color:#856404;padding:0.2rem 0.45rem;border-radius:4px;font-size:0.78rem;font-weight:bold;">⏳ Belum Direview</span>'
-    elif terisi > 0:
-        return '<span class="badge-direview proses" style="background:#e2e8f0;color:#2d3748;padding:0.2rem 0.45rem;border-radius:4px;font-size:0.78rem;">✏️ Sedang Dikerjakan</span>'
+    if _ambil(baris, "selesai", None) is None:
+        if _ambil(baris, "terisi", 0) > 0:
+            kelas, label = "proses", "Sedang Dikerjakan"
+        else:
+            kelas, label = "belum", "Belum Dikerjakan"
     else:
-        return '<span class="badge-direview belum" style="background:#edf2f7;color:#718096;padding:0.2rem 0.45rem;border-radius:4px;font-size:0.78rem;">Belum Dikerjakan</span>'
+        fingerprint_terakhir = _ambil(baris, "fingerprint_terakhir", None)
+        konfirmasi_aktif = (
+            _ambil(baris, "dikonfirmasi_guru", None) is not None
+            and fingerprint_terakhir is not None
+            and _ambil(baris, "fingerprint_konfirmasi", None) == fingerprint_terakhir
+        )
+        kelas = "perlu"
+        if konfirmasi_aktif:
+            kelas, label = "sudah", "✓ Hasil dikonfirmasi"
+        elif fingerprint_terakhir is not None:
+            label = "Perlu konfirmasi ulang"
+        elif _ambil(baris, "ada_tinjauan", False):
+            label = "Draf tinjauan tersimpan · belum dikonfirmasi"
+        elif _ambil(baris, "direview", None) is not None:
+            label = "Sudah dibuka · belum dikonfirmasi"
+        else:
+            label = "Belum ditinjau"
+    return f'<span class="badge-direview {kelas}">{label}</span>'
 
 def _badge_mode(baris) -> str:
     """Badge 'Latihan Cepat' untuk sesi drill; kosong untuk diagnostik.
@@ -620,6 +634,13 @@ def halaman_anak(
         """SELECT s.id, s.tanggal, s.seed, s.level, s.topik, s.mode,
                   s.jenis, s.sumber_sesi_id,
                   s.mulai, s.selesai, s.direview, s.dibatalkan,
+                  s.dikonfirmasi_guru, s.fingerprint_konfirmasi,
+                  (SELECT kh.fingerprint FROM konfirmasi_hasil kh
+                   WHERE kh.sesi_id = s.id
+                   ORDER BY kh.nomor_urut DESC, kh.id DESC LIMIT 1) AS fingerprint_terakhir,
+                  EXISTS(SELECT 1 FROM tinjauan_guru tg
+                         JOIN sesi_soal ss ON ss.id = tg.sesi_soal_id
+                         WHERE ss.sesi_id = s.id) AS ada_tinjauan,
                   (SELECT MIN(j.dicatat) FROM sesi_soal ss
                    JOIN jawaban j ON j.sesi_soal_id = ss.id
                    WHERE ss.sesi_id = s.id) AS dicatat_awal,
