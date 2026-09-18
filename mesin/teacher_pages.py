@@ -640,7 +640,7 @@ def halaman_anak(
     opsi_topik = "".join(
         f'<option value="{html.escape(t)}"'
         f'{" selected" if draf_latihan and draf_latihan.topik == t else ""}>'
-        f'{html.escape(ambil(t).nama)}</option>'
+        f'{html.escape("Campuran semua topik" if t == "campuran" else ambil(t).nama)}</option>'
         for t in _topik_untuk_level(siswa["tingkat"])
     )
     def _kelas_sorot(rid):
@@ -747,17 +747,19 @@ def halaman_anak(
         '<div class="profil-champs-st">'
         f'<div class="strip-kolom"><label for="manual-topik">Topik</label>'
         f'<select id="manual-topik" name="topik" class="st-input">{opsi_topik}</select></div>'
-        f'<div class="strip-kolom"><label for="manual-jumlah">Jumlah Soal (estimasi ±3 mnt/soal)</label>'
-        f'<select id="manual-jumlah" name="jumlah_soal" class="st-input">'
+        '<div class="strip-kolom"><label for="manual-jumlah">Jumlah soal</label>'
+        '<select id="manual-jumlah" name="jumlah_soal" class="st-input" aria-describedby="manual-jumlah-petunjuk">'
         + "".join(
             f'<option value="{nilai}"'
             f'{" selected" if (draf_latihan.jumlah_soal if draf_latihan else "") == nilai else ""}>'
             f'{label}</option>'
-            for nilai, label in (("", "Default (sesuai topik)"), ("10", "10 soal (± 30 mnt)"),
+            for nilai, label in (("", "Sesuai topik"), ("10", "10 soal (± 30 mnt)"),
                                  ("15", "15 soal (± 45 mnt)"), ("20", "20 soal (± 60 mnt)"),
                                  ("25", "25 soal (± 75 mnt)"), ("30", "30 soal (± 90 mnt)"))
         )
-        + f'</select></div>{kontrol_format("manual", getattr(draf_latihan, "format_jawaban", "isian"))}{_kontrol_mode_sesi(draf_latihan)}'
+        + '</select><small class="profil-petunjuk-st" id="manual-jumlah-petunjuk">'
+        'Estimasi ±3 menit per soal. Pilihan “Sesuai topik” memakai jumlah bawaan topik.</small></div>'
+        + f'{kontrol_format("manual", getattr(draf_latihan, "format_jawaban", "isian"))}{_kontrol_mode_sesi(draf_latihan)}'
         + '<button type="submit" class="st-tombol-coral">'
         f'{profile_workspace.ikon("play_arrow")}'
         "Buat sesi baru</button></div>"

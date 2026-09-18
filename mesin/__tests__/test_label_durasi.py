@@ -57,4 +57,5 @@ def test_klaim_satu_jam_tidak_nempel_di_angka_dua_puluh(db):
 def test_opsi_default_tetap_ada(db):
     html = _html_dashboard(db)
     assert 'option value="" selected' in html
-    assert "Default (sesuai topik)" in html
+    assert '<option value="" selected>Sesuai topik</option>' in html
+    assert 'memakai jumlah bawaan topik' in html
