@@ -187,6 +187,23 @@ def test_tindakan_tanpa_target_tidak_menyediakan_form_reset():
     assert "hanya dapat dibaca" in admin and "<form" not in admin
 
 
+def test_kelola_akun_satu_pintu_dan_konfirmasi_login_eksplisit():
+    daftar = pages.render_keluarga(_keluarga(), csrf='sintetis')
+    assert daftar.count('Kelola akun') == 1
+    assert daftar.count('href="/admin?section=keluarga&amp;id=akun_guru_demo"') == 1
+    detail = pages.render_detail_keluarga(q.DetailKeluarga(_keluarga().item[0], _siswa()))
+    assert 'Tinjau penghapusan login' in detail
+    assert 'Data siswa dan riwayat tetap tersimpan' in detail
+    form = pages.form_tindakan_akun('keluarga<script>', 'guru', 'csrf', {'account_login_delete': 'token'})
+    assert 'Hapus akun login orang tua' in form
+    assert 'Akun login murid tidak ikut dihapus' in form
+    assert 'keluarga&lt;script&gt;' in form
+    assert 'name="konfirmasi" value="1" required' in form
+    assert 'data-konfirmasi-login=' in form
+    assert 'Batal' in form
+    assert 'action="/admin/akun"' in form
+
+
 def test_css_scoped_memakai_token_dan_responsif():
     css = admin_style.GAYA_ADMIN
     sumber = Path(admin_style.__file__).read_text(encoding="utf-8")

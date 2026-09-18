@@ -221,9 +221,18 @@ keputusan pedagogis atau koreksi data anak saat verifikasi deploy.
 
 ## 10. Permukaan pengguna
 
-Profil anak menampilkan satu kartu **Rencana belajar hari ini** sebelum
-riwayat, berisi alasan, progres, tindakan orang tua, dan satu CTA utama. Form
-manual tetap tersedia sebagai **Atur latihan sendiri**.
+Profil anak memakai tiga tab server-side: **Buat latihan** (halaman awal),
+**Rencana belajar**, dan **Riwayat**. Buat latihan menyediakan form manual secara
+langsung, pintu Pendamping kontekstual, pengingat untuk membuka rencana, serta
+maksimal tiga sesi terbaru yang perlu tindakan. Sesi manual tidak mengambil alih
+rekomendasi reducer.
+
+Tab Rencana belajar menampilkan satu kartu **Rencana belajar hari ini**, berisi
+alasan, progres, tindakan orang tua, dan satu CTA utama. Tab Riwayat menampilkan
+20 sesi per halaman, filter tanggal/topik/jenis/tinjauan, serta status pengerjaan
+dan tinjauan yang terpisah. Pindah tab atau memfilter tidak menulis bukti maupun
+mengubah progres. Pendamping tetap pada konteks rencana, latihan, atau sesi/soal;
+riwayat lengkap tidak otomatis dikirim ke layanan AI.
 
 Profil dan laporan wajib memakai reducer yang sama. Statistik seluruh latihan
 boleh tetap ada tetapi dilabeli terpisah agar tidak bertentangan dengan status

@@ -17,6 +17,8 @@ import database
 import brand
 import design_tokens as T
 import learning_cycle_ui
+import profile_history
+import profile_workspace
 import question_views
 import visual_renderer
 import presentation_lock
@@ -443,6 +445,8 @@ def _halaman_stitch(
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">"""
     gaya = GAYA_STITCH
+    if "profil-workspace-st" in kelas_bungkus:
+        gaya += profile_workspace.GAYA_PROFIL
     if privat:
         gaya = gaya.replace(
             "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",
@@ -618,50 +622,27 @@ def halaman_anak(
     bantuan_latihan: str = "",
     draf_latihan=None,
     privat: bool = False,
+    query: str = "",
 ) -> bytes:
-    """History satu anak (feedback Filia 1 Sep 2026 no. 6).
+    """Ruang kerja anak: latihan, rencana, atau riwayat terbatasi.
 
-    Masuk dari kartu nama di dashboard. Berisi: daftar sesi anak (dengan
-    badge review & mode), strip buat sesi baru, dan pintasan laporan.
-    `siswa` baris sqlite dari tabel siswa.
+    Caller mengotorisasi siswa terlebih dahulu. Bantuan memilih tab konteksnya
+    tanpa memperluas query/resource Pendamping; draf tetap request-local.
     """
     privat = privat or bool(bantuan_rencana or bantuan_latihan)
+    filter_profil = profile_history.parse_filter(query)
+    section = ("rencana" if bantuan_rencana else "latihan" if bantuan_latihan or draf_latihan else filter_profil.section)
+    total_sesi = profile_history.jumlah_sesi(kon, siswa["id"])
+    if section == "riwayat":
+        sesi, total_hasil, filter_profil = profile_history.halaman_riwayat(kon, siswa["id"], filter_profil)
+    else:
+        sesi = profile_history.tugas_terbaru(kon, siswa["id"], sorot) if section == "latihan" else []
     opsi_topik = "".join(
         f'<option value="{html.escape(t)}"'
         f'{" selected" if draf_latihan and draf_latihan.topik == t else ""}>'
         f'{html.escape(ambil(t).nama)}</option>'
         for t in _topik_untuk_level(siswa["tingkat"])
     )
-    sesi = kon.execute(
-        """SELECT s.id, s.tanggal, s.seed, s.level, s.topik, s.mode, s.format_jawaban,
-                  s.jenis, s.sumber_sesi_id,
-                  s.mulai, s.selesai, s.direview, s.dibatalkan,
-                  s.dikonfirmasi_guru, s.fingerprint_konfirmasi,
-                  (SELECT kh.fingerprint FROM konfirmasi_hasil kh
-                   WHERE kh.sesi_id = s.id
-                   ORDER BY kh.nomor_urut DESC, kh.id DESC LIMIT 1) AS fingerprint_terakhir,
-                  EXISTS(SELECT 1 FROM tinjauan_guru tg
-                         JOIN sesi_soal ss ON ss.id = tg.sesi_soal_id
-                         WHERE ss.sesi_id = s.id) AS ada_tinjauan,
-                  (SELECT MIN(j.dicatat) FROM sesi_soal ss
-                   JOIN jawaban j ON j.sesi_soal_id = ss.id
-                   WHERE ss.sesi_id = s.id) AS dicatat_awal,
-                  (SELECT MAX(j.dicatat) FROM sesi_soal ss
-                   JOIN jawaban j ON j.sesi_soal_id = ss.id
-                   WHERE ss.sesi_id = s.id) AS dicatat_akhir,
-                  (SELECT COUNT(*) FROM sesi_soal WHERE sesi_id = s.id) AS n,
-                  (SELECT COUNT(*) FROM sesi_soal ss
-                   JOIN jawaban j ON j.sesi_soal_id = ss.id
-                   WHERE ss.sesi_id = s.id) AS terisi,
-                  (SELECT COUNT(*) FROM sesi_soal ss
-                   JOIN jawaban j ON j.sesi_soal_id = ss.id
-                   JOIN diagnosis d ON d.jawaban_id = j.id
-                   WHERE ss.sesi_id = s.id AND d.benar = 1) AS benar
-           FROM sesi s WHERE s.siswa_id = ?
-           ORDER BY s.tanggal DESC, s.id DESC""",
-        (siswa["id"],),
-    ).fetchall()
-
     def _kelas_sorot(rid):
         return "sorot-baru" if sorot is not None and rid == sorot else ""
 
@@ -676,7 +657,7 @@ def halaman_anak(
                 f'<form method="post" action="/sesi/{rid}/cabut-tautan" style="margin:0">'
                 '<button type="submit" class="tombol-ikon-st" '
                 'aria-label="Cabut tautan sesi" title="Cabut tautan">'
-                '<span class="material-symbols-outlined">link_off</span></button></form>'
+                f'{profile_workspace.ikon("link_off")}</button></form>'
             )
         if privat:
             # Fallback native: fungsi tetap tersedia tanpa fetch/confirm JS.
@@ -697,7 +678,7 @@ def halaman_anak(
             f'data-bagikan-url="/sesi/{rid}/bagikan" '
             f'data-bagikan-aktif="{1 if aktif else 0}" '
             'aria-label="Bagikan sesi ke anak" title="Bagikan sesi">'
-            '<span class="material-symbols-outlined">share</span></button>'
+            f'{profile_workspace.ikon("share")}</button>'
             f"{cabut}</div>"
             '<span class="kabar-bagikan-st" aria-live="polite"></span>'
             "</div>"
@@ -755,24 +736,15 @@ def halaman_anak(
             "</article>"
         )
 
-    if sesi:
-        item = "".join(
-            _kartu_sesi(r, _kelas_sorot(r["id"])) for r in sesi
-        )
+    if section == "latihan" and sesi:
+        item = "".join(_kartu_sesi(r, _kelas_sorot(r["id"])) for r in sesi)
     else:
-        item = '<p class="sub">Belum ada sesi — mulai dari rencana belajar di atas.</p>'
-
-    label_keluarga = ""
-    if peran == "admin":
-        siapa = siswa["pemilik"] or "warisan"
-        label_keluarga = (
-            '<span class="st-badge selesai">keluarga: '
-            f"{html.escape(siapa)}</span>"
-        )
+        item = '<p class="sub">Tidak ada latihan yang perlu ditindaklanjuti.</p>'
 
     from choice_pages import kontrol_format
     strip_sesi = (
-        f'<form method="post" action="/sesi-baru/{siswa["id"]}" class="strip-sesi">'
+        f'<form method="post" action="/sesi-baru/{siswa["id"]}" class="strip-sesi profil-manuel-st">'
+        '<div class="profil-champs-st">'
         f'<div class="strip-kolom"><label for="manual-topik">Topik</label>'
         f'<select id="manual-topik" name="topik" class="st-input">{opsi_topik}</select></div>'
         f'<div class="strip-kolom"><label for="manual-jumlah">Jumlah Soal (estimasi ±3 mnt/soal)</label>'
@@ -786,21 +758,21 @@ def halaman_anak(
                                  ("25", "25 soal (± 75 mnt)"), ("30", "30 soal (± 90 mnt)"))
         )
         + f'</select></div>{kontrol_format("manual", getattr(draf_latihan, "format_jawaban", "isian"))}{_kontrol_mode_sesi(draf_latihan)}'
+        + '<button type="submit" class="st-tombol-coral">'
+        f'{profile_workspace.ikon("play_arrow")}'
+        "Buat sesi baru</button></div>"
+        '<div class="profil-assistant-st">'
         + (bantuan_latihan or (
             __import__("assistant_components").tombol_buka(
                 __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "latihan"),
                 dalam_form=True,
             ) if peran == "guru" and pengguna else ""
-        ))
-        + '<button type="submit" class="st-tombol-coral">'
-        '<span class="material-symbols-outlined" style="font-size:1.1rem">play_arrow</span>'
-        "Buat sesi baru</button>"
-        "</form>"
+        )) + "</div></form>"
     )
 
     # Remedial terarah dari seluruh riwayat yang sudah ditinjau. Guru melihat
     # bukti dan memilih fokus; sistem tidak lagi mencampur enam tipe diam-diam.
-    sasaran = database.sasaran_remedial_anak(kon, siswa["id"])
+    sasaran = database.sasaran_remedial_anak(kon, siswa["id"]) if section == "latihan" else []
     strip_remedial = _form_remedial(
         sasaran,
         int(siswa["id"]),
@@ -847,8 +819,7 @@ def halaman_anak(
         '<option value="20">20 soal (± 60 mnt)</option>'
         "</select></div>"
         '<button type="submit" class="st-tombol-coral">'
-        '<span class="material-symbols-outlined" style="font-size:1.1rem">'
-        "library_add</span>Buat latihan gabungan</button>"
+        f'{profile_workspace.ikon("library_add")}Buat latihan gabungan</button>'
         "</form>"
     )
 
@@ -873,7 +844,7 @@ def halaman_anak(
         )
         label = "".join(
             f'<label class="tab-label-st" for="tab-{kode}">'
-            f'<span class="material-symbols-outlined">{ikon}</span>'
+            f'{profile_workspace.ikon(ikon)}'
             f"{html.escape(judul)}</label>"
             for kode, ikon, judul, _ in panel
         )
@@ -899,12 +870,6 @@ def halaman_anak(
             "</section>"
         )
 
-    kabar = (
-        '<div class="st-banner-sukses"><span class="ikon">✓</span>'
-        f"<span>{html.escape(pesan)}</span></div>"
-        if pesan
-        else ""
-    )
     tautan_bantuan = (
         __import__("assistant_components").tombol_buka(
             __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "rencana")
@@ -913,13 +878,27 @@ def halaman_anak(
     )
     kartu_rencana = learning_cycle_ui.kartu_rencana(
         kon, int(siswa["id"]), slot_bantuan=bantuan_rencana or tautan_bantuan,
-    )
+    ) if section == "rencana" else ""
     latihan_manual = (
-        '<details class="atur-latihan-st"' + (' open' if bantuan_latihan else '') + '>'
-        '<summary>Atur latihan sendiri</summary>'
+        '<section class="profil-formulaire-st">'
         '<p class="sub">Latihan bebas tidak mengubah progres rencana terpandu.</p>'
-        f"{blok_buat_latihan}</details>"
+        f"{blok_buat_latihan}</section>"
     )
+    if section == "rencana":
+        isi_profil = kartu_rencana
+    elif section == "riwayat":
+        isi_profil = profile_workspace.riwayat(
+            int(siswa["id"]), sesi, total_hasil, filter_profil,
+            judul_topik=_nama_topik_sesi, tanggal=_tanggal_ringkas,
+            badge_tinjauan=_badge_review_status, aksi_bagikan=_aksi_tautan,
+        )
+    else:
+        isi_profil = (
+            learning_cycle_ui.pengingat_rencana(kon, int(siswa["id"]))
+            + latihan_manual + '<section class="profil-taches-st"><h2 class="st">Perlu ditindaklanjuti</h2>'
+            '<p class="sub">Maksimal tiga sesi terbaru yang perlu tindakan. Sesi lain tersedia di tab Riwayat.</p>'
+            f'<div class="daftar-anak">{item}</div></section>'
+        )
 
     skrip_bagikan = "" if privat else (
         "<script>(function(){var b=document.querySelectorAll('.tombol-bagikan-st');"
@@ -932,37 +911,9 @@ def halaman_anak(
     )
     return _halaman_stitch(
         f"{siswa['nama']} — {T.NAMA_PRODUK}",
-        '<main aria-labelledby="judul-profil">'
-        f'<div class="jejak"><a href="{"/admin" if peran == "admin" else "/guru"}">&larr; Semua anak</a></div>'
-        '<header class="kepala-anak-st editorial-kepala-st">'
-        '<p class="editorial-alis-st">CATATAN BELAJAR ANAK</p>'
-        f'<h1 class="st" id="judul-profil">{html.escape(siswa["nama"])}'
-        f'<span class="st-badge selesai">({html.escape(label_kelas(str(siswa["tingkat"])))})</span>'
-        f"{label_keluarga}"
-        "</h1>"
-        "</header>"
-        f"{kabar}"
-        f"{kartu_rencana}"
-        # Struktur lama dipertahankan; CSS data-rencana memindahkan kolom
-        # alat manual secara visual ke atas riwayat tanpa entry point ganda.
-        '<div class="anak-grid" data-rencana="vertikal">'
-        '<section class="anak-kolom-kiri">'
-        '<div class="kepala-riwayat-st">'
-        '<h2 class="st">Riwayat latihan</h2>'
-        f'<a class="tautan-laporan-st" href="/laporan/{siswa["id"]}">'
-        '<svg class="ikon-laporan-st" viewBox="0 0 24 24" aria-hidden="true" '
-        'focusable="false" fill="none" stroke="currentColor" stroke-width="2" '
-        'stroke-linecap="round" stroke-linejoin="round">'
-        '<path d="M4 19V10M10 19V5M16 19v-7M22 19V8"/></svg>'
-        'Lihat laporan perkembangan <span aria-hidden="true">&rarr;</span></a>'
-        "</div>"
-        f'<div class="daftar-anak">{item}</div>'
-        "</section>"
-        '<div class="anak-kolom-kanan">'
-        f"{latihan_manual}"
-        f"</div></div></main>{skrip_bagikan}",
+        profile_workspace.bingkai(siswa, section, total_sesi, isi_profil, peran=peran, pesan=pesan) + skrip_bagikan,
         ident=(pengguna if pengguna else "guru", peran),
-        kelas_bungkus="lebar pendamping-editorial-st profil-editorial-st",
+        kelas_bungkus="lebar pendamping-editorial-st profil-editorial-st profil-workspace-st",
         privat=privat,
     )
 

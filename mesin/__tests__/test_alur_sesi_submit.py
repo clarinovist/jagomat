@@ -304,7 +304,10 @@ def test_halaman_anak_memakai_ikon_share_inline_tanpa_navigasi_baru(server):
     assert kode == 200
     assert f'data-bagikan-url="/sesi/{sesi_id}/bagikan"' in isi
     assert 'aria-label="Bagikan sesi ke anak"' in isi
-    assert 'class="material-symbols-outlined">share</span>' in isi
+    tombol = isi.split('aria-label="Bagikan sesi ke anak"', 1)[1].split('</button>', 1)[0]
+    assert '<svg class="profil-ikon-st" aria-hidden="true"' in tombol
+    assert 'viewBox="0 0 24 24"' in tombol
+    assert 'material-symbols-outlined' not in tombol
     assert '<span class="kabar-bagikan-st" aria-live="polite"></span>' in isi
     assert "x.closest('.blok-bagikan-st').querySelector('.kabar-bagikan-st')" in isi
     assert "k.textContent='Tautan tersalin dan berlaku 7 hari.'" in isi

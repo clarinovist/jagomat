@@ -113,12 +113,16 @@ def test_kontrol_form_punya_nama_aksesibel_dan_id_unik(db):
             assert induk_label or a.get("id") in label or a.get("aria-label"), (nama, tag, a)
 
 
-def test_rencana_tetap_satu_dan_sebelum_alat_manual(db):
-    isi = _halaman(db)["profil"].decode().split("</style>", 1)[1]
+def test_rencana_tetap_satu_di_tab_terpisah_dari_alat_manual(db):
+    kon, sid, _, _ = db
+    siswa = kon.execute('SELECT * FROM siswa WHERE id=?', (sid,)).fetchone()
+    isi = teacher_pages.halaman_anak(kon, siswa, query='section=rencana').decode().split('</style>', 1)[1]
     assert isi.count('class="kartu-rencana-st"') == 1
     assert isi.count('class="rencana-cta-utama-st"') == 1
-    assert isi.index('class="kartu-rencana-st"') < isi.index('class="atur-latihan-st"')
-    assert 'Latihan bebas tidak mengubah progres rencana terpandu.' in isi
+    assert f'action="/sesi-baru/{sid}"' not in isi
+    manual = _halaman(db)['profil'].decode().split('</style>', 1)[1]
+    assert 'class="kartu-rencana-st"' not in manual
+    assert 'Latihan bebas tidak mengubah progres rencana terpandu.' in manual
 
 
 def test_navigasi_section_dan_sesi_menandai_halaman_aktif(db):

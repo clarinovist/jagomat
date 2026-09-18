@@ -564,7 +564,8 @@ def test_http_get_hasil_tetap_tersedia_setelah_snapshot_anak_usang(server):
     assert kode == 200
     kode, isi, _ = server.minta(f"/pendamping/usulan/{usulan_id}", cookie=cookie)
     assert kode == 200
-    assert "Sesi #" in isi
+    assert 'Latihan bebas #' in isi and 'sudah dibuat.' in isi
+    assert 'Buka latihan</a>' in isi
     assert _jumlah_sesi() == sebelum + 1
 
 

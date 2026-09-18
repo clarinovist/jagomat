@@ -26,6 +26,8 @@ SECTION = (
     ("riwayat", "Riwayat admin", "/admin?section=riwayat"),
 )
 SECTION_LOKAL = frozenset(item[0] for item in SECTION if item[0] != "ai")
+SKRIP_KONFIRMASI_LOGIN = """document.querySelectorAll('form[data-konfirmasi-login]').forEach(function(f){f.addEventListener('submit',function(e){if(!window.confirm(f.dataset.konfirmasiLogin)){e.preventDefault();}});});"""
+
 LABEL_STATUS = {
     "account_missing_id": "ID akun belum tersedia",
     "no_students": "Belum memiliki siswa",
@@ -261,23 +263,24 @@ def render_keluarga(
     baris_semua = []
     for item in data.item:
         label = _e(item.pengguna or "Pemilik kosong")
-        akun = (
+        kelola = (
             '<a href="/admin?section=keluarga&amp;id=%s">%s</a>'
-            % (_e(item.id_akun), label)
-            if item.id_akun is not None else label
+            % (_e(item.id_akun), 'Kelola akun' if tampilkan_aksi and item.kategori == 'orang_tua' else 'Lihat detail')
+            if item.id_akun is not None else '—'
         )
         baris_semua.append(
-            '<tr><td>%s</td><td>%s</td><td data-angka>%d</td><td data-angka>%d</td><td>%s</td><td>%s</td></tr>'
+            '<tr><td>%s</td><td>%s</td><td data-angka>%d</td><td data-angka>%d</td><td>%s</td><td>%s</td><td>%s</td></tr>'
             % (
-                akun,
+                label,
                 _e(LABEL_KATEGORI[item.kategori]),
                 item.jumlah_siswa,
                 item.jumlah_sesi,
                 _waktu(item.aktivitas_terakhir),
                 _badge_status(item.status),
+                kelola,
             )
         )
-    baris = "".join(baris_semua) or '<tr><td colspan="6" class="admin-kosong">Tidak ada keluarga yang cocok.</td></tr>'
+    baris = "".join(baris_semua) or '<tr><td colspan="7" class="admin-kosong">Tidak ada keluarga yang cocok.</td></tr>'
     form = (
         '<section class="admin-kartu"><h2>Cari dan saring keluarga</h2>'
         '<form class="admin-form-cari" method="post" action="/admin">'
@@ -311,7 +314,7 @@ def render_keluarga(
         )
         + '<section class="admin-kartu"><h2>Daftar keluarga</h2>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th>Akun/pemilik</th><th>Kategori</th><th>Siswa</th><th>Sesi</th><th>Aktivitas terakhir</th><th>Kondisi</th></tr></thead>'
+        '<thead><tr><th>Akun/pemilik</th><th>Kategori</th><th>Siswa</th><th>Sesi</th><th>Aktivitas terakhir</th><th>Kondisi</th><th>Tindakan</th></tr></thead>'
         '<tbody>%s</tbody></table></div>%s</section>'
         % (
             baris,
@@ -412,7 +415,8 @@ def render_detail_keluarga(
             '<p class="admin-aksi-baca">'
             '<a class="admin-tautan" href="/admin/tinjau?aksi=account_password_reset&amp;id=%s">Reset sandi</a>'
             '<a class="admin-tautan" href="/admin/tinjau?aksi=account_session_revoke&amp;id=%s">Keluarkan perangkat</a>'
-            '<a class="admin-tautan admin-bahaya" href="/admin/tinjau?aksi=account_login_delete&amp;id=%s">Hapus login</a></p>'
+            '<a class="admin-tautan admin-bahaya" href="/admin/tinjau?aksi=account_login_delete&amp;id=%s">Tinjau penghapusan login</a></p>'
+            '<p class="admin-meta">Hanya akses login orang tua yang dihapus. Data siswa dan riwayat tetap tersimpan; akun login murid tidak ikut dihapus.</p>'
             % (target, target, target)
         )
     return (
@@ -512,7 +516,8 @@ def form_buat_keluarga(csrf: str, token: str) -> str:
 
 
 def form_tindakan_akun(
-    pengguna: str, peran: str, csrf: str, tokens: Mapping[str, str]
+    pengguna: str, peran: str, csrf: str, tokens: Mapping[str, str],
+    *, kembali: str = "/admin?section=keluarga", jumlah_siswa=None, jumlah_sesi=None,
 ) -> str:
     if peran not in ("guru", "murid"):
         return '<section class="admin-kartu admin-catatan"><p>Akun pengelola hanya dapat dibaca.</p></section>'
@@ -539,14 +544,26 @@ def form_tindakan_akun(
             % (_e(csrf), _e(tokens["account_session_revoke"]))
         )
     if "account_login_delete" in tokens:
+        judul = 'Hapus akun login orang tua' if peran == 'guru' else 'Hapus login murid'
+        konsekuensi = ('Akun login ' + pengguna + ' akan dihapus dan tidak dapat masuk lagi. '
+                       'Data siswa dan riwayat tetap tersimpan.'
+                       + (' Akun login murid tidak ikut dihapus.' if peran == 'guru' else ''))
+        rekap = ('<p><strong>%d profil siswa</strong> dan <strong>%d sesi latihan</strong> tetap tersimpan. '
+                 'Data tidak otomatis dipindahkan ke akun lain.</p>' % (jumlah_siswa, jumlah_sesi)
+                 if peran == 'guru' and jumlah_siswa is not None and jumlah_sesi is not None else '')
         bagian.append(
-            '<form method="post" action="/admin/akun"><h3>Hapus login</h3>'
+            '<form method="post" action="/admin/akun" data-konfirmasi-login="%s"><h3>%s</h3>'
+            '<p class="admin-meta">Target: <strong>%s</strong> · %s</p>'
+            '<div class="admin-kartu admin-catatan"><p>%s</p>%s'
+            '<p>Ini bukan penghapusan seluruh data keluarga atau pembersihan data dummy.</p></div>'
             '<input type="hidden" name="aksi" value="account_login_delete">'
             '<input type="hidden" name="csrf" value="%s"><input type="hidden" name="tinjauan" value="%s">'
             '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
             '<label><input type="checkbox" name="konfirmasi" value="1" required> Saya memahami hanya login yang dihapus; data siswa dan riwayat tetap ada.</label>'
-            '<button class="admin-tombol admin-bahaya" type="submit">Hapus login</button></form>'
-            % (_e(csrf), _e(tokens["account_login_delete"]))
+            '<a class="admin-tautan" href="%s">Batal, kembali ke akun</a> '
+            '<button class="admin-tombol admin-bahaya" type="submit">%s</button></form>'
+            % (_e(konsekuensi), judul, target, 'Orang Tua' if peran == 'guru' else 'Murid',
+               _e(konsekuensi), rekap, _e(csrf), _e(tokens["account_login_delete"]), _e(kembali), judul)
         )
     return '<section class="admin-kartu admin-form-tindakan"><h2>Tindakan akun</h2>%s</section>' % "".join(bagian)
 

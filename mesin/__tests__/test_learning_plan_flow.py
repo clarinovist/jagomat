@@ -78,6 +78,10 @@ def test_pemetaan_dari_kartu_hingga_konfirmasi_dan_jeda(server):
     ident = ('guru', SANDI_GURU)
     kode, profil, _ = uji.minta(f'/anak/{siswa}', auth=ident)
     assert kode == 200
+    rencana_url = [t for t in _kontrol(profil).tautan if t == f'/anak/{siswa}?section=rencana']
+    assert rencana_url
+    kode, profil, _ = uji.minta(rencana_url[0], auth=ident)
+    assert kode == 200
     buat = _satu_form(profil, '/buat')
     assert not buat['nama']
     kode, sesi, _ = uji.minta(buat['aksi'], auth=ident, data={})
@@ -134,7 +138,11 @@ def test_pemetaan_dari_kartu_hingga_konfirmasi_dan_jeda(server):
     assert 'Hasil sudah dikonfirmasi' in sah
     kembali = [t for t in _kontrol(sah).tautan if t == f'/anak/{siswa}']
     assert len(kembali) == 1
-    kode, rencana, _ = uji.minta(kembali[0], auth=ident)
+    kode, profil, _ = uji.minta(kembali[0], auth=ident)
+    assert kode == 200
+    rencana_url = [t for t in _kontrol(profil).tautan if t == f'/anak/{siswa}?section=rencana']
+    assert rencana_url
+    kode, rencana, _ = uji.minta(rencana_url[0], auth=ident)
     assert kode == 200
     assert '1 dari 3 sesi terkonfirmasi' in rencana
     assert f'action="/siklus/{siswa}/buat"' not in rencana

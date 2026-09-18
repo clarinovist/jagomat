@@ -22,9 +22,9 @@ def db(tmp_path, monkeypatch):
     return jalur
 
 
-def _render(kon, siswa_id):
+def _render(kon, siswa_id, section='riwayat'):
     siswa = kon.execute("SELECT * FROM siswa WHERE id = ?", (siswa_id,)).fetchone()
-    return teacher_pages.halaman_anak(kon, siswa, privat=True).decode()
+    return teacher_pages.halaman_anak(kon, siswa, privat=True, query='section=' + section).decode()
 
 
 @pytest.mark.parametrize("keadaan, label", [
@@ -79,12 +79,31 @@ def test_badge_profil_mengikuti_status_hasil_bukan_sekadar_dibuka(db, keadaan, l
         isi = _render(kon, siswa_id)
 
         assert tuple(kon.iterdump()) == sebelum
-        kartu = re.search(r'<article class="st-kartu-baris kartu-sesi-guru .*?</article>', isi, re.S).group()
-        badge = re.search(r'<span class="badge-direview [^"]*"[^>]*>(.*?)</span>', kartu, re.S).group(1)
-        assert badge == label
+        kartu = re.search(r'<tr data-sesi-id=".*?</tr>', isi, re.S).group()
+        baris = kon.execute('SELECT * FROM sesi WHERE id=?', (sesi_id,)).fetchone()
+        if keadaan in {'baru', 'dibuka_belum_kirim', 'sebagian_dibuka', 'batal_terkonfirmasi'}:
+            assert label in kartu
+            tinjauan = 'Menunggu pengiriman' if baris['selesai'] is None else 'Tidak berlaku'
+            assert tinjauan in kartu
+            badge = label
+        else:
+            badge = re.search(r'<span class="badge-direview [^"]*"[^>]*>(.*?)</span>', kartu, re.S).group(1)
+            assert badge == label
         assert "Sudah Direview" not in kartu
         assert ("✓" in badge) == (keadaan in {"dikonfirmasi", "dikonfirmasi_ulang"})
         assert "masuk pemetaan" not in kartu
+        import profile_history
+        filter_status = (
+            'dibatalkan' if keadaan == 'batal_terkonfirmasi' else
+            'belum_dikirim' if keadaan in {'baru', 'dibuka_belum_kirim', 'sebagian_dibuka'} else
+            'dikonfirmasi' if keadaan in {'dikonfirmasi', 'dikonfirmasi_ulang'} else
+            'ulang' if keadaan in {'snapshot_lama', 'diinvalidasi', 'fingerprint_berbeda', 'snapshot_tanpa_stamp'} else
+            'draf' if keadaan == 'draf' else
+            'dibuka' if keadaan in {'dibuka', 'stamp_tanpa_snapshot'} else 'belum_ditinjau'
+        )
+        hasil, total, _ = profile_history.halaman_riwayat(
+            kon, siswa_id, profile_history.parse_filter('section=riwayat&tinjauan=' + filter_status))
+        assert total == 1 and [r['id'] for r in hasil] == [sesi_id]
 
 
 def test_kartu_menyebut_sesi_rekomendasi_bukan_riwayat_terbaru(db):
@@ -98,7 +117,7 @@ def test_kartu_menyebut_sesi_rekomendasi_bukan_riwayat_terbaru(db):
         kon.execute("UPDATE sesi SET tanggal = '2026-09-15' WHERE id = ?", (manual,))
         sebelum = tuple(kon.iterdump())
 
-        isi = _render(kon, siswa_id)
+        isi = _render(kon, siswa_id, 'rencana')
 
         assert tuple(kon.iterdump()) == sebelum
         kartu = re.search(r'<section class="kartu-rencana-st".*?</section>', isi, re.S).group()

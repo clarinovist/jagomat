@@ -521,6 +521,18 @@ def render_rencana(
     )
 
 
+def pengingat_rencana(kon, siswa_id: int) -> str:
+    """Ringkasan tab latihan memakai reducer yang sama, tanpa CTA duplikat."""
+    bukti = database.muat_bukti_siklus(kon, siswa_id)
+    rencana = rencana_berikutnya(bukti, siswa_id)
+    judul = _judul(rencana, _fokus_utama(rencana), bukti)
+    return (
+        '<div class="profil-rappel-st"><span><strong>Rencana belajar hari ini</strong><br>'
+        + html.escape(judul) + '</span>'
+        + f'<a href="/anak/{siswa_id}?section=rencana">Lihat rencana →</a></div>'
+    )
+
+
 def kartu_rencana(kon, siswa_id: int, slot_bantuan: str = "") -> str:
     """Muat bukti sah dan render rekomendasi reducer pada GET profil."""
     bukti = database.muat_bukti_siklus(kon, siswa_id)

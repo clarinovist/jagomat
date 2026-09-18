@@ -165,7 +165,7 @@ def test_css_studio_scoped_responsif_dan_fallback_kontrol_manual():
     assert ".tab-radio-st:focus-visible" in css
 
 
-def test_form_manual_actual_tetap_default_dan_details_tertutup(tmp_path, monkeypatch):
+def test_form_manual_actual_tetap_default_dan_langsung_terlihat(tmp_path, monkeypatch):
     import auth
     import database
     import sessions
@@ -183,8 +183,8 @@ def test_form_manual_actual_tetap_default_dan_details_tertutup(tmp_path, monkeyp
     badan = isi.split("</style>", 1)[1]
     markup = _Markup(badan)
 
-    assert '<details class="atur-latihan-st">' in badan
-    assert '<details class="atur-latihan-st" open' not in badan
+    assert '<section class="profil-formulaire-st">' in badan
+    assert '<details class="atur-latihan-st"' not in badan
     assert badan.count('<h2 class="st">Buat latihan</h2>') == 1
     assert f'action="/sesi-baru/{siswa_id}"' in badan
     assert f'action="/sesi-gabungan/{siswa_id}"' in badan

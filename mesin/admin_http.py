@@ -146,7 +146,7 @@ def _kirim_privat(penangan, isi: bytes, kode: int = 200, *, skrip=False):
     penangan.send_header("Content-Type", "text/html; charset=utf-8")
     penangan.send_header("Content-Length", str(len(isi)))
     for nama, nilai in admin_security.header_privat(
-        skrip_sandi=SKRIP_MATA_SANDI if skrip else ""
+        skrip_sandi=(SKRIP_MATA_SANDI + admin_pages.SKRIP_KONFIRMASI_LOGIN) if skrip else ""
     ).items():
         penangan.send_header(nama, nilai)
     penangan.end_headers()
@@ -260,7 +260,7 @@ def _halaman_admin(principal, section, isi, *, skrip=False, judul=None, subjudul
     return admin_pages.halaman_admin(
         section, isi, pengguna=principal.pengguna, judul=judul,
         subjudul=subjudul,
-        skrip_sandi=SKRIP_MATA_SANDI if skrip else "",
+        skrip_sandi=(SKRIP_MATA_SANDI + admin_pages.SKRIP_KONFIRMASI_LOGIN) if skrip else "",
     )
 
 
@@ -493,7 +493,8 @@ def _render_tinjauan(penangan, principal, query):
             {"target_id": target["id_akun"], "target_revisi": auth.revisi_auth(target), "target_peran": target["peran"], "section": "keluarga" if target["peran"] == "guru" else "siswa"},
         )
         tindakan = admin_pages.form_tindakan_akun(
-            target["pengguna"], target["peran"], csrf, {aksi: token}
+            target["pengguna"], target["peran"], csrf, {aksi: token},
+            kembali="/admin?section=siswa",
         )
         with database.buka() as kon:
             konteks = _konteks(kon)
@@ -503,6 +504,12 @@ def _render_tinjauan(penangan, principal, query):
                 )
                 if detail is None:
                     return _tidak_ada(penangan)
+                tindakan = admin_pages.form_tindakan_akun(
+                    target["pengguna"], target["peran"], csrf, {aksi: token},
+                    kembali="/admin?section=keluarga&id=" + target["id_akun"],
+                    jumlah_siswa=detail.keluarga.jumlah_siswa,
+                    jumlah_sesi=detail.keluarga.jumlah_sesi,
+                )
                 isi = admin_pages.render_detail_keluarga(
                     detail, tindakan=tindakan
                 )

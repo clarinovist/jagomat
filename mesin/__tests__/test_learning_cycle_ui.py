@@ -71,13 +71,13 @@ def _badan(isi):
     return isi.split("</style>", 1)[1]
 
 
-def test_profil_anak_baru_menampilkan_rencana_sebelum_riwayat_dan_manual_tertutup(server):
+def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     s, siswa_id = server
 
-    kode, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
 
     assert kode == 200
-    assert isi.index("Rencana belajar hari ini") < isi.index("Riwayat latihan")
+    assert f'href="/anak/{siswa_id}?section=rencana" aria-current="page"' in isi
     assert "Kenali cara anak menyelesaikan soal" in isi
     assert "Pemetaan membantu melihat materi yang sudah nyaman" in isi
     assert "Hari ini: 1 sesi · 15 soal" in isi
@@ -101,12 +101,12 @@ def test_profil_anak_baru_menampilkan_rencana_sebelum_riwayat_dan_manual_tertutu
     assert "/* Rencana belajar jelas — kartu */" in isi.split("</style>", 1)[0]
     form_utama = isi.split(f'action="/siklus/{siswa_id}/buat"', 1)[1].split("</form>", 1)[0]
     assert "<input" not in form_utama
-    assert '<details class="atur-latihan-st">' in isi
-    assert 'class="anak-grid" data-rencana="vertikal"' in isi
-    assert "<summary>Atur latihan sendiri</summary>" in isi
-    assert '<details class="atur-latihan-st" open' not in isi
-    assert isi.count(f'action="/sesi-baru/{siswa_id}"') == 1
-    assert isi.count(f'action="/sesi-gabungan/{siswa_id}"') == 1
+    assert '<details class="atur-latihan-st"' not in isi
+    assert f'action="/sesi-baru/{siswa_id}"' not in isi
+    assert f'action="/sesi-gabungan/{siswa_id}"' not in isi
+    _, manual, _ = s.minta(f"/anak/{siswa_id}?section=latihan", auth=("guru", SANDI_GURU))
+    assert manual.count(f'action="/sesi-baru/{siswa_id}"') == 1
+    assert manual.count(f'action="/sesi-gabungan/{siswa_id}"') == 1
 
 
 def test_get_profil_hanya_membaca_database(server):
@@ -114,7 +114,7 @@ def test_get_profil_hanya_membaca_database(server):
     with s.buka() as kon:
         sebelum = tuple(kon.iterdump())
 
-    kode, _, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, _, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
 
     with s.buka() as kon:
         sesudah = tuple(kon.iterdump())
@@ -129,7 +129,7 @@ def test_pemetaan_dua_dari_tiga_berasal_dari_snapshot_terkonfirmasi(server):
         _sesi_pemetaan(kon, siswa_id, putaran_id, 1)
         _sesi_pemetaan(kon, siswa_id, putaran_id, 2)
 
-    kode, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
 
     assert kode == 200
     assert "Pemetaan awal: 2 dari 3 sesi terkonfirmasi" in isi
@@ -147,7 +147,7 @@ def test_sesi_manual_dan_beda_level_tidak_menggantikan_cta_pemetaan(server):
         manual = database.buat_sesi(kon, siswa_id, seed=6201, level="P3", jumlah_soal=1)
         lama = database.buat_sesi(kon, siswa_id, seed=6202, level="P4", jumlah_soal=1)
 
-    kode, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
     kartu = isi.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
 
     assert kode == 200
@@ -171,7 +171,7 @@ def test_sesi_terpandu_sudah_dilihat_tetap_meminta_konfirmasi(server):
             (sesi,),
         )
 
-    kode, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
     kartu = isi.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
 
     assert kode_buat == 200
@@ -189,7 +189,7 @@ def test_intervensi_memakai_materi_konkret_satu_form_aksi_dan_escape(server):
         _sesi_pemetaan(kon, siswa_id, putaran_id, 2)
         _sesi_pemetaan(kon, siswa_id, putaran_id, 3, salah=False)
 
-    kode, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
     kartu = isi.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
     materi = interventions.untuk_fokus(("deret_aritmetika", "H", None))
 
@@ -283,7 +283,7 @@ def test_pengenalan_membuat_sesi_dulu_lalu_menandai_setelah_dikonfirmasi(server)
         _sesi_pemetaan(kon, siswa_id, putaran_id, 2, salah=False)
         _sesi_pemetaan(kon, siswa_id, putaran_id, 3, salah=False)
 
-    kode_awal, awal, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode_awal, awal, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
     kartu_awal = awal.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
     assert kode_awal == 200
     assert "Kenalkan materi baru" in kartu_awal
@@ -304,7 +304,7 @@ def test_pengenalan_membuat_sesi_dulu_lalu_menandai_setelah_dikonfirmasi(server)
         database.konfirmasi_hasil(kon, sesi, guru="guru", dilewati={butir_id})
 
     kode_sesudah, sesudah, _ = s.minta(
-        f"/anak/{siswa_id}", auth=("guru", SANDI_GURU)
+        f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU)
     )
     kartu_sesudah = sesudah.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
     assert kode_buat == kode_sesudah == 200
@@ -367,7 +367,7 @@ def test_strip_tahap_dan_override_terpandu_terpisah_dari_latihan_bebas(server):
         _sesi_pemetaan(kon, siswa_id, putaran_id, 2)
         _sesi_pemetaan(kon, siswa_id, putaran_id, 3, salah=False)
 
-    _, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    _, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
     kartu = isi.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
 
     for label in ("Pemetaan", "Pelajari", "Latihan", "Evaluasi", "Cek kembali", "Lanjut"):
@@ -387,7 +387,7 @@ def test_strip_tahap_dan_override_terpandu_terpisah_dari_latihan_bebas(server):
     assert "required" in kartu
     assert f'action="/siklus/{siswa_id}/aksi"' in kartu
     assert 'name="aksi" value="ubah_fokus"' in kartu
-    manual = isi.split('<details class="atur-latihan-st">', 1)[1]
+    _, manual, _ = s.minta(f"/anak/{siswa_id}?section=latihan", auth=("guru", SANDI_GURU))
     assert "Latihan bebas tidak mengubah progres rencana terpandu" in manual
 
 

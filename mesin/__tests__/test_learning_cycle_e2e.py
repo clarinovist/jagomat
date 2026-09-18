@@ -161,7 +161,7 @@ def test_kambuh_dapat_membuka_putaran_baru_lewat_http(alur):
     with alur[0].buka() as kon:
         lama = tuple(tuple(b) for b in kon.execute("SELECT * FROM snapshot_outcome"))
         putaran_lama = kon.execute("SELECT MAX(id) FROM putaran_fokus").fetchone()[0]
-    kode, isi, _ = alur[0].minta(f"/anak/{alur[1]}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = alur[0].minta(f"/anak/{alur[1]}?section=rencana", auth=("guru", SANDI_GURU))
     assert kode == 200
     assert 'name="aksi" value="mulai_putaran_baru"' in isi
     assert 'Pemetaan 0 dari 3' not in isi

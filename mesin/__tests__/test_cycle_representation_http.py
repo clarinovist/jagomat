@@ -44,7 +44,7 @@ def test_http_checkpoint_visual_memerlukan_evaluasi_visual_sendiri(alur):
         fokus_baru = tuple(o for o in baru.outcomes if o.template_id == "korek_api")
         assert fokus_baru and {o.mode_representasi for o in fokus_baru} == {"korek-v2"}
         assert all(o.fingerprint_penyajian for o in (*lama.outcomes, *baru.outcomes))
-    kode, html, _ = server.minta(f"/anak/{siswa}", auth=("guru", SANDI_GURU))
+    kode, html, _ = server.minta(f"/anak/{siswa}?section=rencana", auth=("guru", SANDI_GURU))
     assert kode == 200 and "representasi terbaru" in html
     konfirmasi(alur, buat(alur, "latihan_terbimbing"))
     konfirmasi(alur, buat(alur, "penguatan"))

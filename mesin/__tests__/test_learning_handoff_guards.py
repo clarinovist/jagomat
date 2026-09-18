@@ -90,7 +90,7 @@ def server(tmp_path, monkeypatch):
 
 
 def _buat_sesi_dari_form(s, siswa_id):
-    kode, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
     assert kode == 200
     action = f"/siklus/{siswa_id}/buat"
     form = _form(_parse(isi), action)
@@ -233,7 +233,7 @@ def test_profil_tidak_menawarkan_bagikan_sesi_dibatalkan(server):
     s, siswa, _ = server
     sesi = _buat_sesi_dari_form(s, siswa)
     _batalkan_dari_form(s, sesi)
-    kode, isi, _ = s.minta(f"/anak/{siswa}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = s.minta(f"/anak/{siswa}?section=riwayat", auth=("guru", SANDI_GURU))
     assert kode == 200
     assert f'data-bagikan-url="/sesi/{sesi}/bagikan"' not in isi
     assert f'href="/sesi/{sesi}"' in isi, "riwayat tetap dapat dibuka guru"
@@ -418,7 +418,7 @@ def test_manual_beda_level_dan_batal_tidak_mengambil_cta_rencana(server):
             (putaran_beda_level, sesi_beda_level),
         )
 
-    kode, isi, _ = s.minta(f"/anak/{siswa}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = s.minta(f"/anak/{siswa}?section=rencana", auth=("guru", SANDI_GURU))
 
     assert kode == 200
     forms = [

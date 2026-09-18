@@ -69,6 +69,28 @@ def _draf(server, sesi):
     return ids, data
 
 
+def test_draf_format_latihan_tidak_hilang_pada_buka_dan_tutup(server):
+    token = _token_guru(server)
+    anak, _, _, _ = server.ids_inline
+    data = {'inline_host': 'anak', 'inline_host_id': str(anak), 'inline_posisi': 'latihan',
+            'topik': 'campuran', 'jumlah_soal': '15', 'mode': 'diagnostik',
+            'hadir_timer_mode': '1', 'durasi_menit': '47', 'timer_auto': '0',
+            'format_jawaban': 'pilihan_ganda'}
+    with server.buka() as kon:
+        sebelum = tuple(kon.iterdump())
+    for aksi in ('buka', 'tutup'):
+        kode, isi, _ = server.minta('/pendamping/inline/' + aksi, cookie=token,
+                                   data=data, headers=_origin(server))
+        assert kode == 200
+        assert 'value="pilihan_ganda" selected' in isi
+        assert 'value="15" selected' in isi
+        assert 'value="47"' in isi
+        assert f'href="/anak/{anak}?section=latihan" aria-current="page"' in isi
+        with server.buka() as kon:
+            assert tuple(kon.iterdump()) == sebelum
+    assert server.provider.panggilan == []
+
+
 def test_query_host_existing_tetap_diterima_dan_query_bantuan_tetap_strict(server):
     token = _token_guru(server)
     anak, sesi, _, _ = server.ids_inline
@@ -81,7 +103,7 @@ def test_get_host_inline_privat_tanpa_provider_write_atau_resource_eksternal(ser
     token = _token_guru(server)
     anak, sesi, _, _ = server.ids_inline
     kode, biasa, _ = server.minta(f"/anak/{anak}", cookie=token)
-    assert kode == 200 and '<form method="post" action="/pendamping/inline/buka">' in biasa
+    assert kode == 200 and 'formaction="/pendamping/inline/buka"' in biasa
     kode, profil, header = server.minta(
         f"/anak/{anak}?bantuan=rencana", cookie=token
     )

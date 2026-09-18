@@ -97,13 +97,13 @@ def anak(db):
     return db, sid
 
 
-def _render_anak(db, siswa_id) -> str:
+def _render_anak(db, siswa_id, section='latihan') -> str:
     with database.buka(db) as kon:
         baris = kon.execute(
             "SELECT * FROM siswa WHERE id = ?", (siswa_id,)
         ).fetchone()
         return teacher_pages.halaman_anak(
-            kon, baris, peran="guru", pengguna="ortu"
+            kon, baris, peran="guru", pengguna="ortu", query='section=' + section
         ).decode()
 
 
@@ -223,24 +223,21 @@ def test_halaman_anak_tetap_utuh(anak):
 # boleh hidup di dalam media query.
 
 
-def test_halaman_anak_punya_bungkus_grid(anak):
+def test_halaman_anak_punya_bungkus_ruang_kerja_scoped(anak):
     db, sid = anak
     markup = _tanpa_gaya(_render_anak(db, sid))
-    assert 'class="anak-grid"' in markup
-    assert 'class="anak-kolom-kiri"' in markup
-    assert 'class="anak-kolom-kanan"' in markup
+    assert 'profil-workspace-st' in markup
+    assert 'class="profil-formulaire-st"' in markup
+    assert 'class="profil-champs-st"' in markup
+    assert 'class="profil-assistant-st"' in markup
 
 
-def test_daftar_sesi_di_kiri_form_di_kanan(anak):
-    """Urutan sumber menentukan urutan di HP (satu kolom): history dulu,
-    baru form — sama seperti sebelum Fase B."""
+def test_form_sebelum_pendamping_dan_tugas_ringkas(anak):
+    """HP mengikuti urutan form, bantuan kontekstual, lalu tugas ringkas."""
     db, sid = anak
     markup = _tanpa_gaya(_render_anak(db, sid))
-    kiri = markup.index('anak-kolom-kiri')
-    kanan = markup.index('anak-kolom-kanan')
-    assert kiri < kanan
-    assert markup.index('daftar-anak') < kanan, "history harus di kolom kiri"
-    assert kanan < markup.index('Buat sesi baru'), "form di kolom kanan"
+    assert markup.index('profil-champs-st') < markup.index('profil-assistant-st')
+    assert markup.index('Buat sesi baru') < markup.index('profil-taches-st')
 
 
 def test_grid_dua_kolom_hanya_di_desktop():
@@ -283,7 +280,7 @@ def test_kepala_riwayat_memuat_tautan_laporan_dengan_svg_inline(anak, privat):
     with database.buka(db) as kon:
         siswa = kon.execute("SELECT * FROM siswa WHERE id = ?", (sid,)).fetchone()
         markup = _tanpa_gaya(teacher_pages.halaman_anak(
-            kon, siswa, peran="guru", pengguna="ortu", privat=privat,
+            kon, siswa, peran="guru", pengguna="ortu", privat=privat, query='section=riwayat',
         ).decode())
     kepala = markup[markup.index('class="kepala-riwayat-st"'):]
     kepala = kepala[:kepala.index("</div>")]
@@ -363,8 +360,8 @@ def test_badge_riwayat_mendahulukan_pembatalan(db, keadaan):
         ))
         database.batalkan_sesi(kon, sesi, "Pembatalan sintetis")
         sebelum = tuple(kon.iterdump())
-    markup = _tanpa_gaya(_render_anak(db, siswa))
-    kartu = re.search(r'<article class="st-kartu-baris kartu-sesi-guru .*?</article>', markup, re.S).group()
+    markup = _tanpa_gaya(_render_anak(db, siswa, 'riwayat'))
+    kartu = re.search(r'<tr data-sesi-id=".*?</tr>', markup, re.S).group()
     assert ">Dibatalkan</span>" in kartu
     for status in ("Belum Dikerjakan", "Sedang Dikerjakan", "Belum ditinjau", "Hasil dikonfirmasi", "belum dikonfirmasi"):
         assert status not in kartu

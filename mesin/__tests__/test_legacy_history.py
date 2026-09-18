@@ -233,7 +233,7 @@ def test_http_profil_dan_laporan_menjelaskan_histori_beda_level_tanpa_mutasi(ser
         sebelum = tuple(kon.iterdump())
 
     kode_profil, profil, _ = server_uji.minta(
-        f"/anak/{siswa_id}", auth=("guru", SANDI_GURU)
+        f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU)
     )
     kode_laporan, laporan, _ = server_uji.minta(
         f"/laporan/{siswa_id}", auth=("guru", SANDI_GURU)
@@ -344,7 +344,7 @@ def test_http_tidak_mengaku_mulai_dari_awal_setelah_pemetaan_aktif(server):
         _buat_pemetaan_aktif(kon, siswa_id)
 
     kode_profil, profil, _ = server_uji.minta(
-        f"/anak/{siswa_id}", auth=("guru", SANDI_GURU)
+        f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU)
     )
     kode_laporan, laporan, _ = server_uji.minta(
         f"/laporan/{siswa_id}", auth=("guru", SANDI_GURU)

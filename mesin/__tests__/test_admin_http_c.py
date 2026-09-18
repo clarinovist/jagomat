@@ -107,6 +107,30 @@ def server(tmp_path, monkeypatch):
     s.berhenti()
 
 
+def test_tinjauan_hapus_login_menyebut_data_dipertahankan_dan_hash_csp(server):
+    import base64
+    import hashlib
+    token = _login(server, 'Admin-C', SANDI_ADMIN)
+    target = auth.cari_akun('Ortu-C')['id_akun']
+    with server.buka() as kon:
+        database.buat_sesi(kon, server.siswa_c, seed=777, jumlah_soal=1)
+        sebelum = tuple(kon.iterdump())
+    sandi_sebelum = auth.BERKAS_SANDI.read_bytes()
+    kode, isi, header = _minta(server, '/admin/tinjau?aksi=account_login_delete&id=' + target, cookie=token)
+    assert kode == 200
+    assert '1 profil siswa' in isi and '1 sesi latihan' in isi
+    assert 'Akun login murid tidak ikut dihapus' in isi
+    assert 'Hapus akun login orang tua' in isi
+    assert 'href="/admin?section=keluarga&amp;id=' + target in isi
+    skrip = re.findall(r'<script>(.*?)</script>', isi, re.S)
+    assert len(skrip) == 1 and 'window.confirm' in skrip[0]
+    digest = base64.b64encode(hashlib.sha256(skrip[0].encode()).digest()).decode()
+    assert "'sha256-" + digest + "'" in header['Content-Security-Policy']
+    assert auth.BERKAS_SANDI.read_bytes() == sandi_sebelum
+    with server.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum
+
+
 def test_detail_dan_tinjauan_target_hilang_memiliki_404_identik(server):
     token = _login(server, "Admin-C", SANDI_ADMIN)
     keluarga = _minta(

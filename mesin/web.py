@@ -771,6 +771,12 @@ class Penangan(BaseHTTPRequestHandler):
                     except (TypeError, ValueError):
                         sorot = None
                     pesan = (qs.get("pesan", [""])[0] or "")[:200]
+                    query_profil = urllib.parse.urlsplit(self.path).query if not target_inline else ""
+                    try:
+                        import profile_history
+                        profile_history.parse_filter(query_profil)
+                    except (ValueError, UnicodeError):
+                        return self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
                     hasil = halaman_anak(
                         kon, siswa_baris,
                         peran=ident[1] if ident else "guru",
@@ -779,6 +785,7 @@ class Penangan(BaseHTTPRequestHandler):
                         pesan=pesan,
                         bantuan_rencana=(fragmen_inline if target_inline and target_inline.posisi == "rencana" else ""),
                         bantuan_latihan=(fragmen_inline if target_inline and target_inline.posisi == "latihan" else ""),
+                        query=query_profil,
                     )
                     return self._kirim_privat(hasil) if target_inline else self._kirim(hasil)
                 if jalur.startswith("/laporan/"):

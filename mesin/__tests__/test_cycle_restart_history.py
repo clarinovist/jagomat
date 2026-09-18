@@ -81,7 +81,7 @@ def test_restart_kedua_tetap_berjalan_setelah_koreksi_histori(alur, koreksi_hist
         penyajian = tuple(tuple(b) for b in kon.execute("SELECT * FROM penyajian_outcome ORDER BY 1"))
         assert kon.execute("SELECT COUNT(*) FROM putaran_fokus").fetchone()[0] == 2
     assert rencana(alur).tindakan == "putaran_baru"
-    kode, html, _ = server.minta(f"/anak/{siswa}", auth=("guru", SANDI_GURU))
+    kode, html, _ = server.minta(f"/anak/{siswa}?section=rencana", auth=("guru", SANDI_GURU))
     assert kode == 200 and 'name="aksi" value="mulai_putaran_baru"' in html
     for _ in range(2):
         assert kirim(alur, f"/siklus/{siswa}/aksi", {"aksi": "mulai_putaran_baru"})[0] == 303

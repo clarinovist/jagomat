@@ -513,7 +513,7 @@ def _pisahkan_draf_inline(data, target):
         sisa = {k: v for k, v in data.items() if k not in nama}
         sisa.update(field_memori)
         return sisa, draf
-    nama_sah = {"topik", "jumlah_soal", "mode", "hadir_timer_mode", "timer_mode", "durasi_menit", "timer_auto"}
+    nama_sah = {"topik", "jumlah_soal", "mode", "hadir_timer_mode", "timer_mode", "durasi_menit", "timer_auto", "format_jawaban"}
     nama = nama_sah & set(data)
     if not (nama - {"mode"}):
         return data, None
@@ -637,6 +637,7 @@ def tangani_inline_post(penangan, jalur: str) -> bool:
                     isi = teacher_pages.halaman_anak(
                         kon_data, siswa, peran="guru", pengguna=principal.pengguna,
                         draf_latihan=draf, privat=True,
+                        query="section=" + target.posisi,
                     )
             _kirim_host_privat(penangan, isi)
             return True
