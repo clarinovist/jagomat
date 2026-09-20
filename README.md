@@ -4,6 +4,17 @@ Aplikasi web latihan matematika SD: generator soal, diagnosis kesalahan,
 siklus belajar terpandu, lembar cetak, dan laporan per anak.
 Pure Python stdlib; dependensi pengembangan hanya pytest dan pytest-xdist.
 
+## Identitas repo dan folder
+
+Brand publik **Jagomat**, domain kanonis **https://jagomat.id**. Folder lokal
+kanonis `~/Documents/jagomat/`; `~/Documents/osn/` menjadi alias kompatibilitas
+sementara, bukan salinan repo kedua. Struktur internal `mesin/` tetap.
+
+Target nama GitHub adalah `clarinovist/jagomat`. **Rename GitHub belum dilakukan**:
+origin masih `clarinovist/osn-mesin-latihan` sampai patch pin image masuk `main`
+dan lolos CI. Namespace image GHCR lama sengaja dipertahankan untuk deploy/recovery.
+Urutan cutover dan pemulihan: [panduan penamaan](docs/repository-naming.md).
+
 ## Struktur
 
 | Path | Peran |

@@ -1,12 +1,16 @@
-# Mesin Latihan Pola Bilangan
+# Jagomat — Mesin Latihan
 
 Alur mingguan: cetak lembar -> anak kerjakan di kertas -> masukkan hasil ->
 baca laporan.
 
+Folder proyek kanonis `~/Documents/jagomat/`. Alias `~/Documents/osn/` sementara
+tetap tersedia untuk sesi/venv lama. Repo GitHub masih memakai nama lama sampai
+cutover aman; lihat [panduan penamaan](../docs/repository-naming.md).
+
 ## Sekali saja (sudah dilakukan)
 
 ```bash
-cd ~/Documents/osn/mesin
+cd ~/Documents/jagomat/mesin
 python3 -m venv .venv
 ./.venv/bin/pip install pytest
 ./.venv/bin/python setup_db.py
@@ -86,7 +90,7 @@ punya Chrome, jadi tautan `soal` di website menghasilkan halaman untuk
 dicetak langsung dari browser, bukan berkas PDF).
 
 ```bash
-cd ~/Documents/osn/mesin
+cd ~/Documents/jagomat/mesin
 ./.venv/bin/python generate_worksheet.py --pdf   # cetak lembar + PDF
 ./.venv/bin/python serve.py             # halaman guru di 127.0.0.1:8724
 ```

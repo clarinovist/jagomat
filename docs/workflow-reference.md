@@ -1,4 +1,4 @@
-# Referensi workflow OSN
+# Referensi workflow Jagomat
 
 Sumber kebijakan jalur/approval/gate adalah [`CLAUDE.md`](../CLAUDE.md). Baca bagian
 relevan saat menyentuh soal, test, visual, atau klaim produk; tidak perlu membaca
@@ -21,18 +21,20 @@ Follow-up:
 Kritis tambahkan invariant, failure path, risiko data/runtime, dan rollback/recovery.
 Plan rutin tetap lokal/gitignored, bukan dokumentasi permanen yang di-commit.
 
-Semua contoh berikut dijalankan dari root OSN, bukan repo lama `mesin/.git`:
+Semua contoh berikut dijalankan dari root Jagomat, bukan repo lama `mesin/.git`.
+Path `Documents/osn` masih menjadi alias sementara; lihat
+[panduan penamaan](repository-naming.md).
 
 ```bash
-cd /Users/nugroho/Documents/osn && mesin/.venv/bin/python scripts/check_repo.py
-cd /Users/nugroho/Documents/osn && mesin/.venv/bin/python -m pytest mesin/__tests__/test_students.py -q -W error -p no:cacheprovider
+cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python scripts/check_repo.py
+cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python -m pytest mesin/__tests__/test_students.py -q -W error -p no:cacheprovider
 ```
 
 Pilih file test sesuai perubahan; contoh murid di atas bukan scope wajib untuk semua task.
 Untuk compile-only file Python terkait (ganti daftar sesuai patch):
 
 ```bash
-cd /Users/nugroho/Documents/osn && mesin/.venv/bin/python -W error -B -c 'from pathlib import Path; berkas = [Path("mesin/student_pages.py")]; [compile(p.read_text(), str(p), "exec") for p in berkas]; print("Kompilasi lulus:", len(berkas), "berkas")'
+cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python -W error -B -c 'from pathlib import Path; berkas = [Path("mesin/student_pages.py")]; [compile(p.read_text(), str(p), "exec") for p in berkas]; print("Kompilasi lulus:", len(berkas), "berkas")'
 ```
 
 Ini tidak mengimpor aplikasi, membuka DB, atau menulis bytecode. Kompilasi bukan pengganti
@@ -175,7 +177,7 @@ ukuran otomatis cakupan kode terbaru. Jika arsip tidak tersedia, jangan mengaran
 
 | Insiden / risiko | Pengaman yang dipertahankan |
 | --- | --- |
-| Git dalam `mesin/` memakai repo basi | Semua git `-C /Users/nugroho/Documents/osn`; tidak reset otomatis |
+| Git dalam `mesin/` memakai repo basi | Semua git `-C /Users/nugroho/Documents/jagomat`; tidak reset otomatis |
 | Test hijau tetapi malrule K hilang | Uji seed/level, collision, baca output soal |
 | Modul/aset baru tidak masuk image | COPY wildcard Python + COPY aset, guard image/aset, build CI |
 | Mutasi tidak melalui jalur test | Buktikan kegagalan tepat, data sintetis, pulihkan lalu hijau |

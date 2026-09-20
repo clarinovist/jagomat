@@ -10,7 +10,9 @@
 set -euo pipefail
 
 INANG="${OSN_HOST_VPS:-vps-osn}"   # setel lewat lingkungan
-TUJUAN="$HOME/Documents/osn/mesin/cadangan"
+# Ikuti checkout, termasuk saat folder induk diakses melalui alias kompatibilitas.
+DIREKTORI_SKRIP="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+TUJUAN="$DIREKTORI_SKRIP/cadangan"
 SIMPAN_HARI=30
 
 mkdir -p "$TUJUAN"

@@ -1,4 +1,4 @@
-# CLAUDE.md — OSN Mesin Latihan
+# CLAUDE.md — Jagomat
 
 Panduan utama agent untuk repo ini. **Verifikasi mengikuti risiko, bukan jumlah
 file/baris.** Aturan inti di sini; baca detail domain hanya saat relevan di
@@ -75,7 +75,7 @@ menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
 - Pakai **`mesin/.venv/bin/python` (Python 3.9.6 lokal)**; `python3` polos bukan pengganti.
   CI/container memakai **3.12**, tetapi kode tetap kompatibel 3.9. Jangan pakai sintaks
   khusus 3.12 (contoh: kutip bersarang f-string); cek interpreter aktual bila environment berubah.
-- Cwd shell tidak boleh diasumsikan bertahan; awali `cd /Users/nugroho/Documents/osn && ...`.
+- Cwd shell tidak boleh diasumsikan bertahan; awali `cd /Users/nugroho/Documents/jagomat && ...`.
 - Palang repo: `mesin/.venv/bin/python scripts/check_repo.py` — membaca **index Git**,
   bukan data anak. Jalankan setelah stage scope yang sudah direview.
 - Scoped test: `mesin/.venv/bin/python -m pytest mesin/__tests__/test_<area>.py -q -W error -p no:cacheprovider`.
@@ -95,10 +95,16 @@ menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
 
 ## 4. Git & shared workspace — selalu repo luar
 
-Repo benar `/Users/nugroho/Documents/osn` (origin `clarinovist/osn-mesin-latihan`, `main`).
+Repo benar `/Users/nugroho/Documents/jagomat` (`main`); `/Users/nugroho/Documents/osn`
+adalah alias kompatibilitas sementara ke folder yang sama, bukan repo kedua.
+Origin masih `clarinovist/osn-mesin-latihan`; target `clarinovist/jagomat` baru boleh
+cutover setelah patch pin image masuk `main` dan lolos CI. Ikuti
+[`docs/repository-naming.md`](docs/repository-naming.md); jangan klaim rename GitHub selesai.
 `mesin/.git` adalah repo lama/basi; git di sana bisa menelan commit atau menampilkan diff palsu.
 
-- **Setiap git pakai `git -C /Users/nugroho/Documents/osn ...`**, tidak dari dalam `mesin/`.
+- **Setiap git pakai `git -C /Users/nugroho/Documents/jagomat ...`**, tidak dari dalam `mesin/`.
+  Path alias lama tetap sah untuk sesi yang sudah berjalan; jangan hapus alias sebelum
+  venv, scheduler, editor, dan sesi agent dipindahkan.
 - Cek status sebelum mulai. Jangan menimpa/revert/stash perubahan sesi lain. Satu writer
   per file; overlap perlu workspace terisolasi/koordinasi, bukan overwrite.
 - Setelah edit massal 5+ file atau rewrite komponen, cek status + diff stat; review diff
@@ -164,6 +170,9 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
 
 ## 7. Produksi & deploy
 
+- Image tetap **`ghcr.io/clarinovist/osn-mesin-latihan`**, independen dari nama repo.
+  Jangan menggantinya ke `github.repository` atau namespace baru tanpa migrasi artefak/
+  verifier/deployer/recovery tersendiri. Pin ini tidak mengaktifkan job `pasang`.
 - Pipeline `.github/workflows/deploy.yml` tetap **`uji` → `bangun` → `pasang`**: palang
   privasi + seluruh test sebelum build GHCR, deploy **digest output build yang sama**,
   forced-command SSH, swap container, auto-rollback jika healthcheck gagal.

@@ -90,6 +90,20 @@ def _workflow_mode(mode):
     return konfigurasi, awal + "  pasang:\n" + pasang
 
 
+def test_image_workflow_tetap_cocok_saat_repo_github_diganti_nama():
+    """Nama checkout/repo bukan identitas image yang diterima deployer."""
+    teks = (AKAR / ".github/workflows/deploy.yml").read_text()
+    registri = re.findall(r"^  REGISTRI: (.+)$", teks, re.M)
+    image = re.findall(r"^  IMAGE: (.+)$", teks, re.M)
+    assert registri == ["ghcr.io"]
+    assert image == ["clarinovist/osn-mesin-latihan"]
+    assert registri[0] + "/" + image[0] == metadata.deploy.REGISTRI
+    assert metadata.deploy.REGISTRI == metadata.verify_release_image.REPOSITORI
+    # Override job/step tidak boleh diam-diam kembali mengikuti nama repo.
+    assert re.findall(r"^\s+IMAGE: (.+)$", teks, re.M) == image
+    assert "${{ github.repository }}" not in teks
+
+
 def test_workflow_aktual_cocok_dengan_mode_dan_pin_config():
     konfigurasi = metadata.baca_config(AKAR / "scripts/release-metadata.json")
     metadata.validasi_workflow((AKAR / ".github/workflows/deploy.yml").read_text(), konfigurasi)
