@@ -10,10 +10,11 @@ Brand publik **Jagomat**, domain kanonis **https://jagomat.id**. Folder lokal
 kanonis `~/Documents/jagomat/`; `~/Documents/osn/` menjadi alias kompatibilitas
 sementara, bukan salinan repo kedua. Struktur internal `mesin/` tetap.
 
-Target nama GitHub adalah `clarinovist/jagomat`. **Rename GitHub belum dilakukan**:
-origin masih `clarinovist/osn-mesin-latihan` sampai patch pin image masuk `main`
-dan lolos CI. Namespace image GHCR lama sengaja dipertahankan untuk deploy/recovery.
-Urutan cutover dan pemulihan: [panduan penamaan](docs/repository-naming.md).
+Repo kanonis: **[clarinovist/jagomat](https://github.com/clarinovist/jagomat)**;
+origin SSH `git@github.com:clarinovist/jagomat.git`. Nama GitHub lama mengalihkan ke
+repo yang sama. Namespace image `ghcr.io/clarinovist/osn-mesin-latihan` sengaja
+dipertahankan untuk deploy/recovery, bukan repo aplikasi kedua.
+Kompatibilitas dan pemulihan: [panduan penamaan](docs/repository-naming.md).
 
 ## Struktur
 

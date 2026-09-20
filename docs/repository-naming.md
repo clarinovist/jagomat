@@ -7,14 +7,20 @@
 | Produk / domain | Jagomat / `https://jagomat.id` |
 | Folder lokal kanonis | `/Users/nugroho/Documents/jagomat` |
 | Alias lokal sementara | `/Users/nugroho/Documents/osn` → `jagomat` |
-| Repo GitHub saat transisi | `clarinovist/osn-mesin-latihan` |
-| Target repo GitHub | `clarinovist/jagomat` |
+| Repo GitHub kanonis | [`clarinovist/jagomat`](https://github.com/clarinovist/jagomat) |
+| Nama GitHub lama (redirect) | `clarinovist/osn-mesin-latihan` |
 | Image candidate **dan** recovery | `ghcr.io/clarinovist/osn-mesin-latihan` (tetap) |
 
-**Rename GitHub belum dilakukan.** Patch pengaman harus masuk `main` dan lolos
-CI lebih dulu. Mengubah nama GitHub saat workflow lama masih memakai
-`${{ github.repository }}` membuat build menuju image baru, sementara verifier,
-metadata, dan deployer menolak image di luar namespace lama.
+**Rename GitHub dilakukan 20 September 2026**, setelah patch pengaman `dd02230`
+lolos [CI 35503361953](https://github.com/clarinovist/jagomat/actions/runs/35503361953).
+Repo tetap ID `1344903435`, branch `main`, visibilitas publik; package GHCR tetap
+ID `14619734` dan terhubung ke repo yang sama. Origin lokal sekarang
+`git@github.com:clarinovist/jagomat.git`; nama lama mengalihkan ke repo kanonis.
+
+Pin image harus tetap literal: memakai `${{ github.repository }}` setelah rename
+akan mengarah ke image baru, sementara verifier, metadata, dan deployer hanya
+menerima namespace lama. Keberhasilan rename bukan bukti build setelah rename;
+CI setiap commit harus tetap membuktikan akses package dan probe kedua image.
 
 Folder `mesin/`, `docs/`, `scripts/`, `.github/` tidak dirombak. Nama container
 `osn-mesin`, path VPS `/opt/osn`, variabel `OSN_*`, cookie, schema, `.git` lama
@@ -41,11 +47,11 @@ termasuk ketika folder induk dilewati lewat alias. Tidak bergantung pada `$HOME`
 atau cwd pemanggil. Pindahkan **folder proyek utuh**, bukan hanya skrip cadangan.
 Retensi, koneksi VPS, pemeriksaan integritas, dan penamaan cadangan tidak diubah.
 
-## Urutan rename GitHub — setelah izin push
+## Prosedur cutover dan verifikasi
 
 1. Review patch pengaman, full gate lokal, commit hanya scope sendiri. Perubahan
    staged milik sesi lain tidak boleh ikut commit.
-2. Setelah izin **push eksplisit**, push patch ke repo lama. Pantau run commit
+2. Sebelum rename, setelah izin **push eksplisit**, push patch ke repo lama. Pantau run commit
    yang tepat sampai seluruh test/build/probe candidate dan recovery sukses.
    Jangan rename repo saat run masih berjalan. Periksa mode rilis saat itu:
    snapshot transisi memakai `pasang: if false`, bukan izin mengaktifkan deploy.

@@ -4,8 +4,9 @@ Alur mingguan: cetak lembar -> anak kerjakan di kertas -> masukkan hasil ->
 baca laporan.
 
 Folder proyek kanonis `~/Documents/jagomat/`. Alias `~/Documents/osn/` sementara
-tetap tersedia untuk sesi/venv lama. Repo GitHub masih memakai nama lama sampai
-cutover aman; lihat [panduan penamaan](../docs/repository-naming.md).
+tetap tersedia untuk sesi/venv lama. Repo GitHub kanonis **`clarinovist/jagomat`**;
+namespace image GHCR tetap lama untuk kompatibilitas deploy/recovery. Lihat
+[panduan penamaan](../docs/repository-naming.md).
 
 ## Sekali saja (sudah dilakukan)
 
@@ -258,8 +259,8 @@ VPS** — build yang gagal di sana bisa menjatuhkan situs yang sedang jalan.
 Pantau:
 
 ```bash
-gh run list --repo clarinovist/osn-mesin-latihan
-gh run watch <id> --exit-status
+gh run list --repo clarinovist/jagomat
+gh run watch <id> --repo clarinovist/jagomat --exit-status
 ```
 
 **Kenapa deploy memakai digest, bukan tag `latest`**: tag bisa berubah

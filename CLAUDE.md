@@ -97,9 +97,10 @@ menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
 
 Repo benar `/Users/nugroho/Documents/jagomat` (`main`); `/Users/nugroho/Documents/osn`
 adalah alias kompatibilitas sementara ke folder yang sama, bukan repo kedua.
-Origin masih `clarinovist/osn-mesin-latihan`; target `clarinovist/jagomat` baru boleh
-cutover setelah patch pin image masuk `main` dan lolos CI. Ikuti
-[`docs/repository-naming.md`](docs/repository-naming.md); jangan klaim rename GitHub selesai.
+Origin kanonis `git@github.com:clarinovist/jagomat.git` (repo `clarinovist/jagomat`).
+Nama GitHub lama `clarinovist/osn-mesin-latihan` mengalihkan ke repo yang sama;
+namespace image GHCR tetap lama. Detail kompatibilitas dan pemulihan ada di
+[`docs/repository-naming.md`](docs/repository-naming.md).
 `mesin/.git` adalah repo lama/basi; git di sana bisa menelan commit atau menampilkan diff palsu.
 
 - **Setiap git pakai `git -C /Users/nugroho/Documents/jagomat ...`**, tidak dari dalam `mesin/`.
@@ -180,8 +181,8 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
   `biznet-sekolahdesain`; perintah Docker produksi diawali `ssh biznet-sekolahdesain '...'`,
   jangan sampai mengenai Docker lokal. Tidak build di VPS atau menghapus container sebelum image siap.
 - Setelah push diminta, pantau run untuk commit yang benar sampai selesai:
-  `gh run list --repo clarinovist/osn-mesin-latihan --branch main`, lalu
-  `gh run watch <id> --repo clarinovist/osn-mesin-latihan --exit-status`.
+  `gh run list --repo clarinovist/jagomat --branch main`, lalu
+  `gh run watch <id> --repo clarinovist/jagomat --exit-status`.
   Verifikasi publik di domain produksi kanonis **`https://jagomat.id`**
   (sesuai `URL_SITUS` di `mesin/brand.py`): `/` 200, `/akun` anonim 401,
   `/murid/` 303 ke `/masuk`. **Jangan menyentuh data anak** untuk smoke test.
