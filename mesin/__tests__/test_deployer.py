@@ -664,9 +664,10 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
     from learning_profile_schema import SKEMA_PROFIL_BELAJAR
     from learning_profile_admin import DDL
     from context_schema import SKEMA_KONTEKS
+    from skill_pilot_schema import SKEMA_PILOT
     import admin_store
     with sqlite3.connect(belajar) as kon:
-        kon.executescript(SKEMA_PROFIL_BELAJAR + DDL + SKEMA_KONTEKS)
+        kon.executescript(SKEMA_PROFIL_BELAJAR + DDL + SKEMA_KONTEKS + SKEMA_PILOT)
     with sqlite3.connect(tmp_path/'admin-control.db') as kon:
         for tabel in ('konfigurasi_pendaftaran','operasi_admin','receipt_admin','batch_admin',
                       'batch_admin_item','kelompok_admin','kelompok_admin_item',

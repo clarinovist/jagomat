@@ -106,10 +106,20 @@ try:
         'konteks_sesi': {'sesi_id', 'versi'},
         'konteks_butir': {'sesi_soal_id', 'template_id', 'profil_parameter', 'konteks_id'},
         'konteks_konfirmasi': {'konfirmasi_id', 'snapshot_json'},
+        'pilot_aksi': {'kunci', 'siswa_id', 'tujuan'},
+        'pilot_putaran': {'putaran_id', 'konteks_json'},
+        'pilot_fokus_sumber': {'anggota_id', 'konfirmasi_id'},
+        'pilot_sesi': {'sesi_id', 'versi', 'kontrak_json', 'fingerprint'},
+        'pilot_konfirmasi': {'konfirmasi_id', 'sesi_id', 'kontrak_json', 'fingerprint'},
     }
     for tabel, kolom in wajib.items():
         assert kolom <= {r[1] for r in kon.execute('PRAGMA table_info(' + tabel + ')')}
-    trigger = {'konteks_butir_validasi_insert', 'konteks_konfirmasi_validasi_insert'}
+    trigger = {'konteks_butir_validasi_insert', 'konteks_konfirmasi_validasi_insert',
+               'pilot_konfirmasi_sumber'}
+    trigger.update(t + '_tolak_' + a for t in
+                   ('pilot_aksi','pilot_putaran','pilot_sesi','pilot_konfirmasi')
+                   for a in ('update','replace','delete'))
+    trigger.update('pilot_fokus_sumber_' + a for a in ('update','replace','delete'))
     trigger.update(t + '_immutable_' + a for t in ('konteks_sesi','konteks_butir','konteks_konfirmasi')
                    for a in ('update','replace','delete'))
     assert trigger <= {r[0] for r in kon.execute("SELECT name FROM sqlite_master WHERE type='trigger'")}

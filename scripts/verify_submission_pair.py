@@ -9,6 +9,13 @@ import secrets
 import subprocess
 
 from verify_release_image import GalatVerifikasi, ParserAman, periksa_inspect, validasi_rujukan
+from release_learning_pair import SUMBER_TULIS as TULIS_PILOT, SUMBER_BACA as BACA_PILOT
+from release_profile_probe import SUMBER_UJI_PROFIL
+from release_focus_pair import SUMBER_TULIS as FOKUS_TULIS, SUMBER_BACA as FOKUS_BACA
+from release_admin_pair import SUMBER_TULIS as ADMIN_TULIS, SUMBER_BACA as ADMIN_BACA
+
+TULIS_PILOT = 'FOKUS_TULIS = ' + repr(FOKUS_TULIS) + '\nPROBE_PROFIL = ' + repr(SUMBER_UJI_PROFIL) + '\nADMIN_TULIS = ' + repr(ADMIN_TULIS) + '\n' + TULIS_PILOT
+BACA_PILOT = 'FOKUS_BACA = ' + repr(FOKUS_BACA) + '\nADMIN_BACA = ' + repr(ADMIN_BACA) + '\n' + BACA_PILOT
 
 LABEL = 'osn.release.submission-probe'
 AWALAN = 'osn-submission-pair-'
@@ -187,6 +194,10 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             raise GalatVerifikasi('probe_penulis_gagal')
         if _jalankan(recovery_image, volume, SUMBER_BACA, token, 2) != 'OSN_SUBMISSION_RECOVERY_OK':
             raise GalatVerifikasi('probe_pemulihan_gagal')
+        if _jalankan(candidate_image, volume, TULIS_PILOT, token, 3) != 'OSN_LEARNING_WRITER_OK':
+            raise GalatVerifikasi('probe_penulis_pilot_gagal')
+        if _jalankan(recovery_image, volume, BACA_PILOT, token, 4) != 'OSN_LEARNING_RECOVERY_OK':
+            raise GalatVerifikasi('probe_pemulihan_pilot_gagal')
     finally:
         pemilik = _panggil(['volume', 'inspect', '--format', '{{index .Labels "' + LABEL + '"}}', volume])
         if pemilik != token:
@@ -196,7 +207,7 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'candidate_digest': candidate_image.split('@')[1],
             'recovery_revision': recovery_revision,
             'recovery_digest': recovery_image.split('@')[1], 'pengiriman_pair_checks': 6,
-            'pilihan_pair_checks': 8,
+            'pilihan_pair_checks': 8, 'learning_pair_checks': 8,
             'provider_calls': 0}
 
 

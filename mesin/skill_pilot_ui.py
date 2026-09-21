@@ -58,18 +58,48 @@ def status_pilot(paket,siswa_id,daftar,hari=None):
             'Keberhasilan tugas langsung tidak meluluskan tugas balik; kegagalan balik tidak menghapus bukti langsung.</p></section>')
 
 
+def _materi_historis(kon,kontrak,butir):
+    """Urutan event append-only membatasi intervensi sebelum sesi ini dibuat."""
+    import json
+    fokus=butir.target_fokus
+    if kontrak.tujuan=='pengenalan':
+        return pilihan_materi(butir.konteks,(butir.konteks.template_id,'T',None))[0]
+    pembuatan=kon.execute("""SELECT id FROM kejadian_belajar WHERE siswa_id=?
+        AND putaran_id=? AND sesi_id=? AND jenis='sesi_dibuat'""",
+        (kontrak.siswa_id,kontrak.putaran_id,kontrak.sesi_id)).fetchall()
+    if not fokus or len(pembuatan)!=1:
+        raise ValueError('Sumber materi sesi pilot tidak dapat diverifikasi.')
+    for event in kon.execute("""SELECT data FROM kejadian_belajar WHERE siswa_id=?
+            AND putaran_id=? AND id<? AND jenis='intervensi_selesai' ORDER BY id DESC""",
+            (kontrak.siswa_id,kontrak.putaran_id,pembuatan[0]['id'])):
+        data=json.loads(event['data'])
+        if not isinstance(data,dict):
+            raise ValueError('Sumber materi sesi pilot tidak sah.')
+        if data.get('fokus')!=list(fokus):
+            continue
+        sumber=data.get('sumber_konfirmasi')
+        if (not isinstance(sumber,list) or not sumber
+                or any(type(kh) is not int for kh in sumber)
+                or tuple(sumber)!=tuple(kontrak.sumber_konfirmasi)):
+            raise ValueError('Sumber konfirmasi materi sesi pilot tidak cocok.')
+        materi=next((m for m in pilihan_materi(butir.konteks,fokus)
+                     if m.pendekatan_id==data.get('pendekatan_id')),None)
+        if materi is None:
+            raise ValueError('Pendekatan materi sesi pilot tidak dikenal.')
+        return materi
+    raise ValueError('Intervensi sumber materi sesi pilot tidak ditemukan.')
+
+
 def materi_sesi(kon,sesi_id,siswa_id):
-    """Contoh khusus pendamping pada sesi pengenalan/terbimbing, bukan probe."""
+    """Contoh tiap fokus mengikuti intervensi saat sesi dibuat, bukan state kini."""
     from skill_pilot_store import baca_kontrak
     kontrak=baca_kontrak(kon,sesi_id,siswa_id)
     if kontrak is None or kontrak.tujuan not in ('pengenalan','latihan_terbimbing'):
         return ''
-    butir=next(b for b in kontrak.butir if b.konteks is not None)
-    fokus=butir.target_fokus or (butir.konteks.template_id,'T',None)
-    materi=pilihan_materi(butir.konteks,fokus)[0]
-    return ('<section class="contoh-rencana-st"><h2>Pelajari bersama</h2><p>%s</p>'
-            '<p>%s</p><p>Catat bantuan dengan jujur. Sesi ini tidak menyertifikasi pemahaman mandiri.</p></section>')%(
-            _e(materi.contoh_terbimbing),_e(materi.instruksi_orang_tua))
+    daftar=tuple(_materi_historis(kon,kontrak,b) for b in kontrak.butir if b.konteks is not None)
+    isi=''.join('<p>%s</p><p>%s</p>'%(_e(m.contoh_terbimbing),_e(m.instruksi_orang_tua)) for m in daftar)
+    return ('<section class="contoh-rencana-st"><h2>Pelajari bersama</h2>'+isi+
+            '<p>Catat bantuan dengan jujur. Sesi ini tidak menyertifikasi pemahaman mandiri.</p></section>')
 
 
 def laporan(kon,siswa_id):

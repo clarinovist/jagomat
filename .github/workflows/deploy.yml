@@ -1,8 +1,8 @@
 name: Build & Deploy
 
-# Persiapan schema baru: full suite dan probe image wajib; pasang literal false.
-# Recovery PG tetap anchor historis, belum dinyatakan cocok dengan schema baru.
-# Uji pair wajib saat migrasi/rutin; persiapan tidak mengklaim pasangan teruji.
+# Migrasi pilot: full suite, probe image dan uji pasangan wajib; pasang literal false.
+# Recovery 175d8fb memahami admin5/konteks/pilot dan sudah lolos build-only.
+# Cutover memakai approval exact pair, backup dan rehearsal terkontrol.
 on:
   push:
     branches: [main]
@@ -20,8 +20,8 @@ env:
   # Identitas artefak tetap meski repo berganti nama menjadi jagomat.
   # Harus sama dengan verifier dan deployer; recovery VPS memakai namespace ini.
   IMAGE: clarinovist/osn-mesin-latihan
-  # Baseline PG memahami opsi, arsip pengiriman, dan konfirmasi pilihan.
-  RECOVERY_SHA: e38e2e150c514c54db5470820561e69654c699bf
+  # Baseline memahami opsi, admin5, arsip konteks dan konfirmasi pilot.
+  RECOVERY_SHA: 175d8fb2d340c0c56d2f0ace5b6a1145792b8097
 
 jobs:
   # Kandidat dan recovery masing-masing memakai empat runner terisolasi.
@@ -94,9 +94,9 @@ jobs:
       - name: Checkout baseline recovery pengiriman dan tinjauan
         uses: actions/checkout@v7
         with:
-          ref: e38e2e150c514c54db5470820561e69654c699bf
+          ref: 175d8fb2d340c0c56d2f0ace5b6a1145792b8097
           path: recovery
-          # Suite baseline PG mempertahankan mode persiapan dan pin historisnya.
+          # Suite baseline pilot mempertahankan mode persiapan dan pin historisnya.
           fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
@@ -136,7 +136,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/checkout@v7
         with:
-          ref: e38e2e150c514c54db5470820561e69654c699bf
+          ref: 175d8fb2d340c0c56d2f0ace5b6a1145792b8097
           path: recovery
       - name: Validasi mode dan gate rilis sebelum build
         id: mode

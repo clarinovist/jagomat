@@ -220,9 +220,9 @@ migrasi idempoten dalam transaksi yang gagal atomik, preservasi ID/hash histori,
 FK/integrity dan replay konfirmasi/cetak. Bukti lama ambigu tetap histori, bukan
 konfirmasi baru. Kasus `diganti_level` historis/invalidasi tidak dihapus.
 
-Mode tetap **persiapan**, pasang false. Pin recovery PG belum kompatibel dengan
-admin5/konteks kandidat existing, apalagi kontrak v2 baru. Tidak mengubah pin,
-workflow, policy/probe atau deployer untuk menyembunyikan mismatch. Setelah writer
+Rilis pilot homogen kini mode **migrasi**, pasang literal false dan baseline
+recovery pilot175d8fb; ini bukan izin atau dukungan kontrak campuran v2. Tidak
+mengubah policy/probe atau deployer untuk menyembunyikan mismatch. Setelah writer
 v2 aktif, recovery harus pembaca v2 yang teruji; rollback ke codec lama tidak
 membuktikan keselamatan data. Lihat [panduan rilis](production-release.md).
 

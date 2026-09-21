@@ -1,41 +1,47 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
-## Mode source saat ini: persiapan fondasi profil belajar (20 September 2026)
+## Mode source saat ini: migrasi pilot (21 September 2026)
 
-`scripts/release-metadata.json` memakai **persiapan/build-only** untuk penambahan
-schema `profil_belajar`. Kandidat lanjutan menghubungkan kelas sekolah nullable
-ke form guru/admin, memisahkan pilihan profil parameter latihan, serta membekukan
-konteks per butir/konfirmasi. Registry admin menjadi schema5 dengan receipt kelas
-tersendiri. Tidak ada backfill kelas dari P3–P6; rubrik kemampuan otomatis dan sesi
-campuran tuntutan belum aktif. Ini status source kandidat, bukan bukti image atau
-migrasi produksi.
+Kandidat C memakai **migrasi**, bukan izin deploy rutin. Recovery B
+`175d8fb2d340c0c56d2f0ace5b6a1145792b8097` memahami admin5/profil/konteks/pilot;
+build-only B sukses run35558003458. Fingerprint persistensi B:
+`0cf42df6d86263c56f03547e8179eca750e23d3dd26c45cde11201bb2043ce53`.
+Ini baseline, bukan bukti C sudah live. Delta C: materi terbimbing mengikuti
+intervensi fokus sebelum event sesi dibuat, bukan pendekatan terbaru. Persistensi
+B/C tetap sama; sesi campuran v2 nonaktif.
 
-Pin recovery PG `e38e2e150c514c54db5470820561e69654c699bf` dan kontraknya
-`a65060bc3ae65e4c78011499137508f6a873a6d19b0f77395efa0a7936424acf` tetap.
-Fingerprint kandidat berbeda karena schema baru; jangan memperbarui anchor atau
-mengeluarkan modul dari probe agar dianggap cocok. Manifest persiapan mengukur
-perbedaan tersebut: `compatible=false`, `pair_verified=false`, `siap_pasang=false`.
-Flag `requires_controlled_migration` pada manifest menunjukkan mode **migrasi**;
-nilainya false pada persiapan bukan izin memasang schema baru secara rutin.
+Job `pasang` tetap literal `if: ${{ false }}`. Full test, build/probe dan uji pair
+wajib; hasil migrasi yang lolos: `compatible=true`, `pair_verified=true`,
+`requires_controlled_migration=true`, **`siap_pasang=false`**. Jangan memaksa true.
+Digest B/C wajib dari run CI pasangan yang sama, bukan digest B terdahulu.
 
-Job `pasang` tetap literal `if: ${{ false }}`. Full test kandidat/recovery serta
-build dan probe masing-masing image tetap wajib di CI. Langkah **lintas image**
-hanya berjalan saat mode migrasi/rutin; persiapan tidak mengklaim recovery PG
-sudah diuji terhadap data profil baru. Tidak ada push, build image, atau operasi
-produksi yang otomatis diizinkan oleh perubahan mode source ini.
+Probe isian/PG tetap. `learning_pair_checks=8` berarti delapan kelompok assertion
+wajib sebelum marker sukses, bukan jumlah test atau attestasi operator:
+1. Migrasi ulang/preservasi ID, isi tabel, tanggal sesi, soal dan arsip konteks.
+2. Kelas sekolah/revisi terpisah dari profil parameter.
+3. Empat sumber konfirmasi tawaran balik, kontrak dan variasi tervalidasi.
+4. Status langsung/kisi terbukti, balik belum dinilai; tuntutan tidak disatukan.
+5. Recovery menyelesaikan draft dan replay konfirmasi identik tanpa duplikasi.
+6. Pemilik asing ditolak tanpa efek; arsip immutable serta FK/integrity utuh.
+7. Receipt admin5 sah setelah crash: replay dua kali, revisi/jurnal/receipt tetap;
+   receipt rusak pada fixture terpisah ditolak.
+8. Fokus snapshot dilanjutkan recovery; pencabutan sumber menahan alur; pemulihan
+   wajib persetujuan, retry idempoten dan histori tidak dihapus.
 
-Sebelum kembali ke mode migrasi, siapkan baseline recovery schema baru yang
-fungsional, verifikasi image dan pin terukurnya, lalu uji pasangan termasuk
-pelestarian metadata profil, revisi, arsip konteks, receipt/journal admin schema5,
-histori/bukti, pengiriman isian, dan PG.
-Fingerprint sama tidak menggantikan uji baca/tulis/recovery data baru. Jangan
-aktifkan penulis kemampuan penuh atau cutover tanpa kontrak dan pengujian yang
-lengkap. Ikuti urutan bootstrap di bawah dengan izin rilis/produksi terpisah.
+Proof terikat revision DAN digest kedua image. Field hilang, tipe/nilai salah
+menolak rilis. Tes probe nyata memakai C dan arsip B, plus mutation. Image pair CI
+dan rehearsal backup privat tetap wajib, bukan digantikan fingerprint/test lokal.
+
+Cutover hanya satu kali: backup quiescent no-prune, salinan lokal terverifikasi,
+rehearsal C2×/B2×, migrasi aditif, approval exact pair TTL≤900detik. Sesudah migrasi
+hanya B kompatibel; tidak downgrade/restore DB otomatis atau start binary lama.
+Auto-deploy permanen tidak aktif. Status live dilaporkan terpisah setelah verifikasi.
 
 ### Probe kandidat admin5 dan recovery historis
 
 Deployer source kini mensyaratkan **admin5, Pendamping4, AI2, transient2** beserta
-metadata `profil_belajar`, receipt `operasi_admin_profil`, dan tabel/trigger konteks.
+metadata `profil_belajar`, receipt `operasi_admin_profil`, tabel/trigger konteks,
+serta seluruh tabel, kolom inti dan trigger immutable/sumber pilot.
 Marker probe menjadi `OSN_IMAGE_ADMIN5_AI2_OK` / `OSN_SCHEMA_ADMIN5_AI2_OK`.
 `schema_target=4` pada approval/policy tetap menunjuk kontrak Pendamping existing,
 bukan versi admin; menaikkan angka itu tidak mengaktifkan dukungan admin5.
@@ -283,8 +289,8 @@ Recovery historis itu bukan image produksi lama, bukan perubahan konstanta
 schema saja, dan bukan memilih kembali candidate yang sama ketika gagal.
 **Baseline B pengiriman pada tahap itu adalah
 `0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c`**, yang juga memahami arsip pengiriman dan
-provenance tinjauan. Pin source saat ini tetap recovery PG e38e2e1, sebagaimana
-bagian mode source di atas; belum menjadi recovery schema profil belajar baru.
+provenance tinjauan. Pin PG e38e2e1 tersebut historis; source saat ini memakai baseline pilot175d8fb
+sebagaimana bagian mode source di atas.
 Recovery pengendali AI33e241 dan Pendampingbc9c973 di atas merupakan histori,
 bukan fallback schema pengiriman baru. Baseline B pengiriman menyediakan
 seluruh kartu koreksi; kandidat C menambah navigasi antrean tinjauan server-side.

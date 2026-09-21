@@ -42,6 +42,8 @@ def docker(monkeypatch):
         if argv[0]=='run':
             if masukan==pair.SUMBER_TULIS:return 'OSN_SUBMISSION_WRITER_OK'
             if masukan==pair.SUMBER_BACA:return 'OSN_SUBMISSION_RECOVERY_OK'
+            if masukan==pair.TULIS_PILOT:return 'OSN_LEARNING_WRITER_OK'
+            if masukan==pair.BACA_PILOT:return 'OSN_LEARNING_RECOVERY_OK'
         return ''
     monkeypatch.setattr(pair,'_panggil',panggil)
     return images,revisions,panggilan,panggil
@@ -54,7 +56,9 @@ def test_volume_probe_sendiri_dan_urutan_write_read_cleanup(docker):
     assert hasil['candidate_digest']==images[0].split('@')[1]
     assert hasil['recovery_digest']==images[1].split('@')[1]
     runs=[(a,s) for a,s in calls if a[0]=='run']
-    assert len(runs)==3
+    assert len(runs)==5
+    assert hasil['learning_pair_checks']==8
+    assert runs[3][1]==pair.TULIS_PILOT and runs[4][1]==pair.BACA_PILOT
     for a,s in runs:
         assert '--network' in a and a[a.index('--network')+1]=='none'
         mount=a[a.index('--mount')+1]
@@ -68,12 +72,14 @@ def test_volume_probe_sendiri_dan_urutan_write_read_cleanup(docker):
     assert calls[-1][0][:2]==['volume','rm']
 
 
-@pytest.mark.parametrize('fault',['writer','reader','owner'])
+@pytest.mark.parametrize('fault',['writer','reader','pilot_writer','pilot_reader','owner'])
 def test_gagal_probe_atau_owner_tidak_diklaim_lulus(docker,monkeypatch,fault):
     images,revs,calls,asli=docker
     def rusak(argv,masukan=None):
         if fault=='owner' and argv[:2]==['volume','inspect']: return 'asing'
-        if argv[0]=='run' and masukan==(pair.SUMBER_TULIS if fault=='writer' else pair.SUMBER_BACA):
+        sumber={'writer':pair.SUMBER_TULIS,'reader':pair.SUMBER_BACA,
+                'pilot_writer':pair.TULIS_PILOT,'pilot_reader':pair.BACA_PILOT}.get(fault)
+        if argv[0]=='run' and masukan==sumber:
             return 'BUKAN_OK'
         return asli(argv,masukan)
     monkeypatch.setattr(pair,'_panggil',rusak)

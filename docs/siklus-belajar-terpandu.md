@@ -396,9 +396,10 @@ ke penguasaan/pemetaan v1. Cetak/pengiriman/tinjauan menggunakan snapshot yang s
 perubahan cerita tertutup setelah penyajian pilot dibekukan. CLI dan Pendamping
 masih manual; serupa/remedial lama tidak boleh membuang konteks pilot.
 
-Migrasi lokal aditif tidak membuat sesi atau keputusan belajar. Mode rilis tetap
-persiapan, pasang false. Recovery PG belum memahami admin5/konteks/pilot; rilis
-memerlukan image pembaca kompatibel, uji pasangan dan izin produksi terpisah.
+Migrasi aditif tidak membuat sesi atau keputusan belajar. Kandidat rilis memakai
+mode migrasi dan pasang literal false, dengan baseline recovery pilot175d8fb.
+Uji pasangan exact image dan rehearsal tetap wajib; status source bukan bukti live.
+Materi terbimbing membaca intervensi sebelum sesi dibuat, bukan pendekatan terbaru.
 
 ## 11. Batas MVP
 

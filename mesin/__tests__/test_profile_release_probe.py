@@ -49,7 +49,8 @@ def siap(tmp_path):
 
 
 @pytest.mark.parametrize('rusak', [None, 'admin4', 'admin6', 'source4', 'registry',
-    'profil', 'receipt', 'konteks', 'kolom', 'trigger', 'admin_hilang', 'belajar_hilang'])
+    'profil', 'receipt', 'konteks', 'kolom', 'trigger', 'admin_hilang', 'belajar_hilang',
+    'pilot_tabel', 'pilot_kolom', 'pilot_trigger', 'pilot_sumber'])
 def test_readiness_admin5_memeriksa_metadata_dan_tidak_menulis(siap, rusak, tmp_path):
     deploy, data, source = siap
     if rusak in ('admin4', 'admin6'):
@@ -67,7 +68,15 @@ def test_readiness_admin5_memeriksa_metadata_dan_tidak_menulis(siap, rusak, tmp_
         (data / ('admin-control.db' if rusak == 'admin_hilang' else 'latihan.db')).unlink()
     elif rusak:
         with sqlite3.connect(data / 'latihan.db') as kon:
-            if rusak == 'trigger':
+            if rusak == 'pilot_tabel':
+                kon.execute('DROP TABLE pilot_aksi')
+            elif rusak == 'pilot_kolom':
+                kon.execute('ALTER TABLE pilot_sesi RENAME COLUMN fingerprint TO salah')
+            elif rusak == 'pilot_trigger':
+                kon.execute('DROP TRIGGER pilot_konfirmasi_tolak_update')
+            elif rusak == 'pilot_sumber':
+                kon.execute('DROP TRIGGER pilot_konfirmasi_sumber')
+            elif rusak == 'trigger':
                 kon.execute('DROP TRIGGER konteks_konfirmasi_immutable_update')
             elif rusak == 'kolom':
                 kon.execute('ALTER TABLE operasi_admin_profil RENAME COLUMN kelas_baru TO salah')
