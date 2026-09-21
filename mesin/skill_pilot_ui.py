@@ -1,5 +1,6 @@
 """Kartu orang tua pilot; status/tindakan berasal dari reducer, bukan UI."""
 import html
+import domain_clock
 from question_context import label_profil_parameter
 import learning_cycle as lc
 from skill_pilot import TUNTUTAN, RUJUKAN_LUAS
@@ -106,15 +107,17 @@ def materi_sesi(kon,sesi_id,siswa_id):
 
 def laporan(kon,siswa_id):
     """Laporan memakai reducer pilot yang sama, bukan persentase baru."""
+    hari=domain_clock.hari_wib()
     try:
-        paket,daftar,_,_=keadaan(kon,siswa_id)
-        return status_pilot(paket,siswa_id,daftar)
+        paket,daftar,_,_=keadaan(kon,siswa_id,hari)
+        return status_pilot(paket,siswa_id,daftar,hari)
     except ValueError:
         return '<p>Sumber bukti pilot perlu diperiksa; tidak ada klaim kelulusan baru.</p>'
 
 
 def kartu(kon,siswa_id,*,hari=None):
     """Return kartu pilot/opsi; None sebagai kartu berarti tetap gunakan rencana lama."""
+    hari=hari or domain_clock.hari_wib()
     try:
         paket,daftar,aktif,warisan=keadaan(kon,siswa_id,hari)
     except ValueError:

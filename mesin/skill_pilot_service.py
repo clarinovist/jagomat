@@ -23,6 +23,7 @@ def daftar_putaran(kon,siswa_id):
 
 
 def keadaan(kon,siswa_id,hari=None):
+    hari=hari or domain_clock.hari_wib()
     paket=muat_bukti(kon,siswa_id)
     putaran=daftar_putaran(kon,siswa_id)
     rencana=tuple((pid,k,*lc.rencana_pilot(paket,siswa_id,k,pid,hari)) for pid,k in putaran)

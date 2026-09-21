@@ -982,22 +982,23 @@ def penguasaan_pilot(paket, siswa_id, konteks, hari_ini=None):
     if (any(type(k) is not KonteksPilot for k in konteks)
             or len(set(konteks)) != len(konteks)):
         raise ValueError("konteks pilot tidak sah atau duplikat")
+    hari = hari_ini or domain_clock.hari_wib()
     hasil = []
     for k in konteks:
         sumber = proyeksi_bukti(paket, k)
         target = TargetMateri(k.id, k.tuntutan_id, "geometri-datar", "Geometri datar",
                              (k.template_id,))
-        nilai = penguasaan_target(sumber, siswa_id, (target,), hari_ini)[0].pola[0]
+        nilai = penguasaan_target(sumber, siswa_id, (target,), hari)[0].pola[0]
         # Retensi tuntutan tanpa diagnosis tidak menciptakan fokus K/H palsu.
         if not any(p.fokus for p in sumber.putaran):
-            sukses, _ = checkpoint_tuntutan(sumber, k, hari_ini or domain_clock.hari_wib())
+            sukses, _ = checkpoint_tuntutan(sumber, k, hari)
             if sukses is not None and k.template_id not in _pola_terkoreksi(sumber):
                 tanggal, ids = sukses
                 lebih_baru = any(s.tanggal > tanggal and s.tujuan=='pemetaan'
-                                 for s in _sesi_peta_materi(sumber,hari_ini or domain_clock.hari_wib()))
+                                 for s in _sesi_peta_materi(sumber,hari))
                 if not lebih_baru:
                     nilai = StatusPolaMateri(k.template_id,
-                        'perlu_cek' if ((hari_ini or domain_clock.hari_wib())-tanggal).days>=28 else 'terbukti',ids,tanggal)
+                        'perlu_cek' if (hari-tanggal).days>=28 else 'terbukti',ids,tanggal)
         masalah = sumber_pilot_perlu_tinjauan(paket)
         terkait = tuple(m for m in masalah if m.konteks == k)
         if terkait:
