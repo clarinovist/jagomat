@@ -102,7 +102,7 @@ def buat_tinjauan(akun, token_sesi, aksi, payload=None, *, sekarang=None,
                    operasi_id=None):
     """Tandatangani metadata nonrahasia; token hanya berada di form, bukan URL."""
     isi = dict(payload or {})
-    if set(isi) - {'target_id', 'target_revisi', 'target_peran', 'siswa_id', 'tingkat', 'revisi', 'batch_id', 'section', 'pilihan', 'halaman', 'item_ids', 'login_id', 'login_revisi'}:
+    if set(isi) - {'target_id', 'target_revisi', 'target_peran', 'siswa_id', 'tingkat', 'revisi', 'batch_id', 'section', 'pilihan', 'halaman', 'item_ids', 'login_id', 'login_revisi', 'revisi_profil'}:
         raise ValueError('Metadata tinjauan tidak dikenal.')
     if not isinstance(aksi, str) or not re.fullmatch(r'[a-z_]{1,64}', aksi):
         raise ValueError('Aksi tinjauan tidak sah.')

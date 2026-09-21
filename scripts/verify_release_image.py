@@ -8,7 +8,9 @@ CLI yang sama dipakai untuk candidate maupun recovery dengan revisi masing-masin
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
+from pathlib import Path
 import re
 import secrets
 import subprocess
@@ -17,6 +19,11 @@ REPOSITORI = "ghcr.io/clarinovist/osn-mesin-latihan"
 REVISION_RECOVERY_LEGACY = "bc9c973b50eb1fb04edd37df62f71ba0123f29c6"
 KONTRAK_CANDIDATE = "candidate-inline-v1"
 KONTRAK_RECOVERY_LEGACY = "recovery-standalone-v1"
+# Revision historis eksplisit; kandidat lain wajib mendukung profil admin5.
+RECOVERY_TANPA_PROFIL = (
+    REVISION_RECOVERY_LEGACY, "33e241c18024190f41ebca1986e35af26c0397fd",
+    "0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c", "e38e2e150c514c54db5470820561e69654c699bf",
+)
 
 
 def kontrak_untuk_revision(revision: str) -> str:
@@ -32,6 +39,8 @@ def ringkasan_untuk_revision(revision: str) -> dict:
         "ok": True, "kontrak": 1, "skema": 4, "skenario_migrasi": 2,
         "skenario_tindakan": 7, "http_checks": 7, "provider_calls": 0,
         "http_contract": kontrak_untuk_revision(revision),
+        "profil_checks": 0 if revision in RECOVERY_TANPA_PROFIL else 6,
+        "admin_schema": None if revision in RECOVERY_TANPA_PROFIL else 5,
         "pengiriman_checks": 0 if revision in {
             REVISION_RECOVERY_LEGACY, "33e241c18024190f41ebca1986e35af26c0397fd",
         } else 6,
@@ -494,12 +503,18 @@ def jalankan_probe(akar):
                             '33e241c18024190f41ebca1986e35af26c0397fd'):
             uji_pengiriman(akar / 'pengiriman', modul[0])
             pengiriman_checks = 6
+        profil_checks = 0
+        admin_schema = None
+        if revision not in REVISION_TANPA_PROFIL:
+            profil_checks = uji_profil_konteks(akar / 'profil')
+            admin_schema = 5
         pastikan(not panggilan, 'provider_terpanggil')
     finally:
         socket.socket.connect, socket.socket.connect_ex, socket.getaddrinfo = asli_connect, asli_connect_ex, asli_resolve
     return {'ok': True, 'kontrak': 1, 'skema': 4, 'skenario_migrasi': 2,
             'skenario_tindakan': 7, 'http_checks': 7, 'provider_calls': 0,
-            'http_contract': kontrak_http, 'pengiriman_checks': pengiriman_checks}
+            'http_contract': kontrak_http, 'pengiriman_checks': pengiriman_checks,
+            'profil_checks': profil_checks, 'admin_schema': admin_schema}
 
 
 def main():
@@ -516,6 +531,16 @@ def main():
 if __name__ == '__main__':
     raise SystemExit(main())
 '''
+
+
+# Tetap dikirim sebagai satu source mandiri ke stdin image, tanpa mount/import host.
+_spek_profil = importlib.util.spec_from_file_location(
+    'release_profile_probe', Path(__file__).with_name('release_profile_probe.py'))
+_probe_profil = importlib.util.module_from_spec(_spek_profil)
+_spek_profil.loader.exec_module(_probe_profil)
+SUMBER_PROBE = SUMBER_PROBE.replace(
+    '\ndef main():', '\nREVISION_TANPA_PROFIL = ' + repr(RECOVERY_TANPA_PROFIL)
+    + '\n' + _probe_profil.SUMBER_UJI_PROFIL + '\ndef main():', 1)
 
 
 class GalatVerifikasi(Exception):

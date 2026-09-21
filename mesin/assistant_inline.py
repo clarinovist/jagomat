@@ -84,6 +84,7 @@ class DrafLatihan:
     durasi_menit: str
     timer_auto: str
     format_jawaban: str = 'isian'
+    profil_parameter: str = ''
 
 
 def _id_kanonik(nilai: str) -> Optional[int]:
@@ -170,7 +171,7 @@ def parse_query_host(jenis_host: str, host_id: int, pasangan: Sequence[Tuple[str
 def parse_draf_latihan(data: Mapping[str, Sequence[str]], topik_sah: Sequence[str]) -> DrafLatihan:
     """Draf form sesi baru pada profil; tidak membuat sesi atau menyimpan DB."""
     wajib = {"topik", "jumlah_soal", "mode", "hadir_timer_mode", "durasi_menit", "timer_auto"}
-    diizinkan = wajib | {"timer_mode", "format_jawaban"}
+    diizinkan = wajib | {"timer_mode", "format_jawaban", "profil_parameter"}
     if not wajib <= set(data) <= diizinkan:
         raise GalatInline("Field latihan tidak lengkap atau asing.")
     if any(len(nilai) != 1 for nilai in data.values()):
@@ -185,11 +186,13 @@ def parse_draf_latihan(data: Mapping[str, Sequence[str]], topik_sah: Sequence[st
         or not re.fullmatch(r"[0-9]{1,3}", satu["durasi_menit"])
         or satu["timer_auto"] not in ("0", "1")
         or satu.get('format_jawaban', 'isian') not in ('isian', 'pilihan_ganda')
+        or satu.get('profil_parameter', '') not in ('', 'P3', 'P4', 'P5', 'P6')
     ):
         raise GalatInline("Nilai latihan tidak sah.")
     return DrafLatihan(
         satu["topik"], satu["jumlah_soal"], satu["mode"],
         "timer_mode" in satu, satu["durasi_menit"], satu["timer_auto"], satu.get('format_jawaban', 'isian'),
+        satu.get('profil_parameter', ''),
     )
 
 

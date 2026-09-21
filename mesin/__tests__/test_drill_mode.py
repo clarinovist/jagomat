@@ -188,7 +188,7 @@ def test_http_buat_sesi_drill_dengan_timer(server):
         f"/sesi-baru/{sid}",
         auth=("guru", SANDI_GURU),
         data={
-            "topik": "pola-bilangan", "mode": "drill",
+            "topik": "pola-bilangan", "mode": "drill", "profil_parameter": "P3",
             "timer_mode": "sesi", "durasi_menit": "10", "timer_auto": "1",
         },
     )
@@ -219,7 +219,7 @@ def test_http_buat_latihan_cepat_tanpa_batas_waktu(server):
         auth=("guru", SANDI_GURU),
         data={
             "topik": "pola-bilangan",
-            "mode": "drill",
+            "mode": "drill", "profil_parameter": "P3",
             "durasi_menit": "30",
             "timer_auto": "0",
         },
@@ -246,7 +246,7 @@ def test_http_latihan_cepat_tanpa_timer_mengabaikan_isian_durasi(server):
     kode, _, _ = server.minta(
         f"/sesi-baru/{siswa_id}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "pola-bilangan", "mode": "drill"},
+        data={"topik": "pola-bilangan", "mode": "drill", "profil_parameter": "P3"},
     )
 
     assert kode == 200
@@ -274,7 +274,7 @@ def test_http_timer_per_soal_lama_tetap_memproses_konfigurasinya(server):
         auth=("guru", SANDI_GURU),
         data={
             "topik": "pola-bilangan",
-            "mode": "drill",
+            "mode": "drill", "profil_parameter": "P3",
             "timer_mode": "soal",
             "durasi_menit": "7",
             "timer_auto": "1",
@@ -305,7 +305,7 @@ def test_http_timer_aktif_menolak_durasi_di_luar_batas(server):
         auth=("guru", SANDI_GURU),
         data={
             "topik": "pola-bilangan",
-            "mode": "drill",
+            "mode": "drill", "profil_parameter": "P3",
             "timer_mode": "sesi",
             "durasi_menit": "181",
         },
@@ -330,7 +330,7 @@ def test_http_timer_aktif_menolak_digit_unicode_yang_tidak_bisa_diubah(server):
         auth=("guru", SANDI_GURU),
         data={
             "topik": "pola-bilangan",
-            "mode": "drill",
+            "mode": "drill", "profil_parameter": "P3",
             "timer_mode": "sesi",
             "durasi_menit": "²",
         },
@@ -351,7 +351,7 @@ def test_http_buat_sesi_mode_asing_ditolak(server):
     kode, html, _ = server.minta(
         f"/sesi-baru/{sid}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "pola-bilangan", "mode": "aneh"},
+        data={"topik": "pola-bilangan", "mode": "aneh", "profil_parameter": "P3"},
     )
     assert kode == 400
     assert "Mode" in html or "mode" in html
@@ -367,7 +367,7 @@ def test_http_buat_sesi_timer_mode_asing_ditolak(server):
         f"/sesi-baru/{sid}",
         auth=("guru", SANDI_GURU),
         data={
-            "topik": "pola-bilangan", "mode": "drill",
+            "topik": "pola-bilangan", "mode": "drill", "profil_parameter": "P3",
             "timer_mode": "aneh", "durasi_menit": "10",
         },
     )
@@ -554,7 +554,7 @@ def test_http_drill_alur_penuh_tanpa_kode_N(server):
     # Guru buat sesi drill via POST
     server.minta(
         f"/sesi-baru/{siswa_id}", auth=("guru", SANDI_GURU),
-        data={"topik": "pola-bilangan", "mode": "drill",
+        data={"topik": "pola-bilangan", "mode": "drill", "profil_parameter": "P3",
               "timer_mode": "sesi", "durasi_menit": "15"},
     )
     with server.buka() as kon:

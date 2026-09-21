@@ -130,6 +130,8 @@ class SiswaRingkas:
     jumlah_sesi: int
     aktivitas_terakhir: Optional[str]
     status: Tuple[str, ...]
+    kelas_sekolah: Optional[int] = None
+    revisi_profil: int = 0
 
 
 @dataclass(frozen=True)
@@ -398,6 +400,8 @@ def _siswa_ringkas_dari_baris(baris, indeks: _IndeksKonteks) -> SiswaRingkas:
         int(_nilai(baris, "jumlah_sesi", 4) or 0),
         _nilai(baris, "aktivitas_terakhir", 5),
         status,
+        _nilai(baris, 'kelas_sekolah', 6),
+        int(_nilai(baris, 'revisi_profil', 7)),
     )
 
 
@@ -664,8 +668,10 @@ def daftar_siswa(
     baris = kon.execute(
         """SELECT w.id,w.nama,w.tingkat,w.pemilik,
                   COUNT(s.id) AS jumlah_sesi,
-                  MAX(COALESCE(s.selesai,s.mulai,s.dibuat,s.tanggal)) AS aktivitas_terakhir
-           FROM siswa w LEFT JOIN sesi s ON s.siswa_id=w.id"""
+                  MAX(COALESCE(s.selesai,s.mulai,s.dibuat,s.tanggal)) AS aktivitas_terakhir,
+                  p.kelas_sekolah, COALESCE(p.revisi,0) AS revisi_profil
+           FROM siswa w LEFT JOIN sesi s ON s.siswa_id=w.id
+           LEFT JOIN profil_belajar p ON p.siswa_id=w.id"""
         + where
         + " GROUP BY w.id,w.nama,w.tingkat,w.pemilik ORDER BY lower(w.nama),w.nama,w.id",
         argumen,
@@ -736,8 +742,10 @@ def detail_siswa(
     baris = kon.execute(
         """SELECT w.id,w.nama,w.tingkat,w.pemilik,
                   COUNT(s.id) AS jumlah_sesi,
-                  MAX(COALESCE(s.selesai,s.mulai,s.dibuat,s.tanggal)) AS aktivitas_terakhir
+                  MAX(COALESCE(s.selesai,s.mulai,s.dibuat,s.tanggal)) AS aktivitas_terakhir,
+                  p.kelas_sekolah, COALESCE(p.revisi,0) AS revisi_profil
            FROM siswa w LEFT JOIN sesi s ON s.siswa_id=w.id
+           LEFT JOIN profil_belajar p ON p.siswa_id=w.id
            WHERE w.id=? GROUP BY w.id,w.nama,w.tingkat,w.pemilik""",
         (siswa_id,),
     ).fetchone()

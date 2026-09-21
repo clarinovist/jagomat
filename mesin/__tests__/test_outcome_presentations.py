@@ -25,13 +25,19 @@ def db(tmp_path, monkeypatch):
     return path
 
 
-def _sesi(kon, *, warisan=False, jumlah=2):
+def _sesi(kon, *, warisan=False, jumlah=2, sebelum_konteks=False):
     siswa = database.tambah_siswa(kon, "Fixture provenance", "P6", pemilik="guru")
     soal = replace(topic_solid_geometry.volume_kubus_balok(
         "kubus_cari_s", s=4, V=64), level="P6")
-    sesi = database.buat_sesi_dari_urutan(
-        kon, siswa, seed=41, urutan=(soal.template_id,) * jumlah,
-        topik="geometri-ruang", level="P6", soal_terpilih=(soal,) * jumlah)
+    # Writer historis sebelum sidecar juga belum mengenal konteks v1.
+    # Jangan memakai marker penulis baru lalu membuat arsip lama tak lengkap.
+    with pytest.MonkeyPatch.context() as m:
+        if sebelum_konteks:
+            import context_store
+            m.setattr(context_store, 'simpan_butir', lambda *a: None)
+        sesi = database.buat_sesi_dari_urutan(
+            kon, siswa, seed=41, urutan=(soal.template_id,) * jumlah,
+            topik="geometri-ruang", level="P6", soal_terpilih=(soal,) * jumlah)
     if warisan:
         kolom = ", ".join(n + " = NULL" for n in question_views.KOLOM_SNAPSHOT)
         kon.execute(f"UPDATE sesi_soal SET {kolom} WHERE sesi_id = ?", (sesi,))
@@ -104,7 +110,7 @@ def test_konfirmasi_menyimpan_snapshot_persis_dan_hash_tetap(db, monkeypatch, wa
 
 def test_konfirmasi_historis_melengkapi_metadata_tanpa_versi_baru(db):
     with database.buka(db) as kon:
-        _, sesi = _sesi(kon)
+        _, sesi = _sesi(kon, sebelum_konteks=True)
         _selesaikan(kon, sesi)
         kid = _konfirmasi_lama(kon, sesi)
         sebelum = _riwayat(kon)
@@ -147,7 +153,7 @@ def test_reader_memakai_sidecar_setelah_flag_off_bukan_diagnosis_mutable(db, mon
 
 def test_reader_tidak_menebak_teks_atau_menulis_saat_metadata_hilang(db):
     with database.buka(db) as kon:
-        siswa, sesi = _sesi(kon)
+        siswa, sesi = _sesi(kon, sebelum_konteks=True)
         _selesaikan(kon, sesi)
         _konfirmasi_lama(kon, sesi)
         sebelum = _riwayat(kon)
@@ -195,7 +201,7 @@ def test_upgrade_skema_lama_sebelum_backfill(tmp_path, monkeypatch, pra_snapshot
                         (sesi, soal_id))
             harapan = (("teks-v1", None),)
         else:
-            _, sesi = _sesi(kon)
+            _, sesi = _sesi(kon, sebelum_konteks=True)
             harapan = tuple((b["mode_representasi"], b["fingerprint_penyajian"])
                             for b in database.isi_sesi(kon, sesi))
         _selesaikan(kon, sesi)

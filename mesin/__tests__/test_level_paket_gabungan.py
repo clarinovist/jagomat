@@ -159,11 +159,11 @@ def test_http_gabungan_level_tak_didukung_tidak_500(server):
     kode, isi, _ = server.minta(
         f"/sesi-gabungan/{sid}", auth=("guru", SANDI_GURU),
         data=[("topik", "logika"), ("topik", "kombinatorik"),
-              ("jumlah_soal", "10")],
+              ("jumlah_soal", "10"), ("profil_parameter", "P4")],
     )
-    assert kode == 200, f"rute gabungan gagal (kode {kode})"
+    assert kode == 400, f"kombinasi tidak tersedia harus ditolak (kode {kode})"
     with server.buka() as kon:
         n = kon.execute(
             "SELECT COUNT(*) AS n FROM sesi WHERE siswa_id = ?", (sid,)
         ).fetchone()["n"]
-    assert n == 1, "sesi gabungan tidak terbuat"
+    assert n == 0, "kombinasi tidak tersedia tidak boleh fallback diam-diam"

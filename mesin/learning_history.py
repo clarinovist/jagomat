@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Tuple
 
 from learning_cycle import BuktiSiklus
-from templates import label_kelas
+from question_context import label_profil_parameter as label_kelas
 
 
 def _gabung_label(label: Tuple[str, ...]) -> str:

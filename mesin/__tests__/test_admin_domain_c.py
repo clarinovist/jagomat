@@ -223,7 +223,7 @@ def test_schema_v4_migrasi_v3_menambah_metadata_batch_tanpa_mengubah_lama(tmp_pa
     admin_store.siapkan(path, sekarang=2)
     admin_store.siapkan(path, sekarang=3)
     with sqlite3.connect(str(path)) as kon:
-        assert kon.execute("PRAGMA user_version").fetchone()[0] == 4
+        assert kon.execute("PRAGMA user_version").fetchone()[0] == admin_store.VERSI_SKEMA
         assert kon.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
         assert kon.execute("PRAGMA foreign_key_check").fetchone() is None
         assert kon.execute(

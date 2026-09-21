@@ -94,6 +94,45 @@ finally:
     kon.close()
 '''
 
+# Metadata admin5/konteks; deployer tetap satu artefak mandiri di host.
+PROBE_PROFIL_SKEMA = '''
+kon = sqlite3.connect('file:/data/latihan.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only = ON')
+    wajib = {
+        'profil_belajar': {'siswa_id', 'kelas_sekolah', 'revisi'},
+        'operasi_admin_profil': {'operasi_id', 'actor_id', 'siswa_id', 'revisi_awal',
+                                'revisi_hasil', 'kelas_lama', 'kelas_baru', 'sidik_perintah', 'dibuat'},
+        'konteks_sesi': {'sesi_id', 'versi'},
+        'konteks_butir': {'sesi_soal_id', 'template_id', 'profil_parameter', 'konteks_id'},
+        'konteks_konfirmasi': {'konfirmasi_id', 'snapshot_json'},
+    }
+    for tabel, kolom in wajib.items():
+        assert kolom <= {r[1] for r in kon.execute('PRAGMA table_info(' + tabel + ')')}
+    trigger = {'konteks_butir_validasi_insert', 'konteks_konfirmasi_validasi_insert'}
+    trigger.update(t + '_immutable_' + a for t in ('konteks_sesi','konteks_butir','konteks_konfirmasi')
+                   for a in ('update','replace','delete'))
+    assert trigger <= {r[0] for r in kon.execute("SELECT name FROM sqlite_master WHERE type='trigger'")}
+finally:
+    kon.close()
+kon = sqlite3.connect('file:/data/admin-control.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only = ON')
+    assert kon.execute('PRAGMA user_version').fetchone()[0] == 5
+    for tabel, kolom in {
+        'operasi_admin': {'operasi_id','actor_id','aksi','jenis_target','target_id','revisi_target',
+                         'sidik_perintah','status','hasil_kode','revisi_hasil'},
+        'receipt_admin': {'operasi_id','actor_id','aksi','jenis_target','target_id','sidik_perintah','hasil_kode'},
+        'audit_admin': {'operasi_id','actor_id','aksi','hasil_kode'},
+    }.items():
+        assert kolom <= {r[1] for r in kon.execute('PRAGMA table_info(' + tabel + ')')}
+        ddl = kon.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name=?", (tabel,)).fetchone()[0]
+        token = 'student_school_grade_updated' if tabel == 'audit_admin' else 'student_school_grade_update'
+        assert "'" + token + "'" in ddl
+finally:
+    kon.close()
+'''
+
 # Hanya berjalan dalam container synthetic network-none, tanpa mount/secret host.
 PROBE_IMAGE = '''import sqlite3
 from pathlib import Path
@@ -107,7 +146,7 @@ import auth
 import sessions
 assert assistant_schema.VERSI_SKEMA == 4
 assert ai_store.VERSI_SKEMA == 2
-assert admin_store.VERSI_SKEMA == 4
+assert admin_store.VERSI_SKEMA == 5
 assert admin_bulk.VERSI_TRANSIENT == 2
 for _ in range(2):
     assistant_schema.siapkan(Path('/data/pendamping.db'))
@@ -117,7 +156,7 @@ for _ in range(2):
     admin_students.siapkan(Path('/data/latihan.db'))
     admin_bulk.siapkan_transient(Path('/data/transient/admin-drafts.db'))
 with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
-    assert kon.execute('PRAGMA user_version').fetchone()[0] == 4
+    assert kon.execute('PRAGMA user_version').fetchone()[0] == 5
 with sqlite3.connect('file:/data/transient/admin-drafts.db?mode=ro', uri=True) as kon:
     assert kon.execute('PRAGMA user_version').fetchone()[0] == 2
 with sqlite3.connect('file:/data/pendamping.db?mode=ro', uri=True) as kon:
@@ -144,7 +183,7 @@ token = sessions.buat_dari_principal(principal, path=sesi_path, path_akun=akun_p
 assert sessions.ambil_principal(token, path=sesi_path, path_akun=akun_path)
 auth.naikkan_revisi_auth(principal.id_akun, akun_path)
 assert sessions.ambil_principal(token, path=sesi_path, path_akun=akun_path) is None
-'''+ PROBE_PENGIRIMAN_SKEMA + "\nprint('OSN_IMAGE_ADMIN4_AI2_OK')\n"
+'''+ PROBE_PENGIRIMAN_SKEMA + PROBE_PROFIL_SKEMA + "\nprint('OSN_IMAGE_ADMIN5_AI2_OK')\n"
 
 # Tidak mengimpor aplikasi: import/startup tertentu dapat melakukan migrasi.
 # Jangan immutable=1: DB belajar memakai WAL; mode=ro harus melihat WAL juga.
@@ -159,7 +198,7 @@ def versi_source(nama):
             and any(isinstance(t, ast.Name) and t.id == 'VERSI_SKEMA' for t in node.targets)]
 assert versi_source('assistant_schema.py') == [4]
 assert versi_source('ai_store.py') == [2]
-assert versi_source('admin_store.py') == [4]
+assert versi_source('admin_store.py') == [5]
 for nama, tabel in [('pendamping.db', 'tinjauan_usulan'), ('latihan.db', 'eksekusi_pendamping'),
                     ('latihan.db', 'operasi_admin_siswa')]:
     kon = sqlite3.connect('file:/data/' + nama + '?mode=ro', uri=True, timeout=2)
@@ -179,7 +218,7 @@ try:
 finally:
     kon.close()
 for nama, versi, tabel in (
-    ('admin-control.db',4,('konfigurasi_pendaftaran','operasi_admin','receipt_admin','batch_admin','batch_admin_item','kelompok_admin','kelompok_admin_item','penyerahan_admin','penyerahan_admin_item')),
+    ('admin-control.db',5,('konfigurasi_pendaftaran','operasi_admin','receipt_admin','batch_admin','batch_admin_item','kelompok_admin','kelompok_admin_item','penyerahan_admin','penyerahan_admin_item')),
     ('transient/admin-drafts.db',2,('draft_bulk','item_bulk','kelompok_bulk')),
 ):
     kon = sqlite3.connect('file:/data/' + nama + '?mode=ro', uri=True, timeout=2)
@@ -195,7 +234,7 @@ akun = json.loads(Path('/data/sandi.json').read_text())
 for item in akun.get('akun', [akun]):
     assert type(item.get('revisi_auth')) is int and item['revisi_auth'] >= 0
     assert isinstance(item.get('id_akun'), str) and item['id_akun'].startswith('akun_')
-'''+ PROBE_PENGIRIMAN_SKEMA + "\nprint('OSN_SCHEMA_ADMIN4_AI2_OK')\n"
+'''+ PROBE_PENGIRIMAN_SKEMA + PROBE_PROFIL_SKEMA + "\nprint('OSN_SCHEMA_ADMIN5_AI2_OK')\n"
 
 
 # Konservatif: perubahan byte pada schema/startup/persistensi perlu review ulang
@@ -496,7 +535,7 @@ class Docker:
             ["image", "inspect", "--format", "{{json .RepoDigests}}", image]))
         if not isinstance(daftar, list) or image not in daftar:
             raise Ditolak()
-        if self._probe(image, PROBE_IMAGE) != "OSN_IMAGE_ADMIN4_AI2_OK":
+        if self._probe(image, PROBE_IMAGE) != "OSN_IMAGE_ADMIN5_AI2_OK":
             raise Ditolak()
         return identitas
 
@@ -576,7 +615,7 @@ class Docker:
         return self._panggil(
             ["exec", "-i", KONTAINER, "python", "-E", "-B", "-"],
             batas=10, masukan=PROBE_SKEMA,
-        ) == "OSN_SCHEMA_ADMIN4_AI2_OK"
+        ) == "OSN_SCHEMA_ADMIN5_AI2_OK"
 
 
 class _TanpaRedirect(urllib.request.HTTPRedirectHandler):

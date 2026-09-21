@@ -38,15 +38,16 @@ def test_label_kelas_menerjemahkan_level_resmi_dan_menjaga_data_lama():
     assert label_kelas("tingkat-lama") == "tingkat-lama"
 
 
-def test_form_akun_menampilkan_kelas_tetapi_mengirim_kode_internal(db):
+def test_form_akun_memisahkan_kelas_dan_profil(db):
     with database.buka(db) as kon:
         database.tambah_siswa(kon, "Alya", "P5", pemilik="ortu")
         isi = _badan(account_pages.halaman_akun(
             kon, pengguna="ortu", peran="guru", section="siswa",
         ).decode())
 
-    assert '<option value="P3">Kelas 3</option>' in isi
-    assert '<option value="P5" selected>Kelas 5</option>' in isi
+    assert '<option value="P3">Profil P3</option>' in isi
+    assert '<option value="5">Kelas 5</option>' in isi
+    assert '<option value="" selected>Kelas belum diisi</option>' in isi
     assert ">P3</option>" not in isi
     assert ">P5</option>" not in isi
     assert "<th>Tingkat</th>" not in isi
@@ -66,12 +67,12 @@ def test_dashboard_dan_halaman_anak_menampilkan_kelas(db):
         ).decode())
 
     for isi in (dashboard, anak):
-        assert "Kelas 5" in isi
+        assert "Kelas belum diisi" in isi
         assert ">P5<" not in isi
         assert "(P5)" not in isi
 
 
-def test_halaman_murid_menampilkan_kelas_bukan_level_internal(db):
+def test_halaman_murid_menampilkan_profil_netral_bukan_kelas_sekolah(db):
     with database.buka(db) as kon:
         siswa_id = database.tambah_siswa(kon, "Alya", "P5")
         sesi_id = database.buat_sesi(
@@ -85,7 +86,7 @@ def test_halaman_murid_menampilkan_kelas_bukan_level_internal(db):
     kerja = _badan(halaman_kerja.decode())
 
     for isi in (daftar, kerja):
-        assert "Kelas 5" in isi
+        assert "Profil P5" in isi
         assert "level P5" not in isi
 
 
@@ -109,7 +110,6 @@ def test_detail_sesi_guru_dan_cetak_memakai_label_kelas(db):
             kon, siswa_id, seed=11, level="P5", topik="statistika",
         )
         halaman = (
-            teacher_pages.halaman_utama_stitch(kon, pemilik=None, peran="guru"),
             teacher_pages.halaman_konfirmasi_hapus(kon, sesi_id),
             teacher_pages.halaman_sesi_cetak(kon, sesi_id),
             teacher_pages.halaman_sesi_lampiran(kon, sesi_id),
@@ -119,7 +119,7 @@ def test_detail_sesi_guru_dan_cetak_memakai_label_kelas(db):
     for hasil in halaman:
         assert hasil is not None
         isi = _badan(hasil.decode())
-        assert "Kelas 5" in isi
+        assert "Profil P5" in isi
         assert ">P5<" not in isi
         assert "&middot; P5 &middot;" not in isi
 
@@ -145,6 +145,6 @@ def test_laporan_menampilkan_kelas_sebagai_metadata_topik(db):
         database.tandai_selesai(kon, sesi_id)
         isi = _badan(reports.halaman_laporan(kon, siswa_id, section="riwayat").decode())
 
-    assert '<small>Kelas 5</small>' in isi
+    assert '<small>Profil P5</small>' in isi
     assert '<th scope="col">Topik</th>' in isi
     assert 'data-label="Level"' not in isi

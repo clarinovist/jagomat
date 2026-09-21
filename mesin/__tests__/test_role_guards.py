@@ -97,7 +97,7 @@ def test_guru_masih_lolos_post_akun(server):
     kode, _, _ = s.minta(
         "/akun",
         auth=("guru", SANDI_GURU),
-        data={"aksi": "anak_baru", "nama": "Baru", "tingkat": "P4",
+        data={"aksi": "anak_baru", "nama": "Baru", "profil_parameter": "P4",
               "sandi_anak": "sandi-baru-12345"},
     )
     assert kode == 200

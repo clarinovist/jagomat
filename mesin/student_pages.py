@@ -13,7 +13,7 @@ import json
 import brand
 import visual_renderer
 import design_tokens as T
-from templates import label_kelas
+from question_context import label_profil_parameter as label_kelas
 from learning_stage_labels import penanda_tahap
 from topics import Topik, dari_sesi
 from students import (

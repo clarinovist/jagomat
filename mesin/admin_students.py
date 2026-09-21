@@ -13,6 +13,7 @@ import admin_accounts
 from admin_contracts import (
     AKSI_HAPUS_SISWA,
     AKSI_UBAH_LEVEL,
+    AKSI_UBAH_KELAS_SEKOLAH,
     HASIL_PER_AKSI,
     PerintahHapusSiswa,
     PerintahSiswa,
@@ -67,6 +68,8 @@ def siapkan(path_db) -> None:
         kon.execute("PRAGMA foreign_keys=ON")
         kon.execute("BEGIN IMMEDIATE")
         kon.execute(_DDL_DOMAIN)
+        from learning_profile_admin import DDL
+        kon.execute(DDL)
         kon.commit()
     except Exception:
         kon.rollback(); raise
@@ -141,6 +144,13 @@ def _baca_anchor_admin(kon, perintah):
     row = kon.execute("SELECT * FROM receipt_admin WHERE operasi_id=?", (perintah.operasi_id,)).fetchone()
     if row is None:
         return None
+    if perintah.aksi == AKSI_UBAH_KELAS_SEKOLAH:
+        if (row['actor_id'] != perintah.actor_id or row['aksi'] != perintah.aksi
+                or row['target_id'] != perintah.target_id
+                or row['sidik_perintah'] != sidik_perintah(perintah)
+                or row['hasil_kode'] != HASIL_PER_AKSI[perintah.aksi]):
+            raise KonflikSiswa('anchor profil berbeda')
+        return row
     receipt = ReceiptSiswa(
         1, row["operasi_id"], row["actor_id"], row["aksi"], row["target_id"],
         None, 0, 0, row["hasil_kode"], int(row["dibuat"]),

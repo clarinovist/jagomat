@@ -351,7 +351,10 @@ def _simpan_butir_sesi(
             penyajian.fingerprint_penyajian,
         ),
     )
-    return int(cur.lastrowid)
+    butir_id = int(cur.lastrowid)
+    import context_store
+    context_store.simpan_butir(kon, sesi_id, butir_id, soal)
+    return butir_id
 
 
 # ── Sesi ────────────────────────────────────────────────────────────────
@@ -573,7 +576,8 @@ def _baris_sasaran_remedial(
            JOIN soal s       ON s.id = ss.soal_id
            WHERE se.siswa_id = ? AND se.format_jawaban='isian'
              AND se.selesai IS NOT NULL
-             AND se.direview IS NOT NULL"""
+             AND se.direview IS NOT NULL
+             AND NOT EXISTS (SELECT 1 FROM pilot_sesi ps WHERE ps.sesi_id=se.id)"""
         + syarat_sesi
         + " ORDER BY se.tanggal DESC, se.id DESC, ss.nomor DESC",
         parameter,
@@ -1244,6 +1248,8 @@ def _konfirmasi_hasil(
     import review_store
     tinjauan = review_store.validasi_bukti(kon, sesi_id, outcome, dilewati)
     target_per_butir = _target_per_butir(kon, sesi_id)
+    import context_store
+    konteks = context_store.proyeksi(kon, sesi_id, target_per_butir)
     kanonis = []
     for butir in outcome:
         butir_id = int(butir["sesi_soal_id"])
@@ -1269,6 +1275,12 @@ def _konfirmasi_hasil(
     if sesi['format_jawaban'] == 'pilihan_ganda':
         from choice_store import proyeksi_konfirmasi
         isi_fingerprint = {'hasil': isi_fingerprint, 'pilihan': proyeksi_konfirmasi(kon, sesi_id)}
+    # Konteks v1 homogen diproyeksikan oleh template_id, level_efektif, nomor,
+    # dan target_* yang sudah ada dalam fingerprint. Arsip baru mengikat
+    # konfirmasi_id yang sama; jangan mengubah identitas retry historis.
+    from skill_pilot_store import baca_kontrak, bungkus_konfirmasi
+    kontrak_pilot = baca_kontrak(kon, sesi_id, sesi['siswa_id'])
+    isi_fingerprint = bungkus_konfirmasi(isi_fingerprint, kontrak_pilot)
     serial = json.dumps(isi_fingerprint, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     fingerprint = hashlib.sha256(serial.encode("utf-8")).hexdigest()
     aktif = kon.execute(
@@ -1284,9 +1296,12 @@ def _konfirmasi_hasil(
         (sesi_id, fingerprint),
     ).fetchone()
     if aktif is not None:
+        context_store.validasi_arsip(kon, sesi_id, int(aktif['id']), target_per_butir)
         if sesi['format_jawaban'] == 'pilihan_ganda':
             validasi_arsip(kon, sesi_id, int(aktif['id']))
         outcome_presentations.lengkapi(kon, int(aktif["id"]))
+        from skill_pilot_store import validasi_konfirmasi
+        validasi_konfirmasi(kon, sesi_id, sesi['siswa_id'], int(aktif['id']))
         return int(aktif["id"])
     nomor_urut = int(
         kon.execute(
@@ -1302,6 +1317,7 @@ def _konfirmasi_hasil(
         (sesi_id, nomor_urut, guru, fingerprint),
     )
     konfirmasi_id = int(cur.lastrowid)
+    context_store.arsipkan(kon, konfirmasi_id, konteks)
     if tinjauan:
         kon.execute("INSERT INTO tinjauan_outcome VALUES (?,?)",
                     (konfirmasi_id, json.dumps(tinjauan, ensure_ascii=False, sort_keys=True)))
@@ -1331,6 +1347,8 @@ def _konfirmasi_hasil(
             ),
         )
     outcome_presentations.lengkapi(kon, konfirmasi_id)
+    from skill_pilot_store import arsipkan_konfirmasi
+    arsipkan_konfirmasi(kon, kontrak_pilot, konfirmasi_id)
     from choice_store import arsipkan_pilihan
     arsipkan_pilihan(kon, sesi_id, konfirmasi_id)
     kon.execute(
@@ -1384,7 +1402,7 @@ def _data_kejadian(nilai: str) -> tuple[tuple[str, object], ...]:
     return tuple(sorted((kunci, bekukan(isi)) for kunci, isi in data.items()))
 
 
-def muat_bukti_siklus(kon: sqlite3.Connection, siswa_id: int):
+def muat_bukti_siklus(kon: sqlite3.Connection, siswa_id: int, *, validasi_pilot=True):
     """Muat snapshot aktif dan histori append-only sebagai input reducer murni."""
     from learning_cycle import (
         BuktiSiklus,
@@ -1400,6 +1418,8 @@ def muat_bukti_siklus(kon: sqlite3.Connection, siswa_id: int):
     if siswa is None:
         raise ValueError("siswa tidak dikenal")
 
+    from skill_pilot_store import daftar_pilot
+    pilot_sesi, pilot_putaran = daftar_pilot(kon, siswa_id)
     fokus_per_putaran: dict[int, list[tuple[str, str, Optional[str]]]] = {}
     for baris in kon.execute(
         """SELECT putaran_id, slot, template_id, kode_intervensi,
@@ -1424,6 +1444,7 @@ def muat_bukti_siklus(kon: sqlite3.Connection, siswa_id: int):
             baris["level"],
             _tanggal_domain(baris["dibuka"]),
             tuple(fokus_per_putaran.get(int(baris["id"]), ())),
+            pilot=int(baris['id']) in pilot_putaran,
         )
         for baris in kon.execute(
             """SELECT id, level, dibuka FROM putaran_fokus
@@ -1483,6 +1504,13 @@ def muat_bukti_siklus(kon: sqlite3.Connection, siswa_id: int):
                 (baris["id"], baris["fingerprint_konfirmasi"]),
             ).fetchone()
             if aktif is not None:
+                import context_store
+                target_snapshot = {
+                    b['nomor']: (b['target_template_id'], b['target_kode_intervensi'], b['target_malrule_id'])
+                    for b in kon.execute('SELECT * FROM snapshot_outcome WHERE konfirmasi_id=?', (aktif['id'],))
+                    if b['target_template_id'] is not None
+                }
+                context_store.validasi_arsip(kon, baris['id'], int(aktif['id']), target_snapshot)
                 if baris['format_jawaban'] == 'pilihan_ganda':
                     from choice_store import validasi_arsip
                     validasi_arsip(kon, baris['id'], int(aktif['id']))
@@ -1529,6 +1557,7 @@ def muat_bukti_siklus(kon: sqlite3.Connection, siswa_id: int):
                 _tanggal_domain_opsional(baris["selesai"]),
                 _tanggal_domain_opsional(baris["dikonfirmasi_guru"]),
                 format_jawaban=baris['format_jawaban'],
+                pilot=int(baris['id']) in pilot_sesi or baris['putaran_id'] in pilot_putaran,
             )
         )
     import interventions
@@ -1550,6 +1579,13 @@ def muat_bukti_siklus(kon: sqlite3.Connection, siswa_id: int):
         if satu_putaran is not None
         for kunci in satu_putaran.fokus
     )
+    if validasi_pilot:
+        from skill_pilot_store import baca_kontrak, validasi_konfirmasi
+        for sesi in sesi_hasil:
+            if sesi.pilot:
+                baca_kontrak(kon, sesi.id, siswa_id)
+                if sesi.konfirmasi_id is not None:
+                    validasi_konfirmasi(kon, sesi.id, siswa_id, sesi.konfirmasi_id)
     return BuktiSiklus(
         siswa_id,
         siswa["tingkat"],

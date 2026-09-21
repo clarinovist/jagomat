@@ -511,7 +511,7 @@ def perjalanan_belajar(
     from cycle_carry import bukti_lanjutan
 
     asli = bukti
-    bukti = bukti_lanjutan(bukti)
+    bukti = bukti_lanjutan(lc.tanpa_pilot(bukti))
     hari = hari_ini or date.today()
     rekomendasi = lc.rencana_berikutnya(asli, siswa_id, hari)
     putaran = lc._putaran_dengan_override(lc._putaran_aktif(bukti), bukti.kejadian)

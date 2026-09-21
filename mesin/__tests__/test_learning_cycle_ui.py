@@ -91,7 +91,7 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     assert "Sesudah ini, ikuti petunjuk agar anak mulai mengerjakan." in isi
     assert '<details class="alur-rencana-jelas-st">' in isi
     assert "<summary>" in isi
-    assert "Bagaimana alur belajar ini bekerja?" in isi
+    assert "Detail progres dan alur belajar" in isi
     assert "Tahap sekarang: Pemetaan" in isi
     kartu = isi.split('<section class="kartu-rencana-st"', 1)[1].split("</section>", 1)[0]
     assert kartu.count("<h2") == 1
@@ -148,7 +148,7 @@ def test_sesi_manual_dan_beda_level_tidak_menggantikan_cta_pemetaan(server):
         lama = database.buat_sesi(kon, siswa_id, seed=6202, level="P4", jumlah_soal=1)
 
     kode, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
-    kartu = isi.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
+    kartu = isi.split('<section class="kartu-rencana-st"', 1)[1].split('</section>', 1)[0]
 
     assert kode == 200
     assert f'action="/siklus/{siswa_id}/buat"' in kartu
@@ -172,7 +172,7 @@ def test_sesi_terpandu_sudah_dilihat_tetap_meminta_konfirmasi(server):
         )
 
     kode, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
-    kartu = isi.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
+    kartu = isi.split('<section class="kartu-rencana-st"', 1)[1].split('</section>', 1)[0]
 
     assert kode_buat == 200
     assert kode == 200
@@ -190,7 +190,7 @@ def test_intervensi_memakai_materi_konkret_satu_form_aksi_dan_escape(server):
         _sesi_pemetaan(kon, siswa_id, putaran_id, 3, salah=False)
 
     kode, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
-    kartu = isi.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
+    kartu = isi.split('<section class="kartu-rencana-st"', 1)[1].split('</section>', 1)[0]
     materi = interventions.untuk_fokus(("deret_aritmetika", "H", None))
 
     assert kode == 200
@@ -284,7 +284,7 @@ def test_pengenalan_membuat_sesi_dulu_lalu_menandai_setelah_dikonfirmasi(server)
         _sesi_pemetaan(kon, siswa_id, putaran_id, 3, salah=False)
 
     kode_awal, awal, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
-    kartu_awal = awal.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
+    kartu_awal = awal.split('<section class="kartu-rencana-st"', 1)[1].split('</section>', 1)[0]
     assert kode_awal == 200
     assert "Kenalkan materi baru" in kartu_awal
     assert f'action="/siklus/{siswa_id}/buat"' in kartu_awal
@@ -306,7 +306,7 @@ def test_pengenalan_membuat_sesi_dulu_lalu_menandai_setelah_dikonfirmasi(server)
     kode_sesudah, sesudah, _ = s.minta(
         f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU)
     )
-    kartu_sesudah = sesudah.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
+    kartu_sesudah = sesudah.split('<section class="kartu-rencana-st"', 1)[1].split('</section>', 1)[0]
     assert kode_buat == kode_sesudah == 200
     assert 'name="aksi" value="pengenalan_selesai"' in kartu_sesudah
     assert f'name="putaran_id" value="{putaran_id}"' in kartu_sesudah
@@ -368,13 +368,13 @@ def test_strip_tahap_dan_override_terpandu_terpisah_dari_latihan_bebas(server):
         _sesi_pemetaan(kon, siswa_id, putaran_id, 3, salah=False)
 
     _, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
-    kartu = isi.split("Rencana belajar hari ini", 1)[1].split("Riwayat latihan", 1)[0]
+    kartu = isi.split('<section class="kartu-rencana-st"', 1)[1].split('</section>', 1)[0]
 
     for label in ("Pemetaan", "Pelajari", "Latihan", "Evaluasi", "Cek kembali", "Lanjut"):
         assert label in kartu
     assert "Checkpoint" not in kartu
     assert '<details class="alur-rencana-jelas-st">' in kartu
-    assert "Bagaimana alur belajar ini bekerja?" in kartu
+    assert "Detail progres dan alur belajar" in kartu
     assert "Tahap sekarang: Pelajari" in kartu
     assert 'class="tahap-rencana-st selesai"' not in kartu
     assert kartu.index('class="tindakan-rencana-st"') < kartu.index('class="alur-rencana-jelas-st"')

@@ -10,8 +10,8 @@ import urllib.parse
 import database
 import learning_cycle_service as layanan
 
-_POLA = re.compile(r"/(sesi|siklus)/([1-9][0-9]*)/(konfirmasi|tinjauan|batalkan|aksi|buat)")
-_AKSI = {"sesi": {"konfirmasi", "tinjauan", "batalkan"}, "siklus": {"aksi", "buat"}}
+_POLA = re.compile(r"/(sesi|siklus)/([1-9][0-9]*)/(konfirmasi|tinjauan|batalkan|aksi|buat|pilot)")
+_AKSI = {"sesi": {"konfirmasi", "tinjauan", "batalkan"}, "siklus": {"aksi", "buat", "pilot"}}
 _BATAS_FORM = 1_000_000
 _BATAS_PER_MENIT = 120
 _riwayat = {}
@@ -127,6 +127,9 @@ def _jalankan(kon, jenis, identitas, aksi, guru, data):
             raise ValueError("Isian pembatalan tidak dikenal.")
         siswa_id = layanan.batalkan_sesi(kon, identitas, data.get("alasan", ""))
         return f"/anak/{siswa_id}"
+    if aksi == 'pilot':
+        from skill_pilot_service import jalankan
+        return jalankan(kon, identitas, data)
     if aksi == "aksi":
         layanan.proses_aksi(kon, identitas, data)
         return f"/anak/{identitas}"

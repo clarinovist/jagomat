@@ -42,7 +42,6 @@ from support_pages import halaman_pesan as _halaman
 from teacher_pages import (
     halaman_bagikan_sesi,
     _soal_dari_baris,
-    _topik_untuk_level,
     _nama_template,
     buat_sesi_seed_baru,
     halaman_konfirmasi_hapus,
@@ -54,7 +53,7 @@ from teacher_pages import (
     halaman_utama_stitch,
     simpan_sesi,
 )
-from templates import LEVEL, label_kelas
+from templates import LEVEL
 from topics import TOPIK_BAWAAN, daftar_topik
 
 class Penangan(BaseHTTPRequestHandler):
@@ -1500,14 +1499,36 @@ class Penangan(BaseHTTPRequestHandler):
             else:
                 panjang = int(self.headers.get("Content-Length", 0))
                 mentah = self.rfile.read(panjang).decode("utf-8")
-                data = {
-                    k: v[0]
-                    for k, v in urllib.parse.parse_qs(
-                        mentah, keep_blank_values=True
-                    ).items()
-                }
+                pasangan = urllib.parse.parse_qs(mentah, keep_blank_values=True)
+                if any(len(v) != 1 for v in pasangan.values()):
+                    return self._kirim(_halaman('Form tidak sah', '<p>Field ganda tidak diizinkan. Muat ulang form.</p>'), 400)
+                data = {k: v[0] for k, v in pasangan.items()}
             with database.buka() as kon:
-                pesan, galat = proses_akun(kon, data, pengguna, peran)
+                import learning_profile
+                if data.get('aksi') == 'kelas_sekolah':
+                    try:
+                        sid = int(data.get('siswa_id', ''))
+                        if not 0 < sid <= 9_223_372_036_854_775_807:
+                            raise ValueError('ID tidak sah')
+                        learning_profile.baca(kon, sid, pemilik=pengguna)
+                    except (ValueError, TypeError):
+                        return self._kirim(_halaman('404', '<h1>Halaman tidak ada</h1>'), 404)
+                    if set(data) - {'aksi', 'siswa_id', 'kelas_sekolah', 'revisi_profil', 'section'}:
+                        return self._kirim(_halaman('Form tidak sah', '<p>Field profil tidak dikenal. Muat ulang form.</p>'), 400)
+                if data.get('aksi') == 'tingkat':
+                    return self._kirim(_halaman('Form lama', '<p>Muat ulang form kelas sekolah. Profil parameter lama tidak diubah lewat form ini.</p>'), 409)
+                if data.get('aksi') in ('anak_baru', 'siswa'):
+                    from question_context import profil_dari_form
+                    try:
+                        profil_dari_form({'profil_parameter': [data.get('profil_parameter', '')]})
+                        if 'tingkat' in data or 'level' in data:
+                            raise ValueError('Form lama. Muat ulang dan pilih profil parameter secara eksplisit.')
+                    except ValueError as galat:
+                        return self._kirim(_halaman('Profil belum dipilih', '<p>' + html.escape(str(galat)) + '</p>'), 400)
+                try:
+                    pesan, galat = proses_akun(kon, data, pengguna, peran)
+                except learning_profile.ProfilTidakDitemukan:
+                    return self._kirim(_halaman('404', '<h1>Halaman tidak ada</h1>'), 404)
                 section = data.get("section") or PETA_SECTION_AKUN.get(
                     data.get("aksi", ""), "akun"
                 )
@@ -1692,9 +1713,12 @@ class Penangan(BaseHTTPRequestHandler):
                     )
                 try:
                     from choice_pages import format_dari_form
+                    from question_context import profil_dari_form, validasi_pilihan
+                    profil = profil_dari_form(data)
+                    validasi_pilihan(dipilih, profil)
                     sesi_id = database.buat_sesi_gabungan(
                         kon, siswa_id, seed=random.randint(1, 9_999_999), topik_ids=dipilih,
-                        level=(baris['tingkat'] if baris else LEVEL_BAWAAN),
+                        level=profil,
                         mode=mode_dikirim[0], jumlah_soal=jumlah,
                         format_jawaban=format_dari_form(data),
                     )
@@ -1844,15 +1868,13 @@ class Penangan(BaseHTTPRequestHandler):
                 ).fetchone()
                 if not siswa:
                     return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
-                level = siswa["tingkat"] if siswa["tingkat"] in LEVEL else LEVEL_BAWAAN
+                from question_context import profil_dari_form, validasi_pilihan
+                try:
+                    level = profil_dari_form(data)
+                    validasi_pilihan([pilihan_topik], level)
+                except ValueError as galat:
+                    return self._kirim(_halaman('Latihan belum dibuat', '<p>' + html.escape(str(galat)) + '</p>'), 400)
                 nama_siswa = siswa["nama"]
-                if pilihan_topik not in _topik_untuk_level(level):
-                    pesan = (
-                        f"<h1>Topik belum tersedia untuk kelas ini</h1>"
-                        f"<p><code>{html.escape(pilihan_topik)}</code> tidak tersedia "
-                        f"untuk {html.escape(label_kelas(siswa['tingkat']))}.</p>"
-                    )
-                    return self._kirim(_halaman("Topik belum tersedia", pesan), 400)
                 pilihan_mode = (data.get("mode") or ["diagnostik"])[0].strip()
                 if pilihan_mode not in ("diagnostik", "drill"):
                     pesan = (

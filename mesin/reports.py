@@ -21,7 +21,7 @@ import design_tokens as T
 from diagnosis import diagnosa
 from generator import LEVEL_BAWAAN
 from template_labels import nama_tipe_soal as _nama_tipe_soal
-from templates import label_kelas
+from question_context import label_profil_parameter as label_kelas
 from topics import TOPIK_BAWAAN
 from teacher_pages import _ambil, _halaman, _soal_dari_baris
 
@@ -295,7 +295,7 @@ def _riwayat_latihan(kon, siswa_id: int, periode='semua', topik='semua', halaman
         'Ini bukan persentase pemahaman atau tren kemampuan antar topik. '
         'Buka sesi untuk melihat jawaban dan rincian penilaiannya.</p>'
         '<div class="tabel-wrap tabel-tren"><table aria-describedby="penjelasan-hasil-sesi">'
-        '<caption class="sr-only">Hasil sesi dari yang terbaru, beserta tanggal dan kelas latihan</caption>'
+        '<caption class="sr-only">Hasil sesi dari yang terbaru, beserta tanggal dan profil latihan</caption>'
         '<thead><tr><th scope="col">Sesi / tanggal</th><th scope="col">Topik</th>'
         '<th scope="col">Benar / tersedia</th><th scope="col">Rincian</th></tr></thead>'
         f'<tbody>{tren}</tbody></table></div></section>'
@@ -324,7 +324,7 @@ def _catatan_latihan(kon, siswa_id):
     ) or '<tr><td colspan="4" class="kosong">Belum ada catatan pengenalan materi.</td></tr>'
     return (
         '<p class="laporan-catatan">Catatan mencakup seluruh sesi yang selesai dikirim, '
-        'lintas tanggal dan kelas. Filter pada tampilan Sesi tidak berlaku di sini.</p>'
+        'lintas tanggal dan profil parameter. Filter pada tampilan Sesi tidak berlaku di sini.</p>'
         '<section class="kartu catatan-latihan-laporan"><h2>Catatan pola pada semua latihan</h2>'
         '<p class="laporan-catatan">Rincian pola keliru yang sama dan muncul kembali. Jumlah K '
         'dan jenis kesalahan adalah catatan, bukan skor kelulusan atau penetapan fokus.</p>'
@@ -388,14 +388,22 @@ def halaman_laporan(
         # Clock rekomendasi sama dengan profil; WIB hanya untuk statistik aktivitas.
         bukti = database.muat_bukti_siklus(kon, siswa_id)
         perjalanan = perjalanan_belajar(bukti, siswa_id)
-        peta_target = peta_penguasaan(lengkapi_bukti_materi(kon, bukti), siswa_id)
+        bukti_materi = lengkapi_bukti_materi(kon, bukti)
+        peta_target = peta_penguasaan(bukti_materi, siswa_id)
         if section == "penguasaan":
-            opsi = [('materi', 'Materi'), ('kriteria', 'Kriteria'), ('perjalanan', 'Perjalanan belajar')]
+            opsi = [('materi', 'Materi'), ('konteks', 'Bukti per konteks'), ('pilot', 'Tuntutan pilot'),
+                    ('kriteria', 'Kriteria'), ('perjalanan', 'Perjalanan belajar')]
             if tampilan not in dict(opsi):
                 tampilan = 'materi'
             isi = pilihan('Tampilan penguasaan', opsi, tampilan,
                           lambda k: url_laporan(siswa_id, section, tampilan=k))
-            if tampilan == 'kriteria':
+            if tampilan == 'pilot':
+                from skill_pilot_ui import laporan
+                isi += laporan(kon, siswa_id)
+            elif tampilan == 'konteks':
+                from context_report import render_konteks
+                isi += render_konteks(bukti_materi, siswa_id, _tanggal_pendek, halaman=halaman)
+            elif tampilan == 'kriteria':
                 isi += render_kriteria()
             elif tampilan == 'perjalanan':
                 isi += render_perjalanan(perjalanan, _nama_tipe_soal, _tanggal_pendek,

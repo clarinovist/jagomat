@@ -2285,20 +2285,20 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
 .pendamping-editorial-st.profil-editorial-st {{ max-width: 62rem; }}
 .profil-editorial-st .kepala-anak-st h1 .st-badge {{ display: inline-flex; vertical-align: middle; margin-left: {T.SP_2}; letter-spacing: 0; }}
 .profil-editorial-st .kartu-rencana-st {{
-  box-shadow: 0 14px 34px color-mix(in srgb, {T.TEKS_JUDUL} 5%, transparent);
-  border: 1px solid {T.BORDER_CATATAN}; border-top: 4px solid {T.AKSEN_TEAL_TUA};
+  box-shadow: none;
+  border: 1px solid {T.BORDER_CATATAN}; border-top: 3px solid {T.AKSEN_TEAL_TUA};
   background: {T.LATAR_KARTU}; border-radius: {T.RADIUS_KARTU};
-  padding: clamp({T.SP_5}, 4vw, 2.5rem); gap: {T.SP_3};
+  padding: {T.SP_5}; gap: {T.SP_3};
 }}
 .profil-editorial-st .studio-layout-st {{
-  display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(15rem, .72fr);
-  grid-template-areas: "utama pendamping" "aksi aksi" "alur alur";
-  column-gap: clamp({T.SP_6}, 5vw, 4rem); row-gap: {T.SP_4};
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "utama" "pendamping" "aksi" "alur";
+  gap: {T.SP_3};
 }}
 .profil-editorial-st .studio-utama-st {{ grid-area: utama; display: grid; gap: {T.SP_3}; align-content: start; min-width: 0; }}
 .profil-editorial-st .studio-pendamping-st {{
-  grid-area: pendamping; display: flex; flex-direction: column; gap: {T.SP_4};
-  border-left: 1px solid {T.BORDER_CATATAN}; padding-left: {T.SP_5}; min-width: 0;
+  grid-area: pendamping; display: flex; flex-direction: column; gap: {T.SP_3};
+  min-width: 0;
 }}
 .profil-editorial-st .studio-aksi-st {{
   grid-area: aksi; display: grid; grid-template-columns: auto minmax(0, 1fr);
@@ -2306,7 +2306,7 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
   justify-items: start; min-width: 0;
 }}
 .profil-editorial-st .label-rencana-st {{ color: {T.AKSEN_TEAL_TUA}; }}
-.profil-editorial-st #judul-rencana-belajar {{ font-size: clamp(1.8rem, 3vw, 2.5rem); letter-spacing: -.045em; max-width: 22ch; }}
+.profil-editorial-st #judul-rencana-belajar {{ font-size: clamp(1.25rem, 2.2vw, 1.6rem); letter-spacing: -.025em; max-width: 38ch; }}
 .profil-editorial-st .alasan-rencana-st {{ font-size: 1.04rem; }}
 .profil-editorial-st .identitas-sesi-rencana-st {{
   margin: 0; color: {T.TEKS_JUDUL}; font-weight: 600;
@@ -2321,7 +2321,7 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
   font: 500 .78rem/1.5 {T.FONT_LAYAR}; margin-bottom: {T.SP_1};
 }}
 .profil-editorial-st .tindakan-rencana-st {{
-  margin: 0; padding: {T.SP_4} 0; border: 0; border-block: 1px solid {T.BORDER_CATATAN};
+  margin: 0; padding: {T.SP_2} 0; border: 0;
   border-radius: 0; background: transparent;
 }}
 .profil-editorial-st .contoh-rencana-st {{ background: {T.LATAR_CATATAN}; border-color: {T.AKSEN_MURID_AMBER}; padding: {T.SP_4}; }}
@@ -2339,6 +2339,10 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
   grid-template-columns: repeat(6, minmax(0, 1fr)); margin: {T.SP_3} 0;
 }}
 .profil-editorial-st .isi-alur-rencana-st > p {{ margin: 0; color: {T.TEKS_VARIAN}; }}
+.profil-editorial-st .isi-alur-rencana-st > .progres-rencana-st {{ grid-column: 1 / -1; }}
+.cetak-editorial-st .cerita-tambahan-st {{ margin-block: {T.SP_4}; padding-block: {T.SP_3}; border-block: 1px solid {T.BORDER_CATATAN}; }}
+.cetak-editorial-st .cerita-tambahan-st > summary {{ min-height: {T.TARGET_SENTUH}; cursor: pointer; font-weight: 600; color: {T.AKSEN_TEAL_TUA}; }}
+.cetak-editorial-st .cerita-tambahan-st > summary:focus-visible {{ outline: 2px solid {T.AKSEN_TEAL_TUA}; outline-offset: 3px; }}
 .profil-editorial-st .strip-rencana-st .tahap-rencana-st {{
   position: relative; text-align: center; padding: 1.7rem {T.SP_1} {T.SP_2};
   background: transparent; color: {T.TEKS_VARIAN}; border-radius: 0;
@@ -2509,6 +2513,10 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
 
 /* Pendamping inline dipakai lintas host yang hanya memuat GAYA_STITCH. */
 .pendamping-inline {{ margin-top: {T.SP_5}; padding-top: {T.SP_4}; border-top: 1px solid {T.BORDER_VARIAN}; min-width: 0; }}
+.akun-editorial-st .form-kelas-sekolah {{ display:flex; flex-direction:column; align-items:flex-start; gap:{T.SP_2}; }}
+.akun-editorial-st .form-kelas-sekolah select {{ max-width:100%; margin:0; }}
+.akun-editorial-st .form-kelas-sekolah button {{ min-height:{T.TARGET_SENTUH}; margin:0; }}
+
 .pendamping-inline > details > summary {{ min-height: {T.TARGET_SENTUH}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; cursor: pointer; }}
 .pendamping-inline-isi {{ padding: {T.SP_3} 0 0; min-width: 0; }}
 .pendamping-inline-isi h3 {{ margin: 0 0 {T.SP_2}; color: {T.TEKS_JUDUL}; }}
@@ -2578,7 +2586,7 @@ CSS_SESI = f"""
   padding: {T.SP_3} {T.SP_4}; margin: 0 0 {T.SP_4}; font-size: .95rem;
 }}
 
-/* Pil navigasi antar-alat sesi (Koreksi · Cetak & Cerita · Lampiran). */
+/* Pil navigasi antar-alat sesi (Koreksi · Cetak · Lampiran). */
 .pil-sesi-st {{
   display: flex; gap: {T.SP_2}; flex-wrap: wrap;
   margin: 0 0 {T.SP_4};

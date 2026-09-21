@@ -9,7 +9,7 @@ from typing import Optional, Tuple
 import database
 import interventions
 import topics
-from learning_cycle import BuktiSiklus, RencanaBelajar, StatusFokus, rencana_berikutnya
+from learning_cycle import BuktiSiklus, RencanaBelajar, StatusFokus, rencana_berikutnya, pengingat_berikutnya
 from learning_history import catatan_histori_beda_level
 from template_labels import nama_tipe_soal as _nama_template
 
@@ -230,10 +230,12 @@ def _alur_rencana(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
     label_aktif = _LABEL_TAHAP[_indeks_tahap(rencana, bukti)]
     return (
         '<details class="alur-rencana-jelas-st">'
-        '<summary><span>Bagaimana alur belajar ini bekerja?</span>'
+        '<summary><span>Detail progres dan alur belajar</span>'
         f'<span class="tahap-aktif-ringkas-st">Tahap sekarang: {html.escape(label_aktif)}</span>'
         '</summary>'
         '<div class="isi-alur-rencana-st">'
+        f'<p class="progres-rencana-st">{html.escape(_progres(rencana, bukti))}'
+        f'{_penanda_progres_lama(rencana)}</p>'
         + _strip_tahap(rencana, bukti)
         + '<p>Pemetaan membantu menentukan fokus. Setelah itu, anak belajar bersama, '
         'berlatih dengan bantuan lalu mandiri, menjalani evaluasi setelah jeda, dan '
@@ -249,7 +251,7 @@ def _konteks_pemetaan(rencana: RencanaBelajar) -> str:
     return (
         '<div class="konteks-pemetaan-jelas-st">'
         '<p><b>Hari ini: 1 sesi · 15 soal</b></p>'
-        '<p>Ketiga sesi dilakukan pada tanggal berbeda.</p>'
+        '<p>Pemetaan awal terdiri dari tiga sesi. Ketiga sesi dilakukan pada tanggal berbeda.</p>'
         '</div>'
     )
 
@@ -500,7 +502,7 @@ def render_rencana(
         '<section class="kartu-rencana-st" aria-labelledby="judul-rencana-belajar">'
         '<div class="studio-layout-st">'
         '<div class="studio-utama-st">'
-        '<p class="label-rencana-st">Rencana belajar hari ini</p>'
+        '<p class="label-rencana-st">Langkah belajar berikutnya</p>'
         f'<h2 class="{kelas_judul}" id="judul-rencana-belajar">{html.escape(judul_tampil)}</h2>'
         f'{penanda_judul_lama}{_identitas_sesi(rencana, bukti)}'
         f'<p class="alasan-rencana-st">{html.escape(_alasan(rencana, fokus))}</p>'
@@ -508,8 +510,6 @@ def render_rencana(
         f'{catatan_histori}{catatan_mode}{contoh}{catatan_materi}{tanggal}'
         '</div>'
         '<aside class="studio-pendamping-st" aria-label="Posisi dan peran pendamping">'
-        f'<p class="progres-rencana-st">{html.escape(_progres(rencana, bukti))}'
-        f'{_penanda_progres_lama(rencana)}</p>'
         f'{tindakan}'
         '</aside>'
         f'<div class="studio-aksi-st">{cta}{petunjuk}</div>'
@@ -524,7 +524,17 @@ def render_rencana(
 def pengingat_rencana(kon, siswa_id: int) -> str:
     """Ringkasan tab latihan memakai reducer yang sama, tanpa CTA duplikat."""
     bukti = database.muat_bukti_siklus(kon, siswa_id)
-    rencana = rencana_berikutnya(bukti, siswa_id)
+    rencana = pengingat_berikutnya(bukti, siswa_id)
+    if rencana is None:
+        from skill_pilot_service import keadaan
+        try:
+            _, _, aktif, _ = keadaan(kon, siswa_id)
+        except ValueError:
+            aktif = None
+        if not aktif or aktif[2].tindakan.startswith('tunggu_'):
+            return ""
+        return ('<div class="profil-rappel-st"><span>Rencana pilot memerlukan tindakan.</span>'
+                f'<a href="/anak/{siswa_id}?section=rencana">Lihat rencana →</a></div>')
     judul = _judul(rencana, _fokus_utama(rencana), bukti)
     return (
         '<div class="profil-rappel-st"><span><strong>Rencana belajar hari ini</strong><br>'
@@ -535,6 +545,10 @@ def pengingat_rencana(kon, siswa_id: int) -> str:
 
 def kartu_rencana(kon, siswa_id: int, slot_bantuan: str = "") -> str:
     """Muat bukti sah dan render rekomendasi reducer pada GET profil."""
+    from skill_pilot_ui import kartu
+    pilot, tambahan = kartu(kon, siswa_id)
+    if pilot is not None:
+        return pilot + tambahan + slot_bantuan
     bukti = database.muat_bukti_siklus(kon, siswa_id)
     rencana = rencana_berikutnya(bukti, siswa_id)
-    return render_rencana(rencana, bukti, siswa_id, slot_bantuan=slot_bantuan)
+    return render_rencana(rencana, bukti, siswa_id, slot_bantuan=slot_bantuan) + tambahan

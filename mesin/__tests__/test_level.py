@@ -281,7 +281,7 @@ def test_tambah_siswa_menolak_tingkat_ngawur(db):
              "sandi_anak": "sandi-uji-12345"}, "guru"
     )
     assert pesan == ""
-    assert "Kelas 3" in galat
+    assert "profil parameter" in galat and "P3" in galat
     assert db.execute("SELECT 1 FROM siswa WHERE nama = 'Salah'").fetchone() is None
 
 

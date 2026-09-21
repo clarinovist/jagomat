@@ -15,6 +15,8 @@ import admin_queries as Q
 import brand
 from admin_style import GAYA_ADMIN
 import design_tokens as T
+import learning_profile_ui
+from learning_profile import label_kelas_sekolah
 
 
 SECTION = (
@@ -340,13 +342,13 @@ def render_siswa(
         '<input type="hidden" name="mode" value="cari"><input type="hidden" name="section" value="siswa">'
         '<input type="hidden" name="csrf" value="%s">'
         '<label>Cari nama, login, atau keluarga<input name="cari" maxlength="80" value="%s" autocomplete="off"></label>'
-        '<label>Kelas<select name="tingkat">%s%s</select></label>'
+        '<label>Profil parameter<select name="tingkat">%s%s</select></label>'
         '<label>Keluarga<select name="keluarga_id">%s</select></label>'
         '<label>Kondisi<select name="status">%s%s</select></label>'
         '<button class="admin-tombol" type="submit">Cari</button></form></section>'
         % (
             _e(csrf), _e(data.cari),
-            _opsi("", "Semua kelas", data.tingkat),
+            _opsi("", "Semua profil", data.tingkat),
             "".join(_opsi(level, level, data.tingkat) for level in ("P3", "P4", "P5", "P6")),
             opsi_keluarga,
             _opsi("semua", "Semua", data.status),
@@ -365,7 +367,7 @@ def render_siswa(
         % (
             item.id,
             _e(item.nama),
-            _e(item.tingkat),
+            _e(label_kelas_sekolah(item.kelas_sekolah)),
             _e(item.pemilik or "Pemilik kosong"),
             _e(item.login_pengguna or "Belum ada login eksplisit"),
             item.jumlah_sesi,
@@ -385,7 +387,7 @@ def render_siswa(
         form
         + '<section class="admin-kartu"><h2>Daftar siswa</h2>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th>Siswa</th><th>Kelas</th><th>Keluarga</th><th>Login</th><th>Sesi</th><th>Kondisi</th></tr></thead>'
+        '<thead><tr><th>Siswa</th><th>Kelas sekolah</th><th>Keluarga</th><th>Login</th><th>Sesi</th><th>Kondisi</th></tr></thead>'
         '<tbody>%s</tbody></table></div>%s</section>'
         % (
             baris,
@@ -406,7 +408,7 @@ def render_detail_keluarga(
     baris = "".join(
         '<tr><td><a href="/admin?section=siswa&amp;id=%d">%s</a></td>'
         '<td>%s</td><td data-angka>%d</td><td>%s</td></tr>'
-        % (item.id, _e(item.nama), _e(item.tingkat), item.jumlah_sesi, _badge_status(item.status))
+        % (item.id, _e(item.nama), _e(label_kelas_sekolah(item.kelas_sekolah)), item.jumlah_sesi, _badge_status(item.status))
         for item in siswa.item
     ) or '<tr><td colspan="4" class="admin-kosong">Keluarga ini belum memiliki siswa.</td></tr>'
     if tindakan is None and keluarga.kategori == "orang_tua" and keluarga.id_akun:
@@ -435,7 +437,7 @@ def render_detail_keluarga(
         + tindakan
         + '<section class="admin-kartu"><h2>Siswa dalam keluarga</h2>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th>Siswa</th><th>Kelas</th><th>Sesi</th><th>Kondisi</th></tr></thead>'
+        '<thead><tr><th>Siswa</th><th>Kelas sekolah</th><th>Sesi</th><th>Kondisi</th></tr></thead>'
         '<tbody>%s</tbody></table></div>%s</section>'
         % (
             baris,
@@ -453,7 +455,7 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
     sesi = "".join(
         '<tr><td><a href="/sesi/%d">Sesi %d</a></td><td>%s</td><td>%s</td><td>%s</td></tr>'
         % (
-            item.id, item.id, _e(item.tingkat), _e(item.waktu_aktivitas),
+            item.id, item.id, _e('Profil ' + item.tingkat), _e(item.waktu_aktivitas),
             '<span class="admin-badge batal">Dibatalkan</span>'
             if item.dibatalkan else '<span class="admin-badge">Tercatat</span>',
         )
@@ -471,29 +473,32 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
             login = '<a class="admin-tautan" href="/admin/tinjau?aksi=student_login_create&amp;id=%d">Buat login murid</a>' % siswa.id
         tindakan = (
             '<p class="admin-aksi-baca"><a class="admin-tautan" '
-            'href="/admin/tinjau?aksi=student_level_update&amp;id=%d">Ubah kelas</a>%s</p>'
+            'href="/admin/tinjau?aksi=student_school_grade_update&amp;id=%d">Ubah kelas sekolah</a>%s</p>'
             % (siswa.id, login)
         )
     return (
         '<p><a href="/admin?section=siswa">← Kembali ke daftar siswa</a></p>'
         '<section class="admin-kartu"><h2>Identitas siswa</h2><dl class="admin-rincian">'
         '<dt>Nama panggilan</dt><dd>%s</dd><dt>ID siswa</dt><dd>%d</dd>'
-        '<dt>Kelas profil</dt><dd>%s</dd><dt>Keluarga</dt><dd>%s</dd>'
+        '<dt>Kelas sekolah</dt><dd>%s</dd><dt>Konteks latihan</dt><dd>Profil %s</dd>'
+        '<dt>Keluarga</dt><dd>%s</dd>'
         '<dt>Login eksplisit</dt><dd>%s</dd><dt>Jumlah sesi</dt><dd>%d</dd>'
         '<dt>Kondisi</dt><dd>%s</dd></dl>'
         '<div class="admin-aksi-baca"><a class="admin-tautan" href="/anak/%d">Buka profil</a>'
         '<a class="admin-tautan" href="/laporan/%d">Buka laporan</a></div></section>'
         % (
-            _e(siswa.nama), siswa.id, _e(siswa.tingkat),
+            _e(siswa.nama), siswa.id, _e(label_kelas_sekolah(siswa.kelas_sekolah)), _e(siswa.tingkat),
             _e(siswa.pemilik or "Pemilik kosong"),
             _e(siswa.login_pengguna or "Belum ada login eksplisit"),
             siswa.jumlah_sesi, _badge_status(siswa.status), siswa.id, siswa.id,
         )
         + tindakan
         + '<section class="admin-kartu"><h2>Aktivitas sesi terbaru</h2>'
-        '<p class="admin-meta">Riwayat administratif saja; bukan status belajar atau kelulusan.</p>'
+        '<p class="admin-meta">Kelas sekolah tidak menentukan kemampuan atau konteks soal lama. '
+        'Data P3–P6 lama tidak dipakai untuk menebak kelas. '
+        'Riwayat administratif saja; bukan status belajar atau kelulusan.</p>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th>Sesi</th><th>Level sesi</th><th>Waktu</th><th>Status</th></tr></thead>'
+        '<thead><tr><th>Sesi</th><th>Profil parameter sesi</th><th>Waktu</th><th>Status</th></tr></thead>'
         '<tbody>%s</tbody></table></div></section>' % sesi
     )
 
@@ -568,6 +573,25 @@ def form_tindakan_akun(
     return '<section class="admin-kartu admin-form-tindakan"><h2>Tindakan akun</h2>%s</section>' % "".join(bagian)
 
 
+def form_kelas_sekolah(data: Q.DetailSiswa, csrf: str, token: str) -> str:
+    """Aksi baru metadata, bukan form ubah level warisan."""
+    return (
+        '<section class="admin-kartu"><h2>Ubah kelas sekolah</h2>'
+        '<p id="keterangan-kelas">%s</p>'
+        '<form method="post" action="/admin/siswa">'
+        '<input type="hidden" name="csrf" value="%s">'
+        '<input type="hidden" name="tinjauan" value="%s">'
+        '<input type="hidden" name="aksi" value="student_school_grade_update">'
+        '<input type="hidden" name="revisi_profil" value="%d">'
+        '<label for="admin-kelas-sekolah">Kelas sekolah (opsional)</label>'
+        '<select id="admin-kelas-sekolah" name="kelas_sekolah" aria-describedby="keterangan-kelas">%s</select>'
+        '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
+        '<button class="admin-tombol" type="submit">Simpan kelas sekolah</button>'
+        '</form></section>'
+    ) % (_e(learning_profile_ui.KETERANGAN_KELAS), _e(csrf), _e(token),
+         data.siswa.revisi_profil, learning_profile_ui.opsi_kelas(data.siswa.kelas_sekolah))
+
+
 def form_tindakan_siswa(data: Q.DetailSiswa, csrf: str, token_level: str, token_login: str = "") -> str:
     siswa = data.siswa
     level = "".join(
@@ -580,9 +604,9 @@ def form_tindakan_siswa(data: Q.DetailSiswa, csrf: str, token_level: str, token_
         '<form method="post" action="/admin/siswa">'
         '<input type="hidden" name="aksi" value="student_level_update">'
         '<input type="hidden" name="csrf" value="%s"><input type="hidden" name="tinjauan" value="%s">'
-        '<label>Kelas baru<select name="tingkat_baru">%s</select></label>'
+        '<label>Profil parameter baru<select name="tingkat_baru">%s</select></label>'
         '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
-        '<button class="admin-tombol" type="submit">Ubah kelas</button></form>'
+        '<button class="admin-tombol" type="submit">Ubah profil parameter warisan</button></form>'
         % (_e(csrf), _e(token_level), level)
     )
     if not token_level:
@@ -745,7 +769,8 @@ def render_riwayat(data, *, filter_data=None) -> str:
         "account_login_delete": "Hapus login",
         "account_teacher_create": "Buat orang tua",
         "student_login_create": "Buat login murid",
-        "student_level_update": "Ubah kelas", "student_delete": "Hapus siswa kosong",
+        "student_level_update": "Ubah profil parameter warisan",
+        "student_school_grade_update": "Ubah kelas sekolah", "student_delete": "Hapus siswa kosong",
         "registration_config_update": "Ubah pendaftaran",
     }
     baris = "".join(

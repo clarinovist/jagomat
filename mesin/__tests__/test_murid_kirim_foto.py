@@ -139,7 +139,7 @@ def _sesi_untuk_feby(server) -> int:
     server.minta(
         f"/sesi-baru/{siswa_id}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "pola-bilangan"},
+        data={"topik": "pola-bilangan", "profil_parameter": "P3"},
     )
     with server.buka() as kon:
         return int(kon.execute(

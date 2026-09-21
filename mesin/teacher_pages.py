@@ -30,7 +30,8 @@ from teacher_corrections import (
 )
 from generator import LEVEL_BAWAAN
 from template_labels import nama_tipe_soal as _nama_template
-from templates import LEVEL, Soal, label_kelas
+from templates import LEVEL, Soal
+from question_context import label_profil_parameter as label_kelas
 from topics import TOPIK_BAWAAN, ambil, daftar_topik, dari_sesi
 from teacher_style import GAYA_GURU as GAYA, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
 from style_stitch import GAYA_STITCH
@@ -462,6 +463,14 @@ def _halaman_stitch(
 <body class="st"><div class="{kelas}">{batang}{isi}</div>{skrip}</body></html>""".encode()
 
 
+def _kelas_sekolah_profil(kon, siswa):
+    """Caller sudah mengotorisasi; profil tanpa pemilik tidak ditebak kelasnya."""
+    import learning_profile
+    if not siswa['pemilik']:
+        return None
+    return learning_profile.baca(kon, int(siswa['id']), pemilik=siswa['pemilik']).kelas_sekolah
+
+
 def halaman_utama_stitch(
     kon,
     pesan: str = "",
@@ -512,13 +521,15 @@ def halaman_utama_stitch(
         if peran == "admin":
             label_keluarga = f'<span>keluarga: {html.escape(s["pemilik"] or "warisan")}</span>'
         nama = str(s["nama"])
+        from learning_profile import label_kelas_sekolah
+        kelas_sekolah = _kelas_sekolah_profil(kon, s)
         baris.append(
             f'<a class="st-kartu kartu-anak" href="/anak/{s["id"]}">'
             f'<span class="guru-inisial-st" aria-hidden="true">{html.escape(nama[:1].upper())}</span>'
             '<div class="guru-identitas-st">'
             f'<h3 class="guru-nama-st">{html.escape(nama)}</h3>'
             '<div class="guru-meta-st">'
-            f'<span>{html.escape(label_kelas(str(s["tingkat"])))}</span>'
+            f'<span>{html.escape(label_kelas_sekolah(kelas_sekolah))}</span>'
             f'<span>{jumlah_sesi} latihan tercatat</span>{label_batal}{label_keluarga}</div>'
             f'<div class="guru-status-daftar-st">{"".join(status)}</div></div>'
             '<span class="guru-buka-st">Buka profil <span aria-hidden="true">↗</span></span>'
@@ -611,6 +622,20 @@ def _kontrol_mode_sesi(draf=None) -> str:
     )
 
 
+def _kontrol_profil_parameter(identitas, terpilih=None):
+    """Pilih konfigurasi eksplisit tanpa menyamakannya dengan kelas/kemampuan."""
+    from question_context import label_profil_parameter
+    return (
+        f'<div class="strip-kolom"><label for="{identitas}-profil">Profil parameter latihan</label>'
+        f'<select id="{identitas}-profil" name="profil_parameter" class="st-input" required>'
+        '<option value="">Pilih profil</option>'
+        + ''.join(f'<option value="{p}"' + (' selected' if p == terpilih else '')
+                  + f'>{label_profil_parameter(p)}</option>' for p in LEVEL)
+        + '</select><small class="profil-petunjuk-st">Konfigurasi soal, bukan kelas sekolah '
+        'atau tingkat kemampuan. Materi yang belum tersedia pada profil pilihan akan ditolak.</small></div>'
+    )
+
+
 def halaman_anak(
     kon,
     siswa,
@@ -639,9 +664,9 @@ def halaman_anak(
         sesi = profile_history.tugas_terbaru(kon, siswa["id"], sorot) if section == "latihan" else []
     opsi_topik = "".join(
         f'<option value="{html.escape(t)}"'
-        f'{" selected" if draf_latihan and draf_latihan.topik == t else ""}>'
+        f'{" selected" if (draf_latihan.topik if draf_latihan else TOPIK_BAWAAN) == t else ""}>'
         f'{html.escape("Campuran semua topik" if t == "campuran" else ambil(t).nama)}</option>'
-        for t in _topik_untuk_level(siswa["tingkat"])
+        for t in daftar_topik()
     )
     def _kelas_sorot(rid):
         return "sorot-baru" if sorot is not None and rid == sorot else ""
@@ -745,7 +770,8 @@ def halaman_anak(
     strip_sesi = (
         f'<form method="post" action="/sesi-baru/{siswa["id"]}" class="strip-sesi profil-manuel-st">'
         '<div class="profil-champs-st">'
-        f'<div class="strip-kolom"><label for="manual-topik">Topik</label>'
+        + _kontrol_profil_parameter('manual', getattr(draf_latihan, 'profil_parameter', siswa['tingkat']))
+        + f'<div class="strip-kolom"><label for="manual-topik">Topik</label>'
         f'<select id="manual-topik" name="topik" class="st-input">{opsi_topik}</select></div>'
         '<div class="strip-kolom"><label for="manual-jumlah">Jumlah soal</label>'
         '<select id="manual-jumlah" name="jumlah_soal" class="st-input" aria-describedby="manual-jumlah-petunjuk">'
@@ -791,13 +817,14 @@ def halaman_anak(
     centang_topik = "".join(
         f'<label class="mode-opsi"><input type="checkbox" name="topik" '
         f'value="{html.escape(t)}"> {html.escape(ambil(t).nama)}</label>'
-        for t in _topik_untuk_level(siswa["tingkat"])
+        for t in daftar_topik()
         if t != "campuran"      # campuran sudah = semua, tak perlu dicentang
     )
     strip_gabungan = (
         '<form method="post" '
         f'action="/sesi-gabungan/{siswa["id"]}" class="strip-sesi">'
-        '<div class="strip-kolom">'
+        + _kontrol_profil_parameter('gabungan', siswa['tingkat'])
+        + '<div class="strip-kolom">'
         "<label>Latihan gabungan — pilih beberapa topik</label>"
         '<p class="sub">Centang dua topik atau lebih. Soalnya dicampur '
         "bergantian antar-topik yang kamu pilih.</p>"
@@ -913,7 +940,8 @@ def halaman_anak(
     )
     return _halaman_stitch(
         f"{siswa['nama']} — {T.NAMA_PRODUK}",
-        profile_workspace.bingkai(siswa, section, total_sesi, isi_profil, peran=peran, pesan=pesan) + skrip_bagikan,
+        profile_workspace.bingkai(siswa, section, total_sesi, isi_profil, peran=peran, pesan=pesan,
+                                  kelas_sekolah=_kelas_sekolah_profil(kon, siswa)) + skrip_bagikan,
         ident=(pengguna if pengguna else "guru", peran),
         kelas_bungkus="lebar pendamping-editorial-st profil-editorial-st profil-workspace-st",
         privat=privat,
@@ -952,7 +980,7 @@ def _tombol_cerita(kon, sesi_id: int) -> str:
             f'<form method="post" action="/cerita/{sesi_id}" '
             f'style="margin-top:.6rem">'
             f'<button type="submit" class="tombol-amber" '
-            f'style="margin-top:0">Variasi cerita &nbsp;✨</button></form>'
+            f'style="margin-top:0">Ubah cerita soal</button></form>'
         )
 
     jumlah_visual = sum(p.status_visual == "siap" for p in penyajian)
@@ -971,8 +999,10 @@ def _tombol_cerita(kon, sesi_id: int) -> str:
         tombol = ""
 
     return (
-        f'<div class="kartu kartu-variasi"><h2>Variasi cerita ✨</h2>'
-        f'<p class="sub">{catatan}</p>{tombol}</div>'
+        '<details class="cerita-tambahan-st">'
+        '<summary>Opsi tambahan: ubah cerita soal</summary>'
+        '<div class="kartu-variasi"><p>Mengubah redaksi; angka dan jawaban tetap.</p>'
+        f'<p class="sub">{catatan}</p>{tombol}</div></details>'
     )
 
 def halaman_bagikan_sesi(sesi_id: int, siswa_id: int, tautan: str, pengguna: str, peran: str) -> bytes:
@@ -1056,7 +1086,7 @@ def halaman_konfirmasi_hapus(
     )
 
 def _pil_sesi(kon, sesi_id: int, aktif: str) -> str:
-    """Pil navigasi di halaman sesi: Koreksi · Cetak & Cerita · Lampiran."""
+    """Pil navigasi di halaman sesi: Koreksi · Cetak · Lampiran."""
     n_lamp = kon.execute(
         "SELECT COUNT(*) FROM lampiran WHERE sesi_id = ?", (sesi_id,)
     ).fetchone()[0]
@@ -1067,7 +1097,7 @@ def _pil_sesi(kon, sesi_id: int, aktif: str) -> str:
     return (
         '<nav class="pil-sesi" aria-label="Alat sesi">'
         + _a("koreksi", "Koreksi", f"/sesi/{sesi_id}")
-        + _a("cetak", "Cetak & Cerita", f"/sesi/{sesi_id}/cetak")
+        + _a("cetak", "Cetak", f"/sesi/{sesi_id}/cetak")
         + _a("lampiran", f"Lampiran ({n_lamp})", f"/sesi/{sesi_id}/lampiran")
         + "</nav>"
     )
@@ -1077,7 +1107,7 @@ def halaman_sesi_cetak(
     kon, sesi_id: int, pesan: str = "", peran: str = "guru",
     pengguna: str = "",
 ) -> bytes | None:
-    """Halaman cetak & cerita per sesi — lembar soal/kunci + variasi cerita."""
+    """Halaman cetak per sesi; perubahan cerita merupakan opsi tambahan."""
     info = kon.execute(
         """SELECT s.id, s.tanggal, s.seed, s.level, s.topik, s.mode,
                   w.nama, w.id AS siswa_id
@@ -1094,7 +1124,7 @@ def halaman_sesi_cetak(
         f"Sesi #{sesi_id} — Cetak",
         f'<div class="jejak"><a href="/anak/{info["siswa_id"]}">&larr; '
         f'Semua sesi {html.escape(info["nama"])}</a></div>'
-        '<header class="editorial-kepala-st"><p class="editorial-alis-st">CETAK &amp; CERITA</p>'
+        '<header class="editorial-kepala-st"><p class="editorial-alis-st">CETAK</p>'
         f'<h1 id="judul-cetak">{html.escape(info["nama"])} — Sesi #{sesi_id}</h1></header>'
         f'<p class="sub">{info["tanggal"]} &middot; '
         f'{html.escape(label_kelas(_ambil(info, "level", LEVEL_BAWAAN)))} &middot; '
@@ -1190,7 +1220,7 @@ def _pil_sesi_stitch(kon, sesi_id: int, aktif: str) -> str:
     return (
         '<nav class="pil-sesi-st" aria-label="Alat sesi">'
         + _a("koreksi", "Koreksi", f"/sesi/{sesi_id}")
-        + _a("cetak", "Cetak &amp; Cerita", f"/sesi/{sesi_id}/cetak")
+        + _a("cetak", "Cetak", f"/sesi/{sesi_id}/cetak")
         + _a("lampiran", f"Lampiran ({n_lamp})", f"/sesi/{sesi_id}/lampiran")
         + "</nav>"
     )
@@ -1254,6 +1284,10 @@ def halaman_sesi_stitch(
         and info["level"] == info["level_aktif"]
         and not sesi_dibatalkan
     )
+    from skill_pilot_store import daftar_pilot
+    sesi_pilot = sesi_id in daftar_pilot(kon, int(info['siswa_id']))[0]
+    if sesi_pilot:
+        sesi_terpandu_aktif = not sesi_dibatalkan
     sesi_terpandu_riwayat = sesi_terpandu and not sesi_terpandu_aktif
     tautan_aktif = (
         not sesi_dibatalkan
@@ -1728,7 +1762,7 @@ def halaman_sesi_stitch(
 
     blok_remedial = ""
     blok_latihan_serupa = ""
-    if sudah_dikirim and info["direview"]:
+    if sudah_dikirim and info["direview"] and not sesi_pilot:
         sasaran_sesi = database.sasaran_remedial_sesi(
             kon, int(info["siswa_id"]), sesi_id
         )
@@ -1742,7 +1776,7 @@ def halaman_sesi_stitch(
             ),
             sumber_sesi_id=sesi_id,
         )
-    if sudah_dikirim:
+    if sudah_dikirim and not sesi_pilot:
         blok_latihan_serupa = _blok_latihan_serupa(kon, sesi_id)
 
     if sudah_dikirim:
@@ -1985,7 +2019,7 @@ def halaman_sesi_stitch(
     if hasil_pemetaan:
         label_tab = "Hasil pemetaan" if rencana_pemetaan else "Ringkasan &amp; tinjauan"
         pil = pil.replace(">Koreksi</a>", f">{label_tab}</a>")
-    tautan_profil = f'/anak/{info["siswa_id"]}'
+    tautan_profil = f'/anak/{info["siswa_id"]}' + ('?section=rencana' if sesi_pilot else '')
     aksi_rencana = (
         f'<a class="panduan-rencana-st" href="{tautan_profil}">Lihat rencana berikutnya</a>'
         if konfirmasi_masih_aktif and not sesi_dibatalkan and not masalah_konfirmasi
@@ -2040,6 +2074,7 @@ def halaman_sesi_stitch(
         f"{palang_enter}{pil}{konteks_pendamping}"
         f"{status_sesi}{progres_tinjauan}"
         f"{hasil_pemetaan}{rencana_pemetaan}"
+        + (__import__('skill_pilot_ui').materi_sesi(kon,sesi_id,int(info['siswa_id'])) if sesi_pilot else '') +
         f"{aksi_rencana}"
         f"{blok_isi}"
         f"{alat_lanjutan}"

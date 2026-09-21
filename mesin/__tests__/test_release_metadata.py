@@ -41,6 +41,15 @@ def test_mode_dikenal_dan_readiness_diturunkan(mode):
 def test_persiapan_mismatch_bukan_compatible_atau_siap():
     hasil = metadata.buat_manifest(config(), artefak("a", "f" * 64), artefak("b", "e" * 64))
     assert hasil["compatible"] is False and hasil["siap_pasang"] is False
+    assert hasil["pair_verified"] is False
+    assert hasil["candidate_contract"] == "f" * 64
+    assert hasil["recovery_contract"] == "e" * 64
+
+
+def test_persiapan_menolak_klaim_pair_teruji_meski_kontrak_sama():
+    with pytest.raises(ValueError, match="Bukti pasangan tidak cocok dengan mode"):
+        metadata.buat_manifest(config(), artefak("a", "e" * 64),
+                               artefak("b", "e" * 64), pasangan_teruji=True)
 
 
 @pytest.mark.parametrize("mode", ["migrasi", "rutin"])
@@ -191,6 +200,40 @@ def test_cli_manifest_terikat_semua_artefak_dan_proof(tmp_path, monkeypatch, mod
     lama = output.read_bytes()
     assert metadata.main(argv) == 1 and output.read_bytes() == lama
     assert len(panggilan) == 2
+
+
+def test_cli_persiapan_mismatch_mencatat_kontrak_dan_menolak_proof(tmp_path, monkeypatch):
+    konfigurasi, teks = _workflow_mode("persiapan")
+    config_path = tmp_path / "config.json"
+    config_path.write_text(json.dumps(konfigurasi))
+    workflow = tmp_path / "workflow.yml"
+    workflow.write_text(teks)
+    output = tmp_path / "manifest.json"
+    proof = tmp_path / "pair.json"
+    proof.write_text('{}')
+    panggilan = []
+
+    def probe(digest, revision):
+        panggilan.append((digest, revision))
+        kontrak = "f" * 64 if revision == "a" * 40 else konfigurasi["recovery_contract"]
+        return {"digest": digest, "revision": revision, "contract": kontrak}
+
+    monkeypatch.setattr(metadata, "probe_artefak", probe)
+    argv = ["--config", str(config_path), "--workflow", str(workflow), "--output", str(output),
+            "--candidate-revision", "a" * 40, "--candidate-digest", "sha256:" + "a" * 64,
+            "--recovery-revision", konfigurasi["recovery_revision"],
+            "--recovery-digest", "sha256:" + "b" * 64]
+    assert metadata.main(argv + ["--pair-proof", str(proof)]) == 1
+    assert panggilan == [] and not output.exists()
+    assert metadata.main(argv) == 0
+    hasil = json.loads(output.read_text())
+    assert hasil["compatible"] is False
+    assert hasil["pair_verified"] is False
+    assert hasil["siap_pasang"] is False
+    assert hasil["candidate_contract"] == "f" * 64
+    assert hasil["recovery_contract"] == konfigurasi["recovery_contract"]
+    assert panggilan == [("sha256:" + "a" * 64, "a" * 40),
+                         ("sha256:" + "b" * 64, konfigurasi["recovery_revision"])]
 
 
 def test_cli_probe_gagal_tidak_menerbitkan_manifest(tmp_path, monkeypatch):

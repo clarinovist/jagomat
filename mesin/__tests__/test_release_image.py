@@ -154,7 +154,9 @@ def test_ringkasan_tidak_lengkap_bukan_lulus(verifier, monkeypatch, capsys, isi)
 
 @pytest.mark.parametrize('ubah', [{'provider_calls': 1}, {'http_checks': 0}, {'skema': 3},
                                    {'skenario_tindakan': 0}, {'records': ['rahasia-sintetis']},
-                                   {'ok': 1}, {'provider_calls': False}])
+                                   {'ok': 1}, {'provider_calls': False},
+                                   {'profil_checks': 0}, {'profil_checks': True},
+                                   {'admin_schema': 4}, {'admin_schema': None}])
 def test_ringkasan_harus_exact_dan_tidak_mengeluarkan_record(verifier, monkeypatch, capsys, ubah):
     docker_palsu(monkeypatch, verifier, run=subprocess.CompletedProcess(
         [], 0, json.dumps({**verifier.RINGKASAN, **ubah}), ''))

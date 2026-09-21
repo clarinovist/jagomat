@@ -142,7 +142,7 @@ def test_css_studio_scoped_responsif_dan_fallback_kontrol_manual():
     akhir = sumber.index(".koreksi-editorial-st", mulai)
     blok = sumber[mulai:akhir]
 
-    assert 'grid-template-areas: "utama pendamping" "aksi aksi" "alur alur"' in blok
+    assert 'grid-template-areas: "utama" "pendamping" "aksi" "alur"' in blok
     assert "grid-template-columns: repeat(6, minmax(0, 1fr))" in blok
     aksi = blok.split(".profil-editorial-st .studio-aksi-st {{", 1)[1].split("}}", 1)[0]
     assert "align-self: start" in aksi

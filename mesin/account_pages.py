@@ -11,7 +11,8 @@ import html
 
 import auth
 import database
-from generator import LEVEL_BAWAAN
+import learning_profile
+import learning_profile_ui
 from templates import LEVEL, label_kelas, level_valid
 from teacher_pages import _halaman
 
@@ -23,6 +24,7 @@ PETA_SECTION_AKUN = {
     "sandi": "akun",
     "anak_baru": "siswa",
     "tingkat": "siswa",
+    "kelas_sekolah": "siswa",
     "siswa_hapus": "siswa",
     "akun_murid_tambah": "akun-murid",
     "akun_murid_hapus": "akun-murid",
@@ -195,17 +197,12 @@ def halaman_akun(
 
     daftar = "".join(
         f'<tr><td data-label="Nama">{html.escape(s["nama"])}</td>'
-        f'<td data-label="Kelas"><form method="post" action="/akun" style="display:flex;gap:.4rem">'
-        f'<input type="hidden" name="aksi" value="tingkat">'
-        f'<input type="hidden" name="siswa_id" value="{s["id"]}">'
-        f'<select name="tingkat" style="width:auto" aria-label="Kelas {html.escape(s["nama"])}">'
-        + "".join(
-            f'<option value="{lv}"{" selected" if lv == s["tingkat"] else ""}>{html.escape(label_kelas(lv))}</option>'
-            for lv in LEVEL
-        )
-        + '</select>'
-        f'<button type="submit" style="padding:.3rem .7rem;font-size:.85rem">'
-        f"Simpan</button></form></td>"
+        f'<td data-label="Kelas sekolah">'
+        + (learning_profile_ui.form_kelas(
+            learning_profile.baca(kon, s['id'], pemilik=pengguna), s['nama']
+        ) if pengguna and peran == 'guru' else 'Kelas belum diisi')
+        + f'<p class="sub">Konteks latihan: Profil {html.escape(s["tingkat"])}. '
+        'Bukan kelas sekolah atau penilaian kemampuan.</p></td>'
         f'<td class="angka" data-label="Sesi">'
         f'{kon.execute("SELECT COUNT(*) AS n FROM sesi WHERE siswa_id = ?", (s["id"],)).fetchone()["n"]}'
         f"</td>"
@@ -218,9 +215,9 @@ def halaman_akun(
         for s in database.daftar_siswa(kon, None if peran == "admin" else pengguna)
     ) or '<tr><td colspan="5" class="kosong">Belum ada siswa. Tambahkan anak pertama di bawah.</td></tr>'
 
-    kabar = f'<div class="pesan">{html.escape(pesan)}</div>' if pesan else ""
+    kabar = f'<div class="pesan" role="status">{html.escape(pesan)}</div>' if pesan else ""
     if galat:
-        kabar += f'<div class="pesan galat">{html.escape(galat)}</div>'
+        kabar += f'<div class="pesan galat" role="alert">{html.escape(galat)}</div>'
 
     if pengguna is not None:
         pengguna_tampil = html.escape(pengguna)
@@ -256,7 +253,9 @@ def halaman_akun(
         f'<div class="kartu">'
         f'<div class="kartu-judul"><span class="ikon-kartu">📚</span>'
         f"<h2>Siswa</h2></div>"
-        f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Kelas</th>'
+        f'<p class="sub" id="keterangan-kelas">{learning_profile_ui.KETERANGAN_KELAS} '
+        'Data lama P3–P6 tidak dipakai untuk menebak kelas sekolah.</p>'
+        f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Kelas sekolah</th>'
         f"<th>Sesi</th><th>Akun latihan</th><th>Aksi</th></tr>{daftar}</table></div>"
         f'<p class="sub" style="margin-top:.7rem">Anak baru ditambahkan dari '
         f'kartu "Tambah anak" di bawah — sekalian dengan akun latihannya.'
@@ -275,13 +274,17 @@ def halaman_akun(
         f'<div class="baris">'
         f'<div><label for="anak-nama">Nama anak (nama panggilan)</label>'
         f'<input id="anak-nama" type="text" name="nama" placeholder="mis. Aisha" required></div>'
-        f'<div><label for="anak-kelas">Kelas</label>'
-        f'<select id="anak-kelas" name="tingkat">'
-        + "".join(
-            f'<option value="{lv}"{" selected" if lv == LEVEL_BAWAAN else ""}>{html.escape(label_kelas(lv))}</option>'
-            for lv in LEVEL
-        )
-        + f"</select></div></div>"
+        f'<div><label for="anak-kelas">Kelas sekolah (opsional)</label>'
+        f'<select id="anak-kelas" name="kelas_sekolah" aria-describedby="keterangan-kelas">'
+        + learning_profile_ui.opsi_kelas()
+        + '</select></div></div>'
+        '<label for="anak-profil">Profil parameter awal latihan</label>'
+        '<select id="anak-profil" name="profil_parameter" required aria-describedby="anak-profil-bantuan">'
+        '<option value="">— pilih profil parameter —</option>'
+        + ''.join(f'<option value="{lv}">Profil {lv}</option>' for lv in LEVEL)
+        + '</select><p class="sub" id="anak-profil-bantuan">P3–P6 adalah konfigurasi pola dan '
+        'parameter soal, bukan kelas sekolah atau ukuran kemampuan. Pilih secara eksplisit; '
+        'kelas sekolah tidak menentukan pilihan ini. Latihan manual tetap bisa dibuat tanpa pemetaan.</p>'
         f'<label for="anak-login">Nama login anak (opsional — bawaan sama dengan nama anak)'
         f"</label>"
         f'<input id="anak-login" type="text" name="nama_akun" '
@@ -424,7 +427,9 @@ def proses_akun(
         yang hanya bisa dirapikan manual lewat halaman akun.
         """
         nama = data.get("nama", "").strip()
-        tingkat = data.get("tingkat", LEVEL_BAWAAN).strip() or LEVEL_BAWAAN
+        # Payload programatis lama yang eksplisit tetap profil, bukan kelas.
+        # Tidak ada default tersembunyi ketika pilihan hilang/kosong.
+        tingkat = data.get('profil_parameter', data.get('tingkat', '')).strip()
         sandi_anak = data.get("sandi_anak", "")
         # Nama login boleh beda dari nama anak — jalannya bila nama anak
         # sudah dipakai keluarga lain sebagai login (nama anak tetap unik
@@ -435,8 +440,14 @@ def proses_akun(
             return "", "Nama anak tidak boleh kosong."
         if len(nama) > 40:
             return "", "Nama terlalu panjang."
+        if ('profil_parameter' in data and 'tingkat' in data) or 'level' in data:
+            return '', 'Form profil lama atau tidak cocok. Muat ulang sebelum menambahkan anak.'
         if not level_valid(tingkat):
-            return "", f"Kelas harus salah satu dari: {', '.join(label_kelas(lv) for lv in LEVEL)}."
+            return '', 'Pilih profil parameter awal secara eksplisit: P3, P4, P5, atau P6.'
+        try:
+            kelas = learning_profile_ui.baca_kelas_form(data.get('kelas_sekolah', ''))
+        except ValueError as galat:
+            return '', str(galat)
         if len(sandi_anak) < 8:
             return "", "Kata sandi anak minimal 8 karakter."
         if kon.execute(
@@ -449,6 +460,7 @@ def proses_akun(
                         "Tambahkan angka/inisial, mis. aisha2.")
 
         siswa_id = database.tambah_siswa(kon, nama, tingkat, pemilik=pengguna_kini)
+        learning_profile.simpan_kelas(kon, siswa_id, kelas, revisi=0, pemilik=pengguna_kini)
         try:
             auth.tambah_akun(nama_akun, sandi_anak, "murid", siswa_id=siswa_id)
         except ValueError as e:
@@ -462,13 +474,38 @@ def proses_akun(
             return "", str(e)
         catatan = " (persetujuan orang tua dicatat)" if data.get("persetujuan_ortu") else ""
         return (
-            f"Anak {nama} ditambahkan ({label_kelas(tingkat)}) beserta akun latihannya{catatan}. "
+            f"Anak {nama} ditambahkan ({learning_profile.label_kelas_sekolah(kelas)}; "
+            f"Profil {tingkat}) beserta akun latihannya{catatan}. "
             f"Langkah 3: kembali ke beranda, klik nama {nama}, lalu tekan "
             f"“Buat sesi baru”. Anak masuk lewat /murid dengan nama {nama_akun}.",
             "",
         )
 
+    if aksi == 'kelas_sekolah':
+        # Periksa resource sebelum validasi isi agar asing/hilang identik.
+        if peran != 'guru':
+            raise learning_profile.ProfilTidakDitemukan('Profil tidak ditemukan.')
+        try:
+            siswa_id = int(data.get('siswa_id', ''))
+            if not 0 < siswa_id <= 9_223_372_036_854_775_807:
+                raise ValueError('ID di luar rentang')
+        except (ValueError, TypeError):
+            raise learning_profile.ProfilTidakDitemukan('Profil tidak ditemukan.')
+        learning_profile.baca(kon, siswa_id, pemilik=pengguna_kini)
+        try:
+            kelas = learning_profile_ui.baca_kelas_form(data.get('kelas_sekolah'))
+            revisi = learning_profile_ui.baca_revisi_form(data.get('revisi_profil'))
+            learning_profile.simpan_kelas(
+                kon, siswa_id, kelas, revisi=revisi, pemilik=pengguna_kini,
+            )
+        except learning_profile.ProfilTidakDitemukan:
+            raise
+        except ValueError as galat:
+            return '', str(galat)
+        return 'Kelas sekolah disimpan. Konteks latihan dan rencana belajar tidak berubah.', ''
+
     if aksi == "tingkat":
+        # Jalur programatis warisan, bukan perubahan kelas sekolah.
         # Menaikkan level anak. Sesi LAMA tidak ikut berubah — levelnya
         # tersimpan di baris sesi masing-masing, jadi riwayat tetap terbaca
         # apa adanya. Yang berubah hanya sesi yang dibuat setelah ini.

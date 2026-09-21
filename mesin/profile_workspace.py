@@ -22,9 +22,9 @@ def _e(nilai):
     return html.escape(str(nilai), quote=True)
 
 
-def bingkai(siswa, section, total, isi, *, peran='guru', pesan=''):
+def bingkai(siswa, section, total, isi, *, peran='guru', pesan='', kelas_sekolah=None):
     sid = int(siswa['id'])
-    from templates import label_kelas
+    from learning_profile import label_kelas_sekolah
     nav = ''.join('<a href="/anak/%d?section=%s"%s>%s</a>' %
                   (sid, k, ' aria-current="page"' if k==section else '', label)
                   for k,label in [('latihan','Buat latihan'),('rencana','Rencana belajar'),('riwayat','Riwayat <span>%d</span>' % total)])
@@ -32,9 +32,14 @@ def bingkai(siswa, section, total, isi, *, peran='guru', pesan=''):
     kabar = '<div class="st-banner-sukses" role="status">%s</div>' % _e(pesan) if pesan else ''
     return ('<main aria-labelledby="judul-profil"><div class="jejak"><a href="%s">&larr; Semua anak</a></div>'
             '<header class="kepala-anak-st editorial-kepala-st"><p class="editorial-alis-st">RUANG BELAJAR ANAK</p>'
-            '<h1 class="st" id="judul-profil">%s <span class="st-badge selesai">(%s)</span>%s</h1></header>'
+            '<h1 class="st" id="judul-profil">%s <span class="st-badge selesai">(%s)</span>%s</h1>'
+            '<p class="sub">Konteks latihan: Profil %s — bukan kelas sekolah atau ukuran kemampuan. '
+            '<a href="%s">Kelola kelas sekolah</a></p></header>'
             '<nav class="profil-tabs-st" aria-label="Bagian profil anak">%s</nav>%s%s</main>') % (
-                '/admin' if peran=='admin' else '/guru',_e(siswa['nama']),_e(label_kelas(str(siswa['tingkat']))),keluarga,nav,kabar,isi)
+                '/admin' if peran=='admin' else '/guru', _e(siswa['nama']),
+                _e(label_kelas_sekolah(kelas_sekolah)), keluarga, _e(siswa['tingkat']),
+                '/admin?section=siswa&amp;id=%d' % sid if peran == 'admin' else '/akun?section=siswa',
+                nav, kabar, isi)
 
 
 def _opsi(opsi, terpilih):
@@ -107,7 +112,7 @@ def riwayat(siswa_id, baris, total, filter_data, *, judul_topik, tanggal, badge_
         % (_e(ringkasan or 'Semua sesi · terbaru dahulu'), filter_html)
     ) + ('<div class="profil-reset-wrap-st">' + reset + '</div>' if total and reset else '')
     isi=[]
-    from templates import label_kelas
+    from question_context import label_profil_parameter as label_kelas
     for r in baris:
         judul,rincian=judul_topik(r['topik'])
         batal=r['dibatalkan'] is not None
@@ -148,6 +153,14 @@ def riwayat(siswa_id, baris, total, filter_data, *, judul_topik, tanggal, badge_
 
 GAYA_PROFIL = f"""
 /* Ruang kerja profil v2: seluruh selector terbatas ke halaman profil. */
+.profil-workspace-st .pilot-pemulihan-st {{ display:grid; gap:{T.SP_4}; }}
+.profil-workspace-st .pilot-pemulihan-st label {{ display:flex; align-items:flex-start; gap:{T.SP_3}; font-size:1rem; }}
+.profil-workspace-st .pilot-pemulihan-st input[type="checkbox"] {{ flex:none; width:1.25rem; height:1.25rem; margin-top:.2rem; }}
+.profil-workspace-st .pilot-pemulihan-st button {{ justify-self:start; }}
+.profil-workspace-st .pilot-mulai-st summary {{ padding:{T.SP_3}; min-height:{T.TARGET_SENTUH}; }}
+.profil-workspace-st .pilot-mulai-st > p {{ padding:0 {T.SP_4}; }}
+.profil-workspace-st .pilot-mulai-st label:has(input[type="checkbox"]) {{ display:flex; align-items:flex-start; gap:{T.SP_3}; }}
+.profil-workspace-st .pilot-mulai-st input[type="checkbox"] {{ width:1.25rem; height:1.25rem; min-height:0; flex:none; margin-top:.15rem; }}
 .pendamping-editorial-st.profil-editorial-st.profil-workspace-st {{ max-width:{T.LEBAR_LANDING}; }}
 .profil-workspace-st .profil-tabs-st {{ display:flex; gap:{T.SP_5}; overflow-x:auto; border-bottom:1px solid {T.BORDER_HALUS}; margin-bottom:{T.SP_5}; }}
 .profil-workspace-st .profil-tabs-st a {{ display:inline-flex; align-items:center; gap:{T.SP_2}; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} 0; color:{T.TEKS_VARIAN}; text-decoration:none; white-space:nowrap; border-bottom:3px solid transparent; font-weight:650; }}

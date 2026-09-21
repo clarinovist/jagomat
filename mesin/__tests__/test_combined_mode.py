@@ -53,7 +53,8 @@ def server(tmp_path, monkeypatch):
 
 
 def _data(mode=None):
-    data = [("topik", "pola-bilangan"), ("topik", "aritmatika-lanjut"), ("jumlah_soal", "4")]
+    data = [("topik", "pola-bilangan"), ("topik", "aritmatika-lanjut"), ("jumlah_soal", "4"),
+            ("profil_parameter", "P5")]
     if mode is not None:
         data.append(("mode", mode))
     return data
@@ -182,7 +183,7 @@ def test_default_form_sepuluh_soal_gabungan_bisa_dibuka(server):
     status, _, _ = server.minta(
         f"/sesi-gabungan/{server.siswa}", auth=("guru", SANDI_GURU),
         data=[("topik", "pola-bilangan"), ("topik", "teori-bilangan"),
-              ("jumlah_soal", "10"), ("mode", "drill")],
+              ("jumlah_soal", "10"), ("mode", "drill"), ("profil_parameter", "P5")],
     )
     assert status == 200
     with server.buka() as kon:

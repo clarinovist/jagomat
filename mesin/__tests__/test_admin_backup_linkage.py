@@ -65,6 +65,31 @@ def test_schema4_tanpa_tabel_batch_ditolak(tmp_path):
         admin_backup.validasi_bundle(bundle)
 
 
+@pytest.mark.parametrize('rusak', ['hapus', 'sidik', 'actor', 'target', 'revisi', 'anchor'])
+def test_receipt_kelas_sekolah_hilang_berbeda_ditolak(tmp_path, rusak):
+    import database
+    bundle = _buat_bundle(tmp_path)
+    with database.buka(bundle/'latihan.db') as kon:
+        sid = database.tambah_siswa(kon, 'Sintetis Profil', 'P5', pemilik='keluarga')
+    cmd = c.PerintahProfilSiswa('op_'+'d'*32, ACTOR, 3, c.AKSI_UBAH_KELAS_SEKOLAH, sid, 0, 2, 't'*48)
+    assert admin_service.ubah_kelas_sekolah(bundle/'admin-control.db', bundle/'sandi.json', bundle/'latihan.db', cmd).hasil.status == 'succeeded'
+    _manifest_ulang(bundle)
+    assert not admin_backup.validasi_bundle(bundle).perlu_rekonsiliasi
+    import sqlite3
+    with sqlite3.connect(bundle/'latihan.db') as kon:
+        if rusak == 'hapus': kon.execute('DELETE FROM operasi_admin_profil')
+        if rusak == 'sidik': kon.execute('UPDATE operasi_admin_profil SET sidik_perintah=?', ('f'*64,))
+        if rusak == 'actor': kon.execute("UPDATE operasi_admin_profil SET actor_id='actor_salah'")
+        if rusak == 'target': kon.execute('UPDATE operasi_admin_profil SET siswa_id=siswa_id+1')
+        if rusak == 'revisi': kon.execute('UPDATE operasi_admin_profil SET revisi_awal=1,revisi_hasil=2')
+    if rusak == 'anchor':
+        with sqlite3.connect(bundle/'admin-control.db') as kon:
+            kon.execute('DELETE FROM receipt_admin')
+    _manifest_ulang(bundle)
+    with pytest.raises(admin_backup.BackupTidakSah, match='profil'):
+        admin_backup.validasi_bundle(bundle)
+
+
 def test_role_auth_cacat_ditolak_walau_hash_manifest_cocok(tmp_path):
     bundle=_buat_bundle(tmp_path);p=bundle/'sandi.json';data=json.loads(p.read_text());data['akun'][0]['peran']='asing';p.write_text(json.dumps(data));_manifest_ulang(bundle)
     with pytest.raises(admin_backup.BackupTidakSah):admin_backup.validasi_bundle(bundle)

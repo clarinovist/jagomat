@@ -335,6 +335,8 @@ def buat_sesi_dari_rencana(
     occurrence: int = 1,
 ) -> int:
     """Validasi ulang lalu simpan satu sesi rekomendasi secara idempoten."""
+    if kon.execute('SELECT 1 FROM pilot_putaran WHERE putaran_id=?',(putaran_id,)).fetchone():
+        raise ValueError('Putaran pilot harus memakai penulis konteks pilot.')
     if rencana.tindakan not in _TINDAKAN_SESI:
         raise ValueError("rencana tidak dapat dibuat menjadi sesi")
     if not isinstance(seed, int) or seed < 0:
@@ -440,6 +442,9 @@ def buat_sesi_dari_rencana(
                WHERE id = ?""",
             (tujuan, putaran_id, bagian, kunci, sesi_id),
         )
+        import context_store
+        target_nomor = _target_per_nomor(urutan_aktual, fokus)
+        konteks = context_store.proyeksi(kon, sesi_id, {int(n): k for n, k in target_nomor.items()})
         kon.execute(
             """INSERT INTO kejadian_belajar
                    (siswa_id, putaran_id, sesi_id, jenis, data)
@@ -452,9 +457,8 @@ def buat_sesi_dari_rencana(
                     {
                         "tindakan": rencana.tindakan,
                         "fokus": [list(item) for item in fokus],
-                        "target_per_nomor": _target_per_nomor(
-                            urutan_aktual, fokus
-                        ),
+                        "target_per_nomor": target_nomor,
+                        "konteks_latihan": konteks,
                         "occurrence": occurrence,
                     },
                     ensure_ascii=False,

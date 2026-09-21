@@ -21,6 +21,7 @@ AKSI_HAPUS_LOGIN_SAGA = "student_login_delete_step"
 AKSI_BUAT_GURU = "account_teacher_create"
 AKSI_BUAT_LOGIN_MURID = "student_login_create"
 AKSI_UBAH_LEVEL = "student_level_update"
+AKSI_UBAH_KELAS_SEKOLAH = "student_school_grade_update"
 AKSI_HAPUS_SISWA = "student_delete"
 AKSI_UBAH_PENDAFTARAN = "registration_config_update"
 AKSI_AKUN_EXISTING = frozenset((
@@ -30,7 +31,7 @@ AKSI_AKUN_EXISTING = frozenset((
 AKSI_PEMBUATAN = frozenset((AKSI_BUAT_GURU, AKSI_BUAT_LOGIN_MURID))
 AKSI_AKUN = AKSI_AKUN_EXISTING | AKSI_PEMBUATAN
 AKSI_AUDIT = AKSI_AKUN | frozenset((
-    AKSI_UBAH_LEVEL, AKSI_HAPUS_SISWA, AKSI_UBAH_PENDAFTARAN,
+    AKSI_UBAH_LEVEL, AKSI_UBAH_KELAS_SEKOLAH, AKSI_HAPUS_SISWA, AKSI_UBAH_PENDAFTARAN,
 ))
 PERAN_TARGET = frozenset(("guru", "murid"))
 JENIS_TARGET = {
@@ -41,6 +42,7 @@ JENIS_TARGET = {
     AKSI_BUAT_GURU: "account_candidate",
     AKSI_BUAT_LOGIN_MURID: "account_candidate",
     AKSI_UBAH_LEVEL: "student",
+    AKSI_UBAH_KELAS_SEKOLAH: "student",
     AKSI_HAPUS_SISWA: "student",
     AKSI_UBAH_PENDAFTARAN: "registration_config",
 }
@@ -62,6 +64,7 @@ HASIL_KODE = frozenset((
     "teacher_created",
     "student_login_created",
     "student_level_updated",
+    "student_school_grade_updated",
     "student_deleted",
     "config_updated",
     "target_changed",
@@ -77,11 +80,13 @@ HASIL_PER_AKSI = {
     AKSI_BUAT_GURU: "teacher_created",
     AKSI_BUAT_LOGIN_MURID: "student_login_created",
     AKSI_UBAH_LEVEL: "student_level_updated",
+    AKSI_UBAH_KELAS_SEKOLAH: "student_school_grade_updated",
     AKSI_HAPUS_SISWA: "student_deleted",
     AKSI_UBAH_PENDAFTARAN: "config_updated",
 }
 FIELD_AUDIT = frozenset((
     "auth_revision", "registration_open", "registration_message", "student_level",
+    "student_school_grade",
 ))
 PESAN_PENDAFTARAN = frozenset(("closed_standard", "closed_maintenance"))
 
@@ -220,6 +225,46 @@ class PerintahSiswa:
             or _TOKEN_TINJAUAN.fullmatch(self.token_tinjauan) is None
         ):
             raise KontrakTidakSah("token tinjauan tidak sah")
+
+
+@dataclass(frozen=True)
+class PerintahProfilSiswa:
+    """Aksi baru: tidak menafsir ulang payload atau receipt level warisan."""
+    operasi_id: str
+    actor_id: str
+    actor_revisi: int
+    aksi: str
+    siswa_id: int
+    revisi_profil: int
+    kelas_sekolah: Optional[int]
+    token_tinjauan: str = field(repr=False)
+
+    @property
+    def target_id(self):
+        return 'student_%d' % self.siswa_id
+
+    @property
+    def target_peran(self):
+        return None
+
+    @property
+    def target_revisi(self):
+        return self.revisi_profil
+
+    def __post_init__(self):
+        validasi_id(self.operasi_id, 'operasi_id')
+        validasi_id(self.actor_id, 'actor_id')
+        validasi_revisi(self.actor_revisi, 'actor_revisi')
+        validasi_revisi(self.revisi_profil, 'revisi_profil')
+        if self.aksi != AKSI_UBAH_KELAS_SEKOLAH:
+            raise KontrakTidakSah('aksi profil siswa tidak sah')
+        if type(self.siswa_id) is not int or not 0 < self.siswa_id <= 9_223_372_036_854_775_807:
+            raise KontrakTidakSah('siswa_id tidak sah')
+        if self.kelas_sekolah is not None and (
+                type(self.kelas_sekolah) is not int or not 1 <= self.kelas_sekolah <= 6):
+            raise KontrakTidakSah('kelas sekolah tidak sah')
+        if type(self.token_tinjauan) is not str or _TOKEN_TINJAUAN.fullmatch(self.token_tinjauan) is None:
+            raise KontrakTidakSah('token tinjauan tidak sah')
 
 
 @dataclass(frozen=True)
@@ -373,6 +418,43 @@ class ReceiptSiswa:
 
 
 @dataclass(frozen=True)
+class ReceiptProfilSiswa:
+    """Receipt kelas sekolah; revisi nyata dan perubahan nullable tersimpan."""
+    versi: int
+    operasi_id: str
+    actor_id: str
+    aksi: str
+    target_id: str
+    target_peran: Optional[str]
+    revisi_awal: int
+    revisi_hasil: int
+    hasil_kode: str
+    dibuat: int
+    sidik_perintah: str
+    perubahan: tuple
+
+    def __post_init__(self):
+        if self.versi != 1 or self.aksi != AKSI_UBAH_KELAS_SEKOLAH or self.target_peran is not None:
+            raise KontrakTidakSah('receipt profil tidak sah')
+        validasi_id(self.operasi_id, 'operasi_id')
+        validasi_id(self.actor_id, 'actor_id')
+        validasi_id(self.target_id, 'target_id')
+        validasi_revisi(self.revisi_awal, 'revisi_awal')
+        validasi_revisi(self.revisi_hasil, 'revisi_hasil')
+        validasi_sidik(self.sidik_perintah)
+        if self.hasil_kode != HASIL_PER_AKSI[self.aksi] or type(self.dibuat) is not int or self.dibuat < 0:
+            raise KontrakTidakSah('hasil receipt profil tidak sah')
+        if type(self.perubahan) is not tuple or len(self.perubahan) != 1:
+            raise KontrakTidakSah('perubahan profil tidak sah')
+        field, lama, baru = self.perubahan[0]
+        nilai = ('', '1', '2', '3', '4', '5', '6')
+        if field != 'student_school_grade' or lama not in nilai or baru not in nilai:
+            raise KontrakTidakSah('nilai perubahan profil tidak sah')
+        if self.revisi_hasil != self.revisi_awal + (lama != baru):
+            raise KontrakTidakSah('revisi receipt profil tidak berurutan')
+
+
+@dataclass(frozen=True)
 class HasilOperasi:
     operasi_id: str
     aksi: str
@@ -435,6 +517,8 @@ def sidik_perintah(perintah) -> str:
     if isinstance(perintah, PerintahPembuatanAkun):
         isi["alias"] = perintah.alias
         isi["siswa_id"] = perintah.siswa_id
+    elif isinstance(perintah, PerintahProfilSiswa):
+        isi['kelas_sekolah'] = perintah.kelas_sekolah
     elif isinstance(perintah, PerintahSiswa):
         isi["expected_level"] = perintah.expected_level
         isi["level_baru"] = perintah.level_baru

@@ -251,11 +251,11 @@ def test_beranda_tidak_membaca_bukti_diagnosis_atau_menulis(db_terjaga):
         sesi = _sesi(kon, siswa)
         kon.execute("UPDATE sesi SET tujuan='penguatan', putaran_id=? WHERE id=?", (putaran, sesi))
         kon.commit()
-        tabel_aman = {"siswa", "sesi", "sesi_soal", "jawaban", "putaran_fokus", "kejadian_belajar"}
+        tabel_aman = {"siswa", "sesi", "sesi_soal", "jawaban", "putaran_fokus", "kejadian_belajar", "pilot_sesi", "pilot_putaran"}
         def palang(aksi, tabel, kolom, db_nama, sumber):
             if aksi == sqlite3.SQLITE_READ:
                 assert tabel in tabel_aman
-                assert kolom not in {"kunci", "malrule_id", "kode_final", "kode_usulan", "alasan", "data"}
+                assert kolom not in {"kunci", "malrule_id", "kode_final", "kode_usulan", "alasan", "data", "kontrak_json", "konteks_json", "fingerprint"}
             return sqlite3.SQLITE_OK
         kon.set_authorizer(palang)
         sebelum = kon.total_changes

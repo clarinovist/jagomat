@@ -80,7 +80,7 @@ def test_konfirmasi_menuju_hasil_dengan_satu_rekomendasi_dan_koreksi_sekunder(se
     assert "Hasil pemetaan terkonfirmasi" in isi
     assert "Pemetaan awal: 1 dari 3 tanggal" in isi
     assert "Gambaran awal, belum kesimpulan akhir" in isi
-    assert "Rencana belajar hari ini" in isi
+    assert "Langkah belajar berikutnya" in isi
     assert "Cukup untuk hari ini" in isi
     assert "Lihat rencana berikutnya" not in isi
     assert isi.count('class="kartu-rencana-st"') == 1

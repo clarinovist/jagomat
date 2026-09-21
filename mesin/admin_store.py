@@ -36,7 +36,7 @@ from admin_contracts import (
 
 
 BAWAAN = Path(os.environ.get("ADMIN_BERKAS_DB", "/data/admin-control.db"))
-VERSI_SKEMA = 4
+VERSI_SKEMA = 5
 RETENSI_AUDIT_HARI = 180
 
 
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS operasi_admin (
     aksi TEXT NOT NULL CHECK (aksi IN (
         'account_password_reset','account_session_revoke',
         'account_login_delete','student_login_delete_step','account_teacher_create',
-        'student_login_create','student_level_update','student_delete',
+        'student_login_create','student_level_update','student_school_grade_update','student_delete',
         'registration_config_update'
     )),
     jenis_target TEXT NOT NULL CHECK (
@@ -108,11 +108,11 @@ CREATE TABLE IF NOT EXISTS operasi_admin (
 CREATE TABLE IF NOT EXISTS receipt_admin (
     operasi_id TEXT PRIMARY KEY,
     actor_id TEXT NOT NULL,
-    aksi TEXT NOT NULL CHECK(aksi IN ('student_level_update','student_delete')),
+    aksi TEXT NOT NULL CHECK(aksi IN ('student_level_update','student_school_grade_update','student_delete')),
     jenis_target TEXT NOT NULL CHECK(jenis_target='student'),
     target_id TEXT NOT NULL,
     sidik_perintah TEXT NOT NULL CHECK(length(sidik_perintah)=64),
-    hasil_kode TEXT NOT NULL CHECK(hasil_kode IN ('student_level_updated','student_deleted')),
+    hasil_kode TEXT NOT NULL CHECK(hasil_kode IN ('student_level_updated','student_school_grade_updated','student_deleted')),
     dibuat INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS audit_admin (
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS audit_admin (
     )),
     hasil_kode TEXT NOT NULL CHECK (hasil_kode IN (
         'password_reset','sessions_revoked','login_deleted','teacher_created',
-        'student_login_created','student_level_updated','student_deleted','config_updated',
+        'student_login_created','student_level_updated','student_school_grade_updated','student_deleted','config_updated',
         'target_changed','input_rejected','domain_not_committed','domain_uncertain'
     )),
     dibuat INTEGER NOT NULL,
@@ -331,7 +331,7 @@ def _jalankan_ddl(kon: sqlite3.Connection, skrip: str) -> None:
 
 
 def _migrasi_registry_aksi(
-    kon: sqlite3.Connection, *, sumber_punya_hasil_id: bool
+    kon: sqlite3.Connection, *, sumber_punya_hasil_id: bool, pertahankan_batch: bool = False
 ) -> None:
     """Rebuild CHECK registry sambil mempertahankan seluruh data lama."""
     ada_anchor = kon.execute(
@@ -341,7 +341,7 @@ def _migrasi_registry_aksi(
         "penyerahan_admin_item", "penyerahan_admin", "kelompok_admin_item",
         "kelompok_admin", "batch_admin_item", "batch_admin",
     )
-    for tabel in tabel_batch:
+    for tabel in (() if pertahankan_batch else tabel_batch):
         if kon.execute(
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (tabel,)
         ).fetchone():
@@ -392,7 +392,7 @@ def _migrasi_registry_aksi(
 
 
 def siapkan(path=None, *, sekarang: Optional[int] = None) -> None:
-    """Bootstrap/migrasi eksplisit v4; idempoten dan berizin privat."""
+    """Bootstrap/migrasi eksplisit v5; kelas sekolah punya registry terpisah."""
     tujuan = _tujuan(path)
     tujuan.parent.mkdir(parents=True, exist_ok=True)
     kon = sqlite3.connect(str(tujuan), timeout=5.0)
@@ -401,18 +401,19 @@ def siapkan(path=None, *, sekarang: Optional[int] = None) -> None:
         versi = int(kon.execute("PRAGMA user_version").fetchone()[0])
         if versi > VERSI_SKEMA:
             raise StoreBelumSiap("skema admin lebih baru dari aplikasi")
-        if versi in (0, 1, 2, 3):
+        if versi in (0, 1, 2, 3, 4):
             try:
-                if versi in (1, 2, 3):
+                if versi in (1, 2, 3, 4):
                     # PRAGMA ini harus dijalankan sebelum BEGIN; SQLite
                     # mengabaikan perubahan foreign_keys di dalam transaksi.
                     kon.execute("PRAGMA foreign_keys=OFF")
                 else:
                     kon.execute("PRAGMA foreign_keys=ON")
                 kon.execute("BEGIN IMMEDIATE")
-                if versi in (1, 2, 3):
+                if versi in (1, 2, 3, 4):
                     _migrasi_registry_aksi(
-                        kon, sumber_punya_hasil_id=(versi >= 2)
+                        kon, sumber_punya_hasil_id=(versi >= 2),
+                        pertahankan_batch=(versi == 4),
                     )
                 else:
                     _jalankan_ddl(kon, _DDL)
@@ -427,7 +428,9 @@ def siapkan(path=None, *, sekarang: Optional[int] = None) -> None:
                     }
                     if not wajib <= aktual:
                         raise StoreBelumSiap("struktur store admin bentrok")
-                kon.execute("PRAGMA user_version=4")
+                if kon.execute('PRAGMA foreign_key_check').fetchone() is not None:
+                    raise StoreBelumSiap('foreign key migrasi admin tidak valid')
+                kon.execute("PRAGMA user_version=5")
                 kon.commit()
                 kon.execute("PRAGMA foreign_keys=ON")
             except Exception:
@@ -541,6 +544,8 @@ def _validasi_nilai_audit(field_kode: str, nilai: str) -> None:
         sah = nilai.isdigit() and 0 <= int(nilai) <= 2_147_483_647
     elif field_kode == "student_level":
         sah = nilai in ("P3", "P4", "P5", "P6")
+    elif field_kode == 'student_school_grade':
+        sah = nilai in ('', '1', '2', '3', '4', '5', '6')
     elif field_kode == "registration_open":
         sah = nilai in ("0", "1")
     elif field_kode == "registration_message":

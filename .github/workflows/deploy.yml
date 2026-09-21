@@ -1,8 +1,8 @@
 name: Build & Deploy
 
-# Kandidat migrasi: full suite, image dan pair tetap wajib; pasang literal false.
-# Recovery baseline B mempunyai SHA tetap; anchor diverifikasi terhadap image.
-# Mode migrasi tidak memberi approval VPS atau mengaktifkan deploy rutin.
+# Persiapan schema baru: full suite dan probe image wajib; pasang literal false.
+# Recovery PG tetap anchor historis, belum dinyatakan cocok dengan schema baru.
+# Uji pair wajib saat migrasi/rutin; persiapan tidak mengklaim pasangan teruji.
 on:
   push:
     branches: [main]

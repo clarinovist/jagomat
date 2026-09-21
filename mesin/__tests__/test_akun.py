@@ -136,23 +136,24 @@ def test_nama_duplikat_ditolak_tanpa_pandang_huruf(siap):
     """Dua siswa bernama sama membuat laporan tidak bisa dibedakan."""
     with database.buka(siap) as kon:
         account_pages.proses_akun(kon, {
-            "aksi": "anak_baru", "nama": "Rara", "sandi_anak": "sandi-rara-12345",
+            "aksi": "anak_baru", "nama": "Rara", "profil_parameter": "P4", "sandi_anak": "sandi-rara-12345",
         }, "guru")
         _, galat = account_pages.proses_akun(kon, {
-            "aksi": "anak_baru", "nama": "rara", "sandi_anak": "sandi-rara-12345",
+            "aksi": "anak_baru", "nama": "rara", "profil_parameter": "P4", "sandi_anak": "sandi-rara-12345",
         }, "guru")
         assert "sudah ada" in galat.lower()
         assert len(database.daftar_siswa(kon)) == 1
 
 
-def test_tingkat_kosong_memakai_bawaan(siap):
+def test_tingkat_kosong_tidak_memilih_bawaan(siap):
     with database.buka(siap) as kon:
-        account_pages.proses_akun(kon, {
+        pesan, galat = account_pages.proses_akun(kon, {
             "aksi": "anak_baru", "nama": "Tanpa", "tingkat": "",
             "sandi_anak": "sandi-tanpa-1234",
         }, "guru")
-        s = database.daftar_siswa(kon)[0]
-    assert s["tingkat"] == "P3"
+        assert galat and not pesan
+        assert not database.daftar_siswa(kon)
+    assert auth.cari_akun('Tanpa') is None
 
 
 def test_ganti_tingkat_lewat_proses_akun_mencatat_event_domain(siap):
@@ -318,10 +319,10 @@ def test_pesan_galat_di_escape(siap):
     """Nama siswa masuk pesan galat; karakter khusus tidak boleh merusak HTML."""
     with database.buka(siap) as kon:
         account_pages.proses_akun(kon, {
-            "aksi": "anak_baru", "nama": "<b>X</b>", "sandi_anak": "sandi-eks-12345",
+            "aksi": "anak_baru", "nama": "<b>X</b>", "profil_parameter": "P4", "sandi_anak": "sandi-eks-12345",
         }, "guru")
         _, galat = account_pages.proses_akun(kon, {
-            "aksi": "anak_baru", "nama": "<b>X</b>", "sandi_anak": "sandi-eks-12345",
+            "aksi": "anak_baru", "nama": "<b>X</b>", "profil_parameter": "P4", "sandi_anak": "sandi-eks-12345",
         }, "guru")
         h = account_pages.halaman_akun(kon, "", galat, section="siswa").decode()
 

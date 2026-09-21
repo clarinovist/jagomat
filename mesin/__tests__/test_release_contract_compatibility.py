@@ -83,6 +83,9 @@ def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path, monkeypatch)
     if config["mode"] == "persiapan":
         # Tidak mengaku compatible. Job pasang literal false wajib terbukti di atas.
         assert hasil["siap_pasang"] is False
+        assert hasil["pair_verified"] is False
+        assert hasil["candidate_contract"] == fingerprint_candidate
+        assert hasil["recovery_contract"] == fingerprint_recovery
     else:
         assert fingerprint_candidate == fingerprint_recovery
         assert hasil["siap_pasang"] is (config["mode"] == "rutin")

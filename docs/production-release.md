@@ -1,8 +1,62 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
-## Mode source saat ini: kandidat migrasi PG (16 September 2026)
+## Mode source saat ini: persiapan fondasi profil belajar (20 September 2026)
 
-Metadata source kini mematok baseline recovery PG
+`scripts/release-metadata.json` memakai **persiapan/build-only** untuk penambahan
+schema `profil_belajar`. Kandidat lanjutan menghubungkan kelas sekolah nullable
+ke form guru/admin, memisahkan pilihan profil parameter latihan, serta membekukan
+konteks per butir/konfirmasi. Registry admin menjadi schema5 dengan receipt kelas
+tersendiri. Tidak ada backfill kelas dari P3–P6; rubrik kemampuan otomatis dan sesi
+campuran tuntutan belum aktif. Ini status source kandidat, bukan bukti image atau
+migrasi produksi.
+
+Pin recovery PG `e38e2e150c514c54db5470820561e69654c699bf` dan kontraknya
+`a65060bc3ae65e4c78011499137508f6a873a6d19b0f77395efa0a7936424acf` tetap.
+Fingerprint kandidat berbeda karena schema baru; jangan memperbarui anchor atau
+mengeluarkan modul dari probe agar dianggap cocok. Manifest persiapan mengukur
+perbedaan tersebut: `compatible=false`, `pair_verified=false`, `siap_pasang=false`.
+Flag `requires_controlled_migration` pada manifest menunjukkan mode **migrasi**;
+nilainya false pada persiapan bukan izin memasang schema baru secara rutin.
+
+Job `pasang` tetap literal `if: ${{ false }}`. Full test kandidat/recovery serta
+build dan probe masing-masing image tetap wajib di CI. Langkah **lintas image**
+hanya berjalan saat mode migrasi/rutin; persiapan tidak mengklaim recovery PG
+sudah diuji terhadap data profil baru. Tidak ada push, build image, atau operasi
+produksi yang otomatis diizinkan oleh perubahan mode source ini.
+
+Sebelum kembali ke mode migrasi, siapkan baseline recovery schema baru yang
+fungsional, verifikasi image dan pin terukurnya, lalu uji pasangan termasuk
+pelestarian metadata profil, revisi, arsip konteks, receipt/journal admin schema5,
+histori/bukti, pengiriman isian, dan PG.
+Fingerprint sama tidak menggantikan uji baca/tulis/recovery data baru. Jangan
+aktifkan penulis kemampuan penuh atau cutover tanpa kontrak dan pengujian yang
+lengkap. Ikuti urutan bootstrap di bawah dengan izin rilis/produksi terpisah.
+
+### Probe kandidat admin5 dan recovery historis
+
+Deployer source kini mensyaratkan **admin5, Pendamping4, AI2, transient2** beserta
+metadata `profil_belajar`, receipt `operasi_admin_profil`, dan tabel/trigger konteks.
+Marker probe menjadi `OSN_IMAGE_ADMIN5_AI2_OK` / `OSN_SCHEMA_ADMIN5_AI2_OK`.
+`schema_target=4` pada approval/policy tetap menunjuk kontrak Pendamping existing,
+bukan versi admin; menaikkan angka itu tidak mengaktifkan dukungan admin5.
+Readiness hanya membaca metadata schema/registry dengan SQLite `mode=ro` dan
+`query_only`; tidak mengimpor aplikasi atau memigrasikan data keluarga.
+
+Verifier CI mengirim probe tambahan dari `scripts/release_profile_probe.py` lewat
+stdin (tanpa mount source host): migrasi admin4→5 berulang/preservasi, commit/replay
+receipt kelas, konflik revisi, histori/konteks tetap, arsip immutable/hilang dan
+receipt rusak. Kandidat wajib melaporkan `profil_checks=6`, `admin_schema=5` setelah
+pemeriksaan selesai. Recovery historis yang dipatok eksplisit diuji sesuai kontrak
+lamanya: `profil_checks=0`, `admin_schema=null`; itu **tidak** membuktikan recovery
+tersebut dapat membaca data admin5. Image lain tidak otomatis mendapat pengecualian.
+
+Artefak deployer VPS tetap satu berkas mandiri. Perubahan source ini belum memasang
+`/usr/local/bin/osn-deploy` atau memperbarui hash policy/approval di host. Kedua jalur
+run utama/rollback tetap utuh; semua preflight kontrak, izin dan digest tetap wajib.
+
+## Riwayat kandidat migrasi PG (16 September 2026)
+
+Metadata pada tahap tersebut mematok baseline recovery PG
 `e38e2e150c514c54db5470820561e69654c699bf`, kontrak persistensi
 `a65060bc3ae65e4c78011499137508f6a873a6d19b0f77395efa0a7936424acf`, mode
 **migrasi**, dan `pasang: if false`. Baseline tersebut telah lolos build-only
@@ -10,8 +64,8 @@ Metadata source kini mematok baseline recovery PG
 Kandidat meniadakan overlay toolbar pada PG agar opsi bawah tidak tertutup;
 recovery mempertahankan tampilan sebelumnya dengan persistensi yang sama.
 
-Uji pasangan sekarang wajib mencakup isian **dan PG**: opsi 3/4/5, draft yang
- dilanjutkan recovery, arsip/konfirmasi immutable, revisi tab, dan penolakan opt-in
+Uji pasangan migrasi/rutin wajib mencakup isian **dan PG**: opsi 3/4/5, draft yang
+dilanjutkan recovery, arsip/konfirmasi immutable, revisi tab, dan penolakan opt-in
 pemetaan. Bukti tanpa `pilihan_pair_checks=8` ditolak. Pin sendiri bukan bukti live;
 cutover tetap backup/rehearsal/migrasi `deploy-v2` exact digest yang lolos CI.
 Auto-deploy permanen tidak diaktifkan oleh perubahan ini.
@@ -80,8 +134,8 @@ izin menggunakan recovery historis33e241 untuk schema baru. Seluruh pengujian
 aplikasi tetap berjalan; mode persiapan bukan skip test atau pelemahan probe.
 
 Bagian berikut merekam kontrak dan prosedur rutin/migrasi existing. Deskripsi
-eligibility rutin berlaku **setelah** aktivasi mode rutin, bukan pada snapshot
-migrasi saat ini.
+eligibility rutin berlaku **setelah** aktivasi mode rutin, bukan pada mode
+persiapan saat ini.
 
 Status inspeksi **13 September 2026 sekitar 09.50 WIB**: produksi masih sehat
 di revision `4d5618d5fbb162f72c9a88397976c353ee62b88e`. Deploy kandidat
@@ -227,10 +281,12 @@ tinjauan server, catatan eksekusi dan idempotensi tahan crash, ditambah perbaika
 penutupan transport HTTP yang sama dengan kandidat.
 Recovery historis itu bukan image produksi lama, bukan perubahan konstanta
 schema saja, dan bukan memilih kembali candidate yang sama ketika gagal.
-**Pin workflow saat ini adalah baseline B
+**Baseline B pengiriman pada tahap itu adalah
 `0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c`**, yang juga memahami arsip pengiriman dan
-provenance tinjauan. Recovery pengendali AI33e241 dan Pendampingbc9c973 di atas
-merupakan histori, bukan fallback schema pengiriman baru. Baseline B menyediakan
+provenance tinjauan. Pin source saat ini tetap recovery PG e38e2e1, sebagaimana
+bagian mode source di atas; belum menjadi recovery schema profil belajar baru.
+Recovery pengendali AI33e241 dan Pendampingbc9c973 di atas merupakan histori,
+bukan fallback schema pengiriman baru. Baseline B pengiriman menyediakan
 seluruh kartu koreksi; kandidat C menambah navigasi antrean tinjauan server-side.
 Delta navigasi tidak boleh mengubah persistensi atau guard B. Kompatibilitas
 source tetap harus dibuktikan kembali pada image pasangan C/B dan recovery data

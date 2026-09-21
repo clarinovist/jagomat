@@ -44,7 +44,8 @@ def test_default_latihan_dan_hanya_tab_terpilih_dirender(db):
     assert '<details class="atur-latihan-st"' not in isi
     assert 'class="kartu-rencana-st"' not in isi
     assert 'class="tabel-riwayat-st"' not in isi
-    assert 'Lihat rencana' in isi
+    assert 'class="profil-rappel-st"' not in isi
+    assert f'href="/anak/{anak}?section=rencana"' in isi
     assert isi.count('class="st-kartu-baris kartu-sesi-guru') <= 3
 
 
@@ -104,7 +105,10 @@ def test_ringkasan_rencana_default_memakai_reducer_bukan_sesi_manual(db):
     rencana=rencana_berikutnya(bukti,anak)
     judul=learning_cycle_ui._judul(rencana,learning_cycle_ui._fokus_utama(rencana),bukti)
     isi=_isi(kon,anak)
-    assert judul in isi
+    # Banyak sesi manual tidak menjadi ajakan pemetaan; tab tetap bisa dibuka.
+    assert judul not in isi
+    assert 'class="profil-rappel-st"' not in isi
+    assert f'href="/anak/{anak}?section=rencana"' in isi
     assert 'class="rencana-cta-utama-st"' not in isi
     assert f'action="/siklus/{anak}/buat"' not in isi
 

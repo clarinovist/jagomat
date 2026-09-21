@@ -204,6 +204,32 @@ Perubahan level menutup putaran lama dengan kejadian `diganti_level`, membuat
 sesi level lama tidak memblokir, dan memulai pemetaan level baru tanpa
 menghapus histori.
 
+### Kelas sekolah dan profil parameter (20 September 2026)
+
+`kelas_sekolah` adalah metadata nullable 1–6, bukan `siswa.tingkat`. Form kelas
+memakai revisi profil tersendiri; perubahan kelas tidak memanggil `ganti_level`,
+menutup putaran, mengubah sesi, atau menghapus bukti. Admin menggunakan aksi,
+token tinjauan, journal dan receipt kelas sekolah yang terpisah. Aksi/event level
+lama tetap historis dengan arti profil parameter warisan.
+
+Anak baru memilih profil parameter awal P3–P6 secara eksplisit; kelas sekolah
+opsional dan tidak menentukan pilihan tersebut. Anak lama mempertahankan profil
+warisannya. Form manual/gabungan menampilkan pilihan profil serta seluruh materi;
+server menolak kombinasi yang tidak tersedia, tidak mengganti profil diam-diam.
+Pemetaan bukan prasyarat latihan manual. Rencana terpandu masih memakai profil
+warisan yang dipilih, bukan rekomendasi tuntutan otomatis yang sudah dikalibrasi.
+
+Penulis baru membekukan konfigurasi per butir melalui `konteks_sesi` versi1 dan
+`konteks_butir`; event orkestrator memuat konteks per butir/fokus. Konfirmasi
+mengarsipkan konteks pada `konteks_konfirmasi`, append-only dan terikat konfirmasi
+sumber. Konteks homogen v1 diproyeksikan oleh pola/nomor/level efektif/target fokus
+yang sudah berada dalam fingerprint existing; tidak mengganti identitas retry.
+Reader inti dan adapter memvalidasi sumber/arsip/outcome, menolak konteks hilang
+atau tidak cocok. Histori tanpa marker tetap format lama, tanpa backfill otomatis.
+Komposisi eksplisit di luar inventaris tetap latihan; konteks inventarisnya kosong,
+bukan klaim tuntutan kemampuan. Sesi campuran profil belum diaktifkan dan tidak
+boleh disimpan dengan satu level palsu.
+
 ### Data warisan
 
 Sesi lama tetap latihan bebas; tidak ada konfirmasi, fokus, atau putaran yang
@@ -223,12 +249,23 @@ keputusan pedagogis atau koreksi data anak saat verifikasi deploy.
 
 Profil anak memakai tiga tab server-side: **Buat latihan** (halaman awal),
 **Rencana belajar**, dan **Riwayat**. Buat latihan menyediakan form manual secara
-langsung, pintu Pendamping kontekstual, pengingat untuk membuka rencana, serta
-maksimal tiga sesi terbaru yang perlu tindakan. Sesi manual tidak mengambil alih
-rekomendasi reducer.
+langsung, pintu Pendamping kontekstual, pengingat bersyarat untuk membuka rencana,
+serta maksimal tiga sesi terbaru yang perlu tindakan. Pengingat berasal dari
+`learning_cycle.pengingat_berikutnya`, bukan perhitungan kelas/partisipasi di UI:
+anak baru atau hanya latihan manual tanpa opt-in tidak mendapat ajakan pemetaan;
+status menunggu dan maintenance tidak membuat banner. Sesi terpandu aktif, hasil
+belum dikonfirmasi, dan tindakan tersedia (termasuk eskalasi) tetap diingatkan.
+Tab rencana selalu tersedia; GET tidak menulis bukti. Sesi manual tidak mengambil
+alih rekomendasi reducer.
 
-Tab Rencana belajar menampilkan satu kartu **Rencana belajar hari ini**, berisi
-alasan, progres, tindakan orang tua, dan satu CTA utama. Tab Riwayat menampilkan
+Tab Rencana belajar menampilkan satu kartu ringkas **Langkah belajar berikutnya**,
+berisi alasan, tindakan orang tua, dan satu CTA utama bila sah. Progres lengkap dan
+alur umum berada dalam `<details>` tertutup **Detail progres dan alur belajar**.
+Instruksi, contoh terbimbing/visual, beban pemetaan, tanggal menunggu, serta
+peringatan konfirmasi/eskalasi/histori tetap terlihat tanpa membuka detail.
+Label alat sesi **Cetak** mengutamakan lembar soal/kunci; perubahan cerita tetap
+manual dalam `<details>` tambahan. Hasil sukses/gagal tampil di luar disclosure;
+GET tidak memanggil AI dan penguncian penyajian tidak berubah. Tab Riwayat menampilkan
 20 sesi per halaman, filter tanggal/topik/jenis/tinjauan, serta status pengerjaan
 dan tinjauan yang terpisah. Pindah tab atau memfilter tidak menulis bukti maupun
 mengubah progres. Pendamping tetap pada konteks rencana, latihan, atau sesi/soal;
@@ -244,7 +281,7 @@ label kelemahan, alasan internal, kunci, atau malrule.
 
 ### Peta penguasaan target Jagomat (15 September 2026)
 
-Angka utama laporan adalah **progres target keterampilan Jagomat di kelas aktif**,
+Angka utama laporan warisan adalah **progres target keterampilan Jagomat pada profil parameter aktif**,
 bukan rasio jawaban benar atau klaim seluruh kurikulum sekolah. Katalog eksplisit
 `mastery_catalog.py` mengelompokkan pola terkait; semua pola yang tersedia pada
 kelas tersebut wajib terbukti sebelum target dihitung menunjukkan pemahaman.
@@ -285,6 +322,83 @@ bukan bukti anak mengalami penurunan kemampuan.
 Cakupan ini tidak menjadwalkan target baru otomatis. Resume tetap mengikuti prioritas
 siklus existing. Katalog menyajikan sasaran yang belum memiliki bukti, bukan membuat
 kurikulum/soal baru atau mengubah sesi manual menjadi bukti tanpa persetujuan.
+
+### Fondasi pembacaan per konteks (20 September 2026)
+
+`learning_cycle.penguasaan_konteks` menyediakan API murni untuk menilai pasangan
+pola/profil parameter warisan secara terpisah. Ini **belum menggantikan laporan
+katalog warisan di atas**, bukan tangga kesulitan atau penyebut persentase kesiapan OSN.
+Kelas sekolah tidak menjadi input API; bukti profil berbeda tidak disatukan.
+
+`mastery_evidence.lengkapi_bukti_materi` mencocokkan konfirmasi aktif, metadata
+sesi, outcome, profil snapshot, hubungan butir dan penyajian soal sebelum memberikan
+metadata bukti. Ketidakcocokan ditolak tanpa menulis data. Sidik warisan yang hilang
+tidak direka. API konteks mempertahankan seluruh syarat penguasaan existing:
+opt-in, representasi, kuota/jeda probe, fokus tertahan, invalidasi dan umur bukti.
+Kejadian `diganti_level` historis tetap batas validitas; API bukan jalan menghidupkan
+bukti lama yang telah dicabut. Perubahan kelas sekolah pada metadata terpisah tidak
+menciptakan kejadian tersebut. Rincian **Bukti per konteks** kini tersedia pada laporan penguasaan. Rincian
+menampilkan konteks dengan catatan penilaian relevan dan sumbernya, tanpa mengubah
+196 pasangan inventaris menjadi penyebut persentase atau target wajib. Status
+berasal dari reducer yang sama; keberhasilan satu profil tidak meluluskan profil
+lain. Katalog/persentase lama tetap diberi label cakupan profil warisan, bukan
+kemampuan global atau kelas sekolah. Penulis sesi campuran tuntutan dan rubrik
+kemampuan baru belum diaktifkan oleh tahap ini.
+
+### Batas aktivasi dan recovery tahap konteks
+
+Mode source tetap persiapan/build-only; job pasang tertutup dan pin recovery tidak
+berubah. Lulus probe pengiriman/PG historis tidak membuktikan recovery pin lama
+memahami metadata konteks baru atau admin schema5. Sesudah penulis baru dipakai,
+recovery harus pembaca kompatibel yang diuji melestarikan arsip konteks, revisi kelas,
+receipt admin dan histori; tidak boleh downgrade schema atau menghapus metadata.
+Rubrik tuntutan otomatis, kesetaraan lintas profil, serta campuran per fokus masih
+menunggu keputusan produk dan implementasi terpisah.
+
+### Pilot tuntutan keliling/luas (persetujuan 21 September 2026)
+
+Pilot opsional pada tab Rencana belajar memisahkan dua tugas: keliling dari dua
+sisi, dan mencari sisi dari keliling lalu luas. Rubrik `pilot-keliling-luas-v1`
+tidak memberi jenjang kemampuan P3–P6. Tuntutan, profil parameter dan representasi
+menjadi unit bukti terpisah; kelas sekolah tidak menjadi input.
+
+Rujukan `luas_kotak_satuan/P3` hanya memeriksa makna luas melalui baris × kolom,
+bukan sertifikasi luas semua profil. Bukti langsung + rujukan luas yang sah hanya
+membuka pilihan probe balik melalui keputusan orang tua. P3 tidak menyediakan
+varian balik; orang tua memilih P4/P5/P6 secara eksplisit. Pilot tidak memakai
+codec campuran v2 dan tidak membuat persentase kemampuan baru.
+
+Metadata sesi pilot membekukan seed, tujuan, putaran, butir, penyajian, tuntutan,
+profil, versi dan sumber konfirmasi. Konfirmasi baru mengikat kontrak dalam
+fingerprint dan arsip immutable. Tidak ada retag atau konfirmasi otomatis untuk
+histori lama. API pilot memvalidasi variasi matematika tambahan tanpa mengubah
+hash historis: nama benda, cerita, orientasi sisi yang sama, atau label cm/m saja
+pada kisi tidak menambah jumlah probe.
+
+Pengenalan/terbimbing/penguatan tetap bukan bukti mandiri. T memerlukan pengenalan
+sebelum probe; contoh orang tua menyediakan dua pendekatan tugas balik. Fokus
+berulang memakai kunci kanonis dan sumber snapshot aktif; koreksi sumber menahan
+kelanjutan hanya pada putaran terkait, bukan menghidupkan bukti lama atau menahan
+status tuntutan lain. Orang tua dapat mengonfirmasi penutupan putaran tersebut dan
+pembatalan seluruh sesinya tanpa menghapus histori/snapshot. Setelah itu pemeriksaan
+baru dipilih eksplisit; fokus/konfirmasi lama tidak diikat ulang otomatis. Metadata
+rusak struktural tetap ditolak, bukan dianggap sebagai pencabutan yang sah. Evaluasi, checkpoint,
+penjelasan dan eskalasi tetap memakai reducer yang sama. Untuk tuntutan yang
+berhasil tanpa fokus diagnosis, retensi memakai checkpoint dua bagian dengan
+≥3 probe baru dan seluruhnya benar; tidak membuat fokus K/H palsu. Bila checkpoint
+tersebut gagal tanpa pendekatan remedial terikat, arahkan ke pemeriksaan prasyarat
+atau uji ulang lisan, bukan menambah latihan tanpa batas.
+
+Rencana v1 yang wajib tetap didahulukan. Satu CTA pilot berlaku untuk langkah
+berikutnya; manual selalu dapat diakses tanpa pemetaan wajib. Laporan Tuntutan
+pilot memakai status dari reducer, bukan persen baru. Sesi pilot tidak disatukan
+ke penguasaan/pemetaan v1. Cetak/pengiriman/tinjauan menggunakan snapshot yang sama;
+perubahan cerita tertutup setelah penyajian pilot dibekukan. CLI dan Pendamping
+masih manual; serupa/remedial lama tidak boleh membuang konteks pilot.
+
+Migrasi lokal aditif tidak membuat sesi atau keputusan belajar. Mode rilis tetap
+persiapan, pasang false. Recovery PG belum memahami admin5/konteks/pilot; rilis
+memerlukan image pembaca kompatibel, uji pasangan dan izin produksi terpisah.
 
 ## 11. Batas MVP
 

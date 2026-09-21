@@ -214,7 +214,7 @@ def _sesi_feby_direview(server, direview=True):
     server.minta(
         f"/sesi-baru/{siswa_id}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "pola-bilangan"},
+        data={"topik": "pola-bilangan", "profil_parameter": "P3"},
     )
     with server.buka() as kon:
         sesi_id = int(kon.execute(

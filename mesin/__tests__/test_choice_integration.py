@@ -174,7 +174,7 @@ def test_http_buat_manual_dan_gabungan(server):
                 sid=database.buat_sesi_gabungan(kon,siswa,34,data['topik'],format_jawaban='pilihan_ganda',jumlah_soal=10)
                 assert len(daftar_pilihan(kon,sid))==10
         else:
-            kode,html,_=s.minta(jalur,auth=('guru',SANDI_GURU),data=dict(data,format_jawaban='pilihan_ganda'))
+            kode,html,_=s.minta(jalur,auth=('guru',SANDI_GURU),data=dict(data,format_jawaban='pilihan_ganda',profil_parameter='P3'))
             assert kode==200 and 'berhasil dibuat' in html
     with s.buka() as kon:
         assert kon.execute("SELECT COUNT(*) FROM sesi WHERE format_jawaban='pilihan_ganda'").fetchone()[0]==3

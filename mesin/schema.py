@@ -697,8 +697,11 @@ GROUP BY s.id;
 from submission_schema import SKEMA_PENGIRIMAN
 
 from choice_schema import SKEMA_PILIHAN
+from learning_profile_schema import SKEMA_PROFIL_BELAJAR
+from context_schema import SKEMA_KONTEKS
+from skill_pilot_schema import SKEMA_PILOT
 
-SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_PENGIRIMAN + '\n' + SKEMA_PILIHAN + '\n-- Ringkasan per sesi supaya laporan')
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_PENGIRIMAN + '\n' + SKEMA_PILIHAN + '\n' + SKEMA_PROFIL_BELAJAR + '\n' + SKEMA_KONTEKS + '\n' + SKEMA_PILOT + '\n-- Ringkasan per sesi supaya laporan')
 
 # Migrasi untuk basis data yang SUDAH berisi data.
 #

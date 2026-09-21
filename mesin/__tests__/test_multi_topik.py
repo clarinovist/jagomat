@@ -170,7 +170,7 @@ def test_http_buat_sesi_gabungan(server):
         f"/sesi-gabungan/{sid}",
         auth=("guru", SANDI_GURU),
         data=[("topik", "geometri-datar"), ("topik", "logika"),
-              ("jumlah_soal", "10")],
+              ("jumlah_soal", "10"), ("profil_parameter", "P3")],
     )
     assert kode == 200
     assert "Latihan gabungan untuk" in isi

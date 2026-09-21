@@ -52,7 +52,7 @@ def test_post_sesi_baru_prg_ke_halaman_anak_dengan_banner(server):
     kode, isi, _ = server.minta(
         f"/sesi-baru/{siswa_id}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "pola-bilangan"},
+        data={"topik": "pola-bilangan", "profil_parameter": "P3"},
     )
     assert kode == 200
     assert "berhasil dibuat" in isi, "banner sukses harus tampil di /anak"
@@ -67,7 +67,7 @@ def test_post_sesi_baru_menyimpan_topik_eksplisit(server):
     kode, isi, _ = server.minta(
         f"/sesi-baru/{siswa_id}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "pola-bilangan"},
+        data={"topik": "pola-bilangan", "profil_parameter": "P3"},
     )
     assert kode == 200
     assert "Sesi #" in isi
@@ -86,7 +86,7 @@ def test_post_sesi_baru_tanpa_topik_pakai_bawaan_kanonik(server):
     with server.buka() as kon:
         siswa_id = database.tambah_siswa(kon, "Topik Default", pemilik="guru")
     kode, isi, _ = server.minta(
-        f"/sesi-baru/{siswa_id}", auth=("guru", SANDI_GURU), data={}
+        f"/sesi-baru/{siswa_id}", auth=("guru", SANDI_GURU), data={"profil_parameter": "P3"}
     )
     assert kode == 200
     assert "Sesi #" in isi
@@ -138,41 +138,41 @@ def test_dropdown_menampilkan_nama_paket_bukan_id(db):
         isi = _profil_anak(kon).decode()
     # label = nama paket, value = id paket
     assert '<option value="geometri-datar">Geometri Datar</option>' in isi
-    assert '<option value="pola-bilangan">Pola Bilangan</option>' in isi
+    assert '<option value="pola-bilangan" selected>Pola Bilangan</option>' in isi
     assert '<option value="aritmetika-dasar">Aritmetika Dasar</option>' in isi
     # id mentah tidak boleh tampil sebagai label
     assert ">geometri-datar</option>" not in isi
     assert ">pola-bilangan</option>" not in isi
 
 
-def test_siswa_p3_tidak_ditawari_dan_tidak_bisa_memilih_aritmetika(server):
-    """Topik P5/P6 tidak boleh memicu error server untuk siswa P3."""
+def test_semua_topik_ditawarkan_tetapi_kombinasi_profil_tidak_tersedia_ditolak(server):
+    """Pagar mengikuti konfigurasi pilihan, bukan kelas atau profil anak."""
     with server.buka() as kon:
         siswa_id = database.tambah_siswa(kon, "Topik P3", "P3", pemilik="guru")
         isi = _profil_anak(kon).decode()
-    assert 'value="aritmetika-dasar"' not in isi
+    assert 'value="aritmetika-dasar"' in isi
 
     kode, isi, _ = server.minta(
         f"/sesi-baru/{siswa_id}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "aritmetika-dasar"},
+        data={"topik": "aritmetika-dasar", "profil_parameter": "P3"},
     )
     assert kode == 400
     assert "tidak tersedia" in isi
 
 
 def test_siswa_level_teks_lama_tetap_ditawari_dan_bisa_membuat_sesi(server):
-    """Kolom tingkat lama yang bebas teks tetap mendapat fallback pola P3."""
+    """Profil teks warisan tidak menghalangi pilihan konfigurasi eksplisit."""
     with server.buka() as kon:
         siswa_id = database.tambah_siswa(kon, "Topik Level Lama", "tingkat-lama", pemilik="guru")
         isi = _profil_anak(kon).decode()
     assert 'value="pola-bilangan"' in isi
-    assert 'value="aritmetika-dasar"' not in isi
+    assert 'value="aritmetika-dasar"' in isi
 
     kode, isi, _ = server.minta(
         f"/sesi-baru/{siswa_id}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "pola-bilangan"},
+        data={"topik": "pola-bilangan", "profil_parameter": "P3"},
     )
     assert kode == 200
     assert "Sesi #" in isi
@@ -233,7 +233,7 @@ def test_alur_aritmetika_memakai_judul_dan_laporan_topik_sendiri(server):
     kode, isi, _ = server.minta(
         f"/sesi-baru/{siswa_id}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "aritmetika-dasar"},
+        data={"topik": "aritmetika-dasar", "profil_parameter": "P5"},
     )
     assert kode == 200
     assert "aritmetika-dasar" in isi
@@ -347,7 +347,7 @@ def test_alur_guru_murid_jawab_laporan_bertopik(server):
     server.minta(
         f"/sesi-baru/{siswa_id}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "pola-bilangan"},
+        data={"topik": "pola-bilangan", "profil_parameter": "P3"},
     )
     with server.buka() as kon:
         sesi_id = kon.execute(
@@ -389,11 +389,8 @@ def test_siswa_p5_melihat_geometri_datar_di_dropdown(server):
 def test_siswa_p3_melihat_geometri_datar_di_dropdown(server):
     """P3 kini melihat Geometri Datar, Statistika, dan Logika di dropdown.
 
-    Dulu P3 sengaja hanya pola-bilangan (Keputusan Pengguna #1 — test lama
-    test_siswa_p3_tidak_melihat_geometri_datar). Dibalik 31 Agu 2026: band
-    SASMO P1-4 memuat geometri/statistika/logika versi sederhana, jadi
-    ketiga topik itu dibuka untuk P3 — dropdown lahir dari komposisi paket,
-    topik tanpa kunci P3 tetap tersembunyi.
+    Semua topik kini terlihat; pemilihan profil eksplisit menentukan kombinasi
+    yang tersedia. Kelas sekolah dan profil anak tidak membatasi dropdown.
     """
     with server.buka() as kon:
         database.tambah_siswa(kon, "P3 Geo", "P3")
@@ -408,7 +405,7 @@ def test_siswa_p3_melihat_geometri_datar_di_dropdown(server):
         "aritmatika-lanjut",
         "geometri-ruang",
     ):
-        assert f'value="{topik}"' not in isi
+        assert f'value="{topik}"' in isi
 
 
 def test_siswa_p5_bisa_membuat_sesi_geometri_datar(server):
@@ -419,7 +416,7 @@ def test_siswa_p5_bisa_membuat_sesi_geometri_datar(server):
     kode, isi, _ = server.minta(
         f"/sesi-baru/{siswa_id}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "geometri-datar"},
+        data={"topik": "geometri-datar", "profil_parameter": "P5"},
     )
     assert kode == 200
     assert "Sesi #" in isi
@@ -449,7 +446,7 @@ def test_alur_geometri_datar_guru_murid_laporan(server):
     kode, isi, _ = server.minta(
         f"/sesi-baru/{siswa_id}",
         auth=("guru", SANDI_GURU),
-        data={"topik": "geometri-datar"},
+        data={"topik": "geometri-datar", "profil_parameter": "P5"},
     )
     assert kode == 200
 

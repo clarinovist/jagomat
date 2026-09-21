@@ -137,7 +137,7 @@ def test_header_sesi_memakai_tanggal_ramah_kelas_dan_jumlah_aktual(db):
     halaman = _halaman(db)["koreksi"].decode()
     kepala = halaman.split('<header class="editorial-kepala-st">', 1)[1].split("</header>", 1)[0]
     assert '<time datetime="2026-09-13">13 Sep 2026</time>' in kepala
-    assert "Kelas 3" in kepala
+    assert "Profil P3" in kepala
     jumlah = db[0].execute(
         "SELECT COUNT(*) FROM sesi_soal WHERE sesi_id = ?", (db[2],)
     ).fetchone()[0]

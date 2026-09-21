@@ -36,7 +36,7 @@ BERKAS_TERLARANG = frozenset((
     "sesi.json", "admin-drafts.db", "transient.db",
 ))
 VERSI_TARGET = {
-    "admin": 4,
+    "admin": 5,
     "ai": 2,
     "transient": 2,
 }
@@ -326,6 +326,15 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
     if not 1 <= versi_pendamping <= 4:
         raise BackupTidakSah("versi Pendamping backup tidak didukung")
     # Schema-versi harus lengkap, bukan sekadar user_version yang cocok.
+    if versi_admin == 4:
+        # V4 dan v5 memiliki kolom sama; hanya registry aksi/hasil bertambah.
+        # Tetap periksa kolom, bukan sekadar kehadiran nama tabel lama.
+        import admin_store
+        with sqlite3.connect((akar / BERKAS_WAJIB['admin']).resolve().as_uri() + '?mode=ro', uri=True) as kon:
+            for tabel, wajib in admin_store._KOLOM_WAJIB.items():
+                aktual = {r[1] for r in kon.execute('PRAGMA table_info(%s)' % tabel)}
+                if not wajib <= aktual:
+                    raise BackupTidakSah('schema admin backup tidak lengkap')
     if versi_admin == VERSI_TARGET['admin']:
         import admin_store
         try:
@@ -343,11 +352,31 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
             "SELECT COUNT(*) FROM operasi_admin WHERE status='uncertain'"
         ).fetchone()[0])
     _validasi_link_receipt(akar)
+    _validasi_pilot(akar / BERKAS_WAJIB['belajar'])
     return RingkasanBackup(
         manifest["bundle_id"], manifest["cutoff"],
         tuple(BERKAS_WAJIB), versi_admin, versi_ai, versi_pendamping,
         minimum, maksimum, pending, uncertain, bool(pending or uncertain),
     )
+
+
+def _validasi_pilot(path):
+    """Baca kontrak/arsip pilot pada backup tanpa migrasi atau data ke log."""
+    from skill_pilot_store import baca_kontrak, validasi_konfirmasi
+    with sqlite3.connect(Path(path).resolve().as_uri()+'?mode=ro',uri=True) as kon:
+        kon.row_factory=sqlite3.Row
+        tabel={b[0] for b in kon.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if not (tabel & {'pilot_sesi','pilot_putaran','pilot_konfirmasi','pilot_aksi','pilot_fokus_sumber'}):
+            return
+        if not {'pilot_sesi','pilot_putaran','pilot_konfirmasi','pilot_aksi','pilot_fokus_sumber'} <= tabel:
+            raise BackupTidakSah('schema pilot backup tidak lengkap')
+        try:
+            for b in kon.execute('SELECT s.id,s.siswa_id FROM pilot_sesi ps JOIN sesi s ON s.id=ps.sesi_id'):
+                baca_kontrak(kon,b['id'],b['siswa_id'])
+                for k in kon.execute('SELECT konfirmasi_id FROM pilot_konfirmasi WHERE sesi_id=?',(b['id'],)):
+                    validasi_konfirmasi(kon,b['id'],b['siswa_id'],k[0])
+        except (ValueError,TypeError,sqlite3.Error):
+            raise BackupTidakSah('kontrak atau arsip pilot backup tidak cocok') from None
 
 
 def _validasi_link_receipt(akar: Path) -> None:
@@ -369,6 +398,8 @@ def _validasi_link_receipt(akar: Path) -> None:
                         or receipt.get('sidik_perintah') != row['sidik_perintah']
                         or receipt.get('actor_id') != row['actor_id']):
                     raise BackupTidakSah('pasangan journal/receipt akun tidak cocok')
+            elif row['aksi'] == 'student_school_grade_update':
+                _validasi_receipt_profil(admin, belajar, tabel, row)
             else:
                 if 'operasi_admin_siswa' not in tabel:
                     raise BackupTidakSah('receipt siswa pasangan tidak tersedia')
@@ -388,6 +419,32 @@ def _validasi_link_receipt(akar: Path) -> None:
     finally:
         admin.close()
         belajar.close()
+
+
+def _validasi_receipt_profil(admin, belajar, tabel, row):
+    """Pasangan profil baru wajib utuh; receipt level lama tidak menjadi pengganti."""
+    from admin_contracts import ReceiptProfilSiswa
+    if 'operasi_admin_profil' not in tabel:
+        raise BackupTidakSah('receipt profil pasangan tidak tersedia')
+    receipt = belajar.execute('SELECT * FROM operasi_admin_profil WHERE operasi_id=?', (row['operasi_id'],)).fetchone()
+    anchor = admin.execute('SELECT * FROM receipt_admin WHERE operasi_id=?', (row['operasi_id'],)).fetchone()
+    if receipt is None or anchor is None:
+        raise BackupTidakSah('pasangan journal/receipt profil tidak lengkap')
+    try:
+        parsed = ReceiptProfilSiswa(
+            1, receipt['operasi_id'], receipt['actor_id'], 'student_school_grade_update',
+            'student_%d' % receipt['siswa_id'], None, receipt['revisi_awal'],
+            receipt['revisi_hasil'], 'student_school_grade_updated', receipt['dibuat'],
+            receipt['sidik_perintah'], (('student_school_grade', receipt['kelas_lama'], receipt['kelas_baru']),),
+        )
+    except (ValueError, TypeError):
+        raise BackupTidakSah('receipt profil pasangan tidak sah') from None
+    if (parsed.actor_id != row['actor_id'] or parsed.target_id != row['target_id']
+            or row['jenis_target'] != 'student' or row['target_peran'] is not None
+            or parsed.revisi_awal != row['revisi_target'] or parsed.revisi_hasil != row['revisi_hasil']
+            or parsed.hasil_kode != row['hasil_kode'] or parsed.sidik_perintah != row['sidik_perintah']
+            or any(anchor[k] != row[k] for k in ('actor_id','aksi','target_id','sidik_perintah','hasil_kode'))):
+        raise BackupTidakSah('pasangan journal/receipt profil tidak cocok')
 
 
 def rehearsal_bundle(bundle, *, migrator_ai=None) -> RingkasanBackup:

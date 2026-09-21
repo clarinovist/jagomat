@@ -87,7 +87,7 @@ def test_aksi_akun_kembali_ke_section_asal(server):
     kode, isi, _ = s.minta(
         "/akun",
         auth=("ortu-a", SANDI_A),
-        data={"aksi": "anak_baru", "nama": "Rara", "tingkat": "P3",
+        data={"aksi": "anak_baru", "nama": "Rara", "profil_parameter": "P3",
               "sandi_anak": "sandi-rara-12345"},
     )
     assert kode == 200

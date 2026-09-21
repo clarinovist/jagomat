@@ -513,7 +513,7 @@ def _pisahkan_draf_inline(data, target):
         sisa = {k: v for k, v in data.items() if k not in nama}
         sisa.update(field_memori)
         return sisa, draf
-    nama_sah = {"topik", "jumlah_soal", "mode", "hadir_timer_mode", "timer_mode", "durasi_menit", "timer_auto", "format_jawaban"}
+    nama_sah = {"topik", "jumlah_soal", "mode", "hadir_timer_mode", "timer_mode", "durasi_menit", "timer_auto", "format_jawaban", "profil_parameter"}
     nama = nama_sah & set(data)
     if not (nama - {"mode"}):
         return data, None
@@ -523,7 +523,7 @@ def _pisahkan_draf_inline(data, target):
         baris = kon_data.execute("SELECT tingkat FROM siswa WHERE id = ?", (target.host_id,)).fetchone()
     if baris is None:
         raise LookupError("host tidak tersedia")
-    sah = [t for t in topics.daftar_topik() if t == "campuran" or baris["tingkat"] in topics.ambil(t).komposisi]
+    sah = topics.daftar_topik()
     draf = assistant_inline.parse_draf_latihan({k: data[k] for k in nama}, sah)
     return {k: v for k, v in data.items() if k not in nama}, draf
 

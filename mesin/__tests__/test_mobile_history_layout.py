@@ -87,7 +87,7 @@ def test_metadata_dan_status_tidak_dibuang_demi_ringkas(db):
     isi=render(db)
     baris=re.search(r'<tr data-sesi-id=".*?</tr>',isi,re.S).group()
     assert 'class="riwayat-meta-st"' in baris
-    assert 'Latihan bebas' in baris and 'Kelas 3' in baris and 'Mode Diagnosa' in baris
+    assert 'Latihan bebas' in baris and 'Profil P3' in baris and 'Mode Diagnosa' in baris
     assert 'Sesi #' in baris and 'Belum Dikerjakan' in baris and 'Menunggu pengiriman' in baris
     assert baris.count('>Buka →</a>')==1
     assert 'Bagikan sesi ke anak' in baris

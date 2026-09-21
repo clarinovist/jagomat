@@ -30,6 +30,8 @@ class OutcomeSiklus:
     mode_representasi: str = "teks-v1"
     fingerprint_penyajian: Optional[str] = None
     fingerprint_matematis: Optional[str] = None
+    # Diisi adapter dari snapshot tervalidasi, bukan tingkat profil anak.
+    profil_parameter: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -55,6 +57,8 @@ class SesiSiklus:
     mode: str = "diagnostik"
     pola_tersedia: Tuple[str, ...] = ()
     format_jawaban: str = 'isian'
+    pilot: bool = False
+    tuntutan_pilot: bool = False
 
 
 @dataclass(frozen=True)
@@ -78,6 +82,7 @@ class PutaranSiklus:
     level: str
     dibuka: date
     fokus: Tuple[KunciFokus, ...] = ()
+    pilot: bool = False
 
 
 @dataclass(frozen=True)
@@ -154,7 +159,7 @@ def _putaran_aktif(bukti: BuktiSiklus) -> Optional[PutaranSiklus]:
         if e.jenis in {"putaran_ditutup", "diganti_level", "override_ditutup"}
     }
     kandidat = [
-        p for p in bukti.putaran if p.level == bukti.level_aktif and p.id not in tertutup
+        p for p in bukti.putaran if not p.pilot and p.level == bukti.level_aktif and p.id not in tertutup
     ]
     return max(kandidat, key=lambda p: (p.dibuka, p.id)) if kandidat else None
 
@@ -205,7 +210,7 @@ def _sesi_bukti_pemetaan(
     }
     hasil = []
     for sesi in bukti.sesi:
-        if sesi.format_jawaban != 'isian' or sesi.siswa_id != bukti.siswa_id or sesi.level != bukti.level_aktif:
+        if sesi.pilot or sesi.format_jawaban != 'isian' or sesi.siswa_id != bukti.siswa_id or sesi.level != bukti.level_aktif:
             continue
         if sesi.dibatalkan is not None or sesi.selesai is None or sesi.dikonfirmasi is None:
             continue
@@ -376,7 +381,10 @@ def _evaluasi_fokus(
         ):
             outcomes = _hasil_fokus(sesi, kunci)
             if len(outcomes) >= 4:
-                hasil.append((sesi, _lulus(outcomes, 4)))
+                lulus = _lulus(outcomes, 4)
+                if sesi.tuntutan_pilot:
+                    lulus = _lulus_pola_materi(outcomes, 4) and _sidik_beragam(outcomes, 4)
+                hasil.append((sesi, lulus))
     return tuple(hasil)
 
 
@@ -425,6 +433,8 @@ def _checkpoint_sukses(
             awal = min(s.tanggal for s in bagian.values())
             cocok = any(s.tanggal <= awal and satu_mode((*_hasil_fokus(s, kunci), *outcomes))
                         for s in evaluasi_sah)
+            if any(s.tuntutan_pilot for s in bagian.values()):
+                cocok = cocok and _sidik_beragam(outcomes,3) and _lulus_pola_materi(outcomes,3)
             if cocok and _lulus(outcomes, 3, semua_benar=True):
                 sukses.append(max(sesi.tanggal for sesi in bagian.values()))
             continue
@@ -779,6 +789,7 @@ def rencana_berikutnya(
     if siswa_id != bukti.siswa_id:
         raise ValueError("bukti bukan milik siswa")
     from cycle_carry import bukti_lanjutan
+    bukti = tanpa_pilot(bukti)
     hari = hari_ini or date.today()
     putaran = _putaran_dengan_override(_putaran_aktif(bukti), bukti.kejadian)
 
@@ -866,6 +877,33 @@ def rencana_berikutnya(
     return RencanaBelajar("mixed_maintenance", "Tidak ada fokus aktif", putaran=status)
 
 
+def tanpa_pilot(bukti):
+    """Jalur warisan tidak boleh meratakan tuntutan pilot ke pola/profil."""
+    ids = {s.id for s in bukti.sesi if s.pilot}
+    pids = {p.id for p in bukti.putaran if p.pilot}
+    return replace(bukti, sesi=tuple(s for s in bukti.sesi if not s.pilot),
+                   putaran=tuple(p for p in bukti.putaran if not p.pilot),
+                   kejadian=tuple(e for e in bukti.kejadian
+                                  if e.sesi_id not in ids and e.putaran_id not in pids))
+
+
+def pengingat_berikutnya(bukti: BuktiSiklus, siswa_id: int,
+                        hari_ini: Optional[date] = None) -> Optional[RencanaBelajar]:
+    """Ringkasan opsional dari keputusan yang sama; bukan ajakan pada setiap profil.
+
+    Tidak menebak partisipasi dari jumlah sesi/kelas atau keberadaan putaran.
+    Rencana lengkap tetap tersedia di tabnya meskipun pengingat tidak ditampilkan.
+    """
+    rencana = rencana_berikutnya(bukti, siswa_id, hari_ini)
+    if rencana.tindakan in {"tunggu_pemetaan", "tunggu_evaluasi", "tunggu_checkpoint", "mixed_maintenance"}:
+        return None
+    if rencana.tindakan == "pemetaan" and not (
+        rencana.putaran and rencana.putaran.tanggal_pemetaan
+    ):
+        return None
+    return rencana
+
+
 @dataclass(frozen=True)
 class StatusPolaMateri:
     template_id: str
@@ -879,6 +917,249 @@ class StatusTargetMateri:
     id: str
     status: str
     pola: Tuple[StatusPolaMateri, ...]
+
+
+@dataclass(frozen=True)
+class StatusKonteksMateri:
+    konteks: "KonteksSoal"
+    hasil: StatusPolaMateri
+
+
+def penguasaan_konteks(bukti: BuktiSiklus, siswa_id: int, konteks,
+                      hari_ini: Optional[date] = None) -> Tuple[StatusKonteksMateri, ...]:
+    """Nilai konteks warisan terpisah; bukan urutan kesulitan atau persen siap lomba.
+
+    Profil global tidak dipakai untuk memilih cakupan. Filter historis, invalidasi,
+    representasi, dan ambang penguasaan tetap milik penguasaan_target. API belum
+    menggantikan laporan kelas atau mengaktifkan penulis sesi lintas tuntutan.
+    """
+    from question_context import KonteksSoal
+    from mastery_catalog import TargetMateri
+
+    if siswa_id != bukti.siswa_id:
+        raise ValueError("bukti bukan milik siswa")
+    konteks = tuple(konteks)
+    if any(type(k) is not KonteksSoal for k in konteks):
+        raise ValueError("konteks soal tidak sah")
+    if len({k.id for k in konteks}) != len(konteks):
+        raise ValueError("konteks soal duplikat")
+    hari = hari_ini or date.today()
+    hasil = {}
+    for profil in dict.fromkeys(k.profil_parameter for k in konteks):
+        sumber = replace(bukti, level_aktif=profil)
+        # Jangan meloloskan metadata kosong/berbeda lalu diam-diam mengambil
+        # keberhasilan lama. Adapter harus mencocokkan profil snapshot terlebih dulu.
+        for sesi in _sesi_peta_materi(sumber, hari):
+            if any(o.profil_parameter != sesi.level for o in sesi.outcomes):
+                raise ValueError("konteks bukti tidak cocok dengan profil snapshot")
+        pilihan = tuple(k for k in konteks if k.profil_parameter == profil)
+        target = tuple(TargetMateri(k.id, k.template_id, k.topik_id, k.topik_id,
+                                   (k.template_id,)) for k in pilihan)
+        nilai = penguasaan_target(sumber, siswa_id, target, hari)
+        hasil.update((k.id, StatusKonteksMateri(k, n.pola[0])) for k, n in zip(pilihan, nilai))
+    return tuple(hasil[k.id] for k in konteks)
+
+
+@dataclass(frozen=True)
+class StatusTuntutanPilot:
+    konteks: object
+    hasil: StatusPolaMateri
+
+
+def penguasaan_pilot(paket, siswa_id, konteks, hari_ini=None):
+    """Nilai tuntutan disetujui secara terpisah, tanpa persen atau tulis DB.
+
+    Paket hanya boleh berasal dari adapter metadata/provenance yang tervalidasi.
+    Sidik variasi tambahan tidak menulis ulang fingerprint historis.
+    """
+    from skill_pilot import KonteksPilot
+    from skill_pilot_evidence import BuktiPilot, proyeksi_bukti
+    from mastery_catalog import TargetMateri
+    if type(paket) is not BuktiPilot or paket.bukti.siswa_id != siswa_id:
+        raise ValueError("bukti pilot bukan milik siswa")
+    konteks = tuple(konteks)
+    if (any(type(k) is not KonteksPilot for k in konteks)
+            or len(set(konteks)) != len(konteks)):
+        raise ValueError("konteks pilot tidak sah atau duplikat")
+    hasil = []
+    for k in konteks:
+        sumber = proyeksi_bukti(paket, k)
+        target = TargetMateri(k.id, k.tuntutan_id, "geometri-datar", "Geometri datar",
+                             (k.template_id,))
+        nilai = penguasaan_target(sumber, siswa_id, (target,), hari_ini)[0].pola[0]
+        # Retensi tuntutan tanpa diagnosis tidak menciptakan fokus K/H palsu.
+        if not any(p.fokus for p in sumber.putaran):
+            sukses, _ = checkpoint_tuntutan(sumber, k, hari_ini or date.today())
+            if sukses is not None and k.template_id not in _pola_terkoreksi(sumber):
+                tanggal, ids = sukses
+                lebih_baru = any(s.tanggal > tanggal and s.tujuan=='pemetaan'
+                                 for s in _sesi_peta_materi(sumber,hari_ini or date.today()))
+                if not lebih_baru:
+                    nilai = StatusPolaMateri(k.template_id,
+                        'perlu_cek' if ((hari_ini or date.today())-tanggal).days>=28 else 'terbukti',ids,tanggal)
+        masalah = sumber_pilot_perlu_tinjauan(paket)
+        terkait = tuple(m for m in masalah if m.konteks == k)
+        if terkait:
+            nilai = StatusPolaMateri(k.template_id, 'perlu_cek',
+                                    tuple(sorted({sid for m in terkait for sid in m.sesi_ids})))
+        hasil.append(StatusTuntutanPilot(k, nilai))
+    return tuple(hasil)
+
+
+def tawaran_probe_balik(paket, siswa_id, langsung, prasyarat, hari_ini=None):
+    """Bukti awal hanya menawarkan pemeriksaan melalui keputusan orang tua.
+
+    Tidak meluluskan target baru atau melewati tugas wajib. Caller menentukan
+    tampilan tunggal bersama rencana existing; belum mengaktifkan writer pilot.
+    """
+    from skill_pilot import KonteksPilot, LANGSUNG, PRASYARAT
+    if (type(langsung) is not KonteksPilot or type(prasyarat) is not KonteksPilot
+            or langsung.tuntutan_id != LANGSUNG or prasyarat.tuntutan_id != PRASYARAT):
+        raise ValueError("rujukan prasyarat pilot tidak cocok")
+    nilai = penguasaan_pilot(paket, siswa_id, (langsung, prasyarat), hari_ini)
+    return all(n.hasil.status == "terbukti" for n in nilai)
+
+
+def sumber_pilot_perlu_tinjauan(paket):
+    """Invalidasi historis tetap tercatat, tetapi hanya putaran terbuka memblokir."""
+    tertutup = {e.putaran_id for e in paket.bukti.kejadian
+                if e.jenis in ('putaran_ditutup','override_ditutup','diganti_level')}
+    return tuple(m for m in paket.sumber_dicabut if m.putaran_id not in tertutup)
+
+
+def rencana_pilot(paket, siswa_id, konteks, putaran_id, hari_ini=None):
+    """Satu langkah pilot dari bukti sah; tidak bergantung kelas sekolah."""
+    from skill_pilot_evidence import proyeksi_bukti
+    from skill_pilot_materials import pilihan_materi
+    hari = hari_ini or date.today()
+    if siswa_id != paket.bukti.siswa_id:
+        raise ValueError('bukti pilot bukan milik siswa')
+    asal = next((p for p in paket.bukti.putaran if p.id == putaran_id), None)
+    if asal is None or not asal.pilot or asal.level != konteks.profil_parameter:
+        raise ValueError('putaran pilot tidak cocok')
+    sumber = proyeksi_bukti(paket, konteks)
+    if any(m.putaran_id == putaran_id for m in sumber_pilot_perlu_tinjauan(paket)):
+        return RencanaBelajar('pulihkan_sumber',
+            'Konfirmasi sumber fokus dicabut, diganti, atau sesinya dibatalkan. '
+            'Tutup putaran ini dan batalkan seluruh sesinya tanpa menghapus histori, '
+            'lalu pilih pemeriksaan baru secara eksplisit.'), sumber
+    p = replace(asal, pilot=False)
+    sumber = replace(sumber, putaran=tuple(x for x in sumber.putaran if x.id!=p.id)+(p,))
+    pemblokir = _sesi_pemblokir(sumber, p)
+    for s in pemblokir:
+        if s.selesai is None:
+            return RencanaBelajar('lanjutkan_sesi','Selesaikan sesi pilot yang sudah dibuat.',sesi_id=s.id), sumber
+        if s.dikonfirmasi is None:
+            return RencanaBelajar('konfirmasi_hasil','Tinjau dan konfirmasi pekerjaan asli anak.',sesi_id=s.id), sumber
+    sesi = _sesi_bukti_pemetaan(sumber, p)
+    ringkas = _ringkas_kandidat(sesi)
+    status = _status_putaran(p, p.level, (s.tanggal for s in sesi), ringkas)
+    if status.fokus:
+        fokus = tuple(f.kunci for f in status.fokus)
+        p = replace(p, fokus=fokus)
+        sumber = replace(sumber,putaran=tuple(p if x.id==p.id else x for x in sumber.putaran),
+            pendekatan_tersedia=tuple((f,tuple(m.pendekatan_id for m in pilihan_materi(konteks,f))) for f in fokus))
+        hasil = _rencana_fokus(sumber,p,status,hari)
+        if hasil:
+            return hasil,sumber
+    # T dan opt-in belum dikenal selalu pengenalan dahulu. Pengenalan tidak
+    # dihitung sebagai bukti mandiri dan probe berlangsung pada hari berikutnya.
+    event = tuple(e for e in paket.bukti.kejadian if e.putaran_id==putaran_id)
+    butuh = any(e.jenis=='pilot_belum_dikenal' for e in event) or any(
+        o.kode_final=='T' for s in sesi for o in s.outcomes)
+    pengenalan = tuple(s for s in sumber.sesi if s.putaran_id==p.id and s.tujuan=='pengenalan'
+                       and s.dikonfirmasi is not None and s.dibatalkan is None)
+    terbaru_t = max((s.tanggal for s in sesi if any(o.kode_final=='T' for o in s.outcomes)), default=date.min)
+    akhir_intro = max((max(s.tanggal, s.dikonfirmasi_pada or s.tanggal) for s in pengenalan), default=None)
+    if butuh and (akhir_intro is None or akhir_intro < terbaru_t):
+        return RencanaBelajar('pengenalan','Pelajari contoh; hasil bantuan bukan bukti mandiri.'),sumber
+    if akhir_intro is not None and hari<=akhir_intro:
+        return RencanaBelajar('tunggu_pemetaan','Probe mandiri tersedia setelah jeda dari pengenalan.',tersedia_pada=akhir_intro+timedelta(days=1)),sumber
+    nilai = penguasaan_pilot(paket,siswa_id,(konteks,),hari)[0].hasil
+    if nilai.status in ('terbukti','perlu_cek') and nilai.terakhir is not None:
+        # Verifikasi bahwa pernah ada bukti sah, bukan memakai tanggal kegagalan.
+        dasar = penguasaan_pilot(paket,siswa_id,(konteks,),nilai.terakhir)[0].hasil
+        if dasar.status=='terbukti':
+            _, bagian = checkpoint_tuntutan(sumber,konteks,hari)
+            if bagian == -1:
+                return RencanaBelajar('eskalasi','Checkpoint belum mendukung pemahaman. Periksa prasyarat atau lakukan uji ulang lisan sebelum menambah latihan.'),sumber
+            if bagian==1 or hari>=dasar.terakhir+timedelta(days=28):
+                return RencanaBelajar('checkpoint','Periksa retensi tuntutan dengan dua bagian baru.',
+                    bagian_checkpoint=2 if bagian==1 else 1,jumlah_probe_minimum=3),sumber
+            return RencanaBelajar('tunggu_checkpoint','Bukti menunjukkan pemahaman pada tuntutan ini saja.',
+                                  tersedia_pada=dasar.terakhir+timedelta(days=28)),sumber
+    if sesi:
+        terbaru=max(sesi,key=lambda s:(s.tanggal,s.id))
+        kode=next((o.kode_final for o in terbaru.outcomes if o.kode_final in ('B','E','N')),None)
+        terakhir=max(s.tanggal for s in sesi)
+        if hari<terakhir+timedelta(days=3):
+            return RencanaBelajar('tunggu_pemetaan','Pemeriksaan berikutnya memakai soal baru setelah jeda.',
+                                  tersedia_pada=terakhir+timedelta(days=3)),sumber
+        if kode is not None:
+            return RencanaBelajar('pemetaan',intervensi_untuk(kode).tindakan + '. Periksa kembali dengan probe mandiri.'),sumber
+    return RencanaBelajar('pemetaan','Periksa tuntutan ini dengan empat probe mandiri yang bervariasi.'),sumber
+
+
+def checkpoint_tuntutan(bukti,konteks,hari):
+    """Retensi tanpa fokus diagnosis: dua bagian, ≥3 probe, seluruhnya benar."""
+    sesi=_sesi_peta_materi(bukti,hari)
+    awal=tuple(s for s in sesi if s.tujuan in ('pemetaan','bebas'))
+    if len(awal)<2:
+        return None,0
+    from mastery_catalog import TargetMateri
+    target=TargetMateri(konteks.id,konteks.tuntutan_id,'geometri-datar','Geometri datar',(konteks.template_id,))
+    dasar=penguasaan_target(replace(bukti,sesi=awal),bukti.siswa_id,(target,),max(s.tanggal for s in awal))[0].pola[0]
+    if dasar.status!='terbukti': return None,0
+    pasangan={}
+    for s in sesi:
+        if s.tujuan=='checkpoint' and not s.target_fokus and s.occurrence and s.bagian_checkpoint in (1,2):
+            pasangan.setdefault((s.putaran_id,s.occurrence),{})[s.bagian_checkpoint]=s
+    sukses=None; bagian=0; tanggal_dasar=dasar.terakhir
+    for _, pair in sorted(pasangan.items()):
+        if set(pair)!={1,2}:
+            bagian=1 if set(pair)=={1} else 0
+            continue
+        probe=tuple(o for n in (1,2) for o in pair[n].outcomes)
+        cukup_jeda=min(s.tanggal for s in pair.values())>=tanggal_dasar+timedelta(days=28)
+        baik=(cukup_jeda and _sidik_beragam(probe,3) and _lulus_pola_materi(probe,3)
+              and all(o.benar is True for o in probe))
+        if baik:
+            tanggal_dasar=max(s.tanggal for s in pair.values())
+            sukses=(tanggal_dasar,tuple(pair[n].id for n in (1,2)))
+        else:
+            # Tanpa fokus diagnosis belum ada pendekatan remedial terikat yang
+            # sah. Kegagalan retensi harus terlihat, bukan checkpoint tanpa batas.
+            return None,-1
+        bagian=0
+    return sukses,bagian
+
+
+def boleh_mulai_pilot(paket,siswa_id,rencana,hari=None):
+    """Jangan menumpuk putaran/fokus baru selama yang lama belum pulih."""
+    if not rencana:
+        return True
+    if any(r.tindakan!='tunggu_checkpoint' for _,_,r,_ in rencana):
+        return False
+    return all(h.hasil.status=='terbukti' for h in penguasaan_pilot(
+        paket,siswa_id,tuple(k for _,k,_,_ in rencana),hari))
+
+
+def pilih_rencana_pilot(rencana):
+    """Urutan tunggal antarputaran pilot; UI/layanan tidak menghitung prioritas."""
+    prioritas = {'pulihkan_sumber':-1,'lanjutkan_sesi':0,'konfirmasi_hasil':1,'eskalasi':2,'putaran_baru':2,
+                 'evaluasi':3,'intervensi':4,'latihan_terbimbing':5,'penguatan':5,
+                 'checkpoint':6,'pemetaan':7,'pengenalan':8}
+    return min(rencana, key=lambda x:(prioritas.get(x[2].tindakan,99),x[0]), default=None)
+
+
+def prioritas_warisan(bukti, hari_ini=None):
+    """Pilot opsional tidak mengambil alih tugas wajib yang sudah berjalan."""
+    rencana = rencana_berikutnya(bukti,bukti.siswa_id,hari_ini)
+    if rencana.tindakan in ('mixed_maintenance','tunggu_pemetaan','tunggu_checkpoint','tunggu_evaluasi'):
+        return None
+    if rencana.tindakan=='pemetaan' and not (rencana.putaran and rencana.putaran.tanggal_pemetaan):
+        return None
+    return rencana
 
 
 def _lulus_pola_materi(outcomes, minimum):
@@ -1070,6 +1351,7 @@ def penguasaan_target(bukti: BuktiSiklus, siswa_id: int, target,
     if siswa_id != bukti.siswa_id:
         raise ValueError("bukti bukan milik siswa")
     hari = hari_ini or date.today()
+    bukti = tanpa_pilot(bukti)
     sesi = _sesi_peta_materi(bukti, hari)
     sumber = replace(bukti, sesi=sesi)
     from cycle_carry import bukti_lanjutan

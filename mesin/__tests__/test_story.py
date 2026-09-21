@@ -135,8 +135,8 @@ def test_tombol_tidak_muncul_kalau_fitur_mati(db, monkeypatch):
         html_sesi = teacher_pages.halaman_sesi_stitch(kon, ses).decode()
         html_cetak_raw = teacher_pages.halaman_sesi_cetak(kon, ses)
         html_cetak = html_cetak_raw.decode() if html_cetak_raw else ""
-    assert "Variasi cerita" not in html_sesi
-    assert "Variasi cerita" not in html_cetak
+    assert "Opsi tambahan: ubah cerita soal" not in html_sesi
+    assert "Opsi tambahan: ubah cerita soal" not in html_cetak
 
 
 def test_tombol_muncul_di_cetak_kalau_fitur_hidup(db):
@@ -148,8 +148,8 @@ def test_tombol_muncul_di_cetak_kalau_fitur_hidup(db):
         html_cetak_raw = teacher_pages.halaman_sesi_cetak(kon, ses)
         assert html_cetak_raw is not None
         html_cetak = html_cetak_raw.decode()
-    assert "Variasi cerita" not in html_sesi
-    assert "Variasi cerita" in html_cetak
+    assert "Opsi tambahan: ubah cerita soal" not in html_sesi
+    assert "Opsi tambahan: ubah cerita soal" in html_cetak
     assert "0 dari 12" in html_cetak
 
 

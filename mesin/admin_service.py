@@ -445,6 +445,63 @@ def buat_akun(
         return _layanan(hasil, baru=True, sandi=sandi_baru)
 
 
+def ubah_kelas_sekolah(
+    path_admin, path_auth, path_db, perintah, *, sekarang=None, failpoint=None,
+) -> HasilLayanan:
+    """Aksi metadata dengan journal/anchor; retry hanya finalisasi receipt asli."""
+    import admin_students
+    import learning_profile_admin
+    from admin_contracts import PerintahProfilSiswa
+    if not isinstance(perintah, PerintahProfilSiswa):
+        raise ValueError('perintah profil sekolah wajib')
+    with kunci_operasi(path_admin, perintah.operasi_id):
+        try:
+            admin_accounts.validasi_actor(path_auth, perintah)
+        except admin_accounts.KonflikAkun as galat:
+            raise OperasiTidakDapatDilanjutkan('principal tidak sah') from galat
+        reservasi = admin_store.reservasi(path_admin, perintah, sekarang=sekarang)
+        if reservasi.hasil.status not in ('reserved', 'uncertain', 'succeeded'):
+            raise OperasiTidakDapatDilanjutkan(reservasi.hasil.status)
+        try:
+            receipt = learning_profile_admin.baca_receipt(path_db, path_auth, perintah)
+        except admin_accounts.KonflikAkun as galat:
+            raise OperasiTidakDapatDilanjutkan('principal tidak sah') from galat
+        except (admin_students.DomainSiswaTidakSah, admin_students.KonflikSiswa) as galat:
+            raise OperasiTidakDapatDilanjutkan('receipt profil tak pasti') from galat
+        if receipt is not None:
+            hasil = admin_store.finalisasi_sukses(path_admin, perintah, receipt, sekarang=sekarang)
+            return _layanan(hasil, baru=False)
+        anchor = admin_students.baca_anchor_admin(path_admin, perintah)
+        if anchor is not None or reservasi.hasil.status in ('succeeded', 'uncertain'):
+            raise OperasiTidakDapatDilanjutkan('anchor atau journal tanpa receipt profil')
+        if not reservasi.dibuat_baru:
+            raise OperasiTidakDapatDilanjutkan('operasi lama tanpa receipt; jangan menulis ulang')
+        admin_students.siapkan_anchor_admin(path_admin, perintah, sekarang=sekarang)
+        try:
+            receipt = learning_profile_admin.ubah_domain(
+                path_db, path_auth, perintah, sekarang=sekarang, failpoint=failpoint,
+            )
+        except admin_accounts.KonflikAkun as galat:
+            admin_students.hapus_anchor_admin(path_admin, perintah)
+            raise OperasiTidakDapatDilanjutkan('principal tidak sah') from galat
+        except admin_students.KonflikSiswa:
+            admin_students.hapus_anchor_admin(path_admin, perintah)
+            hasil = admin_store.finalisasi_gagal(path_admin, perintah, status='conflict',
+                hasil_kode='target_changed', sekarang=sekarang)
+            return _layanan(hasil, baru=False)
+        except RuntimeError:
+            if failpoint == 'setelah_commit':
+                raise CrashSebelumFinalisasi('receipt profil sudah commit')
+            admin_students.hapus_anchor_admin(path_admin, perintah)
+            hasil = admin_store.finalisasi_gagal(path_admin, perintah, status='failed_before_commit',
+                hasil_kode='domain_not_committed', sekarang=sekarang)
+            return _layanan(hasil, baru=False)
+        if failpoint == 'sebelum_finalize':
+            raise CrashSebelumFinalisasi('failpoint profil sebelum finalize')
+        hasil = admin_store.finalisasi_sukses(path_admin, perintah, receipt, sekarang=sekarang)
+        return _layanan(hasil, baru=True)
+
+
 def ubah_kelas(
     path_admin,
     path_auth,

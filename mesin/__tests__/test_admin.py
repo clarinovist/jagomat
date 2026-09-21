@@ -168,7 +168,7 @@ def test_admin_boleh_membuat_sesi(server):
     kode, _, _ = server.minta(
         f"/sesi-baru/{siswa_a}",
         auth=("pengelola", SANDI_ADMIN),
-        data={"topik": "pola-bilangan", "mode": "diagnostik"},
+        data={"topik": "pola-bilangan", "mode": "diagnostik", "profil_parameter": "P3"},
     )
     assert kode in (200, 303)
     with server.buka() as kon:

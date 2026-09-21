@@ -5,7 +5,7 @@ import html
 from typing import Callable
 
 from learning_journey import PerjalananBelajar
-from templates import label_kelas
+from question_context import label_profil_parameter as label_kelas
 from report_navigation import halaman_daftar, navigasi_halaman, url_laporan
 
 
@@ -50,7 +50,7 @@ PEMAHAMAN = {
     "menghafal": "Masih menghafal",
 }
 PENUTUP = {
-    "putaran_ditutup": "Putaran ditutup", "diganti_level": "Kelas belajar berubah",
+    "putaran_ditutup": "Putaran ditutup", "diganti_level": "Profil parameter warisan berubah",
     "override_ditutup": "Fokus diganti oleh pendamping",
 }
 

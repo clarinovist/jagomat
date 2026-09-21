@@ -36,6 +36,8 @@ def db(tmp_path):
         );
         """
     )
+    import learning_profile_schema
+    kon.executescript(learning_profile_schema.SKEMA_PROFIL_BELAJAR)
     yield kon
     kon.close()
 

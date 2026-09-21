@@ -32,6 +32,8 @@ from admin_contracts import (
     AKSI_HAPUS_SISWA,
     AKSI_RESET_SANDI,
     AKSI_UBAH_LEVEL,
+    AKSI_UBAH_KELAS_SEKOLAH,
+    PerintahProfilSiswa,
     KontrakTidakSah,
     PerintahAkun,
     PerintahPembuatanAkun,
@@ -544,13 +546,18 @@ def _render_tinjauan(penangan, principal, query):
             return _tidak_ada(penangan)
         isi = admin_pages.render_detail_siswa(detail, tindakan=admin_pages.form_hapus_siswa(csrf, token))
         return _kirim_privat(penangan, _halaman_admin(principal, 'siswa', isi, skrip=True), skrip=True)
-    if aksi in (AKSI_UBAH_LEVEL, AKSI_BUAT_LOGIN_MURID):
+    if aksi in (AKSI_UBAH_LEVEL, AKSI_UBAH_KELAS_SEKOLAH, AKSI_BUAT_LOGIN_MURID):
         siswa_id = _angka(query.get("id"))
         with database.buka() as kon:
             konteks = _konteks(kon)
             detail = admin_queries.detail_siswa(kon, konteks, siswa_id)
         if detail is None:
             return _tidak_ada(penangan)
+        if aksi == AKSI_UBAH_KELAS_SEKOLAH:
+            payload = {'siswa_id': siswa_id, 'revisi_profil': detail.siswa.revisi_profil, 'section': 'siswa'}
+            token = admin_security.buat_tinjauan(akun, token_sesi, aksi, payload)
+            isi = admin_pages.render_detail_siswa(detail, tindakan=admin_pages.form_kelas_sekolah(detail, csrf, token))
+            return _kirim_privat(penangan, _halaman_admin(principal, 'siswa', isi, skrip=True), skrip=True)
         if aksi == AKSI_UBAH_LEVEL:
             payload = {"siswa_id": siswa_id, "tingkat": detail.siswa.tingkat, "section": "siswa"}
             token_level = admin_security.buat_tinjauan(akun, token_sesi, aksi, payload)
@@ -699,7 +706,7 @@ def _post_akun(penangan, principal, data):
 
 def _post_siswa(penangan, principal, data):
     aksi = data.get("aksi", "")
-    if aksi not in (AKSI_UBAH_LEVEL, AKSI_HAPUS_SISWA):
+    if aksi not in (AKSI_UBAH_LEVEL, AKSI_UBAH_KELAS_SEKOLAH, AKSI_HAPUS_SISWA):
         raise ValueError("Aksi siswa tidak dikenal.")
     akun, tinjauan, token = _token_final(penangan, principal, data, aksi)
     if aksi == AKSI_HAPUS_SISWA:
@@ -716,6 +723,21 @@ def _post_siswa(penangan, principal, data):
             _path_admin(), auth.BERKAS_SANDI, database.BAWAAN, perintah,
         ))
         return _redirect(penangan, '/admin?section=siswa')
+    if aksi == AKSI_UBAH_KELAS_SEKOLAH:
+        import learning_profile_ui
+        kelas = learning_profile_ui.baca_kelas_form(data.pop('kelas_sekolah', None))
+        revisi = learning_profile_ui.baca_revisi_form(data.pop('revisi_profil', None))
+        meta = tinjauan['data']
+        if data or set(meta) != {'siswa_id', 'revisi_profil', 'section'}:
+            raise ValueError('Field profil tidak dikenal.')
+        if revisi != meta['revisi_profil']:
+            raise ValueError('Revisi tidak cocok dengan tinjauan. Muat ulang.')
+        perintah = PerintahProfilSiswa(tinjauan['op'], akun['id_akun'], auth.revisi_auth(akun),
+            aksi, meta['siswa_id'], revisi, kelas, token_domain(token))
+        _pastikan_sukses(admin_service.ubah_kelas_sekolah(
+            _path_admin(), auth.BERKAS_SANDI, database.BAWAAN, perintah,
+        ))
+        return _redirect(penangan, '/admin?section=siswa&id=%d' % meta['siswa_id'])
     level_baru = data.pop("tingkat_baru", "")
     if data:
         raise ValueError("Field tidak dikenal.")

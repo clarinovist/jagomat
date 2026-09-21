@@ -312,6 +312,7 @@ def _putaran_aktif(
     baris = kon.execute(
         """SELECT pf.id FROM putaran_fokus pf
            WHERE pf.siswa_id = ? AND pf.level = ?
+             AND NOT EXISTS (SELECT 1 FROM pilot_putaran pp WHERE pp.putaran_id=pf.id)
              AND NOT EXISTS (
                  SELECT 1 FROM kejadian_belajar kb
                  WHERE kb.putaran_id = pf.id

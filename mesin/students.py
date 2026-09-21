@@ -79,11 +79,17 @@ def beranda_murid(kon, siswa_id: int) -> dict:
         ) for b in baris),
         putaran=putaran, kejadian=kejadian,
     )
+    # Sisi anak hanya membaca identitas operasional, bukan JSON tuntutan/fokus.
+    pilot_sesi = {b[0] for b in kon.execute('SELECT ps.sesi_id FROM pilot_sesi ps JOIN sesi s ON s.id=ps.sesi_id WHERE s.siswa_id=?',(siswa_id,))}
+    pilot_putaran = {b[0] for b in kon.execute('SELECT pp.putaran_id FROM pilot_putaran pp JOIN putaran_fokus pf ON pf.id=pp.putaran_id WHERE pf.siswa_id=?',(siswa_id,))}
+    from dataclasses import replace
+    metadata = replace(metadata, putaran=tuple(replace(p,pilot=p.id in pilot_putaran) for p in metadata.putaran))
     aktif = siklus._putaran_aktif(metadata)
     pilihan = siklus.sesi_berjalan(metadata)
     tersedia = [dict(b) for b in baris if b["dibatalkan"] is None]
-    utama_id = pilihan.id if pilihan is not None else None
-    if aktif is None:
+    pilot_belum = [b for b in tersedia if b['id'] in pilot_sesi and b['selesai'] is None]
+    utama_id = pilihan.id if pilihan is not None else (min(pilot_belum,key=lambda b:b['id'])['id'] if pilot_belum else None)
+    if aktif is None and utama_id is None:
         manual = [b for b in tersedia
                   if b["tujuan"] == "bebas" and b["selesai"] is None
                   and b["level"] == siswa["tingkat"] and b["jumlah"] > 0]
