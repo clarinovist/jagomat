@@ -106,7 +106,7 @@ def test_default_mesin_roundtrip_tidak_menciptakan_override_atau_pengakuan(serve
         assert keadaan(s)[1] == []
         return
     assert "Usulan Jagomat:" in isi
-    assert "Dipakai otomatis saat konfirmasi" in isi
+    assert "Konfirmasi hasil sesi berarti menyetujui penilaian" in isi
     assert kirim(s, data)[0] == 200
     hasil, snapshot, bukti = keadaan(s)
     for key in ("cara", "jawaban", "manual", "belum_pernah", "kode_usulan", "alasan", "malrule_id"):
@@ -129,7 +129,7 @@ def test_override_lama_tetap_dan_kembali_otomatis_mencabut_manual(server, kode):
             database.simpan_diagnosis(kon, b["jawaban_id"], False, None, "T", manual=True)
     data, isi = form(s)
     assert data[f"kode_{s.sid}"] == kode
-    assert "Penilaian guru:" in isi
+    assert "Pilihan sendiri · Belum dikonfirmasi" in isi
     assert kirim(s, data)[0] == 200
     hasil, snapshots, bukti = keadaan(s)
     assert hasil["manual"] == 1

@@ -151,7 +151,7 @@ def test_alasan_mesin_benar_tetap_tampil_saat_guru_mengoreksi_manual(db):
 
     assert hasil["manual"]
     assert hasil["alasan"] == "jawaban benar"
-    assert '<b>Jagomat:</b> jawaban benar' in halaman
+    assert '<b>Alasan:</b> jawaban benar' in halaman
 
 
 def test_alasan_mesin_tetap_tampil_saat_guru_menandai_benar_manual(db):
@@ -172,7 +172,7 @@ def test_alasan_mesin_tetap_tampil_saat_guru_menandai_benar_manual(db):
 
     assert hasil["benar"]
     assert hasil["alasan"] != "jawaban benar"
-    assert f'<b>Jagomat:</b> {hasil["alasan"]}' in halaman
+    assert f'<b>Alasan:</b> {hasil["alasan"]}' in halaman
 
 
 def test_alasan_mesin_yang_membantu_tetap_tampil(db):
@@ -192,7 +192,7 @@ def test_alasan_mesin_yang_membantu_tetap_tampil(db):
         halaman = teacher_pages.halaman_sesi_stitch(kon, sesi_id).decode()
 
     assert hasil["alasan"]
-    assert f'<b>Jagomat:</b> {hasil["alasan"]}' in halaman
+    assert f'<b>Alasan:</b> {hasil["alasan"]}' in halaman
 
 
 def test_status_menyatu_dengan_nomor_dan_jenis_soal(db):

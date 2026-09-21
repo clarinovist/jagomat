@@ -1307,7 +1307,8 @@ def halaman_sesi_stitch(
         snapshot_terakhir = {
             int(baris["sesi_soal_id"]): baris
             for baris in kon.execute(
-                """SELECT sesi_soal_id, dilewati, cek_pemahaman
+                """SELECT sesi_soal_id, nomor, template_id, jawaban, benar,
+                          kode_final, malrule_id, dilewati, cek_pemahaman
                    FROM snapshot_outcome WHERE konfirmasi_id = ?""",
                 (konfirmasi_terakhir["id"],),
             ).fetchall()
@@ -1403,25 +1404,18 @@ def halaman_sesi_stitch(
         ) if sudah or draf_butir else ""
         label_usulan = label_penilaian("benar" if rekomendasi.benar else rekomendasi.kode)
         belum_dinilai = not rekomendasi.benar and not rekomendasi.kode
-        keterangan_otomatis = (
-            "Usulan ini tidak dipakai selama penilaian guru dipilih."
-            if kode_tampil else
-            "Pilih penilaian di bawah sebelum mengonfirmasi."
-            if belum_dinilai else
-            "Dipakai otomatis saat konfirmasi. Jika jawaban, cara, atau pengalaman diubah, Jagomat menilai ulang."
-        )
-        penilaian_guru = (
-            f'<p class="koreksi-catatan-st"><b>Penilaian guru:</b> '
-            f'{html.escape(label_penilaian(kode_tampil))}. Pilihan ini tetap dipakai.</p>'
-            if kode_tampil else ""
+        judul_usulan = (
+            "Jagomat belum dapat mengusulkan penilaian." if belum_dinilai else
+            f"Usulan Jagomat: {label_usulan}"
         )
         usulan = (
-            f'<div class="usulan-st"><b>Usulan Jagomat: {html.escape(label_usulan)}</b>'
-            f'<p class="koreksi-catatan-st">{keterangan_otomatis}</p>'
-            f'{penilaian_guru}</div>'
-        ) if not belum_dinilai else penilaian_guru
+            f'<div class="usulan-st"><b>{html.escape(judul_usulan)}</b>'
+            f'<p class="koreksi-catatan-st"><b>Alasan:</b> {html.escape(rekomendasi.alasan)}</p>'
+            '<p class="koreksi-catatan-st">Usulan berdasarkan isian saat halaman dimuat. '
+            'Jika jawaban, cara, atau pengalaman diubah, Jagomat menilai ulang saat disimpan.</p></div>'
+        )
         label_otomatis = (
-            "Belum yakin — perlu ditinjau" if belum_dinilai else "Gunakan usulan Jagomat"
+            "Belum yakin — perlu ditinjau" if belum_dinilai else f"Otomatis — {label_usulan}"
         )
         pilihan_kode = [v for v, _ in KODE_PILIHAN if not (drill and v == "N")]
         if "T" not in pilihan_kode:
@@ -1496,6 +1490,41 @@ def halaman_sesi_stitch(
             draf_butir.dilewati if draf_butir else
             bool(tinjauan_butir['dilewati']) if tinjauan_butir else
             bool(snapshot_butir is not None and snapshot_butir["dilewati"])
+        )
+        # Persetujuan hanya untuk outcome yang cocok dengan snapshot aktif.
+        # Draf/diagnosis mutable saja bukan bukti keputusan yang sudah disahkan.
+        penilaian_disahkan = bool(
+            konfirmasi_masih_aktif and not sesi_dibatalkan
+            and draf_koreksi is None and not masalah_konfirmasi
+            and snapshot_butir is not None and not dilewati_terpilih
+            and not snapshot_butir["dilewati"]
+            and snapshot_butir["nomor"] == b["nomor"]
+            and snapshot_butir["template_id"] == b["template_id"]
+            and snapshot_butir["jawaban"] == (b["jawaban"] or "")
+            and snapshot_butir["benar"] == b["benar"]
+            and snapshot_butir["kode_final"] == b["kode_final"]
+            and snapshot_butir["malrule_id"] == b["malrule_id"]
+        )
+        sumber_penilaian = "Pilihan sendiri" if kode_tampil else "Usulan Jagomat"
+        if sesi_dibatalkan:
+            status_persetujuan = "Sesi dibatalkan · Penilaian tidak aktif."
+        elif draf_koreksi is not None:
+            status_persetujuan = "Belum disimpan · Periksa draf lalu konfirmasikan hasil sesi."
+        elif dilewati_terpilih:
+            status_persetujuan = "Dilewati dari penilaian · Bukan persetujuan atas usulan diagnosis."
+        elif penilaian_disahkan:
+            status_persetujuan = sumber_penilaian + (
+                " · Ditetapkan saat konfirmasi sesi" if kode_tampil else
+                " · Disetujui saat konfirmasi sesi"
+            )
+        else:
+            status_persetujuan = (
+                "Belum ada penilaian" if belum_dinilai and not kode_tampil else sumber_penilaian
+            ) + " · Belum dikonfirmasi"
+        penilaian_status = (
+            f'<p class="koreksi-catatan-st" id="penilaian-status-{sid}">'
+            f'<b>Penilaian saat halaman dimuat: {html.escape(label_penilaian("benar" if benar_tampil else kode_efektif))}</b>'
+            f'<br>{html.escape(status_persetujuan)}</p>'
         )
         # Proyeksi pekerjaan bukan palang konfirmasi. Semua nilai form tetap
         # dikirim, termasuk saat kartu dilipat; server memvalidasi ulang.
@@ -1618,7 +1647,7 @@ def halaman_sesi_stitch(
             )
         judul_penilaian = (
             "Tentukan penilaian — belum dipilih" if belum_dinilai and not kode_tampil else
-            "Penilaian: " + label_penilaian("benar" if benar_tampil else kode_efektif) + " — ubah"
+            "Penilaian saat halaman dimuat: " + label_penilaian("benar" if benar_tampil else kode_efektif) + " — ubah"
         )
         ringkasan_hasil = 'Dilewati dari penilaian' if dilewati_terpilih else (
             'Jawaban tepat' if benar_tampil else bulat_label
@@ -1637,6 +1666,15 @@ def halaman_sesi_stitch(
             kon, sid, tinjauan_butir, draf_butir,
             perlu_sumber=bool(sumber_perlu_diperiksa or masalah_butir),
         )
+        petunjuk_penilaian = (
+            '<p class="koreksi-catatan-st">Sesi dibatalkan; penilaian ini hanya untuk melihat riwayat.</p>'
+            if sesi_dibatalkan else
+            '<p class="koreksi-catatan-st">Pilihan dropdown baru disimpan setelah menekan Simpan draf atau Konfirmasi hasil sesi. '
+            'Ringkasan di atas belum mengikuti perubahan yang belum disimpan.</p>'
+            '<p class="koreksi-catatan-st">Setuju dengan usulan? Anda tidak perlu mengganti dropdown. '
+            'Konfirmasi hasil sesi berarti menyetujui penilaian, termasuk usulan Jagomat yang dipakai. '
+            'Simpan draf belum mengesahkan hasil.</p>'
+        )
         kartu_html = f"""
 <details class="koreksi-kartu-st koreksi-lipat-st"{atribut_kartu} data-tindakan="{html.escape(label_tindakan)}"{' open' if buka_kartu else ''}>
   <summary class="koreksi-ringkas-st">
@@ -1645,6 +1683,7 @@ def halaman_sesi_stitch(
   </summary>
   <div class="koreksi-isi-st {kelas_isi}">
     <div class="koreksi-kepala-st">{status}</div>
+    {penilaian_status}
     {petunjuk_masalah}
     <div class="teks-soal-st">{teks_pertanyaan}</div>
     {ringkas_opsi(pg_butir, b['template_id'])}
@@ -1672,8 +1711,9 @@ def halaman_sesi_stitch(
     <details class="koreksi-opsi-st koreksi-penilaian-st"{" open" if buka_lanjutan else ""}>
       <summary>{judul_penilaian}</summary>
       {usulan}
-      <label class="koreksi-label-st" for="kode-{b["sesi_soal_id"]}">Penilaian yang dipakai</label>
+      <label class="koreksi-label-st" for="kode-{b["sesi_soal_id"]}">Penilaian yang dipakai saat disimpan</label>
       <select class="koreksi-select-st" id="kode-{b["sesi_soal_id"]}" name="kode_{b["sesi_soal_id"]}"{atribut_penilaian}>{pilih}</select>
+      {petunjuk_penilaian}
       <p class="koreksi-catatan-st">Belum yakin? Tinjau cara anak; jangan menebak penilaian agar bisa lanjut.</p>
       <details class="koreksi-opsi-st koreksi-alasan-st">
         <summary>Panduan memilih penilaian</summary>
@@ -1684,8 +1724,7 @@ def halaman_sesi_stitch(
           <li><b>Salah tulis akhir:</b> hasil pengerjaan berbeda dari jawaban yang ditulis.</li>
           {"" if drill else "<li><b>Menebak:</b> periksa cara anak, bukan hanya jawaban akhirnya.</li>"}
         </ul>
-        <p class="koreksi-catatan-st">Otomatis menilai ulang jawaban dan cara saat konfirmasi. Pilihan lain adalah keputusan guru, bukan usulan Jagomat.</p>
-        <p class="koreksi-catatan-st"><b>Jagomat:</b> {html.escape(rekomendasi.alasan)}</p>
+        <p class="koreksi-catatan-st">Otomatis memakai usulan Jagomat; pilihan lain menetapkan penilaian sendiri.</p>
       </details>
     </details>
     <details class="koreksi-opsi-st koreksi-perbaikan-st">
@@ -1860,6 +1899,7 @@ def halaman_sesi_stitch(
                 f'<button type="submit" class="sekunder" formaction="/sesi/{sesi_id}/tinjauan">Simpan draf</button>'
                 f'{aksi_konfirmasi}</div>'
                 '<p class="koreksi-catatan-st">Konfirmasi menyimpan semua isian dan mengesahkan hasil sesi. '
+                'Anda juga menyetujui usulan Jagomat yang tetap dipilih; tidak perlu mengganti dropdown. '
                 'Isian yang belum lengkap akan ditandai.</p>'
             )
             from review_navigation import render_antrean
