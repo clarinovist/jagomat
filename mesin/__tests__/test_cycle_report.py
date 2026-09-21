@@ -243,7 +243,7 @@ def test_renderer_histori_pemahaman_dan_escape():
     data = PerjalananBelajar(RencanaBelajar("pemetaan", ""), histori=(histori,))
     h = render_perjalanan(data, reports._nama_tipe_soal, reports._tanggal_pendek)
     assert "Riwayat putaran sebelumnya" in h
-    assert "Profil parameter warisan berubah" in h
+    assert "Variasi soal rencana berubah" in h
     assert "Bisa menjelaskan" in h
     assert "Pemahaman belum tercatat" in h
     assert "<script>" not in h
