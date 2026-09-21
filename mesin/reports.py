@@ -295,7 +295,7 @@ def _riwayat_latihan(kon, siswa_id: int, periode='semua', topik='semua', halaman
         'Ini bukan persentase pemahaman atau tren kemampuan antar topik. '
         'Buka sesi untuk melihat jawaban dan rincian penilaiannya.</p>'
         '<div class="tabel-wrap tabel-tren"><table aria-describedby="penjelasan-hasil-sesi">'
-        '<caption class="sr-only">Hasil sesi dari yang terbaru, beserta tanggal dan profil latihan</caption>'
+        '<caption class="sr-only">Hasil sesi dari yang terbaru, beserta tanggal dan variasi soal</caption>'
         '<thead><tr><th scope="col">Sesi / tanggal</th><th scope="col">Topik</th>'
         '<th scope="col">Benar / tersedia</th><th scope="col">Rincian</th></tr></thead>'
         f'<tbody>{tren}</tbody></table></div></section>'
@@ -324,7 +324,7 @@ def _catatan_latihan(kon, siswa_id):
     ) or '<tr><td colspan="4" class="kosong">Belum ada catatan pengenalan materi.</td></tr>'
     return (
         '<p class="laporan-catatan">Catatan mencakup seluruh sesi yang selesai dikirim, '
-        'lintas tanggal dan profil parameter. Filter pada tampilan Sesi tidak berlaku di sini.</p>'
+        'lintas tanggal dan variasi soal. Filter pada tampilan Sesi tidak berlaku di sini.</p>'
         '<section class="kartu catatan-latihan-laporan"><h2>Catatan pola pada semua latihan</h2>'
         '<p class="laporan-catatan">Rincian pola keliru yang sama dan muncul kembali. Jumlah K '
         'dan jenis kesalahan adalah catatan, bukan skor kelulusan atau penetapan fokus.</p>'

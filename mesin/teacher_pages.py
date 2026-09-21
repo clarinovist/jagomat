@@ -447,7 +447,8 @@ def _halaman_stitch(
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">"""
     gaya = GAYA_STITCH
     if "profil-workspace-st" in kelas_bungkus:
-        gaya += profile_workspace.GAYA_PROFIL
+        from question_variants_ui import GAYA_VARIASI
+        gaya += profile_workspace.GAYA_PROFIL + GAYA_VARIASI
     if privat:
         gaya = gaya.replace(
             "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",
@@ -623,17 +624,9 @@ def _kontrol_mode_sesi(draf=None) -> str:
 
 
 def _kontrol_profil_parameter(identitas, terpilih=None):
-    """Pilih konfigurasi eksplisit tanpa menyamakannya dengan kelas/kemampuan."""
-    from question_context import label_profil_parameter
-    return (
-        f'<div class="strip-kolom"><label for="{identitas}-profil">Profil parameter latihan</label>'
-        f'<select id="{identitas}-profil" name="profil_parameter" class="st-input" required>'
-        '<option value="">Pilih profil</option>'
-        + ''.join(f'<option value="{p}"' + (' selected' if p == terpilih else '')
-                  + f'>{label_profil_parameter(p)}</option>' for p in LEVEL)
-        + '</select><small class="profil-petunjuk-st">Konfigurasi soal, bukan kelas sekolah '
-        'atau tingkat kemampuan. Materi yang belum tersedia pada profil pilihan akan ditolak.</small></div>'
-    )
+    """Pilih konfigurasi eksplisit dengan panduan isi, bukan jenjang kemampuan."""
+    from question_variants_ui import kontrol_variasi
+    return kontrol_variasi(identitas, terpilih)
 
 
 def halaman_anak(
@@ -865,6 +858,8 @@ def halaman_anak(
     if strip_gabungan:
         panel.append(("gabungan", "library_add", "Gabungan topik", strip_gabungan))
 
+    from question_variants_ui import panduan_variasi, detail_kode
+    panduan = panduan_variasi() if section == 'latihan' else ''
     if len(panel) > 1:
         tab = "".join(
             f'<input type="radio" name="jenis-latihan" id="tab-{kode}" '
@@ -884,7 +879,7 @@ def halaman_anak(
         blok_buat_latihan = (
             '<section class="buat-latihan-st">'
             '<h2 class="st">Buat latihan</h2>'
-            f"{tab}"
+            f"{panduan}{tab}"
             f'<div class="tab-bar-st">{label}</div>'
             f"{isi_panel}"
             "</section>"
@@ -895,7 +890,7 @@ def halaman_anak(
         blok_buat_latihan = (
             '<section class="buat-latihan-st">'
             '<h2 class="st">Buat latihan</h2>'
-            f"{strip_sesi}"
+            f"{panduan}{strip_sesi}"
             "</section>"
         )
 
@@ -914,7 +909,7 @@ def halaman_anak(
         f"{blok_buat_latihan}</section>"
     )
     if section == "rencana":
-        isi_profil = kartu_rencana
+        isi_profil = kartu_rencana + detail_kode(siswa['tingkat'])
     elif section == "riwayat":
         isi_profil = profile_workspace.riwayat(
             int(siswa["id"]), sesi, total_hasil, filter_profil,

@@ -63,5 +63,5 @@ def test_kartu_sesi_meta_tertutup_sebagai_div(db):
     # atribut style rusak menjadi satu potongan raksasa.
     assert len(potongan) < 500, f"meta tertelan atribut: {potongan[:200]}"
     assert "<time " in potongan
-    assert "Profil P3" in potongan
+    assert "Variasi A" in potongan
     assert "Pola Bilangan" in html

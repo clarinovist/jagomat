@@ -1,5 +1,6 @@
 """Kartu orang tua pilot; status/tindakan berasal dari reducer, bukan UI."""
 import html
+from question_context import label_profil_parameter
 import learning_cycle as lc
 from skill_pilot import TUNTUTAN, RUJUKAN_LUAS
 from skill_pilot_materials import pilihan_materi
@@ -25,13 +26,14 @@ def form_mulai(siswa_id, versi, balik_tersedia=False):
     return ('<details class="ubah-fokus-st pilot-mulai-st"><summary>Pilot keliling dan luas — opsional</summary>'
       '<p>Pilih satu tuntutan untuk diperiksa. Ini bukan tangga kelas atau persen kemampuan. '
       'Latihan manual tetap tersedia. Tugas balik baru ditawarkan bila bukti keliling dan rujukan luas sah.</p>'
-      '<p>P3: keliling langsung (sisi 2–16) atau kisi luas (2–8). P4–P6: keliling langsung (3–40), '
-      'atau tugas balik (panjang 3–30, lebar yang dicari 2–25). Tidak ada perpindahan profil otomatis.</p>'
+      '<p>Variasi A: keliling langsung (sisi 2–16) atau kisi luas (2–8). Variasi B, C, D: keliling langsung (3–40), '
+      'atau tugas balik (panjang 3–30, lebar yang dicari 2–25). Tidak ada perpindahan variasi otomatis.</p>'
       f'<form method="post" action="/siklus/{siswa_id}/pilot" class="profil-filter-st">'
       f'<input type="hidden" name="aksi" value="mulai"><input type="hidden" name="revisi" value="{versi}">'
       f'<label>Tuntutan<select name="tuntutan" required>{pilihan}</select></label>'
-      '<label>Profil parameter<select name="profil" required><option value="">Pilih profil</option>'
-      '<option>P3</option><option>P4</option><option>P5</option><option>P6</option></select></label>'
+      '<label>Variasi soal<select name="profil" required><option value="">Pilih variasi soal</option>'
+      + ''.join('<option value="%s">%s</option>' % (p, label_profil_parameter(p)) for p in ('P3', 'P4', 'P5', 'P6'))
+      + '</select></label>'
       '<label>Penyajian<select name="representasi" required><option value="teks-v1">Soal cerita</option>'
       '<option value="geometri_datar-v1">Diagram</option></select></label>'
       '<label><input type="checkbox" name="belum_dikenal" value="1"> Anak belum mengenal tugas ini; mulai dengan pengenalan</label>'
@@ -47,14 +49,14 @@ def status_pilot(paket,siswa_id,daftar,hari=None):
         k=h.konteks
         nama=next(t.nama for t in (*TUNTUTAN,RUJUKAN_LUAS) if t.id==k.tuntutan_id)
         sumber=', '.join('<a href="/sesi/%d">#%d</a>'%(sid,sid) for sid in h.hasil.sesi_ids)
-        isi.append('<li><b>%s</b> · %s · %s<br>%s%s</li>'%(_e(nama),_e(k.profil_parameter),
+        isi.append('<li><b>%s</b> · %s · %s<br>%s%s</li>'%(_e(nama),_e(label_profil_parameter(k.profil_parameter)),
           _e('Diagram' if k.mode_representasi=='geometri_datar-v1' else 'Soal cerita'),LABEL[h.hasil.status],
           ' · Sumber '+sumber if sumber else ''))
     tersedia={k.tuntutan_id for k in konteks}
     for t in TUNTUTAN:
         if t.id not in tersedia: isi.append('<li><b>%s</b><br>Belum dinilai</li>'%_e(t.nama))
     return ('<section class="kartu-rencana-st"><h3>Bukti per tuntutan pilot</h3><ul>'+''.join(isi)+
-            '</ul><p>Belum dinilai bukan berarti tidak mampu. Profil dan penyajian tidak disetarakan. '
+            '</ul><p>Belum dinilai bukan berarti tidak mampu. Variasi dan penyajian tidak disetarakan. '
             'Keberhasilan tugas langsung tidak meluluskan tugas balik; kegagalan balik tidak menghapus bukti langsung.</p></section>')
 
 

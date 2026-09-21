@@ -50,7 +50,7 @@ PEMAHAMAN = {
     "menghafal": "Masih menghafal",
 }
 PENUTUP = {
-    "putaran_ditutup": "Putaran ditutup", "diganti_level": "Profil parameter warisan berubah",
+    "putaran_ditutup": "Putaran ditutup", "diganti_level": "Variasi soal rencana berubah",
     "override_ditutup": "Fokus diganti oleh pendamping",
 }
 

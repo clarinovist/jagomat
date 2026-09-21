@@ -34,5 +34,5 @@ def test_pilihan_topik_profil_tidak_membatasi_kelas():
     validasi_pilihan(['aritmatika-lanjut'], 'P6')
     with pytest.raises(ValueError):
         validasi_pilihan(['aritmatika-lanjut', 'pola-bilangan'], 'P3')
-    assert label_profil_parameter('P6') == 'Profil P6'
-    assert label_profil_parameter('kelas 4') == 'Profil warisan: kelas 4'
+    assert label_profil_parameter('P6') == 'Variasi D'
+    assert label_profil_parameter('kelas 4') == 'Konfigurasi lama: kelas 4'

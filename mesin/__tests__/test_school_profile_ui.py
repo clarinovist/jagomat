@@ -64,7 +64,7 @@ def test_form_kelas_tidak_menebak_pn_dan_get_tanpa_tulis(db):
     assert len(kelas) == 1
     assert any(i.get('name') == 'revisi_profil' and i.get('value') == '0' for i in kelas[0]['input'])
     assert [(o.get('value'), 'selected' in o) for o in kelas[0]['option']] == [('', True)] + [(str(n), False) for n in range(1, 7)]
-    assert 'Kelas belum diisi' in isi and 'Profil P6' in isi
+    assert 'Kelas belum diisi' in isi and 'Konteks latihan: Profil' not in isi
     assert 'tidak menentukan kemampuan' in isi
     assert not formulir.aksi('tingkat')
     assert db.total_changes == sebelum
@@ -147,7 +147,7 @@ def test_bingkai_profil_kelas_eksplisit_bukan_tingkat():
     kosong = profile_workspace.bingkai(siswa, 'latihan', 0, '')
     kelas = profile_workspace.bingkai(siswa, 'latihan', 0, '', kelas_sekolah=2)
     assert 'Kelas belum diisi' in kosong and 'Kelas 6' not in kosong
-    assert 'Kelas 2' in kelas and 'Profil P6' in kelas
+    assert 'Kelas 2' in kelas and 'P6' not in kelas
     assert kelas.count('Kelola kelas sekolah') == 1
     assert '<form' not in kelas
 

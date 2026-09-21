@@ -43,7 +43,8 @@ def konteks_warisan(template_id: str, profil_parameter: str) -> KonteksSoal:
 
 def label_profil_parameter(profil: str) -> str:
     """Label konfigurasi, tidak menebak kelas sekolah atau kemampuan."""
-    return 'Profil ' + profil if profil in LEVEL else 'Profil warisan: ' + str(profil)
+    nama = {'P3': 'Variasi A', 'P4': 'Variasi B', 'P5': 'Variasi C', 'P6': 'Variasi D'}
+    return nama[profil] if profil in LEVEL else 'Konfigurasi lama: ' + str(profil)
 
 
 def label_konteks(konteks: KonteksSoal) -> str:
@@ -57,18 +58,18 @@ def profil_dari_form(data) -> str:
     """Pilihan formulir eksplisit; nilai ganda/kosong tidak memakai default anak."""
     nilai = data.get('profil_parameter')
     if not isinstance(nilai, list) or len(nilai) != 1 or nilai[0] not in LEVEL:
-        raise ValueError('Pilih satu profil parameter latihan (P3–P6). Muat ulang form bila perlu.')
+        raise ValueError('Pilih satu variasi soal. Muat ulang form bila perlu.')
     return nilai[0]
 
 
 def validasi_pilihan(topik_ids, profil: str) -> None:
     """Setiap topik harus tersedia; gabungan tidak menyembunyikan pilihan kosong."""
     if profil not in LEVEL or not topik_ids:
-        raise ValueError('Pilih profil parameter dan materi latihan.')
+        raise ValueError('Pilih variasi soal dan materi latihan.')
     for topik_id in topik_ids:
         if (topik_id not in topics.daftar_topik()
                 or profil not in topics.ambil(topik_id).komposisi):
-            raise ValueError('Materi tidak tersedia pada profil ini. Pilih profil atau materi lain.')
+            raise ValueError('Materi tidak tersedia pada variasi ini. Bandingkan isi dan contoh soal, lalu pilih variasi atau materi lain.')
 
 
 def daftar_konteks() -> Tuple[KonteksSoal, ...]:

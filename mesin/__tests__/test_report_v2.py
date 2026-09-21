@@ -121,7 +121,7 @@ def test_filter_sesi_tanggal_bukan_aktivitas_topik_dan_pagination(db):
         tabel = h.split('class="tabel-wrap tabel-tren"', 1)[1].split('</table>', 1)[0]
         assert tabel.count('data-label="Sesi"') == 20
         assert f'/sesi/{ids[-1]}"' not in tabel
-        assert 'Profil P3' in tabel and 'Gabungan 2 topik' in tabel
+        assert 'Variasi A' in tabel and 'Gabungan 2 topik' in tabel
         assert 'tanggal sesi' in h.lower() and 'tanggal aktivitas jawaban' in h.lower()
         assert 'Halaman 1 dari 2' in h
         h = reports.halaman_laporan(kon, sid, query='section=riwayat&periode=7&topik=gabungan').decode()
@@ -252,7 +252,7 @@ def test_histori_dan_tugas_pagination_tidak_menghilangkan_rincian(db):
     data = PerjalananBelajar(RencanaBelajar('pemetaan', ''), histori=histori)
     halaman = [render_perjalanan(data, reports._nama_tipe_soal, reports._tanggal_pendek,
                                  siswa_id=1, halaman=str(n)) for n in (1, 2, 3)]
-    assert all('<details' not in h and 'Profil P3' in h and 'konfirmasi ulang' in h for h in halaman)
+    assert all('<details' not in h and 'Variasi A' in h and 'konfirmasi ulang' in h for h in halaman)
     for n in range(1, 13):
         assert ''.join(halaman).count(f'href="/sesi/{n}"') == 1
     assert 'Halaman 3 dari 3' in halaman[2]

@@ -212,9 +212,16 @@ menutup putaran, mengubah sesi, atau menghapus bukti. Admin menggunakan aksi,
 token tinjauan, journal dan receipt kelas sekolah yang terpisah. Aksi/event level
 lama tetap historis dengan arti profil parameter warisan.
 
-Anak baru memilih profil parameter awal P3–P6 secara eksplisit; kelas sekolah
-opsional dan tidak menentukan pilihan tersebut. Anak lama mempertahankan profil
-warisannya. Form manual/gabungan menampilkan pilihan profil serta seluruh materi;
+Anak baru memilih konfigurasi latihan awal secara eksplisit; kelas sekolah
+opsional dan tidak menentukan pilihan tersebut. Di UI, P3/P4/P5/P6 bernama
+**Variasi A/B/C/D**: pembeda konfigurasi, bukan urutan kemampuan. Pengaturan latihan
+awal dipisahkan dari identitas anak; header profil hanya menampilkan nama dan kelas.
+Panduan native menampilkan pola dari komposisi registry dan contoh deterministik
+per materi/variasi, bukan deskripsi kesulitan yang belum dikalibrasi. Contoh bukan
+soal sesi yang akan dibuat. Kode historis tetap di nilai kiriman/penyimpanan dan
+rincian teknis. Inisialisasi tanpa pilihan belum diaktifkan; tidak ada default
+tersembunyi dari kelas sekolah. Anak lama mempertahankan konfigurasi warisannya.
+Form manual/gabungan menampilkan pilihan variasi serta seluruh materi;
 server menolak kombinasi yang tidak tersedia, tidak mengganti profil diam-diam.
 Pemetaan bukan prasyarat latihan manual. Rencana terpandu masih memakai profil
 warisan yang dipilih, bukan rekomendasi tuntutan otomatis yang sudah dikalibrasi.
@@ -337,9 +344,11 @@ tidak direka. API konteks mempertahankan seluruh syarat penguasaan existing:
 opt-in, representasi, kuota/jeda probe, fokus tertahan, invalidasi dan umur bukti.
 Kejadian `diganti_level` historis tetap batas validitas; API bukan jalan menghidupkan
 bukti lama yang telah dicabut. Perubahan kelas sekolah pada metadata terpisah tidak
-menciptakan kejadian tersebut. Rincian **Bukti per konteks** kini tersedia pada laporan penguasaan. Rincian
-menampilkan konteks dengan catatan penilaian relevan dan sumbernya, tanpa mengubah
-196 pasangan inventaris menjadi penyebut persentase atau target wajib. Status
+menciptakan kejadian tersebut. Rincian **Bukti per konteks** kini tersedia pada
+laporan penguasaan. Keterampilan, status dan nama variasi terlihat langsung; kode
+konfigurasi dan tautan sumber berada dalam rincian tertutup. Rincian menampilkan
+konteks dengan catatan penilaian relevan, tanpa mengubah 196 pasangan inventaris
+menjadi penyebut persentase atau target wajib. Status
 berasal dari reducer yang sama; keberhasilan satu profil tidak meluluskan profil
 lain. Katalog/persentase lama tetap diberi label cakupan profil warisan, bukan
 kemampuan global atau kelas sekolah. Penulis sesi campuran tuntutan dan rubrik

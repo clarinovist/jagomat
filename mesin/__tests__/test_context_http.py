@@ -108,7 +108,7 @@ def test_form_semua_materi_dan_profil_tanpa_pagar_kelas(server):
     assert 'name="profil_parameter"' in isi
     assert 'value="aritmatika-lanjut"' in isi
     assert '<option value="pola-bilangan" selected>' in isi
-    assert 'Profil P3' in isi and 'Profil P6' in isi
+    assert 'Variasi A' in isi and 'Variasi D' in isi
 
 
 def test_profil_hilang_dan_ganda_ditolak_tanpa_default(server):
@@ -155,8 +155,8 @@ def test_laporan_konteks_dari_reducer_tanpa_persen_atau_efek_get(server):
                                auth=('guru', SANDI_GURU))
     assert kode == 200
     panel = isi.split('id="bukti-per-konteks"', 1)[1].split('</section>', 1)[0]
-    assert 'Profil P4' in panel and 'Menunjukkan pemahaman' in panel
+    assert 'Variasi B' in panel and 'Menunjukkan pemahaman' in panel
     assert '196' not in panel and '%' not in panel
-    assert 'Profil P3</b>' not in panel
+    assert 'Variasi A</b>' not in panel
     with server.buka() as kon:
         assert tuple(kon.iterdump()) == sebelum

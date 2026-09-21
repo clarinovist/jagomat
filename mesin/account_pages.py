@@ -13,6 +13,8 @@ import auth
 import database
 import learning_profile
 import learning_profile_ui
+import question_variants_ui
+from question_context import label_profil_parameter
 from templates import LEVEL, label_kelas, level_valid
 from teacher_pages import _halaman
 
@@ -201,8 +203,7 @@ def halaman_akun(
         + (learning_profile_ui.form_kelas(
             learning_profile.baca(kon, s['id'], pemilik=pengguna), s['nama']
         ) if pengguna and peran == 'guru' else 'Kelas belum diisi')
-        + f'<p class="sub">Konteks latihan: Profil {html.escape(s["tingkat"])}. '
-        'Bukan kelas sekolah atau penilaian kemampuan.</p></td>'
+        + '</td>'
         f'<td class="angka" data-label="Sesi">'
         f'{kon.execute("SELECT COUNT(*) AS n FROM sesi WHERE siswa_id = ?", (s["id"],)).fetchone()["n"]}'
         f"</td>"
@@ -254,7 +255,7 @@ def halaman_akun(
         f'<div class="kartu-judul"><span class="ikon-kartu">📚</span>'
         f"<h2>Siswa</h2></div>"
         f'<p class="sub" id="keterangan-kelas">{learning_profile_ui.KETERANGAN_KELAS} '
-        'Data lama P3–P6 tidak dipakai untuk menebak kelas sekolah.</p>'
+        'Pengaturan soal dipilih terpisah saat membuat latihan.</p>'
         f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Kelas sekolah</th>'
         f"<th>Sesi</th><th>Akun latihan</th><th>Aksi</th></tr>{daftar}</table></div>"
         f'<p class="sub" style="margin-top:.7rem">Anak baru ditambahkan dari '
@@ -278,13 +279,12 @@ def halaman_akun(
         f'<select id="anak-kelas" name="kelas_sekolah" aria-describedby="keterangan-kelas">'
         + learning_profile_ui.opsi_kelas()
         + '</select></div></div>'
-        '<label for="anak-profil">Profil parameter awal latihan</label>'
-        '<select id="anak-profil" name="profil_parameter" required aria-describedby="anak-profil-bantuan">'
-        '<option value="">— pilih profil parameter —</option>'
-        + ''.join(f'<option value="{lv}">Profil {lv}</option>' for lv in LEVEL)
-        + '</select><p class="sub" id="anak-profil-bantuan">P3–P6 adalah konfigurasi pola dan '
-        'parameter soal, bukan kelas sekolah atau ukuran kemampuan. Pilih secara eksplisit; '
-        'kelas sekolah tidak menentukan pilihan ini. Latihan manual tetap bisa dibuat tanpa pemetaan.</p>'
+        '<fieldset class="pengaturan-awal"><legend>Pengaturan latihan awal</legend>'
+        '<p>Pilih variasi untuk memulai latihan dan rencana belajar, bukan untuk menilai kemampuan anak. '
+        'Saat membuat latihan bebas, Anda tetap dapat memilih variasi lain.</p>'
+        + question_variants_ui.kontrol_variasi('anak')
+        + question_variants_ui.panduan_variasi()
+        + '</fieldset>'
         f'<label for="anak-login">Nama login anak (opsional — bawaan sama dengan nama anak)'
         f"</label>"
         f'<input id="anak-login" type="text" name="nama_akun" '
@@ -443,7 +443,7 @@ def proses_akun(
         if ('profil_parameter' in data and 'tingkat' in data) or 'level' in data:
             return '', 'Form profil lama atau tidak cocok. Muat ulang sebelum menambahkan anak.'
         if not level_valid(tingkat):
-            return '', 'Pilih profil parameter awal secara eksplisit: P3, P4, P5, atau P6.'
+            return '', 'Pilih variasi soal untuk latihan awal. Bandingkan isi dan contoh soal bila belum yakin.'
         try:
             kelas = learning_profile_ui.baca_kelas_form(data.get('kelas_sekolah', ''))
         except ValueError as galat:
@@ -475,7 +475,7 @@ def proses_akun(
         catatan = " (persetujuan orang tua dicatat)" if data.get("persetujuan_ortu") else ""
         return (
             f"Anak {nama} ditambahkan ({learning_profile.label_kelas_sekolah(kelas)}; "
-            f"Profil {tingkat}) beserta akun latihannya{catatan}. "
+            f"{label_profil_parameter(tingkat)}) beserta akun latihannya{catatan}. "
             f"Langkah 3: kembali ke beranda, klik nama {nama}, lalu tekan "
             f"“Buat sesi baru”. Anak masuk lewat /murid dengan nama {nama_akun}.",
             "",

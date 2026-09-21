@@ -140,9 +140,9 @@ def test_helper_merangkum_banyak_level_dan_mengabaikan_siswa_lain():
     catatan = helper(bukti, mulai_dari_awal=True)
 
     assert catatan == (
-        "Riwayat Profil P3 dan Profil P4 tetap tersimpan sebagai catatan; "
-        "tidak dihitung dalam pemetaan Profil P5.",
-        "Mulai pemetaan Profil P5 dari awal.",
+        "Riwayat Variasi A dan Variasi B tetap tersimpan sebagai catatan; "
+        "tidak dihitung dalam pemetaan Variasi C.",
+        "Mulai pemetaan Variasi C dari awal.",
     )
     assert "P2" not in " ".join(catatan)
 
@@ -154,7 +154,7 @@ def test_helper_tidak_mengaku_mulai_dari_awal_jika_pemetaan_aktif_sudah_berjalan
     catatan = helper(bukti, mulai_dari_awal=False)
 
     assert len(catatan) == 1
-    assert "Riwayat Profil P3" in catatan[0]
+    assert "Riwayat Variasi A" in catatan[0]
     assert "dari awal" not in " ".join(catatan)
 
 
@@ -173,8 +173,8 @@ def test_profil_state_berjalan_hanya_menampilkan_catatan_histori(rencana):
 
     profil = learning_cycle_ui.render_rencana(rencana, bukti, 7)
 
-    assert "Riwayat Profil P3" in profil
-    assert "Mulai pemetaan Profil P5 dari awal." not in profil
+    assert "Riwayat Variasi A" in profil
+    assert "Mulai pemetaan Variasi C dari awal." not in profil
 
 
 @pytest.mark.parametrize(
@@ -197,9 +197,9 @@ def test_http_laporan_state_berjalan_hanya_menampilkan_catatan_histori(
     )
 
     assert kode == 200
-    assert "Riwayat Profil P3" in laporan
+    assert "Riwayat Variasi A" in laporan
     assert langkah in laporan
-    assert "Mulai pemetaan Profil P5 dari awal." not in laporan
+    assert "Mulai pemetaan Variasi C dari awal." not in laporan
 
 
 def test_renderer_profil_dan_laporan_meloloskan_escape_catatan_level():
@@ -242,14 +242,14 @@ def test_http_profil_dan_laporan_menjelaskan_histori_beda_level_tanpa_mutasi(ser
     with server_uji.buka() as kon:
         sesudah = tuple(kon.iterdump())
     catatan = (
-        "Riwayat Profil P3 tetap tersimpan sebagai catatan; "
-        "tidak dihitung dalam pemetaan Profil P5."
+        "Riwayat Variasi A tetap tersimpan sebagai catatan; "
+        "tidak dihitung dalam pemetaan Variasi C."
     )
     assert kode_profil == kode_laporan == 200
     assert catatan in profil
     assert catatan in laporan
-    assert "Mulai pemetaan Profil P5 dari awal." in profil
-    assert "Mulai pemetaan Profil P5 dari awal." in laporan
+    assert "Mulai pemetaan Variasi C dari awal." in profil
+    assert "Mulai pemetaan Variasi C dari awal." in laporan
     assert "Pemetaan 0 dari 3" in profil
     assert "Pemetaan 0 dari 3" in laporan
     assert profil.count('class="rencana-cta-utama-st"') == 1
@@ -351,9 +351,9 @@ def test_http_tidak_mengaku_mulai_dari_awal_setelah_pemetaan_aktif(server):
     )
 
     assert kode_profil == kode_laporan == 200
-    assert "Riwayat Profil P3" in profil
-    assert "Riwayat Profil P3" in laporan
-    assert "Mulai pemetaan Profil P5 dari awal." not in profil
-    assert "Mulai pemetaan Profil P5 dari awal." not in laporan
+    assert "Riwayat Variasi A" in profil
+    assert "Riwayat Variasi A" in laporan
+    assert "Mulai pemetaan Variasi C dari awal." not in profil
+    assert "Mulai pemetaan Variasi C dari awal." not in laporan
     assert "Pemetaan 1 dari 3" in profil
     assert "Pemetaan 1 dari 3" in laporan

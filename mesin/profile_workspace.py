@@ -33,11 +33,10 @@ def bingkai(siswa, section, total, isi, *, peran='guru', pesan='', kelas_sekolah
     return ('<main aria-labelledby="judul-profil"><div class="jejak"><a href="%s">&larr; Semua anak</a></div>'
             '<header class="kepala-anak-st editorial-kepala-st"><p class="editorial-alis-st">RUANG BELAJAR ANAK</p>'
             '<h1 class="st" id="judul-profil">%s <span class="st-badge selesai">(%s)</span>%s</h1>'
-            '<p class="sub">Konteks latihan: Profil %s — bukan kelas sekolah atau ukuran kemampuan. '
-            '<a href="%s">Kelola kelas sekolah</a></p></header>'
+            '<p class="sub"><a href="%s">Kelola kelas sekolah</a></p></header>'
             '<nav class="profil-tabs-st" aria-label="Bagian profil anak">%s</nav>%s%s</main>') % (
                 '/admin' if peran=='admin' else '/guru', _e(siswa['nama']),
-                _e(label_kelas_sekolah(kelas_sekolah)), keluarga, _e(siswa['tingkat']),
+                _e(label_kelas_sekolah(kelas_sekolah)), keluarga,
                 '/admin?section=siswa&amp;id=%d' % sid if peran == 'admin' else '/akun?section=siswa',
                 nav, kabar, isi)
 

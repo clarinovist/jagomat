@@ -45,7 +45,7 @@ def test_form_akun_memisahkan_kelas_dan_profil(db):
             kon, pengguna="ortu", peran="guru", section="siswa",
         ).decode())
 
-    assert '<option value="P3">Profil P3</option>' in isi
+    assert '<option value="P3">Variasi A</option>' in isi
     assert '<option value="5">Kelas 5</option>' in isi
     assert '<option value="" selected>Kelas belum diisi</option>' in isi
     assert ">P3</option>" not in isi
@@ -86,7 +86,7 @@ def test_halaman_murid_menampilkan_profil_netral_bukan_kelas_sekolah(db):
     kerja = _badan(halaman_kerja.decode())
 
     for isi in (daftar, kerja):
-        assert "Profil P5" in isi
+        assert "Variasi C" in isi
         assert "level P5" not in isi
 
 
@@ -119,7 +119,7 @@ def test_detail_sesi_guru_dan_cetak_memakai_label_kelas(db):
     for hasil in halaman:
         assert hasil is not None
         isi = _badan(hasil.decode())
-        assert "Profil P5" in isi
+        assert "Variasi C" in isi
         assert ">P5<" not in isi
         assert "&middot; P5 &middot;" not in isi
 
@@ -145,6 +145,6 @@ def test_laporan_menampilkan_kelas_sebagai_metadata_topik(db):
         database.tandai_selesai(kon, sesi_id)
         isi = _badan(reports.halaman_laporan(kon, siswa_id, section="riwayat").decode())
 
-    assert '<small>Profil P5</small>' in isi
+    assert '<small>Variasi C</small>' in isi
     assert '<th scope="col">Topik</th>' in isi
     assert 'data-label="Level"' not in isi
