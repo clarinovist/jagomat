@@ -385,7 +385,7 @@ def halaman_laporan(
             isi += (f'<a class="laporan-tautan" href="{url_laporan(siswa_id, section, tampilan="catatan")}#arti-kode">'
                     'Arti kode penilaian →</a>')
     else:
-        # Clock rekomendasi sama dengan profil; WIB hanya untuk statistik aktivitas.
+        # Rekomendasi, profil, dan statistik memakai kalender domain WIB.
         bukti = database.muat_bukti_siklus(kon, siswa_id)
         perjalanan = perjalanan_belajar(bukti, siswa_id)
         bukti_materi = lengkapi_bukti_materi(kon, bukti)

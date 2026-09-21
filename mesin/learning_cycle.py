@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from datetime import date, timedelta
+import domain_clock
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from cycle_recovery import intervensi_setelah_gagal, bukti_setelah_intervensi
@@ -790,7 +791,7 @@ def rencana_berikutnya(
         raise ValueError("bukti bukan milik siswa")
     from cycle_carry import bukti_lanjutan
     bukti = tanpa_pilot(bukti)
-    hari = hari_ini or date.today()
+    hari = hari_ini or domain_clock.hari_wib()
     putaran = _putaran_dengan_override(_putaran_aktif(bukti), bukti.kejadian)
 
     pemblokir = _sesi_pemblokir(bukti, putaran)
@@ -943,7 +944,7 @@ def penguasaan_konteks(bukti: BuktiSiklus, siswa_id: int, konteks,
         raise ValueError("konteks soal tidak sah")
     if len({k.id for k in konteks}) != len(konteks):
         raise ValueError("konteks soal duplikat")
-    hari = hari_ini or date.today()
+    hari = hari_ini or domain_clock.hari_wib()
     hasil = {}
     for profil in dict.fromkeys(k.profil_parameter for k in konteks):
         sumber = replace(bukti, level_aktif=profil)
@@ -989,14 +990,14 @@ def penguasaan_pilot(paket, siswa_id, konteks, hari_ini=None):
         nilai = penguasaan_target(sumber, siswa_id, (target,), hari_ini)[0].pola[0]
         # Retensi tuntutan tanpa diagnosis tidak menciptakan fokus K/H palsu.
         if not any(p.fokus for p in sumber.putaran):
-            sukses, _ = checkpoint_tuntutan(sumber, k, hari_ini or date.today())
+            sukses, _ = checkpoint_tuntutan(sumber, k, hari_ini or domain_clock.hari_wib())
             if sukses is not None and k.template_id not in _pola_terkoreksi(sumber):
                 tanggal, ids = sukses
                 lebih_baru = any(s.tanggal > tanggal and s.tujuan=='pemetaan'
-                                 for s in _sesi_peta_materi(sumber,hari_ini or date.today()))
+                                 for s in _sesi_peta_materi(sumber,hari_ini or domain_clock.hari_wib()))
                 if not lebih_baru:
                     nilai = StatusPolaMateri(k.template_id,
-                        'perlu_cek' if ((hari_ini or date.today())-tanggal).days>=28 else 'terbukti',ids,tanggal)
+                        'perlu_cek' if ((hari_ini or domain_clock.hari_wib())-tanggal).days>=28 else 'terbukti',ids,tanggal)
         masalah = sumber_pilot_perlu_tinjauan(paket)
         terkait = tuple(m for m in masalah if m.konteks == k)
         if terkait:
@@ -1031,7 +1032,7 @@ def rencana_pilot(paket, siswa_id, konteks, putaran_id, hari_ini=None):
     """Satu langkah pilot dari bukti sah; tidak bergantung kelas sekolah."""
     from skill_pilot_evidence import proyeksi_bukti
     from skill_pilot_materials import pilihan_materi
-    hari = hari_ini or date.today()
+    hari = hari_ini or domain_clock.hari_wib()
     if siswa_id != paket.bukti.siswa_id:
         raise ValueError('bukti pilot bukan milik siswa')
     asal = next((p for p in paket.bukti.putaran if p.id == putaran_id), None)
@@ -1350,7 +1351,7 @@ def penguasaan_target(bukti: BuktiSiklus, siswa_id: int, target,
     """
     if siswa_id != bukti.siswa_id:
         raise ValueError("bukti bukan milik siswa")
-    hari = hari_ini or date.today()
+    hari = hari_ini or domain_clock.hari_wib()
     bukti = tanpa_pilot(bukti)
     sesi = _sesi_peta_materi(bukti, hari)
     sumber = replace(bukti, sesi=sesi)

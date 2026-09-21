@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from datetime import date, datetime
+import domain_clock
 from typing import List, Optional, Tuple
 
 import learning_cycle as lc
@@ -512,7 +513,7 @@ def perjalanan_belajar(
 
     asli = bukti
     bukti = bukti_lanjutan(lc.tanpa_pilot(bukti))
-    hari = hari_ini or date.today()
+    hari = hari_ini or domain_clock.hari_wib()
     rekomendasi = lc.rencana_berikutnya(asli, siswa_id, hari)
     putaran = lc._putaran_dengan_override(lc._putaran_aktif(bukti), bukti.kejadian)
     from cycle_representations import CATATAN_PEMISAHAN, bukti_satu_representasi

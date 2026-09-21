@@ -3,7 +3,8 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
+import domain_clock
 from typing import Optional, Tuple
 
 
@@ -55,8 +56,8 @@ class StatistikLaporan:
 
 
 def hari_wib() -> date:
-    """Satu batas hari untuk seluruh statistik laporan."""
-    return datetime.now(timezone(timedelta(hours=7))).date()
+    """Kalender yang sama dengan bukti dan rekomendasi belajar."""
+    return domain_clock.hari_wib()
 
 
 def _tanggal(nilai) -> Optional[date]:

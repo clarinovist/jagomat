@@ -3,6 +3,7 @@ from dataclasses import asdict
 import hashlib
 import json
 import random
+import domain_clock
 
 import database
 import learning_cycle as lc
@@ -52,8 +53,7 @@ def _sumber_balik(paket,siswa_id,konteks,hari):
 
 def jalankan(kon,siswa_id,data,*,hari=None):
     """Dipanggil HTTP setelah owner guard; transaksi bersifat gagal atomik."""
-    from datetime import date
-    hari=hari or date.today()
+    hari=hari or domain_clock.hari_wib()
     if set(data)-{'aksi','revisi','tuntutan','profil','representasi','belum_dikenal','konfirmasi_pemulihan'}:
         raise ValueError('Isian pilot tidak dikenal.')
     if data.get('aksi') not in ('mulai','lanjut','pelajari','putaran_baru','pulihkan_sumber'):

@@ -6,6 +6,7 @@ from datetime import date, timedelta
 import pytest
 import database
 import learning_cycle
+import domain_clock
 import interventions
 from http_test_kit import ServerUji, SANDI_GURU
 from test_learning_cycle_routes import _post
@@ -35,6 +36,7 @@ def hari(monkeypatch, selisih):
         @classmethod
         def today(cls):
             return date(2026, 1, 1) + timedelta(days=selisih)
+    monkeypatch.setattr(domain_clock, "hari_wib", Tanggal.today)
     monkeypatch.setattr(learning_cycle, "date", Tanggal)
     monkeypatch.setattr(database, "date", Tanggal)
 
