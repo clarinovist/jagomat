@@ -1,14 +1,21 @@
 # Ringkasan perkembangan berbasis bukti — baseline dan palang manfaat
 
-**Keputusan produk 13 September 2026:** Opsi 2 dipilih: ringkasan personal berbasis
-bukti, tanpa chat, dengan kewenangan AI dibatasi. User menyetujui implementasi
-bersyarat: spike lebih dahulu, lalu berhenti sebelum kompleksitas penuh jika
+**Status terbaru — 18 September 2026: DIBATALKAN (cancelled).** Pengguna
+memutuskan tidak melanjutkan ringkasan perkembangan AI v1 yang sebelumnya
+ditahan. Bukan backlog aktif; hanya dapat dibuka kembali lewat keputusan baru
+pengguna. Dashboard/ringkasan deterministik yang sudah ada tetap utuh. Kontrak
+AI, hasil spike, dan persyaratan di bawah disimpan sebagai histori, bukan izin
+implementasi atau pengiriman data. Lihat [keputusan pembatalan](README.md#keputusan-pembatalan-pengembangan--18-september-2026).
+
+**Keputusan produk 13 September 2026 (historis):** Opsi 2 dipilih: ringkasan
+personal berbasis bukti, tanpa chat, dengan kewenangan AI dibatasi. User menyetujui
+implementasi bersyarat: spike lebih dahulu, lalu berhenti sebelum kompleksitas penuh jika
 manfaat AI dibanding deterministik belum berarti.
 
-**Hasil palang manfaat: TAHAN implementasi AI v1.** Spike sintetis tidak memberikan
-bukti peningkatan berarti. Ringkasan **deterministik** tiga bagian pernah diterapkan
-berdasarkan perjalanan/reducer yang sudah ada. Revisi dashboard 15 September 2026
-memindahkan informasi tersebut ke resume rencana belajar (lihat bagian berikut);
+**Hasil palang manfaat historis: TAHAN implementasi AI v1.** Spike sintetis tidak
+memberikan bukti peningkatan berarti. Ringkasan **deterministik** tiga bagian
+pernah diterapkan berdasarkan perjalanan/reducer yang sudah ada. Revisi dashboard
+15 September 2026 memindahkan informasi tersebut ke resume rencana belajar;
 ini bukan fitur AI dan bukan klaim sudah ter-deploy. DB, schema, consent, cache, payload,
 dan konfigurasi provider tidak diubah. Mengaktifkan ringkasan AI produksi belum
 boleh dilakukan; izin Pendamping existing bukan izin baru untuk data laporan.
@@ -52,19 +59,26 @@ Tanggal aktual dan tautan **Lihat rencana belajar** ditambahkan server. Jika
 bukti belum cukup, tampilkan penjelasan deterministik serta tindakan resmi,
 bukan memanggil AI untuk membuat paragraf umum.
 
-### Dashboard perkembangan — revisi 15 September 2026
+### Dashboard perkembangan — revisi 15 September dan pembaruan 22 September 2026
 
-Revisi lanjutan mengutamakan **progres penguasaan target materi Jagomat** sesuai
-kelas anak, bukan persentase jawaban pada sebagian soal. Katalog target eksplisit
-menjaga seluruh materi tetap terlihat, termasuk belum dinilai. Grafik status
-bertumpuk dan rincian seluruh topik berada paling atas, lalu resume rencana dan
-aktivitas mingguan. Blok tersendiri “Ringkasan untuk orang tua” tidak ditampilkan.
+Bagian ini menjelaskan baseline deterministik, bukan pengembangan AI yang dibatalkan.
+Istilah level/kelas warisan kini dibedakan dari **kelas sekolah**: cakupan bukti
+mengikuti konfigurasi soal, dengan nama tampilan **Variasi A–D**, bukan jenjang
+kemampuan. Kelas sekolah tidak otomatis memilih variasi atau meluluskan target.
 
-Progres = target yang menunjukkan pemahaman / seluruh target kelas dalam katalog
+Revisi lanjutan mengutamakan **progres penguasaan target materi Jagomat** pada
+variasi soal aktif, bukan persentase jawaban pada sebagian soal. Katalog target
+menjaga seluruh materi tetap tercakup, termasuk belum dinilai. Ringkasan menampilkan
+peta singkat, resume rencana, lalu aktivitas mingguan. Rincian materi/konteks/pilot
+dan perjalanan dibuka lewat bagian **Penguasaan materi**; sesi, mingguan, serta
+catatan dipisahkan pada **Riwayat latihan**. Blok tersendiri “Ringkasan untuk orang tua”
+tidak ditampilkan.
+
+Progres = target yang menunjukkan pemahaman / seluruh target variasi dalam katalog
 Jagomat. Setiap pola dalam target wajib memiliki bukti yang cukup, bervariasi dan
 bisa menjelaskan; keputusan milik reducer. Peta bukan klaim seluruh kurikulum sekolah
 atau penguasaan permanen. Kriteria pemetaan/evaluasi/checkpoint, invalidasi, pergantian
-kelas dan pemeriksaan ulang ada di [kontrak siklus](siklus-belajar-terpandu.md).
+konfigurasi historis dan pemeriksaan ulang ada di [kontrak siklus](siklus-belajar-terpandu.md).
 
 - Default 7 hari terakhir WIB dibanding 7 hari sebelumnya. Tanggal mengikuti
   pencatatan jawaban pertama, bukan pembuatan sesi. Hasil kertas mengikuti waktu
@@ -74,27 +88,30 @@ kelas dan pemeriksaan ulang ada di [kontrak siklus](siklus-belajar-terpandu.md).
   Memilih status saja belum dihitung. Kerja berstatus perlu cek pengenalan atau
   dilewati tetap aktivitas, tetapi bukan hasil benar/salah.
 - Persentase = benar / (benar + salah). N/menebak, penilaian belum jelas,
-  materi perlu cek pengenalan, dan dilewati tidak masuk penyebut. Kode T bisa
-  berasal dari pengakuan bingung, bukan kepastian belum pernah diajarkan.
+  materi perlu cek pengenalan, dan dilewati tidak masuk penyebut. Pengakuan bingung
+  atau belum pernah melihat bukan diagnosis T otomatis; guru memastikan kebutuhan
+  pengenalan sebelum memilih T.
   Tanpa penilaian tampil **—**, bukan 0%. Hasil yang belum seluruhnya dikonfirmasi
   memakai label singkat **Hasil sementara**, tanpa paragraf jumlah konfirmasi atau
   rumus. Ketepatan jawaban hanya catatan aktivitas sekunder, bukan penguasaan.
-- Tren memakai kelompok tipe soal, kelas, mode, tujuan, dan representasi sama.
+- Tren memakai kelompok tipe soal, profil parameter/variasi, mode, tujuan, dan representasi sama.
   Minimal lima butir dinilai pada masing-masing periode adalah batas kecukupan
   tampilan, bukan signifikansi statistik. Selisih memakai **poin persentase**,
   dengan jumlah dasar terlihat. Kelompok tidak digabung menjadi skor penguasaan.
 - **Lihat rencana belajar** membuka resume native di laporan, bukan redirect:
   tugas belum selesai, posisi belajar, hal yang perlu diperiksa, materi/langkah
-  berikutnya dan jadwal. Tugas manual/kelas lama tetap sekunder. Satu aksi utama
+  berikutnya dan jadwal. Tugas manual/konfigurasi lama tetap sekunder. Satu aksi utama
   menuju sesi yang direkomendasikan atau langkah belajar pada profil.
 - Posisi dua fokus, status dan rekomendasi tetap berasal dari
-  `learning_journey.PerjalananBelajar`/reducer. Clock rekomendasi sama dengan
-  profil/POST existing; WIB khusus batas statistik, bukan mengubah jadwal domain.
+  `learning_journey.PerjalananBelajar`/reducer. Sejak koreksi 22 September,
+  rekomendasi, profil/POST dan statistik memakai kalender WIB eksplisit melalui
+  `domain_clock.hari_wib()`, tidak mengikuti timezone host. Jeda/kuota tidak diubah;
+  lihat [koreksi kalender](domain-clock-release.md).
   Perjalanan/bukti lengkap tetap dapat dibuka. Penjelasan hitungan berada di bawah
   data terkait; paragraf panjang “Dasar hitungan dan total seluruh catatan” dihapus,
   total seluruh catatan tetap angka ringkas. Kamus kode di rincian teknis.
 
-Implementasi: `mastery_catalog.py` (target kelas), `learning_cycle.py` (keputusan
+Implementasi: `mastery_catalog.py` (target per konfigurasi), `learning_cycle.py` (keputusan
 penguasaan), `mastery_report.py` (peta/grafik), `report_metrics.py` (statistik aktivitas
 read-only), `report_dashboard.py` (presentasi aktivitas/resume), dan `reports.py`
 (komposisi halaman). Adapter baca khusus `mastery_evidence.py` membawa
@@ -105,7 +122,7 @@ sumber keputusan pedagogis. GET tidak menyimpan, membuat cache, atau memanggil
 network/AI. Keputusan spike dan batas AI di bawah tetap berlaku sebagai histori
 serta batas untuk pengembangan AI mendatang, bukan bentuk dashboard terkini.
 
-## 2. Baseline AI v1 yang disepakati, belum dibangun
+## 2. Baseline AI v1 historis — dibatalkan, belum dibangun
 
 ### UX dan pemicu
 
@@ -266,10 +283,12 @@ Evidence lokal mencakup `red-*.log`, `green-*.log`, `mutation-*.log`,
 mendahului implementasi masing-masing, termasuk source skeleton tersimpan untuk
 jalur inti. Tidak ada production code ringkasan AI yang ditulis.
 
-## 5. Jika pengembangan dilanjutkan
+## 5. Persyaratan historis bila ada keputusan baru
 
-Implementasi v1 tetap jalur Kritis dan memerlukan manfaat yang dapat dibuktikan
-serta audit penyedia. Acceptance berikut belum dianggap selesai oleh spike:
+Pengembangan saat ini dibatalkan, bukan menunggu pelaksanaan syarat berikut.
+Pembukaan kembali wajib keputusan baru pengguna. Implementasi v1 tetap jalur
+Kritis dan memerlukan manfaat yang dapat dibuktikan serta audit penyedia.
+Acceptance berikut belum dianggap selesai oleh spike:
 
 - Payload minimum/consent/otorisasi sebelum-sesudah request; 404 asing/hilang
   identik dan tidak ada efek samping; akses murid tertutup, admin tidak mewarisi izin.

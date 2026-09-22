@@ -1,5 +1,17 @@
 # Soal visual — verifikasi dan rilis bertahap
 
+## Status pekerjaan lanjutan — 18 September 2026
+
+**DIBATALKAN (cancelled)** atas permintaan pengguna: penerimaan soal visual pada
+HP/printer fisik serta pengembangan/penerimaan representasi nonvisual K4.
+Keduanya bukan backlog aktif; pembukaan kembali memerlukan keputusan baru.
+Lihat [keputusan pembatalan](README.md#keputusan-pembatalan-pengembangan--18-september-2026).
+
+Implementasi visual yang sudah ada tidak dibatalkan. Uji perangkat tetap belum
+dilakukan dan K4 tetap nonaktif/belum diterima sebagai tugas ekuivalen.
+Pembatalan bukan kelulusan, pengecualian gerbang aktivasi luas, atau izin mengubah
+konfigurasi/produksi. Kontrak dan batas klaim di bawah tetap berlaku.
+
 ## Kontrak implementasi
 
 - SVG deterministik dari proyeksi allow-list, bukan gambar AI atau parameter mentah.
@@ -16,7 +28,11 @@ Reducer memilih representasi dari sesi sah terbaru per template dalam konteks pu
 
 Bukti dengan representasi berbeda tidak menjumlahkan kelemahan, jumlah probe, atau kegagalan. Checkpoint harus sesuai dengan evaluasi sah terbaru dan dibuat setelah evaluasi itu; bagian checkpoint sebelumnya tidak dilanjutkan. Pemetaan yang butirnya dilewati tidak dianggap pergantian representasi. Riwayat asli tetap disimpan, dan profil/laporan menjelaskan ketika ringkasan memakai kelompok representasi terbaru.
 
-## Gate lokal Fase 8
+## Gate verifikasi Fase 8
+
+Daftar ini mencatat cakupan penerimaan teknis, bukan kewajiban menjalankan suite
+berat/Docker lokal. Eksekusi mengikuti [kebijakan resource](../CLAUDE.md#izin-tetap--resource-lokal):
+scoped test lokal, full suite/sweep/build di CI atau lingkungan terisolasi.
 
 - Suite Python 3.9 dengan warning-as-error; unit, integrasi, HTTP dan golden generator.
 - Sweep seluruh komposisi 100 seed; 500 untuk pasangan visual. XML, finite, namespace/referensi, anchor teks dan batas primitif, serta inventaris varian diperiksa. Invariant matematika per keluarga tetap diuji terpisah.
@@ -29,7 +45,11 @@ Bukti dengan representasi berbeda tidak menjumlahkan kelemahan, jumlah probe, at
 
 ## Urutan rilis wajib
 
-1. Minta izin push/migrasi produksi; verifikasi commit dan CI. Sebelum startup image bermigrasi, cadangkan DB lewat prosedur repo dan uji salinan: migrasi idempoten, `integrity_check`, `foreign_key_check`, jumlah provenance serta fingerprint lama.
+Tahap berikut adalah urutan penerimaan/pemasangan awal Fase 8, **bukan perintah
+mengulang migrasi atau mengubah flag produksi sekarang**. Periksa snapshot live
+dan runbook aktif terlebih dahulu; jangan menganggap histori sebagai status terkini.
+
+1. Verifikasi commit, CI, dan target sesuai izin tetap serta scope tugas. Sebelum startup image bermigrasi, ikuti [runbook rilis](production-release.md): backup konsisten seluruh state durable dan uji salinan, migrasi idempoten, `integrity_check`, `foreign_key_check`, jumlah provenance serta fingerprint lama. Izin tetap tidak menggantikan token approval/preflight teknis.
 2. Deploy image Fase 8 sebagai pembaca pendahulu dengan visual tetap OFF. Jangan mengganti versi matematika hanya untuk mematikan visual; keduanya konfigurasi berbeda.
 3. Pastikan image rollback juga sudah mempunyai sidecar dan reducer pemisah representasi. Image lama dapat mengabaikan provenance meski masih membaca SVG: kemampuan membaca gambar tidak sama dengan keamanan bukti belajar.
 4. Setelah gate pembaca pendahulu lulus, aktifkan satu keluarga pada satu waktu. Snapshot yang sudah tersimpan tetap dibaca saat flag dimatikan. Kill switch menghentikan writer keluarga, bukan menulis ulang soal/hasil lama.

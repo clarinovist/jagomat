@@ -1,8 +1,99 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
-## Mode source saat ini: migrasi pilot (21 September 2026)
+## Status terbaru — 22 September 2026
 
-Kandidat C memakai **migrasi**, bukan izin deploy rutin. Recovery B
+Pisahkan source, artefak CI, dan produksi; bagian bertanggal lebih lama di bawah
+adalah histori, bukan perintah menjalankan ulang cutover.
+
+- Kandidat kode `7ac63da51046b6523ac57e520ed83109c4202ce4` dan recovery
+  `e206563468afb805af9612711f3c4d0f9ec81539` lolos
+  [run CI 35668660016](https://github.com/clarinovist/jagomat/actions/runs/35668660016):
+  **11.429 tes kandidat, 11.425 tes recovery**, build/probe kedua image dan uji pair.
+  Perbaikan kalender dijelaskan di [kontrak WIB](domain-clock-release.md).
+- Manifest run tersebut: `compatible=true`, `pair_verified=true`, `mode=migrasi`,
+  `requires_controlled_migration=true`, **`siap_pasang=false`**. Job `pasang` dilewati.
+  Pin/mode aktual tetap bersumber dari `scripts/release-metadata.json` dan workflow,
+  bukan menyalin digest atau status dari dokumen historis.
+- Snapshot SSH read-only setelah CI tersebut: container `osn-mesin` masih
+  **`18bb974684cc0c4cc843b0c6810ef90b4af5d50d` running/healthy**; smoke anonim
+  `/` 200, `/akun` 401, `/murid/` 303 ke `/masuk` lulus. Perbaikan kalender,
+  penilaian, dan variasi soal belum dinyatakan live.
+- Tidak ada backup CURRENT/rehearsal baru atau perubahan policy host dalam tugas
+  koreksi CI/dokumentasi ini. Kekurangan penutupan recovery pada snapshot operasi
+  berikut tetap belum ditutup oleh keberhasilan build. Verifikasi ulang sebelum
+  pemasangan; jangan mengulang migrasi pilot untuk memperbaiki catatan historis.
+
+### Izin operasi dan palang teknis
+
+Push, deploy, SSH, dan migrasi rutin dalam scope mengikuti
+[izin tetap workspace](../CLAUDE.md#izin-tetap--resource-lokal), tanpa meminta izin
+ulang per koneksi. Kata **approval** pada protokol deploy di dokumen ini berarti
+artefak teknis root-controlled yang terikat digest/TTL/preflight; izin tetap tidak
+membuat artefak itu sah tanpa bukti prasyarat. Gate yang gagal tetap menahan rilis.
+Restore data, penghapusan/destruksi, pelemahan keamanan, atau perubahan di luar
+scope tetap memerlukan keputusan spesifik. Perubahan gate/policy tidak dilakukan
+hanya untuk membuat pemasangan lolos.
+
+## Koreksi operasi pilot — snapshot 21 September 2026, 08.26 UTC
+
+**Pembaruan terbatas 21 September 2026, 09.05 UTC:** setelah approval baru,
+image B exact di bawah berhasil di-pull ulang dan digest/revision/image ID cocok.
+Container C/start time/health serta hash Caddy, cron, deployer dan policy tetap.
+Ini memulihkan ketersediaan image, **bukan** menjalankan fallback atau menutup gap
+backup CURRENT/rehearsal. Penyebab penghapusan historis belum teridentifikasi;
+policy/cleanup host tidak diubah. Detail historis berikut tetap dipertahankan.
+
+Bagian prosedur di bawah adalah persyaratan, bukan bukti bahwa operasi terdahulu
+memenuhinya. Pilot **sudah live**; jangan mengulang rollout/cutover untuk menutup
+catatan. Pemeriksaan read-only menemukan container revision
+`18bb974684cc0c4cc843b0c6810ef90b4af5d50d` healthy, image exact C
+`sha256:079adc5a9823d3fa70732a5b82d1a8c56a9fc7bb563270b35a5796b19408c500`,
+admin5/Pendamping4/AI2/transient2 serta metadata pilot lengkap, integrity/FK lulus,
+dan smoke publik 200/401/303. Ini snapshot waktu pemeriksaan, bukan jaminan live
+selamanya atau bukti alur pilot/receipt berdata; tabel pilot dan receipt admin
+masih kosong pada inspeksi.
+
+[CI exact pair run 35569317083](https://github.com/clarinovist/jagomat/actions/runs/35569317083)
+lulus: kandidat 11.368/recovery 11.344 tes, kedua image/probe/pair; deploy skipped.
+Ada warning deprecation artifact/Node20 dan notice ubuntu-latest. Manifest tetap
+`mode=migrasi`, `pair_verified=true`, `requires_controlled_migration=true`,
+`siap_pasang=false`; tidak diubah menjadi izin rutin.
+
+**Penutupan recovery belum lengkap:**
+
+- Backup awal hanya empat DB, dibuat melalui `shutil.copy2` ketika container
+  berhenti; **auth `sandi.json` tidak tercakup**, bukan SQLite backup API/bundle
+  kanonis. Salinan privat luar Git baru hash-terverifikasi pada sesi post-live.
+  Jangan menggabungkan auth current ke backup itu sebagai snapshot pramigrasi.
+- Migrasi produksi mendahului verifikasi salinan lokal dan rehearsal lengkap.
+  Rehearsal historis hanya `database.siapkan(latihan.db)` C2×/B2×, bukan pembuktian
+  admin4→5/revisi/receipt lintas DB+auth. Preservasi tabel/baris lama empat DB kini
+  terverifikasi read-only, tetapi tidak menghapus penyimpangan urutan tersebut.
+- Backup **CURRENT lengkap** belum dibuat pada sesi penutupan. Bundle kanonis
+  adalah empat DB+sandi.json; sesi login dan transient memang dikecualikan.
+- Image B exact dari run yang sama
+  `sha256:d280f80c7434998e69eb715d3ee3cc57f96460d272c15ae51066a903b9110faf`
+  tersedia pukul 08.17 UTC, lalu event Docker mencatat untag/delete 08.20.41 UTC. Penyebab
+  belum teridentifikasi; rehearsal ditahan, tidak pull/deploy/restart otomatis.
+  Bukti CI B tetap sah, tetapi B tidak tersedia lokal pada pemeriksaan berikutnya.
+- Maintenance historis mengganti seluruh Caddyfile dengan komentar, bukan blok
+  Jagomat 503 terarah; ada potensi dampak lintas layanan, besarnya tidak diukur.
+  Caddy/cron kembali ke hash awal. Container lama telah dihapus saat swap, bukan
+  retained. Fallback hanya B compatible, bukan binary lama atau restore DB otomatis.
+- **Policy host masih `enabled=true` dengan tuple lama** (deployer `2afe564e`,
+  kontrak `a65060`, recovery `e38e2e`). Deployer kini `b7eb3ff1` dan kontrak pilot
+  `0cf42d`; mismatch menahan preflight rutin, berbeda dari `enabled=false` eksplisit.
+  Job pasang literal false juga berbeda dari pencabutan izin host.
+
+Bukti historis tidak dihapus; artefak koreksi lokal terpisah di
+`docs/plan/pilot-postlive-evidence-20260921-0817Z/`. Backup privat tidak masuk Git.
+Operasi lanjutan dalam scope mengikuti izin tetap dan preflight teknis di atas.
+Restore/destruksi atau perubahan policy/cleanup di luar scope tetap memerlukan
+keputusan spesifik. Tidak ada klaim “blocker0” hanya karena halaman publik sehat.
+
+## Riwayat migrasi pilot awal (21 September 2026)
+
+Pada tahap ini kandidat C memakai **migrasi**, bukan izin deploy rutin. Recovery B
 `175d8fb2d340c0c56d2f0ace5b6a1145792b8097` memahami admin5/profil/konteks/pilot;
 build-only B sukses run35558003458. Fingerprint persistensi B:
 `0cf42df6d86263c56f03547e8179eca750e23d3dd26c45cde11201bb2043ce53`.
@@ -35,7 +126,9 @@ dan rehearsal backup privat tetap wajib, bukan digantikan fingerprint/test lokal
 Cutover hanya satu kali: backup quiescent no-prune, salinan lokal terverifikasi,
 rehearsal C2×/B2×, migrasi aditif, approval exact pair TTL≤900detik. Sesudah migrasi
 hanya B kompatibel; tidak downgrade/restore DB otomatis atau start binary lama.
-Auto-deploy permanen tidak aktif. Status live dilaporkan terpisah setelah verifikasi.
+Job auto-deploy CI tertahan literal false. Policy host bukan disabled: snapshot
+post-live di atas masih enabled=true dengan tuple lama yang tidak cocok.
+Status live dan kelengkapan recovery dilaporkan terpisah.
 
 ### Probe kandidat admin5 dan recovery historis
 
@@ -52,13 +145,15 @@ Verifier CI mengirim probe tambahan dari `scripts/release_profile_probe.py` lewa
 stdin (tanpa mount source host): migrasi admin4→5 berulang/preservasi, commit/replay
 receipt kelas, konflik revisi, histori/konteks tetap, arsip immutable/hilang dan
 receipt rusak. Kandidat wajib melaporkan `profil_checks=6`, `admin_schema=5` setelah
-pemeriksaan selesai. Recovery historis yang dipatok eksplisit diuji sesuai kontrak
-lamanya: `profil_checks=0`, `admin_schema=null`; itu **tidak** membuktikan recovery
-tersebut dapat membaca data admin5. Image lain tidak otomatis mendapat pengecualian.
+pemeriksaan selesai. Recovery lama dalam allow-list `RECOVERY_TANPA_PROFIL`
+diuji sesuai kontrak historisnya: `profil_checks=0`, `admin_schema=null`; itu
+**tidak** membuktikan dukungan admin5. Pin aktif `e206563` tidak termasuk pengecualian
+tersebut: ia wajib `profil_checks=6`, `admin_schema=5`, sama seperti kandidat.
 
-Artefak deployer VPS tetap satu berkas mandiri. Perubahan source ini belum memasang
-`/usr/local/bin/osn-deploy` atau memperbarui hash policy/approval di host. Kedua jalur
-run utama/rollback tetap utuh; semua preflight kontrak, izin dan digest tetap wajib.
+Artefak deployer VPS tetap satu berkas mandiri. Source saja tidak memasang
+`/usr/local/bin/osn-deploy` atau memperbarui policy/approval. Operasi pilot kemudian
+memasang hash `b7eb3ff1`; policy lama tetap, sebagaimana snapshot koreksi di atas.
+Kedua jalur run utama/rollback tetap utuh; semua preflight kontrak, izin dan digest tetap wajib.
 
 ## Riwayat kandidat migrasi PG (16 September 2026)
 
@@ -98,7 +193,10 @@ Cutover tetap menunggu pasangan exact, backup/rehearsal, dan persetujuan spesifi
 
 Pada tahap persiapan B sebelumnya, mismatch terhadap recovery historis33e241
 tercatat jujur (`compatible=false`, `pair_verified=false`, `siap_pasang=false`).
-Tidak ada klaim recovery historis cocok dengan schema baru. Kini
+Tidak ada klaim recovery historis cocok dengan schema baru.
+
+## Kontrak mode dan bootstrap
+
 `scripts/release_metadata.py` memvalidasi konfigurasi JSON tertutup, pin workflow,
 gate pasang, identitas image, dan fingerprint dari **PROBE_KONTRAK yang sama dengan
 deployer** terhadap anchor B yang sudah terukur.
@@ -124,8 +222,9 @@ oleh helper, bukan input dispatch. Manifest lama tidak ditimpa/dipakai ulang.
 policy VPS**. Equality preflight deployer tetap berlaku pada rutin dan `deploy-v2`.
 
 Urutan bootstrap:
-1. Freeze baseline B yang fungsional penuh dan aman untuk schema baru; full gate
-   lokal dalam mode persiapan. Commit/push B hanya oleh koordinator, CI build-only.
+1. Freeze baseline B yang fungsional penuh dan aman untuk schema baru. Review,
+   scoped test, kompilasi, dan palang lokal; full suite/build lewat CI sesuai
+   kebijakan resource. Commit/push B hanya oleh koordinator.
 2. Setelah CI dan image B terverifikasi, kandidat C mematok SHA B dan fingerprint
    terukurnya. B dan C punya persistensi sama, dengan delta aplikasi nyata yang
    menyediakan recovery bermakna; bukan beda label/cosmetic untuk dua digest.
@@ -135,13 +234,19 @@ Urutan bootstrap:
 4. Setelah current sehat dan policy terverifikasi, pengaktifan mode/gate rutin
    adalah perubahan tersendiri yang direview. Jangan mengaktifkan variable saja.
 
-Suite recovery B kelak membaca mode/pin historis dari source B sendiri; itu bukan
+Pada koreksi kalender 22 September, bug pada recovery lama menahan build B jika
+pipeline lama dijalankan apa adanya. B dibekukan sebagai commit immutable setelah
+regresi lokal, lalu **seluruh suite serta image B dan C diuji bersama pada run final
+yang sama**. Tidak ada klaim image B pernah lolos run terpisah. Semua gate kandidat,
+recovery, probe dan pair tetap wajib; rincian/buktinya ada di [kontrak WIB](domain-clock-release.md).
+
+Suite recovery B membaca mode/pin historis dari source B sendiri; itu bukan
 izin menggunakan recovery historis33e241 untuk schema baru. Seluruh pengujian
 aplikasi tetap berjalan; mode persiapan bukan skip test atau pelemahan probe.
 
 Bagian berikut merekam kontrak dan prosedur rutin/migrasi existing. Deskripsi
-eligibility rutin berlaku **setelah** aktivasi mode rutin, bukan pada mode
-persiapan saat ini.
+eligibility rutin berlaku **setelah** aktivasi mode rutin; mode source sekarang
+masih migrasi dengan job pasang tertutup.
 
 Status inspeksi **13 September 2026 sekitar 09.50 WIB**: produksi masih sehat
 di revision `4d5618d5fbb162f72c9a88397976c353ee62b88e`. Deploy kandidat
@@ -234,9 +339,9 @@ semantik semua Python**: penulis data baru, kontrak JSON/provenance atau perubah
 runtime berisiko tetap memerlukan review kritis. Jangan menghapus modul dari
 fingerprint atau mengganti hash policy sekadar agar deploy hijau.
 
-### Bootstrap rutin — sekali, dengan izin produksi tersendiri
+### Bootstrap rutin — sekali, dalam scope aktivasi yang disetujui
 
-1. Review/gate source, commit/push hanya setelah izin. CI membangun/verifikasi
+1. Review/gate source; commit/push mengikuti izin tetap. CI membangun/verifikasi
    pasangan image; variable tetap off. Tidak build di VPS.
 2. Inspeksi ulang live/operasi saingan. Pasang `scripts/deploy.py` secara atomik
    root0755 di `/usr/local/bin/osn-deploy`, simpan versi lama secara terproteksi.
@@ -268,16 +373,18 @@ fingerprint atau mengganti hash policy sekadar agar deploy hijau.
    mencabut izin host di bawah lock deploy (menghentikan kelayakan baru, bukan
    membatalkan swap yang sudah berjalan). Tidak menghapus receipt/backup lama.
 
-Recovery pinned untuk rollout pengendali AI adalah
+Recovery historis yang dipatok untuk rollout pengendali AI adalah
 `33e241c18024190f41ebca1986e35af26c0397fd`, baseline pertama yang memahami
 `ai-control.db`. Setiap pembaruan recovery harus diuji dan direview; label revision
 sendiri bukan bukti kompatibilitas. Preflight kontrak/live readiness tetap wajib.
 Deploy rutin tidak menyediakan restore data atau zero-downtime.
 
-Rollout satu kali ini wajib memakai `deploy-v2`: backup konsisten DB belajar dan
-Pendamping lebih dulu, lalu migrasi/startup membuat DB pengendali AI. Sesudah
-candidate sehat, backup berikutnya mencakup ketiga DB dan policy rutin diperbarui
-ke fingerprint kandidat/recovery yang identik.
+Pada rollout pengendali AI tersebut, jalur `deploy-v2` mensyaratkan backup DB
+belajar dan Pendamping sebelum startup membuat DB AI. Backup tiga DB sesudahnya
+juga merupakan inventaris historis, **bukan bundle lengkap admin5 sekarang**.
+Bundle durable saat ini mencakup empat DB + auth `sandi.json`; sesi login dan
+transient dikecualikan. Prinsipnya dijelaskan di [runbook admin](admin-control-release.md),
+tetapi langkah migrasi admin4 di sana tidak boleh dijalankan mentah pada admin5.
 
 ## Recovery berbeda dari candidate
 
@@ -289,8 +396,8 @@ Recovery historis itu bukan image produksi lama, bukan perubahan konstanta
 schema saja, dan bukan memilih kembali candidate yang sama ketika gagal.
 **Baseline B pengiriman pada tahap itu adalah
 `0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c`**, yang juga memahami arsip pengiriman dan
-provenance tinjauan. Pin PG e38e2e1 tersebut historis; source saat ini memakai baseline pilot175d8fb
-sebagaimana bagian mode source di atas.
+provenance tinjauan. Pin PG `e38e2e1` dan pilot awal `175d8fb` tersebut historis;
+source kini memakai recovery kalender `e206563`, sebagaimana status terbaru di atas.
 Recovery pengendali AI33e241 dan Pendampingbc9c973 di atas merupakan histori,
 bukan fallback schema pengiriman baru. Baseline B pengiriman menyediakan
 seluruh kartu koreksi; kandidat C menambah navigasi antrean tinjauan server-side.
@@ -332,11 +439,13 @@ approval bukan bukti backup/drain; operator hanya menerbitkannya setelah kondisi
 tersebut benar-benar diverifikasi. File yang tidak memenuhi precondition wajib
 menolak, bukan di-chmod/chown otomatis oleh deployer.
 
-## B2 — membutuhkan izin produksi tersendiri
+## B2 — urutan historis rollout Pendamping v4
 
-Rollout v4 telah dilakukan sesuai snapshot di atas. Urutan ini tetap menjadi
-panduan migrasi berikutnya, **bukan perintah mengulang migrasi v4**. Sebelum
-meminta persetujuan baru, lengkapi runbook dengan
+Rollout v4 telah dilakukan sesuai snapshot di atas. Urutan dua DB ini disimpan
+sebagai histori, **bukan prosedur siap-eksekusi untuk admin5 atau perintah mengulang
+migrasi v4**. Migrasi berikutnya harus mencakup seluruh state durable saat itu
+(empat DB + auth untuk admin5), bukan menyalin inventaris lama. Dalam scope operasi
+yang disetujui, lengkapi runbook dan bukti preflight dengan
 **digest candidate/recovery nyata, hash deployer, jendela waktu/timezone,
 batas durasi/dampak, mekanisme drain, backup dan recovery**.
 

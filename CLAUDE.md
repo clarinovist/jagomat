@@ -1,5 +1,19 @@
 # CLAUDE.md — Jagomat
 
+## Izin tetap & resource lokal
+
+- Commit/push langsung ke `main`, CI/CD, deploy, dan SSH ke seluruh VPS milik pengguna
+  (root/sudo bila perlu) diizinkan dalam scope tugas tanpa approval ulang. Verifikasi
+  remote/target, jaga WIP dan secret, serta hormati instruksi terbaru seperti “lokal saja”.
+- Lokal untuk review, palang, kompilasi, dan scoped test yang terjangkau. Full suite,
+  mutation berat, integration/E2E, dan build image diutamakan di CI/remote test terisolasi;
+  bukan prasyarat lokal sebelum commit/push. Gate rilis tetap wajib pada SHA yang sama.
+- Jangan otomatis menyalakan Docker, membuat container/Compose stack, atau menarik/build
+  image lokal. Utamakan runner CI; Docker lokal hanya bila reproduksi khusus benar-benar
+  memerlukan lokal dan resource memadai. Batasi resource dan bersihkan milik tugas sendiri.
+- Aturan ini menggantikan larangan izin ulang push/deploy/SSH dan kewajiban gate berat
+  lokal di referensi lama. Bukan izin force-push, menghapus data, atau operasi di luar scope.
+
 Panduan utama agent untuk repo ini. **Verifikasi mengikuti risiko, bukan jumlah
 file/baris.** Aturan inti di sini; baca detail domain hanya saat relevan di
 [`docs/workflow-reference.md`](docs/workflow-reference.md).
@@ -34,7 +48,7 @@ Sebelum edit, sebut **jalur + alasan + acceptance criteria + verifikasi** secara
 Risiko belum jelas → investigasi dulu. Jika scope/risiko bertambah, naikkan jalur dan
 perbarui plan sebelum melanjutkan; jangan menurunkan jalur demi cepat/hijau.
 
-| Jalur | Kriteria | Plan | Gate lokal sebelum commit |
+| Jalur | Kriteria | Plan | Gate lokal ringan / CI sebelum rilis |
 | --- | --- | --- | --- |
 | **Ringan** | Dokumen, typo non-substantif, styling lokal tanpa mengubah perilaku/akses/makna soal | Cukup di chat | Review diff + palang repo; dokumen: link/konsistensi; UI: render sintetis + test markup/style yang terdampak, kompilasi bila Python berubah. Tidak wajib full suite/mutation/build. |
 | **Normal** | Bug logika terbatas atau UI/alur nonkritis dengan dampak yang dipahami | Ringkas di `docs/plan/YYYY-MM-DD-slug.md`: masalah/dugaan sebab, scope, acceptance criteria, test | Palang repo + scoped regression test + kompilasi Python terkait; visual bila UI berubah. Full suite bila trigger di bawah. |
@@ -80,15 +94,16 @@ menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
   bukan data anak. Jalankan setelah stage scope yang sudah direview.
 - Scoped test: `mesin/.venv/bin/python -m pytest mesin/__tests__/test_<area>.py -q -W error -p no:cacheprovider`.
   Test aplikasi berada di `mesin/__tests__/`, bukan plan/spike/salinan repo lama.
-- Full test: `mesin/.venv/bin/python -m pytest mesin/__tests__/ -q -n auto -W error -p no:cacheprovider`.
-  `-n auto` hanya bila resource cukup; jangan menjalankan suite berat ganda.
+- Full test diutamakan di CI dengan interpreter CI yang ditentukan workflow. Jika perlu
+  reproduksi lokal, gunakan `mesin/.venv/bin/python -m pytest mesin/__tests__/ -q -W error -p no:cacheprovider`
+  dengan concurrency terbatas; jangan otomatis memakai `-n auto` atau suite berat ganda.
 - Kompilasi file terkait dengan `compile()` tanpa import/menjalankan aplikasi, lihat referensi.
   Repo ini **tidak** punya gate npm/lint/coverage; jangan menambah dependency
   atau mengklaim coverage global diperiksa CI. Trace/mutation domain mengikuti scope.
 - `.project-gate.json` adalah preset lengkap untuk Kritis/audit penuh, bukan ritual manual
   setiap edit Ringan/Normal. Jika harness mewajibkan preset, **jangan bypass**; laporkan jika
   ada konflik. Perubahan preset/harness perlu scope dan approval tersendiri.
-- Build Docker lokal tidak wajib untuk setiap commit. Perubahan packaging harus diverifikasi
+- Build Docker lokal bukan default atau prasyarat commit/push. Perubahan packaging harus diverifikasi
   via test image/aset dan build CI sebelum deploy. **Jangan build di VPS** atau memakai
   Docker/DB lokal nyata untuk eksperimen. Terminal aktif bukan otomatis blocker: cek resource,
   port, DB, dan file yang bentrok; jangan hentikan proses sesi lain tanpa izin.
@@ -113,14 +128,36 @@ namespace image GHCR tetap lama. Detail kompatibilitas dan pemulihan ada di
 - Jangan otomatis `reset`, `checkout --`, atau memulihkan versi lama untuk “repo hantu”.
   Investigasi repo/HEAD dan simpan WIP dulu. Mutasi/eksperimen di salinan temp terisolasi;
   jika backup file dipakai, pemulihan tidak boleh menimpa edit baru sesi lain.
-- Commit setelah gap 0 + gate lokal sesuai jalur lolos. Kode + test yang saling bergantung
-  harus atomik; tidak wajib satu commit setiap langkah TDD. Jangan campur WIP sesi lain.
+- Commit setelah review gap 0 + pemeriksaan lokal yang terjangkau; gate berat lewat CI
+  sebelum rilis. Kode + test yang saling bergantung harus atomik; tidak wajib satu
+  commit setiap langkah TDD. Jangan campur WIP sesi lain.
 - Format conventional commit Bahasa Indonesia (`fix(murid):`, `feat(soal):`, `docs(mesin):`).
   Pesan multi-baris lewat berkas temp unik dan `git ... commit -F <berkas>`.
   Bila index berisi sesi lain, gunakan pathspec scope sendiri; file campuran harus dipisahkan
   dahulu karena commit pathspec mengambil isi working tree, bukan hanya hunk staged.
-- **Jangan push tanpa perintah eksplisit** (“push”, “commit dan push”). “Commit dulu” bukan
-  izin push. Push `main` memicu deploy produksi otomatis; jelaskan dampaknya saat minta approval.
+- **Push langsung ke `main` diizinkan** dalam scope tugas tanpa izin ulang; pantau CI
+  karena push dapat memicu deploy produksi. Jika user membatasi “commit dulu/lokal saja”,
+  patuhi pembatasan tersebut. Jangan mengirim WIP sesi lain.
+
+### Rapikan setelah pekerjaan selesai
+
+Preferensi pengguna: **selalu rapikan setelah selesai, tanpa menunggu permintaan khusus**.
+
+- Cek status Git dan artefak yang dibuat selama tugas sebelum laporan akhir. Catat perubahan
+  yang sengaja dipertahankan; jangan membuang WIP atau perubahan sesi lain demi status bersih.
+- Hapus cache sementara dan salinan kerja duplikat milik tugas yang sudah tidak diperlukan.
+  Hentikan hanya proses preview/pengujian yang dimulai untuk tugas sendiri dan sudah selesai;
+  jangan mengganggu proses atau berkas sesi lain.
+- Pertahankan bukti pengujian/rilis yang berguna. Jika artefak selesai perlu diarsipkan,
+  simpan secara privat di luar Git, verifikasi isi/hash sebelum menghapus sumber, lalu catat
+  lokasi arsip tanpa memaparkan data anak atau kredensial.
+- Source, tes, dokumentasi, `.env`, `.venv`, data anak/bisnis, image aktif, skrip recovery,
+  dan backup yang diperlukan tetap aman. Jangan memakai penghapusan massal, Docker prune,
+  atau commit/push otomatis hanya untuk merapikan.
+- Cleanup bukan alasan menghapus artefak produksi atau mengubah retensi/backup di luar scope.
+  Restart rutin untuk deploy/recovery dalam scope memakai izin tetap di atas.
+- Laporkan singkat yang dirapikan serta yang sengaja disimpan atau ditunda. Jangan membuat
+  artefak tambahan yang tidak diperlukan hanya untuk mencatat pembersihan sederhana.
 
 ## 5. Palang domain yang tidak boleh dilemahkan
 
@@ -177,10 +214,14 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
 - Pipeline `.github/workflows/deploy.yml` tetap **`uji` → `bangun` → `pasang`**: palang
   privasi + seluruh test sebelum build GHCR, deploy **digest output build yang sama**,
   forced-command SSH, swap container, auto-rollback jika healthcheck gagal.
-- Operasi produksi hanya setelah approval eksplisit. Server lewat SSH alias
-  `biznet-sekolahdesain`; perintah Docker produksi diawali `ssh biznet-sekolahdesain '...'`,
+- Izin tetap tidak menggantikan gate teknis: mode/pin mengikuti
+  `scripts/release-metadata.json` dan `.github/workflows/deploy.yml`. Selama job
+  `pasang` literal false, CI sukses bukan deployment. Status dan prosedur ada di
+  [`docs/production-release.md`](docs/production-release.md).
+- SSH dan operasi produksi rutin dalam scope tugas memakai izin tetap, tanpa approval ulang.
+  Server lewat SSH alias `biznet-sekolahdesain`; perintah Docker produksi diawali `ssh biznet-sekolahdesain '...'`,
   jangan sampai mengenai Docker lokal. Tidak build di VPS atau menghapus container sebelum image siap.
-- Setelah push diminta, pantau run untuk commit yang benar sampai selesai:
+- Setelah push, pantau run untuk commit yang benar sampai selesai:
   `gh run list --repo clarinovist/jagomat --branch main`, lalu
   `gh run watch <id> --repo clarinovist/jagomat --exit-status`.
   Verifikasi publik di domain produksi kanonis **`https://jagomat.id`**
@@ -189,10 +230,14 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
   `https://osn.lesprivate.id` hanya domain lama yang mengalihkan ke `jagomat.id`,
   bukan target utama smoke test.
 - “Ada di source”, “ter-deploy”, dan “berfungsi” tiga klaim berbeda. Untuk keadaan live,
-  cek container berjalan secara read-only dengan izin; jangan menganggap checkout sama
+  cek container berjalan secara read-only lewat SSH yang sudah diizinkan; jangan menganggap checkout sama
   dengan produksi. `llm.py` fail-dry: konfigurasi hilang bisa mematikan fitur tanpa error.
-- Migrasi produksi: approval + backup `cadangkan.sh`, uji idempotensi dan
-  `PRAGMA foreign_key_check`, recovery siap. Laporkan agregat saja, tidak nama anak.
+- Migrasi produksi dalam scope rilis diizinkan setelah target, backup konsisten seluruh
+  state durable, uji idempotensi/FK, serta recovery terverifikasi. Ikuti runbook aktif:
+  bundle admin5 mencakup empat DB + auth `sandi.json`, bukan hanya DB belajar.
+  `cadangkan.sh` lama bukan bukti bundle lengkap/no-prune. Token approval exact-pair
+  dan preflight deployer tetap wajib; izin tetap tidak membuat artefak itu otomatis sah.
+  Laporkan agregat saja, tidak nama anak.
 - Investigasi data kosong yang diizinkan: backup terbaru di `mesin/cadangan/` read-only
   (`sqlite3 "file:...?mode=ro"`), bukan DB lokal kosong. Jangan tampilkan rekaman pribadi.
 - `Dockerfile` memakai `COPY *.py` (guard `test_image.py`); aset non-Python punya COPY/guard

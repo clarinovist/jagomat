@@ -1,8 +1,39 @@
 # Runbook rilis pusat kendali admin
 
-Status: **readiness source lokal; bukan bukti produksi siap atau izin operasi**.
+Status: **runbook historis admin4, bukan siap-eksekusi untuk pilot admin5**.
 Dokumen ini melengkapi [`production-release.md`](production-release.md), bukan
-menggantikan policy/deployer/approval di sana.
+menggantikan policy/deployer/approval di sana. **Seluruh langkah admin4 di bawah
+adalah histori**, bukan resep untuk dijalankan ulang pada admin5. Versi, pin,
+metode backup/rehearsal, dan kondisi live wajib dicocokkan dengan runbook aktif.
+
+**Pembaruan 22 September 2026:** recovery source aktif kini
+`e206563468afb805af9612711f3c4d0f9ec81539`, bukan pin pilot awal di snapshot
+berikut. [CI kalender WIB](https://github.com/clarinovist/jagomat/actions/runs/35668660016)
+lulus untuk pasangan kandidat `7ac63da`/recovery `e206563`; pemasangan dilewati.
+Lihat [koreksi kalender](domain-clock-release.md) dan [status rilis](production-release.md).
+Izin operasi mengikuti [izin tetap](../CLAUDE.md#izin-tetap--resource-lokal);
+validasi bundle, preflight, dan token approval teknis tetap wajib. Ini bukan
+izin restore data atau perubahan destruktif di luar scope.
+
+> **Koreksi 21 September 2026:** tabel versi, pin recovery `33e241`, dan uraian migrasi
+> admin4 di bawah adalah histori. Saat inspeksi tersebut pilot memakai admin5 dan recovery source
+> `175d8fb2d340c0c56d2f0ace5b6a1145792b8097`; gunakan exact pair dari run CI yang
+> sama menurut dokumen rilis. Image B sempat terhapus pada inspeksi post-live,
+> kemudian berhasil di-pull ulang dengan approval pada 21 September 09.05 UTC.
+> Digest/revision cocok; rehearsal lengkap tetap belum dilakukan. Ketersediaan
+> image tidak membuktikan fallback runtime atau perlindungan terhadap cleanup.
+> Backup pramigrasi yang ada hanya empat DB tanpa `sandi.json`, bukan bundle
+> kanonis. Backup CURRENT lengkap belum diambil pada penutupan read-only.
+> `sesi.json`/transient memang dikecualikan, tetapi auth durable wajib tercakup.
+> Helper `rehearsal_bundle` memanggil migrator dua kali dan memeriksa schema/FK;
+> itu sendiri belum membandingkan seluruh isi/ID/hash sebelum-sesudah atau
+> menjalankan recovery B exact. Bukti preservasi, registry/revisi/receipt dan
+> idempotensi lintas-resource harus ditambahkan pada harness rehearsal privat.
+> Jangan menjalankan prosedur historis mentah atau menyatakan recovery siap
+> hanya karena helper/marker berhasil. Operasi dalam scope mengikuti izin tetap,
+> tetapi prasyarat backup/rehearsal dan approval exact-pair teknis tidak boleh
+> dilewati. Restore data dan tindakan destruktif di luar scope tetap memerlukan
+> keputusan spesifik.
 
 ## Kontrak persistensi kandidat
 
@@ -45,8 +76,8 @@ belum ada sampai operator benar-benar membuat serta memvalidasi bundle exact.
 ## Prosedur backup coherent (produksi, hanya setelah approval exact)
 
 1. Catat candidate digest, recovery digest kompatibel, revision, hash deployer,
-   jendela waktu+timezone, RPO, dan `bundle_id` unik. Izin push bukan approval
-   migrasi/backup/restore.
+   jendela waktu+timezone, RPO, dan `bundle_id` unik. Izin operasi bukan bukti
+   bundle/rehearsal siap atau token approval migrasi sah; restore perlu keputusan khusus.
 2. Aktifkan maintenance dan tahan **semua** writer: ingress POST, worker,
    scheduler/cron, dan container lain pada volume. Drain request in-flight.
    Socket count nol atau field `writes_held:true` saja bukan bukti.

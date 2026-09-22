@@ -1,9 +1,23 @@
 # Kontrak runtime Pendamping
 
 Dokumen ini menjelaskan kontrak **source**, bukan bukti deployment atau penerimaan
-redesign. Arah produk tetap [spesifikasi Pendamping](pendamping-jagomat.md);
+redesign. [Spesifikasi Pendamping](pendamping-jagomat.md) menyimpan rancangan
+awal; bagian UI inline di dokumen ini menjelaskan kontrak implementasi sekarang;
 [palang proyek](../CLAUDE.md) dan [siklus belajar](siklus-belajar-terpandu.md)
 tetap berlaku. Seluruh verifikasi lokal menggunakan DB, akun, dan provider sintetis.
+
+## Status pengembangan lanjutan — 18 September 2026
+
+**DIBATALKAN (cancelled)** atas permintaan pengguna: UI hapus chat/cabut izin,
+pengelolaan saat provider tidak dikonfigurasi, perbaikan pesan editor memori,
+evaluasi lanjutan mutu penjelasan matematika, serta walkthrough pengguna,
+Safari/keyboard HP fisik dan pengujian aksesibilitas menyeluruh. Bukan backlog
+aktif; pembukaan kembali memerlukan keputusan baru pengguna. Lihat
+[keputusan pembatalan](README.md#keputusan-pembatalan-pengembangan--18-september-2026).
+
+Kontrak runtime dan fitur yang sudah ada tetap berlaku. Pembatalan pekerjaan
+verifikasi tidak berarti sudah diuji/lulus, tidak menghapus keterbatasan mutu,
+dan bukan izin memperluas akses atau mengubah produksi.
 
 ## Tinjauan dan pembuatan latihan
 
@@ -92,7 +106,8 @@ Skenario: bantuan pemetaan pola, contoh penjelasan pecahan dengan kertas, dan
 usulan latihan manual dari template katalog. Respons patch menggunakan 127–200
 output token dan 1,53–2,06 detik pada tiga sampel tersebut. Ini bukan benchmark
 latensi umum atau jaminan mutu pedagogis: contoh pola masih mencampur istilah
-posisi suku dan siklus, sehingga evaluasi kualitas penjelasan tetap follow-up.
+posisi suku dan siklus. Evaluasi lanjutan kualitas penjelasan **dibatalkan**
+pada 18 September 2026; keterbatasan mutu tersebut tetap tercatat.
 Tidak ada alasan menaikkan budget, timeout, atau menerima JSON parsial.
 
 Total enam request: 100.547 input dan 2.033 output token; estimasi biaya memakai
@@ -122,7 +137,8 @@ terkonfirmasi. Invalidasi versi dan kepemilikan tetap berlaku.
 Batas patch: validator baru tidak melakukan audit/backfill memori warisan dan
 bukan klaim filter chat umum mendeteksi seluruh kemungkinan data personal.
 Penolakan koreksi masih mengikuti respons generik endpoint existing; penjelasan
-editor yang lebih membantu termasuk pekerjaan UX yang belum diterima.
+editor yang lebih membantu merupakan pekerjaan UX yang **dibatalkan** pada
+18 September 2026, bukan fitur yang tersedia.
 
 ## Skema, retensi, dan recovery
 
@@ -147,9 +163,12 @@ editor yang lebih membantu termasuk pekerjaan UX yang belum diterima.
 - Rollback binary sebelum skema privat v4 **tidak otomatis kompatibel** karena
   aplikasi lama menolak versi lebih baru. Recovery harus memakai binary yang
   memahami v4 atau perbaikan maju; jangan memulihkan DB lama sebagai rollback UI.
-- Sebelum rollout/migrasi produksi: izin baru, cadangan konsisten kedua DB,
+- Sebelum rollout/migrasi produksi: cadangan konsisten seluruh state durable,
   rehearsal idempoten, `integrity_check`/`foreign_key_check`, dan recovery siap.
-  Commit lokal bukan izin push/deploy.
+  Dua DB pada rollout Pendamping awal bukan inventaris produksi admin5 sekarang;
+  ikuti [runbook rilis](production-release.md) untuk bundle empat DB + auth.
+  Push/deploy/SSH dalam scope mengikuti [izin tetap](../CLAUDE.md#izin-tetap--resource-lokal),
+  tetapi commit atau izin tersebut bukan bukti gate teknis sudah lulus.
 
 ## Batas penerimaan
 
@@ -229,13 +248,15 @@ Adapter warisan yang masih dipertahankan:
 - Skrip berada di modul Python agar termasuk COPY wildcard image; izin CSP hanya
   hash tepat skrip tersebut, bukan `unsafe-inline` atau seluruh script same-origin.
 
-**Belum termasuk:** hapus chat/cabut izin melalui UI baru, pengelolaan saat
-provider tidak dikonfigurasi, picker keluarga langsung, editor parameter,
-streaming atau interaksi JS di luar Kirim/Periksa status. Semua tetap paket
-terpisah, bukan tombol palsu.
+**Dibatalkan, tidak tersedia melalui UI baru:** hapus chat/cabut izin dan
+pengelolaan saat provider tidak dikonfigurasi. Picker keluarga langsung, editor
+parameter, streaming atau interaksi JS di luar Kirim/Periksa status tetap di luar
+cakupan, bukan janji implementasi atau tombol palsu.
 
 Wireframe/prototype lokal opsional, bukan dependensi aplikasi/build/test.
-Walkthrough user, Safari/keyboard HP fisik dan aksesibilitas menyeluruh tetap
-perlu verifikasi terpisah. Source tersedia, ter-deploy, dan berfungsi pada
-produksi bukan tiga klaim yang dapat disamakan. Migrasi v3→v4 dari commit
-prasyarat harus memenuhi backup/recovery kompatibel sebelum push otomatis deploy.
+Pekerjaan walkthrough pengguna, Safari/keyboard HP fisik dan aksesibilitas
+menyeluruh **dibatalkan**; penerimaannya tetap belum terverifikasi, bukan lulus.
+Source tersedia, ter-deploy, dan berfungsi pada produksi bukan tiga klaim yang
+dapat disamakan. Migrasi v3→v4 merupakan histori rollout, bukan langkah yang
+harus diulang. Pemasangan berikutnya tetap perlu backup/recovery kompatibel dan
+gate rilis yang sah; push tidak otomatis deploy selama job `pasang` tertutup.
