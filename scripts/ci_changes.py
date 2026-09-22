@@ -7,9 +7,10 @@ import subprocess
 from urllib.parse import unquote, urlsplit
 
 
-# Bukan wildcard *.md: kontrak domain, runbook, dan panduan agent tetap lengkap.
+# Bukan wildcard *.md: kontrak domain/runbook dan preset eksekusi tetap lengkap.
+# Panduan agent bukan input runtime/build; review maknanya tetap wajib.
 DOKUMEN_AMAN = frozenset({
-    "README.md", "docs/README.md", "docs/ci-selective.md",
+    "README.md", "docs/README.md", "docs/ci-selective.md", "CLAUDE.md",
 })
 SHA = re.compile(r"[0-9a-f]{40}")
 TAUTAN = re.compile(r'!?\[[^\]\n]*\]\(([^()\s]+)(?:\s+"[^"\n]*")?\)')

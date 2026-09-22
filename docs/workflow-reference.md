@@ -6,20 +6,25 @@ seluruh riwayat untuk typo. Dokumen ini tidak menambah gate universal.
 
 ## Plan & verifikasi sesuai risiko
 
-Ringan cukup rencana di chat. Normal boleh plan pendek di `docs/plan/`:
+Ringan dan Normal kecil cukup rencana di chat. File plan di `docs/plan/` untuk Kritis,
+pekerjaan panjang/multitahap, atau handoff. Gunakan hanya bagian yang relevan:
 
 ```text
 Masalah / dugaan sebab:
 Scope file + di luar scope:
 Acceptance criteria:
 Rencana fix + regression test:
-Residual Gap: 0/N (hanya scope patch)
+Review: acceptance criteria, invariant, regresi, dan blocker patch
 Verifikasi: command, hasil, alasan tidak dijalankan
 Follow-up:
 ```
 
 Kritis tambahkan invariant, failure path, risiko data/runtime, dan rollback/recovery.
-Plan rutin tetap lokal/gitignored, bukan dokumentasi permanen yang di-commit.
+Kritis kecil cukup satu catatan ringkas; tidak perlu checklist Residual Gap atau laporan
+pendamping. Plan rutin tetap lokal/gitignored, bukan dokumen permanen yang di-commit.
+Cek read-only tidak otomatis memerlukan plan implementasi. Untuk operasi data/tooling
+existing tanpa perubahan artifact, gunakan bukti gate identik sesuai ketentuan root;
+verifikasi target, backup/recovery, provenance dan hasil operasi tetap wajib.
 
 Semua contoh berikut dijalankan dari root Jagomat, bukan repo lama `mesin/.git`.
 Path `Documents/osn` masih menjadi alias sementara; lihat
@@ -38,10 +43,12 @@ cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python -W error -B -c 'fr
 ```
 
 Ini tidak mengimpor aplikasi, membuka DB, atau menulis bytecode. Kompilasi bukan pengganti
-test runtime/branch. Untuk Kritis/audit lengkap, gunakan command di `.project-gate.json`;
-preset itu tidak diubah oleh revisi dokumentasi ini. Jangan melewati gate yang diwajibkan
-harness. CI tetap full pytest + palang privasi sebelum build/deploy; tidak ada gate
-coverage global atau dependency lint baru.
+test runtime/branch. `.project-gate.json` menyediakan gate lengkap dengan pytest serial,
+bukan kewajiban mengulang full suite lokal yang sudah dipenuhi CI pada input identik.
+Jangan melewati gate yang diwajibkan harness. CI memakai runner terisolasi untuk paralelisme,
+bukan xdist pada socket bersama. Perubahan aplikasi tetap full pytest + palang privasi
+sebelum build/deploy; push dokumen allow-list mengikuti [CI selektif](ci-selective.md).
+Tidak ada gate coverage global atau dependency lint baru.
 
 Jika test sudah gagal sebelum patch, laporkan bukti baseline terpisah dari regresi dan
 selidiki scope-nya; jangan langsung menyebut aman karena “bukan perubahan saya”. Hasil
@@ -112,6 +119,10 @@ atau malrule lain. Jalur diagnosis K bisa hilang walau test biasa hijau.
 - Bug logika membutuhkan bukti regression test merah pada kondisi rusak lalu hijau
   setelah fix. Untuk guard baru keamanan, privasi/integritas data, atau kebenaran
   pedagogis, mutation tetap wajib; jangan memperluasnya menjadi ritual semua edit CSS.
+  Satu bukti regression merah→hijau dapat sekaligus memenuhi mutation hanya jika kondisi
+  merah menonaktifkan guard/invariant yang sama melalui jalur test yang sama, lalu pulih
+  dan hijau. Jangan membuat pembuktian kedua yang identik; jika belum tercakup, uji mutasi
+  terarah untuk guard tersebut tetap diperlukan.
 - Mutasi harus lewat jalur yang benar-benar dipanggil test. Gunakan salinan kerja
   terisolasi dengan data sintetis dan backup temp unik; jangan memutasi repo sesi lain,
   backup produksi, atau DB nyata. Jika memakai file asli, pastikan ownership eksklusif,

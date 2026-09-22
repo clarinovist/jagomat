@@ -15,8 +15,8 @@
   lokal di referensi lama. Bukan izin force-push, menghapus data, atau operasi di luar scope.
 
 Panduan utama agent untuk repo ini. **Verifikasi mengikuti risiko, bukan jumlah
-file/baris.** Aturan inti di sini; baca detail domain hanya saat relevan di
-[`docs/workflow-reference.md`](docs/workflow-reference.md).
+file/baris. Kurangi administrasi, bukan perlindungan data.** Baca detail domain
+hanya saat relevan di [`docs/workflow-reference.md`](docs/workflow-reference.md).
 
 Bahasa: jawaban, commit message, docstring, dan string UI dalam **Bahasa Indonesia**,
 santai tapi akurat. Nama berkas modul bahasa Inggris; fungsi/variabel tetap Indonesia.
@@ -51,38 +51,68 @@ perbarui plan sebelum melanjutkan; jangan menurunkan jalur demi cepat/hijau.
 | Jalur | Kriteria | Plan | Gate lokal ringan / CI sebelum rilis |
 | --- | --- | --- | --- |
 | **Ringan** | Dokumen, typo non-substantif, styling lokal tanpa mengubah perilaku/akses/makna soal | Cukup di chat | Review diff + palang repo; dokumen: link/konsistensi; UI: render sintetis + test markup/style yang terdampak, kompilasi bila Python berubah. Tidak wajib full suite/mutation/build. |
-| **Normal** | Bug logika terbatas atau UI/alur nonkritis dengan dampak yang dipahami | Ringkas di `docs/plan/YYYY-MM-DD-slug.md`: masalah/dugaan sebab, scope, acceptance criteria, test | Palang repo + scoped regression test + kompilasi Python terkait; visual bila UI berubah. Full suite bila trigger di bawah. |
-| **Kritis** | Privasi/data anak, auth/sesi/kepemilikan, palang murid, schema/migration, penghapusan data, kunci/malrule/diagnosis, bukti/reducer siklus belajar, runtime/dependency/build/deploy | Plan lengkap: sebab, scope, kriteria, failure path, verifikasi, rollback/recovery | Preset lengkap `.project-gate.json` (palang, full pytest dengan warning error, kompilasi) + test domain/negatif/mutation yang relevan. Build produksi tetap gate CI. |
+| **Normal** | Bug logika terbatas atau UI/alur nonkritis dengan dampak yang dipahami | Kecil cukup di chat; file plan untuk pekerjaan panjang/multitahap atau handoff | Palang repo + scoped regression test + kompilasi Python terkait; visual bila UI berubah. Full suite bila trigger di bawah, utamakan CI. |
+| **Kritis** | Perubahan privasi/integritas data anak, auth/sesi/kepemilikan, palang murid, schema/migration, penghapusan data, kunci/malrule/diagnosis, bukti/reducer siklus belajar, runtime/dependency/build/deploy; operasi data/produksi berisiko | Satu plan lokal ringkas: sebab/target, scope, kriteria, invariant, failure path, verifikasi, recovery | Perubahan kode/config: palang + scoped test lokal; preset lengkap (full pytest, warning error, kompilasi) dan test domain/negatif/mutation relevan sebelum rilis, utamakan CI. Operasi tanpa perubahan artifact mengikuti ketentuan di bawah. |
 
 Satu baris palang kepemilikan tetap Kritis. Typo yang mengubah angka, satuan, jawaban,
 atau arti soal bukan Ringan. Refactor shared/cross-module minimal Normal; Kritis jika
 menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
 
-### Plan → Fix → Review Gap → Verify
+### Pahami → Perbaiki → Review & verifikasi → Laporkan
 
 - Permintaan eksplisit “perbaiki/implementasikan” sudah mengizinkan edit sesuai scope:
   tidak perlu berhenti meminta pilihan lagi untuk fix yang jelas. Pertanyaan/“cek dulu”
   berarti investigasi dan laporkan temuan dengan `file:line`, bukan otomatis izin edit.
 - Minta keputusan bila opsi mengubah scope/produk/kurikulum, menambah dependency/JS,
   atau memerlukan operasi berisiko di luar izin. Tawarkan A/B hanya bila trade-off nyata.
-- Plan Normal/Kritis harus ada sebelum fix; dugaan root cause ditandai, bukan dianggap fakta.
-  Plan lokal jangan di-stage; contoh isi ringkas ada di referensi workflow.
+- Rencana ada sebelum fix; file `docs/plan/YYYY-MM-DD-slug.md` wajib untuk Kritis,
+  pekerjaan panjang/multitahap, atau handoff. Cukup bagian yang relevan; dugaan sebab
+  ditandai, bukan dianggap fakta. Plan lokal jangan di-stage; contoh di referensi workflow.
 - Bug logika perlu regression test yang membuktikan bug tertangkap (merah pada kondisi
   rusak, hijau setelah fix). Tidak wajib TDD/mutation untuk typo atau styling murni.
 - **Mutation wajib untuk guard baru keamanan, privasi/integritas data, atau kebenaran
-  pedagogis**: buktikan test merah saat bug diaktifkan lewat jalur yang sama, lalu pulihkan
-  dan hijau. Jangan mutasi workspace sesi lain/DB nyata; prosedur aman di referensi.
-- Review diff aktual dan acceptance criteria. **Residual Gap: 0** hanya terhadap scope
-  patch ini. Temuan lain dicatat follow-up; menjadi blocker bila memengaruhi keamanan/
-  kebenaran patch. Ringan cukup catatan chat, lainnya checklist plan.
-- Setelah gap implementasi 0, jalankan gate jalur. Gagal → fix → review → ulangi gate
-  terdampak. Hasil boleh dipakai ulang jika input source/config/runtime/data sintetis
-  relevan identik dan command/output/exit status tersedia; jangan ulang hanya karena pindah agent.
+  pedagogis**: test harus merah ketika guard/invariant yang sama dinonaktifkan lewat jalur
+  yang dipanggil test, lalu hijau setelah dipulihkan. Bukti regression merah→hijau boleh
+  sekaligus memenuhi ini jika membuktikan kondisi tersebut; jangan ulang pembuktian identik.
+  Merah karena import/fixture rusak tidak sah. Mutasi terisolasi, bukan workspace sesi lain/DB nyata.
+- Review diff aktual terhadap acceptance criteria, regresi, dan invariant; selesaikan
+  blocker patch sebelum commit. Tidak wajib hitungan/checklist “Residual Gap” terpisah.
+  Temuan di luar scope menjadi follow-up kecuali memengaruhi keamanan/kebenaran patch.
+- Jalankan gate jalur. Gagal → fix → review → ulangi gate terdampak. Hasil boleh dipakai
+  ulang jika input source/config/runtime/data sintetis relevan identik dan command/output/
+  exit status tersedia; jangan ulang suite yang sudah tercakup atau hanya karena pindah agent.
 - Normal wajib full suite bila mengubah utilitas bersama/kontrak lintas modul, caller belum
   terpetakan, atau memperbaiki kegagalan CI yang scope-nya belum jelas. Test domain khusus
   tidak boleh dilewati hanya karena jalur lebih ringan.
 - Ringkasan akhir menyebut yang lolos/gagal/tidak dijalankan beserta alasan. Gate wajib
   terblokir berarti belum terverifikasi; jangan silent skip atau menganggap baseline gagal aman.
+
+### Eksekusi proporsional — jalur terpendek yang aman
+
+- Cek/investigasi read-only tidak otomatis menjadi pekerjaan implementasi atau rilis:
+  cukup bukti dan kesimpulan. Jangan membuat plan file atau menjalankan suite tanpa
+  pertanyaan konkret yang perlu dibuktikan; privasi dan batas akses tetap berlaku.
+- Investigasi cukup ketika penyebab/kondisi awal, target, jalur tindakan, dan invariant
+  penting sudah terbukti. Baca referensi/caller relevan; perluas hanya untuk pertanyaan
+  belum terjawab yang mengubah keputusan. Jangan mengulang penelusuran tanpa bukti baru.
+- Utamakan fitur, runbook, tooling, dan environment terisolasi yang sudah tersedia.
+  Jangan membuat skrip koreksi atau infrastruktur baru sebelum membuktikan jalur existing
+  tidak cukup. Label Kritis sendiri bukan alasan menambah prosedur atau Docker.
+- **Operasi data melalui aplikasi/tooling teruji yang tidak berubah tetap Kritis, tetapi
+  bukan rilis kode baru.** Jika source/tooling, dependency, schema, runtime/config tetap,
+  gunakan bukti gate artifact exact yang sama dan uji domain yang masih berlaku; tidak
+  perlu full suite/build ulang. Bukti kurang/input berubah → jalankan gate terdampak.
+  Skrip baru wajib review dan test terisolasi, bukan meminjam bukti aplikasi lama.
+- Koreksi data tetap memerlukan target/otorisasi terverifikasi, backup yang dapat dipulihkan,
+  preview/dry-run, atomicity, audit/provenance, pencegahan duplikasi, pemeriksaan hasil dan
+  recovery sesuai operasi. Jangan melewati service/guard, mengubah bukti append-only, atau
+  memakai produksi untuk test. Ringkas langkah ini dalam satu plan, bukan laporan berlapis.
+- Memasang artifact teruji bukan mengubah mekanisme deploy. Bukti suite/build exact boleh
+  dipakai ulang; preflight, pasangan digest, backup/rehearsal migrasi, health dan recovery
+  sesuai runbook tetap wajib. Jangan mengulang cutover historis atau mengaktifkan `pasang`
+  hanya karena sedang mengerjakan operasi rutin.
+- Jika pekerjaan melebar, jelaskan blocker spesifik dan langkah berikutnya; temuan tidak
+  terkait tidak otomatis menjadi proyek tambahan.
 
 ## 3. Runtime & perintah verifikasi
 
@@ -100,9 +130,11 @@ menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
 - Kompilasi file terkait dengan `compile()` tanpa import/menjalankan aplikasi, lihat referensi.
   Repo ini **tidak** punya gate npm/lint/coverage; jangan menambah dependency
   atau mengklaim coverage global diperiksa CI. Trace/mutation domain mengikuti scope.
-- `.project-gate.json` adalah preset lengkap untuk Kritis/audit penuh, bukan ritual manual
-  setiap edit Ringan/Normal. Jika harness mewajibkan preset, **jangan bypass**; laporkan jika
-  ada konflik. Perubahan preset/harness perlu scope dan approval tersendiri.
+- `.project-gate.json` adalah preset lengkap serial untuk Kritis/audit penuh, bukan ritual
+  lokal setiap edit. CI boleh memenuhi gate lengkap; jangan mengulang lokal jika input dan
+  bukti identik. Suite satu runner tetap serial karena test HTTP berbagi socket; paralelisme
+  CI memakai runner terisolasi. Jika harness mewajibkan preset, **jangan bypass**; laporkan
+  konflik. Perubahan preset/harness perlu scope dan approval tersendiri.
 - Build Docker lokal bukan default atau prasyarat commit/push. Perubahan packaging harus diverifikasi
   via test image/aset dan build CI sebelum deploy. **Jangan build di VPS** atau memakai
   Docker/DB lokal nyata untuk eksperimen. Terminal aktif bukan otomatis blocker: cek resource,
@@ -128,8 +160,8 @@ namespace image GHCR tetap lama. Detail kompatibilitas dan pemulihan ada di
 - Jangan otomatis `reset`, `checkout --`, atau memulihkan versi lama untuk “repo hantu”.
   Investigasi repo/HEAD dan simpan WIP dulu. Mutasi/eksperimen di salinan temp terisolasi;
   jika backup file dipakai, pemulihan tidak boleh menimpa edit baru sesi lain.
-- Commit setelah review gap 0 + pemeriksaan lokal yang terjangkau; gate berat lewat CI
-  sebelum rilis. Kode + test yang saling bergantung harus atomik; tidak wajib satu
+- Commit setelah blocker patch selesai, review dan pemeriksaan lokal yang terjangkau;
+  gate berat lewat CI sebelum rilis. Kode + test yang saling bergantung harus atomik; tidak wajib satu
   commit setiap langkah TDD. Jangan campur WIP sesi lain.
 - Format conventional commit Bahasa Indonesia (`fix(murid):`, `feat(soal):`, `docs(mesin):`).
   Pesan multi-baris lewat berkas temp unik dan `git ... commit -F <berkas>`.
@@ -211,9 +243,10 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
 - Image tetap **`ghcr.io/clarinovist/osn-mesin-latihan`**, independen dari nama repo.
   Jangan menggantinya ke `github.repository` atau namespace baru tanpa migrasi artefak/
   verifier/deployer/recovery tersendiri. Pin ini tidak mengaktifkan job `pasang`.
-- Pipeline `.github/workflows/deploy.yml` tetap **`uji` → `bangun` → `pasang`**: palang
-  privasi + seluruh test sebelum build GHCR, deploy **digest output build yang sama**,
-  forced-command SSH, swap container, auto-rollback jika healthcheck gagal.
+- Perubahan aplikasi tetap mengikuti **`uji` → `bangun` → `pasang`** di workflow:
+  palang privasi + seluruh test sebelum build GHCR, deploy **digest output build yang sama**,
+  forced-command SSH, swap container, auto-rollback jika healthcheck gagal. Push dokumen
+  allow-list memakai [CI ringan](docs/ci-selective.md), bukan bukti kelayakan rilis.
 - Izin tetap tidak menggantikan gate teknis: mode/pin mengikuti
   `scripts/release-metadata.json` dan `.github/workflows/deploy.yml`. Selama job
   `pasang` literal false, CI sukses bukan deployment. Status dan prosedur ada di

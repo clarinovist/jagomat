@@ -56,7 +56,9 @@ def _pilih(akar, sebelum):
     return ci.pilih_jalur(akar, "push", _event(sebelum, sesudah), sesudah)
 
 
-@pytest.mark.parametrize("nama", sorted(ci.DOKUMEN_AMAN))
+@pytest.mark.parametrize("nama", [
+    "README.md", "docs/README.md", "docs/ci-selective.md", "CLAUDE.md",
+])
 def test_dokumen_allowlist_memakai_jalur_ringan(repo, nama):
     akar, sebelum = repo
     _simpan(akar, nama, "# Dokumentasi sintetis diperbarui\n")
@@ -71,7 +73,7 @@ def test_dokumen_allowlist_memakai_jalur_ringan(repo, nama):
     "mesin/contoh.py", "mesin/__tests__/test_baru.py", "mesin/Dockerfile",
     "mesin/aset/contoh.svg", "scripts/ci_changes.py", "scripts/check_repo.py",
     "scripts/release-metadata.json", ".github/workflows/deploy.yml",
-    ".project-gate.json", "pytest.ini", ".gitignore", "CLAUDE.md",
+    ".project-gate.json", "pytest.ini", ".gitignore", "AGENTS.md",
     "docs/siklus-belajar-terpandu.md", "docs/production-release.md",
     "docs/workflow-reference.md", "docs/baru.md", "mesin/README.md",
     "docs/spasi dan\nbaris.md", "README.md.py",
@@ -85,7 +87,23 @@ def test_berkas_nonallowlist_dan_campuran_selalu_lengkap(repo, nama):
 
 
 def test_tidak_memakai_wildcard_dokumen():
-    assert ci.DOKUMEN_AMAN == {"README.md", "docs/README.md", "docs/ci-selective.md"}
+    assert ci.DOKUMEN_AMAN == {
+        "README.md", "docs/README.md", "docs/ci-selective.md", "CLAUDE.md",
+    }
+
+
+@pytest.mark.parametrize("nama", [
+    "mesin/contoh.py", ".project-gate.json", "scripts/ci_changes.py",
+    ".github/workflows/deploy.yml", "docs/workflow-reference.md",
+    "docs/siklus-belajar-terpandu.md", "docs/production-release.md",
+])
+def test_panduan_agent_tidak_menyembunyikan_perubahan_kritis(repo, nama):
+    akar, sebelum = repo
+    _simpan(akar, "CLAUDE.md", "# Panduan diperbarui\n")
+    _commit(akar)
+    _simpan(akar, nama, "perubahan sintetis\n")
+    _commit(akar)
+    assert _pilih(akar, sebelum)[0] is True
 
 
 def test_huruf_besar_path_tidak_disamakan(repo):
@@ -97,11 +115,12 @@ def test_huruf_besar_path_tidak_disamakan(repo):
     assert _pilih(akar, sebelum)[0] is True
 
 
-def test_seluruh_push_bukan_hanya_commit_terakhir(repo):
+@pytest.mark.parametrize("dokumen", ["README.md", "CLAUDE.md"])
+def test_seluruh_push_bukan_hanya_commit_terakhir(repo, dokumen):
     akar, sebelum = repo
     _simpan(akar, "mesin/contoh.py", "NILAI = 2\n")
     _commit(akar)
-    _simpan(akar, "README.md", "# Commit terakhir hanya dokumentasi\n")
+    _simpan(akar, dokumen, "# Commit terakhir hanya dokumentasi\n")
     _commit(akar)
     assert _pilih(akar, sebelum)[0] is True
 
@@ -245,10 +264,11 @@ def _cli(akar, tmp_path, event, revisi, nama_event="push"):
     return hasil, output, ringkasan
 
 
+@pytest.mark.parametrize("dokumen", ["README.md", "CLAUDE.md"])
 @pytest.mark.parametrize("nama_event,lengkap", [("push", "false"), ("workflow_dispatch", "true")])
-def test_cli_output_boolean_dan_ringkasan(repo, tmp_path, nama_event, lengkap):
+def test_cli_output_boolean_dan_ringkasan(repo, tmp_path, nama_event, lengkap, dokumen):
     akar, sebelum = repo
-    _simpan(akar, "README.md", "# Berubah\n")
+    _simpan(akar, dokumen, "# Berubah\n")
     sesudah = _commit(akar)
     hasil, output, ringkasan = _cli(
         akar, tmp_path, json.dumps(_event(sebelum, sesudah)), sesudah, nama_event,
@@ -256,7 +276,7 @@ def test_cli_output_boolean_dan_ringkasan(repo, tmp_path, nama_event, lengkap):
     assert hasil.returncode == 0, hasil.stderr
     assert output.read_text() == "lengkap=" + lengkap + "\n"
     assert "Pemilihan pemeriksaan" in ringkasan.read_text()
-    assert "README" not in hasil.stdout + hasil.stderr + ringkasan.read_text()
+    assert dokumen not in hasil.stdout + hasil.stderr + ringkasan.read_text()
 
 
 def test_cli_event_invalid_memilih_lengkap(repo, tmp_path):
@@ -266,9 +286,10 @@ def test_cli_event_invalid_memilih_lengkap(repo, tmp_path):
     assert output.read_text() == "lengkap=true\n"
 
 
-def test_cli_dokumen_gagal_tidak_menerbitkan_output_skip(repo, tmp_path):
+@pytest.mark.parametrize("dokumen", ["README.md", "CLAUDE.md"])
+def test_cli_dokumen_gagal_tidak_menerbitkan_output_skip(repo, tmp_path, dokumen):
     akar, sebelum = repo
-    _simpan(akar, "README.md", "[rusak](hilang.md)\n")
+    _simpan(akar, dokumen, "[rusak](hilang.md)\n")
     sesudah = _commit(akar)
     hasil, output, ringkasan = _cli(akar, tmp_path, json.dumps(_event(sebelum, sesudah)), sesudah)
     assert hasil.returncode == 1

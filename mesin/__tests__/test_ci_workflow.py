@@ -43,6 +43,27 @@ def test_ci_menjalankan_seluruh_test_secara_stabil():
     ]
 
 
+def test_preset_lengkap_tetap_serial_dengan_palang_dan_kompilasi():
+    preset = json.loads((ALUR.parents[2] / ".project-gate.json").read_text())
+    perintah = preset["commands"]
+    assert [p["name"] for p in perintah] == [
+        "palang-codebase-dan-privasi", "pytest-semua-dan-warning-error",
+        "kompilasi-python",
+    ]
+    assert perintah[0]["argv"] == ["mesin/.venv/bin/python", "scripts/check_repo.py"]
+    assert perintah[1]["argv"] == [
+        "mesin/.venv/bin/python", "-m", "pytest", "mesin/__tests__/",
+        "-q", "-W", "error", "-p", "no:cacheprovider",
+    ]
+    assert perintah[2]["argv"][:-1] == [
+        "mesin/.venv/bin/python", "-W", "error", "-B", "-c",
+    ]
+    kompilasi = perintah[2]["argv"][-1]
+    for direktori in ("mesin", "mesin/__tests__", "scripts"):
+        assert "Path('{}').glob('*.py')".format(direktori) in kompilasi
+    assert "compile(p.read_text(),str(p),'exec')" in kompilasi
+
+
 def test_checkout_candidate_menyediakan_history_untuk_probe_recovery_pinned():
     teks = ALUR.read_text()
     bagian_uji = _job(teks, "uji_kandidat")

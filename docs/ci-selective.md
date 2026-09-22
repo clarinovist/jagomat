@@ -17,11 +17,18 @@ Daftar aman eksplisit di `scripts/ci_changes.py`:
 - `README.md`
 - `docs/README.md`
 - `docs/ci-selective.md`
+- `CLAUDE.md`
+
+Panduan agent bukan input runtime/build. Perubahan panduan tetap wajib direview
+maknanya; test aplikasi tidak membuktikan kebijakan agent benar. CI ringan bukan
+izin melemahkan invariant domain atau gate rilis yang ditetapkan pengguna.
 
 Tidak ada pengecualian menyeluruh untuk `*.md` atau `docs/**`. Dokumen kontrak
-belajar, runbook produksi, `CLAUDE.md`, `mesin/README.md`, dan berkas baru yang
-belum ditinjau tetap memicu jalur lengkap. Perubahan daftar aman sendiri juga
-memicu jalur lengkap karena helper merupakan kode.
+belajar, runbook produksi, `docs/workflow-reference.md` (juga berisi kontrak soal),
+`mesin/README.md`, dan berkas baru yang belum ditinjau tetap memicu jalur lengkap.
+Preset `.project-gate.json`, workflow, dan helper klasifikasi juga tetap lengkap,
+termasuk ketika dicampur dengan `CLAUDE.md`. Perubahan daftar aman sendiri memicu
+jalur lengkap karena helper merupakan kode.
 
 Deteksi membaca seluruh diff `before..after` dari Git, bukan commit terakhir
 atau daftar berkas payload/API yang bisa terpotong. Rename diperiksa sebagai

@@ -6,7 +6,7 @@
     },
     {
       "name": "pytest-semua-dan-warning-error",
-      "argv": ["mesin/.venv/bin/python", "-m", "pytest", "mesin/__tests__/", "-q", "-n", "auto", "-W", "error", "-p", "no:cacheprovider"]
+      "argv": ["mesin/.venv/bin/python", "-m", "pytest", "mesin/__tests__/", "-q", "-W", "error", "-p", "no:cacheprovider"]
     },
     {
       "name": "kompilasi-python",
