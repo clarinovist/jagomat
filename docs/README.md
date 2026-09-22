@@ -41,6 +41,8 @@ tetap menjadi histori, bukan backlog aktif atau bukti kelulusan.
   halaman chat terpisah sudah digantikan oleh Pendamping inline.
 - [Referensi workflow](workflow-reference.md): prosedur soal/malrule, test/mutation,
   preview sintetis, dan batas klaim produk; jalur risiko/gate tetap di `../CLAUDE.md`.
+- [CI selektif](ci-selective.md): daftar dokumen aman, pemeriksaan ringan,
+  jalur lengkap/manual, dan check Status CI tanpa melemahkan gate rilis.
 - [Rilis produksi](production-release.md): status source/CI dan snapshot live
   terpisah, gate pemasangan, backup/recovery, serta histori operasi.
 - [Koreksi kalender WIB](domain-clock-release.md): penyebab CI gagal, kontrak

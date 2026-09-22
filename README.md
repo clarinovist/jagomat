@@ -39,6 +39,16 @@ Palang repo memeriksa nama berkas di index Git, bukan isi berkas atau data
 runtime. Kegagalan membaca Git membuat pemeriksaan gagal, bukan dianggap
 bersih. Panduan penggunaan dan setup ada di [`mesin/README.md`](mesin/README.md).
 
+### GitHub Actions sesuai perubahan
+
+Push yang hanya mengubah dokumen dalam daftar aman menjalankan pemeriksaan
+ringan, tanpa full suite atau build image. Perubahan kode, konfigurasi, kontrak,
+berkas belum dikenali, atau campuran tetap menjalankan jalur lengkap.
+**Run workflow** manual selalu lengkap; job deploy otomatis tetap nonaktif
+pada mode migrasi sekarang. Pantau check **Status CI** untuk hasil kedua jalur.
+Daftar aman, batas pemeriksaan, dan cara menjalankan manual dijelaskan di
+[panduan CI selektif](docs/ci-selective.md).
+
 ## Batas isi repo
 
 Yang dilacak: kode, tes/fixture sintetis, aset yang digunakan aplikasi,
