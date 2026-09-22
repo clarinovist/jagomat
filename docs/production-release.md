@@ -273,10 +273,17 @@ kompatibel. Menurunkan user_version atau menghapus catatan eksekusi bukan solusi
 
 ## Jalur CI yang dijaga
 
-Workflow tetap **uji → bangun → pasang**:
+Workflow kini diawali **periksa** untuk palang repo, klasifikasi perubahan,
+scoped test palang CI dan kompilasi. Hanya push yang seluruh deltanya dokumen
+allow-list eksplisit boleh melewati suite/build. Dispatch manual dan perubahan
+lain tetap menjalankan jalur lengkap **uji → bangun → pasang** di bawah.
+**Status CI** mengagregasi keberhasilan/skip yang sah pada kedua jalur; run
+dokumen tidak menghasilkan image/manifest atau bukti kelayakan rilis. Daftar
+aman, batas pemeriksaan dan penggunaan manual: [CI selektif](ci-selective.md).
 
-1. **uji:** matrix empat `uji_kandidat` dan empat `uji_recovery` berjalan
-   independen pada runner Ubuntu/Python 3.12 terpisah. Setiap runner menjalankan
+1. **uji:** setelah `periksa` sukses dengan output `lengkap=true`, matrix empat
+   `uji_kandidat` dan empat `uji_recovery` berjalan independen pada runner
+   Ubuntu/Python 3.12 terpisah. Setiap runner menjalankan
    palang privasi dan pytest dengan warning sebagai error. Recovery tetap
    checkout pinned full SHA, cwd terpisah dan canary lokasi import. Helper
    memetakan setiap nodeid secara stateless dan deterministik; union empat
@@ -303,8 +310,10 @@ Workflow tetap **uji → bangun → pasang**:
 Paralelisme antar-runner memperpendek jalur tunggu, bukan mengurangi cakupan test
 atau otomatis menghemat menit komputasi. Durasi aktual tetap dipengaruhi antrean
 runner; keuntungan harus diukur pada run CI sesudah perubahan diterapkan.
-Tidak ada seleksi berdasarkan file berubah, cache hasil test, atau pengaktifan
-kembali `xdist` dalam satu runner pada perubahan penjadwalan ini.
+Seleksi berdasarkan file berubah hanya memilih jalur dokumen aman atau jalur
+lengkap, bukan subset test aplikasi. Tidak ada cache hasil test atau pengaktifan
+kembali `xdist` dalam satu runner. Delapan runner suite dan build tidak dimulai
+untuk jalur dokumen aman.
 
 Publikasi tidak mengganti `latest`. Identitas kedua image selalu digest output
 build yang sama dengan verifikasi dan artifact manifest, bukan tag berubah.

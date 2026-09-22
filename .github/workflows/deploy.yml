@@ -6,6 +6,7 @@ name: Build & Deploy
 on:
   push:
     branches: [main]
+  # Dispatch manual selalu lengkap, tanpa opsi untuk memaksa jalur dokumen.
   workflow_dispatch:
 
 concurrency:
@@ -24,10 +25,46 @@ env:
   RECOVERY_SHA: e206563468afb805af9612711f3c4d0f9ec81539
 
 jobs:
+  periksa:
+    name: Palang dan klasifikasi perubahan
+    runs-on: ubuntu-latest
+    outputs:
+      lengkap: ${{ steps.perubahan.outputs.lengkap }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Pastikan tidak ada data siswa ter-commit
+        run: python scripts/check_repo.py
+      - name: Tentukan jalur dan periksa dokumen aman
+        id: perubahan
+        run: python scripts/ci_changes.py
+      - name: Pasang pytest untuk palang CI
+        run: pip install --quiet pytest
+      - name: Uji klasifikasi dan kontrak workflow
+        run: >-
+          python -m pytest mesin/__tests__/test_ci_changes.py
+          mesin/__tests__/test_ci_workflow.py mesin/__tests__/test_repo_hygiene.py
+          -q -W error -p no:cacheprovider
+      - name: Kompilasi Python tanpa menjalankan aplikasi
+        run: |
+          python -W error -B - <<'PY'
+          from pathlib import Path
+          berkas = tuple(Path('mesin').glob('*.py')) + tuple(Path('mesin/__tests__').glob('*.py')) + tuple(Path('scripts').glob('*.py'))
+          for path in berkas:
+              compile(path.read_text(), str(path), 'exec')
+          print('Kompilasi lulus:', len(berkas), 'berkas')
+          PY
+
   # Kandidat dan recovery masing-masing memakai empat runner terisolasi.
   # Tiap runner serial; jangan xdist karena test HTTP berbagi socket.
   uji_kandidat:
     name: Test kandidat ${{ matrix.shard }}/4
+    needs: periksa
+    if: ${{ needs.periksa.outputs.lengkap == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -83,6 +120,8 @@ jobs:
 
   uji_recovery:
     name: Test recovery ${{ matrix.shard }}/4
+    needs: periksa
+    if: ${{ needs.periksa.outputs.lengkap == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -265,3 +304,33 @@ jobs:
               "deploy-rutin-v1 ${{ needs.bangun.outputs.digest }} ${{ needs.bangun.outputs.recovery_digest }}"
       - name: Pastikan situs hidup dari luar
         run: python scripts/smoke_public.py
+
+  status:
+    name: Status CI
+    if: ${{ always() }}
+    needs: [periksa, uji_kandidat, uji, uji_recovery, bangun, pasang]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Pastikan jalur yang dipilih selesai tanpa bypass
+        env:
+          HASIL_JOB: ${{ toJSON(needs) }}
+        run: |
+          python - <<'PY'
+          import json, os
+          hasil = json.loads(os.environ['HASIL_JOB'])
+          periksa = hasil['periksa']
+          lengkap = periksa.get('outputs', {}).get('lengkap')
+          if periksa['result'] != 'success' or lengkap not in ('true', 'false'):
+              raise SystemExit('Palang atau klasifikasi gagal/tidak lengkap.')
+          harapan = 'success' if lengkap == 'true' else 'skipped'
+          for nama in ('uji_kandidat', 'uji', 'uji_recovery', 'bangun'):
+              if hasil[nama]['result'] != harapan:
+                  raise SystemExit('Jalur CI gagal atau dilewati tanpa izin.')
+          # Mode migrasi sekarang tetap melarang pemasangan, termasuk dispatch.
+          if hasil['pasang']['result'] != 'skipped':
+              raise SystemExit('Job pasang harus tetap nonaktif pada mode ini.')
+          print('Status CI lulus:', 'lengkap' if lengkap == 'true' else 'dokumen aman (bukan bukti rilis)')
+          PY
