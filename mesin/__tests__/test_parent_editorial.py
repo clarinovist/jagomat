@@ -235,6 +235,24 @@ def test_css_hanya_scoped_dan_tidak_menambah_hex_atau_font():
     assert "min-height: {T.TARGET_SENTUH}" in blok
 
 
+def test_navigasi_akun_tidak_mewarisi_sidebar_sticky():
+    css = style_stitch.GAYA_STITCH
+    aturan = re.search(r'\.akun-editorial-st \.nav-samping \{([^}]+)\}', css).group(1)
+    assert 'position: static' in aturan
+    assert 'flex-direction: row' in aturan
+
+
+def test_siswa_tanpa_kartu_catatan_operasional_dan_batas_hapus_dekat_daftar(db):
+    kon, _, _, _ = db
+    isi = account_pages.halaman_akun(kon, pengguna='pendamping-uji', section='siswa').decode()
+    badan = isi.split('</style>', 1)[1]
+    assert '<h2>Catatan</h2>' not in badan
+    assert 'Mac' not in badan and '22:00' not in badan
+    daftar = badan.split('<h2>Siswa</h2>', 1)[1].split('<h2>Tambah anak</h2>', 1)[0]
+    assert 'Anak dengan riwayat sesi tidak bisa dihapus.' in daftar
+    assert 'Anak tanpa sesi dapat dihapus beserta akun latihannya.' in daftar
+
+
 def test_status_perlu_perhatian_dan_foto_tetap_terbaca():
     css = style_stitch.GAYA_STITCH
     assert f'.pendamping-editorial-st .status-buruk {{ color: {T.AKSEN_KORAL_TUA}; }}' in css

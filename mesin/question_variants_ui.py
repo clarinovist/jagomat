@@ -11,9 +11,15 @@ from template_labels import nama_tipe_soal
 from templates import LEVEL
 
 
-def kontrol_variasi(identitas, terpilih=None):
-    """Satu pilihan native; kode historis tetap menjadi nilai kiriman."""
+def kontrol_variasi(identitas, terpilih=None, *, ringkas=False):
+    """Pilihan native; onboarding memakai summary di dekatnya, bukan tautan ganda."""
     identitas = html.escape(identitas, quote=True)
+    bantuan = (
+        'A–D membedakan isi soal, bukan urutan kemampuan atau kelas anak.'
+        if ringkas else
+        'Pilih berdasarkan materi dan contoh, bukan kelas anak. '
+        '<a href="#panduan-variasi">Bandingkan isi dan contoh soal</a>.'
+    )
     return (
         f'<div class="strip-kolom"><label for="{identitas}-profil">Variasi soal</label>'
         f'<select id="{identitas}-profil" name="profil_parameter" class="st-input" required '
@@ -22,8 +28,7 @@ def kontrol_variasi(identitas, terpilih=None):
         + ''.join(f'<option value="{p}"' + (' selected' if p == terpilih else '')
                   + f'>{label_profil_parameter(p)}</option>' for p in LEVEL)
         + f'</select><small class="profil-petunjuk-st" id="{identitas}-profil-bantuan">'
-        'Pilih berdasarkan materi dan contoh, bukan kelas anak. '
-        '<a href="#panduan-variasi">Bandingkan isi dan contoh soal</a>.</small></div>'
+        + bantuan + '</small></div>'
     )
 
 
@@ -46,9 +51,9 @@ def contoh_variasi(topik, profil):
             _badan_soal(soal, paket, namespace='contoh-' + topik + '-' + profil))
 
 
-@lru_cache(maxsize=1)
-def panduan_variasi():
-    """Daftar pola dan contoh per materi; tak menjanjikan kesetaraan lintas variasi."""
+@lru_cache(maxsize=2)
+def panduan_variasi(*, ringkas=False):
+    """Daftar pola nyata; onboarding menyimpan penjelasan lanjut dalam details."""
     bagian = []
     for topik in topics.daftar_topik():
         if topik == 'campuran':
@@ -71,18 +76,30 @@ def panduan_variasi():
             )
         bagian.append('<details class="variasi-materi"><summary>%s</summary><div class="variasi-daftar">%s</div></details>'
                       % (html.escape(paket.nama), ''.join(pilihan)))
-    return (
-        '<details class="panduan-variasi" id="panduan-variasi">'
-        '<summary>Bandingkan isi dan contoh soal</summary>'
+    penjelasan = (
         '<p>Huruf A–D hanya pembeda variasi, <b>bukan urutan kemampuan</b>. '
         'Buka materi yang ingin dilatih, lalu bandingkan pola dan contohnya. '
         'Nama pola yang sama dapat memakai angka atau bentuk tugas berbeda.</p>'
         '<p>Contoh ini bukan soal sesi yang akan dibuat. Angka dan pola pada sesi bisa berbeda; '
         'satu contoh tidak mewakili seluruh pola. Tidak semua variasi tersedia pada setiap materi.</p>'
-        + ''.join(bagian)
-        + '<p>Campuran mengikuti materi yang tersedia pada variasi pilihan. '
+    )
+    campuran = (
+        '<p>Campuran mengikuti materi yang tersedia pada variasi pilihan. '
         'Untuk gabungan topik, pilih variasi yang tersedia pada semua topik yang dicentang; '
-        'kombinasi yang tidak tersedia tidak akan dibuat.</p></details>'
+        'kombinasi yang tidak tersedia tidak akan dibuat.</p>'
+    )
+    isi = penjelasan + ''.join(bagian) + campuran
+    if ringkas:
+        isi = (
+            '<p>Pilih materi, lalu bandingkan isi dan contoh soalnya.</p>'
+            + ''.join(bagian)
+            + '<details class="variasi-kode"><summary>Tentang variasi dan contoh</summary>'
+            + penjelasan + campuran + '</details>'
+        )
+    return (
+        '<details class="panduan-variasi" id="panduan-variasi">'
+        '<summary>Bandingkan isi dan contoh soal</summary>'
+        + isi + '</details>'
     )
 
 

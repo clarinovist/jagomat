@@ -169,6 +169,9 @@ def _halaman(
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">"""
         gaya = gaya_stitch()
+        if 'akun-editorial-st' in kelas_bungkus.split():
+            from question_variants_ui import GAYA_VARIASI
+            gaya += GAYA_VARIASI
         if privat:
             gaya = gaya.replace(
                 "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",

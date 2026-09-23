@@ -2430,7 +2430,7 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
 }}
 
 .akun-editorial-st .layout-samping {{ display: grid; grid-template-columns: minmax(0, 1fr); gap: {T.SP_5}; }}
-.akun-editorial-st .nav-samping {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; padding-bottom: {T.SP_3}; border-bottom: 1px solid {T.BORDER_CATATAN}; }}
+.akun-editorial-st .nav-samping {{ position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: {T.SP_2}; padding-bottom: {T.SP_3}; border-bottom: 1px solid {T.BORDER_CATATAN}; }}
 .akun-editorial-st .nav-samping a {{ display: inline-flex; min-height: {T.TARGET_SENTUH}; align-items: center; border-radius: {T.RADIUS_KECIL}; padding: {T.SP_2} {T.SP_4}; }}
 .akun-editorial-st .nav-samping a.aktif {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; }}
 .akun-editorial-st .kartu:has(input[name=lama]) {{ max-width: 42rem; }}
@@ -2439,6 +2439,13 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
 .akun-editorial-st .input-sandi-kecil {{ width: 100%; }}
 .akun-editorial-st td[data-label=Nama] {{ font-weight: 700; color: {T.TEKS_JUDUL}; }}
 .akun-editorial-st .kartu:has(input[name=persetujuan_ortu]) form {{ max-width: 48rem; }}
+.akun-editorial-st :is(th, td) {{ border: 0; border-bottom: 1px solid {T.BORDER_CATATAN}; vertical-align: top; }}
+.akun-editorial-st .pengaturan-awal {{ border: 0; border-top: 1px solid {T.BORDER_CATATAN}; border-radius: 0; padding: {T.SP_4} 0 0; margin: {T.SP_5} 0; }}
+.akun-editorial-st .pengaturan-awal legend {{ font-weight: 700; color: {T.TEKS_JUDUL}; padding-right: {T.SP_3}; }}
+.akun-editorial-st .pengaturan-awal > p {{ margin-top: 0; }}
+.akun-editorial-st .profil-petunjuk-st {{ display: block; margin-top: {T.SP_2}; color: {T.TEKS_VARIAN}; line-height: 1.6; }}
+.akun-editorial-st .panduan-variasi {{ border: 0; border-radius: 0; padding: 0; margin: {T.SP_3} 0 0; }}
+.akun-editorial-st .panduan-variasi > summary {{ color: {T.AKSEN_TEAL_TUA}; font-weight: 600; }}
 .admin-editorial-st .kartu-stat-admin {{ margin-bottom: {T.SP_5}; }}
 .admin-editorial-st .kartu:has(input[value=guru_hapus]) {{ border-color: {T.BORDER_GALAT}; }}
 .laporan-editorial-st #perjalanan-belajar {{ border-top: 3px solid {T.AKSEN_TEAL_TUA}; }}

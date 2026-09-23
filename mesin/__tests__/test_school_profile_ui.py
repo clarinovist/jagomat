@@ -161,6 +161,24 @@ def test_onboarding_form_profil_eksplisit_kelas_opsional(db):
     assert not any(o.get('value') in ('P3', 'P4', 'P5', 'P6') and 'selected' in o for o in form['option'])
 
 
+def test_onboarding_petunjuk_ringkas_satu_pembuka_panduan(db):
+    from test_question_variants_ui import Rincian
+    isi = account_pages.halaman_akun(db, pengguna='guru', section='siswa').decode()
+    awal = isi.split('<fieldset class="pengaturan-awal">', 1)[1].split('</fieldset>', 1)[0]
+    rincian = Rincian(awal)
+    luar = ''.join(rincian.luar)
+    assert 'bukan urutan kemampuan atau kelas anak' in luar
+    assert 'latihan dan rencana belajar' in luar
+    assert 'latihan bebas' in luar
+    assert 'href="#panduan-variasi"' not in awal
+    assert awal.count('<summary>Bandingkan isi dan contoh soal</summary>') == 1
+    assert '<summary>Tentang variasi dan contoh</summary>' in awal
+    assert 'Contoh ini bukan soal sesi yang akan dibuat' in ''.join(rincian.dalam)
+    assert 'Nama pola yang sama' not in luar
+    assert len(luar.split()) <= 65
+    assert '.variasi-daftar {' in isi, 'CSS panduan harus dimuat di akun'
+
+
 @pytest.mark.parametrize('kelas', ['', '1', '6'])
 def test_onboarding_kelas_tidak_memilih_profil(db, kelas):
     pesan, galat = account_pages.proses_akun(db, dict(aksi='anak_baru', nama='Sintetis', profil_parameter='P5', kelas_sekolah=kelas, sandi_anak='sandi-sintetis-anak'), 'guru')

@@ -82,6 +82,23 @@ def test_panduan_mencakup_registry_tanpa_klaim_jenjang():
                 assert html.escape(nama_tipe_soal(tid)) in isi
 
 
+def test_panduan_ringkas_hanya_memindah_penjelasan_bukan_isi_contoh():
+    import re
+    from question_variants_ui import kontrol_variasi, panduan_variasi
+    biasa = panduan_variasi()
+    ringkas = panduan_variasi(ringkas=True)
+    pola = r'<article class="variasi-contoh".*?</article>'
+    assert re.findall(pola, biasa) == re.findall(pola, ringkas)
+    assert 'Tentang variasi dan contoh' not in biasa
+    assert 'href="#panduan-variasi"' in kontrol_variasi('manual')
+    assert 'href="#panduan-variasi"' not in kontrol_variasi('anak', ringkas=True)
+    assert 'bukan urutan kemampuan atau kelas anak' in kontrol_variasi('anak', ringkas=True)
+    posisi_materi = ringkas.index('class="variasi-materi"')
+    posisi_keterangan = ringkas.index('<summary>Tentang variasi dan contoh</summary>')
+    assert posisi_materi < posisi_keterangan < ringkas.index('Contoh ini bukan soal sesi yang akan dibuat')
+    assert 'Campuran mengikuti materi yang tersedia' in ringkas
+
+
 class Rincian(HTMLParser):
     def __init__(self, isi):
         super().__init__()

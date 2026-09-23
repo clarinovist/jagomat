@@ -188,8 +188,8 @@ def halaman_akun(
 
     Sandi bisa diganti dari sini supaya sandi acak hasil deploy tidak jadi
     satu-satunya yang pernah ada. Siswa ber-riwayat sengaja tidak bisa
-    dihapus dari sini — penjelasannya ada di kartu Catatan, section
-    siswa; siswa tanpa riwayat boleh dihapus beserta akun latihannya.
+    dihapus dari sini — penjelasan singkat ada di bawah daftar siswa;
+    siswa tanpa riwayat boleh dihapus beserta akun latihannya.
     """
     if section not in ("akun", "siswa", "akun-murid", "arsip-pendamping"):
         # Nilai asing dari URL jatuh ke bawaan.
@@ -258,18 +258,15 @@ def halaman_akun(
         'Pengaturan soal dipilih terpisah saat membuat latihan.</p>'
         f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Kelas sekolah</th>'
         f"<th>Sesi</th><th>Akun latihan</th><th>Aksi</th></tr>{daftar}</table></div>"
-        f'<p class="sub" style="margin-top:.7rem">Anak baru ditambahkan dari '
-        f'kartu "Tambah anak" di bawah — sekalian dengan akun latihannya.'
-        f"</p></div>"
+        '<p class="sub" style="margin-top:.7rem">Anak dengan riwayat sesi tidak bisa dihapus. '
+        'Anak tanpa sesi dapat dihapus beserta akun latihannya.</p></div>'
     )
     kartu_anak = (
         f'<div class="kartu">'
         f'<div class="kartu-judul"><span class="ikon-kartu">🧒</span>'
         f"<h2>Tambah anak</h2></div>"
-        f'<p class="sub">Satu langkah untuk pengguna baru: buat siswa '
-        f"sekaligus akun yang dipakai anak untuk masuk ke /murid dari HP. "
-        f"Pakai nama panggilan atau inisial, bukan nama lengkap — "
-        f"mengurangi dampak bila basis data ini bocor.</p>"
+        '<p class="sub">Buat profil dan akun latihan anak sekaligus. '
+        'Gunakan nama panggilan atau inisial untuk menjaga privasi.</p>'
         f'<form method="post" action="/akun">'
         f'<input type="hidden" name="aksi" value="anak_baru">'
         f'<div class="baris">'
@@ -280,10 +277,10 @@ def halaman_akun(
         + learning_profile_ui.opsi_kelas()
         + '</select></div></div>'
         '<fieldset class="pengaturan-awal"><legend>Pengaturan latihan awal</legend>'
-        '<p>Pilih variasi untuk memulai latihan dan rencana belajar, bukan untuk menilai kemampuan anak. '
-        'Saat membuat latihan bebas, Anda tetap dapat memilih variasi lain.</p>'
-        + question_variants_ui.kontrol_variasi('anak')
-        + question_variants_ui.panduan_variasi()
+        '<p class="sub">Pilihan awal untuk latihan dan rencana belajar. '
+        'Untuk latihan bebas, Anda bisa memilih variasi lain.</p>'
+        + question_variants_ui.kontrol_variasi('anak', ringkas=True)
+        + question_variants_ui.panduan_variasi(ringkas=True)
         + '</fieldset>'
         f'<label for="anak-login">Nama login anak (opsional — bawaan sama dengan nama anak)'
         f"</label>"
@@ -301,23 +298,8 @@ def halaman_akun(
         f'<button type="submit" class="tombol-coral">Buat anak &amp; akunnya</button>'
         f"</form></div>"
     )
-    kartu_catatan = (
-        f'<div class="kartu">'
-        f'<div class="kartu-judul"><span class="ikon-kartu amber">💡</span>'
-        f"<h2>Catatan</h2></div>"
-        f'<p class="sub">Siswa yang masih punya riwayat sesi sengaja tidak '
-        f"bisa dihapus: menghapusnya ikut memusnahkan seluruh sesi, "
-        f"jawaban, dan diagnosisnya — riwayat yang tidak bisa dibangun "
-        f"ulang. Kalau seorang anak berhenti, biarkan saja datanya; ia "
-        f"tidak mengganggu apa pun.</p>"
-        f'<p class="sub">Siswa tanpa riwayat (salah ketik atau data uji) '
-        f"boleh dihapus — akun latihannya ikut dihapus sekalian.</p>"
-        f'<p class="sub">Cadangan basis data ditarik otomatis ke Mac tiap '
-        f"malam pukul 22:00.</p></div>"
-    )
-
     if section == "siswa" and peran != "admin":
-        isi_section = kartu_siswa + kartu_anak + kartu_catatan
+        isi_section = kartu_siswa + kartu_anak
     elif section == "akun-murid" and peran != "admin":
         isi_section = _kartu_akun_murid(kon, pengguna, peran)
     elif section == "arsip-pendamping":
