@@ -33,7 +33,13 @@ SUMBER_TULIS = BERSAMA + r'''
 root.mkdir()
 admin_store.siapkan(pa,sekarang=now)
 database.siapkan(pd)
-admin_registration.daftar_publik(pa,ph,pd,operasi_id='daftar_service_pair',alias='keluarga-pair',sandi='sandi-pair-sintetis',token_form='x'*64,sekarang=now)
+import subscription_registration
+try:
+    subscription_registration.daftar(pa,ph,pd,operasi_id='daftar_service_pair',alias='keluarga-pair',sandi='sandi-pair-sintetis',token_form='x'*64,cutoff=now,sekarang=now,sakelar=on,failpoint='setelah_auth')
+except svc.SinkronBelumSelesai:
+    pass
+else:
+    raise AssertionError('crash_auth_tidak_tercapai')
 principal=auth.autentikasi('keluarga-pair','sandi-pair-sintetis',ph)
 args=(pa,ph,pd,principal)
 svc.sinkron_pendaftaran(*args,sumber_id='daftar_service_pair',cutoff=now,sekarang=now,sakelar=on)
@@ -47,12 +53,23 @@ except svc.SinkronBelumSelesai:
     pass
 else:
     raise AssertionError('intent_tidak_durable')
+# Satu registrasi lain berhenti setelah auth; B wajib menyinkronkan sendiri.
+try:
+    subscription_registration.daftar(pa,ph,pd,operasi_id='daftar_pending_pair',alias='keluarga-pending',sandi='sandi-pending-sintetis',token_form='y'*64,cutoff=now,sekarang=now,sakelar=on,failpoint='setelah_auth')
+except svc.SinkronBelumSelesai:
+    pass
+else:
+    raise AssertionError('crash_registrasi_tidak_tercapai')
 (root/'before.json').write_text(json.dumps(fingerprint_service()))
 '''
 
 SUMBER_BACA = BERSAMA + r'''
 principal=auth.autentikasi('keluarga-pair','sandi-pair-sintetis',ph)
 args=(pa,ph,pd,principal)
+pending=auth.autentikasi('keluarga-pending','sandi-pending-sintetis',ph)
+for _ in range(2):
+    e=svc.sinkron_pendaftaran(pa,ph,pd,pending,sumber_id='daftar_pending_pair',cutoff=now,sekarang=now+2,sakelar=on)
+    assert e.mulai==now
 for _ in range(2):
     hasil=svc.mulai_pembayaran(*args,inv_id,config=config,transport=transport_service,sekarang=now+2,sakelar=on)
     assert hasil.status=='lunas'

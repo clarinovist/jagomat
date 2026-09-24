@@ -88,7 +88,7 @@ def test_probe_langganan_dijalankan_dan_verifier_tidak_boleh_skip(tmp_path):
 
 def test_source_tidak_punya_hook_user_network_env_billing():
     akar = Path(__file__).resolve().parents[1]
-    izin = {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_backup", "subscription_service"}
+    izin = {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_backup", "subscription_service", "subscription_registration"}
     for p in akar.glob("*.py"):
         pohon = ast.parse(p.read_text())
         for node in ast.walk(pohon):
@@ -98,14 +98,14 @@ def test_source_tidak_punya_hook_user_network_env_billing():
                 modul = [(node.module or '').split('.')[0]]
             else:
                 continue
-            if set(modul) & {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "subscription_service"}:
+            if set(modul) & {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "subscription_service", "subscription_registration"}:
                 assert p.stem in izin, p.name
-    for nama in ("subscription.py", "subscription_store.py", "midtrans_contract.py", "subscription_service.py"):
+    for nama in ("subscription.py", "subscription_store.py", "midtrans_contract.py", "subscription_service.py", "subscription_registration.py"):
         teks = (akar / nama).read_text()
         assert "os.environ" not in teks and "getenv(" not in teks
         assert "import socket" not in teks and "urllib.request" not in teks
     assert d.SAKELAR == d.Sakelar(False, False, False, False)
     root = akar.parent
     config = json.loads((root / 'scripts/release-metadata.json').read_text())
-    assert config['mode'] == 'persiapan'
+    assert config['mode'] == 'migrasi'
     assert '    if: ${{ false }}' in (root / '.github/workflows/deploy.yml').read_text().split('  pasang:\n')[1]

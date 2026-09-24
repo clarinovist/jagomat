@@ -19,9 +19,17 @@ lock; sesudahnya principal/pemilik diperiksa ulang sebelum receipt/grant. Urutan
 fencing DB→auth→ledger mengikuti lifecycle existing. Bukan transaksi atomik lintas
 DB/auth atau pembayaran jaringan nyata. Reset/alias baru tidak mewarisi grant.
 
-Pair sintetis ditambah: writer menyimpan intent, reader query settlement dan replay
-sambil melestarikan auth/belajar. Pin recovery kompatibel menunggu baseline service
-CI; selama tahap baseline tetap persiapan dan pasang literal false.
+Pair ditambah: writer menyimpan intent serta registrasi committed belum enrolled;
+reader menyinkronkan receipt, query settlement dan replay sambil melestarikan auth/
+belajar. Kandidat memiliki wrapper `subscription_registration.py` yang tidak ada
+pada recovery; wrapper belum dihubungkan web. Akun committed tetapi sink gagal
+memberi `belum_terverifikasi`, bukan menghapus akun atau mengulang t0.
+
+Baseline service `4c88dc956b33ae6246b6f7b15f54e87e6c8f172a` telah lolos
+[CI35995276357](https://github.com/clarinovist/jagomat/actions/runs/35995276357),
+11.708 test, build/probe. Kandidat mematok baseline tersebut pada mode `migrasi`
+agar pair exact digest wajib; pasang tetap literal false. Mode ini bukan izin
+migrasi/deploy produksi atau aktivasi switch.
 
 ## Batas modul
 
@@ -81,13 +89,13 @@ invoice/receipt/grant, preservasi row dan FK/integrity. Bundle berisi invoice me
 `perlu_rekonsiliasi=true`: restore bukan izin langsung create charge; transaksi
 setelah cutoff tetap harus direkonsiliasi pada fase operasional berikutnya.
 
-Metadata memakai mode existing **persiapan/build-only**, pin recovery admin5 tetap.
-Verifier historis hanya menerima kontrak admin5 untuk SHA explicit; kandidat wajib
-admin6 + `subscription_checks=4`. Proof pair baru wajib
-`subscription_pair_checks=4` selain seluruh proof sebelumnya. Reader admin5 ditolak
-untuk ledger admin6, tidak dilonggarkan. Tes reader admin6 pada salinan source bukan
-bukti pair image kompatibel. Manifest build-only melaporkan mismatch dan
-`pair_verified=false`, `siap_pasang=false`. Job `pasang` tetap literal false.
+Metadata kini memakai mode existing **migrasi**, recovery service admin6 pinned.
+Verifier historis hanya menerima kontrak admin5 untuk SHA explicit; kandidat dan
+recovery baru wajib admin6 + `subscription_checks=4`. Proof pair wajib
+`subscription_pair_checks=4` selain seluruh proof sebelumnya, mencakup service
+registrasi/intent/query/replay. Reader admin5 historis tetap ditolak, bukan dilonggarkan.
+Uji source memakai arsip Git baseline pinned; kelulusan image tetap menunggu pair
+exact digest CI. Job `pasang` literal false dan `siap_pasang=false` meski pair lulus.
 
 Sebelum rilis/aktivasi: putuskan D8/D9/batas AI/tanggal, adapter otorisasi dan lifecycle
 registrasi, kontrak transaksi lintas store, sandbox/UX/merchant no-contact, baseline

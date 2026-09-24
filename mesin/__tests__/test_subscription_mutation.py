@@ -15,6 +15,8 @@ import pytest
 AKAR = Path(__file__).resolve().parents[1]
 
 KASUS = [
+    ("registration_switch", "subscription_registration.py", '    sakelar.wajib("fondasi")', '',
+     "test_subscription_registration.py::test_off_sebelum_akun_dibuat", "StoreBelumSiap"),
     ("service_receipt", "subscription_service.py", ' or r["hasil_id"] != akun_id', '',
      "test_subscription_service.py::test_receipt_akun_lain_ditolak", "DID NOT RAISE"),
     ("service_principal", "subscription_service.py", 'or auth.revisi_auth(akun) != principal.revisi_auth', '',
@@ -63,7 +65,7 @@ def test_guard_merah_lalu_hijau(tmp_path, nama, modul, lama, baru, test, pesan):
     for nama_test in ("conftest.py", "test_subscription.py", "test_subscription_store.py",
                       "test_midtrans_contract.py", "test_subscription_recovery.py",
                       "test_subscription_mutation_guards.py", "test_admin_backup.py",
-                      "test_profile_release_probe.py", "test_release_image.py", "test_subscription_service.py"):
+                      "test_profile_release_probe.py", "test_release_image.py", "test_subscription_service.py", "test_subscription_registration.py"):
         shutil.copy2(AKAR / "__tests__" / nama_test, tes / nama_test)
     p = mesin / modul
     asli = p.read_text()

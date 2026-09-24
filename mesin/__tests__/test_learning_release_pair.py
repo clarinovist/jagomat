@@ -26,17 +26,19 @@ def source_pinned(tmp_path_factory):
 
 @pytest.fixture(scope='module')
 def source_b(tmp_path_factory):
-    # Salinan reader admin6 membuktikan kontrak fungsi, bukan pair image rilis.
-    akar = tmp_path_factory.mktemp('reader-admin6')
-    for p in (AKAR / 'mesin').glob('*.py'):
-        shutil.copy2(p, akar / p.name)
-    return akar
+    akar = tmp_path_factory.mktemp('reader-admin5-historis')
+    arsip = akar / 'lama.tar'
+    with arsip.open('wb') as output:
+        subprocess.run(['git','-C',str(AKAR),'archive','e206563468afb805af9612711f3c4d0f9ec81539','mesin'],stdout=output,check=True)
+    with tarfile.open(arsip) as tar:
+        ekstrak_tar_aman(tar,akar)
+    return akar / 'mesin'
 
 
-def test_recovery_pinned_admin5_ditolak_untuk_ledger_admin6(tmp_path, source_pinned):
+def test_recovery_historis_admin5_ditolak_untuk_ledger_admin6(tmp_path, source_b):
     tulis = jalankan(pair.TULIS_PILOT, tmp_path, AKAR / 'mesin')
     assert tulis.returncode == 0, tulis.stderr
-    baca = jalankan(pair.BACA_PILOT, tmp_path, source_pinned)
+    baca = jalankan(pair.BACA_PILOT, tmp_path, source_b)
     assert baca.returncode != 0
     assert 'OSN_LEARNING_RECOVERY_OK' not in baca.stdout
     # Tolak tepat karena reader langganan belum ada, bukan mengaku compatible.
@@ -52,11 +54,11 @@ def jalankan(sumber, data, source):
                           cwd=data, capture_output=True, text=True, timeout=45)
 
 
-def test_candidate_menulis_lalu_reader_admin6_memulihkan(tmp_path, source_b):
+def test_candidate_menulis_lalu_reader_admin6_memulihkan(tmp_path, source_pinned):
     tulis = jalankan(pair.TULIS_PILOT, tmp_path, AKAR / 'mesin')
     assert tulis.returncode == 0, tulis.stderr
     assert tulis.stdout.strip() == 'OSN_LEARNING_WRITER_OK'
-    baca = jalankan(pair.BACA_PILOT, tmp_path, source_b)
+    baca = jalankan(pair.BACA_PILOT, tmp_path, source_pinned)
     assert baca.returncode == 0, baca.stderr
     assert baca.stdout.strip() == 'OSN_LEARNING_RECOVERY_OK'
     # Positif wajib: receipt sah dipertahankan, bukan hanya ditolak saat rusak.
@@ -64,7 +66,7 @@ def test_candidate_menulis_lalu_reader_admin6_memulihkan(tmp_path, source_b):
 
 
 @pytest.mark.parametrize('rusak', ['arsip', 'kelas', 'tanggal', 'variasi', 'receipt'])
-def test_probe_recovery_menolak_data_pasangan_yang_berubah(tmp_path, source_b, rusak):
+def test_probe_recovery_menolak_data_pasangan_yang_berubah(tmp_path, source_pinned, rusak):
     tulis = jalankan(pair.TULIS_PILOT, tmp_path, AKAR / 'mesin')
     assert tulis.returncode == 0, tulis.stderr
     sql = {
@@ -76,18 +78,20 @@ def test_probe_recovery_menolak_data_pasangan_yang_berubah(tmp_path, source_b, r
     }[rusak]
     db = 'admin-pair/belajar.db' if rusak == 'receipt' else 'learning-pair.db'
     injeksi = "import sqlite3\nwith sqlite3.connect('/data/" + db + "') as kon:\n    kon.executescript(" + repr(sql) + ")\n"
-    baca = jalankan(injeksi + pair.BACA_PILOT, tmp_path, source_b)
+    baca = jalankan(injeksi + pair.BACA_PILOT, tmp_path, source_pinned)
     assert baca.returncode != 0
     assert 'OSN_LEARNING_RECOVERY_OK' not in baca.stdout
     assert 'OperationalError' not in baca.stderr, baca.stderr
 
 
 @pytest.mark.parametrize('rusak', ['receipt_guard', 'arsip_guard', 'owner_guard'])
-def test_mutation_probe_menangkap_guard_yang_dilemahkan(tmp_path, source_b, rusak):
+def test_mutation_probe_menangkap_guard_yang_dilemahkan(tmp_path, source_pinned, rusak):
     source = tmp_path / 'mutant'
     source.mkdir()
-    for p in source_b.glob('*.py'):
+    for p in source_pinned.glob('*.py'):
         shutil.copy2(p, source / p.name)
+    # Wrapper penulis hanya milik kandidat; bukan klaim tersedia dalam reader B.
+    shutil.copy2(AKAR / 'mesin/subscription_registration.py', source / 'subscription_registration.py')
     perubahan = {
         'receipt_guard': ('learning_profile_admin.py', (("if not receipt_cocok(receipt, perintah) or baris['kelas_baru'] != kelas:", 'if False:'),)),
         'arsip_guard': ('skill_pilot_schema.py', (("SELECT RAISE(ABORT,'konfirmasi pilot append-only');", 'SELECT 1;'),)),

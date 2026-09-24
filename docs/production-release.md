@@ -1,6 +1,21 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
-## Fondasi langganan — source build-only, 24 September 2026
+## Integrasi terisolasi langganan — 24 September 2026
+
+Baseline service `4c88dc956b33ae6246b6f7b15f54e87e6c8f172a` lulus
+[CI35995276357](https://github.com/clarinovist/jagomat/actions/runs/35995276357),
+11.708 test kandidat, build/probe admin6. Fingerprint persistensi terukur
+`608cd64b1b4a4600eceb2c10b87c37e73c7c6a2300201d54fafe7ab7c65802cd`.
+Kandidat mematok B ini dan mode `migrasi` untuk mewajibkan pair exact image,
+bukan aktivasi rilis. Pasang tetap literal false, semua switch OFF.
+
+Delta C: wrapper registrasi terisolasi (belum caller web); B tetap bisa sinkron
+receipt registrasi committed dan melanjutkan query intent pembayaran dari C.
+Pair mencakup alur tersebut selain pengiriman/PG/pilot. Tidak ada perubahan schema
+baru sesudah admin6, tidak ada migrasi/backfill data pengguna, transaksi provider,
+paywall atau deploy. Source/pair teruji tetap bukan klaim produksi telah berubah.
+
+## Riwayat fondasi langganan — source build-only, 24 September 2026
 
 [Kontrak fondasi](subscription-foundation.md) menambah ledger additive admin6,
 verifier/probe dan backup/rehearsal. Seluruh switch OFF, tanpa pembayaran/paywall
