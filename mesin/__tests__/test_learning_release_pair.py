@@ -13,7 +13,7 @@ from test_release_image import ekstrak_tar_aman
 
 
 @pytest.fixture(scope='module')
-def source_b(tmp_path_factory):
+def source_pinned(tmp_path_factory):
     akar = tmp_path_factory.mktemp('pilot-recovery-b')
     arsip = akar / 'b.tar'
     revision = json.loads((AKAR / 'scripts/release-metadata.json').read_text())['recovery_revision']
@@ -22,6 +22,25 @@ def source_b(tmp_path_factory):
     with tarfile.open(arsip) as tar:
         ekstrak_tar_aman(tar, akar)
     return akar / 'mesin'
+
+
+@pytest.fixture(scope='module')
+def source_b(tmp_path_factory):
+    # Salinan reader admin6 membuktikan kontrak fungsi, bukan pair image rilis.
+    akar = tmp_path_factory.mktemp('reader-admin6')
+    for p in (AKAR / 'mesin').glob('*.py'):
+        shutil.copy2(p, akar / p.name)
+    return akar
+
+
+def test_recovery_pinned_admin5_ditolak_untuk_ledger_admin6(tmp_path, source_pinned):
+    tulis = jalankan(pair.TULIS_PILOT, tmp_path, AKAR / 'mesin')
+    assert tulis.returncode == 0, tulis.stderr
+    baca = jalankan(pair.BACA_PILOT, tmp_path, source_pinned)
+    assert baca.returncode != 0
+    assert 'OSN_LEARNING_RECOVERY_OK' not in baca.stdout
+    # Tolak tepat karena reader langganan belum ada, bukan mengaku compatible.
+    assert "No module named 'subscription'" in baca.stderr
 
 
 def jalankan(sumber, data, source):
@@ -33,7 +52,7 @@ def jalankan(sumber, data, source):
                           cwd=data, capture_output=True, text=True, timeout=45)
 
 
-def test_candidate_menulis_lalu_baseline_b_memulihkan(tmp_path, source_b):
+def test_candidate_menulis_lalu_reader_admin6_memulihkan(tmp_path, source_b):
     tulis = jalankan(pair.TULIS_PILOT, tmp_path, AKAR / 'mesin')
     assert tulis.returncode == 0, tulis.stderr
     assert tulis.stdout.strip() == 'OSN_LEARNING_WRITER_OK'

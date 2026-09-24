@@ -102,7 +102,7 @@ try:learning_profile_admin.baca_receipt(akar/'belajar.db',sandi,perintah)
 except admin_students.KonflikSiswa:pass
 else:raise AssertionError('receipt_rusak_diterima_recovery')
 with admin_store.buka_baca(akar/'admin.db') as kon:
-    assert kon.execute('PRAGMA user_version').fetchone()[0]==5
+    assert kon.execute('PRAGMA user_version').fetchone()[0]==6
     assert kon.execute('PRAGMA integrity_check').fetchone()[0]=='ok'
 exec(ADMIN_BACA)
 exec(FOKUS_BACA)

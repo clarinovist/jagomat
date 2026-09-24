@@ -44,7 +44,7 @@ with database.buka(belajar) as kon:
     assert profil.kelas_sekolah==5 and profil.revisi==1
     assert kon.execute('SELECT COUNT(*) FROM operasi_admin_profil').fetchone()[0]==1
 with admin_store.buka_baca(admin) as kon:
-    assert kon.execute('PRAGMA user_version').fetchone()[0]==5
+    assert kon.execute('PRAGMA user_version').fetchone()[0]==6
     assert kon.execute("SELECT status FROM operasi_admin WHERE operasi_id='op_pair_profil'").fetchone()[0]=='succeeded'
     assert kon.execute("SELECT COUNT(*) FROM receipt_admin WHERE operasi_id='op_pair_profil'").fetchone()[0]==1
     assert kon.execute('PRAGMA integrity_check').fetchone()[0]=='ok'

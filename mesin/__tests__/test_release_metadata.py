@@ -184,7 +184,7 @@ def test_cli_manifest_terikat_semua_artefak_dan_proof(tmp_path, monkeypatch, mod
         proof = tmp_path / "pair.json"
         bukti = {"ok": True, "candidate_revision": "a" * 40, "recovery_revision": cfg["recovery_revision"],
                  "candidate_digest": "sha256:" + "a" * 64, "recovery_digest": "sha256:" + "b" * 64,
-                 "pengiriman_pair_checks": 6, "pilihan_pair_checks": 8, "learning_pair_checks": 8, "provider_calls": 0}
+                 "pengiriman_pair_checks": 6, "pilihan_pair_checks": 8, "learning_pair_checks": 8, "subscription_pair_checks": 4, "provider_calls": 0}
         argv += ["--pair-proof", str(proof)]
         proof.write_text(json.dumps({**bukti, "candidate_digest": "sha256:" + "c" * 64}))
         assert metadata.main(argv) == 1 and not output.exists()
@@ -275,11 +275,12 @@ def test_pair_harus_teruji_bukan_hanya_fingerprint_sama(mode):
 @pytest.mark.parametrize("field,nilai", [("ok", False), ("ok", 1),
     ("candidate_revision", "c" * 40), ("recovery_revision", "c" * 40),
     ("candidate_digest", "sha256:" + "c" * 64), ("recovery_digest", "sha256:" + "c" * 64),
+    ("subscription_pair_checks", 0), ("subscription_pair_checks", True),
     ("learning_pair_checks", 0), ("learning_pair_checks", True), ("pengiriman_pair_checks", 0), ("pilihan_pair_checks", 0), ("pilihan_pair_checks", True), ("provider_calls", False), ("tambahan", True)])
 def test_bukti_pair_tertutup_dan_terikat_revision(field, nilai):
     bukti = {"ok": True, "candidate_revision": "a" * 40, "recovery_revision": "b" * 40,
              "candidate_digest": "sha256:" + "a" * 64, "recovery_digest": "sha256:" + "b" * 64,
-             "pengiriman_pair_checks": 6, "pilihan_pair_checks": 8, "learning_pair_checks": 8, "provider_calls": 0}
+             "pengiriman_pair_checks": 6, "pilihan_pair_checks": 8, "learning_pair_checks": 8, "subscription_pair_checks": 4, "provider_calls": 0}
     arg = ("a" * 40, "b" * 40, "sha256:" + "a" * 64, "sha256:" + "b" * 64)
     assert metadata.validasi_bukti_pasangan(bukti, *arg)
     with pytest.raises(ValueError):

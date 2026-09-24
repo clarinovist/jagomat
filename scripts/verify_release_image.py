@@ -26,6 +26,11 @@ RECOVERY_TANPA_PROFIL = (
 )
 
 
+# Pin historis exact tetap diuji sebagai admin5, bukan diberi kelonggaran kandidat.
+RECOVERY_ADMIN5 = ("175d8fb2d340c0c56d2f0ace5b6a1145792b8097",
+                   "e206563468afb805af9612711f3c4d0f9ec81539")
+
+
 def kontrak_untuk_revision(revision: str) -> str:
     """Pilih kontrak HTTP berdasarkan revision image yang sudah diverifikasi."""
     return (
@@ -40,7 +45,8 @@ def ringkasan_untuk_revision(revision: str) -> dict:
         "skenario_tindakan": 7, "http_checks": 7, "provider_calls": 0,
         "http_contract": kontrak_untuk_revision(revision),
         "profil_checks": 0 if revision in RECOVERY_TANPA_PROFIL else 6,
-        "admin_schema": None if revision in RECOVERY_TANPA_PROFIL else 5,
+        "admin_schema": None if revision in RECOVERY_TANPA_PROFIL else (5 if revision in RECOVERY_ADMIN5 else 6),
+        "subscription_checks": 0 if revision in RECOVERY_TANPA_PROFIL + RECOVERY_ADMIN5 else 4,
         "pengiriman_checks": 0 if revision in {
             REVISION_RECOVERY_LEGACY, "33e241c18024190f41ebca1986e35af26c0397fd",
         } else 6,
@@ -505,16 +511,20 @@ def jalankan_probe(akar):
             pengiriman_checks = 6
         profil_checks = 0
         admin_schema = None
+        subscription_checks = 0
         if revision not in REVISION_TANPA_PROFIL:
-            profil_checks = uji_profil_konteks(akar / 'profil')
-            admin_schema = 5
+            admin_schema = 5 if revision in REVISION_ADMIN5 else 6
+            profil_checks = uji_profil_konteks(akar / 'profil', admin_schema)
+            if admin_schema == 6:
+                subscription_checks = uji_langganan(akar / 'langganan')
         pastikan(not panggilan, 'provider_terpanggil')
     finally:
         socket.socket.connect, socket.socket.connect_ex, socket.getaddrinfo = asli_connect, asli_connect_ex, asli_resolve
     return {'ok': True, 'kontrak': 1, 'skema': 4, 'skenario_migrasi': 2,
             'skenario_tindakan': 7, 'http_checks': 7, 'provider_calls': 0,
             'http_contract': kontrak_http, 'pengiriman_checks': pengiriman_checks,
-            'profil_checks': profil_checks, 'admin_schema': admin_schema}
+            'profil_checks': profil_checks, 'admin_schema': admin_schema,
+            'subscription_checks': subscription_checks}
 
 
 def main():
@@ -540,7 +550,14 @@ _probe_profil = importlib.util.module_from_spec(_spek_profil)
 _spek_profil.loader.exec_module(_probe_profil)
 SUMBER_PROBE = SUMBER_PROBE.replace(
     '\ndef main():', '\nREVISION_TANPA_PROFIL = ' + repr(RECOVERY_TANPA_PROFIL)
+    + '\nREVISION_ADMIN5 = ' + repr(RECOVERY_ADMIN5)
     + '\n' + _probe_profil.SUMBER_UJI_PROFIL + '\ndef main():', 1)
+_spek_subscription = importlib.util.spec_from_file_location(
+    'release_subscription_probe', Path(__file__).with_name('release_subscription_probe.py'))
+_probe_subscription = importlib.util.module_from_spec(_spek_subscription)
+_spek_subscription.loader.exec_module(_probe_subscription)
+SUMBER_PROBE = SUMBER_PROBE.replace(
+    '\ndef main():', '\n' + _probe_subscription.SUMBER_UJI_LANGGANAN + '\ndef main():', 1)
 
 
 class GalatVerifikasi(Exception):

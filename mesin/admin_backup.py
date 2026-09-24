@@ -36,7 +36,7 @@ BERKAS_TERLARANG = frozenset((
     "sesi.json", "admin-drafts.db", "transient.db",
 ))
 VERSI_TARGET = {
-    "admin": 5,
+    "admin": 6,
     "ai": 2,
     "transient": 2,
 }
@@ -326,8 +326,8 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
     if not 1 <= versi_pendamping <= 4:
         raise BackupTidakSah("versi Pendamping backup tidak didukung")
     # Schema-versi harus lengkap, bukan sekadar user_version yang cocok.
-    if versi_admin == 4:
-        # V4 dan v5 memiliki kolom sama; hanya registry aksi/hasil bertambah.
+    if versi_admin in (4, 5):
+        # V4/v5 belum mempunyai ledger v6; kontrak lama tetap diperiksa.
         # Tetap periksa kolom, bukan sekadar kehadiran nama tabel lama.
         import admin_store
         with sqlite3.connect((akar / BERKAS_WAJIB['admin']).resolve().as_uri() + '?mode=ro', uri=True) as kon:
@@ -338,8 +338,9 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
     if versi_admin == VERSI_TARGET['admin']:
         import admin_store
         try:
-            with admin_store.buka_baca(akar / BERKAS_WAJIB['admin']):
-                pass
+            with admin_store.buka_baca(akar / BERKAS_WAJIB['admin']) as kon:
+                import subscription_store
+                subscription_store.validasi_ledger(kon)
         except (RuntimeError, ValueError, sqlite3.Error):
             raise BackupTidakSah('schema admin backup tidak lengkap') from None
     minimum, maksimum = _revisi_auth(akar / BERKAS_WAJIB["auth"])
@@ -351,12 +352,17 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
         uncertain = int(kon.execute(
             "SELECT COUNT(*) FROM operasi_admin WHERE status='uncertain'"
         ).fetchone()[0])
+    billing = False
+    if versi_admin == 6:
+        # Restore bukan izin transaksi baru; cutoff provider harus direkonsiliasi.
+        with sqlite3.connect(admin_uri, uri=True) as kon:
+            billing = bool(kon.execute('SELECT 1 FROM langganan_invoice LIMIT 1').fetchone())
     _validasi_link_receipt(akar)
     _validasi_pilot(akar / BERKAS_WAJIB['belajar'])
     return RingkasanBackup(
         manifest["bundle_id"], manifest["cutoff"],
         tuple(BERKAS_WAJIB), versi_admin, versi_ai, versi_pendamping,
-        minimum, maksimum, pending, uncertain, bool(pending or uncertain),
+        minimum, maksimum, pending, uncertain, bool(pending or uncertain or billing),
     )
 
 
@@ -469,12 +475,25 @@ def rehearsal_bundle(bundle, *, migrator_ai=None) -> RingkasanBackup:
         for nama in BERKAS_WAJIB.values():
             shutil.copy2(str(akar / nama), str(turunan / nama))
             (turunan / nama).chmod(0o600)
+        from subscription_schema import TABEL
+        def ledger(path):
+            with sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True) as kon:
+                ada = {r[0] for r in kon.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                return {t: tuple(kon.execute('SELECT * FROM ' + t + ' ORDER BY rowid'))
+                        for t in TABEL if t in ada}
+        billing_awal = ledger(turunan / BERKAS_WAJIB['admin'])
         for _ in range(2):
             database.siapkan(turunan / BERKAS_WAJIB["belajar"])
             admin_students.siapkan(turunan / BERKAS_WAJIB["belajar"])
             admin_store.siapkan(turunan / BERKAS_WAJIB["admin"])
             migrator_ai(turunan / BERKAS_WAJIB["ai"])
             assistant_schema.siapkan(turunan / BERKAS_WAJIB["pendamping"])
+        billing_akhir = ledger(turunan / BERKAS_WAJIB['admin'])
+        if any(billing_akhir.get(t) != rows for t, rows in billing_awal.items()):
+            raise BackupTidakSah('ledger berubah selama rehearsal')
+        with admin_store.buka_baca(turunan / BERKAS_WAJIB['admin']) as kon:
+            import subscription_store
+            subscription_store.validasi_ledger(kon)
         versi_admin = _versi_sqlite(
             turunan / BERKAS_WAJIB["admin"],
             tabel_wajib=("konfigurasi_pendaftaran", "operasi_admin", "receipt_admin"),

@@ -36,7 +36,7 @@ from admin_contracts import (
 
 
 BAWAAN = Path(os.environ.get("ADMIN_BERKAS_DB", "/data/admin-control.db"))
-VERSI_SKEMA = 5
+VERSI_SKEMA = 6
 RETENSI_AUDIT_HARI = 180
 
 
@@ -316,6 +316,11 @@ def _validasi_skema(kon: sqlite3.Connection) -> None:
         }
         if not wajib <= aktual:
             raise StoreBelumSiap("struktur store admin tidak lengkap")
+    import subscription_schema
+    try:
+        subscription_schema.validasi(kon)
+    except (ValueError, sqlite3.Error):
+        raise StoreBelumSiap("struktur ledger langganan tidak lengkap") from None
 
 
 def _jalankan_ddl(kon: sqlite3.Connection, skrip: str) -> None:
@@ -392,7 +397,7 @@ def _migrasi_registry_aksi(
 
 
 def siapkan(path=None, *, sekarang: Optional[int] = None) -> None:
-    """Bootstrap/migrasi eksplisit v5; kelas sekolah punya registry terpisah."""
+    """Bootstrap eksplisit; admin5→6 additive tanpa enrollment/backfill akun."""
     tujuan = _tujuan(path)
     tujuan.parent.mkdir(parents=True, exist_ok=True)
     kon = sqlite3.connect(str(tujuan), timeout=5.0)
@@ -410,12 +415,16 @@ def siapkan(path=None, *, sekarang: Optional[int] = None) -> None:
                 else:
                     kon.execute("PRAGMA foreign_keys=ON")
                 kon.execute("BEGIN IMMEDIATE")
+                # Baca ulang setelah lock; migrator lain mungkin sudah selesai.
+                versi = int(kon.execute("PRAGMA user_version").fetchone()[0])
+                if versi > VERSI_SKEMA:
+                    raise StoreBelumSiap("skema admin lebih baru dari aplikasi")
                 if versi in (1, 2, 3, 4):
                     _migrasi_registry_aksi(
                         kon, sumber_punya_hasil_id=(versi >= 2),
                         pertahankan_batch=(versi == 4),
                     )
-                else:
+                elif versi == 0:
                     _jalankan_ddl(kon, _DDL)
                 kon.execute(
                     "INSERT OR IGNORE INTO konfigurasi_pendaftaran VALUES(1,1,1,?,?)",
@@ -430,13 +439,28 @@ def siapkan(path=None, *, sekarang: Optional[int] = None) -> None:
                         raise StoreBelumSiap("struktur store admin bentrok")
                 if kon.execute('PRAGMA foreign_key_check').fetchone() is not None:
                     raise StoreBelumSiap('foreign key migrasi admin tidak valid')
-                kon.execute("PRAGMA user_version=5")
+                if versi < 5:
+                    kon.execute("PRAGMA user_version=5")
                 kon.commit()
                 kon.execute("PRAGMA foreign_keys=ON")
             except Exception:
                 kon.rollback()
                 raise
-        _validasi_skema(kon)
+        # Lock sebelum membaca ulang versi: dua migrator tidak menulis DDL ganda.
+        kon.execute("PRAGMA foreign_keys=ON")
+        kon.execute("BEGIN IMMEDIATE")
+        try:
+            if kon.execute("PRAGMA user_version").fetchone()[0] == 5:
+                import subscription_schema
+                _jalankan_ddl(kon, subscription_schema.DDL)
+                kon.execute("INSERT INTO langganan_aturan VALUES(?,30,3,10000,5000,25000,10000,'belum_ditetapkan')",
+                            ("langganan-v1",))
+                kon.execute("PRAGMA user_version=6")
+            _validasi_skema(kon)
+            kon.commit()
+        except Exception:
+            kon.rollback()
+            raise
         if kon.execute("PRAGMA foreign_key_check").fetchone() is not None:
             raise StoreBelumSiap("foreign key store admin tidak valid")
     except sqlite3.Error as galat:

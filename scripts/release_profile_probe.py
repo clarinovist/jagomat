@@ -2,13 +2,13 @@
 
 # Definisi saja; dipanggil hanya di sandbox sintetis. Tidak dipasang pada readiness.
 SUMBER_UJI_PROFIL = r'''
-def uji_profil_konteks(akar):
+def uji_profil_konteks(akar, versi_admin=6):
     import sqlite3
     from pathlib import Path
     from dataclasses import replace
     import admin_store, admin_students, admin_service, admin_contracts, auth
     import database, learning_profile, learning_profile_admin
-    assert admin_store.VERSI_SKEMA == 5
+    assert admin_store.VERSI_SKEMA == versi_admin
     akar = Path(akar)
     akar.mkdir(parents=True, exist_ok=True)
     admin = akar / 'admin.db'
@@ -26,7 +26,7 @@ def uji_profil_konteks(akar):
     for _ in range(2):
         admin_store.siapkan(admin, sekarang=2)
         with admin_store.buka_baca(admin) as kon:
-            assert kon.execute('PRAGMA user_version').fetchone()[0] == 5
+            assert kon.execute('PRAGMA user_version').fetchone()[0] == versi_admin
             assert all([tuple(r) for r in kon.execute('SELECT * FROM '+t)] == rows for t,rows in lama.items())
             assert not kon.execute('PRAGMA foreign_key_check').fetchall()
             assert kon.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'

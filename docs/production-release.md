@@ -1,6 +1,19 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
-## Status terbaru — 22 September 2026
+## Fondasi langganan — source build-only, 24 September 2026
+
+[Kontrak fondasi](subscription-foundation.md) menambah ledger additive admin6,
+verifier/probe dan backup/rehearsal. Seluruh switch OFF, tanpa pembayaran/paywall
+atau enrollment akun nyata. Metadata kini `persiapan`, pin recovery admin5 tetap;
+mismatch persistensi harus dilaporkan, bukan dianggap compatible. Kandidat wajib
+`subscription_checks=4`; pair berikutnya wajib `subscription_pair_checks=4` selain
+kontrak pengiriman/PG/pilot. Reader admin5 tidak sah untuk ledger admin6.
+
+Tidak ada deploy pada fase ini. Job `pasang` tetap literal false. Keberhasilan CI
+build-only bukan bukti pasangan recovery siap rilis atau keadaan live. Snapshot
+produksi dan prosedur di bawah tetap historis; tidak dilakukan ulang oleh fondasi.
+
+## Snapshot sebelumnya — 22 September 2026
 
 Pisahkan source, artefak CI, dan produksi; bagian bertanggal lebih lama di bawah
 adalah histori, bukan perintah menjalankan ulang cutover.

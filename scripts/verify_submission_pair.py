@@ -13,9 +13,15 @@ from release_learning_pair import SUMBER_TULIS as TULIS_PILOT, SUMBER_BACA as BA
 from release_profile_probe import SUMBER_UJI_PROFIL
 from release_focus_pair import SUMBER_TULIS as FOKUS_TULIS, SUMBER_BACA as FOKUS_BACA
 from release_admin_pair import SUMBER_TULIS as ADMIN_TULIS, SUMBER_BACA as ADMIN_BACA
+from release_subscription_probe import SUMBER_UJI_LANGGANAN
+from release_subscription_pair import SUMBER_TULIS as LANGGANAN_TULIS, SUMBER_BACA as LANGGANAN_BACA
 
 TULIS_PILOT = 'FOKUS_TULIS = ' + repr(FOKUS_TULIS) + '\nPROBE_PROFIL = ' + repr(SUMBER_UJI_PROFIL) + '\nADMIN_TULIS = ' + repr(ADMIN_TULIS) + '\n' + TULIS_PILOT
 BACA_PILOT = 'FOKUS_BACA = ' + repr(FOKUS_BACA) + '\nADMIN_BACA = ' + repr(ADMIN_BACA) + '\n' + BACA_PILOT
+
+TULIS_PILOT = ('PROBE_LANGGANAN = ' + repr(SUMBER_UJI_LANGGANAN) + '\n'
+               + LANGGANAN_TULIS + '\n' + TULIS_PILOT)
+BACA_PILOT = LANGGANAN_BACA + '\n' + BACA_PILOT
 
 LABEL = 'osn.release.submission-probe'
 AWALAN = 'osn-submission-pair-'
@@ -207,7 +213,7 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'candidate_digest': candidate_image.split('@')[1],
             'recovery_revision': recovery_revision,
             'recovery_digest': recovery_image.split('@')[1], 'pengiriman_pair_checks': 6,
-            'pilihan_pair_checks': 8, 'learning_pair_checks': 8,
+            'pilihan_pair_checks': 8, 'learning_pair_checks': 8, 'subscription_pair_checks': 4,
             'provider_calls': 0}
 
 
