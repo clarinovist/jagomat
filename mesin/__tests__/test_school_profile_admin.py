@@ -206,7 +206,7 @@ def test_receipt_rusak_tidak_dianggap_sukses(server):
         _jalankan(server, p)
 
 
-def test_migrasi_v4_ke_v5_menjaga_batch_receipt_dan_audit(tmp_path):
+def test_migrasi_v4_ke_v6_menjaga_batch_receipt_dan_audit(tmp_path):
     # Bentuk v4 dipulihkan hanya dari DDL tanpa token registry baru; semua data sintetis.
     path = tmp_path / 'admin-v4.db'
     ddl = admin_store._DDL.replace(
@@ -232,7 +232,9 @@ def test_migrasi_v4_ke_v5_menjaga_batch_receipt_dan_audit(tmp_path):
     admin_store.siapkan(path)
     with sqlite3.connect(path) as kon:
         assert {t: kon.execute('SELECT * FROM ' + t).fetchall() for t in tabel} == sebelum
-        assert kon.execute('PRAGMA user_version').fetchone()[0] == 5
+        assert kon.execute('PRAGMA user_version').fetchone()[0] == 6
+        # Migrasi menambah fondasi saja, tanpa mengikutkan akun lama.
+        assert kon.execute('SELECT COUNT(*) FROM langganan_enrollment').fetchone()[0] == 0
         assert kon.execute('PRAGMA integrity_check').fetchone()[0] == 'ok'
         assert not kon.execute('PRAGMA foreign_key_check').fetchall()
         assert 'student_school_grade_update' in kon.execute("SELECT sql FROM sqlite_master WHERE name='operasi_admin'").fetchone()[0]
