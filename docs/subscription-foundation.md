@@ -5,6 +5,24 @@ checkout, callback publik, countdown, enrollment/backfill akun nyata, atau gate
 latihan/Pendamping. Semua `subscription.SAKELAR` default OFF, tidak membaca env.
 Tidak ada SDK, dependency atau JavaScript baru.
 
+## Lanjutan service terisolasi
+
+`mesin/subscription_service.py` membaca receipt registrasi actual dan memvalidasi
+principal hidup/revisi/alias, cutoff eksplisit serta pemilik profil. Enrollment
+tertunda mengikuti urutan receipt publik, bukan urutan retry. Data auth/belajar tidak
+ditulis oleh service; kegagalan sinkron dipulihkan dari receipt sukses yang sama.
+Belum ada caller HTTP/startup/scheduler dan tidak ada backfill yang dijalankan.
+
+Intent create disimpan atomik pada metadata rekonsiliasi sebelum fake transport.
+Crash/timeout/restart memeriksa order lama, bukan create kedua. Transport di luar
+lock; sesudahnya principal/pemilik diperiksa ulang sebelum receipt/grant. Urutan
+fencing DB→auth→ledger mengikuti lifecycle existing. Bukan transaksi atomik lintas
+DB/auth atau pembayaran jaringan nyata. Reset/alias baru tidak mewarisi grant.
+
+Pair sintetis ditambah: writer menyimpan intent, reader query settlement dan replay
+sambil melestarikan auth/belajar. Pin recovery kompatibel menunggu baseline service
+CI; selama tahap baseline tetap persiapan dan pasang literal false.
+
 ## Batas modul
 
 - `mesin/subscription.py`: domain provider-neutral, clock epoch UTC wajib diinjeksi,

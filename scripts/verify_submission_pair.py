@@ -15,13 +15,14 @@ from release_focus_pair import SUMBER_TULIS as FOKUS_TULIS, SUMBER_BACA as FOKUS
 from release_admin_pair import SUMBER_TULIS as ADMIN_TULIS, SUMBER_BACA as ADMIN_BACA
 from release_subscription_probe import SUMBER_UJI_LANGGANAN
 from release_subscription_pair import SUMBER_TULIS as LANGGANAN_TULIS, SUMBER_BACA as LANGGANAN_BACA
+from release_subscription_service_pair import SUMBER_TULIS as SERVICE_TULIS, SUMBER_BACA as SERVICE_BACA
 
 TULIS_PILOT = 'FOKUS_TULIS = ' + repr(FOKUS_TULIS) + '\nPROBE_PROFIL = ' + repr(SUMBER_UJI_PROFIL) + '\nADMIN_TULIS = ' + repr(ADMIN_TULIS) + '\n' + TULIS_PILOT
 BACA_PILOT = 'FOKUS_BACA = ' + repr(FOKUS_BACA) + '\nADMIN_BACA = ' + repr(ADMIN_BACA) + '\n' + BACA_PILOT
 
 TULIS_PILOT = ('PROBE_LANGGANAN = ' + repr(SUMBER_UJI_LANGGANAN) + '\n'
-               + LANGGANAN_TULIS + '\n' + TULIS_PILOT)
-BACA_PILOT = LANGGANAN_BACA + '\n' + BACA_PILOT
+               + LANGGANAN_TULIS + '\n' + SERVICE_TULIS + '\n' + TULIS_PILOT)
+BACA_PILOT = LANGGANAN_BACA + '\n' + SERVICE_BACA + '\n' + BACA_PILOT
 
 LABEL = 'osn.release.submission-probe'
 AWALAN = 'osn-submission-pair-'

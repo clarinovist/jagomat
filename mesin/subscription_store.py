@@ -127,7 +127,7 @@ def buat_kampanye(path, kampanye_id, *, mulai, sakelar=d.SAKELAR):
 
 
 def enroll(path, akun_id, *, sumber_id, asal, mulai, peran, internal=False,
-           promo_lama=False, sakelar=d.SAKELAR):
+           promo_lama=False, urutan_publik=None, sakelar=d.SAKELAR):
     """Terima metadata keberhasilan publik/transisi eksplisit; belum ada adapter live."""
     sakelar.wajib("fondasi")
     d.identitas(akun_id, "akun")
@@ -137,6 +137,10 @@ def enroll(path, akun_id, *, sumber_id, asal, mulai, peran, internal=False,
     if (peran != "guru" or internal is not False or asal not in ("publik", "transisi")
             or type(promo_lama) is not bool or (asal == "publik" and promo_lama)):
         raise ValueError("akun tidak eligible enrollment")
+    if urutan_publik is not None:
+        d.bilangan(urutan_publik, 1, 2**63 - 1)
+        if asal != "publik":
+            raise ValueError("urutan publik hanya untuk receipt publik")
     with admin_store._transaksi(path) as kon:
         lama = kon.execute("SELECT * FROM langganan_enrollment WHERE akun_id=?", (akun_id,)).fetchone()
         if lama:
@@ -150,7 +154,9 @@ def enroll(path, akun_id, *, sumber_id, asal, mulai, peran, internal=False,
         if asal == "publik" and kampanye:
             kampanye_id = kampanye["kampanye_id"]
             jumlah = kon.execute("SELECT COUNT(*) FROM langganan_enrollment WHERE asal='publik' AND peserta_promo=1 AND kampanye_id=?", (kampanye_id,)).fetchone()[0]
-            promo = jumlah < kampanye["kuota"]
+            # Adapter receipt menentukan peringkat pendaftaran, bukan urutan retry.
+            promo = (urutan_publik <= kampanye["kuota"] if urutan_publik is not None
+                     else jumlah < kampanye["kuota"])
         try:
             kon.execute("INSERT INTO langganan_enrollment VALUES(?,?,?,?,?,?,?)",
                         (akun_id, sumber_id, asal, mulai, int(promo), kampanye_id, d.VERSI_ATURAN))
@@ -236,8 +242,9 @@ def catat_pengamatan(path, akun_id, invoice_id, *, operasi_id, status, sekarang,
     sakelar.wajib("rekonsiliasi")
     d.identitas(operasi_id, "operasi")
     d.waktu(sekarang)
-    if status not in ("belum_terverifikasi", "perlu_diperiksa", "settlement"):
-        raise ValueError("status rekonsiliasi tidak sah")
+    if (status not in ("belum_terverifikasi", "perlu_diperiksa", "settlement")
+            or operasi_id.startswith("create_")):
+        raise ValueError("status/identitas rekonsiliasi tidak sah")
     with admin_store._transaksi(path) as kon:
         _invoice(kon, akun_id, invoice_id)
         if rujukan is not None:
@@ -251,6 +258,29 @@ def catat_pengamatan(path, akun_id, invoice_id, *, operasi_id, status, sekarang,
             return
         kon.execute("INSERT INTO langganan_rekonsiliasi VALUES(?,?,?,?,?)",
                     (operasi_id, invoice_id, status, sekarang, rujukan))
+
+
+def reservasi_create(path, akun_id, invoice_id, *, sekarang, sakelar=d.SAKELAR):
+    """Intent durable sebelum transport; replay tidak mengizinkan create lagi.
+
+    Prefix internal tidak boleh dipakai pemanggil catat_pengamatan. Unknown setelah
+    intent (termasuk crash sebelum kirim) dipulihkan query, bukan ganti order.
+    """
+    sakelar.wajib("buat_pembayaran")
+    d.waktu(sekarang)
+    operasi_id = "create_" + invoice_id[4:]
+    with admin_store._transaksi(path) as kon:
+        inv = _invoice(kon, akun_id, invoice_id)
+        validasi_ledger(kon, akun_id=akun_id)
+        if sekarang < inv["dibuat"] or sekarang >= inv["kedaluwarsa"]:
+            raise KonflikLangganan("quote tidak aktif")
+        if kon.execute("SELECT 1 FROM langganan_receipt WHERE invoice_id=?", (invoice_id,)).fetchone():
+            return False
+        if kon.execute("SELECT 1 FROM langganan_rekonsiliasi WHERE operasi_id=?", (operasi_id,)).fetchone():
+            return False
+        kon.execute("INSERT INTO langganan_rekonsiliasi VALUES(?,?,'belum_terverifikasi',?,NULL)",
+                    (operasi_id, invoice_id, sekarang))
+        return True
 
 
 def terapkan_pembayaran(path, akun_id, bukti, *, sekarang, sakelar=d.SAKELAR, failpoint=None):

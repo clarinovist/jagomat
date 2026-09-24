@@ -15,6 +15,16 @@ import pytest
 AKAR = Path(__file__).resolve().parents[1]
 
 KASUS = [
+    ("service_receipt", "subscription_service.py", ' or r["hasil_id"] != akun_id', '',
+     "test_subscription_service.py::test_receipt_akun_lain_ditolak", "DID NOT RAISE"),
+    ("service_principal", "subscription_service.py", 'or auth.revisi_auth(akun) != principal.revisi_auth', '',
+     "test_subscription_service.py::test_identitas_receipt_dan_cutoff_tolak_tanpa_efek[stale]", "DID NOT RAISE"),
+    ("service_profile", "subscription_service.py", 'if row and row[0] == akun["pengguna"] else None', 'if row else None',
+     "test_subscription_service.py::test_profile_owner_dan_tanpa_login", "DID NOT RAISE"),
+    ("service_switch", "subscription_service.py", '    sakelar.wajib("rekonsiliasi")\n    d.waktu(sekarang)\n    with _keluarga(path_db, path_auth, principal) as (kon, akun, _):\n        inv = _invoice_terjaga(path_admin, kon, akun, invoice_id)\n        if inv["merchant"] != config.merchant or sekarang < inv["dibuat"]:', '    d.waktu(sekarang)\n    with _keluarga(path_db, path_auth, principal) as (kon, akun, _):\n        inv = _invoice_terjaga(path_admin, kon, akun, invoice_id)\n        if inv["merchant"] != config.merchant or sekarang < inv["dibuat"]:',
+     "test_subscription_service.py::test_default_off_tidak_membaca_file_atau_transport", "StoreBelumSiap"),
+    ("intent", "subscription_store.py", '        if kon.execute("SELECT 1 FROM langganan_rekonsiliasi WHERE operasi_id=?", (operasi_id,)).fetchone():\n            return False', '',
+     "test_subscription_service.py::test_intent_crash_retry_hanya_query", "ledger langganan duplikat"),
     ("receipt", "subscription_store.py", "if lama is not None:\n            if (lama[\"invoice_id\"]", "if False:\n            if (lama[\"invoice_id\"]",
      "test_subscription_store.py::test_receipt_grant_replay_concurrency_restart", "ledger langganan duplikat"),
     ("grant", "subscription_store.py", 'if hasil == "grant":', 'if False:',
@@ -53,7 +63,7 @@ def test_guard_merah_lalu_hijau(tmp_path, nama, modul, lama, baru, test, pesan):
     for nama_test in ("conftest.py", "test_subscription.py", "test_subscription_store.py",
                       "test_midtrans_contract.py", "test_subscription_recovery.py",
                       "test_subscription_mutation_guards.py", "test_admin_backup.py",
-                      "test_profile_release_probe.py", "test_release_image.py"):
+                      "test_profile_release_probe.py", "test_release_image.py", "test_subscription_service.py"):
         shutil.copy2(AKAR / "__tests__" / nama_test, tes / nama_test)
     p = mesin / modul
     asli = p.read_text()
