@@ -81,7 +81,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .st-kartu {{
   background: {T.LATAR_KARTU};
   border: 1px solid {T.BORDER_VARIAN};
-  border-radius: {T.RADIUS_KARTU};
+  border-radius: {T.RADIUS_KARTU_BESAR};
   padding: {T.SP_4};
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
 }}
@@ -239,7 +239,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-kepala-daftar-st h2 {{ color: {T.TEKS_JUDUL}; font: 800 1.45rem/1.4 {T.FONT_HEADLINE}; margin: 0; }}
 .guru-kepala-daftar-st h2 span {{ font-size: .85rem; font-weight: 500; color: {T.TEKS_VARIAN}; margin-left: {T.SP_2}; }}
 .guru-tambah-st {{ display: inline-flex; align-items: center; justify-content: center; gap: {T.SP_2}; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_4}; color: {T.TEKS_PUTIH}; background: {T.AKSEN_KORAL_TUA}; border-radius: {T.RADIUS_KECIL}; text-decoration: none; font: 700 .8rem/1.5 {T.FONT_HEADLINE}; }}
-.guru-tambah-st:hover {{ background: color-mix(in srgb, {T.AKSEN_KORAL_TUA} 90%, {T.TEKS_JUDUL}); }}
+.guru-tambah-st:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .guru-petunjuk-st {{ color: {T.TEKS_VARIAN}; font-size: .8rem; line-height: 1.7; margin: {T.SP_3} 0 {T.SP_5}; }}
 .guru-beranda-st .daftar-anak {{ display: grid; gap: {T.SP_3}; }}
 .guru-beranda-st .kartu-anak {{ display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; align-items: center; gap: {T.SP_4}; padding: {T.SP_5}; text-decoration: none; color: inherit; box-shadow: none; }}
@@ -494,8 +494,8 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
   background: {T.LATAR_KARTU}; border-top: 1px solid {T.BORDER_VARIAN};
 }}
 .murid-beranda-st [data-utama] .st-progres-label {{ font-size: .9rem; }}
-.murid-tombol-utama-st {{ display: flex; align-items: center; justify-content: space-between; gap: {T.SP_4}; min-height: 3.25rem; padding: {T.SP_3} {T.SP_5}; border-radius: {T.RADIUS_KARTU}; background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH}; font: 700 1rem/1.4 {T.FONT_HEADLINE}; margin-top: {T.SP_2}; }}
-.murid-beranda-st [data-utama]:hover .murid-tombol-utama-st {{ background: color-mix(in srgb, {T.AKSEN_KORAL_TUA} 90%, {T.TEKS_JUDUL}); }}
+.murid-tombol-utama-st {{ display: flex; align-items: center; justify-content: space-between; gap: {T.SP_4}; min-height: {T.TINGGI_CTA}; padding: {T.SP_3} {T.SP_5}; border-radius: {T.RADIUS_KARTU}; background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH}; font: 700 1rem/1.4 {T.FONT_HEADLINE}; margin-top: {T.SP_2}; }}
+.murid-beranda-st [data-utama]:hover .murid-tombol-utama-st {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .murid-aman-st {{ text-align: center; font-size: .75rem; color: {T.TEKS_SUBTLE}; }}
 .murid-latihan-lain-st {{ margin-top: {T.SP_6}; }}
 .murid-kepala-bagian-st {{ display: flex; justify-content: space-between; gap: {T.SP_3}; align-items: center; }}
@@ -508,8 +508,8 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .murid-menunggu-st .st-kartu-baris {{ background: transparent; padding: {T.SP_4} 0 0; border: 0; border-top: 1px solid {T.BORDER_CATATAN}; border-radius: 0; grid-template-columns: 1.4rem minmax(0, 1fr); gap: {T.SP_3}; align-items: start; }}
 .murid-menunggu-st .murid-ikon-topik-st {{ width: auto; height: auto; background: none; margin-top: {T.SP_1}; }}
 .murid-menunggu-st .murid-ujung-st {{ grid-column: 2; align-items: flex-start; }}
-.murid-riwayat-st {{ background: {T.LATAR_KARTU}; border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KARTU}; }}
-.murid-riwayat-st summary {{ display: flex; gap: {T.SP_3}; align-items: center; list-style: none; padding: {T.SP_4}; min-height: {T.TARGET_SENTUH}; cursor: pointer; border-radius: {T.RADIUS_KARTU}; }}
+.murid-riwayat-st {{ background: {T.LATAR_KARTU}; border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KARTU_BESAR}; }}
+.murid-riwayat-st summary {{ display: flex; gap: {T.SP_3}; align-items: center; list-style: none; padding: {T.SP_4}; min-height: {T.TARGET_SENTUH}; cursor: pointer; border-radius: {T.RADIUS_KARTU_BESAR}; }}
 .murid-riwayat-st summary::-webkit-details-marker {{ display: none; }}
 .murid-riwayat-st summary > span {{ flex: 1; display: flex; flex-direction: column; gap: {T.SP_1}; min-width: 0; }}
 .murid-riwayat-st summary b {{ font: 700 .9rem/1.4 {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; }}
@@ -683,7 +683,7 @@ tr.sorot-baru, div.sorot-baru {{
 .kartu-rencana-st {{
   background: {T.LATAR_KARTU}; border: 1px solid {T.BORDER_VARIAN};
   border-left: 4px solid {T.AKSEN_MURID_UTAMA};
-  border-radius: {T.RADIUS_KARTU}; padding: {T.SP_5};
+  border-radius: {T.RADIUS_KARTU_BESAR}; padding: {T.SP_5};
   margin: 0 0 {T.SP_5}; display: flex; flex-direction: column; gap: {T.SP_3};
 }}
 .kartu-rencana-st h2.st {{ margin: 0; }}
@@ -726,7 +726,7 @@ tr.sorot-baru, div.sorot-baru {{
 }}
 .rencana-form-st {{ margin: 0; }}
 .rencana-cta-utama-st {{
-  width: 100%; min-height: {T.TARGET_SENTUH}; display: inline-flex;
+  width: 100%; min-height: {T.TINGGI_CTA}; display: inline-flex;
   align-items: center; justify-content: center; padding: {T.SP_3} {T.SP_5};
   border: 0; border-radius: {T.RADIUS_SEDANG};
   background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
@@ -1033,7 +1033,7 @@ tr.sorot-baru, div.sorot-baru {{
   background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
   border: 0; border-radius: {T.RADIUS_PIL};
   font-family: {T.FONT_HEADLINE}; font-weight: 700; cursor: pointer;
-  min-height: 48px;
+  min-height: {T.TINGGI_KONTROL};
   display: flex; align-items: center; justify-content: center; gap: {T.SP_2};
   box-shadow: 0 4px 12px rgba(255,107,91,.30);
 }}
@@ -1318,7 +1318,7 @@ tr.sorot-baru, div.sorot-baru {{
 .daftar-editorial-st .koreksi-centang-st input {{ margin: .2rem 0 0; width: 1.2rem; height: 1.2rem; accent-color: {T.AKSEN_TEAL_TUA}; flex: none; }}
 .daftar-editorial-st .koreksi-centang-st a {{ color: {T.AKSEN_TEAL_TUA}; text-underline-offset: .2em; }}
 .daftar-editorial-st .masuk-tombol-st {{
-  min-height: 3.25rem; justify-content: space-between; padding: {T.SP_3} {T.SP_5};
+  min-height: {T.TINGGI_CTA}; justify-content: space-between; padding: {T.SP_3} {T.SP_5};
   font-size: 1rem; background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
   border-radius: {T.RADIUS_PIL}; box-shadow: none;
 }}
@@ -1479,7 +1479,7 @@ tr.sorot-baru, div.sorot-baru {{
   background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
   border: 0; border-radius: {T.RADIUS_SEDANG};
   font-family: {T.FONT_HEADLINE}; font-weight: 700; cursor: pointer;
-  min-height: 48px;
+  min-height: {T.TINGGI_KONTROL};
   display: flex; align-items: center; justify-content: center; gap: {T.SP_2};
   box-shadow: 0 4px 12px rgba(255,107,91,.25);
 }}
@@ -2531,6 +2531,7 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
 .pendamping-inline textarea {{ display: block; width: 100%; min-height: 5.5rem; margin: {T.SP_2} 0; padding: {T.SP_3}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG}; font: inherit; resize: vertical; }}
 .pendamping-inline button, .pendamping-inline a {{ min-height: {T.TARGET_SENTUH}; }}
 .pendamping-inline .pendamping-tombol {{ display: inline-flex; align-items: center; justify-content: center; padding: {T.SP_2} {T.SP_4}; border: 1px solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_SEDANG}; background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; font: inherit; font-weight: 700; cursor: pointer; }}
+.pendamping-inline .pendamping-tombol:hover {{ background: {T.AKSEN_TEAL_HOVER}; border-color: {T.AKSEN_TEAL_HOVER}; }}
 .pendamping-inline .pendamping-sekunder {{ background: transparent; color: {T.AKSEN_TEAL_TUA}; }}
 .pendamping-inline button[hidden] {{ display: none; }}
 .pendamping-inline button:disabled {{ opacity: .6; cursor: wait; }}
@@ -2877,7 +2878,7 @@ CSS_SESI = f"""
   background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
   border: 0; border-radius: {T.RADIUS_SEDANG};
   font-family: {T.FONT_HEADLINE}; font-weight: 700; cursor: pointer;
-  min-height: 48px;
+  min-height: {T.TINGGI_KONTROL};
   display: flex; align-items: center; justify-content: center; gap: {T.SP_2};
   box-shadow: 0 4px 12px rgba(255,107,91,.25);
 }}

@@ -375,5 +375,5 @@ def test_css_beranda_scoped_dan_kontras_tombol():
         assert marker in css
     tombol = re.search(r"\.murid-tombol-utama-st\s*\{([^}]+)\}", css).group(1)
     assert T.AKSEN_KORAL_TUA in tombol
-    assert "min-height: 3.25rem" in tombol
+    assert f"min-height: {T.TINGGI_CTA}" in tombol  # 52px dari token, bukan angka lepas
     assert 'outline: 3px solid ' + T.AKSEN_TEAL_TUA in css

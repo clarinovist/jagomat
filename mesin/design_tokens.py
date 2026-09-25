@@ -388,9 +388,9 @@ FOKUS_AKSEN = "#0fa3a3"
 # teal-strong = AKSEN_TEAL_TUA, radius/lg 12 = RADIUS_KARTU,
 # radius/pill = RADIUS_PIL, size/touch-min 44 = TARGET_SENTUH).
 #
-# Catatan: token di blok ini belum dipakai CSS mana pun. Disinkronkan lebih
-# dulu supaya desain dan kode memakai satu nama; penerapannya ke tampilan
-# menyusul lewat jalur Normal/Kritis, bukan diselundupkan lewat sinkron ini.
+# Sejak 25 Sep 2026 sebagian token blok ini sudah dipakai style_stitch.py
+# (radius kartu 22, tinggi CTA/kontrol, hover aksi); sisanya masih menunggu
+# penerapan. Rinciannya dicatat di docs/design-system.md.
 # ─────────────────────────────────────────────────────────────────────
 
 # Warna hover tombol solid (Figma action/*-hover) — lebih gelap dari dasarnya.

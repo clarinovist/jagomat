@@ -185,10 +185,23 @@ nilai yang belum ada yang ditambahkan; padanan lama tetap dipakai apa adanya
 | `TEBAL_GARIS` / `TEBAL_FOKUS` | `1px` / `2px` | `border/width`, `border/focus-width` |
 | `SP_7` / `SP_8` | `3rem` / `4rem` | `space/3xl`, `space/4xl` |
 
-Token di tabel ini **belum dipakai CSS mana pun**. Sinkron ini hanya menyamakan
-nama antara desain dan kode, bukan mengubah tampilan; penerapannya (mis. radius
-kartu 22 atau tinggi CTA 52) menyusul lewat jalur Normal terpisah agar
-perubahan tampilan bisa direview sendiri.
+Penerapan pertama (25 Sep 2026, `style_stitch.py`):
+- `RADIUS_KARTU_BESAR` 22px → kartu utama `.st-kartu`, `.kartu-rencana-st`,
+  `.murid-riwayat-st` (termasuk `summary`-nya).
+- `TINGGI_CTA` 52px → CTA utama `.murid-tombol-utama-st`, `.rencana-cta-utama-st`,
+  `.daftar-editorial-st .masuk-tombol-st`.
+- `TINGGI_KONTROL` 48px → menggantikan literal `48px` di
+  `.kerja-simpan-strip-st button`, `.masuk-tombol-st`, `.koreksi-simpan-st button`.
+- `AKSEN_KORAL_HOVER` / `AKSEN_TEAL_HOVER` → hover tombol solid, menggantikan
+  `color-mix(...)` dan `filter: brightness(1.06)`.
+
+Belum dipakai di CSS: `LATAR_TOOLTIP`/`TEKS_TOOLTIP` (baru dipakai di berkas
+Figma), `UKURAN_IKON`, `TEBAL_GARIS`, `TEBAL_FOKUS`, `SP_7`, `SP_8`.
+
+Belum ditindaklanjuti (keputusan terpisah, jangan diselundupkan): tombol coral
+terang (`AKSEN_MURID_KORAL` `#ff6b5b` + teks putih) masih memakai warna dasar
+yang gagal kontras — desain Figma memakai `action/primary` `#cc3f2b`. Mengganti
+warna dasar tombol itu mengubah rupa banyak permukaan, jadi perlu review sendiri.
 
 File CSS per permukaan (semuanya `import design_tokens as T`):
 - `teacher_style.py` → 5 halaman layar guru (masuk, dashboard, sesi, laporan, akun)
