@@ -223,6 +223,12 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
   pointer-events: none;
 }}
 .info:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; border-radius: {T.RADIUS_KECIL}; }}
+/* Kotak sentuh ⓘ tetap 26x26 walau permukaan punya aturan tinggi-kontrol
+   untuk `button` (mis. `.pendamping-editorial-st :is(button, .btn, …)`
+   0,2,0 di halaman anak): selektor 0,2,1 di bawah menang tanpa mengubah
+   aturan permukaan itu sendiri. */
+.pendamping-editorial-st .info:is(button),
+.profil-formulaire-st .info:is(button) {{ min-height: 0; }}
 .info-bubble {{
   position: absolute; bottom: calc(100% + {T.SP_2}); left: 50%;
   transform: translateX(-50%);

@@ -63,6 +63,12 @@ INFO_DAFTAR_ANAK = (
     "dan riwayat."
 )
 
+# Catatan kaki tab "Buat latihan" yang pindah ke bubble ikon "ⓘ" (26 Sep
+# 2026): aturan produknya tetap terbaca, layar tidak lagi memuat paragrafnya.
+INFO_LATIHAN_BEBAS = (
+    "Latihan bebas tidak mengubah progres rencana terpandu."
+)
+
 
 def _blok_latihan_serupa(kon, sesi_id: int) -> str:
     """CTA manual per tipe T, terpisah dari form koreksi hasil."""
@@ -917,7 +923,9 @@ def halaman_anak(
     ) if section == "rencana" else ""
     latihan_manual = (
         '<section class="profil-formulaire-st">'
-        '<p class="sub">Latihan bebas tidak mengubah progres rencana terpandu.</p>'
+        '<p class="sub">Pilih materi dan bentuk latihan. '
+        f'<button type="button" class="info" aria-label="{html.escape(INFO_LATIHAN_BEBAS, quote=True)}">'
+        f'i<span class="info-bubble" role="tooltip">{html.escape(INFO_LATIHAN_BEBAS)}</span></button></p>'
         f"{blok_buat_latihan}</section>"
     )
     if section == "rencana":

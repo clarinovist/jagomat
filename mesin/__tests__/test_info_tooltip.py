@@ -12,6 +12,8 @@ bubble ikon ⓘ yang muncul saat kursor mendekat atau saat difokus keyboard
 - tidak ada JS tambahan dan tombol bukan submit.
 
 Contoh pertama: beranda guru (/guru), kalimat disetujui 26 Sep 2026.
+Contoh kedua (26 Sep 2026): tab "Buat latihan" (/anak/<id>) — catatan kaki
+"Latihan bebas tidak mengubah progres rencana terpandu." pindah ke bubble.
 """
 
 from __future__ import annotations
@@ -35,6 +37,8 @@ TEKS_DISETUJUI = (
     "Setiap anak punya halaman sendiri: buat latihan, rencana belajar, "
     "dan riwayat."
 )
+
+TEKS_LATIHAN = "Latihan bebas tidak mengubah progres rencana terpandu."
 
 
 class _BacaInfo(HTMLParser):
@@ -103,6 +107,16 @@ def _dashboard(db) -> str:
         ).decode()
 
 
+def _profil_latihan(db) -> str:
+    """Render tab "Buat latihan" (/anak/<id>) — layar padat teks kedua."""
+    with database.buka(db) as kon:
+        a = database.tambah_siswa(kon, "AnakSintetis", pemilik="ortu", tingkat="P5")
+        baris = kon.execute("SELECT * FROM siswa WHERE id = ?", (a,)).fetchone()
+        return teacher_pages.halaman_anak(
+            kon, baris, peran="guru", pengguna="ortu"
+        ).decode()
+
+
 def test_petunjuk_satu_baris_plus_tombol_info(db):
     h = _dashboard(db)
     assert "Pilih nama untuk mulai." in h
@@ -135,6 +149,15 @@ def test_css_menampilkan_bubble_saat_hover_dan_fokus():
     assert _kontras(T.TEKS_TOOLTIP, T.LATAR_TOOLTIP) >= 4.5
 
 
+def test_css_kotak_sentuh_tidak_dilarkan_aturan_permukaan():
+    """Permukaan punya min-height 48px untuk `button`; ⓘ wajib tetap 26x26."""
+    for selector in (".pendamping-editorial-st .info:is(button)",
+                     ".profil-formulaire-st .info:is(button)"):
+        isi = _isi_rule(selector)
+        assert isi, "exemption kotak sentuh hilang: " + selector
+        assert "min-height: 0" in isi
+
+
 def test_bubble_tanpa_data_anak_atau_kunci(db):
     h = _dashboard(db)
     nama = set(re.findall(r"AnakSintetis\w*", h))
@@ -157,3 +180,48 @@ def test_tanpa_js_tambahan(db):
     ]
     assert not re.search(r"\son(?:click|focus|mouseenter|mousemove|mouseover)\s*=", h)
     assert "data-tooltip" not in h
+
+
+# ── Layar kedua: tab "Buat latihan" (/anak/<id>) ─────────────────────────
+
+
+def test_buat_latihan_catatan_kaki_pindah_ke_bubble(db):
+    h = _profil_latihan(db)
+    assert "Pilih materi dan bentuk latihan." in h
+    # Paragraf catatan kaki tidak lagi berdiri sendiri di layar.
+    assert ('<p class="sub">Latihan bebas tidak mengubah progres rencana terpandu.</p>'
+            not in h)
+    tombol = _BacaInfo(h).tombol
+    assert len(tombol) == 1
+    atribut, isi = tombol[0]
+    assert atribut["type"] == "button"
+    assert atribut.get("aria-label") == TEKS_LATIHAN
+    assert isi == TEKS_LATIHAN            # pindah apa adanya, tanpa makna baru
+    assert "title" not in atribut         # bukan andalan title= (HP)
+
+
+def test_buat_latihan_bubble_tanpa_data_anak_atau_kunci(db):
+    h = _profil_latihan(db)
+    nama = set(re.findall(r"AnakSintetis\w*", h))
+    assert nama                            # fixture benar-benar tampil
+    tombol = _BacaInfo(h).tombol
+    assert tombol
+    for _, isi in tombol:
+        assert isi == TEKS_LATIHAN         # teks statis, bukan dinamis
+        assert not re.search(r"\d", isi)   # tanpa angka (id/jumlah)
+        for n in nama:
+            assert n not in isi
+        assert "kunci" not in isi.lower()
+        assert "malrule" not in isi.lower()
+
+
+def test_buat_latihan_tanpa_js_tambahan(db):
+    h = _profil_latihan(db)
+    skrip = re.findall(r"<script>(.*?)</script>", h, re.S)
+    assert len(skrip) == 3                 # skrip bagikan + dua skrip global lama
+    assert "bagikan" in skrip[0]
+    assert skrip[1] == SKRIP_MATA_SANDI
+    assert skrip[2] == SKRIP_CEGAH_KIRIM_GANDA
+    for s in skrip:
+        assert "info-bubble" not in s and ".info" not in s
+    assert not re.search(r"\son(?:click|focus|mouseenter|mousemove|mouseover)\s*=", h)
