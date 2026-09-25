@@ -48,6 +48,9 @@ sesi.json
 *.pem
 *.key
 
+# Kredensial merchant lokal, bukan konfigurasi aplikasi yang dilacak.
+/midtrans.rtf
+
 # Rencana dan preview kerja tetap lokal; dokumentasi teknis docs/ dilacak.
 /docs/plan/
 

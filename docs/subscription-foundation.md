@@ -5,6 +5,30 @@ checkout, callback publik, countdown, enrollment/backfill akun nyata, atau gate
 latihan/Pendamping. Semua `subscription.SAKELAR` default OFF, tidak membaca env.
 Tidak ada SDK, dependency atau JavaScript baru.
 
+## Adapter sandbox opt-in
+
+`mesin/midtrans_sandbox.py` menyediakan `TransportSandbox(config)` untuk injeksi
+ke kontrak Midtrans, **bukan caller aplikasi**. Konfigurasi harus sandbox; host
+HTTPS dikunci ke `api.sandbox.midtrans.com`, TLS diverifikasi, request harus persis
+payload minimal kontrak. Tidak ada env/key default, proxy, redirect atau retry.
+Timeout socket dan tenggat pembacaan diterapkan, body dibatasi 128 KB; error tidak
+menampilkan kredensial. Resolver DNS/platform dan pembacaan header HTTP masih
+mengikuti perilaku stdlib: bukan jaminan deadline wall-clock absolut setiap fase.
+Caller tetap wajib menyimpan intent dan query order sama jika create tidak pasti.
+
+Uji manual 25 September 2026, terpisah dari pytest dan DB aplikasi: satu QRIS
+sintetis Rp15.000 berhasil dibuat tanpa customer_details/kontak. GET status awal
+pending; setelah simulator resmi Midtrans, GET terautentikasi memberi settlement
+dan binding order/transaction ID/merchant/nominal/IDR/QRIS lolos. Tidak memakai
+saldo nyata, mengirim key ke simulator, atau membuat receipt/grant aplikasi.
+Key merchant tidak dilacak; berkas lokal `/midtrans.rtf` di-ignore.
+
+Ini membuktikan create/status sandbox dan simulator, **bukan** pembayaran produksi,
+UX satu HP, callback publik, enrollment, atau checkout aplikasi. Sakelar aplikasi
+tetap OFF; D8/D9, kontrak merchant dan gate aktivasi tetap berlaku. QR sandbox hanya
+boleh dibayar melalui [simulator resmi](https://docs.midtrans.com/docs/testing-payment-on-sandbox),
+jangan memakai aplikasi bank/e-wallet bersaldo nyata.
+
 ## Lanjutan service terisolasi
 
 `mesin/subscription_service.py` membaca receipt registrasi actual dan memvalidasi
@@ -106,9 +130,11 @@ pengguna maupun transaksi Midtrans sandbox/produksi.
 
 ## Verifikasi yang dapat diulang
 
-Scoped: `test_subscription*.py`, `test_midtrans_contract.py`, serta test admin store,
-backup, deployer/readiness, image/probe/pair/metadata dan CI yang terdampak. Mutation
+Scoped: `test_subscription*.py`, `test_midtrans_contract.py`,
+`test_midtrans_sandbox.py`, serta test admin store, backup, deployer/readiness,
+image/probe/pair/metadata dan CI yang terdampak. Mutation
 memodifikasi salinan source temp, memanggil regression yang sama, memeriksa sebab
 merah invariant dan memulihkan hijau. Socket/DNS pada test Midtrans selalu dilarang;
-semua request memakai fake transport. Full suite warning-error dan kompilasi lewat
-CI Python3.12; lokal kompatibel Python3.9. Tidak memerlukan Docker lokal.
+kontrak memakai fake transport, adapter memakai koneksi HTTP palsu. Uji jaringan
+manual tidak dimasukkan dalam pytest/CI dan tidak membaca data pengguna. Full suite
+warning-error dan kompilasi lewat CI Python3.12; lokal kompatibel Python3.9. Tidak memerlukan Docker lokal.

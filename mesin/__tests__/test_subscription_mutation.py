@@ -15,6 +15,26 @@ import pytest
 AKAR = Path(__file__).resolve().parents[1]
 
 KASUS = [
+    ("sandbox_config", "midtrans_sandbox.py", 'config.lingkungan != "sandbox"', 'False',
+     "test_midtrans_sandbox.py::test_produksi_ditolak_sebelum_socket", "DID NOT RAISE"),
+    ("sandbox_payload", "midtrans_sandbox.py", 'if req != kanonis:', 'if False:',
+     "test_midtrans_sandbox.py::test_create_tambahan_ditolak_sebelum_socket[kontak]", "DID NOT RAISE"),
+    ("sandbox_host", "midtrans_sandbox.py", 'HTTPSConnection(HOST,', 'HTTPSConnection("api.midtrans.com",',
+     "test_midtrans_sandbox.py::test_query_settlement_tls_host_timeout_dan_close", "AssertionError"),
+    ("sandbox_options", "midtrans_sandbox.py", 'or allow_redirects is not False', '',
+     "test_midtrans_sandbox.py::test_opsi_tidak_aman_ditolak[10-True]", "DID NOT RAISE"),
+    ("sandbox_tls", "midtrans_sandbox.py", 'ssl.create_default_context()', 'ssl._create_unverified_context()',
+     "test_midtrans_sandbox.py::test_query_settlement_tls_host_timeout_dan_close", "AssertionError"),
+    ("sandbox_redirect", "midtrans_sandbox.py", 'if respons.status != 200:', 'if False:',
+     "test_midtrans_sandbox.py::test_error_redirect_tanpa_read_retry_atau_grant[302]", "AssertionError"),
+    ("sandbox_size", "midtrans_sandbox.py", 'if len(data) > m.BATAS_RESPONS:', 'if False:',
+     "test_midtrans_sandbox.py::test_baca_bounded_meski_tanpa_content_length", "respons terlalu besar harus ditolak adapter"),
+    ("sandbox_truncated", "midtrans_sandbox.py", 'if panjang is not None and len(data) != int(panjang):', 'if False:',
+     "test_midtrans_sandbox.py::test_content_length_terpotong_tidak_dianggap_utuh", "respons terpotong harus ditolak adapter"),
+    ("sandbox_deadline", "midtrans_sandbox.py", 'if sisa <= 0:', 'if False:',
+     "test_midtrans_sandbox.py::test_deadline_memutus_stream_lambat", "AssertionError"),
+    ("sandbox_secret", "midtrans_sandbox.py", 'raise m.KontrakTidakSah("penutupan koneksi sandbox gagal") from None', 'raise',
+     "test_midtrans_sandbox.py::test_exception_tidak_bocor_dan_tidak_retry[close]", "OSError"),
     ("registration_switch", "subscription_registration.py", '    sakelar.wajib("fondasi")', '',
      "test_subscription_registration.py::test_off_sebelum_akun_dibuat", "StoreBelumSiap"),
     ("service_receipt", "subscription_service.py", ' or r["hasil_id"] != akun_id', '',
@@ -63,7 +83,7 @@ def test_guard_merah_lalu_hijau(tmp_path, nama, modul, lama, baru, test, pesan):
         shutil.copy2(p, mesin / p.name)
     # Dependensi test helper hanya source sintetis, bukan seluruh workspace.
     for nama_test in ("conftest.py", "test_subscription.py", "test_subscription_store.py",
-                      "test_midtrans_contract.py", "test_subscription_recovery.py",
+                      "test_midtrans_contract.py", "test_midtrans_sandbox.py", "test_subscription_recovery.py",
                       "test_subscription_mutation_guards.py", "test_admin_backup.py",
                       "test_profile_release_probe.py", "test_release_image.py", "test_subscription_service.py", "test_subscription_registration.py"):
         shutil.copy2(AKAR / "__tests__" / nama_test, tes / nama_test)
