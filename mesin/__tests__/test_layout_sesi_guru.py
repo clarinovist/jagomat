@@ -85,7 +85,7 @@ def test_kartu_dan_caraku_lebih_padat_tanpa_mengecilkan_target_sentuh():
     assert "margin-bottom: 1rem" in kartu
     assert "gap: 0.75rem" in isi
     assert "min-height: 56px" in textarea
-    assert f"min-height: {style_stitch.T.TARGET_SENTUH}" in kontrol
+    assert f"min-height: {style_stitch.T.TINGGI_KONTROL}" in kontrol
 
 
 def test_label_kode_ringkas_dan_nama_template_ramah(db):

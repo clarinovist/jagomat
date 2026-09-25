@@ -219,7 +219,7 @@ def test_form_pembatalan_bertumpuk_dengan_input_lebar_dan_tombol_ringkas():
     assert "grid-template-columns: minmax(0, 1fr)" in blok
     input_css = GAYA_STITCH.split(".koreksi-editorial-st .form-pembatalan-st input {", 1)[1].split("}", 1)[0]
     assert "width: 100%" in input_css
-    assert f"min-height: {T.TARGET_SENTUH}" in input_css
+    assert f"min-height: {T.TINGGI_KONTROL}" in input_css
     tombol = GAYA_STITCH.split(".koreksi-editorial-st .form-pembatalan-st .tombol-kecil-st {", 1)[1].split("}", 1)[0]
     assert "width: auto" in tombol
 

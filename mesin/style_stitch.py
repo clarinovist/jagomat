@@ -274,7 +274,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-kepala-daftar-st .guru-alis-st {{ margin-bottom: {T.SP_1}; }}
 .guru-kepala-daftar-st h2 {{ color: {T.TEKS_JUDUL}; font: 800 1.45rem/1.4 {T.FONT_HEADLINE}; margin: 0; }}
 .guru-kepala-daftar-st h2 span {{ font-size: .85rem; font-weight: 500; color: {T.TEKS_VARIAN}; margin-left: {T.SP_2}; }}
-.guru-tambah-st {{ display: inline-flex; align-items: center; justify-content: center; gap: {T.SP_2}; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_4}; color: {T.TEKS_PUTIH}; background: {T.AKSEN_KORAL_TUA}; border-radius: {T.RADIUS_KECIL}; text-decoration: none; font: 700 .8rem/1.5 {T.FONT_HEADLINE}; }}
+.guru-tambah-st {{ display: inline-flex; align-items: center; justify-content: center; gap: {T.SP_2}; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2} {T.SP_4}; color: {T.TEKS_PUTIH}; background: {T.AKSEN_KORAL_TUA}; border-radius: {T.RADIUS_KECIL}; text-decoration: none; font: 700 .8rem/1.5 {T.FONT_HEADLINE}; }}
 .guru-tambah-st:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .guru-petunjuk-st {{ color: {T.TEKS_VARIAN}; font-size: .8rem; line-height: 1.7; margin: {T.SP_3} 0 {T.SP_5}; }}
 .guru-beranda-st .daftar-anak {{ display: grid; gap: {T.SP_3}; }}
@@ -314,7 +314,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 /* Input + tombol */
 .st-input {{
   font: inherit; font-size: 1rem;
-  min-height: {T.TARGET_SENTUH};
+  min-height: {T.TINGGI_KONTROL};
   border-radius: {T.RADIUS_SEDANG};
   border: 1px solid {T.BORDER_VARIAN};
   background: {T.LATAR_KARTU};
@@ -329,7 +329,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
   font: inherit;
   background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
   border: 0; border-radius: {T.RADIUS_SEDANG};
-  min-height: {T.TARGET_SENTUH};
+  min-height: {T.TINGGI_KONTROL};
   padding: 0 {T.SP_5};
   font-weight: 700; cursor: pointer;
 }}
@@ -783,11 +783,11 @@ tr.sorot-baru, div.sorot-baru {{
 .ubah-fokus-st form {{ display: grid; gap: {T.SP_3}; padding-bottom: {T.SP_4}; }}
 .ubah-fokus-st label {{ display: grid; gap: {T.SP_1}; font-weight: 600; }}
 .ubah-fokus-st input, .ubah-fokus-st select {{
-  min-height: {T.TARGET_SENTUH}; border: 1px solid {T.BORDER_VARIAN};
+  min-height: {T.TINGGI_KONTROL}; border: 1px solid {T.BORDER_VARIAN};
   border-radius: {T.RADIUS_SEDANG}; padding: 0 {T.SP_3}; font: inherit;
 }}
 .ubah-fokus-st button {{
-  min-height: {T.TARGET_SENTUH}; border: 1px solid {T.AKSEN_TEAL_TUA};
+  min-height: {T.TINGGI_KONTROL}; border: 1px solid {T.AKSEN_TEAL_TUA};
   border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_KARTU};
   color: {T.AKSEN_TEAL_TUA}; font: inherit; font-weight: 700; cursor: pointer;
 }}
@@ -1034,7 +1034,7 @@ tr.sorot-baru, div.sorot-baru {{
 }}
 .kerja-jawab-st .head-jawab .material-symbols-outlined {{ color: {T.AKSEN_MURID_UTAMA}; font-size: 1.15rem; }}
 .kerja-jawab-st input[type=text] {{
-  width: 100%; min-height: {T.TARGET_SENTUH};
+  width: 100%; min-height: {T.TINGGI_KONTROL};
   font-size: 1.15rem; font-family: inherit;
   text-align: center;
   border: 1.5px solid {T.BORDER_VARIAN};
@@ -1299,7 +1299,7 @@ tr.sorot-baru, div.sorot-baru {{
 }}
 .pengaturan-timer input[name=durasi_menit] {{
   width: 4.5rem; display: inline-block;
-  font: inherit; font-size: 1rem; min-height: {T.TARGET_SENTUH};
+  font: inherit; font-size: 1rem; min-height: {T.TINGGI_KONTROL};
   border-radius: {T.RADIUS_SEDANG}; border: 1px solid {T.BORDER_VARIAN};
   background: {T.LATAR_KARTU}; padding: 0 {T.SP_3};
 }}
@@ -1350,7 +1350,7 @@ tr.sorot-baru, div.sorot-baru {{
 .daftar-editorial-st .masuk-form-st {{ gap: {T.SP_5}; }}
 .daftar-editorial-st .masuk-field-st {{ gap: {T.SP_2}; }}
 .daftar-editorial-st .masuk-field-st label {{ font-size: .85rem; color: {T.TEKS_JUDUL}; }}
-.daftar-editorial-st .masuk-field-st input {{ min-height: 3rem; border-color: {T.BORDER_VARIAN}; }}
+.daftar-editorial-st .masuk-field-st input {{ min-height: {T.TINGGI_KONTROL}; border-color: {T.BORDER_VARIAN}; }}
 .daftar-editorial-st .daftar-petunjuk-st {{ font-size: .75rem; color: {T.TEKS_VARIAN}; line-height: 1.65; margin: 0; }}
 .daftar-editorial-st .daftar-persetujuan-st {{ background: {T.LATAR_CATATAN}; border: 1px solid {T.BORDER_CATATAN}; border-radius: {T.RADIUS_SEDANG}; padding: {T.SP_3}; }}
 .daftar-editorial-st .koreksi-centang-st {{ gap: {T.SP_3}; margin: 0; align-items: flex-start; font: 400 .8rem/1.7 {T.FONT_BODY}; color: {T.TEKS_VARIAN}; cursor: pointer; }}
@@ -1487,7 +1487,7 @@ tr.sorot-baru, div.sorot-baru {{
   color: {T.TEKS_VARIAN};
 }}
 .masuk-field-st input {{
-  font: inherit; font-size: 1rem; min-height: {T.TARGET_SENTUH};
+  font: inherit; font-size: 1rem; min-height: {T.TINGGI_KONTROL};
   border-radius: {T.RADIUS_SEDANG}; border: 1px solid {T.BORDER_VARIAN};
   background: {T.LATAR_KARTU}; padding: 0 {T.SP_3}; width: 100%;
 }}
@@ -1538,14 +1538,14 @@ tr.sorot-baru, div.sorot-baru {{
 .masuk-badan-st .masuk-form-st {{ gap: {T.SP_5}; }}
 .masuk-badan-st .masuk-field-st {{ gap: {T.SP_2}; }}
 .masuk-badan-st .masuk-field-st label {{ font-size: .85rem; color: {T.TEKS_JUDUL}; }}
-.masuk-badan-st .masuk-field-st input {{ min-height: 3rem; border-color: {T.BORDER_VARIAN}; }}
+.masuk-badan-st .masuk-field-st input {{ min-height: {T.TINGGI_KONTROL}; border-color: {T.BORDER_VARIAN}; }}
 .masuk-badan-st .masuk-petunjuk-st {{
   margin: 0; font-size: .75rem; line-height: 1.65; color: {T.TEKS_VARIAN};
 }}
 .masuk-badan-st .masuk-tombol-st {{
   background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
   border-radius: {T.RADIUS_PIL}; box-shadow: none; font-size: 1rem;
-  justify-content: space-between; padding: {T.SP_3} {T.SP_5}; min-height: 3rem;
+  justify-content: space-between; padding: {T.SP_3} {T.SP_5}; min-height: {T.TINGGI_KONTROL};
 }}
 .masuk-badan-st .masuk-tombol-st:hover {{ filter: none; text-decoration: underline; }}
 .masuk-badan-st .masuk-link-st {{ margin: -{T.SP_3} 0 0; }}
@@ -1637,7 +1637,7 @@ a.tombol-coral {{
   display: inline-block; padding: .7rem 1.4rem;
   border-radius: {T.RADIUS_SEDANG}; text-decoration: none; font-weight: 700;
   background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
-  font-family: {T.FONT_HEADLINE}; min-height: {T.TARGET_SENTUH};
+  font-family: {T.FONT_HEADLINE}; min-height: {T.TINGGI_KONTROL};
   display: inline-flex; align-items: center; gap: {T.SP_2};
 }}
 a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
@@ -2008,7 +2008,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
    /anak memakai _halaman_stitch tanpa CSS_SESI. */
 .aksi-bagikan-st {{ display: flex; gap: {T.SP_1}; justify-content: flex-end; }}
 .tombol-ikon-st {{
-  width: {T.TARGET_SENTUH}; height: {T.TARGET_SENTUH}; padding: 0;
+  width: {T.TINGGI_KONTROL}; height: {T.TINGGI_KONTROL}; padding: 0;
   display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_BULAT};
   background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; cursor: pointer;
@@ -2075,7 +2075,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .kerja-editorial-st .kerja-simpan-strip-st {{ z-index: 30; background: {T.LATAR_MURID}; border-top: 1px solid {T.BORDER_VARIAN}; }}
 .kerja-editorial-st .kerja-simpan-strip-st button {{
   background: {T.AKSEN_KORAL_TUA}; box-shadow: none; border-radius: {T.RADIUS_SEDANG};
-  font-size: .9rem; min-height: {T.TARGET_SENTUH};
+  font-size: .9rem; min-height: {T.TINGGI_KONTROL};
 }}
 .kerja-editorial-st .kerja-simpan-strip-st button.sekunder {{
   background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA};
@@ -2093,9 +2093,9 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   padding: {T.SP_5} 0 0; margin-top: {T.SP_5};
 }}
 .kerja-editorial-st .kerja-foto-form-st {{ display: grid; grid-template-columns: minmax(0, 1fr); gap: {T.SP_2}; }}
-.kerja-editorial-st .kerja-foto-form-st input[type=file] {{ min-height: {T.TARGET_SENTUH}; font: inherit; font-size: .85rem; }}
+.kerja-editorial-st .kerja-foto-form-st input[type=file] {{ min-height: {T.TINGGI_KONTROL}; font: inherit; font-size: .85rem; }}
 .kerja-editorial-st input[type=file]::file-selector-button {{
-  font: inherit; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2}; border: 1px solid {T.BORDER_VARIAN};
+  font: inherit; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2}; border: 1px solid {T.BORDER_VARIAN};
   border-radius: {T.RADIUS_KECIL}; background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; margin-right: {T.SP_2};
 }}
 :is(.kerja-editorial-st, .hasil-editorial-st) .kerja-btn-sekunder-st {{
@@ -2276,7 +2276,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: 3px; box-shadow: none;
 }}
 .pendamping-editorial-st :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select, textarea) {{
-  min-height: {T.TARGET_SENTUH}; max-width: 100%; min-width: 0;
+  min-height: {T.TINGGI_KONTROL}; max-width: 100%; min-width: 0;
   background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
   border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL};
   font: inherit; padding: {T.SP_2} {T.SP_3};
@@ -2285,7 +2285,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-editorial-st :is(.baris, .baris-aksi) {{ gap: {T.SP_3}; }}
 .pendamping-editorial-st .baris > div {{ min-width: 0; }}
 .pendamping-editorial-st :is(button, .btn, .st-tombol-coral, .rencana-cta-utama-st) {{
-  min-height: {T.TARGET_SENTUH}; border-radius: {T.RADIUS_KECIL};
+  min-height: {T.TINGGI_KONTROL}; border-radius: {T.RADIUS_KECIL};
   background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; box-shadow: none;
   font: 600 .92rem/1.4 {T.FONT_LAYAR}; white-space: normal;
 }}
@@ -2464,7 +2464,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   color: {T.TEKS_VARIAN}; font-weight: 500;
 }}
 .koreksi-editorial-st .form-pembatalan-st input {{
-  box-sizing: border-box; width: 100%; min-height: {T.TARGET_SENTUH};
+  box-sizing: border-box; width: 100%; min-height: {T.TINGGI_KONTROL};
   border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL};
   padding: {T.SP_2} {T.SP_3}; background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
   font: inherit;
@@ -2566,7 +2566,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-inline {{ margin-top: {T.SP_5}; padding-top: {T.SP_4}; border-top: 1px solid {T.BORDER_VARIAN}; min-width: 0; }}
 .akun-editorial-st .form-kelas-sekolah {{ display:flex; flex-direction:column; align-items:flex-start; gap:{T.SP_2}; }}
 .akun-editorial-st .form-kelas-sekolah select {{ max-width:100%; margin:0; }}
-.akun-editorial-st .form-kelas-sekolah button {{ min-height:{T.TARGET_SENTUH}; margin:0; }}
+.akun-editorial-st .form-kelas-sekolah button {{ min-height:{T.TINGGI_KONTROL}; margin:0; }}
 
 .pendamping-inline > details > summary {{ min-height: {T.TARGET_SENTUH}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; cursor: pointer; }}
 .pendamping-inline-isi {{ padding: {T.SP_3} 0 0; min-width: 0; }}
@@ -2830,7 +2830,7 @@ CSS_SESI = f"""
 }}
 
 .koreksi-input-st {{
-  font: inherit; font-size: 1rem; min-height: {T.TARGET_SENTUH};
+  font: inherit; font-size: 1rem; min-height: {T.TINGGI_KONTROL};
   border-radius: {T.RADIUS_SEDANG}; border: 1px solid {T.BORDER_VARIAN};
   background: {T.LATAR_KARTU}; padding: 0 {T.SP_3}; width: 100%;
 }}
@@ -2839,7 +2839,7 @@ CSS_SESI = f"""
   box-shadow: 0 0 0 3px {T.AKSEN_MURID_UTAMA}55;
 }}
 .koreksi-select-st {{
-  font: inherit; font-size: .95rem; min-height: {T.TARGET_SENTUH};
+  font: inherit; font-size: .95rem; min-height: {T.TINGGI_KONTROL};
   border-radius: {T.RADIUS_SEDANG}; border: 1px solid {T.BORDER_VARIAN};
   background: {T.LATAR_SEKUNDER_LEMBUT}; padding: 0 {T.SP_3}; width: 100%;
   cursor: pointer;
@@ -2952,7 +2952,7 @@ CSS_SESI = f"""
 .panduan-sesi-st button,
 .panduan-rencana-st {{
   display: inline-flex; align-items: center; justify-content: center;
-  min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_4};
+  min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2} {T.SP_4};
   border-radius: {T.RADIUS_SEDANG}; font: 700 .9rem/1.4 {T.FONT_HEADLINE};
   cursor: pointer; text-decoration: none;
 }}

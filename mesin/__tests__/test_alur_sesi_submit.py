@@ -318,8 +318,11 @@ def test_halaman_anak_memakai_ikon_share_inline_tanpa_navigasi_baru(server):
     assert "Membuat tautan baru akan menonaktifkan tautan sebelumnya" in isi
     assert "if(x.dataset.tautan){await bagikan(x.dataset.tautan,k);return;}" in isi
     assert "window.location" not in isi
-    assert f"width: {style_stitch.T.TARGET_SENTUH}" in style_stitch.GAYA_STITCH
-    assert f"height: {style_stitch.T.TARGET_SENTUH}" in style_stitch.GAYA_STITCH
+    # Ikon aksi kartu sesi = kontrol 48px; periksa blok aturannya,
+    # bukan sekadar keberadaan angka 44px di seluruh stylesheet.
+    ikon = style_stitch.GAYA_STITCH.split(".tombol-ikon-st {", 1)[1].split("}", 1)[0]
+    assert f"width: {style_stitch.T.TINGGI_KONTROL}" in ikon
+    assert f"height: {style_stitch.T.TINGGI_KONTROL}" in ikon
 
 
 def test_endpoint_bagikan_inline_mengembalikan_json_no_store(server):

@@ -109,6 +109,7 @@ Skala 4px base, ratio 1.5x:
 | Token | Nilai | Sumber |
 |-------|-------|--------|
 | TARGET_SENTUH | 44px | WCAG 2.5.5 — minimum untuk layar sentuh |
+| TINGGI_KONTROL / TINGGI_CTA | 48px / 52px | `size/control` & `size/cta` Figma — kontrol & CTA utama |
 | LEBAR_KONTEN | 46rem | Max-width konten layar |
 
 ## Komponen patterns
@@ -266,9 +267,26 @@ di `style_stitch.py` diganti token warna Figma.
   `tombol-amber`), menu-isi (hover sendiri), dan `.cta` topbar; `button:disabled`
   juga mengandalkan `filter: none`. Membatasi dengan `:not(...)` harus menyebut
   semua varian itu — lebih rapuh daripada nilainya.
+- Tinggi kontrol: `TINGGI_KONTROL` 48px menggantikan `TARGET_SENTUH` 44px di 21
+  aturan + 3 literal `3rem` pada kontrol nyata `style_stitch.py` — tombol
+  (termasuk `.tombol-ikon-st` 48×48), input/select/textarea (`.st-input`,
+  `.koreksi-input-st`, `.koreksi-select-st`, `.masuk-field-st input`,
+  `:is(input, select, textarea)` pendamping, input berkas +
+  `::file-selector-button`), dan CTA padat (`.st-tombol-coral`, `.guru-tambah-st`,
+  `a.tombol-coral`, `.panduan-rencana-st`).
+- Tinggi sengaja **tetap 44px**: header/topbar (harus muat `height: 44px`), baris
+  daftar/nav/tautan, chip & label pilihan (`.mode-opsi`, `.kerja-pill-st`, label
+  centang), semua `summary` disclosure, `.tombol-mata` (inset di dalam input), dan
+  `.tombol-kecil-st` (varian kecil).
+- Test: 4 assert `TARGET_SENTUH` diperbarui sengaja — `test_alur_sesi_submit`
+  (blok `.tombol-ikon-st`), `test_layout_sesi_guru` (`.koreksi-input-st`),
+  `test_learning_cycle_confirmation_ui` (input pembatalan); 7 assert lain tetap
+  valid karena aturannya memang sengaja 44px.
 
-Belum seragam — kandidat berikutnya, jangan dicampur ke sini: tinggi kontrol di banyak
-permukaan masih `TARGET_SENTUH` 44px padahal desain memakai `TINGGI_KONTROL` 48px.
+Belum seragam — kandidat berikutnya, jangan dicampur ke sini: `TINGGI_KONTROL`
+48px baru diterapkan di `style_stitch.py`; permukaan lain (`admin_style`,
+`assistant_style`, `profile_workspace`, `report_dashboard`, `subscription_pages`,
+`teacher_style`) masih `TARGET_SENTUH` 44px dan menunggu putaran tersendiri.
 
 Belum ditindaklanjuti (keputusan terpisah, jangan diselundupkan): tombol coral
 terang (`AKSEN_MURID_KORAL` `#ff6b5b` + teks putih) masih memakai warna dasar
