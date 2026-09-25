@@ -42,7 +42,7 @@ Readiness dihitung dari runtime/artefak, bukan checkbox:
 | `provider_produksi` | secret tervalidasi + transport produksi | kunci server tepercaya terbaca |
 | `callback` | permukaan callback ada di image | notifikasi provider dapat diterima |
 | `recovery` | artefak pair deployer `/run/secrets/midtrans/recovery-pair.json` | pasangan recovery terverifikasi |
-| `kebijakan` | konstanta `KEBIJAKAN_D8_D9 = False` | D8/D9 belum diputuskan pengguna |
+| `kebijakan` | konstanta `KEBIJAKAN_D8_D9 = True` (keputusan 26 Sep 2026) | D8/D9 sudah diputuskan pengguna (lihat bagian keputusan) |
 
 `sakelar_efektif()` memakai tangga yang sama dengan permukaan Admin (parity diuji):
 `rekonsiliasi` butuh provider siap; `buat_pembayaran` butuh callback + recovery; `penegakan`
@@ -87,6 +87,14 @@ mesin/.venv/bin/python scripts/rekonsiliasi_langganan.py \
   --rahasia /run/secrets/midtrans/produksi-rahasia --lease /data/langganan-rekonsiliasi.lock
 ```
 
+CLI kanonis kini `mesin/rekonsiliasi_langganan.py` (ikut wildcard image); di container:
+
+```
+docker exec osn-mesin python rekonsiliasi_langganan.py \
+  --admin-db /data/admin-control.db --auth /data/sandi.json --belajar /data/latihan.db \
+  --rahasia /run/secrets/midtrans/produksi-rahasia --lease /data/langganan-rekonsiliasi.lock
+```
+
 - hanya invoice yang sudah punya intent (`create_…`) dan belum ber-receipt yang diperiksa;
   pekerja tidak pernah membuat invoice/pembayaran baru, juga tidak mengejar hint callback
   tanpa intent;
@@ -114,27 +122,42 @@ tidak ada perubahan `.env`/entrypoint, tidak ada pemanggilan Midtrans (sandbox m
 produksi), tidak ada perubahan schema, dan job `pasang` tetap literal false. Tier Admin
 disarankan tetap `nonaktif` sampai keputusan di bawah diambil.
 
-## Keputusan yang perlu dipilih pengguna (D8/D9 dan lanjutannya)
+## Keputusan pengguna — SUDAH DIAMBIL 26 September 2026
 
-Daftar ini belum diputuskan di kode; jangan memilihnya diam-diam di perubahan berikutnya.
+Diputuskan lewat sesi aktivasi (ringkasan lengkap: `docs/plan/2026-09-26-aktivasi-pembayaran.md`,
+lokal). Diaktifkan di kode pada commit aktivasi; kenaikan tahap Admin tetap gerbang terpisah.
 
-1. **D8 — refund/partial/cancel/chargeback**: kebijakan akses setelah uang dikembalikan
-   (revoke? lanjut sampai periode habis?), perlakuan promo, dan siapa yang menutup kasus
-   `perlu_diperiksa`.
-2. **D8 — pembayaran terlambat/lebih dan pembayaran kedua**: apakah tetap tanpa grant
-   (status sekarang), dan bagaimana runbook koreksi manualnya.
-3. **D8 — runbook rekonsiliasi manual**: siapa yang menindaklanjuti receipt
-   `perlu_diperiksa`, SLA, dan bukti yang harus disimpan.
-4. **D9 — pajak**: status PPN produk ini, apakah harga Rp15.000/… sudah final atau
-   ditambah pajak, serta teks/invoice yang ditampilkan ke pembeli.
-5. **D9 — retensi & penghapusan**: berapa lama data billing disimpan, apa yang dihapus saat
-   permintaan penghapusan, dan bagaimana bukti audit tetap utuh.
-6. **Aktivasi teknis**: lokasi final mount secret + artefak recovery, pemilik izin berkas,
-   cara menjalankan pekerja (host checkout vs di dalam image — image sekarang hanya memuat
-   `mesin/*.py`, jadi `scripts/` belum ada di sana), jumlah shard/worker, jadwal cron, dan
-   urutan naik tahap Admin (`nonaktif → rekonsiliasi → checkout → penegakan`).
-7. **Kontrak merchant/disclosure**: teks QRIS, identitas merchant yang tampil, kebijakan
-   bila pembayaran gagal, dan dukungan pelanggan tanpa mengirim kontak ke provider.
+1. **D8 — refund/partial/chargeback**: manual & proporsional — admin menyesuaikan/mencabut
+   akses lewat panel (bukan otomatis); promo tidak direfund otomatis; refund maksimum sebesar
+   nilai bayar aktual; penutupan kasus dicatat di jurnal admin.
+2. **D8 — pembayaran terlambat/lebih dan pembayaran kedua**: ketat, sesuai perilaku sekarang —
+   grant hanya dari settlement tervalidasi dalam horizon 7 hari dengan nominal persis sama;
+   terlambat di luar horizon/nominal beda/pembayaran kedua → `perlu_diperiksa` tanpa grant,
+   koreksi manual admin (grant manual atau refund).
+3. **D8 — runbook rekonsiliasi manual**: pemilik memeriksa panel Admin tiap hari kerja; SLA
+   tindak lanjut ≤3 hari kerja; bukti = status ringkas + jurnal ledger append-only (tanpa
+   payload mentah/kontak).
+4. **D9 — pajak**: harga final all-in (label "harga termasuk pajak bila berlaku"); invoice/receipt
+   sederhana non-faktur-pajak (identitas merchant, tanggal, deskripsi, nominal); dibuka kembali
+   bila status PKP terkonfirmasi profesional.
+5. **D9 — retensi & penghapusan**: bipartit — ledger finansial minimum (tanpa identitas anak)
+   mengikuti kandidat kewajiban pembukuan 10 tahun, ditinjau setelah konfirmasi profesional;
+   permintaan hapus menghapus data belajar/identitas anak; ledger & bukti append-only tetap utuh.
+6. **Aktivasi teknis**: entry worker kanonis ikut image (`mesin/rekonsiliasi_langganan.py`) +
+   cron host `docker exec` tiap 10 menit, 1 worker (lease menolak proses kedua); mount
+   `/opt/osn/midtrans` (root-controlled; berkas uid 10001 mode 0400) read-only ke
+   `/run/secrets/midtrans` di kedua jalur `docker run` deployer; `scripts/deploy.py` menulis
+   artefak `recovery-pair.json` sebelum swap; urutan tahap rekonsiliasi ≥48 jam → checkout
+   (uji 1 pembayaran nyata) → penegakan ≥7 hari setelah checkout stabil; penurunan tahap kapan
+   saja saat insiden.
+7. **Kontrak merchant/disclosure QRIS**: teks halaman pembayaran "Pembayaran diproses Midtrans
+   (QRIS) — merchant <akun> — nominal + masa berlaku"; status gagal/kedaluwarsa "invoice bisa
+   dibuat ulang; tidak ada dana tertahan"; dukungan = teks statis halaman bantuan tanpa
+   menyimpan kontak pengguna. (Diterapkan saat surface checkout produksi guru dibangun.)
+
+Terbuka (bukan keputusan kode): status akun merchant Midtrans + provisioning secret oleh
+pemilik (Server Key tidak pernah lewat chat), dan surface checkout produksi guru yang belum
+ada — uji "checkout nyata" menunggu fase surface terpisah.
 
 Riset yang mempersempit dua keputusan pertama: `docs/plan/2026-09-24-payment-provider-research.md`
 dan `docs/plan/2026-09-24-tax-retention-research.md` (lokal, gitignored).

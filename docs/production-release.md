@@ -36,6 +36,30 @@ persistensi dan pair recovery admin7 tidak berubah. Readiness `kebijakan` sengaj
 selama D8/D9 belum diputuskan, tier Admin tetap `nonaktif`, tidak ada secret terpasang,
 tanpa pemanggilan Midtrans, dan job `pasang` tetap literal false.
 
+## Aktivasi infrastruktur pembayaran — 26 September 2026
+
+Keputusan D8/D9 pengguna diambil 26 Sep 2026 (ringkasan keputusan:
+`docs/plan/2026-09-26-aktivasi-pembayaran.md`, lokal — bukan artefak rilis). Source
+aktivasi pada commit ini: entry worker kanonis `mesin/rekonsiliasi_langganan.py` (ikut
+wildcard image; `scripts/rekonsiliasi_langganan.py` tetap pembungkus dev/test), installer
+runtime produksi sekali per proses di dispatch `web.py` (fail-closed; tanpa secret sah
+seluruh sakelar tetap OFF dan situs lain tidak terpengaruh), `KEBIJAKAN_D8_D9 = True`
+dengan keputusan tercatat, dan `scripts/deploy.py` membawa mount read-only
+`/opt/osn/midtrans` → `/run/secrets/midtrans` di kedua jalur `docker run` (utama dan
+recovery) serta menulis artefak `recovery-pair.json` SEBELUM swap (uid 10001, mode 0400) —
+gagal tulis = preflight ditolak, container lama tidak disentuh. Validasi host baru:
+`/opt/osn/midtrans` wajib ada, root-controlled, tanpa bit tulis group/other, dengan
+other-exec agar uid 10001 dapat traversal membaca berkasnya.
+
+Status saat penulisan: mode tetap `migrasi`, recovery pin `781fbcd`, job `pasang` tetap
+literal false, tier Admin belum dinaikkan (tetap `nonaktif`), dan belum ada secret
+terpasang di host. Live terakhir yang terukur read-only: revision `ed17eb5` (schema
+admin-control v5) — sehingga deploy source ini adalah migrasi terkontrol admin5→admin7
+plus runtime pembayaran dengan semua sakelar OFF. Terbuka dan menunggu keputusan/aksi
+pengguna: akun merchant Midtrans + provisioning secret oleh pemilik (Server Key tidak
+pernah lewat chat), cutover produksi, dan surface checkout produksi guru yang belum ada
+(maka uji "checkout nyata" adalah fase surface terpisah, bukan bagian aktivasi infra ini).
+
 ## Snapshot sebelumnya — 22 September 2026
 
 Pisahkan source, artefak CI, dan produksi; bagian bertanggal lebih lama di bawah
