@@ -113,7 +113,10 @@ docker exec osn-mesin python rekonsiliasi_langganan.py \
   2 konfigurasi produksi tidak sah, 3 lease dipegang proses lain, 4 sakelar/state belum siap,
   1 galat lain.
 
-Jadwal cron/systemd belum dipasang; memasangnya baru masuk tahap aktivasi.
+Jadwal cron terpasang 26 Sep 2026: `/etc/cron.d/osn-rekonsiliasi-langganan` menjalankan
+`docker exec osn-mesin python rekonsiliasi_langganan.py …` tiap 10 menit (satu worker;
+lease file menolak proses kedua), log agregat di `/opt/osn/log/rekonsiliasi-langganan.log`.
+Sebelum secret/tahap siap, worker keluar `2`/`4` (fail-closed) dan tidak menulis apa pun.
 
 ## Yang belum dilakukan fase ini
 

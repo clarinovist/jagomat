@@ -51,14 +51,24 @@ gagal tulis = preflight ditolak, container lama tidak disentuh. Validasi host ba
 `/opt/osn/midtrans` wajib ada, root-controlled, tanpa bit tulis group/other, dengan
 other-exec agar uid 10001 dapat traversal membaca berkasnya.
 
-Status saat penulisan: mode tetap `migrasi`, recovery pin `781fbcd`, job `pasang` tetap
-literal false, tier Admin belum dinaikkan (tetap `nonaktif`), dan belum ada secret
-terpasang di host. Live terakhir yang terukur read-only: revision `ed17eb5` (schema
-admin-control v5) — sehingga deploy source ini adalah migrasi terkontrol admin5→admin7
-plus runtime pembayaran dengan semua sakelar OFF. Terbuka dan menunggu keputusan/aksi
-pengguna: akun merchant Midtrans + provisioning secret oleh pemilik (Server Key tidak
-pernah lewat chat), cutover produksi, dan surface checkout produksi guru yang belum ada
-(maka uji "checkout nyata" adalah fase surface terpisah, bukan bagian aktivasi infra ini).
+Status **setelah cutover terkontrol 26 Sep 2026 (~06:35–06:37 WIB)**: produksi kini
+menjalankan revision `1ba7669` (digest kandidat `sha256:39adf0cf…`), container sehat,
+mount read-only `/opt/osn/midtrans` → `/run/secrets/midtrans` aktif di container berjalan,
+artefak pair `recovery-pair.json` tertulis (uid 10001, 0400), schema admin-control naik
+5→7 lewat rehearsal copy backup (migrasi ×2, integrity/FK, preservasi, uji baca image
+recovery), dan smoke kanonis lulus (200/401/303). Semua sakelar pembayaran TETAP OFF:
+belum ada secret; readiness panel all-false; callback publik menjawab fail-closed (GET 404,
+form 415, JSON 503). Cron worker terpasang (`/etc/cron.d/osn-rekonsiliasi-langganan`,
+tiap 10 menit; sebelum secret ada, exit 2 "konfigurasi produksi tidak sah" — fail-closed,
+terbukti pada tick pertama). Policy rutin ditulis ulang dengan hash terukur dan
+`enabled:false` (izin host rutin tetap dicabut eksplisit); mode tetap `migrasi`, recovery
+pin `781fbcd`, job `pasang` tetap literal false.
+
+Terbuka dan menunggu aksi pengguna: **provisioning secret Midtrans oleh pemilik**
+(Server Key ditempatkan sendiri di `/opt/osn/midtrans/produksi-rahasia`; setelah itu
+restart container agar runtime terpasang, lalu naikkan tahap Admin maksimum sampai
+`rekonsiliasi` — kenaikan lebih tinggi menunggu surface checkout produksi guru yang
+belum ada; uji "checkout nyata" = fase surface terpisah).
 
 ## Snapshot sebelumnya — 22 September 2026
 
