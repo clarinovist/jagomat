@@ -32,7 +32,7 @@ GAYA_HASIL = f"""
   cursor: pointer; min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0;
   font-weight: 700; color: {T.TEKS_JUDUL};
 }}
-.hasil-pemetaan-st summary:focus-visible {{ outline: 2px solid {T.AKSEN_TEAL_TUA}; }}
+.hasil-pemetaan-st summary:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.AKSEN_TEAL_TUA}; }}
 .hasil-materi-st {{ margin: 0; padding: 0; list-style: none; }}
 .hasil-materi-st li {{
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);

@@ -75,7 +75,7 @@ def gaya_pilihan():
  background: {T.LATAR_KARTU}; overflow-wrap: anywhere; }}
 .pg-opsi input, .pg-kosong input {{ flex: 0 0 auto; }}
 .pg-opsi:has(input:checked) {{ border-color: {T.AKSEN_MURID_UTAMA}; font-weight: 700; }}
-.pg-opsi:focus-within, .pg-kosong:focus-within {{ outline: 2px solid {T.TEKS_JUDUL}; outline-offset: 2px; }}
+.pg-opsi:focus-within, .pg-kosong:focus-within {{ outline: {T.TEBAL_FOKUS} solid {T.TEKS_JUDUL}; outline-offset: 2px; }}
 .pg-kosong {{ color: {T.TEKS_SUBTLE}; border-style: dashed; }}
 .pg-daftar p {{ white-space: pre-wrap; overflow-wrap: anywhere; }}
 /* PG tidak memakai overlay: opsi bawah harus menerima klik, bukan tombol simpan. */

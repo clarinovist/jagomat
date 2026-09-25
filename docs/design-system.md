@@ -198,8 +198,19 @@ Penerapan pertama (25 Sep 2026, `style_stitch.py`):
   "Penerapan keempat").
 
 `LATAR_TOOLTIP`/`TEKS_TOOLTIP` dan `TEBAL_GARIS`/`TEBAL_FOKUS` sudah terpakai
-sejak komponen Info "ⓘ" (lihat "Penerapan ketiga"). Belum dipakai di CSS:
-`UKURAN_IKON`, `SP_7`, `SP_8`.
+sejak komponen Info "ⓘ" (lihat "Penerapan ketiga"). Status token sisanya —
+eksplisit, bukan menggantung:
+
+- `TEBAL_FOKUS` juga dipakai seluruh `outline: 2px` keadaan fokus (lihat
+  "Penerapan keempat").
+- `UKURAN_IKON` (24px): **khusus Figma / belum dipakai** — ikon nyata di kode
+  dirender 19–22px (`.profil-ikon-st` 1.2rem, `.murid-ikon-st` 1.35rem) atau
+  lewat variasi font Material Symbols; belum ada elemen yang memang 24px.
+- `SP_7` (3rem) / `SP_8` (4rem): **khusus Figma / belum dipakai** — literal
+  `3rem`/`4rem` memang banyak (padding section), tapi perannya belum tunggal;
+  menunggu sweep spacing tersendiri, bukan penambalan acak.
+- `TEBAL_GARIS` (1px) untuk border umum: nilai default CSS, masih literal
+  ~225 kali di 13 berkas — adopsi penuh = sweep tersendiri.
 
 Penerapan kedua (25 Sep 2026, permukaan non-Stitch) — 14 aturan kartu di 11 berkas
 jadi `RADIUS_KARTU_BESAR`: `teacher_style` (`.kartu`, `.stat`, `.ringkasan-laporan`,
@@ -267,6 +278,9 @@ di `style_stitch.py` diganti token warna Figma.
   `tombol-amber`), menu-isi (hover sendiri), dan `.cta` topbar; `button:disabled`
   juga mengandalkan `filter: none`. Membatasi dengan `:not(...)` harus menyebut
   semua varian itu — lebih rapuh daripada nilainya.
+- `TEBAL_FOKUS`: 12 aturan `outline: 2px` (keadaan fokus) diganti
+  `outline: {T.TEBAL_FOKUS} solid …` di `style_stitch.py` (10),
+  `choice_pages.py`, dan `mapping_results.py` — nilai rendered identik.
 - Tinggi kontrol: `TINGGI_KONTROL` 48px menggantikan `TARGET_SENTUH` 44px di 21
   aturan + 3 literal `3rem` pada kontrol nyata `style_stitch.py` — tombol
   (termasuk `.tombol-ikon-st` 48×48), input/select/textarea (`.st-input`,

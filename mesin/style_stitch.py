@@ -855,7 +855,7 @@ tr.sorot-baru, div.sorot-baru {{
    fokus dipinjamkan ke labelnya. */
 .tab-radio-st:focus-visible + .tab-bar-st .tab-label-st,
 .buat-latihan-st:has(.tab-radio-st:focus-visible) .tab-bar-st {{
-  outline: 2px solid {T.AKSEN_MURID_UTAMA}; outline-offset: 2px;
+  outline: {T.TEBAL_FOKUS} solid {T.AKSEN_MURID_UTAMA}; outline-offset: 2px;
 }}
 
 /* ── Halaman kerja murid (/murid/kerjakan/<id>) — S4 adopsi Stitch ── */
@@ -2386,7 +2386,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .profil-editorial-st .isi-alur-rencana-st > .progres-rencana-st {{ grid-column: 1 / -1; }}
 .cetak-editorial-st .cerita-tambahan-st {{ margin-block: {T.SP_4}; padding-block: {T.SP_3}; border-block: 1px solid {T.BORDER_CATATAN}; }}
 .cetak-editorial-st .cerita-tambahan-st > summary {{ min-height: {T.TARGET_SENTUH}; cursor: pointer; font-weight: 600; color: {T.AKSEN_TEAL_TUA}; }}
-.cetak-editorial-st .cerita-tambahan-st > summary:focus-visible {{ outline: 2px solid {T.AKSEN_TEAL_TUA}; outline-offset: 3px; }}
+.cetak-editorial-st .cerita-tambahan-st > summary:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.AKSEN_TEAL_TUA}; outline-offset: 3px; }}
 .profil-editorial-st .strip-rencana-st .tahap-rencana-st {{
   position: relative; text-align: center; padding: 1.7rem {T.SP_1} {T.SP_2};
   background: transparent; color: {T.TEKS_VARIAN}; border-radius: 0;
@@ -2600,7 +2600,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-inline .pendamping-memori {{ margin-top: {T.SP_4}; }}
 .pendamping-inline .pendamping-memori > summary {{ display: list-item; width: fit-content; min-height: {T.TARGET_SENTUH}; padding: {T.SP_1} 0; color: {T.AKSEN_TEAL_TUA}; background: transparent; border: 0; font-size: .875rem; font-weight: 600; cursor: pointer; }}
 .pendamping-inline .pendamping-memori > summary::marker {{ color: {T.AKSEN_TEAL_TUA}; }}
-.pendamping-inline .pendamping-memori > summary:focus-visible {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
+.pendamping-inline .pendamping-memori > summary:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
 .profil-editorial-st .atur-latihan-st .pendamping-inline .pendamping-memori > summary {{ display: list-item; min-height: {T.TARGET_SENTUH}; }}
 .profil-editorial-st .atur-latihan-st .pendamping-inline .pendamping-memori > summary::before {{ content: none; }}
 @media (max-width: 24rem) {{ .pendamping-inline .pendamping-pesan.pengguna {{ max-width: 96%; }} }}
@@ -2682,7 +2682,7 @@ CSS_SESI = f"""
 .koreksi-galat-st p {{ margin: {T.SP_2} 0; line-height: 1.55; }}
 .koreksi-galat-st ul {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; padding: 0; margin: {T.SP_3} 0 0; list-style: none; }}
 .koreksi-galat-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3}; color: {T.AKSEN_TEAL_TUA}; background: {T.LATAR_KARTU}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL}; }}
-.koreksi-galat-st a:focus-visible, .koreksi-kartu-st[tabindex]:focus {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
+.koreksi-galat-st a:focus-visible, .koreksi-kartu-st[tabindex]:focus {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
 .koreksi-kartu-st[tabindex] {{ scroll-margin-top: {T.SP_6}; }}
 .koreksi-masalah-st {{ margin: 0; font-size: .9rem; line-height: 1.55; }}
 
@@ -2759,12 +2759,12 @@ CSS_SESI = f"""
 .koreksi-pilihan-paham-st input {{ position: absolute; left: {T.SP_3}; top: 50%; transform: translateY(-50%); margin: 0; accent-color: {T.AKSEN_TEAL_TUA}; }}
 .koreksi-pilihan-paham-st label {{ display: flex; align-items: center; min-height: {T.TARGET_SENTUH}; height: 100%; padding: {T.SP_2} {T.SP_3} {T.SP_2} {T.SP_6}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL}; background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; font-size: .85rem; line-height: 1.5; cursor: pointer; overflow-wrap: anywhere; }}
 .koreksi-pilihan-paham-st input:checked + label {{ border-color: {T.AKSEN_TEAL_TUA}; background: {T.LATAR_SEKUNDER_LEMBUT}; font-weight: 600; }}
-.koreksi-pilihan-paham-st input:focus-visible + label {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+.koreksi-pilihan-paham-st input:focus-visible + label {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 .koreksi-pemahaman-st .koreksi-centang-st label {{ min-height: {T.TARGET_SENTUH}; }}
 .koreksi-perbaikan-st .koreksi-centang-st label {{ min-height: {T.TARGET_SENTUH}; }}
 .koreksi-opsi-st {{ min-width: 0; }}
 .koreksi-opsi-st summary {{ cursor: pointer; min-height: {T.TARGET_SENTUH}; padding-block: {T.SP_3}; font-size: .9rem; color: {T.AKSEN_TEAL_TUA}; }}
-.koreksi-opsi-st summary:focus-visible {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+.koreksi-opsi-st summary:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 .koreksi-opsi-st .pembahasan-soal-st {{ margin-top: {T.SP_2}; }}
 .koreksi-simpan-st .koreksi-catatan-st {{ margin: 0; }}
 
@@ -2783,7 +2783,7 @@ CSS_SESI = f"""
   color: {T.AKSEN_TEAL_TUA}; border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL};
 }}
 .koreksi-editorial-st .antrean-tinjauan-st a:focus-visible,
-.koreksi-editorial-st .koreksi-kartu-st[tabindex]:focus {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
+.koreksi-editorial-st .koreksi-kartu-st[tabindex]:focus {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
 .koreksi-editorial-st .koreksi-kartu-st[tabindex] {{ scroll-margin-top: {T.SP_6}; }}
 
 /* Tinjauan progresif: kontrol di details tetap dikirim oleh form native. */
@@ -2793,7 +2793,7 @@ CSS_SESI = f"""
   cursor: pointer; min-height: {T.TARGET_SENTUH}; padding: {T.SP_4};
   color: {T.TEKS_JUDUL}; overflow-wrap: anywhere;
 }}
-.koreksi-lipat-st > summary:focus-visible {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+.koreksi-lipat-st > summary:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 .koreksi-ringkas-kepala-st {{ display: inline-flex; align-items: center; gap: {T.SP_2}; flex-wrap: wrap; width: calc(100% - 2rem); vertical-align: middle; }}
 .koreksi-ringkas-kepala-st .koreksi-tipe-st {{ background: none; padding: 0; font-size: 1rem; color: {T.TEKS_JUDUL}; }}
 .koreksi-tindakan-st {{ margin-left: auto; font-size: .8rem; color: {T.TEKS_JUDUL}; background: {T.LATAR_CATATAN}; padding: {T.SP_1} {T.SP_2}; border-radius: {T.RADIUS_PIL}; }}
@@ -2940,7 +2940,7 @@ CSS_SESI = f"""
 /* Satu area aksi sesi, tidak mengambang di atas kartu yang sedang dibaca. */
 .koreksi-editorial-st .koreksi-simpan-st {{ position: static; padding: {T.SP_4} 0; gap: {T.SP_3}; }}
 .koreksi-aksi-sesi-st {{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: {T.SP_3}; }}
-.koreksi-aksi-sesi-st button:focus-visible {{ outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+.koreksi-aksi-sesi-st button:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 @media (max-width: 30rem) {{
   .koreksi-aksi-sesi-st {{ grid-template-columns: minmax(0, 1fr); }}
 }}
@@ -2981,7 +2981,7 @@ CSS_SESI = f"""
 .panduan-edit-hasil-st summary::marker {{ color: {T.AKSEN_TEAL_TUA}; }}
 .panduan-pratinjau-st summary:focus-visible,
 .panduan-edit-hasil-st summary:focus-visible {{
-  outline: 2px solid {T.FOKUS_AKSEN}; outline-offset: 3px;
+  outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px;
 }}
 .panduan-pratinjau-st > .sub,
 .panduan-edit-hasil-st > .sub {{ color: {T.TEKS_VARIAN}; font-size: .85rem; }}
