@@ -63,6 +63,10 @@ Baseline service `4c88dc956b33ae6246b6f7b15f54e87e6c8f172a` telah lolos
 agar pair exact digest wajib; pasang tetap literal false. Mode ini bukan izin
 migrasi/deploy produksi atau aktivasi switch.
 
+Lanjutan runtime produksi, callback durable, dan pekerja rekonsiliasi ada di
+[kontrak pembayaran produksi](pembayaran-produksi.md): default OFF, tanpa tabel baru,
+dan tanpa aktivasi.
+
 ## Batas modul
 
 - `mesin/subscription.py`: domain provider-neutral, clock epoch UTC wajib diinjeksi,

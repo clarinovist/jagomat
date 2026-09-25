@@ -28,6 +28,14 @@ Tidak ada deploy pada fase ini. Job `pasang` tetap literal false. Keberhasilan C
 build-only bukan bukti pasangan recovery siap rilis atau keadaan live. Snapshot
 produksi dan prosedur di bawah tetap historis; tidak dilakukan ulang oleh fondasi.
 
+## Riwayat runtime produksi (source saja) — 25 September 2026
+
+Runtime produksi Midtrans, callback durable, dan pekerja rekonsiliasi ditambahkan sebagai
+source + tes ([kontrak](pembayaran-produksi.md)) tanpa tabel/schema baru, jadi kontrak
+persistensi dan pair recovery admin7 tidak berubah. Readiness `kebijakan` sengaja false
+selama D8/D9 belum diputuskan, tier Admin tetap `nonaktif`, tidak ada secret terpasang,
+tanpa pemanggilan Midtrans, dan job `pasang` tetap literal false.
+
 ## Snapshot sebelumnya — 22 September 2026
 
 Pisahkan source, artefak CI, dan produksi; bagian bertanggal lebih lama di bawah

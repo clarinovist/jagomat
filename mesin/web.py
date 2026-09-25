@@ -471,6 +471,9 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _rute_get(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/") or "/"
+        import subscription_callback
+        if subscription_callback.tangani_get(self, jalur):
+            return
         import subscription_http
         if subscription_http.tangani_get(self, jalur):
             return
@@ -1132,6 +1135,9 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _rute_post(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/")
+        import subscription_callback
+        if subscription_callback.tangani_post(self, jalur):
+            return
         import subscription_http
         if subscription_http.tangani_post(self, jalur):
             return
