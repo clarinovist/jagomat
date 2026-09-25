@@ -17,6 +17,7 @@ PRODUKSI = 'test_subscription_produksi.py'
 CALLBACK = 'test_subscription_callback.py'
 RAHASIA = 'test_midtrans_secret.py'
 PEKERJA = 'test_subscription_worker.py'
+HTTP = 'test_subscription_produksi_http.py'
 KASUS = [
     ('subscription_callback.py', 'if not midtrans.signature_cocok(mentah, config):', 'if False:', CALLBACK,
      'test_callback_penolakan_seragam_tanpa_efek', 'assert [kode for kode, _ in jawab] == [403] * len(kasus)'),
@@ -88,6 +89,22 @@ KASUS = [
     ('subscription_worker.py', '        if ledger == "grant":', '        if True:', PEKERJA,
      'test_settlement_terlambat_perlu_diperiksa_tanpa_grant',
      'assert ringkas["perlu_diperiksa"] == 1 and ringkas["lunas"] == 0, ringkas'),
+    # Surface checkout produksi: token form, allow-list QR, dan gate sakelar checkout.
+    ('subscription_produksi_http.py',
+     '        if not hmac.compare_digest(signature, harap):\n            raise ValueError()',
+     '        if False:\n            raise ValueError()', HTTP,
+     'test_token_wajib_terikat_sesi_aksi_dan_invoice', 'assert kode == 403'),
+    ('subscription_produksi_http.py',
+     '    if (not midtrans.url_qr_sah(url, "production")\n'
+     '            or not url.startswith(runtime.config.base_url + "/v2/qris/")):\n'
+     '        raise midtrans.KontrakTidakSah("tujuan QR produksi tidak sah")',
+     '    if False:\n        raise midtrans.KontrakTidakSah("tujuan QR produksi tidak sah")', HTTP,
+     'test_gambar_menolak_url_di_luar_allowlist', 'DID NOT RAISE'),
+    ('subscription_produksi_http.py',
+     '                boleh_buat = (runtime.sakelar.buat_pembayaran and not inv["create_dicoba"]\n'
+     '                              and not lunas and sekarang < inv["kedaluwarsa"])',
+     '                boleh_buat = True', HTTP,
+     'test_turun_tahap_menyembunyikan_buat_dan_mematikan_qr', 'assert "/buat" not in isi'),
 ]
 
 

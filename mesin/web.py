@@ -478,6 +478,9 @@ class Penangan(BaseHTTPRequestHandler):
         import subscription_callback
         if subscription_callback.tangani_get(self, jalur):
             return
+        import subscription_produksi_http
+        if subscription_produksi_http.tangani_get(self, jalur):
+            return
         import subscription_http
         if subscription_http.tangani_get(self, jalur):
             return
@@ -877,6 +880,7 @@ class Penangan(BaseHTTPRequestHandler):
                         privat=bool(arsip or panel_analitik),
                         analitik=panel_analitik,
                         langganan_sandbox=subscription_http.runtime(self) is not None,
+                        langganan_produksi=subscription_produksi_http.ada(self),
                     )
                     return assistant_http._kirim_host_privat(self, hasil) if arsip or panel_analitik else self._kirim(hasil)
                 if jalur.startswith("/lembar/"):
@@ -1143,6 +1147,9 @@ class Penangan(BaseHTTPRequestHandler):
         subscription_produksi.pastikan_terpasang(self.server)
         import subscription_callback
         if subscription_callback.tangani_post(self, jalur):
+            return
+        import subscription_produksi_http
+        if subscription_produksi_http.tangani_post(self, jalur):
             return
         import subscription_http
         if subscription_http.tangani_post(self, jalur):
