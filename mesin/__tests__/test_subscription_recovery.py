@@ -88,7 +88,7 @@ def test_probe_langganan_dijalankan_dan_verifier_tidak_boleh_skip(tmp_path):
 
 def test_source_tidak_punya_hook_user_network_env_billing():
     akar = Path(__file__).resolve().parents[1]
-    izin = {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_backup", "subscription_service", "subscription_registration", "midtrans_sandbox", "subscription_checkout", "subscription_http", "subscription_preview", "admin_launch_service", "admin_subscription", "admin_operations"}
+    izin = {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_backup", "subscription_service", "subscription_registration", "midtrans_sandbox", "subscription_checkout", "subscription_http", "subscription_preview", "admin_launch_service", "admin_subscription", "admin_operations", "midtrans_secret", "midtrans_produksi", "subscription_produksi", "subscription_callback", "subscription_worker"}
     for p in akar.glob("*.py"):
         pohon = ast.parse(p.read_text())
         for node in ast.walk(pohon):
@@ -105,6 +105,10 @@ def test_source_tidak_punya_hook_user_network_env_billing():
             if set(modul) & {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "subscription_service", "subscription_registration", "subscription_checkout"}:
                 assert p.stem in izin, p.name
     for nama in ("subscription.py", "subscription_store.py", "midtrans_contract.py", "subscription_service.py", "subscription_registration.py"):
+        teks = (akar / nama).read_text()
+        assert "os.environ" not in teks and "getenv(" not in teks
+        assert "import socket" not in teks and "urllib.request" not in teks
+    for nama in ("midtrans_secret.py", "midtrans_produksi.py", "subscription_produksi.py", "subscription_callback.py", "subscription_worker.py"):
         teks = (akar / nama).read_text()
         assert "os.environ" not in teks and "getenv(" not in teks
         assert "import socket" not in teks and "urllib.request" not in teks
