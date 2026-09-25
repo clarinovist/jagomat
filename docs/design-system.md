@@ -210,7 +210,7 @@ eksplisit, bukan menggantung:
   `3rem`/`4rem` memang banyak (padding section), tapi perannya belum tunggal;
   menunggu sweep spacing tersendiri, bukan penambalan acak.
 - `TEBAL_GARIS` (1px) untuk border umum: nilai default CSS, masih literal
-  ~225 kali di 13 berkas — adopsi penuh = sweep tersendiri.
+  237 kali di 13 berkas (hitungan 26 Sep) — adopsi penuh = sweep tersendiri.
 
 Penerapan kedua (25 Sep 2026, permukaan non-Stitch) — 14 aturan kartu di 11 berkas
 jadi `RADIUS_KARTU_BESAR`: `teacher_style` (`.kartu`, `.stat`, `.ringkasan-laporan`,
@@ -258,8 +258,8 @@ i<span class="info-bubble" role="tooltip">…</span>
   kritis yang wajib terbaca, atau data anak. Dijaga
   `__tests__/test_info_tooltip.py` (markup, CSS hover/focus, tanpa JS).
 
-Penerapan keempat (26 Sep 2026) — hover tombol: sisa aturan `filter: brightness`
-di `style_stitch.py` diganti token warna Figma.
+Penerapan keempat (26 Sep 2026) — hover tombol, token fokus, tinggi kontrol,
+dan kontras coral.
 
 - 6 dari 7 aturan hover → `background: AKSEN_KORAL_HOVER` (`.st-tombol-coral`,
   `.rencana-cta-utama-st`, `.kerja-simpan-strip-st button`, `.masuk-tombol-st`,
