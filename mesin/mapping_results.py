@@ -14,7 +14,7 @@ from template_labels import nama_tipe_soal
 GAYA_HASIL = f"""
 .hasil-pemetaan-st {{
   margin: {T.SP_5} 0; padding: {T.SP_5}; background: {T.LATAR_KARTU};
-  border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KARTU};
+  border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KARTU_BESAR};
   scroll-margin-top: {T.SP_4};
 }}
 .hasil-pemetaan-st h2 {{ margin: 0 0 {T.SP_3}; color: {T.TEKS_JUDUL}; }}

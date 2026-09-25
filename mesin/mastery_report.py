@@ -32,7 +32,7 @@ GAYA_PETA = f"""
 .peta-materi-st .peta-swatch {{width:1rem;height:1rem;display:inline-block;border:1px solid {T.TEKS_SUBTLE};}}
 .peta-materi-st .peta-panel {{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:{T.SP_5};align-items:start;}}
 .peta-materi-st .peta-daftar {{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:{T.SP_3};}}
-.peta-materi-st .peta-pilihan {{display:block;min-width:0;padding:{T.SP_4};border:1px solid {T.BORDER_CATATAN};border-radius:{T.RADIUS_KARTU};background:{T.LATAR_KARTU};text-decoration:none;}}
+.peta-materi-st .peta-pilihan {{display:block;min-width:0;padding:{T.SP_4};border:1px solid {T.BORDER_CATATAN};border-radius:{T.RADIUS_KARTU_BESAR};background:{T.LATAR_KARTU};text-decoration:none;}}
 .peta-materi-st .peta-pilihan[aria-current="true"],.peta-materi-st .peta-pilihan[data-preview="true"] {{border:2px solid {T.AKSEN_TEAL_TUA};padding:calc({T.SP_4} - 1px);background:{T.LATAR_TERSIMPAN};}}
 .peta-materi-st .peta-pilihan small {{display:block;margin-top:{T.SP_2};color:{T.TEKS_SUBTLE};}}
 .peta-materi-st .peta-pilihan .peta-nilai {{display:block;margin-top:{T.SP_3};font-weight:700;}}

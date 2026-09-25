@@ -198,6 +198,25 @@ Penerapan pertama (25 Sep 2026, `style_stitch.py`):
 Belum dipakai di CSS: `LATAR_TOOLTIP`/`TEKS_TOOLTIP` (baru dipakai di berkas
 Figma), `UKURAN_IKON`, `TEBAL_GARIS`, `TEBAL_FOKUS`, `SP_7`, `SP_8`.
 
+Penerapan kedua (25 Sep 2026, permukaan non-Stitch) — 14 aturan kartu di 11 berkas
+jadi `RADIUS_KARTU_BESAR`: `teacher_style` (`.kartu`, `.stat`, `.ringkasan-laporan`,
+`.masuk-luar`), `admin_style` (`.admin-kartu`, `.admin-stat`), `screen_style` (`.soal`),
+`report_dashboard` (`.laporan-metrik .stat`), `mapping_results` (`.hasil-pemetaan-st`),
+`mastery_report` (`.peta-pilihan`), `question_variants_ui` (`.panduan-variasi`),
+`subscription_pages` (`.langganan-panel .kartu`), `profile_workspace`
+(`.buat-latihan-st`, `.profil-arsip-st`), `attachments` (`.kartu`).
+Sengaja **tetap 12px**: `.menu-isi` (menu dropdown guru) dan `.mesin-banner` (strip
+peringatan) — keduanya kontrol/penanda kecil, bukan kartu konten.
+Tinggi: literal `44px` → `TARGET_SENTUH` di `attachments` dan `subscription_pages`.
+Hover: `.admin-tombol` dan `.pendamping-tombol` (solid teal) kini punya hover
+`AKSEN_TEAL_HOVER`; varian `.admin-bahaya`, `.pendamping-sekunder`, `.pendamping-bahaya`
+dikecualikan karena latarnya terang.
+
+Belum seragam — kandidat berikutnya, jangan dicampur ke sini: tinggi kontrol di banyak
+permukaan masih `TARGET_SENTUH` 44px padahal desain memakai `TINGGI_KONTROL` 48px, dan
+sebagian hover tombol (guru/admin/lembar) masih memakai `filter: brightness()` yang
+disengaja karena dipakai bersama tombol berlatar terang.
+
 Belum ditindaklanjuti (keputusan terpisah, jangan diselundupkan): tombol coral
 terang (`AKSEN_MURID_KORAL` `#ff6b5b` + teks putih) masih memakai warna dasar
 yang gagal kontras — desain Figma memakai `action/primary` `#cc3f2b`. Mengganti

@@ -79,7 +79,7 @@ h1 {{
 }}
 
 .soal {{
-  background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KARTU};
+  background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KARTU_BESAR};
   padding: 1rem; margin-bottom: 1rem;
 }}
 .nomor {{

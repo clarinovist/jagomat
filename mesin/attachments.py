@@ -515,7 +515,7 @@ h1 {{ font-size: 1.4rem; color: {T.TEKS_JUDUL}; }}
 .jejak a {{ color: {T.TEKS_SUBTLE}; text-decoration: none; }}
 .kartu {{
   background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS};
-  border-radius: {T.RADIUS_KARTU}; padding: 1rem 1.1rem; margin-bottom: 1rem;
+  border-radius: {T.RADIUS_KARTU_BESAR}; padding: 1rem 1.1rem; margin-bottom: 1rem;
 }}
 .kartu-kepala {{ display: flex; align-items: center; gap: .55rem; margin-bottom: .5rem; flex-wrap: wrap; }}
 .nomor {{
@@ -564,7 +564,7 @@ button {{
 }}
 .baca-ulang-form .sub {{ color: {T.TEKS_SUBTLE}; font-size: .84rem; }}
 button.tombol-baca-ulang {{
-  width: auto; min-height: 44px; padding: .6rem 1rem;
+  width: auto; min-height: {T.TARGET_SENTUH}; padding: .6rem 1rem;
   background: {T.LATAR_KARTU_MURID}; color: {T.AKSEN_TEAL_TUA};
   border: 1px solid {T.AKSEN_TEAL_TUA}; font-size: .95rem;
 }}

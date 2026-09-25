@@ -98,6 +98,7 @@ html {{ color-scheme:light; scroll-padding-block:{T.SP_5}; }}
 .pendamping-cek input {{ flex:0 0 auto; width:1.25rem; height:1.25rem; margin:.125rem 0 0; accent-color:{T.AKSEN_TEAL_TUA}; }}
 .pendamping-tombol, .pendamping-tautan {{ display:inline-flex; align-items:center; justify-content:center; gap:{T.SP_2}; min-width:{T.TARGET_SENTUH}; min-height:{T.TARGET_SENTUH}; max-width:100%; padding:.625rem .875rem; border-radius:{T.RADIUS_SEDANG}; font-size:.875rem; line-height:1.45; text-align:center; white-space:normal; overflow-wrap:anywhere; }}
 .pendamping-tombol {{ border:1px solid {T.AKSEN_TEAL_TUA}; background:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_PUTIH}; text-decoration:none; font-weight:550; cursor:pointer; }}
+.pendamping-tombol:not(.pendamping-sekunder):not(.pendamping-bahaya):hover {{ background:{T.AKSEN_TEAL_HOVER}; border-color:{T.AKSEN_TEAL_HOVER}; }}
 .pendamping-halaman a.pendamping-tombol {{ color:{T.TEKS_PUTIH}; }}
 .pendamping-tombol.pendamping-sekunder, .pendamping-halaman a.pendamping-tombol.pendamping-sekunder {{ border-color:{T.TEKS_VARIAN}; background:{T.LATAR_KARTU}; color:{T.TEKS_UTAMA}; }}
 .pendamping-tombol.pendamping-bahaya, .pendamping-halaman a.pendamping-tombol.pendamping-bahaya {{ border-color:{T.TEKS_GALAT}; background:{T.LATAR_KARTU}; color:{T.TEKS_GALAT}; }}

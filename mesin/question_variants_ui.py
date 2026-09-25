@@ -104,7 +104,7 @@ def panduan_variasi(*, ringkas=False):
 
 
 GAYA_VARIASI = f"""
-.panduan-variasi {{ margin:{T.SP_4} 0; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU}; padding:{T.SP_4}; background:{T.LATAR_KARTU}; min-width:0; }}
+.panduan-variasi {{ margin:{T.SP_4} 0; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; padding:{T.SP_4}; background:{T.LATAR_KARTU}; min-width:0; }}
 .panduan-variasi summary,.variasi-kode summary {{ cursor:pointer; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} 0; line-height:1.5; overflow-wrap:anywhere; }}
 .panduan-variasi p,.variasi-kode p {{ line-height:1.6; overflow-wrap:anywhere; }}
 .variasi-materi {{ border-top:1px solid {T.BORDER_HALUS}; padding:{T.SP_2} 0; }}

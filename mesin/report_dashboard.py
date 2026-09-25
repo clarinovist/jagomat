@@ -18,7 +18,7 @@ GAYA_LAPORAN = f"""
 }}
 .laporan-editorial-st .laporan-metrik .stat {{
   padding:{T.SP_4}; background:{T.LATAR_KARTU}; border:1px solid {T.BORDER_HALUS};
-  border-radius:{T.RADIUS_KARTU}; min-width:0;
+  border-radius:{T.RADIUS_KARTU_BESAR}; min-width:0;
 }}
 .laporan-editorial-st .laporan-metrik strong {{
   display:block; font-size:2rem; color:{T.TEKS_JUDUL}; line-height:1.2;

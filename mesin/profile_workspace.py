@@ -168,7 +168,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-rappel-st {{ display:flex; align-items:center; justify-content:space-between; gap:{T.SP_4}; padding:{T.SP_3} {T.SP_4}; background:{T.LATAR_CATATAN}; border:1px solid {T.BORDER_CATATAN}; border-radius:{T.RADIUS_KARTU}; margin-bottom:{T.SP_5}; font-size:.875rem; }}
 .profil-workspace-st .profil-rappel-st a {{ color:{T.AKSEN_TEAL_TUA}; white-space:nowrap; font-weight:650; }}
 .profil-workspace-st .profil-formulaire-st {{ min-width:0; }}
-.profil-workspace-st .profil-formulaire-st > .buat-latihan-st {{ padding:{T.SP_5}; background:{T.LATAR_KARTU}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU}; }}
+.profil-workspace-st .profil-formulaire-st > .buat-latihan-st {{ padding:{T.SP_5}; background:{T.LATAR_KARTU}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; }}
 .profil-workspace-st .profil-formulaire-st .buat-latihan-st > h2 {{ margin-top:0; }}
 .profil-workspace-st [data-panel="baru"] > .strip-sesi {{ display:block; }}
 .profil-workspace-st .profil-champs-st {{ display:grid; grid-template-columns:minmax(0,1fr); gap:{T.SP_5}; min-width:0; }}
@@ -194,7 +194,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-assistant-st .pendamping-inline > details > summary {{ font-size:1.1rem; }}
 .profil-workspace-st .profil-assistant-st textarea {{ max-width:100%; }}
 .profil-workspace-st .profil-taches-st {{ margin-top:{T.SP_5}; }}
-.profil-workspace-st .profil-arsip-st {{ background:{T.LATAR_KARTU}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU}; overflow:hidden; }}
+.profil-workspace-st .profil-arsip-st {{ background:{T.LATAR_KARTU}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; overflow:hidden; }}
 .profil-workspace-st .profil-saring-st {{ margin:0; }}
 .profil-workspace-st .profil-saring-judul-st {{ padding:{T.SP_4} {T.SP_5}; color:{T.AKSEN_TEAL_TUA}; cursor:pointer; min-height:{T.TARGET_SENTUH}; }}
 .profil-workspace-st .profil-saring-judul-st > span {{ font-weight:650; }}

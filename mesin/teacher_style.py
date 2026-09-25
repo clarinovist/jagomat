@@ -43,7 +43,7 @@ h2 {{ font-size: 1.15rem; margin: 1.4rem 0 0.6rem; color: {T.TEKS_JUDUL}; }}
 /* ── Kartu ─────────────────────────────────────────────────────────── */
 .kartu {{
   background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS};
-  border-radius: {T.RADIUS_KARTU}; padding: 1rem 1.1rem; margin-bottom: 1rem;
+  border-radius: {T.RADIUS_KARTU_BESAR}; padding: 1rem 1.1rem; margin-bottom: 1rem;
   box-shadow: 0 1px 3px rgba(22,33,62,0.04);
 }}
 .kartu h2 {{ margin-top: 0; }}
@@ -397,7 +397,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .ringkasan-dashboard-laporan .kartu-stat .stat:last-child {{ grid-column: 1 / -1; }}
 .stat {{
   background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS};
-  border-radius: {T.RADIUS_KARTU}; padding: 1rem; text-align: center;
+  border-radius: {T.RADIUS_KARTU_BESAR}; padding: 1rem; text-align: center;
   box-shadow: 0 1px 3px rgba(22,33,62,0.04);
 }}
 .stat .angka-besar {{
@@ -435,7 +435,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .ringkasan-laporan p:last-child {{ margin-bottom: 0; }}
 .ringkasan-laporan {{
   background: {T.LATAR_CATATAN}; border: 1px solid {T.BORDER_HALUS};
-  border-radius: {T.RADIUS_KARTU}; padding: 1.15rem;
+  border-radius: {T.RADIUS_KARTU_BESAR}; padding: 1.15rem;
 }}
 .ringkasan-laporan > h2 {{ margin-top: 0; }}
 .bagian-ringkasan-laporan {{
@@ -586,7 +586,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 /* Masuk yg gagal / 401 */
 .masuk-luar {{
   background: {T.LATAR_MURID}; border: 1px solid {T.BORDER_HALUS};
-  border-radius: {T.RADIUS_KARTU}; padding: 1.4rem; max-width: 440px;
+  border-radius: {T.RADIUS_KARTU_BESAR}; padding: 1.4rem; max-width: 440px;
   margin: 2rem auto; text-align: center;
 }}
 

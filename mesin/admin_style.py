@@ -80,7 +80,7 @@ body.admin-readonly {{
 }}
 .admin-kartu, .admin-stat {{
   background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS};
-  border-radius: {T.RADIUS_KARTU}; padding: {T.SP_4};
+  border-radius: {T.RADIUS_KARTU_BESAR}; padding: {T.SP_4};
 }}
 .admin-kartu {{ margin-bottom: {T.SP_4}; }}
 .admin-kartu h2, .admin-kartu h3 {{ color: {T.TEKS_JUDUL}; margin-top: 0; }}
@@ -111,6 +111,7 @@ body.admin-readonly {{
   font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
 }}
 .admin-tombol {{ color: {T.TEKS_PUTIH}; background: {T.AKSEN_TEAL_TUA}; }}
+.admin-tombol:not(.admin-bahaya):hover {{ background: {T.AKSEN_TEAL_HOVER}; border-color: {T.AKSEN_TEAL_HOVER}; }}
 .admin-tautan {{ color: {T.TEKS_JUDUL}; background: {T.LATAR_KARTU_SEKUNDER}; }}
 .admin-bahaya {{ color: {T.TEKS_GALAT}; border-color: {T.BORDER_GALAT}; background: {T.LATAR_GALAT}; }}
 .admin-form-tindakan form + form {{ margin-top: {T.SP_5}; padding-top: {T.SP_4}; border-top: 1px solid {T.BORDER_HALUS}; }}
