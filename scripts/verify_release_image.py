@@ -31,6 +31,9 @@ RECOVERY_ADMIN5 = ("175d8fb2d340c0c56d2f0ace5b6a1145792b8097",
                    "e206563468afb805af9612711f3c4d0f9ec81539")
 
 
+RECOVERY_ADMIN6 = ('4c88dc956b33ae6246b6f7b15f54e87e6c8f172a',)
+
+
 def kontrak_untuk_revision(revision: str) -> str:
     """Pilih kontrak HTTP berdasarkan revision image yang sudah diverifikasi."""
     return (
@@ -45,7 +48,8 @@ def ringkasan_untuk_revision(revision: str) -> dict:
         "skenario_tindakan": 7, "http_checks": 7, "provider_calls": 0,
         "http_contract": kontrak_untuk_revision(revision),
         "profil_checks": 0 if revision in RECOVERY_TANPA_PROFIL else 6,
-        "admin_schema": None if revision in RECOVERY_TANPA_PROFIL else (5 if revision in RECOVERY_ADMIN5 else 6),
+        "admin_schema": None if revision in RECOVERY_TANPA_PROFIL else (5 if revision in RECOVERY_ADMIN5 else 6 if revision in RECOVERY_ADMIN6 else 7),
+        "admin_launch_checks": 0 if revision in RECOVERY_TANPA_PROFIL + RECOVERY_ADMIN5 + RECOVERY_ADMIN6 else 4,
         "subscription_checks": 0 if revision in RECOVERY_TANPA_PROFIL + RECOVERY_ADMIN5 else 4,
         "pengiriman_checks": 0 if revision in {
             REVISION_RECOVERY_LEGACY, "33e241c18024190f41ebca1986e35af26c0397fd",
@@ -512,11 +516,14 @@ def jalankan_probe(akar):
         profil_checks = 0
         admin_schema = None
         subscription_checks = 0
+        admin_launch_checks = 0
         if revision not in REVISION_TANPA_PROFIL:
-            admin_schema = 5 if revision in REVISION_ADMIN5 else 6
+            admin_schema = 5 if revision in REVISION_ADMIN5 else 6 if revision in REVISION_ADMIN6 else 7
             profil_checks = uji_profil_konteks(akar / 'profil', admin_schema)
-            if admin_schema == 6:
-                subscription_checks = uji_langganan(akar / 'langganan')
+            if admin_schema >= 6:
+                subscription_checks = uji_langganan(akar / 'langganan', admin_schema)
+            if admin_schema == 7:
+                admin_launch_checks = uji_layanan(akar / 'layanan')
         pastikan(not panggilan, 'provider_terpanggil')
     finally:
         socket.socket.connect, socket.socket.connect_ex, socket.getaddrinfo = asli_connect, asli_connect_ex, asli_resolve
@@ -524,7 +531,7 @@ def jalankan_probe(akar):
             'skenario_tindakan': 7, 'http_checks': 7, 'provider_calls': 0,
             'http_contract': kontrak_http, 'pengiriman_checks': pengiriman_checks,
             'profil_checks': profil_checks, 'admin_schema': admin_schema,
-            'subscription_checks': subscription_checks}
+            'subscription_checks': subscription_checks, 'admin_launch_checks': admin_launch_checks}
 
 
 def main():
@@ -551,6 +558,7 @@ _spek_profil.loader.exec_module(_probe_profil)
 SUMBER_PROBE = SUMBER_PROBE.replace(
     '\ndef main():', '\nREVISION_TANPA_PROFIL = ' + repr(RECOVERY_TANPA_PROFIL)
     + '\nREVISION_ADMIN5 = ' + repr(RECOVERY_ADMIN5)
+    + '\nREVISION_ADMIN6 = ' + repr(RECOVERY_ADMIN6)
     + '\n' + _probe_profil.SUMBER_UJI_PROFIL + '\ndef main():', 1)
 _spek_subscription = importlib.util.spec_from_file_location(
     'release_subscription_probe', Path(__file__).with_name('release_subscription_probe.py'))
@@ -562,6 +570,14 @@ SUMBER_PROBE = SUMBER_PROBE.replace(
 
 class GalatVerifikasi(Exception):
     """Kode konstan saja; tidak memuat output Docker/data aplikasi."""
+
+
+_spek_layanan = importlib.util.spec_from_file_location(
+    'release_admin_launch_probe', Path(__file__).with_name('release_admin_launch_probe.py'))
+_probe_layanan = importlib.util.module_from_spec(_spek_layanan)
+_spek_layanan.loader.exec_module(_probe_layanan)
+SUMBER_PROBE = SUMBER_PROBE.replace(
+    '\ndef main():', '\n' + _probe_layanan.SUMBER_UJI_LAYANAN + '\ndef main():', 1)
 
 
 def validasi_rujukan(image: str, revision: str) -> None:

@@ -128,7 +128,7 @@ finally:
 kon = sqlite3.connect('file:/data/admin-control.db?mode=ro', uri=True, timeout=2)
 try:
     kon.execute('PRAGMA query_only = ON')
-    assert kon.execute('PRAGMA user_version').fetchone()[0] == 6
+    assert kon.execute('PRAGMA user_version').fetchone()[0] == 7
     for tabel, kolom in {
         'operasi_admin': {'operasi_id','actor_id','aksi','jenis_target','target_id','revisi_target',
                          'sidik_perintah','status','hasil_kode','revisi_hasil'},
@@ -185,7 +185,7 @@ import auth
 import sessions
 assert assistant_schema.VERSI_SKEMA == 4
 assert ai_store.VERSI_SKEMA == 2
-assert admin_store.VERSI_SKEMA == 6
+assert admin_store.VERSI_SKEMA == 7
 assert admin_bulk.VERSI_TRANSIENT == 2
 for _ in range(2):
     assistant_schema.siapkan(Path('/data/pendamping.db'))
@@ -195,7 +195,7 @@ for _ in range(2):
     admin_students.siapkan(Path('/data/latihan.db'))
     admin_bulk.siapkan_transient(Path('/data/transient/admin-drafts.db'))
 with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
-    assert kon.execute('PRAGMA user_version').fetchone()[0] == 6
+    assert kon.execute('PRAGMA user_version').fetchone()[0] == 7
 with sqlite3.connect('file:/data/transient/admin-drafts.db?mode=ro', uri=True) as kon:
     assert kon.execute('PRAGMA user_version').fetchone()[0] == 2
 with sqlite3.connect('file:/data/pendamping.db?mode=ro', uri=True) as kon:
@@ -222,7 +222,7 @@ token = sessions.buat_dari_principal(principal, path=sesi_path, path_akun=akun_p
 assert sessions.ambil_principal(token, path=sesi_path, path_akun=akun_path)
 auth.naikkan_revisi_auth(principal.id_akun, akun_path)
 assert sessions.ambil_principal(token, path=sesi_path, path_akun=akun_path) is None
-'''+ PROBE_PENGIRIMAN_SKEMA + PROBE_PROFIL_SKEMA + PROBE_LANGGANAN_SKEMA + "\nprint('OSN_IMAGE_ADMIN6_AI2_OK')\n"
+'''+ PROBE_PENGIRIMAN_SKEMA + PROBE_PROFIL_SKEMA + PROBE_LANGGANAN_SKEMA
 
 # Tidak mengimpor aplikasi: import/startup tertentu dapat melakukan migrasi.
 # Jangan immutable=1: DB belajar memakai WAL; mode=ro harus melihat WAL juga.
@@ -237,7 +237,7 @@ def versi_source(nama):
             and any(isinstance(t, ast.Name) and t.id == 'VERSI_SKEMA' for t in node.targets)]
 assert versi_source('assistant_schema.py') == [4]
 assert versi_source('ai_store.py') == [2]
-assert versi_source('admin_store.py') == [6]
+assert versi_source('admin_store.py') == [7]
 for nama, tabel in [('pendamping.db', 'tinjauan_usulan'), ('latihan.db', 'eksekusi_pendamping'),
                     ('latihan.db', 'operasi_admin_siswa')]:
     kon = sqlite3.connect('file:/data/' + nama + '?mode=ro', uri=True, timeout=2)
@@ -257,7 +257,7 @@ try:
 finally:
     kon.close()
 for nama, versi, tabel in (
-    ('admin-control.db',6,('konfigurasi_pendaftaran','operasi_admin','receipt_admin','batch_admin','batch_admin_item','kelompok_admin','kelompok_admin_item','penyerahan_admin','penyerahan_admin_item')),
+    ('admin-control.db',7,('konfigurasi_pendaftaran','operasi_admin','receipt_admin','batch_admin','batch_admin_item','kelompok_admin','kelompok_admin_item','penyerahan_admin','penyerahan_admin_item')),
     ('transient/admin-drafts.db',2,('draft_bulk','item_bulk','kelompok_bulk')),
 ):
     kon = sqlite3.connect('file:/data/' + nama + '?mode=ro', uri=True, timeout=2)
@@ -273,12 +273,37 @@ akun = json.loads(Path('/data/sandi.json').read_text())
 for item in akun.get('akun', [akun]):
     assert type(item.get('revisi_auth')) is int and item['revisi_auth'] >= 0
     assert isinstance(item.get('id_akun'), str) and item['id_akun'].startswith('akun_')
-'''+ PROBE_PENGIRIMAN_SKEMA + PROBE_PROFIL_SKEMA + PROBE_LANGGANAN_SKEMA + "\nprint('OSN_SCHEMA_ADMIN6_AI2_OK')\n"
+'''+ PROBE_PENGIRIMAN_SKEMA + PROBE_PROFIL_SKEMA + PROBE_LANGGANAN_SKEMA
 
 
 # Konservatif: perubahan byte pada schema/startup/persistensi perlu review ulang
 # kompatibilitas. Tidak import aplikasi, tidak membaca /data. Modul schema/migrasi
 # baru juga mengubah fingerprint; ini BUKAN analisis semantik seluruh kode Python.
+PROBE_LAYANAN_SKEMA = '''
+kon = sqlite3.connect('file:/data/admin-control.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only=ON')
+    wajib = {
+        'pembayaran_konfigurasi': {'id','tahap','revisi','actor_id'},
+        'pembayaran_audit': {'operasi_id','actor_id','tahap_lama','tahap_baru','revisi'},
+        'layanan_operasi': {'operasi_id','actor_id','sidik','status','hasil'},
+        'kpi_eksperimen': {'id','versi','mulai','koleksi','kualitas','boot_id'},
+        'kpi_peserta': {'id','akun_id','t0','consent','versi_consent'},
+        'kpi_aktivitas': {'peserta','hari','kode','jendela'},
+        'kpi_survei': {'peserta','ditawari','jawaban'},
+        'kpi_biaya': {'bulan','revisi','anggaran','lengkap'},
+        'kpi_audit_biaya': {'operasi_id','snapshot'},
+        'kpi_cakupan': {'eksperimen','dicabut','kedaluwarsa'},
+        'kpi_agregat': {'eksperimen','minggu','peserta','hapus_setelah'},
+    }
+    for tabel, kolom in wajib.items():
+        assert kolom <= {r[1] for r in kon.execute('PRAGMA table_info(' + tabel + ')')}
+finally:
+    kon.close()
+'''
+PROBE_IMAGE += PROBE_LAYANAN_SKEMA + "\nprint('OSN_IMAGE_ADMIN7_AI2_OK')\n"
+PROBE_SKEMA += PROBE_LAYANAN_SKEMA + "\nprint('OSN_SCHEMA_ADMIN7_AI2_OK')\n"
+
 PROBE_KONTRAK = '''import hashlib
 import json
 from pathlib import Path
@@ -574,7 +599,7 @@ class Docker:
             ["image", "inspect", "--format", "{{json .RepoDigests}}", image]))
         if not isinstance(daftar, list) or image not in daftar:
             raise Ditolak()
-        if self._probe(image, PROBE_IMAGE) != "OSN_IMAGE_ADMIN6_AI2_OK":
+        if self._probe(image, PROBE_IMAGE) != "OSN_IMAGE_ADMIN7_AI2_OK":
             raise Ditolak()
         return identitas
 
@@ -654,7 +679,7 @@ class Docker:
         return self._panggil(
             ["exec", "-i", KONTAINER, "python", "-E", "-B", "-"],
             batas=10, masukan=PROBE_SKEMA,
-        ) == "OSN_SCHEMA_ADMIN6_AI2_OK"
+        ) == "OSN_SCHEMA_ADMIN7_AI2_OK"
 
 
 class _TanpaRedirect(urllib.request.HTTPRedirectHandler):

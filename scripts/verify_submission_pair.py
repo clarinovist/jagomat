@@ -24,6 +24,10 @@ TULIS_PILOT = ('PROBE_LANGGANAN = ' + repr(SUMBER_UJI_LANGGANAN) + '\n'
                + LANGGANAN_TULIS + '\n' + SERVICE_TULIS + '\n' + TULIS_PILOT)
 BACA_PILOT = LANGGANAN_BACA + '\n' + SERVICE_BACA + '\n' + BACA_PILOT
 
+from release_admin_launch_pair import SUMBER_TULIS as LAYANAN_TULIS, SUMBER_BACA as LAYANAN_BACA
+TULIS_PILOT = LAYANAN_TULIS + '\n' + TULIS_PILOT
+BACA_PILOT = LAYANAN_BACA + '\n' + BACA_PILOT
+
 LABEL = 'osn.release.submission-probe'
 AWALAN = 'osn-submission-pair-'
 
@@ -214,7 +218,7 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'candidate_digest': candidate_image.split('@')[1],
             'recovery_revision': recovery_revision,
             'recovery_digest': recovery_image.split('@')[1], 'pengiriman_pair_checks': 6,
-            'pilihan_pair_checks': 8, 'learning_pair_checks': 8, 'subscription_pair_checks': 4,
+            'pilihan_pair_checks': 8, 'learning_pair_checks': 8, 'subscription_pair_checks': 4, 'admin_launch_pair_checks': 4,
             'provider_calls': 0}
 
 

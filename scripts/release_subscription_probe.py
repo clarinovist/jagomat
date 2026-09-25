@@ -1,7 +1,7 @@
 """Probe ledger admin6 untuk image network-none; tidak membaca data host."""
 
 SUMBER_UJI_LANGGANAN = r'''
-def uji_langganan(akar):
+def uji_langganan(akar, versi_admin=7):
     import sqlite3
     from pathlib import Path
     import admin_store, subscription as d, subscription_store as s
@@ -25,7 +25,7 @@ def uji_langganan(akar):
     for _ in range(2):
         admin_store.siapkan(p, sekarang=1)
     with admin_store.buka_baca(p) as kon:
-        assert kon.execute('PRAGMA user_version').fetchone()[0] == 6
+        assert kon.execute('PRAGMA user_version').fetchone()[0] == versi_admin
         assert kon.execute('SELECT revisi FROM konfigurasi_pendaftaran').fetchone()[0] == 7
     try:
         s.enroll(p, akun, sumber_id='daftar_probe', asal='publik', mulai=1, peran='guru')

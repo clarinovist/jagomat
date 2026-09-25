@@ -36,7 +36,7 @@ from admin_contracts import (
 
 
 BAWAAN = Path(os.environ.get("ADMIN_BERKAS_DB", "/data/admin-control.db"))
-VERSI_SKEMA = 6
+VERSI_SKEMA = 7
 RETENSI_AUDIT_HARI = 180
 
 
@@ -321,6 +321,11 @@ def _validasi_skema(kon: sqlite3.Connection) -> None:
         subscription_schema.validasi(kon)
     except (ValueError, sqlite3.Error):
         raise StoreBelumSiap("struktur ledger langganan tidak lengkap") from None
+    import admin_launch_schema
+    try:
+        admin_launch_schema.validasi(kon)
+    except (ValueError, sqlite3.Error):
+        raise StoreBelumSiap("struktur layanan admin tidak lengkap") from None
 
 
 def _jalankan_ddl(kon: sqlite3.Connection, skrip: str) -> None:
@@ -456,6 +461,14 @@ def siapkan(path=None, *, sekarang: Optional[int] = None) -> None:
                 kon.execute("INSERT INTO langganan_aturan VALUES(?,30,3,10000,5000,25000,10000,'belum_ditetapkan')",
                             ("langganan-v1",))
                 kon.execute("PRAGMA user_version=6")
+            if kon.execute("PRAGMA user_version").fetchone()[0] == 6:
+                import admin_launch_schema
+                _jalankan_ddl(kon, admin_launch_schema.DDL)
+                kon.execute(
+                    "INSERT INTO pembayaran_konfigurasi VALUES(1,'nonaktif',1,?,?)",
+                    (int(time.time()) if sekarang is None else int(sekarang), "sistem_migrasi"),
+                )
+                kon.execute("PRAGMA user_version=7")
             _validasi_skema(kon)
             kon.commit()
         except Exception:

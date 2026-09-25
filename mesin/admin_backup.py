@@ -36,7 +36,7 @@ BERKAS_TERLARANG = frozenset((
     "sesi.json", "admin-drafts.db", "transient.db",
 ))
 VERSI_TARGET = {
-    "admin": 6,
+    "admin": 7,
     "ai": 2,
     "transient": 2,
 }
@@ -335,6 +335,16 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
                 aktual = {r[1] for r in kon.execute('PRAGMA table_info(%s)' % tabel)}
                 if not wajib <= aktual:
                     raise BackupTidakSah('schema admin backup tidak lengkap')
+    if versi_admin == 6:
+        import subscription_schema
+        import subscription_store
+        with sqlite3.connect((akar / BERKAS_WAJIB['admin']).resolve().as_uri() + '?mode=ro', uri=True) as kon:
+            kon.row_factory = sqlite3.Row
+            try:
+                subscription_schema.validasi(kon)
+                subscription_store.validasi_ledger(kon)
+            except (ValueError, sqlite3.Error):
+                raise BackupTidakSah('schema langganan backup tidak lengkap') from None
     if versi_admin == VERSI_TARGET['admin']:
         import admin_store
         try:
@@ -353,7 +363,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
             "SELECT COUNT(*) FROM operasi_admin WHERE status='uncertain'"
         ).fetchone()[0])
     billing = False
-    if versi_admin == 6:
+    if versi_admin >= 6:
         # Restore bukan izin transaksi baru; cutoff provider harus direkonsiliasi.
         with sqlite3.connect(admin_uri, uri=True) as kon:
             billing = bool(kon.execute('SELECT 1 FROM langganan_invoice LIMIT 1').fetchone())

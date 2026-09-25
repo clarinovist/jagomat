@@ -268,6 +268,9 @@ def _halaman_admin(principal, section, isi, *, skrip=False, judul=None, subjudul
 
 def _render_get(penangan, principal, query):
     section = query.get("section", "ringkasan")
+    import admin_launch_http
+    if section in admin_launch_http.SECTION:
+        return admin_launch_http.get(penangan, principal, query)
     if section not in _SECTION:
         section = "ringkasan"
     halaman = _angka(query.get("halaman"), 1)
@@ -450,7 +453,7 @@ def tangani_get(penangan, jalur):
             return True
         query = _query(
             penangan,
-            diizinkan={"section", "id", "halaman", "status", "memiliki_anak", "tingkat", "keluarga_id", "actor_id", "aksi", "mulai", "selesai", "sumber"},
+            diizinkan={"section", "id", "halaman", "status", "memiliki_anak", "tingkat", "keluarga_id", "actor_id", "aksi", "mulai", "selesai", "sumber", "bulan"},
         )
         _render_get(penangan, principal, query)
     except LookupError:
@@ -906,6 +909,9 @@ def _post_bulk_proses(penangan, principal, data, mode="process"):
 
 
 def tangani_post(penangan, jalur):
+    import admin_launch_http
+    if admin_launch_http.tangani_post(penangan, jalur):
+        return True
     if jalur not in (
         "/admin", "/admin/akun", "/admin/siswa", "/admin/pendaftaran",
         "/admin/bulk/impor", "/admin/bulk/proses", "/admin/bulk/pilih",

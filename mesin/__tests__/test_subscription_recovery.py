@@ -37,9 +37,9 @@ def test_backup_ledger_berisi_receipt_grant_tetap_durable(tmp_path):
     admin_backup.buat_manifest(bundle, bundle_id="backup-ledger", cutoff=T0+2)
     hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in bundle.iterdir()}
     hasil = admin_backup.validasi_bundle(bundle)
-    assert hasil.versi_admin == 6 and hasil.perlu_rekonsiliasi
+    assert hasil.versi_admin == 7 and hasil.perlu_rekonsiliasi
     ulang = admin_backup.rehearsal_bundle(bundle, migrator_ai=_buat_ai_v2)
-    assert ulang.perlu_rekonsiliasi and ulang.versi_admin == 6
+    assert ulang.perlu_rekonsiliasi and ulang.versi_admin == 7
     assert {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in bundle.iterdir()} == hashes
     pulih = tmp_path / "pulih.db"
     with sqlite3.connect(p) as sumber, sqlite3.connect(pulih) as tujuan:
@@ -88,7 +88,7 @@ def test_probe_langganan_dijalankan_dan_verifier_tidak_boleh_skip(tmp_path):
 
 def test_source_tidak_punya_hook_user_network_env_billing():
     akar = Path(__file__).resolve().parents[1]
-    izin = {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_backup", "subscription_service", "subscription_registration", "midtrans_sandbox", "subscription_checkout", "subscription_http", "subscription_preview"}
+    izin = {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_backup", "subscription_service", "subscription_registration", "midtrans_sandbox", "subscription_checkout", "subscription_http", "subscription_preview", "admin_launch_service", "admin_subscription", "admin_operations"}
     for p in akar.glob("*.py"):
         pohon = ast.parse(p.read_text())
         for node in ast.walk(pohon):
@@ -101,7 +101,7 @@ def test_source_tidak_punya_hook_user_network_env_billing():
             if "midtrans_sandbox" in modul:
                 assert p.stem == "subscription_preview", p.name
             if "subscription_http" in modul:
-                assert p.stem in {"web", "subscription_preview"}, p.name
+                assert p.stem in {"web", "subscription_preview", "admin_subscription"}, p.name
             if set(modul) & {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "subscription_service", "subscription_registration", "subscription_checkout"}:
                 assert p.stem in izin, p.name
     for nama in ("subscription.py", "subscription_store.py", "midtrans_contract.py", "subscription_service.py", "subscription_registration.py"):
@@ -117,5 +117,5 @@ def test_source_tidak_punya_hook_user_network_env_billing():
     assert d.SAKELAR == d.Sakelar(False, False, False, False)
     root = akar.parent
     config = json.loads((root / 'scripts/release-metadata.json').read_text())
-    assert config['mode'] == 'migrasi'
+    assert config['mode'] in ('persiapan', 'migrasi')
     assert '    if: ${{ false }}' in (root / '.github/workflows/deploy.yml').read_text().split('  pasang:\n')[1]

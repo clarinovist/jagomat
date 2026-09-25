@@ -2,7 +2,7 @@
 
 # Definisi saja; dipanggil hanya di sandbox sintetis. Tidak dipasang pada readiness.
 SUMBER_UJI_PROFIL = r'''
-def uji_profil_konteks(akar, versi_admin=6):
+def uji_profil_konteks(akar, versi_admin=7):
     import sqlite3
     from pathlib import Path
     from dataclasses import replace

@@ -43,19 +43,19 @@ def siap(tmp_path):
     shutil.copy2(data / 'probe-accounts.json', data / 'sandi.json')
     source = tmp_path / 'source'
     source.mkdir()
-    for nama, versi in [('admin_store', 6), ('assistant_schema', 4), ('ai_store', 2)]:
+    for nama, versi in [('admin_store', 7), ('assistant_schema', 4), ('ai_store', 2)]:
         (source / (nama + '.py')).write_text('VERSI_SKEMA = %d\nraise RuntimeError("jangan import")\n' % versi)
     return deploy, data, source
 
 
-@pytest.mark.parametrize('rusak', [None, 'admin4', 'admin7', 'source4', 'registry',
+@pytest.mark.parametrize('rusak', [None, 'admin4', 'admin8', 'source4', 'registry',
     'profil', 'receipt', 'konteks', 'kolom', 'trigger', 'admin_hilang', 'belajar_hilang',
     'pilot_tabel', 'pilot_kolom', 'pilot_trigger', 'pilot_sumber'])
 def test_readiness_admin5_memeriksa_metadata_dan_tidak_menulis(siap, rusak, tmp_path):
     deploy, data, source = siap
-    if rusak in ('admin4', 'admin7'):
+    if rusak in ('admin4', 'admin8'):
         with sqlite3.connect(data / 'admin-control.db') as kon:
-            kon.execute('PRAGMA user_version=' + ('4' if rusak == 'admin4' else '7'))
+            kon.execute('PRAGMA user_version=' + ('4' if rusak == 'admin4' else '8'))
     elif rusak == 'source4':
         (source / 'admin_store.py').write_text('VERSI_SKEMA = 4\n')
     elif rusak == 'registry':
@@ -88,9 +88,9 @@ def test_readiness_admin5_memeriksa_metadata_dan_tidak_menulis(siap, rusak, tmp_
     hasil = _python(skrip, tmp_path)
     assert (hasil.returncode == 0) is (rusak is None)
     if rusak is None:
-        assert hasil.stdout.strip() == 'OSN_SCHEMA_ADMIN6_AI2_OK'
+        assert hasil.stdout.strip() == 'OSN_SCHEMA_ADMIN7_AI2_OK'
     else:
-        assert 'OSN_SCHEMA_ADMIN6_AI2_OK' not in hasil.stdout
+        assert 'OSN_SCHEMA_ADMIN7_AI2_OK' not in hasil.stdout
     assert _hash_db(data) == sebelum
 
 
@@ -108,7 +108,7 @@ def test_helper_benar_benar_menggigit_guard_baru(tmp_path, rusak):
     for p in (AKAR / 'mesin').glob('*.py'):
         shutil.copy2(p, source / p.name)
     nama, lama, baru = {
-        'admin': ('admin_store.py', 'VERSI_SKEMA = 6', 'VERSI_SKEMA = 4'),
+        'admin': ('admin_store.py', 'VERSI_SKEMA = 7', 'VERSI_SKEMA = 4'),
         'receipt': ('learning_profile_admin.py', "if not receipt_cocok(receipt, perintah) or baris['kelas_baru'] != kelas:", 'if False:'),
         'konteks': ('context_schema.py', "{tabel}_immutable_update BEFORE UPDATE", "{tabel}_immutable_update BEFORE UPDATE"),
         'reader': ('context_store.py', "if lama is None or lama['snapshot_json'] != serial:\n        raise ValueError('arsip konteks konfirmasi tidak cocok')", "if lama is None:\n        return"),
@@ -164,5 +164,5 @@ def test_verifier_candidate_tidak_boleh_melewati_probe_profil(tmp_path):
 def test_ringkasan_candidate_wajib_mengaku_enam_probe_profil_dan_admin5():
     verifier = _modul('verify_release_image')
     hasil = verifier.ringkasan_untuk_revision('b' * 40)
-    assert hasil['profil_checks'] == 6 and hasil['admin_schema'] == 6
+    assert hasil['profil_checks'] == 6 and hasil['admin_schema'] == 7
     assert hasil['subscription_checks'] == 4

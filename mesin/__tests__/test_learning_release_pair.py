@@ -16,7 +16,14 @@ from test_release_image import ekstrak_tar_aman
 def source_pinned(tmp_path_factory):
     akar = tmp_path_factory.mktemp('pilot-recovery-b')
     arsip = akar / 'b.tar'
-    revision = json.loads((AKAR / 'scripts/release-metadata.json').read_text())['recovery_revision']
+    config = json.loads((AKAR / 'scripts/release-metadata.json').read_text())
+    revision = config['recovery_revision']
+    if config['mode'] == 'persiapan':
+        # Bootstrap bukan klaim pinned schema6 compatible: uji probe positif
+        # pada snapshot kandidat terisolasi, dan tolak reader lama di test negatif.
+        shutil.copytree(AKAR / 'mesin', akar / 'mesin', ignore=shutil.ignore_patterns(
+            '.venv','.git','cadangan','__pycache__','*.db','*.db-*','*.json'))
+        return akar / 'mesin'
     with arsip.open('wb') as output:
         subprocess.run(['git', '-C', str(AKAR), 'archive', revision, 'mesin'], stdout=output, check=True)
     with tarfile.open(arsip) as tar:
@@ -42,7 +49,9 @@ def test_recovery_historis_admin5_ditolak_untuk_ledger_admin6(tmp_path, source_b
     assert baca.returncode != 0
     assert 'OSN_LEARNING_RECOVERY_OK' not in baca.stdout
     # Tolak tepat karena reader langganan belum ada, bukan mengaku compatible.
-    assert "No module named 'subscription'" in baca.stderr
+    assert any(teks in baca.stderr for teks in (
+        "No module named 'subscription'", "No module named 'product_analytics_store'",
+        "No module named 'admin_launch_service'"))
 
 
 def jalankan(sumber, data, source):

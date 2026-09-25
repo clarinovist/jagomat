@@ -129,7 +129,7 @@ class RunnerPalsu:
                 hasil = "b" * 40
         elif a[0] == "run" and "--rm" in a:
             label = "probe-" + self.image_nama(a[a.index("--entrypoint") + 2])
-            hasil = "OSN_IMAGE_ADMIN6_AI2_OK"
+            hasil = "OSN_IMAGE_ADMIN7_AI2_OK"
             if kwargs["input"] == d.PROBE_KONTRAK:
                 label = "contract-" + self.image_nama(a[a.index("--entrypoint") + 2])
                 hasil = "f" * 64
@@ -171,7 +171,7 @@ class RunnerPalsu:
                     self.exists = False
         elif a[0] == "exec":
             label = "schema-" + self.current
-            hasil = "OSN_SCHEMA_ADMIN6_AI2_OK"
+            hasil = "OSN_SCHEMA_ADMIN7_AI2_OK"
         else:
             raise AssertionError("argv tak dikenal")
         self.jejak.append(label)
@@ -631,7 +631,7 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
     schema.write_text("VERSI_SKEMA = 4\nraise RuntimeError('jangan import')\n")
     ai_schema = tmp_path / "ai_store.py"
     ai_schema.write_text("VERSI_SKEMA = 2\nraise RuntimeError('jangan import')\n")
-    (tmp_path / 'admin_store.py').write_text("VERSI_SKEMA = 6\nraise RuntimeError('jangan import')\n")
+    (tmp_path / 'admin_store.py').write_text("VERSI_SKEMA = 7\nraise RuntimeError('jangan import')\n")
     privat = tmp_path / "pendamping.db"
     belajar = tmp_path / "latihan.db"
     ai = tmp_path / "ai-control.db"
@@ -649,7 +649,7 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
             kon.execute('CREATE TABLE '+tabel+' (id TEXT)')
     (tmp_path/'transient').mkdir()
     for nama, v, tables in (
-        ('admin-control.db',6,('konfigurasi_pendaftaran','operasi_admin','receipt_admin','batch_admin','batch_admin_item','kelompok_admin','kelompok_admin_item','penyerahan_admin','penyerahan_admin_item')),
+        ('admin-control.db',7,('konfigurasi_pendaftaran','operasi_admin','receipt_admin','batch_admin','batch_admin_item','kelompok_admin','kelompok_admin_item','penyerahan_admin','penyerahan_admin_item')),
         ('transient/admin-drafts.db',2,('draft_bulk','item_bulk','kelompok_bulk')),
     ):
         with sqlite3.connect(tmp_path/nama) as kon:
@@ -676,6 +676,8 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
         admin_store._jalankan_ddl(kon, admin_store._DDL)
         import subscription_schema
         admin_store._jalankan_ddl(kon, subscription_schema.DDL)
+        import admin_launch_schema
+        admin_store._jalankan_ddl(kon, admin_launch_schema.DDL)
     sebelum = (privat.read_bytes(), belajar.read_bytes(), ai.read_bytes())
     script = d.PROBE_SKEMA.replace(
         "akar_app = Path('/app')", "akar_app = Path(" + repr(str(tmp_path)) + ")"
@@ -685,7 +687,7 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
     assert hasil.returncode == expected
     assert (privat.read_bytes(), belajar.read_bytes(), ai.read_bytes()) == sebelum
     if expected == 0:
-        assert hasil.stdout.strip() == "OSN_SCHEMA_ADMIN6_AI2_OK"
+        assert hasil.stdout.strip() == "OSN_SCHEMA_ADMIN7_AI2_OK"
     else:
         assert "AssertionError" in hasil.stderr
     assert "mode=ro" in d.PROBE_SKEMA and "query_only = ON" in d.PROBE_SKEMA
@@ -812,7 +814,7 @@ def test_probe_image_synthetic_subprocess_python_saja(tmp_path):
                            cwd=tmp_path, capture_output=True, text=True,
                            timeout=30, check=False, shell=False)
     assert hasil.returncode == 0, hasil.stderr
-    assert hasil.stdout.strip() == "OSN_IMAGE_ADMIN6_AI2_OK"
+    assert hasil.stdout.strip() == "OSN_IMAGE_ADMIN7_AI2_OK"
     assert (tmp_path / "latihan.db").exists()
     assert (tmp_path / "pendamping.db").exists()
     assert (tmp_path / "ai-control.db").exists()
@@ -825,7 +827,7 @@ def test_probe_image_menolak_kontrak_admin_rusak(tmp_path, fault):
     shutil.copytree(AKAR / 'mesin', sumber, ignore=shutil.ignore_patterns(
         '.git', '.venv', '__pycache__', '__tests__', '*.db*', '*sandi*.json', 'sesi.json', 'cadangan', 'lembar'))
     nama, lama, baru = {
-        'admin': ('admin_store.py', 'VERSI_SKEMA = 6', 'VERSI_SKEMA = 4'),
+        'admin': ('admin_store.py', 'VERSI_SKEMA = 7', 'VERSI_SKEMA = 4'),
         'ai': ('ai_store.py', 'VERSI_SKEMA = 2', 'VERSI_SKEMA = 1'),
         'auth': ('auth.py', 'def naikkan_revisi_auth(', 'def naikkan_revisi_auth_rusak('),
         'receipt': ('admin_students.py', 'CREATE TABLE IF NOT EXISTS operasi_admin_siswa', 'CREATE TABLE IF NOT EXISTS receipt_rusak'),
@@ -837,7 +839,7 @@ def test_probe_image_menolak_kontrak_admin_rusak(tmp_path, fault):
     hasil = subprocess.run([sys.executable, '-B', '-'], input=script, cwd=tmp_path,
                            capture_output=True, text=True, timeout=30)
     assert hasil.returncode != 0
-    assert 'OSN_IMAGE_ADMIN6_AI2_OK' not in hasil.stdout
+    assert 'OSN_IMAGE_ADMIN7_AI2_OK' not in hasil.stdout
 
 
 def test_health_db_hilang_tidak_dibuat(tmp_path):
@@ -845,7 +847,7 @@ def test_health_db_hilang_tidak_dibuat(tmp_path):
     schema.write_text("VERSI_SKEMA = 4\n")
     ai_schema = tmp_path / "ai_store.py"
     ai_schema.write_text("VERSI_SKEMA = 2\n")
-    (tmp_path/'admin_store.py').write_text("VERSI_SKEMA = 6\n")
+    (tmp_path/'admin_store.py').write_text("VERSI_SKEMA = 7\n")
     script = d.PROBE_SKEMA.replace(
         "akar_app = Path('/app')", "akar_app = Path(" + repr(str(tmp_path)) + ")"
     ).replace("file:/data/", "file:" + str(tmp_path) + "/")

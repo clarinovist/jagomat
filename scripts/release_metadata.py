@@ -110,7 +110,7 @@ def validasi_bukti_pasangan(data, kandidat, recovery, digest_kandidat, digest_re
     """Bukti helper pair terikat revision DAN digest; bukan approval operator."""
     harapan = {"ok": True, "candidate_revision": kandidat, "recovery_revision": recovery,
                "candidate_digest": digest_kandidat, "recovery_digest": digest_recovery,
-               "pengiriman_pair_checks": 6, "pilihan_pair_checks": 8, "learning_pair_checks": 8, "subscription_pair_checks": 4, "provider_calls": 0}
+               "pengiriman_pair_checks": 6, "pilihan_pair_checks": 8, "learning_pair_checks": 8, "subscription_pair_checks": 4, "admin_launch_pair_checks": 4, "provider_calls": 0}
     if (type(data) is not dict or data != harapan
             or any(type(data[k]) is not type(v) for k, v in harapan.items())):
         raise ValueError("Bukti lintas image tidak sah.")

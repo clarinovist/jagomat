@@ -174,6 +174,7 @@ def halaman_akun(
     section: str = "akun",
     arsip_pendamping: str = "",
     privat: bool = False,
+    analitik: str = "",
     langganan_sandbox: bool = False,
 ) -> bytes:
     """Kelola sandi dan daftar siswa — sidebar + section, tanpa JS.
@@ -317,6 +318,8 @@ def halaman_akun(
                 '</details></div>'
             )
 
+    if section == 'akun' and peran == 'guru':
+        isi_section += analitik
     item = [("akun", "Akun saya")]
     if peran != "admin":
         item.extend((("siswa", "Siswa"), ("akun-murid", "Akun latihan")))

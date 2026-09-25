@@ -54,6 +54,26 @@ body.admin-readonly {{
 .admin-nav a[aria-current="page"] {{
   color: {T.TEKS_PUTIH}; background: {T.AKSEN_TEAL_TUA};
 }}
+@media (max-width: 48rem) {{
+  .admin-nav {{ flex-wrap:wrap; overflow:visible; gap:{T.SP_1}; }}
+  .admin-nav a {{ padding:0 {T.SP_2}; font-size:.88rem; }}
+}}
+.admin-grid-kpi {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr)); gap:{T.SP_3}; margin:{T.SP_4} 0; }}
+.admin-grid-kpi > * {{ min-width:0; }}
+.admin-kpi-carte header {{ display:flex; justify-content:space-between; align-items:start; gap:{T.SP_2}; }}
+.admin-kpi-carte header h2 {{ font-size:1.12rem; margin:0; }}
+.admin-kpi-carte .admin-info {{ flex-shrink:0; }}
+.admin-kpi-carte .admin-info[open] {{ flex-shrink:1; }}
+.admin-kpi-carte p {{ margin:{T.SP_2} 0; }}
+.admin-kpi-biaya {{ grid-column:1 / -1; }}
+.admin-filtre-periode {{ display:flex; flex-wrap:wrap; align-items:end; gap:{T.SP_3}; }}
+.admin-filtre-periode label {{ display:grid; gap:{T.SP_1}; }}
+.admin-filtre-periode input {{ min-height:{T.TARGET_SENTUH}; padding:{T.SP_2}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KECIL}; font:inherit; }}
+.admin-angka {{ font-size:1.75rem; color:{T.TEKS_JUDUL}; }}
+.admin-info {{ display:inline-block; vertical-align:middle; font-size:1rem; font-weight:normal; }}
+.admin-info summary {{ cursor:pointer; min-width:{T.TARGET_SENTUH}; min-height:{T.TARGET_SENTUH}; display:flex; align-items:center; justify-content:center; }}
+.admin-info p {{ max-width:22rem; font-size:.88rem; overflow-wrap:anywhere; }}
+.admin-kartu > summary {{ cursor:pointer; min-height:{T.TARGET_SENTUH}; font-weight:700; }}
 .admin-grid-stat {{
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: {T.SP_3}; margin-bottom: {T.SP_5};

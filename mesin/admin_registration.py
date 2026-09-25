@@ -35,6 +35,7 @@ class AkunBaru:
     peran: str
     revisi_auth: int
     siswa_id: Optional[int]
+    baru: bool = False
 
 
 _TOKEN_FORM = re.compile(r"^[A-Za-z0-9._-]{32,4096}$")
@@ -365,4 +366,4 @@ def _buat_publik_auth(
         hasil = auth._bungkus_akun(mentah, akun)
         hasil["operasi_registrasi"] = receipts
         auth._tulis_akun_atomik(hasil, tujuan)
-        return AkunBaru(id_baru, alias, "guru", 1, None)
+        return AkunBaru(id_baru, alias, "guru", 1, None, baru=True)

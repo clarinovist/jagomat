@@ -24,6 +24,10 @@ SECTION = (
     ("keluarga", "Keluarga", "/admin?section=keluarga"),
     ("siswa", "Siswa", "/admin?section=siswa"),
     ("pendaftaran", "Pendaftaran", "/admin?section=pendaftaran"),
+    ("langganan", "Langganan", "/admin?section=langganan"),
+    ("perhatian", "Perlu ditangani", "/admin?section=perhatian"),
+    ("operasional", "Operasional", "/admin?section=operasional"),
+    ("kpi", "KPI Uji Coba", "/admin?section=kpi"),
     ("ai", "AI", "/admin/ai"),
     ("riwayat", "Riwayat admin", "/admin?section=riwayat"),
 )

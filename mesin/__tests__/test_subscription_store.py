@@ -65,7 +65,7 @@ def test_migrasi_admin5_ke6_additive_idempoten_dan_reader(tmp_path):
     admin_store.siapkan(path, sekarang=9)
     assert dump(path) == setelah
     with admin_store.buka_baca(path) as kon:
-        assert kon.execute("PRAGMA user_version").fetchone()[0] == 6
+        assert kon.execute("PRAGMA user_version").fetchone()[0] == 7
         assert tuple(kon.execute("SELECT * FROM konfigurasi_pendaftaran").fetchone()) == (1,9,0,"closed_standard",1)
         for t in sk.TABEL[1:]:
             assert kon.execute("SELECT COUNT(*) FROM " + t).fetchone()[0] == 0
@@ -82,7 +82,7 @@ def test_migrator_dan_enrollment_serentak_tidak_ganda(tmp_path):
         hasil = list(pool.map(lambda _: daftar(path), range(8)))
     assert all(e == hasil[0] for e in hasil)
     with admin_store.buka_baca(path) as kon:
-        assert kon.execute('PRAGMA user_version').fetchone()[0] == 6
+        assert kon.execute('PRAGMA user_version').fetchone()[0] == 7
         assert kon.execute('SELECT COUNT(*) FROM langganan_enrollment').fetchone()[0] == 1
 
 

@@ -72,6 +72,7 @@ def _topbar_publik_st() -> str:
 def halaman_daftar(
     pesan: str = "", galat: bool = False, nama: str = "", *,
     pendaftaran_dibuka: bool = True, token_form: str = "", belum_tersedia: bool = False,
+    analitik: str = "",
 ) -> bytes:
     """Form pendaftaran mandiri pendamping (orang tua / guru / les).
 
@@ -151,6 +152,7 @@ Akun anak dibuat setelah ini, dari dalam aplikasi.</p>
     menyetujui <a href="/kebijakan-privasi">Kebijakan Privasi</a>.</span>
    </label>
   </div>
+  {analitik}
   <button class="masuk-tombol-st" type="submit">Buat akun <span aria-hidden="true">→</span></button>
 </form>
 <p class="daftar-bawah-st">Setelah mendaftar, kamu langsung masuk ke ruang pendamping.</p>
@@ -237,6 +239,15 @@ pelacakan, atau analitik.</li>
 pribadi lainnya.</li>
 </ul>
 
+<h2>Analitik opsional</h2>
+<p>Jika eksperimen evaluasi diaktifkan, orang tua dapat memilih persetujuan terpisah.
+Jagomat mencatat keberadaan aktivitas latihan harian, sumber informasi berkategori,
+dan survei singkat—bukan jawaban, nilai, diagnosis, foto, chat, atau kontak.
+Menolak atau mencabut tidak mengurangi hak akses. Data terkait akun dihapus paling
+lama 90 hari sejak pendaftaran; agregat kelompok tanpa mapping disimpan paling lama
+12 bulan setelah rekrutmen. Cabut dan hapus analitik aktif melalui pengaturan akun.
+Setelah restart atau pemulihan, pengiriman aktivitas memerlukan persetujuan ulang;
+data lama tidak otomatis menjadi izin baru.</p>
 <h2>Penyimpanan &amp; penghapusan data</h2>
 <p>Semua data tersimpan dalam satu basis data di server pengelola —
 bukan layanan cloud pihak ketiga. Dari aplikasi, kamu bisa menghapus

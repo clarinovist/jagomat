@@ -27,4 +27,9 @@ def jalankan(
     draft = admin_bulk.purge_draft(
         path_transient, sekarang=sekarang, batas_batch=batas_batch
     )
+    import time
+    import product_analytics_store
+    product_analytics_store.retensi(
+        path_admin, sekarang=int(time.time()) if sekarang is None else sekarang
+    )
     return HasilPemeliharaan(audit, draft)

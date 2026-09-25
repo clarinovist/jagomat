@@ -439,6 +439,7 @@ class Penangan(BaseHTTPRequestHandler):
             if hasil:
                 database.tandai_mulai(kon, sesi_id)
             selesai = aksi in ("selesai", "kirim_latihan")
+            kiriman_baru = not kon.execute('SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?', (sesi_id,)).fetchone()
             if selesai:
                 kiriman.arsipkan(kon, sesi_id, "tautan")
                 diagnosa_murid(kon, sesi_id)
@@ -463,6 +464,9 @@ class Penangan(BaseHTTPRequestHandler):
             # Jawaban (dan stamp mulai/selesai) ter-commit sebelum respons:
             # refresh anak tepat setelah simpan membaca DB yang sudah final.
             kon.commit()
+        if selesai:
+            import product_analytics_http as analitik
+            analitik.aktivitas_sesi(sesi_id, 'latihan_dikirim', baru=kiriman_baru)
         return self._kirim_tautan(isi)
 
     def _rute_get(self) -> None:
@@ -531,9 +535,14 @@ class Penangan(BaseHTTPRequestHandler):
             except ValueError:
                 sorot = None
             with database.buka() as kon:
-                return self._kirim(halaman_utama_stitch(
+                isi = halaman_utama_stitch(
                     kon, pesan=pesan, pemilik=ident[0], peran=ident[1], sorot=sorot,
-                ))
+                )
+            import product_analytics_http as analitik
+            survei = analitik.form_survei(self)
+            if survei:
+                isi = isi.replace(b'</main>', survei.encode() + b'</main>', 1)
+            return self._kirim_privat(isi) if survei else self._kirim(isi)
         if jalur == "/daftar":
             import admin_http
             import admin_registration
@@ -551,9 +560,10 @@ class Penangan(BaseHTTPRequestHandler):
                     ),
                     503,
                 )
+            import product_analytics_http as analitik
             return self._kirim(halaman_daftar(
                 pendaftaran_dibuka=status.dibuka,
-                token_form=token_form,
+                token_form=token_form, analitik=analitik.form_daftar(),
             ))
         if jalur == "/kebijakan-privasi":
             # Publik: tujuan checkbox persetujuan di /daftar & form anak,
@@ -718,6 +728,11 @@ class Penangan(BaseHTTPRequestHandler):
                         bantuan=fragmen_inline,
                         bantuan_nomor=(target_inline.nomor if target_inline else None),
                     )
+                    if ident and ident[1] == 'guru' and kon.execute('SELECT 1 FROM sesi WHERE id=? AND selesai IS NOT NULL', (sesi_id,)).fetchone():
+                        kon.commit()
+                        import product_analytics_http as analitik
+                        return analitik.kirim_dan_catat(self, hasil, sesi_id, 'panduan_hasil_disajikan',
+                                                       pengguna=ident[0], peran=ident[1], privat=bool(target_inline))
                     return self._kirim_privat(hasil) if target_inline else self._kirim(hasil)
                 if jalur.startswith("/anak/") and jalur.count("/") >= 2:
                     # History satu anak (feedback Filia 1 Sep 2026 no. 6):
@@ -839,16 +854,24 @@ class Penangan(BaseHTTPRequestHandler):
                         return self._kirim_privat(
                             _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
                         )
+                    import product_analytics_http as analitik
+                    panel_analitik = ''
+                    if section == 'akun' and ident[1] == 'guru' and self._ambil_token():
+                        try:
+                            panel_analitik = analitik.form_akun(self)
+                        except (LookupError, RuntimeError, OSError):
+                            panel_analitik = '<p>Analitik opsional belum tersedia.</p>'
                     hasil = halaman_akun(
                         kon,
                         pengguna=ident[0] if ident else None,
                         peran=ident[1] if ident else "guru",
                         section=section,
                         arsip_pendamping=arsip,
-                        privat=bool(arsip),
+                        privat=bool(arsip or panel_analitik),
+                        analitik=panel_analitik,
                         langganan_sandbox=subscription_http.runtime(self) is not None,
                     )
-                    return assistant_http._kirim_host_privat(self, hasil) if arsip else self._kirim(hasil)
+                    return assistant_http._kirim_host_privat(self, hasil) if arsip or panel_analitik else self._kirim(hasil)
                 if jalur.startswith("/lembar/"):
                     bagian = jalur.split("/")
                     sesi_id = int(bagian[2])
@@ -859,6 +882,12 @@ class Penangan(BaseHTTPRequestHandler):
                     guru = len(bagian) > 3 and bagian[3] == "penilaian"
                     isi = halaman_lembar(kon, sesi_id, guru)
                     if isi:
+                        kon.commit()
+                        if not guru:
+                            import product_analytics_http as analitik
+                            ident = self._identitas()
+                            return analitik.kirim_dan_catat(self, isi, sesi_id, 'lembar_soal_disajikan',
+                                                           pengguna=ident[0], peran=ident[1])
                         return self._kirim(isi)
         except (ValueError, IndexError):
             pass
@@ -1116,6 +1145,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         if jalur == "/admin" or jalur.startswith("/admin/"):
             return admin_http.tidak_ada(self)
+        import product_analytics_http as analitik
+        if analitik.tangani_post(self, jalur):
+            return
         if assistant_http.tangani_inline_post(self, jalur):
             return
         if assistant_http.tangani_post(self, jalur):
@@ -1203,6 +1235,7 @@ class Penangan(BaseHTTPRequestHandler):
                     _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
                 )
             if selesai:
+                analitik.aktivitas_sesi(sesi_id, 'latihan_dikirim', baru=True)
                 # Langsung kembali ke daftar sesi — banner ?selesai= sudah
                 # mengonfirmasi. Halaman perayaan terpisah berarti satu
                 # klik ekstra plus pilihan "Keluar" yang membingungkan;
@@ -1235,10 +1268,14 @@ class Penangan(BaseHTTPRequestHandler):
                 import admin_http
                 import admin_security
                 data = admin_security.baca_form(self)
-                if set(data) - {"nama", "sandi", "setuju", "token_form"} or not {
+                if set(data) - {"nama", "sandi", "setuju", "token_form", "analitik", "sumber_analitik"} or not {
                     "nama", "sandi"
                 } <= set(data):
                     raise ValueError("Isian pendaftaran tidak sah.")
+                if data.get('analitik', '0') not in ('0', '1'):
+                    raise ValueError('persetujuan analitik tidak sah')
+                if data.get('sumber_analitik', 'tidak_diketahui') not in analitik.d.SUMBER:
+                    raise ValueError('sumber analitik tidak sah')
                 nama = data["nama"].strip()
                 sandi = data["sandi"]
                 token_baru = admin_http.buat_token_pendaftaran()
@@ -1277,6 +1314,12 @@ class Penangan(BaseHTTPRequestHandler):
                     operasi_id=tinjauan["op"], alias=nama,
                     sandi=sandi,
                     token_form=admin_http.token_domain(data["token_form"]),
+                )
+                analitik.setelah_daftar(
+                    auth.PrincipalAkun(akun_baru.pengguna, akun_baru.peran,
+                                       akun_baru.id_akun, akun_baru.revisi_auth),
+                    setuju=data.get('analitik') == '1' and akun_baru.baru,
+                    sumber=data.get('sumber_analitik', 'tidak_diketahui'),
                 )
                 token = sessions.buat_dari_principal(akun_baru)
                 if token is None:
@@ -1978,13 +2021,20 @@ class Penangan(BaseHTTPRequestHandler):
                         return self._kirim(
                             _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
                         )
+                    info_lampiran = database.ambil_lampiran(kon, angka)
+                    sesi_foto = info_lampiran['sesi_id']
+                    sudah_kirim = kon.execute('SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?', (sesi_foto,)).fetchone()
                     jumlah, pesan = lampiran_mod.terapkan(kon, angka, data)
                     isi = lampiran_mod.halaman_konfirmasi(kon, angka, pesan)
                     if isi is None:
                         return self._kirim(
                             _halaman("404", "<h1>Lampiran hilang</h1>"), 404
                         )
-                    return self._kirim(isi)
+                    baru_kirim = not sudah_kirim and bool(kon.execute('SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?', (sesi_foto,)).fetchone())
+                ident = self._identitas()
+                analitik.aktivitas_sesi(sesi_foto, 'latihan_dikirim',
+                                       pengguna=ident[0], peran=ident[1], baru=baru_kirim)
+                return self._kirim(isi)
 
             # Upload foto (multipart) -> ekstraksi -> halaman konfirmasi.
             content_type = self.headers.get("Content-Type", "")
