@@ -100,10 +100,11 @@ def tangani_post(penangan,jalur):
         if jalur.endswith('/cari'):
             h._cek_csrf(h._akun_principal(p),h._wajib_cookie(penangan,p),data.pop('csrf',None))
             cari=data.pop('cari','')
+            halaman=h._angka(data.pop('halaman','1'),1)
             if data: raise ValueError('isian asing')
-            rows,total=billing.daftar(h._path_admin(),auth.BERKAS_SANDI,p,cari=cari)
+            rows,total=billing.daftar(h._path_admin(),auth.BERKAS_SANDI,p,cari=cari,halaman=halaman)
             csrf=h._csrf(h._akun_principal(p),h._wajib_cookie(penangan,p))
-            _kirim(penangan,p,'langganan',ui.daftar_langganan(rows,total,halaman=1,cari=cari,csrf=csrf))
+            _kirim(penangan,p,'langganan',ui.daftar_langganan(rows,total,halaman=halaman,cari=cari,csrf=csrf))
             return True
         aksi={'periksa':'periksa_pembayaran','pembayaran':'atur_pembayaran','biaya':'biaya','eksperimen':'eksperimen'}[jalur.rsplit('/',1)[-1]]
         akun,tinjauan,token=h._token_final(penangan,p,data,aksi)

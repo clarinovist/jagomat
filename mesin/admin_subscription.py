@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 import json
+import sqlite3
 
 import admin_accounts
 import admin_registration
@@ -52,9 +53,15 @@ def runtime_penangan(penangan):
             or getattr(runtime.config, 'lingkungan', None) != 'production'
             or not callable(runtime.transport)):
         return None
-    return RuntimePembayaran(runtime.config, runtime.transport,
-                             sakelar_runtime(admin_store.BAWAAN),
-                             kesiapan_penangan(penangan))
+    kesiapan = kesiapan_penangan(penangan)
+    tersimpan = sakelar_runtime(admin_store.BAWAAN)
+    rekonsiliasi = tersimpan.rekonsiliasi and kesiapan['provider_produksi']
+    checkout = (tersimpan.buat_pembayaran and rekonsiliasi
+                and kesiapan['callback'] and kesiapan['recovery'])
+    efektif = d.Sakelar(fondasi=rekonsiliasi, buat_pembayaran=checkout,
+                       rekonsiliasi=rekonsiliasi,
+                       penegakan=tersimpan.penegakan and checkout and kesiapan['kebijakan'])
+    return RuntimePembayaran(runtime.config, runtime.transport, efektif, kesiapan)
 
 
 def _otorisasi(path_auth, principal):
@@ -66,7 +73,7 @@ def sakelar_runtime(path_admin):
     try:
         with admin_store.buka_baca(path_admin) as kon:
             return guard.sakelar_pembayaran(kon)
-    except (admin_store.StoreBelumSiap, ValueError):
+    except (admin_store.StoreBelumSiap, ValueError, OSError, sqlite3.Error):
         return d.SAKELAR
 
 

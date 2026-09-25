@@ -32,6 +32,7 @@ def aktif():
         c=store.baca_config(admin_store.BAWAAN)
         return bool(c and c['koleksi'] and c['boot_id'] == store.BOOT_ID)
     except (OSError,RuntimeError,sqlite3.Error):
+        _gagal()
         return False
 
 

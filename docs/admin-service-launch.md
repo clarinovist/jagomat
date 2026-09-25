@@ -4,10 +4,12 @@ Status: implementasi kandidat; bukan bukti deployment atau pengaktifan pembayara
 
 ## Empat bagian
 
-- **Langganan**: pencarian keluarga enrolled, masa coba/grant, cakupan dan sisa promo,
-  invoice serta receipt. Pembayaran dan akses ditampilkan terpisah. Query provider
-  hanya lewat POST cookie admin+reauth+token signed, intent existing, order sama,
-  pemeriksaan owner/principal sebelum-sesudah jaringan, journal dan deduplikasi.
+- **Langganan**: pencarian keluarga enrolled (nama dicari lewat POST, hasil
+  berpaginasi tanpa nama di URL), masa coba/grant, cakupan dan sisa promo, invoice
+  serta receipt. Pembayaran dan akses ditampilkan terpisah. Query provider hanya
+  lewat POST cookie admin+reauth+token signed, intent existing, order sama,
+  pemeriksaan owner/principal sebelum-sesudah jaringan, journal dan deduplikasi;
+  jam penyelesaian dipakai setelah network agar settlement terlambat dinilai benar.
   Runtime sekarang mengikuti preview sandbox loopback terisolasi; produksi belum
   mempunyai adapter/callback siap. Tidak ada override lunas, refund, atau grant manual.
 - **Perlu ditangani**: halaman antrean berpaginasi untuk journal admin, pemeriksaan
@@ -50,7 +52,9 @@ Kartu aktif setelah retensi tidak menampilkan 0 palsu; arsip agregat terpisah.
 
 Kegagalan koleksi tidak membatalkan latihan/registrasi. Sink pendek50ms, kategori log
 tertutup dan flag kegagalan dalam proses menahan KPI hijau meskipun penulisan status
-kegagalan ikut gagal. Tidak mengarang event dari histori anak untuk menutup gap.
+kegagalan ikut gagal. Kegagalan membaca config saat memeriksa `aktif()` juga menandai
+pencatatan terganggu, sehingga kesalahan baca tidak diam-diam menampilkan KPI hijau.
+Tidak mengarang event dari histori anak untuk menutup gap.
 
 ## Persistensi/rilis
 
@@ -72,12 +76,16 @@ injeksi eksplisit. Missing/rusak kembali OFF tanpa membuat DB.
 Readiness bukan checkbox admin: key/provider produksi, callback, recovery exact-pair,
 dan kebijakan D8/D9 diinjeksi oleh artifact/server tepercaya. Nilai secret tidak
 pernah tampil/tersimpan di panel. Sampai semua gate tersedia, panel hanya menampilkan
-status “belum siap” dan menolak kenaikan tahap. Ini menggantikan perubahan `.env`
+status “belum siap” dan menolak kenaikan tahap. Selain gate aturan tahap, sakelar
+efektif runtime juga digerbangi readiness: state tersimpan hanya menghasilkan
+rekonsiliasi bila provider produksi siap, checkout bila callback+recovery siap, dan
+penegakan bila kebijakan siap. Kegagalan membaca config/DB kembali ke sakelar OFF. Ini menggantikan perubahan `.env`
 berulang untuk operasi rutin, tetapi bukan cara melewati gate rilis.
-Baseline recovery admin6 tidak kompatibel. Bootstrap memakai mode persiapan dan
-pasang literal false; setelah baseline admin7 teruji, kandidat mematok SHA/fingerprint
-baseline yang sama, mode migrasi dan pair exact digest. Tidak downgrade schema,
-restore otomatis, atau aktivasi produksi melalui perubahan metadata.
+Baseline recovery admin6 tidak kompatibel. Baseline B7 (`781fbcd`) sudah lolos CI
+`36131909868` (11.866 test, build/probe). Kandidat sekarang mematok SHA+contract B7
+pada mode `migrasi` sehingga pair exact digest wajib; pasang tetap literal false.
+Tidak downgrade schema, restore otomatis, atau aktivasi produksi melalui perubahan
+metadata.
 
 ## Batas yang tidak disamarkan
 

@@ -35,9 +35,18 @@ def daftar_langganan(rows,total,*,halaman,cari,csrf):
     form='<form method="post" action="/admin/layanan/cari"><input type="hidden" name="csrf" value="%s"><label>Cari akun orang tua<input name="cari" maxlength="80" value="%s"></label><button class="admin-tombol">Cari</button></form>'%(e(csrf),e(cari)) if csrf else ''
     baris=['<tr><td><a href="/admin?section=langganan&amp;id=%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>'%(e(r['akun_id']),e(r['alias']),tanggal(r['mulai']),'Ya' if r['peserta_promo'] else 'Tidak',e(r['asal'])) for r in rows]
     pager=''
-    if not cari:
-        if halaman>1: pager+='<a href="/admin?section=langganan&amp;halaman=%d">Sebelumnya</a> '%(halaman-1)
-        if halaman*25<total: pager+='<a href="/admin?section=langganan&amp;halaman=%d">Berikutnya</a>'%(halaman+1)
+    for nomor, label in ((halaman-1, 'Sebelumnya'), (halaman+1, 'Berikutnya')):
+        if nomor < 1 or (nomor > halaman and halaman*25 >= total):
+            continue
+        if cari and csrf:
+            pager += ('<form method="post" action="/admin/layanan/cari">'
+                      '<input type="hidden" name="csrf" value="%s">'
+                      '<input type="hidden" name="cari" value="%s">'
+                      '<input type="hidden" name="halaman" value="%d">'
+                      '<button class="admin-tombol">%s</button></form>'
+                      % (e(csrf), e(cari), nomor, label))
+        else:
+            pager += '<a href="/admin?section=langganan&amp;halaman=%d">%s</a> ' % (nomor,label)
     return '<section class="admin-kartu"><h2>Langganan keluarga</h2><p>%d tercatat · Halaman %d</p>%s%s%s</section>'%(total,halaman,form,tabel(('Keluarga','Mulai','Peserta promo','Sumber'),baris),pager)+'<p class="admin-meta">Akun yang belum diikutkan tidak dianggap kedaluwarsa. Panel ini tidak mengaktifkan paywall.</p>'
 
 
