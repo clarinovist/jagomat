@@ -88,7 +88,7 @@ def test_probe_langganan_dijalankan_dan_verifier_tidak_boleh_skip(tmp_path):
 
 def test_source_tidak_punya_hook_user_network_env_billing():
     akar = Path(__file__).resolve().parents[1]
-    izin = {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_backup", "subscription_service", "subscription_registration", "midtrans_sandbox"}
+    izin = {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_backup", "subscription_service", "subscription_registration", "midtrans_sandbox", "subscription_checkout", "subscription_http", "subscription_preview"}
     for p in akar.glob("*.py"):
         pohon = ast.parse(p.read_text())
         for node in ast.walk(pohon):
@@ -98,13 +98,22 @@ def test_source_tidak_punya_hook_user_network_env_billing():
                 modul = [(node.module or '').split('.')[0]]
             else:
                 continue
-            assert "midtrans_sandbox" not in modul, p.name
-            if set(modul) & {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "subscription_service", "subscription_registration"}:
+            if "midtrans_sandbox" in modul:
+                assert p.stem == "subscription_preview", p.name
+            if "subscription_http" in modul:
+                assert p.stem in {"web", "subscription_preview"}, p.name
+            if set(modul) & {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "subscription_service", "subscription_registration", "subscription_checkout"}:
                 assert p.stem in izin, p.name
     for nama in ("subscription.py", "subscription_store.py", "midtrans_contract.py", "subscription_service.py", "subscription_registration.py"):
         teks = (akar / nama).read_text()
         assert "os.environ" not in teks and "getenv(" not in teks
         assert "import socket" not in teks and "urllib.request" not in teks
+    preview = (akar / "subscription_preview.py").read_text()
+    runtime = (akar / "subscription_http.py").read_text()
+    assert "ThreadingHTTPServer(('127.0.0.1', 0)" in preview
+    assert "config.lingkungan != \"sandbox\"" in runtime
+    assert "getattr(penangan.server, 'langganan_sandbox', None)" in runtime
+    assert "OSN_MIDTRANS" not in preview + runtime and "MIDTRANS_SERVER" not in preview + runtime
     assert d.SAKELAR == d.Sakelar(False, False, False, False)
     root = akar.parent
     config = json.loads((root / 'scripts/release-metadata.json').read_text())

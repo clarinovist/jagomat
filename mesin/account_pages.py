@@ -174,6 +174,7 @@ def halaman_akun(
     section: str = "akun",
     arsip_pendamping: str = "",
     privat: bool = False,
+    langganan_sandbox: bool = False,
 ) -> bytes:
     """Kelola sandi dan daftar siswa — sidebar + section, tanpa JS.
 
@@ -327,6 +328,9 @@ def halaman_akun(
         + f">{label}</a>"
         for sid, label in item
     )
+
+    if langganan_sandbox and peran == "guru":
+        nav += '<a href="/langganan">Langganan sandbox</a>'
 
     return _halaman(
         "Akun",

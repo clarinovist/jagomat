@@ -237,6 +237,35 @@ def test_exception_tidak_bocor_dan_tidak_retry(jaringan, monkeypatch, capsys, ta
     assert capsys.readouterr().out == ""
 
 
+def test_gambar_hanya_png_sandbox_bounded(jaringan):
+    koneksi, dibuat = jaringan
+    png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + (280).to_bytes(4, "big") * 2 + b"\x08\x02\x00\x00\x00" + b"isi-data"
+    koneksi.respons.data = png
+    koneksi.respons.headers = {"Content-Type": "image/png", "Content-Length": str(len(png))}
+    url = "https://api.sandbox.midtrans.com/v2/qris/trx_sintetis/qr-code"
+    assert s.TransportSandbox(CFG).gambar(url) == png
+    assert dibuat[0][0] == "api.sandbox.midtrans.com"
+    assert koneksi.panggilan[0][:3] == ("GET", "/v2/qris/trx_sintetis/qr-code", None)
+    for asing in ("https://api.midtrans.com/v2/qris/trx_sintetis/qr-code",
+                  "https://evil.test/v2/qris/trx_sintetis/qr-code",
+                  "https://api.sandbox.midtrans.com/v4/qris/trx_sintetis/qr-code"):
+        with pytest.raises(m.KontrakTidakSah):
+            s.TransportSandbox(CFG).gambar(asing)
+    assert len(dibuat) == 1
+
+
+def test_gambar_invalid_ditolak(jaringan):
+    koneksi, _ = jaringan
+    url = "https://api.sandbox.midtrans.com/v2/qris/trx_sintetis/qr-code"
+    for data in (b"bukan png", b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + (0).to_bytes(4, "big") * 2 + b"\x08\x02\x00\x00\x00isi",
+                 b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + (4096).to_bytes(4, "big") * 2 + b"\x08\x02\x00\x00\x00isi",
+                 b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + (280).to_bytes(4, "big") * 2 + b"\x08\x02\x01\x00\x00isi"):
+        koneksi.respons.data = data
+        koneksi.respons.headers = {"Content-Type": "image/png", "Content-Length": str(len(data))}
+        with pytest.raises(m.KontrakTidakSah):
+            s.TransportSandbox(CFG).gambar(url)
+
+
 def test_sakelar_off_dan_owner_sebelum_jaringan(jaringan):
     tr = s.TransportSandbox(CFG)
     for fungsi in (m.buat_pembayaran, m.periksa_status):

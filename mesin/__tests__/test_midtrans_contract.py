@@ -153,6 +153,19 @@ def test_default_off_tidak_memanggil_transport():
         m.kirim(m.request_status(CFG, INVOICE))
 
 
+def test_status_pending_memberi_qr_dari_transaksi_terikat():
+    data = status()
+    data.update(transaction_status="pending", status_code="201")
+    hasil = periksa(data)
+    assert hasil.status == "pending" and hasil.bukti is None
+    assert hasil.qr == "https://api.sandbox.midtrans.com/v2/qris/trx_sintetis/qr-code"
+    data["transaction_id"] = ""
+    assert periksa(data).qr is None
+    data = status()
+    data["status_code"] = "201"
+    assert periksa(data).qr is None
+
+
 def test_create_tidak_memberi_bukti_meski_response_settlement():
     tr = Transport(Respons(status()))
     assert m.buat_pembayaran(CFG, INV, akun_id=AKUN, transport=tr, sakelar=ON).bukti is None

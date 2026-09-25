@@ -15,6 +15,20 @@ import pytest
 AKAR = Path(__file__).resolve().parents[1]
 
 KASUS = [
+    ("checkout_runtime", "subscription_http.py", "if penangan.server.server_address[0] not in ('127.0.0.1', '::1'):", "if False:",
+     "test_subscription_http.py::test_runtime_nonloopback_ditolak", "AssertionError"),
+    ("checkout_https", "subscription_http.py", "if not penangan._di_https() and host not in ('127.0.0.1', 'localhost', '::1'):", "if False:",
+     "test_subscription_http.py::test_post_http_host_nonloopback_ditolak", "AssertionError"),
+    ("checkout_csrf", "subscription_http.py", "if not hmac.compare_digest(signature, harap):", "if False:",
+     "test_subscription_http.py::test_form_tidak_sah_tanpa_invoice_atau_jaringan[palsu]", "AssertionError"),
+    ("checkout_owner_recheck", "subscription_service.py", "if cek_sesi is not None:\n            cek_sesi()", "if False:\n            cek_sesi()",
+     "test_subscription_service.py::test_sesi_stale_setelah_provider_tidak_boleh_grant", "DID NOT RAISE"),
+    ("checkout_no_get_write", "subscription_http.py", "('settlement_terdeteksi' if hasil.status == 'lunas' else hasil.status)", "('lunas' if hasil.status == 'lunas' else hasil.status)",
+     "test_subscription_http.py::test_alur_quote_pending_qr_lunas_replay_dan_get_readonly", "AssertionError"),
+    ("checkout_qr_status", "subscription_http.py", "if hasil.status != 'pending' or not hasil.qr", "if not hasil.qr",
+     "test_subscription_http.py::test_status_lunas_dengan_qr_tetap_menolak_gambar", "AssertionError"),
+    ("midtrans_pending_bind", "midtrans_contract.py", 'data.get("transaction_status") == "pending" and data.get("status_code") == "201"', 'data.get("status_code") == "201"',
+     "test_midtrans_contract.py::test_status_pending_memberi_qr_dari_transaksi_terikat", "AssertionError"),
     ("sandbox_config", "midtrans_sandbox.py", 'config.lingkungan != "sandbox"', 'False',
      "test_midtrans_sandbox.py::test_produksi_ditolak_sebelum_socket", "DID NOT RAISE"),
     ("sandbox_payload", "midtrans_sandbox.py", 'if req != kanonis:', 'if False:',
@@ -27,7 +41,7 @@ KASUS = [
      "test_midtrans_sandbox.py::test_query_settlement_tls_host_timeout_dan_close", "AssertionError"),
     ("sandbox_redirect", "midtrans_sandbox.py", 'if respons.status != 200:', 'if False:',
      "test_midtrans_sandbox.py::test_error_redirect_tanpa_read_retry_atau_grant[302]", "AssertionError"),
-    ("sandbox_size", "midtrans_sandbox.py", 'if len(data) > m.BATAS_RESPONS:', 'if False:',
+    ("sandbox_size", "midtrans_sandbox.py", 'if len(data) > batas:', 'if False:',
      "test_midtrans_sandbox.py::test_baca_bounded_meski_tanpa_content_length", "respons terlalu besar harus ditolak adapter"),
     ("sandbox_truncated", "midtrans_sandbox.py", 'if panjang is not None and len(data) != int(panjang):', 'if False:',
      "test_midtrans_sandbox.py::test_content_length_terpotong_tidak_dianggap_utuh", "respons terpotong harus ditolak adapter"),
@@ -83,7 +97,7 @@ def test_guard_merah_lalu_hijau(tmp_path, nama, modul, lama, baru, test, pesan):
         shutil.copy2(p, mesin / p.name)
     # Dependensi test helper hanya source sintetis, bukan seluruh workspace.
     for nama_test in ("conftest.py", "test_subscription.py", "test_subscription_store.py",
-                      "test_midtrans_contract.py", "test_midtrans_sandbox.py", "test_subscription_recovery.py",
+                      "test_midtrans_contract.py", "test_midtrans_sandbox.py", "test_subscription_http.py", "http_test_kit.py", "test_subscription_recovery.py",
                       "test_subscription_mutation_guards.py", "test_admin_backup.py",
                       "test_profile_release_probe.py", "test_release_image.py", "test_subscription_service.py", "test_subscription_registration.py"):
         shutil.copy2(AKAR / "__tests__" / nama_test, tes / nama_test)

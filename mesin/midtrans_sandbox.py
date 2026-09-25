@@ -61,11 +61,35 @@ class TransportSandbox:
             raise m.KontrakTidakSah("payload sandbox tidak minimal")
         return req.url[len("https://" + HOST):]
 
-    @contextmanager
     def __call__(self, req, *, timeout=10, allow_redirects=False):
+        return self._kirim(req, timeout=timeout, allow_redirects=allow_redirects)
+
+    def gambar(self, url):
+        """Ambil PNG sandbox tanpa mengirim key; URL harus berasal status terjaga."""
+        req = m.Permintaan("GET", url, {"Accept": "image/png"})
+        with self._kirim(req, timeout=10, allow_redirects=False, gambar=True) as respons:
+            data = respons.data
+        if (not data.startswith(b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR") or len(data) < 33
+                or not 1 <= int.from_bytes(data[16:20], "big") <= 2048
+                or not 1 <= int.from_bytes(data[20:24], "big") <= 2048
+                or data[24] not in (1, 2, 4, 8, 16)
+                or data[25] not in (0, 2, 3, 4, 6)
+                or data[26:29] != b"\x00\x00\x00"):
+            raise m.KontrakTidakSah("gambar QR sandbox tidak sah")
+        return data
+
+    @contextmanager
+    def _kirim(self, req, *, timeout, allow_redirects, gambar=False):
         koneksi = None
+        batas = 256_000 if gambar else m.BATAS_RESPONS
         try:
-            path = self._validasi(req, timeout, allow_redirects)
+            if gambar:
+                if (not m.url_qr_sah(req.url, "sandbox")
+                        or not req.url.startswith("https://" + HOST + "/v2/qris/")):
+                    raise m.KontrakTidakSah("tujuan QR sandbox tidak sah")
+                path = req.url[len("https://" + HOST):]
+            else:
+                path = self._validasi(req, timeout, allow_redirects)
             konteks = ssl.create_default_context()
             koneksi = http.client.HTTPSConnection(HOST, timeout=timeout, context=konteks)
             tenggat = time.monotonic() + timeout
@@ -87,20 +111,20 @@ class TransportSandbox:
                     raise m.KontrakTidakSah("status HTTP sandbox belum terverifikasi")
                 headers = {"Content-Type": respons.getheader("Content-Type", ""),
                            "Content-Length": respons.getheader("Content-Length")}
-                if headers["Content-Type"].split(";", 1)[0].strip().lower() != "application/json":
+                if headers["Content-Type"].split(";", 1)[0].strip().lower() != ("image/png" if gambar else "application/json"):
                     raise m.KontrakTidakSah("tipe respons sandbox tidak sah")
                 panjang = headers["Content-Length"]
                 if panjang is not None and (not re.fullmatch(r"[0-9]{1,9}", panjang)
-                                             or int(panjang) > m.BATAS_RESPONS):
+                                             or int(panjang) > batas):
                     raise m.KontrakTidakSah("respons sandbox terlalu besar")
                 data = bytearray()
-                while len(data) <= m.BATAS_RESPONS:
+                while len(data) <= batas:
                     sisa_waktu()
-                    potongan = respons.read1(min(8192, m.BATAS_RESPONS + 1 - len(data)))
+                    potongan = respons.read1(min(8192, batas + 1 - len(data)))
                     if not potongan:
                         break
                     data.extend(potongan)
-                if len(data) > m.BATAS_RESPONS:
+                if len(data) > batas:
                     raise m.KontrakTidakSah("respons sandbox terlalu besar")
                 if panjang is not None and len(data) != int(panjang):
                     raise m.KontrakTidakSah("respons sandbox terpotong")

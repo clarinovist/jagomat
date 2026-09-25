@@ -188,6 +188,16 @@ def test_perubahan_saat_transport_tidak_grant_dan_tidak_memegang_lock(keluarga,u
     assert not store.baca(k.admin,k.principal.id_akun).grants
 
 
+def test_sesi_stale_setelah_provider_tidak_boleh_grant(keluarga):
+    k=keluarga; inv=quote(k); tr=transport(inv)
+    def stale():
+        raise LookupError('resource tidak ditemukan')
+    with pytest.raises(LookupError):
+        s.periksa_pembayaran(*k.args,inv['invoice_id'],config=CFG,transport=tr,
+                             sekarang=T0+3,sakelar=ON,cek_sesi=stale)
+    assert not store.baca(k.admin,k.principal.id_akun).grants
+
+
 def test_receipt_committed_pengamatan_gagal_replay_tidak_ganda(keluarga,monkeypatch):
     k=keluarga; inv=quote(k); tr=transport(inv)
     asli=store.catat_pengamatan

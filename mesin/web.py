@@ -467,6 +467,9 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _rute_get(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/") or "/"
+        import subscription_http
+        if subscription_http.tangani_get(self, jalur):
+            return
         import admin_http
         import ai_http
         import assistant_http
@@ -843,6 +846,7 @@ class Penangan(BaseHTTPRequestHandler):
                         section=section,
                         arsip_pendamping=arsip,
                         privat=bool(arsip),
+                        langganan_sandbox=subscription_http.runtime(self) is not None,
                     )
                     return assistant_http._kirim_host_privat(self, hasil) if arsip else self._kirim(hasil)
                 if jalur.startswith("/lembar/"):
@@ -1099,6 +1103,9 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _rute_post(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/")
+        import subscription_http
+        if subscription_http.tangani_post(self, jalur):
+            return
         import admin_http
         import ai_http
         import assistant_http

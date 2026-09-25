@@ -139,11 +139,13 @@ def _invoice_terjaga(path_admin, kon, akun, invoice_id):
     return inv
 
 
-def _catat(path_admin, path_auth, path_db, principal, inv, hasil, sekarang, sakelar, failpoint):
+def _catat(path_admin, path_auth, path_db, principal, inv, hasil, sekarang, sakelar, failpoint, cek_sesi):
     # Recheck setelah jaringan: reset, delete/recreate alias, perubahan owner tidak
     # boleh menerapkan grant memakai snapshot principal sebelum transport.
     with _keluarga(path_db, path_auth, principal) as (kon, akun, _):
         _invoice_terjaga(path_admin, kon, akun, inv["invoice_id"])
+        if cek_sesi is not None:
+            cek_sesi()
         ledger = ""
         if hasil.bukti is not None:
             ledger = store.terapkan_pembayaran(path_admin, akun["id_akun"], hasil.bukti,
@@ -160,7 +162,7 @@ def _catat(path_admin, path_auth, path_db, principal, inv, hasil, sekarang, sake
 
 
 def periksa_pembayaran(path_admin, path_auth, path_db, principal, invoice_id, *, config,
-                       transport, sekarang, sakelar=d.SAKELAR, failpoint=None):
+                       transport, sekarang, sakelar=d.SAKELAR, failpoint=None, cek_sesi=None):
     sakelar.wajib("rekonsiliasi")
     d.waktu(sekarang)
     with _keluarga(path_db, path_auth, principal) as (kon, akun, _):
@@ -168,11 +170,11 @@ def periksa_pembayaran(path_admin, path_auth, path_db, principal, invoice_id, *,
         if inv["merchant"] != config.merchant or sekarang < inv["dibuat"]:
             raise ValueError("merchant/clock berbeda")
     hasil = midtrans.periksa_status(config, inv, akun_id=principal.id_akun, transport=transport, sakelar=sakelar)
-    return _catat(path_admin, path_auth, path_db, principal, inv, hasil, sekarang, sakelar, failpoint)
+    return _catat(path_admin, path_auth, path_db, principal, inv, hasil, sekarang, sakelar, failpoint, cek_sesi)
 
 
 def mulai_pembayaran(path_admin, path_auth, path_db, principal, invoice_id, *, config,
-                     transport, sekarang, sakelar=d.SAKELAR, failpoint=None):
+                     transport, sekarang, sakelar=d.SAKELAR, failpoint=None, cek_sesi=None):
     sakelar.wajib("buat_pembayaran")
     sakelar.wajib("rekonsiliasi")
     d.waktu(sekarang)
@@ -187,4 +189,4 @@ def mulai_pembayaran(path_admin, path_auth, path_db, principal, invoice_id, *, c
         # Create hanya satu kali; hasil create tidak boleh menjadi bukti bayar.
         midtrans.buat_pembayaran(config, inv, akun_id=principal.id_akun, transport=transport, sakelar=sakelar)
     return periksa_pembayaran(path_admin, path_auth, path_db, principal, invoice_id,
-                             config=config, transport=transport, sekarang=sekarang, sakelar=sakelar, failpoint=failpoint)
+                             config=config, transport=transport, sekarang=sekarang, sakelar=sakelar, failpoint=failpoint, cek_sesi=cek_sesi)

@@ -166,6 +166,11 @@ def periksa_status(config, invoice, *, akun_id, transport, transaksi_id=None, sa
                 and data.get("fraud_status") in (None, "accept")):
             return Hasil("lunas", d.Pembayaran("midtrans", transaksi, invoice["invoice_id"], akun_id,
                          invoice["rupiah"], "IDR", "qris", config.merchant, "settlement", True))
+        if (data.get("transaction_status") == "pending" and data.get("status_code") == "201"
+                and data.get("fraud_status") in (None, "accept")):
+            # GET tidak mengembalikan actions; endpoint gambar Core v2 memakai
+            # transaction_id terverifikasi, bukan URL/ID dari input browser.
+            return Hasil("pending", qr=config.base_url + "/v2/qris/" + transaksi + "/qr-code")
         if data.get("transaction_status") in ("refund", "partial_refund"):
             return Hasil("perlu_diperiksa")
         return Hasil()

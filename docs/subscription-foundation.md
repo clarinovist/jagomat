@@ -24,7 +24,15 @@ saldo nyata, mengirim key ke simulator, atau membuat receipt/grant aplikasi.
 Key merchant tidak dilacak; berkas lokal `/midtrans.rtf` di-ignore.
 
 Ini membuktikan create/status sandbox dan simulator, **bukan** pembayaran produksi,
-UX satu HP, callback publik, enrollment, atau checkout aplikasi. Sakelar aplikasi
+UX satu HP, callback publik, enrollment, atau checkout aplikasi live. Adapter HTTP
+opt-in berikutnya tersedia melalui `mesin/subscription_preview.py`: launcher hanya
+loopback, membuat auth/sesi/DB/profil baru sintetis, meminta key via input tersembunyi,
+dan memasang `subscription_http.RuntimeSandbox` yang tidak ada pada `serve.py` biasa.
+Tanpa runtime exact/path state preview, `/langganan` selalu404 dan tautan akun tidak
+muncul. QR diproksi same-origin; alamat transaksi sandbox untuk simulator boleh tampil,
+tetapi Server Key/Authorization/ID akun tidak dikirim ke browser. GET status hanya
+menampilkan hasil provider; settlement baru dicatat oleh POST bertoken dan tetap
+melalui revalidasi sesi/principal/pemilik sebelum grant. Sakelar aplikasi global
 tetap OFF; D8/D9, kontrak merchant dan gate aktivasi tetap berlaku. QR sandbox hanya
 boleh dibayar melalui [simulator resmi](https://docs.midtrans.com/docs/testing-payment-on-sandbox),
 jangan memakai aplikasi bank/e-wallet bersaldo nyata.
@@ -131,7 +139,8 @@ pengguna maupun transaksi Midtrans sandbox/produksi.
 ## Verifikasi yang dapat diulang
 
 Scoped: `test_subscription*.py`, `test_midtrans_contract.py`,
-`test_midtrans_sandbox.py`, serta test admin store, backup, deployer/readiness,
+`test_midtrans_sandbox.py`, `test_subscription_http.py`,
+`test_subscription_preview.py`, serta test admin store, backup, deployer/readiness,
 image/probe/pair/metadata dan CI yang terdampak. Mutation
 memodifikasi salinan source temp, memanggil regression yang sama, memeriksa sebab
 merah invariant dan memulihkan hijau. Socket/DNS pada test Midtrans selalu dilarang;
