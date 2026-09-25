@@ -333,7 +333,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
   padding: 0 {T.SP_5};
   font-weight: 700; cursor: pointer;
 }}
-.st-tombol-coral:hover {{ filter: brightness(1.06); }}
+.st-tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 
 /* Baris kartu (dipakai daftar sesi guru & murid di Stitch) */
 .st-kartu-baris {{
@@ -769,7 +769,7 @@ tr.sorot-baru, div.sorot-baru {{
   font: inherit; font-family: {T.FONT_HEADLINE}; font-weight: 700;
   text-decoration: none; cursor: pointer;
 }}
-.rencana-cta-utama-st:hover {{ filter: brightness(1.06); }}
+.rencana-cta-utama-st:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .ubah-fokus-st, .atur-latihan-st {{
   background: {T.LATAR_KARTU}; border: 1px solid {T.BORDER_VARIAN};
   border-radius: {T.RADIUS_KARTU}; padding: 0 {T.SP_4};
@@ -1073,11 +1073,14 @@ tr.sorot-baru, div.sorot-baru {{
   display: flex; align-items: center; justify-content: center; gap: {T.SP_2};
   box-shadow: 0 4px 12px rgba(255,107,91,.30);
 }}
-.kerja-simpan-strip-st button:hover {{ filter: brightness(1.06); }}
+.kerja-simpan-strip-st button:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .kerja-simpan-strip-st button.sekunder {{
   background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA};
   border: 1px solid {T.AKSEN_TEAL_TUA}; box-shadow: none;
 }}
+
+/* Varian putih: hover memakai permukaan naik, bukan koral. */
+.kerja-simpan-strip-st button.sekunder:hover {{ background: {T.LATAR_ELEVASI}; }}
 .kerja-simpan-strip-st button:disabled {{ opacity: .55; cursor: not-allowed; }}
 @media (max-width: 24rem) {{
   .kerja-simpan-strip-st {{ grid-template-columns: 1fr; }}
@@ -1358,7 +1361,8 @@ tr.sorot-baru, div.sorot-baru {{
   font-size: 1rem; background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
   border-radius: {T.RADIUS_PIL}; box-shadow: none;
 }}
-.daftar-editorial-st .masuk-tombol-st:hover {{ filter: none; text-decoration: underline; }}
+/* Editorial: hover tetap tenang (underline); warna dasar tidak berubah. */
+.daftar-editorial-st .masuk-tombol-st:hover {{ filter: none; text-decoration: underline; background: {T.AKSEN_KORAL_TUA}; }}
 .daftar-editorial-st .masuk-tombol-st:disabled {{ opacity: .65; cursor: not-allowed; }}
 .daftar-editorial-st .daftar-bawah-st {{ margin: -{T.SP_2} 0 0; font-size: .75rem; line-height: 1.6; color: {T.TEKS_VARIAN}; }}
 .daftar-editorial-st .masuk-galat-st {{ text-align: left; padding: {T.SP_3} {T.SP_4}; border-left: 3px solid {T.TEKS_GALAT}; font-size: .85rem; overflow-wrap: anywhere; }}
@@ -1519,7 +1523,7 @@ tr.sorot-baru, div.sorot-baru {{
   display: flex; align-items: center; justify-content: center; gap: {T.SP_2};
   box-shadow: 0 4px 12px rgba(255,107,91,.25);
 }}
-.masuk-tombol-st:hover {{ filter: brightness(1.06); }}
+.masuk-tombol-st:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 
 .masuk-link-st {{
   text-align: center; font-size: .9rem; margin-top: {T.SP_2};
@@ -1636,7 +1640,7 @@ a.tombol-coral {{
   font-family: {T.FONT_HEADLINE}; min-height: {T.TARGET_SENTUH};
   display: inline-flex; align-items: center; gap: {T.SP_2};
 }}
-a.tombol-coral:hover {{ filter: brightness(1.06); }}
+a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 /* ══ Landing editorial — buku latihan ══
    Semua selector dibatasi landing. Kanvas 75rem tidak mewarisi padding
    form publik; warna, font, dan ukuran dasar memakai token existing. */
@@ -1722,6 +1726,7 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
   padding: {T.SP_4} {T.SP_5}; font-size: .95rem; gap: {T.SP_5};
   border-radius: {T.RADIUS_PIL};
 }}
+.landing-cta-baris-st a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .landing-cta-baris-st a > span {{ font-size: 1.3rem; line-height: 1; }}
 .landing-catatan-cta-st {{ color: {T.TEKS_VARIAN}; font-size: .72rem; margin: 0; }}
 
@@ -2075,6 +2080,8 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
 .kerja-editorial-st .kerja-simpan-strip-st button.sekunder {{
   background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA};
 }}
+.kerja-editorial-st .kerja-simpan-strip-st button:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
+.kerja-editorial-st .kerja-simpan-strip-st button.sekunder:hover {{ background: {T.LATAR_ELEVASI}; }}
 .kerja-editorial-st .kerja-timer-st {{
   top: 3.5rem; background: {T.AKSEN_TEAL_TUA}; flex-wrap: wrap;
   border-radius: {T.RADIUS_KECIL}; margin-bottom: {T.SP_4};
@@ -2283,6 +2290,7 @@ a.tombol-coral:hover {{ filter: brightness(1.06); }}
   font: 600 .92rem/1.4 {T.FONT_LAYAR}; white-space: normal;
 }}
 .pendamping-editorial-st :is(.st-tombol-coral, .tombol-coral, .rencana-cta-utama-st) {{ background: {T.AKSEN_KORAL_TUA}; }}
+.pendamping-editorial-st :is(.st-tombol-coral, .tombol-coral, .rencana-cta-utama-st):hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-editorial-st :is(.tombol-hapus, .tombol-kecil-st) {{ background: {T.LATAR_GALAT}; color: {T.TEKS_GALAT}; border: 1px solid {T.BORDER_GALAT}; }}
 .pendamping-editorial-st :is(.tombol-ikon-st, .tombol-mata) {{ background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; }}
 .pendamping-editorial-st :is(.pil-sesi, .pil-sesi-st) {{
@@ -2918,11 +2926,16 @@ CSS_SESI = f"""
   display: flex; align-items: center; justify-content: center; gap: {T.SP_2};
   box-shadow: 0 4px 12px rgba(255,107,91,.25);
 }}
-.koreksi-simpan-st button:hover {{ filter: brightness(1.06); }}
+.koreksi-simpan-st button:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .koreksi-simpan-st:has(button[formaction]) button:not([formaction]) {{
   background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
   border: 1px solid {T.BORDER_HALUS}; box-shadow: none;
 }}
+
+/* Varian putih (sekunder / tombol non-formaction saat ada formaction):
+   hover memakai permukaan naik supaya tidak ikut koral. */
+.koreksi-simpan-st button.sekunder:hover,
+.koreksi-simpan-st:has(button[formaction]) button:not([formaction]):hover {{ background: {T.LATAR_ELEVASI}; }}
 
 /* Satu area aksi sesi, tidak mengambang di atas kartu yang sedang dibaca. */
 .koreksi-editorial-st .koreksi-simpan-st {{ position: static; padding: {T.SP_4} 0; gap: {T.SP_3}; }}
@@ -2987,6 +3000,9 @@ CSS_SESI = f"""
   padding: .5rem {T.SP_4}; cursor: pointer;
   min-height: {T.TARGET_SENTUH};
 }}
+/* Varian kecil berlatar galat lembut: tidak ada token hover yang aman
+   (menggelapkan latar menurunkan kontras TEKS_GALAT); kecerahan tipis
+   sengaja dipertahankan. */
 .tombol-kecil-st:hover {{ filter: brightness(1.04); }}
 
 /* Cetak. */

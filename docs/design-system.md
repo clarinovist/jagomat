@@ -193,7 +193,8 @@ Penerapan pertama (25 Sep 2026, `style_stitch.py`):
 - `TINGGI_KONTROL` 48px → menggantikan literal `48px` di
   `.kerja-simpan-strip-st button`, `.masuk-tombol-st`, `.koreksi-simpan-st button`.
 - `AKSEN_KORAL_HOVER` / `AKSEN_TEAL_HOVER` → hover tombol solid, menggantikan
-  `color-mix(...)` dan `filter: brightness(1.06)`.
+  `color-mix(...)` dan `filter: brightness(1.06)` (tuntas 26 Sep; lihat
+  "Penerapan keempat").
 
 `LATAR_TOOLTIP`/`TEKS_TOOLTIP` dan `TEBAL_GARIS`/`TEBAL_FOKUS` sudah terpakai
 sejak komponen Info "ⓘ" (lihat "Penerapan ketiga"). Belum dipakai di CSS:
@@ -245,10 +246,29 @@ i<span class="info-bubble" role="tooltip">…</span>
   kritis yang wajib terbaca, atau data anak. Dijaga
   `__tests__/test_info_tooltip.py` (markup, CSS hover/focus, tanpa JS).
 
+Penerapan keempat (26 Sep 2026) — hover tombol: sisa aturan `filter: brightness`
+di `style_stitch.py` diganti token warna Figma.
+
+- 6 dari 7 aturan hover → `background: AKSEN_KORAL_HOVER` (`.st-tombol-coral`,
+  `.rencana-cta-utama-st`, `.kerja-simpan-strip-st button`, `.masuk-tombol-st`,
+  `a.tombol-coral`, `.koreksi-simpan-st button`), termasuk salinan yang menimpa
+  dasar di permukaan editorial (`.landing-cta-baris-st`, strip `.kerja-editorial-st`,
+  trio koral `.pendamping-editorial-st`).
+- Varian berlatar putih (`.sekunder`, tombol non-`formaction` saat ada `formaction`)
+  memakai `LATAR_ELEVASI` supaya tidak ikut koral.
+- Hover editorial `/masuk` & `/daftar` sengaja tetap tenang (underline, warna dasar
+  dipertahankan); ditulis eksplisit agar tidak bergantung urutan kaskade.
+- Tetap `filter: brightness(1.04)`: `.tombol-kecil-st` — latar galat lembut
+  (`LATAR_GALAT`); menggelapkan latar menurunkan kontras `TEKS_GALAT`, tidak ada
+  token hover yang cocok.
+- Tetap `filter: brightness(0.94)` di `teacher_style.py`: satu aturan `button:hover`
+  dipakai bersama tombol berlatar terang (`tombol-sekunder`, `tombol-putih`,
+  `tombol-amber`), menu-isi (hover sendiri), dan `.cta` topbar; `button:disabled`
+  juga mengandalkan `filter: none`. Membatasi dengan `:not(...)` harus menyebut
+  semua varian itu — lebih rapuh daripada nilainya.
+
 Belum seragam — kandidat berikutnya, jangan dicampur ke sini: tinggi kontrol di banyak
-permukaan masih `TARGET_SENTUH` 44px padahal desain memakai `TINGGI_KONTROL` 48px, dan
-sebagian hover tombol (guru/admin/lembar) masih memakai `filter: brightness()` yang
-disengaja karena dipakai bersama tombol berlatar terang.
+permukaan masih `TARGET_SENTUH` 44px padahal desain memakai `TINGGI_KONTROL` 48px.
 
 Belum ditindaklanjuti (keputusan terpisah, jangan diselundupkan): tombol coral
 terang (`AKSEN_MURID_KORAL` `#ff6b5b` + teks putih) masih memakai warna dasar
