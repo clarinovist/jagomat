@@ -291,7 +291,7 @@ def test_cli_satu_putaran_agregat_tanpa_rahasia(cli, capsys):
     data = json.loads(keluar.out)
     assert data["lunas"] == 1 and data["kandidat"] == 1
     assert data["kesiapan"] == {"provider_produksi": True, "callback": True,
-                                "recovery": False, "kebijakan": False}
+                                "recovery": False, "kebijakan": True}
     assert "Mid-server" not in keluar.out + keluar.err
     assert "inv_" not in keluar.out
 

@@ -60,8 +60,12 @@ KASUS = [
      "    rekonsiliasi = tersimpan.rekonsiliasi and kesiapan[\"provider_produksi\"]",
      '    rekonsiliasi = tersimpan.rekonsiliasi', PRODUKSI,
      'test_sakelar_efektif_sepadan_permukaan_admin', 'assert dari_admin is not None and dari_admin.sakelar == dari_pekerja'),
-    ('subscription_produksi.py', 'KEBIJAKAN_D8_D9 = False', 'KEBIJAKAN_D8_D9 = True', PRODUKSI,
+    ('subscription_produksi.py', 'KEBIJAKAN_D8_D9 = True', 'KEBIJAKAN_D8_D9 = False', PRODUKSI,
      'test_runtime_dari_konfigurasi_tepercaya', 'assert r.kesiapan == {"provider_produksi": True, "callback": True,'),
+    ('subscription_produksi.py',
+     '        if getattr(server, "_pembayaran_dicoba", False):\n            return False',
+     '        if False:\n            return False', PRODUKSI,
+     'test_pastikan_terpasang_gagal_hanya_sekali_tanpa_raise', 'assert len(dipanggil) == 1'),
     ('subscription_produksi.py', '    if hasil is None:\n        return False',
      '    if False:\n        return False', PRODUKSI, 'test_tanpa_berkas_rahasia_fail_closed',
      'is False'),
@@ -98,6 +102,49 @@ def test_mutasi_guard_produksi(tmp_path, modul, lama, baru, berkas, test, marker
     shutil.copytree(AKAR.parent / 'scripts', tmp_path / 'scripts',
                     ignore=shutil.ignore_patterns('__pycache__'))
     p = target / modul
+    teks = p.read_text()
+    assert teks.count(lama) == 1
+    p.write_text(teks.replace(lama, baru, 1))
+    env = {**os.environ, 'PYTHONDONTWRITEBYTECODE': '1'}
+    node = str(target / '__tests__' / berkas) + '::' + test
+    hasil = subprocess.run([sys.executable, '-m', 'pytest', node, '-q', '-W', 'error',
+                            '-p', 'no:cacheprovider'], capture_output=True, text=True,
+                           env=env, timeout=60)
+    assert hasil.returncode == 1, hasil.stdout + hasil.stderr
+    assert marker in hasil.stdout, hasil.stdout
+    p.write_text(teks)
+    pulih = subprocess.run([sys.executable, '-m', 'pytest', node, '-q', '-W', 'error',
+                            '-p', 'no:cacheprovider'], capture_output=True, text=True,
+                           env=env, timeout=60)
+    assert pulih.returncode == 0, pulih.stdout + pulih.stderr
+
+
+# Guard aktivasi pembayaran pada DEPLOYER (mount secret + artefak pasangan):
+# satu kasus mematikan mount rahasia, satu menonaktifkan penulisan artefak —
+# keduanya harus membuat test penjaga MERAH pada salinan source temp.
+KASUS_DEPLOYER = [
+    ('scripts/deploy.py', 'dst=/run/secrets/midtrans,readonly"]',
+     'dst=/lupakan-rahasia,readonly"]', 'test_deployer.py',
+     'test_run_utama_dan_recovery_membawa_mount_rahasia', 'mount-rahasia-hilang'),
+    ('scripts/deploy.py',
+     '            berkas.tulis_pasangan(docker.revision_image(id_kandidat), id_kandidat,\n'
+     '                                  kontrak_kandidat, "rutin" if rutin else "migrasi")\n',
+     '            pass\n', 'test_deployer.py', 'test_sukses_ordering_secret_dan_argv_tetap',
+     'revision-candidate'),
+]
+
+
+@pytest.mark.parametrize('modul,lama,baru,berkas,test,marker', KASUS_DEPLOYER)
+def test_mutasi_guard_deployer(tmp_path, modul, lama, baru, berkas, test, marker):
+    target = tmp_path / 'mesin'
+    target.mkdir()
+    for sumber in AKAR.glob('*.py'):
+        shutil.copyfile(sumber, target / sumber.name)
+    shutil.copytree(AKAR / '__tests__', target / '__tests__',
+                    ignore=shutil.ignore_patterns('__pycache__'))
+    shutil.copytree(AKAR.parent / 'scripts', tmp_path / 'scripts',
+                    ignore=shutil.ignore_patterns('__pycache__'))
+    p = tmp_path / modul
     teks = p.read_text()
     assert teks.count(lama) == 1
     p.write_text(teks.replace(lama, baru, 1))

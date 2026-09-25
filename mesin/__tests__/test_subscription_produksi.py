@@ -49,7 +49,7 @@ def test_runtime_dari_konfigurasi_tepercaya(berkas, monkeypatch):
     assert r.config.lingkungan == "production" and r.config.merchant == MERCHANT
     assert callable(r.transport) and KUNCI not in repr(r)
     assert r.kesiapan == {"provider_produksi": True, "callback": True,
-                          "recovery": True, "kebijakan": False}
+                          "recovery": True, "kebijakan": True}
 
 
 def test_tanpa_berkas_rahasia_fail_closed(tmp_path, monkeypatch):
@@ -84,6 +84,54 @@ def test_pasang_sekali_dan_menolak_ganda(berkas, monkeypatch):
     assert isinstance(server.pembayaran_runtime, admin_subscription.RuntimePembayaran)
     with pytest.raises(RuntimeError):
         prod.pasang(server)
+
+
+def test_pastikan_terpasang_sukses_dan_hanya_sekali(berkas, monkeypatch):
+    """Installer dispatch web: sukses sekali per server, panggilan kedua tanpa I/O."""
+    monkeypatch.setattr(prod, "permukaan_callback", lambda: True)
+    monkeypatch.setattr(prod, "BERKAS_RAHASIA_BAWAAN", str(berkas["rahasia"]))
+    monkeypatch.setattr(prod, "BERKAS_RECOVERY_BAWAAN", str(berkas["recovery"]))
+    dipanggil = []
+    asli = prod.pasang
+
+    def hitung(server, **kw):
+        dipanggil.append(1)
+        return asli(server, **kw)
+
+    monkeypatch.setattr(prod, "pasang", hitung)
+    server = SimpleNamespace()
+    assert prod.pastikan_terpasang(server) is True
+    assert prod.pastikan_terpasang(server) is True
+    assert len(dipanggil) == 1
+    assert isinstance(server.pembayaran_runtime, admin_subscription.RuntimePembayaran)
+
+
+def test_pastikan_terpasang_gagal_hanya_sekali_tanpa_raise(tmp_path, monkeypatch):
+    monkeypatch.setattr(prod, "BERKAS_RAHASIA_BAWAAN", str(tmp_path / "tidak-ada.conf"))
+    monkeypatch.setattr(prod, "BERKAS_RECOVERY_BAWAAN", str(tmp_path / "tidak-ada.json"))
+    dipanggil = []
+    asli = prod.pasang
+
+    def hitung(server, **kw):
+        dipanggil.append(1)
+        return asli(server, **kw)
+
+    monkeypatch.setattr(prod, "pasang", hitung)
+    server = SimpleNamespace()
+    assert prod.pastikan_terpasang(server) is False
+    assert prod.pastikan_terpasang(server) is False
+    assert len(dipanggil) == 1
+    assert getattr(server, "pembayaran_runtime", None) is None
+
+
+def test_pastikan_terpasang_error_tidak_mematikan_permintaan(monkeypatch):
+    def meledak(server, **kw):
+        raise RuntimeError("sintetis")
+
+    monkeypatch.setattr(prod, "pasang", meledak)
+    server = SimpleNamespace()
+    assert prod.pastikan_terpasang(server) is False
+    assert prod.pastikan_terpasang(server) is False
 
 
 @pytest.mark.parametrize("ubah,diterima", [

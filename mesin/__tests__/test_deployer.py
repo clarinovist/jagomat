@@ -46,6 +46,7 @@ class BerkasPalsu:
         self.hitungan = 0
         self.terkunci = False
         self.consumed = False
+        self.pasangan = None
         self.konfig = (("/tmp/sintetis/visual.env", "/tmp/sintetis/pendamping.env"),
                        dict(d.LINGKUNGAN, DEEPSEEK_API_KEY=RAHASIA))
 
@@ -86,6 +87,11 @@ class BerkasPalsu:
         assert self.terkunci and not self.consumed
         self.catat("consume")
         self.consumed = True
+
+    def tulis_pasangan(self, revisi, digest, kontrak, mode):
+        assert self.terkunci
+        self.catat("pasangan")
+        self.pasangan = (revisi, digest, kontrak, mode)
 
     def ruang(self):
         self.catat("disk")
@@ -318,9 +324,11 @@ def test_sukses_ordering_secret_dan_argv_tetap(kasus):
         "pull-candidate", "image-candidate", "repo-candidate", "probe-candidate",
         "pull-recovery", "image-recovery", "repo-recovery", "probe-recovery",
         "contract-candidate", "contract-recovery",
-        "state-lama", "image-lama", "disk", "approval2", "consume", "stop-lama", "rm-lama",
+        "state-lama", "image-lama", "disk", "approval2", "consume",
+        "revision-candidate", "pasangan", "stop-lama", "rm-lama",
         "run-candidate", "state-candidate", "schema-candidate", "config-clean", "unlock",
     ]
+    assert kasus.b.pasangan == ("b" * 40, ID_KANDIDAT, "f" * 64, "migrasi")
     for argv, opsi in kasus.r.calls:
         assert argv[0] == "/usr/bin/docker"
         assert not any(x in argv for x in ("sh", "bash", "prune", "build", "latest"))
@@ -339,6 +347,10 @@ def test_sukses_ordering_secret_dan_argv_tetap(kasus):
             assert "PENDAMPING_AKTIF=1" in argv
             assert "DEEPSEEK_API_KEY" in argv
             assert argv.count("--env-file") == 2
+            assert [argv[i + 1] for i, x in enumerate(argv) if x == "--mount"] == [
+                "type=bind,src=/opt/osn/data,dst=/data",
+                "type=bind,src=" + str(d.MIDTRANS) + ",dst=/run/secrets/midtrans,readonly",
+            ]
         else:
             assert "DEEPSEEK_API_KEY" not in opsi["env"]
         if "--rm" in argv:
@@ -348,6 +360,35 @@ def test_sukses_ordering_secret_dan_argv_tetap(kasus):
         if argv[1] == "exec":
             assert "-B" in argv and "-E" in argv
             assert opsi["input"] == d.PROBE_SKEMA
+
+
+def test_run_utama_dan_recovery_membawa_mount_rahasia(kasus):
+    """Kedua jalur docker run (swap utama dan rollback) wajib membawa mount secret."""
+    kasus.r.gagal = {"run-candidate"}
+    assert kasus.jalan() == 1
+    runs = [a for a, _ in kasus.r.calls if "--detach" in a]
+    assert len(runs) == 2
+    rahasia = "type=bind,src=" + str(d.MIDTRANS) + ",dst=/run/secrets/midtrans,readonly"
+    for argv in runs:
+        assert rahasia in argv, "mount-rahasia-hilang"
+
+
+def test_preflight_gagal_tidak_menulis_artefak_pasangan(kasus):
+    kasus.r.malformed['contract-recovery'] = 'e' * 64
+    assert kasus.jalan() == 2
+    assert kasus.b.pasangan is None
+    assert "pasangan" not in kasus.jejak
+
+
+def test_artefak_pasangan_gagal_menghentikan_sebelum_swap(kasus):
+    def gagal(revisi, digest, kontrak, mode):
+        kasus.b.catat("pasangan")
+        raise OSError("disk penuh sintetis")
+
+    kasus.b.tulis_pasangan = gagal
+    assert kasus.jalan() == 2
+    assert "stop-lama" not in kasus.jejak and "run-candidate" not in kasus.jejak
+    assert kasus.r.current == "lama" and kasus.r.running
 
 
 @pytest.mark.parametrize("tahap", ["stop-lama", "rm-lama"])
@@ -722,6 +763,95 @@ def test_host_root_direktori_tidak_writable_pihak_lain(monkeypatch, uid, mode, p
             d.Berkas().periksa_host()
 
 
+@pytest.mark.parametrize("jenis,uid,mode,diterima", [
+    ("dir", 0, 0o711, True), ("dir", 0, 0o755, True),
+    ("dir", 0, 0o700, False),  # tanpa other-exec uid 10001 tak bisa traversal
+    ("dir", 0, 0o770, False), ("dir", 0, 0o777, False),
+    ("dir", 10001, 0o711, False), ("reg", 0, 0o711, False),
+])
+def test_direktori_midtrans_host_dicek_ketat(monkeypatch, jenis, uid, mode, diterima):
+    """Dir mount rahasia: root, tanpa write group/other, other-exec untuk uid 10001."""
+    monkeypatch.setattr(d.os, "geteuid", lambda: 0)
+    asli = d.Path.lstat
+
+    def lstat(self):
+        if os.fspath(self) == os.fspath(d.MIDTRANS):
+            bentuk = stat.S_IFDIR if jenis == "dir" else stat.S_IFREG
+            return SimpleNamespace(st_mode=bentuk | mode, st_uid=uid)
+        return SimpleNamespace(st_mode=stat.S_IFDIR | 0o755, st_uid=0)
+
+    monkeypatch.setattr(d.Path, "lstat", lstat)
+    if diterima:
+        d.Berkas().periksa_host()
+    else:
+        with pytest.raises(d.Ditolak):
+            d.Berkas().periksa_host()
+
+
+def test_tulis_pasangan_atomik_izin_dan_isi(tmp_path, monkeypatch, fstat_root):
+    dirp = tmp_path / "midtrans"
+    dirp.mkdir()
+    monkeypatch.setattr(d, "MIDTRANS", dirp)
+    monkeypatch.setattr(d, "PASANGAN", dirp / "recovery-pair.json")
+    monkeypatch.setattr(d, "LOCK", tmp_path / "lock")
+    chown = []
+    monkeypatch.setattr(d.os, "fchown", lambda fd, uid, gid: chown.append((uid, gid)))
+    asli_lstat = d.Path.lstat
+
+    def lstat(self):
+        if os.fspath(self) == os.fspath(d.PASANGAN):
+            return SimpleNamespace(st_mode=stat.S_IFREG | 0o400, st_uid=10001)
+        return asli_lstat(self)
+
+    monkeypatch.setattr(d.Path, "lstat", lstat)
+    fs = d.Berkas()
+    with fs.kunci():
+        fs.tulis_pasangan("a" * 40, "sha256:" + "b" * 64, "c" * 64, "migrasi")
+    isi = json.loads((dirp / "recovery-pair.json").read_text())
+    assert isi == {"versi": 1, "revisi": "a" * 40, "digest": "sha256:" + "b" * 64,
+                   "kontrak": "c" * 64, "pasangan_terverifikasi": True,
+                   "kompatibel": True, "mode": "migrasi"}
+    assert chown == [(10001, 10001)]
+    assert not list(dirp.glob(".recovery-pair.tmp-*"))
+
+
+@pytest.mark.parametrize("revisi,digest,kontrak,mode", [
+    ("A" * 40, "sha256:" + "b" * 64, "c" * 64, "migrasi"),
+    ("a" * 39, "sha256:" + "b" * 64, "c" * 64, "migrasi"),
+    (None, "sha256:" + "b" * 64, "c" * 64, "migrasi"),
+    ("a" * 40, "b" * 64, "c" * 64, "migrasi"),
+    ("a" * 40, "sha256:" + "B" * 64, "c" * 64, "migrasi"),
+    ("a" * 40, "sha256:" + "b" * 64, "c" * 63, "migrasi"),
+    ("a" * 40, "sha256:" + "b" * 64, "c" * 64, "rutin2"),
+])
+def test_tulis_pasangan_menolak_isi_bukan_identitas(tmp_path, monkeypatch, fstat_root,
+                                                     revisi, digest, kontrak, mode):
+    dirp = tmp_path / "midtrans"
+    dirp.mkdir()
+    monkeypatch.setattr(d, "MIDTRANS", dirp)
+    monkeypatch.setattr(d, "PASANGAN", dirp / "recovery-pair.json")
+    monkeypatch.setattr(d, "LOCK", tmp_path / "lock")
+    fs = d.Berkas()
+    with fs.kunci():
+        with pytest.raises(d.Ditolak):
+            fs.tulis_pasangan(revisi, digest, kontrak, mode)
+    assert not list(dirp.iterdir())
+
+
+def test_tulis_pasangan_gagal_tanpa_sisa_tmp(tmp_path, monkeypatch, fstat_root):
+    dirp = tmp_path / "midtrans"
+    dirp.mkdir()
+    monkeypatch.setattr(d, "MIDTRANS", dirp)
+    monkeypatch.setattr(d, "PASANGAN", dirp / "recovery-pair.json")
+    monkeypatch.setattr(d, "LOCK", tmp_path / "lock")
+    monkeypatch.setattr(d.os, "replace", lambda a, b: (_ for _ in ()).throw(OSError("sintetis")))
+    fs = d.Berkas()
+    with fs.kunci():
+        with pytest.raises(OSError):
+            fs.tulis_pasangan("a" * 40, "sha256:" + "b" * 64, "c" * 64, "rutin")
+    assert not list(dirp.iterdir())
+
+
 def test_disk_setelah_pull_gagal_tidak_stop(kasus):
     asli = kasus.b.ruang
 
@@ -910,6 +1040,9 @@ def fs_approval(tmp_path, fstat_root, monkeypatch):
 
         def ruang(self):
             pass
+
+        def tulis_pasangan(self, revisi, digest, kontrak, mode):
+            pass  # artefak pasangan punya uji tersendiri; fokus fixture ini receipt
 
         @contextlib.contextmanager
         def konfigurasi(self):

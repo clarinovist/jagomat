@@ -33,6 +33,11 @@ REGISTRI = "ghcr.io/clarinovist/osn-mesin-latihan"
 DOCKER = "/usr/bin/docker"
 AKAR = Path("/opt/osn")
 DATA = AKAR / "data"
+# Mount rahasia pembayaran: host-controlled, dibaca read-only oleh container
+# sebagai /run/secrets/midtrans. Isi (secret + artefak pasangan) dimiliki uid
+# 10001 (user container) tanpa bit group/other; deployer TIDAK membuat/memperbaiki.
+MIDTRANS = AKAR / "midtrans"
+PASANGAN = MIDTRANS / "recovery-pair.json"
 APPROVAL = AKAR / "rollout-approval.json"
 POLICY_RUTIN = AKAR / "routine-policy.json"
 KUNCI = DATA / "deepseek.key"
@@ -455,6 +460,14 @@ class Berkas:
             if (not stat.S_ISDIR(info.st_mode) or info.st_uid != 0
                     or stat.S_IMODE(info.st_mode) & 0o022):
                 raise Ditolak()
+        # Direktori mount rahasia pembayaran: root-controlled, TANPA bit tulis
+        # group/other, dan other-exec supaya uid 10001 bisa traversal membaca
+        # berkasnya. Bukan tugas deployer membuat/memperbaiki izin.
+        info = MIDTRANS.lstat()
+        mode = stat.S_IMODE(info.st_mode)
+        if (not stat.S_ISDIR(info.st_mode) or info.st_uid != 0
+                or (mode & 0o022) != 0 or (mode & 0o001) != 0o001):
+            raise Ditolak()
 
     @contextlib.contextmanager
     def kunci(self):
@@ -513,6 +526,49 @@ class Berkas:
         finally:
             os.close(folder)
         # Fsync failure membatalkan swap, tetapi receipt tetap ada (fail closed).
+
+    def tulis_pasangan(self, revisi, digest, kontrak, mode):
+        """Artefak pasangan recovery untuk runtime pembayaran; atomik + durable.
+
+        Ditulis SEBELUM swap supaya container baru sudah dapat membacanya saat
+        start (runtime dipasang sekali per proses). Isi hanya hash/identitas
+        image — tanpa rahasia. Pemilik uid 10001 mode 0400 mengikuti kontrak
+        baca_privat runtime (`os.geteuid()` di container).
+        """
+        self._wajib_lock()
+        if (re.fullmatch(r"[0-9a-f]{40}", revisi or "") is None
+                or re.fullmatch(DIGEST, digest or "") is None
+                or re.fullmatch(r"[0-9a-f]{64}", kontrak or "") is None
+                or mode not in ("migrasi", "rutin")):
+            raise Ditolak()
+        isi = {"versi": 1, "revisi": revisi, "digest": digest, "kontrak": kontrak,
+               "pasangan_terverifikasi": True, "kompatibel": True, "mode": mode}
+        sementara = MIDTRANS / (".recovery-pair.tmp-" + secrets.token_hex(16))
+        try:
+            fd = os.open(sementara, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+            try:
+                os.write(fd, json.dumps(isi, sort_keys=True).encode("utf-8"))
+                os.fsync(fd)
+                os.fchown(fd, 10001, 10001)
+                os.fchmod(fd, 0o400)
+            finally:
+                os.close(fd)
+            os.replace(sementara, PASANGAN)
+        except BaseException:
+            try:
+                os.unlink(sementara)
+            except OSError:
+                pass
+            raise
+        folder = os.open(MIDTRANS, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            os.fsync(folder)
+        finally:
+            os.close(folder)
+        info = PASANGAN.lstat()
+        if (not stat.S_ISREG(info.st_mode) or info.st_uid != 10001
+                or stat.S_IMODE(info.st_mode) != 0o400):
+            raise Ditolak()
 
     def ruang(self):
         info = DATA.lstat()
@@ -666,7 +722,10 @@ class Docker:
         argv = ["run", "--pull", "never", "--detach", "--name", KONTAINER,
                 "--restart", "unless-stopped",
                 *PENGAMAN, "--publish", "127.0.0.1:8724:8724",
-                "--mount", "type=bind,src=/opt/osn/data,dst=/data"]
+                "--mount", "type=bind,src=/opt/osn/data,dst=/data",
+                # Rahasia pembayaran read-only. Jalur utama DAN recovery memakai
+                # fungsi ini, jadi konfigurasi tetap identik saat rollback.
+                "--mount", "type=bind,src=" + str(MIDTRANS) + ",dst=/run/secrets/midtrans,readonly"]
         for path in paths:
             argv.extend(["--env-file", path])
         for nilai in ENV_TETAP:
@@ -739,7 +798,8 @@ def deploy(teks, *, docker=None, berkas=None, sekarang=time.time,
                 raise Ditolak()
             # Berlaku pada rutin DAN deploy-v2. Approval operator tidak membuat
             # recovery lama kompatibel dengan schema/receipt kandidat baru.
-            if docker.kontrak_image(id_kandidat) != docker.kontrak_image(id_pemulihan):
+            kontrak_kandidat = docker.kontrak_image(id_kandidat)
+            if kontrak_kandidat != docker.kontrak_image(id_pemulihan):
                 raise Ditolak()
             id_lama = docker.image_saat_ini()  # Bukan fallback otomatis schema3.
             berkas.ruang()  # Pull dapat menghabiskan ruang yang tadi masih tersedia.
@@ -757,6 +817,8 @@ def deploy(teks, *, docker=None, berkas=None, sekarang=time.time,
                 if berkas.policy_rutin() != policy:
                     raise Ditolak()
                 if id_lama == id_kandidat:
+                    berkas.tulis_pasangan(docker.revision_image(id_kandidat), id_kandidat,
+                                          kontrak_kandidat, "rutin")
                     lapor("Candidate sudah aktif dan sehat; tidak ada swap. Exit 0.")
                     return 0
             else:
@@ -765,6 +827,11 @@ def deploy(teks, *, docker=None, berkas=None, sekarang=time.time,
                 berkas.konsumsi(approval, sekarang())  # O_EXCL + fsync, di bawah lock
                 # Fsync lambat tidak memperpanjang lease; receipt tetap hangus.
                 validasi_approval(json.dumps(approval), kandidat, pemulihan, sekarang())
+            # Artefak pasangan SEBELUM swap: container baru harus sudah dapat
+            # membacanya saat start (runtime dipasang sekali per proses). Gagal
+            # tulis = preflight ditolak; container lama tidak disentuh.
+            berkas.tulis_pasangan(docker.revision_image(id_kandidat), id_kandidat,
+                                  kontrak_kandidat, "rutin" if rutin else "migrasi")
             tahap = "stop-awal"
             docker.hentikan()
             tahap = "hapus-awal"

@@ -47,6 +47,8 @@ def test_rutin_sukses_tanpa_approval_migrasi_dengan_urutan_guard(rutin):
     assert jejak.index("contract-candidate") < jejak.index("schema-lama")
     assert jejak.index("contract-recovery") < jejak.index("schema-lama")
     assert jejak.index("schema-lama") < jejak.index("policy2") < jejak.index("stop-lama")
+    assert jejak.index("policy2") < jejak.index("pasangan") < jejak.index("stop-lama")
+    assert rutin.b.pasangan[3] == "rutin"
     assert jejak[-1] == "unlock"
     assert "deploy rutin selesai" in rutin.pesan[-1]
     for argv, opsi in rutin.r.calls:
@@ -136,6 +138,7 @@ def test_noop_masih_menegakkan_policy_schema_dan_kontrak(rutin):
     rutin.r.current = "candidate"
     assert rutin.jalan() == 0
     assert "schema-candidate" in rutin.jejak and "policy2" in rutin.jejak
+    assert "pasangan" in rutin.jejak and rutin.b.pasangan[3] == "rutin"
     assert not any(x.startswith(("stop-", "rm-")) for x in rutin.jejak)
     assert "tidak ada swap" in rutin.pesan[-1]
 
@@ -217,6 +220,7 @@ def test_rutin_io_policy_nyata_lock_sampai_recovery(tmp_path, fstat_root, monkey
     class BerkasSintetis(d.Berkas):
         def periksa_host(self): pass
         def ruang(self): pass
+        def tulis_pasangan(self, revisi, digest, kontrak, mode): pass
         @contextlib.contextmanager
         def konfigurasi(self): yield (), dict(d.LINGKUNGAN)
     fs = BerkasSintetis()

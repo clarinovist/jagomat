@@ -1,13 +1,14 @@
 """Pekerja rekonsiliasi terjadwal: batch bounded, lease file, idempoten.
 
-Tanpa route HTTP dan tanpa dispatch saat startup; dijalankan lewat
+Tanpa route HTTP dan tanpa dispatch saat startup; entry kanonis
+`mesin/rekonsiliasi_langganan.py` (ikut image) dengan pembungkus dev di
 `scripts/rekonsiliasi_langganan.py`. Hanya invoice yang sudah punya intent yang
 diproses — pekerja tidak pernah membuat invoice, enrollment, atau pembayaran baru.
 Panggilan provider selalu di luar lock DB/auth, dan sebelum receipt/grant snapshot
 invoice + owner profil + revisi akun diperiksa ulang. Unknown (timeout/404/5xx)
 dicatat `belum_terverifikasi` dan dijadwalkan ulang secara bounded, bukan dianggap
-gagal; refund/pembayaran terlambat tetap `perlu_diperiksa` (kebijakan D8/D9 belum
-diputuskan, jadi pekerja tidak mengarang kebijakan).
+gagal; refund/pembayaran terlambat tetap `perlu_diperiksa` — kebijakan D8 (26 Sep
+2026) = tanpa grant otomatis, koreksi manual admin.
 """
 
 from contextlib import contextmanager
@@ -115,7 +116,8 @@ def _satu(path_admin, path_auth, path_db, invoice_id, akun_id, *, config, transp
         return "dilewati"
     if hasil.bukti is not None:
         # Hasil ledger yang menentukan: settlement terlambat/receipt sudah ada tetap
-        # perlu_diperiksa (kebijakan D8 belum diputuskan, bukan hak pekerja).
+        # perlu_diperiksa — kebijakan D8 (keputusan 26 Sep 2026) = tanpa grant
+        # otomatis; koreksi (grant manual/refund) dilakukan admin lewat panel.
         ledger = store.terapkan_pembayaran(path_admin, akun_id, hasil.bukti, sekarang=sekarang,
                                            sakelar=sakelar)
         if ledger == "grant":

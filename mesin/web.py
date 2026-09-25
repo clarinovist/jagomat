@@ -471,6 +471,10 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _rute_get(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/") or "/"
+        # Runtime pembayaran produksi (fail-closed) dicoba sekali per server sebelum
+        # permukaan pembayaran mana pun; tanpa secret sah, seluruh sakelar tetap OFF.
+        import subscription_produksi
+        subscription_produksi.pastikan_terpasang(self.server)
         import subscription_callback
         if subscription_callback.tangani_get(self, jalur):
             return
@@ -1135,6 +1139,8 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _rute_post(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/")
+        import subscription_produksi
+        subscription_produksi.pastikan_terpasang(self.server)
         import subscription_callback
         if subscription_callback.tangani_post(self, jalur):
             return

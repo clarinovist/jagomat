@@ -29,7 +29,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 ROOT = Path(__file__).resolve().parent.parent
 
 # Titik masuk & modul inti yang pasti dibutuhkan saat container jalan.
-TITIK_MASUK = ("serve.py", "web.py", "healthcheck.py")
+# rekonsiliasi_langganan.py dijalankan di container via `docker exec` (worker
+# terjadwal), jadi rantai impornya juga wajib berada di root repo.
+TITIK_MASUK = ("serve.py", "web.py", "healthcheck.py", "rekonsiliasi_langganan.py")
 
 
 def _impor_lokal(blok: str) -> set[str]:

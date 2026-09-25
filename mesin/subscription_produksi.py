@@ -4,12 +4,16 @@ Tidak membaca env, DB, atau input HTTP. Secret dan artefak recovery dibaca dari
 mount privat dengan validasi ketat; tanpa fallback antar lingkungan. Readiness
 dihitung dari runtime/artefak (bukan checkbox Admin): `provider_produksi` dari
 secret+transport, `callback` dari permukaan callback di image, `recovery` dari
-artefak pair deployer, dan `kebijakan` tetap false selama D8/D9 belum diputuskan.
+artefak pair deployer, dan `kebijakan` dari keputusan D8/D9 pengguna
+(diputuskan 26 Sep 2026; lihat docs/plan/2026-09-26-aktivasi-pembayaran.md).
+`pastikan_terpasang` dipanggil dispatch web per server (sekali per proses):
+fail-closed, tanpa efek bila secret tidak sah.
 """
 
 import importlib.util
 import json
 import re
+import threading
 
 import admin_subscription
 import midtrans_produksi
@@ -19,9 +23,12 @@ import subscription as d
 BERKAS_RAHASIA_BAWAAN = "/run/secrets/midtrans/produksi-rahasia"
 BERKAS_RECOVERY_BAWAAN = "/run/secrets/midtrans/recovery-pair.json"
 BATAS_ARTEFAK = 1024
-# D8 (refund/late/over) dan D9 (pajak/retensi) belum diputuskan pengguna; nilai ini
-# bukan toggle Admin dan tidak boleh diturunkan dari konfigurasi apa pun.
-KEBIJAKAN_D8_D9 = False
+# D8 (refund/late/over) dan D9 (pajak/retensi) DIPUTUSKAN pengguna 26 Sep 2026
+# (dokumen keputusan: docs/plan/2026-09-26-aktivasi-pembayaran.md). Nilai ini
+# tetap bukan toggle Admin dan tidak diturunkan dari konfigurasi/env/DB apa pun;
+# kenaikan tahap Admin tetap gerbang terpisah sebelum penegakan menyala.
+KEBIJAKAN_D8_D9 = True
+_instalasi = threading.Lock()
 
 
 def _tanpa_duplikat(pasangan):
@@ -111,3 +118,26 @@ def pasang(server, *, path_rahasia=None, path_recovery=None):
         return False
     server.pembayaran_runtime = hasil
     return True
+
+
+def pastikan_terpasang(server):
+    """Coba pasang runtime sekali per server; dipanggil dispatch web, tanpa raise.
+
+    Fail-closed: tanpa secret/artefak yang sah runtime tidak dipasang dan seluruh
+    permukaan pembayaran tetap OFF — situs lain tidak terpengaruh. Percobaan TIDAK
+    diulang per permintaan (tanpa I/O berkas di jalur panas); pemasangan ulang
+    hanya terjadi pada proses/server baru, jadi pasang berkas lalu restart.
+    """
+    if getattr(server, "pembayaran_runtime", None) is not None:
+        return True
+    with _instalasi:
+        if getattr(server, "pembayaran_runtime", None) is not None:
+            return True
+        if getattr(server, "_pembayaran_dicoba", False):
+            return False
+        server._pembayaran_dicoba = True
+        try:
+            return pasang(server) is True
+        except (Exception, KeyboardInterrupt):
+            # Kegagalan pemasangan bukan alasan mematikan permintaan; runtime tetap OFF.
+            return False
