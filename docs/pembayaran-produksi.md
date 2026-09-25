@@ -77,6 +77,30 @@ Callback **bukan bukti settlement**: efek finansial hanya lewat query status ser
 (pekerja rekonsiliasi atau tombol Periksa milik guru) yang mem-binding order, transaction id,
 merchant, nominal, IDR, QRIS, dan status penuh.
 
+## Surface checkout produksi guru (`/langganan`)
+
+Dibangun 26 Sep 2026 (keputusan pengguna): `mesin/subscription_produksi_http.py` +
+`mesin/subscription_produksi_pages.py`, didispatch `web.py` sebelum permukaan sandbox.
+Tanpa runtime produksi terpasang rute tidak melayani apa pun; tanpa sakelar `fondasi`
+hanya halaman status "belum aktif" yang dirender (tanpa membaca ledger).
+
+- Rute: `GET /langganan`, `GET /langganan/<inv>`, `GET /langganan/<inv>/qr`,
+  `POST /langganan/siapkan`, `POST /langganan/<inv>/buat|periksa`. Token form bertanda
+  tangan terikat sesi+principal (`exp` 900 s) memakai kunci proses; `buat` hanya saat
+  intent belum ada + sakelar `buat_pembayaran`; `periksa` = satu-satunya jalur efek
+  finansial sisi guru (query server-to-server; grant tepat sekali lewat ledger).
+- QR diambil server-side via `TransportProduksi.gambar` (allow-list host/path kontrak,
+  PNG bounded) lalu disajikan same-origin; URL tidak pernah dari input browser.
+- Teks keputusan: harga total termasuk pajak bila berlaku (bukan faktur pajak),
+  disclosure Midtrans (QRIS) + merchant, gagal/kedaluwarsa tidak menahan dana, dukungan
+  statis tanpa menyimpan kontak. Tanpa JS/aset pihak ketiga.
+- 404 identik untuk anon/bukan guru/invoice asing; batas laju 30 permintaan/menit/akun.
+- Uji: `mesin/__tests__/test_subscription_produksi_http.py` + 3 mutation guard baru
+  (token, allow-list QR, gate sakelar checkout).
+- Aktivasi: menunggu deploy artifact (protokol cutover biasa) dan secret terpasang;
+  tier dapat naik ke `checkout` setelah surface terpasang + uji 1 pembayaran nyata kecil
+  oleh pemilik. Penegakan tetap butuh keputusan terpisah.
+
 ## Pekerja rekonsiliasi terjadwal
 
 `scripts/rekonsiliasi_langganan.py` menjalankan satu putaran bounded:
