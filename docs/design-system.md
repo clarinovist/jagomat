@@ -167,6 +167,29 @@ Aturan:
 - Jangan hardcode hex literal di file CSS — selalu rujuk token.
 - Token baru tambahkan ke `design_tokens.py` + catat di dokumen ini.
 
+### Token Figma v2 (sinkron 2026-09-25)
+
+Sumber: file desain "Jagomat · Sistem Desain & Pilot UI" (pilot 25 Sep 2026,
+arsip di `osn-resources/referensi/desain-ui/figma-pilot-2026-09-25/`). Hanya
+nilai yang belum ada yang ditambahkan; padanan lama tetap dipakai apa adanya
+(cream = `LATAR_MURID`, teal-strong = `AKSEN_TEAL_TUA`, radius/lg 12 =
+`RADIUS_KARTU`, radius/pill = `RADIUS_PIL`, size/touch-min 44 = `TARGET_SENTUH`).
+
+| Token | Nilai | Asal di Figma |
+|-------|-------|---------------|
+| `AKSEN_KORAL_HOVER` / `AKSEN_TEAL_HOVER` | `#ba3c2d` / `#0b7477` | `action/primary-hover`, `action/secondary-hover` |
+| `LATAR_TOOLTIP` / `TEKS_TOOLTIP` | `#16213e` / `#ffffff` | `bg/tooltip`, `text/tooltip` — balon pola "ⓘ" |
+| `RADIUS_KARTU_BESAR` | `22px` | `radius/card` |
+| `TINGGI_KONTROL` / `TINGGI_CTA` | `48px` / `52px` | `size/control`, `size/cta` |
+| `UKURAN_IKON` | `24px` | `size/icon` |
+| `TEBAL_GARIS` / `TEBAL_FOKUS` | `1px` / `2px` | `border/width`, `border/focus-width` |
+| `SP_7` / `SP_8` | `3rem` / `4rem` | `space/3xl`, `space/4xl` |
+
+Token di tabel ini **belum dipakai CSS mana pun**. Sinkron ini hanya menyamakan
+nama antara desain dan kode, bukan mengubah tampilan; penerapannya (mis. radius
+kartu 22 atau tinggi CTA 52) menyusul lewat jalur Normal terpisah agar
+perubahan tampilan bisa direview sendiri.
+
 File CSS per permukaan (semuanya `import design_tokens as T`):
 - `teacher_style.py` → 5 halaman layar guru (masuk, dashboard, sesi, laporan, akun)
 - `screen_style.py` → lembar yang dibaca di browser/HP (anak & guru)

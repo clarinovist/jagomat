@@ -380,3 +380,41 @@ STATUS_LATIHAN_TEKS   = "#291800"           # amber text on light pill
 
 # Glow/fokus aksen (border fokus 2px)
 FOKUS_AKSEN = "#0fa3a3"
+
+# ─────────────────────────────────────────────────────────────────────
+# Token Figma v2 — sinkron dari file "Jagomat · Sistem Desain & Pilot UI"
+# (pilot 2026-09-25). Hanya nilai yang BELUM ada di atas yang ditulis di sini;
+# padanan yang sudah ada tidak diduplikasi (mis. cream = LATAR_MURID,
+# teal-strong = AKSEN_TEAL_TUA, radius/lg 12 = RADIUS_KARTU,
+# radius/pill = RADIUS_PIL, size/touch-min 44 = TARGET_SENTUH).
+#
+# Catatan: token di blok ini belum dipakai CSS mana pun. Disinkronkan lebih
+# dulu supaya desain dan kode memakai satu nama; penerapannya ke tampilan
+# menyusul lewat jalur Normal/Kritis, bukan diselundupkan lewat sinkron ini.
+# ─────────────────────────────────────────────────────────────────────
+
+# Warna hover tombol solid (Figma action/*-hover) — lebih gelap dari dasarnya.
+AKSEN_KORAL_HOVER = "#ba3c2d"    # hover tombol coral (aksi utama)
+AKSEN_TEAL_HOVER = "#0b7477"     # hover tombol teal (aksi sekunder)
+
+# Balon penjelasan pola "ⓘ" (komponen Info di Figma: bg/tooltip & text/tooltip).
+# Nilainya sama dengan token judul/putih supaya balon tetap tinggi kontras.
+LATAR_TOOLTIP = BORDER_KUAT      # #16213e
+TEKS_TOOLTIP = TEKS_PUTIH
+
+# Radius kartu utama versi Figma (22px). Kode masih memakai RADIUS_KARTU 12px
+# di kartu; token ini belum diterapkan agar sinkron ini tidak mengubah tampilan.
+RADIUS_KARTU_BESAR = "22px"
+
+# Tinggi kontrol & CTA (ukuran Figma: kontrol 48, CTA utama 52) + ikon standar.
+TINGGI_KONTROL = "48px"
+TINGGI_CTA = "52px"
+UKURAN_IKON = "24px"
+
+# Ketebalan garis seperti di Figma (border/width & border/focus-width).
+TEBAL_GARIS = "1px"
+TEBAL_FOKUS = "2px"
+
+# Lanjutan skala spacing 4px (SP_1..SP_6 sudah di atas: 4/8/12/16/24/32).
+SP_7 = "3rem"                    # 48px
+SP_8 = "4rem"                    # 64px
