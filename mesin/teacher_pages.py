@@ -56,6 +56,13 @@ LABEL_KODE_REMEDIAL = {
     "N": "Menebak atau belum menunjukkan cara",
 }
 
+# Satu sumber teks bubble ikon "ⓘ" beranda guru: dipakai sebagai aria-label
+# tombol sekaligus isi bubble supaya pembaca layar dan mata membaca hal sama.
+INFO_DAFTAR_ANAK = (
+    "Setiap anak punya halaman sendiri: buat latihan, rencana belajar, "
+    "dan riwayat."
+)
+
 
 def _blok_latihan_serupa(kon, sesi_id: int) -> str:
     """CTA manual per tipe T, terpisah dari form koreksi hasil."""
@@ -550,7 +557,9 @@ def halaman_utama_stitch(
         '<p class="guru-alis-st">RUANG BELAJAR MEREKA</p>'
         f'<h2 id="daftar-anak">Anak &amp; siswa <span>{len(baris)}</span></h2>'
         f'</div>{tambah}</div>'
-        '<p class="guru-petunjuk-st">Pilih nama untuk membuka rencana belajar dan riwayat sesi.</p>'
+        '<p class="guru-petunjuk-st">Pilih nama untuk mulai. '
+        f'<button type="button" class="info" aria-label="{html.escape(INFO_DAFTAR_ANAK, quote=True)}">'
+        f'i<span class="info-bubble" role="tooltip">{html.escape(INFO_DAFTAR_ANAK)}</span></button></p>'
         f'<div class="daftar-anak">{"".join(baris)}</div>'
     ) if baris else (
         '<div class="guru-kosong-st">'

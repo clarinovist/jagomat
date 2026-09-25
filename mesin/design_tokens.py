@@ -402,6 +402,12 @@ AKSEN_TEAL_HOVER = "#0b7477"     # hover tombol teal (aksi sekunder)
 LATAR_TOOLTIP = BORDER_KUAT      # #16213e
 TEKS_TOOLTIP = TEKS_PUTIH
 
+# Geometri komponen Info "ⓘ" (Figma `Jagomat/Info` 28:14): lingkaran ikon 18px
+# di dalam kotak sentuh 26x26, lebar maksimum balon 260px.
+UKURAN_INFO = "18px"
+TARGET_INFO = "26px"
+LEBAR_TOOLTIP = "260px"
+
 # Radius kartu utama versi Figma (22px). Kode masih memakai RADIUS_KARTU 12px
 # di kartu; token ini belum diterapkan agar sinkron ini tidak mengubah tampilan.
 RADIUS_KARTU_BESAR = "22px"

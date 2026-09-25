@@ -195,8 +195,9 @@ Penerapan pertama (25 Sep 2026, `style_stitch.py`):
 - `AKSEN_KORAL_HOVER` / `AKSEN_TEAL_HOVER` → hover tombol solid, menggantikan
   `color-mix(...)` dan `filter: brightness(1.06)`.
 
-Belum dipakai di CSS: `LATAR_TOOLTIP`/`TEKS_TOOLTIP` (baru dipakai di berkas
-Figma), `UKURAN_IKON`, `TEBAL_GARIS`, `TEBAL_FOKUS`, `SP_7`, `SP_8`.
+`LATAR_TOOLTIP`/`TEKS_TOOLTIP` dan `TEBAL_GARIS`/`TEBAL_FOKUS` sudah terpakai
+sejak komponen Info "ⓘ" (lihat "Penerapan ketiga"). Belum dipakai di CSS:
+`UKURAN_IKON`, `SP_7`, `SP_8`.
 
 Penerapan kedua (25 Sep 2026, permukaan non-Stitch) — 14 aturan kartu di 11 berkas
 jadi `RADIUS_KARTU_BESAR`: `teacher_style` (`.kartu`, `.stat`, `.ringkasan-laporan`,
@@ -211,6 +212,38 @@ Tinggi: literal `44px` → `TARGET_SENTUH` di `attachments` dan `subscription_pa
 Hover: `.admin-tombol` dan `.pendamping-tombol` (solid teal) kini punya hover
 `AKSEN_TEAL_HOVER`; varian `.admin-bahaya`, `.pendamping-sekunder`, `.pendamping-bahaya`
 dikecualikan karena latarnya terang.
+
+Penerapan ketiga (26 Sep 2026): komponen Info "ⓘ" (Figma `Jagomat/Info` 28:14,
+varian Diam/Terbuka). Aturan baru layar guru: maksimal satu baris penjelasan di
+layar, sisanya masuk bubble yang muncul saat kursor mendekat atau saat difokus
+dengan keyboard — tanpa JS. Contoh pertama di beranda guru; kalimat disetujui
+26 Sep: baris "Pilih nama untuk mulai." + bubble "Setiap anak punya halaman
+sendiri: buat latihan, rencana belajar, dan riwayat."
+
+| Token | Nilai | Konteks |
+|-------|-------|---------|
+| `UKURAN_INFO` | 18px | Diameter lingkaran ikon (outline teal, huruf "i") |
+| `TARGET_INFO` | 26px | Kotak sentuh tombol ⓘ |
+| `LEBAR_TOOLTIP` | 260px | Lebar maksimum bubble (mengecil di layar sempit) |
+
+Markup — tombol, bukan tautan; `aria-label` = isi bubble supaya pembaca layar
+tetap dapat isinya:
+
+```html
+<button type="button" class="info" aria-label="…">
+i<span class="info-bubble" role="tooltip">…</span>
+</button>
+```
+
+- CSS di `style_stitch.py` (`GAYA_STITCH`; ikut termuat di permukaan profil
+  karena gaya Stitch selalu dipasang). Bubble tampil pada `:hover`,
+  `:focus-visible` (keyboard), dan `:focus` (tap di HP yang memfokus tombol;
+  iOS Safari tidak memfokus tombol saat tap sehingga di sana mengandalkan
+  emulasi hover — bubble menutup saat menyentuh tempat lain).
+- Jangan kembali ke atribut `title=`: tidak muncul di perangkat sentuh.
+- Bubble hanya untuk penjelasan produk — dilarang memuat kunci jawaban, aturan
+  kritis yang wajib terbaca, atau data anak. Dijaga
+  `__tests__/test_info_tooltip.py` (markup, CSS hover/focus, tanpa JS).
 
 Belum seragam — kandidat berikutnya, jangan dicampur ke sini: tinggi kontrol di banyak
 permukaan masih `TARGET_SENTUH` 44px padahal desain memakai `TINGGI_KONTROL` 48px, dan

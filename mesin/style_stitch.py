@@ -202,6 +202,42 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .menu-isi a:hover, .menu-isi button:hover {{ background: {T.LATAR_SEKUNDER_LEMBUT}; }}
 .menu-pisah {{ border-top: 1px solid {T.BORDER_VARIAN}; margin: {T.SP_1} 0; }}
 
+/* ── Komponen Info "ⓘ" (Figma `Jagomat/Info`, pilot 25 Sep 2026). Aturan
+   produk yang wajib tetap satu baris di layar; detail penjelasannya pindah
+   ke bubble yang muncul saat hover atau fokus — tanpa JS. Di perangkat
+   sentuh bubble mengandalkan emulasi hover + fokus tap (bukan atribut
+   title); lebarnya dibatasi supaya tidak melewati viewport. ── */
+.info {{
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: {T.TARGET_INFO}; height: {T.TARGET_INFO};   /* kotak sentuh 26x26 */
+  padding: 0; border: 0; background: transparent;
+  color: {T.AKSEN_TEAL_TUA};
+  font: 700 .75rem/1 {T.FONT_BODY};
+  vertical-align: middle; cursor: pointer;
+}}
+.info::before {{ /* lingkaran ikon 18px */
+  content: ''; position: absolute;
+  width: {T.UKURAN_INFO}; height: {T.UKURAN_INFO};
+  border: {T.TEBAL_GARIS} solid currentColor; border-radius: 50%;
+  pointer-events: none;
+}}
+.info:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; border-radius: {T.RADIUS_KECIL}; }}
+.info-bubble {{
+  position: absolute; bottom: calc(100% + {T.SP_2}); left: 50%;
+  transform: translateX(-50%);
+  width: max-content; max-width: min({T.LEBAR_TOOLTIP}, calc(100vw - {T.SP_6}));
+  background: {T.LATAR_TOOLTIP}; color: {T.TEKS_TOOLTIP};
+  border-radius: {T.RADIUS_KARTU};
+  padding: {T.SP_2} {T.SP_3};
+  font: 400 .8125rem/1.45 {T.FONT_BODY};
+  text-align: left; visibility: hidden; opacity: 0;
+  z-index: 40; pointer-events: none;
+}}
+.info:hover .info-bubble,
+.info:focus .info-bubble,
+.info:focus-visible .info-bubble {{ visibility: visible; opacity: 1; }}
+
 /* Beranda pendamping editorial — semua override dibatasi ke kanvas ini. */
 .guru-beranda-st {{ padding-top: {T.SP_5}; }}
 .guru-beranda-st :is(a, button, summary):focus-visible {{
