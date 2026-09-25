@@ -281,6 +281,10 @@ di `style_stitch.py` diganti token warna Figma.
 - `TEBAL_FOKUS`: 12 aturan `outline: 2px` (keadaan fokus) diganti
   `outline: {T.TEBAL_FOKUS} solid …` di `style_stitch.py` (10),
   `choice_pages.py`, dan `mapping_results.py` — nilai rendered identik.
+- Kontras tombol coral (keputusan produk 26 Sep): dasar tombol coral berteks
+  putih berganti `AKSEN_MURID_KORAL` `#ff6b5b` (2,7:1) → `AKSEN_KORAL_TUA`
+  `#cc3f2b` (4,9:1) — sama dengan `action/primary` Figma dan override editorial
+  yang sudah ada; hover tetap `AKSEN_KORAL_HOVER`.
 - Tinggi kontrol: `TINGGI_KONTROL` 48px menggantikan `TARGET_SENTUH` 44px di 21
   aturan + 3 literal `3rem` pada kontrol nyata `style_stitch.py` — tombol
   (termasuk `.tombol-ikon-st` 48×48), input/select/textarea (`.st-input`,
@@ -302,10 +306,10 @@ Belum seragam — kandidat berikutnya, jangan dicampur ke sini: `TINGGI_KONTROL`
 `assistant_style`, `profile_workspace`, `report_dashboard`, `subscription_pages`,
 `teacher_style`) masih `TARGET_SENTUH` 44px dan menunggu putaran tersendiri.
 
-Belum ditindaklanjuti (keputusan terpisah, jangan diselundupkan): tombol coral
-terang (`AKSEN_MURID_KORAL` `#ff6b5b` + teks putih) masih memakai warna dasar
-yang gagal kontras — desain Figma memakai `action/primary` `#cc3f2b`. Mengganti
-warna dasar tombol itu mengubah rupa banyak permukaan, jadi perlu review sendiri.
+Belum ditindaklanjuti — sisa kecil dari keputusan kontras coral (26 Sep):
+`.st-badge.baru` masih `AKSEN_MURID_KORAL` + teks putih (permukaan editorial
+sudah `AKSEN_KORAL_TUA` lewat override), dan bayangan `rgba(255,107,91,…)`
+pada strip simpan masih memakai rona lama.
 
 File CSS per permukaan (semuanya `import design_tokens as T`):
 - `teacher_style.py` → 5 halaman layar guru (masuk, dashboard, sesi, laporan, akun)

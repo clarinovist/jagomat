@@ -327,7 +327,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 }}
 .st-tombol-coral {{
   font: inherit;
-  background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
+  background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
   border: 0; border-radius: {T.RADIUS_SEDANG};
   min-height: {T.TINGGI_KONTROL};
   padding: 0 {T.SP_5};
@@ -765,7 +765,7 @@ tr.sorot-baru, div.sorot-baru {{
   width: 100%; min-height: {T.TINGGI_CTA}; display: inline-flex;
   align-items: center; justify-content: center; padding: {T.SP_3} {T.SP_5};
   border: 0; border-radius: {T.RADIUS_SEDANG};
-  background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
+  background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
   font: inherit; font-family: {T.FONT_HEADLINE}; font-weight: 700;
   text-decoration: none; cursor: pointer;
 }}
@@ -1066,7 +1066,7 @@ tr.sorot-baru, div.sorot-baru {{
 }}
 .kerja-simpan-strip-st button {{
   width: 100%; font-size: 1rem; padding: .85rem {T.SP_2};
-  background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
+  background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
   border: 0; border-radius: {T.RADIUS_PIL};
   font-family: {T.FONT_HEADLINE}; font-weight: 700; cursor: pointer;
   min-height: {T.TINGGI_KONTROL};
@@ -1516,7 +1516,7 @@ tr.sorot-baru, div.sorot-baru {{
 
 .masuk-tombol-st {{
   width: 100%; font-size: 1.05rem; padding: .9rem;
-  background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
+  background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
   border: 0; border-radius: {T.RADIUS_SEDANG};
   font-family: {T.FONT_HEADLINE}; font-weight: 700; cursor: pointer;
   min-height: {T.TINGGI_KONTROL};
@@ -1636,7 +1636,7 @@ tr.sorot-baru, div.sorot-baru {{
 a.tombol-coral {{
   display: inline-block; padding: .7rem 1.4rem;
   border-radius: {T.RADIUS_SEDANG}; text-decoration: none; font-weight: 700;
-  background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
+  background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
   font-family: {T.FONT_HEADLINE}; min-height: {T.TINGGI_KONTROL};
   display: inline-flex; align-items: center; gap: {T.SP_2};
 }}
@@ -2919,7 +2919,7 @@ CSS_SESI = f"""
 }}
 .koreksi-simpan-st button {{
   width: 100%; font-size: 1.05rem; padding: .9rem;
-  background: {T.AKSEN_MURID_KORAL}; color: {T.TEKS_PUTIH};
+  background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
   border: 0; border-radius: {T.RADIUS_SEDANG};
   font-family: {T.FONT_HEADLINE}; font-weight: 700; cursor: pointer;
   min-height: {T.TINGGI_KONTROL};
