@@ -97,9 +97,9 @@ hanya halaman status "belum aktif" yang dirender (tanpa membaca ledger).
 - 404 identik untuk anon/bukan guru/invoice asing; batas laju 30 permintaan/menit/akun.
 - Uji: `mesin/__tests__/test_subscription_produksi_http.py` + 3 mutation guard baru
   (token, allow-list QR, gate sakelar checkout).
-- Aktivasi: menunggu deploy artifact (protokol cutover biasa) dan secret terpasang;
-  tier dapat naik ke `checkout` setelah surface terpasang + uji 1 pembayaran nyata kecil
-  oleh pemilik. Penegakan tetap butuh keputusan terpisah.
+- Aktivasi: **ter-deploy 26 Sep 2026** (revision `6c8e3d6`) lewat cutover terkontrol;
+  tier `checkout` menunggu secret terpasang + kenaikan tahap dan akun ter-enroll (gap
+  keputusan terpisah). Penegakan tetap butuh keputusan terpisah.
 
 ## Pekerja rekonsiliasi terjadwal
 

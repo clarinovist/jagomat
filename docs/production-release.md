@@ -64,11 +64,27 @@ terbukti pada tick pertama). Policy rutin ditulis ulang dengan hash terukur dan
 `enabled:false` (izin host rutin tetap dicabut eksplisit); mode tetap `migrasi`, recovery
 pin `781fbcd`, job `pasang` tetap literal false.
 
+**Pembaruan 26 Sep 2026 (~07:05 WIB) — deploy surface checkout produksi guru:**
+cutover terkontrol kedua (revision `6c8e3d6`, digest `sha256:23208048…`): backup bundle
+`aktivasi-20260926T000440Z` (4 DB + sandi, root0700), rehearsal idempoten pada salinan
+(versi 7/2/4/2, integrity+FK, preservasi 9 tabel) + uji baca image recovery, approval
+exact-pair (receipt `.approval-consumed-44981933…`), deployer exit 0. Pasca-swap:
+container sehat (rev `6c8e3d6`), mount secret tetap, artefak pasangan diperbarui, modul
+`subscription_produksi_http`/`_pages` ada di image, smoke 200/401/303 lulus,
+`/langganan` anon 404 (rute butuh sesi guru), callback tetap fail-closed 404/503.
+Tier Admin masih `nonaktif`; kenaikan mengikuti keputusan (rekonsiliasi saat secret
+aktif, checkout setelah surface + uji pembayaran nyata, tanpa penegakan tanpa keputusan
+terpisah). Gap yang dicatat: alur checkout butuh akun ter-enroll — sinkronisasi
+enrollment registrasi publik/cutoff dan jalur `transisi` akun lama = keputusan user
+terpisah (tidak dikerjakan).
+
 Terbuka dan menunggu aksi pengguna: **provisioning secret Midtrans oleh pemilik**
 (Server Key ditempatkan sendiri di `/opt/osn/midtrans/produksi-rahasia`; setelah itu
-restart container agar runtime terpasang, lalu naikkan tahap Admin maksimum sampai
-`rekonsiliasi` — kenaikan lebih tinggi menunggu surface checkout produksi guru yang
-belum ada; uji "checkout nyata" = fase surface terpisah).
+restart container agar runtime terpasang, lalu naikkan tahap Admin sesuai keputusan:
+`rekonsiliasi` saat secret aktif, `checkout` setelah surface terpasang + uji pembayaran
+nyata kecil; tanpa `penegakan` tanpa keputusan terpisah). Catatan: uji pembayaran nyata
+memerlukan akun **ter-enroll** — sinkronisasi enrollment registrasi publik/cutoff dan
+jalur `transisi` akun lama adalah gap keputusan terpisah yang belum dikerjakan.
 
 ## Snapshot sebelumnya — 22 September 2026
 
