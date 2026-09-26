@@ -63,6 +63,7 @@ class Hasil:
     status: str = "belum_terverifikasi"
     bukti: Optional[d.Pembayaran] = field(default=None, repr=False)
     qr: Optional[str] = field(default=None, repr=False)
+    tanpa_transaksi: bool = False
 
 
 def _referensi(nilai):
@@ -153,12 +154,26 @@ def _binding(data, *, invoice, merchant):
     return _referensi(data.get("transaction_id"))
 
 
+def tanpa_transaksi_sentinel(data, invoice):
+    """Sentinel 404 Midtrans: order dikenali, transaksi tidak pernah tercipta.
+
+    Respons tidak membawa order_id/transaction_status/transaction_id — hanya
+    id/status_code/status_message yang persis. Fail-closed: apa pun yang beda
+    (field tambahan, id beda, tipe lain) dianggap bukan sentinel.
+    """
+    return (data.get("id") == invoice["invoice_id"] and data.get("status_code") == "404"
+            and "transaction_id" not in data and "transaction_status" not in data
+            and data.get("status_message") == "Transaction doesn't exist.")
+
+
 def periksa_status(config, invoice, *, akun_id, transport, transaksi_id=None, sakelar=d.SAKELAR):
     sakelar.wajib("rekonsiliasi")
     if invoice["akun_id"] != akun_id:
         raise LookupError("invoice tidak ditemukan")
     try:
         data = kirim(request_status(config, invoice["invoice_id"]), transport=transport)
+        if tanpa_transaksi_sentinel(data, invoice):
+            return Hasil(tanpa_transaksi=True)
         transaksi = _binding(data, invoice=invoice, merchant=config.merchant)
         if transaksi_id is not None and transaksi != transaksi_id:
             raise KontrakTidakSah("identitas transaksi berbeda")
@@ -188,15 +203,17 @@ def status_ulang(config, invoice, *, akun_id, transport, sakelar=d.SAKELAR):
     """Klasifikasi status tervalidasi untuk keputusan 'buat ulang QR'.
 
     Kembalikan (kelas, hasil, identitas): kelas 'lunas' | 'pending' | 'mati' |
-    'perlu_diperiksa' | 'belum_terverifikasi'; identitas = transaction_id
-    terverifikasi (dipakai menurunkan kunci idempoten saat kelas 'mati').
-    Tanpa efek tulis dan tanpa keputusan finansial — caller yang menerapkan.
+    'perlu_diperiksa' | 'tanpa_transaksi' | 'belum_terverifikasi'; identitas =
+    transaction_id terverifikasi (dipakai menurunkan kunci idempoten saat kelas
+    'mati'). Tanpa efek tulis dan tanpa keputusan finansial — caller yang menerapkan.
     """
     sakelar.wajib("rekonsiliasi")
     if invoice["akun_id"] != akun_id:
         raise LookupError("invoice tidak ditemukan")
     try:
         data = kirim(request_status(config, invoice["invoice_id"]), transport=transport)
+        if tanpa_transaksi_sentinel(data, invoice):
+            return "tanpa_transaksi", Hasil(tanpa_transaksi=True), None
         transaksi = _binding(data, invoice=invoice, merchant=config.merchant)
         status = data.get("transaction_status")
         if (status == "settlement" and data.get("status_code") == "200"

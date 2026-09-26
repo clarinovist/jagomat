@@ -117,6 +117,23 @@ KASUS = [
     ('subscription_service.py', 'if receipt is not None or intent is None:',
      'if intent is None:', HTTP, 'test_ulang_qr_ditolak_tanpa_intent_atau_setelah_receipt',
      'setelah receipt'),
+    # Sentinel 404 "transaksi tidak pernah tercipta": flag kontrak, retry create
+    # ber-kunci idempoten kanonis, dan hitungan profil dari JSON — masing-masing
+    # wajib membuat regression test-nya MERAH saat dimatikan.
+    ('midtrans_contract.py',
+     'return (data.get("id") == invoice["invoice_id"] and data.get("status_code") == "404"',
+     'return False and (data.get("id") == invoice["invoice_id"] and data.get("status_code") == "404"',
+     HTTP, 'test_ulang_qr_tanpa_transaksi_mengulang_create_dan_kunci_kanonis',
+     'create diulang saat provider menyatakan tanpa transaksi'),
+    ('subscription_service.py',
+     'elif kelas == "tanpa_transaksi" and pembayaran.status == "belum_terverifikasi":',
+     'elif False:', HTTP,
+     'test_ulang_qr_tanpa_transaksi_mengulang_create_dan_kunci_kanonis',
+     'create diulang saat provider menyatakan tanpa transaksi'),
+    ('subscription_produksi_pages.py',
+     'jumlah = len(json.loads(inv["profil_json"]))',
+     'jumlah = len(inv["profil_json"])', HTTP,
+     'test_judul_tagihan_menghitung_profil_dari_json', 'jumlah profil dari JSON'),
     ('subscription_produksi_http.py',
      'and sekarang < inv["kedaluwarsa"] and hasil.status != "pending")',
      'and sekarang < inv["kedaluwarsa"])', HTTP,

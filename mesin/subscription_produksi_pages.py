@@ -6,6 +6,7 @@ tidak menahan dana, dan dukungan lewat teks statis tanpa menyimpan kontak.
 """
 
 import html
+import json
 from datetime import datetime
 
 import design_tokens as T
@@ -122,9 +123,9 @@ def ringkasan(pengguna, profil, invoice, token, *, merchant, aktif):
 
 def tagihan(pengguna, inv, *, token, status, merchant, boleh_buat=False, boleh_periksa=False,
             qr_tersedia=False, qr_kedaluwarsa=False, periode=None, diterima=None,
-            boleh_ulang=False):
+            boleh_ulang=False, kode_belum_ada=False):
     """Halaman tagihan: status, QR (bila pending), form, dan ringkasan pembayaran."""
-    jumlah = len(inv["profil_json"])
+    jumlah = len(json.loads(inv["profil_json"]))
     isi = ['<section class="kartu"><h2>Tagihan untuk %d profil</h2>' % jumlah,
            '<p class="nominal">' + nominal(inv["rupiah"]) + '</p>',
            '<p>QRIS · IDR · ' + ("Tarif promo" if inv["promo"] else "Tarif lanjutan") + '</p>',
@@ -158,10 +159,17 @@ def tagihan(pengguna, inv, *, token, status, merchant, boleh_buat=False, boleh_p
         if qr_tersedia:
             isi.append('<img class="qr" src="/langganan/' + html.escape(inv["invoice_id"], quote=True)
                        + '/qr" width="280" height="280" alt="Kode QRIS untuk tagihan ini">')
-        if boleh_ulang:
+        if boleh_ulang and not kode_belum_ada:
+            # Provider sudah pernah menerbitkan kode (transaksi pernah ada):
+            # jelaskan kode lama mati. Tanpa transaksi (create gagal) → pesan netral.
             isi.append('<p>Kode pembayaran sebelumnya tidak lagi berlaku menurut penyedia '
                        'dan tidak ada dana tertahan. Anda dapat membuat kode baru untuk '
                        'tagihan yang sama — nominal dan cakupan profil tidak berubah.</p>')
+        elif boleh_ulang:
+            isi.append('<p>Kode pembayaran untuk tagihan ini belum berhasil dibuat oleh '
+                       'penyedia dan tidak ada dana tertahan. Tekan tombol untuk membuat '
+                       'kode baru — nominal dan cakupan profil tidak berubah.</p>')
+        if boleh_ulang:
             isi.append(form("/langganan/" + inv["invoice_id"] + "/ulang", token, "Buat ulang QR"))
         if boleh_buat:
             isi.append('<p>Belum ada QRIS untuk tagihan ini. Tekan tombol untuk membuat '

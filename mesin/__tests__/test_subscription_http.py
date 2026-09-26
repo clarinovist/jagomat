@@ -39,9 +39,13 @@ class Provider:
     def __init__(self):
         self.panggilan = []; self.status = 'pending'; self.nominal = 15000
         self.hook = None; self.gambar_hook = None; self.url_gambar = []
+        # Isi dict untuk memaksa respons GET status tertentu (mis. sentinel 404).
+        self.status_get = None
     def __call__(self, req, **kw):
         self.panggilan.append(req)
         if self.hook: self.hook()
+        if self.status_get and req.metode == 'GET':
+            return Respons(self.status_get, url=req.url)
         if req.metode == 'POST':
             isi = json.loads(req.body); invoice = isi['transaction_details']['order_id']
             self.nominal = isi['transaction_details']['gross_amount']

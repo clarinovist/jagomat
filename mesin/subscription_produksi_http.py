@@ -292,6 +292,7 @@ def _tangani(penangan, jalur, *, post):
                 _kirim(penangan, halaman.tagihan(
                     pengguna, inv, token=token, status=status, merchant=runtime.config.merchant,
                     boleh_buat=boleh_buat, boleh_periksa=boleh_periksa, boleh_ulang=boleh_ulang,
+                    kode_belum_ada=hasil.tanpa_transaksi,
                     qr_tersedia=(hasil.status == "pending" and bool(hasil.qr)
                                  and not inv["perlu_diperiksa"] and not lunas
                                  and sekarang < inv["kedaluwarsa"]),

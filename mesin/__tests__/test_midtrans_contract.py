@@ -166,6 +166,25 @@ def test_status_pending_memberi_qr_dari_transaksi_terikat():
     assert periksa(data).qr is None
 
 
+def tanpa_transaksi(**kw):
+    return dict(id=INVOICE, status_code="404", status_message="Transaction doesn't exist.", **kw)
+
+
+def test_status_404_menandai_tanpa_transaksi():
+    hasil = periksa(tanpa_transaksi())
+    assert hasil.status == "belum_terverifikasi" and hasil.bukti is None and hasil.qr is None
+    assert hasil.tanpa_transaksi is True
+
+
+@pytest.mark.parametrize("ubah", [{"id": "inv_" + "d" * 32}, {"status_code": "500"},
+    {"status_code": 404}, {"transaction_id": "trx_asing"}, {"transaction_status": "pending"}])
+def test_tanpa_transaksi_hanya_persis_dan_fail_closed(ubah):
+    data = tanpa_transaksi(); data.update(ubah)
+    hasil = periksa(data)
+    assert hasil.tanpa_transaksi is False and hasil.status == "belum_terverifikasi"
+    assert hasil.bukti is None
+
+
 def test_create_tidak_memberi_bukti_meski_response_settlement():
     tr = Transport(Respons(status()))
     assert m.buat_pembayaran(CFG, INV, akun_id=AKUN, transport=tr, sakelar=ON).bukti is None

@@ -215,6 +215,12 @@ def buat_ulang_qr(path_admin, path_auth, path_db, principal, invoice_id, *, conf
         kunci = "ulang_" + hashlib.sha256(bahan).hexdigest()[:24]
         midtrans.buat_pembayaran(config, inv, akun_id=principal.id_akun, transport=transport,
                                  sakelar=sakelar, kunci=kunci)
+    elif kelas == "tanpa_transaksi" and pembayaran.status == "belum_terverifikasi":
+        # Transaksi tidak pernah tercipta (sentinel 404): create dengan kunci
+        # idempoten KANONIS invoice yang sama — aman direplay menurut kontrak
+        # Midtrans; tanpa kunci baru berarti tidak ada charge kedua.
+        midtrans.buat_pembayaran(config, inv, akun_id=principal.id_akun, transport=transport,
+                                 sakelar=sakelar, kunci=inv["idempotency_key"])
     return pembayaran
 
 

@@ -286,6 +286,36 @@ def _post(k, metode):
     return [r for r in k.provider.panggilan if r.metode == metode]
 
 
+def test_judul_tagihan_menghitung_profil_dari_json(uji):
+    k = uji
+    inv, _ = siapkan(k)
+    kode, isi, _ = minta(k, "/langganan/" + inv)
+    assert kode == 200
+    assert "Tagihan untuk 1 profil" in isi, "jumlah profil dari JSON, bukan panjang string"
+    assert "Tagihan untuk 3 profil" not in isi
+
+
+def test_ulang_qr_tanpa_transaksi_mengulang_create_dan_kunci_kanonis(uji):
+    """Provider menyatakan transaksi tidak ada (404): create diulang, kunci kanonis sama."""
+    k = uji
+    inv, _ = siapkan(k)
+    isi = buat(k, inv)
+    posting = _post(k, "POST")
+    assert len(posting) == 1
+    kunci_pertama = posting[0].headers["Idempotency-Key"]
+    k.provider.status_get = dict(id=inv, status_code="404",
+                                 status_message="Transaction doesn't exist.")
+    kode, isi, _ = minta(k, "/langganan/" + inv)
+    assert kode == 200, (kode, pesan(isi))
+    aksi = "/langganan/" + inv + "/ulang"
+    kode, isi, _ = minta(k, aksi, data=FormParser(isi).forms[aksi])
+    assert kode == 200, (kode, pesan(isi))
+    ulang = _post(k, "POST")
+    assert len(ulang) == 2, "create diulang saat provider menyatakan tanpa transaksi"
+    assert ulang[1].headers["Idempotency-Key"] == kunci_pertama, "kunci idempoten kanonis invoice"
+    assert jumlah_grant() == 0 and "Pembayaran diterima" not in isi
+
+
 def test_ulang_qr_setelah_expire_membuat_attempt_kedua(uji):
     k = uji
     inv, _ = siapkan(k)
