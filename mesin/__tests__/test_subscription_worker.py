@@ -327,3 +327,24 @@ def test_cli_memakai_factory_konfigurasi_produksi(cli, monkeypatch):
     monkeypatch.setattr(cli.modul.prod, "konfigurasi_dan_transport", pabrik)
     assert cli.modul.main(argumen(cli)) == 0
     assert dipanggil == [str(k.tmp / "rahasia-cli.conf")]
+
+
+def test_cli_tanpa_sekarang_memakai_jam_float_aman(cli, monkeypatch, capsys):
+    """Jalur produksi (cron) tidak memberi --sekarang: time.time() float wajib dikoersi.
+
+    Regresi: sebelumnya `sekarang` float diteruskan ke validasi waktu langganan
+    dan putaran gagal (ValueError) — inilah kegagalan tick produksi pertama
+    setelah tahap rekonsiliasi aktif.
+    """
+    k = cli.k
+    buat(k, 1)
+    k.provider.status = "settlement"
+    pasangan = list(zip(argumen(cli)[::2], argumen(cli)[1::2]))
+    args = [item for kunci, nilai in pasangan if kunci != "--sekarang" for item in (kunci, nilai)]
+    import rekonsiliasi_langganan as kanonis
+    monkeypatch.setattr(kanonis.time, "time", lambda: float(T0 + 61) + 0.5)
+    kode = cli.modul.main(args, transport=k.provider)
+    keluar = capsys.readouterr()
+    assert kode == 0, keluar.err
+    data = json.loads(keluar.out)
+    assert data["kandidat"] == 1 and data["lunas"] == 1

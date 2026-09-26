@@ -125,6 +125,12 @@ KASUS = [
      'kunci = "ulang_" + hashlib.sha256(bahan).hexdigest()[:24]',
      'kunci = inv["idempotency_key"]', HTTP,
      'test_ulang_qr_setelah_expire_membuat_attempt_kedua', 'kunci ulang unik'),
+    # CLI worker: jam produksi (time.time float) wajib dikoersi int — tick pertama
+    # pasca-aktivasi gagal ValueError di jalur ini.
+    ('rekonsiliasi_langganan.py',
+     'sekarang = int(arg.sekarang or (clock or time.time)())',
+     'sekarang = arg.sekarang or (clock or time.time)()', PEKERJA,
+     'test_cli_tanpa_sekarang_memakai_jam_float_aman', 'putaran rekonsiliasi gagal (ValueError)'),
 ]
 
 

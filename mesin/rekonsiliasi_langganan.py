@@ -46,7 +46,10 @@ def _argumen(argv=None):
 
 def main(argv=None, *, transport=None, clock=None):
     arg = _argumen(argv)
-    sekarang = arg.sekarang or (clock or time.time)()
+    # Jam dikoersi int: time.time() mengembalikan float, sedangkan validasi
+    # waktu langganan (`subscription.waktu`) hanya menerima int — jalur cron
+    # produksi tidak pernah memakai `--sekarang`.
+    sekarang = int(arg.sekarang or (clock or time.time)())
     lease = arg.lease or str(Path(arg.admin_db).resolve().parent / "langganan-rekonsiliasi.lock")
     try:
         config, bawaan = prod.konfigurasi_dan_transport(path_rahasia=arg.rahasia)
