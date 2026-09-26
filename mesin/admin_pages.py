@@ -32,7 +32,7 @@ SECTION = (
     ("riwayat", "Riwayat admin", "/admin?section=riwayat"),
 )
 GRUP_SECTION = (
-    ("", ("ringkasan", "perhatian")),
+    ("Pusat kendali", ("ringkasan", "perhatian")),
     ("Data pengguna", ("keluarga", "siswa")),
     ("Layanan", ("pendaftaran", "langganan")),
     ("Analitik", ("kpi",)),
@@ -75,7 +75,7 @@ def _judul_section(section: str) -> Tuple[str, str]:
         return "Pendaftaran", "Status pengaturan pendaftaran mandiri."
     if section == "riwayat":
         return "Riwayat admin", "Riwayat tindakan panel mulai dari cutover fitur."
-    return "Ringkasan", "Kondisi operasional lintas keluarga tanpa menilai progres belajar."
+    return "Selamat datang, Pengelola.", "Tinjau yang perlu ditangani, lalu pantau kondisi layanan dan aktivitas administratif."
 
 
 def _nav(section: str) -> str:
@@ -130,17 +130,19 @@ def halaman_admin(
 {brand.tag_kepala(cetak=True)}
 <style>{GAYA_ADMIN}</style></head>
 <body class="admin-readonly"><a class="admin-lompat" href="#konten-admin">Lewati navigasi</a>
-<div class="admin-bungkus"><header class="admin-topbar">
-<a class="admin-brand" href="/admin">{_e(T.NAMA_PRODUK)} · Panel Pengelola</a>
+<div class="admin-bungkus"><div class="admin-layout"><aside class="admin-sidebar">
+<a class="admin-brand" href="/admin"><span class="admin-brand-mark" aria-hidden="true">J</span>
+<span><strong>{_e(T.NAMA_PRODUK)}</strong><small>Panel Pengelola</small></span></a>
+<nav class="admin-nav" aria-label="Bagian panel pengelola">{_nav(section)}</nav>
+<p class="admin-identitas"><strong>{_e(pengguna)}</strong><span>Akun pengelola</span></p></aside>
+<section class="admin-utama"><header class="admin-topbar">
+<p class="admin-konteks"><strong>Panel privat</strong><span>Data operasional, bukan penilaian anak</span></p>
+<details class="admin-nav-mobile"><summary><span>Menu pengelola</span><strong>{_e(_label_section(section))}</strong></summary>
+<nav aria-label="Bagian panel pengelola seluler">{_nav(section)}</nav></details>
 <details class="menu-pengguna"><summary>{_e(pengguna)} <span class="admin-badge">Pengelola</span></summary>
 <div class="menu-isi"><a href="/akun?section=akun">Ganti sandi</a>
 <form method="post" action="/keluar"><button type="submit">Keluar</button></form></div></details></header>
-<div class="admin-layout"><aside class="admin-sidebar">
-<nav class="admin-nav" aria-label="Bagian panel pengelola">{_nav(section)}</nav></aside>
-<section class="admin-utama">
-<details class="admin-nav-mobile"><summary><span>Menu pengelola</span><strong>{_e(_label_section(section))}</strong></summary>
-<nav aria-label="Bagian panel pengelola seluler">{_nav(section)}</nav></details>
-<header class="admin-kepala"><p class="admin-alis">Ruang pengelola</p>
+<header class="admin-kepala"><p class="admin-alis">Pusat kendali</p>
 <h1 id="judul-admin">{_e(judul)}</h1><p class="admin-sub">{_e(subjudul)}</p></header>
 <main id="konten-admin" aria-labelledby="judul-admin">{isi}</main>
 <footer class="admin-footer">Tampilan privat · Data operasional, bukan penilaian kemampuan anak.</footer>
@@ -162,72 +164,128 @@ def _waktu(nilai: Optional[str]) -> str:
     return "—" if not nilai else _e(nilai)
 
 
-def render_ringkasan(data: Q.RingkasanAdmin, *, status_layanan: str = "") -> str:
-    kartu = (
-        (data.jumlah_keluarga, "akun orang tua terdaftar"),
-        (data.jumlah_siswa, "siswa"),
-        (data.jumlah_login_murid, "login murid"),
-        (data.jumlah_sesi, "catatan sesi"),
-    )
-    stat = "".join(
-        '<article class="admin-stat"><strong>%d</strong><span>%s</span></article>'
-        % (jumlah, _e(label))
-        for jumlah, label in kartu
-    )
-    perhatian = (
-        "".join(
-            '<li><strong>%d</strong> %s</li>'
-            % (item.jumlah, _e(LABEL_STATUS.get(item.kode, "Perlu ditinjau")))
-            for item in data.perhatian
+def _antrean_ringkasan(data, jumlah_antrean, operasi_belum_pasti, operasi_tertunda):
+    """Urutan peninjauan; jumlah temuan bukan jumlah unik siswa/operasi."""
+    pemilik = tuple(item for item in data.perhatian if item.kode.startswith("owner_"))
+    login = tuple(item for item in data.perhatian if not item.kode.startswith("owner_"))
+    antrean = []
+    if login:
+        tautan = "/admin?section=siswa&status=student_without_login"
+        if not any(item.kode == "student_without_login" for item in login):
+            tautan = "#login-perlu-perhatian" if data.login_bermasalah else "/admin?section=siswa"
+        antrean.append((
+            "Akun siswa", "Akses siswa perlu ditinjau", sum(item.jumlah for item in login),
+            "Periksa kaitan siswa dan keluarga sebelum membuat akses.", tautan, "Tinjau siswa", login,
+        ))
+    if jumlah_antrean or (jumlah_antrean is None and (operasi_belum_pasti or operasi_tertunda)):
+        antrean.append((
+            "Operasi dan pembayaran", "Operasi perlu diperiksa",
+            jumlah_antrean if jumlah_antrean is not None else operasi_belum_pasti + operasi_tertunda,
+            "Periksa hasil operasi yang sama; jangan mengulang atau memaksa status lunas.",
+            "/admin?section=perhatian" if jumlah_antrean is not None else "/admin?section=riwayat",
+            "Tinjau operasi", (),
+        ))
+    if pemilik:
+        antrean.append((
+            "Keluarga", "Kepemilikan perlu ditinjau", sum(item.jumlah for item in pemilik),
+            "Konfirmasi kaitan keluarga sebelum akun digunakan.",
+            "/admin?section=keluarga&status=perlu_perhatian", "Tinjau keluarga", pemilik,
+        ))
+    kartu = []
+    for nomor, (kategori, judul, jumlah, penjelasan, jalur, cta, rincian) in enumerate(antrean, 1):
+        detail = "".join('<li>%d · %s</li>' % (item.jumlah, _e(LABEL_STATUS.get(item.kode, "Perlu ditinjau")))
+                         for item in rincian)
+        if kategori == "Akun siswa" and data.login_bermasalah and jalur != "#login-perlu-perhatian":
+            detail += '<li><a href="#login-perlu-perhatian">Rincian login bermasalah</a></li>'
+        operasi = ('<p class="admin-antrean-rincian">%d belum pasti · %d menunggu hasil (tindakan admin).</p>'
+                   % (operasi_belum_pasti, operasi_tertunda)
+                   if kategori == "Operasi dan pembayaran" and (operasi_belum_pasti or operasi_tertunda) else "")
+        kartu.append(
+            '<li class="admin-antrean-item"><div class="admin-antrean-urutan">'
+            '<span>Prioritas %d · %s</span><strong>%d</strong></div><h3>%s</h3><p>%s</p>%s%s'
+            '<a class="admin-antrean-cta" href="%s">%s <span aria-hidden="true">→</span></a></li>'
+            % (nomor, _e(kategori), jumlah, _e(judul), _e(penjelasan),
+               '<ul class="admin-antrean-rincian">%s</ul>' % detail if detail else "", operasi, _e(jalur), _e(cta))
         )
-        or "<li>Tidak ada kondisi administratif yang perlu perhatian.</li>"
-    )
-    login_bermasalah = "".join(
-        '<tr><td>%s</td><td>%s</td><td>%s</td></tr>'
-        % (
-            _e(item.pengguna),
-            _e(LABEL_STATUS.get(item.status, "Perlu ditinjau")),
-            _e(item.jumlah_kandidat),
-        )
-        for item in data.login_bermasalah
-    ) or '<tr><td colspan="3" class="admin-kosong">Tidak ada login yang perlu ditinjau.</td></tr>'
-    aktivitas = "".join(
-        '<tr><td><a href="/sesi/%d">Sesi %d</a></td>'
-        '<td><a href="/anak/%d">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>'
-        % (
-            item.sesi_id,
-            item.sesi_id,
-            item.siswa_id,
-            _e(item.nama_siswa),
-            _e(item.pemilik or "Pemilik kosong"),
-            _e(item.waktu_aktivitas),
-            '<span class="admin-badge batal">Dibatalkan</span>'
-            if item.dibatalkan else '<span class="admin-badge">Tercatat</span>',
-        )
-        for item in data.aktivitas_terbaru
-    ) or '<tr><td colspan="5" class="admin-kosong">Belum ada aktivitas sesi.</td></tr>'
+    isi = ('<ol class="admin-antrean">%s</ol>' % "".join(kartu) if kartu else
+           '<p class="admin-antrean-kosong">Tidak ada kondisi administratif yang perlu perhatian pada sumber yang tersedia.</p>')
+    total = sum(item[2] for item in antrean)
     return (
-        '<section class="admin-kartu admin-prioritas"><div><p class="admin-alis">Prioritas saat ini</p>'
-        '<h2>Perlu perhatian</h2></div><ul class="admin-daftar-status">%s</ul></section>' % perhatian
-        + status_layanan
+        '<section class="admin-kartu admin-prioritas" aria-labelledby="judul-antrean">'
+        '<header class="admin-prioritas-kepala"><div><p class="admin-alis">Antrean keputusan</p>'
+        '<h2 id="judul-antrean">Yang perlu kamu tangani</h2></div>'
+        '<p class="admin-total-temuan"><strong>%d</strong> temuan tercatat</p></header>%s'
+        '<p class="admin-antrean-catatan">Prioritas saat ini · Satu siswa atau operasi dapat muncul pada lebih dari satu temuan.%s</p></section>'
+        % (total, isi, ' Jumlah antrean layanan belum tersedia.' if jumlah_antrean is None else "")
+    )
+
+
+def render_ringkasan(
+    data: Q.RingkasanAdmin, *, status_layanan: Optional[Mapping[str, str]] = None,
+    jumlah_antrean: Optional[int] = None, operasi_belum_pasti: int = 0, operasi_tertunda: int = 0,
+) -> str:
+    """Hierarki keputusan dengan data proyeksi; tidak mengklaim layanan online."""
+    stat = "".join(
+        '<article class="admin-stat"><h2>%s</h2><div><strong>%d</strong><span>%s</span></div></article>'
+        % (_e(label), jumlah, _e(konteks))
+        for jumlah, label, konteks in (
+            (data.jumlah_keluarga, "Akun orang tua", "terdaftar"),
+            (data.jumlah_siswa, "Siswa terdaftar", "seluruh keluarga"),
+            (data.jumlah_login_murid, "Login murid", "akun tercatat"),
+            (data.sesi_7_hari, "Aktivitas 7 hari", "catatan sesi"),
+        )
+    )
+    layanan = "".join('<div><dt>%s</dt><dd>%s</dd></div>' % (_e(label), _e(status))
+                      for label, status in (status_layanan or {"Status layanan": "belum tersedia"}).items())
+    aktivitas = "".join(
+        '<li><span class="admin-aktivitas-ikon" aria-hidden="true">%s</span><div>'
+        '<a class="admin-aktivitas-judul" href="/sesi/%d">Sesi %d · %s</a>'
+        '<p><a href="/anak/%d">%s</a> · %s</p><p class="admin-meta">%s WIB</p></div></li>'
+        % ("B" if item.dibatalkan else "S", item.sesi_id, item.sesi_id,
+           "Dibatalkan" if item.dibatalkan else "Tercatat", item.siswa_id,
+           _e(item.nama_siswa), _e(item.pemilik or "Pemilik kosong"), _e(item.waktu_aktivitas))
+        for item in data.aktivitas_terbaru
+    ) or '<li class="admin-kosong">Belum ada aktivitas sesi.</li>'
+    cepat = "".join('<a href="%s"><strong>%s</strong><span>%s</span></a>' % (_e(jalur), _e(label), _e(ket))
+                    for jalur, label, ket in (
+                        ("/admin?section=keluarga", "Cari keluarga", "Akun & kepemilikan"),
+                        ("/admin?section=siswa", "Cari siswa", "Identitas & login"),
+                        ("/admin?section=pendaftaran", "Pendaftaran", "Status & pengaturan"),
+                        ("/admin?section=langganan", "Langganan", "Invoice & akses"),
+                    ))
+    login_detail = ""
+    if data.login_bermasalah:
+        baris = "".join('<li><strong>%s</strong><span>%s · %d kandidat nama</span></li>' % (
+            _e(item.pengguna), _e(LABEL_STATUS.get(item.status, "Perlu ditinjau")), item.jumlah_kandidat)
+            for item in data.login_bermasalah)
+        login_detail = (
+            '<details class="admin-kartu admin-login-detail" id="login-perlu-perhatian">'
+            '<summary>Login perlu perhatian</summary>'
+            '<p class="admin-meta">Maksimal 25 login ditampilkan. Daftar ini tidak memperbaiki atau mengaitkan akun otomatis.</p>'
+            '<ul>%s</ul></details>' % baris
+        )
+    return (
+        '<div class="admin-komando">'
+        + _antrean_ringkasan(data, jumlah_antrean, operasi_belum_pasti, operasi_tertunda)
+        + '<section class="admin-kartu admin-layanan"><h2>Kondisi layanan</h2><dl>%s</dl>' % layanan
+        + '<p class="admin-meta">Konfigurasi bukan jaminan provider sedang online. Bukti backup tidak menyatakan jadwal atau salinan luar server.</p>'
+        '<a class="admin-layanan-cta" href="/admin?section=operasional">Buka operasional <span aria-hidden="true">→</span></a></section></div>'
         + '<section class="admin-grid-stat" aria-label="Jumlah administratif">%s</section>' % stat
+        + '<div class="admin-pendukung"><section class="admin-kartu admin-aktivitas">'
+        '<header><h2>Aktivitas sesi terbaru</h2><span class="admin-meta">Maksimal 10 catatan</span></header>'
+        '<ul>%s</ul></section>' % aktivitas
+        + '<div class="admin-samping"><section class="admin-kartu admin-cepat"><h2>Akses cepat</h2>'
+        '<p class="admin-meta">Jalur kerja rutin pengelola.</p><nav aria-label="Akses cepat pengelola">%s</nav></section>' % cepat
+        + '<aside class="admin-kartu admin-catatan"><strong>Angka adalah konteks, bukan target.</strong>'
+        '<p class="admin-meta">Data administratif tidak menyatakan anak sedang online, sudah belajar, atau lulus.</p></aside></div></div>'
+        + login_detail
         + '<details class="admin-kartu admin-catatan admin-definisi"><summary>Tentang angka ringkasan</summary>'
         '<p>Catatan sesi mencakup sesi dibatalkan. Jendela 7/30 hari memakai '
         '<code>selesai → mulai → dibuat → tanggal</code> dalam waktu WIB. '
-        'Angka ini tidak menyatakan anak sedang online, sudah belajar, atau lulus.</p>'
-        '<p><strong>%d</strong> sesi dalam 7 hari · <strong>%d</strong> dalam 30 hari · '
-        '<strong>%d</strong> dibatalkan.</p></details>'
-        % (data.sesi_7_hari, data.sesi_30_hari, data.sesi_dibatalkan)
-        + '<section class="admin-kartu"><h2>Login perlu perhatian</h2>'
-        '<p class="admin-meta">Maksimal 25 login ditampilkan. Daftar ini tidak memperbaiki atau mengaitkan akun otomatis.</p>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th>Alias login</th><th>Kondisi</th><th>Kandidat nama</th></tr></thead>'
-        '<tbody>%s</tbody></table></div></section>' % login_bermasalah
-        + '<section class="admin-kartu"><h2>Aktivitas sesi terbaru</h2>'
-        '<p class="admin-meta">Maksimal 10 catatan administratif terbaru.</p>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th>Sesi</th><th>Siswa</th><th>Keluarga</th><th>Waktu</th><th>Status</th></tr></thead>'
-        '<tbody>%s</tbody></table></div></section>' % aktivitas
+        'Jumlah login adalah akun murid, bukan jumlah siswa yang sudah bisa masuk.</p>'
+        '<p>Seluruh catatan sesi: <strong>%d</strong> · <strong>%d</strong> dalam 7 hari · '
+        '<strong>%d</strong> dalam 30 hari · <strong>%d</strong> dibatalkan.</p></details>'
+        % (data.jumlah_sesi, data.sesi_7_hari, data.sesi_30_hari, data.sesi_dibatalkan)
     )
 
 

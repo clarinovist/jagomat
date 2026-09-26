@@ -176,6 +176,42 @@ def test_admin_sections_privat_dan_nonadmin_404_identik(server):
     assert anonim[0] == 404 and "Anak C" not in anonim[1]
 
 
+def test_ringkasan_hierarki_baca_total_antrean_dan_tanpa_mutasi(server, monkeypatch):
+    import admin_operations
+    import ai_service
+    token = _login(server, 'Admin-C', SANDI_ADMIN)
+    panggilan = []
+    def antrean(path, **kwargs):
+        panggilan.append((path, kwargs))
+        return (), 31
+    monkeypatch.setattr(admin_operations, 'antrean', antrean)
+    monkeypatch.setattr(ai_service, 'siap', lambda: False)
+    sebelum_auth = auth.BERKAS_SANDI.read_bytes()
+    with admin_store.buka_baca() as kon:
+        sebelum_admin = tuple(kon.iterdump())
+    with server.buka() as kon:
+        sebelum_db = tuple(kon.iterdump())
+    kode, isi, header = _minta(server, '/admin', cookie=token)
+    assert kode == 200
+    assert 'Antrean keputusan' in isi and '31</strong>' in isi
+    assert 'Konfigurasi AI</dt><dd>belum siap' in isi
+    assert 'Pembayaran</dt><dd>Tahap nonaktif' in isi
+    assert 'Semua normal' not in isi
+    assert '<script' not in isi and header['Cache-Control'] == 'no-store'
+    assert len(panggilan) == 1 and panggilan[0][0] == admin_store.BAWAAN
+    assert auth.BERKAS_SANDI.read_bytes() == sebelum_auth
+    with admin_store.buka_baca() as kon:
+        assert tuple(kon.iterdump()) == sebelum_admin
+    with server.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum_db
+    panggilan.clear()
+    anonim = _minta(server, '/admin')[:2]
+    guru = _minta(server, '/admin', auth_basic=('guru', SANDI_GURU))[:2]
+    murid = _minta(server, '/admin', auth_basic=('feby', SANDI_MURID))[:2]
+    assert anonim == guru == murid and anonim[0] == 404
+    assert not panggilan
+
+
 def test_search_post_tidak_menaruh_nama_di_url_dan_tanpa_write(server):
     token = _login(server, "Admin-C", SANDI_ADMIN)
     _, awal, _ = _minta(server, "/admin?section=keluarga", cookie=token)

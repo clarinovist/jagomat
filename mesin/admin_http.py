@@ -283,25 +283,29 @@ def _render_get(penangan, principal, query):
             except admin_store.StoreBelumSiap:
                 teks_registrasi = "belum tersedia"
             status_ai = "siap" if __import__("ai_service").siap() else "belum siap"
-            ringkas_layanan = (
-                '<section class="admin-kartu"><h2>Status layanan</h2>'
-                '<p>Pendaftaran: <strong>%s</strong> · AI: <strong>%s</strong>.</p>'
-                '<p class="admin-aksi-baca"><a class="admin-tautan" href="/admin?section=pendaftaran">Atur pendaftaran</a>'
-                '<a class="admin-tautan" href="/admin/ai">Buka pengaturan AI</a></p></section>'
-                % (teks_registrasi, status_ai)
-            )
+            ringkas_layanan = {
+                "Pendaftaran": teks_registrasi,
+                "Konfigurasi AI": status_ai,
+                "Pembayaran": "belum tersedia",
+                "Bukti backup": "Lihat pemeriksaan operasional",
+            }
+            belum_pasti = tertunda = 0
+            jumlah_antrean = None
             try:
                 belum_pasti = admin_store.daftar_riwayat(_path_admin(), status='uncertain', per_halaman=1).total
                 tertunda = admin_store.daftar_riwayat(_path_admin(), status='reserved', per_halaman=1).total
-                if belum_pasti or tertunda:
-                    ringkas_layanan += ('<section class="admin-kartu admin-catatan"><h2>Operasi perlu diperiksa</h2>'
-                        '<p>%d belum pasti · %d menunggu hasil.</p><a class="admin-tautan" href="/admin?section=riwayat">Buka riwayat tindakan</a></section>'
-                        % (belum_pasti, tertunda))
+                import admin_operations
+                import admin_launch_service
+                _baris, jumlah_antrean = admin_operations.antrean(_path_admin())
+                with admin_store.buka_baca(_path_admin()) as layanan:
+                    konfigurasi = admin_launch_service.konfigurasi_pembayaran(layanan)
+                ringkas_layanan["Pembayaran"] = "Tahap " + konfigurasi["tahap"] if konfigurasi else "belum tersedia"
             except admin_store.StoreBelumSiap:
-                pass  # Status layanan di atas sudah menyatakan belum tersedia.
+                pass  # Sumber hilang tetap dibedakan dari antrean kosong.
             isi = admin_pages.render_ringkasan(
                 admin_queries.ringkasan_admin(kon, konteks),
-                status_layanan=ringkas_layanan,
+                status_layanan=ringkas_layanan, jumlah_antrean=jumlah_antrean,
+                operasi_belum_pasti=belum_pasti, operasi_tertunda=tertunda,
             )
         elif section == "keluarga":
             if query.get("id"):

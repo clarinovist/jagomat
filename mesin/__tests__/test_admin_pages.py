@@ -1,6 +1,6 @@
 """Kontrak renderer murni pusat kendali admin readonly."""
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 
 import admin_pages as pages
@@ -128,6 +128,81 @@ def test_ringkasan_tidak_menyebut_progres_dan_escape_nama():
     assert isi.index("Prioritas saat ini") < isi.index('aria-label="Jumlah administratif"')
     assert 'href="/anak/7"' in isi
     assert 'href="/sesi/9"' in isi
+
+
+def test_ringkasan_hierarki_dengan_cta_dan_angka_dari_proyeksi():
+    isi = pages.render_ringkasan(
+        _ringkasan(), status_layanan={"Pendaftaran": "ditutup", "AI": "belum siap"},
+        jumlah_antrean=31, operasi_belum_pasti=2, operasi_tertunda=3,
+    )
+    assert isi.index('Antrean keputusan') < isi.index('Kondisi layanan')
+    assert isi.index('Kondisi layanan') < isi.index('aria-label="Jumlah administratif"')
+    assert isi.index('aria-label="Jumlah administratif"') < isi.index('Aktivitas sesi terbaru')
+    assert '33</strong> temuan tercatat' in isi
+    assert '31</strong>' in isi  # Total proyeksi, bukan panjang halaman 25 item.
+    assert '2 belum pasti · 3 menunggu hasil' in isi
+    assert 'Prioritas 1' in isi and 'Prioritas 2' in isi
+    assert 'href="/admin?section=siswa&amp;status=student_without_login"' in isi
+    assert 'href="/admin?section=perhatian"' in isi
+    assert 'href="#login-perlu-perhatian"' in isi
+    assert 'Akses cepat' in isi
+    assert 'Aktivitas 7 hari' in isi and 'Seluruh catatan sesi: <strong>4</strong>' in isi
+    assert 'Satu siswa atau operasi dapat muncul pada lebih dari satu temuan' in isi
+    assert 'Semua normal' not in isi and 'Data contoh' not in isi
+
+
+def test_ringkasan_kosong_tidak_mengarang_kasus_atau_panel_login():
+    data = replace(_ringkasan(), perhatian=(), login_bermasalah=(), aktivitas_terbaru=())
+    isi = pages.render_ringkasan(data, jumlah_antrean=0)
+    assert '0</strong> temuan tercatat' in isi
+    assert 'Tidak ada kondisi administratif yang perlu perhatian' in isi
+    assert 'Belum ada aktivitas sesi' in isi
+    assert 'id="login-perlu-perhatian"' not in isi
+    assert 'Prioritas 1' not in isi
+    assert 'Kondisi layanan' in isi and 'belum tersedia' in isi
+
+
+def test_ringkasan_sumber_tidak_tersedia_bukan_nol_dan_semua_kode_tercakup():
+    data = replace(_ringkasan(), perhatian=(
+        q.HitungPerhatian('owner_empty', 2),
+        q.HitungPerhatian('owner_without_account', 3),
+        q.HitungPerhatian('legacy_same_name_ambiguous', 4),
+    ))
+    isi = pages.render_ringkasan(data, status_layanan={'AI': '<belum siap>'})
+    assert '9</strong> temuan tercatat' in isi
+    assert 'Jumlah antrean layanan belum tersedia' in isi
+    assert '5</strong>' in isi and '4</strong>' in isi
+    assert 'Pemilik siswa kosong' in isi and 'Pemilik tidak memiliki akun' in isi
+    assert 'Nama warisan cocok ke beberapa siswa' in isi
+    assert '&lt;belum siap&gt;' in isi and '<belum siap>' not in isi
+    assert 'Semua normal' not in isi
+
+
+def test_ringkasan_fallback_operasi_dan_login_yatim_punya_jalur_valid():
+    data = replace(_ringkasan(), perhatian=(q.HitungPerhatian('orphan_login', 1),))
+    isi = pages.render_ringkasan(data, operasi_belum_pasti=2, operasi_tertunda=1)
+    assert '4</strong> temuan tercatat' in isi
+    assert 'Jumlah antrean layanan belum tersedia' in isi
+    assert 'href="/admin?section=riwayat"' in isi
+    assert 'href="#login-perlu-perhatian"' in isi
+    assert 'id="login-perlu-perhatian"' in isi
+    assert '2 belum pasti · 1 menunggu hasil' in isi
+    assert 'href="/admin?section=perhatian"' not in isi
+
+
+def test_sidebar_dan_kartu_memakai_design_system_tanpa_js_baru():
+    import design_tokens as T
+    isi = pages.halaman_admin('ringkasan', '', pengguna='Pengelola Demo').decode()
+    assert 'Pusat kendali' in isi
+    assert 'admin-brand-mark' in isi
+    assert 'admin-antrean' in admin_style.GAYA_ADMIN
+    assert T.FONT_BODY in admin_style.GAYA_ADMIN
+    assert T.FONT_HEADLINE in admin_style.GAYA_ADMIN
+    assert 'overflow-x: hidden' not in admin_style.GAYA_ADMIN
+    # Palang specificity: aturan kartu umum tidak menimpa judul di navy.
+    assert '.admin-kartu.admin-prioritas h2 {' in admin_style.GAYA_ADMIN
+    assert '.admin-prioritas .admin-antrean-item h3 {' in admin_style.GAYA_ADMIN
+    assert '<script' not in isi
 
 
 def test_daftar_keluarga_search_post_dan_pagination_post_tidak_ke_url():
