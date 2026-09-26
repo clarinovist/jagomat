@@ -89,7 +89,7 @@ def get(penangan,p,q):
 
 
 def tangani_post(penangan,jalur):
-    if jalur not in ('/admin/layanan/cari','/admin/layanan/periksa','/admin/layanan/pembayaran','/admin/layanan/biaya','/admin/layanan/eksperimen'):
+    if jalur not in ('/admin/layanan/cari','/admin/layanan/periksa','/admin/layanan/pembayaran','/admin/layanan/biaya','/admin/layanan/eksperimen','/admin/layanan/transisi'):
         return False
     p=h._principal_admin(penangan)
     if p is None:
@@ -104,9 +104,17 @@ def tangani_post(penangan,jalur):
             if data: raise ValueError('isian asing')
             rows,total=billing.daftar(h._path_admin(),auth.BERKAS_SANDI,p,cari=cari,halaman=halaman)
             csrf=h._csrf(h._akun_principal(p),h._wajib_cookie(penangan,p))
-            _kirim(penangan,p,'langganan',ui.daftar_langganan(rows,total,halaman=halaman,cari=cari,csrf=csrf))
+            kandidat=billing.kandidat_transisi(h._path_admin(),auth.BERKAS_SANDI,p,cari=cari)
+            forms={}
+            if p.metode=='cookie':
+                for k in kandidat:
+                    c,t=_form(penangan,p,'aktifkan_transisi',{'akun':k['akun_id'],'revisi':k['revisi']})
+                    forms[k['akun_id']]=ui.formulir('transisi',c,t,
+                        '<p>Aktifkan <strong>%s</strong> (jalur transisi): akun lama tanpa langganan. Tidak membuat pembayaran; tercatat di jurnal operasi.</p>'
+                        '<label><input type="checkbox" name="konfirmasi" value="1" required> Saya sudah meninjau akun ini dan dampaknya.</label>'%ui.e(k['alias']),'Aktifkan langganan')
+            _kirim(penangan,p,'langganan',ui.daftar_langganan(rows,total,halaman=halaman,cari=cari,csrf=csrf,kandidat=kandidat,forms=forms))
             return True
-        aksi={'periksa':'periksa_pembayaran','pembayaran':'atur_pembayaran','biaya':'biaya','eksperimen':'eksperimen'}[jalur.rsplit('/',1)[-1]]
+        aksi={'periksa':'periksa_pembayaran','pembayaran':'atur_pembayaran','biaya':'biaya','eksperimen':'eksperimen','transisi':'aktifkan_transisi'}[jalur.rsplit('/',1)[-1]]
         akun,tinjauan,token=h._token_final(penangan,p,data,aksi)
         meta=tinjauan['data']; operasi=tinjauan['op']; kini=int(time.time())
         if aksi=='periksa_pembayaran':
@@ -120,6 +128,15 @@ def tangani_post(penangan,jalur):
                             operasi=operasi,sekarang=kini,periksa_sesi=hidup,
                             runtime=billing.runtime_penangan(penangan),jam=time.time)
             h._redirect(penangan,'/admin?section=langganan&id='+meta['akun'])
+        elif aksi=='aktifkan_transisi':
+            if set(data)!={'konfirmasi'} or data.get('konfirmasi')!='1':
+                raise ValueError('konfirmasi transisi tidak sah')
+            akun_t=meta.get('akun'); revisi_t=meta.get('revisi')
+            if type(akun_t) is not str or type(revisi_t) is not int or revisi_t<1:
+                raise ValueError('snapshot transisi tidak sah')
+            guard.aktifkan_transisi(h._path_admin(),auth.BERKAS_SANDI,p,operasi=operasi,
+                akun_id=akun_t,target_revisi=revisi_t,sekarang=kini)
+            h._redirect(penangan,'/admin?section=langganan&id='+akun_t)
         elif aksi=='atur_pembayaran':
             if set(data)-{'tahap','konfirmasi'} or data.get('konfirmasi')!='1':
                 raise ValueError('konfirmasi pembayaran tidak sah')

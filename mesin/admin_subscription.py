@@ -94,6 +94,34 @@ def daftar(path,path_auth,principal,*,halaman=1,cari=''):
     return hasil, total
 
 
+def kandidat_transisi(path, path_auth, principal, *, cari):
+    """Akun guru tanpa enrollment untuk jalur transisi; proyeksi minimal.
+
+    Hanya dipakai panel untuk menawarkan aktivasi akun lama; keputusan ada di
+    aksi terpisah yang mencatat jurnal operasi.
+    """
+    _otorisasi(path_auth, principal)
+    if not isinstance(cari, str) or not cari or len(cari) > 80:
+        return ()
+    kunci = cari.casefold()
+    hasil = []
+    with admin_store.buka_baca(path) as kon:
+        for akun in auth.muat_akun(path_auth):
+            if akun.get('peran') != 'guru':
+                continue
+            if kunci not in str(akun.get('pengguna', '')).casefold():
+                continue
+            ada = kon.execute('SELECT 1 FROM langganan_enrollment WHERE akun_id=?',
+                              (akun['id_akun'],)).fetchone()
+            if ada is None:
+                hasil.append({'akun_id': akun['id_akun'], 'alias': akun['pengguna'],
+                              'revisi': auth.revisi_auth(akun)})
+                if len(hasil) >= 10:
+                    break
+    _otorisasi(path_auth, principal)
+    return tuple(hasil)
+
+
 def detail(path,path_auth,principal,akun_id,*,sekarang):
     _otorisasi(path_auth,principal)
     d.identitas(akun_id,'akun'); d.waktu(sekarang)

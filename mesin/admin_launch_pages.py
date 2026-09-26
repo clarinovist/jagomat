@@ -31,7 +31,7 @@ def formulir(aksi,csrf,token,isi,tombol,hidden=()):
     return '<form method="post" action="/admin/layanan/'+e(aksi)+'">'+''.join('<input type="hidden" name="%s" value="%s">'%(e(k),e(v)) for k,v in fields)+isi+'<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label><button class="admin-tombol" type="submit">'+e(tombol)+'</button></form>'
 
 
-def daftar_langganan(rows,total,*,halaman,cari,csrf):
+def daftar_langganan(rows,total,*,halaman,cari,csrf,kandidat=(),forms=None):
     form='<form method="post" action="/admin/layanan/cari"><input type="hidden" name="csrf" value="%s"><label>Cari akun orang tua<input name="cari" maxlength="80" value="%s"></label><button class="admin-tombol">Cari</button></form>'%(e(csrf),e(cari)) if csrf else ''
     baris=['<tr><td><a href="/admin?section=langganan&amp;id=%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>'%(e(r['akun_id']),e(r['alias']),tanggal(r['mulai']),'Ya' if r['peserta_promo'] else 'Tidak',e(r['asal'])) for r in rows]
     pager=''
@@ -47,7 +47,13 @@ def daftar_langganan(rows,total,*,halaman,cari,csrf):
                       % (e(csrf), e(cari), nomor, label))
         else:
             pager += '<a href="/admin?section=langganan&amp;halaman=%d">%s</a> ' % (nomor,label)
-    return '<section class="admin-kartu"><h2>Langganan keluarga</h2><p>%d tercatat · Halaman %d</p>%s%s%s</section>'%(total,halaman,form,tabel(('Keluarga','Mulai','Peserta promo','Sumber'),baris),pager)+'<p class="admin-meta">Akun yang belum diikutkan tidak dianggap kedaluwarsa. Panel ini tidak mengaktifkan paywall.</p>'
+    kartu_kandidat=''
+    if cari and kandidat:
+        baris_k=''.join('<tr><td>%s</td><td>%s</td></tr>'%(e(k['alias']),(forms or {}).get(k['akun_id'],'Tidak ada tindakan')) for k in kandidat)
+        kartu_kandidat=('<section class="admin-kartu"><h2>Belum terdaftar di langganan · %d</h2>'%len(kandidat)
+                        +tabel(('Keluarga','Tindakan'),baris_k)
+                        +'<p class="admin-meta">Jalur transisi untuk akun lama sebelum sinkron registrasi publik. Satu aksi satu akun; tidak membuat pembayaran dan tidak mengaktifkan paywall.</p></section>')
+    return '<section class="admin-kartu"><h2>Langganan keluarga</h2><p>%d tercatat · Halaman %d</p>%s%s%s</section>'%(total,halaman,form,tabel(('Keluarga','Mulai','Peserta promo','Sumber'),baris),pager)+kartu_kandidat+'<p class="admin-meta">Akun yang belum diikutkan tidak dianggap kedaluwarsa. Panel ini tidak mengaktifkan paywall.</p>'
 
 
 AKSES={'promo':'Promo aktif','trial':'Masa coba','aktif':'Aktif','expired':'Masa aktif habis','kedaluwarsa':'Masa aktif habis','belum_terverifikasi':'Belum terverifikasi','paid':'Berbayar'}

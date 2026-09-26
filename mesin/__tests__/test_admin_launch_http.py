@@ -105,8 +105,37 @@ def test_periksa_http_meneruskan_clock_selesai(server,monkeypatch):
 
 def test_nonadmin_post_tidak_mutasi(server):
     awal=dump(admin_store.BAWAAN)
-    for endpoint in ['biaya','eksperimen','periksa','pembayaran','cari']:
+    for endpoint in ['biaya','eksperimen','periksa','pembayaran','cari','transisi']:
         a=_minta(server,'/admin/layanan/'+endpoint,data={})[:2]
         b=_minta(server,'/admin/layanan/'+endpoint,data={},auth_basic=('Ortu-C',SANDI_ORANG_TUA))[:2]
         assert a==b and a[0]==404
     assert dump(admin_store.BAWAAN)==awal
+
+
+def test_transisi_http_aktivasi_idempoten_dan_guard(server):
+    token=_login(server,'Admin-C',SANDI_ADMIN)
+    with admin_store._transaksi(admin_store.BAWAAN) as c:
+        c.execute("UPDATE pembayaran_konfigurasi SET tahap='rekonsiliasi'")
+    code,body,_=_minta(server,'/admin?section=langganan',cookie=token)
+    assert code==200
+    csrf=_hidden(body,'csrf')
+    code,body,_=_minta(server,'/admin/layanan/cari',cookie=token,data=dict(csrf=csrf,cari='Ortu-C'))
+    assert code==200
+    assert 'Belum terdaftar di langganan' in body and 'Aktifkan langganan' in body
+    form=dict(csrf=_hidden(body,'csrf'),tinjauan=_hidden(body,'tinjauan'),
+              reauth=SANDI_ADMIN,konfirmasi='1')
+    awal=dump(admin_store.BAWAAN)
+    assert _minta(server,'/admin/layanan/transisi',cookie=token,data={**form,'csrf':'rusak'})[0]==403
+    assert _minta(server,'/admin/layanan/transisi',cookie=token,data={**form,'reauth':'salah'})[0]==403
+    assert _minta(server,'/admin/layanan/transisi',cookie=token,data={**form,'konfirmasi':'0'})[0]==400
+    assert dump(admin_store.BAWAAN)==awal
+    for _ in range(2):
+        assert _minta(server,'/admin/layanan/transisi',cookie=token,data=form)[0]==303
+    akun=auth.cari_akun('Ortu-C')
+    with admin_store.buka_baca(admin_store.BAWAAN) as c:
+        baris=c.execute("SELECT asal FROM langganan_enrollment WHERE akun_id=?",(akun['id_akun'],)).fetchone()
+        assert baris['asal']=='transisi'
+        assert c.execute("SELECT COUNT(*) FROM langganan_enrollment WHERE akun_id=?",
+                         (akun['id_akun'],)).fetchone()[0]==1
+    code,body,_=_minta(server,'/admin/layanan/cari',cookie=token,data=dict(csrf=csrf,cari='Ortu-C'))
+    assert 'Belum terdaftar di langganan' not in body

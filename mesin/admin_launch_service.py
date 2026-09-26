@@ -125,3 +125,51 @@ def selesaikan(kon, operasi, hasil, kini):
     status = 'perlu_diperiksa' if hasil in ('perlu_diperiksa','belum_terverifikasi') else 'selesai'
     kon.execute('UPDATE layanan_operasi SET status=?,hasil=?,diperbarui=? WHERE operasi_id=?',
                 (status,hasil,kini,operasi))
+
+
+def aktifkan_transisi(path, path_auth, principal, *, operasi, akun_id, target_revisi,
+                      sekarang, sakelar=None):
+    """Aktivasi transisi akun lama: enrollment eksplisit + provenance di ledger.
+
+    Hanya akun guru tanpa enrollment; idempoten lewat `sumber_id=operasi` pada
+    baris enrollment (unik per akun), sehingga replay/dua tab tidak menggandakan.
+    Tanpa efek pembayaran. Sakelar efektif dari tahap tersimpan (fondasi wajib;
+    readiness provider tidak relevan — operasi ini tidak memanggil jaringan).
+
+    Jurnal `layanan_operasi` sengaja TIDAK dipakai: CHECK `aksi` di schema
+    admin-control terikat kontrak pair rilis (tidak boleh berubah tanpa re-pin
+    recovery). Bukti operasi = baris `langganan_enrollment` (asal 'transisi',
+    sumber_id=operasi) yang tampil di panel Langganan.
+    """
+    import subscription as d
+    import subscription_store as store
+    d.identitas(operasi, 'operasi')
+    d.identitas(akun_id, 'akun')
+    d.waktu(sekarang)
+    if type(target_revisi) is not int or target_revisi < 1:
+        raise ValueError('revisi target tidak sah')
+    with kunci_principal(path_auth, principal) as (_, daftar):
+        target = next((a for a in daftar if a.get('id_akun') == akun_id), None)
+        if (target is None or target.get('peran') != 'guru'
+                or auth.revisi_auth(target) != target_revisi):
+            raise LookupError('resource tidak ditemukan')
+        with admin_store.buka_baca(path) as kon:
+            sakelar_efektif = sakelar if sakelar is not None else sakelar_pembayaran(kon)
+            lama = kon.execute('SELECT sumber_id FROM langganan_enrollment WHERE akun_id=?',
+                               (akun_id,)).fetchone()
+        if lama is None:
+            sakelar_efektif.wajib('fondasi')
+            try:
+                store.enroll(path, akun_id, sumber_id=operasi, asal='transisi',
+                             mulai=sekarang, peran='guru', promo_lama=False,
+                             sakelar=sakelar_efektif)
+            except store.KonflikLangganan:
+                # Balapan operator lain: menangkan observasi ulang, bukan tulis ganda.
+                with admin_store.buka_baca(path) as kon:
+                    ulang = kon.execute('SELECT sumber_id FROM langganan_enrollment WHERE akun_id=?',
+                                        (akun_id,)).fetchone()
+                if ulang is None:
+                    raise
+                return 'diaktifkan' if ulang['sumber_id'] == operasi else 'sudah_terdaftar'
+            return 'diaktifkan'
+        return 'diaktifkan' if lama['sumber_id'] == operasi else 'sudah_terdaftar'

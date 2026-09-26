@@ -101,6 +101,26 @@ hanya halaman status "belum aktif" yang dirender (tanpa membaca ledger).
   tier `checkout` menunggu secret terpasang + kenaikan tahap dan akun ter-enroll (gap
   keputusan terpisah). Penegakan tetap butuh keputusan terpisah.
 
+## Jalur transisi akun lama (panel, 26 Sep 2026)
+
+Checkout `/langganan` memerlukan enrollment; akun yang dibuat sebelum sinkron
+registrasi publik tidak punya baris itu. Untuk uji terkendali dan akun lama, panel
+Langganan menyediakan jalur transisi eksplisit:
+
+- Pencarian alias (`POST /admin/layanan/cari`) menampilkan blok "Belum terdaftar di
+  langganan" untuk akun guru tanpa enrollment, dengan form per akun.
+- Aksi `POST /admin/layanan/transisi` (tinjauan+csrf+reauth admin; konfirmasi wajib)
+  menjalankan `admin_launch_service.aktifkan_transisi`: hanya akun guru dengan revisi
+  target masih segar; idempoten lewat `sumber_id=operasi` pada baris enrollment
+  (`asal='transisi'`, `mulai=sekarang`, tanpa promo); replay/dua tab tidak menggandakan;
+  tanpa efek invoice/receipt/grant. Sakelar fondasi (tahap ≥ rekonsiliasi) wajib;
+  readiness provider tidak relevan (tanpa panggilan jaringan).
+- Provenance sengaja TIDAK memakai `layanan_operasi`: CHECK `aksi` tabel itu terikat
+  kontrak pair rilis (perubahan = re-pin recovery, di luar scope). Bukti operasi =
+  baris `langganan_enrollment` (kolom Sumber `transisi`) yang tampil di panel.
+- Sinkron registrasi publik (`asal='publik'`) + cutoff pembukaan publik adalah fase
+  terpisah dan belum aktif.
+
 ## Pekerja rekonsiliasi terjadwal
 
 `scripts/rekonsiliasi_langganan.py` menjalankan satu putaran bounded:

@@ -27,6 +27,10 @@ KASUS = [
     ('product_analytics_http.py',"        _gagal()\n        return False","        return False",FINAL,'test_kegagalan_baca_config_menahan_kpi_hijau','PENCATATAN_GAGAL'),
     ('admin_subscription.py',"except (admin_store.StoreBelumSiap, ValueError, OSError, sqlite3.Error):","except (admin_store.StoreBelumSiap, ValueError, OSError):",FINAL,'test_reader_sakelar_galat_sql_fail_closed','OperationalError'),
     ('admin_subscription.py',"    rekonsiliasi = tersimpan.rekonsiliasi and kesiapan['provider_produksi']","    rekonsiliasi = tersimpan.rekonsiliasi",FINAL,'test_runtime_produksi_readiness_hilang_tidak_memberi_izin','Differing attributes'),
+    ('admin_launch_service.py',"sakelar_efektif = sakelar if sakelar is not None else sakelar_pembayaran(kon)","sakelar_efektif = __import__('subscription').Sakelar(fondasi=True)",DOMAIN,'test_transisi_guard_tanpa_mutasi','DID NOT RAISE'),
+    ('admin_launch_service.py',"target.get('peran') != 'guru'","False",DOMAIN,'test_transisi_guard_tanpa_mutasi','DID NOT RAISE'),
+    ('admin_launch_service.py',"return 'diaktifkan' if lama['sumber_id'] == operasi else 'sudah_terdaftar'","return 'diaktifkan'",DOMAIN,'test_transisi_aktifkan_audit_idempoten_dan_kandidat','idempotensi transisi'),
+    ('admin_launch_http.py',"if set(data)!={'konfirmasi'} or data.get('konfirmasi')!='1':\n                raise ValueError('konfirmasi transisi tidak sah')","if False:\n                raise ValueError('konfirmasi transisi tidak sah')","test_admin_launch_http.py",'test_transisi_http_aktivasi_idempoten_dan_guard','303 == 400'),
 ]
 
 

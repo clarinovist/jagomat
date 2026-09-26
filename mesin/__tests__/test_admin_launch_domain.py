@@ -242,3 +242,76 @@ def test_reset_admin_saat_network_tidak_grant(layanan):
                         invoice_id=inv['invoice_id'],target_revisi=k.principal.revisi_auth,
                         operasi='periksa_race_001',sekarang=T0+4,runtime=billing.RuntimePembayaran(CFG,outbound,ON))
     assert not subscription_store.baca(k.admin,k.principal.id_akun).grants
+
+
+def _rekonsiliasi(k):
+    with admin_store._transaksi(k.admin) as c:
+        c.execute("UPDATE pembayaran_konfigurasi SET tahap='rekonsiliasi'")
+
+
+def test_transisi_aktifkan_audit_idempoten_dan_kandidat(layanan):
+    k=layanan;_rekonsiliasi(k)
+    auth.tambah_akun('kandidat-sintetis','sandi-kandidat-123','guru',k.auth)
+    akun=auth.cari_akun('kandidat-sintetis',k.auth)
+    revisi=auth.revisi_auth(akun)
+    assert billing.kandidat_transisi(k.admin,k.auth,k.admin_principal,cari='kandidat')==(
+        {'akun_id':akun['id_akun'],'alias':'kandidat-sintetis','revisi':revisi},)
+    assert billing.kandidat_transisi(k.admin,k.auth,k.admin_principal,cari='tidak-ada')==()
+    p=dict(operasi='op_'+'a'*32,akun_id=akun['id_akun'],target_revisi=revisi,sekarang=T0+7)
+    assert guard.aktifkan_transisi(k.admin,k.auth,k.admin_principal,**p)=='diaktifkan'
+    e=subscription_store.baca(k.admin,akun['id_akun']).enrollment
+    assert e.mulai==T0+7 and not e.peserta_promo
+    with admin_store.buka_baca(k.admin) as c:
+        baris=c.execute("SELECT asal,sumber_id FROM langganan_enrollment WHERE akun_id=?",(akun['id_akun'],)).fetchone()
+        assert (baris['asal'],baris['sumber_id'])==('transisi',p['operasi'])
+        # Provenance tanpa jurnal layanan_operasi (CHECK aksi ter-pin kontrak).
+        assert c.execute("SELECT COUNT(*) FROM layanan_operasi").fetchone()[0]==0
+    # Replay operasi sama: hasil sama, tanpa baris kedua.
+    assert guard.aktifkan_transisi(k.admin,k.auth,k.admin_principal,**p)=='diaktifkan'
+    # Operasi baru untuk akun yang sama: idempoten 'sudah_terdaftar'.
+    assert guard.aktifkan_transisi(k.admin,k.auth,k.admin_principal,
+        **{**p,'operasi':'op_'+'b'*32})=='sudah_terdaftar','idempotensi transisi'
+    with admin_store.buka_baca(k.admin) as c:
+        assert c.execute("SELECT COUNT(*) FROM langganan_enrollment").fetchone()[0]==1
+    assert billing.kandidat_transisi(k.admin,k.auth,k.admin_principal,cari='kandidat')==()
+
+
+def test_transisi_guard_tanpa_mutasi(layanan):
+    k=layanan
+    auth.tambah_akun('kandidat-2','sandi-kandidat-123','guru',k.auth)
+    auth.tambah_akun('kandidat-3','sandi-kandidat-123','guru',k.auth)
+    akun=auth.cari_akun('kandidat-2',k.auth)
+    akun3=auth.cari_akun('kandidat-3',k.auth)
+    revisi=auth.revisi_auth(akun)
+    p=k.admin_principal
+    # Sakelar fondasi OFF: tanpa enrollment.
+    awal=dump(k.admin)
+    with pytest.raises(__import__('subscription').FiturNonaktif):
+        guard.aktifkan_transisi(k.admin,k.auth,p,operasi='op_'+'c'*32,
+            akun_id=akun['id_akun'],target_revisi=revisi,sekarang=T0+7)
+    assert dump(k.admin)==awal
+    _rekonsiliasi(k)
+    dasar=dump(k.admin)
+    with pytest.raises(LookupError):
+        guard.aktifkan_transisi(k.admin,k.auth,p,operasi='op_'+'d'*32,
+            akun_id=p.id_akun,target_revisi=p.revisi_auth,sekarang=T0+8)
+    with pytest.raises(LookupError):
+        guard.aktifkan_transisi(k.admin,k.auth,p,operasi='op_'+'e'*32,
+            akun_id=akun['id_akun'],target_revisi=revisi+1,sekarang=T0+8)
+    with pytest.raises(LookupError):
+        guard.aktifkan_transisi(k.admin,k.auth,replace(p,revisi_auth=99),
+            operasi='op_'+'f'*32,akun_id=akun['id_akun'],target_revisi=revisi,sekarang=T0+8)
+    assert dump(k.admin)==dasar
+    ok=dict(operasi='op_'+'1'*32,akun_id=akun['id_akun'],target_revisi=revisi,sekarang=T0+9)
+    assert guard.aktifkan_transisi(k.admin,k.auth,p,**ok)=='diaktifkan'
+    # Operasi lain setelah enrollment ada: tanpa penulisan kedua.
+    assert guard.aktifkan_transisi(k.admin,k.auth,p,
+        **{**ok,'operasi':'op_'+'3'*32})=='sudah_terdaftar'
+    with admin_store.buka_baca(k.admin) as c:
+        assert c.execute("SELECT COUNT(*) FROM langganan_enrollment").fetchone()[0]==1
+    # Otorisasi: principal non-admin tidak boleh membaca kandidat atau mengaktifkan.
+    with pytest.raises(LookupError):
+        billing.kandidat_transisi(k.admin,k.auth,k.principal,cari='kandidat')
+    with pytest.raises(LookupError):
+        guard.aktifkan_transisi(k.admin,k.auth,k.principal,operasi='op_'+'2'*32,
+            akun_id=akun3['id_akun'],target_revisi=auth.revisi_auth(akun3),sekarang=T0+10)
