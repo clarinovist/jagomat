@@ -46,11 +46,11 @@ def halaman_refleksi(kon, siswa_id, sesi_id, jalur_aksi):
             f'<style>{gaya_stitch()}</style></head><body class="st kerja-editorial-st">'
             '<main class="kerja-badan-st"><h1>Ada jawaban yang masih kosong. Tidak apa-apa.</h1>'
             '<p>Jawaban tersimpan sementara. Latihan belum dikirim.</p>'
-            '<p>Kalau kamu bisa, ceritakan apa yang membuatmu belum menjawab.</p>'
+            '<p>Boleh tanpa mengisi alasan. Ceritakan jika kamu mau.</p>'
             + petunjuk_foto + f'<form method="post" action="{escape(jalur_aksi, quote=True)}">'
             f'<input type="hidden" name="revisi_pekerjaan" value="{kiriman.revisi(kon, sesi_id)}">'
             '<input type="hidden" name="flow_kosong" value="1">' + ''.join(kartu)
-            + '<p>Boleh tanpa mengisi alasan.</p><div class="kerja-simpan-strip-st">'
+            + '<div class="kerja-simpan-strip-st">'
             '<button class="sekunder" name="aksi" value="kembali" type="submit">Kembali mengerjakan</button>'
             '<button name="aksi" value="kirim_latihan" type="submit">Kirim latihan</button>'
             '</div></form></main></body></html>').encode()

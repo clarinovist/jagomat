@@ -563,7 +563,7 @@ def halaman_utama_stitch(
         '<p class="guru-alis-st">RUANG BELAJAR MEREKA</p>'
         f'<h2 id="daftar-anak">Anak &amp; siswa <span>{len(baris)}</span></h2>'
         f'</div>{tambah}</div>'
-        '<p class="guru-petunjuk-st">Pilih nama untuk mulai. '
+        '<p class="guru-petunjuk-st info-baris">Pilih nama untuk mulai. '
         f'<button type="button" class="info" aria-label="{html.escape(INFO_DAFTAR_ANAK, quote=True)}">'
         f'i<span class="info-bubble" role="tooltip">{html.escape(INFO_DAFTAR_ANAK)}</span></button></p>'
         f'<div class="daftar-anak">{"".join(baris)}</div>'
@@ -795,7 +795,7 @@ def halaman_anak(
                                  ("25", "25 soal (± 75 mnt)"), ("30", "30 soal (± 90 mnt)"))
         )
         + '</select><small class="profil-petunjuk-st" id="manual-jumlah-petunjuk">'
-        'Estimasi ±3 menit per soal. Pilihan “Sesuai topik” memakai jumlah bawaan topik.</small></div>'
+        '±3 menit/soal · “Sesuai topik” memakai jumlah bawaan.</small></div>'
         + f'{kontrol_format("manual", getattr(draf_latihan, "format_jawaban", "isian"))}{_kontrol_mode_sesi(draf_latihan)}'
         + '<button type="submit" class="st-tombol-coral">'
         f'{profile_workspace.ikon("play_arrow")}'
@@ -896,7 +896,7 @@ def halaman_anak(
         )
         blok_buat_latihan = (
             '<section class="buat-latihan-st">'
-            '<h2 class="st">Buat latihan</h2>'
+            '<h2 class="st profil-sr-st">Buat latihan</h2>'
             f"{panduan}{tab}"
             f'<div class="tab-bar-st">{label}</div>'
             f"{isi_panel}"
@@ -907,7 +907,7 @@ def halaman_anak(
         # tanpa memberi pilihan. Tampilkan formnya langsung.
         blok_buat_latihan = (
             '<section class="buat-latihan-st">'
-            '<h2 class="st">Buat latihan</h2>'
+            '<h2 class="st profil-sr-st">Buat latihan</h2>'
             f"{panduan}{strip_sesi}"
             "</section>"
         )
@@ -923,7 +923,7 @@ def halaman_anak(
     ) if section == "rencana" else ""
     latihan_manual = (
         '<section class="profil-formulaire-st">'
-        '<p class="sub">Pilih materi dan bentuk latihan. '
+        '<p class="info-baris sub">Pilih materi dan bentuk latihan. '
         f'<button type="button" class="info" aria-label="{html.escape(INFO_LATIHAN_BEBAS, quote=True)}">'
         f'i<span class="info-bubble" role="tooltip">{html.escape(INFO_LATIHAN_BEBAS)}</span></button></p>'
         f"{blok_buat_latihan}</section>"
@@ -940,7 +940,7 @@ def halaman_anak(
         isi_profil = (
             learning_cycle_ui.pengingat_rencana(kon, int(siswa["id"]))
             + latihan_manual + '<section class="profil-taches-st"><h2 class="st">Perlu ditindaklanjuti</h2>'
-            '<p class="sub">Maksimal tiga sesi terbaru yang perlu tindakan. Sesi lain tersedia di tab Riwayat.</p>'
+            '<p class="sub">Hingga tiga sesi terbaru · sesi lainnya di Riwayat.</p>'
             f'<div class="daftar-anak">{item}</div></section>'
         )
 
@@ -1851,7 +1851,7 @@ def halaman_sesi_stitch(
                 if sudah_dikonfirmasi
                 else (
                     '<div class="status-sesi-st koreksi-pengantar-st">'
-                    f'<div><b>{"Koreksi berubah — konfirmasi ulang diperlukan" if pernah_dikonfirmasi else "Tinjau jawaban, cara, dan pemahaman anak"}</b>'
+                    f'<div><b>{"Koreksi berubah — konfirmasi ulang diperlukan" if pernah_dikonfirmasi else "Tinjau bersama anak"}</b>'
                     '<p>Periksa jawaban dan dengarkan cara anak sebelum mengonfirmasi hasil sesi.</p>'
                     '</div></div>'
                 )

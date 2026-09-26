@@ -342,8 +342,10 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
                           if s['minta_restatement'] and not drill else '')
             kartu.append(f'<div class="kerja-soal-st">{nomor}{bintang}{teks}'
                          + radio_pilihan(s['pilihan'], t.get('jawaban', ''), s['template_id']) + restate_pg
-                         + f'<label class="kerja-label-st" for="cara-{ssid}">Caraku (boleh dikosongkan)</label>'
-                         f'<textarea class="kerja-cara-st" id="cara-{ssid}" name="cara_{ssid}">{_escape(t.get("cara", ""))}</textarea>'
+                         + f'<details class="rincian-ui-st cara-opsional-st"{" open" if t.get("cara", "").strip() else ""}>'
+                         '<summary>Tambah penjelasan (opsional)</summary>'
+                         f'<label class="kerja-label-st" for="cara-{ssid}">Caraku (boleh dikosongkan)</label>'
+                         f'<textarea class="kerja-cara-st" id="cara-{ssid}" name="cara_{ssid}">{_escape(t.get("cara", ""))}</textarea></details>'
                          f'<input type="hidden" name="hadir_blm_{ssid}" value="1">'
                          f'<label class="kerja-centang-st"><input type="checkbox" name="blm_{ssid}"{belum}> belum pernah lihat soal seperti ini</label></div>')
             continue
@@ -403,17 +405,20 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
   {nomor}{bintang}
   {teks}
   {restate}
-  <fieldset class="kerja-cara-pilih-st">
-  <legend class="kerja-label-st">Caraku — pilih dulu yang paling mirip:</legend>
-  <div class="kerja-pill-grup-st">{tombol}</div>
-  </fieldset>
-  <label class="kerja-label-st" for="cara-{ssid}">Kalau mau, tulis lebih jelas di sini (boleh dikosongkan):</label>
-  <textarea class="kerja-cara-st" id="cara-{ssid}" name="cara_{ssid}">{_escape(teks_cara)}</textarea>
   <div class="kerja-jawab-st">
     <label class="head-jawab" for="jawab-{ssid}">Jawabanku</label>
     <input type="text" id="jawab-{ssid}" name="jwb_{ssid}"
            value="{_escape(t.get('jawaban', ''))}" autocomplete="off">
   </div>
+  <fieldset class="kerja-cara-pilih-st">
+  <legend class="kerja-label-st">Caraku — pilih dulu yang paling mirip:</legend>
+  <div class="kerja-pill-grup-st">{tombol}</div>
+  </fieldset>
+  <details class="rincian-ui-st cara-opsional-st"{" open" if teks_cara.strip() else ""}>
+  <summary>Tambah penjelasan (opsional)</summary>
+  <label class="kerja-label-st" for="cara-{ssid}">Caraku (boleh dikosongkan)</label>
+  <textarea class="kerja-cara-st" id="cara-{ssid}" name="cara_{ssid}">{_escape(teks_cara)}</textarea>
+  </details>
   <label class="kerja-centang-st">
     <input type="checkbox" name="blm_{ssid}"{belum}>
     belum pernah lihat soal seperti ini
@@ -455,8 +460,18 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
     if info.get('format_jawaban') == 'pilihan_ganda':
         petunjuk = '<p>Pilih satu jawaban tiap soal. Kamu boleh menuliskan caramu. Pilih <b>Belum menjawab</b> untuk mengosongkan pilihan. Tidak apa-apa ada yang belum bisa.</p>'
 
-    # Timer Latihan Cepat — strip id timer-strip & timer-tampil dipertahankan
-    # supaya test drill & JS tetap mengenali elemen yang sama.
+    if info.get('format_jawaban') != 'pilihan_ganda':
+        ringkasan_petunjuk = (
+            'Tulis jawabanmu. Boleh kosong kalau belum tahu.' if drill else
+            'Tulis jawaban dan pilih Caraku yang paling mirip. Boleh kosong kalau belum tahu.'
+        )
+        petunjuk = (
+            f'<p>{ringkasan_petunjuk} Jangan menebak asal.</p>'
+            '<details class="rincian-ui-st petunjuk-lengkap-st"><summary>Petunjuk lengkap</summary>'
+            + petunjuk + '</details>'
+        )
+
+    # Timer Latihan Cepat: marker strip/tampil dan kontrak JS tetap.
     strip = ""
     if drill and timer_mode == "sesi":
         strip = (
@@ -725,10 +740,9 @@ def halaman_hasil_murid(kon, siswa_id: int, sesi_id: int) -> bytes | None:
                 f'<b>{_escape(b["jawabanku"])}</b></p>'
             )
 
-        # Pembahasan = langkah menuju jawaban. Ditampilkan untuk SEMUA soal
-        # (termasuk yang benar): anak yang benar karena menebak tetap perlu
-        # melihat caranya. Kalau template belum punya pembahasan, blok ini
-        # tidak muncul sama sekali — lebih baik kosong daripada basa-basi.
+        # Pembahasan tersedia untuk SEMUA soal, termasuk yang benar (dilipat).
+        # Jawaban benar karena menebak tetap dapat ditinjau caranya.
+        # Tanpa pembahasan, blok tidak muncul — bukan diisi basa-basi.
         langkah = ""
         if b["pembahasan"]:
             langkah = (
@@ -737,8 +751,11 @@ def halaman_hasil_murid(kon, siswa_id: int, sesi_id: int) -> bytes | None:
                 f'<div><b>Caranya:</b> {_escape(b["pembahasan"])}</div></div>'
             )
 
+        if langkah and b['benar']:
+            langkah = ('<details class="rincian-ui-st hasil-cara-st">'
+                       '<summary>Lihat caranya</summary>' + langkah + '</details>')
         kartu.append(
-            f'<div class="{kelas}">'
+            f'<div class="{kelas}" id="hasil-soal-{b["nomor"]}">'
             f'<div class="hasil-kepala-st">'
             f'<span class="hasil-nomor-st">{b["nomor"]}</span>{status}</div>'
             f'<div class="hasil-teks-st">{visual_renderer.render_pertanyaan(b["penyajian"], gaya="stitch", namespace=str(b["nomor"]))}</div>'
@@ -789,13 +806,19 @@ def halaman_hasil_murid(kon, siswa_id: int, sesi_id: int) -> bytes | None:
             for indeks, k in enumerate(kartu_rumus)
         )
         blok_rumus = (
-            '<div class="rumus-blok-st">'
-            '<div class="rumus-kepala-st">'
+            '<details class="rumus-blok-st">'
+            '<summary class="rumus-kepala-st">'
             '<span class="material-symbols-outlined">menu_book</span>'
-            "<b>Ingat rumusnya dulu</b></div>"
-            f"{isi_kartu}</div>"
+            "<b>Ingat rumusnya dulu</b></summary>"
+            f"{isi_kartu}</details>"
         )
 
+    perlu_dilihat = [b for b in hasil['soal'] if not b['benar']]
+    lompat = (
+        '<nav class="hasil-lompat-st" aria-label="Soal untuk dilihat bersama">'
+        + ''.join(f'<a href="#hasil-soal-{b["nomor"]}">Soal {b["nomor"]}</a>' for b in perlu_dilihat)
+        + '</nav>' if perlu_dilihat else ''
+    )
     isi = f"""<!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -823,7 +846,7 @@ def halaman_hasil_murid(kon, siswa_id: int, sesi_id: int) -> bytes | None:
   <div class="hasil-skor-st">{n_benar}<span>/{n_soal}</span><small>jawaban benar</small></div>
   <div class="hasil-pesan-st">{pesan}</div>
 </div>
-{blok_rumus}
+{lompat}{blok_rumus}
 {"".join(kartu)}
 <div class="kerja-navigasi-st hanya-layar">
   <a class="kerja-btn-sekunder-st" href="/murid/kerjakan/{sesi_id}">Lihat lembarku</a>

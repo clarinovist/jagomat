@@ -29,11 +29,11 @@ def test_identitas_anak_bukan_konfigurasi_soal():
 
 def test_form_satu_pilihan_eksplisit_dan_panduan_tanpa_js():
     isi = teacher_pages._kontrol_profil_parameter('manual', 'P5')
-    assert 'Variasi soal' in isi and 'Bandingkan isi dan contoh soal' in isi
+    assert 'Variasi soal' in isi and 'bukan tingkat kemampuan atau kelas anak' in isi
     assert isi.count('name="profil_parameter"') == 1
     assert '<option value="P5" selected>Variasi C</option>' in isi
     assert 'aria-describedby="manual-profil-bantuan"' in isi
-    assert 'href="#panduan-variasi"' in isi
+    assert 'href="#panduan-variasi"' not in isi  # Satu pintu bantuan di summary form.
     assert 'Profil P' not in isi and '<script' not in isi
 
 
@@ -90,7 +90,8 @@ def test_panduan_ringkas_hanya_memindah_penjelasan_bukan_isi_contoh():
     pola = r'<article class="variasi-contoh".*?</article>'
     assert re.findall(pola, biasa) == re.findall(pola, ringkas)
     assert 'Tentang variasi dan contoh' not in biasa
-    assert 'href="#panduan-variasi"' in kontrol_variasi('manual')
+    assert 'href="#panduan-variasi"' not in kontrol_variasi('manual')
+    assert biasa.count('<summary>Bandingkan isi dan contoh soal</summary>') == 1
     assert 'href="#panduan-variasi"' not in kontrol_variasi('anak', ringkas=True)
     assert 'bukan urutan kemampuan atau kelas anak' in kontrol_variasi('anak', ringkas=True)
     posisi_materi = ringkas.index('class="variasi-materi"')

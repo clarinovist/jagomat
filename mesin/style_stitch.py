@@ -229,6 +229,12 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
    aturan permukaan itu sendiri. */
 .pendamping-editorial-st .info:is(button),
 .profil-formulaire-st .info:is(button) {{ min-height: 0; }}
+.info-baris {{ position: relative; width: fit-content; max-width: 100%; }}
+.info-baris .info:is(button) {{
+  position: static; min-height: 0; padding: 0; border: 0;
+  background: transparent; color: {T.AKSEN_TEAL_TUA}; box-shadow: none;
+  font: 700 .75rem/1 {T.FONT_BODY};
+}}
 .info-bubble {{
   position: absolute; bottom: calc(100% + {T.SP_2}); left: 50%;
   transform: translateX(-50%);
@@ -240,9 +246,24 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
   text-align: left; visibility: hidden; opacity: 0;
   z-index: 40; pointer-events: none;
 }}
+.info-baris .info-bubble {{ left: auto; right: 0; transform: none; max-width: min({T.LEBAR_TOOLTIP}, 100%); }}
 .info:hover .info-bubble,
 .info:focus .info-bubble,
 .info:focus-visible .info-bubble {{ visibility: visible; opacity: 1; }}
+
+/* Detail sekunder native; label dan isian tetap tersedia tanpa JavaScript. */
+.rincian-ui-st {{ margin: {T.SP_2} 0; min-width: 0; }}
+.rincian-ui-st > summary {{
+  cursor: pointer; color: {T.AKSEN_TEAL_TUA}; min-height: {T.TARGET_SENTUH};
+  padding: {T.SP_2} 0; font-size: .9rem; line-height: 1.5;
+}}
+.rincian-ui-st > summary:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+.rincian-ui-st > p {{ margin: {T.SP_2} 0; }}
+.kerja-editorial-st .cara-opsional-st {{ margin: {T.SP_2} 0; }}
+.hasil-editorial-st details.rumus-blok-st > summary {{ cursor: pointer; min-height: {T.TARGET_SENTUH}; }}
+.hasil-editorial-st .hasil-lompat-st {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; margin-bottom: {T.SP_4}; }}
+.hasil-editorial-st .hasil-lompat-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2}; }}
+.hasil-editorial-st .hasil-soal-st {{ scroll-margin-top: {T.SP_4}; }}
 
 /* Beranda pendamping editorial — semua override dibatasi ke kanvas ini. */
 .guru-beranda-st {{ padding-top: {T.SP_5}; }}
@@ -2078,7 +2099,8 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .kerja-editorial-st :is(.kerja-cara-st, .kerja-restate-st) {{ background: {T.LATAR_KARTU}; }}
 .kerja-editorial-st .kerja-centang-st {{ min-height: {T.TARGET_SENTUH}; font-size: .85rem; }}
 .kerja-editorial-st .kerja-centang-st input {{ accent-color: {T.AKSEN_TEAL_TUA}; }}
-.kerja-editorial-st .kerja-simpan-strip-st {{ z-index: 30; background: {T.LATAR_MURID}; border-top: 1px solid {T.BORDER_VARIAN}; }}
+/* Bar mengikuti aliran form: sticky dapat menerima klik milik disclosure di atasnya. */
+.kerja-editorial-st .kerja-simpan-strip-st {{ position: static; z-index: auto; background: {T.LATAR_MURID}; border-top: 1px solid {T.BORDER_VARIAN}; }}
 .kerja-editorial-st .kerja-simpan-strip-st button {{
   background: {T.AKSEN_KORAL_TUA}; box-shadow: none; border-radius: {T.RADIUS_SEDANG};
   font-size: .9rem; min-height: {T.TINGGI_KONTROL};
@@ -2193,6 +2215,8 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   :is(.kerja-editorial-st, .hasil-editorial-st) {{ page: murid-editorial; }}
   :is(.kerja-editorial-st, .hasil-editorial-st) :is(.kerja-topbar-st, .hanya-layar) {{ display: none; }}
   :is(.kerja-editorial-st, .hasil-editorial-st) .kerja-badan-st {{ padding: 0; }}
+  :is(.kerja-editorial-st, .hasil-editorial-st) details::details-content {{ display: block; content-visibility: visible; }}
+  :is(.kerja-editorial-st, .hasil-editorial-st) details > :not(summary) {{ display: block; }}
   :is(.kerja-editorial-st, .hasil-editorial-st) h1 {{ font-size: 16pt; }}
   :is(.kerja-editorial-st, .hasil-editorial-st) :is(.kerja-soal-st, .hasil-soal-st, .rumus-kartu-st) {{ break-inside: avoid; }}
   .kerja-editorial-st .kerja-nomor-st {{ background: transparent; color: {T.TEKS_UTAMA}; border: 1px solid {T.TEKS_UTAMA}; }}

@@ -270,11 +270,13 @@ def _riwayat_latihan(kon, siswa_id: int, periode='semua', topik='semua', halaman
         + '<h3>Topik</h3>' + pilihan('Topik sesi', [('semua', 'Semua')] + [
             (k, 'Gabungan' if k == 'gabungan' else _nama_topik(k)) for k in topik_ada],
             topik, lambda k: url(periode=periode, topik=k))
-        + '<p class="laporan-catatan">Periode berdasarkan tanggal sesi, bukan tanggal aktivitas jawaban '
+        + '<p class="laporan-catatan">Sesi terkirim · berdasarkan tanggal sesi.</p>'
+        '<details class="rincian-ui-st"><summary>Aturan filter tanggal</summary>'
+        '<p class="laporan-catatan">Periode berdasarkan tanggal sesi, bukan tanggal aktivitas jawaban '
         'atau tanggal pengiriman. Hanya sesi yang selesai dikirim. '
         + (f'{_tanggal_pendek(mulai.isoformat())} – {_tanggal_pendek(akhir.isoformat())} · WIB. '
            'Tanggal sesi yang tidak valid tidak masuk periode ini.' if mulai else 'Semua tanggal, termasuk catatan tanggal warisan.')
-        + f'</p><p>{len(tersaring)} sesi sesuai filter · {len(semua)} sesi seluruh catatan.</p>'
+        + f'</p></details><p>{len(tersaring)} sesi sesuai filter · {len(semua)} sesi seluruh catatan.</p>'
     )
     tren = "".join(
         f'<tr><td data-label="Sesi"><span><b>Sesi #{r["sesi_id"]}</b>'
@@ -290,10 +292,8 @@ def _riwayat_latihan(kon, siswa_id: int, periode='semua', topik='semua', halaman
         filter_html
         + '<section class="kartu detail-teknis-laporan" id="riwayat-hasil-sesi" aria-labelledby="judul-riwayat-sesi">'
         '<h2 id="judul-riwayat-sesi">Riwayat hasil sesi</h2>'
-        '<p class="laporan-catatan" id="penjelasan-hasil-sesi">Benar / tersedia menunjukkan jumlah jawaban benar '
-        'dibandingkan semua soal tersedia, termasuk yang belum dijawab. '
-        'Ini bukan persentase pemahaman atau tren kemampuan antar topik. '
-        'Buka sesi untuk melihat jawaban dan rincian penilaiannya.</p>'
+        '<p class="laporan-catatan" id="penjelasan-hasil-sesi">Benar / tersedia: jawaban benar dari semua soal tersedia, '
+        'termasuk yang belum dijawab. Bukan persentase pemahaman atau tren kemampuan antar topik.</p>'
         '<div class="tabel-wrap tabel-tren"><table aria-describedby="penjelasan-hasil-sesi">'
         '<caption class="sr-only">Hasil sesi dari yang terbaru, beserta tanggal dan variasi soal</caption>'
         '<thead><tr><th scope="col">Sesi / tanggal</th><th scope="col">Topik</th>'

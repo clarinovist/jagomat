@@ -317,6 +317,28 @@ File CSS per permukaan (semuanya `import design_tokens as T`):
 - `print_style.py` → lembar kertas A4 (satuan mm/pt, hemat tinta: garis saja)
 - `student_pages.py` (CSS_MURID) → halaman murid
 
+### Perampingan halaman setelah login (26 Sep 2026)
+
+- Ikon Info memakai `.info-baris`: glyph tetap 18px/kotak 26px, transparan,
+  tidak mewarisi warna/font tombol utama. Bubble rata kanan terhadap baris
+  petunjuk dan dibatasi lebar baris agar tidak keluar layar sempit.
+- `.rincian-ui-st` adalah disclosure native untuk penjelasan sekunder, bukan
+  tempat menyembunyikan status penting, persetujuan, atau konsekuensi tindakan.
+  Summary bertarget sentuh 44px dan punya fokus keyboard.
+- Anak: jawaban mendahului pilihan cara; enam nilai cara tetap sama. Penjelasan
+  teks opsional dilipat hanya bila kosong, tetap bagian form, dan dibuka jika
+  sudah berisi. Petunjuk singkat mendahului detail lengkap; PG mempertahankan
+  instruksi ringkasnya. Bar simpan/kirim mengikuti aliran form agar tidak
+  menutupi kontrol; detail tetap tercetak pada browser yang mendukung CSS
+  `::details-content` (Chrome terverifikasi, Safari belum diuji). Hasil menyediakan pembahasan semua soal; yang benar dan
+  kartu rumus dapat dibuka, sementara pembahasan belum tepat tetap terlihat.
+- Profil: header berulang dikurangi, empat dropdown dua kolom di desktop,
+  panduan variasi satu entry point. Riwayat tetap memisahkan pengerjaan/tinjauan;
+  variasi, mode, nomor sesi berada dalam detail. Laporan hanya melipat metodologi,
+  tidak melipat data, navigasi, CTA, atau peringatan belum dinilai.
+- Aksi utama tetap berlabel teks. Ikon bukan pengganti makna simpan/kirim,
+  konfirmasi, pilihan cara, maupun status pedagogis. Tidak ada JS/dependensi baru.
+
 ## Mockup reference
 
 | File | Halaman | Viewport | Implementasi |

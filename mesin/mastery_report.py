@@ -156,12 +156,13 @@ def render_peta(peta, tanggal, ringkas=False, *, siswa_id=0, materi='', status='
         + _grafik(jumlah, total) + f'<ul class="peta-legenda">{legenda}</ul>'
         f'<p class="peta-aktivitas">Cakupan penilaian: {topik_dinilai}/{len(per_topik)} materi '
         f'· {sudah_dinilai}/{total} target dinilai atau diperiksa.</p>'
+        '<p class="peta-catatan">Belum dinilai bukan berarti tidak mampu. '
+        'Cakupan variasi soal ini, bukan kemampuan global atau nilai seluruh kurikulum sekolah.</p>'
+        '<details class="rincian-ui-st"><summary>Cara membaca progres</summary>'
         '<p class="peta-catatan">Cakupan target pada variasi soal ini, bukan kelas sekolah '
         'atau kemampuan global. Rincian lintas variasi tersedia di Bukti per konteks.</p>'
-        '<p class="peta-catatan">Belum dinilai bukan berarti tidak mampu. Angka ini menunjukkan '
-        'kemajuan target Jagomat, bukan nilai seluruh kurikulum sekolah.</p>'
         '<p class="peta-catatan">Semua pola perlu bukti terkonfirmasi dan anak bisa menjelaskan; '
-        'bukan hanya jawaban benar sekali.</p></section>'
+        'bukan hanya jawaban benar sekali.</p></details></section>'
     )
 
 
@@ -254,8 +255,9 @@ def _pilih_materi(peta, per_topik, tanggal, siswa_id, materi, status, halaman):
         f'· {html.escape(label_kelas(peta.level))} · {len(per_topik)} materi.</p>'
         '<p class="peta-catatan">Cakupan target pada variasi soal ini, bukan kelas sekolah '
         'atau kemampuan global. Rincian lintas variasi tersedia di Bukti per konteks.</p>'
+        '<details class="rincian-ui-st"><summary>Tentang urutan dan filter</summary>'
         '<p class="peta-catatan">Filter hanya memilih kartu, bukan mengubah jumlah seluruh target. '
-        'Urutan mengikuti katalog, bukan prioritas belajar.</p></header>'
+        'Urutan mengikuti katalog, bukan prioritas belajar.</p></details></header>'
         '<div class="peta-panel"><div class="peta-pemilih"><h3>Pilih materi untuk melihat targetnya</h3>'
         + pilihan('Status materi', tombol, status, lambda k: url(status=k))
         + '<p class="peta-catatan">Belum dinilai: seluruh target belum dinilai. '

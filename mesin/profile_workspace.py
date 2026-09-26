@@ -126,7 +126,7 @@ def riwayat(siswa_id, baris, total, filter_data, *, judul_topik, tanggal, badge_
                 else 'Latihan Cepat' if r['mode']=='drill' else 'Mode Diagnosa')
         meta='%s · %s · Sesi #%d' % (label_kelas(r['level']),mode,r['id'])
         isi.append('<tr data-sesi-id="%d"><td class="riwayat-tanggal-st">%s</td>'
-                   '<td class="riwayat-latihan-st"><strong>%s</strong><small class="riwayat-jenis-st">%s</small><small class="riwayat-meta-st">%s</small>%s</td>'
+                   '<td class="riwayat-latihan-st"><strong>%s</strong><details class="rincian-ui-st riwayat-detail-st"><summary><span class="riwayat-jenis-st">%s</span> · Detail</summary><small class="riwayat-meta-st">%s</small>%s</details></td>'
                    '<td class="riwayat-angka-st">%d</td><td class="riwayat-proses-st"><span>%s</span></td>'
                    '<td class="riwayat-tinjauan-st">%s</td><td class="riwayat-aksi-st"><a href="/sesi/%d" aria-label="Buka sesi %d">Buka →</a>%s</td></tr>' % (
                        r['id'],tanggal(r['tanggal']),_e(judul),_e(jenis),_e(meta),('<small>'+rincian+'</small>') if rincian else '',
@@ -171,7 +171,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-formulaire-st > .buat-latihan-st {{ padding:{T.SP_5}; background:{T.LATAR_KARTU}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; }}
 .profil-workspace-st .profil-formulaire-st .buat-latihan-st > h2 {{ margin-top:0; }}
 .profil-workspace-st [data-panel="baru"] > .strip-sesi {{ display:block; }}
-.profil-workspace-st .profil-champs-st {{ display:grid; grid-template-columns:minmax(0,1fr); gap:{T.SP_5}; min-width:0; }}
+.profil-workspace-st .profil-champs-st {{ display:grid; grid-template-columns:minmax(0,1fr); gap:{T.SP_4}; min-width:0; }}
 .profil-workspace-st .profil-champs-st > * {{ grid-column:1/-1; min-width:0; }}
 .profil-workspace-st .profil-champs-st label {{ white-space:normal; overflow-wrap:anywhere; }}
 .profil-workspace-st .profil-champs-st .strip-kolom > label {{ font-size:.875rem; color:{T.TEKS_JUDUL}; line-height:1.4; }}
@@ -187,7 +187,14 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .tab-label-st {{ display:inline-flex; align-items:center; gap:{T.SP_2}; }}
 .profil-workspace-st .profil-assistant-st .pendamping-tombol,.profil-workspace-st .profil-assistant-st .st-tombol-sekunder {{ background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; border:1px solid {T.BORDER_VARIAN}; }}
 .profil-workspace-st .riwayat-aksi-st .tombol-ikon-st {{ display:inline-flex; width:auto; height:auto; min-width:{T.TARGET_SENTUH}; min-height:{T.TARGET_SENTUH}; position:relative; }}
-.profil-workspace-st .profil-champs-st > .strip-kolom:nth-child(-n+2) {{ grid-column:auto; }}
+.profil-workspace-st .profil-champs-st > .strip-kolom:nth-child(-n+4) {{ grid-column:auto; }}
+.profil-workspace-st .profil-formulaire-st .panduan-variasi {{ padding:0; border:0; margin:0 0 {T.SP_3}; border-radius:0; }}
+.profil-workspace-st .profil-formulaire-st .panduan-variasi > summary {{ font-size:.875rem; }}
+.profil-workspace-st .riwayat-detail-st {{ margin:0; }}
+.profil-workspace-st .riwayat-detail-st > summary {{ font-size:.75rem; padding:{T.SP_1} 0; }}
+.profil-workspace-st .kepala-anak-st {{ margin-bottom:{T.SP_3}; }}
+.profil-workspace-st .kepala-anak-st .editorial-alis-st {{ display:none; }}
+.profil-workspace-st .kepala-anak-st h1 {{ margin-bottom:{T.SP_2}; }}
 .profil-workspace-st .profil-champs-st .st-tombol-coral {{ width:fit-content; }}
 .profil-workspace-st .profil-assistant-st {{ min-width:0; margin-top:{T.SP_4}; }}
 .profil-workspace-st .profil-assistant-st .pendamping-inline {{ margin:0; min-width:0; }}
@@ -224,6 +231,8 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-sr-st {{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }}
 @media(min-width:49rem) {{
  .profil-workspace-st .profil-champs-st {{ grid-template-columns:repeat(2,minmax(0,1fr)); }}
+ .profil-workspace-st .profil-champs-st > .strip-kolom > .mode-pilih {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }}
+ .profil-workspace-st .profil-champs-st .mode-opsi {{ margin:0; }}
 }}
 @media(min-width:64rem) {{
  .profil-workspace-st .profil-formulaire-st:has(.pendamping-inline) .strip-sesi.profil-manuel-st {{ display:grid; grid-template-columns:minmax(0,1.4fr) minmax(19rem,1fr); gap:{T.SP_5}; align-items:start; }}

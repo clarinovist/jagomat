@@ -83,12 +83,16 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     assert "Hari ini: 1 sesi · 15 soal" in isi
     assert "Sesi ini hanya untuk pemetaan awal." not in isi
     assert "Pemetaan awal: 0 dari 3 sesi terkonfirmasi" in isi
-    assert "Ketiga sesi dilakukan pada tanggal berbeda." in isi
+    assert "Total tiga sesi, pada tiga tanggal berbeda." in isi
+    from test_concise_ui import Markup
+    terlihat = Markup(isi).terlihat()
+    assert "Hari ini: 1 sesi · 15 soal" in terlihat
+    assert "Total tiga sesi, pada tiga tanggal berbeda." in terlihat
     assert "Peran orang tua/guru" in isi
     assert "Setelah selesai, periksa hasil dan konfirmasikan." in isi
     assert f'<form method="post" action="/siklus/{siswa_id}/buat"' in isi
     assert ">Siapkan sesi pemetaan pertama</button>" in isi
-    assert "Sesudah ini, ikuti petunjuk agar anak mulai mengerjakan." in isi
+    assert "Setelah selesai, periksa hasil dan konfirmasikan." in terlihat
     assert '<details class="alur-rencana-jelas-st">' in isi
     assert "<summary>" in isi
     assert "Detail progres dan alur belajar" in isi

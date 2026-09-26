@@ -118,7 +118,8 @@ def _kartu_akun_murid(kon, pengguna: str | None = None, peran: str = "guru") -> 
             f'<div><label for="pulihkan-siswa">Anak</label>'
             f"{pilih}</div>"
             f'<div><label for="pulihkan-nama">Nama untuk masuk</label>'
-            f'<input id="pulihkan-nama" type="text" name="nama_akun" placeholder="mis. bima-santoso" required></div>'
+            f'<input id="pulihkan-nama" type="text" name="nama_akun" placeholder="mis. bima-santoso" required>'
+            '<p class="sub">Nama login harus unik. Jika sudah dipakai keluarga lain, pilih nama lain.</p></div>'
             f"</div>"
             f'<div><label for="pulihkan-sandi">Sandi baru (minimal 8 karakter)</label>'
             f'<input id="pulihkan-sandi" type="password" name="sandi" placeholder="sandi untuk murid" required minlength="8">'
@@ -138,9 +139,7 @@ def _kartu_akun_murid(kon, pengguna: str | None = None, peran: str = "guru") -> 
 
     return (
         f'<div class="kartu"><h2>Akun murid</h2>'
-        f"<p class=\"sub\">Akun murid dipakai anak untuk masuk ke /murid. "
-        f"Nama untuk masuk harus unik di seluruh aplikasi — kalau sudah "
-        f"dipakai keluarga lain, pakai variasi lain (mis. tambah nama belakang).</p>"
+        '<p class="sub">Kelola nama login dan sandi anak.</p>'
         f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Status</th><th>Aksi</th></tr>{baris}</table></div>'
         f"{tambah}"
         f"</div>"
@@ -257,8 +256,11 @@ def halaman_akun(
         f'<div class="kartu">'
         f'<div class="kartu-judul"><span class="ikon-kartu">📚</span>'
         f"<h2>Siswa</h2></div>"
-        f'<p class="sub" id="keterangan-kelas">{learning_profile_ui.KETERANGAN_KELAS} '
-        'Pengaturan soal dipilih terpisah saat membuat latihan.</p>'
+        '<p class="sub" id="keterangan-kelas">Kelas hanya informasi profil, bukan kemampuan anak. '
+        'Pengaturan soal dipilih terpisah.</p>'
+        '<details class="rincian-ui-st"><summary>Tentang kelas sekolah</summary>'
+        f'<p class="sub">{learning_profile_ui.KETERANGAN_KELAS} '
+        'Pengaturan soal dipilih terpisah saat membuat latihan.</p></details>'
         f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Kelas sekolah</th>'
         f"<th>Sesi</th><th>Akun latihan</th><th>Aksi</th></tr>{daftar}</table></div>"
         '<p class="sub" style="margin-top:.7rem">Anak dengan riwayat sesi tidak bisa dihapus. '

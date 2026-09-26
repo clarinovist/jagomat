@@ -124,7 +124,8 @@ def test_tabel_riwayat_terbuka_dan_rincian_sekunder_dipilih(db):
     assert '<section class="kartu detail-teknis-laporan"' in h
     assert '<th scope="col">Topik</th>' in h
     isi = h.split('<main ', 1)[1]
-    assert '<details' not in isi
+    from test_report_v2 import hanya_penjelasan_dilipat
+    hanya_penjelasan_dilipat(isi)
     assert 'tampilan=catatan' in isi and 'tampilan=mingguan' in isi
 
 

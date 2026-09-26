@@ -185,7 +185,7 @@ def test_form_manual_actual_tetap_default_dan_langsung_terlihat(tmp_path, monkey
 
     assert '<section class="profil-formulaire-st">' in badan
     assert '<details class="atur-latihan-st"' not in badan
-    assert badan.count('<h2 class="st">Buat latihan</h2>') == 1
+    assert badan.count('<h2 class="st profil-sr-st">Buat latihan</h2>') == 1
     assert f'action="/sesi-baru/{siswa_id}"' in badan
     assert f'action="/sesi-gabungan/{siswa_id}"' in badan
     for bidang in ('name="topik"', 'name="jumlah_soal"', 'name="mode"', 'name="timer_mode"', 'name="durasi_menit"', 'name="timer_auto"'):

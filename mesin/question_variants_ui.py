@@ -17,8 +17,7 @@ def kontrol_variasi(identitas, terpilih=None, *, ringkas=False):
     bantuan = (
         'A–D membedakan isi soal, bukan urutan kemampuan atau kelas anak.'
         if ringkas else
-        'Pilih berdasarkan materi dan contoh, bukan kelas anak. '
-        '<a href="#panduan-variasi">Bandingkan isi dan contoh soal</a>.'
+        'Variasi isi soal, bukan tingkat kemampuan atau kelas anak.'
     )
     return (
         f'<div class="strip-kolom"><label for="{identitas}-profil">Variasi soal</label>'

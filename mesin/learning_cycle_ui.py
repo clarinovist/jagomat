@@ -251,7 +251,7 @@ def _konteks_pemetaan(rencana: RencanaBelajar) -> str:
     return (
         '<div class="konteks-pemetaan-jelas-st">'
         '<p><b>Hari ini: 1 sesi · 15 soal</b></p>'
-        '<p>Pemetaan awal terdiri dari tiga sesi. Ketiga sesi dilakukan pada tanggal berbeda.</p>'
+        '<p>Total tiga sesi, pada tiga tanggal berbeda.</p>'
         '</div>'
     )
 
@@ -491,9 +491,7 @@ def render_rencana(
     kelas_judul = "st judul-tugas-rencana-st" if pemetaan_pertama else "st"
     cta = _cta(rencana, bukti, siswa_id, fokus, materi)
     petunjuk = ""
-    if rencana.tindakan == "pemetaan":
-        petunjuk = '<p class="petunjuk-sesudah-cta-st">Sesudah ini, ikuti petunjuk agar anak mulai mengerjakan.</p>'
-    elif rencana.tindakan == "konfirmasi_hasil":
+    if rencana.tindakan == "konfirmasi_hasil":
         petunjuk = (
             '<p class="petunjuk-sesudah-cta-st">Belum yakin? Pilih <b>Simpan draf</b> '
             'di halaman hasil untuk melanjutkan nanti. Konfirmasi hanya setelah hasil diperiksa.</p>'

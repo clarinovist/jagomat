@@ -30,12 +30,23 @@ def konten(h):
     return h.split('id="konten-laporan"', 1)[1].split('</main>', 1)[0]
 
 
+def hanya_penjelasan_dilipat(isi):
+    """Data, navigasi, dan aksi laporan tetap langsung terlihat."""
+    rincian = re.findall(r'<details\b.*?</details>', isi, re.S)
+    assert len(rincian) == isi.count('<details')
+    for blok in rincian:
+        assert blok.startswith('<details class="rincian-ui-st">')
+        assert not any(tag in blok for tag in ('<table', '<form', '<input', '<a ', '<section', '<ul'))
+        assert any('<summary>' + judul + '</summary>' in blok for judul in (
+            'Cara membaca progres', 'Tentang urutan dan filter', 'Aturan filter tanggal'))
+
+
 @pytest.mark.parametrize('query', [
     '', 'tampilan=tugas', 'section=penguasaan',
     'section=penguasaan&tampilan=kriteria', 'section=penguasaan&tampilan=perjalanan',
     'section=riwayat', 'section=riwayat&tampilan=mingguan', 'section=riwayat&tampilan=catatan',
 ])
-def test_konten_laporan_tanpa_accordion_dropdown_atau_js(db, query):
+def test_konten_laporan_data_terbuka_hanya_penjelasan_dilipat(db, query):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, 'V2 <uji>', pemilik='guru')
         database.buat_sesi_dari_urutan(kon, sid, 99, ('deret_aritmetika',))
@@ -43,7 +54,8 @@ def test_konten_laporan_tanpa_accordion_dropdown_atau_js(db, query):
         h = reports.halaman_laporan(kon, sid, pengguna='guru', query=query).decode()
         assert tuple(kon.iterdump()) == awal
     isi = konten(h)
-    assert '<details' not in isi and '<select' not in isi and '<script' not in isi
+    hanya_penjelasan_dilipat(isi)
+    assert '<select' not in isi and '<script' not in isi
     assert '&lt;uji&gt;' in h
     assert 'akun-dropdown' in h or '<details' in h  # Menu global bukan scope V2.
 
@@ -54,7 +66,8 @@ def test_materi_kartu_panel_pagination_dan_kembali_tanpa_menyusutkan_target():
     assert 'class="peta-pilihan"' in h
     assert 'id="detail-materi"' in h and 'data-materi="statistika"' in h
     assert '✓ Dipilih' in h and 'aria-current="true"' in h
-    assert 'Kembali ke materi' in h and '<details' not in h
+    assert 'Kembali ke materi' in h
+    hanya_penjelasan_dilipat(h)
     assert '1/5 target' in h and f'1 dari {len(peta.target)} target' in h
     ringkas = mr.render_peta(peta, reports._tanggal_pendek, ringkas=True)
     assert f'class="peta-angka">1 <small>dari {len(peta.target)} target' in ringkas
@@ -173,7 +186,8 @@ def test_http_v2_guard_tanpa_write_ai_dan_url_langsung(tmp_path, monkeypatch, qu
             awal = tuple(kon.iterdump())
         jalur = f'/laporan/{sid}?{query}'
         kode, h, _ = server.minta(jalur, auth=('guru', SANDI_GURU))
-        assert kode == 200 and '<details' not in konten(h)
+        assert kode == 200
+        hanya_penjelasan_dilipat(konten(h))
         assert server.minta(jalur, auth=('guru', SANDI_GURU))[1] == h
         a = server.minta(f'/laporan/{asing}?{query}', auth=('guru', SANDI_GURU))
         b = server.minta(f'/laporan/999999?{query}', auth=('guru', SANDI_GURU))

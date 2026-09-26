@@ -58,7 +58,9 @@ def test_peta_target_tidak_memiliki_lipatan_di_dalam_lipatan(db):
         sid = database.tambah_siswa(kon, 'Peta', 'P5', pemilik='guru')
         peta = mastery_report.peta_penguasaan(database.muat_bukti_siklus(kon, sid), sid)
     h = mastery_report.render_peta(peta, reports._tanggal_pendek)
-    assert Struktur(h).maksimum == 0
+    assert Struktur(h).maksimum == 1
+    from test_report_v2 import hanya_penjelasan_dilipat
+    hanya_penjelasan_dilipat(h)
     assert 'class="peta-bukti"' in h
 
 
