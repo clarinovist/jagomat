@@ -132,7 +132,7 @@ def tangani_post(penangan,jalur):
             if set(data)!={'konfirmasi'} or data.get('konfirmasi')!='1':
                 raise ValueError('konfirmasi transisi tidak sah')
             akun_t=meta.get('akun'); revisi_t=meta.get('revisi')
-            if type(akun_t) is not str or type(revisi_t) is not int or revisi_t<1:
+            if type(akun_t) is not str or type(revisi_t) is not int or revisi_t<0:
                 raise ValueError('snapshot transisi tidak sah')
             guard.aktifkan_transisi(h._path_admin(),auth.BERKAS_SANDI,p,operasi=operasi,
                 akun_id=akun_t,target_revisi=revisi_t,sekarang=kini)

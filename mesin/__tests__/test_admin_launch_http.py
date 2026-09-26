@@ -139,3 +139,31 @@ def test_transisi_http_aktivasi_idempoten_dan_guard(server):
                          (akun['id_akun'],)).fetchone()[0]==1
     code,body,_=_minta(server,'/admin/layanan/cari',cookie=token,data=dict(csrf=csrf,cari='Ortu-C'))
     assert 'Belum terdaftar di langganan' not in body
+
+
+def test_transisi_http_akun_legacy_revisi_nol(server):
+    token=_login(server,'Admin-C',SANDI_ADMIN)
+    with admin_store._transaksi(admin_store.BAWAAN) as c:
+        c.execute("UPDATE pembayaran_konfigurasi SET tahap='rekonsiliasi'")
+    import json as _json
+    auth.tambah_akun('Ortu-Legacy',SANDI_ORANG_TUA,'guru')
+    raw=_json.loads(auth.BERKAS_SANDI.read_text())
+    daftar=raw['akun'] if isinstance(raw,dict) else raw
+    for a in daftar:
+        if a.get('pengguna')=='Ortu-Legacy':
+            a.pop('revisi_auth',None)
+    auth.BERKAS_SANDI.write_text(_json.dumps(raw))
+    legacy=auth.cari_akun('Ortu-Legacy')
+    assert auth.revisi_auth(legacy)==0
+    code,body,_=_minta(server,'/admin?section=langganan',cookie=token)
+    csrf=_hidden(body,'csrf')
+    code,body,_=_minta(server,'/admin/layanan/cari',cookie=token,
+                       data=dict(csrf=csrf,cari='Ortu-Legacy'))
+    assert code==200 and 'Aktifkan langganan' in body
+    form=dict(csrf=_hidden(body,'csrf'),tinjauan=_hidden(body,'tinjauan'),
+              reauth=SANDI_ADMIN,konfirmasi='1')
+    assert _minta(server,'/admin/layanan/transisi',cookie=token,data=form)[0]==303,'akun legacy revisi nol'
+    with admin_store.buka_baca(admin_store.BAWAAN) as c:
+        baris=c.execute("SELECT asal FROM langganan_enrollment WHERE akun_id=?",
+                        (legacy['id_akun'],)).fetchone()
+    assert baris is not None and baris['asal']=='transisi'

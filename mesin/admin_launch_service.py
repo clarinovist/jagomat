@@ -146,7 +146,9 @@ def aktifkan_transisi(path, path_auth, principal, *, operasi, akun_id, target_re
     d.identitas(operasi, 'operasi')
     d.identitas(akun_id, 'akun')
     d.waktu(sekarang)
-    if type(target_revisi) is not int or target_revisi < 1:
+    # Revisi akun legacy = 0 (auth.revisi_auth mendokumentasikan itu); hanya
+    # nilai negatif/non-int yang tidak sah.
+    if type(target_revisi) is not int or target_revisi < 0:
         raise ValueError('revisi target tidak sah')
     with kunci_principal(path_auth, principal) as (_, daftar):
         target = next((a for a in daftar if a.get('id_akun') == akun_id), None)

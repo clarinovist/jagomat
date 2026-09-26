@@ -276,6 +276,24 @@ def test_transisi_aktifkan_audit_idempoten_dan_kandidat(layanan):
     assert billing.kandidat_transisi(k.admin,k.auth,k.admin_principal,cari='kandidat')==()
 
 
+def test_transisi_akun_legacy_revisi_nol_diterima(layanan):
+    k=layanan;_rekonsiliasi(k)
+    auth.tambah_akun('kandidat-legacy','sandi-kandidat-123','guru',k.auth)
+    raw=json.loads(k.auth.read_text())
+    for a in raw['akun']:
+        if a.get('pengguna')=='kandidat-legacy':
+            a.pop('revisi_auth',None)
+    k.auth.write_text(json.dumps(raw))
+    akun=auth.cari_akun('kandidat-legacy',k.auth)
+    assert auth.revisi_auth(akun)==0
+    kand=billing.kandidat_transisi(k.admin,k.auth,k.admin_principal,cari='kandidat-legacy')
+    assert kand and kand[0]['revisi']==0
+    assert guard.aktifkan_transisi(k.admin,k.auth,k.admin_principal,
+        operasi='op_'+'9'*32,akun_id=akun['id_akun'],target_revisi=0,
+        sekarang=T0+7)=='diaktifkan','akun legacy revisi nol'
+    assert subscription_store.baca(k.admin,akun['id_akun']).enrollment.mulai==T0+7
+
+
 def test_transisi_guard_tanpa_mutasi(layanan):
     k=layanan
     auth.tambah_akun('kandidat-2','sandi-kandidat-123','guru',k.auth)
