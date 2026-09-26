@@ -92,9 +92,27 @@ artefak pasangan diperbarui, modul `aktifkan_transisi`/`daftar_web`/`buat_ulang_
 di image, RAHASIA-OK, smoke 200/401/303, `/langganan` anon 404, callback fail-closed
 404/403. Tier Admin masih `nonaktif`.
 
-Terbuka dan menunggu aksi pengguna: kenaikan tahap Admin `nonaktif → rekonsiliasi`
-(satu tahap per aksi di panel Operasional), aktivasi akun uji pemilik lewat panel
-Langganan (jalur transisi; akun lama tanpa enrollment), lalu `checkout` + uji 1
+**Pembaruan 26 Sep 2026 (~14:08 & 16:55 WIB) — kenaikan tahap rekonsiliasi + perbaikan worker (cutover keempat):**
+pemilik menaikkan tahap Admin `nonaktif → rekonsiliasi` (14:08 WIB; sakelar efektif
+fondasi/rekonsiliasi true, buat_pembayaran/penegakan false). Tick worker pertama
+(14:10) gagal `putaran rekonsiliasi gagal (ValueError)`: CLI meneruskan jam
+`time.time()` (float) ke validasi waktu langganan yang hanya menerima int — seluruh
+test CLI lama menyuntik `--sekarang` int sehingga jalur cron tak pernah teruji; tabel
+langganan produksi kosong (0 invoice) sehingga tanpa efek data. Perbaikan `a51fc0a`
+(koersi int + regression merah→hijau + mutation pengunci) lolos CI `36226140631`.
+Cutover keempat (candidate `a51fc0a` digest `sha256:c80f2cb9…`, recovery `781fbcd`
+digest `sha256:50bc3e6d…`, kontrak tetap `36b6ac95…`): backup bundle
+`aktivasi-20260926T095232Z` (4 DB + sandi, integritas ok), rehearsal idempoten pada
+salinan untuk kedua image (integritas/FK/preservasi bersih), approval exact-pair
+(receipt `.approval-consumed-ec6fd663…`, TTL 600 s), deployer exit 0. Pasca-swap:
+container sehat rev `a51fc0a`, RAHASIA-OK, artefak pasangan diperbarui, smoke
+200/401/303; worker manual sekali exit 0 dan tick cron natural 17:00 keluar satu baris
+JSON agregat `{"kandidat":0,"lunas":0,"menunggu":0,"perlu_diperiksa":0,"dilewati":0,`
+`"kesiapan":{...true}}`. Catatan: sesi desain juga men-deploy `f930085` (~14:25 WIB)
+sebelum cutover ini.
+
+Terbuka dan menunggu aksi pengguna: aktivasi akun uji pemilik lewat panel Langganan
+(jalur transisi; akun lama tanpa enrollment), lalu kenaikan `checkout` + uji 1
 pembayaran nyata kecil oleh pemilik. Sinkron enrollment registrasi publik sudah
 ter-wire dengan `CUTOFF_AKTIVASI = None` (default OFF) — pengaktifan sinkron menunggu
 keputusan pembukaan publik. `penegakan` tanpa keputusan terpisah.
