@@ -178,12 +178,56 @@ def periksa_status(config, invoice, *, akun_id, transport, transaksi_id=None, sa
         return Hasil()
 
 
-def buat_pembayaran(config, invoice, *, akun_id, transport, sakelar=d.SAKELAR):
-    sakelar.wajib("buat_pembayaran")
+# Status terminal non-bayar: provider menyatakan transaksi tidak lagi pending/
+# settlement, sehingga order_id yang sama boleh dipakai ulang (dokumentasi Core
+# API). Sengaja eksplisit: status lain tetap 'belum_terverifikasi' (fail-closed).
+KELAS_MATI = ("expire", "cancel", "deny")
+
+
+def status_ulang(config, invoice, *, akun_id, transport, sakelar=d.SAKELAR):
+    """Klasifikasi status tervalidasi untuk keputusan 'buat ulang QR'.
+
+    Kembalikan (kelas, hasil, identitas): kelas 'lunas' | 'pending' | 'mati' |
+    'perlu_diperiksa' | 'belum_terverifikasi'; identitas = transaction_id
+    terverifikasi (dipakai menurunkan kunci idempoten saat kelas 'mati').
+    Tanpa efek tulis dan tanpa keputusan finansial — caller yang menerapkan.
+    """
+    sakelar.wajib("rekonsiliasi")
     if invoice["akun_id"] != akun_id:
         raise LookupError("invoice tidak ditemukan")
     try:
-        req = request_create(config, invoice["invoice_id"], invoice["rupiah"], invoice["idempotency_key"])
+        data = kirim(request_status(config, invoice["invoice_id"]), transport=transport)
+        transaksi = _binding(data, invoice=invoice, merchant=config.merchant)
+        status = data.get("transaction_status")
+        if (status == "settlement" and data.get("status_code") == "200"
+                and data.get("fraud_status") in (None, "accept")):
+            hasil = Hasil("lunas", d.Pembayaran("midtrans", transaksi, invoice["invoice_id"], akun_id,
+                          invoice["rupiah"], "IDR", "qris", config.merchant, "settlement", True))
+            return "lunas", hasil, transaksi
+        if (status == "pending" and data.get("status_code") == "201"
+                and data.get("fraud_status") in (None, "accept")):
+            return "pending", Hasil("pending", qr=config.base_url + "/v2/qris/" + transaksi + "/qr-code"), transaksi
+        if status in ("refund", "partial_refund"):
+            return "perlu_diperiksa", Hasil("perlu_diperiksa"), transaksi
+        if status in KELAS_MATI:
+            kode = data.get("status_code")
+            if type(kode) is not str or re.fullmatch(r"[0-9]{3}", kode) is None:
+                raise KontrakTidakSah("status code provider tidak sah")
+            return "mati", Hasil(), transaksi
+        return "belum_terverifikasi", Hasil(), transaksi
+    except (ValueError, TypeError, KeyError, AttributeError):
+        return "belum_terverifikasi", Hasil(), None
+
+
+def buat_pembayaran(config, invoice, *, akun_id, transport, sakelar=d.SAKELAR, kunci=None):
+    sakelar.wajib("buat_pembayaran")
+    if invoice["akun_id"] != akun_id:
+        raise LookupError("invoice tidak ditemukan")
+    if kunci is None:
+        kunci = invoice["idempotency_key"]
+    d.identitas(kunci, "operasi")
+    try:
+        req = request_create(config, invoice["invoice_id"], invoice["rupiah"], kunci)
         data = kirim(req, transport=transport)
         _binding(data, invoice=invoice, merchant=config.merchant)
         # Create tidak pernah memberikan grant; wajib query status terautentikasi.

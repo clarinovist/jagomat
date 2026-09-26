@@ -173,6 +173,51 @@ def periksa_pembayaran(path_admin, path_auth, path_db, principal, invoice_id, *,
     return _catat(path_admin, path_auth, path_db, principal, inv, hasil, sekarang, sakelar, failpoint, cek_sesi)
 
 
+def buat_ulang_qr(path_admin, path_auth, path_db, principal, invoice_id, *, config,
+                  transport, sekarang, sakelar=d.SAKELAR, cek_sesi=None):
+    """Tombol 'buat ulang QR': status tervalidasi lalu create ulang hanya bila aman.
+
+    Syarat invoice: ber-intent (create pernah dicoba), tanpa receipt, belum lunas,
+    masih di dalam jendela aktif. Create ulang HANYA bila provider menyatakan
+    status terminal non-bayar (expire/cancel/deny) — pada kondisi itu order_id
+    yang sama boleh dipakai ulang menurut kontrak provider. Kunci idempotensi
+    diturunkan deterministik dari transaksi mati, sehingga replay/crash tidak
+    menggandakan charge; status lain (pending/lunas/refund/tidak dikenal) tidak
+    pernah memicu create. Efek ledger memakai jalur `_catat` yang sama dengan
+    periksa (grant tepat sekali untuk settlement).
+    """
+    sakelar.wajib("rekonsiliasi")
+    sakelar.wajib("buat_pembayaran")
+    d.waktu(sekarang)
+    with _keluarga(path_db, path_auth, principal) as (kon, akun, _):
+        inv = _invoice_terjaga(path_admin, kon, akun, invoice_id)
+        if inv["merchant"] != config.merchant or sekarang < inv["dibuat"]:
+            raise ValueError("merchant/clock berbeda")
+        if sekarang >= inv["kedaluwarsa"]:
+            raise ValueError("quote tidak aktif")
+        with admin_store.buka_baca(path_admin) as billing:
+            receipt = billing.execute("SELECT 1 FROM langganan_receipt WHERE invoice_id=?",
+                                      (invoice_id,)).fetchone()
+            intent = billing.execute("SELECT 1 FROM langganan_rekonsiliasi WHERE operasi_id=?",
+                                     ("create_" + invoice_id[4:],)).fetchone()
+    if receipt is not None or intent is None:
+        raise store.KonflikLangganan("invoice tidak dapat dibuat ulang")
+    if cek_sesi is not None:
+        cek_sesi()
+    kelas, hasil, identitas = midtrans.status_ulang(config, inv, akun_id=principal.id_akun,
+                                                    transport=transport, sakelar=sakelar)
+    if cek_sesi is not None:
+        cek_sesi()
+    pembayaran = _catat(path_admin, path_auth, path_db, principal, inv, hasil, sekarang, sakelar,
+                        None, cek_sesi)
+    if kelas == "mati" and identitas and pembayaran.status == "belum_terverifikasi":
+        bahan = (inv["invoice_id"] + "|" + identitas).encode()
+        kunci = "ulang_" + hashlib.sha256(bahan).hexdigest()[:24]
+        midtrans.buat_pembayaran(config, inv, akun_id=principal.id_akun, transport=transport,
+                                 sakelar=sakelar, kunci=kunci)
+    return pembayaran
+
+
 def mulai_pembayaran(path_admin, path_auth, path_db, principal, invoice_id, *, config,
                      transport, sekarang, sakelar=d.SAKELAR, failpoint=None, cek_sesi=None):
     sakelar.wajib("buat_pembayaran")

@@ -105,6 +105,26 @@ KASUS = [
      '                              and not lunas and sekarang < inv["kedaluwarsa"])',
      '                boleh_buat = True', HTTP,
      'test_turun_tahap_menyembunyikan_buat_dan_mematikan_qr', 'assert "/buat" not in isi'),
+    # Buat ulang QR: hanya saat provider menyatakan mati, tanpa receipt, di dalam
+    # jendela, dengan kunci idempotensi baru per transaksi mati.
+    ('subscription_service.py',
+     'if kelas == "mati" and identitas and pembayaran.status == "belum_terverifikasi":',
+     'if identitas and pembayaran.status == "belum_terverifikasi":', HTTP,
+     'test_ulang_qr_pending_tidak_membuat_create_baru', 'create saat pending'),
+    ('midtrans_contract.py', 'if status in KELAS_MATI:', 'if True:', HTTP,
+     'test_ulang_qr_status_tak_dikenal_atau_putus_tidak_membuat_create',
+     'create saat status tak dikenal'),
+    ('subscription_service.py', 'if receipt is not None or intent is None:',
+     'if intent is None:', HTTP, 'test_ulang_qr_ditolak_tanpa_intent_atau_setelah_receipt',
+     'setelah receipt'),
+    ('subscription_produksi_http.py',
+     'and sekarang < inv["kedaluwarsa"] and hasil.status != "pending")',
+     'and sekarang < inv["kedaluwarsa"])', HTTP,
+     'test_ulang_qr_pending_tidak_membuat_create_baru', 'CTA saat QR hidup'),
+    ('subscription_service.py',
+     'kunci = "ulang_" + hashlib.sha256(bahan).hexdigest()[:24]',
+     'kunci = inv["idempotency_key"]', HTTP,
+     'test_ulang_qr_setelah_expire_membuat_attempt_kedua', 'kunci ulang unik'),
 ]
 
 

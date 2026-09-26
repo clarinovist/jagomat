@@ -121,7 +121,8 @@ def ringkasan(pengguna, profil, invoice, token, *, merchant, aktif):
 
 
 def tagihan(pengguna, inv, *, token, status, merchant, boleh_buat=False, boleh_periksa=False,
-            qr_tersedia=False, qr_kedaluwarsa=False, periode=None, diterima=None):
+            qr_tersedia=False, qr_kedaluwarsa=False, periode=None, diterima=None,
+            boleh_ulang=False):
     """Halaman tagihan: status, QR (bila pending), form, dan ringkasan pembayaran."""
     jumlah = len(inv["profil_json"])
     isi = ['<section class="kartu"><h2>Tagihan untuk %d profil</h2>' % jumlah,
@@ -152,11 +153,16 @@ def tagihan(pengguna, inv, *, token, status, merchant, boleh_buat=False, boleh_p
             isi.append('<p role="status">Menunggu pembayaran QRIS. Nominal dan masa berlaku '
                        'tetap; selesaikan sebelum masa berlaku habis.</p>')
         elif status == "belum_terverifikasi" and inv.get("create_dicoba"):
-            isi.append('<p role="status">Status belum terverifikasi. Periksa lagi tagihan '
+            isi.append('<p role="status">Status belum terverifikasi. Gunakan tagihan '
                        'yang sama; jangan membuat atau membayar tagihan kedua.</p>')
         if qr_tersedia:
             isi.append('<img class="qr" src="/langganan/' + html.escape(inv["invoice_id"], quote=True)
                        + '/qr" width="280" height="280" alt="Kode QRIS untuk tagihan ini">')
+        if boleh_ulang:
+            isi.append('<p>Kode pembayaran sebelumnya tidak lagi berlaku menurut penyedia '
+                       'dan tidak ada dana tertahan. Anda dapat membuat kode baru untuk '
+                       'tagihan yang sama — nominal dan cakupan profil tidak berubah.</p>')
+            isi.append(form("/langganan/" + inv["invoice_id"] + "/ulang", token, "Buat ulang QR"))
         if boleh_buat:
             isi.append('<p>Belum ada QRIS untuk tagihan ini. Tekan tombol untuk membuat '
                        'kode pembayaran; tidak ada dana yang tertahan bila gagal.</p>')

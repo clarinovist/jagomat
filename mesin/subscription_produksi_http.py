@@ -34,7 +34,7 @@ import subscription_produksi_pages as halaman
 import subscription_service as layanan
 import subscription_store as store
 
-POLA = re.compile(r"/langganan/(inv_[0-9a-f]{32})(?:/(buat|periksa|qr))?\Z")
+POLA = re.compile(r"/langganan/(inv_[0-9a-f]{32})(?:/(buat|periksa|ulang|qr))?\Z")
 LINGKAR = ("127.0.0.1", "localhost", "::1")
 BATAS_LAJU = 30
 _JENDELA_LAJU = 60
@@ -217,7 +217,7 @@ def _tangani(penangan, jalur, *, post):
                     raise PermissionError("transport tidak aman")
             if jalur == "/langganan/siapkan":
                 aksi, invoice = "siapkan", ""
-            elif cocok and cocok.group(2) in ("buat", "periksa"):
+            elif cocok and cocok.group(2) in ("buat", "periksa", "ulang"):
                 invoice, aksi = cocok.groups()
                 checkout.baca_tagihan(*_paths(), p, invoice, sakelar=runtime.sakelar)
             else:
@@ -241,7 +241,12 @@ def _tangani(penangan, jalur, *, post):
                     sekarang=kini, kedaluwarsa=kini + 86400, sakelar=runtime.sakelar)
                 invoice = inv["invoice_id"]
             else:
-                fungsi = layanan.mulai_pembayaran if aksi == "buat" else layanan.periksa_pembayaran
+                if aksi == "buat":
+                    fungsi = layanan.mulai_pembayaran
+                elif aksi == "periksa":
+                    fungsi = layanan.periksa_pembayaran
+                else:
+                    fungsi = layanan.buat_ulang_qr
                 fungsi(*_paths(), p, invoice, config=runtime.config,
                        transport=_transport(penangan, runtime, p), sekarang=kini,
                        sakelar=runtime.sakelar, cek_sesi=lambda: _recheck(penangan, p))
@@ -271,16 +276,22 @@ def _tangani(penangan, jalur, *, post):
                 boleh_buat = (runtime.sakelar.buat_pembayaran and not inv["create_dicoba"]
                               and not lunas and sekarang < inv["kedaluwarsa"])
                 boleh_periksa = runtime.sakelar.rekonsiliasi and inv["create_dicoba"] and not lunas
+                boleh_ulang = (runtime.sakelar.buat_pembayaran and inv["create_dicoba"]
+                               and not lunas and not inv["perlu_diperiksa"]
+                               and sekarang < inv["kedaluwarsa"] and hasil.status != "pending")
+                if boleh_ulang:
+                    # Satu aksi satu entry point: kode mati → tawarkan buat ulang saja.
+                    boleh_periksa = False
                 status = ("perlu_diperiksa" if inv["perlu_diperiksa"] else
                           ("lunas" if lunas else
                            ("pending" if hasil.status == "pending" else hasil.status)))
-                token = _token(sesi, p, "buat" if boleh_buat else "periksa", invoice)
+                token = _token(sesi, p, "buat" if boleh_buat else ("ulang" if boleh_ulang else "periksa"), invoice)
                 diterima = periode = None
                 if lunas:
                     diterima, periode = _penerimaan(_paths()[0], invoice)
                 _kirim(penangan, halaman.tagihan(
                     pengguna, inv, token=token, status=status, merchant=runtime.config.merchant,
-                    boleh_buat=boleh_buat, boleh_periksa=boleh_periksa,
+                    boleh_buat=boleh_buat, boleh_periksa=boleh_periksa, boleh_ulang=boleh_ulang,
                     qr_tersedia=(hasil.status == "pending" and bool(hasil.qr)
                                  and not inv["perlu_diperiksa"] and not lunas
                                  and sekarang < inv["kedaluwarsa"]),

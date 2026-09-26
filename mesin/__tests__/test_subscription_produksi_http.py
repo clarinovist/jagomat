@@ -5,6 +5,7 @@ palsu (tanpa socket), akun/enrollment/ledger sintetis, tanpa kredensial nyata.
 """
 
 from dataclasses import replace
+import json
 import re
 from types import SimpleNamespace
 import time
@@ -279,3 +280,107 @@ def test_batas_laju_per_akun(uji):
         assert kode == 200
     kode, isi, _ = minta(k)
     assert kode == 429 and "Terlalu banyak" in isi
+
+
+def _post(k, metode):
+    return [r for r in k.provider.panggilan if r.metode == metode]
+
+
+def test_ulang_qr_setelah_expire_membuat_attempt_kedua(uji):
+    k = uji
+    inv, _ = siapkan(k)
+    isi = buat(k, inv)
+    assert len(_post(k, "POST")) == 1
+    k.provider.status = "expire"
+    kode, isi, _ = minta(k, "/langganan/" + inv)
+    assert kode == 200
+    assert "Buat ulang QR" in isi
+    assert "/langganan/" + inv + "/periksa" not in isi
+    aksi = "/langganan/" + inv + "/ulang"
+    kode, isi, _ = minta(k, aksi, data=FormParser(isi).forms[aksi])
+    assert kode == 200, (kode, pesan(isi))
+    assert len(_post(k, "POST")) == 2
+    pertama, kedua = _post(k, "POST")
+    assert json.loads(pertama.body)["transaction_details"]["order_id"] == inv
+    assert json.loads(kedua.body)["transaction_details"]["order_id"] == inv
+    assert pertama.headers["Idempotency-Key"] != kedua.headers["Idempotency-Key"], "kunci ulang unik"
+    assert kedua.headers["Idempotency-Key"].startswith("ulang_")
+    k.provider.status = "pending"
+    kode, isi, _ = minta(k, "/langganan/" + inv)
+    assert kode == 200 and 'src="/langganan/' + inv + '/qr"' in isi
+
+
+def test_ulang_qr_pending_tidak_membuat_create_baru(uji):
+    k = uji
+    inv, _ = siapkan(k)
+    isi = buat(k, inv)
+    assert "Buat ulang QR" not in isi, "CTA saat QR hidup"
+    sebelum = len(_post(k, "POST"))
+    tok = h._token(k.cookie, k.p, "ulang", inv)
+    kode, _, _ = minta(k, "/langganan/" + inv + "/ulang", data={"token": tok})
+    assert kode == 200
+    assert len(_post(k, "POST")) == sebelum, "create saat pending"
+
+
+def test_ulang_qr_saat_settlement_memberi_grant_tanpa_create(uji):
+    k = uji
+    inv, _ = siapkan(k)
+    buat(k, inv)
+    k.provider.status = "settlement"
+    sebelum = len(_post(k, "POST"))
+    tok = h._token(k.cookie, k.p, "ulang", inv)
+    kode, isi, _ = minta(k, "/langganan/" + inv + "/ulang", data={"token": tok})
+    assert kode == 200 and "Pembayaran diterima" in isi
+    assert jumlah_grant() == 1
+    assert len(_post(k, "POST")) == sebelum
+
+
+def test_ulang_qr_ditolak_tanpa_intent_atau_setelah_receipt(uji):
+    k = uji
+    inv, _ = siapkan(k)
+    tok = h._token(k.cookie, k.p, "ulang", inv)
+    kode, _, _ = minta(k, "/langganan/" + inv + "/ulang", data={"token": tok})
+    assert kode == 409, "tanpa intent"
+    assert k.provider.panggilan == []
+    isi = buat(k, inv)
+    k.provider.status = "settlement"
+    periksa(k, inv, isi)
+    assert jumlah_grant() == 1
+    kode, _, _ = minta(k, "/langganan/" + inv + "/ulang", data={"token": tok})
+    assert kode == 409, "setelah receipt"
+
+
+def test_ulang_qr_di_luar_jendela_ditolak_tanpa_create(uji, monkeypatch):
+    k = uji
+    inv, _ = siapkan(k)
+    buat(k, inv)
+    k.provider.status = "expire"
+    nyata = time.time()
+    monkeypatch.setattr(time, "time", lambda: nyata + 2 * 86400)
+    tok = h._token(k.cookie, k.p, "ulang", inv)
+    sebelum_post = len(_post(k, "POST"))
+    sebelum_semua = len(k.provider.panggilan)
+    kode, _, _ = minta(k, "/langganan/" + inv + "/ulang", data={"token": tok})
+    assert kode == 400
+    assert len(_post(k, "POST")) == sebelum_post
+    assert len(k.provider.panggilan) == sebelum_semua
+
+
+def test_ulang_qr_status_tak_dikenal_atau_putus_tidak_membuat_create(uji):
+    k = uji
+    inv, _ = siapkan(k)
+    buat(k, inv)
+    k.provider.status = "failure"
+    tok = h._token(k.cookie, k.p, "ulang", inv)
+    sebelum = len(_post(k, "POST"))
+    kode, _, _ = minta(k, "/langganan/" + inv + "/ulang", data={"token": tok})
+    assert kode == 200
+    assert len(_post(k, "POST")) == sebelum, "create saat status tak dikenal"
+
+    def putus():
+        raise RuntimeError("putus")
+
+    k.provider.hook = putus
+    kode, _, _ = minta(k, "/langganan/" + inv + "/ulang", data={"token": tok})
+    assert kode == 200
+    assert len(_post(k, "POST")) == sebelum, "create saat transport putus"

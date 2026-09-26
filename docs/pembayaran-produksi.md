@@ -101,6 +101,26 @@ hanya halaman status "belum aktif" yang dirender (tanpa membaca ledger).
   tier `checkout` menunggu secret terpasang + kenaikan tahap dan akun ter-enroll (gap
   keputusan terpisah). Penegakan tetap butuh keputusan terpisah.
 
+### Buat ulang QR setelah kedaluwarsa (26 Sep 2026)
+
+QRIS provider kedaluwarsa (±15 menit) sebelumnya membuat invoice buntu: intent create
+hanya sekali per invoice. Halaman tagihan kini menawarkan satu aksi "Buat ulang QR"
+(`POST /langganan/<inv>/ulang`) saat intent ada, belum lunas/`perlu_diperiksa`, tanpa
+receipt, dan masih di dalam jendela invoice:
+
+- Aksi selalu query status provider lebih dulu (server-to-server). `settlement` →
+  receipt+grant tepat sekali lewat jalur `_catat` yang sama dengan Periksa; `pending` →
+  tanpa create (QR lama masih hidup); `perlu_diperiksa`/status tak dikenal/transport
+  putus → tanpa create (fail-closed).
+- Create ulang hanya saat provider menyatakan terminal non-bayar (`expire`/`cancel`/
+  `deny`) — pada kondisi itu order_id yang sama boleh dipakai ulang (dokumentasi Core
+  API); kunci idempotensi baru diturunkan deterministik dari transaksi mati
+  (`ulang_<sha256(invoice|transaksi)[:24]>`) sehingga replay/crash tidak menggandakan
+  charge. Hasil create tidak pernah menjadi bukti; bukti tetap query status terikat.
+- Satu aksi satu entry point: tombol "Periksa" disembunyikan saat tombol buat ulang
+  ditawarkan. Token form terikat sesi+invoice (TTL 900 s); 404 identik, rate limit,
+  dan larangan data anak di log tetap berlaku.
+
 ## Jalur transisi akun lama (panel, 26 Sep 2026)
 
 Checkout `/langganan` memerlukan enrollment; akun yang dibuat sebelum sinkron
