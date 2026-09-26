@@ -795,7 +795,7 @@ def halaman_anak(
                                  ("25", "25 soal (± 75 mnt)"), ("30", "30 soal (± 90 mnt)"))
         )
         + '</select><small class="profil-petunjuk-st" id="manual-jumlah-petunjuk">'
-        '±3 menit/soal · “Sesuai topik” memakai jumlah bawaan.</small></div>'
+        'Estimasi ±3 menit per soal. “Sesuai topik” memakai jumlah bawaan topik.</small></div>'
         + f'{kontrol_format("manual", getattr(draf_latihan, "format_jawaban", "isian"))}{_kontrol_mode_sesi(draf_latihan)}'
         + '<button type="submit" class="st-tombol-coral">'
         f'{profile_workspace.ikon("play_arrow")}'
