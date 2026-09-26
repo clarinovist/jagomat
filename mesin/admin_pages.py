@@ -21,15 +21,22 @@ from learning_profile import label_kelas_sekolah
 
 SECTION = (
     ("ringkasan", "Ringkasan", "/admin"),
+    ("perhatian", "Perlu ditangani", "/admin?section=perhatian"),
     ("keluarga", "Keluarga", "/admin?section=keluarga"),
     ("siswa", "Siswa", "/admin?section=siswa"),
     ("pendaftaran", "Pendaftaran", "/admin?section=pendaftaran"),
     ("langganan", "Langganan", "/admin?section=langganan"),
-    ("perhatian", "Perlu ditangani", "/admin?section=perhatian"),
-    ("operasional", "Operasional", "/admin?section=operasional"),
     ("kpi", "KPI Uji Coba", "/admin?section=kpi"),
+    ("operasional", "Operasional", "/admin?section=operasional"),
     ("ai", "AI", "/admin/ai"),
     ("riwayat", "Riwayat admin", "/admin?section=riwayat"),
+)
+GRUP_SECTION = (
+    ("", ("ringkasan", "perhatian")),
+    ("Data pengguna", ("keluarga", "siswa")),
+    ("Layanan", ("pendaftaran", "langganan")),
+    ("Analitik", ("kpi",)),
+    ("Sistem", ("operasional", "ai", "riwayat")),
 )
 SECTION_LOKAL = frozenset(item[0] for item in SECTION if item[0] != "ai")
 SKRIP_KONFIRMASI_LOGIN = """document.querySelectorAll('form[data-konfirmasi-login]').forEach(function(f){f.addEventListener('submit',function(e){if(!window.confirm(f.dataset.konfirmasiLogin)){e.preventDefault();}});});"""
@@ -72,14 +79,24 @@ def _judul_section(section: str) -> Tuple[str, str]:
 
 
 def _nav(section: str) -> str:
-    return "".join(
-        '<a href="%s"%s>%s</a>' % (
-            _e(jalur),
-            ' aria-current="page"' if sid == section else "",
-            _e(label),
+    section_data = {sid: (label, jalur) for sid, label, jalur in SECTION}
+    grup = []
+    for label_grup, daftar_section in GRUP_SECTION:
+        tautan = "".join(
+            '<a href="%s"%s>%s</a>' % (
+                _e(section_data[sid][1]),
+                ' aria-current="page"' if sid == section else "",
+                _e(section_data[sid][0]),
+            )
+            for sid in daftar_section
         )
-        for sid, label, jalur in SECTION
-    )
+        judul = '<p class="admin-nav-label">%s</p>' % _e(label_grup) if label_grup else ""
+        grup.append('<div class="admin-nav-grup">%s%s</div>' % (judul, tautan))
+    return "".join(grup)
+
+
+def _label_section(section: str) -> str:
+    return next(label for sid, label, _jalur in SECTION if sid == section)
 
 
 def halaman_admin(
@@ -118,12 +135,16 @@ def halaman_admin(
 <details class="menu-pengguna"><summary>{_e(pengguna)} <span class="admin-badge">Pengelola</span></summary>
 <div class="menu-isi"><a href="/akun?section=akun">Ganti sandi</a>
 <form method="post" action="/keluar"><button type="submit">Keluar</button></form></div></details></header>
+<div class="admin-layout"><aside class="admin-sidebar">
+<nav class="admin-nav" aria-label="Bagian panel pengelola">{_nav(section)}</nav></aside>
+<section class="admin-utama">
+<details class="admin-nav-mobile"><summary><span>Menu pengelola</span><strong>{_e(_label_section(section))}</strong></summary>
+<nav aria-label="Bagian panel pengelola seluler">{_nav(section)}</nav></details>
 <header class="admin-kepala"><p class="admin-alis">Ruang pengelola</p>
 <h1 id="judul-admin">{_e(judul)}</h1><p class="admin-sub">{_e(subjudul)}</p></header>
-<nav class="admin-nav" aria-label="Bagian panel pengelola">{_nav(section)}</nav>
 <main id="konten-admin" aria-labelledby="judul-admin">{isi}</main>
 <footer class="admin-footer">Tampilan privat · Data operasional, bukan penilaian kemampuan anak.</footer>
-</div>{'<script>' + skrip_sandi + '</script>' if skrip_sandi else ''}</body></html>"""
+</section></div></div>{'<script>' + skrip_sandi + '</script>' if skrip_sandi else ''}</body></html>"""
     return dokumen.encode("utf-8")
 
 
@@ -186,17 +207,17 @@ def render_ringkasan(data: Q.RingkasanAdmin, *, status_layanan: str = "") -> str
         for item in data.aktivitas_terbaru
     ) or '<tr><td colspan="5" class="admin-kosong">Belum ada aktivitas sesi.</td></tr>'
     return (
-        '<section class="admin-grid-stat" aria-label="Jumlah administratif">%s</section>' % stat
+        '<section class="admin-kartu admin-prioritas"><div><p class="admin-alis">Prioritas saat ini</p>'
+        '<h2>Perlu perhatian</h2></div><ul class="admin-daftar-status">%s</ul></section>' % perhatian
         + status_layanan
-        + '<section class="admin-kartu admin-catatan"><h2>Definisi angka</h2>'
+        + '<section class="admin-grid-stat" aria-label="Jumlah administratif">%s</section>' % stat
+        + '<details class="admin-kartu admin-catatan admin-definisi"><summary>Tentang angka ringkasan</summary>'
         '<p>Catatan sesi mencakup sesi dibatalkan. Jendela 7/30 hari memakai '
         '<code>selesai → mulai → dibuat → tanggal</code> dalam waktu WIB. '
         'Angka ini tidak menyatakan anak sedang online, sudah belajar, atau lulus.</p>'
         '<p><strong>%d</strong> sesi dalam 7 hari · <strong>%d</strong> dalam 30 hari · '
-        '<strong>%d</strong> dibatalkan.</p></section>'
+        '<strong>%d</strong> dibatalkan.</p></details>'
         % (data.sesi_7_hari, data.sesi_30_hari, data.sesi_dibatalkan)
-        + '<section class="admin-kartu"><h2>Perlu perhatian</h2>'
-        '<ul class="admin-daftar-status">%s</ul></section>' % perhatian
         + '<section class="admin-kartu"><h2>Login perlu perhatian</h2>'
         '<p class="admin-meta">Maksimal 25 login ditampilkan. Daftar ini tidak memperbaiki atau mengaitkan akun otomatis.</p>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel">'

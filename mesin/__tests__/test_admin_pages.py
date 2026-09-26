@@ -92,6 +92,9 @@ def test_frame_enam_menu_privasi_dan_fallback_section():
     assert html.startswith("<!DOCTYPE html>")
     assert '<html lang="id">' in html
     assert '<main id="konten-admin" aria-labelledby="judul-admin">' in html
+    assert '<aside class="admin-sidebar">' in html
+    assert '<details class="admin-nav-mobile">' in html
+    assert '<strong>Ringkasan</strong>' in html
     assert 'aria-label="Bagian panel pengelola"' in html
     navigasi = html.split('<nav class="admin-nav"', 1)[1].split("</nav>", 1)[0]
     assert navigasi.count('aria-current="page"') == 1
@@ -100,6 +103,8 @@ def test_frame_enam_menu_privasi_dan_fallback_section():
         "Ringkasan", "Keluarga", "Siswa", "Pendaftaran", "AI", "Riwayat admin"
     ):
         assert label in html
+    for label_grup in ("Data pengguna", "Layanan", "Analitik", "Sistem"):
+        assert label_grup in navigasi
     assert 'href="/admin/ai"' in html
     assert '<meta name="robots" content="noindex,nofollow,noarchive">' in html
     assert '<meta name="referrer" content="no-referrer">' in html
@@ -119,6 +124,8 @@ def test_ringkasan_tidak_menyebut_progres_dan_escape_nama():
     assert "keluarga&amp;aman" in isi
     assert "Dibatalkan" in isi
     assert "tidak menyatakan anak sedang online, sudah belajar, atau lulus" in isi
+    assert '<details class="admin-kartu admin-catatan admin-definisi">' in isi
+    assert isi.index("Prioritas saat ini") < isi.index('aria-label="Jumlah administratif"')
     assert 'href="/anak/7"' in isi
     assert 'href="/sesi/9"' in isi
 
