@@ -111,11 +111,27 @@ JSON agregat `{"kandidat":0,"lunas":0,"menunggu":0,"perlu_diperiksa":0,"dilewati
 `"kesiapan":{...true}}`. Catatan: sesi desain juga men-deploy `f930085` (~14:25 WIB)
 sebelum cutover ini.
 
-Terbuka dan menunggu aksi pengguna: aktivasi akun uji pemilik lewat panel Langganan
-(jalur transisi; akun lama tanpa enrollment), lalu kenaikan `checkout` + uji 1
-pembayaran nyata kecil oleh pemilik. Sinkron enrollment registrasi publik sudah
-ter-wire dengan `CUTOFF_AKTIVASI = None` (default OFF) — pengaktifan sinkron menunggu
-keputusan pembukaan publik. `penegakan` tanpa keputusan terpisah.
+**Pembaruan 26 Sep 2026 (~17:04–17:31 WIB) — fix jalur transisi akun legacy (cutover kelima):**
+percobaan aktivasi oleh pemilik gagal 400 "Isian layanan tidak sah." — direproduksi
+terisolasi dari salinan bundle: validator jalur transisi mensyaratkan revisi target >= 1
+padahal akun legacy produksi berevisi 0 (`auth.revisi_auth`: "akun legacy tanpa field
+bernilai nol"). Fix `0a5c18a` (batas >= 0 di service + handler; regression domain + HTTP
+merah→hijau dengan pesan 400 identik produksi; mutation pengunci) lolos CI
+`36234991342`. Fix diverifikasi pada salinan data produksi dengan image baru: keenam
+akun guru legacy "diaktifkan" (SEMUA OK). Cutover kelima (candidate
+`sha256:cd3b730d…`, recovery `781fbcd` digest `sha256:a1327d14…`): bundle
+`aktivasi-20260926T102251Z`, rehearsal kedua image bersih, approval exact-pair
+`.approval-consumed-265ca7f0…`, deployer exit 0; pasca-swap rev `0a5c18a` healthy,
+smoke 200/401/303, worker tick 17:30 exit 0 dengan JSON agregat. **Aktivasi akun uji
+oleh pemilik lewat panel BERHASIL**: enrollment tepat 1 baris `asal='transisi'`, tanpa
+efek invoice/receipt/grant; tier tetap `rekonsiliasi`.
+
+Terbuka dan menunggu aksi pengguna: kenaikan tahap `checkout` (sakelar efektif
+buat_pembayaran) lalu uji 1 pembayaran nyata kecil oleh pemilik lewat `/langganan`
+(verifikasi receipt+grant agregat + health worker oleh agent; tombol "Buat ulang QR"
+tersedia bila QR kedaluwarsa). Sinkron enrollment registrasi publik sudah ter-wire
+dengan `CUTOFF_AKTIVASI = None` (default OFF) — pengaktifan sinkron menunggu keputusan
+pembukaan publik. `penegakan` tanpa keputusan terpisah.
 
 ## Snapshot sebelumnya — 22 September 2026
 
