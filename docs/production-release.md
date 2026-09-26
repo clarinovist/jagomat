@@ -78,13 +78,26 @@ terpisah). Gap yang dicatat: alur checkout butuh akun ter-enroll — sinkronisas
 enrollment registrasi publik/cutoff dan jalur `transisi` akun lama = keputusan user
 terpisah (tidak dikerjakan).
 
-Terbuka dan menunggu aksi pengguna: **provisioning secret Midtrans oleh pemilik**
-(Server Key ditempatkan sendiri di `/opt/osn/midtrans/produksi-rahasia`; setelah itu
-restart container agar runtime terpasang, lalu naikkan tahap Admin sesuai keputusan:
-`rekonsiliasi` saat secret aktif, `checkout` setelah surface terpasang + uji pembayaran
-nyata kecil; tanpa `penegakan` tanpa keputusan terpisah). Catatan: uji pembayaran nyata
-memerlukan akun **ter-enroll** — sinkronisasi enrollment registrasi publik/cutoff dan
-jalur `transisi` akun lama adalah gap keputusan terpisah yang belum dikerjakan.
+**Pembaruan 26 Sep 2026 (~12:45–12:49 WIB) — cutover ketiga (jalur transisi + buat ulang QR):**
+keputusan user: jalur transisi akun lama dulu, sinkron registrasi publik (default OFF)
+menyusul, tombol "buat ulang QR" setelah kedaluwarsa terkonfirmasi, guard kunci
+ditunda. Source `32c9ef4`/`1922a31`/`ae8f0ce` (CI run `36221351289` SUCCESS); kontrak
+pair tetap `36b6ac95…`. Cutover terkontrol (revision `ae8f0ce`, digest
+`sha256:988a21b5…`, recovery `781fbcd` digest `sha256:44529507…`): backup bundle
+`aktivasi-20260926T054553Z` (4 DB + sandi, integritas ok), rehearsal idempoten pada
+salinan untuk KEDUA image (integritas+FK bersih, preservasi seluruh tabel, tanpa tabel
+baru), approval exact-pair (receipt `.approval-consumed-dd5b7536…`, TTL 600 s),
+deployer exit 0. Pasca-swap: container sehat rev `ae8f0ce`, mount secret tetap (ro),
+artefak pasangan diperbarui, modul `aktifkan_transisi`/`daftar_web`/`buat_ulang_qr` ada
+di image, RAHASIA-OK, smoke 200/401/303, `/langganan` anon 404, callback fail-closed
+404/403. Tier Admin masih `nonaktif`.
+
+Terbuka dan menunggu aksi pengguna: kenaikan tahap Admin `nonaktif → rekonsiliasi`
+(satu tahap per aksi di panel Operasional), aktivasi akun uji pemilik lewat panel
+Langganan (jalur transisi; akun lama tanpa enrollment), lalu `checkout` + uji 1
+pembayaran nyata kecil oleh pemilik. Sinkron enrollment registrasi publik sudah
+ter-wire dengan `CUTOFF_AKTIVASI = None` (default OFF) — pengaktifan sinkron menunggu
+keputusan pembukaan publik. `penegakan` tanpa keputusan terpisah.
 
 ## Snapshot sebelumnya — 22 September 2026
 
