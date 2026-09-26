@@ -88,7 +88,7 @@ def test_probe_langganan_dijalankan_dan_verifier_tidak_boleh_skip(tmp_path):
 
 def test_source_tidak_punya_hook_user_network_env_billing():
     akar = Path(__file__).resolve().parents[1]
-    izin = {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_backup", "subscription_service", "subscription_registration", "midtrans_sandbox", "subscription_checkout", "subscription_http", "subscription_preview", "admin_launch_service", "admin_subscription", "admin_operations", "midtrans_secret", "midtrans_produksi", "subscription_produksi", "subscription_callback", "subscription_worker", "subscription_produksi_http", "subscription_produksi_pages"}
+    izin = {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_backup", "subscription_service", "subscription_registration", "midtrans_sandbox", "subscription_checkout", "subscription_http", "subscription_preview", "admin_launch_service", "admin_subscription", "admin_operations", "midtrans_secret", "midtrans_produksi", "subscription_produksi", "subscription_callback", "subscription_worker", "subscription_produksi_http", "subscription_produksi_pages", "web"}
     for p in akar.glob("*.py"):
         pohon = ast.parse(p.read_text())
         for node in ast.walk(pohon):

@@ -20,6 +20,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import auth  # noqa: E402
+import admin_store  # noqa: E402
+import subscription_registration  # noqa: E402
 from http_test_kit import ServerUji  # noqa: E402
 
 SANDI_BARU = "sandi-panjang-ortu-123"
@@ -126,3 +128,34 @@ def test_post_daftar_validasi_asli_dengan_token_sah(server, ubah, nama):
     assert kode == 200 and "Set-Cookie" not in header
     assert auth.BERKAS_SANDI.read_bytes() == sebelum
     assert auth.cari_akun(nama) is None
+
+
+def test_post_daftar_tanpa_aktivasi_tidak_membuat_enrollment(server):
+    token = _token_daftar(server)
+    kode, _, _ = server.minta("/daftar", data={
+        "nama": "ortu-tanpa-aktivasi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token})
+    # ServerUji mengikuti 303 ke "/" sehingga kode akhir 401 tanpa cookie; efek
+    # yang menentukan: akun terbuat tanpa enrollment.
+    assert kode in (200, 401)
+    akun = auth.cari_akun("ortu-tanpa-aktivasi")
+    assert akun is not None and akun.get("peran") == "guru"
+    assert auth.periksa("ortu-tanpa-aktivasi", SANDI_BARU)
+    with admin_store.buka_baca(admin_store.BAWAAN) as kon:
+        assert not kon.execute("SELECT 1 FROM langganan_enrollment WHERE akun_id=?",
+                               (akun["id_akun"],)).fetchone()
+
+
+def test_post_daftar_aktivasi_mensinkron_enrollment(server, monkeypatch):
+    monkeypatch.setattr(subscription_registration, "CUTOFF_AKTIVASI", 1)
+    with admin_store._transaksi(admin_store.BAWAAN) as kon:
+        kon.execute("UPDATE pembayaran_konfigurasi SET tahap='rekonsiliasi'")
+    token = _token_daftar(server)
+    kode, _, _ = server.minta("/daftar", data={
+        "nama": "ortu-aktivasi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token})
+    assert kode in (200, 401)
+    akun = auth.cari_akun("ortu-aktivasi")
+    assert akun is not None
+    with admin_store.buka_baca(admin_store.BAWAAN) as kon:
+        baris = kon.execute("SELECT asal FROM langganan_enrollment WHERE akun_id=?",
+                            (akun["id_akun"],)).fetchone()
+    assert baris is not None and baris["asal"] == "publik", "aktivasi publik terpasang"

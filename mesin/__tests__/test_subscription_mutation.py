@@ -85,6 +85,10 @@ KASUS = [
      "test_subscription_mutation_guards.py::test_unique_receipt_sumber_sql", "DID NOT RAISE"),
     ("grant_unique", "subscription_schema.py", "UNIQUE(akun_id,urutan),\n    UNIQUE(provider,transaksi_id),", "UNIQUE(provider,transaksi_id),",
      "test_subscription_mutation_guards.py::test_unique_grant_periode_sql", "DID NOT RAISE"),
+    ("daftar_web_gate", "subscription_registration.py", "aktif = CUTOFF_AKTIVASI is not None", "aktif = False",
+     "test_subscription_registration.py::test_daftar_web_aktif_mensinkron_lewat_cutoff", "aktivasi publik"),
+    ("daftar_web_switch", "subscription_registration.py", "if sakelar.fondasi:", "if True:",
+     "test_subscription_registration.py::test_daftar_web_aktif_tanpa_sakelar_efektif_tetap_mendaftar", "fitur langganan nonaktif"),
 ]
 
 

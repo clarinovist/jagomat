@@ -118,8 +118,21 @@ Langganan menyediakan jalur transisi eksplisit:
 - Provenance sengaja TIDAK memakai `layanan_operasi`: CHECK `aksi` tabel itu terikat
   kontrak pair rilis (perubahan = re-pin recovery, di luar scope). Bukti operasi =
   baris `langganan_enrollment` (kolom Sumber `transisi`) yang tampil di panel.
-- Sinkron registrasi publik (`asal='publik'`) + cutoff pembukaan publik adalah fase
-  terpisah dan belum aktif.
+
+## Sinkron registrasi publik (siap, default nonaktif)
+
+`/daftar` kini melewati `subscription_registration.daftar_web`:
+
+- `CUTOFF_AKTIVASI = None` (default): akun dibuat lewat jalur lama tanpa enrollment;
+  perilaku pendaftaran identik dengan sebelumnya (status internal `belum_aktif`).
+- Saat pembukaan publik, `CUTOFF_AKTIVASI` ditetapkan (epoch detik) — registrasi
+  dengan receipt `dibuat >= cutoff` akan menyinkronkan enrollment `asal='publik'`
+  lewat `sinkron_pendaftaran` dari receipt yang sama. Sinkron juga menuntut sakelar
+  fondasi efektif dari tahap tersimpan; tanpa itu akun tetap dibuat tanpa enrollment.
+- Kegagalan sinkron tidak pernah menghapus akun (status `belum_terverifikasi`,
+  dipulihkan dari receipt yang sama); registrasi tidak pernah gagal karena billing.
+- Batas aktivasi ini adalah keputusan pembukaan publik dan diuji eksplisit
+  (unit + HTTP + mutation).
 
 ## Pekerja rekonsiliasi terjadwal
 

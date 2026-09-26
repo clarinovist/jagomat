@@ -1279,6 +1279,7 @@ class Penangan(BaseHTTPRequestHandler):
         if jalur == "/daftar":
             import admin_registration
             import admin_store
+            import subscription_registration
             from admin_accounts import DomainAkunTidakSah
             from admin_contracts import KontrakTidakSah
             from landing import halaman_daftar
@@ -1328,12 +1329,13 @@ class Penangan(BaseHTTPRequestHandler):
                 tinjauan = admin_http.periksa_token_pendaftaran(
                     data.get("token_form", "")
                 )
-                akun_baru = admin_registration.daftar_publik(
+                akun_baru = subscription_registration.daftar_web(
                     admin_store.BAWAAN, auth.BERKAS_SANDI, database.BAWAAN,
                     operasi_id=tinjauan["op"], alias=nama,
                     sandi=sandi,
                     token_form=admin_http.token_domain(data["token_form"]),
-                )
+                    sekarang=int(time.time()),
+                ).akun
                 analitik.setelah_daftar(
                     auth.PrincipalAkun(akun_baru.pengguna, akun_baru.peran,
                                        akun_baru.id_akun, akun_baru.revisi_auth),
