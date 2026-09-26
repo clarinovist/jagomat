@@ -311,8 +311,8 @@ def halaman_landing() -> bytes:
     """Landing editorial bertema buku latihan, tanpa membaca data anak.
 
     Kanvas lebar terpisah dari form publik. Contoh tetap statis, maskot
-    hanya dekorasi, dan setiap aksi punya satu pintu. Tidak menambah
-    JavaScript, klaim produk, atau kontrol demo yang tidak berfungsi.
+    hanya dekorasi, dan setiap aksi punya satu pintu. Narasi mengikuti
+    siklus belajar; tidak mengaktifkan langganan atau layanan AI.
     """
     n = html.escape(T.NAMA_PRODUK)
     tag = html.escape(T.TAGLINE)
@@ -334,10 +334,9 @@ def halaman_landing() -> bytes:
   <h1 class="landing-judul-st" id="judul-landing">Bukan sekadar<br>benar.
   <span>Paham caranya.</span></h1>
   <p class="landing-tagline-st">{tag}</p>
-  <p class="landing-sub-st">Anak berlatih matematika, menuliskan <b>caranya</b>, dan
-  sistem menunjukkan letak kesalahannya — salah baca, salah konsep, salah
-  hitung, atau salah tulis. Orang tua dan guru melihat peta belajarnya, bukan
-  sekadar nilai.</p>
+  <p class="landing-sub-st">Bantu anak memahami matematika lewat latihan,
+  <b>tinjauan cara berpikir</b>, dan rencana belajar terpandu. Bukan hanya
+  tahu letak salahnya — orang tua dan guru tahu langkah berikutnya.</p>
   <p class="landing-cta-baris-st"><a class="tombol-coral" href="/daftar">
   Mulai — daftar sekarang <span aria-hidden="true">↗</span></a></p>
   <p class="landing-catatan-cta-st">Untuk orang tua, guru, dan les privat · Kelas 3–6 SD</p>
@@ -354,15 +353,16 @@ def halaman_landing() -> bytes:
 ─────
   463</div>
   <div class="landing-demo-hasil-st">
-    <p class="landing-demo-label-st">Letak salahnya</p>
+    <p class="landing-demo-label-st">Dugaan awal · perlu ditinjau</p>
     <div class="landing-kode-grup-st">
       <span class="landing-kode-st aktif">H · Salah hitung</span>
       <span class="landing-kode-st">K · Salah konsep</span>
       <span class="landing-kode-st">B · Salah baca</span>
     </div>
-    <p class="landing-demo-catatan-st"><b>Caranya sudah benar</b> — susun
-    bersusun, mulai dari satuan. Yang meleset di 5 + 8: hasilnya 13, tulis 3
-    simpan 1. Jadi jawabannya 473, bukan 463.</p>
+    <p class="landing-demo-catatan-st"><b>Ajak anak menjelaskan langkahnya.</b>
+    Hasil yang tepat 473, bukan 463. Periksa bersama: 5 + 8 = 13,
+    tulis 3 dan simpan 1 ke puluhan. Pastikan penyebabnya dari cara anak
+    mengerjakan, bukan diagnosis dari jawaban akhir saja.</p>
   </div>
 </div>
   <img class="landing-maskot-st" src="/aset/maskot-menunjuk-v3-240.png"
@@ -372,29 +372,30 @@ def halaman_landing() -> bytes:
 </section>
 
 <section class="landing-manfaat-st" aria-labelledby="judul-manfaat">
-  <h2 id="judul-manfaat">Latih. Tulis caramu. Ketahui letak salahmu.</h2>
+  <h2 id="judul-manfaat">Kenali kebutuhan. Dampingi latihan. Cek pemahaman.</h2>
   <div class="landing-pill-baris-st">
-    <span class="landing-pill-st"><span aria-hidden="true">01 /</span> Tulis caranya</span>
-    <span class="landing-pill-st"><span aria-hidden="true">02 /</span> Peta belajar</span>
-    <span class="landing-pill-st"><span aria-hidden="true">03 /</span> Tanpa tekanan</span>
+    <span class="landing-pill-st"><span aria-hidden="true">01 /</span> Rencana belajar</span>
+    <span class="landing-pill-st"><span aria-hidden="true">02 /</span> Peta penguasaan</span>
+    <span class="landing-pill-st"><span aria-hidden="true">03 /</span> Latihan fleksibel</span>
   </div>
 </section>
 
 <section class="landing-kenali-st" id="cara-kerja" aria-labelledby="judul-kenali">
 <div class="landing-bagian-kepala-st">
   <p class="landing-alis-st">BELAJAR DENGAN ARAH</p>
-  <h2 id="judul-kenali">Bukan cuma berapa nilainya.<br>Kenali cara belajarnya.</h2>
-  <p>Untuk anak yang sedang membangun fondasi, dan orang dewasa yang mendampingi.</p>
+  <h2 id="judul-kenali">Tidak berhenti di nilai.<br>Ada langkah berikutnya.</h2>
+  <p>Untuk orang tua, guru, dan pendamping les yang ingin menemani anak memahami caranya.</p>
 </div>
 <div class="landing-grid-st landing-info-st">
 <section class="landing-kartu-st landing-untuk-st">
   <h3 class="landing-kartu-judul-st">
-  <span class="landing-nomor-st" aria-hidden="true">01</span>Untuk siapa</h3>
+  <span class="landing-nomor-st" aria-hidden="true">01</span>Rencana belajar terpandu</h3>
   <div class="landing-kartu-isi-st">
-  <p><b>Orang tua</b> — temani anak belajar di rumah, lihat perkembangannya
-  dari laporan mingguan.</p>
-  <p><b>Guru &amp; les privat</b> — kelola banyak murid, beri latihan sesuai
-  tingkat, dan ketahui topik mana yang perlu diulang.</p>
+  <p>Mulai dari <b>pemetaan</b>, pilih fokus, lalu pelajari contoh dan
+  latihan terbimbing sebelum penguatan mandiri.</p>
+  <p>Lanjutkan dengan <b>cek berjeda dan cek berkala</b>. Hasil yang
+  dikonfirmasi membantu menentukan: lanjut, coba pendekatan lain,
+  atau periksa kebutuhan bantuan lebih lanjut.</p>
   </div>
 </section>
 
@@ -403,32 +404,36 @@ def halaman_landing() -> bytes:
   <span class="landing-nomor-st" aria-hidden="true">↗</span>Cara kerja</h3>
   <div class="landing-kartu-isi-st">
   <ol>
-    <li>Buat sesi latihan — pilih topik &amp; kelas.</li>
-    <li>Anak mengerjakan, lalu menuliskan caranya sendiri.</li>
-    <li>Sistem mendiagnosis: jawaban benar, salah hitung, atau salah konsep
-    — dan topik mana yang perlu diulang.</li>
+    <li>Buat profil anak, lalu pilih variasi latihan.</li>
+    <li>Anak mengerjakan dan menunjukkan caranya, di HP atau kertas.</li>
+    <li>Tinjau dan konfirmasi hasilnya. Untuk rencana terpandu,
+    ikuti langkah belajar berikutnya.</li>
   </ol>
   </div>
 </section>
 
 <section class="landing-kartu-st landing-topik-st">
   <h3 class="landing-kartu-judul-st">
-  <span class="landing-nomor-st" aria-hidden="true">02</span>Topik latihan</h3>
+  <span class="landing-nomor-st" aria-hidden="true">02</span>Peta penguasaan materi</h3>
   <div class="landing-kartu-isi-st">
-  <p>Pola bilangan, aritmetika dasar, geometri datar, kombinatorik — dengan
-  soal yang dibuat otomatis sehingga tiap sesi berbeda dari sebelumnya.</p>
+  <p>Lihat materi yang menunjukkan pemahaman, masih dipelajari, belum
+  dinilai, atau perlu dicek kembali. Jawaban benar saja belum cukup:
+  anak juga perlu <b>bisa menjelaskan</b>.</p>
+  <p>Peta mengikuti target materi {n} pada variasi latihan yang dipilih —
+  bukan nilai rapor atau ukuran seluruh kurikulum.</p>
   </div>
 </section>
 
 <section class="landing-kartu-st landing-kompetisi-st">
   <h3 class="landing-kartu-judul-st">
-  <span class="landing-nomor-st" aria-hidden="true">03</span>Ke arah kompetisi</h3>
+  <span class="landing-nomor-st" aria-hidden="true">03</span>Latihan yang fleksibel</h3>
   <div class="landing-kartu-isi-st">
-  <p>Materi disusun mengikuti silabus OSN Matematika SD (Bilangan,
-  Aritmatika, Geometri, Statistika &amp; Pengukuran, Kombinatorik) dan cocok
-  juga untuk persiapan SASMO. Berlatih teratur di sini adalah fondasi kuat
-  untuk olimpiade — tapi produk ini untuk semua anak yang ingin kuat
-  matematika, bukan hanya calon peserta olimpiade.</p>
+  <p><b>Latihan manual</b> tetap bisa dipilih tanpa menuntaskan pemetaan.
+  Pilih materi dan variasi soal, kerjakan di halaman murid atau cetak
+  lembar latihan.</p>
+  <p>Dari bilangan dan aritmetika hingga geometri, statistika,
+  pengukuran, dan kombinatorik — untuk membangun fondasi dan berlatih
+  pola soal bergaya OSN/SASMO.</p>
   </div>
 </section>
 </div>
@@ -437,8 +442,9 @@ def halaman_landing() -> bytes:
 <section class="landing-contoh-st" id="contoh" aria-labelledby="judul-contoh">
 <div class="landing-bagian-kepala-st">
 <p class="landing-alis-st">LEBIH DARI BENAR ATAU SALAH</p>
-<h2 class="landing-contoh-judul-st" id="judul-contoh">Contoh yang dilihat orang tua</h2>
-<p class="landing-contoh-sub-st">Contoh tertulis — bukan data anak mana pun.</p>
+<h2 class="landing-contoh-judul-st" id="judul-contoh">Salahnya berbeda. Bantuannya juga.</h2>
+<p class="landing-contoh-sub-st">Contoh tertulis — bukan data anak mana pun.
+Penyebab diperiksa bersama anak sebelum menentukan bantuan.</p>
 </div>
 <div class="landing-grid-st">
 <section class="landing-kartu-st">
@@ -446,11 +452,12 @@ def halaman_landing() -> bytes:
   <span class="landing-contoh-dot-st" style="background:{T.STATUS_SALAH}"></span>
   K · Salah konsep</div>
   <div class="landing-kartu-isi-st">
-  <p>2/3 + 3/4 dijawab <b>5/7</b> — pembilang dan penyebut dijumlahkan
-  sendiri-sendiri, dan anak yakin caranya benar.</p>
-  <div class="landing-resep-st"><b>Resep:</b> 4–6 minggu pakai benda nyata
-  (kue/gelas air) sebelum kembali ke angka. Cek ulang tiap 3 hari dengan
-  angka berbeda.</div>
+  <p>2/3 + 3/4 dijawab <b>5/7</b>. Jika penjelasan anak menunjukkan
+  pembilang dan penyebut dijumlahkan sendiri-sendiri, periksa konsep
+  pecahannya.</p>
+  <div class="landing-resep-st"><b>Dampingi:</b> gunakan gambar bagian
+  yang sama besar, lanjutkan dengan contoh terbimbing, lalu cek
+  pemahaman lewat soal berbeda.</div>
   </div>
 </section>
 
@@ -459,11 +466,11 @@ def halaman_landing() -> bytes:
   <span class="landing-contoh-dot-st" style="background:{T.STATUS_LEMAH}"></span>
   B · Salah baca soal</div>
   <div class="landing-kartu-isi-st">
-  <p>Soal cerita kecepatan: angka yang ditanya tidak ditandai — anak
-  menghitung hal yang salah.</p>
-  <div class="landing-resep-st"><b>Resep:</b> bukan lubang matematika.
-  Latihan pegang pensil, tandai yang ditanya, ucapkan ulang soal.
-  Biasanya hilang 2–3 minggu.</div>
+  <p>Anak menghitung hal lain dari yang ditanyakan. Ajak ia
+  menceritakan ulang soal untuk memeriksa pemahamannya.</p>
+  <div class="landing-resep-st"><b>Dampingi:</b> tandai informasi
+  penting dan yang ditanya. Minta anak mengucapkannya kembali
+  sebelum memilih perhitungan.</div>
   </div>
 </section>
 
@@ -472,24 +479,25 @@ def halaman_landing() -> bytes:
   <span class="landing-contoh-dot-st" style="background:{T.STATUS_KUAT}"></span>
   H · Salah hitung</div>
   <div class="landing-kartu-isi-st">
-  <p>Perkalian bersusun: caranya benar, angkanya meleset di langkah
-  penjumlahan.</p>
-  <div class="landing-resep-st"><b>Resep:</b> bukan materi baru. Wajib tulis
-  langkah + periksa ulang — gejala terburu-buru, bukan tidak paham.</div>
+  <p>Jika anak bisa menjelaskan konsep dan langkahnya, tetapi
+  perhitungannya meleset, bantu periksa langkah yang keliru.</p>
+  <div class="landing-resep-st"><b>Dampingi:</b> tulis langkah satu
+  per satu, periksa ulang hasilnya, lalu coba mandiri. Tidak semua
+  kesalahan hitung memerlukan materi baru.</div>
   </div>
 </section>
 </div>
 </section>
 
-<section class="landing-pilot-st" aria-labelledby="judul-pilot">
+<section class="landing-pilot-st" aria-labelledby="judul-pendamping-landing">
 <div>
-<p class="landing-alis-st">TUMBUH BERSAMA {n}</p>
-<h2 class="landing-contoh-judul-st" id="judul-pilot">Ikut pilot</h2>
+<p class="landing-alis-st">PENDAMPING AI</p>
+<h2 class="landing-contoh-judul-st" id="judul-pendamping-landing">Teman belajar.</h2>
 </div>
-<p class="landing-contoh-sub-st">Dibuka untuk 10–20 keluarga pertama
-(kelas 4–6). Syaratnya: minimal 6 sesi latihan, izin memakai data
-anonim untuk bukti, dan testimoni di akhir. Tertarik? Daftar lewat
-tombol di atas — gratis selama masa pilot.</p>
+<p class="landing-contoh-sub-st">Butuh bantuan memahami materi atau
+menyiapkan latihan? Pendamping membantu lewat percakapan, bila fitur
+aktif dan kamu menyetujui penggunaan AI. Bukan penentu diagnosis atau
+pengganti tinjauanmu; kamu tetap memilih dan memeriksa bantuannya.</p>
 </section>
 
 <section class="landing-faq-st" aria-labelledby="judul-faq">
@@ -499,21 +507,26 @@ tombol di atas — gratis selama masa pilot.</p>
 </div>
 <div class="landing-faq-daftar-st">
 <details><summary>Untuk kelas berapa?</summary>
-<p>Kelas 3–6 SD. Kelas 4–5 paling cocok untuk pilot.</p></details>
+<p>Kelas 3–6 SD. Variasi latihan dipilih terpisah dari kelas sekolah;
+lihat contoh soalnya untuk memilih titik awal.</p></details>
 <details><summary>Anak mengerjakan di HP atau kertas?</summary>
-<p>Keduanya bisa: kerjakan langsung di HP lewat halaman murid, atau cetak
-lembarnya, kerjakan di kertas, lalu kirim foto lembarnya.</p></details>
+<p>Keduanya bisa. Gunakan halaman murid, atau cetak lembar untuk dikerjakan
+di kertas. Hasil kertas dapat dicatat oleh orang tua/guru. Jika pembacaan
+foto dengan AI tersedia, hasil baca tetap perlu diperiksa.</p></details>
 <details><summary>Apakah ini khusus olimpiade?</summary>
-<p>Tidak. Materinya mengikuti silabus OSN/SASMO sebagai fondasi, tapi
-tujuannya semua anak yang ingin kuat matematika — diagnosis salah
-konsep vs salah hitung berguna untuk nilai harian juga.</p></details>
-<details><summary>Setelah pilot gratis, lalu apa?</summary>
-<p>Harga belum diputuskan. Peserta pilot ikut menentukan — yang jelas
-tidak ada tagihan diam-diam selama masa pilot.</p></details>
+<p>Tidak. {n} membantu membangun fondasi matematika dan berlatih pola soal
+bergaya OSN/SASMO. Bukan pengganti seluruh pelajaran sekolah atau jaminan
+prestasi olimpiade.</p></details>
+<details><summary>Bagaimana dengan biaya?</summary>
+<p>Paket dan pembayaran publik sedang disiapkan. Pendaftaran akun tidak
+memicu pembayaran.</p></details>
 <details><summary>Data anak disimpan di mana?</summary>
-<p>Di server pengelola, bukan cloud pihak ketiga. Tanpa iklan, tanpa
-pelacak. Cukup tulis nama panggilan anak — dan aplikasi tidak
-menyimpan email atau nomor telepon siapa pun.</p></details>
+<p>Data belajar disimpan di server pengelola. Tidak ada iklan atau
+pelacak pihak ketiga; pendaftaran tidak meminta email atau nomor telepon.
+Fitur AI memakai layanan AI pihak ketiga: foto lembar dikirim untuk
+pembacaan jawaban saat fitur digunakan, jadi pastikan izin orang tua/wali.
+Pendamping memerlukan persetujuan terpisah. Rinciannya ada di
+<a href="/kebijakan-privasi">Kebijakan Privasi</a>.</p></details>
 <details><summary>Lupa sandi bagaimana?</summary>
 <p>Tidak ada reset via email. Anak minta ke orang tua/gurunya; orang tua
 yang daftar sendiri hubungi WA {html.escape(T.WA_SUPPORT)}
@@ -535,8 +548,9 @@ yang daftar sendiri hubungi WA {html.escape(T.WA_SUPPORT)}
         og={
             "judul": f"{T.NAMA_PRODUK} — {T.TAGLINE}",
             "deskripsi": (
-                "Latihan matematika bergaya OSN/SASMO untuk anak SD. Anak "
-                "menulis caranya, orang tua melihat di mana letak salahnya."
+                "Latihan matematika SD bergaya OSN/SASMO dengan rencana belajar "
+                "terpandu dan peta penguasaan. Dampingi cara berpikir anak dan "
+                "ikuti langkah belajar berikutnya."
             ),
             "jalur": "/",
         },

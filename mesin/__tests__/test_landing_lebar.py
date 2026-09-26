@@ -64,7 +64,7 @@ def test_hero_dua_kolom_di_layar_lebar():
 
 def test_hero_punya_kalimat_proposisi_bukan_hanya_nama_produk():
     h = _html()
-    assert "Latih. Tulis caramu. Ketahui letak salahmu." in h
+    assert "Kenali kebutuhan. Dampingi latihan. Cek pemahaman." in h
 
 
 def test_hero_masih_menyebut_nama_dan_tagline():
@@ -104,37 +104,28 @@ def test_tidak_mengklaim_tulis_tangan():
 
 
 def test_tidak_mengklaim_gratis_komersial():
-    """Keputusan bisnis harga final belum diputuskan — jangan klaim "gratis
-    selamanya" di landing. Pengecualian yang sah: penyebutan masa pilot
-    (blok "Ikut pilot"), yang memang gratis dan berbatas, bukan janji
-    harga produk. Guard menolak kata "gratis" di LUAR blok pilot."""
+    """Jangan menjanjikan akses gratis saat penawaran publik belum dibuka."""
     h = _html().lower()
-    dalam_pilot = h.split("ikut pilot", 1)[1] if "ikut pilot" in h else ""
-    luar_pilot = h.split("ikut pilot", 1)[0] if "ikut pilot" in h else h
-    assert "selamanya gratis" not in h
-    assert "gratis" not in luar_pilot, (
-        "klaim gratis di luar blok pilot — keputusan harga belum diputuskan"
-    )
-    assert "gratis selama masa pilot" in dalam_pilot
+    assert "gratis" not in h
+    assert "paket dan pembayaran publik sedang disiapkan" in h
 
 
-# ──────────────── blok pilot (layak-GTM) ────────────────
+# ──────────────── contoh dan bantuan pendamping ────────────────
 
 def test_landing_memuat_contoh_diagnosis_bkh():
-    """Bukti konversi pilot: 3 contoh B/K/H dari kartu pitch validasi
-    pasar + penanda contoh, bukan data anak mana pun."""
+    """Tiga contoh B/K/H dengan penanda ilustrasi, bukan data anak."""
     h = _html()
     for frasa in ("Salah konsep", "Salah baca", "Salah hitung",
                   "5/7", "Contoh tertulis"):
         assert frasa in h, f"contoh diagnosis kehilangan: {frasa}"
 
 
-def test_landing_memuat_info_dan_syarat_pilot():
-    h = _html()
-    rendah = h.lower()
-    assert "ikut pilot" in rendah
-    for frasa in ("10–20 keluarga", "6 sesi", "anonim", "testimoni"):
-        assert frasa in rendah, f"syarat pilot kehilangan: {frasa}"
+def test_landing_memuat_bantuan_pendamping_bukan_rekrutmen_pilot():
+    rendah = _html().lower()
+    assert 'id="judul-pendamping-landing"' in rendah
+    assert "pendamping membantu lewat percakapan" in rendah
+    for frasa in ("ikut pilot", "10–20 keluarga", "6 sesi", "testimoni"):
+        assert frasa not in rendah
 
 
 def test_landing_faq_tanpa_js():
@@ -144,7 +135,7 @@ def test_landing_faq_tanpa_js():
     halaman, jadi batasnya </section> terakhir, bukan akhir body."""
     h = _html()
     assert h.count("<details>") >= 5
-    konten = h.split("Ikut pilot", 1)[1].rsplit("</section>", 1)[0]
+    konten = h.split('<section class="landing-faq-st"', 1)[1].split("</section>", 1)[0]
     assert "<details>" in konten
     assert "<script" not in konten
 
