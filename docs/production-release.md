@@ -126,12 +126,29 @@ smoke 200/401/303, worker tick 17:30 exit 0 dengan JSON agregat. **Aktivasi akun
 oleh pemilik lewat panel BERHASIL**: enrollment tepat 1 baris `asal='transisi'`, tanpa
 efek invoice/receipt/grant; tier tetap `rekonsiliasi`.
 
-Terbuka dan menunggu aksi pengguna: kenaikan tahap `checkout` (sakelar efektif
-buat_pembayaran) lalu uji 1 pembayaran nyata kecil oleh pemilik lewat `/langganan`
-(verifikasi receipt+grant agregat + health worker oleh agent; tombol "Buat ulang QR"
-tersedia bila QR kedaluwarsa). Sinkron enrollment registrasi publik sudah ter-wire
-dengan `CUTOFF_AKTIVASI = None` (default OFF) — pengaktifan sinkron menunggu keputusan
-pembukaan publik. `penegakan` tanpa keputusan terpisah.
+**Pembaruan 26 Sep 2026 (~19:43–20:10 WIB) — tahap checkout + uji pembayaran pertama menemukan kanal QRIS belum aktif:**
+pemilik menaikkan tahap Admin `rekonsiliasi → checkout` (revisi 3, 19:43:45 WIB; sakelar
+efektif `buat_pembayaran=true`, kesiapan all-true, tick cron 19:50 exit 0). Uji 1
+pembayaran oleh pemilik: tagihan 1 profil Rp35.000 (enrollment `transisi`, tarif
+lanjutan), "Buat QRIS" mencatat intent tetapi create ditolak provider **402 "Payment
+channel is not activated."** — kanal QRIS belum aktif pada merchant M822252555 (kunci
+valid: query status dijawab normal; tidak ada transaksi, tanpa dana tertahan). Tiga
+cacat permukaan ditemukan dan diperbaiki di `23728db` (CI `36246316081` SUCCESS; full
+suite 12138 lulus `-W error`; palang bersih): (1) judul tagihan menghitung panjang
+string `profil_json` — tampil "3 profil" untuk 1 profil; (2) sentinel 404 "Transaction
+doesn't exist." dianggap tak dikenal sehingga retry create tidak pernah terjadi — kini
+`tanpa_transaksi` fail-closed + retry create ber-kunci idempoten KANONIS invoice (replay
+aman menurut kontrak Midtrans, tanpa charge kedua); (3) copy "Kode pembayaran
+sebelumnya tidak lagi berlaku" menyesatkan saat tidak ada kode yang pernah diterbitkan
+— pesan netral baru. Deployment fix menunggu cutover keenam setelah pemilik mengaktifkan
+QRIS di dashboard Midtrans.
+
+Terbuka dan menunggu aksi pengguna: (1) aktivasi kanal QRIS di dashboard Midtrans
+merchant M822252555 (tanpa itu create selalu ditolak 402); (2) cutover keenam membawa
+fix `23728db`; (3) ulangi uji pembayaran lalu verifikasi receipt+grant agregat oleh
+agent. Sinkron enrollment registrasi publik sudah ter-wire dengan `CUTOFF_AKTIVASI =
+None` (default OFF) — pengaktifan sinkron menunggu keputusan pembukaan publik.
+`penegakan` tanpa keputusan terpisah.
 
 ## Snapshot sebelumnya — 22 September 2026
 
