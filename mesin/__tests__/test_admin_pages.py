@@ -96,7 +96,7 @@ def test_frame_enam_menu_privasi_dan_fallback_section():
     assert '<details class="admin-nav-mobile">' in html
     assert '<strong>Ringkasan</strong>' in html
     assert 'aria-label="Bagian panel pengelola"' in html
-    navigasi = html.split('<nav class="admin-nav"', 1)[1].split("</nav>", 1)[0]
+    navigasi = html.split('<nav class="admin-nav admin-menu"', 1)[1].split("</nav>", 1)[0]
     assert navigasi.count('aria-current="page"') == 1
     assert '<a href="/admin" aria-current="page">Ringkasan</a>' in navigasi
     for label in (
@@ -199,7 +199,7 @@ def test_sidebar_dan_kartu_memakai_design_system_tanpa_js_baru():
     assert T.FONT_BODY in admin_style.GAYA_ADMIN
     assert T.FONT_HEADLINE in admin_style.GAYA_ADMIN
     assert 'overflow-x: hidden' not in admin_style.GAYA_ADMIN
-    # Palang specificity: aturan kartu umum tidak menimpa judul di navy.
+    # Palang specificity: judul prioritas tetap memakai aturan komponennya.
     assert '.admin-kartu.admin-prioritas h2 {' in admin_style.GAYA_ADMIN
     assert '.admin-prioritas .admin-antrean-item h3 {' in admin_style.GAYA_ADMIN
     assert '<script' not in isi

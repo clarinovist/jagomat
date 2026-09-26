@@ -83,16 +83,21 @@ def _nav(section: str) -> str:
     grup = []
     for label_grup, daftar_section in GRUP_SECTION:
         tautan = "".join(
-            '<a href="%s"%s>%s</a>' % (
+            '<li><a href="%s"%s>%s</a></li>' % (
                 _e(section_data[sid][1]),
                 ' aria-current="page"' if sid == section else "",
                 _e(section_data[sid][0]),
             )
             for sid in daftar_section
         )
-        judul = '<p class="admin-nav-label">%s</p>' % _e(label_grup) if label_grup else ""
-        grup.append('<div class="admin-nav-grup">%s%s</div>' % (judul, tautan))
-    return "".join(grup)
+        if label_grup == "Pusat kendali":
+            grup.append('<li class="admin-nav-utama"><ul class="admin-nav-pilihan" '
+                        'aria-label="Menu utama">%s</ul></li>' % tautan)
+        else:
+            grup.append('<li class="admin-nav-grup"><p class="admin-nav-label">%s</p>'
+                        '<ul class="admin-nav-anak" aria-label="%s">%s</ul></li>'
+                        % (_e(label_grup), _e(label_grup), tautan))
+    return '<ul class="admin-nav-daftar">%s</ul>' % "".join(grup)
 
 
 def _label_section(section: str) -> str:
@@ -133,12 +138,12 @@ def halaman_admin(
 <div class="admin-bungkus"><div class="admin-layout"><aside class="admin-sidebar">
 <a class="admin-brand" href="/admin"><span class="admin-brand-mark" aria-hidden="true">J</span>
 <span><strong>{_e(T.NAMA_PRODUK)}</strong><small>Panel Pengelola</small></span></a>
-<nav class="admin-nav" aria-label="Bagian panel pengelola">{_nav(section)}</nav>
+<nav class="admin-nav admin-menu" aria-label="Bagian panel pengelola">{_nav(section)}</nav>
 <p class="admin-identitas"><strong>{_e(pengguna)}</strong><span>Akun pengelola</span></p></aside>
 <section class="admin-utama"><header class="admin-topbar">
 <p class="admin-konteks"><strong>Panel privat</strong><span>Data operasional, bukan penilaian anak</span></p>
 <details class="admin-nav-mobile"><summary><span>Menu pengelola</span><strong>{_e(_label_section(section))}</strong></summary>
-<nav aria-label="Bagian panel pengelola seluler">{_nav(section)}</nav></details>
+<nav class="admin-menu" aria-label="Bagian panel pengelola seluler">{_nav(section)}</nav></details>
 <details class="menu-pengguna"><summary>{_e(pengguna)} <span class="admin-badge">Pengelola</span></summary>
 <div class="menu-isi"><a href="/akun?section=akun">Ganti sandi</a>
 <form method="post" action="/keluar"><button type="submit">Keluar</button></form></div></details></header>

@@ -16,7 +16,7 @@ body.admin-readonly {{
 }}
 .admin-lompat {{
   position: absolute; left: {T.SP_2}; top: -10rem; z-index: 10;
-  background: {T.TEKS_JUDUL}; color: {T.TEKS_PUTIH};
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH};
   padding: {T.SP_2} {T.SP_3}; border-radius: {T.RADIUS_KECIL};
 }}
 .admin-lompat:focus {{ top: {T.SP_2}; }}
@@ -27,10 +27,10 @@ body.admin-readonly {{
 }}
 .admin-konteks {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; margin: 0; font-size: .75rem; color: {T.TEKS_VARIAN}; }}
 .admin-konteks strong {{ color: {T.TEKS_JUDUL}; }}
-.admin-brand {{ display: flex; align-items: center; gap: {T.SP_3}; color: {T.TEKS_PUTIH};
+.admin-brand {{ display: flex; align-items: center; gap: {T.SP_3}; color: {T.AKSEN_TEAL_TUA};
   padding: {T.SP_2} {T.SP_2} {T.SP_6}; text-decoration: none; }}
 .admin-brand strong {{ display: block; font: 800 1.1rem {T.FONT_HEADLINE}; }}
-.admin-brand small {{ display: block; margin-top: {T.SP_1}; font-size: .75rem; color: {T.BORDER_VARIAN}; }}
+.admin-brand small {{ display: block; margin-top: {T.SP_1}; font-size: .75rem; color: {T.TEKS_VARIAN}; }}
 .admin-brand-mark {{ display: grid; place-items: center; width: 2.5rem; height: 2.5rem;
   flex-shrink: 0; background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH};
   border-radius: {T.RADIUS_KARTU}; font: 800 1.25rem {T.FONT_HEADLINE}; }}
@@ -43,13 +43,14 @@ body.admin-readonly {{
   border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL}; }}
 .admin-topbar .menu-isi a {{ display: block; padding: {T.SP_2}; color: {T.AKSEN_TEAL_TUA}; }}
 .admin-topbar .menu-isi button {{ width: 100%; min-height: {T.TARGET_SENTUH}; margin-top: {T.SP_2}; }}
-.admin-identitas {{ margin: auto 0 0; padding: {T.SP_4} {T.SP_2} 0; color: {T.TEKS_PUTIH};
-  border-top: 1px solid {T.TEKS_VARIAN}; font-size: .8rem; overflow-wrap: anywhere; }}
+.admin-identitas {{ margin: auto 0 0; padding: {T.SP_4} {T.SP_2} 0; color: {T.TEKS_JUDUL};
+  border-top: 1px solid {T.BORDER_HALUS}; font-size: .8rem; overflow-wrap: anywhere; }}
 .admin-identitas strong, .admin-identitas span {{ display: block; }}
-.admin-identitas span {{ color: {T.BORDER_VARIAN}; font-size: .75rem; margin-top: {T.SP_1}; }}
+.admin-identitas span {{ color: {T.TEKS_VARIAN}; font-size: .75rem; margin-top: {T.SP_1}; }}
 .admin-layout {{ display: grid; grid-template-columns: 14.5rem minmax(0, 1fr); min-height: 100vh; }}
 .admin-sidebar {{ position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column;
-  padding: {T.SP_4} {T.SP_3}; background: {T.TEKS_JUDUL}; gap: {T.SP_4}; }}
+  padding: {T.SP_4} {T.SP_3}; background: {T.LATAR_KARTU_MURID}; gap: {T.SP_4};
+  border-right: 1px solid {T.BORDER_HALUS}; }}
 .admin-utama {{ min-width: 0; width: 100%; max-width: 90rem; margin: 0 auto; padding: 0 {T.SP_6} {T.SP_6}; }}
 .admin-kepala {{ margin: {T.SP_6} 0; }}
 .admin-utama h1, .admin-utama h2, .admin-utama h3 {{ font-family: {T.FONT_HEADLINE}; line-height: 1.3; }}
@@ -59,20 +60,25 @@ body.admin-readonly {{
 }}
 .admin-kepala h1 {{ margin: {T.SP_1} 0; color: {T.TEKS_JUDUL}; font-size: clamp(1.55rem, 3vw, 2.2rem); }}
 .admin-sub {{ margin: 0; color: {T.TEKS_VARIAN}; overflow-wrap: anywhere; }}
-.admin-nav {{ display: grid; gap: {T.SP_4}; }}
-.admin-nav-grup {{ display: grid; gap: {T.SP_1}; }}
+.admin-nav-daftar, .admin-nav-pilihan, .admin-nav-anak {{ list-style: none; padding: 0; margin: 0; }}
+.admin-nav-daftar {{ display: grid; gap: {T.SP_5}; }}
+.admin-nav-pilihan, .admin-nav-anak {{ display: grid; gap: {T.SP_1}; }}
+.admin-nav-utama {{ padding-bottom: {T.SP_4}; border-bottom: 1px solid {T.BORDER_HALUS}; }}
 .admin-nav-label {{
-  margin: 0 0 {T.SP_1}; padding: 0 {T.SP_3}; color: {T.BORDER_VARIAN};
-  font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  margin: 0 0 {T.SP_2}; padding: 0 {T.SP_3}; color: {T.TEKS_JUDUL};
+  font-size: .875rem; font-weight: 800;
 }}
-.admin-nav a {{
+.admin-nav-anak {{ margin-left: {T.SP_3}; padding-left: {T.SP_2}; border-left: 1px solid {T.BORDER_VARIAN}; }}
+.admin-menu a {{
   min-height: {T.TARGET_SENTUH}; display: flex; align-items: center;
-  padding: {T.SP_2} {T.SP_3}; border-radius: {T.RADIUS_KECIL};
-  color: {T.LATAR_KARTU_SEKUNDER}; text-decoration: none; font-weight: 650; font-size: .85rem;
+  padding: {T.SP_2} {T.SP_3}; border-radius: {T.RADIUS_KECIL}; border-left: 3px solid transparent;
+  color: {T.TEKS_VARIAN}; text-decoration: none; font-weight: 500; font-size: .875rem;
 }}
-.admin-nav a:hover {{ background: {T.TEKS_VARIAN}; color: {T.TEKS_PUTIH}; }}
-.admin-nav a[aria-current="page"] {{
-  color: {T.TEKS_PUTIH}; background: {T.AKSEN_TEAL_TUA};
+.admin-nav-utama a {{ color: {T.TEKS_JUDUL}; font-weight: 700; }}
+.admin-menu a:hover {{ background: {T.LATAR_SEKUNDER_LEMBUT}; color: {T.AKSEN_TEAL_TUA}; }}
+.admin-menu a[aria-current="page"] {{
+  color: {T.AKSEN_TEAL_TUA}; background: {T.LATAR_MURID}; font-weight: 800;
+  border-left-color: {T.AKSEN_TEAL_TUA};
 }}
 .admin-nav-mobile {{ display: none; }}
 .admin-nav-mobile > summary {{
@@ -82,12 +88,11 @@ body.admin-readonly {{
 }}
 .admin-nav-mobile > summary span {{ color: {T.TEKS_VARIAN}; margin-right: {T.SP_2}; }}
 .admin-nav-mobile > nav {{
-  margin-top: {T.SP_2}; padding: {T.SP_3}; background: {T.TEKS_JUDUL};
-  border-radius: {T.RADIUS_KECIL}; display: grid; gap: {T.SP_4};
+  margin-top: {T.SP_2}; padding: {T.SP_4}; background: {T.LATAR_KARTU_MURID};
+  border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL};
+  max-height: calc(100vh - 8rem); max-height: calc(100dvh - 8rem);
+  overflow-y: auto; overscroll-behavior: contain;
 }}
-.admin-nav-mobile nav a {{ min-height: {T.TARGET_SENTUH}; display: flex; align-items: center;
-  padding: {T.SP_2} {T.SP_3}; color: {T.TEKS_PUTIH}; text-decoration: none; border-radius: {T.RADIUS_KECIL}; }}
-.admin-nav-mobile nav a:hover, .admin-nav-mobile nav a[aria-current="page"] {{ background: {T.AKSEN_TEAL_TUA}; }}
 .admin-grid-kpi {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr)); gap:{T.SP_3}; margin:{T.SP_4} 0; }}
 .admin-grid-kpi > * {{ min-width:0; }}
 .admin-kpi-carte header {{ display:flex; justify-content:space-between; align-items:start; gap:{T.SP_2}; }}
@@ -111,29 +116,30 @@ body.admin-readonly {{
 }}
 .admin-komando {{ display: grid; grid-template-columns: minmax(0, 2.1fr) minmax(17rem, 1fr); gap: {T.SP_4}; }}
 .admin-komando > *, .admin-pendukung > *, .admin-antrean > * {{ min-width: 0; }}
-.admin-kartu.admin-prioritas {{ padding: 0; background: {T.TEKS_JUDUL}; color: {T.TEKS_PUTIH}; border-color: {T.TEKS_JUDUL}; }}
+.admin-kartu.admin-prioritas {{ padding: 0; background: {T.LATAR_KARTU_MURID}; color: {T.TEKS_UTAMA}; border-color: {T.BORDER_CATATAN}; }}
 .admin-prioritas-kepala {{ display: flex; justify-content: space-between; align-items: start;
-  gap: {T.SP_4}; padding: {T.SP_5}; border-bottom: 1px solid {T.TEKS_VARIAN}; }}
-.admin-prioritas .admin-alis {{ color: {T.BORDER_VARIAN}; }}
-.admin-kartu.admin-prioritas h2 {{ margin: {T.SP_1} 0 0; color: {T.TEKS_PUTIH}; font-size: 1.35rem; }}
-.admin-total-temuan {{ margin: 0; color: {T.BORDER_VARIAN}; font-size: .75rem; text-align: right; }}
-.admin-total-temuan strong {{ display: block; font: 800 1.75rem {T.FONT_HEADLINE}; color: {T.AKSEN_MURID_AMBER}; }}
+  gap: {T.SP_4}; padding: {T.SP_5}; border-bottom: 1px solid {T.BORDER_CATATAN};
+  background: {T.LATAR_CATATAN}; border-radius: {T.RADIUS_KARTU_BESAR} {T.RADIUS_KARTU_BESAR} 0 0; }}
+.admin-prioritas .admin-alis {{ color: {T.BADGE_ADMIN_TEKS}; }}
+.admin-kartu.admin-prioritas h2 {{ margin: {T.SP_1} 0 0; color: {T.TEKS_JUDUL}; font-size: 1.35rem; }}
+.admin-total-temuan {{ margin: 0; color: {T.TEKS_VARIAN}; font-size: .75rem; text-align: right; }}
+.admin-total-temuan strong {{ display: block; font: 800 1.75rem {T.FONT_HEADLINE}; color: {T.BADGE_ADMIN_TEKS}; }}
 .admin-antrean {{ list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); padding: 0; margin: 0; }}
-.admin-antrean-item {{ padding: {T.SP_4}; display: flex; flex-direction: column; border-right: 1px solid {T.TEKS_VARIAN}; }}
+.admin-antrean-item {{ padding: {T.SP_4}; display: flex; flex-direction: column; border-right: 1px solid {T.BORDER_HALUS}; }}
 .admin-antrean-item:last-child {{ border-right: 0; }}
 .admin-antrean-urutan {{ display: flex; align-items: center; justify-content: space-between; gap: {T.SP_2}; }}
-.admin-antrean-urutan span {{ color: {T.BORDER_VARIAN}; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }}
-.admin-antrean-urutan strong {{ color: {T.AKSEN_MURID_AMBER}; font: 800 1.5rem {T.FONT_HEADLINE}; }}
-.admin-prioritas .admin-antrean-item h3 {{ color: {T.TEKS_PUTIH}; font-size: 1rem; margin: {T.SP_4} 0 {T.SP_2}; }}
-.admin-antrean-item p {{ color: {T.LATAR_KARTU_SEKUNDER}; font-size: .8rem; margin: 0 0 {T.SP_2}; }}
-.admin-antrean-rincian {{ margin: 0 0 {T.SP_3}; padding-left: {T.SP_4}; color: {T.BORDER_VARIAN}; font-size: .75rem; }}
-.admin-antrean-item p.admin-antrean-rincian {{ color: {T.BORDER_VARIAN}; }}
+.admin-antrean-urutan span {{ color: {T.TEKS_VARIAN}; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }}
+.admin-antrean-urutan strong {{ color: {T.BADGE_ADMIN_TEKS}; font: 800 1.5rem {T.FONT_HEADLINE}; }}
+.admin-prioritas .admin-antrean-item h3 {{ color: {T.TEKS_JUDUL}; font-size: 1rem; margin: {T.SP_4} 0 {T.SP_2}; }}
+.admin-antrean-item p {{ color: {T.TEKS_VARIAN}; font-size: .8rem; margin: 0 0 {T.SP_2}; }}
+.admin-antrean-rincian {{ margin: 0 0 {T.SP_3}; padding-left: {T.SP_4}; color: {T.TEKS_VARIAN}; font-size: .75rem; }}
+.admin-antrean-item p.admin-antrean-rincian {{ color: {T.TEKS_VARIAN}; }}
 .admin-antrean-cta {{ display: inline-flex; align-items: center; gap: {T.SP_2}; min-height: {T.TARGET_SENTUH};
-  margin-top: auto; font-size: .8rem; font-weight: 800; color: {T.TEKS_PUTIH}; text-underline-offset: .2em; }}
-.admin-antrean-cta:hover {{ color: {T.AKSEN_MURID_AMBER}; }}
-.admin-antrean-rincian a {{ color: {T.TEKS_PUTIH}; display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
-.admin-antrean-catatan, .admin-antrean-kosong {{ margin: 0; padding: {T.SP_4} {T.SP_5}; color: {T.BORDER_VARIAN}; font-size: .75rem; }}
-.admin-antrean-catatan {{ border-top: 1px solid {T.TEKS_VARIAN}; }}
+  margin-top: auto; font-size: .8rem; font-weight: 800; color: {T.AKSEN_TEAL_TUA}; text-underline-offset: .2em; }}
+.admin-antrean-cta:hover {{ color: {T.AKSEN_TEAL_HOVER}; }}
+.admin-antrean-rincian a {{ color: {T.AKSEN_TEAL_TUA}; display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
+.admin-antrean-catatan, .admin-antrean-kosong {{ margin: 0; padding: {T.SP_4} {T.SP_5}; color: {T.TEKS_VARIAN}; font-size: .75rem; }}
+.admin-antrean-catatan {{ border-top: 1px solid {T.BORDER_HALUS}; }}
 .admin-layanan {{ display: flex; flex-direction: column; }}
 .admin-layanan h2 {{ font-size: 1.1rem; }}
 .admin-layanan dl {{ margin: 0; }}
@@ -150,7 +156,7 @@ body.admin-readonly {{
 .admin-aktivitas > ul {{ list-style: none; margin: 0; padding: 0; }}
 .admin-aktivitas li {{ display: flex; align-items: start; gap: {T.SP_3}; padding: {T.SP_3} {T.SP_5}; border-top: 1px solid {T.BORDER_HALUS}; }}
 .admin-aktivitas li > div {{ min-width: 0; }}
-.admin-aktivitas-ikon {{ display: grid; place-items: center; flex-shrink: 0; width: {T.SP_6}; height: {T.SP_6}; background: {T.LATAR_KARTU_SEKUNDER}; color: {T.TEKS_JUDUL}; border-radius: {T.RADIUS_KECIL}; font-size: .75rem; font-weight: 800; }}
+.admin-aktivitas-ikon {{ display: grid; place-items: center; flex-shrink: 0; width: {T.SP_6}; height: {T.SP_6}; background: {T.LATAR_SEKUNDER_LEMBUT}; color: {T.TEKS_JUDUL}; border-radius: {T.RADIUS_KECIL}; font-size: .75rem; font-weight: 800; }}
 .admin-aktivitas a {{ color: {T.AKSEN_TEAL_TUA}; text-underline-offset: .2em; }}
 .admin-aktivitas a.admin-aktivitas-judul {{ color: {T.TEKS_JUDUL}; font-size: .9rem; font-weight: 750; }}
 .admin-aktivitas p {{ margin: {T.SP_1} 0 0; font-size: .8rem; color: {T.TEKS_VARIAN}; }}
@@ -158,7 +164,7 @@ body.admin-readonly {{
 .admin-cepat nav {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: {T.SP_2}; }}
 .admin-cepat nav a {{ display: flex; flex-direction: column; justify-content: center; min-height: {T.TINGGI_CTA};
   padding: {T.SP_3}; border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_SEDANG}; text-decoration: none; color: {T.TEKS_JUDUL}; }}
-.admin-cepat nav a:hover {{ border-color: {T.AKSEN_TEAL_TUA}; background: {T.LATAR_KARTU_SEKUNDER}; }}
+.admin-cepat nav a:hover {{ border-color: {T.AKSEN_TEAL_TUA}; background: {T.LATAR_SEKUNDER_LEMBUT}; }}
 .admin-cepat nav strong {{ font-size: .8rem; }}
 .admin-cepat nav span {{ font-size: .75rem; color: {T.TEKS_VARIAN}; margin-top: {T.SP_1}; }}
 .admin-login-detail ul {{ list-style: none; padding: 0; }}
@@ -207,7 +213,7 @@ body.admin-readonly {{
 }}
 .admin-tombol {{ color: {T.TEKS_PUTIH}; background: {T.AKSEN_TEAL_TUA}; }}
 .admin-tombol:not(.admin-bahaya):hover {{ background: {T.AKSEN_TEAL_HOVER}; border-color: {T.AKSEN_TEAL_HOVER}; }}
-.admin-tautan {{ color: {T.TEKS_JUDUL}; background: {T.LATAR_KARTU_SEKUNDER}; }}
+.admin-tautan {{ color: {T.TEKS_JUDUL}; background: {T.LATAR_SEKUNDER_LEMBUT}; }}
 .admin-bahaya {{ color: {T.TEKS_GALAT}; border-color: {T.BORDER_GALAT}; background: {T.LATAR_GALAT}; }}
 .admin-form-tindakan form + form {{ margin-top: {T.SP_5}; padding-top: {T.SP_4}; border-top: 1px solid {T.BORDER_HALUS}; }}
 .admin-form-tindakan label {{ display: grid; gap: {T.SP_1}; margin: {T.SP_3} 0; }}
@@ -234,7 +240,7 @@ body.admin-readonly {{
   padding: {T.SP_3}; border-bottom: 1px solid {T.BORDER_HALUS};
   text-align: left; vertical-align: top;
 }}
-.admin-tabel th {{ color: {T.TEKS_JUDUL}; background: {T.LATAR_KARTU_SEKUNDER}; }}
+.admin-tabel th {{ color: {T.TEKS_JUDUL}; background: {T.LATAR_SEKUNDER_LEMBUT}; }}
 .admin-tabel td[data-angka] {{ text-align: right; font-variant-numeric: tabular-nums; }}
 .admin-tabel a {{ color: {T.AKSEN_TEAL_TUA}; }}
 .admin-meta {{ color: {T.TEKS_VARIAN}; font-size: .85rem; }}
@@ -256,7 +262,7 @@ body.admin-readonly {{
 .admin-pager button {{
   min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3};
   border: 1px solid {T.BORDER_INTERAKTIF}; border-radius: {T.RADIUS_KECIL};
-  background: {T.LATAR_KARTU_SEKUNDER}; color: {T.TEKS_JUDUL}; font: inherit;
+  background: {T.LATAR_SEKUNDER_LEMBUT}; color: {T.TEKS_JUDUL}; font: inherit;
 }}
 .admin-rincian {{ display: grid; grid-template-columns: 11rem 1fr; gap: {T.SP_2} {T.SP_4}; }}
 .admin-rincian dt {{ color: {T.TEKS_VARIAN}; font-weight: 700; }}
@@ -264,7 +270,7 @@ body.admin-readonly {{
 .admin-aksi-baca {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; }}
 .admin-footer {{ margin-top: {T.SP_6}; color: {T.TEKS_VARIAN}; font-size: .82rem; }}
 :focus-visible {{ outline: 3px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
-.admin-sidebar :focus-visible, .admin-prioritas :focus-visible {{ outline-color: {T.AKSEN_MURID_AMBER}; }}
+.admin-menu :focus-visible {{ outline-color: {T.AKSEN_TEAL_TUA}; }}
 @media (max-width: 75rem) {{
   .admin-form-cari, .admin-form-cari.admin-form-siswa {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
   .admin-form-cari > :first-child {{ grid-column: 1 / -1; }}
@@ -276,7 +282,9 @@ body.admin-readonly {{
   .admin-sidebar {{ display: none; }}
   .admin-konteks {{ display: none; }}
   .admin-nav-mobile {{ display: block; position: relative; min-width: 0; }}
-  .admin-nav-mobile > nav {{ position: absolute; left: 0; z-index: 10; width: min(28rem, calc(100vw - {T.SP_6})); grid-template-columns: 1fr 1fr; }}
+  .admin-nav-mobile > nav {{ position: absolute; left: 0; z-index: 10; width: min(28rem, calc(100vw - {T.SP_8})); }}
+  .admin-nav-mobile .admin-nav-daftar {{ grid-template-columns: 1fr 1fr; align-items: start; }}
+  .admin-nav-mobile .admin-nav-utama {{ grid-column: 1 / -1; }}
   .admin-topbar {{ align-items: start; }}
   .admin-topbar .menu-pengguna {{ max-width: 50%; }}
   .admin-grid-stat .admin-stat:nth-child(2) {{ border-right: 0; }}
@@ -290,9 +298,10 @@ body.admin-readonly {{
   .admin-kepala {{ margin: {T.SP_5} 0; }}
   .admin-kepala h1 {{ font-size: 1.6rem; }}
   .admin-sub {{ font-size: .9rem; }}
-  .admin-nav-mobile > nav {{ grid-template-columns: 1fr; }}
+  .admin-nav-mobile > nav {{ width: calc(100vw - {T.SP_6}); }}
+  .admin-nav-mobile .admin-nav-daftar {{ grid-template-columns: 1fr; gap: {T.SP_4}; }}
   .admin-antrean {{ grid-template-columns: minmax(0, 1fr); }}
-  .admin-antrean-item {{ border-right: 0; border-bottom: 1px solid {T.TEKS_VARIAN}; }}
+  .admin-antrean-item {{ border-right: 0; border-bottom: 1px solid {T.BORDER_HALUS}; }}
   .admin-antrean-item:last-child {{ border-bottom: 0; }}
   .admin-prioritas-kepala {{ padding: {T.SP_4}; gap: {T.SP_2}; }}
   .admin-prioritas-kepala > div {{ min-width: 0; }}
