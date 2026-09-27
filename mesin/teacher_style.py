@@ -31,20 +31,20 @@ body {{
   font-size: {T.UKURAN_BADAN_LAYAR}; line-height: {T.LINE_HEIGHT};
   color: {T.TEKS_UTAMA}; margin: 0; background: {T.LATAR_MURID};
 }}
-.bungkus {{ max-width: 960px; margin: 0 auto; padding: {T.SP_4} 0.9rem 3rem; }}
+.bungkus {{ max-width: 960px; margin: 0 auto; padding: {T.SP_4} 0.9rem {T.SP_7}; }}
 a {{ color: {T.AKSEN_TEAL_TUA}; }}
 h1 {{ font-size: 1.5rem; margin: 0.3rem 0 0.3rem; color: {T.TEKS_JUDUL}; }}
 h2 {{ font-size: 1.15rem; margin: 1.4rem 0 0.6rem; color: {T.TEKS_JUDUL}; }}
-.sub {{ color: {T.TEKS_SUBTLE}; font-size: .9rem; margin: 0 0 1.3rem; }}
+.sub {{ color: {T.TEKS_SUBTLE}; font-size: {T.UKURAN_TEKS_BANTUAN}; margin: 0 0 1.3rem; }}
 .jejak {{ font-size: .88rem; margin: 0 0 0.8rem; color: {T.TEKS_SUBTLE}; }}
 .jejak a {{ color: {T.TEKS_SUBTLE}; text-decoration: none; }}
 .jejak a:hover {{ color: {T.AKSEN_TEAL_TUA}; }}
 
 /* ── Kartu ─────────────────────────────────────────────────────────── */
 .kartu {{
-  background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS};
-  border-radius: {T.RADIUS_KARTU_BESAR}; padding: 1rem 1.1rem; margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(22,33,62,0.04);
+  background: {T.LATAR_KARTU_MURID}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
+  border-radius: {T.RADIUS_KARTU_BESAR}; padding: {T.SP_4} 1.1rem; margin-bottom: {T.SP_4};
+  box-shadow: {T.BAYANGAN_KARTU_GURU};
 }}
 .kartu h2 {{ margin-top: 0; }}
 
@@ -53,13 +53,13 @@ h2 {{ font-size: 1.15rem; margin: 1.4rem 0 0.6rem; color: {T.TEKS_JUDUL}; }}
    teal/coral terang hanya 3.1:1 / 2.8:1 — di bawah ambang 4.5:1 teks
    berukuran normal. Warna tetap satu rasa, hanya lebih dalam. */
 button {{
-  background: {T.AKSEN_TEAL_TUA}; color: #fff; border: 0;
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS}; border: 0;
   border-radius: 9px; padding: .7rem 1.2rem; font-size: 1rem; cursor: pointer;
 }}
 button:hover {{ filter: brightness(0.94); }}
 button.tombol-sekunder {{
   background: {T.LATAR_KARTU_SEKUNDER}; color: {T.TEKS_JUDUL};
-  border: 1px solid {T.BORDER_INTERAKTIF};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_INTERAKTIF};
 }}
 button.tombol-coral {{ background: {T.AKSEN_KORAL_TUA}; }}
 /* Tombol cerita (amber): teks amber di atas putih 1.9:1 tidak terbaca —
@@ -69,15 +69,15 @@ button.tombol-amber {{
 }}
 button.tombol-kecil {{ padding: .35rem .7rem; font-size: .82rem; border-radius: 6px; }}
 button.tombol-putih {{
-  background: #fff; color: {T.TEKS_JUDUL}; border: 1px solid {T.BORDER_KUAT};
+  background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; border: {T.TEBAL_GARIS} solid {T.BORDER_KUAT};
 }}
 .btn {{
-  display: inline-block; padding: .55rem 1rem; border-radius: 8px;
-  font-size: .9rem; text-decoration: none; background: {T.LATAR_KARTU_SEKUNDER};
-  color: {T.TEKS_JUDUL}; border: 1px solid {T.BORDER_INTERAKTIF};
+  display: inline-block; padding: .55rem {T.SP_4}; border-radius: {T.RADIUS_KECIL};
+  font-size: {T.UKURAN_TEKS_BANTUAN}; text-decoration: none; background: {T.LATAR_KARTU_SEKUNDER};
+  color: {T.TEKS_JUDUL}; border: {T.TEBAL_GARIS} solid {T.BORDER_INTERAKTIF};
 }}
-.btn.utama {{ background: {T.AKSEN_TEAL_TUA}; color: #fff; border: 0; }}
-.btn.coral {{ background: {T.AKSEN_KORAL_TUA}; color: #fff; border: 0; }}
+.btn.utama {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS}; border: 0; }}
+.btn.coral {{ background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_INVERS}; border: 0; }}
 
 /* Keadaan mati: tombol/isi yang dinonaktifkan (fieldset admin, auto-lock
    timer drill, tombol tanpa siswa) harus TERLIHAT mati, bukan sekadar
@@ -86,15 +86,15 @@ button:disabled {{
   opacity: .55; cursor: not-allowed; filter: none;
 }}
 input:disabled, textarea:disabled, select:disabled {{
-  background: #f3f4f6; color: {T.TEKS_SUBTLE};
+  background: {T.LATAR_NONAKTIF}; color: {T.TEKS_SUBTLE};
   border-color: {T.BORDER_HALUS}; cursor: not-allowed;
 }}
 
 /* ── Header halaman guru (mockup guru-dashboard) ───────────────────── */
 .topbar {{
   display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 1rem; padding: 0.6rem 0 0.2rem; margin-bottom: 0.4rem;
-  border-bottom: 1px solid {T.BORDER_HALUS};
+  flex-wrap: wrap; gap: {T.SP_4}; padding: 0.6rem 0 0.2rem; margin-bottom: 0.4rem;
+  border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
 }}
 .brand {{
   font-weight: 800; font-size: 1.15rem; color: {T.WARNA_WORDMARK};
@@ -104,7 +104,7 @@ input:disabled, textarea:disabled, select:disabled {{
    sama dirender 34px di sini dan ~21px di style_stitch. */
 .brand img {{ width: {T.LOGO_TOPBAR}; height: {T.LOGO_TOPBAR}; flex: none; }}
 .topbar-navigasi {{ display: flex; align-items: center; gap: .7rem; }}
-.topbar-navigasi a {{ color: {T.TEKS_SUBTLE}; text-decoration: none; font-size: .9rem; }}
+.topbar-navigasi a {{ color: {T.TEKS_SUBTLE}; text-decoration: none; font-size: {T.UKURAN_TEKS_BANTUAN}; }}
 .topbar-navigasi a:hover {{ color: {T.AKSEN_TEAL_TUA}; }}
 .topbar-navigasi form {{ margin: 0; }}
 .badge-peran {{
@@ -118,35 +118,35 @@ input:disabled, textarea:disabled, select:disabled {{
   display: inline-block; margin-left: .45rem; padding: .1rem .5rem;
   border-radius: {T.RADIUS_PIL}; font-size: .72rem; font-weight: 600;
   background: {T.LATAR_KARTU_SEKUNDER}; color: {T.TEKS_JUDUL};
-  border: 1px solid {T.BORDER_INTERAKTIF};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_INTERAKTIF};
 }}
 
 /* ── Menu pengguna dropdown (CSS-only) ────────────────────────────── */
 .menu-pengguna {{ position: relative; }}
 .menu-pengguna summary {{
   display: flex; align-items: center; gap: .4rem;
-  padding: .35rem .7rem; border: 1px solid {T.BORDER_INTERAKTIF};
-  border-radius: 8px; cursor: pointer; font-size: .9rem;
+  padding: .35rem .7rem; border: {T.TEBAL_GARIS} solid {T.BORDER_INTERAKTIF};
+  border-radius: {T.RADIUS_KECIL}; cursor: pointer; font-size: {T.UKURAN_TEKS_BANTUAN};
   color: {T.TEKS_JUDUL}; background: none; list-style: none;
 }}
 .menu-pengguna summary::-webkit-details-marker {{ display: none; }}
 .menu-pengguna[open] summary {{ border-color: {T.AKSEN_MURID_UTAMA}; }}
 .menu-isi {{
   position: absolute; right: 0; top: calc(100% + .4rem);
-  background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS};
+  background: {T.LATAR_KARTU_MURID}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
   border-radius: {T.RADIUS_KARTU};
-  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  box-shadow: {T.BAYANGAN_MENU_GURU};
   min-width: 12rem; max-width: min(12rem, calc(100vw - 1.2rem)); padding: .4rem; z-index: 20;
   display: flex; flex-direction: column;
 }}
 .menu-isi a, .menu-isi button {{
   display: block; width: 100%; text-align: left;
   padding: .45rem .6rem; border-radius: 6px; background: none; border: none;
-  color: {T.TEKS_JUDUL}; text-decoration: none; font-size: .9rem;
+  color: {T.TEKS_JUDUL}; text-decoration: none; font-size: {T.UKURAN_TEKS_BANTUAN};
   cursor: pointer; font-family: inherit;
 }}
 .menu-isi a:hover, .menu-isi button:hover {{ background: {T.LATAR_KARTU_SEKUNDER}; }}
-.menu-pisah {{ border-top: 1px solid {T.BORDER_HALUS}; margin: .3rem 0; }}
+.menu-pisah {{ border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; margin: .3rem 0; }}
 
 /* ── Sidebar halaman /akun ────────────────────────────────────────── */
 .layout-samping {{
@@ -158,14 +158,14 @@ input:disabled, textarea:disabled, select:disabled {{
   position: sticky; top: 1rem;
 }}
 .nav-samping a {{
-  padding: .5rem .7rem; border-radius: 8px; text-decoration: none;
-  color: {T.TEKS_SUBTLE}; font-size: .92rem; border: 1px solid transparent;
+  padding: .5rem .7rem; border-radius: {T.RADIUS_KECIL}; text-decoration: none;
+  color: {T.TEKS_SUBTLE}; font-size: .92rem; border: {T.TEBAL_GARIS} solid transparent;
 }}
 .nav-samping a.aktif {{
   color: {T.AKSEN_TEAL_TUA}; border-color: {T.BORDER_HALUS};
   font-weight: 600; background: {T.LATAR_KARTU_SEKUNDER};
 }}
-@media (max-width: 46rem) {{
+@media (max-width: {T.BATAS_KOLOM_BACA}) {{
   .layout-samping {{ grid-template-columns: 1fr; }}
   .nav-samping {{ flex-direction: row; flex-wrap: wrap; position: static; }}
 }}
@@ -184,14 +184,14 @@ input:disabled, textarea:disabled, select:disabled {{
 .strip-sesi {{
   display: flex; flex-wrap: wrap; gap: .7rem 1.2rem; align-items: flex-end;
   margin-top: .8rem; padding-top: .8rem;
-  border-top: 1px dashed {T.BORDER_HALUS};
+  border-top: {T.TEBAL_GARIS} dashed {T.BORDER_HALUS};
 }}
 .strip-sesi .strip-kolom {{ display: flex; flex-direction: column; gap: .2rem; }}
 .strip-sesi label {{ margin: 0; }}
 .strip-sesi select {{
   flex: 1; min-width: 10rem; max-width: 100%;
 }}
-@media (max-width: 30rem) {{
+@media (max-width: {T.BATAS_HP}) {{
   .strip-sesi select {{ min-width: 0; }}
 }}
 .strip-sesi .pengaturan-timer {{ flex-basis: 100%; }}
@@ -214,9 +214,9 @@ input:disabled, textarea:disabled, select:disabled {{
 }}
 
 /* ── Tabel ─────────────────────────────────────────────────────────── */
-table {{ width: 100%; border-collapse: collapse; background: #fff; }}
+table {{ width: 100%; border-collapse: collapse; background: {T.LATAR_KARTU}; }}
 th, td {{
-  border: 1px solid {T.BORDER_HALUS}; padding: .5rem .6rem; text-align: left;
+  border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; padding: .5rem .6rem; text-align: left;
   font-size: .88rem;
 }}
 th {{ background: {T.LATAR_KARTU_SEKUNDER}; color: {T.TEKS_JUDUL}; font-weight: 600; }}
@@ -235,7 +235,7 @@ th {{ background: {T.LATAR_KARTU_SEKUNDER}; color: {T.TEKS_JUDUL}; font-weight: 
 tr.sorot-baru td {{
   background: {T.BADGE_GURU_BG}; color: {T.BADGE_GURU_TEKS};
 }}
-tr.sorot-baru a {{ color: #fff; text-decoration: underline; }}
+tr.sorot-baru a {{ color: {T.TEKS_INVERS}; text-decoration: underline; }}
 @media (prefers-reduced-motion: no-preference) {{
   tr.sorot-baru {{ animation: sorot-masuk 1.4s ease-out; }}
   @keyframes sorot-masuk {{
@@ -244,14 +244,14 @@ tr.sorot-baru a {{ color: #fff; text-decoration: underline; }}
   }}
 }}
 /* Pil navigasi sesi (opsi 3): Koreksi · Cetak & Cerita · Lampiran */
-.pil-sesi {{ display: flex; gap: .6rem; flex-wrap: wrap; margin: .6rem 0 1rem; }}
+.pil-sesi {{ display: flex; gap: .6rem; flex-wrap: wrap; margin: .6rem 0 {T.SP_4}; }}
 .pil-sesi .pil {{
   display: inline-block; padding: .35rem .75rem; border-radius: {T.RADIUS_PIL};
-  border: 1px solid {T.BORDER_HALUS}; background: #fff; color: {T.TEKS_SUBTLE};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; background: {T.LATAR_KARTU}; color: {T.TEKS_SUBTLE};
   text-decoration: none; font-size: .88rem;
 }}
 .pil-sesi .pil.aktif {{
-  background: {T.AKSEN_TEAL_TUA}; color: #fff; border-color: {T.AKSEN_TEAL_TUA};
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS}; border-color: {T.AKSEN_TEAL_TUA};
 }}
 .pil-sesi .pil:hover {{ border-color: {T.AKSEN_TEAL_TUA}; }}
 
@@ -263,25 +263,25 @@ label {{ display: block; font-size: .84rem; color: {T.TEKS_SUBTLE}; margin: .55r
    bawaan peramban (dan ikut memicu zoom). */
 input[type=text], input[type=password], input[type=number], input[type=file],
 textarea, select {{
-  width: 100%; padding: .5rem .6rem; border: 1px solid {T.BORDER_HALUS};
+  width: 100%; padding: .5rem .6rem; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
   border-radius: {T.RADIUS_KECIL}; font-size: 1rem; font-family: inherit;
-  background: #fff; color: {T.TEKS_UTAMA};
+  background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
 }}
 input[type=text]:focus, input[type=password]:focus, input[type=number]:focus,
 textarea:focus, select:focus {{
   outline: none; border-color: {T.AKSEN_MURID_UTAMA};
-  box-shadow: 0 0 0 2px rgba(15,163,163,0.12);
+  box-shadow: {T.BAYANGAN_FOKUS_GURU};
 }}
 textarea {{ min-height: 3.2rem; resize: vertical; }}
 .baris {{ display: flex; gap: .8rem; flex-wrap: wrap; }}
 .baris > * {{ flex: 1; min-width: 180px; }}
-@media (max-width: 30rem) {{ .baris > * {{ min-width: 0; }} }}
+@media (max-width: {T.BATAS_HP}) {{ .baris > * {{ min-width: 0; }} }}
 
 /* ── Tombol mata pada kolom sandi (lihat/sembunyikan) ──────────────── */
 /* Input dibungkus .kolom-sandi oleh SKRIP_MATA_SANDI. padding-right
    penting: input "sandi baru" di tabel akun memakai style inline. */
 .kolom-sandi {{ position: relative; }}
-.kolom-sandi > input {{ padding-right: 3rem !important; }}
+.kolom-sandi > input {{ padding-right: {T.SP_7} !important; }}
 .tombol-mata {{
   position: absolute; top: 50%; right: .3rem; transform: translateY(-50%);
   width: 2.75rem; height: 2.75rem; display: inline-flex; align-items: center;
@@ -292,7 +292,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .tombol-mata svg {{ display: block; }}
 
 /* ── Pilihan mode & batas waktu saat buat sesi ──────────────────────── */
-.mode-pilih {{ display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin-top: .2rem; }}
+.mode-pilih {{ display: flex; flex-wrap: wrap; gap: .4rem {T.SP_4}; margin-top: .2rem; }}
 .mode-opsi {{ display: flex; align-items: center; gap: .4rem; font-size: .88rem;
   color: {T.TEKS_UTAMA}; margin: 0; }}
 .mode-opsi input {{ width: auto; margin: 0; }}
@@ -320,11 +320,11 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .durasi-timer {{ display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }}
 .durasi-timer small {{ flex-basis: 100%; color: {T.TEKS_SUBTLE}; font-size: .78rem; }}
 .akibat-timer {{ display: flex; flex-direction: column; gap: .4rem; margin: 0;
-  padding: .45rem; border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL}; }}
+  padding: .45rem; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL}; }}
 .pengaturan-timer input[name=durasi_menit] {{ padding: .3rem .45rem; width: 4.5rem; }}
 
 /* ── Halaman sesi: kartu soal (mockup guru-sesi) ───────────────────── */
-.peta {{ margin-bottom: 1rem; }}
+.peta {{ margin-bottom: {T.SP_4}; }}
 .soal-kartu {{ border-left: 4px solid {T.BORDER_HALUS}; }}
 .soal-kartu.sudah {{ border-left-color: {T.STATUS_KUAT}; }}
 .soal-kartu.perlu {{ border-left-color: {T.STATUS_LEMAH}; }}
@@ -334,11 +334,11 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .nomor {{
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 2.1rem; height: 2.1rem; font-weight: 700; font-size: .95rem;
-  background: {T.AKSEN_TEAL_TUA}; color: #fff;
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS};
   border-radius: {T.RADIUS_BULAT};
 }}
 .teks-soal {{
-  background: {T.LATAR_KARTU_SEKUNDER}; border: 1px solid {T.BORDER_INTERAKTIF};
+  background: {T.LATAR_KARTU_SEKUNDER}; border: {T.TEBAL_GARIS} solid {T.BORDER_INTERAKTIF};
   border-radius: {T.RADIUS_KECIL}; padding: .55rem .7rem; margin: .4rem 0;
   white-space: pre-wrap; font-size: .93rem;
 }}
@@ -351,8 +351,8 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 }}
 .centang input {{ width: auto; }}
 .usulan {{
-  background: {T.LATAR_KARTU_SEKUNDER}; border: 1px solid {T.BORDER_INTERAKTIF};
-  border-radius: 8px; padding: .5rem .6rem; margin-top: .55rem; font-size: .87rem;
+  background: {T.LATAR_KARTU_SEKUNDER}; border: {T.TEBAL_GARIS} solid {T.BORDER_INTERAKTIF};
+  border-radius: {T.RADIUS_KECIL}; padding: .5rem .6rem; margin-top: .55rem; font-size: .87rem;
 }}
 .usulan.ragu {{ background: {T.LATAR_CATATAN}; border-color: {T.BORDER_CATATAN}; }}
 
@@ -382,11 +382,11 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 
 /* ── Halaman laporan (dashboard responsif) ─────────────────────────── */
 .ringkasan-dashboard-laporan {{
-  display: flex; flex-direction: column; gap: 1rem;
-  margin-bottom: 1rem;
+  display: flex; flex-direction: column; gap: {T.SP_4};
+  margin-bottom: {T.SP_4};
 }}
 .kartu-stat {{
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: {T.SP_4};
   margin-bottom: 1.2rem;
 }}
 .kartu-stat-admin {{ grid-template-columns: repeat(3, minmax(0, 1fr)); }}
@@ -396,9 +396,9 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 }}
 .ringkasan-dashboard-laporan .kartu-stat .stat:last-child {{ grid-column: 1 / -1; }}
 .stat {{
-  background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS};
-  border-radius: {T.RADIUS_KARTU_BESAR}; padding: 1rem; text-align: center;
-  box-shadow: 0 1px 3px rgba(22,33,62,0.04);
+  background: {T.LATAR_KARTU_MURID}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
+  border-radius: {T.RADIUS_KARTU_BESAR}; padding: {T.SP_4}; text-align: center;
+  box-shadow: {T.BAYANGAN_KARTU_GURU};
 }}
 .stat .angka-besar {{
   font-size: {T.UKURAN_ANGKA_DEWASA}; font-weight: 800; color: {T.AKSEN_MURID_UTAMA};
@@ -407,15 +407,15 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .stat .stat-label {{ color: {T.TEKS_SUBTLE}; font-size: .88rem; margin-top: .3rem; }}
 .stat .stat-nilai-utama {{ font-size: 1.15rem; font-weight: 700; color: {T.TEKS_JUDUL}; }}
 
-.layout-laporan {{ display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }}
-@media (max-width: 46rem) {{ .layout-laporan {{ grid-template-columns: 1fr; }} }}
+.layout-laporan {{ display: grid; grid-template-columns: 2fr 1fr; gap: {T.SP_4}; }}
+@media (max-width: {T.BATAS_KOLOM_BACA}) {{ .layout-laporan {{ grid-template-columns: 1fr; }} }}
 .chart-wrap {{ overflow-x: auto; }}
 .chart-wrap svg {{ display: block; margin: 0 auto; max-width: 100%; }}
 
 .diagnosis-lis {{ list-style: none; margin: 0; padding: 0; }}
 .diagnosis-lis li {{
   display: flex; align-items: flex-start; gap: .65rem; padding: .6rem 0;
-  border-bottom: 1px solid {T.BORDER_HALUS}; font-size: .92rem;
+  border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; font-size: .92rem;
 }}
 .diagnosis-lis li:last-child {{ border-bottom: none; }}
 #perjalanan-belajar .diagnosis-lis li {{ display: block; }}
@@ -434,36 +434,36 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 }}
 .ringkasan-laporan p:last-child {{ margin-bottom: 0; }}
 .ringkasan-laporan {{
-  background: {T.LATAR_CATATAN}; border: 1px solid {T.BORDER_HALUS};
+  background: {T.LATAR_CATATAN}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
   border-radius: {T.RADIUS_KARTU_BESAR}; padding: 1.15rem;
 }}
 .ringkasan-laporan > h2 {{ margin-top: 0; }}
 .bagian-ringkasan-laporan {{
-  border-top: 1px solid {T.BORDER_HALUS}; padding-top: .75rem; margin-top: .75rem;
+  border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; padding-top: .75rem; margin-top: .75rem;
 }}
 .bagian-ringkasan-laporan h3 {{ margin: 0 0 .45rem; font-size: 1rem; }}
 .bagian-ringkasan-laporan p {{ margin: 0; }}
 .daftar-fokus-ringkasan {{ margin: 0; padding-left: 1.15rem; }}
 .item-fokus-ringkasan + .item-fokus-ringkasan {{ margin-top: .4rem; }}
 .sumber-ringkasan-laporan {{
-  color: {T.TEKS_SUBTLE}; font-size: .85rem; margin-top: 1rem;
+  color: {T.TEKS_SUBTLE}; font-size: .85rem; margin-top: {T.SP_4};
 }}
 .sumber-ringkasan-laporan a {{ text-decoration: underline; text-underline-offset: .15em; }}
 .aksi-ringkasan-laporan {{
   display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH};
   margin-top: .75rem; padding: .55rem .85rem;
-  border: 1px solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KECIL};
+  border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KECIL};
   color: {T.AKSEN_TEAL_TUA}; font-weight: 700; text-decoration: none;
 }}
 .aksi-ringkasan-laporan:hover {{ text-decoration: underline; }}
 .grid-tindakan-laporan {{
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem; align-items: stretch;
+  gap: {T.SP_4}; align-items: stretch;
 }}
 .grid-tindakan-laporan > .kartu {{ height: 100%; }}
 .daftar-aksi-laporan {{ list-style: none; margin: 0; padding: 0; }}
 .aksi-laporan {{
-  border: 1px solid {T.BORDER_HALUS}; border-left-width: .3rem;
+  border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-left-width: .3rem;
   border-radius: {T.RADIUS_KECIL}; padding: .8rem .9rem;
   margin-bottom: .7rem; background: {T.LATAR_KARTU_MURID};
 }}
@@ -471,7 +471,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .aksi-laporan.salah {{ border-left-color: {T.STATUS_SALAH}; }}
 .aksi-laporan.baru {{ border-left-color: {T.STATUS_LEMAH}; }}
 .aksi-laporan.kuat {{ border-left-color: {T.STATUS_KUAT}; }}
-.aksi-laporan p {{ margin: .45rem 0 0; font-size: .9rem; }}
+.aksi-laporan p {{ margin: .45rem 0 0; font-size: {T.UKURAN_TEKS_BANTUAN}; }}
 .meta-laporan {{
   display: block; color: {T.TEKS_SUBTLE}; font-size: .8rem; margin-top: .15rem;
 }}
@@ -484,7 +484,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .cara-baca-laporan summary .sub,
 .detail-teknis-laporan summary .sub {{ display: inline; margin: 0; }}
 .cara-baca-laporan[open] summary,
-.detail-teknis-laporan[open] summary {{ margin-bottom: 1rem; }}
+.detail-teknis-laporan[open] summary {{ margin-bottom: {T.SP_4}; }}
 .legenda-teknis {{
   color: {T.TEKS_SUBTLE}; font-size: .82rem; line-height: 1.7;
   padding: .65rem .75rem; background: {T.LATAR_KARTU_SEKUNDER};
@@ -494,7 +494,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .detail-teknis-laporan h3 {{
   color: {T.TEKS_JUDUL}; font-size: 1rem; margin: 0 0 .55rem;
 }}
-@media (min-width: 64rem) {{
+@media (min-width: {T.MULAI_DESKTOP}) {{
   .bungkus-st.laporan-lebar {{ max-width: 72rem; }}
   .bungkus-st.laporan-lebar > .st-topbar {{ max-width: none; }}
   .bungkus-st.laporan-lebar .sesi-badan-st {{ max-width: none; }}
@@ -502,7 +502,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
     display: grid;
     grid-template-columns: minmax(0, 1.45fr) minmax(18rem, .8fr);
     grid-template-areas: "ringkasan metrik";
-    gap: 1rem; align-items: stretch;
+    gap: {T.SP_4}; align-items: stretch;
   }}
   .ringkasan-dashboard-laporan > .ringkasan-laporan {{
     grid-area: ringkasan; margin-bottom: 0; min-height: 100%;
@@ -522,7 +522,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
   }}
   .ringkasan-dashboard-laporan .kartu-stat .stat:last-child {{ grid-column: 1 / -1; }}
 }}
-@media (max-width: 46rem) {{
+@media (max-width: {T.BATAS_KOLOM_BACA}) {{
   .grid-tindakan-laporan {{ grid-template-columns: 1fr; }}
   .cara-baca-laporan summary .sub,
   .detail-teknis-laporan summary .sub {{ display: block; margin-top: .25rem; }}
@@ -541,13 +541,13 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .ikon-kartu {{
   display: inline-flex; align-items: center; justify-content: center;
   width: 2rem; height: 2rem; border-radius: {T.RADIUS_BULAT};
-  background: {T.AKSEN_MURID_UTAMA}; color: #fff; font-size: 1rem;
+  background: {T.AKSEN_MURID_UTAMA}; color: {T.TEKS_INVERS}; font-size: 1rem;
 }}
 .ikon-kartu.amber {{ background: {T.AKSEN_MURID_AMBER}; }}
 .baris-aksi {{ display: flex; align-items: center; gap: .3rem; }}
 .tombol-hapus {{
   background: {T.KODE_SALAH_KONSEP_BG}; color: {T.KODE_SALAH_KONSEP_TEKS};
-  border: 1px solid {T.KODE_SALAH_KONSEP_TEKS};
+  border: {T.TEBAL_GARIS} solid {T.KODE_SALAH_KONSEP_TEKS};
 }}
 .baris-form {{ display: flex; gap: .7rem; align-items: flex-end; flex-wrap: wrap; }}
 .baris-form > div {{ flex: 1; min-width: 150px; }}
@@ -576,18 +576,18 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 
 /* ── Pesan (sukses/galat) ──────────────────────────────────────────── */
 .pesan {{
-  background: {T.LATAR_TERSIMPAN}; border: 1px solid {T.BORDER_TERSIMPAN};
+  background: {T.LATAR_TERSIMPAN}; border: {T.TEBAL_GARIS} solid {T.BORDER_TERSIMPAN};
   color: {T.TEKS_TERSIMPAN}; border-radius: {T.RADIUS_SEDANG};
-  padding: .7rem .9rem; margin-bottom: 1rem; font-size: .93rem;
+  padding: .7rem .9rem; margin-bottom: {T.SP_4}; font-size: .93rem;
 }}
 .pesan.galat {{ background: {T.LATAR_GALAT}; border-color: {T.BORDER_GALAT}; color: {T.TEKS_GALAT}; }}
 .pesan-terlarang {{ background: {T.LATAR_GALAT}; border-color: {T.BORDER_GALAT}; }}
 
 /* Masuk yg gagal / 401 */
 .masuk-luar {{
-  background: {T.LATAR_MURID}; border: 1px solid {T.BORDER_HALUS};
+  background: {T.LATAR_MURID}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
   border-radius: {T.RADIUS_KARTU_BESAR}; padding: 1.4rem; max-width: 440px;
-  margin: 2rem auto; text-align: center;
+  margin: {T.SP_6} auto; text-align: center;
 }}
 
 /* ── Mobile polish: tabel card-stacked & form compact ─────────────── */
@@ -596,7 +596,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
    kartu stacked agar tidak perlu menggeser ke kanan terus. Label diambil
    dari data-label tiap td; header disembunyikan. Aktif di bawah 46rem. */
 /* Diterapkan via kelas wrapper .tabel-tren di reports.py */
-@media (max-width: 46rem) {{
+@media (max-width: {T.BATAS_KOLOM_BACA}) {{
   .tabel-tren table,
   .tabel-tren thead,
   .tabel-tren tbody,
@@ -606,13 +606,13 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
   .tabel-tren thead {{ display: none; }}
   .tabel-tren table {{ min-width: 0; border: 0; }}
   .tabel-tren tr {{
-    border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL};
-    margin-bottom: .7rem; overflow: hidden; background: #fff;
+    border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL};
+    margin-bottom: .7rem; overflow: hidden; background: {T.LATAR_KARTU};
   }}
   .tabel-tren td {{
-    border: none; border-bottom: 1px solid {T.BORDER_HALUS};
+    border: none; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
     display: flex; justify-content: space-between; gap: .6rem;
-    padding: .45rem .6rem; font-size: .9rem;
+    padding: .45rem .6rem; font-size: {T.UKURAN_TEKS_BANTUAN};
   }}
   .tabel-tren td:last-child {{ border-bottom: none; }}
   .tabel-tren td::before {{
@@ -625,19 +625,19 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 /* Form tabel akun murid: tumpuk vertical di HP, input fleksibel */
 .baris-aksi {{ display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }}
 .input-sandi-kecil {{
-  width: 8.5rem; max-width: 42vw; padding: .3rem .5rem; font-size: .9rem;
-  border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL};
+  width: 8.5rem; max-width: 42vw; padding: .3rem .5rem; font-size: {T.UKURAN_TEKS_BANTUAN};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL};
   font-family: inherit;
 }}
-@media (max-width: 30rem) {{
+@media (max-width: {T.BATAS_HP}) {{
   .baris-aksi {{ flex-direction: column; align-items: stretch; }}
   .baris-aksi form {{ width: 100%; }}
   .input-sandi-kecil {{ width: 100%; max-width: none; flex: 1; }}
-  .baris-aksi form[style] {{ margin-left: 0 !important; }}
+  .baris-aksi .akun-form-sandi {{ margin-left: 0 !important; }}
 }}
 
 /* Miskonsepsi & materi: kecilkan padding di HP supaya tidak makan lebar */
-@media (max-width: 30rem) {{
+@media (max-width: {T.BATAS_HP}) {{
   .bungkus {{ padding-left: .6rem; padding-right: .6rem; }}
 }}
 
@@ -652,9 +652,22 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 }}
 
 @media print {{
-  body {{ background: #fff; }}
+  body {{ background: {T.LATAR_KARTU}; }}
   .simpan-strip, .tombol-coral, .tombol-kecil {{ display: none; }}
 }}
+
+/* Gaya akun yang dahulu inline; kelas scoped tanpa mengubah payload form. */
+.akun-editorial-st .akun-form-aksi {{ display:inline-flex; gap:{T.AKUN_JARAK_AKSI}; align-items:center; }}
+.akun-editorial-st .akun-form-sandi {{ margin-left:{T.AKUN_JARAK_FORM}; }}
+.akun-editorial-st .akun-form-hapus {{ display:inline-flex; }}
+.akun-editorial-st .akun-pulihkan,
+.akun-editorial-st .akun-status-login,
+.akun-editorial-st .akun-aksi-sandi {{ margin-top:{T.AKUN_JARAK_BLOK}; }}
+.akun-editorial-st .akun-aksi-pulihkan {{ margin-top:{T.AKUN_JARAK_TOMBOL}; }}
+.akun-editorial-st .akun-catatan-hapus {{ margin-top:{T.AKUN_JARAK_CATATAN}; }}
+.akun-editorial-st .akun-persetujuan {{ font-size:{T.UKURAN_TEKS_BANTUAN}; }}
+.akun-editorial-st .akun-label-persetujuan {{ display:flex; gap:{T.SP_2}; align-items:flex-start; }}
+.akun-editorial-st .akun-centang-persetujuan {{ margin-top:{T.SP_1}; }}
 """
 
 # Skrip cegah kirim ganda — dipasang shell halaman (web.py _halaman,

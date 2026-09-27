@@ -161,22 +161,22 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .pilot-mulai-st label:has(input[type="checkbox"]) {{ display:flex; align-items:flex-start; gap:{T.SP_3}; }}
 .profil-workspace-st .pilot-mulai-st input[type="checkbox"] {{ width:1.25rem; height:1.25rem; min-height:0; flex:none; margin-top:.15rem; }}
 .pendamping-editorial-st.profil-editorial-st.profil-workspace-st {{ max-width:{T.LEBAR_LANDING}; }}
-.profil-workspace-st .profil-tabs-st {{ display:flex; gap:{T.SP_5}; overflow-x:auto; border-bottom:1px solid {T.BORDER_HALUS}; margin-bottom:{T.SP_5}; }}
+.profil-workspace-st .profil-tabs-st {{ display:flex; gap:{T.SP_5}; overflow-x:auto; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; margin-bottom:{T.SP_5}; }}
 .profil-workspace-st .profil-tabs-st a {{ display:inline-flex; align-items:center; gap:{T.SP_2}; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} 0; color:{T.TEKS_VARIAN}; text-decoration:none; white-space:nowrap; border-bottom:3px solid transparent; font-weight:650; }}
 .profil-workspace-st .profil-tabs-st a[aria-current] {{ color:{T.AKSEN_TEAL_TUA}; border-color:{T.AKSEN_TEAL_TUA}; }}
-.profil-workspace-st .profil-tabs-st span {{ font-size:.75rem; padding:.1rem .4rem; border-radius:{T.RADIUS_KECIL}; background:{T.LATAR_SEKUNDER_LEMBUT}; }}
-.profil-workspace-st .profil-rappel-st {{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:{T.SP_1} {T.SP_4}; padding:{T.SP_1} {T.SP_3}; background:{T.LATAR_CATATAN}; border:1px solid {T.BORDER_CATATAN}; border-radius:{T.RADIUS_KECIL}; margin-bottom:{T.SP_4}; font-size:.875rem; }}
+.profil-workspace-st .profil-tabs-st span {{ font-size:{T.UKURAN_TEKS_META}; padding:.1rem .4rem; border-radius:{T.RADIUS_KECIL}; background:{T.LATAR_SEKUNDER_LEMBUT}; }}
+.profil-workspace-st .profil-rappel-st {{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:{T.SP_1} {T.SP_4}; padding:{T.SP_1} {T.SP_3}; background:{T.LATAR_CATATAN}; border:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius:{T.RADIUS_KECIL}; margin-bottom:{T.SP_4}; font-size:{T.UKURAN_TEKS_LABEL}; }}
 .profil-workspace-st .profil-rappel-st a {{ display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH}; color:{T.AKSEN_TEAL_TUA}; white-space:nowrap; font-weight:650; }}
 .profil-workspace-st .profil-formulaire-st {{ min-width:0; }}
-.profil-workspace-st .profil-formulaire-st > .buat-latihan-st {{ padding:{T.SP_5}; background:{T.LATAR_KARTU}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; }}
+.profil-workspace-st .profil-formulaire-st > .buat-latihan-st {{ padding:{T.SP_5}; background:{T.LATAR_KARTU}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; }}
 .profil-workspace-st .profil-formulaire-st .buat-latihan-st > h2 {{ margin-top:0; }}
 .profil-workspace-st [data-panel="baru"] > .strip-sesi {{ display:block; }}
 .profil-workspace-st .profil-champs-st {{ display:grid; grid-template-columns:minmax(0,1fr); gap:{T.SP_4}; min-width:0; }}
 .profil-workspace-st .profil-champs-st > * {{ grid-column:1/-1; min-width:0; }}
 .profil-workspace-st .profil-champs-st label {{ white-space:normal; overflow-wrap:anywhere; }}
-.profil-workspace-st .profil-champs-st .strip-kolom > label {{ font-size:.875rem; color:{T.TEKS_JUDUL}; line-height:1.4; }}
+.profil-workspace-st .profil-champs-st .strip-kolom > label {{ font-size:{T.UKURAN_TEKS_LABEL}; color:{T.TEKS_JUDUL}; line-height:1.4; }}
 .profil-workspace-st .profil-champs-st select.st-input {{ font-size:{T.UKURAN_BADAN_LAYAR}; min-height:{T.TARGET_SENTUH}; padding:{T.SP_3}; }}
-.profil-workspace-st .profil-champs-st .strip-kolom > small {{ font-size:.8125rem; line-height:1.5; color:{T.TEKS_VARIAN}; }}
+.profil-workspace-st .profil-champs-st .strip-kolom > small {{ font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.5; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .profil-assistant-st > .pendamping-buka-inline {{ display:flex; margin-top:{T.SP_2}; }}
 .profil-workspace-st .profil-formulaire-st .tab-label-st {{ border-radius:{T.RADIUS_KECIL}; }}
 .profil-workspace-st .profil-formulaire-st:has(.tab-radio-st:focus-visible) .tab-bar-st {{ outline:none; }}
@@ -185,49 +185,49 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .buat-latihan-st:has(#tab-gabungan:focus-visible) [for="tab-gabungan"] {{ outline:2px solid {T.FOKUS_AKSEN}; outline-offset:2px; }}
 .profil-workspace-st .profil-ikon-st {{ width:1.2rem; height:1.2rem; flex:none; vertical-align:middle; }}
 .profil-workspace-st .tab-label-st {{ display:inline-flex; align-items:center; gap:{T.SP_2}; }}
-.profil-workspace-st .profil-assistant-st .pendamping-tombol,.profil-workspace-st .profil-assistant-st .st-tombol-sekunder {{ background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; border:1px solid {T.BORDER_VARIAN}; }}
+.profil-workspace-st .profil-assistant-st .pendamping-tombol,.profil-workspace-st .profil-assistant-st .st-tombol-sekunder {{ background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
 .profil-workspace-st .riwayat-aksi-st .tombol-ikon-st {{ display:inline-flex; width:auto; height:auto; min-width:{T.TARGET_SENTUH}; min-height:{T.TARGET_SENTUH}; position:relative; }}
 .profil-workspace-st .profil-champs-st > .strip-kolom:nth-child(-n+4) {{ grid-column:auto; }}
 .profil-workspace-st .profil-aide-st {{ position:relative; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:{T.SP_2}; margin:0 0 {T.SP_3}; }}
 .profil-workspace-st .profil-formulaire-st .panduan-variasi {{ padding:0; border:0; margin:0; border-radius:0; min-width:0; }}
-.profil-workspace-st .profil-formulaire-st .panduan-variasi > summary {{ font-size:.875rem; width:fit-content; color:{T.AKSEN_TEAL_TUA}; }}
+.profil-workspace-st .profil-formulaire-st .panduan-variasi > summary {{ font-size:{T.UKURAN_TEKS_LABEL}; width:fit-content; color:{T.AKSEN_TEAL_TUA}; }}
 .profil-workspace-st .profil-aide-st .info:is(button) {{ position:static; margin-top:{T.SP_2}; }}
 .profil-workspace-st .profil-aide-st .info-bubble {{ max-width:min({T.LEBAR_TOOLTIP},100%); }}
 .profil-workspace-st .riwayat-detail-st {{ margin:0; }}
-.profil-workspace-st .riwayat-detail-st > summary {{ font-size:.75rem; padding:{T.SP_1} 0; }}
+.profil-workspace-st .riwayat-detail-st > summary {{ font-size:{T.UKURAN_TEKS_META}; padding:{T.SP_1} 0; }}
 .profil-workspace-st .kepala-anak-st {{ margin-bottom:{T.SP_3}; }}
 .profil-workspace-st .kepala-anak-st .editorial-alis-st {{ display:none; }}
 .profil-workspace-st .profil-identitas-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_2} {T.SP_3}; }}
 .profil-workspace-st .kepala-anak-st h1 {{ margin:0; }}
-.profil-workspace-st .profil-ubah-kelas-st {{ display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH}; font-size:.8125rem; font-weight:500; }}
+.profil-workspace-st .profil-ubah-kelas-st {{ display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH}; font-size:{T.UKURAN_TEKS_CATATAN}; font-weight:500; }}
 .profil-workspace-st .profil-champs-st .st-tombol-coral {{ width:fit-content; }}
 .profil-workspace-st .profil-assistant-st {{ min-width:0; margin-top:{T.SP_4}; }}
 .profil-workspace-st .profil-assistant-st .pendamping-inline {{ margin:0; min-width:0; }}
 .profil-workspace-st .profil-assistant-st .pendamping-inline > details > summary {{ font-size:1.1rem; }}
 .profil-workspace-st .profil-assistant-st textarea {{ max-width:100%; }}
 .profil-workspace-st .profil-taches-st {{ margin-top:{T.SP_5}; }}
-.profil-workspace-st .profil-arsip-st {{ background:{T.LATAR_KARTU}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; overflow:hidden; }}
+.profil-workspace-st .profil-arsip-st {{ background:{T.LATAR_KARTU}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; overflow:hidden; }}
 .profil-workspace-st .profil-saring-st {{ margin:0; }}
 .profil-workspace-st .profil-saring-judul-st {{ padding:{T.SP_4} {T.SP_5}; color:{T.AKSEN_TEAL_TUA}; cursor:pointer; min-height:{T.TARGET_SENTUH}; }}
 .profil-workspace-st .profil-saring-judul-st > span {{ font-weight:650; }}
-.profil-workspace-st .profil-saring-judul-st small {{ display:block; margin-top:{T.SP_1}; color:{T.TEKS_VARIAN}; font-size:.8125rem; overflow-wrap:anywhere; }}
+.profil-workspace-st .profil-saring-judul-st small {{ display:block; margin-top:{T.SP_1}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; overflow-wrap:anywhere; }}
 .profil-workspace-st .profil-reset-wrap-st {{ padding:0 {T.SP_5} {T.SP_3}; }}
-.profil-workspace-st .profil-reset-st {{ display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH}; color:{T.AKSEN_TEAL_TUA}; text-decoration:underline; font-size:.875rem; }}
+.profil-workspace-st .profil-reset-st {{ display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH}; color:{T.AKSEN_TEAL_TUA}; text-decoration:underline; font-size:{T.UKURAN_TEKS_LABEL}; }}
 .profil-workspace-st .profil-kosong-st p {{ margin:0; }}
 .profil-workspace-st .profil-pager-st .profil-page-status-st {{ display:none; }}
 .profil-workspace-st .profil-pager-st [aria-disabled="true"] {{ color:{T.TEKS_VARIAN}; background:{T.LATAR_SEKUNDER_LEMBUT}; }}
 .profil-workspace-st .profil-filter-st {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:{T.SP_4}; padding:{T.SP_5}; align-items:end; }}
-.profil-workspace-st .profil-filter-st label {{ display:grid; gap:{T.SP_1}; color:{T.TEKS_VARIAN}; font-size:.8125rem; }}
-.profil-workspace-st .profil-filter-st input,.profil-workspace-st .profil-filter-st select {{ width:100%; min-width:0; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2}; font:inherit; font-size:{T.UKURAN_BADAN_LAYAR}; border:1px solid {T.BORDER_VARIAN}; background:{T.LATAR_KARTU}; border-radius:{T.RADIUS_KECIL}; }}
-.profil-workspace-st .profil-paging-st {{ display:flex; gap:{T.SP_4}; flex-wrap:wrap; justify-content:space-between; align-items:center; padding:{T.SP_4} {T.SP_5}; border-top:1px solid {T.BORDER_HALUS}; font-size:.8125rem; color:{T.TEKS_VARIAN}; }}
+.profil-workspace-st .profil-filter-st label {{ display:grid; gap:{T.SP_1}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; }}
+.profil-workspace-st .profil-filter-st input,.profil-workspace-st .profil-filter-st select {{ width:100%; min-width:0; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2}; font:inherit; font-size:{T.UKURAN_BADAN_LAYAR}; border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; background:{T.LATAR_KARTU}; border-radius:{T.RADIUS_KECIL}; }}
+.profil-workspace-st .profil-paging-st {{ display:flex; gap:{T.SP_4}; flex-wrap:wrap; justify-content:space-between; align-items:center; padding:{T.SP_4} {T.SP_5}; border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; font-size:{T.UKURAN_TEKS_CATATAN}; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .profil-paging-st a {{ color:{T.AKSEN_TEAL_TUA}; }}
 .profil-workspace-st .profil-pager-st {{ display:flex; flex-wrap:wrap; gap:{T.SP_1}; }}
-.profil-workspace-st .profil-pager-st > * {{ display:inline-flex; align-items:center; justify-content:center; min-width:2.75rem; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2}; border-radius:{T.RADIUS_KECIL}; border:1px solid {T.BORDER_HALUS}; text-decoration:none; }}
+.profil-workspace-st .profil-pager-st > * {{ display:inline-flex; align-items:center; justify-content:center; min-width:2.75rem; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2}; border-radius:{T.RADIUS_KECIL}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; text-decoration:none; }}
 .profil-workspace-st .profil-pager-st [aria-current] {{ background:{T.LATAR_TERSIMPAN}; color:{T.AKSEN_TEAL_TUA}; }}
 .profil-workspace-st .profil-table-wrap-st {{ overflow-x:auto; }}
 .profil-workspace-st .tabel-riwayat-st {{ width:100%; border-collapse:collapse; }}
-.profil-workspace-st .tabel-riwayat-st th,.profil-workspace-st .tabel-riwayat-st td {{ padding:{T.SP_3}; border-bottom:1px solid {T.BORDER_HALUS}; text-align:left; vertical-align:middle; font-size:.8125rem; }}
-.profil-workspace-st .tabel-riwayat-st th {{ background:{T.LATAR_SEKUNDER_LEMBUT}; color:{T.TEKS_VARIAN}; font-size:.75rem; }}
+.profil-workspace-st .tabel-riwayat-st th,.profil-workspace-st .tabel-riwayat-st td {{ padding:{T.SP_3}; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; text-align:left; vertical-align:middle; font-size:{T.UKURAN_TEKS_CATATAN}; }}
+.profil-workspace-st .tabel-riwayat-st th {{ background:{T.LATAR_SEKUNDER_LEMBUT}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
 .profil-workspace-st .riwayat-latihan-st strong,.profil-workspace-st .riwayat-latihan-st small {{ display:block; }}
 .profil-workspace-st .riwayat-latihan-st small {{ margin-top:{T.SP_1}; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .riwayat-tanggal-st {{ white-space:nowrap; }}
@@ -239,25 +239,25 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .profil-champs-st > .strip-kolom > .mode-pilih {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }}
  .profil-workspace-st .profil-champs-st .mode-opsi {{ margin:0; }}
 }}
-@media(min-width:64rem) {{
+@media(min-width:{T.MULAI_DESKTOP}) {{
  .profil-workspace-st .profil-formulaire-st:has(.pendamping-inline) .strip-sesi.profil-manuel-st {{ display:grid; grid-template-columns:minmax(0,1.4fr) minmax(19rem,1fr); gap:{T.SP_5}; align-items:start; }}
  .profil-workspace-st .profil-formulaire-st:has(.pendamping-inline) .strip-sesi.profil-manuel-st > .profil-champs-st {{ grid-column:1; grid-template-columns:minmax(0,1fr); }}
  .profil-workspace-st .profil-formulaire-st:has(.pendamping-inline) .strip-sesi.profil-manuel-st > .profil-assistant-st {{ grid-column:2; grid-row:1; margin-top:0; }}
 }}
-@media(max-width:48rem) {{
+@media(max-width:{T.BATAS_TABLET}) {{
  .profil-workspace-st .profil-tabs-st {{ gap:{T.SP_4}; font-size:.8rem; }}
  .profil-workspace-st .profil-filter-st {{ grid-template-columns:minmax(0,1fr); padding:{T.SP_4}; }}
  .profil-workspace-st .profil-filter-st button {{ width:100%; }}
  .profil-workspace-st .profil-saring-judul-st {{ padding:{T.SP_3} {T.SP_4}; }}
  .profil-workspace-st .profil-reset-wrap-st {{ padding:0 {T.SP_4} {T.SP_2}; }}
  .profil-workspace-st .profil-pager-st {{ display:flex; flex-wrap:wrap; gap:{T.SP_1}; width:100%; }}
- .profil-workspace-st .profil-pager-st > * {{ flex:1 1 6em; min-width:min(100%,6em); padding:{T.SP_1}; font-size:.75rem; text-align:center; }}
+ .profil-workspace-st .profil-pager-st > * {{ flex:1 1 6em; min-width:min(100%,6em); padding:{T.SP_1}; font-size:{T.UKURAN_TEKS_META}; text-align:center; }}
  .profil-workspace-st .profil-pager-st .profil-page-number-st {{ display:none; }}
  .profil-workspace-st .profil-pager-st .profil-page-status-st {{ display:inline-flex; flex-basis:6.5em; border:0; background:transparent; color:{T.TEKS_VARIAN}; }}
  .profil-workspace-st .profil-riwayat-kaki-st a {{ min-height:{T.TARGET_SENTUH}; display:inline-flex; align-items:center; }}
  .profil-workspace-st .profil-formulaire-st > .buat-latihan-st {{ padding:{T.SP_4}; }}
- .profil-workspace-st .profil-formulaire-st .tab-bar-st {{ display:grid; grid-template-columns:minmax(0,1fr); gap:{T.SP_1}; padding:{T.SP_1}; margin-bottom:{T.SP_3}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_SEDANG}; background:{T.LATAR_SEKUNDER_LEMBUT}; }}
- .profil-workspace-st .profil-formulaire-st .tab-label-st {{ justify-content:flex-start; margin:0; padding:{T.SP_2} {T.SP_3}; border:1px solid transparent; font-size:.875rem; text-align:left; }}
+ .profil-workspace-st .profil-formulaire-st .tab-bar-st {{ display:grid; grid-template-columns:minmax(0,1fr); gap:{T.SP_1}; padding:{T.SP_1}; margin-bottom:{T.SP_3}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_SEDANG}; background:{T.LATAR_SEKUNDER_LEMBUT}; }}
+ .profil-workspace-st .profil-formulaire-st .tab-label-st {{ justify-content:flex-start; margin:0; padding:{T.SP_2} {T.SP_3}; border:{T.TEBAL_GARIS} solid transparent; font-size:{T.UKURAN_TEKS_LABEL}; text-align:left; }}
  .profil-workspace-st .buat-latihan-st:has(#tab-baru:checked) [for="tab-baru"],
  .profil-workspace-st .buat-latihan-st:has(#tab-ulang:checked) [for="tab-ulang"],
  .profil-workspace-st .buat-latihan-st:has(#tab-gabungan:checked) [for="tab-gabungan"] {{ background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; border-color:{T.AKSEN_TEAL_TUA}; }}
@@ -266,12 +266,12 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .profil-paging-st {{ padding:{T.SP_4}; }}
  .profil-workspace-st .tabel-riwayat-st,.profil-workspace-st .tabel-riwayat-st tbody {{ display:block; }}
  .profil-workspace-st .tabel-riwayat-st thead {{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }}
- .profil-workspace-st .tabel-riwayat-st tr {{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:{T.SP_1} {T.SP_2}; padding:{T.SP_3} {T.SP_4}; border-bottom:1px solid {T.BORDER_HALUS}; }}
+ .profil-workspace-st .tabel-riwayat-st tr {{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:{T.SP_1} {T.SP_2}; padding:{T.SP_3} {T.SP_4}; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
  .profil-workspace-st .tabel-riwayat-st td {{ padding:0; border:0; min-width:0; line-height:1.4; }}
  .profil-workspace-st .riwayat-latihan-st strong {{ font-size:.9375rem; line-height:1.4; }}
- .profil-workspace-st .riwayat-latihan-st .riwayat-jenis-st,.profil-workspace-st .riwayat-latihan-st .riwayat-meta-st {{ display:inline; font-size:.75rem; line-height:1.4; }}
+ .profil-workspace-st .riwayat-latihan-st .riwayat-jenis-st,.profil-workspace-st .riwayat-latihan-st .riwayat-meta-st {{ display:inline; font-size:{T.UKURAN_TEKS_META}; line-height:1.4; }}
  .profil-workspace-st .riwayat-latihan-st .riwayat-meta-st::before {{ content:' · '; }}
- .profil-workspace-st .tabel-riwayat-st .badge-direview {{ max-width:100%; font-size:.8125rem; line-height:1.4; }}
+ .profil-workspace-st .tabel-riwayat-st .badge-direview {{ max-width:100%; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.4; }}
  .profil-workspace-st .tabel-riwayat-st .profil-kosong-st {{ display:block; padding:{T.SP_4}; }}
  .profil-workspace-st .tabel-riwayat-st .profil-kosong-st td {{ display:block; }}
  .profil-workspace-st .riwayat-tanggal-st {{ grid-column:1; grid-row:1; }}
@@ -279,9 +279,9 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .riwayat-angka-st::after {{ content:' soal'; }}
  .profil-workspace-st .riwayat-latihan-st {{ grid-column:1/-1; grid-row:2; }}
  .profil-workspace-st .riwayat-proses-st {{ grid-column:1; grid-row:3; }}
- .profil-workspace-st .riwayat-proses-st::before {{ content:'Pengerjaan: '; color:{T.TEKS_VARIAN}; font-size:.75rem; }}
+ .profil-workspace-st .riwayat-proses-st::before {{ content:'Pengerjaan: '; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
  .profil-workspace-st .riwayat-tinjauan-st {{ grid-column:1; grid-row:4; }}
- .profil-workspace-st .riwayat-tinjauan-st::before {{ content:'Tinjauan: '; color:{T.TEKS_VARIAN}; font-size:.75rem; }}
+ .profil-workspace-st .riwayat-tinjauan-st::before {{ content:'Tinjauan: '; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
  .profil-workspace-st .riwayat-aksi-st {{ grid-column:2; grid-row:3/5; align-self:center; }}
 }}
 """

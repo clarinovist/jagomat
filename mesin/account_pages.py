@@ -69,14 +69,14 @@ def _kartu_akun_murid(kon, pengguna: str | None = None, peran: str = "guru") -> 
                 f'<tr><td data-label="Nama">{nama_esc}</td><td data-label="Status">{status}</td><td data-label="Aksi">'
                 f'<div class="baris-aksi">'
                 f'<form method="post" action="/akun" '
-                f'style="display:inline-flex;gap:.3rem;align-items:center" '
+                f'class="akun-form-aksi" '
                 f'onsubmit="return confirm(\'Hapus akun ini? Anaknya tetap '
                 f'ada — hanya loginnya yang hilang.\')">'
                 f'<input type="hidden" name="aksi" value="akun_murid_hapus">'
                 f'<input type="hidden" name="nama" value="{nama_esc}">'
                 f'<button type="submit" class="tombol-kecil tombol-hapus">Hapus</button>'
                 f"</form> "
-                f'<form method="post" action="/akun" style="display:inline-flex;gap:.3rem;align-items:center;margin-left:.4rem">'
+                f'<form method="post" action="/akun" class="akun-form-aksi akun-form-sandi">'
                 f'<input type="hidden" name="aksi" value="akun_murid_sandi">'
                 f'<input type="hidden" name="nama" value="{nama_esc}">'
                 f'<label>Sandi baru untuk {nama_esc}'
@@ -110,7 +110,7 @@ def _kartu_akun_murid(kon, pengguna: str | None = None, peran: str = "guru") -> 
             '<option value="">— pilih anak —</option>' + opsi + "</select>"
         )
         tambah = (
-            f'<form method="post" action="/akun" style="margin-top:.8rem">'
+            f'<form method="post" action="/akun" class="akun-pulihkan">'
             f'<input type="hidden" name="aksi" value="akun_murid_tambah">'
             f'<p class="sub">Anak berikut belum punya akun masuk — '
             f"buatkan di sini:</p>"
@@ -124,12 +124,12 @@ def _kartu_akun_murid(kon, pengguna: str | None = None, peran: str = "guru") -> 
             f'<div><label for="pulihkan-sandi">Sandi baru (minimal 8 karakter)</label>'
             f'<input id="pulihkan-sandi" type="password" name="sandi" placeholder="sandi untuk murid" required minlength="8">'
             f"</div>"
-            f'<p style="margin-top:.6rem"><button type="submit">Buat akun masuk</button></p>'
+            f'<p class="akun-aksi-pulihkan"><button type="submit">Buat akun masuk</button></p>'
             f"</form>"
         )
     elif daftar_siswa:
         tambah = (
-            '<p class="sub" style="margin-top:.8rem">Semua anak sudah '
+            '<p class="sub akun-status-login">Semua anak sudah '
             "punya akun masuk.</p>"
         )
     else:
@@ -210,7 +210,7 @@ def halaman_akun(
         f'{kon.execute("SELECT COUNT(*) AS n FROM sesi WHERE siswa_id = ?", (s["id"],)).fetchone()["n"]}'
         f"</td>"
         f'<td data-label="Akun latihan">{status_akun_latihan(kon, s["id"])}</td>'
-        f'<td data-label="Aksi"><form method="post" action="/akun" style="display:inline-flex">'
+        f'<td data-label="Aksi"><form method="post" action="/akun" class="akun-form-hapus">'
         f'<input type="hidden" name="aksi" value="siswa_hapus">'
         f'<input type="hidden" name="siswa_id" value="{s["id"]}">'
         f'<button type="submit" class="tombol-kecil tombol-hapus">Hapus</button>'
@@ -248,7 +248,7 @@ def halaman_akun(
         f'<input id="sandi-baru" type="password" name="baru" autocomplete="new-password" required>'
         f'<label for="sandi-ulang">Ulangi sandi baru</label>'
         f'<input id="sandi-ulang" type="password" name="ulang" autocomplete="new-password" required>'
-        f'<p style="margin-top:.8rem">'
+        f'<p class="akun-aksi-sandi">'
         f'<button type="submit" class="tombol-sekunder">Ganti sandi</button></p>'
         f"</form></div>"
     )
@@ -263,7 +263,7 @@ def halaman_akun(
         'Pengaturan soal dipilih terpisah saat membuat latihan.</p></details>'
         f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Kelas sekolah</th>'
         f"<th>Sesi</th><th>Akun latihan</th><th>Aksi</th></tr>{daftar}</table></div>"
-        '<p class="sub" style="margin-top:.7rem">Anak dengan riwayat sesi tidak bisa dihapus. '
+        '<p class="sub akun-catatan-hapus">Anak dengan riwayat sesi tidak bisa dihapus. '
         'Anak tanpa sesi dapat dihapus beserta akun latihannya.</p></div>'
     )
     kartu_anak = (
@@ -294,9 +294,9 @@ def halaman_akun(
         f'<label for="anak-sandi">Kata sandi anak (minimal 8 karakter, boleh sama polanya dengan sandimu)</label>'
         f'<input id="anak-sandi" type="password" name="sandi_anak" autocomplete="new-password" '
         f'required minlength="8">'
-        f'<p style="font-size:.9rem">'
-        f'<label style="display:flex;gap:.5rem;align-items:flex-start">'
-        f'<input type="checkbox" name="persetujuan_ortu" value="1" style="margin-top:.25rem">'
+        f'<p class="akun-persetujuan">'
+        f'<label class="akun-label-persetujuan">'
+        f'<input type="checkbox" name="persetujuan_ortu" value="1" class="akun-centang-persetujuan">'
         f"<span>Saya orang tua/wali anak ini dan menyetujui "
         f'<a href="/kebijakan-privasi">Kebijakan Privasi</a> untuk data anak.</span>'
         f"</label></p>"

@@ -14,13 +14,13 @@ from template_labels import nama_tipe_soal
 GAYA_HASIL = f"""
 .hasil-pemetaan-st {{
   margin: {T.SP_5} 0; padding: {T.SP_5}; background: {T.LATAR_KARTU};
-  border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KARTU_BESAR};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KARTU_BESAR};
   scroll-margin-top: {T.SP_4};
 }}
 .hasil-pemetaan-st h2 {{ margin: 0 0 {T.SP_3}; color: {T.TEKS_JUDUL}; }}
 .hasil-pemetaan-st h3 {{ margin: {T.SP_4} 0 {T.SP_2}; }}
 .hasil-pemetaan-st p {{ line-height: {T.LINE_HEIGHT}; }}
-.hasil-pemetaan-st .hasil-batas-st {{ color: {T.TEKS_SUBTLE}; font-size: .9rem; }}
+.hasil-pemetaan-st .hasil-batas-st {{ color: {T.TEKS_SUBTLE}; font-size: {T.UKURAN_TEKS_BANTUAN}; }}
 .hasil-angka-st {{
   display: flex; flex-wrap: wrap; gap: {T.SP_3}; padding: 0; list-style: none;
 }}
@@ -36,7 +36,7 @@ GAYA_HASIL = f"""
 .hasil-materi-st {{ margin: 0; padding: 0; list-style: none; }}
 .hasil-materi-st li {{
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-  gap: {T.SP_3}; padding: {T.SP_3} 0; border-top: 1px solid {T.BORDER_HALUS};
+  gap: {T.SP_3}; padding: {T.SP_3} 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
   overflow-wrap: anywhere;
 }}
 .hasil-materi-st span {{ color: {T.TEKS_SUBTLE}; }}

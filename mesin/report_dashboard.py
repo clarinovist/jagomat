@@ -17,17 +17,17 @@ GAYA_LAPORAN = f"""
   margin:{T.SP_5} 0;
 }}
 .laporan-editorial-st .laporan-metrik .stat {{
-  padding:{T.SP_4}; background:{T.LATAR_KARTU}; border:1px solid {T.BORDER_HALUS};
+  padding:{T.SP_4}; background:{T.LATAR_KARTU}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS};
   border-radius:{T.RADIUS_KARTU_BESAR}; min-width:0;
 }}
 .laporan-editorial-st .laporan-metrik strong {{
   display:block; font-size:{T.UKURAN_ANGKA_DEWASA}; color:{T.TEKS_JUDUL}; line-height:1.2;
 }}
 .laporan-editorial-st .laporan-metrik span {{display:block; margin-top:{T.SP_2};}}
-.laporan-editorial-st .laporan-catatan {{color:{T.TEKS_SUBTLE}; font-size:.9rem;}}
+.laporan-editorial-st .laporan-catatan {{color:{T.TEKS_SUBTLE}; font-size:{T.UKURAN_TEKS_BANTUAN};}}
 .laporan-editorial-st .laporan-materi {{width:100%; border-collapse:collapse;}}
 .laporan-editorial-st .laporan-materi td,.laporan-editorial-st .laporan-materi th {{
-  text-align:left; vertical-align:top; padding:{T.SP_3}; border-bottom:1px solid {T.BORDER_HALUS};
+  text-align:left; vertical-align:top; padding:{T.SP_3}; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS};
 }}
 .laporan-editorial-st .laporan-materi small {{display:block; color:{T.TEKS_SUBTLE};}}
 .laporan-editorial-st .laporan-materi progress {{
@@ -35,7 +35,7 @@ GAYA_LAPORAN = f"""
 }}
 .laporan-editorial-st .laporan-navigasi {{
   display:flex; flex-wrap:wrap; gap:{T.SP_2}; margin:0 0 {T.SP_5};
-  border-bottom:1px solid {T.BORDER_CATATAN}; padding-bottom:{T.SP_3};
+  border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; padding-bottom:{T.SP_3};
 }}
 .laporan-editorial-st .laporan-navigasi a {{
   display:inline-flex; align-items:center; justify-content:center; min-height:{T.TARGET_SENTUH};
@@ -46,10 +46,10 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .resume-langkah {{font-size:1.12rem; font-weight:600;}}
 .laporan-editorial-st .resume-konteks {{
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:{T.SP_5};
-  border-top:1px solid {T.BORDER_CATATAN};margin-top:{T.SP_5};padding-top:{T.SP_3};
+  border-top:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN};margin-top:{T.SP_5};padding-top:{T.SP_3};
 }}
 .laporan-editorial-st .laporan-mingguan > section {{border:0;padding:0;margin:{T.SP_4} 0 0;}}
-.laporan-editorial-st .laporan-dasar {{border-top:1px solid {T.BORDER_CATATAN};margin-top:{T.SP_4};padding-top:{T.SP_3};}}
+.laporan-editorial-st .laporan-dasar {{border-top:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN};margin-top:{T.SP_4};padding-top:{T.SP_3};}}
 .laporan-editorial-st .laporan-materi {{overflow-wrap:normal;}}
 .laporan-editorial-st .tabel-tren table {{min-width:0;table-layout:auto;overflow-wrap:normal;}}
 .laporan-editorial-st .tabel-tren th {{white-space:nowrap;}}
@@ -59,7 +59,7 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .rasio-laporan {{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700;}}
 .laporan-editorial-st .tabel-tren td:last-child a {{white-space:nowrap;gap:{T.SP_2};}}
 .laporan-editorial-st .laporan-metrik .metrik-dasar {{font-size:.8rem;color:{T.TEKS_SUBTLE};}}
-.laporan-editorial-st .riwayat-putaran-laporan {{border-top:1px solid {T.BORDER_CATATAN};margin-top:{T.SP_5};}}
+.laporan-editorial-st .riwayat-putaran-laporan {{border-top:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN};margin-top:{T.SP_5};}}
 .laporan-editorial-st .aksi-rencana-laporan {{
   display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH};
   background:{T.AKSEN_TEAL_TUA}; color:{T.LATAR_KARTU}; padding:{T.SP_3} {T.SP_4};
@@ -70,14 +70,14 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .laporan-ringkasan-grid .peta-kepala {{grid-template-columns:minmax(0,1fr);gap:{T.SP_2};}}
 .laporan-editorial-st .laporan-ringkasan-grid p {{margin:{T.SP_2} 0;}}
 .laporan-editorial-st .laporan-ringkasan-grid .peta-grafik {{height:1.5rem;margin:{T.SP_3} 0;}}
-.laporan-editorial-st .laporan-ringkasan-grid .peta-legenda {{font-size:.9rem;gap:{T.SP_2} {T.SP_3};margin:{T.SP_3} 0;}}
+.laporan-editorial-st .laporan-ringkasan-grid .peta-legenda {{font-size:{T.UKURAN_TEKS_BANTUAN};gap:{T.SP_2} {T.SP_3};margin:{T.SP_3} 0;}}
 .laporan-editorial-st .laporan-ringkasan-grid .resume-konteks {{margin-top:{T.SP_4};padding-top:{T.SP_2};}}
 .laporan-editorial-st .laporan-ringkasan-grid h3 {{margin:{T.SP_2} 0;}}
 .laporan-editorial-st .laporan-ringkasan-grid .resume-langkah {{margin:{T.SP_3} 0;}}
 .laporan-editorial-st .laporan-ringkasan-grid .resume-konteks {{grid-template-columns:minmax(0,1fr);gap:{T.SP_2};}}
 .laporan-editorial-st .laporan-pilihan,.laporan-editorial-st .laporan-paginasi {{display:flex;flex-wrap:wrap;align-items:center;gap:{T.SP_2};margin:{T.SP_3} 0 {T.SP_5};}}
 .laporan-editorial-st .laporan-pilihan a,.laporan-editorial-st .laporan-paginasi a,.laporan-editorial-st .laporan-tautan {{display:inline-flex;align-items:center;min-height:{T.TARGET_SENTUH};padding:{T.SP_2} {T.SP_3};}}
-.laporan-editorial-st .laporan-pilihan a {{border:1px solid {T.BORDER_HALUS};border-radius:{T.RADIUS_KECIL};background:{T.LATAR_KARTU};text-decoration:none;color:{T.TEKS_SUBTLE};}}
+.laporan-editorial-st .laporan-pilihan a {{border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS};border-radius:{T.RADIUS_KECIL};background:{T.LATAR_KARTU};text-decoration:none;color:{T.TEKS_SUBTLE};}}
 .laporan-editorial-st .laporan-pilihan a[aria-current="true"] {{border:2px solid {T.AKSEN_TEAL_TUA};padding:calc({T.SP_2} - 1px) calc({T.SP_3} - 1px);color:{T.AKSEN_TEAL_TUA};background:{T.LATAR_TERSIMPAN};font-weight:700;}}
 .laporan-editorial-st #konten-laporan a:focus-visible {{outline:3px solid {T.AKSEN_TEAL_TUA};outline-offset:3px;}}
 .laporan-editorial-st .peta-bukti a,.laporan-editorial-st #perjalanan-belajar li a,.laporan-editorial-st .tabel-tren a {{display:inline-flex;align-items:center;min-height:{T.TARGET_SENTUH};}}
@@ -88,13 +88,13 @@ GAYA_LAPORAN = f"""
 @media(min-width:46.01rem) and (max-width:63.99rem) {{
  .laporan-editorial-st .laporan-ringkasan-grid {{grid-template-columns:minmax(0,1fr);}}
 }}
-.laporan-editorial-st .laporan-seluruh {{border-top:1px solid {T.BORDER_HALUS}; padding-top:{T.SP_3};}}
+.laporan-editorial-st .laporan-seluruh {{border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; padding-top:{T.SP_3};}}
 .laporan-editorial-st .laporan-resume .ringkasan-laporan {{border:0; padding:0; margin:0; box-shadow:none;}}
 .laporan-editorial-st .laporan-resume li {{margin-bottom:{T.SP_3};}}
 .laporan-editorial-st .laporan-tugas {{padding-left:{T.SP_5};}}
 .laporan-editorial-st .laporan-periode {{color:{T.TEKS_SUBTLE};}}
 .laporan-editorial-st .editorial-kepala-st h1 {{overflow-wrap:anywhere;}}
-@media(max-width:46rem) {{
+@media(max-width:{T.BATAS_KOLOM_BACA}) {{
   .laporan-editorial-st .laporan-ringkasan-grid {{grid-template-columns:minmax(0,1fr);}}
   .laporan-editorial-st .laporan-metrik {{grid-template-columns:repeat(2,minmax(0,1fr)); gap:{T.SP_3};}}
   .laporan-editorial-st .resume-konteks {{grid-template-columns:minmax(0,1fr);gap:{T.SP_2};}}
@@ -106,7 +106,7 @@ GAYA_LAPORAN = f"""
   .laporan-editorial-st .laporan-materi thead {{position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%);}}
   .laporan-editorial-st .laporan-materi,.laporan-editorial-st .laporan-materi tbody,
   .laporan-editorial-st .laporan-materi tr,.laporan-editorial-st .laporan-materi td {{display:block;}}
-  .laporan-editorial-st .laporan-materi tr {{padding:{T.SP_3} 0; border-bottom:1px solid {T.BORDER_HALUS};}}
+  .laporan-editorial-st .laporan-materi tr {{padding:{T.SP_3} 0; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS};}}
   .laporan-editorial-st .laporan-materi td {{border:0; padding:{T.SP_2} 0; overflow-wrap:anywhere;}}
   .laporan-editorial-st .laporan-materi td::before {{content:attr(data-label) ' '; font-weight:600;}}
 }}

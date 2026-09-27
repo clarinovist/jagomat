@@ -103,14 +103,14 @@ def panduan_variasi(*, ringkas=False, judul="Bandingkan isi dan contoh soal"):
 
 
 GAYA_VARIASI = f"""
-.panduan-variasi {{ margin:{T.SP_4} 0; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; padding:{T.SP_4}; background:{T.LATAR_KARTU}; min-width:0; }}
+.panduan-variasi {{ margin:{T.SP_4} 0; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; padding:{T.SP_4}; background:{T.LATAR_KARTU}; min-width:0; }}
 .panduan-variasi summary,.variasi-kode summary {{ cursor:pointer; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} 0; line-height:1.5; overflow-wrap:anywhere; }}
 .panduan-variasi p,.variasi-kode p {{ line-height:1.6; overflow-wrap:anywhere; }}
-.variasi-materi {{ border-top:1px solid {T.BORDER_HALUS}; padding:{T.SP_2} 0; }}
+.variasi-materi {{ border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; padding:{T.SP_2} 0; }}
 .variasi-daftar {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr)); gap:{T.SP_4}; }}
-.variasi-contoh {{ min-width:0; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KECIL}; padding:{T.SP_3}; }}
+.variasi-contoh {{ min-width:0; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KECIL}; padding:{T.SP_3}; }}
 .variasi-contoh h4 {{ margin:0; color:{T.TEKS_JUDUL}; }}
 .variasi-soal {{ overflow-x:auto; padding:{T.SP_3} 0; }}
 .variasi-soal svg {{ max-width:100%; height:auto; }}
-.pengaturan-awal {{ border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KECIL}; margin:{T.SP_4} 0; padding:{T.SP_4}; min-width:0; }}
+.pengaturan-awal {{ border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KECIL}; margin:{T.SP_4} 0; padding:{T.SP_4}; min-width:0; }}
 """

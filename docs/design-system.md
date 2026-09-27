@@ -221,11 +221,11 @@ eksplisit, bukan menggantung:
 - `UKURAN_IKON` (24px): **khusus Figma / belum dipakai** — ikon nyata di kode
   dirender 19–22px (`.profil-ikon-st` 1.2rem, `.murid-ikon-st` 1.35rem) atau
   lewat variasi font Material Symbols; belum ada elemen yang memang 24px.
-- `SP_7` (3rem) / `SP_8` (4rem): **khusus Figma / belum dipakai** — literal
-  `3rem`/`4rem` memang banyak (padding section), tapi perannya belum tunggal;
-  menunggu sweep spacing tersendiri, bukan penambalan acak.
-- `TEBAL_GARIS` (1px) untuk border umum: nilai default CSS, masih literal
-  237 kali di 13 berkas (hitungan 26 Sep) — adopsi penuh = sweep tersendiri.
+- `SP_7` (3rem) / `SP_8` (4rem): kini dipakai untuk margin/padding/gap dengan
+  nilai yang persis sama (lihat refactor token UI 27 Sep). Tinggi, font, dan
+  geometri khusus tidak otomatis mengikuti skala spacing.
+- `TEBAL_GARIS` (1px): kini dipakai untuk deklarasi border umum. Pixel mekanis
+  seperti elemen sr-only 1×1px dan garis SVG bukan token ketebalan border UI.
 
 Penerapan kedua (25 Sep 2026, permukaan non-Stitch) — 14 aturan kartu di 11 berkas
 jadi `RADIUS_KARTU_BESAR`: `teacher_style` (`.kartu`, `.stat`, `.ringkasan-laporan`,
@@ -367,6 +367,46 @@ File CSS per permukaan (semuanya `import design_tokens as T`):
   disclaimer tetap lengkap dalam satu disclosure native; batas latihan manual tetap
   tersedia lewat ikon Info di sebelahnya. Paragraf instruksi umum sebelum form dihapus.
   Tidak ada perubahan nilai/payload isian, checkbox, rekomendasi atau bukti belajar.
+
+## Refactor token lintas UI (27 Sep 2026)
+
+Putaran ini mempertahankan nilai dan urutan cascade, bukan restyle. Semua
+literal hex/RGB pada definisi CSS Python dipusatkan; warna di aset SVG statis
+berversi bukan bagian sweep ini. Tidak mengubah akses, font jaringan pada halaman
+privat, logika pembayaran, label diagnosis, atau ukuran ruang tulis/A4.
+
+- **Warna:** `LATAR_NONAKTIF`, `LATAR_REVIEW`, `TEKS_REVIEW`, `GARIS_ISIAN`,
+  `GARIS_RESTATE`, `BORDER_CORET`, `LATAR_CORET`, `TEKS_CENTANG`, `TEKS_INVERS`.
+  Token `CETAK_*` terpisah agar perubahan tema layar tidak mengubah tinta kertas.
+  Warna garis tulis SVG data-URI juga berasal dari token sebelum URL-encoding.
+- **Bayangan:** `BAYANGAN_*` menyimpan deklarasi lengkap kartu, menu, nomor,
+  fokus, dan strip simpan. Varian existing tetap berbeda; ekstraksi tidak
+  menyamakan rona/intensitasnya.
+- **Teks:** `UKURAN_TEKS_META` (.75rem), `UKURAN_TEKS_CATATAN` (.8125rem),
+  `UKURAN_TEKS_LABEL` (.875rem), `UKURAN_TEKS_BANTUAN` (.9rem). Skala existing
+  lain belum diseragamkan; ukuran judul bagian dewasa memakai token existing.
+- **Spacing/radius:** gunakan `SP_1..SP_8` pada margin/padding/gap yang persis
+  sama, `RADIUS_KECIL` pada radius 8px. Tidak membulatkan .7rem menjadi .75rem
+  atau mengaitkan tinggi/font dengan spacing hanya karena angkanya sama.
+- **Responsive:** `BATAS_HP` 30rem, `BATAS_KOLOM_BACA` 46rem, `BATAS_TABLET`
+  48rem, `MULAI_DESKTOP` 64rem. Breakpoint khusus komponen tetap lokal.
+  Gunakan interpolasi Python, bukan CSS `var()` dalam kondisi `@media`.
+- **Komponen:** `subscription_style.GAYA_LANGGANAN` dipakai sandbox dan
+  produksi lewat alias `GAYA`; hanya CSS yang dibagikan, bukan service pembayaran.
+  Isi halaman akun memakai kelas `akun-*`, bukan inline style statis.
+  Nilai `AKUN_JARAK_*` scoped mempertahankan layout lama. Progress/ukuran aset
+  dinamis tetap boleh inline.
+
+`test_ui_tokens.py` menyapu definisi CSS untuk mencegah literal warna kembali,
+serta mengganti nilai token di namespace terisolasi untuk membuktikan bahwa
+aturan komponen benar-benar menggunakannya. Test tidak sekadar mencari warna
+rendered yang kebetulan sama. Pergantian nilai desain berikutnya tetap perlu
+render sintetis dan review viewport/cetak yang terdampak.
+
+Belum termasuk: penyatuan konfigurasi pemuatan font (terkait pengecualian
+halaman privat), angka promo di copy landing (kontrak katalog), dan penyamaan
+seluruh skala tipografi/komponen. Nama produk pada heading paket sudah membaca
+`NAMA_PRODUK`, bukan literal terpisah.
 
 ## Mockup reference
 

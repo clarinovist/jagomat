@@ -430,3 +430,63 @@ TEBAL_FOKUS = "2px"
 # Lanjutan skala spacing 4px (SP_1..SP_6 sudah di atas: 4/8/12/16/24/32).
 SP_7 = "3rem"                    # 48px
 SP_8 = "4rem"                    # 64px
+
+# ─────────────────────────────────────────────────────────────────────
+# Pelengkap UI bersama. Ejaan nilai lama dipertahankan agar ekstraksi
+# token tidak mengubah keluaran CSS, ukuran cetak, atau urutan cascade.
+# Nilai khusus satu komponen tidak otomatis menjadi token global.
+# ─────────────────────────────────────────────────────────────────────
+
+# Teks invers versi CSS singkat; TEKS_PUTIH tetap untuk konsumen lama/SVG.
+TEKS_INVERS = "#fff"
+LATAR_NONAKTIF = "#f3f4f6"
+LATAR_REVIEW = "#fff0d6"
+TEKS_REVIEW = "#815600"
+GARIS_ISIAN = "#333"
+GARIS_RESTATE = "#667"
+BORDER_CORET = "#99a"
+LATAR_CORET = "#fafafc"
+TEKS_CENTANG = "#444"
+
+# Cetak sengaja terpisah dari tema layar: tetap hemat tinta.
+CETAK_TINTA = "#000"
+CETAK_TEKS_SEKUNDER = "#333"
+CETAK_GARIS_HALUS = "#666"
+CETAK_GARIS_TULIS = "#c4c4c4"
+CETAK_LATAR_PETUNJUK = "#f7f7f7"
+CETAK_LATAR_TABEL = "#eee"
+
+# Bayangan utuh, bukan warna RGB yang tercecer per stylesheet.
+BAYANGAN_KARTU_GURU = "0 1px 3px rgba(22,33,62,0.04)"
+BAYANGAN_KARTU = "0 4px 6px -1px rgba(0,0,0,0.05)"
+BAYANGAN_KARTU_HOVER = "0 2px 8px rgba(0,106,106,0.12)"
+BAYANGAN_MENU_GURU = "0 8px 24px rgba(0,0,0,.08)"
+BAYANGAN_MENU = "0 8px 24px rgba(0,0,0,.10)"
+BAYANGAN_NOMOR = "0 2px 6px rgba(0,0,0,.18)"
+BAYANGAN_FOKUS_GURU = "0 0 0 2px rgba(15,163,163,0.12)"
+BAYANGAN_FOKUS_RINGAN = "0 0 0 3px rgba(15,163,163,0.12)"
+BAYANGAN_FOKUS = "0 0 0 3px rgba(15,163,163,0.18)"
+BAYANGAN_FOKUS_PILIHAN = "0 0 0 3px rgba(15,163,163,0.20)"
+BAYANGAN_FOKUS_KUAT = "0 0 0 3px rgba(15,163,163,0.28)"
+BAYANGAN_SIMPAN = "0 4px 12px rgba(255,107,91,.25)"
+BAYANGAN_SIMPAN_MURID = "0 4px 12px rgba(255,107,91,.30)"
+
+# Skala teks kecil existing, bukan pembulatan/penyamaan hierarki.
+UKURAN_TEKS_META = ".75rem"
+UKURAN_TEKS_CATATAN = ".8125rem"
+UKURAN_TEKS_LABEL = ".875rem"
+UKURAN_TEKS_BANTUAN = ".9rem"
+
+# Breakpoint dipakai di @media melalui interpolasi Python, bukan var(--…)
+# (CSS custom property tidak berlaku pada kondisi media query).
+BATAS_HP = "30rem"
+BATAS_KOLOM_BACA = "46rem"
+BATAS_TABLET = "48rem"
+MULAI_DESKTOP = "64rem"
+
+# Form akun: nilai lama, scoped; bukan skala spacing global baru.
+AKUN_JARAK_AKSI = ".3rem"
+AKUN_JARAK_FORM = ".4rem"
+AKUN_JARAK_TOMBOL = ".6rem"
+AKUN_JARAK_CATATAN = ".7rem"
+AKUN_JARAK_BLOK = ".8rem"

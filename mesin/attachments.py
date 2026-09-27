@@ -508,32 +508,32 @@ body {{
   line-height: {T.LINE_HEIGHT}; color: {T.TEKS_UTAMA}; margin: 0;
   background: {T.LATAR_MURID};
 }}
-.bungkus {{ max-width: 900px; margin: 0 auto; padding: 1rem 0.9rem 3rem; }}
+.bungkus {{ max-width: 900px; margin: 0 auto; padding: {T.SP_4} 0.9rem {T.SP_7}; }}
 a {{ color: {T.AKSEN_TEAL_TUA}; }}
 h1 {{ font-size: 1.4rem; color: {T.TEKS_JUDUL}; }}
 .jejak {{ font-size: .88rem; margin: 0 0 .8rem; }}
 .jejak a {{ color: {T.TEKS_SUBTLE}; text-decoration: none; }}
 .kartu {{
-  background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS};
-  border-radius: {T.RADIUS_KARTU_BESAR}; padding: 1rem 1.1rem; margin-bottom: 1rem;
+  background: {T.LATAR_KARTU_MURID}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
+  border-radius: {T.RADIUS_KARTU_BESAR}; padding: {T.SP_4} 1.1rem; margin-bottom: {T.SP_4};
 }}
 .kartu-kepala {{ display: flex; align-items: center; gap: .55rem; margin-bottom: .5rem; flex-wrap: wrap; }}
 .nomor {{
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 2.1rem; height: 2.1rem; font-weight: 700; font-size: .95rem;
-  background: {T.AKSEN_TEAL_TUA}; color: #fff; border-radius: {T.RADIUS_BULAT};
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS}; border-radius: {T.RADIUS_BULAT};
 }}
 .tipe {{ color: {T.TEKS_SUBTLE}; font-size: .88rem; flex: 1; }}
 .kunci {{ font-weight: 700; color: {T.KODE_SALAH_BACA_TEKS}; font-size: .88rem; }}
 .tanda {{ color: {T.AKSEN_KORAL_TUA}; font-weight: 700; }}
 label {{ display: block; font-size: .84rem; color: {T.TEKS_SUBTLE}; margin: .4rem 0 .15rem; }}
 input[type=text] {{
-  width: 100%; padding: .5rem .6rem; border: 1px solid {T.BORDER_HALUS};
+  width: 100%; padding: .5rem .6rem; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
   border-radius: {T.RADIUS_KECIL}; font-size: 1rem; font-family: inherit;
 }}
 input[type=text]:focus {{
   outline: none; border-color: {T.AKSEN_MURID_UTAMA};
-  box-shadow: 0 0 0 2px rgba(15,163,163,0.12);
+  box-shadow: {T.BAYANGAN_FOKUS_GURU};
 }}
 .baris {{ display: flex; gap: .8rem; flex-wrap: wrap; }}
 .baris > div {{ flex: 1; min-width: 160px; }}
@@ -541,31 +541,31 @@ input[type=text]:focus {{
 .centang input {{ width: auto; }}
 .foto-lembar {{
   display: block; max-width: 100%; max-height: 70vh; margin: 0 auto;
-  border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL};
 }}
 .pesan {{
-  background: {T.LATAR_TERSIMPAN}; border: 1px solid {T.BORDER_TERSIMPAN};
+  background: {T.LATAR_TERSIMPAN}; border: {T.TEBAL_GARIS} solid {T.BORDER_TERSIMPAN};
   color: {T.TEKS_TERSIMPAN}; border-radius: {T.RADIUS_SEDANG};
-  padding: .7rem .9rem; margin-bottom: 1rem; font-size: .93rem;
+  padding: .7rem .9rem; margin-bottom: {T.SP_4}; font-size: .93rem;
 }}
 .simpan-strip {{
   position: sticky; bottom: 0; padding: .8rem 0 .4rem;
   background: linear-gradient(to top, {T.LATAR_MURID} 70%, transparent);
 }}
 button {{
-  background: {T.AKSEN_TEAL_TUA}; color: #fff; border: 0;
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS}; border: 0;
   border-radius: 9px; padding: .85rem 1.3rem; font-size: 1rem; cursor: pointer; width: 100%;
 }}
 /* Baca ulang = aksi sekunder: jangan menyaingi tombol Terapkan yang
    penuh-lebar teal, tapi tetap target sentuh 44px di HP. */
 .baca-ulang-form {{
   display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
-  margin: 0 0 1rem;
+  margin: 0 0 {T.SP_4};
 }}
 .baca-ulang-form .sub {{ color: {T.TEKS_SUBTLE}; font-size: .84rem; }}
 button.tombol-baca-ulang {{
-  width: auto; min-height: {T.TARGET_SENTUH}; padding: .6rem 1rem;
+  width: auto; min-height: {T.TARGET_SENTUH}; padding: .6rem {T.SP_4};
   background: {T.LATAR_KARTU_MURID}; color: {T.AKSEN_TEAL_TUA};
-  border: 1px solid {T.AKSEN_TEAL_TUA}; font-size: .95rem;
+  border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; font-size: .95rem;
 }}
 """

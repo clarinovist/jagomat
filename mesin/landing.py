@@ -363,7 +363,7 @@ def _harga_landing() -> str:
 <section class="landing-harga-st" id="harga" aria-labelledby="judul-harga">
 <div class="landing-harga-intro-st">
 <div class="landing-bagian-kepala-st">
-<p class="landing-alis-st">RENCANA PAKET JAGOMAT</p>
+<p class="landing-alis-st">RENCANA PAKET {html.escape(T.NAMA_PRODUK.upper())}</p>
 <h2 id="judul-harga">Mulai dengan<br><span>{hari} hari gratis.</span></h2>
 <p>Kenali cara belajar anak. Setelah masa coba, pilih paket yang sesuai kebutuhan.</p>
 </div>

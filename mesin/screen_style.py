@@ -30,10 +30,10 @@ body {{
   font-size: {T.UKURAN_BADAN_LAYAR}; line-height: {T.LINE_HEIGHT}; color: {T.TEKS_UTAMA}; margin: 0;
   background: {T.LATAR_MURID};
 }}
-.wrap {{ max-width: {T.LEBAR_KONTEN}; margin: 0 auto; padding: {T.SP_4} 0.9rem 3rem; }}
+.wrap {{ max-width: {T.LEBAR_KONTEN}; margin: 0 auto; padding: {T.SP_4} 0.9rem {T.SP_7}; }}
 h1 {{
   font-size: 1.35rem; margin: 0.2rem 0 0.9rem; color: {T.TEKS_JUDUL};
-  display: flex; align-items: center; gap: 0.5rem;
+  display: flex; align-items: center; gap: {T.SP_2};
 }}
 /* Header kartu-teal di mockup lembar; hanya dekoratif, tanpa fungsi. */
 .mesin-banner {{
@@ -46,24 +46,24 @@ h1 {{
 .banner-kunci {{ border-color: {T.AKSEN_MURID_KORAL}; }}
 .banner-kunci .nama-app {{ color: {T.AKSEN_KORAL_TUA}; }}
 .kunci-headline {{
-  background: {T.AKSEN_KORAL_TUA}; color: #fff; text-align: center;
+  background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_INVERS}; text-align: center;
   font-weight: 800; font-size: 1.2rem; letter-spacing: 0.04em;
-  border-radius: {T.RADIUS_SEDANG}; padding: 0.6rem 1rem; margin-bottom: 0.8rem;
+  border-radius: {T.RADIUS_SEDANG}; padding: 0.6rem {T.SP_4}; margin-bottom: 0.8rem;
 }}
 .identitas {{
-  background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_SEDANG};
-  padding: 0.8rem 1rem; margin-bottom: 1rem; font-size: 0.95rem;
+  background: {T.LATAR_KARTU_MURID}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_SEDANG};
+  padding: 0.8rem {T.SP_4}; margin-bottom: {T.SP_4}; font-size: 0.95rem;
 }}
 .identitas span {{ display: block; padding: 0.45rem 0; }}
 .garis {{
   display: inline-block; min-width: 9rem; min-height: 1.6em;
-  vertical-align: bottom; border-bottom: 2px solid #333;
+  vertical-align: bottom; border-bottom: 2px solid {T.GARIS_ISIAN};
 }}
 .garis.pendek {{ min-width: 6rem; }}
 
 .petunjuk {{
-  background: {T.LATAR_KARTU_SEKUNDER}; border: 1px solid {T.BORDER_INTERAKTIF}; border-radius: {T.RADIUS_SEDANG};
-  padding: 0.9rem 1rem; margin-bottom: 1.2rem; font-size: 0.95rem;
+  background: {T.LATAR_KARTU_SEKUNDER}; border: {T.TEBAL_GARIS} solid {T.BORDER_INTERAKTIF}; border-radius: {T.RADIUS_SEDANG};
+  padding: 0.9rem {T.SP_4}; margin-bottom: 1.2rem; font-size: 0.95rem;
 }}
 .petunjuk p {{ margin: 0 0 0.6rem; }}
 .petunjuk p:last-child {{ margin-bottom: 0; }}
@@ -74,18 +74,18 @@ h1 {{
   border-bottom: 2px solid {T.TEKS_JUDUL};
 }}
 .catatan-bagian {{
-  background: {T.LATAR_CATATAN}; border: 1px solid {T.BORDER_CATATAN}; border-radius: {T.RADIUS_KECIL};
+  background: {T.LATAR_CATATAN}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius: {T.RADIUS_KECIL};
   padding: 0.55rem 0.8rem; margin: -0.2rem 0 0.8rem; font-size: 0.92rem;
 }}
 
 .soal {{
-  background: {T.LATAR_KARTU_MURID}; border: 1px solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KARTU_BESAR};
-  padding: 1rem; margin-bottom: 1rem;
+  background: {T.LATAR_KARTU_MURID}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KARTU_BESAR};
+  padding: {T.SP_4}; margin-bottom: {T.SP_4};
 }}
 .nomor {{
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 2rem; height: 2rem; font-weight: 700;
-  background: {T.AKSEN_MURID_UTAMA}; color: #fff;
+  background: {T.AKSEN_MURID_UTAMA}; color: {T.TEKS_INVERS};
   border-radius: {T.RADIUS_BULAT}; margin-right: 0.55rem; font-size: 0.95rem;
 }}
 .teks {{ display: inline; }}
@@ -102,30 +102,30 @@ h1 {{
    kertas atau lewat kanvas coret (Fase 4). Garis panduan SVG-tile adalah
    urusan kertas — jangan disalin ke sini. */
 .cara {{
-  border: 1.5px dashed #99a; border-radius: {T.RADIUS_KECIL};
-  min-height: 96px; background: #fafafc;
+  border: 1.5px dashed {T.BORDER_CORET}; border-radius: {T.RADIUS_KECIL};
+  min-height: 96px; background: {T.LATAR_CORET};
 }}
 .cara.kecil  {{ min-height: 96px; }}
 .cara.sedang {{ min-height: 120px; }}
 .cara.besar  {{ min-height: 150px; }}
 
 .restate {{
-  border-bottom: 1.5px solid #667; min-height: 2rem; margin-bottom: 0.3rem;
+  border-bottom: 1.5px solid {T.GARIS_RESTATE}; min-height: 2rem; margin-bottom: 0.3rem;
 }}
 .jawab {{ margin-top: 0.8rem; font-size: 1.02rem; }}
 .isian {{
   display: inline-block; min-width: 5.5rem; min-height: 2.2rem;
-  border-bottom: 2px solid #333; vertical-align: bottom;
+  border-bottom: 2px solid {T.GARIS_ISIAN}; vertical-align: bottom;
 }}
 .isian.lebar {{ min-width: 8rem; }}
 .centang {{
-  margin-top: 0.7rem; font-size: 0.9rem; color: #444;
-  display: flex; align-items: center; gap: 0.5rem;
+  margin-top: 0.7rem; font-size: 0.9rem; color: {T.TEKS_CENTANG};
+  display: flex; align-items: center; gap: {T.SP_2};
   min-height: {T.TARGET_SENTUH}; /* target sentuh */
 }}
 .kotak {{
   display: inline-block; width: 1.35rem; height: 1.35rem; flex: none;
-  border: 2px solid #333; border-radius: 4px;
+  border: 2px solid {T.GARIS_ISIAN}; border-radius: 4px;
 }}
 .bintang {{ font-weight: 700; color: {T.AKSEN_MURID_AMBER}; }}
 .akhir {{
@@ -137,7 +137,7 @@ svg {{ display: block; margin: 0.6rem 0; max-width: 100%; height: auto; }}
 /* ── lembar penilaian (guru) ── */
 .kunci-tabel {{ width: 100%; border-collapse: collapse; margin-top: 0.6rem; }}
 .kunci-tabel th, .kunci-tabel td {{
-  border: 1px solid {T.BORDER_HALUS}; padding: 0.4rem 0.55rem; font-size: 0.9rem;
+  border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; padding: 0.4rem 0.55rem; font-size: 0.9rem;
   text-align: left;
 }}
 .kunci-tabel th {{ background: {T.LATAR_KARTU_SEKUNDER}; }}
@@ -146,10 +146,10 @@ svg {{ display: block; margin: 0.6rem 0; max-width: 100%; height: auto; }}
   font-weight: 700; border: 1.5px solid {T.TEKS_JUDUL}; border-radius: 5px;
   padding: 0.1rem 0.3rem;
 }}
-.kunci-nilai {{ font-size: 1.15rem; font-weight: 700; margin-top: 0.5rem; }}
-.rekap {{ width: 100%; border-collapse: collapse; margin-top: 1rem; }}
+.kunci-nilai {{ font-size: 1.15rem; font-weight: 700; margin-top: {T.SP_2}; }}
+.rekap {{ width: 100%; border-collapse: collapse; margin-top: {T.SP_4}; }}
 .rekap th, .rekap td {{
-  border: 1px solid {T.BORDER_HALUS}; padding: 0.65rem 0.55rem; font-size: 0.95rem;
+  border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; padding: 0.65rem 0.55rem; font-size: 0.95rem;
 }}
 .rekap th {{ background: {T.LATAR_KARTU_SEKUNDER}; }}
 .catatan-guru {{ font-size: 0.9rem; color: {T.TEKS_SUBTLE}; font-style: italic; }}
@@ -163,11 +163,11 @@ svg {{ display: block; margin: 0.6rem 0; max-width: 100%; height: auto; }}
     letter-spacing: -.035em; line-height: 1.25; margin: {T.SP_5} 0;
   }}
   .lembar-editorial .mesin-banner {{
-    background: transparent; border: 0; border-bottom: 1px solid {T.BORDER_VARIAN};
+    background: transparent; border: 0; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
     border-radius: 0; padding: 0 0 {T.SP_3}; flex-wrap: wrap; gap: {T.SP_2};
   }}
   .lembar-editorial .kunci-headline {{
-    background: transparent; color: {T.AKSEN_KORAL_TUA}; border: 1px solid {T.BORDER_VARIAN};
+    background: transparent; color: {T.AKSEN_KORAL_TUA}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
     border-left: 3px solid {T.AKSEN_KORAL_TUA}; border-radius: 0; text-align: left;
     font-size: 1rem; letter-spacing: 0;
   }}
@@ -177,10 +177,10 @@ svg {{ display: block; margin: 0.6rem 0; max-width: 100%; height: auto; }}
   }}
   .lembar-editorial .petunjuk {{
     background: {T.LATAR_CATATAN}; border: 0; border-left: 3px solid {T.BORDER_CATATAN};
-    border-radius: 0; font-size: .9rem;
+    border-radius: 0; font-size: {T.UKURAN_TEKS_BANTUAN};
   }}
   .lembar-editorial .nomor {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; }}
-  .lembar-editorial .bagian {{ color: {T.AKSEN_TEAL_TUA}; border-bottom: 1px solid {T.BORDER_VARIAN}; }}
+  .lembar-editorial .bagian {{ color: {T.AKSEN_TEAL_TUA}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
   .lembar-editorial .soal {{ border-radius: {T.RADIUS_KECIL}; }}
   .lembar-editorial .cara {{ background: {T.LATAR_KARTU}; border-color: {T.BORDER_VARIAN}; }}
   .lembar-editorial .meta-template {{ overflow-wrap: anywhere; }}
@@ -189,7 +189,7 @@ svg {{ display: block; margin: 0.6rem 0; max-width: 100%; height: auto; }}
   .lembar-editorial :is(.kunci-tabel, .rekap) :is(th, td) {{ padding: .4rem .3rem; font-size: .8rem; }}
   .lembar-editorial .kunci-tabel :is(th, td):first-child {{ width: 3rem; }}
   .lembar-editorial .rekap :is(th, td):first-child {{ width: 2.3rem; }}
-  .lembar-editorial .akhir {{ background: transparent; border-top: 1px solid {T.BORDER_VARIAN}; }}
+  .lembar-editorial .akhir {{ background: transparent; border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
 }}
 
 }}
