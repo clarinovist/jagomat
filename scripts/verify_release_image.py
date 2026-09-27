@@ -32,6 +32,9 @@ RECOVERY_ADMIN5 = ("175d8fb2d340c0c56d2f0ace5b6a1145792b8097",
 
 
 RECOVERY_ADMIN6 = ('4c88dc956b33ae6246b6f7b15f54e87e6c8f172a',)
+RECOVERY_TANPA_PAKET = RECOVERY_TANPA_PROFIL + RECOVERY_ADMIN5 + RECOVERY_ADMIN6 + (
+    '781fbcd0aad62a02b311be8b585802cce230b7c1',
+)
 
 
 def kontrak_untuk_revision(revision: str) -> str:
@@ -51,6 +54,8 @@ def ringkasan_untuk_revision(revision: str) -> dict:
         "admin_schema": None if revision in RECOVERY_TANPA_PROFIL else (5 if revision in RECOVERY_ADMIN5 else 6 if revision in RECOVERY_ADMIN6 else 7),
         "admin_launch_checks": 0 if revision in RECOVERY_TANPA_PROFIL + RECOVERY_ADMIN5 + RECOVERY_ADMIN6 else 4,
         "subscription_checks": 0 if revision in RECOVERY_TANPA_PROFIL + RECOVERY_ADMIN5 else 4,
+        "package_checks": 0 if revision in RECOVERY_TANPA_PAKET else 8,
+        "admin_package_schema": None if revision in RECOVERY_TANPA_PAKET else 8,
         "pengiriman_checks": 0 if revision in {
             REVISION_RECOVERY_LEGACY, "33e241c18024190f41ebca1986e35af26c0397fd",
         } else 6,
@@ -388,6 +393,38 @@ def uji_http(akar, database, skema, kontrak_http):
                 pastikan("default-src 'none'" in (respons.getheader('Content-Security-Policy') or ''), 'http_inline_csp_candidate')
             finally:
                 koneksi.close()
+        if kontrak_http == 'candidate-inline-v1':
+            from urllib.parse import urlencode
+            # Fallback form manual sah pada UI panel maupun recovery inline lama.
+            field = dict(inline_host='anak', inline_host_id=str(anak), inline_posisi='latihan',
+                         topik='campuran', jumlah_soal='15', mode='drill',
+                         hadir_timer_mode='1', durasi_menit='47', timer_auto='0')
+            for aksi in ('buka', 'tutup'):
+                koneksi = http.client.HTTPConnection('127.0.0.1', server.server_port, timeout=10)
+                try:
+                    koneksi.request('POST', '/pendamping/inline/' + aksi, body=urlencode(field),
+                        headers={'Cookie':'osn_sesi='+token, 'Content-Type':'application/x-www-form-urlencoded',
+                                 'Origin':'http://127.0.0.1:'+str(server.server_port), 'Sec-Fetch-Site':'same-origin'})
+                    respons=koneksi.getresponse();tubuh=respons.read()
+                    pastikan(respons.status==200 and b'value="15" selected' in tubuh and b'value="47"' in tubuh,
+                             'fallback_draf_hilang')
+                    if aksi=='buka' and b'pendamping-panel-kanan"' in tubuh:
+                        pastikan(b'data-pendamping-host="anak"' in tubuh and
+                                 ('data-pendamping-host-id="'+str(anak)+'"').encode() in tubuh and
+                                 b'data-pendamping-resource="anak"' in tubuh, 'binding_panel_hilang')
+                finally:
+                    koneksi.close()
+            auth.tambah_akun('murid-probe', 'sandi-murid-sintetis', 'murid', auth.BERKAS_SANDI)
+            principal_murid=auth.autentikasi('murid-probe','sandi-murid-sintetis')
+            token_murid=sessions.buat_dari_principal(principal_murid)
+            for jalur in ('/anak/'+str(anak)+'?bantuan=rencana', '/pendamping'):
+                koneksi=http.client.HTTPConnection('127.0.0.1',server.server_port,timeout=10)
+                try:
+                    koneksi.request('GET',jalur,headers={'Cookie':'osn_sesi='+token_murid})
+                    respons=koneksi.getresponse();tubuh=respons.read()
+                    pastikan(respons.status in (303,401,403,404) and b'id="bantuan-rencana"' not in tubuh,
+                             'murid_membaca_pendamping')
+                finally: koneksi.close()
     finally:
         server.shutdown()
         server.server_close()
@@ -524,6 +561,9 @@ def jalankan_probe(akar):
                 subscription_checks = uji_langganan(akar / 'langganan', admin_schema)
             if admin_schema == 7:
                 admin_launch_checks = uji_layanan(akar / 'layanan')
+        package_checks = 0
+        if revision not in REVISION_TANPA_PAKET:
+            package_checks = uji_paket(akar / 'paket')
         pastikan(not panggilan, 'provider_terpanggil')
     finally:
         socket.socket.connect, socket.socket.connect_ex, socket.getaddrinfo = asli_connect, asli_connect_ex, asli_resolve
@@ -531,7 +571,8 @@ def jalankan_probe(akar):
             'skenario_tindakan': 7, 'http_checks': 7, 'provider_calls': 0,
             'http_contract': kontrak_http, 'pengiriman_checks': pengiriman_checks,
             'profil_checks': profil_checks, 'admin_schema': admin_schema,
-            'subscription_checks': subscription_checks, 'admin_launch_checks': admin_launch_checks}
+            'subscription_checks': subscription_checks, 'admin_launch_checks': admin_launch_checks,
+            'package_checks': package_checks, 'admin_package_schema': 8 if package_checks else None}
 
 
 def main():
@@ -566,6 +607,23 @@ _probe_subscription = importlib.util.module_from_spec(_spek_subscription)
 _spek_subscription.loader.exec_module(_probe_subscription)
 SUMBER_PROBE = SUMBER_PROBE.replace(
     '\ndef main():', '\n' + _probe_subscription.SUMBER_UJI_LANGGANAN + '\ndef main():', 1)
+
+
+_spek_paket = importlib.util.spec_from_file_location(
+    'release_package_pair', Path(__file__).with_name('release_package_pair.py'))
+_probe_paket = importlib.util.module_from_spec(_spek_paket)
+_spek_paket.loader.exec_module(_probe_paket)
+SUMBER_PROBE = SUMBER_PROBE.replace(
+    '\ndef main():', '\nREVISION_TANPA_PAKET = ' + repr(RECOVERY_TANPA_PAKET)
+    + '\nPROBE_PAKET = ' + repr((_probe_paket.SUMBER_TULIS, _probe_paket.SUMBER_BACA,
+                                _probe_paket.SUMBER_KEMBALI))
+    + '''
+def uji_paket(akar):
+    akar.mkdir()
+    for sumber in PROBE_PAKET:
+        exec(compile(sumber.replace('/data/', str(akar) + '/'), '<probe-paket>', 'exec'), {})
+    return 8
+''' + '\ndef main():', 1)
 
 
 class GalatVerifikasi(Exception):

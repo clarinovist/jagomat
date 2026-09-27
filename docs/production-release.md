@@ -1,5 +1,37 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Kandidat controlled release panel/admin8 — 27 September 2026
+
+Baseline recovery **`6a18cc745b79d31aa6112270732fbbb5a63cbc27`** mempunyai UI
+sebelum panel samping, dispatcher pembayaran v1/v2 dan fencing final worker.
+Image baseline tersedia dari [CI36288247714](https://github.com/clarinovist/jagomat/actions/runs/36288247714),
+fingerprint `9db53ff1ce3980558e4eb6247996316bdbdd582717efbfc97ab83dc19df66a7e`.
+Source kini mematok baseline ini dalam mode **migrasi**, pasang tetap literal false.
+Digest baseline terdahulu bukan digest recovery rilis: kedua image harus dibangun
+serta diverifikasi bersama pada run final yang sama.
+
+Gate baru `package_pair_checks=8` mencakup kelompok bukti: migrasi admin7→8
+idempoten/preservasi; histori invoice/receipt/grant v1; snapshot paket/kalender v2;
+replay tanpa duplikasi; fencing final worker; intent dilanjutkan recovery tanpa
+charge baru; empat DB/auth/Pendamping4 context-consent-operation; dan pembacaan ulang
+candidate atas write recovery. Probe image wajib `package_checks=8` dan
+`admin_package_schema=8`, selain gate existing. Probe HTTP juga memeriksa fallback
+draf manual/binding panel bila ada dan penolakan murid pada permukaan guru.
+Seluruh state probe sintetis, jaringan provider tidak dipanggil.
+
+Deployer source wajib dapat memigrasikan fixture ke admin8, tetapi readiness
+read-only menerima admin7 utuh atau admin8 dengan metadata paket lengkap; admin7
+parsial bertabel paket ditolak. Marker kini `OSN_IMAGE_ADMIN8_AI2_OK` dan
+`OSN_SCHEMA_ADMIN8_AI2_OK`. Ini bukan instalasi deployer VPS atau aktivasi v2:
+startup biasa tetap7, paket_v2 eksplisit, entitlement/kuota/trial/refund tetap belum aktif.
+
+**Belum deployment.** Manifest mode migrasi tetap `siap_pasang=false` karena flag
+itu eligibility CI rutin. Permintaan operasi yang melarang cutover ketika flag
+false harus diklarifikasi sebelum hold/migrasi/deploy-v2; jangan mengubah makna flag
+atau membuka auto-routine demi melewati syarat. Backup coherent4DB+auth, rehearsal
+exact C→B→C pada turunan, approval teknis/policy/deployer dan health tetap wajib.
+Status CI/live akhir dicatat setelah verifikasi, bukan disimpulkan dari pin source.
+
 ## Target paket v2 — 27 September 2026
 
 **Checkpoint D1:** ledger admin8 opt-in dan dispatcher v1/v2 sudah di source.

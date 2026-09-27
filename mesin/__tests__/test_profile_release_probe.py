@@ -43,19 +43,23 @@ def siap(tmp_path):
     shutil.copy2(data / 'probe-accounts.json', data / 'sandi.json')
     source = tmp_path / 'source'
     source.mkdir()
-    for nama, versi in [('admin_store', 7), ('assistant_schema', 4), ('ai_store', 2)]:
+    for nama, versi in [('admin_store', 7), ('assistant_schema', 4), ('ai_store', 2), ('subscription_package_schema', 8)]:
         (source / (nama + '.py')).write_text('VERSI_SKEMA = %d\nraise RuntimeError("jangan import")\n' % versi)
     return deploy, data, source
 
 
-@pytest.mark.parametrize('rusak', [None, 'admin4', 'admin8', 'source4', 'registry',
+@pytest.mark.parametrize('rusak', [None, 'admin4', 'admin9', 'paket_trigger', 'paket_kolom', 'source4', 'registry',
     'profil', 'receipt', 'konteks', 'kolom', 'trigger', 'admin_hilang', 'belajar_hilang',
     'pilot_tabel', 'pilot_kolom', 'pilot_trigger', 'pilot_sumber'])
 def test_readiness_admin5_memeriksa_metadata_dan_tidak_menulis(siap, rusak, tmp_path):
     deploy, data, source = siap
-    if rusak in ('admin4', 'admin8'):
+    if rusak in ('admin4', 'admin9'):
         with sqlite3.connect(data / 'admin-control.db') as kon:
-            kon.execute('PRAGMA user_version=' + ('4' if rusak == 'admin4' else '8'))
+            kon.execute('PRAGMA user_version=' + ('4' if rusak == 'admin4' else '9'))
+    elif rusak in ('paket_trigger', 'paket_kolom'):
+        with sqlite3.connect(data / 'admin-control.db') as kon:
+            kon.execute('DROP TRIGGER paket_grant_tolak_update' if rusak == 'paket_trigger' else
+                        'ALTER TABLE paket_grant RENAME COLUMN jangkar_mulai TO salah')
     elif rusak == 'source4':
         (source / 'admin_store.py').write_text('VERSI_SKEMA = 4\n')
     elif rusak == 'registry':
@@ -88,10 +92,24 @@ def test_readiness_admin5_memeriksa_metadata_dan_tidak_menulis(siap, rusak, tmp_
     hasil = _python(skrip, tmp_path)
     assert (hasil.returncode == 0) is (rusak is None)
     if rusak is None:
-        assert hasil.stdout.strip() == 'OSN_SCHEMA_ADMIN7_AI2_OK'
+        assert hasil.stdout.strip() == 'OSN_SCHEMA_ADMIN8_AI2_OK'
     else:
-        assert 'OSN_SCHEMA_ADMIN7_AI2_OK' not in hasil.stdout
+        assert 'OSN_SCHEMA_ADMIN8_AI2_OK' not in hasil.stdout
     assert _hash_db(data) == sebelum
+
+
+def test_mutasi_guard_trigger_admin8_merah_lalu_pulih(siap, tmp_path):
+    deploy, data, source = siap
+    with sqlite3.connect(data / 'admin-control.db') as kon:
+        kon.execute('DROP TRIGGER paket_grant_tolak_update')
+    skrip = deploy.PROBE_SKEMA.replace("akar_app = Path('/app')", 'akar_app = Path(' + repr(str(source)) + ')').replace('/data/', str(data) + '/')
+    # Jika guard readiness yang sama hilang, fixture rusak secara keliru lolos.
+    guard = "assert trigger and 'RAISE(ABORT,' in trigger[0]"
+    assert skrip.count(guard) == 2
+    rusak = skrip.rsplit(guard, 1)
+    mutan = rusak[0] + 'pass # mutasi guard paket' + rusak[1]
+    assert _python(mutan, tmp_path).returncode == 0
+    assert _python(skrip, tmp_path).returncode != 0
 
 
 def test_helper_profil_migrasi_receipt_dan_konteks_sintetis(tmp_path):

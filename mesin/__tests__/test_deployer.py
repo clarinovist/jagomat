@@ -135,7 +135,7 @@ class RunnerPalsu:
                 hasil = "b" * 40
         elif a[0] == "run" and "--rm" in a:
             label = "probe-" + self.image_nama(a[a.index("--entrypoint") + 2])
-            hasil = "OSN_IMAGE_ADMIN7_AI2_OK"
+            hasil = "OSN_IMAGE_ADMIN8_AI2_OK"
             if kwargs["input"] == d.PROBE_KONTRAK:
                 label = "contract-" + self.image_nama(a[a.index("--entrypoint") + 2])
                 hasil = "f" * 64
@@ -177,7 +177,7 @@ class RunnerPalsu:
                     self.exists = False
         elif a[0] == "exec":
             label = "schema-" + self.current
-            hasil = "OSN_SCHEMA_ADMIN7_AI2_OK"
+            hasil = "OSN_SCHEMA_ADMIN8_AI2_OK"
         else:
             raise AssertionError("argv tak dikenal")
         self.jejak.append(label)
@@ -673,6 +673,7 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
     ai_schema = tmp_path / "ai_store.py"
     ai_schema.write_text("VERSI_SKEMA = 2\nraise RuntimeError('jangan import')\n")
     (tmp_path / 'admin_store.py').write_text("VERSI_SKEMA = 7\nraise RuntimeError('jangan import')\n")
+    (tmp_path / 'subscription_package_schema.py').write_text("VERSI_SKEMA = 8\nraise RuntimeError('jangan import')\n")
     privat = tmp_path / "pendamping.db"
     belajar = tmp_path / "latihan.db"
     ai = tmp_path / "ai-control.db"
@@ -728,7 +729,7 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
     assert hasil.returncode == expected
     assert (privat.read_bytes(), belajar.read_bytes(), ai.read_bytes()) == sebelum
     if expected == 0:
-        assert hasil.stdout.strip() == "OSN_SCHEMA_ADMIN7_AI2_OK"
+        assert hasil.stdout.strip() == "OSN_SCHEMA_ADMIN8_AI2_OK"
     else:
         assert "AssertionError" in hasil.stderr
     assert "mode=ro" in d.PROBE_SKEMA and "query_only = ON" in d.PROBE_SKEMA
@@ -944,7 +945,7 @@ def test_probe_image_synthetic_subprocess_python_saja(tmp_path):
                            cwd=tmp_path, capture_output=True, text=True,
                            timeout=30, check=False, shell=False)
     assert hasil.returncode == 0, hasil.stderr
-    assert hasil.stdout.strip() == "OSN_IMAGE_ADMIN7_AI2_OK"
+    assert hasil.stdout.strip() == "OSN_IMAGE_ADMIN8_AI2_OK"
     assert (tmp_path / "latihan.db").exists()
     assert (tmp_path / "pendamping.db").exists()
     assert (tmp_path / "ai-control.db").exists()
@@ -969,7 +970,7 @@ def test_probe_image_menolak_kontrak_admin_rusak(tmp_path, fault):
     hasil = subprocess.run([sys.executable, '-B', '-'], input=script, cwd=tmp_path,
                            capture_output=True, text=True, timeout=30)
     assert hasil.returncode != 0
-    assert 'OSN_IMAGE_ADMIN7_AI2_OK' not in hasil.stdout
+    assert 'OSN_IMAGE_ADMIN8_AI2_OK' not in hasil.stdout
 
 
 def test_health_db_hilang_tidak_dibuat(tmp_path):

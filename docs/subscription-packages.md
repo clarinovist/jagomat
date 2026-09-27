@@ -41,8 +41,9 @@ izin mengubah invoice/grant lama atau mengaktifkan kampanye tanpa tanggal.
 - Rilis admin8 belum diizinkan oleh probe/recovery admin7 yang terpasang. Perlu baseline
   recovery baru, probe/pair admin8 dan rehearsal exact sebelum migrasi produksi;
   mode persiapan/build-only dipakai untuk menyiapkan baseline baru setelah gate
-  kompatibilitas menolak D1 terhadap recovery7. Mismatch tidak disamarkan dan pin
-  historis tidak diganti sebelum baseline berikutnya teruji.
+  kompatibilitas menolak D1 terhadap recovery7. Baseline6a18cc7 kini dipatok dalam
+  mode migrasi dengan probe admin8/pair C→B→C; pasang tetap literal false.
+  Pin/probe source bukan bukti deployment atau aktivasi paket; lihat runbook rilis.
 
 Katalog kode v2 menjadi sumber angka bagi penawaran baru dan rendering.
 Ledger v1 tetap memakai [kontrak historis](subscription-foundation.md). Aturan yang

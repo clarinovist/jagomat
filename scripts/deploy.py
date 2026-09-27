@@ -133,7 +133,7 @@ finally:
 kon = sqlite3.connect('file:/data/admin-control.db?mode=ro', uri=True, timeout=2)
 try:
     kon.execute('PRAGMA query_only = ON')
-    assert kon.execute('PRAGMA user_version').fetchone()[0] == 7
+    assert kon.execute('PRAGMA user_version').fetchone()[0] in (7, 8)
     for tabel, kolom in {
         'operasi_admin': {'operasi_id','actor_id','aksi','jenis_target','target_id','revisi_target',
                          'sidik_perintah','status','hasil_kode','revisi_hasil'},
@@ -243,6 +243,7 @@ def versi_source(nama):
 assert versi_source('assistant_schema.py') == [4]
 assert versi_source('ai_store.py') == [2]
 assert versi_source('admin_store.py') == [7]
+assert versi_source('subscription_package_schema.py') == [8]
 for nama, tabel in [('pendamping.db', 'tinjauan_usulan'), ('latihan.db', 'eksekusi_pendamping'),
                     ('latihan.db', 'operasi_admin_siswa')]:
     kon = sqlite3.connect('file:/data/' + nama + '?mode=ro', uri=True, timeout=2)
@@ -262,12 +263,13 @@ try:
 finally:
     kon.close()
 for nama, versi, tabel in (
-    ('admin-control.db',7,('konfigurasi_pendaftaran','operasi_admin','receipt_admin','batch_admin','batch_admin_item','kelompok_admin','kelompok_admin_item','penyerahan_admin','penyerahan_admin_item')),
+    ('admin-control.db',(7,8),('konfigurasi_pendaftaran','operasi_admin','receipt_admin','batch_admin','batch_admin_item','kelompok_admin','kelompok_admin_item','penyerahan_admin','penyerahan_admin_item')),
     ('transient/admin-drafts.db',2,('draft_bulk','item_bulk','kelompok_bulk')),
 ):
     kon = sqlite3.connect('file:/data/' + nama + '?mode=ro', uri=True, timeout=2)
     try:
-        assert kon.execute('PRAGMA user_version').fetchone()[0] == versi
+        aktual = kon.execute('PRAGMA user_version').fetchone()[0]
+        assert aktual in versi if isinstance(versi, tuple) else aktual == versi
         for nama_tabel in tabel:
             assert kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (nama_tabel,)).fetchone()
     finally:
@@ -306,8 +308,42 @@ try:
 finally:
     kon.close()
 '''
-PROBE_IMAGE += PROBE_LAYANAN_SKEMA + "\nprint('OSN_IMAGE_ADMIN7_AI2_OK')\n"
-PROBE_SKEMA += PROBE_LAYANAN_SKEMA + "\nprint('OSN_SCHEMA_ADMIN7_AI2_OK')\n"
+# Admin8 opt-in: image wajib mampu upgrade, runtime7 tetap sah tanpa aktivasi v2.
+# Readiness tidak import modul/migrator: validasi metadata tabel dan trigger.
+PROBE_PAKET_SKEMA = '''
+kon = sqlite3.connect('file:/data/admin-control.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only=ON')
+    versi_db = kon.execute('PRAGMA user_version').fetchone()[0]
+    assert versi_db in (7, 8)
+    if versi_db == 8:
+        wajib = {
+            'paket_akun': {'akun_id','operasi_id','versi','mulai','peserta_promo','kampanye'},
+            'paket_invoice': {'invoice_id','akun_id','urutan','versi','paket','penagihan','profil_json','promo','rupiah','normal','balasan','foto','idempotency_key','kedaluwarsa'},
+            'paket_receipt': {'provider','transaksi_id','invoice_id','akun_id','rupiah','diterima','hasil'},
+            'paket_grant': {'invoice_id','akun_id','urutan','provider','transaksi_id','mulai','akhir','jangkar_mulai','indeks_bulan'},
+            'paket_rekonsiliasi': {'operasi_id','invoice_id','status','diamati','rujukan'},
+        }
+        for tabel,kolom in wajib.items():
+            assert kolom <= {r[1] for r in kon.execute('PRAGMA table_info('+tabel+')')}
+            for aksi in ('update','delete','replace'):
+                trigger = kon.execute("SELECT sql FROM sqlite_master WHERE type='trigger' AND name=?", (tabel+'_tolak_'+aksi,)).fetchone()
+                assert trigger and 'RAISE(ABORT,' in trigger[0]
+    else:
+        assert not kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name GLOB 'paket_*'").fetchone()
+finally:
+    kon.close()
+'''
+PROBE_IMAGE += '''
+import subscription_package_schema
+assert subscription_package_schema.VERSI_SKEMA == 8
+for _ in range(2):
+    admin_store.siapkan(Path('/data/admin-control.db'), sekarang=1, paket_v2=True)
+    admin_store.siapkan(Path('/data/admin-control.db'), sekarang=1)
+with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+    assert kon.execute('PRAGMA user_version').fetchone()[0] == 8
+''' + PROBE_LAYANAN_SKEMA + PROBE_PAKET_SKEMA + "\nprint('OSN_IMAGE_ADMIN8_AI2_OK')\n"
+PROBE_SKEMA += PROBE_LAYANAN_SKEMA + PROBE_PAKET_SKEMA + "\nprint('OSN_SCHEMA_ADMIN8_AI2_OK')\n"
 
 PROBE_KONTRAK = '''import hashlib
 import json
@@ -655,7 +691,7 @@ class Docker:
             ["image", "inspect", "--format", "{{json .RepoDigests}}", image]))
         if not isinstance(daftar, list) or image not in daftar:
             raise Ditolak()
-        if self._probe(image, PROBE_IMAGE) != "OSN_IMAGE_ADMIN7_AI2_OK":
+        if self._probe(image, PROBE_IMAGE) != "OSN_IMAGE_ADMIN8_AI2_OK":
             raise Ditolak()
         return identitas
 
@@ -738,7 +774,7 @@ class Docker:
         return self._panggil(
             ["exec", "-i", KONTAINER, "python", "-E", "-B", "-"],
             batas=10, masukan=PROBE_SKEMA,
-        ) == "OSN_SCHEMA_ADMIN7_AI2_OK"
+        ) == "OSN_SCHEMA_ADMIN8_AI2_OK"
 
 
 class _TanpaRedirect(urllib.request.HTTPRedirectHandler):

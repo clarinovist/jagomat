@@ -16,6 +16,8 @@ from release_admin_pair import SUMBER_TULIS as ADMIN_TULIS, SUMBER_BACA as ADMIN
 from release_subscription_probe import SUMBER_UJI_LANGGANAN
 from release_subscription_pair import SUMBER_TULIS as LANGGANAN_TULIS, SUMBER_BACA as LANGGANAN_BACA
 from release_subscription_service_pair import SUMBER_TULIS as SERVICE_TULIS, SUMBER_BACA as SERVICE_BACA
+from release_package_pair import (SUMBER_TULIS as PAKET_TULIS, SUMBER_BACA as PAKET_BACA,
+                                  SUMBER_KEMBALI as PAKET_KEMBALI)
 
 TULIS_PILOT = 'FOKUS_TULIS = ' + repr(FOKUS_TULIS) + '\nPROBE_PROFIL = ' + repr(SUMBER_UJI_PROFIL) + '\nADMIN_TULIS = ' + repr(ADMIN_TULIS) + '\n' + TULIS_PILOT
 BACA_PILOT = 'FOKUS_BACA = ' + repr(FOKUS_BACA) + '\nADMIN_BACA = ' + repr(ADMIN_BACA) + '\n' + BACA_PILOT
@@ -209,6 +211,13 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             raise GalatVerifikasi('probe_penulis_pilot_gagal')
         if _jalankan(recovery_image, volume, BACA_PILOT, token, 4) != 'OSN_LEARNING_RECOVERY_OK':
             raise GalatVerifikasi('probe_pemulihan_pilot_gagal')
+        for nomor, image, sumber, marker in (
+            (5, candidate_image, PAKET_TULIS, 'OSN_PACKAGE_WRITER_OK'),
+            (6, recovery_image, PAKET_BACA, 'OSN_PACKAGE_RECOVERY_OK'),
+            (7, candidate_image, PAKET_KEMBALI, 'OSN_PACKAGE_RETURN_OK'),
+        ):
+            if _jalankan(image, volume, sumber, token, nomor) != marker:
+                raise GalatVerifikasi('probe_paket_admin8_gagal')
     finally:
         pemilik = _panggil(['volume', 'inspect', '--format', '{{index .Labels "' + LABEL + '"}}', volume])
         if pemilik != token:
@@ -219,6 +228,7 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'recovery_revision': recovery_revision,
             'recovery_digest': recovery_image.split('@')[1], 'pengiriman_pair_checks': 6,
             'pilihan_pair_checks': 8, 'learning_pair_checks': 8, 'subscription_pair_checks': 4, 'admin_launch_pair_checks': 4,
+            'package_pair_checks': 8,
             'provider_calls': 0}
 
 
