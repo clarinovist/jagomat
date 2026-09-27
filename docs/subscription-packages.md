@@ -16,7 +16,19 @@ izin mengubah invoice/grant lama atau mengaktifkan kampanye tanpa tanggal.
 | Refund tahunan 7 hari | Kebijakan baru, belum alur aplikasi |
 | Pembukaan kampanye promo v2 | Tanggal dan mekanisme eligibility belum ditetapkan |
 
-Katalog kode v2 harus menjadi sumber angka bagi penawaran baru dan rendering.
+### Checkpoint eksekusi awal
+
+- `mesin/subscription_packages.py`: katalog v2 immutable, kalkulasi harga/profil,
+  kalender WIB, jendela kuota dan status jendela refund **murni** sudah tersedia di
+  source. Tidak memberi grant, memotong kuota, atau mengirim refund.
+- Landing memakai katalog yang sama untuk dua kartu Jago/Jago Pro, pilihan
+  bulanan/tahunan radio native HTML/CSS, total tahunan dan harga setelah promo.
+  Status penawaran belum dibuka tetap terlihat. Tidak ada JS/dependency baru.
+- `subscription.py` dan ledger/checkout v1 tetap utuh. Snapshot v2, enforcement
+  paket/kuota, transisi akun, request/pemenuhan refund serta aktivasi belum dikerjakan
+  pada checkpoint ini. Pemasangan produksi tidak diklaim oleh keberadaan source.
+
+Katalog kode v2 menjadi sumber angka bagi penawaran baru dan rendering.
 Ledger v1 tetap memakai [kontrak historis](subscription-foundation.md). Aturan yang
 dibekukan pada invoice/grant tidak mengikuti perubahan katalog di kemudian hari.
 Status rilis exact ada di [runbook produksi](production-release.md).

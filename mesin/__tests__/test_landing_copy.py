@@ -5,7 +5,7 @@ import re
 import pytest
 
 from landing import halaman_landing
-from subscription import DURASI_TRIAL, DURASI_KAMPANYE, harga
+import subscription_packages as paket
 
 
 class _TeksPublik(HTMLParser):
@@ -49,7 +49,7 @@ def test_tidak_merekrut_pilot_atau_menjanjikan_checkout(publik):
                  "coba gratis sekarang", "qris sudah tersedia"):
         assert lama not in teks
     assert "penawaran belum dibuka" in teks
-    assert "tanggal pembukaan belum diumumkan" in teks
+    assert "tanggal pembukaan dan ketentuan peserta promo belum diumumkan" in teks
     assert "pendaftaran saat ini belum mengaktifkan masa coba atau promo" in teks
     assert "tidak memicu pembayaran" in teks
 
@@ -59,49 +59,56 @@ def test_penawaran_hero_tidak_menjanjikan_aktivasi_saat_daftar():
     hero = sumber.split('<div class="landing-hero-teks-st">', 1)[1].split('</div>', 1)[0]
     teks = _teks(_TeksPublik(hero)).lower()
     assert "rencana penawaran: coba gratis 30 hari" in teks
-    assert "mulai rp15.000/bulan untuk 1 profil anak" in teks
+    assert "mulai rp25.000/bulan untuk 1 profil anak" in teks
     assert "3 periode berbayar pertama bagi peserta promo" in teks
     assert "penawaran belum dibuka; pendaftaran belum mengaktifkan masa coba atau promo" in teks
 
 
 def test_rincian_harga_konsisten_dengan_domain():
     sumber = halaman_landing().decode()
-    kartu = re.findall(
-        r'<section class="landing-kartu-st landing-harga-kartu-st">(.*?)</section>',
-        sumber, re.S,
-    )
-    assert len(kartu) == 3
-    for jumlah, isi in enumerate(kartu, start=1):
+    kartu = re.findall(r'<section class="landing-paket-kartu-st[^\"]*" data-paket="([^\"]+)">(.*?)</section>', sumber, re.S)
+    assert len(kartu) == 4
+    for (kode, isi), periode in zip(kartu, ("bulanan", "bulanan", "tahunan", "tahunan")):
         teks = _teks(_TeksPublik(isi))
-        assert f"{jumlah} profil anak" in teks
-        for label, periode in (("Promo", 0), ("Normal", 3)):
-            nominal = harga(jumlah, peserta_promo=True, periode_dibayar=periode)
-            rupiah = f"Rp{nominal:,}".replace(",", ".")
-            assert f"{label} / bulan {rupiah}" in teks
+        p = paket.ambil_paket(kode)
+        harga = paket.penawaran(kode, periode, 1, peserta_promo=True, periode_dibayar=0)
+        assert p.nama in teks and "1 profil anak termasuk" in teks
+        for nominal in (harga.rupiah, harga.normal):
+            assert f"Rp{nominal:,}".replace(",", ".") in teks
+        assert "Lalu " + f"Rp{harga.normal:,}".replace(",", ".") in teks
+        if periode == "tahunan":
+            assert "Dibayar sekaligus di muka" in teks and "Tahun pertama bagi peserta promo" in teks
+        else:
+            assert "3 periode berbayar pertama bagi peserta promo" in teks
+        if kode == "jago_pro":
+            assert "50 balasan Pendamping AI" in teks and "5 pembacaan foto" in teks
+        else:
+            assert "Tanpa Pendamping AI dan pembacaan foto" in teks
 
 
 def test_durasi_dan_syarat_promo_tidak_menyesatkan(publik):
     teks = _teks(publik).lower()
-    assert f"coba gratis {DURASI_TRIAL // (24 * 60 * 60)} hari" in teks
-    assert f"kampanye {DURASI_KAMPANYE // (7 * 24 * 60 * 60)} minggu sejak pembukaan" in teks
+    assert f"coba gratis {paket.DURASI_COBA // 86400} hari" in teks
     for ketentuan in (
-        "100 akun publik baru pertama yang memenuhi syarat",
-        "3 periode yang dibayar , bukan 3 bulan sejak daftar",
-        "jeda berlangganan tidak mengulang jatah promo",
-        "akun lama tidak otomatis mendapat promo",
-        "tanpa promo, harga normal berlaku setelah masa coba",
-        "total untuk jumlah profil anak yang tercakup",
-        "bukan harga per anak", "termasuk pajak bila berlaku",
+        "satu kali untuk semua member", "bukan paket gratis permanen",
+        "10 balasan ai + 2 pembacaan foto selama 30 hari",
+        "3 periode yang dibayar, bukan 3 bulan sejak daftar",
+        "tahun berbayar pertama", "bukan diskon yang ditumpuk",
+        "tanpa promo, berlaku tarif normal", "termasuk pajak bila berlaku",
+        "kuota ai tidak dikalikan jumlah anak", "rp10.000/bulan", "rp100.000/tahun",
+        "dalam 7 × 24 jam sejak pembayaran berhasil", "nominal yang dibayar",
+        "bukan janji waktu dana kembali", "tidak otomatis ditagih",
     ):
         assert ketentuan in teks
+    assert "100 akun publik" not in teks and "8 minggu" not in teks
 
 
 def test_faq_biaya_sesuai_harga_dan_status_penawaran():
     sumber = halaman_landing().decode()
     faq = sumber.split('<summary>Bagaimana dengan biaya?</summary>', 1)[1].split('</details>', 1)[0]
     teks = _teks(_TeksPublik(faq)).lower()
-    for frasa in ("coba gratis 30 hari", "3 periode berbayar pertama bagi peserta promo",
-                  "rp15.000/bulan", "rp35.000/bulan", "penawaran belum dibuka",
+    for frasa in ("coba gratis 30 hari untuk semua member", "jago atau jago pro",
+                  "rp25.000/bulan bagi peserta promo", "bulanan atau tahunan", "penawaran belum dibuka",
                   "belum mengaktifkan masa coba atau promo", "tidak memicu pembayaran"):
         assert frasa in teks
     assert 'href="#harga"' in faq

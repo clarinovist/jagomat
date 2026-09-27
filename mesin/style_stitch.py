@@ -1919,44 +1919,78 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .landing-pilot-st .landing-contoh-judul-st {{ color: {T.TEKS_PUTIH}; font-size: 3rem; margin: 0; }}
 .landing-pilot-st .landing-contoh-sub-st {{ color: {T.TEKS_PUTIH}; align-self: center; }}
 
-/* Harga informatif: bukan checkout atau aktivasi penawaran. */
+/* Paket v2: pilihan periode radio native, tanpa JS/checkout. */
 .landing-harga-st {{ margin-bottom: 5rem; }}
+.landing-harga-intro-st {{ display: grid; gap: {T.SP_5}; align-items: center; }}
+.landing-harga-intro-st h2 span {{ color: {T.AKSEN_TEAL_TUA}; }}
+.landing-coba-st {{
+  display: flex; align-items: center; gap: {T.SP_4}; padding: {T.SP_5};
+  border-radius: {T.RADIUS_KARTU}; background: {T.KODE_BELUM_LIAT_BG};
+}}
+.landing-coba-st img {{ flex: none; width: 5rem; height: 5rem; }}
+.landing-coba-st h3 {{ font-family: {T.FONT_HEADLINE}; font-size: 1.15rem; margin: 0 0 {T.SP_2}; color: {T.AKSEN_TEAL_TUA}; }}
+.landing-coba-st p {{ font-size: .85rem; line-height: 1.7; margin: 0; color: {T.TEKS_JUDUL}; }}
 .landing-harga-status-st {{
-  padding: {T.SP_4} {T.SP_5}; border: 1px solid {T.BORDER_CATATAN};
-  background: {T.LATAR_CATATAN}; border-radius: {T.RADIUS_KARTU};
-  font-size: .9rem; line-height: 1.7; color: {T.TEKS_JUDUL}; margin: 0 0 {T.SP_6};
+  border-left: 3px solid {T.AKSEN_MURID_AMBER}; padding: {T.SP_3} {T.SP_4};
+  color: {T.TEKS_VARIAN}; font-size: .85rem; line-height: 1.7; margin: {T.SP_5} 0;
 }}
-.landing-harga-alur-st {{
-  list-style: none; padding: 0; margin: 0 0 {T.SP_6}; display: grid; gap: {T.SP_5};
+.landing-harga-pilih-st {{
+  position: relative; min-width: 0; padding: {T.SP_5}; margin: 0;
+  border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU};
+  background: {T.KODE_BELUM_LIAT_BG};
 }}
-.landing-harga-alur-st li {{ display: flex; gap: {T.SP_3}; min-width: 0; }}
-.landing-harga-alur-st .landing-nomor-st {{ flex: none; padding-top: .2rem; }}
-.landing-harga-alur-st h3, .landing-harga-syarat-st h3, .landing-harga-pilihan-st {{
-  font-family: {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL};
-  font-size: 1rem; line-height: 1.5; margin: 0 0 {T.SP_2};
+.landing-harga-pilih-st legend {{
+  font-family: {T.FONT_HEADLINE}; font-weight: 700; color: {T.AKSEN_TEAL_TUA};
+  padding: 0 {T.SP_2}; font-size: .85rem;
 }}
-.landing-harga-alur-st p, .landing-harga-keterangan-st, .landing-harga-syarat-st {{
-  font-size: .85rem; line-height: 1.8; color: {T.TEKS_VARIAN};
+.landing-periode-radio-st {{
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
 }}
-.landing-harga-alur-st p {{ margin: 0; }}
-.landing-harga-kartu-st {{ border-top: 3px solid {T.AKSEN_TEAL_TUA}; }}
-.landing-harga-kartu-st dl {{ margin: 0; }}
-.landing-harga-kartu-st dt {{ font-size: .8rem; color: {T.TEKS_VARIAN}; }}
-.landing-harga-kartu-st dd {{
-  margin: {T.SP_1} 0 0; color: {T.TEKS_JUDUL}; font-weight: 700;
-  font-variant-numeric: tabular-nums; font-size: 1.25rem;
+.landing-periode-label-st {{
+  display: inline-flex; gap: {T.SP_2}; align-items: center; justify-content: center;
+  min-height: {T.TARGET_SENTUH}; margin: 0 {T.SP_1} {T.SP_5} 0; padding: {T.SP_2} {T.SP_4};
+  border: 2px solid transparent; border-radius: {T.RADIUS_PIL};
+  font: 700 .85rem {T.FONT_HEADLINE}; color: {T.AKSEN_TEAL_TUA}; cursor: pointer;
 }}
-.landing-harga-kartu-st .landing-harga-nominal-st {{
-  font-family: {T.FONT_HEADLINE}; font-size: 2rem; line-height: 1.3;
-  letter-spacing: -.04em; color: {T.AKSEN_TEAL_TUA}; margin-bottom: {T.SP_5};
+.landing-periode-label-st span {{ font-size: .65rem; font-weight: 600; }}
+.landing-periode-radio-st:checked + .landing-periode-label-st {{
+  color: {T.TEKS_PUTIH}; background: {T.AKSEN_TEAL_TUA}; border-color: {T.TEKS_JUDUL};
 }}
-.landing-harga-pilihan-st {{
-  border-top: 1px solid {T.BORDER_CATATAN}; padding-top: {T.SP_6}; margin-bottom: {T.SP_5};
+.landing-periode-radio-st:focus-visible + .landing-periode-label-st {{
+  outline: 3px solid {T.AKSEN_KORAL_TUA}; outline-offset: 3px;
 }}
-.landing-harga-batas-st {{ margin: 0; color: {T.TEKS_VARIAN}; font-size: .8rem; line-height: 1.7; }}
-.landing-harga-keterangan-st {{ margin: {T.SP_4} 0 {T.SP_5}; }}
-.landing-harga-syarat-st {{ border-top: 1px solid {T.BORDER_CATATAN}; padding-top: {T.SP_5}; }}
-.landing-harga-syarat-st ul {{ margin: 0; padding-left: {T.SP_5}; }}
+.landing-paket-panel-st {{ display: none; grid-template-columns: minmax(0, 1fr); gap: {T.SP_5}; }}
+.landing-periode-radio-st[id="harga-bulanan"]:checked ~ .landing-paket-bulanan-st,
+.landing-periode-radio-st[id="harga-tahunan"]:checked ~ .landing-paket-tahunan-st {{ display: grid; }}
+.landing-paket-kartu-st {{
+  min-width: 0; padding: {T.SP_6}; background: {T.LATAR_KARTU};
+  border: 1px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU};
+}}
+.landing-paket-pro-st {{ border-top: 4px solid {T.AKSEN_KORAL_TUA}; }}
+.landing-paket-kartu-st .landing-alis-st {{ margin: 0 0 {T.SP_3}; }}
+.landing-paket-kartu-st h3 {{ font: 800 1.75rem {T.FONT_HEADLINE}; margin: 0 0 {T.SP_2}; color: {T.TEKS_JUDUL}; }}
+.landing-paket-sub-st {{ font-size: .85rem; color: {T.TEKS_VARIAN}; margin: 0 0 {T.SP_5}; }}
+.landing-paket-normal-st {{ margin: 0 0 {T.SP_1}; font-size: .85rem; color: {T.TEKS_VARIAN}; }}
+.landing-paket-harga-st {{
+  margin: 0; font: 800 clamp(2rem, 4vw, 2.75rem) {T.FONT_HEADLINE};
+  color: {T.AKSEN_TEAL_TUA}; letter-spacing: -.045em; font-variant-numeric: tabular-nums;
+}}
+.landing-paket-harga-st span {{ font-size: .85rem; letter-spacing: 0; font-weight: 600; color: {T.TEKS_VARIAN}; }}
+.landing-paket-setara-st {{ margin: {T.SP_2} 0 0; font-size: .8rem; color: {T.TEKS_VARIAN}; }}
+.landing-paket-periode-st {{ font-size: .82rem; line-height: 1.7; color: {T.TEKS_VARIAN}; margin: {T.SP_3} 0 {T.SP_5}; }}
+.landing-paket-fitur-st {{
+  border-top: 1px solid {T.BORDER_HALUS}; margin: 0; padding: {T.SP_5} 0 0 {T.SP_4};
+  font-size: .85rem; line-height: 1.7; color: {T.TEKS_JUDUL};
+}}
+.landing-paket-fitur-st li + li {{ margin-top: {T.SP_3}; }}
+.landing-paket-kuota-st {{ font-size: .75rem; line-height: 1.7; color: {T.TEKS_VARIAN}; margin: {T.SP_4} 0 0; }}
+.landing-tahunan-catatan-st {{ grid-column: 1 / -1; color: {T.TEKS_JUDUL}; font-size: .85rem; line-height: 1.7; margin: 0; }}
+.landing-harga-keterangan-st, .landing-harga-syarat-st {{ font-size: .85rem; line-height: 1.8; color: {T.TEKS_VARIAN}; }}
+.landing-harga-keterangan-st {{ margin: {T.SP_5} 0 {T.SP_4}; }}
+.landing-harga-syarat-st {{ border-top: 1px solid {T.BORDER_CATATAN}; }}
+.landing-harga-syarat-st summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; cursor: pointer; }}
+.landing-harga-syarat-st ul {{ margin: {T.SP_3} 0; padding-left: {T.SP_5}; }}
 .landing-harga-syarat-st li + li {{ margin-top: {T.SP_2}; }}
 
 /* FAQ bawaan browser: panah buka/tutup hanya dekorasi. */
@@ -1994,7 +2028,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   .landing-kompetisi-st {{ grid-column: 1 / -1; }}
   .landing-pilot-st, .landing-faq-st {{ grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 3rem; }}
   .landing-pilot-st {{ padding: 3rem; }}
-  .landing-harga-alur-st {{ grid-template-columns: repeat(3, minmax(0, 1fr)); }}
+  .landing-harga-intro-st, .landing-paket-panel-st {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
 }}
 @media (max-width: 40rem) {{
   .landing-bungkus-st {{ padding: 0 {T.SP_4} 3rem; }}
@@ -2014,6 +2048,11 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   .landing-kenali-st, .landing-contoh-st {{ padding-top: 3.5rem; }}
   .landing-pilot-st {{ margin: 3.5rem 0; padding: {T.SP_5}; }}
   .landing-harga-st {{ margin-bottom: 3.5rem; }}
+  .landing-harga-pilih-st {{ padding: {T.SP_3}; }}
+  .landing-paket-kartu-st {{ padding: {T.SP_5}; }}
+  .landing-periode-label-st {{ padding: {T.SP_2} {T.SP_3}; font-size: .8rem; }}
+  .landing-coba-st {{ padding: {T.SP_4}; align-items: flex-start; }}
+  .landing-coba-st img {{ width: 3.5rem; height: 3.5rem; }}
 }}
 /* Halaman hasil murid (/murid/hasil/<id>) — anak melihat letak salahnya.
    Warna status memakai palet murid yang sudah ada; tidak ada token baru. */

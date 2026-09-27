@@ -611,7 +611,8 @@ def test_halaman_publik_dan_guru_pakai_pose_baru(server, jalur, pose, kred):
     kode, isi, _ = server.minta(jalur, auth=kred)
     assert kode == 200
     gambar = re.findall(r'src="(/aset/maskot-[^"]+)"', isi)
-    assert gambar == [f"/aset/maskot-{pose}-v3-240.png"]
+    jumlah = 2 if jalur == "/" and kred is None else 1
+    assert gambar == [f"/aset/maskot-{pose}-v3-240.png"] * jumlah
     assert "/aset/mark-" in isi or "/aset/lockup-" in isi
 
 

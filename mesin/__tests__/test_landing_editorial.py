@@ -100,13 +100,22 @@ def test_maskot_lokal_dekoratif_berukuran_tetap(markup):
 
 def test_faq_native_dan_tidak_ada_skrip_baru(markup):
     sumber = halaman_landing().decode()
-    assert len(markup.cari("details")) == len(markup.cari("summary")) == 6
+    assert len(markup.cari("details")) == len(markup.cari("summary")) == 7
     assert re.findall(r"<script>(.*?)</script>", sumber, re.S) == [
         SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA,
     ]
     assert not any(nama.startswith("on") for _, atribut in markup.elemen for nama in atribut)
     assert not markup.cari("button")
-    assert not markup.cari("input")
+    radio = markup.cari("input")
+    assert len(radio) == 2
+    assert all(r.get("type") == "radio" and r.get("name") == "periode-harga" for r in radio)
+    assert {r["id"] for r in radio} == {"harga-bulanan", "harga-tahunan"}
+    assert [r["id"] for r in radio if "checked" in r] == ["harga-bulanan"]
+    assert {l["for"] for l in markup.cari("label")} == {r["id"] for r in radio}
+    assert len(markup.cari("fieldset")) == len(markup.cari("legend")) == 1
+    assert ':checked ~ .landing-paket-bulanan-st' in GAYA_STITCH
+    assert ':checked ~ .landing-paket-tahunan-st' in GAYA_STITCH
+    assert '.landing-periode-radio-st:focus-visible + .landing-periode-label-st' in GAYA_STITCH
 
 
 def test_aksi_daftar_dan_masuk_tetap_tunggal(markup):

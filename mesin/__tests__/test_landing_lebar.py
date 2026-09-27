@@ -167,7 +167,8 @@ def test_landing_tanpa_kontrol_mati():
     tombol yang tidak bisa ditekan = bug."""
     h = _html()
     assert "<button" not in h
-    assert "<input" not in h
+    # Dua radio native memilih periode via CSS; bukan tombol checkout palsu.
+    assert h.count('type="radio"') == h.count('<input') == 2
 
 
 def test_landing_tanpa_cdn_tailwind():
