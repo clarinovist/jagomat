@@ -29,6 +29,14 @@ tetap menjadi histori, bukan backlog aktif atau bukti kelulusan.
 
 ## Acuan teknis dan historis
 
+- [Paket Jago dan Jago Pro v2](subscription-packages.md): keputusan aktif harga
+  normal/promo bulanan/tahunan, trial30hari, cakupan profil, kuotaAI dan refundtahunan7hari;
+  implementasi/aktivasi terpisah dari persetujuan produk.
+- [Fondasi langganan v1](subscription-foundation.md): kontrak ledger historis yang
+  tetap dilestarikan saat penawaran v2 diterapkan.
+- [Pembayaran produksi](pembayaran-produksi.md): runtime, checkout, rekonsiliasi,
+  keputusan operasional dan riwayat aktivasi.
+
 - [Siklus belajar terpandu](siklus-belajar-terpandu.md): kontrak alur belajar,
   bukti terkonfirmasi, fokus, intervensi, evaluasi, dan checkpoint.
 - [Ringkasan perkembangan berbasis bukti](ringkasan-perkembangan.md): baseline

@@ -1,4 +1,10 @@
-# Runtime produksi pembayaran (source siap, belum aktif)
+# Runtime produksi pembayaran — kontrak dan riwayat aktivasi
+
+> **Perubahan produk 27 September 2026:** [paket Jago/Jago Pro v2](subscription-packages.md)
+> menetapkan harga normal/promo bulanan/tahunan, trial universal30hari, kuota AI dan
+> garansi refund tahunan7hari. Ini keputusan untuk implementasi baru, bukan perubahan
+> otomatis checkout/ledger v1 atau aktivasi kampanye. Snapshot pembukaan di bawah
+> bersifat historis; baca pembaruan bertanggal dan verifikasi live sebelum operasi.
 
 Lanjutan [fondasi langganan](subscription-foundation.md) untuk tiga hal yang tertunda:
 runtime produksi eksplisit, callback durable, dan rekonsiliasi terjadwal. Source dan tes
@@ -207,9 +213,12 @@ disarankan tetap `nonaktif` sampai keputusan di bawah diambil.
 Diputuskan lewat sesi aktivasi (ringkasan lengkap: `docs/plan/2026-09-26-aktivasi-pembayaran.md`,
 lokal). Diaktifkan di kode pada commit aktivasi; kenaikan tahap Admin tetap gerbang terpisah.
 
-1. **D8 — refund/partial/chargeback**: manual & proporsional — admin menyesuaikan/mencabut
-   akses lewat panel (bukan otomatis); promo tidak direfund otomatis; refund maksimum sebesar
-   nilai bayar aktual; penutupan kasus dicatat di jurnal admin.
+1. **D8 — refund/partial/chargeback v1 dan insiden khusus**: manual & proporsional —
+   admin menyesuaikan/mencabut akses lewat panel (bukan otomatis); promo tidak direfund
+   otomatis; refund maksimum sebesar nilai bayar aktual; penutupan kasus dicatat di
+   jurnal admin. Untuk pembatalan biasa invoice tahunan **v2**, keputusan baru adalah
+   [pengajuan refund penuh dalam7hari](subscription-packages.md#6-tahunan-pengembalian-dana-7-hari),
+   bukan prorata. Alur v2 belum terintegrasi; eligibility bukan bukti dana sudah kembali.
 2. **D8 — pembayaran terlambat/lebih dan pembayaran kedua**: ketat, sesuai perilaku sekarang —
    grant hanya dari settlement tervalidasi dalam horizon 7 hari dengan nominal persis sama;
    terlambat di luar horizon/nominal beda/pembayaran kedua → `perlu_diperiksa` tanpa grant,

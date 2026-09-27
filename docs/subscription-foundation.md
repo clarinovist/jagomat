@@ -1,4 +1,10 @@
-# Fondasi langganan (belum aktif)
+# Fondasi langganan v1 — kontrak dan riwayat implementasi
+
+> **Keputusan baru 27 September 2026:** penawaran baru beralih ke
+> [Jago/Jago Pro, bulanan/tahunan](subscription-packages.md). Tarif perprofil di bawah
+> tetap kontrak ledger v1, bukan tarif penjualan v2. Jangan mengganti angka v1 yang
+> dibekukan pada invoice/grant. Status sandbox/belum aktif berikut adalah snapshot
+> fase fondasi; runtime berikutnya ada di [pembayaran produksi](pembayaran-produksi.md).
 
 Implementasi ini **bukan pembayaran/paywall live**. Tidak ada perubahan landing,
 checkout, callback publik, countdown, enrollment/backfill akun nyata, atau gate
@@ -86,7 +92,7 @@ dan tanpa aktivasi.
   Transport kontrak menerima `allow_redirects=False`, timeout dan bounded read;
   respons HTTP non200, URL berubah, JSON duplikat/besar/rusak tidak memberikan bukti.
 
-## Ledger dan keputusan tetap
+## Ledger dan keputusan v1 yang tetap berlaku untuk histori
 
 Tabel terpisah: aturan/tarif, kampanye, enrollment, cakupan, invoice, receipt,
 grant dan pengamatan rekonsiliasi. Tidak memakai audit_admin, kejadian_belajar atau

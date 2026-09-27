@@ -118,6 +118,20 @@ Acuan provider: [thinking mode](https://api-docs.deepseek.com/guides/thinking_mo
 dan [tarif](https://api-docs.deepseek.com/quick_start/pricing), diakses 15 September
 2026. Sampel kecil ini tidak membuktikan seluruh percakapan bebas truncation.
 
+## Target kuota paket — keputusan 27 September 2026
+
+[Paket Jago/Jago Pro v2](subscription-packages.md#4-pembeda-fitur-dan-kuota)
+menetapkan trial10balasan+2foto total, Jago tanpa Pendamping/fotoAI, dan
+Pro50balasan+5foto per bulan layanan bersama seluruh profil. Tahunan tetap diisi
+ulang per bulan, bukan12kali sekaligus. Ini **belum enforcement paket** pada runtime
+existing: pagu biaya/limit request AI bukan pengganti kuota pelanggan.
+
+Integrasi harus mempertahankan persetujuan, kepemilikan, operasi durable dan
+penanganan unknown/replay. Kuota dicadangkan atomik sebelum jaringan, hasil sukses
+hanya sekali mengonsumsi jatah; unknown tidak membolehkan panggilan baru sampai
+rekonsiliasi. Habis kuota AI tidak mematikan fitur belajar inti. AI tambahan tidak
+boleh melewati pagu provider/global atau membuka kembali pengembangan yang dibatalkan.
+
 ## Isi memori
 
 Koreksi manual dan draft model menggunakan validator isi yang sama. Memori

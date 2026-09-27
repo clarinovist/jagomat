@@ -1,6 +1,14 @@
 # Panel layanan dan KPI — kandidat admin7
 
-Status: implementasi kandidat; bukan bukti deployment atau pengaktifan pembayaran/analitik.
+Status bagian berikut: snapshot implementasi kandidat admin7; bukan bukti deployment
+atau pengaktifan pembayaran/analitik.
+
+**Target baru 27 September 2026:** panel layanan akan mengikuti
+[paket Jago/Jago Pro v2](subscription-packages.md). Perlu menampilkan versi kontrak,
+paket, periode, promo terpakai, trial, kuota AI bersama, nominal/tanggal invoice dan
+permintaan refund tahunan7hari secara terpisah. Panel v1 tidak boleh menafsirkan
+invoice lama dengan harga baru. Refund harus melalui bukti/jurnal dan pencabutan hak
+invoice terkait, bukan tombol 'lunas' atau edit ledger. Belum diklaim terintegrasi.
 
 ## Empat bagian
 

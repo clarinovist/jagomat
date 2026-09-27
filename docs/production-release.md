@@ -1,5 +1,21 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Target paket v2 — 27 September 2026
+
+[Kontrak Jago/Jago Pro](subscription-packages.md) disetujui untuk penawaran baru.
+Katalog/domain dan landing rencana tidak mengaktifkan checkout, trial, promo atau
+kuota v2. Ledger v1 dan invoice/grant lama harus tetap identik; pengubahan tarif v1
+in-place bukan migrasi yang sah. Penawaran baru memerlukan snapshot paket/periode,
+kuota, refund7hari dan transisi eksplisit sebelum aktivasi.
+
+Jika persistensi berubah: bekukan baseline recovery yang dapat membaca/menulis
+kedua versi, verifikasi validator/backup/probe/pair pada exact image, baru ubah pin
+melalui perubahan rilis terpisah yang direview. Jangan memasang schema baru dengan
+recovery781fbcd yang hanya memahami v1. Mode migrasi/pasang literalfalse tidak diubah
+oleh persetujuan harga; backup coherent4DB+auth, rehearsal idempoten/FK, preflight dan
+approvalexact tetap wajib. Tanggal kampanye dan operasi transisi akun lama bukan
+side effect dari landing atau migrasi schema.
+
 ## Integrasi terisolasi langganan — 24 September 2026
 
 Baseline service `4c88dc956b33ae6246b6f7b15f54e87e6c8f172a` lulus
