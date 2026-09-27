@@ -40,7 +40,9 @@ izin mengubah invoice/grant lama atau mengaktifkan kampanye tanpa tanggal.
   Service D1 diuji sintetis; tidak mengklaim checkout pengguna v2 siap.
 - Rilis admin8 belum diizinkan oleh probe/recovery admin7 yang terpasang. Perlu baseline
   recovery baru, probe/pair admin8 dan rehearsal exact sebelum migrasi produksi;
-  tidak mengubah pin/gate rilis hanya karena source D1 sudah tersedia.
+  mode persiapan/build-only dipakai untuk menyiapkan baseline baru setelah gate
+  kompatibilitas menolak D1 terhadap recovery7. Mismatch tidak disamarkan dan pin
+  historis tidak diganti sebelum baseline berikutnya teruji.
 
 Katalog kode v2 menjadi sumber angka bagi penawaran baru dan rendering.
 Ledger v1 tetap memakai [kontrak historis](subscription-foundation.md). Aturan yang

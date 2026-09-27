@@ -2,6 +2,15 @@
 
 ## Target paket v2 — 27 September 2026
 
+**Checkpoint D1:** ledger admin8 opt-in dan dispatcher v1/v2 sudah di source.
+CI `36284376723` pada `8f6fba7` menolak kontrak kandidat `9db53ff1ce3980558e4eb6247996316bdbdd582717efbfc97ab83dc19df66a7e`
+yang berbeda dari recovery admin7 `36b6ac95c83d177e8385167dc983ae5bf34ec051289cb61dd02742e199521891`.
+Mode source dipindahkan ke **persiapan (build-only)** untuk menyiapkan baseline
+recovery berikutnya. Pin recovery admin7 tetap anchor historis; mismatch harus
+terlihat, `pair_verified=false` dan `siap_pasang=false`. Semua suite kandidat/recovery
+serta build/probe tetap wajib; bukan izin memasang admin8 dengan recovery7.
+Job `pasang` tetap literal false. Tidak ada migrasi/deploy produksi pada checkpoint.
+
 [Kontrak Jago/Jago Pro](subscription-packages.md) disetujui untuk penawaran baru.
 Katalog/domain dan landing rencana tidak mengaktifkan checkout, trial, promo atau
 kuota v2. Ledger v1 dan invoice/grant lama harus tetap identik; pengubahan tarif v1
@@ -11,8 +20,8 @@ kuota, refund7hari dan transisi eksplisit sebelum aktivasi.
 Jika persistensi berubah: bekukan baseline recovery yang dapat membaca/menulis
 kedua versi, verifikasi validator/backup/probe/pair pada exact image, baru ubah pin
 melalui perubahan rilis terpisah yang direview. Jangan memasang schema baru dengan
-recovery781fbcd yang hanya memahami v1. Mode migrasi/pasang literalfalse tidak diubah
-oleh persetujuan harga; backup coherent4DB+auth, rehearsal idempoten/FK, preflight dan
+recovery781fbcd yang hanya memahami v1. Persiapan tidak memenuhi gate rilis migrasi;
+backup coherent4DB+auth, rehearsal idempoten/FK, preflight dan
 approvalexact tetap wajib. Tanggal kampanye dan operasi transisi akun lama bukan
 side effect dari landing atau migrasi schema.
 

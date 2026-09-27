@@ -70,10 +70,15 @@ KASUS = [
     ('subscription_produksi.py', '    if hasil is None:\n        return False',
      '    if False:\n        return False', PRODUKSI, 'test_tanpa_berkas_rahasia_fail_closed',
      'is False'),
+    # Pemeriksaan awal tetap ada, tetapi invariant terakhir berada di fencing
+    # DB→auth→ledger. Mutasi harus melewati jalur akhir yang dipanggil regression.
     ('subscription_worker.py',
-     'if inv_baru is None or sidik_baru is None or sidik_baru != sidik:', 'if False:', PEKERJA,
-     'test_owner_berubah_selama_jaringan_tidak_grant',
-     'assert ringkas["dilewati"] == 1 and jumlah(k, "langganan_receipt") == 0'),
+     'ledger = _terapkan_terjaga(path_admin, path_auth, path_db, akun_id, invoice_id,\n'
+     '                                   sidik, hasil.bukti, sekarang, sakelar)',
+     'ledger = store.terapkan_pembayaran(path_admin, akun_id, hasil.bukti, sekarang=sekarang, sakelar=sakelar)',
+     'test_subscription_package_store.py',
+     'test_worker_fencing_setelah_snapshot_menolak_owner_baru',
+     "assert hasil['dilewati']==1"),
     ('subscription_worker.py',
      '"WHERE r.invoice_id=i.invoice_id AND substr(r.operasi_id,1,7)=\'create_\') "',
      '"WHERE r.invoice_id=i.invoice_id) "', PEKERJA,

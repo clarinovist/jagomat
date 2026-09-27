@@ -79,8 +79,6 @@ KASUS = [
      "test_subscription_package_store.py::test_duplikat_sumber_v2_menahan_pembayaran_v1", "DID NOT RAISE"),
     ("paket_immutable", "subscription_package_schema.py", "BEGIN SELECT RAISE(ABORT, 'ledger paket immutable'); END;", "BEGIN SELECT 1; END;",
      "test_subscription_package_store.py::test_immutable_snapshot_sql[update-paket_invoice]", "DID NOT RAISE"),
-    ("paket_worker_fencing", "subscription_worker.py", 'ledger = _terapkan_terjaga(path_admin, path_auth, path_db, akun_id, invoice_id,\n                                   sidik, hasil.bukti, sekarang, sakelar)', 'ledger = store.terapkan_pembayaran(path_admin, akun_id, hasil.bukti, sekarang=sekarang, sakelar=sakelar)',
-     "test_subscription_package_store.py::test_worker_fencing_setelah_snapshot_menolak_owner_baru", "AssertionError"),
     ("paket_optin", "admin_store.py", 'if paket_v2 and kon.execute("PRAGMA user_version").fetchone()[0] == 7:', 'if kon.execute("PRAGMA user_version").fetchone()[0] == 7:',
      "test_subscription_package_store.py::test_migrasi_opt_in_idempoten_preservasi_v1", "DID NOT RAISE"),
     ("receipt", "subscription_store.py", "if lama is not None:\n            if (lama[\"invoice_id\"]", "if False:\n            if (lama[\"invoice_id\"]",
