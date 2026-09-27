@@ -152,7 +152,11 @@ def test_css_studio_scoped_responsif_dan_fallback_kontrol_manual():
     responsif = sumber.split("/* Studio kembali satu kolom", 1)[1].split(
         "@media (max-width: 40rem)", 1
     )[0]
-    assert "@media (max-width: 48rem)" in responsif
+    assert "@media (max-width: {T.BATAS_TABLET})" in responsif
+    responsif_rendered = style_stitch.GAYA_STITCH.split("/* Studio kembali satu kolom", 1)[1].split(
+        "@media (max-width: 40rem)", 1
+    )[0]
+    assert "@media (max-width: 48rem)" in responsif_rendered
     assert ".profil-editorial-st .studio-pendamping-st {{ display: contents; }}" in responsif
     assert ".profil-editorial-st .isi-alur-rencana-st .strip-rencana-st {{ grid-template-columns: minmax(0, 1fr); }}" in responsif
     assert '[data-panel=\"baru\"] > .strip-sesi' in blok
