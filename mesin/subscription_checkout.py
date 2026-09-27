@@ -12,6 +12,11 @@ def ringkasan(path_admin, path_auth, path_db, principal, *, sakelar=d.SAKELAR):
     """GET tidak enrollment; snapshot ledger dibaca setelah principal hidup."""
     sakelar.wajib("fondasi")
     with layanan._keluarga(path_db, path_auth, principal) as (kon, akun, _):
+        # UI v1 belum merender paket/periode/kuota: jangan tampilkan status lama.
+        with admin_store.buka_baca(path_admin) as billing:
+            if store.paket_schema.tersedia(billing) and billing.execute(
+                    "SELECT 1 FROM paket_akun WHERE akun_id=?", (akun["id_akun"],)).fetchone():
+                raise d.FiturNonaktif("permukaan paket v2 belum diaktifkan")
         snapshot = store.baca(path_admin, akun["id_akun"])
         profil = tuple((r[0], r[1]) for r in kon.execute(
             "SELECT id,nama FROM siswa WHERE pemilik=? ORDER BY id", (akun["pengguna"],)))
@@ -24,13 +29,17 @@ def ringkasan(path_admin, path_auth, path_db, principal, *, sakelar=d.SAKELAR):
         return snapshot, profil, invoice
 
 
-def baca_tagihan(path_admin, path_auth, path_db, principal, invoice_id, *, sakelar=d.SAKELAR):
+def baca_tagihan(path_admin, path_auth, path_db, principal, invoice_id, *, sakelar=d.SAKELAR,
+                 paket_v2=False):
     sakelar.wajib("fondasi")
     with layanan._keluarga(path_db, path_auth, principal) as (kon, akun, _):
         inv = layanan._invoice_terjaga(path_admin, kon, akun, invoice_id)
+        if inv["versi"] != d.VERSI_ATURAN and paket_v2 is not True:
+            raise d.FiturNonaktif("permukaan paket v2 belum diaktifkan")
         with admin_store.buka_baca(path_admin) as billing:
+            tabel = store.tabel_invoice(billing, invoice_id, "rekonsiliasi")
             inv["create_dicoba"] = bool(billing.execute(
-                "SELECT 1 FROM langganan_rekonsiliasi WHERE operasi_id=? AND invoice_id=?",
+                "SELECT 1 FROM " + tabel + " WHERE operasi_id=? AND invoice_id=?",
                 ("create_" + invoice_id[4:], invoice_id)).fetchone())
         return inv
 

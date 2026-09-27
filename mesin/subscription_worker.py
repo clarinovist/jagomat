@@ -60,20 +60,24 @@ def kandidat(path_admin, *, sekarang, batas=BATAS_BAWAAN, jeda=JEDA_BAWAAN,
     d.waktu(sekarang)
     hasil = []
     with admin_store.buka_baca(path_admin) as kon:
-        baris = kon.execute(
-            "SELECT i.invoice_id, i.akun_id, i.kedaluwarsa FROM langganan_invoice AS i "
-            "WHERE EXISTS (SELECT 1 FROM langganan_rekonsiliasi AS r "
-            "              WHERE r.invoice_id = i.invoice_id AND substr(r.operasi_id, 1, 7) = 'create_') "
-            "  AND NOT EXISTS (SELECT 1 FROM langganan_receipt AS c "
-            "                  WHERE c.invoice_id = i.invoice_id) "
-            "ORDER BY i.dibuat DESC, i.invoice_id DESC LIMIT ?", (_PERCOBAAN_MAKS,)).fetchall()
+        bagian = []
+        for tabel in store.daftar_tabel_invoice(kon):
+            prefiks = tabel[:-8]  # Nama tabel dari allow-list dispatcher, bukan input pengguna.
+            bagian.append(
+                "SELECT i.invoice_id, i.akun_id, i.kedaluwarsa, i.dibuat FROM " + tabel + " AS i "
+                "WHERE EXISTS (SELECT 1 FROM " + prefiks + "_rekonsiliasi AS r "
+                "WHERE r.invoice_id=i.invoice_id AND substr(r.operasi_id,1,7)='create_') "
+                "AND NOT EXISTS (SELECT 1 FROM " + prefiks + "_receipt AS c WHERE c.invoice_id=i.invoice_id)")
+        baris = kon.execute("SELECT invoice_id,akun_id,kedaluwarsa FROM (" + " UNION ALL ".join(bagian) +
+                            ") ORDER BY dibuat DESC,invoice_id DESC LIMIT ?", (_PERCOBAAN_MAKS,)).fetchall()
         for invoice_id, akun_id, kedaluwarsa in baris:
             if len(hasil) >= batas:
                 break
             if kedaluwarsa < sekarang - horizon:
                 continue
+            tabel = store.tabel_invoice(kon, invoice_id, "rekonsiliasi")
             terakhir = kon.execute(
-                "SELECT MAX(diamati) FROM langganan_rekonsiliasi "
+                "SELECT MAX(diamati) FROM " + tabel + " "
                 "WHERE invoice_id = ? AND substr(operasi_id, 1, 4) = 'qry_'",
                 (invoice_id,)).fetchone()[0]
             if terakhir is not None and terakhir > sekarang - jeda:
@@ -118,8 +122,8 @@ def _satu(path_admin, path_auth, path_db, invoice_id, akun_id, *, config, transp
         # Hasil ledger yang menentukan: settlement terlambat/receipt sudah ada tetap
         # perlu_diperiksa — kebijakan D8 (keputusan 26 Sep 2026) = tanpa grant
         # otomatis; koreksi (grant manual/refund) dilakukan admin lewat panel.
-        ledger = store.terapkan_pembayaran(path_admin, akun_id, hasil.bukti, sekarang=sekarang,
-                                           sakelar=sakelar)
+        ledger = _terapkan_terjaga(path_admin, path_auth, path_db, akun_id, invoice_id,
+                                   sidik, hasil.bukti, sekarang, sakelar)
         if ledger == "grant":
             _catat(path_admin, akun_id, invoice_id, "settlement", sekarang, sakelar)
             return "lunas"
@@ -130,6 +134,25 @@ def _satu(path_admin, path_auth, path_db, invoice_id, akun_id, *, config, transp
         return "perlu_diperiksa"
     _catat(path_admin, akun_id, invoice_id, "belum_terverifikasi", sekarang, sakelar)
     return "menunggu"
+
+
+def _terapkan_terjaga(path_admin, path_auth, path_db, akun_id, invoice_id, sidik, bukti, sekarang, sakelar):
+    """Fencing final DB→auth→ledger, bukan celah antara snapshot dan grant."""
+    import subscription_service as layanan
+    from json_storage import transaksi_json
+    with admin_registration.kunci_database_pemilik(path_db) as kon:
+        with transaksi_json(path_auth):
+            # muat_akun menormalisasi bentuk legacy read-only; jangan menulis ulang
+            # credential atau mengubah identitas akun saat rekonsiliasi.
+            hidup = next((a for a in auth.muat_akun(path_auth) if a.get("id_akun") == akun_id), None)
+            if hidup is None or hidup.get("peran") != "guru":
+                raise LookupError("resource tidak ditemukan")
+            inv = layanan._invoice_terjaga(path_admin, kon, hidup, invoice_id)
+            profil = tuple((i, hidup["pengguna"]) for i in json.loads(inv["profil_json"]))
+            baru = (auth.revisi_auth(hidup), profil, inv["rupiah"], inv["merchant"], inv["status"], inv["kedaluwarsa"])
+            if baru != sidik:
+                raise LookupError("resource tidak ditemukan")
+            return store.terapkan_pembayaran(path_admin, akun_id, bukti, sekarang=sekarang, sakelar=sakelar)
 
 
 def _catat(path_admin, akun_id, invoice_id, status, sekarang, sakelar):

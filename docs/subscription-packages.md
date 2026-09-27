@@ -24,9 +24,23 @@ izin mengubah invoice/grant lama atau mengaktifkan kampanye tanpa tanggal.
 - Landing memakai katalog yang sama untuk dua kartu Jago/Jago Pro, pilihan
   bulanan/tahunan radio native HTML/CSS, total tahunan dan harga setelah promo.
   Status penawaran belum dibuka tetap terlihat. Tidak ada JS/dependency baru.
-- `subscription.py` dan ledger/checkout v1 tetap utuh. Snapshot v2, enforcement
-  paket/kuota, transisi akun, request/pemenuhan refund serta aktivasi belum dikerjakan
-  pada checkpoint ini. Pemasangan produksi tidak diklaim oleh keberadaan source.
+- `subscription.py` dan tarif/snapshot v1 tetap utuh. Checkpoint D1 menyediakan
+  `subscription_package_schema.py` + `subscription_package_store.py`: migrasi admin8
+  **opt-in eksplisit** lewat `admin_store.siapkan(paket_v2=True)`, adopsi akun yang
+  telah enrolled (tanpa reset trial), snapshot paket/periode/cakupan/nominal/kuota,
+  receipt dan grant atomik, serta validasi linkage/kalender dan preservasi backup.
+  Startup biasa tetap admin7; pembaca memahami7/8 dan menolak struktur rusak.
+- `subscription_service.siapkan_paket` memvalidasi principal/pemilik; query/create
+  provider, callback dan worker memakai dispatcher invoice v1/v2. Duplikasi sumber
+  transaksi lintas versi ditolak, replay tidak menambah grant, unknown/terlambat tetap
+  untuk pemeriksaan. Pemilihan promo tidak diwarisi dari kampanye v1.
+- HTTP pemilih paket, tampilan detail admin v2, enforcement paket/kuota, transisi akun
+  nyata, request/pemenuhan refund dan aktivasi **belum tersedia**. Permukaan lama
+  ditahan untuk akun/invoice v2 agar tidak menampilkan status/fitur v1 yang keliru.
+  Service D1 diuji sintetis; tidak mengklaim checkout pengguna v2 siap.
+- Rilis admin8 belum diizinkan oleh probe/recovery admin7 yang terpasang. Perlu baseline
+  recovery baru, probe/pair admin8 dan rehearsal exact sebelum migrasi produksi;
+  tidak mengubah pin/gate rilis hanya karena source D1 sudah tersedia.
 
 Katalog kode v2 menjadi sumber angka bagi penawaran baru dan rendering.
 Ledger v1 tetap memakai [kontrak historis](subscription-foundation.md). Aturan yang
@@ -154,9 +168,13 @@ memperpanjang. Berlaku juga untuk pembayaran perpanjangan tahunan.
 
 **Jangan mengganti `subscription.harga()` atau CHECK tarif v1 dengan angka v2.**
 Snapshot v1 harus tetap terbaca, dapat direkonsiliasi/refund, dan cocok dengan backup.
-Paket/periode/versi tarif/promo/cakupan/nominal/tanggal grant baru harus dibekukan
-bersama invoice, bukan diambil dari pilihan browser saat settlement atau dari katalog
-terbaru ketika membaca histori.
+Paket/periode/versi tarif/promo/cakupan/nominal/kuota dibekukan bersama invoice,
+bukan diambil dari pilihan browser saat settlement atau katalog terbaru ketika
+membaca histori. Jadwal aktual grant dibekukan saat settlement tervalidasi: mulai
+maksimum dari waktu penerimaan terverifikasi, akhir trial, atau akhir grant sebelumnya.
+Invoice menyimpan aturan periode; receipt/grant menyimpan jangkar asli serta indeks
+bulan sehingga pembayaran awal, jeda, bulan pendek dan tahun kabisat tetap konsisten.
+Timestamp penerimaan ini bukan pengganti timestamp settlement provider untuk refund.
 
 Mekanisme v2 terhubung baru setelah migrasi aditif melalui lifecycle admin existing,
 reader/validator/backup/recovery mengenali kedua versi, serta uji pair exact lulus.

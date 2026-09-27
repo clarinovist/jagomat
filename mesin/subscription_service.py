@@ -131,6 +131,20 @@ def buat_invoice(path_admin, path_auth, path_db, principal, *, invoice_id, idemp
                                  merchant=merchant, sekarang=sekarang, kedaluwarsa=kedaluwarsa, sakelar=sakelar)
 
 
+def siapkan_paket(path_admin, path_auth, path_db, principal, profil, *, kode, penagihan,
+                  invoice_id, operasi_id, merchant, sekarang, kedaluwarsa, sakelar=d.SAKELAR):
+    """Quote paket v2 untuk akun yang sudah diadopsi eksplisit; tidak autoenroll."""
+    import subscription_package_store as paket
+    sakelar.wajib("fondasi")
+    sakelar.wajib("buat_pembayaran")
+    with _keluarga(path_db, path_auth, principal) as (kon, akun, _):
+        return paket.buat_invoice(
+            path_admin, akun["id_akun"], profil, kode=kode, penagihan=penagihan,
+            invoice_id=invoice_id, idempotency_key=operasi_id, provider="midtrans",
+            merchant=merchant, sekarang=sekarang, kedaluwarsa=kedaluwarsa,
+            pemilik_profil=_pemilik(kon, akun), sakelar=sakelar)
+
+
 def _invoice_terjaga(path_admin, kon, akun, invoice_id):
     inv = store.baca_invoice(path_admin, akun["id_akun"], invoice_id)
     resolve = _pemilik(kon, akun)
@@ -196,9 +210,11 @@ def buat_ulang_qr(path_admin, path_auth, path_db, principal, invoice_id, *, conf
         if sekarang >= inv["kedaluwarsa"]:
             raise ValueError("quote tidak aktif")
         with admin_store.buka_baca(path_admin) as billing:
-            receipt = billing.execute("SELECT 1 FROM langganan_receipt WHERE invoice_id=?",
+            receipt_tabel = store.tabel_invoice(billing, invoice_id, "receipt")
+            amati_tabel = store.tabel_invoice(billing, invoice_id, "rekonsiliasi")
+            receipt = billing.execute("SELECT 1 FROM " + receipt_tabel + " WHERE invoice_id=?",
                                       (invoice_id,)).fetchone()
-            intent = billing.execute("SELECT 1 FROM langganan_rekonsiliasi WHERE operasi_id=?",
+            intent = billing.execute("SELECT 1 FROM " + amati_tabel + " WHERE operasi_id=?",
                                      ("create_" + invoice_id[4:],)).fetchone()
     if receipt is not None or intent is None:
         raise store.KonflikLangganan("invoice tidak dapat dibuat ulang")

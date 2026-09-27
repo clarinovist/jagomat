@@ -128,6 +128,9 @@ def detail(path,path_auth,principal,akun_id,*,sekarang):
     with admin_store.buka_baca(path) as kon:
         kon.execute('BEGIN')
         e=store._enrollment(kon,akun_id)
+        if store.paket_schema.tersedia(kon) and kon.execute(
+                'SELECT 1 FROM paket_akun WHERE akun_id=?', (akun_id,)).fetchone():
+            raise d.FiturNonaktif('permukaan admin paket v2 belum diaktifkan')
         store.validasi_ledger(kon,akun_id=akun_id)
         grants=store._grants(kon,akun_id)
         akses=d.akses(e,grants,sekarang=sekarang)
@@ -190,7 +193,8 @@ def _periksa_terkunci(path,path_auth,path_db,principal,*,akun_id,invoice_id,targ
             if inv['merchant']!=runtime.config.merchant or sekarang<inv['dibuat']:
                 raise ValueError('konfigurasi pembayaran berbeda')
             with admin_store._transaksi(path) as kon:
-                if not kon.execute('SELECT 1 FROM langganan_rekonsiliasi WHERE operasi_id=?',('create_'+invoice_id[4:],)).fetchone():
+                tabel = store.tabel_invoice(kon, invoice_id, 'rekonsiliasi')
+                if not kon.execute('SELECT 1 FROM ' + tabel + ' WHERE operasi_id=?',('create_'+invoice_id[4:],)).fetchone():
                     raise ValueError('belum ada intent pembayaran')
                 aktif = kon.execute("SELECT COUNT(*) FROM layanan_operasi WHERE aksi='periksa_pembayaran' AND dibuat>? AND operasi_id!=?", (sekarang-60,operasi)).fetchone()[0]
                 if aktif >= 10:

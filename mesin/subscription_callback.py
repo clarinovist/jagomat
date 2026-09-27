@@ -159,7 +159,8 @@ def _sidik(data):
 def _simpan(path_admin, invoice_id, status, sidik, sekarang, sakelar):
     """Hint untuk invoice existing; order asing tidak membuat apa pun."""
     with admin_store.buka_baca(path_admin) as kon:
-        baris = kon.execute("SELECT akun_id FROM langganan_invoice WHERE invoice_id=?",
+        tabel = store.tabel_invoice(kon, invoice_id, "invoice")
+        baris = kon.execute("SELECT akun_id FROM " + tabel + " WHERE invoice_id=?",
                             (invoice_id,)).fetchone()
     if baris is None:
         return False

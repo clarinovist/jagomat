@@ -319,7 +319,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
         akar / BERKAS_WAJIB["pendamping"],
         tabel_wajib=("migrasi_pendamping", "chat", "operasi"),
     )
-    if not 1 <= versi_admin <= VERSI_TARGET["admin"]:
+    if not 1 <= versi_admin <= 8:
         raise BackupTidakSah("versi admin backup tidak didukung")
     if not 1 <= versi_ai <= VERSI_TARGET["ai"]:
         raise BackupTidakSah("versi AI backup tidak didukung")
@@ -345,7 +345,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
                 subscription_store.validasi_ledger(kon)
             except (ValueError, sqlite3.Error):
                 raise BackupTidakSah('schema langganan backup tidak lengkap') from None
-    if versi_admin == VERSI_TARGET['admin']:
+    if versi_admin in (VERSI_TARGET['admin'], 8):
         import admin_store
         try:
             with admin_store.buka_baca(akar / BERKAS_WAJIB['admin']) as kon:
@@ -367,6 +367,8 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
         # Restore bukan izin transaksi baru; cutoff provider harus direkonsiliasi.
         with sqlite3.connect(admin_uri, uri=True) as kon:
             billing = bool(kon.execute('SELECT 1 FROM langganan_invoice LIMIT 1').fetchone())
+            if versi_admin == 8:
+                billing = billing or bool(kon.execute('SELECT 1 FROM paket_invoice LIMIT 1').fetchone())
     _validasi_link_receipt(akar)
     _validasi_pilot(akar / BERKAS_WAJIB['belajar'])
     return RingkasanBackup(
@@ -486,11 +488,12 @@ def rehearsal_bundle(bundle, *, migrator_ai=None) -> RingkasanBackup:
             shutil.copy2(str(akar / nama), str(turunan / nama))
             (turunan / nama).chmod(0o600)
         from subscription_schema import TABEL
+        from subscription_package_schema import TABEL as TABEL_PAKET
         def ledger(path):
             with sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True) as kon:
                 ada = {r[0] for r in kon.execute("SELECT name FROM sqlite_master WHERE type='table'")}
                 return {t: tuple(kon.execute('SELECT * FROM ' + t + ' ORDER BY rowid'))
-                        for t in TABEL if t in ada}
+                        for t in TABEL + TABEL_PAKET if t in ada}
         billing_awal = ledger(turunan / BERKAS_WAJIB['admin'])
         for _ in range(2):
             database.siapkan(turunan / BERKAS_WAJIB["belajar"])
@@ -524,7 +527,7 @@ def rehearsal_bundle(bundle, *, migrator_ai=None) -> RingkasanBackup:
             tabel_wajib=("migrasi_pendamping", "chat", "operasi"),
         )
         if (
-            versi_admin != VERSI_TARGET["admin"]
+            versi_admin != (8 if sebelum.versi_admin == 8 else VERSI_TARGET["admin"])
             or versi_ai != VERSI_TARGET["ai"]
             or versi_pendamping != 4
         ):

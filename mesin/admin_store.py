@@ -306,10 +306,18 @@ def _transaksi(path=None):
 
 def _validasi_skema(kon: sqlite3.Connection) -> None:
     versi = int(kon.execute("PRAGMA user_version").fetchone()[0])
-    if versi > VERSI_SKEMA:
+    import subscription_package_schema as paket_schema
+    if versi > paket_schema.VERSI_SKEMA:
         raise StoreBelumSiap("skema admin lebih baru dari aplikasi")
-    if versi != VERSI_SKEMA:
+    if versi not in (VERSI_SKEMA, paket_schema.VERSI_SKEMA):
         raise StoreBelumSiap("store admin belum dimigrasikan")
+    try:
+        if versi == paket_schema.VERSI_SKEMA:
+            paket_schema.validasi(kon)
+        elif paket_schema.struktur(kon):
+            raise ValueError("tabel paket tanpa versi migrasi")
+    except (ValueError, sqlite3.Error):
+        raise StoreBelumSiap("struktur ledger paket tidak lengkap") from None
     for tabel, wajib in _KOLOM_WAJIB.items():
         aktual = {
             str(baris[1]) for baris in kon.execute("PRAGMA table_info(%s)" % tabel)
@@ -401,15 +409,18 @@ def _migrasi_registry_aksi(
     kon.execute("DROP TABLE operasi_admin_v1")
 
 
-def siapkan(path=None, *, sekarang: Optional[int] = None) -> None:
-    """Bootstrap eksplisit; admin5→6 additive tanpa enrollment/backfill akun."""
+def siapkan(path=None, *, sekarang: Optional[int] = None, paket_v2: bool = False) -> None:
+    """Bootstrap; admin8 hanya opt-in eksplisit, tidak lewat startup default."""
+    import subscription_package_schema as paket_schema
+    if type(paket_v2) is not bool:
+        raise ValueError("pilihan migrasi paket tidak sah")
     tujuan = _tujuan(path)
     tujuan.parent.mkdir(parents=True, exist_ok=True)
     kon = sqlite3.connect(str(tujuan), timeout=5.0)
     try:
         kon.row_factory = sqlite3.Row
         versi = int(kon.execute("PRAGMA user_version").fetchone()[0])
-        if versi > VERSI_SKEMA:
+        if versi > paket_schema.VERSI_SKEMA:
             raise StoreBelumSiap("skema admin lebih baru dari aplikasi")
         if versi in (0, 1, 2, 3, 4):
             try:
@@ -422,7 +433,7 @@ def siapkan(path=None, *, sekarang: Optional[int] = None) -> None:
                 kon.execute("BEGIN IMMEDIATE")
                 # Baca ulang setelah lock; migrator lain mungkin sudah selesai.
                 versi = int(kon.execute("PRAGMA user_version").fetchone()[0])
-                if versi > VERSI_SKEMA:
+                if versi > paket_schema.VERSI_SKEMA:
                     raise StoreBelumSiap("skema admin lebih baru dari aplikasi")
                 if versi in (1, 2, 3, 4):
                     _migrasi_registry_aksi(
@@ -469,6 +480,10 @@ def siapkan(path=None, *, sekarang: Optional[int] = None) -> None:
                     (int(time.time()) if sekarang is None else int(sekarang), "sistem_migrasi"),
                 )
                 kon.execute("PRAGMA user_version=7")
+            if paket_v2 and kon.execute("PRAGMA user_version").fetchone()[0] == 7:
+                _validasi_skema(kon)
+                _jalankan_ddl(kon, paket_schema.DDL)
+                kon.execute("PRAGMA user_version=8")
             _validasi_skema(kon)
             kon.commit()
         except Exception:

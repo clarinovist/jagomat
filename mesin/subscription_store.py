@@ -14,6 +14,20 @@ from typing import Tuple
 
 import admin_store
 import subscription as d
+import subscription_package_schema as paket_schema
+
+
+def tabel_invoice(kon, invoice_id, jenis):
+    """Nama tabel dari versi tersimpan, tidak pernah dari input SQL pengguna."""
+    if jenis not in ("invoice", "receipt", "grant", "rekonsiliasi"):
+        raise ValueError("jenis ledger tidak sah")
+    import subscription_package_store as paket
+    prefiks = "paket" if paket.memiliki_invoice(kon, invoice_id) else "langganan"
+    return prefiks + "_" + jenis
+
+
+def daftar_tabel_invoice(kon):
+    return ("langganan_invoice", "paket_invoice") if paket_schema.tersedia(kon) else ("langganan_invoice",)
 
 
 class KonflikLangganan(ValueError):
@@ -79,6 +93,9 @@ def validasi_ledger(kon, *, akun_id=None):
                     or g["urutan"] != inv["urutan"] or g["profil_json"] != inv["profil_json"] or g["promo"] != inv["promo"]
                     or g["akhir"] != d.bulan_berikutnya(g["mulai"], g["jangkar"])):
                 raise KonflikLangganan("grant ledger tidak sah")
+    if paket_schema.tersedia(kon):
+        import subscription_package_store as paket
+        paket.validasi_ledger(kon, akun_id=akun_id)
 
 
 def baca(path, akun_id):
@@ -93,7 +110,8 @@ def baca(path, akun_id):
 def _invoice(kon, akun_id, invoice_id):
     d.identitas(akun_id, "akun")
     d.identitas(invoice_id, "invoice")
-    row = kon.execute("SELECT * FROM langganan_invoice WHERE invoice_id=? AND akun_id=?",
+    tabel = tabel_invoice(kon, invoice_id, "invoice")
+    row = kon.execute("SELECT * FROM " + tabel + " WHERE invoice_id=? AND akun_id=?",
                       (invoice_id, akun_id)).fetchone()
     if row is None:
         raise LookupError("invoice tidak ditemukan")
@@ -105,10 +123,11 @@ def baca_invoice(path, akun_id, invoice_id):
         kon.execute("BEGIN")
         hasil = _invoice(kon, akun_id, invoice_id)
         validasi_ledger(kon, akun_id=akun_id)
-        lunas = kon.execute("SELECT 1 FROM langganan_receipt WHERE invoice_id=?", (invoice_id,)).fetchone()
+        tabel = tabel_invoice(kon, invoice_id, "receipt")
+        lunas = kon.execute("SELECT 1 FROM " + tabel + " WHERE invoice_id=?", (invoice_id,)).fetchone()
         hasil["status"] = "lunas" if lunas else "belum_terverifikasi"
         hasil["perlu_diperiksa"] = bool(kon.execute(
-            "SELECT 1 FROM langganan_receipt WHERE invoice_id=? AND hasil='perlu_diperiksa'", (invoice_id,)).fetchone())
+            "SELECT 1 FROM " + tabel + " WHERE invoice_id=? AND hasil='perlu_diperiksa'", (invoice_id,)).fetchone())
         return hasil
 
 
@@ -212,6 +231,12 @@ def buat_invoice(path, akun_id, *, invoice_id, idempotency_key, provider, channe
         raise ValueError("deadline invoice tidak sah")
     with admin_store._transaksi(path) as kon:
         enrollment = _enrollment(kon, akun_id)
+        if paket_schema.tersedia(kon):
+            if kon.execute("SELECT 1 FROM paket_akun WHERE akun_id=?", (akun_id,)).fetchone():
+                raise KonflikLangganan("akun sudah memakai paket v2")
+            if kon.execute("SELECT 1 FROM paket_invoice WHERE invoice_id=? OR idempotency_key=?",
+                           (invoice_id, idempotency_key)).fetchone():
+                raise KonflikLangganan("identitas invoice lintas versi ganda")
         if sekarang < enrollment.mulai:
             raise ValueError("clock mendahului enrollment")
         lama = kon.execute("SELECT * FROM langganan_invoice WHERE invoice_id=?", (invoice_id,)).fetchone()
@@ -246,17 +271,20 @@ def catat_pengamatan(path, akun_id, invoice_id, *, operasi_id, status, sekarang,
             or operasi_id.startswith("create_")):
         raise ValueError("status/identitas rekonsiliasi tidak sah")
     with admin_store._transaksi(path) as kon:
-        _invoice(kon, akun_id, invoice_id)
+        inv = _invoice(kon, akun_id, invoice_id)
+        tabel = tabel_invoice(kon, invoice_id, "rekonsiliasi")
+        if tabel.startswith("paket_") and sekarang < inv["dibuat"]:
+            raise KonflikLangganan("clock pengamatan paket tidak sah")
         if rujukan is not None:
-            sumber = kon.execute("SELECT invoice_id FROM langganan_rekonsiliasi WHERE operasi_id=?", (rujukan,)).fetchone()
+            sumber = kon.execute("SELECT invoice_id FROM " + tabel + " WHERE operasi_id=?", (rujukan,)).fetchone()
             if sumber is None or sumber[0] != invoice_id:
                 raise KonflikLangganan("rujukan rekonsiliasi berbeda")
-        lama = kon.execute("SELECT * FROM langganan_rekonsiliasi WHERE operasi_id=?", (operasi_id,)).fetchone()
+        lama = kon.execute("SELECT * FROM " + tabel + " WHERE operasi_id=?", (operasi_id,)).fetchone()
         if lama:
             if (lama["invoice_id"], lama["status"], lama["rujukan"]) != (invoice_id, status, rujukan):
                 raise KonflikLangganan("pengamatan berbeda")
             return
-        kon.execute("INSERT INTO langganan_rekonsiliasi VALUES(?,?,?,?,?)",
+        kon.execute("INSERT INTO " + tabel + " VALUES(?,?,?,?,?)",
                     (operasi_id, invoice_id, status, sekarang, rujukan))
 
 
@@ -274,11 +302,13 @@ def reservasi_create(path, akun_id, invoice_id, *, sekarang, sakelar=d.SAKELAR):
         validasi_ledger(kon, akun_id=akun_id)
         if sekarang < inv["dibuat"] or sekarang >= inv["kedaluwarsa"]:
             raise KonflikLangganan("quote tidak aktif")
-        if kon.execute("SELECT 1 FROM langganan_receipt WHERE invoice_id=?", (invoice_id,)).fetchone():
+        receipt = tabel_invoice(kon, invoice_id, "receipt")
+        tabel = tabel_invoice(kon, invoice_id, "rekonsiliasi")
+        if kon.execute("SELECT 1 FROM " + receipt + " WHERE invoice_id=?", (invoice_id,)).fetchone():
             return False
-        if kon.execute("SELECT 1 FROM langganan_rekonsiliasi WHERE operasi_id=?", (operasi_id,)).fetchone():
+        if kon.execute("SELECT 1 FROM " + tabel + " WHERE operasi_id=?", (operasi_id,)).fetchone():
             return False
-        kon.execute("INSERT INTO langganan_rekonsiliasi VALUES(?,?,'belum_terverifikasi',?,NULL)",
+        kon.execute("INSERT INTO " + tabel + " VALUES(?,?,'belum_terverifikasi',?,NULL)",
                     (operasi_id, invoice_id, sekarang))
         return True
 
@@ -289,6 +319,13 @@ def terapkan_pembayaran(path, akun_id, bukti, *, sekarang, sakelar=d.SAKELAR, fa
     d.waktu(sekarang)
     _kode(bukti.transaksi_id)
     with admin_store._transaksi(path) as kon:
+        import subscription_package_store as paket
+        if paket.memiliki_invoice(kon, bukti.invoice_id):
+            return paket.terapkan(kon, akun_id, bukti, sekarang=sekarang, failpoint=failpoint)
+        if paket_schema.tersedia(kon) and kon.execute(
+                "SELECT 1 FROM paket_receipt WHERE provider=? AND transaksi_id=?",
+                (bukti.provider, bukti.transaksi_id)).fetchone():
+            raise KonflikLangganan("sumber pembayaran lintas versi telah dipakai")
         invoice = _invoice(kon, akun_id, bukti.invoice_id)
         if not d.pembayaran_cocok(bukti, invoice, akun_id):
             raise KonflikLangganan("bukti pembayaran tidak cocok")
