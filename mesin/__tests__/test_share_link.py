@@ -129,7 +129,11 @@ def test_halaman_anak_menawarkan_bagikan_dan_cabut(server):
 
     kode, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
     assert kode == 200
-    assert f'data-bagikan-url="/sesi/{sesi_id}/bagikan"' in isi
+    # Host dengan pemicu Pendamping memakai CSP privat; berbagi tetap POST
+    # native, bukan skrip lain yang akan diblokir oleh hash panel.
+    assert f'action="/sesi/{sesi_id}/bagikan"' in isi
+    assert 'data-bagikan-url=' not in isi
+    assert 'Membuat tautan baru akan menonaktifkan tautan sebelumnya.' in isi
     assert f'action="/sesi/{sesi_id}/cabut-tautan"' in isi
     assert 'aria-label="Cabut tautan sesi"' in isi
 

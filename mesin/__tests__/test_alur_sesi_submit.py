@@ -296,28 +296,22 @@ def test_koreksi_latihan_cepat_tanpa_caraku_dan_submit_tetap_benar(db):
     assert hasil["kode_final"] is None
 
 
-def test_halaman_anak_memakai_ikon_share_inline_tanpa_navigasi_baru(server):
+def test_host_pendamping_memakai_bagikan_native_tanpa_js_di_luar_hash(server):
     s, siswa_id, sesi_id = server
 
     kode, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
 
     assert kode == 200
-    assert f'data-bagikan-url="/sesi/{sesi_id}/bagikan"' in isi
-    assert 'aria-label="Bagikan sesi ke anak"' in isi
-    tombol = isi.split('aria-label="Bagikan sesi ke anak"', 1)[1].split('</button>', 1)[0]
-    assert '<svg class="profil-ikon-st" aria-hidden="true"' in tombol
-    assert 'viewBox="0 0 24 24"' in tombol
-    assert 'material-symbols-outlined' not in tombol
-    assert '<span class="kabar-bagikan-st" aria-live="polite"></span>' in isi
-    assert "x.closest('.blok-bagikan-st').querySelector('.kabar-bagikan-st')" in isi
-    assert "k.textContent='Tautan tersalin dan berlaku 7 hari.'" in isi
-    assert "if(e.name==='AbortError'){k.textContent='';return;}" in isi
-    assert "navigator.share" in isi
-    assert "navigator.clipboard.writeText" in isi
-    assert "window.prompt('Salin tautan ini:'" in isi
-    assert "Membuat tautan baru akan menonaktifkan tautan sebelumnya" in isi
-    assert "if(x.dataset.tautan){await bagikan(x.dataset.tautan,k);return;}" in isi
-    assert "window.location" not in isi
+    assert f'action="/sesi/{sesi_id}/bagikan"' in isi
+    assert 'Bagikan sesi ke anak</button>' in isi
+    assert 'data-bagikan-url=' not in isi
+    assert 'class="kabar-bagikan-st"' not in isi
+    assert "navigator.share" not in isi
+    assert "navigator.clipboard.writeText" not in isi
+    assert "window.prompt(" not in isi
+    import assistant_browser
+    assert isi.count('<script>') == 1
+    assert '<script>' + assistant_browser.SKRIP_CHAT + '</script>' in isi
     # Ikon aksi kartu sesi = kontrol 48px; periksa blok aturannya,
     # bukan sekadar keberadaan angka 44px di seluruh stylesheet.
     ikon = style_stitch.GAYA_STITCH.split(".tombol-ikon-st {", 1)[1].split("}", 1)[0]

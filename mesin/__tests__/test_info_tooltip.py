@@ -220,10 +220,8 @@ def test_buat_latihan_bubble_tanpa_data_anak_atau_kunci(db):
 def test_buat_latihan_tanpa_js_tambahan(db):
     h = _profil_latihan(db)
     skrip = re.findall(r"<script>(.*?)</script>", h, re.S)
-    assert len(skrip) == 3                 # skrip bagikan + dua skrip global lama
-    assert "bagikan" in skrip[0]
-    assert skrip[1] == SKRIP_MATA_SANDI
-    assert skrip[2] == SKRIP_CEGAH_KIRIM_GANDA
-    for s in skrip:
-        assert "info-bubble" not in s and ".info" not in s
+    # Host Pendamping dirender privat. Enhancement berhash baru ditambahkan
+    # pengirim HTTP; tooltip tetap CSS tanpa skrip/handler sendiri.
+    assert skrip == []
+    assert 'fonts.googleapis.com' not in h
     assert not re.search(r"\son(?:click|focus|mouseenter|mousemove|mouseover)\s*=", h)
