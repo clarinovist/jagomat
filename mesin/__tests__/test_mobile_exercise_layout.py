@@ -56,7 +56,8 @@ def test_label_pendek_helper_terhubung_dan_nilai_default_tidak_berubah(db):
     assert 'id="manual-jumlah-petunjuk"' in isi
     assert 'Estimasi ±3 menit per soal.' in isi
     assert isi.count('action="/sesi-baru/%d"' % siswa['id']) == 1
-    assert isi.count('formaction="/pendamping/inline/buka"') == 1
+    assert isi.count('formaction="/pendamping/inline/buka"') >= 1
+    assert isi.count('class="pendamping-pemicu"') == isi.count('formaction="/pendamping/inline/buka"')
     assert tuple(kon.iterdump()) == sebelum
 
 

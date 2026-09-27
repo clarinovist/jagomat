@@ -2683,8 +2683,72 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 }}
 /* FIN WORKER A editorial scoped */
 
-/* Pendamping inline dipakai lintas host yang hanya memuat GAYA_STITCH. */
-.pendamping-inline {{ margin-top: {T.SP_5}; padding-top: {T.SP_4}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; min-width: 0; }}
+/* Pendamping panel: satu pintu di header, desktop mengambil ruang layout. */
+.pendamping-buka-inline {{ display: contents; }}
+/* Panel tab nonaktif sudah display:none; jangan menebak dari urutan jenis tag. */
+.pendamping-editorial-st .pendamping-buka-inline[hidden],
+.pendamping-editorial-st:has(> .pendamping-panel-kanan:not([hidden])) .pendamping-buka-inline {{ display: none !important; }}
+.pendamping-editorial-st:has(.pendamping-pemicu) > .st-topbar {{ padding-right: 4.5rem; }}
+.pendamping-editorial-st:has(.pendamping-pemicu) {{ position: relative; }}
+.pendamping-editorial-st .pendamping-pemicu {{
+  position: absolute; top: {T.SP_4}; right: {T.SP_6}; z-index: 60;
+  display: inline-flex; align-items: center; justify-content: center; gap: {T.SP_2};
+  width: {T.TINGGI_KONTROL}; min-width: {T.TINGGI_KONTROL}; height: {T.TINGGI_KONTROL};
+  padding: {T.SP_2}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
+  border-radius: {T.RADIUS_KARTU}; background: {T.LATAR_KARTU};
+  color: {T.AKSEN_TEAL_TUA}; cursor: pointer;
+}}
+.pendamping-editorial-st .pendamping-pemicu:hover {{ background: {T.LATAR_SEKUNDER_LEMBUT}; }}
+.pendamping-editorial-st .pendamping-pemicu:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
+.pendamping-pemicu svg {{ width: {T.UKURAN_IKON}; height: {T.UKURAN_IKON}; }}
+.pendamping-pemicu-label {{
+  position: absolute; top: calc(100% + {T.SP_2}); right: 0; display: none;
+  padding: {T.SP_2} {T.SP_3}; border-radius: {T.RADIUS_KECIL};
+  background: {T.LATAR_TOOLTIP}; color: {T.TEKS_TOOLTIP};
+  font-size: {T.UKURAN_TEKS_CATATAN}; white-space: nowrap;
+}}
+.pendamping-pemicu:hover .pendamping-pemicu-label,
+.pendamping-pemicu:focus-visible .pendamping-pemicu-label {{ display: block; }}
+.pendamping-editorial-st:has(> .pendamping-panel-kanan:not([hidden])) {{
+  display: grid; grid-template-columns: minmax(0, 1fr) 400px;
+  column-gap: {T.SP_5}; max-width: none; align-items: start;
+}}
+.pendamping-editorial-st:has(> .pendamping-panel-kanan:not([hidden])) > .st-topbar {{ grid-column: 1 / -1; }}
+.pendamping-editorial-st:has(> .pendamping-panel-kanan:not([hidden])) > :not(.st-topbar):not(.pendamping-panel-kanan) {{ grid-column: 1; grid-row: 2; min-width: 0; }}
+.pendamping-panel-kanan[hidden] {{ display: none; }}
+.pendamping-panel-kanan {{
+  grid-column: 2; grid-row: 2; position: sticky; top: {T.SP_4};
+  height: calc(100vh - 9rem); min-height: 0; margin: 0;
+  border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
+  border-radius: {T.RADIUS_KARTU_BESAR}; background: {T.LATAR_KARTU};
+  overflow: clip; min-width: 0; display: flex; flex-direction: column;
+}}
+.pendamping-kepala-panel {{ flex: none; padding: {T.SP_4} {T.SP_5} {T.SP_2}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; background: {T.LATAR_KARTU}; overflow-wrap: anywhere; max-height: 55%; overflow-y: auto; }}
+.pendamping-kepala-baris {{ display: flex; align-items: center; min-height: {T.TINGGI_KONTROL}; gap: {T.SP_2}; }}
+.pendamping-kepala-baris > svg {{ width: 1.25rem; height: 1.25rem; flex: none; color: {T.AKSEN_TEAL_TUA}; }}
+.pendamping-kepala-baris h2 {{ margin: 0; font-size: 1rem; }}
+.pendamping-kepala-baris > form {{ margin-left: auto; }}
+.pendamping-editorial-st .pendamping-tutup {{
+  display: inline-flex; align-items: center; justify-content: center;
+  width: {T.TINGGI_KONTROL}; min-width: {T.TINGGI_KONTROL}; height: {T.TINGGI_KONTROL};
+  margin-left: auto; padding: 0; border: 0; border-radius: {T.RADIUS_BULAT};
+  background: transparent; color: {T.AKSEN_TEAL_TUA}; font: inherit; cursor: pointer;
+}}
+.pendamping-editorial-st .pendamping-tutup:hover {{ background: {T.LATAR_SEKUNDER_LEMBUT}; }}
+.pendamping-tutup-desktop {{ font-size: 1.5rem; line-height: 1; }}
+.pendamping-tutup-hp {{ display: none; }}
+.pendamping-identitas {{ margin: 0; font-size: {T.UKURAN_TEKS_CATATAN}; font-weight: 600; color: {T.TEKS_JUDUL}; }}
+.pendamping-konteks-baris {{ display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: {T.SP_2}; position: relative; }}
+.pendamping-status-konteks {{ margin: 0; padding-block: {T.SP_3}; font-size: {T.UKURAN_TEKS_CATATAN}; color: {T.TEKS_VARIAN}; }}
+.pendamping-rincian {{ display: contents; }}
+.pendamping-rincian > summary {{ display: flex; align-items: center; justify-content: flex-end; min-width: {T.TARGET_SENTUH}; min-height: {T.TARGET_SENTUH}; color: {T.AKSEN_TEAL_TUA}; font-size: {T.UKURAN_TEKS_CATATAN}; text-decoration: underline; cursor: pointer; }}
+.pendamping-rincian > p {{ grid-column: 1 / -1; margin: 0 0 {T.SP_2}; font-size: {T.UKURAN_TEKS_CATATAN}; color: {T.TEKS_VARIAN}; }}
+.pendamping-panel-kanan .pendamping-inline-isi {{ flex: 1; min-height: 0; overflow: auto; padding: {T.SP_5}; overflow-wrap: anywhere; overscroll-behavior: contain; }}
+.pendamping-panel-kanan :is(button, input, select, textarea) {{ max-width: 100%; }}
+.pendamping-panel-kanan :is(button, a, summary, input, select, textarea):focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+.pendamping-panel-kanan .pendamping-inline-isi > h3 {{ margin: 0 0 {T.SP_3}; }}
+/* Kompatibilitas fragmen lama selama seluruh caller berpindah ke panel. */
+.pendamping-inline:not(.pendamping-panel-kanan) {{ margin-top: {T.SP_5}; padding-top: {T.SP_4}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; min-width: 0; }}
 .akun-editorial-st .form-kelas-sekolah {{ display:flex; flex-direction:column; align-items:flex-start; gap:{T.SP_2}; }}
 .akun-editorial-st .form-kelas-sekolah select {{ max-width:100%; margin:0; }}
 .akun-editorial-st .form-kelas-sekolah button {{ min-height:{T.TINGGI_KONTROL}; margin:0; }}
@@ -2693,11 +2757,13 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-inline-isi {{ padding: {T.SP_3} 0 0; min-width: 0; }}
 .pendamping-inline-isi h3 {{ margin: 0 0 {T.SP_2}; color: {T.TEKS_JUDUL}; }}
 .pendamping-inline .pendamping-sumber, .pendamping-inline .pendamping-catatan {{ color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_LABEL}; }}
-.pendamping-inline textarea {{ display: block; width: 100%; min-height: 5.5rem; margin: {T.SP_2} 0; padding: {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG}; font: inherit; resize: vertical; }}
+.pendamping-inline textarea, .pendamping-inline select {{ display: block; width: 100%; min-height: {T.TINGGI_KONTROL}; margin: {T.SP_2} 0; padding: {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA}; font: inherit; }}
+.pendamping-inline textarea {{ min-height: 5.5rem; resize: vertical; }}
 .pendamping-inline button, .pendamping-inline a {{ min-height: {T.TARGET_SENTUH}; }}
 .pendamping-inline .pendamping-tombol {{ display: inline-flex; align-items: center; justify-content: center; padding: {T.SP_2} {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_SEDANG}; background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; font: inherit; font-weight: 700; cursor: pointer; }}
 .pendamping-inline .pendamping-tombol:hover {{ background: {T.AKSEN_TEAL_HOVER}; border-color: {T.AKSEN_TEAL_HOVER}; }}
 .pendamping-inline .pendamping-sekunder {{ background: transparent; color: {T.AKSEN_TEAL_TUA}; }}
+.pendamping-inline .pendamping-sekunder:hover {{ background: {T.LATAR_SEKUNDER_LEMBUT}; color: {T.AKSEN_TEAL_TUA}; }}
 .pendamping-inline button[hidden] {{ display: none; }}
 .pendamping-inline button:disabled {{ opacity: .6; cursor: wait; }}
 .pendamping-inline .pendamping-tautan {{ display: inline-flex; align-items: center; padding: {T.SP_2}; border: 0; background: transparent; color: {T.AKSEN_TEAL_TUA}; font: inherit; text-decoration: underline; cursor: pointer; }}
@@ -2724,6 +2790,35 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-inline .pendamping-memori > summary:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
 .profil-editorial-st .atur-latihan-st .pendamping-inline .pendamping-memori > summary {{ display: list-item; min-height: {T.TARGET_SENTUH}; }}
 .profil-editorial-st .atur-latihan-st .pendamping-inline .pendamping-memori > summary::before {{ content: none; }}
+@media (min-width: 60rem) and (max-width: 74.9375rem) {{
+  .pendamping-editorial-st:has(> .pendamping-panel-kanan:not([hidden])) {{ grid-template-columns: minmax(0, 1fr) 360px; gap: {T.SP_4}; }}
+  .profil-workspace-st:has(> .pendamping-panel-kanan:not([hidden])) .profil-champs-st {{ grid-template-columns: minmax(0, 1fr); }}
+  .profil-workspace-st:has(> .pendamping-panel-kanan:not([hidden])) .tab-bar-st {{ flex-wrap: wrap; }}
+}}
+@media (hover: none), (pointer: coarse), (max-width: 59.9375rem) {{
+  .pendamping-editorial-st .pendamping-pemicu {{ width: auto; padding-inline: {T.SP_3}; }}
+  .pendamping-pemicu-label {{ display: inline; position: static; padding: 0; background: transparent; color: inherit; font-size: {T.UKURAN_TEKS_CATATAN}; }}
+  .pendamping-editorial-st:has(.pendamping-pemicu) > .st-topbar {{ padding-right: 9.5rem; }}
+}}
+@media (max-width: 59.9375rem) {{
+  .pendamping-editorial-st .pendamping-pemicu {{ top: {T.SP_3}; right: {T.SP_4}; }}
+  body:has(.pendamping-panel-kanan:not([hidden])) {{ overflow: hidden; }}
+  .pendamping-editorial-st:has(> .pendamping-panel-kanan:not([hidden])) {{ display: block; padding: 0; }}
+  .pendamping-editorial-st:has(> .pendamping-panel-kanan:not([hidden])) > :not(.pendamping-panel-kanan) {{ visibility: hidden; }}
+  .pendamping-panel-kanan {{
+    position: fixed; inset: 0; z-index: 70; width: 100%; height: 100vh; height: 100dvh;
+    border: 0; border-radius: 0; background: {T.LATAR_KARTU};
+  }}
+  .pendamping-kepala-panel {{ padding: {T.SP_2} {T.SP_4}; }}
+  .pendamping-kepala-baris {{ flex-wrap: wrap; }}
+  .pendamping-kepala-baris > svg {{ display: none; }}
+  .pendamping-kepala-baris h2 {{ margin-left: auto; order: 1; }}
+  .pendamping-kepala-baris > form {{ margin: 0; }}
+  .pendamping-panel-kanan .pendamping-inline-isi {{ padding: {T.SP_4}; padding-bottom: max({T.SP_4}, env(safe-area-inset-bottom)); }}
+  .pendamping-editorial-st .pendamping-tutup {{ margin: 0; width: auto; padding-inline: {T.SP_2}; border-radius: {T.RADIUS_KECIL}; white-space: nowrap; }}
+  .pendamping-tutup-desktop {{ display: none; }}
+  .pendamping-tutup-hp {{ display: inline; }}
+}}
 @media (max-width: 24rem) {{ .pendamping-inline .pendamping-pesan.pengguna {{ max-width: 96%; }} }}
 """
 # diimpor utuh; dipanggil oleh halaman_sesi_stitch lewat gaya_stitch() + blok

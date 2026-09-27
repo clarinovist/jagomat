@@ -87,6 +87,22 @@ class DrafLatihan:
     profil_parameter: str = ''
 
 
+@dataclass(frozen=True)
+class DrafGabungan:
+    topik: Tuple[str, ...]
+    jumlah_soal: str
+    mode: str
+    format_jawaban: str
+    profil_parameter: str
+
+
+@dataclass(frozen=True)
+class DrafRemedial:
+    template_id: Tuple[str, ...]
+    jumlah_soal: str
+    sumber_sesi_id: str = ''
+
+
 def _id_kanonik(nilai: str) -> Optional[int]:
     if type(nilai) is not str or not _POLA_ID.fullmatch(nilai):
         return None
@@ -194,6 +210,49 @@ def parse_draf_latihan(data: Mapping[str, Sequence[str]], topik_sah: Sequence[st
         "timer_mode" in satu, satu["durasi_menit"], satu["timer_auto"], satu.get('format_jawaban', 'isian'),
         satu.get('profil_parameter', ''),
     )
+
+
+def parse_draf_gabungan(data: Mapping[str, Sequence[str]], topik_sah: Sequence[str]) -> DrafGabungan:
+    """Draf form gabungan request-local; tidak membuat sesi atau keputusan belajar."""
+    wajib = {"jumlah_soal", "mode", "format_jawaban", "profil_parameter"}
+    if not wajib <= set(data) <= wajib | {"topik"} or any(not nilai for nilai in data.values()):
+        raise GalatInline("Field latihan gabungan tidak lengkap atau asing.")
+    if any(len(data[nama]) != 1 for nama in wajib - {"topik"}):
+        raise GalatInline("Field latihan gabungan ganda tidak diizinkan.")
+    topik = tuple(data.get("topik", ()))
+    sah = set(topik_sah) - {"campuran"}
+    if (
+        len(topik) > len(sah) or len(topik) != len(set(topik))
+        or any(item not in sah for item in topik)
+        or data["jumlah_soal"][0] not in ("10", "15", "20")
+        or data["mode"][0] not in ("drill", "diagnostik")
+        or data["format_jawaban"][0] not in ("isian", "pilihan_ganda")
+        or data["profil_parameter"][0] not in ("P3", "P4", "P5", "P6")
+    ):
+        raise GalatInline("Nilai latihan gabungan tidak sah.")
+    return DrafGabungan(topik, data["jumlah_soal"][0], data["mode"][0],
+                        data["format_jawaban"][0], data["profil_parameter"][0])
+
+
+def parse_draf_remedial(data: Mapping[str, Sequence[str]], template_sah: Sequence[str]) -> DrafRemedial:
+    """Draf pilihan remedial request-local; target tetap divalidasi dari kandidat server."""
+    wajib = {"jumlah_soal"}
+    diizinkan = wajib | {"template_id", "sumber_sesi_id"}
+    if not wajib <= set(data) <= diizinkan or any(not nilai for nilai in data.values()):
+        raise GalatInline("Field remedial tidak lengkap atau asing.")
+    if len(data["jumlah_soal"]) != 1 or len(data.get("sumber_sesi_id", ())) > 1:
+        raise GalatInline("Field remedial ganda tidak diizinkan.")
+    template = tuple(data.get("template_id", ()))
+    sah = set(template_sah)
+    sumber = data.get("sumber_sesi_id", ("",))[0]
+    if (
+        len(template) > len(sah) or len(template) != len(set(template))
+        or any(item not in sah for item in template)
+        or data["jumlah_soal"][0] not in ("10", "15", "20")
+        or (sumber and _id_kanonik(sumber) is None)
+    ):
+        raise GalatInline("Nilai remedial tidak sah.")
+    return DrafRemedial(template, data["jumlah_soal"][0], sumber)
 
 
 def parse_draf_koreksi(

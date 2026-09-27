@@ -4,6 +4,8 @@ from pathlib import Path
 import re
 import sqlite3
 import sys
+import urllib.parse
+import urllib.request
 
 import pytest
 
@@ -113,7 +115,10 @@ def test_get_host_inline_privat_tanpa_provider_write_atau_resource_eksternal(ser
     assert "Sebelum memakai bantuan" in profil
     assert 'data-bagikan-url=' not in profil
     assert 'action="/pendamping/inline/tutup"' in profil
-    assert "fonts.googleapis.com" not in profil and "<script" not in profil
+    assert "fonts.googleapis.com" not in profil
+    assert profil.count("<script>") == 1
+    assert f"script-src 'sha256-{__import__('assistant_browser').HASH_CSP}'" in header["Content-Security-Policy"]
+    assert "connect-src 'self'" in header["Content-Security-Policy"]
     assert not assistant_schema.BAWAAN.exists()
     assert server.provider.panggilan == []
 
@@ -123,9 +128,56 @@ def test_get_host_inline_privat_tanpa_provider_write_atau_resource_eksternal(ser
     assert kode == 200
     _privat(header)
     assert 'id="bantuan-soal-1"' in sesi_html
-    assert "fonts.googleapis.com" not in sesi_html and "<script" not in sesi_html
+    assert "fonts.googleapis.com" not in sesi_html
+    assert sesi_html.count("<script>") == 1
+    assert f"script-src 'sha256-{__import__('assistant_browser').HASH_CSP}'" in header["Content-Security-Policy"]
     assert "Tutup bantuan untuk membuka aksi pembatalan atau hapus." in sesi_html
     assert 'onsubmit="return confirm(' not in sesi_html
+
+
+def test_respons_fragmen_buka_dan_tutup_tidak_merender_atau_menulis_host(server):
+    token = _token_guru(server)
+    anak, _, _, _ = server.ids_inline
+    dasar = {"inline_host": "anak", "inline_host_id": str(anak), "inline_posisi": "rencana"}
+    header = {**_origin(server), "X-Pendamping-Panel": "fragment"}
+    with server.buka() as kon:
+        sebelum = tuple(kon.iterdump())
+    kode, isi, respons = server.minta(
+        "/pendamping/inline/buka", cookie=token, data=dasar, headers=header,
+    )
+    assert kode == 200
+    assert isi.startswith('<aside class="pendamping-inline pendamping-panel-kanan"')
+    assert '<main' not in isi and 'Sebelum memakai bantuan' in isi
+    assert respons["Cache-Control"] == "no-store"
+    assert "script-src" not in respons["Content-Security-Policy"]
+    assert "<script" not in isi
+    kode, tutup, _ = server.minta(
+        "/pendamping/inline/tutup", cookie=token, data=dasar, headers=header,
+    )
+    assert kode == 200
+    assert 'class="pendamping-inline pendamping-panel-kanan"' in tutup
+    assert 'hidden aria-hidden="true"' in tutup
+    assert '<main' not in tutup
+    with server.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum
+    assert server.provider.panggilan == []
+
+
+def test_buka_fragmen_latihan_tidak_menerima_draf_pekerjaan(server):
+    token = _token_guru(server)
+    anak, _, _, _ = server.ids_inline
+    dasar = {"inline_host": "anak", "inline_host_id": str(anak), "inline_posisi": "latihan"}
+    header = {**_origin(server), "X-Pendamping-Panel": "fragment"}
+    kode, isi, _ = server.minta(
+        "/pendamping/inline/buka", cookie=token,
+        data={**dasar, "topik": "campuran", "jumlah_soal": "15", "mode": "drill",
+              "hadir_timer_mode": "1", "timer_mode": "sesi", "durasi_menit": "47", "timer_auto": "1"},
+        headers=header,
+    )
+    assert kode == 404
+    assert '<option value="campuran"' not in isi
+    assert 'durasi_menit' not in isi
+    assert server.provider.panggilan == []
 
 
 def test_tutup_bantuan_memulihkan_kontrol_tautan_dan_konfirmasi_destruktif(server):
@@ -138,7 +190,7 @@ def test_tutup_bantuan_memulihkan_kontrol_tautan_dan_konfirmasi_destruktif(serve
         data={"inline_host": "anak", "inline_host_id": str(anak), "inline_posisi": "rencana"},
         headers=_origin(server),
     )
-    assert kode == 200 and "<script" not in normal
+    assert kode == 200 and normal.count('<script>') == 1
     kode, sesi_assisted, _ = server.minta(f"/sesi/{sesi}?bantuan=soal&nomor=1", cookie=token)
     assert kode == 200 and 'onsubmit="return confirm(' not in sesi_assisted
     ids, draf = _draf(server, sesi)
@@ -147,7 +199,7 @@ def test_tutup_bantuan_memulihkan_kontrol_tautan_dan_konfirmasi_destruktif(serve
         data={"inline_host": "sesi", "inline_host_id": str(sesi), "inline_posisi": "soal",
               "inline_nomor": "1", **draf}, headers=_origin(server),
     )
-    assert kode == 200 and "<script" not in sesi_normal
+    assert kode == 200 and sesi_normal.count('<script>') == 1
     assert "fonts.googleapis.com" not in sesi_normal
     assert 'action="/sesi/' in sesi_normal and '/hapus"' in sesi_normal
     assert "Baris satu\nbaris dua" in sesi_normal
@@ -378,7 +430,8 @@ def test_history_exact_resource_pagination_inline(server):
     assert len(re.findall(r"Chat [0-9]{2} [A-Z][a-z]{2} 1970", halaman_2)) == 2
 
 
-def test_usulan_inline_tinjau_konfirmasi_hasil_idempoten_tanpa_bukti(server, monkeypatch):
+@pytest.mark.parametrize('jenis_draf', ['', 'gabungan', 'remedial'])
+def test_usulan_inline_tinjau_konfirmasi_hasil_idempoten_tanpa_bukti(server, monkeypatch, jenis_draf):
     usulan_sah = {"topik_id": "pola-bilangan", "template_ids": ["deret_aritmetika"],
                   "level": "P3", "jumlah_soal": 10}
     provider = ProviderPalsu({"jawaban": "Usulan siap ditinjau.", "draft_memori": None,
@@ -387,6 +440,14 @@ def test_usulan_inline_tinjau_konfirmasi_hasil_idempoten_tanpa_bukti(server, mon
     token = _token_guru(server)
     anak, _, _, _ = server.ids_inline
     dasar = {"inline_host": "anak", "inline_host_id": str(anak), "inline_posisi": "latihan"}
+    if jenis_draf == 'gabungan':
+        dasar.update(inline_form='gabungan', jumlah_soal='15', mode='drill',
+                     format_jawaban='pilihan_ganda', profil_parameter='P4')
+    elif jenis_draf == 'remedial':
+        from test_remedial_ui import _catat
+        with server.buka() as kon:
+            _catat(kon, anak, 'soal_umur', 'K')
+        dasar.update(inline_form='remedial', jumlah_soal='20')
     _, pilih, _ = server.minta(
         "/pendamping/inline/persetujuan", cookie=token,
         data={**dasar, "kebijakan": assistant_policy.VERSI_KEBIJAKAN, "setuju": "1"}, headers=_origin(server),
@@ -432,6 +493,12 @@ def test_usulan_inline_tinjau_konfirmasi_hasil_idempoten_tanpa_bukti(server, mon
         data=data_konfirmasi, headers=_origin(server),
     )
     assert kode == 200 and "Latihan siap" in hasil_retry
+    if jenis_draf:
+        for halaman in (tinjau, hasil, hasil_retry):
+            assert f'value="{dasar["jumlah_soal"]}" selected' in halaman
+            assert 'value="soal_umur" checked' not in halaman
+        if jenis_draf == 'gabungan':
+            assert 'value="pilihan_ganda" selected' in hasil_retry
     with server.buka() as kon:
         assert kon.execute("SELECT COUNT(*) FROM sesi").fetchone()[0] == sebelum_sesi + 1
         assert kon.execute("SELECT COUNT(*) FROM bukti_fokus").fetchone()[0] == sebelum_bukti
@@ -480,6 +547,222 @@ def test_edit_memori_dalam_form_koreksi_hanya_mengambil_field_target(server):
         assert kon.execute("SELECT jawaban FROM jawaban WHERE sesi_soal_id=?", (ids[0],)).fetchone() is None
 
 
+def test_parser_draf_gabungan_dan_remedial_menolak_nilai_asing(server):
+    token = _token_guru(server)
+    anak, _, _, _ = server.ids_inline
+    dasar = {"inline_host": "anak", "inline_host_id": str(anak), "inline_posisi": "latihan"}
+    with server.buka() as kon:
+        sebelum = kon.execute("SELECT COUNT(*) FROM sesi WHERE siswa_id=?", (anak,)).fetchone()[0]
+        sasaran = database.sasaran_remedial_anak(kon, anak)
+    gabungan = {"inline_form": "gabungan", "topik": ["pola-bilangan", "aritmetika-dasar"],
+                "jumlah_soal": "15", "mode": "diagnostik", "format_jawaban": "pilihan_ganda",
+                "profil_parameter": "P4"}
+    import assistant_http
+    import assistant_inline
+    parsed = assistant_http._pisahkan_draf_inline(
+        {k: ([v] if isinstance(v, str) else v) for k, v in {**dasar, **gabungan}.items()},
+        assistant_inline.tujuan_anak(anak, "latihan"),
+    )
+    assert parsed[2].topik == ("pola-bilangan", "aritmetika-dasar")
+    assert parsed[0] == {k: [v] for k, v in dasar.items()}
+    import pytest
+    with pytest.raises(assistant_inline.GalatInline):
+        assistant_inline.parse_draf_gabungan(
+            {"topik": ["pola-bilangan", "asing"], "jumlah_soal": ["15"],
+             "mode": ["diagnostik"], "format_jawaban": ["pilihan_ganda"],
+             "profil_parameter": ["P4"]},
+            __import__('topics').daftar_topik(),
+        )
+    if sasaran:
+        template = str(sasaran[0]["template_id"])
+        remedial = assistant_inline.parse_draf_remedial(
+            {"template_id": [template], "jumlah_soal": ["20"]}, [template]
+        )
+        assert remedial.template_id == (template,) and remedial.jumlah_soal == "20"
+    with server.buka() as kon:
+        assert kon.execute("SELECT COUNT(*) FROM sesi WHERE siswa_id=?", (anak,)).fetchone()[0] == sebelum
+    assert server.provider.panggilan == []
+
+
+def _post_multi(server, token, aksi, data, *, fragment=False):
+    req = urllib.request.Request(
+        server.alamat + '/pendamping/inline/' + aksi,
+        data=urllib.parse.urlencode(data, doseq=True).encode(),
+        headers={'Content-Type': 'application/x-www-form-urlencoded',
+                 'Cookie': f'osn_sesi={token}', **_origin(server),
+                 **({'X-Pendamping-Panel': 'fragment'} if fragment else {})},
+    )
+    try:
+        respons = urllib.request.urlopen(req, timeout=10)
+    except urllib.error.HTTPError as galat:
+        respons = galat
+    with respons:
+        return respons.status, respons.read().decode()
+
+
+@pytest.mark.parametrize('jenis', ['manual', 'gabungan', 'remedial'])
+def test_semua_draf_native_melewati_consent_chat_status_history_error_memori(server, jenis):
+    from test_remedial_ui import _catat
+    token = _token_guru(server)
+    anak = server.ids_inline[0]
+    with server.buka() as kon:
+        _catat(kon, anak, 'soal_umur', 'K')
+        sebelum = tuple(kon.iterdump())
+    dasar = {'inline_host': 'anak', 'inline_host_id': str(anak), 'inline_posisi': 'latihan'}
+    draf = {
+        'manual': {'inline_form': 'manual', 'topik': 'campuran', 'jumlah_soal': '15',
+                   'mode': 'drill', 'hadir_timer_mode': '1', 'durasi_menit': '49',
+                   'timer_auto': '0', 'format_jawaban': 'pilihan_ganda', 'profil_parameter': 'P4'},
+        'gabungan': {'inline_form': 'gabungan', 'jumlah_soal': '15', 'mode': 'diagnostik',
+                     'format_jawaban': 'pilihan_ganda', 'profil_parameter': 'P4'},
+        'remedial': {'inline_form': 'remedial', 'jumlah_soal': '20'},
+    }[jenis]
+    def kirim(aksi, tambahan=None, kode=200):
+        status, isi = _post_multi(server, token, aksi, {**dasar, **draf, **(tambahan or {})})
+        assert status == kode, isi[-500:]
+        assert f'value="{draf["jumlah_soal"]}" selected' in isi
+        if jenis == 'manual':
+            assert 'value="49"' in isi
+            assert 'name="timer_mode" value="sesi" checked' not in isi
+        elif jenis == 'gabungan':
+            assert 'id="tab-gabungan"' in isi
+            assert 'name="topik" value="pola-bilangan" checked' not in isi
+            assert 'value="pilihan_ganda" selected' in isi
+        else:
+            assert 'name="template_id" value="soal_umur" checked' not in isi
+        return isi
+    kirim('buka')
+    kirim('tutup')
+    assert not assistant_schema.BAWAAN.exists()
+    pilih = kirim('persetujuan', {'kebijakan': assistant_policy.VERSI_KEBIJAKAN, 'setuju': '1'})
+    versi = re.search(r'name="resource_version" value="([^"]+)"', pilih).group(1)
+    chat_html = kirim('mulai', {'resource_version': versi, 'kategori': 'ringkasan_netral',
+                               'mode_chat': 'aktif', 'request_id': 'buka_draf_sintetis', 'setuju_konteks': '1'})
+    chat = re.search(r'name="chat" value="([^"]+)"', chat_html).group(1)
+    req = re.search(r'name="request_id" value="(req_[^"]+)"', chat_html).group(1)
+    kirim('pesan', {'chat': chat, 'request_id': req, 'pesan': 'Pertanyaan sintetis.'})
+    kirim('status', {'chat': chat, 'request_id': req})
+    kirim('riwayat', {'chat': chat, 'pilih_chat': chat})
+    kirim('pesan', {'chat': chat, 'request_id': 'buruk', 'pesan': 'Pertanyaan sintetis.'}, 400)
+    kirim('batal-hapus-memori', {'chat': chat})
+    with server.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum
+    assert len(server.provider.panggilan) == 1
+    muatan = str(server.provider.panggilan)
+    assert 'inline_form' not in muatan and 'durasi_menit' not in muatan
+
+
+@pytest.mark.parametrize('buruk', [
+    {'mode': ['drill', 'diagnostik']}, {'asing': 'rahasia'},
+    {'topik': ['pola-bilangan', 'asing']}, {'sumber_sesi_id': '999999'},
+])
+def test_draf_gabungan_field_asing_ganda_ditolak_tanpa_efek(server, buruk):
+    token = _token_guru(server)
+    anak = server.ids_inline[0]
+    data = {'inline_host': 'anak', 'inline_host_id': str(anak), 'inline_posisi': 'latihan',
+            'inline_form': 'gabungan', 'jumlah_soal': '15', 'mode': 'drill',
+            'format_jawaban': 'isian', 'profil_parameter': 'P4', **buruk}
+    with server.buka() as kon:
+        sebelum = tuple(kon.iterdump())
+    kode, _ = _post_multi(server, token, 'buka', data)
+    assert kode == 404
+    assert server.provider.panggilan == []
+    assert not assistant_schema.BAWAAN.exists()
+    with server.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum
+
+
+def test_bookmark_sesi_dibatalkan_tetap_memiliki_form_panel_mandiri(server):
+    token = _token_guru(server)
+    sesi = server.ids_inline[1]
+    with server.buka() as kon:
+        kon.execute("UPDATE sesi SET dibatalkan='2026-09-27' WHERE id=?", (sesi,))
+    kode, isi, _ = server.minta(f'/sesi/{sesi}?bantuan=sesi', cookie=token)
+    assert kode == 200
+    assert 'action="/pendamping/inline/persetujuan"' in isi
+    assert f'form="form-koreksi-{sesi}"' not in isi
+
+
+def test_remedial_sumber_native_owner_valid_dipulihkan(server):
+    from test_remedial_ui import _catat
+    token = _token_guru(server)
+    anak = server.ids_inline[0]
+    with server.buka() as kon:
+        sumber = _catat(kon, anak, 'soal_umur', 'K')
+        sebelum = tuple(kon.iterdump())
+    dasar = {'inline_host': 'anak', 'inline_host_id': str(anak), 'inline_posisi': 'latihan',
+             'inline_form': 'remedial', 'jumlah_soal': '20', 'sumber_sesi_id': str(sumber)}
+    for aksi in ('buka', 'tutup'):
+        kode, isi = _post_multi(server, token, aksi, dasar)
+        assert kode == 200
+        assert f'name="sumber_sesi_id" value="{sumber}"' in isi
+    asing = _post_multi(server, token, 'buka', {**dasar, 'sumber_sesi_id': str(server.ids_inline[3])})
+    hilang = _post_multi(server, token, 'buka', {**dasar, 'sumber_sesi_id': '999999'})
+    assert asing == hilang and asing[0] == 404
+    with server.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum
+    assert server.provider.panggilan == []
+
+
+def test_pilih_sumber_nomor_hilang_asing_sama_404_tanpa_store(server):
+    token = _token_guru(server)
+    _, sesi, _, sesi_asing = server.ids_inline
+    hasil = []
+    with server.buka() as kon:
+        sebelum = tuple(kon.iterdump())
+    for sid, nomor in ((sesi, '999'), (sesi_asing, '1'), (999999, '1')):
+        hasil.append(_post_multi(server, token, 'pilih-sumber', {
+            'inline_host': 'sesi', 'inline_host_id': str(sid),
+            'inline_posisi': 'sesi', 'pilih_nomor': nomor,
+        }, fragment=True))
+    assert all(h == hasil[0] for h in hasil)
+    assert hasil[0][0] == 404
+    assert not assistant_schema.BAWAAN.exists()
+    assert server.provider.panggilan == []
+    with server.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum
+
+
+@pytest.mark.parametrize('tambahan', [{'setuju': ['1', '1']}, {'asing': 'x' * 110001}])
+def test_payload_ganda_atau_terlalu_besar_tidak_memberi_consent(server, tambahan):
+    token = _token_guru(server)
+    kode, _ = _post_multi(server, token, 'persetujuan', {
+        'inline_host': 'anak', 'inline_host_id': str(server.ids_inline[0]),
+        'inline_posisi': 'latihan', 'kebijakan': assistant_policy.VERSI_KEBIJAKAN,
+        'setuju': '1', **tambahan,
+    })
+    assert kode in (404, 413)
+    assert not assistant_schema.BAWAAN.exists()
+    assert server.provider.panggilan == []
+
+
+def test_draf_gabungan_native_dipulihkan_tanpa_membuat_sesi(server):
+    token = _token_guru(server)
+    anak, _, _, _ = server.ids_inline
+    dasar = {"inline_host": "anak", "inline_host_id": str(anak), "inline_posisi": "latihan"}
+    gabungan = {"inline_form": "gabungan", "topik": ["pola-bilangan", "aritmetika-dasar"],
+                "jumlah_soal": "15", "mode": "diagnostik", "format_jawaban": "pilihan_ganda",
+                "profil_parameter": "P4"}
+    with server.buka() as kon:
+        sebelum = kon.execute("SELECT COUNT(*) FROM sesi WHERE siswa_id=?", (anak,)).fetchone()[0]
+    import urllib.request
+    req = urllib.request.Request(
+        server.alamat + "/pendamping/inline/buka",
+        data=urllib.parse.urlencode({**dasar, **gabungan}, doseq=True).encode(),
+        method="POST",
+        headers={"Content-Type": "application/x-www-form-urlencoded", "Cookie": f"osn_sesi={token}", **_origin(server)},
+    )
+    with urllib.request.urlopen(req, timeout=10) as respons:
+        kode, isi = respons.status, respons.read().decode()
+    assert kode == 200
+    assert 'value="pola-bilangan" checked' in isi and 'value="aritmetika-dasar" checked' in isi
+    assert 'value="15" selected' in isi and 'value="diagnostik" checked' in isi
+    assert 'value="pilihan_ganda" selected' in isi and 'value="P4" selected' in isi
+    with server.buka() as kon:
+        assert kon.execute("SELECT COUNT(*) FROM sesi WHERE siswa_id=?", (anak,)).fetchone()[0] == sebelum
+    assert server.provider.panggilan == []
+
+
 def test_draf_form_latihan_profil_melintasi_consent_tanpa_membuat_sesi(server):
     token = _token_guru(server)
     anak, _, _, _ = server.ids_inline
@@ -503,20 +786,42 @@ def test_draf_form_latihan_profil_melintasi_consent_tanpa_membuat_sesi(server):
         assert kon.execute("SELECT COUNT(*) FROM sesi WHERE siswa_id=?", (anak,)).fetchone()[0] == sebelum
 
 
+def test_pilih_soal_dari_satu_entry_panel_tetap_owner_scoped(server):
+    token = _token_guru(server)
+    _, sesi, _, sesi_asing = server.ids_inline
+    dasar = {"inline_host": "sesi", "inline_host_id": str(sesi), "inline_posisi": "sesi"}
+    kode, isi, _ = server.minta(
+        "/pendamping/inline/pilih-sumber", cookie=token,
+        data={**dasar, "pilih_nomor": "1"}, headers=_origin(server),
+    )
+    assert kode == 200
+    assert 'id="bantuan-soal-1"' in isi and "Soal 1" in isi
+    assert server.provider.panggilan == []
+    asing = {"inline_host": "sesi", "inline_host_id": str(sesi_asing),
+             "inline_posisi": "sesi", "pilih_nomor": "1"}
+    hilang = {"inline_host": "sesi", "inline_host_id": "999999",
+              "inline_posisi": "sesi", "pilih_nomor": "1"}
+    a = server.minta("/pendamping/inline/pilih-sumber", cookie=token, data=asing, headers=_origin(server))
+    b = server.minta("/pendamping/inline/pilih-sumber", cookie=token, data=hilang, headers=_origin(server))
+    assert a[0] == b[0] == 404 and a[1] == b[1]
+    assert server.provider.panggilan == []
+
+
 def test_host_biasa_membuka_bantuan_via_post_dengan_draf(server):
     token = _token_guru(server)
     _, sesi, _, _ = server.ids_inline
     ids, draf = _draf(server, sesi)
     kode, awal, _ = server.minta(f"/sesi/{sesi}", cookie=token)
     assert kode == 200
-    assert f'formaction="/pendamping/inline/buka/sesi/{sesi}/soal/1"' in awal
+    assert f'formaction="/pendamping/inline/buka/sesi/{sesi}/sesi"' in awal
     assert f'form="form-koreksi-{sesi}"' in awal
-    dasar = {"inline_host": "sesi", "inline_host_id": str(sesi), "inline_posisi": "soal", "inline_nomor": "1"}
+    assert awal.count('class="pendamping-pemicu"') == 1
+    dasar = {"inline_host": "sesi", "inline_host_id": str(sesi), "inline_posisi": "sesi"}
     kode, isi, _ = server.minta(
-        f"/pendamping/inline/buka/sesi/{sesi}/soal/1", cookie=token, data=draf, headers=_origin(server),
+        f"/pendamping/inline/buka/sesi/{sesi}/sesi", cookie=token, data=draf, headers=_origin(server),
     )
     assert kode == 200
-    assert 'id="bantuan-soal-1"' in isi
+    assert 'id="bantuan-sesi"' in isi
     assert "Baris satu\nbaris dua" in isi
     assert f'name="jwb_{ids[0]}"\n               value=""' in isi
 
@@ -536,7 +841,7 @@ def test_tutup_bantuan_memulihkan_host_native_dan_draf(server):
     assert f'name="jwb_{ids[0]}"\n               value=""' in isi
     _privat(header)
     assert "script-src 'unsafe-inline'" not in header["Content-Security-Policy"]
-    assert "<script" not in isi and "fonts.googleapis.com" not in isi
+    assert isi.count('<script>') == 1 and "fonts.googleapis.com" not in isi
 
 
 def test_tutup_draf_koreksi_blank_checkbox_caraku_pemahaman_dan_galat_privat(server):

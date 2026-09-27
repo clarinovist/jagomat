@@ -63,6 +63,18 @@ def test_tombol_buka_mandiri_punya_form_dan_mode_dalam_form_tidak_nested():
     assert 'formaction="/pendamping/inline/buka"' in tertanam
 
 
+def test_pemilih_satu_entry_sesi_membedakan_ringkasan_dan_soal():
+    panel = assistant_components.panel_pilih_sumber_sesi(
+        assistant_inline.tujuan_sesi(42), (1, 2, 3),
+        sumber={"nama": "Anak Sintetis", "label": "Sesi #42", "level": "P3"},
+    )
+    assert panel.count('pendamping-panel-kanan') == 1
+    assert '<option value="">Ringkasan sesi</option>' in panel
+    assert '<option value="3">Soal 3</option>' in panel
+    assert 'formaction="/pendamping/inline/pilih-sumber"' in panel
+    assert "Bahas soal" not in panel
+
+
 def test_persetujuan_dalam_form_host_tidak_membuat_form_bersarang():
     target = assistant_inline.tujuan_sesi(42, nomor=3)
     panel = assistant_components.panel_persetujuan(
@@ -123,7 +135,8 @@ def test_fragmen_escape_teks_model_dan_hanya_satu_composer():
     assert "&lt;script&gt;" in panel
     assert panel.count('name="pesan"') == 1
     assert panel.count("pendamping-inline") >= 1
-    assert f"chat={cid}" in panel
+    assert f'name="pilih_chat" value="{cid}"' in panel
+    assert 'formaction="/pendamping/inline/riwayat"' in panel
 
 
 @pytest.mark.parametrize("dalam_form", [False, True])
@@ -139,7 +152,7 @@ def test_composer_blok_dan_preferensi_ringkas_setelah_area_kirim(dalam_form):
     parser = FormParser(('<form id="host">' if dalam_form else "") + panel
                         + ("</form>" if dalam_form else ""))
     assert parser.maks == 1
-    assert parser.form == (1 if dalam_form else 3)
+    assert parser.form == (1 if dalam_form else 4)
     assert '<div class="pendamping-composer">' in panel
     assert '<textarea id="pesan-inline" name="pesan" rows="5"' in panel
     assert 'formaction="/pendamping/inline/pesan">Kirim</button>' in panel

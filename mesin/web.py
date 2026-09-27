@@ -86,6 +86,9 @@ class Penangan(BaseHTTPRequestHandler):
                 pass
 
     def _kirim(self, isi: bytes, kode: int = 200) -> None:
+        import assistant_browser
+        if assistant_browser.memiliki_panel(isi):
+            return self._kirim_privat(isi, kode)
         self.send_response(kode)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(isi)))
@@ -694,13 +697,13 @@ class Penangan(BaseHTTPRequestHandler):
                                 self._ambil_token()
                             )
                             status_inline = kon.execute(
-                                "SELECT selesai FROM sesi WHERE id = ?", (sesi_id,)
+                                "SELECT selesai, dibatalkan FROM sesi WHERE id = ?", (sesi_id,)
                             ).fetchone()
                             fragmen_inline = assistant_http.fragmen_inline(
                                 principal, target_inline,
                                 dalam_form=bool(
                                     status_inline and status_inline["selesai"]
-                                    and target_inline.posisi == "soal"
+                                    and status_inline["dibatalkan"] is None
                                 ),
                             )
                     except (ValueError, LookupError):

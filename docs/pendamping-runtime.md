@@ -200,20 +200,23 @@ inline setelah principal, sumber, dan izin divalidasi.
 
 Source inline menyediakan:
 
-- Slot bantuan di dalam kartu rencana, area latihan manual, pengantar sesi, atau
-  satu kartu soal yang dipilih. Membuka bantuan dari form aktif memakai POST
-  native supaya draf tetap request-local dan tidak disimpan otomatis.
+- Satu pemicu aktif di header host guru membuka panel samping nonmodal pada desktop,
+  atau panel penuh dengan Kembali pada HP. Sumber tetap rencana/latihan anak atau
+  sesi/soal yang tepat. Pemicu sesi enhanced menawarkan ringkasan/nomor soal;
+  bookmark konteks sesi/soal tetap langsung ke sumber kanoniknya.
 - Consent provider dan konteks tetap terpisah. Draf koreksi/manual tidak masuk
   payload provider, storage Pendamping, cookie, atau URL.
 - History dibatasi exact-resource dan seluruh aksi dalam form koreksi memakai
   submit POST yang membawa kembali draf. Mode tanpa memori tetap menyimpan history.
-- Host assisted memakai header no-store/no-referrer/noindex/frame/CSP dan tidak
-  meminta resource pihak ketiga. Hanya panel chat mendapat skrip berhash CSP
-  dengan `connect-src 'self'` untuk Kirim/Periksa status tanpa reload. Halaman
-  consent, arsip, dan respons Tutup tetap tanpa skrip chat. Respons Tutup tetap privat;
-  tindakan destruktif memakai fallback native dengan konsekuensi dan konfirmasi
-  eksplisit, bukan handler JavaScript yang diblokir. Draf dipulihkan dalam request
-  yang sama.
+- Host yang mempunyai pemicu/panel memakai no-store/no-referrer/noindex/frame/CSP
+  sejak respons awal, tanpa font/CDN/resource pihak ketiga. Skrip hanya diizinkan
+  dengan hash tepat dan `connect-src 'self'`; consent serta host setelah Tutup
+  tetap mendapat enhancement bila memiliki pemicu. Arsip tanpa panel tidak diberi
+  skrip panel. Tindakan destruktif memakai fallback native dengan konsekuensi dan
+  konfirmasi eksplisit, bukan handler JavaScript yang diblokir.
+- POST native tetap penuh: draf manual/gabungan/remedial/koreksi dipulihkan request-local,
+  termasuk pilihan kosong/checkbox tidak dicentang, tab, variasi, format dan jumlah.
+  Validasi draf bukan izin membuat latihan; aturan submit pembuatan tidak berubah.
 - Chat umum lama tampil bersyarat sebagai **Arsip percakapan lama** di pengaturan
   akun: metadata maksimal 20 per halaman dan hanya transkrip yang dipilih yang
   dimuat. Arsip owner-only, readonly, tanpa composer, dan tidak dihubungkan ke
@@ -245,13 +248,27 @@ Adapter warisan yang masih dipertahankan:
   menawarkan pengiriman ulang otomatis. Status selesai menuju chat yang sama.
   Tidak ada streaming atau penyimpanan draf di storage browser.
 
-### Kirim tanpa reload
+### Panel tanpa reload — persetujuan teknis 27 September 2026
 
-- Progressive enhancement terbatas pada Kirim/Periksa status. POST form native
-  tetap fallback jika JavaScript tidak tersedia; endpoint dan guard server sama.
-- Browser menampilkan status menunggu dan mengunci pengiriman ganda. Respons HTML
-  server hanya mengganti panel dengan ID host dan ID chat yang sama. Form host
-  tidak diganti: perubahan latihan/koreksi selama menunggu tetap ada, tanpa autosave.
+- Enhancement terbatas pada buka/tutup, persetujuan provider/konteks, picker sumber,
+  riwayat exact-resource, pemulihan fokus/scroll serta Kirim/Periksa status. Aksi
+  memori/usulan tetap POST native. Semua fetch memakai allow-list path exact same-origin;
+  tidak ada navigasi global yang diintersep atau retry otomatis. Bila panel dibuka
+  enhanced, submit native memori/usulan dilengkapi salinan field draf allow-list
+  pada form panel untuk request lokal; form pekerjaan tidak diubah. Salinan bukan
+  storage/autosave dan tidak disertakan dalam fetch/provider.
+- Buka enhanced hanya mengambil hidden identitas di wrapper pemicu; pemicu sesi
+  dengan action kanonik boleh body kosong. Aksi berikutnya hanya mengambil field
+  panel + submitter yang diizinkan, bukan FormData seluruh pekerjaan. Server menolak
+  draf pada request fragmen. Buka gagal tidak pernah memanggil submit form pekerjaan.
+- Respons hanya mengganti panel, tidak form host. Binding host jenis/ID dan resource
+  divalidasi per aksi: picker sesi boleh ke nomor yang dipilih dalam sesi sama;
+  riwayat boleh mengganti chat hanya exact-resource; Kirim/Status wajib chat dan
+  request asal yang sama. ID DOM/anchor bukan identitas keamanan.
+- Close lokal hanya untuk panel yang dibuka enhanced pada dokumen yang sama:
+  pemicu, fokus, dan scroll dipulihkan; late response diabaikan dan provider tidak
+  dibatalkan. Bookmark/native tanpa state pembuka tetap POST untuk memulihkan host.
+  Browser mengunci pengiriman ganda tetapi Tutup tetap dapat dijangkau.
 - Pesan gagal dipertahankan di DOM selama halaman terbuka. Gangguan jaringan tidak
   memicu pengiriman ulang otomatis. Coba lagi memakai payload/request ID yang sama;
   bila server masih pending, lanjutkan dengan Periksa status tanpa provider kedua.
@@ -264,8 +281,9 @@ Adapter warisan yang masih dipertahankan:
 
 **Dibatalkan, tidak tersedia melalui UI baru:** hapus chat/cabut izin dan
 pengelolaan saat provider tidak dikonfigurasi. Picker keluarga langsung, editor
-parameter, streaming atau interaksi JS di luar Kirim/Periksa status tetap di luar
-cakupan, bukan janji implementasi atau tombol palsu.
+parameter dan streaming tetap di luar cakupan, bukan janji implementasi atau tombol
+palsu. Persetujuan JS panel bukan persetujuan provider/konteks, entitlement paket,
+perubahan diagnosis/reducer, atau izin mengirim draf pekerjaan.
 
 Wireframe/prototype lokal opsional, bukan dependensi aplikasi/build/test.
 Pekerjaan walkthrough pengguna, Safari/keyboard HP fisik dan aksesibilitas

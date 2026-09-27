@@ -384,12 +384,15 @@ def test_tanggal_kartu_kanonis_aman_dan_tidak_terpotong():
     assert "white-space: nowrap" in blok
 
 
-def test_catatan_tautan_berada_di_dekat_aksi_bagikan(anak):
+def test_host_pendamping_memakai_bagikan_native_tanpa_skrip_tambahan(anak):
     db, sid = anak
     markup = _tanpa_gaya(_render_anak(db, sid))
     badan = markup.split("<script>", 1)[0]
     assert 'id="kabar-bagikan"' not in badan
-    assert '<span class="kabar-bagikan-st" aria-live="polite"></span>' in badan
+    assert 'class="kabar-bagikan-st"' not in badan
+    assert 'Bagikan sesi ke anak</button></form>' in badan
+    assert 'data-bagikan-url=' not in badan
+    assert '<script>' not in markup
     assert "Tautan berlaku 7 hari" not in badan
 
 
@@ -423,7 +426,7 @@ def test_tiga_form_tetap_utuh_dengan_action_masing_masing(anak):
     markup = _tanpa_gaya(_render_anak(db, sid))
     assert f'action="/sesi-baru/{sid}"' in markup
     assert f'action="/sesi-gabungan/{sid}"' in markup
-    assert markup.count('<form method="post"') >= 2
+    assert len(re.findall(r'<form\b[^>]*\bmethod="post"', markup)) >= 2
 
 
 def test_kartu_buat_latihan_membungkus_form(anak):

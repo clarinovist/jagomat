@@ -35,6 +35,43 @@ def test_draf_latihan_mempertahankan_kontrak_timer_sesi():
         assistant_inline.parse_draf_latihan(data, ("campuran",))
 
 
+def test_draf_gabungan_dan_remedial_strict_request_local():
+    gabungan = assistant_inline.parse_draf_gabungan({
+        "topik": ["pola-bilangan", "aritmetika-dasar"],
+        "jumlah_soal": ["15"], "mode": ["diagnostik"],
+        "format_jawaban": ["pilihan_ganda"], "profil_parameter": ["P4"],
+    }, ("pola-bilangan", "aritmetika-dasar", "campuran"))
+    assert gabungan.topik == ("pola-bilangan", "aritmetika-dasar")
+    assert gabungan.jumlah_soal == "15" and gabungan.mode == "diagnostik"
+    remedial = assistant_inline.parse_draf_remedial({
+        "template_id": ["pola_a", "pola_b"], "jumlah_soal": ["20"],
+    }, ("pola_a", "pola_b", "pola_c"))
+    assert remedial.template_id == ("pola_a", "pola_b")
+    for buruk in (
+        {"topik": ["pola-bilangan", "pola-bilangan"], "jumlah_soal": ["15"], "mode": ["drill"], "format_jawaban": ["isian"], "profil_parameter": ["P4"]},
+        {"topik": ["pola-bilangan", "asing"], "jumlah_soal": ["15"], "mode": ["drill"], "format_jawaban": ["isian"], "profil_parameter": ["P4"]},
+    ):
+        with pytest.raises(assistant_inline.GalatInline):
+            assistant_inline.parse_draf_gabungan(buruk, ("pola-bilangan", "aritmetika-dasar"))
+    with pytest.raises(assistant_inline.GalatInline):
+        assistant_inline.parse_draf_remedial({"template_id": ["pola_a", "asing"], "jumlah_soal": ["10"]}, ("pola_a",))
+
+
+@pytest.mark.parametrize('pilihan', [(), ('pola-bilangan',)])
+def test_draf_gabungan_belum_lengkap_bukan_submit_pembuatan(pilihan):
+    data = {'jumlah_soal': ['15'], 'mode': ['drill'],
+            'format_jawaban': ['isian'], 'profil_parameter': ['P4']}
+    if pilihan:
+        data['topik'] = list(pilihan)
+    assert assistant_inline.parse_draf_gabungan(data, ('pola-bilangan',)).topik == pilihan
+
+
+def test_draf_remedial_tanpa_centang_tidak_kembali_ke_rekomendasi():
+    assert assistant_inline.parse_draf_remedial(
+        {'jumlah_soal': ['20']}, ('pola_a',)
+    ).template_id == ()
+
+
 def test_tujuan_host_kanonik_dan_resource_persis():
     anak = assistant_inline.parse_query_host("anak", 7, [("bantuan", "rencana")])
     assert anak.resource_id == "7"

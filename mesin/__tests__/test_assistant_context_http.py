@@ -86,7 +86,8 @@ def test_entry_context_hanya_muncul_di_permukaan_guru(server):
     assert 'formaction="/pendamping/inline/buka"' in profil_guru
     assert f'name="inline_host_id" value="{anak}"' in profil_guru
     assert f'formaction="/pendamping/inline/buka/sesi/{sesi}/sesi"' in sesi_guru
-    assert f'formaction="/pendamping/inline/buka/sesi/{sesi}/soal/1"' in sesi_guru
+    assert sesi_guru.count('class="pendamping-pemicu"') == 1
+    assert f'formaction="/pendamping/inline/buka/sesi/{sesi}/soal/1"' not in sesi_guru
     assert "?bantuan=" not in profil_admin
     assert "?bantuan=" not in sesi_admin
 

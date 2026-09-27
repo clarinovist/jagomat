@@ -188,7 +188,13 @@ def test_empat_host_merender_style_dan_markup_composer_shared(db):
         assert '<div class="pendamping-composer">' in isi, nama
         assert '.pendamping-inline .pendamping-transkrip, .pendamping-inline .pendamping-composer {' in isi, nama
         assert f"max-width: {T.LEBAR_KONTEN}" in isi, nama
-        assert 'formaction="/pendamping/inline/pesan">Kirim</button>' in isi, nama
+        tombol_kirim = [a for a in Markup(isi).pilih('button')
+                        if a.get('formaction') == '/pendamping/inline/pesan']
+        assert len(tombol_kirim) == 1, nama
+        if nama in {'latihan', 'soal'}:
+            assert tombol_kirim[0]['form'] == (
+                f'form-latihan-manual-{sid}' if nama == 'latihan' else f'form-koreksi-{sesi}'
+            ), nama
         assert '<summary>Preferensi</summary>' in isi, nama
 
 

@@ -111,17 +111,21 @@ def _form_remedial(
     judul: str,
     penjelasan: str,
     sumber_sesi_id: int | None = None,
+    draf_remedial=None,
+    bantuan: str = "",
 ) -> str:
     """Form pilihan remedial bersama untuk profil anak dan hasil satu sesi."""
     if not sasaran:
         return ""
     pilihan = []
     sudah_dipilih = False
+    dipilih_draf = set(draf_remedial.template_id) if draf_remedial else None
     for kandidat in sasaran:
         template_id = str(kandidat["template_id"])
         kode = str(kandidat["kode"] or "")
         direkomendasikan = bool(kandidat["direkomendasikan"])
-        checked = direkomendasikan and not sudah_dipilih
+        checked = (template_id in dipilih_draf if dipilih_draf is not None
+                   else direkomendasikan and not sudah_dipilih)
         sudah_dipilih = sudah_dipilih or checked
         label_kode = LABEL_KODE_REMEDIAL.get(kode, "Perlu diperhatikan")
         meta = f'{html.escape(label_kode)} · {int(kandidat["kali_salah"])} kali'
@@ -134,6 +138,8 @@ def _form_remedial(
             f'<span class="meta-remedial-st">{meta}</span>'
             '</span></label>'
         )
+    if draf_remedial is not None and draf_remedial.sumber_sesi_id:
+        sumber_sesi_id = int(draf_remedial.sumber_sesi_id)
     sumber = (
         f'<input type="hidden" name="sumber_sesi_id" value="{sumber_sesi_id}">'
         if sumber_sesi_id is not None else ""
@@ -141,18 +147,21 @@ def _form_remedial(
     return (
         f'<section class="remedial-st"><h2>{html.escape(judul)}</h2>'
         f'<p class="sub">{html.escape(penjelasan)}</p>'
-        f'<form method="post" action="/sesi-remedial/{siswa_id}" class="strip-sesi">'
+        f'<form id="form-latihan-remedial-{siswa_id}" method="post" action="/sesi-remedial/{siswa_id}" class="strip-sesi">'
+        '<input type="hidden" name="inline_form" value="remedial">'
         f'{sumber}<div class="daftar-remedial-st">{"".join(pilihan)}</div>'
         '<p class="batas-remedial-st">Pilih maksimal 3 tipe soal.</p>'
         '<div class="strip-kolom"><label>Jumlah Soal</label>'
         '<select name="jumlah_soal" class="st-input">'
-        '<option value="10" selected>10 soal (± 30 mnt)</option>'
-        '<option value="15">15 soal (± 45 mnt)</option>'
-        '<option value="20">20 soal (± 60 mnt)</option>'
-        '</select></div>'
+        + ''.join(
+            f'<option value="{nilai}"{" selected" if (draf_remedial.jumlah_soal if draf_remedial else "10") == nilai else ""}>{nilai} soal (± {int(nilai) * 3} mnt)</option>'
+            for nilai in ("10", "15", "20")
+        )
+        + '</select></div>'
         '<button type="submit" class="st-tombol-coral">'
         '<span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>'
-        'Buat latihan ulang terarah</button></form></section>'
+        'Buat latihan ulang terarah</button>'
+        f'<div class="profil-assistant-st">{bantuan}</div></form></section>'
     )
 
 
@@ -473,7 +482,7 @@ def _halaman_stitch(
     return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(judul))}</title>
-{brand.tag_kepala()}
+{brand.tag_kepala(cetak=privat)}
 {font}
 <style>{gaya}</style></head>
 <body class="st"><div class="{kelas}">{batang}{isi}</div>{skrip}</body></html>""".encode()
@@ -656,6 +665,8 @@ def halaman_anak(
     bantuan_rencana: str = "",
     bantuan_latihan: str = "",
     draf_latihan=None,
+    draf_gabungan=None,
+    draf_remedial=None,
     privat: bool = False,
     query: str = "",
 ) -> bytes:
@@ -664,9 +675,9 @@ def halaman_anak(
     Caller mengotorisasi siswa terlebih dahulu. Bantuan memilih tab konteksnya
     tanpa memperluas query/resource Pendamping; draf tetap request-local.
     """
-    privat = privat or bool(bantuan_rencana or bantuan_latihan)
+    privat = privat or bool(bantuan_rencana or bantuan_latihan) or (peran == 'guru' and bool(pengguna))
     filter_profil = profile_history.parse_filter(query)
-    section = ("rencana" if bantuan_rencana else "latihan" if bantuan_latihan or draf_latihan else filter_profil.section)
+    section = ("rencana" if bantuan_rencana else "latihan" if bantuan_latihan or draf_latihan or draf_gabungan or draf_remedial else filter_profil.section)
     total_sesi = profile_history.jumlah_sesi(kon, siswa["id"])
     if section == "riwayat":
         sesi, total_hasil, filter_profil = profile_history.halaman_riwayat(kon, siswa["id"], filter_profil)
@@ -777,8 +788,19 @@ def halaman_anak(
         item = '<p class="sub">Tidak ada latihan yang perlu ditindaklanjuti.</p>'
 
     from choice_pages import kontrol_format
+    draf_aktif = (
+        "gabungan" if draf_gabungan is not None else
+        "remedial" if draf_remedial is not None else "manual"
+    )
+
+    def _slot_pendamping(jenis: str) -> str:
+        if peran != "guru" or not pengguna:
+            return ""
+        target = __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "latihan")
+        return __import__("assistant_components").tombol_buka(target, dalam_form=True)
+
     strip_sesi = (
-        f'<form method="post" action="/sesi-baru/{siswa["id"]}" class="strip-sesi profil-manuel-st">'
+        f'<form id="form-latihan-manual-{siswa["id"]}" method="post" action="/sesi-baru/{siswa["id"]}" class="strip-sesi profil-manuel-st">'
         '<div class="profil-champs-st">'
         + _kontrol_profil_parameter('manual', getattr(draf_latihan, 'profil_parameter', siswa['tingkat']))
         + f'<div class="strip-kolom"><label for="manual-topik">Topik</label>'
@@ -799,13 +821,9 @@ def halaman_anak(
         + '<button type="submit" class="st-tombol-coral">'
         f'{profile_workspace.ikon("play_arrow")}'
         "Buat sesi baru</button></div>"
+        '<input type="hidden" name="inline_form" value="manual">'
         '<div class="profil-assistant-st">'
-        + (bantuan_latihan or (
-            __import__("assistant_components").tombol_buka(
-                __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "latihan"),
-                dalam_form=True,
-            ) if peran == "guru" and pengguna else ""
-        )) + "</div></form>"
+        + _slot_pendamping("manual") + "</div></form>"
     )
 
     # Remedial terarah dari seluruh riwayat yang sudah ditinjau. Guru melihat
@@ -819,6 +837,8 @@ def halaman_anak(
             "Pilih yang ingin dilatih. Pilihan yang dicentang adalah rekomendasi "
             "berdasarkan hasil terbaru."
         ),
+        draf_remedial=draf_remedial,
+        bantuan=_slot_pendamping("remedial"),
     )
 
     # Latihan gabungan (poin 4 tahap 2): guru memilih BEBERAPA topik saja,
@@ -826,39 +846,42 @@ def halaman_anak(
     # Berbeda dari topik "campuran" yang selalu memakai SEMUA topik.
     centang_topik = "".join(
         f'<label class="mode-opsi"><input type="checkbox" name="topik" '
-        f'value="{html.escape(t)}"> {html.escape(ambil(t).nama)}</label>'
+        f'value="{html.escape(t)}"{" checked" if draf_gabungan and t in draf_gabungan.topik else ""}> {html.escape(ambil(t).nama)}</label>'
         for t in daftar_topik()
         if t != "campuran"      # campuran sudah = semua, tak perlu dicentang
     )
     strip_gabungan = (
-        '<form method="post" '
+        f'<form id="form-latihan-gabungan-{siswa["id"]}" method="post" '
         f'action="/sesi-gabungan/{siswa["id"]}" class="strip-sesi">'
-        + _kontrol_profil_parameter('gabungan', siswa['tingkat'])
+        '<input type="hidden" name="inline_form" value="gabungan">'
+        + _kontrol_profil_parameter('gabungan', getattr(draf_gabungan, 'profil_parameter', siswa['tingkat']))
         + '<div class="strip-kolom">'
         "<label>Latihan gabungan — pilih beberapa topik</label>"
         '<p class="sub">Centang dua topik atau lebih. Soalnya dicampur '
         "bergantian antar-topik yang kamu pilih.</p>"
-        f'<div class="mode-pilih">{centang_topik}</div></div>{kontrol_format("gabungan")}'
+        f'<div class="mode-pilih">{centang_topik}</div></div>{kontrol_format("gabungan", getattr(draf_gabungan, "format_jawaban", "isian"))}'
         '<div class="strip-kolom">'
         '<span id="gabungan-mode-label">Mode latihan</span>'
         '<div class="mode-pilih" role="radiogroup" aria-labelledby="gabungan-mode-label">'
-        '<label class="mode-opsi"><input type="radio" name="mode" value="drill" checked>'
+        '<label class="mode-opsi"><input type="radio" name="mode" value="drill"' + (' checked' if not draf_gabungan or draf_gabungan.mode == 'drill' else '') + '>'
         '<span class="mode-teks">Latihan Cepat'
         '<span class="mode-desk">Anak langsung mengisi jawaban, tanpa menuliskan cara.</span>'
         '</span></label>'
-        '<label class="mode-opsi"><input type="radio" name="mode" value="diagnostik">'
+        '<label class="mode-opsi"><input type="radio" name="mode" value="diagnostik"' + (' checked' if draf_gabungan and draf_gabungan.mode == 'diagnostik' else '') + '>'
         '<span class="mode-teks">Diagnostik'
         '<span class="mode-desk">Jawaban dan cara berpikir anak ikut diperiksa.</span>'
         '</span></label>'
         '</div></div>'
         '<div class="strip-kolom"><label for="gabungan-jumlah">Jumlah Soal</label>'
         '<select id="gabungan-jumlah" name="jumlah_soal" class="st-input">'
-        '<option value="10" selected>10 soal (± 30 mnt)</option>'
-        '<option value="15">15 soal (± 45 mnt)</option>'
-        '<option value="20">20 soal (± 60 mnt)</option>'
-        "</select></div>"
+        + ''.join(
+            f'<option value="{nilai}"{" selected" if (draf_gabungan.jumlah_soal if draf_gabungan else "10") == nilai else ""}>{nilai} soal (± {int(nilai) * 3} mnt)</option>'
+            for nilai in ("10", "15", "20")
+        )
+        + "</select></div>"
         '<button type="submit" class="st-tombol-coral">'
         f'{profile_workspace.ikon("library_add")}Buat latihan gabungan</button>'
+        '<div class="profil-assistant-st">' + _slot_pendamping("gabungan") + '</div>'
         "</form>"
     )
 
@@ -883,10 +906,11 @@ def halaman_anak(
         f'i<span class="info-bubble" role="tooltip">{html.escape(INFO_LATIHAN_BEBAS)}</span></button></div>'
     ) if section == 'latihan' else ''
     if len(panel) > 1:
+        panel_aktif = "gabungan" if draf_gabungan else "ulang" if draf_remedial else "baru"
         tab = "".join(
             f'<input type="radio" name="jenis-latihan" id="tab-{kode}" '
-            f'class="tab-radio-st"{" checked" if i == 0 else ""}>'
-            for i, (kode, _, _, _) in enumerate(panel)
+            f'class="tab-radio-st"{" checked" if kode == panel_aktif else ""}>'
+            for kode, _, _, _ in panel
         )
         label = "".join(
             f'<label class="tab-label-st" for="tab-{kode}">'
@@ -920,10 +944,10 @@ def halaman_anak(
         __import__("assistant_components").tombol_buka(
             __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "rencana")
         )
-        if peran == "guru" and pengguna and not bantuan_rencana else ""
+        if peran == "guru" and pengguna else ""
     )
     kartu_rencana = learning_cycle_ui.kartu_rencana(
-        kon, int(siswa["id"]), slot_bantuan=bantuan_rencana or tautan_bantuan,
+        kon, int(siswa["id"]), slot_bantuan=tautan_bantuan,
     ) if section == "rencana" else ""
     latihan_manual = (
         '<section class="profil-formulaire-st">'
@@ -957,7 +981,17 @@ def halaman_anak(
     return _halaman_stitch(
         f"{siswa['nama']} — {T.NAMA_PRODUK}",
         profile_workspace.bingkai(siswa, section, total_sesi, isi_profil, peran=peran, pesan=pesan,
-                                  kelas_sekolah=_kelas_sekolah_profil(kon, siswa)) + skrip_bagikan,
+                                  kelas_sekolah=_kelas_sekolah_profil(kon, siswa))
+        + (bantuan_rencana if section == "rencana" else "")
+        + (__import__("assistant_components").hubungkan_form(
+            bantuan_latihan, f'form-latihan-{draf_aktif}-{siswa["id"]}', identitas_di_host=True,
+        ) if section == "latihan" and bantuan_latihan else "")
+        + ((
+            __import__("assistant_components").tombol_buka(
+                __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "rencana")
+            )
+        ) if section == "riwayat" and peran == "guru" and pengguna else "")
+        + skrip_bagikan,
         ident=(pengguna if pengguna else "guru", peran),
         kelas_bungkus="lebar pendamping-editorial-st profil-editorial-st profil-workspace-st",
         privat=privat,
@@ -1265,6 +1299,7 @@ def halaman_sesi_stitch(
     masalah_konfirmasi=(),
 ) -> bytes:
     """Detail sesi versi Stitch: pratinjau lalu koreksi setelah dikirim."""
+    privat = privat or (peran == 'guru' and bool(pengguna))
     from style_stitch import gaya_stitch, CSS_SESI
 
     info = kon.execute(
@@ -1755,7 +1790,6 @@ def halaman_sesi_stitch(
       <p class="koreksi-catatan-st" id="lewati-info-{b["sesi_soal_id"]}">Saat dikonfirmasi, soal dicatat sebagai dilewati, bukan benar atau salah, dan bukan bukti pemahaman. Jawaban dan catatan asli tetap tersimpan.</p>
     </details>
     </details>
-    {bantuan if bantuan_nomor == int(b["nomor"]) else ""}
   </div>
 </details>"""
         (kartu if tindakan or buka_kartu else kartu_tercatat).append(kartu_html)
@@ -1781,37 +1815,17 @@ def halaman_sesi_stitch(
     pil = _pil_sesi_stitch(kon, sesi_id, "koreksi")
     konteks_pendamping = ""
     if peran == "guru" and pengguna:
-        if bantuan and (bantuan_nomor is None or not sudah_dikirim):
-            # Sesi belum dikirim belum mempunyai kartu koreksi. Bantuan soal
-            # tetap muncul di pengantar tanpa membuka koreksi lebih dini.
-            konteks_pendamping = bantuan
-        else:
-            if sudah_dikirim:
-                import assistant_components
-                import assistant_inline
-                tautan_soal = "".join(
-                    assistant_components.tombol_buka(
-                        assistant_inline.tujuan_sesi(sesi_id, nomor=int(b["nomor"])),
-                        form_id=f"form-koreksi-{sesi_id}", label=f'Bahas soal {int(b["nomor"])}',
-                    ) for b in database.isi_sesi(kon, sesi_id)
-                )
-            else:
-                tautan_soal = "".join(
-                    f'<a href="/sesi/{sesi_id}?bantuan=soal&amp;nomor={int(b["nomor"])}#bantuan-soal-{int(b["nomor"])}">'
-                    f'Bahas soal {int(b["nomor"])}</a>'
-                    for b in database.isi_sesi(kon, sesi_id)
-                )
-            if sudah_dikirim:
-                tautan_sesi = assistant_components.tombol_buka(
-                    assistant_inline.tujuan_sesi(sesi_id),
-                    form_id=f"form-koreksi-{sesi_id}", label="Bahas sesi ini",
-                )
-            else:
-                tautan_sesi = f'<a href="/sesi/{sesi_id}?bantuan=sesi#bantuan-sesi">Bahas sesi ini</a>'
-            konteks_pendamping = (
-                '<details class="alat-pendamping-st"><summary>Bahas dengan Pendamping</summary>'
-                f'{tautan_sesi}{tautan_soal}</details>'
+        import assistant_components
+        import assistant_inline
+        target_sesi = assistant_inline.tujuan_sesi(sesi_id)
+        if sudah_dikirim and not sesi_dibatalkan:
+            # Satu entry konsisten; pilihan soal tetap dilakukan di dalam panel,
+            # bukan lewat sederet tombol yang bersaing dengan koreksi.
+            konteks_pendamping = assistant_components.tombol_buka(
+                target_sesi, form_id=f"form-koreksi-{sesi_id}", label="Pendamping",
             )
+        else:
+            konteks_pendamping = assistant_components.tombol_buka(target_sesi)
     if not sudah_dikirim:
         pil = pil.replace(">Koreksi</a>", ">Soal &amp; kunci</a>")
 
@@ -2138,6 +2152,9 @@ def halaman_sesi_stitch(
         f'<p class="sub">{keterangan_bahaya}</p>'
         f'{aksi_bahaya_tampil}</div>'
         f"</main>"
+        + (__import__("assistant_components").hubungkan_form(
+            bantuan, f"form-koreksi-{sesi_id}",
+        ) if bantuan else "")
     )
     skrip_extra = "" if (bantuan or privat) else (
         f"<script>{SKRIP_MATA_SANDI}</script>"
@@ -2153,7 +2170,7 @@ def halaman_sesi_stitch(
         f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(f"Sesi #{sesi_id}"))}</title>
-{brand.tag_kepala()}
+{brand.tag_kepala(cetak=bool(bantuan or privat))}
 {'' if (bantuan or privat) else '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">'}
 <style>{gaya_sesi}{CSS_SESI}{mapping_results.GAYA_HASIL if hasil_pemetaan else ''}</style></head>
 <body class="st"><div class="bungkus-st pendamping-editorial-st koreksi-editorial-st">{batang}{isi}</div>{skrip_extra}</body></html>"""

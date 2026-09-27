@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+from html.parser import HTMLParser
 import secrets
 import urllib.parse
 
@@ -23,6 +24,53 @@ def _wadah_form(isi: str, action: str, *, dalam_form: bool) -> str:
     if dalam_form:
         return isi
     return f'<form method="post" action="{_esc(action)}">{isi}</form>'
+
+
+def hubungkan_form(markup: str, form_id: str, *, identitas_di_host: bool = False) -> str:
+    """Hubungkan kontrol fragmen native yang dipindah ke kolom samping.
+
+    Form mandiri milik fragmen tetap utuh. Kontrol tanpa form induk memakai
+    form pekerjaan asal, sehingga draf ikut fallback POST tanpa nested form.
+    """
+    class Penghubung(HTMLParser):
+        def __init__(self):
+            super().__init__(convert_charrefs=False)
+            self.hasil = []
+            self.dalam_form = 0
+
+        def handle_starttag(self, tag, attrs):
+            teks = self.get_starttag_text()
+            if (identitas_di_host and not self.dalam_form and tag == 'input'
+                    and dict(attrs).get('name') in {'inline_host', 'inline_host_id', 'inline_posisi', 'inline_nomor'}):
+                return
+            if tag == 'form':
+                self.dalam_form += 1
+            if (not self.dalam_form and tag in {'input', 'button', 'select', 'textarea'}
+                    and 'form' not in dict(attrs)):
+                teks = teks[:-1] + f' form="{_esc(form_id)}">'
+            self.hasil.append(teks)
+
+        def handle_endtag(self, tag):
+            if tag == 'form':
+                self.dalam_form -= 1
+            self.hasil.append(f'</{tag}>')
+
+        def handle_data(self, data):
+            self.hasil.append(data)
+
+        def handle_entityref(self, name):
+            self.hasil.append(f'&{name};')
+
+        def handle_charref(self, name):
+            self.hasil.append(f'&#{name};')
+
+        def handle_comment(self, data):
+            self.hasil.append(f'<!--{data}-->')
+
+    parser = Penghubung()
+    parser.feed(markup)
+    parser.close()
+    return ''.join(parser.hasil)
 
 
 def _identitas_target(target) -> str:
@@ -48,6 +96,33 @@ def panel_persetujuan(target, *, sumber, dalam_form: bool = False, galat: str = 
         + '<button class="pendamping-tombol" type="submit" formaction="/pendamping/inline/persetujuan">Setuju dan lanjutkan</button>'
     )
     return _panel(target, "Sebelum memakai bantuan", _wadah_form(isi, "/pendamping/inline/persetujuan", dalam_form=dalam_form), sumber=sumber, dalam_form=dalam_form)
+
+
+def panel_pilih_sumber_sesi(
+    target, nomor_soal, *, sumber, dalam_form: bool = False,
+) -> str:
+    """Pilih ringkasan sesi atau satu soal dari satu entry panel."""
+    pilihan = ''.join(
+        f'<option value="{int(nomor)}">Soal {int(nomor)}</option>'
+        for nomor in nomor_soal
+    )
+    isi = (
+        _identitas_target(target)
+        + '<p>Pilih sumber dalam sesi ini. Membuka panel tidak memilih soal '
+          'berdasarkan posisi gulir.</p>'
+        + '<label class="pendamping-label" for="pilih-sumber-pendamping">Sumber bantuan</label>'
+          '<select id="pilih-sumber-pendamping" name="pilih_nomor">'
+          '<option value="">Ringkasan sesi</option>' + pilihan + '</select>'
+        + '<button class="pendamping-tombol" type="submit" '
+          'formaction="/pendamping/inline/pilih-sumber">Tinjau sumber</button>'
+        + '<p class="pendamping-catatan">Izin penggunaan sumber ditinjau pada langkah berikutnya. '
+          'Draf koreksi tidak ikut dikirim.</p>'
+    )
+    return _panel(
+        target, "Apa yang ingin dibahas?",
+        _wadah_form(isi, "/pendamping/inline/pilih-sumber", dalam_form=dalam_form),
+        sumber=sumber, dalam_form=dalam_form,
+    )
 
 
 def panel_konteks(target, konteks, *, sumber, dalam_form: bool = False, galat: str = "") -> str:
@@ -196,11 +271,16 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
             + _esc(assistant_view.label_chat(item)) + '</button>' for item in riwayat
         )
     else:
-        daftar = "".join(
-            '<a href="' + _esc(_jalur_chat(target, item.id)) + '"'
-            + (' aria-current="page"' if item.id == chat.id else '') + '>'
-            + _esc(assistant_view.label_chat(item)) + '</a>' for item in riwayat
-        )
+        daftar_form = []
+        for item in riwayat:
+            tombol = _tombol_aksi(
+                target, chat.id, '/pendamping/inline/riwayat', assistant_view.label_chat(item),
+                dalam_form=False, field=(("pilih_chat", item.id),), kelas='pendamping-tautan',
+            )
+            if item.id == chat.id:
+                tombol = tombol.replace('<button ', '<button aria-current="page" ', 1)
+            daftar_form.append(tombol)
+        daftar = ''.join(daftar_form)
     navigasi_halaman = ""
     tombol_halaman = []
     if halaman_riwayat > 1:
@@ -258,6 +338,7 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
         + _kartu_usulan_inline(target, chat, usulan, dalam_form=dalam_form)
         + draft_memori_html + composer + kontrol_memori,
         sumber=sumber, dalam_form=dalam_form, chat_id=chat.id,
+        status_konteks="Konteks berubah · hanya baca" if hanya_baca else "Konteks disetujui",
     )
 
 
@@ -304,7 +385,7 @@ def panel_tinjauan_hapus_memori(
         isi = _wadah_form(isi, "/pendamping/inline/hapus-memori", dalam_form=False)
     return _panel(
         target, "Tinjau penghapusan memori", isi,
-        sumber=sumber, dalam_form=dalam_form,
+        sumber=sumber, dalam_form=dalam_form, chat_id=chat.id,
     )
 
 
@@ -371,7 +452,7 @@ def panel_tinjauan(target, chat, usulan, token: str, *, sumber,
                    ("hash_usulan", usulan.hash_usulan), ("request_id", token)),
         )
     )
-    return _panel(target, "Tinjau usulan latihan", isi, sumber=sumber, dalam_form=dalam_form)
+    return _panel(target, "Tinjau usulan latihan", isi, sumber=sumber, dalam_form=dalam_form, chat_id=chat.id)
 
 
 def panel_hasil(target, chat, sesi_id: int, *, sumber, dalam_form: bool = False) -> str:
@@ -384,7 +465,7 @@ def panel_hasil(target, chat, sesi_id: int, *, sumber, dalam_form: bool = False)
         + f'<p role="status">Latihan bebas #{int(sesi_id)} sudah dibuat.</p>'
         '<p class="pendamping-catatan">Hasil ini tidak menjadi bukti atau mengubah reducer siklus belajar.</p>'
         f'<a class="pendamping-tombol" href="/sesi/{int(sesi_id)}">Buka latihan</a>',
-        sumber=sumber, dalam_form=dalam_form,
+        sumber=sumber, dalam_form=dalam_form, chat_id=chat.id,
     )
 
 
@@ -393,9 +474,17 @@ def _jalur_chat(target, chat_id: str) -> str:
     return replace(target, chat_id=chat_id).jalur
 
 
+def fragmen_tutup(target) -> str:
+    """Placeholder terikat host untuk respons enhancement tutup panel."""
+    return (
+        f'<aside class="pendamping-inline pendamping-panel-kanan" id="{_esc(target.anchor)}" '
+        + _binding_panel(target) + ' hidden aria-hidden="true"></aside>'
+    )
+
+
 def tombol_buka(
     target, *, form_id: str = "", dalam_form: bool = False,
-    label: str = "Bahas dengan Pendamping",
+    label: str = "Pendamping",
 ) -> str:
     """Submit native agar field form host ikut terkirim saat bantuan dibuka.
 
@@ -414,32 +503,70 @@ def tombol_buka(
         identitas = _identitas_target(target)
         action = "/pendamping/inline/buka"
     isi = (
-        '<span class="pendamping-buka-inline">' + identitas
-        + f'<button class="st-tombol-sekunder" type="submit"{atribut_form} '
-          f'formaction="{_esc(action)}">{_esc(label)}</button></span>'
+        '<span class="pendamping-buka-inline"' + _binding_panel(target) + '>' + identitas
+        + f'<button class="pendamping-pemicu" type="submit"{atribut_form} '
+          f'formaction="{_esc(action)}" formnovalidate aria-label="Pendamping" aria-expanded="false">'
+          '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" '
+          'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
+          '<path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 3v-8a7.5 7.5 0 0 1 7.5-7.5H13"/>'
+          '<path d="m18 2 1.2 3.3L22.5 6.5l-3.3 1.2L18 11l-1.2-3.3-3.3-1.2 3.3-1.2Z"/>'
+          f'</svg><span class="pendamping-pemicu-label">{_esc(label)}</span></button></span>'
     )
     return isi if (dalam_form or form_id) else f'<form method="post" action="{_esc(action)}">{isi}</form>'
 
 
+def _binding_panel(target, chat_id: str = "") -> str:
+    """Metadata identitas saja; bukan payload konteks atau draf pekerjaan."""
+    nilai = (
+        ('host', target.jenis_host), ('host-id', target.host_id),
+        ('posisi', target.posisi), ('resource', target.jenis_resource),
+        ('resource-id', target.resource_id),
+    )
+    return ''.join(f' data-pendamping-{nama}="{_esc(isi)}"' for nama, isi in nilai) + (
+        f' data-pendamping-chat="{_esc(chat_id)}"' if chat_id else ''
+    )
+
+
 def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False,
-           chat_id: str = "") -> str:
-    label = " · ".join(str(sumber[k]) for k in ("label", "level") if sumber and sumber.get(k))
-    if dalam_form:
-        tutup = (
-            '<button class="pendamping-tautan" type="submit" '
-            'formaction="/pendamping/inline/tutup">Tutup bantuan</button>'
-        )
-    else:
-        tutup = _wadah_form(
-            _identitas_target(target)
-            + '<button class="pendamping-tautan" type="submit">Tutup bantuan</button>',
-            "/pendamping/inline/tutup", dalam_form=False,
-        )
+           chat_id: str = "", status_konteks: str = "") -> str:
+    sumber_label = " · ".join(
+        str(sumber[k]) for k in ("nama", "label", "level")
+        if sumber and sumber.get(k)
+    )
+    tujuan = {
+        "latihan": "Menyiapkan latihan",
+        "rencana": "Membahas rencana belajar",
+        "sesi": "Meninjau sesi",
+        "soal": "Membahas soal resmi",
+    }[target.posisi]
+    status_konteks = status_konteks or ("Konteks disetujui" if chat_id else "Konteks belum diizinkan")
+    tutup = (
+        '<button class="pendamping-tutup" type="submit" aria-label="Tutup Pendamping" '
+        'formaction="/pendamping/inline/tutup" formnovalidate>'
+        '<span class="pendamping-tutup-desktop" aria-hidden="true">×</span>'
+        '<span class="pendamping-tutup-hp" aria-hidden="true">← Kembali</span></button>'
+    )
+    if not dalam_form:
+        tutup = _wadah_form(_identitas_target(target) + tutup,
+                            "/pendamping/inline/tutup", dalam_form=False)
     return (
-        f'<aside class="pendamping-inline" id="{_esc(target.anchor)}" aria-labelledby="judul-{_esc(target.anchor)}"'
-        + (f' data-pendamping-chat="{_esc(chat_id)}"' if chat_id else "") + '>'
-        + '<details open><summary>Bantuan Pendamping</summary><div class="pendamping-inline-isi">'
+        f'<aside class="pendamping-inline pendamping-panel-kanan" id="{_esc(target.anchor)}" '
+        f'aria-labelledby="nama-{_esc(target.anchor)}"'
+        + _binding_panel(target, chat_id) + '>'
+        + '<header class="pendamping-kepala-panel"><div class="pendamping-kepala-baris">'
+        '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" '
+        'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
+        '<path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 3v-8a7.5 7.5 0 0 1 7.5-7.5H13"/>'
+        '<path d="m18 2 1.2 3.3L22.5 6.5l-3.3 1.2L18 11l-1.2-3.3-3.3-1.2 3.3-1.2Z"/>'
+        f'</svg><h2 id="nama-{_esc(target.anchor)}">Pendamping</h2>'
+        + tutup + '</div>'
+        + f'<p class="pendamping-identitas">{_esc(sumber_label + " · " if sumber_label else "")}{_esc(tujuan)}</p>'
+        + '<div class="pendamping-konteks-baris">'
+        + f'<p class="pendamping-status-konteks">{_esc(status_konteks)}</p>'
+        + '<details class="pendamping-rincian"><summary>Rincian</summary>'
+          '<p>Percakapan terkait sumber di atas. Draf pekerjaan tidak ikut dikirim ke AI. '
+          'Jawaban AI dapat keliru; keputusan belajar tetap pada orang tua.</p></details></div></header>'
+        + '<div class="pendamping-inline-isi">'
         f'<h3 id="judul-{_esc(target.anchor)}">{_esc(judul)}</h3>'
-        + (f'<p class="pendamping-sumber">{_esc(label)}</p>' if label else "")
-        + isi + tutup + '</div></details></aside>'
+        + isi + '</div></aside>'
     )
