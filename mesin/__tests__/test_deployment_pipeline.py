@@ -121,7 +121,7 @@ def test_manifest_setelah_pair_dan_kegagalan_pair_menahan_upload():
     assert bangun.index('Validasi mode dan gate') < bangun.index('Bangun dan dorong candidate')
     assert bangun.index('Verifikasi image berdasarkan digest') < bangun.index('Verifikasi recovery terhadap data hasil candidate')
     assert bangun.index('verify_submission_pair.py') < bangun.index('release_metadata.py --output')
-    assert bangun.index('release_metadata.py --output') < bangun.index('actions/upload-artifact@v4')
+    assert bangun.index('release_metadata.py --output') < bangun.index('actions/upload-artifact@v7')
     assert '--pair-proof submission-pair.json' in bangun
     assert '> submission-pair.json' in bangun
     assert 'set -euo pipefail' in bangun

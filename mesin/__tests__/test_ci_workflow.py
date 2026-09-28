@@ -85,7 +85,7 @@ def test_ci_tetap_menguji_sebelum_build_dan_memasang_digest_yang_sama():
     assert "always()" not in agregat
     assert 'python scripts/verify_pytest_shards.py' in agregat
     assert '--directory shard-manifests --total 4 --revision "$GITHUB_SHA"' in agregat
-    assert "actions/download-artifact@v4" in agregat
+    assert "actions/download-artifact@v8" in agregat
     assert "pattern: kandidat-shard-*" in agregat
     assert "merge-multiple: true" in agregat
     assert "  pasang:\n    name: Deploy ke VPS\n    needs: bangun\n" in teks
@@ -122,7 +122,7 @@ def test_suite_independen_dengan_runtime_sendiri(nama):
         assert "if-no-files-found: error" in job
         assert "retention-days: 7" in job
         assert job.index("scripts/check_repo.py") < job.index("scripts/pytest_shard.py")
-        assert job.index("scripts/pytest_shard.py") < job.index("actions/upload-artifact@v4")
+        assert job.index("scripts/pytest_shard.py") < job.index("actions/upload-artifact@v7")
     else:
         assert "    name: Test recovery ${{ matrix.shard }}/4\n" in job
         assert "      fail-fast: false\n" in job

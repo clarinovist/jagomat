@@ -90,7 +90,7 @@ jobs:
             --revision "$GITHUB_SHA" -- \
             --rootdir . mesin/__tests__/ -q -W error -p no:cacheprovider --durations=20
       - name: Simpan bukti shard kandidat
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kandidat-shard-${{ matrix.shard }}
           path: shard-manifests/kandidat-${{ matrix.shard }}.json
@@ -108,7 +108,7 @@ jobs:
           python-version: "3.12"
       - name: Pasang pytest untuk helper verifikasi
         run: pip install --quiet pytest
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: kandidat-shard-*
           path: shard-manifests
@@ -270,7 +270,7 @@ jobs:
               print('mode=' + hasil['mode'], file=output)
               print('siap_pasang=' + str(hasil['siap_pasang']).lower(), file=output)
           PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-manifest-${{ github.sha }}
           path: |
