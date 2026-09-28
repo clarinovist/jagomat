@@ -156,6 +156,36 @@ def test_history_protected_ditolak_effect_zero(storage):
     assert _ada_siswa(db, siswa_id)
 
 
+def test_receipt_registrasi_terlindungi_ditolak_effect_zero(storage):
+    """Receipt registrasi append-only tanpa FK: hapus siswa kosong ditolak
+    sebelum efek auth/DB supaya backup tidak menerima receipt yatim."""
+    import admin_registration
+    admin, akun, db = storage
+    siswa_id, login_id = _buat_siswa_login(storage, nama="Punya Receipt")
+    admin_registration.migrasikan_profil_registrasi(db)
+    with database.buka(db) as kon:
+        kon.execute(
+            "INSERT INTO registrasi_profil_anak VALUES(?,?,?,?,?,?)",
+            ("operasi_receipt_saga_01", "akun_" + "c" * 32, siswa_id,
+             "a" * 64, "b" * 64, 5),
+        )
+    sebelum = akun.read_bytes()
+
+    hasil = admin_service.hapus_siswa(
+        admin, akun, db, _perintah(siswa_id, login_id, 21, "Punya Receipt"),
+        sekarang=210,
+    )
+    assert hasil.hasil.status == "conflict"
+    assert akun.read_bytes() == sebelum
+    assert _ada_siswa(db, siswa_id)
+    assert auth.cari_akun("punya-receipt", akun) is not None
+    with database.buka(db) as kon:
+        assert kon.execute(
+            "SELECT COUNT(*) FROM registrasi_profil_anak WHERE siswa_id=?",
+            (siswa_id,),
+        ).fetchone()[0] == 1
+
+
 def test_crash_setelah_login_delete_lanjut_hanya_delete_siswa(storage):
     admin, akun, db = storage
     siswa_id, login_id = _buat_siswa_login(storage, nama="Crash Login")

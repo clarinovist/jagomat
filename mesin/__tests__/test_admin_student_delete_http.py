@@ -64,6 +64,26 @@ def test_student_delete_referensi_baru_setelah_review_ditolak_no_orphan(server):
     assert kode == 200 and 'Tinjau hapus siswa kosong' not in isi
 
 
+def test_student_delete_receipt_registrasi_ditolak_tanpa_efek(server):
+    """Receipt registrasi tanpa FK: hapus siswa kosong ditolak 409 sebelum
+    efek auth/DB; login dan receipt tetap utuh."""
+    import admin_registration
+    auth.tambah_akun('Login-Saga', 'sandi-login-sintetis', 'murid', siswa_id=server.siswa_c)
+    admin = _login(server, 'Admin-C', SANDI_ADMIN)
+    data = _review(server, admin)
+    admin_registration.migrasikan_profil_registrasi(server.db)
+    with server.buka() as kon:
+        kon.execute(
+            "INSERT INTO registrasi_profil_anak VALUES(?,?,?,?,?,?)",
+            ("operasi_receipt_http_01", "akun_" + "c" * 32, server.siswa_c,
+             "a" * 64, "b" * 64, 5),
+        )
+    before = auth.BERKAS_SANDI.read_bytes(), server.db.read_bytes()
+    assert _minta(server, '/admin/siswa', cookie=admin, data=data)[0] == 409
+    assert before == (auth.BERKAS_SANDI.read_bytes(), server.db.read_bytes())
+    assert auth.cari_akun('Login-Saga') is not None
+
+
 def test_student_delete_nama_sama_beda_keluarga_tidak_salah_hapus(server):
     with server.buka() as kon:
         lain = database.tambah_siswa(kon, 'Anak C', 'P3', pemilik='guru')

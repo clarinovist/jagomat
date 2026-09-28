@@ -163,6 +163,60 @@ def test_hapus_login_guru_actual_receipt_tombstone_dan_replay(auth_path):
     assert len(auth.muat_akun(auth_path)) == 3
 
 
+def test_hapus_login_guru_terikat_registrasi_ditolak_effect_zero(auth_path):
+    """Akun guru hasil registrasi terikat intent/receipt append-only: hapus
+    login wajib ditahan sebelum replace agar pasangan backup tidak rusak."""
+    data = _mentah(auth_path)
+    data["registrasi_profil"] = {
+        "operasi_registrasi_uji": {
+            "versi": 1, "target_id": "candidate_" + "e" * 32, "akun_id": GURU_ID,
+            "siswa_id": 5, "sequence_awal": 4,
+            "sidik_perintah": "a" * 64, "alias_sidik": "b" * 64,
+            "profil_sidik": "c" * 64, "status": "selesai", "dibuat": 9,
+            "kredensial": auth.buat_hash("sandi-sintetis"),
+        }
+    }
+    auth_path.write_text(json.dumps(data), encoding="utf-8")
+    sebelum = auth_path.read_bytes()
+    perintah = _perintah(41, aksi=c.AKSI_HAPUS_LOGIN)
+
+    with pytest.raises(accounts.KonflikAkun, match="registrasi"):
+        accounts.jalankan(auth_path, perintah, sekarang=410)
+
+    assert auth_path.read_bytes() == sebelum
+    assert auth.cari_akun("guru-sintetis", auth_path) is not None
+    assert accounts.baca_receipt(auth_path, perintah) is None
+
+
+def test_hapus_login_legacy_tanpa_intent_tetap_diizinkan(auth_path):
+    """Izin lama utuh: akun legacy tanpa intent registrasi tetap dapat dihapus."""
+    perintah = _perintah(42, aksi=c.AKSI_HAPUS_LOGIN)
+    receipt = accounts.jalankan(auth_path, perintah, sekarang=420)
+    assert receipt.hasil_kode == "login_deleted"
+    assert auth.cari_akun("guru-sintetis", auth_path) is None
+
+
+@pytest.mark.parametrize("nilai", [
+    None, ["rusak"], 5, {"operasi_rusak": 5}, {"operasi_rusak": {"tanpa_binding": True}},
+])
+def test_hapus_login_guru_metadata_registrasi_rusak_fail_closed(auth_path, nilai):
+    """Metadata registrasi hadir tapi rusak = fail-closed tanpa efek; hanya key
+    absen (legacy) yang boleh lolos. Delete tidak boleh jalan karena nanti
+    backup akan menolaknya."""
+    data = _mentah(auth_path)
+    data["registrasi_profil"] = nilai
+    auth_path.write_text(json.dumps(data), encoding="utf-8")
+    sebelum = auth_path.read_bytes()
+    perintah = _perintah(43, aksi=c.AKSI_HAPUS_LOGIN)
+
+    with pytest.raises(accounts.KonflikAkun):
+        accounts.jalankan(auth_path, perintah, sekarang=430)
+
+    assert auth_path.read_bytes() == sebelum
+    assert auth.cari_akun("guru-sintetis", auth_path) is not None
+    assert accounts.baca_receipt(auth_path, perintah) is None
+
+
 def test_legacy_missing_revisi_nol_bool_string_negatif_ditolak(auth_path):
     data = _mentah(auth_path)
     guru = next(item for item in data["akun"] if item["id_akun"] == GURU_ID)

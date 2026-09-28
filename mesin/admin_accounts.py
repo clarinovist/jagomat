@@ -142,6 +142,27 @@ def _validasi_actor(akun: list, perintah: PerintahAkun):
     return actor
 
 
+def _akun_terikat_registrasi(mentah: dict, akun_id: str) -> bool:
+    """True = hapus login wajib ditahan (fail-closed).
+
+    Key `registrasi_profil` absen = akun legacy (boleh dihapus). Key hadir
+    tetapi tidak dapat dibaca utuh (bukan mapping / item rusak) tetap DITAHAN:
+    metadata rusak bukan alasan mengizinkan hapus — validasi backup akan
+    menolak pasangan itu, sehingga delete hanya menambah kerusakan.
+    """
+    if type(mentah) is not dict or "registrasi_profil" not in mentah:
+        return False
+    intent = mentah["registrasi_profil"]
+    if type(intent) is not dict:
+        return True
+    for item in intent.values():
+        if type(item) is not dict or type(item.get("akun_id")) is not str:
+            return True
+        if item["akun_id"] == akun_id:
+            return True
+    return False
+
+
 def _validasi_target(akun: list, perintah: PerintahAkun):
     target = _cari_id(akun, perintah.target_id)
     if target is None:
@@ -370,6 +391,12 @@ def jalankan(
         elif perintah.aksi == AKSI_CABUT_SESI:
             target["revisi_auth"] = revisi_hasil
         elif perintah.aksi == AKSI_HAPUS_LOGIN:
+            # Akun terikat intent/receipt registrasi append-only wajib tetap ada
+            # (validasi backup menolak pasangan yang akunnya hilang); tahan
+            # sebelum replace, sebelum efek apa pun. Akun legacy tanpa intent
+            # registrasi tetap dapat dihapus lewat izin yang sama.
+            if _akun_terikat_registrasi(mentah, perintah.target_id):
+                raise KonflikAkun("akun terikat registrasi profil")
             akun = [item for item in akun if item.get("id_akun") != perintah.target_id]
         else:  # pragma: no cover - dataclass sudah menolak
             raise KontrakTidakSah("aksi akun tidak dikenal")

@@ -553,6 +553,18 @@ def proses_akun(
                 f"sengaja tidak bisa dihapus — sesi, jawaban, dan "
                 f"diagnosisnya tidak bisa dibangun ulang.",
             )
+        # Receipt registrasi append-only: hapus wajib ditahan SEBELUM efek auth
+        # apa pun supaya tidak ada receipt yatim yang merusak validasi backup.
+        if kon.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='registrasi_profil_anak'"
+        ).fetchone() and kon.execute(
+            "SELECT 1 FROM registrasi_profil_anak WHERE siswa_id = ? LIMIT 1", (siswa_id,)
+        ).fetchone():
+            return (
+                "",
+                f"{nama} punya bukti registrasi profil anak. Siswa "
+                f"ber-receipt pendaftaran sengaja tidak bisa dihapus.",
+            )
         import students as _murid
 
         login = _murid.akun_murid_dari_siswa(kon, siswa_id)

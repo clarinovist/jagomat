@@ -302,6 +302,31 @@ def test_hapus_siswa_tanpa_riwayat_beserta_akunnya(siap):
     assert auth.cari_akun("UjiHapus") is None
 
 
+def test_hapus_siswa_ber_receipt_registrasi_ditolak(siap):
+    """Receipt registrasi dilindungi: siswa kosong ber-receipt tidak dihapus
+    dan akun latihannya tidak ikut terhapus (backup tetap konsisten)."""
+    import admin_registration
+    admin_registration.migrasikan_profil_registrasi(siap)
+    with database.buka(siap) as kon:
+        sid = database.tambah_siswa(kon, "Berreceipt", pemilik="guru")
+        auth.tambah_akun("berreceipt-login", "rahasia-receipt-1", "murid", siswa_id=sid)
+        kon.execute(
+            "INSERT INTO registrasi_profil_anak VALUES(?,?,?,?,?,?)",
+            ("operasi_receipt_akun_01", "akun_" + "c" * 32, sid,
+             "a" * 64, "b" * 64, 5),
+        )
+        pesan, galat = account_pages.proses_akun(kon, {
+            "aksi": "siswa_hapus", "siswa_id": str(sid),
+        }, "guru")
+        sisa = kon.execute(
+            "SELECT COUNT(*) c FROM siswa WHERE id = ?", (sid,)
+        ).fetchone()["c"]
+    assert not pesan
+    assert "tidak bisa dihapus" in galat.lower()
+    assert sisa == 1
+    assert auth.cari_akun("berreceipt-login") is not None
+
+
 def test_hapus_siswa_keluarga_lain_ditolak(siap):
     with database.buka(siap) as kon:
         sid = database.tambah_siswa(kon, "AnakA", pemilik="ortu-a")

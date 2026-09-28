@@ -279,6 +279,10 @@ def _referensi_siswa_ada(kon, siswa_id: int) -> bool:
         ("sesi", "siswa_id"),
         ("putaran_fokus", "siswa_id"),
         ("kejadian_belajar", "siswa_id"),
+        # Receipt registrasi publik append-only tanpa FK: hapus siswa kosong
+        # wajib ditahan di sini agar tidak meninggalkan receipt yatim yang
+        # membuat validasi backup menolak seluruh bundle.
+        ("registrasi_profil_anak", "siswa_id"),
     ):
         if kon.execute(
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (nama,)
