@@ -32,6 +32,16 @@ def test_pasang_tertahan_sampai_deployer_dan_policy_rutin_siap():
     assert 'cancel-in-progress: false' in teks
 
 
+def test_pin_foto_migrasi_selalu_menjalankan_pair_dan_pasang_literal_false():
+    teks=WORKFLOW.read_text()
+    assert CONFIG['mode']=='migrasi'
+    assert RECOVERY_SHA=='e03fbd0c782b309705f0e5d6297b1d47ae4e0f54'
+    assert CONFIG['recovery_contract']=='95920d24bbdb58a2206a1488b6c7a42a37853c821eb47e143d5f5c80c1bdd102'
+    assert re.findall(r'^    if: (.+)$',_job(teks,'pasang'),re.M)==['${{ false }}']
+    assert "steps.mode.outputs.mode == 'migrasi'" in _job(teks,'bangun')
+    assert 'CI36399916977' in teks
+
+
 def test_build_candidate_dan_recovery_pakai_digest_yang_sama_untuk_verifikasi():
     teks=WORKFLOW.read_text()
     uji=_job(teks,'uji');recovery=_job(teks,'uji_recovery');bangun=_job(teks,'bangun')

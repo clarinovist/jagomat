@@ -94,13 +94,10 @@ def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path, monkeypatch)
         assert hasil["pair_verified"] is False
         assert hasil["candidate_contract"] == fingerprint_candidate
         assert hasil["recovery_contract"] == fingerprint_recovery
-    elif not kompatibel:
-        # Meaningful persistence delta wajib gagal sebelum pin recovery baru.
-        with pytest.raises(ValueError, match="belum kompatibel/teruji"):
-            metadata.buat_manifest(
-                config, kandidat, recovery_artifact, pasangan_teruji=True,
-            )
     else:
+        # Mode migrasi/rutin wajib benar-benar punya pasangan kompatibel;
+        # penolakan manifest bukan hasil hijau untuk pin yang sedang dirilis.
+        assert kompatibel, 'Pin recovery belum kompatibel dengan kandidat.'
         hasil = metadata.buat_manifest(
             config, kandidat, recovery_artifact, pasangan_teruji=True,
         )
@@ -108,19 +105,22 @@ def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path, monkeypatch)
         assert hasil["siap_pasang"] is (config["mode"] == "rutin")
 
 
-def test_foto_durable_mode_persiapan_tidak_mengaku_pair_legacy():
+def test_foto_durable_pin_exact_migrasi_tetap_bukan_deploy_rutin():
     config = metadata.baca_config(AKAR / 'scripts/release-metadata.json')
     assert config == {
-        'versi': 1, 'mode': 'persiapan',
-        'recovery_revision': 'd973bf8dc329374fc24e928a87f56e7a088ac623',
-        'recovery_contract': '44296b93985ee5ef7e61f0caeeaa425a72280aae663b19668472a8815b6f6b15',
+        'versi': 1, 'mode': 'migrasi',
+        'recovery_revision': 'e03fbd0c782b309705f0e5d6297b1d47ae4e0f54',
+        'recovery_contract': '95920d24bbdb58a2206a1488b6c7a42a37853c821eb47e143d5f5c80c1bdd102',
     }
     metadata.validasi_workflow(ALUR.read_text(), config)
     b = {'revision': config['recovery_revision'], 'digest': 'sha256:'+'b'*64,
          'contract': config['recovery_contract']}
-    c = {'revision': 'a'*40, 'digest': 'sha256:'+'a'*64, 'contract': 'c'*64}
-    hasil = metadata.buat_manifest(config, c, b)
-    assert not hasil['compatible'] and not hasil['pair_verified']
-    assert not hasil['requires_controlled_migration'] and not hasil['siap_pasang']
-    with pytest.raises(ValueError, match='Bukti pasangan'):
-        metadata.buat_manifest(config, c, b, pasangan_teruji=True)
+    c = {'revision': 'a'*40, 'digest': 'sha256:'+'a'*64,
+         'contract': config['recovery_contract']}
+    hasil = metadata.buat_manifest(config, c, b, pasangan_teruji=True)
+    assert hasil['compatible'] and hasil['pair_verified']
+    assert hasil['requires_controlled_migration'] and not hasil['siap_pasang']
+    with pytest.raises(ValueError, match='belum kompatibel/teruji'):
+        metadata.buat_manifest(config, c, b)
+    with pytest.raises(ValueError, match='belum kompatibel/teruji'):
+        metadata.buat_manifest(config, {**c, 'contract': 'c'*64}, b, pasangan_teruji=True)

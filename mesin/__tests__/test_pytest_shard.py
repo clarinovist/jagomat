@@ -31,6 +31,8 @@ JUMLAH_RECOVERY = {
     "6a18cc745b79d31aa6112270732fbbb5a63cbc27": 12312,
     # Koleksi source exact identik artifact kandidat CI36375996743.
     "d973bf8dc329374fc24e928a87f56e7a088ac623": 12481,
+    # Koleksi arsip exact identik artifact kandidat CI36399916977 (hash nodeid).
+    "e03fbd0c782b309705f0e5d6297b1d47ae4e0f54": 12564,
 }
 
 

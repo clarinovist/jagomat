@@ -22,10 +22,8 @@ import verify_release_image
 
 @pytest.fixture
 def recovery9(tmp_path):
-    """Pin dari config harus benar-benar mempunyai reader/writer kuota9."""
-    config = release_metadata.baca_config(AKAR/'scripts/release-metadata.json')
-    revision = config['recovery_revision']
-    assert revision == 'd973bf8dc329374fc24e928a87f56e7a088ac623'
+    """Arsip historical admin9: jangan mengikuti pin foto yang sudah lebih baru."""
+    revision = 'd973bf8dc329374fc24e928a87f56e7a088ac623'
     tujuan = tmp_path/'recovery9'
     tujuan.mkdir()
     arsip = tmp_path/'recovery9.tar'
