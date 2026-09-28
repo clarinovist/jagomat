@@ -56,6 +56,19 @@ def pastikan_entitlement_outbound(
         sebelum_provider()
 
 
+def _cadangkan_kuota(account_id: str, request_id: str, sekarang: int):
+    """Satu pintu reservasi layanan sebelum outbound Pendamping."""
+    return entitlement.reservasi(
+        account_id, fitur="balasan_pendamping",
+        identitas=request_id, sekarang=sekarang,
+    )
+
+
+def _finalisasi_kuota(ikatan, sekarang: int) -> None:
+    """Finalisasi hanya dipanggil sesudah transaksi chat berhasil commit."""
+    entitlement.finalisasi(ikatan, sekarang=sekarang)
+
+
 def panggil_provider_default(pesan):
     account_id, operasi_id = _konteks_ai.get()
     try:
@@ -232,10 +245,7 @@ def kirim_pesan(
             raise GalatPendamping("Permintaan ini sedang atau sudah gagal diproses.")
 
     try:
-        ikatan_kuota = entitlement.reservasi(
-            account_id, fitur="balasan_pendamping",
-            identitas=request_id, sekarang=kini,
-        )
+        ikatan_kuota = _cadangkan_kuota(account_id, request_id, kini)
     except entitlement.GalatKuotaRuntime:
         raise GalatPendamping(
             "Pendamping tidak tersedia untuk status paket atau kuota akun ini."
@@ -412,7 +422,7 @@ def kirim_pesan(
             kon.rollback()
         raise
     try:
-        entitlement.finalisasi(ikatan_kuota, sekarang=kini)
+        _finalisasi_kuota(ikatan_kuota, kini)
     except entitlement.GalatKuotaRuntime:
         # Balasan sudah durable. Replay request yang sama akan merekonsiliasi
         # ledger tanpa panggilan provider kedua.
