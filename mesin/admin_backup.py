@@ -66,6 +66,8 @@ class RingkasanBackup:
     skema_foto: bool = False
     operasi_foto_pending: int = 0
     operasi_foto_unknown: int = 0
+    skema_registrasi_profil: bool = False
+    operasi_registrasi_profil_pending: int = 0
 
 
 def _sha256(path: Path) -> str:
@@ -384,14 +386,19 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
                 billing = billing or bool(kon.execute('SELECT 1 FROM paket_invoice LIMIT 1').fetchone())
     _validasi_link_receipt(akar)
     _validasi_pilot(akar / BERKAS_WAJIB['belajar'])
-    skema_foto, foto_pending, foto_unknown = _validasi_foto(akar / BERKAS_WAJIB['belajar'])
+    belajar_path = akar / BERKAS_WAJIB['belajar']
+    skema_foto, foto_pending, foto_unknown = _validasi_foto(belajar_path)
+    skema_registrasi, registrasi_pending = _validasi_registrasi_profil(
+        belajar_path, akar / BERKAS_WAJIB['auth']
+    )
     return RingkasanBackup(
         manifest["bundle_id"], manifest["cutoff"],
         tuple(BERKAS_WAJIB), versi_admin, versi_ai, versi_pendamping,
         minimum, maksimum, pending, uncertain,
         bool(pending or uncertain or billing or kuota_pending or kuota_unknown)
-        or bool(foto_pending or foto_unknown),
+        or bool(foto_pending or foto_unknown) or bool(registrasi_pending),
         kuota_pending, kuota_unknown, skema_foto, foto_pending, foto_unknown,
+        skema_registrasi, registrasi_pending,
     )
 
 
@@ -408,6 +415,87 @@ def _validasi_foto(path):
             return True, pending, unknown
         except (ValueError, sqlite3.Error):
             raise BackupTidakSah('schema atau receipt foto backup tidak sah') from None
+
+
+def _validasi_registrasi_profil(path_belajar, path_auth):
+    """Validasi pasangan privat tanpa menulis atau mengeluarkan isi ke log.
+
+    Nama/kelas boleh berubah setelah selesai; hash snapshot salted hanya dicocokkan
+    antar-receipt, bukan dihitung ulang tanpa token. Kepemilikan tetap wajib sama.
+    """
+    import admin_registration
+    import auth
+    import admin_store
+    with sqlite3.connect(Path(path_belajar).resolve().as_uri() + '?mode=ro', uri=True) as kon:
+        ada = kon.execute(
+            "SELECT 1 FROM sqlite_master WHERE tbl_name='registrasi_profil_anak'"
+        ).fetchone()
+        try:
+            data = _baca_json_ketat(path_auth)
+            intent = admin_registration._intent_profil(data)
+            if not ada:
+                if intent:
+                    raise ValueError('intent tanpa schema registrasi')
+                return False, 0
+            admin_registration.validasi_schema_profil(kon)
+            if kon.execute('PRAGMA user_version').fetchone()[0] != 0:
+                raise ValueError('versi belajar tidak dikenal')
+            receipt_publik = data.get('operasi_registrasi', {})
+            admin_registration._validasi_receipt_publik(receipt_publik)
+            akun = data.get('akun', [data])
+            auth._validasi_daftar_akun(akun, bentuk_multi='akun' in data)
+            akun_id = {a.get('id_akun'): a for a in akun}
+            alias_akun = {admin_registration._sidik_registrasi(a['pengguna'].strip().casefold()): a for a in akun}
+            for kolom in ('akun_id', 'alias_sidik', 'target_id'):
+                if len({r[kolom] for r in intent.values()}) != len(intent):
+                    raise ValueError('intent registrasi ambigu')
+            db_ops = {r[0] for r in kon.execute('SELECT operasi_id FROM registrasi_profil_anak')}
+            if not db_ops <= set(intent):
+                raise ValueError('receipt DB tanpa intent registrasi')
+            pending = 0
+            for operasi, item in intent.items():
+                row = kon.execute(
+                    'SELECT akun_id,siswa_id,sidik_perintah,profil_sidik,dibuat '
+                    'FROM registrasi_profil_anak WHERE operasi_id=?', (operasi,),
+                ).fetchone()
+                account = akun_id.get(item['akun_id'])
+                public = receipt_publik.get(operasi)
+                if item['status'] == 'pending':
+                    pending += 1
+                    if (account or item['alias_sidik'] in alias_akun or public
+                            or any(r['hasil_id'] == item['akun_id'] for r in receipt_publik.values())):
+                        raise ValueError('registrasi pending sudah menerbitkan akun')
+                    for siswa_id, pemilik in kon.execute('SELECT id,pemilik FROM siswa'):
+                        if (admin_registration._sidik_registrasi(pemilik.casefold()) == item['alias_sidik']
+                                and (row is None or siswa_id != item['siswa_id'])):
+                            raise ValueError('profil pending tanpa receipt atau kepemilikan ambigu')
+                if row is not None and tuple(row) != (
+                    item['akun_id'], item['siswa_id'], item['sidik_perintah'],
+                    item['profil_sidik'], item['dibuat'],
+                ):
+                    raise ValueError('receipt registrasi berbeda')
+                profil = kon.execute('SELECT pemilik FROM siswa WHERE id=?', (item['siswa_id'],)).fetchone() if row else None
+                if row is not None:
+                    if profil is None or admin_registration._sidik_registrasi(profil[0].casefold()) != item['alias_sidik']:
+                        raise ValueError('pemilik profil registrasi berbeda')
+                if item['status'] == 'selesai':
+                    harapan = dict(versi=1, operasi_id=operasi, target_id=item['target_id'],
+                        hasil_id=item['akun_id'], hasil_kode='teacher_created', revisi_hasil=1,
+                        dibuat=item['dibuat'], sidik_perintah=item['sidik_perintah'])
+                    if (row is None or public != harapan or account is None
+                            or account.get('peran') != 'guru' or auth.revisi_auth(account) < 1
+                            or profil[0] != account['pengguna']):
+                        raise ValueError('pasangan registrasi selesai tidak cocok')
+                    if sum(r['hasil_id'] == item['akun_id'] for r in receipt_publik.values()) != 1:
+                        raise ValueError('receipt publik registrasi ambigu')
+            if kon.execute(
+                'SELECT 1 FROM registrasi_profil_anak r WHERE NOT EXISTS('
+                "SELECT 1 FROM siswa s WHERE s.id=r.siswa_id) LIMIT 1"
+            ).fetchone():
+                raise ValueError('receipt registrasi yatim')
+            return True, pending
+        except (ValueError, sqlite3.Error, admin_store.StoreBelumSiap):
+            raise BackupTidakSah('schema atau intent registrasi profil tidak sah') from None
 
 
 def _validasi_pilot(path):
@@ -497,14 +585,16 @@ def _validasi_receipt_profil(admin, belajar, tabel, row):
         raise BackupTidakSah('pasangan journal/receipt profil tidak cocok')
 
 
-def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto=None) -> RingkasanBackup:
+def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto=None,
+                     target_registrasi=None) -> RingkasanBackup:
     """Migrasikan turunan temp dua kali; backup induk tidak pernah ditulis.
 
     ``migrator_ai`` wajib dari candidate AI2. ``target_admin`` None mempertahankan
     versi8/9 atau menaikkan legacy ke7; target9 eksplisit menguji8→9. Bukan izin
     migrasi backup induk, downgrade, aktivasi entitlement, atau provider.
     ``target_foto=True`` memasang receipt hanya pada turunan; None mempertahankan
-    schema induk. Receipt/pending dan tabel belajar lama wajib tetap byte-value.
+    schema induk. ``target_registrasi=True`` juga opt-in hanya turunan. Receipt,
+    intent auth, pending, serta tabel belajar lama wajib tetap byte-value.
     """
     import admin_store
     import admin_students
@@ -512,6 +602,10 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
     import database
 
     sebelum = validasi_bundle(bundle)
+    if target_registrasi is None:
+        target_registrasi = sebelum.skema_registrasi_profil
+    if type(target_registrasi) is not bool or (sebelum.skema_registrasi_profil and not target_registrasi):
+        raise BackupTidakSah('target rehearsal registrasi tidak sah')
     if target_foto is None:
         target_foto = sebelum.skema_foto
     if type(target_foto) is not bool or (sebelum.skema_foto and not target_foto):
@@ -541,7 +635,7 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
             with sqlite3.connect(turunan / BERKAS_WAJIB['belajar']) as kon:
                 return {t: tuple(kon.execute('SELECT * FROM "' + t + '" ORDER BY rowid'))
                         for (t,) in kon.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        belajar_awal = belajar_rows() if target_foto else {}
+        belajar_awal = belajar_rows() if target_foto or target_registrasi else {}
         auth_awal = _sha256(turunan / BERKAS_WAJIB['auth'])
         billing_awal = ledger(turunan / BERKAS_WAJIB['admin'])
         privat_awal = ({jenis: ledger(turunan / BERKAS_WAJIB[jenis])
@@ -552,6 +646,9 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
             admin_students.siapkan(turunan / BERKAS_WAJIB["belajar"])
             if target_foto:
                 database.migrasikan_operasi_foto(turunan / BERKAS_WAJIB['belajar'])
+            if target_registrasi:
+                import admin_registration
+                admin_registration.migrasikan_profil_registrasi(turunan / BERKAS_WAJIB['belajar'])
             admin_store.siapkan(turunan / BERKAS_WAJIB["admin"], paket_v2=target_admin >= 8)
             if target_admin == 9:
                 admin_store.migrasikan_kuota_pendamping(turunan / BERKAS_WAJIB["admin"])
@@ -560,7 +657,10 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
         foto_akhir = _validasi_foto(turunan / BERKAS_WAJIB['belajar'])
         if foto_akhir != (target_foto, sebelum.operasi_foto_pending, sebelum.operasi_foto_unknown):
             raise BackupTidakSah('state foto berubah selama rehearsal')
-        belajar_akhir = belajar_rows() if target_foto else {}
+        registrasi_akhir = _validasi_registrasi_profil(turunan / BERKAS_WAJIB['belajar'], turunan / BERKAS_WAJIB['auth'])
+        if registrasi_akhir != (target_registrasi, sebelum.operasi_registrasi_profil_pending):
+            raise BackupTidakSah('state registrasi berubah selama rehearsal')
+        belajar_akhir = belajar_rows() if target_foto or target_registrasi else {}
         if any(belajar_akhir.get(t) != rs for t, rs in belajar_awal.items()):
             raise BackupTidakSah('state belajar berubah selama rehearsal foto')
         if _sha256(turunan / BERKAS_WAJIB['auth']) != auth_awal:
@@ -610,4 +710,5 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
         sebelum.operasi_admin_pending, sebelum.operasi_admin_uncertain,
         sebelum.perlu_rekonsiliasi, sebelum.operasi_kuota_pending, sebelum.operasi_kuota_unknown,
         target_foto, sebelum.operasi_foto_pending, sebelum.operasi_foto_unknown,
+        target_registrasi, sebelum.operasi_registrasi_profil_pending,
     )

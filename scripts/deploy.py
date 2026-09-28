@@ -419,12 +419,50 @@ with database.buka(Path('/data/latihan.db')) as kon:
 print('OSN_IMAGE_ADMIN9_AI2_OK')
 ''')
 
+# Receipt registrasi opt-in: metadata-only, tidak import writer/GET/migrator.
+PROBE_REGISTRASI_SKEMA = '''
+import ast
+kon = sqlite3.connect('file:/data/latihan.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only=ON')
+    def struktur_registrasi(c):
+        return c.execute("SELECT type,name,sql FROM sqlite_master WHERE tbl_name='registrasi_profil_anak' ORDER BY type,name").fetchall()
+    aktual = struktur_registrasi(kon)
+    if aktual:
+        pohon = ast.parse((akar_app / 'admin_registration.py').read_text())
+        ddl = [ast.literal_eval(n.value) for n in pohon.body if isinstance(n, ast.Assign)
+               and any(isinstance(t, ast.Name) and t.id=='_SKEMA_PROFIL_REGISTRASI' for t in n.targets)]
+        assert len(ddl)==1
+        ref = sqlite3.connect(':memory:')
+        try:
+            ref.executescript(ddl[0])
+            assert aktual==struktur_registrasi(ref), 'schema_registrasi_parsial'
+        finally:
+            ref.close()
+        assert kon.execute('PRAGMA user_version').fetchone()[0]==0
+finally:
+    kon.close()
+'''
+PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_REGISTRASI_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
+PROBE_IMAGE = PROBE_IMAGE.replace("print('OSN_IMAGE_ADMIN9_AI2_OK')", '''
+import admin_registration
+with database.buka(Path('/data/latihan.db')) as kon:
+    assert not kon.execute("SELECT 1 FROM sqlite_master WHERE name='registrasi_profil_anak'").fetchone()
+for _ in range(2):
+    admin_registration.migrasikan_profil_registrasi(Path('/data/latihan.db'))
+    database.siapkan(Path('/data/latihan.db'))
+with database.buka(Path('/data/latihan.db')) as kon:
+    admin_registration.validasi_schema_profil(kon)
+    assert not kon.execute('SELECT 1 FROM registrasi_profil_anak').fetchone()
+print('OSN_IMAGE_ADMIN9_AI2_OK')
+''')
+
 PROBE_KONTRAK = '''import hashlib
 import json
 from pathlib import Path
 akar = Path('/app')
 nama = {
-    'schema.py', 'assistant_schema.py', 'database.py', 'serve.py',
+    'schema.py', 'assistant_schema.py', 'database.py', 'serve.py', 'admin_registration.py',
     'auth.py', 'sessions.py', 'assistant_store.py', 'assistant_actions.py',
     'assistant_maintenance.py', 'migrate_params.py', 'outcome_presentations.py',
     'question_views.py', 'visual_contract.py', 'templates.py',

@@ -184,7 +184,7 @@ def test_cli_manifest_terikat_semua_artefak_dan_proof(tmp_path, monkeypatch, mod
         proof = tmp_path / "pair.json"
         bukti = {"ok": True, "candidate_revision": "a" * 40, "recovery_revision": cfg["recovery_revision"],
                  "candidate_digest": "sha256:" + "a" * 64, "recovery_digest": "sha256:" + "b" * 64,
-                 "pengiriman_pair_checks": 6, "pilihan_pair_checks": 8, "learning_pair_checks": 8, "subscription_pair_checks": 4, "admin_launch_pair_checks": 4, "package_pair_checks": 8, "quota_pair_checks": 8, "photo_pair_checks": 8, "provider_calls": 0}
+                 "pengiriman_pair_checks": 6, "pilihan_pair_checks": 8, "learning_pair_checks": 8, "subscription_pair_checks": 4, "admin_launch_pair_checks": 4, "package_pair_checks": 8, "quota_pair_checks": 8, "photo_pair_checks": 8, "registration_pair_checks": 8, "provider_calls": 0}
         argv += ["--pair-proof", str(proof)]
         proof.write_text(json.dumps({**bukti, "candidate_digest": "sha256:" + "c" * 64}))
         assert metadata.main(argv) == 1 and not output.exists()
@@ -280,15 +280,32 @@ def test_pair_harus_teruji_bukan_hanya_fingerprint_sama(mode):
     ("package_pair_checks", 0), ("package_pair_checks", True),
     ("quota_pair_checks", 0), ("quota_pair_checks", True),
     ("photo_pair_checks", 0), ("photo_pair_checks", True),
+    ("registration_pair_checks", 0), ("registration_pair_checks", True),
     ("learning_pair_checks", 0), ("learning_pair_checks", True), ("pengiriman_pair_checks", 0), ("pilihan_pair_checks", 0), ("pilihan_pair_checks", True), ("provider_calls", False), ("tambahan", True)])
 def test_bukti_pair_tertutup_dan_terikat_revision(field, nilai):
     bukti = {"ok": True, "candidate_revision": "a" * 40, "recovery_revision": "b" * 40,
              "candidate_digest": "sha256:" + "a" * 64, "recovery_digest": "sha256:" + "b" * 64,
-             "pengiriman_pair_checks": 6, "pilihan_pair_checks": 8, "learning_pair_checks": 8, "subscription_pair_checks": 4, "admin_launch_pair_checks": 4, "package_pair_checks": 8, "quota_pair_checks": 8, "photo_pair_checks": 8, "provider_calls": 0}
+             "pengiriman_pair_checks": 6, "pilihan_pair_checks": 8, "learning_pair_checks": 8, "subscription_pair_checks": 4, "admin_launch_pair_checks": 4, "package_pair_checks": 8, "quota_pair_checks": 8, "photo_pair_checks": 8, "registration_pair_checks": 8, "provider_calls": 0}
     arg = ("a" * 40, "b" * 40, "sha256:" + "a" * 64, "sha256:" + "b" * 64)
     assert metadata.validasi_bukti_pasangan(bukti, *arg)
     with pytest.raises(ValueError):
         metadata.validasi_bukti_pasangan({**bukti, field: nilai}, *arg)
+
+
+def test_bukti_pair_tanpa_registration_pair_checks_ditolak():
+    """Key registrasi wajib persis; bukti tanpa key tersebut tidak boleh lolos."""
+    bukti = {"ok": True, "candidate_revision": "a" * 40, "recovery_revision": "b" * 40,
+             "candidate_digest": "sha256:" + "a" * 64, "recovery_digest": "sha256:" + "b" * 64,
+             "pengiriman_pair_checks": 6, "pilihan_pair_checks": 8, "learning_pair_checks": 8,
+             "subscription_pair_checks": 4, "admin_launch_pair_checks": 4, "package_pair_checks": 8,
+             "quota_pair_checks": 8, "photo_pair_checks": 8, "registration_pair_checks": 8,
+             "provider_calls": 0}
+    arg = ("a" * 40, "b" * 40, "sha256:" + "a" * 64, "sha256:" + "b" * 64)
+    assert metadata.validasi_bukti_pasangan(bukti, *arg)
+    tanpa = dict(bukti)
+    del tanpa["registration_pair_checks"]
+    with pytest.raises(ValueError):
+        metadata.validasi_bukti_pasangan(tanpa, *arg)
 
 
 @pytest.mark.parametrize("mode", ["persiapan", "migrasi", "rutin"])

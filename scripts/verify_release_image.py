@@ -49,6 +49,12 @@ RECOVERY_TANPA_FOTO = RECOVERY_TANPA_KUOTA + (
 )
 
 
+RECOVERY_TANPA_REGISTRASI = RECOVERY_TANPA_FOTO + (
+    'e03fbd0c782b309705f0e5d6297b1d47ae4e0f54',
+    'f9ce4a148b97797609fb086645016bd80d3c4a0c',
+)
+
+
 def kontrak_untuk_revision(revision: str) -> str:
     """Pilih kontrak HTTP berdasarkan revision image yang sudah diverifikasi."""
     return (
@@ -71,6 +77,7 @@ def ringkasan_untuk_revision(revision: str) -> dict:
         "quota_checks": 0 if revision in RECOVERY_TANPA_KUOTA else 8,
         "admin_quota_schema": None if revision in RECOVERY_TANPA_KUOTA else 9,
         "photo_checks": 0 if revision in RECOVERY_TANPA_FOTO else 8,
+        "registration_checks": 0 if revision in RECOVERY_TANPA_REGISTRASI else 8,
         "pengiriman_checks": 0 if revision in {
             REVISION_RECOVERY_LEGACY, "33e241c18024190f41ebca1986e35af26c0397fd",
         } else 6,
@@ -392,6 +399,25 @@ def uji_http(akar, database, skema, kontrak_http):
                     pastikan(bool(tubuh) and 'image/svg+xml' in (respons.getheader('Content-Type') or ''), 'http_aset')
             finally:
                 koneksi.close()
+        # Cek GET registrasi dijalankan sesudah kontrak status inti: source lama yang
+        # diklaim kandidat harus tetap gagal lewat kode kontrak HTTP 'http_status',
+        # bukan berhenti karena modul registrasi belum ada di source itu.
+        if os.environ.get('OSN_RELEASE_REVISION') not in REVISION_TANPA_REGISTRASI:
+            import admin_store
+            admin_store.BAWAAN = akar / 'admin.db'
+            admin_store.siapkan(admin_store.BAWAAN)
+            auth.tambah_akun('admin-form-probe', 'sandi-admin-form-sintetis', 'admin', auth.BERKAS_SANDI)
+            auth_awal = auth.BERKAS_SANDI.read_bytes()
+            koneksi = http.client.HTTPConnection('127.0.0.1', server.server_port, timeout=10)
+            try:
+                koneksi.request('GET', '/daftar')
+                respons = koneksi.getresponse(); tubuh = respons.read()
+                pastikan(respons.status == 200 and b'name="nama_anak"' in tubuh, 'form_registrasi_profil')
+            finally:
+                koneksi.close()
+            pastikan(auth.BERKAS_SANDI.read_bytes() == auth_awal, 'get_registrasi_menulis_auth')
+            with database.buka() as kon:
+                pastikan(not kon.execute("SELECT 1 FROM sqlite_master WHERE name='registrasi_profil_anak'").fetchone(), 'get_registrasi_migrasi')
         if kontrak_http == 'candidate-inline-v1':
             jalur = '/anak/' + str(anak) + '?bantuan=rencana'
             koneksi = http.client.HTTPConnection('127.0.0.1', server.server_port, timeout=10)
@@ -560,6 +586,9 @@ def jalankan_probe(akar):
         for jenis in ('retry', 'batal', 'hapus', 'pemilik', 'izin', 'pemilik_baru', 'izin_baru'):
             uji_tindakan(akar / jenis, jenis, modul)
         uji_http(akar / 'http', modul[0], modul[1], kontrak_http)
+        if revision not in REVISION_TANPA_REGISTRASI:
+            with sqlite3.connect((akar / 'http' / 'belajar.db').resolve().as_uri() + '?mode=ro', uri=True) as kon:
+                pastikan(not kon.execute("SELECT 1 FROM sqlite_master WHERE name='registrasi_profil_anak'").fetchone(), 'get_membuat_schema_registrasi')
         pengiriman_checks = 0
         if revision not in ('bc9c973b50eb1fb04edd37df62f71ba0123f29c6',
                             '33e241c18024190f41ebca1986e35af26c0397fd'):
@@ -582,6 +611,9 @@ def jalankan_probe(akar):
         quota_checks = 0
         if revision not in REVISION_TANPA_KUOTA:
             quota_checks = uji_kuota(akar / 'paket', revision not in REVISION_TANPA_FOTO)
+        registration_checks = 0
+        if revision not in REVISION_TANPA_REGISTRASI:
+            registration_checks = uji_registrasi(akar / 'registrasi')
         pastikan(not panggilan, 'provider_terpanggil')
     finally:
         socket.socket.connect, socket.socket.connect_ex, socket.getaddrinfo = asli_connect, asli_connect_ex, asli_resolve
@@ -592,7 +624,8 @@ def jalankan_probe(akar):
             'subscription_checks': subscription_checks, 'admin_launch_checks': admin_launch_checks,
             'package_checks': package_checks, 'admin_package_schema': 8 if package_checks else None,
             'quota_checks': quota_checks, 'admin_quota_schema': 9 if quota_checks else None,
-            'photo_checks': 0 if revision in REVISION_TANPA_FOTO else 8}
+            'photo_checks': 0 if revision in REVISION_TANPA_FOTO else 8,
+            'registration_checks': registration_checks}
 
 
 def main():
@@ -660,6 +693,23 @@ SUMBER_PROBE = SUMBER_PROBE.replace(
 def uji_kuota(akar, foto):
     for sumber in (PROBE_KUOTA if foto else PROBE_KUOTA_LAMA):
         exec(compile(sumber.replace('/data/', str(akar) + '/'), '<probe-kuota>', 'exec'), {})
+    return 8
+''' + '\ndef main():', 1)
+
+
+_spek_registrasi = importlib.util.spec_from_file_location(
+    'release_registration_pair', Path(__file__).with_name('release_registration_pair.py'))
+_probe_registrasi = importlib.util.module_from_spec(_spek_registrasi)
+_spek_registrasi.loader.exec_module(_probe_registrasi)
+SUMBER_PROBE = SUMBER_PROBE.replace(
+    '\ndef main():', '\nREVISION_TANPA_REGISTRASI = ' + repr(RECOVERY_TANPA_REGISTRASI)
+    + '\nPROBE_REGISTRASI = ' + repr((_probe_registrasi.SUMBER_TULIS,
+        _probe_registrasi.SUMBER_BACA, _probe_registrasi.SUMBER_KEMBALI))
+    + '''
+def uji_registrasi(akar):
+    akar.mkdir()
+    for sumber in PROBE_REGISTRASI:
+        exec(compile(sumber.replace('/data/', str(akar) + '/'), '<probe-registrasi>', 'exec'), {})
     return 8
 ''' + '\ndef main():', 1)
 
