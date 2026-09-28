@@ -25,6 +25,8 @@ def server(tmp_path, monkeypatch):
     # Sesi HTTP tidak boleh memakai berkas default bersama worker xdist lain.
     monkeypatch.setattr(sessions, 'BERKAS_SESI', tmp_path / 'sesi.json')
     s = ServerUji(tmp_path, monkeypatch)
+    import admin_registration
+    admin_registration.migrasikan_profil_registrasi(database.BAWAAN)
     auth.tambah_akun("pendamping-lain", "sandi-sintetis-123", "guru")
     auth.tambah_akun("pengelola", "sandi-sintetis-123", "admin")
     with s.buka() as kon:
@@ -86,6 +88,7 @@ def test_daftar_langsung_ke_beranda_guru(server):
     kode, _, tajuk = _minta(server, "/daftar", {
         "nama": "pendamping-baru", "sandi": "sandi-sintetis-123",
         "setuju": "1", "token_form": token_form,
+        "nama_anak": "Profil Sintetis", "profil_parameter": "P4",
     })
     assert kode == 303
     assert tajuk["Location"] == "/guru"
