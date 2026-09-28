@@ -1,7 +1,7 @@
 name: Build & Deploy
 
-# Migrasi admin8/Pendamping: full suite, probe dan pair exact wajib; pasang literal false.
-# Recovery6a18cc7 memahami v1/v2 dengan UI sebelum panel; bukan downgrade schema.
+# Migrasi admin9/Pendamping: full suite, probe dan pair exact wajib; pasang literal false.
+# Recoveryd973bf8 memahami kuota9 dan ledger v1/v2; bukan downgrade schema.
 # Cutover memakai approval exact pair, backup dan rehearsal terkontrol.
 on:
   push:
@@ -21,8 +21,8 @@ env:
   # Identitas artefak tetap meski repo berganti nama menjadi jagomat.
   # Harus sama dengan verifier dan deployer; recovery VPS memakai namespace ini.
   IMAGE: clarinovist/osn-mesin-latihan
-  # Baseline admin8 opt-in; startup tetap admin7 tanpa aktivasi paket.
-  RECOVERY_SHA: 6a18cc745b79d31aa6112270732fbbb5a63cbc27
+  # Baseline admin9 teruji CI36375996743; startup tetap7, penegakan tidak aktif.
+  RECOVERY_SHA: d973bf8dc329374fc24e928a87f56e7a088ac623
 
 jobs:
   periksa:
@@ -130,10 +130,10 @@ jobs:
     steps:
       # Helper shard berasal dari candidate yang juga melewati full suite.
       - uses: actions/checkout@v7
-      - name: Checkout baseline recovery admin8 sebelum panel
+      - name: Checkout baseline recovery admin9 teruji
         uses: actions/checkout@v7
         with:
-          ref: 6a18cc745b79d31aa6112270732fbbb5a63cbc27
+          ref: d973bf8dc329374fc24e928a87f56e7a088ac623
           path: recovery
           # Suite recovery mempertahankan mode dan pin historis source-nya sendiri.
           fetch-depth: 0
@@ -175,7 +175,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/checkout@v7
         with:
-          ref: 6a18cc745b79d31aa6112270732fbbb5a63cbc27
+          ref: d973bf8dc329374fc24e928a87f56e7a088ac623
           path: recovery
       - name: Validasi mode dan gate rilis sebelum build
         id: mode

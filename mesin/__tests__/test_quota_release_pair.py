@@ -1,13 +1,15 @@
-"""Probe kuota9 lintas proses dan salinan source mandiri; tanpa Docker lokal."""
+"""Probe kuota9 kandidat→recovery exact→kandidat; tanpa Docker lokal."""
 import json
 from pathlib import Path
 import shutil
+import subprocess
 import sys
+import tarfile
 
 import pytest
 
 from test_package_release_pair import jalankan, recovery
-from test_release_image import jalankan_probe
+from test_release_image import jalankan_probe, ekstrak_tar_aman
 
 AKAR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(AKAR/'scripts'))
@@ -18,23 +20,36 @@ import verify_submission_pair
 import verify_release_image
 
 
-def siapkan(tmp_path):
+@pytest.fixture
+def recovery9(tmp_path):
+    """Pin dari config harus benar-benar mempunyai reader/writer kuota9."""
+    config = release_metadata.baca_config(AKAR/'scripts/release-metadata.json')
+    revision = config['recovery_revision']
+    assert revision == 'd973bf8dc329374fc24e928a87f56e7a088ac623'
+    tujuan = tmp_path/'recovery9'
+    tujuan.mkdir()
+    arsip = tmp_path/'recovery9.tar'
+    with arsip.open('wb') as keluar:
+        subprocess.run(['git','-C',str(AKAR),'archive',revision,'mesin'],stdout=keluar,check=True)
+    with tarfile.open(arsip) as tar:
+        ekstrak_tar_aman(tar,tujuan)
+    return tujuan/'mesin'
+
+
+def siapkan(tmp_path, pembaca=None):
     for kode in (paket.SUMBER_TULIS, paket.SUMBER_BACA, paket.SUMBER_KEMBALI):
-        hasil = jalankan(AKAR/'mesin', kode, tmp_path)
+        sumber = pembaca if kode == paket.SUMBER_BACA and pembaca is not None else AKAR/'mesin'
+        hasil = jalankan(sumber, kode, tmp_path)
         assert hasil.returncode == 0, hasil.stderr
 
 
-def test_candidate_recovery_candidate9_source_mandiri(tmp_path):
-    siapkan(tmp_path)
-    # Tahap persiapan: salinan fungsional baseline9 mandiri. Ini bukan klaim
-    # pinned image pair; image9 baru dapat dipatok sesudah CI artifact terbit.
-    salinan = tmp_path/'source9'
-    salinan.mkdir()
-    for p in (AKAR/'mesin').glob('*.py'):
-        shutil.copy2(p, salinan/p.name)
+def test_candidate_recovery_candidate9_source_exact(tmp_path, recovery9):
+    siapkan(tmp_path, recovery9)
+    # Source binary baseline exact, bukan salinan kandidat. CI tetap membuktikan
+    # image/digest dari build pasangan pada SHA final sebelum rilis.
     for sumber,kode,marker in (
         (AKAR/'mesin',kuota.SUMBER_TULIS,'OSN_QUOTA_WRITER_OK'),
-        (salinan,kuota.SUMBER_BACA,'OSN_QUOTA_RECOVERY_OK'),
+        (recovery9,kuota.SUMBER_BACA,'OSN_QUOTA_RECOVERY_OK'),
         (AKAR/'mesin',kuota.SUMBER_KEMBALI,'OSN_QUOTA_RETURN_OK'),
     ):
         hasil = jalankan(sumber,kode,tmp_path)
@@ -42,14 +57,11 @@ def test_candidate_recovery_candidate9_source_mandiri(tmp_path):
         assert hasil.stdout.strip() == marker
 
 
-def test_mutasi_unknown_recovery_ditangkap_pair_dan_pulih(tmp_path):
-    siapkan(tmp_path)
+def test_mutasi_unknown_recovery_ditangkap_pair_dan_pulih(tmp_path, recovery9):
+    siapkan(tmp_path, recovery9)
     hasil = jalankan(AKAR/'mesin',kuota.SUMBER_TULIS,tmp_path)
     assert hasil.returncode == 0, hasil.stderr
-    salinan = tmp_path/'source9'
-    salinan.mkdir()
-    for p in (AKAR/'mesin').glob('*.py'):
-        shutil.copy2(p,salinan/p.name)
+    salinan = recovery9
     target=salinan/'assistant_quota_store.py'
     asli=target.read_text()
     guard='if row["status"] == "unknown" and status != "unknown" and not rekonsiliasi:'
@@ -84,6 +96,14 @@ def test_probe_image_candidate_kuota9_dan_recovery8_dibedakan(tmp_path):
     hasil = jalankan_probe(tmp_path)
     assert hasil.returncode == 0, hasil.stdout+hasil.stderr
     assert json.loads(hasil.stdout)['admin_quota_schema'] == 9
+
+
+def test_probe_image_recovery9_exact_wajib_kuota(tmp_path, recovery9):
+    revision = 'd973bf8dc329374fc24e928a87f56e7a088ac623'
+    hasil = jalankan_probe(tmp_path, sumber=recovery9, revision=revision)
+    assert hasil.returncode == 0, hasil.stdout + hasil.stderr
+    assert json.loads(hasil.stdout) == verify_release_image.ringkasan_untuk_revision(revision)
+    assert json.loads(hasil.stdout)['quota_checks'] == 8
 
 
 def test_probe_manifest_kuota_tidak_boleh_dihilangkan():

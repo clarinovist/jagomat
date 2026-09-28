@@ -29,6 +29,8 @@ JUMLAH_RECOVERY = {
     "4c88dc956b33ae6246b6f7b15f54e87e6c8f172a": 11708,
     "781fbcd0aad62a02b311be8b585802cce230b7c1": 11866,
     "6a18cc745b79d31aa6112270732fbbb5a63cbc27": 12312,
+    # Koleksi source exact identik artifact kandidat CI36375996743.
+    "d973bf8dc329374fc24e928a87f56e7a088ac623": 12481,
 }
 
 
