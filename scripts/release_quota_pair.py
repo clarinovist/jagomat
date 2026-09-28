@@ -94,3 +94,13 @@ assert not reserve(akun,'kuota_bulan_kedua',akhir['bulan']).boleh_outbound
 assert rows(pa)==akhir['admin'], 'readback_kuota_berubah'
 print('OSN_QUOTA_RETURN_OK')
 '''
+
+# Kontrak historical admin9 tetap dapat diprobe sendiri, tetapi pair rilis
+# terbaru WAJIB melewati reader/migrator receipt foto pada kedua binary.
+LEGACY_TULIS, LEGACY_BACA, LEGACY_KEMBALI = SUMBER_TULIS, SUMBER_BACA, SUMBER_KEMBALI
+_spek_foto = importlib.util.spec_from_file_location('foto_pair_probe', Path(__file__).with_name('release_photo_pair.py'))
+_foto = importlib.util.module_from_spec(_spek_foto)
+_spek_foto.loader.exec_module(_foto)
+SUMBER_TULIS = SUMBER_TULIS.replace("print('OSN_QUOTA_WRITER_OK')", _foto.SUMBER_TULIS + "\nprint('OSN_QUOTA_WRITER_OK')")
+SUMBER_BACA = SUMBER_BACA.replace("print('OSN_QUOTA_RECOVERY_OK')", _foto.SUMBER_BACA + "\nprint('OSN_QUOTA_RECOVERY_OK')")
+SUMBER_KEMBALI = SUMBER_KEMBALI.replace("print('OSN_QUOTA_RETURN_OK')", _foto.SUMBER_KEMBALI + "\nprint('OSN_QUOTA_RETURN_OK')")

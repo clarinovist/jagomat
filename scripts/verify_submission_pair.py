@@ -235,7 +235,7 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'recovery_digest': recovery_image.split('@')[1], 'pengiriman_pair_checks': 6,
             'pilihan_pair_checks': 8, 'learning_pair_checks': 8, 'subscription_pair_checks': 4, 'admin_launch_pair_checks': 4,
             'package_pair_checks': 8, 'quota_pair_checks': 8,
-            'provider_calls': 0}
+            'photo_pair_checks': 8, 'provider_calls': 0}
 
 
 def main(argv=None):

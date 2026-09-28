@@ -63,6 +63,9 @@ class RingkasanBackup:
     perlu_rekonsiliasi: bool = False
     operasi_kuota_pending: int = 0
     operasi_kuota_unknown: int = 0
+    skema_foto: bool = False
+    operasi_foto_pending: int = 0
+    operasi_foto_unknown: int = 0
 
 
 def _sha256(path: Path) -> str:
@@ -381,13 +384,29 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
                 billing = billing or bool(kon.execute('SELECT 1 FROM paket_invoice LIMIT 1').fetchone())
     _validasi_link_receipt(akar)
     _validasi_pilot(akar / BERKAS_WAJIB['belajar'])
+    skema_foto, foto_pending, foto_unknown = _validasi_foto(akar / BERKAS_WAJIB['belajar'])
     return RingkasanBackup(
         manifest["bundle_id"], manifest["cutoff"],
         tuple(BERKAS_WAJIB), versi_admin, versi_ai, versi_pendamping,
         minimum, maksimum, pending, uncertain,
-        bool(pending or uncertain or billing or kuota_pending or kuota_unknown),
-        kuota_pending, kuota_unknown,
+        bool(pending or uncertain or billing or kuota_pending or kuota_unknown or foto_pending or foto_unknown),
+        kuota_pending, kuota_unknown, skema_foto, foto_pending, foto_unknown,
     )
+
+
+def _validasi_foto(path):
+    """Receipt opt-in: legacy kosong sah, parsial/pointer rusak tidak diperbaiki."""
+    import database
+    with sqlite3.connect(Path(path).resolve().as_uri() + '?mode=ro', uri=True) as kon:
+        if not kon.execute("SELECT 1 FROM sqlite_master WHERE tbl_name='operasi_foto_baca' OR name='operasi_foto_lampiran_hapus'").fetchone():
+            return False, 0, 0
+        try:
+            database.validasi_operasi_foto(kon)
+            pending = kon.execute("SELECT COUNT(*) FROM operasi_foto_baca WHERE status IN ('reserved','sent')").fetchone()[0]
+            unknown = kon.execute("SELECT COUNT(*) FROM operasi_foto_baca WHERE status='unknown'").fetchone()[0]
+            return True, pending, unknown
+        except (ValueError, sqlite3.Error):
+            raise BackupTidakSah('schema atau receipt foto backup tidak sah') from None
 
 
 def _validasi_pilot(path):
@@ -477,12 +496,14 @@ def _validasi_receipt_profil(admin, belajar, tabel, row):
         raise BackupTidakSah('pasangan journal/receipt profil tidak cocok')
 
 
-def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None) -> RingkasanBackup:
+def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto=None) -> RingkasanBackup:
     """Migrasikan turunan temp dua kali; backup induk tidak pernah ditulis.
 
     ``migrator_ai`` wajib dari candidate AI2. ``target_admin`` None mempertahankan
     versi8/9 atau menaikkan legacy ke7; target9 eksplisit menguji8→9. Bukan izin
     migrasi backup induk, downgrade, aktivasi entitlement, atau provider.
+    ``target_foto=True`` memasang receipt hanya pada turunan; None mempertahankan
+    schema induk. Receipt/pending dan tabel belajar lama wajib tetap byte-value.
     """
     import admin_store
     import admin_students
@@ -490,6 +511,10 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None) -> Ringkasa
     import database
 
     sebelum = validasi_bundle(bundle)
+    if target_foto is None:
+        target_foto = sebelum.skema_foto
+    if type(target_foto) is not bool or (sebelum.skema_foto and not target_foto):
+        raise BackupTidakSah('target rehearsal foto tidak sah')
     if target_admin is None:
         target_admin = max(VERSI_TARGET['admin'], sebelum.versi_admin)
     if type(target_admin) is not int or target_admin not in (7, 8, 9) or target_admin < sebelum.versi_admin:
@@ -511,6 +536,11 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None) -> Ringkasa
                 nama = sorted(ada) if sebelum.versi_admin >= 7 else TABEL + TABEL_PAKET
                 return {t: tuple(kon.execute('SELECT * FROM "' + t + '" ORDER BY rowid'))
                         for t in nama if t in ada}
+        def belajar_rows():
+            with sqlite3.connect(turunan / BERKAS_WAJIB['belajar']) as kon:
+                return {t: tuple(kon.execute('SELECT * FROM "' + t + '" ORDER BY rowid'))
+                        for (t,) in kon.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        belajar_awal = belajar_rows() if target_foto else {}
         auth_awal = _sha256(turunan / BERKAS_WAJIB['auth'])
         billing_awal = ledger(turunan / BERKAS_WAJIB['admin'])
         privat_awal = ({jenis: ledger(turunan / BERKAS_WAJIB[jenis])
@@ -519,11 +549,19 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None) -> Ringkasa
         for _ in range(2):
             database.siapkan(turunan / BERKAS_WAJIB["belajar"])
             admin_students.siapkan(turunan / BERKAS_WAJIB["belajar"])
+            if target_foto:
+                database.migrasikan_operasi_foto(turunan / BERKAS_WAJIB['belajar'])
             admin_store.siapkan(turunan / BERKAS_WAJIB["admin"], paket_v2=target_admin >= 8)
             if target_admin == 9:
                 admin_store.migrasikan_kuota_pendamping(turunan / BERKAS_WAJIB["admin"])
             migrator_ai(turunan / BERKAS_WAJIB["ai"])
             assistant_schema.siapkan(turunan / BERKAS_WAJIB["pendamping"])
+        foto_akhir = _validasi_foto(turunan / BERKAS_WAJIB['belajar'])
+        if foto_akhir != (target_foto, sebelum.operasi_foto_pending, sebelum.operasi_foto_unknown):
+            raise BackupTidakSah('state foto berubah selama rehearsal')
+        belajar_akhir = belajar_rows() if target_foto else {}
+        if any(belajar_akhir.get(t) != rs for t, rs in belajar_awal.items()):
+            raise BackupTidakSah('state belajar berubah selama rehearsal foto')
         if _sha256(turunan / BERKAS_WAJIB['auth']) != auth_awal:
             raise BackupTidakSah('auth berubah selama rehearsal')
         for jenis, tabel_awal in privat_awal.items():
@@ -570,4 +608,5 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None) -> Ringkasa
         sebelum.revisi_auth_min, sebelum.revisi_auth_max,
         sebelum.operasi_admin_pending, sebelum.operasi_admin_uncertain,
         sebelum.perlu_rekonsiliasi, sebelum.operasi_kuota_pending, sebelum.operasi_kuota_unknown,
+        target_foto, sebelum.operasi_foto_pending, sebelum.operasi_foto_unknown,
     )

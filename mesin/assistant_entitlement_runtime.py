@@ -25,8 +25,14 @@ class StatusRuntime:
 
 
 def enforcement_aktif() -> bool:
-    """Hanya nilai exact 1 mengaktifkan guard; default dan nilai asing OFF."""
-    return os.environ.get("PENDAMPING_ENTITLEMENT_AKTIF", "0") == "1"
+    """Aktif hanya bila opt-in server dan tahap audit penegakan sama-sama sah."""
+    if os.environ.get("PENDAMPING_ENTITLEMENT_AKTIF", "0") != "1":
+        return False
+    try:
+        import admin_subscription
+        return admin_subscription.sakelar_runtime(admin_store.BAWAAN).penegakan is True
+    except (OSError, RuntimeError, sqlite3.Error, ValueError):
+        return False
 
 
 def _gagal(aktif: bool) -> StatusRuntime:

@@ -379,6 +379,46 @@ with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
 ''' + PROBE_LAYANAN_SKEMA + PROBE_PAKET_SKEMA + PROBE_KUOTA_SKEMA + "\nprint('OSN_IMAGE_ADMIN9_AI2_OK')\n"
 PROBE_SKEMA += PROBE_LAYANAN_SKEMA + PROBE_PAKET_SKEMA + PROBE_KUOTA_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')\n"
 
+# Foto opt-in: schema legacy tanpa receipt masih sah saat OFF. Jika terpasang,
+# harus exact dan pointer valid; readiness tidak import/startup/migrasi aplikasi.
+PROBE_FOTO_SKEMA = '''
+import ast
+kon = sqlite3.connect('file:/data/latihan.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only=ON')
+    def struktur_foto(c):
+        return c.execute("SELECT type,name,tbl_name,sql FROM sqlite_master WHERE tbl_name='operasi_foto_baca' OR name='operasi_foto_lampiran_hapus' ORDER BY type,name").fetchall()
+    aktual_foto = struktur_foto(kon)
+    if aktual_foto:
+        pohon = ast.parse((akar_app / 'schema.py').read_text())
+        ddl = [ast.literal_eval(n.value) for n in pohon.body if isinstance(n, ast.Assign)
+               and any(isinstance(t, ast.Name) and t.id=='SKEMA_OPERASI_FOTO' for t in n.targets)]
+        assert len(ddl)==1
+        acuan = sqlite3.connect(':memory:')
+        try:
+            acuan.execute('CREATE TABLE lampiran(id INTEGER PRIMARY KEY,sesi_id INTEGER)')
+            acuan.executescript(ddl[0])
+            assert aktual_foto==struktur_foto(acuan), 'schema_foto_parsial'
+        finally:
+            acuan.close()
+        assert kon.execute('PRAGMA user_version').fetchone()[0]==0
+        assert not kon.execute('SELECT 1 FROM operasi_foto_baca o LEFT JOIN lampiran l ON l.id=o.hasil_id WHERE o.hasil_id IS NOT NULL AND (l.id IS NULL OR l.sesi_id!=o.sesi_id)').fetchone(), 'pointer_foto_tidak_sah'
+finally:
+    kon.close()
+'''
+PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_FOTO_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
+PROBE_IMAGE = PROBE_IMAGE.replace("print('OSN_IMAGE_ADMIN9_AI2_OK')", '''
+with database.buka(Path('/data/latihan.db')) as kon:
+    assert not kon.execute("SELECT 1 FROM sqlite_master WHERE name='operasi_foto_baca'").fetchone()
+for _ in range(2):
+    database.migrasikan_operasi_foto(Path('/data/latihan.db'))
+    database.siapkan(Path('/data/latihan.db'))
+with database.buka(Path('/data/latihan.db')) as kon:
+    database.validasi_operasi_foto(kon)
+    assert not kon.execute('SELECT 1 FROM operasi_foto_baca').fetchone()
+print('OSN_IMAGE_ADMIN9_AI2_OK')
+''')
+
 PROBE_KONTRAK = '''import hashlib
 import json
 from pathlib import Path

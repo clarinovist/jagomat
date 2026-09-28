@@ -43,14 +43,14 @@ def siapkan(tmp_path, pembaca=None):
         assert hasil.returncode == 0, hasil.stderr
 
 
-def test_candidate_recovery_candidate9_source_exact(tmp_path, recovery9):
+def test_historical_admin9_source_exact_bukan_bukti_foto(tmp_path, recovery9):
     siapkan(tmp_path, recovery9)
     # Source binary baseline exact, bukan salinan kandidat. CI tetap membuktikan
     # image/digest dari build pasangan pada SHA final sebelum rilis.
     for sumber,kode,marker in (
-        (AKAR/'mesin',kuota.SUMBER_TULIS,'OSN_QUOTA_WRITER_OK'),
-        (recovery9,kuota.SUMBER_BACA,'OSN_QUOTA_RECOVERY_OK'),
-        (AKAR/'mesin',kuota.SUMBER_KEMBALI,'OSN_QUOTA_RETURN_OK'),
+        (AKAR/'mesin',kuota.LEGACY_TULIS,'OSN_QUOTA_WRITER_OK'),
+        (recovery9,kuota.LEGACY_BACA,'OSN_QUOTA_RECOVERY_OK'),
+        (AKAR/'mesin',kuota.LEGACY_KEMBALI,'OSN_QUOTA_RETURN_OK'),
     ):
         hasil = jalankan(sumber,kode,tmp_path)
         assert hasil.returncode == 0, hasil.stderr
@@ -59,7 +59,7 @@ def test_candidate_recovery_candidate9_source_exact(tmp_path, recovery9):
 
 def test_mutasi_unknown_recovery_ditangkap_pair_dan_pulih(tmp_path, recovery9):
     siapkan(tmp_path, recovery9)
-    hasil = jalankan(AKAR/'mesin',kuota.SUMBER_TULIS,tmp_path)
+    hasil = jalankan(AKAR/'mesin',kuota.LEGACY_TULIS,tmp_path)
     assert hasil.returncode == 0, hasil.stderr
     salinan = recovery9
     target=salinan/'assistant_quota_store.py'
@@ -72,10 +72,10 @@ def test_mutasi_unknown_recovery_ditangkap_pair_dan_pulih(tmp_path, recovery9):
     mutan=tmp_path/'mutan'
     mutan.mkdir()
     shutil.copytree(tmp_path/'package-pair',mutan/'package-pair')
-    merah=jalankan(salinan,kuota.SUMBER_BACA,mutan)
+    merah=jalankan(salinan,kuota.LEGACY_BACA,mutan)
     assert merah.returncode!=0 and 'unknown_dilepas_tanpa_rekonsiliasi' in merah.stderr
     target.write_text(asli)
-    hijau=jalankan(salinan,kuota.SUMBER_BACA,tmp_path)
+    hijau=jalankan(salinan,kuota.LEGACY_BACA,tmp_path)
     assert hijau.returncode==0,hijau.stderr
     assert hijau.stdout.strip()=='OSN_QUOTA_RECOVERY_OK'
 
@@ -112,12 +112,14 @@ def test_probe_manifest_kuota_tidak_boleh_dihilangkan():
                  candidate_digest='sha256:'+'a'*64,recovery_digest='sha256:'+'b'*64,
                  pengiriman_pair_checks=6,pilihan_pair_checks=8,learning_pair_checks=8,
                  subscription_pair_checks=4,admin_launch_pair_checks=4,package_pair_checks=8,
-                 quota_pair_checks=8,provider_calls=0)
+                 quota_pair_checks=8,photo_pair_checks=8,provider_calls=0)
     args=('a'*40,'b'*40,'sha256:'+'a'*64,'sha256:'+'b'*64)
     assert release_metadata.validasi_bukti_pasangan(bukti,*args)
-    for salah in (0,True,7):
+    for field in ('quota_pair_checks', 'photo_pair_checks'):
+        for salah in (0, True, 7):
+            with pytest.raises(ValueError):
+                release_metadata.validasi_bukti_pasangan({**bukti, field: salah}, *args)
+        tanpa = dict(bukti)
+        del tanpa[field]
         with pytest.raises(ValueError):
-            release_metadata.validasi_bukti_pasangan({**bukti,'quota_pair_checks':salah},*args)
-    del bukti['quota_pair_checks']
-    with pytest.raises(ValueError):
-        release_metadata.validasi_bukti_pasangan(bukti,*args)
+            release_metadata.validasi_bukti_pasangan(tanpa, *args)

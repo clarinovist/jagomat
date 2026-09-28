@@ -308,6 +308,18 @@ class Penangan(BaseHTTPRequestHandler):
             return False
         return self._bisa_lihat_sesi(kon, int(lamp["sesi_id"]))
 
+    def _proses_foto_terjaga(self, sesi_id, **kwargs):
+        """Provider tanpa koneksi belajar route; service memegang fencing final."""
+        import sqlite3
+        try:
+            return lampiran_mod.proses_foto_terjaga(
+                database.BAWAAN, sesi_id, principal=self._principal(),
+                periksa_principal=self._principal, **kwargs)
+        except LookupError:
+            return None, 'not_found'
+        except (ValueError, RuntimeError, OSError, sqlite3.Error):
+            return None, lampiran_mod.PESAN_FOTO_TERTAHAN
+
     def _kirim_berkas_lampiran(self, kon, lampiran_id: int) -> None:
         """Kirim isi berkas foto lampiran (hanya guru, hanya milik sesi)."""
         lamp = database.ambil_lampiran(kon, lampiran_id)
@@ -1459,9 +1471,17 @@ class Penangan(BaseHTTPRequestHandler):
                     return self._kirim(
                         _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
                     )
-                _lid, pesan = lampiran_mod.proses_upload_murid(
-                    kon, sesi_id, content_type, tubuh
-                )
+                terjaga = lampiran_mod.penegakan_foto()
+                if not terjaga:
+                    _lid, pesan = lampiran_mod.proses_upload_murid(
+                        kon, sesi_id, content_type, tubuh
+                    )
+            if terjaga:
+                _lid, pesan = self._proses_foto_terjaga(sesi_id, content_type=content_type, tubuh=tubuh)
+                if pesan == 'not_found':
+                    return self._kirim(_halaman('404', '<h1>Halaman tidak ada</h1>'), 404)
+                if _lid is None:
+                    pesan = lampiran_mod.PESAN_FOTO_TERTAHAN
             # PRG: refresh tidak mengunggah dua kali. Pesan (sukses ATAU
             # alasan gagal) dibawa di query dan ditampilkan di blok foto —
             # anak harus tahu fotonya masuk atau tidak.
@@ -2022,13 +2042,30 @@ class Penangan(BaseHTTPRequestHandler):
                         return self._kirim(
                             _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
                         )
-                    pesan = lampiran_mod.baca_ulang(kon, angka)
-                    isi = lampiran_mod.halaman_konfirmasi(kon, angka, pesan)
-                    if isi is None:
-                        return self._kirim(
-                            _halaman("404", "<h1>Lampiran hilang</h1>"), 404
-                        )
-                    return self._kirim(isi)
+                    terjaga = lampiran_mod.penegakan_foto()
+                    if not terjaga:
+                        pesan = lampiran_mod.baca_ulang(kon, angka)
+                        isi = lampiran_mod.halaman_konfirmasi(kon, angka, pesan)
+                        if isi is None:
+                            return self._kirim(_halaman('404', '<h1>Lampiran hilang</h1>'), 404)
+                        return self._kirim(isi)
+                    sesi_foto = database.ambil_lampiran(kon, angka)['sesi_id']
+                panjang = int(self.headers.get('Content-Length', 0) or 0)
+                if not 0 < panjang <= 512:
+                    return self._kirim(_halaman('Ditolak', '<h1>Permintaan foto tidak sah</h1>'), 400)
+                try:
+                    fields = urllib.parse.parse_qs(self.rfile.read(panjang).decode('utf-8'), keep_blank_values=True)
+                except UnicodeError:
+                    return self._kirim(_halaman('Ditolak', '<h1>Permintaan foto tidak sah</h1>'), 400)
+                if set(fields) != {'operasi_foto'} or len(fields['operasi_foto']) != 1:
+                    return self._kirim(_halaman('Ditolak', '<h1>Permintaan foto tidak sah</h1>'), 400)
+                _lid, pesan = self._proses_foto_terjaga(sesi_foto, target_id=angka, operasi_id=fields['operasi_foto'][0])
+                if pesan == 'not_found':
+                    return self._kirim(_halaman('404', '<h1>Halaman tidak ada</h1>'), 404)
+                with database.buka() as kon:
+                    if not self._bisa_lihat_lampiran(kon, angka):
+                        return self._kirim(_halaman('404', '<h1>Halaman tidak ada</h1>'), 404)
+                    return self._kirim(lampiran_mod.halaman_konfirmasi(kon, angka, pesan))
 
             if len(bagian) >= 4 and bagian[3] == "terapkan":
                 # Konfirmasi guru: tulis jawaban hasil koreksi ke jalur resmi.
@@ -2077,9 +2114,13 @@ class Penangan(BaseHTTPRequestHandler):
                     return self._kirim(
                         _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
                     )
-                lid, pesan = lampiran_mod.proses_upload(
-                    kon, angka, content_type, tubuh
-                )
+                terjaga = lampiran_mod.penegakan_foto()
+                if not terjaga:
+                    lid, pesan = lampiran_mod.proses_upload(kon, angka, content_type, tubuh)
+            if terjaga:
+                lid, pesan = self._proses_foto_terjaga(angka, content_type=content_type, tubuh=tubuh)
+                if pesan == 'not_found':
+                    return self._kirim(_halaman('404', '<h1>Halaman tidak ada</h1>'), 404)
             if lid is None:
                 # Gagal validasi (bukan gambar, terlalu besar, kosong):
                 # 400 dengan pesan jelas — bukan 200 menyamarkan kegagalan.

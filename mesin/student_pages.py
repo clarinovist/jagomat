@@ -621,7 +621,7 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
   {daftar_foto}
   <form method="post" action="/murid/foto/{sesi_id}"
         enctype="multipart/form-data" class="kerja-foto-form-st">
-    <label class="kerja-label-st" for="foto-cara">Pilih foto lembar</label>
+    {__import__('attachments').field_operasi_foto()}<label class="kerja-label-st" for="foto-cara">Pilih foto lembar</label>
     <input type="file" id="foto-cara" name="foto" accept="image/*" capture="environment">
     <button type="submit" class="kerja-btn-sekunder-st">Kirim foto caraku</button>
   </form>

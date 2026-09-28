@@ -63,6 +63,59 @@ def buka(path: Path | str | None = None) -> Iterator[sqlite3.Connection]:
         kon.close()
 
 
+def validasi_operasi_foto(kon) -> None:
+    """Reader metadata exact; tidak bootstrap atau memperbaiki schema parsial."""
+    from schema import SKEMA_OPERASI_FOTO
+    if kon.execute('PRAGMA user_version').fetchone()[0] != 0:
+        raise ValueError('versi basis belajar tidak dikenal')
+    def struktur(koneksi):
+        return tuple(tuple(r) for r in koneksi.execute(
+            "SELECT type,name,tbl_name,sql FROM sqlite_master "
+            "WHERE tbl_name='operasi_foto_baca' OR name='operasi_foto_lampiran_hapus' ORDER BY type,name"))
+    acuan = sqlite3.connect(':memory:')
+    try:
+        acuan.execute('CREATE TABLE lampiran(id INTEGER PRIMARY KEY,sesi_id INTEGER)')
+        acuan.executescript(SKEMA_OPERASI_FOTO)
+        if struktur(kon) != struktur(acuan):
+            raise ValueError('penyimpanan operasi foto belum terverifikasi')
+    finally:
+        acuan.close()
+    if kon.execute('''SELECT 1 FROM operasi_foto_baca o LEFT JOIN lampiran l ON l.id=o.hasil_id
+            WHERE o.hasil_id IS NOT NULL AND (l.id IS NULL OR l.sesi_id!=o.sesi_id)
+            LIMIT 1''').fetchone():
+        raise ValueError('pointer receipt foto tidak sah')
+
+
+def migrasikan_operasi_foto(path) -> None:
+    """Pasang receipt foto aditif secara eksplisit; startup/GET tidak memanggil.
+
+    File belajar wajib existing; table baru tidak mengubah user_version legacy0.
+    Binary recovery wajib memahami receipt sebelum penegakan foto diaktifkan.
+    """
+    from schema import SKEMA_OPERASI_FOTO
+    kon = sqlite3.connect(Path(path).resolve().as_uri() + '?mode=rw', uri=True)
+    try:
+        kon.execute('PRAGMA foreign_keys=ON')
+        kon.execute('BEGIN IMMEDIATE')
+        if kon.execute('PRAGMA user_version').fetchone()[0] != 0:
+            raise ValueError('versi basis belajar tidak dikenal')
+        for tabel in ('sesi', 'siswa', 'lampiran'):
+            if not kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (tabel,)).fetchone():
+                raise ValueError('basis belajar belum siap')
+        ada = kon.execute("SELECT 1 FROM sqlite_master WHERE tbl_name='operasi_foto_baca' OR name='operasi_foto_lampiran_hapus'").fetchone()
+        if not ada:
+            _jalankan_skema(kon, SKEMA_OPERASI_FOTO)
+        validasi_operasi_foto(kon)
+        if kon.execute('PRAGMA foreign_key_check').fetchone():
+            raise ValueError('foreign key operasi foto tidak sah')
+        kon.commit()
+    except Exception:
+        kon.rollback()
+        raise
+    finally:
+        kon.close()
+
+
 def _segarkan_trigger_snapshot(kon: sqlite3.Connection) -> None:
     """Ganti hanya trigger Fase 1 lama; startup ulang tetap idempoten."""
     nama = "sesi_soal_snapshot_tolak_update_terkunci"

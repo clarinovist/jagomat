@@ -776,3 +776,61 @@ MIGRASI: list[tuple[str, str, str]] = [
 
 # View yang definisinya berubah dan karena itu harus dibangun ulang.
 VIEW_USANG: list[str] = ["ringkasan_sesi"]
+
+# Opt-in eksplisit database.migrasikan_operasi_foto; bukan SKEMA startup/GET.
+# ID sesi/lampiran sengaja bukan FK cascade: dedup tetap ada setelah penghapusan.
+SKEMA_OPERASI_FOTO = """
+CREATE TABLE operasi_foto_baca (
+    operasi_id TEXT PRIMARY KEY CHECK(length(operasi_id)=37),
+    akun_id TEXT NOT NULL,
+    actor_id TEXT NOT NULL,
+    sesi_id INTEGER NOT NULL CHECK(sesi_id>0),
+    target_id INTEGER NOT NULL CHECK(target_id>=0),
+    jenis TEXT NOT NULL CHECK(jenis IN ('upload','reread')),
+    isi_sidik TEXT NOT NULL CHECK(length(isi_sidik)=64),
+    konteks_sidik TEXT NOT NULL CHECK(length(konteks_sidik)=64),
+    permintaan_sidik TEXT NOT NULL CHECK(length(permintaan_sidik)=64),
+    fence TEXT NOT NULL CHECK(length(fence)=64),
+    status TEXT NOT NULL CHECK(status IN ('reserved','sent','unknown','no_output','result','deleted_result','deleted_no_output')),
+    hasil_id INTEGER,
+    dibuat INTEGER NOT NULL CHECK(dibuat>=0),
+    diperbarui INTEGER NOT NULL CHECK(diperbarui>=dibuat),
+    CHECK((jenis='upload' AND target_id=0) OR (jenis='reread' AND target_id>0)),
+    CHECK((status='result' AND hasil_id IS NOT NULL AND hasil_id>0)
+          OR (status='no_output' AND (hasil_id IS NULL OR hasil_id>0))
+          OR (status IN ('reserved','sent','unknown','deleted_result','deleted_no_output') AND hasil_id IS NULL))
+);
+CREATE UNIQUE INDEX operasi_foto_baca_aktif ON operasi_foto_baca(target_id)
+    WHERE jenis='reread' AND status IN ('reserved','sent','unknown');
+CREATE TRIGGER operasi_foto_baca_tolak_delete BEFORE DELETE ON operasi_foto_baca
+BEGIN SELECT RAISE(ABORT,'receipt foto durable'); END;
+CREATE TRIGGER operasi_foto_baca_tolak_replace BEFORE INSERT ON operasi_foto_baca
+WHEN EXISTS(SELECT 1 FROM operasi_foto_baca WHERE operasi_id=NEW.operasi_id)
+BEGIN SELECT RAISE(ABORT,'operasi foto duplikat'); END;
+CREATE TRIGGER operasi_foto_baca_ikat_update BEFORE UPDATE ON operasi_foto_baca
+WHEN NEW.operasi_id!=OLD.operasi_id OR NEW.akun_id!=OLD.akun_id OR NEW.actor_id!=OLD.actor_id
+ OR NEW.sesi_id!=OLD.sesi_id OR NEW.target_id!=OLD.target_id OR NEW.jenis!=OLD.jenis
+ OR NEW.isi_sidik!=OLD.isi_sidik OR NEW.konteks_sidik!=OLD.konteks_sidik
+ OR NEW.permintaan_sidik!=OLD.permintaan_sidik OR NEW.fence!=OLD.fence
+ OR NEW.dibuat!=OLD.dibuat OR NEW.diperbarui<OLD.diperbarui
+ OR OLD.status IN ('unknown','deleted_result','deleted_no_output')
+ OR (OLD.status IN ('result','no_output') AND NOT (
+      NEW.status='deleted_'||OLD.status AND NEW.hasil_id IS NULL
+      AND NOT EXISTS(SELECT 1 FROM lampiran WHERE id=OLD.hasil_id)))
+ OR (OLD.status='reserved' AND NEW.status NOT IN ('sent','no_output'))
+ OR (OLD.status='sent' AND NEW.status NOT IN ('result','no_output','unknown'))
+BEGIN SELECT RAISE(ABORT,'transisi operasi foto tidak sah'); END;
+CREATE TRIGGER operasi_foto_baca_hasil_insert BEFORE INSERT ON operasi_foto_baca
+WHEN NEW.hasil_id IS NOT NULL AND NOT EXISTS(
+ SELECT 1 FROM lampiran WHERE id=NEW.hasil_id AND sesi_id=NEW.sesi_id)
+BEGIN SELECT RAISE(ABORT,'pointer receipt foto tidak sah'); END;
+CREATE TRIGGER operasi_foto_baca_hasil_update BEFORE UPDATE ON operasi_foto_baca
+WHEN NEW.hasil_id IS NOT NULL AND NOT EXISTS(
+ SELECT 1 FROM lampiran WHERE id=NEW.hasil_id AND sesi_id=NEW.sesi_id)
+BEGIN SELECT RAISE(ABORT,'pointer receipt foto tidak sah'); END;
+CREATE TRIGGER operasi_foto_lampiran_hapus AFTER DELETE ON lampiran
+BEGIN
+ UPDATE operasi_foto_baca SET status='deleted_'||status,hasil_id=NULL
+ WHERE hasil_id=OLD.id AND status IN ('result','no_output');
+END;
+"""

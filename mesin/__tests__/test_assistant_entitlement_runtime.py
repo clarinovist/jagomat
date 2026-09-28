@@ -54,10 +54,20 @@ def test_enforcement_on_storage_absen_fail_closed_tanpa_membuat_db(tmp_path, mon
     path = tmp_path / "absen.db"
     monkeypatch.setattr(admin_store, "BAWAAN", path)
     monkeypatch.setenv("PENDAMPING_ENTITLEMENT_AKTIF", "1")
-    state = runtime.status(AKUN, sekarang=10)
-    assert state.status == "storage_tidak_terverifikasi"
-    assert runtime.boleh_outbound(AKUN, sekarang=10) is False
+    # Env sendiri tidak cukup; tahap admin absent/rusak mempertahankan OFF.
+    assert runtime.enforcement_aktif() is False
+    assert runtime.boleh_outbound(AKUN, sekarang=10) is True
     assert not path.exists()
+
+
+def test_enforcement_memerlukan_env_dan_tahap_admin(monkeypatch):
+    monkeypatch.setenv("PENDAMPING_ENTITLEMENT_AKTIF", "1")
+    sakelar = SimpleNamespace(penegakan=True)
+    modul = __import__("admin_subscription")
+    monkeypatch.setattr(modul, "sakelar_runtime", lambda _p: sakelar)
+    assert runtime.enforcement_aktif() is True
+    monkeypatch.setattr(modul, "sakelar_runtime", lambda _p: SimpleNamespace(penegakan=False))
+    assert runtime.enforcement_aktif() is False
 
 
 def test_jago_terkunci_dan_panel_tidak_memuat_context():
@@ -98,7 +108,6 @@ def test_kirim_ditolak_tidak_meninggalkan_operasi(monkeypatch, tmp_path):
         )
         chat = assistant_store.buat_chat(kon, AKUN, "tanpa_memori", sekarang=1)
         kon.commit()
-        monkeypatch.setenv("PENDAMPING_ENTITLEMENT_AKTIF", "1")
         monkeypatch.setattr(runtime, "boleh_outbound", lambda *_a, **_k: False)
         provider = []
         with pytest.raises(assistant_service.GalatPendamping):
@@ -112,7 +121,6 @@ def test_kirim_ditolak_tidak_meninggalkan_operasi(monkeypatch, tmp_path):
 
 
 def test_service_menahan_provider_saat_entitlement_tidak_sah(monkeypatch):
-    monkeypatch.setenv("PENDAMPING_ENTITLEMENT_AKTIF", "1")
     monkeypatch.setattr(runtime, "boleh_outbound", lambda *_a, **_k: False)
     dipanggil = []
     with pytest.raises(assistant_service.GalatPendamping, match="paket atau kuota"):

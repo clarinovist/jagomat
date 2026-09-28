@@ -1231,7 +1231,8 @@ def halaman_sesi_lampiran(
     unggah = (
         f'<form method="post" action="/lampiran/{sesi_id}" '
         'enctype="multipart/form-data">'
-        '<label for="foto-lembar">Foto lembar yang sudah diisi anak (jpeg/png, maks 8MB)</label>'
+        + __import__('attachments').field_operasi_foto()
+        + '<label for="foto-lembar">Foto lembar yang sudah diisi anak (jpeg/png, maks 8MB)</label>'
         '<input id="foto-lembar" type="file" name="foto" accept="image/jpeg,image/png">'
         '<button type="submit">Upload foto</button>'
         "</form>"

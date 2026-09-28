@@ -63,7 +63,8 @@ def test_volume_probe_sendiri_dan_urutan_write_read_cleanup(docker):
     assert hasil['recovery_digest']==images[1].split('@')[1]
     runs=[(a,s) for a,s in calls if a[0]=='run']
     assert len(runs)==11
-    assert hasil['package_pair_checks']==8 and hasil['quota_pair_checks']==8
+    assert (hasil['package_pair_checks'], hasil['quota_pair_checks'],
+            hasil['photo_pair_checks']) == (8, 8, 8)
     assert [s for _,s in runs[5:8]]==[pair.PAKET_TULIS,pair.PAKET_BACA,pair.PAKET_KEMBALI]
     assert [a[-4] for a,_ in runs[5:8]]==[images[0],images[1],images[0]]
     assert [s for _,s in runs[8:]]==[pair.KUOTA_TULIS,pair.KUOTA_BACA,pair.KUOTA_KEMBALI]

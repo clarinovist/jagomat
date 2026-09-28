@@ -43,6 +43,12 @@ RECOVERY_TANPA_KUOTA = RECOVERY_TANPA_PAKET + (
 )
 
 
+RECOVERY_TANPA_FOTO = RECOVERY_TANPA_KUOTA + (
+    'd973bf8dc329374fc24e928a87f56e7a088ac623',
+    '955cca39b61cd17a4cff47cb256a293eff228244',
+)
+
+
 def kontrak_untuk_revision(revision: str) -> str:
     """Pilih kontrak HTTP berdasarkan revision image yang sudah diverifikasi."""
     return (
@@ -64,6 +70,7 @@ def ringkasan_untuk_revision(revision: str) -> dict:
         "admin_package_schema": None if revision in RECOVERY_TANPA_PAKET else 8,
         "quota_checks": 0 if revision in RECOVERY_TANPA_KUOTA else 8,
         "admin_quota_schema": None if revision in RECOVERY_TANPA_KUOTA else 9,
+        "photo_checks": 0 if revision in RECOVERY_TANPA_FOTO else 8,
         "pengiriman_checks": 0 if revision in {
             REVISION_RECOVERY_LEGACY, "33e241c18024190f41ebca1986e35af26c0397fd",
         } else 6,
@@ -574,7 +581,7 @@ def jalankan_probe(akar):
             package_checks = uji_paket(akar / 'paket')
         quota_checks = 0
         if revision not in REVISION_TANPA_KUOTA:
-            quota_checks = uji_kuota(akar / 'paket')
+            quota_checks = uji_kuota(akar / 'paket', revision not in REVISION_TANPA_FOTO)
         pastikan(not panggilan, 'provider_terpanggil')
     finally:
         socket.socket.connect, socket.socket.connect_ex, socket.getaddrinfo = asli_connect, asli_connect_ex, asli_resolve
@@ -584,7 +591,8 @@ def jalankan_probe(akar):
             'profil_checks': profil_checks, 'admin_schema': admin_schema,
             'subscription_checks': subscription_checks, 'admin_launch_checks': admin_launch_checks,
             'package_checks': package_checks, 'admin_package_schema': 8 if package_checks else None,
-            'quota_checks': quota_checks, 'admin_quota_schema': 9 if quota_checks else None}
+            'quota_checks': quota_checks, 'admin_quota_schema': 9 if quota_checks else None,
+            'photo_checks': 0 if revision in REVISION_TANPA_FOTO else 8}
 
 
 def main():
@@ -644,11 +652,13 @@ _probe_kuota = importlib.util.module_from_spec(_spek_kuota)
 _spek_kuota.loader.exec_module(_probe_kuota)
 SUMBER_PROBE = SUMBER_PROBE.replace(
     '\ndef main():', '\nREVISION_TANPA_KUOTA = ' + repr(RECOVERY_TANPA_KUOTA)
+    + '\nREVISION_TANPA_FOTO = ' + repr(RECOVERY_TANPA_FOTO)
+    + '\nPROBE_KUOTA_LAMA = ' + repr((_probe_kuota.LEGACY_TULIS, _probe_kuota.LEGACY_BACA, _probe_kuota.LEGACY_KEMBALI))
     + '\nPROBE_KUOTA = ' + repr((_probe_kuota.SUMBER_TULIS, _probe_kuota.SUMBER_BACA,
                                 _probe_kuota.SUMBER_KEMBALI))
     + '''
-def uji_kuota(akar):
-    for sumber in PROBE_KUOTA:
+def uji_kuota(akar, foto):
+    for sumber in (PROBE_KUOTA if foto else PROBE_KUOTA_LAMA):
         exec(compile(sumber.replace('/data/', str(akar) + '/'), '<probe-kuota>', 'exec'), {})
     return 8
 ''' + '\ndef main():', 1)

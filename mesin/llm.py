@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from contextvars import ContextVar
+from dataclasses import dataclass
 import hashlib
 import json
 import os
@@ -570,18 +571,33 @@ def saring_ekstraksi(hasil: list[dict], jumlah_soal: int) -> list[dict]:
     return keluar
 
 
+@dataclass(frozen=True)
+class BacaanFoto:
+    """Milestone transport tanpa salinan foto/prompt; hasil hanya request-local."""
+    status: str
+    hasil: Any = None
+
+
+class FotoBelumDikirim(RuntimeError):
+    """Callback gagal sebelum transport; bukti eksplisit boleh melepaskan kuota."""
+
+
 def ekstrak_lembar(soal_konteks: list[str], gambar_b64: str) -> list[dict] | None:
-    """Baca satu foto lembar -> daftar {nomor, jawaban, caraku} per soal.
+    """Adapter legacy: OFF tetap hasil list/None tanpa mengakses ledger paket."""
+    return ekstrak_lembar_tercatat(soal_konteks, gambar_b64).hasil
 
-    Gagal-diam (pola seluruh modul): tanpa key / network error / parse gagal
-    / verifikasi gagal -> None, pemanggil menampilkan pesan "tidak terbaca".
 
-    `soal_konteks` adalah teks tiap soal (berurutan 1..N) — dikirim ke model
-    supaya ia memetakan jawaban ke nomor yang benar dan tidak mengarang soal.
+def ekstrak_lembar_tercatat(soal_konteks, gambar_b64, *, sebelum_kirim=None):
+    """Baca foto dengan status result/no_output/unknown untuk caller durable.
+
+    Callback sesudah admission biaya tetapi sebelum urllib menandai outbound
+    dengan commit. Timeout/koneksi pasca-outbound unknown; respons yang diterima
+    tetapi tidak menghasilkan bacaan valid no_output. Callback guard boleh raise.
+    soal_konteks hanya teks pertanyaan, bukan kunci atau diagnosis.
     """
     cfg = konfigurasi_vision()
     if not cfg["api_key"]:
-        return None
+        return BacaanFoto('no_output')
 
     daftar_soal = "\n".join(
         f"{i + 1}. {teks}" for i, teks in enumerate(soal_konteks)
@@ -640,21 +656,32 @@ def ekstrak_lembar(soal_konteks: list[str], gambar_b64: str) -> list[dict] | Non
         },
         method="POST",
     )
+    terkirim = False
     try:
         def kirim():
+            nonlocal terkirim
+            if sebelum_kirim is not None:
+                sebelum_kirim()
+            terkirim = True
             with urllib.request.urlopen(
                 req, timeout=BATAS_WAKTU_DETIK * 4
             ) as resp:
                 return parse_respons(resp.read())
         konten = ai_control.panggil("lampiran", _bucket_ai.get(), kirim)
-    except (urllib.error.URLError, OSError, ValueError, ai_control.AIUnavailable):
-        return None
+    except Exception as galat:
+        # Ledger biaya dapat mengganti exception callback saat pencatatan gagal.
+        # Flag lokal, bukan exception terluar, menentukan apakah transport mulai.
+        if not terkirim and sebelum_kirim is not None:
+            raise FotoBelumDikirim('pembacaan belum dikirim') from galat
+        if isinstance(galat, (urllib.error.URLError, OSError, ValueError, ai_control.AIUnavailable)):
+            return BacaanFoto('unknown' if terkirim else 'no_output')
+        raise
     if konten is None:
-        return None
+        return BacaanFoto('no_output')
     hasil = parse_ekstraksi(konten)
     if hasil is None or not verifikasi_ekstraksi(hasil, len(soal_konteks)):
-        return None
-    return saring_ekstraksi(hasil, len(soal_konteks))
+        return BacaanFoto('no_output')
+    return BacaanFoto('result', saring_ekstraksi(hasil, len(soal_konteks)))
 
 
 # ── Gerbang biaya (opsional) ───────────────────────────────────────────

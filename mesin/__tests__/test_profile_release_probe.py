@@ -43,6 +43,7 @@ def siap(tmp_path):
     shutil.copy2(data / 'probe-accounts.json', data / 'sandi.json')
     source = tmp_path / 'source'
     source.mkdir()
+    shutil.copy2(AKAR/'mesin'/'schema.py',source/'schema.py')
     for nama, versi in [('admin_store', 7), ('assistant_schema', 4), ('ai_store', 2), ('subscription_package_schema', 8), ('assistant_quota_schema', 9)]:
         (source / (nama + '.py')).write_text('VERSI_SKEMA = %d\nraise RuntimeError("jangan import")\n' % versi)
     return deploy, data, source

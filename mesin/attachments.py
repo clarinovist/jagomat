@@ -22,11 +22,16 @@ Garis yang tidak boleh dilanggar modul ini:
 from __future__ import annotations
 
 import base64
+from contextlib import contextmanager
+import hashlib
 import html
 import json
 import os
 import re
 import shutil
+import secrets
+import sqlite3
+import time
 from pathlib import Path
 
 import database
@@ -326,6 +331,342 @@ def _soal_konteks(kon, sesi_id: int) -> list[dict]:
     return keluar
 
 
+# ── Percobaan foto durable, hanya saat penegakan paket ON ─────────────
+
+PESAN_FOTO_TERTAHAN = 'Foto belum dapat diproses. Minta orang tua memeriksa atau isi jawaban secara manual.'
+
+
+class KonflikFoto(ValueError):
+    """Resource/identitas/percobaan berubah; jangan mengulang provider otomatis."""
+
+
+def penegakan_foto():
+    import assistant_entitlement_runtime as kuota
+    return kuota.enforcement_aktif()
+
+
+def field_operasi_foto():
+    """Nonce native request, bukan izin akses; GET tidak menyimpan state."""
+    if not penegakan_foto():
+        return ''
+    return '<input type="hidden" name="operasi_foto" value="foto_' + secrets.token_hex(16) + '">'
+
+
+def operasi_foto_sah(nilai):
+    if type(nilai) is not str or re.fullmatch(r'foto_[0-9a-f]{32}', nilai) is None:
+        raise KonflikFoto('identitas percobaan foto tidak sah')
+    return nilai
+
+
+def operasi_multipart(tubuh, content_type):
+    """Tepat satu nonce field non-file; tidak memantulkan body upload."""
+    m = re.search(r'boundary="?([^";]+)"?', content_type)
+    if not m:
+        raise KonflikFoto('format percobaan foto tidak sah')
+    nilai = []
+    for bagian in tubuh.split(('--' + m.group(1)).encode()):
+        header, pisah, isi = bagian.partition(b'\r\n\r\n')
+        if pisah and re.search(br'name="operasi_foto"(?:;|\r|$)', header) and b'filename=' not in header:
+            nilai.append(isi.removesuffix(b'\r\n').decode('ascii', 'strict'))
+    if len(nilai) != 1:
+        raise KonflikFoto('identitas percobaan foto tidak sah')
+    return operasi_foto_sah(nilai[0])
+
+
+def _sidik_foto(data):
+    return hashlib.sha256(json.dumps(data, sort_keys=True, separators=(',', ':'),
+                                    ensure_ascii=True).encode()).hexdigest()
+
+
+@contextmanager
+def _foto_transaksi(path):
+    """Tidak auto-create; commit selesai sebelum jaringan/finalisasi kuota."""
+    import auth
+    from json_storage import transaksi_json
+    kon = sqlite3.connect(Path(path).resolve().as_uri() + '?mode=rw', uri=True, timeout=5)
+    kon.row_factory = sqlite3.Row
+    try:
+        kon.execute('PRAGMA foreign_keys=ON')
+        database.validasi_operasi_foto(kon)
+        kon.execute('BEGIN IMMEDIATE')
+        with transaksi_json(auth.BERKAS_SANDI):
+            yield kon
+            kon.commit()
+    except Exception:
+        kon.rollback()
+        raise
+    finally:
+        kon.close()
+
+
+def _snapshot_foto(kon, sesi_id, target_id, principal, periksa_principal):
+    """Fencing akun generasi+resource; murid tidak membaca kunci/diagnosis."""
+    import auth
+    import students
+    if principal is None or periksa_principal() != principal:
+        raise LookupError('foto tidak ditemukan')
+    actor = auth.cari_akun(principal.pengguna)
+    if (actor is None or actor.get('id_akun') != principal.id_akun
+            or auth.revisi_auth(actor) != principal.revisi_auth
+            or actor.get('peran', 'guru') != principal.peran):
+        raise LookupError('foto tidak ditemukan')
+    sesi = kon.execute('SELECT se.id,se.siswa_id,se.dibatalkan,w.pemilik FROM sesi se '
+                       'JOIN siswa w ON w.id=se.siswa_id WHERE se.id=?', (sesi_id,)).fetchone()
+    if not sesi or sesi['dibatalkan'] is not None:
+        raise LookupError('foto tidak ditemukan')
+    if principal.peran == 'murid':
+        if target_id or students.siswa_dari_akun(kon, principal.pengguna) != sesi['siswa_id']:
+            raise LookupError('foto tidak ditemukan')
+    elif principal.peran != 'admin' and not (
+            principal.peran == 'guru' and database.sesi_milik(kon, sesi_id, principal.pengguna)):
+        raise LookupError('foto tidak ditemukan')
+    parent = auth.cari_akun(sesi['pemilik'])
+    if not parent or parent.get('peran', 'guru') != 'guru' or not auth.id_akun_sah(parent.get('id_akun')):
+        raise KonflikFoto('akun pemilik belum terverifikasi')
+    konteks = _teks_konteks(kon, sesi_id)
+    if not konteks:
+        raise LookupError('foto tidak ditemukan')
+    lamp = database.ambil_lampiran(kon, target_id) if target_id else None
+    if target_id and (not lamp or lamp['sesi_id'] != sesi_id):
+        raise LookupError('foto tidak ditemukan')
+    fence = _sidik_foto(dict(lamp)) if lamp else _sidik_foto(tuple(sesi))
+    return parent, sesi['pemilik'], konteks, fence
+
+
+def _hapus_file_foto(path):
+    """Cleanup best-effort file milik attempt; kegagalan tidak mengubah receipt."""
+    try:
+        path.unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
+def _file_baru_durable(sesi_id, isi, operasi_id):
+    """O_EXCL per attempt; crash-file dapat dikaitkan ke receipt tanpa payload."""
+    operasi_foto_sah(operasi_id)
+    folder = direktori_lampiran() / str(sesi_id)
+    folder.mkdir(parents=True, exist_ok=True)
+    nama = operasi_id + '.img'
+    path = folder / nama
+    dibuat = False
+    try:
+        with path.open('xb') as f:
+            dibuat = True
+            f.write(isi); f.flush(); os.fsync(f.fileno())
+        fd = os.open(str(folder), os.O_RDONLY)
+        try:
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+    except Exception:
+        if dibuat:
+            _hapus_file_foto(path)
+        raise
+    return nama
+
+
+def proses_foto_terjaga(path, sesi_id, *, principal, periksa_principal,
+                       content_type='', tubuh=b'', target_id=0, operasi_id=None, sekarang=None):
+    """Claim durable→reserve kuota→provider→result+receipt commit→completed.
+
+    OFF ditangani caller legacy; service ini tidak boleh dipakai sebagai bypass.
+    Reserved/sent/unknown replay selalu menahan jaringan. Crash setelah receipt
+    result dapat direkonsiliasi walau hasil lampiran telah dibaca ulang lagi.
+    """
+    import assistant_entitlement_runtime as kuota
+    import llm
+    if not penegakan_foto():
+        raise KonflikFoto('jalur foto terjaga belum aktif')
+    kini = int(time.time()) if sekarang is None else sekarang
+    if type(kini) is not int or kini < 0:
+        raise KonflikFoto('clock percobaan foto tidak sah')
+    jenis = 'reread' if target_id else 'upload'
+    if not target_id:
+        m = re.search(r'boundary="?([^";]+)"?', content_type)
+        terurai = _parsing_multipart(tubuh, m.group(1)) if m else None
+        if not terurai:
+            return None, PESAN_FOTO_TERTAHAN
+        _nama_asli, _mime_klaim, isi = terurai
+        if not isi or len(isi) > BATAS_UKURAN or _mime_dari_isi(isi) is None:
+            return None, PESAN_FOTO_TERTAHAN
+        operasi_id = operasi_multipart(tubuh, content_type)
+    else:
+        operasi_foto_sah(operasi_id)
+        with _foto_transaksi(path) as kon:
+            _snapshot_foto(kon, sesi_id, target_id, principal, periksa_principal)
+            lamp = database.ambil_lampiran(kon, target_id)
+            nama = lamp['nama_berkas']
+            if Path(nama).name != nama:
+                raise KonflikFoto('nama berkas foto tidak sah')
+            isi = (direktori_lampiran() / str(sesi_id) / nama).read_bytes()
+        if not isi or len(isi) > BATAS_UKURAN or _mime_dari_isi(isi) is None:
+            return None, PESAN_FOTO_TERTAHAN
+    mime = _mime_dari_isi(isi)
+    content_hash = hashlib.sha256(isi).hexdigest()
+    with _foto_transaksi(path) as kon:
+        parent, pemilik, konteks, fence = _snapshot_foto(
+            kon, sesi_id, target_id, principal, periksa_principal)
+        akun_id = parent['id_akun']
+        context_hash = _sidik_foto(konteks)
+        binding = _sidik_foto((akun_id, auth_revisi_foto(parent), principal.id_akun,
+                              principal.revisi_auth, sesi_id, target_id, jenis, content_hash, context_hash))
+        row = kon.execute('SELECT * FROM operasi_foto_baca WHERE operasi_id=?', (operasi_id,)).fetchone()
+        if row:
+            if row['permintaan_sidik'] != binding:
+                raise KonflikFoto('percobaan foto berbeda')
+            # Crash proses di sela file fsync dan commit meninggalkan file tanpa
+            # row. Lock DB ini membedakannya dari writer yang masih menyimpan;
+            # hanya path exact milik attempt upload ini yang boleh dibersihkan.
+            if jenis == 'upload':
+                orphan = direktori_lampiran() / str(sesi_id) / (operasi_id + '.img')
+                try:
+                    if (orphan.is_file() and not orphan.is_symlink()
+                            and not kon.execute('SELECT 1 FROM lampiran WHERE sesi_id=? AND nama_berkas=?',
+                                                (sesi_id, orphan.name)).fetchone()
+                            and hashlib.sha256(orphan.read_bytes()).hexdigest() == content_hash):
+                        _hapus_file_foto(orphan)
+                except OSError:
+                    pass  # Cleanup tertunda; bukan alasan menggagalkan replay.
+            replay = dict(row)
+        else:
+            replay = None
+            try:
+                kon.execute('INSERT INTO operasi_foto_baca VALUES(?,?,?,?,?,?,?,?,?,?,?,NULL,?,?)',
+                            (operasi_id, akun_id, principal.id_akun, sesi_id, target_id, jenis,
+                             content_hash, context_hash, binding, fence, 'reserved', kini, kini))
+            except sqlite3.IntegrityError:
+                raise KonflikFoto('foto masih diproses') from None
+    if replay is not None:
+        if replay['status'] in ('result', 'no_output', 'deleted_result', 'deleted_no_output'):
+            # Receipt ini tidak bergantung pada hasil mutable lampiran berikutnya.
+            hasil_id = replay['hasil_id']
+            with _foto_transaksi(path) as kon:
+                _snapshot_foto(kon, sesi_id, target_id, principal, periksa_principal)
+                hasil_row = database.ambil_lampiran(kon, hasil_id) if hasil_id else None
+                if hasil_id and (hasil_row is None or hasil_row['sesi_id'] != sesi_id):
+                    raise LookupError('foto tidak ditemukan')
+            if replay['status'] in ('result', 'deleted_result'):
+                kuota.finalisasi_replay(akun_id, fitur='pembacaan_foto', identitas=operasi_id, sekarang=kini)
+            else:
+                _pulihkan_release_foto(akun_id, operasi_id, kini)
+            return hasil_id, 'Foto sudah diproses.' if hasil_id else PESAN_FOTO_TERTAHAN
+        return None, PESAN_FOTO_TERTAHAN
+    try:
+        ikatan = kuota.reservasi(akun_id, fitur='pembacaan_foto', identitas=operasi_id, sekarang=kini)
+        if ikatan is None:
+            raise kuota.GalatKuotaRuntime('reservasi foto tidak tersedia')
+    except kuota.GalatKuotaRuntime:
+        with _foto_transaksi(path) as kon:
+            kon.execute("UPDATE operasi_foto_baca SET status='no_output',diperbarui=? WHERE operasi_id=? AND status='reserved'", (kini, operasi_id))
+        # Adapter dapat gagal sesudah commit admin. Receipt lokal membuktikan
+        # tidak ada outbound; lookup exact tidak boleh reservasi/call ulang.
+        _pulihkan_release_foto(akun_id, operasi_id, kini)
+        return None, PESAN_FOTO_TERTAHAN
+
+    def sebelum_kirim():
+        with _foto_transaksi(path) as kon:
+            p, _nama, ctx, baru_fence = _snapshot_foto(kon, sesi_id, target_id, principal, periksa_principal)
+            if (p['id_akun'] != akun_id or auth_revisi_foto(p) != auth_revisi_foto(parent)
+                    or _sidik_foto(ctx) != context_hash or baru_fence != fence):
+                raise KonflikFoto('konteks foto berubah')
+            if target_id:
+                foto_path = direktori_lampiran() / str(sesi_id) / lamp['nama_berkas']
+                if hashlib.sha256(foto_path.read_bytes()).hexdigest() != content_hash:
+                    raise KonflikFoto('isi foto berubah')
+            cur = kon.execute("UPDATE operasi_foto_baca SET status='sent',diperbarui=? WHERE operasi_id=? AND status='reserved'", (kini, operasi_id))
+            if cur.rowcount != 1:
+                raise KonflikFoto('percobaan foto berubah')
+
+    try:
+        with llm.gunakan_bucket_akun(pemilik):
+            bacaan = llm.ekstrak_lembar_tercatat(konteks, base64.b64encode(isi).decode(), sebelum_kirim=sebelum_kirim)
+    except llm.FotoBelumDikirim:
+        _gagal_foto(path, operasi_id, ikatan, kini, unknown=False)
+        return None, PESAN_FOTO_TERTAHAN
+    except Exception:
+        _gagal_foto(path, operasi_id, ikatan, kini, unknown=True)
+        raise
+    if not isinstance(bacaan, llm.BacaanFoto) or bacaan.status not in ('result', 'no_output', 'unknown'):
+        _gagal_foto(path, operasi_id, ikatan, kini, unknown=True)
+        raise KonflikFoto('hasil pembacaan tidak sah')
+    if bacaan.status == 'unknown':
+        _gagal_foto(path, operasi_id, ikatan, kini, unknown=True)
+        return None, PESAN_FOTO_TERTAHAN
+    nama_baru = None
+    try:
+        with _foto_transaksi(path) as kon:
+            p, _nama, ctx, baru_fence = _snapshot_foto(kon, sesi_id, target_id, principal, periksa_principal)
+            if (p['id_akun'] != akun_id or auth_revisi_foto(p) != auth_revisi_foto(parent)
+                    or _sidik_foto(ctx) != context_hash or baru_fence != fence):
+                raise KonflikFoto('konteks foto berubah')
+            row = kon.execute('SELECT status FROM operasi_foto_baca WHERE operasi_id=?', (operasi_id,)).fetchone()
+            if row['status'] not in ('reserved', 'sent') or (bacaan.status == 'result' and row['status'] != 'sent'):
+                raise KonflikFoto('percobaan foto berubah')
+            if target_id:
+                foto_path = direktori_lampiran() / str(sesi_id) / lamp['nama_berkas']
+                if hashlib.sha256(foto_path.read_bytes()).hexdigest() != content_hash:
+                    raise KonflikFoto('isi foto berubah')
+            if bacaan.status == 'result':
+                sah = llm.parse_ekstraksi(json.dumps({'soal': bacaan.hasil}, ensure_ascii=False))
+                if sah is None or not llm.verifikasi_ekstraksi(sah, len(konteks)):
+                    raise KonflikFoto('hasil pembacaan tidak sah')
+                sah = llm.saring_ekstraksi(sah, len(konteks))
+                hasil_json = json.dumps({'soal': sah}, ensure_ascii=False)
+            else:
+                hasil_json = ''
+            if target_id:
+                if bacaan.status == 'result':
+                    kon.execute('UPDATE lampiran SET hasil_json=? WHERE id=?', (hasil_json, target_id))
+                lid = target_id
+            else:
+                nama_baru = _file_baru_durable(sesi_id, isi, operasi_id)
+                lid = database.simpan_lampiran(kon, sesi_id, nama_baru, mime=mime, hasil_json=hasil_json)
+            kon.execute('UPDATE operasi_foto_baca SET status=?,hasil_id=?,diperbarui=? WHERE operasi_id=?',
+                        (bacaan.status, lid, kini, operasi_id))
+        # Commit hasil+receipt sudah selesai; jangan pindahkan ke dalam transaksi.
+        if bacaan.status == 'result':
+            kuota.finalisasi(ikatan, sekarang=kini)
+        else:
+            kuota.lepaskan(ikatan, sekarang=kini)
+    except Exception:
+        with _foto_transaksi(path) as kon:
+            row = kon.execute('SELECT status FROM operasi_foto_baca WHERE operasi_id=?', (operasi_id,)).fetchone()
+        if row['status'] not in ('result', 'no_output', 'deleted_result', 'deleted_no_output'):
+            if nama_baru:
+                _hapus_file_foto(direktori_lampiran() / str(sesi_id) / nama_baru)
+            _gagal_foto(path, operasi_id, ikatan, kini, unknown=False)
+        raise
+    return lid, ('Foto caramu sudah terkirim ke gurumu.' if principal.peran == 'murid'
+                 else 'Foto tersimpan. Periksa hasil bacaan sebelum menerapkan.')
+
+
+def auth_revisi_foto(akun):
+    import auth
+    return auth.revisi_auth(akun)
+
+
+def _pulihkan_release_foto(akun_id, operasi_id, kini):
+    import assistant_entitlement_runtime as kuota
+    import assistant_quota_store
+    import admin_store
+    row = assistant_quota_store.baca_operasi(admin_store.BAWAAN, akun_id,
+            kuota.operasi_id(akun_id, 'pembacaan_foto', operasi_id), fitur='pembacaan_foto')
+    if row is not None and row.status != 'released':
+        kuota.lepaskan(row.ikatan, sekarang=kini)
+
+
+def _gagal_foto(path, operasi_id, ikatan, kini, *, unknown):
+    import assistant_entitlement_runtime as kuota
+    with _foto_transaksi(path) as kon:
+        row = kon.execute('SELECT status FROM operasi_foto_baca WHERE operasi_id=?', (operasi_id,)).fetchone()
+        status = 'unknown' if unknown and row['status'] == 'sent' else 'no_output'
+        kon.execute('UPDATE operasi_foto_baca SET status=?,diperbarui=? WHERE operasi_id=?', (status, kini, operasi_id))
+    if status == 'unknown':
+        kuota.tandai_unknown(ikatan, sekarang=kini)
+    else:
+        kuota.lepaskan(ikatan, sekarang=kini)
+
+
 # ── Halaman konfirmasi guru ───────────────────────────────────────────
 
 
@@ -468,7 +809,7 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
     blok_baca_ulang = (
         f'<form method="post" action="/lampiran/{lampiran_id}/baca-ulang" '
         'class="baca-ulang-form">'
-        '<button type="submit" class="tombol-baca-ulang">'
+        + field_operasi_foto() + '<button type="submit" class="tombol-baca-ulang">'
         "Coba baca ulang dengan AI</button>"
         '<span class="sub">Foto tidak perlu diunggah ulang.</span>'
         "</form>"
