@@ -98,6 +98,79 @@ def panel_persetujuan(target, *, sumber, dalam_form: bool = False, galat: str = 
     return _panel(target, "Sebelum memakai bantuan", _wadah_form(isi, "/pendamping/inline/persetujuan", dalam_form=dalam_form), sumber=sumber, dalam_form=dalam_form)
 
 
+def panel_akses(target, status, *, dalam_form: bool = False) -> str:
+    """Panel paket generik; hanya fallback native membawa identitas host."""
+    kode = getattr(status, "status", "storage_tidak_terverifikasi")
+    limit = max(0, int(getattr(status, "limit", 0)))
+    digunakan = max(0, int(getattr(status, "digunakan", 0)))
+    isi_ulang = getattr(status, "isi_ulang", None)
+    data = {
+        "jago_tanpa_ai": (
+            "Pendamping tersedia di Jago Pro",
+            "Paket Jago tidak mencakup percakapan Pendamping AI. Latihan dan rencana belajar tetap dapat digunakan.",
+            "Lihat paket", "/langganan", "Paket Jago · Pendamping tidak termasuk",
+        ),
+        "akses_berakhir": (
+            "Akses Pendamping telah berakhir",
+            "Periksa status langganan untuk menggunakan Pendamping kembali. Tidak ada perpanjangan atau pembayaran otomatis.",
+            "Lihat langganan", "/langganan", "Akses Pendamping berakhir",
+        ),
+        "belum_ditransisikan": (
+            "Status Pendamping belum tersedia",
+            "Status paket akun ini perlu ditinjau. Latihan dan rencana belajar tetap dapat digunakan.",
+            "Lihat langganan", "/langganan", "Status paket perlu ditinjau",
+        ),
+        "storage_tidak_terverifikasi": (
+            "Pendamping belum tersedia",
+            "Status paket belum dapat diverifikasi. Pekerjaan belajar tetap dapat dilanjutkan.",
+            "", "", "Status paket belum terverifikasi",
+        ),
+    }
+    if kode == "kuota_habis":
+        judul = "Jatah balasan periode ini habis"
+        pesan = f"{digunakan} dari {limit} balasan sudah digunakan. Kuota akun dipakai bersama seluruh profil; latihan dan rencana belajar tetap tersedia."
+        aksi = tujuan = ""
+        status_teks = "Jago Pro · kuota balasan habis"
+        if isi_ulang is not None:
+            pesan += f" Kuota berikutnya tersedia pada waktu layanan {int(isi_ulang)}."
+    else:
+        judul, pesan, aksi, tujuan, status_teks = data.get(kode, data["storage_tidak_terverifikasi"])
+    isi = (
+        (_identitas_target(target) if dalam_form else "")
+        + '<section class="pendamping-akses" aria-labelledby="judul-akses-pendamping">'
+        f'<h3 id="judul-akses-pendamping">{_esc(judul)}</h3><p>{_esc(pesan)}</p>'
+        + (f'<a class="pendamping-tombol pendamping-sekunder" href="{_esc(tujuan)}">{_esc(aksi)}</a>' if aksi else "")
+        + '<p class="pendamping-catatan">Tidak ada konteks anak atau isian form yang digunakan untuk penjelasan ini.</p></section>'
+    )
+    return _panel_akses_netral(
+        target, judul, isi, dalam_form=dalam_form, status_teks=status_teks,
+    )
+
+
+def _panel_akses_netral(target, judul, isi, *, dalam_form, status_teks):
+    """Shell panel tanpa metadata resource/hidden field pada state terkunci."""
+    tutup = (
+        '<button class="pendamping-tutup" type="submit" aria-label="Tutup Pendamping" '
+        'formaction="/pendamping/inline/tutup" formnovalidate>'
+        '<span class="pendamping-tutup-desktop" aria-hidden="true">×</span>'
+        '<span class="pendamping-tutup-hp" aria-hidden="true">← Kembali</span></button>'
+    )
+    # Fragmen enhanced sengaja tanpa identitas resource. Close ditangani lokal;
+    # fallback native memakai identitas host yang sudah ada demi memulihkan draf.
+    if not dalam_form:
+        tutup = '<form method="get" action="/guru">' + tutup.replace(
+            ' type="submit"', ' type="submit" formaction="/guru"', 1
+        ).replace(' formaction="/pendamping/inline/tutup"', '', 1) + '</form>'
+    return (
+        f'<aside class="pendamping-inline pendamping-panel-kanan pendamping-akses-panel" id="{_esc(target.anchor)}" '
+        f'aria-labelledby="nama-{_esc(target.anchor)}">'
+        '<header class="pendamping-kepala-panel"><div class="pendamping-kepala-baris">'
+        '<h2 id="nama-' + _esc(target.anchor) + '">Pendamping</h2>' + tutup + '</div>'
+        f'<p class="pendamping-status-konteks" role="status">{_esc(status_teks)}</p></header>'
+        f'<div class="pendamping-inline-isi">{isi}</div></aside>'
+    )
+
+
 def panel_pilih_sumber_sesi(
     target, nomor_soal, *, sumber, dalam_form: bool = False,
 ) -> str:
@@ -249,7 +322,7 @@ def _kontrol_memori(target, chat, memori, *, status_memori: str, versi_memori: i
 
 def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False,
                galat: str = "", hanya_baca: bool = False, provider_aktif: bool = True,
-               usulan=(), status_memori: str = "", versi_memori: int = 0,
+               entitlement_aktif: bool = True, usulan=(), status_memori: str = "", versi_memori: int = 0,
                memori=(), draft_memori=(), operasi=None,
                halaman_riwayat: int = 1, ada_lagi: bool = False) -> str:
     identitas_form = (
@@ -310,8 +383,10 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
             target, chat.id, "/pendamping/inline/status", "Periksa status",
             dalam_form=dalam_form, field=(("request_id", operasi["request_id"]),),
         )
+    elif not entitlement_aktif:
+        status += '<p class="pendamping-info" role="status">Paket atau kuota akun ini tidak mengizinkan pesan baru. Riwayat tetap dapat dibaca dan pekerjaan belajar tetap tersedia.</p>'
     elif not provider_aktif:
-        status += '<p class="pendamping-info" role="status">Pengiriman AI sedang tidak tersedia. Pekerjaan belajar tetap dapat digunakan.</p>'
+        status += '<p class="pendamping-info" role="status">Pengiriman AI sedang tidak tersedia. Ini bukan masalah paket; pekerjaan belajar tetap dapat digunakan.</p>'
     else:
         if not galat and operasi is not None and operasi["status"] == "gagal":
             status += '<p class="pendamping-galat" role="status">Jawaban sebelumnya belum tersedia. Kamu boleh menulis pesan baru.</p>'
@@ -484,7 +559,7 @@ def fragmen_tutup(target) -> str:
 
 def tombol_buka(
     target, *, form_id: str = "", dalam_form: bool = False,
-    label: str = "Pendamping",
+    label: str = "Pendamping", status_akses=None,
 ) -> str:
     """Submit native agar field form host ikut terkirim saat bantuan dibuka.
 
@@ -492,6 +567,21 @@ def tombol_buka(
     form-associated per tombol akan ikut terkirim semuanya dan menjadi ambigu.
     """
     atribut_form = f' form="{_esc(form_id)}"' if form_id else ""
+    kode_akses = getattr(status_akses, "status", "")
+    label_akses = {
+        "jago_tanpa_ai": "Pendamping — tersedia di Jago Pro",
+        "akses_berakhir": "Pendamping — akses berakhir",
+        "kuota_habis": "Pendamping — kuota balasan habis",
+        "belum_ditransisikan": "Pendamping — status paket perlu ditinjau",
+        "storage_tidak_terverifikasi": "Pendamping — status paket belum terverifikasi",
+    }.get(kode_akses, "Pendamping")
+    terkunci = kode_akses in {"jago_tanpa_ai", "akses_berakhir", "belum_ditransisikan", "storage_tidak_terverifikasi"}
+    lencana = (
+        '<span class="pendamping-lencana-akses" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>'
+        if terkunci else
+        '<span class="pendamping-lencana-akses" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></svg></span>'
+        if kode_akses == "kuota_habis" else ""
+    )
     if form_id:
         identitas = ""
         action = (
@@ -505,12 +595,12 @@ def tombol_buka(
     isi = (
         '<span class="pendamping-buka-inline"' + _binding_panel(target) + '>' + identitas
         + f'<button class="pendamping-pemicu" type="submit"{atribut_form} '
-          f'formaction="{_esc(action)}" formnovalidate aria-label="Pendamping" aria-expanded="false">'
+          f'formaction="{_esc(action)}" formnovalidate aria-label="{_esc(label_akses)}" aria-expanded="false">'
           '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" '
           'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
           '<path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 3v-8a7.5 7.5 0 0 1 7.5-7.5H13"/>'
           '<path d="m18 2 1.2 3.3L22.5 6.5l-3.3 1.2L18 11l-1.2-3.3-3.3-1.2 3.3-1.2Z"/>'
-          f'</svg><span class="pendamping-pemicu-label">{_esc(label)}</span></button></span>'
+          f'</svg>{lencana}<span class="pendamping-pemicu-label">{_esc(label)}</span></button></span>'
     )
     return isi if (dalam_form or form_id) else f'<form method="post" action="{_esc(action)}">{isi}</form>'
 

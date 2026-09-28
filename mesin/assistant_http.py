@@ -20,6 +20,7 @@ import assistant_inline
 import assistant_navigation
 import assistant_view
 import assistant_context
+import assistant_entitlement_runtime
 import assistant_pages
 import assistant_policy
 import assistant_schema
@@ -287,6 +288,26 @@ def _daftar(kon, account_id):
     return assistant_view.riwayat(kon, account_id)[0]
 
 
+def _akses_terkunci(account_id, *, sekarang=None):
+    """Status generik sebelum konteks; default enforcement OFF tidak mengunci."""
+    kini = int(time.time()) if sekarang is None else int(sekarang)
+    hasil = assistant_entitlement_runtime.status(account_id, sekarang=kini)
+    return hasil if hasil.enforcement_aktif and hasil.status not in {
+        "trial_aktif", "pro_aktif",
+    } else None
+
+
+def _host_milik(principal, target):
+    """Owner check minimum tanpa merakit payload konteks AI."""
+    import database
+    with database.buka() as kon:
+        if target.jenis_host == "anak":
+            return database.siswa_milik(kon, target.host_id, principal.pengguna)
+        if target.jenis_host == "sesi":
+            return database.sesi_milik(kon, target.host_id, principal.pengguna)
+    return False
+
+
 def fragmen_arsip_akun(principal, *, halaman: int = 1, chat_id: str = "") -> str:
     """Arsip chat umum lama untuk principal cookie bergenerasi yang sama."""
     if principal is None or principal.peran != "guru" or not principal.pengguna:
@@ -336,6 +357,11 @@ def fragmen_inline(
 
     if principal is None or principal.pengguna == "" or principal.peran != "guru":
         raise LookupError("bantuan tidak tersedia")
+    akses = _akses_terkunci(principal.id_akun)
+    if akses is not None and not target.chat_id:
+        return assistant_components.panel_akses(
+            target, akses, dalam_form=dalam_form,
+        )
     with database.buka() as kon_data:
         sumber = assistant_view.sumber_tampilan(
             kon_data, target.jenis_resource, target.resource_id,
@@ -404,7 +430,8 @@ def fragmen_inline(
             assistant_store.daftar_pesan(kon, principal.id_akun, chat.id),
             riwayat, sumber=sumber, dalam_form=dalam_form, galat=galat,
             hanya_baca=hanya_baca,
-            provider_aktif=assistant_service.tersedia(), usulan=tuple(usulan),
+            provider_aktif=assistant_service.tersedia(),
+            entitlement_aktif=akses is None, usulan=tuple(usulan),
             status_memori=assistant_view.status_memori(kon, principal.id_akun, chat),
             versi_memori=assistant_store.versi_memori(kon, principal.id_akun),
             memori=assistant_store.daftar_memori(kon, principal.id_akun, termasuk_draft=False),
@@ -658,6 +685,24 @@ def tangani_inline_post(penangan, jalur: str) -> bool:
         else:
             target = assistant_inline.target_dari_form(data)
         aksi = "buka" if cocok_buka else jalur.rsplit("/", 1)[-1]
+        akses = _akses_terkunci(principal.id_akun)
+        if aksi == "buka" and akses is not None and not target.chat_id:
+            if not _host_milik(principal, target):
+                raise LookupError("host tidak tersedia")
+            fragmen_request = penangan.headers.get("X-Pendamping-Panel") == "fragment"
+            draf = draf_gabungan = draf_remedial = None
+            if not fragmen_request:
+                _sisa, draf, draf_gabungan, draf_remedial = _pisahkan_draf_inline(
+                    data, target,
+                )
+            fragmen = assistant_components.panel_akses(
+                target, akses, dalam_form=not fragmen_request,
+            )
+            _render_host_dengan_fragmen(
+                penangan, principal, target, fragmen, draf=draf,
+                draf_gabungan=draf_gabungan, draf_remedial=draf_remedial,
+            )
+            return True
         if aksi == "pilih-sumber":
             draf = draf_gabungan = draf_remedial = None
             konteks = _target_inline_sah(principal, target)

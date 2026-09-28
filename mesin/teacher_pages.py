@@ -797,7 +797,10 @@ def halaman_anak(
         if peran != "guru" or not pengguna:
             return ""
         target = __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "latihan")
-        return __import__("assistant_components").tombol_buka(target, dalam_form=True)
+        status_akses = __import__("assistant_entitlement_runtime").status_pengguna(pengguna)
+        return __import__("assistant_components").tombol_buka(
+            target, dalam_form=True, status_akses=status_akses,
+        )
 
     strip_sesi = (
         f'<form id="form-latihan-manual-{siswa["id"]}" method="post" action="/sesi-baru/{siswa["id"]}" class="strip-sesi profil-manuel-st">'
@@ -942,7 +945,8 @@ def halaman_anak(
 
     tautan_bantuan = (
         __import__("assistant_components").tombol_buka(
-            __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "rencana")
+            __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "rencana"),
+            status_akses=__import__("assistant_entitlement_runtime").status_pengguna(pengguna),
         )
         if peran == "guru" and pengguna else ""
     )
@@ -988,7 +992,8 @@ def halaman_anak(
         ) if section == "latihan" and bantuan_latihan else "")
         + ((
             __import__("assistant_components").tombol_buka(
-                __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "rencana")
+                __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "rencana"),
+                status_akses=__import__("assistant_entitlement_runtime").status_pengguna(pengguna),
             )
         ) if section == "riwayat" and peran == "guru" and pengguna else "")
         + skrip_bagikan,
@@ -1818,14 +1823,18 @@ def halaman_sesi_stitch(
         import assistant_components
         import assistant_inline
         target_sesi = assistant_inline.tujuan_sesi(sesi_id)
+        status_akses = __import__("assistant_entitlement_runtime").status_pengguna(pengguna)
         if sudah_dikirim and not sesi_dibatalkan:
             # Satu entry konsisten; pilihan soal tetap dilakukan di dalam panel,
             # bukan lewat sederet tombol yang bersaing dengan koreksi.
             konteks_pendamping = assistant_components.tombol_buka(
                 target_sesi, form_id=f"form-koreksi-{sesi_id}", label="Pendamping",
+                status_akses=status_akses,
             )
         else:
-            konteks_pendamping = assistant_components.tombol_buka(target_sesi)
+            konteks_pendamping = assistant_components.tombol_buka(
+                target_sesi, status_akses=status_akses,
+            )
     if not sudah_dikirim:
         pil = pil.replace(">Koreksi</a>", ">Soal &amp; kunci</a>")
 

@@ -41,6 +41,22 @@ def tersedia() -> bool:
     return True
 
 
+def pastikan_entitlement_outbound(
+    account_id: str, *, sekarang: int, sebelum_provider=None,
+) -> None:
+    """Tahan outbound saat enforcement aktif; callback hanya untuk uji guard."""
+    import assistant_entitlement_runtime
+
+    if not assistant_entitlement_runtime.boleh_outbound(
+        account_id, sekarang=sekarang, fitur="balasan_pendamping",
+    ):
+        raise GalatPendamping(
+            "Pendamping tidak tersedia untuk status paket atau kuota akun ini."
+        )
+    if sebelum_provider is not None:
+        sebelum_provider()
+
+
 def panggil_provider_default(pesan):
     account_id, operasi_id = _konteks_ai.get()
     try:
@@ -182,6 +198,9 @@ def kirim_pesan(
         chat = _chat_dan_konteks_sah(
             kon, account_id, chat_id, konteks, validasi_konteks
         )
+        # Admission paket harus mendahului pembuatan operasi/pesan. Penolakan
+        # tidak boleh meninggalkan request pending atau memanggil provider.
+        pastikan_entitlement_outbound(account_id, sekarang=kini)
         operasi_lama = kon.execute(
             "SELECT chat_id, status FROM operasi WHERE request_id = ? AND account_id = ?",
             (request_id, account_id),

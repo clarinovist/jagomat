@@ -2701,6 +2701,8 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-editorial-st .pendamping-pemicu:hover {{ background: {T.LATAR_SEKUNDER_LEMBUT}; }}
 .pendamping-editorial-st .pendamping-pemicu:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
 .pendamping-pemicu svg {{ width: {T.UKURAN_IKON}; height: {T.UKURAN_IKON}; }}
+.pendamping-lencana-akses {{ position: absolute; right: -.2rem; bottom: -.2rem; display: grid; place-items: center; width: 1.1rem; height: 1.1rem; border-radius: {T.RADIUS_BULAT}; background: {T.LATAR_KARTU}; color: {T.TEKS_VARIAN}; line-height: 1; }}
+.pendamping-lencana-akses svg {{ width: .8rem; height: .8rem; stroke-width: 2; }}
 .pendamping-pemicu-label {{
   position: absolute; top: calc(100% + {T.SP_2}); right: 0; display: none;
   padding: {T.SP_2} {T.SP_3}; border-radius: {T.RADIUS_KECIL};
@@ -2774,6 +2776,10 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-inline .pendamping-aksi {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; margin-top: {T.SP_3}; clear: both; }}
 .pendamping-inline .pendamping-info, .pendamping-inline .pendamping-galat {{ padding: {T.SP_3}; border-inline-start: 3px solid {T.AKSEN_TEAL_TUA}; background: {T.LATAR_SEKUNDER_LEMBUT}; }}
 .pendamping-inline .pendamping-galat {{ border-color: {T.TEKS_GALAT}; color: {T.TEKS_GALAT}; }}
+.pendamping-akses-panel .pendamping-inline-isi {{ display: grid; align-content: center; }}
+.pendamping-akses {{ display: grid; gap: {T.SP_3}; max-width: 30rem; }}
+.pendamping-akses > * {{ margin: 0; }}
+.pendamping-akses .pendamping-tombol {{ width: fit-content; }}
 .pendamping-inline .pendamping-pesan {{ margin: {T.SP_4} 0; }}
 .pendamping-inline .pendamping-pesan.pengguna {{ margin-inline-start: auto; max-width: 88%; padding: {T.SP_3}; border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_SEKUNDER_LEMBUT}; }}
 .pendamping-inline .pendamping-peran {{ margin: 0 0 {T.SP_1}; font-size: {T.UKURAN_TEKS_CATATAN}; color: {T.TEKS_VARIAN}; }}
