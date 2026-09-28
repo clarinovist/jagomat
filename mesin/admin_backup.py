@@ -389,7 +389,8 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
         manifest["bundle_id"], manifest["cutoff"],
         tuple(BERKAS_WAJIB), versi_admin, versi_ai, versi_pendamping,
         minimum, maksimum, pending, uncertain,
-        bool(pending or uncertain or billing or kuota_pending or kuota_unknown or foto_pending or foto_unknown),
+        bool(pending or uncertain or billing or kuota_pending or kuota_unknown)
+        or bool(foto_pending or foto_unknown),
         kuota_pending, kuota_unknown, skema_foto, foto_pending, foto_unknown,
     )
 

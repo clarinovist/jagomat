@@ -60,9 +60,9 @@ def test_mutasi_backup_pending_foto_merah_pulih(tmp_path):
     source=tmp_path/'source';source.mkdir()
     for p in (AKAR/'mesin').glob('*.py'):shutil.copy2(p,source/p.name)
     target=source/'admin_backup.py';asli=target.read_text()
-    guard=' or foto_pending or foto_unknown'
+    guard='or bool(foto_pending or foto_unknown)'
     assert asli.count(guard)==1
-    target.write_text(asli.replace(guard,''))
+    target.write_text(asli.replace(guard,'or False'))
     code='import sys\nsys.path.insert(0,'+repr(str(source))+')\nimport admin_backup\nassert admin_backup.validasi_bundle('+repr(str(bundle))+').perlu_rekonsiliasi, "pending_foto_tidak_ditandai"'
     def run():return subprocess.run([sys.executable,'-E','-B','-c',code],cwd=tmp_path,capture_output=True,text=True,timeout=20)
     merah=run();assert merah.returncode==1 and 'AssertionError: pending_foto_tidak_ditandai' in merah.stderr

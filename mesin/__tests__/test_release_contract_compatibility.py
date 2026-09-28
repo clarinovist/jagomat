@@ -76,19 +76,35 @@ def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path, monkeypatch)
     # SHA historical tetap anchor, bukan diganti agar mismatch source tampak hijau.
     if recovery_sha == "33e241c18024190f41ebca1986e35af26c0397fd":
         assert fingerprint_recovery == "2c96f5a7717d772dc6326eddd1fa393d9db2684d646dbe9c189ad97a08a43603"
-    hasil = metadata.buat_manifest(config,
-        {"revision": "a" * 40, "digest": "sha256:" + "a" * 64, "contract": fingerprint_candidate},
-        {"revision": recovery_sha, "digest": "sha256:" + "b" * 64, "contract": fingerprint_recovery},
-        pasangan_teruji=config["mode"] != "persiapan")
-    assert hasil["compatible"] is (fingerprint_candidate == fingerprint_recovery)
+    kandidat = {
+        "revision": "a" * 40, "digest": "sha256:" + "a" * 64,
+        "contract": fingerprint_candidate,
+    }
+    recovery_artifact = {
+        "revision": recovery_sha, "digest": "sha256:" + "b" * 64,
+        "contract": fingerprint_recovery,
+    }
+    kompatibel = fingerprint_candidate == fingerprint_recovery
     if config["mode"] == "persiapan":
+        hasil = metadata.buat_manifest(
+            config, kandidat, recovery_artifact, pasangan_teruji=False,
+        )
         # Tidak mengaku compatible. Job pasang literal false wajib terbukti di atas.
         assert hasil["siap_pasang"] is False
         assert hasil["pair_verified"] is False
         assert hasil["candidate_contract"] == fingerprint_candidate
         assert hasil["recovery_contract"] == fingerprint_recovery
+    elif not kompatibel:
+        # Meaningful persistence delta wajib gagal sebelum pin recovery baru.
+        with pytest.raises(ValueError, match="belum kompatibel/teruji"):
+            metadata.buat_manifest(
+                config, kandidat, recovery_artifact, pasangan_teruji=True,
+            )
     else:
-        assert fingerprint_candidate == fingerprint_recovery
+        hasil = metadata.buat_manifest(
+            config, kandidat, recovery_artifact, pasangan_teruji=True,
+        )
+        assert hasil["compatible"] is True
         assert hasil["siap_pasang"] is (config["mode"] == "rutin")
 
 
