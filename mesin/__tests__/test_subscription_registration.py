@@ -15,6 +15,7 @@ def baru(tmp_path):
     args=(tmp_path/'admin.db',tmp_path/'sandi.json',tmp_path/'belajar.db')
     admin_store.siapkan(args[0],sekarang=T0)
     database.siapkan(args[2])
+    r.admin_registration.migrasikan_profil_registrasi(args[2])
     kw=dict(operasi_id='daftar_wrapper_001',alias='keluarga-wrapper',sandi='sandi-sintetis-wrapper',
             token_form='x'*64,cutoff=T0,sekarang=T0,sakelar=ON)
     return args,kw
@@ -64,7 +65,8 @@ def _daftar_web(args,kw,monkeypatch,*,cutoff,sakelar=None):
     monkeypatch.setattr(r,'CUTOFF_AKTIVASI',cutoff)
     return r.daftar_web(args[0],args[1],args[2],operasi_id=kw['operasi_id'],
                         alias=kw['alias'],sandi=kw['sandi'],token_form=kw['token_form'],
-                        sekarang=kw['sekarang'],sakelar=sakelar)
+                        sekarang=kw['sekarang'],sakelar=sakelar,nama_anak='Profil Sintetis',
+                        kelas_sekolah=None,profil_parameter='P4')
 
 
 def test_daftar_web_tanpa_aktivasi_tetap_mendaftar_tanpa_enrollment(baru,monkeypatch):

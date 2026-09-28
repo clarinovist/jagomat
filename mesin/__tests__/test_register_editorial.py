@@ -46,7 +46,11 @@ def test_form_sandi_dan_persetujuan_tetap(pesan, galat):
     assert m.cari('form')[0]['action'] == '/daftar'
     assert 'novalidate' not in m.cari('form')[0]
     kolom = {a['name']: a for a in m.cari('input')}
-    assert set(kolom) == {'nama','sandi','setuju'}
+    assert set(kolom) == {'nama','sandi','setuju','nama_anak'}
+    assert 'required' in kolom['nama_anak'] and kolom['nama_anak']['maxlength']=='40'
+    pilihan={a['name']:a for a in m.cari('select')}
+    assert set(pilihan)=={'kelas_sekolah','profil_parameter'}
+    assert 'required' not in pilihan['kelas_sekolah'] and 'required' in pilihan['profil_parameter']
     assert kolom['nama']['autocomplete'] == 'username'
     assert kolom['nama']['value'] == 'pendamping-demo'
     assert kolom['sandi']['autocomplete'] == 'new-password'

@@ -77,6 +77,8 @@ def server(tmp_path, monkeypatch):
 
 
 def test_login_dan_daftar_menerbitkan_metadata_sesi_lengkap(server):
+    import admin_registration, database
+    admin_registration.migrasikan_profil_registrasi(database.BAWAAN)
     _, token_login, _ = _masuk(server, "ortu-sintetis", SANDI_ORANG_TUA)
     assert token_login
     entri_login = sessions.muat()[token_login]
@@ -96,6 +98,7 @@ def test_login_dan_daftar_menerbitkan_metadata_sesi_lengkap(server):
         data=urllib.parse.urlencode({
             "nama": "Daftar-Sintetis", "sandi": "sandi-daftar-sintetis",
             "setuju": "1", "token_form": token_form,
+            "nama_anak": "Profil Sintetis", "profil_parameter": "P4",
         }).encode(),
         method="POST",
         headers={"Content-Type": "application/x-www-form-urlencoded"},

@@ -73,13 +73,16 @@ def _topbar_publik_st() -> str:
 def halaman_daftar(
     pesan: str = "", galat: bool = False, nama: str = "", *,
     pendaftaran_dibuka: bool = True, token_form: str = "", belum_tersedia: bool = False,
-    analitik: str = "",
+    analitik: str = "", nama_anak: str = "", kelas_sekolah=None,
+    profil_parameter: str = "",
 ) -> bytes:
     """Form pendaftaran mandiri pendamping (orang tua / guru / les).
 
     pesan = teks feedback; galat=True membuatnya dirender sebagai galat.
     nama = nama yang diketik pengguna (dikembalikan supaya tidak mengetik ulang).
     """
+    import learning_profile_ui
+    import question_variants_ui
     kotak = ""
     if pesan:
         kelas = "masuk-galat-st" if galat else "pesan-st"
@@ -120,7 +123,7 @@ def halaman_daftar(
 </div>
 <ol class="daftar-langkah-st">
 <li><span>01</span><div><b>Buat akunmu</b><p>Akun untuk orang tua, guru, atau pendamping les.</p></div></li>
-<li><span>02</span><div><b>Siapkan profil anak</b><p>Akun anak dibuat dari dalam aplikasi.</p></div></li>
+<li><span>02</span><div><b>Siapkan profil anak</b><p>Isi nama panggilan anak di form ini.</p></div></li>
 <li><span>03</span><div><b>Mulai mendampingi</b><p>Siapkan latihan, lalu tinjau cara anak menjawab.</p></div></li>
 </ol>
 </aside>
@@ -129,7 +132,7 @@ def halaman_daftar(
 <p class="daftar-alis-st">AKUN PENDAMPING</p>
 <h1 class="publik-judul-st" id="judul-daftar">Buat akun orang tua</h1>
 <p class="publik-sub-st">Untuk orang tua, guru, atau pendamping les.
-Akun anak dibuat setelah ini, dari dalam aplikasi.</p>
+Profil anak pertama dibuat bersama akunmu. Akun login anak bisa dibuat nanti.</p>
 </div>
 {kotak}
 <form class="masuk-form-st" method="post" action="/daftar"{deskripsi}>
@@ -146,6 +149,20 @@ Akun anak dibuat setelah ini, dari dalam aplikasi.</p>
      aria-describedby="petunjuk-sandi-daftar">
     <p class="daftar-petunjuk-st" id="petunjuk-sandi-daftar">Minimal 8 karakter. Simpan nama pengguna dan sandimu di tempat aman.</p>
   </div>
+  <div class="masuk-field-st">
+    <label for="nama-anak-daftar">Nama panggilan anak</label>
+    <input type="text" id="nama-anak-daftar" name="nama_anak" required maxlength="40"
+     autocomplete="off" value="{html.escape(nama_anak, quote=True)}" aria-describedby="petunjuk-anak-daftar">
+    <p class="daftar-petunjuk-st" id="petunjuk-anak-daftar">Gunakan nama panggilan atau inisial, bukan nama lengkap.</p>
+  </div>
+  <div class="masuk-field-st">
+    <label for="kelas-anak-daftar">Kelas sekolah (opsional)</label>
+    <select id="kelas-anak-daftar" name="kelas_sekolah" aria-describedby="petunjuk-kelas-daftar">
+    {learning_profile_ui.opsi_kelas(kelas_sekolah)}</select>
+    <p class="daftar-petunjuk-st" id="petunjuk-kelas-daftar">Kelas sekolah hanya informasi profil, bukan penentu kemampuan.</p>
+  </div>
+  {question_variants_ui.kontrol_variasi('daftar-anak', profil_parameter, ringkas=True)}
+  <p class="daftar-petunjuk-st">Variasi ini menjadi pengaturan latihan awal dan dapat diubah dari profil anak.</p>
   <div class="daftar-persetujuan-st">
    <label class="koreksi-centang-st" for="setuju">
     <input type="checkbox" id="setuju" name="setuju" value="1" required>

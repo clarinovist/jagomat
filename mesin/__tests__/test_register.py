@@ -31,6 +31,8 @@ SANDI_BARU = "sandi-panjang-ortu-123"
 def server(tmp_path, monkeypatch):
     s = ServerUji(tmp_path, monkeypatch)
     auth.tambah_akun("admin-register", "sandi-admin-register-123", "admin")
+    import admin_registration, database
+    admin_registration.migrasikan_profil_registrasi(database.BAWAAN)
     yield s
     s.berhenti()
 
@@ -67,7 +69,8 @@ def test_post_daftar_membuat_akun_guru_dan_login(server):
     req = urllib.request.Request(
         server.alamat + "/daftar",
         data=urllib.parse.urlencode(
-            {"nama": "orangtua-budi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token_form}
+            {"nama": "orangtua-budi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token_form,
+             "nama_anak": "Profil Sintetis", "kelas_sekolah": "4", "profil_parameter": "P4"}
         ).encode(),
         method="POST",
     )
@@ -103,11 +106,13 @@ def _token_daftar(server):
 
 def test_post_daftar_nama_duplikat_ditolak(server):
     token = _token_daftar(server)
-    server.minta("/daftar", data={"nama": "budi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token})
+    server.minta("/daftar", data={"nama": "budi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token,
+                                "nama_anak": "Profil Sintetis", "profil_parameter": "P4"})
     assert auth.cari_akun("budi") is not None
     sebelum = auth.BERKAS_SANDI.read_bytes()
     kode, _, header = server.minta("/daftar", data={
         "nama": "BUDI", "sandi": "sandi-lain-panjang-999", "setuju": "1", "token_form": _token_daftar(server),
+        "nama_anak": "Profil Sintetis", "profil_parameter": "P4",
     })
     assert kode == 200
     assert auth.BERKAS_SANDI.read_bytes() == sebelum
@@ -133,7 +138,8 @@ def test_post_daftar_validasi_asli_dengan_token_sah(server, ubah, nama):
 def test_post_daftar_tanpa_aktivasi_tidak_membuat_enrollment(server):
     token = _token_daftar(server)
     kode, _, _ = server.minta("/daftar", data={
-        "nama": "ortu-tanpa-aktivasi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token})
+        "nama": "ortu-tanpa-aktivasi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token,
+        "nama_anak": "Profil Sintetis", "profil_parameter": "P4"})
     # ServerUji mengikuti 303 ke "/" sehingga kode akhir 401 tanpa cookie; efek
     # yang menentukan: akun terbuat tanpa enrollment.
     assert kode in (200, 401)
@@ -151,7 +157,8 @@ def test_post_daftar_aktivasi_mensinkron_enrollment(server, monkeypatch):
         kon.execute("UPDATE pembayaran_konfigurasi SET tahap='rekonsiliasi'")
     token = _token_daftar(server)
     kode, _, _ = server.minta("/daftar", data={
-        "nama": "ortu-aktivasi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token})
+        "nama": "ortu-aktivasi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token,
+        "nama_anak": "Profil Sintetis", "profil_parameter": "P4"})
     assert kode in (200, 401)
     akun = auth.cari_akun("ortu-aktivasi")
     assert akun is not None

@@ -190,6 +190,7 @@ def kunci_database_pemilik(path_db):
         raise admin_store.StoreBelumSiap("database siswa tidak tersedia") from galat
     try:
         kon.execute("PRAGMA busy_timeout=5000")
+        kon.execute("PRAGMA foreign_keys=ON")
         kon.execute("BEGIN IMMEDIATE")
         yield kon
         # Context ini hanya fencing/read guard; jangan punya commit pasca-auth.
@@ -256,6 +257,294 @@ def daftar_publik(
                 owner_ada=owner_ada,
                 sekarang=sekarang,
             )
+
+
+_SKEMA_PROFIL_REGISTRASI = """
+CREATE TABLE registrasi_profil_anak (
+ operasi_id TEXT PRIMARY KEY, akun_id TEXT NOT NULL, siswa_id INTEGER NOT NULL UNIQUE,
+ sidik_perintah TEXT NOT NULL CHECK(length(sidik_perintah)=64),
+ profil_sidik TEXT NOT NULL CHECK(length(profil_sidik)=64), dibuat INTEGER NOT NULL CHECK(dibuat>=0)
+);
+CREATE TRIGGER registrasi_profil_anak_tolak_update BEFORE UPDATE ON registrasi_profil_anak
+BEGIN SELECT RAISE(ABORT,'receipt registrasi immutable'); END;
+CREATE TRIGGER registrasi_profil_anak_tolak_delete BEFORE DELETE ON registrasi_profil_anak
+BEGIN SELECT RAISE(ABORT,'receipt registrasi immutable'); END;
+CREATE TRIGGER registrasi_profil_anak_tolak_replace BEFORE INSERT ON registrasi_profil_anak
+WHEN EXISTS(SELECT 1 FROM registrasi_profil_anak WHERE operasi_id=NEW.operasi_id)
+BEGIN SELECT RAISE(ABORT,'receipt registrasi duplikat'); END;
+"""
+
+
+def validasi_schema_profil(kon):
+    """Reader exact, tidak memperbaiki DDL parsial atau bootstrap."""
+    import sqlite3
+    def struktur(c):
+        return tuple(tuple(r) for r in c.execute("SELECT type,name,sql FROM sqlite_master WHERE tbl_name='registrasi_profil_anak' ORDER BY type,name"))
+    ref = sqlite3.connect(':memory:')
+    try:
+        ref.executescript(_SKEMA_PROFIL_REGISTRASI)
+        if struktur(ref) != struktur(kon):
+            raise admin_store.StoreBelumSiap('receipt profil registrasi belum tersedia')
+    finally:
+        ref.close()
+
+
+def migrasikan_profil_registrasi(path_db):
+    """Migrasi opt-in receipt; bukan bagian startup, GET, atau POST publik."""
+    import database
+    with kunci_database_pemilik(path_db) as kon:
+        if kon.execute('PRAGMA user_version').fetchone()[0] != 0:
+            raise admin_store.StoreBelumSiap('versi database profil tidak dikenal')
+        for tabel in ('siswa', 'profil_belajar'):
+            if not kon.execute("SELECT 1 FROM sqlite_master WHERE name=? AND type='table'", (tabel,)).fetchone():
+                raise admin_store.StoreBelumSiap('database profil belum siap')
+        if not kon.execute("SELECT 1 FROM sqlite_master WHERE tbl_name='registrasi_profil_anak'").fetchone():
+            database._jalankan_skema(kon, _SKEMA_PROFIL_REGISTRASI)
+        validasi_schema_profil(kon)
+        kon.commit()
+
+
+_PROFIL_RECEIPT = {'versi', 'target_id', 'akun_id', 'siswa_id', 'sequence_awal',
+                   'sidik_perintah', 'alias_sidik', 'profil_sidik', 'status', 'dibuat', 'kredensial'}
+
+
+def _sidik_registrasi(nilai):
+    import json
+    return hashlib.sha256(json.dumps(nilai, ensure_ascii=True, sort_keys=True,
+                                     separators=(',', ':')).encode()).hexdigest()
+
+
+def _validasi_receipt_publik(receipts):
+    if type(receipts) is not dict:
+        raise ValueError('receipt registrasi tidak sah')
+    for op, r in receipts.items():
+        validasi_id(op, 'operasi_id')
+        if (type(r) is not dict or set(r) != _RECEIPT_PUBLIC_FIELDS
+                or r['operasi_id'] != op or r['hasil_kode'] != 'teacher_created'
+                or type(r['versi']) is not int or r['versi'] != 1
+                or type(r['revisi_hasil']) is not int or r['revisi_hasil'] != 1
+                or type(r['dibuat']) is not int or r['dibuat'] < 0
+                or not auth.id_akun_sah(r['hasil_id'])
+                or type(r['target_id']) is not str or not re.fullmatch(r'candidate_[0-9a-f]{32}', r['target_id'])
+                or type(r['sidik_perintah']) is not str or not re.fullmatch(r'[0-9a-f]{64}', r['sidik_perintah'])):
+            raise ValueError('receipt registrasi tidak sah')
+
+
+def _intent_profil(mentah):
+    """Metadata saja; nama/sandi tidak disalin ke receipt saga."""
+    daftar = mentah.get('registrasi_profil', {})
+    if type(daftar) is not dict:
+        raise ValueError('receipt profil registrasi tidak sah')
+    for op, r in daftar.items():
+        validasi_id(op, 'operasi_id')
+        if (type(r) is not dict or set(r) != _PROFIL_RECEIPT
+                or type(r['versi']) is not int or r['versi'] != 1
+                or r['status'] not in ('pending', 'selesai')
+                or not auth.id_akun_sah(r['akun_id'])
+                or type(r['target_id']) is not str or not re.fullmatch(r'candidate_[0-9a-f]{32}', r['target_id'])
+                or any(type(r[k]) is not int or r[k] < 0 for k in ('siswa_id', 'sequence_awal', 'dibuat'))
+                or r['siswa_id'] <= r['sequence_awal']
+                or any(type(r[k]) is not str or not re.fullmatch(r'[0-9a-f]{64}', r[k])
+                       for k in ('sidik_perintah', 'alias_sidik', 'profil_sidik'))):
+            raise ValueError('receipt profil registrasi tidak sah')
+        if type(r['kredensial']) is not dict or set(r['kredensial']) != {'garam', 'kunci', 'iterasi'}:
+            raise ValueError('kredensial registrasi tidak sah')
+        auth._validasi_hash_akun(r['kredensial'])
+    return daftar
+
+
+def _sidik_profil_registrasi(kon, siswa_id, token_form):
+    row = kon.execute('''SELECT s.nama,s.pemilik,s.tingkat,p.kelas_sekolah,COALESCE(p.revisi,0)
+                        FROM siswa s LEFT JOIN profil_belajar p ON p.siswa_id=s.id
+                        WHERE s.id=?''', (siswa_id,)).fetchone()
+    return _sidik_registrasi((token_form, tuple(row))) if row else None
+
+
+def _gagal_registrasi(failpoint, titik):
+    if failpoint == titik:
+        raise RegistrasiBelumSelesai('registrasi perlu dilanjutkan dengan form yang sama')
+
+
+def daftar_dengan_profil(path_admin, path_auth, path_db, *, operasi_id, alias,
+                        sandi, token_form, nama_anak, kelas_sekolah,
+                        profil_parameter, sekarang=None, failpoint=None):
+    """Saga DB→auth: intent, profil commit, lalu publish akun+receipt atomik.
+
+    Intent tidak menerbitkan akun/login. Crash sesudah DB commit dapat dipulihkan
+    request exact; profil hilang dengan receipt committed tidak diciptakan ulang.
+    Receipt publik v1 tetap kompatibel; field saga terpisah tidak memuat anak.
+    """
+    import sqlite3
+    import time
+    import learning_profile
+    from templates import level_valid
+    validasi_id(operasi_id, 'operasi_id')
+    alias = admin_accounts.validasi_alias(alias)
+    if type(nama_anak) is not str or not nama_anak.strip() or len(nama_anak.strip()) > 40:
+        raise ValueError('Nama panggilan anak wajib diisi, maksimal 40 karakter.')
+    nama_anak = nama_anak.strip()
+    if any(ord(c) < 32 for c in nama_anak):
+        raise ValueError('Nama panggilan anak tidak sah.')
+    if kelas_sekolah is not None and (type(kelas_sekolah) is not int or not 1 <= kelas_sekolah <= 6):
+        raise ValueError('Pilih kelas sekolah 1–6 atau Kelas belum diisi.')
+    if type(profil_parameter) is not str or not level_valid(profil_parameter):
+        raise ValueError('Pilih variasi soal untuk latihan awal.')
+    if type(sandi) is not str or not 8 <= len(sandi) <= 4096:
+        raise ValueError('Kata sandi minimal 8 karakter.')
+    if type(token_form) is not str or _TOKEN_FORM.fullmatch(token_form) is None:
+        raise ValueError('token form tidak sah')
+    kini = int(time.time()) if sekarang is None else sekarang
+    if type(kini) is not int or kini < 0:
+        raise ValueError('waktu registrasi tidak sah')
+    target_id = _id_publik(operasi_id, alias, token_form)
+    sidik = _sidik_registrasi((operasi_id, target_id, token_form, alias,
+                             nama_anak, kelas_sekolah, profil_parameter))
+    alias_sidik = _sidik_registrasi(alias.casefold())
+    hash_baru = auth.buat_hash(sandi)
+    with kunci_registrasi(path_admin):
+        if not admin_store.baca_konfigurasi(path_admin).dibuka:
+            raise PermissionError('pendaftaran ditutup')
+        with kunci_database_pemilik(path_db) as kon:
+            kon.row_factory = sqlite3.Row
+            validasi_schema_profil(kon)
+            with transaksi_json(path_auth) as tujuan:
+                mentah, akun, _ = auth._baca_akun_untuk_tulis(tujuan)
+                mentah = mentah or {'akun': []}
+                intent = dict(_intent_profil(mentah))
+                receipts = mentah.get('operasi_registrasi', {})
+                _validasi_receipt_publik(receipts)
+                lama = intent.get(operasi_id)
+                if lama:
+                    if lama['sidik_perintah'] != sidik or lama['target_id'] != target_id:
+                        raise ValueError('binding registrasi berbeda')
+                    if not auth.periksa(alias, sandi, {'pengguna': alias, **lama['kredensial']}):
+                        raise ValueError('kredensial registrasi berbeda')
+                    siswa_id = lama['siswa_id']
+                    pemilik = kon.execute('SELECT pemilik FROM siswa WHERE id=?', (siswa_id,)).fetchone()
+                    receipt_db = kon.execute('SELECT * FROM registrasi_profil_anak WHERE operasi_id=?', (operasi_id,)).fetchone()
+                    if receipt_db is not None and tuple(receipt_db) != (
+                            operasi_id, lama['akun_id'], siswa_id, sidik, lama['profil_sidik'], lama['dibuat']):
+                        raise ValueError('receipt profil berbeda')
+                    if receipt_db is None:
+                        if lama['status'] != 'pending' or alias_pemilik_ada(kon, alias):
+                            raise ValueError('profil tanpa receipt registrasi')
+                        # INSERT awal mungkin rollback dan ID dipakai keluarga lain.
+                        # Jangan adopsi row itu: receipt absent membuktikan profil
+                        # operasi belum committed; alokasikan ID baru di lock DB.
+                        seq = kon.execute("SELECT seq FROM sqlite_sequence WHERE name='siswa'").fetchone()
+                        cur = kon.execute('INSERT INTO siswa(nama,tingkat,pemilik) VALUES(?,?,?)',
+                                          (nama_anak, profil_parameter, alias))
+                        siswa_id = cur.lastrowid
+                        learning_profile.simpan_kelas(kon, siswa_id, kelas_sekolah, revisi=0, pemilik=alias)
+                        lama = {**lama, 'siswa_id': siswa_id, 'sequence_awal': seq[0] if seq else 0}
+                        intent[operasi_id] = lama
+                        hasil = auth._bungkus_akun(mentah, akun)
+                        hasil['registrasi_profil'] = intent
+                        auth._tulis_akun_atomik(hasil, tujuan)
+                        mentah = hasil
+                    elif pemilik is None or pemilik[0] != alias:
+                        raise ValueError('pemilik profil registrasi hilang atau berubah')
+                    if _sidik_profil_registrasi(kon, siswa_id, token_form) != lama['profil_sidik']:
+                        raise ValueError('profil registrasi berubah')
+                    cocok = next((a for a in akun if a.get('id_akun') == lama['akun_id']), None)
+                    if lama['status'] == 'selesai':
+                        receipt = receipts.get(operasi_id)
+                        if (cocok is None or cocok['pengguna'] != alias or cocok.get('peran') != 'guru'
+                                or type(receipt) is not dict or set(receipt) != _RECEIPT_PUBLIC_FIELDS
+                                or receipt['hasil_id'] != lama['akun_id'] or receipt['target_id'] != target_id
+                                or receipt['sidik_perintah'] != sidik or receipt['hasil_kode'] != 'teacher_created'
+                                or receipt['revisi_hasil'] != 1 or receipt['versi'] != 1
+                                or receipt['operasi_id'] != operasi_id or receipt['dibuat'] != lama['dibuat']):
+                            raise ValueError('receipt registrasi tidak cocok')
+                        return AkunBaru(lama['akun_id'], alias, 'guru', 1, siswa_id)
+                    if cocok or operasi_id in receipts:
+                        raise ValueError('akun pending registrasi berubah')
+                else:
+                    if operasi_id in receipts or alias_pemilik_ada(kon, alias):
+                        raise ValueError('alias tidak tersedia')
+                    if any(r['alias_sidik'] == alias_sidik for r in intent.values()):
+                        raise ValueError('alias tidak tersedia')
+                    if any(a['pengguna'].strip().casefold() == alias.casefold() for a in akun):
+                        raise ValueError('alias tidak tersedia')
+                    seq = kon.execute("SELECT seq FROM sqlite_sequence WHERE name='siswa'").fetchone()
+                    sequence_awal = seq[0] if seq else 0
+                    cur = kon.execute('INSERT INTO siswa(nama,tingkat,pemilik) VALUES(?,?,?)',
+                                      (nama_anak, profil_parameter, alias))
+                    siswa_id = cur.lastrowid
+                    learning_profile.simpan_kelas(kon, siswa_id, kelas_sekolah, revisi=0, pemilik=alias)
+                    lama = dict(versi=1, target_id=target_id, akun_id=auth._buat_id_akun(),
+                                siswa_id=siswa_id, sequence_awal=sequence_awal,
+                                sidik_perintah=sidik, alias_sidik=alias_sidik,
+                                profil_sidik=_sidik_profil_registrasi(kon, siswa_id, token_form),
+                                status='pending', dibuat=kini, kredensial=hash_baru)
+                    intent[operasi_id] = lama
+                    _gagal_registrasi(failpoint, 'sebelum_intent')
+                    hasil = auth._bungkus_akun(mentah, akun)
+                    hasil['registrasi_profil'] = intent
+                    auth._tulis_akun_atomik(hasil, tujuan)
+                    mentah = hasil
+                    _gagal_registrasi(failpoint, 'setelah_intent')
+                if any(a['pengguna'].strip().casefold() == alias.casefold()
+                       or a.get('id_akun') == lama['akun_id'] for a in akun):
+                    raise ValueError('alias tidak tersedia')
+                # Receipt DB dan profil commit bersama; tidak cukup hash row saja.
+                if not kon.execute('SELECT 1 FROM registrasi_profil_anak WHERE operasi_id=?', (operasi_id,)).fetchone():
+                    kon.execute('INSERT INTO registrasi_profil_anak VALUES(?,?,?,?,?,?)',
+                                (operasi_id, lama['akun_id'], siswa_id, sidik, lama['profil_sidik'], lama['dibuat']))
+                # DB commit di dalam authlock; tidak menerbitkan akun sebelum ini.
+                kon.commit()
+        # Fase kedua melepas KEDUA lock dahulu, lalu mengambil DB→auth lagi.
+        # Tidak pernah menunggu DB saat sudah memegang auth.
+        _gagal_registrasi(failpoint, 'setelah_db')
+        return _publikasikan_profil(path_db, path_auth, operasi_id, alias, token_form,
+                                    lama, failpoint)
+
+
+def _publikasikan_profil(path_db, path_auth, operasi_id, alias, token_form, harapan, failpoint):
+    with kunci_database_pemilik(path_db) as kon:
+        validasi_schema_profil(kon)
+        with transaksi_json(path_auth) as tujuan:
+            mentah, akun, _ = auth._baca_akun_untuk_tulis(tujuan)
+            if mentah is None:
+                raise ValueError('intent registrasi hilang')
+            intent = dict(_intent_profil(mentah))
+            lama = intent.get(operasi_id)
+            if lama != harapan or lama['status'] != 'pending':
+                raise ValueError('intent registrasi berubah')
+            siswa_id = lama['siswa_id']
+            row = kon.execute('SELECT * FROM registrasi_profil_anak WHERE operasi_id=?', (operasi_id,)).fetchone()
+            if row is None or tuple(row) != (operasi_id, lama['akun_id'], siswa_id,
+                                             lama['sidik_perintah'], lama['profil_sidik'], lama['dibuat']):
+                raise ValueError('receipt profil berbeda')
+            if _sidik_profil_registrasi(kon, siswa_id, token_form) != lama['profil_sidik']:
+                raise ValueError('profil registrasi berubah sebelum akun diterbitkan')
+            if kon.execute('SELECT 1 FROM siswa WHERE lower(pemilik)=lower(?) AND id!=? LIMIT 1',
+                           (alias, siswa_id)).fetchone():
+                raise ValueError('alias memiliki profil yang tidak terkait registrasi')
+            if any(a['pengguna'].strip().casefold() == alias.casefold()
+                   or a.get('id_akun') == lama['akun_id'] for a in akun):
+                raise ValueError('alias tidak tersedia')
+            receipts = mentah.get('operasi_registrasi', {})
+            _validasi_receipt_publik(receipts)
+            if operasi_id in receipts:
+                raise ValueError('receipt registrasi berubah')
+            akun.append(dict(pengguna=alias, peran='guru', id_akun=lama['akun_id'],
+                             revisi_auth=1, **lama['kredensial']))
+            intent[operasi_id] = {**lama, 'status': 'selesai'}
+            receipts = dict(receipts)
+            receipts[operasi_id] = dict(versi=1, operasi_id=operasi_id, target_id=lama['target_id'],
+                hasil_id=lama['akun_id'], hasil_kode='teacher_created', revisi_hasil=1,
+                dibuat=lama['dibuat'], sidik_perintah=lama['sidik_perintah'])
+            hasil = auth._bungkus_akun(mentah, akun)
+            hasil['registrasi_profil'] = intent
+            hasil['operasi_registrasi'] = receipts
+            auth._tulis_akun_atomik(hasil, tujuan)
+            _gagal_registrasi(failpoint, 'setelah_auth')
+            return AkunBaru(lama['akun_id'], alias, 'guru', 1, siswa_id, baru=True)
+
+
+class RegistrasiBelumSelesai(RuntimeError):
+    """Pasangan registrasi belum selesai; ulangi token dan input yang sama."""
 
 
 def _buat_publik_auth(
@@ -339,6 +628,8 @@ def _buat_publik_auth(
                 hasil_id, akun_lama["pengguna"], "guru",
                 int(lama["revisi_hasil"]), None,
             )
+        if any(r['alias_sidik'] == _sidik_registrasi(alias.casefold()) for r in _intent_profil(mentah).values()):
+            raise ValueError("alias tidak tersedia")
         if any(a["pengguna"].strip().casefold() == alias.casefold() for a in akun):
             raise ValueError("alias tidak tersedia")
         id_baru = auth._buat_id_akun()

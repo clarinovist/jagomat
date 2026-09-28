@@ -11,6 +11,12 @@ from test_admin_http_c import server, _login, _minta, SANDI_ADMIN
 from test_subscription_http import FormParser
 
 
+@pytest.fixture(autouse=True)
+def schema_registrasi(server):
+    import admin_registration
+    admin_registration.migrasikan_profil_registrasi(database.BAWAAN)
+
+
 def test_registrasi_cetak_survei_cabut_dan_replay(server,monkeypatch):
     monkeypatch.setattr(h,'KOLEKSI_SIAP',True)
     monkeypatch.setattr(s,'PENCATATAN_GAGAL',False)
@@ -19,7 +25,8 @@ def test_registrasi_cetak_survei_cabut_dan_replay(server,monkeypatch):
     s.atur_eksperimen(admin_store.BAWAAN,auth.BERKAS_SANDI,admin,operasi='uji_flow_start',mulai=now,aktif=True,revisi=0,sekarang=now)
     body=_minta(server,'/daftar')[1]
     form=FormParser(body).forms['/daftar']
-    form.update(nama='Keluarga-flow',sandi='sandi-flow-sintetis',setuju='1',analitik='1',sumber_analitik='rekomendasi')
+    form.update(nama='Keluarga-flow',sandi='sandi-flow-sintetis',setuju='1',analitik='1',sumber_analitik='rekomendasi',
+                nama_anak='Profil Sintetis',profil_parameter='P4',kelas_sekolah='')
     assert _minta(server,'/daftar',data=form)[0]==303
     p=auth.autentikasi('Keluarga-flow','sandi-flow-sintetis')
     token=_login(server,'Keluarga-flow','sandi-flow-sintetis')
@@ -55,7 +62,8 @@ def test_gagal_sink_tidak_membatalkan_registrasi(server,monkeypatch):
     now=int(time.time());admin=auth.autentikasi('Admin-C',SANDI_ADMIN)
     s.atur_eksperimen(admin_store.BAWAAN,auth.BERKAS_SANDI,admin,operasi='uji_flow_fail',mulai=now,aktif=True,revisi=0,sekarang=now)
     body=_minta(server,'/daftar')[1];form=FormParser(body).forms['/daftar']
-    form.update(nama='Keluarga-fail',sandi='sandi-flow-sintetis',setuju='1',analitik='1')
+    form.update(nama='Keluarga-fail',sandi='sandi-flow-sintetis',setuju='1',analitik='1',
+                nama_anak='Profil Sintetis',profil_parameter='P4',kelas_sekolah='')
     def gagal(*a,**kw):raise admin_store.StoreBelumSiap('gagal sintetis')
     monkeypatch.setattr(s,'setuju',gagal)
     assert _minta(server,'/daftar',data=form)[0]==303

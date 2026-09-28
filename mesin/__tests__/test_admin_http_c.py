@@ -641,6 +641,8 @@ def test_audit_ui_tidak_memuat_credential_atau_alias(server):
 
 
 def test_pendaftaran_open_closed_missing_dan_login_existing(server):
+    import admin_registration
+    admin_registration.migrasikan_profil_registrasi(database.BAWAAN)
     kode, halaman, _ = _minta(server, "/daftar")
     assert kode == 200 and 'name="token_form"' in halaman
     token_form = _hidden(halaman, "token_form")
@@ -649,6 +651,7 @@ def test_pendaftaran_open_closed_missing_dan_login_existing(server):
         data={
             "nama": "Publik-C", "sandi": "sandi-publik-c",
             "setuju": "1", "token_form": token_form,
+            "nama_anak": "Profil Sintetis", "profil_parameter": "P4",
         },
     )
     assert kode == 303 and "Set-Cookie" in header
