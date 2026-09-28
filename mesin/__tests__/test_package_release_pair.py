@@ -79,7 +79,7 @@ def test_probe_baru_wajib_di_orchestrator_dan_manifest():
              'candidate_digest': 'sha256:'+'a'*64, 'recovery_digest': 'sha256:'+'b'*64,
              'pengiriman_pair_checks': 6, 'pilihan_pair_checks': 8,
              'learning_pair_checks': 8, 'subscription_pair_checks': 4,
-             'admin_launch_pair_checks': 4, 'package_pair_checks': 8, 'provider_calls': 0}
+             'admin_launch_pair_checks': 4, 'package_pair_checks': 8, 'quota_pair_checks': 8, 'provider_calls': 0}
     args = ('a'*40, 'b'*40, 'sha256:'+'a'*64, 'sha256:'+'b'*64)
     assert release_metadata.validasi_bukti_pasangan(bukti, *args)
     for nilai in (0, True, 7):

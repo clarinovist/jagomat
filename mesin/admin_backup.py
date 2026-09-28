@@ -61,6 +61,8 @@ class RingkasanBackup:
     operasi_admin_pending: int
     operasi_admin_uncertain: int
     perlu_rekonsiliasi: bool = False
+    operasi_kuota_pending: int = 0
+    operasi_kuota_unknown: int = 0
 
 
 def _sha256(path: Path) -> str:
@@ -319,7 +321,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
         akar / BERKAS_WAJIB["pendamping"],
         tabel_wajib=("migrasi_pendamping", "chat", "operasi"),
     )
-    if not 1 <= versi_admin <= 8:
+    if not 1 <= versi_admin <= 9:
         raise BackupTidakSah("versi admin backup tidak didukung")
     if not 1 <= versi_ai <= VERSI_TARGET["ai"]:
         raise BackupTidakSah("versi AI backup tidak didukung")
@@ -345,12 +347,15 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
                 subscription_store.validasi_ledger(kon)
             except (ValueError, sqlite3.Error):
                 raise BackupTidakSah('schema langganan backup tidak lengkap') from None
-    if versi_admin in (VERSI_TARGET['admin'], 8):
+    if versi_admin in (VERSI_TARGET['admin'], 8, 9):
         import admin_store
         try:
             with admin_store.buka_baca(akar / BERKAS_WAJIB['admin']) as kon:
                 import subscription_store
                 subscription_store.validasi_ledger(kon)
+                if versi_admin == 9:
+                    import assistant_quota_store
+                    assistant_quota_store.validasi_sumber(kon)
         except (RuntimeError, ValueError, sqlite3.Error):
             raise BackupTidakSah('schema admin backup tidak lengkap') from None
     minimum, maksimum = _revisi_auth(akar / BERKAS_WAJIB["auth"])
@@ -362,19 +367,26 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
         uncertain = int(kon.execute(
             "SELECT COUNT(*) FROM operasi_admin WHERE status='uncertain'"
         ).fetchone()[0])
+    kuota_pending = kuota_unknown = 0
+    if versi_admin == 9:
+        with sqlite3.connect(admin_uri, uri=True) as kon:
+            kuota_pending = kon.execute("SELECT COUNT(*) FROM kuota_pendamping_operasi WHERE status='reserved'").fetchone()[0]
+            kuota_unknown = kon.execute("SELECT COUNT(*) FROM kuota_pendamping_operasi WHERE status='unknown'").fetchone()[0]
     billing = False
     if versi_admin >= 6:
         # Restore bukan izin transaksi baru; cutoff provider harus direkonsiliasi.
         with sqlite3.connect(admin_uri, uri=True) as kon:
             billing = bool(kon.execute('SELECT 1 FROM langganan_invoice LIMIT 1').fetchone())
-            if versi_admin == 8:
+            if versi_admin >= 8:
                 billing = billing or bool(kon.execute('SELECT 1 FROM paket_invoice LIMIT 1').fetchone())
     _validasi_link_receipt(akar)
     _validasi_pilot(akar / BERKAS_WAJIB['belajar'])
     return RingkasanBackup(
         manifest["bundle_id"], manifest["cutoff"],
         tuple(BERKAS_WAJIB), versi_admin, versi_ai, versi_pendamping,
-        minimum, maksimum, pending, uncertain, bool(pending or uncertain or billing),
+        minimum, maksimum, pending, uncertain,
+        bool(pending or uncertain or billing or kuota_pending or kuota_unknown),
+        kuota_pending, kuota_unknown,
     )
 
 
@@ -465,12 +477,12 @@ def _validasi_receipt_profil(admin, belajar, tabel, row):
         raise BackupTidakSah('pasangan journal/receipt profil tidak cocok')
 
 
-def rehearsal_bundle(bundle, *, migrator_ai=None) -> RingkasanBackup:
+def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None) -> RingkasanBackup:
     """Migrasikan turunan temp dua kali; backup induk tidak pernah ditulis.
 
-    ``migrator_ai`` wajib diinjeksi coordinator dari candidate AI2. Snapshot F
-    ini masih membawa AI1; helper menolak mengklaim kesiapan target tanpa
-    migrator yang benar.
+    ``migrator_ai`` wajib dari candidate AI2. ``target_admin`` None mempertahankan
+    versi8/9 atau menaikkan legacy ke7; target9 eksplisit menguji8→9. Bukan izin
+    migrasi backup induk, downgrade, aktivasi entitlement, atau provider.
     """
     import admin_store
     import admin_students
@@ -478,6 +490,10 @@ def rehearsal_bundle(bundle, *, migrator_ai=None) -> RingkasanBackup:
     import database
 
     sebelum = validasi_bundle(bundle)
+    if target_admin is None:
+        target_admin = max(VERSI_TARGET['admin'], sebelum.versi_admin)
+    if type(target_admin) is not int or target_admin not in (7, 8, 9) or target_admin < sebelum.versi_admin:
+        raise BackupTidakSah("target rehearsal admin tidak sah")
     if migrator_ai is None:
         raise BackupTidakSah("migrator AI2 candidate wajib untuk rehearsal")
     akar = Path(bundle)
@@ -492,21 +508,37 @@ def rehearsal_bundle(bundle, *, migrator_ai=None) -> RingkasanBackup:
         def ledger(path):
             with sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True) as kon:
                 ada = {r[0] for r in kon.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-                return {t: tuple(kon.execute('SELECT * FROM ' + t + ' ORDER BY rowid'))
-                        for t in TABEL + TABEL_PAKET if t in ada}
+                nama = sorted(ada) if sebelum.versi_admin >= 7 else TABEL + TABEL_PAKET
+                return {t: tuple(kon.execute('SELECT * FROM "' + t + '" ORDER BY rowid'))
+                        for t in nama if t in ada}
+        auth_awal = _sha256(turunan / BERKAS_WAJIB['auth'])
         billing_awal = ledger(turunan / BERKAS_WAJIB['admin'])
+        privat_awal = ({jenis: ledger(turunan / BERKAS_WAJIB[jenis])
+                       for jenis in ('belajar', 'ai', 'pendamping')}
+                      if target_admin == 9 and sebelum.versi_admin >= 8 else {})
         for _ in range(2):
             database.siapkan(turunan / BERKAS_WAJIB["belajar"])
             admin_students.siapkan(turunan / BERKAS_WAJIB["belajar"])
-            admin_store.siapkan(turunan / BERKAS_WAJIB["admin"])
+            admin_store.siapkan(turunan / BERKAS_WAJIB["admin"], paket_v2=target_admin >= 8)
+            if target_admin == 9:
+                admin_store.migrasikan_kuota_pendamping(turunan / BERKAS_WAJIB["admin"])
             migrator_ai(turunan / BERKAS_WAJIB["ai"])
             assistant_schema.siapkan(turunan / BERKAS_WAJIB["pendamping"])
+        if _sha256(turunan / BERKAS_WAJIB['auth']) != auth_awal:
+            raise BackupTidakSah('auth berubah selama rehearsal')
+        for jenis, tabel_awal in privat_awal.items():
+            tabel_akhir = ledger(turunan / BERKAS_WAJIB[jenis])
+            if any(tabel_akhir.get(t) != rs for t, rs in tabel_awal.items()):
+                raise BackupTidakSah('state privat berubah selama rehearsal kuota')
         billing_akhir = ledger(turunan / BERKAS_WAJIB['admin'])
         if any(billing_akhir.get(t) != rows for t, rows in billing_awal.items()):
             raise BackupTidakSah('ledger berubah selama rehearsal')
         with admin_store.buka_baca(turunan / BERKAS_WAJIB['admin']) as kon:
             import subscription_store
             subscription_store.validasi_ledger(kon)
+            if target_admin == 9:
+                import assistant_quota_store
+                assistant_quota_store.validasi_sumber(kon)
         versi_admin = _versi_sqlite(
             turunan / BERKAS_WAJIB["admin"],
             tabel_wajib=("konfigurasi_pendaftaran", "operasi_admin", "receipt_admin"),
@@ -527,7 +559,7 @@ def rehearsal_bundle(bundle, *, migrator_ai=None) -> RingkasanBackup:
             tabel_wajib=("migrasi_pendamping", "chat", "operasi"),
         )
         if (
-            versi_admin != (8 if sebelum.versi_admin == 8 else VERSI_TARGET["admin"])
+            versi_admin != target_admin
             or versi_ai != VERSI_TARGET["ai"]
             or versi_pendamping != 4
         ):
@@ -537,5 +569,5 @@ def rehearsal_bundle(bundle, *, migrator_ai=None) -> RingkasanBackup:
         versi_admin, versi_ai, versi_pendamping,
         sebelum.revisi_auth_min, sebelum.revisi_auth_max,
         sebelum.operasi_admin_pending, sebelum.operasi_admin_uncertain,
-        sebelum.perlu_rekonsiliasi,
+        sebelum.perlu_rekonsiliasi, sebelum.operasi_kuota_pending, sebelum.operasi_kuota_unknown,
     )

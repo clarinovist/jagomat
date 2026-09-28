@@ -15,6 +15,7 @@ import assistant_catalog
 import assistant_client
 import assistant_policy
 import assistant_store
+import assistant_entitlement_runtime as entitlement
 
 
 class GalatPendamping(RuntimeError):
@@ -45,9 +46,7 @@ def pastikan_entitlement_outbound(
     account_id: str, *, sekarang: int, sebelum_provider=None,
 ) -> None:
     """Tahan outbound saat enforcement aktif; callback hanya untuk uji guard."""
-    import assistant_entitlement_runtime
-
-    if not assistant_entitlement_runtime.boleh_outbound(
+    if not entitlement.boleh_outbound(
         account_id, sekarang=sekarang, fitur="balasan_pendamping",
     ):
         raise GalatPendamping(
@@ -220,22 +219,60 @@ def kirim_pesan(
                 and sumber.teks == aman
                 and jawaban_lama is not None and jawaban_lama.chat_id == chat.id
             ):
+                try:
+                    entitlement.finalisasi_replay(
+                        account_id, fitur="balasan_pendamping",
+                        identitas=request_id, sekarang=kini,
+                    )
+                except entitlement.GalatKuotaRuntime:
+                    raise GalatPendamping(
+                        "Status kuota balasan ini perlu diperiksa."
+                    ) from None
                 return jawaban_lama.teks
             raise GalatPendamping("Permintaan ini sedang atau sudah gagal diproses.")
 
-        consent_version = assistant_store.versi_persetujuan(kon, account_id)
-        memory_version = assistant_store.versi_memori(kon, account_id)
-        context_version = chat.context_version if konteks is not None else 0
-        operasi = assistant_store.mulai_operasi(
-            kon, account_id, chat_id, request_id,
-            consent_version=consent_version,
-            memory_version=memory_version,
-            context_version=context_version,
-            sekarang=kini,
+    try:
+        ikatan_kuota = entitlement.reservasi(
+            account_id, fitur="balasan_pendamping",
+            identitas=request_id, sekarang=kini,
         )
-        pesan = _pesan_provider(
-            kon, account_id, chat_id, aman, konteks=konteks
-        )
+    except entitlement.GalatKuotaRuntime:
+        raise GalatPendamping(
+            "Pendamping tidak tersedia untuk status paket atau kuota akun ini."
+        ) from None
+
+    try:
+        with kon:
+            _kunci_reservasi(kon)
+            # Cross-DB reserve dapat menunggu lock. Validasi ulang seluruh
+            # consent/resource sesaat sebelum outbound, lalu sekali lagi saat simpan.
+            if not assistant_store.persetujuan_aktif(
+                kon, account_id, kategori="chat_umum",
+                provider_id=assistant_policy.PROVIDER_ID,
+            ):
+                raise GalatPendamping("Persetujuan provider berubah.")
+            chat = _chat_dan_konteks_sah(
+                kon, account_id, chat_id, konteks, validasi_konteks
+            )
+            consent_version = assistant_store.versi_persetujuan(kon, account_id)
+            memory_version = assistant_store.versi_memori(kon, account_id)
+            context_version = chat.context_version if konteks is not None else 0
+            operasi = assistant_store.mulai_operasi(
+                kon, account_id, chat_id, request_id,
+                consent_version=consent_version,
+                memory_version=memory_version,
+                context_version=context_version,
+                sekarang=kini,
+            )
+            pesan = _pesan_provider(
+                kon, account_id, chat_id, aman, konteks=konteks
+            )
+    except Exception:
+        try:
+            entitlement.lepaskan(ikatan_kuota, sekarang=kini)
+        except entitlement.GalatKuotaRuntime:
+            pass
+        raise
 
     pemanggil = panggil_provider or panggil_provider_default
     token_ai = _konteks_ai.set((account_id, "pendamping:" + request_id))
@@ -250,6 +287,16 @@ def kirim_pesan(
             )
         )
     except (assistant_client.GalatProvider, ai_service.AIUnavailable, ValueError) as galat:
+        try:
+            if isinstance(galat, assistant_client.GalatProvider):
+                # Transport/provider dapat saja telah menerima request.
+                entitlement.tandai_unknown(ikatan_kuota, sekarang=kini)
+            else:
+                # Validasi output gagal atau pagu internal menolak sebelum
+                # provider: tidak ada balasan layanan yang diperoleh pengguna.
+                entitlement.lepaskan(ikatan_kuota, sekarang=kini)
+        except entitlement.GalatKuotaRuntime:
+            pass
         try:
             with kon:
                 assistant_store.gagalkan_operasi(
@@ -353,6 +400,10 @@ def kirim_pesan(
                 )
     except GalatPendamping:
         try:
+            entitlement.tandai_unknown(ikatan_kuota, sekarang=kini)
+        except entitlement.GalatKuotaRuntime:
+            pass
+        try:
             with kon:
                 assistant_store.gagalkan_operasi(
                     kon, account_id, request_id, sekarang=kini
@@ -360,4 +411,12 @@ def kirim_pesan(
         except Exception:
             kon.rollback()
         raise
+    try:
+        entitlement.finalisasi(ikatan_kuota, sekarang=kini)
+    except entitlement.GalatKuotaRuntime:
+        # Balasan sudah durable. Replay request yang sama akan merekonsiliasi
+        # ledger tanpa panggilan provider kedua.
+        logging.getLogger(__name__).warning(
+            "Pendamping selesai; kategori=kuota_perlu_rekonsiliasi"
+        )
     return respons.jawaban

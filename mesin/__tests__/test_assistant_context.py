@@ -418,4 +418,5 @@ def test_validasi_consent_dan_finalisasi_memegang_lock_yang_sama(privat, monkeyp
             konteks=konteks, validasi_konteks=lambda: konteks.versi,
             panggil_provider=ProviderPalsu(), sekarang=101,
         )
-        assert len(cek) == 2
+        # Pre-admission, revalidasi sesudah reserve lintas DB, dan finalisasi.
+        assert len(cek) == 3

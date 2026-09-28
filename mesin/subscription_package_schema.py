@@ -93,8 +93,8 @@ BEGIN SELECT RAISE(ABORT, 'ledger paket duplikat'); END;
 
 
 def tersedia(kon):
-    """Versi DB, bukan keberadaan satu tabel, menentukan reader yang wajib."""
-    return kon.execute("PRAGMA user_version").fetchone()[0] == VERSI_SKEMA
+    """Admin8+ wajib memuat ledger paket; versi berikutnya tetap kompatibel."""
+    return kon.execute("PRAGMA user_version").fetchone()[0] >= VERSI_SKEMA
 
 
 def struktur(kon):

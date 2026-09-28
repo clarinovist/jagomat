@@ -307,17 +307,25 @@ def _transaksi(path=None):
 def _validasi_skema(kon: sqlite3.Connection) -> None:
     versi = int(kon.execute("PRAGMA user_version").fetchone()[0])
     import subscription_package_schema as paket_schema
-    if versi > paket_schema.VERSI_SKEMA:
+    import assistant_quota_schema as kuota_schema
+    if versi > kuota_schema.VERSI_SKEMA:
         raise StoreBelumSiap("skema admin lebih baru dari aplikasi")
-    if versi not in (VERSI_SKEMA, paket_schema.VERSI_SKEMA):
+    if versi not in (VERSI_SKEMA, paket_schema.VERSI_SKEMA, kuota_schema.VERSI_SKEMA):
         raise StoreBelumSiap("store admin belum dimigrasikan")
     try:
-        if versi == paket_schema.VERSI_SKEMA:
+        if versi >= paket_schema.VERSI_SKEMA:
             paket_schema.validasi(kon)
         elif paket_schema.struktur(kon):
             raise ValueError("tabel paket tanpa versi migrasi")
     except (ValueError, sqlite3.Error):
         raise StoreBelumSiap("struktur ledger paket tidak lengkap") from None
+    try:
+        if versi == kuota_schema.VERSI_SKEMA:
+            kuota_schema.validasi(kon)
+        elif kuota_schema.struktur(kon):
+            raise ValueError("tabel kuota tanpa versi migrasi")
+    except (ValueError, sqlite3.Error):
+        raise StoreBelumSiap("struktur ledger kuota tidak lengkap") from None
     for tabel, wajib in _KOLOM_WAJIB.items():
         aktual = {
             str(baris[1]) for baris in kon.execute("PRAGMA table_info(%s)" % tabel)
@@ -410,8 +418,9 @@ def _migrasi_registry_aksi(
 
 
 def siapkan(path=None, *, sekarang: Optional[int] = None, paket_v2: bool = False) -> None:
-    """Bootstrap; admin8 hanya opt-in eksplisit, tidak lewat startup default."""
+    """Bootstrap7; paket8 opt-in, kuota9 hanya migrator terpisah eksplisit."""
     import subscription_package_schema as paket_schema
+    import assistant_quota_schema as kuota_schema
     if type(paket_v2) is not bool:
         raise ValueError("pilihan migrasi paket tidak sah")
     tujuan = _tujuan(path)
@@ -420,7 +429,7 @@ def siapkan(path=None, *, sekarang: Optional[int] = None, paket_v2: bool = False
     try:
         kon.row_factory = sqlite3.Row
         versi = int(kon.execute("PRAGMA user_version").fetchone()[0])
-        if versi > paket_schema.VERSI_SKEMA:
+        if versi > kuota_schema.VERSI_SKEMA:
             raise StoreBelumSiap("skema admin lebih baru dari aplikasi")
         if versi in (0, 1, 2, 3, 4):
             try:
@@ -433,7 +442,7 @@ def siapkan(path=None, *, sekarang: Optional[int] = None, paket_v2: bool = False
                 kon.execute("BEGIN IMMEDIATE")
                 # Baca ulang setelah lock; migrator lain mungkin sudah selesai.
                 versi = int(kon.execute("PRAGMA user_version").fetchone()[0])
-                if versi > paket_schema.VERSI_SKEMA:
+                if versi > kuota_schema.VERSI_SKEMA:
                     raise StoreBelumSiap("skema admin lebih baru dari aplikasi")
                 if versi in (1, 2, 3, 4):
                     _migrasi_registry_aksi(
@@ -499,6 +508,40 @@ def siapkan(path=None, *, sekarang: Optional[int] = None, paket_v2: bool = False
         tujuan.chmod(0o600)
     except OSError:
         pass
+
+
+def migrasikan_kuota_pendamping(path) -> None:
+    """Migrasi aditif8→9 eksplisit pada file existing; bukan startup/GET.
+
+    Operator wajib backup/rehearsal dan binary recovery9 sebelum data nyata.
+    Tidak membuat file, paket/enrollment/trial/jendela, atau memperbaiki schema
+    parsial secara diam-diam. DDL+versi atomik, replay9 hanya memvalidasi.
+    """
+    import assistant_quota_schema as kuota_schema
+    import assistant_quota_store as kuota_store
+    import subscription_store
+    kon = _koneksi(_tujuan(path), "rw")
+    try:
+        kon.execute("BEGIN IMMEDIATE")
+        versi = kon.execute("PRAGMA user_version").fetchone()[0]
+        if versi not in (8, kuota_schema.VERSI_SKEMA):
+            raise StoreBelumSiap("migrasi kuota memerlukan admin8 atau admin9")
+        _validasi_skema(kon)
+        subscription_store.validasi_ledger(kon)
+        if versi == 8:
+            _jalankan_ddl(kon, kuota_schema.DDL)
+            kon.execute("PRAGMA user_version=9")
+        _validasi_skema(kon)
+        kuota_store.validasi_sumber(kon)
+        if (kon.execute("PRAGMA integrity_check").fetchone()[0] != "ok"
+                or kon.execute("PRAGMA foreign_key_check").fetchone()):
+            raise StoreBelumSiap("integritas migrasi kuota gagal")
+        kon.commit()
+    except Exception:
+        kon.rollback()
+        raise
+    finally:
+        kon.close()
 
 
 def _hasil_dari_baris(baris) -> HasilOperasi:

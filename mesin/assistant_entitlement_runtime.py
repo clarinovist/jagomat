@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 import os
 import sqlite3
 import time
@@ -35,6 +36,9 @@ def _gagal(aktif: bool) -> StatusRuntime:
 def status(account_id: str, *, sekarang: int, fitur: str = "balasan_pendamping") -> StatusRuntime:
     """Baca status tanpa membuat/migrasi DB, trial, window, atau ledger."""
     aktif = enforcement_aktif()
+    if not aktif:
+        # Rollout OFF tidak membaca billing dan tidak mengubah jalur lama.
+        return _gagal(False)
     path = admin_store.BAWAAN
     if not path.is_file():
         return _gagal(aktif)
@@ -77,3 +81,83 @@ def boleh_outbound(account_id: str, *, sekarang: int,
     return status(account_id, sekarang=sekarang, fitur=fitur).status in {
         "trial_aktif", "pro_aktif",
     }
+
+
+class GalatKuotaRuntime(RuntimeError):
+    """Admission/finalisasi kuota gagal tertutup tanpa detail storage."""
+
+
+def operasi_id(account_id: str, fitur: str, identitas: str) -> str:
+    """ID durable bounded; teks/prompt/resource tidak disimpan pada ledger."""
+    if not account_id or not fitur or not identitas:
+        raise ValueError("identitas kuota tidak lengkap")
+    sidik = hashlib.sha256(
+        (account_id + "\0" + fitur + "\0" + identitas).encode("utf-8")
+    ).hexdigest()[:32]
+    return "kuota_" + sidik
+
+
+def reservasi(account_id: str, *, fitur: str, identitas: str, sekarang: int):
+    """Reserve sebelum outbound; OFF benar-benar tanpa I/O billing."""
+    if not enforcement_aktif():
+        return None
+    try:
+        import assistant_quota_store
+        hasil = assistant_quota_store.reservasi(
+            admin_store.BAWAAN, account_id,
+            operasi_id=operasi_id(account_id, fitur, identitas), fitur=fitur,
+            sekarang=sekarang, penegakan=True,
+        )
+    except Exception as galat:
+        raise GalatKuotaRuntime("kuota tidak tersedia") from galat
+    if hasil is None or not hasil.boleh_outbound:
+        raise GalatKuotaRuntime("permintaan kuota bukan reservasi baru")
+    return hasil.ikatan
+
+
+def _ubah(nama: str, ikatan, *, sekarang: int, **kwargs) -> None:
+    if ikatan is None:
+        return
+    try:
+        import assistant_quota_store
+        getattr(assistant_quota_store, nama)(
+            admin_store.BAWAAN, ikatan, sekarang=sekarang, **kwargs
+        )
+    except Exception as galat:
+        raise GalatKuotaRuntime("status kuota tidak dapat diperbarui") from galat
+
+
+def tandai_unknown(ikatan, *, sekarang: int) -> None:
+    _ubah("tandai_unknown", ikatan, sekarang=sekarang)
+
+
+def lepaskan(ikatan, *, sekarang: int, rekonsiliasi: bool = False) -> None:
+    _ubah(
+        "lepaskan", ikatan, sekarang=sekarang,
+        tanpa_output_terbukti=True, rekonsiliasi=rekonsiliasi,
+    )
+
+
+def finalisasi(ikatan, *, sekarang: int, rekonsiliasi: bool = False) -> None:
+    _ubah(
+        "finalisasi", ikatan, sekarang=sekarang,
+        hasil_valid_tersimpan=True, rekonsiliasi=rekonsiliasi,
+    )
+
+
+def finalisasi_replay(account_id: str, *, fitur: str, identitas: str,
+                       sekarang: int) -> None:
+    """Pulihkan crash sesudah output tersimpan; tidak pernah outbound ulang."""
+    if not enforcement_aktif():
+        return
+    try:
+        import assistant_quota_store
+        hasil = assistant_quota_store.baca_operasi(
+            admin_store.BAWAAN, account_id,
+            operasi_id(account_id, fitur, identitas), fitur=fitur,
+        )
+        if hasil is None or hasil.status == "completed":
+            return
+        finalisasi(hasil.ikatan, sekarang=sekarang, rekonsiliasi=True)
+    except Exception as galat:
+        raise GalatKuotaRuntime("rekonsiliasi kuota gagal") from galat

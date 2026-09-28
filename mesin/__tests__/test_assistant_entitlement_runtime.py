@@ -39,6 +39,12 @@ def test_sakelar_default_off_tidak_membuat_db_dan_mempertahankan_runtime_lama(tm
     path = tmp_path / "belum-ada.db"
     monkeypatch.setattr(admin_store, "BAWAAN", path)
     monkeypatch.delenv("PENDAMPING_ENTITLEMENT_AKTIF", raising=False)
+    monkeypatch.setattr(
+        __import__("assistant_entitlement"), "baca_status",
+        lambda *_a, **_k: (_ for _ in ()).throw(
+            AssertionError("enforcement OFF tidak boleh membaca billing")
+        ),
+    )
     assert runtime.status(AKUN, sekarang=10).enforcement_aktif is False
     assert runtime.boleh_outbound(AKUN, sekarang=10) is True
     assert not path.exists()

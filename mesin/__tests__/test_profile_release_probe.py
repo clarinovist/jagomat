@@ -43,19 +43,23 @@ def siap(tmp_path):
     shutil.copy2(data / 'probe-accounts.json', data / 'sandi.json')
     source = tmp_path / 'source'
     source.mkdir()
-    for nama, versi in [('admin_store', 7), ('assistant_schema', 4), ('ai_store', 2), ('subscription_package_schema', 8)]:
+    for nama, versi in [('admin_store', 7), ('assistant_schema', 4), ('ai_store', 2), ('subscription_package_schema', 8), ('assistant_quota_schema', 9)]:
         (source / (nama + '.py')).write_text('VERSI_SKEMA = %d\nraise RuntimeError("jangan import")\n' % versi)
     return deploy, data, source
 
 
-@pytest.mark.parametrize('rusak', [None, 'admin4', 'admin9', 'paket_trigger', 'paket_kolom', 'source4', 'registry',
+@pytest.mark.parametrize('rusak', [None, 'admin4', 'admin10', 'kuota_trigger', 'kuota_kolom', 'paket_trigger', 'paket_kolom', 'source4', 'registry',
     'profil', 'receipt', 'konteks', 'kolom', 'trigger', 'admin_hilang', 'belajar_hilang',
     'pilot_tabel', 'pilot_kolom', 'pilot_trigger', 'pilot_sumber'])
 def test_readiness_admin5_memeriksa_metadata_dan_tidak_menulis(siap, rusak, tmp_path):
     deploy, data, source = siap
-    if rusak in ('admin4', 'admin9'):
+    if rusak in ('admin4', 'admin10'):
         with sqlite3.connect(data / 'admin-control.db') as kon:
-            kon.execute('PRAGMA user_version=' + ('4' if rusak == 'admin4' else '9'))
+            kon.execute('PRAGMA user_version=' + ('4' if rusak == 'admin4' else '10'))
+    elif rusak in ('kuota_trigger', 'kuota_kolom'):
+        with sqlite3.connect(data / 'admin-control.db') as kon:
+            kon.execute('DROP TRIGGER kuota_pendamping_operasi_ikat_update' if rusak == 'kuota_trigger' else
+                        'ALTER TABLE kuota_pendamping_operasi RENAME COLUMN entitlement_sidik TO salah')
     elif rusak in ('paket_trigger', 'paket_kolom'):
         with sqlite3.connect(data / 'admin-control.db') as kon:
             kon.execute('DROP TRIGGER paket_grant_tolak_update' if rusak == 'paket_trigger' else
@@ -92,9 +96,9 @@ def test_readiness_admin5_memeriksa_metadata_dan_tidak_menulis(siap, rusak, tmp_
     hasil = _python(skrip, tmp_path)
     assert (hasil.returncode == 0) is (rusak is None)
     if rusak is None:
-        assert hasil.stdout.strip() == 'OSN_SCHEMA_ADMIN8_AI2_OK'
+        assert hasil.stdout.strip() == 'OSN_SCHEMA_ADMIN9_AI2_OK'
     else:
-        assert 'OSN_SCHEMA_ADMIN8_AI2_OK' not in hasil.stdout
+        assert 'OSN_SCHEMA_ADMIN9_AI2_OK' not in hasil.stdout
     assert _hash_db(data) == sebelum
 
 

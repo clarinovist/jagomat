@@ -19,6 +19,9 @@ from release_subscription_service_pair import SUMBER_TULIS as SERVICE_TULIS, SUM
 from release_package_pair import (SUMBER_TULIS as PAKET_TULIS, SUMBER_BACA as PAKET_BACA,
                                   SUMBER_KEMBALI as PAKET_KEMBALI)
 
+from release_quota_pair import (SUMBER_TULIS as KUOTA_TULIS, SUMBER_BACA as KUOTA_BACA,
+                                SUMBER_KEMBALI as KUOTA_KEMBALI)
+
 TULIS_PILOT = 'FOKUS_TULIS = ' + repr(FOKUS_TULIS) + '\nPROBE_PROFIL = ' + repr(SUMBER_UJI_PROFIL) + '\nADMIN_TULIS = ' + repr(ADMIN_TULIS) + '\n' + TULIS_PILOT
 BACA_PILOT = 'FOKUS_BACA = ' + repr(FOKUS_BACA) + '\nADMIN_BACA = ' + repr(ADMIN_BACA) + '\n' + BACA_PILOT
 
@@ -215,9 +218,12 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             (5, candidate_image, PAKET_TULIS, 'OSN_PACKAGE_WRITER_OK'),
             (6, recovery_image, PAKET_BACA, 'OSN_PACKAGE_RECOVERY_OK'),
             (7, candidate_image, PAKET_KEMBALI, 'OSN_PACKAGE_RETURN_OK'),
+            (8, candidate_image, KUOTA_TULIS, 'OSN_QUOTA_WRITER_OK'),
+            (9, recovery_image, KUOTA_BACA, 'OSN_QUOTA_RECOVERY_OK'),
+            (10, candidate_image, KUOTA_KEMBALI, 'OSN_QUOTA_RETURN_OK'),
         ):
             if _jalankan(image, volume, sumber, token, nomor) != marker:
-                raise GalatVerifikasi('probe_paket_admin8_gagal')
+                raise GalatVerifikasi('probe_paket_kuota_gagal')
     finally:
         pemilik = _panggil(['volume', 'inspect', '--format', '{{index .Labels "' + LABEL + '"}}', volume])
         if pemilik != token:
@@ -228,7 +234,7 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'recovery_revision': recovery_revision,
             'recovery_digest': recovery_image.split('@')[1], 'pengiriman_pair_checks': 6,
             'pilihan_pair_checks': 8, 'learning_pair_checks': 8, 'subscription_pair_checks': 4, 'admin_launch_pair_checks': 4,
-            'package_pair_checks': 8,
+            'package_pair_checks': 8, 'quota_pair_checks': 8,
             'provider_calls': 0}
 
 

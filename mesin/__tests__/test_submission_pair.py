@@ -47,6 +47,9 @@ def docker(monkeypatch):
             if masukan==pair.PAKET_TULIS:return 'OSN_PACKAGE_WRITER_OK'
             if masukan==pair.PAKET_BACA:return 'OSN_PACKAGE_RECOVERY_OK'
             if masukan==pair.PAKET_KEMBALI:return 'OSN_PACKAGE_RETURN_OK'
+            if masukan==pair.KUOTA_TULIS:return 'OSN_QUOTA_WRITER_OK'
+            if masukan==pair.KUOTA_BACA:return 'OSN_QUOTA_RECOVERY_OK'
+            if masukan==pair.KUOTA_KEMBALI:return 'OSN_QUOTA_RETURN_OK'
         return ''
     monkeypatch.setattr(pair,'_panggil',panggil)
     return images,revisions,panggilan,panggil
@@ -59,10 +62,12 @@ def test_volume_probe_sendiri_dan_urutan_write_read_cleanup(docker):
     assert hasil['candidate_digest']==images[0].split('@')[1]
     assert hasil['recovery_digest']==images[1].split('@')[1]
     runs=[(a,s) for a,s in calls if a[0]=='run']
-    assert len(runs)==8
-    assert hasil['package_pair_checks']==8
-    assert [s for _,s in runs[5:]]==[pair.PAKET_TULIS,pair.PAKET_BACA,pair.PAKET_KEMBALI]
-    assert [a[-4] for a,_ in runs[5:]]==[images[0],images[1],images[0]]
+    assert len(runs)==11
+    assert hasil['package_pair_checks']==8 and hasil['quota_pair_checks']==8
+    assert [s for _,s in runs[5:8]]==[pair.PAKET_TULIS,pair.PAKET_BACA,pair.PAKET_KEMBALI]
+    assert [a[-4] for a,_ in runs[5:8]]==[images[0],images[1],images[0]]
+    assert [s for _,s in runs[8:]]==[pair.KUOTA_TULIS,pair.KUOTA_BACA,pair.KUOTA_KEMBALI]
+    assert [a[-4] for a,_ in runs[8:]]==[images[0],images[1],images[0]]
     assert hasil['learning_pair_checks']==8
     assert runs[3][1]==pair.TULIS_PILOT and runs[4][1]==pair.BACA_PILOT
     for a,s in runs:
@@ -78,7 +83,7 @@ def test_volume_probe_sendiri_dan_urutan_write_read_cleanup(docker):
     assert calls[-1][0][:2]==['volume','rm']
 
 
-@pytest.mark.parametrize('fault',['writer','reader','pilot_writer','pilot_reader','package_writer','package_reader','package_return','owner'])
+@pytest.mark.parametrize('fault',['writer','reader','pilot_writer','pilot_reader','package_writer','package_reader','package_return','quota_writer','quota_reader','quota_return','owner'])
 def test_gagal_probe_atau_owner_tidak_diklaim_lulus(docker,monkeypatch,fault):
     images,revs,calls,asli=docker
     def rusak(argv,masukan=None):
@@ -86,7 +91,8 @@ def test_gagal_probe_atau_owner_tidak_diklaim_lulus(docker,monkeypatch,fault):
         sumber={'writer':pair.SUMBER_TULIS,'reader':pair.SUMBER_BACA,
                 'pilot_writer':pair.TULIS_PILOT,'pilot_reader':pair.BACA_PILOT,
                 'package_writer':pair.PAKET_TULIS,'package_reader':pair.PAKET_BACA,
-                'package_return':pair.PAKET_KEMBALI}.get(fault)
+                'package_return':pair.PAKET_KEMBALI,'quota_writer':pair.KUOTA_TULIS,
+                'quota_reader':pair.KUOTA_BACA,'quota_return':pair.KUOTA_KEMBALI}.get(fault)
         if argv[0]=='run' and masukan==sumber:
             return 'BUKAN_OK'
         return asli(argv,masukan)

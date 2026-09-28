@@ -1,9 +1,9 @@
-"""Prototipe ledger kuota atomik, belum adapter write aplikasi produksi.
+"""Ledger kuota admin9 atomik; seluruh path membuka file existing saja.
 
-Fungsi berakhiran _kon menerima koneksi DB admin9 yang disiapkan migrator eksternal
-DAN pemuat snapshot trusted. Belum ada migrator/path writer/startup admin9: reader,
-backup, probe dan recovery existing hanya admin7/8. Jangan memasang DDL atau memakai
-writer ini pada data nyata sebelum lifecycle admin9 diintegrasikan dan diuji.
+Migrasi hanya admin_store.migrasikan_kuota_pendamping opt-in, bukan startup/GET.
+Writer path memuat sumber paket/enrollment tervalidasi di transaksi yang sama.
+Fungsi _kon menerima pemuat trusted untuk uji/domain; caller aplikasi memakai
+writer path, bukan pemuat snapshot browser. Enforcement tetap default OFF.
 
 Reservasi berhasil baru adalah satu-satunya izin melanjutkan outbound. Replay
 reserved/unknown/completed/released tidak pernah izin outbound kedua. Pemuat sumber
@@ -155,6 +155,8 @@ def _transaksi(kon):
     kon.execute("BEGIN IMMEDIATE")
     try:
         validasi_ledger(kon)
+        if kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='langganan_enrollment'").fetchone():
+            validasi_sumber(kon)
         yield
         kon.commit()
     except Exception:
@@ -185,7 +187,7 @@ def _bekukan_jendela(kon, hak):
 
 def reservasi_kon(kon, akun_id, *, operasi_id, fitur, sekarang, muat_snapshot,
                   penegakan=False):
-    """Reserve atomik; prototype admin9, callback harus membaca sumber di kon.
+    """Reserve atomik admin9; callback trusted harus membaca sumber di kon.
 
     OFF tidak menulis apa pun dan mengembalikan None. Callback dijalankan di bawah
     lock IMMEDIATE sebelum cek kuota, jadi dua tab berbagi unit terakhir akun.
@@ -280,7 +282,7 @@ def lepaskan_kon(kon, ikatan, *, sekarang, tanpa_output_terbukti, rekonsiliasi=F
 
 
 def muat_snapshot_admin8(kon, akun_id):
-    """Reader admin7/8 existing; bukan pemuat sumber untuk writer prototype9.
+    """Reader sumber paket8 pada admin7/8/9; nama dipertahankan untuk caller lama.
 
     Caller membuka lewat admin_store.buka_baca dan memegang snapshot transaksi.
     Tidak menulis, memigrasikan, atau mengadopsi akun.
@@ -304,26 +306,109 @@ def muat_snapshot_admin8(kon, akun_id):
     return domain.SnapshotHak(akun_id, enrollment.mulai, transisi, grants, periode_lama)
 
 
+def validasi_sumber(kon):
+    """Cocokkan seluruh window historis ke grant/trial immutable di DB sama."""
+    validasi_ledger(kon)
+    sumber = {}
+    for row in kon.execute("SELECT * FROM kuota_pendamping_jendela"):
+        akun = row["akun_id"]
+        if akun not in sumber:
+            sumber[akun] = muat_snapshot_admin8(kon, akun)
+        hak = domain.selesaikan(akun, sumber[akun], fitur=row["fitur"],
+                                sekarang=row["mulai"], penegakan=True)
+        # Trial bisa diadopsi sesudah enrollment dimulai; jendelanya tetap
+        # enrollment asli, bukan transisi. Gunakan clock adopsi untuk validasi.
+        if row["sumber"] == "trial" and sumber[akun].transisi_mulai is not None:
+            hak = domain.selesaikan(akun, sumber[akun], fitur=row["fitur"],
+                                    sekarang=max(row["mulai"], sumber[akun].transisi_mulai),
+                                    penegakan=True)
+        if (hak.status not in domain.STATUS_BERHAK
+                or (hak.jendela_id, hak.entitlement_sidik, hak.limit, hak.sumber,
+                    hak.sumber_id, hak.paket, hak.entitlement_mulai, hak.entitlement_akhir,
+                    hak.jendela_mulai, hak.jendela_akhir) !=
+                   (row["jendela_id"], row["entitlement_sidik"], row["batas"], row["sumber"],
+                    row["sumber_id"], row["paket"], row["entitlement_mulai"], row["entitlement_akhir"],
+                    row["mulai"], row["akhir"])):
+            raise KonflikKuota("jendela tidak cocok sumber hak")
+
+
+@contextmanager
+def _buka_writer(path):
+    kon = admin_store._koneksi(admin_store._tujuan(path), "rw")
+    try:
+        admin_store._validasi_skema(kon)
+        yield kon
+    finally:
+        kon.close()
+
+
+def reservasi(path, akun_id, *, operasi_id, fitur, sekarang, penegakan=False):
+    """Writer aplikasi: sumber server-side di transaksi sama, tanpa bootstrap."""
+    if type(penegakan) is not bool:
+        raise ValueError("sakelar penegakan tidak sah")
+    if not penegakan:
+        return None
+    with _buka_writer(path) as kon:
+        return reservasi_kon(kon, akun_id, operasi_id=operasi_id, fitur=fitur,
+                             sekarang=sekarang, muat_snapshot=muat_snapshot_admin8, penegakan=True)
+
+
+def baca_operasi(path, akun_id, operasi_id, *, fitur):
+    """Lookup owner+fitur untuk retry/recovery; tidak pernah izin outbound."""
+    lama.identitas(akun_id, "akun"); lama.identitas(operasi_id, "operasi")
+    domain.validasi_fitur(fitur)
+    with admin_store.buka_baca(path) as kon:
+        kon.execute("BEGIN")
+        if kon.execute("PRAGMA user_version").fetchone()[0] != schema.VERSI_SKEMA:
+            raise admin_store.StoreBelumSiap("kuota Pendamping belum dimigrasikan")
+        validasi_sumber(kon)
+        row = kon.execute("SELECT * FROM kuota_pendamping_operasi WHERE operasi_id=?",
+                          (operasi_id,)).fetchone()
+        if row is None:
+            return None
+        if (row["akun_id"], row["fitur"]) != (akun_id, fitur):
+            raise KonflikKuota("operasi terikat akun/fitur lain")
+        return Reservasi(False, row["status"], _ikatan(row))
+
+
+def finalisasi(path, ikatan, *, sekarang, hasil_valid_tersimpan, rekonsiliasi=False):
+    with _buka_writer(path) as kon:
+        return finalisasi_kon(kon, ikatan, sekarang=sekarang,
+                              hasil_valid_tersimpan=hasil_valid_tersimpan, rekonsiliasi=rekonsiliasi)
+
+
+def lepaskan(path, ikatan, *, sekarang, tanpa_output_terbukti, rekonsiliasi=False):
+    with _buka_writer(path) as kon:
+        return lepaskan_kon(kon, ikatan, sekarang=sekarang,
+                            tanpa_output_terbukti=tanpa_output_terbukti, rekonsiliasi=rekonsiliasi)
+
+
+def tandai_unknown(path, ikatan, *, sekarang):
+    with _buka_writer(path) as kon:
+        return tandai_unknown_kon(kon, ikatan, sekarang=sekarang)
+
+
 def baca_snapshot(path, akun_id):
-    """Dry-run hak saja pada admin7/8; tidak berarti pemakaian nol terverifikasi."""
+    """Dry-run sumber hak admin7/8/9, bukan klaim pemakaian nol terverifikasi."""
     with admin_store.buka_baca(path) as kon:
         kon.execute("BEGIN")
         return muat_snapshot_admin8(kon, akun_id)
 
 
 def baca_status(path, akun_id, *, fitur, sekarang, penegakan=False):
-    """Reader aplikasi sementara fail-closed: storage kuota belum diintegrasikan.
-
-    Status tanpa hak (Jago/expired/belumtransisi) dapat diproyeksikan dari admin7/8.
-    Trial/Pro tidak boleh disajikan sebagai jatah utuh ketika ledger belum tersedia.
-    Pure selesaikan + baca_snapshot tetap tersedia untuk simulasi eksplisit.
-    """
+    """Reader satu snapshot; admin7/8 tanpa kuota tidak menjanjikan sisa jatah."""
     try:
-        snapshot = baca_snapshot(path, akun_id)
-        hak = domain.selesaikan(akun_id, snapshot, fitur=fitur, sekarang=sekarang,
-                               penegakan=penegakan)
-        if hak.status not in domain.STATUS_BERHAK:
-            return hak
+        with admin_store.buka_baca(path) as kon:
+            kon.execute("BEGIN")
+            snapshot = muat_snapshot_admin8(kon, akun_id)
+            lengkap = kon.execute("PRAGMA user_version").fetchone()[0] == schema.VERSI_SKEMA
+            if lengkap:
+                validasi_sumber(kon)
+            hak = domain.selesaikan(akun_id, snapshot, fitur=fitur, sekarang=sekarang,
+                                   pemakaian=_pemakaian(kon, akun_id) if lengkap else (),
+                                   penegakan=penegakan)
+            if lengkap or hak.status not in domain.STATUS_BERHAK:
+                return hak
     except (OSError, sqlite3.Error, RuntimeError, ValueError, LookupError):
         pass
     return domain.selesaikan(akun_id, domain.SnapshotHak(akun_id, terverifikasi=False),

@@ -1,12 +1,13 @@
-"""Proposal ledger kuota layanan untuk migrasi admin9, belum diaktifkan.
+"""Ledger kuota layanan admin9, migrasi opt-in terpisah dari startup/GET.
 
-Tidak ada pemanggilan dari startup/GET dan tidak ada migrator path produksi.
-DDL harus dipasang dalam migrasi admin terkontrol setelah reader/backup/recovery
-admin9 tersedia. Tes memakai SQLite sintetis. Tabel paket_* tidak diubah.
+DDL dipasang hanya admin_store.migrasikan_kuota_pendamping pada admin8 existing.
+Schema tidak memberi hak/trial/window atau mengaktifkan enforcement. Produksi
+memerlukan backup/rehearsal/recovery9 exact. Tabel paket_* tidak diubah.
 """
 import sqlite3
 
 VERSI_SKEMA = 9
+TABEL = ("kuota_pendamping_jendela", "kuota_pendamping_operasi")
 DDL = """
 CREATE TABLE kuota_pendamping_jendela (
     akun_id TEXT NOT NULL,
