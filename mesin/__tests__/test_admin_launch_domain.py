@@ -245,6 +245,10 @@ def test_reset_admin_saat_network_tidak_grant(layanan):
 
 
 def _rekonsiliasi(k):
+    # Jalur transisi produksi berjalan pada admin9; fixture lama dinaikkan
+    # eksplisit agar pengujian adopsi paket tidak menyamarkan schema absen.
+    admin_store.siapkan(k.admin, paket_v2=True, sekarang=T0)
+    admin_store.migrasikan_kuota_pendamping(k.admin)
     with admin_store._transaksi(k.admin) as c:
         c.execute("UPDATE pembayaran_konfigurasi SET tahap='rekonsiliasi'")
 
@@ -263,7 +267,9 @@ def test_transisi_aktifkan_audit_idempoten_dan_kandidat(layanan):
     assert e.mulai==T0+7 and not e.peserta_promo
     with admin_store.buka_baca(k.admin) as c:
         baris=c.execute("SELECT asal,sumber_id FROM langganan_enrollment WHERE akun_id=?",(akun['id_akun'],)).fetchone()
+        paket=c.execute("SELECT operasi_id,versi,mulai FROM paket_akun WHERE akun_id=?",(akun['id_akun'],)).fetchone()
         assert (baris['asal'],baris['sumber_id'])==('transisi',p['operasi'])
+        assert tuple(paket)==(p['operasi'],'paket-jago-v2',T0+7)
         # Provenance tanpa jurnal layanan_operasi (CHECK aksi ter-pin kontrak).
         assert c.execute("SELECT COUNT(*) FROM layanan_operasi").fetchone()[0]==0
     # Replay operasi sama: hasil sama, tanpa baris kedua.
@@ -273,6 +279,7 @@ def test_transisi_aktifkan_audit_idempoten_dan_kandidat(layanan):
         **{**p,'operasi':'op_'+'b'*32})=='sudah_terdaftar','idempotensi transisi'
     with admin_store.buka_baca(k.admin) as c:
         assert c.execute("SELECT COUNT(*) FROM langganan_enrollment").fetchone()[0]==1
+        assert c.execute("SELECT COUNT(*) FROM paket_akun").fetchone()[0]==1
     assert billing.kandidat_transisi(k.admin,k.auth,k.admin_principal,cari='kandidat')==()
 
 
@@ -333,3 +340,74 @@ def test_transisi_guard_tanpa_mutasi(layanan):
     with pytest.raises(LookupError):
         guard.aktifkan_transisi(k.admin,k.auth,k.principal,operasi='op_'+'2'*32,
             akun_id=akun3['id_akun'],target_revisi=auth.revisi_auth(akun3),sekarang=T0+10)
+
+
+def test_transisi_admin7_legacy_tanpa_ledger_paket(layanan):
+    """Kompatibilitas legacy: schema7 enroll saja; bukan jalur adopsi produksi."""
+    k=layanan
+    auth.tambah_akun('kandidat-legacy7','sandi-kandidat-123','guru',k.auth)
+    akun=auth.cari_akun('kandidat-legacy7',k.auth)
+    assert akun is not None
+    with admin_store._transaksi(k.admin) as c:
+        c.execute("UPDATE pembayaran_konfigurasi SET tahap='rekonsiliasi'")
+    with admin_store.buka_baca(k.admin) as c:
+        assert c.execute('PRAGMA user_version').fetchone()[0]==7
+        assert not subscription_store.paket_schema.tersedia(c)
+    revisi=auth.revisi_auth(akun)
+    p=dict(operasi='op_'+'7'*32,akun_id=akun['id_akun'],target_revisi=revisi,sekarang=T0+7)
+    assert guard.aktifkan_transisi(k.admin,k.auth,k.admin_principal,**p)=='diaktifkan'
+    e=subscription_store.baca(k.admin,akun['id_akun']).enrollment
+    assert e.mulai==T0+7 and not e.peserta_promo
+    assert guard.aktifkan_transisi(k.admin,k.auth,k.admin_principal,**p)=='diaktifkan'
+    assert guard.aktifkan_transisi(k.admin,k.auth,k.admin_principal,
+        **{**p,'operasi':'op_'+'8'*32})=='sudah_terdaftar'
+    # Tidak ada tabel/adopsi paket di legacy dan tidak ada tagihan/kuota baru.
+    assert billing.kandidat_transisi(k.admin,k.auth,k.admin_principal,cari='legacy7')==()
+    with admin_store.buka_baca(k.admin) as c:
+        assert c.execute("SELECT COUNT(*) FROM langganan_enrollment WHERE akun_id=?",
+                         (akun['id_akun'],)).fetchone()[0]==1
+        assert not c.execute("SELECT 1 FROM sqlite_master WHERE name='paket_akun'").fetchone()
+        assert c.execute("SELECT COUNT(*) FROM langganan_invoice").fetchone()[0]==0
+        assert c.execute("SELECT COUNT(*) FROM langganan_grant").fetchone()[0]==0
+
+
+def test_transisi_admin9_crash_enrollment_ke_paket_replay_tanpa_ganda(layanan,monkeypatch):
+    """Jalur produksi admin9 wajib paket; replay melengkapi tanpa trial/invoice ganda."""
+    import subscription_package_store as paket_store
+    k=layanan;_rekonsiliasi(k)
+    auth.tambah_akun('kandidat-crash','sandi-kandidat-123','guru',k.auth)
+    akun=auth.cari_akun('kandidat-crash',k.auth)
+    assert akun is not None
+    revisi=auth.revisi_auth(akun)
+    p=dict(operasi='op_'+'4'*32,akun_id=akun['id_akun'],target_revisi=revisi,sekarang=T0+7)
+    asli=paket_store.adopsi
+    def crash(*a,**kw): raise RuntimeError('crash sintetis sebelum adopsi commit')
+    monkeypatch.setattr(paket_store,'adopsi',crash)
+    with pytest.raises(RuntimeError):
+        guard.aktifkan_transisi(k.admin,k.auth,k.admin_principal,**p)
+    monkeypatch.setattr(paket_store,'adopsi',asli)
+    # Enrollment sudah commit, paket belum: kandidat masih ditawarkan, tanpa tagihan.
+    assert subscription_store.baca(k.admin,akun['id_akun']).enrollment.mulai==T0+7
+    assert billing.kandidat_transisi(k.admin,k.auth,k.admin_principal,cari='crash')==(
+        {'akun_id':akun['id_akun'],'alias':'kandidat-crash','revisi':revisi},)
+    with admin_store.buka_baca(k.admin) as c:
+        assert not c.execute("SELECT 1 FROM paket_akun WHERE akun_id=?",(akun['id_akun'],)).fetchone()
+        assert c.execute("SELECT COUNT(*) FROM langganan_invoice").fetchone()[0]==0
+        assert c.execute("SELECT COUNT(*) FROM langganan_grant").fetchone()[0]==0
+    # Replay operasi sama: paket dilengkapi tepat sekali, trial tidak diulang.
+    assert guard.aktifkan_transisi(k.admin,k.auth,k.admin_principal,**p)=='diaktifkan'
+    assert subscription_store.baca(k.admin,akun['id_akun']).enrollment.mulai==T0+7
+    with admin_store.buka_baca(k.admin) as c:
+        assert c.execute("SELECT COUNT(*) FROM langganan_enrollment WHERE akun_id=?",
+                         (akun['id_akun'],)).fetchone()[0]==1
+        paket=c.execute("SELECT operasi_id,versi,mulai FROM paket_akun WHERE akun_id=?",
+                        (akun['id_akun'],)).fetchone()
+        assert tuple(paket)==(p['operasi'],'paket-jago-v2',T0+7)
+        assert c.execute("SELECT COUNT(*) FROM langganan_invoice").fetchone()[0]==0
+        assert c.execute("SELECT COUNT(*) FROM langganan_grant").fetchone()[0]==0
+    # Idempoten setelah lengkap: tanpa baris kedua; kandidat bersih.
+    assert guard.aktifkan_transisi(k.admin,k.auth,k.admin_principal,**p)=='diaktifkan'
+    with admin_store.buka_baca(k.admin) as c:
+        assert c.execute("SELECT COUNT(*) FROM paket_akun").fetchone()[0]==1
+        assert c.execute("SELECT COUNT(*) FROM langganan_enrollment").fetchone()[0]==1
+    assert billing.kandidat_transisi(k.admin,k.auth,k.admin_principal,cari='crash')==()

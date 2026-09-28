@@ -110,7 +110,7 @@ def tangani_post(penangan,jalur):
                 for k in kandidat:
                     c,t=_form(penangan,p,'aktifkan_transisi',{'akun':k['akun_id'],'revisi':k['revisi']})
                     forms[k['akun_id']]=ui.formulir('transisi',c,t,
-                        '<p>Aktifkan <strong>%s</strong> (jalur transisi): akun lama tanpa langganan. Tidak membuat pembayaran; tercatat di jurnal operasi.</p>'
+                        '<p>Aktifkan <strong>%s</strong> (jalur transisi): lengkapi enrollment dan paket v2 tanpa membuat pembayaran.</p>'
                         '<label><input type="checkbox" name="konfirmasi" value="1" required> Saya sudah meninjau akun ini dan dampaknya.</label>'%ui.e(k['alias']),'Aktifkan langganan')
             _kirim(penangan,p,'langganan',ui.daftar_langganan(rows,total,halaman=halaman,cari=cari,csrf=csrf,kandidat=kandidat,forms=forms))
             return True

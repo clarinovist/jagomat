@@ -52,7 +52,7 @@ def daftar_langganan(rows,total,*,halaman,cari,csrf,kandidat=(),forms=None):
         baris_k=''.join('<tr><td>%s</td><td>%s</td></tr>'%(e(k['alias']),(forms or {}).get(k['akun_id'],'Tidak ada tindakan')) for k in kandidat)
         kartu_kandidat=('<section class="admin-kartu"><h2>Belum terdaftar di langganan · %d</h2>'%len(kandidat)
                         +tabel(('Keluarga','Tindakan'),baris_k)
-                        +'<p class="admin-meta">Jalur transisi untuk akun lama sebelum sinkron registrasi publik. Satu aksi satu akun; tidak membuat pembayaran dan tidak mengaktifkan paywall.</p></section>')
+                        +'<p class="admin-meta">Jalur transisi untuk akun lama sebelum sinkron registrasi publik. Satu aksi melengkapi enrollment dan paket v2 akun; tidak membuat pembayaran dan tidak mengaktifkan paywall.</p></section>')
     return '<section class="admin-kartu"><h2>Langganan keluarga</h2><p>%d tercatat · Halaman %d</p>%s%s%s</section>'%(total,halaman,form,tabel(('Keluarga','Mulai','Peserta promo','Sumber'),baris),pager)+kartu_kandidat+'<p class="admin-meta">Akun yang belum diikutkan tidak dianggap kedaluwarsa. Panel ini tidak mengaktifkan paywall.</p>'
 
 

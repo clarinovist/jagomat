@@ -111,9 +111,15 @@ def kandidat_transisi(path, path_auth, principal, *, cari):
                 continue
             if kunci not in str(akun.get('pengguna', '')).casefold():
                 continue
-            ada = kon.execute('SELECT 1 FROM langganan_enrollment WHERE akun_id=?',
-                              (akun['id_akun'],)).fetchone()
-            if ada is None:
+            paket_berlaku = store.paket_schema.tersedia(kon)
+            enrollment = kon.execute(
+                'SELECT 1 FROM langganan_enrollment WHERE akun_id=?',
+                (akun['id_akun'],),
+            ).fetchone()
+            paket = kon.execute(
+                'SELECT 1 FROM paket_akun WHERE akun_id=?', (akun['id_akun'],),
+            ).fetchone() if paket_berlaku else None
+            if enrollment is None or (paket_berlaku and paket is None):
                 hasil.append({'akun_id': akun['id_akun'], 'alias': akun['pengguna'],
                               'revisi': auth.revisi_auth(akun)})
                 if len(hasil) >= 10:

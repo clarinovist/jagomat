@@ -131,17 +131,17 @@ def aktifkan_transisi(path, path_auth, principal, *, operasi, akun_id, target_re
                       sekarang, sakelar=None):
     """Aktivasi transisi akun lama: enrollment eksplisit + provenance di ledger.
 
-    Hanya akun guru tanpa enrollment; idempoten lewat `sumber_id=operasi` pada
-    baris enrollment (unik per akun), sehingga replay/dua tab tidak menggandakan.
-    Tanpa efek pembayaran. Sakelar efektif dari tahap tersimpan (fondasi wajib;
+    Hanya akun guru; enrollment dan adopsi paket v2 dilengkapi eksplisit tanpa
+    mengulang trial. Replay/dua tab tidak menggandakan keduanya. Tanpa efek
+    pembayaran. Sakelar efektif dari tahap tersimpan (fondasi wajib;
     readiness provider tidak relevan — operasi ini tidak memanggil jaringan).
 
     Jurnal `layanan_operasi` sengaja TIDAK dipakai: CHECK `aksi` di schema
     admin-control terikat kontrak pair rilis (tidak boleh berubah tanpa re-pin
-    recovery). Bukti operasi = baris `langganan_enrollment` (asal 'transisi',
-    sumber_id=operasi) yang tampil di panel Langganan.
+    recovery). Bukti operasi = enrollment dan `paket_akun` immutable.
     """
     import subscription as d
+    import subscription_package_store as paket_store
     import subscription_store as store
     d.identitas(operasi, 'operasi')
     d.identitas(akun_id, 'akun')
@@ -157,21 +157,53 @@ def aktifkan_transisi(path, path_auth, principal, *, operasi, akun_id, target_re
             raise LookupError('resource tidak ditemukan')
         with admin_store.buka_baca(path) as kon:
             sakelar_efektif = sakelar if sakelar is not None else sakelar_pembayaran(kon)
-            lama = kon.execute('SELECT sumber_id FROM langganan_enrollment WHERE akun_id=?',
-                               (akun_id,)).fetchone()
-        if lama is None:
+            # Kontrak storage nyata: ledger paket berlaku sejak admin8. Versi 7
+            # legacy belum punya paket; struktur paket parsial tetap ditolak
+            # buka_baca/_validasi_skema, bukan dilewati di sini.
+            paket_berlaku = store.paket_schema.tersedia(kon)
+            enrollment = kon.execute(
+                'SELECT sumber_id FROM langganan_enrollment WHERE akun_id=?',
+                (akun_id,),
+            ).fetchone()
+            paket = kon.execute(
+                'SELECT operasi_id FROM paket_akun WHERE akun_id=?', (akun_id,),
+            ).fetchone() if paket_berlaku else None
+        semula_lengkap = enrollment is not None and (paket is not None or not paket_berlaku)
+        if not semula_lengkap:
             sakelar_efektif.wajib('fondasi')
+        if enrollment is None:
             try:
                 store.enroll(path, akun_id, sumber_id=operasi, asal='transisi',
                              mulai=sekarang, peran='guru', promo_lama=False,
                              sakelar=sakelar_efektif)
             except store.KonflikLangganan:
-                # Balapan operator lain: menangkan observasi ulang, bukan tulis ganda.
+                # Balapan operator lain: lanjut hanya bila enrollment kini nyata.
                 with admin_store.buka_baca(path) as kon:
-                    ulang = kon.execute('SELECT sumber_id FROM langganan_enrollment WHERE akun_id=?',
-                                        (akun_id,)).fetchone()
-                if ulang is None:
+                    enrollment = kon.execute(
+                        'SELECT sumber_id FROM langganan_enrollment WHERE akun_id=?',
+                        (akun_id,),
+                    ).fetchone()
+                if enrollment is None:
                     raise
-                return 'diaktifkan' if ulang['sumber_id'] == operasi else 'sudah_terdaftar'
-            return 'diaktifkan'
-        return 'diaktifkan' if lama['sumber_id'] == operasi else 'sudah_terdaftar'
+        if paket_berlaku and paket is None:
+            try:
+                paket_store.adopsi(
+                    path, akun_id, operasi_id=operasi, sekarang=sekarang,
+                    peserta_promo=False, sakelar=sakelar_efektif,
+                )
+            except store.KonflikLangganan:
+                # Crash setelah enrollment atau balapan adopsi dipulihkan lewat
+                # metadata paket yang sudah commit, bukan trial/adopsi kedua.
+                with admin_store.buka_baca(path) as kon:
+                    paket = kon.execute(
+                        'SELECT operasi_id FROM paket_akun WHERE akun_id=?',
+                        (akun_id,),
+                    ).fetchone()
+                if paket is None:
+                    raise
+        if semula_lengkap:
+            # Legacy tanpa ledger paket hanya membandingkan sumber enrollment.
+            cocok = (enrollment is not None and enrollment['sumber_id'] == operasi
+                     and (paket is None or paket['operasi_id'] == operasi))
+            return 'diaktifkan' if cocok else 'sudah_terdaftar'
+        return 'diaktifkan'
