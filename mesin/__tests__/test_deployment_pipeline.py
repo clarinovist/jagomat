@@ -32,16 +32,16 @@ def test_pasang_tertahan_sampai_deployer_dan_policy_rutin_siap():
     assert 'cancel-in-progress: false' in teks
 
 
-def test_pin_registrasi_bootstrap_persiapan_pasang_literal_false():
+def test_pin_registrasi_migrasi_pasang_literal_false():
     teks=WORKFLOW.read_text()
-    # Bootstrap registrasi: revision tetap e03, kontrak direkalkulasi probe baru;
-    # pair registrasi belum diklaim sampai baseline baru dibangun/diukur CI.
-    assert CONFIG['mode']=='persiapan'
-    assert RECOVERY_SHA=='e03fbd0c782b309705f0e5d6297b1d47ae4e0f54'
-    assert CONFIG['recovery_contract']=='6019fbe9a2fa467e8eb0793cfe292525fc0381eef0ddc5a899c41023187118f9'
+    # Baseline registrasi adc4419 (run persiapan hijau CI36498678456) dipatok
+    # di mode migrasi; pasangan exact wajib sebelum deploy terkontrol.
+    assert CONFIG['mode']=='migrasi'
+    assert RECOVERY_SHA=='adc441959bb08fdbb43ffc8ad3309a6eb01b2fbf'
+    assert CONFIG['recovery_contract']=='f3a2447be6942949590efccefe7224bb6f465d67d65d88e00c7f7106e207162d'
     assert re.findall(r'^    if: (.+)$',_job(teks,'pasang'),re.M)==['${{ false }}']
     assert "steps.mode.outputs.mode == 'migrasi'" in _job(teks,'bangun')
-    assert 'CI36399916977' in teks
+    assert 'CI36498678456' in teks
 
 
 def test_build_candidate_dan_recovery_pakai_digest_yang_sama_untuk_verifikasi():

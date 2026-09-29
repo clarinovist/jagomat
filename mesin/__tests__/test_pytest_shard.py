@@ -33,6 +33,9 @@ JUMLAH_RECOVERY = {
     "d973bf8dc329374fc24e928a87f56e7a088ac623": 12481,
     # Koleksi arsip exact identik artifact kandidat CI36399916977 (hash nodeid).
     "e03fbd0c782b309705f0e5d6297b1d47ae4e0f54": 12564,
+    # Koleksi registrasi: manifest kandidat CI36498678456 == collect-only arsip
+    # (set nodeid identik lintas 3.9.6/3.12), dihitung saat pin baseline baru.
+    "adc441959bb08fdbb43ffc8ad3309a6eb01b2fbf": 12663,
 }
 
 
