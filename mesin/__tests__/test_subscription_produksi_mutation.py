@@ -45,7 +45,7 @@ KASUS = [
      'test_callback_kontrak_transport_ditolak_awal', '[0] == 413'),
     ('subscription_callback.py',
      '    return hashlib.sha256("|".join(wajib + [fraud]).encode("ascii")).hexdigest()[:32]',
-     '    return hashlib.sha256(("%d" % id(data)).encode("ascii")).hexdigest()[:32]', CALLBACK,
+     '    return hashlib.sha256(str(__import__("time").monotonic_ns()).encode("ascii")).hexdigest()[:32]', CALLBACK,
      'test_callback_duplikat_idempoten_dan_out_of_order_append_only',
      'assert hint(admin_store.BAWAAN) == setelah_satu'),
     ('midtrans_secret.py', 'os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)', 'os.O_RDONLY', RAHASIA,
