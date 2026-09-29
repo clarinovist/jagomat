@@ -105,25 +105,23 @@ def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path, monkeypatch)
         assert hasil["siap_pasang"] is (config["mode"] == "rutin")
 
 
-def test_pin_registrasi_persiapan_build_only_tanpa_pair():
-    """Jendela persiapan menuju baseline penutupan: pin adc4419 tetap, pair ditahan.
-
-    Pasang tetap literal false; klaim pasangan hanya boleh lewat CI migrasi
-    dengan baseline baru yang terverifikasi, bukan dari jendela build-only ini.
-    """
+def test_pin_penutupan_migrasi_wajib_pair_exact_tanpa_deploy():
+    """Baseline penutupan dc79c82: pair exact diwajibkan, pasang literal false."""
     config = metadata.baca_config(AKAR / 'scripts/release-metadata.json')
     assert config == {
-        'versi': 1, 'mode': 'persiapan',
-        'recovery_revision': 'adc441959bb08fdbb43ffc8ad3309a6eb01b2fbf',
-        'recovery_contract': 'f3a2447be6942949590efccefe7224bb6f465d67d65d88e00c7f7106e207162d',
+        'versi': 1, 'mode': 'migrasi',
+        'recovery_revision': 'dc79c82d0546602cdd354244eea872f27a03dc95',
+        'recovery_contract': 'f43388f2eee59643723a2f70312cc3ad1ed76a319eaad82163c2959bab4fc866',
     }
     metadata.validasi_workflow(ALUR.read_text(), config)
     b = {'revision': config['recovery_revision'], 'digest': 'sha256:'+'b'*64,
          'contract': config['recovery_contract']}
     c = {'revision': 'a'*40, 'digest': 'sha256:'+'a'*64,
          'contract': config['recovery_contract']}
-    hasil = metadata.buat_manifest(config, c, b)
-    assert hasil['compatible'] and not hasil['pair_verified']
-    assert not hasil['siap_pasang'] and not hasil['requires_controlled_migration']
-    with pytest.raises(ValueError, match='tidak cocok dengan mode'):
-        metadata.buat_manifest(config, c, b, pasangan_teruji=True)
+    hasil = metadata.buat_manifest(config, c, b, pasangan_teruji=True)
+    assert hasil['compatible'] and hasil['pair_verified']
+    assert hasil['requires_controlled_migration'] and not hasil['siap_pasang']
+    with pytest.raises(ValueError, match='belum kompatibel/teruji'):
+        metadata.buat_manifest(config, c, b)
+    with pytest.raises(ValueError, match='tidak cocok dengan anchor'):
+        metadata.buat_manifest(config, c, {**b, 'contract': 'c'*64}, pasangan_teruji=True)

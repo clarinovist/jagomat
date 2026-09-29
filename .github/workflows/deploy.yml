@@ -1,7 +1,7 @@
 name: Build & Deploy
 
 # Migrasi registrasi profil: full suite, probe dan pair exact wajib; pasang literal false.
-# Recovery adc4419 memahami intent/receipt registrasi, foto durable, kuota9 dan ledger v1/v2; bukan downgrade.
+# Recovery dc79c82 memahami penutupan tagihan, intent/receipt registrasi, foto durable, kuota9 dan ledger v1/v2; bukan downgrade.
 # Cutover memakai approval exact pair, backup dan rehearsal terkontrol.
 on:
   push:
@@ -22,7 +22,7 @@ env:
   # Harus sama dengan verifier dan deployer; recovery VPS memakai namespace ini.
   IMAGE: clarinovist/osn-mesin-latihan
   # Baseline registrasi teruji CI36498678456; migrasi registrasi/foto opt-in, penegakan tidak aktif.
-  RECOVERY_SHA: adc441959bb08fdbb43ffc8ad3309a6eb01b2fbf
+  RECOVERY_SHA: dc79c82d0546602cdd354244eea872f27a03dc95
 
 jobs:
   periksa:
@@ -133,7 +133,7 @@ jobs:
       - name: Checkout baseline recovery registrasi teruji
         uses: actions/checkout@v7
         with:
-          ref: adc441959bb08fdbb43ffc8ad3309a6eb01b2fbf
+          ref: dc79c82d0546602cdd354244eea872f27a03dc95
           path: recovery
           # Suite recovery mempertahankan mode dan pin historis source-nya sendiri.
           fetch-depth: 0
@@ -175,7 +175,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/checkout@v7
         with:
-          ref: adc441959bb08fdbb43ffc8ad3309a6eb01b2fbf
+          ref: dc79c82d0546602cdd354244eea872f27a03dc95
           path: recovery
       - name: Validasi mode dan gate rilis sebelum build
         id: mode

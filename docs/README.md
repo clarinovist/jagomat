@@ -4,6 +4,14 @@ Folder ini berisi spesifikasi aktif, keputusan desain, dan prosedur verifikasi
 codebase. Kode dan tes di `../mesin/` membuktikan perilaku yang tersedia;
 `../CLAUDE.md` menetapkan palang arsitektur, privasi, dan pengujian.
 
+## Mulai dari ringkasan
+
+- [spec.md](spec.md): tujuan, cakupan, kontrak belajar, dan batas produk.
+- [context.md](context.md): arsitektur, struktur folder, konvensi, dan keputusan teknis.
+
+Masing-masing sekitar satu halaman sebagai orientasi awal, bukan pengganti
+kontrak domain atau `../CLAUDE.md`. Perbarui bersama perubahan keputusan terkait.
+
 ## Keputusan pembatalan pengembangan — 18 September 2026
 
 Keputusan pengguna pada 18 September membatalkan pekerjaan terbuka dari

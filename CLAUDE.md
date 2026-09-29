@@ -87,6 +87,24 @@ menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
 - Ringkasan akhir menyebut yang lolos/gagal/tidak dijalankan beserta alasan. Gate wajib
   terblokir berarti belum terverifikasi; jangan silent skip atau menganggap baseline gagal aman.
 
+### Jaga ringkasan proyek tetap sinkron
+
+- Sebelum implementasi, baca [`docs/spec.md`](docs/spec.md) dan
+  [`docs/context.md`](docs/context.md) sebagai orientasi, lalu acuan domain yang relevan.
+- Setiap perubahan wajib diperiksa dampaknya pada kedua ringkasan sebelum pekerjaan
+  dinyatakan selesai. Jika terdampak, perbarui dalam perubahan/commit yang sama:
+  - `docs/spec.md`: tujuan, cakupan fitur, perilaku/kontrak produk, dan batas akses/data.
+  - `docs/context.md`: arsitektur, tanggung jawab modul, struktur folder, konvensi,
+    serta keputusan teknis penting dan alasannya.
+- Bila kontrak detail ikut berubah, perbarui dokumen sumbernya juga; jangan hanya
+  mengubah ringkasan atau menyamarkan penyimpangan kode sebagai keputusan baru.
+  Persetujuan yang diwajibkan untuk perubahan produk/arsitektur tetap berlaku.
+- Pertahankan sekitar satu halaman per file: ganti informasi usang, tautkan detail,
+  jangan menumpuk changelog, rencana sementara, atau klaim deployment tanpa bukti.
+- Typo, styling lokal, atau refactor internal yang tidak mengubah isi ringkasan tidak
+  perlu edit dokumentasi. Laporan akhir cukup menyebut ringkasan diperbarui atau
+  tidak terdampak beserta alasan singkat.
+
 ### Eksekusi proporsional — jalur terpendek yang aman
 
 - Cek/investigasi read-only tidak otomatis menjadi pekerjaan implementasi atau rilis:

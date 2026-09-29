@@ -36,6 +36,8 @@ JUMLAH_RECOVERY = {
     # Koleksi registrasi: manifest kandidat CI36498678456 == collect-only arsip
     # (set nodeid identik lintas 3.9.6/3.12), dihitung saat pin baseline baru.
     "adc441959bb08fdbb43ffc8ad3309a6eb01b2fbf": 12663,
+    # Koleksi penutupan tagihan: collect-only arsip dc79c82 (2026-09-29).
+    "dc79c82d0546602cdd354244eea872f27a03dc95": 12686,
 }
 
 
