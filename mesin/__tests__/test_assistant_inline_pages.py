@@ -99,9 +99,9 @@ def test_persetujuan_memuat_retensi_penerima_dan_kebijakan_lengkap():
 
 
 @pytest.mark.parametrize("jenis,teks_wajib,pengecualian,teks_dilarang", [
-    ("anak", "tahap, level, dan tanggal ketersediaan", "bukan seluruh catatan anak", "jumlah soal sesi"),
-    ("sesi", "topik, status, level, dan jumlah soal sesi", "bukan jawaban atau koreksi anak", "tanggal ketersediaan"),
-    ("soal", "Teks soal resmi, kunci, dan pembahasan", "Jawaban dan cara anak tidak ikut dikirim", "jumlah soal sesi"),
+    ("anak", "tahap belajar, variasi soal, dan waktu latihan berikutnya", "Nama, jawaban, dan catatan anak tidak ikut dikirim", "jumlah soal"),
+    ("sesi", "topik, tahap belajar, status pengerjaan, variasi, dan jumlah soal", "Jawaban dan koreksi anak tidak ikut dikirim", "waktu latihan berikutnya"),
+    ("soal", "teks soal resmi, kunci, dan pembahasannya", "Jawaban dan cara anak tidak ikut dikirim", "jumlah soal"),
 ])
 def test_copy_konteks_tepat_untuk_tiga_jenis(
     jenis, teks_wajib, pengecualian, teks_dilarang
@@ -118,8 +118,7 @@ def test_copy_konteks_tepat_untuk_tiga_jenis(
     )
     assert teks_wajib in panel
     assert pengecualian in panel
-    assert "layanan AI eksternal untuk Pendamping Jagomat" in panel
-    assert "DeepSeek" not in panel
+    assert "dikirim ke DeepSeek, layanan AI untuk Pendamping" in panel
     assert teks_dilarang not in panel
 
 

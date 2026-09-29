@@ -9,6 +9,7 @@ gemboknya, isinya tautan sesuai peran dan tombol keluar.
 from __future__ import annotations
 
 import sys
+import re
 from pathlib import Path
 
 import pytest
@@ -43,7 +44,8 @@ def test_menu_pengguna_di_semua_halaman_guru(server):
         assert '<details class="menu-pengguna">' in isi, (
             f"{jalur} tidak memuat menu pengguna"
         )
-        assert "<summary>ortu-a" in isi, f"{jalur} tidak menampilkan nama"
+        kepala = re.search(r'<details class="menu-pengguna">\s*<summary>(.*?)</summary>', isi, re.S).group(1)
+        assert 'ortu-a' in re.sub(r'<[^>]+>', '', kepala), f"{jalur} tidak menampilkan nama"
         assert 'action="/keluar"' in isi, f"{jalur} tidak memuat pintu keluar"
         assert 'href="/akun"' in isi, f"{jalur} tidak memuat pintu akun"
 
@@ -61,7 +63,8 @@ def test_menu_admin_di_panel_dan_halaman_baca(server):
         kode, isi, _ = s.minta(jalur, auth=("pengelola", SANDI_ADMIN))
         assert kode == 200, f"{jalur} gagal"
         assert '<details class="menu-pengguna">' in isi
-        assert "<summary>pengelola" in isi
+        kepala = re.search(r'<details class="menu-pengguna">\s*<summary>(.*?)</summary>', isi, re.S).group(1)
+        assert 'pengelola' in re.sub(r'<[^>]+>', '', kepala)
         assert 'action="/keluar"' in isi
         assert 'href="/admin"' in isi, f"{jalur} tanpa pintu dashboard admin"
         assert "Ganti sandi" in isi, f"{jalur} tanpa pintu ganti sandi"

@@ -308,7 +308,7 @@ def test_http_redirect_foreign_dan_missing_404_identik_tanpa_efek(server, jenis)
     tujuan_host = respons_sah[2]["Location"]
     assert tujuan_host.startswith((f"/anak/{anak}?bantuan=", f"/sesi/{sesi}?bantuan="))
     kode_host, isi_host, _ = _minta(server, tujuan_host, cookie=cookie)
-    assert kode_host == 200 and "Pilih sumber bantuan" in isi_host
+    assert kode_host == 200 and 'name="setuju_konteks"' in isi_host
 
 
 def test_http_akun_saat_login_bukan_pemilik_sumber_dari_form(server):

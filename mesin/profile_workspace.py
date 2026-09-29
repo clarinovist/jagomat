@@ -30,8 +30,8 @@ def bingkai(siswa, section, total, isi, *, peran='guru', pesan='', kelas_sekolah
                   for k,label in [('latihan','Buat latihan'),('rencana','Rencana belajar'),('riwayat','Riwayat <span>%d</span>' % total)])
     keluarga = '<span class="st-badge selesai">keluarga: %s</span>' % _e(siswa['pemilik'] or 'warisan') if peran=='admin' else ''
     kabar = '<div class="st-banner-sukses" role="status">%s</div>' % _e(pesan) if pesan else ''
-    return ('<main aria-labelledby="judul-profil"><div class="jejak"><a href="%s">&larr; Semua anak</a></div>'
-            '<header class="kepala-anak-st editorial-kepala-st"><p class="editorial-alis-st">RUANG BELAJAR ANAK</p>'
+    return ('<div class="jejak"><a href="%s">&larr; Semua anak</a></div>'
+            '<main aria-labelledby="judul-profil"><header class="kepala-anak-st editorial-kepala-st"><p class="editorial-alis-st">RUANG BELAJAR ANAK</p>'
             '<div class="profil-identitas-st"><h1 class="st" id="judul-profil">%s <span class="st-badge selesai">(%s)</span>%s</h1>'
             '<a class="profil-ubah-kelas-st" href="%s">Ubah kelas</a></div></header>'
             '<nav class="profil-tabs-st" aria-label="Bagian profil anak">%s</nav>%s%s</main>') % (

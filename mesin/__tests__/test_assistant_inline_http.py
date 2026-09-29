@@ -249,7 +249,7 @@ def test_consent_mulai_dan_kirim_inline_tetap_di_host(server):
         data={**dasar, "kebijakan": assistant_policy.VERSI_KEBIJAKAN, "setuju": "1"},
         headers=_origin(server),
     )
-    assert kode == 200 and "Pilih sumber bantuan" in isi
+    assert kode == 200 and "Bantuan mendampingi belajar" in isi
     _privat(header)
     versi = re.search(r'name="resource_version" value="([0-9a-f]+)"', isi).group(1)
     with assistant_schema.buka() as kon:
@@ -284,6 +284,37 @@ def test_consent_mulai_dan_kirim_inline_tetap_di_host(server):
     assert "Mari kita bahas" in hasil
     assert "/pendamping/chat/" not in hasil
     assert len(server.provider.panggilan) == 1
+
+
+@pytest.mark.parametrize('mode', ['aktif', 'tanpa_memori'])
+@pytest.mark.parametrize('fragmen', [False, True])
+def test_satu_cta_tetap_menolak_tanpa_izin_konteks_dan_tidak_mengubah_data(server, mode, fragmen):
+    token = _token_guru(server)
+    anak = server.ids_inline[0]
+    dasar = {'inline_host': 'anak', 'inline_host_id': str(anak), 'inline_posisi': 'latihan'}
+    headers = _origin(server)
+    if fragmen:
+        headers['X-Pendamping-Panel'] = 'fragment'
+    kode, pilih, _ = server.minta('/pendamping/inline/persetujuan', cookie=token,
+        data={**dasar, 'kebijakan': assistant_policy.VERSI_KEBIJAKAN, 'setuju': '1'}, headers=headers)
+    assert kode == 200
+    versi = re.search(r'name="resource_version" value="([0-9a-f]+)"', pilih).group(1)
+    with assistant_schema.buka() as kon:
+        sebelum = tuple(kon.iterdump())
+    data = {**dasar, 'resource_version': versi, 'kategori': 'ringkasan_netral',
+            'mode_chat': mode, 'request_id': 'buka_izin_ux'}
+    kode, _, _ = server.minta('/pendamping/inline/mulai', cookie=token, data=data, headers=headers)
+    assert kode == 400
+    with assistant_schema.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum
+    assert server.provider.panggilan == []
+    kode, isi, _ = server.minta('/pendamping/inline/mulai', cookie=token,
+        data={**data, 'setuju_konteks': '1'}, headers=headers)
+    assert kode == 200 and 'Mau dibantu apa?' in isi
+    with assistant_schema.buka() as kon:
+        chat = kon.execute('SELECT mode_memori, context_kind, context_id FROM chat').fetchone()
+        assert tuple(chat) == (mode, 'anak', str(anak))
+    assert server.provider.panggilan == []
 
 
 def test_mode_tanpa_memori_inline_immutable_dan_riwayat_tetap_ada(server):

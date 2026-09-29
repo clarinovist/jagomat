@@ -439,10 +439,11 @@ def _topbar_stitch(pengguna: str, peran: str) -> str:
         f'{brand.mark("topbar")}'
         f'<span class="nama">{html.escape(T.NAMA_PRODUK)}</span>'
         "</a>"
-        '<nav class="topbar-navigasi">'
-        f'{_badge_peran(peran)}'           # badge peran lama (Pengelola/Orang Tua)
-        f'<details class="menu-pengguna">'
-        f"<summary>{siapa}</summary>"
+        '<nav class="topbar-navigasi" aria-label="Menu akun">'
+        '<details class="menu-pengguna">'
+        '<summary><span class="identitas-akun-st">'
+        f'{_badge_peran(peran)}<span class="nama-akun-st">{siapa}</span></span>'
+        '<span class="panah-akun-st" aria-hidden="true">⌄</span></summary>'
         f'<div class="menu-isi">{item}'
         '<div class="menu-pisah"></div>'
         '<form method="post" action="/keluar" style="margin:0">'
@@ -703,19 +704,24 @@ def halaman_anak(
                 f'<form method="post" action="/sesi/{rid}/cabut-tautan" style="margin:0">'
                 '<button type="submit" class="tombol-ikon-st" '
                 'aria-label="Cabut tautan sesi" title="Cabut tautan">'
-                f'{profile_workspace.ikon("link_off")}</button></form>'
+                f'{profile_workspace.ikon("link_off")}<span>Cabut tautan</span></button></form>'
             )
         if privat:
-            # Fallback native: fungsi tetap tersedia tanpa fetch/confirm JS.
-            peringatan = (
-                '<p class="sub">Membuat tautan baru akan menonaktifkan tautan sebelumnya.</p>'
-                if aktif else ""
-            )
+            # Disclosure native menjaga konsekuensi dekat aksi tanpa JS/CSP baru.
+            if aktif:
+                return (
+                    '<details class="tautan-sesi-opsi"><summary>Kelola tautan anak</summary>'
+                    '<p class="sub">Membuat tautan baru akan menonaktifkan tautan sebelumnya. '
+                    'Mencabut tautan menutup akses melalui tautan itu.</p>'
+                    '<div class="blok-bagikan-st"><div class="aksi-bagikan-st">'
+                    f'<form method="post" action="/sesi/{rid}/bagikan">'
+                    '<button type="submit">Buat tautan baru</button></form>'
+                    + cabut + '</div></div></details>'
+                )
             return (
                 '<div class="blok-bagikan-st"><div class="aksi-bagikan-st">'
-                f'<form method="post" action="/sesi/{rid}/bagikan">{peringatan}'
-                f'<button type="submit">{("Buat tautan baru" if aktif else "Bagikan sesi ke anak")}</button>'
-                '</form>' + cabut + '</div></div>'
+                f'<form method="post" action="/sesi/{rid}/bagikan">'
+                '<button type="submit">Bagikan sesi ke anak</button></form></div></div>'
             )
         return (
             '<div class="blok-bagikan-st">'
@@ -734,7 +740,10 @@ def halaman_anak(
         topik_id = str(_ambil(r, "topik", TOPIK_BAWAAN))
         judul_topik, rincian_topik = _nama_topik_sesi(topik_id)
         rincian = (
-            f'<div class="rincian-topik-st">{rincian_topik}</div>'
+            '<details class="rincian-topik-st"><summary>Lihat '
+            f'{len(rincian_topik.split(" &middot; "))} topik</summary>'
+            '<ul>' + ''.join(f'<li>{nama}</li>' for nama in rincian_topik.split(' &middot; '))
+            + '</ul></details>'
             if rincian_topik
             else ""
         )
@@ -761,10 +770,9 @@ def halaman_anak(
         return (
             f'<article class="st-kartu-baris kartu-sesi-guru {kelas}">'
             '<div class="isi-kartu-sesi-st">'
+            '<div class="kepala-kartu-sesi-st">'
             f'<a class="judul-sesi-st" href="/sesi/{r["id"]}">'
-            f'{html.escape(judul_topik)}</a>'
-            f"{rincian}"
-            f"{identitas_remedial}"
+            f'{html.escape(judul_topik)}</a>{_badge_review_status(r)}</div>'
             '<div class="meta-sesi-st">'
             f'{_tanggal_ringkas(r["tanggal"])}<span aria-hidden="true">&middot;</span>'
             f'<span>{html.escape(label_kelas(str(_ambil(r, "level", LEVEL_BAWAAN))))}</span>'
@@ -773,10 +781,9 @@ def halaman_anak(
             '<span aria-hidden="true">&middot;</span>'
             f'<span class="nomor-sesi-st">Sesi #{r["id"]}</span>'
             "</div>"
-            f"{ringkasan}"
+            f"{rincian}{identitas_remedial}{ringkasan}"
             "</div>"
             '<div class="aksi-sesi-st">'
-            f'{_badge_review_status(r)}'
             f'{_aksi_tautan(r)}'
             "</div>"
             "</article>"

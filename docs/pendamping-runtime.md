@@ -204,8 +204,16 @@ Source inline menyediakan:
   atau panel penuh dengan Kembali pada HP. Sumber tetap rencana/latihan anak atau
   sesi/soal yang tepat. Pemicu sesi enhanced menawarkan ringkasan/nomor soal;
   bookmark konteks sesi/soal tetap langsung ke sumber kanoniknya.
-- Consent provider dan konteks tetap terpisah. Draf koreksi/manual tidak masuk
-  payload provider, storage Pendamping, cookie, atau URL.
+- Consent provider dan konteks tetap terpisah. Form izin memakai judul sesuai
+  tujuan host, penjelasan data/penerima DeepSeek, checkbox tidak dicentang, serta
+  satu CTA Mulai percakapan. Mode aktif/tanpa memori dipilih sebelum mulai pada
+  Pengaturan percakapan native, bukan dua tombol mulai. Tanpa memori bukan tanpa
+  konteks atau riwayat; default dan mode chat immutable tetap. Draf koreksi/manual
+  tidak masuk payload provider, storage Pendamping, cookie, atau URL.
+- Kepala panel menampilkan sumber dan tujuan singkat, bukan kode variasi/status
+  izin berulang. Status hanya-baca tetap terlihat; penjelasan AI tersedia dalam
+  rincian. Desktop: layar pembuka mengikuti tinggi isi, chat memakai ruang gulir
+  viewport; panel profil sejajar kepala anak. HP tetap layar penuh dengan Kembali.
 - History dibatasi exact-resource dan seluruh aksi dalam form koreksi memakai
   submit POST yang membawa kembali draf. Mode tanpa memori tetap menyimpan history.
 - Host yang mempunyai pemicu/panel memakai no-store/no-referrer/noindex/frame/CSP

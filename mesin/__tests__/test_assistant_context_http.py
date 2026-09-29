@@ -101,15 +101,15 @@ def test_http_entry_context_tidak_otomatis_memakai_data(server):
         f"/pendamping/konteks/anak/{anak}", cookie=token
     )
     assert kode == 200
-    assert "Pilih sumber bantuan" in isi
-    assert "Ringkasan anak" in isi  # Identitas lokal berizin, bukan payload AI.
+    assert "Bantuan mendampingi belajar" in isi
+    assert 'name="setuju_konteks"' in isi  # Izin masih diminta sebelum memakai data.
     assert len(server.provider.panggilan) == 0
 
     kode, isi, _ = server.minta(
         f"/pendamping/konteks/soal/{sesi}:1", cookie=token
     )
     assert kode == 200
-    assert "Pilih sumber bantuan" in isi
+    assert "Bantuan memahami soal" in isi
     assert len(server.provider.panggilan) == 0
 
 

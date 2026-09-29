@@ -200,9 +200,9 @@ def panel_pilih_sumber_sesi(
 
 def panel_konteks(target, konteks, *, sumber, dalam_form: bool = False, galat: str = "") -> str:
     penjelasan = {
-        "soal": "Teks soal resmi, kunci, dan pembahasan akan dikirim ke layanan AI eksternal untuk Pendamping Jagomat. Jawaban dan cara anak tidak ikut dikirim.",
-        "sesi": "Ringkasan topik, status, level, dan jumlah soal sesi akan dikirim ke layanan AI eksternal untuk Pendamping Jagomat; bukan jawaban atau koreksi anak.",
-        "anak": "Ringkasan netral tahap, level, dan tanggal ketersediaan akan dikirim ke layanan AI eksternal untuk Pendamping Jagomat; bukan seluruh catatan anak.",
+        "soal": "Untuk membahas soal ini, teks soal resmi, kunci, dan pembahasannya akan dikirim ke DeepSeek, layanan AI untuk Pendamping. Jawaban dan cara anak tidak ikut dikirim.",
+        "sesi": "Untuk membahas sesi ini, ringkasan topik, tahap belajar, status pengerjaan, variasi, dan jumlah soal akan dikirim ke DeepSeek, layanan AI untuk Pendamping. Jawaban dan koreksi anak tidak ikut dikirim.",
+        "anak": "Untuk membantu mendampingi belajar, ringkasan tahap belajar, variasi soal, dan waktu latihan berikutnya akan dikirim ke DeepSeek, layanan AI untuk Pendamping. Nama, jawaban, dan catatan anak tidak ikut dikirim.",
     }[konteks.jenis]
     isi = (
         _identitas_target(target)
@@ -212,12 +212,25 @@ def panel_konteks(target, konteks, *, sumber, dalam_form: bool = False, galat: s
         + (f'<p class="pendamping-galat" role="alert">{_esc(galat)}</p>' if galat else "")
         + f'<p>{_esc(penjelasan)}</p>'
         + '<label class="pendamping-cek"><input type="checkbox" name="setuju_konteks" value="1">'
-          '<span>Gunakan sumber ini untuk percakapan baru.</span></label>'
+          '<span>Saya mengizinkan informasi ini digunakan dalam percakapan.</span></label>'
+        + '<details class="pendamping-pengaturan"><summary>Pengaturan percakapan</summary>'
+          '<label class="pendamping-label" for="mode-chat-inline">Preferensi cara menjawab</label>'
+          '<select id="mode-chat-inline" name="mode_chat" aria-describedby="catatan-mode-chat">'
+          '<option value="aktif" selected>Ikuti pengaturan preferensi saya</option>'
+          '<option value="tanpa_memori">Tanpa preferensi lintas percakapan</option></select>'
+          '<p class="pendamping-catatan" id="catatan-mode-chat">Pilihan kedua tidak membaca atau '
+          'menambah preferensi lintas percakapan. Riwayat tetap disimpan pada kedua pilihan. '
+          'Pilihan ini tidak dapat diubah setelah percakapan dibuat.</p></details>'
         + '<div class="pendamping-aksi">'
-          '<button class="pendamping-tombol" type="submit" name="mode_chat" value="aktif" formaction="/pendamping/inline/mulai">Mulai percakapan terkait</button>'
-          '<button class="pendamping-tombol pendamping-sekunder" type="submit" name="mode_chat" value="tanpa_memori" formaction="/pendamping/inline/mulai">Mulai tanpa memori</button></div>'
+          '<button class="pendamping-tombol" type="submit" formaction="/pendamping/inline/mulai">Mulai percakapan</button></div>'
     )
-    return _panel(target, "Pilih sumber bantuan", _wadah_form(isi, "/pendamping/inline/mulai", dalam_form=dalam_form), sumber=sumber, dalam_form=dalam_form)
+    judul = {
+        "latihan": "Bantuan menyiapkan latihan",
+        "rencana": "Bantuan mendampingi belajar",
+        "sesi": "Bantuan meninjau sesi",
+        "soal": "Bantuan memahami soal",
+    }[target.posisi]
+    return _panel(target, judul, _wadah_form(isi, "/pendamping/inline/mulai", dalam_form=dalam_form), sumber=sumber, dalam_form=dalam_form)
 
 
 def _tombol_aksi(target, chat_id: str, action: str, label: str, *,
@@ -394,7 +407,7 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
             ("" if dalam_form else _identitas_target(target) + _hidden("chat", chat.id))
             + _hidden("request_id", "req_" + secrets.token_hex(16))
             + '<div class="pendamping-composer">'
-              '<label class="pendamping-label" for="pesan-inline">Pesan untuk Pendamping</label>'
+              '<label class="pendamping-label" for="pesan-inline">Mau dibantu apa?</label>'
               '<textarea id="pesan-inline" name="pesan" rows="5" maxlength="8000"></textarea>'
               '<button class="pendamping-tombol" type="submit" formaction="/pendamping/inline/pesan">Kirim</button>'
               '</div>'
@@ -413,7 +426,8 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
         + _kartu_usulan_inline(target, chat, usulan, dalam_form=dalam_form)
         + draft_memori_html + composer + kontrol_memori,
         sumber=sumber, dalam_form=dalam_form, chat_id=chat.id,
-        status_konteks="Konteks berubah · hanya baca" if hanya_baca else "Konteks disetujui",
+        status_konteks="Informasi belajar berubah · hanya baca" if hanya_baca else "",
+        percakapan=True,
     )
 
 
@@ -618,10 +632,11 @@ def _binding_panel(target, chat_id: str = "") -> str:
 
 
 def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False,
-           chat_id: str = "", status_konteks: str = "") -> str:
+           chat_id: str = "", status_konteks: str = "", percakapan: bool = False) -> str:
+    # Nama lokal membantu mengenali anak; level/kode internal tidak perlu di kepala.
     sumber_label = " · ".join(
-        str(sumber[k]) for k in ("nama", "label", "level")
-        if sumber and sumber.get(k)
+        str(sumber[k]) for k in ("nama", "label")
+        if sumber and sumber.get(k) and not (k == "label" and sumber.get("nama") and target.jenis_resource == "anak")
     )
     tujuan = {
         "latihan": "Menyiapkan latihan",
@@ -629,7 +644,10 @@ def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False,
         "sesi": "Meninjau sesi",
         "soal": "Membahas soal resmi",
     }[target.posisi]
-    status_konteks = status_konteks or ("Konteks disetujui" if chat_id else "Konteks belum diizinkan")
+    status_html = (
+        f'<p class="pendamping-status-konteks" role="status">{_esc(status_konteks)}</p>'
+        if status_konteks else ""
+    )
     tutup = (
         '<button class="pendamping-tutup" type="submit" aria-label="Tutup Pendamping" '
         'formaction="/pendamping/inline/tutup" formnovalidate>'
@@ -642,7 +660,7 @@ def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False,
     return (
         f'<aside class="pendamping-inline pendamping-panel-kanan" id="{_esc(target.anchor)}" '
         f'aria-labelledby="nama-{_esc(target.anchor)}"'
-        + _binding_panel(target, chat_id) + '>'
+        + _binding_panel(target, chat_id) + f' data-tampilan="{"percakapan" if percakapan else "ringkas"}">'
         + '<header class="pendamping-kepala-panel"><div class="pendamping-kepala-baris">'
         '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" '
         'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
@@ -651,12 +669,11 @@ def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False,
         f'</svg><h2 id="nama-{_esc(target.anchor)}">Pendamping</h2>'
         + tutup + '</div>'
         + f'<p class="pendamping-identitas">{_esc(sumber_label + " · " if sumber_label else "")}{_esc(tujuan)}</p>'
-        + '<div class="pendamping-konteks-baris">'
-        + f'<p class="pendamping-status-konteks">{_esc(status_konteks)}</p>'
-        + '<details class="pendamping-rincian"><summary>Rincian</summary>'
-          '<p>Percakapan terkait sumber di atas. Draf pekerjaan tidak ikut dikirim ke AI. '
-          'Jawaban AI dapat keliru; keputusan belajar tetap pada orang tua.</p></details></div></header>'
+        + status_html + '</header>'
         + '<div class="pendamping-inline-isi">'
-        f'<h3 id="judul-{_esc(target.anchor)}">{_esc(judul)}</h3>'
-        + isi + '</div></aside>'
+        f'<h3 id="judul-{_esc(target.anchor)}"' + (' class="pendamping-sr"' if percakapan else '') + f'>{_esc(judul)}</h3>'
+        + isi + '<details class="pendamping-rincian"><summary>Tentang bantuan AI</summary>'
+          '<p>Percakapan membahas informasi belajar di atas. Isian pekerjaan yang belum dikirim '
+          'tidak ikut dikirim ke AI. Jawaban AI dapat keliru; keputusan belajar tetap pada orang tua.'
+          '</p></details></div></aside>'
     )

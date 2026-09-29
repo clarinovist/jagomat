@@ -40,8 +40,9 @@ def test_fragmen_panel_memakai_header_ringkas_dan_konteks_terlihat():
     )
     assert 'class="pendamping-inline pendamping-panel-kanan"' in markup
     assert '<h2' in markup and '>Pendamping</h2>' in markup
-    assert 'Anak Sintetis · Variasi B · Membahas rencana belajar' in markup
-    assert 'Konteks belum diizinkan' in markup
+    assert 'Anak Sintetis · Membahas rencana belajar' in markup
+    assert 'Konteks belum diizinkan' not in markup
+    assert 'data-tampilan="ringkas"' in markup
     assert 'aria-label="Tutup Pendamping"' in markup
     assert '<details open><summary>Bantuan Pendamping</summary>' not in markup
 
@@ -123,9 +124,11 @@ def test_header_rincian_terlihat_status_stale_jujur_dan_tutup_tidak_ganda():
         sumber={'label': 'Soal 3'}, hanya_baca=True,
     )
     header = markup.split('</header>', 1)[0]
-    assert 'Konteks berubah · hanya baca' in header
+    assert 'Informasi belajar berubah · hanya baca' in header
     assert 'Konteks disetujui' not in header
-    assert '<summary>Rincian</summary>' in header
+    assert '<summary>Tentang bantuan AI</summary>' in markup
+    assert '<details' not in header
+    assert 'data-tampilan="percakapan"' in markup
     assert 'class="pendamping-tutup-desktop" aria-hidden="true">×</span>' in header
     assert 'class="pendamping-tutup-hp" aria-hidden="true">← Kembali</span>' in header
     assert header.count('×') == 1

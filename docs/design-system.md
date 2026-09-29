@@ -96,6 +96,16 @@ Ukuran body/menu existing tetap, input tidak diperkecil dari 16px, target sentuh
 halaman anak, isi soal, atau lembar cetak. Ukuran heading yang sudah lebih kecil
 tidak dibesarkan secara global; override HP lama yang membesarkan judul dibuang.
 
+### Ruang orang tua dan Pendamping
+
+Header Stitch mengelompokkan peran dan nama akun dalam satu menu native; pemicu
+Pendamping memakai slot kanan saat panel tertutup. Kartu tindak lanjut menyatukan
+judul/status, metadata dan aksi; rincian topik serta pengelolaan tautan aktif
+memakai `<details>`, bukan kolom aksi yang mendesak isi. Panel izin desktop
+mengikuti tinggi isi, sedangkan percakapan menyediakan ruang gulir terbatas
+viewport. Di profil, panel sejajar kepala anak; HP tetap panel penuh. Kontrak izin,
+mode memori dan fallback mengikuti [runtime Pendamping](pendamping-runtime.md).
+
 ## Spacing
 
 Skala 4px base, ratio 1.5x:

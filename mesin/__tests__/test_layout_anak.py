@@ -314,7 +314,8 @@ def test_kartu_sesi_mengutamakan_topik_dan_metadata_ramah(db):
 
     assert '<a class="judul-sesi-st"' in markup
     assert "Gabungan 3 topik" in markup
-    assert "Logika &amp; Penalaran &middot; Geometri Datar &middot; Statistika" in markup
+    assert '<summary>Lihat 3 topik</summary><ul>' in markup
+    assert '<li>Logika &amp; Penalaran</li><li>Geometri Datar</li><li>Statistika</li>' in markup
     assert "gabungan:logika,geometri-datar,statistika" not in markup
     assert '<time datetime="2026-09-04">4 Sep 2026</time>' in markup
     assert "Variasi A" in markup
