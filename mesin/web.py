@@ -1324,7 +1324,7 @@ class Penangan(BaseHTTPRequestHandler):
                 sandi = data["sandi"]
                 nama_anak = data.get('nama_anak', '').strip()
                 kelas_sekolah = learning_profile_ui.baca_kelas_form(data.get('kelas_sekolah', ''))
-                profil_parameter = data.get('profil_parameter', '')
+                profil_parameter = data.get('profil_parameter')
                 token_baru = admin_http.buat_token_pendaftaran()
                 status_daftar = admin_registration.status(admin_store.BAWAAN)
                 if not status_daftar.dibuka:
@@ -1432,7 +1432,7 @@ class Penangan(BaseHTTPRequestHandler):
                     "Centang persetujuan Kebijakan Privasi dulu, ya.",
                     'Nama panggilan anak wajib diisi, maksimal 40 karakter.',
                     'Pilih kelas sekolah 1–6 atau Kelas belum diisi.',
-                    'Pilih variasi soal untuk latihan awal.',
+                    'Pilihan variasi soal tidak sah. Muat ulang formulir pendaftaran.',
                 ):
                     aman = "Isian pendaftaran belum dapat digunakan."
                     status = 400

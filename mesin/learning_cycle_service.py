@@ -360,6 +360,41 @@ def _occurrence_berikutnya(kon, putaran_id, rencana):
     return max(cocok, default=0) + 1
 
 
+def mulai_dengan_variasi(kon: sqlite3.Connection, siswa_id: int, profil: str) -> tuple[int, bool]:
+    """Inisialisasi rencana dan sesi pertama atomik; caller mengotorisasi siswa.
+
+    Pilihan manual tidak memanggil ini. Retry form awal hanya menunjuk sesi
+    pemetaan pertama, tidak membuat sesi berikutnya atau mengganti profil lama.
+    """
+    from templates import LEVEL
+    if type(profil) is not str or profil not in LEVEL:
+        raise ValueError('Pilih satu variasi soal untuk pemetaan pertama.')
+    kon.execute('SAVEPOINT mulai_variasi')
+    try:
+        siswa = kon.execute('SELECT tingkat FROM siswa WHERE id=?', (siswa_id,)).fetchone()
+        if siswa is None:
+            raise ValueError('siswa tidak dikenal')
+        if siswa['tingkat'] != '':
+            if siswa['tingkat'] != profil:
+                raise ValueError('Variasi rencana sudah dipilih. Muat ulang halaman anak.')
+            sesi = kon.execute(
+                """SELECT id FROM sesi WHERE siswa_id=? AND level=? AND tujuan='pemetaan'
+                   AND dibatalkan IS NULL ORDER BY id LIMIT 1""", (siswa_id, profil),
+            ).fetchone()
+            if sesi is None:
+                raise ValueError('Variasi rencana sudah dipilih. Muat ulang halaman anak.')
+            hasil = (sesi['id'], False)
+        else:
+            kon.execute("UPDATE siswa SET tingkat=? WHERE id=? AND tingkat=''", (profil, siswa_id))
+            hasil = buat_dari_rekomendasi(kon, siswa_id)
+        kon.execute('RELEASE SAVEPOINT mulai_variasi')
+        return hasil
+    except Exception:
+        kon.execute('ROLLBACK TO SAVEPOINT mulai_variasi')
+        kon.execute('RELEASE SAVEPOINT mulai_variasi')
+        raise
+
+
 def buat_dari_rekomendasi(
     kon: sqlite3.Connection, siswa_id: int
 ) -> tuple[int, bool]:
@@ -376,6 +411,8 @@ def buat_dari_rekomendasi(
         ).fetchone()
         if siswa is None:
             raise ValueError("siswa tidak dikenal")
+        if siswa['tingkat'] == '':
+            raise ValueError('Pilih variasi untuk pemetaan pertama di halaman anak.')
         putaran_id = _putaran_aktif(kon, siswa_id, siswa["tingkat"])
         if putaran_id is None:
             putaran_id = database.buat_putaran_fokus(

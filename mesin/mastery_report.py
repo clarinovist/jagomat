@@ -126,6 +126,11 @@ def _rincian_target(target, hasil, tanggal):
 
 def render_peta(peta, tanggal, ringkas=False, *, siswa_id=0, materi='', status='semua', halaman='1'):
     kelas = html.escape(label_kelas(peta.level))
+    if peta.level == '':
+        return ('<section class="kartu peta-materi-st" id="peta-penguasaan">'
+                '<h2>Progres penguasaan materi Jagomat</h2>'
+                '<p>Variasi rencana belum dipilih. Pilih saat menyiapkan pemetaan pertama '
+                'di tab Rencana belajar. Latihan manual tetap dapat dibuat dengan variasi pilihanmu.</p></section>')
     if not peta.target:
         return ('<section class="kartu peta-materi-st" id="peta-penguasaan">'
                 '<h2>Progres penguasaan materi Jagomat</h2>'

@@ -134,8 +134,11 @@ def _jalankan(kon, jenis, identitas, aksi, guru, data):
         layanan.proses_aksi(kon, identitas, data)
         return f"/anak/{identitas}"
     if data:
-        raise GalatForm("Rencana dihitung ulang oleh server.")
-    sesi_id, _ = layanan.buat_dari_rekomendasi(kon, identitas)
+        if set(data) != {'profil_parameter'}:
+            raise GalatForm("Rencana dihitung ulang oleh server.")
+        sesi_id, _ = layanan.mulai_dengan_variasi(kon, identitas, data['profil_parameter'])
+    else:
+        sesi_id, _ = layanan.buat_dari_rekomendasi(kon, identitas)
     return f"/sesi/{sesi_id}"
 
 

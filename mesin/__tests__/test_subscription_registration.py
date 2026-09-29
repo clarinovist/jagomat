@@ -61,12 +61,12 @@ def test_off_sebelum_akun_dibuat(tmp_path):
     assert list(tmp_path.iterdir())==[]
 
 
-def _daftar_web(args,kw,monkeypatch,*,cutoff,sakelar=None):
+def _daftar_web(args,kw,monkeypatch,*,cutoff,sakelar=None,profil_parameter='P4'):
     monkeypatch.setattr(r,'CUTOFF_AKTIVASI',cutoff)
     return r.daftar_web(args[0],args[1],args[2],operasi_id=kw['operasi_id'],
                         alias=kw['alias'],sandi=kw['sandi'],token_form=kw['token_form'],
                         sekarang=kw['sekarang'],sakelar=sakelar,nama_anak='Profil Sintetis',
-                        kelas_sekolah=None,profil_parameter='P4')
+                        kelas_sekolah=None,profil_parameter=profil_parameter)
 
 
 def test_daftar_web_tanpa_aktivasi_tetap_mendaftar_tanpa_enrollment(baru,monkeypatch):
@@ -88,6 +88,18 @@ def test_daftar_web_aktif_mensinkron_lewat_cutoff(baru,monkeypatch):
         baris=kon.execute('SELECT asal FROM langganan_enrollment WHERE akun_id=?',
                           (hasil.akun.id_akun,)).fetchone()
         assert baris['asal']=='publik'
+
+
+def test_daftar_web_aktif_tanpa_variasi_tetap_sinkron(baru, monkeypatch):
+    args, kw = baru
+    hasil = _daftar_web(args, kw, monkeypatch, cutoff=T0, sakelar=ON, profil_parameter=None)
+    assert hasil.status_langganan == 'tersinkron'
+    with database.buka(args[2]) as kon:
+        assert kon.execute('SELECT tingkat FROM siswa WHERE id=?', (hasil.akun.siswa_id,)).fetchone()[0] == ''
+    awal = args[1].read_bytes()
+    ulang = _daftar_web(args, kw, monkeypatch, cutoff=T0, sakelar=ON, profil_parameter=None)
+    assert ulang.akun.id_akun == hasil.akun.id_akun and args[1].read_bytes() == awal
+    assert st.baca(args[0], hasil.akun.id_akun).enrollment.mulai == T0
 
 
 def test_daftar_web_aktif_tanpa_sakelar_efektif_tetap_mendaftar(baru,monkeypatch):

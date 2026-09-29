@@ -1377,6 +1377,11 @@ tr.sorot-baru, div.sorot-baru {{
 .daftar-editorial-st .masuk-field-st {{ gap: {T.SP_2}; }}
 .daftar-editorial-st .masuk-field-st label {{ font-size: .85rem; color: {T.TEKS_JUDUL}; }}
 .daftar-editorial-st .masuk-field-st input {{ min-height: {T.TINGGI_KONTROL}; border-color: {T.BORDER_VARIAN}; }}
+.daftar-editorial-st .masuk-field-st select {{
+  font: inherit; font-size: 1rem; min-height: {T.TINGGI_KONTROL};
+  border-radius: {T.RADIUS_SEDANG}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
+  background: {T.LATAR_KARTU}; padding: 0 {T.SP_3}; width: 100%;
+}}
 .daftar-editorial-st .daftar-petunjuk-st {{ font-size: {T.UKURAN_TEKS_META}; color: {T.TEKS_VARIAN}; line-height: 1.65; margin: 0; }}
 .daftar-editorial-st .daftar-persetujuan-st {{ background: {T.LATAR_CATATAN}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius: {T.RADIUS_SEDANG}; padding: {T.SP_3}; }}
 .daftar-editorial-st .koreksi-centang-st {{ gap: {T.SP_3}; margin: 0; align-items: flex-start; font: 400 .8rem/1.7 {T.FONT_BODY}; color: {T.TEKS_VARIAN}; cursor: pointer; }}
@@ -1395,8 +1400,9 @@ tr.sorot-baru, div.sorot-baru {{
 .daftar-editorial-st .masuk-galat-st p {{ margin: {T.SP_1} 0 0; }}
 .daftar-editorial-st .pesan-st {{ padding: {T.SP_3} {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; background: {T.LATAR_SEKUNDER_LEMBUT}; border-radius: {T.RADIUS_SEDANG}; font-size: .85rem; color: {T.TEKS_VARIAN}; overflow-wrap: anywhere; }}
 .daftar-editorial-st .pesan-st p {{ margin: {T.SP_1} 0 0; }}
-.daftar-editorial-st :is(a, button, input):focus-visible,
-.daftar-editorial-st .masuk-field-st input:focus-visible {{ outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: 3px; box-shadow: none; }}
+.daftar-editorial-st :is(a, button, input, select):focus-visible,
+.daftar-editorial-st .masuk-field-st input:focus-visible,
+.daftar-editorial-st .masuk-field-st select:focus-visible {{ outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: 3px; box-shadow: none; }}
 .daftar-editorial-st .daftar-kaki-st {{ font-size: {T.UKURAN_TEKS_META}; text-align: center; color: {T.TEKS_VARIAN}; margin: {T.SP_5} 0 0; }}
 @media (max-width: 59.99rem), (max-height: 36rem) {{
   .daftar-editorial-st {{ max-width: 32rem; padding: 0; }}

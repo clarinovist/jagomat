@@ -367,12 +367,14 @@ def _gagal_registrasi(failpoint, titik):
 
 def daftar_dengan_profil(path_admin, path_auth, path_db, *, operasi_id, alias,
                         sandi, token_form, nama_anak, kelas_sekolah,
-                        profil_parameter, sekarang=None, failpoint=None):
+                        profil_parameter=None, sekarang=None, failpoint=None):
     """Saga DB→auth: intent, profil commit, lalu publish akun+receipt atomik.
 
     Intent tidak menerbitkan akun/login. Crash sesudah DB commit dapat dipulihkan
     request exact; profil hilang dengan receipt committed tidak diciptakan ulang.
     Receipt publik v1 tetap kompatibel; field saga terpisah tidak memuat anak.
+    None berarti belum memilih variasi; disimpan kosong, bukan default dari kelas.
+    Pilihan eksplisit lama tetap sah agar binding/retry saga tidak berubah.
     """
     import sqlite3
     import time
@@ -387,8 +389,10 @@ def daftar_dengan_profil(path_admin, path_auth, path_db, *, operasi_id, alias,
         raise ValueError('Nama panggilan anak tidak sah.')
     if kelas_sekolah is not None and (type(kelas_sekolah) is not int or not 1 <= kelas_sekolah <= 6):
         raise ValueError('Pilih kelas sekolah 1–6 atau Kelas belum diisi.')
-    if type(profil_parameter) is not str or not level_valid(profil_parameter):
-        raise ValueError('Pilih variasi soal untuk latihan awal.')
+    if profil_parameter is None:
+        profil_parameter = ''
+    elif type(profil_parameter) is not str or not level_valid(profil_parameter):
+        raise ValueError('Pilihan variasi soal tidak sah. Muat ulang formulir pendaftaran.')
     if type(sandi) is not str or not 8 <= len(sandi) <= 4096:
         raise ValueError('Kata sandi minimal 8 karakter.')
     if type(token_form) is not str or _TOKEN_FORM.fullmatch(token_form) is None:

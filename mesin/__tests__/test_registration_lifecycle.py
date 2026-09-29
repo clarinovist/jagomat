@@ -12,12 +12,12 @@ import database
 from test_admin_backup import _buat_bundle
 
 
-def buat(tmp_path, status='selesai'):
+def buat(tmp_path, status='selesai', *, profil_parameter='P4'):
     bundle=_buat_bundle(tmp_path)
     pd=bundle/'latihan.db';pa=bundle/'admin-control.db';ph=bundle/'sandi.json'
     reg.migrasikan_profil_registrasi(pd)
     kw=dict(operasi_id='register_lifecycle_01',alias='ortu-lifecycle',sandi='sandi-lifecycle-sintetis',
-            token_form='x'*64,nama_anak='Profil Sintetis',kelas_sekolah=4,profil_parameter='P4',sekarang=10)
+            token_form='x'*64,nama_anak='Profil Sintetis',kelas_sekolah=4,profil_parameter=profil_parameter,sekarang=10)
     if status=='selesai':reg.daftar_dengan_profil(pa,ph,pd,**kw)
     else:
         with pytest.raises(reg.RegistrasiBelumSelesai):
@@ -42,6 +42,20 @@ def test_backup_registrasi_terkait_dan_pending(tmp_path,titik):
     assert hasil.operasi_registrasi_profil_pending==(0 if titik=='selesai' else 1)
     assert hasil.perlu_rekonsiliasi==(titik!='selesai')
     assert awal=={p.name:p.read_bytes() for p in b.iterdir()}
+
+
+@pytest.mark.parametrize('titik', ['setelah_intent', 'setelah_db', 'selesai'])
+def test_backup_rehearsal_profil_belum_dipilih(tmp_path, titik):
+    bundle, kw = buat(tmp_path, titik, profil_parameter=None)
+    awal = {p.name: p.read_bytes() for p in bundle.iterdir()}
+    hasil = backup.rehearsal_bundle(bundle, migrator_ai=ai_store.siapkan, target_registrasi=True)
+    assert hasil.operasi_registrasi_profil_pending == (0 if titik == 'selesai' else 1)
+    assert awal == {p.name: p.read_bytes() for p in bundle.iterdir()}
+    reg.daftar_dengan_profil(bundle / 'admin-control.db', bundle / 'sandi.json', bundle / 'latihan.db', **kw)
+    with database.buka(bundle / 'latihan.db') as kon:
+        baris = kon.execute('SELECT tingkat FROM siswa WHERE pemilik=?', (kw['alias'],)).fetchone()
+        assert baris[0] == ''
+        assert not kon.execute('PRAGMA foreign_key_check').fetchone()
 
 
 @pytest.mark.parametrize('rusak',['tanpa_schema','tanpa_intent','public_account','public_hash','public_target',

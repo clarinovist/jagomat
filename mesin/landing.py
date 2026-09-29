@@ -82,7 +82,7 @@ def halaman_daftar(
     nama = nama yang diketik pengguna (dikembalikan supaya tidak mengetik ulang).
     """
     import learning_profile_ui
-    import question_variants_ui
+    from templates import level_valid
     kotak = ""
     if pesan:
         kelas = "masuk-galat-st" if galat else "pesan-st"
@@ -108,6 +108,12 @@ def halaman_daftar(
     token = (
         f'<input type="hidden" name="token_form" value="{html.escape(token_form, quote=True)}">'
         if token_form else ""
+    )
+    # Form lama yang sedang retry tetap mengirim pilihan exact, tanpa meminta
+    # pengguna baru memilih konfigurasi sebelum melihat latihan.
+    profil_lama = (
+        f'<input type="hidden" name="profil_parameter" value="{html.escape(profil_parameter, quote=True)}">'
+        if level_valid(profil_parameter) else ''
     )
     isi = f"""
 <main class="daftar-editorial-st" aria-labelledby="judul-daftar">
@@ -161,8 +167,7 @@ Profil anak pertama dibuat bersama akunmu. Akun login anak bisa dibuat nanti.</p
     {learning_profile_ui.opsi_kelas(kelas_sekolah)}</select>
     <p class="daftar-petunjuk-st" id="petunjuk-kelas-daftar">Kelas sekolah hanya informasi profil, bukan penentu kemampuan.</p>
   </div>
-  {question_variants_ui.kontrol_variasi('daftar-anak', profil_parameter, ringkas=True)}
-  <p class="daftar-petunjuk-st">Variasi ini menjadi pengaturan latihan awal dan dapat diubah dari profil anak.</p>
+  {profil_lama}
   <div class="daftar-persetujuan-st">
    <label class="koreksi-centang-st" for="setuju">
     <input type="checkbox" id="setuju" name="setuju" value="1" required>

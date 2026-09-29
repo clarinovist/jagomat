@@ -34,7 +34,7 @@ def test_form_akun_profil_kelas_opsional_dan_get_tanpa_write(server):
     assert kode==200 and auth.BERKAS_SANDI.read_bytes()==a and database.BAWAAN.read_bytes()==d
     assert 'name="nama_anak" required maxlength="40"' in isi
     assert '<label for="kelas-anak-daftar">Kelas sekolah (opsional)</label>' in isi
-    assert 'name="profil_parameter"' in isi and 'Pilih variasi soal' in isi
+    assert 'name="profil_parameter"' not in isi and 'Pilih variasi soal' not in isi
     assert 'type="email"' not in isi and 'type="tel"' not in isi
 
 
@@ -60,9 +60,8 @@ def test_http_pasangan_dibuat_tanpa_enrollment_dan_replay(server):
     with admin_store.buka_baca(admin_store.BAWAAN) as c:assert not c.execute('SELECT 1 FROM langganan_enrollment').fetchone()
 
 
-@pytest.mark.parametrize('field',['nama_anak','profil_parameter'])
-def test_http_field_profil_hilang_ditolak_tanpa_akun(server,field):
-    data=form(server);del data[field];awal=auth.BERKAS_SANDI.read_bytes()
+def test_http_nama_anak_hilang_ditolak_tanpa_akun(server):
+    data=form(server);del data['nama_anak'];awal=auth.BERKAS_SANDI.read_bytes()
     code,_,header=server.minta('/daftar',data=data)
     assert code in (200,400) and 'Set-Cookie' not in header
     assert auth.BERKAS_SANDI.read_bytes()==awal

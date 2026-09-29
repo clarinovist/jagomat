@@ -43,6 +43,8 @@ def konteks_warisan(template_id: str, profil_parameter: str) -> KonteksSoal:
 
 def label_profil_parameter(profil: str) -> str:
     """Label konfigurasi, tidak menebak kelas sekolah atau kemampuan."""
+    if profil == '':
+        return 'Variasi belum dipilih'
     nama = {'P3': 'Variasi A', 'P4': 'Variasi B', 'P5': 'Variasi C', 'P6': 'Variasi D'}
     return nama[profil] if profil in LEVEL else 'Konfigurasi lama: ' + str(profil)
 

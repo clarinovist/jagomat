@@ -212,15 +212,23 @@ menutup putaran, mengubah sesi, atau menghapus bukti. Admin menggunakan aksi,
 token tinjauan, journal dan receipt kelas sekolah yang terpisah. Aksi/event level
 lama tetap historis dengan arti profil parameter warisan.
 
-Anak baru memilih konfigurasi latihan awal secara eksplisit; kelas sekolah
-opsional dan tidak menentukan pilihan tersebut. Di UI, P3/P4/P5/P6 bernama
+Pendaftaran akun dan profil anak pertama tidak meminta konfigurasi latihan;
+kelas sekolah opsional dan tidak menentukan variasi. `siswa.tingkat=''` menandai
+variasi rencana belum dipilih, bukan default P3 atau penilaian kemampuan.
+Penambahan anak lewat pengelolaan akun tetap memakai pilihan eksplisit existing.
+Di UI, P3/P4/P5/P6 bernama
 **Variasi A/B/C/D**: pembeda konfigurasi, bukan urutan kemampuan. Pengaturan latihan
 awal dipisahkan dari identitas anak; header profil hanya menampilkan nama dan kelas.
 Panduan native menampilkan pola dari komposisi registry dan contoh deterministik
 per materi/variasi, bukan deskripsi kesulitan yang belum dikalibrasi. Contoh bukan
 soal sesi yang akan dibuat. Kode historis tetap di nilai kiriman/penyimpanan dan
-rincian teknis. Inisialisasi tanpa pilihan belum diaktifkan; tidak ada default
-tersembunyi dari kelas sekolah. Anak lama mempertahankan konfigurasi warisannya.
+rincian teknis. Anak lama mempertahankan konfigurasi warisannya; retry registrasi
+lama tetap mengikat pilihan awal yang sama. Profil belum dipilih tidak membuat
+putaran/sesi terpandu pada GET maupun POST tanpa pilihan. Tab Rencana belajar
+menawarkan panduan contoh dan pilihan eksplisit untuk menyiapkan pemetaan pertama;
+variasi dan sesi pertama disimpan atomik, gagal berarti rollback keduanya. Retry
+pilihan yang sama menunjuk sesi pertama, bukan membuat sesi berikutnya; pilihan
+berbeda pada tab lama ditolak. Inisialisasi bukan event pergantian level.
 Form manual/gabungan menampilkan pilihan variasi serta seluruh materi;
 server menolak kombinasi yang tidak tersedia, tidak mengganti profil diam-diam.
 Pemetaan bukan prasyarat latihan manual. Rencana terpandu masih memakai profil
@@ -236,6 +244,11 @@ atau tidak cocok. Histori tanpa marker tetap format lama, tanpa backfill otomati
 Komposisi eksplisit di luar inventaris tetap latihan; konteks inventarisnya kosong,
 bukan klaim tuntutan kemampuan. Sesi campuran profil belum diaktifkan dan tidak
 boleh disimpan dengan satu level palsu.
+
+Registrasi tanpa pilihan memerlukan recovery yang memahami state kosong serta
+retry saga tersebut; baseline yang masih mewajibkan variasi tidak cukup untuk
+merilis penulis baru. Schema tetap sama, tetapi kontrak writer berubah: gate
+fingerprint/pasangan exact dan rehearsal tidak boleh dilewati.
 
 ### Data warisan
 

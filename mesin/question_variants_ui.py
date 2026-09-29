@@ -33,6 +33,8 @@ def kontrol_variasi(identitas, terpilih=None, *, ringkas=False):
 
 def detail_kode(profil):
     """Kode untuk penelusuran histori, bukan identitas atau jenjang anak."""
+    if profil == '':
+        return ''
     return ('<details class="variasi-kode"><summary>Detail pengaturan latihan</summary>'
             '<p>' + html.escape(label_profil_parameter(profil))
             + ' · Kode konfigurasi: ' + html.escape(str(profil))

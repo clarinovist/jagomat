@@ -70,7 +70,7 @@ def test_post_daftar_membuat_akun_guru_dan_login(server):
         server.alamat + "/daftar",
         data=urllib.parse.urlencode(
             {"nama": "orangtua-budi", "sandi": SANDI_BARU, "setuju": "1", "token_form": token_form,
-             "nama_anak": "Profil Sintetis", "kelas_sekolah": "4", "profil_parameter": "P4"}
+             "nama_anak": "Profil Sintetis", "kelas_sekolah": "4"}
         ).encode(),
         method="POST",
     )
@@ -84,6 +84,8 @@ def test_post_daftar_membuat_akun_guru_dan_login(server):
     assert akun is not None
     assert akun.get("peran") == "guru"
     assert auth.periksa("orangtua-budi", SANDI_BARU)
+    with server.buka() as kon:
+        assert kon.execute('SELECT tingkat FROM siswa WHERE pemilik=?', ('orangtua-budi',)).fetchone()[0] == ''
     # auto-login: cookie sesi diberikan
     assert any("osn_sesi=" in v for k, v in header.items() if k.lower() == "set-cookie")
 

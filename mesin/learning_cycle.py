@@ -789,6 +789,8 @@ def rencana_berikutnya(
     """Turunkan satu rekomendasi deterministik tanpa side effect."""
     if siswa_id != bukti.siswa_id:
         raise ValueError("bukti bukan milik siswa")
+    if bukti.level_aktif == '':
+        return RencanaBelajar('pilih_variasi', 'Pilih variasi untuk pemetaan pertama')
     from cycle_carry import bukti_lanjutan
     bukti = tanpa_pilot(bukti)
     hari = hari_ini or domain_clock.hari_wib()
@@ -896,7 +898,7 @@ def pengingat_berikutnya(bukti: BuktiSiklus, siswa_id: int,
     Rencana lengkap tetap tersedia di tabnya meskipun pengingat tidak ditampilkan.
     """
     rencana = rencana_berikutnya(bukti, siswa_id, hari_ini)
-    if rencana.tindakan in {"tunggu_pemetaan", "tunggu_evaluasi", "tunggu_checkpoint", "mixed_maintenance"}:
+    if rencana.tindakan in {"pilih_variasi", "tunggu_pemetaan", "tunggu_evaluasi", "tunggu_checkpoint", "mixed_maintenance"}:
         return None
     if rencana.tindakan == "pemetaan" and not (
         rencana.putaran and rencana.putaran.tanggal_pemetaan
@@ -1157,7 +1159,7 @@ def pilih_rencana_pilot(rencana):
 def prioritas_warisan(bukti, hari_ini=None):
     """Pilot opsional tidak mengambil alih tugas wajib yang sudah berjalan."""
     rencana = rencana_berikutnya(bukti,bukti.siswa_id,hari_ini)
-    if rencana.tindakan in ('mixed_maintenance','tunggu_pemetaan','tunggu_checkpoint','tunggu_evaluasi'):
+    if rencana.tindakan in ('pilih_variasi','mixed_maintenance','tunggu_pemetaan','tunggu_checkpoint','tunggu_evaluasi'):
         return None
     if rencana.tindakan=='pemetaan' and not (rencana.putaran and rencana.putaran.tanggal_pemetaan):
         return None

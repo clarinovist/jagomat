@@ -53,6 +53,9 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
 - Nama modul Inggris; fungsi/variabel, docstring, UI dan commit Bahasa Indonesia.
   Commit conventional (`fix(murid): …`). Nilai visual melalui `design_tokens.py`
   (`T.*`); jangan hardcode hex di modul lain. Satu aksi, satu entry point.
+- Registrasi boleh menyimpan `siswa.tingkat=''` (variasi belum dipilih), tanpa
+  default dari kelas atau backfill. Manual memilih per sesi; layanan siklus
+  menginisialisasi variasi dan pemetaan pertama secara atomik dari pilihan eksplisit.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
   Pendamping tidak boleh mengambil alih reducer atau konfirmasi bukti belajar.
 - Lokal memakai `mesin/.venv/bin/python` (3.9.6); CI/container 3.12. Kode kompatibel

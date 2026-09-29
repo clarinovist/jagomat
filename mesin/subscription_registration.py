@@ -56,7 +56,7 @@ def daftar(path_admin, path_auth, path_db, *, operasi_id, alias, sandi, token_fo
 
 
 def daftar_web(path_admin, path_auth, path_db, *, operasi_id, alias, sandi, token_form,
-               sekarang, nama_anak, kelas_sekolah, profil_parameter, sakelar=None):
+               sekarang, nama_anak, kelas_sekolah, profil_parameter=None, sakelar=None):
     """Jalur /daftar: pendaftaran selalu berjalan; sinkron hanya saat aktif penuh.
 
     Sinkron enrollment menuntut DUA kondisi eksplisit: `CUTOFF_AKTIVASI` ditetapkan

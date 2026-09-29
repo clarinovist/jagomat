@@ -49,8 +49,8 @@ def test_form_sandi_dan_persetujuan_tetap(pesan, galat):
     assert set(kolom) == {'nama','sandi','setuju','nama_anak'}
     assert 'required' in kolom['nama_anak'] and kolom['nama_anak']['maxlength']=='40'
     pilihan={a['name']:a for a in m.cari('select')}
-    assert set(pilihan)=={'kelas_sekolah','profil_parameter'}
-    assert 'required' not in pilihan['kelas_sekolah'] and 'required' in pilihan['profil_parameter']
+    assert set(pilihan)=={'kelas_sekolah'}
+    assert 'required' not in pilihan['kelas_sekolah']
     assert kolom['nama']['autocomplete'] == 'username'
     assert kolom['nama']['value'] == 'pendamping-demo'
     assert kolom['sandi']['autocomplete'] == 'new-password'
@@ -110,6 +110,8 @@ def test_style_scoped_tidak_mengubah_login_dan_form_publik_lain():
     assert T.AKSEN_KORAL_TUA in css and T.AKSEN_TEAL_TUA in css
     assert 'outline: 3px' in css
     assert '.daftar-editorial-st .masuk-field-st input:focus-visible' in css
+    assert '.daftar-editorial-st .masuk-field-st select:focus-visible' in css
+    assert re.search(r'\.daftar-editorial-st \.masuk-field-st select\s*\{[^}]*min-height:', css)
     def luminansi(warna):
         nilai = warna.lstrip('#')
         if len(nilai) == 3:
