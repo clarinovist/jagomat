@@ -52,6 +52,181 @@ def contoh_variasi(topik, profil):
             _badan_soal(soal, paket, namespace='contoh-' + topik + '-' + profil))
 
 
+def _pola_soal(topik, profil):
+    paket = topics.ambil(topik)
+    return tuple(dict.fromkeys(
+        nama_tipe_soal(tid) for tid in paket.komposisi.get(profil, ())
+    ))
+
+
+def _nama_isi(topik, profil):
+    """Nama ringkas dari komposisi nyata; tidak mengarang tingkat kesulitan."""
+    pola = _pola_soal(topik, profil)
+    profil_lain = [
+        set(_pola_soal(topik, kandidat))
+        for kandidat in LEVEL
+        if kandidat != profil and kandidat in topics.ambil(topik).komposisi
+    ]
+    urutan = {nama: indeks for indeks, nama in enumerate(pola)}
+    utama = sorted(
+        pola,
+        key=lambda nama: (sum(nama in lain for lain in profil_lain), urutan[nama]),
+    )[:2]
+    if not utama:
+        return 'Isi latihan belum tersedia'
+    nama = ' dan '.join(utama) if len(utama) < 2 else ', '.join(utama)
+    sisa = len(pola) - len(utama)
+    return nama + (f' + {sisa} pola lain' if sisa else '')
+
+
+def _template_contoh(topik, profil):
+    """Utamakan pola pembeda; jika komposisi sama, angka contoh tetap mengikuti profil."""
+    paket = topics.ambil(topik)
+    kandidat = paket.komposisi[profil]
+    komposisi_lain = [
+        set(komposisi)
+        for profil_lain, komposisi in paket.komposisi.items()
+        if profil_lain != profil
+    ]
+    urutan = {tid: indeks for indeks, tid in enumerate(kandidat)}
+    return min(
+        kandidat,
+        key=lambda tid: (sum(tid in komposisi for komposisi in komposisi_lain), urutan[tid]),
+    )
+
+
+@lru_cache(maxsize=64)
+def _contoh_isi(topik, profil):
+    validasi_pilihan([topik], profil)
+    paket = topics.ambil(topik)
+    tid = _template_contoh(topik, profil)
+    soal = buat_lembar(42, urutan=(tid,), level=profil, topik=topik).soal[0]
+    return (nama_tipe_soal(tid),
+            _badan_soal(soal, paket, namespace='pilih-isi-' + topik + '-' + profil))
+
+
+def _topik_tersedia(topik_ids, profil):
+    return tuple(
+        topik for topik in topik_ids
+        if topik != 'campuran' and profil in topics.ambil(topik).komposisi
+    )
+
+
+def _kartu_isi(profil, topik_ids, identitas, terpilih, *, pemetaan=False):
+    topik_ids = tuple(topik_ids)
+    pola_per_topik = [(topik, _pola_soal(topik, profil)) for topik in topik_ids]
+    jumlah_pola = len({pola for _topik, daftar in pola_per_topik for pola in daftar})
+    if pemetaan:
+        nama_isi = f'{len(topik_ids)} materi · {jumlah_pola} pola soal'
+        ringkasan = '<b>Cakupan:</b> ' + '; '.join(
+            '<span><b>%s:</b> %s pola soal</span>' % (
+                html.escape(topics.ambil(topik).nama), len(pola)
+            ) for topik, pola in pola_per_topik
+        ) + '.'
+    elif len(topik_ids) == 1:
+        nama_isi = _nama_isi(topik_ids[0], profil)
+        ringkasan = '<b>Pola soal:</b> ' + html.escape(', '.join(pola_per_topik[0][1])) + '.'
+    else:
+        nama_isi = f'{len(topik_ids)} materi · {jumlah_pola} pola soal'
+        ringkasan = '<b>Cakupan:</b> ' + '; '.join(
+            '<span><b>%s:</b> %s</span>' % (
+                html.escape(topics.ambil(topik).nama), html.escape(', '.join(pola))
+            ) for topik, pola in pola_per_topik
+        ) + '.'
+    contoh_topik = topik_ids[0]
+    nama_contoh, contoh = _contoh_isi(contoh_topik, profil)
+    kode = html.escape(profil, quote=True)
+    id_radio = f'{identitas}-profil-{kode}'
+    checked = ' checked' if profil == terpilih else ''
+    konteks = 'pemetaan' if pemetaan else ','.join(topik_ids)
+    return (
+        f'<article class="variasi-pilihan" data-contoh="{html.escape(konteks, quote=True)}:{kode}">'
+        f'<label class="variasi-label" for="{id_radio}">'
+        f'<input type="radio" name="profil_parameter" value="{kode}"{checked} '
+        f'id="{id_radio}" required>'
+        '<span class="variasi-identitas"><span class="variasi-penanda">'
+        + html.escape(label_profil_parameter(profil))
+        + '</span><strong class="variasi-nama-isi">' + html.escape(nama_isi)
+        + '</strong><span class="variasi-ringkasan">' + ringkasan + '</span></span></label>'
+        '<details class="variasi-contoh-dekat"><summary>Contoh salah satu '
+        + ('materi' if pemetaan or len(topik_ids) > 1 else 'soal') + ': '
+        + html.escape(nama_contoh) + '</summary><div class="variasi-soal">' + contoh
+        + '</div><p class="profil-petunjuk-st">Contoh dari '
+        + html.escape(topics.ambil(contoh_topik).nama)
+        + '; angka dan bentuk soal sesi dapat berbeda.</p></details></article>'
+    )
+
+
+def pemilih_isi(topik_ids, identitas, terpilih=None):
+    """Radio isi kontekstual untuk satu atau beberapa topik, tanpa pilihan otomatis."""
+    topik_ids = tuple(dict.fromkeys(topik_ids))
+    if not topik_ids:
+        identitas = html.escape(identitas, quote=True)
+        return (
+            f'<fieldset class="pilih-isi-latihan" aria-describedby="{identitas}-profil-bantuan">'
+            '<legend>Pilih isi latihan</legend><p class="variasi-kosong" '
+            f'id="{identitas}-profil-bantuan">Pilih minimal dua materi, lalu tekan '
+            '<b>Bandingkan isi</b> untuk melihat pilihan yang tersedia.</p></fieldset>'
+        )
+    if any(topik not in topics.daftar_topik() for topik in topik_ids):
+        raise ValueError('Pilih materi latihan sebelum membandingkan isi.')
+    if 'campuran' in topik_ids:
+        if topik_ids != ('campuran',):
+            raise ValueError('Campuran tidak dapat digabungkan sebagai materi biasa.')
+        tersedia = tuple(LEVEL)
+        topik_ids = ('campuran',)
+    else:
+        tersedia = tuple(
+            profil for profil in LEVEL
+            if all(profil in topics.ambil(topik).komposisi for topik in topik_ids)
+        )
+    if not tersedia:
+        identitas = html.escape(identitas, quote=True)
+        return (
+            f'<fieldset class="pilih-isi-latihan" aria-describedby="{identitas}-profil-bantuan">'
+            '<legend>Pilih isi latihan</legend><p class="variasi-kosong" '
+            f'id="{identitas}-profil-bantuan">Belum ada variasi yang tersedia untuk seluruh materi pilihan. '
+            'Ubah materi, lalu bandingkan lagi.</p></fieldset>'
+        )
+    identitas = html.escape(identitas, quote=True)
+    kartu = ''.join(_kartu_isi(p, topik_ids, identitas, terpilih) for p in tersedia)
+    konteks = (
+        '<input type="hidden" name="versi_pilihan_isi" value="1">'
+        + ''.join(
+            '<input type="hidden" name="topik_dibandingkan" value="%s">'
+            % html.escape(topik, quote=True)
+            for topik in topik_ids
+        )
+    )
+    return (
+        f'<fieldset class="pilih-isi-latihan" aria-describedby="{identitas}-profil-bantuan">'
+        + konteks
+        + '<legend>Pilih isi latihan</legend><p class="profil-petunjuk-st" '
+        f'id="{identitas}-profil-bantuan">Bandingkan pola dan contohnya, lalu pilih yang ingin dilatih. '
+        'Variasi A–D hanya penanda; huruf bukan urutan kemampuan atau kelas anak.</p>'
+        f'<div class="variasi-pilihan-daftar">{kartu}</div></fieldset>'
+    )
+
+
+def pemilih_pemetaan(identitas, terpilih=None):
+    """Pilihan eksplisit untuk cakupan pemetaan lintas materi per profil warisan."""
+    semua_topik = tuple(t for t in topics.daftar_topik() if t != 'campuran')
+    identitas = html.escape(identitas, quote=True)
+    kartu = ''.join(
+        _kartu_isi(profil, _topik_tersedia(semua_topik, profil), identitas, terpilih,
+                   pemetaan=True)
+        for profil in LEVEL
+    )
+    return (
+        f'<fieldset class="pilih-isi-latihan pilih-isi-pemetaan" '
+        f'aria-describedby="{identitas}-profil-bantuan"><legend>Pilih isi untuk pemetaan pertama</legend>'
+        f'<p class="profil-petunjuk-st" id="{identitas}-profil-bantuan">'
+        'Setiap pilihan memetakan materi dan pola soal yang tersedia pada konfigurasi itu. '
+        'Variasi A–D hanya penanda; huruf bukan urutan kemampuan atau kelas anak.</p>'
+        f'<div class="variasi-pilihan-daftar">{kartu}</div></fieldset>'
+    )
+
+
 @lru_cache(maxsize=4)
 def panduan_variasi(*, ringkas=False, judul="Bandingkan isi dan contoh soal"):
     """Daftar pola nyata; onboarding menyimpan penjelasan lanjut dalam details."""
@@ -114,5 +289,25 @@ GAYA_VARIASI = f"""
 .variasi-contoh h4 {{ margin:0; color:{T.TEKS_JUDUL}; }}
 .variasi-soal {{ overflow-x:auto; padding:{T.SP_3} 0; }}
 .variasi-soal svg {{ max-width:100%; height:auto; }}
+.pilih-isi-latihan {{ min-width:0; margin:0; padding:0; border:0; }}
+.pilih-isi-latihan > legend {{ padding:0; color:{T.TEKS_JUDUL}; font-weight:700; }}
+.pilih-isi-latihan > .profil-petunjuk-st {{ margin:{T.SP_1} 0 {T.SP_3}; color:{T.TEKS_VARIAN}; line-height:1.55; }}
+.variasi-pilihan-daftar {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr)); gap:{T.SP_3}; }}
+.variasi-pilihan {{ min-width:0; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_SEDANG}; background:{T.LATAR_KARTU}; padding:{T.SP_3}; }}
+.variasi-pilihan:has(input:checked) {{ border:2px solid {T.AKSEN_TEAL_TUA}; background:{T.LATAR_TERSIMPAN}; }}
+.variasi-label {{ display:flex; align-items:flex-start; gap:{T.SP_3}; min-height:{T.TARGET_SENTUH}; cursor:pointer; }}
+.variasi-label input {{ flex:none; margin-top:.25rem; }}
+.variasi-identitas {{ display:grid; gap:{T.SP_1}; min-width:0; }}
+.variasi-penanda {{ color:{T.AKSEN_TEAL_TUA}; font-size:{T.UKURAN_TEKS_META}; font-weight:700; }}
+.variasi-nama-isi {{ color:{T.TEKS_JUDUL}; line-height:1.35; overflow-wrap:anywhere; }}
+.variasi-ringkasan {{ color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.5; overflow-wrap:anywhere; }}
+.variasi-ringkasan > span {{ display:block; margin-top:{T.SP_1}; }}
+.variasi-pilihan:focus-within {{ outline:{T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset:2px; }}
+.variasi-contoh-dekat {{ margin-top:{T.SP_2}; border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
+.variasi-contoh-dekat > summary {{ min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} 0; color:{T.AKSEN_TEAL_TUA}; cursor:pointer; line-height:1.4; }}
+.variasi-contoh-dekat > .profil-petunjuk-st {{ color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.5; }}
+.variasi-kosong {{ margin:{T.SP_2} 0; padding:{T.SP_3}; border:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius:{T.RADIUS_KECIL}; background:{T.LATAR_CATATAN}; }}
+.profil-workspace-st .variasi-bandingkan {{ width:fit-content; min-height:{T.TARGET_SENTUH}; margin-top:{T.SP_2}; padding:{T.SP_2} {T.SP_3}; border:{T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius:{T.RADIUS_KECIL}; background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; font:inherit; font-weight:650; cursor:pointer; }}
+.profil-workspace-st .variasi-bandingkan:hover {{ background:{T.LATAR_SEKUNDER_LEMBUT}; }}
 .pengaturan-awal {{ border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KECIL}; margin:{T.SP_4} 0; padding:{T.SP_4}; min-width:0; }}
 """

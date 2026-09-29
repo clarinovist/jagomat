@@ -373,10 +373,12 @@ File CSS per permukaan (semuanya `import design_tokens as T`):
 - Profil: “Ubah kelas” dekat identitas, tujuan pengelolaan tetap. Pengingat rencana
   hanya menampilkan tindakan yang ditentukan reducer dan tautan “Buka rencana”; tidak
   mengulang heading generik atau berpura-pura langsung melanjutkan sesi.
-- Tab jenis latihan tampil sebelum bantuan kecil “Lihat contoh soal”. Contoh dan
-  disclaimer tetap lengkap dalam satu disclosure native; batas latihan manual tetap
-  tersedia lewat ikon Info di sebelahnya. Paragraf instruksi umum sebelum form dihapus.
-  Tidak ada perubahan nilai/payload isian, checkbox, rekomendasi atau bukti belajar.
+- Tab jenis latihan tampil sebelum bantuan ringkas; batas latihan manual tetap
+  tersedia lewat ikon Info. Untuk pembuatan sesi, panduan katalog terpisah diganti
+  kartu radio **Pilih isi latihan**: nama isi dan cakupan dari registry, A–D sebagai
+  penanda sekunder, contoh deterministik dalam disclosure di tiap kartu. Topik berada
+  sebelum kartu; tombol sekunder memperbarui perbandingan server-side tanpa JS atau
+  write DB. CTA pembuatan tetap satu. Form akun lama tetap memakai panduan ringkasnya.
 
 ## Refactor token lintas UI (27 Sep 2026)
 

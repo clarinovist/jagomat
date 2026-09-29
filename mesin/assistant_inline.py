@@ -212,12 +212,17 @@ def parse_draf_latihan(data: Mapping[str, Sequence[str]], topik_sah: Sequence[st
     )
 
 
-def parse_draf_gabungan(data: Mapping[str, Sequence[str]], topik_sah: Sequence[str]) -> DrafGabungan:
-    """Draf form gabungan request-local; tidak membuat sesi atau keputusan belajar."""
-    wajib = {"jumlah_soal", "mode", "format_jawaban", "profil_parameter"}
-    if not wajib <= set(data) <= wajib | {"topik"} or any(not nilai for nilai in data.values()):
+def parse_draf_gabungan(
+    data: Mapping[str, Sequence[str]], topik_sah: Sequence[str], *, profil_wajib: bool = True
+) -> DrafGabungan:
+    """Draf form gabungan request-local; tahap bandingkan boleh belum memilih profil."""
+    wajib = {"jumlah_soal", "mode", "format_jawaban"}
+    diizinkan = wajib | {"topik", "profil_parameter"}
+    if not wajib <= set(data) <= diizinkan or any(not nilai for nilai in data.values()):
         raise GalatInline("Field latihan gabungan tidak lengkap atau asing.")
-    if any(len(data[nama]) != 1 for nama in wajib - {"topik"}):
+    if any(len(data[nama]) != 1 for nama in wajib):
+        raise GalatInline("Field latihan gabungan ganda tidak diizinkan.")
+    if len(data.get("profil_parameter", ())) > 1:
         raise GalatInline("Field latihan gabungan ganda tidak diizinkan.")
     topik = tuple(data.get("topik", ()))
     sah = set(topik_sah) - {"campuran"}
@@ -227,11 +232,12 @@ def parse_draf_gabungan(data: Mapping[str, Sequence[str]], topik_sah: Sequence[s
         or data["jumlah_soal"][0] not in ("10", "15", "20")
         or data["mode"][0] not in ("drill", "diagnostik")
         or data["format_jawaban"][0] not in ("isian", "pilihan_ganda")
-        or data["profil_parameter"][0] not in ("P3", "P4", "P5", "P6")
+        or data.get("profil_parameter", ("",))[0] not in ("", "P3", "P4", "P5", "P6")
+        or (profil_wajib and data.get("profil_parameter", ("",))[0] == "")
     ):
         raise GalatInline("Nilai latihan gabungan tidak sah.")
     return DrafGabungan(topik, data["jumlah_soal"][0], data["mode"][0],
-                        data["format_jawaban"][0], data["profil_parameter"][0])
+                        data["format_jawaban"][0], data.get("profil_parameter", ("",))[0])
 
 
 def parse_draf_remedial(data: Mapping[str, Sequence[str]], template_sah: Sequence[str]) -> DrafRemedial:

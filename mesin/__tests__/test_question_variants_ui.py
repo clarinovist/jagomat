@@ -27,14 +27,37 @@ def test_identitas_anak_bukan_konfigurasi_soal():
     assert 'P6' not in kepala and 'Konteks latihan' not in kepala
 
 
-def test_form_satu_pilihan_eksplisit_dan_panduan_tanpa_js():
-    isi = teacher_pages._kontrol_profil_parameter('manual', 'P5')
-    assert 'Variasi soal' in isi and 'bukan tingkat kemampuan atau kelas anak' in isi
-    assert isi.count('name="profil_parameter"') == 1
-    assert '<option value="P5" selected>Variasi C</option>' in isi
-    assert 'aria-describedby="manual-profil-bantuan"' in isi
-    assert 'href="#panduan-variasi"' not in isi  # Satu pintu bantuan di summary form.
-    assert 'Profil P' not in isi and '<script' not in isi
+def test_pemilih_isi_menjadikan_huruf_sekunder_dan_contoh_kontekstual():
+    from question_variants_ui import pemilih_isi
+    isi = pemilih_isi(('pola-bilangan',), 'manual', 'P5')
+    assert '<legend>Pilih isi latihan</legend>' in isi
+    assert isi.count('name="profil_parameter"') == 4
+    assert '<input type="radio" name="profil_parameter" value="P5"' in isi
+    assert ' checked' in isi
+    assert '<span class="variasi-penanda">Variasi C</span>' in isi
+    assert '<strong class="variasi-nama-isi">' in isi
+    assert 'Pola soal:' in isi and 'Contoh salah satu soal:' in isi
+    assert 'data-contoh="pola-bilangan:P5"' in isi
+    assert 'bukan urutan kemampuan' in isi
+    assert '<select' not in isi and '<script' not in isi
+
+
+def test_pemilih_isi_hanya_menawarkan_irisan_topik_dan_tidak_fallback():
+    from question_variants_ui import pemilih_isi
+    isi = pemilih_isi(('aritmatika-lanjut', 'pola-bilangan'), 'gabungan')
+    assert isi.count('name="profil_parameter"') == 2
+    assert 'value="P5"' in isi and 'value="P6"' in isi
+    assert 'value="P3"' not in isi and 'value="P4"' not in isi
+    assert 'Aritmatika Lanjut' in isi and 'Pola Bilangan' in isi
+
+
+def test_pemilih_campuran_mengikuti_komposisi_campuran_bukan_irisan_semua_topik():
+    from question_variants_ui import pemilih_isi
+    isi = pemilih_isi(('campuran',), 'manual')
+    assert isi.count('name="profil_parameter"') == 4
+    assert 'value="P3"' in isi and 'value="P6"' in isi
+    assert 'data-contoh="campuran:P3"' in isi
+    assert 'Campuran Semua Topik' in isi
 
 
 @pytest.mark.parametrize('topik', [t for t in topics.daftar_topik() if t != 'campuran'])
@@ -80,6 +103,18 @@ def test_panduan_mencakup_registry_tanpa_klaim_jenjang():
             assert 'data-contoh="%s:%s"' % (topik, profil) in isi
             for tid in set(komposisi):
                 assert html.escape(nama_tipe_soal(tid)) in isi
+
+
+def test_pilihan_pemetaan_menjelaskan_cakupan_tanpa_klaim_kemampuan():
+    from question_variants_ui import pemilih_pemetaan
+    isi = pemilih_pemetaan('rencana-awal')
+    assert isi.count('name="profil_parameter"') == 4
+    assert 'materi' in isi and 'pola soal' in isi
+    assert 'Contoh salah satu materi:' in isi
+    assert len(isi) < 50_000  # cakupan pemetaan diringkas, bukan katalog seluruh pola.
+    assert 'Variasi A' in isi and 'Variasi D' in isi
+    assert 'kelas anak' in isi and 'Mudah' not in isi and 'Sulit' not in isi
+    assert '<script' not in isi
 
 
 def test_panduan_ringkas_hanya_memindah_penjelasan_bukan_isi_contoh():

@@ -46,18 +46,20 @@ def test_ubah_kelas_di_identitas_tujuan_tetap(peran, tujuan):
     assert 'Kelas 2' in h and 'Contoh &lt;uji&gt;' in h
 
 
-def test_pilihan_latihan_mendahului_bantuan_tanpa_instruksi_ganda(db):
+def test_pilihan_latihan_menjelaskan_isi_di_dekat_topik_tanpa_instruksi_ganda(db):
     kon, sid, _ = db
     siswa = kon.execute('SELECT * FROM siswa WHERE id=?', (sid,)).fetchone()
     awal = tuple(kon.iterdump())
     h = teacher_pages.halaman_anak(kon, siswa, pengguna='guru').decode()
     assert tuple(kon.iterdump()) == awal
     assert 'Pilih materi dan bentuk latihan.' not in h
-    assert h.count('<summary>Lihat contoh soal</summary>') == 1
-    assert h.index('<div class="tab-bar-st">') < h.index('<summary>Lihat contoh soal</summary>') < h.index('id="manual-profil"')
-    assert h.count('id="panduan-variasi"') == 1
+    assert '<summary>Lihat contoh soal</summary>' not in h
+    panel = h.split('id="form-latihan-manual-', 1)[1].split('</form>', 1)[0]
+    assert panel.index('id="manual-topik"') < panel.index('<legend>Pilih isi latihan</legend>')
+    assert panel.count('name="profil_parameter"') == 4
+    assert 'data-contoh="pola-bilangan:P3"' in panel
     assert teacher_pages.INFO_LATIHAN_BEBAS in h
     assert h.count('name="jenis-latihan"') >= 2
     assert 'name="topik"' in h and 'type="checkbox"' in h
-    assert 'Variasi isi soal, bukan tingkat kemampuan atau kelas anak.' in h
+    assert 'huruf bukan urutan kemampuan' in h
     assert 'Pilihan ganda untuk latihan manual, belum menjadi bukti penguasaan.' in h

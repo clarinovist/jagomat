@@ -1787,6 +1787,44 @@ class Penangan(BaseHTTPRequestHandler):
             )
             # Checkbox bernama sama -> parse_qs mengembalikan LIST.
             dipilih = [t.strip() for t in data.get("topik", []) if t.strip()]
+            aksi_form = data.get("aksi_form", [])
+            versi_pilihan = data.get("versi_pilihan_isi", [])
+            topik_dibandingkan = data.get("topik_dibandingkan", [])
+            if aksi_form:
+                if aksi_form != ["bandingkan"]:
+                    return self._kirim(
+                        _halaman("Form tidak sah", "<p>Aksi latihan tidak dikenal.</p>"), 400
+                    )
+                ident = self._identitas()
+                data_draf = {
+                    k: v for k, v in data.items()
+                    if k not in {
+                        "aksi_form", "inline_form", "versi_pilihan_isi", "topik_dibandingkan",
+                    }
+                }
+                with database.buka() as kon:
+                    if not self._bisa_lihat_siswa(kon, siswa_id):
+                        return self._kirim(
+                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+                        )
+                    if len(dipilih) < 2:
+                        return self._kirim(
+                            _halaman("Pilih materi", "<p>Pilih minimal dua materi untuk dibandingkan.</p>"), 400
+                        )
+                    try:
+                        from assistant_inline import parse_draf_gabungan
+                        draf = parse_draf_gabungan(data_draf, daftar_topik(), profil_wajib=False)
+                    except ValueError as galat:
+                        return self._kirim(
+                            _halaman("Latihan belum dibandingkan", '<p>' + html.escape(str(galat)) + '</p>'), 400
+                        )
+                    siswa = kon.execute("SELECT * FROM siswa WHERE id=?", (siswa_id,)).fetchone()
+                    return self._kirim(
+                        halaman_anak(
+                            kon, siswa, peran=ident[1] if ident else "guru",
+                            pengguna=ident[0] if ident else "", draf_gabungan=draf,
+                        )
+                    )
             sah = set(daftar_topik())
             asing = [t for t in dipilih if t not in sah]
             if asing:
@@ -1800,6 +1838,17 @@ class Penangan(BaseHTTPRequestHandler):
                         + " tidak terdaftar.</p>",
                     ),
                     400,
+                )
+            if (versi_pilihan or topik_dibandingkan) and (
+                versi_pilihan != ["1"]
+                or dipilih != topik_dibandingkan
+                or len(dipilih) != len(set(dipilih))
+            ):
+                return self._kirim(
+                    _halaman(
+                        "Bandingkan ulang isi latihan",
+                        "<p>Pilihan materi berubah atau belum dibandingkan. Tekan Bandingkan isi, lalu pilih isinya.</p>",
+                    ), 409,
                 )
             try:
                 jumlah = int((data.get("jumlah_soal") or ["10"])[0] or 10)
@@ -1973,6 +2022,40 @@ class Penangan(BaseHTTPRequestHandler):
                 keep_blank_values=True,
             )
             pilihan_topik = (data.get("topik") or [TOPIK_BAWAAN])[0].strip()
+            aksi_form = data.get("aksi_form", [])
+            versi_pilihan = data.get("versi_pilihan_isi", [])
+            topik_dibandingkan = data.get("topik_dibandingkan", [])
+            if aksi_form:
+                if aksi_form != ["bandingkan"]:
+                    return self._kirim(
+                        _halaman("Form tidak sah", "<p>Aksi latihan tidak dikenal.</p>"), 400
+                    )
+                ident = self._identitas()
+                data_draf = {
+                    k: v for k, v in data.items()
+                    if k not in {
+                        "aksi_form", "inline_form", "versi_pilihan_isi", "topik_dibandingkan",
+                    }
+                }
+                with database.buka() as kon:
+                    if not self._bisa_lihat_siswa(kon, siswa_id):
+                        return self._kirim(
+                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+                        )
+                    try:
+                        from assistant_inline import parse_draf_latihan
+                        draf = parse_draf_latihan(data_draf, daftar_topik())
+                    except ValueError as galat:
+                        return self._kirim(
+                            _halaman("Latihan belum dibandingkan", '<p>' + html.escape(str(galat)) + '</p>'), 400
+                        )
+                    siswa = kon.execute("SELECT * FROM siswa WHERE id=?", (siswa_id,)).fetchone()
+                    return self._kirim(
+                        halaman_anak(
+                            kon, siswa, peran=ident[1] if ident else "guru",
+                            pengguna=ident[0] if ident else "", draf_latihan=draf,
+                        )
+                    )
             if pilihan_topik not in daftar_topik():
                 # Topik asing = salah ketik pemanggil: ditolak jelas, BUKAN
                 # jatuh diam-diam ke pola bilangan. Pesan menyebut daftar
@@ -1984,6 +2067,15 @@ class Penangan(BaseHTTPRequestHandler):
                     f"{', '.join(html.escape(t) for t in daftar_topik())}.</p>"
                 )
                 return self._kirim(_halaman("Topik tidak dikenal", pesan), 400)
+            if (versi_pilihan or topik_dibandingkan) and (
+                versi_pilihan != ["1"] or topik_dibandingkan != [pilihan_topik]
+            ):
+                return self._kirim(
+                    _halaman(
+                        "Bandingkan ulang isi latihan",
+                        "<p>Topik berubah atau belum dibandingkan. Tekan Perbarui pilihan isi, lalu pilih isinya.</p>",
+                    ), 409,
+                )
             sesi_id = None
             nama_siswa = None
             with database.buka() as kon:

@@ -67,12 +67,12 @@ def test_http_daftar_baru_dan_semua_halaman_profil(server):
         assert kode == 200, (url, kode)
         assert 'Konfigurasi lama: ' not in isi
         if url == '/anak/%d' % sid:
-            assert 'Lihat contoh soal' in isi
-            assert '<option value="P3" selected>' not in isi
-            assert 'name="profil_parameter"' in isi
+            assert '<legend>Pilih isi latihan</legend>' in isi
+            assert '<input type="radio" name="profil_parameter" value="P3" checked' not in isi
+            assert 'data-contoh="pola-bilangan:P3"' in isi
         if 'section=rencana' in url:
-            assert 'Pilih variasi untuk pemetaan pertama' in isi
-            assert 'Bandingkan isi dan contoh soal' in isi
+            assert 'Pilih isi untuk pemetaan pertama' in isi
+            assert 'Contoh salah satu materi:' in isi
     with server.buka() as kon:
         assert tuple(kon.iterdump()) == awal
 

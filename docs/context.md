@@ -54,8 +54,10 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
   Commit conventional (`fix(murid): …`). Nilai visual melalui `design_tokens.py`
   (`T.*`); jangan hardcode hex di modul lain. Satu aksi, satu entry point.
 - Registrasi boleh menyimpan `siswa.tingkat=''` (variasi belum dipilih), tanpa
-  default dari kelas atau backfill. Manual memilih per sesi; layanan siklus
-  menginisialisasi variasi dan pemetaan pertama secara atomik dari pilihan eksplisit.
+  default dari kelas atau backfill. `question_variants_ui.py` merender pilihan isi
+  dan contoh dari registry aktual; persiapan form manual/gabungan hanya membawa draf
+  request-local. Layanan siklus menginisialisasi variasi dan pemetaan pertama secara
+  atomik dari pilihan eksplisit.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
   Pendamping tidak boleh mengambil alih reducer atau konfirmasi bukti belajar.
 - Lokal memakai `mesin/.venv/bin/python` (3.9.6); CI/container 3.12. Kode kompatibel

@@ -21,9 +21,10 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
 - Pendamping AI inline untuk orang tua; usulan latihan memerlukan tinjauan dan
   konfirmasi, bukan perubahan diagnosis atau bukti belajar otomatis.
 - Akun keluarga, pengelolaan murid, langganan dan pembayaran. Pendaftaran membuat
-  profil anak pertama tanpa meminta variasi soal; kelas sekolah opsional. Variasi
-  dipilih saat menyiapkan latihan dengan panduan contoh, bukan ditebak dari kelas.
-  Detail paket/aktivasi mengikuti kontraknya, bukan keberadaan kode.
+  profil anak pertama tanpa meminta variasi soal; kelas sekolah opsional. Saat
+  menyiapkan latihan, orang tua membandingkan nama isi, cakupan, dan contoh yang
+  sesuai materi lalu memilih eksplisit; A–D hanya penanda sekunder, bukan kelas atau
+  urutan kemampuan. Detail paket/aktivasi mengikuti kontraknya, bukan keberadaan kode.
 
 ## Kontrak belajar utama
 

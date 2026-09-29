@@ -653,9 +653,11 @@ def _kontrol_mode_sesi(draf=None) -> str:
     )
 
 
-def _kontrol_profil_parameter(identitas, terpilih=None):
-    """Pilih konfigurasi eksplisit dengan panduan isi, bukan jenjang kemampuan."""
-    from question_variants_ui import kontrol_variasi
+def _kontrol_profil_parameter(identitas, terpilih=None, topik_ids=None):
+    """Pilih isi kontekstual; dropdown warisan hanya untuk caller lama terbatas."""
+    from question_variants_ui import kontrol_variasi, pemilih_isi
+    if topik_ids is not None:
+        return pemilih_isi(topik_ids, identitas, terpilih)
     return kontrol_variasi(identitas, terpilih)
 
 
@@ -812,13 +814,18 @@ def halaman_anak(
             target, dalam_form=True, status_akses=status_akses,
         )
 
+    topik_manual = draf_latihan.topik if draf_latihan else TOPIK_BAWAAN
     strip_sesi = (
         f'<form id="form-latihan-manual-{siswa["id"]}" method="post" action="/sesi-baru/{siswa["id"]}" class="strip-sesi profil-manuel-st">'
         '<div class="profil-champs-st">'
-        + _kontrol_profil_parameter('manual', getattr(draf_latihan, 'profil_parameter', siswa['tingkat']))
         + f'<div class="strip-kolom"><label for="manual-topik">Topik</label>'
-        f'<select id="manual-topik" name="topik" class="st-input">{opsi_topik}</select></div>'
-        '<div class="strip-kolom"><label for="manual-jumlah">Jumlah soal</label>'
+        f'<select id="manual-topik" name="topik" class="st-input">{opsi_topik}</select>'
+        '<button type="submit" name="aksi_form" value="bandingkan" formnovalidate '
+        'class="variasi-bandingkan">Perbarui pilihan isi</button></div>'
+        + _kontrol_profil_parameter(
+            'manual', getattr(draf_latihan, 'profil_parameter', siswa['tingkat']), (topik_manual,)
+        )
+        + '<div class="strip-kolom"><label for="manual-jumlah">Jumlah soal</label>'
         '<select id="manual-jumlah" name="jumlah_soal" class="st-input" aria-describedby="manual-jumlah-petunjuk">'
         + "".join(
             f'<option value="{nilai}"'
@@ -863,17 +870,23 @@ def halaman_anak(
         for t in daftar_topik()
         if t != "campuran"      # campuran sudah = semua, tak perlu dicentang
     )
+    topik_gabungan = tuple(draf_gabungan.topik) if draf_gabungan else ()
     strip_gabungan = (
         f'<form id="form-latihan-gabungan-{siswa["id"]}" method="post" '
         f'action="/sesi-gabungan/{siswa["id"]}" class="strip-sesi">'
         '<input type="hidden" name="inline_form" value="gabungan">'
-        + _kontrol_profil_parameter('gabungan', getattr(draf_gabungan, 'profil_parameter', siswa['tingkat']))
         + '<div class="strip-kolom">'
         "<label>Latihan gabungan — pilih beberapa topik</label>"
         '<p class="sub">Centang dua topik atau lebih. Soalnya dicampur '
         "bergantian antar-topik yang kamu pilih.</p>"
-        f'<div class="mode-pilih">{centang_topik}</div></div>{kontrol_format("gabungan", getattr(draf_gabungan, "format_jawaban", "isian"))}'
-        '<div class="strip-kolom">'
+        f'<div class="mode-pilih">{centang_topik}</div>'
+        '<button type="submit" name="aksi_form" value="bandingkan" formnovalidate '
+        'class="variasi-bandingkan">Bandingkan isi</button></div>'
+        + _kontrol_profil_parameter(
+            'gabungan', getattr(draf_gabungan, 'profil_parameter', siswa['tingkat']), topik_gabungan
+        )
+        + f'{kontrol_format("gabungan", getattr(draf_gabungan, "format_jawaban", "isian"))}'
+        + '<div class="strip-kolom">'
         '<span id="gabungan-mode-label">Mode latihan</span>'
         '<div class="mode-pilih" role="radiogroup" aria-labelledby="gabungan-mode-label">'
         '<label class="mode-opsi"><input type="radio" name="mode" value="drill"' + (' checked' if not draf_gabungan or draf_gabungan.mode == 'drill' else '') + '>'
@@ -911,10 +924,10 @@ def halaman_anak(
     if strip_gabungan:
         panel.append(("gabungan", "library_add", "Gabungan topik", strip_gabungan))
 
-    from question_variants_ui import panduan_variasi, detail_kode
+    from question_variants_ui import detail_kode
     panduan = (
-        '<div class="profil-aide-st info-baris">'
-        + panduan_variasi(judul="Lihat contoh soal")
+        '<div class="profil-aide-st info-baris"><p class="sub">'
+        'Pilih topik, lalu bandingkan isi dan contoh pada pilihan di bawah.</p>'
         + f'<button type="button" class="info" aria-label="{html.escape(INFO_LATIHAN_BEBAS, quote=True)}">'
         f'i<span class="info-bubble" role="tooltip">{html.escape(INFO_LATIHAN_BEBAS)}</span></button></div>'
     ) if section == 'latihan' else ''
