@@ -83,3 +83,21 @@ def test_shim_scripts_meneruskan_ke_modul_kanonis():
     import rekonsiliasi_langganan as kanonis
     assert modul.main is kanonis.main
     assert modul.prod is prod
+
+
+def test_shim_menang_walau_scripts_mendahului_mesin(monkeypatch):
+    """Regresi urutan batch: `scripts/` di depan sys.path tidak boleh membuat
+    shim mengimpor salinan dirinya sendiri (sirkular) alih-alih modul kanonis."""
+    import importlib
+    monkeypatch.setattr(sys, "path", list(sys.path))
+    monkeypatch.delitem(sys.modules, "rekonsiliasi_langganan", raising=False)
+    sys.path.insert(0, str(AKAR.parent / "scripts"))
+    if str(AKAR) in sys.path:
+        sys.path.remove(str(AKAR))
+    sys.path.append(str(AKAR))
+    spec = importlib.util.spec_from_file_location("rekonsiliasi_shim_urut", SHIM)
+    modul = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modul)
+    kanonis = importlib.import_module("rekonsiliasi_langganan")
+    assert Path(kanonis.__file__) == AKAR / "rekonsiliasi_langganan.py"
+    assert modul.main is kanonis.main

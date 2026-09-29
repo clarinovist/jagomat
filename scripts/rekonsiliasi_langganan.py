@@ -18,8 +18,13 @@ import sys
 from pathlib import Path
 
 AKAR = Path(__file__).resolve().parents[1]
-if str(AKAR / "mesin") not in sys.path:
-    sys.path.insert(0, str(AKAR / "mesin"))
+# Modul kanonis harus menang atas shim ini sendiri walau `scripts/` sudah
+# tersisip lebih dulu di sys.path (mis. urutan koleksi tes): pindahkan entri
+# mesin ke posisi 0, bukan hanya menambah bila belum ada.
+_MESIN = str(AKAR / "mesin")
+while _MESIN in sys.path:
+    sys.path.remove(_MESIN)
+sys.path.insert(0, _MESIN)
 
 import subscription_produksi as prod  # noqa: E402,F401  (dipakai test/alat dev)
 from rekonsiliasi_langganan import main  # noqa: E402
