@@ -1,5 +1,26 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Rilis registrasi tanpa variasi dan UX orang tua — 29 September 2026
+
+Recovery source dipatok ke **`14bf222c15cb8a8a22592ae3dfd2da48e4ad0c15`**:
+registrasi menerima variasi belum dipilih dan dapat melanjutkan intent/receipt
+kosong, dengan UI sebelum penyederhanaan Pendamping/kartu/header. Fingerprint
+candidate/recovery source sama: `05196a2ff3072afa50ec8015235e11dec30b25aaa177ce787ee0121f50a15680`.
+Baseline dibekukan pada branch recovery; seluruh suite serta image B dan C diuji
+bersama pada run final, bukan klaim baseline pernah lolos CI terpisah.
+
+Mode tetap **migrasi**, job `pasang` literal false. Pair registrasi kini mencakup
+enam registrasi sintetis: variasi eksplisit dan kosong, selesai/pending setelah
+intent/pending setelah DB, dilanjutkan recovery lalu replay kandidat tanpa
+duplikasi. Delapan kelompok gate registrasi existing tetap; tidak melewati gate
+untuk memperbarui pin. Recovery lama dc79c82 tetap tes negatif historis.
+
+Tidak ada perubahan schema/migrasi data pengguna dalam rilis ini. Cutover tetap
+memerlukan pasangan image exact teruji, backup CURRENT4DB+auth, rehearsal
+preservasi C→B→C, approval exact dan health. Jangan mengulang migrasi penutupan
+atau mengasumsikan tabel penutupan kosong: data produksi yang ada harus utuh.
+Status CI/deployment dicatat berdasarkan pemeriksaan aktual, bukan keberadaan pin.
+
 ## Kandidat controlled release panel/admin8 — 27 September 2026
 
 Baseline recovery **`6a18cc745b79d31aa6112270732fbbb5a63cbc27`** mempunyai UI

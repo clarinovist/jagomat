@@ -29,8 +29,19 @@ def test_pair_registrasi_c_b_c_pending_selesai_dan_replay(tmp_path):
         hasil=jalankan(src,kode,tmp_path)
         assert hasil.returncode==0,hasil.stderr
     data=json.loads((tmp_path/'registration-pair/recovery.json').read_text())
-    assert len(data['belajar']['siswa'])==len(data['belajar']['registrasi_profil_anak'])==3
+    assert len(data['belajar']['siswa'])==len(data['belajar']['registrasi_profil_anak'])==6
     assert verify_submission_pair.REGISTRASI_BACA==pair.SUMBER_BACA
+
+
+def test_pair_registrasi_kosong_memakai_source_recovery_pinned(tmp_path):
+    sha=json.loads((AKAR/'scripts/release-metadata.json').read_text())['recovery_revision']
+    source=tmp_path/'pinned';source.mkdir();arsip=tmp_path/'pinned.tar'
+    with arsip.open('wb') as out:
+        subprocess.run(['git','-C',str(AKAR),'archive',sha,'mesin'],stdout=out,check=True)
+    with tarfile.open(arsip) as t:ekstrak_tar_aman(t,source)
+    for src,kode in ((AKAR/'mesin',pair.SUMBER_TULIS),(source/'mesin',pair.SUMBER_BACA),(AKAR/'mesin',pair.SUMBER_KEMBALI)):
+        hasil=jalankan(src,kode,tmp_path)
+        assert hasil.returncode==0,hasil.stderr
 
 
 def test_recovery_foto_historical_tidak_mengenal_registrasi(tmp_path):

@@ -25,7 +25,7 @@ def migrasi():
 def kw(n):
     return dict(operasi_id='register_pair_'+str(n),alias='keluarga-pair-reg-'+str(n),
         sandi='sandi-pair-sintetis',token_form=str(n)*64,nama_anak='Profil Sintetis '+str(n),
-        kelas_sekolah=4,profil_parameter='P4',sekarang=now)
+        kelas_sekolah=4,profil_parameter=None if n>=4 else 'P4',sekarang=now)
 def daftar(n,**lain): return reg.daftar_dengan_profil(pa,ph,pd,**kw(n),**lain)
 def status(pending):
     assert admin_backup._validasi_registrasi_profil(pd,ph)==(True,pending), 'status_registrasi_pair'
@@ -40,26 +40,27 @@ awal=snapshot();migrasi()
 assert rows(pa)==awal['admin'] and hashlib.sha256(ph.read_bytes()).hexdigest()==awal['auth']
 assert all(rows(pd).get(t)==r for t,r in awal['belajar'].items()), 'migrasi_registrasi_mengubah_histori'
 assert rows(pd)['registrasi_profil_anak']==[], 'migrasi_registrasi_membuat_receipt'
-daftar(1)
-for n,titik in ((2,'setelah_intent'),(3,'setelah_db')):
+daftar(1);daftar(4)
+for n,titik in ((2,'setelah_intent'),(3,'setelah_db'),(5,'setelah_intent'),(6,'setelah_db')):
     try: daftar(n,failpoint=titik)
     except reg.RegistrasiBelumSelesai: pass
     else: raise AssertionError('failpoint_registrasi_tidak_jalan')
-status(2);simpan('awal.json',snapshot())
+status(4);simpan('awal.json',snapshot())
 print('OSN_REGISTRATION_WRITER_OK')
 '''
 SUMBER_BACA = BERSAMA + r'''
 awal=baca('awal.json');migrasi()
 assert snapshot()==awal, 'recovery_mengubah_intent_receipt'
-status(2)
-for n in (1,2,3):
+status(4)
+for n in (1,2,3,4,5,6):
     satu=daftar(n);snap=snapshot();dua=daftar(n)
     assert satu.id_akun==dua.id_akun and satu.siswa_id==dua.siswa_id
     assert snapshot()==snap, 'replay_registrasi_duplikat'
 status(0)
 with database.buka(pd) as c:
-    assert c.execute('SELECT COUNT(*) FROM siswa').fetchone()[0]==3
-    assert c.execute('SELECT COUNT(*) FROM registrasi_profil_anak').fetchone()[0]==3
+    assert c.execute('SELECT COUNT(*) FROM siswa').fetchone()[0]==6
+    assert c.execute("SELECT COUNT(*) FROM siswa WHERE tingkat=''").fetchone()[0]==3
+    assert c.execute('SELECT COUNT(*) FROM registrasi_profil_anak').fetchone()[0]==6
     for sql in ('DELETE FROM registrasi_profil_anak','UPDATE registrasi_profil_anak SET siswa_id=siswa_id',
                 'INSERT OR REPLACE INTO registrasi_profil_anak SELECT * FROM registrasi_profil_anak'):
         try:c.execute(sql)
@@ -72,7 +73,7 @@ print('OSN_REGISTRATION_RECOVERY_OK')
 SUMBER_KEMBALI = BERSAMA + r'''
 akhir=baca('recovery.json');migrasi();status(0)
 assert snapshot()==akhir, 'return_registrasi_berubah'
-for n in (1,2,3):daftar(n)
+for n in (1,2,3,4,5,6):daftar(n)
 assert snapshot()==akhir, 'return_registrasi_duplikat'
 print('OSN_REGISTRATION_RETURN_OK')
 '''

@@ -105,13 +105,13 @@ def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path, monkeypatch)
         assert hasil["siap_pasang"] is (config["mode"] == "rutin")
 
 
-def test_pin_penutupan_migrasi_wajib_pair_exact_tanpa_deploy():
-    """Baseline penutupan dc79c82: pair exact diwajibkan, pasang literal false."""
+def test_pin_registrasi_kosong_migrasi_wajib_pair_exact_tanpa_deploy():
+    """Baseline tanpa variasi: pair exact diwajibkan, pasang literal false."""
     config = metadata.baca_config(AKAR / 'scripts/release-metadata.json')
     assert config == {
         'versi': 1, 'mode': 'migrasi',
-        'recovery_revision': 'dc79c82d0546602cdd354244eea872f27a03dc95',
-        'recovery_contract': 'f43388f2eee59643723a2f70312cc3ad1ed76a319eaad82163c2959bab4fc866',
+        'recovery_revision': '14bf222c15cb8a8a22592ae3dfd2da48e4ad0c15',
+        'recovery_contract': '05196a2ff3072afa50ec8015235e11dec30b25aaa177ce787ee0121f50a15680',
     }
     metadata.validasi_workflow(ALUR.read_text(), config)
     b = {'revision': config['recovery_revision'], 'digest': 'sha256:'+'b'*64,
