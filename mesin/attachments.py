@@ -824,7 +824,7 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">
 <style>{GAYA_KONFIRMASI}{gaya_stitch()}{CSS_SESI}</style></head>
 <body class="st"><div class="bungkus-st pendamping-editorial-st foto-editorial-st">
-{_topbar_stitch("", "guru").replace('<summary></summary>', '<summary aria-label="Menu pendamping">Menu</summary>')}
+{_topbar_stitch("", "guru")}
 <main class="sesi-badan-st" aria-labelledby="judul-foto">
 <div class="jejak"><a href="/sesi/{sesi_id}">&larr; Kembali ke sesi</a></div>
 <header class="editorial-kepala-st"><p class="editorial-alis-st">DARI KERTAS KE CATATAN</p>

@@ -2,7 +2,7 @@
 
 ## Rilis registrasi tanpa variasi dan UX orang tua — 29 September 2026
 
-Recovery source dipatok ke **`14bf222c15cb8a8a22592ae3dfd2da48e4ad0c15`**:
+Recovery source dipatok ke **`634e077830938dbd3ae20d17e5ac019004e97fc2`**:
 registrasi menerima variasi belum dipilih dan dapat melanjutkan intent/receipt
 kosong, dengan UI sebelum penyederhanaan Pendamping/kartu/header. Fingerprint
 candidate/recovery source sama: `05196a2ff3072afa50ec8015235e11dec30b25aaa177ce787ee0121f50a15680`.

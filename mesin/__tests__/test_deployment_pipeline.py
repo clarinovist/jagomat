@@ -32,16 +32,16 @@ def test_pasang_tertahan_sampai_deployer_dan_policy_rutin_siap():
     assert 'cancel-in-progress: false' in teks
 
 
-def test_pin_penutupan_migrasi_pasang_literal_false():
+def test_pin_registrasi_kosong_migrasi_pasang_literal_false():
     teks=WORKFLOW.read_text()
-    # Baseline penutupan tagihan dc79c82 dipatok mode migrasi; pasangan exact
+    # Baseline registrasi kosong dipatok mode migrasi; pasangan exact
     # candidate/recovery wajib sebelum deploy terkontrol; pasang literal false.
     assert CONFIG['mode']=='migrasi'
-    assert RECOVERY_SHA=='dc79c82d0546602cdd354244eea872f27a03dc95'
-    assert CONFIG['recovery_contract']=='f43388f2eee59643723a2f70312cc3ad1ed76a319eaad82163c2959bab4fc866'
+    assert RECOVERY_SHA=='634e077830938dbd3ae20d17e5ac019004e97fc2'
+    assert CONFIG['recovery_contract']=='05196a2ff3072afa50ec8015235e11dec30b25aaa177ce787ee0121f50a15680'
     assert re.findall(r'^    if: (.+)$',_job(teks,'pasang'),re.M)==['${{ false }}']
     assert "steps.mode.outputs.mode == 'migrasi'" in _job(teks,'bangun')
-    assert 'CI36498678456' in teks
+    assert 'Baseline kosong diuji penuh bersama kandidat' in teks
 
 
 def test_build_candidate_dan_recovery_pakai_digest_yang_sama_untuk_verifikasi():

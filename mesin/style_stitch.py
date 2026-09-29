@@ -2575,7 +2575,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .profil-editorial-st .tautan-sesi-opsi > p {{ margin: 0 0 {T.SP_3}; max-width: 52ch; }}
 .profil-editorial-st .profil-taches-st > .sub {{ margin-bottom: {T.SP_4}; }}
 .profil-editorial-st .meta-sesi-st .nomor-sesi-st {{ white-space: nowrap; }}
-.profil-workspace-st > .jejak {{ margin-bottom: {T.SP_3}; }}
+.profil-editorial-st.profil-workspace-st > .jejak {{ margin-bottom: {T.SP_3}; }}
 @media (min-width: 60rem) {{
   .profil-workspace-st:has(> .pendamping-panel-kanan:not([hidden])) {{ --baris-pendamping: 3; }}
   .profil-workspace-st:has(> .pendamping-panel-kanan:not([hidden])) > .jejak {{ grid-column: 1 / -1; grid-row: 2; }}

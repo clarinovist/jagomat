@@ -433,6 +433,12 @@ def _topbar_stitch(pengguna: str, peran: str) -> str:
     else:
         brand_href, item = "/guru", '<a href="/akun">Akun &amp; Siswa</a>'
     siapa = html.escape(pengguna) if pengguna else ""
+    ringkasan_akun = (
+        '<summary><span class="identitas-akun-st">'
+        f'{_badge_peran(peran)}<span class="nama-akun-st">{siapa}</span></span>'
+        '<span class="panah-akun-st" aria-hidden="true">⌄</span></summary>'
+        if siapa else '<summary aria-label="Menu pendamping">Menu</summary>'
+    )
     return (
         '<div class="st-topbar">'
         f'<a class="brand" href="{brand_href}">'
@@ -441,10 +447,7 @@ def _topbar_stitch(pengguna: str, peran: str) -> str:
         "</a>"
         '<nav class="topbar-navigasi" aria-label="Menu akun">'
         '<details class="menu-pengguna">'
-        '<summary><span class="identitas-akun-st">'
-        f'{_badge_peran(peran)}<span class="nama-akun-st">{siapa}</span></span>'
-        '<span class="panah-akun-st" aria-hidden="true">⌄</span></summary>'
-        f'<div class="menu-isi">{item}'
+        f'{ringkasan_akun}<div class="menu-isi">{item}'
         '<div class="menu-pisah"></div>'
         '<form method="post" action="/keluar" style="margin:0">'
         '<button type="submit" class="cta">Keluar</button>'

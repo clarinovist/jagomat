@@ -110,7 +110,7 @@ def test_pin_registrasi_kosong_migrasi_wajib_pair_exact_tanpa_deploy():
     config = metadata.baca_config(AKAR / 'scripts/release-metadata.json')
     assert config == {
         'versi': 1, 'mode': 'migrasi',
-        'recovery_revision': '14bf222c15cb8a8a22592ae3dfd2da48e4ad0c15',
+        'recovery_revision': '634e077830938dbd3ae20d17e5ac019004e97fc2',
         'recovery_contract': '05196a2ff3072afa50ec8015235e11dec30b25aaa177ce787ee0121f50a15680',
     }
     metadata.validasi_workflow(ALUR.read_text(), config)

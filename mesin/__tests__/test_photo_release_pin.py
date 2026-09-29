@@ -1,4 +1,4 @@
-"""Baseline penutupan tagihan dc79c82 exact, bukan source-copy atau kompatibilitas historis."""
+"""Baseline registrasi kosong exact, bukan source-copy atau kompatibilitas historis."""
 import json
 from pathlib import Path
 import shutil
@@ -18,7 +18,7 @@ import release_quota_pair as pair
 import verify_release_image
 import verify_submission_pair
 
-REVISION='dc79c82d0546602cdd354244eea872f27a03dc95'
+REVISION='634e077830938dbd3ae20d17e5ac019004e97fc2'
 
 
 @pytest.fixture

@@ -38,6 +38,8 @@ JUMLAH_RECOVERY = {
     "adc441959bb08fdbb43ffc8ad3309a6eb01b2fbf": 12663,
     # Koleksi penutupan tagihan: collect-only arsip dc79c82 (2026-09-29).
     "dc79c82d0546602cdd354244eea872f27a03dc95": 12686,
+    # Koleksi exact baseline registrasi kosong 634e077, 2026-09-29.
+    "634e077830938dbd3ae20d17e5ac019004e97fc2": 12727,
 }
 
 
