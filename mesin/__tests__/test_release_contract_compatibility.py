@@ -105,11 +105,11 @@ def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path, monkeypatch)
         assert hasil["siap_pasang"] is (config["mode"] == "rutin")
 
 
-def test_pin_penutupan_migrasi_wajib_pair_exact_tanpa_deploy():
-    """Baseline penutupan dc79c82: pair exact diwajibkan, pasang literal false."""
+def test_baseline_registrasi_kosong_persiapan_tidak_mengaku_siap_deploy():
+    """Baseline memahami variasi kosong; pin historis belum kompatibel."""
     config = metadata.baca_config(AKAR / 'scripts/release-metadata.json')
     assert config == {
-        'versi': 1, 'mode': 'migrasi',
+        'versi': 1, 'mode': 'persiapan',
         'recovery_revision': 'dc79c82d0546602cdd354244eea872f27a03dc95',
         'recovery_contract': 'f43388f2eee59643723a2f70312cc3ad1ed76a319eaad82163c2959bab4fc866',
     }
@@ -117,11 +117,9 @@ def test_pin_penutupan_migrasi_wajib_pair_exact_tanpa_deploy():
     b = {'revision': config['recovery_revision'], 'digest': 'sha256:'+'b'*64,
          'contract': config['recovery_contract']}
     c = {'revision': 'a'*40, 'digest': 'sha256:'+'a'*64,
-         'contract': config['recovery_contract']}
-    hasil = metadata.buat_manifest(config, c, b, pasangan_teruji=True)
-    assert hasil['compatible'] and hasil['pair_verified']
-    assert hasil['requires_controlled_migration'] and not hasil['siap_pasang']
-    with pytest.raises(ValueError, match='belum kompatibel/teruji'):
-        metadata.buat_manifest(config, c, b)
-    with pytest.raises(ValueError, match='tidak cocok dengan anchor'):
-        metadata.buat_manifest(config, c, {**b, 'contract': 'c'*64}, pasangan_teruji=True)
+         'contract': _fingerprint(AKAR / 'mesin')}
+    hasil = metadata.buat_manifest(config, c, b)
+    assert not hasil['compatible'] and not hasil['pair_verified']
+    assert not hasil['requires_controlled_migration'] and not hasil['siap_pasang']
+    with pytest.raises(ValueError, match='Bukti pasangan'):
+        metadata.buat_manifest(config, c, b, pasangan_teruji=True)
