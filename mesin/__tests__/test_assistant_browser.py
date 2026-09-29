@@ -258,15 +258,16 @@ assert.equal(uji.payload(form,tombol,cek,'persetujuan').has('setuju'),false);
 def test_js_fallback_native_membawa_draf_hanya_ke_form_panel():
     _jalankan_js('''
 const elements=[{name:'inline_form',value:'remedial'},{name:'jumlah_soal',value:'20'},
+ {name:'versi_pilihan_isi',value:'1'},{name:'topik_dibandingkan',value:'pola-bilangan'},
  {name:'template_id',value:'pola_a',type:'checkbox',checked:false},
  {name:'jwb_11',value:'DRAF SINTETIS'},{name:'asing',value:'JANGAN SALIN'}];
 uji.pembuka({elements});
 const tambahan=[];
 const form={querySelectorAll:()=>[],appendChild:e=>tambahan.push(e)};
 uji.lengkapiFallback(form);
-assert.equal(tambahan.map(e=>e.name).join(','),'inline_form,jumlah_soal,jwb_11');
-assert.equal(tambahan[2].value,'DRAF SINTETIS');
-assert.equal(elements.length,5,'form pekerjaan tidak diubah');
+assert.equal(tambahan.map(e=>e.name).join(','),'inline_form,jumlah_soal,versi_pilihan_isi,topik_dibandingkan,jwb_11');
+assert.equal(tambahan[4].value,'DRAF SINTETIS');
+assert.equal(elements.length,7,'form pekerjaan tidak diubah');
 ''')
 
 

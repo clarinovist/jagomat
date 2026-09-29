@@ -94,7 +94,7 @@ function lengkapiFallback(form) {
   // Hanya form panel yang dilengkapi, form pekerjaan tidak pernah diubah.
   var pekerjaan = formPekerjaan();
   if (!pekerjaan || form === pekerjaan) return;
-  var draf = /^(inline_form|topik|jumlah_soal|mode|hadir_timer_mode|timer_mode|durasi_menit|timer_auto|format_jawaban|profil_parameter|template_id|sumber_sesi_id|sertakan_pemetaan|hadir_sertakan_pemetaan|(?:jwb_|kode_|cara_|cek_pemahaman_|hadir_dilewati_|dilewati_|hadir_belum_|belum_|catatan_tinjauan_|provenance_|jawaban_bantuan_|versi_tinjauan_)\d+)$/;
+  var draf = /^(inline_form|topik|jumlah_soal|mode|hadir_timer_mode|timer_mode|durasi_menit|timer_auto|format_jawaban|profil_parameter|versi_pilihan_isi|topik_dibandingkan|template_id|sumber_sesi_id|sertakan_pemetaan|hadir_sertakan_pemetaan|(?:jwb_|kode_|cara_|cek_pemahaman_|hadir_dilewati_|dilewati_|hadir_belum_|belum_|catatan_tinjauan_|provenance_|jawaban_bantuan_|versi_tinjauan_)\d+)$/;
   form.querySelectorAll('[data-draf-native]').forEach(function (item) { item.remove(); });
   Array.from(pekerjaan.elements).forEach(function (input) {
     if (!draf.test(input.name) || input.disabled ||
