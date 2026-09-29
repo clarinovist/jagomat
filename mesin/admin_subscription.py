@@ -11,6 +11,7 @@ import admin_launch_service as guard
 import auth
 import midtrans_contract
 import subscription as d
+import subscription_schema as skema
 import subscription_store as store
 
 
@@ -140,16 +141,27 @@ def detail(path,path_auth,principal,akun_id,*,sekarang):
         store.validasi_ledger(kon,akun_id=akun_id)
         grants=store._grants(kon,akun_id)
         akses=d.akses(e,grants,sekarang=sekarang)
+        penutupan={}
+        if skema.tersedia_penutupan(kon):
+            penutupan={x['invoice_id']:dict(x) for x in kon.execute(
+                'SELECT invoice_id,operasi_id,alasan,actor_id,dibuat FROM penutupan_tagihan WHERE akun_id=?',
+                (akun_id,))}
         invoices=[]
         for r in kon.execute('SELECT invoice_id,urutan,rupiah,dibuat,kedaluwarsa,promo,profil_json FROM langganan_invoice WHERE akun_id=? ORDER BY urutan DESC LIMIT 100',(akun_id,)):
             receipts=tuple(dict(x) for x in kon.execute('SELECT hasil,diterima,rupiah FROM langganan_receipt WHERE invoice_id=?',(r['invoice_id'],)))
             grant=next((g for g in grants if g.invoice_id==r['invoice_id']),None)
             observ=kon.execute('SELECT status,diamati FROM langganan_rekonsiliasi WHERE invoice_id=? ORDER BY diamati DESC,operasi_id DESC LIMIT 1',(r['invoice_id'],)).fetchone()
             intent=kon.execute('SELECT 1 FROM langganan_rekonsiliasi WHERE operasi_id=?',('create_'+r['invoice_id'][4:],)).fetchone()
-            status=('perlu_diperiksa' if any(x['hasil']=='perlu_diperiksa' for x in receipts)
+            tutup=penutupan.get(r['invoice_id'])
+            status=('ditutup' if tutup else
+                    'perlu_diperiksa' if any(x['hasil']=='perlu_diperiksa' for x in receipts)
                     else 'lunas' if grant else observ['status'] if observ else 'belum_terverifikasi')
             invoices.append({**dict(r),'status':status,'receipt':receipts,'grant':grant,
-                             'dapat_periksa':bool(intent),'jumlah_profil':len(json.loads(r['profil_json']))})
+                             'ditutup':tutup,
+                             'dapat_periksa':bool(intent),
+                             'dapat_ditutup':bool(tutup is None and grant is None and not receipts
+                                                  and sekarang>=r['kedaluwarsa']),
+                             'jumlah_profil':len(json.loads(r['profil_json']))})
         cakupan=kon.execute('SELECT profil_json,urutan,revisi FROM langganan_cakupan WHERE akun_id=? ORDER BY urutan DESC,revisi DESC LIMIT 1',(akun_id,)).fetchone()
     akun=next((a for a in auth.muat_akun(path_auth) if a.get('id_akun')==akun_id and a.get('peran')=='guru'),None)
     _otorisasi(path_auth,principal)

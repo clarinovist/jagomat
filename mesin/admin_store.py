@@ -335,6 +335,7 @@ def _validasi_skema(kon: sqlite3.Connection) -> None:
     import subscription_schema
     try:
         subscription_schema.validasi(kon)
+        subscription_schema.validasi_penutupan(kon)
     except (ValueError, sqlite3.Error):
         raise StoreBelumSiap("struktur ledger langganan tidak lengkap") from None
     import admin_launch_schema
@@ -536,6 +537,34 @@ def migrasikan_kuota_pendamping(path) -> None:
         if (kon.execute("PRAGMA integrity_check").fetchone()[0] != "ok"
                 or kon.execute("PRAGMA foreign_key_check").fetchone()):
             raise StoreBelumSiap("integritas migrasi kuota gagal")
+        kon.commit()
+    except Exception:
+        kon.rollback()
+        raise
+    finally:
+        kon.close()
+
+
+def migrasikan_penutupan_tagihan(path) -> None:
+    """Migrasi aditif eksplisit tabel penutupan tagihan (tanpa bump versi).
+
+    Tabel penutupan sengaja di luar namespace berversi dan divalidasi
+    optional absent-or-exact pada setiap buka; image lama tetap dapat membuka
+    DB pascamigrasi, sedangkan tabel parsial ditolak tanpa perbaikan diam-diam.
+    Replay hanya memvalidasi. Operator wajib backup/rehearsal sebelum
+    menjalankan pada data nyata; bukan startup/GET.
+    """
+    import subscription_schema
+    kon = _koneksi(_tujuan(path), "rw")
+    try:
+        kon.execute("BEGIN IMMEDIATE")
+        _validasi_skema(kon)
+        if not subscription_schema.tersedia_penutupan(kon):
+            _jalankan_ddl(kon, subscription_schema.DDL_PENUTUPAN)
+        subscription_schema.validasi_penutupan(kon)
+        if (kon.execute("PRAGMA integrity_check").fetchone()[0] != "ok"
+                or kon.execute("PRAGMA foreign_key_check").fetchone()):
+            raise StoreBelumSiap("integritas migrasi penutupan gagal")
         kon.commit()
     except Exception:
         kon.rollback()

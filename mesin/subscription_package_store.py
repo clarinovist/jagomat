@@ -91,8 +91,7 @@ def validasi_ledger(kon, *, akun_id=None):
         d.identitas(akun["operasi_id"], "operasi")
         if akun["kampanye"] is not None:
             lama._kode(akun["kampanye"])
-        if kon.execute("SELECT 1 FROM langganan_invoice i WHERE i.akun_id=? "
-                       "AND NOT EXISTS(SELECT 1 FROM langganan_grant g WHERE g.invoice_id=i.invoice_id)", (ident,)).fetchone():
+        if lama.tagihan_lama_belum_selesai(kon, ident):
             raise Konflik("tagihan lama belum selesai")
         invoices = tuple(dict(r) for r in kon.execute(
             "SELECT * FROM paket_invoice WHERE akun_id=? ORDER BY urutan", (ident,)))
@@ -175,8 +174,7 @@ def adopsi(path, akun_id, *, operasi_id, sekarang, peserta_promo=False, kampanye
             if (ada["operasi_id"], bool(ada["peserta_promo"]), ada["kampanye"]) != (operasi_id, peserta_promo, kampanye):
                 raise Konflik("transisi paket berbeda")
             return dict(ada)
-        if kon.execute("SELECT 1 FROM langganan_invoice i WHERE i.akun_id=? AND NOT EXISTS "
-                       "(SELECT 1 FROM langganan_grant g WHERE g.invoice_id=i.invoice_id)", (akun_id,)).fetchone():
+        if lama.tagihan_lama_belum_selesai(kon, akun_id):
             raise Konflik("tagihan lama belum selesai")
         kon.execute("INSERT INTO paket_akun VALUES(?,?,?,?,?,?)",
                     (akun_id, operasi_id, p.VERSI, sekarang, int(peserta_promo), kampanye))

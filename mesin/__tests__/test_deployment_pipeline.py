@@ -34,9 +34,9 @@ def test_pasang_tertahan_sampai_deployer_dan_policy_rutin_siap():
 
 def test_pin_registrasi_migrasi_pasang_literal_false():
     teks=WORKFLOW.read_text()
-    # Baseline registrasi adc4419 (run persiapan hijau CI36498678456) dipatok
-    # di mode migrasi; pasangan exact wajib sebelum deploy terkontrol.
-    assert CONFIG['mode']=='migrasi'
+    # Jendela persiapan menuju baseline penutupan tagihan: anchor adc4419 tetap,
+    # pair migrasi ditahan sampai baseline baru terverifikasi CI; pasang literal false.
+    assert CONFIG['mode']=='persiapan'
     assert RECOVERY_SHA=='adc441959bb08fdbb43ffc8ad3309a6eb01b2fbf'
     assert CONFIG['recovery_contract']=='f3a2447be6942949590efccefe7224bb6f465d67d65d88e00c7f7106e207162d'
     assert re.findall(r'^    if: (.+)$',_job(teks,'pasang'),re.M)==['${{ false }}']

@@ -207,3 +207,40 @@ def aktifkan_transisi(path, path_auth, principal, *, operasi, akun_id, target_re
                      and (paket is None or paket['operasi_id'] == operasi))
             return 'diaktifkan' if cocok else 'sudah_terdaftar'
         return 'diaktifkan'
+
+
+def tutup_tagihan(path, path_auth, principal, *, operasi, akun_id, invoice_id,
+                  target_revisi, sekarang, sakelar=None):
+    """Tutup ber-audit tagihan v1 kedaluwarsa tanpa receipt/grant milik akun guru.
+
+    Bukti = baris `penutupan_tagihan` immutable (aktor+revisi+sidik); jurnal
+    `layanan_operasi` sengaja TIDAK dipakai karena CHECK `aksi` di schema
+    admin-control terikat kontrak pair rilis. Tidak membuat pembayaran/grant,
+    tidak menghapus data, dan tidak menyentuh auth selain pembacaan terkunci.
+    """
+    import subscription as d
+    import subscription_store as store
+    d.identitas(operasi, 'operasi')
+    d.identitas(akun_id, 'akun')
+    d.identitas(invoice_id, 'invoice')
+    if not (type(target_revisi) is int and target_revisi >= 0):
+        raise ValueError('revisi target tidak sah')
+    with kunci_principal(path_auth, principal) as (_, daftar):
+        target = next((a for a in daftar if a.get('id_akun') == akun_id), None)
+        if (target is None or target.get('peran') not in ('guru',)
+                or auth.revisi_auth(target) != target_revisi):
+            raise LookupError('resource tidak ditemukan')
+        with admin_store.buka_baca(path) as kon:
+            sakelar_pakai = sakelar if sakelar is not None else sakelar_pembayaran(kon)
+            inv = kon.execute(
+                'SELECT 1 FROM langganan_invoice WHERE invoice_id=? AND akun_id=?',
+                (invoice_id, akun_id),
+            ).fetchone()
+        if inv is None:
+            raise LookupError('resource tidak ditemukan')
+        store.tutup_tagihan(
+            path, akun_id, invoice_id, operasi_id=operasi,
+            actor_id=principal.id_akun, actor_revisi=principal.revisi_auth,
+            sekarang=sekarang, sakelar=sakelar_pakai,
+        )
+    return 'ditutup'

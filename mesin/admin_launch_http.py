@@ -42,9 +42,18 @@ def get(penangan,p,q):
             r=billing.detail(h._path_admin(),auth.BERKAS_SANDI,p,q['id'],sekarang=kini)
             forms={}
             target=next((a for a in auth.muat_akun() if a.get('id_akun')==q['id'] and a.get('peran')=='guru'),None)
+            if p.metode=='cookie' and target:
+                for inv in r['invoices']:
+                    if inv.get('dapat_ditutup'):
+                        meta=dict(akun=q['id'],invoice=inv['invoice_id'],revisi=auth.revisi_auth(target))
+                        c,t=_form(penangan,p,'tutup_tagihan',meta)
+                        forms[inv['invoice_id']]=ui.formulir('tutup',c,t,
+                            '<p>Tagihan <strong>%s</strong> kedaluwarsa tanpa pembayaran. Menutup menandai tagihan selesai untuk transisi paket; tidak menghapus data dan tidak membuat pembayaran.</p>'%ui.e(inv['invoice_id']),
+                            'Tutup tagihan',
+                            konfirmasi='Tutup tagihan %s sebagai kedaluwarsa tanpa pembayaran? Tindakan ber-audit dan tidak dapat dibatalkan.'%inv['invoice_id'])
             if p.metode=='cookie' and target and runtime:
                 for inv in r['invoices']:
-                    if inv['dapat_periksa']:
+                    if inv['dapat_periksa'] and inv['invoice_id'] not in forms:
                         meta=dict(akun=q['id'],invoice=inv['invoice_id'],revisi=auth.revisi_auth(target))
                         c,t=_form(penangan,p,'periksa_pembayaran',meta)
                         forms[inv['invoice_id']]=ui.formulir('periksa',c,t,'<p>Query order yang sama; tidak membuat pembayaran baru.</p>','Periksa pembayaran')
@@ -89,7 +98,7 @@ def get(penangan,p,q):
 
 
 def tangani_post(penangan,jalur):
-    if jalur not in ('/admin/layanan/cari','/admin/layanan/periksa','/admin/layanan/pembayaran','/admin/layanan/biaya','/admin/layanan/eksperimen','/admin/layanan/transisi'):
+    if jalur not in ('/admin/layanan/cari','/admin/layanan/periksa','/admin/layanan/pembayaran','/admin/layanan/biaya','/admin/layanan/eksperimen','/admin/layanan/transisi','/admin/layanan/tutup'):
         return False
     p=h._principal_admin(penangan)
     if p is None:
@@ -114,7 +123,7 @@ def tangani_post(penangan,jalur):
                         '<label><input type="checkbox" name="konfirmasi" value="1" required> Saya sudah meninjau akun ini dan dampaknya.</label>'%ui.e(k['alias']),'Aktifkan langganan')
             _kirim(penangan,p,'langganan',ui.daftar_langganan(rows,total,halaman=halaman,cari=cari,csrf=csrf,kandidat=kandidat,forms=forms))
             return True
-        aksi={'periksa':'periksa_pembayaran','pembayaran':'atur_pembayaran','biaya':'biaya','eksperimen':'eksperimen','transisi':'aktifkan_transisi'}[jalur.rsplit('/',1)[-1]]
+        aksi={'periksa':'periksa_pembayaran','pembayaran':'atur_pembayaran','biaya':'biaya','eksperimen':'eksperimen','transisi':'aktifkan_transisi','tutup':'tutup_tagihan'}[jalur.rsplit('/',1)[-1]]
         akun,tinjauan,token=h._token_final(penangan,p,data,aksi)
         meta=tinjauan['data']; operasi=tinjauan['op']; kini=int(time.time())
         if aksi=='periksa_pembayaran':
@@ -136,6 +145,14 @@ def tangani_post(penangan,jalur):
                 raise ValueError('snapshot transisi tidak sah')
             guard.aktifkan_transisi(h._path_admin(),auth.BERKAS_SANDI,p,operasi=operasi,
                 akun_id=akun_t,target_revisi=revisi_t,sekarang=kini)
+            h._redirect(penangan,'/admin?section=langganan&id='+akun_t)
+        elif aksi=='tutup_tagihan':
+            if data: raise ValueError('isian asing')
+            akun_t=meta.get('akun'); inv_t=meta.get('invoice'); rev_t=meta.get('revisi')
+            if type(akun_t) is not str or type(inv_t) is not str or type(rev_t) is not int or rev_t<0:
+                raise ValueError('snapshot penutupan tidak sah')
+            guard.tutup_tagihan(h._path_admin(),auth.BERKAS_SANDI,p,operasi=operasi,
+                akun_id=akun_t,invoice_id=inv_t,target_revisi=rev_t,sekarang=kini)
             h._redirect(penangan,'/admin?section=langganan&id='+akun_t)
         elif aksi=='atur_pembayaran':
             if set(data)-{'tahap','konfirmasi'} or data.get('konfirmasi')!='1':

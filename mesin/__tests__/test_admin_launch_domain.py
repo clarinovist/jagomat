@@ -411,3 +411,36 @@ def test_transisi_admin9_crash_enrollment_ke_paket_replay_tanpa_ganda(layanan,mo
         assert c.execute("SELECT COUNT(*) FROM paket_akun").fetchone()[0]==1
         assert c.execute("SELECT COUNT(*) FROM langganan_enrollment").fetchone()[0]==1
     assert billing.kandidat_transisi(k.admin,k.auth,k.admin_principal,cari='crash')==()
+
+
+def test_tutup_tagihan_otorisasi_sakelar_dan_replay(layanan):
+    """Service: hanya admin hidup; snapshot exact; fondasi wajib; replay aman."""
+    k=layanan; inv=quote(k)
+    admin_store.siapkan(k.admin,paket_v2=True)
+    admin_store.migrasikan_penutupan_tagihan(k.admin)
+    args=dict(operasi='op_'+'8'*32,akun_id=k.principal.id_akun,invoice_id=inv['invoice_id'],
+              target_revisi=k.principal.revisi_auth)
+    auth_awal=k.auth.read_bytes()
+    with pytest.raises(LookupError):
+        guard.tutup_tagihan(k.admin,k.auth,k.principal,sekarang=T0+1000,sakelar=ON,**args)
+    with pytest.raises(LookupError):
+        guard.tutup_tagihan(k.admin,k.auth,k.admin_principal,sekarang=T0+1000,sakelar=ON,
+                            **{**args,'target_revisi':k.principal.revisi_auth+1})
+    with pytest.raises(LookupError):
+        guard.tutup_tagihan(k.admin,k.auth,k.admin_principal,sekarang=T0+1000,sakelar=ON,
+                            **{**args,'invoice_id':'inv_'+'f'*32})
+    with pytest.raises(__import__('subscription').FiturNonaktif):
+        guard.tutup_tagihan(k.admin,k.auth,k.admin_principal,sekarang=T0+1000,**args)
+    assert k.auth.read_bytes()==auth_awal
+    with admin_store.buka_baca(k.admin) as c:
+        assert not c.execute('SELECT 1 FROM penutupan_tagihan').fetchone()
+    assert guard.tutup_tagihan(k.admin,k.auth,k.admin_principal,sekarang=T0+1000,sakelar=ON,**args)=='ditutup'
+    assert guard.tutup_tagihan(k.admin,k.auth,k.admin_principal,sekarang=T0+1001,sakelar=ON,**args)=='ditutup'
+    assert k.auth.read_bytes()==auth_awal
+    import subscription_package_store as paket
+    with admin_store.buka_baca(k.admin) as c:
+        baris=c.execute('SELECT operasi_id,invoice_id,akun_id,actor_id,actor_revisi,alasan FROM penutupan_tagihan').fetchall()
+        assert len(baris)==1
+        assert tuple(baris[0])[:5]==('op_'+'8'*32,inv['invoice_id'],k.principal.id_akun,
+                                     k.admin_principal.id_akun,k.admin_principal.revisi_auth)
+    paket.adopsi(k.admin,k.principal.id_akun,operasi_id='adopsi_sintetis',sekarang=T0+1002,sakelar=ON)

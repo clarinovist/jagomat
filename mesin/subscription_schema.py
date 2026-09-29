@@ -123,6 +123,59 @@ BEGIN SELECT RAISE(ABORT, 'ledger langganan duplikat'); END;
 """.format(tabel=_tabel, cocok=_cocok, alternatif=_alternatif)
 
 
+ALASAN_PENUTUPAN = "kedaluwarsa_tanpa_pembayaran"
+
+# Penutupan tagihan append-only: sengaja di LUAR namespace langganan_% yang
+# berversi (tanpa bump user_version) dan divalidasi optional absent-or-exact,
+# supaya image lama tetap dapat membuka DB pascamigrasi; migrator eksplisitnya
+# ada di admin_store.migrasikan_penutupan_tagihan.
+DDL_PENUTUPAN = """
+CREATE TABLE penutupan_tagihan (
+    operasi_id TEXT PRIMARY KEY,
+    invoice_id TEXT NOT NULL UNIQUE REFERENCES langganan_invoice(invoice_id) ON DELETE RESTRICT,
+    akun_id TEXT NOT NULL REFERENCES langganan_enrollment(akun_id) ON DELETE RESTRICT,
+    alasan TEXT NOT NULL CHECK(alasan='%s'),
+    actor_id TEXT NOT NULL,
+    actor_revisi INTEGER NOT NULL CHECK(actor_revisi>=0),
+    dibuat INTEGER NOT NULL CHECK(dibuat>=0),
+    sidik TEXT NOT NULL CHECK(length(sidik)=64)
+);
+CREATE TRIGGER penutupan_tagihan_tolak_update BEFORE UPDATE ON penutupan_tagihan
+BEGIN SELECT RAISE(ABORT, 'penutupan tagihan immutable'); END;
+CREATE TRIGGER penutupan_tagihan_tolak_delete BEFORE DELETE ON penutupan_tagihan
+BEGIN SELECT RAISE(ABORT, 'penutupan tagihan immutable'); END;
+CREATE TRIGGER penutupan_tagihan_tolak_replace BEFORE INSERT ON penutupan_tagihan
+WHEN EXISTS(SELECT 1 FROM penutupan_tagihan WHERE operasi_id=NEW.operasi_id OR invoice_id=NEW.invoice_id)
+BEGIN SELECT RAISE(ABORT, 'penutupan tagihan duplikat'); END;
+""" % ALASAN_PENUTUPAN
+
+
+def struktur_penutupan(kon):
+    return tuple(tuple(r) for r in kon.execute(
+        "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE tbl_name='penutupan_tagihan' "
+        "ORDER BY type,name"))
+
+
+def tersedia_penutupan(kon):
+    return kon.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='penutupan_tagihan'"
+    ).fetchone() is not None
+
+
+def validasi_penutupan(kon):
+    """Absent = belum dimigrasikan (kompatibel lama); parsial/berbeda ditolak."""
+    aktual = struktur_penutupan(kon)
+    if not aktual:
+        return
+    acuan = sqlite3.connect(":memory:")
+    try:
+        acuan.executescript(DDL_PENUTUPAN)
+        if aktual != struktur_penutupan(acuan):
+            raise ValueError("struktur penutupan tagihan tidak lengkap")
+    finally:
+        acuan.close()
+
+
 def struktur(kon):
     return tuple(kon.execute(
         "SELECT type,name,tbl_name,sql FROM sqlite_master "

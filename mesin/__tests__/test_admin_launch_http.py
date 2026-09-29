@@ -167,3 +167,46 @@ def test_transisi_http_akun_legacy_revisi_nol(server):
         baris=c.execute("SELECT asal FROM langganan_enrollment WHERE akun_id=?",
                         (legacy['id_akun'],)).fetchone()
     assert baris is not None and baris['asal']=='transisi'
+
+
+def test_tutup_tagihan_http_form_konfirmasi_efek_dan_fail_closed(server):
+    import subscription_store as store
+    import subscription_schema as skema
+    from test_subscription_store import ON
+    T1 = 1_700_000_000
+    akun = auth.cari_akun('Ortu-C')
+    path = admin_store.BAWAAN
+    store.enroll(path, akun['id_akun'], sumber_id='transisi_http_001', asal='transisi',
+                 mulai=T1, peran='guru', promo_lama=False, sakelar=ON)
+    store.atur_cakupan(path, akun['id_akun'], (server.siswa_c,), operasi_id='cakupan_http_001',
+                       revisi=0, sekarang=T1, pemilik_profil=lambda _: akun['id_akun'], sakelar=ON)
+    inv = store.buat_invoice(path, akun['id_akun'], invoice_id='inv_'+'e'*32,
+                             idempotency_key='idem_'+'e'*32, provider='midtrans', channel='qris',
+                             merchant='M_SINTETIS', sekarang=T1, kedaluwarsa=T1+100, sakelar=ON)
+    admin_store.migrasikan_penutupan_tagihan(path)
+    with admin_store._transaksi(path) as c:
+        c.execute("UPDATE pembayaran_konfigurasi SET tahap='rekonsiliasi'")
+    token=_login(server,'Admin-C',SANDI_ADMIN)
+    code,body,_=_minta(server,'/admin?section=langganan&id='+akun['id_akun'],cookie=token)
+    assert code==200
+    assert 'Tutup tagihan' in body and 'data-konfirmasi="Tutup tagihan' in body
+    form=dict(csrf=_hidden(body,'csrf'),tinjauan=_hidden(body,'tinjauan'),reauth=SANDI_ADMIN)
+    auth_awal=auth.BERKAS_SANDI.read_bytes()
+    def jumlah():
+        with admin_store.buka_baca(path) as c:
+            return c.execute('SELECT COUNT(*) FROM penutupan_tagihan').fetchone()[0]
+    assert jumlah()==0
+    assert _minta(server,'/admin/layanan/tutup',cookie=token,data={**form,'csrf':'rusak'})[0]==403
+    assert _minta(server,'/admin/layanan/tutup',cookie=token,data={**form,'reauth':'salah'})[0]==403
+    assert jumlah()==0 and auth.BERKAS_SANDI.read_bytes()==auth_awal
+    for _ in range(2):
+        assert _minta(server,'/admin/layanan/tutup',cookie=token,data=form)[0]==303
+    assert jumlah()==1 and auth.BERKAS_SANDI.read_bytes()==auth_awal
+    with admin_store.buka_baca(path) as c:
+        baris=c.execute('SELECT invoice_id,actor_id,alasan FROM penutupan_tagihan').fetchone()
+        assert baris['invoice_id']==inv['invoice_id']
+        assert baris['actor_id']==auth.cari_akun('Admin-C')['id_akun']
+        assert baris['alasan']==skema.ALASAN_PENUTUPAN
+    code,body,_=_minta(server,'/admin?section=langganan&id='+akun['id_akun'],cookie=token)
+    assert code==200 and 'Ditutup tanpa pembayaran' in body
+    assert 'data-konfirmasi="Tutup tagihan' not in body

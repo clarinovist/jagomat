@@ -7,6 +7,7 @@ hanya disimpan untuk pemeriksaan, tanpa refund/revoke atau grant tambahan.
 """
 
 from dataclasses import dataclass
+import hashlib
 import json
 import re
 import sqlite3
@@ -93,9 +94,114 @@ def validasi_ledger(kon, *, akun_id=None):
                     or g["urutan"] != inv["urutan"] or g["profil_json"] != inv["profil_json"] or g["promo"] != inv["promo"]
                     or g["akhir"] != d.bulan_berikutnya(g["mulai"], g["jangkar"])):
                 raise KonflikLangganan("grant ledger tidak sah")
+    validasi_penutupan_konsisten(kon, akun_id=akun_id)
     if paket_schema.tersedia(kon):
         import subscription_package_store as paket
         paket.validasi_ledger(kon, akun_id=akun_id)
+
+
+def tagihan_lama_belum_selesai(kon, akun_id):
+    """Invoice v1 tanpa grant dan tanpa penutupan ber-audit yang sah.
+
+    Penutupan dihitung mengikat hanya bila invoice kedaluwarsa saat penutupan
+    dan tidak memiliki receipt sampai sekarang; tabel penutupan absen =
+    perilaku lama (fail-closed).
+    """
+    import subscription_schema as skema
+    d.identitas(akun_id, "akun")
+    pakai = skema.tersedia_penutupan(kon)
+    if pakai:
+        skema.validasi_penutupan(kon)
+    sql = ("SELECT 1 FROM langganan_invoice i WHERE i.akun_id=? "
+           "AND NOT EXISTS(SELECT 1 FROM langganan_grant g WHERE g.invoice_id=i.invoice_id)")
+    if pakai:
+        sql += (" AND NOT EXISTS(SELECT 1 FROM penutupan_tagihan p WHERE p.invoice_id=i.invoice_id "
+                "AND i.kedaluwarsa<=p.dibuat "
+                "AND NOT EXISTS(SELECT 1 FROM langganan_receipt r WHERE r.invoice_id=i.invoice_id))")
+    return kon.execute(sql, (akun_id,)).fetchone() is not None
+
+
+def sidik_penutupan(operasi_id, invoice_id, akun_id, alasan, actor_id, actor_revisi, dibuat):
+    """Sidik kanonik isi baris penutupan; validator menghitung ulang, bukan percaya."""
+    return hashlib.sha256(json.dumps(
+        [operasi_id, invoice_id, akun_id, alasan, actor_id, int(actor_revisi), int(dibuat)],
+        separators=(",", ":")).encode("utf-8")).hexdigest()
+
+
+def validasi_penutupan_konsisten(kon, *, akun_id=None):
+    """Linkage baris penutupan terhadap invoice/enrollment; no-op bila tabel absen."""
+    import subscription_schema as skema
+    if not skema.tersedia_penutupan(kon):
+        return
+    skema.validasi_penutupan(kon)
+    args = () if akun_id is None else (akun_id,)
+    where = "" if akun_id is None else " WHERE p.akun_id=?"
+    for r in kon.execute(
+            "SELECT p.*, i.akun_id AS akun_invoice, i.kedaluwarsa AS kedaluwarsa "
+            "FROM penutupan_tagihan p LEFT JOIN langganan_invoice i "
+            "ON i.invoice_id=p.invoice_id" + where, args):
+        if (r["akun_invoice"] is None or r["akun_invoice"] != r["akun_id"]
+                or r["kedaluwarsa"] is None or r["kedaluwarsa"] > r["dibuat"]
+                or r["alasan"] != skema.ALASAN_PENUTUPAN
+                or r["sidik"] != sidik_penutupan(r["operasi_id"], r["invoice_id"], r["akun_id"],
+                                                 r["alasan"], r["actor_id"], r["actor_revisi"], r["dibuat"])
+                or kon.execute("SELECT 1 FROM langganan_receipt WHERE invoice_id=? AND diterima<?",
+                               (r["invoice_id"], r["dibuat"])).fetchone()
+                or kon.execute("SELECT 1 FROM langganan_grant WHERE invoice_id=?",
+                               (r["invoice_id"],)).fetchone()):
+            raise KonflikLangganan("penutupan tagihan tidak sah")
+
+
+def tutup_tagihan(path, akun_id, invoice_id, *, operasi_id, actor_id, actor_revisi,
+                  sekarang, alasan=None, sakelar=d.SAKELAR, failpoint=None):
+    """Tutup ber-audit invoice v1 yang kedaluwarsa dan tanpa receipt/grant.
+
+    Append-only: replay operasi sama idempoten, operasi/invoice lain ditolak.
+    Tidak menghapus/mengubah invoice, receipt, grant, atau pengamatan; bukan
+    jalur invoice paket v2. Tabel belum dimigrasikan => fail-closed.
+    """
+    sakelar.wajib("fondasi")
+    import subscription_schema as skema
+    alasan = skema.ALASAN_PENUTUPAN if alasan is None else alasan
+    d.identitas(operasi_id, "operasi")
+    d.identitas(akun_id, "akun")
+    d.identitas(invoice_id, "invoice")
+    _kode(actor_id)
+    d.waktu(sekarang)
+    if type(actor_revisi) is not int or actor_revisi < 0:
+        raise ValueError("revisi aktor penutupan tidak sah")
+    if alasan != skema.ALASAN_PENUTUPAN:
+        raise ValueError("alasan penutupan tidak sah")
+    with admin_store._transaksi(path) as kon:
+        if not skema.tersedia_penutupan(kon):
+            raise admin_store.StoreBelumSiap("penutupan tagihan belum dimigrasikan")
+        import subscription_package_store as paket
+        if paket.memiliki_invoice(kon, invoice_id):
+            raise KonflikLangganan("invoice paket bukan jalur penutupan v1")
+        inv = _invoice(kon, akun_id, invoice_id)
+        lama = kon.execute("SELECT * FROM penutupan_tagihan WHERE operasi_id=? OR invoice_id=?",
+                           (operasi_id, invoice_id)).fetchone()
+        if lama is not None:
+            if (lama["operasi_id"] != operasi_id or lama["invoice_id"] != invoice_id
+                    or lama["akun_id"] != akun_id or lama["alasan"] != alasan
+                    or lama["actor_id"] != actor_id or lama["actor_revisi"] != actor_revisi):
+                raise KonflikLangganan("penutupan tagihan berbeda")
+            return dict(lama)
+        if sekarang < inv["kedaluwarsa"]:
+            raise KonflikLangganan("invoice belum kedaluwarsa")
+        if kon.execute("SELECT 1 FROM langganan_grant WHERE invoice_id=?", (invoice_id,)).fetchone():
+            raise KonflikLangganan("invoice sudah memiliki grant")
+        if kon.execute("SELECT 1 FROM langganan_receipt WHERE invoice_id=?", (invoice_id,)).fetchone():
+            raise KonflikLangganan("invoice sudah memiliki receipt")
+        sidik = sidik_penutupan(operasi_id, invoice_id, akun_id, alasan,
+                                actor_id, actor_revisi, int(sekarang))
+        kon.execute("INSERT INTO penutupan_tagihan VALUES(?,?,?,?,?,?,?,?)",
+                    (operasi_id, invoice_id, akun_id, alasan, actor_id,
+                     actor_revisi, int(sekarang), sidik))
+        if failpoint == "setelah_penutupan":
+            raise RuntimeError("crash sintetis setelah penutupan")
+        return dict(kon.execute("SELECT * FROM penutupan_tagihan WHERE operasi_id=?",
+                                (operasi_id,)).fetchone())
 
 
 def baca(path, akun_id):

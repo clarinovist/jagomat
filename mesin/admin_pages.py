@@ -39,7 +39,7 @@ GRUP_SECTION = (
     ("Sistem", ("operasional", "ai", "riwayat")),
 )
 SECTION_LOKAL = frozenset(item[0] for item in SECTION if item[0] != "ai")
-SKRIP_KONFIRMASI_LOGIN = """document.querySelectorAll('form[data-konfirmasi-login]').forEach(function(f){f.addEventListener('submit',function(e){if(!window.confirm(f.dataset.konfirmasiLogin)){e.preventDefault();}});});"""
+SKRIP_KONFIRMASI_LOGIN = """document.querySelectorAll('form[data-konfirmasi-login],form[data-konfirmasi]').forEach(function(f){f.addEventListener('submit',function(e){if(!window.confirm(f.dataset.konfirmasiLogin||f.dataset.konfirmasi)){e.preventDefault();}});});"""
 
 LABEL_STATUS = {
     "account_missing_id": "ID akun belum tersedia",

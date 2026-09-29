@@ -26,9 +26,10 @@ def tabel(kepala,baris):
     return '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr>'+''.join('<th>'+e(x)+'</th>' for x in kepala)+'</tr></thead><tbody>'+(''.join(baris) or '<tr><td colspan="%d">Belum ada data.</td></tr>'%len(kepala))+'</tbody></table></div>'
 
 
-def formulir(aksi,csrf,token,isi,tombol,hidden=()):
+def formulir(aksi,csrf,token,isi,tombol,hidden=(),konfirmasi=None):
     fields=(('csrf',csrf),('tinjauan',token),*hidden)
-    return '<form method="post" action="/admin/layanan/'+e(aksi)+'">'+''.join('<input type="hidden" name="%s" value="%s">'%(e(k),e(v)) for k,v in fields)+isi+'<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label><button class="admin-tombol" type="submit">'+e(tombol)+'</button></form>'
+    atribut=' data-konfirmasi="%s"'%e(konfirmasi) if konfirmasi else ''
+    return '<form method="post" action="/admin/layanan/'+e(aksi)+'"'+atribut+'>'+''.join('<input type="hidden" name="%s" value="%s">'%(e(k),e(v)) for k,v in fields)+isi+'<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label><button class="admin-tombol" type="submit">'+e(tombol)+'</button></form>'
 
 
 def daftar_langganan(rows,total,*,halaman,cari,csrf,kandidat=(),forms=None):
@@ -57,7 +58,7 @@ def daftar_langganan(rows,total,*,halaman,cari,csrf,kandidat=(),forms=None):
 
 
 AKSES={'promo':'Promo aktif','trial':'Masa coba','aktif':'Aktif','expired':'Masa aktif habis','kedaluwarsa':'Masa aktif habis','belum_terverifikasi':'Belum terverifikasi','paid':'Berbayar'}
-STATUS={'grant':'Hak akses tercatat','lunas':'Pembayaran tercatat','perlu_diperiksa':'Perlu diperiksa','belum_terverifikasi':'Belum terverifikasi','settlement':'Settlement teramati'}
+STATUS={'grant':'Hak akses tercatat','lunas':'Pembayaran tercatat','perlu_diperiksa':'Perlu diperiksa','belum_terverifikasi':'Belum terverifikasi','settlement':'Settlement teramati','ditutup':'Ditutup tanpa pembayaran'}
 
 
 def detail_langganan(r,forms):

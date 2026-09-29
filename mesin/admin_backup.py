@@ -417,6 +417,14 @@ def _validasi_foto(path):
             raise BackupTidakSah('schema atau receipt foto backup tidak sah') from None
 
 
+def _penutupan_ada(path):
+    """Tabel penutupan opsional (absent-or-exact); dibaca read-only, tanpa migrasi."""
+    with sqlite3.connect(Path(path).resolve().as_uri() + '?mode=ro', uri=True) as kon:
+        return kon.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='penutupan_tagihan'"
+        ).fetchone() is not None
+
+
 def _validasi_registrasi_profil(path_belajar, path_auth):
     """Validasi pasangan privat tanpa menulis atau mengeluarkan isi ke log.
 
@@ -586,7 +594,7 @@ def _validasi_receipt_profil(admin, belajar, tabel, row):
 
 
 def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto=None,
-                     target_registrasi=None) -> RingkasanBackup:
+                     target_registrasi=None, target_penutupan=None) -> RingkasanBackup:
     """Migrasikan turunan temp dua kali; backup induk tidak pernah ditulis.
 
     ``migrator_ai`` wajib dari candidate AI2. ``target_admin`` None mempertahankan
@@ -595,6 +603,8 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
     ``target_foto=True`` memasang receipt hanya pada turunan; None mempertahankan
     schema induk. ``target_registrasi=True`` juga opt-in hanya turunan. Receipt,
     intent auth, pending, serta tabel belajar lama wajib tetap byte-value.
+    ``target_penutupan=True`` memigrasikan tabel penutupan admin (tanpa bump
+    versi) hanya pada turunan; None mempertahankan, False saat tabel ada ditolak.
     """
     import admin_store
     import admin_students
@@ -617,6 +627,11 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
     if migrator_ai is None:
         raise BackupTidakSah("migrator AI2 candidate wajib untuk rehearsal")
     akar = Path(bundle)
+    penutupan_awal = _penutupan_ada(akar / BERKAS_WAJIB['admin'])
+    if target_penutupan is None:
+        target_penutupan = penutupan_awal
+    if type(target_penutupan) is not bool or (penutupan_awal and not target_penutupan):
+        raise BackupTidakSah('target rehearsal penutupan tidak sah')
     with tempfile.TemporaryDirectory(prefix="jagomat-rehearsal-") as direktori:
         turunan = Path(direktori)
         turunan.chmod(0o700)
@@ -652,6 +667,8 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
             admin_store.siapkan(turunan / BERKAS_WAJIB["admin"], paket_v2=target_admin >= 8)
             if target_admin == 9:
                 admin_store.migrasikan_kuota_pendamping(turunan / BERKAS_WAJIB["admin"])
+            if target_penutupan:
+                admin_store.migrasikan_penutupan_tagihan(turunan / BERKAS_WAJIB["admin"])
             migrator_ai(turunan / BERKAS_WAJIB["ai"])
             assistant_schema.siapkan(turunan / BERKAS_WAJIB["pendamping"])
         foto_akhir = _validasi_foto(turunan / BERKAS_WAJIB['belajar'])
@@ -672,6 +689,10 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
         billing_akhir = ledger(turunan / BERKAS_WAJIB['admin'])
         if any(billing_akhir.get(t) != rows for t, rows in billing_awal.items()):
             raise BackupTidakSah('ledger berubah selama rehearsal')
+        if (_penutupan_ada(turunan / BERKAS_WAJIB['admin']) != target_penutupan
+                or (target_penutupan and not penutupan_awal
+                    and billing_akhir.get('penutupan_tagihan'))):
+            raise BackupTidakSah('state penutupan berubah selama rehearsal')
         with admin_store.buka_baca(turunan / BERKAS_WAJIB['admin']) as kon:
             import subscription_store
             subscription_store.validasi_ledger(kon)
