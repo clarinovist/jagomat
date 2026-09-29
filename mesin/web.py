@@ -1800,6 +1800,8 @@ class Penangan(BaseHTTPRequestHandler):
                     k: v for k, v in data.items()
                     if k not in {
                         "aksi_form", "inline_form", "versi_pilihan_isi", "topik_dibandingkan",
+                        # Metadata tombol Pendamping ikut POST native, bukan isi draf.
+                        "inline_host", "inline_host_id", "inline_posisi",
                     }
                 }
                 with database.buka() as kon:
@@ -2035,6 +2037,8 @@ class Penangan(BaseHTTPRequestHandler):
                     k: v for k, v in data.items()
                     if k not in {
                         "aksi_form", "inline_form", "versi_pilihan_isi", "topik_dibandingkan",
+                        # Metadata tombol Pendamping ikut POST native, bukan isi draf.
+                        "inline_host", "inline_host_id", "inline_posisi",
                     }
                 }
                 with database.buka() as kon:

@@ -2,7 +2,8 @@
 import pytest
 
 import database
-from http_test_kit import ServerUji, SANDI_GURU
+from http_test_kit import ServerUji, SANDI_GURU, SANDI_MURID
+from test_combined_mode import FormGabungan
 from test_school_profile_ui import Formulir
 
 
@@ -13,6 +14,97 @@ def server(tmp_path, monkeypatch):
         srv.siswa = database.tambah_siswa(kon, 'Sintetis', 'P3', pemilik='guru')
     yield srv
     srv.berhenti()
+
+
+def _data_form(isi, jalur):
+    """Ambil kontrol terkirim HTML aktual, termasuk hidden Pendamping dan submitter."""
+    data = []
+    nama_select, opsi = None, []
+    for tag, atribut in FormGabungan(isi).form[jalur]:
+        if nama_select and tag != 'option':
+            pilihan = next((o for o in opsi if 'selected' in o), opsi[0])
+            data.append((nama_select, pilihan['value']))
+            nama_select, opsi = None, []
+        if 'disabled' in atribut:
+            continue
+        nama = atribut.get('name')
+        if tag == 'select':
+            nama_select = nama
+        elif tag == 'option' and nama_select:
+            opsi.append(atribut)
+        elif tag == 'input' and nama:
+            if atribut.get('type') in ('checkbox', 'radio') and 'checked' not in atribut:
+                continue
+            data.append((nama, atribut.get('value', '')))
+        elif tag == 'button' and nama == 'aksi_form':
+            data.append((nama, atribut['value']))
+    assert ('aksi_form', 'bandingkan') in data
+    return data
+
+
+def _form_bandingkan(server, jenis):
+    kode, isi, _ = server.minta('/anak/%d?section=latihan' % server.siswa,
+                                auth=('guru', SANDI_GURU))
+    assert kode == 200
+    jalur = '/%s/%d' % (jenis, server.siswa)
+    data = _data_form(isi, jalur)
+    assert {k for k, _ in data} >= {'inline_host', 'inline_host_id', 'inline_posisi'}
+    data = [(k, v) for k, v in data if k not in {'topik', 'jumlah_soal'}]
+    topik = ('statistika',) if jenis == 'sesi-baru' else ('statistika', 'pengukuran')
+    return jalur, data + [('topik', t) for t in topik] + [('jumlah_soal', '15')]
+
+
+@pytest.mark.parametrize('jenis', ['sesi-baru', 'sesi-gabungan'])
+def test_bandingkan_form_native_dengan_pendamping_tanpa_write(server, jenis):
+    jalur, data = _form_bandingkan(server, jenis)
+    with server.buka() as kon:
+        sebelum = tuple(kon.iterdump())
+    # Ulang dari hasil HTML pertama, bukan payload buatan yang kehilangan hidden field.
+    for _ in range(2):
+        kode, isi, _ = server.minta(jalur, auth=('guru', SANDI_GURU), data=data,
+                                  headers={'Origin': 'null', 'Sec-Fetch-Site': 'same-origin'})
+        assert kode == 200
+        data = _data_form(isi, jalur)
+        assert ('topik', 'statistika') in data
+        assert ('jumlah_soal', '15') in data
+        assert ('mode', 'diagnostik' if jenis == 'sesi-baru' else 'drill') in data
+        assert ('format_jawaban', 'isian') in data
+        konteks = ','.join(v for k, v in data if k == 'topik_dibandingkan')
+        assert 'data-contoh="%s:P4"' % konteks in isi
+        if jenis == 'sesi-gabungan':
+            assert ('topik', 'pengukuran') in data
+            assert set(konteks.split(',')) == {'statistika', 'pengukuran'}
+        else:
+            assert konteks == 'statistika'
+            assert ('durasi_menit', '30') in data and ('timer_auto', '0') in data
+        with server.buka() as kon:
+            assert tuple(kon.iterdump()) == sebelum
+
+
+@pytest.mark.parametrize('jenis', ['sesi-baru', 'sesi-gabungan'])
+@pytest.mark.parametrize('tambahan', [
+    ('field_asing', '1'), ('inline_asing', '1'), ('inline_nomor', '1'),
+    ('mode', 'drill'), ('profil_parameter', 'Palsu'),
+])
+def test_bandingkan_form_native_tetap_menolak_draf_asing_atau_ganda(server, jenis, tambahan):
+    jalur, data = _form_bandingkan(server, jenis)
+    with server.buka() as kon:
+        sebelum = tuple(kon.iterdump())
+    kode, _, _ = server.minta(jalur, auth=('guru', SANDI_GURU), data=data + [tambahan])
+    assert kode == 400
+    with server.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum
+
+
+@pytest.mark.parametrize('jenis', ['sesi-baru', 'sesi-gabungan'])
+def test_bandingkan_form_native_tidak_terbuka_untuk_murid(server, jenis):
+    jalur, data = _form_bandingkan(server, jenis)
+    with server.buka() as kon:
+        sebelum = tuple(kon.iterdump())
+    kode, _, _ = server.minta(jalur, auth=('feby', SANDI_MURID), data=data)
+    assert kode == 401
+    with server.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum
 
 
 def test_get_pilihan_isi_kontekstual_tidak_membuat_sesi_atau_bukti(server):
@@ -55,16 +147,8 @@ def test_bandingkan_menjaga_404_identik_dan_tanpa_efek_untuk_resource_asing(serv
     with server.buka() as kon:
         asing = database.tambah_siswa(kon, 'Asing Sintetis', 'P3', pemilik='keluarga-lain')
         sebelum = tuple(kon.iterdump())
-    if jalur == 'sesi-baru':
-        data = {'aksi_form': 'bandingkan', 'inline_form': 'manual',
-                'topik': 'statistika', 'jumlah_soal': '',
-                'mode': 'diagnostik', 'hadir_timer_mode': '1', 'durasi_menit': '30',
-                'timer_auto': '0', 'format_jawaban': 'isian'}
-    else:
-        data = [('aksi_form', 'bandingkan'), ('inline_form', 'gabungan'),
-                ('topik', 'pola-bilangan'),
-                ('topik', 'geometri-datar'), ('jumlah_soal', '10'),
-                ('mode', 'drill'), ('format_jawaban', 'isian')]
+    # Hidden host milik guru tidak boleh mengalihkan otorisasi URL asing.
+    _, data = _form_bandingkan(server, jalur)
     respons = []
     for siswa_id in (asing, 999999):
         kode, isi, _ = server.minta('/%s/%d' % (jalur, siswa_id),
