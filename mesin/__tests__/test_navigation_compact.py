@@ -61,6 +61,6 @@ def test_pilihan_latihan_menjelaskan_isi_di_dekat_topik_tanpa_instruksi_ganda(db
     assert teacher_pages.INFO_LATIHAN_BEBAS in h
     assert h.count('name="jenis-latihan"') >= 2
     assert 'name="topik"' in h and 'type="checkbox"' in h
-    assert 'Nomor pilihan hanya penanda' in panel
+    assert 'A–D hanya penanda' in panel
     assert 'bukan urutan kemampuan atau kelas anak' in panel
     assert 'Pilihan ganda untuk latihan manual, belum menjadi bukti penguasaan.' in h

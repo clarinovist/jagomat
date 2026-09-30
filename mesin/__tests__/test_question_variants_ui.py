@@ -27,14 +27,14 @@ def test_identitas_anak_bukan_konfigurasi_soal():
     assert 'P6' not in kepala and 'Konteks latihan' not in kepala
 
 
-def test_pemilih_isi_memakai_nomor_lokal_dan_contoh_kontekstual():
+def test_pemilih_isi_memakai_huruf_sekunder_dan_contoh_kontekstual():
     from question_variants_ui import pemilih_isi
     isi = pemilih_isi(('pola-bilangan',), 'manual', 'P5')
     assert '<legend>Pilih isi latihan</legend>' in isi
     assert isi.count('name="profil_parameter"') == 4
     assert '<input type="radio" name="profil_parameter" value="P5"' in isi
     assert ' checked' in isi
-    assert '<span class="variasi-penanda"><span class="variasi-sr">Pilihan </span>3</span>' in isi
+    assert '<span class="variasi-penanda"><span class="variasi-sr">Pilihan </span>C</span>' in isi
     assert '<strong class="variasi-nama-isi">Pola pecahan</strong>' in isi
     assert 'pola lain' not in isi
     assert isi.index('variasi-penanda') < isi.index('variasi-nama-isi') < isi.index('variasi-meta')
@@ -42,7 +42,7 @@ def test_pemilih_isi_memakai_nomor_lokal_dan_contoh_kontekstual():
     assert 'Pola soal:' not in isi
     assert 'Lihat contoh: ' in isi and 'Contoh salah satu soal:' not in isi
     assert 'data-contoh="pola-bilangan:P5"' in isi
-    assert 'Nomor pilihan hanya penanda' in isi and 'A–D hanya penanda' not in isi
+    assert 'A–D hanya penanda' in isi and 'Variasi A–D hanya penanda' not in isi
     assert 'bukan urutan kemampuan' in isi
     assert '<select' not in isi and '<script' not in isi
     gaya = __import__('question_variants_ui').GAYA_VARIASI
@@ -56,9 +56,9 @@ def test_pemilih_isi_hanya_menawarkan_irisan_topik_dan_tidak_fallback():
     assert isi.count('name="profil_parameter"') == 2
     assert 'value="P5"' in isi and 'value="P6"' in isi
     assert 'value="P3"' not in isi and 'value="P4"' not in isi
-    assert '<span class="variasi-sr">Pilihan </span>1' in isi
-    assert '<span class="variasi-sr">Pilihan </span>2' in isi
-    assert '<span class="variasi-sr">Pilihan </span>3' not in isi
+    assert '<span class="variasi-sr">Pilihan </span>C' in isi
+    assert '<span class="variasi-sr">Pilihan </span>D' in isi
+    assert '<span class="variasi-sr">Pilihan </span>A' not in isi
     assert isi.count('<span class="variasi-meta">Mencakup 2 materi dan ') == 2
     assert '<span class="variasi-meta"><span>' not in isi
     assert 'pola lain' not in isi
@@ -127,8 +127,8 @@ def test_pilihan_pemetaan_menjelaskan_cakupan_tanpa_klaim_kemampuan():
     assert 'materi' in isi and 'pola soal' in isi
     assert 'Lihat contoh materi:' in isi
     assert len(isi) < 50_000  # cakupan pemetaan diringkas, bukan katalog seluruh pola.
-    assert '<span class="variasi-sr">Pilihan </span>1' in isi
-    assert '<span class="variasi-sr">Pilihan </span>4' in isi
+    assert '<span class="variasi-sr">Pilihan </span>A' in isi
+    assert '<span class="variasi-sr">Pilihan </span>D' in isi
     assert isi.count('<span class="variasi-meta">Mencakup ') == 4
     assert '<span class="variasi-meta"><span>' not in isi
     assert 'kelas anak' in isi and 'Mudah' not in isi and 'Sulit' not in isi

@@ -108,7 +108,7 @@ def _topik_tersedia(topik_ids, profil):
     )
 
 
-def _kartu_isi(profil, topik_ids, identitas, terpilih, *, nomor, pemetaan=False):
+def _kartu_isi(profil, topik_ids, identitas, terpilih, *, pemetaan=False):
     topik_ids = tuple(topik_ids)
     pola_per_topik = [(topik, _pola_soal(topik, profil)) for topik in topik_ids]
     jumlah_pola = len({pola for _topik, daftar in pola_per_topik for pola in daftar})
@@ -123,7 +123,7 @@ def _kartu_isi(profil, topik_ids, identitas, terpilih, *, nomor, pemetaan=False)
     id_radio = f'{identitas}-profil-{kode}'
     checked = ' checked' if profil == terpilih else ''
     konteks = 'pemetaan' if pemetaan else ','.join(topik_ids)
-    penanda = str(nomor)
+    penanda = label_profil_parameter(profil).rsplit(' ', 1)[-1]
     return (
         f'<article class="variasi-pilihan" data-contoh="{html.escape(konteks, quote=True)}:{kode}">'
         f'<label class="variasi-label" for="{id_radio}">'
@@ -176,8 +176,8 @@ def pemilih_isi(topik_ids, identitas, terpilih=None):
         )
     identitas = html.escape(identitas, quote=True)
     kartu = ''.join(
-        _kartu_isi(profil, topik_ids, identitas, terpilih, nomor=nomor)
-        for nomor, profil in enumerate(tersedia, 1)
+        _kartu_isi(profil, topik_ids, identitas, terpilih)
+        for profil in tersedia
     )
     konteks = (
         '<input type="hidden" name="versi_pilihan_isi" value="1">'
@@ -192,7 +192,7 @@ def pemilih_isi(topik_ids, identitas, terpilih=None):
         + konteks
         + '<legend>Pilih isi latihan</legend><p class="profil-petunjuk-st" '
         f'id="{identitas}-profil-bantuan">Bandingkan isi dan contohnya, lalu pilih yang ingin dilatih. '
-        'Nomor pilihan hanya penanda, bukan urutan kemampuan atau kelas anak.</p>'
+        'A–D hanya penanda, bukan urutan kemampuan atau kelas anak.</p>'
         f'<div class="variasi-pilihan-daftar">{kartu}</div></fieldset>'
     )
 
@@ -204,16 +204,16 @@ def pemilih_pemetaan(identitas, terpilih=None):
     kartu = ''.join(
         _kartu_isi(
             profil, _topik_tersedia(semua_topik, profil), identitas, terpilih,
-            nomor=nomor, pemetaan=True,
+            pemetaan=True,
         )
-        for nomor, profil in enumerate(LEVEL, 1)
+        for profil in LEVEL
     )
     return (
         f'<fieldset class="pilih-isi-latihan pilih-isi-pemetaan" '
         f'aria-describedby="{identitas}-profil-bantuan"><legend>Pilih isi untuk pemetaan pertama</legend>'
         f'<p class="profil-petunjuk-st" id="{identitas}-profil-bantuan">'
         'Setiap pilihan memetakan materi dan pola soal yang tersedia pada konfigurasi itu. '
-        'Nomor pilihan hanya penanda, bukan urutan kemampuan atau kelas anak.</p>'
+        'A–D hanya penanda, bukan urutan kemampuan atau kelas anak.</p>'
         f'<div class="variasi-pilihan-daftar">{kartu}</div></fieldset>'
     )
 

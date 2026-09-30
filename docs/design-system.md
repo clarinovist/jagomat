@@ -163,8 +163,8 @@ Dari 9 mockup, pattern yang berulang:
 7. **Tabel** — border-collapse, th background #eef/#eee, td border halus.
    Dipakai di dashboard (sesi), lembar penilaian (kunci), rekap.
 
-8. **Kartu pilihan isi** — nama isi menjadi judul utama; nomor urut lokal 1–N
-   hanya badge kecil sekunder. Ringkasan cakupan dibatasi satu kalimat
+8. **Kartu pilihan isi** — nama isi menjadi judul utama; A–D hanya badge kecil
+   sekunder. Ringkasan cakupan dibatasi satu kalimat
    (`Mencakup … pola soal.` atau `Mencakup … materi dan … pola soal.`), tanpa
    daftar seluruh pola atau label “+ N pola lain”; aksi “Lihat contoh” berada pada
    tingkat ketiga. Pada form manual, perubahan Topik mengirim fallback POST read-only
@@ -384,7 +384,7 @@ File CSS per permukaan (semuanya `import design_tokens as T`):
 - Tab jenis latihan tampil sebelum bantuan ringkas; batas latihan manual tetap
   tersedia lewat ikon Info. Untuk pembuatan sesi, panduan katalog terpisah diganti
   kartu radio **Pilih isi latihan**: nama isi dan cakupan ringkas dari registry,
-  nomor urut lokal sebagai penanda sekunder, contoh deterministik dalam disclosure
+  A–D sebagai penanda sekunder, contoh deterministik dalam disclosure
   di tiap kartu. Topik berada
   sebelum kartu; perubahan topik mengirim POST read-only secara progresif, sementara
   tombol sekunder tetap menjadi fallback tanpa JS. CTA pembuatan tetap satu. Form akun
