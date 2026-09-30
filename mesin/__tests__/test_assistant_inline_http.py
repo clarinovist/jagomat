@@ -117,7 +117,9 @@ def test_get_host_inline_privat_tanpa_provider_write_atau_resource_eksternal(ser
     assert 'action="/pendamping/inline/tutup"' in profil
     assert "fonts.googleapis.com" not in profil
     assert profil.count("<script>") == 1
-    assert f"script-src 'sha256-{__import__('assistant_browser').HASH_CSP}'" in header["Content-Security-Policy"]
+    browser = __import__('assistant_browser')
+    assert "'sha256-%s'" % browser.HASH_CSP in header["Content-Security-Policy"]
+    assert "'sha256-%s'" % browser.HASH_PILIHAN_ISI not in header["Content-Security-Policy"]
     assert "connect-src 'self'" in header["Content-Security-Policy"]
     assert not assistant_schema.BAWAAN.exists()
     assert server.provider.panggilan == []

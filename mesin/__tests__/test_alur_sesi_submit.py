@@ -310,8 +310,9 @@ def test_host_pendamping_memakai_bagikan_native_tanpa_js_di_luar_hash(server):
     assert "navigator.clipboard.writeText" not in isi
     assert "window.prompt(" not in isi
     import assistant_browser
-    assert isi.count('<script>') == 1
+    assert isi.count('<script>') == 2
     assert '<script>' + assistant_browser.SKRIP_CHAT + '</script>' in isi
+    assert '<script>' + assistant_browser.SKRIP_PILIHAN_ISI + '</script>' in isi
     # Ikon aksi kartu sesi = kontrol 48px; periksa blok aturannya,
     # bukan sekadar keberadaan angka 44px di seluruh stylesheet.
     ikon = style_stitch.GAYA_STITCH.split(".tombol-ikon-st {", 1)[1].split("}", 1)[0]

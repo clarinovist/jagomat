@@ -108,7 +108,7 @@ def test_form_semua_materi_dan_profil_tanpa_pagar_kelas(server):
     assert 'name="profil_parameter"' in isi
     assert 'value="aritmatika-lanjut"' in isi
     assert '<option value="pola-bilangan" selected>' in isi
-    assert 'Variasi A' in isi and 'Variasi D' in isi
+    assert 'value="P3"' in isi and 'value="P6"' in isi
 
 
 def test_profil_hilang_dan_ganda_ditolak_tanpa_default(server):

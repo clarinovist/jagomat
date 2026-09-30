@@ -47,7 +47,12 @@ def test_host_awal_memuat_skrip_dan_header_privat(server, jenis):
     assert kode == 200
     assert 'class="pendamping-pemicu"' in isi
     assert '<script>' + assistant_browser.SKRIP_CHAT + '</script>' in isi
-    assert f"script-src 'sha256-{assistant_browser.HASH_CSP}'" in header['Content-Security-Policy']
+    assert "'sha256-%s'" % assistant_browser.HASH_CSP in header['Content-Security-Policy']
+    if jenis == 'anak':
+        assert '<script>' + assistant_browser.SKRIP_PILIHAN_ISI + '</script>' in isi
+        assert "'sha256-%s'" % assistant_browser.HASH_PILIHAN_ISI in header['Content-Security-Policy']
+    else:
+        assert assistant_browser.SKRIP_PILIHAN_ISI not in isi
     assert header['Cache-Control'] == 'no-store'
     assert header['Referrer-Policy'] == 'no-referrer'
     assert header['X-Frame-Options'] == 'DENY'
@@ -60,11 +65,26 @@ def test_host_awal_memuat_skrip_dan_header_privat(server, jenis):
 def test_izin_skrip_hanya_hash_persis_pada_chat():
     biasa = b'<body><p>Tanpa chat</p></body>'
     assert assistant_browser.lengkapi_respons(biasa) == (biasa, "")
+    latihan, izin_latihan = assistant_browser.lengkapi_respons(
+        b'<body><select data-pilihan-isi-otomatis><option>Topik</option></select></body>'
+    )
+    skrip_latihan = re.search(rb'<script>(.*?)</script>', latihan, re.S).group(1)
+    digest_latihan = base64.b64encode(hashlib.sha256(skrip_latihan).digest()).decode()
+    assert izin_latihan == f"script-src 'sha256-{digest_latihan}'; "
+    assert b"requestSubmit" in skrip_latihan and b"fetch(" not in skrip_latihan
     isi, izin = assistant_browser.lengkapi_respons(b'<body><aside data-pendamping-chat="chat_sintetis"></aside></body>')
     skrip = re.search(rb'<script>(.*?)</script>', isi, re.S).group(1)
     digest = base64.b64encode(hashlib.sha256(skrip).digest()).decode()
     assert izin == f"script-src 'sha256-{digest}'; connect-src 'self'; "
     assert "unsafe-inline" not in izin and "script-src 'self'" not in izin
+    gabungan, izin_gabungan = assistant_browser.lengkapi_respons(
+        b'<body><aside data-pendamping-chat="chat_sintetis"></aside>'
+        b'<select data-pilihan-isi-otomatis></select></body>'
+    )
+    assert gabungan.count(b'<script>') == 2
+    assert "sha256-" + assistant_browser.HASH_CSP in izin_gabungan
+    assert "sha256-" + assistant_browser.HASH_PILIHAN_ISI in izin_gabungan
+    assert "connect-src 'self'" in izin_gabungan
 
 
 @pytest.mark.parametrize("soal", [False, True])
@@ -72,7 +92,7 @@ def test_chat_native_dan_fetch_memakai_guard_dan_request_yang_sama(server, soal)
     token, data, isi, header = mulai(server, soal=soal)
     assert isi.count('<script>') == 1
     assert f'data-pendamping-chat="{data["chat"]}"' in isi
-    assert f"script-src 'sha256-{assistant_browser.HASH_CSP}'" in header['Content-Security-Policy']
+    assert "'sha256-%s'" % assistant_browser.HASH_CSP in header['Content-Security-Policy']
     assert "connect-src 'self'" in header['Content-Security-Policy']
     assert "script-src 'unsafe-inline'" not in header['Content-Security-Policy']
     assert header['Cache-Control'] == 'no-store'
@@ -286,6 +306,27 @@ assert.equal(uji.jalurSah('/pendamping/inline/buka/sesi/42/soal/1'),'buka');
 for (const url of ['/sesi-baru/1','/pendamping/inline/konfirmasi-usulan','/pendamping/inline/buka/sesi/01/sesi'])
  assert.equal(uji.jalurSah(url),'');
 ''')
+
+
+def test_js_pilihan_isi_hanya_mengirim_form_native_dan_menyisakan_fallback():
+    node = shutil.which('node')
+    if node is None:
+        pytest.skip('Node tidak tersedia; regression JS harus dijalankan lewat browser sebelum rilis.')
+    skenario = '''const vm=require('node:vm');const assert=require('node:assert/strict');
+let listener=null, dikirim=0;
+const tombol={hidden:false};
+const form={requestSubmit(t){assert.equal(t,tombol);dikirim++;}};
+const select={form,addEventListener(n,f){assert.equal(n,'change');listener=f;}};
+const document={querySelectorAll(q){return q==='[data-pilihan-isi-otomatis]'?[select]:[];}};
+const dunia={document};vm.createContext(dunia);vm.runInContext(SKRIP,dunia);
+assert.equal(tombol.hidden,false,'skrip tidak boleh menyembunyikan fallback tanpa target');
+form.querySelector=q=>{assert.equal(q,'button[data-pilihan-isi-fallback]');return tombol;};
+vm.runInContext(SKRIP,dunia);assert.equal(tombol.hidden,true);listener();assert.equal(dikirim,1);'''
+    hasil = subprocess.run([node, '-e', 'const SKRIP=' + json.dumps(assistant_browser.SKRIP_PILIHAN_ISI) + ';' + skenario],
+                           capture_output=True, text=True, timeout=15)
+    assert hasil.returncode == 0, hasil.stderr
+    for terlarang in ('fetch(', 'FormData', 'localStorage', 'sessionStorage', 'document.cookie', 'innerHTML', 'eval('):
+        assert terlarang not in assistant_browser.SKRIP_PILIHAN_ISI
 
 
 def test_skrip_tidak_memperluas_pengiriman_atau_penyimpanan_browser():

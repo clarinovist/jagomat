@@ -22,9 +22,11 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   konfirmasi, bukan perubahan diagnosis atau bukti belajar otomatis.
 - Akun keluarga, pengelolaan murid, langganan dan pembayaran. Pendaftaran membuat
   profil anak pertama tanpa meminta variasi soal; kelas sekolah opsional. Saat
-  menyiapkan latihan, orang tua membandingkan nama isi, cakupan, dan contoh yang
-  sesuai materi lalu memilih eksplisit; A–D hanya penanda sekunder, bukan kelas atau
-  urutan kemampuan. Detail paket/aktivasi mengikuti kontraknya, bukan keberadaan kode.
+  menyiapkan latihan, orang tua memilih topik lalu membandingkan nama isi, cakupan,
+  dan contoh yang sesuai sebelum memilih eksplisit; pilihan isi diperbarui saat topik
+  berubah dengan fallback form native. Kartu memakai nomor urut lokal 1–N sebagai
+  penanda sekunder dan ringkasan cakupan satu kalimat, bukan kode variasi atau daftar
+  seluruh pola. Detail paket/aktivasi mengikuti kontraknya, bukan keberadaan kode.
 
 ## Kontrak belajar utama
 

@@ -1,8 +1,23 @@
-"""Enhancement panel terbatas; draf pekerjaan tidak melewati batas DOM browser."""
+"""Enhancement browser berhash; form native tetap jalur fallback kanonik."""
 
 import base64
 import hashlib
 import re
+
+
+SKRIP_PILIHAN_ISI = r"""(function () {
+'use strict';
+if (!document.querySelectorAll) return;
+document.querySelectorAll('[data-pilihan-isi-otomatis]').forEach(function (pilihan) {
+  var form = pilihan.form;
+  if (!form || typeof form.requestSubmit !== 'function' ||
+      typeof form.querySelector !== 'function') return;
+  var tombol = form.querySelector('button[data-pilihan-isi-fallback]');
+  if (!tombol) return;
+  pilihan.addEventListener('change', function () { form.requestSubmit(tombol); });
+  tombol.hidden = true;
+});
+})();"""
 
 
 SKRIP_CHAT = r"""(function () {
@@ -276,6 +291,9 @@ document.addEventListener('submit', function (kejadian) {
 })();"""
 
 HASH_CSP = base64.b64encode(hashlib.sha256(SKRIP_CHAT.encode("utf-8")).digest()).decode("ascii")
+HASH_PILIHAN_ISI = base64.b64encode(
+    hashlib.sha256(SKRIP_PILIHAN_ISI.encode("utf-8")).digest()
+).decode("ascii")
 
 
 def memiliki_panel(isi: bytes) -> bool:
@@ -285,12 +303,34 @@ def memiliki_panel(isi: bytes) -> bool:
     ) or re.search(rb'<aside\b[^>]*data-pendamping-chat="', isi))
 
 
+def memiliki_pilihan_isi(isi: bytes) -> bool:
+    """Deteksi atribut select aktual, bukan teks pengguna yang kebetulan sama."""
+    return bool(re.search(
+        rb'<select\b[^>]*\bdata-pilihan-isi-otomatis(?:\s|=|>)', isi
+    ))
+
+
+def memiliki_enhancement(isi: bytes) -> bool:
+    """Halaman memerlukan salah satu skrip kecil berhash yang diizinkan."""
+    return memiliki_panel(isi) or memiliki_pilihan_isi(isi)
+
+
 def lengkapi_respons(isi: bytes):
-    """Izin JS sejak host pertama memiliki trigger; arsip tetap tanpa skrip."""
-    if not memiliki_panel(isi) or b'</body>' not in isi:
+    """Sisipkan hanya enhancement yang ditandai, dengan hash CSP masing-masing."""
+    if b'</body>' not in isi:
         return isi, ""
-    skrip = ('<script>' + SKRIP_CHAT + '</script>').encode("utf-8")
-    return (
-        isi.replace(b"</body>", skrip + b"</body>", 1),
-        "script-src 'sha256-" + HASH_CSP + "'; connect-src 'self'; ",
-    )
+    skrip = []
+    hash_skrip = []
+    izin_koneksi = ""
+    if memiliki_pilihan_isi(isi):
+        skrip.append(SKRIP_PILIHAN_ISI)
+        hash_skrip.append(HASH_PILIHAN_ISI)
+    if memiliki_panel(isi):
+        skrip.append(SKRIP_CHAT)
+        hash_skrip.append(HASH_CSP)
+        izin_koneksi = "connect-src 'self'; "
+    if not skrip:
+        return isi, ""
+    markup = ''.join('<script>' + item + '</script>' for item in skrip).encode("utf-8")
+    izin = "script-src " + " ".join("'sha256-" + item + "'" for item in hash_skrip) + "; "
+    return isi.replace(b"</body>", markup + b"</body>", 1), izin + izin_koneksi

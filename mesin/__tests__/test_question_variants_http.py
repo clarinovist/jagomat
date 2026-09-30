@@ -114,7 +114,7 @@ def test_get_pilihan_isi_kontekstual_tidak_membuat_sesi_atau_bukti(server):
     assert kode == 200
     assert isi.count('<legend>Pilih isi latihan</legend>') >= 2
     assert 'data-contoh="pola-bilangan:P6"' in isi
-    assert '<span class="variasi-penanda">Variasi A</span>' in isi
+    assert '<span class="variasi-penanda"><span class="variasi-sr">Pilihan </span>1</span>' in isi
     Formulir(isi)  # termasuk guard form tidak bersarang
     kode, akun, _ = server.minta('/akun?section=siswa', auth=('guru', SANDI_GURU))
     assert kode == 200 and akun.count('id="panduan-variasi"') == 1
@@ -191,7 +191,7 @@ def test_submit_menolak_konteks_perbandingan_tidak_utuh_atau_berubah(server, pay
     data.update(payload)
     kode, isi, _ = server.minta('/sesi-baru/%d' % server.siswa,
                                 auth=('guru', SANDI_GURU), data=data)
-    assert kode == 409 and 'Perbarui pilihan isi' in isi
+    assert kode == 409 and 'Tampilkan pilihan isi' in isi
     with server.buka() as kon:
         assert tuple(kon.iterdump()) == sebelum
 
@@ -215,8 +215,8 @@ def test_submit_gabungan_menolak_topik_yang_berubah_setelah_perbandingan(server)
 def test_pilihan_variasi_menyimpan_kode_asli_tanpa_mengubah_profil(server, profil):
     kode, isi, _ = server.minta('/anak/%d' % server.siswa, auth=('guru', SANDI_GURU))
     assert kode == 200
-    nama = dict(zip(('P3','P4','P5','P6'), ('Variasi A','Variasi B','Variasi C','Variasi D')))[profil]
-    assert nama in isi
+    penanda = dict(zip(('P3','P4','P5','P6'), ('1','2','3','4')))[profil]
+    assert '<span class="variasi-sr">Pilihan </span>%s' % penanda in isi
     kode, _, _ = server.minta('/sesi-baru/%d' % server.siswa, auth=('guru', SANDI_GURU), data={
         'topik': 'pola-bilangan', 'profil_parameter': profil, 'jumlah_soal': '4'})
     assert kode == 200

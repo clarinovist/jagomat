@@ -71,12 +71,8 @@ def _nama_isi(topik, profil):
     utama = sorted(
         pola,
         key=lambda nama: (sum(nama in lain for lain in profil_lain), urutan[nama]),
-    )[:2]
-    if not utama:
-        return 'Isi latihan belum tersedia'
-    nama = ' dan '.join(utama) if len(utama) < 2 else ', '.join(utama)
-    sisa = len(pola) - len(utama)
-    return nama + (f' + {sisa} pola lain' if sisa else '')
+    )[:1]
+    return utama[0] if utama else 'Isi latihan belum tersedia'
 
 
 def _template_contoh(topik, profil):
@@ -112,44 +108,34 @@ def _topik_tersedia(topik_ids, profil):
     )
 
 
-def _kartu_isi(profil, topik_ids, identitas, terpilih, *, pemetaan=False):
+def _kartu_isi(profil, topik_ids, identitas, terpilih, *, nomor, pemetaan=False):
     topik_ids = tuple(topik_ids)
     pola_per_topik = [(topik, _pola_soal(topik, profil)) for topik in topik_ids]
     jumlah_pola = len({pola for _topik, daftar in pola_per_topik for pola in daftar})
-    if pemetaan:
-        nama_isi = f'{len(topik_ids)} materi · {jumlah_pola} pola soal'
-        ringkasan = '<b>Cakupan:</b> ' + '; '.join(
-            '<span><b>%s:</b> %s pola soal</span>' % (
-                html.escape(topics.ambil(topik).nama), len(pola)
-            ) for topik, pola in pola_per_topik
-        ) + '.'
-    elif len(topik_ids) == 1:
-        nama_isi = _nama_isi(topik_ids[0], profil)
-        ringkasan = '<b>Pola soal:</b> ' + html.escape(', '.join(pola_per_topik[0][1])) + '.'
+    nama_isi = _nama_isi(topik_ids[0], profil)
+    if len(topik_ids) == 1:
+        ringkasan = f'Mencakup {jumlah_pola} pola soal.'
     else:
-        nama_isi = f'{len(topik_ids)} materi · {jumlah_pola} pola soal'
-        ringkasan = '<b>Cakupan:</b> ' + '; '.join(
-            '<span><b>%s:</b> %s</span>' % (
-                html.escape(topics.ambil(topik).nama), html.escape(', '.join(pola))
-            ) for topik, pola in pola_per_topik
-        ) + '.'
+        ringkasan = f'Mencakup {len(topik_ids)} materi dan {jumlah_pola} pola soal.'
     contoh_topik = topik_ids[0]
     nama_contoh, contoh = _contoh_isi(contoh_topik, profil)
     kode = html.escape(profil, quote=True)
     id_radio = f'{identitas}-profil-{kode}'
     checked = ' checked' if profil == terpilih else ''
     konteks = 'pemetaan' if pemetaan else ','.join(topik_ids)
+    penanda = str(nomor)
     return (
         f'<article class="variasi-pilihan" data-contoh="{html.escape(konteks, quote=True)}:{kode}">'
         f'<label class="variasi-label" for="{id_radio}">'
         f'<input type="radio" name="profil_parameter" value="{kode}"{checked} '
         f'id="{id_radio}" required>'
-        '<span class="variasi-identitas"><span class="variasi-penanda">'
-        + html.escape(label_profil_parameter(profil))
+        '<span class="variasi-identitas"><span class="variasi-judul">'
+        '<span class="variasi-penanda"><span class="variasi-sr">Pilihan </span>'
+        + penanda
         + '</span><strong class="variasi-nama-isi">' + html.escape(nama_isi)
-        + '</strong><span class="variasi-ringkasan">' + ringkasan + '</span></span></label>'
-        '<details class="variasi-contoh-dekat"><summary>Contoh salah satu '
-        + ('materi' if pemetaan or len(topik_ids) > 1 else 'soal') + ': '
+        + '</strong></span><span class="variasi-meta">' + ringkasan + '</span></span></label>'
+        '<details class="variasi-contoh-dekat"><summary>Lihat contoh'
+        + (' materi' if pemetaan or len(topik_ids) > 1 else '') + ': '
         + html.escape(nama_contoh) + '</summary><div class="variasi-soal">' + contoh
         + '</div><p class="profil-petunjuk-st">Contoh dari '
         + html.escape(topics.ambil(contoh_topik).nama)
@@ -189,7 +175,10 @@ def pemilih_isi(topik_ids, identitas, terpilih=None):
             'Ubah materi, lalu bandingkan lagi.</p></fieldset>'
         )
     identitas = html.escape(identitas, quote=True)
-    kartu = ''.join(_kartu_isi(p, topik_ids, identitas, terpilih) for p in tersedia)
+    kartu = ''.join(
+        _kartu_isi(profil, topik_ids, identitas, terpilih, nomor=nomor)
+        for nomor, profil in enumerate(tersedia, 1)
+    )
     konteks = (
         '<input type="hidden" name="versi_pilihan_isi" value="1">'
         + ''.join(
@@ -202,8 +191,8 @@ def pemilih_isi(topik_ids, identitas, terpilih=None):
         f'<fieldset class="pilih-isi-latihan" aria-describedby="{identitas}-profil-bantuan">'
         + konteks
         + '<legend>Pilih isi latihan</legend><p class="profil-petunjuk-st" '
-        f'id="{identitas}-profil-bantuan">Bandingkan pola dan contohnya, lalu pilih yang ingin dilatih. '
-        'Variasi A–D hanya penanda; huruf bukan urutan kemampuan atau kelas anak.</p>'
+        f'id="{identitas}-profil-bantuan">Bandingkan isi dan contohnya, lalu pilih yang ingin dilatih. '
+        'Nomor pilihan hanya penanda, bukan urutan kemampuan atau kelas anak.</p>'
         f'<div class="variasi-pilihan-daftar">{kartu}</div></fieldset>'
     )
 
@@ -213,16 +202,18 @@ def pemilih_pemetaan(identitas, terpilih=None):
     semua_topik = tuple(t for t in topics.daftar_topik() if t != 'campuran')
     identitas = html.escape(identitas, quote=True)
     kartu = ''.join(
-        _kartu_isi(profil, _topik_tersedia(semua_topik, profil), identitas, terpilih,
-                   pemetaan=True)
-        for profil in LEVEL
+        _kartu_isi(
+            profil, _topik_tersedia(semua_topik, profil), identitas, terpilih,
+            nomor=nomor, pemetaan=True,
+        )
+        for nomor, profil in enumerate(LEVEL, 1)
     )
     return (
         f'<fieldset class="pilih-isi-latihan pilih-isi-pemetaan" '
         f'aria-describedby="{identitas}-profil-bantuan"><legend>Pilih isi untuk pemetaan pertama</legend>'
         f'<p class="profil-petunjuk-st" id="{identitas}-profil-bantuan">'
         'Setiap pilihan memetakan materi dan pola soal yang tersedia pada konfigurasi itu. '
-        'Variasi A–D hanya penanda; huruf bukan urutan kemampuan atau kelas anak.</p>'
+        'Nomor pilihan hanya penanda, bukan urutan kemampuan atau kelas anak.</p>'
         f'<div class="variasi-pilihan-daftar">{kartu}</div></fieldset>'
     )
 
@@ -293,17 +284,20 @@ GAYA_VARIASI = f"""
 .pilih-isi-latihan > legend {{ padding:0; color:{T.TEKS_JUDUL}; font-weight:700; }}
 .pilih-isi-latihan > .profil-petunjuk-st {{ margin:{T.SP_1} 0 {T.SP_3}; color:{T.TEKS_VARIAN}; line-height:1.55; }}
 .variasi-pilihan-daftar {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr)); gap:{T.SP_3}; }}
-.variasi-pilihan {{ min-width:0; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_SEDANG}; background:{T.LATAR_KARTU}; padding:{T.SP_3}; }}
+.variasi-pilihan {{ min-width:0; display:flex; flex-direction:column; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_SEDANG}; background:{T.LATAR_KARTU}; padding:{T.SP_3}; }}
 .variasi-pilihan:has(input:checked) {{ border:2px solid {T.AKSEN_TEAL_TUA}; background:{T.LATAR_TERSIMPAN}; }}
 .variasi-label {{ display:flex; align-items:flex-start; gap:{T.SP_3}; min-height:{T.TARGET_SENTUH}; cursor:pointer; }}
-.variasi-label input {{ flex:none; margin-top:.25rem; }}
-.variasi-identitas {{ display:grid; gap:{T.SP_1}; min-width:0; }}
-.variasi-penanda {{ color:{T.AKSEN_TEAL_TUA}; font-size:{T.UKURAN_TEKS_META}; font-weight:700; }}
-.variasi-nama-isi {{ color:{T.TEKS_JUDUL}; line-height:1.35; overflow-wrap:anywhere; }}
-.variasi-ringkasan {{ color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.5; overflow-wrap:anywhere; }}
-.variasi-ringkasan > span {{ display:block; margin-top:{T.SP_1}; }}
+.variasi-label input {{ flex:none; margin-top:.35rem; }}
+.variasi-identitas {{ display:grid; gap:{T.SP_2}; min-width:0; }}
+.variasi-judul {{ display:flex; align-items:flex-start; gap:{T.SP_2}; min-width:0; }}
+.variasi-sr {{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }}
+.variasi-penanda {{ flex:none; min-width:1.45rem; padding:.1rem .38rem; border-radius:{T.RADIUS_PIL}; background:{T.LATAR_SEKUNDER_LEMBUT}; color:{T.AKSEN_TEAL_TUA}; font-size:{T.UKURAN_TEKS_META}; line-height:1.45; font-weight:700; text-align:center; }}
+.variasi-nama-isi {{ color:{T.TEKS_JUDUL}; font-size:1rem; line-height:1.35; font-weight:700; overflow-wrap:anywhere; }}
+.variasi-meta {{ color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.55; font-weight:400; overflow-wrap:anywhere; }}
+.variasi-meta > span {{ display:block; margin-top:{T.SP_1}; }}
+.variasi-meta > span:first-child {{ margin-top:0; }}
 .variasi-pilihan:focus-within {{ outline:{T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset:2px; }}
-.variasi-contoh-dekat {{ margin-top:{T.SP_2}; border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
+.variasi-contoh-dekat {{ margin-top:auto; border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
 .variasi-contoh-dekat > summary {{ min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} 0; color:{T.AKSEN_TEAL_TUA}; cursor:pointer; line-height:1.4; }}
 .variasi-contoh-dekat > .profil-petunjuk-st {{ color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.5; }}
 .variasi-kosong {{ margin:{T.SP_2} 0; padding:{T.SP_3}; border:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius:{T.RADIUS_KECIL}; background:{T.LATAR_CATATAN}; }}

@@ -220,10 +220,15 @@ Di UI, P3/P4/P5/P6 bernama
 **Variasi A/B/C/D**: pembeda konfigurasi, bukan urutan kemampuan. Pengaturan latihan
 awal dipisahkan dari identitas anak; header profil hanya menampilkan nama dan kelas.
 Pemilih native menampilkan nama isi, cakupan registry, dan contoh deterministik
-berdekatan dengan radio; A–D menjadi penanda sekunder, bukan deskripsi kesulitan.
+berdekatan dengan radio; nomor urut lokal 1–N menjadi penanda sekunder, bukan
+deskripsi kesulitan atau kode konfigurasi historis.
 Pada latihan manual/gabungan, perubahan materi disiapkan ulang lewat POST read-only
 request-local sebelum pilihan isi dipakai; server menolak konteks perbandingan yang
-sudah berbeda, tanpa menulis sesi/profil. Contoh bukan soal sesi yang akan dibuat.
+sudah berbeda, tanpa menulis sesi/profil. Form manual mengirim POST ini otomatis saat
+Topik berubah bila enhancement tersedia, dengan tombol native “Tampilkan pilihan isi”
+sebagai fallback; gabungan tetap dibandingkan eksplisit setelah beberapa topik dipilih.
+Nama isi menjadi judul kartu, sedangkan nomor hanya badge sekunder. Contoh bukan
+soal sesi yang akan dibuat.
 Kode historis tetap di nilai kiriman/penyimpanan dan rincian teknis. Anak lama
 mempertahankan konfigurasi warisannya; retry registrasi
 lama tetap mengikat pilihan awal yang sama. Profil belum dipilih tidak membuat

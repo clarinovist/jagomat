@@ -48,8 +48,9 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
 - **Stdlib saja**, tanpa framework/dependensi runtime pihak ketiga; dev dependency
   hanya `pytest` dan `pytest-xdist`. Dependency baru perlu persetujuan pengguna.
 - **Zero-JS default**: `<details>` dan `?section=` server-side. Pengecualian disetujui:
-  mata sandi, `confirm()` destruktif, Kirim/Periksa Pendamping inline dengan CSP,
-  same-origin dan fallback form; bukan izin menambah JS umum.
+  mata sandi, `confirm()` destruktif, refresh pilihan isi saat topik berubah, serta
+  Kirim/Periksa Pendamping inline. Skrip berhash CSP, same-origin dan punya fallback
+  form native; bukan izin menambah JavaScript umum.
 - Nama modul Inggris; fungsi/variabel, docstring, UI dan commit Bahasa Indonesia.
   Commit conventional (`fix(murid): …`). Nilai visual melalui `design_tokens.py`
   (`T.*`); jangan hardcode hex di modul lain. Satu aksi, satu entry point.

@@ -819,9 +819,10 @@ def halaman_anak(
         f'<form id="form-latihan-manual-{siswa["id"]}" method="post" action="/sesi-baru/{siswa["id"]}" class="strip-sesi profil-manuel-st">'
         '<div class="profil-champs-st">'
         + f'<div class="strip-kolom"><label for="manual-topik">Topik</label>'
-        f'<select id="manual-topik" name="topik" class="st-input">{opsi_topik}</select>'
+        f'<select id="manual-topik" name="topik" class="st-input" data-pilihan-isi-otomatis>{opsi_topik}</select>'
         '<button type="submit" name="aksi_form" value="bandingkan" formnovalidate '
-        'class="variasi-bandingkan">Perbarui pilihan isi</button></div>'
+        'class="variasi-bandingkan" data-pilihan-isi-fallback>'
+        'Tampilkan pilihan isi</button></div>'
         + _kontrol_profil_parameter(
             'manual', getattr(draf_latihan, 'profil_parameter', siswa['tingkat']), (topik_manual,)
         )
@@ -927,7 +928,7 @@ def halaman_anak(
     from question_variants_ui import detail_kode
     panduan = (
         '<div class="profil-aide-st info-baris"><p class="sub">'
-        'Pilih topik, lalu bandingkan isi dan contoh pada pilihan di bawah.</p>'
+        'Pilih topik, lalu pilih isi dan lihat contoh pada kartu di bawah.</p>'
         + f'<button type="button" class="info" aria-label="{html.escape(INFO_LATIHAN_BEBAS, quote=True)}">'
         f'i<span class="info-bubble" role="tooltip">{html.escape(INFO_LATIHAN_BEBAS)}</span></button></div>'
     ) if section == 'latihan' else ''

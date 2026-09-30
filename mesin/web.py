@@ -89,6 +89,8 @@ class Penangan(BaseHTTPRequestHandler):
         import assistant_browser
         if assistant_browser.memiliki_panel(isi):
             return self._kirim_privat(isi, kode)
+        if assistant_browser.memiliki_pilihan_isi(isi):
+            isi, _izin_skrip = assistant_browser.lengkapi_respons(isi)
         self.send_response(kode)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(isi)))
@@ -98,7 +100,7 @@ class Penangan(BaseHTTPRequestHandler):
     def _kirim_privat(self, isi: bytes, kode: int = 200) -> None:
         """Respons privat; hanya skrip chat berhash boleh mengakses origin sendiri."""
         import assistant_browser
-        isi, izin_chat = assistant_browser.lengkapi_respons(isi)
+        isi, izin_skrip = assistant_browser.lengkapi_respons(isi)
         self.send_response(kode)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(isi)))
@@ -109,7 +111,7 @@ class Penangan(BaseHTTPRequestHandler):
         self.send_header(
             "Content-Security-Policy",
             "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; "
-            + izin_chat + "form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+            + izin_skrip + "form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
         )
         self.end_headers()
         self.wfile.write(isi)
@@ -2077,7 +2079,7 @@ class Penangan(BaseHTTPRequestHandler):
                 return self._kirim(
                     _halaman(
                         "Bandingkan ulang isi latihan",
-                        "<p>Topik berubah atau belum dibandingkan. Tekan Perbarui pilihan isi, lalu pilih isinya.</p>",
+                        "<p>Topik berubah atau belum dibandingkan. Tampilkan pilihan isi, lalu pilih isinya.</p>",
                     ), 409,
                 )
             sesi_id = None
