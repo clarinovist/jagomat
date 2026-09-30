@@ -11,6 +11,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import assistant_browser  # noqa: E402
 import database  # noqa: E402
 import share_links  # noqa: E402
 from http_test_kit import SANDI_GURU, ServerUji  # noqa: E402
@@ -123,19 +124,46 @@ def test_guru_membuat_tautan_absolut_untuk_fallback_tanpa_js(server):
     assert 'id="tautan-sesi"' in isi
 
 
-def test_halaman_anak_menawarkan_bagikan_dan_cabut(server):
+def test_halaman_anak_menawarkan_salin_langsung_dan_cabut(server):
     s, siswa_id, sesi_id = server
     _buat_tautan(s, sesi_id)
 
-    kode, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, header = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
     assert kode == 200
-    # Host dengan pemicu Pendamping memakai CSP privat; berbagi tetap POST
-    # native, bukan skrip lain yang akan diblokir oleh hash panel.
     assert f'action="/sesi/{sesi_id}/bagikan"' in isi
-    assert 'data-bagikan-url=' not in isi
-    assert 'Membuat tautan baru akan menonaktifkan tautan sebelumnya.' in isi
+    assert 'data-bagikan-sesi' in isi
+    assert 'data-bagikan-aktif="1"' in isi
+    assert "Buat dan salin tautan baru" in isi
+    assert 'role="status" aria-live="polite"' in isi
+    assert "Membuat tautan baru akan menonaktifkan tautan sebelumnya." in isi
     assert f'action="/sesi/{sesi_id}/cabut-tautan"' in isi
     assert 'aria-label="Cabut tautan sesi"' in isi
+    assert assistant_browser.SKRIP_BAGIKAN in isi
+    assert (
+        f"'sha256-{assistant_browser.HASH_BAGIKAN}'"
+        in header["Content-Security-Policy"]
+    )
+    assert "connect-src 'self'" in header["Content-Security-Policy"]
+    assert header["Cache-Control"] == "no-store"
+
+
+def test_halaman_sesi_menawarkan_salin_langsung_tanpa_halaman_perantara(server):
+    s, _, sesi_id = server
+
+    kode, isi, header = s.minta(f"/sesi/{sesi_id}", auth=("guru", SANDI_GURU))
+
+    assert kode == 200
+    assert f'action="/sesi/{sesi_id}/bagikan"' in isi
+    assert 'data-bagikan-sesi' in isi
+    assert 'data-bagikan-aktif="0"' in isi
+    assert "Salin tautan sesi" in isi
+    assert "navigator.clipboard.writeText" in isi
+    assert 'id="tautan-sesi"' not in isi
+    assert assistant_browser.SKRIP_BAGIKAN in isi
+    assert (
+        f"'sha256-{assistant_browser.HASH_BAGIKAN}'"
+        in header["Content-Security-Policy"]
+    )
 
 
 def test_link_membuka_hanya_satu_sesi_tanpa_login(server):

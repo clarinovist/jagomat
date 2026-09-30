@@ -90,7 +90,7 @@ def test_metadata_dan_status_tidak_dibuang_demi_ringkas(db):
     assert 'Latihan bebas' in baris and 'Variasi A' in baris and 'Mode Diagnosa' in baris
     assert 'Sesi #' in baris and 'Belum Dikerjakan' in baris and 'Menunggu pengiriman' in baris
     assert baris.count('>Buka →</a>')==1
-    assert 'Bagikan sesi ke anak' in baris
+    assert 'Salin tautan sesi' in baris
 
 
 def test_css_mobile_filter_penuh_dan_status_tidak_dipotong():

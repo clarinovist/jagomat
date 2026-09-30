@@ -387,15 +387,15 @@ def test_tanggal_kartu_kanonis_aman_dan_tidak_terpotong():
     assert "white-space: nowrap" in blok
 
 
-def test_host_pendamping_memakai_bagikan_native_tanpa_skrip_tambahan(anak):
+def test_host_pendamping_memakai_salin_tautan_dengan_fallback_native(anak):
     db, sid = anak
     markup = _tanpa_gaya(_render_anak(db, sid))
     badan = markup.split("<script>", 1)[0]
     assert 'id="kabar-bagikan"' not in badan
-    assert 'class="kabar-bagikan-st"' not in badan
-    assert 'Bagikan sesi ke anak</button></form>' in badan
-    assert 'data-bagikan-url=' not in badan
-    assert '<script>' not in markup
+    assert 'class="kabar-bagikan-st" role="status" aria-live="polite"' in badan
+    assert 'Salin tautan sesi</span></button>' in badan
+    assert 'data-bagikan-sesi' in badan
+    assert '<script>' not in markup, "renderer murni tidak menyisipkan enhancement HTTP"
     assert "Tautan berlaku 7 hari" not in badan
 
 

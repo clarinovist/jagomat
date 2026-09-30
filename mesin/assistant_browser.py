@@ -20,6 +20,84 @@ document.querySelectorAll('[data-pilihan-isi-otomatis]').forEach(function (pilih
 })();"""
 
 
+SKRIP_BAGIKAN = r"""(function () {
+'use strict';
+if (!window.fetch || !document.querySelectorAll) return;
+function kabar(form) {
+  var bungkus = form.closest('.blok-bagikan-st');
+  return bungkus && bungkus.querySelector('.kabar-bagikan-st');
+}
+function pilihManual(teks, status) {
+  try { window.prompt('Salin tautan ini:', teks); } catch (galat) {}
+  if (status) status.textContent = 'Tautan sudah dibuat, tetapi belum tersalin. Salin tautan yang tampil; berlaku 7 hari.';
+}
+function salinLama(teks) {
+  var bidang = document.createElement('textarea');
+  bidang.value = teks;
+  bidang.readOnly = true;
+  bidang.style.position = 'fixed';
+  bidang.style.opacity = '0';
+  document.body.appendChild(bidang);
+  bidang.select();
+  try { return document.execCommand('copy'); }
+  catch (galat) { return false; }
+  finally { bidang.remove(); }
+}
+async function salin(teks, status) {
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(teks);
+    } else if (!salinLama(teks)) {
+      throw new Error('clipboard');
+    }
+  } catch (galat) {
+    if (!salinLama(teks)) {
+      pilihManual(teks, status);
+      return false;
+    }
+  }
+  if (status) status.textContent = 'Tautan sesi sudah disalin. Tempel di chat mana pun; berlaku 7 hari.';
+  return true;
+}
+document.querySelectorAll('form[data-bagikan-sesi]').forEach(function (form) {
+  form.addEventListener('submit', async function (kejadian) {
+    kejadian.preventDefault();
+    var tombol = kejadian.submitter || form.querySelector('button[type="submit"]');
+    var status = kabar(form);
+    if (!tombol || tombol.disabled) return;
+    if (form.dataset.tautan) { await salin(form.dataset.tautan, status); return; }
+    if (form.dataset.bagikanAktif === '1' &&
+        !window.confirm('Membuat tautan baru akan menonaktifkan tautan sebelumnya. Lanjutkan?')) return;
+    tombol.disabled = true;
+    form.setAttribute('aria-busy', 'true');
+    if (status) status.textContent = 'Membuat tautan…';
+    try {
+      var respons = await fetch(form.getAttribute('action'), {
+        method: 'POST', credentials: 'same-origin', cache: 'no-store', redirect: 'error',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'fetch'},
+        body: ''
+      });
+      if (!respons.ok || !(respons.headers.get('Content-Type') || '').startsWith('application/json')) {
+        throw new Error('respons');
+      }
+      var data = await respons.json();
+      if (!data || typeof data.tautan !== 'string' || !data.tautan) throw new Error('tautan');
+      form.dataset.tautan = data.tautan;
+      form.dataset.bagikanAktif = '1';
+      var label = tombol.querySelector('[data-label-bagikan]');
+      if (label) label.textContent = 'Salin lagi';
+      await salin(data.tautan, status);
+    } catch (galat) {
+      if (status) status.textContent = 'Tautan belum berhasil dibuat. Coba lagi.';
+    } finally {
+      tombol.disabled = false;
+      form.removeAttribute('aria-busy');
+    }
+  });
+});
+})();"""
+
+
 SKRIP_CHAT = r"""(function () {
 'use strict';
 if (!window.fetch || !window.FormData || !window.DOMParser || !window.AbortController ||
@@ -294,6 +372,9 @@ HASH_CSP = base64.b64encode(hashlib.sha256(SKRIP_CHAT.encode("utf-8")).digest())
 HASH_PILIHAN_ISI = base64.b64encode(
     hashlib.sha256(SKRIP_PILIHAN_ISI.encode("utf-8")).digest()
 ).decode("ascii")
+HASH_BAGIKAN = base64.b64encode(
+    hashlib.sha256(SKRIP_BAGIKAN.encode("utf-8")).digest()
+).decode("ascii")
 
 
 def memiliki_panel(isi: bytes) -> bool:
@@ -310,9 +391,14 @@ def memiliki_pilihan_isi(isi: bytes) -> bool:
     ))
 
 
+def memiliki_bagikan(isi: bytes) -> bool:
+    """Deteksi form salin tautan; bearer link tidak pernah ditanam di HTML awal."""
+    return bool(re.search(rb'<form\b[^>]*\bdata-bagikan-sesi(?:\s|=|>)', isi))
+
+
 def memiliki_enhancement(isi: bytes) -> bool:
     """Halaman memerlukan salah satu skrip kecil berhash yang diizinkan."""
-    return memiliki_panel(isi) or memiliki_pilihan_isi(isi)
+    return memiliki_panel(isi) or memiliki_pilihan_isi(isi) or memiliki_bagikan(isi)
 
 
 def lengkapi_respons(isi: bytes):
@@ -325,6 +411,10 @@ def lengkapi_respons(isi: bytes):
     if memiliki_pilihan_isi(isi):
         skrip.append(SKRIP_PILIHAN_ISI)
         hash_skrip.append(HASH_PILIHAN_ISI)
+    if memiliki_bagikan(isi):
+        skrip.append(SKRIP_BAGIKAN)
+        hash_skrip.append(HASH_BAGIKAN)
+        izin_koneksi = "connect-src 'self'; "
     if memiliki_panel(isi):
         skrip.append(SKRIP_CHAT)
         hash_skrip.append(HASH_CSP)

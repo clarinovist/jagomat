@@ -49,7 +49,7 @@ def test_sesi_siap_mengarahkan_handoff_dengan_post_tanpa_efek_get(server):
         halaman,
         re.S,
     )
-    assert form and "Bagikan sesi ke anak" in form.group(1)
+    assert form and "Salin tautan sesi" in form.group(1)
     assert halaman.count(f'action="/sesi/{sesi_id}/bagikan"') == 1
     assert '<details class="panduan-pratinjau-st">' in halaman
     assert "Pratinjau soal &amp; kunci untuk guru" in halaman
@@ -64,7 +64,7 @@ def test_tautan_aktif_memperingatkan_rotasi_dengan_teks_persis(server):
 
     halaman = _halaman(uji, sesi_id)
 
-    assert "Buat tautan baru" in halaman
+    assert "Buat dan salin tautan baru" in halaman
     assert (
         "Membuat tautan baru akan menonaktifkan tautan sebelumnya. Lanjutkan?"
         in halaman
@@ -82,7 +82,7 @@ def test_sesi_mulai_menunggu_anak_dan_bagikan_ulang_sekunder(server):
     halaman = _halaman(uji, sesi_id)
 
     assert "Sedang dikerjakan · giliran anak" in halaman
-    assert "Bagikan ulang ke anak" in halaman
+    assert "Salin tautan sesi" in halaman
     assert 'class="panduan-aksi-sekunder-st"' in halaman
     blok_status = re.search(
         r'<section class="status-sesi-st panduan-sesi-st">(.*?)</section>',

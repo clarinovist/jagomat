@@ -87,7 +87,7 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _kirim(self, isi: bytes, kode: int = 200) -> None:
         import assistant_browser
-        if assistant_browser.memiliki_panel(isi):
+        if assistant_browser.memiliki_panel(isi) or assistant_browser.memiliki_bagikan(isi):
             return self._kirim_privat(isi, kode)
         if assistant_browser.memiliki_pilihan_isi(isi):
             isi, _izin_skrip = assistant_browser.lengkapi_respons(isi)

@@ -711,34 +711,26 @@ def halaman_anak(
                 'aria-label="Cabut tautan sesi" title="Cabut tautan">'
                 f'{profile_workspace.ikon("link_off")}<span>Cabut tautan</span></button></form>'
             )
-        if privat:
-            # Disclosure native menjaga konsekuensi dekat aksi tanpa JS/CSP baru.
-            if aktif:
-                return (
-                    '<details class="tautan-sesi-opsi"><summary>Kelola tautan anak</summary>'
-                    '<p class="sub">Membuat tautan baru akan menonaktifkan tautan sebelumnya. '
-                    'Mencabut tautan menutup akses melalui tautan itu.</p>'
-                    '<div class="blok-bagikan-st"><div class="aksi-bagikan-st">'
-                    f'<form method="post" action="/sesi/{rid}/bagikan">'
-                    '<button type="submit">Buat tautan baru</button></form>'
-                    + cabut + '</div></div></details>'
-                )
+        if aktif:
             return (
+                '<details class="tautan-sesi-opsi"><summary>Kelola tautan anak</summary>'
+                '<p class="sub">Membuat tautan baru akan menonaktifkan tautan sebelumnya. '
+                'Mencabut tautan menutup akses melalui tautan itu.</p>'
                 '<div class="blok-bagikan-st"><div class="aksi-bagikan-st">'
-                f'<form method="post" action="/sesi/{rid}/bagikan">'
-                '<button type="submit">Bagikan sesi ke anak</button></form></div></div>'
+                f'<form method="post" action="/sesi/{rid}/bagikan" '
+                'data-bagikan-sesi data-bagikan-aktif="1">'
+                '<button type="submit"><span data-label-bagikan>Buat dan salin tautan baru</span>'
+                '</button></form>' + cabut + '</div>'
+                '<span class="kabar-bagikan-st" role="status" aria-live="polite"></span>'
+                '</div></details>'
             )
         return (
-            '<div class="blok-bagikan-st">'
-            '<div class="aksi-bagikan-st">'
-            f'<button type="button" class="tombol-ikon-st tombol-bagikan-st" '
-            f'data-bagikan-url="/sesi/{rid}/bagikan" '
-            f'data-bagikan-aktif="{1 if aktif else 0}" '
-            'aria-label="Bagikan sesi ke anak" title="Bagikan sesi">'
-            f'{profile_workspace.ikon("share")}</button>'
-            f"{cabut}</div>"
-            '<span class="kabar-bagikan-st" aria-live="polite"></span>'
-            "</div>"
+            '<div class="blok-bagikan-st"><div class="aksi-bagikan-st">'
+            f'<form method="post" action="/sesi/{rid}/bagikan" '
+            'data-bagikan-sesi data-bagikan-aktif="0">'
+            '<button type="submit"><span data-label-bagikan>Salin tautan sesi</span></button>'
+            '</form></div><span class="kabar-bagikan-st" role="status" '
+            'aria-live="polite"></span></div>'
         )
 
     def _kartu_sesi(r, kelas):
@@ -997,15 +989,6 @@ def halaman_anak(
             f'<div class="daftar-anak">{item}</div></section>'
         )
 
-    skrip_bagikan = "" if privat else (
-        "<script>(function(){var b=document.querySelectorAll('.tombol-bagikan-st');"
-        "async function salin(t,k){try{await navigator.clipboard.writeText(t);k.textContent='Tautan tersalin dan berlaku 7 hari.';return true;}catch(e){window.prompt('Salin tautan ini:',t);k.textContent='Salin tautan yang tampil. Tautan berlaku 7 hari.';return false;}}"
-        "async function bagikan(t,k){if(navigator.share){try{await navigator.share({title:'Sesi Jagomat',url:t});k.textContent='Tautan dibagikan dan berlaku 7 hari.';return;}catch(e){if(e.name==='AbortError'){k.textContent='';return;}}}await salin(t,k);}"
-        "for(var i=0;i<b.length;i++){b[i].addEventListener('click',async function(){var x=this,k=x.closest('.blok-bagikan-st').querySelector('.kabar-bagikan-st');if(x.dataset.tautan){await bagikan(x.dataset.tautan,k);return;}if(x.dataset.bagikanAktif==='1'&&!window.confirm('Membuat tautan baru akan menonaktifkan tautan sebelumnya. Lanjutkan?'))return;x.disabled=true;"
-        "try{var r=await fetch(x.dataset.bagikanUrl,{method:'POST',headers:{'X-Requested-With':'fetch'}});"
-        "if(!r.ok)throw new Error('gagal');var d=await r.json();x.dataset.tautan=d.tautan;x.dataset.bagikanAktif='1';await bagikan(d.tautan,k);}"
-        "catch(e){k.textContent='Tautan belum berhasil dibuat. Coba lagi.';}finally{x.disabled=false;}});}})()</script>"
-    )
     return _halaman_stitch(
         f"{siswa['nama']} — {T.NAMA_PRODUK}",
         profile_workspace.bingkai(siswa, section, total_sesi, isi_profil, peran=peran, pesan=pesan,
@@ -1019,8 +1002,7 @@ def halaman_anak(
                 __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "rencana"),
                 status_akses=__import__("assistant_entitlement_runtime").status_pengguna(pengguna),
             )
-        ) if section == "riwayat" and peran == "guru" and pengguna else "")
-        + skrip_bagikan,
+        ) if section == "riwayat" and peran == "guru" and pengguna else ""),
         ident=(pengguna if pengguna else "guru", peran),
         kelas_bungkus="lebar pendamping-editorial-st profil-editorial-st profil-workspace-st",
         privat=privat,
@@ -2036,14 +2018,8 @@ def halaman_sesi_stitch(
                 'Bagikan tautan sesi, lalu biarkan anak mencoba dengan caranya sendiri.'
             )
             label_bagikan = (
-                "Bagikan ulang ke anak" if sudah_mulai else
-                "Buat tautan baru" if tautan_aktif else
-                "Bagikan sesi ke anak"
-            )
-            konfirmasi_rotasi = (
-                ' onsubmit="return confirm(\'Membuat tautan baru akan '
-                'menonaktifkan tautan sebelumnya. Lanjutkan?\')"'
-                if tautan_aktif else ""
+                "Buat dan salin tautan baru" if tautan_aktif else
+                "Salin tautan sesi"
             )
             kelas_aksi = (
                 "panduan-aksi-sekunder-st" if sudah_mulai else
@@ -2058,10 +2034,14 @@ def halaman_sesi_stitch(
                 f'{ikon_status}'
                 f'<div><b>{label_status}</b>{marker_status_lama}'
                 f'<p>{penjelasan_status}</p>'
+                '<div class="blok-bagikan-st">'
                 f'<form class="{kelas_aksi}" method="post" '
-                f'action="/sesi/{sesi_id}/bagikan"{konfirmasi_rotasi}>'
-                f'<button type="submit">{label_bagikan}</button></form>'
-                '</div></section>'
+                f'action="/sesi/{sesi_id}/bagikan" data-bagikan-sesi '
+                f'data-bagikan-aktif="{1 if tautan_aktif else 0}">'
+                f'<button type="submit"><span data-label-bagikan>{label_bagikan}</span>'
+                '</button></form>'
+                '<span class="kabar-bagikan-st" role="status" aria-live="polite"></span>'
+                '</div></div></section>'
             )
             blok_isi = (
                 '<details class="panduan-pratinjau-st">'

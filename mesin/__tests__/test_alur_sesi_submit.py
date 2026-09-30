@@ -296,28 +296,26 @@ def test_koreksi_latihan_cepat_tanpa_caraku_dan_submit_tetap_benar(db):
     assert hasil["kode_final"] is None
 
 
-def test_host_pendamping_memakai_bagikan_native_tanpa_js_di_luar_hash(server):
+def test_host_pendamping_memakai_salin_tautan_berhash_dengan_fallback_native(server):
     s, siswa_id, sesi_id = server
 
-    kode, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, header = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
 
     assert kode == 200
     assert f'action="/sesi/{sesi_id}/bagikan"' in isi
-    assert 'Bagikan sesi ke anak</button>' in isi
-    assert 'data-bagikan-url=' not in isi
-    assert 'class="kabar-bagikan-st"' not in isi
+    assert 'data-bagikan-sesi' in isi
+    assert 'Salin tautan sesi</span>' in isi
+    assert 'class="kabar-bagikan-st" role="status" aria-live="polite"' in isi
     assert "navigator.share" not in isi
-    assert "navigator.clipboard.writeText" not in isi
-    assert "window.prompt(" not in isi
+    assert "navigator.clipboard.writeText" in isi
+    assert "window.prompt(" in isi
     import assistant_browser
-    assert isi.count('<script>') == 2
+    assert isi.count('<script>') == 3
     assert '<script>' + assistant_browser.SKRIP_CHAT + '</script>' in isi
     assert '<script>' + assistant_browser.SKRIP_PILIHAN_ISI + '</script>' in isi
-    # Ikon aksi kartu sesi = kontrol 48px; periksa blok aturannya,
-    # bukan sekadar keberadaan angka 44px di seluruh stylesheet.
-    ikon = style_stitch.GAYA_STITCH.split(".tombol-ikon-st {", 1)[1].split("}", 1)[0]
-    assert f"width: {style_stitch.T.TINGGI_KONTROL}" in ikon
-    assert f"height: {style_stitch.T.TINGGI_KONTROL}" in ikon
+    assert '<script>' + assistant_browser.SKRIP_BAGIKAN + '</script>' in isi
+    assert f"'sha256-{assistant_browser.HASH_BAGIKAN}'" in header['Content-Security-Policy']
+    assert "connect-src 'self'" in header['Content-Security-Policy']
 
 
 def test_endpoint_bagikan_inline_mengembalikan_json_no_store(server):

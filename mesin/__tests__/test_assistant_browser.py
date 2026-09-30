@@ -65,6 +65,17 @@ def test_host_awal_memuat_skrip_dan_header_privat(server, jenis):
 def test_izin_skrip_hanya_hash_persis_pada_chat():
     biasa = b'<body><p>Tanpa chat</p></body>'
     assert assistant_browser.lengkapi_respons(biasa) == (biasa, "")
+    bagikan, izin_bagikan = assistant_browser.lengkapi_respons(
+        b'<body><form data-bagikan-sesi action="/sesi/1/bagikan"></form></body>'
+    )
+    skrip_bagikan = re.search(rb'<script>(.*?)</script>', bagikan, re.S).group(1)
+    digest_bagikan = base64.b64encode(hashlib.sha256(skrip_bagikan).digest()).decode()
+    assert izin_bagikan == (
+        f"script-src 'sha256-{digest_bagikan}'; connect-src 'self'; "
+    )
+    assert b"navigator.clipboard.writeText" in skrip_bagikan
+    assert b"document.execCommand('copy')" in skrip_bagikan
+    assert b"navigator.share" not in skrip_bagikan
     latihan, izin_latihan = assistant_browser.lengkapi_respons(
         b'<body><select data-pilihan-isi-otomatis><option>Topik</option></select></body>'
     )
@@ -308,6 +319,82 @@ for (const url of ['/sesi-baru/1','/pendamping/inline/konfirmasi-usulan','/penda
 ''')
 
 
+def test_js_bagikan_menyalin_tautan_tanpa_navigasi_dan_tanpa_rotasi_ulang():
+    node = shutil.which('node')
+    if node is None:
+        pytest.skip('Node tidak tersedia; regression JS harus dijalankan lewat browser sebelum rilis.')
+    skenario = r'''const vm=require('node:vm');const assert=require('node:assert/strict');
+let submit=null, fetchCount=0, copyCount=0, promptCount=0;
+const status={textContent:''}, label={textContent:'Salin tautan sesi'};
+const button={disabled:false,querySelector:q=>q==='[data-label-bagikan]'?label:null};
+const form={dataset:{bagikanAktif:'0'},attrs:{action:'/sesi/7/bagikan'},
+ addEventListener(n,f){assert.equal(n,'submit');submit=f;},closest(){return {querySelector:()=>status};},
+ querySelector(){return button;},getAttribute(n){return this.attrs[n];},setAttribute(){},removeAttribute(){}};
+const document={querySelectorAll:q=>q==='form[data-bagikan-sesi]'?[form]:[],createElement(){throw new Error('fallback tidak dipakai');},body:{appendChild(){}}};
+const window={fetch:async (url,opt)=>{fetchCount++;assert.equal(url,'/sesi/7/bagikan');assert.equal(opt.method,'POST');
+ return {ok:true,headers:{get:()=> 'application/json; charset=utf-8'},json:async()=>({tautan:'https://jagomat.id/mulai/token'})};},
+ prompt(){promptCount++;},confirm(){return true;}};
+const navigator={clipboard:{writeText:async t=>{copyCount++;assert.equal(t,'https://jagomat.id/mulai/token');}}};
+const dunia={document,window,navigator,fetch:window.fetch,Error};vm.createContext(dunia);vm.runInContext(SKRIP,dunia);
+(async()=>{let cegah=0;await submit({preventDefault(){cegah++;},submitter:button});
+ assert.equal(cegah,1);assert.equal(fetchCount,1);assert.equal(copyCount,1);assert.equal(promptCount,0);
+ assert.equal(form.dataset.tautan,'https://jagomat.id/mulai/token');assert.equal(label.textContent,'Salin lagi');
+ assert.match(status.textContent,/sudah disalin/);await submit({preventDefault(){cegah++;},submitter:button});
+ assert.equal(fetchCount,1,'klik ulang tidak boleh merotasi token');assert.equal(copyCount,2);assert.equal(cegah,2);})()
+ .catch(e=>{console.error(e);process.exitCode=1});'''
+    hasil = subprocess.run(
+        [node, '-e', 'const SKRIP=' + json.dumps(assistant_browser.SKRIP_BAGIKAN) + ';' + skenario],
+        capture_output=True, text=True, timeout=15,
+    )
+    assert hasil.returncode == 0, hasil.stderr
+
+
+def test_js_bagikan_fallback_clipboard_lama_tetap_menyalin_otomatis():
+    node = shutil.which('node')
+    if node is None:
+        pytest.skip('Node tidak tersedia; regression JS harus dijalankan lewat browser sebelum rilis.')
+    skenario = r'''const vm=require('node:vm');const assert=require('node:assert/strict');
+let submit=null, disalin='', bidang=null;const status={textContent:''};
+const button={disabled:false,querySelector:()=>null};
+const form={dataset:{bagikanAktif:'0'},addEventListener(n,f){submit=f;},closest(){return {querySelector:()=>status};},
+ querySelector(){return button;},getAttribute(){return '/sesi/7/bagikan';},setAttribute(){},removeAttribute(){}};
+const document={querySelectorAll:()=>[form],createElement(){bidang={style:{},select(){},remove(){},readOnly:false,value:''};return bidang;},
+ body:{appendChild(){}},execCommand(n){assert.equal(n,'copy');disalin=bidang.value;return true;}};
+const window={fetch:async()=>({ok:true,headers:{get:()=> 'application/json'},json:async()=>({tautan:'TAUTAN'})}),
+ prompt(){throw new Error('prompt tidak boleh dipakai');},confirm(){return true;}};
+const navigator={};const dunia={document,window,navigator,fetch:window.fetch,Error};vm.createContext(dunia);vm.runInContext(SKRIP,dunia);
+(async()=>{await submit({preventDefault(){},submitter:button});assert.equal(disalin,'TAUTAN');
+ assert.match(status.textContent,/sudah disalin/);})().catch(e=>{console.error(e);process.exitCode=1});'''
+    hasil = subprocess.run(
+        [node, '-e', 'const SKRIP=' + json.dumps(assistant_browser.SKRIP_BAGIKAN) + ';' + skenario],
+        capture_output=True, text=True, timeout=15,
+    )
+    assert hasil.returncode == 0, hasil.stderr
+
+
+def test_js_bagikan_gagal_clipboard_menawarkan_salin_manual():
+    node = shutil.which('node')
+    if node is None:
+        pytest.skip('Node tidak tersedia; regression JS harus dijalankan lewat browser sebelum rilis.')
+    skenario = r'''const vm=require('node:vm');const assert=require('node:assert/strict');
+let submit=null, promptText='';const status={textContent:''};
+const button={disabled:false,querySelector:()=>null};
+const form={dataset:{bagikanAktif:'0'},addEventListener(n,f){submit=f;},closest(){return {querySelector:()=>status};},
+ querySelector(){return button;},getAttribute(){return '/sesi/7/bagikan';},setAttribute(){},removeAttribute(){}};
+const document={querySelectorAll:()=>[form],createElement(){return {style:{},select(){},remove(){},readOnly:false,value:''};},body:{appendChild(){}},execCommand(){return false;}};
+const window={fetch:async()=>({ok:true,headers:{get:()=> 'application/json'},json:async()=>({tautan:'TAUTAN'})}),
+ prompt(judul,teks){promptText=teks;},confirm(){return true;}};
+const navigator={clipboard:{writeText:async()=>{throw new Error('ditolak');}}};
+const dunia={document,window,navigator,fetch:window.fetch,Error};vm.createContext(dunia);vm.runInContext(SKRIP,dunia);
+(async()=>{await submit({preventDefault(){},submitter:button});assert.equal(promptText,'TAUTAN');
+ assert.match(status.textContent,/belum tersalin/);})().catch(e=>{console.error(e);process.exitCode=1});'''
+    hasil = subprocess.run(
+        [node, '-e', 'const SKRIP=' + json.dumps(assistant_browser.SKRIP_BAGIKAN) + ';' + skenario],
+        capture_output=True, text=True, timeout=15,
+    )
+    assert hasil.returncode == 0, hasil.stderr
+
+
 def test_js_pilihan_isi_hanya_mengirim_form_native_dan_menyisakan_fallback():
     node = shutil.which('node')
     if node is None:
@@ -346,4 +433,21 @@ def test_skrip_tidak_memperluas_pengiriman_atau_penyimpanan_browser():
     assert 'p.generasi === generasi' in skrip
     assert 'if (!pembuka) return;' in skrip
     for terlarang in ('localStorage', 'sessionStorage', 'document.cookie', 'sendBeacon', 'innerHTML', 'eval('):
+        assert terlarang not in skrip
+
+
+def test_skrip_bagikan_membatasi_data_dan_penyimpanan_browser():
+    skrip = assistant_browser.SKRIP_BAGIKAN
+    assert "fetch(form.getAttribute('action')" in skrip
+    assert "credentials: 'same-origin', cache: 'no-store', redirect: 'error'" in skrip
+    assert "headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'fetch'}" in skrip
+    assert "body: ''" in skrip
+    assert "navigator.clipboard.writeText" in skrip
+    assert "document.execCommand('copy')" in skrip
+    assert "form.dataset.tautan" in skrip
+    assert "navigator.share" not in skrip
+    for terlarang in (
+        'localStorage', 'sessionStorage', 'document.cookie', 'sendBeacon',
+        'FormData', 'innerHTML', 'eval(',
+    ):
         assert terlarang not in skrip
