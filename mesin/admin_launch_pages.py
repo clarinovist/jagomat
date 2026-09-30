@@ -4,6 +4,7 @@ import html
 from datetime import datetime
 
 import product_analytics as d
+import support_settings as dukungan
 
 
 def e(nilai):
@@ -84,9 +85,45 @@ def antrean(rows,total,halaman=1):
     return '<section class="admin-kartu"><h2>Perlu ditangani · %d</h2>'%total+tabel(('Sumber','Referensi','Status','Sejak','Lanjut'),baris)+pager+'</section><p class="admin-meta">Status belum pasti bukan gagal aman. Gunakan operasi yang sama; jangan membuat pembayaran atau batch pengganti.</p>'
 
 
-def operasional(r,form_pembayaran=''):
-    isi='<section class="admin-kartu"><h2>Kesiapan layanan</h2>'+tabel(('Komponen','Status'),['<tr><td>%s</td><td>%s</td></tr>'%(e(k),e(r[v])) for k,v in [('Penyimpanan admin','admin'),('Pembayaran','pembayaran'),('Backup','backup')]])
+def formulir_dukungan(csrf, token, config):
+    opsi=''.join('<option value="%s"%s>%s</option>'%(e(k),' selected' if k==config.jam_layanan_kode else '',e(v)) for k,v in dukungan.JAM_LAYANAN.items())
+    return ('<form method="post" action="/admin/layanan/dukungan">'
+            '<input type="hidden" name="csrf_dukungan" value="%s">'
+            '<input type="hidden" name="tinjauan_dukungan" value="%s">'
+            '<label for="dukungan-wa">Nomor WhatsApp Business'
+            '<input id="dukungan-wa" name="whatsapp" inputmode="numeric" autocomplete="off" '
+            'maxlength="24" value="%s" aria-describedby="dukungan-wa-bantuan" required></label>'
+            '<p id="dukungan-wa-bantuan" class="admin-meta">Contoh: 0821 3711 1988. URL wa.me dibuat oleh aplikasi; jangan masukkan URL atau kode negara.</p>'
+            '<label for="dukungan-jam">Jam layanan<select id="dukungan-jam" name="jam_layanan">%s</select></label>'
+            '<label for="dukungan-respons">SLA respons awal (hari kerja)'
+            '<input id="dukungan-respons" name="sla_respons" type="number" min="1" max="30" value="%d" required></label>'
+            '<label for="dukungan-status">SLA status atau penyelesaian awal (hari kerja)'
+            '<input id="dukungan-status" name="sla_status" type="number" min="1" max="30" value="%d" required></label>'
+            '<label><input type="checkbox" name="konfirmasi" value="1" required> Saya memahami perubahan ini langsung menjadi kontak dan janji layanan pada halaman publik.</label>'
+            '<label for="dukungan-reauth">Sandi admin saat ini<input id="dukungan-reauth" type="password" name="reauth" required autocomplete="current-password"></label>'
+            '<button class="admin-tombol" type="submit">Simpan dukungan</button></form>')%(
+                e(csrf),e(token),e(dukungan._kelompok_nomor(config.whatsapp_digits)),opsi,
+                config.sla_respons_hari,config.sla_status_hari)
+
+
+def operasional(r,form_pembayaran='',form_dukungan='',feedback=''):
+    status='<p class="admin-kartu admin-catatan" role="status" aria-atomic="true">%s</p>'%e(feedback) if feedback else ''
+    isi=status+'<section class="admin-kartu"><h2>Kesiapan layanan</h2>'+tabel(('Komponen','Status'),['<tr><td>%s</td><td>%s</td></tr>'%(e(k),e(r[v])) for k,v in [('Penyimpanan admin','admin'),('Pembayaran','pembayaran'),('Backup','backup')]])
     isi+='<p>Cutoff backup: %s</p><p class="admin-meta">Validitas bundle bukan bukti backup terjadwal, salinan luar server, atau rehearsal terbaru.</p></section>'%tanggal(r['backup_cutoff'])
+    support=r.get('dukungan_config')
+    if support:
+        publik=dukungan.proyeksi_publik(support)
+        isi+=('<section class="admin-kartu"><h2>Dukungan pengguna</h2><p>Status: <strong>Siap</strong> · revisi %d</p>'
+              '<dl class="admin-rincian"><dt>WhatsApp Business</dt><dd>%s</dd><dt>Jam layanan</dt><dd>%s</dd>'
+              '<dt>Respons awal</dt><dd>Maksimal %d hari kerja</dd><dt>Status awal</dt><dd>Maksimal %d hari kerja</dd></dl>'
+              '%s%s'
+              '<p class="admin-meta">WhatsApp adalah kanal komunikasi, bukan bukti kepemilikan akun. Reset hanya setelah verifikasi independen; bila tidak tersedia, reset ditahan.</p></section>')%(
+                  support.revisi,e(publik.whatsapp_label),e(publik.jam_layanan_label),
+                  support.sla_respons_hari,support.sla_status_hari,
+                  '<h3>Ubah pengaturan publik</h3>' if form_dukungan else '',form_dukungan)
+    else:
+        isi+=('<section class="admin-kartu admin-galat"><h2>Dukungan pengguna</h2><p>Status: <strong>Belum siap</strong></p>'
+              '<p>Schema atau konfigurasi dukungan hilang/rusak. Kontak publik ditahan; jalankan migrator opt-in dan periksa recovery sebelum membuka layanan.</p></section>')
     cfg=r.get('pembayaran_config')
     tahap=cfg['tahap'] if cfg else 'tidak tersedia'
     kesiapan=r.get('pembayaran_kesiapan',{})

@@ -19,7 +19,7 @@ Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 | Data | `database.py`, `schema.py`, `*_store.py`, `*_schema.py`: penyimpanan dan migrasi |
 | Belajar | `diagnosis.py`, `learning_cycle.py`, `learning_cycle_service.py`: diagnosis, reducer murni, orkestrasi |
 | Laporan | `reports.py`, `report_*.py`, `mastery_*.py`: laporan dan penguasaan berbasis bukti |
-| Layanan lain | `assistant_*`/`ai_*`: Pendamping; `subscription_*`/`midtrans_*`: langganan/pembayaran; `admin_*`: pengelola |
+| Layanan lain | `assistant_*`/`ai_*`: Pendamping; `subscription_*`/`midtrans_*`: langganan/pembayaran; `admin_*`: pengelola; `support_settings.py`: konfigurasi dukungan privat dan proyeksi publik minimum |
 
 Alur domain: topik → generator/kontrak soal → penyajian → hasil tersimpan →
 tinjauan/diagnosis → bukti terkonfirmasi → reducer siklus → rekomendasi/laporan.
@@ -55,12 +55,19 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
 - Nama modul Inggris; fungsi/variabel, docstring, UI dan commit Bahasa Indonesia.
   Commit conventional (`fix(murid): …`). Nilai visual melalui `design_tokens.py`
   (`T.*`); jangan hardcode hex di modul lain. Satu aksi, satu entry point.
+- Konfigurasi dukungan berada pada namespace schema aditif optional-absent-or-exact
+  di `admin-control.db`, tanpa menaikkan admin7/8/9. `support_settings.migrasikan`
+  adalah migrator opt-in; reader tidak membuat/memperbaiki DB dan fail-closed bila
+  schema atau nilai rusak. Admin Operasional memakai CSRF, tinjauan signed, reauth,
+  revisi optimistik, transaksi config+audit, dan replay operation ID. Renderer publik
+  hanya menerima DTO nomor/jam/SLA yang sudah tervalidasi.
 - Registrasi menyimpan `siswa.tingkat=''` sampai pemetaan pertama disiapkan, tanpa
   default dari kelas atau backfill. Layanan kemudian menetapkan P3 sebagai konteks
   fondasi internal secara atomik; P3–P6 tetap codec histori, bukan pilihan pengguna.
   `question_context.profil_otomatis()` memilih profil efektif manual/gabungan yang
   didukung dan paling dekat tanpa mengubah profil rencana. Generator mempertahankan
-  komposisi historis sambil memvariasikan parameter dan urutan sesuai seed. `profile_workspace.py` menjadi sumber navigasi empat tujuan profil,
+  komposisi historis sambil memvariasikan parameter dan urutan sesuai seed.
+  `profile_workspace.py` menjadi sumber navigasi empat tujuan profil,
   sedangkan `reports.py` dan `report_metrics.py` menyediakan filter periode aktivitas
   server-side melalui query GET. Layanan siklus menginisialisasi konteks fondasi dan
   pemetaan pertama secara atomik dari satu tindakan eksplisit orang tua.

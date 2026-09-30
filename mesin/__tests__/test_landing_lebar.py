@@ -12,12 +12,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import design_tokens as T  # noqa: E402
+import support_settings  # noqa: E402
 from landing import halaman_landing  # noqa: E402
 from style_stitch import GAYA_STITCH  # noqa: E402
 
 
 def _html() -> str:
-    return halaman_landing().decode()
+    publik = support_settings.proyeksi_publik(support_settings.KonfigurasiDukungan(
+        '082137111988', 'weekday_0900_1700_wib', 1, 3, 1, 1, 'sistem_uji'))
+    return halaman_landing(dukungan=publik).decode()
 
 
 # ──────────────── lebar: akar keluhan "cuma separo" ────────────────
@@ -142,12 +145,12 @@ def test_landing_faq_tanpa_js():
 
 
 def test_landing_footer_memuat_kontak_wa():
-    """Footer menaut kebijakan + kontak WA dari T.WA_SUPPORT (sumber
-    tunggal, bukan nomor literal di markup)."""
+    """Footer memakai DTO dukungan, bukan nomor literal template."""
     h = _html()
     footer = h[h.index("<footer"):]
     assert 'href="/kebijakan-privasi"' in footer
-    assert T.WA_SUPPORT in footer
+    assert "0821 3711 1988" in footer
+    assert "https://wa.me/6282137111988" in footer
 
 
 def test_landing_tetap_single_cta():

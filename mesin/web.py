@@ -535,8 +535,12 @@ class Penangan(BaseHTTPRequestHandler):
             ident = self._identitas()
             if jalur == "/" and (not ident or ident[1] not in ("guru", "admin")):
                 from landing import halaman_landing
+                import admin_store
+                import support_settings
 
-                return self._kirim(halaman_landing())
+                return self._kirim(halaman_landing(
+                    dukungan=support_settings.baca_publik(admin_store.BAWAAN)
+                ))
             if not self._lolos_sandi():
                 return
             if ident[1] == "admin":
@@ -593,19 +597,27 @@ class Penangan(BaseHTTPRequestHandler):
                 token_form=token_form, analitik=analitik.form_daftar(),
             ))
         if jalur == "/kebijakan-privasi":
-            # Publik: tujuan checkbox persetujuan di /daftar & form anak,
-            # dan footer landing. Statis, tanpa membaca basis data.
+            # Publik dan tidak membaca data keluarga. Hanya proyeksi konfigurasi
+            # dukungan minimum yang dibaca dari admin-control secara read-only.
             from landing import halaman_kebijakan
+            import admin_store
+            import support_settings
 
-            return self._kirim(halaman_kebijakan())
+            return self._kirim(halaman_kebijakan(
+                dukungan=support_settings.baca_publik(admin_store.BAWAAN)
+            ))
         if jalur == "/lupa-sandi":
             # Publik, dari tautan di /masuk. Aplikasi sengaja tidak
             # menyimpan email, jadi ini halaman panduan ("mintalah sandi
             # baru ke X"), bukan reset mandiri — mengarang alur email
             # berarti mengarang kanal yang tidak ada.
             from landing import halaman_lupa_sandi
+            import admin_store
+            import support_settings
 
-            return self._kirim(halaman_lupa_sandi())
+            return self._kirim(halaman_lupa_sandi(
+                dukungan=support_settings.baca_publik(admin_store.BAWAAN)
+            ))
         if jalur == "/aset" or jalur.startswith("/aset/"):
             # Publik & sengaja sempit: hanya berkas brand statis dari
             # allow-list brand.ASET. Favicon dibutuhkan browser sebelum

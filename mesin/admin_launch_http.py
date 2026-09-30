@@ -14,11 +14,13 @@ import admin_subscription as billing
 import admin_operations
 import admin_launch_pages as ui
 import admin_launch_service as guard
+import support_settings as dukungan
 import product_analytics as d
 import product_analytics_store as kpi
 
 SECTION = {'langganan','perhatian','operasional','kpi'}
 JUDUL = {'langganan':'Langganan','perhatian':'Perlu ditangani','operasional':'Status operasional','kpi':'KPI Uji Coba'}
+FEEDBACK_DUKUNGAN = {'tersimpan': 'Pengaturan dukungan tersimpan dan siap dipakai halaman publik.'}
 
 
 def _form(penangan,p,aksi,meta):
@@ -70,6 +72,7 @@ def get(penangan,p,q):
         ringkas=admin_operations.ringkasan(h._path_admin(),sekarang=kini,runtime=runtime,
                                            kesiapan=kesiapan)
         form=''
+        form_dukungan=''
         config=ringkas['pembayaran_config']
         if p.metode=='cookie' and config:
             c,t=_form(penangan,p,'atur_pembayaran',{'revisi':config['revisi'],'tahap':config['tahap']})
@@ -77,7 +80,17 @@ def get(penangan,p,q):
                 ('nonaktif','Nonaktif'),('rekonsiliasi','Rekonsiliasi'),('checkout','Checkout'),('penegakan','Penegakan')))
             fields='<p><strong>Aturan perubahan:</strong> kenaikan hanya satu tahap. Penurunan dapat langsung dipakai saat insiden; pilih Rekonsiliasi agar transaksi berjalan tetap bisa diperiksa.</p><label>Tahap tujuan<select name="tahap">%s</select></label><label><input type="checkbox" name="konfirmasi" value="1" required> Saya sudah meninjau tahap saat ini, tahap tujuan, prasyarat, dan dampaknya pada pembayaran baru serta transaksi berjalan.</label>'%opsi
             form=ui.formulir('pembayaran',c,t,fields,'Terapkan perubahan tahap')
-        isi=ui.operasional(ringkas,form)
+        config_dukungan=ringkas['dukungan_config']
+        if p.metode=='cookie' and config_dukungan:
+            akun=h._akun_principal(p);token_sesi=h._wajib_cookie(penangan,p)
+            c=h._csrf(akun,token_sesi)
+            t=admin_security.buat_tinjauan(akun,token_sesi,'atur_dukungan',{
+                'revisi':config_dukungan.revisi,
+                'sidik':dukungan.sidik_konfigurasi(config_dukungan),
+            })
+            form_dukungan=ui.formulir_dukungan(c,t,config_dukungan)
+        isi=ui.operasional(ringkas,form,form_dukungan,
+                           feedback=FEEDBACK_DUKUNGAN.get(q.get('dukungan',''),''))
     else:
         bulan=q.get('bulan',d.hari_wib(kini)[:7])
         import re
@@ -98,7 +111,7 @@ def get(penangan,p,q):
 
 
 def tangani_post(penangan,jalur):
-    if jalur not in ('/admin/layanan/cari','/admin/layanan/periksa','/admin/layanan/pembayaran','/admin/layanan/biaya','/admin/layanan/eksperimen','/admin/layanan/transisi','/admin/layanan/tutup'):
+    if jalur not in ('/admin/layanan/cari','/admin/layanan/periksa','/admin/layanan/pembayaran','/admin/layanan/dukungan','/admin/layanan/biaya','/admin/layanan/eksperimen','/admin/layanan/transisi','/admin/layanan/tutup'):
         return False
     p=h._principal_admin(penangan)
     if p is None:
@@ -123,7 +136,10 @@ def tangani_post(penangan,jalur):
                         '<label><input type="checkbox" name="konfirmasi" value="1" required> Saya sudah meninjau akun ini dan dampaknya.</label>'%ui.e(k['alias']),'Aktifkan langganan')
             _kirim(penangan,p,'langganan',ui.daftar_langganan(rows,total,halaman=halaman,cari=cari,csrf=csrf,kandidat=kandidat,forms=forms))
             return True
-        aksi={'periksa':'periksa_pembayaran','pembayaran':'atur_pembayaran','biaya':'biaya','eksperimen':'eksperimen','transisi':'aktifkan_transisi','tutup':'tutup_tagihan'}[jalur.rsplit('/',1)[-1]]
+        aksi={'periksa':'periksa_pembayaran','pembayaran':'atur_pembayaran','dukungan':'atur_dukungan','biaya':'biaya','eksperimen':'eksperimen','transisi':'aktifkan_transisi','tutup':'tutup_tagihan'}[jalur.rsplit('/',1)[-1]]
+        if aksi=='atur_dukungan':
+            data['csrf']=data.pop('csrf_dukungan',None)
+            data['tinjauan']=data.pop('tinjauan_dukungan',None)
         akun,tinjauan,token=h._token_final(penangan,p,data,aksi)
         meta=tinjauan['data']; operasi=tinjauan['op']; kini=int(time.time())
         if aksi=='periksa_pembayaran':
@@ -163,6 +179,23 @@ def tangani_post(penangan,jalur):
                 operasi=operasi,tahap=data.get('tahap',''),revisi=meta['revisi'],
                 kesiapan=billing.kesiapan_penangan(penangan),sekarang=kini)
             h._redirect(penangan,'/admin?section=operasional')
+        elif aksi=='atur_dukungan':
+            if set(data)-{'whatsapp','jam_layanan','sla_respons','sla_status','konfirmasi'} or data.get('konfirmasi')!='1':
+                raise ValueError('konfirmasi dukungan tidak sah')
+            revisi=meta.get('revisi');sidik_awal=meta.get('sidik')
+            if type(revisi) is not int or type(sidik_awal) is not str:
+                raise ValueError('snapshot dukungan tidak sah')
+            def angka(nama):
+                nilai=data.get(nama,'')
+                if not nilai.isascii() or not nilai.isdigit():
+                    raise ValueError('SLA dukungan tidak sah')
+                return int(nilai)
+            dukungan.ubah(h._path_admin(),auth.BERKAS_SANDI,p,
+                operasi=operasi,revisi=revisi,sidik_awal=sidik_awal,
+                whatsapp=data.get('whatsapp',''),jam_layanan=data.get('jam_layanan',''),
+                sla_respons=angka('sla_respons'),sla_status=angka('sla_status'),
+                sekarang=kini)
+            h._redirect(penangan,'/admin?section=operasional&dukungan=tersimpan')
         elif aksi=='biaya':
             if set(data)-{'anggaran','server','domain','ai','pendukung','lengkap'}: raise ValueError('isian asing')
             lengkap=data.pop('lengkap','0')

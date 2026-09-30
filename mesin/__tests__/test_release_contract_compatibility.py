@@ -69,6 +69,9 @@ def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path, monkeypatch)
 
     fingerprint_candidate = _fingerprint(AKAR / "mesin")
     fingerprint_recovery = _fingerprint(recovery / "mesin")
+    assert fingerprint_candidate != fingerprint_recovery, (
+        "Schema dukungan belum boleh menyamar kompatibel dengan recovery lama."
+    )
     config = metadata.baca_config(AKAR / "scripts/release-metadata.json")
     metadata.validasi_workflow(ALUR.read_text(), config)
     assert recovery_sha == config["recovery_revision"]
@@ -105,11 +108,15 @@ def test_kontrak_candidate_identik_dengan_recovery_pinned(tmp_path, monkeypatch)
         assert hasil["siap_pasang"] is (config["mode"] == "rutin")
 
 
-def test_pin_registrasi_kosong_migrasi_wajib_pair_exact_tanpa_deploy():
-    """Baseline tanpa variasi: pair exact diwajibkan, pasang literal false."""
+def test_kontrak_candidate_memasukkan_modul_dukungan():
+    assert "support_settings.py" in deploy.PROBE_KONTRAK
+
+
+def test_pin_registrasi_kosong_persiapan_tanpa_deploy():
+    """Recovery lama tetap anchor build-only; schema dukungan belum dipasangkan."""
     config = metadata.baca_config(AKAR / 'scripts/release-metadata.json')
     assert config == {
-        'versi': 1, 'mode': 'migrasi',
+        'versi': 1, 'mode': 'persiapan',
         'recovery_revision': '634e077830938dbd3ae20d17e5ac019004e97fc2',
         'recovery_contract': '05196a2ff3072afa50ec8015235e11dec30b25aaa177ce787ee0121f50a15680',
     }
@@ -117,11 +124,9 @@ def test_pin_registrasi_kosong_migrasi_wajib_pair_exact_tanpa_deploy():
     b = {'revision': config['recovery_revision'], 'digest': 'sha256:'+'b'*64,
          'contract': config['recovery_contract']}
     c = {'revision': 'a'*40, 'digest': 'sha256:'+'a'*64,
-         'contract': config['recovery_contract']}
-    hasil = metadata.buat_manifest(config, c, b, pasangan_teruji=True)
-    assert hasil['compatible'] and hasil['pair_verified']
-    assert hasil['requires_controlled_migration'] and not hasil['siap_pasang']
-    with pytest.raises(ValueError, match='belum kompatibel/teruji'):
-        metadata.buat_manifest(config, c, b)
-    with pytest.raises(ValueError, match='tidak cocok dengan anchor'):
-        metadata.buat_manifest(config, c, {**b, 'contract': 'c'*64}, pasangan_teruji=True)
+         'contract': 'c'*64}
+    hasil = metadata.buat_manifest(config, c, b, pasangan_teruji=False)
+    assert not hasil['compatible'] and not hasil['pair_verified']
+    assert not hasil['requires_controlled_migration'] and not hasil['siap_pasang']
+    with pytest.raises(ValueError, match='Bukti pasangan tidak cocok'):
+        metadata.buat_manifest(config, c, b, pasangan_teruji=True)

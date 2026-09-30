@@ -54,6 +54,11 @@ RECOVERY_TANPA_REGISTRASI = RECOVERY_TANPA_FOTO + (
     'f9ce4a148b97797609fb086645016bd80d3c4a0c',
 )
 
+# Baseline registrasi 634e077 adalah revision terakhir sebelum schema dukungan.
+RECOVERY_TANPA_DUKUNGAN = RECOVERY_TANPA_REGISTRASI + (
+    '634e077830938dbd3ae20d17e5ac019004e97fc2',
+)
+
 
 def kontrak_untuk_revision(revision: str) -> str:
     """Pilih kontrak HTTP berdasarkan revision image yang sudah diverifikasi."""
@@ -78,6 +83,7 @@ def ringkasan_untuk_revision(revision: str) -> dict:
         "admin_quota_schema": None if revision in RECOVERY_TANPA_KUOTA else 9,
         "photo_checks": 0 if revision in RECOVERY_TANPA_FOTO else 8,
         "registration_checks": 0 if revision in RECOVERY_TANPA_REGISTRASI else 8,
+        "support_checks": 0 if revision in RECOVERY_TANPA_DUKUNGAN else 8,
         "pengiriman_checks": 0 if revision in {
             REVISION_RECOVERY_LEGACY, "33e241c18024190f41ebca1986e35af26c0397fd",
         } else 6,
@@ -614,6 +620,9 @@ def jalankan_probe(akar):
         registration_checks = 0
         if revision not in REVISION_TANPA_REGISTRASI:
             registration_checks = uji_registrasi(akar / 'registrasi')
+        support_checks = 0
+        if revision not in REVISION_TANPA_DUKUNGAN:
+            support_checks = uji_dukungan(akar / 'dukungan')
         pastikan(not panggilan, 'provider_terpanggil')
     finally:
         socket.socket.connect, socket.socket.connect_ex, socket.getaddrinfo = asli_connect, asli_connect_ex, asli_resolve
@@ -625,7 +634,8 @@ def jalankan_probe(akar):
             'package_checks': package_checks, 'admin_package_schema': 8 if package_checks else None,
             'quota_checks': quota_checks, 'admin_quota_schema': 9 if quota_checks else None,
             'photo_checks': 0 if revision in REVISION_TANPA_FOTO else 8,
-            'registration_checks': registration_checks}
+            'registration_checks': registration_checks,
+            'support_checks': support_checks}
 
 
 def main():
@@ -693,6 +703,23 @@ SUMBER_PROBE = SUMBER_PROBE.replace(
 def uji_kuota(akar, foto):
     for sumber in (PROBE_KUOTA if foto else PROBE_KUOTA_LAMA):
         exec(compile(sumber.replace('/data/', str(akar) + '/'), '<probe-kuota>', 'exec'), {})
+    return 8
+''' + '\ndef main():', 1)
+
+
+_spek_dukungan = importlib.util.spec_from_file_location(
+    'release_support_pair', Path(__file__).with_name('release_support_pair.py'))
+_probe_dukungan = importlib.util.module_from_spec(_spek_dukungan)
+_spek_dukungan.loader.exec_module(_probe_dukungan)
+SUMBER_PROBE = SUMBER_PROBE.replace(
+    '\ndef main():', '\nREVISION_TANPA_DUKUNGAN = ' + repr(RECOVERY_TANPA_DUKUNGAN)
+    + '\nPROBE_DUKUNGAN = ' + repr((_probe_dukungan.SUMBER_TULIS,
+        _probe_dukungan.SUMBER_BACA, _probe_dukungan.SUMBER_KEMBALI))
+    + '''
+def uji_dukungan(akar):
+    akar.mkdir()
+    for sumber in PROBE_DUKUNGAN:
+        exec(compile(sumber.replace('/data/', str(akar) + '/'), '<probe-dukungan>', 'exec'), {})
     return 8
 ''' + '\ndef main():', 1)
 

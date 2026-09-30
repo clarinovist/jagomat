@@ -9,6 +9,7 @@ import admin_store
 import ai_service
 import ai_store
 import admin_subscription
+import support_settings
 
 # Operator dapat menginjeksi bundle privat tervalidasi; tidak ada path dari HTTP.
 BUNDLE_BACKUP = None
@@ -37,6 +38,7 @@ def antrean(path,*,halaman=1):
 def ringkasan(path_admin,*,sekarang,runtime=None,kesiapan=None):
     hasil={'admin':'Belum tersedia','pembayaran':'Belum dikonfigurasi',
            'pembayaran_config':None,'pembayaran_kesiapan':dict(kesiapan or {}),
+           'dukungan_config':None,
            'backup':'Belum terverifikasi','backup_cutoff':None,'ai':(), 'ai_gagal':None}
     try:
         with admin_store.buka_baca(path_admin) as kon:
@@ -44,6 +46,7 @@ def ringkasan(path_admin,*,sekarang,runtime=None,kesiapan=None):
             hasil['pembayaran_config']=admin_subscription.guard.konfigurasi_pembayaran(kon)
     except (RuntimeError,sqlite3.Error):
         pass
+    hasil['dukungan_config'] = support_settings.baca(path_admin)
     if runtime is not None:
         hasil['pembayaran']='Sandbox terkonfigurasi' if runtime.config.lingkungan == 'sandbox' else 'Terkonfigurasi'
     elif hasil['pembayaran_config'] is not None:

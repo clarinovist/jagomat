@@ -68,6 +68,7 @@ class RingkasanBackup:
     operasi_foto_unknown: int = 0
     skema_registrasi_profil: bool = False
     operasi_registrasi_profil_pending: int = 0
+    skema_dukungan: bool = False
 
 
 def _sha256(path: Path) -> str:
@@ -352,12 +353,15 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
                 subscription_store.validasi_ledger(kon)
             except (ValueError, sqlite3.Error):
                 raise BackupTidakSah('schema langganan backup tidak lengkap') from None
+    skema_dukungan = False
     if versi_admin in (VERSI_TARGET['admin'], 8, 9):
         import admin_store
+        import support_settings
         try:
             with admin_store.buka_baca(akar / BERKAS_WAJIB['admin']) as kon:
                 import subscription_store
                 subscription_store.validasi_ledger(kon)
+                skema_dukungan = support_settings.validasi_schema(kon)
                 if versi_admin == 9:
                     import assistant_quota_store
                     assistant_quota_store.validasi_sumber(kon)
@@ -398,7 +402,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
         bool(pending or uncertain or billing or kuota_pending or kuota_unknown)
         or bool(foto_pending or foto_unknown) or bool(registrasi_pending),
         kuota_pending, kuota_unknown, skema_foto, foto_pending, foto_unknown,
-        skema_registrasi, registrasi_pending,
+        skema_registrasi, registrasi_pending, skema_dukungan,
     )
 
 
@@ -594,7 +598,8 @@ def _validasi_receipt_profil(admin, belajar, tabel, row):
 
 
 def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto=None,
-                     target_registrasi=None, target_penutupan=None) -> RingkasanBackup:
+                     target_registrasi=None, target_penutupan=None,
+                     target_dukungan=None) -> RingkasanBackup:
     """Migrasikan turunan temp dua kali; backup induk tidak pernah ditulis.
 
     ``migrator_ai`` wajib dari candidate AI2. ``target_admin`` None mempertahankan
@@ -632,6 +637,10 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
         target_penutupan = penutupan_awal
     if type(target_penutupan) is not bool or (penutupan_awal and not target_penutupan):
         raise BackupTidakSah('target rehearsal penutupan tidak sah')
+    if target_dukungan is None:
+        target_dukungan = sebelum.skema_dukungan
+    if type(target_dukungan) is not bool or (sebelum.skema_dukungan and not target_dukungan):
+        raise BackupTidakSah('target rehearsal dukungan tidak sah')
     with tempfile.TemporaryDirectory(prefix="jagomat-rehearsal-") as direktori:
         turunan = Path(direktori)
         turunan.chmod(0o700)
@@ -669,6 +678,9 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
                 admin_store.migrasikan_kuota_pendamping(turunan / BERKAS_WAJIB["admin"])
             if target_penutupan:
                 admin_store.migrasikan_penutupan_tagihan(turunan / BERKAS_WAJIB["admin"])
+            if target_dukungan:
+                import support_settings
+                support_settings.migrasikan(turunan / BERKAS_WAJIB["admin"], sekarang=sebelum.cutoff)
             migrator_ai(turunan / BERKAS_WAJIB["ai"])
             assistant_schema.siapkan(turunan / BERKAS_WAJIB["pendamping"])
         foto_akhir = _validasi_foto(turunan / BERKAS_WAJIB['belajar'])
@@ -695,7 +707,10 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
             raise BackupTidakSah('state penutupan berubah selama rehearsal')
         with admin_store.buka_baca(turunan / BERKAS_WAJIB['admin']) as kon:
             import subscription_store
+            import support_settings
             subscription_store.validasi_ledger(kon)
+            if support_settings.validasi_schema(kon) != target_dukungan:
+                raise BackupTidakSah('state dukungan berubah selama rehearsal')
             if target_admin == 9:
                 import assistant_quota_store
                 assistant_quota_store.validasi_sumber(kon)
@@ -732,4 +747,5 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
         sebelum.perlu_rekonsiliasi, sebelum.operasi_kuota_pending, sebelum.operasi_kuota_unknown,
         target_foto, sebelum.operasi_foto_pending, sebelum.operasi_foto_unknown,
         target_registrasi, sebelum.operasi_registrasi_profil_pending,
+        target_dukungan,
     )

@@ -210,7 +210,7 @@ def _galat(penangan, kode, pesan):
         penangan,
         admin_pages.halaman_admin(
             "ringkasan",
-            '<section class="admin-kartu admin-galat"><h2>Permintaan tidak dapat diproses</h2><p>%s</p></section>'
+            '<section class="admin-kartu admin-galat" role="alert"><h2>Permintaan tidak dapat diproses</h2><p>%s</p></section>'
             % html.escape(pesan),
             pengguna="pengelola",
         ),
@@ -457,7 +457,7 @@ def tangani_get(penangan, jalur):
             return True
         query = _query(
             penangan,
-            diizinkan={"section", "id", "halaman", "status", "memiliki_anak", "tingkat", "keluarga_id", "actor_id", "aksi", "mulai", "selesai", "sumber", "bulan"},
+            diizinkan={"section", "id", "halaman", "status", "memiliki_anak", "tingkat", "keluarga_id", "actor_id", "aksi", "mulai", "selesai", "sumber", "bulan", "dukungan"},
         )
         _render_get(penangan, principal, query)
     except LookupError:

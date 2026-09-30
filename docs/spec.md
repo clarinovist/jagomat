@@ -20,16 +20,21 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
 - Siklus terpandu; latihan manual tetap tersedia tanpa otomatis mengubah putaran.
 - Pendamping AI inline untuk orang tua; usulan latihan memerlukan tinjauan dan
   konfirmasi, bukan perubahan diagnosis atau bukti belajar otomatis.
-- Akun keluarga, pengelolaan murid, langganan dan pembayaran. Pendaftaran membuat
-  profil anak pertama tanpa meminta variasi soal; kelas sekolah opsional. Tautan
-  satu sesi dibuat dan langsung disalin dari layar aktif pada browser yang mendukung,
-  dengan form native sebagai fallback; masa berlaku dan pencabutan tetap dipagari.
-  Saat menyiapkan latihan, orang tua cukup memilih topik, jumlah, format, dan mode;
-  Jagomat memilih satu konfigurasi internal yang didukung topik, sedangkan seed
-  mengganti parameter dan susunan model di dalam konfigurasi itu. P3–P6 tetap disimpan
-  sebagai konteks historis, bukan kelas atau ukuran kemampuan. Anak baru belum
-  berpartisipasi sampai pemetaan pertama disiapkan; saat itu sistem memakai konteks
-  fondasi internal P3 secara atomik, tanpa menebak dari kelas sekolah. Profil
+- Akun keluarga, pengelolaan murid, langganan dan pembayaran. Dukungan publik
+  memakai satu konfigurasi privat untuk WhatsApp Business, jam Senin–Jumat
+  09.00–17.00 WIB, respons awal maksimal 1 hari kerja, serta status/penyelesaian
+  awal maksimal 3 hari kerja. Kanal ini tidak menambah kontak pada profil keluarga,
+  tidak mengirim pesan otomatis, dan bukan bukti kepemilikan akun. Reset hanya
+  setelah verifikasi independen; bila tidak tersedia, reset ditahan. Pendaftaran
+  membuat profil anak pertama tanpa meminta variasi soal; kelas sekolah opsional.
+  Tautan satu sesi dibuat dan langsung disalin dari layar aktif pada browser yang
+  mendukung, dengan form native sebagai fallback; masa berlaku dan pencabutan tetap
+  dipagari. Saat menyiapkan latihan, orang tua cukup memilih topik, jumlah, format,
+  dan mode; Jagomat memilih satu konfigurasi internal yang didukung topik, sedangkan
+  seed mengganti parameter dan susunan model di dalam konfigurasi itu. P3–P6 tetap
+  disimpan sebagai konteks historis, bukan kelas atau ukuran kemampuan. Anak baru
+  belum berpartisipasi sampai pemetaan pertama disiapkan; saat itu sistem memakai
+  konteks fondasi internal P3 secara atomik, tanpa menebak dari kelas sekolah. Profil
   menempatkan Laporan perkembangan sejajar dengan Buat latihan,
   Rencana belajar, dan Riwayat; ringkasan aktivitas dapat dilihat lewat preset 7 hari,
   minggu ini, bulan ini, atau rentang tanggal sendiri. Detail paket/aktivasi mengikuti
@@ -61,7 +66,10 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   akun/sandi sesama pengelola. Sesi berbukti tidak boleh dihapus permanen.
 - Data anak, kredensial, sesi dan cadangan tidak masuk Git/log/fixture. Tes memakai
   data sintetis; pengiriman ke AI hanya melalui alur dan izin produk yang disetujui.
-  Tidak menyimpan email/telepon siapa pun.
+  Tidak menyimpan email/telepon pengguna. Nomor WhatsApp Business adalah konfigurasi
+  operasi Jagomat, bukan kontak keluarga; URL publik tidak membawa nama akun/anak.
+- Penghapusan seluruh keluarga memerlukan workstream kritis dan primitive domain
+  teruji; tidak boleh dirangkai dari penghapusan login guru.
 - Kunci dan diagnosis tidak ditentukan LLM. Tidak menjanjikan kesiapan juara atau
   menyamakan progres target Jagomat dengan penguasaan seluruh kurikulum sekolah.
 
@@ -69,7 +77,7 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
 
 [Siklus belajar](siklus-belajar-terpandu.md) · [Pilihan ganda](multiple-choice.md) ·
 [Pendamping](pendamping-runtime.md) · [Paket](subscription-packages.md) ·
-[Pembayaran](pembayaran-produksi.md).
+[Pembayaran](pembayaran-produksi.md) · [Operasi dukungan](support-operations.md).
 Pekerjaan berstatus **DIBATALKAN** pada [indeks keputusan](README.md) bukan backlog
 aktif; hanya dibuka kembali melalui keputusan baru pengguna. Perubahan kurikulum,
 jenis soal, atau cakupan produk memerlukan keputusan pengguna.

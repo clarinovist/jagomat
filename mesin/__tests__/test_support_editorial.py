@@ -8,6 +8,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import design_tokens as T
 import landing
+import support_settings
 import render
 import web
 from generator import buat_lembar
@@ -18,7 +19,9 @@ from support_pages import halaman_pesan
 
 @pytest.mark.parametrize('fungsi,kelas', [(landing.halaman_lupa_sandi, 'lupa-editorial-st'), (landing.halaman_kebijakan, 'privasi-editorial-st')])
 def test_dukungan_publik_landmark_statis_dan_satu_masuk(fungsi, kelas):
-    isi = fungsi().decode()
+    publik = support_settings.proyeksi_publik(support_settings.KonfigurasiDukungan(
+        '082137111988', 'weekday_0900_1700_wib', 1, 3, 1, 1, 'sistem_uji'))
+    isi = fungsi(dukungan=publik).decode()
     assert isi.count('<main ') == 1
     assert len(re.findall(r'<h1(?:>| )', isi)) == 1
     assert kelas in isi

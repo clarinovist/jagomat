@@ -1,5 +1,25 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Kandidat konfigurasi dukungan — 30 September 2026
+
+Konfigurasi WhatsApp Business, jam layanan, dan SLA memakai schema dukungan
+aditif **tanpa bump `user_version` admin9**. Pemasangan hanya melalui migrator
+operator `mesin/.venv/bin/python mesin/support_settings.py --database <salinan-terverifikasi>`
+atau API `support_settings.migrasikan`; startup/GET tidak memigrasi dan reader publik
+fail-closed bila schema/nilai hilang atau rusak. Recovery aktif `634e077` belum
+mempunyai writer/reader dukungan, sehingga **belum layak** menjadi pasangan
+recovery untuk cutover schema ini. Bekukan baseline recovery baru yang memahami
+schema dukungan, lalu perbarui pin/contract dalam rilis terpisah dan buktikan probe
+image serta C→B→C `support_pair_checks=8` pada digest exact.
+
+Sebelum cutover: bundle coherent empat DB + `sandi.json`, rehearsal opt-in
+`target_dukungan=True` dua kali dengan preservasi state lama, integrity/FK,
+backup induk tetap byte-identik, approval exact-pair, dan health. Job `pasang`
+tetap literal false; jangan membuka gate agar pipeline hijau. Setelah migrasi,
+smoke anonim tetap `/` 200, `/akun` 401, `/murid/` 303 ke `/masuk`, lalu verifikasi
+halaman publik dan panel memakai fixture sintetis. Runbook operator:
+[support-operations.md](support-operations.md).
+
 ## Rilis registrasi tanpa variasi dan UX orang tua — 29 September 2026
 
 Recovery source dipatok ke **`634e077830938dbd3ae20d17e5ac019004e97fc2`**:

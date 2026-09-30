@@ -24,6 +24,8 @@ from release_quota_pair import (SUMBER_TULIS as KUOTA_TULIS, SUMBER_BACA as KUOT
 
 from release_registration_pair import (SUMBER_TULIS as REGISTRASI_TULIS,
     SUMBER_BACA as REGISTRASI_BACA, SUMBER_KEMBALI as REGISTRASI_KEMBALI)
+from release_support_pair import (SUMBER_TULIS as DUKUNGAN_TULIS,
+    SUMBER_BACA as DUKUNGAN_BACA, SUMBER_KEMBALI as DUKUNGAN_KEMBALI)
 
 TULIS_PILOT = 'FOKUS_TULIS = ' + repr(FOKUS_TULIS) + '\nPROBE_PROFIL = ' + repr(SUMBER_UJI_PROFIL) + '\nADMIN_TULIS = ' + repr(ADMIN_TULIS) + '\n' + TULIS_PILOT
 BACA_PILOT = 'FOKUS_BACA = ' + repr(FOKUS_BACA) + '\nADMIN_BACA = ' + repr(ADMIN_BACA) + '\n' + BACA_PILOT
@@ -227,6 +229,9 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             (11, candidate_image, REGISTRASI_TULIS, 'OSN_REGISTRATION_WRITER_OK'),
             (12, recovery_image, REGISTRASI_BACA, 'OSN_REGISTRATION_RECOVERY_OK'),
             (13, candidate_image, REGISTRASI_KEMBALI, 'OSN_REGISTRATION_RETURN_OK'),
+            (14, candidate_image, DUKUNGAN_TULIS, 'OSN_SUPPORT_WRITER_OK'),
+            (15, recovery_image, DUKUNGAN_BACA, 'OSN_SUPPORT_RECOVERY_OK'),
+            (16, candidate_image, DUKUNGAN_KEMBALI, 'OSN_SUPPORT_RETURN_OK'),
         ):
             if _jalankan(image, volume, sumber, token, nomor) != marker:
                 raise GalatVerifikasi('probe_paket_kuota_gagal')
@@ -241,7 +246,8 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'recovery_digest': recovery_image.split('@')[1], 'pengiriman_pair_checks': 6,
             'pilihan_pair_checks': 8, 'learning_pair_checks': 8, 'subscription_pair_checks': 4, 'admin_launch_pair_checks': 4,
             'package_pair_checks': 8, 'quota_pair_checks': 8,
-            'photo_pair_checks': 8, 'registration_pair_checks': 8, 'provider_calls': 0}
+            'photo_pair_checks': 8, 'registration_pair_checks': 8,
+            'support_pair_checks': 8, 'provider_calls': 0}
 
 
 def main(argv=None):

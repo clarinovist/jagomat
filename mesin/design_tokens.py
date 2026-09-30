@@ -288,12 +288,6 @@ LATAR_KARTU_MURID = "#fff"
 NAMA_PRODUK = "Jagomat"
 TAGLINE = "Jago karena tahu caranya."
 
-# Kontak dukungan manusia untuk pilot. Aplikasi ini SENGAJA tidak menyimpan
-# email/telepon siapa pun (lihat landing.halaman_lupa_sandi), jadi ortu yang
-# lupa sandi atau butuh bantuan hanya bisa lewat jalur luar ini. Placeholder:
-# GANTI dengan nomor WA asli sebelum pilot dibuka ke keluarga pertama.
-WA_SUPPORT = "08xx-xxxx-xxxx"
-
 # Ukuran lambang (mark) per konteks. Audit 3 Sep menemukan ikon brand yang
 # sama dirender 20,8px di satu CSS dan 21,6px di CSS lain — akibat ukuran
 # ditulis sebagai angka lepas per stylesheet, bukan token.

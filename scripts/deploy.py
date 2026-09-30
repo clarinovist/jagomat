@@ -457,6 +457,49 @@ with database.buka(Path('/data/latihan.db')) as kon:
 print('OSN_IMAGE_ADMIN9_AI2_OK')
 ''')
 
+# Konfigurasi dukungan aditif tanpa bump admin9. Readiness live wajib exact dan
+# sudah terpasang; image lama masih boleh diprobe sebelum menjadi recovery baru.
+PROBE_DUKUNGAN_SKEMA = '''
+import ast
+kon = sqlite3.connect('file:/data/admin-control.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only=ON')
+    def struktur_dukungan(c):
+        return c.execute("SELECT type,name,tbl_name,sql FROM sqlite_master WHERE tbl_name GLOB 'dukungan_*' ORDER BY type,name").fetchall()
+    aktual = struktur_dukungan(kon)
+    assert aktual, 'schema_dukungan_absen'
+    pohon = ast.parse((akar_app / 'support_settings.py').read_text())
+    ddl = [ast.literal_eval(n.value) for n in pohon.body if isinstance(n, ast.Assign)
+           and any(isinstance(t, ast.Name) and t.id=='DDL' for t in n.targets)]
+    assert len(ddl)==1
+    acuan=sqlite3.connect(':memory:')
+    try:
+        acuan.executescript(ddl[0])
+        assert aktual==struktur_dukungan(acuan), 'schema_dukungan_parsial'
+    finally: acuan.close()
+    row=kon.execute('SELECT whatsapp_digits,jam_layanan_kode,sla_respons_hari,sla_status_hari,revisi FROM dukungan_konfigurasi WHERE id=1').fetchone()
+    assert row and row[0].startswith('08') and row[0].isascii() and row[0].isdigit()
+    assert 10<=len(row[0])<=15 and row[1]=='weekday_0900_1700_wib'
+    assert 1<=row[2]<=30 and 1<=row[3]<=30 and row[4]>=1
+finally: kon.close()
+'''
+PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_DUKUNGAN_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
+PROBE_IMAGE = PROBE_IMAGE.replace("print('OSN_IMAGE_ADMIN9_AI2_OK')", '''
+try:
+    import support_settings
+except ImportError:
+    support_settings = None
+if support_settings is not None:
+    with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+        assert not support_settings.validasi_schema(kon)
+    for _ in range(2):
+        support_settings.migrasikan(Path('/data/admin-control.db'), sekarang=1)
+    cfg=support_settings.baca(Path('/data/admin-control.db'))
+    assert cfg and cfg.revisi==1
+    assert support_settings.proyeksi_publik(cfg).whatsapp_url=='https://wa.me/6282137111988'
+print('OSN_IMAGE_ADMIN9_AI2_OK')
+''')
+
 PROBE_KONTRAK = '''import hashlib
 import json
 from pathlib import Path
@@ -469,6 +512,11 @@ nama = {
 }
 nama.update(p.name for p in akar.glob('*.py')
             if any(k in p.stem for k in ('schema', 'migrat', 'database', 'store')))
+# Recovery sebelum fitur ini belum mempunyai modul dukungan. Hash file bila ada
+# agar baseline lama tetap dapat diukur pada mode persiapan, sementara setiap
+# perubahan dukungan pada candidate/recovery baru mengubah fingerprint.
+if (akar / 'support_settings.py').is_file():
+    nama.add('support_settings.py')
 hasil = {n: hashlib.sha256((akar / n).read_bytes()).hexdigest() for n in sorted(nama)}
 print(hashlib.sha256(json.dumps(hasil, sort_keys=True).encode()).hexdigest())
 '''

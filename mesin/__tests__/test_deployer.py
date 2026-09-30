@@ -675,6 +675,7 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
     (tmp_path / 'admin_store.py').write_text("VERSI_SKEMA = 7\nraise RuntimeError('jangan import')\n")
     (tmp_path / 'subscription_package_schema.py').write_text("VERSI_SKEMA = 8\nraise RuntimeError('jangan import')\n")
     (tmp_path / 'assistant_quota_schema.py').write_text("VERSI_SKEMA = 9\nraise RuntimeError('jangan import')\n")
+    (tmp_path / 'support_settings.py').write_text((AKAR / 'mesin/support_settings.py').read_text())
     privat = tmp_path / "pendamping.db"
     belajar = tmp_path / "latihan.db"
     ai = tmp_path / "ai-control.db"
@@ -721,6 +722,11 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
         admin_store._jalankan_ddl(kon, subscription_schema.DDL)
         import admin_launch_schema
         admin_store._jalankan_ddl(kon, admin_launch_schema.DDL)
+        import support_settings
+        admin_store._jalankan_ddl(kon, support_settings.DDL)
+        kon.execute("INSERT INTO dukungan_schema VALUES(1,1,1)")
+        kon.execute("INSERT INTO dukungan_konfigurasi VALUES(1,?,?,?,?,?,?,?)",
+                    ('082137111988','weekday_0900_1700_wib',1,3,1,1,'sistem_uji'))
     sebelum = (privat.read_bytes(), belajar.read_bytes(), ai.read_bytes())
     script = d.PROBE_SKEMA.replace(
         "akar_app = Path('/app')", "akar_app = Path(" + repr(str(tmp_path)) + ")"

@@ -175,7 +175,7 @@ def test_lupa_sandi_200_dan_memuat_panduan(server):
 
 
 def test_kebijakan_privasi_bocor_data_tidak_boleh(server):
-    """Halaman statis: tanpa nama siswa/DB, sama untuk semua pengunjung.
+    """Halaman hanya memakai config dukungan global, bukan data keluarga.
     (Id sesi sengaja tidak dites — angka kecil selalu ada di CSS/teks.)"""
     s, _ = server
     _, isi_anon, _ = s.minta("/kebijakan-privasi")

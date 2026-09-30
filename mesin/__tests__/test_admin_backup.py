@@ -199,6 +199,27 @@ def test_rehearsal_wajib_ai2_dan_tidak_mutasi_backup_induk(tmp_path):
     } == sebelum
 
 
+def test_rehearsal_dukungan_opt_in_preservasi_dan_idempoten(tmp_path):
+    import support_settings
+    bundle = _buat_bundle(tmp_path)
+    hasil = admin_backup.validasi_bundle(bundle)
+    assert not hasil.skema_dukungan
+    sebelum = {p.name: p.read_bytes() for p in bundle.iterdir() if p.is_file()}
+    akhir = admin_backup.rehearsal_bundle(
+        bundle, migrator_ai=_buat_ai_v2, target_dukungan=True,
+    )
+    assert akhir.skema_dukungan
+    assert {p.name: p.read_bytes() for p in bundle.iterdir() if p.is_file()} == sebelum
+
+    # Bundle baru yang memang sudah terpasang harus divalidasi dan dipertahankan.
+    admin = bundle / "admin-control.db"
+    support_settings.migrasikan(admin, sekarang=101)
+    (bundle / "manifest.json").unlink()
+    admin_backup.buat_manifest(bundle, bundle_id="backup-sintetis-dukungan", cutoff=101)
+    assert admin_backup.validasi_bundle(bundle).skema_dukungan
+    assert admin_backup.rehearsal_bundle(bundle, migrator_ai=_buat_ai_v2).skema_dukungan
+
+
 def test_rehearsal_gagal_migrasi_tidak_mutasi_backup_induk(tmp_path):
     bundle = _buat_bundle(tmp_path)
     sebelum = {

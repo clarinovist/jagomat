@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import account_pages  # noqa: E402
 import design_tokens as T  # noqa: E402
+import support_settings  # noqa: E402
 import web  # noqa: E402
 from landing import (  # noqa: E402
     halaman_daftar,
@@ -26,6 +27,9 @@ from landing import (  # noqa: E402
 
 
 def _html(func, *a, **kw) -> str:
+    if func in (halaman_landing, halaman_kebijakan, halaman_lupa_sandi) and 'dukungan' not in kw:
+        kw['dukungan'] = support_settings.proyeksi_publik(support_settings.KonfigurasiDukungan(
+            '082137111988', 'weekday_0900_1700_wib', 1, 3, 1, 1, 'sistem_uji'))
     return func(*a, **kw).decode()
 
 
@@ -130,11 +134,10 @@ def test_kebijakan_sebut_laporan_pihak_ketiga():
 
 
 def test_kebijakan_penghapusan_menunjuk_kontak():
-    """Hapus seluruh keluarga = hubungi manusia (tanpa email by design) —
-    halaman wajib menyebut jalurnya, bukan "hubungi yang memberimu akun"
-    yang buntu untuk pendaftar mandiri."""
+    """Hapus seluruh keluarga hanya memulai proses manusia terverifikasi."""
     h = _html(halaman_kebijakan)
-    assert T.WA_SUPPORT in h
+    assert "0821 3711 1988" in h
+    assert "Penghapusan memerlukan verifikasi independen" in h
 
 
 # ─────────────────── halaman_lupa_sandi ─────────────────
@@ -156,11 +159,10 @@ def test_lupa_sandi_memuat_judul_dan_panduan_murid():
 
 def test_lupa_sandi_panduan_orang_tua():
     h = _html(halaman_lupa_sandi)
-    assert "pengelola" in h
-    # Pendaftar mandiri (/daftar) tidak punya "yang membuatkan akun" —
-    # jalurnya WA pengelola dengan nama akunnya sebagai identitas.
+    assert "dukungan" in h
     assert "daftar sendiri" in h
-    assert T.WA_SUPPORT in h
+    assert "0821 3711 1988" in h
+    assert "verifikasi independen" in h
 
 
 def test_lupa_sandi_jelaskan_tanpa_email():

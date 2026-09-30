@@ -53,6 +53,9 @@ def docker(monkeypatch):
             if masukan==pair.REGISTRASI_TULIS:return 'OSN_REGISTRATION_WRITER_OK'
             if masukan==pair.REGISTRASI_BACA:return 'OSN_REGISTRATION_RECOVERY_OK'
             if masukan==pair.REGISTRASI_KEMBALI:return 'OSN_REGISTRATION_RETURN_OK'
+            if masukan==pair.DUKUNGAN_TULIS:return 'OSN_SUPPORT_WRITER_OK'
+            if masukan==pair.DUKUNGAN_BACA:return 'OSN_SUPPORT_RECOVERY_OK'
+            if masukan==pair.DUKUNGAN_KEMBALI:return 'OSN_SUPPORT_RETURN_OK'
         return ''
     monkeypatch.setattr(pair,'_panggil',panggil)
     return images,revisions,panggilan,panggil
@@ -65,15 +68,18 @@ def test_volume_probe_sendiri_dan_urutan_write_read_cleanup(docker):
     assert hasil['candidate_digest']==images[0].split('@')[1]
     assert hasil['recovery_digest']==images[1].split('@')[1]
     runs=[(a,s) for a,s in calls if a[0]=='run']
-    assert len(runs)==14
+    assert len(runs)==17
     assert (hasil['package_pair_checks'], hasil['quota_pair_checks'],
-            hasil['photo_pair_checks'], hasil['registration_pair_checks']) == (8, 8, 8, 8)
+            hasil['photo_pair_checks'], hasil['registration_pair_checks'],
+            hasil['support_pair_checks']) == (8, 8, 8, 8, 8)
     assert [s for _,s in runs[5:8]]==[pair.PAKET_TULIS,pair.PAKET_BACA,pair.PAKET_KEMBALI]
     assert [a[-4] for a,_ in runs[5:8]]==[images[0],images[1],images[0]]
     assert [s for _,s in runs[8:11]]==[pair.KUOTA_TULIS,pair.KUOTA_BACA,pair.KUOTA_KEMBALI]
     assert [a[-4] for a,_ in runs[8:11]]==[images[0],images[1],images[0]]
-    assert [s for _,s in runs[11:]]==[pair.REGISTRASI_TULIS,pair.REGISTRASI_BACA,pair.REGISTRASI_KEMBALI]
-    assert [a[-4] for a,_ in runs[11:]]==[images[0],images[1],images[0]]
+    assert [s for _,s in runs[11:14]]==[pair.REGISTRASI_TULIS,pair.REGISTRASI_BACA,pair.REGISTRASI_KEMBALI]
+    assert [a[-4] for a,_ in runs[11:14]]==[images[0],images[1],images[0]]
+    assert [s for _,s in runs[14:]]==[pair.DUKUNGAN_TULIS,pair.DUKUNGAN_BACA,pair.DUKUNGAN_KEMBALI]
+    assert [a[-4] for a,_ in runs[14:]]==[images[0],images[1],images[0]]
     assert hasil['learning_pair_checks']==8
     assert runs[3][1]==pair.TULIS_PILOT and runs[4][1]==pair.BACA_PILOT
     for a,s in runs:
@@ -99,7 +105,7 @@ def test_bukti_produksi_diterima_validator_metadata(docker):
         images[0].split('@')[1], images[1].split('@')[1])
 
 
-@pytest.mark.parametrize('fault',['writer','reader','pilot_writer','pilot_reader','package_writer','package_reader','package_return','quota_writer','quota_reader','quota_return','registration_writer','registration_reader','registration_return','owner'])
+@pytest.mark.parametrize('fault',['writer','reader','pilot_writer','pilot_reader','package_writer','package_reader','package_return','quota_writer','quota_reader','quota_return','registration_writer','registration_reader','registration_return','support_writer','support_reader','support_return','owner'])
 def test_gagal_probe_atau_owner_tidak_diklaim_lulus(docker,monkeypatch,fault):
     images,revs,calls,asli=docker
     def rusak(argv,masukan=None):
@@ -110,7 +116,8 @@ def test_gagal_probe_atau_owner_tidak_diklaim_lulus(docker,monkeypatch,fault):
                 'package_return':pair.PAKET_KEMBALI,'quota_writer':pair.KUOTA_TULIS,
                 'quota_reader':pair.KUOTA_BACA,'quota_return':pair.KUOTA_KEMBALI,
                 'registration_writer':pair.REGISTRASI_TULIS,'registration_reader':pair.REGISTRASI_BACA,
-                'registration_return':pair.REGISTRASI_KEMBALI}.get(fault)
+                'registration_return':pair.REGISTRASI_KEMBALI,'support_writer':pair.DUKUNGAN_TULIS,
+                'support_reader':pair.DUKUNGAN_BACA,'support_return':pair.DUKUNGAN_KEMBALI}.get(fault)
         if argv[0]=='run' and masukan==sumber:
             return 'BUKAN_OK'
         return asli(argv,masukan)

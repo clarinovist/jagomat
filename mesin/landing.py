@@ -2,8 +2,8 @@
 
 Dibuka tanpa kredensial (200). Guru/murid yang sudah punya sesi diarahkan
 ke /masuk. Konten marketing: apa yang dilakukan produk, untuk siapa, dan
-rujukan kompetisi (OSN/SASMO). Data anak TIDAK pernah muncul di sini —
-halaman ini statis, tidak membaca basis data sama sekali.
+rujukan kompetisi (OSN/SASMO). Data anak TIDAK pernah muncul di sini.
+Renderer murni hanya menerima proyeksi konfigurasi dukungan minimum dari router.
 
 Brand dari design_tokens (sumber tunggal) — jangan hardcode nama di sini.
 
@@ -187,12 +187,40 @@ Profil anak pertama dibuat bersama akunmu. Akun login anak bisa dibuat nanti.</p
     return _halaman_publik_stitch(f"Daftar — {T.NAMA_PRODUK}", isi)
 
 
-def halaman_kebijakan() -> bytes:
+def _kontak_dukungan(dukungan, *, konteks: str) -> str:
+    """Proyeksi publik minimum; tidak menerima nama akun/anak atau URL bebas."""
+    if dukungan is None:
+        return ('<p class="dukungan-status-st"><strong>Dukungan pengguna belum tersedia.</strong> '
+                'Kontak dan janji layanan tidak ditampilkan sampai konfigurasi operasional valid.</p>')
+    if konteks not in ("umum", "reset", "penghapusan"):
+        raise ValueError("konteks dukungan tidak sah")
+    tujuan = {
+        "umum": "Hubungi dukungan",
+        "reset": "Hubungi dukungan untuk meminta peninjauan reset",
+        "penghapusan": "Hubungi dukungan untuk memulai permintaan penghapusan",
+    }[konteks]
+    catatan = {
+        "umum": "Jangan kirim sandi atau data pribadi anak.",
+        "reset": ("WhatsApp bukan bukti kepemilikan akun. Reset hanya dilakukan setelah verifikasi "
+                  "independen; bila verifikasi tidak tersedia, reset ditahan."),
+        "penghapusan": ("Pesan WhatsApp hanya memulai permintaan. Penghapusan memerlukan verifikasi "
+                        "independen dan proses terjaga; jangan kirim data pribadi anak."),
+    }[konteks]
+    return ('<div class="dukungan-status-st"><p><a href="%s" rel="nofollow">%s · %s</a></p>'
+            '<p>%s · %s; %s. %s</p></div>') % (
+                html.escape(dukungan.whatsapp_url, quote=True), html.escape(tujuan),
+                html.escape(dukungan.whatsapp_label), html.escape(dukungan.jam_layanan_label),
+                html.escape(dukungan.sla_respons_label), html.escape(dukungan.sla_status_label),
+                html.escape(catatan),
+            )
+
+
+def halaman_kebijakan(dukungan=None) -> bytes:
     """Kebijakan privasi publik — tujuan tiga tautan persetujuan
     (footer landing, checkbox /daftar, checkbox anak-baru di web.py).
 
-    Statis: tidak membaca basis data sama sekali, identik untuk semua
-    pengunjung. Isinya mengikuti perilaku aplikasi yang SEBENARNYA —
+    Renderer tidak membaca basis data dan identik untuk semua pengunjung yang
+    menerima proyeksi dukungan sama. Isinya mengikuti perilaku aplikasi SEBENARNYA —
     termasuk pengiriman foto lembar ke layanan AI — bukan janji yang
     belum diimplementasi.
     """
@@ -275,8 +303,9 @@ data lama tidak otomatis menjadi izin baru.</p>
 <p>Semua data tersimpan dalam satu basis data di server pengelola —
 bukan layanan cloud pihak ketiga. Dari aplikasi, kamu bisa menghapus
 sesi latihan dan akun login anak kapan saja. Untuk penghapusan yang
-lebih besar (seluruh data keluarga), hubungi pengelola server lewat WA
-{html.escape(T.WA_SUPPORT)} — sebutkan nama akunmu.</p>
+lebih besar (seluruh data keluarga), gunakan jalur dukungan di bawah. Pesan
+awal tidak menghapus data dan tidak boleh memuat data pribadi anak.</p>
+{_kontak_dukungan(dukungan, konteks="penghapusan")}
 </div>
 </section>
 </div>
@@ -285,7 +314,7 @@ lebih besar (seluruh data keluarga), hubungi pengelola server lewat WA
     return _halaman_publik_stitch(f"Kebijakan Privasi — {T.NAMA_PRODUK}", isi)
 
 
-def halaman_lupa_sandi() -> bytes:
+def halaman_lupa_sandi(dukungan=None) -> bytes:
     """Panduan publik "Lupa sandi?" — murni teks, tanpa form apa pun.
 
     Aplikasi ini SENGAJA tidak menyimpan email/telepon, jadi reset mandiri
@@ -315,12 +344,13 @@ otomatis. Yang menyetel ulang adalah manusia yang tepat:</p>
 <li><b>Kamu murid?</b> Mintalah gurumu atau orang tuamu menyetel sandi
 baru — dari halaman Akun, kartu "Akun latihan", tombol
 "Setel sandi baru".</li>
-<li><b>Kamu orang tua yang daftar sendiri di /daftar?</b> Hubungi WA
-{html.escape(T.WA_SUPPORT)} — sebutkan nama akunmu — untuk disetel
-ulang oleh pengelola.</li>
+<li><b>Kamu orang tua yang daftar sendiri di /daftar?</b> Gunakan jalur
+bantuan di bawah. Pengelola tidak akan mengonfirmasi keberadaan akun sebelum
+verifikasi independen selesai.</li>
 <li><b>Akunmu dibuatkan les/guru?</b> Minta ke mereka yang menyetel
 ulang — sandimu terikat ke keluarga mereka.</li>
 </ul>
+{_kontak_dukungan(dukungan, konteks="reset")}
 <p class="dukungan-kembali-st"><a href="/masuk">Kembali ke halaman masuk <span aria-hidden="true">→</span></a></p>
 </div>
 </section>
@@ -438,7 +468,7 @@ bukan data belajarnya yang dihapus. Hak konsumen yang wajib dipenuhi tetap berla
 </section>'''
 
 
-def halaman_landing() -> bytes:
+def halaman_landing(dukungan=None) -> bytes:
     """Landing editorial bertema buku latihan, tanpa membaca data anak.
 
     Kanvas lebar terpisah dari form publik. Contoh tetap statis, maskot
@@ -673,16 +703,17 @@ Pendamping memerlukan persetujuan terpisah. Rinciannya ada di
 <a href="/kebijakan-privasi">Kebijakan Privasi</a>.</p></details>
 <details><summary>Lupa sandi bagaimana?</summary>
 <p>Tidak ada reset via email. Anak minta ke orang tua/gurunya; orang tua
-yang daftar sendiri hubungi WA {html.escape(T.WA_SUPPORT)}
-(sebutkan nama akunmu). Detailnya ada di halaman
-<a href="/lupa-sandi">Lupa sandi</a>.</p></details>
+yang daftar sendiri memakai jalur dukungan. WhatsApp bukan bukti kepemilikan
+akun; reset ditahan bila verifikasi independen tidak tersedia. Detailnya ada di
+<a href="/lupa-sandi">Lupa sandi</a>.</p>
+{_kontak_dukungan(dukungan, konteks="reset")}</details>
 </div>
 </section>
 </main>
 
 <footer class="landing-footer-st"><div class="landing-footer-isi-st">
-  <div><a href="/kebijakan-privasi">Kebijakan Privasi</a> ·
-  <span>Butuh bantuan? WA {html.escape(T.WA_SUPPORT)}</span></div>
+  <div><a href="/kebijakan-privasi">Kebijakan Privasi</a>
+  {_kontak_dukungan(dukungan, konteks="umum")}</div>
   <div>{n} — {tag}</div>
 </div></footer>
 """
