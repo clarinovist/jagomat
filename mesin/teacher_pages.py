@@ -2019,7 +2019,16 @@ def halaman_sesi_stitch(
                 if sudah_mulai else
                 "Sesi siap — berikut cara anak mengerjakan"
             )
-            ikon_status = "pending_actions" if sudah_mulai else "send"
+            ikon_status = (
+                '<svg class="ikon-status-sesi-st" viewBox="0 0 24 24" '
+                'fill="none" stroke="currentColor" stroke-width="1.8" '
+                'stroke-linecap="round" stroke-linejoin="round" '
+                'aria-hidden="true" focusable="false">'
+                '<circle cx="12" cy="12" r="8.5"/>'
+                '<path d="M12 7.5V12l3 2"/></svg>'
+                if sudah_mulai else
+                '<span class="material-symbols-outlined" aria-hidden="true">send</span>'
+            )
             penjelasan_status = (
                 f'Terisi {info["terisi"]} dari {info["jumlah_soal"]}. '
                 'Tunggu anak menekan “Selesai &amp; kirim” sebelum meninjau.'
@@ -2046,7 +2055,7 @@ def halaman_sesi_stitch(
             )
             status_sesi = (
                 '<section class="status-sesi-st panduan-sesi-st">'
-                f'<span class="material-symbols-outlined">{ikon_status}</span>'
+                f'{ikon_status}'
                 f'<div><b>{label_status}</b>{marker_status_lama}'
                 f'<p>{penjelasan_status}</p>'
                 f'<form class="{kelas_aksi}" method="post" '

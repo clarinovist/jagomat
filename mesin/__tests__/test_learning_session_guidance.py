@@ -84,6 +84,15 @@ def test_sesi_mulai_menunggu_anak_dan_bagikan_ulang_sekunder(server):
     assert "Sedang dikerjakan · giliran anak" in halaman
     assert "Bagikan ulang ke anak" in halaman
     assert 'class="panduan-aksi-sekunder-st"' in halaman
+    blok_status = re.search(
+        r'<section class="status-sesi-st panduan-sesi-st">(.*?)</section>',
+        halaman,
+        re.S,
+    )
+    assert blok_status
+    assert '<svg class="ikon-status-sesi-st"' in blok_status.group(1)
+    assert 'aria-hidden="true"' in blok_status.group(1)
+    assert "pending_actions" not in blok_status.group(1)
 
 
 def test_sesi_dibatalkan_tidak_bisa_dibagikan_atau_ditulis(server):

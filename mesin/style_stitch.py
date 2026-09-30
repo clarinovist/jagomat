@@ -2934,7 +2934,9 @@ CSS_SESI = f"""
   margin: 0 0 {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
   background: {T.LATAR_SEKUNDER_LEMBUT}; color: {T.TEKS_UTAMA};
 }}
-.status-sesi-st .material-symbols-outlined {{ color: {T.AKSEN_MURID_UTAMA}; flex: none; }}
+.status-sesi-st .material-symbols-outlined,
+.status-sesi-st .ikon-status-sesi-st {{ color: {T.AKSEN_MURID_UTAMA}; flex: none; }}
+.status-sesi-st .ikon-status-sesi-st {{ width: {T.UKURAN_IKON}; height: {T.UKURAN_IKON}; }}
 .status-sesi-st b {{ font-family: {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; }}
 .status-sesi-st p {{ margin: {T.SP_1} 0 0; font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; }}
 .status-sesi-st.selesai {{
