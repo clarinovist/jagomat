@@ -48,13 +48,17 @@ def test_kelas_http_asing_hilang_404_identik(server):
         assert tuple(kon.iterdump()) == sebelum
 
 
-def test_http_onboarding_tidak_menafsir_payload_lama_atau_default(server):
-    for tambahan in ({}, {'tingkat': 'P3'}, {'level': 'P6'}, {'profil_parameter': ''}):
+def test_http_onboarding_otomatis_dan_payload_level_lama_dipagari(server):
+    kode, _, _ = server.minta('/akun', auth=('guru', SANDI_GURU), data={
+        'aksi': 'anak_baru', 'nama': 'Baru Sintetis', 'sandi_anak': 'sintetis-panjang-123'})
+    assert kode == 200
+    for nama, tambahan in (('Tingkat Lama', {'tingkat': 'P3'}),
+                           ('Level Lama', {'level': 'P6'})):
         kode, _, _ = server.minta('/akun', auth=('guru', SANDI_GURU), data={
-            'aksi': 'anak_baru', 'nama': 'Baru Sintetis', 'sandi_anak': 'sintetis-panjang-123', **tambahan})
-        assert kode == 400
+            'aksi': 'anak_baru', 'nama': nama, 'sandi_anak': 'sintetis-panjang-123', **tambahan})
+        assert kode in (400, 409)
     with server.buka() as kon:
-        assert kon.execute('SELECT count(*) FROM siswa').fetchone()[0] == 1
+        assert kon.execute("SELECT tingkat FROM siswa WHERE nama='Baru Sintetis'").fetchone()[0] == ''
 
 
 def test_http_form_level_lama_tidak_mengubah_kelas_dan_bukti(server):
@@ -102,23 +106,26 @@ def test_profil_manual_tidak_fallback(server, profil):
         assert kon.execute('SELECT count(*) FROM sesi').fetchone()[0] == 0
 
 
-def test_form_semua_materi_dan_profil_tanpa_pagar_kelas(server):
+def test_form_semua_materi_tanpa_pilihan_profil(server):
     kode, isi, _ = server.minta('/anak/%d' % server.siswa, auth=('guru', SANDI_GURU))
     assert kode == 200
-    assert 'name="profil_parameter"' in isi
+    assert 'name="profil_parameter"' not in isi
     assert 'value="aritmatika-lanjut"' in isi
     assert '<option value="pola-bilangan" selected>' in isi
-    assert 'value="P3"' in isi and 'value="P6"' in isi
+    assert 'Jagomat memilih cakupan yang sesuai' in isi
 
 
-def test_profil_hilang_dan_ganda_ditolak_tanpa_default(server):
-    for data in ({'topik': 'pola-bilangan'},
-                 [('topik', 'pola-bilangan'), ('profil_parameter', 'P3'), ('profil_parameter', 'P6')]):
-        kode, _, _ = server.minta('/sesi-baru/%d' % server.siswa,
-                                  auth=('guru', SANDI_GURU), data=data)
-        assert kode == 400
+def test_profil_hilang_dipilih_otomatis_dan_ganda_ditolak(server):
+    kode, _, _ = server.minta('/sesi-baru/%d' % server.siswa,
+                              auth=('guru', SANDI_GURU), data={'topik': 'pola-bilangan'})
+    assert kode == 200
+    kode, _, _ = server.minta('/sesi-baru/%d' % server.siswa,
+                              auth=('guru', SANDI_GURU),
+                              data=[('topik', 'pola-bilangan'),
+                                    ('profil_parameter', 'P3'), ('profil_parameter', 'P6')])
+    assert kode == 400
     with server.buka() as kon:
-        assert kon.execute('SELECT count(*) FROM sesi').fetchone()[0] == 0
+        assert kon.execute('SELECT count(*) FROM sesi').fetchone()[0] == 1
 
 
 def test_gabungan_tidak_mengabaikan_topik_tanpa_profil(server):

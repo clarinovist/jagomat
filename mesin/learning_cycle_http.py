@@ -150,7 +150,13 @@ def _jalankan(kon, jenis, identitas, aksi, guru, data):
             raise GalatForm("Rencana dihitung ulang oleh server.")
         sesi_id, _ = layanan.mulai_dengan_variasi(kon, identitas, data['profil_parameter'])
     else:
-        sesi_id, _ = layanan.buat_dari_rekomendasi(kon, identitas)
+        siswa = kon.execute('SELECT tingkat FROM siswa WHERE id=?', (identitas,)).fetchone()
+        if siswa is None:
+            raise ValueError('siswa tidak dikenal')
+        if siswa['tingkat'] == '':
+            sesi_id, _ = layanan.mulai_dengan_fondasi(kon, identitas)
+        else:
+            sesi_id, _ = layanan.buat_dari_rekomendasi(kon, identitas)
     return f"/sesi/{sesi_id}"
 
 

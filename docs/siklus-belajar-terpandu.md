@@ -213,34 +213,29 @@ token tinjauan, journal dan receipt kelas sekolah yang terpisah. Aksi/event leve
 lama tetap historis dengan arti profil parameter warisan.
 
 Pendaftaran akun dan profil anak pertama tidak meminta konfigurasi latihan;
-kelas sekolah opsional dan tidak menentukan variasi. `siswa.tingkat=''` menandai
-variasi rencana belum dipilih, bukan default P3 atau penilaian kemampuan.
-Penambahan anak lewat pengelolaan akun tetap memakai pilihan eksplisit existing.
-Di UI lama dan histori, P3/P4/P5/P6 dapat bernama **Variasi A/B/C/D** sebagai
-pembeda konfigurasi, bukan urutan kemampuan. Pengaturan latihan awal dipisahkan dari
-identitas anak; header profil hanya menampilkan nama dan kelas. Pemilih kartu aktif
-menampilkan nama isi, ringkasan cakupan registry, dan contoh deterministik berdekatan
-dengan radio; nomor lokal 1–N menjadi penanda sekunder agar pilihan yang tersedia
-tidak tampak melompat.
-Pada latihan manual/gabungan, perubahan materi disiapkan ulang lewat POST read-only
-request-local sebelum pilihan isi dipakai; server menolak konteks perbandingan yang
-sudah berbeda, tanpa menulis sesi/profil. Form manual mengirim POST ini otomatis saat
-Topik berubah bila enhancement tersedia, dengan tombol native “Tampilkan pilihan isi”
-sebagai fallback; gabungan tetap dibandingkan eksplisit setelah beberapa topik dipilih.
-Nama isi menjadi judul kartu, sedangkan nomor lokal hanya badge sekunder. Contoh
-bukan soal sesi yang akan dibuat.
-Kode historis tetap di nilai kiriman/penyimpanan dan rincian teknis. Anak lama
-mempertahankan konfigurasi warisannya; retry registrasi
-lama tetap mengikat pilihan awal yang sama. Profil belum dipilih tidak membuat
-putaran/sesi terpandu pada GET maupun POST tanpa pilihan. Tab Rencana belajar
-menawarkan panduan contoh dan pilihan eksplisit untuk menyiapkan pemetaan pertama;
-variasi dan sesi pertama disimpan atomik, gagal berarti rollback keduanya. Retry
-pilihan yang sama menunjuk sesi pertama, bukan membuat sesi berikutnya; pilihan
-berbeda pada tab lama ditolak. Inisialisasi bukan event pergantian level.
-Form manual/gabungan menampilkan pilihan variasi serta seluruh materi;
-server menolak kombinasi yang tidak tersedia, tidak mengganti profil diam-diam.
-Pemetaan bukan prasyarat latihan manual. Rencana terpandu masih memakai profil
-warisan yang dipilih, bukan rekomendasi tuntutan otomatis yang sudah dikalibrasi.
+kelas sekolah opsional dan tidak menentukan konfigurasi soal. `siswa.tingkat=''`
+menandai rencana belum dimulai, bukan kelas atau penilaian kemampuan. Saat orang tua
+menyiapkan pemetaan pertama, layanan menetapkan P3 sebagai konteks fondasi internal
+dan membuat putaran/sesi secara atomik. Kegagalan me-rollback keduanya; retry menunjuk
+sesi pertama yang sama. Inisialisasi bukan event pergantian level.
+
+Alur baru tidak menampilkan atau meminta Variasi A/B/C/D. Pada latihan manual dan
+gabungan, orang tua cukup memilih materi; server mempertahankan profil internal anak
+bila didukung, atau memilih profil bersama yang paling dekat (seri ke bawah) tanpa
+mengubah profil rencana. Jika tidak ada profil bersama, sesi ditolak tanpa write.
+Satu sesi dan satu putaran tetap homogen pada satu profil; kelas sekolah tidak menjadi
+input pemilihan. Variasi antarsesi berasal dari seed, parameter, dan pengacakan template
+berulang di dalam profil yang sama, bukan rotasi profil tersembunyi. Komposisi dan
+pemangkasan jumlah soal historis tetap dipertahankan pada tahap kompatibilitas ini.
+
+P3/P4/P5/P6 tetap codec internal untuk soal, sesi, putaran, konteks butir, snapshot,
+dan histori. Data lama tidak dimigrasikan atau ditafsirkan ulang. Label Variasi A/B/C/D
+boleh tetap muncul pada rincian histori sebagai label konfigurasi warisan, bukan sebagai
+pilihan baru atau jenjang kemampuan. Payload form lama yang ganda/asing ditolak;
+payload sah tetap dibaca hanya untuk kompatibilitas riwayat dan integrasi, sedangkan UI
+baru tidak mengirimkannya. Retry saga registrasi lama yang sudah terikat tetap mengikuti
+binding exact yang tersimpan. Pemetaan bukan prasyarat latihan manual.
+Rubrik tuntutan lintas profil dan sesi heterogen tetap belum diaktifkan.
 
 Penulis baru membekukan konfigurasi per butir melalui `konteks_sesi` versi1 dan
 `konteks_butir`; event orkestrator memuat konteks per butir/fokus. Konfirmasi

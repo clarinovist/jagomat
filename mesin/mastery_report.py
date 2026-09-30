@@ -129,12 +129,12 @@ def render_peta(peta, tanggal, ringkas=False, *, siswa_id=0, materi='', status='
     if peta.level == '':
         return ('<section class="kartu peta-materi-st" id="peta-penguasaan">'
                 '<h2>Progres penguasaan materi Jagomat</h2>'
-                '<p>Variasi rencana belum dipilih. Pilih saat menyiapkan pemetaan pertama '
-                'di tab Rencana belajar. Latihan manual tetap dapat dibuat dengan variasi pilihanmu.</p></section>')
+                '<p>Pemetaan pertama belum disiapkan. Buka tab Rencana belajar; '
+                'Jagomat akan memakai cakupan fondasi internal. Latihan manual tetap tersedia.</p></section>')
     if not peta.target:
         return ('<section class="kartu peta-materi-st" id="peta-penguasaan">'
                 '<h2>Progres penguasaan materi Jagomat</h2>'
-                '<p>Target untuk variasi ini belum tersedia. Periksa pengaturan latihan.</p></section>')
+                '<p>Target untuk konteks latihan ini belum tersedia. Periksa pengaturan latihan.</p></section>')
     per_topik = {}
     for t, s in zip(peta.target, peta.status):
         per_topik.setdefault((t.topik_id, t.topik), []).append((t, s))
@@ -161,10 +161,10 @@ def render_peta(peta, tanggal, ringkas=False, *, siswa_id=0, materi='', status='
         f'<p class="peta-aktivitas">Cakupan penilaian: {topik_dinilai}/{len(per_topik)} materi '
         f'· {sudah_dinilai}/{total} target dinilai atau diperiksa.</p>'
         '<p class="peta-catatan">Belum dinilai bukan berarti tidak mampu. '
-        'Cakupan variasi soal ini, bukan kemampuan global atau nilai seluruh kurikulum sekolah.</p>'
+        'Cakupan konteks soal internal ini, bukan kemampuan global atau nilai seluruh kurikulum sekolah.</p>'
         '<details class="rincian-ui-st"><summary>Cara membaca progres</summary>'
-        '<p class="peta-catatan">Cakupan target pada variasi soal ini, bukan kelas sekolah '
-        'atau kemampuan global. Rincian lintas variasi tersedia di Bukti per konteks.</p>'
+        '<p class="peta-catatan">Cakupan target pada konteks soal internal ini, bukan kelas sekolah '
+        'atau kemampuan global. Rincian historis tersedia di Bukti per konteks.</p>'
         '<p class="peta-catatan">Semua pola perlu bukti terkonfirmasi dan anak bisa menjelaskan; '
         'bukan hanya jawaban benar sekali.</p></details></section>'
     )
@@ -257,8 +257,8 @@ def _pilih_materi(peta, per_topik, tanggal, siswa_id, materi, status, halaman):
         '<header class="peta-ringkas"><h2 id="judul-peta">Progres penguasaan materi Jagomat</h2>'
         f'<p><b>{peta.jumlah["terbukti"]} dari {len(peta.target)} target</b> menunjukkan pemahaman '
         f'· {html.escape(label_kelas(peta.level))} · {len(per_topik)} materi.</p>'
-        '<p class="peta-catatan">Cakupan target pada variasi soal ini, bukan kelas sekolah '
-        'atau kemampuan global. Rincian lintas variasi tersedia di Bukti per konteks.</p>'
+        '<p class="peta-catatan">Cakupan target pada konteks soal internal ini, bukan kelas sekolah '
+        'atau kemampuan global. Rincian historis tersedia di Bukti per konteks.</p>'
         '<details class="rincian-ui-st"><summary>Tentang urutan dan filter</summary>'
         '<p class="peta-catatan">Filter hanya memilih kartu, bukan mengubah jumlah seluruh target. '
         'Urutan mengikuti katalog, bukan prioritas belajar.</p></details></header>'

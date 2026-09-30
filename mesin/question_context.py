@@ -56,11 +56,37 @@ def label_konteks(konteks: KonteksSoal) -> str:
                             label_profil_parameter(konteks.profil_parameter))
 
 
+def profil_otomatis(topik_ids, profil_acuan: str = 'P3') -> str:
+    """Pilih satu profil internal bersama tanpa meminta keputusan pengguna.
+
+    Profil acuan dipertahankan bila didukung. Jika topik tidak mendukungnya,
+    pilih profil bersama yang paling dekat; seri diputus ke bawah. Kelas sekolah
+    tidak pernah menjadi input fungsi ini.
+    """
+    topik_ids = tuple(dict.fromkeys(topik_ids))
+    if not topik_ids:
+        raise ValueError('Pilih materi latihan.')
+    if any(topik_id not in topics.daftar_topik() for topik_id in topik_ids):
+        raise ValueError('Materi latihan tidak dikenal.')
+    tersedia = tuple(
+        profil for profil in LEVEL
+        if all(profil in topics.ambil(topik_id).komposisi for topik_id in topik_ids)
+    )
+    if not tersedia:
+        raise ValueError('Materi yang dipilih belum memiliki profil soal bersama.')
+    acuan = profil_acuan if profil_acuan in LEVEL else LEVEL[0]
+    posisi = LEVEL.index(acuan)
+    return min(
+        tersedia,
+        key=lambda profil: (abs(LEVEL.index(profil) - posisi), LEVEL.index(profil)),
+    )
+
+
 def profil_dari_form(data) -> str:
-    """Pilihan formulir eksplisit; nilai ganda/kosong tidak memakai default anak."""
+    """Pembaca payload warisan; alur baru memakai ``profil_otomatis``."""
     nilai = data.get('profil_parameter')
     if not isinstance(nilai, list) or len(nilai) != 1 or nilai[0] not in LEVEL:
-        raise ValueError('Pilih satu variasi soal. Muat ulang form bila perlu.')
+        raise ValueError('Konfigurasi soal lama tidak sah. Muat ulang form.')
     return nilai[0]
 
 

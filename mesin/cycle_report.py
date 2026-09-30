@@ -20,7 +20,7 @@ TAHAP = {
     "perlu_eskalasi": "Perlu eskalasi",
 }
 TINDAKAN = {
-    "pilih_variasi": "Pilih variasi untuk pemetaan pertama",
+    "pilih_variasi": "Siapkan pemetaan pertama",
     "lanjutkan_sesi": "Lanjutkan sesi",
     "konfirmasi_hasil": "Konfirmasi hasil",
     "eskalasi": "Tinjau bersama pendamping",

@@ -542,7 +542,7 @@ def halaman_landing() -> bytes:
   <span class="landing-nomor-st" aria-hidden="true">↗</span>Cara kerja</h3>
   <div class="landing-kartu-isi-st">
   <ol>
-    <li>Buat profil anak, lalu pilih variasi latihan.</li>
+    <li>Buat profil anak, lalu pilih materi latihan.</li>
     <li>Anak mengerjakan dan menunjukkan caranya, di HP atau kertas.</li>
     <li>Tinjau dan konfirmasi hasilnya. Untuk rencana terpandu,
     ikuti langkah belajar berikutnya.</li>
@@ -557,7 +557,7 @@ def halaman_landing() -> bytes:
   <p>Lihat materi yang menunjukkan pemahaman, masih dipelajari, belum
   dinilai, atau perlu dicek kembali. Jawaban benar saja belum cukup:
   anak juga perlu <b>bisa menjelaskan</b>.</p>
-  <p>Peta mengikuti target materi {n} pada variasi latihan yang dipilih —
+  <p>Peta mengikuti target materi pada konteks latihan internal {n} —
   bukan nilai rapor atau ukuran seluruh kurikulum.</p>
   </div>
 </section>
@@ -567,8 +567,8 @@ def halaman_landing() -> bytes:
   <span class="landing-nomor-st" aria-hidden="true">03</span>Latihan yang fleksibel</h3>
   <div class="landing-kartu-isi-st">
   <p><b>Latihan manual</b> tetap bisa dipilih tanpa menuntaskan pemetaan.
-  Pilih materi dan variasi soal, kerjakan di halaman murid atau cetak
-  lembar latihan.</p>
+  Pilih materi; {n} mengatur angka dan model soalnya secara otomatis. Kerjakan
+  di halaman murid atau cetak lembar latihan.</p>
   <p>Dari bilangan dan aritmetika hingga geometri, statistika,
   pengukuran, dan kombinatorik — untuk membangun fondasi dan berlatih
   pola soal bergaya OSN/SASMO.</p>
@@ -647,8 +647,8 @@ pengganti tinjauanmu; kamu tetap memilih dan memeriksa bantuannya.</p>
 </div>
 <div class="landing-faq-daftar-st">
 <details><summary>Untuk kelas berapa?</summary>
-<p>Kelas 3–6 SD. Variasi latihan dipilih terpisah dari kelas sekolah;
-lihat contoh soalnya untuk memilih titik awal.</p></details>
+<p>Kelas 3–6 SD. Kelas sekolah hanya informasi profil; Jagomat menyiapkan
+cakupan fondasi dan variasi soalnya secara otomatis.</p></details>
 <details><summary>Anak mengerjakan di HP atau kertas?</summary>
 <p>Keduanya bisa. Gunakan halaman murid, atau cetak lembar untuk dikerjakan
 di kertas. Hasil kertas dapat dicatat oleh orang tua/guru. Jika pembacaan

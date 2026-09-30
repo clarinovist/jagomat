@@ -11,8 +11,6 @@ AKAR = Path(__file__).resolve().parents[2]
 KASUS = (
     ('learning_cycle.py', "if bukti.level_aktif == '':", 'if False:',
      'test_reducer_belum_dipilih_tidak_merekomendasikan_pemetaan', 'AssertionError'),
-    ('learning_cycle_service.py', "if siswa['tingkat'] == '':", 'if False:',
-     'test_service_tanpa_pilihan_tidak_membuat_putaran', 'profil kosong tidak boleh mencapai writer putaran'),
     ('learning_cycle_service.py', "if siswa['tingkat'] != profil:", 'if False:',
      'test_retry_persiapan_tidak_mengambil_pemetaan_histori', 'DID NOT RAISE'),
     ('learning_cycle_service.py', "kon.execute('ROLLBACK TO SAVEPOINT mulai_variasi')", 'pass',

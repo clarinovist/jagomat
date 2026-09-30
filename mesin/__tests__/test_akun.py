@@ -145,15 +145,15 @@ def test_nama_duplikat_ditolak_tanpa_pandang_huruf(siap):
         assert len(database.daftar_siswa(kon)) == 1
 
 
-def test_tingkat_kosong_tidak_memilih_bawaan(siap):
+def test_payload_tingkat_kosong_kompatibel_dengan_onboarding_otomatis(siap):
     with database.buka(siap) as kon:
         pesan, galat = account_pages.proses_akun(kon, {
             "aksi": "anak_baru", "nama": "Tanpa", "tingkat": "",
             "sandi_anak": "sandi-tanpa-1234",
         }, "guru")
-        assert galat and not pesan
-        assert not database.daftar_siswa(kon)
-    assert auth.cari_akun('Tanpa') is None
+        assert pesan and not galat
+        assert database.daftar_siswa(kon)[0]['tingkat'] == ''
+    assert auth.cari_akun('Tanpa') is not None
 
 
 def test_ganti_tingkat_lewat_proses_akun_mencatat_event_domain(siap):

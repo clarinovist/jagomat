@@ -811,13 +811,9 @@ def halaman_anak(
         f'<form id="form-latihan-manual-{siswa["id"]}" method="post" action="/sesi-baru/{siswa["id"]}" class="strip-sesi profil-manuel-st">'
         '<div class="profil-champs-st">'
         + f'<div class="strip-kolom"><label for="manual-topik">Topik</label>'
-        f'<select id="manual-topik" name="topik" class="st-input" data-pilihan-isi-otomatis>{opsi_topik}</select>'
-        '<button type="submit" name="aksi_form" value="bandingkan" formnovalidate '
-        'class="variasi-bandingkan" data-pilihan-isi-fallback>'
-        'Tampilkan pilihan isi</button></div>'
-        + _kontrol_profil_parameter(
-            'manual', getattr(draf_latihan, 'profil_parameter', siswa['tingkat']), (topik_manual,)
-        )
+        f'<select id="manual-topik" name="topik" class="st-input">{opsi_topik}</select>'
+        '<small class="profil-petunjuk-st">Jagomat memilih cakupan yang sesuai untuk topik ini. '
+        'Angka dan model soal berganti otomatis tanpa pilihan A–D.</small></div>'
         + '<div class="strip-kolom"><label for="manual-jumlah">Jumlah soal</label>'
         '<select id="manual-jumlah" name="jumlah_soal" class="st-input" aria-describedby="manual-jumlah-petunjuk">'
         + "".join(
@@ -873,11 +869,7 @@ def halaman_anak(
         '<p class="sub">Centang dua topik atau lebih. Soalnya dicampur '
         "bergantian antar-topik yang kamu pilih.</p>"
         f'<div class="mode-pilih">{centang_topik}</div>'
-        '<button type="submit" name="aksi_form" value="bandingkan" formnovalidate '
-        'class="variasi-bandingkan">Bandingkan isi</button></div>'
-        + _kontrol_profil_parameter(
-            'gabungan', getattr(draf_gabungan, 'profil_parameter', siswa['tingkat']), topik_gabungan
-        )
+        '<small class="profil-petunjuk-st">Jagomat memilih satu cakupan yang tersedia pada semua topik pilihan.</small></div>'
         + f'{kontrol_format("gabungan", getattr(draf_gabungan, "format_jawaban", "isian"))}'
         + '<div class="strip-kolom">'
         '<span id="gabungan-mode-label">Mode latihan</span>'
@@ -917,10 +909,9 @@ def halaman_anak(
     if strip_gabungan:
         panel.append(("gabungan", "library_add", "Gabungan topik", strip_gabungan))
 
-    from question_variants_ui import detail_kode
     panduan = (
         '<div class="profil-aide-st info-baris"><p class="sub">'
-        'Pilih topik, lalu pilih isi dan lihat contoh pada kartu di bawah.</p>'
+        'Pilih topik dan bentuk latihan. Jagomat mengatur cakupan soalnya secara otomatis.</p>'
         + f'<button type="button" class="info" aria-label="{html.escape(INFO_LATIHAN_BEBAS, quote=True)}">'
         f'i<span class="info-bubble" role="tooltip">{html.escape(INFO_LATIHAN_BEBAS)}</span></button></div>'
     ) if section == 'latihan' else ''
@@ -974,7 +965,7 @@ def halaman_anak(
         f"{blok_buat_latihan}</section>"
     )
     if section == "rencana":
-        isi_profil = kartu_rencana + detail_kode(siswa['tingkat'])
+        isi_profil = kartu_rencana
     elif section == "riwayat":
         isi_profil = profile_workspace.riwayat(
             int(siswa["id"]), sesi, total_hasil, filter_profil,

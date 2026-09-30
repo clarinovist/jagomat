@@ -436,15 +436,14 @@ def render_rencana(
     if bukti.siswa_id != siswa_id:
         raise ValueError("bukti bukan milik siswa")
     if rencana.tindakan == 'pilih_variasi':
-        from question_variants_ui import pemilih_pemetaan
         return (
             '<section class="kartu-rencana-st" aria-labelledby="judul-rencana-belajar">'
             '<p class="label-rencana-st">Siapkan rencana belajar</p>'
-            '<h2 class="st" id="judul-rencana-belajar">Pilih isi untuk pemetaan pertama</h2>'
-            '<p>Bandingkan cakupan dan contoh soalnya, lalu pilih isi yang ingin dicoba bersama anak. '
-            'Pilihan ini bukan penilaian kemampuan dan tidak ditentukan dari kelas sekolah.</p>'
+            '<h2 class="st" id="judul-rencana-belajar">Siapkan pemetaan pertama</h2>'
+            '<p>Jagomat memulai dari cakupan fondasi dan mengganti angka serta model soal '
+            'secara otomatis pada sesi berikutnya. Cakupan ini bukan penilaian kemampuan '
+            'dan tidak ditentukan dari kelas sekolah.</p>'
             + f'<form method="post" action="/siklus/{siswa_id}/buat" class="rencana-form-st">'
-            + pemilih_pemetaan('rencana-awal')
             + '<p>Pemetaan awal terdiri dari tiga sesi pada hari berbeda, masing-masing 15 soal. '
             'Tombol ini hanya menyiapkan sesi pertama.</p>'
             '<button type="submit" class="rencana-cta-utama-st">Siapkan sesi pemetaan pertama</button>'

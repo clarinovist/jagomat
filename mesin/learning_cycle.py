@@ -790,7 +790,10 @@ def rencana_berikutnya(
     if siswa_id != bukti.siswa_id:
         raise ValueError("bukti bukan milik siswa")
     if bukti.level_aktif == '':
-        return RencanaBelajar('pilih_variasi', 'Pilih variasi untuk pemetaan pertama')
+        return RencanaBelajar(
+            'pilih_variasi',
+            'Siapkan pemetaan pertama dengan konfigurasi fondasi internal',
+        )
     from cycle_carry import bukti_lanjutan
     bukti = tanpa_pilot(bukti)
     hari = hari_ini or domain_clock.hari_wib()

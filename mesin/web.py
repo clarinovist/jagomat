@@ -1648,13 +1648,16 @@ class Penangan(BaseHTTPRequestHandler):
                 if data.get('aksi') == 'tingkat':
                     return self._kirim(_halaman('Form lama', '<p>Muat ulang form kelas sekolah. Profil parameter lama tidak diubah lewat form ini.</p>'), 409)
                 if data.get('aksi') in ('anak_baru', 'siswa'):
-                    from question_context import profil_dari_form
-                    try:
-                        profil_dari_form({'profil_parameter': [data.get('profil_parameter', '')]})
-                        if 'tingkat' in data or 'level' in data:
-                            raise ValueError('Form lama. Muat ulang dan pilih profil parameter secara eksplisit.')
-                    except ValueError as galat:
-                        return self._kirim(_halaman('Profil belum dipilih', '<p>' + html.escape(str(galat)) + '</p>'), 400)
+                    profil_lama = data.get('profil_parameter', '')
+                    if ('tingkat' in data or 'level' in data
+                            or profil_lama not in ('', 'P3', 'P4', 'P5', 'P6')):
+                        return self._kirim(
+                            _halaman(
+                                'Form lama',
+                                '<p>Form pengaturan soal lama tidak cocok. Muat ulang sebelum menambahkan anak.</p>',
+                            ),
+                            409,
+                        )
                 try:
                     pesan, galat = proses_akun(kon, data, pengguna, peran)
                 except learning_profile.ProfilTidakDitemukan:
@@ -1793,42 +1796,13 @@ class Penangan(BaseHTTPRequestHandler):
             versi_pilihan = data.get("versi_pilihan_isi", [])
             topik_dibandingkan = data.get("topik_dibandingkan", [])
             if aksi_form:
-                if aksi_form != ["bandingkan"]:
-                    return self._kirim(
-                        _halaman("Form tidak sah", "<p>Aksi latihan tidak dikenal.</p>"), 400
-                    )
-                ident = self._identitas()
-                data_draf = {
-                    k: v for k, v in data.items()
-                    if k not in {
-                        "aksi_form", "inline_form", "versi_pilihan_isi", "topik_dibandingkan",
-                        # Metadata tombol Pendamping ikut POST native, bukan isi draf.
-                        "inline_host", "inline_host_id", "inline_posisi",
-                    }
-                }
-                with database.buka() as kon:
-                    if not self._bisa_lihat_siswa(kon, siswa_id):
-                        return self._kirim(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    if len(dipilih) < 2:
-                        return self._kirim(
-                            _halaman("Pilih materi", "<p>Pilih minimal dua materi untuk dibandingkan.</p>"), 400
-                        )
-                    try:
-                        from assistant_inline import parse_draf_gabungan
-                        draf = parse_draf_gabungan(data_draf, daftar_topik(), profil_wajib=False)
-                    except ValueError as galat:
-                        return self._kirim(
-                            _halaman("Latihan belum dibandingkan", '<p>' + html.escape(str(galat)) + '</p>'), 400
-                        )
-                    siswa = kon.execute("SELECT * FROM siswa WHERE id=?", (siswa_id,)).fetchone()
-                    return self._kirim(
-                        halaman_anak(
-                            kon, siswa, peran=ident[1] if ident else "guru",
-                            pengguna=ident[0] if ident else "", draf_gabungan=draf,
-                        )
-                    )
+                return self._kirim(
+                    _halaman(
+                        "Form lama",
+                        "<p>Pilihan variasi sudah otomatis. Muat ulang halaman anak.</p>",
+                    ),
+                    409,
+                )
             sah = set(daftar_topik())
             asing = [t for t in dipilih if t not in sah]
             if asing:
@@ -1843,15 +1817,11 @@ class Penangan(BaseHTTPRequestHandler):
                     ),
                     400,
                 )
-            if (versi_pilihan or topik_dibandingkan) and (
-                versi_pilihan != ["1"]
-                or dipilih != topik_dibandingkan
-                or len(dipilih) != len(set(dipilih))
-            ):
+            if versi_pilihan or topik_dibandingkan:
                 return self._kirim(
                     _halaman(
-                        "Bandingkan ulang isi latihan",
-                        "<p>Pilihan materi berubah atau belum dibandingkan. Tekan Bandingkan isi, lalu pilih isinya.</p>",
+                        "Form lama",
+                        "<p>Pilihan variasi sudah otomatis. Muat ulang halaman anak.</p>",
                     ), 409,
                 )
             try:
@@ -1894,9 +1864,15 @@ class Penangan(BaseHTTPRequestHandler):
                     )
                 try:
                     from choice_pages import format_dari_form
-                    from question_context import profil_dari_form, validasi_pilihan
-                    profil = profil_dari_form(data)
-                    validasi_pilihan(dipilih, profil)
+                    from question_context import profil_otomatis, validasi_pilihan
+                    profil_lama = data.get('profil_parameter', [])
+                    if profil_lama:
+                        if len(profil_lama) != 1:
+                            raise ValueError('Pilihan variasi soal tidak sah. Muat ulang form.')
+                        profil = profil_lama[0]
+                        validasi_pilihan(dipilih, profil)
+                    else:
+                        profil = profil_otomatis(dipilih, baris['tingkat'] if baris else 'P3')
                     sesi_id = database.buat_sesi_gabungan(
                         kon, siswa_id, seed=random.randint(1, 9_999_999), topik_ids=dipilih,
                         level=profil,
@@ -2030,38 +2006,13 @@ class Penangan(BaseHTTPRequestHandler):
             versi_pilihan = data.get("versi_pilihan_isi", [])
             topik_dibandingkan = data.get("topik_dibandingkan", [])
             if aksi_form:
-                if aksi_form != ["bandingkan"]:
-                    return self._kirim(
-                        _halaman("Form tidak sah", "<p>Aksi latihan tidak dikenal.</p>"), 400
-                    )
-                ident = self._identitas()
-                data_draf = {
-                    k: v for k, v in data.items()
-                    if k not in {
-                        "aksi_form", "inline_form", "versi_pilihan_isi", "topik_dibandingkan",
-                        # Metadata tombol Pendamping ikut POST native, bukan isi draf.
-                        "inline_host", "inline_host_id", "inline_posisi",
-                    }
-                }
-                with database.buka() as kon:
-                    if not self._bisa_lihat_siswa(kon, siswa_id):
-                        return self._kirim(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    try:
-                        from assistant_inline import parse_draf_latihan
-                        draf = parse_draf_latihan(data_draf, daftar_topik())
-                    except ValueError as galat:
-                        return self._kirim(
-                            _halaman("Latihan belum dibandingkan", '<p>' + html.escape(str(galat)) + '</p>'), 400
-                        )
-                    siswa = kon.execute("SELECT * FROM siswa WHERE id=?", (siswa_id,)).fetchone()
-                    return self._kirim(
-                        halaman_anak(
-                            kon, siswa, peran=ident[1] if ident else "guru",
-                            pengguna=ident[0] if ident else "", draf_latihan=draf,
-                        )
-                    )
+                return self._kirim(
+                    _halaman(
+                        "Form lama",
+                        "<p>Pilihan variasi sudah otomatis. Muat ulang halaman anak.</p>",
+                    ),
+                    409,
+                )
             if pilihan_topik not in daftar_topik():
                 # Topik asing = salah ketik pemanggil: ditolak jelas, BUKAN
                 # jatuh diam-diam ke pola bilangan. Pesan menyebut daftar
@@ -2073,13 +2024,11 @@ class Penangan(BaseHTTPRequestHandler):
                     f"{', '.join(html.escape(t) for t in daftar_topik())}.</p>"
                 )
                 return self._kirim(_halaman("Topik tidak dikenal", pesan), 400)
-            if (versi_pilihan or topik_dibandingkan) and (
-                versi_pilihan != ["1"] or topik_dibandingkan != [pilihan_topik]
-            ):
+            if versi_pilihan or topik_dibandingkan:
                 return self._kirim(
                     _halaman(
-                        "Bandingkan ulang isi latihan",
-                        "<p>Topik berubah atau belum dibandingkan. Tampilkan pilihan isi, lalu pilih isinya.</p>",
+                        "Form lama",
+                        "<p>Pilihan variasi sudah otomatis. Muat ulang halaman anak.</p>",
                     ), 409,
                 )
             sesi_id = None
@@ -2094,10 +2043,16 @@ class Penangan(BaseHTTPRequestHandler):
                 ).fetchone()
                 if not siswa:
                     return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
-                from question_context import profil_dari_form, validasi_pilihan
+                from question_context import profil_otomatis, validasi_pilihan
                 try:
-                    level = profil_dari_form(data)
-                    validasi_pilihan([pilihan_topik], level)
+                    profil_lama = data.get('profil_parameter', [])
+                    if profil_lama:
+                        if len(profil_lama) != 1:
+                            raise ValueError('Pilihan variasi soal tidak sah. Muat ulang form.')
+                        level = profil_lama[0]
+                        validasi_pilihan([pilihan_topik], level)
+                    else:
+                        level = profil_otomatis([pilihan_topik], siswa['tingkat'])
                 except ValueError as galat:
                     return self._kirim(_halaman('Latihan belum dibuat', '<p>' + html.escape(str(galat)) + '</p>'), 400)
                 nama_siswa = siswa["nama"]

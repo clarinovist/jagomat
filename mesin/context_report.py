@@ -29,11 +29,11 @@ def render_konteks(bukti, siswa_id, tanggal, *, halaman='1', hari_ini=None):
     return (
         '<section class="kartu peta-materi-st" id="bukti-per-konteks">'
         '<h2>Bukti per konteks latihan</h2>'
-        '<p>Hasil dibaca per keterampilan dan variasi soal, bukan sebagai kelas atau '
-        'jenjang kemampuan anak. Bukti pada satu variasi tidak otomatis berlaku untuk variasi lain.</p>'
+        '<p>Hasil dibaca per keterampilan dan konfigurasi historis soal, bukan sebagai kelas atau '
+        'jenjang kemampuan anak. Bukti pada satu konfigurasi tidak otomatis berlaku pada konfigurasi lain.</p>'
         '<p>Rincian ini menampilkan konteks dengan catatan penilaian yang relevan. '
         'Konteks lain belum dinilai, bukan berarti anak tidak mampu. Tidak ada persentase '
-        'atau jumlah target wajib dari daftar pola dan variasi.</p>'
+        'atau jumlah target wajib dari daftar pola dan konfigurasi.</p>'
         + ('<ul class="peta-target">' + ''.join(baris) + '</ul>' if baris
            else '<p>Belum ada bukti konteks yang dapat dinilai. Latihan manual tetap tersedia; '
            'hasilnya bukan bukti tanpa konfirmasi dan opt-in pemetaan yang sah.</p>')

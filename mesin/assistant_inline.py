@@ -207,15 +207,15 @@ def parse_draf_latihan(data: Mapping[str, Sequence[str]], topik_sah: Sequence[st
         raise GalatInline("Nilai latihan tidak sah.")
     return DrafLatihan(
         satu["topik"], satu["jumlah_soal"], satu["mode"],
-        "timer_mode" in satu, satu["durasi_menit"], satu["timer_auto"], satu.get('format_jawaban', 'isian'),
-        satu.get('profil_parameter', ''),
+        "timer_mode" in satu, satu["durasi_menit"], satu["timer_auto"],
+        satu.get('format_jawaban', 'isian'), satu.get('profil_parameter', ''),
     )
 
 
 def parse_draf_gabungan(
     data: Mapping[str, Sequence[str]], topik_sah: Sequence[str], *, profil_wajib: bool = True
 ) -> DrafGabungan:
-    """Draf form gabungan request-local; tahap bandingkan boleh belum memilih profil."""
+    """Draf form gabungan request-local; profil lama boleh dipertahankan."""
     wajib = {"jumlah_soal", "mode", "format_jawaban"}
     diizinkan = wajib | {"topik", "profil_parameter"}
     if not wajib <= set(data) <= diizinkan or any(not nilai for nilai in data.values()):
@@ -236,8 +236,10 @@ def parse_draf_gabungan(
         or (profil_wajib and data.get("profil_parameter", ("",))[0] == "")
     ):
         raise GalatInline("Nilai latihan gabungan tidak sah.")
-    return DrafGabungan(topik, data["jumlah_soal"][0], data["mode"][0],
-                        data["format_jawaban"][0], data.get("profil_parameter", ("",))[0])
+    return DrafGabungan(
+        topik, data["jumlah_soal"][0], data["mode"][0],
+        data["format_jawaban"][0], data.get("profil_parameter", ("",))[0]
+    )
 
 
 def parse_draf_remedial(data: Mapping[str, Sequence[str]], template_sah: Sequence[str]) -> DrafRemedial:

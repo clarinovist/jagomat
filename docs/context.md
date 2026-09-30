@@ -48,19 +48,22 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
 - **Stdlib saja**, tanpa framework/dependensi runtime pihak ketiga; dev dependency
   hanya `pytest` dan `pytest-xdist`. Dependency baru perlu persetujuan pengguna.
 - **Zero-JS default**: `<details>` dan `?section=` server-side. Pengecualian disetujui:
-  mata sandi, `confirm()` destruktif, refresh pilihan isi saat topik berubah, salin
-  tautan satu sesi langsung, serta Kirim/Periksa Pendamping inline. Skrip berhash CSP,
-  same-origin dan punya fallback form native; bukan izin menambah JavaScript umum.
+  mata sandi, `confirm()` destruktif, salin tautan satu sesi langsung, serta
+  Kirim/Periksa Pendamping inline. Skrip berhash CSP, same-origin dan punya fallback
+  form native; bukan izin menambah JavaScript umum. Refresh pilihan isi lama tidak
+  lagi dipakai karena alur baru tidak meminta variasi A–D.
 - Nama modul Inggris; fungsi/variabel, docstring, UI dan commit Bahasa Indonesia.
   Commit conventional (`fix(murid): …`). Nilai visual melalui `design_tokens.py`
   (`T.*`); jangan hardcode hex di modul lain. Satu aksi, satu entry point.
-- Registrasi boleh menyimpan `siswa.tingkat=''` (variasi belum dipilih), tanpa
-  default dari kelas atau backfill. `question_variants_ui.py` merender pilihan isi
-  dan contoh dari registry aktual; persiapan form manual/gabungan hanya membawa draf
-  request-local. `profile_workspace.py` menjadi sumber navigasi empat tujuan profil,
+- Registrasi menyimpan `siswa.tingkat=''` sampai pemetaan pertama disiapkan, tanpa
+  default dari kelas atau backfill. Layanan kemudian menetapkan P3 sebagai konteks
+  fondasi internal secara atomik; P3–P6 tetap codec histori, bukan pilihan pengguna.
+  `question_context.profil_otomatis()` memilih profil efektif manual/gabungan yang
+  didukung dan paling dekat tanpa mengubah profil rencana. Generator mempertahankan
+  komposisi historis sambil memvariasikan parameter dan urutan sesuai seed. `profile_workspace.py` menjadi sumber navigasi empat tujuan profil,
   sedangkan `reports.py` dan `report_metrics.py` menyediakan filter periode aktivitas
-  server-side melalui query GET. Layanan siklus menginisialisasi variasi dan pemetaan
-  pertama secara atomik dari pilihan eksplisit.
+  server-side melalui query GET. Layanan siklus menginisialisasi konteks fondasi dan
+  pemetaan pertama secara atomik dari satu tindakan eksplisit orang tua.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
   Pendamping tidak boleh mengambil alih reducer atau konfirmasi bukti belajar.
 - Lokal memakai `mesin/.venv/bin/python` (3.9.6); CI/container 3.12. Kode kompatibel

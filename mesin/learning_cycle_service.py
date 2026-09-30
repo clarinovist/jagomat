@@ -360,15 +360,43 @@ def _occurrence_berikutnya(kon, putaran_id, rencana):
     return max(cocok, default=0) + 1
 
 
-def mulai_dengan_variasi(kon: sqlite3.Connection, siswa_id: int, profil: str) -> tuple[int, bool]:
-    """Inisialisasi rencana dan sesi pertama atomik; caller mengotorisasi siswa.
+def mulai_dengan_fondasi(kon: sqlite3.Connection, siswa_id: int) -> tuple[int, bool]:
+    """Siapkan konteks fondasi dan sesi pertama secara atomik.
 
-    Pilihan manual tidak memanggil ini. Retry form awal hanya menunjuk sesi
-    pemetaan pertama, tidak membuat sesi berikutnya atau mengganti profil lama.
+    P3 adalah kode internal baseline, bukan kelas atau penilaian kemampuan.
+    Retry menunjuk sesi pemetaan pertama yang sama; histori lama tidak diubah.
     """
+    profil = 'P3'
+    kon.execute('SAVEPOINT mulai_fondasi')
+    try:
+        siswa = kon.execute('SELECT tingkat FROM siswa WHERE id=?', (siswa_id,)).fetchone()
+        if siswa is None:
+            raise ValueError('siswa tidak dikenal')
+        if siswa['tingkat'] != '':
+            sesi = kon.execute(
+                """SELECT id FROM sesi WHERE siswa_id=? AND level=? AND tujuan='pemetaan'
+                   AND dibatalkan IS NULL ORDER BY id LIMIT 1""",
+                (siswa_id, siswa['tingkat']),
+            ).fetchone()
+            if sesi is None:
+                raise ValueError('Rencana belajar sudah disiapkan. Muat ulang halaman anak.')
+            hasil = (sesi['id'], False)
+        else:
+            kon.execute("UPDATE siswa SET tingkat=? WHERE id=? AND tingkat=''", (profil, siswa_id))
+            hasil = buat_dari_rekomendasi(kon, siswa_id)
+        kon.execute('RELEASE SAVEPOINT mulai_fondasi')
+        return hasil
+    except Exception:
+        kon.execute('ROLLBACK TO SAVEPOINT mulai_fondasi')
+        kon.execute('RELEASE SAVEPOINT mulai_fondasi')
+        raise
+
+
+def mulai_dengan_variasi(kon: sqlite3.Connection, siswa_id: int, profil: str) -> tuple[int, bool]:
+    """Adapter payload lama; UI baru memakai fondasi otomatis tanpa field ini."""
     from templates import LEVEL
     if type(profil) is not str or profil not in LEVEL:
-        raise ValueError('Pilih satu variasi soal untuk pemetaan pertama.')
+        raise ValueError('Pilihan variasi soal tidak sah. Muat ulang form.')
     kon.execute('SAVEPOINT mulai_variasi')
     try:
         siswa = kon.execute('SELECT tingkat FROM siswa WHERE id=?', (siswa_id,)).fetchone()
@@ -412,7 +440,7 @@ def buat_dari_rekomendasi(
         if siswa is None:
             raise ValueError("siswa tidak dikenal")
         if siswa['tingkat'] == '':
-            raise ValueError('Pilih variasi untuk pemetaan pertama di halaman anak.')
+            raise ValueError('Siapkan pemetaan pertama di halaman anak.')
         putaran_id = _putaran_aktif(kon, siswa_id, siswa["tingkat"])
         if putaran_id is None:
             putaran_id = database.buat_putaran_fokus(

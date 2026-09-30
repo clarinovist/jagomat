@@ -24,11 +24,13 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   profil anak pertama tanpa meminta variasi soal; kelas sekolah opsional. Tautan
   satu sesi dibuat dan langsung disalin dari layar aktif pada browser yang mendukung,
   dengan form native sebagai fallback; masa berlaku dan pencabutan tetap dipagari.
-  Saat menyiapkan latihan, orang tua memilih topik lalu membandingkan nama isi, cakupan,
-  dan contoh yang sesuai sebelum memilih eksplisit; pilihan isi diperbarui saat topik
-  berubah dengan fallback form native. Kartu memakai nomor urut lokal 1–N sebagai
-  penanda sekunder dan ringkasan cakupan satu kalimat, bukan kode variasi atau daftar
-  seluruh pola. Profil menempatkan Laporan perkembangan sejajar dengan Buat latihan,
+  Saat menyiapkan latihan, orang tua cukup memilih topik, jumlah, format, dan mode;
+  Jagomat memilih satu konfigurasi internal yang didukung topik, sedangkan seed
+  mengganti parameter dan susunan model di dalam konfigurasi itu. P3–P6 tetap disimpan
+  sebagai konteks historis, bukan kelas atau ukuran kemampuan. Anak baru belum
+  berpartisipasi sampai pemetaan pertama disiapkan; saat itu sistem memakai konteks
+  fondasi internal P3 secara atomik, tanpa menebak dari kelas sekolah. Profil
+  menempatkan Laporan perkembangan sejajar dengan Buat latihan,
   Rencana belajar, dan Riwayat; ringkasan aktivitas dapat dilihat lewat preset 7 hari,
   minggu ini, bulan ini, atau rentang tanggal sendiri. Detail paket/aktivasi mengikuti
   kontraknya, bukan keberadaan kode.

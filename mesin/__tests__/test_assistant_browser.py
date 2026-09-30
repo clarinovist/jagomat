@@ -48,11 +48,9 @@ def test_host_awal_memuat_skrip_dan_header_privat(server, jenis):
     assert 'class="pendamping-pemicu"' in isi
     assert '<script>' + assistant_browser.SKRIP_CHAT + '</script>' in isi
     assert "'sha256-%s'" % assistant_browser.HASH_CSP in header['Content-Security-Policy']
-    if jenis == 'anak':
-        assert '<script>' + assistant_browser.SKRIP_PILIHAN_ISI + '</script>' in isi
-        assert "'sha256-%s'" % assistant_browser.HASH_PILIHAN_ISI in header['Content-Security-Policy']
-    else:
-        assert assistant_browser.SKRIP_PILIHAN_ISI not in isi
+    # Alur baru tidak memuat skrip refresh pilihan A–D pada host mana pun.
+    assert assistant_browser.SKRIP_PILIHAN_ISI not in isi
+    assert "'sha256-%s'" % assistant_browser.HASH_PILIHAN_ISI not in header['Content-Security-Policy']
     assert header['Cache-Control'] == 'no-store'
     assert header['Referrer-Policy'] == 'no-referrer'
     assert header['X-Frame-Options'] == 'DENY'

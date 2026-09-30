@@ -792,12 +792,8 @@ def test_draf_gabungan_native_dipulihkan_tanpa_membuat_sesi(server):
     assert 'value="15" selected' in isi and 'value="diagnostik" checked' in isi
     assert 'value="pilihan_ganda" selected' in isi
     panel_gabungan = isi.split('id="form-latihan-gabungan-', 1)[1].split('</form>', 1)[0]
-    assert panel_gabungan.count('name="profil_parameter"') == 2
-    assert 'value="P5"' in panel_gabungan and 'value="P6"' in panel_gabungan
-    assert 'value="P4"' not in panel_gabungan
-    kartu_isi = panel_gabungan.split('<fieldset class="pilih-isi-latihan"', 1)[1].split('</fieldset>', 1)[0]
-    assert 'name="profil_parameter" value="P5" checked' not in kartu_isi
-    assert 'name="profil_parameter" value="P6" checked' not in kartu_isi
+    assert 'name="profil_parameter"' not in panel_gabungan
+    assert 'Jagomat memilih satu cakupan' in panel_gabungan
     with server.buka() as kon:
         assert kon.execute("SELECT COUNT(*) FROM sesi WHERE siswa_id=?", (anak,)).fetchone()[0] == sebelum
     assert server.provider.panggilan == []

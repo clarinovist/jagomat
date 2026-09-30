@@ -67,12 +67,11 @@ def test_http_daftar_baru_dan_semua_halaman_profil(server):
         assert kode == 200, (url, kode)
         assert 'Konfigurasi lama: ' not in isi
         if url == '/anak/%d' % sid:
-            assert '<legend>Pilih isi latihan</legend>' in isi
-            assert '<input type="radio" name="profil_parameter" value="P3" checked' not in isi
-            assert 'data-contoh="pola-bilangan:P3"' in isi
+            assert 'name="profil_parameter"' not in isi
+            assert 'Jagomat memilih cakupan yang sesuai' in isi
         if 'section=rencana' in url:
-            assert 'Pilih isi untuk pemetaan pertama' in isi
-            assert 'Lihat contoh materi:' in isi
+            assert 'Siapkan pemetaan pertama' in isi
+            assert 'cakupan fondasi' in isi
     with server.buka() as kon:
         assert tuple(kon.iterdump()) == awal
 
@@ -98,12 +97,12 @@ def test_service_tanpa_pilihan_tidak_membuat_putaran(server, monkeypatch):
     monkeypatch.setattr(database, 'buat_putaran_fokus', dilarang)
     with server.buka() as kon:
         awal = tuple(kon.iterdump())
-        with pytest.raises(ValueError, match='variasi'):
+        with pytest.raises(ValueError, match='pemetaan pertama'):
             layanan.buat_dari_rekomendasi(kon, sid)
         assert tuple(kon.iterdump()) == awal
 
 
-@pytest.mark.parametrize('data', [{}, {'profil_parameter': ''}, {'profil_parameter': 'asing'},
+@pytest.mark.parametrize('data', [{'profil_parameter': ''}, {'profil_parameter': 'asing'},
     {'profil_parameter': 'P3', 'kelas_sekolah': '3'},
     [('profil_parameter', 'P3'), ('profil_parameter', 'P6')]])
 def test_http_persiapan_invalid_tanpa_efek(server, data):

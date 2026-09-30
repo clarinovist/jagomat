@@ -13,8 +13,6 @@ import auth
 import database
 import learning_profile
 import learning_profile_ui
-import question_variants_ui
-from question_context import label_profil_parameter
 from templates import LEVEL, label_kelas, level_valid
 from teacher_pages import _halaman
 
@@ -282,11 +280,10 @@ def halaman_akun(
         + learning_profile_ui.opsi_kelas()
         + '</select></div></div>'
         '<fieldset class="pengaturan-awal"><legend>Pengaturan latihan awal</legend>'
-        '<p class="sub">Pilihan awal untuk latihan dan rencana belajar. '
-        'Untuk latihan bebas, Anda bisa memilih variasi lain.</p>'
-        + question_variants_ui.kontrol_variasi('anak', ringkas=True)
-        + question_variants_ui.panduan_variasi(ringkas=True)
-        + '</fieldset>'
+        '<p class="sub">Jagomat menyiapkan cakupan fondasi secara otomatis. '
+        'Angka dan model soal akan bervariasi pada setiap sesi; kelas sekolah '
+        'tidak dipakai untuk menilai kemampuan anak.</p>'
+        '</fieldset>'
         f'<label for="anak-login">Nama login anak (opsional — bawaan sama dengan nama anak)'
         f"</label>"
         f'<input id="anak-login" type="text" name="nama_akun" '
@@ -421,9 +418,9 @@ def proses_akun(
         yang hanya bisa dirapikan manual lewat halaman akun.
         """
         nama = data.get("nama", "").strip()
-        # Payload programatis lama yang eksplisit tetap profil, bukan kelas.
-        # Tidak ada default tersembunyi ketika pilihan hilang/kosong.
-        tingkat = data.get('profil_parameter', data.get('tingkat', '')).strip()
+        # UI baru mengirim tanpa field profil; payload lama yang sah tetap dibaca
+        # untuk kompatibilitas retry/integrasi, tanpa mengaitkannya ke kelas.
+        tingkat = data.get('profil_parameter', data.get('tingkat', '')).strip() or ''
         sandi_anak = data.get("sandi_anak", "")
         # Nama login boleh beda dari nama anak — jalannya bila nama anak
         # sudah dipakai keluarga lain sebagai login (nama anak tetap unik
@@ -435,9 +432,9 @@ def proses_akun(
         if len(nama) > 40:
             return "", "Nama terlalu panjang."
         if ('profil_parameter' in data and 'tingkat' in data) or 'level' in data:
-            return '', 'Form profil lama atau tidak cocok. Muat ulang sebelum menambahkan anak.'
-        if not level_valid(tingkat):
-            return '', 'Pilih variasi soal untuk latihan awal. Bandingkan isi dan contoh soal bila belum yakin.'
+            return '', 'Form pengaturan soal lama tidak cocok. Muat ulang sebelum menambahkan anak.'
+        if tingkat and not level_valid(tingkat):
+            return '', 'Pilihan variasi soal tidak sah. Muat ulang formulir.'
         try:
             kelas = learning_profile_ui.baca_kelas_form(data.get('kelas_sekolah', ''))
         except ValueError as galat:
@@ -468,9 +465,9 @@ def proses_akun(
             return "", str(e)
         catatan = " (persetujuan orang tua dicatat)" if data.get("persetujuan_ortu") else ""
         return (
-            f"Anak {nama} ditambahkan ({learning_profile.label_kelas_sekolah(kelas)}; "
-            f"{label_profil_parameter(tingkat)}) beserta akun latihannya{catatan}. "
-            f"Langkah 3: kembali ke beranda, klik nama {nama}, lalu tekan "
+            f"Anak {nama} ditambahkan ({learning_profile.label_kelas_sekolah(kelas)}) "
+            f"beserta akun latihannya{catatan}. Jagomat menyiapkan cakupan fondasi "
+            f"secara otomatis. Langkah 3: kembali ke beranda, klik nama {nama}, lalu tekan "
             f"“Buat sesi baru”. Anak masuk lewat /murid dengan nama {nama_akun}.",
             "",
         )

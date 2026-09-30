@@ -152,31 +152,22 @@ def test_bingkai_profil_kelas_eksplisit_bukan_tingkat():
     assert '<form' not in kelas
 
 
-def test_onboarding_form_profil_eksplisit_kelas_opsional(db):
+def test_onboarding_form_profil_otomatis_kelas_opsional(db):
     isi = account_pages.halaman_akun(db, pengguna='guru', section='siswa').decode()
     form = Formulir(isi).aksi('anak_baru')[0]
-    assert any(s.get('name') == 'profil_parameter' and 'required' in s for s in form['select'])
+    assert not any(s.get('name') == 'profil_parameter' for s in form['select'])
     assert any(s.get('name') == 'kelas_sekolah' and 'required' not in s for s in form['select'])
     assert not any(s.get('name') in ('tingkat', 'level') for s in form['select'])
     assert not any(o.get('value') in ('P3', 'P4', 'P5', 'P6') and 'selected' in o for o in form['option'])
 
 
-def test_onboarding_petunjuk_ringkas_satu_pembuka_panduan(db):
-    from test_question_variants_ui import Rincian
+def test_onboarding_petunjuk_otomatis_tanpa_panduan_variasi(db):
     isi = account_pages.halaman_akun(db, pengguna='guru', section='siswa').decode()
     awal = isi.split('<fieldset class="pengaturan-awal">', 1)[1].split('</fieldset>', 1)[0]
-    rincian = Rincian(awal)
-    luar = ''.join(rincian.luar)
-    assert 'bukan urutan kemampuan atau kelas anak' in luar
-    assert 'latihan dan rencana belajar' in luar
-    assert 'latihan bebas' in luar
-    assert 'href="#panduan-variasi"' not in awal
-    assert awal.count('<summary>Bandingkan isi dan contoh soal</summary>') == 1
-    assert '<summary>Tentang variasi dan contoh</summary>' in awal
-    assert 'Contoh ini bukan soal sesi yang akan dibuat' in ''.join(rincian.dalam)
-    assert 'Nama pola yang sama' not in luar
-    assert len(luar.split()) <= 65
-    assert '.variasi-daftar {' in isi, 'CSS panduan harus dimuat di akun'
+    assert 'cakupan fondasi secara otomatis' in awal
+    assert 'kelas sekolah tidak dipakai untuk menilai kemampuan' in awal
+    assert 'Bandingkan isi' not in awal
+    assert 'name="profil_parameter"' not in awal
 
 
 @pytest.mark.parametrize('kelas', ['', '1', '6'])
@@ -188,8 +179,11 @@ def test_onboarding_kelas_tidak_memilih_profil(db, kelas):
     assert learning_profile.baca(db, siswa['id'], pemilik='guru').kelas_sekolah == (int(kelas) if kelas else None)
 
 
-@pytest.mark.parametrize('tambahan', [{}, {'profil_parameter': ''}, {'tingkat': ''}, {'profil_parameter': 'P9'}, {'profil_parameter': 'P5', 'kelas_sekolah': 'P4'}, {'profil_parameter':'P5','tingkat':'P3'}])
-def test_onboarding_tidak_punya_default_kemampuan(db, tambahan):
+@pytest.mark.parametrize('tambahan', [
+    {'profil_parameter': 'P9'}, {'profil_parameter': 'P5', 'kelas_sekolah': 'P4'},
+    {'profil_parameter':'P5','tingkat':'P3'}, {'level': 'P6'},
+])
+def test_onboarding_payload_lama_cacat_ditolak(db, tambahan):
     sebelum = db.total_changes
     akun = auth.BERKAS_SANDI.read_bytes()
     pesan, galat = account_pages.proses_akun(db, dict(aksi='anak_baru', nama='Sintetis', sandi_anak='sandi-sintetis-anak', **tambahan), 'guru')
