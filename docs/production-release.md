@@ -6,16 +6,18 @@ Konfigurasi WhatsApp Business, jam layanan, dan SLA memakai schema dukungan
 aditif **tanpa bump `user_version` admin9**. Pemasangan hanya melalui migrator
 operator `mesin/.venv/bin/python mesin/support_settings.py --database <salinan-terverifikasi>`
 atau API `support_settings.migrasikan`; startup/GET tidak memigrasi dan reader publik
-fail-closed bila schema/nilai hilang atau rusak. Recovery aktif `634e077` belum
-mempunyai writer/reader dukungan, sehingga **belum layak** menjadi pasangan
-recovery untuk cutover schema ini. Bekukan baseline recovery baru yang memahami
-schema dukungan, lalu perbarui pin/contract dalam rilis terpisah dan buktikan probe
-image serta C→B→C `support_pair_checks=8` pada digest exact.
+fail-closed bila schema/nilai hilang atau rusak. Baseline recovery
+`6621f46c2d1d155c9e607441608407a244d185e0` adalah source pertama yang memahami
+schema dukungan, dipatok dengan fingerprint
+`b972ca3d2aa7b47c8ec85b09ca183d06ab791d1668014f91d50d147e996cbdc7`.
+Kandidat rilis wajib membangun ulang B dan C dalam run yang sama serta membuktikan
+probe image dan C→B→C `support_pair_checks=8` pada digest exact.
 
 Sebelum cutover: bundle coherent empat DB + `sandi.json`, rehearsal opt-in
 `target_dukungan=True` dua kali dengan preservasi state lama, integrity/FK,
-backup induk tetap byte-identik, approval exact-pair, dan health. Job `pasang`
-tetap literal false; jangan membuka gate agar pipeline hijau. Setelah migrasi,
+backup induk tetap byte-identik, approval exact-pair, dan health. Mode rilis
+`migrasi` dengan job `pasang` tetap literal false; cutover hanya melalui
+`deploy-v2`, bukan membuka gate CI. Setelah migrasi,
 smoke anonim tetap `/` 200, `/akun` 401, `/murid/` 303 ke `/masuk`, lalu verifikasi
 halaman publik dan panel memakai fixture sintetis. Runbook operator:
 [support-operations.md](support-operations.md).
