@@ -343,8 +343,8 @@ def _validasi_skema(kon: sqlite3.Connection) -> None:
         admin_launch_schema.validasi(kon)
     except (ValueError, sqlite3.Error):
         raise StoreBelumSiap("struktur layanan admin tidak lengkap") from None
-    # Namespace dukungan tidak menaikkan admin7/8/9. Absent masih sah sebelum
-    # migrasi opt-in, tetapi struktur parsial harus menahan seluruh store.
+    # Konfigurasi dukungan adalah schema aditif opt-in tanpa bump user_version:
+    # absent masih sah sebelum migrasi, tetapi struktur parsial harus fail-closed.
     import support_settings
     try:
         support_settings.validasi_schema(kon)

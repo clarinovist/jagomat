@@ -115,12 +115,10 @@ def operasional(r,form_pembayaran='',form_dukungan='',feedback=''):
         publik=dukungan.proyeksi_publik(support)
         isi+=('<section class="admin-kartu"><h2>Dukungan pengguna</h2><p>Status: <strong>Siap</strong> · revisi %d</p>'
               '<dl class="admin-rincian"><dt>WhatsApp Business</dt><dd>%s</dd><dt>Jam layanan</dt><dd>%s</dd>'
-              '<dt>Respons awal</dt><dd>Maksimal %d hari kerja</dd><dt>Status awal</dt><dd>Maksimal %d hari kerja</dd></dl>'
-              '%s%s'
+              '<dt>Respons awal</dt><dd>Maksimal %d hari kerja</dd><dt>Status awal</dt><dd>Maksimal %d hari kerja</dd></dl>%s'
               '<p class="admin-meta">WhatsApp adalah kanal komunikasi, bukan bukti kepemilikan akun. Reset hanya setelah verifikasi independen; bila tidak tersedia, reset ditahan.</p></section>')%(
                   support.revisi,e(publik.whatsapp_label),e(publik.jam_layanan_label),
-                  support.sla_respons_hari,support.sla_status_hari,
-                  '<h3>Ubah pengaturan publik</h3>' if form_dukungan else '',form_dukungan)
+                  support.sla_respons_hari,support.sla_status_hari,form_dukungan)
     else:
         isi+=('<section class="admin-kartu admin-galat"><h2>Dukungan pengguna</h2><p>Status: <strong>Belum siap</strong></p>'
               '<p>Schema atau konfigurasi dukungan hilang/rusak. Kontak publik ditahan; jalankan migrator opt-in dan periksa recovery sebelum membuka layanan.</p></section>')

@@ -142,10 +142,20 @@ menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
 - Palang repo: `mesin/.venv/bin/python scripts/check_repo.py` — membaca **index Git**,
   bukan data anak. Jalankan setelah stage scope yang sudah direview.
 - Scoped test: `mesin/.venv/bin/python -m pytest mesin/__tests__/test_<area>.py -q -W error -p no:cacheprovider`.
-  Test aplikasi berada di `mesin/__tests__/`, bukan plan/spike/salinan repo lama.
-- Full test diutamakan di CI dengan interpreter CI yang ditentukan workflow. Jika perlu
-  reproduksi lokal, gunakan `mesin/.venv/bin/python -m pytest mesin/__tests__/ -q -W error -p no:cacheprovider`
-  dengan concurrency terbatas; jangan otomatis memakai `-n auto` atau suite berat ganda.
+  Test aplikasi berada di `mesin/__tests__/`, bukan plan/spike/salinan repo lama. Mulai dari
+  test regression dan caller yang terdampak; jangan menjalankan seluruh `mesin/__tests__/`
+  secara lokal sebagai default, termasuk dari salinan kerja `/tmp`.
+- Full suite tetap wajib sebelum rilis, tetapi jalur defaultnya **CI empat shard** dengan
+  interpreter workflow. Push boleh dilakukan setelah gate lokal scoped lulus agar CI menjadi
+  gate lengkap pada SHA yang sama; jangan menunggu full suite serial lokal sebelum push.
+  Full suite lokal hanya untuk reproduksi kegagalan CI yang belum dapat diisolasi, instruksi
+  eksplisit pengguna/harness, atau ketika CI benar-benar tidak tersedia. Sebelum memulainya,
+  beri tahu alasan dan perkiraan durasi; `timeout` adalah batas, bukan perkiraan selesai.
+  Jika pengecualian berlaku, gunakan `mesin/.venv/bin/python -m pytest mesin/__tests__/ -q -W error -p no:cacheprovider`.
+- Jangan otomatis memakai `-n auto` untuk full suite lokal: test HTTP berbagi socket. Untuk
+  guard mutation, jalankan lokal hanya berkas mutation dan regression yang terkait; cakupan
+  suite penuh tetap dibuktikan oleh CI. Jangan menjalankan suite berat ganda jika source,
+  konfigurasi, runtime, dan bukti gate yang relevan identik.
 - Kompilasi file terkait dengan `compile()` tanpa import/menjalankan aplikasi, lihat referensi.
   Repo ini **tidak** punya gate npm/lint/coverage; jangan menambah dependency
   atau mengklaim coverage global diperiksa CI. Trace/mutation domain mengikuti scope.
