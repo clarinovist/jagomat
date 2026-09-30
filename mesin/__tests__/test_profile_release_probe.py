@@ -45,6 +45,9 @@ def siap(tmp_path):
     source.mkdir()
     shutil.copy2(AKAR/'mesin'/'schema.py',source/'schema.py')
     shutil.copy2(AKAR/'mesin'/'admin_registration.py',source/'admin_registration.py')
+    # Readiness dukungan membandingkan schema aktual dengan DDL source,
+    # jadi fixture minimal wajib membawa modul source yang sama.
+    shutil.copy2(AKAR/'mesin'/'support_settings.py',source/'support_settings.py')
     for nama, versi in [('admin_store', 7), ('assistant_schema', 4), ('ai_store', 2), ('subscription_package_schema', 8), ('assistant_quota_schema', 9)]:
         (source / (nama + '.py')).write_text('VERSI_SKEMA = %d\nraise RuntimeError("jangan import")\n' % versi)
     return deploy, data, source
