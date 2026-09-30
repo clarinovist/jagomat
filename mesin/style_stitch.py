@@ -10,6 +10,7 @@ masih bertugas.
 """
 
 import design_tokens as T
+from form_style import GAYA_SELECT
 from presentation_style import GAYA_PENYAJIAN
 
 GAYA_STITCH = f"""
@@ -18,6 +19,7 @@ GAYA_STITCH = f"""
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 {GAYA_PENYAJIAN}
+{GAYA_SELECT}
 * {{ box-sizing: border-box; }}
 html {{ -webkit-text-size-adjust: 100%; }}
 body.st {{

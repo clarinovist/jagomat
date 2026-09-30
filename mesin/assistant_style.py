@@ -1,8 +1,10 @@
 """Gaya Pendamping: aliran dokumen ringan, token lokal, tanpa skrip/font jaringan."""
 
 import design_tokens as T
+from form_style import GAYA_SELECT
 
 GAYA_PENDAMPING = f"""
+{GAYA_SELECT}
 .pendamping-halaman, .pendamping-halaman *, .pendamping-halaman *::before, .pendamping-halaman *::after {{ box-sizing:border-box; }}
 html {{ color-scheme:light; scroll-padding-block:{T.SP_5}; }}
 .pendamping-halaman {{ margin:0; min-height:100vh; min-height:100svh; background:{T.LATAR_MURID}; color:{T.TEKS_UTAMA}; font:1rem/1.6 {T.FONT_LAYAR}; overflow-wrap:anywhere; }}

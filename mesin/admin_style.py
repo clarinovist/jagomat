@@ -1,9 +1,11 @@
 """Gaya scoped untuk kandidat pusat kendali admin readonly."""
 
 import design_tokens as T
+from form_style import GAYA_SELECT
 
 
 GAYA_ADMIN = f"""
+{GAYA_SELECT}
 * {{ box-sizing: border-box; }}
 html {{ -webkit-text-size-adjust: 100%; }}
 body.admin-readonly {{

@@ -176,6 +176,12 @@ Dari 9 mockup, pattern yang berulang:
    memakai tautan preset 7 hari, minggu ini, bulan ini, serta form GET tanggal mulai
    dan selesai untuk rentang sendiri; seluruh rentang bersifat inklusif dan berzona WIB.
 
+10. **Dropdown** — `<select>` satu-pilihan tetap memakai kontrol native, tetapi
+    indikator bawaan diganti chevron CSS bersama dari `form_style.py`. Chevron
+    berjarak 16px dari tepi kanan dan area teks diberi ruang 48px agar tidak
+    bertabrakan. Select `multiple`/`size` tidak diubah; mode forced-colors kembali
+    ke indikator native sistem operasi.
+
 ## Viewport
 
 | Viewport | Halaman | Orientasi mockup |
