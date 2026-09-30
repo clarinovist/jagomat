@@ -40,6 +40,18 @@ class GalatForm(ValueError):
         self.status = status
 
 
+def _pesan_pengguna(aksi: str, galat: Exception) -> str:
+    """Istilah implementasi tidak bocor ke permukaan pendampingan orang tua."""
+    pesan = str(galat)
+    if aksi != "pilot":
+        return pesan
+    pesan = re.sub(
+        "pilot", lambda cocok: "Pendampingan" if cocok.group(0)[0].isupper() else "pendampingan",
+        pesan, flags=re.IGNORECASE,
+    )
+    return pesan.replace('tuntutan', 'keterampilan').replace('Tuntutan', 'Keterampilan')
+
+
 def _baca_form(penangan) -> dict[str, str]:
     asal = penangan.headers.get("Origin")
     situs = penangan.headers.get("Sec-Fetch-Site")
@@ -171,7 +183,8 @@ def tangani(penangan, jalur: str, halaman) -> None:
         except (ValueError, GalatForm) as galat:
             kon.rollback()
             status = getattr(galat, "status", 409 if aksi in {"buat", "batalkan"} else 400)
-            return penangan._kirim(halaman("Permintaan belum dapat diproses", "<h1>Permintaan belum dapat diproses</h1>" + f"<p>{html.escape(str(galat))}</p>"), status)
+            pesan = _pesan_pengguna(aksi, galat)
+            return penangan._kirim(halaman("Permintaan belum dapat diproses", "<h1>Permintaan belum dapat diproses</h1>" + f"<p>{html.escape(pesan)}</p>"), status)
     penangan.send_response(303)
     penangan.send_header("Location", tujuan)
     penangan.send_header("Content-Length", "0")

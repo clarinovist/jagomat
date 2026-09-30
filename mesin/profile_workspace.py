@@ -22,12 +22,24 @@ def _e(nilai):
     return html.escape(str(nilai), quote=True)
 
 
+def navigasi_profil(siswa_id, total, aktif):
+    """Empat tujuan utama ruang anak dengan penanda aktif yang konsisten."""
+    item = (
+        ('latihan', f'/anak/{siswa_id}?section=latihan', 'Buat latihan'),
+        ('rencana', f'/anak/{siswa_id}?section=rencana', 'Rencana belajar'),
+        ('riwayat', f'/anak/{siswa_id}?section=riwayat', f'Riwayat <span>{total}</span>'),
+        ('laporan', f'/laporan/{siswa_id}', 'Laporan perkembangan'),
+    )
+    return ''.join(
+        f'<a href="{url}"' + (' aria-current="page"' if kode == aktif else '')
+        + f'>{label}</a>' for kode, url, label in item
+    )
+
+
 def bingkai(siswa, section, total, isi, *, peran='guru', pesan='', kelas_sekolah=None):
     sid = int(siswa['id'])
     from learning_profile import label_kelas_sekolah
-    nav = ''.join('<a href="/anak/%d?section=%s"%s>%s</a>' %
-                  (sid, k, ' aria-current="page"' if k==section else '', label)
-                  for k,label in [('latihan','Buat latihan'),('rencana','Rencana belajar'),('riwayat','Riwayat <span>%d</span>' % total)])
+    nav = navigasi_profil(sid, total, section)
     keluarga = '<span class="st-badge selesai">keluarga: %s</span>' % _e(siswa['pemilik'] or 'warisan') if peran=='admin' else ''
     kabar = '<div class="st-banner-sukses" role="status">%s</div>' % _e(pesan) if pesan else ''
     return ('<div class="jejak"><a href="%s">&larr; Semua anak</a></div>'
@@ -140,14 +152,13 @@ def riwayat(siswa_id, baris, total, filter_data, *, judul_topik, tanggal, badge_
     urutan = '<br>Terbaru dahulu · 20 sesi per halaman' if total else ''
     kaki = ('<div class="profil-paging-st profil-riwayat-kaki-st"><span>%s</span>'
             '<a href="#filter-riwayat">Kembali ke filter &amp; halaman ↑</a></div>' % hitung) if total else ''
-    return ('<section aria-labelledby="judul-riwayat"><div class="kepala-riwayat-st"><h2 class="st" id="judul-riwayat">Riwayat latihan</h2>'
-            '<a class="tautan-laporan-st" href="/laporan/%d"><svg class="ikon-laporan-st" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V10M10 19V5M16 19v-7M22 19V8"/></svg>Lihat laporan perkembangan →</a></div>'
+    return ('<section aria-labelledby="judul-riwayat"><div class="kepala-riwayat-st"><h2 class="st" id="judul-riwayat">Riwayat latihan</h2></div>'
             '<p class="sub">Status pengerjaan dan tinjauan bukan penilaian penguasaan materi.</p>'
             '<div class="profil-arsip-st" id="filter-riwayat">%s<div class="profil-paging-st"><span>%s%s</span>%s</div>'
             '<div class="profil-table-wrap-st"><table class="tabel-riwayat-st"><caption class="profil-sr-st">Riwayat latihan anak</caption><thead><tr>'
             '<th scope="col">Tanggal</th><th scope="col">Latihan</th><th scope="col">Soal</th><th scope="col">Pengerjaan</th><th scope="col">Tinjauan</th><th scope="col">Aksi</th>'
             '</tr></thead><tbody>%s</tbody></table></div>%s</div></section>') % (
-                siswa_id,filter_html,hitung,urutan,_pager(siswa_id,f,total),''.join(isi),kaki)
+                filter_html,hitung,urutan,_pager(siswa_id,f,total),''.join(isi),kaki)
 
 
 GAYA_PROFIL = f"""
@@ -161,7 +172,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .pilot-mulai-st label:has(input[type="checkbox"]) {{ display:flex; align-items:flex-start; gap:{T.SP_3}; }}
 .profil-workspace-st .pilot-mulai-st input[type="checkbox"] {{ width:1.25rem; height:1.25rem; min-height:0; flex:none; margin-top:.15rem; }}
 .pendamping-editorial-st.profil-editorial-st.profil-workspace-st {{ max-width:{T.LEBAR_LANDING}; }}
-.profil-workspace-st .profil-tabs-st {{ display:flex; gap:{T.SP_5}; overflow-x:auto; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; margin-bottom:{T.SP_5}; }}
+.profil-workspace-st .profil-tabs-st {{ display:flex; gap:{T.SP_5}; overflow-x:auto; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; margin-bottom:{T.SP_5}; scrollbar-width:thin; }}
 .profil-workspace-st .profil-tabs-st a {{ display:inline-flex; align-items:center; gap:{T.SP_2}; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} 0; color:{T.TEKS_VARIAN}; text-decoration:none; white-space:nowrap; border-bottom:3px solid transparent; font-weight:650; }}
 .profil-workspace-st .profil-tabs-st a[aria-current] {{ color:{T.AKSEN_TEAL_TUA}; border-color:{T.AKSEN_TEAL_TUA}; }}
 .profil-workspace-st .profil-tabs-st span {{ font-size:{T.UKURAN_TEKS_META}; padding:.1rem .4rem; border-radius:{T.RADIUS_KECIL}; background:{T.LATAR_SEKUNDER_LEMBUT}; }}
@@ -240,7 +251,8 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .profil-champs-st .mode-opsi {{ margin:0; }}
 }}
 @media(max-width:{T.BATAS_TABLET}) {{
- .profil-workspace-st .profil-tabs-st {{ gap:{T.SP_4}; font-size:.8rem; }}
+ .profil-workspace-st .profil-tabs-st {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:{T.SP_1}; overflow-x:visible; padding-bottom:{T.SP_1}; font-size:.8rem; }}
+ .profil-workspace-st .profil-tabs-st a {{ justify-content:center; padding:{T.SP_2}; white-space:normal; text-align:center; }}
  .profil-workspace-st .profil-filter-st {{ grid-template-columns:minmax(0,1fr); padding:{T.SP_4}; }}
  .profil-workspace-st .profil-filter-st button {{ width:100%; }}
  .profil-workspace-st .profil-saring-judul-st {{ padding:{T.SP_3} {T.SP_4}; }}

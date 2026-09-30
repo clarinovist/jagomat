@@ -10,6 +10,7 @@ import html
 from datetime import date, datetime, timedelta
 
 import database
+import profile_workspace
 from learning_journey import perjalanan_belajar
 from cycle_report import render_perjalanan
 from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_resume, render_tugas
@@ -216,6 +217,61 @@ def _tanggal_pendek(nilai) -> str:
     )
 
 
+def _periode_aktivitas(parameter):
+    """Rentang inklusif untuk ringkasan; input tidak sah kembali aman ke 7 hari."""
+    akhir = hari_wib()
+    periode = parameter.get('periode', '7')
+    if periode == 'minggu':
+        mulai = akhir - timedelta(days=akhir.weekday())
+        label = 'Aktivitas minggu ini'
+    elif periode == 'bulan':
+        mulai = akhir.replace(day=1)
+        label = 'Aktivitas bulan ini'
+    elif periode == 'custom':
+        try:
+            mulai = date.fromisoformat(parameter.get('mulai', ''))
+            akhir_custom = date.fromisoformat(parameter.get('sampai', ''))
+            panjang = (akhir_custom - mulai).days + 1
+            if mulai > akhir_custom or mulai.toordinal() <= panjang:
+                raise ValueError
+        except ValueError:
+            periode, mulai = '7', akhir - timedelta(days=6)
+            label = 'Aktivitas 7 hari terakhir'
+        else:
+            akhir = akhir_custom
+            label = 'Aktivitas pada rentang pilihan'
+    else:
+        periode, mulai = '7', akhir - timedelta(days=6)
+        label = 'Aktivitas 7 hari terakhir'
+    return periode, mulai, akhir, label
+
+
+def _kontrol_periode_aktivitas(siswa_id, periode, mulai, akhir):
+    """Preset tautan dan form GET native; tanpa JavaScript."""
+    opsi = (
+        ('7', '7 hari'),
+        ('minggu', 'Minggu ini'),
+        ('bulan', 'Bulan ini'),
+    )
+    preset = pilihan(
+        'Periode aktivitas', opsi, periode,
+        lambda k: url_laporan(siswa_id, periode=k),
+    )
+    nilai_mulai = mulai.isoformat() if periode == 'custom' else ''
+    nilai_akhir = akhir.isoformat() if periode == 'custom' else ''
+    return (
+        '<div class="laporan-periode-kontrol">' + preset
+        + f'<form method="get" action="/laporan/{siswa_id}" class="laporan-rentang-form">'
+        '<strong class="laporan-rentang-label">Rentang sendiri</strong>'
+        '<input type="hidden" name="section" value="ringkasan">'
+        '<input type="hidden" name="periode" value="custom">'
+        f'<label>Dari tanggal<input type="date" name="mulai" value="{nilai_mulai}" required></label>'
+        f'<label>Sampai tanggal<input type="date" name="sampai" value="{nilai_akhir}" required></label>'
+        '<button type="submit" class="st-tombol-sekunder">Terapkan rentang</button>'
+        '</form></div>'
+    )
+
+
 def _kartu_kamus() -> str:
     baris = "".join(
         f'<li><span class="dot {"kuat" if kode == "BENAR" else ("salah" if kode == "K" else "lemah")}"></span>'
@@ -391,8 +447,9 @@ def halaman_laporan(
         bukti_materi = lengkapi_bukti_materi(kon, bukti)
         peta_target = peta_penguasaan(bukti_materi, siswa_id)
         if section == "penguasaan":
-            opsi = [('materi', 'Materi'), ('konteks', 'Bukti per konteks'), ('pilot', 'Tuntutan pilot'),
-                    ('kriteria', 'Kriteria'), ('perjalanan', 'Perjalanan belajar')]
+            opsi = [('materi', 'Materi'), ('konteks', 'Bukti per konteks'),
+                    ('pilot', 'Pendampingan orang tua'), ('kriteria', 'Kriteria'),
+                    ('perjalanan', 'Perjalanan belajar')]
             if tampilan not in dict(opsi):
                 tampilan = 'materi'
             isi = pilihan('Tampilan penguasaan', opsi, tampilan,
@@ -421,17 +478,28 @@ def halaman_laporan(
                 perjalanan, tugas_belum_selesai(kon, siswa_id), siswa_id,
                 _nama_tipe_soal, _nama_topik, _tanggal_pendek,
             ) + '</div>'
-            isi += render_aktivitas(statistik_laporan(kon, siswa_id, hari_wib()), _tanggal_pendek)
+            periode, mulai, akhir, judul_aktivitas = _periode_aktivitas(parameter)
+            statistik = statistik_laporan(kon, siswa_id, mulai=mulai, akhir=akhir)
+            isi += render_aktivitas(
+                statistik, _tanggal_pendek, judul=judul_aktivitas,
+                kontrol=_kontrol_periode_aktivitas(siswa_id, periode, mulai, akhir),
+            )
     nama_siswa = html.escape(siswa["nama"])
+    total_sesi = kon.execute(
+        'SELECT COUNT(*) FROM sesi WHERE siswa_id=?', (siswa_id,)
+    ).fetchone()[0]
+    kembali = '/admin' if peran == 'admin' else '/guru'
     return _halaman(
         f"Laporan {siswa['nama']}",
-        f'<style>{GAYA_LAPORAN}{GAYA_PETA}</style>'
-        f'<div class="jejak"><a href="/anak/{siswa_id}">&larr; Riwayat {nama_siswa}</a></div>'
+        f'<style>{profile_workspace.GAYA_PROFIL}{GAYA_LAPORAN}{GAYA_PETA}</style>'
+        f'<div class="jejak"><a href="{kembali}">&larr; Semua anak</a></div>'
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">CATATAN PERKEMBANGAN</p>'
         f'<h1 id="judul-laporan">Laporan perkembangan {nama_siswa}</h1></header>'
-        + navigasi + '<div id="konten-laporan">' + isi + '</div>',
+        + '<nav class="profil-tabs-st" aria-label="Bagian profil anak">'
+        + profile_workspace.navigasi_profil(siswa_id, total_sesi, 'laporan')
+        + '</nav>' + navigasi + '<div id="konten-laporan">' + isi + '</div>',
         ident=(pengguna, peran) if pengguna else None,
         stitch=True,
-        kelas_bungkus="laporan-lebar pendamping-editorial-st laporan-editorial-st",
+        kelas_bungkus="laporan-lebar pendamping-editorial-st laporan-editorial-st profil-workspace-st",
         id_utama="judul-laporan",
     )

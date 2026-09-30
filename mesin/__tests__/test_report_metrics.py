@@ -80,6 +80,33 @@ def test_batas_mingguan_tanggal_jawaban_bukan_sesi(db):
     assert data.mulai == date(2026, 9, 9)
 
 
+def test_rentang_custom_inklusif_dan_pembanding_sama_panjang(db):
+    with database.buka(db) as kon:
+        sid = database.tambah_siswa(kon, "Rentang")
+        for tanggal in ("2026-09-05", "2026-09-06", "2026-09-07", "2026-09-08"):
+            sesi(kon, sid, tanggal=tanggal)
+        data = metrik.statistik_laporan(
+            kon, sid, mulai=date(2026, 9, 7), akhir=date(2026, 9, 8)
+        )
+    assert data.mulai == date(2026, 9, 7) and data.akhir == date(2026, 9, 8)
+    assert data.kini.dikerjakan == data.lalu.dikerjakan == 2
+
+
+def test_rentang_custom_wajib_lengkap_dan_berurutan(db):
+    with database.buka(db) as kon:
+        sid = database.tambah_siswa(kon, "Rentang salah")
+        with pytest.raises(ValueError, match="lengkap"):
+            metrik.statistik_laporan(kon, sid, mulai=date(2026, 9, 1))
+        with pytest.raises(ValueError, match="terbalik"):
+            metrik.statistik_laporan(
+                kon, sid, mulai=date(2026, 9, 2), akhir=date(2026, 9, 1)
+            )
+        with pytest.raises(ValueError, match="periode pembanding"):
+            metrik.statistik_laporan(
+                kon, sid, mulai=date.min, akhir=date.min
+            )
+
+
 def test_koreksi_tidak_menggandakan_aktivitas_dan_read_only(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Koreksi")

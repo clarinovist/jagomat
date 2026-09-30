@@ -105,6 +105,16 @@ def test_css_mobile_filter_penuh_dan_status_tidak_dipotong():
     assert 'min-width:min(100%,6em)' in mobile
 
 
+def test_tab_profil_mobile_empat_tujuan_membungkus_tanpa_scroll_horizontal():
+    css=profile_workspace.GAYA_PROFIL
+    mobile=css.split('@media(max-width:48rem)',1)[1]
+    tab=re.search(r'\.profil-workspace-st \.profil-tabs-st \{([^}]+)',mobile).group(1)
+    tautan=re.search(r'\.profil-workspace-st \.profil-tabs-st a \{([^}]+)',mobile).group(1)
+    assert 'display:grid' in tab and 'grid-template-columns:repeat(2,minmax(0,1fr))' in tab
+    assert 'overflow-x:visible' in tab
+    assert 'justify-content:center' in tautan and 'white-space:normal' in tautan
+
+
 @pytest.fixture()
 def server(tmp_path,monkeypatch):
     s=ServerUji(tmp_path,monkeypatch)

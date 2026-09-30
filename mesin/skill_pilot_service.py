@@ -62,7 +62,7 @@ def jalankan(kon,siswa_id,data,*,hari=None):
     if data.get('aksi')=='pulihkan_sumber' and data.get('konfirmasi_pemulihan')!='1':
         raise ValueError('Berikan konfirmasi penutupan putaran dan pembatalan sesi.')
     if not data.get('revisi') or len(data['revisi'])!=64:
-        raise ValueError('Muat ulang rencana pilot.')
+        raise ValueError('Muat ulang rencana pendampingan.')
     kon.execute('SAVEPOINT aksi_pilot')
     try:
         # Receipt retry terikat request; stale berbeda tidak menjadi request baru.
@@ -84,7 +84,7 @@ def jalankan(kon,siswa_id,data,*,hari=None):
                 raise ValueError('Selesaikan langkah pilot yang sedang berjalan dahulu.')
             k=KonteksPilot(data.get('tuntutan'),data.get('profil'),data.get('representasi'))
             if data.get('belum_dikenal','') not in ('','1'): raise ValueError('Pilihan pengenalan tidak sah.')
-            if any(x[1]==k for x in rencana): raise ValueError('Konteks ini sudah memiliki rencana pilot.')
+            if any(x[1]==k for x in rencana): raise ValueError('Keterampilan ini sudah memiliki rencana pendampingan.')
             sumber=_sumber_balik(paket,siswa_id,k,hari) if k.tuntutan_id==BALIK else ()
             pid=database.buat_putaran_fokus(kon,siswa_id,k.profil_parameter)
             kon.execute('INSERT INTO pilot_putaran VALUES(?,?)',(pid,json.dumps(asdict(k),sort_keys=True)))

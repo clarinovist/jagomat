@@ -9,6 +9,11 @@ from skill_pilot import LANGSUNG, BALIK
 from skill_pilot_service import revisi
 
 
+def _teks_tampil(markup):
+    badan = markup.split('</style>', 1)[-1].split('<script', 1)[0]
+    return html.unescape(re.sub(r'<[^>]+>', ' ', badan))
+
+
 @pytest.fixture
 def server(tmp_path,monkeypatch):
     s=ServerUji(tmp_path,monkeypatch)
@@ -24,7 +29,10 @@ def test_http_pilih_buat_cetak_tinjau_konfirmasi(server):
     kode,body,_=s.minta('/anak/%d?section=rencana'%siswa,auth=('guru',SANDI_GURU))
     assert kode==200
     teks=body.decode() if isinstance(body,bytes) else body
-    assert 'Pilot keliling dan luas' in teks
+    assert 'Pendampingan keliling dan luas' in teks
+    for label_lama in ('Tuntutan pilot', 'Pilot keliling dan luas', 'Pilih dan mulai pilot'):
+        assert label_lama not in teks
+    assert 'pilot' not in _teks_tampil(teks).lower()
     with s.buka() as kon:
         data={'aksi':'mulai','revisi':revisi(kon,siswa),'tuntutan':LANGSUNG,'profil':'P3','representasi':'teks-v1'}
     kode,body,_=s.minta('/siklus/%d/pilot'%siswa,auth=('guru',SANDI_GURU),data=data)
@@ -45,7 +53,10 @@ def test_http_pilih_buat_cetak_tinjau_konfirmasi(server):
     kode,body,_=s.minta('/anak/%d?section=rencana'%siswa,auth=('guru',SANDI_GURU))
     assert kode==200
     teks=body.decode() if isinstance(body,bytes) else body
-    assert 'Bukti per tuntutan pilot' in teks and 'Masih dipelajari' in teks
+    assert 'Perkembangan keterampilan terarah' in teks and 'Masih dipelajari' in teks
+    for label_lama in ('Tuntutan pilot', 'Bukti per tuntutan pilot', 'pilot opsional'):
+        assert label_lama not in teks
+    assert 'pilot' not in _teks_tampil(teks).lower()
     assert teks.count('class="rencana-cta-utama-st"')<=1
     kode,body,_=s.minta('/anak/%d?section=latihan'%siswa,auth=('guru',SANDI_GURU))
     assert kode==200
@@ -95,7 +106,7 @@ def test_pemulihan_http_owner_checkbox_dan_status_terpisah(server,pengguna):
         assert kode==400
     with s.buka() as kon: assert tuple(kon.iterdump())==sebelum
     kode,body,_=s.minta('/anak/%d?section=rencana'%siswa,auth=('guru',SANDI_GURU))
-    assert kode==200 and 'Tinjau ulang sumber fokus pilot' in body
+    assert kode==200 and 'Tinjau ulang sumber latihan terarah' in body
     assert 'Menunjukkan pemahaman' in body and 'Perlu cek kembali' in body
     assert body.count('class="rencana-cta-utama-st"')==1
     assert 'name="konfirmasi_pemulihan"' in body and 'return confirm(' in body
@@ -103,7 +114,7 @@ def test_pemulihan_http_owner_checkbox_dan_status_terpisah(server,pengguna):
     # GET tidak mengubah revisi pemulihan.
     with s.buka() as kon: assert tuple(kon.iterdump())==sebelum
     kode,body,_=s.minta('/siklus/%d/pilot'%siswa,auth=(pengguna,SANDI_GURU),data=data)
-    assert kode==200 and 'Pilot keliling dan luas' in body
+    assert kode==200 and 'Pendampingan keliling dan luas' in body
     assert 'name="aksi" value="pulihkan_sumber"' not in body
     with s.buka() as kon:
         assert all(kon.execute('SELECT dibatalkan FROM sesi WHERE id=?',(sid,)).fetchone()[0] for sid in sesi)
@@ -145,4 +156,24 @@ def test_tujuan_p3_balik_ditolak_tanpa_sesi(server):
         sebelum=tuple(kon.iterdump())
     kode,_,_=s.minta('/siklus/%d/pilot'%siswa,auth=('guru',SANDI_GURU),data=data)
     assert kode==400
+    with s.buka() as kon: assert tuple(kon.iterdump())==sebelum
+
+
+def test_galat_pendampingan_tidak_membocorkan_istilah_internal(server):
+    import learning_cycle_http
+    assert learning_cycle_http._pesan_pengguna(
+        'pilot', ValueError('Muat ulang rencana pilot.'),
+    ) == 'Muat ulang rencana pendampingan.'
+    assert learning_cycle_http._pesan_pengguna(
+        'pilot', ValueError('Tuntutan di luar pilot.'),
+    ) == 'Keterampilan di luar pendampingan.'
+    s,siswa=server
+    with s.buka() as kon:
+        data={'aksi':'mulai','revisi':'0' * 64,'tuntutan':LANGSUNG,
+              'profil':'P3','representasi':'teks-v1'}
+        sebelum=tuple(kon.iterdump())
+    kode,body,_=s.minta('/siklus/%d/pilot'%siswa,auth=('guru',SANDI_GURU),data=data)
+    assert kode==400
+    assert 'Rencana berubah; muat ulang sebelum melanjutkan.' in body
+    assert 'pilot' not in body.lower().split('</style>', 1)[-1]
     with s.buka() as kon: assert tuple(kon.iterdump())==sebelum

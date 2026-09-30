@@ -93,10 +93,19 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .laporan-resume li {{margin-bottom:{T.SP_3};}}
 .laporan-editorial-st .laporan-tugas {{padding-left:{T.SP_5};}}
 .laporan-editorial-st .laporan-periode {{color:{T.TEKS_SUBTLE};}}
+.laporan-editorial-st .laporan-periode-kontrol {{margin-bottom:{T.SP_4};}}
+.laporan-editorial-st .laporan-periode-kontrol .laporan-pilihan {{margin-bottom:{T.SP_3};}}
+.laporan-editorial-st .laporan-rentang-form {{display:flex;flex-wrap:wrap;align-items:end;gap:{T.SP_3};}}
+.laporan-editorial-st .laporan-rentang-label {{flex-basis:100%;font-size:{T.UKURAN_TEKS_LABEL};color:{T.TEKS_JUDUL};}}
+.laporan-editorial-st .laporan-rentang-form label {{display:grid;gap:{T.SP_1};color:{T.TEKS_SUBTLE};font-size:{T.UKURAN_TEKS_CATATAN};}}
+.laporan-editorial-st .laporan-rentang-form input {{min-height:{T.TARGET_SENTUH};padding:{T.SP_2};font:inherit;border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN};border-radius:{T.RADIUS_KECIL};background:{T.LATAR_KARTU};}}
+.laporan-editorial-st .laporan-rentang-form button {{min-height:{T.TARGET_SENTUH};}}
 .laporan-editorial-st .editorial-kepala-st h1 {{overflow-wrap:anywhere;}}
 @media(max-width:{T.BATAS_KOLOM_BACA}) {{
   .laporan-editorial-st .laporan-ringkasan-grid {{grid-template-columns:minmax(0,1fr);}}
   .laporan-editorial-st .laporan-metrik {{grid-template-columns:repeat(2,minmax(0,1fr)); gap:{T.SP_3};}}
+  .laporan-editorial-st .laporan-rentang-form {{display:grid;grid-template-columns:minmax(0,1fr);}}
+  .laporan-editorial-st .laporan-rentang-form button {{width:100%;}}
   .laporan-editorial-st .resume-konteks {{grid-template-columns:minmax(0,1fr);gap:{T.SP_2};}}
   .laporan-editorial-st .laporan-navigasi {{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}}
   .laporan-editorial-st .laporan-navigasi a {{font-size:.85rem;padding:{T.SP_2};text-align:center;}}
@@ -138,7 +147,7 @@ def _perubahan(materi) -> str:
     return f"{arah} {angka} poin persentase"
 
 
-def render_aktivitas(data, tanggal) -> str:
+def render_aktivitas(data, tanggal, *, judul='Aktivitas 7 hari terakhir', kontrol='') -> str:
     kini = data.kini
     kartu = "".join(
         f'<div class="stat"><strong>{nilai}</strong><span>{label}</span>'
@@ -154,7 +163,7 @@ def render_aktivitas(data, tanggal) -> str:
     label_sementara = '<span class="laporan-catatan">Hasil sementara</span>' if kini.dinilai > kini.terkonfirmasi else ''
     return (
         '<section aria-labelledby="judul-aktivitas">'
-        '<h2 id="judul-aktivitas">Aktivitas 7 hari terakhir</h2>'
+        f'<h2 id="judul-aktivitas">{html.escape(judul)}</h2>{kontrol}'
         f'<p class="laporan-periode">{tanggal(data.mulai.isoformat())} – '
         f'{tanggal(data.akhir.isoformat())} · WIB</p>'
         f'<div class="kartu-stat laporan-metrik">{kartu}</div>{label_sementara}'

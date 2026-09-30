@@ -216,18 +216,19 @@ Pendaftaran akun dan profil anak pertama tidak meminta konfigurasi latihan;
 kelas sekolah opsional dan tidak menentukan variasi. `siswa.tingkat=''` menandai
 variasi rencana belum dipilih, bukan default P3 atau penilaian kemampuan.
 Penambahan anak lewat pengelolaan akun tetap memakai pilihan eksplisit existing.
-Di UI, P3/P4/P5/P6 bernama
-**Variasi A/B/C/D**: pembeda konfigurasi, bukan urutan kemampuan. Pengaturan latihan
-awal dipisahkan dari identitas anak; header profil hanya menampilkan nama dan kelas.
-Pemilih native menampilkan nama isi, cakupan registry, dan contoh deterministik
-berdekatan dengan radio; A–D menjadi penanda sekunder, bukan deskripsi kesulitan.
+Di UI lama dan histori, P3/P4/P5/P6 dapat bernama **Variasi A/B/C/D** sebagai
+pembeda konfigurasi, bukan urutan kemampuan. Pengaturan latihan awal dipisahkan dari
+identitas anak; header profil hanya menampilkan nama dan kelas. Pemilih kartu aktif
+menampilkan nama isi, ringkasan cakupan registry, dan contoh deterministik berdekatan
+dengan radio; nomor lokal 1–N menjadi penanda sekunder agar pilihan yang tersedia
+tidak tampak melompat.
 Pada latihan manual/gabungan, perubahan materi disiapkan ulang lewat POST read-only
 request-local sebelum pilihan isi dipakai; server menolak konteks perbandingan yang
 sudah berbeda, tanpa menulis sesi/profil. Form manual mengirim POST ini otomatis saat
 Topik berubah bila enhancement tersedia, dengan tombol native “Tampilkan pilihan isi”
 sebagai fallback; gabungan tetap dibandingkan eksplisit setelah beberapa topik dipilih.
-Nama isi menjadi judul kartu, sedangkan A–D hanya badge sekunder. Contoh bukan soal
-sesi yang akan dibuat.
+Nama isi menjadi judul kartu, sedangkan nomor lokal hanya badge sekunder. Contoh
+bukan soal sesi yang akan dibuat.
 Kode historis tetap di nilai kiriman/penyimpanan dan rincian teknis. Anak lama
 mempertahankan konfigurasi warisannya; retry registrasi
 lama tetap mengikat pilihan awal yang sama. Profil belum dipilih tidak membuat
@@ -274,8 +275,9 @@ keputusan pedagogis atau koreksi data anak saat verifikasi deploy.
 
 ## 10. Permukaan pengguna
 
-Profil anak memakai tiga tab server-side: **Buat latihan** (halaman awal),
-**Rencana belajar**, dan **Riwayat**. Buat latihan menyediakan form manual secara
+Profil anak memakai empat tujuan utama yang sejajar: **Buat latihan** (halaman
+awal), **Rencana belajar**, **Riwayat**, dan **Laporan perkembangan**. Tujuan laporan
+membuka laporan anak tanpa menduplikasi tautan di kepala Riwayat. Buat latihan menyediakan form manual secara
 langsung, pintu Pendamping kontekstual, pengingat bersyarat untuk membuka rencana,
 serta maksimal tiga sesi terbaru yang perlu tindakan. Pengingat berasal dari
 `learning_cycle.pengingat_berikutnya`, bukan perhitungan kelas/partisipasi di UI:
@@ -300,7 +302,9 @@ riwayat lengkap tidak otomatis dikirim ke layanan AI.
 
 Profil dan laporan wajib memakai reducer yang sama. Statistik seluruh latihan
 boleh tetap ada tetapi dilabeli terpisah agar tidak bertentangan dengan status
-siklus.
+siklus. Ringkasan aktivitas menyediakan rentang inklusif 7 hari, minggu berjalan,
+bulan berjalan, atau tanggal pilihan sendiri; semuanya berdasarkan waktu aktivitas
+jawaban/konfirmasi dalam kalender WIB dan hanya menyaring tampilan.
 
 Permukaan anak hanya menampilkan istilah netral seperti **Pelajari bersama**,
 **Coba mandiri**, dan **Latihan campuran**. Jangan tampilkan kode diagnosis,
@@ -418,9 +422,11 @@ berhasil tanpa fokus diagnosis, retensi memakai checkpoint dua bagian dengan
 tersebut gagal tanpa pendekatan remedial terikat, arahkan ke pemeriksaan prasyarat
 atau uji ulang lisan, bukan menambah latihan tanpa batas.
 
-Rencana v1 yang wajib tetap didahulukan. Satu CTA pilot berlaku untuk langkah
-berikutnya; manual selalu dapat diakses tanpa pemetaan wajib. Laporan Tuntutan
-pilot memakai status dari reducer, bukan persen baru. Sesi pilot tidak disatukan
+Rencana v1 yang wajib tetap didahulukan. Satu CTA alur ini berlaku untuk langkah
+berikutnya; manual selalu dapat diakses tanpa pemetaan wajib. Di layar orang tua,
+fitur ini disebut **Pendampingan orang tua** dan laporannya **Perkembangan keterampilan
+terarah**; istilah internal `pilot` tetap dipakai pada kode/penyimpanan. Status berasal
+dari reducer, bukan persen baru. Sesi pilot tidak disatukan
 ke penguasaan/pemetaan v1. Cetak/pengiriman/tinjauan menggunakan snapshot yang sama;
 perubahan cerita tertutup setelah penyajian pilot dibekukan. CLI dan Pendamping
 masih manual; serupa/remedial lama tidak boleh membuang konteks pilot.

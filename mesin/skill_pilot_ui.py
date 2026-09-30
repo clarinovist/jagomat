@@ -9,8 +9,8 @@ from skill_pilot_service import keadaan, revisi
 
 LABEL={'terbukti':'Menunjukkan pemahaman','belum_dinilai':'Belum dinilai',
        'dipelajari':'Masih dipelajari','perlu_cek':'Perlu cek kembali'}
-JUDUL={'pulihkan_sumber':'Tinjau ulang sumber fokus pilot','pemetaan':'Periksa pemahaman dengan probe baru','intervensi':'Pelajari konsep bersama',
-       'pengenalan':'Kenalkan tugas ini bersama','lanjutkan_sesi':'Lanjutkan sesi pilot',
+JUDUL={'pulihkan_sumber':'Tinjau ulang sumber latihan terarah','pemetaan':'Periksa pemahaman dengan soal baru','intervensi':'Pelajari konsep bersama',
+       'pengenalan':'Kenalkan tugas ini bersama','lanjutkan_sesi':'Lanjutkan sesi pendampingan',
        'konfirmasi_hasil':'Tinjau dan konfirmasi hasil','latihan_terbimbing':'Coba dengan pendampingan',
        'penguatan':'Coba mandiri','evaluasi':'Evaluasi setelah jeda','checkpoint':'Cek kembali pemahaman',
        'eskalasi':'Periksa prasyarat atau lakukan uji ulang lisan','putaran_baru':'Periksa kembali fokus yang kambuh',
@@ -24,21 +24,21 @@ def _e(s): return html.escape(str(s),quote=True)
 def form_mulai(siswa_id, versi, balik_tersedia=False):
     tersedia=(*TUNTUTAN,RUJUKAN_LUAS) if balik_tersedia else (TUNTUTAN[0],RUJUKAN_LUAS)
     pilihan=''.join('<option value="%s">%s</option>'%(_e(t.id),_e(t.nama)) for t in tersedia)
-    return ('<details class="ubah-fokus-st pilot-mulai-st"><summary>Pilot keliling dan luas — opsional</summary>'
-      '<p>Pilih satu tuntutan untuk diperiksa. Ini bukan tangga kelas atau persen kemampuan. '
+    return ('<details class="ubah-fokus-st pilot-mulai-st"><summary>Pendampingan keliling dan luas — opsional</summary>'
+      '<p>Pilih satu keterampilan untuk diperiksa. Ini bukan tangga kelas atau persen kemampuan. '
       'Latihan manual tetap tersedia. Tugas balik baru ditawarkan bila bukti keliling dan rujukan luas sah.</p>'
       '<p>Variasi A: keliling langsung (sisi 2–16) atau kisi luas (2–8). Variasi B, C, D: keliling langsung (3–40), '
       'atau tugas balik (panjang 3–30, lebar yang dicari 2–25). Tidak ada perpindahan variasi otomatis.</p>'
       f'<form method="post" action="/siklus/{siswa_id}/pilot" class="profil-filter-st">'
       f'<input type="hidden" name="aksi" value="mulai"><input type="hidden" name="revisi" value="{versi}">'
-      f'<label>Tuntutan<select name="tuntutan" required>{pilihan}</select></label>'
+      f'<label>Keterampilan<select name="tuntutan" required>{pilihan}</select></label>'
       '<label>Variasi soal<select name="profil" required><option value="">Pilih variasi soal</option>'
       + ''.join('<option value="%s">%s</option>' % (p, label_profil_parameter(p)) for p in ('P3', 'P4', 'P5', 'P6'))
       + '</select></label>'
       '<label>Penyajian<select name="representasi" required><option value="teks-v1">Soal cerita</option>'
       '<option value="geometri_datar-v1">Diagram</option></select></label>'
       '<label><input type="checkbox" name="belum_dikenal" value="1"> Anak belum mengenal tugas ini; mulai dengan pengenalan</label>'
-      '<button class="st-tombol-sekunder" type="submit">Pilih dan mulai pilot</button></form></details>')
+      '<button class="st-tombol-sekunder" type="submit">Mulai pendampingan</button></form></details>')
 
 
 def status_pilot(paket,siswa_id,daftar,hari=None):
@@ -56,7 +56,7 @@ def status_pilot(paket,siswa_id,daftar,hari=None):
     tersedia={k.tuntutan_id for k in konteks}
     for t in TUNTUTAN:
         if t.id not in tersedia: isi.append('<li><b>%s</b><br>Belum dinilai</li>'%_e(t.nama))
-    return ('<section class="kartu-rencana-st"><h3>Bukti per tuntutan pilot</h3><ul>'+''.join(isi)+
+    return ('<section class="kartu-rencana-st"><h3>Perkembangan keterampilan terarah</h3><ul>'+''.join(isi)+
             '</ul><p>Belum dinilai bukan berarti tidak mampu. Variasi dan penyajian tidak disetarakan. '
             'Keberhasilan tugas langsung tidak meluluskan tugas balik; kegagalan balik tidak menghapus bukti langsung.</p></section>')
 
@@ -71,26 +71,26 @@ def _materi_historis(kon,kontrak,butir):
         AND putaran_id=? AND sesi_id=? AND jenis='sesi_dibuat'""",
         (kontrak.siswa_id,kontrak.putaran_id,kontrak.sesi_id)).fetchall()
     if not fokus or len(pembuatan)!=1:
-        raise ValueError('Sumber materi sesi pilot tidak dapat diverifikasi.')
+        raise ValueError('Sumber materi sesi pendampingan tidak dapat diverifikasi.')
     for event in kon.execute("""SELECT data FROM kejadian_belajar WHERE siswa_id=?
             AND putaran_id=? AND id<? AND jenis='intervensi_selesai' ORDER BY id DESC""",
             (kontrak.siswa_id,kontrak.putaran_id,pembuatan[0]['id'])):
         data=json.loads(event['data'])
         if not isinstance(data,dict):
-            raise ValueError('Sumber materi sesi pilot tidak sah.')
+            raise ValueError('Sumber materi sesi pendampingan tidak sah.')
         if data.get('fokus')!=list(fokus):
             continue
         sumber=data.get('sumber_konfirmasi')
         if (not isinstance(sumber,list) or not sumber
                 or any(type(kh) is not int for kh in sumber)
                 or tuple(sumber)!=tuple(kontrak.sumber_konfirmasi)):
-            raise ValueError('Sumber konfirmasi materi sesi pilot tidak cocok.')
+            raise ValueError('Sumber konfirmasi materi sesi pendampingan tidak cocok.')
         materi=next((m for m in pilihan_materi(butir.konteks,fokus)
                      if m.pendekatan_id==data.get('pendekatan_id')),None)
         if materi is None:
-            raise ValueError('Pendekatan materi sesi pilot tidak dikenal.')
+            raise ValueError('Pendekatan materi sesi pendampingan tidak dikenal.')
         return materi
-    raise ValueError('Intervensi sumber materi sesi pilot tidak ditemukan.')
+    raise ValueError('Intervensi sumber materi sesi pendampingan tidak ditemukan.')
 
 
 def materi_sesi(kon,sesi_id,siswa_id):
@@ -112,7 +112,7 @@ def laporan(kon,siswa_id):
         paket,daftar,_,_=keadaan(kon,siswa_id,hari)
         return status_pilot(paket,siswa_id,daftar,hari)
     except ValueError:
-        return '<p>Sumber bukti pilot perlu diperiksa; tidak ada klaim kelulusan baru.</p>'
+        return '<p>Sumber catatan pendampingan perlu diperiksa; tidak ada klaim pemahaman baru.</p>'
 
 
 def kartu(kon,siswa_id,*,hari=None):
@@ -121,9 +121,9 @@ def kartu(kon,siswa_id,*,hari=None):
     try:
         paket,daftar,aktif,warisan=keadaan(kon,siswa_id,hari)
     except ValueError:
-        return None, ('<section class="kartu-rencana-st"><h3>Pilot perlu diperiksa</h3>'
-                      '<p>Sumber bukti belum dapat diverifikasi. Histori tetap tersimpan; '
-                      'jangan menganggap hasil lama sebagai kelulusan pilot.</p></section>')
+        return None, ('<section class="kartu-rencana-st"><h3>Pendampingan perlu diperiksa</h3>'
+                      '<p>Sumber catatan belum dapat diverifikasi. Histori tetap tersimpan; '
+                      'jangan menganggap hasil lama sebagai bukti pemahaman.</p></section>')
     from skill_pilot import LANGSUNG, PRASYARAT, KonteksPilot
     sumber_langsung=tuple(dict.fromkeys(b.konteks for b in paket.butir if b.konteks.tuntutan_id==LANGSUNG))
     balik_tersedia=any(lc.tawaran_probe_balik(paket,siswa_id,k,
@@ -133,7 +133,7 @@ def kartu(kon,siswa_id,*,hari=None):
     if not daftar:
         return None,(status if paket.butir else '')+pilihan
     if warisan is not None:
-        return None,status+'<p>Pilot menunggu tugas rencana yang diprioritaskan selesai.</p>'
+        return None,status+'<p>Pendampingan ini menunggu langkah rencana utama selesai.</p>'
     pid,k,r,_=aktif
     materi=''; aksi=''
     if r.tindakan in ('pengenalan','intervensi'):
@@ -148,7 +148,7 @@ def kartu(kon,siswa_id,*,hari=None):
         sumber=sorted({sid for m in lc.sumber_pilot_perlu_tinjauan(paket)
                        if m.putaran_id==pid for sid in m.sesi_ids})
         materi='<p>Tinjau sumber: '+', '.join('<a href="/sesi/%d">Sesi #%d</a>'%(sid,sid) for sid in sumber)+'.</p>'
-        akibat='Tutup putaran pilot ini dan batalkan seluruh sesinya? Histori dan snapshot tetap tersimpan; fokus lama tidak diteruskan.'
+        akibat='Tutup rangkaian pendampingan ini dan batalkan seluruh sesinya? Histori dan catatan hasil tetap tersimpan; fokus lama tidak diteruskan.'
         aksi=(f'<form class="pilot-pemulihan-st" method="post" action="/siklus/{siswa_id}/pilot" '
               f'onsubmit="return confirm(\'{_e(akibat)}\')">'
               '<input type="hidden" name="aksi" value="pulihkan_sumber">'
@@ -165,7 +165,7 @@ def kartu(kon,siswa_id,*,hari=None):
               f'<input type="hidden" name="revisi" value="{revisi(kon,siswa_id)}">'
               f'<button class="rencana-cta-utama-st" type="submit">{label}</button></form>')
     tanggal='<p>Tersedia pada %s.</p>'%r.tersedia_pada.isoformat() if r.tersedia_pada else ''
-    konten=('<section class="kartu-rencana-st" aria-labelledby="judul-pilot"><p class="label-rencana-st">Langkah belajar berikutnya · pilot opsional</p>'
+    konten=('<section class="kartu-rencana-st" aria-labelledby="judul-pilot"><p class="label-rencana-st">Langkah belajar berikutnya · pendampingan orang tua</p>'
              '<h2 id="judul-pilot">%s</h2><p>%s</p>%s%s%s'
              '<p><a href="/anak/%d?section=latihan">Tetap buat latihan manual</a></p></section>')%(
              _e(JUDUL.get(r.tindakan,r.tindakan)),_e(r.alasan),materi,tanggal,aksi,siswa_id)

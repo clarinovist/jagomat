@@ -57,8 +57,10 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
 - Registrasi boleh menyimpan `siswa.tingkat=''` (variasi belum dipilih), tanpa
   default dari kelas atau backfill. `question_variants_ui.py` merender pilihan isi
   dan contoh dari registry aktual; persiapan form manual/gabungan hanya membawa draf
-  request-local. Layanan siklus menginisialisasi variasi dan pemetaan pertama secara
-  atomik dari pilihan eksplisit.
+  request-local. `profile_workspace.py` menjadi sumber navigasi empat tujuan profil,
+  sedangkan `reports.py` dan `report_metrics.py` menyediakan filter periode aktivitas
+  server-side melalui query GET. Layanan siklus menginisialisasi variasi dan pemetaan
+  pertama secara atomik dari pilihan eksplisit.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
   Pendamping tidak boleh mengambil alih reducer atau konfirmasi bukti belajar.
 - Lokal memakai `mesin/.venv/bin/python` (3.9.6); CI/container 3.12. Kode kompatibel

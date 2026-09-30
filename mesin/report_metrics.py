@@ -110,16 +110,29 @@ def _hitung(baris) -> Hitungan:
     return Hitungan(**angka)
 
 
-def statistik_laporan(kon, siswa_id: int, hari_ini: Optional[date] = None) -> StatistikLaporan:
-    """Baca aktivitas unik per butir, termasuk sesi berjalan, tanpa menulis DB.
+def statistik_laporan(
+    kon, siswa_id: int, hari_ini: Optional[date] = None, *,
+    mulai: Optional[date] = None, akhir: Optional[date] = None,
+) -> StatistikLaporan:
+    """Baca aktivitas unik per butir dalam rentang inklusif, tanpa menulis DB.
 
+    Tanpa rentang eksplisit, periode tetap tujuh hari sampai kalender domain.
+    Periode pembanding tepat sepanjang periode utama dan langsung mendahuluinya.
     Waktu aktivitas ialah pencatatan jawaban pertama, bukan tanggal pembuatan
     lembar. Koreksi mengubah statistik deskriptif tetapi tidak menambah aktivitas.
     Hanya satu konfirmasi aktif di-join; snapshot lama tidak menggandakan butir.
     """
-    akhir = hari_ini or hari_wib()
-    mulai = akhir - timedelta(days=6)
-    mulai_lalu = mulai - timedelta(days=7)
+    if (mulai is None) != (akhir is None):
+        raise ValueError('Rentang aktivitas harus lengkap.')
+    if mulai is None:
+        akhir = hari_ini or hari_wib()
+        mulai = akhir - timedelta(days=6)
+    elif mulai > akhir:
+        raise ValueError('Rentang aktivitas terbalik.')
+    panjang = (akhir - mulai).days + 1
+    if mulai.toordinal() <= panjang:
+        raise ValueError('Rentang aktivitas tidak memiliki periode pembanding.')
+    mulai_lalu = mulai - timedelta(days=panjang)
     baris = kon.execute(
         """SELECT ss.id, so.template_id, se.level, se.mode, se.tujuan,
                   COALESCE(ss.mode_representasi, 'teks-v1') AS representasi,

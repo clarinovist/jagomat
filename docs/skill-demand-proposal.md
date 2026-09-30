@@ -156,13 +156,14 @@ kurikulum, kesetaraan P3–P6, atau aktivasi produksi.
 - Konfirmasi mengikat kontrak pada fingerprint baru dan arsip append-only; konfirmasi
   v1/PG tidak diganti. Rujukan kisi lama harus terverifikasi dan memenuhi opt-in,
   variasi, penjelasan, jeda serta retensi; nama benda/satuan saja bukan variasi baru.
-- Status/rekomendasi berasal dari `learning_cycle.py`; laporan Tuntutan pilot tanpa
-  persen baru. Kartu orang tua menyediakan contoh spesifik; anak hanya tahap netral.
+- Status/rekomendasi berasal dari `learning_cycle.py`; di UI laporan ini disebut
+  **Pendampingan orang tua** tanpa persen baru. Kartu orang tua menyediakan contoh
+  spesifik; anak hanya tahap netral.
 - Fokus yang sumbernya dicabut ditahan pada putaran terkait, tidak memakai diagnosis
   mutable atau sumber lain diam-diam. Orang tua dapat mengonfirmasi penutupan putaran
   dan pembatalan seluruh sesinya tanpa menghapus histori, lalu memilih pemeriksaan
   baru. Status konteks sehat tetap terpisah. Latihan manual tetap tersedia. Remedial/serupa
-  warisan tidak meneruskan pilot tanpa konteks; gunakan rencana pilot.
+  warisan tidak meneruskan alur terarah tanpa konteks; gunakan pendampingan orang tua.
 - CLI/Pendamping tetap pembuat latihan manual, bukan pemilih/pembuat pilot. Sesi
   campuran, kesetaraan lintas profil, katalog seluruh pola dan recovery produksi
   tetap di luar aktivasi ini. Gate lokal tidak membuktikan image/live siap.

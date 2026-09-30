@@ -72,7 +72,7 @@ def test_http_daftar_baru_dan_semua_halaman_profil(server):
             assert 'data-contoh="pola-bilangan:P3"' in isi
         if 'section=rencana' in url:
             assert 'Pilih isi untuk pemetaan pertama' in isi
-            assert 'Contoh salah satu materi:' in isi
+            assert 'Lihat contoh materi:' in isi
     with server.buka() as kon:
         assert tuple(kon.iterdump()) == awal
 
@@ -232,7 +232,7 @@ def test_pilot_tetap_boleh_tanpa_memilih_variasi_rencana(server):
     kode, _, _ = server.minta('/siklus/%d/pilot' % sid, auth=('guru', SANDI_GURU), data=data)
     assert kode == 200
     kode, isi, _ = server.minta('/anak/%d?section=rencana' % sid, auth=('guru', SANDI_GURU))
-    assert kode == 200 and 'Lanjutkan sesi pilot' in isi
+    assert kode == 200 and 'Lanjutkan sesi pendampingan' in isi
     with server.buka() as kon:
         assert kon.execute('SELECT tingkat FROM siswa WHERE id=?', (sid,)).fetchone()[0] == ''
         assert kon.execute('SELECT COUNT(*) FROM pilot_sesi').fetchone()[0] == 1

@@ -78,7 +78,9 @@ def test_section_hanya_merender_bagian_terpilih_tanpa_write(db, bagian):
     aktif = bagian if bagian in {'penguasaan', 'riwayat'} else 'ringkasan'
     struktur = Struktur(h)
     terpilih = [a for a, _ in struktur.tautan if a.get('aria-current') == 'page']
-    assert len(terpilih) == 1 and terpilih[0]['href'] == f'/laporan/{sid}?section={aktif}'
+    assert [a['href'] for a in terpilih] == [
+        f'/laporan/{sid}', f'/laporan/{sid}?section={aktif}',
+    ]
     assert ('id="rencana-belajar-laporan"' in h) == (aktif == 'ringkasan')
     assert ('class="peta-pilihan"' in h) == (aktif == 'penguasaan')
     assert ('id="riwayat-hasil-sesi"' in h) == (aktif == 'riwayat')

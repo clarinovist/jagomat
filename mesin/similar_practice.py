@@ -96,7 +96,7 @@ def buat_dari_hasil_t(
 ) -> int:
     """Validasi sumber di server lalu buat drill bebas lima soal secara atomik."""
     if kon.execute('SELECT 1 FROM pilot_sesi WHERE sesi_id=?',(sesi_id,)).fetchone():
-        raise LatihanSerupaTidakTersedia('Lanjutkan tuntutan ini melalui rencana pilot.')
+        raise LatihanSerupaTidakTersedia('Lanjutkan keterampilan ini melalui pendampingan orang tua.')
     sumber = kon.execute(
         """SELECT se.siswa_id, se.level, sw.tingkat AS level_aktif,
                   ss.id AS sesi_soal_id, so.template_id

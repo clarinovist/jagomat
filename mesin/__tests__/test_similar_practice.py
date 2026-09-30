@@ -147,6 +147,22 @@ def test_cta_absen_dan_service_menolak_sumber_tidak_sah(db, kasus):
         ).decode()
 
 
+def test_sesi_pendampingan_menolak_latihan_serupa_dengan_pesan_ramah(db):
+    from test_skill_pilot_flow import mulai
+    with database.buka(db) as kon:
+        siswa = database.tambah_siswa(kon, "Pendampingan", tingkat="P3", pemilik="guru")
+        sesi_id, _ = mulai(kon, siswa)
+        butir = database.isi_sesi(kon, sesi_id)[0]
+        with pytest.raises(
+            similar_practice.LatihanSerupaTidakTersedia,
+            match="pendampingan orang tua",
+        ) as galat:
+            similar_practice.buat_dari_hasil_t(
+                kon, sesi_id, int(butir["sesi_soal_id"]), seed=71
+            )
+        assert "pilot" not in str(galat.value).lower()
+
+
 def test_lima_soal_satu_template_baru_unik_deterministik_dan_manual(db):
     with database.buka(db) as kon:
         siswa, sumber, butir = _hasil_t(kon)

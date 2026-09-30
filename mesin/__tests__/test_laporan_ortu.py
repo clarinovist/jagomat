@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 import re
 import sys
 from pathlib import Path
@@ -57,6 +58,68 @@ def test_dashboard_menyebut_nama_dan_aktivitas(db):
     assert "Bima" in h
     assert "soal dikerjakan" in h
     assert "butir benar" in h and "butir salah" in h
+    assert f'<a href="/laporan/{sid}" aria-current="page">Laporan perkembangan</a>' in h
+    assert f'href="/anak/{sid}?section=latihan"' in h
+    assert f'href="/anak/{sid}?section=rencana"' in h
+    assert f'href="/anak/{sid}?section=riwayat"' in h
+
+
+@pytest.mark.parametrize(("periode", "mulai", "judul"), [
+    ("7", "2026-09-09", "Aktivitas 7 hari terakhir"),
+    ("minggu", "2026-09-14", "Aktivitas minggu ini"),
+    ("bulan", "2026-09-01", "Aktivitas bulan ini"),
+])
+def test_preset_periode_aktivitas_memakai_kalender_wib(periode, mulai, judul, monkeypatch):
+    monkeypatch.setattr(reports, "hari_wib", lambda: date(2026, 9, 15))
+    hasil = reports._periode_aktivitas({"periode": periode})
+    assert hasil == (periode, date.fromisoformat(mulai), date(2026, 9, 15), judul)
+
+
+def test_filter_aktivitas_preset_dan_rentang_custom_inklusif(db):
+    with database.buka(db) as kon:
+        sid = database.tambah_siswa(kon, "Periode")
+        lama = _sesi_dinilai(kon, sid, benar=1, jumlah=1)
+        baru = _sesi_dinilai(kon, sid, benar=1, jumlah=1)
+        for sesi_id, tanggal in ((lama, "2026-09-01"), (baru, "2026-09-15")):
+            kon.execute(
+                "UPDATE jawaban SET dicatat=? WHERE sesi_soal_id IN "
+                "(SELECT id FROM sesi_soal WHERE sesi_id=?)",
+                (tanggal, sesi_id),
+            )
+        h = reports.halaman_laporan(
+            kon, sid, query="periode=custom&mulai=2026-09-01&sampai=2026-09-01"
+        ).decode()
+    assert "Aktivitas pada rentang pilihan" in h
+    assert "1 Sep 2026" in h
+    assert '<a href="/laporan/%d?section=ringkasan&amp;periode=7">7 hari</a>' % sid in h
+    assert '>Minggu ini</a>' in h and '>Bulan ini</a>' in h
+    assert 'name="mulai" value="2026-09-01"' in h
+    assert 'name="sampai" value="2026-09-01"' in h
+    assert '<strong>1</strong><span>soal dikerjakan</span>' in h
+
+
+@pytest.mark.parametrize("query", [
+    "periode=custom&mulai=2026-02-30&sampai=2026-03-01",
+    "periode=custom&mulai=2026-09-02&sampai=2026-09-01",
+    "periode=custom&mulai=2026-09-01",
+])
+def test_filter_aktivitas_custom_tidak_sah_kembali_ke_7_hari(db, query):
+    with database.buka(db) as kon:
+        sid = database.tambah_siswa(kon, "Periode aman")
+        h = reports.halaman_laporan(kon, sid, query=query).decode()
+    assert "Aktivitas 7 hari terakhir" in h
+    assert 'aria-current="true">7 hari</a>' in h
+    assert 'value="2026-09-01"' not in h
+
+
+def test_filter_aktivitas_custom_ekstrem_tetap_dapat_dirender(db):
+    with database.buka(db) as kon:
+        sid = database.tambah_siswa(kon, "Periode ekstrem")
+        h = reports.halaman_laporan(
+            kon, sid, query="periode=custom&mulai=0001-01-01&sampai=9999-12-31"
+        ).decode()
+    assert "Aktivitas 7 hari terakhir" in h
+    assert 'aria-current="true">7 hari</a>' in h
 
 
 def test_ringkasan_merayakan_tanpa_kata_teknis(db):
@@ -281,6 +344,18 @@ def test_ringkasan_memasangkan_tipe_dengan_topik_fokus(db):
     assert "Pengandaian benar atau salah" not in ringkasan
 
 
+def test_label_laporan_penguasaan_menggunakan_bahasa_orang_tua(db):
+    with database.buka(db) as kon:
+        sid = database.tambah_siswa(kon, "Bahasa orang tua")
+        h = reports.halaman_laporan(
+            kon, sid, section="penguasaan", query="tampilan=pilot"
+        ).decode()
+    isi = h.split("</style>", 1)[1]
+    assert "Pendampingan orang tua" in isi
+    assert "Tuntutan pilot" not in isi
+    assert "Perkembangan keterampilan terarah" in isi
+
+
 def test_hierarki_utama_memisahkan_penguasaan_dari_aktivitas(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Hierarki")
@@ -309,8 +384,9 @@ def test_laporan_memakai_kanvas_lebar_dan_kembali_ke_riwayat_anak(db):
         h = reports.halaman_laporan(kon, sid, pengguna="ortu").decode()
 
     isi = h.split("</style>", 1)[1]
-    assert 'class="bungkus-st laporan-lebar pendamping-editorial-st laporan-editorial-st"' in h
-    assert f'<a href="/anak/{sid}">&larr; Riwayat Claudia</a>' in isi
+    assert 'class="bungkus-st laporan-lebar pendamping-editorial-st laporan-editorial-st profil-workspace-st"' in h
+    assert '<a href="/guru">&larr; Semua anak</a>' in isi
+    assert f'<a href="/anak/{sid}?section=riwayat">Riwayat' in isi
     assert "Laporan perkembangan Claudia" in isi
     assert "Laporan — Claudia" not in isi
 

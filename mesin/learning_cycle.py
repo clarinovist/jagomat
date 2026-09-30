@@ -1052,7 +1052,7 @@ def rencana_pilot(paket, siswa_id, konteks, putaran_id, hari_ini=None):
     pemblokir = _sesi_pemblokir(sumber, p)
     for s in pemblokir:
         if s.selesai is None:
-            return RencanaBelajar('lanjutkan_sesi','Selesaikan sesi pilot yang sudah dibuat.',sesi_id=s.id), sumber
+            return RencanaBelajar('lanjutkan_sesi','Selesaikan sesi pendampingan yang sudah dibuat.',sesi_id=s.id), sumber
         if s.dikonfirmasi is None:
             return RencanaBelajar('konfirmasi_hasil','Tinjau dan konfirmasi pekerjaan asli anak.',sesi_id=s.id), sumber
     sesi = _sesi_bukti_pemetaan(sumber, p)

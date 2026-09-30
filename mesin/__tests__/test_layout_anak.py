@@ -274,25 +274,27 @@ def test_halaman_anak_kembali_ke_semua_anak(anak):
 
 
 @pytest.mark.parametrize("privat", [False, True])
-def test_kepala_riwayat_memuat_tautan_laporan_dengan_svg_inline(anak, privat):
-    """Ikon laporan tetap nyata tanpa bergantung pada font di host privat."""
+def test_laporan_perkembangan_menjadi_tab_profil_tanpa_tautan_duplikat(anak, privat):
     db, sid = anak
     with database.buka(db) as kon:
         siswa = kon.execute("SELECT * FROM siswa WHERE id = ?", (sid,)).fetchone()
         markup = _tanpa_gaya(teacher_pages.halaman_anak(
             kon, siswa, peran="guru", pengguna="ortu", privat=privat, query='section=riwayat',
         ).decode())
+    navigasi = markup[markup.index('class="profil-tabs-st"'):]
+    navigasi = navigasi[:navigasi.index("</nav>")]
+    assert [navigasi.index(label) for label in (
+        "Buat latihan", "Rencana belajar", "Riwayat", "Laporan perkembangan",
+    )] == sorted(navigasi.index(label) for label in (
+        "Buat latihan", "Rencana belajar", "Riwayat", "Laporan perkembangan",
+    ))
+    assert f'href="/laporan/{sid}"' in navigasi
+    assert 'aria-current="page">Riwayat' in navigasi
     kepala = markup[markup.index('class="kepala-riwayat-st"'):]
     kepala = kepala[:kepala.index("</div>")]
     assert "Riwayat latihan" in kepala
-    assert f'<a class="tautan-laporan-st" href="/laporan/{sid}">' in kepala
-    assert "Lihat laporan perkembangan" in kepala
+    assert "Lihat laporan perkembangan" not in kepala
     assert "History latihan" not in markup
-    assert "trending_up" not in kepala
-    assert '<svg class="ikon-laporan-st"' in kepala
-    assert 'aria-hidden="true"' in kepala
-    assert 'focusable="false"' in kepala
-    assert 'stroke="currentColor"' in kepala
 
 
 def test_kartu_sesi_mengutamakan_topik_dan_metadata_ramah(db):
