@@ -25,6 +25,7 @@ from attachment_store import (
 )
 import outcome_presentations
 from report_store import miskonsepsi_berulang, peta_materi_baru, ringkasan
+from student_profile_store import daftar_siswa, sesi_milik, siswa_milik, tambah_siswa
 import question_views
 from schema import MIGRASI, SKEMA, VIEW_USANG
 from templates import Soal
@@ -278,58 +279,12 @@ def rebuild_siswa_unik(kon: sqlite3.Connection) -> bool:
 # ── Siswa ───────────────────────────────────────────────────────────────
 
 
-def tambah_siswa(
-    kon: sqlite3.Connection, nama: str, tingkat: str = "P3", pemilik: str = ""
-) -> int:
-    """Tambahkan anak milik satu keluarga (pemilik = username akun gurunya).
-
-    Nama unik PER KELUARGA, bukan global: dua keluarga boleh sama-sama
-    punya 'Bima'. Duplikat dalam satu keluarga mengembalikan baris yang
-    sudah ada (INSERT OR IGNORE) — perilaku idempoten lama dipertahankan.
-    """
-    kon.execute(
-        "INSERT OR IGNORE INTO siswa (nama, tingkat, pemilik) VALUES (?, ?, ?)",
-        (nama, tingkat, pemilik),
-    )
-    baris = kon.execute(
-        "SELECT id FROM siswa WHERE nama = ? AND pemilik = ?", (nama, pemilik)
-    ).fetchone()
-    return int(baris["id"])
 
 
-def daftar_siswa(
-    kon: sqlite3.Connection, pemilik: str | None = None
-) -> list[sqlite3.Row]:
-    """Daftar anak. `pemilik=None` = tanpa filter (admin dan panggilan
-    lama); string = hanya keluarga itu, urut nama."""
-    if pemilik is None:
-        return kon.execute("SELECT * FROM siswa ORDER BY nama").fetchall()
-    return kon.execute(
-        "SELECT * FROM siswa WHERE pemilik = ? ORDER BY nama", (pemilik,)
-    ).fetchall()
 
 
-def siswa_milik(kon: sqlite3.Connection, siswa_id: int, pemilik: str) -> bool:
-    """True bila siswa ini milik keluarga `pemilik` tersebut.
-
-    Penjaga tunggal untuk seluruh rute guru; pengecualian admin diperiksa
-    di lapisan web (peran), bukan di sini.
-    """
-    baris = kon.execute(
-        "SELECT 1 FROM siswa WHERE id = ? AND pemilik = ?", (siswa_id, pemilik)
-    ).fetchone()
-    return baris is not None
 
 
-def sesi_milik(kon: sqlite3.Connection, sesi_id: int, pemilik: str) -> bool:
-    """True bila sesi ini milik siswa yang ber-pemilik tersebut."""
-    baris = kon.execute(
-        """SELECT 1
-           FROM sesi s JOIN siswa w ON w.id = s.siswa_id
-           WHERE s.id = ? AND w.pemilik = ?""",
-        (sesi_id, pemilik),
-    ).fetchone()
-    return baris is not None
 
 
 # ── Bank soal ───────────────────────────────────────────────────────────
