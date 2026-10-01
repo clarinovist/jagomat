@@ -24,7 +24,7 @@ Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 | Identitas | `auth.py`, `sessions.py`: akun dan sesi login; `students.py`: data anak |
 | Soal | `topics.py` + `topic_*.py`: topik; `generator.py`: pembangkitan; `templates.py`: kontrak soal |
 | Penyajian | `render.py`, `worksheets.py`, `*_pages.py`, `*_ui.py`: HTML/layar; `teacher_shell.py`: bingkai/topbar; `teacher_workspace.py`: profil/form; `teacher_session_pages.py`: tinjauan; `teacher_print_pages.py`: cetak/lampiran; `teacher_review_service.py`: koreksi |
-| Data | `database.py`, `schema.py`, `*_store.py`, `*_schema.py`: penyimpanan dan migrasi; `attachment_store.py`: metadata lampiran |
+| Data | `database.py`, `schema.py`, `*_store.py`, `*_schema.py`: penyimpanan dan migrasi; `attachment_store.py`: metadata lampiran; `report_store.py`: proyeksi laporan |
 | Belajar | `diagnosis.py`, `learning_cycle.py`, `learning_cycle_service.py`: diagnosis, reducer murni, orkestrasi |
 | Laporan | `reports.py`, `report_*.py`, `mastery_*.py`: laporan dan penguasaan berbasis bukti |
 | Layanan lain | `assistant_*`/`ai_*`: Pendamping; `subscription_*`/`midtrans_*`: langganan/pembayaran; `admin_*`: pengelola; `support_settings.py`: konfigurasi dukungan; `family_deletion.py`: preview dan bundle hasil penghapusan keluarga lintas penyimpanan |
