@@ -396,7 +396,7 @@ def test_laporan_memakai_identitas_dan_kanvas_ruang_anak_yang_sama(db):
     assert '<h2 class="st" id="judul-laporan">Laporan perkembangan</h2>' in isi
     assert "CATATAN PERKEMBANGAN" not in isi
     assert "Laporan perkembangan Claudia" not in isi
-    assert 'aria-labelledby="judul-laporan"' in isi
+    assert 'aria-labelledby="judul-profil-laporan"' in isi
     assert (
         '.pendamping-editorial-st.laporan-editorial-st.profil-workspace-st '
         f'{{ max-width:{T.LEBAR_LANDING}; }}'

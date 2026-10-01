@@ -510,5 +510,5 @@ def halaman_laporan(
         ident=(pengguna, peran) if pengguna else None,
         stitch=True,
         kelas_bungkus="laporan-lebar pendamping-editorial-st laporan-editorial-st profil-workspace-st",
-        id_utama="judul-laporan",
+        id_utama="judul-profil-laporan",
     )
