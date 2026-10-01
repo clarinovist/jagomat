@@ -190,3 +190,155 @@ def tangani_pembuatan_biasa(
     penangan.send_header("Content-Length", "0")
     penangan.end_headers()
     return True
+
+
+def tangani_pembuatan_gabungan(
+    penangan,
+    jalur: str,
+    *,
+    daftar_topik,
+    acak_seed,
+) -> bool:
+    """Tangani ``POST /sesi-gabungan/<siswa_id>``; False untuk jalur lain."""
+    if not jalur.startswith("/sesi-gabungan/"):
+        return False
+
+    try:
+        siswa_id = int(jalur.split("/")[2])
+    except (ValueError, IndexError):
+        penangan._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
+        return True
+
+    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
+    data = urllib.parse.parse_qs(
+        penangan.rfile.read(panjang).decode("utf-8"),
+        keep_blank_values=True,
+    )
+    # Checkbox bernama sama menghasilkan daftar nilai.
+    dipilih = [topik.strip() for topik in data.get("topik", []) if topik.strip()]
+    aksi_form = data.get("aksi_form", [])
+    versi_pilihan = data.get("versi_pilihan_isi", [])
+    topik_dibandingkan = data.get("topik_dibandingkan", [])
+    if aksi_form:
+        penangan._kirim(
+            _halaman(
+                "Form lama",
+                "<p>Pilihan variasi sudah otomatis. Muat ulang halaman anak.</p>",
+            ),
+            409,
+        )
+        return True
+
+    sah = set(daftar_topik())
+    asing = [topik for topik in dipilih if topik not in sah]
+    if asing:
+        penangan._kirim(
+            _halaman(
+                "Topik tidak dikenal",
+                "<h1>Topik tidak dikenal</h1><p>"
+                + ", ".join(html.escape(topik) for topik in asing)
+                + " tidak terdaftar.</p>",
+            ),
+            400,
+        )
+        return True
+    if versi_pilihan or topik_dibandingkan:
+        penangan._kirim(
+            _halaman(
+                "Form lama",
+                "<p>Pilihan variasi sudah otomatis. Muat ulang halaman anak.</p>",
+            ),
+            409,
+        )
+        return True
+
+    try:
+        jumlah = int((data.get("jumlah_soal") or ["10"])[0] or 10)
+    except ValueError:
+        jumlah = 10
+    if not 1 <= jumlah <= 50:
+        jumlah = 10
+
+    if len(dipilih) < 2:
+        qs = urllib.parse.urlencode({
+            "pesan": "Pilih minimal DUA topik untuk latihan gabungan. "
+                     "Kalau hanya satu, pakai form buat sesi biasa.",
+        })
+        penangan.send_response(303)
+        penangan.send_header("Location", f"/anak/{siswa_id}?{qs}")
+        penangan.send_header("Content-Length", "0")
+        penangan.end_headers()
+        return True
+
+    with database.buka() as kon:
+        if not penangan._bisa_lihat_siswa(kon, siswa_id):
+            penangan._kirim(
+                _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+            )
+            return True
+        baris = kon.execute(
+            "SELECT nama, tingkat FROM siswa WHERE id = ?", (siswa_id,)
+        ).fetchone()
+        nama_siswa = baris["nama"] if baris else ""
+        # Gabungan baru default cepat; pilihan diagnostik tetap eksplisit.
+        mode_dikirim = data.get("mode", ["drill"])
+        if (
+            len(mode_dikirim) != 1
+            or mode_dikirim[0] not in ("drill", "diagnostik")
+        ):
+            penangan._kirim(
+                _halaman(
+                    "Mode tidak dikenal",
+                    "<h1>Mode tidak dikenal</h1>"
+                    "<p>Pilih satu mode: Latihan Cepat atau Diagnostik.</p>",
+                ),
+                400,
+            )
+            return True
+        try:
+            from choice_pages import format_dari_form
+            from question_context import profil_otomatis, validasi_pilihan
+            profil_lama = data.get("profil_parameter", [])
+            if profil_lama:
+                if len(profil_lama) != 1:
+                    raise ValueError(
+                        "Pilihan variasi soal tidak sah. Muat ulang form."
+                    )
+                profil = profil_lama[0]
+                validasi_pilihan(dipilih, profil)
+            else:
+                profil = profil_otomatis(
+                    dipilih, baris["tingkat"] if baris else "P3"
+                )
+            sesi_id = database.buat_sesi_gabungan(
+                kon,
+                siswa_id,
+                seed=acak_seed(1, 9_999_999),
+                topik_ids=dipilih,
+                level=profil,
+                mode=mode_dikirim[0],
+                jumlah_soal=jumlah,
+                format_jawaban=format_dari_form(data),
+            )
+        except ValueError as galat:
+            penangan._kirim(
+                _halaman(
+                    "Latihan belum dibuat",
+                    "<p>" + html.escape(str(galat)) + "</p>",
+                ),
+                400,
+            )
+            return True
+
+    qs = urllib.parse.urlencode({
+        "pesan": (
+            f"Latihan gabungan untuk {nama_siswa} dibuat — "
+            f"sesi #{sesi_id}, {jumlah} soal dari {len(dipilih)} topik."
+        ),
+        "sorot": sesi_id,
+    })
+    penangan.send_response(303)
+    penangan.send_header("Location", f"/anak/{siswa_id}?{qs}")
+    penangan.send_header("Content-Length", "0")
+    penangan.end_headers()
+    return True
