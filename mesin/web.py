@@ -465,6 +465,11 @@ class Penangan(BaseHTTPRequestHandler):
             self, jalur, halaman_lembar=halaman_lembar
         ):
             return
+        import account_http
+        if account_http.tangani_get(
+            self, jalur, self.path, halaman=halaman_akun
+        ):
+            return
         try:
             with database.buka() as kon:
                 if jalur.startswith("/anak/") and jalur.count("/") >= 2:
@@ -553,59 +558,6 @@ class Penangan(BaseHTTPRequestHandler):
                             query=urllib.parse.urlsplit(self.path).query,
                         )
                     )
-                if jalur == "/akun":
-                    ident = self._identitas()
-                    try:
-                        pasangan = urllib.parse.parse_qsl(
-                            urllib.parse.urlsplit(self.path).query,
-                            keep_blank_values=True, errors="strict",
-                        )
-                        if len(pasangan) != len({k for k, _v in pasangan}):
-                            raise ValueError("parameter ganda")
-                        q = dict(pasangan)
-                        if set(q) - {"section", "halaman", "chat"}:
-                            raise ValueError("parameter asing")
-                        section = q.get("section", "akun")
-                        arsip = ""
-                        if section in ("akun", "arsip-pendamping"):
-                            if set(q) - ({"section"} if section == "akun" else {"section", "halaman", "chat"}):
-                                raise ValueError("parameter arsip tidak sah")
-                            halaman = int(q.get("halaman", "1"))
-                            if not 1 <= halaman <= 501:
-                                raise ValueError("halaman arsip tidak sah")
-                            principal = sessions.ambil_principal_pendamping(
-                                self._ambil_token()
-                            )
-                            daftar_arsip = assistant_http.fragmen_arsip_akun(
-                                principal, halaman=halaman,
-                                chat_id=q.get("chat", ""),
-                            )
-                            arsip = daftar_arsip
-                        elif set(q) != {"section"}:
-                            raise ValueError("parameter tidak sah")
-                    except (ValueError, UnicodeError, LookupError):
-                        return self._kirim_privat(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    import product_analytics_http as analitik
-                    panel_analitik = ''
-                    if section == 'akun' and ident[1] == 'guru' and self._ambil_token():
-                        try:
-                            panel_analitik = analitik.form_akun(self)
-                        except (LookupError, RuntimeError, OSError):
-                            panel_analitik = '<p>Analitik opsional belum tersedia.</p>'
-                    hasil = halaman_akun(
-                        kon,
-                        pengguna=ident[0] if ident else None,
-                        peran=ident[1] if ident else "guru",
-                        section=section,
-                        arsip_pendamping=arsip,
-                        privat=bool(arsip or panel_analitik),
-                        analitik=panel_analitik,
-                        langganan_sandbox=subscription_http.runtime(self) is not None,
-                        langganan_produksi=subscription_produksi_http.ada(self),
-                    )
-                    return assistant_http._kirim_host_privat(self, hasil) if arsip or panel_analitik else self._kirim(hasil)
         except (ValueError, IndexError):
             pass
         self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
@@ -743,66 +695,15 @@ class Penangan(BaseHTTPRequestHandler):
         if share_http.tangani_guru_post(self, jalur):
             return
 
-        if jalur == "/akun":
-            ident = self._identitas()
-            pengguna = ident[0] if ident else "guru"
-            peran = ident[1] if ident else "guru"
-            if peran == "admin":
-                # Jalur lama hanya untuk sandi sendiri, bukan bypass layanan admin.
-                import admin_security
-                try:
-                    data = admin_security.baca_form(self)
-                    if data.get("aksi") != "sandi" or set(data) - {
-                        "aksi", "section", "lama", "baru", "ulang"
-                    }:
-                        return admin_http.arahkan_admin(self)
-                except (ValueError, PermissionError):
-                    return self._kirim_privat(b"Form tidak sah.", 400)
-            else:
-                panjang = int(self.headers.get("Content-Length", 0))
-                mentah = self.rfile.read(panjang).decode("utf-8")
-                pasangan = urllib.parse.parse_qs(mentah, keep_blank_values=True)
-                if any(len(v) != 1 for v in pasangan.values()):
-                    return self._kirim(_halaman('Form tidak sah', '<p>Field ganda tidak diizinkan. Muat ulang form.</p>'), 400)
-                data = {k: v[0] for k, v in pasangan.items()}
-            with database.buka() as kon:
-                import learning_profile
-                if data.get('aksi') == 'kelas_sekolah':
-                    try:
-                        sid = int(data.get('siswa_id', ''))
-                        if not 0 < sid <= 9_223_372_036_854_775_807:
-                            raise ValueError('ID tidak sah')
-                        learning_profile.baca(kon, sid, pemilik=pengguna)
-                    except (ValueError, TypeError):
-                        return self._kirim(_halaman('404', '<h1>Halaman tidak ada</h1>'), 404)
-                    if set(data) - {'aksi', 'siswa_id', 'kelas_sekolah', 'revisi_profil', 'section'}:
-                        return self._kirim(_halaman('Form tidak sah', '<p>Field profil tidak dikenal. Muat ulang form.</p>'), 400)
-                if data.get('aksi') == 'tingkat':
-                    return self._kirim(_halaman('Form lama', '<p>Muat ulang form kelas sekolah. Profil parameter lama tidak diubah lewat form ini.</p>'), 409)
-                if data.get('aksi') in ('anak_baru', 'siswa'):
-                    profil_lama = data.get('profil_parameter', '')
-                    if ('tingkat' in data or 'level' in data
-                            or profil_lama not in ('', 'P3', 'P4', 'P5', 'P6')):
-                        return self._kirim(
-                            _halaman(
-                                'Form lama',
-                                '<p>Form pengaturan soal lama tidak cocok. Muat ulang sebelum menambahkan anak.</p>',
-                            ),
-                            409,
-                        )
-                try:
-                    pesan, galat = proses_akun(kon, data, pengguna, peran)
-                except learning_profile.ProfilTidakDitemukan:
-                    return self._kirim(_halaman('404', '<h1>Halaman tidak ada</h1>'), 404)
-                section = data.get("section") or PETA_SECTION_AKUN.get(
-                    data.get("aksi", ""), "akun"
-                )
-                return self._kirim(
-                    halaman_akun(
-                        kon, pesan, galat,
-                        pengguna=pengguna, peran=peran, section=section,
-                    )
-                )
+        import account_http
+        if account_http.tangani_post(
+            self,
+            jalur,
+            proses=proses_akun,
+            halaman=halaman_akun,
+            peta_section=PETA_SECTION_AKUN,
+        ):
+            return
 
         import session_http
         if session_http.tangani_latihan_serupa(
