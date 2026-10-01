@@ -44,8 +44,8 @@ JUMLAH_RECOVERY = {
     "6621f46c2d1d155c9e607441608407a244d185e0": 12837,
     # Koleksi exact baseline soft launch db492ef, 2026-10-01.
     "db492efa96a46626c3c5d599e82f47a02e4f34c6": 12856,
-    # Baseline soft launch eeefbed menambah dua fixture pin CI; koleksi exact.
-    "eeefbedcf040de83999fc84eac5abf5ff47d4420": 12856,
+    # Baseline soft launch clock membekukan tanggal fixture; koleksi tetap exact.
+    "1f056352075578d01caad4d80de382b04aef028f": 12856,
 }
 
 

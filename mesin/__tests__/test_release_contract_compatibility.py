@@ -117,7 +117,7 @@ def test_pin_soft_launch_migrasi_memerlukan_pair_exact_tanpa_auto_deploy():
     config = metadata.baca_config(AKAR / 'scripts/release-metadata.json')
     assert config == {
         'versi': 1, 'mode': 'migrasi',
-        'recovery_revision': 'eeefbedcf040de83999fc84eac5abf5ff47d4420',
+        'recovery_revision': '1f056352075578d01caad4d80de382b04aef028f',
         'recovery_contract': 'fc68c8bc9280663443718bc1c73764cb0c1034e5d0b733deeb36f5994940aba3',
     }
     metadata.validasi_workflow(ALUR.read_text(), config)
