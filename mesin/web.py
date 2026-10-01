@@ -394,43 +394,11 @@ class Penangan(BaseHTTPRequestHandler):
         import registration_http
         if registration_http.tangani_get(self, jalur):
             return
-        if jalur in ("/", "/guru", "/ortu"):
-            # Orang tua dan guru memakai peran yang sama. Root tetap publik
-            # bagi anonim/murid; beranda pendamping punya alamat eksplisit.
-            ident = self._identitas()
-            if not self._lolos_sandi():
-                return
-            if ident[1] == "admin":
-                self.send_response(303)
-                self.send_header("Location", "/admin")
-                self.send_header("Content-Length", "0")
-                self.end_headers()
-                return
-            q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            if jalur != "/guru":
-                # Alias lama mempertahankan kabar, bukan tujuan bebas dari URL.
-                qs = urllib.parse.urlencode({
-                    k: q[k][0] for k in ("pesan", "sorot") if k in q
-                })
-                self.send_response(303)
-                self.send_header("Location", "/guru" + ("?" + qs if qs else ""))
-                self.send_header("Content-Length", "0")
-                self.end_headers()
-                return
-            pesan = (q.get("pesan") or [""])[0][:200]
-            try:
-                sorot = int((q.get("sorot") or [""])[0])
-            except ValueError:
-                sorot = None
-            with database.buka() as kon:
-                isi = halaman_utama_stitch(
-                    kon, pesan=pesan, pemilik=ident[0], peran=ident[1], sorot=sorot,
-                )
-            import product_analytics_http as analitik
-            survei = analitik.form_survei(self)
-            if survei:
-                isi = isi.replace(b'</main>', survei.encode() + b'</main>', 1)
-            return self._kirim_privat(isi) if survei else self._kirim(isi)
+        import teacher_http
+        if teacher_http.tangani_beranda_get(
+            self, jalur, self.path, halaman_utama=halaman_utama_stitch
+        ):
+            return
         if jalur == "/aset" or jalur.startswith("/aset/"):
             # Publik & sengaja sempit: hanya berkas brand statis dari
             # allow-list brand.ASET. Favicon dibutuhkan browser sebelum
