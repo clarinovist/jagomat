@@ -14,7 +14,6 @@ Permukaan murid didelegasikan ke student_http dengan impor terlambat.
 
 from __future__ import annotations
 
-import html
 import json
 import os
 import random
@@ -28,8 +27,6 @@ import auth
 import brand
 import database
 import sessions
-import design_tokens as T
-from assistant_navigation import tujuan_lanjut
 from account_pages import (
     PETA_SECTION_AKUN,
     halaman_akun,
@@ -50,7 +47,6 @@ from teacher_pages import (
     halaman_utama_stitch,
     simpan_sesi,
 )
-from templates import LEVEL
 from topics import TOPIK_BAWAAN, daftar_topik
 
 class Penangan(BaseHTTPRequestHandler):
@@ -441,84 +437,9 @@ class Penangan(BaseHTTPRequestHandler):
         self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
 
     def _halaman_masuk_stitch(self, galat: str = "", *, lanjut: str = "") -> bytes:
-        """Form masuk editorial dengan dekorasi buku latihan di desktop.
-
-        Di ponsel fokus tetap pada form. Logo menaut beranda, pesan galat
-        terkait secara semantik ke form. Handler autentikasi tidak berubah.
-        """
-        from style_stitch import gaya_stitch
-        from teacher_style import SKRIP_MATA_SANDI
-
-        lanjut = tujuan_lanjut(lanjut)
-        isian_lanjut = (
-            f'<input type="hidden" name="lanjut" value="{html.escape(lanjut)}">'
-            if lanjut else ""
-        )
-        kabar = (
-            '<div class="masuk-galat-st" id="galat-masuk" role="alert" aria-atomic="true">'
-            '<b>Periksa kembali</b>'
-            f'<p>{html.escape(galat)}</p></div>' if galat else ""
-        )
-        deskripsi_galat = ' aria-describedby="galat-masuk"' if galat else ""
-        body = f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(brand.judul("Masuk"))}</title>
-{brand.tag_kepala()}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">
-<style>{gaya_stitch()}</style></head>
-<body class="st">
-<main class="masuk-badan-st" aria-labelledby="judul-masuk">
-  <div class="masuk-kepala-st">
-    <a class="masuk-brand-st" href="/" aria-label="{html.escape(T.NAMA_PRODUK)} — kembali ke beranda">
-      {brand.mark("topbar", kelas="ik-owl")}
-      <span class="nama-brand">{html.escape(T.NAMA_PRODUK)}</span>
-      <span class="masuk-beranda-st" aria-hidden="true">/ beranda</span>
-    </a>
-  </div>
-  <div class="masuk-panel-st">
-    <div class="masuk-catatan-st" aria-hidden="true">
-      <p class="masuk-alis-st">LEMBAR BARU, SEMANGAT BARU</p>
-      <p class="masuk-pesan-st">Mulai lagi,<br><span>dengan caramu.</span></p>
-      <div class="masuk-buku-st">
-        <span class="masuk-coret-st">✳</span>
-        <img class="masuk-maskot-st" src="/aset/maskot-menyapa-v3-240.png"
-             width="240" height="240" alt="">
-        <span class="masuk-catatan-kecil-st">Satu langkah dulu.</span>
-      </div>
-    </div>
-    <section class="masuk-kartu-st" aria-labelledby="judul-masuk">
-      <div class="masuk-sapaan-st">
-        <p class="masuk-alis-st">AKUN BELAJARMU</p>
-        <h1 class="masuk-judul-st" id="judul-masuk">Selamat datang kembali</h1>
-        <p class="masuk-sub-st">{html.escape(T.TAGLINE)}</p>
-      </div>
-      {kabar}
-      <form class="masuk-form-st" method="post" action="/masuk"{deskripsi_galat}>
-        {isian_lanjut}
-        <div class="masuk-field-st">
-          <label for="nama">Nama pengguna</label>
-          <input type="text" id="nama" name="nama" autocomplete="username"
-                 aria-describedby="petunjuk-nama" required>
-          <p class="masuk-petunjuk-st" id="petunjuk-nama">Gunakan nama pengguna saat mendaftar,
-          atau akun dari orang tua atau guru.</p>
-        </div>
-        <div class="masuk-field-st">
-          <label for="sandi">Kata sandi</label>
-          <input type="password" id="sandi" name="sandi" autocomplete="current-password" required>
-        </div>
-        <button class="masuk-tombol-st" type="submit">
-          Masuk <span aria-hidden="true">→</span>
-        </button>
-      </form>
-      <p class="masuk-link-st"><a href="/lupa-sandi">Lupa sandi?</a></p>
-    </section>
-  </div>
-</main>
-<script>{SKRIP_MATA_SANDI}</script>
-</body></html>"""
-        return body.encode()
+        """Façade kompatibel untuk renderer login milik ``auth_http``."""
+        import auth_http
+        return auth_http.halaman_masuk(galat, lanjut=lanjut)
 
     def _handle_masuk(self, data: dict) -> None:
         """Façade kompatibel untuk login yang kini dimiliki ``auth_http``."""
