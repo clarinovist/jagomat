@@ -461,6 +461,10 @@ class Penangan(BaseHTTPRequestHandler):
             halaman_sesi=halaman_sesi_stitch,
         ):
             return
+        if session_http.tangani_lembar_get(
+            self, jalur, halaman_lembar=halaman_lembar
+        ):
+            return
         try:
             with database.buka() as kon:
                 if jalur.startswith("/anak/") and jalur.count("/") >= 2:
@@ -602,23 +606,6 @@ class Penangan(BaseHTTPRequestHandler):
                         langganan_produksi=subscription_produksi_http.ada(self),
                     )
                     return assistant_http._kirim_host_privat(self, hasil) if arsip or panel_analitik else self._kirim(hasil)
-                if jalur.startswith("/lembar/"):
-                    bagian = jalur.split("/")
-                    sesi_id = int(bagian[2])
-                    if not self._bisa_lihat_sesi(kon, sesi_id):
-                        return self._kirim(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    guru = len(bagian) > 3 and bagian[3] == "penilaian"
-                    isi = halaman_lembar(kon, sesi_id, guru)
-                    if isi:
-                        kon.commit()
-                        if not guru:
-                            import product_analytics_http as analitik
-                            ident = self._identitas()
-                            return analitik.kirim_dan_catat(self, isi, sesi_id, 'lembar_soal_disajikan',
-                                                           pengguna=ident[0], peran=ident[1])
-                        return self._kirim(isi)
         except (ValueError, IndexError):
             pass
         self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
@@ -832,29 +819,14 @@ class Penangan(BaseHTTPRequestHandler):
 
             return learning_cycle_http.tangani(self, jalur, _halaman)
 
-        if jalur.startswith("/cerita/"):
-            import llm
+        if session_http.tangani_cerita_post(
+            self,
+            jalur,
+            soal_dari_baris=_soal_dari_baris,
+            halaman_sesi=halaman_sesi_stitch,
+        ):
+            return
 
-            try:
-                sesi_id = int(jalur.split("/")[2])
-            except (ValueError, IndexError):
-                return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
-            with database.buka() as kon:
-                if not self._bisa_lihat_sesi(kon, sesi_id):
-                    return self._kirim(
-                        _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                    )
-                _, _, catatan = llm.bungkus_sesi(kon, sesi_id, _soal_dari_baris)
-                ident = self._identitas()
-                return self._kirim(
-                    halaman_sesi_stitch(
-                        kon, sesi_id, catatan,
-                        peran=ident[1] if ident else "guru",
-                        pengguna=ident[0] if ident else "",
-                    )
-                )
-
-        import session_http
         if session_http.tangani_pembuatan_gabungan(
             self,
             jalur,

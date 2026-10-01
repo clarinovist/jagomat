@@ -801,6 +801,84 @@ def tangani_review_post(
         return True
 
 
+def tangani_lembar_get(penangan, jalur: str, *, halaman_lembar) -> bool:
+    """Render lembar anak/kunci dengan freeze commit sebelum respons."""
+    if not jalur.startswith("/lembar/"):
+        return False
+    try:
+        bagian = jalur.split("/")
+        sesi_id = int(bagian[2])
+    except (ValueError, IndexError):
+        penangan._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
+        return True
+    with database.buka() as kon:
+        if not penangan._bisa_lihat_sesi(kon, sesi_id):
+            penangan._kirim(
+                _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+            )
+            return True
+        untuk_guru = len(bagian) > 3 and bagian[3] == "penilaian"
+        isi = halaman_lembar(kon, sesi_id, untuk_guru)
+        if not isi:
+            penangan._kirim(
+                _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+            )
+            return True
+        kon.commit()
+        if not untuk_guru:
+            import product_analytics_http as analitik
+            ident = penangan._identitas()
+            analitik.kirim_dan_catat(
+                penangan,
+                isi,
+                sesi_id,
+                "lembar_soal_disajikan",
+                pengguna=ident[0],
+                peran=ident[1],
+            )
+            return True
+        penangan._kirim(isi)
+        return True
+
+
+def tangani_cerita_post(
+    penangan,
+    jalur: str,
+    *,
+    soal_dari_baris,
+    halaman_sesi,
+) -> bool:
+    """Buat variasi cerita, lalu render ulang sesi yang sama."""
+    if not jalur.startswith("/cerita/"):
+        return False
+    try:
+        sesi_id = int(jalur.split("/")[2])
+    except (ValueError, IndexError):
+        penangan._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
+        return True
+    with database.buka() as kon:
+        if not penangan._bisa_lihat_sesi(kon, sesi_id):
+            penangan._kirim(
+                _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+            )
+            return True
+        import llm
+        _, _, catatan = llm.bungkus_sesi(
+            kon, sesi_id, soal_dari_baris
+        )
+        ident = penangan._identitas()
+        penangan._kirim(
+            halaman_sesi(
+                kon,
+                sesi_id,
+                catatan,
+                peran=ident[1] if ident else "guru",
+                pengguna=ident[0] if ident else "",
+            )
+        )
+        return True
+
+
 def tangani_hapus_get(penangan, jalur: str, *, halaman_konfirmasi) -> bool:
     """Tampilkan konfirmasi hapus setelah palang guru utama lolos."""
     if not (jalur.startswith("/sesi/") and jalur.endswith("/hapus")):
