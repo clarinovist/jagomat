@@ -12,8 +12,8 @@
 palang akses. `student_http.py` memiliki alur GET/POST akun murid,
 `session_http.py` memiliki pembuatan, tampilan/cetak, review, dan latihan tindak
 lanjut sesi guru; `share_http.py` memiliki capability satu sesi dan aksi bagikan guru;
-`public_http.py` memiliki halaman publik tanpa data keluarga; sementara `attachment_http.py`
-memagari baca, upload, dan penerapan foto guru.
+`public_http.py` memiliki halaman publik tanpa data keluarga; `auth_http.py` memiliki
+login/logout; sementara `attachment_http.py` memagari baca, upload, dan penerapan foto guru.
 Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 
 | Lapisan | Modul dan tanggung jawab |
