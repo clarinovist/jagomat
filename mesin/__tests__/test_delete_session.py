@@ -166,6 +166,33 @@ def test_http_get_hapus_butuh_guru(server):
     assert kode == 401
 
 
+def test_http_hapus_mempertahankan_lookup_fasad(server, monkeypatch):
+    sesi_id = _sesi_dengan_hasil_http(server)
+    asli_halaman = web.halaman_konfirmasi_hapus
+    asli_bersihkan = attachments.bersihkan_berkas
+    panggilan = []
+
+    def halaman_terpantau(kon, target_id, **kwargs):
+        panggilan.append(("halaman", target_id))
+        return asli_halaman(kon, target_id, **kwargs)
+
+    def bersihkan_terpantau(target_id):
+        panggilan.append(("bersihkan", target_id))
+        return asli_bersihkan(target_id)
+
+    monkeypatch.setattr(web, "halaman_konfirmasi_hapus", halaman_terpantau)
+    monkeypatch.setattr(web.lampiran_mod, "bersihkan_berkas", bersihkan_terpantau)
+    assert server.minta(
+        f"/sesi/{sesi_id}/hapus", auth=("guru", SANDI_GURU)
+    )[0] == 200
+    assert server.minta(
+        f"/sesi/{sesi_id}/hapus",
+        auth=("guru", SANDI_GURU),
+        data={"konfirmasi": "1"},
+    )[0] == 200
+    assert panggilan == [("halaman", sesi_id), ("bersihkan", sesi_id)]
+
+
 def test_http_get_hapus_menampilkan_konfirmasi(server):
     sesi_id = _sesi_dengan_hasil_http(server)
     kode, isi, _ = server.minta(

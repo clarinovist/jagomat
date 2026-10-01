@@ -503,6 +503,10 @@ class Penangan(BaseHTTPRequestHandler):
         if attachment_http.tangani_get(self, jalur):
             return
         import session_http
+        if session_http.tangani_hapus_get(
+            self, jalur, halaman_konfirmasi=halaman_konfirmasi_hapus
+        ):
+            return
         if session_http.tangani_get(
             self,
             jalur,
@@ -513,23 +517,6 @@ class Penangan(BaseHTTPRequestHandler):
             return
         try:
             with database.buka() as kon:
-                if jalur.startswith("/sesi/") and jalur.endswith("/hapus"):
-                    sesi_id = int(jalur.split("/")[2])
-                    if not self._bisa_lihat_sesi(kon, sesi_id):
-                        return self._kirim(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    ident = self._identitas()
-                    isi = halaman_konfirmasi_hapus(
-                        kon, sesi_id,
-                        pengguna=ident[0] if ident else "",
-                        peran=ident[1] if ident else "guru",
-                    )
-                    if isi is None:
-                        return self._kirim(
-                            _halaman("404", "<h1>Sesi tidak ada</h1>"), 404
-                        )
-                    return self._kirim(isi)
                 if jalur.startswith("/anak/") and jalur.count("/") >= 2:
                     # History satu anak (feedback Filia 1 Sep 2026 no. 6):
                     # kartu nama di dashboard menaut ke sini. Palang sama
@@ -1160,71 +1147,12 @@ class Penangan(BaseHTTPRequestHandler):
         if attachment_http.tangani_post(self, jalur):
             return
 
-        if jalur.startswith("/sesi/") and jalur.endswith("/hapus"):
-            try:
-                sesi_id = int(jalur.split("/")[2])
-            except (ValueError, IndexError):
-                return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
-            with database.buka() as kon:
-                if not self._bisa_lihat_sesi(kon, sesi_id):
-                    return self._kirim(
-                        _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                    )
-            panjang = int(self.headers.get("Content-Length", 0) or 0)
-            data = urllib.parse.parse_qs(
-                self.rfile.read(panjang).decode("utf-8"),
-                keep_blank_values=True,
-            )
-            if (data.get("konfirmasi") or [""])[0] != "1":
-                # Tanpa konfirmasi = hanya melihat halaman peringatan lagi.
-                # Sesi tidak disentuh sama sekali.
-                with database.buka() as kon:
-                    ident = self._identitas()
-                    isi = halaman_konfirmasi_hapus(
-                        kon, sesi_id,
-                        pengguna=ident[0] if ident else "",
-                        peran=ident[1] if ident else "guru",
-                    )
-                if isi is None:
-                    return self._kirim(
-                        _halaman("404", "<h1>Sesi tidak ada</h1>"), 404
-                    )
-                return self._kirim(isi)
-            with database.buka() as kon:
-                baris_sesi = kon.execute(
-                    "SELECT siswa_id FROM sesi WHERE id = ?", (sesi_id,)
-                ).fetchone()
-                dilindungi = kon.execute(
-                    """SELECT 1 FROM konfirmasi_hasil WHERE sesi_id = ?
-                       UNION ALL SELECT 1 FROM bukti_fokus WHERE sesi_id = ?
-                       UNION ALL SELECT 1 FROM kejadian_belajar WHERE sesi_id = ?""",
-                    (sesi_id, sesi_id, sesi_id),
-                ).fetchone()
-                if dilindungi:
-                    return self._kirim(_halaman(
-                        "Histori sesi dilindungi",
-                        "<h1>Histori sesi dilindungi</h1>"
-                        "<p>Gunakan Batalkan sesi agar bukti belajar tetap tersimpan.</p>",
-                    ), 409)
-                dihapus = database.hapus_sesi(kon, sesi_id)
-            if not dihapus:
-                return self._kirim(
-                    _halaman("404", "<h1>Sesi tidak ada</h1>"), 404
-                )
-            # Berkas foto tidak diurus DB — dibuang di sini, SETELAH baris
-            # DB benar-benar hilang supaya tidak ada foto yatim sebaliknya.
-            lampiran_mod.bersihkan_berkas(sesi_id)
-            tujuan = urllib.parse.urlencode({"pesan": f"Sesi {sesi_id} dihapus."})
-            self.send_response(303)
-            # Kembali ke history anak yang punya sesi itu (baris sudah hilang,
-            # jadi siswa_id diselamatkan sebelum hapus). Tanpa baris (kasus
-            # langka), fallback ke dashboard.
-            tujuan_anak = (
-                f"/anak/{baris_sesi['siswa_id']}?{tujuan}" if baris_sesi
-                else f"/?{tujuan}"
-            )
-            self.send_header("Location", tujuan_anak)
-            self.end_headers()
+        if session_http.tangani_hapus_post(
+            self,
+            jalur,
+            halaman_konfirmasi=halaman_konfirmasi_hapus,
+            bersihkan_berkas=lampiran_mod.bersihkan_berkas,
+        ):
             return
 
         if session_http.tangani_review_post(

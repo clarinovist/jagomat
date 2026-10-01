@@ -799,3 +799,120 @@ def tangani_review_post(
             )
         )
         return True
+
+
+def tangani_hapus_get(penangan, jalur: str, *, halaman_konfirmasi) -> bool:
+    """Tampilkan konfirmasi hapus setelah palang guru utama lolos."""
+    if not (jalur.startswith("/sesi/") and jalur.endswith("/hapus")):
+        return False
+    try:
+        sesi_id = int(jalur.split("/")[2])
+    except (ValueError, IndexError):
+        penangan._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
+        return True
+    with database.buka() as kon:
+        if not penangan._bisa_lihat_sesi(kon, sesi_id):
+            penangan._kirim(
+                _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+            )
+            return True
+        ident = penangan._identitas()
+        isi = halaman_konfirmasi(
+            kon,
+            sesi_id,
+            pengguna=ident[0] if ident else "",
+            peran=ident[1] if ident else "guru",
+        )
+    if isi is None:
+        penangan._kirim(
+            _halaman("404", "<h1>Sesi tidak ada</h1>"), 404
+        )
+        return True
+    penangan._kirim(isi)
+    return True
+
+
+def tangani_hapus_post(
+    penangan,
+    jalur: str,
+    *,
+    halaman_konfirmasi,
+    bersihkan_berkas,
+) -> bool:
+    """Hapus hanya sesi tanpa bukti; berkas dibersihkan setelah commit DB."""
+    if not (jalur.startswith("/sesi/") and jalur.endswith("/hapus")):
+        return False
+    try:
+        sesi_id = int(jalur.split("/")[2])
+    except (ValueError, IndexError):
+        penangan._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
+        return True
+
+    with database.buka() as kon:
+        if not penangan._bisa_lihat_sesi(kon, sesi_id):
+            penangan._kirim(
+                _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+            )
+            return True
+    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
+    data = urllib.parse.parse_qs(
+        penangan.rfile.read(panjang).decode("utf-8"),
+        keep_blank_values=True,
+    )
+    if (data.get("konfirmasi") or [""])[0] != "1":
+        with database.buka() as kon:
+            ident = penangan._identitas()
+            isi = halaman_konfirmasi(
+                kon,
+                sesi_id,
+                pengguna=ident[0] if ident else "",
+                peran=ident[1] if ident else "guru",
+            )
+        if isi is None:
+            penangan._kirim(
+                _halaman("404", "<h1>Sesi tidak ada</h1>"), 404
+            )
+            return True
+        penangan._kirim(isi)
+        return True
+
+    with database.buka() as kon:
+        baris_sesi = kon.execute(
+            "SELECT siswa_id FROM sesi WHERE id = ?", (sesi_id,)
+        ).fetchone()
+        dilindungi = kon.execute(
+            """SELECT 1 FROM konfirmasi_hasil WHERE sesi_id = ?
+               UNION ALL SELECT 1 FROM bukti_fokus WHERE sesi_id = ?
+               UNION ALL SELECT 1 FROM kejadian_belajar WHERE sesi_id = ?""",
+            (sesi_id, sesi_id, sesi_id),
+        ).fetchone()
+        if dilindungi:
+            penangan._kirim(
+                _halaman(
+                    "Histori sesi dilindungi",
+                    "<h1>Histori sesi dilindungi</h1>"
+                    "<p>Gunakan Batalkan sesi agar bukti belajar tetap "
+                    "tersimpan.</p>",
+                ),
+                409,
+            )
+            return True
+        dihapus = database.hapus_sesi(kon, sesi_id)
+    if not dihapus:
+        penangan._kirim(
+            _halaman("404", "<h1>Sesi tidak ada</h1>"), 404
+        )
+        return True
+
+    # Cleanup filesystem hanya setelah penghapusan DB berhasil dan commit.
+    bersihkan_berkas(sesi_id)
+    tujuan = urllib.parse.urlencode({"pesan": f"Sesi {sesi_id} dihapus."})
+    penangan.send_response(303)
+    tujuan_anak = (
+        f"/anak/{baris_sesi['siswa_id']}?{tujuan}"
+        if baris_sesi
+        else f"/?{tujuan}"
+    )
+    penangan.send_header("Location", tujuan_anak)
+    penangan.end_headers()
+    return True
