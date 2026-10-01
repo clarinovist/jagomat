@@ -28,6 +28,7 @@ from teacher_shell import (
     _topbar_stitch,
 )
 from teacher_session_pages import (
+    KODE_PILIHAN,
     _badge_mode,
     _blok_latihan_serupa,
     _label_tahap_sesi,
@@ -51,17 +52,6 @@ from teacher_workspace import (
     _topik_untuk_level,
     halaman_anak,
 )
-
-
-KODE_PILIHAN = [
-    ("", "— pilih —"),
-    ("benar", "Benar"),
-    ("K", "K — salah konsep"),
-    ("B", "B — salah baca soal"),
-    ("H", "H — salah hitung"),
-    ("E", "E — salah tulis akhir"),
-    ("N", "N — menebak"),
-]
 
 
 # Satu sumber teks bubble ikon "ⓘ" beranda guru: dipakai sebagai aria-label
