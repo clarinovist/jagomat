@@ -385,6 +385,9 @@ class Penangan(BaseHTTPRequestHandler):
         import share_http
         if share_http.tangani_tautan_get(self, jalur):
             return
+        import public_http
+        if public_http.tangani_get(self, jalur):
+            return
         if jalur == "/masuk":
             galat = ""
             q = urllib.parse.parse_qs(
@@ -400,14 +403,6 @@ class Penangan(BaseHTTPRequestHandler):
             # Orang tua dan guru memakai peran yang sama. Root tetap publik
             # bagi anonim/murid; beranda pendamping punya alamat eksplisit.
             ident = self._identitas()
-            if jalur == "/" and (not ident or ident[1] not in ("guru", "admin")):
-                from landing import halaman_landing
-                import admin_store
-                import support_settings
-
-                return self._kirim(halaman_landing(
-                    dukungan=support_settings.baca_publik(admin_store.BAWAAN)
-                ))
             if not self._lolos_sandi():
                 return
             if ident[1] == "admin":
@@ -462,28 +457,6 @@ class Penangan(BaseHTTPRequestHandler):
             return self._kirim(halaman_daftar(
                 pendaftaran_dibuka=status.dibuka,
                 token_form=token_form, analitik=analitik.form_daftar(),
-            ))
-        if jalur == "/kebijakan-privasi":
-            # Publik dan tidak membaca data keluarga. Hanya proyeksi konfigurasi
-            # dukungan minimum yang dibaca dari admin-control secara read-only.
-            from landing import halaman_kebijakan
-            import admin_store
-            import support_settings
-
-            return self._kirim(halaman_kebijakan(
-                dukungan=support_settings.baca_publik(admin_store.BAWAAN)
-            ))
-        if jalur == "/lupa-sandi":
-            # Publik, dari tautan di /masuk. Aplikasi sengaja tidak
-            # menyimpan email, jadi ini halaman panduan ("mintalah sandi
-            # baru ke X"), bukan reset mandiri — mengarang alur email
-            # berarti mengarang kanal yang tidak ada.
-            from landing import halaman_lupa_sandi
-            import admin_store
-            import support_settings
-
-            return self._kirim(halaman_lupa_sandi(
-                dukungan=support_settings.baca_publik(admin_store.BAWAAN)
             ))
         if jalur == "/aset" or jalur.startswith("/aset/"):
             # Publik & sengaja sempit: hanya berkas brand statis dari

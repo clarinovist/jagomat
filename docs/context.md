@@ -11,8 +11,9 @@
 `serve.py` menjalankan server HTTP; `web.py` mengatur transport, dispatch, dan
 palang akses. `student_http.py` memiliki alur GET/POST akun murid,
 `session_http.py` memiliki pembuatan, tampilan/cetak, review, dan latihan tindak
-lanjut sesi guru; `share_http.py` memiliki capability satu sesi dan aksi bagikan guru, sementara
-`attachment_http.py` memagari baca, upload, dan penerapan foto guru.
+lanjut sesi guru; `share_http.py` memiliki capability satu sesi dan aksi bagikan guru;
+`public_http.py` memiliki halaman publik tanpa data keluarga; sementara `attachment_http.py`
+memagari baca, upload, dan penerapan foto guru.
 Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 
 | Lapisan | Modul dan tanggung jawab |

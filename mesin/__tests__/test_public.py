@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import database  # noqa: E402
 import design_tokens as T  # noqa: E402
+import landing  # noqa: E402
 import web  # noqa: E402
 from http_test_kit import SANDI_GURU, ServerUji  # noqa: E402
 
@@ -97,6 +98,22 @@ def server(tmp_path, monkeypatch):
         sesi_id = database.buat_sesi(kon, sid, seed=7)
     yield s, sesi_id
     s.berhenti()
+
+
+def test_rute_publik_mempertahankan_lookup_renderer(server, monkeypatch):
+    s, _ = server
+    panggilan = []
+
+    def landing_terpantau(*, dukungan):
+        panggilan.append(dukungan)
+        return b"<h1>Landing sintetis</h1>"
+
+    monkeypatch.setattr(landing, "halaman_landing", landing_terpantau)
+    kode, isi, _ = s.minta("/")
+
+    assert kode == 200
+    assert isi == "<h1>Landing sintetis</h1>"
+    assert len(panggilan) == 1
 
 
 def test_landing_200_tanpa_sesi(server):
