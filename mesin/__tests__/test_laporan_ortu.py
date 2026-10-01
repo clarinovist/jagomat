@@ -275,7 +275,7 @@ def test_laporan_memisahkan_prioritas_dari_materi_baru(db):
     assert "Posisi belajar saat ini" in utama
     assert "Prioritas latihan" not in utama
     assert "Materi berikutnya untuk dikenalkan" not in utama
-    assert "belum cukup untuk menetapkan fokus" in utama.lower()
+    assert "catatan hasil yang sudah diperiksa belum cukup" in utama.lower()
     assert "Aktivitas 7 hari terakhir" in utama
     assert tipe_k not in utama
     assert tipe_t not in utama
@@ -299,7 +299,7 @@ def test_prioritas_belum_menganggap_satu_sesi_sebagai_pola_berulang(db):
 
     utama = h.split('id="rencana-belajar-laporan"', 1)[1].split('aria-labelledby="judul-aktivitas"', 1)[0]
     assert reports._nama_tipe_soal(tipe) not in utama
-    assert "belum cukup untuk menetapkan fokus" in utama.lower()
+    assert "catatan hasil yang sudah diperiksa belum cukup" in utama.lower()
     assert "Mulai dari topik" not in utama
 
 
@@ -341,8 +341,8 @@ def test_ringkasan_memasangkan_tipe_dengan_topik_fokus(db):
     ringkasan = h[awal:akhir]
     assert pola_geo
     assert not any(nama in ringkasan for nama in pola_geo)
-    assert "bukti yang sudah dikonfirmasi" in ringkasan.lower()
-    assert "belum cukup untuk menetapkan fokus" in ringkasan.lower()
+    assert "hasil yang sudah diperiksa" in ringkasan.lower()
+    assert "belum cukup untuk menetapkan bagian yang perlu dibantu" in ringkasan.lower()
     assert "Pengandaian benar atau salah" not in ringkasan
 
 

@@ -180,8 +180,8 @@ def test_profil_state_berjalan_hanya_menampilkan_catatan_histori(rencana):
 @pytest.mark.parametrize(
     "selesai, langkah",
     (
-        (False, "Lanjutkan sesi"),
-        (True, "Konfirmasi hasil"),
+        (False, "Lanjutkan latihan"),
+        (True, "Periksa dan konfirmasi hasil"),
     ),
 )
 def test_http_laporan_state_berjalan_hanya_menampilkan_catatan_histori(
@@ -250,12 +250,12 @@ def test_http_profil_dan_laporan_menjelaskan_histori_beda_level_tanpa_mutasi(ser
     assert catatan in laporan
     assert "Mulai pemetaan Variasi C dari awal." in profil
     assert "Mulai pemetaan Variasi C dari awal." in laporan
-    assert "Pemetaan 0 dari 3" in profil
-    assert "Pemetaan 0 dari 3" in laporan
+    assert "Latihan awal 0 dari 3" in profil
+    assert "Latihan awal 0 dari 3" in laporan
     assert profil.count('class="rencana-cta-utama-st"') == 1
     kartu = profil.split('class="kartu-rencana-st"', 1)[1].split('</section>', 1)[0]
-    assert 'id="judul-rencana-belajar">Kenali cara anak menyelesaikan soal</h2>' in kartu
-    assert "Siapkan sesi pemetaan pertama" in kartu
+    assert 'id="judul-rencana-belajar">Mulai dengan latihan awal</h2>' in kartu
+    assert "Siapkan latihan awal" in kartu
     assert f'action="/siklus/{siswa_id}/buat"' in kartu
     assert "Lanjutkan sesi" not in kartu
     assert "Tinjau hasil" not in kartu
@@ -355,5 +355,5 @@ def test_http_tidak_mengaku_mulai_dari_awal_setelah_pemetaan_aktif(server):
     assert "Riwayat Variasi A" in laporan
     assert "Mulai pemetaan Variasi C dari awal." not in profil
     assert "Mulai pemetaan Variasi C dari awal." not in laporan
-    assert "Pemetaan 1 dari 3" in profil
-    assert "Pemetaan 1 dari 3" in laporan
+    assert "Latihan awal 1 dari 3" in profil
+    assert "Latihan awal 1 dari 3" in laporan

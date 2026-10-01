@@ -71,11 +71,14 @@ def test_faq_menjawab_alur_biaya_privasi_recourse_dan_batas(publik):
         assert frasa in teks
 
 
-def test_rencana_melampaui_diagnosis_dan_latihan_ulang(publik):
+def test_langkah_belajar_melampaui_diagnosis_dan_latihan_ulang(publik):
     teks = _teks(publik).lower()
-    for bagian in ("pemetaan", "fokus", "contoh", "latihan terbimbing", "penguatan",
-                   "cek berjeda", "cek berkala", "tinjau dan konfirmasi", "latihan manual"):
+    for bagian in ("latihan awal", "periksa hasil bersama", "langkah berikutnya",
+                   "catatan awal", "bisa menjelaskan", "latihan manual"):
         assert bagian in teks
+    for jargon in ("pemetaan", "intervensi", "latihan terbimbing", "penguatan mandiri",
+                   "evaluasi berjeda", "checkpoint", "putaran"):
+        assert jargon not in teks
     assert "sistem mendiagnosis:" not in teks
 
 

@@ -135,7 +135,7 @@ def test_ringkasan_actual_report_tidak_memakai_istilah_level_internal(db):
     )[0]
     assert "level berikutnya" not in ringkasan.lower()
     assert ">P5<" not in ringkasan
-    assert "Buka rencana di profil anak" in ringkasan
+    assert "Buka langkah berikutnya" in ringkasan
     assert '<section class="kartu laporan-resume"' in isi
 
 

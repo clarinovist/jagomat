@@ -68,7 +68,7 @@ def test_wrapper_studio_membagi_tugas_pendamping_dan_aksi_dengan_urutan_aman():
     assert isi.count('class="studio-utama-st"') == 1
     assert isi.count('class="studio-pendamping-st"') == 1
     assert isi.count('class="studio-aksi-st"') == 1
-    assert 'aria-label="Posisi dan peran pendamping"' in isi
+    assert 'aria-label="Panduan langkah berikutnya"' in isi
     assert isi.count('class="rencana-cta-utama-st"') == 1
     assert isi.index(materi.contoh_terbimbing) < isi.index('class="rencana-cta-utama-st"')
     assert isi.index(materi.instruksi_orang_tua) < isi.index('class="rencana-cta-utama-st"')
