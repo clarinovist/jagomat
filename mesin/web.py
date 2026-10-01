@@ -438,96 +438,14 @@ class Penangan(BaseHTTPRequestHandler):
             self, jalur, self.path, halaman=halaman_akun
         ):
             return
-        try:
-            with database.buka() as kon:
-                if jalur.startswith("/anak/") and jalur.count("/") >= 2:
-                    # History satu anak (feedback Filia 1 Sep 2026 no. 6):
-                    # kartu nama di dashboard menaut ke sini. Palang sama
-                    # ketatnya dengan /laporan/<id>.
-                    bagian = jalur.split("/")
-                    try:
-                        anak_id = int(bagian[2])
-                    except (ValueError, IndexError):
-                        return self._kirim(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    if not self._bisa_lihat_siswa(kon, anak_id):
-                        return self._kirim(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    siswa_baris = kon.execute(
-                        "SELECT * FROM siswa WHERE id = ?", (anak_id,)
-                    ).fetchone()
-                    if not siswa_baris:
-                        return self._kirim(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    ident = self._identitas()
-                    target_inline = None
-                    fragmen_inline = ""
-                    try:
-                        pasangan = urllib.parse.parse_qsl(
-                            urllib.parse.urlsplit(self.path).query,
-                            keep_blank_values=True, errors="strict",
-                        )
-                        if any(kunci == "bantuan" for kunci, _nilai in pasangan):
-                            import assistant_inline
-                            target_inline = assistant_inline.parse_query_host(
-                                "anak", anak_id, pasangan,
-                            )
-                            principal = sessions.ambil_principal_pendamping(
-                                self._ambil_token()
-                            )
-                            fragmen_inline = assistant_http.fragmen_inline(
-                                principal, target_inline,
-                                dalam_form=target_inline.posisi == "latihan",
-                            )
-                    except (ValueError, LookupError):
-                        return self._kirim_privat(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    qs = urllib.parse.parse_qs(
-                        urllib.parse.urlparse(self.path).query
-                    ) if self.path and not target_inline else {}
-                    try:
-                        sorot = int(qs.get("sorot", ["0"])[0]) or None
-                    except (TypeError, ValueError):
-                        sorot = None
-                    pesan = (qs.get("pesan", [""])[0] or "")[:200]
-                    query_profil = urllib.parse.urlsplit(self.path).query if not target_inline else ""
-                    try:
-                        import profile_history
-                        profile_history.parse_filter(query_profil)
-                    except (ValueError, UnicodeError):
-                        return self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
-                    hasil = halaman_anak(
-                        kon, siswa_baris,
-                        peran=ident[1] if ident else "guru",
-                        pengguna=ident[0] if ident else "",
-                        sorot=sorot,
-                        pesan=pesan,
-                        bantuan_rencana=(fragmen_inline if target_inline and target_inline.posisi == "rencana" else ""),
-                        bantuan_latihan=(fragmen_inline if target_inline and target_inline.posisi == "latihan" else ""),
-                        query=query_profil,
-                    )
-                    return self._kirim_privat(hasil) if target_inline else self._kirim(hasil)
-                if jalur.startswith("/laporan/"):
-                    siswa_id = int(jalur.split("/")[2])
-                    if not self._bisa_lihat_siswa(kon, siswa_id):
-                        return self._kirim(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    ident = self._identitas()
-                    return self._kirim(
-                        halaman_laporan(
-                            kon, siswa_id,
-                            pengguna=ident[0] if ident else "",
-                            peran=ident[1] if ident else "guru",
-                            query=urllib.parse.urlsplit(self.path).query,
-                        )
-                    )
-        except (ValueError, IndexError):
-            pass
+        if teacher_http.tangani_profil_get(
+            self,
+            jalur,
+            self.path,
+            halaman_anak=halaman_anak,
+            halaman_laporan=halaman_laporan,
+        ):
+            return
         self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
 
     def _halaman_masuk_stitch(self, galat: str = "", *, lanjut: str = "") -> bytes:

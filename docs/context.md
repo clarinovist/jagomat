@@ -15,7 +15,8 @@ lanjut sesi guru; `share_http.py` memiliki capability satu sesi dan aksi bagikan
 `public_http.py` memiliki halaman publik tanpa data keluarga; `auth_http.py` memiliki
 login/logout; `registration_http.py` memiliki pendaftaran keluarga;
 `account_http.py` memiliki halaman dan mutasi akun guru; `teacher_http.py` memiliki
-beranda/alias guru; sementara `attachment_http.py` memagari baca, upload, dan penerapan foto guru.
+beranda, workspace anak, dan laporan; sementara `attachment_http.py` memagari baca,
+upload, dan penerapan foto guru.
 Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 
 | Lapisan | Modul dan tanggung jawab |

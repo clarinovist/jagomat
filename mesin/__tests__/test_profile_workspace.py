@@ -12,6 +12,7 @@ import database
 import design_tokens as T
 import profile_workspace
 import teacher_pages
+import web
 from http_test_kit import ServerUji, SANDI_GURU
 
 
@@ -184,6 +185,22 @@ def server(tmp_path, monkeypatch):
         asing=database.tambah_siswa(kon,'Anak asing','P3',pemilik='asing')
     yield s,anak,asing
     s.berhenti()
+
+
+def test_rute_profil_mempertahankan_lookup_renderer_fasad(server, monkeypatch):
+    s, anak, _ = server
+    asli = web.halaman_anak
+    panggilan = []
+
+    def render_terpantau(*args, **kwargs):
+        panggilan.append(int(args[1]["id"]))
+        return asli(*args, **kwargs)
+
+    monkeypatch.setattr(web, "halaman_anak", render_terpantau)
+    assert s.minta(
+        f"/anak/{anak}", auth=("guru", SANDI_GURU)
+    )[0] == 200
+    assert panggilan == [anak]
 
 
 @pytest.mark.parametrize('query', ['section=asing','section=riwayat&halaman=0','section=riwayat&halaman=-1','section=riwayat&halaman=1&halaman=2','section=riwayat&mulai=2026-02-30','section=riwayat&mulai=2026-10-01&sampai=2026-09-01','section=riwayat&tinjauan=palsu','section=riwayat&jenis=hapus','section=riwayat&topik=%27%20OR%201%3D1--'])
