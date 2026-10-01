@@ -23,7 +23,7 @@ Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 | --- | --- |
 | Identitas | `auth.py`, `sessions.py`: akun dan sesi login; `students.py`: data anak |
 | Soal | `topics.py` + `topic_*.py`: topik; `generator.py`: pembangkitan; `templates.py`: kontrak soal |
-| Penyajian | `render.py`, `worksheets.py`, `*_pages.py`, `*_ui.py`: HTML, lembar dan layar; `teacher_shell.py`: bingkai/topbar halaman pengelola; `teacher_workspace.py`: profil anak dan form latihan |
+| Penyajian | `render.py`, `worksheets.py`, `*_pages.py`, `*_ui.py`: HTML, lembar dan layar; `teacher_shell.py`: bingkai/topbar; `teacher_workspace.py`: profil/form latihan; `teacher_session_pages.py`: detail dan tinjauan sesi |
 | Data | `database.py`, `schema.py`, `*_store.py`, `*_schema.py`: penyimpanan dan migrasi |
 | Belajar | `diagnosis.py`, `learning_cycle.py`, `learning_cycle_service.py`: diagnosis, reducer murni, orkestrasi |
 | Laporan | `reports.py`, `report_*.py`, `mastery_*.py`: laporan dan penguasaan berbasis bukti |
