@@ -85,10 +85,8 @@ def test_pilot_tautan_anak_kirim_dan_cetak(server):
 
 
 @pytest.mark.parametrize('pengguna', ('guru','pengelola'))
-def test_pemulihan_http_owner_checkbox_dan_status_terpisah(server,pengguna,monkeypatch):
-    import domain_clock
-    from test_skill_pilot_recovery import HARI, siapkan_masalah
-    monkeypatch.setattr(domain_clock, 'hari_wib', lambda: HARI)
+def test_pemulihan_http_owner_checkbox_dan_status_terpisah(server,pengguna):
+    from test_skill_pilot_recovery import siapkan_masalah
     s,siswa=server
     auth.tambah_akun('pengelola',SANDI_GURU,'admin',path=auth.BERKAS_SANDI)
     with s.buka() as kon:
