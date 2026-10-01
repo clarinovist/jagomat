@@ -502,6 +502,15 @@ class Penangan(BaseHTTPRequestHandler):
         import attachment_http
         if attachment_http.tangani_get(self, jalur):
             return
+        import session_http
+        if session_http.tangani_get(
+            self,
+            jalur,
+            self.path,
+            halaman_cetak=halaman_sesi_cetak,
+            halaman_sesi=halaman_sesi_stitch,
+        ):
+            return
         try:
             with database.buka() as kon:
                 if jalur.startswith("/sesi/") and jalur.endswith("/hapus"):
@@ -521,95 +530,6 @@ class Penangan(BaseHTTPRequestHandler):
                             _halaman("404", "<h1>Sesi tidak ada</h1>"), 404
                         )
                     return self._kirim(isi)
-                if jalur.startswith("/sesi/") and jalur.endswith("/cetak"):
-                    try:
-                        sesi_id = int(jalur.split("/")[2])
-                    except (ValueError, IndexError):
-                        return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
-                    if not self._bisa_lihat_sesi(kon, sesi_id):
-                        return self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
-                    ident = self._identitas()
-                    isi = halaman_sesi_cetak(
-                        kon, sesi_id,
-                        peran=ident[1] if ident else "guru",
-                        pengguna=ident[0] if ident else "",
-                    )
-                    if isi is None:
-                        return self._kirim(_halaman("404", "<h1>Sesi tidak ada</h1>"), 404)
-                    return self._kirim(isi)
-                if jalur.startswith("/sesi/"):
-                    sesi_id = int(jalur.split("/")[2])
-                    if not self._bisa_lihat_sesi(kon, sesi_id):
-                        return self._kirim(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    ident = self._identitas()
-                    target_inline = None
-                    fragmen_inline = ""
-                    try:
-                        pasangan = urllib.parse.parse_qsl(
-                            urllib.parse.urlsplit(self.path).query,
-                            keep_blank_values=True, errors="strict",
-                        )
-                        if any(kunci == "bantuan" for kunci, _nilai in pasangan):
-                            import assistant_inline
-                            target_inline = assistant_inline.parse_query_host(
-                                "sesi", sesi_id, pasangan,
-                            )
-                            principal = sessions.ambil_principal_pendamping(
-                                self._ambil_token()
-                            )
-                            status_inline = kon.execute(
-                                "SELECT selesai, dibatalkan FROM sesi WHERE id = ?", (sesi_id,)
-                            ).fetchone()
-                            fragmen_inline = assistant_http.fragmen_inline(
-                                principal, target_inline,
-                                dalam_form=bool(
-                                    status_inline and status_inline["selesai"]
-                                    and status_inline["dibatalkan"] is None
-                                ),
-                            )
-                    except (ValueError, LookupError):
-                        return self._kirim_privat(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    # Validasi bantuan selesai sebelum stamp direview.
-                    # Guru membuka sesi yang SUDAH DIKIRIM = momen review.
-                    # Pratinjau sebelum pengumpulan tidak pernah menandai review.
-                    if ident and ident[1] == "guru":
-                        siap = kon.execute(
-                            """SELECT 1 FROM sesi
-                               WHERE id = ? AND direview IS NULL
-                                 AND selesai IS NOT NULL""",
-                            (sesi_id,),
-                        ).fetchone()
-                        if siap:
-                            kon.execute(
-                                "UPDATE sesi SET direview = "
-                                "datetime('now', '+7 hours') WHERE id = ?",
-                                (sesi_id,),
-                            )
-                            kon.commit()
-                    # Redirect simpan memakai pesan tetap. Query bebas/ganda
-                    # tidak boleh menjadi isi banner atau mengklaim konfirmasi.
-                    pesan_tinjauan = (
-                        'Tinjauan tersimpan. Konfirmasi hasil tetap merupakan langkah terpisah.'
-                        if [nilai for kunci, nilai in pasangan if kunci == 'pesan'] == ['Tinjauan tersimpan']
-                        else ''
-                    )
-                    hasil = halaman_sesi_stitch(
-                        kon, sesi_id, pesan=pesan_tinjauan,
-                        peran=ident[1] if ident else "guru",
-                        pengguna=ident[0] if ident else "",
-                        bantuan=fragmen_inline,
-                        bantuan_nomor=(target_inline.nomor if target_inline else None),
-                    )
-                    if ident and ident[1] == 'guru' and kon.execute('SELECT 1 FROM sesi WHERE id=? AND selesai IS NOT NULL', (sesi_id,)).fetchone():
-                        kon.commit()
-                        import product_analytics_http as analitik
-                        return analitik.kirim_dan_catat(self, hasil, sesi_id, 'panduan_hasil_disajikan',
-                                                       pengguna=ident[0], peran=ident[1], privat=bool(target_inline))
-                    return self._kirim_privat(hasil) if target_inline else self._kirim(hasil)
                 if jalur.startswith("/anak/") and jalur.count("/") >= 2:
                     # History satu anak (feedback Filia 1 Sep 2026 no. 6):
                     # kartu nama di dashboard menaut ke sini. Palang sama
@@ -1307,57 +1227,14 @@ class Penangan(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        if not jalur.startswith("/sesi/"):
-            return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
-
-        panjang = int(self.headers.get("Content-Length", 0))
-        mentah = self.rfile.read(panjang).decode("utf-8")
-        data = {
-            k: v[0]
-            for k, v in urllib.parse.parse_qs(mentah, keep_blank_values=True).items()
-        }
-        # Metadata presence hanya untuk pemulihan draf pada aksi Pendamping.
-        # Handler simpan/konfirmasi resmi tidak boleh meneruskannya ke domain.
-        data = {
-            k: v for k, v in data.items()
-            if k != "hadir_sertakan_pemetaan"
-            and not k.startswith(("hadir_dilewati_", "hadir_belum_"))
-        }
-
-        sesi_id = int(jalur.split("/")[2])
-        with database.buka() as kon:
-            kon.execute('BEGIN IMMEDIATE')
-            if not self._bisa_lihat_sesi(kon, sesi_id):
-                return self._kirim(
-                    _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                )
-            status = kon.execute(
-                "SELECT selesai FROM sesi WHERE id = ?", (sesi_id,)
-            ).fetchone()
-            if not status or not status["selesai"]:
-                return self._kirim(
-                    _halaman(
-                        "Belum dikirim",
-                        "<h1>Koreksi belum tersedia</h1>"
-                        "<p>Anak belum menekan Selesai &amp; kirim.</p>",
-                    ),
-                    409,
-                )
-            ident = self._identitas()
-            try:
-                pesan = simpan_sesi(kon, sesi_id, data, guru=ident[0])
-            except ValueError as galat:
-                kon.rollback()
-                return self._kirim(_halaman('Tinjauan belum tersimpan', '<h1>Tinjauan belum tersimpan</h1><p>' + html.escape(str(galat)) + '</p>'), 400)
-            kon.commit()  # Respons sukses harus melihat invalidasi yang sudah tersimpan.
-            ident = self._identitas()
-            self._kirim(
-                halaman_sesi_stitch(
-                    kon, sesi_id, pesan,
-                    peran=ident[1] if ident else "guru",
-                    pengguna=ident[0] if ident else "",
-                )
-            )
+        if session_http.tangani_review_post(
+            self,
+            jalur,
+            simpan_review=simpan_sesi,
+            halaman_sesi=halaman_sesi_stitch,
+        ):
+            return
+        return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
 
     def log_message(self, *a) -> None:  # senyapkan log akses
         pass

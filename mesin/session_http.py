@@ -11,6 +11,7 @@ import html
 import urllib.parse
 
 import database
+import sessions
 from support_pages import halaman_pesan as _halaman
 
 
@@ -567,3 +568,234 @@ def tangani_pembuatan_remedial(
     penangan.send_header("Content-Length", "0")
     penangan.end_headers()
     return True
+
+
+def tangani_get(
+    penangan,
+    jalur: str,
+    jalur_penuh: str,
+    *,
+    halaman_cetak,
+    halaman_sesi,
+) -> bool:
+    """Tangani tampilan/cetak sesi guru; hapus tetap untuk subfase terpisah."""
+    if not jalur.startswith("/sesi/") or jalur.endswith("/hapus"):
+        return False
+
+    import assistant_http
+
+    try:
+        with database.buka() as kon:
+            if jalur.endswith("/cetak"):
+                try:
+                    sesi_id = int(jalur.split("/")[2])
+                except (ValueError, IndexError):
+                    penangan._kirim(
+                        _halaman("404", "<h1>Tidak ada</h1>"), 404
+                    )
+                    return True
+                if not penangan._bisa_lihat_sesi(kon, sesi_id):
+                    penangan._kirim(
+                        _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+                    )
+                    return True
+                ident = penangan._identitas()
+                isi = halaman_cetak(
+                    kon,
+                    sesi_id,
+                    peran=ident[1] if ident else "guru",
+                    pengguna=ident[0] if ident else "",
+                )
+                if isi is None:
+                    penangan._kirim(
+                        _halaman("404", "<h1>Sesi tidak ada</h1>"), 404
+                    )
+                    return True
+                penangan._kirim(isi)
+                return True
+
+            sesi_id = int(jalur.split("/")[2])
+            if not penangan._bisa_lihat_sesi(kon, sesi_id):
+                penangan._kirim(
+                    _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+                )
+                return True
+            ident = penangan._identitas()
+            target_inline = None
+            fragmen_inline = ""
+            try:
+                pasangan = urllib.parse.parse_qsl(
+                    urllib.parse.urlsplit(jalur_penuh).query,
+                    keep_blank_values=True,
+                    errors="strict",
+                )
+                if any(kunci == "bantuan" for kunci, _nilai in pasangan):
+                    import assistant_inline
+                    target_inline = assistant_inline.parse_query_host(
+                        "sesi", sesi_id, pasangan
+                    )
+                    principal = sessions.ambil_principal_pendamping(
+                        penangan._ambil_token()
+                    )
+                    status_inline = kon.execute(
+                        "SELECT selesai, dibatalkan FROM sesi WHERE id = ?",
+                        (sesi_id,),
+                    ).fetchone()
+                    fragmen_inline = assistant_http.fragmen_inline(
+                        principal,
+                        target_inline,
+                        dalam_form=bool(
+                            status_inline
+                            and status_inline["selesai"]
+                            and status_inline["dibatalkan"] is None
+                        ),
+                    )
+            except (ValueError, LookupError):
+                penangan._kirim_privat(
+                    _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+                )
+                return True
+
+            # Validasi bantuan selesai sebelum stamp direview.
+            if ident and ident[1] == "guru":
+                siap = kon.execute(
+                    """SELECT 1 FROM sesi
+                       WHERE id = ? AND direview IS NULL
+                         AND selesai IS NOT NULL""",
+                    (sesi_id,),
+                ).fetchone()
+                if siap:
+                    kon.execute(
+                        "UPDATE sesi SET direview = "
+                        "datetime('now', '+7 hours') WHERE id = ?",
+                        (sesi_id,),
+                    )
+                    kon.commit()
+
+            pesan_tinjauan = (
+                "Tinjauan tersimpan. Konfirmasi hasil tetap merupakan langkah "
+                "terpisah."
+                if [
+                    nilai for kunci, nilai in pasangan if kunci == "pesan"
+                ] == ["Tinjauan tersimpan"]
+                else ""
+            )
+            hasil = halaman_sesi(
+                kon,
+                sesi_id,
+                pesan=pesan_tinjauan,
+                peran=ident[1] if ident else "guru",
+                pengguna=ident[0] if ident else "",
+                bantuan=fragmen_inline,
+                bantuan_nomor=(target_inline.nomor if target_inline else None),
+            )
+            selesai = bool(
+                ident
+                and ident[1] == "guru"
+                and kon.execute(
+                    "SELECT 1 FROM sesi WHERE id=? AND selesai IS NOT NULL",
+                    (sesi_id,),
+                ).fetchone()
+            )
+            if selesai:
+                # Respons/analitik harus melihat stamp review yang sudah commit.
+                kon.commit()
+                import product_analytics_http as analitik
+                analitik.kirim_dan_catat(
+                    penangan,
+                    hasil,
+                    sesi_id,
+                    "panduan_hasil_disajikan",
+                    pengguna=ident[0],
+                    peran=ident[1],
+                    privat=bool(target_inline),
+                )
+                return True
+            if target_inline:
+                penangan._kirim_privat(hasil)
+            else:
+                penangan._kirim(hasil)
+            return True
+    except (ValueError, IndexError):
+        penangan._kirim(
+            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+        )
+        return True
+
+
+def tangani_review_post(
+    penangan,
+    jalur: str,
+    *,
+    simpan_review,
+    halaman_sesi,
+) -> bool:
+    """Simpan koreksi sesi umum setelah route aksi khusus mendapat prioritas."""
+    if not jalur.startswith("/sesi/"):
+        return False
+
+    panjang = int(penangan.headers.get("Content-Length", 0))
+    mentah = penangan.rfile.read(panjang).decode("utf-8")
+    data = {
+        kunci: nilai[0]
+        for kunci, nilai in urllib.parse.parse_qs(
+            mentah, keep_blank_values=True
+        ).items()
+    }
+    data = {
+        kunci: nilai
+        for kunci, nilai in data.items()
+        if kunci != "hadir_sertakan_pemetaan"
+        and not kunci.startswith(("hadir_dilewati_", "hadir_belum_"))
+    }
+
+    sesi_id = int(jalur.split("/")[2])
+    with database.buka() as kon:
+        kon.execute("BEGIN IMMEDIATE")
+        if not penangan._bisa_lihat_sesi(kon, sesi_id):
+            penangan._kirim(
+                _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+            )
+            return True
+        status = kon.execute(
+            "SELECT selesai FROM sesi WHERE id = ?", (sesi_id,)
+        ).fetchone()
+        if not status or not status["selesai"]:
+            penangan._kirim(
+                _halaman(
+                    "Belum dikirim",
+                    "<h1>Koreksi belum tersedia</h1>"
+                    "<p>Anak belum menekan Selesai &amp; kirim.</p>",
+                ),
+                409,
+            )
+            return True
+        ident = penangan._identitas()
+        try:
+            pesan = simpan_review(
+                kon, sesi_id, data, guru=ident[0]
+            )
+        except ValueError as galat:
+            kon.rollback()
+            penangan._kirim(
+                _halaman(
+                    "Tinjauan belum tersimpan",
+                    "<h1>Tinjauan belum tersimpan</h1><p>"
+                    + html.escape(str(galat))
+                    + "</p>",
+                ),
+                400,
+            )
+            return True
+        kon.commit()
+        ident = penangan._identitas()
+        penangan._kirim(
+            halaman_sesi(
+                kon,
+                sesi_id,
+                pesan,
+                peran=ident[1] if ident else "guru",
+                pengguna=ident[0] if ident else "",
+            )
+        )
+        return True

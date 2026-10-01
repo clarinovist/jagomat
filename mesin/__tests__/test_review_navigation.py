@@ -5,7 +5,9 @@ import pytest
 
 import database
 import teacher_pages
+import web
 from assistant_inline import DrafButir, DrafKoreksi
+from http_test_kit import SANDI_GURU
 from test_teacher_corrections import FormKoreksi
 
 
@@ -148,6 +150,51 @@ def test_navigasi_hanya_merender_identitas_kartu_internal(sid,nomor):
     from review_navigation import render_antrean
     with pytest.raises(ValueError):
         render_antrean([(sid,nomor)])
+
+
+def test_get_sesi_mempertahankan_lookup_renderer_fasad(server, monkeypatch):
+    """Modul route menerima renderer façade pada saat dispatch, bukan impor beku."""
+    asli_sesi = web.halaman_sesi_stitch
+    asli_cetak = web.halaman_sesi_cetak
+    panggilan = []
+
+    def render_sesi(*args, **kwargs):
+        panggilan.append(("sesi", args[1]))
+        return asli_sesi(*args, **kwargs)
+
+    def render_cetak(*args, **kwargs):
+        panggilan.append(("cetak", args[1]))
+        return asli_cetak(*args, **kwargs)
+
+    monkeypatch.setattr(web, "halaman_sesi_stitch", render_sesi)
+    monkeypatch.setattr(web, "halaman_sesi_cetak", render_cetak)
+    assert server.minta(
+        f"/sesi/{server.sesi}", auth=("guru", SANDI_GURU)
+    )[0] == 200
+    assert server.minta(
+        f"/sesi/{server.sesi}/cetak", auth=("guru", SANDI_GURU)
+    )[0] == 200
+
+    assert panggilan == [("sesi", server.sesi), ("cetak", server.sesi)]
+
+
+def test_post_review_mempertahankan_lookup_service_fasad(server, monkeypatch):
+    panggilan = []
+
+    def simpan_terpantau(_kon, sesi_id, _data, *, guru):
+        panggilan.append((sesi_id, guru))
+        return "Tinjauan sintetis"
+
+    monkeypatch.setattr(web, "simpan_sesi", simpan_terpantau)
+    status, isi, _ = server.minta(
+        f"/sesi/{server.sesi}",
+        auth=("guru", SANDI_GURU),
+        data={f"jwb_{server.ids[0]}": ""},
+    )
+
+    assert status == 200
+    assert "Tinjauan sintetis" in isi
+    assert panggilan == [(server.sesi, "guru")]
 
 
 def test_simpan_tinjauan_redirect_get_menampilkan_status_tetap(server):
