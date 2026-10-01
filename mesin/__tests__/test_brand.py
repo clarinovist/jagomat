@@ -242,8 +242,8 @@ def test_tag_kepala_dipakai_bukan_disalin():
     tidak ada yang sadar."""
     for nama in (
         "landing.py",
-        "web.py",
-        "teacher_pages.py",
+        "auth_http.py",
+        "teacher_shell.py",
         "student_pages.py",
         "attachments.py",
         "render.py",
@@ -257,8 +257,8 @@ def test_tag_kepala_dipakai_bukan_disalin():
 
 MODUL_HALAMAN = (
     "landing.py",
-    "web.py",
-    "teacher_pages.py",
+    "auth_http.py",
+    "teacher_shell.py",
     "student_pages.py",
     "attachments.py",
     "render.py",

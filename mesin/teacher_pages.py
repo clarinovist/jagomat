@@ -1,10 +1,9 @@
-"""Halaman-halaman guru: dashboard, sesi, konfirmasi hapus, lembar.
+"""Façade kompatibel halaman guru: workspace, sesi, review, dan lembar.
 
-Dipecah dari web.py (refactor 31 Aug 2026) — fungsi pindah utuh, perilaku
-identik. Router HTTP tetap di web.py; frame halaman (_halaman/_topbar)
-tinggal di sini dan dipakai reports.py serta account_pages.py.
-Aturan lama tetap berlaku: modul ini tidak boleh mengimpor students di atas
-file (impor terlambat di dalam fungsi, lihat pemakaian aslinya).
+Router HTTP tetap di web.py. Bingkai/topbar dimiliki ``teacher_shell.py``
+dan di-re-export di sini agar caller lama tetap bekerja. Aturan lama tetap:
+modul ini tidak boleh mengimpor students di atas file (impor terlambat di
+fungsi yang membutuhkannya).
 """
 
 from __future__ import annotations
@@ -33,8 +32,13 @@ from template_labels import nama_tipe_soal as _nama_template
 from templates import LEVEL, Soal
 from question_context import label_profil_parameter as label_kelas
 from topics import TOPIK_BAWAAN, ambil, daftar_topik, dari_sesi
-from teacher_style import GAYA_GURU as GAYA, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
-from style_stitch import GAYA_STITCH
+from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
+from teacher_shell import (
+    _halaman,
+    _halaman_stitch,
+    _topbar,
+    _topbar_stitch,
+)
 
 
 KODE_PILIHAN = [
@@ -164,53 +168,6 @@ def _form_remedial(
         f'<div class="profil-assistant-st">{bantuan}</div></form></section>'
     )
 
-
-def _halaman(
-    judul: str, isi: str, ident: tuple[str, str] | None = None,
-    stitch: bool = False, kelas_bungkus: str = "", id_utama: str = "",
-    privat: bool = False,
-) -> bytes:
-    """Bingkai semua halaman pengelola. `ident=(pengguna, peran)` menampilkan
-    topbar dengan menu pengguna di atas isi — satu pintu agar konsisten.
-
-    stitch=True: pakai GAYA_STITCH + body.st + <link> font CDN (S11-S17).
-    `kelas_bungkus` hanya berlaku pada bingkai Stitch untuk kanvas khusus.
-    `id_utama` opsional memberi landmark main; default menjaga markup lama.
-    """
-    if stitch:
-        from style_stitch import gaya_stitch, CSS_SESI
-        batang = _topbar_stitch(*ident) if ident else ""
-        kelas = f"bungkus-st {kelas_bungkus}".strip()
-        buka_isi = (
-            f'<main class="sesi-badan-st" aria-labelledby="{html.escape(id_utama)}">'
-            if id_utama else '<div class="sesi-badan-st">'
-        )
-        tutup_isi = "</main>" if id_utama else "</div>"
-        font = "" if privat else """<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">"""
-        gaya = gaya_stitch()
-        if 'akun-editorial-st' in kelas_bungkus.split():
-            from question_variants_ui import GAYA_VARIASI
-            gaya += GAYA_VARIASI
-        if privat:
-            gaya = gaya.replace(
-                "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",
-                "",
-            )
-        return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(brand.judul(judul))}</title>
-{brand.tag_kepala()}
-{font}
-<style>{GAYA}{gaya}{CSS_SESI}</style></head>
-<body class="st"><div class="{kelas}">{batang}{buka_isi}{isi}{tutup_isi}</div>{'' if privat else f'<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script>'}</body></html>""".encode()
-    batang = _topbar(*ident) if ident else ""
-    return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(brand.judul(judul))}</title>
-{brand.tag_kepala()}<style>{GAYA}</style></head>
-<body><div class="bungkus">{batang}{isi}</div><script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script></body></html>""".encode()
 
 def _soal_dari_baris(baris) -> Soal:
     """Wrapper kompatibilitas menuju adapter pembaca penyajian sesi."""
@@ -377,120 +334,6 @@ def _fmt_durasi(mulai, selesai, dicatat_awal=None, dicatat_akhir=None) -> str:
         if detik > 0:
             return f"{detik // 60}:{detik % 60:02d}"
     return "&mdash;"
-
-def _badge_peran(peran: str) -> str:
-    """Penanda peran di topbar — supaya siapa pun langsung tahu di sisi mana
-    dia berada. Murid punya dunia visual sendiri, jadi cukup dua ini."""
-    if peran == "admin":
-        return '<span class="badge-peran badge-peran-admin">Pengelola</span>'
-    if peran == "guru":
-        return '<span class="badge-peran badge-peran-guru">Orang Tua / Guru</span>'
-    return ""
-
-def _topbar(pengguna: str, peran: str) -> str:
-    """Topbar semua halaman pengelola: brand + menu pengguna dropdown.
-
-    Menu dari <details> CSS-only — tanpa JS. Gemboknya nama akun + badge
-    peran supaya keluhan "cuma teks polos" hilang: batas menunya jelas.
-    Isinya menyesuaikan peran (guru: pintu keluarga; admin: dashboard,
-    pengaturan AI, dan ganti sandi), lalu satu pintu keluar."""
-    if peran == "admin":
-        brand_href, item = "/admin", (
-            '<a href="/admin">Dashboard admin</a>'
-            '<a href="/admin/ai">Pengaturan AI</a>'
-            '<a href="/akun?section=akun">Ganti sandi</a>'
-        )
-    else:
-        brand_href, item = "/guru", '<a href="/akun">Akun &amp; Siswa</a>'
-    siapa = html.escape(pengguna) if pengguna else ""
-    return (
-        f'<div class="topbar">'
-        f'<a class="brand" href="{brand_href}">'
-        f'{brand.mark("topbar")}<span>{T.NAMA_PRODUK}</span></a>'
-        f'<nav class="topbar-navigasi">'
-        f'<details class="menu-pengguna">'
-        f'<summary>{siapa} {_badge_peran(peran)}</summary>'
-        f'<div class="menu-isi">{item}'
-        f'<div class="menu-pisah"></div>'
-        f'<form method="post" action="/keluar" style="margin:0">'
-        f'<button type="submit">Keluar</button>'
-        f"</form></div></details></nav></div>"
-    )
-
-
-def _topbar_stitch(pengguna: str, peran: str) -> str:
-    """Topbar versi Stitch — pakai .st-topbar supaya CSS lama tidak dicampur.
-
-    Menu pengguna tetap CSS-only (<details>), satu pintu keluar, tautan
-    menyesuaikan peran. Logo ikon owl = Material Symbols 'school'.
-    """
-    if peran == "admin":
-        brand_href, item = "/admin", (
-            '<a href="/admin">Dashboard admin</a>'
-            '<a href="/admin/ai">Pengaturan AI</a>'
-            '<a href="/akun?section=akun">Ganti sandi</a>'
-        )
-    else:
-        brand_href, item = "/guru", '<a href="/akun">Akun &amp; Siswa</a>'
-    siapa = html.escape(pengguna) if pengguna else ""
-    ringkasan_akun = (
-        '<summary><span class="identitas-akun-st">'
-        f'{_badge_peran(peran)}<span class="nama-akun-st">{siapa}</span></span>'
-        '<span class="panah-akun-st" aria-hidden="true">⌄</span></summary>'
-        if siapa else '<summary aria-label="Menu pendamping">Menu</summary>'
-    )
-    return (
-        '<div class="st-topbar">'
-        f'<a class="brand" href="{brand_href}">'
-        f'{brand.mark("topbar")}'
-        f'<span class="nama">{html.escape(T.NAMA_PRODUK)}</span>'
-        "</a>"
-        '<nav class="topbar-navigasi" aria-label="Menu akun">'
-        '<details class="menu-pengguna">'
-        f'{ringkasan_akun}<div class="menu-isi">{item}'
-        '<div class="menu-pisah"></div>'
-        '<form method="post" action="/keluar" style="margin:0">'
-        '<button type="submit" class="cta">Keluar</button>'
-        "</form></div></details></nav></div>"
-    )
-
-
-def _halaman_stitch(
-    judul: str, isi: str, ident: tuple[str, str] | None = None,
-    kelas_bungkus: str = "", privat: bool = False,
-) -> bytes:
-    """Bingkai halaman versi Stitch — pakai GAYA_STITCH dan body.st.
-
-    Dipisah dari _halaman lama supaya halaman lama tetap utuh; fungsi ini
-    satu-satunya penghubung ke CSS Stitch di tree.
-
-    `kelas_bungkus` menempel di .bungkus-st untuk halaman yang butuh kanvas
-    berbeda (mis. "lebar" di /anak/<id> yang memakai dua kolom di desktop).
-    Bawaannya kosong: semua pemanggil lama menghasilkan HTML yang sama persis.
-    """
-    batang = _topbar_stitch(*ident) if ident else ""
-    kelas = f"bungkus-st {kelas_bungkus}".strip()
-    font = "" if privat else """<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">"""
-    gaya = GAYA_STITCH
-    if "profil-workspace-st" in kelas_bungkus:
-        from question_variants_ui import GAYA_VARIASI
-        gaya += profile_workspace.GAYA_PROFIL + GAYA_VARIASI
-    if privat:
-        gaya = gaya.replace(
-            "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",
-            "",
-        )
-    skrip = "" if privat else f"<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script>"
-    return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(brand.judul(judul))}</title>
-{brand.tag_kepala(cetak=privat)}
-{font}
-<style>{gaya}</style></head>
-<body class="st"><div class="{kelas}">{batang}{isi}</div>{skrip}</body></html>""".encode()
-
 
 def _kelas_sekolah_profil(kon, siswa):
     """Caller sudah mengotorisasi; profil tanpa pemilik tidak ditebak kelasnya."""
