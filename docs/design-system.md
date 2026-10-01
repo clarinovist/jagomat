@@ -172,9 +172,13 @@ Dari 9 mockup, pattern yang berulang:
    tidak aktif. Gabungan topik tetap memakai aksi eksplisit.
 
 9. **Navigasi profil dan periode laporan** — Laporan perkembangan adalah tujuan
-   keempat pada tab profil, bukan tautan kedua di kepala Riwayat. Ringkasan laporan
-   memakai tautan preset 7 hari, minggu ini, bulan ini, serta form GET tanggal mulai
-   dan selesai untuk rentang sendiri; seluruh rentang bersifat inklusif dan berzona WIB.
+   keempat pada tab profil, bukan tautan kedua di kepala Riwayat. Keempat tujuan
+   mempertahankan header identitas anak yang sama; di laporan, nama anak tetap menjadi
+   H1 dan “Laporan perkembangan” menjadi judul bagian. Subnavigasi laporan memakai
+   tab garis bawah yang tenang, bukan pill terisi yang bersaing dengan tab profil.
+   Ringkasan laporan memakai tautan preset 7 hari, minggu ini, bulan ini, serta form
+   GET tanggal mulai dan selesai untuk rentang sendiri; seluruh rentang bersifat
+   inklusif dan berzona WIB.
 
 10. **Dropdown** — `<select>` satu-pilihan tetap memakai kontrol native, tetapi
     indikator bawaan diganti chevron CSS bersama dari `form_style.py`. Chevron

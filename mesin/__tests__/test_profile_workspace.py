@@ -9,6 +9,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import database
+import design_tokens as T
+import profile_workspace
 import teacher_pages
 from http_test_kit import ServerUji, SANDI_GURU
 
@@ -63,6 +65,13 @@ def test_208_sesi_dipaginasi_20_dan_tidak_bocor_keluarga(db):
         assert f'action="/sesi-baru/{anak}"' not in isi
         assert 'class="kartu-rencana-st"' not in isi
     assert tuple(kon.iterdump()) == sebelum
+
+
+def test_tipografi_riwayat_memakai_skala_label_untuk_data_utama():
+    aturan = profile_workspace.GAYA_PROFIL.split(
+        ".tabel-riwayat-st th,.profil-workspace-st .tabel-riwayat-st td", 1
+    )[1].split("}", 1)[0]
+    assert f"font-size:{T.UKURAN_TEKS_LABEL}" in aturan
 
 
 def test_riwayat_menyebut_format_pg_dan_id_sumber_remedial(db):

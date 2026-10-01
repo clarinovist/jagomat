@@ -34,14 +34,17 @@ GAYA_LAPORAN = f"""
   width:100%; max-width:10rem; accent-color:{T.AKSEN_TEAL_TUA}; display:block; margin-top:{T.SP_2};
 }}
 .laporan-editorial-st .laporan-navigasi {{
-  display:flex; flex-wrap:wrap; gap:{T.SP_2}; margin:0 0 {T.SP_5};
-  border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; padding-bottom:{T.SP_3};
+  display:flex; flex-wrap:wrap; gap:{T.SP_5}; margin:0 0 {T.SP_5};
+  border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS};
 }}
 .laporan-editorial-st .laporan-navigasi a {{
   display:inline-flex; align-items:center; justify-content:center; min-height:{T.TARGET_SENTUH};
-  padding:{T.SP_3} {T.SP_4}; border-radius:{T.RADIUS_KECIL}; text-decoration:none; font-weight:600;
+  padding:{T.SP_2} 0; border-bottom:2px solid transparent; text-decoration:none;
+  color:{T.TEKS_VARIAN}; font-weight:600;
 }}
-.laporan-editorial-st .laporan-navigasi a[aria-current="page"] {{background:{T.AKSEN_TEAL_TUA};color:{T.TEKS_PUTIH};}}
+.laporan-editorial-st .laporan-navigasi a[aria-current="page"] {{
+  background:transparent; color:{T.AKSEN_TEAL_TUA}; border-bottom:2px solid {T.AKSEN_TEAL_TUA};
+}}
 .laporan-editorial-st .laporan-resume {{border-top:3px solid {T.AKSEN_TEAL_TUA};}}
 .laporan-editorial-st .resume-langkah {{font-size:1.12rem; font-weight:600;}}
 .laporan-editorial-st .resume-konteks {{
@@ -83,7 +86,7 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .peta-bukti a,.laporan-editorial-st #perjalanan-belajar li a,.laporan-editorial-st .tabel-tren a {{display:inline-flex;align-items:center;min-height:{T.TARGET_SENTUH};}}
 .laporan-editorial-st #konten-laporan {{min-width:0;}}
 .laporan-editorial-st .laporan-paginasi span {{white-space:nowrap;}}
-.laporan-editorial-st .laporan-ringkasan-grid .laporan-resume {{background:{T.LATAR_TERSIMPAN};}}
+.laporan-editorial-st .laporan-ringkasan-grid .laporan-resume {{background:{T.LATAR_KARTU};}}
 .laporan-editorial-st .laporan-resume .ringkasan-laporan {{background:transparent;}}
 @media(min-width:46.01rem) and (max-width:63.99rem) {{
  .laporan-editorial-st .laporan-ringkasan-grid {{grid-template-columns:minmax(0,1fr);}}
@@ -107,7 +110,7 @@ GAYA_LAPORAN = f"""
   .laporan-editorial-st .laporan-rentang-form {{display:grid;grid-template-columns:minmax(0,1fr);}}
   .laporan-editorial-st .laporan-rentang-form button {{width:100%;}}
   .laporan-editorial-st .resume-konteks {{grid-template-columns:minmax(0,1fr);gap:{T.SP_2};}}
-  .laporan-editorial-st .laporan-navigasi {{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));}}
+  .laporan-editorial-st .laporan-navigasi {{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:{T.SP_2};}}
   .laporan-editorial-st .laporan-navigasi a {{font-size:.85rem;padding:{T.SP_2};text-align:center;}}
   .laporan-editorial-st .tabel-tren td > span {{min-width:0;overflow-wrap:anywhere;}}
   .laporan-editorial-st .tabel-tren td[colspan]::before {{display:none;}}

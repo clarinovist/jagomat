@@ -663,7 +663,7 @@ tr.sorot-baru, div.sorot-baru {{
   display: flex; align-items: center; justify-content: space-between;
   gap: {T.SP_3}; margin-bottom: {T.SP_3};
 }}
-.kepala-riwayat-st h2.st {{ margin: 0; font-size: 1.2rem; }}
+.kepala-riwayat-st h2.st {{ margin: 0; font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
 .tautan-laporan-st {{
   display: inline-flex; align-items: center; gap: {T.SP_1};
   color: {T.AKSEN_TEAL_TUA}; font-family: {T.FONT_HEADLINE};

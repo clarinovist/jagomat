@@ -12,6 +12,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import database  # noqa: E402
+import design_tokens as T  # noqa: E402
+import profile_workspace  # noqa: E402
 import reports  # noqa: E402
 import teacher_style  # noqa: E402
 
@@ -378,17 +380,49 @@ def test_hierarki_utama_memisahkan_penguasaan_dari_aktivitas(db):
     assert "Arti nilai anak" not in utama
 
 
-def test_laporan_memakai_kanvas_lebar_dan_kembali_ke_riwayat_anak(db):
+def test_laporan_memakai_identitas_dan_kanvas_ruang_anak_yang_sama(db):
     with database.buka(db) as kon:
-        sid = database.tambah_siswa(kon, "Claudia")
+        sid = database.tambah_siswa(kon, "Claudia", pemilik="ortu")
         h = reports.halaman_laporan(kon, sid, pengguna="ortu").decode()
 
     isi = h.split("</style>", 1)[1]
     assert 'class="bungkus-st laporan-lebar pendamping-editorial-st laporan-editorial-st profil-workspace-st"' in h
     assert '<a href="/guru">&larr; Semua anak</a>' in isi
+    assert '<header class="kepala-anak-st editorial-kepala-st">' in isi
+    assert '<h1 class="st" id="judul-profil-laporan">Claudia ' in isi
+    assert "(Kelas belum diisi)" in isi
+    assert '>Ubah kelas</a>' in isi
     assert f'<a href="/anak/{sid}?section=riwayat">Riwayat' in isi
-    assert "Laporan perkembangan Claudia" in isi
-    assert "Laporan — Claudia" not in isi
+    assert '<h2 class="st" id="judul-laporan">Laporan perkembangan</h2>' in isi
+    assert "CATATAN PERKEMBANGAN" not in isi
+    assert "Laporan perkembangan Claudia" not in isi
+    assert 'aria-labelledby="judul-laporan"' in isi
+    assert (
+        '.pendamping-editorial-st.laporan-editorial-st.profil-workspace-st '
+        f'{{ max-width:{T.LEBAR_LANDING}; }}'
+    ) in profile_workspace.GAYA_PROFIL
+
+
+def test_nuansa_laporan_memakai_subnavigasi_tenang_dan_kartu_netral():
+    aktif = _blok_css(
+        reports.GAYA_LAPORAN,
+        '.laporan-editorial-st .laporan-navigasi a[aria-current="page"]',
+    )
+    kartu = _blok_css(
+        reports.GAYA_LAPORAN,
+        ".laporan-editorial-st .laporan-ringkasan-grid .laporan-resume",
+    )
+
+    assert "background:transparent" in aktif
+    assert "border-bottom:2px solid" in aktif
+    assert f"background:{T.LATAR_KARTU}" in kartu
+    responsif = reports.GAYA_LAPORAN.split(
+        f"@media(max-width:{T.BATAS_KOLOM_BACA})", 1
+    )[1]
+    navigasi = responsif.split(
+        ".laporan-editorial-st .laporan-navigasi {", 1
+    )[1].split("}", 1)[0]
+    assert f"gap:{T.SP_2}" in navigasi
 
 
 def test_urutan_penguasaan_lalu_resume_lalu_aktivitas(db):

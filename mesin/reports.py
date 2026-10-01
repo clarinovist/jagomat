@@ -484,20 +484,29 @@ def halaman_laporan(
                 statistik, _tanggal_pendek, judul=judul_aktivitas,
                 kontrol=_kontrol_periode_aktivitas(siswa_id, periode, mulai, akhir),
             )
-    nama_siswa = html.escape(siswa["nama"])
     total_sesi = kon.execute(
         'SELECT COUNT(*) FROM sesi WHERE siswa_id=?', (siswa_id,)
     ).fetchone()[0]
     kembali = '/admin' if peran == 'admin' else '/guru'
+    kelas_sekolah = None
+    if siswa['pemilik']:
+        from learning_profile import baca
+        kelas_sekolah = baca(
+            kon, siswa_id, pemilik=siswa['pemilik']
+        ).kelas_sekolah
     return _halaman(
         f"Laporan {siswa['nama']}",
         f'<style>{profile_workspace.GAYA_PROFIL}{GAYA_LAPORAN}{GAYA_PETA}</style>'
         f'<div class="jejak"><a href="{kembali}">&larr; Semua anak</a></div>'
-        '<header class="editorial-kepala-st"><p class="editorial-alis-st">CATATAN PERKEMBANGAN</p>'
-        f'<h1 id="judul-laporan">Laporan perkembangan {nama_siswa}</h1></header>'
+        + profile_workspace.bagian_identitas(
+            siswa, peran=peran, kelas_sekolah=kelas_sekolah,
+            id_judul='judul-profil-laporan',
+        )
         + '<nav class="profil-tabs-st" aria-label="Bagian profil anak">'
         + profile_workspace.navigasi_profil(siswa_id, total_sesi, 'laporan')
-        + '</nav>' + navigasi + '<div id="konten-laporan">' + isi + '</div>',
+        + '</nav><div class="kepala-riwayat-st kepala-laporan-st">'
+        + '<h2 class="st" id="judul-laporan">Laporan perkembangan</h2></div>'
+        + navigasi + '<div id="konten-laporan">' + isi + '</div>',
         ident=(pengguna, peran) if pengguna else None,
         stitch=True,
         kelas_bungkus="laporan-lebar pendamping-editorial-st laporan-editorial-st profil-workspace-st",

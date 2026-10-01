@@ -36,20 +36,36 @@ def navigasi_profil(siswa_id, total, aktif):
     )
 
 
-def bingkai(siswa, section, total, isi, *, peran='guru', pesan='', kelas_sekolah=None):
+def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul-profil'):
+    """Header identitas tunggal untuk seluruh ruang anak, termasuk laporan."""
     sid = int(siswa['id'])
     from learning_profile import label_kelas_sekolah
-    nav = navigasi_profil(sid, total, section)
     keluarga = '<span class="st-badge selesai">keluarga: %s</span>' % _e(siswa['pemilik'] or 'warisan') if peran=='admin' else ''
+    tujuan_kelas = (
+        '/admin?section=siswa&amp;id=%d' % sid
+        if peran == 'admin' else '/akun?section=siswa'
+    )
+    return (
+        '<header class="kepala-anak-st editorial-kepala-st">'
+        '<p class="editorial-alis-st">RUANG BELAJAR ANAK</p>'
+        '<div class="profil-identitas-st"><h1 class="st" id="%s">%s '
+        '<span class="st-badge selesai">(%s)</span>%s</h1>'
+        '<a class="profil-ubah-kelas-st" href="%s">Ubah kelas</a></div></header>'
+    ) % (
+        _e(id_judul), _e(siswa['nama']), _e(label_kelas_sekolah(kelas_sekolah)),
+        keluarga, tujuan_kelas,
+    )
+
+
+def bingkai(siswa, section, total, isi, *, peran='guru', pesan='', kelas_sekolah=None):
+    sid = int(siswa['id'])
+    nav = navigasi_profil(sid, total, section)
     kabar = '<div class="st-banner-sukses" role="status">%s</div>' % _e(pesan) if pesan else ''
     return ('<div class="jejak"><a href="%s">&larr; Semua anak</a></div>'
-            '<main aria-labelledby="judul-profil"><header class="kepala-anak-st editorial-kepala-st"><p class="editorial-alis-st">RUANG BELAJAR ANAK</p>'
-            '<div class="profil-identitas-st"><h1 class="st" id="judul-profil">%s <span class="st-badge selesai">(%s)</span>%s</h1>'
-            '<a class="profil-ubah-kelas-st" href="%s">Ubah kelas</a></div></header>'
+            '<main aria-labelledby="judul-profil">%s'
             '<nav class="profil-tabs-st" aria-label="Bagian profil anak">%s</nav>%s%s</main>') % (
-                '/admin' if peran=='admin' else '/guru', _e(siswa['nama']),
-                _e(label_kelas_sekolah(kelas_sekolah)), keluarga,
-                '/admin?section=siswa&amp;id=%d' % sid if peran == 'admin' else '/akun?section=siswa',
+                '/admin' if peran=='admin' else '/guru',
+                bagian_identitas(siswa, peran=peran, kelas_sekolah=kelas_sekolah),
                 nav, kabar, isi)
 
 
@@ -171,7 +187,8 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .pilot-mulai-st > p {{ padding:0 {T.SP_4}; }}
 .profil-workspace-st .pilot-mulai-st label:has(input[type="checkbox"]) {{ display:flex; align-items:flex-start; gap:{T.SP_3}; }}
 .profil-workspace-st .pilot-mulai-st input[type="checkbox"] {{ width:1.25rem; height:1.25rem; min-height:0; flex:none; margin-top:.15rem; }}
-.pendamping-editorial-st.profil-editorial-st.profil-workspace-st {{ max-width:{T.LEBAR_LANDING}; }}
+.pendamping-editorial-st.profil-editorial-st.profil-workspace-st,
+.pendamping-editorial-st.laporan-editorial-st.profil-workspace-st {{ max-width:{T.LEBAR_LANDING}; }}
 .profil-workspace-st .profil-tabs-st {{ display:flex; gap:{T.SP_5}; overflow-x:auto; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; margin-bottom:{T.SP_5}; scrollbar-width:thin; }}
 .profil-workspace-st .profil-tabs-st a {{ display:inline-flex; align-items:center; gap:{T.SP_2}; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} 0; color:{T.TEKS_VARIAN}; text-decoration:none; white-space:nowrap; border-bottom:3px solid transparent; font-weight:650; }}
 .profil-workspace-st .profil-tabs-st a[aria-current] {{ color:{T.AKSEN_TEAL_TUA}; border-color:{T.AKSEN_TEAL_TUA}; }}
@@ -237,7 +254,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-pager-st [aria-current] {{ background:{T.LATAR_TERSIMPAN}; color:{T.AKSEN_TEAL_TUA}; }}
 .profil-workspace-st .profil-table-wrap-st {{ overflow-x:auto; }}
 .profil-workspace-st .tabel-riwayat-st {{ width:100%; border-collapse:collapse; }}
-.profil-workspace-st .tabel-riwayat-st th,.profil-workspace-st .tabel-riwayat-st td {{ padding:{T.SP_3}; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; text-align:left; vertical-align:middle; font-size:{T.UKURAN_TEKS_CATATAN}; }}
+.profil-workspace-st .tabel-riwayat-st th,.profil-workspace-st .tabel-riwayat-st td {{ padding:{T.SP_3}; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; text-align:left; vertical-align:middle; font-size:{T.UKURAN_TEKS_LABEL}; }}
 .profil-workspace-st .tabel-riwayat-st th {{ background:{T.LATAR_SEKUNDER_LEMBUT}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
 .profil-workspace-st .riwayat-latihan-st strong,.profil-workspace-st .riwayat-latihan-st small {{ display:block; }}
 .profil-workspace-st .riwayat-latihan-st small {{ margin-top:{T.SP_1}; color:{T.TEKS_VARIAN}; }}
