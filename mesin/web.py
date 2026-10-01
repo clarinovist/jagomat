@@ -27,7 +27,6 @@ import attachments as lampiran_mod
 import auth
 import brand
 import database
-import share_links
 import sessions
 import design_tokens as T
 from assistant_navigation import tujuan_lanjut
@@ -37,10 +36,9 @@ from account_pages import (
     proses_akun,
 )
 from generator import LEVEL_BAWAAN
-from reports import diagnosa_murid, halaman_laporan
+from reports import halaman_laporan
 from support_pages import halaman_pesan as _halaman
 from teacher_pages import (
-    halaman_bagikan_sesi,
     _soal_dari_baris,
     _nama_template,
     buat_sesi_seed_baru,
@@ -377,115 +375,6 @@ class Penangan(BaseHTTPRequestHandler):
         except Exception:
             self._galat_500()
 
-    def _rute_tautan_get(self, token: str) -> None:
-        """Buka tepat satu lembar dari capability bearer tanpa membuat login."""
-        import student_pages
-
-        tidak_ada = _halaman("404", "<h1>Halaman tidak ada</h1>")
-        with database.buka() as kon:
-            akses = share_links.ambil(kon, token)
-            if not akses:
-                return self._kirim_tautan(tidak_ada, 404)
-            isi = student_pages.halaman_kerja_baru(
-                kon,
-                int(akses["siswa_id"]),
-                int(akses["sesi_id"]),
-                jalur_aksi=f"/mulai/{token}",
-                akses_tautan=True,
-            )
-        if isi is None:
-            return self._kirim_tautan(tidak_ada, 404)
-        return self._kirim_tautan(isi)
-
-    def _rute_tautan_post(self, token: str) -> None:
-        """Simpan jawaban hanya ke sesi yang ditunjuk token aktif."""
-        import students
-
-        tidak_ada = _halaman("404", "<h1>Halaman tidak ada</h1>")
-        panjang = int(self.headers.get("Content-Length", 0) or 0)
-        if panjang > 1_000_000:
-            # Jalur bearer tanpa login paling rawan dikirimi body raksasa —
-            # tolak sebelum membaca, jangan memakan memori per koneksi.
-            return self._kirim_tautan(_halaman(
-                "Terlalu besar",
-                "<h1>Isian terlalu besar</h1><p>Coba muat ulang halaman.</p>",
-            ), 413)
-        mentah = self.rfile.read(panjang).decode("utf-8")
-        pasangan = urllib.parse.parse_qs(mentah, keep_blank_values=True)
-        if any(len(v) != 1 for v in pasangan.values()):
-            return self._kirim_tautan(_halaman("Isian tidak sah", "<h1>Isian ganda tidak diizinkan</h1>"), 400)
-        data = {k: v[0] for k, v in pasangan.items()}
-        with database.buka() as kon:
-            # Kunci tulis mencegah pencabutan menang/kalah di antara validasi
-            # dan penyimpanan jawaban pada dua permintaan yang bersamaan.
-            kon.execute("BEGIN IMMEDIATE")
-            akses = share_links.ambil(kon, token)
-            if not akses:
-                return self._kirim_tautan(tidak_ada, 404)
-            siswa_id = int(akses["siswa_id"])
-            sesi_id = int(akses["sesi_id"])
-            if data.get("aksi") == "mulai":
-                database.tandai_mulai(kon, sesi_id)
-                kon.commit()
-                # Respons capability tetap memakai semua header anti-bocor.
-                return self._kirim_tautan(
-                    json.dumps({"mulai": True}).encode("utf-8")
-                )
-            import student_submissions as kiriman
-            aksi = data.get("aksi", "simpan")
-            if aksi not in ("simpan", "selesai", "kirim_latihan", "kembali"):
-                aksi = "simpan"
-            try:
-                kiriman.validasi_versi(kon, sesi_id, data)
-                if aksi in ("kirim_latihan", "kembali"):
-                    kiriman.simpan_refleksi(kon, sesi_id, data)
-                    hasil = 0
-                else:
-                    hasil = students.simpan_jawaban_murid(kon, siswa_id, sesi_id, data)
-            except ValueError as galat:
-                kon.rollback()
-                return self._kirim_tautan(_halaman("Belum tersimpan", f"<h1>Belum tersimpan</h1><p>{html.escape(str(galat))}</p>"), getattr(galat, "status", 400))
-            if hasil is None:
-                return self._kirim_tautan(tidak_ada, 404)
-            info_sesi = students.sesi_murid(kon, siswa_id, sesi_id)
-            if aksi == "selesai" and kiriman.perlu_refleksi(kon, info_sesi, data):
-                from submission_pages import halaman_refleksi
-                isi = halaman_refleksi(kon, siswa_id, sesi_id, f"/mulai/{token}")
-                kon.commit()
-                return self._kirim_tautan(isi)
-            if hasil:
-                database.tandai_mulai(kon, sesi_id)
-            selesai = aksi in ("selesai", "kirim_latihan")
-            kiriman_baru = not kon.execute('SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?', (sesi_id,)).fetchone()
-            if selesai:
-                kiriman.arsipkan(kon, sesi_id, "tautan")
-                diagnosa_murid(kon, sesi_id)
-                database.tandai_mulai(kon, sesi_id)
-                database.tandai_selesai(kon, sesi_id)
-                # Commit sebelum respons — alasan sama dengan rute bagikan:
-                # GET /mulai/<token> berikutnya harus melihat selesai.
-                isi = _halaman(
-                    "Jawaban tersimpan",
-                    "<h1>Hebat, selesai!</h1>"
-                    "<p>Semua jawabanmu sudah masuk. Gurumu akan memeriksanya.</p>",
-                )
-            else:
-                import student_pages
-
-                isi = student_pages.halaman_kerja_baru(
-                    kon, siswa_id, sesi_id, hasil,
-                    jalur_aksi=f"/mulai/{token}", akses_tautan=True,
-                )
-                if isi is None:
-                    return self._kirim_tautan(tidak_ada, 404)
-            # Jawaban (dan stamp mulai/selesai) ter-commit sebelum respons:
-            # refresh anak tepat setelah simpan membaca DB yang sudah final.
-            kon.commit()
-        if selesai:
-            import product_analytics_http as analitik
-            analitik.aktivitas_sesi(sesi_id, 'latihan_dikirim', baru=kiriman_baru)
-        return self._kirim_tautan(isi)
-
     def _rute_get(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/") or "/"
         # Runtime pembayaran produksi (fail-closed) dicoba sekali per server sebelum
@@ -515,9 +404,9 @@ class Penangan(BaseHTTPRequestHandler):
             return admin_http.tidak_ada(self)
         if assistant_http.tangani_get(self, jalur):
             return
-        if jalur.startswith("/mulai/"):
-            token = jalur[len("/mulai/"):]
-            return self._rute_tautan_get(token)
+        import share_http
+        if share_http.tangani_tautan_get(self, jalur):
+            return
         if jalur == "/masuk":
             galat = ""
             q = urllib.parse.parse_qs(
@@ -1074,9 +963,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         if assistant_http.tangani_post(self, jalur):
             return
-        if jalur.startswith("/mulai/"):
-            token = jalur[len("/mulai/"):]
-            return self._rute_tautan_post(token)
+        import share_http
+        if share_http.tangani_tautan_post(self, jalur):
+            return
         import student_http
         if student_http.tangani_post(self, jalur):
             return
@@ -1268,84 +1157,7 @@ class Penangan(BaseHTTPRequestHandler):
         if not self._lolos_sandi():
             return
 
-        if (
-            jalur.startswith("/sesi/")
-            and (jalur.endswith("/bagikan") or jalur.endswith("/cabut-tautan"))
-        ):
-            try:
-                sesi_id = int(jalur.split("/")[2])
-            except (ValueError, IndexError):
-                return self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
-            ident = self._identitas()
-            with database.buka() as kon:
-                if not ident or not self._bisa_lihat_sesi(kon, sesi_id):
-                    return self._kirim(
-                        _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                    )
-                info = kon.execute(
-                    """SELECT s.siswa_id, w.nama FROM sesi s
-                       JOIN siswa w ON w.id = s.siswa_id WHERE s.id = ?""",
-                    (sesi_id,),
-                ).fetchone()
-                if not info:
-                    return self._kirim(
-                        _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                    )
-                if jalur.endswith("/bagikan"):
-                    # Kunci status sampai token tersimpan: pembatalan/submit
-                    # bersamaan tidak boleh menyelinap setelah pemeriksaan.
-                    kon.execute("BEGIN IMMEDIATE")
-                    status = kon.execute(
-                        "SELECT selesai, dibatalkan FROM sesi WHERE id = ?", (sesi_id,)
-                    ).fetchone()
-                    if status is None:
-                        return self._kirim(
-                            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                        )
-                    if status["dibatalkan"] is not None:
-                        return self._kirim_tautan(_halaman(
-                            "Sesi dibatalkan",
-                            "<h1>Sesi dibatalkan</h1>"
-                            "<p>Tautan sesi tidak dapat dibuat. Riwayat tetap tersimpan; "
-                            "kembali ke profil anak untuk melihat rencana berikutnya.</p>",
-                        ), 409)
-                    if status["selesai"]:
-                        # Tautan baru langsung mati karena gerbang ambil
-                        # mensyaratkan selesai IS NULL — menolak dengan
-                        # penjelasan lebih jujur daripada menyerahkan link
-                        # yang tak pernah bisa dipakai.
-                        return self._kirim_tautan(_halaman(
-                            "Sesi sudah selesai",
-                            f"<h1>Sesi #{sesi_id} sudah selesai dikerjakan</h1>"
-                            "<p>Tautan berbagi hanya untuk sesi yang belum "
-                            "selesai. Anak bisa melihat hasilnya lewat "
-                            "akun latihannya setelah kamu review.</p>",
-                        ), 400)
-                    token = share_links.buat(kon, sesi_id)
-                    # Commit SEBELUM respons: bila commit menunggu keluar
-                    # dari with buka(), respons sudah pergi lebih dulu dan
-                    # guru yang menekan tautannya seketika membaca DB tanpa
-                    # baris token — 404 untuk link yang baru saja dibagikan.
-                    kon.commit()
-                    tautan = f"{brand.URL_SITUS}/mulai/{token}"
-                    if self.headers.get("X-Requested-With") == "fetch":
-                        return self._kirim_json({"tautan": tautan})
-                    # Fallback tanpa JavaScript: respons sederhana tetap
-                    # memungkinkan tautan dipilih dan disalin manual.
-                    isi = halaman_bagikan_sesi(
-                        sesi_id, info["siswa_id"], tautan, ident[0], ident[1],
-                    )
-                    return self._kirim_tautan(isi)
-                share_links.cabut(kon, sesi_id)
-                qs = urllib.parse.urlencode({
-                    "pesan": f"Tautan sesi dicabut — sesi #{sesi_id} tidak bisa lagi dibuka dari link lama.",
-                    "sorot": sesi_id,
-                })
-                tujuan = f"/anak/{info['siswa_id']}?{qs}"
-            self.send_response(303)
-            self.send_header("Location", tujuan)
-            self.send_header("Content-Length", "0")
-            self.end_headers()
+        if share_http.tangani_guru_post(self, jalur):
             return
 
         if jalur == "/akun":
