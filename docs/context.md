@@ -27,7 +27,7 @@ Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 | Data | `database.py`, `schema.py`, `*_store.py`, `*_schema.py`: penyimpanan dan migrasi; `attachment_store.py`: metadata lampiran; `report_store.py`: proyeksi laporan; `student_profile_store.py`: profil dan kepemilikan siswa |
 | Belajar | `diagnosis.py`, `learning_cycle.py`, `learning_cycle_service.py`: diagnosis, reducer murni, orkestrasi |
 | Laporan | `reports.py`, `report_*.py`, `mastery_*.py`: laporan dan penguasaan berbasis bukti |
-| Layanan lain | `assistant_*`/`ai_*`: Pendamping; `subscription_*`/`midtrans_*`: langganan/pembayaran; `admin_store_core.py`: koneksi/validasi schema; `admin_journal_store.py`: journal/audit/config; `admin_*`: layanan pengelola lain; `support_settings.py`: konfigurasi dukungan; `family_deletion.py`: preview dan bundle hasil penghapusan keluarga lintas penyimpanan |
+| Layanan lain | `assistant_*`/`ai_*`: Pendamping; `subscription_*`/`midtrans_*`: langganan/pembayaran; `admin_store_core.py`: koneksi/schema; `admin_journal_store.py`: journal/audit/config; `admin_history_store.py`: proyeksi histori; `admin_*`: layanan pengelola lain; `support_settings.py`: konfigurasi dukungan; `family_deletion.py`: preview dan bundle hasil penghapusan keluarga lintas penyimpanan |
 
 Alur domain: topik → generator/kontrak soal → penyajian → hasil tersimpan →
 tinjauan/diagnosis → bukti terkonfirmasi → reducer siklus → rekomendasi/laporan.
