@@ -13,22 +13,12 @@ from generator import LEVEL_BAWAAN
 from question_context import label_profil_parameter as label_kelas
 from template_labels import nama_tipe_soal as _nama_template
 from teacher_corrections import (
-    pilihan_tersimpan, cara_untuk_form, cara_dari_form, label_penilaian,
+    KODE_PILIHAN, pilihan_tersimpan, cara_untuk_form, cara_dari_form,
+    label_penilaian,
 )
 from teacher_shell import _halaman, _topbar_stitch
 from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
 from teacher_workspace import _ambil, _form_remedial, _tanggal_ringkas
-
-
-KODE_PILIHAN = [
-    ("", "— pilih —"),
-    ("benar", "Benar"),
-    ("K", "K — salah konsep"),
-    ("B", "B — salah baca soal"),
-    ("H", "H — salah hitung"),
-    ("E", "E — salah tulis akhir"),
-    ("N", "N — menebak"),
-]
 
 
 def _soal_dari_baris(baris):

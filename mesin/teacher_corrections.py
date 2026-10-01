@@ -1,6 +1,17 @@
 """Adaptasi formulir guru tanpa mengubah arti catatan dan diagnosis tersimpan."""
 
 
+KODE_PILIHAN = [
+    ("", "— pilih —"),
+    ("benar", "Benar"),
+    ("K", "K — salah konsep"),
+    ("B", "B — salah baca soal"),
+    ("H", "H — salah hitung"),
+    ("E", "E — salah tulis akhir"),
+    ("N", "N — menebak"),
+]
+
+
 def pilihan_tersimpan(butir):
     """Otomatis bukan override; pertahankan keputusan manual yang sudah ada."""
     if not butir["manual"]:
