@@ -1173,80 +1173,10 @@ class Penangan(BaseHTTPRequestHandler):
                     )
                 )
 
-        if jalur.startswith("/sesi/") and jalur.endswith("/latihan-serupa"):
-            bagian = jalur.split("/")
-            if len(bagian) != 4 or bagian[1] != "sesi" or bagian[3] != "latihan-serupa":
-                return self._kirim(
-                    _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                )
-            try:
-                sesi_id = int(bagian[2])
-                if not 0 < sesi_id <= 9_223_372_036_854_775_807:
-                    raise ValueError("ID sesi di luar rentang")
-            except ValueError:
-                return self._kirim(
-                    _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                )
-            # Jangan menahan lock writer saat menunggu body dari jaringan.
-            panjang = int(self.headers.get("Content-Length", 0) or 0)
-            data = urllib.parse.parse_qs(
-                self.rfile.read(panjang).decode("utf-8"),
-                keep_blank_values=True,
-            )
-            ident = self._identitas()
-            with database.buka() as kon:
-                # Kepemilikan dan syarat sumber tetap terkunci sampai sesi tersimpan.
-                kon.execute("BEGIN IMMEDIATE")
-                ada = kon.execute(
-                    "SELECT 1 FROM sesi WHERE id = ?", (sesi_id,)
-                ).fetchone()
-                if not ident or ada is None or not self._bisa_lihat_sesi(kon, sesi_id):
-                    kon.rollback()
-                    return self._kirim(
-                        _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                    )
-                if set(data) != {"sesi_soal_id"} or len(data["sesi_soal_id"]) != 1:
-                    kon.rollback()
-                    return self._kirim(
-                        _halaman(
-                            "Permintaan belum dapat diproses",
-                            "<h1>Permintaan belum dapat diproses</h1>"
-                            "<p>Referensi soal tidak dikenal.</p>",
-                        ),
-                        400,
-                    )
-                try:
-                    sesi_soal_id = int(data["sesi_soal_id"][0])
-                    if not 0 < sesi_soal_id <= 9_223_372_036_854_775_807:
-                        raise ValueError("ID butir di luar rentang")
-                except ValueError:
-                    sesi_soal_id = -1
-                import similar_practice
-
-                try:
-                    sesi_baru = similar_practice.buat_dari_hasil_t(
-                        kon,
-                        sesi_id,
-                        sesi_soal_id,
-                        seed=random.randint(1, 9_999_999),
-                    )
-                except (ValueError, RuntimeError):
-                    kon.rollback()
-                    return self._kirim(
-                        _halaman(
-                            "Latihan belum dapat dibuat",
-                            "<h1>Latihan belum dapat dibuat</h1>"
-                            "<p>Hasil ini tidak lagi memenuhi syarat atau variasi "
-                            "soalnya belum cukup. Muat ulang hasil lalu coba lagi.</p>",
-                        ),
-                        409,
-                    )
-            self.send_response(303)
-            self.send_header("Location", f"/sesi/{sesi_baru}?pesan=" + urllib.parse.quote(
-                "5 soal serupa dibuat. Latihan manual ini tidak mengubah progres rencana terpandu."
-            ))
-            self.send_header("Content-Length", "0")
-            self.end_headers()
+        import session_http
+        if session_http.tangani_latihan_serupa(
+            self, jalur, acak_seed=random.randint
+        ):
             return
 
         if (
@@ -1289,105 +1219,14 @@ class Penangan(BaseHTTPRequestHandler):
         ):
             return
 
-        if jalur.startswith("/sesi-remedial/"):
-            # Latihan ulang (poin a feedback Filia): sesi berisi HANYA
-            # konsep yang pernah dijawab salah anak ini, dengan soal baru.
-            try:
-                siswa_id = int(jalur.split("/")[2])
-            except (ValueError, IndexError):
-                return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
-            panjang = int(self.headers.get("Content-Length", 0) or 0)
-            data = urllib.parse.parse_qs(
-                self.rfile.read(panjang).decode("utf-8"),
-                keep_blank_values=True,
-            )
-            jumlah_valid = True
-            try:
-                jumlah = int((data.get("jumlah_soal") or ["10"])[0] or 10)
-            except ValueError:
-                jumlah = 0
-                jumlah_valid = False
-            if not 1 <= jumlah <= 50:
-                jumlah_valid = False
-
-            template_ids = [nilai for nilai in data.get("template_id", []) if nilai]
-            sumber_mentah = (data.get("sumber_sesi_id") or [""])[0]
-            try:
-                sumber_sesi_id = int(sumber_mentah) if sumber_mentah else None
-            except ValueError:
-                sumber_sesi_id = -1
-
-            sesi_id = None
-            nama_siswa = None
-            pesan_gagal = ""
-            with database.buka() as kon:
-                if not self._bisa_lihat_siswa(kon, siswa_id):
-                    return self._kirim(
-                        _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                    )
-                baris = kon.execute(
-                    "SELECT nama, tingkat FROM siswa WHERE id = ?", (siswa_id,)
-                ).fetchone()
-                nama_siswa = baris["nama"] if baris else ""
-                if (
-                    sumber_sesi_id is not None
-                    and not database.sasaran_remedial_sesi(
-                        kon, siswa_id, sumber_sesi_id
-                    )
-                ):
-                    return self._kirim(
-                        _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                    )
-                if not jumlah_valid:
-                    pesan_gagal = "Jumlah soal harus antara 1 dan 50."
-                else:
-                    try:
-                        sesi_id = database.buat_sesi_remedial(
-                            kon, siswa_id,
-                            level=(baris["tingkat"] if baris else LEVEL_BAWAAN),
-                            jumlah_soal=jumlah,
-                            template_ids=template_ids,
-                            sumber_sesi_id=sumber_sesi_id,
-                        )
-                    except ValueError as galat:
-                        detail = str(galat)
-                        if "bukan kandidat" in detail:
-                            pesan_gagal = "Pilihan itu bukan pilihan remedial yang tersedia."
-                        elif "kosong" in detail:
-                            pesan_gagal = "Pilih setidaknya satu tipe soal untuk remedial."
-                        elif "maksimal 3" in detail:
-                            pesan_gagal = "Pilih maksimal 3 tipe soal untuk satu remedial."
-                        elif "sumber" in detail:
-                            pesan_gagal = "Sesi sumber remedial tidak tersedia."
-                        elif "jumlah_soal" in detail:
-                            pesan_gagal = "Jumlah soal harus antara 1 dan 50."
-                        else:
-                            pesan_gagal = "Remedial belum dapat dibuat. Periksa pilihannya."
-            if pesan_gagal:
-                qs = urllib.parse.urlencode({"pesan": pesan_gagal})
-            elif sesi_id is None:
-                # Tidak ada kesalahan tercatat: katakan apa adanya, jangan
-                # membuat sesi acak lalu menyebutnya latihan ulang.
-                qs = urllib.parse.urlencode({
-                    "pesan": "Belum ada kesalahan tercatat untuk dilatih "
-                             "ulang — buat sesi biasa dulu, ya.",
-                })
-            else:
-                fokus = " & ".join(
-                    _nama_template(template_id) for template_id in template_ids
-                )
-                qs = urllib.parse.urlencode({
-                    "pesan": f"Remedial {fokus} dibuat — {jumlah} soal baru "
-                             f"untuk {nama_siswa} (sesi #{sesi_id}).",
-                    "sorot": sesi_id,
-                })
-            self.send_response(303)
-            self.send_header("Location", f"/anak/{siswa_id}?{qs}")
-            self.send_header("Content-Length", "0")
-            self.end_headers()
+        if session_http.tangani_pembuatan_remedial(
+            self,
+            jalur,
+            level_bawaan=LEVEL_BAWAAN,
+            nama_template=_nama_template,
+        ):
             return
 
-        import session_http
         if session_http.tangani_pembuatan_biasa(
             self,
             jalur,

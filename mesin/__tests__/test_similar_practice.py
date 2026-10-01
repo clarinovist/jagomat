@@ -456,6 +456,32 @@ def test_konfirmasi_latihan_manual_tidak_mengubah_rencana_atau_bukti_putaran(db)
         assert [tuple(x) for x in event] == [(None, "hasil_dikonfirmasi")]
 
 
+def test_http_latihan_serupa_mempertahankan_lookup_seed_fasad(server, monkeypatch):
+    """Ekstraksi route tetap memakai ``web.random`` pada saat permintaan."""
+    with server.buka() as kon:
+        _siswa, sumber, butir = _hasil_t(kon)
+    panggilan = []
+
+    def seed_terpantau(awal, akhir):
+        panggilan.append((awal, akhir))
+        return 812_345
+
+    monkeypatch.setattr(web.random, "randint", seed_terpantau)
+    kode, _, _ = server.minta(
+        f"/sesi/{sumber}/latihan-serupa",
+        auth=("guru", SANDI_GURU),
+        data={"sesi_soal_id": str(butir[0]["sesi_soal_id"])},
+    )
+
+    assert kode == 200
+    assert panggilan == [(1, 9_999_999)]
+    with server.buka() as kon:
+        seed = kon.execute(
+            "SELECT seed FROM sesi ORDER BY id DESC LIMIT 1"
+        ).fetchone()[0]
+    assert seed == 812_345
+
+
 def test_http_guru_membuat_dan_admin_boleh_untuk_keluarga_lain(server):
     with server.buka() as kon:
         _siswa, sumber, butir = _hasil_t(kon)

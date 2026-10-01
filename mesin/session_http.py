@@ -342,3 +342,228 @@ def tangani_pembuatan_gabungan(
     penangan.send_header("Content-Length", "0")
     penangan.end_headers()
     return True
+
+
+def tangani_latihan_serupa(penangan, jalur: str, *, acak_seed) -> bool:
+    """Tangani latihan manual serupa dari hasil T dengan transaksi terkunci."""
+    if not (
+        jalur.startswith("/sesi/")
+        and jalur.endswith("/latihan-serupa")
+    ):
+        return False
+
+    bagian = jalur.split("/")
+    if (
+        len(bagian) != 4
+        or bagian[1] != "sesi"
+        or bagian[3] != "latihan-serupa"
+    ):
+        penangan._kirim(
+            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+        )
+        return True
+    try:
+        sesi_id = int(bagian[2])
+        if not 0 < sesi_id <= 9_223_372_036_854_775_807:
+            raise ValueError("ID sesi di luar rentang")
+    except ValueError:
+        penangan._kirim(
+            _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+        )
+        return True
+
+    # Jangan menahan lock writer saat menunggu body dari jaringan.
+    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
+    data = urllib.parse.parse_qs(
+        penangan.rfile.read(panjang).decode("utf-8"),
+        keep_blank_values=True,
+    )
+    ident = penangan._identitas()
+    with database.buka() as kon:
+        # Kepemilikan dan syarat sumber tetap terkunci sampai sesi tersimpan.
+        kon.execute("BEGIN IMMEDIATE")
+        ada = kon.execute(
+            "SELECT 1 FROM sesi WHERE id = ?", (sesi_id,)
+        ).fetchone()
+        if (
+            not ident
+            or ada is None
+            or not penangan._bisa_lihat_sesi(kon, sesi_id)
+        ):
+            kon.rollback()
+            penangan._kirim(
+                _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+            )
+            return True
+        if set(data) != {"sesi_soal_id"} or len(data["sesi_soal_id"]) != 1:
+            kon.rollback()
+            penangan._kirim(
+                _halaman(
+                    "Permintaan belum dapat diproses",
+                    "<h1>Permintaan belum dapat diproses</h1>"
+                    "<p>Referensi soal tidak dikenal.</p>",
+                ),
+                400,
+            )
+            return True
+        try:
+            sesi_soal_id = int(data["sesi_soal_id"][0])
+            if not 0 < sesi_soal_id <= 9_223_372_036_854_775_807:
+                raise ValueError("ID butir di luar rentang")
+        except ValueError:
+            sesi_soal_id = -1
+
+        import similar_practice
+        try:
+            sesi_baru = similar_practice.buat_dari_hasil_t(
+                kon,
+                sesi_id,
+                sesi_soal_id,
+                seed=acak_seed(1, 9_999_999),
+            )
+        except (ValueError, RuntimeError):
+            kon.rollback()
+            penangan._kirim(
+                _halaman(
+                    "Latihan belum dapat dibuat",
+                    "<h1>Latihan belum dapat dibuat</h1>"
+                    "<p>Hasil ini tidak lagi memenuhi syarat atau variasi "
+                    "soalnya belum cukup. Muat ulang hasil lalu coba lagi.</p>",
+                ),
+                409,
+            )
+            return True
+
+    penangan.send_response(303)
+    penangan.send_header(
+        "Location",
+        f"/sesi/{sesi_baru}?pesan="
+        + urllib.parse.quote(
+            "5 soal serupa dibuat. Latihan manual ini tidak mengubah progres "
+            "rencana terpandu."
+        ),
+    )
+    penangan.send_header("Content-Length", "0")
+    penangan.end_headers()
+    return True
+
+
+def tangani_pembuatan_remedial(
+    penangan,
+    jalur: str,
+    *,
+    level_bawaan: str,
+    nama_template,
+) -> bool:
+    """Tangani ``POST /sesi-remedial/<siswa_id>``; False untuk jalur lain."""
+    if not jalur.startswith("/sesi-remedial/"):
+        return False
+
+    try:
+        siswa_id = int(jalur.split("/")[2])
+    except (ValueError, IndexError):
+        penangan._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
+        return True
+
+    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
+    data = urllib.parse.parse_qs(
+        penangan.rfile.read(panjang).decode("utf-8"),
+        keep_blank_values=True,
+    )
+    jumlah_valid = True
+    try:
+        jumlah = int((data.get("jumlah_soal") or ["10"])[0] or 10)
+    except ValueError:
+        jumlah = 0
+        jumlah_valid = False
+    if not 1 <= jumlah <= 50:
+        jumlah_valid = False
+
+    template_ids = [nilai for nilai in data.get("template_id", []) if nilai]
+    sumber_mentah = (data.get("sumber_sesi_id") or [""])[0]
+    try:
+        sumber_sesi_id = int(sumber_mentah) if sumber_mentah else None
+    except ValueError:
+        sumber_sesi_id = -1
+
+    sesi_id = None
+    nama_siswa = None
+    pesan_gagal = ""
+    with database.buka() as kon:
+        if not penangan._bisa_lihat_siswa(kon, siswa_id):
+            penangan._kirim(
+                _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+            )
+            return True
+        baris = kon.execute(
+            "SELECT nama, tingkat FROM siswa WHERE id = ?", (siswa_id,)
+        ).fetchone()
+        nama_siswa = baris["nama"] if baris else ""
+        if (
+            sumber_sesi_id is not None
+            and not database.sasaran_remedial_sesi(
+                kon, siswa_id, sumber_sesi_id
+            )
+        ):
+            penangan._kirim(
+                _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
+            )
+            return True
+        if not jumlah_valid:
+            pesan_gagal = "Jumlah soal harus antara 1 dan 50."
+        else:
+            try:
+                sesi_id = database.buat_sesi_remedial(
+                    kon,
+                    siswa_id,
+                    level=(baris["tingkat"] if baris else level_bawaan),
+                    jumlah_soal=jumlah,
+                    template_ids=template_ids,
+                    sumber_sesi_id=sumber_sesi_id,
+                )
+            except ValueError as galat:
+                detail = str(galat)
+                if "bukan kandidat" in detail:
+                    pesan_gagal = (
+                        "Pilihan itu bukan pilihan remedial yang tersedia."
+                    )
+                elif "kosong" in detail:
+                    pesan_gagal = (
+                        "Pilih setidaknya satu tipe soal untuk remedial."
+                    )
+                elif "maksimal 3" in detail:
+                    pesan_gagal = (
+                        "Pilih maksimal 3 tipe soal untuk satu remedial."
+                    )
+                elif "sumber" in detail:
+                    pesan_gagal = "Sesi sumber remedial tidak tersedia."
+                elif "jumlah_soal" in detail:
+                    pesan_gagal = "Jumlah soal harus antara 1 dan 50."
+                else:
+                    pesan_gagal = (
+                        "Remedial belum dapat dibuat. Periksa pilihannya."
+                    )
+
+    if pesan_gagal:
+        qs = urllib.parse.urlencode({"pesan": pesan_gagal})
+    elif sesi_id is None:
+        qs = urllib.parse.urlencode({
+            "pesan": "Belum ada kesalahan tercatat untuk dilatih "
+                     "ulang — buat sesi biasa dulu, ya.",
+        })
+    else:
+        fokus = " & ".join(
+            nama_template(template_id) for template_id in template_ids
+        )
+        qs = urllib.parse.urlencode({
+            "pesan": (
+                f"Remedial {fokus} dibuat — {jumlah} soal baru "
+                f"untuk {nama_siswa} (sesi #{sesi_id})."
+            ),
+            "sorot": sesi_id,
+        })
+    penangan.send_response(303)
+    penangan.send_header("Location", f"/anak/{siswa_id}?{qs}")
+    penangan.send_header("Content-Length", "0")
+    penangan.end_headers()
+    return True
