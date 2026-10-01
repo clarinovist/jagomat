@@ -399,14 +399,6 @@ class Penangan(BaseHTTPRequestHandler):
             self, jalur, self.path, halaman_utama=halaman_utama_stitch
         ):
             return
-        if jalur == "/aset" or jalur.startswith("/aset/"):
-            # Publik & sengaja sempit: hanya berkas brand statis dari
-            # allow-list brand.ASET. Favicon dibutuhkan browser sebelum
-            # login, jadi rute ini WAJIB berada sebelum palang guru.
-            # Tidak menyentuh basis data.
-            # Jalur sudah di-rstrip("/"), jadi "/aset/" tiba sebagai "/aset"
-            # dengan nama kosong — tetap 404 lewat allow-list.
-            return self._kirim_aset(jalur[len("/aset/"):] if len(jalur) > 5 else "")
         if jalur == "/murid" or jalur.startswith("/murid/"):
             import student_http
             student_http.tangani_get(self, jalur, self.path)

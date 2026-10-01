@@ -23,6 +23,12 @@ def tangani_get(penangan, jalur: str) -> bool:
         ))
         return True
 
+    if jalur == "/aset" or jalur.startswith("/aset/"):
+        # Penangan mempertahankan allow-list, MIME, cache, dan header transport.
+        nama = jalur[len("/aset/"):] if len(jalur) > 5 else ""
+        penangan._kirim_aset(nama)
+        return True
+
     if jalur == "/kebijakan-privasi":
         import admin_store
         import support_settings
