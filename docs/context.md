@@ -8,7 +8,8 @@
 ## Arsitektur
 
 **Monolit Python stdlib, HTML dirender server, penyimpanan SQLite.**
-`serve.py` menjalankan server HTTP; `web.py` mengatur rute dan palang akses.
+`serve.py` menjalankan server HTTP; `web.py` mengatur transport, dispatch, dan
+palang akses, sedangkan `student_http.py` memiliki alur GET/POST khusus murid.
 Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 
 | Lapisan | Modul dan tanggung jawab |

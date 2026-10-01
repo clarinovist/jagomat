@@ -8,8 +8,8 @@ Halaman-halamannya tinggal di modul sendiri (dipecah 31 Aug 2026):
     teacher_pages.py   dashboard, sesi, konfirmasi hapus, lembar
     reports.py         laporan per anak + diagnosa
     account_pages.py   akun guru & admin
-Aturan lama tetap: modul ini tidak boleh mengimpor students di atas file —
-impor terlambat di dalam handler (lihat _rute_murid_get).
+Aturan lama tetap: modul ini tidak boleh mengimpor students di atas file.
+Permukaan murid didelegasikan ke student_http dengan impor terlambat.
 """
 
 from __future__ import annotations
@@ -627,12 +627,8 @@ class Penangan(BaseHTTPRequestHandler):
             # dengan nama kosong — tetap 404 lewat allow-list.
             return self._kirim_aset(jalur[len("/aset/"):] if len(jalur) > 5 else "")
         if jalur == "/murid" or jalur.startswith("/murid/"):
-            try:
-                with database.buka() as kon:
-                    return self._rute_murid_get(kon, jalur, self.path)
-            except (ValueError, IndexError):
-                pass
-            self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
+            import student_http
+            student_http.tangani_get(self, jalur, self.path)
             return
         if not self._lolos_sandi():
             return
@@ -933,128 +929,6 @@ class Penangan(BaseHTTPRequestHandler):
             pass
         self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
 
-    def _rute_murid_get(self, kon, jalur: str, jalur_penuh: str = "") -> None:
-        """Rute /murid — hanya akun berperan murid.
-
-        Guru sengaja TIDAK bisa membuka halaman murid: halamannya memuat
-        form jawaban atas nama anak, dan guru mengerjakan lewat rutenya
-        sendiri. GET tanpa identitas murid (kuki hilang, kedaluwarsa, atau
-        ditimpa akun lain di perangkat bersama) -> 303 ke /masuk dengan
-        pesan yang jelas — anak dibawa ke pintu yang benar, bukan halaman
-        401 polos yang terlihat seperti situs rusak saat muat-ulang. POST
-        kirim jawaban tetap 401 di do_POST supaya palang tulis tidak
-        melemah.
-        """
-        import student_pages
-        import students
-
-        kredensial = self._sesi_atau_basic(peran_wajib="murid")
-        if not kredensial:
-            qs = urllib.parse.urlencode({
-                "galat": "Sesi kamu sudah habis atau akun lain masuk di "
-                         "perangkat ini. Masuk lagi dengan nama & sandimu, ya.",
-            })
-            self.send_response(303)
-            self.send_header("Location", f"/masuk?{qs}")
-            self.send_header("Content-Length", "0")
-            self.end_headers()
-            return
-        siswa_id = students.siswa_dari_akun(kon, kredensial[0])
-        if siswa_id is None:
-            nama = html.escape(kredensial[0])
-            return self._kirim(
-                _halaman(
-                    "Belum terhubung",
-                    f"<h1>Halo, {nama}</h1>"
-                    "<p>Akunmu belum dihubungkan ke daftar siswa. "
-                    "Minta gurumu menyiapkannya.</p>",
-                )
-            )
-        if jalur == "/murid":
-            # ?selesai=<id> dari pengalihan setelah semua soal terkirim:
-            # hanya memicu banner perayaan di daftar, tidak menyentuh data.
-            sesi_selesai = None
-            if jalur_penuh:
-                q = urllib.parse.parse_qs(
-                    urllib.parse.urlparse(jalur_penuh).query
-                )
-                try:
-                    sesi_selesai = int(q.get("selesai", ["0"])[0]) or None
-                except (ValueError, TypeError):
-                    sesi_selesai = None
-            return self._kirim(
-                student_pages.halaman_daftar_sesi_baru(
-                    kon, siswa_id, kredensial[0], sesi_selesai
-                )
-            )
-        bagian = jalur.split("/")
-        # /murid/hasil/<id> — hasil + pembahasan, hanya sesi yang SUDAH
-        # direview guru. Gerbangnya di students.hasil_murid (None = belum
-        # direview / bukan miliknya) dan dijawab 404: anak tidak boleh bisa
-        # membedakan "belum dinilai" dari "sesi orang lain" lewat kode HTTP.
-        if len(bagian) >= 4 and bagian[2] == "hasil":
-            try:
-                sesi_id_hasil = int(bagian[3])
-            except ValueError:
-                return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
-            isi = student_pages.halaman_hasil_murid(
-                kon, siswa_id, sesi_id_hasil
-            )
-            if isi is None:
-                return self._kirim(
-                    _halaman(
-                        "Belum ada hasil",
-                        "<h1>Belum ada hasil</h1><p>Sesi ini belum selesai "
-                        "diperiksa gurumu. Coba lagi nanti, ya.</p>"
-                        '<p><a href="/murid">Kembali ke daftar sesi</a></p>',
-                    ),
-                    404,
-                )
-            return self._kirim(isi)
-        # /murid/kerjakan/<id>
-        if len(bagian) >= 3 and bagian[2] == "kerjakan":
-            # Jumlah tersimpan datang dari pengalihan setelah POST. Nilainya
-            # dari URL, jadi tidak dipercaya: dibatasi ke bilangan bulat wajar
-            # dan hanya dipakai untuk kalimat konfirmasi, tidak menyentuh data.
-            tersimpan = 0
-            if jalur_penuh:
-                q = urllib.parse.parse_qs(
-                    urllib.parse.urlparse(jalur_penuh).query
-                )
-                try:
-                    tersimpan = max(0, min(99, int(q.get("tersimpan", ["0"])[0])))
-                except (ValueError, TypeError):
-                    tersimpan = 0
-            sesi_id_kerja = int(bagian[3])
-            # Kabar hasil kirim foto (?foto=ok / ?foto=<alasan gagal>).
-            # Sama seperti `tersimpan`: datang dari URL, jadi tidak
-            # dipercaya — hanya dipakai sebagai kalimat, dan dipangkas.
-            kabar_foto = ""
-            if jalur_penuh:
-                q_foto = urllib.parse.parse_qs(
-                    urllib.parse.urlparse(jalur_penuh).query
-                )
-                kabar_foto = (q_foto.get("foto", [""])[0] or "")[:200]
-            # Waktu pengerjaan mulai dihitung dari saat lembar DIBUKA, bukan
-            # dari simpan pertama: anak yang mengisi semuanya lalu sekali
-            # simpan tidak boleh tercatat berdurasi 0 detik. Idempoten —
-            # buka ulang tidak menggeser waktu yang sudah tercatat. Commit
-            # sendiri sebelum respons: stamp mandiri, dan commit konteks
-            # buka() baru terjadi setelah respons pergi (lihat /sesi/).
-            if students.sesi_murid(kon, siswa_id, sesi_id_kerja):
-                database.tandai_mulai(kon, sesi_id_kerja)
-                kon.commit()
-            isi = student_pages.halaman_kerja_baru(
-                kon, siswa_id, sesi_id_kerja, tersimpan,
-                kabar_foto=kabar_foto,
-            )
-            if isi is None:
-                return self._kirim(
-                    _halaman("404", "<h1>Sesi tidak ada</h1>"), 404
-                )
-            return self._kirim(isi)
-        self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
-
     def _halaman_masuk_stitch(self, galat: str = "", *, lanjut: str = "") -> bytes:
         """Form masuk editorial dengan dekorasi buku latihan di desktop.
 
@@ -1203,105 +1077,8 @@ class Penangan(BaseHTTPRequestHandler):
         if jalur.startswith("/mulai/"):
             token = jalur[len("/mulai/"):]
             return self._rute_tautan_post(token)
-
-        if jalur.startswith("/murid/kerjakan/"):
-            import students
-
-            kredensial = self._sesi_atau_basic(peran_wajib="murid")
-            if not kredensial:
-                return self._kirim(
-                    _halaman("Perlu masuk", "<h1>Halaman murid</h1>"), 401
-                )
-            panjang = int(self.headers.get("Content-Length", 0))
-            if panjang < 0 or panjang > 1_000_000:
-                return self._kirim(_halaman('Isian terlalu besar', '<h1>Isian terlalu besar</h1>'), 413)
-            mentah = self.rfile.read(panjang).decode("utf-8")
-            pasangan = urllib.parse.parse_qs(mentah, keep_blank_values=True)
-            if any(len(v) != 1 for v in pasangan.values()):
-                return self._kirim(_halaman("Isian tidak sah", "<h1>Isian ganda tidak diizinkan</h1>"), 400)
-            data = {k: v[0] for k, v in pasangan.items()}
-            sesi_id = int(jalur.split("/")[3])
-            aksi = data.get("aksi", "simpan")
-            if aksi not in ("simpan", "selesai", "kirim_latihan", "kembali"):
-                aksi = "simpan"
-            with database.buka() as kon:
-                # Kunci pemeriksaan+penyimpanan agar POST simpan dan final
-                # yang bersamaan tidak melewati gerbang selesai.
-                kon.execute("BEGIN IMMEDIATE")
-                siswa_id = students.siswa_dari_akun(kon, kredensial[0])
-                info_sesi = (
-                    students.sesi_murid(kon, siswa_id, sesi_id)
-                    if siswa_id is not None
-                    else None
-                )
-                if not info_sesi or info_sesi.get("dibatalkan"):
-                    return self._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
-                if info_sesi.get("selesai"):
-                    return self._kirim(
-                        _halaman(
-                            "Sudah dikirim",
-                            "<h1>Jawaban sudah dikirim</h1>"
-                            "<p>Sesi ini tidak dapat diubah lagi.</p>",
-                        ),
-                        409,
-                    )
-                import student_submissions as kiriman
-                try:
-                    kiriman.validasi_versi(kon, sesi_id, data)
-                    if aksi in ("kirim_latihan", "kembali"):
-                        kiriman.simpan_refleksi(kon, sesi_id, data)
-                        hasil = 0
-                    else:
-                        hasil = students.simpan_jawaban_murid(kon, siswa_id, sesi_id, data)
-                except ValueError as galat:
-                    kon.rollback()
-                    return self._kirim(_halaman("Belum tersimpan", f"<h1>Belum tersimpan</h1><p>{html.escape(str(galat))}</p>"), getattr(galat, "status", 400))
-                if aksi == "selesai" and kiriman.perlu_refleksi(kon, info_sesi, data):
-                    from submission_pages import halaman_refleksi
-                    isi = halaman_refleksi(kon, siswa_id, sesi_id, f"/murid/kerjakan/{sesi_id}")
-                    kon.commit()
-                    return self._kirim_privat(isi)
-                # Diagnosis otomatis: jawaban baru dari HP langsung dinilai
-                # mesin (usulan). Keputusan manual guru tidak pernah
-                # ditimpa — lihat web.diagnosa_murid. Guru membuka halaman
-                # sesi dan membaca hasil, bukan menekan tombol dulu.
-                selesai = aksi in ("selesai", "kirim_latihan")
-                if hasil:
-                    # Waktu mulai sudah dicatat saat lembar dibuka. POST tetap
-                    # idempoten untuk klien lama yang langsung mengirim tanpa GET.
-                    database.tandai_mulai(kon, sesi_id)
-                # Diagnosis baru menjadi data laporan saat anak mengumpulkan.
-                # Draft boleh berubah atau dikosongkan tanpa meninggalkan nilai
-                # sementara di dashboard orang tua.
-                if selesai:
-                    kiriman.arsipkan(kon, sesi_id, "akun")
-                    diagnosa_murid(kon, sesi_id)
-                    database.tandai_mulai(kon, sesi_id)
-                    database.tandai_selesai(kon, sesi_id)
-            if hasil is None:
-                return self._kirim(
-                    _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                )
-            if selesai:
-                analitik.aktivitas_sesi(sesi_id, 'latihan_dikirim', baru=True)
-                # Langsung kembali ke daftar sesi — banner ?selesai= sudah
-                # mengonfirmasi. Halaman perayaan terpisah berarti satu
-                # klik ekstra plus pilihan "Keluar" yang membingungkan;
-                # tombol Keluar memang sudah ada di daftar sesi.
-                self.send_response(303)
-                self.send_header("Location", f"/murid?selesai={sesi_id}")
-                self.send_header("Content-Length", "0")
-                self.end_headers()
-                return
-            # Balik ke lembar kerja yang sama lewat 303 + parameter jumlah,
-            # bukan menampilkan halaman langsung: pengalihan mencegah
-            # pengiriman ganda kalau anak menekan muat-ulang.
-            self.send_response(303)
-            self.send_header(
-                "Location", f"/murid/kerjakan/{sesi_id}?tersimpan={hasil}"
-            )
-            self.send_header("Content-Length", "0")
-            self.end_headers()
+        import student_http
+        if student_http.tangani_post(self, jalur):
             return
 
         # pendaftaran mandiri + login + logout — terbuka, tanpa palang
@@ -1484,63 +1261,6 @@ class Penangan(BaseHTTPRequestHandler):
             self.send_response(303)
             self.send_header("Location", "/masuk")
             self.send_header("Set-Cookie", self._set_cookie(None))
-            self.send_header("Content-Length", "0")
-            self.end_headers()
-            return
-
-        if jalur.startswith("/murid/foto/"):
-            # Anak mengirim FOTO lembar yang dikerjakan di kertas (poin 1 & 4
-            # feedback Filia). Palang sama ketat dengan POST jawaban: wajib
-            # akun berperan murid, dan sesi wajib milik anak itu sendiri.
-            # Yang tersimpan hanya lampiran berstatus 'baru' — guru tetap
-            # yang menerapkan, jadi tidak ada jalur anak menulis laporan.
-            import students
-
-            kredensial = self._sesi_atau_basic(peran_wajib="murid")
-            if not kredensial:
-                return self._kirim(
-                    _halaman("Perlu masuk", "<h1>Halaman murid</h1>"), 401
-                )
-            try:
-                sesi_id = int(jalur.split("/")[3])
-            except (ValueError, IndexError):
-                return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
-
-            content_type = self.headers.get("Content-Type", "")
-            panjang = int(self.headers.get("Content-Length", 0) or 0)
-            if panjang > lampiran_mod.BATAS_UKURAN * 2:
-                return self._kirim(
-                    _halaman("Terlalu besar", "<h1>Fotonya terlalu besar</h1>"),
-                    400,
-                )
-            tubuh = self.rfile.read(panjang)
-            with database.buka() as kon:
-                siswa_id = students.siswa_dari_akun(kon, kredensial[0])
-                if siswa_id is None or not students.sesi_murid(
-                    kon, siswa_id, sesi_id
-                ):
-                    # Satu body 404 yang sama untuk "tidak ada" dan "bukan
-                    # milikmu" — beda body jadi oracle eksistensi.
-                    return self._kirim(
-                        _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                    )
-                terjaga = lampiran_mod.penegakan_foto()
-                if not terjaga:
-                    _lid, pesan = lampiran_mod.proses_upload_murid(
-                        kon, sesi_id, content_type, tubuh
-                    )
-            if terjaga:
-                _lid, pesan = self._proses_foto_terjaga(sesi_id, content_type=content_type, tubuh=tubuh)
-                if pesan == 'not_found':
-                    return self._kirim(_halaman('404', '<h1>Halaman tidak ada</h1>'), 404)
-                if _lid is None:
-                    pesan = lampiran_mod.PESAN_FOTO_TERTAHAN
-            # PRG: refresh tidak mengunggah dua kali. Pesan (sukses ATAU
-            # alasan gagal) dibawa di query dan ditampilkan di blok foto —
-            # anak harus tahu fotonya masuk atau tidak.
-            qs = urllib.parse.urlencode({"foto": pesan})
-            self.send_response(303)
-            self.send_header("Location", f"/murid/kerjakan/{sesi_id}?{qs}")
             self.send_header("Content-Length", "0")
             self.end_headers()
             return
