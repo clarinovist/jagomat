@@ -18,7 +18,7 @@ import release_quota_pair as pair
 import verify_release_image
 import verify_submission_pair
 
-REVISION='db492efa96a46626c3c5d599e82f47a02e4f34c6'
+REVISION='eeefbedcf040de83999fc84eac5abf5ff47d4420'
 
 
 @pytest.fixture

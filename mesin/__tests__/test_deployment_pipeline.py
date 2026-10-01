@@ -37,7 +37,7 @@ def test_pin_soft_launch_migrasi_pasang_literal_false():
     # Baseline B soft launch dipatok exact; cutover tetap controlled deploy-v2
     # dan tidak membuka auto-deploy CI.
     assert CONFIG['mode']=='migrasi'
-    assert RECOVERY_SHA=='db492efa96a46626c3c5d599e82f47a02e4f34c6'
+    assert RECOVERY_SHA=='eeefbedcf040de83999fc84eac5abf5ff47d4420'
     assert CONFIG['recovery_contract']=='fc68c8bc9280663443718bc1c73764cb0c1034e5d0b733deeb36f5994940aba3'
     assert re.findall(r'^    if: (.+)$',_job(teks,'pasang'),re.M)==['${{ false }}']
     assert "steps.mode.outputs.mode == 'migrasi'" in _job(teks,'bangun')

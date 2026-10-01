@@ -22,7 +22,7 @@ env:
   # Harus sama dengan verifier dan deployer; recovery VPS memakai namespace ini.
   IMAGE: clarinovist/osn-mesin-latihan
   # Baseline soft launch diuji penuh bersama kandidat; pemasangan tetap tidak otomatis.
-  RECOVERY_SHA: db492efa96a46626c3c5d599e82f47a02e4f34c6
+  RECOVERY_SHA: eeefbedcf040de83999fc84eac5abf5ff47d4420
 
 jobs:
   periksa:
@@ -133,7 +133,7 @@ jobs:
       - name: Checkout baseline recovery soft launch
         uses: actions/checkout@v7
         with:
-          ref: db492efa96a46626c3c5d599e82f47a02e4f34c6
+          ref: eeefbedcf040de83999fc84eac5abf5ff47d4420
           path: recovery
           # Suite recovery mempertahankan mode dan pin historis source-nya sendiri.
           fetch-depth: 0
@@ -175,7 +175,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/checkout@v7
         with:
-          ref: db492efa96a46626c3c5d599e82f47a02e4f34c6
+          ref: eeefbedcf040de83999fc84eac5abf5ff47d4420
           path: recovery
       - name: Validasi mode dan gate rilis sebelum build
         id: mode

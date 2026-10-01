@@ -2,11 +2,12 @@
 
 ## Kandidat soft launch nonkomersial — 1 Oktober 2026
 
-Recovery source dipatok pada `db492efa96a46626c3c5d599e82f47a02e4f34c6`,
-commit pertama yang memuat copy akses awal, review privasi, guard verifikasi reset,
-primitive penghapusan keluarga, serta bukti onboarding sintetis. Fingerprint kontrak
-persistensinya `fc68c8bc9280663443718bc1c73764cb0c1034e5d0b733deeb36f5994940aba3`.
-Pin ini berada di branch recovery immutable `recovery/soft-launch-db492ef`.
+Recovery source dipatok pada `eeefbedcf040de83999fc84eac5abf5ff47d4420`,
+baseline soft launch yang memuat copy akses awal, review privasi, guard verifikasi
+reset, primitive penghapusan keluarga, bukti onboarding sintetis, serta gate CI
+portable. Fingerprint kontrak persistensinya
+`fc68c8bc9280663443718bc1c73764cb0c1034e5d0b733deeb36f5994940aba3`.
+Pin ini berada di branch recovery immutable `recovery/soft-launch-eeefbed`.
 
 Mode tetap **migrasi** dan job `pasang` literal false. Kandidat berikutnya wajib
 membangun image recovery dan candidate pada run yang sama, menjalankan seluruh shard,
