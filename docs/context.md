@@ -10,7 +10,8 @@
 **Monolit Python stdlib, HTML dirender server, penyimpanan SQLite.**
 `serve.py` menjalankan server HTTP; `web.py` mengatur transport, dispatch, dan
 palang akses. `student_http.py` memiliki alur GET/POST akun murid, sedangkan
-`share_http.py` memiliki capability satu sesi dan aksi bagikan guru.
+`share_http.py` memiliki capability satu sesi dan aksi bagikan guru, sementara
+`attachment_http.py` memagari baca, upload, dan penerapan foto guru.
 Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 
 | Lapisan | Modul dan tanggung jawab |
