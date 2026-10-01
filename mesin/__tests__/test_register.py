@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import auth  # noqa: E402
 import admin_store  # noqa: E402
+import landing  # noqa: E402
 import subscription_registration  # noqa: E402
 from http_test_kit import ServerUji  # noqa: E402
 
@@ -35,6 +36,21 @@ def server(tmp_path, monkeypatch):
     admin_registration.migrasikan_profil_registrasi(database.BAWAAN)
     yield s
     s.berhenti()
+
+
+def test_rute_daftar_mempertahankan_lookup_renderer(server, monkeypatch):
+    panggilan = []
+
+    def daftar_terpantau(*args, **kwargs):
+        panggilan.append(kwargs.get("pendaftaran_dibuka"))
+        return b"<h1>Daftar sintetis</h1>"
+
+    monkeypatch.setattr(landing, "halaman_daftar", daftar_terpantau)
+    kode, isi, _ = s_minta(server, "/daftar")
+
+    assert kode == 200
+    assert isi == "<h1>Daftar sintetis</h1>"
+    assert panggilan == [True]
 
 
 def test_get_daftar_publik(server):
