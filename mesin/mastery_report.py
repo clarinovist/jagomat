@@ -129,7 +129,7 @@ def render_peta(peta, tanggal, ringkas=False, *, siswa_id=0, materi='', status='
     if peta.level == '':
         return ('<section class="kartu peta-materi-st" id="peta-penguasaan">'
                 '<h2>Progres penguasaan materi Jagomat</h2>'
-                '<p>Pemetaan pertama belum disiapkan. Buka tab Rencana belajar; '
+                '<p>Latihan awal belum disiapkan. Buka tab Langkah berikutnya; '
                 'Jagomat akan memakai cakupan fondasi internal. Latihan manual tetap tersedia.</p></section>')
     if not peta.target:
         return ('<section class="kartu peta-materi-st" id="peta-penguasaan">'
@@ -178,10 +178,10 @@ def render_kriteria():
         '<ul><li>Semua pola dalam target telah diperiksa dengan soal bervariasi.</li>'
         '<li>Bukti terkonfirmasi, hasil cukup baik, dan anak bisa menjelaskan; '
         'bukan sekadar banyak latihan atau jawaban benar sekali.</li>'
-        '<li>Pemetaan diperiksa pada tanggal berbeda atau melalui evaluasi terpandu. '
-        'Bukti yang perlu diperbarui ditandai cek kembali.</li>'
-        '<li>Mulai dari pemetaan pada rencana belajar. Latihan biasa hanya menjadi '
-        'bukti bila hasil dikonfirmasi dan disertakan dalam pemetaan.</li></ul>'
+        '<li>Latihan awal diperiksa pada tanggal berbeda atau melalui pemeriksaan terpandu. '
+        'Catatan yang perlu diperbarui ditandai cek kembali.</li>'
+        '<li>Mulai dari latihan awal pada Langkah berikutnya. Latihan biasa hanya ikut '
+        'menentukan langkah bila hasil dikonfirmasi dan dipilih untuk pemeriksaan awal.</li></ul>'
         f'<p class="peta-catatan">Katalog {VERSI_KATALOG}; tiap target berbobot sama. '
         'Status tidak berarti penguasaan permanen.</p></section>'
     )

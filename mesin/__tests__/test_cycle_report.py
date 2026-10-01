@@ -66,7 +66,7 @@ def test_resume_laporan_bersumber_dari_perjalanan_bukan_statistik(db):
     assert "Posisi belajar saat ini" in ringkasan
     assert "Masih perlu diperiksa" in ringkasan
     assert 'class="resume-langkah"' in ringkasan
-    assert f'href="/anak/{sid}#judul-rencana-belajar"' in ringkasan
+    assert f'href="/anak/{sid}?section=rencana#judul-rencana-belajar"' in ringkasan
     assert h.count('<section class="kartu laporan-resume"') == 1
     assert '<summary>Lihat rencana belajar</summary>' not in h
     assert "1 sesi dinilai" not in ringkasan
@@ -80,8 +80,8 @@ def test_laporan_baru_meminta_pemetaan_bukan_menyimpulkan_penguasaan(db):
         h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
         assert kon.total_changes == sebelum
     assert 'id="perjalanan-belajar"' in h
-    assert "Pemetaan 0 dari 3" in _utama(h)
-    assert "belum cukup bukti" in _utama(h).lower()
+    assert "Latihan awal 0 dari 3" in _utama(h)
+    assert "catatan hasil belum cukup" in _utama(h).lower()
     assert 'tampilan=materi' in h and 'tampilan=kriteria' in h
     assert 'id="judul-peta"' not in h
 
@@ -94,7 +94,7 @@ def test_hasil_belum_disahkan_tidak_menjadi_fokus_laporan(db):
             _pemetaan(kon, sid, putaran, n, konfirmasi=False)
         h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
     utama = _utama(h)
-    assert "Konfirmasi hasil" in utama
+    assert "Periksa dan konfirmasi hasil" in utama
     assert "Perlu dipelajari" not in utama
     assert "uji-rahasia" not in utama
     assert "alasan-internal" not in utama
@@ -118,9 +118,9 @@ def test_ringkasan_fokus_lama_tetap_menyebut_ada_hasil_belum_dikonfirmasi(db):
     ringkasan = h.split('<div class="kartu ringkasan-laporan">', 1)[1].split(
         "</div>", 1
     )[0]
-    assert "ada hasil sesi yang belum dikonfirmasi" in ringkasan.lower()
+    assert "ada hasil latihan yang belum dikonfirmasi" in ringkasan.lower()
     assert "hasil terbaru" not in ringkasan.lower()
-    assert "Konfirmasi hasil" in ringkasan
+    assert "Periksa dan konfirmasi hasil" in ringkasan
 
 
 def test_laporan_memakai_bukti_sah_dan_tidak_menulis_db(db):
@@ -187,7 +187,7 @@ def test_actual_report_memisahkan_dua_fokus_dengan_status_reducer_berbeda(db):
     )[0]
     terlihat = ringkasan.split("Posisi belajar saat ini", 1)[1].split("</section>", 1)[0]
     assert terlihat.count('<li class="item-fokus-ringkasan">') == 2
-    fokus_1, fokus_2 = terlihat.split("Fokus 1", 1)[1].split("Fokus 2", 1)
+    fokus_1, fokus_2 = terlihat.split("Bagian 1", 1)[1].split("Bagian 2", 1)
     assert "mulai membaik" in fokus_1
     assert "masih perlu dipelajari" in fokus_2
     assert "uji-rahasia" not in ringkasan
@@ -202,7 +202,7 @@ def test_invalidasi_tidak_menghilangkan_riwayat_atau_mengaku_bukti_aktif(db):
         sebelum = kon.execute("SELECT COUNT(*) FROM snapshot_outcome").fetchone()[0]
         h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
         assert kon.execute("SELECT COUNT(*) FROM snapshot_outcome").fetchone()[0] == sebelum
-    assert "Konfirmasi hasil" in _utama(h)
+    assert "Periksa dan konfirmasi hasil" in _utama(h)
     assert "konfirmasi ulang" in _utama(h).lower()
     assert f"Putaran #{putaran}" in _utama(h)
 

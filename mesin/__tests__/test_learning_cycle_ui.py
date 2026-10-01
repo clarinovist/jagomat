@@ -78,30 +78,34 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
 
     assert kode == 200
     assert f'href="/anak/{siswa_id}?section=rencana" aria-current="page"' in isi
-    assert "Kenali cara anak menyelesaikan soal" in isi
-    assert "Pemetaan membantu melihat materi yang sudah nyaman" in isi
-    assert "Hari ini: 1 sesi · 15 soal" in isi
+    assert "Mulai dengan latihan awal" in isi
+    assert "Kenali cara anak" in isi
+    assert "Perkiraan sekitar 45 menit" in isi
+    assert "Rangkaian awal:" in isi
+    assert "latihan 1 dari 3 · 15 soal pada tanggal berbeda" in isi
     assert "Sesi ini hanya untuk pemetaan awal." not in isi
-    assert "Pemetaan awal: 0 dari 3 sesi terkonfirmasi" in isi
-    assert "Total tiga sesi, pada tiga tanggal berbeda." in isi
+    assert "Latihan awal 0 dari 3 selesai" in isi
     from test_concise_ui import Markup
     terlihat = Markup(isi).terlihat()
-    assert "Hari ini: 1 sesi · 15 soal" in terlihat
-    assert "Total tiga sesi, pada tiga tanggal berbeda." in terlihat
-    assert "Peran orang tua/guru" in isi
+    assert "latihan 1 dari 3 · 15 soal pada tanggal berbeda" in terlihat
+    assert "Peran orang tua/guru · Sekarang" in isi
     assert "Setelah selesai, periksa hasil dan konfirmasikan." in isi
+    for label in ("Sekarang", "Waktu", "Sesudah ini", "Kembali"):
+        assert label in terlihat
+    assert "Jagomat menampilkan catatan awal setelah hasil diperiksa" in terlihat
     assert f'<form method="post" action="/siklus/{siswa_id}/buat"' in isi
-    assert ">Siapkan sesi pemetaan pertama</button>" in isi
+    assert ">Siapkan latihan awal</button>" in isi
     assert "Setelah selesai, periksa hasil dan konfirmasikan." in terlihat
+    assert "Kembali setelah anak selesai untuk memeriksa hasil bersama." in terlihat
     assert '<details class="alur-rencana-jelas-st">' in isi
     assert "<summary>" in isi
     assert "Detail progres dan alur belajar" in isi
-    assert "Tahap sekarang: Pemetaan" in isi
+    assert "Tahap sekarang: Kenali cara anak" in isi
     kartu = isi.split('<section class="kartu-rencana-st"', 1)[1].split("</section>", 1)[0]
     assert kartu.count("<h2") == 1
     assert '<h2 class="st judul-tugas-rencana-st" id="judul-rencana-belajar">' in kartu
-    assert '<span class="penanda-judul-rencana-lama-st" aria-hidden="true">Mulai pemetaan</span>' in kartu
-    assert isi.count("Pemetaan membantu melihat materi yang sudah nyaman") == 1
+    assert '<span class="penanda-judul-rencana-lama-st" aria-hidden="true">Mulai dengan latihan awal</span>' in kartu
+    assert "Kenali cara anak mengerjakan tanpa menyimpulkan" in isi
     assert "/* Rencana belajar jelas — kartu */" in isi.split("</style>", 1)[0]
     form_utama = isi.split(f'action="/siklus/{siswa_id}/buat"', 1)[1].split("</form>", 1)[0]
     assert "<input" not in form_utama
@@ -136,12 +140,12 @@ def test_pemetaan_dua_dari_tiga_berasal_dari_snapshot_terkonfirmasi(server):
     kode, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
 
     assert kode == 200
-    assert "Pemetaan awal: 2 dari 3 sesi terkonfirmasi" in isi
-    assert "Dua sesi terkonfirmasi membantu memperjelas pola belajar anak." in isi
+    assert "Latihan awal 2 dari 3 selesai" in isi
+    assert "Dua latihan awal yang sudah diperiksa membantu memperjelas gambaran awal." in isi
     assert "Lanjutkan pemetaan level aktif." not in isi
-    assert "Lanjutkan pemetaan" in isi
-    assert ">Siapkan sesi pemetaan berikutnya</button>" in isi
-    assert "Siapkan sesi pemetaan pertama" not in isi
+    assert "Lanjutkan latihan awal" in isi
+    assert ">Siapkan latihan awal berikutnya</button>" in isi
+    assert ">Siapkan latihan awal</button>" not in isi
     assert f'action="/siklus/{siswa_id}/buat"' in isi
 
 
@@ -201,7 +205,7 @@ def test_intervensi_memakai_materi_konkret_satu_form_aksi_dan_escape(server):
     assert "Pelajari cara memeriksa hitungan" in kartu
     assert materi.instruksi_orang_tua in kartu
     assert materi.contoh_terbimbing in kartu
-    assert "Salah hitung pada Deret aritmetika muncul di 2 sesi" in kartu
+    assert "Salah hitung pada Deret aritmetika muncul di 2 latihan yang sudah diperiksa" in kartu
     assert f'action="/siklus/{siswa_id}/aksi"' in kartu
     assert 'name="aksi" value="intervensi_selesai"' in kartu
     assert f'name="putaran_id" value="{putaran_id}"' in kartu
@@ -273,9 +277,9 @@ def test_progres_memakai_fokus_kandidat_dan_maintenance_tidak_kembali_nol():
     html_fokus = learning_cycle_ui.render_rencana(rencana_fokus_b, bukti, 9)
     html_maintenance = learning_cycle_ui.render_rencana(maintenance, bukti, 9)
 
-    assert "Fokus: Perlu diperkuat" in html_fokus
-    assert "Fokus: Bertahan" not in html_fokus
-    assert "Pemetaan selesai — tidak ada fokus aktif" in html_maintenance
+    assert "Bagian yang dibantu: Perlu diperkuat" in html_fokus
+    assert "Bagian yang dibantu: Bertahan" not in html_fokus
+    assert "Latihan awal selesai — belum ada bagian aktif yang perlu dibantu" in html_maintenance
     assert "Pemetaan 0 dari 3" not in html_maintenance
 
 
@@ -358,7 +362,7 @@ def test_pemblokir_tanpa_putaran_domain_memakai_tujuan_sesi_untuk_strip():
 
     isi = learning_cycle_ui.render_rencana(rencana, bukti, 9)
 
-    assert "Penguatan mandiri" in isi
+    assert "Coba sendiri" in isi
     assert 'class="tahap-rencana-st aktif" aria-current="step">Latihan' in isi
     assert "Pemetaan 0 dari 3" not in isi
 
@@ -374,7 +378,7 @@ def test_strip_tahap_dan_override_terpandu_terpisah_dari_latihan_bebas(server):
     _, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
     kartu = isi.split('<section class="kartu-rencana-st"', 1)[1].split('</section>', 1)[0]
 
-    for label in ("Pemetaan", "Pelajari", "Latihan", "Evaluasi", "Cek kembali", "Lanjut"):
+    for label in ("Kenali cara anak", "Pelajari", "Latihan", "Cek setelah jeda", "Cek kembali", "Lanjut"):
         assert label in kartu
     assert "Checkpoint" not in kartu
     assert '<details class="alur-rencana-jelas-st">' in kartu
@@ -425,7 +429,7 @@ def test_pemetaan_aktif_tidak_mengarang_progres_nol(aksi):
     bukti = BuktiSiklus(9, "P3", sesi=(sesi,))
     rencana = RencanaBelajar(aksi, "Sesi pemetaan aktif", sesi_id=41)
     isi = learning_cycle_ui.render_rencana(rencana, bukti, 9)
-    assert "Tahap pemetaan" in isi
+    assert "Tahap latihan awal" in isi
     assert "Pemetaan 0 dari 3" not in isi
 
 
@@ -459,7 +463,7 @@ def test_tunggu_pemetaan_memakai_copy_positif_dan_tanggal_reducer():
     isi = learning_cycle_ui.render_rencana(rencana, BuktiSiklus(9, "P3"), 9)
 
     assert '<h2 class="st" id="judul-rencana-belajar">Cukup untuk hari ini</h2>' in isi
-    assert "Satu langkah pemetaan sudah selesai untuk hari ini." in isi
+    assert "Latihan awal 1 dari 3 selesai untuk hari ini." in isi
     assert "11 September 2026" in isi
     assert "Lanjutkan pemetaan besok" not in isi
 

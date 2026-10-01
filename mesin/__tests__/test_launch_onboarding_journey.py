@@ -90,23 +90,23 @@ def _jalan(server, viewport, nomor):
         "kelas_sekolah": "4", "setuju": "1", "token_form": _token_daftar(daftar),
     }
     kode, _isi, header = _minta(server, "/daftar", data=data)
-    assert kode == 303 and header["Location"] == "/guru"
+    assert kode == 303
     login = (nama, sandi)
     with server.buka() as kon:
         siswa_id = int(kon.execute("SELECT id FROM siswa WHERE pemilik=?", (nama,)).fetchone()[0])
-    kode, ruang_awal, _ = server.minta("/guru", auth=login)
-    assert kode == 200 and "Anak-%02d" % nomor in ruang_awal
-    kode, ruang, _ = server.minta("/anak/%d" % siswa_id, auth=login)
-    assert kode == 200 and "Buat latihan" in ruang
-    form = ruang.split('id="form-latihan-manual-', 1)[1].split('</form>', 1)[0]
-    assert 'name="topik"' in form and 'name="jumlah_soal"' in form
-    assert 'name="format_jawaban"' in form and 'name="mode"' in form
-    _satu_cta(form, "Buat sesi baru")
+    assert header["Location"] == "/anak/%d?section=rencana" % siswa_id
+
+    kode, ruang, _ = server.minta(header["Location"], auth=login)
+    assert kode == 200
+    assert "Langkah berikutnya" in ruang
+    assert "Mulai dengan latihan awal" in ruang
+    assert "Perkiraan sekitar 45 menit" in ruang
+    assert "Jagomat menampilkan catatan awal setelah hasil diperiksa" in ruang
+    _satu_cta(ruang, ">Siapkan latihan awal</button>")
+    assert 'action="/sesi-baru/%d"' % siswa_id not in ruang
 
     kode, _selesai, _ = server.minta(
-        "/sesi-baru/%d" % siswa_id, auth=login,
-        data={"topik": "pola-bilangan", "jumlah_soal": "4",
-              "format_jawaban": "isian", "mode": "diagnostik"},
+        "/siklus/%d/buat" % siswa_id, auth=login, data={},
     )
     assert kode == 200
     with server.buka() as kon:
@@ -114,7 +114,7 @@ def _jalan(server, viewport, nomor):
             "SELECT id FROM sesi WHERE siswa_id=? ORDER BY id DESC LIMIT 1", (siswa_id,)
         ).fetchone()[0])
         butir = database.isi_sesi(kon, sesi_id)
-        assert len(butir) == 4
+        assert len(butir) == 15
 
     akun_murid = "murid-%s-%02d" % (viewport, nomor)
     sandi_murid = "sandi-murid-%s-%02d" % (viewport, nomor)
@@ -151,9 +151,12 @@ def _jalan(server, viewport, nomor):
             payload["cara_%d" % b["sesi_soal_id"]] = "Langkah sintetis"
             payload["kode_%d" % b["sesi_soal_id"]] = "benar"
             payload["cek_pemahaman_%d" % b["sesi_soal_id"]] = "bisa_menjelaskan"
-    kode, _hasil, header = server.minta(
+    kode, hasil, header = server.minta(
         "/sesi/%d/konfirmasi" % sesi_id, auth=login, data=payload)
     assert kode == 200
+    assert "Langkah pertama selesai" in hasil
+    assert "Latihan awal 1 dari 3 selesai" in hasil
+    assert "belum cukup untuk menyimpulkan" in hasil
     kode, laporan, _ = server.minta("/laporan/%d" % siswa_id, auth=login)
     assert kode == 200
     assert "Laporan perkembangan" in laporan
@@ -161,9 +164,9 @@ def _jalan(server, viewport, nomor):
     _cek_viewport(laporan, viewport)
     return BuktiPerjalanan(
         viewport, nomor,
-        ("landing", "daftar", "ruang pendamping", "pilih latihan", "latihan pertama",
-         "lembar aman", "masukkan hasil", "tinjau-konfirmasi", "laporan", "langkah berikutnya"),
-        ("Buat akun pendamping.", "Buat akun", "Buat sesi baru",
+        ("landing", "daftar", "langkah berikutnya", "siapkan latihan awal", "latihan pertama",
+         "lembar aman", "masukkan hasil", "tinjau-konfirmasi", "laporan", "kembali besok"),
+        ("Buat akun pendamping.", "Buat akun", "Siapkan latihan awal",
          "Konfirmasi hasil", "aksi-rencana-laporan"),
     )
 

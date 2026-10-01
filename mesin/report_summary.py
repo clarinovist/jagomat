@@ -16,7 +16,7 @@ _STATUS_TERLIHAT = {
     "perlu_dipelajari": "masih perlu dipelajari bersama",
     "latihan_terbimbing": "sedang berlatih dengan bimbingan",
     "penguatan": "sedang menguatkan cara secara mandiri",
-    "menunggu_evaluasi": "berada pada tahap evaluasi berjeda",
+    "menunggu_evaluasi": "menunggu pemeriksaan setelah jeda",
     "mulai_membaik": "mulai membaik berdasarkan evaluasi terkonfirmasi",
     "bertahan": "bertahan pada pemeriksaan terakhir",
     "perlu_diperkuat": "masih perlu diperkuat dengan pendekatan berikutnya",
@@ -26,8 +26,8 @@ _TINDAKAN_DENGAN_INSTRUKSI = {"intervensi", "pengenalan"}
 _STATUS_PERIKSA = {
     "perlu_dipelajari": "Pemahaman setelah belajar bersama belum diperiksa.",
     "latihan_terbimbing": "Kesiapan untuk mencoba mandiri belum diperiksa.",
-    "penguatan": "Hasil evaluasi berjeda belum tersedia.",
-    "menunggu_evaluasi": "Hasil evaluasi berjeda berikutnya masih perlu diperiksa.",
+    "penguatan": "Hasil pemeriksaan setelah jeda belum tersedia.",
+    "menunggu_evaluasi": "Hasil pemeriksaan setelah jeda berikutnya masih perlu diperiksa.",
     "mulai_membaik": "Ketahanan pemahaman masih perlu diperiksa berkala.",
     "bertahan": "Status ini bukan penguasaan permanen; checkpoint berkala tetap diperlukan.",
     "perlu_diperkuat": "Pendekatan berikutnya dan pemahaman anak masih perlu diperiksa.",
@@ -37,7 +37,7 @@ _STATUS_PERIKSA = {
 
 def _nama_fokus(fokus, nomor: int, nama_tipe: Callable[[str], str]) -> str:
     nama = html.escape(nama_tipe(fokus.kunci[0]))
-    return f"Fokus {nomor}, {nama}"
+    return f"Bagian {nomor}, {nama}"
 
 
 def _pemahaman_relevan(fokus) -> str:
@@ -78,10 +78,10 @@ def _terlihat(perjalanan: PerjalananBelajar, nama_tipe: Callable[[str], str]) ->
             for kunci in perjalanan.rekomendasi.kandidat[:2]
         )
         tambahan = f" Materi yang sedang diproses: {materi}." if materi else ""
-        return "<p>Belum ada fokus aktif; materi baru bukan kelemahan anak." + tambahan + "</p>"
+        return "<p>Belum ada bagian aktif yang perlu dibantu; materi baru bukan kelemahan anak." + tambahan + "</p>"
     if tindakan == "mixed_maintenance":
-        return "<p>Belum ada fokus aktif dari bukti yang sudah dikonfirmasi.</p>"
-    return "<p>Bukti yang sudah dikonfirmasi belum cukup untuk menetapkan fokus aktif.</p>"
+        return "<p>Belum ada bagian aktif yang perlu dibantu dari hasil yang sudah diperiksa.</p>"
+    return "<p>Catatan hasil yang sudah diperiksa belum cukup untuk menetapkan bagian yang perlu dibantu.</p>"
 
 
 def _perlu_diperiksa(
@@ -89,9 +89,9 @@ def _perlu_diperiksa(
 ) -> str:
     catatan = " ".join(html.escape(teks) for teks in perjalanan.catatan)
     if perjalanan.rekomendasi.tindakan == "konfirmasi_hasil":
-        rincian = "Ada hasil sesi yang belum dikonfirmasi dan belum menjadi bukti."
+        rincian = "Ada hasil latihan yang belum dikonfirmasi dan belum dipakai untuk menentukan langkah."
     elif perjalanan.rekomendasi.tindakan == "lanjutkan_sesi":
-        rincian = "Hasil sesi berjalan belum tersedia sebagai bukti."
+        rincian = "Hasil latihan yang sedang berjalan belum tersedia untuk menentukan langkah."
     elif perjalanan.fokus:
         rincian = '<ul class="daftar-fokus-ringkasan">' + "".join(
             f'<li class="item-fokus-ringkasan">'
@@ -142,8 +142,8 @@ def render_ringkasan(
         '<section class="bagian-ringkasan-laporan"><h3>Langkah berikutnya</h3>'
         f'<p>{_langkah(perjalanan, tanggal)}</p></section>'
         '<p class="sumber-ringkasan-laporan">Dasar ringkasan: '
-        '<a href="#perjalanan-belajar">perjalanan dan status bukti</a>.</p>'
+        '<a href="#perjalanan-belajar">perjalanan dan status catatan hasil</a>.</p>'
         f'<a class="tombol sekunder aksi-ringkasan-laporan" '
-        f'href="/anak/{int(siswa_id)}#judul-rencana-belajar">Lihat rencana belajar</a>'
+        f'href="/anak/{int(siswa_id)}?section=rencana#judul-rencana-belajar">Lihat langkah berikutnya</a>'
         '</div>'
     )

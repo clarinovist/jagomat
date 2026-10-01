@@ -15,7 +15,7 @@ from template_labels import nama_tipe_soal as _nama_template
 
 KunciFokus = Tuple[str, str, Optional[str]]
 
-_LABEL_TAHAP = ("Pemetaan", "Pelajari", "Latihan", "Evaluasi", "Cek kembali", "Lanjut")
+_LABEL_TAHAP = ("Kenali cara anak", "Pelajari", "Latihan", "Cek setelah jeda", "Cek kembali", "Lanjut")
 _TINDAKAN_BUAT = {
     "pemetaan",
     "probe_diagnostik",
@@ -77,10 +77,10 @@ def _judul(rencana: RencanaBelajar, fokus: Optional[KunciFokus], bukti: BuktiSik
     tujuan = _tujuan_sesi_aktif(rencana, bukti)
     if tindakan in {"lanjutkan_sesi", "konfirmasi_hasil"} and tujuan:
         tahap = {
-            "pemetaan": "Pemetaan",
-            "latihan_terbimbing": "Latihan terbimbing",
-            "penguatan": "Penguatan mandiri",
-            "evaluasi": "Evaluasi berjeda",
+            "pemetaan": "Latihan awal",
+            "latihan_terbimbing": "Coba bersama",
+            "penguatan": "Coba sendiri",
+            "evaluasi": "Cek setelah jeda",
             "checkpoint": "Cek kembali pemahaman",
             "pengenalan": "Pengenalan materi",
             "maintenance": "Latihan campuran",
@@ -89,7 +89,7 @@ def _judul(rencana: RencanaBelajar, fokus: Optional[KunciFokus], bukti: BuktiSik
         return f"{awalan} — {tahap}"
     if tindakan == "pemetaan":
         jumlah = len(set(rencana.putaran.tanggal_pemetaan)) if rencana.putaran else 0
-        return "Mulai pemetaan" if jumlah == 0 else "Lanjutkan pemetaan"
+        return "Mulai dengan latihan awal" if jumlah == 0 else "Lanjutkan latihan awal"
     if tindakan == "tunggu_pemetaan":
         return "Cukup untuk hari ini"
     if tindakan == "lanjutkan_sesi":
@@ -107,19 +107,19 @@ def _judul(rencana: RencanaBelajar, fokus: Optional[KunciFokus], bukti: BuktiSik
             "T": "Kenalkan materi baru",
         }.get(kode, "Pelajari bersama")
     return {
-        "probe_diagnostik": "Periksa lagi kandidat fokus",
-        "latihan_terbimbing": "Coba latihan terbimbing",
-        "penguatan": "Coba mandiri",
-        "tunggu_evaluasi": "Tunggu evaluasi berjeda",
-        "evaluasi": "Lakukan evaluasi berjeda",
+        "probe_diagnostik": "Periksa lagi bagian yang masih dipantau",
+        "latihan_terbimbing": "Coba bersama",
+        "penguatan": "Coba sendiri",
+        "tunggu_evaluasi": "Tunggu cek beberapa hari lagi",
+        "evaluasi": "Cek lagi setelah jeda",
         "tunggu_checkpoint": "Tunggu jadwal cek kembali pemahaman",
         "checkpoint": "Cek kembali pemahaman",
         "probe_setelah_pengenalan": "Periksa pemahaman materi baru",
         "pengenalan": "Kenalkan materi baru",
         "mixed_maintenance": "Lanjutkan latihan campuran",
-        "putaran_baru": "Mulai putaran belajar baru",
+        "putaran_baru": "Mulai langkah bantuan baru",
         "eskalasi": "Periksa prasyarat bersama",
-    }.get(tindakan, "Lanjutkan rencana belajar")
+    }.get(tindakan, "Lanjutkan langkah berikutnya")
 
 
 def _alasan(rencana: RencanaBelajar, fokus: Optional[KunciFokus]) -> str:
@@ -131,11 +131,12 @@ def _alasan(rencana: RencanaBelajar, fokus: Optional[KunciFokus]) -> str:
     if rencana.tindakan == "pemetaan":
         jumlah = len(set(rencana.putaran.tanggal_pemetaan)) if rencana.putaran else 0
         if jumlah == 0:
-            return "Pemetaan membantu melihat materi yang sudah nyaman serta bagian yang perlu dibantu."
+            return "Kenali cara anak mengerjakan tanpa menyimpulkan kemampuannya dari satu latihan."
         kata_jumlah = {1: "Satu", 2: "Dua"}.get(jumlah, str(jumlah))
-        return f"{kata_jumlah} sesi terkonfirmasi membantu memperjelas pola belajar anak."
+        return f"{kata_jumlah} latihan awal yang sudah diperiksa membantu memperjelas gambaran awal."
     if rencana.tindakan == "tunggu_pemetaan":
-        return "Satu langkah pemetaan sudah selesai untuk hari ini."
+        jumlah = len(set(rencana.putaran.tanggal_pemetaan)) if rencana.putaran else 0
+        return f"Latihan awal {min(jumlah, 3)} dari 3 selesai untuk hari ini."
     if fokus:
         status = _status_fokus(rencana, fokus)
         if status and status.jumlah_sesi:
@@ -148,41 +149,41 @@ def _alasan(rencana: RencanaBelajar, fokus: Optional[KunciFokus]) -> str:
                 "N": "Cara menjawab belum terlihat",
                 "T": "Materi belum dikenalkan",
             }.get(fokus[1], "Pola yang sama")
-            return f"{jenis} pada {nama} muncul di {status.jumlah_sesi} sesi terkonfirmasi."
+            return f"{jenis} pada {nama} muncul di {status.jumlah_sesi} latihan yang sudah diperiksa."
     return rencana.alasan.rstrip(".") + "."
 
 
 def _progres(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
     tujuan = _tujuan_sesi_aktif(rencana, bukti)
     if rencana.tindakan == "putaran_baru":
-        return "Fokus kambuh — mulai putaran baru"
+        return "Bagian ini perlu dibantu lagi"
     if tujuan:
         return {
-            "pemetaan": "Tahap pemetaan",
-            "latihan_terbimbing": "Tahap latihan terbimbing",
-            "penguatan": "Tahap penguatan mandiri",
-            "evaluasi": "Tahap evaluasi berjeda",
+            "pemetaan": "Tahap latihan awal",
+            "latihan_terbimbing": "Tahap coba bersama",
+            "penguatan": "Tahap coba sendiri",
+            "evaluasi": "Tahap cek setelah jeda",
             "checkpoint": "Tahap cek kembali pemahaman",
             "pengenalan": "Tahap pengenalan materi",
             "maintenance": "Tahap latihan campuran",
         }.get(tujuan, "Sesi terpandu aktif")
     if rencana.tindakan == "mixed_maintenance":
-        return "Pemetaan selesai — tidak ada fokus aktif"
+        return "Latihan awal selesai — belum ada bagian aktif yang perlu dibantu"
     if rencana.putaran:
         jumlah = min(3, len(set(rencana.putaran.tanggal_pemetaan)))
         if jumlah < 3 or rencana.tindakan in {"pemetaan", "tunggu_pemetaan", "probe_diagnostik"}:
-            return f"Pemetaan awal: {jumlah} dari 3 sesi terkonfirmasi"
+            return f"Latihan awal {jumlah} dari 3 selesai"
         fokus = _fokus_utama(rencana)
         if fokus:
             status_fokus = _status_fokus(rencana, fokus)
             if status_fokus:
                 status = status_fokus.status.replace("_", " ")
-                return "Fokus: " + status.capitalize()
+                return "Bagian yang dibantu: " + status.capitalize()
         if rencana.putaran.fokus:
             status = rencana.putaran.fokus[0].status.replace("_", " ")
-            return "Fokus: " + status.capitalize()
-        return "Pemetaan selesai — tidak ada fokus aktif"
-    return "Pemetaan awal: 0 dari 3 sesi terkonfirmasi"
+            return "Bagian yang dibantu: " + status.capitalize()
+        return "Latihan awal selesai — belum ada bagian aktif yang perlu dibantu"
+    return "Latihan awal 0 dari 3 selesai"
 
 
 def _tanggal_indonesia(nilai: date) -> str:
@@ -222,7 +223,7 @@ def _strip_tahap(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
             + (' aria-current="step"' if indeks == aktif else "")
             + f'>{html.escape(label)}</li>'
         )
-    return '<ol class="strip-rencana-st" aria-label="Tahap rencana belajar">' + "".join(bagian) + "</ol>"
+    return '<ol class="strip-rencana-st" aria-label="Tahap langkah belajar">' + "".join(bagian) + "</ol>"
 
 
 def _alur_rencana(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
@@ -237,8 +238,8 @@ def _alur_rencana(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
         f'<p class="progres-rencana-st">{html.escape(_progres(rencana, bukti))}'
         f'{_penanda_progres_lama(rencana)}</p>'
         + _strip_tahap(rencana, bukti)
-        + '<p>Pemetaan membantu menentukan fokus. Setelah itu, anak belajar bersama, '
-        'berlatih dengan bantuan lalu mandiri, menjalani evaluasi setelah jeda, dan '
+        + '<p>Latihan awal membantu menentukan bagian yang perlu dibantu. Setelah itu, anak belajar bersama, '
+        'berlatih dengan bantuan lalu mandiri, menjalani cek setelah jeda, dan '
         'mengecek kembali pemahaman sebelum langkah berikutnya dipilih.</p>'
         '<p>Urutan ini adalah peta perjalanan, bukan tanda bahwa tahap sebelumnya pasti selesai.</p>'
         '</div></details>'
@@ -248,11 +249,11 @@ def _alur_rencana(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
 def _konteks_pemetaan(rencana: RencanaBelajar) -> str:
     if rencana.tindakan != "pemetaan":
         return ""
+    selesai = len(set(rencana.putaran.tanggal_pemetaan)) if rencana.putaran else 0
+    nomor = min(selesai + 1, 3)
     return (
-        '<div class="konteks-pemetaan-jelas-st">'
-        '<p><b>Hari ini: 1 sesi · 15 soal</b></p>'
-        '<p>Total tiga sesi, pada tiga tanggal berbeda.</p>'
-        '</div>'
+        '<p class="catatan-tiga-latihan-st"><b>Rangkaian awal:</b> '
+        f'latihan {nomor} dari 3 · 15 soal pada tanggal berbeda.</p>'
     )
 
 
@@ -280,22 +281,91 @@ def _tindakan_orang_tua(rencana: RencanaBelajar, materi) -> str:
     if materi is not None:
         return materi.instruksi_orang_tua
     return {
-        "lanjutkan_sesi": "Dampingi anak menyelesaikan sesi yang sudah dimulai.",
+        "pilih_variasi": "Biarkan anak mencoba dengan caranya sendiri. Setelah selesai, periksa hasil dan konfirmasikan.",
+        "lanjutkan_sesi": "Dampingi anak menyelesaikan latihan yang sudah dimulai.",
         "konfirmasi_hasil": 'Tanyakan, “Bagaimana kamu mendapat jawaban ini?” Dengarkan caranya tanpa memberi jawaban.',
         "pemetaan": "Biarkan anak mencoba dengan caranya sendiri. Setelah selesai, periksa hasil dan konfirmasikan.",
-        "tunggu_pemetaan": "Beri jeda sampai tanggal berikutnya agar pemetaan tidak menumpuk di satu hari.",
-        "probe_diagnostik": "Ajak anak mengerjakan probe baru tanpa memberi tahu jawaban sebelumnya.",
+        "tunggu_pemetaan": "Beri jeda sampai tanggal berikutnya agar latihan awal tidak menumpuk di satu hari.",
+        "probe_diagnostik": "Ajak anak mencoba soal pemeriksaan baru tanpa memberi tahu jawaban sebelumnya.",
         "latihan_terbimbing": "Kerjakan contoh pertama bersama, lalu minta anak menjelaskan tiap langkah.",
         "penguatan": "Biarkan anak mencoba mandiri; bantu hanya ketika ia benar-benar tersendat.",
-        "tunggu_evaluasi": "Jangan mengulang soal fokus dulu; beri jeda agar evaluasi mengukur ingatan yang bertahan.",
+        "tunggu_evaluasi": "Jangan mengulang bagian yang sama dulu; beri jeda agar pemeriksaan melihat ingatan yang bertahan.",
         "evaluasi": "Minta anak mengerjakan tanpa melihat contoh, lalu cek apakah ia bisa menjelaskan.",
-        "tunggu_checkpoint": "Pertahankan latihan ringan biasa sampai jadwal cek kembali pemahaman tiba.",
-        "checkpoint": "Jalankan sesi cek kembali tanpa membuka contoh lama.",
+        "tunggu_checkpoint": "Pertahankan latihan ringan biasa sampai jadwal pemeriksaan kembali tiba.",
+        "checkpoint": "Jalankan pemeriksaan kembali tanpa membuka contoh lama.",
         "probe_setelah_pengenalan": "Minta anak mencoba soal baru setelah materi dikenalkan.",
-        "mixed_maintenance": "Pilih sesi campuran ringan untuk menjaga materi yang sudah dipelajari.",
-        "putaran_baru": "Mulai lagi dari fokus yang kambuh tanpa menghapus keberhasilan sebelumnya.",
+        "mixed_maintenance": "Pilih latihan campuran ringan untuk menjaga materi yang sudah dipelajari.",
+        "putaran_baru": "Mulai lagi dari bagian yang perlu dibantu tanpa menghapus keberhasilan sebelumnya.",
         "eskalasi": "Cek prasyarat dasarnya atau lakukan uji ulang lisan sebelum menambah latihan.",
     }.get(rencana.tindakan, "Dampingi anak mengikuti langkah yang disarankan.")
+
+
+def _waktu(
+    rencana: RencanaBelajar, bukti: BuktiSiklus, *, tertahan: bool = False
+) -> str:
+    if tertahan:
+        return "Belum ada latihan yang perlu dikerjakan."
+    tujuan = _tujuan_sesi_aktif(rencana, bukti)
+    if rencana.tindakan in {"pilih_variasi", "pemetaan"} or tujuan == "pemetaan":
+        return "Perkiraan sekitar 45 menit untuk 15 soal."
+    if rencana.tindakan in {"tunggu_pemetaan", "tunggu_evaluasi", "tunggu_checkpoint"}:
+        return "Tidak perlu menambah latihan terjadwal hari ini."
+    if rencana.tindakan == "konfirmasi_hasil":
+        return "Sesuaikan dengan jumlah jawaban yang perlu diperiksa."
+    if rencana.tindakan == "lanjutkan_sesi" or rencana.tindakan in _TINDAKAN_BUAT:
+        return "Sekitar 3 menit per soal."
+    return "Selesaikan satu langkah ini sesuai kesiapan anak."
+
+
+def _sesudah(rencana: RencanaBelajar, *, tertahan: bool = False) -> str:
+    if tertahan:
+        return "Langkah belum dapat dilanjutkan sampai materi pendamping tersedia."
+    return {
+        "pilih_variasi": "Jagomat menampilkan catatan awal setelah hasil diperiksa; satu latihan belum menjadi kesimpulan.",
+        "pemetaan": "Jagomat menampilkan catatan awal setelah hasil diperiksa; satu latihan belum menjadi kesimpulan.",
+        "tunggu_pemetaan": "Latihan awal berikutnya tersedia pada tanggal yang ditampilkan.",
+        "lanjutkan_sesi": "Hasil perlu diperiksa bersama sebelum dipakai untuk langkah berikutnya.",
+        "konfirmasi_hasil": "Jagomat memperbarui catatan hasil dan menampilkan langkah berikutnya.",
+        "probe_diagnostik": "Catatan baru membantu memeriksa bagian yang masih dipantau.",
+        "intervensi": "Anak siap mencoba contoh dengan bantuan.",
+        "pengenalan": "Anak siap mencoba soal baru tentang materi ini.",
+        "latihan_terbimbing": "Anak beralih ke percobaan yang lebih mandiri.",
+        "penguatan": "Jagomat menjadwalkan pemeriksaan setelah jeda tiga hari.",
+        "tunggu_evaluasi": "Pemeriksaan setelah jeda tersedia pada tanggal yang ditampilkan.",
+        "evaluasi": "Hasil menunjukkan apakah pendekatan ini mulai membantu.",
+        "tunggu_checkpoint": "Pemeriksaan kembali tetap menunggu jadwal 28 hari.",
+        "checkpoint": "Catatan menunjukkan apakah pemahaman masih bertahan.",
+        "probe_setelah_pengenalan": "Hasil menentukan apakah materi perlu dipelajari bersama.",
+        "mixed_maintenance": "Jagomat tetap memilih langkah berikutnya dari catatan yang sah.",
+        "putaran_baru": "Pendekatan baru dimulai tanpa menghapus catatan lama.",
+        "eskalasi": "Pendamping mendapat dasar untuk memeriksa prasyarat atau melakukan uji lisan.",
+    }.get(rencana.tindakan, "Jagomat menampilkan langkah berikutnya dari hasil yang sudah diperiksa.")
+
+
+def _kapan_kembali(rencana: RencanaBelajar, *, tertahan: bool = False) -> str:
+    if tertahan:
+        return "Kembali setelah materi pendamping tersedia."
+    if rencana.tersedia_pada is not None:
+        return "Kembali pada " + _tanggal_indonesia(rencana.tersedia_pada) + "."
+    if rencana.tindakan in {"pilih_variasi", "pemetaan"}:
+        return "Kembali setelah anak selesai untuk memeriksa hasil bersama."
+    if rencana.tindakan == "konfirmasi_hasil":
+        return "Kembali ke Langkah berikutnya setelah hasil dikonfirmasi."
+    return "Kembali setelah langkah ini selesai; Jagomat akan menampilkan jadwal berikutnya."
+
+
+def _ringkasan_langkah(
+    rencana: RencanaBelajar, bukti: BuktiSiklus, instruksi: str,
+    *, tertahan: bool = False,
+) -> str:
+    return (
+        '<div class="ringkasan-langkah-st">'
+        f'<div class="tindakan-rencana-st"><b>Peran orang tua/guru · Sekarang</b><p>{html.escape(instruksi)}</p></div>'
+        f'<div><b>Waktu</b><p>{html.escape(_waktu(rencana, bukti, tertahan=tertahan))}</p></div>'
+        f'<div><b>Sesudah ini</b><p>{html.escape(_sesudah(rencana, tertahan=tertahan))}</p></div>'
+        f'<div><b>Kembali</b><p>{html.escape(_kapan_kembali(rencana, tertahan=tertahan))}</p></div>'
+        '</div>'
+    )
 
 
 def _form_intervensi(
@@ -363,13 +433,13 @@ def _cta(rencana: RencanaBelajar, bukti: BuktiSiklus, siswa_id: int, fokus, mate
         return (
             f'<form method="post" action="/siklus/{siswa_id}/aksi" class="rencana-form-st">'
             '<input type="hidden" name="aksi" value="mulai_putaran_baru">'
-            '<button type="submit" class="rencana-cta-utama-st">Mulai putaran baru</button></form>'
+            '<button type="submit" class="rencana-cta-utama-st">Mulai langkah bantuan baru</button></form>'
         )
     if rencana.tindakan in _TINDAKAN_BUAT:
         label = "Buat sesi berikutnya"
         if rencana.tindakan == "pemetaan":
             jumlah = len(set(rencana.putaran.tanggal_pemetaan)) if rencana.putaran else 0
-            label = "Siapkan sesi pemetaan pertama" if jumlah == 0 else "Siapkan sesi pemetaan berikutnya"
+            label = "Siapkan latihan awal" if jumlah == 0 else "Siapkan latihan awal berikutnya"
         return (
             f'<form method="post" action="/siklus/{siswa_id}/buat" class="rencana-form-st">'
             f'<button type="submit" class="rencana-cta-utama-st">{label}</button>'
@@ -438,15 +508,17 @@ def render_rencana(
     if rencana.tindakan == 'pilih_variasi':
         return (
             '<section class="kartu-rencana-st" aria-labelledby="judul-rencana-belajar">'
-            '<p class="label-rencana-st">Siapkan rencana belajar</p>'
-            '<h2 class="st" id="judul-rencana-belajar">Siapkan pemetaan pertama</h2>'
-            '<p>Jagomat memulai dari cakupan fondasi dan mengganti angka serta model soal '
-            'secara otomatis pada sesi berikutnya. Cakupan ini bukan penilaian kemampuan '
-            'dan tidak ditentukan dari kelas sekolah.</p>'
+            '<p class="label-rencana-st">Langkah berikutnya</p>'
+            '<h2 class="st" id="judul-rencana-belajar">Mulai dengan latihan awal</h2>'
+            '<p>Kenali cara anak mengerjakan tanpa menyimpulkan kemampuannya dari satu latihan. '
+            'Jagomat memulai dari cakupan fondasi yang bukan penilaian kemampuan dan tidak '
+            'ditentukan dari kelas sekolah.</p>'
+            + _ringkasan_langkah(
+                rencana, bukti, _tindakan_orang_tua(rencana, None)
+            )
+            + '<p class="catatan-tiga-latihan-st"><b>Rangkaian awal:</b> tiga latihan pada tanggal berbeda.</p>'
             + f'<form method="post" action="/siklus/{siswa_id}/buat" class="rencana-form-st">'
-            + '<p>Pemetaan awal terdiri dari tiga sesi pada hari berbeda, masing-masing 15 soal. '
-            'Tombol ini hanya menyiapkan sesi pertama.</p>'
-            '<button type="submit" class="rencana-cta-utama-st">Siapkan sesi pemetaan pertama</button>'
+            + '<button type="submit" class="rencana-cta-utama-st">Siapkan latihan awal</button>'
             '</form>' + slot_bantuan + '</section>'
         )
     from cycle_carry import bukti_lanjutan
@@ -475,10 +547,12 @@ def render_rencana(
         '<p class="rencana-peringatan-st">' + html.escape(materi.instruksi_orang_tua) + "</p>"
         if materi is not None and not materi.tersedia else ""
     )
-    instruksi = "" if materi_tidak_tersedia else _tindakan_orang_tua(rencana, materi)
-    tindakan = (
-        '<div class="tindakan-rencana-st"><b>Peran orang tua/guru</b>'
-        f'<p>{html.escape(instruksi)}</p></div>' if instruksi else ""
+    instruksi = (
+        "Tunggu materi pendamping tersedia; jangan membuat latihan pengganti."
+        if materi_tidak_tersedia else _tindakan_orang_tua(rencana, materi)
+    )
+    tindakan = _ringkasan_langkah(
+        rencana, bukti, instruksi, tertahan=materi_tidak_tersedia
     )
     catatan_histori = "".join(
         f'<p class="sub catatan-histori-level-st">{html.escape(teks)}</p>'
@@ -496,7 +570,7 @@ def render_rencana(
         and not (rencana.putaran and rencana.putaran.tanggal_pemetaan)
     )
     judul_domain = _judul(rencana, fokus, bukti)
-    judul_tampil = "Kenali cara anak menyelesaikan soal" if pemetaan_pertama else judul_domain
+    judul_tampil = "Mulai dengan latihan awal" if pemetaan_pertama else judul_domain
     penanda_judul_lama = (
         f'<span class="penanda-judul-rencana-lama-st" aria-hidden="true">'
         f'{html.escape(judul_domain)}</span>'
@@ -514,14 +588,14 @@ def render_rencana(
         '<section class="kartu-rencana-st" aria-labelledby="judul-rencana-belajar">'
         '<div class="studio-layout-st">'
         '<div class="studio-utama-st">'
-        '<p class="label-rencana-st">Langkah belajar berikutnya</p>'
+        '<p class="label-rencana-st">Langkah berikutnya</p>'
         f'<h2 class="{kelas_judul}" id="judul-rencana-belajar">{html.escape(judul_tampil)}</h2>'
         f'{penanda_judul_lama}{_identitas_sesi(rencana, bukti)}'
         f'<p class="alasan-rencana-st">{html.escape(_alasan(rencana, fokus))}</p>'
         f'{_konteks_pemetaan(rencana)}'
         f'{catatan_histori}{catatan_mode}{contoh}{catatan_materi}{tanggal}'
         '</div>'
-        '<aside class="studio-pendamping-st" aria-label="Posisi dan peran pendamping">'
+        '<aside class="studio-pendamping-st" aria-label="Panduan langkah berikutnya">'
         f'{tindakan}'
         '</aside>'
         f'<div class="studio-aksi-st">{cta}{petunjuk}</div>'

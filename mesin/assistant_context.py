@@ -37,22 +37,22 @@ def _tahap_netral(tindakan: str) -> str:
     return {
         "lanjutkan_sesi": "Sesi belajar sedang berjalan",
         "konfirmasi_hasil": "Hasil menunggu tinjauan orang tua",
-        "pemetaan": "Pemetaan awal",
-        "tunggu_pemetaan": "Menunggu sesi pemetaan berikutnya",
-        "probe_diagnostik": "Pemetaan lanjutan",
+        "pemetaan": "Latihan awal",
+        "tunggu_pemetaan": "Menunggu latihan awal berikutnya",
+        "probe_diagnostik": "Pemeriksaan awal lanjutan",
         "intervensi": "Pelajari bersama",
         "latihan_terbimbing": "Latihan dengan bantuan",
         "penguatan": "Coba mandiri",
-        "tunggu_evaluasi": "Menunggu evaluasi setelah jeda",
-        "evaluasi": "Evaluasi setelah jeda",
+        "tunggu_evaluasi": "Menunggu pemeriksaan setelah jeda",
+        "evaluasi": "Pemeriksaan setelah jeda",
         "tunggu_checkpoint": "Menunggu cek kembali pemahaman",
         "checkpoint": "Cek kembali pemahaman",
         "pengenalan": "Pengenalan materi",
         "probe_setelah_pengenalan": "Periksa pemahaman materi baru",
         "mixed_maintenance": "Latihan campuran",
-        "putaran_baru": "Memulai putaran belajar baru",
+        "putaran_baru": "Memulai langkah bantuan baru",
         "eskalasi": "Perlu pendampingan lebih lanjut",
-    }.get(tindakan, "Rencana belajar tersedia")
+    }.get(tindakan, "Langkah berikutnya tersedia")
 
 
 def versi_ringkasan_anak(kon, siswa_id: int, *, pemilik: str) -> Optional[str]:

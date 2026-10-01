@@ -510,7 +510,7 @@ def halaman_utama_stitch(
     """Beranda pendamping: satu pintu per anak, tanpa keputusan belajar baru.
 
     Status kirim/review hanya ringkasan aktivitas, bukan bukti penguasaan.
-    Rencana belajar tetap berada pada profil anak dan reducer yang sama.
+    Langkah berikutnya tetap berada pada profil anak dan reducer yang sama.
     """
     baris = []
     for s in database.daftar_siswa(kon, pemilik):
@@ -552,8 +552,12 @@ def halaman_utama_stitch(
         nama = str(s["nama"])
         from learning_profile import label_kelas_sekolah
         kelas_sekolah = _kelas_sekolah_profil(kon, s)
+        tujuan_anak = (
+            f'/anak/{s["id"]}?section=rencana'
+            if not s["tingkat"] else f'/anak/{s["id"]}'
+        )
         baris.append(
-            f'<a class="st-kartu kartu-anak" href="/anak/{s["id"]}">'
+            f'<a class="st-kartu kartu-anak" href="{tujuan_anak}">'
             f'<span class="guru-inisial-st" aria-hidden="true">{html.escape(nama[:1].upper())}</span>'
             '<div class="guru-identitas-st">'
             f'<h3 class="guru-nama-st">{html.escape(nama)}</h3>'
@@ -585,8 +589,8 @@ def halaman_utama_stitch(
         '<h2 id="daftar-anak">Kenali langkah pertama mereka.</h2>'
         '<p>Akunmu sudah siap. Tambahkan anak dengan nama panggilan, '
         'lalu buka profilnya untuk mulai mendampingi belajar.</p>'
-        f'{tambah}<p class="guru-petunjuk-st">Belum ada sesi latihan. '
-        'Rencana belajar akan tersedia di profil anak.</p></div>'
+        f'{tambah}<p class="guru-petunjuk-st">Belum ada latihan. '
+        'Langkah berikutnya akan tersedia di profil anak.</p></div>'
     )
     kabar = (
         '<div class="st-banner-sukses" role="status"><span class="ikon" aria-hidden="true">✓</span>'

@@ -52,8 +52,8 @@ def test_dua_fokus_template_sama_tetap_dua_slot_dan_status_terpisah():
         FokusPerjalanan(("soal_umur", "K", "rahasia-b"), "perlu_diperkuat"),
     )
     teks, html = _teks(PerjalananBelajar(RencanaBelajar("intervensi", ""), fokus=fokus))
-    assert teks.count("Fokus 1") == 2
-    assert teks.count("Fokus 2") == 2
+    assert teks.count("Bagian 1") == 2
+    assert teks.count("Bagian 2") == 2
     assert "mulai membaik" in teks
     assert "masih perlu diperkuat" in teks
     assert "rahasia-a" not in html and "rahasia-b" not in html
@@ -81,7 +81,7 @@ def test_menunggu_jadwal_dan_bertahan_tidak_dipercepat_atau_dipermanenkan():
         fokus=(FokusPerjalanan(("soal_umur", "K", None), "menunggu_evaluasi"),),
     )
     teks, _ = _teks(menunggu)
-    assert "Tunggu evaluasi berjeda" in teks
+    assert "Tunggu cek beberapa hari lagi" in teks
     assert "2026-09-16" in teks
     bertahan = PerjalananBelajar(
         RencanaBelajar("tunggu_checkpoint", ""),
@@ -106,7 +106,7 @@ def test_known_action_noninstruksional_tidak_memakai_teks_intervensi():
         "evaluasi", "", intervensi=Intervensi("K", "Instruksi tak relevan", "uji")
     )
     teks, html = _teks(PerjalananBelajar(rencana))
-    assert "Lakukan evaluasi berjeda" in teks
+    assert "Cek lagi setelah jeda" in teks
     assert "Instruksi tak relevan" not in html
 
 
@@ -180,12 +180,12 @@ def test_dua_fokus_dengan_catatan_tetap_di_bawah_180_kata_dan_aman():
     assert "<b>dikoreksi</b>" not in html and "&lt;b&gt;dikoreksi&lt;/b&gt;" in html
     assert "rahasia-a" not in html and "rahasia-b" not in html
     assert "alasan-rahasia" not in html
-    assert teks.count("Fokus 1") == 2 and teks.count("Fokus 2") == 2
+    assert teks.count("Bagian 1") == 2 and teks.count("Bagian 2") == 2
 
 
 def test_sumber_ringkasan_tidak_mengaku_semua_bukti_sudah_dikonfirmasi():
     _, html = _teks(PerjalananBelajar(RencanaBelajar("konfirmasi_hasil", "")))
-    assert "perjalanan dan status bukti" in html
+    assert "perjalanan dan status catatan hasil" in html
     assert "perjalanan dan bukti yang dikonfirmasi" not in html
 
 
@@ -202,4 +202,4 @@ def test_catatan_koreksi_dan_beda_level_tetap_terlihat_dan_ringkas():
     assert "kelas berbeda" in teks.lower()
     isi = re.sub(r"<[^>]+>", " ", html.split("Dasar ringkasan:", 1)[0])
     assert len(re.findall(r"\b[\wÀ-ÿ-]+\b", isi)) <= 180
-    assert html.count("Lihat rencana belajar") == 1
+    assert html.count("Lihat langkah berikutnya") == 1

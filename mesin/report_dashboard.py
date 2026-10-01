@@ -275,16 +275,16 @@ def render_resume(perjalanan, tugas, siswa_id, nama_tipe, nama_topik, tanggal) -
         tujuan = f'/sesi/{int(rencana.sesi_id)}'
         label = "Lanjutkan latihan" if rencana.tindakan == "lanjutkan_sesi" else "Tinjau hasil latihan"
     else:
-        tujuan = f'/anak/{int(siswa_id)}#judul-rencana-belajar'
-        label = "Buka rencana di profil anak"
+        tujuan = f'/anak/{int(siswa_id)}?section=rencana#judul-rencana-belajar'
+        label = "Buka langkah berikutnya"
     return (
         '<section class="kartu laporan-resume" id="rencana-belajar-laporan" aria-labelledby="judul-resume">'
         '<div class="kartu ringkasan-laporan">'
-        '<h2 id="judul-resume">Rencana belajar berikutnya</h2>'
+        '<h2 id="judul-resume">Langkah berikutnya</h2>'
         f'{materi_html}<p class="resume-langkah">{_langkah(perjalanan, tanggal)}</p>'
         f'<a class="tombol aksi-rencana-laporan" href="{tujuan}">{label}</a>'
         '<div class="resume-konteks"><section><h3>Posisi belajar saat ini</h3>'
-        f'<p class="laporan-catatan">Pemetaan {min(len(perjalanan.tanggal_pemetaan), 3)} dari 3 tanggal.</p>'
+        f'<p class="laporan-catatan">Latihan awal {min(len(perjalanan.tanggal_pemetaan), 3)} dari 3 tanggal.</p>'
         + _terlihat(perjalanan, nama_tipe) + '</section>'
         '<section><h3>Masih perlu diperiksa</h3>' + _perlu_diperiksa(perjalanan, nama_tipe)
         + '</section></div>' + belum + '</div></section>'

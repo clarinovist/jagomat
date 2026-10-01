@@ -82,7 +82,7 @@ def test_fixture_sesi_beranda_terisolasi(server, tmp_path):
     assert sessions.BERKAS_SESI.parent == server.db.parent
 
 
-def test_daftar_langsung_ke_beranda_guru(server):
+def test_daftar_langsung_ke_langkah_berikutnya_anak(server):
     halaman = _minta(server, "/daftar")[1]
     token_form = re.search(r'name="token_form" value="([^"]+)"', halaman).group(1)
     kode, _, tajuk = _minta(server, "/daftar", {
@@ -91,8 +91,16 @@ def test_daftar_langsung_ke_beranda_guru(server):
         "nama_anak": "Profil Sintetis", "profil_parameter": "P4",
     })
     assert kode == 303
-    assert tajuk["Location"] == "/guru"
+    with server.buka() as kon:
+        siswa_id = int(kon.execute(
+            "SELECT id FROM siswa WHERE pemilik='pendamping-baru'"
+        ).fetchone()[0])
+    assert tajuk["Location"] == f"/anak/{siswa_id}?section=rencana"
     assert "HttpOnly" in tajuk["Set-Cookie"]
+    token = tajuk["Set-Cookie"].split(";", 1)[0].split("=", 1)[1]
+    kode_profil, profil, _ = _minta(server, tajuk["Location"], token=token)
+    assert kode_profil == 200
+    assert "Langkah berikutnya" in profil and "Siapkan latihan awal" in profil
 
 
 def test_gagal_login_tidak_menerbitkan_kuki(server):
@@ -157,6 +165,16 @@ class Markup(HTMLParser):
 def _isi(server, pesan=""):
     with server.buka() as kon:
         return teacher_pages.halaman_utama_stitch(kon, pemilik="guru", pesan=pesan).decode()
+
+
+def test_anak_belum_memulai_menuju_langkah_berikutnya_dan_yang_aktif_tetap_default(server):
+    with server.buka() as kon:
+        baru = database.tambah_siswa(kon, "Anak Belum Mulai", tingkat="", pemilik="guru")
+        aktif = kon.execute("SELECT id FROM siswa WHERE pemilik='guru'").fetchone()[0]
+    isi = _isi(server)
+    assert f'href="/anak/{baru}?section=rencana"' in isi
+    assert f'href="/anak/{aktif}"' in isi
+    assert f'href="/anak/{aktif}?section=rencana"' not in isi
 
 
 def test_semantik_satu_kartu_dan_satu_tambah_anak(server):
@@ -277,7 +295,7 @@ def test_rekap_pembatalan_tidak_tercampur_antar_anak(server):
         database.batalkan_sesi(kon, database.buat_sesi(kon, kedua, seed=25))
     isi = _isi(server)
     kartu = dict(re.findall(
-        r'<a class="st-kartu kartu-anak" href="/anak/(\d+)">(.*?)</a>', isi, re.S,
+        r'<a class="st-kartu kartu-anak" href="/anak/(\d+)(?:\?section=rencana)?">(.*?)</a>', isi, re.S,
     ))
     assert set(kartu) == {str(pertama), str(kedua), str(kosong)}
     assert ">4 latihan tercatat</span>" in kartu[str(pertama)]

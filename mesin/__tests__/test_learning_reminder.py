@@ -136,7 +136,7 @@ def test_http_manual_langsung_rencana_tetap_tersedia_dan_pengingat_aktif(server)
     status, isi, _ = server.minta('/anak/%d' % sid, auth=('guru', SANDI_GURU))
     assert status == 200 and isi.count('class="profil-rappel-st"') == 1
     banner = isi.split('class="profil-rappel-st"', 1)[1].split('</div>', 1)[0]
-    assert 'Lanjutkan sesi — Pemetaan' in banner and '<form' not in banner
+    assert 'Lanjutkan sesi — Latihan awal' in banner and '<form' not in banner
     assert 'Rencana belajar hari ini' not in banner and '<br>' not in banner
     assert 'Buka rencana →' in banner and banner.count('<a ') == 1
     assert f'?section=rencana' in banner
@@ -149,7 +149,7 @@ def test_http_manual_langsung_rencana_tetap_tersedia_dan_pengingat_aktif(server)
     status, isi, _ = server.minta('/anak/%d' % sid, auth=('guru', SANDI_GURU))
     assert status == 200
     banner = isi.split('class="profil-rappel-st"', 1)[1].split('</div>', 1)[0]
-    assert 'Tinjau dan konfirmasi hasil — Pemetaan' in banner and '<form' not in banner
+    assert 'Tinjau dan konfirmasi hasil — Latihan awal' in banner and '<form' not in banner
     assert 'Buka rencana →' in banner
 
 

@@ -1458,8 +1458,13 @@ class Penangan(BaseHTTPRequestHandler):
                     ),
                     status,
                 )
+            tujuan_daftar = (
+                f"/anak/{akun_baru.siswa_id}?section=rencana"
+                if type(akun_baru.siswa_id) is int and akun_baru.siswa_id > 0
+                else "/guru"
+            )
             self.send_response(303)
-            self.send_header("Location", "/guru")
+            self.send_header("Location", tujuan_daftar)
             self.send_header("Set-Cookie", self._set_cookie(token))
             self.send_header("Content-Length", "0")
             self.end_headers()

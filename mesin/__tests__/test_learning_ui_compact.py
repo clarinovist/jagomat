@@ -43,12 +43,14 @@ def test_progres_dilipat_tetapi_tindakan_dan_peringatan_tetap_terlihat(tindakan)
     bukti = BuktiSiklus(9, 'P3')
     isi = learning_cycle_ui.render_rencana(rencana, bukti, 9)
     struktur = LetakIsi(isi)
-    assert 'Langkah belajar berikutnya' in isi
+    assert 'Langkah berikutnya' in isi
     assert 'Detail progres dan alur belajar' in isi
     progres = learning_cycle_ui._progres(rencana, bukti)
     assert any(progres in t and d > 0 for t, d in struktur.teks)
     assert all('open' not in a for a in struktur.details)
-    assert any('Peran orang tua/guru' in t and d == 0 for t, d in struktur.teks)
+    assert any('Peran orang tua/guru · Sekarang' in t and d == 0 for t, d in struktur.teks)
+    for label in ('Waktu', 'Sesudah ini', 'Kembali'):
+        assert any(label in t and d == 0 for t, d in struktur.teks)
     if tindakan == 'intervensi':
         materi = interventions.untuk_fokus(fokus)
         assert any(materi.contoh_terbimbing in t and d == 0 for t, d in struktur.teks)
@@ -58,6 +60,7 @@ def test_progres_dilipat_tetapi_tindakan_dan_peringatan_tetap_terlihat(tindakan)
     if tindakan == 'pemetaan':
         assert any('15 soal' in t and d == 0 for t, d in struktur.teks)
         assert any('tanggal berbeda' in t and d == 0 for t, d in struktur.teks)
+        assert any('Perkiraan sekitar 45 menit' in t and d == 0 for t, d in struktur.teks)
 
 
 @pytest.fixture

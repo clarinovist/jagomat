@@ -167,7 +167,7 @@ def test_kambuh_dapat_membuka_putaran_baru_lewat_http(alur):
     assert kode == 200
     assert 'name="aksi" value="mulai_putaran_baru"' in isi
     assert 'Pemetaan 0 dari 3' not in isi
-    assert 'Fokus kambuh — mulai putaran baru' in isi
+    assert 'Bagian ini perlu dibantu lagi' in isi
     for _ in range(2):
         assert kirim(alur, f"/siklus/{alur[1]}/aksi", {"aksi": "mulai_putaran_baru"})[0] == 303
     assert rencana(alur).tindakan == "intervensi"

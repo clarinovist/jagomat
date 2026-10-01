@@ -271,7 +271,10 @@ keputusan pedagogis atau koreksi data anak saat verifikasi deploy.
 ## 10. Permukaan pengguna
 
 Profil anak memakai empat tujuan utama yang sejajar: **Buat latihan** (halaman
-awal), **Rencana belajar**, **Riwayat**, dan **Laporan perkembangan**. Tujuan laporan
+awal untuk URL profil tanpa parameter), **Langkah berikutnya** (route internal
+`?section=rencana`), **Riwayat**, dan **Laporan perkembangan**. Pendaftaran profil
+pertama langsung menuju **Langkah berikutnya**, sedangkan latihan manual tetap dapat
+dibuka kapan saja. Tujuan laporan
 membuka laporan anak tanpa menduplikasi tautan di kepala Riwayat. Buat latihan menyediakan form manual secara
 langsung, pintu Pendamping kontekstual, pengingat bersyarat untuk membuka rencana,
 serta maksimal tiga sesi terbaru yang perlu tindakan. Pengingat berasal dari
@@ -282,8 +285,11 @@ belum dikonfirmasi, dan tindakan tersedia (termasuk eskalasi) tetap diingatkan.
 Tab rencana selalu tersedia; GET tidak menulis bukti. Sesi manual tidak mengambil
 alih rekomendasi reducer.
 
-Tab Rencana belajar menampilkan satu kartu ringkas **Langkah belajar berikutnya**,
-berisi alasan, tindakan orang tua, dan satu CTA utama bila sah. Progres lengkap dan
+Tab **Langkah berikutnya** menampilkan satu kartu ringkas dengan tindakan saat ini,
+perkiraan waktu, hasil langsung, kapan kembali, dan satu CTA utama bila sah. Bahasa
+orang tua memakai latihan awal, bagian yang perlu dibantu, coba bersama, coba sendiri,
+cek setelah jeda, dan catatan hasil; istilah domain internal tetap pada kode/penyimpanan.
+Progres lengkap dan
 alur umum berada dalam `<details>` tertutup **Detail progres dan alur belajar**.
 Instruksi, contoh terbimbing/visual, beban pemetaan, tanggal menunggu, serta
 peringatan konfirmasi/eskalasi/histori tetap terlihat tanpa membuka detail.

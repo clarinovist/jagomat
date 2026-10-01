@@ -78,7 +78,7 @@ def test_rencana_pending_jadwal_tetap_terlihat_dan_escape():
     p = PerjalananBelajar(RencanaBelajar("tunggu_evaluasi","",tersedia_pada=date(2026,9,19)))
     h = tampilan.render_resume(p,[],1,lambda x:x,lambda x:x,reports._tanggal_pendek)
     assert "19 Sep 2026" in h
-    assert "Tunggu evaluasi berjeda" in h
+    assert "Tunggu cek beberapa hari lagi" in h
     assert h.count('class="tombol aksi-rencana-laporan"') == 1
 
 

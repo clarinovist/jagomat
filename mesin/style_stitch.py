@@ -2502,6 +2502,22 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   margin: 0; padding: {T.SP_2} 0; border: 0;
   border-radius: 0; background: transparent;
 }}
+.profil-editorial-st .ringkasan-langkah-st {{
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: {T.SP_3}; margin: 0;
+}}
+.profil-editorial-st .ringkasan-langkah-st > div {{
+  min-width: 0; padding: {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN};
+  border-radius: {T.RADIUS_KECIL}; background: {T.LATAR_SEKUNDER_LEMBUT};
+}}
+.profil-editorial-st .ringkasan-langkah-st b {{
+  display: block; color: {T.TEKS_JUDUL}; font-family: {T.FONT_HEADLINE};
+}}
+.profil-editorial-st .ringkasan-langkah-st p {{ margin: {T.SP_1} 0 0; color: {T.TEKS_VARIAN}; }}
+.profil-editorial-st .catatan-tiga-latihan-st {{
+  margin: 0; padding: {T.SP_3} 0; color: {T.TEKS_VARIAN};
+  border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN};
+}}
 .profil-editorial-st .contoh-rencana-st {{ background: {T.LATAR_CATATAN}; border-color: {T.AKSEN_MURID_AMBER}; padding: {T.SP_4}; }}
 .profil-editorial-st .tanggal-rencana-st {{ border-left: 3px solid {T.AKSEN_TEAL_TUA}; padding-left: {T.SP_4}; }}
 .profil-editorial-st .alur-rencana-jelas-st {{
@@ -2676,7 +2692,8 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   .profil-editorial-st .studio-layout-st {{ display: flex; flex-direction: column; }}
   .profil-editorial-st .studio-utama-st {{ order: 1; }}
   .profil-editorial-st .studio-pendamping-st {{ display: contents; }}
-  .profil-editorial-st .tindakan-rencana-st {{ order: 2; padding: {T.SP_3} 0 {T.SP_3} {T.SP_4}; border: 0; border-left: 3px solid {T.BORDER_CATATAN}; }}
+  .profil-editorial-st .ringkasan-langkah-st {{ grid-template-columns: minmax(0, 1fr); order: 2; }}
+  .profil-editorial-st .tindakan-rencana-st {{ padding: {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
   .profil-editorial-st .studio-aksi-st {{ order: 3; grid-template-columns: minmax(0, 1fr); }}
   .profil-editorial-st .progres-rencana-st {{ order: 4; margin-top: {T.SP_1}; padding: {T.SP_4} 0 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
   .profil-editorial-st .alur-rencana-jelas-st {{ order: 5; }}

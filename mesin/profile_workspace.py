@@ -26,7 +26,7 @@ def navigasi_profil(siswa_id, total, aktif):
     """Empat tujuan utama ruang anak dengan penanda aktif yang konsisten."""
     item = (
         ('latihan', f'/anak/{siswa_id}?section=latihan', 'Buat latihan'),
-        ('rencana', f'/anak/{siswa_id}?section=rencana', 'Rencana belajar'),
+        ('rencana', f'/anak/{siswa_id}?section=rencana', 'Langkah berikutnya'),
         ('riwayat', f'/anak/{siswa_id}?section=riwayat', f'Riwayat <span>{total}</span>'),
         ('laporan', f'/laporan/{siswa_id}', 'Laporan perkembangan'),
     )

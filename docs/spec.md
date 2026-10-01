@@ -29,8 +29,11 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   awal maksimal 3 hari kerja. Kanal ini tidak menambah kontak pada profil keluarga,
   tidak mengirim pesan otomatis, dan bukan bukti kepemilikan akun. Reset hanya
   setelah verifikasi independen; bila tidak tersedia, reset ditahan. Pendaftaran
-  membuat profil anak pertama tanpa meminta variasi soal; kelas sekolah opsional.
-  Tautan satu sesi dibuat dan langsung disalin dari layar aktif pada browser yang
+  membuat profil anak pertama tanpa meminta variasi soal; kelas sekolah opsional,
+  lalu mengarahkan orang tua ke tab **Langkah berikutnya** untuk menyiapkan latihan awal.
+  Nilai pertama ditargetkan dalam 48 jam: latihan awal pertama selesai, hasilnya diperiksa
+  dan dikonfirmasi, lalu satu langkah lanjutan tampil. Ini baru catatan awal, bukan diagnosis,
+  bagian bantuan final, atau klaim penguasaan. Tautan satu sesi dibuat dan langsung disalin dari layar aktif pada browser yang
   mendukung, dengan form native sebagai fallback; masa berlaku dan pencabutan tetap
   dipagari. Saat menyiapkan latihan, orang tua cukup memilih topik, jumlah, format,
   dan mode; Jagomat memilih satu konfigurasi internal yang didukung topik, sedangkan
@@ -39,7 +42,8 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   belum berpartisipasi sampai pemetaan pertama disiapkan; saat itu sistem memakai
   konteks fondasi internal P3 secara atomik, tanpa menebak dari kelas sekolah. Profil
   menempatkan Laporan perkembangan sejajar dengan Buat latihan,
-  Rencana belajar, dan Riwayat; ringkasan aktivitas dapat dilihat lewat preset 7 hari,
+  Langkah berikutnya, dan Riwayat; route internal tab tetap `?section=rencana`.
+  Ringkasan aktivitas dapat dilihat lewat preset 7 hari,
   minggu ini, bulan ini, atau rentang tanggal sendiri. Detail paket/aktivasi mengikuti
   kontraknya, bukan keberadaan kode.
 

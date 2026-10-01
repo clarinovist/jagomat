@@ -177,7 +177,7 @@ Profil anak pertama dibuat bersama akunmu. Akun login anak bisa dibuat nanti.</p
   {analitik}
   <button class="masuk-tombol-st" type="submit">Buat akun <span aria-hidden="true">→</span></button>
 </form>
-<p class="daftar-bawah-st">Setelah mendaftar, kamu langsung masuk ke ruang pendamping.</p>
+<p class="daftar-bawah-st">Setelah mendaftar, kamu langsung melihat langkah pertama bersama anak.</p>
 </section>
 </div>
 <p class="daftar-kaki-st">{html.escape(T.TAGLINE)}</p>
@@ -463,7 +463,7 @@ def halaman_landing(dukungan=None) -> bytes:
 <section class="landing-manfaat-st" aria-labelledby="judul-manfaat">
   <h2 id="judul-manfaat">Kenali kebutuhan. Dampingi latihan. Cek pemahaman.</h2>
   <div class="landing-pill-baris-st">
-    <span class="landing-pill-st"><span aria-hidden="true">01 /</span> Rencana belajar</span>
+    <span class="landing-pill-st"><span aria-hidden="true">01 /</span> Langkah berikutnya</span>
     <span class="landing-pill-st"><span aria-hidden="true">02 /</span> Peta penguasaan</span>
     <span class="landing-pill-st"><span aria-hidden="true">03 /</span> Latihan fleksibel</span>
   </div>
@@ -478,13 +478,12 @@ def halaman_landing(dukungan=None) -> bytes:
 <div class="landing-grid-st landing-info-st">
 <section class="landing-kartu-st landing-untuk-st">
   <h3 class="landing-kartu-judul-st">
-  <span class="landing-nomor-st" aria-hidden="true">01</span>Rencana belajar terpandu</h3>
+  <span class="landing-nomor-st" aria-hidden="true">01</span>Langkah belajar terpandu</h3>
   <div class="landing-kartu-isi-st">
-  <p>Mulai dari <b>pemetaan</b>, pilih fokus, lalu pelajari contoh dan
-  latihan terbimbing sebelum penguatan mandiri.</p>
-  <p>Lanjutkan dengan <b>cek berjeda dan cek berkala</b>. Hasil yang
-  dikonfirmasi membantu menentukan: lanjut, coba pendekatan lain,
-  atau periksa kebutuhan bantuan lebih lanjut.</p>
+  <p>Mulai dengan <b>latihan awal</b>, periksa hasil bersama, lalu ikuti
+  satu langkah berikutnya yang ditampilkan Jagomat.</p>
+  <p>Catatan awal pertama bisa didapat dalam <b>1–2 hari</b>. Beberapa latihan
+  tetap dilakukan pada hari berbeda agar gambaran tidak diambil dari satu kejadian.</p>
   </div>
 </section>
 
@@ -493,11 +492,12 @@ def halaman_landing(dukungan=None) -> bytes:
   <span class="landing-nomor-st" aria-hidden="true">↗</span>Cara kerja</h3>
   <div class="landing-kartu-isi-st">
   <ol>
-    <li>Buat profil anak, lalu pilih materi latihan.</li>
-    <li>Anak mengerjakan dan menunjukkan caranya, di HP atau kertas.</li>
-    <li>Tinjau dan konfirmasi hasilnya. Untuk rencana terpandu,
-    ikuti langkah belajar berikutnya.</li>
+    <li>Mulai latihan awal dan biarkan anak menunjukkan caranya.</li>
+    <li>Periksa hasil bersama setelah latihan selesai.</li>
+    <li>Ikuti satu langkah berikutnya yang ditampilkan Jagomat.</li>
   </ol>
+  <p>Latihan pertama berisi 15 soal dengan perkiraan sekitar 45 menit.
+  Catatan awal dapat terlihat dalam 1–2 hari, bukan diagnosis atau kesimpulan akhir.</p>
   </div>
 </section>
 
@@ -517,7 +517,7 @@ def halaman_landing(dukungan=None) -> bytes:
   <h3 class="landing-kartu-judul-st">
   <span class="landing-nomor-st" aria-hidden="true">03</span>Latihan yang fleksibel</h3>
   <div class="landing-kartu-isi-st">
-  <p><b>Latihan manual</b> tetap bisa dipilih tanpa menuntaskan pemetaan.
+  <p><b>Latihan manual</b> tetap bisa dipilih tanpa menuntaskan latihan awal.
   Pilih materi; {n} mengatur angka dan model soalnya secara otomatis. Kerjakan
   di halaman murid atau cetak lembar latihan.</p>
   <p>Dari bilangan dan aritmetika hingga geometri, statistika,
@@ -602,9 +602,10 @@ pengganti tinjauanmu; kamu tetap memilih dan memeriksa bantuannya.</p>
 Guru atau pendamping les dapat menjadi pengguna tambahan. Kelas sekolah hanya
 informasi profil, bukan ukuran kemampuan anak.</p></details>
 <details><summary>Bagaimana memulai latihan pertama?</summary>
-<p>Buat akun pendamping dan profil anak, pilih topik, jumlah soal, format,
-serta mode, lalu buat latihan. Setelah anak mengerjakan di HP atau kertas,
-tinjau dan konfirmasi hasil sebelum membuka laporan dan langkah berikutnya.</p></details>
+<p>Buat akun pendamping dan profil anak. Setelah mendaftar, Jagomat membuka
+<b>Langkah berikutnya</b>: siapkan latihan awal, dampingi anak mengerjakan sekitar
+45 menit, lalu periksa hasil bersama. Setelah dikonfirmasi, catatan awal dan
+waktu kembali untuk latihan berikutnya akan ditampilkan.</p></details>
 <details><summary>Anak mengerjakan di HP atau kertas?</summary>
 <p>Keduanya bisa. Gunakan halaman murid, atau cetak lembar untuk dikerjakan
 di kertas. Hasil kertas dapat dicatat oleh orang tua/guru. Jika pembacaan

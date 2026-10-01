@@ -142,9 +142,9 @@ def render_hasil(bukti: lc.BuktiSiklus, sesi_id: int) -> str:
         return ""
     jumlah = len(perjalanan.tanggal_pemetaan)
     batas = (
-        "Gambaran awal, belum kesimpulan akhir. Pemetaan awal memerlukan tiga sesi pada tanggal berbeda."
+        "Jagomat sudah memiliki gambaran awal. Hasil ini belum cukup untuk menyimpulkan bagian yang perlu dibantu."
         if jumlah < 3 else
-        "Tiga tanggal pemetaan sudah terkumpul. Pola yang baru muncul sekali masih perlu diperiksa pada sesi lain."
+        "Tiga latihan awal pada tanggal berbeda sudah terkumpul. Pola yang baru muncul sekali masih perlu diperiksa pada latihan lain."
     )
     fokus = ""
     if perjalanan.fokus:
@@ -153,20 +153,21 @@ def render_hasil(bukti: lc.BuktiSiklus, sesi_id: int) -> str:
             f'{html.escape(_LABEL.get(item.kunci[1], "Tinjau bersama"))}</li>'
             for item in perjalanan.fokus
         )
-        fokus = f'<h3>Fokus belajar yang disarankan</h3><ol>{daftar}</ol>'
+        fokus = f'<h3>Bagian yang perlu dibantu</h3><ol>{daftar}</ol>'
     else:
         fokus = (
-            '<p>Belum ada fokus belajar yang ditetapkan dari bukti saat ini. '
+            '<p>Belum ada bagian yang ditetapkan untuk dibantu dari catatan saat ini. '
             'Catatan per materi masih menjadi bahan pantauan, bukan label kelemahan anak.</p>'
         )
     catatan = "".join(f'<p class="hasil-batas-st">{html.escape(teks)}</p>' for teks in perjalanan.catatan)
     return (
         '<section class="hasil-pemetaan-st" id="hasil-pemetaan" aria-labelledby="judul-hasil-pemetaan">'
-        '<h2 id="judul-hasil-pemetaan">Hasil pemetaan terkonfirmasi</h2>'
-        f'<p><b>Pemetaan awal: {min(jumlah, 3)} dari 3 tanggal</b><br>'
-        'Target awal: tiga sesi pada tanggal berbeda.</p>'
+        '<p class="hasil-batas-st"><b>Hasil yang sudah diperiksa</b></p>'
+        f'<h2 id="judul-hasil-pemetaan">{"Langkah pertama selesai" if jumlah == 1 else "Catatan latihan awal"}</h2>'
+        f'<p><b>Latihan awal {min(jumlah, 3)} dari 3 selesai</b><br>'
+        'Target awal: tiga latihan pada tanggal berbeda.</p>'
         f'<p>{batas}</p>'
-        '<p>Gabungan catatan dari sesi pemetaan terkonfirmasi yang relevan untuk rencana saat ini.</p>'
+        '<p>Gabungan catatan dari latihan awal yang sudah diperiksa dan relevan untuk langkah saat ini.</p>'
         + _temuan(tuple(outcome for item in terpilih for outcome in item.outcomes))
         + fokus + catatan + '</section>'
     )

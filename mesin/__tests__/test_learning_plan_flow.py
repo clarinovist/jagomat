@@ -144,7 +144,7 @@ def test_pemetaan_dari_kartu_hingga_konfirmasi_dan_jeda(server):
     assert rencana_url
     kode, rencana, _ = uji.minta(rencana_url[0], auth=ident)
     assert kode == 200
-    assert '1 dari 3 sesi terkonfirmasi' in rencana
+    assert 'Latihan awal 1 dari 3 selesai' in rencana
     assert f'action="/siklus/{siswa}/buat"' not in rencana
     with uji.buka() as kon:
         assert kon.execute('SELECT COUNT(*) FROM konfirmasi_hasil').fetchone()[0] == 1

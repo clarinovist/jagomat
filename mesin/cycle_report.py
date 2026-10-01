@@ -20,24 +20,24 @@ TAHAP = {
     "perlu_eskalasi": "Perlu eskalasi",
 }
 TINDAKAN = {
-    "pilih_variasi": "Siapkan pemetaan pertama",
-    "lanjutkan_sesi": "Lanjutkan sesi",
-    "konfirmasi_hasil": "Konfirmasi hasil",
+    "pilih_variasi": "Siapkan latihan awal",
+    "lanjutkan_sesi": "Lanjutkan latihan",
+    "konfirmasi_hasil": "Periksa dan konfirmasi hasil",
     "eskalasi": "Tinjau bersama pendamping",
-    "pemetaan": "Lanjutkan pemetaan",
-    "tunggu_pemetaan": "Tunggu pemetaan berikutnya",
-    "probe_diagnostik": "Periksa kembali fokus pantauan",
-    "intervensi": "Pelajari strategi bersama",
-    "latihan_terbimbing": "Coba dengan bimbingan",
-    "penguatan": "Coba mandiri",
-    "evaluasi": "Lakukan evaluasi berjeda",
-    "tunggu_evaluasi": "Tunggu evaluasi berjeda",
-    "checkpoint": "Periksa ketahanan pemahaman",
+    "pemetaan": "Lanjutkan latihan awal",
+    "tunggu_pemetaan": "Kembali untuk latihan awal berikutnya",
+    "probe_diagnostik": "Periksa kembali bagian yang dipantau",
+    "intervensi": "Pelajari bersama",
+    "latihan_terbimbing": "Coba bersama",
+    "penguatan": "Coba sendiri",
+    "evaluasi": "Cek lagi setelah jeda",
+    "tunggu_evaluasi": "Tunggu cek beberapa hari lagi",
+    "checkpoint": "Periksa kembali pemahaman",
     "tunggu_checkpoint": "Tunggu pemeriksaan berkala",
     "probe_setelah_pengenalan": "Periksa materi yang baru dikenalkan",
     "pengenalan": "Kenalkan materi baru",
-    "mixed_maintenance": "Latihan campuran pemeliharaan",
-    "putaran_baru": "Mulai putaran penguatan baru",
+    "mixed_maintenance": "Lanjutkan latihan campuran",
+    "putaran_baru": "Mulai langkah bantuan baru",
 }
 JENIS = {
     "pemetaan": "Pemetaan", "intervensi": "Strategi dipelajari bersama",
@@ -85,7 +85,7 @@ def _daftar_bukti(bukti, tanggal: Callable) -> str:
         label = JENIS.get(satu.jenis, "Kegiatan belajar")
         item.append(f"<li>{tanggal(satu.tanggal.isoformat())} · {label}{sesi}{catatan}</li>")
     if not item:
-        return '<p class="sub">Belum ada bukti terkonfirmasi untuk fokus ini.</p>'
+        return '<p class="sub">Belum ada catatan hasil yang sudah diperiksa untuk bagian ini.</p>'
     return '<ul class="diagnosis-lis">' + "".join(item) + "</ul>"
 
 
@@ -169,8 +169,8 @@ def _tanpa_fokus(perjalanan: PerjalananBelajar, nama_tipe: Callable) -> str:
     if rencana.tindakan == "mixed_maintenance":
         return '<p>Tidak ada fokus aktif. Lanjutkan latihan pemeliharaan sesuai rencana.</p>'
     return (
-        '<p>Belum cukup bukti untuk menetapkan fokus aktif. '
-        'Hasil perlu selesai dan dikonfirmasi; latihan manual tidak otomatis masuk pemetaan.</p>'
+        '<p>Catatan hasil belum cukup untuk menetapkan bagian yang perlu dibantu. '
+        'Hasil perlu selesai dan diperiksa; latihan manual tidak otomatis masuk latihan awal.</p>'
     )
 
 
@@ -199,8 +199,8 @@ def render_perjalanan(perjalanan: PerjalananBelajar, nama_tipe: Callable, tangga
     catatan = "".join(f'<p class="sub">{html.escape(teks)}</p>' for teks in perjalanan.catatan)
     return (
         '<section class="kartu" id="perjalanan-belajar" aria-labelledby="judul-perjalanan">'
-        '<h2 id="judul-perjalanan">Perjalanan fokus belajar</h2>'
-        f'<p class="sub">{putaran} · Pemetaan {progres} dari 3 tanggal</p>'
+        '<h2 id="judul-perjalanan">Perjalanan belajar</h2>'
+        f'<p class="sub">{putaran} · Latihan awal {progres} dari 3 tanggal</p>'
         f'<p><b>Langkah berikutnya: {judul_tindakan(perjalanan)}</b></p>'
         f'{jadwal}{catatan}{isi}'
         '<p class="sub">Status menggambarkan bukti saat ini. Mulai membaik perlu '

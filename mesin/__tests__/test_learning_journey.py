@@ -405,7 +405,7 @@ def test_ringkasan_dua_fokus_tidak_menyebut_keduanya_siap_saat_hanya_satu_due():
     assert perjalanan.rekomendasi.tindakan == "evaluasi"
     assert perjalanan.rekomendasi.kandidat == (FOKUS_A,)
     assert len(perjalanan.fokus) == 2
-    assert ringkasan.count("berada pada tahap evaluasi berjeda") == 2
+    assert ringkasan.count("menunggu pemeriksaan setelah jeda") == 2
     assert "sudah siap" not in ringkasan
 
 
@@ -440,7 +440,7 @@ def test_ringkasan_dua_fokus_due_tetap_netral_saat_reducer_memilih_satu():
     assert [fokus.tahap for fokus in perjalanan.fokus] == [
         "menunggu_evaluasi", "menunggu_evaluasi",
     ]
-    assert ringkasan.count("berada pada tahap evaluasi berjeda") == 2
+    assert ringkasan.count("menunggu pemeriksaan setelah jeda") == 2
     assert "menunggu evaluasi" not in ringkasan.lower()
     assert "belum tersedia" not in ringkasan.lower()
 
@@ -463,7 +463,7 @@ def test_ringkasan_evaluasi_jatuh_tempo_tidak_menyuruh_menunggu():
 
     assert perjalanan.rekomendasi.tindakan == "evaluasi"
     assert perjalanan.fokus[0].tahap == "menunggu_evaluasi"
-    assert "Lakukan evaluasi berjeda" in ringkasan
+    assert "Cek lagi setelah jeda" in ringkasan
     assert "menunggu evaluasi" not in ringkasan.lower()
     assert "belum tersedia" not in ringkasan.lower()
 

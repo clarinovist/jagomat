@@ -284,9 +284,9 @@ def test_laporan_perkembangan_menjadi_tab_profil_tanpa_tautan_duplikat(anak, pri
     navigasi = markup[markup.index('class="profil-tabs-st"'):]
     navigasi = navigasi[:navigasi.index("</nav>")]
     assert [navigasi.index(label) for label in (
-        "Buat latihan", "Rencana belajar", "Riwayat", "Laporan perkembangan",
+        "Buat latihan", "Langkah berikutnya", "Riwayat", "Laporan perkembangan",
     )] == sorted(navigasi.index(label) for label in (
-        "Buat latihan", "Rencana belajar", "Riwayat", "Laporan perkembangan",
+        "Buat latihan", "Langkah berikutnya", "Riwayat", "Laporan perkembangan",
     ))
     assert f'href="/laporan/{sid}"' in navigasi
     assert 'aria-current="page">Riwayat' in navigasi

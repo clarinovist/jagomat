@@ -77,14 +77,15 @@ def test_konfirmasi_menuju_hasil_dengan_satu_rekomendasi_dan_koreksi_sekunder(se
     assert tujuan == f"/sesi/{sesi}#hasil-pemetaan"
     isi = _halaman(uji, sesi)
     assert 'id="hasil-pemetaan"' in isi
-    assert "Hasil pemetaan terkonfirmasi" in isi
-    assert "Pemetaan awal: 1 dari 3 tanggal" in isi
-    assert "Gambaran awal, belum kesimpulan akhir" in isi
-    assert "Langkah belajar berikutnya" in isi
+    assert "Hasil yang sudah diperiksa" in isi
+    assert "Langkah pertama selesai" in isi
+    assert "Latihan awal 1 dari 3 selesai" in isi
+    assert "belum cukup untuk menyimpulkan" in isi
+    assert "Langkah berikutnya" in isi
     assert "Cukup untuk hari ini" in isi
     assert "Lihat rencana berikutnya" not in isi
     assert isi.count('class="kartu-rencana-st"') == 1
-    assert isi.index("Hasil pemetaan terkonfirmasi") < isi.index('class="panduan-edit-hasil-st"')
+    assert isi.index("Hasil yang sudah diperiksa") < isi.index('class="panduan-edit-hasil-st"')
     assert _post(uji, sesi, payload)[2] == tujuan
     with uji.buka() as kon:
         assert kon.execute("SELECT COUNT(*) FROM konfirmasi_hasil").fetchone()[0] == 1
@@ -160,14 +161,14 @@ def _bukti(jumlah=1):
 def test_peta_memisahkan_gambaran_awal_dan_fokus_reducer(jumlah):
     import mapping_results as hasil
     isi = hasil.render_hasil(_bukti(jumlah), jumlah)
-    assert f"Pemetaan awal: {jumlah} dari 3 tanggal" in isi
+    assert f"Latihan awal {jumlah} dari 3 selesai" in isi
     assert "Materi belum dikenalkan" in isi
     assert "Dilewati" in isi
     if jumlah < 3:
-        assert "Gambaran awal, belum kesimpulan akhir" in isi
-        assert "Fokus belajar yang disarankan" not in isi
+        assert "belum cukup untuk menyimpulkan" in isi
+        assert "Bagian yang perlu dibantu" not in isi
     else:
-        assert "Fokus belajar yang disarankan" in isi
+        assert "Bagian yang perlu dibantu" in isi
         assert "Periksa hitungan" in isi
     assert "bukan kelemahan" in isi
     assert "bukan klaim penguasaan" in isi
