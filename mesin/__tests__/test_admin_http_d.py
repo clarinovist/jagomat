@@ -290,7 +290,8 @@ def test_bulk_reset_revoke_target_pilihan_saja_cookie_lama_dicabut(server, aksi)
         mode='tambah', target=before['id_akun'], halaman_token=_hidden(isi, 'halaman_token')))
     assert kode == 200
     kode, preview, _ = _minta(server, '/admin/bulk/pilih', cookie=token, data=_pilihan_data(isi,
-        mode='tinjau', aksi=aksi, reauth=SANDI_ADMIN))
+        mode='tinjau', aksi=aksi, reauth=SANDI_ADMIN,
+        verifikasi_independen='1' if aksi == 'account_password_reset' else ''))
     assert kode == 200
     data = _batch_form(preview)
     kode, hasil, _ = _minta(server, '/admin/bulk/proses', cookie=token, data=data)
@@ -301,6 +302,21 @@ def test_bulk_reset_revoke_target_pilihan_saja_cookie_lama_dicabut(server, aksi)
     assert hasil.count('aria-label="Sandi baru"') == (1 if aksi == 'account_password_reset' else 0)
     assert _minta(server, '/admin/bulk/proses', cookie=token, data=data)[0] == 200
     assert auth.cari_akun('Ortu-C')['revisi_auth'] == before['revisi_auth'] + 1
+
+
+def test_bulk_reset_tanpa_verifikasi_independen_ditahan_tanpa_write(server):
+    token = _login(server, 'Admin-C', SANDI_ADMIN)
+    target = auth.cari_akun('Ortu-C')
+    _, isi, _ = _minta(server, '/admin/bulk/pilih?peran=guru', cookie=token)
+    _, isi, _ = _minta(server, '/admin/bulk/pilih', cookie=token, data=_pilihan_data(
+        isi, mode='tambah', target=target['id_akun'],
+        halaman_token=_hidden(isi, 'halaman_token')))
+    sebelum = auth.BERKAS_SANDI.read_bytes(), admin_store.BAWAAN.read_bytes()
+    kode, body, _ = _minta(server, '/admin/bulk/pilih', cookie=token,
+        data=_pilihan_data(isi, mode='tinjau', aksi='account_password_reset',
+                           reauth=SANDI_ADMIN))
+    assert kode == 403 and 'Ortu-C' not in body
+    assert (auth.BERKAS_SANDI.read_bytes(), admin_store.BAWAAN.read_bytes()) == sebelum
 
 
 def test_bulk_seluruh_batch_preflight_item11_invalid_nol_akun(server):
@@ -363,7 +379,8 @@ def test_bulk_murid_reset_role_tetap_siswa_tidak_berubah(server):
     _, isi, _ = _minta(server, '/admin/bulk/pilih', cookie=token, data=_pilihan_data(isi,
         mode='tambah', target=target['id_akun'], halaman_token=_hidden(isi, 'halaman_token')))
     kode, preview, _ = _minta(server, '/admin/bulk/pilih', cookie=token, data=_pilihan_data(isi,
-        mode='tinjau', aksi='account_password_reset', reauth=SANDI_ADMIN))
+        mode='tinjau', aksi='account_password_reset', reauth=SANDI_ADMIN,
+        verifikasi_independen='1'))
     assert kode == 200
     before = server.db.read_bytes()
     kode, hasil, _ = _minta(server, '/admin/bulk/proses', cookie=token, data=_batch_form(preview))

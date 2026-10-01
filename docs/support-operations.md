@@ -43,26 +43,50 @@ Jangan meminta email atau nomor telepon untuk ditambahkan ke profil keluarga.
    bila hasil commit belum pasti.
 
 Jalur panel existing menolak target admin, memvalidasi principal admin mutakhir,
-CSRF, token tinjauan bertanda tangan, autentikasi ulang, dan revisi target. Reset
-hanya mengubah akun target; akun lain tidak boleh berubah.
+CSRF, token tinjauan bertanda tangan, autentikasi ulang, dan revisi target. Operator
+wajib mencentang bukti bahwa verifikasi independen sudah selesai; tanpa itu reset
+ditolak dengan respons generik tanpa account enumeration. Reset hanya mengubah akun
+target; akun lain tidak boleh berubah.
 
 ## Permintaan penghapusan seluruh keluarga
 
-Pesan WhatsApp hanya **memulai permintaan**, bukan menghapus data. Primitive domain
-untuk penghapusan keluarga lengkap belum tersedia. `hapus_akun_guru()` hanya
-menghapus login dan secara eksplisit mempertahankan data siswa/riwayat; fungsi itu
-tidak boleh dirangkai menjadi penghapusan keluarga.
+Pesan WhatsApp hanya **memulai permintaan**, bukan menghapus data. `hapus_akun_guru()`
+hanya menghapus login dan secara eksplisit mempertahankan data siswa/riwayat; fungsi
+itu tidak boleh dirangkai menjadi penghapusan keluarga.
 
-Sampai workstream Kritis terpisah menyediakan primitive teruji, operator harus:
+Primitive domain `family_deletion` tersedia untuk rehearsal/cutover terkontrol.
+Primitive ini tidak menulis state live: ia memvalidasi preview, actor/revisi target,
+verifikasi independen, serta bundle coherent empat DB + `sandi.json`, lalu mengambil
+snapshot state live di bawah write-hold dan membuat bundle hasil privat baru dengan
+receipt operation ID. Matriksnya:
 
-1. mengikuti verifikasi independen A+C di atas;
-2. menahan eksekusi dan tidak menjanjikan penghapusan selesai;
-3. menginventarisasi state durable terkait secara privat tanpa menyalin isi anak;
-4. membuat plan khusus dengan preview, backup coherent empat DB + `sandi.json`,
-   atomicity, idempotensi, audit/provenance, preservasi ledger append-only, tes
-   mutation, recovery, dan pemberitahuan selesai;
-5. tidak memakai produksi sebagai tempat eksperimen dan tidak melakukan hard-delete
-   sesi berbukti atau ledger immutable.
+| Kelompok data | Tindakan |
+| --- | --- |
+| Akun/sesi login, profil aktif, lampiran, chat, memori, persetujuan | Hapus |
+| Jawaban/diagnosis aktif dan mapping analitik opsional | Hapus |
+| Bukti belajar dan arsip pengiriman append-only | Anonimkan/pisahkan identitas |
+| Receipt/journal operasi dan ledger layanan/finansial immutable | Pertahankan |
+| Konfigurasi global dan agregat tanpa mapping keluarga | Pertahankan |
+
+Urutan operator:
+
+1. verifikasi pemohon secara independen dan catat referensi operasi minimum;
+2. tutup writer, drain request, lalu buat dan validasi backup coherent lima berkas;
+3. jalankan preview terhadap target ID privat; jangan menyalin nama/isi anak;
+4. tinjau jumlah agregat dan matriks, lalu jalankan primitive dengan operation ID,
+   hash inventaris, dan bundle ID yang sama;
+5. validasi bundle hasil (`integrity_check`, FK, isolasi akun lain, receipt), rehearse
+   pemulihan, lalu lakukan cutover sebagai operasi data terkontrol; primitive sendiri
+   tidak pernah mengganti state live;
+6. setelah cutover sukses, cabut sesi login target memakai receipt yang sama dan hapus
+   berkas lampiran keluarga berdasarkan inventaris privat; backup dapat bertahan maksimal
+   30 hari dan tidak boleh dipakai untuk membuka kembali akses;
+7. ulang operation ID yang sama untuk replay. Status tak pasti diperiksa dari receipt;
+   jangan membuat operasi baru atau menggabungkan state parsial.
+
+Bukti belajar, sesi berbukti, receipt/journal, dan ledger immutable tidak di-hard-delete.
+Ledger finansial minimum tanpa identitas anak dipertahankan sampai 10 tahun sesuai
+keputusan D9 sementara dan wajib ditinjau setelah konfirmasi profesional.
 
 ## Eskalasi dan insiden
 

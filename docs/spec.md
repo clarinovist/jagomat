@@ -20,7 +20,10 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
 - Siklus terpandu; latihan manual tetap tersedia tanpa otomatis mengubah putaran.
 - Pendamping AI inline untuk orang tua; usulan latihan memerlukan tinjauan dan
   konfirmasi, bukan perubahan diagnosis atau bukti belajar otomatis.
-- Akun keluarga, pengelolaan murid, langganan dan pembayaran. Dukungan publik
+- Akun keluarga dan pengelolaan murid. Soft launch saat ini adalah akses awal
+  nonkomersial; Jago/Jago Pro sedang disiapkan dan pendaftaran tidak mengaktifkan
+  paket, masa coba, promo, atau pembayaran. Domain langganan/pembayaran tetap ada
+  tetapi tidak dipromosikan sebagai penawaran aktif. Dukungan publik
   memakai satu konfigurasi privat untuk WhatsApp Business, jam Senin–Jumat
   09.00–17.00 WIB, respons awal maksimal 1 hari kerja, serta status/penyelesaian
   awal maksimal 3 hari kerja. Kanal ini tidak menambah kontak pada profil keluarga,
@@ -68,8 +71,11 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   data sintetis; pengiriman ke AI hanya melalui alur dan izin produk yang disetujui.
   Tidak menyimpan email/telepon pengguna. Nomor WhatsApp Business adalah konfigurasi
   operasi Jagomat, bukan kontak keluarga; URL publik tidak membawa nama akun/anak.
-- Penghapusan seluruh keluarga memerlukan workstream kritis dan primitive domain
-  teruji; tidak boleh dirangkai dari penghapusan login guru.
+- Penghapusan seluruh keluarga memakai primitive domain teruji yang memerlukan
+  verifikasi independen, preview exact, backup coherent empat DB + auth, dan cutover
+  terkontrol; tidak boleh dirangkai dari penghapusan login guru. Data aktif dihapus,
+  identitas pada arsip diputus bila kontrak mengizinkan, sementara bukti/ledger
+  append-only tetap dipertahankan.
 - Kunci dan diagnosis tidak ditentukan LLM. Tidak menjanjikan kesiapan juara atau
   menyamakan progres target Jagomat dengan penguasaan seluruh kurikulum sekolah.
 

@@ -75,6 +75,7 @@ def test_helper_readiness_admin_ikut_wildcard_tanpa_state_privat():
     """Helper F harus tersedia di image tanpa COPY manual atau data backup."""
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
     assert (ROOT / "admin_backup.py").is_file()
+    assert (ROOT / "family_deletion.py").is_file()
     assert "COPY --chown=osn:osn *.py /app/" in dockerfile
     assert "admin_backup.py" not in dockerfile
     perintah_copy = "\n".join(

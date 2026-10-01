@@ -19,7 +19,7 @@ Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 | Data | `database.py`, `schema.py`, `*_store.py`, `*_schema.py`: penyimpanan dan migrasi |
 | Belajar | `diagnosis.py`, `learning_cycle.py`, `learning_cycle_service.py`: diagnosis, reducer murni, orkestrasi |
 | Laporan | `reports.py`, `report_*.py`, `mastery_*.py`: laporan dan penguasaan berbasis bukti |
-| Layanan lain | `assistant_*`/`ai_*`: Pendamping; `subscription_*`/`midtrans_*`: langganan/pembayaran; `admin_*`: pengelola; `support_settings.py`: konfigurasi dukungan privat dan proyeksi publik minimum |
+| Layanan lain | `assistant_*`/`ai_*`: Pendamping; `subscription_*`/`midtrans_*`: langganan/pembayaran; `admin_*`: pengelola; `support_settings.py`: konfigurasi dukungan; `family_deletion.py`: preview dan bundle hasil penghapusan keluarga lintas penyimpanan |
 
 Alur domain: topik → generator/kontrak soal → penyajian → hasil tersimpan →
 tinjauan/diagnosis → bukti terkonfirmasi → reducer siklus → rekomendasi/laporan.
@@ -55,6 +55,10 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
 - Nama modul Inggris; fungsi/variabel, docstring, UI dan commit Bahasa Indonesia.
   Commit conventional (`fix(murid): …`). Nilai visual melalui `design_tokens.py`
   (`T.*`); jangan hardcode hex di modul lain. Satu aksi, satu entry point.
+- Primitive `family_deletion.py` tidak menulis state live: ia memerlukan verifikasi
+  independen, preview exact dan backup coherent lima berkas, lalu menghasilkan bundle
+  privat baru dengan receipt idempoten. Cutover/recovery tetap operasi terkontrol;
+  bukti dan ledger immutable tidak di-hard-delete.
 - Konfigurasi dukungan berada pada namespace schema aditif optional-absent-or-exact
   di `admin-control.db`, tanpa menaikkan admin7/8/9. `support_settings.migrasikan`
   adalah migrator opt-in; reader tidak membuat/memperbaiki DB dan fail-closed bila

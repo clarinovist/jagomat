@@ -2000,7 +2000,12 @@ def halaman_sesi_stitch(
                 '<circle cx="12" cy="12" r="8.5"/>'
                 '<path d="M12 7.5V12l3 2"/></svg>'
                 if sudah_mulai else
-                '<span class="material-symbols-outlined" aria-hidden="true">send</span>'
+                '<svg class="ikon-status-sesi-st" viewBox="0 0 24 24" '
+                'fill="none" stroke="currentColor" stroke-width="1.8" '
+                'stroke-linecap="round" stroke-linejoin="round" '
+                'aria-hidden="true" focusable="false">'
+                '<path d="M4 12 20 4l-5 16-3-6-8-2Z"/>'
+                '<path d="m12 14 4-6"/></svg>'
             )
             penjelasan_status = (
                 f'Terisi {info["terisi"]} dari {info["jumlah_soal"]}. '

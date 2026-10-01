@@ -314,6 +314,39 @@ class PerintahHapusSiswa:
 
 
 @dataclass(frozen=True)
+class PerintahHapusKeluarga:
+    """Perintah recourse lintas penyimpanan tanpa nama atau isi data keluarga."""
+    operasi_id: str
+    actor_id: str
+    actor_revisi: int
+    aksi: str
+    target_id: str
+    target_revisi: int
+    target_peran: str
+    inventaris_sidik: str
+    backup_id: str
+    verifikasi_independen: bool
+    token_tinjauan: str = field(repr=False)
+
+    def __post_init__(self):
+        validasi_id(self.operasi_id, "operasi_id")
+        validasi_id(self.actor_id, "actor_id")
+        validasi_id(self.target_id, "target_id")
+        validasi_revisi(self.actor_revisi, "actor_revisi")
+        validasi_revisi(self.target_revisi, "target_revisi")
+        if self.aksi != "family_data_delete" or self.target_peran != "guru":
+            raise KontrakTidakSah("aksi penghapusan keluarga tidak sah")
+        validasi_sidik(self.inventaris_sidik)
+        validasi_id(self.backup_id, "backup_id")
+        if self.verifikasi_independen is not True:
+            raise KontrakTidakSah("verifikasi independen wajib")
+        if type(self.token_tinjauan) is not str or _TOKEN_TINJAUAN.fullmatch(self.token_tinjauan) is None:
+            raise KontrakTidakSah("token tinjauan tidak sah")
+        if self.actor_id == self.target_id:
+            raise KontrakTidakSah("actor tidak boleh menjadi target")
+
+
+@dataclass(frozen=True)
 class ReceiptAkun:
     versi: int
     operasi_id: str
@@ -526,6 +559,10 @@ def sidik_perintah(perintah) -> str:
         isi["expected_level"] = perintah.expected_level
         isi["login_id"] = perintah.login_id
         isi["login_revisi"] = perintah.login_revisi
+    elif isinstance(perintah, PerintahHapusKeluarga):
+        isi["inventaris_sidik"] = perintah.inventaris_sidik
+        isi["backup_id"] = perintah.backup_id
+        isi["verifikasi_independen"] = perintah.verifikasi_independen
     mentah = json.dumps(
         isi, ensure_ascii=True, separators=(",", ":"), sort_keys=True
     ).encode("ascii")

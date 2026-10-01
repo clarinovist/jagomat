@@ -102,10 +102,11 @@ def test_akun_pakai_kelas_bukan_style_inline(db):
     assert 'class="akun-pulihkan"' in isi
 
 
-def test_nama_paket_landing_mengikuti_brand(monkeypatch):
+def test_status_akses_awal_landing_tidak_mengandalkan_harga(monkeypatch):
     import landing
 
     monkeypatch.setattr(T, 'NAMA_PRODUK', 'Produk <Sintetis>')
-    isi = landing._harga_landing()
-    assert 'RENCANA PAKET PRODUK &lt;SINTETIS&gt;' in isi
-    assert 'RENCANA PAKET JAGOMAT' not in isi
+    isi = landing._status_akses_awal()
+    assert 'AKSES AWAL NONKOMERSIAL' in isi
+    assert 'Jago/Jago Pro sedang disiapkan' in isi
+    assert 'Rp' not in isi and '30 hari' not in isi

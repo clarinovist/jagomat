@@ -316,6 +316,8 @@ def periksa(pengguna: str, sandi: str, data: dict | None = None) -> bool:
         or d.get("peran", "guru") not in PERAN
     ):
         return False
+    if d.get("dinonaktifkan") is True:
+        return False
     try:
         revisi_auth(d)
         _validasi_hash_akun(d)
@@ -501,6 +503,13 @@ def autentikasi(
         None,
     )
     if kandidat is None:
+        _ = hashlib.pbkdf2_hmac(
+            "sha256", sandi_diberikan.encode(), _UMPAN_GARAM,
+            _ITERASI, dklen=32,
+        )
+        hmac.compare_digest(_, _UMPAN_KUNCI)
+        return None
+    if kandidat.get("dinonaktifkan") is True:
         _ = hashlib.pbkdf2_hmac(
             "sha256", sandi_diberikan.encode(), _UMPAN_GARAM,
             _ITERASI, dklen=32,

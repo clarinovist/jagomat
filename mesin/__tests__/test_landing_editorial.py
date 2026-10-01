@@ -63,29 +63,26 @@ def test_hierarki_heading_dan_tujuan_jangkar_unik(markup):
     assert len(markup.cari("h1")) == 1
     assert markup.cari("h1")[0]["id"] == "judul-landing"
     sumber = halaman_landing().decode()
-    assert "Bukan sekadar<br>benar." in sumber
-    assert "<span>Paham caranya.</span>" in sumber
+    assert "Pahami cara berpikir anak." in sumber
+    assert "<span>Dampingi langkah berikutnya.</span>" in sumber
     daftar_id = [atribut["id"] for _, atribut in markup.elemen if "id" in atribut]
     assert len(daftar_id) == len(set(daftar_id))
     jangkar = [atribut["href"][1:] for atribut in markup.cari("a")
                if atribut.get("href", "").startswith("#")]
-    assert set(jangkar) == {"konten", "cara-kerja", "contoh", "harga"}
+    assert set(jangkar) == {"konten", "cara-kerja", "contoh"}
     assert set(jangkar) <= set(daftar_id)
     for _, atribut in markup.elemen:
         if "aria-labelledby" in atribut:
             assert atribut["aria-labelledby"] in daftar_id
 
 
-def test_harga_ada_sebelum_faq_dan_menu_tetap_tersedia_di_hp(markup):
+def test_status_akses_awal_ada_sebelum_faq_tanpa_menu_harga(markup):
     sumber = halaman_landing().decode()
-    assert sumber.index('id="harga"') < sumber.index('class="landing-faq-st"')
+    assert sumber.index('id="akses-awal"') < sumber.index('class="landing-faq-st"')
     nav = sumber.split('<nav ', 1)[1].split('</nav>', 1)[0]
-    assert 'class="landing-nav-st landing-nav-harga-st" href="#harga">Harga</a>' in nav
-    assert any(atribut.get("id") == "harga" and atribut.get("aria-labelledby") == "judul-harga"
+    assert 'href="#harga"' not in nav and '>Harga</a>' not in nav
+    assert any(atribut.get("id") == "akses-awal" and atribut.get("aria-labelledby") == "judul-akses-awal"
                for atribut in markup.cari("section"))
-    hp = GAYA_STITCH.split("/* ══ Landing editorial", 1)[1].split("/* Halaman hasil murid", 1)[0]
-    hp = hp.split("@media (max-width: 40rem)", 1)[1]
-    assert ".landing-nav-harga-st { display: inline-flex; }" in hp
 
 
 def test_maskot_lokal_dekoratif_berukuran_tetap(markup):
@@ -100,22 +97,14 @@ def test_maskot_lokal_dekoratif_berukuran_tetap(markup):
 
 def test_faq_native_dan_tidak_ada_skrip_baru(markup):
     sumber = halaman_landing().decode()
-    assert len(markup.cari("details")) == len(markup.cari("summary")) == 7
+    assert len(markup.cari("details")) == len(markup.cari("summary")) == 8
     assert re.findall(r"<script>(.*?)</script>", sumber, re.S) == [
         SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA,
     ]
     assert not any(nama.startswith("on") for _, atribut in markup.elemen for nama in atribut)
     assert not markup.cari("button")
-    radio = markup.cari("input")
-    assert len(radio) == 2
-    assert all(r.get("type") == "radio" and r.get("name") == "periode-harga" for r in radio)
-    assert {r["id"] for r in radio} == {"harga-bulanan", "harga-tahunan"}
-    assert [r["id"] for r in radio if "checked" in r] == ["harga-bulanan"]
-    assert {l["for"] for l in markup.cari("label")} == {r["id"] for r in radio}
-    assert len(markup.cari("fieldset")) == len(markup.cari("legend")) == 1
-    assert ':checked ~ .landing-paket-bulanan-st' in GAYA_STITCH
-    assert ':checked ~ .landing-paket-tahunan-st' in GAYA_STITCH
-    assert '.landing-periode-radio-st:focus-visible + .landing-periode-label-st' in GAYA_STITCH
+    assert not markup.cari("input")
+    assert not markup.cari("fieldset") and not markup.cari("legend")
 
 
 def test_aksi_daftar_dan_masuk_tetap_tunggal(markup):

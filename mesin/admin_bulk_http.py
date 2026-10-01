@@ -73,6 +73,7 @@ def _render(penangan, principal, *, peran, pilihan, cari='', halaman=1):
         '<form method="post" action="/admin/bulk/pilih">%s'
         '<label>Aksi<select name="aksi"><option value="account_password_reset">Setel ulang sandi unik</option>'
         '<option value="account_session_revoke">Keluarkan semua perangkat</option></select></label>'
+        '<label><input type="checkbox" name="verifikasi_independen" value="1"> Untuk reset sandi, saya sudah memverifikasi setiap pemohon secara independen.</label>'
         '<label>Sandi admin saat ini<input type="password" name="reauth" autocomplete="current-password" required></label>'
         '<button name="mode" value="tinjau" class="admin-tombol">Tinjau pilihan</button></form></section>'
         % (len(pilihan), dasar, dipilih or '<p>Belum ada pilihan.</p>', dasar))
@@ -100,7 +101,7 @@ def post_pilihan(penangan, principal, data):
         'tambah': {'halaman', 'cari', 'target', 'halaman_token'},
         'halaman': {'halaman', 'cari', 'target', 'halaman_token'},
         'hapus': {'hapus'}, 'kosongkan': {'hapus'},
-        'tinjau': {'aksi', 'reauth'},
+        'tinjau': {'aksi', 'reauth', 'verifikasi_independen'},
     }
     if mode not in fields or set(data) - fields[mode]:
         raise ValueError('Field tidak dikenal untuk tindakan ini.')
@@ -131,10 +132,16 @@ def post_pilihan(penangan, principal, data):
         pilihan = []
     elif mode == 'tinjau':
         aksi = data.pop('aksi', '')
-        if not H._reauth(principal, data.pop('reauth', '')):
-            raise PermissionError('Autentikasi ulang gagal.')
+        terverifikasi = data.pop('verifikasi_independen', '')
+        reauth = data.pop('reauth', '')
         if aksi not in (AKSI_RESET_SANDI, AKSI_CABUT_SESI) or not pilihan or data or target or hapus:
             raise ValueError('Tinjauan tidak sah.')
+        if aksi == AKSI_RESET_SANDI and terverifikasi != '1':
+            raise PermissionError('Reset ditahan sampai verifikasi independen selesai.')
+        if terverifikasi not in ('', '1'):
+            raise ValueError('Penanda verifikasi tidak sah.')
+        if not H._reauth(principal, reauth):
+            raise PermissionError('Autentikasi ulang gagal.')
         semua = {a['id_akun']: a for a in auth.muat_akun()}
         if any(x[2] != peran or x[0] not in semua or _snapshot(semua[x[0]]) != x for x in pilihan):
             raise H.admin_store.KonflikOperasi('Target berubah.')

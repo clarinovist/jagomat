@@ -622,7 +622,9 @@ def form_tindakan_akun(
             '<input type="hidden" name="aksi" value="account_password_reset">'
             '<input type="hidden" name="csrf" value="%s"><input type="hidden" name="tinjauan" value="%s">'
             '<label>Sandi baru untuk %s<input type="password" name="sandi_baru" minlength="%d" required autocomplete="new-password"></label>'
+            '<p class="admin-meta">Reset hanya boleh dilanjutkan setelah pemohon diverifikasi melalui hubungan independen. WhatsApp, nama akun, atau informasi anak bukan bukti tunggal.</p>'
             '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
+            '<label><input type="checkbox" name="verifikasi_independen" value="1" required> Verifikasi independen pemohon sudah selesai.</label>'
             '<button class="admin-tombol" type="submit">Setel ulang sandi</button></form>'
             % (_e(csrf), _e(tokens["account_password_reset"]), target, 8 if peran == "murid" else 12)
         )

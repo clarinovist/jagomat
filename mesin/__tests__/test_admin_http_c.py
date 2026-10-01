@@ -282,6 +282,7 @@ def test_token_review_tamper_stale_dan_target_berubah_tanpa_efek(server):
         "aksi": "account_password_reset", "csrf": _hidden(review, "csrf"),
         "tinjauan": _hidden(review, "tinjauan") + "x",
         "sandi_baru": "sandi-tidak-dipakai-c", "reauth": SANDI_ADMIN,
+        "verifikasi_independen": "1",
     }
     sebelum = auth.BERKAS_SANDI.read_bytes()
     kode, _, _ = _minta(
@@ -303,6 +304,7 @@ def test_token_review_tamper_stale_dan_target_berubah_tanpa_efek(server):
             "csrf": _hidden(review_stale, "csrf"),
             "tinjauan": _hidden(review_stale, "tinjauan"),
             "sandi_baru": "sandi-tidak-menimpa", "reauth": SANDI_ADMIN,
+            "verifikasi_independen": "1",
         },
         headers={"Origin": server.alamat, "Sec-Fetch-Site": "same-origin"},
     )
@@ -354,7 +356,7 @@ def test_reset_guru_menolak_csrf_origin_dan_reauth_tanpa_efek(server):
     dasar = {
         "aksi": "account_password_reset", "csrf": csrf,
         "tinjauan": tinjauan, "sandi_baru": "sandi-reset-http-c-123",
-        "reauth": SANDI_ADMIN,
+        "reauth": SANDI_ADMIN, "verifikasi_independen": "1",
     }
     sebelum = auth.BERKAS_SANDI.read_bytes()
     for ubah, tajuk, status in (
@@ -398,6 +400,27 @@ def test_tinjauan_target_kosong_hilang_dan_admin_tanpa_efek(server, aksi):
     assert admin_store.BAWAAN.read_bytes() == audit_awal
 
 
+def test_reset_tanpa_verifikasi_ditahan_tanpa_enumerasi_atau_efek(server):
+    token = _login(server, "Admin-C", SANDI_ADMIN)
+    target = auth.cari_akun("Ortu-C")
+    _, review, _ = _minta(
+        server, "/admin/tinjau?aksi=account_password_reset&id=" + target["id_akun"],
+        cookie=token,
+    )
+    sebelum = auth.BERKAS_SANDI.read_bytes(), admin_store.BAWAAN.read_bytes()
+    data = {
+        "aksi": "account_password_reset", "csrf": _hidden(review, "csrf"),
+        "tinjauan": _hidden(review, "tinjauan"), "reauth": SANDI_ADMIN,
+        "sandi_baru": "sandi-baru-ditahan-123",
+    }
+    kode, isi, _ = _minta(server, "/admin/akun", cookie=token, data=data,
+                           headers={"Origin": server.alamat})
+    assert kode == 403
+    assert "Form kedaluwarsa atau tidak sah" in isi
+    assert "Ortu-C" not in isi
+    assert (auth.BERKAS_SANDI.read_bytes(), admin_store.BAWAAN.read_bytes()) == sebelum
+
+
 def test_reset_guru_sandi_pendek_ditolak_lalu_sukses_terisolasi(server):
     token = _login(server, "Admin-C", SANDI_ADMIN)
     target = auth.cari_akun("Ortu-C")
@@ -407,12 +430,14 @@ def test_reset_guru_sandi_pendek_ditolak_lalu_sukses_terisolasi(server):
     )
     assert 'action="/admin/akun"' in review
     assert 'minlength="12"' in review and 'name="sandi_baru"' in review
+    assert 'name="verifikasi_independen"' in review
+    assert "WhatsApp, nama akun, atau informasi anak bukan bukti tunggal" in review
     assert "Sandi baru untuk Ortu-C" in review
     awal = auth.BERKAS_SANDI.read_bytes()
     data = {
         "aksi": "account_password_reset", "csrf": _hidden(review, "csrf"),
         "tinjauan": _hidden(review, "tinjauan"), "reauth": SANDI_ADMIN,
-        "sandi_baru": "pendek",
+        "sandi_baru": "pendek", "verifikasi_independen": "1",
     }
     kode, _, _ = _minta(server, "/admin/akun", cookie=token, data=data,
                          headers={"Origin": server.alamat})
@@ -578,6 +603,7 @@ def test_reset_revoke_delete_guru_actual_dan_replay_aman(server):
     data = {
         "aksi": "account_password_reset", "csrf": csrf, "tinjauan": review,
         "sandi_baru": "sandi-reset-c-456", "reauth": SANDI_ADMIN,
+        "verifikasi_independen": "1",
     }
     kode, hasil, _ = _minta(
         server, "/admin/akun", cookie=token_admin, data=data,
@@ -585,6 +611,11 @@ def test_reset_revoke_delete_guru_actual_dan_replay_aman(server):
     )
     assert kode == 200 and "sandi-reset-c-456" in hasil
     revisi = auth.cari_akun("Ortu-C")["revisi_auth"]
+    assert revisi == target["revisi_auth"] + 1
+    operasi = admin_store.daftar_riwayat(
+        admin_store.BAWAAN, aksi="account_password_reset"
+    ).item
+    assert len(operasi) == 1 and operasi[0].status == "succeeded"
     kode, replay, _ = _minta(
         server, "/admin/akun", cookie=token_admin,
         data={**data, "sandi_baru": "sandi-replay-tidak-dipakai"},
@@ -592,6 +623,9 @@ def test_reset_revoke_delete_guru_actual_dan_replay_aman(server):
     )
     assert kode == 303 and "sandi-replay-tidak-dipakai" not in replay
     assert auth.cari_akun("Ortu-C")["revisi_auth"] == revisi
+    assert admin_store.daftar_riwayat(
+        admin_store.BAWAAN, aksi="account_password_reset"
+    ).total == 1
     assert sessions.ambil_principal(token_target) is None
 
     target = auth.cari_akun("Ortu-C")

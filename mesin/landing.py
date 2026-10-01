@@ -16,7 +16,6 @@ import html
 
 import brand
 import design_tokens as T
-import subscription_packages as paket
 from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
 
 
@@ -232,17 +231,21 @@ def halaman_kebijakan(dukungan=None) -> bytes:
 <p class="dukungan-alis-st">CATATAN TENTANG DATAMU</p>
 <div id="judul-privasi"><h1>Kebijakan Privasi</h1></div>
 <p class="publik-sub-st">Ringkas dan jujur, tanpa bahasa hukum.
-Terakhir diperbarui 6 September 2026.</p>
+Terakhir diperbarui 30 September 2026.</p>
 
 <div class="publik-isi-st">
 <h2>Data yang dikumpulkan</h2>
 <ul>
 <li>Nama akun orang tua/guru dan kata sandinya (disimpan sebagai hash).</li>
-<li>Nama panggilan anak dan kelas sekolahnya (kelas 3–6).</li>
-<li>Hasil latihan: jawaban anak, kode diagnosis kesalahan
-(K/B/H/E/T/N), dan catatan guru.</li>
-<li>Foto lembar jawaban — hanya jika kamu mengunggahnya sebagai
+<li>Nama panggilan anak dan kelas sekolah opsional (kelas 1–6; akses awal
+berfokus pada pendampingan kelas 3–6).</li>
+<li>Hasil latihan: jawaban/cara anak, catatan tinjauan, diagnosis kerja
+(K/B/H/E/T/N), laporan, dan bukti belajar yang dikonfirmasi.</li>
+<li>Foto lembar jawaban — hanya jika pengguna sengaja mengunggahnya sebagai
 lampiran.</li>
+<li>Catatan operasi minimum, seperti audit tindakan pengelola, status permintaan,
+dan ledger layanan. Catatan ini tidak memuat isi chat atau jawaban anak kecuali
+memang merupakan bagian data belajar di penyimpanan belajar.</li>
 </ul>
 
 <h2>Data anak</h2>
@@ -262,7 +265,9 @@ setiap upload. Hasil AI hanya berupa usulan dan harus diperiksa guru.</p>
 <p>Fitur <b>Pendamping</b>, bila diaktifkan dan setelah persetujuan terpisah,
 mengirim isi chat ke DeepSeek. Jangan menulis email, nomor telepon, sandi,
 token, atau data pribadi anak. Bantuan kontekstual hanya memakai sumber belajar
-minimum yang dipilih dan disetujui; jawaban/cara anak tidak dikirim otomatis. Riwayat chat
+minimum yang dipilih dan disetujui; jawaban/cara anak tidak dikirim otomatis. Isi
+chat dapat dilihat kembali oleh pemilik akun, tetapi panel pengelola tidak menyediakan
+pembacaan isi chat atau memori keluarga. Riwayat chat
 disimpan sampai 180 hari sejak aktivitas terakhir; operasi gagal disimpan paling
 lama 7 hari. Penghapusan data aktif dilakukan segera, sedangkan salinan cadangan
 dapat bertahan paling lama 30 hari. Admin tidak dapat membuka isi chat atau
@@ -275,9 +280,10 @@ tidak ada pihak ketiga untuk iklan, pelacakan, atau analitik.</p>
 <li>Selain akses pengelola untuk dukungan operasional di bawah, data satu
 keluarga tidak terlihat oleh akun keluarga lain.</li>
 <li>Akun pengelola server dapat melihat dan mengelola data murid semua
-keluarga untuk dukungan operasional, termasuk sesi, jawaban, koreksi,
-lampiran, dan akun login murid. Pengelola tidak dapat mengubah akun atau
-sandi sesama pengelola.</li>
+keluarga untuk dukungan operasional, termasuk profil, sesi, jawaban, koreksi,
+laporan, lampiran, dan akun login murid. Pengelola dapat mengelola akun orang
+tua, tetapi tidak dapat mengubah akun atau sandi sesama pengelola. Akses ini
+terbatas pada panel privat dan tindakan sensitif dicatat dalam audit.</li>
 <li>Tidak ada pihak ketiga lain yang dapat melihat data anak untuk iklan,
 pelacakan, atau analitik.</li>
 </ul>
@@ -300,11 +306,23 @@ lama 90 hari sejak pendaftaran; agregat kelompok tanpa mapping disimpan paling l
 Setelah restart atau pemulihan, pengiriman aktivitas memerlukan persetujuan ulang;
 data lama tidak otomatis menjadi izin baru.</p>
 <h2>Penyimpanan &amp; penghapusan data</h2>
-<p>Semua data tersimpan dalam satu basis data di server pengelola —
-bukan layanan cloud pihak ketiga. Dari aplikasi, kamu bisa menghapus
-sesi latihan dan akun login anak kapan saja. Untuk penghapusan yang
-lebih besar (seluruh data keluarga), gunakan jalur dukungan di bawah. Pesan
-awal tidak menghapus data dan tidak boleh memuat data pribadi anak.</p>
+<p>Data disimpan pada beberapa penyimpanan aplikasi privat di server pengelola:
+data belajar/lampiran, autentikasi, operasi admin dan layanan, pengaturan AI,
+serta Pendamping. Penyedia AI hanya menerima data pada alur AI yang dijelaskan
+di atas; penyedia font menerima permintaan aset tampilan, bukan data latihan.</p>
+<p>Dari aplikasi, pengguna dapat menghapus sesi latihan yang belum menjadi bukti
+terlindungi, akun login anak, chat, memori, dan persetujuan sesuai permukaannya.
+Analitik opsional dapat dicabut dari pengaturan akun. Penghapusan aktif tidak
+langsung menghapus salinan cadangan; backup privat dapat bertahan maksimal 30 hari.</p>
+<p>Untuk penghapusan seluruh keluarga, gunakan jalur dukungan di bawah. Pesan awal
+tidak menghapus data dan tidak boleh memuat data pribadi anak. Setelah verifikasi
+independen dan backup pemulihan terkonfirmasi, data akun, profil, sesi yang tidak
+terlindungi, lampiran, chat, memori, dan mapping analitik dihapus. Bukti belajar
+append-only, receipt/journal operasi, ledger layanan atau finansial minimum, dan
+catatan yang wajib dijaga integritasnya dipertahankan tanpa nama pengguna aktif;
+identitas keluarga diputus dengan pengenal acak yang tidak dipakai untuk login.
+Ledger finansial minimum mengikuti kebijakan pembukuan hingga 10 tahun yang masih
+akan ditinjau setelah konfirmasi profesional.</p>
 {_kontak_dukungan(dukungan, konteks="penghapusan")}
 </div>
 </section>
@@ -360,111 +378,18 @@ ulang — sandimu terikat ke keluarga mereka.</li>
     return _halaman_publik_stitch(f"Lupa sandi? — {T.NAMA_PRODUK}", isi)
 
 
-def _rupiah(nilai: int) -> str:
-    return "Rp" + f"{nilai:,}".replace(",", ".")
-
-
-def _kartu_paket(penagihan: str) -> str:
-    """Kartu rencana dari katalog; tidak memberi eligibility atau membuat invoice."""
-    kartu = []
-    tahunan = penagihan == "tahunan"
-    satuan = "tahun" if tahunan else "bulan"
-    for p in paket.PAKET:
-        harga = paket.penawaran(p.kode, penagihan, 1, peserta_promo=True, periode_dibayar=0)
-        pro = p.kode == "jago_pro"
-        kelas = " landing-paket-pro-st" if pro else ""
-        periode = "Tahun pertama" if tahunan else "3 periode berbayar pertama"
-        ekuivalen = (
-            f'<p class="landing-paket-setara-st">Setara sekitar {_rupiah(round(harga.rupiah / 12))}/bulan.</p>'
-            if tahunan else ""
-        )
-        cara_bayar = "Dibayar sekaligus di muka." if tahunan else "Dibayar per bulan."
-        fitur_ai = (
-            f'<li><b>{p.kuota.balasan} balasan Pendamping AI</b> per bulan layanan</li>'
-            f'<li><b>{p.kuota.foto} pembacaan foto</b> per bulan layanan</li>'
-            if pro else '<li>Tanpa Pendamping AI dan pembacaan foto</li>'
-        )
-        tambahan = (
-            '<p class="landing-paket-kuota-st">Kuota AI dipakai bersama seluruh profil '
-            'dan diperbarui setiap bulan, termasuk paket tahunan.</p>' if pro else ""
-        )
-        kartu.append(f'''<section class="landing-paket-kartu-st{kelas}" data-paket="{p.kode}">
-<p class="landing-alis-st">{'BELAJAR + BANTUAN AI' if pro else 'FITUR BELAJAR INTI'}</p>
-<h3>{html.escape(p.nama)}</h3>
-<p class="landing-paket-sub-st">{'Semua di Jago, ditambah bantuan AI.' if pro else 'Latihan terarah, kemajuan terlihat.'}</p>
-<p class="landing-paket-normal-st">Harga promo · normal <s>{_rupiah(harga.normal)}</s>/{satuan}</p>
-<p class="landing-paket-harga-st">{_rupiah(harga.rupiah)}<span>/{satuan}</span></p>
-{ekuivalen}
-<p class="landing-paket-periode-st">{periode} bagi peserta promo.<br>{cara_bayar}
-Lalu {_rupiah(harga.normal)}/{satuan}.</p>
-<ul class="landing-paket-fitur-st">
-<li>1 profil anak termasuk</li>
-<li>Latihan, pembahasan, dan lembar cetak</li>
-<li>Rencana belajar, peta penguasaan, dan laporan</li>
-{fitur_ai}
-</ul>{tambahan}
-</section>''')
-    return "".join(kartu)
-
-
-def _harga_landing() -> str:
-    """Pilihan periode native HTML/CSS; semua angka berasal katalog v2."""
-    hari = paket.DURASI_COBA // 86400
-    refund = paket.DURASI_REFUND // 86400
+def _status_akses_awal() -> str:
+    """Status penawaran publik; tidak membaca atau mengaktifkan domain paket."""
     return f'''
-<section class="landing-harga-st" id="harga" aria-labelledby="judul-harga">
-<div class="landing-harga-intro-st">
+<section class="landing-harga-st" id="akses-awal" aria-labelledby="judul-akses-awal">
 <div class="landing-bagian-kepala-st">
-<p class="landing-alis-st">RENCANA PAKET {html.escape(T.NAMA_PRODUK.upper())}</p>
-<h2 id="judul-harga">Mulai dengan<br><span>{hari} hari gratis.</span></h2>
-<p>Kenali cara belajar anak. Setelah masa coba, pilih paket yang sesuai kebutuhan.</p>
+<p class="landing-alis-st">AKSES AWAL NONKOMERSIAL</p>
+<h2 id="judul-akses-awal">Jago/Jago Pro sedang disiapkan.</h2>
+<p>Gunakan fitur belajar yang tersedia untuk mendampingi anak. Pendaftaran saat ini
+<strong>tidak mengaktifkan paket, masa coba, promo, atau pembayaran</strong>.</p>
+<p>Informasi paket akan ditampilkan setelah penawaran dan operasinya benar-benar siap.
+Tidak ada pilihan paket atau transaksi yang perlu dilakukan saat membuat akun.</p>
 </div>
-<div class="landing-coba-st">
-<img src="/aset/maskot-menunjuk-v3-240.png" width="96" height="96" alt="" aria-hidden="true">
-<div><h3>Coba Gratis · Rp0</h3>
-<p>Satu kali untuk semua member: 1 profil anak, fitur belajar inti,
-{paket.KUOTA_COBA.balasan} balasan AI + {paket.KUOTA_COBA.foto} pembacaan foto selama {hari} hari.
-Bukan paket gratis permanen.</p></div>
-</div>
-</div>
-<p class="landing-harga-status-st"><b>Penawaran belum dibuka.</b>
-Tanggal pembukaan dan ketentuan peserta promo belum diumumkan. Pendaftaran saat ini
-belum mengaktifkan masa coba atau promo, dan tidak memicu pembayaran.</p>
-<fieldset class="landing-harga-pilih-st">
-<legend>Pilih periode pembayaran</legend>
-<input class="landing-periode-radio-st" type="radio" name="periode-harga" id="harga-bulanan" checked>
-<label class="landing-periode-label-st" for="harga-bulanan">Bulanan</label>
-<input class="landing-periode-radio-st" type="radio" name="periode-harga" id="harga-tahunan">
-<label class="landing-periode-label-st" for="harga-tahunan">Tahunan <span>lebih hemat</span></label>
-<div class="landing-paket-panel-st landing-paket-bulanan-st">
-{_kartu_paket('bulanan')}
-</div>
-<div class="landing-paket-panel-st landing-paket-tahunan-st">
-<p class="landing-tahunan-catatan-st">Harga tahunan dibayar sekaligus untuk 12 bulan.
-Hemat 16,7% dibanding 12 pembayaran bulanan dengan tarif yang sama.</p>
-{_kartu_paket('tahunan')}
-</div>
-</fieldset>
-<p class="landing-harga-keterangan-st"><b>Lebih dari satu anak?</b> Tambah profil
-{_rupiah(paket.TAMBAHAN_BULANAN)}/bulan atau {_rupiah(paket.TAMBAHAN_TAHUNAN)}/tahun per profil.
-Harga termasuk pajak bila berlaku. Kuota AI tidak dikalikan jumlah anak.</p>
-<details class="landing-harga-syarat-st"><summary>Ketentuan masa coba, promo, dan refund</summary>
-<ul>
-<li>Masa coba dimulai sejak aktivasi dan tidak berulang saat ganti paket atau berlangganan kembali.
-Setelah selesai, pilih paket dan bayar sendiri; tidak otomatis ditagih.</li>
-<li>Promo bulanan berlaku untuk 3 periode yang dibayar, bukan 3 bulan sejak daftar.
-Promo tahunan untuk tahun berbayar pertama. Setelah itu, tarif normal berlaku.</li>
-<li>Promo bulanan dan tahunan adalah alternatif, bukan diskon yang ditumpuk.
-Tambahan profil tidak mendapat diskon promo lagi. Tanpa promo, berlaku tarif normal.</li>
-<li>Rencana garansi tahunan: ajukan refund penuh dalam {refund} × 24 jam sejak pembayaran
-berhasil, termasuk perpanjangan tahunan. Yang dikembalikan adalah nominal yang dibayar.
-Ini batas pengajuan, bukan janji waktu dana kembali.</li>
-<li>Setelah {refund} hari, pembatalan biasa tidak mendapat refund prorata; akses tetap sampai
-akhir masa bayar. Setelah refund selesai, akses dari pembayaran terkait dihentikan,
-bukan data belajarnya yang dihapus. Hak konsumen yang wajib dipenuhi tetap berlaku.</li>
-<li>Fitur AI tetap memerlukan persetujuan dan hasilnya perlu diperiksa.</li>
-</ul>
-</details>
 </section>'''
 
 
@@ -478,8 +403,6 @@ def halaman_landing(dukungan=None) -> bytes:
     n = html.escape(T.NAMA_PRODUK)
     tag = html.escape(T.TAGLINE)
     mark_topbar = brand.mark("topbar")
-    hari_coba = paket.DURASI_COBA // 86400
-    mulai_promo = _rupiah(paket.ambil_paket("jago").bulanan_promo)
     isi = f"""
 <a class="landing-lewati-st" href="#konten">Lewati ke konten</a>
 <header class="landing-topbar-st"><div class="landing-topbar-isi-st">
@@ -487,27 +410,25 @@ def halaman_landing(dukungan=None) -> bytes:
 <nav class="topbar-navigasi" aria-label="Navigasi utama">
 <a class="landing-nav-st" href="#cara-kerja">Kenali {n}</a>
 <a class="landing-nav-st" href="#contoh">Contoh latihan</a>
-<a class="landing-nav-st landing-nav-harga-st" href="#harga">Harga</a>
 <a class="tombol-putih" href="/masuk">Masuk</a></nav>
 </div></header>
 
 <main class="landing-bungkus-st" id="konten" tabindex="-1">
 <section class="landing-hero-st" aria-labelledby="judul-landing">
 <div class="landing-hero-teks-st">
-  <p class="landing-alis-st"><span aria-hidden="true">✳</span> Matematika SD · OSN &amp; SASMO</p>
-  <h1 class="landing-judul-st" id="judul-landing">Bukan sekadar<br>benar.
-  <span>Paham caranya.</span></h1>
+  <p class="landing-alis-st"><span aria-hidden="true">✳</span> Pendampingan matematika SD · Kelas 3–6</p>
+  <h1 class="landing-judul-st" id="judul-landing">Pahami cara berpikir anak.
+  <span>Dampingi langkah berikutnya.</span></h1>
   <p class="landing-tagline-st">{tag}</p>
-  <p class="landing-sub-st">Bantu anak memahami matematika lewat latihan,
-  <b>tinjauan cara berpikir</b>, dan rencana belajar terpandu. Bukan hanya
-  tahu letak salahnya — orang tua dan guru tahu langkah berikutnya.</p>
-  <p class="landing-penawaran-st"><b>Rencana penawaran: coba gratis {hari_coba} hari.</b>
-  Lalu harga promo Jago mulai {mulai_promo}/bulan untuk 1 profil anak, selama
-  3 periode berbayar pertama bagi peserta promo.
-  <span>Penawaran belum dibuka; pendaftaran belum mengaktifkan masa coba atau promo.</span></p>
+  <p class="landing-sub-st">Untuk orang tua yang ingin membantu anak kelas 3–6
+  memahami matematika lewat latihan, <b>tinjauan cara berpikir</b>, dan rencana
+  belajar terpandu. Guru dan pendamping les juga dapat memakai alur yang sama.</p>
   <p class="landing-cta-baris-st"><a class="tombol-coral" href="/daftar">
-  Mulai — daftar sekarang <span aria-hidden="true">↗</span></a></p>
-  <p class="landing-catatan-cta-st">Untuk orang tua, guru, dan les privat · Kelas 3–6 SD</p>
+  Buat akun pendamping. <span aria-hidden="true">↗</span></a></p>
+  <p class="landing-penawaran-st"><b>Akses awal nonkomersial.</b>
+  Jago/Jago Pro sedang disiapkan. Pendaftaran saat ini tidak mengaktifkan paket,
+  masa coba, promo, atau pembayaran.</p>
+  <p class="landing-catatan-cta-st">Fokus utama: orang tua anak kelas 3–6 · Guru/les sebagai pengguna tambahan</p>
 </div>
 
 <div class="landing-panggung-st">
@@ -668,7 +589,7 @@ aktif dan kamu menyetujui penggunaan AI. Bukan penentu diagnosis atau
 pengganti tinjauanmu; kamu tetap memilih dan memeriksa bantuannya.</p>
 </section>
 
-{_harga_landing()}
+{_status_akses_awal()}
 
 <section class="landing-faq-st" aria-labelledby="judul-faq">
 <div class="landing-bagian-kepala-st">
@@ -676,37 +597,44 @@ pengganti tinjauanmu; kamu tetap memilih dan memeriksa bantuannya.</p>
 <h2 class="landing-contoh-judul-st" id="judul-faq">Sering ditanya</h2>
 </div>
 <div class="landing-faq-daftar-st">
-<details><summary>Untuk kelas berapa?</summary>
-<p>Kelas 3–6 SD. Kelas sekolah hanya informasi profil; Jagomat menyiapkan
-cakupan fondasi dan variasi soalnya secara otomatis.</p></details>
+<details><summary>Siapa yang paling cocok memakai Jagomat?</summary>
+<p>Fokus akses awal adalah orang tua yang mendampingi anak kelas 3–6 SD.
+Guru atau pendamping les dapat menjadi pengguna tambahan. Kelas sekolah hanya
+informasi profil, bukan ukuran kemampuan anak.</p></details>
+<details><summary>Bagaimana memulai latihan pertama?</summary>
+<p>Buat akun pendamping dan profil anak, pilih topik, jumlah soal, format,
+serta mode, lalu buat latihan. Setelah anak mengerjakan di HP atau kertas,
+tinjau dan konfirmasi hasil sebelum membuka laporan dan langkah berikutnya.</p></details>
 <details><summary>Anak mengerjakan di HP atau kertas?</summary>
 <p>Keduanya bisa. Gunakan halaman murid, atau cetak lembar untuk dikerjakan
 di kertas. Hasil kertas dapat dicatat oleh orang tua/guru. Jika pembacaan
 foto dengan AI tersedia, hasil baca tetap perlu diperiksa.</p></details>
 <details><summary>Apakah ini khusus olimpiade?</summary>
-<p>Tidak. {n} membantu membangun fondasi matematika dan berlatih pola soal
-bergaya OSN/SASMO. Bukan pengganti seluruh pelajaran sekolah atau jaminan
-prestasi olimpiade.</p></details>
-<details><summary>Bagaimana dengan biaya?</summary>
-<p>Rencana penawarannya: coba gratis {hari_coba} hari untuk semua member,
-lalu pilih Jago atau Jago Pro dengan pembayaran bulanan atau tahunan.
-Promo Jago mulai {mulai_promo}/bulan bagi peserta promo; total tahunan,
-harga normal, dan ketentuan refund ada di <a href="#harga">bagian Harga</a>.
-Penawaran belum dibuka; pendaftaran saat ini belum mengaktifkan masa coba atau
-promo dan tidak memicu pembayaran.</p></details>
-<details><summary>Data anak disimpan di mana?</summary>
-<p>Data belajar disimpan di server pengelola. Tidak ada iklan atau
-pelacak pihak ketiga; pendaftaran tidak meminta email atau nomor telepon.
-Fitur AI memakai layanan AI pihak ketiga: foto lembar dikirim untuk
-pembacaan jawaban saat fitur digunakan, jadi pastikan izin orang tua/wali.
-Pendamping memerlukan persetujuan terpisah. Rinciannya ada di
-<a href="/kebijakan-privasi">Kebijakan Privasi</a>.</p></details>
+<p>Tidak. {n} membantu membangun fondasi matematika dan menyediakan cakupan
+soal bergaya OSN/SASMO. Itu bukan pengganti seluruh pelajaran sekolah, ukuran
+kemampuan global, atau janji prestasi kompetisi.</p></details>
+<details><summary>Apakah paket atau pembayaran sudah aktif?</summary>
+<p>Belum. Jago/Jago Pro sedang disiapkan. Akses saat ini bersifat nonkomersial;
+pendaftaran tidak mengaktifkan paket, masa coba, promo, atau pembayaran.</p></details>
+<details><summary>Bagaimana Jagomat memakai data dan AI?</summary>
+<p>Data belajar disimpan di penyimpanan aplikasi pada server pengelola. Tidak
+ada iklan atau pelacak pihak ketiga; pendaftaran tidak meminta email atau nomor
+telepon. Fitur AI memakai layanan AI pihak ketiga hanya pada alur yang
+dijelaskan, hasilnya perlu pemeriksaan manusia, dan penggunaan foto memerlukan
+izin orang tua/wali. Pendamping memerlukan persetujuan terpisah. Rinciannya
+ada di <a href="/kebijakan-privasi">Kebijakan Privasi</a>.</p></details>
 <details><summary>Lupa sandi bagaimana?</summary>
 <p>Tidak ada reset via email. Anak minta ke orang tua/gurunya; orang tua
 yang daftar sendiri memakai jalur dukungan. WhatsApp bukan bukti kepemilikan
 akun; reset ditahan bila verifikasi independen tidak tersedia. Detailnya ada di
 <a href="/lupa-sandi">Lupa sandi</a>.</p>
 {_kontak_dukungan(dukungan, konteks="reset")}</details>
+<details><summary>Bagaimana meminta penghapusan data keluarga?</summary>
+<p>Mulai permintaan melalui jalur dukungan. Pesan awal tidak langsung menghapus
+data. Pengelola memverifikasi pemohon secara independen, meninjau inventaris,
+dan memberi tahu bagian yang dihapus, dianonimkan, atau wajib dipertahankan
+sebagai bukti append-only.</p>
+{_kontak_dukungan(dukungan, konteks="penghapusan")}</details>
 </div>
 </section>
 </main>
@@ -723,9 +651,8 @@ akun; reset ditahan bila verifikasi independen tidak tersedia. Detailnya ada di
         og={
             "judul": f"{T.NAMA_PRODUK} — {T.TAGLINE}",
             "deskripsi": (
-                "Latihan matematika SD bergaya OSN/SASMO dengan rencana belajar "
-                "terpandu dan peta penguasaan. Dampingi cara berpikir anak dan "
-                "ikuti langkah belajar berikutnya."
+                "Pendampingan matematika kelas 3–6 untuk memahami cara berpikir "
+                "anak, meninjau hasil, dan menentukan langkah belajar berikutnya."
             ),
             "jalur": "/",
         },

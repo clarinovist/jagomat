@@ -640,6 +640,8 @@ def _post_akun(penangan, principal, data):
     akun, tinjauan, token = _token_final(penangan, principal, data, aksi)
     meta = tinjauan["data"]
     sandi = data.pop("sandi_baru", None)
+    if aksi == AKSI_RESET_SANDI and data.pop("verifikasi_independen", None) != "1":
+        raise PermissionError("Reset ditahan sampai verifikasi independen selesai.")
     if aksi in _AKSI_DESTRUKTIF and data.pop("konfirmasi", None) != "1":
         raise ValueError("Konfirmasi wajib.")
     if aksi == AKSI_BUAT_GURU:

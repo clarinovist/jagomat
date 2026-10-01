@@ -106,12 +106,14 @@ def test_tidak_mengklaim_tulis_tangan():
     assert "tulis tangan" not in h
 
 
-def test_rencana_gratis_tidak_diklaim_sudah_dibuka():
-    """Harga boleh terbuka, tetapi pendaftaran bukan aktivasi masa coba."""
+def test_akses_awal_tidak_menonjolkan_penawaran_nonaktif():
     h = _html().lower()
-    assert "rencana penawaran: coba gratis 30 hari" in h
-    assert "penawaran belum dibuka" in h
-    assert "pendaftaran belum mengaktifkan masa coba atau promo" in h
+    assert "akses awal nonkomersial" in h
+    assert "jago/jago pro sedang disiapkan" in h
+    teks = " ".join(h.split())
+    assert "pendaftaran saat ini tidak mengaktifkan paket, masa coba, promo, atau pembayaran" in teks
+    for klaim in ("30 hari gratis", "coba gratis", "harga promo", "refund", "rp25.000"):
+        assert klaim not in h
 
 
 # ──────────────── contoh dan bantuan pendamping ────────────────
@@ -155,12 +157,13 @@ def test_landing_footer_memuat_kontak_wa():
 
 def test_landing_tetap_single_cta():
     """Blok baru tidak boleh menambah CTA tandingan — satu-satunya
-    anchor coral tetap "Mulai — daftar sekarang" ke /daftar. (Hitungan
+    anchor coral tetap "Buat akun pendamping." ke /daftar. (Hitungan
     dibatasi ke markup <a>, karena string "tombol-coral" juga muncul di
     blok <style> CSS.)"""
     h = _html()
     assert h.count('href="/daftar"') == 1
     assert h.count('<a class="tombol-coral"') == 1
+    assert "Buat akun pendamping." in h
 
 
 # ──────────────── zero-JS & kontrol mati ────────────────
@@ -170,8 +173,7 @@ def test_landing_tanpa_kontrol_mati():
     tombol yang tidak bisa ditekan = bug."""
     h = _html()
     assert "<button" not in h
-    # Dua radio native memilih periode via CSS; bukan tombol checkout palsu.
-    assert h.count('type="radio"') == h.count('<input') == 2
+    assert '<input' not in h
 
 
 def test_landing_tanpa_cdn_tailwind():
@@ -193,7 +195,7 @@ def test_kontrak_navigasi_tetap():
     assert h.count('href="/masuk"') == 1
     assert '<a class="brand" href="/">' in h
     assert h.count('class="tombol-putih"') == 1
-    assert "Mulai — daftar sekarang" in h
+    assert "Buat akun pendamping." in h
 
 
 def test_footer_tetap_menaut_kebijakan_tanpa_masuk():
