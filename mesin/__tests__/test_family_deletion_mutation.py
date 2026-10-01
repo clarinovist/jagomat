@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 import pytest
 
@@ -34,7 +35,7 @@ def test_guard_penghapusan_menangkap_mutasi(tmp_path, nama, lama, baru, test):
     env = dict(os.environ, PYTHONPATH=str(salinan / "mesin"),
                PYTHONDONTWRITEBYTECODE="1", OSN_PBKDF2_ITERASI="1000")
     hasil = subprocess.run([
-        str(AKAR / "mesin" / ".venv" / "bin" / "python"), "-m", "pytest",
+        sys.executable, "-m", "pytest",
         str(salinan / "mesin" / "__tests__" / TEST.name) + "::" + test,
         "-q", "-W", "error", "-p", "no:cacheprovider",
     ], cwd=salinan, env=env, text=True, capture_output=True, timeout=90)

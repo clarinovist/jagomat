@@ -21,8 +21,8 @@ env:
   # Identitas artefak tetap meski repo berganti nama menjadi jagomat.
   # Harus sama dengan verifier dan deployer; recovery VPS memakai namespace ini.
   IMAGE: clarinovist/osn-mesin-latihan
-  # Baseline dukungan diuji penuh bersama kandidat; pemasangan tetap tidak otomatis.
-  RECOVERY_SHA: 6621f46c2d1d155c9e607441608407a244d185e0
+  # Baseline soft launch diuji penuh bersama kandidat; pemasangan tetap tidak otomatis.
+  RECOVERY_SHA: db492efa96a46626c3c5d599e82f47a02e4f34c6
 
 jobs:
   periksa:
@@ -130,10 +130,10 @@ jobs:
     steps:
       # Helper shard berasal dari candidate yang juga melewati full suite.
       - uses: actions/checkout@v7
-      - name: Checkout baseline recovery konfigurasi dukungan
+      - name: Checkout baseline recovery soft launch
         uses: actions/checkout@v7
         with:
-          ref: 6621f46c2d1d155c9e607441608407a244d185e0
+          ref: db492efa96a46626c3c5d599e82f47a02e4f34c6
           path: recovery
           # Suite recovery mempertahankan mode dan pin historis source-nya sendiri.
           fetch-depth: 0
@@ -175,7 +175,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/checkout@v7
         with:
-          ref: 6621f46c2d1d155c9e607441608407a244d185e0
+          ref: db492efa96a46626c3c5d599e82f47a02e4f34c6
           path: recovery
       - name: Validasi mode dan gate rilis sebelum build
         id: mode

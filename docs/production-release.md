@@ -1,5 +1,19 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Kandidat soft launch nonkomersial — 1 Oktober 2026
+
+Recovery source dipatok pada `db492efa96a46626c3c5d599e82f47a02e4f34c6`,
+commit pertama yang memuat copy akses awal, review privasi, guard verifikasi reset,
+primitive penghapusan keluarga, serta bukti onboarding sintetis. Fingerprint kontrak
+persistensinya `fc68c8bc9280663443718bc1c73764cb0c1034e5d0b733deeb36f5994940aba3`.
+Pin ini berada di branch recovery immutable `recovery/soft-launch-db492ef`.
+
+Mode tetap **migrasi** dan job `pasang` literal false. Kandidat berikutnya wajib
+membangun image recovery dan candidate pada run yang sama, menjalankan seluruh shard,
+probe, serta pair exact. Pembaruan anchor ini bukan deploy dan tidak menjalankan
+primitive terhadap data produksi. Cutover tetap membutuhkan backup coherent empat DB
++ auth, rehearsal, approval exact pair, health, dan smoke anonim.
+
 ## Kandidat konfigurasi dukungan — 30 September 2026
 
 Konfigurasi WhatsApp Business, jam layanan, dan SLA memakai schema dukungan

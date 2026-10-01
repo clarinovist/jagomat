@@ -32,16 +32,16 @@ def test_pasang_tertahan_sampai_deployer_dan_policy_rutin_siap():
     assert 'cancel-in-progress: false' in teks
 
 
-def test_pin_dukungan_migrasi_pasang_literal_false():
+def test_pin_soft_launch_migrasi_pasang_literal_false():
     teks=WORKFLOW.read_text()
-    # Baseline B pertama yang memahami schema dukungan dipatok exact; cutover
-    # tetap controlled deploy-v2 dan tidak membuka auto-deploy CI.
+    # Baseline B soft launch dipatok exact; cutover tetap controlled deploy-v2
+    # dan tidak membuka auto-deploy CI.
     assert CONFIG['mode']=='migrasi'
-    assert RECOVERY_SHA=='6621f46c2d1d155c9e607441608407a244d185e0'
-    assert CONFIG['recovery_contract']=='b972ca3d2aa7b47c8ec85b09ca183d06ab791d1668014f91d50d147e996cbdc7'
+    assert RECOVERY_SHA=='db492efa96a46626c3c5d599e82f47a02e4f34c6'
+    assert CONFIG['recovery_contract']=='fc68c8bc9280663443718bc1c73764cb0c1034e5d0b733deeb36f5994940aba3'
     assert re.findall(r'^    if: (.+)$',_job(teks,'pasang'),re.M)==['${{ false }}']
     assert "steps.mode.outputs.mode == 'migrasi'" in _job(teks,'bangun')
-    assert 'Baseline dukungan diuji penuh' in teks
+    assert 'Baseline soft launch diuji penuh' in teks
 
 
 def test_build_candidate_dan_recovery_pakai_digest_yang_sama_untuk_verifikasi():

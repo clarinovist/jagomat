@@ -611,7 +611,6 @@ def test_reset_revoke_delete_guru_actual_dan_replay_aman(server):
     )
     assert kode == 200 and "sandi-reset-c-456" in hasil
     revisi = auth.cari_akun("Ortu-C")["revisi_auth"]
-    assert revisi == target["revisi_auth"] + 1
     operasi = admin_store.daftar_riwayat(
         admin_store.BAWAAN, aksi="account_password_reset"
     ).item
@@ -627,6 +626,7 @@ def test_reset_revoke_delete_guru_actual_dan_replay_aman(server):
         admin_store.BAWAAN, aksi="account_password_reset"
     ).total == 1
     assert sessions.ambil_principal(token_target) is None
+    assert revisi == target["revisi_auth"] + 1
 
     target = auth.cari_akun("Ortu-C")
     csrf, review = tinjau("account_session_revoke")

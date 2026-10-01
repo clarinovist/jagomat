@@ -112,13 +112,13 @@ def test_kontrak_candidate_memasukkan_modul_dukungan():
     assert "support_settings.py" in deploy.PROBE_KONTRAK
 
 
-def test_pin_dukungan_migrasi_memerlukan_pair_exact_tanpa_auto_deploy():
-    """Recovery dukungan menjadi anchor migrasi; pair exact tetap wajib."""
+def test_pin_soft_launch_migrasi_memerlukan_pair_exact_tanpa_auto_deploy():
+    """Recovery soft launch menjadi anchor migrasi; pair exact tetap wajib."""
     config = metadata.baca_config(AKAR / 'scripts/release-metadata.json')
     assert config == {
         'versi': 1, 'mode': 'migrasi',
-        'recovery_revision': '6621f46c2d1d155c9e607441608407a244d185e0',
-        'recovery_contract': 'b972ca3d2aa7b47c8ec85b09ca183d06ab791d1668014f91d50d147e996cbdc7',
+        'recovery_revision': 'db492efa96a46626c3c5d599e82f47a02e4f34c6',
+        'recovery_contract': 'fc68c8bc9280663443718bc1c73764cb0c1034e5d0b733deeb36f5994940aba3',
     }
     metadata.validasi_workflow(ALUR.read_text(), config)
     b = {'revision': config['recovery_revision'], 'digest': 'sha256:'+'b'*64,

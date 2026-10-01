@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 
 AKAR = Path(__file__).resolve().parents[2]
@@ -21,7 +22,7 @@ def _mutasi_gagal(tmp_path, relatif, lama, baru, target_test):
     env = dict(os.environ, PYTHONPATH=str(salinan / "mesin"),
                PYTHONDONTWRITEBYTECODE="1", OSN_PBKDF2_ITERASI="1000")
     hasil = subprocess.run([
-        str(AKAR / "mesin" / ".venv" / "bin" / "python"), "-m", "pytest",
+        sys.executable, "-m", "pytest",
         str(salinan / "mesin" / "__tests__" / target_test.split("::", 1)[0])
         + "::" + target_test.split("::", 1)[1],
         "-q", "-W", "error", "-p", "no:cacheprovider",

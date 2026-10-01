@@ -416,7 +416,7 @@ def halaman_landing(dukungan=None) -> bytes:
 <main class="landing-bungkus-st" id="konten" tabindex="-1">
 <section class="landing-hero-st" aria-labelledby="judul-landing">
 <div class="landing-hero-teks-st">
-  <p class="landing-alis-st"><span aria-hidden="true">✳</span> Pendampingan matematika SD · Kelas 3–6</p>
+  <p class="landing-alis-st"><span aria-hidden="true">✳</span> Pendampingan matematika · Kelas 3–6 SD</p>
   <h1 class="landing-judul-st" id="judul-landing">Pahami cara berpikir anak.
   <span>Dampingi langkah berikutnya.</span></h1>
   <p class="landing-tagline-st">{tag}</p>
