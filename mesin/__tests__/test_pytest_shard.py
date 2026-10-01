@@ -42,6 +42,8 @@ JUMLAH_RECOVERY = {
     "634e077830938dbd3ae20d17e5ac019004e97fc2": 12727,
     # Koleksi exact baseline dukungan 6621f46, 2026-09-30.
     "6621f46c2d1d155c9e607441608407a244d185e0": 12837,
+    # Koleksi exact baseline soft launch db492ef, 2026-10-01.
+    "db492efa96a46626c3c5d599e82f47a02e4f34c6": 12856,
 }
 
 
