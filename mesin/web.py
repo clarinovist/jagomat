@@ -1492,127 +1492,14 @@ class Penangan(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        if jalur.startswith("/sesi-baru/"):
-            try:
-                siswa_id = int(jalur.split("/")[2])
-            except (ValueError, IndexError):
-                return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
-            panjang = int(self.headers.get("Content-Length", 0) or 0)
-            data = urllib.parse.parse_qs(
-                self.rfile.read(panjang).decode("utf-8"),
-                keep_blank_values=True,
-            )
-            pilihan_topik = (data.get("topik") or [TOPIK_BAWAAN])[0].strip()
-            aksi_form = data.get("aksi_form", [])
-            versi_pilihan = data.get("versi_pilihan_isi", [])
-            topik_dibandingkan = data.get("topik_dibandingkan", [])
-            if aksi_form:
-                return self._kirim(
-                    _halaman(
-                        "Form lama",
-                        "<p>Pilihan variasi sudah otomatis. Muat ulang halaman anak.</p>",
-                    ),
-                    409,
-                )
-            if pilihan_topik not in daftar_topik():
-                # Topik asing = salah ketik pemanggil: ditolak jelas, BUKAN
-                # jatuh diam-diam ke pola bilangan. Pesan menyebut daftar
-                # yang sah supaya guru/pemanggil langsung tahu pilihannya.
-                pesan = (
-                    f"<h1>Topik tidak dikenal</h1>"
-                    f"<p><code>{html.escape(pilihan_topik)}</code> tidak "
-                    f"terdaftar. Yang tersedia: "
-                    f"{', '.join(html.escape(t) for t in daftar_topik())}.</p>"
-                )
-                return self._kirim(_halaman("Topik tidak dikenal", pesan), 400)
-            if versi_pilihan or topik_dibandingkan:
-                return self._kirim(
-                    _halaman(
-                        "Form lama",
-                        "<p>Pilihan variasi sudah otomatis. Muat ulang halaman anak.</p>",
-                    ), 409,
-                )
-            sesi_id = None
-            nama_siswa = None
-            with database.buka() as kon:
-                if not self._bisa_lihat_siswa(kon, siswa_id):
-                    return self._kirim(
-                        _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
-                    )
-                siswa = kon.execute(
-                    "SELECT nama, tingkat FROM siswa WHERE id = ?", (siswa_id,)
-                ).fetchone()
-                if not siswa:
-                    return self._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
-                from question_context import profil_otomatis, validasi_pilihan
-                try:
-                    profil_lama = data.get('profil_parameter', [])
-                    if profil_lama:
-                        if len(profil_lama) != 1:
-                            raise ValueError('Pilihan variasi soal tidak sah. Muat ulang form.')
-                        level = profil_lama[0]
-                        validasi_pilihan([pilihan_topik], level)
-                    else:
-                        level = profil_otomatis([pilihan_topik], siswa['tingkat'])
-                except ValueError as galat:
-                    return self._kirim(_halaman('Latihan belum dibuat', '<p>' + html.escape(str(galat)) + '</p>'), 400)
-                nama_siswa = siswa["nama"]
-                pilihan_mode = (data.get("mode") or ["diagnostik"])[0].strip()
-                if pilihan_mode not in ("diagnostik", "drill"):
-                    pesan = (
-                        f"<h1>Mode tidak dikenal</h1>"
-                        f"<p><code>{html.escape(pilihan_mode)}</code> tidak terdaftar. "
-                        f"Yang tersedia: diagnostik (Diagnosa), drill (Latihan Cepat).</p>"
-                    )
-                    return self._kirim(_halaman("Mode tidak dikenal", pesan), 400)
-                timer_mode, durasi_menit, timer_auto = "tanpa", 15, 0
-                if pilihan_mode == "drill":
-                    timer_mode = (data.get("timer_mode") or ["tanpa"])[0].strip()
-                    if timer_mode not in ("tanpa", "sesi", "soal"):
-                        pesan = (
-                            f"<h1>Timer tidak dikenal</h1>"
-                            f"<p><code>{html.escape(timer_mode)}</code> tidak terdaftar. "
-                            f"Yang tersedia: tanpa (tanpa timer), sesi (per sesi, tampil jalan), "
-                            f"soal (per soal, internal).</p>"
-                        )
-                        return self._kirim(_halaman("Timer tidak dikenal", pesan), 400)
-                    if timer_mode in ("sesi", "soal"):
-                        nilai_durasi = (data.get("durasi_menit") or [""])[0].strip()
-                        try:
-                            durasi_diajukan = int(nilai_durasi)
-                        except ValueError:
-                            durasi_diajukan = 0
-                        if not 1 <= durasi_diajukan <= 180:
-                            pesan = (
-                                "<h1>Durasi tidak wajar</h1>"
-                                f"<p>Durasi Latihan Cepat harus angka 1–180 menit "
-                                f"(terima: {html.escape(nilai_durasi or '(kosong)')}).</p>"
-                            )
-                            return self._kirim(_halaman("Durasi tidak wajar", pesan), 400)
-                        durasi_menit = durasi_diajukan
-                        timer_auto = 1 if (data.get("timer_auto") or ["0"])[0] == "1" else 0
-                nilai_jumlah = (data.get("jumlah_soal") or [""])[0].strip()
-                jumlah_soal = int(nilai_jumlah) if nilai_jumlah.isdigit() and 1 <= int(nilai_jumlah) <= 50 else None
-                try:
-                    from choice_pages import format_dari_form
-                    sesi_id = buat_sesi_seed_baru(
-                        kon, siswa_id, level=level, topik=pilihan_topik,
-                        mode=pilihan_mode, timer_mode=timer_mode,
-                        durasi_menit=durasi_menit, timer_auto=timer_auto,
-                        jumlah_soal=jumlah_soal, format_jawaban=format_dari_form(data),
-                    )
-                except ValueError as galat:
-                    return self._kirim(_halaman('Latihan belum dibuat', '<p>' + html.escape(str(galat)) + '</p>'), 400)
-            # Sesi baru = history anak (feedback Filia 1 Sep 2026 no. 6):
-            # PRG kini ke /anak/<id> tempat strip buat sesi & daftar sesi
-            # berada. Banner + sorotan menunjukkan sesi yang baru; PRG tetap
-            # dijaga: refresh tidak membuat sesi ganda.
-            pesan_sukses = f"Sesi baru untuk {nama_siswa} berhasil dibuat — sesi #{sesi_id} siap dikerjakan."
-            qs = urllib.parse.urlencode({"pesan": pesan_sukses, "sorot": sesi_id})
-            self.send_response(303)
-            self.send_header("Location", f"/anak/{siswa_id}?{qs}")
-            self.send_header("Content-Length", "0")
-            self.end_headers()
+        import session_http
+        if session_http.tangani_pembuatan_biasa(
+            self,
+            jalur,
+            buat_sesi=buat_sesi_seed_baru,
+            topik_bawaan=TOPIK_BAWAAN,
+            daftar_topik=daftar_topik,
+        ):
             return
 
         import attachment_http

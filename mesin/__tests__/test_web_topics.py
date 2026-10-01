@@ -59,6 +59,28 @@ def test_post_sesi_baru_prg_ke_halaman_anak_dengan_banner(server):
     assert "Sesi #" in isi, "sesi yang baru harus tampak di history anak"
 
 
+def test_post_sesi_baru_mempertahankan_lookup_runtime_fasad(server, monkeypatch):
+    """Ekstraksi route tetap menghormati monkeypatch simbol façade ``web``."""
+    with server.buka() as kon:
+        siswa_id = database.tambah_siswa(kon, "Topik Patch", pemilik="guru")
+    asli = web.buat_sesi_seed_baru
+    panggilan = []
+
+    def buat_terpantau(kon, sasaran_id, **opsi):
+        panggilan.append((sasaran_id, opsi["topik"], opsi["mode"]))
+        return asli(kon, sasaran_id, **opsi)
+
+    monkeypatch.setattr(web, "buat_sesi_seed_baru", buat_terpantau)
+    kode, _, _ = server.minta(
+        f"/sesi-baru/{siswa_id}",
+        auth=("guru", SANDI_GURU),
+        data={"topik": "pola-bilangan", "profil_parameter": "P3"},
+    )
+
+    assert kode == 200
+    assert panggilan == [(siswa_id, "pola-bilangan", "diagnostik")]
+
+
 def test_post_sesi_baru_menyimpan_topik_eksplisit(server):
     with server.buka() as kon:
         siswa_id = database.tambah_siswa(kon, "Topik Eksplisit", pemilik="guru")
