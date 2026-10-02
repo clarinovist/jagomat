@@ -27,7 +27,7 @@ Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 | Data | `database.py`, `schema.py`, `*_store.py`, `*_schema.py`: penyimpanan dan migrasi; `attachment_store.py`: metadata lampiran; `report_store.py`: proyeksi laporan; `student_profile_store.py`: profil/kepemilikan siswa; `question_bank_store.py`: bank soal; `session_read_store.py`: query/status dasar sesi; `session_store.py`: pembuatan sesi; `answer_store.py`: jawaban/diagnosis; `learning_evidence_store.py`: snapshot konfirmasi dan loader bukti siklus |
 | Belajar | `diagnosis.py`, `learning_cycle.py`, `learning_cycle_service.py`: diagnosis, reducer murni, orkestrasi |
 | Laporan | `reports.py`, `report_*.py`, `mastery_*.py`: laporan dan penguasaan berbasis bukti |
-| Layanan lain | `assistant_http_common.py`: parser/response/rate-limit Pendamping; `assistant_inline_http.py`: alur inline; `assistant_memory_store.py`: memori/consent penggunaan; `assistant_*`/`ai_*`: alur Pendamping lain; `subscription_*`/`midtrans_*`: langganan/pembayaran; `admin_store_core.py`: koneksi/schema; `admin_journal_store.py`: journal/audit/config; `admin_batch_store.py`: batch durable; `admin_bulk_transient.py`: draft batch transient; `admin_history_store.py`: proyeksi histori; `admin_*`: layanan pengelola lain; `support_settings.py`: konfigurasi dukungan; `family_deletion.py`: preview dan bundle hasil penghapusan keluarga lintas penyimpanan |
+| Layanan lain | `assistant_http_common.py`: parser/response/rate-limit Pendamping; `assistant_inline_http.py`: alur inline; `assistant_http.py`: façade dan adapter GET/POST legacy; `assistant_memory_store.py`: memori/consent penggunaan; `assistant_*`/`ai_*`: alur Pendamping lain; `subscription_*`/`midtrans_*`: langganan/pembayaran; `admin_store_core.py`: koneksi/schema; `admin_journal_store.py`: journal/audit/config; `admin_batch_store.py`: batch durable; `admin_bulk_transient.py`: draft batch transient; `admin_history_store.py`: proyeksi histori; `admin_*`: layanan pengelola lain; `support_settings.py`: konfigurasi dukungan; `family_deletion.py`: preview dan bundle hasil penghapusan keluarga lintas penyimpanan |
 
 Alur domain: topik → generator/kontrak soal → penyajian → hasil tersimpan →
 tinjauan/diagnosis → bukti terkonfirmasi → reducer siklus → rekomendasi/laporan.
@@ -88,6 +88,9 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
   pemetaan pertama secara atomik dari satu tindakan eksplisit orang tua.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
   Pendamping tidak boleh mengambil alih reducer atau konfirmasi bukti belajar.
+  Adapter GET/POST lama sengaja tetap di `assistant_http.py`: alurnya berbagi helper
+  privat dengan façade dan compatibility lookup dari alur inline; ekstraksi lanjutan
+  akan menambah siklus/duplikasi guard tanpa boundary yang lebih aman.
   `learning_cycle.py` sengaja tetap utuh: reducer rekomendasi, evaluasi/checkpoint,
   penguasaan, dan adapter pilot berbagi model immutable serta primitive keputusan;
   pemisahan lebih lanjut berisiko membuat sumber keputusan paralel hanya demi LOC.
