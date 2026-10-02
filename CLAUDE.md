@@ -286,6 +286,19 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
 - Setelah push, pantau run untuk commit yang benar sampai selesai:
   `gh run list --repo clarinovist/jagomat --branch main`, lalu
   `gh run watch <id> --repo clarinovist/jagomat --exit-status`.
+- **Preflight sebelum maintenance:** tarik kedua digest exact dan jalankan `PROBE_SKEMA`
+  dari image kandidat terhadap metadata DB live melalui koneksi `mode=ro`/`query_only`,
+  tanpa network, migrasi, atau import startup. Probe ini wajib lulus **sebelum** Caddy/
+  cron ditahan atau container dihentikan. Setelah refactor ownership modul, periksa semua
+  probe/source-inspection yang mencari konstanta atau simbol di berkas lama (misalnya
+  `VERSI_SKEMA` yang pindah dari façade ke modul core), lalu kunci jalur exact-image ini
+  dengan regression test; probe fixture sintetis saja tidak cukup membuktikan readiness live.
+- **Gagal cepat dan pulihkan akses:** bila kandidat gagal tetapi recovery exact sudah
+  healthy, schema/integrity tetap bersih, dan tidak ada migrasi/write data, segera pulihkan
+  Caddy serta cron sebelum diagnosis atau menunggu CI perbaikan. Pertahankan maintenance
+  hanya bila state data/schema belum pasti. Jangan mengulang backup/rehearsal sebelum akar
+  masalah diketahui; bukti boleh dipakai ulang hanya bila artifact, config, runtime, dan
+  snapshot input benar-benar identik serta write hold belum pernah dilepas.
   Verifikasi publik di domain produksi kanonis **`https://jagomat.id`**
   (sesuai `URL_SITUS` di `mesin/brand.py`): `/` 200, `/akun` anonim 401,
   `/murid/` 303 ke `/masuk`. **Jangan menyentuh data anak** untuk smoke test.
