@@ -242,7 +242,9 @@ def versi_source(nama):
             and any(isinstance(t, ast.Name) and t.id == 'VERSI_SKEMA' for t in node.targets)]
 assert versi_source('assistant_schema.py') == [4]
 assert versi_source('ai_store.py') == [2]
-assert versi_source('admin_store.py') == [7]
+assert (
+    versi_source('admin_store.py') or versi_source('admin_store_core.py')
+) == [7]
 assert versi_source('subscription_package_schema.py') == [8]
 assert versi_source('assistant_quota_schema.py') == [9]
 for nama, tabel in [('pendamping.db', 'tinjauan_usulan'), ('latihan.db', 'eksekusi_pendamping'),
