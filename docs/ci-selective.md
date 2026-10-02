@@ -1,52 +1,73 @@
-# GitHub Actions sesuai perubahan
+# GitHub Actions hybrid
 
-Workflow `Build & Deploy` tetap dipicu setiap push ke `main`. Job **Palang dan
-klasifikasi perubahan** selalu berjalan; yang dipilih adalah job beratnya,
-bukan melewati seluruh workflow dengan `paths-ignore` atau pesan skip CI.
+Workflow **CI Hybrid** memisahkan feedback pengembangan dari bukti rilis. Palang
+awal tetap berjalan pada setiap event; full suite, recovery, dan build tidak lagi
+dijalankan pada setiap push kode.
 
-## Jalur otomatis
+## Tiga jalur
 
-| Isi seluruh perubahan dalam satu push | Yang dijalankan |
-| --- | --- |
-| Hanya dokumen dalam daftar aman | Palang nama berkas di index, pemeriksaan dokumen, test kecil untuk seleksi CI/workflow/palang, kompilasi Python, dan Status CI |
-| Ada berkas di luar daftar aman, termasuk campuran dokumen dan kode | Pemeriksaan awal + seluruh suite kandidat dan recovery + build/probe kedua image dan verifikasi pasangan |
-| Rentang Git/event tidak pasti atau delta kosong | Jalur lengkap; kegagalan pemeriksaan awal tetap menahan proses |
+| Pemicu | Pemeriksaan | Artefak rilis |
+| --- | --- | --- |
+| Push `main`, hanya dokumen allow-list | Palang nama berkas/index, validasi dokumen, test helper CI, dan kompilasi Python | Tidak ada |
+| Push `main`, ada berkas lain | Pemeriksaan awal di atas + satu job test cepat: smoke inti dan test yang langsung terdampak | Tidak ada |
+| Schedule Senin 03.00 WIB | Pemeriksaan awal + full suite kandidat empat shard dan verifikasi exact-once | Tidak ada |
+| `workflow_dispatch` | Pemeriksaan awal + full suite kandidat dan recovery, build/probe dua image, verifikasi pasangan, dan manifest | Candidate/recovery exact; deploy tetap nonaktif |
 
-Daftar aman eksplisit di `scripts/ci_changes.py`:
+Push baru pada ref yang sama membatalkan run push lama. Schedule dan dispatch
+berbagi antrean release, tidak dibatalkan oleh push, dan tidak berjalan bersamaan.
+
+## Test cepat pada push
+
+`scripts/ci_fast_tests.py` selalu menjalankan smoke test tetap untuk auth, database,
+diagnosis, generator, reducer siklus belajar, palang murid, dan dispatch web. Ia
+menambahkan:
+
+- berkas test yang diubah;
+- semua `test_<nama-modul>*` untuk modul Python aplikasi atau helper script yang
+  berubah;
+- test yang mengimpor modul terdampak, termasuk reverse-import transitif antarmodul
+  aplikasi;
+- pemetaan khusus untuk workflow, palang repo, Dockerfile/aset runtime, sharding,
+  metadata rilis, deployer, dan verifier image.
+
+Helper membaca seluruh rentang `before..after`, bukan hanya commit terakhir.
+Metadata event/Git yang meragukan jatuh ke smoke tetap, bukan daftar kosong. Daftar
+path tidak dicetak ke log atau summary. Seleksi ini memberi feedback awal; ia **bukan
+bukti full regression** dan tidak boleh dipakai sebagai izin rilis.
+
+## Dokumen aman
+
+Daftar eksplisit di `scripts/ci_changes.py`:
 
 - `README.md`
 - `docs/README.md`
 - `docs/ci-selective.md`
 - `CLAUDE.md`
 
-Panduan agent bukan input runtime/build. Perubahan panduan tetap wajib direview
-maknanya; test aplikasi tidak membuktikan kebijakan agent benar. CI ringan bukan
-izin melemahkan invariant domain atau gate rilis yang ditetapkan pengguna.
+Tidak ada wildcard `*.md` atau `docs/**`. Dokumen kontrak belajar, runbook produksi,
+`docs/workflow-reference.md`, `mesin/README.md`, berkas baru, dan campuran dengan
+kode tetap masuk jalur push kode. Rename diperiksa sebagai delete+add. Pemeriksaan
+dokumen menolak non-UTF-8, konflik merge, symlink, dan tautan inline lokal yang
+hilang. Palang repo memeriksa nama berkas, bukan pemindai secret isi berkas; review
+manusia dan larangan data anak/kredensial tetap berlaku.
 
-Tidak ada pengecualian menyeluruh untuk `*.md` atau `docs/**`. Dokumen kontrak
-belajar, runbook produksi, `docs/workflow-reference.md` (juga berisi kontrak soal),
-`mesin/README.md`, dan berkas baru yang belum ditinjau tetap memicu jalur lengkap.
-Preset `.project-gate.json`, workflow, dan helper klasifikasi juga tetap lengkap,
-termasuk ketika dicampur dengan `CLAUDE.md`. Perubahan daftar aman sendiri memicu
-jalur lengkap karena helper merupakan kode.
+## Audit mingguan
 
-Deteksi membaca seluruh diff `before..after` dari Git, bukan commit terakhir
-atau daftar berkas payload/API yang bisa terpotong. Rename diperiksa sebagai
-penghapusan dan penambahan sehingga path asal tidak hilang. SHA/checkout harus
-cocok, `before` harus ancestor `after`, dan forced push tidak mendapat jalur
-ringan. Riwayat hilang atau Git gagal dibaca tidak dianggap dokumen aman.
+Cron workflow adalah:
 
-Pemeriksaan dokumen menolak teks non-UTF-8, konflik merge, symlink, dan tautan
-inline lokal ke target yang tidak tersedia di repo. Tidak memeriksa jaringan,
-anchor Markdown, semua ragam sintaks tautan, atau kebenaran makna dokumen.
-Palang repo memeriksa **nama berkas**, bukan pemindai secret di dalam isi.
-Review manusia dan larangan memasukkan data anak/kredensial tetap wajib.
+```yaml
+schedule:
+  - cron: "0 20 * * 0" # Senin 03.00 WIB
+```
 
-## Menjalankan verifikasi lengkap secara manual
+Audit menjalankan seluruh test kandidat pada empat runner terisolasi. Tiap runner
+tetap serial karena test HTTP berbagi socket. Manifest shard membuktikan setiap
+nodeid kandidat berjalan tepat sekali. Audit tidak mengetes recovery, membangun
+image, menerbitkan manifest pasangan, atau memasang aplikasi.
 
-Di GitHub: **Actions → Build & Deploy → Run workflow → main → Run workflow**.
-Dispatch manual selalu lengkap; tidak ada opsi untuk memaksa kode masuk jalur
-dokumen. Dari CLI:
+## Gate rilis manual
+
+Sebelum release/cutover, jalankan workflow manual pada SHA `main` yang akan dirilis:
 
 ```bash
 gh workflow run deploy.yml --repo clarinovist/jagomat --ref main
@@ -54,35 +75,29 @@ gh run list --repo clarinovist/jagomat --branch main
 gh run watch <id-run> --repo clarinovist/jagomat --exit-status
 ```
 
-Untuk setiap run, ringkasan **Pemilihan pemeriksaan** menjelaskan jalur dan
-alasan pemilihannya tanpa mencetak nama berkas atau isi event.
+Di GitHub: **Actions → CI Hybrid → Run workflow → main → Run workflow**. Dispatch
+tidak punya input untuk melewati gate. Ia menjalankan full suite kandidat dan
+recovery pinned, build/probe kedua image, uji pasangan exact, dan manifest pada SHA
+yang sama. Job `pasang` tetap literal false selama mode migrasi. Aktivasi rutin
+kelak harus mereview gate workflow, metadata, policy host, dan runbook bersama.
 
-## Status akhir dan rilis
+Full suite mingguan pada SHA lama tidak menggantikan dispatch rilis pada SHA target.
+CI push maupun audit hijau bukan bukti artefak tersedia atau produksi sudah berubah.
 
-**Status CI** selalu mengevaluasi hasil job yang diperlukan:
+## Status akhir
 
-- Jalur dokumen sukses hanya jika pemeriksaan awal sukses dan seluruh job
-  suite/agregat/build dilewati sesuai rencana.
-- Jalur lengkap sukses hanya jika pemeriksaan awal, seluruh suite kandidat dan
-  recovery, agregat manifest kandidat, serta build/probe/pair sukses.
-- Kegagalan, pembatalan, output klasifikasi invalid/hilang, atau skip yang tidak
-  semestinya tidak boleh menjadi hijau.
-- Job `pasang` tetap literal false pada mode migrasi sekarang, termasuk manual.
-  Status akhir juga menjaga job tersebut tetap dilewati. Aktivasi mode rutin
-  kelak harus mereview keduanya bersama, bukan sekadar mengganti variable.
+Check **Status CI** memvalidasi kombinasi job berdasarkan event:
 
-Jika kelak memakai required check/branch protection, gunakan **Status CI**
-sebagai check lintas jalur. Nama check **Test kandidat** tetap ada untuk agregat
-suite, tetapi memang skipped pada jalur dokumen. Konfigurasi branch protection
-tidak diubah oleh optimasi ini.
+- push dokumen: job test cepat/full/build harus skipped;
+- push kode: test cepat harus sukses; full candidate/recovery/build harus skipped;
+- schedule: full kandidat+agregat harus sukses; recovery/build harus skipped;
+- dispatch: kandidat, recovery, agregat, dan build harus sukses;
+- deploy harus tetap skipped pada mode saat ini.
 
-**CI dokumen hijau bukan bukti kelayakan rilis**: tidak ada image atau manifest
-rilis baru. Semua gate suite/image/pair tetap wajib pada pasangan SHA/digest
-yang sama sebelum pemasangan. Rincian pin/mode, recovery dan status produksi
-ada di [runbook rilis](production-release.md); CI sukses tidak otomatis deploy.
+Kegagalan, pembatalan, output klasifikasi invalid, event tak dikenal, atau skip yang
+tidak sesuai membuat Status CI gagal. Jika memakai required check/branch protection,
+gunakan **Status CI** sebagai check lintas jalur.
 
-Tidak ada cache hasil test, seleksi subset test aplikasi, pengurangan probe,
-perubahan recovery pinned, atau build lokal/VPS. Penghematan terjadi karena
-job berat tidak dimulai pada push dokumen aman, bukan dengan mengurangi gate
-pada perubahan aplikasi. Besar penghematan/tagihan bergantung runner dan kuota;
-durasi job paralel tetap dijumlahkan sebagai pemakaian komputasi.
+Penghematan berasal dari tidak menjalankan delapan runner suite dan dua build image
+pada setiap push. Besarnya tetap dipantau dari runner-minute aktual; paralelisme
+mengurangi waktu tunggu, bukan jumlah menit komputasi.

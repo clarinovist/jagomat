@@ -46,9 +46,10 @@ Ini tidak mengimpor aplikasi, membuka DB, atau menulis bytecode. Kompilasi bukan
 test runtime/branch. `.project-gate.json` menyediakan gate lengkap dengan pytest serial,
 bukan kewajiban mengulang full suite lokal yang sudah dipenuhi CI pada input identik.
 Jangan melewati gate yang diwajibkan harness. CI memakai runner terisolasi untuk paralelisme,
-bukan xdist pada socket bersama. Perubahan aplikasi tetap full pytest + palang privasi
-sebelum build/deploy; push dokumen allow-list mengikuti [CI selektif](ci-selective.md).
-Tidak ada gate coverage global atau dependency lint baru.
+bukan xdist pada socket bersama. Push aplikasi mendapat smoke + test langsung terdampak;
+full kandidat berjalan mingguan, sedangkan full kandidat+recovery dan build/probe wajib
+melalui dispatch pada SHA yang akan dirilis. Detail dan batas buktinya ada di
+[CI hybrid](ci-selective.md). Tidak ada gate coverage global atau dependency lint baru.
 
 Jika test sudah gagal sebelum patch, laporkan bukti baseline terpisah dari regresi dan
 selidiki scope-nya; jangan langsung menyebut aman karena “bukan perubahan saya”. Hasil

@@ -539,47 +539,42 @@ kompatibel. Menurunkan user_version atau menghapus catatan eksekusi bukan solusi
 
 ## Jalur CI yang dijaga
 
-Workflow kini diawali **periksa** untuk palang repo, klasifikasi perubahan,
-scoped test palang CI dan kompilasi. Hanya push yang seluruh deltanya dokumen
-allow-list eksplisit boleh melewati suite/build. Dispatch manual dan perubahan
-lain tetap menjalankan jalur lengkap **uji → bangun → pasang** di bawah.
-**Status CI** mengagregasi keberhasilan/skip yang sah pada kedua jalur; run
-dokumen tidak menghasilkan image/manifest atau bukti kelayakan rilis. Daftar
-aman, batas pemeriksaan dan penggunaan manual: [CI selektif](ci-selective.md).
+Workflow **CI Hybrid** selalu diawali `periksa`: palang repo, klasifikasi dokumen,
+test kontrak CI, dan kompilasi. Setelah itu event menentukan scope:
 
-1. **uji:** setelah `periksa` sukses dengan output `lengkap=true`, matrix empat
-   `uji_kandidat` dan empat `uji_recovery` berjalan independen pada runner
-   Ubuntu/Python 3.12 terpisah. Setiap runner menjalankan
-   palang privasi dan pytest dengan warning sebagai error. Recovery tetap
-   checkout pinned full SHA, cwd terpisah dan canary lokasi import. Helper
-   memetakan setiap nodeid secara stateless dan deterministik; union empat
-   shard per suite mencakup seluruh test tepat sekali. Test di setiap runner tetap
-   serial agar server HTTP tidak berkompetisi socket; `--durations=20` mencatat
-   20 fase test paling lambat per shard. Setelah semua shard kandidat sukses,
-   job agregat `uji` (nama check tetap **Test kandidat**) memeriksa manifest:
-   revision dan koleksi penuh harus sama, pembagian harus sesuai hash, dan setiap
-   test harus lulus tepat sekali termasuk setup/call/teardown. Manifest hilang,
-   koleksi berbeda, skip/xfail, test gagal atau eksekusi tidak lengkap ditolak.
-   Artifact manifest hanya berisi identitas test sintetis dan status, bukan data
-   keluarga, body HTTP, atau credential. Manifest disimpan selama tujuh hari.
-2. **bangun:** wajib menunggu **kedua job uji sukses**; salah satu gagal,
-   dibatalkan, atau dilewati berarti build tidak berjalan. Build/publish
-   candidate serta recovery; tarik berdasarkan digest
-   output build yang sama; verifikasi image sebenarnya dengan probe sintetis.
-   Salah satu gagal berarti job gagal, tidak lanjut pasang.
-3. **pasang saat mode rutin:** hanya pada `refs/heads/main` jika output readiness
-   build `siap_pasang` **persis `true`** dan repository variable
-   `OSN_DEPLOY_RUTIN_SIAP` **persis `1`**. Pada persiapan/migrasi, job memakai
-   literal false. Default variable kosong berarti skip seluruh job, termasuk SSH. Variable lama `PENDAMPING_ROLLOUT_SIAP` tidak
-   dipakai lagi. CI memanggil `deploy-rutin-v1 <candidate-digest> <recovery-digest>`.
+1. **Push `main`:** dokumen allow-list berhenti setelah pemeriksaan awal. Push kode
+   menjalankan satu job `uji_cepat` yang berisi smoke tetap (auth, database,
+   diagnosis, generator, reducer siklus, palang murid, dispatch web), berkas test
+   yang berubah, `test_<modul>*`, serta test reverse-import transitif yang sesuai
+   delta. Push tidak
+   membangun image, tidak mengetes recovery, dan bukan bukti kelayakan rilis.
+2. **Schedule Senin 03.00 WIB:** empat shard `uji_kandidat` menjalankan seluruh
+   test kandidat pada runner Ubuntu/Python 3.12 terisolasi. Job agregat `uji`
+   membuktikan revision/koleksi sama, pembagian hash tepat, dan setiap nodeid lulus
+   tepat sekali termasuk setup/call/teardown. Artifact manifest berisi identitas
+   test sintetis dan status, bukan data keluarga, dan disimpan tujuh hari. Audit
+   mingguan tidak menjalankan recovery atau build image.
+3. **Dispatch manual:** menjalankan full kandidat di atas plus empat shard
+   `uji_recovery` dari full SHA pinned dalam cwd terpisah, canary lokasi import,
+   lalu `bangun`. Build/publish candidate serta recovery berdasarkan digest output
+   run yang sama, probe kedua image, uji pasangan exact, dan terbitkan manifest.
+   Dispatch pada SHA target ini adalah gate rilis; hasil schedule lama tidak dapat
+   menggantikannya.
+4. **Pasang saat mode rutin:** hanya setelah build/readiness pada gate rilis jika
+   output `siap_pasang` persis `true`, variable `OSN_DEPLOY_RUTIN_SIAP` persis `1`,
+   dan ref `main`. Pada mode migrasi sekarang job tetap literal false, termasuk
+   dispatch. CI memanggil `deploy-rutin-v1 <candidate-digest> <recovery-digest>`
+   hanya bila seluruh syarat mode rutin kelak diaktifkan melalui review terpisah.
 
-Paralelisme antar-runner memperpendek jalur tunggu, bukan mengurangi cakupan test
-atau otomatis menghemat menit komputasi. Durasi aktual tetap dipengaruhi antrean
-runner; keuntungan harus diukur pada run CI sesudah perubahan diterapkan.
-Seleksi berdasarkan file berubah hanya memilih jalur dokumen aman atau jalur
-lengkap, bukan subset test aplikasi. Tidak ada cache hasil test atau pengaktifan
-kembali `xdist` dalam satu runner. Delapan runner suite dan build tidak dimulai
-untuk jalur dokumen aman.
+Test dalam tiap shard tetap serial agar server HTTP tidak berkompetisi socket;
+`--durations=20` mencatat fase lambat. Push baru membatalkan push lama pada ref yang
+sama, sementara schedule dan dispatch berbagi antrean release dan tidak dibatalkan.
+**Status CI** menolak kombinasi event/job, pembatalan, atau skip yang tidak sah.
+Detail seleksi dan cara menjalankan dispatch: [CI hybrid](ci-selective.md).
+
+Paralelisme antar-runner memperpendek waktu tunggu, bukan menit komputasi. Penghematan
+utama berasal dari memindahkan delapan runner suite dan build pasangan image keluar
+dari setiap push. Tidak ada cache hasil test atau `xdist` dalam satu runner.
 
 Publikasi tidak mengganti `latest`. Identitas kedua image selalu digest output
 build yang sama dengan verifikasi dan artifact manifest, bukan tag berubah.

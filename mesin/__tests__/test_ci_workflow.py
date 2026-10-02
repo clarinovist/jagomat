@@ -1,4 +1,4 @@
-"""Optimasi penjadwalan CI tidak mengurangi test atau melewati gate deploy."""
+"""CI hybrid memisahkan feedback push, audit mingguan, dan gate rilis."""
 from pathlib import Path
 import os
 import json
@@ -91,7 +91,8 @@ def test_ci_tetap_menguji_sebelum_build_dan_memasang_digest_yang_sama():
     assert "  pasang:\n    name: Deploy ke VPS\n    needs: bangun\n" in teks
     assert "digest: ${{ steps.dorong.outputs.digest }}" in teks
     assert '"deploy-rutin-v1 ${{ needs.bangun.outputs.digest }} ${{ needs.bangun.outputs.recovery_digest }}"' in teks
-    assert "cancel-in-progress: false" in teks
+    assert "cancel-in-progress: ${{ github.event_name == 'push' }}" in teks
+    assert "github.event_name == 'push' && github.ref || 'release'" in teks
     assert "- name: Pastikan situs hidup dari luar" in teks
 
 
@@ -103,9 +104,7 @@ def test_suite_independen_dengan_runtime_sendiri(nama):
     assert "        run: pip install --quiet pytest pytest-xdist\n" in job
     assert job.index("actions/checkout@v7") < job.index("actions/setup-python@v7")
     assert job.index("actions/setup-python@v7") < job.index("pip install")
-    assert job.index("pip install") < job.index("python scripts/check_repo.py")
     assert "    needs: periksa\n" in job
-    assert "    if: ${{ needs.periksa.outputs.lengkap == 'true' }}\n" in job
     assert not re.search(r"^\s+continue-on-error:", job, re.M)
     assert "secrets." not in job
     assert "PYTEST_ADDOPTS" not in job
@@ -113,6 +112,7 @@ def test_suite_independen_dengan_runtime_sendiri(nama):
     assert "      fail-fast: false\n" in job
     assert "        shard: [1, 2, 3, 4]\n" in job
     if nama == "uji_kandidat":
+        assert "    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}\n" in job
         assert "    name: Test kandidat ${{ matrix.shard }}/4\n" in job
         assert job.count("uses: actions/checkout@v7") == 1
         assert "          ref:" not in job
@@ -121,13 +121,16 @@ def test_suite_independen_dengan_runtime_sendiri(nama):
         assert "name: kandidat-shard-${{ matrix.shard }}" in job
         assert "if-no-files-found: error" in job
         assert "retention-days: 7" in job
+        assert job.index("pip install") < job.index("python scripts/check_repo.py")
         assert job.index("scripts/check_repo.py") < job.index("scripts/pytest_shard.py")
         assert job.index("scripts/pytest_shard.py") < job.index("actions/upload-artifact@v7")
     else:
+        assert "    if: ${{ github.event_name == 'workflow_dispatch' }}\n" in job
         assert "    name: Test recovery ${{ matrix.shard }}/4\n" in job
         assert "      fail-fast: false\n" in job
         assert "        shard: [1, 2, 3, 4]\n" in job
         assert job.count("uses: actions/checkout@v7") == 2
+        assert job.index("pip install") < job.index("python scripts/check_repo.py")
 
 
 def test_recovery_tetap_full_suite_dan_canary_isolasi():
@@ -200,6 +203,7 @@ def test_periksa_selalu_aktif_dan_gagal_tidak_boleh_diabaikan():
     teks = ALUR.read_text()
     pemicu = teks.split("concurrency:", 1)[0]
     assert "  push:\n    branches: [main]\n" in pemicu
+    assert '  schedule:\n' in pemicu and '- cron: "0 20 * * 0"' in pemicu
     assert "  workflow_dispatch:\n" in pemicu
     assert not re.search(r"^\s+(paths|paths-ignore|inputs):", pemicu, re.M)
     job = _job(teks, "periksa")
@@ -210,7 +214,7 @@ def test_periksa_selalu_aktif_dan_gagal_tidak_boleh_diabaikan():
     assert "        id: perubahan\n        run: python scripts/ci_changes.py\n" in job
     assert job.index("scripts/check_repo.py") < job.index("scripts/ci_changes.py")
     assert "test_ci_changes.py" in job and "test_ci_workflow.py" in job
-    assert "test_repo_hygiene.py" in job
+    assert "test_ci_fast_tests.py" in job and "test_repo_hygiene.py" in job
     assert "-q -W error -p no:cacheprovider" in job
     assert "compile(path.read_text(), str(path), 'exec')" in job
     assert "secrets." not in job
@@ -220,55 +224,96 @@ def test_periksa_selalu_aktif_dan_gagal_tidak_boleh_diabaikan():
     assert "always()" not in bangun
 
 
+def test_push_kode_memakai_satu_job_cepat_tanpa_build():
+    job = _job(ALUR.read_text(), "uji_cepat")
+    assert "    needs: periksa\n" in job
+    assert "    if: ${{ github.event_name == 'push' && needs.periksa.outputs.lengkap == 'true' }}\n" in job
+    assert "fetch-depth: 0" in job
+    assert 'python-version: "3.12"' in job
+    assert "run: python -u scripts/ci_fast_tests.py" in job
+    assert "strategy:" not in job and "matrix:" not in job
+    assert "secrets." not in job and "continue-on-error:" not in job
+
+
 def _skrip_status():
     job = _job(ALUR.read_text(), "status")
     assert "    name: Status CI\n" in job
     assert "    if: ${{ always() }}\n" in job
-    assert "    needs: [periksa, uji_kandidat, uji, uji_recovery, bangun, pasang]\n" in job
+    assert "    needs: [periksa, uji_cepat, uji_kandidat, uji, uji_recovery, bangun, pasang]\n" in job
     assert "          HASIL_JOB: ${{ toJSON(needs) }}\n" in job
     assert 'python-version: "3.12"' in job
     return textwrap.dedent(job.split("        run: |\n", 1)[1]).strip()
 
 
-def _hasil_job(lengkap):
-    harapan = "success" if lengkap == "true" else "skipped"
-    hasil = {nama: {"result": harapan} for nama in
-             ("uji_kandidat", "uji", "uji_recovery", "bangun")}
+def _hasil_job(event, lengkap="true"):
+    pola = {
+        ("push", "true"): {
+            "uji_cepat": "success", "uji_kandidat": "skipped", "uji": "skipped",
+            "uji_recovery": "skipped", "bangun": "skipped",
+        },
+        ("push", "false"): {
+            "uji_cepat": "skipped", "uji_kandidat": "skipped", "uji": "skipped",
+            "uji_recovery": "skipped", "bangun": "skipped",
+        },
+        ("schedule", "true"): {
+            "uji_cepat": "skipped", "uji_kandidat": "success", "uji": "success",
+            "uji_recovery": "skipped", "bangun": "skipped",
+        },
+        ("workflow_dispatch", "true"): {
+            "uji_cepat": "skipped", "uji_kandidat": "success", "uji": "success",
+            "uji_recovery": "success", "bangun": "success",
+        },
+    }
+    hasil = {nama: {"result": nilai} for nama, nilai in pola[(event, lengkap)].items()}
     hasil["periksa"] = {"result": "success", "outputs": {"lengkap": lengkap}}
     hasil["pasang"] = {"result": "skipped"}
     return hasil
 
 
-def _jalankan_status(hasil):
+def _jalankan_status(hasil, event):
     # Python runner berasal dari interpreter test, bukan Python lokal lain.
     skrip = _skrip_status().replace("python -", shlex.quote(sys.executable) + " -", 1)
     return subprocess.run(
         ["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", skrip],
         capture_output=True, text=True, timeout=10,
-        env={**os.environ, "HASIL_JOB": json.dumps(hasil)},
+        env={**os.environ, "HASIL_JOB": json.dumps(hasil), "GITHUB_EVENT_NAME": event},
     )
 
 
-@pytest.mark.parametrize("lengkap", ["true", "false"])
-def test_status_menerima_hanya_jalur_sah(lengkap):
-    hasil = _jalankan_status(_hasil_job(lengkap))
+@pytest.mark.parametrize("event,lengkap", [
+    ("push", "true"), ("push", "false"),
+    ("schedule", "true"), ("workflow_dispatch", "true"),
+])
+def test_status_menerima_hanya_jalur_sah(event, lengkap):
+    hasil = _jalankan_status(_hasil_job(event, lengkap), event)
     assert hasil.returncode == 0, hasil.stdout + hasil.stderr
     assert "Status CI lulus" in hasil.stdout
 
 
-@pytest.mark.parametrize("lengkap", ["true", "false"])
-@pytest.mark.parametrize("nama", ["periksa", "uji_kandidat", "uji", "uji_recovery", "bangun", "pasang"])
+@pytest.mark.parametrize("event,lengkap", [
+    ("push", "true"), ("push", "false"),
+    ("schedule", "true"), ("workflow_dispatch", "true"),
+])
+@pytest.mark.parametrize("nama", [
+    "periksa", "uji_cepat", "uji_kandidat", "uji", "uji_recovery", "bangun", "pasang",
+])
 @pytest.mark.parametrize("status", ["failure", "cancelled", "skipped", "success"])
-def test_status_menolak_kegagalan_dan_skip_tak_sah(lengkap, nama, status):
-    hasil = _hasil_job(lengkap)
+def test_status_menolak_kegagalan_dan_skip_tak_sah(event, lengkap, nama, status):
+    hasil = _hasil_job(event, lengkap)
     sah = hasil[nama]["result"] == status
     hasil[nama]["result"] = status
-    keluaran = _jalankan_status(hasil)
+    keluaran = _jalankan_status(hasil, event)
     assert (keluaran.returncode == 0) is sah, keluaran.stdout + keluaran.stderr
 
 
 @pytest.mark.parametrize("lengkap", ["", None, "True", "FALSE", True, False])
 def test_status_output_hilang_atau_invalid_bukan_jalur_ringan(lengkap):
-    hasil = _hasil_job("false")
+    hasil = _hasil_job("push", "false")
     hasil["periksa"]["outputs"] = {} if lengkap is None else {"lengkap": lengkap}
-    assert _jalankan_status(hasil).returncode != 0
+    assert _jalankan_status(hasil, "push").returncode != 0
+
+
+@pytest.mark.parametrize("event", ["schedule", "workflow_dispatch", "pull_request", ""])
+def test_status_event_nonpush_tidak_menerima_klasifikasi_dokumen(event):
+    hasil = _hasil_job("push", "false")
+    assert _jalankan_status(hasil, event).returncode != 0

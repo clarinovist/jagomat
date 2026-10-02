@@ -107,8 +107,9 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
   ditinjau, dikonfirmasi, lalu langkah berikutnya tersaji. WS5 dihentikan sampai
   schema, migrasi, retensi, purge, backup, dan recovery exact memahami event baru.
 - Lokal memakai `mesin/.venv/bin/python` (3.9.6); CI/container 3.12. Kode kompatibel
-  3.9. Verifikasi sesuai risiko: Ringan/Normal/Kritis; tes scoped lokal, gate berat
-  di CI. Palang index: `mesin/.venv/bin/python scripts/check_repo.py` setelah stage.
+  3.9. Verifikasi sesuai risiko: Ringan/Normal/Kritis; tes scoped lokal, push CI cepat,
+  full kandidat mingguan, dan gate rilis lengkap via dispatch pada SHA target. Palang
+  index: `mesin/.venv/bin/python scripts/check_repo.py` setelah stage.
 - Git selalu `git -C /Users/nugroho/Documents/jagomat …`; hindari repo basi
   `mesin/.git`, jaga WIP sesi lain. Repo `clarinovist/jagomat`; domain `jagomat.id`.
 - Image tetap `ghcr.io/clarinovist/osn-mesin-latihan` demi kompatibilitas recovery.

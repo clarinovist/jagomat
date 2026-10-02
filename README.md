@@ -39,15 +39,14 @@ Palang repo memeriksa nama berkas di index Git, bukan isi berkas atau data
 runtime. Kegagalan membaca Git membuat pemeriksaan gagal, bukan dianggap
 bersih. Panduan penggunaan dan setup ada di [`mesin/README.md`](mesin/README.md).
 
-### GitHub Actions sesuai perubahan
+### GitHub Actions hybrid
 
-Push yang hanya mengubah dokumen dalam daftar aman menjalankan pemeriksaan
-ringan, tanpa full suite atau build image. Perubahan kode, konfigurasi, kontrak,
-berkas belum dikenali, atau campuran tetap menjalankan jalur lengkap.
-**Run workflow** manual selalu lengkap; job deploy otomatis tetap nonaktif
-pada mode migrasi sekarang. Pantau check **Status CI** untuk hasil kedua jalur.
-Daftar aman, batas pemeriksaan, dan cara menjalankan manual dijelaskan di
-[panduan CI selektif](docs/ci-selective.md).
+Setiap push ke `main` tetap mendapat palang, kompilasi, test kontrak CI, dan—untuk
+kode—smoke test inti plus test langsung terdampak. Full suite kandidat berjalan
+terjadwal setiap Senin 03.00 WIB. **Run workflow** manual adalah gate rilis lengkap:
+full kandidat dan recovery, build/probe dua image, serta verifikasi pasangan exact.
+Job deploy otomatis tetap nonaktif pada mode migrasi sekarang. Pantau check
+**Status CI** dan lihat [panduan CI hybrid](docs/ci-selective.md).
 
 ## Batas isi repo
 

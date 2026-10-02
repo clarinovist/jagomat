@@ -29,7 +29,9 @@ def test_pasang_tertahan_sampai_deployer_dan_policy_rutin_siap():
     assert 'rollout-approval.json' not in pasang and 'routine-policy.json' not in pasang
     assert '${{ needs.bangun.outputs.digest }}' in pasang
     assert '${{ needs.bangun.outputs.recovery_digest }}' in pasang
-    assert 'cancel-in-progress: false' in teks
+    # Push lama boleh dibatalkan; audit/dispatch berbagi antrean dan tidak dibatalkan.
+    assert "cancel-in-progress: ${{ github.event_name == 'push' }}" in teks
+    assert "github.event_name == 'push' && github.ref || 'release'" in teks
 
 
 def test_pin_soft_launch_migrasi_pasang_literal_false():
