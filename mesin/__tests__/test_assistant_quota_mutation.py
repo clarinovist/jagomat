@@ -11,7 +11,9 @@ MODUL = (
     "assistant_entitlement.py", "assistant_quota_schema.py", "assistant_quota_store.py",
     "subscription.py", "subscription_packages.py", "subscription_package_schema.py",
     "subscription_package_store.py", "subscription_store.py", "subscription_schema.py",
-    "admin_store.py", "admin_contracts.py", "admin_launch_schema.py",
+    "admin_store.py", "admin_store_core.py", "admin_batch_store.py",
+    "admin_journal_store.py", "admin_history_store.py",
+    "admin_contracts.py", "admin_launch_schema.py",
 )
 KASUS = (
     ("atomic_reserve", "assistant_quota_store.py", 'kon.execute("BEGIN IMMEDIATE")',

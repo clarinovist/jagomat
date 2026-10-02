@@ -82,10 +82,11 @@ def test_web_tidak_ada_literal_brand_lama():
 
 
 def test_halaman_masuk_pakai_brand_baru():
-    # _halaman_masuk dipanggil tanpa instance server — akses lewat kelas.
-    # Yang dites: halaman login tidak lagi menyebut topik lama.
-    sumber = Path(web.__file__).read_text(encoding="utf-8")
-    assert "T.NAMA_PRODUK" in sumber, "web.py harus merujuk brand dari tokens"
+    # Renderer login kini dimiliki auth_http; façade web tetap kompatibel.
+    import auth_http
+
+    sumber = Path(auth_http.__file__).read_text(encoding="utf-8")
+    assert "T.NAMA_PRODUK" in sumber, "auth_http.py harus merujuk brand dari tokens"
 
 
 # ───────────────── Fase A: landing vs dashboard di rute / ─────────────────

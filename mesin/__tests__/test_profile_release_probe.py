@@ -135,7 +135,7 @@ def test_helper_benar_benar_menggigit_guard_baru(tmp_path, rusak):
     for p in (AKAR / 'mesin').glob('*.py'):
         shutil.copy2(p, source / p.name)
     nama, lama, baru = {
-        'admin': ('admin_store.py', 'VERSI_SKEMA = 7', 'VERSI_SKEMA = 4'),
+        'admin': ('admin_store_core.py', 'VERSI_SKEMA = 7', 'VERSI_SKEMA = 4'),
         'receipt': ('learning_profile_admin.py', "if not receipt_cocok(receipt, perintah) or baris['kelas_baru'] != kelas:", 'if False:'),
         'konteks': ('context_schema.py', "{tabel}_immutable_update BEFORE UPDATE", "{tabel}_immutable_update BEFORE UPDATE"),
         'reader': ('context_store.py', "if lama is None or lama['snapshot_json'] != serial:\n        raise ValueError('arsip konteks konfirmasi tidak cocok')", "if lama is None:\n        return"),

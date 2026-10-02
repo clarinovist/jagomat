@@ -12,7 +12,7 @@ KASUS = (
     ('optin','mesin/admin_store.py','kon.execute("PRAGMA user_version=8")',
      'kon.execute("PRAGMA user_version=9")\n                _jalankan_ddl(kon, kuota_schema.DDL)',
      'test_startup_paket8_tidak_otomatis_mengaktifkan9', 'AssertionError'),
-    ('partial','mesin/admin_store.py','elif kuota_schema.struktur(kon):',
+    ('partial','mesin/admin_store_core.py','elif kuota_schema.struktur(kon):',
      'elif False:', 'test_reader_partial8_tolak_tanpa_migrasi', 'DID NOT RAISE'),
     ('sumber','mesin/assistant_quota_store.py','or (hak.jendela_id, hak.entitlement_sidik, hak.limit, hak.sumber,',
      'or False and (hak.jendela_id, hak.entitlement_sidik, hak.limit, hak.sumber,',

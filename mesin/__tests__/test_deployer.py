@@ -965,11 +965,11 @@ def test_probe_image_menolak_kontrak_admin_rusak(tmp_path, fault):
     shutil.copytree(AKAR / 'mesin', sumber, ignore=shutil.ignore_patterns(
         '.git', '.venv', '__pycache__', '__tests__', '*.db*', '*sandi*.json', 'sesi.json', 'cadangan', 'lembar'))
     nama, lama, baru = {
-        'admin': ('admin_store.py', 'VERSI_SKEMA = 7', 'VERSI_SKEMA = 4'),
+        'admin': ('admin_store_core.py', 'VERSI_SKEMA = 7', 'VERSI_SKEMA = 4'),
         'ai': ('ai_store.py', 'VERSI_SKEMA = 2', 'VERSI_SKEMA = 1'),
         'auth': ('auth.py', 'def naikkan_revisi_auth(', 'def naikkan_revisi_auth_rusak('),
         'receipt': ('admin_students.py', 'CREATE TABLE IF NOT EXISTS operasi_admin_siswa', 'CREATE TABLE IF NOT EXISTS receipt_rusak'),
-        'transient': ('admin_bulk.py', 'VERSI_TRANSIENT = 2', 'VERSI_TRANSIENT = 1'),
+        'transient': ('admin_bulk_transient.py', 'VERSI_TRANSIENT = 2', 'VERSI_TRANSIENT = 1'),
     }[fault]
     p = sumber / nama
     text = p.read_text(); assert lama in text; p.write_text(text.replace(lama, baru, 1))
