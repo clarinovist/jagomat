@@ -501,6 +501,7 @@ print('OSN_IMAGE_ADMIN9_AI2_OK')
 ''')
 
 PROBE_KONTRAK = '''import ast
+from collections import Counter
 import copy
 import hashlib
 import json
@@ -558,7 +559,7 @@ def _kanonis(node):
 
 # Ukur operasi/guard persistensi tanpa mengikat kontrak pada nama berkas,
 # whitespace, komentar, atau wrapper delegasi hasil ekstraksi murni.
-unsur = set()
+unsur = Counter()
 jenis = (
     ast.Assign, ast.AnnAssign, ast.AugAssign, ast.If, ast.Try, ast.With,
     ast.Raise, ast.For, ast.While, ast.Assert, ast.Delete,
@@ -573,7 +574,7 @@ for berkas in sorted(nama):
         if id(node) in abaikan:
             continue
         if isinstance(node, jenis) or isinstance(node, ast.Return):
-            unsur.add(type(node).__name__ + ':' + _kanonis(node))
+            unsur[type(node).__name__ + ':' + _kanonis(node)] += 1
         elif (
             isinstance(node, ast.Call)
             and isinstance(node.func, ast.Attribute)
@@ -582,15 +583,15 @@ for berkas in sorted(nama):
                 'commit', 'rollback', 'backup',
             }
         ):
-            unsur.add('DBCall:' + _kanonis(node))
+            unsur['DBCall:' + _kanonis(node)] += 1
 
 sidik_semantik = hashlib.sha256(
-    json.dumps(sorted(unsur), separators=(',', ':')).encode()
+    json.dumps(sorted(unsur.items()), separators=(',', ':')).encode()
 ).hexdigest()
 # ID kontrak lama tetap menjadi anchor recovery immutable. Hanya proyeksi
 # semantik yang terbukti identik yang boleh memakai ID tersebut.
 kompatibel = {
-    'd25e4d1359450ca681cf045d070308af0fc29dcb4cecda1f7bd71ff572d3c5ba':
+    '510d598b8fc9ef134b78497b1b52c92d733f7ff1f7056ba8205101c998cf29c5':
         'fc68c8bc9280663443718bc1c73764cb0c1034e5d0b733deeb36f5994940aba3',
 }
 print(kompatibel.get(sidik_semantik, sidik_semantik))

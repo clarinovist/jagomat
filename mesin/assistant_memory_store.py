@@ -119,17 +119,6 @@ def _query_memori(
     ).fetchall()
     return tuple(_memori_dari_baris(item) for item in baris)
 
-def memori_untuk_chat(
-    kon: sqlite3.Connection, account_id: str, chat_id: str
-) -> tuple[Memori, ...]:
-    account_id = _wajib_account_id_late(account_id)
-    chat = ambil_chat_late(kon, account_id, chat_id)
-    if chat is None or chat.mode_memori == "tanpa_memori":
-        return ()
-    if not penggunaan_memori_aktif(kon, account_id):
-        return ()
-    return _query_memori(kon, account_id)
-
 def versi_memori(kon: sqlite3.Connection, account_id: str) -> int:
     account_id = _wajib_account_id_late(account_id)
     baris = kon.execute(
