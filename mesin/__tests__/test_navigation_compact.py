@@ -50,7 +50,9 @@ def test_pilihan_latihan_menjelaskan_isi_di_dekat_topik_tanpa_instruksi_ganda(db
     kon, sid, _ = db
     siswa = kon.execute('SELECT * FROM siswa WHERE id=?', (sid,)).fetchone()
     awal = tuple(kon.iterdump())
-    h = teacher_pages.halaman_anak(kon, siswa, pengguna='guru').decode()
+    h = teacher_pages.halaman_anak(
+        kon, siswa, pengguna='guru', query='section=latihan'
+    ).decode()
     assert tuple(kon.iterdump()) == awal
     assert 'Pilih materi dan bentuk latihan.' not in h
     assert '<summary>Lihat contoh soal</summary>' not in h

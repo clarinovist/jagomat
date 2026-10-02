@@ -71,9 +71,11 @@ def test_profil_menjelaskan_dan_memilih_fokus_remedial(db):
             (siswa_id,),
         )
         siswa = kon.execute("SELECT * FROM siswa WHERE id = ?", (siswa_id,)).fetchone()
-        halaman = teacher_pages.halaman_anak(kon, siswa).decode()
+        halaman = teacher_pages.halaman_anak(
+            kon, siswa, query="section=latihan"
+        ).decode()
 
-    assert "Perkuat kelemahan" in halaman
+    assert "Latihan terarah" in halaman
     assert "Pilihan yang dicentang adalah rekomendasi berdasarkan hasil terbaru" in halaman
     panel = halaman.split('<section class="remedial-st">', 1)[1].split("</section>", 1)[0]
     assert "Soal tentang umur" in panel
@@ -144,7 +146,9 @@ def test_riwayat_guru_dan_murid_menandai_sesi_remedial(db):
             jumlah_soal=10,
         )
         siswa = kon.execute("SELECT * FROM siswa WHERE id = ?", (siswa_id,)).fetchone()
-        guru = teacher_pages.halaman_anak(kon, siswa).decode()
+        guru = teacher_pages.halaman_anak(
+            kon, siswa, query="section=riwayat"
+        ).decode()
         import student_pages
         murid = student_pages.halaman_daftar_sesi_baru(
             kon, siswa_id, "Anak Riwayat"
@@ -152,7 +156,8 @@ def test_riwayat_guru_dan_murid_menandai_sesi_remedial(db):
 
     assert f"Sesi #{remedial_id}" in guru
     assert "Remedial" in guru
-    assert "Fokus Soal tentang umur" in guru
+    assert "Latihan bebas · Remedial" in guru
+    assert "Logika &amp; Penalaran" in guru
     assert "Latihan terarah" in murid
     assert "Remedial" not in murid
     assert "Fokus Soal tentang umur" not in murid

@@ -299,7 +299,9 @@ def test_koreksi_latihan_cepat_tanpa_caraku_dan_submit_tetap_benar(db):
 def test_host_pendamping_memakai_salin_tautan_berhash_dengan_fallback_native(server):
     s, siswa_id, sesi_id = server
 
-    kode, isi, header = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
+    kode, isi, header = s.minta(
+        f"/anak/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU)
+    )
 
     assert kode == 200
     assert f'action="/sesi/{sesi_id}/bagikan"' in isi

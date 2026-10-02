@@ -130,13 +130,11 @@ def test_ringkasan_actual_report_tidak_memakai_istilah_level_internal(db):
         siswa_id = database.tambah_siswa(kon, "Alya", "P5")
         isi = _badan(reports.halaman_laporan(kon, siswa_id).decode())
 
-    ringkasan = isi.split('<div class="kartu ringkasan-laporan">', 1)[1].split(
-        "</div>", 1
-    )[0]
+    ringkasan = isi.split('<div id="konten-laporan">', 1)[1]
     assert "level berikutnya" not in ringkasan.lower()
     assert ">P5<" not in ringkasan
-    assert "Buka langkah berikutnya" in ringkasan
-    assert '<section class="kartu laporan-resume"' in isi
+    assert "Buka langkah berikutnya" not in ringkasan
+    assert '<section class="kartu laporan-resume"' not in isi
 
 
 def test_laporan_menampilkan_kelas_sebagai_metadata_topik(db):

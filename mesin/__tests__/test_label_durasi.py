@@ -36,6 +36,7 @@ def _html_dashboard(db, peran="guru"):
         return teacher_pages.halaman_anak(
             kon, siswa, peran=peran,
             pengguna="ortu" if peran == "guru" else "",
+            query="section=latihan",
         ).decode()
 
 

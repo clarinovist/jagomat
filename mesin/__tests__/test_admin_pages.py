@@ -126,7 +126,7 @@ def test_ringkasan_tidak_menyebut_progres_dan_escape_nama():
     assert "tidak menyatakan anak sedang online, sudah belajar, atau lulus" in isi
     assert '<details class="admin-kartu admin-catatan admin-definisi">' in isi
     assert isi.index("Prioritas saat ini") < isi.index('aria-label="Jumlah administratif"')
-    assert 'href="/anak/7"' in isi
+    assert 'href="/anak/7?section=riwayat"' in isi
     assert 'href="/sesi/9"' in isi
 
 
@@ -249,7 +249,7 @@ def test_detail_menyebut_keluarga_dan_hanya_tautan_existing():
     assert "keluarga&lt;script&gt;" in html_keluarga
     assert "Ari &amp; &lt;B&gt;" in html_keluarga
     assert "keluarga&lt;script&gt;" in html_siswa
-    assert 'href="/anak/7"' in html_siswa
+    assert 'href="/anak/7?section=rencana"' in html_siswa
     assert 'href="/laporan/7"' in html_siswa
     assert 'href="/sesi/9"' in html_siswa
     assert "bukan status belajar atau kelulusan" in html_siswa

@@ -150,7 +150,7 @@ def test_form_buat_sesi_memisahkan_mode_dari_batas_waktu(db):
             "SELECT * FROM siswa WHERE id = ?", (siswa_id,)
         ).fetchone()
         html = teacher_pages.halaman_anak(
-            kon, siswa, pengguna="guru", peran="guru",
+            kon, siswa, pengguna="guru", peran="guru", query="section=latihan",
         ).decode()
 
     assert "Jawaban dan cara berpikir anak ikut diperiksa." in html
@@ -194,7 +194,8 @@ def test_http_buat_sesi_drill_dengan_timer(server):
     )
     # urllib follow redirect 303 -> 200 (halaman sesi)
     assert kode == 200, f"expected 200 (303 redirect followed), got {kode}"
-    assert "Sesi #" in html
+    assert "berhasil dibuat" in html
+    assert f'href="/anak/{sid}?section=latihan" aria-current="page"' in html
     with database.buka(db) as kon:
         baris = kon.execute(
             "SELECT mode, timer_mode, durasi_menit, timer_auto FROM sesi"

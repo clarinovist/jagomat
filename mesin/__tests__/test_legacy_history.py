@@ -193,7 +193,7 @@ def test_http_laporan_state_berjalan_hanya_menampilkan_catatan_histori(
         _buat_sesi_aktif(kon, siswa_id, selesai=selesai)
 
     kode, laporan, _ = server_uji.minta(
-        f"/laporan/{siswa_id}", auth=("guru", SANDI_GURU)
+        f"/laporan/{siswa_id}?section=perjalanan", auth=("guru", SANDI_GURU)
     )
 
     assert kode == 200
@@ -236,7 +236,7 @@ def test_http_profil_dan_laporan_menjelaskan_histori_beda_level_tanpa_mutasi(ser
         f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU)
     )
     kode_laporan, laporan, _ = server_uji.minta(
-        f"/laporan/{siswa_id}", auth=("guru", SANDI_GURU)
+        f"/laporan/{siswa_id}?section=perjalanan", auth=("guru", SANDI_GURU)
     )
 
     with server_uji.buka() as kon:
@@ -347,7 +347,7 @@ def test_http_tidak_mengaku_mulai_dari_awal_setelah_pemetaan_aktif(server):
         f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU)
     )
     kode_laporan, laporan, _ = server_uji.minta(
-        f"/laporan/{siswa_id}", auth=("guru", SANDI_GURU)
+        f"/laporan/{siswa_id}?section=perjalanan", auth=("guru", SANDI_GURU)
     )
 
     assert kode_profil == kode_laporan == 200

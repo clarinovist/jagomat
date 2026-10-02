@@ -104,7 +104,9 @@ def test_get_yang_meledak_juga_500(server, monkeypatch):
     monkeypatch.setattr(database, "isi_sesi", peledak)
     monkeypatch.setattr(database, "sasaran_remedial_anak", peledak)
 
-    kode, _, _ = server.minta(f"/anak/{sid}", auth=("guru", SANDI_GURU))
+    kode, _, _ = server.minta(
+        f"/anak/{sid}?section=latihan", auth=("guru", SANDI_GURU)
+    )
     assert kode == 500, "GET yang meledak memutus koneksi, bukan menjawab 500"
 
 

@@ -106,13 +106,18 @@ def test_hasil_semua_pembahasan_tersedia_dan_yang_benar_dilipat(db):
 def test_form_latihan_satu_bantuan_dan_judul_visual(db):
     kon, anak, _ = db
     siswa = kon.execute('SELECT * FROM siswa WHERE id=?', (anak,)).fetchone()
-    isi = teacher_pages.halaman_anak(kon, siswa, pengguna='guru').decode()
+    isi = teacher_pages.halaman_anak(
+        kon, siswa, pengguna='guru', query='section=latihan'
+    ).decode()
     dom = Markup(isi)
     assert 'class="profil-aide-st info-baris"' in isi
     assert 'class="st profil-sr-st"' in isi
     assert 'href="#panduan-variasi"' not in isi
     assert len([a for _, a, _ in dom.kontrol if a.get('id') == 'manual-topik']) == 1
-    assert 'Pilihan ganda untuk latihan manual, belum menjadi bukti penguasaan.' in dom.terlihat()
+    lanjutan = next(a for a in dom.details if a.get('class') == 'atur-latihan-st profil-lanjutan-st')
+    assert 'open' not in lanjutan
+    assert 'Pilihan ganda untuk latihan manual, belum menjadi bukti penguasaan.' in isi
+    assert 'Pilihan ganda untuk latihan manual, belum menjadi bukti penguasaan.' not in dom.terlihat()
 
 
 @pytest.mark.parametrize('terisi', [False, True])

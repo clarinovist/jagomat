@@ -113,7 +113,7 @@ def _profil_latihan(db) -> str:
         a = database.tambah_siswa(kon, "AnakSintetis", pemilik="ortu", tingkat="P5")
         baris = kon.execute("SELECT * FROM siswa WHERE id = ?", (a,)).fetchone()
         return teacher_pages.halaman_anak(
-            kon, baris, peran="guru", pengguna="ortu"
+            kon, baris, peran="guru", pengguna="ortu", query="section=latihan"
         ).decode()
 
 

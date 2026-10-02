@@ -159,15 +159,16 @@ def _jalan(server, viewport, nomor):
     assert "belum cukup untuk menyimpulkan" in hasil
     kode, laporan, _ = server.minta("/laporan/%d" % siswa_id, auth=login)
     assert kode == 200
-    assert "Laporan perkembangan" in laporan
-    assert laporan.count('class="tombol aksi-rencana-laporan"') == 1
+    assert "Ringkasan perkembangan" in laporan
+    assert laporan.count('class="tombol aksi-rencana-laporan"') == 0
+    assert 'id="rencana-belajar-laporan"' not in laporan
     _cek_viewport(laporan, viewport)
     return BuktiPerjalanan(
         viewport, nomor,
         ("landing", "daftar", "langkah berikutnya", "siapkan latihan awal", "latihan pertama",
          "lembar aman", "masukkan hasil", "tinjau-konfirmasi", "laporan", "kembali besok"),
         ("Buat akun pendamping.", "Buat akun", "Siapkan latihan awal",
-         "Konfirmasi hasil", "aksi-rencana-laporan"),
+         "Konfirmasi hasil"),
     )
 
 
@@ -176,4 +177,4 @@ def _jalan(server, viewport, nomor):
 def test_sepuluh_perjalanan_onboarding_lengkap(server, viewport, nomor):
     bukti = _jalan(server, viewport, nomor)
     assert len(bukti.tahapan) == 10
-    assert len(bukti.cta_utama) == 5
+    assert len(bukti.cta_utama) == 4

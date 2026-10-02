@@ -198,7 +198,7 @@ def test_sumber_owner_minimal_readonly_dan_level_snapshot(db, jenis):
             "level": "P4" if jenis == "anak" else "P3",
             "label": {"anak": "Ringkasan anak", "sesi": f"Sesi #{sesi}",
                       "soal": f"Soal 1 · Sesi #{sesi}"}[jenis],
-            "url": {"anak": f"/anak/{anak}", "sesi": f"/sesi/{sesi}",
+            "url": {"anak": f"/anak/{anak}?section=rencana", "sesi": f"/sesi/{sesi}",
                     "soal": f"/sesi/{sesi}"}[jenis],
             "kategori": "soal_resmi" if jenis == "soal" else "ringkasan_netral",
         }

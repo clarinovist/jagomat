@@ -44,7 +44,9 @@ def db(tmp_path, monkeypatch):
 def test_label_pendek_helper_terhubung_dan_nilai_default_tidak_berubah(db):
     kon, siswa = db
     sebelum = tuple(kon.iterdump())
-    isi = teacher_pages.halaman_anak(kon, siswa, pengguna='guru', privat=True).decode()
+    isi = teacher_pages.halaman_anak(
+        kon, siswa, pengguna='guru', privat=True, query='section=latihan'
+    ).decode()
     assert '<label for="manual-jumlah">Jumlah soal</label>' in isi
     # Jangan menambahkan selected pada topik; default tetap urutan registry.
     assert '<option value="campuran" selected>' not in isi

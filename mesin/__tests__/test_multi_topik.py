@@ -156,7 +156,9 @@ def test_dari_sesi_gabungan_rusak_jatuh_ke_bawaan():
 def test_form_gabungan_muncul_di_halaman_anak(server):
     with server.buka() as kon:
         sid = database.tambah_siswa(kon, "AnakForm", pemilik="guru")
-    kode, isi, _ = server.minta(f"/anak/{sid}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = server.minta(
+        f"/anak/{sid}?section=latihan", auth=("guru", SANDI_GURU)
+    )
     assert kode == 200
     assert f'action="/sesi-gabungan/{sid}"' in isi
     assert 'type="checkbox" name="topik"' in isi
