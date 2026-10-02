@@ -97,7 +97,7 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
 - Lock file/thread dan session fence batch admin sengaja tetap bersama orkestrasi
   `admin_bulk.py`: callback durable/transient dan test crash mem-patch boundary façade
   tersebut; memindahkannya akan menambah callback/cycle pada batas crash dua SQLite.
-- `assistant_store.py` kini hanya sekitar 630 baris setelah concern memori dipisah;
+- `assistant_store.py` kini sekitar 890 baris setelah concern memori dipisah;
   chat/pesan, persetujuan, usulan, operasi, dan retensi tetap satu agregat owner-scoped
   dengan transaksi/foreign key bersama, sehingga tidak dipecah lagi hanya demi LOC.
 - Analitik onboarding tetap pada kontrak KPI admin7 lama dan belum mengukur nilai
