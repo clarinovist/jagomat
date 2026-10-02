@@ -60,7 +60,7 @@ def test_dashboard_menyebut_nama_dan_aktivitas(db):
     assert "Bima" in h
     assert "soal dikerjakan" in h
     assert "butir benar" in h and "butir salah" in h
-    assert f'<a href="/laporan/{sid}" aria-current="page">Laporan perkembangan</a>' in h
+    assert f'<a href="/laporan/{sid}" aria-current="page">Perkembangan</a>' in h
     assert f'href="/anak/{sid}?section=latihan"' in h
     assert f'href="/anak/{sid}?section=rencana"' in h
     assert f'href="/anak/{sid}?section=riwayat"' in h
@@ -141,13 +141,12 @@ def test_ringkasan_merayakan_tanpa_kata_teknis(db):
 
 
 def test_kamus_tanpa_jargon(db):
-    """Enam kode dijelaskan bahasa sehari-hari, tanpa kata teknis.
-
-    Seperti test di atas: CSS ikut ter-render, jadi cek isi saja.
-    """
+    """Enam kode dijelaskan bahasa sehari-hari, tanpa kata teknis."""
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Kamus")
-        h = reports.halaman_laporan(kon, sid, section="riwayat", query='tampilan=catatan').decode()
+        h = reports.halaman_laporan(
+            kon, sid, section="penguasaan", query='rincian=catatan'
+        ).decode()
     assert "Arti kode penilaian" in h
     for kata in ("salah konsep", "salah baca", "salah hitung",
                  "salah tulis", "belum pernah", "menebak"):
@@ -163,7 +162,9 @@ def test_topik_tampil_nama_ramah(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Topik")
         _sesi_dinilai(kon, sid, benar=6, jumlah=10, kode="K")
-        h = reports.halaman_laporan(kon, sid, section="riwayat").decode()
+        h = reports.halaman_laporan(
+            kon, sid, section="riwayat", query="section=riwayat"
+        ).decode()
     assert "Pola Bilangan" in h
 
 
@@ -181,11 +182,13 @@ def test_kartu_perhatian_tidak_bilang_kuat_saat_ada_k(db):
 
 
 def test_tabel_riwayat_terbuka_dan_rincian_sekunder_dipilih(db):
-    """Tabel sesi langsung terlihat, catatan panjang tetap opsional."""
+    """Renderer kompatibilitas lama tetap tersedia untuk deep link."""
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Lipat")
         _sesi_dinilai(kon, sid, benar=6, jumlah=10, kode="K")
-        h = reports.halaman_laporan(kon, sid, section="riwayat").decode()
+        h = reports.halaman_laporan(
+            kon, sid, section="riwayat", query="section=riwayat"
+        ).decode()
     assert '<section class="kartu detail-teknis-laporan"' in h
     assert '<th scope="col">Topik</th>' in h
     isi = h.split('<main ', 1)[1]
@@ -195,13 +198,15 @@ def test_tabel_riwayat_terbuka_dan_rincian_sekunder_dipilih(db):
 
 
 def test_topik_tak_dikenal_tidak_500(db):
-    """Sesi warisan ber-topik asing: laporan tetap 200, tampil apa adanya."""
+    """Sesi warisan ber-topik asing: laporan tetap dirender aman."""
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Warisan")
         sesi_id = database.buat_sesi(kon, sid, seed=5)
         kon.execute("UPDATE sesi SET topik = ? WHERE id = ?", ("topik-hantu", sesi_id))
         database.tandai_selesai(kon, sesi_id)
-        h = reports.halaman_laporan(kon, sid, section="riwayat").decode()
+        h = reports.halaman_laporan(
+            kon, sid, section="riwayat", query="section=riwayat"
+        ).decode()
     assert "Riwayat hasil sesi" in h
     assert "topik-hantu" in h
 
@@ -246,7 +251,7 @@ def _beri_diagnosis(kon, sesi_id, indeks, kode, malrule_id=None, alasan=""):
     return baris["template_id"]
 
 
-def test_laporan_memisahkan_prioritas_dari_materi_baru(db):
+def test_ringkasan_laporan_tidak_memuat_prioritas_atau_materi_internal(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Aksi")
         sesi_k1 = database.buat_sesi(kon, sid, seed=77, topik="logika")
@@ -272,10 +277,10 @@ def test_laporan_memisahkan_prioritas_dari_materi_baru(db):
         h = reports.halaman_laporan(kon, sid).decode()
 
     utama = h.split('<main ', 1)[1]
-    assert "Posisi belajar saat ini" in utama
+    assert "Posisi belajar saat ini" not in utama
     assert "Prioritas latihan" not in utama
     assert "Materi berikutnya untuk dikenalkan" not in utama
-    assert "catatan hasil yang sudah diperiksa belum cukup" in utama.lower()
+    assert 'id="rencana-belajar-laporan"' not in utama
     assert "Aktivitas 7 hari terakhir" in utama
     assert tipe_k not in utama
     assert tipe_t not in utama
@@ -283,7 +288,7 @@ def test_laporan_memisahkan_prioritas_dari_materi_baru(db):
     assert "_" not in reports._nama_tipe_soal(tipe_t)
 
 
-def test_prioritas_belum_menganggap_satu_sesi_sebagai_pola_berulang(db):
+def test_ringkasan_tidak_menjadikan_satu_sesi_sebagai_prioritas(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Belum Berulang")
         sesi_id = database.buat_sesi(kon, sid, seed=80, topik="logika")
@@ -297,9 +302,9 @@ def test_prioritas_belum_menganggap_satu_sesi_sebagai_pola_berulang(db):
         )
         h = reports.halaman_laporan(kon, sid).decode()
 
-    utama = h.split('id="rencana-belajar-laporan"', 1)[1].split('aria-labelledby="judul-aktivitas"', 1)[0]
+    utama = h.split('id="konten-laporan"', 1)[1]
     assert reports._nama_tipe_soal(tipe) not in utama
-    assert "catatan hasil yang sudah diperiksa belum cukup" in utama.lower()
+    assert 'id="rencana-belajar-laporan"' not in utama
     assert "Mulai dari topik" not in utama
 
 
@@ -310,7 +315,7 @@ def test_label_singkatan_dan_alasan_tidak_dirusak(db):
     )
 
 
-def test_ringkasan_memasangkan_tipe_dengan_topik_fokus(db):
+def test_ringkasan_tidak_memuat_fokus_operasional(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Fokus Konsisten", "P5")
         # Logika dibuat lebih dulu agar berada di belakang urutan DESC.
@@ -336,26 +341,21 @@ def test_ringkasan_memasangkan_tipe_dengan_topik_fokus(db):
         }
         h = reports.halaman_laporan(kon, sid).decode()
 
-    awal = h.index('<div class="kartu ringkasan-laporan">')
-    akhir = h.index("</div>", awal) + 6
-    ringkasan = h[awal:akhir]
+    ringkasan = h.split('id="konten-laporan"', 1)[1]
     assert pola_geo
     assert not any(nama in ringkasan for nama in pola_geo)
-    assert "hasil yang sudah diperiksa" in ringkasan.lower()
-    assert "belum cukup untuk menetapkan bagian yang perlu dibantu" in ringkasan.lower()
+    assert 'id="rencana-belajar-laporan"' not in ringkasan
     assert "Pengandaian benar atau salah" not in ringkasan
 
 
 def test_label_laporan_penguasaan_menggunakan_bahasa_orang_tua(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Bahasa orang tua")
-        h = reports.halaman_laporan(
-            kon, sid, section="penguasaan", query="tampilan=pilot"
-        ).decode()
-    isi = h.split("</style>", 1)[1]
-    assert "Pendampingan orang tua" in isi
+        h = reports.halaman_laporan(kon, sid, section="perjalanan").decode()
+    isi = h.rsplit("</style>", 1)[1]
     assert "Tuntutan pilot" not in isi
-    assert "Perkembangan keterampilan terarah" in isi
+    assert "pilot" not in isi.lower()
+    assert 'id="perjalanan-belajar"' in isi
 
 
 def test_hierarki_utama_memisahkan_penguasaan_dari_aktivitas(db):
@@ -363,7 +363,9 @@ def test_hierarki_utama_memisahkan_penguasaan_dari_aktivitas(db):
         sid = database.tambah_siswa(kon, "Hierarki")
         _sesi_dinilai(kon, sid, benar=6, jumlah=10, kode="K")
         h = reports.halaman_laporan(kon, sid).decode()
-        detail = reports.halaman_laporan(kon, sid, section="riwayat").decode()
+        detail = reports.halaman_laporan(
+            kon, sid, section="penguasaan", query="rincian=catatan"
+        ).decode()
 
     utama = h.split('<main ', 1)[1]
     assert "sesi dinilai" not in utama
@@ -374,7 +376,7 @@ def test_hierarki_utama_memisahkan_penguasaan_dari_aktivitas(db):
     assert "Persentase = benar" not in utama
     assert "Dasar hitungan dan total seluruh catatan" not in utama
     assert "Cara membaca laporan" not in utama
-    assert 'tampilan=catatan#arti-kode' in detail
+    assert 'id="arti-kode"' in detail
     assert "Arti kode penilaian" in detail
     assert 'id="riwayat-hasil-sesi"' not in utama
     assert "Arti nilai anak" not in utama
@@ -393,7 +395,7 @@ def test_laporan_memakai_identitas_dan_kanvas_ruang_anak_yang_sama(db):
     assert "(Kelas belum diisi)" in isi
     assert '>Ubah kelas</a>' in isi
     assert f'<a href="/anak/{sid}?section=riwayat">Riwayat' in isi
-    assert '<h2 class="st" id="judul-laporan">Laporan perkembangan</h2>' in isi
+    assert '<h2 id="judul-laporan">Ringkasan perkembangan</h2>' in isi
     assert "CATATAN PERKEMBANGAN" not in isi
     assert "Laporan perkembangan Claudia" not in isi
     assert 'aria-labelledby="judul-profil-laporan"' in isi
@@ -425,7 +427,7 @@ def test_nuansa_laporan_memakai_subnavigasi_tenang_dan_kartu_netral():
     assert f"gap:{T.SP_2}" in navigasi
 
 
-def test_urutan_penguasaan_lalu_resume_lalu_aktivitas(db):
+def test_urutan_penguasaan_lalu_aktivitas_tanpa_resume(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Urutan")
         _sesi_dinilai(kon, sid, benar=6, jumlah=10, kode="K")
@@ -433,8 +435,8 @@ def test_urutan_penguasaan_lalu_resume_lalu_aktivitas(db):
 
     isi = h.split("</style>", 1)[1]
     assert "Hasil dan tren per materi" not in isi
-    assert isi.index('id="peta-penguasaan"') < isi.index('id="rencana-belajar-laporan"')
-    assert isi.index('id="rencana-belajar-laporan"') < isi.index('id="judul-aktivitas"')
+    assert isi.index('id="peta-penguasaan"') < isi.index('id="judul-aktivitas"')
+    assert 'id="rencana-belajar-laporan"' not in isi
     assert "Perjalanan fokus belajar" not in isi
     assert "Ringkasan untuk orang tua" not in isi
 
@@ -481,9 +483,9 @@ def test_riwayat_semantik_dan_kamus_terpisah(db):
         kon.execute(
             "UPDATE sesi SET tanggal = ? WHERE id = ?", ("2026-09-04", sesi_id)
         )
-        detail = reports.halaman_laporan(kon, sid, section="riwayat").decode()
+        detail = reports.halaman_laporan(
+            kon, sid, section="penguasaan", query="rincian=catatan"
+        ).decode()
 
-    assert 'tampilan=catatan#arti-kode' in detail
-    assert '<th scope="col">Sesi / tanggal</th>' in detail
-    assert "<thead>" in detail and "<tbody>" in detail
-    assert '<time class="tanggal-ringkas" datetime="2026-09-04">4 Sep 2026</time>' in detail
+    assert 'id="arti-kode"' in detail
+    assert "Catatan pola pada semua latihan" in detail

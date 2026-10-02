@@ -70,8 +70,8 @@ def test_wrapper_studio_membagi_tugas_pendamping_dan_aksi_dengan_urutan_aman():
     assert isi.count('class="studio-aksi-st"') == 1
     assert 'aria-label="Panduan langkah berikutnya"' in isi
     assert isi.count('class="rencana-cta-utama-st"') == 1
-    assert isi.index(materi.contoh_terbimbing) < isi.index('class="rencana-cta-utama-st"')
     assert isi.index(materi.instruksi_orang_tua) < isi.index('class="rencana-cta-utama-st"')
+    assert isi.index('class="rencana-cta-utama-st"') < isi.index(materi.contoh_terbimbing)
     assert isi.index('class="studio-utama-st"') < isi.index('class="studio-pendamping-st"') < isi.index('class="studio-aksi-st"')
     assert isi.index('class="studio-pendamping-st"') < isi.index('class="alur-rencana-jelas-st"')
     pendamping = isi.split('class="studio-pendamping-st"', 1)[1].split("</aside>", 1)[0]
@@ -142,7 +142,7 @@ def test_css_studio_scoped_responsif_dan_fallback_kontrol_manual():
     akhir = sumber.index(".koreksi-editorial-st", mulai)
     blok = sumber[mulai:akhir]
 
-    assert 'grid-template-areas: "utama" "pendamping" "aksi" "alur"' in blok
+    assert 'grid-template-areas: "utama" "pendamping" "aksi" "setelah" "konteks" "alur"' in blok
     assert "grid-template-columns: repeat(6, minmax(0, 1fr))" in blok
     aksi = blok.split(".profil-editorial-st .studio-aksi-st {{", 1)[1].split("}}", 1)[0]
     assert "align-self: start" in aksi
@@ -183,12 +183,15 @@ def test_form_manual_actual_tetap_default_dan_langsung_terlihat(tmp_path, monkey
     with database.buka(jalur) as kon:
         siswa_id = database.tambah_siswa(kon, "Anak Studio", "P3", pemilik="guru")
         siswa = kon.execute("SELECT * FROM siswa WHERE id=?", (siswa_id,)).fetchone()
-        isi = teacher_pages.halaman_anak(kon, siswa, pengguna="guru").decode()
+        isi = teacher_pages.halaman_anak(
+            kon, siswa, pengguna="guru", query="section=latihan"
+        ).decode()
     badan = isi.split("</style>", 1)[1]
     markup = _Markup(badan)
 
     assert '<section class="profil-formulaire-st">' in badan
-    assert '<details class="atur-latihan-st"' not in badan
+    assert '<details class="atur-latihan-st profil-lanjutan-st"' in badan
+    assert '<summary>Pengaturan lanjutan</summary>' in badan
     assert badan.count('<h2 class="st profil-sr-st">Buat latihan</h2>') == 1
     assert f'action="/sesi-baru/{siswa_id}"' in badan
     assert f'action="/sesi-gabungan/{siswa_id}"' in badan

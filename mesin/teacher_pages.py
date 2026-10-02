@@ -128,10 +128,7 @@ def halaman_utama_stitch(
         nama = str(s["nama"])
         from learning_profile import label_kelas_sekolah
         kelas_sekolah = _kelas_sekolah_profil(kon, s)
-        tujuan_anak = (
-            f'/anak/{s["id"]}?section=rencana'
-            if not s["tingkat"] else f'/anak/{s["id"]}'
-        )
+        tujuan_anak = f'/anak/{s["id"]}'
         baris.append(
             f'<a class="st-kartu kartu-anak" href="{tujuan_anak}">'
             f'<span class="guru-inisial-st" aria-hidden="true">{html.escape(nama[:1].upper())}</span>'

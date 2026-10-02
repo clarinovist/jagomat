@@ -44,7 +44,7 @@ def test_fallback_label_landmark_tautan_dan_header_aman(server):
     assert bidang[0]['aria-describedby'] == 'petunjuk-tautan'
     tautan = bidang[0]['value']
     assert tautan.startswith('https://jagomat.id/mulai/')
-    assert isi.count(f'href="/anak/{sid}"') == 1
+    assert isi.count(f'href="/anak/{sid}?section=riwayat"') == 1
     assert '7 hari' in isi and 'tanpa masuk' in isi
     assert tajuk['Cache-Control'] == 'no-store'
     assert tajuk['Referrer-Policy'] == 'no-referrer'

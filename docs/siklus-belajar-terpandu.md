@@ -270,22 +270,20 @@ keputusan pedagogis atau koreksi data anak saat verifikasi deploy.
 
 ## 10. Permukaan pengguna
 
-Profil anak memakai empat tujuan utama yang sejajar: **Buat latihan** (halaman
-awal untuk URL profil tanpa parameter), **Langkah berikutnya** (route internal
-`?section=rencana`), **Riwayat**, dan **Laporan perkembangan**. Pendaftaran profil
-pertama langsung menuju **Langkah berikutnya**, sedangkan latihan manual tetap dapat
-dibuka kapan saja. Tujuan laporan
-membuka laporan anak tanpa menduplikasi tautan di kepala Riwayat. Buat latihan menyediakan form manual secara
-langsung, pintu Pendamping kontekstual, pengingat bersyarat untuk membuka rencana,
-serta maksimal tiga sesi terbaru yang perlu tindakan. Pengingat berasal dari
-`learning_cycle.pengingat_berikutnya`, bukan perhitungan kelas/partisipasi di UI:
-anak baru atau hanya latihan manual tanpa opt-in tidak mendapat ajakan pemetaan;
-status menunggu dan maintenance tidak membuat banner. Sesi terpandu aktif, hasil
-belum dikonfirmasi, dan tindakan tersedia (termasuk eskalasi) tetap diingatkan.
+Profil anak memakai empat tujuan utama yang sejajar: **Berikutnya** (halaman
+awal dan route internal `?section=rencana`), **Buat latihan** (`?section=latihan`),
+**Riwayat**, dan **Perkembangan** (`/laporan/<id>`). Pendaftaran profil pertama dan
+kartu beranda membuka Berikutnya; latihan manual tetap dapat dibuka kapan saja.
+Berikutnya menampilkan satu CTA reducer utama dan maksimal tiga tugas sekunder.
+Sesi yang menjadi CTA utama tidak diulang, dan tugas sekunder tidak menampilkan
+alat kelola tautan. Buat latihan hanya memuat latihan biasa, latihan terarah, dan
+gabungan topik; topik, jumlah, dan CTA terlihat langsung, sedangkan format/mode/
+timer berada dalam Pengaturan lanjutan native. Layar ini menjelaskan bahwa latihan
+tambahan tercatat di Riwayat tetapi tidak otomatis mengubah Langkah berikutnya.
 Tab rencana selalu tersedia; GET tidak menulis bukti. Sesi manual tidak mengambil
 alih rekomendasi reducer.
 
-Tab **Langkah berikutnya** menampilkan satu kartu ringkas dengan tindakan saat ini,
+Tujuan **Berikutnya** menampilkan satu kartu ringkas dengan tindakan saat ini,
 perkiraan waktu, hasil langsung, kapan kembali, dan satu CTA utama bila sah. Bahasa
 orang tua memakai latihan awal, bagian yang perlu dibantu, coba bersama, coba sendiri,
 cek setelah jeda, dan catatan hasil; istilah domain internal tetap pada kode/penyimpanan.
@@ -295,17 +293,21 @@ Instruksi, contoh terbimbing/visual, beban pemetaan, tanggal menunggu, serta
 peringatan konfirmasi/eskalasi/histori tetap terlihat tanpa membuka detail.
 Label alat sesi **Cetak** mengutamakan lembar soal/kunci; perubahan cerita tetap
 manual dalam `<details>` tambahan. Hasil sukses/gagal tampil di luar disclosure;
-GET tidak memanggil AI dan penguncian penyajian tidak berubah. Tab Riwayat menampilkan
-20 sesi per halaman, filter tanggal/topik/jenis/tinjauan, serta status pengerjaan
-dan tinjauan yang terpisah. Pindah tab atau memfilter tidak menulis bukti maupun
-mengubah progres. Pendamping tetap pada konteks rencana, latihan, atau sesi/soal;
-riwayat lengkap tidak otomatis dikirim ke layanan AI.
+GET tidak memanggil AI dan penguncian penyajian tidak berubah. Tab Riwayat adalah arsip operasional tunggal: 20 sesi per halaman, filter
+tanggal/topik/jenis/tinjauan, status pengerjaan dan tinjauan terpisah, hasil ringkas
+untuk sesi selesai, aksi utama Buka sesi, serta pengelolaan tautan dalam disclosure
+sekunder. Pindah tab atau memfilter tidak menulis bukti maupun mengubah progres.
+Pendamping tetap pada konteks rencana, latihan, atau sesi/soal; riwayat lengkap tidak
+otomatis dikirim ke layanan AI.
 
-Profil dan laporan wajib memakai reducer yang sama. Statistik seluruh latihan
-boleh tetap ada tetapi dilabeli terpisah agar tidak bertentangan dengan status
-siklus. Ringkasan aktivitas menyediakan rentang inklusif 7 hari, minggu berjalan,
-bulan berjalan, atau tanggal pilihan sendiri; semuanya berdasarkan waktu aktivitas
-jawaban/konfirmasi dalam kalender WIB dan hanya menyaring tampilan.
+Perkembangan memiliki satu subnavigasi global: **Ringkasan**, **Materi**, dan
+**Perjalanan**. Ringkasan tidak mengulang CTA/tugas Berikutnya; Materi menempatkan
+bukti per konteks dan kriteria sebagai rincian materi; Perjalanan memuat histori
+putaran serta Pendampingan orang tua bila relevan. Semua target belum dinilai memakai
+empty state “Belum cukup bukti untuk menilai perkembangan materi”; `0 dari N` hanya
+rincian sekunder. Statistik seluruh latihan tetap dilabeli terpisah. Ringkasan
+aktivitas menyediakan rentang inklusif 7 hari, minggu berjalan, bulan berjalan, atau
+tanggal pilihan sendiri berdasarkan kalender WIB dan hanya menyaring tampilan.
 
 Permukaan anak hanya menampilkan istilah netral seperti **Pelajari bersama**,
 **Coba mandiri**, dan **Latihan campuran**. Jangan tampilkan kode diagnosis,

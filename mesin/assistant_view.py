@@ -68,7 +68,7 @@ def sumber_tampilan(kon_data, jenis: str, resource_id: str, *, pemilik: str
             "SELECT nama, tingkat AS level FROM siswa WHERE id = ? AND pemilik = ?",
             (identitas, pemilik),
         ).fetchone()
-        label, url = "Ringkasan anak", f"/anak/{identitas}"
+        label, url = "Ringkasan anak", f"/anak/{identitas}?section=rencana"
     elif jenis == "sesi":
         baris = kon_data.execute(
             """SELECT w.nama, s.level FROM sesi s JOIN siswa w ON w.id = s.siswa_id

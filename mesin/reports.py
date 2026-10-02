@@ -9,11 +9,12 @@ from __future__ import annotations
 import html
 from datetime import date, datetime, timedelta
 
+import brand
 import database
 import profile_workspace
 from learning_journey import perjalanan_belajar
 from cycle_report import render_perjalanan
-from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_resume, render_tugas
+from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_tugas
 from report_navigation import halaman_daftar, navigasi_halaman, parameter_laporan, pilihan, url_laporan
 from report_metrics import hari_wib, statistik_laporan, tugas_belum_selesai
 from mastery_report import GAYA_PETA, peta_penguasaan, render_kriteria, render_peta
@@ -400,8 +401,8 @@ def _catatan_latihan(kon, siswa_id):
 
 BAGIAN_LAPORAN = (
     ("ringkasan", "Ringkasan"),
-    ("penguasaan", "Penguasaan materi"),
-    ("riwayat", "Riwayat latihan"),
+    ("penguasaan", "Materi"),
+    ("perjalanan", "Perjalanan"),
 )
 
 
@@ -415,75 +416,119 @@ def halaman_laporan(
         return _halaman("Tidak ada", "<h1>Siswa tidak ditemukan</h1>")
     parameter = parameter_laporan(query)
     section = parameter.get('section', section)
+    kompat_lama = section == 'riwayat'
     tampilan = parameter.get('tampilan', '')
     halaman = parameter.get('halaman', '1')
-    if section not in dict(BAGIAN_LAPORAN):
+    if section not in dict(BAGIAN_LAPORAN) and not kompat_lama:
         section = "ringkasan"
+    section_nav = 'ringkasan' if kompat_lama else section
     navigasi = '<nav class="laporan-navigasi" aria-label="Bagian laporan">' + "".join(
         f'<a href="/laporan/{siswa_id}?section={kode}"'
-        + (' aria-current="page"' if kode == section else '')
+        + (' aria-current="page"' if kode == section_nav else '')
         + f'>{label}</a>' for kode, label in BAGIAN_LAPORAN
     ) + '</nav>'
-    if section == "riwayat":
+    # Renderer kompatibilitas lama tetap dapat dipanggil langsung oleh caller
+    # internal. HTTP mengalihkannya sesudah guard sehingga ia tidak muncul lagi
+    # sebagai navigasi global Perkembangan.
+    if section == 'riwayat':
         opsi = [('sesi', 'Sesi'), ('mingguan', 'Mingguan'), ('catatan', 'Catatan')]
         if tampilan not in dict(opsi):
             tampilan = 'sesi'
         isi = pilihan('Tampilan riwayat', opsi, tampilan,
                       lambda k: url_laporan(siswa_id, section, tampilan=k))
         if tampilan == 'sesi':
-            isi += _riwayat_latihan(kon, siswa_id, parameter.get('periode', 'semua'),
-                                   parameter.get('topik', 'semua'), halaman)
+            isi += _riwayat_latihan(
+                kon, siswa_id, parameter.get('periode', 'semua'),
+                parameter.get('topik', 'semua'), halaman,
+            )
         elif tampilan == 'mingguan':
-            isi += render_materi(statistik_laporan(kon, siswa_id, hari_wib()), _nama_tipe_soal, _tanggal_pendek)
+            isi += render_materi(
+                statistik_laporan(kon, siswa_id, hari_wib()),
+                _nama_tipe_soal, _tanggal_pendek,
+            )
         else:
             isi += _catatan_latihan(kon, siswa_id) + _kartu_kamus()
-        if tampilan != 'catatan':
-            isi += (f'<a class="laporan-tautan" href="{url_laporan(siswa_id, section, tampilan="catatan")}#arti-kode">'
-                    'Arti kode penilaian →</a>')
     else:
-        # Rekomendasi, profil, dan statistik memakai kalender domain WIB.
+        # Seluruh status dan denominator tetap memakai reducer/proyeksi existing.
         bukti = database.muat_bukti_siklus(kon, siswa_id)
         perjalanan = perjalanan_belajar(bukti, siswa_id)
         bukti_materi = lengkapi_bukti_materi(kon, bukti)
         peta_target = peta_penguasaan(bukti_materi, siswa_id)
-        if section == "penguasaan":
-            opsi = [('materi', 'Materi'), ('konteks', 'Bukti per konteks'),
-                    ('pilot', 'Pendampingan orang tua'), ('kriteria', 'Kriteria'),
-                    ('perjalanan', 'Perjalanan belajar')]
-            if tampilan not in dict(opsi):
-                tampilan = 'materi'
-            isi = pilihan('Tampilan penguasaan', opsi, tampilan,
-                          lambda k: url_laporan(siswa_id, section, tampilan=k))
-            if tampilan == 'pilot':
-                from skill_pilot_ui import laporan
-                isi += laporan(kon, siswa_id)
-            elif tampilan == 'konteks':
+        rincian = parameter.get('rincian', '')
+        if section == "penguasaan" and tampilan in {
+            'konteks', 'pilot', 'kriteria', 'perjalanan'
+        }:
+            if tampilan == 'konteks':
                 from context_report import render_konteks
-                isi += render_konteks(bukti_materi, siswa_id, _tanggal_pendek, halaman=halaman)
+                isi = render_konteks(
+                    bukti_materi, siswa_id, _tanggal_pendek, halaman=halaman
+                )
+            elif tampilan == 'pilot':
+                from skill_pilot_ui import laporan
+                isi = laporan(kon, siswa_id)
             elif tampilan == 'kriteria':
-                isi += render_kriteria()
-            elif tampilan == 'perjalanan':
-                isi += render_perjalanan(perjalanan, _nama_tipe_soal, _tanggal_pendek,
-                                         siswa_id=siswa_id, halaman=halaman)
+                isi = render_kriteria()
             else:
-                isi += render_peta(peta_target, _tanggal_pendek, siswa_id=siswa_id,
-                                   materi=parameter.get('materi', ''), status=parameter.get('status', 'semua'),
-                                   halaman=halaman)
+                isi = render_perjalanan(
+                    perjalanan, _nama_tipe_soal, _tanggal_pendek,
+                    siswa_id=siswa_id, halaman=halaman,
+                )
+        elif section == "penguasaan":
+            materi = parameter.get('materi', '')
+            if not materi and rincian in {'konteks', 'kriteria', 'catatan'} and peta_target.target:
+                materi = peta_target.target[0].topik_id
+            isi = render_peta(
+                peta_target, _tanggal_pendek, siswa_id=siswa_id,
+                materi=materi, status=parameter.get('status', 'semua'),
+                halaman=halaman, bukti_konteks=bukti_materi, rincian=rincian,
+            )
+            if rincian == 'catatan':
+                isi += _catatan_latihan(kon, siswa_id) + _kartu_kamus()
+        elif section == "perjalanan":
+            isi = render_perjalanan(
+                perjalanan, _nama_tipe_soal, _tanggal_pendek,
+                siswa_id=siswa_id, halaman=halaman,
+            )
+            from skill_pilot_ui import laporan
+            pilot = laporan(kon, siswa_id, hanya_relevan=True)
+            if pilot:
+                isi += (
+                    '<section class="perjalanan-pilot-st" aria-labelledby="judul-pilot-laporan">'
+                    '<h2 id="judul-pilot-laporan">Pendampingan orang tua</h2>'
+                    + pilot + '</section>'
+                )
         elif tampilan == 'tugas':
-            isi = render_tugas(tugas_belum_selesai(kon, siswa_id), siswa_id, _nama_topik, halaman)
+            isi = render_tugas(
+                tugas_belum_selesai(kon, siswa_id), siswa_id,
+                _nama_topik, halaman,
+            )
         else:
             isi = '<div class="laporan-ringkasan-grid">'
-            isi += render_peta(peta_target, _tanggal_pendek, ringkas=True)
-            isi += render_resume(
-                perjalanan, tugas_belum_selesai(kon, siswa_id), siswa_id,
-                _nama_tipe_soal, _nama_topik, _tanggal_pendek,
-            ) + '</div>'
+            isi += render_peta(peta_target, _tanggal_pendek, ringkas=True) + '</div>'
             periode, mulai, akhir, judul_aktivitas = _periode_aktivitas(parameter)
             statistik = statistik_laporan(kon, siswa_id, mulai=mulai, akhir=akhir)
             isi += render_aktivitas(
                 statistik, _tanggal_pendek, judul=judul_aktivitas,
                 kontrol=_kontrol_periode_aktivitas(siswa_id, periode, mulai, akhir),
             )
+            if rincian == 'tren':
+                isi += render_materi(
+                    statistik_laporan(kon, siswa_id, hari_wib()),
+                    _nama_tipe_soal, _tanggal_pendek,
+                )
+    pengantar = {
+        'ringkasan': ('Ringkasan perkembangan', 'Gambaran bukti dan aktivitas terbaru, tanpa menyimpulkan kemampuan dari latihan yang belum cukup.'),
+        'penguasaan': ('Materi', 'Lihat target yang sudah memiliki bukti, lalu buka rincian konteks dan cara penilaiannya.'),
+        'perjalanan': ('Jejak dari waktu ke waktu', 'Ikuti perubahan fokus dan bukti terkonfirmasi dari waktu ke waktu.'),
+    }.get(section_nav, ('Perkembangan', 'Catatan belajar berbasis bukti terkonfirmasi.'))
+    hero = (
+        '<header class="perkembangan-hero-st"><div>'
+        '<p class="editorial-alis-st">CATATAN BELAJAR</p>'
+        f'<h2 id="judul-laporan">{html.escape(pengantar[0])}</h2>'
+        f'<p>{html.escape(pengantar[1])}</p></div>'
+        + brand.maskot('membaca', 96, kelas='perkembangan-maskot-st')
+        + '</header>'
+    )
     total_sesi = kon.execute(
         'SELECT COUNT(*) FROM sesi WHERE siswa_id=?', (siswa_id,)
     ).fetchone()[0]
@@ -504,9 +549,8 @@ def halaman_laporan(
         )
         + '<nav class="profil-tabs-st" aria-label="Bagian profil anak">'
         + profile_workspace.navigasi_profil(siswa_id, total_sesi, 'laporan')
-        + '</nav><div class="kepala-riwayat-st kepala-laporan-st">'
-        + '<h2 class="st" id="judul-laporan">Laporan perkembangan</h2></div>'
-        + navigasi + '<div id="konten-laporan">' + isi + '</div>',
+        + '</nav>' + hero + navigasi
+        + '<div id="konten-laporan">' + isi + '</div>',
         ident=(pengguna, peran) if pengguna else None,
         stitch=True,
         kelas_bungkus="laporan-lebar pendamping-editorial-st laporan-editorial-st profil-workspace-st",

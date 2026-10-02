@@ -171,11 +171,12 @@ Dari 9 mockup, pattern yang berulang:
    secara progresif; tombol “Tampilkan pilihan isi” tetap tersedia bila JavaScript
    tidak aktif. Gabungan topik tetap memakai aksi eksplisit.
 
-9. **Navigasi profil dan periode laporan** — Laporan perkembangan adalah tujuan
-   keempat pada tab profil, bukan tautan kedua di kepala Riwayat. Keempat tujuan
+9. **Navigasi profil dan periode laporan** — empat tujuan selalu berurutan
+   **Berikutnya**, **Buat latihan**, **Riwayat**, **Perkembangan**. Pada HP 375 px
+   keempatnya tetap satu baris tanpa badge jumlah atau overflow dokumen. Keempat tujuan
    mempertahankan header identitas anak yang sama; di laporan, nama anak tetap menjadi
-   H1 dan “Laporan perkembangan” menjadi judul bagian. Subnavigasi laporan memakai
-   tab garis bawah yang tenang, bukan pill terisi yang bersaing dengan tab profil.
+   H1 dan “Perkembangan” menjadi judul bagian. Subnavigasi laporan hanya Ringkasan,
+   Materi, Perjalanan dan memakai tab garis bawah yang tenang, bukan pill terisi.
    Ringkasan laporan memakai tautan preset 7 hari, minggu ini, bulan ini, serta form
    GET tanggal mulai dan selesai untuk rentang sendiri; seluruh rentang bersifat
    inklusif dan berzona WIB.
@@ -380,10 +381,11 @@ File CSS per permukaan (semuanya `import design_tokens as T`):
   menutupi kontrol; detail tetap tercetak pada browser yang mendukung CSS
   `::details-content` (Chrome terverifikasi, Safari belum diuji). Hasil menyediakan pembahasan semua soal; yang benar dan
   kartu rumus dapat dibuka, sementara pembahasan belum tepat tetap terlihat.
-- Profil: header berulang dikurangi, empat dropdown dua kolom di desktop,
-  panduan variasi satu entry point. Riwayat tetap memisahkan pengerjaan/tinjauan;
-  variasi, mode, nomor sesi berada dalam detail. Laporan hanya melipat metodologi,
-  tidak melipat data, navigasi, CTA, atau peringatan belum dinilai.
+- Profil: header berulang dikurangi. Buat latihan menampilkan topik, jumlah, dan CTA
+  langsung; format/mode/timer berada dalam Pengaturan lanjutan. Riwayat memakai kartu
+  mobile satu kolom, memisahkan pengerjaan/tinjauan, menempatkan Buka sesi sebagai aksi
+  utama dan kelola tautan dalam disclosure sekunder. Perkembangan hanya melipat
+  metodologi/rincian kontekstual, bukan data utama atau peringatan belum dinilai.
 - Aksi utama tetap berlabel teks. Ikon bukan pengganti makna simpan/kirim,
   konfirmasi, pilihan cara, maupun status pedagogis. Tidak ada JS/dependensi baru.
 

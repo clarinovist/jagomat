@@ -22,12 +22,18 @@ LABEL = {kode: nama for kode, nama, _ in STATUS}
 
 GAYA_PETA = f"""
 .peta-materi-st {{margin:{T.SP_5} 0;}}
+.laporan-ringkasan-grid .peta-materi-st {{position:relative;overflow:hidden;border-top:3px solid {T.AKSEN_TEAL_TUA};}}
+.laporan-ringkasan-grid .peta-materi-st::after {{content:'';position:absolute;right:-2.5rem;top:-3.5rem;width:9rem;height:9rem;border-radius:{T.RADIUS_PIL};background:{T.LATAR_TERSIMPAN};z-index:0;}}
+.laporan-ringkasan-grid .peta-materi-st > * {{position:relative;z-index:1;}}
 .peta-materi-st .peta-kepala {{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:{T.SP_4};align-items:center;}}
 .peta-materi-st .peta-angka {{font-size:{T.UKURAN_ANGKA_DEWASA};font-weight:800;line-height:1.2;color:{T.TEKS_JUDUL};}}
 .peta-materi-st .peta-angka small {{display:inline;font-size:1.1rem;font-weight:600;line-height:1.5;}}
+.peta-materi-st .peta-empty-st {{max-width:30rem;padding:{T.SP_4};background:{T.LATAR_CATATAN};border:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN};border-radius:{T.RADIUS_SEDANG};}}
+.peta-materi-st .peta-empty-st p {{margin:0;}}
+.peta-materi-st .peta-empty-st p + p {{margin-top:{T.SP_2};}}
 .peta-materi-st .peta-catatan {{color:{T.TEKS_SUBTLE};font-size:{T.UKURAN_TEKS_BANTUAN};}}
-.peta-materi-st .peta-grafik {{display:block;width:100%;height:2.5rem;margin:{T.SP_4} 0;}}
-.peta-materi-st .peta-legenda {{display:flex;flex-wrap:wrap;gap:{T.SP_3} {T.SP_5};list-style:none;padding:0;}}
+.peta-materi-st .peta-grafik {{display:block;width:100%;height:1rem;margin:{T.SP_4} 0;border-radius:{T.RADIUS_PIL};overflow:hidden;}}
+.peta-materi-st .peta-legenda {{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:{T.SP_2} {T.SP_4};list-style:none;padding:0;}}
 .peta-materi-st .peta-legenda li {{display:flex;align-items:center;gap:{T.SP_2};}}
 .peta-materi-st .peta-swatch {{width:1rem;height:1rem;display:inline-block;border:{T.TEBAL_GARIS} solid {T.TEKS_SUBTLE};}}
 .peta-materi-st .peta-panel {{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:{T.SP_5};align-items:start;}}
@@ -124,7 +130,10 @@ def _rincian_target(target, hasil, tanggal):
     )
 
 
-def render_peta(peta, tanggal, ringkas=False, *, siswa_id=0, materi='', status='semua', halaman='1'):
+def render_peta(
+    peta, tanggal, ringkas=False, *, siswa_id=0, materi='', status='semua',
+    halaman='1', bukti_konteks=None, rincian='',
+):
     kelas = html.escape(label_kelas(peta.level))
     if peta.level == '':
         return ('<section class="kartu peta-materi-st" id="peta-penguasaan">'
@@ -139,7 +148,10 @@ def render_peta(peta, tanggal, ringkas=False, *, siswa_id=0, materi='', status='
     for t, s in zip(peta.target, peta.status):
         per_topik.setdefault((t.topik_id, t.topik), []).append((t, s))
     if not ringkas:
-        return _pilih_materi(peta, per_topik, tanggal, siswa_id, materi, status, halaman)
+        return _pilih_materi(
+            peta, per_topik, tanggal, siswa_id, materi, status, halaman,
+            bukti_konteks=bukti_konteks, rincian=rincian,
+        )
     jumlah = peta.jumlah
     total = len(peta.target)
     sudah_dinilai = total - jumlah["belum_dinilai"]
@@ -150,12 +162,18 @@ def render_peta(peta, tanggal, ringkas=False, *, siswa_id=0, materi='', status='
     topik_dinilai = sum(any(s.status != "belum_dinilai" for _, s in pasangan)
                         for pasangan in per_topik.values())
     label_angka = "Belum dinilai" if peta.persen is None else "dari seluruh target Jagomat"
+    utama = (
+        '<div class="peta-empty-st"><p><b>Belum cukup bukti untuk menilai perkembangan materi</b></p>'
+        f'<p class="peta-catatan">Rincian cakupan: {jumlah["terbukti"]} dari {total} target menunjukkan pemahaman.</p></div>'
+        if peta.persen is None else
+        f'<div class="peta-angka">{jumlah["terbukti"]} <small>dari {total} target</small></div>'
+        '<p><b>menunjukkan pemahaman</b></p>'
+    )
     return (
         '<section class="kartu peta-materi-st" id="peta-penguasaan" aria-labelledby="judul-peta">'
         '<div class="peta-kepala"><div><h2 id="judul-peta">Progres penguasaan materi Jagomat</h2>'
         f'<p>{kelas} · {total} target keterampilan dalam {len(per_topik)} materi</p></div>'
-        f'<div class="peta-angka">{jumlah["terbukti"]} <small>dari {total} target</small></div></div>'
-        '<p><b>menunjukkan pemahaman</b></p>'
+        f'{utama}</div>'
         f'<p class="peta-catatan peta-persentase">{html.escape(persen(peta.persen))} · {label_angka}</p>'
         + _grafik(jumlah, total) + f'<ul class="peta-legenda">{legenda}</ul>'
         f'<p class="peta-aktivitas">Cakupan penilaian: {topik_dinilai}/{len(per_topik)} materi '
@@ -170,24 +188,31 @@ def render_peta(peta, tanggal, ringkas=False, *, siswa_id=0, materi='', status='
     )
 
 
-def render_kriteria():
-    """Kriteria existing tetap terbaca, terpisah dari daftar materi."""
-    return (
-        '<section class="kartu laporan-dasar" id="kriteria-penguasaan">'
-        '<h2>Kriteria target menunjukkan pemahaman</h2>'
+def render_kriteria(*, isi_saja=False):
+    """Kriteria existing sebagai rincian kontekstual, bukan navigasi global."""
+    isi = (
         '<ul><li>Semua pola dalam target telah diperiksa dengan soal bervariasi.</li>'
         '<li>Bukti terkonfirmasi, hasil cukup baik, dan anak bisa menjelaskan; '
         'bukan sekadar banyak latihan atau jawaban benar sekali.</li>'
         '<li>Latihan awal diperiksa pada tanggal berbeda atau melalui pemeriksaan terpandu. '
         'Catatan yang perlu diperbarui ditandai cek kembali.</li>'
-        '<li>Mulai dari latihan awal pada Langkah berikutnya. Latihan biasa hanya ikut '
+        '<li>Mulai dari latihan awal pada Berikutnya. Latihan biasa hanya ikut '
         'menentukan langkah bila hasil dikonfirmasi dan dipilih untuk pemeriksaan awal.</li></ul>'
         f'<p class="peta-catatan">Katalog {VERSI_KATALOG}; tiap target berbobot sama. '
-        'Status tidak berarti penguasaan permanen.</p></section>'
+        'Status tidak berarti penguasaan permanen.</p>'
+    )
+    if isi_saja:
+        return isi
+    return (
+        '<section class="kartu laporan-dasar" id="kriteria-penguasaan">'
+        '<h2>Kriteria target menunjukkan pemahaman</h2>' + isi + '</section>'
     )
 
 
-def _pilih_materi(peta, per_topik, tanggal, siswa_id, materi, status, halaman):
+def _pilih_materi(
+    peta, per_topik, tanggal, siswa_id, materi, status, halaman, *,
+    bukti_konteks=None, rincian='',
+):
     """Filter kartu saja; panel selalu memuat semua target materi terpilih."""
     def cocok(pasangan, kode):
         if kode == 'semua':
@@ -235,6 +260,14 @@ def _pilih_materi(peta, per_topik, tanggal, siswa_id, materi, status, halaman):
             + '</span></a>'
         )
         if kode == aktif:
+            from context_report import render_konteks
+            template_ids = {pola for target, _ in pasangan for pola in target.pola}
+            rincian_konteks = (
+                render_konteks(
+                    bukti_konteks, siswa_id, tanggal,
+                    materi=kode, template_ids=template_ids,
+                ) if bukti_konteks is not None else ''
+            )
             detail = (
                 '<section class="kartu peta-detail" id="detail-materi" aria-labelledby="judul-materi">'
                 f'<a class="peta-kembali" href="{url(status=status, halaman=nomor)}">← Kembali ke materi</a>'
@@ -245,7 +278,14 @@ def _pilih_materi(peta, per_topik, tanggal, siswa_id, materi, status, halaman):
                 'Bukti terkonfirmasi dan anak bisa menjelaskan diperlukan, bukan hanya jawaban benar.</p>'
                 '<ul class="peta-target">' + ''.join(_rincian_target(t, s, tanggal) for t, s in pasangan)
                 + '</ul>'
-                f'<a class="laporan-tautan" href="{url(tampilan="kriteria")}">Baca kriteria penilaian →</a></section>'
+                '<details class="rincian-ui-st"' + (' open' if rincian == 'kriteria' else '')
+                + '><summary>Cara Jagomat menilai</summary>'
+                '<p>Semua pola diperiksa dengan soal bervariasi, bukti terkonfirmasi, '
+                'hasil cukup baik, dan anak bisa menjelaskan. Jawaban benar sekali belum cukup.</p>'
+                f'<p class="peta-catatan">Katalog {VERSI_KATALOG}; tiap target berbobot sama. '
+                'Status tidak berarti penguasaan permanen.</p></details>'
+                + rincian_konteks
+                + f'<a class="laporan-tautan" href="{url(materi=kode, status=status, halaman=nomor, rincian="catatan")}">Catatan hasil latihan →</a></section>'
             )
     kosong = (
         '<p>Tidak ada materi yang cocok dengan filter ini.</p>'

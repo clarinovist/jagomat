@@ -185,7 +185,7 @@ def tangani_pembuatan_biasa(
         f"Sesi baru untuk {nama_siswa} berhasil dibuat — "
         f"sesi #{sesi_id} siap dikerjakan."
     )
-    qs = urllib.parse.urlencode({"pesan": pesan_sukses, "sorot": sesi_id})
+    qs = urllib.parse.urlencode({"section": "latihan", "pesan": pesan_sukses, "sorot": sesi_id})
     penangan.send_response(303)
     penangan.send_header("Location", f"/anak/{siswa_id}?{qs}")
     penangan.send_header("Content-Length", "0")
@@ -262,6 +262,7 @@ def tangani_pembuatan_gabungan(
 
     if len(dipilih) < 2:
         qs = urllib.parse.urlencode({
+            "section": "latihan",
             "pesan": "Pilih minimal DUA topik untuk latihan gabungan. "
                      "Kalau hanya satu, pakai form buat sesi biasa.",
         })
@@ -332,6 +333,7 @@ def tangani_pembuatan_gabungan(
             return True
 
     qs = urllib.parse.urlencode({
+        "section": "latihan",
         "pesan": (
             f"Latihan gabungan untuk {nama_siswa} dibuat — "
             f"sesi #{sesi_id}, {jumlah} soal dari {len(dipilih)} topik."
@@ -546,9 +548,10 @@ def tangani_pembuatan_remedial(
                     )
 
     if pesan_gagal:
-        qs = urllib.parse.urlencode({"pesan": pesan_gagal})
+        qs = urllib.parse.urlencode({"section": "latihan", "pesan": pesan_gagal})
     elif sesi_id is None:
         qs = urllib.parse.urlencode({
+            "section": "latihan",
             "pesan": "Belum ada kesalahan tercatat untuk dilatih "
                      "ulang — buat sesi biasa dulu, ya.",
         })
@@ -557,6 +560,7 @@ def tangani_pembuatan_remedial(
             nama_template(template_id) for template_id in template_ids
         )
         qs = urllib.parse.urlencode({
+            "section": "latihan",
             "pesan": (
                 f"Remedial {fokus} dibuat — {jumlah} soal baru "
                 f"untuk {nama_siswa} (sesi #{sesi_id})."
@@ -984,7 +988,9 @@ def tangani_hapus_post(
 
     # Cleanup filesystem hanya setelah penghapusan DB berhasil dan commit.
     bersihkan_berkas(sesi_id)
-    tujuan = urllib.parse.urlencode({"pesan": f"Sesi {sesi_id} dihapus."})
+    tujuan = urllib.parse.urlencode({
+        "section": "riwayat", "pesan": f"Sesi {sesi_id} dihapus."
+    })
     penangan.send_response(303)
     tujuan_anak = (
         f"/anak/{baris_sesi['siswa_id']}?{tujuan}"

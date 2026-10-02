@@ -49,7 +49,9 @@ def parse_filter(query):
     nilai = dict(pasangan)
     if set(nilai) - {'section', 'halaman', 'mulai', 'sampai', 'topik', 'jenis', 'tinjauan', 'pesan', 'sorot'}:
         raise ValueError('Parameter profil tidak dikenal.')
-    section = nilai.get('section', 'latihan')
+    # Bare profil membuka Berikutnya. URL warisan PRG yang hanya membawa
+    # ``sorot`` tetap membuka alat latihan agar sesi baru tidak terasa hilang.
+    section = nilai.get('section', 'latihan' if 'sorot' in nilai else 'rencana')
     halaman = nilai.get('halaman', '1')
     if section not in ('latihan', 'rencana', 'riwayat') or not re.fullmatch(r'[1-9][0-9]{0,5}', halaman):
         raise ValueError('Bagian atau halaman profil tidak sah.')
@@ -126,12 +128,16 @@ def halaman_riwayat(kon, siswa_id, filter_data):
     return _muat(kon,siswa_id,where,parameter,PER_HALAMAN,(halaman-1)*PER_HALAMAN), total, filter_data
 
 
-def tugas_terbaru(kon, siswa_id, sorot=None):
-    """Maksimal tiga sesi perlu tindakan; sorot PRG tetap child-bound."""
+def tugas_terbaru(kon, siswa_id, sorot=None, kecuali=None):
+    """Maksimal tiga tugas sekunder; sesi CTA reducer dikecualikan eksplisit."""
     where = " AND (s.dibatalkan IS NULL AND (s.selesai IS NULL OR NOT COALESCE(" + _AKTIF + ",0)))"
-    baris = _muat(kon,siswa_id,where,(),3)
-    if sorot and all(r['id'] != sorot for r in baris):
-        terpilih = _muat(kon,siswa_id,' AND s.id=?',(sorot,),1)
+    parameter = ()
+    if kecuali is not None:
+        where += " AND s.id<>?"
+        parameter = (int(kecuali),)
+    baris = _muat(kon, siswa_id, where, parameter, 3)
+    if sorot and sorot != kecuali and all(r['id'] != sorot for r in baris):
+        terpilih = _muat(kon, siswa_id, ' AND s.id=?', (sorot,), 1)
         if terpilih:
             baris = terpilih + baris[:2]
     return baris

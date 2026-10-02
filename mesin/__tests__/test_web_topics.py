@@ -56,7 +56,7 @@ def test_post_sesi_baru_prg_ke_halaman_anak_dengan_banner(server):
     )
     assert kode == 200
     assert "berhasil dibuat" in isi, "banner sukses harus tampil di /anak"
-    assert "Sesi #" in isi, "sesi yang baru harus tampak di history anak"
+    assert f'action="/sesi-baru/{siswa_id}"' in isi
 
 
 def test_post_sesi_baru_mempertahankan_lookup_runtime_fasad(server, monkeypatch):
@@ -92,7 +92,7 @@ def test_post_sesi_baru_menyimpan_topik_eksplisit(server):
         data={"topik": "pola-bilangan", "profil_parameter": "P3"},
     )
     assert kode == 200
-    assert "Sesi #" in isi
+    assert f'action="/sesi-baru/{siswa_id}"' in isi
     with server.buka() as kon:
         topik = kon.execute(
             """SELECT topik FROM sesi WHERE siswa_id = ?
@@ -111,7 +111,7 @@ def test_post_sesi_baru_tanpa_topik_pakai_bawaan_kanonik(server):
         f"/sesi-baru/{siswa_id}", auth=("guru", SANDI_GURU), data={"profil_parameter": "P3"}
     )
     assert kode == 200
-    assert "Sesi #" in isi
+    assert f'action="/sesi-baru/{siswa_id}"' in isi
     with server.buka() as kon:
         topik = kon.execute(
             """SELECT topik FROM sesi WHERE siswa_id = ?
@@ -138,10 +138,12 @@ def test_post_sesi_baru_topik_tak_dikenal_ditolak_400(server):
 # ── UI guru: pilihan topik + tampilan ───────────────────────────────────
 
 
-def _profil_anak(kon):
-    """Pilihan topik/riwayat berada di profil, bukan kartu beranda."""
+def _profil_anak(kon, section="latihan"):
+    """Pilihan topik dan arsip berada pada tujuan profil masing-masing."""
     siswa = kon.execute("SELECT * FROM siswa ORDER BY id DESC LIMIT 1").fetchone()
-    return teacher_pages.halaman_anak(kon, siswa, pengguna="guru")
+    return teacher_pages.halaman_anak(
+        kon, siswa, pengguna="guru", query="section=" + section
+    )
 
 
 def test_profil_menyediakan_pilihan_topik_dari_registry(db):
@@ -197,7 +199,7 @@ def test_siswa_level_teks_lama_tetap_ditawari_dan_bisa_membuat_sesi(server):
         data={"topik": "pola-bilangan", "profil_parameter": "P3"},
     )
     assert kode == 200
-    assert "Sesi #" in isi
+    assert f'action="/sesi-baru/{siswa_id}"' in isi
     with server.buka() as kon:
         level = kon.execute(
             "SELECT level FROM sesi WHERE siswa_id = ? ORDER BY id DESC LIMIT 1",
@@ -210,9 +212,9 @@ def test_profil_daftar_sesi_memuat_topik(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Daftar Bertopik")
         database.buat_sesi(kon, sid, seed=77)
-        isi = _profil_anak(kon).decode()
-    assert "Topik" in isi
-    assert "pola-bilangan" in isi
+        isi = _profil_anak(kon, "rencana").decode()
+    assert "Pola Bilangan" in isi
+    assert "pola-bilangan" not in isi
 
 
 def test_header_halaman_sesi_meringkas_metadata_tanpa_slug(db):
@@ -285,7 +287,7 @@ def test_alur_aritmetika_memakai_judul_dan_laporan_topik_sendiri(server):
     )
     assert kode == 200
 
-    kode, isi, _ = server.minta(f"/laporan/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU))
+    kode, isi, _ = server.minta(f"/anak/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU))
     assert kode == 200
     assert "Aritmetika Dasar" in isi
 
@@ -311,9 +313,13 @@ def test_laporan_detail_menampilkan_topik_pada_dua_tabel(db):
                 alasan="uji topik",
             )
             database.tandai_selesai(kon, sesi_id)
-        isi = reports.halaman_laporan(kon, sid, section="riwayat").decode()
+        isi = reports.halaman_laporan(
+            kon, sid, section="riwayat", query="section=riwayat"
+        ).decode()
 
-        catatan = reports.halaman_laporan(kon, sid, section="riwayat", query='tampilan=catatan').decode()
+        catatan = reports.halaman_laporan(
+            kon, sid, section="penguasaan", query='rincian=catatan'
+        ).decode()
 
     assert isi.count('<th scope="col">Topik</th>') == 1
     assert catatan.count('<th scope="col">Topik</th>') == 2
@@ -390,9 +396,9 @@ def test_alur_guru_murid_jawab_laporan_bertopik(server):
     )
     assert kode == 200
 
-    kode, isi, _ = server.minta(f"/laporan/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU))
+    kode, isi, _ = server.minta(f"/anak/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU))
     assert kode == 200
-    assert '<th scope="col">Topik</th>' in isi
+    assert '<th scope="col">Latihan</th>' in isi
     assert "Pola Bilangan" in isi
 
 
@@ -441,7 +447,7 @@ def test_siswa_p5_bisa_membuat_sesi_geometri_datar(server):
         data={"topik": "geometri-datar", "profil_parameter": "P5"},
     )
     assert kode == 200
-    assert "Sesi #" in isi
+    assert f'action="/sesi-baru/{siswa_id}"' in isi
 
     with server.buka() as kon:
         sesi = kon.execute(
@@ -495,6 +501,6 @@ def test_alur_geometri_datar_guru_murid_laporan(server):
     assert kode == 200
 
     # laporan guru menampilkan nama ramah, bukan ID internal
-    kode, isi, _ = server.minta(f"/laporan/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU))
+    kode, isi, _ = server.minta(f"/anak/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU))
     assert kode == 200
     assert "Geometri Datar" in isi

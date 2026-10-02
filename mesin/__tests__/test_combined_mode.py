@@ -86,7 +86,9 @@ def test_http_gabungan_mempertahankan_lookup_runtime_seed_fasad(server, monkeypa
 
 
 def test_form_gabungan_default_cepat_dan_form_biasa_tetap_diagnostik(server):
-    status, html, _ = server.minta(f"/anak/{server.siswa}", auth=("guru", SANDI_GURU))
+    status, html, _ = server.minta(
+        f"/anak/{server.siswa}?section=latihan", auth=("guru", SANDI_GURU)
+    )
     assert status == 200
     form = FormGabungan(html).form
     gabungan = form[f"/sesi-gabungan/{server.siswa}"]

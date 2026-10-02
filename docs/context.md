@@ -79,10 +79,12 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
   `question_context.profil_otomatis()` memilih profil efektif manual/gabungan yang
   didukung dan paling dekat tanpa mengubah profil rencana. Generator mempertahankan
   komposisi historis sambil memvariasikan parameter dan urutan sesuai seed.
-  `profile_workspace.py` menjadi sumber navigasi empat tujuan profil. Pascapendaftaran
-  membuka `?section=rencana` yang dilabeli **Langkah berikutnya**, sedangkan default
-  `/anak/<id>` tetap membuka latihan manual untuk kompatibilitas. Kartu beranda hanya
-  mengarahkan profil yang rencananya belum dimulai ke tab tersebut. `reports.py` dan
+  `profile_workspace.py` menjadi sumber navigasi empat tujuan profil: **Berikutnya**,
+  **Buat latihan**, **Riwayat**, dan **Perkembangan**. Pascapendaftaran dan default
+  `/anak/<id>` sama-sama membuka Berikutnya; POST latihan kembali eksplisit ke
+  `?section=latihan`, aksi siklus ke `?section=rencana`, dan arsip ke
+  `?section=riwayat`. Deep link laporan lama dialihkan oleh `teacher_http.py` setelah
+  guard ownership. `reports.py` dan
   `report_metrics.py` menyediakan filter periode aktivitas
   server-side melalui query GET. Layanan siklus menginisialisasi konteks fondasi dan
   pemetaan pertama secara atomik dari satu tindakan eksplisit orang tua.

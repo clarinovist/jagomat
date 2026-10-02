@@ -35,16 +35,19 @@ def hanya_penjelasan_dilipat(isi):
     rincian = re.findall(r'<details\b.*?</details>', isi, re.S)
     assert len(rincian) == isi.count('<details')
     for blok in rincian:
-        assert blok.startswith('<details class="rincian-ui-st">')
+        if blok.startswith('<details class="bukti-konteks-rincian-st">'):
+            assert '<summary>Rincian bukti dan pengaturan</summary>' in blok
+            continue
+        assert blok.startswith('<details class="rincian-ui-st"')
         assert not any(tag in blok for tag in ('<table', '<form', '<input', '<a ', '<section', '<ul'))
         assert any('<summary>' + judul + '</summary>' in blok for judul in (
-            'Cara membaca progres', 'Tentang urutan dan filter', 'Aturan filter tanggal'))
+            'Cara membaca progres', 'Tentang urutan dan filter',
+            'Aturan filter tanggal', 'Cara Jagomat menilai'))
 
 
 @pytest.mark.parametrize('query', [
-    '', 'tampilan=tugas', 'section=penguasaan',
-    'section=penguasaan&tampilan=kriteria', 'section=penguasaan&tampilan=perjalanan',
-    'section=riwayat', 'section=riwayat&tampilan=mingguan', 'section=riwayat&tampilan=catatan',
+    '', 'section=penguasaan', 'section=perjalanan',
+    'section=penguasaan&rincian=kriteria',
 ])
 def test_konten_laporan_data_terbuka_hanya_penjelasan_dilipat(db, query):
     with database.buka(db) as kon:
@@ -155,13 +158,11 @@ def test_filter_sesi_tanggal_bukan_aktivitas_topik_dan_pagination(db):
 
 @pytest.mark.parametrize('query', [
     'section=penguasaan&materi=statistika&status=dinilai&halaman=2',
-    'section=penguasaan&tampilan=kriteria',
-    'section=penguasaan&tampilan=perjalanan&halaman=2',
-    'section=riwayat&periode=7&topik=gabungan&halaman=2',
-    'section=riwayat&tampilan=mingguan', 'section=riwayat&tampilan=catatan',
-    'tampilan=tugas&halaman=2',
+    'section=penguasaan&rincian=kriteria',
+    'section=perjalanan&halaman=2',
+    'section=ringkasan&rincian=tren', 'section=penguasaan&rincian=catatan',
     'section=penguasaan&materi=%3Cscript%3E&halaman=nan&status=asing',
-    'section=riwayat&tampilan=sesi&tampilan=catatan&topik=asing',
+    'section=penguasaan&rincian=asing&topik=asing',
 ])
 def test_http_v2_guard_tanpa_write_ai_dan_url_langsung(tmp_path, monkeypatch, query):
     from http_test_kit import ServerUji, SANDI_GURU, SANDI_MURID

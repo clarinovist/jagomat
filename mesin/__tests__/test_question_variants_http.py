@@ -18,7 +18,9 @@ def server(tmp_path, monkeypatch):
 def test_get_form_otomatis_tidak_menulis_atau_meminta_variasi(server):
     with server.buka() as kon:
         sebelum = tuple(kon.iterdump())
-    kode, isi, _ = server.minta('/anak/%d' % server.siswa, auth=('guru', SANDI_GURU))
+    kode, isi, _ = server.minta(
+        '/anak/%d?section=latihan' % server.siswa, auth=('guru', SANDI_GURU)
+    )
     assert kode == 200
     Formulir(isi)
     manual = isi.split('id="form-latihan-manual-', 1)[1].split('</form>', 1)[0]

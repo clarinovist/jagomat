@@ -38,7 +38,7 @@ def test_selisih_kecil_tidak_disebut_naik_nol(benar, arah):
     assert tampilan._perubahan(data) == arah + " <0,1 poin persentase"
 
 
-def test_resume_native_tidak_redirect_dan_manual_tidak_mengganti_rekomendasi(db):
+def test_ringkasan_tidak_memuat_resume_dan_tugas_lama(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Resume")
         ses = sesi(kon, sid, ("benar","tanpa"), level="P4")
@@ -49,15 +49,13 @@ def test_resume_native_tidak_redirect_dan_manual_tidak_mengganti_rekomendasi(db)
         h = reports.halaman_laporan(kon, sid).decode()
         tugas = reports.halaman_laporan(kon, sid, query='tampilan=tugas').decode()
         assert tuple(kon.iterdump()) == awal
-    assert '<section class="kartu laporan-resume"' in h
-    assert '<summary>Lihat rencana belajar</summary>' not in h
-    resume = h.split('id="rencana-belajar-laporan"',1)[1].split('aria-labelledby="judul-aktivitas"',1)[0]
-    assert 'tampilan=tugas' in resume
+    assert '<section class="kartu laporan-resume"' not in h
+    assert 'id="rencana-belajar-laporan"' not in h
+    assert 'tampilan=tugas' not in h
+    assert 'id="rincian-tugas"' in tugas
     assert f'/sesi/{ses}' in tugas
     assert 'class="rasio-laporan">1/2</span> soal terisi' in tugas
-    assert 'href="/anak/' in resume
-    assert resume.count('class="tombol aksi-rencana-laporan"') == 1
-    assert tampilan.judul_tindakan(PerjalananBelajar(rekomendasi)) in resume
+    assert tampilan.judul_tindakan(PerjalananBelajar(rekomendasi)) not in h
 
 
 def test_clock_resume_mengikuti_profil_bukan_batas_hari_statistik(db, monkeypatch):

@@ -97,7 +97,7 @@ def anak(db):
     return db, sid
 
 
-def _render_anak(db, siswa_id, section='latihan') -> str:
+def _render_anak(db, siswa_id, section='rencana') -> str:
     with database.buka(db) as kon:
         baris = kon.execute(
             "SELECT * FROM siswa WHERE id = ?", (siswa_id,)
@@ -194,7 +194,7 @@ def test_daftar_anak_punya_gaya_di_stitch():
 def test_timer_form_mengandalkan_state_css_bukan_javascript(anak):
     """Panel mengikuti radio/checkbox agar relasi pilihan terlihat konsisten."""
     db, sid = anak
-    markup = _tanpa_gaya(_render_anak(db, sid))
+    markup = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
     assert 'class="pengaturan-timer"' in markup
     assert 'class="rincian-timer"' in markup
     assert "querySelectorAll('input[name=\"mode\"]')" not in markup
@@ -206,11 +206,12 @@ def test_timer_form_mengandalkan_state_css_bukan_javascript(anak):
 
 def test_halaman_anak_tetap_utuh(anak):
     db, sid = anak
-    html = _render_anak(db, sid)
-    assert "Sesi #" in html
-    assert "Buat sesi baru" in html
-    assert "Buat latihan gabungan" in html
-    assert "Claudia" in html
+    rencana = _render_anak(db, sid)
+    latihan = _render_anak(db, sid, 'latihan')
+    assert "Sesi #" in rencana
+    assert "Buat latihan" in latihan
+    assert "Buat latihan gabungan" in latihan
+    assert "Claudia" in rencana
 
 
 # ── Fase B — layout desktop dua kolom ─────────────────────────────────
@@ -225,19 +226,20 @@ def test_halaman_anak_tetap_utuh(anak):
 
 def test_halaman_anak_punya_bungkus_ruang_kerja_scoped(anak):
     db, sid = anak
-    markup = _tanpa_gaya(_render_anak(db, sid))
+    markup = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
     assert 'profil-workspace-st' in markup
     assert 'class="profil-formulaire-st"' in markup
     assert 'class="profil-champs-st"' in markup
     assert 'class="profil-assistant-st"' in markup
 
 
-def test_form_sebelum_pendamping_dan_tugas_ringkas(anak):
-    """HP mengikuti urutan form, bantuan kontekstual, lalu tugas ringkas."""
+def test_form_latihan_terpisah_dari_tugas_rencana(anak):
     db, sid = anak
-    markup = _tanpa_gaya(_render_anak(db, sid))
-    assert markup.index('profil-champs-st') < markup.index('profil-assistant-st')
-    assert markup.index('Buat sesi baru') < markup.index('profil-taches-st')
+    latihan = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
+    rencana = _tanpa_gaya(_render_anak(db, sid, 'rencana'))
+    assert latihan.index('profil-champs-st') < latihan.index('profil-assistant-st')
+    assert 'Buat latihan' in latihan and 'profil-taches-st' not in latihan
+    assert 'profil-taches-st' in rencana and 'Kelola tautan anak' not in rencana
 
 
 def test_grid_dua_kolom_hanya_di_desktop():
@@ -284,9 +286,9 @@ def test_laporan_perkembangan_menjadi_tab_profil_tanpa_tautan_duplikat(anak, pri
     navigasi = markup[markup.index('class="profil-tabs-st"'):]
     navigasi = navigasi[:navigasi.index("</nav>")]
     assert [navigasi.index(label) for label in (
-        "Buat latihan", "Langkah berikutnya", "Riwayat", "Laporan perkembangan",
+        "Berikutnya", "Buat latihan", "Riwayat", "Perkembangan",
     )] == sorted(navigasi.index(label) for label in (
-        "Buat latihan", "Langkah berikutnya", "Riwayat", "Laporan perkembangan",
+        "Berikutnya", "Buat latihan", "Riwayat", "Perkembangan",
     ))
     assert f'href="/laporan/{sid}"' in navigasi
     assert 'aria-current="page">Riwayat' in navigasi
@@ -312,7 +314,7 @@ def test_kartu_sesi_mengutamakan_topik_dan_metadata_ramah(db):
             "UPDATE sesi SET tanggal = '2026-09-04' WHERE id = ?", (sesi_id,)
         )
 
-    markup = _tanpa_gaya(_render_anak(db, sid))
+    markup = _tanpa_gaya(_render_anak(db, sid, 'rencana'))
 
     assert '<a class="judul-sesi-st"' in markup
     assert "Gabungan 3 topik" in markup
@@ -327,7 +329,7 @@ def test_kartu_sesi_mengutamakan_topik_dan_metadata_ramah(db):
 
 def test_kartu_belum_dikerjakan_tidak_memamerkan_statistik_kosong(anak):
     db, sid = anak
-    markup = _tanpa_gaya(_render_anak(db, sid))
+    markup = _tanpa_gaya(_render_anak(db, sid, 'rencana'))
     assert "Belum Dikerjakan" in markup
     assert "Terisi 0/" not in markup
     assert "Benar &mdash;" not in markup
@@ -389,7 +391,7 @@ def test_tanggal_kartu_kanonis_aman_dan_tidak_terpotong():
 
 def test_host_pendamping_memakai_salin_tautan_dengan_fallback_native(anak):
     db, sid = anak
-    markup = _tanpa_gaya(_render_anak(db, sid))
+    markup = _tanpa_gaya(_render_anak(db, sid, 'riwayat'))
     badan = markup.split("<script>", 1)[0]
     assert 'id="kabar-bagikan"' not in badan
     assert 'class="kabar-bagikan-st" role="status" aria-live="polite"' in badan
@@ -426,7 +428,7 @@ def test_halaman_lain_tidak_ikut_melebar(anak):
 def test_tiga_form_tetap_utuh_dengan_action_masing_masing(anak):
     """Pembungkusan visual tidak boleh mengubah kontrak POST."""
     db, sid = anak
-    markup = _tanpa_gaya(_render_anak(db, sid))
+    markup = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
     assert f'action="/sesi-baru/{sid}"' in markup
     assert f'action="/sesi-gabungan/{sid}"' in markup
     assert len(re.findall(r'<form\b[^>]*\bmethod="post"', markup)) >= 2
@@ -434,7 +436,7 @@ def test_tiga_form_tetap_utuh_dengan_action_masing_masing(anak):
 
 def test_kartu_buat_latihan_membungkus_form(anak):
     db, sid = anak
-    markup = _tanpa_gaya(_render_anak(db, sid))
+    markup = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
     assert 'class="buat-latihan-st"' in markup
     assert markup.index('buat-latihan-st') < markup.index('/sesi-baru/')
 
@@ -442,7 +444,7 @@ def test_kartu_buat_latihan_membungkus_form(anak):
 def test_tab_memakai_radio_bukan_javascript(anak):
     """Tab harus radio murni; tidak boleh ada handler JS baru."""
     db, sid = anak
-    markup = _tanpa_gaya(_render_anak(db, sid))
+    markup = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
     assert 'name="jenis-latihan"' in markup
     assert "addEventListener(\"click\"" not in markup
     assert "onclick=" not in markup
@@ -456,7 +458,7 @@ def test_radio_tab_di_luar_form(anak):
     halaman, karena topbar sudah memuat form logout jauh di atas.
     """
     db, sid = anak
-    markup = _tanpa_gaya(_render_anak(db, sid))
+    markup = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
     sebelum = markup[: markup.index('name="jenis-latihan"')]
     assert sebelum.count("<form") == sebelum.count("</form>"), (
         "radio tab berada di dalam <form> — nilainya akan ikut terkirim"

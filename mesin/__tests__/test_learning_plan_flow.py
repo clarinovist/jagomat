@@ -136,7 +136,7 @@ def test_pemetaan_dari_kartu_hingga_konfirmasi_dan_jeda(server):
     kode, sah, _ = uji.minta(konfirmasi[0]['formaction'], auth=ident, data=pemahaman)
     assert kode == 200
     assert 'Hasil sudah dikonfirmasi' in sah
-    kembali = [t for t in _kontrol(sah).tautan if t == f'/anak/{siswa}']
+    kembali = [t for t in _kontrol(sah).tautan if t == f'/anak/{siswa}?section=riwayat']
     assert len(kembali) == 1
     kode, profil, _ = uji.minta(kembali[0], auth=ident)
     assert kode == 200

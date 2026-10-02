@@ -138,13 +138,13 @@ def _jalankan(kon, jenis, identitas, aksi, guru, data):
         if set(data) - {"alasan"}:
             raise ValueError("Isian pembatalan tidak dikenal.")
         siswa_id = layanan.batalkan_sesi(kon, identitas, data.get("alasan", ""))
-        return f"/anak/{siswa_id}"
+        return f"/anak/{siswa_id}?section=rencana"
     if aksi == 'pilot':
         from skill_pilot_service import jalankan
         return jalankan(kon, identitas, data)
     if aksi == "aksi":
         layanan.proses_aksi(kon, identitas, data)
-        return f"/anak/{identitas}"
+        return f"/anak/{identitas}?section=rencana"
     if data:
         if set(data) != {'profil_parameter'}:
             raise GalatForm("Rencana dihitung ulang oleh server.")

@@ -38,18 +38,20 @@ def _isi(kon, anak, **kw):
     return teacher_pages.halaman_anak(kon,siswa,pengguna='guru',privat=True,**kw).decode().split('</style>',1)[1]
 
 
-def test_default_latihan_dan_hanya_tab_terpilih_dirender(db):
+def test_default_berikutnya_dan_hanya_tab_terpilih_dirender(db):
     kon, anak, _ = db
-    isi = _isi(kon,anak)
-    assert f'href="/anak/{anak}?section=latihan" aria-current="page"' in isi
-    assert f'action="/sesi-baru/{anak}"' in isi
-    assert f'action="/sesi-gabungan/{anak}"' in isi
-    assert '<details class="atur-latihan-st"' not in isi
-    assert 'class="kartu-rencana-st"' not in isi
+    isi = _isi(kon, anak)
+    assert f'href="/anak/{anak}?section=rencana" aria-current="page"' in isi
+    assert f'action="/sesi-baru/{anak}"' not in isi
+    assert f'action="/sesi-gabungan/{anak}"' not in isi
+    assert 'class="kartu-rencana-st"' in isi
     assert 'class="tabel-riwayat-st"' not in isi
-    assert 'class="profil-rappel-st"' not in isi
-    assert f'href="/anak/{anak}?section=rencana"' in isi
     assert isi.count('class="st-kartu-baris kartu-sesi-guru') <= 3
+    manual = _isi(kon, anak, query='section=latihan')
+    assert f'action="/sesi-baru/{anak}"' in manual
+    assert f'action="/sesi-gabungan/{anak}"' in manual
+    assert '<summary>Pengaturan lanjutan</summary>' in manual
+    assert 'class="profil-taches-st"' not in manual
 
 
 def test_208_sesi_dipaginasi_20_dan_tidak_bocor_keluarga(db):
@@ -107,20 +109,20 @@ def test_filter_gabungan_topik_dan_tanggal_inklusif(db):
     assert 'data-sesi-id="1"' in isi and 'dari 1 sesi' in isi
 
 
-def test_ringkasan_rencana_default_memakai_reducer_bukan_sesi_manual(db):
-    kon,anak,_=db
+def test_default_rencana_memakai_reducer_dan_manual_hanya_tugas_sekunder(db):
+    kon, anak, _ = db
     from learning_cycle import rencana_berikutnya
     import learning_cycle_ui
-    bukti=database.muat_bukti_siklus(kon,anak)
-    rencana=rencana_berikutnya(bukti,anak)
-    judul=learning_cycle_ui._judul(rencana,learning_cycle_ui._fokus_utama(rencana),bukti)
-    isi=_isi(kon,anak)
-    # Banyak sesi manual tidak menjadi ajakan pemetaan; tab tetap bisa dibuka.
-    assert judul not in isi
-    assert 'class="profil-rappel-st"' not in isi
-    assert f'href="/anak/{anak}?section=rencana"' in isi
-    assert 'class="rencana-cta-utama-st"' not in isi
-    assert f'action="/siklus/{anak}/buat"' not in isi
+    bukti = database.muat_bukti_siklus(kon, anak)
+    rencana = rencana_berikutnya(bukti, anak)
+    judul = learning_cycle_ui._judul(
+        rencana, learning_cycle_ui._fokus_utama(rencana), bukti
+    )
+    isi = _isi(kon, anak)
+    assert judul in isi
+    assert f'href="/anak/{anak}?section=rencana" aria-current="page"' in isi
+    assert f'action="/siklus/{anak}/buat"' in isi
+    assert isi.count('class="st-kartu-baris kartu-sesi-guru') <= 3
 
 
 def test_rencana_hanya_di_tab_rencana_dan_tetap_readonly(db):

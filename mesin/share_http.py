@@ -226,6 +226,7 @@ def tangani_guru_post(penangan, jalur: str) -> bool:
             return True
         share_links.cabut(kon, sesi_id)
         qs = urllib.parse.urlencode({
+            "section": "riwayat",
             "pesan": (
                 f"Tautan sesi dicabut — sesi #{sesi_id} tidak bisa lagi "
                 "dibuka dari link lama."

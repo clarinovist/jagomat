@@ -913,15 +913,16 @@ def halaman_sesi_stitch(
     if hasil_pemetaan:
         label_tab = "Hasil pemetaan" if rencana_pemetaan else "Ringkasan &amp; tinjauan"
         pil = pil.replace(">Koreksi</a>", f">{label_tab}</a>")
-    tautan_profil = f'/anak/{info["siswa_id"]}' + ('?section=rencana' if sesi_pilot else '')
+    tautan_rencana = f'/anak/{info["siswa_id"]}?section=rencana'
+    tautan_riwayat = f'/anak/{info["siswa_id"]}?section=riwayat'
     aksi_rencana = (
-        f'<a class="panduan-rencana-st" href="{tautan_profil}">Lihat rencana berikutnya</a>'
+        f'<a class="panduan-rencana-st" href="{tautan_rencana}">Lihat rencana berikutnya</a>'
         if konfirmasi_masih_aktif and not sesi_dibatalkan and not masalah_konfirmasi
         and not rencana_pemetaan else ""
     )
     jejak = (
         "" if aksi_rencana else
-        f'<div class="sesi-jejak-st"><a href="{tautan_profil}">&larr; '
+        f'<div class="sesi-jejak-st"><a href="{tautan_riwayat}">&larr; '
         f'Semua sesi {html.escape(info["nama"])}</a></div>'
     )
 

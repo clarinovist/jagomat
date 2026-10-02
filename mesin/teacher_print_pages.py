@@ -80,7 +80,7 @@ def halaman_bagikan_sesi(sesi_id: int, siswa_id: int, tautan: str, pengguna: str
     """Salin tautan secara manual; hanya presentasi, tanpa membaca/membuat token."""
     return _halaman(
         f"Bagikan sesi #{sesi_id}",
-        f'<div class="jejak"><a href="/anak/{siswa_id}">&larr; Kembali ke profil anak</a></div>'
+        f'<div class="jejak"><a href="/anak/{siswa_id}?section=riwayat">&larr; Kembali ke riwayat anak</a></div>'
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">BELAJAR LEWAT TAUTAN</p>'
         f'<h1 id="judul-bagikan">Bagikan sesi #{sesi_id}</h1>'
         '<p class="sub">Salin tautan ini dan berikan kepada anak yang mengerjakan sesi ini.</p></header>'
@@ -191,8 +191,8 @@ def halaman_sesi_cetak(
     pil = _pil_sesi(kon, sesi_id, "cetak")
     return _halaman(
         f"Sesi #{sesi_id} — Cetak",
-        f'<div class="jejak"><a href="/anak/{info["siswa_id"]}">&larr; '
-        f'Semua sesi {html.escape(info["nama"])}</a></div>'
+        f'<div class="jejak"><a href="/anak/{info["siswa_id"]}?section=riwayat">&larr; '
+        f'Riwayat {html.escape(info["nama"])}</a></div>'
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">CETAK</p>'
         f'<h1 id="judul-cetak">{html.escape(info["nama"])} — Sesi #{sesi_id}</h1></header>'
         f'<p class="sub">{info["tanggal"]} &middot; '
@@ -260,8 +260,8 @@ def halaman_sesi_lampiran(
     pil = _pil_sesi(kon, sesi_id, "lampiran")
     return _halaman(
         f"Sesi #{sesi_id} — Lampiran",
-        f'<div class="jejak"><a href="/anak/{info["siswa_id"]}">&larr; '
-        f'Semua sesi {html.escape(info["nama"])}</a></div>'
+        f'<div class="jejak"><a href="/anak/{info["siswa_id"]}?section=riwayat">&larr; '
+        f'Riwayat {html.escape(info["nama"])}</a></div>'
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">ARSIP LEMBAR LATIHAN</p>'
         f'<h1 id="judul-lampiran">{html.escape(info["nama"])} — Sesi #{sesi_id}</h1></header>'
         f'<p class="sub">{info["tanggal"]} &middot; '

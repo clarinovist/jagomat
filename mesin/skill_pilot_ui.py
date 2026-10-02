@@ -105,14 +105,29 @@ def materi_sesi(kon,sesi_id,siswa_id):
             '<p>Catat bantuan dengan jujur. Sesi ini tidak menyertifikasi pemahaman mandiri.</p></section>')
 
 
-def laporan(kon,siswa_id):
+def laporan(kon,siswa_id,*,hanya_relevan=False):
     """Laporan memakai reducer pilot yang sama, bukan persentase baru."""
     hari=domain_clock.hari_wib()
     try:
         paket,daftar,_,_=keadaan(kon,siswa_id,hari)
+        if hanya_relevan and not daftar and not paket.butir:
+            return ''
         return status_pilot(paket,siswa_id,daftar,hari)
     except ValueError:
         return '<p>Sumber catatan pendampingan perlu diperiksa; tidak ada klaim pemahaman baru.</p>'
+
+
+def sesi_utama(kon, siswa_id, *, hari=None):
+    """Identitas sesi CTA pilot aktif untuk deduplikasi presentasi."""
+    hari = hari or domain_clock.hari_wib()
+    try:
+        _paket, daftar, aktif, warisan = keadaan(kon, siswa_id, hari)
+    except ValueError:
+        return None
+    if not daftar or warisan is not None or aktif is None:
+        return None
+    rencana = aktif[2]
+    return rencana.sesi_id if rencana.tindakan in ('lanjutkan_sesi', 'konfirmasi_hasil') else None
 
 
 def kartu(kon,siswa_id,*,hari=None):

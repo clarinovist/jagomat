@@ -89,7 +89,8 @@ def test_metadata_dan_status_tidak_dibuang_demi_ringkas(db):
     assert 'class="riwayat-meta-st"' in baris
     assert 'Latihan bebas' in baris and 'Variasi A' in baris and 'Mode Diagnosa' in baris
     assert 'Sesi #' in baris and 'Belum Dikerjakan' in baris and 'Menunggu pengiriman' in baris
-    assert baris.count('>Buka →</a>')==1
+    assert baris.count('>Buka sesi</a>')==1
+    assert '<summary>Kelola tautan</summary>' in baris
     assert 'Salin tautan sesi' in baris
 
 
@@ -110,9 +111,9 @@ def test_tab_profil_mobile_empat_tujuan_membungkus_tanpa_scroll_horizontal():
     mobile=css.split('@media(max-width:48rem)',1)[1]
     tab=re.search(r'\.profil-workspace-st \.profil-tabs-st \{([^}]+)',mobile).group(1)
     tautan=re.search(r'\.profil-workspace-st \.profil-tabs-st a \{([^}]+)',mobile).group(1)
-    assert 'display:grid' in tab and 'grid-template-columns:repeat(2,minmax(0,1fr))' in tab
-    assert 'overflow-x:visible' in tab
-    assert 'justify-content:center' in tautan and 'white-space:normal' in tautan
+    assert 'display:grid' in tab and 'grid-template-columns:repeat(4,minmax(0,1fr))' in tab
+    assert 'overflow-x:hidden' in tab
+    assert 'justify-content:center' in tautan and 'white-space:nowrap' in tautan
 
 
 @pytest.fixture()

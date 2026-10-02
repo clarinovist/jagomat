@@ -245,7 +245,7 @@ def render_ringkasan(
     aktivitas = "".join(
         '<li><span class="admin-aktivitas-ikon" aria-hidden="true">%s</span><div>'
         '<a class="admin-aktivitas-judul" href="/sesi/%d">Sesi %d · %s</a>'
-        '<p><a href="/anak/%d">%s</a> · %s</p><p class="admin-meta">%s WIB</p></div></li>'
+        '<p><a href="/anak/%d?section=riwayat">%s</a> · %s</p><p class="admin-meta">%s WIB</p></div></li>'
         % ("B" if item.dibatalkan else "S", item.sesi_id, item.sesi_id,
            "Dibatalkan" if item.dibatalkan else "Tercatat", item.siswa_id,
            _e(item.nama_siswa), _e(item.pemilik or "Pemilik kosong"), _e(item.waktu_aktivitas))
@@ -572,7 +572,7 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
         '<dt>Keluarga</dt><dd>%s</dd>'
         '<dt>Login eksplisit</dt><dd>%s</dd><dt>Jumlah sesi</dt><dd>%d</dd>'
         '<dt>Kondisi</dt><dd>%s</dd></dl>'
-        '<div class="admin-aksi-baca"><a class="admin-tautan" href="/anak/%d">Buka profil</a>'
+        '<div class="admin-aksi-baca"><a class="admin-tautan" href="/anak/%d?section=rencana">Buka profil</a>'
         '<a class="admin-tautan" href="/laporan/%d">Buka laporan</a></div></section>'
         % (
             _e(siswa.nama), siswa.id, _e(label_kelas_sekolah(siswa.kelas_sekolah)), _e(siswa.tingkat),

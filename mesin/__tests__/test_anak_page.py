@@ -100,8 +100,11 @@ def test_halaman_anak_menampilkang_history_dan_strip_sesi(db):
         html = teacher_pages.halaman_anak(
             kon, baris, peran="guru", pengguna="ortu"
         ).decode()
+        latihan = teacher_pages.halaman_anak(
+            kon, baris, peran="guru", pengguna="ortu", query="section=latihan"
+        ).decode()
     assert "Sesi #" in html
-    assert "Buat sesi baru" in html, "strip buat sesi pindah ke halaman anak"
+    assert "Buat latihan" in latihan
 
 
 def test_halaman_anak_menetapkan_sorot_dari_query(db):

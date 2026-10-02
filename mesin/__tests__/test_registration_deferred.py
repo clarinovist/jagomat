@@ -60,13 +60,13 @@ def test_http_daftar_baru_dan_semua_halaman_profil(server):
         sid = siswa['id']
         awal = tuple(kon.iterdump())
     login = (data['nama'], data['sandi'])
-    for url in ('/', '/akun', '/anak/%d' % sid, '/anak/%d?section=rencana' % sid,
-                '/anak/%d?section=riwayat' % sid, '/laporan/%d' % sid,
+    for url in ('/', '/akun', '/anak/%d' % sid, '/anak/%d?section=latihan' % sid,
+                '/anak/%d?section=rencana' % sid, '/anak/%d?section=riwayat' % sid, '/laporan/%d' % sid,
                 '/laporan/%d?section=penguasaan' % sid):
         kode, isi, _ = server.minta(url, auth=login)
         assert kode == 200, (url, kode)
         assert 'Konfigurasi lama: ' not in isi
-        if url == '/anak/%d' % sid:
+        if url == '/anak/%d?section=latihan' % sid:
             assert 'name="profil_parameter"' not in isi
             assert 'Jagomat memilih cakupan yang sesuai' in isi
         if 'section=rencana' in url:

@@ -320,7 +320,7 @@ def halaman_anak(
     if section == "riwayat":
         sesi, total_hasil, filter_profil = profile_history.halaman_riwayat(kon, siswa["id"], filter_profil)
     else:
-        sesi = profile_history.tugas_terbaru(kon, siswa["id"], sorot) if section == "latihan" else []
+        sesi = []
     opsi_topik = "".join(
         f'<option value="{html.escape(t)}"'
         f'{" selected" if (draf_latihan.topik if draf_latihan else TOPIK_BAWAAN) == t else ""}>'
@@ -365,7 +365,7 @@ def halaman_anak(
             'aria-live="polite"></span></div>'
         )
 
-    def _kartu_sesi(r, kelas):
+    def _kartu_sesi(r, kelas, *, ringkas=False):
         topik_id = str(_ambil(r, "topik", TOPIK_BAWAAN))
         judul_topik, rincian_topik = _nama_topik_sesi(topik_id)
         rincian = (
@@ -413,15 +413,10 @@ def halaman_anak(
             f"{rincian}{identitas_remedial}{ringkasan}"
             "</div>"
             '<div class="aksi-sesi-st">'
-            f'{_aksi_tautan(r)}'
-            "</div>"
+            + ('' if ringkas else _aksi_tautan(r))
+            + "</div>"
             "</article>"
         )
-
-    if section == "latihan" and sesi:
-        item = "".join(_kartu_sesi(r, _kelas_sorot(r["id"])) for r in sesi)
-    else:
-        item = '<p class="sub">Tidak ada latihan yang perlu ditindaklanjuti.</p>'
 
     from choice_pages import kontrol_format
     draf_aktif = (
@@ -458,10 +453,16 @@ def halaman_anak(
         )
         + '</select><small class="profil-petunjuk-st" id="manual-jumlah-petunjuk">'
         'Estimasi ±3 menit per soal. “Sesuai topik” memakai jumlah bawaan topik.</small></div>'
+        + '<details class="atur-latihan-st profil-lanjutan-st"'
+        + (' open' if draf_latihan and (
+            getattr(draf_latihan, "format_jawaban", "isian") != "isian"
+            or draf_latihan.mode != "diagnostik" or draf_latihan.timer_mode
+        ) else '')
+        + '><summary>Pengaturan lanjutan</summary><div class="profil-lanjutan-isi-st">'
         + f'{kontrol_format("manual", getattr(draf_latihan, "format_jawaban", "isian"))}{_kontrol_mode_sesi(draf_latihan)}'
-        + '<button type="submit" class="st-tombol-coral">'
+        + '</div></details><button type="submit" class="st-tombol-coral">'
         f'{profile_workspace.ikon("play_arrow")}'
-        "Buat sesi baru</button></div>"
+        "Buat latihan</button></div>"
         '<input type="hidden" name="inline_form" value="manual">'
         '<div class="profil-assistant-st">'
         + _slot_pendamping("manual") + "</div></form>"
@@ -473,7 +474,7 @@ def halaman_anak(
     strip_remedial = _form_remedial(
         sasaran,
         int(siswa["id"]),
-        judul="Perkuat kelemahan",
+        judul="Latihan terarah",
         penjelasan=(
             "Pilih yang ingin dilatih. Pilihan yang dicentang adalah rekomendasi "
             "berdasarkan hasil terbaru."
@@ -502,19 +503,6 @@ def halaman_anak(
         "bergantian antar-topik yang kamu pilih.</p>"
         f'<div class="mode-pilih">{centang_topik}</div>'
         '<small class="profil-petunjuk-st">Jagomat memilih satu cakupan yang tersedia pada semua topik pilihan.</small></div>'
-        + f'{kontrol_format("gabungan", getattr(draf_gabungan, "format_jawaban", "isian"))}'
-        + '<div class="strip-kolom">'
-        '<span id="gabungan-mode-label">Mode latihan</span>'
-        '<div class="mode-pilih" role="radiogroup" aria-labelledby="gabungan-mode-label">'
-        '<label class="mode-opsi"><input type="radio" name="mode" value="drill"' + (' checked' if not draf_gabungan or draf_gabungan.mode == 'drill' else '') + '>'
-        '<span class="mode-teks">Latihan Cepat'
-        '<span class="mode-desk">Anak langsung mengisi jawaban, tanpa menuliskan cara.</span>'
-        '</span></label>'
-        '<label class="mode-opsi"><input type="radio" name="mode" value="diagnostik"' + (' checked' if draf_gabungan and draf_gabungan.mode == 'diagnostik' else '') + '>'
-        '<span class="mode-teks">Diagnostik'
-        '<span class="mode-desk">Jawaban dan cara berpikir anak ikut diperiksa.</span>'
-        '</span></label>'
-        '</div></div>'
         '<div class="strip-kolom"><label for="gabungan-jumlah">Jumlah Soal</label>'
         '<select id="gabungan-jumlah" name="jumlah_soal" class="st-input">'
         + ''.join(
@@ -522,6 +510,20 @@ def halaman_anak(
             for nilai in ("10", "15", "20")
         )
         + "</select></div>"
+        + '<details class="atur-latihan-st profil-lanjutan-st"'
+        + (' open' if draf_gabungan and (
+            getattr(draf_gabungan, "format_jawaban", "isian") != "isian"
+            or draf_gabungan.mode != "drill"
+        ) else '')
+        + '><summary>Pengaturan lanjutan</summary><div class="profil-lanjutan-isi-st">'
+        + f'{kontrol_format("gabungan", getattr(draf_gabungan, "format_jawaban", "isian"))}'
+        + '<div class="strip-kolom"><span id="gabungan-mode-label">Mode latihan</span>'
+        '<div class="mode-pilih" role="radiogroup" aria-labelledby="gabungan-mode-label">'
+        '<label class="mode-opsi"><input type="radio" name="mode" value="drill"' + (' checked' if not draf_gabungan or draf_gabungan.mode == 'drill' else '') + '>'
+        '<span class="mode-teks">Latihan Cepat<span class="mode-desk">Anak langsung mengisi jawaban, tanpa menuliskan cara.</span></span></label>'
+        '<label class="mode-opsi"><input type="radio" name="mode" value="diagnostik"' + (' checked' if draf_gabungan and draf_gabungan.mode == 'diagnostik' else '') + '>'
+        '<span class="mode-teks">Diagnostik<span class="mode-desk">Jawaban dan cara berpikir anak ikut diperiksa.</span></span></label>'
+        '</div></div></div></details>'
         '<button type="submit" class="st-tombol-coral">'
         f'{profile_workspace.ikon("library_add")}Buat latihan gabungan</button>'
         '<div class="profil-assistant-st">' + _slot_pendamping("gabungan") + '</div>'
@@ -535,9 +537,9 @@ def halaman_anak(
     # Panel disusun dinamis: strip_remedial kosong kalau anak belum punya
     # kesalahan tercatat. Menyusunnya dari daftar mencegah tab hantu yang
     # menunjuk panel kosong.
-    panel = [("baru", "add_circle", "Sesi baru", strip_sesi)]
+    panel = [("baru", "add_circle", "Latihan biasa", strip_sesi)]
     if strip_remedial:
-        panel.append(("ulang", "restart_alt", "Perkuat kelemahan", strip_remedial))
+        panel.append(("ulang", "restart_alt", "Latihan terarah", strip_remedial))
     if strip_gabungan:
         panel.append(("gabungan", "library_add", "Gabungan topik", strip_gabungan))
 
@@ -564,12 +566,16 @@ def halaman_anak(
             f'<div class="panel-latihan-st" data-panel="{kode}">{badan}</div>'
             for kode, _, _, badan in panel
         )
+        batas_manual = (
+            '<p class="profil-batas-manual-st">Latihan tambahan tercatat di Riwayat, '
+            'tetapi tidak otomatis mengubah Langkah berikutnya.</p>'
+        )
         blok_buat_latihan = (
             '<section class="buat-latihan-st">'
             '<h2 class="st profil-sr-st">Buat latihan</h2>'
             f"{tab}"
             f'<div class="tab-bar-st">{label}</div>'
-            f"{panduan}{isi_panel}"
+            f"{panduan}{isi_panel}{batas_manual}"
             "</section>"
         )
     else:
@@ -579,6 +585,8 @@ def halaman_anak(
             '<section class="buat-latihan-st">'
             '<h2 class="st profil-sr-st">Buat latihan</h2>'
             f"{panduan}{strip_sesi}"
+            '<p class="profil-batas-manual-st">Latihan tambahan tercatat di Riwayat, '
+            'tetapi tidak otomatis mengubah Langkah berikutnya.</p>'
             "</section>"
         )
 
@@ -589,28 +597,40 @@ def halaman_anak(
         )
         if peran == "guru" and pengguna else ""
     )
-    kartu_rencana = learning_cycle_ui.kartu_rencana(
-        kon, int(siswa["id"]), slot_bantuan=tautan_bantuan,
-    ) if section == "rencana" else ""
+    kartu_rencana = ""
+    tugas_rencana = ""
+    if section == "rencana":
+        kartu_rencana, sesi_utama = learning_cycle_ui.kartu_rencana(
+            kon, int(siswa["id"]), slot_bantuan=tautan_bantuan,
+            dengan_identitas=True,
+        )
+        sesi = profile_history.tugas_terbaru(
+            kon, siswa["id"], sorot, kecuali=sesi_utama,
+        )
+        if sesi:
+            item = "".join(
+                _kartu_sesi(r, _kelas_sorot(r["id"]), ringkas=True) for r in sesi
+            )
+            tugas_rencana = (
+                '<section class="profil-taches-st"><h2 class="st">Tugas lain</h2>'
+                '<p class="sub">Maksimal tiga sesi yang masih perlu diselesaikan atau ditinjau.</p>'
+                f'<div class="daftar-anak">{item}</div></section>'
+            )
     latihan_manual = (
         '<section class="profil-formulaire-st">'
         f"{blok_buat_latihan}</section>"
     )
     if section == "rencana":
-        isi_profil = kartu_rencana
+        isi_profil = kartu_rencana + tugas_rencana
     elif section == "riwayat":
         isi_profil = profile_workspace.riwayat(
             int(siswa["id"]), sesi, total_hasil, filter_profil,
             judul_topik=_nama_topik_sesi, tanggal=_tanggal_ringkas,
-            badge_tinjauan=_badge_review_status, aksi_bagikan=_aksi_tautan,
+            badge_tinjauan=_badge_review_status,
+            ringkasan_hasil=_ringkasan_angka_sesi, aksi_bagikan=_aksi_tautan,
         )
     else:
-        isi_profil = (
-            learning_cycle_ui.pengingat_rencana(kon, int(siswa["id"]))
-            + latihan_manual + '<section class="profil-taches-st"><h2 class="st">Perlu ditindaklanjuti</h2>'
-            '<p class="sub">Hingga tiga sesi terbaru · sesi lainnya di Riwayat.</p>'
-            f'<div class="daftar-anak">{item}</div></section>'
-        )
+        isi_profil = latihan_manual
 
     return _halaman_stitch(
         f"{siswa['nama']} — {T.NAMA_PRODUK}",

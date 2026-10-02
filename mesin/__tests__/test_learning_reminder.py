@@ -117,16 +117,20 @@ def server(tmp_path, monkeypatch):
         s.berhenti()
 
 
-def test_http_manual_langsung_rencana_tetap_tersedia_dan_pengingat_aktif(server):
+def test_http_default_berikutnya_dan_latihan_manual_tetap_tersedia(server):
     with server.buka() as kon:
         sid = database.tambah_siswa(kon, 'Sintetis', pemilik='guru')
         asing = database.tambah_siswa(kon, 'Asing', pemilik='keluarga-lain')
         awal = tuple(kon.iterdump())
     status, isi, _ = server.minta('/anak/%d' % sid, auth=('guru', SANDI_GURU))
     assert status == 200
-    assert f'action="/sesi-baru/{sid}"' in isi
-    assert 'class="profil-rappel-st"' not in isi
-    assert f'href="/anak/{sid}?section=rencana"' in isi
+    assert f'action="/siklus/{sid}/buat"' in isi
+    assert f'href="/anak/{sid}?section=rencana" aria-current="page"' in isi
+    manual = server.minta(
+        f'/anak/{sid}?section=latihan', auth=('guru', SANDI_GURU)
+    )[1]
+    assert f'action="/sesi-baru/{sid}"' in manual
+    assert 'class="profil-rappel-st"' not in manual
     with server.buka() as kon:
         assert tuple(kon.iterdump()) == awal
     assert server.minta(f'/anak/{sid}?section=rencana', auth=('guru', SANDI_GURU))[0] == 200
@@ -134,12 +138,9 @@ def test_http_manual_langsung_rencana_tetap_tersedia_dan_pengingat_aktif(server)
     with server.buka() as kon:
         sebelum = tuple(kon.iterdump())
     status, isi, _ = server.minta('/anak/%d' % sid, auth=('guru', SANDI_GURU))
-    assert status == 200 and isi.count('class="profil-rappel-st"') == 1
-    banner = isi.split('class="profil-rappel-st"', 1)[1].split('</div>', 1)[0]
-    assert 'Lanjutkan sesi — Latihan awal' in banner and '<form' not in banner
-    assert 'Rencana belajar hari ini' not in banner and '<br>' not in banner
-    assert 'Buka rencana →' in banner and banner.count('<a ') == 1
-    assert f'?section=rencana' in banner
+    assert status == 200 and 'class="profil-rappel-st"' not in isi
+    assert 'Lanjutkan sesi — Latihan awal' in isi
+    assert f'href="/sesi/' in isi
     ditolak = [server.minta('/anak/%d' % identitas, auth=('guru', SANDI_GURU))[:2] for identitas in (asing, 99999)]
     assert ditolak[0] == ditolak[1] and ditolak[0][0] == 404
     with server.buka() as kon:
@@ -148,12 +149,10 @@ def test_http_manual_langsung_rencana_tetap_tersedia_dan_pengingat_aktif(server)
         kon.execute('UPDATE sesi SET selesai=CURRENT_TIMESTAMP WHERE id=?', (sesi,))
     status, isi, _ = server.minta('/anak/%d' % sid, auth=('guru', SANDI_GURU))
     assert status == 200
-    banner = isi.split('class="profil-rappel-st"', 1)[1].split('</div>', 1)[0]
-    assert 'Tinjau dan konfirmasi hasil — Latihan awal' in banner and '<form' not in banner
-    assert 'Buka rencana →' in banner
+    assert 'Tinjau dan konfirmasi hasil — Latihan awal' in isi
 
 
-def test_http_optin_manual_terkonfirmasi_bukan_direview_memunculkan_banner(server):
+def test_http_optin_manual_terkonfirmasi_memengaruhi_kartu_reducer(server):
     with server.buka() as kon:
         sid = database.tambah_siswa(kon, 'Sintetis', pemilik='guru')
         sesi = database.buat_sesi(kon, sid, 88, jumlah_soal=1)
@@ -169,6 +168,7 @@ def test_http_optin_manual_terkonfirmasi_bukan_direview_memunculkan_banner(serve
         kon.execute("INSERT INTO kejadian_belajar(siswa_id,sesi_id,konfirmasi_id,jenis) VALUES(?,?,?,'sertakan_pemetaan')", (sid, sesi, konfirmasi))
         sebelum = tuple(kon.iterdump())
     status, isi, _ = server.minta('/anak/%d' % sid, auth=('guru', SANDI_GURU))
-    assert status == 200 and isi.count('class="profil-rappel-st"') == 1
+    assert status == 200 and 'class="profil-rappel-st"' not in isi
+    assert 'class="kartu-rencana-st"' in isi
     with server.buka() as kon:
         assert tuple(kon.iterdump()) == sebelum

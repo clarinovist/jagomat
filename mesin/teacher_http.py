@@ -196,13 +196,22 @@ def tangani_profil_get(
                     halaman_galat("404", "<h1>Halaman tidak ada</h1>"), 404
                 )
                 return True
+            query_laporan = urllib.parse.urlsplit(jalur_penuh).query
+            from report_navigation import tujuan_alias_lama
+            tujuan = tujuan_alias_lama(siswa_id, query_laporan)
+            if tujuan:
+                penangan.send_response(303)
+                penangan.send_header("Location", tujuan)
+                penangan.send_header("Content-Length", "0")
+                penangan.end_headers()
+                return True
             ident = penangan._identitas()
             penangan._kirim(halaman_laporan(
                 kon,
                 siswa_id,
                 pengguna=ident[0] if ident else "",
                 peran=ident[1] if ident else "guru",
-                query=urllib.parse.urlsplit(jalur_penuh).query,
+                query=query_laporan,
             ))
             return True
     except (ValueError, IndexError):

@@ -67,9 +67,11 @@ def test_halaman_profil_hanya_satu_pemicu_dan_bukan_di_bawah_cta():
         with database.buka(path) as kon:
             sid = database.tambah_siswa(kon, "Anak Sintetis", "P4", pemilik="guru")
             siswa = kon.execute("SELECT * FROM siswa WHERE id=?", (sid,)).fetchone()
-            markup = teacher_pages.halaman_anak(kon, siswa, pengguna="guru").decode()
+            markup = teacher_pages.halaman_anak(
+                kon, siswa, pengguna="guru", query="section=latihan"
+            ).decode()
     assert markup.count('class="pendamping-pemicu"') == 2
-    assert markup.index('class="pendamping-pemicu"') > markup.index('Buat sesi baru')
+    assert markup.index('class="pendamping-pemicu"') > markup.index('Buat latihan')
     assert 'class="profil-assistant-st"><span class="pendamping-buka-inline"' in markup
     assert '.panel-latihan-st:not(:first-of-type) .pendamping-buka-inline' not in markup
     assert "Bahas dengan Pendamping" not in markup

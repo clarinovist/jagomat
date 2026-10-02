@@ -12,18 +12,48 @@ from report_navigation import halaman_daftar, navigasi_halaman, url_laporan
 
 
 GAYA_LAPORAN = f"""
+.laporan-editorial-st .perkembangan-hero-st {{
+  display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:{T.SP_5};
+  margin:0 0 {T.SP_4}; padding:{T.SP_5}; background:{T.LATAR_KARTU};
+  border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR};
+}}
+.laporan-editorial-st .perkembangan-hero-st h2 {{margin:0;font-size:{T.UKURAN_JUDUL_DEWASA};}}
+.laporan-editorial-st .perkembangan-hero-st p {{margin:{T.SP_1} 0 0;color:{T.TEKS_VARIAN};max-width:54ch;}}
+.laporan-editorial-st .perkembangan-hero-st .editorial-alis-st {{color:{T.AKSEN_TEAL_TUA};font-weight:800;font-size:{T.UKURAN_TEKS_META};letter-spacing:.08em;}}
+.laporan-editorial-st .perkembangan-maskot-st {{
+  align-self:center; width:5rem; height:5rem; object-fit:contain;
+}}
+.laporan-editorial-st .aktivitas-kartu-st {{
+  margin-top:{T.SP_5}; padding:{T.SP_5}; background:{T.LATAR_KARTU};
+  border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR};
+}}
+.laporan-editorial-st .aktivitas-kepala-st {{display:flex;align-items:start;justify-content:space-between;gap:{T.SP_4};}}
+.laporan-editorial-st .aktivitas-kepala-st h2 {{margin:0;}}
+.laporan-editorial-st .aktivitas-periode-st {{margin:0;color:{T.TEKS_SUBTLE};font-size:{T.UKURAN_TEKS_BANTUAN};}}
 .laporan-editorial-st .laporan-metrik {{
-  display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:{T.SP_4};
-  margin:{T.SP_5} 0;
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:{T.SP_3};
+  margin:{T.SP_4} 0;
 }}
 .laporan-editorial-st .laporan-metrik .stat {{
-  padding:{T.SP_4}; background:{T.LATAR_KARTU}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS};
-  border-radius:{T.RADIUS_KARTU_BESAR}; min-width:0;
+  padding:{T.SP_4}; background:{T.LATAR_SEKUNDER_LEMBUT};
+  border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS};
+  border-top:3px solid {T.BORDER_VARIAN}; border-radius:{T.RADIUS_SEDANG}; min-width:0;
 }}
+.laporan-editorial-st .laporan-metrik .stat:nth-child(1),
+.laporan-editorial-st .laporan-metrik .stat:nth-child(2) {{border-color:{T.AKSEN_TEAL_TUA};}}
+.laporan-editorial-st .laporan-metrik .stat:nth-child(3) {{border-color:{T.AKSEN_MURID_AMBER};}}
+.laporan-editorial-st .laporan-metrik .stat:nth-child(4) {{border-color:{T.AKSEN_KORAL_TUA};}}
 .laporan-editorial-st .laporan-metrik strong {{
   display:block; font-size:{T.UKURAN_ANGKA_DEWASA}; color:{T.TEKS_JUDUL}; line-height:1.2;
 }}
 .laporan-editorial-st .laporan-metrik span {{display:block; margin-top:{T.SP_2};}}
+.laporan-editorial-st .aktivitas-komposisi-st {{display:flex;height:.65rem;overflow:hidden;border-radius:{T.RADIUS_PIL};background:{T.LATAR_NONAKTIF};}}
+.laporan-editorial-st .aktivitas-benar-st {{background:{T.AKSEN_TEAL_TUA};}}
+.laporan-editorial-st .aktivitas-salah-st {{background:{T.AKSEN_KORAL_TUA};}}
+.laporan-editorial-st .laporan-insight-st {{display:grid;grid-template-columns:auto minmax(0,1fr);gap:{T.SP_3};align-items:start;margin-top:{T.SP_4};padding:{T.SP_4};background:{T.LATAR_CATATAN};border:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN};border-radius:{T.RADIUS_SEDANG};}}
+.laporan-editorial-st .perjalanan-pilot-st {{margin-top:{T.SP_5};}}
+.laporan-editorial-st .laporan-insight-ikon-st {{display:grid;place-items:center;width:2rem;height:2rem;border-radius:{T.RADIUS_PIL};background:{T.AKSEN_MURID_AMBER};color:{T.TEKS_JUDUL};font-weight:800;}}
+.laporan-editorial-st .laporan-insight-st p {{margin:0;}}
 .laporan-editorial-st .laporan-catatan {{color:{T.TEKS_SUBTLE}; font-size:{T.UKURAN_TEKS_BANTUAN};}}
 .laporan-editorial-st .laporan-materi {{width:100%; border-collapse:collapse;}}
 .laporan-editorial-st .laporan-materi td,.laporan-editorial-st .laporan-materi th {{
@@ -105,7 +135,11 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .laporan-rentang-form button {{min-height:{T.TARGET_SENTUH};}}
 .laporan-editorial-st .editorial-kepala-st h1 {{overflow-wrap:anywhere;}}
 @media(max-width:{T.BATAS_KOLOM_BACA}) {{
+  .laporan-editorial-st .perkembangan-hero-st {{grid-template-columns:minmax(0,1fr);padding:{T.SP_4};}}
+  .laporan-editorial-st .perkembangan-maskot-st {{width:4.5rem;height:4.5rem;justify-self:end;}}
   .laporan-editorial-st .laporan-ringkasan-grid {{grid-template-columns:minmax(0,1fr);}}
+  .laporan-editorial-st .aktivitas-kartu-st {{padding:{T.SP_4};}}
+  .laporan-editorial-st .aktivitas-kepala-st {{display:block;}}
   .laporan-editorial-st .laporan-metrik {{grid-template-columns:repeat(2,minmax(0,1fr)); gap:{T.SP_3};}}
   .laporan-editorial-st .laporan-rentang-form {{display:grid;grid-template-columns:minmax(0,1fr);}}
   .laporan-editorial-st .laporan-rentang-form button {{width:100%;}}
@@ -164,12 +198,28 @@ def render_aktivitas(data, tanggal, *, judul='Aktivitas 7 hari terakhir', kontro
         )
     )
     label_sementara = '<span class="laporan-catatan">Hasil sementara</span>' if kini.dinilai > kini.terkonfirmasi else ''
+    denominator = max(1, kini.benar + kini.salah)
+    lebar_benar = 100 * kini.benar / denominator if kini.dinilai else 0
+    lebar_salah = 100 * kini.salah / denominator if kini.dinilai else 0
+    komposisi = (
+        '<div class="aktivitas-komposisi-st" role="img" '
+        f'aria-label="Komposisi jawaban dinilai: {kini.benar} benar dan {kini.salah} salah">'
+        f'<span class="aktivitas-benar-st" style="width:{lebar_benar:.4f}%"></span>'
+        f'<span class="aktivitas-salah-st" style="width:{lebar_salah:.4f}%"></span></div>'
+    )
+    if kini.perlu_ditinjau:
+        insight = f'Ada {kini.perlu_ditinjau} jawaban yang masih perlu ditinjau.'
+    elif kini.dikerjakan:
+        insight = 'Aktivitas sudah tercatat. Baca hasil sebagai catatan latihan, bukan nilai kemampuan.'
+    else:
+        insight = 'Belum ada aktivitas pada periode ini. Ini bukan tanda anak tidak mampu.'
     return (
-        '<section aria-labelledby="judul-aktivitas">'
-        f'<h2 id="judul-aktivitas">{html.escape(judul)}</h2>{kontrol}'
-        f'<p class="laporan-periode">{tanggal(data.mulai.isoformat())} – '
-        f'{tanggal(data.akhir.isoformat())} · WIB</p>'
-        f'<div class="kartu-stat laporan-metrik">{kartu}</div>{label_sementara}'
+        '<section class="aktivitas-kartu-st" aria-labelledby="judul-aktivitas">'
+        '<div class="aktivitas-kepala-st"><div>'
+        f'<h2 id="judul-aktivitas">{html.escape(judul)}</h2>'
+        f'<p class="aktivitas-periode-st">{tanggal(data.mulai.isoformat())} – '
+        f'{tanggal(data.akhir.isoformat())} · WIB</p></div></div>{kontrol}'
+        f'<div class="kartu-stat laporan-metrik">{kartu}</div>{komposisi}{label_sementara}'
         '<p class="laporan-catatan">Aktivitas mengikuti pencatatan jawaban pertama '
         '(atau konfirmasi untuk butir tanpa jawaban), bukan tanggal sesi. '
         'Ketepatan dihitung dari jawaban yang sudah dinilai benar atau salah, '
@@ -181,7 +231,10 @@ def render_aktivitas(data, tanggal, *, judul='Aktivitas 7 hari terakhir', kontro
 
         f'<p class="laporan-catatan laporan-seluruh">Total seluruh catatan: <b>{data.semua.dikerjakan} soal dikerjakan</b> '
         f'· {data.semua.benar} benar · {data.semua.salah} salah '
-        f'· {data.semua.perlu_ditinjau} perlu ditinjau.</p></section>'
+        f'· {data.semua.perlu_ditinjau} perlu ditinjau.</p>'
+        '<aside class="laporan-insight-st" aria-label="Catatan aktivitas">'
+        '<span class="laporan-insight-ikon-st" aria-hidden="true">i</span>'
+        f'<p><b>Catatan singkat</b><br>{html.escape(insight)}</p></aside></section>'
     )
 
 

@@ -270,7 +270,9 @@ def test_halaman_utama_tautan_lembar_pindah_ke_halaman_cetak(db):
         assert hc_raw is not None
         hc = hc_raw.decode()
         siswa = kon.execute("SELECT * FROM siswa WHERE id=?", (sid,)).fetchone()
-        profil = teacher_pages.halaman_anak(kon, siswa).decode()
+        profil = teacher_pages.halaman_anak(
+            kon, siswa, query="section=latihan"
+        ).decode()
 
     assert f'href="/lembar/{sesi_id}"' not in h
     assert f'href="/lembar/{sesi_id}/penilaian"' not in h
@@ -295,7 +297,7 @@ def test_navigasi_sesi_kembali_ke_semua_sesi_anak(db):
 
     for isi in halaman:
         html = html_dari(isi)
-        assert f'href="/anak/{siswa_id}"' in html
-        assert "&larr; Semua sesi Claudia" in html
+        assert f'href="/anak/{siswa_id}?section=riwayat"' in html
+        assert ("&larr; Semua sesi Claudia" in html or "&larr; Riwayat Claudia" in html)
         assert "Kembali ke koreksi" not in html
         assert "&larr; Semua siswa" not in html

@@ -107,7 +107,7 @@ def test_sesi_dibatalkan_tidak_bisa_dibagikan_atau_ditulis(server):
 
     assert "Sesi dibatalkan. Riwayat tetap tersimpan dan hasilnya tidak aktif dalam rencana." in halaman
     assert "Riwayat pemetaan · tidak aktif" in halaman
-    assert f'href="/anak/{siswa_id}"' in halaman
+    assert f'href="/anak/{siswa_id}?section=riwayat"' in halaman
     assert f'action="/sesi/{sesi_id}/bagikan"' not in halaman
     assert f'action="/sesi/{sesi_id}"' not in halaman
     assert "Konfirmasi hasil" not in halaman
@@ -186,7 +186,7 @@ def test_selesai_meminta_tinjau_lalu_satu_jalan_kembali_setelah_sah(server):
     assert "Lihat rencana berikutnya" not in sah
     assert sah.count('class="kartu-rencana-st"') == 1
     assert 'id="hasil-pemetaan"' in sah
-    assert f'href="/anak/{siswa_id}"' in sah
+    assert f'href="/anak/{siswa_id}?section=riwayat"' in sah
     assert "Semua sesi Anak Sintetis" in sah
     detail_edit = re.search(
         r'<details class="panduan-edit-hasil-st">(.*?)</form></details>', sah, re.S
@@ -245,7 +245,7 @@ def test_sesi_dibatalkan_tetap_punya_backlink_saat_konfirmasi_tampak_aktif(serve
     halaman = _halaman(uji, sesi_id)
 
     assert "Lihat rencana berikutnya" not in halaman
-    assert halaman.count(f'href="/anak/{siswa_id}"') == 1
+    assert halaman.count(f'href="/anak/{siswa_id}?section=riwayat"') == 1
     assert "Semua sesi Anak Sintetis" in halaman
 
 

@@ -54,35 +54,27 @@ def _utama(teks):
     return teks.split('id="perjalanan-belajar"', 1)[1]
 
 
-def test_resume_laporan_bersumber_dari_perjalanan_bukan_statistik(db):
+def test_ringkasan_laporan_tidak_menduplikasi_perjalanan_atau_cta(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Ringkas Uji", pemilik="guru")
         _pemetaan(kon, sid, database.buat_putaran_fokus(kon, sid, "P3"), 1)
         h = reports.halaman_laporan(kon, sid).decode()
-
-    ringkasan = h.split('<div class="kartu ringkasan-laporan">', 1)[1].split(
-        "</div>", 1
-    )[0]
-    assert "Posisi belajar saat ini" in ringkasan
-    assert "Masih perlu diperiksa" in ringkasan
-    assert 'class="resume-langkah"' in ringkasan
-    assert f'href="/anak/{sid}?section=rencana#judul-rencana-belajar"' in ringkasan
-    assert h.count('<section class="kartu laporan-resume"') == 1
-    assert '<summary>Lihat rencana belajar</summary>' not in h
-    assert "1 sesi dinilai" not in ringkasan
-    assert "kekeliruan konsep" not in ringkasan
+    assert 'id="rencana-belajar-laporan"' not in h
+    assert 'class="resume-langkah"' not in h
+    assert 'id="perjalanan-belajar"' not in h
+    assert 'id="peta-penguasaan"' in h
 
 
 def test_laporan_baru_meminta_pemetaan_bukan_menyimpulkan_penguasaan(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Anak Uji", pemilik="guru")
         sebelum = kon.total_changes
-        h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
+        h = reports.halaman_laporan(kon, sid, section="perjalanan").decode()
         assert kon.total_changes == sebelum
     assert 'id="perjalanan-belajar"' in h
     assert "Latihan awal 0 dari 3" in _utama(h)
     assert "catatan hasil belum cukup" in _utama(h).lower()
-    assert 'tampilan=materi' in h and 'tampilan=kriteria' in h
+    assert 'href="/laporan/%d?section=perjalanan" aria-current="page"' % sid in h
     assert 'id="judul-peta"' not in h
 
 
@@ -92,7 +84,7 @@ def test_hasil_belum_disahkan_tidak_menjadi_fokus_laporan(db):
         putaran = database.buat_putaran_fokus(kon, sid, "P3")
         for n in (1, 2, 3):
             _pemetaan(kon, sid, putaran, n, konfirmasi=False)
-        h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
+        h = reports.halaman_laporan(kon, sid, section="perjalanan").decode()
     utama = _utama(h)
     assert "Periksa dan konfirmasi hasil" in utama
     assert "Perlu dipelajari" not in utama
@@ -101,7 +93,7 @@ def test_hasil_belum_disahkan_tidak_menjadi_fokus_laporan(db):
     assert "Mulai dari topik" not in h
 
 
-def test_ringkasan_fokus_lama_tetap_menyebut_ada_hasil_belum_dikonfirmasi(db):
+def test_perjalanan_fokus_lama_tetap_menyebut_hasil_belum_dikonfirmasi(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Pending Uji", pemilik="guru")
         putaran, _ = _fokus(kon, sid)
@@ -113,14 +105,10 @@ def test_ringkasan_fokus_lama_tetap_menyebut_ada_hasil_belum_dikonfirmasi(db):
             "UPDATE sesi SET tujuan = 'latihan_terbimbing' WHERE id = ?", (sesi,)
         )
         database.tandai_selesai(kon, sesi)
-        h = reports.halaman_laporan(kon, sid).decode()
+        h = reports.halaman_laporan(kon, sid, section="perjalanan").decode()
 
-    ringkasan = h.split('<div class="kartu ringkasan-laporan">', 1)[1].split(
-        "</div>", 1
-    )[0]
-    assert "ada hasil latihan yang belum dikonfirmasi" in ringkasan.lower()
-    assert "hasil terbaru" not in ringkasan.lower()
-    assert "Periksa dan konfirmasi hasil" in ringkasan
+    assert "Periksa dan konfirmasi hasil" in _utama(h)
+    assert "hasil terbaru" not in _utama(h).lower()
 
 
 def test_laporan_memakai_bukti_sah_dan_tidak_menulis_db(db):
@@ -128,7 +116,7 @@ def test_laporan_memakai_bukti_sah_dan_tidak_menulis_db(db):
         sid = database.tambah_siswa(kon, "Fokus Uji", pemilik="guru")
         putaran, sumber = _fokus(kon, sid)
         sebelum = kon.total_changes
-        h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
+        h = reports.halaman_laporan(kon, sid, section="perjalanan").decode()
         assert kon.total_changes == sebelum
     utama = _utama(h)
     assert f"Putaran #{putaran}" in utama
@@ -180,17 +168,14 @@ def test_actual_report_memisahkan_dua_fokus_dengan_status_reducer_berbeda(db):
         database.konfirmasi_hasil(
             kon, evaluasi, "guru", dilewati=dilewati, cek_pemahaman=cek
         )
-        h = reports.halaman_laporan(kon, sid).decode()
+        h = reports.halaman_laporan(kon, sid, section="perjalanan").decode()
 
-    ringkasan = h.split('<div class="kartu ringkasan-laporan">', 1)[1].split(
-        "</div>", 1
-    )[0]
-    terlihat = ringkasan.split("Posisi belajar saat ini", 1)[1].split("</section>", 1)[0]
-    assert terlihat.count('<li class="item-fokus-ringkasan">') == 2
-    fokus_1, fokus_2 = terlihat.split("Bagian 1", 1)[1].split("Bagian 2", 1)
-    assert "mulai membaik" in fokus_1
-    assert "masih perlu dipelajari" in fokus_2
-    assert "uji-rahasia" not in ringkasan
+    terlihat = _utama(h)
+    assert terlihat.count('<li class="aksi-laporan">') == 2
+    fokus_1, fokus_2 = terlihat.split("Fokus 1", 1)[1].split("Fokus 2", 1)
+    assert "Mulai membaik" in fokus_1
+    assert "Perlu dipelajari" in fokus_2
+    assert "uji-rahasia" not in terlihat
 
 
 def test_invalidasi_tidak_menghilangkan_riwayat_atau_mengaku_bukti_aktif(db):
@@ -200,7 +185,7 @@ def test_invalidasi_tidak_menghilangkan_riwayat_atau_mengaku_bukti_aktif(db):
         sesi, jawaban = sumber[-1]
         database.simpan_diagnosis(kon, jawaban, True, None, None, None, "benar")
         sebelum = kon.execute("SELECT COUNT(*) FROM snapshot_outcome").fetchone()[0]
-        h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
+        h = reports.halaman_laporan(kon, sid, section="perjalanan").decode()
         assert kon.execute("SELECT COUNT(*) FROM snapshot_outcome").fetchone()[0] == sebelum
     assert "Periksa dan konfirmasi hasil" in _utama(h)
     assert "konfirmasi ulang" in _utama(h).lower()
@@ -219,7 +204,7 @@ def test_rekonfirmasi_setelah_putaran_ditutup_tidak_disebut_pending(db):
         database.simpan_diagnosis(kon, jawaban, True, None, None, None, "benar")
         database.konfirmasi_hasil(kon, sesi, "guru")
         sebelum = kon.total_changes
-        h = reports.halaman_laporan(kon, sid, section="penguasaan", query='tampilan=perjalanan').decode()
+        h = reports.halaman_laporan(kon, sid, section="perjalanan").decode()
         assert kon.total_changes == sebelum
     histori = h.split("Riwayat putaran sebelumnya", 1)[1]
     assert "sudah dikonfirmasi ulang" in histori
@@ -368,7 +353,7 @@ def test_bukti_lama_terbuka_tanpa_menggandakan_tautan_sesi():
     assert all(h.count(f'href="/sesi/{n}"') == 1 for n in range(1, 7))
 
 
-@pytest.mark.parametrize("bagian", ["ringkasan", "penguasaan", "riwayat"])
+@pytest.mark.parametrize("bagian", ["ringkasan", "penguasaan", "perjalanan"])
 def test_get_laporan_lewat_http_menjaga_kepemilikan(tmp_path, monkeypatch, bagian):
     import assistant_client
     import assistant_service
@@ -397,7 +382,7 @@ def test_get_laporan_lewat_http_menjaga_kepemilikan(tmp_path, monkeypatch, bagia
         assert kode == kode_ulang == 200
         assert h == h_ulang
         assert isinstance(h, str)
-        assert ('tampilan=perjalanan' in h) == (bagian == "penguasaan")
+        assert ('id="perjalanan-belajar"' in h) == (bagian == "perjalanan")
         kode_asing, h_asing, _ = server.minta(f"/laporan/{asing}", auth=("guru", SANDI_GURU))
         kode_hilang, h_hilang, _ = server.minta("/laporan/999999", auth=("guru", SANDI_GURU))
         assert kode_asing == kode_hilang == 404

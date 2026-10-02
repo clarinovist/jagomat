@@ -107,7 +107,9 @@ def test_profil_manual_tidak_fallback(server, profil):
 
 
 def test_form_semua_materi_tanpa_pilihan_profil(server):
-    kode, isi, _ = server.minta('/anak/%d' % server.siswa, auth=('guru', SANDI_GURU))
+    kode, isi, _ = server.minta(
+        '/anak/%d?section=latihan' % server.siswa, auth=('guru', SANDI_GURU)
+    )
     assert kode == 200
     assert 'name="profil_parameter"' not in isi
     assert 'value="aritmatika-lanjut"' in isi

@@ -463,7 +463,9 @@ def _anak_dengan_kesalahan(server, nama="feby"):
 
 def test_tombol_latihan_ulang_muncul_kalau_ada_kesalahan(server):
     sid = _anak_dengan_kesalahan(server, "AnakTombolR")
-    kode, isi, _ = server.minta(f"/anak/{sid}", auth=("guru", SANDI_GURU))
+    kode, isi, _ = server.minta(
+        f"/anak/{sid}?section=latihan", auth=("guru", SANDI_GURU)
+    )
     assert kode == 200
     assert f'action="/sesi-remedial/{sid}"' in isi
     assert "Buat latihan ulang" in isi

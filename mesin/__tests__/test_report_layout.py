@@ -44,13 +44,13 @@ def db(tmp_path, monkeypatch):
     return path
 
 
-def test_rencana_utama_tidak_tersembunyi_dalam_lipatan(db):
+def test_ringkasan_perkembangan_tidak_menduplikasi_aksi_berikutnya(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, 'Contoh', pemilik='guru')
         h = reports.halaman_laporan(kon, sid).decode()
     aksi = [(a, d) for a, d in Struktur(h).tautan if 'aksi-rencana-laporan' in a.get('class', '')]
-    assert len(aksi) == 1
-    assert aksi[0][1] == 0
+    assert aksi == []
+    assert 'id="rencana-belajar-laporan"' not in h
 
 
 def test_peta_target_tidak_memiliki_lipatan_di_dalam_lipatan(db):
@@ -68,22 +68,22 @@ def test_nama_topik_gabungan_bukan_id_internal():
     assert reports._nama_topik('gabungan:logika,pola-bilangan') == 'Gabungan 2 topik'
 
 
-@pytest.mark.parametrize('bagian', ['ringkasan', 'penguasaan', 'riwayat', 'asing', '<script>x</script>'])
+@pytest.mark.parametrize('bagian', ['ringkasan', 'penguasaan', 'perjalanan', 'asing', '<script>x</script>'])
 def test_section_hanya_merender_bagian_terpilih_tanpa_write(db, bagian):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, 'Navigasi', pemilik='guru')
         awal = tuple(kon.iterdump())
         h = reports.halaman_laporan(kon, sid, section=bagian).decode()
         assert tuple(kon.iterdump()) == awal
-    aktif = bagian if bagian in {'penguasaan', 'riwayat'} else 'ringkasan'
+    aktif = bagian if bagian in {'penguasaan', 'perjalanan'} else 'ringkasan'
     struktur = Struktur(h)
     terpilih = [a for a, _ in struktur.tautan if a.get('aria-current') == 'page']
     assert [a['href'] for a in terpilih] == [
         f'/laporan/{sid}', f'/laporan/{sid}?section={aktif}',
     ]
-    assert ('id="rencana-belajar-laporan"' in h) == (aktif == 'ringkasan')
+    assert 'id="rencana-belajar-laporan"' not in h
     assert ('class="peta-pilihan"' in h) == (aktif == 'penguasaan')
-    assert ('id="riwayat-hasil-sesi"' in h) == (aktif == 'riwayat')
+    assert ('id="perjalanan-belajar"' in h) == (aktif == 'perjalanan')
     assert struktur.maksimum <= 1
     assert '<script>x</script>' not in h
 
@@ -97,7 +97,7 @@ def test_riwayat_ringkas_satu_tautan_per_sesi_dan_penyebut_tersedia(db):
             database.simpan_diagnosis(kon, jawaban, True, None, None)
         database.tandai_selesai(kon, sesi)
         kon.execute('UPDATE sesi SET topik=? WHERE id=?', ('gabungan:logika,pola-bilangan', sesi))
-        h = reports.halaman_laporan(kon, sid, section='riwayat').decode()
+        h = reports.halaman_laporan(kon, sid, section='riwayat', query='section=riwayat').decode()
     tabel = h.split('class="tabel-wrap tabel-tren"', 1)[1].split('</table>', 1)[0]
     assert tabel.count('<th scope="col"') == 4
     assert tabel.count(f'href="/sesi/{sesi}"') == 1
@@ -105,7 +105,7 @@ def test_riwayat_ringkas_satu_tautan_per_sesi_dan_penyebut_tersedia(db):
     assert 'Gabungan 2 topik' in tabel and 'gabungan:' not in tabel
     assert 'soal tersedia' in h and 'termasuk yang belum dijawab' in h
     assert '<th scope="col">K</th>' not in tabel
-    assert 'Arti kode penilaian' in h
+    assert 'Arti kode penilaian' not in h
     assert 'Cara membaca laporan' not in h
 
 
@@ -136,7 +136,7 @@ def test_css_angka_dan_header_tidak_dipenggal():
     assert '.laporan-editorial-st .tabel-tren table {min-width:0;table-layout:auto;overflow-wrap:normal;}' in GAYA_LAPORAN
 
 
-@pytest.mark.parametrize('bagian', ['ringkasan', 'penguasaan', 'riwayat', 'asing'])
+@pytest.mark.parametrize('bagian', ['ringkasan', 'penguasaan', 'perjalanan', 'asing'])
 def test_http_navigasi_laporan_tetap_di_balik_guard_existing(tmp_path, monkeypatch, bagian):
     server = ServerUji(tmp_path, monkeypatch)
     try:

@@ -9,6 +9,42 @@ def parameter_laporan(query):
             if len(v) == 1}
 
 
+def tujuan_alias_lama(siswa_id, query):
+    """Tujuan kanonis deep link lama; dipanggil hanya setelah ownership guard."""
+    data = parse_qs(query, keep_blank_values=True)
+    if any(len(nilai) != 1 for nilai in data.values()):
+        return None
+    nilai = {k: v[0] for k, v in data.items()}
+    section = nilai.get('section', '')
+    tampilan = nilai.get('tampilan', '')
+
+    def tujuan(bagian, **opsi):
+        parameter = {'section': bagian}
+        parameter.update({k: v for k, v in opsi.items() if v})
+        return f'/laporan/{siswa_id}?' + urlencode(parameter)
+
+    if section == 'riwayat':
+        if tampilan in ('', 'sesi'):
+            return f'/anak/{siswa_id}?section=riwayat'
+        if tampilan == 'mingguan':
+            return tujuan('ringkasan', rincian='tren')
+        if tampilan == 'catatan':
+            return tujuan('penguasaan', rincian='catatan')
+    if section == 'penguasaan':
+        umum = {
+            k: nilai.get(k, '') for k in ('materi', 'status', 'halaman')
+        }
+        if tampilan == 'konteks':
+            return tujuan('penguasaan', rincian='konteks', **umum)
+        if tampilan == 'kriteria':
+            return tujuan('penguasaan', rincian='kriteria', **umum)
+        if tampilan == 'pilot':
+            return tujuan('perjalanan', rincian='pilot')
+        if tampilan == 'perjalanan':
+            return tujuan('perjalanan', halaman=nilai.get('halaman', ''))
+    return None
+
+
 def url_laporan(siswa_id, section='ringkasan', **opsi):
     """URL atribut HTML dengan encoding nilai dan escaping pemisah."""
     data = {'section': section}

@@ -24,11 +24,12 @@ def _e(nilai):
 
 def navigasi_profil(siswa_id, total, aktif):
     """Empat tujuan utama ruang anak dengan penanda aktif yang konsisten."""
+    del total  # jumlah arsip tersedia di kepala Riwayat, bukan badge navigasi.
     item = (
+        ('rencana', f'/anak/{siswa_id}?section=rencana', 'Berikutnya'),
         ('latihan', f'/anak/{siswa_id}?section=latihan', 'Buat latihan'),
-        ('rencana', f'/anak/{siswa_id}?section=rencana', 'Langkah berikutnya'),
-        ('riwayat', f'/anak/{siswa_id}?section=riwayat', f'Riwayat <span>{total}</span>'),
-        ('laporan', f'/laporan/{siswa_id}', 'Laporan perkembangan'),
+        ('riwayat', f'/anak/{siswa_id}?section=riwayat', 'Riwayat'),
+        ('laporan', f'/laporan/{siswa_id}', 'Perkembangan'),
     )
     return ''.join(
         f'<a href="{url}"' + (' aria-current="page"' if kode == aktif else '')
@@ -119,7 +120,10 @@ def _ringkasan_filter(f):
     return ' · '.join(bagian)
 
 
-def riwayat(siswa_id, baris, total, filter_data, *, judul_topik, tanggal, badge_tinjauan, aksi_bagikan):
+def riwayat(
+    siswa_id, baris, total, filter_data, *, judul_topik, tanggal,
+    badge_tinjauan, ringkasan_hasil, aksi_bagikan,
+):
     f=filter_data
     ringkasan = _ringkasan_filter(f)
     reset = '<a class="profil-reset-st" href="/anak/%d?section=riwayat">Reset filter</a>' % siswa_id if ringkasan else ''
@@ -153,11 +157,15 @@ def riwayat(siswa_id, baris, total, filter_data, *, judul_topik, tanggal, badge_
         mode = ('Pilihan ganda · latihan manual' if r['format_jawaban']=='pilihan_ganda'
                 else 'Latihan Cepat' if r['mode']=='drill' else 'Mode Diagnosa')
         meta='%s · %s · Sesi #%d' % (label_kelas(r['level']),mode,r['id'])
+        hasil = ringkasan_hasil(r) if r['selesai'] is not None else ''
+        hasil_html = '<small class="riwayat-hasil-st">Hasil latihan: %s</small>' % hasil if hasil else ''
         isi.append('<tr data-sesi-id="%d"><td class="riwayat-tanggal-st">%s</td>'
-                   '<td class="riwayat-latihan-st"><strong>%s</strong><details class="rincian-ui-st riwayat-detail-st"><summary><span class="riwayat-jenis-st">%s</span> · Detail</summary><small class="riwayat-meta-st">%s</small>%s</details></td>'
+                   '<td class="riwayat-latihan-st"><strong>%s</strong>%s<details class="rincian-ui-st riwayat-detail-st"><summary><span class="riwayat-jenis-st">%s</span> · Detail</summary><small class="riwayat-meta-st">%s</small>%s</details></td>'
                    '<td class="riwayat-angka-st">%d</td><td class="riwayat-proses-st"><span>%s</span></td>'
-                   '<td class="riwayat-tinjauan-st">%s</td><td class="riwayat-aksi-st"><a href="/sesi/%d" aria-label="Buka sesi %d">Buka →</a>%s</td></tr>' % (
-                       r['id'],tanggal(r['tanggal']),_e(judul),_e(jenis),_e(meta),('<small>'+rincian+'</small>') if rincian else '',
+                   '<td class="riwayat-tinjauan-st">%s</td><td class="riwayat-aksi-st">'
+                   '<a class="riwayat-buka-st" href="/sesi/%d" aria-label="Buka sesi %d">Buka sesi</a>'
+                   '<details class="riwayat-kelola-st"><summary>Kelola tautan</summary>%s</details></td></tr>' % (
+                       r['id'],tanggal(r['tanggal']),_e(judul),hasil_html,_e(jenis),_e(meta),('<small>'+rincian+'</small>') if rincian else '',
                        r['n'],_e(proses),tinjauan,r['id'],r['id'],aksi_bagikan(r)))
     if not isi:
         isi.append('<tr class="profil-kosong-st"><td colspan="6"><p>Tidak ada sesi yang cocok. '
@@ -258,9 +266,16 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .tabel-riwayat-st th {{ background:{T.LATAR_SEKUNDER_LEMBUT}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
 .profil-workspace-st .riwayat-latihan-st strong,.profil-workspace-st .riwayat-latihan-st small {{ display:block; }}
 .profil-workspace-st .riwayat-latihan-st small {{ margin-top:{T.SP_1}; color:{T.TEKS_VARIAN}; }}
+.profil-workspace-st .riwayat-latihan-st .riwayat-hasil-st {{ color:{T.TEKS_JUDUL}; font-weight:650; }}
 .profil-workspace-st .riwayat-tanggal-st {{ white-space:nowrap; }}
 .profil-workspace-st .tabel-riwayat-st .riwayat-angka-st {{ text-align:right; font-variant-numeric:tabular-nums; }}
-.profil-workspace-st .riwayat-aksi-st > a {{ display:inline-flex; min-height:{T.TARGET_SENTUH}; align-items:center; color:{T.AKSEN_TEAL_TUA}; white-space:nowrap; }}
+.profil-workspace-st .riwayat-aksi-st {{ display:flex; flex-direction:column; align-items:flex-start; gap:{T.SP_1}; }}
+.profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ display:inline-flex; min-height:{T.TARGET_SENTUH}; align-items:center; color:{T.AKSEN_TEAL_TUA}; white-space:nowrap; font-weight:700; }}
+.profil-workspace-st .riwayat-kelola-st {{ width:100%; }}
+.profil-workspace-st .riwayat-kelola-st > summary {{ display:flex; align-items:center; min-height:{T.TARGET_SENTUH}; color:{T.TEKS_VARIAN}; cursor:pointer; font-size:{T.UKURAN_TEKS_CATATAN}; }}
+.profil-workspace-st .profil-lanjutan-st {{ grid-column:1/-1; }}
+.profil-workspace-st .profil-lanjutan-isi-st {{ display:grid; gap:{T.SP_4}; padding-bottom:{T.SP_4}; }}
+.profil-workspace-st .profil-batas-manual-st {{ grid-column:1/-1; margin:0; padding:{T.SP_3}; background:{T.LATAR_CATATAN}; border:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius:{T.RADIUS_KECIL}; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .profil-sr-st {{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }}
 @media(min-width:49rem) {{
  .profil-workspace-st .profil-champs-st {{ grid-template-columns:repeat(2,minmax(0,1fr)); }}
@@ -268,8 +283,8 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .profil-champs-st .mode-opsi {{ margin:0; }}
 }}
 @media(max-width:{T.BATAS_TABLET}) {{
- .profil-workspace-st .profil-tabs-st {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:{T.SP_1}; overflow-x:visible; padding-bottom:{T.SP_1}; font-size:.8rem; }}
- .profil-workspace-st .profil-tabs-st a {{ justify-content:center; padding:{T.SP_2}; white-space:normal; text-align:center; }}
+ .profil-workspace-st .profil-tabs-st {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; overflow-x:hidden; padding-bottom:{T.SP_1}; font-size:.7rem; }}
+ .profil-workspace-st .profil-tabs-st a {{ justify-content:center; padding:{T.SP_2} {T.SP_1}; white-space:nowrap; text-align:center; letter-spacing:-.02em; }}
  .profil-workspace-st .profil-filter-st {{ grid-template-columns:minmax(0,1fr); padding:{T.SP_4}; }}
  .profil-workspace-st .profil-filter-st button {{ width:100%; }}
  .profil-workspace-st .profil-saring-judul-st {{ padding:{T.SP_3} {T.SP_4}; }}
@@ -280,6 +295,9 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .profil-pager-st .profil-page-status-st {{ display:inline-flex; flex-basis:6.5em; border:0; background:transparent; color:{T.TEKS_VARIAN}; }}
  .profil-workspace-st .profil-riwayat-kaki-st a {{ min-height:{T.TARGET_SENTUH}; display:inline-flex; align-items:center; }}
  .profil-workspace-st .profil-formulaire-st > .buat-latihan-st {{ padding:{T.SP_4}; }}
+ .profil-workspace-st .buat-latihan-st > .profil-aide-st {{ display:none; }}
+ .profil-workspace-st .profil-champs-st {{ gap:{T.SP_3}; }}
+ .profil-workspace-st .profil-champs-st .strip-kolom > small {{ display:none; }}
  .profil-workspace-st .profil-formulaire-st .tab-bar-st {{ display:grid; grid-template-columns:minmax(0,1fr); gap:{T.SP_1}; padding:{T.SP_1}; margin-bottom:{T.SP_3}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_SEDANG}; background:{T.LATAR_SEKUNDER_LEMBUT}; }}
  .profil-workspace-st .profil-formulaire-st .tab-label-st {{ justify-content:flex-start; margin:0; padding:{T.SP_2} {T.SP_3}; border:{T.TEBAL_GARIS} solid transparent; font-size:{T.UKURAN_TEKS_LABEL}; text-align:left; }}
  .profil-workspace-st .buat-latihan-st:has(#tab-baru:checked) [for="tab-baru"],
@@ -289,7 +307,7 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .profil-paging-st {{ padding:{T.SP_4}; }}
  .profil-workspace-st .tabel-riwayat-st,.profil-workspace-st .tabel-riwayat-st tbody {{ display:block; }}
  .profil-workspace-st .tabel-riwayat-st thead {{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }}
- .profil-workspace-st .tabel-riwayat-st tr {{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:{T.SP_1} {T.SP_2}; padding:{T.SP_3} {T.SP_4}; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
+ .profil-workspace-st .tabel-riwayat-st tr {{ display:flex; flex-direction:column; gap:{T.SP_2}; padding:{T.SP_4}; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
  .profil-workspace-st .tabel-riwayat-st td {{ padding:0; border:0; min-width:0; line-height:1.4; }}
  .profil-workspace-st .riwayat-latihan-st strong {{ font-size:.9375rem; line-height:1.4; }}
  .profil-workspace-st .riwayat-latihan-st .riwayat-jenis-st,.profil-workspace-st .riwayat-latihan-st .riwayat-meta-st {{ display:inline; font-size:{T.UKURAN_TEKS_META}; line-height:1.4; }}
@@ -297,14 +315,15 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .tabel-riwayat-st .badge-direview {{ max-width:100%; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.4; }}
  .profil-workspace-st .tabel-riwayat-st .profil-kosong-st {{ display:block; padding:{T.SP_4}; }}
  .profil-workspace-st .tabel-riwayat-st .profil-kosong-st td {{ display:block; }}
- .profil-workspace-st .riwayat-tanggal-st {{ grid-column:1; grid-row:1; }}
- .profil-workspace-st .riwayat-angka-st {{ grid-column:2; grid-row:1; }}
+ .profil-workspace-st .riwayat-tanggal-st {{ order:1; }}
+ .profil-workspace-st .riwayat-angka-st {{ order:2; text-align:left; }}
  .profil-workspace-st .riwayat-angka-st::after {{ content:' soal'; }}
- .profil-workspace-st .riwayat-latihan-st {{ grid-column:1/-1; grid-row:2; }}
- .profil-workspace-st .riwayat-proses-st {{ grid-column:1; grid-row:3; }}
+ .profil-workspace-st .riwayat-latihan-st {{ order:3; }}
+ .profil-workspace-st .riwayat-proses-st {{ order:4; }}
  .profil-workspace-st .riwayat-proses-st::before {{ content:'Pengerjaan: '; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
- .profil-workspace-st .riwayat-tinjauan-st {{ grid-column:1; grid-row:4; }}
+ .profil-workspace-st .riwayat-tinjauan-st {{ order:5; }}
  .profil-workspace-st .riwayat-tinjauan-st::before {{ content:'Tinjauan: '; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
- .profil-workspace-st .riwayat-aksi-st {{ grid-column:2; grid-row:3/5; align-self:center; }}
+ .profil-workspace-st .riwayat-aksi-st {{ order:6; align-self:stretch; padding-top:{T.SP_2}; border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
+ .profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ width:100%; justify-content:center; min-height:{T.TINGGI_CTA}; background:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_PUTIH}; border-radius:{T.RADIUS_KECIL}; text-decoration:none; }}
 }}
 """

@@ -10,9 +10,15 @@ _LABEL = {'terbukti': 'Menunjukkan pemahaman', 'dipelajari': 'Masih dipelajari',
           'perlu_cek': 'Perlu cek kembali', 'belum_dinilai': 'Belum dinilai'}
 
 
-def render_konteks(bukti, siswa_id, tanggal, *, halaman='1', hari_ini=None):
-    """Status selalu dari reducer; filter tampilan bukan daftar target wajib."""
-    hasil = penguasaan_konteks(bukti, siswa_id, daftar_konteks(), hari_ini)
+def render_konteks(
+    bukti, siswa_id, tanggal, *, halaman='1', hari_ini=None, materi='',
+    template_ids=None,
+):
+    """Status reducer dalam konteks materi terpilih, tanpa penyebut baru."""
+    konteks = daftar_konteks()
+    if template_ids is not None:
+        konteks = tuple(k for k in konteks if k.template_id in template_ids)
+    hasil = penguasaan_konteks(bukti, siswa_id, konteks, hari_ini)
     tercatat = tuple(h for h in hasil if h.hasil.status != 'belum_dinilai')
     bagian, nomor, jumlah = halaman_daftar(tercatat, halaman, 12)
     baris = []
@@ -23,12 +29,12 @@ def render_konteks(bukti, siswa_id, tanggal, *, halaman='1', hari_ini=None):
         baris.append('<li><b>' + html.escape(nama_tipe_soal(item.konteks.template_id)) + '</b>'
                      + '<p>' + _LABEL[nilai.status] + kapan + '</p>'
                      + '<p>' + html.escape(label_profil_parameter(item.konteks.profil_parameter)) + '</p>'
-                     + '<details><summary>Rincian bukti dan pengaturan</summary>'
+                     + '<details class="bukti-konteks-rincian-st"><summary>Rincian bukti dan pengaturan</summary>'
                      + '<p>Kode konfigurasi: ' + html.escape(item.konteks.profil_parameter) + '</p>'
                      + (f'<p>Sumber: {sumber}</p>' if sumber else '') + '</details></li>')
     return (
-        '<section class="kartu peta-materi-st" id="bukti-per-konteks">'
-        '<h2>Bukti per konteks latihan</h2>'
+        '<section class="bukti-konteks-materi-st" id="bukti-per-konteks">'
+        '<h3>Bukti per konteks latihan</h3>'
         '<p>Hasil dibaca per keterampilan dan konfigurasi historis soal, bukan sebagai kelas atau '
         'jenjang kemampuan anak. Bukti pada satu konfigurasi tidak otomatis berlaku pada konfigurasi lain.</p>'
         '<p>Rincian ini menampilkan konteks dengan catatan penilaian yang relevan. '
@@ -38,6 +44,6 @@ def render_konteks(bukti, siswa_id, tanggal, *, halaman='1', hari_ini=None):
            else '<p>Belum ada bukti konteks yang dapat dinilai. Latihan manual tetap tersedia; '
            'hasilnya bukan bukti tanpa konfirmasi dan opt-in pemetaan yang sah.</p>')
         + navigasi_halaman(nomor, jumlah,
-                           lambda n: url_laporan(siswa_id, 'penguasaan', tampilan='konteks', halaman=n))
+                           lambda n: url_laporan(siswa_id, 'penguasaan', materi=materi, rincian='konteks', halaman=n))
         + '</section>'
     )

@@ -167,14 +167,14 @@ def _isi(server, pesan=""):
         return teacher_pages.halaman_utama_stitch(kon, pemilik="guru", pesan=pesan).decode()
 
 
-def test_anak_belum_memulai_menuju_langkah_berikutnya_dan_yang_aktif_tetap_default(server):
+def test_semua_kartu_anak_menuju_default_berikutnya(server):
     with server.buka() as kon:
         baru = database.tambah_siswa(kon, "Anak Belum Mulai", tingkat="", pemilik="guru")
         aktif = kon.execute("SELECT id FROM siswa WHERE pemilik='guru'").fetchone()[0]
     isi = _isi(server)
-    assert f'href="/anak/{baru}?section=rencana"' in isi
+    assert f'href="/anak/{baru}"' in isi
     assert f'href="/anak/{aktif}"' in isi
-    assert f'href="/anak/{aktif}?section=rencana"' not in isi
+    assert '?section=rencana' not in isi
 
 
 def test_semantik_satu_kartu_dan_satu_tambah_anak(server):

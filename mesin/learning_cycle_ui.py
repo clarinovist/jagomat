@@ -358,10 +358,18 @@ def _ringkasan_langkah(
     rencana: RencanaBelajar, bukti: BuktiSiklus, instruksi: str,
     *, tertahan: bool = False,
 ) -> str:
+    """Informasi sebelum bertindak; hasil dan waktu kembali dirender setelah CTA."""
     return (
         '<div class="ringkasan-langkah-st">'
         f'<div class="tindakan-rencana-st"><b>Peran orang tua/guru · Sekarang</b><p>{html.escape(instruksi)}</p></div>'
         f'<div><b>Waktu</b><p>{html.escape(_waktu(rencana, bukti, tertahan=tertahan))}</p></div>'
+        '</div>'
+    )
+
+
+def _ringkasan_setelah(rencana: RencanaBelajar, *, tertahan: bool = False) -> str:
+    return (
+        '<div class="ringkasan-setelah-st">'
         f'<div><b>Sesudah ini</b><p>{html.escape(_sesudah(rencana, tertahan=tertahan))}</p></div>'
         f'<div><b>Kembali</b><p>{html.escape(_kapan_kembali(rencana, tertahan=tertahan))}</p></div>'
         '</div>'
@@ -516,10 +524,11 @@ def render_rencana(
             + _ringkasan_langkah(
                 rencana, bukti, _tindakan_orang_tua(rencana, None)
             )
-            + '<p class="catatan-tiga-latihan-st"><b>Rangkaian awal:</b> tiga latihan pada tanggal berbeda.</p>'
             + f'<form method="post" action="/siklus/{siswa_id}/buat" class="rencana-form-st">'
             + '<button type="submit" class="rencana-cta-utama-st">Siapkan latihan awal</button>'
-            '</form>' + slot_bantuan + '</section>'
+            '</form>' + _ringkasan_setelah(rencana)
+            + '<p class="catatan-tiga-latihan-st"><b>Rangkaian awal:</b> tiga latihan pada tanggal berbeda.</p>'
+            + slot_bantuan + '</section>'
         )
     from cycle_carry import bukti_lanjutan
     from cycle_representations import CATATAN_PEMISAHAN, bukti_satu_representasi
@@ -592,13 +601,14 @@ def render_rencana(
         f'<h2 class="{kelas_judul}" id="judul-rencana-belajar">{html.escape(judul_tampil)}</h2>'
         f'{penanda_judul_lama}{_identitas_sesi(rencana, bukti)}'
         f'<p class="alasan-rencana-st">{html.escape(_alasan(rencana, fokus))}</p>'
-        f'{_konteks_pemetaan(rencana)}'
-        f'{catatan_histori}{catatan_mode}{contoh}{catatan_materi}{tanggal}'
         '</div>'
         '<aside class="studio-pendamping-st" aria-label="Panduan langkah berikutnya">'
         f'{tindakan}'
         '</aside>'
         f'<div class="studio-aksi-st">{cta}{petunjuk}</div>'
+        f'{_ringkasan_setelah(rencana, tertahan=materi_tidak_tersedia)}'
+        f'<div class="studio-konteks-st">{_konteks_pemetaan(rencana)}'
+        f'{catatan_histori}{catatan_mode}{contoh}{catatan_materi}{tanggal}</div>'
         f'{_alur_rencana(rencana, bukti)}'
         '</div>'
         f'{slot_bantuan}'
@@ -628,12 +638,24 @@ def pengingat_rencana(kon, siswa_id: int) -> str:
     )
 
 
-def kartu_rencana(kon, siswa_id: int, slot_bantuan: str = "") -> str:
-    """Muat bukti sah dan render rekomendasi reducer pada GET profil."""
-    from skill_pilot_ui import kartu
+def kartu_rencana(
+    kon, siswa_id: int, slot_bantuan: str = "", *, dengan_identitas=False,
+):
+    """Muat rekomendasi tunggal dan, bila diminta, identitas sesi CTA-nya."""
+    from skill_pilot_ui import kartu, sesi_utama
     pilot, tambahan = kartu(kon, siswa_id)
     if pilot is not None:
-        return pilot + tambahan + slot_bantuan
-    bukti = database.muat_bukti_siklus(kon, siswa_id)
-    rencana = rencana_berikutnya(bukti, siswa_id)
-    return render_rencana(rencana, bukti, siswa_id, slot_bantuan=slot_bantuan) + tambahan
+        hasil = pilot + tambahan + slot_bantuan
+        identitas = sesi_utama(kon, siswa_id)
+    else:
+        bukti = database.muat_bukti_siklus(kon, siswa_id)
+        rencana = rencana_berikutnya(bukti, siswa_id)
+        hasil = render_rencana(
+            rencana, bukti, siswa_id, slot_bantuan=slot_bantuan
+        ) + tambahan
+        identitas = (
+            rencana.sesi_id
+            if rencana.tindakan in {"lanjutkan_sesi", "konfirmasi_hasil"}
+            else None
+        )
+    return (hasil, identitas) if dengan_identitas else hasil
