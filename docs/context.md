@@ -94,6 +94,12 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
   `learning_cycle.py` sengaja tetap utuh: reducer rekomendasi, evaluasi/checkpoint,
   penguasaan, dan adapter pilot berbagi model immutable serta primitive keputusan;
   pemisahan lebih lanjut berisiko membuat sumber keputusan paralel hanya demi LOC.
+- Lock file/thread dan session fence batch admin sengaja tetap bersama orkestrasi
+  `admin_bulk.py`: callback durable/transient dan test crash mem-patch boundary façade
+  tersebut; memindahkannya akan menambah callback/cycle pada batas crash dua SQLite.
+- `assistant_store.py` kini hanya sekitar 630 baris setelah concern memori dipisah;
+  chat/pesan, persetujuan, usulan, operasi, dan retensi tetap satu agregat owner-scoped
+  dengan transaksi/foreign key bersama, sehingga tidak dipecah lagi hanya demi LOC.
 - Analitik onboarding tetap pada kontrak KPI admin7 lama dan belum mengukur nilai
   pertama ≤48 jam: event existing hanya pengiriman/penyajian, bukan gabungan selesai,
   ditinjau, dikonfirmasi, lalu langkah berikutnya tersaji. WS5 dihentikan sampai
