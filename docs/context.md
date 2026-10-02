@@ -91,6 +91,10 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
   `learning_cycle.py` sengaja tetap utuh: reducer rekomendasi, evaluasi/checkpoint,
   penguasaan, dan adapter pilot berbagi model immutable serta primitive keputusan;
   pemisahan lebih lanjut berisiko membuat sumber keputusan paralel hanya demi LOC.
+- Analitik onboarding tetap pada kontrak KPI admin7 lama dan belum mengukur nilai
+  pertama ≤48 jam: event existing hanya pengiriman/penyajian, bukan gabungan selesai,
+  ditinjau, dikonfirmasi, lalu langkah berikutnya tersaji. WS5 dihentikan sampai
+  schema, migrasi, retensi, purge, backup, dan recovery exact memahami event baru.
 - Lokal memakai `mesin/.venv/bin/python` (3.9.6); CI/container 3.12. Kode kompatibel
   3.9. Verifikasi sesuai risiko: Ringan/Normal/Kritis; tes scoped lokal, gate berat
   di CI. Palang index: `mesin/.venv/bin/python scripts/check_repo.py` setelah stage.
