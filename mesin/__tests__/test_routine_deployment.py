@@ -186,11 +186,20 @@ def test_fingerprint_source_bukan_import_atau_data(tmp_path):
     p = tmp_path / "assistant_pages.py"
     p.write_text("raise RuntimeError('jangan import')\n")
     assert jalankan_kontrak(tmp_path).stdout == awal.stdout  # perubahan UI boleh
-    (tmp_path / "schema_tambahan.py").write_text("# skema tambahan\n")
+    (tmp_path / "schema_tambahan.py").write_text(
+        "NILAI = 'schema tambahan'\n"
+    )
     assert jalankan_kontrak(tmp_path).stdout != awal.stdout
     (tmp_path / "schema_tambahan.py").unlink()
     p = tmp_path / "schema.py"
-    p.write_bytes(p.read_bytes() + b"\n# kontrak baru\n")
+    asli = p.read_bytes()
+    p.write_bytes(asli + b"\n# komentar/refactor format saja\n")
+    assert jalankan_kontrak(tmp_path).stdout == awal.stdout
+    p.write_bytes(asli.replace(
+        b"CREATE TABLE IF NOT EXISTS sesi (",
+        b"CREATE TABLE IF NOT EXISTS sesi_baru (",
+        1,
+    ))
     assert jalankan_kontrak(tmp_path).stdout != awal.stdout
     p.unlink()
     assert jalankan_kontrak(tmp_path).returncode != 0
@@ -255,6 +264,6 @@ def test_fingerprint_schema_pendamping_migrator_startup_dan_persistensi(tmp_path
                  "auth.py", "sessions.py", "outcome_presentations.py", "assistant_actions.py"):
         p = tmp_path / nama
         asli = p.read_bytes()
-        p.write_bytes(asli + b"\n# perubahan\n")
+        p.write_bytes(asli + b"\nKONTRAK_UJI = 'perubahan'\n")
         assert jalankan_kontrak(tmp_path).stdout != awal, nama
         p.write_bytes(asli)

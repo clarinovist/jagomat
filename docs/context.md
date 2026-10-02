@@ -101,8 +101,11 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
 - Git selalu `git -C /Users/nugroho/Documents/jagomat …`; hindari repo basi
   `mesin/.git`, jaga WIP sesi lain. Repo `clarinovist/jagomat`; domain `jagomat.id`.
 - Image tetap `ghcr.io/clarinovist/osn-mesin-latihan` demi kompatibilitas recovery.
-  Rilis mengikuti **uji → bangun → pasang**, artifact/digest yang sama. CI hijau
-  bukan bukti pemasangan; jangan build di VPS atau otomatis menyalakan Docker lokal.
+  Rilis mengikuti **uji → bangun → pasang**, artifact/digest yang sama. Fingerprint
+  recovery memproyeksikan AST operasi/guard persistensi sehingga ekstraksi murni
+  lintas modul tidak mengubah kontrak, sedangkan perubahan SQL/guard/transaksi tetap
+  tertangkap; ID kontrak lama dipetakan eksplisit hanya untuk proyeksi yang identik.
+  CI hijau bukan bukti pemasangan; jangan build di VPS atau menyalakan Docker lokal.
 
 Detail: [workflow](workflow-reference.md) · [design system](design-system.md) ·
 [CI selektif](ci-selective.md) · [rilis produksi](production-release.md) ·

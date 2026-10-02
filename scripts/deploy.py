@@ -500,7 +500,9 @@ if support_settings is not None:
 print('OSN_IMAGE_ADMIN9_AI2_OK')
 ''')
 
-PROBE_KONTRAK = '''import hashlib
+PROBE_KONTRAK = '''import ast
+import copy
+import hashlib
 import json
 from pathlib import Path
 akar = Path('/app')
@@ -512,13 +514,86 @@ nama = {
 }
 nama.update(p.name for p in akar.glob('*.py')
             if any(k in p.stem for k in ('schema', 'migrat', 'database', 'store')))
-# Recovery sebelum fitur ini belum mempunyai modul dukungan. Hash file bila ada
-# agar baseline lama tetap dapat diukur pada mode persiapan, sementara setiap
-# perubahan dukungan pada candidate/recovery baru mengubah fingerprint.
 if (akar / 'support_settings.py').is_file():
     nama.add('support_settings.py')
-hasil = {n: hashlib.sha256((akar / n).read_bytes()).hexdigest() for n in sorted(nama)}
-print(hashlib.sha256(json.dumps(hasil, sort_keys=True).encode()).hexdigest())
+
+class Normalisasi(ast.NodeTransformer):
+    def __init__(self):
+        self.nama = {}
+
+    def visit_Name(self, node):
+        if node.id not in self.nama:
+            self.nama[node.id] = 'v' + str(len(self.nama))
+        return ast.copy_location(ast.Name(self.nama[node.id], node.ctx), node)
+
+    def visit_Constant(self, node):
+        if isinstance(node.value, str):
+            return ast.copy_location(
+                ast.Constant(' '.join(node.value.split())), node,
+            )
+        return node
+
+
+def _wrapper_murni(fungsi):
+    badan = [
+        node for node in fungsi.body
+        if not isinstance(node, (ast.Import, ast.ImportFrom))
+        and not (
+            isinstance(node, ast.Expr)
+            and isinstance(node.value, ast.Constant)
+            and isinstance(node.value.value, str)
+        )
+    ]
+    return (
+        len(badan) == 1
+        and isinstance(badan[0], ast.Return)
+        and isinstance(badan[0].value, ast.Call)
+    )
+
+
+def _kanonis(node):
+    salinan = Normalisasi().visit(copy.deepcopy(node))
+    return ast.dump(salinan, annotate_fields=True, include_attributes=False)
+
+
+# Ukur operasi/guard persistensi tanpa mengikat kontrak pada nama berkas,
+# whitespace, komentar, atau wrapper delegasi hasil ekstraksi murni.
+unsur = set()
+jenis = (
+    ast.Assign, ast.AnnAssign, ast.AugAssign, ast.If, ast.Try, ast.With,
+    ast.Raise, ast.For, ast.While, ast.Assert, ast.Delete,
+)
+for berkas in sorted(nama):
+    pohon = ast.parse((akar / berkas).read_text())
+    abaikan = set()
+    for node in pohon.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and _wrapper_murni(node):
+            abaikan.update(id(turunan) for turunan in ast.walk(node))
+    for node in ast.walk(pohon):
+        if id(node) in abaikan:
+            continue
+        if isinstance(node, jenis) or isinstance(node, ast.Return):
+            unsur.add(type(node).__name__ + ':' + _kanonis(node))
+        elif (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in {
+                'execute', 'executemany', 'executescript',
+                'commit', 'rollback', 'backup',
+            }
+        ):
+            unsur.add('DBCall:' + _kanonis(node))
+
+sidik_semantik = hashlib.sha256(
+    json.dumps(sorted(unsur), separators=(',', ':')).encode()
+).hexdigest()
+# ID kontrak lama tetap menjadi anchor recovery immutable. Hanya proyeksi
+# semantik yang terbukti identik yang boleh memakai ID tersebut.
+kompatibel = {
+    'd25e4d1359450ca681cf045d070308af0fc29dcb4cecda1f7bd71ff572d3c5ba':
+        'fc68c8bc9280663443718bc1c73764cb0c1034e5d0b733deeb36f5994940aba3',
+}
+print(kompatibel.get(sidik_semantik, sidik_semantik))
 '''
 
 

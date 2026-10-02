@@ -88,7 +88,7 @@ def test_probe_langganan_dijalankan_dan_verifier_tidak_boleh_skip(tmp_path):
 
 def test_source_tidak_punya_hook_user_network_env_billing():
     akar = Path(__file__).resolve().parents[1]
-    izin = {"subscription", "subscription_store", "subscription_package_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_backup", "subscription_service", "subscription_registration", "midtrans_sandbox", "subscription_checkout", "subscription_http", "subscription_preview", "admin_launch_service", "admin_subscription", "admin_operations", "midtrans_secret", "midtrans_produksi", "subscription_produksi", "subscription_callback", "subscription_worker", "subscription_produksi_http", "subscription_produksi_pages", "assistant_entitlement", "assistant_quota_store", "support_settings", "registration_http", "web"}
+    izin = {"subscription", "subscription_store", "subscription_package_store", "subscription_schema", "midtrans_contract", "admin_store", "admin_store_core", "admin_backup", "subscription_service", "subscription_registration", "midtrans_sandbox", "subscription_checkout", "subscription_http", "subscription_preview", "admin_launch_service", "admin_subscription", "admin_operations", "midtrans_secret", "midtrans_produksi", "subscription_produksi", "subscription_callback", "subscription_worker", "subscription_produksi_http", "subscription_produksi_pages", "assistant_entitlement", "assistant_quota_store", "support_settings", "registration_http", "account_http", "web"}
     for p in akar.glob("*.py"):
         pohon = ast.parse(p.read_text())
         for node in ast.walk(pohon):
@@ -101,7 +101,7 @@ def test_source_tidak_punya_hook_user_network_env_billing():
             if "midtrans_sandbox" in modul:
                 assert p.stem == "subscription_preview", p.name
             if "subscription_http" in modul:
-                assert p.stem in {"web", "subscription_preview", "admin_subscription"}, p.name
+                assert p.stem in {"web", "account_http", "subscription_preview", "admin_subscription"}, p.name
             if set(modul) & {"subscription", "subscription_store", "subscription_schema", "midtrans_contract", "subscription_service", "subscription_registration", "subscription_checkout"}:
                 assert p.stem in izin, p.name
     for nama in ("subscription.py", "subscription_store.py", "midtrans_contract.py", "subscription_service.py", "subscription_registration.py"):

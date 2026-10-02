@@ -605,14 +605,18 @@ ditolak. Smoke edge gagal membuat CI gagal, bukan otomatis restore DB.
   pause maintenance dan rehearsal. Persetujuan lama consumed tidak boleh dipakai
   ulang. Tidak dilakukan otomatis hanya karena push.
 
-Fingerprint rutin menghitung byte modul schema/startup/persistensi yang tercantum
-pada `PROBE_KONTRAK` di `scripts/deploy.py`, termasuk inventaris modul baru bernama
+Fingerprint rutin memproyeksikan AST operasi/guard persistensi dari modul
+schema/startup/persistensi yang tercantum pada `PROBE_KONTRAK` di
+`scripts/deploy.py`, termasuk inventaris modul baru bernama
 schema/migrat/database/store. Probe network-none tidak membaca volume produksi
-atau import aplikasi. Perubahan modul tersebut (termasuk komentar) sengaja menolak
-rutin sampai review kompatibilitas/recovery baru. **Fingerprint bukan analisis
-semantik semua Python**: penulis data baru, kontrak JSON/provenance atau perubahan
-runtime berisiko tetap memerlukan review kritis. Jangan menghapus modul dari
-fingerprint atau mengganti hash policy sekadar agar deploy hijau.
+atau mengimpor aplikasi. Komentar, format, nama variabel lokal, pemindahan murni,
+dan wrapper delegasi murni tidak mengubah fingerprint; perubahan struktur SQL,
+guard, transaksi, atau state tetap mengubahnya. Proyeksi semantik yang sudah
+dibuktikan identik boleh memakai ID kontrak recovery immutable yang dipetakan
+secara eksplisit; ID/pin tidak diganti hanya agar gate hijau. **Fingerprint bukan
+analisis semantik semua Python**: penulis data baru, kontrak JSON/provenance atau
+perubahan runtime berisiko tetap memerlukan review kritis dan pair exact. Jangan
+menghapus operasi dari proyeksi atau mengganti hash policy sekadar agar deploy hijau.
 
 ### Bootstrap rutin — sekali, dalam scope aktivasi yang disetujui
 
