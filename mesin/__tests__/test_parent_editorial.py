@@ -68,7 +68,9 @@ def _halaman(db):
     kon, sid, sesi, lamp = db
     siswa = kon.execute("SELECT * FROM siswa WHERE id=?", (sid,)).fetchone()
     return {
-        "profil": teacher_pages.halaman_anak(kon, siswa, pengguna="pendamping-uji"),
+        "profil": teacher_pages.halaman_anak(
+            kon, siswa, pengguna="pendamping-uji", query="section=latihan"
+        ),
         "koreksi": teacher_pages.halaman_sesi_stitch(kon, sesi, pengguna="pendamping-uji"),
         "laporan": reports.halaman_laporan(kon, sid, pengguna="pendamping-uji"),
         "akun": account_pages.halaman_akun(kon, pengguna="pendamping-uji"),
