@@ -4,13 +4,25 @@ from __future__ import annotations
 
 import html
 from dataclasses import replace
-import os
 import re
 import secrets
 import sqlite3
-import threading
 import time
 import urllib.parse
+
+from assistant_http_common import (
+    GalatForm,
+    _baca_form,
+    _batasi_laju,
+    _kirim_host_privat,
+    _kirim_privat,
+    _principal,
+    _redirect,
+    _tidak_ada,
+    _tolak_login,
+    _usulan_berubah,
+    aktif,
+)
 
 import ai_errors
 import ai_service
@@ -28,8 +40,6 @@ import assistant_service
 import assistant_store
 import sessions
 
-_BATAS_FORM = 12_000
-_BATAS_PER_MENIT = 30
 _POLA_CHAT = re.compile(r"/pendamping/chat/(chat_[0-9a-f]{32})\Z")
 _POLA_PESAN = re.compile(r"/pendamping/chat/(chat_[0-9a-f]{32})/pesan\Z")
 _POLA_MEMORI = re.compile(
@@ -42,153 +52,10 @@ _POLA_USULAN = re.compile(r"/pendamping/usulan/(usulan_[0-9a-f]{32})\Z")
 _POLA_KONFIRMASI_USULAN = re.compile(
     r"/pendamping/usulan/(usulan_[0-9a-f]{32})/konfirmasi\Z"
 )
-_riwayat_laju = {}
-_kunci_laju = threading.Lock()
-
-
-class GalatForm(ValueError):
-    def __init__(self, pesan: str, status: int = 400):
-        super().__init__(pesan)
-        self.status = status
-
-
-def aktif() -> bool:
-    return os.environ.get("PENDAMPING_AKTIF", "0") == "1"
-
-
-def _kirim_privat(penangan, isi: bytes, kode: int = 200) -> None:
-    penangan.send_response(kode)
-    penangan.send_header("Content-Type", "text/html; charset=utf-8")
-    penangan.send_header("Content-Length", str(len(isi)))
-    penangan.send_header("Cache-Control", "no-store")
-    penangan.send_header("Referrer-Policy", "no-referrer")
-    penangan.send_header("X-Robots-Tag", "noindex, nofollow")
-    penangan.send_header("X-Frame-Options", "DENY")
-    penangan.send_header(
-        "Content-Security-Policy",
-        "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; "
-        "form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
-    )
-    penangan.end_headers()
-    penangan.wfile.write(isi)
-
-
-def _kirim_host_privat(penangan, isi: bytes, kode: int = 200) -> None:
-    """Respons host privat tanpa script atau koneksi pihak ketiga."""
-    penangan.send_response(kode)
-    penangan.send_header("Content-Type", "text/html; charset=utf-8")
-    penangan.send_header("Content-Length", str(len(isi)))
-    penangan.send_header("Cache-Control", "no-store")
-    penangan.send_header("Referrer-Policy", "no-referrer")
-    penangan.send_header("X-Robots-Tag", "noindex, nofollow")
-    penangan.send_header("X-Frame-Options", "DENY")
-    penangan.send_header(
-        "Content-Security-Policy",
-        "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; "
-        "form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
-    )
-    penangan.end_headers()
-    penangan.wfile.write(isi)
-
-
-def _redirect(penangan, tujuan: str) -> None:
-    penangan.send_response(303)
-    penangan.send_header("Location", tujuan)
-    penangan.send_header("Cache-Control", "no-store")
-    penangan.send_header("Referrer-Policy", "no-referrer")
-    penangan.send_header("X-Robots-Tag", "noindex, nofollow")
-    penangan.send_header("Content-Length", "0")
-    penangan.end_headers()
-
-
-def _principal(penangan):
-    token = penangan._ambil_token()
-    return sessions.ambil_principal_pendamping(token)
-
-
-def _tolak_login(penangan, tujuan: str = '') -> None:
-    _kirim_privat(
-        penangan,
-        assistant_pages._bingkai(
-            "Perlu masuk",
-            '<section class="pendamping-panel"><h1 id="judul-pendamping">Perlu masuk lagi</h1>'
-            '<p>Pendamping hanya tersedia untuk akun orang tua dengan sesi terbaru.</p>'
-            f'<p><a href="{html.escape(assistant_navigation.tautan_masuk(tujuan), quote=True)}">Masuk</a></p></section>',
-        ),
-        401,
-    )
-
-
-def _tidak_ada(penangan) -> None:
-    _kirim_privat(
-        penangan,
-        assistant_pages._bingkai(
-            "404", '<section class="pendamping-panel"><h1 id="judul-pendamping">Halaman tidak ada</h1></section>'
-        ),
-        404,
-    )
-
-
-def _usulan_berubah(penangan, galat, *, chat_id='', usulan_id='') -> None:
-    """Gunakan penolakan aman yang sama untuk tinjauan dan konfirmasi."""
-    _kirim_privat(
-        penangan,
-        assistant_pages._bingkai(
-            "Usulan berubah",
-            '<section class="pendamping-panel"><h1 id="judul-pendamping">Usulan perlu ditinjau ulang</h1>'
-            f'<p role="alert">{html.escape(str(galat))}</p>'
-            + (f'<p><a href="/pendamping/usulan/{html.escape(usulan_id)}">Tinjau kembali</a></p>'
-               if usulan_id and 'kedaluwarsa' in str(galat).lower() else '')
-            + (f'<p><a href="/pendamping/chat/{html.escape(chat_id)}">Kembali ke percakapan</a></p>' if chat_id else '')
-            + '</section>',
-        ),
-        409,
-    )
-
-
-def _baca_form(penangan) -> dict[str, str]:
-    asal = penangan.headers.get("Origin")
-    situs = penangan.headers.get("Sec-Fetch-Site")
-    if asal == "null":
-        silang = situs != "same-origin"
-    else:
-        silang = bool(asal) and urllib.parse.urlsplit(asal).netloc != penangan.headers.get("Host")
-    if (not asal and situs != "same-origin") or silang or situs == "cross-site":
-        raise GalatForm("Permintaan harus berasal dari situs ini.", 403)
-    panjang = penangan.headers.get("Content-Length", "0")
-    if not re.fullmatch(r"[0-9]+", panjang) or penangan.headers.get("Transfer-Encoding"):
-        raise GalatForm("Panjang isian tidak dikenal.")
-    if int(panjang) > _BATAS_FORM:
-        raise GalatForm("Isian terlalu besar.", 413)
-    if penangan.headers.get_content_type() != "application/x-www-form-urlencoded":
-        raise GalatForm("Format isian tidak dikenal.")
-    try:
-        mentah = penangan.rfile.read(int(panjang)).decode("utf-8")
-        data = urllib.parse.parse_qs(
-            mentah, keep_blank_values=True, errors="strict", max_num_fields=8
-        )
-    except (UnicodeError, ValueError) as galat:
-        raise GalatForm("Isian tidak dapat dibaca.") from galat
-    if any(len(nilai) != 1 for nilai in data.values()):
-        raise GalatForm("Isian ganda tidak diizinkan.")
-    return {nama: nilai[0] for nama, nilai in data.items()}
-
-
-def _batasi_laju(penangan, account_id: str) -> None:
-    kini = time.monotonic()
-    ip = penangan.client_address[0] if penangan.client_address else "unknown"
-    kunci = (account_id, ip)
-    with _kunci_laju:
-        aktif = tuple(waktu for waktu in _riwayat_laju.get(kunci, ()) if kini - waktu < 60)
-        if len(aktif) >= _BATAS_PER_MENIT:
-            raise GalatForm("Terlalu banyak permintaan. Coba lagi sebentar.", 429)
-        _riwayat_laju[kunci] = (*aktif, kini)
-
 
 def _siapkan_db():
     assistant_schema.siapkan()
     return assistant_schema.buka()
-
 
 def _konteks_chat(chat, pemilik: str):
     if chat.context_kind is None:
@@ -206,7 +73,6 @@ def _konteks_chat(chat, pemilik: str):
         return None
     return konteks
 
-
 def _versi_konteks_chat(chat, pemilik: str):
     import database
 
@@ -214,7 +80,6 @@ def _versi_konteks_chat(chat, pemilik: str):
         return assistant_context.versi_resource(
             kon, chat.context_kind, chat.context_id, pemilik=pemilik
         )
-
 
 def _query(penangan):
     """Query terbatas; parameter URL bukan sumber otorisasi."""
@@ -229,7 +94,6 @@ def _query(penangan):
         raise GalatForm('Parameter ganda tidak sah.', 404)
     return {k: v[0] for k, v in data.items()}
 
-
 def _sumber(chat, pemilik):
     if chat.context_kind is None:
         return None
@@ -238,7 +102,6 @@ def _sumber(chat, pemilik):
         return assistant_view.sumber_tampilan(
             kon_data, chat.context_kind, chat.context_id, pemilik=pemilik
         )
-
 
 def _target_chat_inline(chat):
     """Petakan snapshot berkonteks ke satu host inline kanonik."""
@@ -253,7 +116,6 @@ def _target_chat_inline(chat):
         )
     raise LookupError("chat umum tidak memiliki host")
 
-
 def _kembali_sah(kon, principal, nilai):
     if not nilai:
         return ''
@@ -265,7 +127,6 @@ def _kembali_sah(kon, principal, nilai):
     ):
         raise GalatForm('Tujuan tidak tersedia.', 404)
     return nilai
-
 
 def _consent(kon, account_id):
     """Pilih izin provider terbaru; izin lama tidak hidup setelah pencabutan."""
@@ -283,10 +144,8 @@ def _consent(kon, account_id):
                 and izin['provider_id']==assistant_policy.PROVIDER_ID
                 and izin['policy_version']==assistant_policy.VERSI_KEBIJAKAN)
 
-
 def _daftar(kon, account_id):
     return assistant_view.riwayat(kon, account_id)[0]
-
 
 def _akses_terkunci(account_id, *, sekarang=None):
     """Status generik sebelum konteks; default enforcement OFF tidak mengunci."""
@@ -295,7 +154,6 @@ def _akses_terkunci(account_id, *, sekarang=None):
     return hasil if hasil.enforcement_aktif and hasil.status not in {
         "trial_aktif", "pro_aktif",
     } else None
-
 
 def _host_milik(principal, target):
     """Owner check minimum tanpa merakit payload konteks AI."""
@@ -306,7 +164,6 @@ def _host_milik(principal, target):
         if target.jenis_host == "sesi":
             return database.sesi_milik(kon, target.host_id, principal.pengguna)
     return False
-
 
 def fragmen_arsip_akun(principal, *, halaman: int = 1, chat_id: str = "") -> str:
     """Arsip chat umum lama untuk principal cookie bergenerasi yang sama."""
@@ -341,7 +198,6 @@ def fragmen_arsip_akun(principal, *, halaman: int = 1, chat_id: str = "") -> str
             chats, pesan=pesan, dipilih=dipilih,
             halaman=halaman, ada_lagi=ada_lagi,
         )
-
 
 def fragmen_inline(
     principal, target, *, dalam_form: bool = False, galat: str = "",
@@ -443,7 +299,6 @@ def fragmen_inline(
             ada_lagi=ada_lagi,
         )
 
-
 def _chat_html(kon, principal, chat, *, galat='', request_id='', operasi_url=''):
     """Proyeksi baca terjaga; stale tidak mengaktifkan composer atau tindakan."""
     sumber = _sumber(chat, principal.pengguna)
@@ -482,7 +337,6 @@ def _chat_html(kon, principal, chat, *, galat='', request_id='', operasi_url='')
         sumber=sumber, hanya_baca=hanya_baca, operasi_url=operasi_url,
     ), 200
 
-
 def _data_inline(penangan):
     """Parser form host lebih besar dari chat lama, tetap strict/owner-local."""
     asal = penangan.headers.get("Origin")
@@ -506,7 +360,6 @@ def _data_inline(penangan):
     except (UnicodeError, ValueError) as galat:
         raise GalatForm("Isian tidak dapat dibaca.") from galat
 
-
 def _target_inline_sah(principal, target):
     import database
     with database.buka() as kon_data:
@@ -514,7 +367,6 @@ def _target_inline_sah(principal, target):
             kon_data, target.jenis_resource, target.resource_id,
             pemilik=principal.pengguna,
         )
-
 
 def _pisahkan_draf_inline(data, target):
     """Pisahkan draf host dari aksi; draf tak pernah masuk store/provider."""
@@ -589,13 +441,11 @@ def _pisahkan_draf_inline(data, target):
     draf = assistant_inline.parse_draf_latihan({k: data[k] for k in nama}, topics.daftar_topik())
     return {k: v for k, v in data.items() if k not in nama}, draf, None, None
 
-
 def _dalam_form_inline(target, draf, draf_gabungan=None, draf_remedial=None) -> bool:
     return bool(
         target.jenis_host == "anak" and target.posisi == "latihan"
         or draf is not None or draf_gabungan is not None or draf_remedial is not None
     )
-
 
 def _render_host_dengan_fragmen(
     penangan, principal, target, fragmen: str, *, draf=None,
@@ -625,7 +475,6 @@ def _render_host_dengan_fragmen(
             )
     penangan._kirim_privat(isi, kode)
 
-
 def _render_host_inline(
     penangan, principal, target, *, draf=None, draf_gabungan=None,
     draf_remedial=None, galat="", kode=200, halaman_riwayat: int = 1,
@@ -643,7 +492,6 @@ def _render_host_inline(
         penangan, principal, target, fragmen, draf=draf,
         draf_gabungan=draf_gabungan, draf_remedial=draf_remedial, kode=kode,
     )
-
 
 def tangani_inline_post(penangan, jalur: str) -> bool:
     """Aksi inti inline. Host sesi merender draf di router setelah aksi."""
@@ -1054,7 +902,6 @@ def tangani_inline_post(penangan, jalur: str) -> bool:
         ), getattr(galat, "status", 409))
     return True
 
-
 def tangani_get(penangan, jalur: str) -> bool:
     if not (jalur == '/pendamping' or jalur.startswith('/pendamping/')):
         return False
@@ -1187,7 +1034,6 @@ def tangani_get(penangan, jalur: str) -> bool:
     except ValueError:
         _tidak_ada(penangan)
     return True
-
 
 def tangani_post(penangan, jalur: str) -> bool:
     if not (jalur == "/pendamping" or jalur.startswith("/pendamping/")):
