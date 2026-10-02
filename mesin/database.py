@@ -24,6 +24,7 @@ from attachment_store import (
     tandai_lampiran,
 )
 import outcome_presentations
+from question_bank_store import simpan_soal, statistik_bank
 from report_store import miskonsepsi_berulang, peta_materi_baru, ringkasan
 from student_profile_store import daftar_siswa, sesi_milik, siswa_milik, tambah_siswa
 import question_views
@@ -276,62 +277,7 @@ def rebuild_siswa_unik(kon: sqlite3.Connection) -> bool:
     return True
 
 
-# ── Siswa ───────────────────────────────────────────────────────────────
-
-
-
-
-
-
-
-
-
-
-# ── Bank soal ───────────────────────────────────────────────────────────
-
-
-def simpan_soal(kon: sqlite3.Connection, soal: Soal) -> int:
-    """Masukkan soal ke bank. Idempoten lewat tanda_tangan.
-
-    Mengembalikan id soal — yang lama kalau sudah pernah ada, sehingga
-    generate berulang tidak menggandakan bank.
-    """
-    ada = kon.execute(
-        "SELECT id FROM soal WHERE tanda_tangan = ?", (soal.tanda_tangan,)
-    ).fetchone()
-    if ada:
-        return int(ada["id"])
-
-    cur = kon.execute(
-        """INSERT INTO soal (tanda_tangan, template_id, parameter, kunci,
-                             bagian, tantangan, level)
-           VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        (
-            soal.tanda_tangan,
-            soal.template_id,
-            json.dumps(soal.parameter, ensure_ascii=False, sort_keys=True),
-            soal.kunci,
-            soal.bagian,
-            int(soal.tantangan),
-            soal.level,
-        ),
-    )
-    soal_id = int(cur.lastrowid)
-
-    for m in soal.malrule:
-        kon.execute(
-            """INSERT OR IGNORE INTO malrule (soal_id, malrule_id, jawaban, kode, alasan)
-               VALUES (?, ?, ?, ?, ?)""",
-            (soal_id, m.id, m.jawaban, m.kode, m.alasan),
-        )
-    return soal_id
-
-
-def statistik_bank(kon: sqlite3.Connection) -> list[sqlite3.Row]:
-    return kon.execute(
-        """SELECT template_id, COUNT(*) AS jumlah
-           FROM soal GROUP BY template_id ORDER BY jumlah DESC"""
-    ).fetchall()
+# ── Bank soal dan sesi ──────────────────────────────────────────────────
 
 
 def _simpan_butir_sesi(
