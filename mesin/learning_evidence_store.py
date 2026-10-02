@@ -38,11 +38,11 @@ def konfirmasi_hasil(
     dilewati: set[int] | None = None,
     cek_pemahaman: dict[int, str] | None = None,
     *,
-    transaksi,
+    outcome_presentations_module,
     konfirmasi_impl,
 ) -> int:
     """Sahkan snapshot dan provenance atomik, tanpa meng-commit pemanggil."""
-    with transaksi(kon):
+    with outcome_presentations_module.transaksi(kon):
         return konfirmasi_impl(kon, sesi_id, guru, dilewati, cek_pemahaman)
 
 
@@ -99,14 +99,14 @@ def _konfirmasi_hasil(
         validasi_arsip(kon, sesi_id)
     import review_store
     tinjauan = review_store.validasi_bukti(kon, sesi_id, outcome, dilewati)
-    target_per_butir = target_per_butir(kon, sesi_id)
+    target_fokus_butir = target_per_butir(kon, sesi_id)
     import context_store
-    konteks = context_store.proyeksi(kon, sesi_id, target_per_butir)
+    konteks = context_store.proyeksi(kon, sesi_id, target_fokus_butir)
     kanonis = []
     for butir in outcome:
         butir_id = int(butir["sesi_soal_id"])
         lewat = butir_id in dilewati
-        target_fokus = target_per_butir.get(int(butir["nomor"]))
+        target_fokus = target_fokus_butir.get(int(butir["nomor"]))
         kanonis.append(
             {
                 "nomor": int(butir["nomor"]),
@@ -148,7 +148,7 @@ def _konfirmasi_hasil(
         (sesi_id, fingerprint),
     ).fetchone()
     if aktif is not None:
-        context_store.validasi_arsip(kon, sesi_id, int(aktif['id']), target_per_butir)
+        context_store.validasi_arsip(kon, sesi_id, int(aktif['id']), target_fokus_butir)
         if sesi['format_jawaban'] == 'pilihan_ganda':
             validasi_arsip(kon, sesi_id, int(aktif['id']))
         outcome_presentations.lengkapi(kon, int(aktif["id"]))

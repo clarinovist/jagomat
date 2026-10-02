@@ -649,7 +649,7 @@ def konfirmasi_hasil(
 
     return learning_evidence_store.konfirmasi_hasil(
         kon, sesi_id, guru, dilewati, cek_pemahaman,
-        transaksi=outcome_presentations.transaksi,
+        outcome_presentations_module=outcome_presentations,
         konfirmasi_impl=_konfirmasi_hasil,
     )
 
