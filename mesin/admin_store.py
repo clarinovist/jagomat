@@ -8,9 +8,6 @@ membuat database kosong diam-diam.
 from __future__ import annotations
 
 from contextlib import contextmanager
-from dataclasses import dataclass
-import hashlib
-import json
 import os
 from pathlib import Path
 import sqlite3
@@ -20,8 +17,6 @@ from typing import Mapping, Optional, Tuple
 from admin_batch_store import (
     BatchDurable, HalamanBatchDurable, ItemBatchDurable, KelompokBatchDurable,
     PenyerahanBatchDurable, RingkasanBatchDurable, SnapshotBatchDurable,
-    _batch_durable_dari_baris, _item_batch_durable_dari_baris,
-    _validasi_identitas_batch, _snapshot_batch_durable_kon,
     batalkan_batch_aktif_durable, baca_batch_durable,
     baca_batch_operasional_durable, buat_batch_durable,
     buat_batch_durable_dengan_guard, catat_item_batch_durable,
@@ -29,9 +24,6 @@ from admin_batch_store import (
     hentikan_batch_durable_dengan_guard, konfirmasi_penyerahan_durable,
     konfirmasi_penyerahan_durable_dengan_guard, mulai_kelompok_durable,
     mulai_kelompok_durable_dengan_guard, selesaikan_kelompok_durable,
-)
-from admin_batch_store import (
-    _hentikan_batch_durable_kon, _konfirmasi_penyerahan_durable_kon,
 )
 from admin_history_store import (
     EntriRiwayat,
@@ -62,22 +54,7 @@ from admin_store_core import (
     validasi_skema as _validasi_skema,
 )
 
-from admin_contracts import (
-    AKSI_UBAH_PENDAFTARAN,
-    FIELD_AUDIT,
-    HASIL_KODE,
-    JENIS_TARGET,
-    PESAN_PENDAFTARAN,
-    STATUS_OPERASI,
-    STATUS_TERMINAL,
-    HasilOperasi,
-    ReceiptAkun,
-    receipt_cocok,
-    sidik_perintah,
-    validasi_id,
-    validasi_revisi,
-    validasi_sidik,
-)
+from admin_contracts import HasilOperasi, ReceiptAkun
 
 
 BAWAAN = Path(os.environ.get("ADMIN_BERKAS_DB", "/data/admin-control.db"))
