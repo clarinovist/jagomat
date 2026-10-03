@@ -474,7 +474,8 @@ def halaman_laporan(
         if not materi and rincian in {'konteks', 'kriteria', 'catatan'} and peta_target.target:
             materi = peta_target.target[0].topik_id
         buka = tampilan if tampilan in {'konteks', 'pilot', 'tugas'} else ''
-        isi = '<section class="laporan-bagian-st" id="progres" aria-label="Progres dan aktivitas">'
+        isi = '<section class="laporan-bagian-st" id="progres" aria-label="Ringkasan perkembangan">'
+        isi += '<h2>Ringkasan perkembangan</h2>'
         isi += '<div class="laporan-ringkasan-grid">'
         peta_ringkas = render_peta(peta_target, _tanggal_pendek, ringkas=True)
         # Bedakan id dari peta full di #materi agar id halaman unik.
