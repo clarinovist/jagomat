@@ -435,7 +435,7 @@ def test_urutan_penguasaan_lalu_aktivitas_tanpa_resume(db):
 
     isi = h.split("</style>", 1)[1]
     assert "Hasil dan tren per materi" not in isi
-    assert isi.index('id="peta-penguasaan"') < isi.index('id="judul-aktivitas"')
+    assert isi.index('id="peta-ringkas"') < isi.index('id="judul-aktivitas"')
     assert 'id="rencana-belajar-laporan"' not in isi
     assert "Perjalanan fokus belajar" not in isi
     assert "Ringkasan untuk orang tua" not in isi

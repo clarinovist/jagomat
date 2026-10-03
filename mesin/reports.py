@@ -476,7 +476,13 @@ def halaman_laporan(
         buka = tampilan if tampilan in {'konteks', 'pilot', 'tugas'} else ''
         isi = '<section class="laporan-bagian-st" id="progres" aria-label="Progres dan aktivitas">'
         isi += '<div class="laporan-ringkasan-grid">'
-        isi += render_peta(peta_target, _tanggal_pendek, ringkas=True)
+        peta_ringkas = render_peta(peta_target, _tanggal_pendek, ringkas=True)
+        # Bedakan id dari peta full di #materi agar id halaman unik.
+        peta_ringkas = (peta_ringkas
+            .replace('id="peta-penguasaan"', 'id="peta-ringkas"')
+            .replace('id="judul-peta"', 'id="judul-peta-ringkas"')
+            .replace('aria-labelledby="judul-peta"', 'aria-labelledby="judul-peta-ringkas"'))
+        isi += peta_ringkas
         isi += render_aktivitas(
             statistik, _tanggal_pendek, judul=judul_aktivitas,
             kontrol=_kontrol_periode_aktivitas(siswa_id, periode, mulai, akhir),
