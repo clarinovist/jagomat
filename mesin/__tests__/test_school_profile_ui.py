@@ -148,7 +148,7 @@ def test_bingkai_profil_kelas_eksplisit_bukan_tingkat():
     kelas = profile_workspace.bingkai(siswa, 'latihan', 0, '', kelas_sekolah=2)
     assert 'Kelas belum diisi' in kosong and 'Kelas 6' not in kosong
     assert 'Kelas 2' in kelas and 'P6' not in kelas
-    assert kelas.count('Ubah kelas') == 1
+    assert 'Ubah kelas' not in kelas
     assert '<form' not in kelas
 
 

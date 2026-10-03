@@ -175,7 +175,8 @@ Dari 9 mockup, pattern yang berulang:
    **Berikutnya**, **Buat latihan**, **Riwayat**, **Perkembangan**. Pada HP 375 px
    keempatnya tetap satu baris tanpa badge jumlah atau overflow dokumen. Keempat tujuan
    mempertahankan header identitas anak yang sama; tautan “← Semua anak” menyatu di
-   baris identitas, bukan baris terpisah di atasnya; di laporan, nama anak tetap menjadi
+   baris identitas, bukan baris terpisah di atasnya, dan kelas sekolah diubah dari menu
+   akun sehingga kepala profil tidak menyediakan tautan “Ubah kelas”; di laporan, nama anak tetap menjadi
    H1 dan “Perkembangan” menjadi judul bagian. Subnavigasi laporan hanya Ringkasan,
    Materi, Perjalanan dan memakai tab garis bawah yang tenang, bukan pill terisi.
    Ringkasan laporan memakai tautan preset 7 hari, minggu ini, bulan ini, serta form

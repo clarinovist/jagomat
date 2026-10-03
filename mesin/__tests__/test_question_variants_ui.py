@@ -23,7 +23,7 @@ def test_identitas_anak_bukan_konfigurasi_soal():
     isi = profile_workspace.bingkai(dict(id=1, nama='Sintetis', tingkat='P6', pemilik='guru'),
                                     'latihan', 0, '', kelas_sekolah=2)
     kepala = isi.split('<header', 1)[1].split('</header>', 1)[0]
-    assert 'Kelas 2' in kepala and 'Ubah kelas' in kepala
+    assert 'Kelas 2' in kepala and 'Ubah kelas' not in kepala
     assert 'P6' not in kepala and 'Konteks latihan' not in kepala
 
 

@@ -37,13 +37,13 @@ def test_pilihan_tanpa_centang_dengan_url_aria_dan_label_utuh(aktif):
     assert 'font-weight:700' in aktif_css and 'border:2px solid' in aktif_css
 
 
-@pytest.mark.parametrize('peran,tujuan', [('guru', '/akun?section=siswa'), ('admin', '/admin?section=siswa&id=7')])
-def test_ubah_kelas_di_identitas_tujuan_tetap(peran, tujuan):
+@pytest.mark.parametrize('peran', ['guru', 'admin'])
+def test_kepala_anak_tanpa_tautan_ubah_kelas(peran):
+    """Ubah kelas hanya lewat menu akun, bukan kepala profil anak."""
     h = P.bingkai(dict(id=7, nama='Contoh <uji>', tingkat='P3', pemilik='guru'), 'latihan', 0, '', peran=peran, kelas_sekolah=2)
     assert 'class="profil-identitas-st"' in h
-    assert '>Ubah kelas</a>' in h and 'Kelola kelas sekolah' not in h
-    a = [a for a in Tautan(h).tautan if a.get('class') == 'profil-ubah-kelas-st']
-    assert len(a) == 1 and a[0]['href'] == tujuan
+    assert 'Ubah kelas' not in h
+    assert not [a for a in Tautan(h).tautan if a.get('class') == 'profil-ubah-kelas-st']
     assert 'Kelas 2' in h and 'Contoh &lt;uji&gt;' in h
 
 

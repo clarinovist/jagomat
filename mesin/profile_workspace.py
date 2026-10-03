@@ -42,28 +42,24 @@ def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul
 
     Tautan kembali digabung ke baris identitas supaya kepala halaman tidak
     menumpuk menjadi empat baris terpisah (topbar, kembali, identitas, tab).
+    Kelas sekolah diubah dari menu akun, jadi kepala profil tidak lagi
+    menyediakan tautan "Ubah kelas" yang menduplikasi entry point itu.
     """
-    sid = int(siswa['id'])
     from learning_profile import label_kelas_sekolah
     keluarga = '<span class="st-badge selesai">keluarga: %s</span>' % _e(siswa['pemilik'] or 'warisan') if peran=='admin' else ''
-    tujuan_kelas = (
-        '/admin?section=siswa&amp;id=%d' % sid
-        if peran == 'admin' else '/akun?section=siswa'
-    )
-    tautan_kembali = (
-        '<a class="profil-kembali-st" href="%s">&larr; Semua anak</a>' % _e(kembali)
+    aksi = (
+        '<div class="profil-aksi-kepala-st">'
+        '<a class="profil-kembali-st" href="%s">&larr; Semua anak</a></div>' % _e(kembali)
         if kembali else ''
     )
     return (
         '<header class="kepala-anak-st editorial-kepala-st">'
         '<p class="editorial-alis-st">RUANG BELAJAR ANAK</p>'
         '<div class="profil-identitas-st"><h1 class="st" id="%s">%s '
-        '<span class="st-badge selesai">(%s)</span>%s</h1>'
-        '<div class="profil-aksi-kepala-st">%s'
-        '<a class="profil-ubah-kelas-st" href="%s">Ubah kelas</a></div></div></header>'
+        '<span class="st-badge selesai">(%s)</span>%s</h1>%s</div></header>'
     ) % (
         _e(id_judul), _e(siswa['nama']), _e(label_kelas_sekolah(kelas_sekolah)),
-        keluarga, tautan_kembali, tujuan_kelas,
+        keluarga, aksi,
     )
 
 
@@ -247,7 +243,6 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-aksi-kepala-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_2} {T.SP_4}; }}
 .profil-workspace-st .profil-kembali-st {{ display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH}; color:{T.TEKS_SUBTLE}; font-size:{T.UKURAN_TEKS_CATATAN}; text-decoration:none; }}
 .profil-workspace-st .profil-kembali-st:hover {{ color:{T.AKSEN_TEAL_TUA}; }}
-.profil-workspace-st .profil-ubah-kelas-st {{ display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH}; font-size:{T.UKURAN_TEKS_CATATAN}; font-weight:500; }}
 .profil-workspace-st .profil-champs-st .st-tombol-coral {{ width:fit-content; }}
 .profil-workspace-st .profil-assistant-st {{ min-width:0; }}
 .profil-workspace-st .profil-assistant-st .pendamping-inline {{ margin:0; min-width:0; }}
