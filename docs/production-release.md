@@ -1,5 +1,21 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy produksi UI profil & Perjalanan — 3 Oktober 2026
+
+Cutover terkontrol `deploy-v2` untuk revision `2c40ffaff6f017acdd02527b44c26c273eb98215`:
+kandidat digest `sha256:6f66e515…`, recovery `1f056352…` digest `sha256:974b0bf9…`,
+kontrak persistensi identik `fc68c8bc…`. Gate dispatch `37126100523` (empat shard
+kandidat + empat shard recovery + build + uji pair) lulus; mode tetap `migrasi`
+dan `siap_pasang=false`, job `pasang` CI tetap literal false.
+
+Bundle backup `deploy-profil-ui-2c40ffa-20261003` (empat DB + auth `sandi.json`),
+rehearsal C2–B2–C2, readiness schema tanpa migrasi, approval exact-pair, deployer
+exit 0, lalu reopen. Pasca-swap: container sehat rev `2c40ffa`, Caddy dan cron
+dipulihkan ke hash semula, artefak pasangan tertulis, smoke anonim `/` 200,
+`/akun` 401, `/murid/` 303 ke `/masuk` lulus. Marker kode baru terbukti ada di
+image live (`profil-kembali-st`, `perjalanan-titik-st`) dan `_ringkasan_setelah`
+sudah tidak ada. Policy rutin host tetap `enabled=false`; tidak diubah.
+
 ## Kandidat soft launch nonkomersial — 1 Oktober 2026
 
 Recovery source dipatok pada `1f056352075578d01caad4d80de382b04aef028f`,
