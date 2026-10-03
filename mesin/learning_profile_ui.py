@@ -9,6 +9,13 @@ KETERANGAN_KELAS = (
     'mengubah soal lama, atau memulai ulang rencana belajar.'
 )
 
+IKON_SIMPAN = (
+    '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="20" '
+    'height="20" fill="none" stroke="currentColor" stroke-width="1.8" '
+    'stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/>'
+    '<path d="M8 4v5h7V4"/><path d="M8 20v-6h8v6"/></svg>'
+)
+
 
 def baca_kelas_form(nilai):
     """Terima hanya pilihan kelas formulir; kosong berarti belum dikonfirmasi."""
@@ -41,16 +48,22 @@ def opsi_kelas(kelas_sekolah=None):
 
 
 def form_kelas(profil, nama):
-    """Satu entry point edit kelas di akun; revisi berasal dari snapshot baca."""
+    """Satu entry point edit kelas di akun; revisi berasal dari snapshot baca.
+
+    Label tidak tampil sebagai teks — kolom tabel sudah menamakannya
+    ("Kelas sekolah") dan sel tetap punya nama aksesibel lewat aria-label.
+    Tombolnya ikon supaya baris tidak membengkak.
+    """
     identitas = 'kelas-sekolah-%d' % profil.siswa_id
     return (
         '<form method="post" action="/akun" class="form-kelas-sekolah">'
         '<input type="hidden" name="aksi" value="kelas_sekolah">'
         '<input type="hidden" name="siswa_id" value="%d">'
         '<input type="hidden" name="revisi_profil" value="%d">'
-        '<label for="%s">Kelas sekolah %s</label>'
-        '<select id="%s" name="kelas_sekolah" aria-describedby="keterangan-kelas">%s</select>'
-        '<button type="submit" class="tombol-kecil">Simpan kelas sekolah</button>'
+        '<select id="%s" name="kelas_sekolah" '
+        'aria-label="Kelas sekolah %s" aria-describedby="keterangan-kelas">%s</select>'
+        '<button type="submit" class="aksi-ikon-st" title="Simpan kelas sekolah">'
+        '%s<span class="pendamping-sr">Simpan kelas sekolah</span></button>'
         '</form>'
-    ) % (profil.siswa_id, profil.revisi, identitas, html.escape(nama), identitas,
-         opsi_kelas(profil.kelas_sekolah))
+    ) % (profil.siswa_id, profil.revisi, identitas, html.escape(nama),
+         opsi_kelas(profil.kelas_sekolah), IKON_SIMPAN)

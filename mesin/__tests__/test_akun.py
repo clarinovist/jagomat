@@ -219,14 +219,62 @@ def test_halaman_akun_menampilkan_siswa_dan_jumlah_sesi(siap):
 
 def test_tabel_siswa_menampilkan_status_akun_latihan(siap):
     """Hapus akun latihan tidak menghapus anaknya — status di tabel siswa
-    harus menjelaskan hubungan itu, bukan membiarkannya jadi teka-teki."""
+    harus menjelaskan hubungan itu, bukan membiarkannya jadi teka-teki.
+    Nama login tidak lagi diulang di sini (redundan dengan nama anak);
+    ia tetap terlihat di tab Akun latihan."""
     with database.buka(siap) as kon:
         sid = database.tambah_siswa(kon, "Tertaut", pemilik="guru")
         auth.tambah_akun("taut-login", "rahasia-taut-123", "murid", siswa_id=sid)
         database.tambah_siswa(kon, "Telanjang")
         h = account_pages.halaman_akun(kon, section="siswa").decode()
-    assert "taut-login" in h
+    assert "terhubung" in h
     assert "belum ada login" in h
+    assert 'data-label="Akun latihan"' not in h
+
+
+def test_tabel_siswa_tanpa_label_kelas_per_baris(siap):
+    """Label 'Kelas sekolah <nama>' di tiap baris redundan dengan nama
+    kolom — sel tetap punya nama aksesibel lewat aria-label."""
+    with database.buka(siap) as kon:
+        database.tambah_siswa(kon, "Clara", pemilik="guru")
+        h = account_pages.halaman_akun(
+            kon, pengguna="guru", section="siswa"
+        ).decode()
+    assert '<label for="kelas-sekolah-' not in h
+    assert 'aria-label="Kelas sekolah Clara"' in h
+    assert 'data-label="Status"' in h
+
+
+def test_tabel_siswa_aksi_ikon_dan_form_sandi(siap):
+    """Simpan/Setel/Hapus jadi tombol ikon berdampingan; form sandi membawa
+    nama akun supaya palang kepemilikan di server tetap berlaku."""
+    with database.buka(siap) as kon:
+        sid = database.tambah_siswa(kon, "Dina", pemilik="guru")
+        auth.tambah_akun("dina-login", "rahasia-dina-123", "murid", siswa_id=sid)
+        h = account_pages.halaman_akun(
+            kon, pengguna="guru", section="siswa"
+        ).decode()
+    assert 'class="aksi-ikon-st" title="Simpan kelas sekolah"' in h
+    assert 'class="aksi-ikon-st" title="Setel sandi baru"' in h
+    assert 'class="aksi-ikon-st galat" title="Hapus Dina"' in h
+    assert 'value="akun_murid_sandi"' in h
+    assert 'value="dina-login"' in h
+    assert 'value="siswa_hapus"' in h
+    assert "Setel sandi baru" in h  # nama aksesibel, bukan teks tampil
+    assert "confirm(" in h
+
+
+def test_kartu_akun_murid_tanpa_status_dan_sandi(siap):
+    """Status dan kontrol sandi pindah ke tabel Siswa; kartu ini cukup
+    daftar akun + hapus, dan akun yatim tetap ditandai."""
+    with database.buka(siap) as kon:
+        database.tambah_siswa(kon, "Andi")
+        auth.tambah_akun("Hantu", "rahasia-hantu-123", "murid")
+        h = account_pages.halaman_akun(kon, section="akun-murid").decode()
+    assert 'data-label="Status"' not in h
+    assert 'value="akun_murid_sandi"' not in h
+    assert "belum terhubung ke siswa" in h.lower()
+    assert "confirm(" in h
 
 
 def test_helper_akun_murid_dari_siswa(siap):

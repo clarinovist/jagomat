@@ -360,7 +360,7 @@ lewat email.</p>
 otomatis. Yang menyetel ulang adalah manusia yang tepat:</p>
 <ul>
 <li><b>Kamu murid?</b> Mintalah gurumu atau orang tuamu menyetel sandi
-baru — dari halaman Akun, kartu "Akun latihan", tombol
+baru — dari halaman Akun, tab "Siswa", kolom Aksi, tombol
 "Setel sandi baru".</li>
 <li><b>Kamu orang tua yang daftar sendiri di /daftar?</b> Gunakan jalur
 bantuan di bawah. Pengelola tidak akan mengonfirmasi keberadaan akun sebelum

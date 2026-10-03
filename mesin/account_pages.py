@@ -18,6 +18,21 @@ from teacher_pages import _halaman
 
 
 
+IKON_HAPUS = (
+    '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="20" '
+    'height="20" fill="none" stroke="currentColor" stroke-width="1.8" '
+    'stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/>'
+    '<path d="M9 7V5h6v2"/><path d="M6 7l1 13h10l1-13"/>'
+    '<path d="M10 11v6M14 11v6"/></svg>'
+)
+IKON_KUNCI = (
+    '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="20" '
+    'height="20" fill="none" stroke="currentColor" stroke-width="1.8" '
+    'stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4"/>'
+    '<path d="M12 12h9"/><path d="M17 12v3"/><path d="M20 12v2"/></svg>'
+)
+
+
 PETA_SECTION_AKUN = {
     # Aksi POST /akun -> section tempat hasilnya ditampilkan, supaya
     # pengguna kembali ke tempat formnya, bukan melompat ke bawaan.
@@ -28,18 +43,17 @@ PETA_SECTION_AKUN = {
     "siswa_hapus": "siswa",
     "akun_murid_tambah": "akun-murid",
     "akun_murid_hapus": "akun-murid",
-    "akun_murid_sandi": "akun-murid",
+    "akun_murid_sandi": "siswa",
 }
 
 def _kartu_akun_murid(kon, pengguna: str | None = None, peran: str = "guru") -> str:
     """Kartu akun murid di halaman akun.
 
     Pola persis kartu Siswa: tabel + form di bawahnya. Daftar akun diambil
-    dari auth.muat_akun() yang disaring peran == murid. Tiap akun dicek
-    kecocokannya dengan tabel siswa lewat students.siswa_dari_akun; kalau tidak
-    cocok ditandai jelas "belum terhubung ke siswa" supaya guru tahu kenapa
-    anak tidak bisa masuk. Guru hanya melihat & mengelola akun keluarganya;
-    panggilan langsung tanpa `pengguna` (mode lokal / test) melihat semua.
+    dari auth.muat_akun() yang disaring peran == murid. Akun yang belum
+    terhubung ke siswa ditandai jelas supaya guru tahu mana yang yatim.
+    Guru hanya melihat & mengelola akun keluarganya; panggilan langsung
+    tanpa `pengguna` (mode lokal / test) melihat semua.
     """
     import students as _murid
 
@@ -59,12 +73,16 @@ def _kartu_akun_murid(kon, pengguna: str | None = None, peran: str = "guru") -> 
             nama = a["pengguna"]
             nama_esc = html.escape(nama)
             sid = _murid.siswa_dari_akun(kon, nama)
-            if sid is None:
-                status = '<span class="status-buruk">belum terhubung ke siswa</span>'
-            else:
-                status = '<span class="status-ok">terhubung</span>'
+            # Status pindah ke tabel Siswa; di sini hanya akun yatim yang
+            # ditandai supaya tetap jelas mana yang belum terhubung.
+            penanda = (
+                ""
+                if sid is not None
+                else ' <span class="status-buruk">belum terhubung ke siswa</span>'
+            )
             baris += (
-                f'<tr><td data-label="Nama">{nama_esc}</td><td data-label="Status">{status}</td><td data-label="Aksi">'
+                f'<tr><td data-label="Nama">{nama_esc}{penanda}</td>'
+                f'<td data-label="Aksi">'
                 f'<div class="baris-aksi">'
                 f'<form method="post" action="/akun" '
                 f'class="akun-form-aksi" '
@@ -72,20 +90,15 @@ def _kartu_akun_murid(kon, pengguna: str | None = None, peran: str = "guru") -> 
                 f'ada — hanya loginnya yang hilang.\')">'
                 f'<input type="hidden" name="aksi" value="akun_murid_hapus">'
                 f'<input type="hidden" name="nama" value="{nama_esc}">'
-                f'<button type="submit" class="tombol-kecil tombol-hapus">Hapus</button>'
-                f"</form> "
-                f'<form method="post" action="/akun" class="akun-form-aksi akun-form-sandi">'
-                f'<input type="hidden" name="aksi" value="akun_murid_sandi">'
-                f'<input type="hidden" name="nama" value="{nama_esc}">'
-                f'<label>Sandi baru untuk {nama_esc}'
-                f'<input type="password" name="baru" placeholder="sandi baru" required class="input-sandi-kecil"></label>'
-                f'<button type="submit" class="tombol-kecil">Setel sandi baru</button>'
-                f"</form>"
+                f'<button type="submit" class="aksi-ikon-st galat" '
+                f'title="Hapus akun {nama_esc}">'
+                f'{IKON_HAPUS}<span class="pendamping-sr">Hapus akun {nama_esc}</span>'
+                f"</button>"
                 f"</div>"
                 f"</td></tr>"
             )
     else:
-        baris = '<tr><td colspan="3" class="kosong">belum ada akun murid</td></tr>'
+        baris = '<tr><td colspan="2" class="kosong">belum ada akun murid</td></tr>'
 
     # Form pembuat akun sengaja kontekstual: alur normal (Tambah anak)
     # sudah membuatkan akun sekaligus, jadi form permanen cuma jadi
@@ -137,29 +150,67 @@ def _kartu_akun_murid(kon, pengguna: str | None = None, peran: str = "guru") -> 
 
     return (
         f'<div class="kartu"><h2>Akun murid</h2>'
-        '<p class="sub">Kelola nama login dan sandi anak.</p>'
-        f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Status</th><th>Aksi</th></tr>{baris}</table></div>'
+        '<p class="sub">Kelola nama login dan akun masuk anak.</p>'
+        f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Aksi</th></tr>{baris}</table></div>'
         f"{tambah}"
         f"</div>"
     )
 
-def status_akun_latihan(kon, siswa_id: int) -> str:
-    """Sel status akun latihan untuk tabel siswa.
+def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
+    """Satu baris tabel Siswa: nama, kelas, sesi, status akun, dan aksi.
 
-    Nama login bila anaknya sudah punya akun, penanda jelas bila belum —
-    supaya jelas bahwa menghapus akun latihan tidak menghapus anaknya.
-    Penandanya sekaligus tautan ke section Akun latihan, tempat satu-
-    satunya form pembuat akun (kontekstual) tinggal — jadi status
-    langsung mengarahkan ke alat perbaikannya.
+    Kolom "Akun latihan" lama dihapus — isinya (nama login) hampir selalu
+    sama dengan nama anak, jadi redundan; nama login tetap terlihat di tab
+    Akun latihan. Status akun, input sandi baru, dan tombol setel pindah ke
+    baris ini supaya semua tindakan pada anak ada di satu tempat.
     """
     import students as _murid
 
-    nama = _murid.akun_murid_dari_siswa(kon, siswa_id)
-    if nama:
-        return f'<span class="status-ok">{html.escape(nama)}</span>'
+    nama = html.escape(s["nama"])
+    if pengguna and peran == "guru":
+        kelas = learning_profile_ui.form_kelas(
+            learning_profile.baca(kon, s["id"], pemilik=pengguna), s["nama"]
+        )
+    else:
+        kelas = "Kelas belum diisi"
+    sesi = kon.execute(
+        "SELECT COUNT(*) AS n FROM sesi WHERE siswa_id = ?", (s["id"],)
+    ).fetchone()["n"]
+    login = _murid.akun_murid_dari_siswa(kon, s["id"])
+    if login:
+        status = '<span class="status-ok">terhubung</span>'
+        sandi = (
+            '<form method="post" action="/akun" class="akun-form-aksi akun-form-sandi">'
+            '<input type="hidden" name="aksi" value="akun_murid_sandi">'
+            f'<input type="hidden" name="nama" value="{html.escape(login)}">'
+            f'<label class="pendamping-sr" for="sandi-baru-{s["id"]}">'
+            f"Sandi baru untuk {nama}</label>"
+            f'<input id="sandi-baru-{s["id"]}" type="password" name="baru" '
+            'placeholder="sandi baru" required class="input-sandi-kecil">'
+            '<button type="submit" class="aksi-ikon-st" title="Setel sandi baru">'
+            f'{IKON_KUNCI}<span class="pendamping-sr">Setel sandi baru</span></button>'
+            "</form>"
+        )
+    else:
+        status = (
+            '<a class="status-buruk" href="/akun?section=akun-murid">'
+            "belum ada login</a>"
+        )
+        sandi = ""
     return (
-        '<a class="status-buruk" href="/akun?section=akun-murid">'
-        "belum ada login</a>"
+        f'<tr><td data-label="Nama">{nama}</td>'
+        f'<td data-label="Kelas sekolah">{kelas}</td>'
+        f'<td class="angka" data-label="Sesi">{sesi}</td>'
+        f'<td data-label="Status">{status}</td>'
+        f'<td data-label="Aksi"><div class="baris-aksi">{sandi}'
+        f'<form method="post" action="/akun" class="akun-form-hapus" '
+        f'onsubmit="return confirm(\'Hapus anak ini beserta akun latihannya? '
+        f'Anak ber-riwayat sesi tidak bisa dihapus.\')">'
+        f'<input type="hidden" name="aksi" value="siswa_hapus">'
+        f'<input type="hidden" name="siswa_id" value="{s["id"]}">'
+        f'<button type="submit" class="aksi-ikon-st galat" title="Hapus {nama}">'
+        f'{IKON_HAPUS}<span class="pendamping-sr">Hapus {nama}</span></button>'
+        f"</form></div></td></tr>"
     )
 
 def halaman_akun(
@@ -198,21 +249,7 @@ def halaman_akun(
         section = "akun"
 
     daftar = "".join(
-        f'<tr><td data-label="Nama">{html.escape(s["nama"])}</td>'
-        f'<td data-label="Kelas sekolah">'
-        + (learning_profile_ui.form_kelas(
-            learning_profile.baca(kon, s['id'], pemilik=pengguna), s['nama']
-        ) if pengguna and peran == 'guru' else 'Kelas belum diisi')
-        + '</td>'
-        f'<td class="angka" data-label="Sesi">'
-        f'{kon.execute("SELECT COUNT(*) AS n FROM sesi WHERE siswa_id = ?", (s["id"],)).fetchone()["n"]}'
-        f"</td>"
-        f'<td data-label="Akun latihan">{status_akun_latihan(kon, s["id"])}</td>'
-        f'<td data-label="Aksi"><form method="post" action="/akun" class="akun-form-hapus">'
-        f'<input type="hidden" name="aksi" value="siswa_hapus">'
-        f'<input type="hidden" name="siswa_id" value="{s["id"]}">'
-        f'<button type="submit" class="tombol-kecil tombol-hapus">Hapus</button>'
-        f"</form></td></tr>"
+        _baris_siswa(kon, s, pengguna, peran)
         for s in database.daftar_siswa(kon, None if peran == "admin" else pengguna)
     ) or '<tr><td colspan="5" class="kosong">Belum ada siswa. Tambahkan anak pertama di bawah.</td></tr>'
 
@@ -260,7 +297,7 @@ def halaman_akun(
         f'<p class="sub">{learning_profile_ui.KETERANGAN_KELAS} '
         'Pengaturan soal dipilih terpisah saat membuat latihan.</p></details>'
         f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Kelas sekolah</th>'
-        f"<th>Sesi</th><th>Akun latihan</th><th>Aksi</th></tr>{daftar}</table></div>"
+        f"<th>Sesi</th><th>Status</th><th>Aksi</th></tr>{daftar}</table></div>"
         '<p class="sub akun-catatan-hapus">Anak dengan riwayat sesi tidak bisa dihapus. '
         'Anak tanpa sesi dapat dihapus beserta akun latihannya.</p></div>'
     )
@@ -279,11 +316,6 @@ def halaman_akun(
         f'<select id="anak-kelas" name="kelas_sekolah" aria-describedby="keterangan-kelas">'
         + learning_profile_ui.opsi_kelas()
         + '</select></div></div>'
-        '<fieldset class="pengaturan-awal"><legend>Pengaturan latihan awal</legend>'
-        '<p class="sub">Jagomat menyiapkan cakupan fondasi secara otomatis. '
-        'Angka dan model soal akan bervariasi pada setiap sesi; kelas sekolah '
-        'tidak dipakai untuk menilai kemampuan anak.</p>'
-        '</fieldset>'
         f'<label for="anak-login">Nama login anak (opsional — bawaan sama dengan nama anak)'
         f"</label>"
         f'<input id="anak-login" type="text" name="nama_akun" '

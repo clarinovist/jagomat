@@ -161,13 +161,14 @@ def test_onboarding_form_profil_otomatis_kelas_opsional(db):
     assert not any(o.get('value') in ('P3', 'P4', 'P5', 'P6') and 'selected' in o for o in form['option'])
 
 
-def test_onboarding_petunjuk_otomatis_tanpa_panduan_variasi(db):
+def test_onboarding_tanpa_panduan_variasi(db):
+    """Blok 'Pengaturan latihan awal' beserta isinya tidak lagi memenuhi
+    formulir; form tetap bersih dari field profil."""
     isi = account_pages.halaman_akun(db, pengguna='guru', section='siswa').decode()
-    awal = isi.split('<fieldset class="pengaturan-awal">', 1)[1].split('</fieldset>', 1)[0]
-    assert 'cakupan fondasi secara otomatis' in awal
-    assert 'kelas sekolah tidak dipakai untuk menilai kemampuan' in awal
-    assert 'Bandingkan isi' not in awal
-    assert 'name="profil_parameter"' not in awal
+    assert '<fieldset class="pengaturan-awal">' not in isi
+    assert 'cakupan fondasi secara otomatis' not in isi
+    assert 'Bandingkan isi' not in isi
+    assert 'name="profil_parameter"' not in isi
 
 
 @pytest.mark.parametrize('kelas', ['', '1', '6'])

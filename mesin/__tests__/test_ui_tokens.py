@@ -98,8 +98,10 @@ def test_akun_pakai_kelas_bukan_style_inline(db):
         # Hanya isi akun; topbar/brand berada di bingkai bersama.
         assert not [(tag, a) for tag, a, _ in markup.elemen
                     if tag in ('form', 'label', 'input', 'p') and 'style' in a]
-    assert 'class="akun-form-aksi akun-form-sandi"' in isi
-    assert 'class="akun-pulihkan"' in isi
+    murid = account_pages.halaman_akun(kon, pengguna='pendamping-uji', section='akun-murid').decode()
+    assert 'class="akun-pulihkan"' in murid
+    siswa = account_pages.halaman_akun(kon, pengguna='pendamping-uji', section='siswa').decode()
+    assert 'class="akun-form-aksi akun-form-sandi"' in siswa
 
 
 def test_status_akses_awal_landing_tidak_mengandalkan_harga(monkeypatch):

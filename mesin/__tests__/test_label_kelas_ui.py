@@ -46,7 +46,7 @@ def test_form_akun_memisahkan_kelas_dan_profil(db):
         ).decode())
 
     assert 'name="profil_parameter"' not in isi
-    assert 'cakupan fondasi secara otomatis' in isi
+    assert 'cakupan fondasi secara otomatis' not in isi
     assert '<option value="5">Kelas 5</option>' in isi
     assert '<option value="" selected>Kelas belum diisi</option>' in isi
     assert ">P3</option>" not in isi

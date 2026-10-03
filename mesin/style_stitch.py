@@ -2426,7 +2426,12 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-editorial-st :is(.st-tombol-coral, .tombol-coral, .rencana-cta-utama-st) {{ background: {T.AKSEN_KORAL_TUA}; }}
 .pendamping-editorial-st :is(.st-tombol-coral, .tombol-coral, .rencana-cta-utama-st):hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-editorial-st :is(.tombol-hapus, .tombol-kecil-st) {{ background: {T.LATAR_GALAT}; color: {T.TEKS_GALAT}; border: {T.TEBAL_GARIS} solid {T.BORDER_GALAT}; }}
-.pendamping-editorial-st :is(.tombol-ikon-st, .tombol-mata) {{ background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; }}
+.pendamping-editorial-st :is(.tombol-ikon-st, .tombol-mata) {{ color: {T.AKSEN_TEAL_TUA} }}
+.pendamping-editorial-st .tombol-ikon-st {{ background: {T.LATAR_KARTU}; }}
+/* Latar kartu TIDAK boleh mengisi .tombol-mata: tombolnya lebih tinggi dari
+   input sandi, jadi latar opak memotong garis border input di sebelah mata
+   dan garisnya tampak hilang. */
+.pendamping-editorial-st .tombol-mata {{ background: none; }}
 .pendamping-editorial-st :is(.pil-sesi, .pil-sesi-st) {{
   display: flex; flex-wrap: wrap; gap: {T.SP_2}; padding: 0 0 {T.SP_3};
   border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; margin: 0 0 {T.SP_5};
@@ -2668,9 +2673,6 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .akun-editorial-st td[data-label=Nama] {{ font-weight: 700; color: {T.TEKS_JUDUL}; }}
 .akun-editorial-st .kartu:has(input[name=persetujuan_ortu]) form {{ max-width: 48rem; }}
 .akun-editorial-st :is(th, td) {{ border: 0; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; vertical-align: top; }}
-.akun-editorial-st .pengaturan-awal {{ border: 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius: 0; padding: {T.SP_4} 0 0; margin: {T.SP_5} 0; }}
-.akun-editorial-st .pengaturan-awal legend {{ font-weight: 700; color: {T.TEKS_JUDUL}; padding-right: {T.SP_3}; }}
-.akun-editorial-st .pengaturan-awal > p {{ margin-top: 0; }}
 .akun-editorial-st .profil-petunjuk-st {{ display: block; margin-top: {T.SP_2}; color: {T.TEKS_VARIAN}; line-height: 1.6; }}
 .akun-editorial-st .panduan-variasi {{ border: 0; border-radius: 0; padding: 0; margin: {T.SP_3} 0 0; }}
 .akun-editorial-st .panduan-variasi > summary {{ color: {T.AKSEN_TEAL_TUA}; font-weight: 600; }}
@@ -2822,9 +2824,15 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-panel-kanan .pendamping-inline-isi > h3 {{ margin: 0 0 {T.SP_3}; }}
 /* Kompatibilitas fragmen lama selama seluruh caller berpindah ke panel. */
 .pendamping-inline:not(.pendamping-panel-kanan) {{ margin-top: {T.SP_5}; padding-top: {T.SP_4}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; min-width: 0; }}
-.akun-editorial-st .form-kelas-sekolah {{ display:flex; flex-direction:column; align-items:flex-start; gap:{T.SP_2}; }}
-.akun-editorial-st .form-kelas-sekolah select {{ max-width:100%; margin:0; }}
-.akun-editorial-st .form-kelas-sekolah button {{ min-height:{T.TINGGI_KONTROL}; margin:0; }}
+.akun-editorial-st .form-kelas-sekolah {{ display:flex; flex-direction:row; align-items:center; flex-wrap:wrap; gap:{T.SP_2}; }}
+.akun-editorial-st .form-kelas-sekolah select {{ flex:1 1 8rem; min-width:0; max-width:100%; margin:0; }}
+.akun-editorial-st .form-kelas-sekolah button {{ flex:none; margin:0; }}
+/* Tombol ikon aksi ringkas (Simpan/Setel/Hapus) di tabel akun. */
+.akun-editorial-st .aksi-ikon-st {{ width:{T.TINGGI_KONTROL}; height:{T.TINGGI_KONTROL}; padding:0; display:inline-flex; align-items:center; justify-content:center; border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius:{T.RADIUS_BULAT}; background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; cursor:pointer; }}
+.akun-editorial-st .aksi-ikon-st:hover {{ background:{T.LATAR_SEKUNDER_LEMBUT}; }}
+.akun-editorial-st .aksi-ikon-st:focus-visible {{ outline:{T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset:2px; }}
+.akun-editorial-st .aksi-ikon-st.galat {{ background:{T.LATAR_GALAT}; color:{T.TEKS_GALAT}; border-color:{T.BORDER_GALAT}; }}
+.akun-editorial-st .aksi-ikon-st.galat:hover {{ background:{T.LATAR_GALAT}; }}
 
 .pendamping-inline > details > summary {{ min-height: {T.TARGET_SENTUH}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; cursor: pointer; }}
 .pendamping-inline-isi {{ padding: {T.SP_3} 0 0; min-width: 0; }}

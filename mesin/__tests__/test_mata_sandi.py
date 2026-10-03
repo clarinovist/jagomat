@@ -14,6 +14,7 @@ nilai sandi apa pun.
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -88,3 +89,20 @@ def test_css_mata_ada_di_gaya_stitch():
     css = style_stitch.GAYA_STITCH
     assert ".kolom-sandi {" in css
     assert ".tombol-mata {" in css
+
+
+def test_tombol_mata_tidak_menutup_border_input():
+    """Regresi: latar opak .tombol-mata memotong garis border input sandi
+    di halaman ber-wrap pendamping-editorial-st — garisnya hilang di
+    sebelah mata. Tombolnya lebih tinggi dari input, jadi latarnya harus
+    transparan."""
+    css = style_stitch.GAYA_STITCH
+    aturan = re.search(r'\.pendamping-editorial-st \.tombol-mata \{([^}]*)\}', css)
+    assert aturan, "aturan khusus .tombol-mata di scope pendamping hilang"
+    assert 'background: none' in aturan.group(1)
+    gabungan = re.search(
+        r'\.pendamping-editorial-st :is\(\.tombol-ikon-st, \.tombol-mata\) \{([^}]*)\}',
+        css,
+    )
+    assert gabungan, "aturan gabungan .tombol-ikon-st/.tombol-mata hilang"
+    assert 'background' not in gabungan.group(1)

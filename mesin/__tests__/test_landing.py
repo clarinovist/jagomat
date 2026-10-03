@@ -149,11 +149,11 @@ def test_lupa_sandi_renders_sebagai_html():
 
 def test_lupa_sandi_memuat_judul_dan_panduan_murid():
     """Panduan murid harus konkret sampai tombolnya — bukan sekadar
-    "hubungi kami": jalurnya kartu Akun latihan -> Setel sandi baru."""
+    "hubungi kami": jalannya tab Siswa -> kolom Aksi -> Setel sandi baru."""
     h = _html(halaman_lupa_sandi)
     assert "Lupa sandi?" in h
     assert "gurumu" in h
-    assert "Akun latihan" in h
+    assert 'tab "Siswa"' in h
     assert "Setel sandi baru" in h
 
 
