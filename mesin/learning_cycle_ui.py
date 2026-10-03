@@ -317,43 +317,6 @@ def _waktu(
     return "Selesaikan satu langkah ini sesuai kesiapan anak."
 
 
-def _sesudah(rencana: RencanaBelajar, *, tertahan: bool = False) -> str:
-    if tertahan:
-        return "Langkah belum dapat dilanjutkan sampai materi pendamping tersedia."
-    return {
-        "pilih_variasi": "Jagomat menampilkan catatan awal setelah hasil diperiksa; satu latihan belum menjadi kesimpulan.",
-        "pemetaan": "Jagomat menampilkan catatan awal setelah hasil diperiksa; satu latihan belum menjadi kesimpulan.",
-        "tunggu_pemetaan": "Latihan awal berikutnya tersedia pada tanggal yang ditampilkan.",
-        "lanjutkan_sesi": "Hasil perlu diperiksa bersama sebelum dipakai untuk langkah berikutnya.",
-        "konfirmasi_hasil": "Jagomat memperbarui catatan hasil dan menampilkan langkah berikutnya.",
-        "probe_diagnostik": "Catatan baru membantu memeriksa bagian yang masih dipantau.",
-        "intervensi": "Anak siap mencoba contoh dengan bantuan.",
-        "pengenalan": "Anak siap mencoba soal baru tentang materi ini.",
-        "latihan_terbimbing": "Anak beralih ke percobaan yang lebih mandiri.",
-        "penguatan": "Jagomat menjadwalkan pemeriksaan setelah jeda tiga hari.",
-        "tunggu_evaluasi": "Pemeriksaan setelah jeda tersedia pada tanggal yang ditampilkan.",
-        "evaluasi": "Hasil menunjukkan apakah pendekatan ini mulai membantu.",
-        "tunggu_checkpoint": "Pemeriksaan kembali tetap menunggu jadwal 28 hari.",
-        "checkpoint": "Catatan menunjukkan apakah pemahaman masih bertahan.",
-        "probe_setelah_pengenalan": "Hasil menentukan apakah materi perlu dipelajari bersama.",
-        "mixed_maintenance": "Jagomat tetap memilih langkah berikutnya dari catatan yang sah.",
-        "putaran_baru": "Pendekatan baru dimulai tanpa menghapus catatan lama.",
-        "eskalasi": "Pendamping mendapat dasar untuk memeriksa prasyarat atau melakukan uji lisan.",
-    }.get(rencana.tindakan, "Jagomat menampilkan langkah berikutnya dari hasil yang sudah diperiksa.")
-
-
-def _kapan_kembali(rencana: RencanaBelajar, *, tertahan: bool = False) -> str:
-    if tertahan:
-        return "Kembali setelah materi pendamping tersedia."
-    if rencana.tersedia_pada is not None:
-        return "Kembali pada " + _tanggal_indonesia(rencana.tersedia_pada) + "."
-    if rencana.tindakan in {"pilih_variasi", "pemetaan"}:
-        return "Kembali setelah anak selesai untuk memeriksa hasil bersama."
-    if rencana.tindakan == "konfirmasi_hasil":
-        return "Kembali ke Langkah berikutnya setelah hasil dikonfirmasi."
-    return "Kembali setelah langkah ini selesai; Jagomat akan menampilkan jadwal berikutnya."
-
-
 def _ringkasan_langkah(
     rencana: RencanaBelajar, bukti: BuktiSiklus, instruksi: str,
     *, tertahan: bool = False,
@@ -363,15 +326,6 @@ def _ringkasan_langkah(
         '<div class="ringkasan-langkah-st">'
         f'<div class="tindakan-rencana-st"><b>Peran orang tua/guru · Sekarang</b><p>{html.escape(instruksi)}</p></div>'
         f'<div><b>Waktu</b><p>{html.escape(_waktu(rencana, bukti, tertahan=tertahan))}</p></div>'
-        '</div>'
-    )
-
-
-def _ringkasan_setelah(rencana: RencanaBelajar, *, tertahan: bool = False) -> str:
-    return (
-        '<div class="ringkasan-setelah-st">'
-        f'<div><b>Sesudah ini</b><p>{html.escape(_sesudah(rencana, tertahan=tertahan))}</p></div>'
-        f'<div><b>Kembali</b><p>{html.escape(_kapan_kembali(rencana, tertahan=tertahan))}</p></div>'
         '</div>'
     )
 
@@ -526,7 +480,7 @@ def render_rencana(
             )
             + f'<form method="post" action="/siklus/{siswa_id}/buat" class="rencana-form-st">'
             + '<button type="submit" class="rencana-cta-utama-st">Siapkan latihan awal</button>'
-            '</form>' + _ringkasan_setelah(rencana)
+            '</form>'
             + '<p class="catatan-tiga-latihan-st"><b>Rangkaian awal:</b> tiga latihan pada tanggal berbeda.</p>'
             + slot_bantuan + '</section>'
         )
@@ -606,7 +560,6 @@ def render_rencana(
         f'{tindakan}'
         '</aside>'
         f'<div class="studio-aksi-st">{cta}{petunjuk}</div>'
-        f'{_ringkasan_setelah(rencana, tertahan=materi_tidak_tersedia)}'
         f'<div class="studio-konteks-st">{_konteks_pemetaan(rencana)}'
         f'{catatan_histori}{catatan_mode}{contoh}{catatan_materi}{tanggal}</div>'
         f'{_alur_rencana(rencana, bukti)}'

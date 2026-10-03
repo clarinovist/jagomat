@@ -114,6 +114,28 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .laporan-pilihan a[aria-current="true"] {{border:2px solid {T.AKSEN_TEAL_TUA};padding:calc({T.SP_2} - 1px) calc({T.SP_3} - 1px);color:{T.AKSEN_TEAL_TUA};background:{T.LATAR_TERSIMPAN};font-weight:700;}}
 .laporan-editorial-st #konten-laporan a:focus-visible {{outline:3px solid {T.AKSEN_TEAL_TUA};outline-offset:3px;}}
 .laporan-editorial-st .peta-bukti a,.laporan-editorial-st #perjalanan-belajar li a,.laporan-editorial-st .tabel-tren a {{display:inline-flex;align-items:center;min-height:{T.TARGET_SENTUH};}}
+.laporan-editorial-st .perjalanan-kepala-st {{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:{T.SP_2} {T.SP_4};}}
+.laporan-editorial-st .perjalanan-kepala-st h2 {{margin:0;}}
+.laporan-editorial-st .perjalanan-babak-st {{margin:0;color:{T.TEKS_VARIAN};font-size:{T.UKURAN_TEKS_CATATAN};}}
+.laporan-editorial-st .perjalanan-langkah-st {{display:flex;flex-wrap:wrap;align-items:center;gap:{T.SP_3};margin:{T.SP_4} 0;}}
+.laporan-editorial-st .perjalanan-titik-baris-st {{display:flex;align-items:center;gap:{T.SP_2};list-style:none;margin:0;padding:0;}}
+.laporan-editorial-st .perjalanan-titik-st {{display:flex;align-items:center;justify-content:center;width:2rem;height:2rem;border-radius:{T.RADIUS_BULAT};border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN};background:{T.LATAR_KARTU};color:{T.TEKS_VARIAN};font-weight:700;font-size:{T.UKURAN_TEKS_LABEL};}}
+.laporan-editorial-st .perjalanan-titik-st.selesai {{background:{T.AKSEN_TEAL_TUA};border-color:{T.AKSEN_TEAL_TUA};color:{T.TEKS_PUTIH};}}
+.laporan-editorial-st .perjalanan-titik-st.aktif {{border-color:{T.AKSEN_TEAL_TUA};color:{T.AKSEN_TEAL_TUA};box-shadow:0 0 0 3px {T.LATAR_TERSIMPAN};}}
+.laporan-editorial-st .perjalanan-langkah-teks-st {{margin:0;font-weight:600;color:{T.TEKS_JUDUL};}}
+.laporan-editorial-st .perjalanan-berikut-st {{display:grid;gap:{T.SP_1};margin:{T.SP_3} 0;padding:{T.SP_3} {T.SP_4};border-left:4px solid {T.AKSEN_TEAL_TUA};background:{T.LATAR_SEKUNDER_LEMBUT};border-radius:0 {T.RADIUS_KECIL} {T.RADIUS_KECIL} 0;}}
+.laporan-editorial-st .perjalanan-label-st {{color:{T.TEKS_VARIAN};font-size:{T.UKURAN_TEKS_META};text-transform:uppercase;letter-spacing:.06em;}}
+.laporan-editorial-st .perjalanan-berikut-st p {{margin:0;font-weight:700;color:{T.TEKS_JUDUL};}}
+.laporan-editorial-st .perjalanan-status-st b {{display:inline-block;padding:{T.SP_1} {T.SP_3};border-radius:{T.RADIUS_PIL};background:{T.LATAR_TERSIMPAN};color:{T.AKSEN_TEAL_TUA};font-size:{T.UKURAN_TEKS_LABEL};}}
+.laporan-editorial-st .perjalanan-lencana-st {{display:inline-block;padding:{T.SP_1} {T.SP_2};border-radius:{T.RADIUS_KECIL};background:{T.LATAR_CATATAN};color:{T.TEKS_VARIAN};font-size:{T.UKURAN_TEKS_CATATAN};}}
+.laporan-editorial-st .perjalanan-jadwal-st {{margin:{T.SP_2} 0;}}
+.laporan-editorial-st .perjalanan-catatan-st {{margin:{T.SP_4} 0 0;color:{T.TEKS_SUBTLE};font-size:{T.UKURAN_TEKS_CATATAN};}}
+.laporan-editorial-st .perjalanan-garis-waktu-st {{position:relative;margin:0;padding-left:{T.SP_5};}}
+.laporan-editorial-st .perjalanan-garis-waktu-st::before {{content:"";position:absolute;left:.35rem;top:.4rem;bottom:{T.SP_4};width:2px;background:{T.BORDER_HALUS};}}
+.laporan-editorial-st .perjalanan-riwayat-item-st {{position:relative;padding:0 0 {T.SP_4};border:0;}}
+.laporan-editorial-st .perjalanan-riwayat-titik-st {{position:absolute;left:calc(-1 * {T.SP_5} + .35rem);top:.4rem;width:.7rem;height:.7rem;border-radius:{T.RADIUS_BULAT};background:{T.AKSEN_TEAL_TUA};}}
+.laporan-editorial-st .perjalanan-riwayat-isi-st {{min-width:0;}}
+.laporan-editorial-st .perjalanan-riwayat-meta-st {{margin:{T.SP_1} 0 0;color:{T.TEKS_VARIAN};font-size:{T.UKURAN_TEKS_CATATAN};}}
 .laporan-editorial-st #konten-laporan {{min-width:0;}}
 .laporan-editorial-st .laporan-paginasi span {{white-space:nowrap;}}
 .laporan-editorial-st .laporan-ringkasan-grid .laporan-resume {{background:{T.LATAR_KARTU};}}

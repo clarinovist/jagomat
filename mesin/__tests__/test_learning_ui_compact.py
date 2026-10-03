@@ -49,8 +49,9 @@ def test_progres_dilipat_tetapi_tindakan_dan_peringatan_tetap_terlihat(tindakan)
     assert any(progres in t and d > 0 for t, d in struktur.teks)
     assert all('open' not in a for a in struktur.details)
     assert any('Peran orang tua/guru · Sekarang' in t and d == 0 for t, d in struktur.teks)
-    for label in ('Waktu', 'Sesudah ini', 'Kembali'):
-        assert any(label in t and d == 0 for t, d in struktur.teks)
+    assert any('Waktu' in t and d == 0 for t, d in struktur.teks)
+    assert 'Sesudah ini' not in isi
+    assert 'class="ringkasan-setelah-st"' not in isi
     if tindakan == 'intervensi':
         materi = interventions.untuk_fokus(fokus)
         assert any(materi.contoh_terbimbing in t and d == 0 for t, d in struktur.teks)

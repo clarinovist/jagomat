@@ -318,6 +318,21 @@ def test_bukti_perjalanan_membungkus_teks_bukan_flex_sebaris():
     assert "display: block" in aturan
 
 
+def test_perjalanan_memakai_penanda_visual_dan_bahasa_sederhana():
+    from learning_cycle import RencanaBelajar
+    from learning_journey import PerjalananBelajar
+    from cycle_report import render_perjalanan
+
+    data = PerjalananBelajar(RencanaBelajar("pemetaan", ""))
+    h = render_perjalanan(data, reports._nama_tipe_soal, reports._tanggal_pendek)
+    assert 'class="perjalanan-langkah-st"' in h
+    assert 'class="perjalanan-titik-baris-st"' in h
+    assert 'class="perjalanan-berikut-st"' in h
+    assert "Latihan awal 0 dari 3 selesai" in h
+    assert "Status menggambarkan bukti saat ini" not in h
+    assert "checkpoint berkala" not in h
+
+
 def test_usulan_fokus_tanpa_putaran_tidak_disebut_pemetaan_awal():
     from learning_cycle import RencanaBelajar
     from learning_journey import FokusPerjalanan, PerjalananBelajar

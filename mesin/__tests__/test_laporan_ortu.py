@@ -389,7 +389,7 @@ def test_laporan_memakai_identitas_dan_kanvas_ruang_anak_yang_sama(db):
 
     isi = h.split("</style>", 1)[1]
     assert 'class="bungkus-st laporan-lebar pendamping-editorial-st laporan-editorial-st profil-workspace-st"' in h
-    assert '<a href="/guru">&larr; Semua anak</a>' in isi
+    assert '<a class="profil-kembali-st" href="/guru">&larr; Semua anak</a>' in isi
     assert '<header class="kepala-anak-st editorial-kepala-st">' in isi
     assert '<h1 class="st" id="judul-profil-laporan">Claudia ' in isi
     assert "(Kelas belum diisi)" in isi

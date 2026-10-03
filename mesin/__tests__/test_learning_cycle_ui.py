@@ -90,13 +90,13 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     assert "latihan 1 dari 3 · 15 soal pada tanggal berbeda" in terlihat
     assert "Peran orang tua/guru · Sekarang" in isi
     assert "Setelah selesai, periksa hasil dan konfirmasikan." in isi
-    for label in ("Sekarang", "Waktu", "Sesudah ini", "Kembali"):
+    for label in ("Sekarang", "Waktu"):
         assert label in terlihat
-    assert "Jagomat menampilkan catatan awal setelah hasil diperiksa" in terlihat
+    assert "Sesudah ini" not in isi
+    assert 'class="ringkasan-setelah-st"' not in isi
     assert f'<form method="post" action="/siklus/{siswa_id}/buat"' in isi
     assert ">Siapkan latihan awal</button>" in isi
     assert "Setelah selesai, periksa hasil dan konfirmasikan." in terlihat
-    assert "Kembali setelah anak selesai untuk memeriksa hasil bersama." in terlihat
     assert '<details class="alur-rencana-jelas-st">' in isi
     assert "<summary>" in isi
     assert "Detail progres dan alur belajar" in isi

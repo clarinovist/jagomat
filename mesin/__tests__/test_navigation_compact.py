@@ -6,6 +6,7 @@ import pytest
 
 import profile_workspace as P
 import report_navigation as N
+import design_tokens as T
 from report_dashboard import GAYA_LAPORAN
 from test_concise_ui import db
 import teacher_pages
@@ -44,6 +45,23 @@ def test_ubah_kelas_di_identitas_tujuan_tetap(peran, tujuan):
     a = [a for a in Tautan(h).tautan if a.get('class') == 'profil-ubah-kelas-st']
     assert len(a) == 1 and a[0]['href'] == tujuan
     assert 'Kelas 2' in h and 'Contoh &lt;uji&gt;' in h
+
+
+def test_kepala_anak_meringkas_kembali_ke_baris_identitas():
+    """Kembali tidak lagi menjadi baris terpisah di atas identitas."""
+    h = P.bingkai(dict(id=7, nama='Contoh', tingkat='P3', pemilik='guru'), 'latihan', 0, '', peran='guru', kelas_sekolah=2)
+    assert 'class="jejak"' not in h
+    kepala = h.split('<header class="kepala-anak-st editorial-kepala-st">', 1)[1].split('</header>', 1)[0]
+    assert 'class="profil-kembali-st"' in kepala
+    assert '&larr; Semua anak' in kepala
+    a = [a for a in Tautan(h).tautan if a.get('class') == 'profil-kembali-st']
+    assert len(a) == 1 and a[0]['href'] == '/guru'
+
+
+def test_catatan_batas_manual_punya_jarak_dari_tombol():
+    """Kotak catatan tidak lagi menempel pada tombol Buat latihan."""
+    aturan = P.GAYA_PROFIL.split('.profil-workspace-st .profil-batas-manual-st', 1)[1].split('}', 1)[0]
+    assert f'margin:{T.SP_5} 0 0' in aturan
 
 
 def test_pilihan_latihan_menjelaskan_isi_di_dekat_topik_tanpa_instruksi_ganda(db):

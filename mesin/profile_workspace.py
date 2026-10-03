@@ -37,8 +37,12 @@ def navigasi_profil(siswa_id, total, aktif):
     )
 
 
-def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul-profil'):
-    """Header identitas tunggal untuk seluruh ruang anak, termasuk laporan."""
+def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul-profil', kembali=None):
+    """Header identitas tunggal untuk seluruh ruang anak, termasuk laporan.
+
+    Tautan kembali digabung ke baris identitas supaya kepala halaman tidak
+    menumpuk menjadi empat baris terpisah (topbar, kembali, identitas, tab).
+    """
     sid = int(siswa['id'])
     from learning_profile import label_kelas_sekolah
     keluarga = '<span class="st-badge selesai">keluarga: %s</span>' % _e(siswa['pemilik'] or 'warisan') if peran=='admin' else ''
@@ -46,15 +50,20 @@ def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul
         '/admin?section=siswa&amp;id=%d' % sid
         if peran == 'admin' else '/akun?section=siswa'
     )
+    tautan_kembali = (
+        '<a class="profil-kembali-st" href="%s">&larr; Semua anak</a>' % _e(kembali)
+        if kembali else ''
+    )
     return (
         '<header class="kepala-anak-st editorial-kepala-st">'
         '<p class="editorial-alis-st">RUANG BELAJAR ANAK</p>'
         '<div class="profil-identitas-st"><h1 class="st" id="%s">%s '
         '<span class="st-badge selesai">(%s)</span>%s</h1>'
-        '<a class="profil-ubah-kelas-st" href="%s">Ubah kelas</a></div></header>'
+        '<div class="profil-aksi-kepala-st">%s'
+        '<a class="profil-ubah-kelas-st" href="%s">Ubah kelas</a></div></div></header>'
     ) % (
         _e(id_judul), _e(siswa['nama']), _e(label_kelas_sekolah(kelas_sekolah)),
-        keluarga, tujuan_kelas,
+        keluarga, tautan_kembali, tujuan_kelas,
     )
 
 
@@ -62,11 +71,11 @@ def bingkai(siswa, section, total, isi, *, peran='guru', pesan='', kelas_sekolah
     sid = int(siswa['id'])
     nav = navigasi_profil(sid, total, section)
     kabar = '<div class="st-banner-sukses" role="status">%s</div>' % _e(pesan) if pesan else ''
-    return ('<div class="jejak"><a href="%s">&larr; Semua anak</a></div>'
-            '<main aria-labelledby="judul-profil">%s'
+    kembali = '/admin' if peran == 'admin' else '/guru'
+    return ('<main aria-labelledby="judul-profil">%s'
             '<nav class="profil-tabs-st" aria-label="Bagian profil anak">%s</nav>%s%s</main>') % (
-                '/admin' if peran=='admin' else '/guru',
-                bagian_identitas(siswa, peran=peran, kelas_sekolah=kelas_sekolah),
+                bagian_identitas(siswa, peran=peran, kelas_sekolah=kelas_sekolah,
+                                 kembali=kembali),
                 nav, kabar, isi)
 
 
@@ -233,8 +242,11 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-detail-st > summary {{ font-size:{T.UKURAN_TEKS_META}; padding:{T.SP_1} 0; }}
 .profil-workspace-st .kepala-anak-st {{ margin-bottom:{T.SP_3}; }}
 .profil-workspace-st .kepala-anak-st .editorial-alis-st {{ display:none; }}
-.profil-workspace-st .profil-identitas-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_2} {T.SP_3}; }}
+.profil-workspace-st .profil-identitas-st {{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:{T.SP_2} {T.SP_3}; }}
 .profil-workspace-st .kepala-anak-st h1 {{ margin:0; }}
+.profil-workspace-st .profil-aksi-kepala-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_2} {T.SP_4}; }}
+.profil-workspace-st .profil-kembali-st {{ display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH}; color:{T.TEKS_SUBTLE}; font-size:{T.UKURAN_TEKS_CATATAN}; text-decoration:none; }}
+.profil-workspace-st .profil-kembali-st:hover {{ color:{T.AKSEN_TEAL_TUA}; }}
 .profil-workspace-st .profil-ubah-kelas-st {{ display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH}; font-size:{T.UKURAN_TEKS_CATATAN}; font-weight:500; }}
 .profil-workspace-st .profil-champs-st .st-tombol-coral {{ width:fit-content; }}
 .profil-workspace-st .profil-assistant-st {{ min-width:0; }}
@@ -275,7 +287,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-kelola-st > summary {{ display:flex; align-items:center; min-height:{T.TARGET_SENTUH}; color:{T.TEKS_VARIAN}; cursor:pointer; font-size:{T.UKURAN_TEKS_CATATAN}; }}
 .profil-workspace-st .profil-lanjutan-st {{ grid-column:1/-1; }}
 .profil-workspace-st .profil-lanjutan-isi-st {{ display:grid; gap:{T.SP_4}; padding-bottom:{T.SP_4}; }}
-.profil-workspace-st .profil-batas-manual-st {{ grid-column:1/-1; margin:0; padding:{T.SP_3}; background:{T.LATAR_CATATAN}; border:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius:{T.RADIUS_KECIL}; color:{T.TEKS_VARIAN}; }}
+.profil-workspace-st .profil-batas-manual-st {{ grid-column:1/-1; margin:{T.SP_5} 0 0; padding:{T.SP_3}; background:{T.LATAR_CATATAN}; border:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius:{T.RADIUS_KECIL}; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .profil-sr-st {{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }}
 @media(min-width:49rem) {{
  .profil-workspace-st .profil-champs-st {{ grid-template-columns:repeat(2,minmax(0,1fr)); }}

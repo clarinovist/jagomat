@@ -542,10 +542,9 @@ def halaman_laporan(
     return _halaman(
         f"Laporan {siswa['nama']}",
         f'<style>{profile_workspace.GAYA_PROFIL}{GAYA_LAPORAN}{GAYA_PETA}</style>'
-        f'<div class="jejak"><a href="{kembali}">&larr; Semua anak</a></div>'
         + profile_workspace.bagian_identitas(
             siswa, peran=peran, kelas_sekolah=kelas_sekolah,
-            id_judul='judul-profil-laporan',
+            id_judul='judul-profil-laporan', kembali=kembali,
         )
         + '<nav class="profil-tabs-st" aria-label="Bagian profil anak">'
         + profile_workspace.navigasi_profil(siswa_id, total_sesi, 'laporan')

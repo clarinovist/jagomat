@@ -101,7 +101,8 @@ def _jalan(server, viewport, nomor):
     assert "Langkah berikutnya" in ruang
     assert "Mulai dengan latihan awal" in ruang
     assert "Perkiraan sekitar 45 menit" in ruang
-    assert "Jagomat menampilkan catatan awal setelah hasil diperiksa" in ruang
+    assert "Jagomat menampilkan catatan awal setelah hasil diperiksa" not in ruang
+    assert "Sesudah ini" not in ruang and 'class="ringkasan-setelah-st"' not in ruang
     _satu_cta(ruang, ">Siapkan latihan awal</button>")
     assert 'action="/sesi-baru/%d"' % siswa_id not in ruang
 

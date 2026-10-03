@@ -112,7 +112,8 @@ def _kartu_fokus(fokus, nomor: int, nama_tipe: Callable, tanggal: Callable) -> s
     status = TAHAP.get(fokus.tahap, "Perlu ditinjau")
     return (
         '<li class="aksi-laporan">'
-        f'<h3>Fokus {nomor}: {nama}</h3><p><b>{status}</b></p>'
+        f'<h3>Fokus {nomor}: {nama}</h3>'
+        f'<p class="perjalanan-status-st"><b>{html.escape(status)}</b></p>'
         f'{_bukti_ringkas(fokus.bukti, tanggal)}</li>'
     )
 
@@ -144,15 +145,21 @@ def _histori(perjalanan: PerjalananBelajar, nama_tipe: Callable, tanggal: Callab
         if per_fokus and koreksi:
             rincian += '<p>Riwayat koreksi bukti:</p>' + _daftar_bukti(koreksi, tanggal)
         item.append(
-            f'<li><h3>Putaran #{putaran.id} · {kelas}</h3><p>{nama}</p>'
-            f'<p>{tanggal(putaran.dibuka.isoformat())} sampai '
-            f'{tanggal(putaran.ditutup.isoformat())} · {alasan}.</p>'
-            f'<p class="sub">{catatan}</p>{rincian}</li>'
+            '<li class="perjalanan-riwayat-item-st">'
+            '<span class="perjalanan-riwayat-titik-st" aria-hidden="true"></span>'
+            '<div class="perjalanan-riwayat-isi-st">'
+            f'<h3>Putaran #{putaran.id} · {kelas}</h3>'
+            f'<p class="perjalanan-riwayat-meta-st">{nama} · '
+            f'{tanggal(putaran.dibuka.isoformat())} sampai '
+            f'{tanggal(putaran.ditutup.isoformat())}</p>'
+            f'<p><span class="perjalanan-lencana-st">{html.escape(alasan)}</span></p>'
+            f'<p class="sub">{catatan}</p>{rincian}</div></li>'
         )
     return (
-        '<section class="riwayat-putaran-laporan"><h3>Riwayat putaran sebelumnya</h3>'
+        '<section class="riwayat-putaran-laporan perjalanan-riwayat-st">'
+        '<h3>Riwayat putaran sebelumnya</h3>'
         '<p>Putaran lama tetap tercatat meskipun fokus perlu diperkuat lagi.</p>'
-        '<ul class="daftar-aksi-laporan">' + "".join(item) + '</ul>'
+        '<ul class="daftar-aksi-laporan perjalanan-garis-waktu-st">' + "".join(item) + '</ul>'
         + navigasi_halaman(nomor, jumlah, lambda n: url_laporan(
             siswa_id, 'penguasaan', tampilan='perjalanan', halaman=n)) + '</section>'
     )
@@ -169,9 +176,31 @@ def _tanpa_fokus(perjalanan: PerjalananBelajar, nama_tipe: Callable) -> str:
     if rencana.tindakan == "mixed_maintenance":
         return '<p>Tidak ada fokus aktif. Lanjutkan latihan pemeliharaan sesuai rencana.</p>'
     return (
-        '<p>Catatan hasil belum cukup untuk menetapkan bagian yang perlu dibantu. '
-        'Hasil perlu selesai dan diperiksa; latihan manual tidak otomatis masuk latihan awal.</p>'
+        '<p>Catatan hasil belum cukup untuk menunjukkan bagian mana yang perlu dibantu. '
+        'Selesaikan latihannya dulu, lalu periksa hasilnya. Latihan manual tidak '
+        'otomatis masuk hitungan latihan awal.</p>'
     )
+
+
+def _langkah_awal(progres: int) -> str:
+    """Penanda visual tiga latihan awal; teks tetap terbaca tanpa CSS."""
+    titik = []
+    for nomor in range(1, 4):
+        if nomor <= progres:
+            kelas, tanda = "perjalanan-titik-st selesai", "&#10003;"
+        elif nomor == progres + 1:
+            kelas, tanda = "perjalanan-titik-st aktif", str(nomor)
+        else:
+            kelas, tanda = "perjalanan-titik-st", str(nomor)
+        titik.append(
+            '<li class="%s"><span aria-hidden="true">%s</span></li>' % (kelas, tanda)
+        )
+    return (
+        '<div class="perjalanan-langkah-st">'
+        '<ol class="perjalanan-titik-baris-st" aria-hidden="true">%s</ol>'
+        '<p class="perjalanan-langkah-teks-st">Latihan awal %d dari 3 selesai</p>'
+        '</div>'
+    ) % ("".join(titik), progres)
 
 
 def render_perjalanan(perjalanan: PerjalananBelajar, nama_tipe: Callable, tanggal: Callable,
@@ -193,17 +222,26 @@ def render_perjalanan(perjalanan: PerjalananBelajar, nama_tipe: Callable, tangga
         _tanpa_fokus(perjalanan, nama_tipe)
     )
     jadwal = (
-        f'<p>Tersedia mulai {tanggal(rencana.tersedia_pada.isoformat())}.</p>'
+        f'<p class="perjalanan-jadwal-st">Tersedia mulai '
+        f'{tanggal(rencana.tersedia_pada.isoformat())}.</p>'
         if rencana.tersedia_pada else ""
     )
     catatan = "".join(f'<p class="sub">{html.escape(teks)}</p>' for teks in perjalanan.catatan)
     return (
-        '<section class="kartu" id="perjalanan-belajar" aria-labelledby="judul-perjalanan">'
+        '<section class="kartu perjalanan-kartu-st" id="perjalanan-belajar" '
+        'aria-labelledby="judul-perjalanan">'
+        '<div class="perjalanan-kepala-st">'
         '<h2 id="judul-perjalanan">Perjalanan belajar</h2>'
-        f'<p class="sub">{putaran} · Latihan awal {progres} dari 3 tanggal</p>'
-        f'<p><b>Langkah berikutnya: {judul_tindakan(perjalanan)}</b></p>'
-        f'{jadwal}{catatan}{isi}'
-        '<p class="sub">Status menggambarkan bukti saat ini. Mulai membaik perlu '
-        'diperiksa lagi; bertahan tetap mendapat checkpoint berkala.</p>'
-        f'{_histori(perjalanan, nama_tipe, tanggal, siswa_id, halaman)}</section>'
+        f'<p class="perjalanan-babak-st">{html.escape(putaran)}</p>'
+        '</div>'
+        + _langkah_awal(progres)
+        + '<div class="perjalanan-berikut-st">'
+        '<span class="perjalanan-label-st">Langkah berikutnya</span>'
+        f'<p>{html.escape(judul_tindakan(perjalanan))}</p>'
+        '</div>'
+        + jadwal + catatan + isi
+        + '<p class="perjalanan-catatan-st">Catatan ini masih bisa berubah saat anak '
+        'berlatih lagi.</p>'
+        + _histori(perjalanan, nama_tipe, tanggal, siswa_id, halaman)
+        + '</section>'
     )

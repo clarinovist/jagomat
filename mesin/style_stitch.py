@@ -2470,7 +2470,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 }}
 .profil-editorial-st .studio-layout-st {{
   display: grid; grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: "utama" "pendamping" "aksi" "setelah" "konteks" "alur";
+  grid-template-areas: "utama" "pendamping" "aksi" "konteks" "alur";
   gap: {T.SP_3};
 }}
 .profil-editorial-st .studio-utama-st {{ grid-area: utama; display: grid; gap: {T.SP_3}; align-content: start; min-width: 0; }}
@@ -2514,10 +2514,6 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   display: block; color: {T.TEKS_JUDUL}; font-family: {T.FONT_HEADLINE};
 }}
 .profil-editorial-st .ringkasan-langkah-st p {{ margin: {T.SP_1} 0 0; color: {T.TEKS_VARIAN}; }}
-.profil-editorial-st .ringkasan-setelah-st {{ grid-area:setelah; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:{T.SP_3}; }}
-.profil-editorial-st .ringkasan-setelah-st > div {{ padding:{T.SP_3}; border-top:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
-.profil-editorial-st .ringkasan-setelah-st b {{ color:{T.TEKS_JUDUL}; font-family:{T.FONT_HEADLINE}; }}
-.profil-editorial-st .ringkasan-setelah-st p {{ margin:{T.SP_1} 0 0; color:{T.TEKS_VARIAN}; }}
 .profil-editorial-st .studio-konteks-st {{ grid-area:konteks; display:grid; gap:{T.SP_3}; }}
 .profil-editorial-st .catatan-tiga-latihan-st {{
   margin: 0; padding: {T.SP_3} 0; color: {T.TEKS_VARIAN};
@@ -2598,11 +2594,6 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .profil-editorial-st .tautan-sesi-opsi > p {{ margin: 0 0 {T.SP_3}; max-width: 52ch; }}
 .profil-editorial-st .profil-taches-st > .sub {{ margin-bottom: {T.SP_4}; }}
 .profil-editorial-st .meta-sesi-st .nomor-sesi-st {{ white-space: nowrap; }}
-.profil-editorial-st.profil-workspace-st > .jejak {{ margin-bottom: {T.SP_3}; }}
-@media (min-width: 60rem) {{
-  .profil-workspace-st:has(> .pendamping-panel-kanan:not([hidden])) {{ --baris-pendamping: 3; }}
-  .profil-workspace-st:has(> .pendamping-panel-kanan:not([hidden])) > .jejak {{ grid-column: 1 / -1; grid-row: 2; }}
-}}
 .profil-editorial-st .judul-sesi-st {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
 .profil-editorial-st .badge-direview {{
   display: inline-block; max-width: 19rem; white-space: normal; overflow-wrap: anywhere;
@@ -2700,7 +2691,6 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   .profil-editorial-st .ringkasan-langkah-st {{ grid-template-columns: minmax(0, 1fr); order: 2; }}
   .profil-editorial-st .tindakan-rencana-st {{ padding: {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
   .profil-editorial-st .studio-aksi-st {{ order: 3; grid-template-columns: minmax(0, 1fr); }}
-  .profil-editorial-st .ringkasan-setelah-st {{ order:4; grid-template-columns:minmax(0,1fr); }}
   .profil-editorial-st .studio-konteks-st {{ order:5; }}
   .profil-editorial-st .progres-rencana-st {{ margin-top: {T.SP_1}; padding: {T.SP_4} 0 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
   .profil-editorial-st .alur-rencana-jelas-st {{ order: 6; }}

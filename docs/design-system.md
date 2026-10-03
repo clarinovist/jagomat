@@ -174,7 +174,8 @@ Dari 9 mockup, pattern yang berulang:
 9. **Navigasi profil dan periode laporan** — empat tujuan selalu berurutan
    **Berikutnya**, **Buat latihan**, **Riwayat**, **Perkembangan**. Pada HP 375 px
    keempatnya tetap satu baris tanpa badge jumlah atau overflow dokumen. Keempat tujuan
-   mempertahankan header identitas anak yang sama; di laporan, nama anak tetap menjadi
+   mempertahankan header identitas anak yang sama; tautan “← Semua anak” menyatu di
+   baris identitas, bukan baris terpisah di atasnya; di laporan, nama anak tetap menjadi
    H1 dan “Perkembangan” menjadi judul bagian. Subnavigasi laporan hanya Ringkasan,
    Materi, Perjalanan dan memakai tab garis bawah yang tenang, bukan pill terisi.
    Ringkasan laporan memakai tautan preset 7 hari, minggu ini, bulan ini, serta form
@@ -384,8 +385,10 @@ File CSS per permukaan (semuanya `import design_tokens as T`):
 - Profil: header berulang dikurangi. Buat latihan menampilkan topik, jumlah, dan CTA
   langsung; format/mode/timer berada dalam Pengaturan lanjutan. Riwayat memakai kartu
   mobile satu kolom, memisahkan pengerjaan/tinjauan, menempatkan Buka sesi sebagai aksi
-  utama dan kelola tautan dalam disclosure sekunder. Perkembangan hanya melipat
-  metodologi/rincian kontekstual, bukan data utama atau peringatan belum dinilai.
+  utama dan kelola tautan dalam disclosure sekunder. Kartu Langkah berikutnya tidak lagi
+  memuat blok penjelasan “Sesudah ini”/“Kembali”; Perjalanan menampilkan progres latihan
+  awal sebagai stepper, status fokus sebagai lencana, dan riwayat putaran sebagai garis
+  waktu, sementara metodologi/rincian kontekstual tetap dilipat dan data utama tidak.
 - Aksi utama tetap berlabel teks. Ikon bukan pengganti makna simpan/kirim,
   konfirmasi, pilihan cara, maupun status pedagogis. Tidak ada JS/dependensi baru.
 
