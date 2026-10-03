@@ -55,7 +55,8 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
 
 - **Stdlib saja**, tanpa framework/dependensi runtime pihak ketiga; dev dependency
   hanya `pytest` dan `pytest-xdist`. Dependency baru perlu persetujuan pengguna.
-- **Zero-JS default**: `<details>` dan `?section=` server-side. Pengecualian disetujui:
+- **Zero-JS default**: `<details>` dan anchor `#progres`/`#materi`/`#perjalanan`
+  server-side; `?section=` lama tetap didukung sebagai alias anchor. Pengecualian disetujui:
   mata sandi, `confirm()` destruktif, salin tautan satu sesi langsung, serta
   Kirim/Periksa Pendamping inline. Skrip berhash CSP, same-origin dan punya fallback
   form native; bukan izin menambah JavaScript umum. Refresh pilihan isi lama tidak

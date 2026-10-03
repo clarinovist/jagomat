@@ -12,17 +12,9 @@ from report_navigation import halaman_daftar, navigasi_halaman, url_laporan
 
 
 GAYA_LAPORAN = f"""
-.laporan-editorial-st .perkembangan-hero-st {{
-  display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:{T.SP_5};
-  margin:0 0 {T.SP_4}; padding:{T.SP_5}; background:{T.LATAR_KARTU};
-  border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR};
-}}
-.laporan-editorial-st .perkembangan-hero-st h2 {{margin:0;font-size:{T.UKURAN_JUDUL_DEWASA};}}
-.laporan-editorial-st .perkembangan-hero-st p {{margin:{T.SP_1} 0 0;color:{T.TEKS_VARIAN};max-width:54ch;}}
-.laporan-editorial-st .perkembangan-hero-st .editorial-alis-st {{color:{T.AKSEN_TEAL_TUA};font-weight:800;font-size:{T.UKURAN_TEKS_META};letter-spacing:.08em;}}
-.laporan-editorial-st .perkembangan-maskot-st {{
-  align-self:center; width:5rem; height:5rem; object-fit:contain;
-}}
+.laporan-editorial-st .laporan-bagian-st {{margin-top:{T.SP_5};}}
+.laporan-editorial-st .laporan-bagian-st:first-of-type {{margin-top:0;}}
+.laporan-editorial-st .laporan-lipatan-st {{min-width:0;}}
 .laporan-editorial-st .aktivitas-kartu-st {{
   margin-top:{T.SP_5}; padding:{T.SP_5}; background:{T.LATAR_KARTU};
   border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR};
@@ -157,8 +149,6 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .laporan-rentang-form button {{min-height:{T.TARGET_SENTUH};}}
 .laporan-editorial-st .editorial-kepala-st h1 {{overflow-wrap:anywhere;}}
 @media(max-width:{T.BATAS_KOLOM_BACA}) {{
-  .laporan-editorial-st .perkembangan-hero-st {{grid-template-columns:minmax(0,1fr);padding:{T.SP_4};}}
-  .laporan-editorial-st .perkembangan-maskot-st {{width:4.5rem;height:4.5rem;justify-self:end;}}
   .laporan-editorial-st .laporan-ringkasan-grid {{grid-template-columns:minmax(0,1fr);}}
   .laporan-editorial-st .aktivitas-kartu-st {{padding:{T.SP_4};}}
   .laporan-editorial-st .aktivitas-kepala-st {{display:block;}}

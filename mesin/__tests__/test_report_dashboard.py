@@ -51,11 +51,10 @@ def test_ringkasan_tidak_memuat_resume_dan_tugas_lama(db):
         assert tuple(kon.iterdump()) == awal
     assert '<section class="kartu laporan-resume"' not in h
     assert 'id="rencana-belajar-laporan"' not in h
-    assert 'tampilan=tugas' not in h
+    assert 'aksi-rencana-laporan' not in h.split('</style>')[-1]
     assert 'id="rincian-tugas"' in tugas
     assert f'/sesi/{ses}' in tugas
     assert 'class="rasio-laporan">1/2</span> soal terisi' in tugas
-    assert tampilan.judul_tindakan(PerjalananBelajar(rekomendasi)) not in h
 
 
 def test_ringkasan_memakai_hero_kpi_visual_dan_insight_netral(db):
@@ -63,8 +62,9 @@ def test_ringkasan_memakai_hero_kpi_visual_dan_insight_netral(db):
         sid = database.tambah_siswa(kon, "Visual ringkasan", "P5", pemilik="guru")
         sesi(kon, sid, ("benar", "H"), level="P5")
         h = reports.halaman_laporan(kon, sid).decode()
-    assert 'class="perkembangan-hero-st"' in h
-    assert 'class="perkembangan-maskot-st"' in h
+    assert 'class="perkembangan-hero-st"' not in h
+    assert 'class="perkembangan-maskot-st"' not in h
+    assert 'id="progres"' in h and 'id="materi"' in h and 'id="perjalanan"' in h
     assert h.count('class="stat"') == 4
     assert 'class="aktivitas-komposisi-st" role="img"' in h
     assert 'class="laporan-insight-st"' in h

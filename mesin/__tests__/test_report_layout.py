@@ -76,14 +76,13 @@ def test_section_hanya_merender_bagian_terpilih_tanpa_write(db, bagian):
         h = reports.halaman_laporan(kon, sid, section=bagian).decode()
         assert tuple(kon.iterdump()) == awal
     aktif = bagian if bagian in {'penguasaan', 'perjalanan'} else 'ringkasan'
+    angkor = {'ringkasan': 'progres', 'penguasaan': 'materi', 'perjalanan': 'perjalanan'}[aktif]
     struktur = Struktur(h)
     terpilih = [a for a, _ in struktur.tautan if a.get('aria-current') == 'page']
-    assert [a['href'] for a in terpilih] == [
-        f'/laporan/{sid}', f'/laporan/{sid}?section={aktif}',
-    ]
+    assert [a['href'] for a in terpilih] == [f'/laporan/{sid}', f'#{angkor}']
     assert 'id="rencana-belajar-laporan"' not in h
-    assert ('class="peta-pilihan"' in h) == (aktif == 'penguasaan')
-    assert ('id="perjalanan-belajar"' in h) == (aktif == 'perjalanan')
+    assert 'class="peta-pilihan"' in h
+    assert 'id="perjalanan-belajar"' in h
     assert struktur.maksimum <= 1
     assert '<script>x</script>' not in h
 
@@ -148,7 +147,8 @@ def test_http_navigasi_laporan_tetap_di_balik_guard_existing(tmp_path, monkeypat
         kode, h, _ = server.minta(f'/laporan/{sid}{query}', auth=('guru', SANDI_GURU))
         assert kode == 200
         aktif = bagian if bagian != 'asing' else 'ringkasan'
-        assert f'href="/laporan/{sid}?section={aktif}" aria-current="page"' in h
+        angkor = {'ringkasan': 'progres', 'penguasaan': 'materi', 'perjalanan': 'perjalanan'}[aktif]
+        assert f'href="#{angkor}" aria-current="page"' in h
         ka, ha, _ = server.minta(f'/laporan/{asing}{query}', auth=('guru', SANDI_GURU))
         kh, hh, _ = server.minta(f'/laporan/999999{query}', auth=('guru', SANDI_GURU))
         assert ka == kh == 404 and ha == hh
