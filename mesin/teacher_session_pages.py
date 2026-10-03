@@ -708,7 +708,7 @@ def halaman_sesi_stitch(
             if draf_koreksi:
                 status_pemetaan = '<span class="sub">Pilihan ini belum disimpan; berlaku setelah konfirmasi berhasil.</span>'
             opsi_pemetaan = (
-                '<label class="koreksi-centang-st">'
+                '<label class="koreksi-persetujuan-st">'
                 f'<input type="checkbox" name="sertakan_pemetaan" value="1"{centang_pemetaan}> '
                 'Sertakan dalam pemetaan</label>'
                 f'{status_pemetaan}'
@@ -939,7 +939,7 @@ def halaman_sesi_stitch(
             '<p class="sub">Sesi dan bukti tetap tersimpan dalam histori, tetapi tidak lagi aktif dalam siklus belajar.</p>'
             '<label for="alasan-batal">Alasan pembatalan <span>(opsional)</span></label>'
             '<input id="alasan-batal" type="text" name="alasan" maxlength="300" placeholder="Tulis alasan">'
-            '<label class="koreksi-centang-st"><input type="checkbox" required> '
+            '<label class="koreksi-persetujuan-st"><input type="checkbox" required> '
             'Saya memahami sesi ini akan dibatalkan.</label>'
             '<button type="submit" class="tombol-kecil-st">Batalkan sesi</button></form>'
         )

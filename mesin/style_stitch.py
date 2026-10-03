@@ -2641,6 +2641,20 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 }}
 .koreksi-editorial-st .form-pembatalan-st .tombol-kecil-st {{
   width: auto; margin-top: {T.SP_1};
+  background: {T.TEKS_GALAT}; color: {T.TEKS_PUTIH};
+  border-color: {T.TEKS_GALAT};
+}}
+/* Label centang persetujuan: inline-flex, checkbox dan teks sejajar di satu
+   baris. Jangan pakai .koreksi-centang-st di sini — kelas itu wadah daftar
+   centang (flex row berisi <label>), bukan label pembungkus checkbox. */
+.koreksi-editorial-st .koreksi-persetujuan-st {{
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN};
+  cursor: pointer; margin: 0;
+}}
+.koreksi-editorial-st .koreksi-persetujuan-st input {{
+  width: 1.2rem; height: 1.2rem; flex: none; margin: 0;
+  accent-color: {T.AKSEN_MURID_UTAMA};
 }}
 
 .akun-editorial-st .layout-samping {{ display: grid; grid-template-columns: minmax(0, 1fr); gap: {T.SP_5}; }}
