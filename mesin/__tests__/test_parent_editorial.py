@@ -128,11 +128,20 @@ def test_rencana_tetap_satu_di_tab_terpisah_dari_alat_manual(db):
 
 
 def test_navigasi_section_dan_sesi_menandai_halaman_aktif(db):
-    for nama in ("akun", "siswa", "akun-murid", "koreksi", "cetak", "lampiran"):
+    for nama in ("akun", "siswa", "akun-murid", "koreksi", "lampiran"):
         markup = Markup(_halaman(db)[nama].decode())
         aktif = [a for a in markup.pilih("a") if a.get("aria-current") == "page"]
         assert len(aktif) == 1, nama
         assert any("aria-label" in a for a in markup.pilih("nav")), nama
+    # Cetak disembunyikan (2026-10-04, Opsi 1): pil sesi hanya Koreksi +
+    # Lampiran, jadi halaman cetak (deep-link, rute tetap live) tidak
+    # menandai item aktif dan tidak mempromosikan tautan cetak.
+    halaman = _halaman(db)
+    cetak = Markup(halaman["cetak"].decode())
+    assert len([a for a in cetak.pilih("a") if a.get("aria-current") == "page"]) == 0, "cetak"
+    assert any("aria-label" in a for a in cetak.pilih("nav")), "cetak"
+    koreksi = halaman["koreksi"].decode()
+    assert "/cetak" not in koreksi.split("</style>", 1)[1]
 
 
 def test_header_sesi_memakai_tanggal_ramah_kelas_dan_jumlah_aktual(db):
