@@ -1,5 +1,32 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy riwayat mockup-v2 — 4 Oktober 2026
+
+Cutover terkontrol `deploy-40c55ba-20261004T133000Z` untuk revision
+`40c55bab32f4f20f0a590465079178b7ec512606` (section riwayat: filter terbuka +
+search, pil status berhitungan, 4 kartu stat + rentetan, rel timeline, CTA
+kontekstual, primer semua viewport; tanpa schema/migrasi, kontrak persistensi
+identik `fc68c8bc…`). Kandidat digest `sha256:2ce151bd…`, recovery `1f056352…`
+digest `sha256:0aebb63b…` (pair proof CI, provider_calls 0). Gate dispatch
+`37204841596` (delapan shard kandidat+recovery + build + uji pair) lulus; push
+`37204693271` hijau; mode tetap `migrasi`, job `pasang` CI tetap literal false.
+
+`PROBE_SKEMA` implisit via prepare (label revisi + kontrak kedua image, env
+identik, integrity/FK, tanpa pending) lulus sebelum hold. Bundle backup
+`deploy-40c55ba-20261004T133000Z` (empat DB + auth `sandi.json`, SQLite backup
+API, tanpa prune) + rehearsal preservasi C2–B2–C2 (siapkan idempoten, baris
+identik) + validasi bundle kanonis lulus. Temuan: bundle live perlu
+rekonsiliasi jurnal (normal, tanpa assert seperti template Oct-01); biner
+deployer terukur `b9403116…` (berubah sejak pin Oct-01 `94ab137b…`, tidak diubah
+sesi ini, dicatat). Approval exact-pair sekali pakai (TTL 600 detik) dan
+deployer exit 0. Jendela hold: blok Caddy Jagomat → 503, dua cron `osn-*`
+dipause; tumpukan polyflow tidak tersentuh.
+
+Pasca-swap: container sehat rev `40c55ba`, integritas/FK bersih, baris
+identik baseline, Caddy + kedua cron dipulihkan byte-identik. Smoke publik
+`/` 200, `/akun` 401, `/murid/` 303 ke `/masuk` lulus. Bundle induk
+dipertahankan tanpa prune.
+
 ## Deploy riwayat kartu timeline — 4 Oktober 2026
 
 Cutover terkontrol `deploy-v2` untuk revision `b08a00935ab44d65c060989daae8b8f099d466c4`
