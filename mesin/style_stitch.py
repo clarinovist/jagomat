@@ -3085,7 +3085,10 @@ CSS_SESI = f"""
 }}
 .koreksi-editorial-st .antrean-tinjauan-st h2 {{ font-size: 1.05rem; margin: 0 0 {T.SP_2}; }}
 .koreksi-editorial-st .antrean-tinjauan-st p {{ margin: {T.SP_2} 0; }}
-.koreksi-editorial-st .antrean-tinjauan-st ul {{
+.koreksi-misi-st {{ background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU}; padding: {T.SP_4}; margin-bottom: {T.SP_4}; }}
+.koreksi-misi-st .koreksi-pengantar-st {{ margin-bottom: {T.SP_2}; }}
+.koreksi-misi-st .koreksi-progres-st {{ padding: 0; margin-bottom: 0; background: none; border: 0; }}
+.koreksi-editorial-st .antrean-tinjauan-st ul {{ counter-reset: antrean;}}
   display: flex; flex-wrap: wrap; gap: {T.SP_2}; padding: 0; margin: {T.SP_3} 0; list-style: none;
 }}
 .koreksi-editorial-st .antrean-tinjauan-st a {{
@@ -3108,6 +3111,20 @@ CSS_SESI = f"""
 .koreksi-ringkas-kepala-st .koreksi-tipe-st {{ background: none; padding: 0; font-size: 1rem; color: {T.TEKS_JUDUL}; }}
 .koreksi-tindakan-st {{ margin-left: auto; font-size: .8rem; color: {T.TEKS_JUDUL}; background: {T.LATAR_CATATAN}; padding: {T.SP_1} {T.SP_2}; border-radius: {T.RADIUS_PIL}; }}
 .koreksi-ringkas-hasil-st {{ display: block; margin: {T.SP_2} 0 0 {T.SP_6}; font-size: .85rem; color: {T.TEKS_VARIAN}; }}
+.koreksi-editorial-st .antrean-tinjauan-st li {{ counter-increment: antrean; }}
+.koreksi-editorial-st .antrean-tinjauan-st li a::before {{
+  content: counter(antrean); display: inline-flex; align-items: center; justify-content: center;
+  width: 1.4rem; height: 1.4rem; margin-right: {T.SP_2}; border-radius: 50%;
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; font-size: .8rem; font-weight: 700;
+}}
+.koreksi-lipat-st > summary {{ border-left: .35rem solid transparent; }}
+.koreksi-lipat-st.status-benar > summary {{ border-left-color: {T.KODE_BENAR_BG}; }}
+.koreksi-lipat-st.status-N > summary {{ border-left-color: {T.KODE_MENEBAK_BG}; }}
+.koreksi-lipat-st.status-K > summary {{ border-left-color: {T.KODE_SALAH_KONSEP_BG}; }}
+.koreksi-lipat-st.status-B > summary {{ border-left-color: {T.KODE_SALAH_BACA_BG}; }}
+.koreksi-lipat-st.status-H > summary {{ border-left-color: {T.KODE_SALAH_HITUNG_BG}; }}
+.koreksi-lipat-st.status-E > summary {{ border-left-color: {T.KODE_SALAH_TULIS_BG}; }}
+.koreksi-lipat-st.status-T > summary {{ border-left-color: {T.KODE_BELUM_LIAT_BG}; }}
 .koreksi-lipat-st[open] > summary {{ border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
 .koreksi-lipat-st[open] > summary .koreksi-ringkas-hasil-st {{ display: none; }}
 .koreksi-editorial-st .koreksi-lipat-st > .koreksi-isi-st {{ padding: {T.SP_4}; opacity: 1; }}

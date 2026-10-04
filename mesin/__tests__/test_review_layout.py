@@ -167,3 +167,14 @@ def test_draf_pemahaman_dikosongkan_mengembalikan_soal_ke_antrean(db):
         assert 'open' in Kartu(isi).kartu[f'tinjau-soal-{sid}'][1]
         assert FormKoreksi(isi, sesi).data[f'cek_pemahaman_{sid}'] == ''
         assert tuple(kon.iterdump()) == sebelum
+
+
+def test_panel_misi_dan_aksen_status_terrender(db):
+    with database.buka(db) as kon:
+        sesi, _ = sesi_contoh(kon)
+        b = database.isi_sesi(kon, sesi)[1]
+        database.simpan_diagnosis(kon, b['jawaban_id'], False, 'H', 'H', manual=True)
+        isi = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
+        assert 'aria-label="Misi tinjauan"' in isi
+        assert 'soal aman' in isi
+        assert 'koreksi-kartu-st koreksi-lipat-st status-' in isi

@@ -536,7 +536,7 @@ def halaman_sesi_stitch(
             'Simpan draf belum mengesahkan hasil.</p>'
         )
         kartu_html = f"""
-<details class="koreksi-kartu-st koreksi-lipat-st"{atribut_kartu} data-tindakan="{html.escape(label_tindakan)}"{' open' if buka_kartu else ''}>
+<details class="koreksi-kartu-st koreksi-lipat-st status-{bulat_cls}"{atribut_kartu} data-tindakan="{html.escape(label_tindakan)}"{' open' if buka_kartu else ''}>
   <summary class="koreksi-ringkas-st">
     <span class="koreksi-ringkas-kepala-st">{nomor}{tipe}<span class="koreksi-tindakan-st">{html.escape(label_tindakan)}</span></span>
     <span class="koreksi-ringkas-hasil-st">{html.escape(ringkasan_hasil)}</span>
@@ -990,7 +990,7 @@ def halaman_sesi_stitch(
         f'{int(info["jumlah_soal"])} soal {badge_mode} {badge_remedial}</p></header>'
         f"{kabar}"
         f"{palang_enter}{pil}{konteks_pendamping}"
-        f"{status_sesi}{progres_tinjauan}"
+        f'<section class="koreksi-misi-st" aria-label="Misi tinjauan">{status_sesi}{progres_tinjauan}</section>'
         f"{hasil_pemetaan}{rencana_pemetaan}"
         + (__import__('skill_pilot_ui').materi_sesi(kon,sesi_id,int(info['siswa_id'])) if sesi_pilot else '') +
         f"{aksi_rencana}"
