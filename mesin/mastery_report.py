@@ -140,12 +140,12 @@ def render_peta(
 ):
     kelas = html.escape(label_kelas(peta.level))
     if peta.level == '':
-        return ('<section class="kartu peta-materi-st" id="peta-penguasaan">'
+        return ('<section class="kartu-st peta-materi-st" id="peta-penguasaan">'
                 '<h2>Progres penguasaan materi Jagomat</h2>'
                 '<p>Latihan awal belum disiapkan. Buka tab Langkah berikutnya; '
                 'Jagomat akan memakai cakupan fondasi internal. Latihan manual tetap tersedia.</p></section>')
     if not peta.target:
-        return ('<section class="kartu peta-materi-st" id="peta-penguasaan">'
+        return ('<section class="kartu-st peta-materi-st" id="peta-penguasaan">'
                 '<h2>Progres penguasaan materi Jagomat</h2>'
                 '<p>Target untuk konteks latihan ini belum tersedia. Periksa pengaturan latihan.</p></section>')
     per_topik = {}
@@ -174,7 +174,7 @@ def render_peta(
         '<p><b>menunjukkan pemahaman</b></p>'
     )
     return (
-        '<section class="kartu peta-materi-st" id="peta-penguasaan" aria-labelledby="judul-peta">'
+        '<section class="kartu-st peta-materi-st" id="peta-penguasaan" aria-labelledby="judul-peta">'
         '<div class="peta-kepala"><div><h2 id="judul-peta">Progres penguasaan materi Jagomat</h2>'
         f'<p>{kelas} · {total} target keterampilan dalam {len(per_topik)} materi</p></div>'
         f'{utama}</div>'
@@ -208,7 +208,7 @@ def render_kriteria(*, isi_saja=False):
     if isi_saja:
         return isi
     return (
-        '<section class="kartu laporan-dasar" id="kriteria-penguasaan">'
+        '<section class="kartu-st laporan-dasar" id="kriteria-penguasaan">'
         '<h2>Kriteria target menunjukkan pemahaman</h2>' + isi + '</section>'
     )
 
@@ -273,7 +273,7 @@ def _pilih_materi(
                 ) if bukti_konteks is not None else ''
             )
             detail = (
-                '<section class="kartu peta-detail" id="detail-materi" aria-labelledby="judul-materi">'
+                '<section class="kartu-st peta-detail" id="detail-materi" aria-labelledby="judul-materi">'
                 f'<a class="peta-kembali" href="{url(status=status, halaman=nomor)}">← Kembali ke materi</a>'
                 '<p class="editorial-alis-st">MATERI DIPILIH</p>'
                 f'<h2 id="judul-materi">{html.escape(nama)}</h2>'

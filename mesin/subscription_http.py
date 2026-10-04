@@ -121,7 +121,7 @@ def _kirim(penangan, isi, kode=200, *, png=False, lokasi=None):
 
 def _tidak_ada(penangan):
     # Identik, tanpa identitas/nama pengguna atau status invoice.
-    _kirim(penangan, halaman.bingkai('<section class="kartu"><h2>Halaman tidak ada</h2></section>'), 404)
+    _kirim(penangan, halaman.bingkai('<section class="kartu-st"><h2>Halaman tidak ada</h2></section>'), 404)
 
 
 def _transport(penangan, r, principal):

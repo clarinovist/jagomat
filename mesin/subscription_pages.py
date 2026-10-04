@@ -28,19 +28,19 @@ def form(aksi, token, label, tambahan=""):
 def isi_ringkasan(profil, invoice, token):
     """Fragmen kartu ringkasan tanpa bingkai halaman (untuk embed /akun)."""
     if invoice:
-        isi = ('<section class="kartu"><h2>Tagihan simulasi</h2><p>Lanjutkan tagihan yang sudah dibuat. '
+        isi = ('<section class="kartu-st"><h2>Tagihan simulasi</h2><p>Lanjutkan tagihan yang sudah dibuat. '
                'Muat ulang tidak membuat pembayaran kedua.</p><a class="tombol" href="/langganan/'
                + invoice["invoice_id"] + '">Buka tagihan</a></section>')
     elif profil:
         pilihan = '<fieldset><legend>Profil yang dicakup simulasi</legend><p class="sub">Pilih satu sampai tiga profil.</p>' + ''.join(
             '<label><input type="checkbox" name="profil" value="%d">%s</label>' % (sid, html.escape(nama))
             for sid, nama in profil) + '</fieldset>'
-        isi = ('<section class="kartu"><h2>Siapkan tagihan</h2><p>Pilih profil, lalu tinjau nominal '
+        isi = ('<section class="kartu-st"><h2>Siapkan tagihan</h2><p>Pilih profil, lalu tinjau nominal '
                'sebelum membuat QR. Nominal dihitung server dari tarif langganan; pajak dan total '
                'checkout komersial belum ditetapkan.</p>'
                + form('/langganan/siapkan', token, 'Tinjau tagihan simulasi', pilihan) + '</section>')
     else:
-        isi = '<section class="kartu"><h2>Belum ada profil</h2><p>Siapkan profil sintetis di preview sebelum menguji pembayaran.</p></section>'
+        isi = '<section class="kartu-st"><h2>Belum ada profil</h2><p>Siapkan profil sintetis di preview sebelum menguji pembayaran.</p></section>'
     return isi
 
 
@@ -51,7 +51,7 @@ def ringkasan(pengguna, profil, invoice, token):
 def tagihan(pengguna, inv, *, token, status, boleh_buat=False, qr_url=""):
     jumlah = len(json.loads(inv['profil_json']))
     nominal = 'Rp' + format(inv['rupiah'], ',').replace(',', '.')
-    isi = ('<section class="kartu"><h2>Tagihan simulasi untuk %d profil</h2>' % jumlah
+    isi = ('<section class="kartu-st"><h2>Tagihan simulasi untuk %d profil</h2>' % jumlah
            + '<p class="nominal">' + nominal + '</p><p>QRIS · IDR · '
            + ('Tarif promo' if inv['promo'] else 'Tarif lanjutan') + '</p>')
     if status == 'perlu_diperiksa':

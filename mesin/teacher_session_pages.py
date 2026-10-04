@@ -127,7 +127,7 @@ def halaman_sesi_stitch(
         (sesi_id,),
     ).fetchone()
     if not info:
-        return _halaman("Tidak ada", "<h1>Sesi tidak ditemukan</h1>")
+        return _halaman("Tidak ada", "<h1>Sesi tidak ditemukan</h1>", stitch=True)
 
     sudah_dikirim = bool(info["selesai"])
     drill = info["mode"] == "drill"

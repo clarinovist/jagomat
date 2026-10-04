@@ -149,7 +149,7 @@ def _kartu_akun_murid(kon, pengguna: str | None = None, peran: str = "guru") -> 
         tambah = ""
 
     return (
-        f'<div class="kartu"><h2>Akun murid</h2>'
+        f'<div class="kartu-st"><h2>Akun murid</h2>'
         '<p class="sub">Kelola nama login dan akun masuk anak.</p>'
         f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Aksi</th></tr>{baris}</table></div>'
         f"{tambah}"
@@ -298,7 +298,7 @@ def halaman_akun(
             pengguna_tampil = html.escape(d["pengguna"])
 
     kartu_sandi = (
-        f'<div class="kartu">'
+        f'<div class="kartu-st">'
         f'<div class="kartu-judul"><span class="ikon-kartu">🔑</span>'
         f"<h2>Ganti sandi</h2></div>"
         f'<p class="sub">Pengguna saat ini: <b>{pengguna_tampil}</b>. Setelah diganti, '
@@ -316,7 +316,7 @@ def halaman_akun(
         f"</form></div>"
     )
     kartu_siswa = (
-        f'<div class="kartu">'
+        f'<div class="kartu-st">'
         f'<div class="kartu-judul"><span class="ikon-kartu">📚</span>'
         f"<h2>Siswa</h2></div>"
         '<p class="sub" id="keterangan-kelas">Kelas hanya informasi profil, bukan kemampuan anak. '
@@ -330,7 +330,7 @@ def halaman_akun(
         'Anak tanpa sesi dapat dihapus beserta akun latihannya.</p></div>'
     )
     kartu_anak = (
-        f'<div class="kartu">'
+        f'<div class="kartu-st">'
         f'<div class="kartu-judul"><span class="ikon-kartu">🧒</span>'
         f"<h2>Tambah anak</h2></div>"
         '<p class="sub">Buat profil dan akun latihan anak sekaligus. '
@@ -365,7 +365,7 @@ def halaman_akun(
     )
     if section == "langganan" and peran == "guru" and (langganan_produksi or langganan_sandbox):
         isi_section = langganan_html or (
-            '<div class="kartu"><h2>Langganan</h2>'
+            '<div class="kartu-st"><h2>Langganan</h2>'
             '<p class="sub">Ringkasan langganan belum tersedia. '
             '<a href="/langganan">Buka halaman tagihan</a>.</p></div>'
         )
@@ -374,7 +374,7 @@ def halaman_akun(
         isi_section = kartu_sandi
         if arsip_pendamping:
             isi_section += (
-                '<div class="kartu"><details><summary>Arsip percakapan lama</summary>'
+                '<div class="kartu-st"><details><summary>Arsip percakapan lama</summary>'
                 '<p class="sub">Percakapan umum lama tersedia hanya-baca.</p>'
                 '<a href="/akun?section=arsip-pendamping">Buka arsip</a>'
                 '</details></div>'
@@ -398,7 +398,7 @@ def halaman_akun(
         isi_section = kartu_sandi
         if arsip_pendamping:
             isi_section += (
-                '<div class="kartu"><details><summary>Arsip percakapan lama</summary>'
+                '<div class="kartu-st"><details><summary>Arsip percakapan lama</summary>'
                 '<p class="sub">Percakapan umum lama tersedia hanya-baca.</p>'
                 '<a href="/akun?section=arsip-pendamping">Buka arsip</a>'
                 '</details></div>'

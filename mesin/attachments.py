@@ -780,7 +780,7 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
             else ""
         )
         kartu.append(f"""
-<div class="kartu soal-lampiran">
+<div class="kartu-st soal-lampiran">
   <div class="kartu-kepala"><span class="nomor">{s['nomor']}</span>
     <span class="tipe">Soal {s['nomor']}</span>
     <span class="kunci">kunci: {html.escape(s['kunci'])}</span>{tanda}</div>
@@ -831,7 +831,7 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
 <h1 class="sesi-judul-st" id="judul-foto">Konfirmasi bacaan AI — Sesi #{sesi_id}</h1>
 <p class="sub">Cocokkan bacaan dengan foto sebelum menerapkan. Hasil AI masih perlu diperiksa.</p></header>
 {kabar}{catatan_status}
-<div class="kartu pratinjau-foto-st"><img class="foto-lembar"
+<div class="kartu-st pratinjau-foto-st"><img class="foto-lembar"
   src="/lampiran/berkas/{lampiran_id}" alt="Foto lembar anak"></div>
 {blok_baca_ulang}
 <form method="post" action="/lampiran/{lampiran_id}/terapkan">

@@ -513,7 +513,7 @@ def arsip_percakapan_umum(chats, *, pesan=(), dipilih=None,
             f'<div class="pendamping-transkrip">{isi_pesan}</div></section>'
         )
     return (
-        '<div class="kartu pendamping-arsip"><details open>'
+        '<div class="kartu-st pendamping-arsip"><details open>'
         '<summary>Arsip percakapan lama</summary>'
         '<p class="sub">Percakapan umum lama hanya dapat dibaca. Arsip ini tidak '
         'terhubung ke anak dan tidak dapat dipakai untuk mengirim pesan baru.</p>'

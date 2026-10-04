@@ -132,7 +132,7 @@ def render_ringkasan(
 ) -> str:
     """Render tiga bagian singkat tanpa statistik, penyimpanan, atau inferensi baru."""
     return (
-        '<div class="kartu ringkasan-laporan">'
+        '<div class="kartu-st ringkasan-laporan">'
         '<h2 id="judul-ringkasan-laporan">Ringkasan untuk orang tua</h2>'
         f'<p class="sub">Ringkasan perjalanan belajar {html.escape(nama)}.</p>'
         '<section class="bagian-ringkasan-laporan"><h3>Yang terlihat</h3>'

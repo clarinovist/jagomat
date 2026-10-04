@@ -42,13 +42,13 @@ def _fragmen_langganan(penangan, ident):
             return _halaman_sandbox.isi_ringkasan(_profil, _inv, token)
     except _d.FiturNonaktif:
         return (
-            '<section class="kartu"><h2>Langganan</h2>'
+            '<section class="kartu-st"><h2>Langganan</h2>'
             '<p class="peringatan">Pembayaran online belum diaktifkan pengelola.</p></section>'
         )
     except Exception:
         pass
     return (
-        '<section class="kartu"><h2>Langganan</h2>'
+        '<section class="kartu-st"><h2>Langganan</h2>'
         '<p class="peringatan">Ringkasan langganan sementara belum tersedia. '
         '<a href="/langganan">Buka halaman tagihan</a>.</p></section>'
     )

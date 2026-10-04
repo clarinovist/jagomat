@@ -51,7 +51,7 @@ def _disclosure(merchant):
 
 
 def _bantuan():
-    return ('<section class="kartu"><h2>Bantuan</h2>'
+    return ('<section class="kartu-st"><h2>Bantuan</h2>'
             '<p>Butuh bantuan pembayaran? Hubungi pengelola layanan lewat kanal yang '
             'biasa kamu pakai. Aplikasi ini tidak menyimpan email atau nomor telepon. '
             'Rincian data ada di <a href="/kebijakan-privasi">Kebijakan Privasi</a>.</p>'
@@ -68,7 +68,7 @@ def form(aksi, token, label, tambahan=""):
 
 
 def belum_aktif(pengguna, sebab="belum_aktif"):
-    isi = ('<section class="kartu"><h2>Belum aktif</h2>'
+    isi = ('<section class="kartu-st"><h2>Belum aktif</h2>'
            '<p class="peringatan">' + html.escape(_catatan(sebab)) + '</p></section>'
            + _bantuan())
     return bingkai(isi, pengguna=pengguna)
@@ -78,7 +78,7 @@ def isi_ringkasan(profil, invoice, token, *, merchant, aktif):
     """Fragmen kartu ringkasan tanpa bingkai halaman (untuk embed /akun)."""
     kartu = []
     if invoice:
-        kartu.append('<section class="kartu"><h2>Tagihan berjalan</h2>'
+        kartu.append('<section class="kartu-st"><h2>Tagihan berjalan</h2>'
                      '<p>Lanjutkan tagihan yang sudah dibuat. Muat ulang tidak membuat '
                      'pembayaran kedua.</p><a class="tombol" href="/langganan/'
                      + html.escape(invoice["invoice_id"], quote=True)
@@ -88,16 +88,16 @@ def isi_ringkasan(profil, invoice, token, *, merchant, aktif):
                    '<p class="sub">Pilih satu sampai tiga profil.</p>' + ''.join(
                        '<label><input type="checkbox" name="profil" value="%d">%s</label>'
                        % (sid, html.escape(nama)) for sid, nama in profil) + '</fieldset>')
-        kartu.append('<section class="kartu"><h2>Siapkan tagihan</h2>'
+        kartu.append('<section class="kartu-st"><h2>Siapkan tagihan</h2>'
                      '<p>Pilih profil, lalu tinjau nominal sebelum membuat QRIS. '
                      'Nominal dihitung server dari tarif langganan.</p>'
                      + form("/langganan/siapkan", token, "Tinjau tagihan", pilihan)
                      + '</section>')
     elif not profil:
-        kartu.append('<section class="kartu"><h2>Belum ada profil</h2>'
+        kartu.append('<section class="kartu-st"><h2>Belum ada profil</h2>'
                      '<p>Tambahkan profil anak dulu di menu Siswa.</p></section>')
     else:
-        kartu.append('<section class="kartu"><h2>Pembayaran belum dibuka</h2>'
+        kartu.append('<section class="kartu-st"><h2>Pembayaran belum dibuka</h2>'
                      '<p class="peringatan">' + html.escape(_catatan("belum_aktif"))
                      + '</p></section>')
     if invoice is None and profil and aktif:
@@ -115,7 +115,7 @@ def tagihan(pengguna, inv, *, token, status, merchant, boleh_buat=False, boleh_p
             boleh_ulang=False, kode_belum_ada=False):
     """Halaman tagihan: status, QR (bila pending), form, dan ringkasan pembayaran."""
     jumlah = len(json.loads(inv["profil_json"]))
-    isi = ['<section class="kartu"><h2>Tagihan untuk %d profil</h2>' % jumlah,
+    isi = ['<section class="kartu-st"><h2>Tagihan untuk %d profil</h2>' % jumlah,
            '<p class="nominal">' + nominal(inv["rupiah"]) + '</p>',
            '<p>QRIS · IDR · ' + ("Tarif promo" if inv["promo"] else "Tarif lanjutan") + '</p>',
            _disclosure(merchant)]
@@ -174,5 +174,5 @@ def tagihan(pengguna, inv, *, token, status, merchant, boleh_buat=False, boleh_p
 
 
 def galat(pengguna, pesan, *, privat=True):
-    return bingkai('<section class="kartu"><p role="alert">' + html.escape(pesan)
+    return bingkai('<section class="kartu-st"><p role="alert">' + html.escape(pesan)
                    + '</p></section>', pengguna=pengguna, judul="Langganan", privat=privat)

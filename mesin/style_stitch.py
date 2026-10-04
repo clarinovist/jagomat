@@ -2946,6 +2946,23 @@ CSS_SESI = f"""
   padding: {T.SP_3} {T.SP_4}; margin: 0 0 {T.SP_4}; font-size: .95rem;
 }}
 
+/* Kartu generik Stitch — pengganti .kartu legacy di halaman guru Stitch.
+   Nilai cermin kartu lama via token; jangan hardcode warna di sini. */
+.kartu-st {{
+  background: {T.LATAR_KARTU_MURID}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
+  border-radius: {T.RADIUS_KARTU_BESAR}; padding: {T.SP_4} 1.1rem; margin-bottom: {T.SP_4};
+  box-shadow: {T.BAYANGAN_KARTU_GURU};
+}}
+.kartu-st h2 {{ margin-top: 0; }}
+/* Tombol tautan generik Stitch — pengganti .btn legacy. */
+.btn-st {{
+  display: inline-block; padding: .55rem {T.SP_4}; border-radius: {T.RADIUS_KECIL};
+  font-size: {T.UKURAN_TEKS_BANTUAN}; text-decoration: none;
+  background: {T.LATAR_KARTU_SEKUNDER}; color: {T.TEKS_JUDUL};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_INTERAKTIF};
+}}
+.btn-st.utama {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS}; border: 0; }}
+
 /* Pil navigasi antar-alat sesi (Koreksi · Lampiran; Cetak disembunyikan 2026-10-04). */
 .pil-sesi-st {{
   display: flex; gap: {T.SP_2}; flex-wrap: wrap;
@@ -2970,7 +2987,7 @@ CSS_SESI = f"""
 .pil-sesi-st a, .menu-isi a, .menu-isi button {{
   transition: transform {T.DURASI_CEPAT} ease, background-color {T.DURASI_CEPAT} ease;
 }}
-.pesan-st, .status-sesi-st {{
+.pesan-st, .status-sesi-st, .kartu-st {{
   animation: masuk-st {T.DURASI_STANDAR} ease-out both;
 }}
 details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-out both; }}

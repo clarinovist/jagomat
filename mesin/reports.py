@@ -280,7 +280,7 @@ def _kartu_kamus() -> str:
         for kode, sebutan, arti in KAMUS_ORTU
     )
     return (
-        f'<section class="kartu cara-baca-laporan" id="arti-kode"><h2>'
+        f'<section class="kartu-st cara-baca-laporan" id="arti-kode"><h2>'
         f'Arti kode penilaian</h2>'
         f'<p class="sub">Tiap soal dinilai dengan salah satu sebutan ini:</p>'
         f'<ul class="diagnosis-lis">{baris}</ul></section>'

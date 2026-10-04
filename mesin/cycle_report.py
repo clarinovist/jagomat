@@ -228,7 +228,7 @@ def render_perjalanan(perjalanan: PerjalananBelajar, nama_tipe: Callable, tangga
     )
     catatan = "".join(f'<p class="sub">{html.escape(teks)}</p>' for teks in perjalanan.catatan)
     return (
-        '<section class="kartu perjalanan-kartu-st" id="perjalanan-belajar" '
+        '<section class="kartu-st perjalanan-kartu-st" id="perjalanan-belajar" '
         'aria-labelledby="judul-perjalanan">'
         '<div class="perjalanan-kepala-st">'
         '<h2 id="judul-perjalanan">Perjalanan belajar</h2>'

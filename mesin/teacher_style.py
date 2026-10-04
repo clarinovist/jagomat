@@ -245,17 +245,7 @@ tr.sorot-baru a {{ color: {T.TEKS_INVERS}; text-decoration: underline; }}
     100% {{ filter: none; }}
   }}
 }}
-/* Pil navigasi sesi (opsi 3): Koreksi · Cetak & Cerita · Lampiran */
-.pil-sesi {{ display: flex; gap: .6rem; flex-wrap: wrap; margin: .6rem 0 {T.SP_4}; }}
-.pil-sesi .pil {{
-  display: inline-block; padding: .35rem .75rem; border-radius: {T.RADIUS_PIL};
-  border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; background: {T.LATAR_KARTU}; color: {T.TEKS_SUBTLE};
-  text-decoration: none; font-size: .88rem;
-}}
-.pil-sesi .pil.aktif {{
-  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS}; border-color: {T.AKSEN_TEAL_TUA};
-}}
-.pil-sesi .pil:hover {{ border-color: {T.AKSEN_TEAL_TUA}; }}
+/* Pil legacy (pil-sesi) disapu 2026-10-04: semua tab sesi memakai pil-sesi-st. */
 
 /* ── Gerak modern CSS-only (2026-10-04, Opsi 1, Zero-JS) ───────────────
    Layar saja. Cetak + prefers-reduced-motion dimatikan di bawah. */

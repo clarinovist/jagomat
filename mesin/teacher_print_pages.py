@@ -84,7 +84,7 @@ def halaman_bagikan_sesi(sesi_id: int, siswa_id: int, tautan: str, pengguna: str
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">BELAJAR LEWAT TAUTAN</p>'
         f'<h1 id="judul-bagikan">Bagikan sesi #{sesi_id}</h1>'
         '<p class="sub">Salin tautan ini dan berikan kepada anak yang mengerjakan sesi ini.</p></header>'
-        '<section class="kartu bagikan-kartu-st" aria-labelledby="label-tautan">'
+        '<section class="kartu-st bagikan-kartu-st" aria-labelledby="label-tautan">'
         '<label id="label-tautan" for="tautan-sesi">Tautan latihan anak</label>'
         f'<input id="tautan-sesi" type="text" readonly value="{html.escape(tautan, quote=True)}" '
         'aria-describedby="petunjuk-tautan" spellcheck="false">'
@@ -134,7 +134,7 @@ def halaman_konfirmasi_hapus(
         f'<div class="jejak"><a href="/sesi/{sesi_id}">&larr; Batal, kembali ke sesi</a></div>'
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">PERIKSA SEBELUM MENGHAPUS</p>'
         f'<h1 id="judul-hapus">Hapus sesi #{sesi_id}?</h1></header>'
-        f'<div class="kartu">'
+        f'<div class="kartu-st">'
         f'<p>Sesi <b>#{sesi_id}</b> milik <b>{html.escape(info["nama"])}</b> '
         f'&middot; {info["tanggal"]} &middot; {html.escape(label_kelas(_ambil(info, "level", LEVEL_BAWAAN)))} '
         f'&middot; {_ambil(info, "topik", TOPIK_BAWAAN)}</p>'
@@ -192,9 +192,9 @@ def halaman_sesi_cetak(
         f'seed {info["seed"]} {badge_mode}</p>'
         f"{kabar}"
         f"{pil}"
-        f'<div class="kartu cetak-pilihan-st"><h2>Siapkan lembar latihan</h2>'
-        f'<p><a class="btn" href="/lembar/{sesi_id}" target="_blank">Lembar soal</a> '
-        f'<a class="btn" href="/lembar/{sesi_id}/penilaian" target="_blank">Lembar kunci</a></p>'
+        f'<div class="kartu-st cetak-pilihan-st"><h2>Siapkan lembar latihan</h2>'
+        f'<p><a class="btn-st" href="/lembar/{sesi_id}" target="_blank">Lembar soal</a> '
+        f'<a class="btn-st" href="/lembar/{sesi_id}/penilaian" target="_blank">Lembar kunci</a></p>'
         f'<p class="sub">Dibuka di tab baru — siap cetak. Lembar soal untuk anak; '
         f'lembar kunci untuk pendamping.</p></div>'
         f"{blok_cerita}",
@@ -242,7 +242,7 @@ def halaman_sesi_lampiran(
         "</form>"
     )
     blok_lampiran = (
-        '<div class="kartu blok-lampiran">'
+        '<div class="kartu-st blok-lampiran">'
         "<h2>Lampiran — foto lembar</h2>"
         f"{daftar}"
         f"{unggah}"

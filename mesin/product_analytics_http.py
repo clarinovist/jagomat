@@ -120,7 +120,7 @@ def form_akun(penangan):
         return ''
     if not r or r['consent_boot'] != store.BOOT_ID:
         token = _token(p,penangan._ambil_token(),'setuju')
-        return ('<section class="kartu"><h2>Analitik opsional</h2><p>Analitik tidak aktif untuk akun ini. '
+        return ('<section class="kartu-st"><h2>Analitik opsional</h2><p>Analitik tidak aktif untuk akun ini. '
                 'Persetujuan ulang diperlukan setelah layanan dimulai ulang atau dipulihkan. '
                 'Ringkasan aktivitas keluarga tanpa jawaban, nilai, foto, atau chat; detail maksimal 90 hari sejak pendaftaran. '
                 'Agregat kelompok tanpa mapping maksimal 12 bulan setelah rekrutmen. Menolak tidak mengurangi akses.</p>'

@@ -281,7 +281,7 @@ def render_materi(data, nama_tipe, tanggal) -> str:
     awal_lalu = data.mulai - timedelta(days=7)
     akhir_lalu = data.mulai - timedelta(days=1)
     return (
-        '<section class="kartu" aria-labelledby="judul-hasil-materi">'
+        '<section class="kartu-st" aria-labelledby="judul-hasil-materi">'
         '<h2 id="judul-hasil-materi">Hasil dan tren per materi</h2>'
         f'<p class="laporan-catatan">Periode kini: {tanggal(data.mulai.isoformat())} – '
         f'{tanggal(data.akhir.isoformat())} · WIB.</p>'
@@ -315,7 +315,7 @@ def render_tugas(tugas, siswa_id, nama_topik, halaman='1') -> str:
     )
     return (
         f'<a class="laporan-tautan" href="{url_laporan(siswa_id)}">← Kembali ke ringkasan</a>'
-        '<section class="kartu" id="rincian-tugas"><h2>Belum selesai dikerjakan '
+        '<section class="kartu-st" id="rincian-tugas"><h2>Belum selesai dikerjakan '
         f'({len(tugas)} sesi)</h2>'
         + ('<ul class="laporan-tugas">' + daftar + '</ul>' if daftar else '<p>Tidak ada tugas yang belum selesai.</p>')
         + '<p class="laporan-catatan">Terisi juga mencakup pilihan status, bukan berarti selesai dikerjakan. '
@@ -343,8 +343,8 @@ def render_resume(perjalanan, tugas, siswa_id, nama_tipe, nama_topik, tanggal) -
         tujuan = f'/anak/{int(siswa_id)}?section=rencana#judul-rencana-belajar'
         label = "Buka langkah berikutnya"
     return (
-        '<section class="kartu laporan-resume" id="rencana-belajar-laporan" aria-labelledby="judul-resume">'
-        '<div class="kartu ringkasan-laporan">'
+        '<section class="kartu-st laporan-resume" id="rencana-belajar-laporan" aria-labelledby="judul-resume">'
+        '<div class="kartu-st ringkasan-laporan">'
         '<h2 id="judul-resume">Langkah berikutnya</h2>'
         f'{materi_html}<p class="resume-langkah">{_langkah(perjalanan, tanggal)}</p>'
         f'<a class="tombol aksi-rencana-laporan" href="{tujuan}">{label}</a>'
