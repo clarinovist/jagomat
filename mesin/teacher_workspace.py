@@ -631,8 +631,9 @@ def halaman_anak(
             + konten_laporan(kon, int(siswa["id"]), query=query)
         )
     elif section == "riwayat":
+        statistik = profile_history.ringkasan_riwayat(kon, siswa["id"])
         isi_profil = profile_workspace.riwayat(
-            int(siswa["id"]), sesi, total_hasil, filter_profil,
+            int(siswa["id"]), sesi, total_hasil, filter_profil, statistik=statistik,
             judul_topik=_nama_topik_sesi, tanggal=_tanggal_ringkas,
             badge_tinjauan=_badge_review_status,
             ringkasan_hasil=_ringkasan_angka_sesi, aksi_bagikan=_aksi_tautan,

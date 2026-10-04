@@ -225,7 +225,8 @@ def test_rentang_cepat_tautan_tanpa_javascript(db):
     assert '>Semua</a>' in isi
     assert 'aria-current="true"' in isi
     isi_tujuh = _isi(kon, anak, query='section=riwayat&mulai=%s&sampai=%s' % ((hari_ini - timedelta(days=6)).isoformat(), hari_ini.isoformat()))
-    assert isi_tujuh.count('aria-current="true"') == 1
+    cepat_tujuh = isi_tujuh.split('Rentang cepat:', 1)[1].split('Status:', 1)[0]
+    assert cepat_tujuh.count('aria-current="true"') == 1
 
 
 @pytest.mark.parametrize('section',['latihan','rencana','riwayat'])

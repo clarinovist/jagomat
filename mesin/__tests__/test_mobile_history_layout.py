@@ -89,7 +89,9 @@ def test_metadata_dan_status_tidak_dibuang_demi_ringkas(db):
     assert 'class="riwayat-meta-st"' in baris
     assert 'Latihan bebas' in baris and 'Variasi A' in baris and 'Mode Diagnosa' in baris
     assert 'Sesi #' in baris and 'Belum Dikerjakan' in baris and 'Menunggu pengiriman' in baris
-    assert baris.count('>Buka sesi</a>')==1
+    assert baris.count('class="riwayat-buka-st"')==1
+    assert any(label in baris for label in ('>Buka sesi</a>', '>Mulai mengerjakan</a>', '>Lanjutkan mengerjakan</a>', '>Periksa sekarang</a>'))
+    assert 'riwayat-tagbar-st' in baris
     assert '<summary>Kelola tautan</summary>' in baris
     assert 'Salin tautan sesi' in baris
 

@@ -132,6 +132,18 @@ def halaman_riwayat(kon, siswa_id, filter_data):
     return _muat(kon,siswa_id,where,parameter,PER_HALAMAN,(halaman-1)*PER_HALAMAN), total, filter_data
 
 
+def ringkasan_riwayat(kon, siswa_id):
+    """Agregat ringan untuk kartu stat riwayat; gagal aman -> None."""
+    try:
+        total = kon.execute('SELECT COUNT(*) FROM sesi WHERE siswa_id=?', (siswa_id,)).fetchone()[0]
+        belum_kirim = kon.execute("SELECT COUNT(*) FROM sesi s WHERE s.siswa_id=? AND s.selesai IS NULL AND s.dibatalkan IS NULL", (siswa_id,)).fetchone()[0]
+        menunggu_tinjau = kon.execute('SELECT COUNT(*) FROM sesi s WHERE s.siswa_id=? AND (' + _STATUS + ") IN ('belum_ditinjau','dibuka','draf','ulang')", (siswa_id,)).fetchone()[0]
+        rata = kon.execute('WITH m AS (SELECT ' + _PROYEKSI + ' FROM sesi s WHERE s.siswa_id=?) SELECT AVG(CASE WHEN n>0 AND selesai IS NOT NULL THEN benar*1.0/n END) FROM m', (siswa_id,)).fetchone()[0]
+    except Exception:
+        return None
+    return {'total': total, 'belum_kirim': belum_kirim, 'menunggu_tinjau': menunggu_tinjau, 'rata_benar': rata}
+
+
 def tugas_terbaru(kon, siswa_id, sorot=None, kecuali=None):
     """Maksimal tiga tugas sekunder; sesi CTA reducer dikecualikan eksplisit."""
     where = " AND (s.dibatalkan IS NULL AND (s.selesai IS NULL OR NOT COALESCE(" + _AKTIF + ",0)))"
