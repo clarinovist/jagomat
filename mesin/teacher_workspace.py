@@ -655,6 +655,7 @@ def halaman_anak(
             )
         ) if section == "riwayat" and peran == "guru" and pengguna else ""),
         ident=(pengguna if pengguna else "guru", peran),
-        kelas_bungkus="lebar pendamping-editorial-st profil-editorial-st profil-workspace-st",
+        kelas_bungkus="lebar pendamping-editorial-st profil-editorial-st profil-workspace-st"
+        + (" laporan-editorial-st" if section == "perkembangan" else ""),
         privat=privat,
     )

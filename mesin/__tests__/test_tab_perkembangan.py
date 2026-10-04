@@ -1,6 +1,8 @@
 """Regresi tab ke-4 Perkembangan: satu base URL, guard, dan fallback aman."""
 from __future__ import annotations
 
+import re
+
 import database
 import profile_history
 import report_navigation as N
@@ -74,3 +76,26 @@ def test_url_kanonis_tab_dan_alias_lama_ke_tab():
         7, "section=penguasaan&tampilan=konteks")
     assert profile_history.parse_filter("section=perkembangan").section == \
         "perkembangan"
+
+
+def _tanpa_gaya(isi):
+    """Markup tanpa SEMUA blok <style>; nama kelas di CSS tidak dihitung."""
+    return re.sub(r"<style>.*?</style>", "", isi, flags=re.S)
+
+
+def test_tab_perkembangan_memakai_scope_laporan(server_tab):
+    server, anak = server_tab
+    kode, isi, _ = server.minta(
+        f"/anak/{anak}?section=perkembangan", auth=("guru", SANDI_GURU))
+    assert kode == 200
+    assert "laporan-editorial-st" in _tanpa_gaya(isi)
+
+
+def test_tab_lain_tanpa_scope_laporan(server_tab):
+    server, anak = server_tab
+    for section in ("rencana", "latihan", "riwayat"):
+        kode, isi, _ = server.minta(
+            f"/anak/{anak}?section={section}", auth=("guru", SANDI_GURU))
+        assert kode == 200
+        assert "laporan-editorial-st" not in _tanpa_gaya(isi)
+
