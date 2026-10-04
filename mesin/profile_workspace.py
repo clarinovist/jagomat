@@ -390,7 +390,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-kartu-kepala-st strong {{ font-size:{T.UKURAN_TEKS_BANTUAN}; }}
 .profil-workspace-st .riwayat-tanggal-st {{ white-space:nowrap; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
 .profil-workspace-st .riwayat-hasil-st {{ color:{T.TEKS_JUDUL}; font-weight:650; }}
-.profil-workspace-st .riwayat-status-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_1} {T.SP_2}; }}
+.profil-workspace-st .riwayat-status-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_2} {T.SP_3}; line-height:1.5; }}
 .profil-workspace-st .riwayat-aksi-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_1} {T.SP_3}; border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; padding-top:{T.SP_3}; }}
 .profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ display:inline-flex; min-height:{T.TARGET_SENTUH}; align-items:center; color:{T.AKSEN_TEAL_TUA}; white-space:nowrap; font-weight:700; }}
 .profil-workspace-st .riwayat-kelola-st {{ width:100%; }}
@@ -421,7 +421,8 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-saring-judul-st small {{ display:block; margin-top:{T.SP_1}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; overflow-wrap:anywhere; }}
 .profil-workspace-st .profil-filter-st .profil-cari-st {{ grid-column:1/-1; }}
 /* Rel timeline vertikal + titik per kartu (Opsi A mockup v2). */
-.profil-workspace-st .riwayat-grup-st > ol {{ position:relative; padding-left:{T.SP_6}; }}
+.profil-workspace-st .riwayat-daftar-st {{ padding:0 {T.SP_5} {T.SP_5}; }}
+.profil-workspace-st .riwayat-grup-st > ol {{ position:relative; padding-left:1.75rem; }}
 .profil-workspace-st .riwayat-grup-st > ol::before {{ content:""; position:absolute; left:.55rem; top:.5rem; bottom:.5rem; width:2px; background:{T.BORDER_HALUS}; }}
 .profil-workspace-st .riwayat-kartu-st {{ position:relative; }}
 .profil-workspace-st .riwayat-kartu-st::before {{ content:""; position:absolute; left:-1.5rem; top:1.2rem; width:.7rem; height:.7rem; border-radius:50%; background:{T.AKSEN_MURID_UTAMA}; box-shadow:0 0 0 .25rem {T.LATAR_MURID}; }}
@@ -454,6 +455,7 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .buat-latihan-st:has(#tab-gabungan:checked) [for="tab-gabungan"] {{ background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; border-color:{T.AKSEN_TEAL_TUA}; }}
  .profil-workspace-st .profil-champs-st .st-tombol-coral {{ width:100%; }}
  .profil-workspace-st .profil-paging-st {{ padding:{T.SP_4}; }}
+ .profil-workspace-st .riwayat-daftar-st {{ padding:0 {T.SP_4} {T.SP_4}; }}
  .profil-workspace-st .riwayat-kartu-st {{ flex-direction:column; }}
  .profil-workspace-st .riwayat-kartu-kepala-st strong {{ font-size:{T.UKURAN_TEKS_BANTUAN}; line-height:1.4; }}
  .profil-workspace-st .riwayat-jenis-st,.profil-workspace-st .riwayat-meta-st {{ font-size:{T.UKURAN_TEKS_META}; line-height:1.4; }}
