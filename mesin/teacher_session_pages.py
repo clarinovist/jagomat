@@ -422,7 +422,7 @@ def halaman_sesi_stitch(
             f'{" checked" if nilai == (pemahaman_terpilih or "") else ""}>'
             f'<label for="paham-{b["sesi_soal_id"]}-{nilai or "kosong"}">{label}</label></div>'
             for nilai, label in (
-                ("", "Belum dicatat"),
+                ("", "Belum dicatat (boleh dilewati)"),
                 ("bisa_menjelaskan", "Bisa menjelaskan"),
                 ("ragu", "Masih ragu"),
                 ("menghafal", "Cenderung menghafal"),
@@ -469,7 +469,7 @@ def halaman_sesi_stitch(
       </details>"""
         if cara_html:
             buka_cara = cek_penguasaan or perlu_perhatian or masalah_butir or dilewati_terpilih
-            judul_cara = "Catatan cara anak" if cara_tampil.strip() else "Catat penjelasan anak (opsional)"
+            judul_cara = "Catatan cara anak (opsional)" if cara_tampil.strip() else "Catat penjelasan anak (opsional)"
             cara_html = (
                 f'<details class="koreksi-opsi-st koreksi-cara-st"{" open" if buka_cara else ""}>'
                 f'<summary>{judul_cara}</summary>{cara_html}</details>'
@@ -478,10 +478,11 @@ def halaman_sesi_stitch(
     <fieldset class="koreksi-pemahaman-st">
       <legend>Tinjau bersama anak</legend>
       <p class="koreksi-tanya-st">Tanyakan: “{html.escape(pertanyaan_tinjauan)}”</p>
+      <p class="koreksi-catatan-st">Boleh dilewati — isi setelah mendengar penjelasan anak.</p>
       {petunjuk_pemahaman}
       {"<details class='koreksi-opsi-st'><summary>Catat pemahaman bila sudah diamati</summary>" if kosong_asli else ""}
       <fieldset class="koreksi-radio-paham-st">
-        <legend>Apakah anak bisa menjelaskan caranya?</legend>
+        <legend>Apakah anak bisa menjelaskan caranya? (opsional)</legend>
         <div class="koreksi-pilihan-paham-grid-st">{pilihan_pemahaman}</div>
       </fieldset>
       {"</details>" if kosong_asli else ""}
@@ -553,7 +554,7 @@ def halaman_sesi_stitch(
       {pembahasan_html}
     </details>
     <details class="koreksi-opsi-st koreksi-sumber-st"{' open' if buka_sumber else ''}>
-    <summary>Sumber &amp; koreksi salinan</summary>
+    <summary>Sumber &amp; koreksi salinan (opsional)</summary>
     {sumber_asli}
     <div class="koreksi-bukti-st koreksi-bukti-tunggal-st">
       <div>
@@ -564,7 +565,7 @@ def halaman_sesi_stitch(
     </details>
     {pendampingan}
     <details class="koreksi-opsi-st koreksi-lanjutan-st"{' open' if buka_lanjutan else ''}>
-    <summary>Catatan &amp; penilaian lanjutan</summary>
+    <summary>Catatan &amp; penilaian lanjutan (opsional)</summary>
     {pengalaman_html}
     {kontrol_tinjauan}
     <details class="koreksi-opsi-st koreksi-penilaian-st"{" open" if buka_lanjutan else ""}>
