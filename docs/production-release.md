@@ -1,5 +1,29 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy scope laporan + tipografi dewasa — 4 Oktober 2026
+
+Cutover terkontrol `deploy-v2` untuk revision `ce5216f619b6f10ab0f0256bc01855704a8442f8`
+(scope CSS `laporan-editorial-st` di tab Perkembangan yang memperbaiki kata menempel,
+penyeragaman font body/heading dewasa ke token, tokenisasi ukuran teks kecil,
+breakpoint admin ke `LEBAR_LANDING`, plus regression test scope laporan).
+Kandidat digest `sha256:4a3e98b7…`, recovery `1f056352…` digest `sha256:ea0d290a…`,
+kontrak persistensi identik `fc68c8bc…`. Gate dispatch `37185889774` (delapan shard
+kandidat+recovery + build + uji pair) lulus; mode tetap `migrasi`, job `pasang` CI
+tetap literal false.
+
+`PROBE_SKEMA` kandidat terhadap metadata DB live (koneksi `mode=ro`/`query_only`,
+tanpa network, migrasi, atau import startup) lulus sebelum Caddy/cron ditahan.
+Bundle backup `deploy-ce5216f-20261004T074233Z` (empat DB + auth `sandi.json`,
+SQLite backup API, tanpa prune) lolos integritas/FK/preservasi baris (agregat
+2240/22/7215/44 baris). Rehearsal C–B–C pada turunan identik. Approval exact-pair
+sekali pakai (TTL 600 detik) dan deployer exit 0. Jendela hold: blok Caddy Jagomat
+→ 503, dua cron `osn-*`, dan writer; tumpukan polyflow tidak tersentuh.
+
+Pasca-swap: container sehat rev `ce5216f`, Caddy dipulihkan byte-identik
+(`7a1485b6…`) serta cron 2/2, smoke anonim `/` 200, `/akun` 401, `/murid/` 303
+ke `/masuk` lulus. Workdir rehearsal, container probe, dan log sementara
+dibersihkan; bundle induk dan salinan lokal dipertahankan.
+
 ## Deploy produksi satu halaman Perkembangan — 4 Oktober 2026
 
 Cutover terkontrol `deploy-v2` untuk revision `26c3912b2375c1b40ab651a65f3773a5cbd6f655`
