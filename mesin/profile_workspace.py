@@ -175,7 +175,7 @@ def _stat_riwayat(statistik, total_filter):
             '<div class="riwayat-stat-kartu-st"><b>%d</b><span>Total sesi · 30 hari</span></div>'
             '<div class="riwayat-stat-kartu-st"><b>%s</b><span>Rata-rata benar terkirim</span></div>'
             '<div class="riwayat-stat-kartu-st%s"><b>%d</b><span>Perlu aksi (kirim/tinjau)</span></div>'
-            '<div class="riwayat-stat-kartu-st"><b>%d</b><span>Hari beruntun latihan</span></div></div>') % (
+            '<div class="riwayat-stat-kartu-st"><b>%d <span aria-hidden="true">🔥</span></b><span>Hari beruntun latihan</span></div></div>') % (
                 int(statistik.get('total30') or 0), rata_txt,
                 ' perlu' if antre else '', antre, int(statistik.get('rentetan') or 0))
 
@@ -187,17 +187,21 @@ def riwayat(
     f=filter_data
     ringkasan = _ringkasan_filter(f)
     reset = '<a class="profil-reset-st" href="/anak/%d?section=riwayat">Reset filter</a>' % siswa_id if ringkasan else ''
+    ada_rentang = bool(f.mulai or f.sampai)
     filter_html = ('<form method="get" action="/anak/%d" class="profil-filter-st">'
                    '<input type="hidden" name="section" value="riwayat">'
+                   '<input type="hidden" name="tinjauan" value="%s">'
                    '<label class="profil-cari-st">Cari sesi / topik<input type="search" name="q" value="%s" placeholder="cth: KPK, sesi #128…" maxlength="64"></label>'
-                   '<label>Dari tanggal<input type="date" name="mulai" value="%s"></label>'
-                   '<label>Sampai tanggal<input type="date" name="sampai" value="%s"></label>'
                    '<label>Topik<select name="topik">%s</select></label>'
-                   '<label>Jenis latihan<select name="jenis">%s</select></label>'
-                   '<label>Tinjauan<select name="tinjauan">%s</select></label>'
-                   '<button type="submit" class="st-tombol-sekunder">Terapkan filter</button></form>') % (
-                       siswa_id,_e(f.q),_e(f.mulai),_e(f.sampai),_opsi([('','Semua topik')]+[(k,_nama_topik_filter(k)) for k in daftar_topik()],f.topik),
-                       _opsi([('semua','Semua jenis'),('bebas','Latihan bebas'),('terpandu','Rencana terpandu')],f.jenis),_opsi(H.TINJAUAN,f.tinjauan))
+                   '<label>Jenis<select name="jenis">%s</select></label>'
+                   '<button type="submit" class="st-tombol-sekunder">Terapkan filter</button>'
+                   '<details class="riwayat-tanggal-st"%s><summary>Rentang tanggal khusus</summary>'
+                   '<label>Dari tanggal<input type="date" name="mulai" value="%s"></label>'
+                   '<label>Sampai tanggal<input type="date" name="sampai" value="%s"></label></details></form>') % (
+                       siswa_id,_e(f.tinjauan),_e(f.q),
+                       _opsi([('','Semua topik')]+[(k,_nama_topik_filter(k)) for k in daftar_topik()],f.topik),
+                       _opsi([('semua','Semua jenis'),('bebas','Latihan bebas'),('terpandu','Rencana terpandu')],f.jenis),
+                       ' open' if ada_rentang else '',_e(f.mulai),_e(f.sampai))
     from dataclasses import replace
     from datetime import date, timedelta
     hari_ini = date.today()
@@ -215,9 +219,12 @@ def riwayat(
     hitung = (statistik or {}).get('hitung_status') or {}
     pil = []
     for kode, label in H.TINJAUAN:
+        jumlah = int(hitung.get(kode) or 0)
+        if kode != 'semua' and not jumlah and f.tinjauan != kode:
+            continue
         tandai = ' aria-current="true"' if f.tinjauan == kode or (kode == 'semua' and f.tinjauan == 'semua') else ''
         taut = replace(f, tinjauan=kode, halaman=1).tautan(siswa_id)
-        angka = '' if kode == 'semua' else ' (%d)' % int(hitung.get(kode) or 0)
+        angka = '' if kode == 'semua' else ' (%d)' % jumlah
         pil.append('<a class="riwayat-pil-st" href="%s"%s>%s%s</a>' % (_e(taut), tandai, _e(label), angka))
     cepat_html += '<div class="riwayat-pilbar-st"><span>Status:</span>%s</div>' % ''.join(pil)
     judul_saring = _e(ringkasan or 'Semua sesi · terbaru dahulu')
@@ -394,7 +401,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-sr-st {{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }}
 /* Riwayat v2 (2026-10-04): stat + pil status + tag + skor + CTA primer. */
 .profil-workspace-st .riwayat-stat-st {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:{T.SP_3}; margin:0 0 {T.SP_4}; }}
-.profil-workspace-st .riwayat-stat-kartu-st {{ background:{T.LATAR_KARTU}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; padding:{T.SP_3} {T.SP_4}; display:grid; gap:{T.SP_1}; }}
+.profil-workspace-st .riwayat-stat-kartu-st {{ background:{T.LATAR_KARTU}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-left:.3rem solid {T.AKSEN_MURID_UTAMA}; border-radius:{T.RADIUS_KARTU_BESAR}; padding:{T.SP_3} {T.SP_4}; display:grid; gap:{T.SP_1}; }}
 .profil-workspace-st .riwayat-stat-kartu-st b {{ font-size:{T.UKURAN_ANGKA_DEWASA}; line-height:1.1; }}
 .profil-workspace-st .riwayat-stat-kartu-st span {{ font-size:{T.UKURAN_TEKS_CATATAN}; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .riwayat-stat-kartu-st.perlu {{ border-left:.3rem solid {T.AKSEN_MURID_AMBER}; }}

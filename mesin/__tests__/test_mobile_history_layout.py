@@ -168,6 +168,29 @@ def test_cari_topik_dan_query_berbahaya_ditolak(db):
         profile_history.parse_filter('section=riwayat&q=' + 'a' * 65)
 
 
+def test_form_ramping_tanggal_masuk_lanjutan(db):
+    isi = render(db)
+    form = re.search(r'<form method="get" action="/anak/\d+" class="profil-filter-st">(.*?)</form>', isi, re.S).group(1)
+    assert 'name="q"' in form and 'name="topik"' in form and 'name="jenis"' in form
+    assert 'name="tinjauan" value="semua"' in form
+    assert '<details class="riwayat-tanggal-st">' in form and 'open' not in form.split('<details')[1].split('>')[0]
+    assert 'Rentang tanggal khusus' in form
+    isi = render(db, 'section=riwayat&mulai=2026-01-01&sampai=2026-09-18')
+    form = re.search(r'<form method="get" action="/anak/\d+" class="profil-filter-st">(.*?)</form>', isi, re.S).group(1)
+    assert '<details class="riwayat-tanggal-st" open>' in form
+    assert 'name="mulai" value="2026-01-01"' in form
+    assert 'dari 41 sesi' in isi
+
+
+def test_pil_nol_disembunyikan_kecuali_aktif(db):
+    isi = render(db)
+    assert 'Belum dikirim (41)' in isi
+    assert 'Draf tinjauan' not in isi and '(0)' not in isi.split('riwayat-pilbar-st', 1)[1].split('</div>', 1)[0]
+    isi = render(db, 'section=riwayat&tinjauan=dibatalkan')
+    assert 'Dibatalkan' in isi
+    assert 'Tidak ada sesi yang cocok' in isi
+
+
 def test_stat_empat_kartu_dan_rentetan_jujur(db):
     from datetime import date, timedelta
     kon, sid = db
@@ -178,4 +201,4 @@ def test_stat_empat_kartu_dan_rentetan_jujur(db):
     assert isi.count('riwayat-stat-kartu-st') == 4
     assert 'Total sesi · 30 hari' in isi and 'Hari beruntun latihan' in isi
     assert 'Rata-rata benar terkirim' in isi and 'Perlu aksi' in isi
-    assert '<b>3</b><span>Hari beruntun latihan</span>' in isi
+    assert re.search(r'<b>3 <span aria-hidden="true">🔥</span></b><span>Hari beruntun latihan</span>', isi)
