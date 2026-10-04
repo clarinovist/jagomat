@@ -418,6 +418,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-skor-st b {{ font-size:{T.UKURAN_TEKS_LABEL}; white-space:nowrap; }}
 .profil-workspace-st .riwayat-filterbar-st {{ display:grid; gap:{T.SP_2}; padding:{T.SP_2} {T.SP_5} 0; }}
 .profil-workspace-st .riwayat-filterbar-st .profil-filter-st {{ padding:{T.SP_4} {T.SP_5}; gap:{T.SP_3}; }}
+.profil-workspace-st .riwayat-filterbar-st .profil-filter-st button {{ background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
 .profil-workspace-st .riwayat-filterbar-st .profil-cepat-st {{ margin-bottom:{T.SP_2}; }}
 .profil-workspace-st .riwayat-filterbar-st .riwayat-pilbar-st {{ margin-top:{T.SP_2}; }}
 .profil-workspace-st .riwayat-saring-judul-st {{ margin:0; }}
