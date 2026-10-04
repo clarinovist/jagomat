@@ -644,8 +644,9 @@ def halaman_sesi_stitch(
             konteks_pendamping = assistant_components.tombol_buka(
                 target_sesi, status_akses=status_akses,
             )
-    if not sudah_dikirim:
-        pil = pil.replace(">Koreksi</a>", ">Soal &amp; kunci</a>")
+    # Satu nama di semua tab dan semua state: tab yang sama tidak boleh
+    # berganti nama tergantung sudah/belum dikirim (2026-10-04).
+    pil = pil.replace(">Koreksi</a>", ">Soal &amp; kunci</a>")
 
     blok_remedial = ""
     blok_latihan_serupa = ""

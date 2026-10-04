@@ -9,7 +9,7 @@ import question_views
 import worksheets
 from generator import LEVEL_BAWAAN
 from question_context import label_profil_parameter as label_kelas
-from teacher_session_pages import _badge_mode
+from teacher_session_pages import _badge_mode, _pil_sesi_stitch
 from teacher_shell import _halaman
 from teacher_workspace import _ambil
 from topics import TOPIK_BAWAAN, dari_sesi
@@ -156,20 +156,12 @@ def halaman_konfirmasi_hapus(
     )
 
 def _pil_sesi(kon, sesi_id: int, aktif: str) -> str:
-    """Pil navigasi di halaman sesi: Koreksi · Lampiran (Cetak disembunyikan, rute tetap live)."""
-    n_lamp = kon.execute(
-        "SELECT COUNT(*) FROM lampiran WHERE sesi_id = ?", (sesi_id,)
-    ).fetchone()[0]
-    def _a(kunci: str, label: str, href: str) -> str:
-        cls = "pil aktif" if kunci == aktif else "pil"
-        kini = ' aria-current="page"' if kunci == aktif else ''
-        return f'<a class="{cls}" href="{href}"{kini}>{label}</a>'
-    return (
-        '<nav class="pil-sesi" aria-label="Alat sesi">'
-        + _a("koreksi", "Koreksi", f"/sesi/{sesi_id}")
-        + _a("lampiran", f"Lampiran ({n_lamp})", f"/sesi/{sesi_id}/lampiran")
-        + "</nav>"
-    )
+    """Pil navigasi di halaman sesi: Soal & kunci · Lampiran, satu gaya Stitch di semua tab."""
+    # Delegasi ke builder yang sama dengan halaman koreksi supaya pindah tab
+    # tidak terasa seperti buka halaman baru (2026-10-04). Cetak tetap
+    # disembunyikan: aktif="cetak" tidak menandai item apa pun, rute deep-link hidup.
+    pil = _pil_sesi_stitch(kon, sesi_id, aktif)
+    return pil.replace(">Koreksi</a>", ">Soal &amp; kunci</a>")
 
 def halaman_sesi_cetak(
     kon, sesi_id: int, pesan: str = "", peran: str = "guru",
