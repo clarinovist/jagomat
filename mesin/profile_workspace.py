@@ -122,6 +122,8 @@ def _ringkasan_filter(f):
         bagian.append('Latihan bebas' if f.jenis == 'bebas' else 'Rencana terpandu')
     if f.tinjauan != 'semua':
         bagian.append(dict(H.TINJAUAN)[f.tinjauan])
+    if f.q:
+        bagian.append('Cari "%s"' % f.q)
     return ' · '.join(bagian)
 
 
@@ -163,17 +165,19 @@ def _skor_riwayat(r):
 
 
 def _stat_riwayat(statistik, total_filter):
-    """Tiga kartu stat: hasil filter, antrean aksi, rata-rata benar."""
+    """Empat kartu stat: 30 hari, rata-rata benar, antrean aksi, hari beruntun."""
     if not statistik:
         return ''
     rata = statistik.get('rata_benar')
     rata_txt = '%d%%' % round(rata * 100) if isinstance(rata, (int, float)) and rata is not None else '—'
     antre = int(statistik.get('belum_kirim') or 0) + int(statistik.get('menunggu_tinjau') or 0)
     return ('<div class="riwayat-stat-st" aria-label="Ringkasan riwayat">'
-            '<div class="riwayat-stat-kartu-st"><b>%d</b><span>Sesi cocok filter</span></div>'
+            '<div class="riwayat-stat-kartu-st"><b>%d</b><span>Total sesi · 30 hari</span></div>'
+            '<div class="riwayat-stat-kartu-st"><b>%s</b><span>Rata-rata benar terkirim</span></div>'
             '<div class="riwayat-stat-kartu-st%s"><b>%d</b><span>Perlu aksi (kirim/tinjau)</span></div>'
-            '<div class="riwayat-stat-kartu-st"><b>%s</b><span>Rata-rata benar terkirim</span></div></div>') % (
-                total_filter, ' perlu' if antre else '', antre, rata_txt)
+            '<div class="riwayat-stat-kartu-st"><b>%d</b><span>Hari beruntun latihan</span></div></div>') % (
+                int(statistik.get('total30') or 0), rata_txt,
+                ' perlu' if antre else '', antre, int(statistik.get('rentetan') or 0))
 
 
 def riwayat(
@@ -185,13 +189,14 @@ def riwayat(
     reset = '<a class="profil-reset-st" href="/anak/%d?section=riwayat">Reset filter</a>' % siswa_id if ringkasan else ''
     filter_html = ('<form method="get" action="/anak/%d" class="profil-filter-st">'
                    '<input type="hidden" name="section" value="riwayat">'
+                   '<label class="profil-cari-st">Cari sesi / topik<input type="search" name="q" value="%s" placeholder="cth: KPK, sesi #128…" maxlength="64"></label>'
                    '<label>Dari tanggal<input type="date" name="mulai" value="%s"></label>'
                    '<label>Sampai tanggal<input type="date" name="sampai" value="%s"></label>'
                    '<label>Topik<select name="topik">%s</select></label>'
                    '<label>Jenis latihan<select name="jenis">%s</select></label>'
                    '<label>Tinjauan<select name="tinjauan">%s</select></label>'
                    '<button type="submit" class="st-tombol-sekunder">Terapkan filter</button></form>') % (
-                       siswa_id,_e(f.mulai),_e(f.sampai),_opsi([('','Semua topik')]+[(k,_nama_topik_filter(k)) for k in daftar_topik()],f.topik),
+                       siswa_id,_e(f.q),_e(f.mulai),_e(f.sampai),_opsi([('','Semua topik')]+[(k,_nama_topik_filter(k)) for k in daftar_topik()],f.topik),
                        _opsi([('semua','Semua jenis'),('bebas','Latihan bebas'),('terpandu','Rencana terpandu')],f.jenis),_opsi(H.TINJAUAN,f.tinjauan))
     from dataclasses import replace
     from datetime import date, timedelta
@@ -207,17 +212,19 @@ def riwayat(
     polos = replace(f, mulai="", sampai="", halaman=1)
     cepat.append('<a href="%s"%s>Semua</a>' % (_e(polos.tautan(siswa_id)), ' aria-current="true"' if not f.mulai and not f.sampai else ''))
     cepat_html = '<div class="profil-cepat-st"><span>Rentang cepat:</span>%s</div>' % "".join(cepat)
+    hitung = (statistik or {}).get('hitung_status') or {}
     pil = []
     for kode, label in H.TINJAUAN:
         tandai = ' aria-current="true"' if f.tinjauan == kode or (kode == 'semua' and f.tinjauan == 'semua') else ''
         taut = replace(f, tinjauan=kode, halaman=1).tautan(siswa_id)
-        pil.append('<a class="riwayat-pil-st" href="%s"%s>%s</a>' % (_e(taut), tandai, _e(label)))
+        angka = '' if kode == 'semua' else ' (%d)' % int(hitung.get(kode) or 0)
+        pil.append('<a class="riwayat-pil-st" href="%s"%s>%s%s</a>' % (_e(taut), tandai, _e(label), angka))
     cepat_html += '<div class="riwayat-pilbar-st"><span>Status:</span>%s</div>' % ''.join(pil)
-    filter_html = (
-        '<details class="profil-saring-st"><summary class="profil-saring-judul-st">'
-        '<span>Saring riwayat</span><small>%s</small></summary>%s%s</details>'
-        % (_e(ringkasan or 'Semua sesi · terbaru dahulu'), cepat_html, filter_html)
-    ) + ('<div class="profil-reset-wrap-st">' + reset + '</div>' if total and reset else '')
+    judul_saring = _e(ringkasan or 'Semua sesi · terbaru dahulu')
+    filter_html = ('<div class="riwayat-filterbar-st">'
+                   '<p class="riwayat-saring-judul-st"><span>Saring riwayat</span><small>%s</small></p>%s%s</div>'
+                   % (judul_saring, cepat_html, filter_html)
+                   ) + ('<div class="profil-reset-wrap-st">' + reset + '</div>' if total and reset else '')
     isi=[]
     grup_terakhir=None
     from question_context import label_profil_parameter as label_kelas
@@ -401,7 +408,17 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-skor-bar-st {{ flex:1; height:.5rem; border-radius:99px; background:{T.LATAR_ELEVASI}; overflow:hidden; }}
 .profil-workspace-st .riwayat-skor-bar-st i {{ display:block; height:100%; background:{T.AKSEN_MURID_UTAMA}; border-radius:99px; }}
 .profil-workspace-st .riwayat-skor-st b {{ font-size:{T.UKURAN_TEKS_LABEL}; white-space:nowrap; }}
-.profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ padding:0 {T.SP_4}; border-radius:{T.RADIUS_KECIL}; }}
+.profil-workspace-st .riwayat-filterbar-st {{ display:grid; gap:{T.SP_2}; }}
+.profil-workspace-st .riwayat-saring-judul-st {{ margin:0; }}
+.profil-workspace-st .riwayat-saring-judul-st > span {{ font-weight:650; }}
+.profil-workspace-st .riwayat-saring-judul-st small {{ display:block; margin-top:{T.SP_1}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; overflow-wrap:anywhere; }}
+.profil-workspace-st .profil-filter-st .profil-cari-st {{ grid-column:1/-1; }}
+/* Rel timeline vertikal + titik per kartu (Opsi A mockup v2). */
+.profil-workspace-st .riwayat-grup-st > ol {{ position:relative; padding-left:{T.SP_6}; }}
+.profil-workspace-st .riwayat-grup-st > ol::before {{ content:""; position:absolute; left:.55rem; top:.5rem; bottom:.5rem; width:2px; background:{T.BORDER_HALUS}; }}
+.profil-workspace-st .riwayat-kartu-st {{ position:relative; }}
+.profil-workspace-st .riwayat-kartu-st::before {{ content:""; position:absolute; left:-1.5rem; top:1.2rem; width:.7rem; height:.7rem; border-radius:50%; background:{T.AKSEN_MURID_UTAMA}; box-shadow:0 0 0 .25rem {T.LATAR_MURID}; }}
+.profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ display:inline-flex; min-height:{T.TINGGI_CTA}; align-items:center; justify-content:center; padding:0 {T.SP_5}; background:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_PUTIH}; border-radius:{T.RADIUS_KECIL}; text-decoration:none; font-weight:700; white-space:nowrap; }}
 @media(min-width:49rem) {{
  .profil-workspace-st .profil-champs-st {{ grid-template-columns:repeat(2,minmax(0,1fr)); }}
  .profil-workspace-st .profil-champs-st > .strip-kolom > .mode-pilih {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }}

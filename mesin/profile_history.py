@@ -28,10 +28,11 @@ class FilterProfil:
     topik: str = ''
     jenis: str = 'semua'
     tinjauan: str = 'semua'
+    q: str = ''
 
     def tautan(self, siswa_id, halaman=None):
         nilai = {'section': 'riwayat'}
-        for nama in ('mulai', 'sampai', 'topik', 'jenis', 'tinjauan'):
+        for nama in ('mulai', 'sampai', 'topik', 'jenis', 'tinjauan', 'q'):
             isi = getattr(self, nama)
             if isi and isi != 'semua':
                 nilai[nama] = isi
@@ -47,7 +48,7 @@ def parse_filter(query):
     if len(pasangan) != len({k for k, _ in pasangan}):
         raise ValueError('Parameter profil ganda.')
     nilai = dict(pasangan)
-    if set(nilai) - {'section', 'bagian', 'halaman', 'mulai', 'sampai', 'topik', 'jenis', 'tinjauan', 'pesan', 'sorot', 'periode', 'materi', 'status', 'tampilan', 'rincian'}:
+    if set(nilai) - {'section', 'bagian', 'halaman', 'mulai', 'sampai', 'topik', 'jenis', 'tinjauan', 'q', 'pesan', 'sorot', 'periode', 'materi', 'status', 'tampilan', 'rincian'}:
         raise ValueError('Parameter profil tidak dikenal.')
     # Bare profil membuka Berikutnya. URL warisan PRG yang hanya membawa
     # ``sorot`` tetap membuka alat latihan agar sesi baru tidak terasa hilang.
@@ -71,7 +72,10 @@ def parse_filter(query):
     tinjauan = nilai.get('tinjauan', 'semua')
     if (topik and topik not in daftar_topik()) or jenis not in ('semua', 'bebas', 'terpandu') or tinjauan not in dict(TINJAUAN):
         raise ValueError('Filter riwayat tidak sah.')
-    return FilterProfil(section, int(halaman), mulai, sampai, topik, jenis, tinjauan)
+    cari = nilai.get('q', '').strip()
+    if cari and (len(cari) > 64 or not re.fullmatch(r'[A-Za-z0-9 .#\-]{1,64}', cari)):
+        raise ValueError('Pencarian riwayat tidak sah.')
+    return FilterProfil(section, int(halaman), mulai, sampai, topik, jenis, tinjauan, cari)
 
 
 # Sama dengan badge profil: stamp tanpa snapshot atau fingerprint lama bukan bukti aktif.
@@ -124,12 +128,33 @@ def halaman_riwayat(kon, siswa_id, filter_data):
     if filter_data.tinjauan != 'semua':
         syarat.append('(' + _STATUS + ')=?')
         parameter.append(filter_data.tinjauan)
+    if filter_data.q:
+        bagian_cari, param_cari = _syarat_cari(filter_data.q)
+        syarat.append(bagian_cari)
+        parameter.extend(param_cari)
     where = ''.join(' AND ' + s for s in syarat)
     total = kon.execute('SELECT COUNT(*) FROM sesi s WHERE s.siswa_id=?' + where,
                         (siswa_id,) + tuple(parameter)).fetchone()[0]
     halaman = min(filter_data.halaman, max(1, (total + PER_HALAMAN-1)//PER_HALAMAN))
     filter_data = replace(filter_data, halaman=halaman)
     return _muat(kon,siswa_id,where,parameter,PER_HALAMAN,(halaman-1)*PER_HALAMAN), total, filter_data
+
+
+def _syarat_cari(cari):
+    """Cari nomor sesi ("sesi #132"/"132") ATAU potongan slug topik; OR antar-bagian."""
+    digit = re.sub(r'\D', '', cari)
+    kata = [k for k in re.split(r'[^A-Za-z\-]{1,}', cari) if len(k) >= 3]
+    bagian, param = [], []
+    if digit:
+        bagian.append('CAST(s.id AS TEXT) LIKE ?')
+        param.append('%' + digit + '%')
+    for k in kata[:4]:
+        bagian.append('s.topik LIKE ?')
+        param.append('%' + k.lower() + '%')
+    if not bagian:
+        bagian.append('s.topik LIKE ?')
+        param.append('%' + cari.lower() + '%')
+    return '(' + ' OR '.join(bagian) + ')', param
 
 
 def ringkasan_riwayat(kon, siswa_id):
@@ -139,9 +164,33 @@ def ringkasan_riwayat(kon, siswa_id):
         belum_kirim = kon.execute("SELECT COUNT(*) FROM sesi s WHERE s.siswa_id=? AND s.selesai IS NULL AND s.dibatalkan IS NULL", (siswa_id,)).fetchone()[0]
         menunggu_tinjau = kon.execute('SELECT COUNT(*) FROM sesi s WHERE s.siswa_id=? AND (' + _STATUS + ") IN ('belum_ditinjau','dibuka','draf','ulang')", (siswa_id,)).fetchone()[0]
         rata = kon.execute('WITH m AS (SELECT ' + _PROYEKSI + ' FROM sesi s WHERE s.siswa_id=?) SELECT AVG(CASE WHEN n>0 AND selesai IS NOT NULL THEN benar*1.0/n END) FROM m', (siswa_id,)).fetchone()[0]
+        total30 = kon.execute("SELECT COUNT(*) FROM sesi s WHERE s.siswa_id=? AND substr(s.tanggal,1,10)>=date('now','-29 days')", (siswa_id,)).fetchone()[0]
+        hitung_status = dict(kon.execute('SELECT (' + _STATUS + '), COUNT(*) FROM sesi s WHERE s.siswa_id=? GROUP BY 1', (siswa_id,)).fetchall())
+        tanggal_aktif = [r[0] for r in kon.execute("SELECT DISTINCT substr(s.tanggal,1,10) FROM sesi s WHERE s.siswa_id=? AND s.dibatalkan IS NULL ORDER BY 1 DESC", (siswa_id,)).fetchall()]
     except Exception:
         return None
-    return {'total': total, 'belum_kirim': belum_kirim, 'menunggu_tinjau': menunggu_tinjau, 'rata_benar': rata}
+    return {'total': total, 'belum_kirim': belum_kirim, 'menunggu_tinjau': menunggu_tinjau, 'rata_benar': rata,
+            'total30': total30, 'hitung_status': hitung_status, 'rentetan': _rentetan_hari(tanggal_aktif)}
+
+
+def _rentetan_hari(tanggal_aktif):
+    """Hari beruntun latihan; dihitung dari hari ini, atau kemarin bila hari ini kosong."""
+    from datetime import date, timedelta
+    try:
+        punya = {date.fromisoformat(str(t)[:10]) for t in tanggal_aktif}
+    except ValueError:
+        return 0
+    hari_ini = date.today()
+    if hari_ini in punya:
+        mulai = hari_ini
+    elif hari_ini - timedelta(days=1) in punya:
+        mulai = hari_ini - timedelta(days=1)
+    else:
+        return 0
+    rentetan = 0
+    while mulai - timedelta(days=rentetan) in punya:
+        rentetan += 1
+    return rentetan
 
 
 def tugas_terbaru(kon, siswa_id, sorot=None, kecuali=None):

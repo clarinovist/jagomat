@@ -39,19 +39,20 @@ def render(db, query='section=riwayat'):
     return teacher_pages.halaman_anak(kon, siswa, pengguna='guru', privat=True, query=query).decode().split('</style>', 1)[1]
 
 
-def test_filter_details_tertutup_dengan_ringkasan_dan_satu_reset(db):
+def test_filter_terbuka_dengan_ringkasan_dan_satu_reset(db):
     isi = render(db, 'section=riwayat&topik=campuran&jenis=bebas&tinjauan=belum_dikirim&mulai=2026-01-01&halaman=2')
-    dom = Markup(isi)
-    details = [a for tag,a in dom.elemen if tag=='details' and a.get('class')=='profil-saring-st']
-    assert len(details)==1 and 'open' not in details[0]
-    summary = re.search(r'<summary class="profil-saring-judul-st">(.*?)</summary>',isi,re.S).group(1)
-    assert 'Saring riwayat' in summary and 'Campuran semua topik' in summary
-    assert 'Latihan bebas' in summary and 'Belum dikirim' in summary and '2026-01-01' in summary
+    assert 'class="riwayat-filterbar-st"' in isi
+    assert 'profil-saring-st' not in isi
+    judul = re.search(r'<p class="riwayat-saring-judul-st">(.*?)</p>',isi,re.S).group(1)
+    assert 'Saring riwayat' in judul and 'Campuran semua topik' in judul
+    assert 'Latihan bebas' in judul and 'Belum dikirim' in judul and '2026-01-01' in judul
     assert isi.count('>Reset filter</a>')==1
     assert f'href="/anak/{db[1]}?section=riwayat"' in isi
     assert '<option value="campuran" selected>Campuran semua topik</option>' in isi
     assert 'name="halaman"' not in isi
+    assert 'name="q"' in isi
     assert 'topik=campuran' in isi and 'halaman=3' in isi
+    assert 'riwayat-pilbar-st' in isi and 'Belum dikirim (' in isi
 
 
 def test_default_tanpa_reset_dan_empty_tanpa_paging_palsu(db):
@@ -140,3 +141,41 @@ def test_http_reset_filter_kembali_ke_anak_sama_tanpa_write(server):
     assert kode==200 and 'Menampilkan 1–20 dari 25 sesi' in isi
     assert 'class="profil-reset-st"' not in isi.split('</style>',1)[1]
     with s.buka() as kon: assert tuple(kon.iterdump())==sebelum
+
+
+def test_cari_nomor_sesi_menyaring_satu_baris(db):
+    from datetime import date
+    kon, sid = db
+    target = kon.execute('SELECT id FROM sesi WHERE siswa_id=? ORDER BY id DESC LIMIT 1 OFFSET 5', (sid,)).fetchone()[0]
+    isi = render(db, f'section=riwayat&q=sesi+%23{target}')
+    assert f'data-sesi-id="{target}"' in isi
+    assert isi.count('data-sesi-id=') == 1
+    assert ('Cari &quot;sesi #%d&quot;' % target) in isi
+    assert 'value="sesi #%d"' % target in isi
+
+
+def test_cari_topik_dan_query_berbahaya_ditolak(db):
+    kon, sid = db
+    kon.execute("UPDATE sesi SET topik='statistika' WHERE id=?", (sid,))
+    isi = render(db, 'section=riwayat&q=stat')
+    assert 'dari 1 sesi' in isi and f'data-sesi-id="{sid}"' in isi
+    isi = render(db, 'section=riwayat&q=campuran')
+    assert 'dari 40 sesi' in isi
+    import pytest as _pt
+    with _pt.raises(ValueError):
+        profile_history.parse_filter('section=riwayat&q=' + '%27%20OR%201%3D1--')
+    with _pt.raises(ValueError):
+        profile_history.parse_filter('section=riwayat&q=' + 'a' * 65)
+
+
+def test_stat_empat_kartu_dan_rentetan_jujur(db):
+    from datetime import date, timedelta
+    kon, sid = db
+    hari_ini = date.today()
+    for i in range(3):
+        kon.execute("UPDATE sesi SET tanggal=? WHERE id=?", (str(hari_ini - timedelta(days=i)), sid + i))
+    isi = render(db)
+    assert isi.count('riwayat-stat-kartu-st') == 4
+    assert 'Total sesi · 30 hari' in isi and 'Hari beruntun latihan' in isi
+    assert 'Rata-rata benar terkirim' in isi and 'Perlu aksi' in isi
+    assert '<b>3</b><span>Hari beruntun latihan</span>' in isi
