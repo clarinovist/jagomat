@@ -157,10 +157,24 @@ def riwayat(
                    '<button type="submit" class="st-tombol-sekunder">Terapkan filter</button></form>') % (
                        siswa_id,_e(f.mulai),_e(f.sampai),_opsi([('','Semua topik')]+[(k,_nama_topik_filter(k)) for k in daftar_topik()],f.topik),
                        _opsi([('semua','Semua jenis'),('bebas','Latihan bebas'),('terpandu','Rencana terpandu')],f.jenis),_opsi(H.TINJAUAN,f.tinjauan))
+    from dataclasses import replace
+    from datetime import date, timedelta
+    hari_ini = date.today()
+    rentang = (("7 hari", hari_ini - timedelta(days=6), hari_ini),
+               ("30 hari", hari_ini - timedelta(days=29), hari_ini),
+               ("Bulan ini", hari_ini.replace(day=1), hari_ini))
+    cepat = []
+    for label, awal, akhir in rentang:
+        cocok = (f.mulai, f.sampai) == (awal.isoformat(), akhir.isoformat())
+        chip = replace(f, mulai=awal.isoformat(), sampai=akhir.isoformat(), halaman=1)
+        cepat.append('<a href="%s"%s>%s</a>' % (_e(chip.tautan(siswa_id)), ' aria-current="true"' if cocok else '', label))
+    polos = replace(f, mulai="", sampai="", halaman=1)
+    cepat.append('<a href="%s"%s>Semua</a>' % (_e(polos.tautan(siswa_id)), ' aria-current="true"' if not f.mulai and not f.sampai else ''))
+    cepat_html = '<div class="profil-cepat-st"><span>Rentang cepat:</span>%s</div>' % "".join(cepat)
     filter_html = (
         '<details class="profil-saring-st"><summary class="profil-saring-judul-st">'
-        '<span>Saring riwayat</span><small>%s</small></summary>%s</details>'
-        % (_e(ringkasan or 'Semua sesi · terbaru dahulu'), filter_html)
+        '<span>Saring riwayat</span><small>%s</small></summary>%s%s</details>'
+        % (_e(ringkasan or 'Semua sesi · terbaru dahulu'), cepat_html, filter_html)
     ) + ('<div class="profil-reset-wrap-st">' + reset + '</div>' if total and reset else '')
     isi=[]
     grup_terakhir=None
@@ -285,6 +299,12 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-pager-st [aria-disabled="true"] {{ color:{T.TEKS_VARIAN}; background:{T.LATAR_SEKUNDER_LEMBUT}; }}
 .profil-workspace-st .profil-filter-st {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:{T.SP_4}; padding:{T.SP_5}; align-items:end; }}
 .profil-workspace-st .profil-filter-st label {{ display:grid; gap:{T.SP_1}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; }}
+.profil-workspace-st .profil-cepat-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_2}; margin-bottom:{T.SP_3}; }}
+.profil-workspace-st .profil-cepat-st > span {{ font-size:{T.UKURAN_TEKS_META}; color:{T.TEKS_VARIAN}; }}
+.profil-workspace-st .profil-cepat-st a {{ display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH}; padding:{T.SP_1} {T.SP_3}; border-radius:{T.RADIUS_PIL}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; background:{T.LATAR_KARTU}; color:{T.TEKS_JUDUL}; text-decoration:none; font-size:{T.UKURAN_TEKS_LABEL}; }}
+.profil-workspace-st .profil-cepat-st a[aria-current] {{ background:{T.AKSEN_TEAL_TUA}; border-color:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_INVERS}; font-weight:700; }}
+.profil-workspace-st .profil-filter-st input[type="date"] {{ color-scheme:light; }}
+.profil-workspace-st .profil-filter-st input[type="date"]::-webkit-calendar-picker-indicator {{ cursor:pointer; opacity:.65; }}
 .profil-workspace-st .profil-filter-st input,.profil-workspace-st .profil-filter-st select {{ width:100%; min-width:0; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2}; font:inherit; font-size:{T.UKURAN_BADAN_LAYAR}; border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; background:{T.LATAR_KARTU}; border-radius:{T.RADIUS_KECIL}; }}
 .profil-workspace-st .profil-paging-st {{ display:flex; gap:{T.SP_4}; flex-wrap:wrap; justify-content:space-between; align-items:center; padding:{T.SP_4} {T.SP_5}; border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; font-size:{T.UKURAN_TEKS_CATATAN}; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .profil-paging-st a {{ color:{T.AKSEN_TEAL_TUA}; }}

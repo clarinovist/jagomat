@@ -214,6 +214,20 @@ def test_query_invalid_ditolak_tanpa_write(server,query):
     with s.buka() as kon: assert tuple(kon.iterdump()) == sebelum
 
 
+def test_rentang_cepat_tautan_tanpa_javascript(db):
+    from datetime import date, timedelta
+    kon, anak, _ = db
+    isi = _isi(kon, anak, query='section=riwayat')
+    hari_ini = date.today()
+    assert 'Rentang cepat:' in isi
+    assert ('mulai=' + (hari_ini - timedelta(days=6)).isoformat()) in isi
+    assert ('mulai=' + hari_ini.replace(day=1).isoformat()) in isi
+    assert '>Semua</a>' in isi
+    assert 'aria-current="true"' in isi
+    isi_tujuh = _isi(kon, anak, query='section=riwayat&mulai=%s&sampai=%s' % ((hari_ini - timedelta(days=6)).isoformat(), hari_ini.isoformat()))
+    assert isi_tujuh.count('aria-current="true"') == 1
+
+
 @pytest.mark.parametrize('section',['latihan','rencana','riwayat'])
 def test_keluarga_asing_404_identik_tanpa_efek_samping(server,section):
     s,_,asing=server
