@@ -94,9 +94,13 @@ def _nav(section: str) -> str:
             grup.append('<li class="admin-nav-utama"><ul class="admin-nav-pilihan" '
                         'aria-label="Menu utama">%s</ul></li>' % tautan)
         else:
-            grup.append('<li class="admin-nav-grup"><p class="admin-nav-label">%s</p>'
-                        '<ul class="admin-nav-anak" aria-label="%s">%s</ul></li>'
-                        % (_e(label_grup), _e(label_grup), tautan))
+            # Grup lipat tanpa JS: dibuka default hanya bila memuat halaman aktif.
+            buka = ' open' if section in daftar_section else ''
+            grup.append('<li class="admin-nav-grup"><details%s>'
+                        '<summary><span class="admin-nav-label">%s</span>'
+                        '<span class="admin-nav-chev" aria-hidden="true">\u203a</span></summary>'
+                        '<ul class="admin-nav-anak" aria-label="%s">%s</ul></details></li>'
+                        % (buka, _e(label_grup), _e(label_grup), tautan))
     return '<ul class="admin-nav-daftar">%s</ul>' % "".join(grup)
 
 
@@ -870,16 +874,30 @@ def render_riwayat(data, *, filter_data=None) -> str:
             _e(item.target_id), _e(item.status),
         ) for item in data.item
     ) or '<tr><td colspan="5" class="admin-kosong">Belum ada tindakan admin.</td></tr>'
+    kini_aksi = (filter_data or {}).get('aksi', '')
+    dasar = [('section', 'riwayat')] + [
+        (kunci, filter_data[kunci]) for kunci in ('mulai', 'selesai', 'actor_id')
+        if filter_data.get(kunci)
+    ]
+    chips = ['<a class="admin-chip"%s href="/admin?%s">Semua aksi</a>' % (
+        ' aria-current="true"' if not kini_aksi else '', _e(urlencode(dasar)))]
+    chips.extend(
+        '<a class="admin-chip"%s href="/admin?%s">%s</a>' % (
+            ' aria-current="true"' if kini_aksi == kode else '',
+            _e(urlencode(dasar + [('aksi', kode)])), _e(nama))
+        for kode, nama in label.items()
+    )
     return (
         _nav_riwayat() + '<section class="admin-kartu"><h2>Riwayat tindakan</h2>'
         '<p class="admin-meta">Riwayat dimulai saat fitur aktif; bukan semua aktivitas belajar. Tidak ada kejadian lama yang direka ulang.</p>'
+        '<nav class="admin-chip-baris" aria-label="Filter cepat aksi">' + "".join(chips) + '</nav>'
         '<form method="get" action="/admin" class="admin-form-cari">'
         '<input type="hidden" name="section" value="riwayat">'
         '<label>Mulai (WIB)<input type="date" name="mulai" value="%s"></label>'
         '<label>Sampai (WIB)<input type="date" name="selesai" value="%s"></label>'
         '<label>ID pengelola<input name="actor_id" value="%s" maxlength="80"></label>'
         '<label>Aksi<select name="aksi">%s</select></label>'
-        '<button class="admin-tombol">Saring riwayat</button></form>'
+        '<button class="admin-tombol admin-tombol-sekunder">Saring riwayat</button></form>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr>'
         '<th>Waktu</th><th>Actor</th><th>Aksi</th><th>Target</th><th>Status</th>'
         '</tr></thead><tbody>%s</tbody></table></div>'

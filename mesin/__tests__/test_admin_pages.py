@@ -316,3 +316,33 @@ def test_renderer_hanya_menerima_dto_tanpa_credential_field():
     for nama in ("password", "sandi", "garam", "kunci", "token", "credential"):
         assert nama not in gabung.casefold()
         assert nama not in html.casefold()
+
+
+def _riwayat_contoh():
+    from admin_history_store import EntriRiwayat, HalamanRiwayat
+
+    entri = EntriRiwayat(
+        "op_1", "admin-demo", "account_password_reset", "akun", "akun_1",
+        None, "ok", None, None, None, "ok", 1759488000, (),
+    )
+    return HalamanRiwayat((entri,), 1, 1, 25, 1)
+
+
+def test_riwayat_chip_aksi_cepat_tombol_sekunder_dan_lolos_xss():
+    isi = pages.render_riwayat(
+        _riwayat_contoh(),
+        filter_data={"aksi": "account_password_reset", "actor_id": 'jahat"><script>'},
+    )
+    assert isi.count('class="admin-chip"') == 10
+    assert isi.count('aria-current="true"') == 1
+    assert 'aria-current="true" href="/admin?section=riwayat' in isi
+    assert 'Reset sandi</a>' in isi
+    assert '<script>' not in isi
+    assert '%3Cscript%3E' in isi
+    assert 'class="admin-tombol admin-tombol-sekunder">Saring riwayat<' in isi
+
+
+def test_riwayat_chip_semua_aksi_aktif_tanpa_filter():
+    isi = pages.render_riwayat(_riwayat_contoh(), filter_data={})
+    assert isi.count('aria-current="true"') == 1
+    assert '>Semua aksi</a>' in isi

@@ -87,3 +87,19 @@ def test_menu_hp_dapat_digulir_dan_tidak_tergantung_hover():
     html = P.halaman_admin('siswa', '', pengguna='Pengelola Contoh').decode()
     assert '<details class="admin-nav-mobile"><summary>' in html
     assert 'class="admin-menu" aria-label="Bagian panel pengelola seluler"' in html
+
+
+@pytest.mark.parametrize("section", [item[0] for item in P.SECTION])
+def test_grup_lipat_tanpa_js_terbuka_pada_halaman_aktif(section):
+    html = P.halaman_admin(section, "", pengguna="Pengelola Contoh").decode()
+    navigasi = re.findall(r"<nav\b[^>]*>(.*?)</nav>", html, flags=re.S)
+    assert len(navigasi) == 2
+    lipat = [label for label, _daftar in P.GRUP_SECTION if label != "Pusat kendali"]
+    assert lipat == ["Data pengguna", "Layanan", "Analitik", "Sistem"]
+    for nav in navigasi:
+        assert nav.count("<details") == 4
+        for label in lipat:
+            assert ('<summary><span class="admin-nav-label">%s</span>' % label) in nav
+        di_grup_lipat = any(section in daftar for _label, daftar in P.GRUP_SECTION[1:])
+        assert nav.count("<details open>") == (1 if di_grup_lipat else 0)
+        assert '<script' not in nav

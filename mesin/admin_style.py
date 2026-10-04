@@ -71,6 +71,18 @@ body.admin-readonly {{
   font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 800;
 }}
 .admin-nav-anak {{ margin-left: {T.SP_3}; padding-left: {T.SP_2}; border-left: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
+.admin-nav-grup details {{ border-radius: {T.RADIUS_KECIL}; }}
+.admin-nav-grup summary {{
+  min-height: {T.TARGET_SENTUH}; display: flex; align-items: center; justify-content: space-between;
+  gap: {T.SP_2}; padding: {T.SP_2} {T.SP_3}; cursor: pointer; border-radius: {T.RADIUS_KECIL};
+  color: {T.TEKS_JUDUL}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 800;
+}}
+.admin-nav-grup summary::-webkit-details-marker {{ display: none; }}
+.admin-nav-grup summary::marker {{ content: ""; }}
+.admin-nav-grup summary:hover {{ background: {T.LATAR_SEKUNDER_LEMBUT}; color: {T.AKSEN_TEAL_TUA}; }}
+.admin-nav-grup summary .admin-nav-label {{ margin: 0; padding: 0; }}
+.admin-nav-chev {{ color: {T.TEKS_VARIAN}; display: inline-block; }}
+.admin-nav-grup details[open] .admin-nav-chev {{ transform: rotate(90deg); }}
 .admin-menu a {{
   min-height: {T.TARGET_SENTUH}; display: flex; align-items: center;
   padding: {T.SP_2} {T.SP_3}; border-radius: {T.RADIUS_KECIL}; border-left: 3px solid transparent;
@@ -218,6 +230,17 @@ body.admin-readonly {{
 .admin-tombol:not(.admin-bahaya):hover {{ background: {T.AKSEN_TEAL_HOVER}; border-color: {T.AKSEN_TEAL_HOVER}; }}
 .admin-tautan {{ color: {T.TEKS_JUDUL}; background: {T.LATAR_SEKUNDER_LEMBUT}; }}
 .admin-bahaya {{ color: {T.TEKS_GALAT}; border-color: {T.BORDER_GALAT}; background: {T.LATAR_GALAT}; }}
+.admin-tombol.admin-tombol-sekunder {{ background: {T.LATAR_SEKUNDER_LEMBUT}; border-color: {T.BORDER_VARIAN}; color: {T.TEKS_JUDUL}; }}
+.admin-tombol.admin-tombol-sekunder:hover {{ background: {T.LATAR_SEKUNDER_NETRAL}; border-color: {T.BORDER_VARIAN}; }}
+.admin-chip-baris {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; margin: {T.SP_3} 0; }}
+.admin-chip {{
+  min-height: {T.TARGET_SENTUH}; display: inline-flex; align-items: center;
+  padding: {T.SP_2} {T.SP_3}; border-radius: {T.RADIUS_PIL};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; background: {T.LATAR_KARTU_MURID};
+  color: {T.AKSEN_TEAL_TUA}; text-decoration: none; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600;
+}}
+.admin-chip:hover {{ background: {T.LATAR_SEKUNDER_LEMBUT}; }}
+.admin-chip[aria-current="true"] {{ background: {T.AKSEN_TEAL_TUA}; border-color: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; font-weight: 800; }}
 .admin-form-tindakan form + form {{ margin-top: {T.SP_5}; padding-top: {T.SP_4}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
 .admin-form-tindakan label {{ display: grid; gap: {T.SP_1}; margin: {T.SP_3} 0; }}
 .admin-form-tindakan input:not([type=checkbox]), .admin-form-tindakan select, .admin-kartu > form input:not([type=checkbox]), .admin-kartu > form select {{ width: 100%; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL}; font: inherit; }}
