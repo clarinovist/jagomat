@@ -223,7 +223,7 @@ def riwayat(
     judul_saring = _e(ringkasan or 'Semua sesi · terbaru dahulu')
     filter_html = ('<div class="riwayat-filterbar-st">'
                    '<p class="riwayat-saring-judul-st"><span>Saring riwayat</span><small>%s</small></p>%s%s</div>'
-                   % (judul_saring, cepat_html, filter_html)
+                   % (judul_saring, filter_html, cepat_html)
                    ) + ('<div class="profil-reset-wrap-st">' + reset + '</div>' if total and reset else '')
     isi=[]
     grup_terakhir=None
@@ -393,7 +393,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-batas-manual-st {{ grid-column:1/-1; margin:{T.SP_5} 0 0; padding:{T.SP_3}; background:{T.LATAR_CATATAN}; border:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius:{T.RADIUS_KECIL}; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .profil-sr-st {{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }}
 /* Riwayat v2 (2026-10-04): stat + pil status + tag + skor + CTA primer. */
-.profil-workspace-st .riwayat-stat-st {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:{T.SP_3}; margin:0 0 {T.SP_4}; }}
+.profil-workspace-st .riwayat-stat-st {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:{T.SP_3}; margin:0 0 {T.SP_4}; }}
 .profil-workspace-st .riwayat-stat-kartu-st {{ background:{T.LATAR_KARTU}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; padding:{T.SP_3} {T.SP_4}; display:grid; gap:{T.SP_1}; }}
 .profil-workspace-st .riwayat-stat-kartu-st b {{ font-size:{T.UKURAN_ANGKA_DEWASA}; line-height:1.1; }}
 .profil-workspace-st .riwayat-stat-kartu-st span {{ font-size:{T.UKURAN_TEKS_CATATAN}; color:{T.TEKS_VARIAN}; }}
@@ -408,7 +408,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-skor-bar-st {{ flex:1; height:.5rem; border-radius:99px; background:{T.LATAR_ELEVASI}; overflow:hidden; }}
 .profil-workspace-st .riwayat-skor-bar-st i {{ display:block; height:100%; background:{T.AKSEN_MURID_UTAMA}; border-radius:99px; }}
 .profil-workspace-st .riwayat-skor-st b {{ font-size:{T.UKURAN_TEKS_LABEL}; white-space:nowrap; }}
-.profil-workspace-st .riwayat-filterbar-st {{ display:grid; gap:{T.SP_2}; }}
+.profil-workspace-st .riwayat-filterbar-st {{ display:grid; gap:{T.SP_2}; padding:{T.SP_4} {T.SP_5} 0; }}
 .profil-workspace-st .riwayat-saring-judul-st {{ margin:0; }}
 .profil-workspace-st .riwayat-saring-judul-st > span {{ font-weight:650; }}
 .profil-workspace-st .riwayat-saring-judul-st small {{ display:block; margin-top:{T.SP_1}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; overflow-wrap:anywhere; }}
@@ -452,6 +452,7 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .riwayat-jenis-st,.profil-workspace-st .riwayat-meta-st {{ font-size:{T.UKURAN_TEKS_META}; line-height:1.4; }}
  .profil-workspace-st .riwayat-daftar-st .badge-direview {{ max-width:100%; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.4; }}
  .profil-workspace-st .riwayat-daftar-st .profil-kosong-st {{ padding:{T.SP_4}; }}
+ .profil-workspace-st .riwayat-stat-st {{ grid-template-columns:repeat(2,minmax(0,1fr)); }}
  .profil-workspace-st .riwayat-aksi-st {{ align-self:stretch; }}
  .profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ width:100%; justify-content:center; min-height:{T.TINGGI_CTA}; background:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_PUTIH}; border-radius:{T.RADIUS_KECIL}; text-decoration:none; }}
 }}
