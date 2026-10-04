@@ -230,6 +230,7 @@ def test_marker_penjelasan_koreksi_lama_tetap_ada(db):
         _isi_benar(kon, butir)
         halaman = _badan(teacher_pages.halaman_sesi_stitch(kon, sesi_id))
 
-    assert "Periksa jawaban dan dengarkan cara anak" in halaman
+    assert "soal aman" in halaman
+    assert "menyetujui usulan Jagomat" in halaman
     assert "Konfirmasi menyimpan semua isian dan mengesahkan hasil sesi." in halaman
     assert ">Simpan koreksi</button>" not in halaman

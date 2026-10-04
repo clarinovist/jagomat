@@ -667,6 +667,24 @@ def halaman_sesi_stitch(
 
     if sudah_dikirim:
         sudah_dikonfirmasi = konfirmasi_masih_aktif
+        perlu_tinjau = len(antrean_tinjauan)
+        aman_tercatat = len(kartu_tercatat)
+        if perlu_tinjau:
+            tautan_aman = (
+                f' · <a href="#tinjauan-tercatat">{aman_tercatat} soal aman</a>, '
+                'boleh dilewati tanpa dibuka' if aman_tercatat else ''
+            )
+            pengantar_triase = (
+                f'{perlu_tinjau} soal perlu ±{max(5, perlu_tinjau * 2)} menitmu{tautan_aman}. '
+                'Mulai dari <a href="#judul-antrean-tinjauan">daftar tinjauan</a>. '
+                'Menekan Konfirmasi hasil sesi berarti menyetujui usulan Jagomat untuk soal aman.'
+            )
+        else:
+            pengantar_triase = (
+                f'Semua {len(kartu) + aman_tercatat} soal aman — '
+                'tidak perlu membuka kartu satu per satu. '
+                'Menekan Konfirmasi hasil sesi berarti menyetujui usulan Jagomat.'
+            )
         status_sesi = (
             '<div class="status-sesi-st selesai">'
             '<span class="material-symbols-outlined">cancel</span>'
@@ -684,7 +702,7 @@ def halaman_sesi_stitch(
                 else (
                     '<div class="status-sesi-st koreksi-pengantar-st">'
                     f'<div><b>{"Koreksi berubah — konfirmasi ulang diperlukan" if pernah_dikonfirmasi else "Tinjau bersama anak"}</b>'
-                    '<p>Periksa jawaban dan dengarkan cara anak sebelum mengonfirmasi hasil sesi.</p>'
+                    f'<p>{pengantar_triase}</p>'
                     '</div></div>'
                 )
             )
@@ -728,7 +746,7 @@ def halaman_sesi_stitch(
         kumpulan_kartu = ''.join(kartu)
         if kartu_tercatat:
             kumpulan_kartu += (
-                '<details class="koreksi-opsi-st koreksi-tercatat-st">'
+                '<details class="koreksi-opsi-st koreksi-tercatat-st" id="tinjauan-tercatat">'
                 f'<summary>{len(kartu_tercatat)} soal dengan tinjauan tercatat</summary>'
                 '<p class="koreksi-catatan-st">Termasuk jawaban belum tepat yang sudah diperiksa. '
                 'Buka kembali bila perlu mengoreksi.</p>'
