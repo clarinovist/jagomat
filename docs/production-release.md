@@ -1,5 +1,31 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy sembunyi-cetak + gerak modern — 4 Oktober 2026
+
+Cutover terkontrol `deploy-v2` untuk revision `f542b704c665b760c8da24cea11eecc3859221ed`
+(CTA cetak disembunyikan dari pil sesi guru dan halaman murid; token `DURASI_*` +
+blok animasi CSS-only Zero-JS; kontrak navigasi `aria-current` halaman cetak diselaraskan).
+Kandidat digest `sha256:612301d0…`, recovery `1f056352…` digest `sha256:c40d547d…`,
+kontrak persistensi identik (pair proof CI). Gate dispatch `37189431272` (delapan shard
+kandidat+recovery + build + uji pair) lulus; mode tetap `migrasi`, job `pasang` CI
+tetap literal false. Push `4f19962` sempat merah satu test navigasi lalu hijau kembali
+pada `f542b70` setelah kontrak test diselaraskan dengan keputusan sembunyi.
+
+`PROBE_SKEMA` ringan kandidat terhadap metadata DB live (`mode=ro`, tanpa network,
+migrasi, atau import startup) lulus sebelum hold: label revisi image `f542b70` cocok
+digest exact, agregat live 7215/44/2252/22 baris. Bundle backup
+`deploy-opsi1-f542b70-20261004T084727Z` (empat DB + auth `sandi.json`,
+SQLite backup API, tanpa prune) lolos integritas/FK/preservasi baris. Rehearsal kandidat
+pada turunan identik: healthy, smoke loopback `/` 200 dan `/akun` 401 lulus; turunan
+dibersihkan. Approval exact-pair sekali pakai (TTL 600 detik) dan deployer exit 0.
+Jendela hold: blok Caddy Jagomat → 503, dua cron `osn-*` dipause; site polyflow
+pada Caddyfile yang sama tidak tersentuh.
+
+Pasca-swap: container sehat rev `f542b70`, Caddy dipulihkan byte-identik
+(`7a1485b6…`) serta cron 2/2 tanpa sisa pause, smoke publik `/` 200, `/akun` 401,
+`/murid/` 303 ke `/masuk` lulus. Workdir rehearsal dan log sementara dibersihkan;
+bundle induk dipertahankan tanpa prune.
+
 ## Deploy scope laporan + tipografi dewasa — 4 Oktober 2026
 
 Cutover terkontrol `deploy-v2` untuk revision `ce5216f619b6f10ab0f0256bc01855704a8442f8`
