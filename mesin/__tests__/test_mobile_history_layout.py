@@ -85,7 +85,7 @@ def test_pager_tidak_dibuat_untuk_satu_halaman(total):
 
 def test_metadata_dan_status_tidak_dibuang_demi_ringkas(db):
     isi=render(db)
-    baris=re.search(r'<tr data-sesi-id=".*?</tr>',isi,re.S).group()
+    baris=re.search(r'<li class="riwayat-kartu-st" data-sesi-id=".*?</li>',isi,re.S).group()
     assert 'class="riwayat-meta-st"' in baris
     assert 'Latihan bebas' in baris and 'Variasi A' in baris and 'Mode Diagnosa' in baris
     assert 'Sesi #' in baris and 'Belum Dikerjakan' in baris and 'Menunggu pengiriman' in baris

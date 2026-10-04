@@ -366,7 +366,7 @@ def test_badge_riwayat_mendahulukan_pembatalan(db, keadaan):
         database.batalkan_sesi(kon, sesi, "Pembatalan sintetis")
         sebelum = tuple(kon.iterdump())
     markup = _tanpa_gaya(_render_anak(db, siswa, 'riwayat'))
-    kartu = re.search(r'<tr data-sesi-id=".*?</tr>', markup, re.S).group()
+    kartu = re.search(r'<li class="riwayat-kartu-st" data-sesi-id=".*?</li>', markup, re.S).group()
     assert ">Dibatalkan</span>" in kartu
     for status in ("Belum Dikerjakan", "Sedang Dikerjakan", "Belum ditinjau", "Hasil dikonfirmasi", "belum dikonfirmasi"):
         assert status not in kartu

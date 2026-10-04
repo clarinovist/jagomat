@@ -125,6 +125,21 @@ def _ringkasan_filter(f):
     return ' · '.join(bagian)
 
 
+BULAN_RIWAYAT = ("Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember")
+
+
+def _grup_riwayat(tanggal_mentah):
+    """Kelompok kartu: '7 hari terakhir' atau 'Bulan Tahun' Indonesia mandiri."""
+    from datetime import date
+    try:
+        hari = date.fromisoformat(str(tanggal_mentah)[:10])
+    except ValueError:
+        return "Arsip"
+    if (date.today() - hari).days <= 6:
+        return "7 hari terakhir"
+    return "%s %d" % (BULAN_RIWAYAT[hari.month - 1], hari.year)
+
+
 def riwayat(
     siswa_id, baris, total, filter_data, *, judul_topik, tanggal,
     badge_tinjauan, ringkasan_hasil, aksi_bagikan,
@@ -148,6 +163,7 @@ def riwayat(
         % (_e(ringkasan or 'Semua sesi · terbaru dahulu'), filter_html)
     ) + ('<div class="profil-reset-wrap-st">' + reset + '</div>' if total and reset else '')
     isi=[]
+    grup_terakhir=None
     from question_context import label_profil_parameter as label_kelas
     for r in baris:
         judul,rincian=judul_topik(r['topik'])
@@ -161,20 +177,30 @@ def riwayat(
                 jenis += ' · dari sesi #%d' % r['sumber_sesi_id']
         mode = ('Pilihan ganda · latihan manual' if r['format_jawaban']=='pilihan_ganda'
                 else 'Latihan Cepat' if r['mode']=='drill' else 'Mode Diagnosa')
-        meta='%s · %s · Sesi #%d' % (label_kelas(r['level']),mode,r['id'])
+        meta='%s · %s · Sesi #%d · %d soal' % (label_kelas(r['level']),mode,r['id'],r['n'])
+        grup=_grup_riwayat(r['tanggal'])
+        if grup != grup_terakhir:
+            if grup_terakhir is not None:
+                isi.append('</ol></section>')
+            isi.append('<section class="riwayat-grup-st"><h3 class="riwayat-grup-judul-st">%s</h3><ol class="riwayat-daftar-st">' % _e(grup))
+            grup_terakhir=grup
         hasil = ringkasan_hasil(r) if r['selesai'] is not None else ''
         hasil_html = '<small class="riwayat-hasil-st">Hasil latihan: %s</small>' % hasil if hasil else ''
-        isi.append('<tr data-sesi-id="%d"><td class="riwayat-tanggal-st">%s</td>'
-                   '<td class="riwayat-latihan-st"><strong>%s</strong>%s<details class="rincian-ui-st riwayat-detail-st"><summary><span class="riwayat-jenis-st">%s</span> · Detail</summary><small class="riwayat-meta-st">%s</small>%s</details></td>'
-                   '<td class="riwayat-angka-st">%d</td><td class="riwayat-proses-st"><span>%s</span></td>'
-                   '<td class="riwayat-tinjauan-st">%s</td><td class="riwayat-aksi-st">'
+        isi.append('<li class="riwayat-kartu-st" data-sesi-id="%d">'
+                   '<div class="riwayat-kartu-kepala-st"><strong>%s</strong>'
+                   '<span class="riwayat-tanggal-st">%s</span></div>%s'
+                   '<div class="riwayat-status-st"><span>%s</span>%s</div>'
+                   '<details class="rincian-ui-st riwayat-detail-st"><summary><span class="riwayat-jenis-st">%s</span> · Detail</summary><small class="riwayat-meta-st">%s</small>%s</details>'
+                   '<div class="riwayat-aksi-st">'
                    '<a class="riwayat-buka-st" href="/sesi/%d" aria-label="Buka sesi %d">Buka sesi</a>'
-                   '<details class="riwayat-kelola-st"><summary>Kelola tautan</summary>%s</details></td></tr>' % (
-                       r['id'],tanggal(r['tanggal']),_e(judul),hasil_html,_e(jenis),_e(meta),('<small>'+rincian+'</small>') if rincian else '',
-                       r['n'],_e(proses),tinjauan,r['id'],r['id'],aksi_bagikan(r)))
-    if not isi:
-        isi.append('<tr class="profil-kosong-st"><td colspan="6"><p>Tidak ada sesi yang cocok. '
-                   'Ubah filter atau buat latihan baru.</p>%s</td></tr>' % reset)
+                   '<details class="riwayat-kelola-st"><summary>Kelola tautan</summary>%s</details></div></li>' % (
+                       r['id'],_e(judul),tanggal(r['tanggal']),hasil_html,_e(proses),tinjauan,_e(jenis),_e(meta),('<small>'+rincian+'</small>') if rincian else '',
+                       r['id'],r['id'],aksi_bagikan(r)))
+    if grup_terakhir is not None:
+        isi.append('</ol></section>')
+    if not baris:
+        isi.append('<div class="profil-kosong-st"><p>Tidak ada sesi yang cocok. '
+                   'Ubah filter atau buat latihan baru.</p>%s</div>' % reset)
     awal=(f.halaman-1)*H.PER_HALAMAN+1 if total else 0
     akhir=min(f.halaman*H.PER_HALAMAN,total)
     hitung='Menampilkan %d–%d dari %d sesi' % (awal,akhir,total)
@@ -184,9 +210,7 @@ def riwayat(
     return ('<section aria-labelledby="judul-riwayat"><div class="kepala-riwayat-st"><h2 class="st" id="judul-riwayat">Riwayat latihan</h2></div>'
             '<p class="sub">Status pengerjaan dan tinjauan bukan penilaian penguasaan materi.</p>'
             '<div class="profil-arsip-st" id="filter-riwayat">%s<div class="profil-paging-st"><span>%s%s</span>%s</div>'
-            '<div class="profil-table-wrap-st"><table class="tabel-riwayat-st"><caption class="profil-sr-st">Riwayat latihan anak</caption><thead><tr>'
-            '<th scope="col">Tanggal</th><th scope="col">Latihan</th><th scope="col">Soal</th><th scope="col">Pengerjaan</th><th scope="col">Tinjauan</th><th scope="col">Aksi</th>'
-            '</tr></thead><tbody>%s</tbody></table></div>%s</div></section>') % (
+            '<div class="riwayat-daftar-st">%s</div>%s</div></section>') % (
                 filter_html,hitung,urutan,_pager(siswa_id,f,total),''.join(isi),kaki)
 
 
@@ -267,16 +291,18 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-pager-st {{ display:flex; flex-wrap:wrap; gap:{T.SP_1}; }}
 .profil-workspace-st .profil-pager-st > * {{ display:inline-flex; align-items:center; justify-content:center; min-width:2.75rem; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2}; border-radius:{T.RADIUS_KECIL}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; text-decoration:none; }}
 .profil-workspace-st .profil-pager-st [aria-current] {{ background:{T.LATAR_TERSIMPAN}; color:{T.AKSEN_TEAL_TUA}; }}
-.profil-workspace-st .profil-table-wrap-st {{ overflow-x:auto; }}
-.profil-workspace-st .tabel-riwayat-st {{ width:100%; border-collapse:collapse; }}
-.profil-workspace-st .tabel-riwayat-st th,.profil-workspace-st .tabel-riwayat-st td {{ padding:{T.SP_3}; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; text-align:left; vertical-align:middle; font-size:{T.UKURAN_TEKS_LABEL}; }}
-.profil-workspace-st .tabel-riwayat-st th {{ background:{T.LATAR_SEKUNDER_LEMBUT}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
-.profil-workspace-st .riwayat-latihan-st strong,.profil-workspace-st .riwayat-latihan-st small {{ display:block; }}
-.profil-workspace-st .riwayat-latihan-st small {{ margin-top:{T.SP_1}; color:{T.TEKS_VARIAN}; }}
-.profil-workspace-st .riwayat-latihan-st .riwayat-hasil-st {{ color:{T.TEKS_JUDUL}; font-weight:650; }}
-.profil-workspace-st .riwayat-tanggal-st {{ white-space:nowrap; }}
-.profil-workspace-st .tabel-riwayat-st .riwayat-angka-st {{ text-align:right; font-variant-numeric:tabular-nums; }}
-.profil-workspace-st .riwayat-aksi-st {{ display:flex; flex-direction:column; align-items:flex-start; gap:{T.SP_1}; }}
+/* Riwayat kartu timeline (Opsi A 2026-10-04): grup tanggal + kartu satuan, satu kolom semua viewport. */
+.profil-workspace-st .riwayat-daftar-st {{ display:grid; gap:{T.SP_5}; }}
+.profil-workspace-st .riwayat-grup-st {{ display:grid; gap:{T.SP_3}; }}
+.profil-workspace-st .riwayat-grup-st > ol {{ list-style:none; margin:0; padding:0; display:grid; gap:{T.SP_3}; }}
+.profil-workspace-st .riwayat-grup-judul-st {{ margin:0; font-size:{T.UKURAN_TEKS_META}; color:{T.TEKS_VARIAN}; text-transform:uppercase; letter-spacing:.04em; }}
+.profil-workspace-st .riwayat-kartu-st {{ background:{T.LATAR_KARTU_MURID}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; padding:{T.SP_4}; display:flex; flex-direction:column; gap:{T.SP_2}; font-size:{T.UKURAN_TEKS_LABEL}; }}
+.profil-workspace-st .riwayat-kartu-kepala-st {{ display:flex; justify-content:space-between; align-items:baseline; gap:{T.SP_3}; }}
+.profil-workspace-st .riwayat-kartu-kepala-st strong {{ font-size:{T.UKURAN_TEKS_BANTUAN}; }}
+.profil-workspace-st .riwayat-tanggal-st {{ white-space:nowrap; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
+.profil-workspace-st .riwayat-hasil-st {{ color:{T.TEKS_JUDUL}; font-weight:650; }}
+.profil-workspace-st .riwayat-status-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_1} {T.SP_2}; }}
+.profil-workspace-st .riwayat-aksi-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_1} {T.SP_3}; border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; padding-top:{T.SP_3}; }}
 .profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ display:inline-flex; min-height:{T.TARGET_SENTUH}; align-items:center; color:{T.AKSEN_TEAL_TUA}; white-space:nowrap; font-weight:700; }}
 .profil-workspace-st .riwayat-kelola-st {{ width:100%; }}
 .profil-workspace-st .riwayat-kelola-st > summary {{ display:flex; align-items:center; min-height:{T.TARGET_SENTUH}; color:{T.TEKS_VARIAN}; cursor:pointer; font-size:{T.UKURAN_TEKS_CATATAN}; }}
@@ -312,25 +338,12 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .buat-latihan-st:has(#tab-gabungan:checked) [for="tab-gabungan"] {{ background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; border-color:{T.AKSEN_TEAL_TUA}; }}
  .profil-workspace-st .profil-champs-st .st-tombol-coral {{ width:100%; }}
  .profil-workspace-st .profil-paging-st {{ padding:{T.SP_4}; }}
- .profil-workspace-st .tabel-riwayat-st,.profil-workspace-st .tabel-riwayat-st tbody {{ display:block; }}
- .profil-workspace-st .tabel-riwayat-st thead {{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }}
- .profil-workspace-st .tabel-riwayat-st tr {{ display:flex; flex-direction:column; gap:{T.SP_2}; padding:{T.SP_4}; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
- .profil-workspace-st .tabel-riwayat-st td {{ padding:0; border:0; min-width:0; line-height:1.4; }}
- .profil-workspace-st .riwayat-latihan-st strong {{ font-size:{T.UKURAN_TEKS_BANTUAN}; line-height:1.4; }}
- .profil-workspace-st .riwayat-latihan-st .riwayat-jenis-st,.profil-workspace-st .riwayat-latihan-st .riwayat-meta-st {{ display:inline; font-size:{T.UKURAN_TEKS_META}; line-height:1.4; }}
- .profil-workspace-st .riwayat-latihan-st .riwayat-meta-st::before {{ content:' · '; }}
- .profil-workspace-st .tabel-riwayat-st .badge-direview {{ max-width:100%; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.4; }}
- .profil-workspace-st .tabel-riwayat-st .profil-kosong-st {{ display:block; padding:{T.SP_4}; }}
- .profil-workspace-st .tabel-riwayat-st .profil-kosong-st td {{ display:block; }}
- .profil-workspace-st .riwayat-tanggal-st {{ order:1; }}
- .profil-workspace-st .riwayat-angka-st {{ order:2; text-align:left; }}
- .profil-workspace-st .riwayat-angka-st::after {{ content:' soal'; }}
- .profil-workspace-st .riwayat-latihan-st {{ order:3; }}
- .profil-workspace-st .riwayat-proses-st {{ order:4; }}
- .profil-workspace-st .riwayat-proses-st::before {{ content:'Pengerjaan: '; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
- .profil-workspace-st .riwayat-tinjauan-st {{ order:5; }}
- .profil-workspace-st .riwayat-tinjauan-st::before {{ content:'Tinjauan: '; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
- .profil-workspace-st .riwayat-aksi-st {{ order:6; align-self:stretch; padding-top:{T.SP_2}; border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
+ .profil-workspace-st .riwayat-kartu-st {{ flex-direction:column; }}
+ .profil-workspace-st .riwayat-kartu-kepala-st strong {{ font-size:{T.UKURAN_TEKS_BANTUAN}; line-height:1.4; }}
+ .profil-workspace-st .riwayat-jenis-st,.profil-workspace-st .riwayat-meta-st {{ font-size:{T.UKURAN_TEKS_META}; line-height:1.4; }}
+ .profil-workspace-st .riwayat-daftar-st .badge-direview {{ max-width:100%; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.4; }}
+ .profil-workspace-st .riwayat-daftar-st .profil-kosong-st {{ padding:{T.SP_4}; }}
+ .profil-workspace-st .riwayat-aksi-st {{ align-self:stretch; }}
  .profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ width:100%; justify-content:center; min-height:{T.TINGGI_CTA}; background:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_PUTIH}; border-radius:{T.RADIUS_KECIL}; text-decoration:none; }}
 }}
 """

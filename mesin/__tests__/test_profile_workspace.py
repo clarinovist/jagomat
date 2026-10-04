@@ -63,8 +63,9 @@ def test_208_sesi_dipaginasi_20_dan_tidak_bocor_keluarga(db):
         assert f'Menampilkan {awal}–{akhir} dari 208 sesi' in isi
         assert 'Anak keluarga lain' not in isi
         assert 'data-sesi-id="209"' not in isi
-        assert '<th scope="col">Pengerjaan</th>' in isi
-        assert '<th scope="col">Tinjauan</th>' in isi
+        assert '<th scope="col">' not in isi
+        assert 'class="riwayat-grup-judul-st"' in isi
+        assert 'class="riwayat-status-st"' in isi
         assert f'action="/sesi-baru/{anak}"' not in isi
         assert 'class="kartu-rencana-st"' not in isi
     assert tuple(kon.iterdump()) == sebelum
@@ -72,7 +73,7 @@ def test_208_sesi_dipaginasi_20_dan_tidak_bocor_keluarga(db):
 
 def test_tipografi_riwayat_memakai_skala_label_untuk_data_utama():
     aturan = profile_workspace.GAYA_PROFIL.split(
-        ".tabel-riwayat-st th,.profil-workspace-st .tabel-riwayat-st td", 1
+        ".profil-workspace-st .riwayat-kartu-st", 1
     )[1].split("}", 1)[0]
     assert f"font-size:{T.UKURAN_TEKS_LABEL}" in aturan
 
@@ -82,8 +83,8 @@ def test_riwayat_menyebut_format_pg_dan_id_sumber_remedial(db):
     pg=kon.execute("INSERT INTO sesi(siswa_id,tanggal,seed,level,topik,format_jawaban) VALUES(?,'2026-09-19',701,'P3','campuran','pilihan_ganda')",(anak,)).lastrowid
     kon.execute("UPDATE sesi SET jenis='remedial',sumber_sesi_id=1 WHERE id=2")
     isi=_isi(kon,anak,query='section=riwayat')
-    satu=re.search(r'<tr data-sesi-id="%d">.*?</tr>' % pg,isi,re.S).group()
-    dua=re.search(r'<tr data-sesi-id="2">.*?</tr>',isi,re.S).group()
+    satu=re.search(r'<li class="riwayat-kartu-st" data-sesi-id="%d">.*?</li>' % pg,isi,re.S).group()
+    dua=re.search(r'<li class="riwayat-kartu-st" data-sesi-id="2">.*?</li>',isi,re.S).group()
     assert 'Pilihan ganda · latihan manual' in satu
     assert 'Remedial' in dua and 'dari sesi #1' in dua
 

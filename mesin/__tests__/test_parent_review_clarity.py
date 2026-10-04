@@ -79,7 +79,7 @@ def test_badge_profil_mengikuti_status_hasil_bukan_sekadar_dibuka(db, keadaan, l
         isi = _render(kon, siswa_id)
 
         assert tuple(kon.iterdump()) == sebelum
-        kartu = re.search(r'<tr data-sesi-id=".*?</tr>', isi, re.S).group()
+        kartu = re.search(r'<li class="riwayat-kartu-st" data-sesi-id=".*?</li>', isi, re.S).group()
         baris = kon.execute('SELECT * FROM sesi WHERE id=?', (sesi_id,)).fetchone()
         if keadaan in {'baru', 'dibuka_belum_kirim', 'sebagian_dibuka', 'batal_terkonfirmasi'}:
             assert label in kartu
