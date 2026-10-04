@@ -553,6 +553,10 @@ def halaman_sesi_stitch(
       <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b["kunci"])}</span></div>
       {pembahasan_html}
     </details>
+    <p class="koreksi-catatan-st"><b>Langkah 1 — dengar cara anak.</b> Mulai dari sini; Langkah 2 hanya bila perlu.</p>
+    {pendampingan}
+    <details class="koreksi-opsi-st koreksi-langkah2-st"{' open' if (buka_sumber or buka_lanjutan) else ''}>
+    <summary>Langkah 2 — sumber &amp; penilaian lanjutan (opsional)</summary>
     <details class="koreksi-opsi-st koreksi-sumber-st"{' open' if buka_sumber else ''}>
     <summary>Sumber &amp; koreksi salinan (opsional)</summary>
     {sumber_asli}
@@ -563,7 +567,6 @@ def halaman_sesi_stitch(
       </div>
     </div>
     </details>
-    {pendampingan}
     <details class="koreksi-opsi-st koreksi-lanjutan-st"{' open' if buka_lanjutan else ''}>
     <summary>Catatan &amp; penilaian lanjutan (opsional)</summary>
     {pengalaman_html}
@@ -597,6 +600,7 @@ def halaman_sesi_stitch(
         <label for="lewati-{b["sesi_soal_id"]}">Jangan sertakan soal ini dalam penilaian</label>
       </div>
       <p class="koreksi-catatan-st" id="lewati-info-{b["sesi_soal_id"]}">Saat dikonfirmasi, soal dicatat sebagai dilewati, bukan benar atau salah, dan bukan bukti pemahaman. Jawaban dan catatan asli tetap tersimpan.</p>
+    </details>
     </details>
     </details>
   </div>
