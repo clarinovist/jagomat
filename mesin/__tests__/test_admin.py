@@ -317,4 +317,4 @@ def test_admin_detail_anak_ditautkan_ke_laporan(server):
         auth=("pengelola", SANDI_ADMIN),
     )
     assert kode == 200
-    assert f'href="/laporan/{siswa_a}"' in isi
+    assert f'href="/anak/{siswa_a}?section=perkembangan"' in isi

@@ -262,9 +262,9 @@ def _kontrol_periode_aktivitas(siswa_id, periode, mulai, akhir):
     nilai_akhir = akhir.isoformat() if periode == 'custom' else ''
     return (
         '<div class="laporan-periode-kontrol">' + preset
-        + f'<form method="get" action="/laporan/{siswa_id}" class="laporan-rentang-form">'
+        + f'<form method="get" action="/anak/{siswa_id}" class="laporan-rentang-form">'
         '<strong class="laporan-rentang-label">Rentang sendiri</strong>'
-        '<input type="hidden" name="section" value="ringkasan">'
+        '<input type="hidden" name="section" value="perkembangan">'
         '<input type="hidden" name="periode" value="custom">'
         f'<label>Dari tanggal<input type="date" name="mulai" value="{nilai_mulai}" required></label>'
         f'<label>Sampai tanggal<input type="date" name="sampai" value="{nilai_akhir}" required></label>'
@@ -412,16 +412,12 @@ ANGKOR_LAPORAN = {
 }
 
 
-def halaman_laporan(
-    kon, siswa_id: int, pengguna: str = "", peran: str = "guru", section: str = "ringkasan",
-    query: str = "",
-) -> bytes:
-    """Tiga bagian laporan server-side; sumber hitungan dan bukti tidak berubah."""
-    siswa = kon.execute("SELECT * FROM siswa WHERE id = ?", (siswa_id,)).fetchone()
-    if not siswa:
-        return _halaman("Tidak ada", "<h1>Siswa tidak ditemukan</h1>")
+def konten_laporan(kon, siswa_id: int, query: str = "", section: str = "ringkasan"):
+    """Isi + navigasi laporan tanpa bingkai; dipakai tab profil dan halaman lama."""
     parameter = parameter_laporan(query)
-    section = parameter.get('section', section)
+    # Tab Perkembangan memakai kunci 'bagian' agar tak bentrok section profil.
+    # 'section' lama tetap dibaca sebagai fallback deep link/bookmark.
+    section = parameter.get('bagian', '') or parameter.get('section', section)
     kompat_lama = section == 'riwayat'
     tampilan = parameter.get('tampilan', '')
     halaman = parameter.get('halaman', '1')
@@ -527,6 +523,20 @@ def halaman_laporan(
                 isi += ('<details class="rincian-ui-st" open><summary>Pendampingan orang tua</summary>'
                         '<div class="laporan-lipatan-st">' + pilot + '</div></details>')
         isi += '</section>'
+    return navigasi + '<div id="konten-laporan">' + isi + '</div>'
+
+
+def halaman_laporan(
+    kon, siswa_id: int, pengguna: str = "", peran: str = "guru", section: str = "ringkasan",
+    query: str = "",
+) -> bytes:
+    """Halaman laporan lama; kini membungkus konten yang sama dengan tab."""
+    siswa = kon.execute("SELECT * FROM siswa WHERE id = ?", (siswa_id,)).fetchone()
+    if not siswa:
+        return _halaman("Tidak ada", "<h1>Siswa tidak ditemukan</h1>")
+    parameter = parameter_laporan(query)
+    section = parameter.get('bagian', '') or parameter.get('section', section)
+    isi = konten_laporan(kon, siswa_id, query=query, section=section)
     total_sesi = kon.execute(
         'SELECT COUNT(*) FROM sesi WHERE siswa_id=?', (siswa_id,)
     ).fetchone()[0]
@@ -545,9 +555,8 @@ def halaman_laporan(
             id_judul='judul-profil-laporan', kembali=kembali,
         )
         + '<nav class="profil-tabs-st" aria-label="Bagian profil anak">'
-        + profile_workspace.navigasi_profil(siswa_id, total_sesi, 'laporan')
-        + '</nav>' + navigasi
-        + '<div id="konten-laporan">' + isi + '</div>',
+        + profile_workspace.navigasi_profil(siswa_id, total_sesi, 'perkembangan')
+        + '</nav>' + isi,
         ident=(pengguna, peran) if pengguna else None,
         stitch=True,
         kelas_bungkus="laporan-lebar pendamping-editorial-st laporan-editorial-st profil-workspace-st",

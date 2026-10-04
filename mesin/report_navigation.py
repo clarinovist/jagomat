@@ -9,6 +9,16 @@ def parameter_laporan(query):
             if len(v) == 1}
 
 
+def tautan_tab(siswa_id, bagian='ringkasan', **opsi):
+    """URL mentah tab Perkembangan; satu base /anak agar terasa satu halaman."""
+    data = {}
+    if bagian not in ('', None, 'ringkasan'):
+        data['bagian'] = bagian
+    data.update({k: v for k, v in opsi.items() if v not in ('', None)})
+    data = {'section': 'perkembangan', **data}
+    return f'/anak/{siswa_id}?' + urlencode(data)
+
+
 def tujuan_alias_lama(siswa_id, query):
     """Tujuan kanonis deep link lama; dipanggil hanya setelah ownership guard."""
     data = parse_qs(query, keep_blank_values=True)
@@ -19,9 +29,7 @@ def tujuan_alias_lama(siswa_id, query):
     tampilan = nilai.get('tampilan', '')
 
     def tujuan(bagian, **opsi):
-        parameter = {'section': bagian}
-        parameter.update({k: v for k, v in opsi.items() if v})
-        return f'/laporan/{siswa_id}?' + urlencode(parameter)
+        return tautan_tab(siswa_id, bagian, **opsi)
 
     if section == 'riwayat':
         if tampilan in ('', 'sesi'):
@@ -46,10 +54,8 @@ def tujuan_alias_lama(siswa_id, query):
 
 
 def url_laporan(siswa_id, section='ringkasan', **opsi):
-    """URL atribut HTML dengan encoding nilai dan escaping pemisah."""
-    data = {'section': section}
-    data.update({k: v for k, v in opsi.items() if v not in ('', None)})
-    return html.escape(f'/laporan/{siswa_id}?' + urlencode(data), quote=True)
+    """URL atribut HTML; canonical tab /anak agar satu base dengan profil."""
+    return html.escape(tautan_tab(siswa_id, section, **opsi), quote=True)
 
 
 def pilihan(label, opsi, aktif, tautan):

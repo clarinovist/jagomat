@@ -43,17 +43,21 @@ def parse_filter(query):
     """Tolak query ambigu; pesan/sorot warisan tetap ditangani router."""
     if len(query) > 2048 or re.search(r'%(?![0-9a-fA-F]{2})', query):
         raise ValueError('Parameter profil tidak sah.')
-    pasangan = parse_qsl(query, keep_blank_values=True, errors='strict', max_num_fields=12)
+    pasangan = parse_qsl(query, keep_blank_values=True, errors='strict', max_num_fields=24)
     if len(pasangan) != len({k for k, _ in pasangan}):
         raise ValueError('Parameter profil ganda.')
     nilai = dict(pasangan)
-    if set(nilai) - {'section', 'halaman', 'mulai', 'sampai', 'topik', 'jenis', 'tinjauan', 'pesan', 'sorot'}:
+    if set(nilai) - {'section', 'bagian', 'halaman', 'mulai', 'sampai', 'topik', 'jenis', 'tinjauan', 'pesan', 'sorot', 'periode', 'materi', 'status', 'tampilan', 'rincian'}:
         raise ValueError('Parameter profil tidak dikenal.')
     # Bare profil membuka Berikutnya. URL warisan PRG yang hanya membawa
     # ``sorot`` tetap membuka alat latihan agar sesi baru tidak terasa hilang.
     section = nilai.get('section', 'latihan' if 'sorot' in nilai else 'rencana')
+    if section == 'perkembangan':
+        # Tab laporan punya fallback aman sendiri (periode/halaman/materi tak sah
+        # kembali ke default, bukan 500/404); tolak hanya query ganda/asing di atas.
+        return FilterProfil(section='perkembangan', halaman=1)
     halaman = nilai.get('halaman', '1')
-    if section not in ('latihan', 'rencana', 'riwayat') or not re.fullmatch(r'[1-9][0-9]{0,5}', halaman):
+    if section not in ('latihan', 'rencana', 'riwayat', 'perkembangan') or not re.fullmatch(r'[1-9][0-9]{0,5}', halaman):
         raise ValueError('Bagian atau halaman profil tidak sah.')
     for nama in ('mulai', 'sampai'):
         tanggal = nilai.get(nama, '')

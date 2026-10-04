@@ -44,10 +44,11 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   anak memiliki empat tujuan berurutan: **Berikutnya**, **Buat latihan**, **Riwayat**,
   dan **Perkembangan**. URL profil tanpa query serta `?section=rencana` membuka
   Berikutnya; latihan manual berada di `?section=latihan`, arsip operasional tunggal
-  di `?section=riwayat`, dan proyeksi bukti di `/laporan/<id>` sebagai satu
-  halaman dengan tiga bagian (Progres, Materi, Perjalanan) yang dinavigasi lewat
-  anchor `#progres`, `#materi`, `#perjalanan`; `?section=` lama tetap didukung
-  sebagai alias anchor.
+  di `?section=riwayat`, dan proyeksi bukti di `?section=perkembangan` sebagai satu
+  tab dengan tiga bagian (Progres, Materi, Perjalanan) yang dinavigasi lewat
+  anchor `#progres`, `#materi`, `#perjalanan`; deep link `/laporan/<id>` lama
+  dialihkan ke tab setelah guard kepemilikan; `?section=`/`bagian=` lama tetap
+  didukung sebagai alias anchor.
   Ringkasan aktivitas dapat dilihat lewat preset 7 hari,
   minggu ini, bulan ini, atau rentang tanggal sendiri. Detail paket/aktivasi mengikuti
   kontraknya, bukan keberadaan kode.

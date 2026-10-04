@@ -97,12 +97,17 @@ def test_prg_siklus_dan_riwayat_selalu_eksplisit(server):
     (
         ("section=riwayat", "section=riwayat"),
         ("section=riwayat&tampilan=sesi", "section=riwayat"),
-        ("section=riwayat&tampilan=mingguan", "section=ringkasan"),
-        ("section=riwayat&tampilan=catatan", "section=penguasaan"),
-        ("section=penguasaan&tampilan=konteks", "section=penguasaan"),
-        ("section=penguasaan&tampilan=kriteria", "section=penguasaan"),
-        ("section=penguasaan&tampilan=pilot", "section=perjalanan"),
-        ("section=penguasaan&tampilan=perjalanan", "section=perjalanan"),
+        ("section=riwayat&tampilan=mingguan", "section=perkembangan"),
+        ("section=riwayat&tampilan=mingguan", "rincian=tren"),
+        ("section=riwayat&tampilan=catatan", "section=perkembangan"),
+        ("section=riwayat&tampilan=catatan", "bagian=penguasaan"),
+        ("section=penguasaan&tampilan=konteks", "section=perkembangan"),
+        ("section=penguasaan&tampilan=konteks", "bagian=penguasaan"),
+        ("section=penguasaan&tampilan=kriteria", "rincian=kriteria"),
+        ("section=penguasaan&tampilan=pilot", "section=perkembangan"),
+        ("section=penguasaan&tampilan=pilot", "bagian=perjalanan"),
+        ("section=penguasaan&tampilan=perjalanan", "section=perkembangan"),
+        ("section=penguasaan&tampilan=perjalanan", "bagian=perjalanan"),
     ),
 )
 def test_deep_link_laporan_lama_dialihkan_setelah_guard(server, query, tujuan):

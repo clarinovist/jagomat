@@ -573,7 +573,7 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
         '<dt>Login eksplisit</dt><dd>%s</dd><dt>Jumlah sesi</dt><dd>%d</dd>'
         '<dt>Kondisi</dt><dd>%s</dd></dl>'
         '<div class="admin-aksi-baca"><a class="admin-tautan" href="/anak/%d?section=rencana">Buka profil</a>'
-        '<a class="admin-tautan" href="/laporan/%d">Buka laporan</a></div></section>'
+        '<a class="admin-tautan" href="/anak/%d?section=perkembangan">Buka laporan</a></div></section>'
         % (
             _e(siswa.nama), siswa.id, _e(label_kelas_sekolah(siswa.kelas_sekolah)), _e(siswa.tingkat),
             _e(siswa.pemilik or "Pemilik kosong"),

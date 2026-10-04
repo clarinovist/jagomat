@@ -290,7 +290,7 @@ def test_laporan_perkembangan_menjadi_tab_profil_tanpa_tautan_duplikat(anak, pri
     )] == sorted(navigasi.index(label) for label in (
         "Berikutnya", "Buat latihan", "Riwayat", "Perkembangan",
     ))
-    assert f'href="/laporan/{sid}"' in navigasi
+    assert f'href="/anak/{sid}?section=perkembangan"' in navigasi
     assert 'aria-current="page">Riwayat' in navigasi
     kepala = markup[markup.index('class="kepala-riwayat-st"'):]
     kepala = kepala[:kepala.index("</div>")]

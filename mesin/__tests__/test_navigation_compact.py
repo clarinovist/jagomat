@@ -32,7 +32,7 @@ def test_pilihan_tanpa_centang_dengan_url_aria_dan_label_utuh(aktif):
     tautan = Tautan(h).tautan
     assert len(tautan) == 3
     assert [a['href'] for a in tautan if a.get('aria-current') == 'true'] == [
-        '/laporan/7?section=penguasaan&tampilan=' + aktif]
+        '/anak/7?section=perkembangan&bagian=penguasaan&tampilan=' + aktif]
     aktif_css = GAYA_LAPORAN.split('.laporan-pilihan a[aria-current="true"]', 1)[1].split('}', 1)[0]
     assert 'font-weight:700' in aktif_css and 'border:2px solid' in aktif_css
 

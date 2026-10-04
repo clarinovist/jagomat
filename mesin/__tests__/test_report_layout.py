@@ -79,7 +79,7 @@ def test_section_hanya_merender_bagian_terpilih_tanpa_write(db, bagian):
     angkor = {'ringkasan': 'progres', 'penguasaan': 'materi', 'perjalanan': 'perjalanan'}[aktif]
     struktur = Struktur(h)
     terpilih = [a for a, _ in struktur.tautan if a.get('aria-current') == 'page']
-    assert [a['href'] for a in terpilih] == [f'/laporan/{sid}', f'#{angkor}']
+    assert [a['href'] for a in terpilih] == [f'/anak/{sid}?section=perkembangan', f'#{angkor}']
     assert 'id="rencana-belajar-laporan"' not in h
     assert 'class="peta-pilihan"' in h
     assert 'id="perjalanan-belajar"' in h

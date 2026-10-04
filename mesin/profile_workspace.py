@@ -29,7 +29,7 @@ def navigasi_profil(siswa_id, total, aktif):
         ('rencana', f'/anak/{siswa_id}?section=rencana', 'Berikutnya'),
         ('latihan', f'/anak/{siswa_id}?section=latihan', 'Buat latihan'),
         ('riwayat', f'/anak/{siswa_id}?section=riwayat', 'Riwayat'),
-        ('laporan', f'/laporan/{siswa_id}', 'Perkembangan'),
+        ('perkembangan', f'/anak/{siswa_id}?section=perkembangan', 'Perkembangan'),
     )
     return ''.join(
         f'<a href="{url}"' + (' aria-current="page"' if kode == aktif else '')

@@ -60,7 +60,7 @@ def test_dashboard_menyebut_nama_dan_aktivitas(db):
     assert "Bima" in h
     assert "soal dikerjakan" in h
     assert "butir benar" in h and "butir salah" in h
-    assert f'<a href="/laporan/{sid}" aria-current="page">Perkembangan</a>' in h
+    assert f'<a href="/anak/{sid}?section=perkembangan" aria-current="page">Perkembangan</a>' in h
     assert f'href="/anak/{sid}?section=latihan"' in h
     assert f'href="/anak/{sid}?section=rencana"' in h
     assert f'href="/anak/{sid}?section=riwayat"' in h
@@ -93,7 +93,7 @@ def test_filter_aktivitas_preset_dan_rentang_custom_inklusif(db):
         ).decode()
     assert "Aktivitas pada rentang pilihan" in h
     assert "1 Sep 2026" in h
-    assert '<a href="/laporan/%d?section=ringkasan&amp;periode=7">7 hari</a>' % sid in h
+    assert '<a href="/anak/%d?section=perkembangan&amp;periode=7">7 hari</a>' % sid in h
     assert '>Minggu ini</a>' in h and '>Bulan ini</a>' in h
     assert 'name="mulai" value="2026-09-01"' in h
     assert 'name="sampai" value="2026-09-01"' in h

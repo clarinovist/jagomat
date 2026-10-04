@@ -250,7 +250,7 @@ def test_detail_menyebut_keluarga_dan_hanya_tautan_existing():
     assert "Ari &amp; &lt;B&gt;" in html_keluarga
     assert "keluarga&lt;script&gt;" in html_siswa
     assert 'href="/anak/7?section=rencana"' in html_siswa
-    assert 'href="/laporan/7"' in html_siswa
+    assert 'href="/anak/7?section=perkembangan"' in html_siswa
     assert 'href="/sesi/9"' in html_siswa
     assert "bukan status belajar atau kelulusan" in html_siswa
     assert '<form' not in html_keluarga

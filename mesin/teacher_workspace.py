@@ -622,6 +622,14 @@ def halaman_anak(
     )
     if section == "rencana":
         isi_profil = kartu_rencana + tugas_rencana
+    elif section == "perkembangan":
+        from mastery_report import GAYA_PETA
+        from report_dashboard import GAYA_LAPORAN
+        from reports import konten_laporan
+        isi_profil = (
+            f'<style>{GAYA_LAPORAN}{GAYA_PETA}</style>'
+            + konten_laporan(kon, int(siswa["id"]), query=query)
+        )
     elif section == "riwayat":
         isi_profil = profile_workspace.riwayat(
             int(siswa["id"]), sesi, total_hasil, filter_profil,

@@ -84,7 +84,8 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
   **Buat latihan**, **Riwayat**, dan **Perkembangan**. Pascapendaftaran dan default
   `/anak/<id>` sama-sama membuka Berikutnya; POST latihan kembali eksplisit ke
   `?section=latihan`, aksi siklus ke `?section=rencana`, dan arsip ke
-  `?section=riwayat`. Deep link laporan lama dialihkan oleh `teacher_http.py` setelah
+  `?section=riwayat`; tab Perkembangan di `?section=perkembangan` memakai konten
+  `reports.konten_laporan()` yang sama dengan halaman lama. Deep link laporan lama dialihkan oleh `teacher_http.py` setelah
   guard ownership. `reports.py` dan
   `report_metrics.py` menyediakan filter periode aktivitas
   server-side melalui query GET. Layanan siklus menginisialisasi konteks fondasi dan
