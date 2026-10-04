@@ -415,7 +415,10 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-skor-bar-st {{ flex:1; height:.5rem; border-radius:99px; background:{T.LATAR_ELEVASI}; overflow:hidden; }}
 .profil-workspace-st .riwayat-skor-bar-st i {{ display:block; height:100%; background:{T.AKSEN_MURID_UTAMA}; border-radius:99px; }}
 .profil-workspace-st .riwayat-skor-st b {{ font-size:{T.UKURAN_TEKS_LABEL}; white-space:nowrap; }}
-.profil-workspace-st .riwayat-filterbar-st {{ display:grid; gap:{T.SP_2}; padding:{T.SP_4} {T.SP_5} 0; }}
+.profil-workspace-st .riwayat-filterbar-st {{ display:grid; gap:{T.SP_2}; padding:{T.SP_2} {T.SP_5} 0; }}
+.profil-workspace-st .riwayat-filterbar-st .profil-filter-st {{ padding:{T.SP_4} {T.SP_5}; gap:{T.SP_3}; }}
+.profil-workspace-st .riwayat-filterbar-st .profil-cepat-st {{ margin-bottom:{T.SP_2}; }}
+.profil-workspace-st .riwayat-filterbar-st .riwayat-pilbar-st {{ margin-top:{T.SP_2}; }}
 .profil-workspace-st .riwayat-saring-judul-st {{ margin:0; }}
 .profil-workspace-st .riwayat-saring-judul-st > span {{ font-weight:650; }}
 .profil-workspace-st .riwayat-saring-judul-st small {{ display:block; margin-top:{T.SP_1}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; overflow-wrap:anywhere; }}
