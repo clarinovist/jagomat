@@ -7,7 +7,7 @@ GAYA_PENDAMPING = f"""
 {GAYA_SELECT}
 .pendamping-halaman, .pendamping-halaman *, .pendamping-halaman *::before, .pendamping-halaman *::after {{ box-sizing:border-box; }}
 html {{ color-scheme:light; scroll-padding-block:{T.SP_5}; }}
-.pendamping-halaman {{ margin:0; min-height:100vh; min-height:100svh; background:{T.LATAR_MURID}; color:{T.TEKS_UTAMA}; font:1rem/1.6 {T.FONT_LAYAR}; overflow-wrap:anywhere; }}
+.pendamping-halaman {{ margin:0; min-height:100vh; min-height:100svh; background:{T.LATAR_MURID}; color:{T.TEKS_UTAMA}; font:1rem/1.6 {T.FONT_BODY}; overflow-wrap:anywhere; }}
 .pendamping-halaman img, .pendamping-halaman svg {{ max-width:100%; vertical-align:middle; }}
 .pendamping-halaman a {{ color:{T.AKSEN_TEAL_TUA}; text-underline-offset:.22em; }}
 .pendamping-halaman a:hover {{ text-decoration-thickness:.13em; }}
@@ -20,7 +20,7 @@ html {{ color-scheme:light; scroll-padding-block:{T.SP_5}; }}
 .pendamping-sr {{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:clip; clip-path:inset(50%); white-space:nowrap; border:0; }}
 .pendamping-lewati {{ position:absolute; inset-block-start:{T.SP_3}; inset-inline-start:{T.SP_4}; transform:translateY(-200%); min-height:{T.TARGET_SENTUH}; padding:{T.SP_3} {T.SP_4}; background:{T.LATAR_KARTU}; border:{T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius:{T.RADIUS_KECIL}; z-index:1; }}
 .pendamping-lewati:focus {{ transform:none; }}
-.pendamping-halaman h1, .pendamping-halaman h2 {{ color:{T.TEKS_JUDUL}; line-height:1.3; text-wrap:pretty; }}
+.pendamping-halaman h1, .pendamping-halaman h2 {{ color:{T.TEKS_JUDUL}; line-height:1.3; text-wrap:pretty; font-family:{T.FONT_HEADLINE}; }}
 .pendamping-halaman h1 {{ margin:0 0 {T.SP_3}; font-size:{T.UKURAN_JUDUL_DEWASA}; letter-spacing:-.035em; font-weight:650; }}
 .pendamping-halaman h2 {{ margin:0 0 {T.SP_2}; font-size:{T.UKURAN_BAGIAN_DEWASA}; font-weight:650; }}
 .pendamping-halaman p {{ margin:0 0 {T.SP_4}; }}

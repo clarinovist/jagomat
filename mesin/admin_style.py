@@ -98,7 +98,7 @@ body.admin-readonly {{
 .admin-grid-kpi {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr)); gap:{T.SP_3}; margin:{T.SP_4} 0; }}
 .admin-grid-kpi > * {{ min-width:0; }}
 .admin-kpi-carte header {{ display:flex; justify-content:space-between; align-items:start; gap:{T.SP_2}; }}
-.admin-kpi-carte header h2 {{ font-size:1.12rem; margin:0; }}
+.admin-kpi-carte header h2 {{ font-size:{T.UKURAN_BAGIAN_DEWASA}; margin:0; }}
 .admin-kpi-carte .admin-info {{ flex-shrink:0; }}
 .admin-kpi-carte .admin-info[open] {{ flex-shrink:1; }}
 .admin-kpi-carte p {{ margin:{T.SP_2} 0; }}
@@ -143,7 +143,7 @@ body.admin-readonly {{
 .admin-antrean-catatan, .admin-antrean-kosong {{ margin: 0; padding: {T.SP_4} {T.SP_5}; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; }}
 .admin-antrean-catatan {{ border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
 .admin-layanan {{ display: flex; flex-direction: column; }}
-.admin-layanan h2 {{ font-size: 1.1rem; }}
+.admin-layanan h2 {{ font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
 .admin-layanan dl {{ margin: 0; }}
 .admin-layanan dl > div {{ display: flex; justify-content: space-between; align-items: baseline; gap: {T.SP_3}; padding: {T.SP_3} 0; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
 .admin-layanan dt {{ color: {T.TEKS_VARIAN}; font-size: .8rem; }}
@@ -154,7 +154,7 @@ body.admin-readonly {{
 .admin-pendukung {{ display: grid; grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr); gap: {T.SP_4}; align-items: start; }}
 .admin-kartu.admin-aktivitas {{ padding: 0; }}
 .admin-aktivitas header {{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: {T.SP_2}; padding: {T.SP_4} {T.SP_5}; }}
-.admin-aktivitas h2 {{ margin: 0; font-size: 1.1rem; }}
+.admin-aktivitas h2 {{ margin: 0; font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
 .admin-aktivitas > ul {{ list-style: none; margin: 0; padding: 0; }}
 .admin-aktivitas li {{ display: flex; align-items: start; gap: {T.SP_3}; padding: {T.SP_3} {T.SP_5}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
 .admin-aktivitas li > div {{ min-width: 0; }}

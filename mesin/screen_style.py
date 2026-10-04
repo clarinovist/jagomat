@@ -26,13 +26,13 @@ GAYA_LAYAR = f"""
 * {{ box-sizing: border-box; }}
 html {{ -webkit-text-size-adjust: 100%; }}
 body {{
-  font-family: {T.FONT_LAYAR};
+  font-family: {T.FONT_BODY};
   font-size: {T.UKURAN_BADAN_LAYAR}; line-height: {T.LINE_HEIGHT}; color: {T.TEKS_UTAMA}; margin: 0;
   background: {T.LATAR_MURID};
 }}
 .wrap {{ max-width: {T.LEBAR_KONTEN}; margin: 0 auto; padding: {T.SP_4} 0.9rem {T.SP_7}; }}
 h1 {{
-  font-size: 1.35rem; margin: 0.2rem 0 0.9rem; color: {T.TEKS_JUDUL};
+  font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_JUDUL_DEWASA}; margin: 0.2rem 0 0.9rem; color: {T.TEKS_JUDUL};
   display: flex; align-items: center; gap: {T.SP_2};
 }}
 /* Header kartu-teal di mockup lembar; hanya dekoratif, tanpa fungsi. */

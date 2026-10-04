@@ -845,13 +845,13 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
 GAYA_KONFIRMASI = f"""
 * {{ box-sizing: border-box; }}
 body {{
-  font-family: {T.FONT_LAYAR}; font-size: {T.UKURAN_BADAN_LAYAR};
+  font-family: {T.FONT_BODY}; font-size: {T.UKURAN_BADAN_LAYAR};
   line-height: {T.LINE_HEIGHT}; color: {T.TEKS_UTAMA}; margin: 0;
   background: {T.LATAR_MURID};
 }}
 .bungkus {{ max-width: 900px; margin: 0 auto; padding: {T.SP_4} 0.9rem {T.SP_7}; }}
 a {{ color: {T.AKSEN_TEAL_TUA}; }}
-h1 {{ font-size: 1.4rem; color: {T.TEKS_JUDUL}; }}
+h1 {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_JUDUL_DEWASA}; color: {T.TEKS_JUDUL}; }}
 .jejak {{ font-size: .88rem; margin: 0 0 .8rem; }}
 .jejak a {{ color: {T.TEKS_SUBTLE}; text-decoration: none; }}
 .kartu {{
