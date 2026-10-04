@@ -274,7 +274,7 @@ body.admin-readonly {{
 .admin-footer {{ margin-top: {T.SP_6}; color: {T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; }}
 :focus-visible {{ outline: 3px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 .admin-menu :focus-visible {{ outline-color: {T.AKSEN_TEAL_TUA}; }}
-@media (max-width: 75rem) {{
+@media (max-width:{T.LEBAR_LANDING}) {{
   .admin-form-cari, .admin-form-cari.admin-form-siswa {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
   .admin-form-cari > :first-child {{ grid-column: 1 / -1; }}
   .admin-komando, .admin-pendukung {{ grid-template-columns: minmax(0, 1fr); }}
