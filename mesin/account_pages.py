@@ -41,8 +41,8 @@ PETA_SECTION_AKUN = {
     "tingkat": "siswa",
     "kelas_sekolah": "siswa",
     "siswa_hapus": "siswa",
-    "akun_murid_tambah": "akun-murid",
-    "akun_murid_hapus": "akun-murid",
+    "akun_murid_tambah": "siswa",
+    "akun_murid_hapus": "siswa",
     "akun_murid_sandi": "siswa",
 }
 
@@ -160,8 +160,9 @@ def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
     """Satu baris tabel Siswa: nama, kelas, sesi, status akun, dan aksi.
 
     Kolom "Akun latihan" lama dihapus — isinya (nama login) hampir selalu
-    sama dengan nama anak, jadi redundan; nama login tetap terlihat di tab
-    Akun latihan. Status akun, input sandi baru, dan tombol setel pindah ke
+    sama dengan nama anak, jadi redundan; nama login terlihat di subbagian
+    Perbaikan login bila diperlukan. Status memakai ikon+teks agar terbaca
+    screen-reader; input sandi baru dan tombol setel pindah ke
     baris ini supaya semua tindakan pada anak ada di satu tempat.
     """
     import students as _murid
@@ -178,7 +179,7 @@ def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
     ).fetchone()["n"]
     login = _murid.akun_murid_dari_siswa(kon, s["id"])
     if login:
-        status = '<span class="status-ok">terhubung</span>'
+        status = '<span class="status-ok"><span aria-hidden="true">●</span> terhubung</span>'
         sandi = (
             '<form method="post" action="/akun" class="akun-form-aksi akun-form-sandi">'
             '<input type="hidden" name="aksi" value="akun_murid_sandi">'
@@ -193,7 +194,7 @@ def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
         )
     else:
         status = (
-            '<a class="status-buruk" href="/akun?section=akun-murid">'
+            '<a class="status-buruk" href="/akun?section=siswa#perbaikan-login">'
             "belum ada login</a>"
         )
         sandi = ""
@@ -213,6 +214,26 @@ def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
         f"</form></div></td></tr>"
     )
 
+def _perlu_perbaikan_login(kon, pengguna, peran) -> bool:
+    """Ada anak tanpa login atau akun yatim? Buka subbagian bila ya."""
+    import students as _murid
+
+    filter_siswa = None if (peran == "admin" or pengguna is None) else pengguna
+    for s in database.daftar_siswa(kon, filter_siswa):
+        if _murid.akun_murid_dari_siswa(kon, s["id"]) is None:
+            return True
+    akun_murid = [a for a in auth.muat_akun() if a.get("peran") == "murid"]
+    if pengguna is not None and peran != "admin":
+        akun_murid = [
+            a
+            for a in akun_murid
+            if _akun_murid_milik(kon, pengguna, peran, a["pengguna"])
+        ]
+    return any(
+        _murid.siswa_dari_akun(kon, a["pengguna"]) is None for a in akun_murid
+    )
+
+
 def halaman_akun(
     kon,
     pesan: str = "",
@@ -228,10 +249,11 @@ def halaman_akun(
 ) -> bytes:
     """Kelola sandi dan daftar siswa — sidebar + section, tanpa JS.
 
-    Satu halaman, tiga section via ?section=: "akun" (ganti sandi),
-    "siswa" (daftar anak + hapus aman), "akun-murid" (akun latihan anak).
+    Satu halaman, dua section via ?section=: "akun" (ganti sandi),
+    "siswa" (daftar anak + perbaikan login kasus tepi). "akun-murid"
+    tetap diterima sebagai alias lama menuju "siswa".
     Nilai tak dikenal jatuh ke "akun". Admin full-write (4 Sep 2026)
-    melihat SEMUA keluarga di section siswa/akun-murid.
+    melihat SEMUA keluarga di section siswa.
 
     `pengguna`/`peran` berasal dari sesi: guru melihat & mengelola
     keluarganya saja. Panggilan langsung tanpa `pengguna` (mode lokal,
@@ -245,6 +267,9 @@ def halaman_akun(
     if section not in ("akun", "siswa", "akun-murid", "arsip-pendamping"):
         # Nilai asing dari URL jatuh ke bawaan.
         section = "akun"
+    if section == "akun-murid":
+        # Alias lama: tab Akun latihan sudah digabung ke Siswa.
+        section = "siswa"
     if peran == "admin" and section not in ("akun", "arsip-pendamping"):
         section = "akun"
 
@@ -333,9 +358,16 @@ def halaman_akun(
         f"</form></div>"
     )
     if section == "siswa" and peran != "admin":
-        isi_section = kartu_siswa + kartu_anak
-    elif section == "akun-murid" and peran != "admin":
-        isi_section = _kartu_akun_murid(kon, pengguna, peran)
+        terbuka = " open" if _perlu_perbaikan_login(kon, pengguna, peran) else ""
+        sub_login = (
+            '<details class="rincian-ui-st" id="perbaikan-login"'
+            f"{terbuka}>"
+            "<summary>Perbaikan login (kasus tepi)</summary>"
+            '<p class="sub">Hanya bila ada anak tanpa akun masuk atau '
+            "akun yatim. Alur normal sudah membuatkan akun otomatis.</p>"
+            f"{_kartu_akun_murid(kon, pengguna, peran)}</details>"
+        )
+        isi_section = kartu_siswa + kartu_anak + sub_login
     elif section == "arsip-pendamping":
         isi_section = arsip_pendamping or kartu_sandi
         if not arsip_pendamping:
@@ -354,10 +386,7 @@ def halaman_akun(
         isi_section += analitik
     item = [("akun", "Akun saya", "/akun?section=akun")]
     if peran != "admin":
-        item.extend((
-            ("siswa", "Siswa", "/akun?section=siswa"),
-            ("akun-murid", "Akun latihan", "/akun?section=akun-murid"),
-        ))
+        item.append(("siswa", "Siswa", "/akun?section=siswa"))
     if arsip_pendamping:
         item.append(("arsip-pendamping", "Arsip percakapan lama", "/akun?section=arsip-pendamping"))
     if peran == "guru":

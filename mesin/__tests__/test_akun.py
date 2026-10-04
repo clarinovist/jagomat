@@ -271,8 +271,9 @@ def test_kartu_akun_murid_tanpa_status_dan_sandi(siap):
         database.tambah_siswa(kon, "Andi")
         auth.tambah_akun("Hantu", "rahasia-hantu-123", "murid")
         h = account_pages.halaman_akun(kon, section="akun-murid").decode()
-    assert 'data-label="Status"' not in h
-    assert 'value="akun_murid_sandi"' not in h
+    blok = h.split('id="perbaikan-login"', 1)[1]
+    assert 'data-label="Status"' not in blok
+    assert 'value="akun_murid_sandi"' not in blok
     assert "belum terhubung ke siswa" in h.lower()
     assert "confirm(" in h
 
@@ -596,7 +597,7 @@ def test_status_belum_ada_login_menuju_section_perbaikan(siap):
         database.tambah_siswa(kon, "Sinta", pemilik="guru")
         h = account_pages.halaman_akun(kon, section="siswa").decode()
     assert "belum ada login" in h
-    assert 'href="/akun?section=akun-murid"' in h
+    assert 'href="/akun?section=siswa#perbaikan-login"' in h
 
 
 # ── Sidebar + section (plan 2026-08-30) ───────────────────────────────
@@ -608,7 +609,7 @@ def test_section_bawaan_akun_dengan_navigasi_samping(siap):
     assert "Ganti sandi" in h
     assert "nav-samping" in h
     assert 'href="/akun?section=siswa"' in h
-    assert 'href="/akun?section=akun-murid"' in h
+    assert 'href="/akun?section=akun-murid"' not in h, "tab Akun latihan sudah digabung ke Siswa"
     assert "Tambah siswa" not in h, "section lain bocor ke section akun"
     assert "Akun murid" not in h
 
@@ -621,7 +622,8 @@ def test_section_siswa_memuat_daftar_dan_form(siap):
     assert "Tambah siswa" not in h, "form tambah siswa sudah tidak ada"
     assert "Tambah anak" in h
     assert "Ganti sandi" not in h
-    assert "Akun murid" not in h
+    assert "Perbaikan login" in h, "subbagian login ikut di tab Siswa"
+    assert "Akun murid" in h
 
 
 def test_section_akun_murid_memuat_kartunya(siap):
@@ -661,7 +663,8 @@ def test_peta_aksi_ke_section_lengkap():
         assert aksi in web.PETA_SECTION_AKUN, f"aksi {aksi} tak dipetakan"
     assert web.PETA_SECTION_AKUN["siswa_hapus"] == "siswa"
     assert "siswa" not in web.PETA_SECTION_AKUN, "aksi siswa sudah dihapus"
-    assert web.PETA_SECTION_AKUN["akun_murid_tambah"] == "akun-murid"
+    assert web.PETA_SECTION_AKUN["akun_murid_tambah"] == "siswa"
+    assert web.PETA_SECTION_AKUN["akun_murid_hapus"] == "siswa"
     assert web.PETA_SECTION_AKUN["sandi"] == "akun"
 
 
