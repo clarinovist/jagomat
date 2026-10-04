@@ -126,8 +126,8 @@ def test_salah_nt_dan_belum_dinilai_tidak_diringkas(server, cara, kode, jawaban,
 
 
 @pytest.mark.parametrize('cara,paham,belum,indikator', [
-    ('Cara', 'ragu', False, 'Masih ragu'),
-    ('Cara', 'menghafal', False, 'Cenderung menghafal'),
+    ('Cara', 'ragu', False, 'Belum lancar menjelaskan'),
+    ('Cara', 'menghafal', False, 'Hafal hasil, tak bisa menjelaskan cara'),
     ('[pilihan] tebak — catatan', '', False, 'Anak menandai menebak'),
     ('[pilihan] bingung', '', False, 'Anak menandai bingung'),
     ('Cara', '', True, 'Belum pernah melihat soal seperti ini'),

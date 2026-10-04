@@ -80,7 +80,7 @@ def test_salah_diputuskan_guru_bisa_ringkas_dan_ragu_bukan_klaim_penguasaan(db):
         kartu = Kartu(isi).kartu
         assert 'open' not in kartu[f'tinjau-soal-{ids[1]}'][1]
         assert 'open' not in kartu[f'tinjau-soal-{ids[2]}'][1]
-        assert 'Jawaban tepat · Masih ragu' in isi
+        assert 'Jawaban tepat · Belum lancar menjelaskan' in isi
         assert 'Tinjauan tercatat bukan berarti materi sudah dikuasai.' in isi
         assert 'koreksi-tercatat-st' in isi
 

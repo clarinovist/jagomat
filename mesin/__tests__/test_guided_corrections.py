@@ -40,7 +40,7 @@ def test_radio_empat_pilihan_native_tanpa_menciptakan_bukti(server):
         identitas = re.search(r'id="([^"]*)"', r)[1]
         assert f'<label for="{identitas}">' in isi
     assert data[f'cek_pemahaman_{s.sid}'] == ''
-    assert 'Cenderung menghafal' in isi and 'Belum dicatat' in isi
+    assert 'Hafal hasil, tak bisa menjelaskan cara' in isi and 'Belum dicatat' in isi
 
 
 @pytest.mark.parametrize('paham', ['', 'bisa_menjelaskan', 'ragu', 'menghafal'])

@@ -47,8 +47,8 @@ JENIS = {
     "maintenance": "Latihan pemeliharaan", "bukti_dibatalkan": "Bukti dikoreksi",
 }
 PEMAHAMAN = {
-    "bisa_menjelaskan": "Bisa menjelaskan", "ragu": "Masih ragu",
-    "menghafal": "Masih menghafal",
+    "bisa_menjelaskan": "Bisa menjelaskan", "ragu": "Belum lancar menjelaskan",
+    "menghafal": "Hafal hasil, tak bisa menjelaskan cara",
 }
 PENUTUP = {
     "putaran_ditutup": "Putaran ditutup", "diganti_level": "Variasi soal rencana berubah",

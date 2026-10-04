@@ -72,7 +72,7 @@ def test_pemahaman_dan_status_dilewati_dipulihkan_dari_snapshot_terakhir(db):
     centang = re.search(rf'<input[^>]+name="dilewati_{sid}"[^>]*>', halaman, re.S)
     assert pilihan
     assert 'type="radio"' in pilihan.group(0) and 'checked' in pilihan.group(0)
-    assert f'<label for="paham-{sid}-ragu">Masih ragu</label>' in halaman
+    assert f'<label for="paham-{sid}-ragu">Belum lancar menjelaskan</label>' in halaman
     assert centang and "checked" in centang.group(0)
     assert "Jangan sertakan soal ini dalam penilaian" in halaman
 

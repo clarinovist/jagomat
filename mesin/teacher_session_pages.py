@@ -424,8 +424,8 @@ def halaman_sesi_stitch(
             for nilai, label in (
                 ("", "Belum dicatat (boleh dilewati)"),
                 ("bisa_menjelaskan", "Bisa menjelaskan"),
-                ("ragu", "Masih ragu"),
-                ("menghafal", "Cenderung menghafal"),
+                ("ragu", "Belum lancar menjelaskan"),
+                ("menghafal", "Hafal hasil, tak bisa menjelaskan cara"),
             )
         )
         cek_penguasaan = info["tujuan"] in {"evaluasi", "checkpoint"}
@@ -437,8 +437,8 @@ def halaman_sesi_stitch(
         )
         catatan = []
         label_pemahaman = {
-            "bisa_menjelaskan": "Bisa menjelaskan", "ragu": "Masih ragu",
-            "menghafal": "Cenderung menghafal",
+            "bisa_menjelaskan": "Bisa menjelaskan", "ragu": "Belum lancar menjelaskan",
+            "menghafal": "Hafal hasil, tak bisa menjelaskan cara",
         }
         if pemahaman_terpilih:
             catatan.append(label_pemahaman[pemahaman_terpilih])
