@@ -352,22 +352,25 @@ def halaman_akun(
 
     if section == 'akun' and peran == 'guru':
         isi_section += analitik
-    item = [("akun", "Akun saya")]
+    item = [("akun", "Akun saya", "/akun?section=akun")]
     if peran != "admin":
-        item.extend((("siswa", "Siswa"), ("akun-murid", "Akun latihan")))
+        item.extend((
+            ("siswa", "Siswa", "/akun?section=siswa"),
+            ("akun-murid", "Akun latihan", "/akun?section=akun-murid"),
+        ))
     if arsip_pendamping:
-        item.append(("arsip-pendamping", "Arsip percakapan lama"))
+        item.append(("arsip-pendamping", "Arsip percakapan lama", "/akun?section=arsip-pendamping"))
+    if peran == "guru":
+        if langganan_produksi:
+            item.append(("langganan", "Langganan", "/langganan"))
+        elif langganan_sandbox:
+            item.append(("langganan", "Langganan sandbox", "/langganan"))
     nav = "".join(
-        f'<a href="/akun?section={sid}"'
+        f'<a href="{href}"'
         + (' class="aktif" aria-current="page"' if sid == section else "")
-        + f">{label}</a>"
-        for sid, label in item
+        + f'>{label}</a>'
+        for sid, label, href in item
     )
-
-    if langganan_sandbox and peran == "guru":
-        nav += '<a href="/langganan">Langganan sandbox</a>'
-    if langganan_produksi and peran == "guru":
-        nav += '<a href="/langganan">Langganan</a>'
 
     return _halaman(
         "Akun",
