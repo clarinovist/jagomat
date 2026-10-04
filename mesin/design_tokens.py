@@ -484,3 +484,9 @@ AKUN_JARAK_FORM = ".4rem"
 AKUN_JARAK_TOMBOL = ".6rem"
 AKUN_JARAK_CATATAN = ".7rem"
 AKUN_JARAK_BLOK = ".8rem"
+
+# Gerak layar (CSS-only, Zero-JS): dipakai layar saja; cetak +
+# prefers-reduced-motion wajib mematikannya di stylesheet.
+DURASI_CEPAT = "0.15s"
+DURASI_STANDAR = "0.35s"
+DURASI_LAMBAT = "0.6s"

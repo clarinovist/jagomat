@@ -257,6 +257,37 @@ tr.sorot-baru a {{ color: {T.TEKS_INVERS}; text-decoration: underline; }}
 }}
 .pil-sesi .pil:hover {{ border-color: {T.AKSEN_TEAL_TUA}; }}
 
+/* ── Gerak modern CSS-only (2026-10-04, Opsi 1, Zero-JS) ───────────────
+   Layar saja. Cetak + prefers-reduced-motion dimatikan di bawah. */
+button, .btn {{
+  transition: transform {T.DURASI_CEPAT} ease, box-shadow {T.DURASI_CEPAT} ease, filter {T.DURASI_CEPAT} ease;
+}}
+button:hover:not(:disabled), .btn:hover {{
+  transform: translateY(-1px); box-shadow: {T.BAYANGAN_KARTU_HOVER};
+}}
+button:active:not(:disabled), .btn:active {{ transform: none; box-shadow: none; }}
+.topbar {{
+  position: sticky; top: 0; z-index: 30; background: {T.LATAR_MURID};
+}}
+details[open] > *:not(summary) {{ animation: kartu-masuk {T.DURASI_STANDAR} ease-out both; }}
+:target {{ animation: sorot-masuk 1.4s ease-out; }}
+@media (prefers-reduced-motion: no-preference) {{
+  .bungkus > .kartu {{ animation: kartu-masuk {T.DURASI_STANDAR} ease-out both; }}
+  .bungkus > .kartu:nth-child(2) {{ animation-delay: .04s; }}
+  .bungkus > .kartu:nth-child(3) {{ animation-delay: .08s; }}
+  @keyframes kartu-masuk {{
+    from {{ opacity: 0; transform: translateY(8px); }}
+    to {{ opacity: 1; transform: none; }}
+  }}
+}}
+@media (prefers-reduced-motion: reduce) {{
+  *, *::before, *::after {{ animation: none !important; transition: none !important; }}
+}}
+@media print {{
+  *, *::before, *::after {{ animation: none !important; transition: none !important; }}
+  .topbar {{ position: static; }}
+}}
+
 /* ── Form ──────────────────────────────────────────────────────────── */
 label {{ display: block; font-size: .84rem; color: {T.TEKS_SUBTLE}; margin: .55rem 0 .2rem; }}
 /* font-size 1rem, bukan .95rem: di iOS fokus pada input < 16px memicu

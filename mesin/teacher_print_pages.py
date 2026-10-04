@@ -156,7 +156,7 @@ def halaman_konfirmasi_hapus(
     )
 
 def _pil_sesi(kon, sesi_id: int, aktif: str) -> str:
-    """Pil navigasi di halaman sesi: Koreksi · Cetak · Lampiran."""
+    """Pil navigasi di halaman sesi: Koreksi · Lampiran (Cetak disembunyikan, rute tetap live)."""
     n_lamp = kon.execute(
         "SELECT COUNT(*) FROM lampiran WHERE sesi_id = ?", (sesi_id,)
     ).fetchone()[0]
@@ -167,7 +167,6 @@ def _pil_sesi(kon, sesi_id: int, aktif: str) -> str:
     return (
         '<nav class="pil-sesi" aria-label="Alat sesi">'
         + _a("koreksi", "Koreksi", f"/sesi/{sesi_id}")
-        + _a("cetak", "Cetak", f"/sesi/{sesi_id}/cetak")
         + _a("lampiran", f"Lampiran ({n_lamp})", f"/sesi/{sesi_id}/lampiran")
         + "</nav>"
     )

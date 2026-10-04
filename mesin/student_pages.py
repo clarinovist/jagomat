@@ -639,10 +639,8 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
             + ", {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},"
             "body:'aksi=mulai',keepalive:true}).catch(function(){});</script>"
         )
+    # Cetak disembunyikan (2026-10-04, Opsi 1): tanpa tombol window.print, hanya Keluar.
     navigasi_bawah = "" if akses_tautan else (
-        '<div class="kerja-navigasi-st hanya-layar">'
-        '<button class="kerja-btn-sekunder-st" type="button" onclick="window.print()">'
-        '<span class="material-symbols-outlined" style="font-size:1.1rem">print</span> Cetak / PDF</button></div>'
         '<form method="post" action="/keluar" class="hanya-layar" style="margin-top:0.7rem">'
         '<button class="kerja-btn-sekunder-st" type="submit">Keluar</button></form>'
     )

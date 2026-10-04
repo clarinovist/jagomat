@@ -75,10 +75,11 @@ def _pil_sesi_stitch(kon, sesi_id: int, aktif: str) -> str:
         cls = "aktif" if kunci == aktif else ""
         kini = ' aria-current="page"' if kunci == aktif else ''
         return f'<a class="{cls}" href="{href}"{kini}>{label}</a>'
+    # Cetak disembunyikan (2026-10-04, Opsi 1): rute /sesi/<id>/cetak tetap live
+    # via deep-link, hanya CTA pil-nya yang tidak ditampilkan.
     return (
         '<nav class="pil-sesi-st" aria-label="Alat sesi">'
         + _a("koreksi", "Koreksi", f"/sesi/{sesi_id}")
-        + _a("cetak", "Cetak", f"/sesi/{sesi_id}/cetak")
         + _a("lampiran", f"Lampiran ({n_lamp})", f"/sesi/{sesi_id}/lampiran")
         + "</nav>"
     )

@@ -2946,7 +2946,7 @@ CSS_SESI = f"""
   padding: {T.SP_3} {T.SP_4}; margin: 0 0 {T.SP_4}; font-size: .95rem;
 }}
 
-/* Pil navigasi antar-alat sesi (Koreksi · Cetak · Lampiran). */
+/* Pil navigasi antar-alat sesi (Koreksi · Lampiran; Cetak disembunyikan 2026-10-04). */
 .pil-sesi-st {{
   display: flex; gap: {T.SP_2}; flex-wrap: wrap;
   margin: 0 0 {T.SP_4};
@@ -2963,6 +2963,33 @@ CSS_SESI = f"""
 .pil-sesi-st a.aktif {{
   background: {T.LATAR_SEKUNDER_NETRAL}; color: {T.TEKS_JUDUL};
   border-color: {T.BORDER_VARIAN};
+}}
+
+/* ── Gerak modern CSS-only (2026-10-04, Opsi 1, Zero-JS) ────────────────
+   Kunci: layar saja; hormati reduced-motion; cetak dimatikan. */
+.pil-sesi-st a, .menu-isi a, .menu-isi button {{
+  transition: transform {T.DURASI_CEPAT} ease, background-color {T.DURASI_CEPAT} ease;
+}}
+.pesan-st, .status-sesi-st {{
+  animation: masuk-st {T.DURASI_STANDAR} ease-out both;
+}}
+details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-out both; }}
+:target {{ animation: denyut-st 1.2s ease-out; }}
+@media (prefers-reduced-motion: no-preference) {{
+  @keyframes masuk-st {{
+    from {{ opacity: 0; transform: translateY(8px); }}
+    to {{ opacity: 1; transform: none; }}
+  }}
+  @keyframes denyut-st {{
+    0% {{ filter: brightness(1.25); }}
+    100% {{ filter: none; }}
+  }}
+}}
+@media (prefers-reduced-motion: reduce) {{
+  *, *::before, *::after {{ animation: none !important; transition: none !important; }}
+}}
+@media print {{
+  *, *::before, *::after {{ animation: none !important; transition: none !important; }}
 }}
 
 /* Status alur sesi sebelum/ sesudah pengumpulan. */
