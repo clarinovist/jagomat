@@ -246,7 +246,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-champs-st .st-tombol-coral {{ width:fit-content; }}
 .profil-workspace-st .profil-assistant-st {{ min-width:0; }}
 .profil-workspace-st .profil-assistant-st .pendamping-inline {{ margin:0; min-width:0; }}
-.profil-workspace-st .profil-assistant-st .pendamping-inline > details > summary {{ font-size:1.1rem; }}
+.profil-workspace-st .profil-assistant-st .pendamping-inline > details > summary {{ font-size:{T.UKURAN_BAGIAN_DEWASA}; }}
 .profil-workspace-st .profil-assistant-st textarea {{ max-width:100%; }}
 .profil-workspace-st .profil-taches-st {{ margin-top:{T.SP_5}; }}
 .profil-workspace-st .profil-arsip-st {{ background:{T.LATAR_KARTU}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; overflow:hidden; }}
@@ -290,7 +290,7 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .profil-champs-st .mode-opsi {{ margin:0; }}
 }}
 @media(max-width:{T.BATAS_TABLET}) {{
- .profil-workspace-st .profil-tabs-st {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; overflow-x:hidden; padding-bottom:{T.SP_1}; font-size:.7rem; }}
+ .profil-workspace-st .profil-tabs-st {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; overflow-x:hidden; padding-bottom:{T.SP_1}; font-size:{T.UKURAN_TEKS_META}; }}
  .profil-workspace-st .profil-tabs-st a {{ justify-content:center; padding:{T.SP_2} {T.SP_1}; white-space:nowrap; text-align:center; letter-spacing:-.02em; }}
  .profil-workspace-st .profil-filter-st {{ grid-template-columns:minmax(0,1fr); padding:{T.SP_4}; }}
  .profil-workspace-st .profil-filter-st button {{ width:100%; }}
@@ -316,7 +316,7 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .tabel-riwayat-st thead {{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }}
  .profil-workspace-st .tabel-riwayat-st tr {{ display:flex; flex-direction:column; gap:{T.SP_2}; padding:{T.SP_4}; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
  .profil-workspace-st .tabel-riwayat-st td {{ padding:0; border:0; min-width:0; line-height:1.4; }}
- .profil-workspace-st .riwayat-latihan-st strong {{ font-size:.9375rem; line-height:1.4; }}
+ .profil-workspace-st .riwayat-latihan-st strong {{ font-size:{T.UKURAN_TEKS_BANTUAN}; line-height:1.4; }}
  .profil-workspace-st .riwayat-latihan-st .riwayat-jenis-st,.profil-workspace-st .riwayat-latihan-st .riwayat-meta-st {{ display:inline; font-size:{T.UKURAN_TEKS_META}; line-height:1.4; }}
  .profil-workspace-st .riwayat-latihan-st .riwayat-meta-st::before {{ content:' · '; }}
  .profil-workspace-st .tabel-riwayat-st .badge-direview {{ max-width:100%; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.4; }}

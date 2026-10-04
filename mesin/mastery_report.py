@@ -27,7 +27,7 @@ GAYA_PETA = f"""
 .laporan-ringkasan-grid .peta-materi-st > * {{position:relative;z-index:1;}}
 .peta-materi-st .peta-kepala {{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:{T.SP_4};align-items:center;}}
 .peta-materi-st .peta-angka {{font-size:{T.UKURAN_ANGKA_DEWASA};font-weight:800;line-height:1.2;color:{T.TEKS_JUDUL};}}
-.peta-materi-st .peta-angka small {{display:inline;font-size:1.1rem;font-weight:600;line-height:1.5;}}
+.peta-materi-st .peta-angka small {{display:inline;font-size:{T.UKURAN_BAGIAN_DEWASA};font-weight:600;line-height:1.5;}}
 .peta-materi-st .peta-empty-st {{max-width:30rem;padding:{T.SP_4};background:{T.LATAR_CATATAN};border:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN};border-radius:{T.RADIUS_SEDANG};}}
 .peta-materi-st .peta-empty-st p {{margin:0;}}
 .peta-materi-st .peta-empty-st p + p {{margin-top:{T.SP_2};}}
@@ -45,7 +45,7 @@ GAYA_PETA = f"""
 .peta-materi-st .peta-detail {{min-width:0;margin:0;}}
 .peta-materi-st .peta-auto-lihat {{display:none;}}
 .peta-materi-st .peta-kembali {{display:none;}}
-.peta-materi-st .peta-status {{display:block;font-size:.85rem;font-weight:600;color:{T.TEKS_SUBTLE};margin:{T.SP_2} 0;}}
+.peta-materi-st .peta-status {{display:block;font-size:{T.UKURAN_TEKS_LABEL};font-weight:600;color:{T.TEKS_SUBTLE};margin:{T.SP_2} 0;}}
 .peta-materi-st .peta-status-terbukti {{color:{T.TEKS_TERSIMPAN};}}
 @media(min-width:46.01rem) and (max-width:63.99rem) {{
  .peta-materi-st .peta-daftar {{grid-template-columns:minmax(0,1fr);}}
@@ -56,7 +56,7 @@ GAYA_PETA = f"""
 .peta-materi-st .peta-target > li {{padding:{T.SP_3} 0;border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS};overflow-wrap:anywhere;}}
 .peta-materi-st .peta-target p {{margin:{T.SP_2} 0;}}
 .peta-materi-st .peta-bukti {{padding-left:{T.SP_5};}}
-.peta-materi-st .peta-aktivitas {{font-size:.95rem;}}
+.peta-materi-st .peta-aktivitas {{font-size:{T.UKURAN_TEKS_BANTUAN};}}
 @media(max-width:{T.BATAS_KOLOM_BACA}) {{
  .peta-materi-st .peta-kepala {{grid-template-columns:minmax(0,1fr);}}
  .peta-materi-st .peta-panel {{grid-template-columns:minmax(0,1fr);}}

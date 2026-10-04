@@ -38,7 +38,7 @@ body.admin-readonly {{
   border-radius: {T.RADIUS_KARTU}; font: 800 1.25rem {T.FONT_HEADLINE}; }}
 .admin-topbar .menu-pengguna {{ position: relative; min-width: 0; }}
 .admin-topbar .menu-pengguna summary {{ cursor: pointer; overflow-wrap: anywhere; padding: {T.SP_2};
-  min-height: {T.TARGET_SENTUH}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL}; font-size: .85rem; }}
+  min-height: {T.TARGET_SENTUH}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL}; font-size:{T.UKURAN_TEKS_LABEL}; }}
 .admin-topbar .menu-pengguna summary .admin-badge {{ margin: 0; }}
 .admin-topbar .menu-isi {{ position: absolute; right: 0; z-index: 20;
   min-width: 12rem; padding: {T.SP_3}; background: {T.LATAR_KARTU_MURID};
@@ -46,7 +46,7 @@ body.admin-readonly {{
 .admin-topbar .menu-isi a {{ display: block; padding: {T.SP_2}; color: {T.AKSEN_TEAL_TUA}; }}
 .admin-topbar .menu-isi button {{ width: 100%; min-height: {T.TARGET_SENTUH}; margin-top: {T.SP_2}; }}
 .admin-identitas {{ margin: auto 0 0; padding: {T.SP_4} {T.SP_2} 0; color: {T.TEKS_JUDUL};
-  border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; font-size: .8rem; overflow-wrap: anywhere; }}
+  border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; font-size:{T.UKURAN_TEKS_CATATAN}; overflow-wrap: anywhere; }}
 .admin-identitas strong, .admin-identitas span {{ display: block; }}
 .admin-identitas span {{ color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; margin-top: {T.SP_1}; }}
 .admin-layout {{ display: grid; grid-template-columns: 14.5rem minmax(0, 1fr); min-height: 100vh; }}
@@ -109,7 +109,7 @@ body.admin-readonly {{
 .admin-angka {{ font-size:{T.UKURAN_ANGKA_DEWASA}; color:{T.TEKS_JUDUL}; }}
 .admin-info {{ display:inline-block; vertical-align:middle; font-size:1rem; font-weight:normal; }}
 .admin-info summary {{ cursor:pointer; min-width:{T.TARGET_SENTUH}; min-height:{T.TARGET_SENTUH}; display:flex; align-items:center; justify-content:center; }}
-.admin-info p {{ max-width:22rem; font-size:.88rem; overflow-wrap:anywhere; }}
+.admin-info p {{ max-width:22rem; font-size:{T.UKURAN_TEKS_LABEL}; overflow-wrap:anywhere; }}
 .admin-kartu > summary {{ cursor:pointer; min-height:{T.TARGET_SENTUH}; font-weight:700; }}
 .admin-grid-stat {{
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -130,14 +130,14 @@ body.admin-readonly {{
 .admin-antrean-item {{ padding: {T.SP_4}; display: flex; flex-direction: column; border-right: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
 .admin-antrean-item:last-child {{ border-right: 0; }}
 .admin-antrean-urutan {{ display: flex; align-items: center; justify-content: space-between; gap: {T.SP_2}; }}
-.admin-antrean-urutan span {{ color: {T.TEKS_VARIAN}; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }}
+.admin-antrean-urutan span {{ color: {T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }}
 .admin-antrean-urutan strong {{ color: {T.BADGE_ADMIN_TEKS}; font: 800 1.5rem {T.FONT_HEADLINE}; }}
 .admin-prioritas .admin-antrean-item h3 {{ color: {T.TEKS_JUDUL}; font-size: 1rem; margin: {T.SP_4} 0 {T.SP_2}; }}
-.admin-antrean-item p {{ color: {T.TEKS_VARIAN}; font-size: .8rem; margin: 0 0 {T.SP_2}; }}
+.admin-antrean-item p {{ color: {T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; margin: 0 0 {T.SP_2}; }}
 .admin-antrean-rincian {{ margin: 0 0 {T.SP_3}; padding-left: {T.SP_4}; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; }}
 .admin-antrean-item p.admin-antrean-rincian {{ color: {T.TEKS_VARIAN}; }}
 .admin-antrean-cta {{ display: inline-flex; align-items: center; gap: {T.SP_2}; min-height: {T.TARGET_SENTUH};
-  margin-top: auto; font-size: .8rem; font-weight: 800; color: {T.AKSEN_TEAL_TUA}; text-underline-offset: .2em; }}
+  margin-top: auto; font-size:{T.UKURAN_TEKS_CATATAN}; font-weight: 800; color: {T.AKSEN_TEAL_TUA}; text-underline-offset: .2em; }}
 .admin-antrean-cta:hover {{ color: {T.AKSEN_TEAL_HOVER}; }}
 .admin-antrean-rincian a {{ color: {T.AKSEN_TEAL_TUA}; display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
 .admin-antrean-catatan, .admin-antrean-kosong {{ margin: 0; padding: {T.SP_4} {T.SP_5}; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; }}
@@ -146,11 +146,11 @@ body.admin-readonly {{
 .admin-layanan h2 {{ font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
 .admin-layanan dl {{ margin: 0; }}
 .admin-layanan dl > div {{ display: flex; justify-content: space-between; align-items: baseline; gap: {T.SP_3}; padding: {T.SP_3} 0; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
-.admin-layanan dt {{ color: {T.TEKS_VARIAN}; font-size: .8rem; }}
-.admin-layanan dd {{ margin: 0; text-align: right; font-weight: 700; font-size: .8rem; }}
+.admin-layanan dt {{ color: {T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; }}
+.admin-layanan dd {{ margin: 0; text-align: right; font-weight: 700; font-size:{T.UKURAN_TEKS_CATATAN}; }}
 .admin-layanan .admin-meta {{ font-size: {T.UKURAN_TEKS_META}; }}
 .admin-layanan-cta {{ color: {T.AKSEN_TEAL_TUA}; display: flex; justify-content: space-between; align-items: center;
-  min-height: {T.TARGET_SENTUH}; font-size: .85rem; font-weight: 800; margin-top: auto; text-decoration: none; }}
+  min-height: {T.TARGET_SENTUH}; font-size:{T.UKURAN_TEKS_LABEL}; font-weight: 800; margin-top: auto; text-decoration: none; }}
 .admin-pendukung {{ display: grid; grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr); gap: {T.SP_4}; align-items: start; }}
 .admin-kartu.admin-aktivitas {{ padding: 0; }}
 .admin-aktivitas header {{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: {T.SP_2}; padding: {T.SP_4} {T.SP_5}; }}
@@ -161,18 +161,18 @@ body.admin-readonly {{
 .admin-aktivitas-ikon {{ display: grid; place-items: center; flex-shrink: 0; width: {T.SP_6}; height: {T.SP_6}; background: {T.LATAR_SEKUNDER_LEMBUT}; color: {T.TEKS_JUDUL}; border-radius: {T.RADIUS_KECIL}; font-size: {T.UKURAN_TEKS_META}; font-weight: 800; }}
 .admin-aktivitas a {{ color: {T.AKSEN_TEAL_TUA}; text-underline-offset: .2em; }}
 .admin-aktivitas a.admin-aktivitas-judul {{ color: {T.TEKS_JUDUL}; font-size: {T.UKURAN_TEKS_BANTUAN}; font-weight: 750; }}
-.admin-aktivitas p {{ margin: {T.SP_1} 0 0; font-size: .8rem; color: {T.TEKS_VARIAN}; }}
-.admin-cepat h2 {{ font-size: 1.1rem; margin-bottom: {T.SP_1}; }}
+.admin-aktivitas p {{ margin: {T.SP_1} 0 0; font-size:{T.UKURAN_TEKS_CATATAN}; color: {T.TEKS_VARIAN}; }}
+.admin-cepat h2 {{ font-size:{T.UKURAN_BAGIAN_DEWASA}; margin-bottom: {T.SP_1}; }}
 .admin-cepat nav {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: {T.SP_2}; }}
 .admin-cepat nav a {{ display: flex; flex-direction: column; justify-content: center; min-height: {T.TINGGI_CTA};
   padding: {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_SEDANG}; text-decoration: none; color: {T.TEKS_JUDUL}; }}
 .admin-cepat nav a:hover {{ border-color: {T.AKSEN_TEAL_TUA}; background: {T.LATAR_SEKUNDER_LEMBUT}; }}
-.admin-cepat nav strong {{ font-size: .8rem; }}
+.admin-cepat nav strong {{ font-size:{T.UKURAN_TEKS_CATATAN}; }}
 .admin-cepat nav span {{ font-size: {T.UKURAN_TEKS_META}; color: {T.TEKS_VARIAN}; margin-top: {T.SP_1}; }}
 .admin-login-detail ul {{ list-style: none; padding: 0; }}
 .admin-login-detail li {{ padding: {T.SP_3} 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
 .admin-login-detail li strong, .admin-login-detail li span {{ display: block; }}
-.admin-login-detail li span {{ font-size: .85rem; color: {T.TEKS_VARIAN}; }}
+.admin-login-detail li span {{ font-size:{T.UKURAN_TEKS_LABEL}; color: {T.TEKS_VARIAN}; }}
 .admin-definisi {{ padding: {T.SP_3} {T.SP_4}; }}
 .admin-definisi > summary {{ color: {T.TEKS_JUDUL}; }}
 .admin-kartu, .admin-stat {{
@@ -189,7 +189,7 @@ body.admin-readonly {{
 .admin-stat strong {{ color: {T.TEKS_JUDUL}; font: 800 1.5rem {T.FONT_HEADLINE}; }}
 .admin-stat span {{ color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; }}
 .admin-utama main {{ overflow-wrap: anywhere; }}
-.admin-samping .admin-catatan {{ font-size: .85rem; }}
+.admin-samping .admin-catatan {{ font-size:{T.UKURAN_TEKS_LABEL}; }}
 .admin-catatan {{
   background: {T.LATAR_CATATAN}; border-color: {T.BORDER_CATATAN};
 }}
@@ -201,7 +201,7 @@ body.admin-readonly {{
   gap: {T.SP_3}; align-items: end;
 }}
 .admin-form-cari.admin-form-siswa {{ grid-template-columns: minmax(12rem, 1fr) repeat(3, minmax(8rem, auto)) auto; }}
-.admin-form-cari label {{ min-width: 0; display: grid; gap: {T.SP_1}; color: {T.TEKS_VARIAN}; font-size: .88rem; }}
+.admin-form-cari label {{ min-width: 0; display: grid; gap: {T.SP_1}; color: {T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_LABEL}; }}
 .admin-form-cari input, .admin-form-cari select {{
   width: 100%; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3};
   color: {T.TEKS_UTAMA}; background: {T.LATAR_KARTU_MURID};
@@ -246,12 +246,12 @@ body.admin-readonly {{
 .admin-tabel th {{ color: {T.TEKS_JUDUL}; background: {T.LATAR_SEKUNDER_LEMBUT}; }}
 .admin-tabel td[data-angka] {{ text-align: right; font-variant-numeric: tabular-nums; }}
 .admin-tabel a {{ color: {T.AKSEN_TEAL_TUA}; }}
-.admin-meta {{ color: {T.TEKS_VARIAN}; font-size: .85rem; }}
+.admin-meta {{ color: {T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_LABEL}; }}
 .admin-badge {{
   display: inline-flex; align-items: center; min-height: 1.8rem;
   margin: 0 {T.SP_1} {T.SP_1} 0; padding: {T.SP_1} {T.SP_2};
   border-radius: {T.RADIUS_PIL}; background: {T.LATAR_SEKUNDER_NETRAL};
-  color: {T.TEKS_VARIAN}; font-size: .78rem; font-weight: 700;
+  color: {T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; font-weight: 700;
 }}
 .admin-badge.perhatian {{ background: {T.LATAR_CATATAN}; color: {T.BADGE_ADMIN_TEKS}; }}
 .admin-badge.batal {{ background: {T.LATAR_GALAT}; color: {T.TEKS_GALAT}; }}
@@ -271,7 +271,7 @@ body.admin-readonly {{
 .admin-rincian dt {{ color: {T.TEKS_VARIAN}; font-weight: 700; }}
 .admin-rincian dd {{ margin: 0; overflow-wrap: anywhere; }}
 .admin-aksi-baca {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; }}
-.admin-footer {{ margin-top: {T.SP_6}; color: {T.TEKS_VARIAN}; font-size: .82rem; }}
+.admin-footer {{ margin-top: {T.SP_6}; color: {T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; }}
 :focus-visible {{ outline: 3px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 .admin-menu :focus-visible {{ outline-color: {T.AKSEN_TEAL_TUA}; }}
 @media (max-width: 75rem) {{
@@ -307,7 +307,7 @@ body.admin-readonly {{
   .admin-antrean-item:last-child {{ border-bottom: 0; }}
   .admin-prioritas-kepala {{ padding: {T.SP_4}; gap: {T.SP_2}; }}
   .admin-prioritas-kepala > div {{ min-width: 0; }}
-  .admin-total-temuan {{ flex: 0 0 5rem; font-size: .7rem; }}
+  .admin-total-temuan {{ flex: 0 0 5rem; font-size:{T.UKURAN_TEKS_META}; }}
   .admin-antrean-item p, .admin-antrean-rincian, .admin-antrean-item p.admin-antrean-rincian {{ font-size: {T.UKURAN_TEKS_LABEL}; }}
   .admin-antrean-item .admin-antrean-rincian {{ margin-bottom: {T.SP_1}; }}
   .admin-antrean-catatan, .admin-antrean-kosong {{ padding: {T.SP_4}; }}
