@@ -55,6 +55,9 @@ GAYA_PETA = f"""
 .peta-materi-st .peta-target {{list-style:none;padding:0;margin:0;}}
 .peta-materi-st .peta-target > li {{padding:{T.SP_3} 0;border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS};overflow-wrap:anywhere;}}
 .peta-materi-st .peta-target p {{margin:{T.SP_2} 0;}}
+.peta-materi-st .rincian-target-st {{padding:{T.SP_1} 0;}}
+.peta-materi-st .rincian-target-st > summary {{cursor:pointer;min-height:{T.TARGET_SENTUH};align-items:center;}}
+.peta-materi-st .rincian-target-st > summary > b {{margin-right:{T.SP_2};}}
 .peta-materi-st .peta-bukti {{padding-left:{T.SP_5};}}
 .peta-materi-st .peta-aktivitas {{font-size:{T.UKURAN_TEKS_BANTUAN};}}
 @media(max-width:{T.BATAS_KOLOM_BACA}) {{
@@ -123,10 +126,11 @@ def _rincian_target(target, hasil, tanggal):
                      f'{LABEL[pola.status]}{kapan}' + (f' · sesi {tautan}' if tautan else '') + '</li>')
     terpenuhi = sum(p.status == "terbukti" for p in hasil.pola)
     return (
-        f'<li><b>{html.escape(target.nama)}</b>'
+        '<li><details class="rincian-target-st">'
+        f'<summary><b>{html.escape(target.nama)}</b>'
         f'<span class="peta-status peta-status-{hasil.status}">{LABEL[hasil.status]}</span>'
-        f'<p class="peta-catatan"><span class="rasio-laporan">{terpenuhi}/{len(target.pola)}</span> pola menunjukkan pemahaman</p>'
-        '<ul class="peta-bukti">' + ''.join(bukti) + '</ul></li>'
+        f'<span class="peta-catatan"><span class="rasio-laporan">{terpenuhi}/{len(target.pola)}</span> pola menunjukkan pemahaman</span></summary>'
+        '<ul class="peta-bukti">' + ''.join(bukti) + '</ul></details></li>'
     )
 
 

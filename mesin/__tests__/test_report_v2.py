@@ -38,6 +38,9 @@ def hanya_penjelasan_dilipat(isi):
         if blok.startswith('<details class="bukti-konteks-rincian-st">'):
             assert '<summary>Rincian bukti dan pengaturan</summary>' in blok
             continue
+        if blok.startswith('<details class="rincian-target-st">'):
+            assert 'class="peta-bukti"' in blok
+            continue
         assert blok.startswith('<details class="rincian-ui-st"')
         assert not any(tag in blok for tag in ('<table', '<form', '<input', '<a ', '<section', '<ul'))
         assert any('<summary>' + judul + '</summary>' in blok for judul in (
