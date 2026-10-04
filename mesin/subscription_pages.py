@@ -25,7 +25,8 @@ def form(aksi, token, label, tambahan=""):
             + tambahan + '<button type="submit">' + html.escape(label) + '</button></form>')
 
 
-def ringkasan(pengguna, profil, invoice, token):
+def isi_ringkasan(profil, invoice, token):
+    """Fragmen kartu ringkasan tanpa bingkai halaman (untuk embed /akun)."""
     if invoice:
         isi = ('<section class="kartu"><h2>Tagihan simulasi</h2><p>Lanjutkan tagihan yang sudah dibuat. '
                'Muat ulang tidak membuat pembayaran kedua.</p><a class="tombol" href="/langganan/'
@@ -40,7 +41,11 @@ def ringkasan(pengguna, profil, invoice, token):
                + form('/langganan/siapkan', token, 'Tinjau tagihan simulasi', pilihan) + '</section>')
     else:
         isi = '<section class="kartu"><h2>Belum ada profil</h2><p>Siapkan profil sintetis di preview sebelum menguji pembayaran.</p></section>'
-    return bingkai(isi, pengguna=pengguna)
+    return isi
+
+
+def ringkasan(pengguna, profil, invoice, token):
+    return bingkai(isi_ringkasan(profil, invoice, token), pengguna=pengguna)
 
 
 def tagihan(pengguna, inv, *, token, status, boleh_buat=False, qr_url=""):

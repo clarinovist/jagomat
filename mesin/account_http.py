@@ -8,6 +8,52 @@ import sessions
 from support_pages import halaman_pesan as _halaman
 
 
+def _fragmen_langganan(penangan, ident):
+    """Bangun kartu ringkasan langganan untuk embed /akun?section=langganan.
+
+    Hanya display GET: memakai reader checkout + fragmen isi_ringkasan yang sama
+    dengan /langganan, tanpa mengubah ledger/POST/redirect finansial.
+    Mengembalikan string HTML inner (kartu) atau pesan galat generik.
+    """
+    import subscription as _d
+    try:
+        import subscription_checkout as _checkout
+        import subscription_http as _sandbox
+        import subscription_produksi_http as _produksi
+        if _produksi.ada(penangan):
+            import subscription_produksi_pages as _halaman_produksi
+            runtime = _produksi._runtime(penangan)
+            principal = _produksi._principal(penangan)
+            _produksi._limiti(principal)
+            _hasil = _checkout.ringkasan(*_produksi._paths(), principal, sakelar=runtime.sakelar)
+            _snapshot, _profil, _inv = _hasil
+            aktif = bool(runtime.sakelar.buat_pembayaran)
+            token = _produksi._token(penangan._ambil_token(), principal, "siapkan") if aktif else ""
+            return _halaman_produksi.isi_ringkasan(
+                _profil, _inv, token, merchant=runtime.config.merchant, aktif=aktif,
+            )
+        runtime_sandbox = _sandbox.runtime(penangan)
+        if runtime_sandbox is not None:
+            import subscription_pages as _halaman_sandbox
+            principal = _sandbox._principal(penangan, runtime_sandbox)
+            _hasil = _checkout.ringkasan(*runtime_sandbox.paths(), principal, sakelar=_sandbox.ON)
+            _snapshot, _profil, _inv = _hasil
+            token = _sandbox._token(runtime_sandbox, penangan._ambil_token(), principal, "siapkan")
+            return _halaman_sandbox.isi_ringkasan(_profil, _inv, token)
+    except _d.FiturNonaktif:
+        return (
+            '<section class="kartu"><h2>Langganan</h2>'
+            '<p class="peringatan">Pembayaran online belum diaktifkan pengelola.</p></section>'
+        )
+    except Exception:
+        pass
+    return (
+        '<section class="kartu"><h2>Langganan</h2>'
+        '<p class="peringatan">Ringkasan langganan sementara belum tersedia. '
+        '<a href="/langganan">Buka halaman tagihan</a>.</p></section>'
+    )
+
+
 def tangani_get(
     penangan,
     jalur: str,
@@ -72,18 +118,22 @@ def tangani_get(
                 panel_analitik = analitik.form_akun(penangan)
             except (LookupError, RuntimeError, OSError):
                 panel_analitik = "<p>Analitik opsional belum tersedia.</p>"
+        langganan_html = ""
+        if section == "langganan" and ident and ident[1] == "guru":
+            langganan_html = _fragmen_langganan(penangan, ident)
         hasil = halaman(
             kon,
             pengguna=ident[0] if ident else None,
             peran=ident[1] if ident else "guru",
             section=section,
             arsip_pendamping=arsip,
-            privat=bool(arsip or panel_analitik),
+            privat=bool(arsip or panel_analitik or langganan_html),
             analitik=panel_analitik,
             langganan_sandbox=subscription_http.runtime(penangan) is not None,
             langganan_produksi=subscription_produksi_http.ada(penangan),
+            langganan_html=langganan_html,
         )
-    if arsip or panel_analitik:
+    if arsip or panel_analitik or langganan_html:
         assistant_http._kirim_host_privat(penangan, hasil)
     else:
         penangan._kirim(hasil)

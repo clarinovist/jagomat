@@ -246,12 +246,15 @@ def halaman_akun(
     analitik: str = "",
     langganan_sandbox: bool = False,
     langganan_produksi: bool = False,
+    langganan_html: str = "",
 ) -> bytes:
     """Kelola sandi dan daftar siswa — sidebar + section, tanpa JS.
 
-    Satu halaman, dua section via ?section=: "akun" (ganti sandi),
-    "siswa" (daftar anak + perbaikan login kasus tepi). "akun-murid"
-    tetap diterima sebagai alias lama menuju "siswa".
+    Satu halaman, tiga section via ?section=: "akun" (ganti sandi),
+    "siswa" (daftar anak + perbaikan login kasus tepi),
+    "langganan" (ringkasan checkout inline, drill-down invoice tetap di
+    /langganan/<inv>). "akun-murid" tetap diterima sebagai alias lama
+    menuju "siswa".
     Nilai tak dikenal jatuh ke "akun". Admin full-write (4 Sep 2026)
     melihat SEMUA keluarga di section siswa.
 
@@ -264,7 +267,7 @@ def halaman_akun(
     dihapus dari sini — penjelasan singkat ada di bawah daftar siswa;
     siswa tanpa riwayat boleh dihapus beserta akun latihannya.
     """
-    if section not in ("akun", "siswa", "akun-murid", "arsip-pendamping"):
+    if section not in ("akun", "siswa", "akun-murid", "arsip-pendamping", "langganan"):
         # Nilai asing dari URL jatuh ke bawaan.
         section = "akun"
     if section == "akun-murid":
@@ -360,7 +363,23 @@ def halaman_akun(
         f'<button type="submit" class="tombol-coral">Buat anak &amp; akunnya</button>'
         f"</form></div>"
     )
-    if section == "siswa" and peran != "admin":
+    if section == "langganan" and peran == "guru" and (langganan_produksi or langganan_sandbox):
+        isi_section = langganan_html or (
+            '<div class="kartu"><h2>Langganan</h2>'
+            '<p class="sub">Ringkasan langganan belum tersedia. '
+            '<a href="/langganan">Buka halaman tagihan</a>.</p></div>'
+        )
+    elif section == "langganan":
+        section = "akun"
+        isi_section = kartu_sandi
+        if arsip_pendamping:
+            isi_section += (
+                '<div class="kartu"><details><summary>Arsip percakapan lama</summary>'
+                '<p class="sub">Percakapan umum lama tersedia hanya-baca.</p>'
+                '<a href="/akun?section=arsip-pendamping">Buka arsip</a>'
+                '</details></div>'
+            )
+    elif section == "siswa" and peran != "admin":
         terbuka = " open" if _perlu_perbaikan_login(kon, pengguna, peran) else ""
         sub_login = (
             '<details class="rincian-ui-st" id="perbaikan-login"'
@@ -394,9 +413,9 @@ def halaman_akun(
         item.append(("arsip-pendamping", "Arsip percakapan lama", "/akun?section=arsip-pendamping"))
     if peran == "guru":
         if langganan_produksi:
-            item.append(("langganan", "Langganan", "/langganan"))
+            item.append(("langganan", "Langganan", "/akun?section=langganan"))
         elif langganan_sandbox:
-            item.append(("langganan", "Langganan sandbox", "/langganan"))
+            item.append(("langganan", "Langganan sandbox", "/akun?section=langganan"))
     nav = "".join(
         f'<a href="{href}"'
         + (' class="aktif" aria-current="page"' if sid == section else "")

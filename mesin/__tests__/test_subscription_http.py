@@ -256,7 +256,7 @@ def test_batas_laju_sebelum_provider(uji):
 def test_account_link_hanya_saat_runtime_preview(uji):
     k=uji
     kode,isi,_=minta(k,'/akun')
-    assert kode==200 and '<a href="/langganan">Langganan sandbox</a>' in isi
+    assert kode==200 and '<a href="/akun?section=langganan">Langganan sandbox</a>' in isi
     del k.server.server.langganan_sandbox
     kode,isi,_=minta(k,'/akun')
     assert kode==200 and '/langganan' not in isi

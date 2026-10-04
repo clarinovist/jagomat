@@ -74,8 +74,8 @@ def belum_aktif(pengguna, sebab="belum_aktif"):
     return bingkai(isi, pengguna=pengguna)
 
 
-def ringkasan(pengguna, profil, invoice, token, *, merchant, aktif):
-    """Profil keluarga + titik mulai; tanpa enrollment pemilik tidak melihat form."""
+def isi_ringkasan(profil, invoice, token, *, merchant, aktif):
+    """Fragmen kartu ringkasan tanpa bingkai halaman (untuk embed /akun)."""
     kartu = []
     if invoice:
         kartu.append('<section class="kartu"><h2>Tagihan berjalan</h2>'
@@ -102,7 +102,12 @@ def ringkasan(pengguna, profil, invoice, token, *, merchant, aktif):
                      + '</p></section>')
     if invoice is None and profil and aktif:
         kartu.append(_disclosure(merchant))
-    return bingkai(''.join(kartu) + _bantuan(), pengguna=pengguna)
+    return ''.join(kartu) + _bantuan()
+
+
+def ringkasan(pengguna, profil, invoice, token, *, merchant, aktif):
+    """Profil keluarga + titik mulai; tanpa enrollment pemilik tidak melihat form."""
+    return bingkai(isi_ringkasan(profil, invoice, token, merchant=merchant, aktif=aktif), pengguna=pengguna)
 
 
 def tagihan(pengguna, inv, *, token, status, merchant, boleh_buat=False, boleh_periksa=False,

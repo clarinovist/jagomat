@@ -253,7 +253,7 @@ def test_tanpa_runtime_produksi_rute_tidak_dilayani(uji):
 def test_tautan_akun_muncul_hanya_saat_runtime_terpasang(uji):
     k = uji
     kode, isi, _ = minta(k, "/akun")
-    assert kode == 200 and ">Langganan</a>" in isi
+    assert kode == 200 and 'href="/akun?section=langganan">Langganan</a>' in isi
     del k.server.server.pembayaran_runtime
     kode, isi, _ = minta(k, "/akun")
     assert kode == 200 and 'href="/langganan"' not in isi
