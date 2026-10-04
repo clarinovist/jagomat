@@ -391,9 +391,10 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-tanggal-st {{ white-space:nowrap; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
 .profil-workspace-st .riwayat-hasil-st {{ color:{T.TEKS_JUDUL}; font-weight:650; }}
 .profil-workspace-st .riwayat-status-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_2} {T.SP_3}; line-height:1.5; }}
-.profil-workspace-st .riwayat-aksi-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_1} {T.SP_3}; border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; padding-top:{T.SP_3}; }}
+.profil-workspace-st .riwayat-aksi-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_1} {T.SP_3}; border-top:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; padding-top:{T.SP_2}; margin-top:{T.SP_1}; }}
 .profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ display:inline-flex; min-height:{T.TARGET_SENTUH}; align-items:center; color:{T.AKSEN_TEAL_TUA}; white-space:nowrap; font-weight:700; }}
-.profil-workspace-st .riwayat-kelola-st {{ width:100%; }}
+.profil-workspace-st .riwayat-kelola-st {{ margin-left:auto; }}
+.profil-workspace-st .riwayat-kelola-st[open] {{ flex-basis:100%; }}
 .profil-workspace-st .riwayat-kelola-st > summary {{ display:flex; align-items:center; min-height:{T.TARGET_SENTUH}; color:{T.TEKS_VARIAN}; cursor:pointer; font-size:{T.UKURAN_TEKS_CATATAN}; }}
 .profil-workspace-st .profil-lanjutan-st {{ grid-column:1/-1; }}
 .profil-workspace-st .profil-lanjutan-isi-st {{ display:grid; gap:{T.SP_4}; padding-bottom:{T.SP_4}; }}
@@ -429,7 +430,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-grup-st > ol::before {{ content:""; position:absolute; left:.55rem; top:.5rem; bottom:.5rem; width:2px; background:{T.BORDER_HALUS}; }}
 .profil-workspace-st .riwayat-kartu-st {{ position:relative; }}
 .profil-workspace-st .riwayat-kartu-st::before {{ content:""; position:absolute; left:-1.5rem; top:1.2rem; width:.7rem; height:.7rem; border-radius:50%; background:{T.AKSEN_MURID_UTAMA}; box-shadow:0 0 0 .25rem {T.LATAR_MURID}; }}
-.profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ display:inline-flex; min-height:{T.TINGGI_CTA}; align-items:center; justify-content:center; padding:0 {T.SP_5}; background:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_PUTIH}; border-radius:{T.RADIUS_KECIL}; text-decoration:none; font-weight:700; white-space:nowrap; }}
+.profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ display:inline-flex; min-height:{T.TARGET_SENTUH}; align-items:center; justify-content:center; padding:{T.SP_1} {T.SP_4}; background:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_PUTIH}; border-radius:{T.RADIUS_KECIL}; text-decoration:none; font-weight:700; font-size:{T.UKURAN_TEKS_LABEL}; white-space:nowrap; }}
 @media(min-width:49rem) {{
  .profil-workspace-st .profil-champs-st {{ grid-template-columns:repeat(2,minmax(0,1fr)); }}
  .profil-workspace-st .profil-champs-st > .strip-kolom > .mode-pilih {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }}
