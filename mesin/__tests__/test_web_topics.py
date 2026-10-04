@@ -398,7 +398,8 @@ def test_alur_guru_murid_jawab_laporan_bertopik(server):
 
     kode, isi, _ = server.minta(f"/anak/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU))
     assert kode == 200
-    assert '<th scope="col">Latihan</th>' in isi
+    assert 'riwayat-kartu-st' in isi
+    assert 'riwayat-grup-st' in isi
     assert "Pola Bilangan" in isi
 
 
