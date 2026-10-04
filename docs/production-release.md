@@ -1,5 +1,29 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy riwayat kartu timeline — 4 Oktober 2026
+
+Cutover terkontrol `deploy-v2` untuk revision `b08a00935ab44d65c060989daae8b8f099d466c4`
+(riwayat tabel menjadi kartu timeline grup tanggal + preset rentang cepat + sidebar
+lipat admin; dua assert kontrak test diselaraskan tanpa mengubah runtime).
+Kandidat digest `sha256:9e050502…`, recovery `1f056352…` digest `sha256:627104ba…`,
+kontrak persistensi identik `fc68c8bc…` (pair proof CI). Gate dispatch `37199029709`
+(delapan shard kandidat+recovery + build + uji pair) lulus; push `37198922110` hijau
+setelah selaras kontrak; mode tetap `migrasi`, job `pasang` CI tetap literal false.
+
+`PROBE_SKEMA` ringan kandidat terhadap metadata DB live (`mode=ro`/`query_only`,
+tanpa network, migrasi, atau import startup) lulus sebelum hold: label revisi image
+`b08a009` cocok digest exact, agregat live sesi 37/siswa 8. Bundle backup
+`deploy-b08a009-20261004T114300Z` (empat DB + auth `sandi.json`, SQLite backup API,
+tanpa prune, manifest integritas/FK/preservasi) lolos: latihan 7227, pendamping 44,
+admin-control 2288, ai-control 22. Rehearsal kandidat pada turunan identik: healthy,
+smoke loopback `/` 200 dan `/akun` 401 lulus, sesi 37 identik; turunan dibersihkan.
+Approval exact-pair sekali pakai (TTL 600 detik) dan deployer exit 0.
+Jendela hold: blok Caddy Jagomat → 503 (polyflow tidak tersentuh; tidak ada cron
+`osn-*` aktif); Caddy dipulihkan byte-identik (`7a1485b6…`).
+
+Pasca-swap: container sehat rev `b08a009`, smoke publik `/` 200, `/akun` 401,
+`/murid/` 303 ke `/masuk` lulus. Bundle induk dipertahankan tanpa prune.
+
 ## Deploy sembunyi-cetak + gerak modern — 4 Oktober 2026
 
 Cutover terkontrol `deploy-v2` untuk revision `f542b704c665b760c8da24cea11eecc3859221ed`
