@@ -331,7 +331,10 @@ def halaman_akun(
         f'<div class="kartu-judul"><span class="ikon-kartu">🧒</span>'
         f"<h2>Tambah anak</h2></div>"
         '<p class="sub">Buat profil dan akun latihan anak sekaligus. '
-        'Gunakan nama panggilan atau inisial untuk menjaga privasi.</p>'
+        'Gunakan nama panggilan atau inisial untuk menjaga privasi. '
+        'Selama akses awal, tambah anak gratis; nantinya profil tambahan '
+        'berbayar mengikuti paket (Rp10.000/profil/bulan atau '
+        'Rp100.000/profil/tahun).</p>'
         f'<form method="post" action="/akun">'
         f'<input type="hidden" name="aksi" value="anak_baru">'
         f'<div class="baris">'
