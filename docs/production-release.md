@@ -1,5 +1,32 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy produksi satu halaman Perkembangan — 4 Oktober 2026
+
+Cutover terkontrol `deploy-v2` untuk revision `26c3912b2375c1b40ab651a65f3773a5cbd6f655`
+(tiga bagian Perkembangan disatukan menjadi satu halaman anchor `#progres`, `#materi`,
+`#perjalanan`; hero kartu dan sub-nav dihapus, sub-view lama menjadi disclosure, dan
+`?section=` lama tetap diterima sebagai alias anchor). Kandidat digest
+`sha256:6a7e0901…`, recovery `1f056352…` digest `sha256:a98ff9ac…`, kontrak persistensi
+identik `fc68c8bc…`. Gate dispatch `37161920076` (empat shard kandidat + empat shard
+recovery + build + uji pair) lulus; mode tetap `migrasi` dan `siap_pasang=false`, job
+`pasang` CI tetap literal false.
+
+`PROBE_SKEMA` kandidat terhadap metadata DB live (koneksi `mode=ro`/`query_only`, tanpa
+network, migrasi, atau import startup) lulus sebelum Caddy/cron ditahan. Bundle backup
+`deploy-perkembangan-26c3912-20261004T001647Z` (empat DB + auth `sandi.json`, SQLite
+backup API, jurnal `delete`, tanpa prune) lolos integritas/FK/preservasi baris. Rehearsal
+C–B–C pada turunan berjalan healthy dengan baris identik baseline, lalu approval
+exact-pair sekali pakai `.approval-consumed-246ac599…` (TTL 600 s) dan deployer exit 0.
+Jendela penahan cron `osn-*` + Caddy sekitar 5 menit; Caddy melayani juga site
+polyflow.uk pada Caddyfile yang sama, sehingga site itu ikut tidak terjangkau pada
+jendela tersebut.
+
+Pasca-swap: container sehat rev `26c3912` (kode live memuat `ANGKOR_LAPORAN` dan tidak
+memuat CSS hero), Caddy serta cron `osn-*` dipulihkan, artefak pasangan tertulis dengan
+mode `migrasi`, smoke anonim `/` 200, `/akun` 401, `/murid/` 303 ke `/masuk` lulus.
+Backup induk tetap tersimpan di `/opt/osn/cadangan/` tanpa prune dan hash-nya cocok
+manifest; turunan rehearsal dihapus. Policy rutin host dan job `pasang` CI tidak diubah.
+
 ## Deploy produksi UI profil & Perjalanan — 3 Oktober 2026
 
 Cutover terkontrol `deploy-v2` untuk revision `2c40ffaff6f017acdd02527b44c26c273eb98215`:
