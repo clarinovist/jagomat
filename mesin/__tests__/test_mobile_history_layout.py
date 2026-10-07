@@ -42,8 +42,9 @@ def render(db, query='section=riwayat'):
 def test_filter_terbuka_dengan_ringkasan_dan_satu_reset(db):
     isi = render(db, 'section=riwayat&topik=campuran&jenis=bebas&tinjauan=belum_dikirim&mulai=2026-01-01&halaman=2')
     assert 'class="riwayat-filterbar-st"' in isi
-    assert 'profil-saring-st' not in isi
-    judul = re.search(r'<p class="riwayat-saring-judul-st">(.*?)</p>',isi,re.S).group(1)
+    assert 'class="profil-saring-st aktif"' in isi
+    assert '<details class="profil-saring-st aktif" open>' not in isi
+    judul = re.search(r'<summary class="riwayat-saring-judul-st">(.*?)</summary>',isi,re.S).group(1)
     assert 'Saring riwayat' in judul and 'Campuran semua topik' in judul
     assert 'Latihan bebas' in judul and 'Belum dikirim' in judul and '2026-01-01' in judul
     assert isi.count('>Reset filter</a>')==1
@@ -84,6 +85,16 @@ def test_pager_tidak_dibuat_untuk_satu_halaman(total):
     assert profile_workspace._pager(7,profile_history.FilterProfil(),total)==''
 
 
+def test_timeline_bulanan_memisahkan_tanggal_status_dan_detail(db):
+    isi = render(db)
+    assert 'class="riwayat-grup-judul-st">September 2026</h3>' in isi
+    assert '7 hari terakhir' not in isi
+    assert 'class="riwayat-tanggal-blok-st"><time datetime="2026-09-18">' in isi
+    assert '<small>Pengerjaan</small>' in isi and '<small>Tinjauan</small>' in isi
+    assert 'riwayat-rel-st' in isi and 'riwayat-kartu-isi-st' in isi
+    assert 'riwayat-skor-st' not in isi and 'riwayat-stat-st' not in isi
+
+
 def test_metadata_dan_status_tidak_dibuang_demi_ringkas(db):
     isi=render(db)
     baris=re.search(r'<li class="riwayat-kartu-st" data-sesi-id=".*?</li>',isi,re.S).group()
@@ -91,7 +102,8 @@ def test_metadata_dan_status_tidak_dibuang_demi_ringkas(db):
     assert 'Latihan bebas' in baris and 'Variasi A' in baris and 'Mode Diagnosa' in baris
     assert 'Sesi #' in baris and 'Belum Dikerjakan' in baris and 'Menunggu pengiriman' in baris
     assert baris.count('class="riwayat-buka-st"')==1
-    assert any(label in baris for label in ('>Buka sesi</a>', '>Mulai mengerjakan</a>', '>Lanjutkan mengerjakan</a>', '>Periksa sekarang</a>'))
+    assert any(label in baris for label in ('>Buka sesi ', '>Mulai mengerjakan ', '>Lanjutkan mengerjakan ', '>Periksa sekarang '))
+    assert '<span aria-hidden="true">→</span></a>' in baris
     assert 'riwayat-tagbar-st' in baris
     assert '<summary>Kelola tautan</summary>' in baris
     assert 'Salin tautan sesi' in baris
@@ -191,14 +203,10 @@ def test_pil_nol_disembunyikan_kecuali_aktif(db):
     assert 'Tidak ada sesi yang cocok' in isi
 
 
-def test_stat_empat_kartu_dan_rentetan_jujur(db):
-    from datetime import date, timedelta
-    kon, sid = db
-    hari_ini = date.today()
-    for i in range(3):
-        kon.execute("UPDATE sesi SET tanggal=? WHERE id=?", (str(hari_ini - timedelta(days=i)), sid + i))
+def test_riwayat_ringkas_tanpa_kartu_statistik_atau_klaim_penguasaan(db):
     isi = render(db)
-    assert isi.count('riwayat-stat-kartu-st') == 4
-    assert 'Total sesi · 30 hari' in isi and 'Hari beruntun latihan' in isi
-    assert 'Rata-rata benar terkirim' in isi and 'Perlu aksi' in isi
-    assert re.search(r'<b>3 <span aria-hidden="true">🔥</span></b><span>Hari beruntun latihan</span>', isi)
+    assert 'riwayat-stat-kartu-st' not in isi
+    assert 'Rata-rata benar terkirim' not in isi
+    assert 'Hari beruntun latihan' not in isi
+    assert '<div class="riwayat-toolbar-st"><p><strong>41 sesi</strong>' in isi
+    assert 'Status pengerjaan dan tinjauan bukan penilaian penguasaan materi.' in isi

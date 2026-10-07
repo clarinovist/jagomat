@@ -183,9 +183,11 @@ def test_navigasi_mobile_satu_baris_dan_riwayat_satu_kolom_semantik():
     mobile = css.split("@media(max-width:48rem)", 1)[1]
     nav = mobile.split(".profil-workspace-st .profil-tabs-st {", 1)[1].split("}", 1)[0]
     baris = mobile.split(".profil-workspace-st .riwayat-kartu-st {", 1)[1].split("}", 1)[0]
+    isi_kartu = mobile.split(".profil-workspace-st .riwayat-kartu-isi-st {", 1)[1].split("}", 1)[0]
     assert "grid-template-columns:repeat(4,minmax(0,1fr))" in nav
     assert "overflow-x:hidden" in nav
-    assert "flex-direction:column" in baris
+    assert "grid-template-columns:2.5rem 1rem minmax(0,1fr)" in baris
+    assert 'grid-template-areas:"utama" "aksi" "detail"' in isi_kartu
     assert "position:absolute" not in baris
     aksi = mobile.split(".profil-workspace-st .riwayat-aksi-st {", 1)[1].split("}", 1)[0]
     assert "align-self:stretch" in aksi

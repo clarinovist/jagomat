@@ -158,39 +158,15 @@ def _syarat_cari(cari):
 
 
 def ringkasan_riwayat(kon, siswa_id):
-    """Agregat ringan untuk kartu stat riwayat; gagal aman -> None."""
+    """Jumlah per status untuk filter riwayat; gagal aman menghasilkan None."""
     try:
-        total = kon.execute('SELECT COUNT(*) FROM sesi WHERE siswa_id=?', (siswa_id,)).fetchone()[0]
-        belum_kirim = kon.execute("SELECT COUNT(*) FROM sesi s WHERE s.siswa_id=? AND s.selesai IS NULL AND s.dibatalkan IS NULL", (siswa_id,)).fetchone()[0]
-        menunggu_tinjau = kon.execute('SELECT COUNT(*) FROM sesi s WHERE s.siswa_id=? AND (' + _STATUS + ") IN ('belum_ditinjau','dibuka','draf','ulang')", (siswa_id,)).fetchone()[0]
-        rata = kon.execute('WITH m AS (SELECT ' + _PROYEKSI + ' FROM sesi s WHERE s.siswa_id=?) SELECT AVG(CASE WHEN n>0 AND selesai IS NOT NULL THEN benar*1.0/n END) FROM m', (siswa_id,)).fetchone()[0]
-        total30 = kon.execute("SELECT COUNT(*) FROM sesi s WHERE s.siswa_id=? AND substr(s.tanggal,1,10)>=date('now','-29 days')", (siswa_id,)).fetchone()[0]
-        hitung_status = dict(kon.execute('SELECT (' + _STATUS + '), COUNT(*) FROM sesi s WHERE s.siswa_id=? GROUP BY 1', (siswa_id,)).fetchall())
-        tanggal_aktif = [r[0] for r in kon.execute("SELECT DISTINCT substr(s.tanggal,1,10) FROM sesi s WHERE s.siswa_id=? AND s.dibatalkan IS NULL ORDER BY 1 DESC", (siswa_id,)).fetchall()]
+        hitung_status = dict(kon.execute(
+            'SELECT (' + _STATUS + '), COUNT(*) FROM sesi s '
+            'WHERE s.siswa_id=? GROUP BY 1', (siswa_id,),
+        ).fetchall())
     except Exception:
         return None
-    return {'total': total, 'belum_kirim': belum_kirim, 'menunggu_tinjau': menunggu_tinjau, 'rata_benar': rata,
-            'total30': total30, 'hitung_status': hitung_status, 'rentetan': _rentetan_hari(tanggal_aktif)}
-
-
-def _rentetan_hari(tanggal_aktif):
-    """Hari beruntun latihan; dihitung dari hari ini, atau kemarin bila hari ini kosong."""
-    from datetime import date, timedelta
-    try:
-        punya = {date.fromisoformat(str(t)[:10]) for t in tanggal_aktif}
-    except ValueError:
-        return 0
-    hari_ini = date.today()
-    if hari_ini in punya:
-        mulai = hari_ini
-    elif hari_ini - timedelta(days=1) in punya:
-        mulai = hari_ini - timedelta(days=1)
-    else:
-        return 0
-    rentetan = 0
-    while mulai - timedelta(days=rentetan) in punya:
-        rentetan += 1
-    return rentetan
+    return {'hitung_status': hitung_status}
 
 
 def tugas_terbaru(kon, siswa_id, sorot=None, kecuali=None):
