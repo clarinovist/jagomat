@@ -18,8 +18,8 @@ NAMA_PDF = "jagomat-riset-persaingan-bimbel-2026.pdf"
 BERKAS_PDF = Path(__file__).resolve().parent / "publik" / NAMA_PDF
 
 RINGKASAN_META = (
-    "Analisis independen lanskap bimbel Indonesia: kelemahan struktural pemain, "
-    "unfair advantage Jagomat, pilihan PLG-assisted, dan risiko strategis."
+    "Analisis independen permukaan publik empat pemain bimbel Indonesia, "
+    "candidate advantage Jagomat, pilihan PLG-assisted, dan risiko strategis."
 )
 
 
@@ -70,8 +70,8 @@ p {{ margin: 0; }}
   display: flex; align-items: center; justify-content: space-between; gap: {T.SP_4};
 }}
 .riset-brand {{
-  display: inline-flex; align-items: center; gap: {T.SP_2}; color: {T.TEKS_JUDUL};
-  text-decoration: none; font-family: {T.FONT_HEADLINE}; font-weight: 800;
+  display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; gap: {T.SP_2};
+  color: {T.TEKS_JUDUL}; text-decoration: none; font-family: {T.FONT_HEADLINE}; font-weight: 800;
 }}
 .riset-nav {{ display: flex; align-items: center; gap: {T.SP_2}; }}
 .riset-nav a {{
@@ -118,6 +118,7 @@ p {{ margin: 0; }}
 .riset-bagian {{ padding: {T.SP_8} 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
 .riset-kepala {{ display: grid; gap: {T.SP_3}; margin-bottom: {T.SP_6}; max-width: 62rem; }}
 .riset-kepala > p:last-child {{ color: {T.TEKS_VARIAN}; max-width: 70ch; }}
+.riset-primer > p {{ max-width: 74ch; }}
 .riset-callout {{
   display: grid; gap: {T.SP_3}; margin: {T.SP_6} 0; padding: {T.SP_5};
   background: {T.LATAR_CATATAN}; border-left: .35rem solid {T.AKSEN_MURID_AMBER};
@@ -284,6 +285,7 @@ def halaman() -> bytes:
 <header class="riset-topbar"><div class="riset-topbar-dalam">
 <a class="riset-brand" href="/">{logo}<span>Jagomat</span></a>
 <nav class="riset-nav" aria-label="Aksi laporan">
+<a class="riset-nav-teks" href="/riset">Pusat riset</a>
 <a class="riset-nav-teks" href="#metodologi">Metodologi</a>
 <a class="riset-unduh" href="{JALUR_PDF}">Unduh PDF</a>
 </nav></div></header>
@@ -293,39 +295,39 @@ def halaman() -> bytes:
 <div class="riset-hero-copy">
 <p class="riset-alis">Jagomat Strategy Brief · Indonesia</p>
 <h1 id="judul-riset">Analisis lanskap persaingan bimbel dan les online</h1>
-<p class="riset-dek">Di pasar yang dipenuhi konten, kelas, dan promosi, ruang paling defensible bagi Jagomat bukan “lebih banyak soal”—melainkan keputusan belajar yang lebih tepat dan dapat dibuktikan.</p>
+<p class="riset-dek">Di pasar yang dipenuhi konten, kelas, dan promosi, hipotesis posisi Jagomat bukan “lebih banyak soal”—melainkan membantu keluarga memilih tindak lanjut lalu mengeceknya kembali.</p>
 <div class="riset-meta" aria-label="Metadata laporan">
 <span class="riset-chip">Snapshot riset · 13 Oktober 2026</span>
-<span class="riset-chip">Fokus · Matematika kelas 3–6</span>
+<span class="riset-chip">Fokus · Matematika SD/OSN–SASMO</span>
 <span class="riset-chip">Observasi publik + inferensi strategi</span>
 </div>
 </div>
 <aside class="riset-keputusan" aria-labelledby="keputusan-utama">
 <p class="riset-alis">Keputusan utama</p>
 <h2 id="keputusan-utama">Menangkan momen setelah anak salah.</h2>
-<p>Jagomat harus menjawab tiga hal: <strong>mengapa salah, apa langkah berikutnya, dan apakah intervensinya berhasil.</strong></p>
+<p>Jagomat dirancang membantu menjawab tiga hal: <strong>pola apa yang tampak, apa langkah berikutnya, dan bagaimana hasilnya saat dicek kembali.</strong></p>
 <ul>
-<li>Moat: verified learning loop, bukan chatbot.</li>
+<li>Candidate moat: siklus bukti yang ditinjau manusia, bukan chatbot.</li>
 <li>GTM: PLG-assisted, bukan sales keluarga.</li>
-<li>Ekspansi: tutor sebagai kanal, bukan scope baru.</li>
+<li>Ekspansi: referral dulu; workspace tutor adalah scope terpisah.</li>
 </ul>
 </aside>
 </section>
 <nav class="riset-indeks" aria-label="Bagian laporan">
 <a href="#ringkasan">Ringkasan</a><a href="#peta-arena">Peta arena</a>
-<a href="#pemain">Pemain</a><a href="#moat">Unfair advantage</a>
+<a href="#pemain">Pemain</a><a href="#moat">Candidate advantage</a>
 <a href="#gtm">PLG vs SLG</a><a href="#risiko">Risiko</a>
 <a href="#roadmap">Roadmap</a><a href="#metodologi">Metodologi</a>
 </nav>
 
 <section class="riset-bagian" id="ringkasan" aria-labelledby="judul-ringkasan">
 <div class="riset-kepala"><p class="riset-alis">01 · Kesimpulan eksekutif</p>
-<h2 id="judul-ringkasan">Pasar konten sudah padat. Pasar keputusan belajar belum.</h2>
-<p>Ruangguru unggul pada skala dan distribusi; Zenius pada pemahaman konseptual dan harga akses; GO pada merek, pengajar, dan orientasi ujian; Kumon pada metode individual serta kebiasaan belajar. Jagomat tidak seharusnya menyalin mesin keunggulan mereka.</p></div>
+<h2 id="judul-ringkasan">Konten dan kelas sudah padat. Kejelasan tindak lanjut adalah hipotesis ruang posisi.</h2>
+<p>Permukaan publik Ruangguru menonjolkan skala dan distribusi; Zenius materi konseptual dan harga akses; GO pengajar dan orientasi ujian; Kumon metode individual serta kebiasaan belajar. Jagomat tidak seharusnya menyalin pesan utama mereka.</p></div>
 <div class="riset-grid riset-grid-3">
 <article class="riset-kartu"><span class="riset-label riset-label-koral">Hindari</span><h3>Perang katalog</h3><p>Jumlah video, soal, guru, atau badge mudah dibandingkan dan didiskon. AI generatif makin menekan nilai konten generik.</p></article>
 <article class="riset-kartu"><span class="riset-label riset-label-teal">Miliki</span><h3>Loop belajar berbukti</h3><p>Hubungkan pola kesalahan, intervensi, latihan, evaluasi berjeda, dan bukti kemajuan menjadi satu workflow.</p></article>
-<article class="riset-kartu"><span class="riset-label riset-label-amber">Distribusikan</span><h3>Melalui produk dan tutor</h3><p>Self-service membuktikan nilai; onboarding selektif mengurangi friksi; tutor memperluas distribusi setelah core loop teruji.</p></article>
+<article class="riset-kartu"><span class="riset-label riset-label-amber">Distribusikan</span><h3>Melalui produk, referral, dan pilot</h3><p>Self-service perlu menunjukkan nilai; onboarding selektif mengurangi friksi. Tutor baru menjadi opsi B2B2C setelah role, consent, ownership, dan core loop terbukti.</p></article>
 </div>
 <div class="riset-callout"><strong>Tesis strategi</strong><p>Jagomat tidak perlu memenangkan kategori “bimbel online”. Jagomat perlu menjadi sistem pendamping keputusan belajar matematika keluarga.</p></div>
 </section>
@@ -347,7 +349,7 @@ def halaman() -> bytes:
 <thead><tr><th>Arena</th><th>Pemain</th><th>Mesin keunggulan</th><th>Celah relatif yang relevan</th></tr></thead>
 <tbody>
 <tr><td>Platform horizontal</td><td>Ruangguru</td><td>Brand, konten luas, live class, cabang, privat, AI</td><td>Sulit mengoptimalkan satu problem mikro secara mendalam</td></tr>
-<tr><td>Konten konseptual</td><td>Zenius</td><td>Penjelasan konsep, video, latihan, tryout, harga akses</td><td>Content-centric dan menuntut self-direction</td></tr>
+<tr><td>Konten konseptual</td><td>Zenius</td><td>Penjelasan konsep, video, latihan, tryout, harga akses</td><td>Permukaan publik menonjolkan materi; pendampingan aktual belum diaudit</td></tr>
 <tr><td>Bimbel berjaringan</td><td>GO</td><td>Pengajar, cabang, bahan ajar, TOBK, IRT</td><td>Fixed cost dan variasi delivery manusia</td></tr>
 <tr><td>Metode individual</td><td>Kumon</td><td>Worksheet bertahap, pembimbing, kebiasaan, pelaporan</td><td>Personalisasi dalam jalur metode yang terstandardisasi</td></tr>
 <tr><td>Pendamping keputusan</td><td>Jagomat</td><td>Pola kesalahan → intervensi → evaluasi berjeda</td><td>Outcome, engagement, dan willingness-to-pay belum terbukti</td></tr>
@@ -355,7 +357,7 @@ def halaman() -> bytes:
 </section>
 
 <section class="riset-bagian" id="pemain" aria-labelledby="judul-pemain">
-<div class="riset-kepala"><p class="riset-alis">03 · Kelemahan struktural pemain</p>
+<div class="riset-kepala"><p class="riset-alis">03 · Trade-off model pemain</p>
 <h2 id="judul-pemain">Eksploitasi trade-off mereka—bukan menyerang mereknya</h2>
 <p>“Kelemahan” berikut adalah bayangan dari skala dan model operasi masing-masing. Tidak terlihat pada halaman publik bukan berarti suatu kapabilitas tidak ada.</p></div>
 
@@ -365,41 +367,41 @@ def halaman() -> bytes:
 <div class="riset-lensa"><b>Implikasi untuk Jagomat</b><p>Jangan tandingi jumlah konten atau guru. Menangkan resolusi diagnosis dan kejelasan satu tindakan berikutnya.</p></div>
 </div></details>
 
-<details class="riset-detail"><summary>Zenius · kuat pada konsep, masih content-centric</summary><div class="riset-detail-isi">
+<details class="riset-detail"><summary>Zenius · permukaan publik menonjolkan materi dan latihan</summary><div class="riset-detail-isi">
 <div class="riset-lensa"><b>Observasi</b><p>Zenius aktif kembali dengan materi SD–UTBK, video, latihan, PDF, tryout, bank soal, dan ZenCore adaptif. Aplikasi Android diluncurkan kembali pada 7 Juli 2026. Paket premium 12 bulan tampil Rp450.000 saat snapshot.</p></div>
 <div class="riset-lensa"><b>Inferensi</b><p>Unit nilai utama tetap akses konten dan latihan; perbandingan harga mudah terjadi. Self-directed learning paling kuat bagi siswa yang sudah tahu apa yang perlu dipelajari.</p><p class="riset-confidence">Confidence: tinggi untuk kondisi produk publik; sedang untuk implikasi kapabilitas organisasi.</p></div>
-<div class="riset-lensa"><b>Implikasi untuk Jagomat</b><p>Bergerak dari “membantu memahami” menjadi “menentukan apa yang bermasalah, memilih intervensi, dan membuktikan hasilnya”. Jangan memakai narasi usang bahwa Zenius masih berhenti beroperasi.</p></div>
+<div class="riset-lensa"><b>Implikasi untuk Jagomat</b><p>Uji posisi dari “membantu memahami” menuju “membantu meninjau pola, memilih intervensi, lalu mengecek kembali dengan soal baru”. Jangan memakai narasi usang bahwa Zenius masih berhenti beroperasi.</p></div>
 </div></details>
 
 <details class="riset-detail"><summary>Ganesha Operation · delivery kuat, personalisasi dibatasi kapasitas</summary><div class="riset-detail-isi">
 <div class="riset-lensa"><b>Observasi</b><p>Situs resmi menonjolkan pengajar, bahan ajar dan latihan, TOBK, GO Kreasi, serta penilaian IRT. Bukti publik terstruktur yang dapat diakses dalam riset ini terbatas.</p></div>
-<div class="riset-lensa"><b>Inferensi</b><p>Cabang dan guru memberi kepercayaan, tetapi menambah fixed cost dan variasi pelaksana. Kelas cenderung mengoptimalkan kelompok; diagnosis mikro menyerap waktu pengajar.</p><p class="riset-confidence">Confidence: sedang–rendah; perlu wawancara pengguna dan observasi cabang.</p></div>
-<div class="riset-lensa"><b>Implikasi untuk Jagomat</b><p>Jangan menggantikan guru. Jadilah infrastructure layer yang membantu tutor menghasilkan latihan, tindak lanjut, dan laporan konsisten.</p></div>
+<div class="riset-lensa"><b>Inferensi</b><p>Model berjaringan mungkin memiliki trade-off antara standardisasi, biaya operasi, dan kedalaman layanan per anak. Halaman publik tidak cukup untuk membuktikan trade-off aktual atau kualitas diagnosis internal.</p><p class="riset-confidence">Confidence: rendah; perlu wawancara pengguna, trial, dan observasi cabang.</p></div>
+<div class="riset-lensa"><b>Implikasi untuk Jagomat</b><p>Jangan menggantikan guru. Uji Jagomat sebagai pendamping keputusan keluarga; referral tutor dapat diuji lebih dulu tanpa memberi akses lintas keluarga.</p></div>
 </div></details>
 
 <details class="riset-detail"><summary>Kumon · pesaing filosofi yang paling dekat</summary><div class="riset-detail-isi">
 <div class="riset-lensa"><b>Observasi</b><p>Kumon menawarkan materi perseorangan menurut kemampuan, worksheet bertahap, pembimbing, belajar mandiri, serta KUMON CONNECT untuk progres digital. Biaya resmi 2026 untuk SD Rp430.000–Rp525.000 per subjek per bulan, ditambah pendaftaran.</p></div>
 <div class="riset-lensa"><b>Inferensi</b><p>Personalisasi berlangsung di dalam jalur worksheet yang sangat terstandardisasi. Digitalisasi memperkuat metode yang sama, bukan otomatis memperluas diagnosis pola kesalahan.</p><p class="riset-confidence">Confidence: tinggi berdasarkan metode dan harga resmi publik.</p></div>
-<div class="riset-lensa"><b>Implikasi untuk Jagomat</b><p>“Kurikulum personal”, worksheet digital, dan laporan orang tua bukan pembeda. Jagomat harus menjual precision of intervention: jawaban salah yang sama dapat memerlukan bantuan berbeda.</p></div>
+<div class="riset-lensa"><b>Implikasi untuk Jagomat</b><p>“Kurikulum personal”, worksheet digital, dan laporan orang tua bukan pembeda sendiri. Jagomat perlu menguji apakah tindak lanjut berbeda untuk pola kesalahan berbeda benar-benar dipahami, dipakai, dan dinilai berguna.</p></div>
 </div></details>
 </section>
 
 <section class="riset-bagian" id="moat" aria-labelledby="judul-moat">
-<div class="riset-kepala"><p class="riset-alis">04 · Unfair advantage</p><h2 id="judul-moat">Bangun verified learning loop</h2>
-<p>Fitur individual mudah ditiru. Daya tahan muncul ketika seluruh langkah membentuk sistem yang membaik melalui workflow, kepercayaan, data outcome, dan kebiasaan keluarga.</p></div>
+<div class="riset-kepala"><p class="riset-alis">04 · Candidate advantage</p><h2 id="judul-moat">Uji siklus bukti yang ditinjau manusia</h2>
+<p>Belum ada moat yang terbukti. Daya tahan mungkin muncul bila seluruh langkah dipakai berulang, dipercaya keluarga, menjaga privasi, dan menghasilkan tindak lanjut berguna yang sulit diganti workflow lama.</p></div>
 <ol class="riset-loop">
 <li><div><b>Taksonomi kesalahan yang actionable</b>B/K/H/E/T/N harus menghasilkan bantuan berbeda, dikonfirmasi manusia, dan membawa tingkat ketidakpastian yang jujur.</div></li>
 <li><div><b>Soal parametrik dan deterministik</b>Variasi baru menguji konsep yang sama tanpa sekadar mengulang soal, sehingga transfer pemahaman dapat diperiksa.</div></li>
 <li><div><b>Intervensi spesifik</b>Rekomendasi menghubungkan pola yang diamati dengan contoh, latihan terbimbing, dan penguatan yang relevan.</div></li>
 <li><div><b>Evaluasi berjeda</b>Kemajuan diuji kembali pada hari berbeda dan soal baru—bukan disimpulkan dari satu jawaban benar.</div></li>
-<li><div><b>Action–outcome graph</b>Dengan persetujuan dan privasi ketat, sistem belajar intervensi mana yang bekerja untuk konteks kesalahan tertentu.</div></li>
-<li><div><b>Trust + distribution moat</b>Konfirmasi orang tua menjaga akuntabilitas; tutor kemudian menjadi kanal distribusi dan pemakai workflow.</div></li>
+<li><div><b>Hipotesis action–outcome</b>Dengan persetujuan, governance, volume, dan privasi ketat, data agregat kelak dapat menguji intervensi mana yang berkaitan dengan outcome lebih baik. Belum menjadi kapabilitas atau bukti kausal.</div></li>
+<li><div><b>Trust + distribution candidate</b>Konfirmasi orang tua menjaga akuntabilitas; referral dapat diuji tanpa memberi tutor akses data. Workspace tutor memerlukan keputusan produk terpisah.</div></li>
 </ol>
 <div class="riset-callout"><strong>Yang bukan moat</strong><p>Chatbot AI, gamifikasi, dashboard, video, dan bank soal adalah komponen pendukung. Gamifikasi sebaiknya memberi penghargaan pada menjelaskan cara, memperbaiki kesalahan, dan kembali untuk evaluasi—bukan volume atau kecepatan.</p></div>
 </section>
 
 <section class="riset-bagian" id="gtm" aria-labelledby="judul-gtm">
-<div class="riset-kepala"><p class="riset-alis">05 · Product-led vs sales-led</p><h2 id="judul-gtm">PLG-assisted: produk membuktikan, manusia melancarkan</h2>
+<div class="riset-kepala"><p class="riset-alis">05 · Product-led vs sales-led</p><h2 id="judul-gtm">PLG-assisted: produk menunjukkan nilai, manusia mengurangi friksi</h2>
 <p>Nilai kontrak keluarga tidak cocok dengan penjualan high-touch. Namun workflow awal Jagomat meminta keterlibatan orang tua, sehingga PLG murni berisiko menghasilkan abandono.</p></div>
 <div class="riset-duel">
 <article class="riset-kartu"><span class="riset-label riset-label-koral">Bukan pilihan utama</span><h3>Sales-led keluarga</h3><ul><li>CAC dan support berisiko terlalu tinggi.</li><li>Nilai perlu dialami sebelum dipercaya.</li><li>Diskon mudah menggantikan diferensiasi.</li></ul></article>
@@ -410,7 +412,7 @@ def halaman() -> bytes:
 <article class="riset-kartu"><span class="riset-label">Activate</span><h3>First value ≤48 jam</h3><p>Latihan awal selesai, hasil ditinjau dan dikonfirmasi, lalu satu langkah berikutnya tampil. Signup bukan aktivasi.</p></article>
 <article class="riset-kartu"><span class="riset-label">Retain</span><h3>Selesaikan siklus berbukti</h3><p>North-star: jumlah anak yang menyelesaikan satu siklus belajar berbukti dalam 28 hari, disertai counter-metric friksi dan koreksi.</p></article>
 <article class="riset-kartu"><span class="riset-label">Monetize</span><h3>Bayar untuk kontinuitas</h3><p>Value metric per anak aktif atau keluarga—bukan per soal, menit AI, atau video. Harga final perlu willingness-to-pay setelah nilai dialami.</p></article>
-<article class="riset-kartu"><span class="riset-label">Expand</span><h3>Tutor sebagai multiplier</h3><p>Partner layak diperbesar bila mengaktifkan anak lebih murah, memakai produk standar, dan meningkatkan retensi atau outcome.</p></article>
+<article class="riset-kartu"><span class="riset-label">Explore</span><h3>Referral tutor lebih dulu</h3><p>Referral layak diuji tanpa akses data. Partner/workspace hanya dipertimbangkan bila role, consent, ownership, ekonomi, dan outcome sudah dipagari.</p></article>
 <article class="riset-kartu"><span class="riset-label">Defer</span><h3>Enterprise sekolah</h3><p>Hindari tender besar, kustomisasi kurikulum, dan integrasi khusus sebelum outcome serta unit economics keluarga terbukti.</p></article>
 </div>
 </section>
@@ -421,17 +423,17 @@ def halaman() -> bytes:
 <div class="riset-risiko">
 <article><span class="riset-risiko-nomor">01</span><h3>Outcome tidak terbukti</h3><dl><dt>Mekanisme</dt><dd>Personalisasi terlihat pintar, tetapi anak tidak membaik pada soal baru.</dd><dt>Indikator dini</dt><dd>Diagnosis sering dikoreksi; delayed probe gagal; rekomendasi berulang.</dd><dt>Mitigasi</dt><dd>Human confirmation, ketidakpastian eksplisit, audit ahli, dan evaluasi dengan variasi baru.</dd></dl></article>
 <article><span class="riset-risiko-nomor">02</span><h3>Keterlibatan menjadi friksi</h3><dl><dt>Mekanisme</dt><dd>Latihan dan review orang tua terlalu berat untuk diselesaikan rutin.</dd><dt>Indikator dini</dt><dd>Profil tanpa latihan, abandono tinggi, first value lewat 48 jam.</dd><dt>Mitigasi</dt><dd>Pause/resume, progress jelas, minimum sufficient parent involvement, dan bantuan selektif.</dd></dl></article>
-<article><span class="riset-risiko-nomor">03</span><h3>CAC tinggi, fitur ditiru</h3><dl><dt>Mekanisme</dt><dd>Paid acquisition mahal sementara dashboard atau chatbot cepat disalin.</dd><dt>Indikator dini</dt><dd>Referral rendah, diskon dominan, support tinggi, retensi lemah.</dd><dt>Mitigasi</dt><dd>Problem-intent SEO, action–outcome graph, laporan referral aman, dan kanal tutor.</dd></dl></article>
+<article><span class="riset-risiko-nomor">03</span><h3>CAC tinggi, diferensiasi lemah</h3><dl><dt>Mekanisme</dt><dd>Paid acquisition mahal sementara dashboard atau chatbot tidak cukup membedakan produk.</dd><dt>Indikator dini</dt><dd>Referral rendah, diskon dominan, support tinggi, retensi lemah.</dd><dt>Mitigasi</dt><dd>Problem-intent SEO, bukti outcome berizin, referral aman, dan eksperimen kanal terukur.</dd></dl></article>
 </div>
 <div class="riset-callout"><strong>Red line: privasi anak</strong><p>Privasi adalah license to operate. Pertumbuhan tidak boleh mendorong pelacak iklan pada ruang belajar, pengiriman data yang tidak perlu, diagnosis otomatis oleh LLM, atau pemakaian outcome tanpa persetujuan dan batas retensi.</p></div>
 </section>
 
 <section class="riset-bagian" id="roadmap" aria-labelledby="judul-roadmap">
-<div class="riset-kepala"><p class="riset-alis">07 · Prioritas 12 bulan</p><h2 id="judul-roadmap">Scale distribution, bukan scope</h2><p>Pertahankan fokus kelas 3–6 dan matematika sampai outcome, kebiasaan, willingness-to-pay, dan unit economics cukup kuat.</p></div>
+<div class="riset-kepala"><p class="riset-alis">07 · Prioritas 12 bulan</p><h2 id="judul-roadmap">Validasi sebelum memperbesar distribusi atau scope</h2><p>Pertahankan fokus matematika SD/OSN–SASMO sampai outcome, kebiasaan, willingness-to-pay, dan unit economics cukup kuat.</p></div>
 <div class="riset-roadmap">
-<article><time>0–3 bulan</time><div><h3>Buktikan core loop</h3><ul><li>Ukur funnel latihan → tinjau → langkah berikutnya.</li><li>Validasi agreement sistem–orang tua/tutor.</li><li>Uji hasil pada soal baru dan evaluasi berjeda.</li><li>Bandingkan onboarding assisted versus self-service.</li></ul></div></article>
-<article><time>3–6 bulan</time><div><h3>Buktikan habit dan monetisasi</h3><ul><li>Uji paket berbayar pada pengguna baru.</li><li>Aktifkan referral setelah milestone kemajuan.</li><li>Pilot terbatas bersama tutor independen.</li><li>Audit intervensi dengan ahli eksternal.</li></ul></div></article>
-<article><time>6–12 bulan</time><div><h3>Perbesar kanal yang efisien</h3><ul><li>Bangun SEO berbasis problem intent.</li><li>Standardisasi paket partner tutor.</li><li>Publikasikan outcome dengan metodologi transparan.</li><li>Jangan menambah mata pelajaran hanya demi TAM.</li></ul></div></article>
+<article><time>0–3 bulan</time><div><h3>Uji core loop</h3><ul><li>Definisikan dan ukur funnel latihan → tinjau → langkah berikutnya.</li><li>Validasi agreement sistem–orang tua.</li><li>Uji hasil pada soal baru dan evaluasi berjeda.</li><li>Bandingkan onboarding assisted versus self-service.</li></ul></div></article>
+<article><time>3–6 bulan</time><div><h3>Uji habit dan monetisasi</h3><ul><li>Uji penawaran hanya setelah checkout/refund siap.</li><li>Uji referral aman setelah milestone.</li><li>Jalankan discovery tutor tanpa akses data anak.</li><li>Audit intervensi dengan ahli eksternal.</li></ul></div></article>
+<article><time>6–12 bulan</time><div><h3>Tambah sampel pada kanal yang efisien</h3><ul><li>Bangun SEO berbasis problem intent.</li><li>Putuskan role/consent sebelum workspace tutor.</li><li>Publikasikan outcome hanya dengan metodologi transparan.</li><li>Jangan menambah jenjang atau mata pelajaran demi TAM.</li></ul></div></article>
 </div>
 </section>
 
@@ -442,7 +444,7 @@ def halaman() -> bytes:
 <article class="riset-kartu"><h3>Yang tidak diklaim</h3><ul><li>Market share, traffic, revenue, dan profitabilitas tidak diestimasi.</li><li>Tidak ada audit produk berbayar atau operasi internal kompetitor.</li><li>“Tidak terlihat” tidak berarti “tidak ada”.</li><li>Peta posisi bersifat directional, bukan skor kualitas.</li></ul></article>
 </div>
 <details class="riset-detail" style="margin-top:{T.SP_5}"><summary>Cara membaca confidence</summary><div class="riset-detail-isi"><p><b>Tinggi</b>: didukung sumber primer yang eksplisit. <b>Sedang</b>: inferensi model bisnis yang konsisten dengan observasi publik. <b>Rendah</b>: bukti publik terbatas dan perlu wawancara atau trial sebelum dipakai untuk keputusan besar.</p></div></details>
-<details class="riset-detail"><summary>Stress-test keputusan</summary><div class="riset-detail-isi"><p>Evaluasi semantik terstruktur tambahan memilih verified learning loop sebagai moat dan PLG-assisted sebagai motion awal. Sinyal ini probabilistik, bukan bukti pasar; outcome dan engagement tetap harus dibuktikan lewat data pengguna.</p></div></details>
+<details class="riset-detail"><summary>Stress-test keputusan</summary><div class="riset-detail-isi"><p>Evaluasi semantik terstruktur sebelumnya memprioritaskan siklus bukti dan PLG-assisted sebagai hipotesis awal. Sinyal ini probabilistik, bukan bukti pasar atau moat; outcome, engagement, dan willingness-to-pay tetap harus dibuktikan lewat cohort pengguna.</p></div></details>
 </section>
 
 <section class="riset-bagian" id="sumber" aria-labelledby="judul-sumber">

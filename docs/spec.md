@@ -17,10 +17,13 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
 
 - Generator soal berparameter dan seed deterministik, lembar cetak, latihan daring,
   tinjauan hasil, diagnosis B/K/H/E/T/N, serta laporan perkembangan per anak.
-- Halaman publik read-only `/riset/persaingan-bimbel-2026` dan PDF unduhannya
-  menyajikan analisis independen lanskap bimbel. Keduanya memakai sumber publik,
-  membedakan observasi/inferensi/rekomendasi, tidak membaca data keluarga, dan
-  bukan klaim market share, afiliasi kompetitor, atau fitur berbayar aktif.
+- Pusat publik read-only `/riset` dan PDF unduhannya menyajikan business case
+  peluang pasar/unit economics, strategi persaingan, psikologi konsumen, serta
+  validasi GTM. Ia membedakan fakta, proxy, asumsi, hasil hitung, dan rekomendasi;
+  bukan forecast, valuasi, klaim outcome, atau penawaran berbayar aktif. Laporan
+  rinci `/riset/persaingan-bimbel-2026` tetap tersedia sebagai audit empat pemain
+  terpilih. Semua permukaan riset memakai sumber publik, tidak membaca data
+  keluarga, dan tidak menyatakan afiliasi atau market share.
 - Siklus terpandu; latihan manual tetap tersedia tanpa otomatis mengubah putaran.
 - Pendamping AI inline untuk orang tua; usulan latihan memerlukan tinjauan dan
   konfirmasi, bukan perubahan diagnosis atau bukti belajar otomatis.

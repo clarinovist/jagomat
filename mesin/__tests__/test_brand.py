@@ -174,7 +174,7 @@ def test_dockerfile_menyalin_folder_aset():
 # lahir tanpa favicon": sebelumnya tidak SATU pun halaman punya favicon.
 JALUR_PUBLIK = (
     "/", "/masuk", "/daftar", "/kebijakan-privasi", "/lupa-sandi",
-    "/riset/persaingan-bimbel-2026",
+    "/riset", "/riset/persaingan-bimbel-2026",
 )
 JALUR_GURU = ("/akun",)
 
