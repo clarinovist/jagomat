@@ -7,9 +7,21 @@ from __future__ import annotations
 
 
 def tangani_get(penangan, jalur: str) -> bool:
-    """Tangani landing, privasi, dan panduan lupa sandi."""
+    """Tangani landing, laporan riset, privasi, dan panduan lupa sandi."""
     # Impor modul menjaga monkeypatch renderer publik pada lookup runtime.
     import landing
+
+    if jalur in (
+        "/riset/persaingan-bimbel-2026",
+        "/riset/persaingan-bimbel-2026.pdf",
+    ):
+        import competitive_research
+
+        if jalur.endswith(".pdf"):
+            competitive_research.kirim_pdf(penangan)
+        else:
+            penangan._kirim(competitive_research.halaman())
+        return True
 
     if jalur == "/":
         ident = penangan._identitas()

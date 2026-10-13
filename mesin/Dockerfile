@@ -35,6 +35,10 @@ COPY --chown=osn:osn *.py /app/
 # untuk berkas biner. Guard: __tests__/test_brand.py.
 COPY --chown=osn:osn aset/ /app/aset/
 
+# Laporan publik versi berkas (mis. PDF riset) tidak tercakup wildcard Python.
+# Folder ini hanya berisi artefak publik tanpa data keluarga atau state runtime.
+COPY --chown=osn:osn publik/ /app/publik/
+
 # Basis data & sandi tinggal di volume supaya selamat saat container diganti.
 ENV OSN_BERKAS_SANDI=/data/sandi.json \
     OSN_BERKAS_SESI=/data/sesi.json \

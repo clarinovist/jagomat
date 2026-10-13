@@ -451,6 +451,17 @@ halaman privat), angka promo di copy landing (kontrak katalog), dan penyamaan
 seluruh skala tipografi/komponen. Nama produk pada heading paket sudah membaca
 `NAMA_PRODUK`, bukan literal terpisah.
 
+## Laporan riset publik (13 Okt 2026)
+
+Halaman `/riset/persaingan-bimbel-2026` memakai token yang sama, tetapi menjadi
+permukaan editorial read-only dengan container `LEBAR_LANDING`. Interaksi dibatasi
+ke anchor dan `<details>/<summary>` native: tidak ada JavaScript atau library chart.
+Peta posisi selalu memiliki penjelasan teks dan tabel, label tidak mengandalkan
+warna saja, target navigasi minimum `TARGET_SENTUH`, serta `:focus-visible` yang
+jelas. CSS cetak menampilkan seluruh isi disclosure dan menghasilkan PDF A4;
+header navigasi web disembunyikan. PDF statis berada di `mesin/publik/` dan harus
+dibuat ulang dari renderer pada source yang sama ketika isi laporan berubah.
+
 ## Mockup reference
 
 | File | Halaman | Viewport | Implementasi |

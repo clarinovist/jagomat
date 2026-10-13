@@ -172,7 +172,10 @@ def test_dockerfile_menyalin_folder_aset():
 
 # Halaman yang dilayani lewat HTTP. Guard ini menutup celah "template baru
 # lahir tanpa favicon": sebelumnya tidak SATU pun halaman punya favicon.
-JALUR_PUBLIK = ("/", "/masuk", "/daftar", "/kebijakan-privasi", "/lupa-sandi")
+JALUR_PUBLIK = (
+    "/", "/masuk", "/daftar", "/kebijakan-privasi", "/lupa-sandi",
+    "/riset/persaingan-bimbel-2026",
+)
 JALUR_GURU = ("/akun",)
 
 

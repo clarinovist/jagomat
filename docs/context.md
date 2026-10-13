@@ -12,7 +12,8 @@
 palang akses. `student_http.py` memiliki alur GET/POST akun murid,
 `session_http.py` memiliki pembuatan, tampilan/cetak, review, dan latihan tindak
 lanjut sesi guru; `share_http.py` memiliki capability satu sesi dan aksi bagikan guru;
-`public_http.py` memiliki halaman publik tanpa data keluarga; `auth_http.py` memiliki
+`public_http.py` memiliki halaman publik tanpa data keluarga, termasuk renderer
+`competitive_research.py` dan PDF statis di `publik/`; `auth_http.py` memiliki
 login/logout; `registration_http.py` memiliki pendaftaran keluarga;
 `account_http.py` memiliki halaman dan mutasi akun guru; `teacher_http.py` memiliki
 beranda, workspace anak, dan laporan; sementara `attachment_http.py` memagari baca,
@@ -40,6 +41,7 @@ jagomat/                  # repo Git luar, branch kanonis main
 ├── mesin/                # modul aplikasi, Dockerfile, alat operasional
 │   ├── __tests__/        # pytest dan fixture sintetis
 │   ├── aset/             # aset runtime
+│   ├── publik/           # artefak publik statis tanpa data keluarga
 │   └── cadangan/         # privat/lokal, tidak dilacak
 ├── scripts/              # palang repo, otomasi CI dan rilis
 ├── docs/                 # spesifikasi, keputusan, runbook
