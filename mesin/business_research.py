@@ -16,7 +16,7 @@ from competitive_research import GAYA_RISET, _font_link
 JALUR = "/riset"
 JALUR_PDF = "/riset/laporan-bisnis-2026.pdf"
 NAMA_PDF = "jagomat-riset-bisnis-2026.pdf"
-VERSI_ISI = "2026-10-13-r2"
+VERSI_ISI = "2026-10-14-r3"
 BERKAS_PDF = Path(__file__).resolve().parent / "publik" / NAMA_PDF
 
 RINGKASAN_META = (
@@ -185,6 +185,7 @@ def halaman() -> bytes:
 <a href="#strategi">2 · Strategi</a><a href="#psikologi">3 · Psikologi</a>
 <a href="#gtm">4 · GTM 90 hari</a><a href="#metodologi">Metodologi</a>
 <a href="#sumber">Sumber</a>
+<a href="/riset/mulai">Lanjutan · Rencana bootstrap dari nol</a>
 </nav>
 
 <section class="riset-bagian" id="ringkasan" aria-labelledby="judul-ringkasan">

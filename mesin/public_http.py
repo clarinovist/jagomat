@@ -11,6 +11,15 @@ def tangani_get(penangan, jalur: str) -> bool:
     # Impor modul menjaga monkeypatch renderer publik pada lookup runtime.
     import landing
 
+    if jalur in ("/riset/mulai", "/riset/mulai.pdf"):
+        import bootstrap_research
+
+        if jalur.endswith(".pdf"):
+            bootstrap_research.kirim_pdf(penangan)
+        else:
+            penangan._kirim(bootstrap_research.halaman())
+        return True
+
     if jalur in ("/riset", "/riset/", "/riset/laporan-bisnis-2026.pdf"):
         import business_research
 

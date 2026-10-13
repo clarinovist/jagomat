@@ -21,6 +21,8 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   peluang pasar/unit economics, strategi persaingan, psikologi konsumen, serta
   validasi GTM. Ia membedakan fakta, proxy, asumsi, hasil hitung, dan rekomendasi;
   bukan forecast, valuasi, klaim outcome, atau penawaran berbayar aktif. Laporan
+  bootstrap `/riset/mulai` dan PDF-nya menambah action plan, biaya/SDM serta model
+  cohort sintetis 12 bulan, bukan aktivasi penawaran atau instrumentasi baru. Laporan
   rinci `/riset/persaingan-bimbel-2026` tetap tersedia sebagai audit empat pemain
   terpilih. Semua permukaan riset memakai sumber publik, tidak membaca data
   keluarga, dan tidak menyatakan afiliasi atau market share.

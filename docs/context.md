@@ -13,7 +13,8 @@ palang akses. `student_http.py` memiliki alur GET/POST akun murid,
 `session_http.py` memiliki pembuatan, tampilan/cetak, review, dan latihan tindak
 lanjut sesi guru; `share_http.py` memiliki capability satu sesi dan aksi bagikan guru;
 `public_http.py` memiliki halaman publik tanpa data keluarga, termasuk pusat
-`business_research.py`, audit `competitive_research.py`, dan PDF statis di
+`business_research.py`, audit `competitive_research.py`, rencana/model sintetis
+`bootstrap_research.py` + materi `bootstrap_content.py`, dan PDF statis di
 `publik/`; `auth_http.py` memiliki
 login/logout; `registration_http.py` memiliki pendaftaran keluarga;
 `account_http.py` memiliki halaman dan mutasi akun guru; `teacher_http.py` memiliki

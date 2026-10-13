@@ -145,6 +145,34 @@ def test_riset_tidak_menyentuh_database(server, monkeypatch):
     assert server.minta(JALUR_BISNIS_PDF, biner=True)[0] == 200
 
 
+@pytest.mark.parametrize("jalur", ("/riset/mulai", "/riset/mulai.pdf"))
+def test_bootstrap_publik_identik_dan_tidak_membuka_sqlite(server, monkeypatch, jalur):
+    import sqlite3
+    import bootstrap_research
+
+    # Bootstrap transport disiapkan fixture; larang koneksi selama request riset.
+    def meledak(*args, **kwargs):
+        raise AssertionError("Request riset tidak boleh membuka SQLite")
+
+    monkeypatch.setattr(sqlite3, "connect", meledak)
+    biner = jalur.endswith(".pdf")
+    kode, anonim, hdr = server.minta(jalur, biner=biner)
+    _, login, _ = server.minta(jalur, auth=("guru", SANDI_GURU), biner=biner)
+    assert kode == 200 and anonim == login
+    if biner:
+        assert anonim == bootstrap_research.BERKAS_PDF.read_bytes()
+        assert hdr["Content-Disposition"] == 'attachment; filename="jagomat-rencana-bootstrap-2026.pdf"'
+        assert hdr["Content-Type"] == "application/pdf"
+        assert int(hdr["Content-Length"]) == len(anonim)
+        assert hdr["X-Content-Type-Options"] == "nosniff"
+        assert b"Putri" not in anonim
+    else:
+        assert "Putri" not in anonim
+        assert anonim == bootstrap_research.halaman().decode()
+        assert server.minta(jalur + "/")[1] == anonim
+    assert 'href="/riset/mulai"' in server.minta("/riset")[1]
+
+
 def test_pdf_bisa_diunduh_dengan_header_dan_isi_valid(server):
     kode, isi, hdr = server.minta(JALUR_PDF, biner=True)
     assert kode == 200
