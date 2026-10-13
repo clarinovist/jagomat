@@ -16,6 +16,7 @@ from competitive_research import GAYA_RISET, _font_link
 JALUR = "/riset"
 JALUR_PDF = "/riset/laporan-bisnis-2026.pdf"
 NAMA_PDF = "jagomat-riset-bisnis-2026.pdf"
+VERSI_ISI = "2026-10-13-r2"
 BERKAS_PDF = Path(__file__).resolve().parent / "publik" / NAMA_PDF
 
 RINGKASAN_META = (
@@ -142,7 +143,7 @@ def halaman() -> bytes:
     })
     return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{brand.judul('Riset bisnis Jagomat 2026')}</title>
+<title>{brand.judul(f'Riset bisnis Jagomat 2026 · {VERSI_ISI}')}</title>
 {tag_kepala}{_font_link()}<style>{GAYA_RISET}{GAYA_BISNIS}</style></head>
 <body><a class="riset-lewati" href="#konten-riset">Lewati ke laporan</a>
 <header class="riset-topbar"><div class="riset-topbar-dalam">
@@ -159,6 +160,7 @@ def halaman() -> bytes:
 <p class="riset-dek">Jawaban singkatnya: ruang ekonominya mungkin besar, tetapi bisnisnya belum terbukti. Laporan ini menunjukkan angka yang dapat dihitung, asumsi yang masih rapuh, serta eksperimen paling hemat untuk mengubah dugaan menjadi bukti.</p>
 <div class="riset-meta" aria-label="Metadata laporan">
 <span class="riset-chip">Snapshot · 13 Oktober 2026</span>
+<span class="riset-chip">Revisi isi · {VERSI_ISI}</span>
 <span class="riset-chip">Core case · Matematika SD/OSN–SASMO</span>
 <span class="riset-chip">Bukan forecast atau valuasi</span>
 </div></div>

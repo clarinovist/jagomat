@@ -1,7 +1,6 @@
 """Kontrak pusat riset bisnis dan laporan persaingan publik."""
 from __future__ import annotations
 
-import subprocess
 import sys
 from pathlib import Path
 
@@ -172,25 +171,18 @@ def test_pdf_bisnis_bisa_diunduh_dengan_header_dan_isi_valid(server):
     assert isi.rstrip().endswith(b"%%EOF")
 
 
-def test_pdf_bisnis_sinkron_dengan_marker_html():
-    pdf = ROOT / "publik" / "jagomat-riset-bisnis-2026.pdf"
-    try:
-        hasil = subprocess.run(
-            ["pdftotext", str(pdf), "-"],
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=20,
-        )
-    except FileNotFoundError:
-        pytest.skip("pdftotext tidak tersedia di environment test")
-    for marker in (
-        "Seberapa besar peluang",
-        "Denominator murid SD perlu tabel primer",
-        "Stress-test semantik, bukan survei pasar",
-        "Rujukan utama",
-    ):
-        assert marker in hasil.stdout, f"PDF bisnis belum sinkron: {marker}"
+def test_pdf_bisnis_sinkron_dengan_versi_renderer_tanpa_tool_eksternal():
+    import business_research
+
+    pdf = (ROOT / "publik" / "jagomat-riset-bisnis-2026.pdf").read_bytes()
+    judul = f"Riset bisnis Jagomat 2026 · {business_research.VERSI_ISI} · Jagomat"
+    # Chrome menyimpan Title sebagai UTF-16BE bertanda BOM dalam metadata PDF.
+    # Versi yang sama tampil di HTML; perubahan isi wajib menaikkan versi dan
+    # meregenerasi PDF, tanpa bergantung pada poppler/pdftotext di runner CI.
+    judul_pdf = ("\ufeff" + judul).encode("utf-16-be").hex().upper().encode("ascii")
+    assert b"/Title <" + judul_pdf + b">" in pdf
+    html = business_research.halaman().decode("utf-8")
+    assert f"Revisi isi · {business_research.VERSI_ISI}" in html
 
 
 def test_pdf_dan_modul_riset_masuk_image():
