@@ -309,7 +309,7 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
   dengan produksi. `llm.py` fail-dry: konfigurasi hilang bisa mematikan fitur tanpa error.
 - Migrasi produksi dalam scope rilis diizinkan setelah target, backup konsisten seluruh
   state durable, uji idempotensi/FK, serta recovery terverifikasi. Ikuti runbook aktif:
-  bundle admin5 mencakup empat DB + auth `sandi.json`, bukan hanya DB belajar.
+  bundle admin5 mencakup empat DB + auth `sandi.json`, bukan hanya DB belajar. Database riset konsumen punya retensi/backup terpisah dan tidak ikut bundle kampanye.
   `cadangkan.sh` lama bukan bukti bundle lengkap/no-prune. Token approval exact-pair
   dan preflight deployer tetap wajib; izin tetap tidak membuat artefak itu otomatis sah.
   Laporkan agregat saja, tidak nama anak.

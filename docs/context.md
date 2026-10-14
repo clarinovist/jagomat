@@ -18,7 +18,8 @@ lanjut sesi guru; `share_http.py` memiliki capability satu sesi dan aksi bagikan
 `publik/`; `auth_http.py` memiliki
 login/logout; `registration_http.py` memiliki pendaftaran keluarga;
 `account_http.py` memiliki halaman dan mutasi akun guru; `teacher_http.py` memiliki
-beranda, workspace anak, dan laporan; sementara `attachment_http.py` memagari baca,
+beranda, workspace anak, dan laporan; `admin_research_http.py` memiliki permukaan
+interviewer privat `/admin/riset`; sementara `attachment_http.py` memagari baca,
 upload, dan penerapan foto guru.
 Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 
@@ -27,7 +28,7 @@ Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 | Identitas | `auth.py`, `sessions.py`: akun dan sesi login; `students.py`: data anak |
 | Soal | `topics.py` + `topic_*.py`: topik; `generator.py`: pembangkitan; `templates.py`: kontrak soal |
 | Penyajian | `render.py`, `worksheets.py`, `*_pages.py`, `*_ui.py`: HTML/layar; `teacher_shell.py`: bingkai/topbar; `teacher_workspace.py`: profil/form; `teacher_session_pages.py`: tinjauan; `teacher_print_pages.py`: cetak/lampiran; `teacher_review_service.py`: koreksi |
-| Data | `database.py`, `schema.py`, `*_store.py`, `*_schema.py`: penyimpanan dan migrasi; `attachment_store.py`: metadata lampiran; `report_store.py`: proyeksi laporan; `student_profile_store.py`: profil/kepemilikan siswa; `question_bank_store.py`: bank soal; `session_read_store.py`: query/status dasar sesi; `session_store.py`: pembuatan sesi; `answer_store.py`: jawaban/diagnosis; `learning_evidence_store.py`: snapshot konfirmasi dan loader bukti siklus |
+| Data | `database.py`, `schema.py`, `*_store.py`, `*_schema.py`: penyimpanan dan migrasi; `research_store.py` + `research_schema.py`: wawancara konsumen anonim di `riset-konsumen.db`; `attachment_store.py`: metadata lampiran; `report_store.py`: proyeksi laporan; `student_profile_store.py`: profil/kepemilikan siswa; `question_bank_store.py`: bank soal; `session_read_store.py`: query/status dasar sesi; `session_store.py`: pembuatan sesi; `answer_store.py`: jawaban/diagnosis; `learning_evidence_store.py`: snapshot konfirmasi dan loader bukti siklus |
 | Belajar | `diagnosis.py`, `learning_cycle.py`, `learning_cycle_service.py`: diagnosis, reducer murni, orkestrasi |
 | Laporan | `reports.py`, `report_*.py`, `mastery_*.py`: laporan dan penguasaan berbasis bukti |
 | Layanan lain | `assistant_http_common.py`: parser/response/rate-limit Pendamping; `assistant_inline_http.py`: alur inline; `assistant_http.py`: façade dan adapter GET/POST legacy; `assistant_memory_store.py`: memori/consent penggunaan; `assistant_*`/`ai_*`: alur Pendamping lain; `subscription_*`/`midtrans_*`: langganan/pembayaran; `admin_store_core.py`: koneksi/schema; `admin_journal_store.py`: journal/audit/config; `admin_batch_store.py`: batch durable; `admin_bulk_transient.py`: draft batch transient; `admin_history_store.py`: proyeksi histori; `admin_*`: layanan pengelola lain; `support_settings.py`: konfigurasi dukungan; `family_deletion.py`: preview dan bundle hasil penghapusan keluarga lintas penyimpanan |
@@ -53,7 +54,10 @@ jagomat/                  # repo Git luar, branch kanonis main
 ```
 
 Riset/materi/mockup: `../osn-resources/referensi/`, lokal di luar repo; bukan
-kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap privat.
+kebutuhan runtime/test/build. Data wawancara operasional berada pada SQLite privat
+`riset-konsumen.db`, terpisah dari `latihan.db`, `admin-control.db`, auth, dan
+Pendamping; ia tidak menautkan responden ke akun/siswa. `.venv`, DB, kredensial,
+cache dan cadangan tetap privat.
 
 ## Konvensi dan keputusan penting
 
@@ -72,6 +76,12 @@ kebutuhan runtime/test/build. `.venv`, DB, kredensial, cache dan cadangan tetap 
   independen, preview exact dan backup coherent lima berkas, lalu menghasilkan bundle
   privat baru dengan receipt idempoten. Cutover/recovery tetap operasi terkontrol;
   bukti dan ledger immutable tidak di-hard-delete.
+- Aplikasi interviewer memakai form native Zero-JS dan hanya admin bersesi cookie.
+  `research_instrument.py` menyimpan snapshot instrumen immutable; jawaban responden,
+  kutipan, coding, dan catatan interviewer tetap field terpisah. Reader database
+  riset tidak membuat/memperbaiki file; startup/migrator eksplisit melakukan bootstrap.
+  Draf tidak masuk matriks default, denominator per pertanyaan selalu terlihat,
+  ekspor menetralkan formula spreadsheet, dan maintenance menghapus isi saat retensi.
 - Konfigurasi dukungan berada pada namespace schema aditif optional-absent-or-exact
   di `admin-control.db`, tanpa menaikkan admin7/8/9. `support_settings.migrasikan`
   adalah migrator opt-in; reader tidak membuat/memperbaiki DB dan fail-closed bila

@@ -23,13 +23,14 @@ class SinyalUji:
 def test_janitor_startup_periodik_dan_shutdown_tanpa_tidur(monkeypatch, tmp_path):
     panggilan = []
     monkeypatch.setitem(sys.modules, 'admin_maintenance', SimpleNamespace(
-        jalankan=lambda *args: panggilan.append(args)))
+        jalankan=lambda *args, **kwargs: panggilan.append((args, kwargs))))
     service = serve.PemeliharaanAdmin(tmp_path/'admin.db', tmp_path/'transient.db')
     service.berhenti = SinyalUji([False, False, True])
     service.mulai()
     service.tutup()
     assert len(panggilan) == 3
-    assert all(x == (tmp_path/'admin.db', tmp_path/'transient.db') for x in panggilan)
+    assert all(args == (tmp_path/'admin.db', tmp_path/'transient.db') and kwargs == {'path_riset': None}
+               for args, kwargs in panggilan)
     assert service.berhenti.interval == [60, 60, 60]
     assert not service.ulir.is_alive() and service.berhenti.disetel
     with pytest.raises(RuntimeError):
@@ -38,8 +39,8 @@ def test_janitor_startup_periodik_dan_shutdown_tanpa_tidur(monkeypatch, tmp_path
 
 def test_galat_purge_retry_tetap_aman_tidak_membocorkan_detail(monkeypatch, tmp_path, capsys):
     panggilan = []
-    def jalankan(*args):
-        panggilan.append(args)
+    def jalankan(*args, **kwargs):
+        panggilan.append((args, kwargs))
         if len(panggilan) == 1:
             raise OSError('rahasia-path-anak-sintetis')
     monkeypatch.setitem(sys.modules, 'admin_maintenance', SimpleNamespace(jalankan=jalankan))
@@ -55,7 +56,7 @@ def test_galat_purge_retry_tetap_aman_tidak_membocorkan_detail(monkeypatch, tmp_
 def test_periodik_sebelum900_lalu961_memakai_waktu_helper_bukan_cache_startup(monkeypatch, tmp_path):
     waktu = [1]
     terlihat = []
-    monkeypatch.setitem(sys.modules, 'admin_maintenance', SimpleNamespace(jalankan=lambda *_: terlihat.append(waktu[0])))
+    monkeypatch.setitem(sys.modules, 'admin_maintenance', SimpleNamespace(jalankan=lambda *_, **__: terlihat.append(waktu[0])))
     class JamEvent:
         def __init__(self): self.n = 0
         def wait(self, interval):
@@ -99,9 +100,12 @@ def test_main_memulai_janitor_setelah_bootstrap_dan_menutup_pada_keyboardinterru
     monkeypatch.setattr(serve, 'siapkan_admin_dan_pemilik', lambda: None)
     monkeypatch.setattr(auth, 'wajib_sandi', lambda: False)
     monkeypatch.setattr(sys, 'argv', ['serve.py'])
+    monkeypatch.setattr(serve.research_store, 'BAWAAN', tmp_path/'riset.db')
+    monkeypatch.setattr(serve.research_store, 'siapkan', lambda: urutan.append('riset'))
     class Janitor:
-        def __init__(self, path_admin, path_transient):
+        def __init__(self, path_admin, path_transient, path_riset):
             assert path_admin == tmp_path/'admin.db'
+            assert path_riset == tmp_path/'riset.db'
         def mulai(self): urutan.append('janitor_mulai')
         def tutup(self): urutan.append('janitor_tutup')
     class Server:
@@ -122,12 +126,12 @@ def test_main_memulai_janitor_setelah_bootstrap_dan_menutup_pada_keyboardinterru
     else:
         assert serve.main() == 0
     assert sinyal[-1] == 'handler_lama'
-    assert urutan == ['belajar', 'ai', 'admin', 'siswa', 'transient', 'server_buat',
+    assert urutan == ['belajar', 'ai', 'admin', 'siswa', 'riset', 'transient', 'server_buat',
                       'janitor_mulai', 'layani', 'janitor_tutup', 'server_tutup']
 
 
 def test_shutdown_membangunkan_wait_bukan_menunggu60detik(monkeypatch, tmp_path):
-    monkeypatch.setitem(sys.modules, 'admin_maintenance', SimpleNamespace(jalankan=lambda *_: None))
+    monkeypatch.setitem(sys.modules, 'admin_maintenance', SimpleNamespace(jalankan=lambda *_, **__: None))
     service = serve.PemeliharaanAdmin(tmp_path/'admin.db', tmp_path/'transient.db')
     service.mulai()
     service.tutup()

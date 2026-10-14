@@ -20,6 +20,7 @@ import admin_bulk  # noqa: E402
 import admin_store  # noqa: E402
 import admin_students  # noqa: E402
 import database  # noqa: E402
+import research_store  # noqa: E402
 import auth  # noqa: E402
 import sessions  # noqa: E402
 import web  # noqa: E402
@@ -51,6 +52,9 @@ class ServerUji:
         admin_store.siapkan(admin_db, sekarang=1)
         admin_bulk.siapkan_transient(transient_db)
         admin_students.siapkan(db)
+        research_db = tmp_path / "riset-konsumen.db"
+        monkeypatch.setattr(research_store, "BAWAAN", research_db)
+        research_store.siapkan(research_db, sekarang=1)
 
         berkas = tmp_path / "sandi.json"
         auth.simpan_sandi(SANDI_GURU, "guru", path=berkas)

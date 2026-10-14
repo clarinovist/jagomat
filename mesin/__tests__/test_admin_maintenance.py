@@ -8,6 +8,7 @@ import admin_maintenance
 import admin_store
 import auth
 import sessions
+import research_store
 from admin_contracts import AKSI_BUAT_GURU
 
 
@@ -17,10 +18,12 @@ ACTOR = "akun_" + "a" * 32
 def test_jalankan_purge_bounded_dan_idempoten(tmp_path):
     admin = tmp_path / "admin.db"
     transient = tmp_path / "transient.db"
+    riset = tmp_path / "riset.db"
     akun = tmp_path / "auth.json"
     sesi = tmp_path / "sesi.json"
     admin_store.siapkan(admin, sekarang=1)
     admin_bulk.siapkan_transient(transient)
+    research_store.siapkan(riset, sekarang=1)
     akun.write_text(json.dumps({"akun": [{
         "pengguna": "pengelola", "peran": "admin", "id_akun": ACTOR,
         "revisi_auth": 1, **auth.buat_hash("admin-sintetis"),
@@ -61,9 +64,15 @@ def test_jalankan_purge_bounded_dan_idempoten(tmp_path):
              "conflict", "target_changed", 1),
         )
 
+    wawancara = research_store.buat_wawancara(
+        riset, actor_id=ACTOR, operasi_id="op_" + "1" * 32,
+        kode_responden="R01", sumber="internal", consent_rekaman=False,
+        diwawancarai=1, sekarang=1,
+    )
     kini = 181 * 86400 + 2
     satu = admin_maintenance.jalankan(
-        admin, transient, sekarang=kini, batas_audit=1, batas_batch=2
+        admin, transient, path_riset=riset, sekarang=kini,
+        batas_audit=1, batas_batch=2, actor_riset="sistem_retensi",
     )
     dua = admin_maintenance.jalankan(
         admin, transient, sekarang=kini, batas_audit=1, batas_batch=2
@@ -71,7 +80,8 @@ def test_jalankan_purge_bounded_dan_idempoten(tmp_path):
     tiga = admin_maintenance.jalankan(
         admin, transient, sekarang=kini, batas_audit=1, batas_batch=2
     )
-    assert satu.audit_dihapus == 1 and satu.draft_dihapus == 2
+    assert satu.audit_dihapus == 1 and satu.draft_dihapus == 2 and satu.riset_dihapus == 1
+    assert research_store.detail_wawancara(riset, wawancara)["status"] == "ditarik"
     assert dua.audit_dihapus == 0 and dua.draft_dihapus == 1
     assert tiga.audit_dihapus == 0 and tiga.draft_dihapus == 0
     assert admin_store.baca_operasi(admin, "operasi_audit_lama") is not None

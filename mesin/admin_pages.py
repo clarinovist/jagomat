@@ -27,6 +27,7 @@ SECTION = (
     ("pendaftaran", "Pendaftaran", "/admin?section=pendaftaran"),
     ("langganan", "Langganan", "/admin?section=langganan"),
     ("kpi", "KPI Uji Coba", "/admin?section=kpi"),
+    ("riset", "Riset konsumen", "/admin/riset"),
     ("operasional", "Operasional", "/admin?section=operasional"),
     ("ai", "AI", "/admin/ai"),
     ("riwayat", "Riwayat admin", "/admin?section=riwayat"),
@@ -35,7 +36,7 @@ GRUP_SECTION = (
     ("Pusat kendali", ("ringkasan", "perhatian")),
     ("Data pengguna", ("keluarga", "siswa")),
     ("Layanan", ("pendaftaran", "langganan")),
-    ("Analitik", ("kpi",)),
+    ("Analitik", ("kpi", "riset")),
     ("Sistem", ("operasional", "ai", "riwayat")),
 )
 SECTION_LOKAL = frozenset(item[0] for item in SECTION if item[0] != "ai")
@@ -75,6 +76,8 @@ def _judul_section(section: str) -> Tuple[str, str]:
         return "Pendaftaran", "Status pengaturan pendaftaran mandiri."
     if section == "riwayat":
         return "Riwayat admin", "Riwayat tindakan panel mulai dari cutover fitur."
+    if section == "riset":
+        return "Riset konsumen", "Data wawancara eksploratif anonim untuk keputusan produk."
     return "Selamat datang, Pengelola.", "Tinjau yang perlu ditangani, lalu pantau kondisi layanan dan aktivitas administratif."
 
 

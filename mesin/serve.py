@@ -23,6 +23,7 @@ import admin_bulk
 import admin_store
 import admin_students
 import database
+import research_store
 import auth
 import sessions
 from web import Penangan
@@ -39,16 +40,19 @@ class PemeliharaanAdmin:
     Tidak menyimpan rincian galat yang mungkin mengandung path atau data privat.
     """
 
-    def __init__(self, path_admin, path_transient):
+    def __init__(self, path_admin, path_transient, path_riset=None):
         self.path_admin = path_admin
         self.path_transient = path_transient
+        self.path_riset = path_riset
         self.berhenti = Event()
         self.ulir = None
 
     def _putaran(self):
         import admin_maintenance
         try:
-            admin_maintenance.jalankan(self.path_admin, self.path_transient)
+            admin_maintenance.jalankan(
+                self.path_admin, self.path_transient, path_riset=self.path_riset,
+            )
         except Exception:
             print("Pemeliharaan admin tertunda; akan dicoba pada putaran berikutnya.", file=sys.stderr)
 
@@ -126,6 +130,9 @@ def main() -> int:
     # Store admin dan receipt siswa hanya dibuat saat startup, bukan dari GET.
     admin_store.siapkan()
     admin_students.siapkan(database.BAWAAN)
+    # Database riset terpisah: startup eksplisit boleh bootstrap; GET tidak pernah
+    # membuat atau memperbaiki file yang hilang.
+    research_store.siapkan()
     path_transient = os.environ.get(
         "ADMIN_TRANSIENT_DB", str(admin_store.BAWAAN.parent / "transient" / "admin-drafts.db")
     )
@@ -171,7 +178,9 @@ def main() -> int:
     print("Ctrl-C untuk berhenti.")
 
     server = ThreadingHTTPServer((inang, arg.port), Penangan)
-    pemeliharaan = PemeliharaanAdmin(admin_store.BAWAAN, path_transient)
+    pemeliharaan = PemeliharaanAdmin(
+        admin_store.BAWAAN, path_transient, research_store.BAWAAN,
+    )
     def hentikan_teratur(_nomor, _frame):
         raise KeyboardInterrupt()
     handler_lama = signal.signal(signal.SIGTERM, hentikan_teratur)

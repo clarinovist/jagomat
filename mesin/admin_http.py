@@ -426,6 +426,9 @@ def _render_get(penangan, principal, query):
 
 
 def tangani_get(penangan, jalur):
+    import admin_research_http
+    if admin_research_http.tangani_get(penangan, jalur):
+        return True
     if jalur not in ("/admin", "/admin/tinjau", "/admin/bulk/pilih", "/admin/bulk/hasil", "/admin/bulk/templat"):
         return False
     principal = _principal_admin(penangan)
@@ -915,6 +918,9 @@ def _post_bulk_proses(penangan, principal, data, mode="process"):
 
 
 def tangani_post(penangan, jalur):
+    import admin_research_http
+    if admin_research_http.tangani_post(penangan, jalur):
+        return True
     import admin_launch_http
     if admin_launch_http.tangani_post(penangan, jalur):
         return True

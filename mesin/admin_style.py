@@ -294,11 +294,43 @@ body.admin-readonly {{
 .admin-rincian dt {{ color: {T.TEKS_VARIAN}; font-weight: 700; }}
 .admin-rincian dd {{ margin: 0; overflow-wrap: anywhere; }}
 .admin-aksi-baca {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; }}
+.riset-aksi-atas {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_2}; margin:0 0 {T.SP_4}; }}
+.riset-aksi-atas form {{ margin:0; }}
+.riset-aksi-atas button.admin-tautan {{ margin:0; }}
+.riset-grid-form {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:{T.SP_3}; }}
+.riset-grid-form input, .riset-grid-form select, .riset-pertanyaan textarea,
+.riset-pertanyaan select, .riset-aksi-form input:not([type=checkbox]) {{
+  width:100%; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} {T.SP_3};
+  border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius:{T.RADIUS_KECIL}; font:inherit;
+}}
+.riset-pertanyaan textarea {{ resize:vertical; min-height:7rem; }}
+.riset-prompt {{ max-width:50rem; color:{T.TEKS_JUDUL}; font-size:{T.UKURAN_BAGIAN_DEWASA}; font-weight:700; }}
+.riset-kode > summary {{ min-height:{T.TARGET_SENTUH}; display:flex; align-items:center; cursor:pointer; font-weight:800; }}
+.riset-kode-baris {{ display:grid; grid-template-columns:8rem 9rem minmax(0,1fr); gap:{T.SP_2}; align-items:center; padding:{T.SP_1} 0; }}
+.riset-kode-baris label {{ margin:0; min-height:{T.TARGET_SENTUH}; display:flex; align-items:center; white-space:nowrap; }}
+.riset-kode-baris input[type=radio], .riset-kode-baris input[type=checkbox] {{ width:1.2rem; height:1.2rem; margin-right:{T.SP_2}; }}
+.riset-tombol, .riset-aksi-form {{ display:flex; flex-wrap:wrap; gap:{T.SP_2}; align-items:end; margin-top:{T.SP_4}; }}
+.riset-aksi-form form {{ flex:1 1 15rem; margin:0; }}
+.riset-daftar-pertanyaan {{ list-style:none; margin:0; padding:0; }}
+.riset-daftar-pertanyaan li {{ display:flex; justify-content:space-between; align-items:center; gap:{T.SP_3}; padding:{T.SP_3} 0; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
+.riset-daftar-pertanyaan li > div {{ display:flex; min-width:0; gap:{T.SP_3}; align-items:start; }}
+.riset-daftar-pertanyaan p {{ margin:{T.SP_1} 0; color:{T.TEKS_VARIAN}; }}
+.riset-nomor {{ display:grid; place-items:center; flex:0 0 {T.SP_6}; width:{T.SP_6}; height:{T.SP_6}; border-radius:{T.RADIUS_PIL}; background:{T.LATAR_SEKUNDER_LEMBUT}; font-weight:800; }}
+.riset-daftar-sesi {{ list-style:none; margin:0; padding:0; display:grid; gap:{T.SP_2}; }}
+.riset-sesi {{ display:block; padding:{T.SP_3}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KECIL}; text-decoration:none; color:{T.TEKS_JUDUL}; }}
+.riset-sesi:hover {{ border-color:{T.AKSEN_TEAL_TUA}; background:{T.LATAR_SEKUNDER_LEMBUT}; }}
+.riset-sesi-kepala {{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:{T.SP_2}; }}
+.riset-sesi-kepala strong {{ font-size:{T.UKURAN_TEKS_BANTUAN}; }}
+.riset-sesi-meta {{ display:block; margin-top:{T.SP_1}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_LABEL}; }}
+.riset-matriks {{ min-width:80rem; }}
+.riset-matriks q {{ display:block; margin-top:{T.SP_2}; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_META}; }}
+.riset-grid-ringkas {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr)); gap:{T.SP_3}; margin-top:{T.SP_4}; }}
 .admin-footer {{ margin-top: {T.SP_6}; color: {T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; }}
 :focus-visible {{ outline: 3px solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 .admin-menu :focus-visible {{ outline-color: {T.AKSEN_TEAL_TUA}; }}
 @media (max-width:{T.LEBAR_LANDING}) {{
   .admin-form-cari, .admin-form-cari.admin-form-siswa {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+  .riset-grid-form {{ grid-template-columns:1fr 1fr; }}
   .admin-form-cari > :first-child {{ grid-column: 1 / -1; }}
   .admin-komando, .admin-pendukung {{ grid-template-columns: minmax(0, 1fr); }}
   .admin-layanan dl {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: {T.SP_5}; }}
@@ -343,6 +375,12 @@ body.admin-readonly {{
   .admin-form-cari > :first-child {{ grid-column: auto; }}
   .admin-rincian {{ grid-template-columns: 1fr; gap: 0; }}
   .admin-rincian dd {{ margin-bottom: {T.SP_3}; }}
+  .riset-grid-form {{ grid-template-columns:1fr; }}
+  .riset-kode-baris {{ grid-template-columns:1fr 1fr; }}
+  .riset-kode-baris span {{ grid-column:1 / -1; }}
+  .riset-daftar-pertanyaan li {{ align-items:start; }}
+  .riset-aksi-atas {{ display:grid; grid-template-columns:1fr; align-items:stretch; }}
+  .riset-aksi-atas .admin-tautan, .riset-aksi-atas form, .riset-aksi-atas button.admin-tautan {{ width:100%; }}
 }}
 @media print {{ .admin-sidebar, .admin-nav-mobile, .admin-form-cari, .admin-pager {{ display: none; }} .admin-layout {{ display: block; }} }}
 """

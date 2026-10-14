@@ -66,6 +66,7 @@ ENV_TETAP = (
     "AI_BERKAS_DB=/data/ai-control.db", "OSN_FOLDER_LEMBAR=/data/lembar",
     "ADMIN_BERKAS_DB=/data/admin-control.db",
     "ADMIN_TRANSIENT_DB=/data/transient/admin-drafts.db",
+    "RISET_BERKAS_DB=/data/riset-konsumen.db",
     "PENDAMPING_AKTIF=1",
     "DEEPSEEK_MODEL=deepseek-flash", "DEEPSEEK_VISION_MODEL=deepseek-flash",
     "PYTHONDONTWRITEBYTECODE=1",
@@ -186,6 +187,7 @@ import database
 import admin_store
 import admin_students
 import admin_bulk
+import research_store
 import auth
 import sessions
 assert assistant_schema.VERSI_SKEMA == 4
@@ -199,6 +201,10 @@ for _ in range(2):
     admin_store.siapkan(Path('/data/admin-control.db'), sekarang=1)
     admin_students.siapkan(Path('/data/latihan.db'))
     admin_bulk.siapkan_transient(Path('/data/transient/admin-drafts.db'))
+    research_store.siapkan(Path('/data/riset-konsumen.db'), sekarang=1)
+with research_store.buka_baca(Path('/data/riset-konsumen.db')) as kon:
+    assert kon.execute('PRAGMA user_version').fetchone()[0] == 1
+    assert kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='wawancara_riset'").fetchone()
 with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
     assert kon.execute('PRAGMA user_version').fetchone()[0] == 7
 with sqlite3.connect('file:/data/transient/admin-drafts.db?mode=ro', uri=True) as kon:
@@ -247,6 +253,7 @@ assert (
 ) == [7]
 assert versi_source('subscription_package_schema.py') == [8]
 assert versi_source('assistant_quota_schema.py') == [9]
+assert versi_source('research_schema.py') == [1]
 for nama, tabel in [('pendamping.db', 'tinjauan_usulan'), ('latihan.db', 'eksekusi_pendamping'),
                     ('latihan.db', 'operasi_admin_siswa')]:
     kon = sqlite3.connect('file:/data/' + nama + '?mode=ro', uri=True, timeout=2)
@@ -265,6 +272,26 @@ try:
         assert kon.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (tabel,)).fetchone()
 finally:
     kon.close()
+# Database riset opsional-absent: rollout pertama belum membuatnya; jika ada,
+# schema harus exact. Dibuat oleh startup candidate, bukan oleh probe.
+if Path('/data/riset-konsumen.db').exists():
+    kon = sqlite3.connect('file:/data/riset-konsumen.db?mode=ro', uri=True, timeout=2)
+    try:
+        kon.execute('PRAGMA query_only=ON')
+        assert kon.execute('PRAGMA user_version').fetchone()[0] == 1
+        wajib = {
+            'studi_riset': {'slug','judul','target','status','dibuat','ditutup'},
+            'instrumen_riset': {'id','studi_slug','kode_versi','snapshot_json','sidik','diterbitkan'},
+            'wawancara_riset': {'id','studi_slug','instrumen_id','kode_responden','actor_id','sumber','consent_wawancara','consent_rekaman','status','revisi','diwawancarai','dibuat','diperbarui','difinalkan','retensi_hingga'},
+            'jawaban_riset': {'wawancara_id','pertanyaan_kode','status_jawaban','jawaban_responden','kutipan_responden','kutipan_terpilih','catatan_interviewer','kode_utama','status_klarifikasi','revisi','diperbarui'},
+            'kode_tambahan_riset': {'wawancara_id','pertanyaan_kode','kode'},
+            'audit_riset': {'operasi_id','actor_id','aksi','target_id','sidik_perintah','hasil','dibuat'},
+        }
+        for tabel, kolom in wajib.items():
+            assert {r[1] for r in kon.execute('PRAGMA table_info('+tabel+')')} == kolom
+        assert kon.execute('PRAGMA foreign_key_check').fetchone() is None
+    finally:
+        kon.close()
 for nama, versi, tabel in (
     ('admin-control.db',(7,8,9),('konfigurasi_pendaftaran','operasi_admin','receipt_admin','batch_admin','batch_admin_item','kelompok_admin','kelompok_admin_item','penyerahan_admin','penyerahan_admin_item')),
     ('transient/admin-drafts.db',2,('draft_bulk','item_bulk','kelompok_bulk')),
@@ -510,7 +537,7 @@ import json
 from pathlib import Path
 akar = Path('/app')
 nama = {
-    'schema.py', 'assistant_schema.py', 'database.py', 'serve.py', 'admin_registration.py',
+    'schema.py', 'assistant_schema.py', 'research_schema.py', 'database.py', 'serve.py', 'admin_registration.py',
     'auth.py', 'sessions.py', 'assistant_store.py', 'assistant_actions.py',
     'assistant_maintenance.py', 'migrate_params.py', 'outcome_presentations.py',
     'question_views.py', 'visual_contract.py', 'templates.py',

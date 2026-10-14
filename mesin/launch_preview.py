@@ -17,6 +17,7 @@ import ai_store
 import assistant_schema
 import auth
 import database
+import research_store
 import sessions
 import support_settings
 
@@ -30,13 +31,15 @@ def siapkan(*, akar=None):
     paths = {
         "belajar": akar / "latihan.db", "auth": akar / "sandi.json",
         "admin": akar / "admin-control.db", "ai": akar / "ai-control.db",
-        "pendamping": akar / "pendamping.db", "sesi": akar / "sesi.json",
+        "pendamping": akar / "pendamping.db", "riset": akar / "riset-konsumen.db",
+        "sesi": akar / "sesi.json",
     }
     admin_store.BAWAAN = paths["admin"]
     auth.BERKAS_SANDI = paths["auth"]
     database.BAWAAN = paths["belajar"]
     ai_store.BAWAAN = paths["ai"]
     assistant_schema.BAWAAN = paths["pendamping"]
+    research_store.BAWAAN = paths["riset"]
     sessions.BERKAS_SESI = paths["sesi"]
     os.environ["ADMIN_TRANSIENT_DB"] = str(akar / "admin-drafts.db")
     os.environ["AI_BERKAS_DB"] = str(paths["ai"])
@@ -51,6 +54,7 @@ def siapkan(*, akar=None):
     admin_registration.migrasikan_profil_registrasi(paths["belajar"])
     ai_store.siapkan(paths["ai"], sekarang=kini)
     assistant_schema.siapkan(paths["pendamping"])
+    research_store.siapkan(paths["riset"], sekarang=kini)
     sandi_admin = secrets.token_urlsafe(18)
     auth.simpan_sandi(sandi_admin, "admin-preview", path=paths["auth"])
     auth.pastikan_admin(paths["auth"])

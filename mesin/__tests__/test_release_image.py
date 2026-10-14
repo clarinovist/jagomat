@@ -156,7 +156,8 @@ def test_ringkasan_tidak_lengkap_bukan_lulus(verifier, monkeypatch, capsys, isi)
                                    {'skenario_tindakan': 0}, {'records': ['rahasia-sintetis']},
                                    {'ok': 1}, {'provider_calls': False},
                                    {'profil_checks': 0}, {'profil_checks': True},
-                                   {'admin_schema': 4}, {'admin_schema': None}])
+                                   {'admin_schema': 4}, {'admin_schema': None},
+                                   {'research_checks': 0}, {'research_checks': True}])
 def test_ringkasan_harus_exact_dan_tidak_mengeluarkan_record(verifier, monkeypatch, capsys, ubah):
     docker_palsu(monkeypatch, verifier, run=subprocess.CompletedProcess(
         [], 0, json.dumps({**verifier.RINGKASAN, **ubah}), ''))

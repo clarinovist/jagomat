@@ -84,6 +84,7 @@ def ringkasan_untuk_revision(revision: str) -> dict:
         "photo_checks": 0 if revision in RECOVERY_TANPA_FOTO else 8,
         "registration_checks": 0 if revision in RECOVERY_TANPA_REGISTRASI else 8,
         "support_checks": 0 if revision in RECOVERY_TANPA_DUKUNGAN else 8,
+        "research_checks": 0 if revision in RECOVERY_TANPA_DUKUNGAN else 5,
         "pengiriman_checks": 0 if revision in {
             REVISION_RECOVERY_LEGACY, "33e241c18024190f41ebca1986e35af26c0397fd",
         } else 6,
@@ -621,8 +622,19 @@ def jalankan_probe(akar):
         if revision not in REVISION_TANPA_REGISTRASI:
             registration_checks = uji_registrasi(akar / 'registrasi')
         support_checks = 0
+        research_checks = 0
         if revision not in REVISION_TANPA_DUKUNGAN:
             support_checks = uji_dukungan(akar / 'dukungan')
+            research_store = importlib.import_module('research_store')
+            research_schema = importlib.import_module('research_schema')
+            riset_path = akar / 'riset-konsumen.db'
+            for _ in range(2):
+                research_store.siapkan(riset_path, sekarang=1)
+            with research_store.buka_baca(riset_path) as kon:
+                pastikan(kon.execute('PRAGMA user_version').fetchone()[0] == research_schema.VERSI_SKEMA == 1, 'riset_schema')
+                pastikan(kon.execute('SELECT COUNT(*) FROM instrumen_riset').fetchone()[0] == 1, 'riset_instrumen')
+                pastikan(not kon.execute('SELECT 1 FROM wawancara_riset').fetchone(), 'riset_fixture_kotor')
+            research_checks = 5
         pastikan(not panggilan, 'provider_terpanggil')
     finally:
         socket.socket.connect, socket.socket.connect_ex, socket.getaddrinfo = asli_connect, asli_connect_ex, asli_resolve
@@ -635,7 +647,7 @@ def jalankan_probe(akar):
             'quota_checks': quota_checks, 'admin_quota_schema': 9 if quota_checks else None,
             'photo_checks': 0 if revision in REVISION_TANPA_FOTO else 8,
             'registration_checks': registration_checks,
-            'support_checks': support_checks}
+            'support_checks': support_checks, 'research_checks': research_checks}
 
 
 def main():

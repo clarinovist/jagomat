@@ -17,6 +17,14 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
 
 - Generator soal berparameter dan seed deterministik, lembar cetak, latihan daring,
   tinjauan hasil, diagnosis B/K/H/E/T/N, serta laporan perkembangan per anak.
+- Panel privat admin `/admin/riset` menyimpan wawancara eksploratif konsumen
+  dalam database terpisah tanpa hubungan ke akun keluarga/siswa. Instrumen hybrid
+  berversi memisahkan jawaban/kutipan responden, coding, dan catatan interviewer;
+  jawaban boleh berstatus tidak dibahas/tidak tahu tanpa dipaksa lengkap. Hanya admin
+  dengan sesi cookie hidup yang dapat membaca atau menulis. Kontak, nama, sekolah,
+  foto, rekaman, dan jawaban soal anak tidak disimpan; consent, redaksi, penarikan,
+  retensi 90 hari, matriks ber-denominator, serta ekspor anonim CSV/JSON dipagari.
+  Hitungan studi bukan klaim populasi, PMF, atau keputusan launch otomatis.
 - Pusat publik read-only `/riset` dan PDF unduhannya menyajikan business case
   peluang pasar/unit economics, strategi persaingan, psikologi konsumen, serta
   validasi GTM. Ia membedakan fakta, proxy, asumsi, hasil hitung, dan rekomendasi;
@@ -86,7 +94,8 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   tanpa efek samping. Murid tidak menerima kunci, malrule, diagnosis, atau laporan.
 - Admin boleh mengelola data murid semua keluarga, tetapi tidak boleh mengubah
   akun/sandi sesama pengelola. Sesi berbukti tidak boleh dihapus permanen.
-- Data anak, kredensial, sesi dan cadangan tidak masuk Git/log/fixture. Tes memakai
+- Data anak, kredensial, sesi, data wawancara konsumen, dan cadangan tidak masuk
+  Git/log/fixture. Tes memakai
   data sintetis; pengiriman ke AI hanya melalui alur dan izin produk yang disetujui.
   Tidak menyimpan email/telepon pengguna. Nomor WhatsApp Business adalah konfigurasi
   operasi Jagomat, bukan kontak keluarga; URL publik tidak membawa nama akun/anak.

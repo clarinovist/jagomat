@@ -682,7 +682,7 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
                 import support_settings
                 support_settings.migrasikan(turunan / BERKAS_WAJIB["admin"], sekarang=sebelum.cutoff)
             migrator_ai(turunan / BERKAS_WAJIB["ai"])
-            assistant_schema.siapkan(turunan / BERKAS_WAJIB["pendamping"])
+            assistant_schema.siapkan(turunan / BERKAS_WAJIB["pendamping"]) 
         foto_akhir = _validasi_foto(turunan / BERKAS_WAJIB['belajar'])
         if foto_akhir != (target_foto, sebelum.operasi_foto_pending, sebelum.operasi_foto_unknown):
             raise BackupTidakSah('state foto berubah selama rehearsal')

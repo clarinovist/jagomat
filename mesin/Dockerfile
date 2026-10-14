@@ -47,6 +47,7 @@ ENV OSN_BERKAS_SANDI=/data/sandi.json \
     AI_BERKAS_DB=/data/ai-control.db \
     ADMIN_BERKAS_DB=/data/admin-control.db \
     ADMIN_TRANSIENT_DB=/data/transient/admin-drafts.db \
+    RISET_BERKAS_DB=/data/riset-konsumen.db \
     PENDAMPING_AKTIF=0 \
     OSN_FOLDER_LEMBAR=/data/lembar \
     PYTHONUNBUFFERED=1 \

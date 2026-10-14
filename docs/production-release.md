@@ -801,7 +801,11 @@ Pada rollout pengendali AI tersebut, jalur `deploy-v2` mensyaratkan backup DB
 belajar dan Pendamping sebelum startup membuat DB AI. Backup tiga DB sesudahnya
 juga merupakan inventaris historis, **bukan bundle lengkap admin5 sekarang**.
 Bundle durable saat ini mencakup empat DB + auth `sandi.json`; sesi login dan
-transient dikecualikan. Prinsipnya dijelaskan di [runbook admin](admin-control-release.md),
+transient dikecualikan. Database riset konsumen (`riset-konsumen.db`) memiliki
+retensi dan jalur backup terpisah sehingga tidak ikut bundle kampanye; readiness
+memperlakukannya optional-absent sebelum rollout pertama dan exact setelah file ada,
+sehingga preflight tidak menuntut file yang baru dibuat startup candidate.
+Backup/restore riset memakai `research_backup.py` pada salinan di bawah write-hold. Prinsipnya dijelaskan di [runbook admin](admin-control-release.md),
 tetapi langkah migrasi admin4 di sana tidak boleh dijalankan mentah pada admin5.
 
 ## Recovery berbeda dari candidate

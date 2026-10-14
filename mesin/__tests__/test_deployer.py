@@ -663,9 +663,10 @@ def test_cli_subprocess_request_injection_tanpa_docker(tmp_path):
     assert not marker.exists()
 
 
-@pytest.mark.parametrize("versi,ledger,expected", [(4, True, 0), (3, True, 1),
-                                                  (5, True, 1), (4, False, 1)])
-def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, expected):
+@pytest.mark.parametrize("versi,ledger,expected,riset_ada", [(4, True, 0, True), (3, True, 1, True),
+                                                  (5, True, 1, True), (4, False, 1, True),
+                                                  (4, True, 0, False)])
+def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, expected, riset_ada):
     # Paths hanya diganti dalam string probe yang dijalankan di proses Python sintetis.
     # Tidak import aplikasi sehingga tidak mungkin menjalankan startup/migrasi.
     schema = tmp_path / "assistant_schema.py"
@@ -675,6 +676,7 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
     (tmp_path / 'admin_store.py').write_text("VERSI_SKEMA = 7\nraise RuntimeError('jangan import')\n")
     (tmp_path / 'subscription_package_schema.py').write_text("VERSI_SKEMA = 8\nraise RuntimeError('jangan import')\n")
     (tmp_path / 'assistant_quota_schema.py').write_text("VERSI_SKEMA = 9\nraise RuntimeError('jangan import')\n")
+    (tmp_path / 'research_schema.py').write_text("VERSI_SKEMA = 1\nraise RuntimeError('jangan import')\n")
     (tmp_path / 'support_settings.py').write_text((AKAR / 'mesin/support_settings.py').read_text())
     privat = tmp_path / "pendamping.db"
     belajar = tmp_path / "latihan.db"
@@ -700,6 +702,10 @@ def test_script_health_sql_readonly_dengan_db_sintetis(tmp_path, versi, ledger, 
             kon.execute('PRAGMA user_version='+str(v))
             for tabel in tables:kon.execute('CREATE TABLE '+tabel+' (id TEXT)')
     (tmp_path/'sandi.json').write_text(json.dumps({'akun':[{'id_akun':'akun_'+'a'*32,'revisi_auth':0}]}))
+    import research_store
+    research_store.siapkan(tmp_path/'riset-konsumen.db', sekarang=1)
+    if not riset_ada:
+        (tmp_path/'riset-konsumen.db').unlink()
     from submission_schema import SKEMA_PENGIRIMAN
     with sqlite3.connect(belajar) as kon:
         kon.execute('CREATE TABLE sesi_soal (id INTEGER, sesi_id INTEGER, nomor INTEGER)')
@@ -1295,7 +1301,7 @@ def test_env_tetap_known_live_tanpa_semantic_baru():
         "OSN_BERKAS_DB=/data/latihan.db", "PENDAMPING_BERKAS_DB=/data/pendamping.db",
         "AI_BERKAS_DB=/data/ai-control.db", "OSN_FOLDER_LEMBAR=/data/lembar",
         "ADMIN_BERKAS_DB=/data/admin-control.db", "ADMIN_TRANSIENT_DB=/data/transient/admin-drafts.db",
-        "PENDAMPING_AKTIF=1",
+        "RISET_BERKAS_DB=/data/riset-konsumen.db", "PENDAMPING_AKTIF=1",
         "DEEPSEEK_MODEL=deepseek-flash", "DEEPSEEK_VISION_MODEL=deepseek-flash",
         "PYTHONDONTWRITEBYTECODE=1", "PYTHONUNBUFFERED=1",
     }
