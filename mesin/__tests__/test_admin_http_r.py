@@ -122,9 +122,9 @@ def test_janitor_actual_expiry_draft_durable_tetap_dan_get_tidak_purge(server, m
     now = int(time.time())
     real = admin_maintenance.jalankan
     panggilan = []
-    def putaran(path_admin, path_transient):
+    def putaran(path_admin, path_transient, **kwargs):
         panggilan.append(1)
-        return real(path_admin, path_transient, sekarang=now + 961)
+        return real(path_admin, path_transient, sekarang=now + 961, **kwargs)
     monkeypatch.setattr(admin_maintenance, 'jalankan', putaran)
     class Stop:
         def wait(self, interval):
