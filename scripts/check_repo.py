@@ -7,7 +7,8 @@ from typing import Iterable, Optional, Tuple
 
 FOLDER_KODE = frozenset(('mesin', 'scripts', 'docs', '.github'))
 BERKAS_AKAR = frozenset((
-    'README.md', 'CLAUDE.md', '.gitignore', '.project-gate.json', 'pytest.ini',
+    'README.md', 'CLAUDE.md', 'AGENTS.md', '.gitignore', '.project-gate.json',
+    'pytest.ini',
 ))
 FOLDER_LOKAL = frozenset((
     'riset-pasar', 'desain-ui', 'kurikulum', 'latihan', 'produk', 'spike',
