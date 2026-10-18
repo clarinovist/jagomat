@@ -391,8 +391,8 @@ def test_laporan_memakai_identitas_dan_kanvas_ruang_anak_yang_sama(db):
     assert 'class="bungkus-st laporan-lebar pendamping-editorial-st laporan-editorial-st profil-workspace-st"' in h
     assert '<a class="profil-kembali-st" href="/guru">&larr; Semua anak</a>' in isi
     assert '<header class="kepala-anak-st editorial-kepala-st">' in isi
-    assert '<h1 class="st" id="judul-profil-laporan">Claudia ' in isi
-    assert "(Kelas belum diisi)" in isi
+    assert '<h1 class="st" id="judul-profil-laporan">Claudia' in isi
+    assert "Kelas belum diisi" not in isi
     assert f'<a href="/anak/{sid}?section=riwayat">Riwayat' in isi
     assert '<nav class="laporan-navigasi"' in isi
     assert 'id="progres"' in isi and 'id="materi"' in isi and 'id="perjalanan"' in isi

@@ -1,25 +1,75 @@
 """Proyeksi pekerjaan tinjauan guru; bukan penilaian atau syarat bukti."""
 
+PERLU_DIPERIKSA = 'perlu_diperiksa'
+TANYAKAN_CARA = 'tanyakan_cara'
+TINJAUAN_TERCATAT = 'tinjauan_tercatat'
+KATEGORI_TINJAUAN = frozenset({
+    PERLU_DIPERIKSA, TANYAKAN_CARA, TINJAUAN_TERCATAT,
+})
+
+_KODE = {'B', 'K', 'H', 'E', 'T', 'N'}
+_PEMAHAMAN = {'bisa_menjelaskan', 'ragu', 'menghafal'}
+
+
+def klasifikasi_tinjauan(*, benar, kode, pilihan, pemahaman, dilewati,
+                         masalah=False, sumber_perlu_diperiksa=False,
+                         terkonfirmasi=False, draf=False,
+                         tidak_konsisten=False):
+    """Kelompokkan pekerjaan UI dari state efektif secara fail-closed.
+
+    Hasil ini tidak mengesahkan outcome. Nilai asing, draf request-local, dan
+    error selalu kembali ke kelompok yang perlu diperiksa.
+    """
+    if any(type(nilai) is not bool for nilai in (
+            benar, dilewati, masalah, sumber_perlu_diperiksa,
+            terkonfirmasi, draf, tidak_konsisten)):
+        return PERLU_DIPERIKSA
+    if kode not in (None, '', *_KODE):
+        return PERLU_DIPERIKSA
+    if pemahaman not in (None, '', *_PEMAHAMAN):
+        return PERLU_DIPERIKSA
+    if pilihan not in (None, '', 'benar', *_KODE):
+        return PERLU_DIPERIKSA
+    if draf or masalah or sumber_perlu_diperiksa or tidak_konsisten:
+        return PERLU_DIPERIKSA
+    if dilewati:
+        return TINJAUAN_TERCATAT
+    if kode == 'T' and not pilihan:
+        return PERLU_DIPERIKSA
+    if not benar and not kode:
+        return PERLU_DIPERIKSA
+    if (benar or kode == 'N') and not pemahaman:
+        return TANYAKAN_CARA
+    if not (pilihan or pemahaman or terkonfirmasi):
+        return PERLU_DIPERIKSA
+    return TINJAUAN_TERCATAT
+
 
 def tindakan_tinjauan(*, benar, kode, pilihan, pemahaman, dilewati,
                       masalah=False, sumber_perlu_diperiksa=False,
-                      terkonfirmasi=False):
-    """Bedakan hasil jawaban dari pekerjaan guru memakai nilai efektif host."""
-    if masalah:
-        return 'Periksa isian yang ditandai'
-    if dilewati:
+                      terkonfirmasi=False, draf=False,
+                      tidak_konsisten=False):
+    """Label tindakan untuk kategori tertutup; kategori asing fail-closed."""
+    kategori = klasifikasi_tinjauan(
+        benar=benar, kode=kode, pilihan=pilihan, pemahaman=pemahaman,
+        dilewati=dilewati, masalah=masalah,
+        sumber_perlu_diperiksa=sumber_perlu_diperiksa,
+        terkonfirmasi=terkonfirmasi, draf=draf,
+        tidak_konsisten=tidak_konsisten,
+    )
+    if kategori == TINJAUAN_TERCATAT:
         return ''
+    if kategori == TANYAKAN_CARA:
+        return 'Periksa cara anak'
     if sumber_perlu_diperiksa:
         return 'Periksa sumber jawaban'
+    if masalah or tidak_konsisten or draf:
+        return 'Periksa isian yang ditandai'
     if kode == 'T' and not pilihan:
         return 'Pastikan kebutuhan pengenalan'
     if not benar and not kode:
         return 'Tentukan penilaian'
-    if (benar or kode == 'N') and not pemahaman:
-        return 'Periksa cara anak'
-    if not (pilihan or pemahaman or terkonfirmasi):
-        return 'Periksa langkah anak'
-    return ''
+    return 'Periksa langkah anak'
 
 
 def render_progres(jumlah, tercatat, *, draf=False):

@@ -229,7 +229,8 @@ def test_draf_pemahaman_mengalahkan_snapshot_termasuk_dikosongkan(server, paham)
     draf = DrafKoreksi(((s.sid, DrafButir(s.butir['kunci'], '', 'Cara draf', paham, False, False)),), False)
     isi = halaman(s, draf_koreksi=draf)
     assert FormKoreksi(isi, s.sesi).data[f'cek_pemahaman_{s.sid}'] == paham
-    assert Struktur(isi).tertutup(f'cek_pemahaman_{s.sid}') == (paham == 'bisa_menjelaskan')
+    # Draf selalu dibuka kembali agar input request-local dapat dipulihkan.
+    assert not Struktur(isi).tertutup(f'cek_pemahaman_{s.sid}')
     assert 'catatan belum disimpan' in isi
 
 

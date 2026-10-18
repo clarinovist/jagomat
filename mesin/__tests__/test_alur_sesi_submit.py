@@ -247,8 +247,9 @@ def test_guru_setelah_kirim_mendapat_form_simpan_koreksi(db):
         halaman = teacher_pages.halaman_sesi_stitch(kon, sesi_id).decode()
 
     badan = halaman.split("</style>", 1)[-1]
-    assert "soal aman" in badan
-    assert "menyetujui usulan Jagomat" in badan
+    assert "soal aman" not in badan
+    assert "masih perlu diperiksa" in badan
+    assert "tetap disahkan bersama saat Konfirmasi hasil sesi" in badan
     assert "Konfirmasi hasil" in badan
     assert ">Simpan koreksi</button>" not in badan
     assert 'name="jwb_' in badan

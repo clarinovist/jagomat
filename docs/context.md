@@ -27,7 +27,7 @@ Nama modul di bawah relatif terhadap `mesin/`, bukan direktori baru.
 | --- | --- |
 | Identitas | `auth.py`, `sessions.py`: akun dan sesi login; `students.py`: data anak |
 | Soal | `topics.py` + `topic_*.py`: topik; `generator.py`: pembangkitan; `templates.py`: kontrak soal |
-| Penyajian | `render.py`, `worksheets.py`, `*_pages.py`, `*_ui.py`: HTML/layar; `teacher_shell.py`: bingkai/topbar; `teacher_workspace.py`: profil/form; `teacher_session_pages.py`: tinjauan; `teacher_print_pages.py`: cetak/lampiran; `teacher_review_service.py`: koreksi |
+| Penyajian | `render.py`, `worksheets.py`, `*_pages.py`, `*_ui.py`: HTML/layar; `teacher_shell.py`: bingkai/topbar; `teacher_workspace.py`: profil/form; `teacher_session_pages.py`: tinjauan; `review_navigation.py`: proyeksi kategori exception-first fail-closed; `teacher_print_pages.py`: cetak/lampiran; `teacher_review_service.py`: koreksi |
 | Data | `database.py`, `schema.py`, `*_store.py`, `*_schema.py`: penyimpanan dan migrasi; `research_store.py` + `research_schema.py`: wawancara konsumen anonim di `riset-konsumen.db`; `attachment_store.py`: metadata lampiran; `report_store.py`: proyeksi laporan; `student_profile_store.py`: profil/kepemilikan siswa; `question_bank_store.py`: bank soal; `session_read_store.py`: query/status dasar sesi; `session_store.py`: pembuatan sesi; `answer_store.py`: jawaban/diagnosis; `learning_evidence_store.py`: snapshot konfirmasi dan loader bukti siklus |
 | Belajar | `diagnosis.py`, `learning_cycle.py`, `learning_cycle_service.py`: diagnosis, reducer murni, orkestrasi |
 | Laporan | `reports.py`, `report_*.py`, `mastery_*.py`: laporan dan penguasaan berbasis bukti |
@@ -98,7 +98,9 @@ cache dan cadangan tetap privat.
   **Buat latihan**, **Riwayat**, dan **Perkembangan**. Pascapendaftaran dan default
   `/anak/<id>` sama-sama membuka Berikutnya; POST latihan kembali eksplisit ke
   `?section=latihan`, aksi siklus ke `?section=rencana`, dan arsip ke
-  `?section=riwayat`; tab Perkembangan di `?section=perkembangan` memakai konten
+  `?section=riwayat`; starter pilot opsional hanya dirender oleh tab latihan,
+  sedangkan kartu/status/pemulihan pilot aktif tetap berasal dari reducer di
+  Berikutnya; tab Perkembangan di `?section=perkembangan` memakai konten
   `reports.konten_laporan()` yang sama dengan halaman lama. Deep link laporan lama dialihkan oleh `teacher_http.py` setelah
   guard ownership. `reports.py` dan
   `report_metrics.py` menyediakan filter periode aktivitas

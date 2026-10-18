@@ -67,14 +67,48 @@ def _sesi(kon):
     return sesi, [b['sesi_soal_id'] for b in butir]
 
 
+@pytest.mark.parametrize(('nilai', 'harapan'), [
+    (dict(benar=False, kode=None, pilihan='', pemahaman='', dilewati=False), 'perlu_diperiksa'),
+    (dict(benar=True, kode=None, pilihan='', pemahaman='', dilewati=False), 'tanyakan_cara'),
+    (dict(benar=False, kode='N', pilihan='N', pemahaman='', dilewati=False), 'tanyakan_cara'),
+    (dict(benar=True, kode=None, pilihan='', pemahaman='bisa_menjelaskan', dilewati=False), 'tinjauan_tercatat'),
+    (dict(benar=False, kode='H', pilihan='H', pemahaman='', dilewati=False), 'tinjauan_tercatat'),
+    (dict(benar=False, kode=None, pilihan='', pemahaman='', dilewati=True), 'tinjauan_tercatat'),
+])
+def test_klasifikasi_tinjauan_memakai_kategori_tertutup(nilai, harapan):
+    from review_navigation import KATEGORI_TINJAUAN, klasifikasi_tinjauan
+
+    hasil = klasifikasi_tinjauan(**nilai)
+    assert hasil == harapan
+    assert hasil in KATEGORI_TINJAUAN
+
+
+@pytest.mark.parametrize('tambahan', [
+    {'masalah': True}, {'sumber_perlu_diperiksa': True}, {'draf': True},
+    {'tidak_konsisten': True}, {'kode': 'ASING'}, {'pilihan': 'ASING'},
+    {'pemahaman': 'ASING'}, {'benar': None}, {'dilewati': None},
+])
+def test_klasifikasi_tinjauan_fail_closed_untuk_error_draf_dan_nilai_asing(tambahan):
+    from review_navigation import PERLU_DIPERIKSA, klasifikasi_tinjauan
+
+    nilai = dict(
+        benar=True, kode=None, pilihan='', pemahaman='bisa_menjelaskan',
+        dilewati=False, masalah=False, sumber_perlu_diperiksa=False,
+        terkonfirmasi=True, draf=False, tidak_konsisten=False,
+    )
+    nilai.update(tambahan)
+    assert klasifikasi_tinjauan(**nilai) == PERLU_DIPERIKSA
+
+
 def test_antrean_kosong_dan_pekerjaan_sebagian_tanpa_mengubah_form_atau_data(db):
     with database.buka(db) as kon:
         sesi, ids = _sesi(kon)
         sebelum = tuple(kon.iterdump())
         html = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
         nav = Navigasi(html)
-        assert nav.tautan == [f'#tinjau-soal-{sid}' for sid in ids]
-        assert '3 soal perlu ditinjau' in html
+        assert nav.tautan == [f'#tinjau-soal-{sid}' for sid in ids[1:]]
+        assert '2 soal perlu ditinjau' in html
+        assert '3 masih perlu diperiksa' in html
         assert len(nav.kartu) == 3
         assert len(nav.ids) == len(set(nav.ids))
         for sid in ids:
@@ -93,7 +127,7 @@ def test_draf_efektif_mengubah_antrean_tanpa_menilai_ulang_db(db):
         draf = DrafKoreksi(tuple((sid, DrafButir('123', 'benar' if n else '',
                     'Cara', '', n == 2, False)) for n, sid in enumerate(ids)), False)
         html = teacher_pages.halaman_sesi_stitch(kon,sesi,draf_koreksi=draf).decode()
-        assert Navigasi(html).tautan == [f'#tinjau-soal-{sid}' for sid in ids[:2]]
+        assert Navigasi(html).tautan == [f'#tinjau-soal-{sid}' for sid in ids]
         assert 'Antrean mengikuti isian yang sedang ditampilkan' in html
         assert database.isi_sesi(kon,sesi)[0]['benar'] == 1
 

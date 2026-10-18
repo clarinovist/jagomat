@@ -3145,7 +3145,8 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 }}
 .koreksi-editorial-st .antrean-tinjauan-st a:focus-visible,
 .koreksi-editorial-st .koreksi-kartu-st[tabindex]:focus {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
-.koreksi-editorial-st .koreksi-kartu-st[tabindex] {{ scroll-margin-top: {T.SP_6}; }}
+.koreksi-editorial-st .koreksi-kartu-st[tabindex] {{ scroll-margin-top: 11rem; }}
+.koreksi-editorial-st form[id^="form-koreksi-"] {{ scroll-padding-top: 11rem; }}
 
 /* Tinjauan progresif: kontrol di details tetap dikirim oleh form native. */
 .koreksi-editorial-st .koreksi-pengantar-st {{ background: none; border: 0; padding: {T.SP_2} 0; margin-bottom: {T.SP_3}; }}
@@ -3312,12 +3313,25 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 .koreksi-simpan-st button.sekunder:hover,
 .koreksi-simpan-st:has(button[formaction]) button:not([formaction]):hover {{ background: {T.LATAR_ELEVASI}; }}
 
-/* Satu area aksi sesi, tidak mengambang di atas kartu yang sedang dibaca. */
-.koreksi-editorial-st .koreksi-simpan-st {{ position: static; padding: {T.SP_4} 0; gap: {T.SP_3}; }}
+/* Satu area aksi sesi dekat awal form dan tetap terjangkau saat menggulir. */
+.koreksi-editorial-st .koreksi-simpan-st {{
+  position: sticky; top: calc({T.TARGET_SENTUH} + {T.SP_2}); bottom: auto; z-index: 20;
+  padding: {T.SP_3}; margin-bottom: {T.SP_4}; gap: {T.SP_2};
+  background: {T.LATAR_MURID}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN};
+  border-radius: {T.RADIUS_SEDANG}; box-shadow: {T.BAYANGAN_SIMPAN};
+}}
+.koreksi-sisa-st {{ margin: 0; color: {T.TEKS_JUDUL}; }}
+.koreksi-penjelasan-aksi-st {{ display: grid; gap: {T.SP_1}; margin: 0 0 {T.SP_4}; }}
+.koreksi-penjelasan-aksi-st .koreksi-catatan-st {{ margin: 0; }}
+.kelompok-tinjauan-st {{ display: grid; gap: {T.SP_3}; margin-bottom: {T.SP_5}; }}
+.kelompok-tinjauan-st > h2 {{ margin: 0; font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
+.kelompok-tinjauan-st > .koreksi-catatan-st {{ margin: 0; }}
 .koreksi-aksi-sesi-st {{ display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: {T.SP_3}; }}
 .koreksi-aksi-sesi-st button:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 @media (max-width: {T.BATAS_HP}) {{
-  .koreksi-aksi-sesi-st {{ grid-template-columns: minmax(0, 1fr); }}
+  .koreksi-editorial-st .koreksi-simpan-st {{ top: calc({T.TARGET_SENTUH} + {T.SP_1}); padding: {T.SP_2}; }}
+  .koreksi-editorial-st .koreksi-simpan-st button {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_2}; font-size: 1rem; }}
+  .koreksi-aksi-sesi-st {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: {T.SP_2}; }}
 }}
 
 /* Rencana belajar jelas — panduan sesi */

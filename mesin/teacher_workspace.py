@@ -566,6 +566,11 @@ def halaman_anak(
             f'<div class="panel-latihan-st" data-panel="{kode}">{badan}</div>'
             for kode, _, _, badan in panel
         )
+        starter_pilot = __import__('skill_pilot_ui').starter(kon, int(siswa['id']))
+        eksplorasi_opsional = (
+            '<section class="eksplorasi-opsional-st"><h2 class="st">Eksplorasi opsional</h2>'
+            + starter_pilot + '</section>' if starter_pilot else ''
+        )
         batas_manual = (
             '<p class="profil-batas-manual-st">Latihan tambahan tercatat di Riwayat, '
             'tetapi tidak otomatis mengubah Langkah berikutnya.</p>'
@@ -575,18 +580,24 @@ def halaman_anak(
             '<h2 class="st profil-sr-st">Buat latihan</h2>'
             f"{tab}"
             f'<div class="tab-bar-st">{label}</div>'
-            f"{panduan}{isi_panel}{batas_manual}"
+            f"{panduan}{isi_panel}{batas_manual}{eksplorasi_opsional}"
             "</section>"
         )
     else:
         # Hanya satu bentuk latihan yang tersedia — tab justru menambah klik
         # tanpa memberi pilihan. Tampilkan formnya langsung.
+        starter_pilot = __import__('skill_pilot_ui').starter(kon, int(siswa['id']))
+        eksplorasi_opsional = (
+            '<section class="eksplorasi-opsional-st"><h2 class="st">Eksplorasi opsional</h2>'
+            + starter_pilot + '</section>' if starter_pilot else ''
+        )
         blok_buat_latihan = (
             '<section class="buat-latihan-st">'
             '<h2 class="st profil-sr-st">Buat latihan</h2>'
             f"{panduan}{strip_sesi}"
             '<p class="profil-batas-manual-st">Latihan tambahan tercatat di Riwayat, '
             'tetapi tidak otomatis mengubah Langkah berikutnya.</p>'
+            f'{eksplorasi_opsional}'
             "</section>"
         )
 

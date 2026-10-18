@@ -47,6 +47,11 @@ def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul
     """
     from learning_profile import label_kelas_sekolah
     keluarga = '<span class="st-badge selesai">keluarga: %s</span>' % _e(siswa['pemilik'] or 'warisan') if peran=='admin' else ''
+    kelas = (
+        ' <span class="st-badge selesai">(%s)</span>'
+        % _e(label_kelas_sekolah(kelas_sekolah))
+        if kelas_sekolah is not None else ''
+    )
     aksi = (
         '<div class="profil-aksi-kepala-st">'
         '<a class="profil-kembali-st" href="%s">&larr; Semua anak</a></div>' % _e(kembali)
@@ -55,11 +60,9 @@ def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul
     return (
         '<header class="kepala-anak-st editorial-kepala-st">'
         '<p class="editorial-alis-st">RUANG BELAJAR ANAK</p>'
-        '<div class="profil-identitas-st"><h1 class="st" id="%s">%s '
-        '<span class="st-badge selesai">(%s)</span>%s</h1>%s</div></header>'
+        '<div class="profil-identitas-st"><h1 class="st" id="%s">%s%s%s</h1>%s</div></header>'
     ) % (
-        _e(id_judul), _e(siswa['nama']), _e(label_kelas_sekolah(kelas_sekolah)),
-        keluarga, aksi,
+        _e(id_judul), _e(siswa['nama']), kelas, keluarga, aksi,
     )
 
 

@@ -88,9 +88,29 @@ def test_gagal_menampilkan_semua_nomor_dan_draf_tanpa_menyimpan(server):
     with s.buka() as kon:
         assert kon.execute("SELECT COUNT(*) FROM konfirmasi_hasil").fetchone()[0] == 1
         assert kon.execute("SELECT COUNT(*) FROM snapshot_outcome").fetchone()[0] == 4
+        snapshot = tuple(tuple(baris) for baris in kon.execute(
+            "SELECT * FROM snapshot_outcome ORDER BY sesi_soal_id"
+        ))
     assert _kirim(s, _form(s))[0] == 200
     with s.buka() as kon:
         assert kon.execute("SELECT COUNT(*) FROM konfirmasi_hasil").fetchone()[0] == 1
+        assert tuple(tuple(baris) for baris in kon.execute(
+            "SELECT * FROM snapshot_outcome ORDER BY sesi_soal_id"
+        )) == snapshot
+
+
+def test_validasi_payload_asing_sebelum_mutasi(server):
+    import learning_cycle_service as layanan
+
+    s = server
+    sebelum = _keadaan(s)
+    with s.buka() as kon:
+        with pytest.raises(ValueError, match='cek pemahaman tidak dikenal'):
+            layanan.konfirmasi_dari_form(
+                kon, s.sesi, 'guru',
+                {f'cek_pemahaman_{s.butir[0]["sesi_soal_id"]}': 'asing'},
+            )
+        assert tuple(kon.iterdump()) == sebelum
 
 
 @pytest.mark.parametrize("opt_in_awal", [False, True])

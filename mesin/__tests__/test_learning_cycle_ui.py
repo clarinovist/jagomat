@@ -88,9 +88,10 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     from test_concise_ui import Markup
     terlihat = Markup(isi).terlihat()
     assert "latihan 1 dari 3 · 15 soal pada tanggal berbeda" in terlihat
-    assert "Peran orang tua/guru · Sekarang" in isi
+    assert "Instruksi" in isi
+    assert "Kapan kembali" in isi
     assert "Setelah selesai, periksa hasil dan konfirmasikan." in isi
-    for label in ("Sekarang", "Waktu"):
+    for label in ("Instruksi", "Waktu", "Kapan kembali"):
         assert label in terlihat
     assert "Sesudah ini" not in isi
     assert 'class="ringkasan-setelah-st"' not in isi
@@ -106,6 +107,8 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     assert '<h2 class="st judul-tugas-rencana-st" id="judul-rencana-belajar">' in kartu
     assert '<span class="penanda-judul-rencana-lama-st" aria-hidden="true">Mulai dengan latihan awal</span>' in kartu
     assert "Kenali cara anak mengerjakan tanpa menyimpulkan" in isi
+    assert "Kenali cara anak mengerjakan tanpa menyimpulkan" not in terlihat
+    assert '<details class="alur-rencana-jelas-st">' in kartu
     assert "/* Rencana belajar jelas — kartu */" in isi.split("</style>", 1)[0]
     form_utama = isi.split(f'action="/siklus/{siswa_id}/buat"', 1)[1].split("</form>", 1)[0]
     assert "<input" not in form_utama
@@ -205,7 +208,11 @@ def test_intervensi_memakai_materi_konkret_satu_form_aksi_dan_escape(server):
     assert "Pelajari cara memeriksa hitungan" in kartu
     assert materi.instruksi_orang_tua in kartu
     assert materi.contoh_terbimbing in kartu
-    assert "Salah hitung pada Deret aritmetika muncul di 2 latihan yang sudah diperiksa" in kartu
+    batas = "Salah hitung pada Deret aritmetika muncul di 2 latihan yang sudah diperiksa"
+    assert batas in kartu
+    from test_concise_ui import Markup
+    assert batas not in Markup(isi).terlihat()
+    assert '<details class="rincian-ui-st batas-rencana-st">' in kartu
     assert f'action="/siklus/{siswa_id}/aksi"' in kartu
     assert 'name="aksi" value="intervensi_selesai"' in kartu
     assert f'name="putaran_id" value="{putaran_id}"' in kartu

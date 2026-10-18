@@ -29,6 +29,11 @@ def test_http_pilih_buat_cetak_tinjau_konfirmasi(server):
     kode,body,_=s.minta('/anak/%d?section=rencana'%siswa,auth=('guru',SANDI_GURU))
     assert kode==200
     teks=body.decode() if isinstance(body,bytes) else body
+    assert 'Pendampingan keliling dan luas' not in teks
+    kode,body,_=s.minta('/anak/%d?section=latihan'%siswa,auth=('guru',SANDI_GURU))
+    assert kode==200
+    teks=body.decode() if isinstance(body,bytes) else body
+    assert 'Eksplorasi opsional' in teks
     assert 'Pendampingan keliling dan luas' in teks
     for label_lama in ('Tuntutan pilot', 'Pilot keliling dan luas', 'Pilih dan mulai pilot'):
         assert label_lama not in teks
@@ -58,9 +63,13 @@ def test_http_pilih_buat_cetak_tinjau_konfirmasi(server):
         assert label_lama not in teks
     assert 'pilot' not in _teks_tampil(teks).lower()
     assert teks.count('class="rencana-cta-utama-st"')<=1
+    assert 'Pendampingan keliling dan luas' not in teks
     kode,body,_=s.minta('/anak/%d?section=latihan'%siswa,auth=('guru',SANDI_GURU))
     assert kode==200
-    assert 'profil_parameter' in (body.decode() if isinstance(body,bytes) else body)
+    latihan = body.decode() if isinstance(body,bytes) else body
+    assert 'profil_parameter' in latihan
+    # Putaran aktif tetap menjadi pekerjaan Berikutnya, bukan starter baru.
+    assert 'Pendampingan keliling dan luas' not in latihan
 
 
 def test_pilot_tautan_anak_kirim_dan_cetak(server):
@@ -116,7 +125,10 @@ def test_pemulihan_http_owner_checkbox_dan_status_terpisah(server,pengguna,monke
     # GET tidak mengubah revisi pemulihan.
     with s.buka() as kon: assert tuple(kon.iterdump())==sebelum
     kode,body,_=s.minta('/siklus/%d/pilot'%siswa,auth=(pengguna,SANDI_GURU),data=data)
+    assert kode==200 and 'Pendampingan keliling dan luas' not in body
+    kode,body,_=s.minta('/anak/%d?section=latihan'%siswa,auth=(pengguna,SANDI_GURU))
     assert kode==200 and 'Pendampingan keliling dan luas' in body
+    assert 'Eksplorasi opsional' in body
     assert 'name="aksi" value="pulihkan_sumber"' not in body
     with s.buka() as kon:
         assert all(kon.execute('SELECT dibatalkan FROM sesi WHERE id=?',(sid,)).fetchone()[0] for sid in sesi)

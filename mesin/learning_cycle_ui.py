@@ -321,11 +321,16 @@ def _ringkasan_langkah(
     rencana: RencanaBelajar, bukti: BuktiSiklus, instruksi: str,
     *, tertahan: bool = False,
 ) -> str:
-    """Informasi sebelum bertindak; hasil dan waktu kembali dirender setelah CTA."""
+    """Informasi operasional ringkas sebelum satu tindakan utama."""
+    kembali = (
+        _tanggal_indonesia(rencana.tersedia_pada)
+        if rencana.tersedia_pada else 'Setelah langkah ini selesai.'
+    )
     return (
         '<div class="ringkasan-langkah-st">'
-        f'<div class="tindakan-rencana-st"><b>Peran orang tua/guru · Sekarang</b><p>{html.escape(instruksi)}</p></div>'
+        f'<div class="tindakan-rencana-st"><b>Instruksi</b><p>{html.escape(instruksi)}</p></div>'
         f'<div><b>Waktu</b><p>{html.escape(_waktu(rencana, bukti, tertahan=tertahan))}</p></div>'
+        f'<div><b>Kapan kembali</b><p>{html.escape(kembali)}</p></div>'
         '</div>'
     )
 
@@ -472,16 +477,18 @@ def render_rencana(
             '<section class="kartu-rencana-st" aria-labelledby="judul-rencana-belajar">'
             '<p class="label-rencana-st">Langkah berikutnya</p>'
             '<h2 class="st" id="judul-rencana-belajar">Mulai dengan latihan awal</h2>'
-            '<p>Kenali cara anak mengerjakan tanpa menyimpulkan kemampuannya dari satu latihan. '
-            'Jagomat memulai dari cakupan fondasi yang bukan penilaian kemampuan dan tidak '
-            'ditentukan dari kelas sekolah.</p>'
+            '<p class="progres-rencana-st">Latihan awal 0 dari 3 selesai</p>'
             + _ringkasan_langkah(
                 rencana, bukti, _tindakan_orang_tua(rencana, None)
             )
+            + '<p class="catatan-tiga-latihan-st"><b>Rangkaian awal:</b> tiga latihan pada tanggal berbeda.</p>'
             + f'<form method="post" action="/siklus/{siswa_id}/buat" class="rencana-form-st">'
             + '<button type="submit" class="rencana-cta-utama-st">Siapkan latihan awal</button>'
             '</form>'
-            + '<p class="catatan-tiga-latihan-st"><b>Rangkaian awal:</b> tiga latihan pada tanggal berbeda.</p>'
+            + '<details class="alur-rencana-jelas-st"><summary><span>Detail progres dan alur belajar</span>'
+            '<span class="tahap-aktif-ringkas-st">Tahap sekarang: Kenali cara anak</span></summary>'
+            '<div class="isi-alur-rencana-st"><p>Latihan awal membantu menentukan bagian yang perlu dibantu; '
+            'satu latihan tidak menyimpulkan kemampuan anak. Cakupan fondasi bukan kelas sekolah.</p></div></details>'
             + slot_bantuan + '</section>'
         )
     from cycle_carry import bukti_lanjutan
@@ -554,15 +561,17 @@ def render_rencana(
         '<p class="label-rencana-st">Langkah berikutnya</p>'
         f'<h2 class="{kelas_judul}" id="judul-rencana-belajar">{html.escape(judul_tampil)}</h2>'
         f'{penanda_judul_lama}{_identitas_sesi(rencana, bukti)}'
-        f'<p class="alasan-rencana-st">{html.escape(_alasan(rencana, fokus))}</p>'
+        f'<p class="progres-rencana-st">{html.escape(_progres(rencana, bukti))}</p>'
         '</div>'
         '<aside class="studio-pendamping-st" aria-label="Panduan langkah berikutnya">'
         f'{tindakan}'
         '</aside>'
         f'<div class="studio-aksi-st">{cta}{petunjuk}</div>'
         f'<div class="studio-konteks-st">{_konteks_pemetaan(rencana)}'
-        f'{catatan_histori}{catatan_mode}{contoh}{catatan_materi}{tanggal}</div>'
+        f'{contoh}{catatan_materi}{tanggal}</div>'
         f'{_alur_rencana(rencana, bukti)}'
+        f'<details class="rincian-ui-st batas-rencana-st"><summary>Batas interpretasi</summary>'
+        f'<p>{html.escape(_alasan(rencana, fokus))}</p>{catatan_histori}{catatan_mode}</details>'
         '</div>'
         f'{slot_bantuan}'
         f'{_override(rencana, siswa_id)}'

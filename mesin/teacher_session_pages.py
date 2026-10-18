@@ -198,8 +198,13 @@ def halaman_sesi_stitch(
     tinjauan_sesi = review_store.muat(kon, sesi_id)
     pengiriman_sesi = review_store.pengiriman(kon, sesi_id)
     ada_foto = kon.execute('SELECT 1 FROM lampiran WHERE sesi_id=? LIMIT 1', (sesi_id,)).fetchone() is not None
-    from review_navigation import tindakan_tinjauan, render_progres
-    kartu = []
+    from review_navigation import (
+        KATEGORI_TINJAUAN, PERLU_DIPERIKSA, TANYAKAN_CARA,
+        TINJAUAN_TERCATAT, klasifikasi_tinjauan, tindakan_tinjauan,
+        render_progres,
+    )
+    kartu_perlu_diperiksa = []
+    kartu_tanyakan_cara = []
     kartu_tercatat = []
     antrean_tinjauan = []
     outcome_tampilan = []
@@ -317,7 +322,7 @@ def halaman_sesi_stitch(
             )
 
         if not sudah_dikirim:
-            kartu.append(f"""
+            kartu_perlu_diperiksa.append(f"""
 <div class="koreksi-kartu-st pratinjau">
   <div class="koreksi-isi-st">
     <div class="koreksi-kepala-st">{nomor}{tipe}</div>
@@ -399,16 +404,24 @@ def halaman_sesi_stitch(
                 and review_pages.nilai(tinjauan_butir, draf_butir, 'catatan_tinjauan').strip())
             or koreksi_cara and sumber_tampil not in {'penjelasan_asli', 'koreksi_transkripsi'}
         )
-        tindakan = tindakan_tinjauan(
+        parameter_tinjauan = dict(
             benar=benar_tampil, kode=kode_efektif, pilihan=kode_tampil,
             pemahaman=pemahaman_terpilih, dilewati=dilewati_terpilih,
-            masalah=bool(masalah_butir), sumber_perlu_diperiksa=sumber_perlu_diperiksa,
+            masalah=bool(masalah_butir),
+            sumber_perlu_diperiksa=sumber_perlu_diperiksa,
             terkonfirmasi=konfirmasi_masih_aktif and draf_butir is None,
+            draf=draf_koreksi is not None,
+            tidak_konsisten=bool(masalah_butir),
         )
-        if tindakan:
+        kategori_tinjauan = klasifikasi_tinjauan(**parameter_tinjauan)
+        if kategori_tinjauan not in KATEGORI_TINJAUAN:
+            kategori_tinjauan = PERLU_DIPERIKSA
+        tindakan = tindakan_tinjauan(**parameter_tinjauan)
+        if kategori_tinjauan == PERLU_DIPERIKSA:
             antrean_tinjauan.append((sid, int(b['nomor'])))
         buka_kartu = bool(
-            (tindakan and len(antrean_tinjauan) == 1) or masalah_butir
+            kategori_tinjauan in {PERLU_DIPERIKSA, TANYAKAN_CARA}
+            or masalah_butir
             or (sumber_perlu_diperiksa and not dilewati_terpilih)
             or bantuan_nomor == int(b['nomor'])
         )
@@ -516,7 +529,10 @@ def halaman_sesi_stitch(
         sinyal = [teks for teks in catatan if not teks.startswith('catatan ')]
         if sinyal and not dilewati_terpilih:
             ringkasan_hasil += ' · ' + ' · '.join(sinyal)
-        label_tindakan = tindakan or 'Tinjauan tercatat'
+        label_tindakan = (
+            'Tanyakan cara anak' if kategori_tinjauan == TANYAKAN_CARA
+            else tindakan or 'Tidak perlu dibuka lagi'
+        )
         buka_sumber = bool(masalah_butir or sumber_perlu_diperiksa or koreksi_jawaban
                            or draf_butir and jawaban_tampil != (b['jawaban'] or ''))
         buka_lanjutan = bool(masalah_butir or sumber_perlu_diperiksa or dilewati_terpilih
@@ -537,7 +553,7 @@ def halaman_sesi_stitch(
             'Simpan draf belum mengesahkan hasil.</p>'
         )
         kartu_html = f"""
-<details class="koreksi-kartu-st koreksi-lipat-st status-{bulat_cls}"{atribut_kartu} data-tindakan="{html.escape(label_tindakan)}"{' open' if buka_kartu else ''}>
+<details class="koreksi-kartu-st koreksi-lipat-st status-{bulat_cls} kategori-{kategori_tinjauan}"{atribut_kartu} data-tindakan="{html.escape(label_tindakan)}"{' open' if buka_kartu else ''}>
   <summary class="koreksi-ringkas-st">
     <span class="koreksi-ringkas-kepala-st">{nomor}{tipe}<span class="koreksi-tindakan-st">{html.escape(label_tindakan)}</span></span>
     <span class="koreksi-ringkas-hasil-st">{html.escape(ringkasan_hasil)}</span>
@@ -606,7 +622,12 @@ def halaman_sesi_stitch(
     </details>
   </div>
 </details>"""
-        (kartu if tindakan or buka_kartu else kartu_tercatat).append(kartu_html)
+        kelompok_kartu = {
+            PERLU_DIPERIKSA: kartu_perlu_diperiksa,
+            TANYAKAN_CARA: kartu_tanyakan_cara,
+            TINJAUAN_TERCATAT: kartu_tercatat,
+        }.get(kategori_tinjauan, kartu_perlu_diperiksa)
+        kelompok_kartu.append(kartu_html)
 
     kabar = f'<div class="pesan-st" role="status">{html.escape(pesan)}</div>' if pesan else ""
     if masalah_konfirmasi:
@@ -669,23 +690,23 @@ def halaman_sesi_stitch(
 
     if sudah_dikirim:
         sudah_dikonfirmasi = konfirmasi_masih_aktif
-        perlu_tinjau = len(antrean_tinjauan)
-        aman_tercatat = len(kartu_tercatat)
-        if perlu_tinjau:
-            tautan_aman = (
-                f' · <a href="#tinjauan-tercatat">{aman_tercatat} soal aman</a>, '
-                'boleh dilewati tanpa dibuka' if aman_tercatat else ''
+        perlu_diperiksa = len(kartu_perlu_diperiksa)
+        perlu_tanya = len(kartu_tanyakan_cara)
+        tercatat = len(kartu_tercatat)
+        pekerjaan_tersisa = perlu_diperiksa + perlu_tanya
+        if pekerjaan_tersisa:
+            rincian_tercatat = (
+                f' {tercatat} soal tidak perlu dibuka lagi.' if tercatat else ''
             )
             pengantar_triase = (
-                f'{perlu_tinjau} soal perlu ±{max(5, perlu_tinjau * 2)} menitmu{tautan_aman}. '
-                'Mulai dari <a href="#judul-antrean-tinjauan">daftar tinjauan</a>. '
-                'Menekan Konfirmasi hasil sesi berarti menyetujui usulan Jagomat untuk soal aman.'
+                f'{pekerjaan_tersisa} soal masih memerlukan tinjauan.'
+                f'{rincian_tercatat} Tinjauan tercatat tetap disahkan bersama saat '
+                'Konfirmasi hasil sesi.'
             )
         else:
             pengantar_triase = (
-                f'Semua {len(kartu) + aman_tercatat} soal aman — '
-                'tidak perlu membuka kartu satu per satu. '
-                'Menekan Konfirmasi hasil sesi berarti menyetujui usulan Jagomat.'
+                f'Tinjauan {tercatat} soal sudah tercatat; tidak perlu membuka kartu '
+                'satu per satu. Semua hasil tetap disahkan bersama saat Konfirmasi hasil sesi.'
             )
         status_sesi = (
             '<div class="status-sesi-st selesai">'
@@ -745,29 +766,48 @@ def halaman_sesi_stitch(
                 f'<button type="submit" formaction="/sesi/{sesi_id}/konfirmasi">'
                 f'{label_konfirmasi}</button>'
             )
-        kumpulan_kartu = ''.join(kartu)
+        kumpulan_kartu = ''
+        if kartu_perlu_diperiksa:
+            kumpulan_kartu += (
+                '<section class="kelompok-tinjauan-st perlu-diperiksa-st" '
+                'aria-labelledby="judul-perlu-diperiksa">'
+                '<h2 id="judul-perlu-diperiksa">Perlu diperiksa</h2>'
+                '<p class="koreksi-catatan-st">Periksa isian yang ditandai sebelum mengonfirmasi.</p>'
+                + ''.join(kartu_perlu_diperiksa) + '</section>'
+            )
+        if kartu_tanyakan_cara:
+            kumpulan_kartu += (
+                '<section class="kelompok-tinjauan-st tanyakan-cara-st" '
+                'aria-labelledby="judul-tanyakan-cara">'
+                '<h2 id="judul-tanyakan-cara">Tanyakan cara anak</h2>'
+                '<p class="koreksi-catatan-st">Tanyakan prompt pada tiap soal, lalu pilih catatan pemahaman per butir.</p>'
+                + ''.join(kartu_tanyakan_cara) + '</section>'
+            )
         if kartu_tercatat:
             kumpulan_kartu += (
                 '<details class="koreksi-opsi-st koreksi-tercatat-st" id="tinjauan-tercatat">'
-                f'<summary>{len(kartu_tercatat)} soal dengan tinjauan tercatat</summary>'
+                f'<summary>Tinjauan tercatat · {len(kartu_tercatat)} soal tidak perlu dibuka lagi</summary>'
                 '<p class="koreksi-catatan-st">Termasuk jawaban belum tepat yang sudah diperiksa. '
-                'Buka kembali bila perlu mengoreksi.</p>'
+                'Seluruhnya tetap disahkan bersama saat Konfirmasi hasil sesi. Buka kembali bila perlu mengoreksi.</p>'
                 + ''.join(kartu_tercatat) + '</details>'
             )
         if sesi_dibatalkan:
             blok_isi = kumpulan_kartu
         else:
-            # Submit default disabled memblokir implicit Enter secara native.
-            # Hanya tombol konfirmasi yang dipilih eksplisit mengesahkan bukti.
+            # Tidak ada disable berbasis proyeksi UI. Palang Enter tersembunyi
+            # hanya memastikan konfirmasi dipilih eksplisit; server tetap otoritatif.
             urutan_aksi = (
-                '<p class="koreksi-catatan-st">Berlaku untuk seluruh sesi. '
-                'Simpan draf untuk melanjutkan nanti, tanpa mengesahkan hasil.</p>'
+                f'<p class="koreksi-sisa-st"><b>{pekerjaan_tersisa} masih perlu diperiksa</b></p>'
                 '<div class="koreksi-aksi-sesi-st">'
                 f'<button type="submit" class="sekunder" formaction="/sesi/{sesi_id}/tinjauan">Simpan draf</button>'
                 f'{aksi_konfirmasi}</div>'
+            )
+            penjelasan_aksi = (
+                '<div class="koreksi-penjelasan-aksi-st">'
+                '<p class="koreksi-catatan-st">Berlaku untuk seluruh sesi. '
+                'Simpan draf untuk melanjutkan nanti, tanpa mengesahkan hasil.</p>'
                 '<p class="koreksi-catatan-st">Konfirmasi menyimpan semua isian dan mengesahkan hasil sesi. '
-                'Anda juga menyetujui usulan Jagomat yang tetap dipilih; tidak perlu mengganti dropdown. '
-                'Isian yang belum lengkap akan ditandai.</p>'
+                'Server tetap memeriksa kelengkapan dan akan menandai isian yang belum sah.</p></div>'
             )
             from review_navigation import render_antrean
             navigasi_tinjauan = (
@@ -777,8 +817,9 @@ def halaman_sesi_stitch(
             )
             form_hasil = (
                 f'<form id="form-koreksi-{sesi_id}" method="post" action="/sesi/{sesi_id}">'
-                f'{navigasi_tinjauan}{kumpulan_kartu}<input type="hidden" name="hadir_sertakan_pemetaan" value="1">{opsi_pemetaan}'
-                f'<div class="koreksi-simpan-st">{urutan_aksi}</div></form>'
+                f'<div class="koreksi-simpan-st">{urutan_aksi}</div>{penjelasan_aksi}{navigasi_tinjauan}'
+                f'{kumpulan_kartu}<input type="hidden" name="hadir_sertakan_pemetaan" value="1">{opsi_pemetaan}'
+                '</form>'
             )
             blok_isi = (
                 '<details class="panduan-edit-hasil-st">'
@@ -798,7 +839,7 @@ def halaman_sesi_stitch(
                 '<p>Sesi dibatalkan. Riwayat tetap tersimpan dan hasilnya tidak aktif dalam rencana.</p>'
                 '</div></div>'
             )
-            blok_isi = "".join(kartu)
+            blok_isi = "".join(kartu_perlu_diperiksa)
         elif sesi_terpandu_riwayat:
             keterangan_riwayat = (
                 "Sesi level lama ini tidak mengubah rencana level aktif."
@@ -814,7 +855,7 @@ def halaman_sesi_stitch(
             blok_isi = (
                 '<details class="panduan-pratinjau-st">'
                 '<summary>Pratinjau soal &amp; kunci untuk guru</summary>'
-                f'{"".join(kartu)}</details>'
+                f'{"".join(kartu_perlu_diperiksa)}</details>'
             )
         else:
             label_status = (
@@ -873,7 +914,7 @@ def halaman_sesi_stitch(
                 '<details class="panduan-pratinjau-st">'
                 '<summary>Pratinjau soal &amp; kunci untuk guru</summary>'
                 '<p class="sub">Bagian ini untuk pendamping, bukan halaman yang dibagikan kepada anak.</p>'
-                f'{"".join(kartu)}</details>'
+                f'{"".join(kartu_perlu_diperiksa)}</details>'
             )
 
     sesi_manual_berbukti = pernah_dikonfirmasi and not sesi_dibatalkan
@@ -978,7 +1019,7 @@ def halaman_sesi_stitch(
         if sudah_dikirim and not sesi_dibatalkan else ""
     )
     progres_tinjauan = (
-        render_progres(len(outcome_tampilan), len(outcome_tampilan) - len(antrean_tinjauan),
+        render_progres(len(outcome_tampilan), len(kartu_tercatat),
                        draf=draf_koreksi is not None)
         if sudah_dikirim and not sesi_dibatalkan and not konfirmasi_masih_aktif else ''
     )

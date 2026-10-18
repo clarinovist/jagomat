@@ -130,8 +130,29 @@ def sesi_utama(kon, siswa_id, *, hari=None):
     return rencana.sesi_id if rencana.tindakan in ('lanjutkan_sesi', 'konfirmasi_hasil') else None
 
 
+def starter(kon, siswa_id, *, hari=None):
+    """Form memulai pilot opsional untuk tab Buat latihan saja."""
+    hari = hari or domain_clock.hari_wib()
+    try:
+        paket, daftar, _aktif, warisan = keadaan(kon, siswa_id, hari)
+    except ValueError:
+        return ''
+    if warisan is not None or not lc.boleh_mulai_pilot(
+            paket, siswa_id, daftar, hari):
+        return ''
+    from skill_pilot import LANGSUNG, PRASYARAT, KonteksPilot
+    sumber_langsung = tuple(dict.fromkeys(
+        b.konteks for b in paket.butir if b.konteks.tuntutan_id == LANGSUNG
+    ))
+    balik_tersedia = any(lc.tawaran_probe_balik(
+        paket, siswa_id, konteks,
+        KonteksPilot(PRASYARAT, 'P3', konteks.mode_representasi), hari,
+    ) for konteks in sumber_langsung)
+    return form_mulai(siswa_id, revisi(kon, siswa_id), balik_tersedia)
+
+
 def kartu(kon,siswa_id,*,hari=None):
-    """Return kartu pilot/opsi; None sebagai kartu berarti tetap gunakan rencana lama."""
+    """Kartu pilot aktif/status; starter opsional dirender di tab latihan."""
     hari=hari or domain_clock.hari_wib()
     try:
         paket,daftar,aktif,warisan=keadaan(kon,siswa_id,hari)
@@ -139,14 +160,9 @@ def kartu(kon,siswa_id,*,hari=None):
         return None, ('<section class="kartu-rencana-st"><h3>Pendampingan perlu diperiksa</h3>'
                       '<p>Sumber catatan belum dapat diverifikasi. Histori tetap tersimpan; '
                       'jangan menganggap hasil lama sebagai bukti pemahaman.</p></section>')
-    from skill_pilot import LANGSUNG, PRASYARAT, KonteksPilot
-    sumber_langsung=tuple(dict.fromkeys(b.konteks for b in paket.butir if b.konteks.tuntutan_id==LANGSUNG))
-    balik_tersedia=any(lc.tawaran_probe_balik(paket,siswa_id,k,
-        KonteksPilot(PRASYARAT,'P3',k.mode_representasi),hari) for k in sumber_langsung)
-    pilihan=form_mulai(siswa_id,revisi(kon,siswa_id),balik_tersedia) if warisan is None else ''
     status=status_pilot(paket,siswa_id,daftar,hari)
     if not daftar:
-        return None,(status if paket.butir else '')+pilihan
+        return None,(status if paket.butir else '')
     if warisan is not None:
         return None,status+'<p>Pendampingan ini menunggu langkah rencana utama selesai.</p>'
     pid,k,r,_=aktif
@@ -184,5 +200,4 @@ def kartu(kon,siswa_id,*,hari=None):
              '<h2 id="judul-pilot">%s</h2><p>%s</p>%s%s%s'
              '<p><a href="/anak/%d?section=latihan">Tetap buat latihan manual</a></p></section>')%(
              _e(JUDUL.get(r.tindakan,r.tindakan)),_e(r.alasan),materi,tanggal,aksi,siswa_id)
-    boleh_mulai = lc.boleh_mulai_pilot(paket,siswa_id,daftar,hari)
-    return konten+status,(pilihan if boleh_mulai else '')
+    return konten+status,''

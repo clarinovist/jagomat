@@ -283,8 +283,11 @@ tambahan tercatat di Riwayat tetapi tidak otomatis mengubah Langkah berikutnya.
 Tab rencana selalu tersedia; GET tidak menulis bukti. Sesi manual tidak mengambil
 alih rekomendasi reducer.
 
-Tujuan **Berikutnya** menampilkan satu kartu ringkas dengan tindakan saat ini,
-perkiraan waktu, hasil langsung, kapan kembali, dan satu CTA utama bila sah. Bahasa
+Tujuan **Berikutnya** menampilkan satu kartu ringkas dengan progres, instruksi,
+perkiraan waktu, kapan kembali, dan satu CTA utama bila sah. Metodologi dan batas
+interpretasi panjang berada dalam detail, tetapi instruksi kritis, contoh visual/
+terbimbing, beban pemetaan, tanggal tunggu, serta peringatan konfirmasi/eskalasi
+harus tetap langsung terlihat. Bahasa
 orang tua memakai latihan awal, bagian yang perlu dibantu, coba bersama, coba sendiri,
 cek setelah jeda, dan catatan hasil; istilah domain internal tetap pada kode/penyimpanan.
 Progres lengkap dan
@@ -393,7 +396,9 @@ menunggu keputusan produk dan implementasi terpisah.
 
 ### Pilot tuntutan keliling/luas (persetujuan 21 September 2026)
 
-Pilot opsional pada tab Rencana belajar memisahkan dua tugas: keliling dari dua
+Form memulai pilot opsional berada pada **Buat latihan** sebagai Eksplorasi
+opsional. Pilot yang sudah aktif, pemulihan sumber, status dan CTA reducer tetap
+berada pada **Berikutnya**. Pilot memisahkan dua tugas: keliling dari dua
 sisi, dan mencari sisi dari keliling lalu luas. Rubrik `pilot-keliling-luas-v1`
 tidak memberi jenjang kemampuan P3–P6. Tuntutan, profil parameter dan representasi
 menjadi unit bukti terpisah; kelas sekolah tidak menjadi input.

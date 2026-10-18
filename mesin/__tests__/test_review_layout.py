@@ -50,19 +50,20 @@ def sesi_contoh(kon, *, arsip=False):
     return sesi, [b['sesi_soal_id'] for b in butir]
 
 
-def test_benar_tanpa_cek_cara_bukan_tinjauan_tercatat_dan_hanya_prioritas_pertama_terbuka(db):
+def test_benar_tanpa_cek_cara_masuk_tanyakan_cara_dan_semua_kartu_terbuka(db):
     with database.buka(db) as kon:
         sesi, ids = sesi_contoh(kon)
         sebelum = tuple(kon.iterdump())
         isi = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
         assert '0 dari 3 tinjauan tercatat' in isi
-        assert '3 soal perlu ditinjau' in isi
-        assert 'Periksa cara anak' in isi
+        assert 'Tanyakan cara anak' in isi
+        assert '3 masih perlu diperiksa' in isi
         kartu = Kartu(isi).kartu
         for n, sid in enumerate(ids):
             tag, a = kartu[f'tinjau-soal-{sid}']
             assert tag == 'details'
-            assert ('open' in a) == (n == 0)
+            assert 'open' in a
+            assert a['data-tindakan'] == 'Tanyakan cara anak'
         form = FormKoreksi(isi, sesi).data
         assert all(form[f'cek_pemahaman_{sid}'] == '' for sid in ids)
         assert all(f'versi_tinjauan_{sid}' in form for sid in ids)
@@ -96,7 +97,7 @@ def test_galat_dan_sumber_bantuan_tidak_tersembunyi_di_kelompok_tercatat(db, sum
         kartu = Kartu(isi).kartu
         assert 'open' in kartu[f'tinjau-soal-{sid}'][1]
         assert f'data-tindakan="Periksa {"sumber jawaban" if sumber else "isian yang ditandai"}"' in isi
-        assert 'open' in Kartu(isi).sumber[-1]
+        assert any('open' in atribut for atribut in Kartu(isi).sumber)
         assert f'name="versi_tinjauan_{sid}"' in isi
         assert not Struktur(isi).tertutup(f'provenance_{sid}')
 
@@ -176,5 +177,6 @@ def test_panel_misi_dan_aksen_status_terrender(db):
         database.simpan_diagnosis(kon, b['jawaban_id'], False, 'H', 'H', manual=True)
         isi = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
         assert 'aria-label="Misi tinjauan"' in isi
-        assert 'soal aman' in isi
+        assert 'Tinjauan tercatat' in isi
+        assert 'masih perlu diperiksa' in isi
         assert 'koreksi-kartu-st koreksi-lipat-st status-' in isi

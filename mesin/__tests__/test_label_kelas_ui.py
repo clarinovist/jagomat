@@ -67,8 +67,9 @@ def test_dashboard_dan_halaman_anak_menampilkan_kelas(db):
             kon, siswa, pengguna="ortu", peran="guru",
         ).decode())
 
+    assert "Kelas belum diisi" in dashboard
+    assert "Kelas belum diisi" not in anak
     for isi in (dashboard, anak):
-        assert "Kelas belum diisi" in isi
         assert ">P5<" not in isi
         assert "(P5)" not in isi
 

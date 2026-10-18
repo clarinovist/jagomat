@@ -210,6 +210,32 @@ def test_tombol_koreksi_dan_konfirmasi_punya_jarak_dan_hierarki():
     assert ".koreksi-simpan-st:has(button[formaction]) button:not([formaction])" in CSS_SESI
 
 
+def test_action_bar_sesi_tunggal_berada_dekat_awal_form_dan_sticky(db):
+    from style_stitch import CSS_SESI
+
+    with database.buka(db) as kon:
+        _, sesi_id, butir = _sesi_selesai(kon, seed=790)
+        _isi_benar(kon, butir)
+        halaman = _badan(teacher_pages.halaman_sesi_stitch(kon, sesi_id))
+
+    form = halaman.split(f'id="form-koreksi-{sesi_id}"', 1)[1].split('</form>', 1)[0]
+    assert form.count('class="koreksi-simpan-st"') == 1
+    assert form.index('class="koreksi-simpan-st"') < form.index('class="koreksi-penjelasan-aksi-st"')
+    assert form.index('class="koreksi-penjelasan-aksi-st"') < form.index('class="kelompok-tinjauan-st')
+    sticky = form.split('class="koreksi-simpan-st"', 1)[1].split('</div>', 2)[0]
+    assert 'Berlaku untuk seluruh sesi' not in sticky
+    assert 'Konfirmasi menyimpan semua isian' not in sticky
+    assert form.count(f'formaction="/sesi/{sesi_id}/konfirmasi"') == 1
+    assert 'disabled' not in form.split('class="koreksi-simpan-st"', 1)[1].split('</div>', 2)[0]
+    blok = CSS_SESI.split('.koreksi-editorial-st .koreksi-simpan-st {', 1)[1].split('}', 1)[0]
+    assert 'position: sticky' in blok and 'z-index:' in blok
+    assert 'top: calc(' in blok and 'TARGET_SENTUH' not in blok
+    mobile = CSS_SESI.split('@media (max-width:', 1)[1]
+    assert '.koreksi-editorial-st .koreksi-simpan-st { top: calc(' in mobile
+    assert 'scroll-margin-top: 11rem' in CSS_SESI
+    assert 'scroll-padding-top: 11rem' in CSS_SESI
+
+
 def test_form_pembatalan_bertumpuk_dengan_input_lebar_dan_tombol_ringkas():
     from style_stitch import GAYA_STITCH
     import design_tokens as T
@@ -224,13 +250,14 @@ def test_form_pembatalan_bertumpuk_dengan_input_lebar_dan_tombol_ringkas():
     assert "width: auto" in tombol
 
 
-def test_marker_penjelasan_koreksi_lama_tetap_ada(db):
+def test_penjelasan_exception_first_tidak_memakai_klaim_aman(db):
     with database.buka(db) as kon:
         _, sesi_id, butir = _sesi_selesai(kon, seed=78)
         _isi_benar(kon, butir)
         halaman = _badan(teacher_pages.halaman_sesi_stitch(kon, sesi_id))
 
-    assert "soal aman" in halaman
-    assert "menyetujui usulan Jagomat" in halaman
+    assert "soal aman" not in halaman
+    assert "Tanyakan cara anak" in halaman
+    assert "tetap disahkan bersama saat Konfirmasi hasil sesi" in halaman
     assert "Konfirmasi menyimpan semua isian dan mengesahkan hasil sesi." in halaman
     assert ">Simpan koreksi</button>" not in halaman

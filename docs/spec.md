@@ -42,6 +42,10 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   terpilih. Semua permukaan riset memakai sumber publik, tidak membaca data
   keluarga, dan tidak menyatakan afiliasi atau market share.
 - Siklus terpandu; latihan manual tetap tersedia tanpa otomatis mengubah putaran.
+  Berikutnya merangkum progres, instruksi, waktu/kapan kembali dan satu CTA;
+  metodologi serta batas interpretasi panjang berada di detail, sementara form
+  awal Pendampingan orang tua opsional berada di Buat latihan. Pilot aktif,
+  pemulihan dan CTA reducer tetap di Berikutnya.
 - Pendamping AI inline untuk orang tua; usulan latihan memerlukan tinjauan dan
   konfirmasi, bukan perubahan diagnosis atau bukti belajar otomatis.
 - Akun keluarga dan pengelolaan murid. Soft launch saat ini adalah akses awal
@@ -70,7 +74,8 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   Berikutnya; latihan manual berada di `?section=latihan`, arsip operasional tunggal
   di `?section=riwayat`, dan proyeksi bukti di `?section=perkembangan` sebagai satu
   tab dengan tiga bagian (Progres, Materi, Perjalanan) yang dinavigasi lewat
-  anchor `#progres`, `#materi`, `#perjalanan`; deep link `/laporan/<id>` lama
+  anchor `#progres`, `#materi`, `#perjalanan`; kelas sekolah hanya tampil sebagai
+  badge profil bila metadata opsionalnya terisi. Deep link `/laporan/<id>` lama
   dialihkan ke tab setelah guard kepemilikan; `?section=`/`bagian=` lama tetap
   didukung sebagai alias anchor.
   Ringkasan aktivitas dapat dilihat lewat preset 7 hari,
@@ -84,6 +89,9 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
 
 - Bukti sah berupa snapshot outcome **append-only**, setelah tinjauan dan
   konfirmasi eksplisit guru. `direview` dan `kode_final` mutable bukan bukti sendiri.
+  Tinjauan sesi diproyeksikan exception-first sebagai **Perlu diperiksa**,
+  **Tanyakan cara anak**, atau **Tinjauan tercatat**; kelompok terakhir bukan
+  pengesahan dan tetap disahkan bersama saat Konfirmasi hasil sesi.
   Koreksi menginvalidasi bukti aktif; snapshot lama dan provenance tetap terjaga.
 - Maksimal dua fokus per putaran, dengan kunci
   `(template_id, kode_intervensi, malrule_id)`. Terbimbing/penguatan tidak menambah

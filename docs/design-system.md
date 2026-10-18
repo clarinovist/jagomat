@@ -157,8 +157,9 @@ Dari 9 mockup, pattern yang berulang:
 
 5. **Btn (secondary)** — background abu muda, text biru tua, border halus.
 
-6. **Sticky simpan bar** — position sticky bottom, background warna latar,
-   button full-width coral. Hanya di halaman kerja murid.
+6. **Sticky action bar** — halaman kerja murid memakai strip simpan di bawah;
+   tinjauan orang tua memakai satu action bar sesi dekat awal form dan sticky di
+   atas saat menggulir. Keduanya tidak boleh menutupi kontrol atau menggandakan CTA.
 
 7. **Tabel** — border-collapse, th background #eef/#eee, td border halus.
    Dipakai di dashboard (sesi), lembar penilaian (kunci), rekap.
@@ -390,6 +391,10 @@ File CSS per permukaan (semuanya `import design_tokens as T`):
   memuat blok penjelasan “Sesudah ini”/“Kembali”; Perjalanan menampilkan progres latihan
   awal sebagai stepper, status fokus sebagai lencana, dan riwayat putaran sebagai garis
   waktu, sementara metodologi/rincian kontekstual tetap dilipat dan data utama tidak.
+- Tinjauan orang tua mengelompokkan kartu menjadi **Perlu diperiksa** (terbuka),
+  **Tanyakan cara anak** (prompt dan pilihan pemahaman per butir), serta
+  **Tinjauan tercatat** (tertutup). Label terakhir berarti tidak perlu dibuka lagi,
+  bukan klaim hasil sudah sah; semua tetap disahkan saat Konfirmasi hasil sesi.
 - Aksi utama tetap berlabel teks. Ikon bukan pengganti makna simpan/kirim,
   konfirmasi, pilihan cara, maupun status pedagogis. Tidak ada JS/dependensi baru.
 
