@@ -107,6 +107,11 @@ def get(penangan,p,q):
             fields='<p>Aktivasi koleksi ditahan sampai audit privasi, seluruh jalur pencatatan, dan recovery diselesaikan. Mulai eksperimen sekarang setelah pemberitahuan dan persetujuan opsional siap. Tidak ada backfill atau enrollment otomatis.</p><label><input type="checkbox" name="aktif" value="1"%s> Aktifkan koleksi yang disetujui keluarga</label><label><input type="checkbox" name="konfirmasi" value="1" required> Pemberitahuan, alur pencabutan, dan kesiapan pencatatan telah diperiksa</label>'%(' checked' if config and config['koleksi'] else '')
             fc=ui.formulir('eksperimen',c,t,fields,'Simpan pengaturan eksperimen')
         isi=ui.halaman_kpi(config,r,biaya,cakupan,bulan=bulan,form_biaya=fb,form_config=fc)
+        import sensor_http
+        import sensor_store
+        import sensor_pages
+        status_sensor=sensor_store.kesehatan(h._path_admin(),siap=sensor_http.SIAP,sekarang=kini)
+        isi=sensor_pages.kesehatan(status_sensor['status'])+isi
     return _kirim(penangan,p,section,isi)
 
 

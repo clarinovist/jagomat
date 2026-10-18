@@ -469,6 +469,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         if jalur == "/admin" or jalur.startswith("/admin/"):
             return admin_http.tidak_ada(self)
+        import sensor_http
+        if sensor_http.tangani_post(self, jalur):
+            return
         import product_analytics_http as analitik
         if analitik.tangani_post(self, jalur):
             return

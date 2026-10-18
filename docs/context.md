@@ -118,10 +118,13 @@ cache dan cadangan tetap privat.
 - `assistant_store.py` kini sekitar 890 baris setelah concern memori dipisah;
   chat/pesan, persetujuan, usulan, operasi, dan retensi tetap satu agregat owner-scoped
   dengan transaksi/foreign key bersama, sehingga tidak dipecah lagi hanya demi LOC.
-- Analitik onboarding tetap pada kontrak KPI admin7 lama dan belum mengukur nilai
-  pertama ≤48 jam: event existing hanya pengiriman/penyajian, bukan gabungan selesai,
-  ditinjau, dikonfirmasi, lalu langkah berikutnya tersaji. WS5 dihentikan sampai
-  schema, migrasi, retensi, purge, backup, dan recovery exact memahami event baru.
+- KPI onboarding admin7 lama tetap terpisah dan tidak mengukur nilai pertama ≤48 jam.
+  `sensor_schema/store/http/domain/report/pages` menyediakan sensor internal optional-additive
+  pada admin DB: consent mandiri keluarga lama/baru, episode HMAC, milestone setelah
+  commit, turunan konfirmasi pertama/chat tanpa teks, TTL/cascade/family deletion,
+  health best-effort dan supresi ≥5 keluarga per sel. Gate deployment tersendiri;
+  boot baru perlu consent ulang. Migrator opt-in serta backup `target_sensor` mengenal
+  namespace tersebut. [Kontrak sensor](sensor-perbaikan.md); bukan aktivasi WS5 lama.
 - Lokal memakai `mesin/.venv/bin/python` (3.9.6); CI/container 3.12. Kode kompatibel
   3.9. Verifikasi sesuai risiko: Ringan/Normal/Kritis; tes scoped lokal, push CI cepat,
   full kandidat mingguan, dan gate rilis lengkap via dispatch pada SHA target. Palang

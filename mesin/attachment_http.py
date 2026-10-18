@@ -212,6 +212,9 @@ def _terapkan(penangan, lampiran_id: int) -> None:
             "SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?", (sesi_foto,)
         ).fetchone())
     ident = penangan._identitas()
+    if baru_kirim:
+        import sensor_http
+        sensor_http.sesi(sesi_foto, 'dikirim', pengguna=ident[0], peran=ident[1])
     import product_analytics_http as analitik
     analitik.aktivitas_sesi(
         sesi_foto, "latihan_dikirim",

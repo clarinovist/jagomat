@@ -115,15 +115,19 @@ def _tanpa_marker_transport(kon, sesi_id, data):
     return hasil
 
 
-def _jalankan(kon, jenis, identitas, aksi, guru, data):
+def _jalankan(kon, jenis, identitas, aksi, guru, data, sensor=None):
+    if sensor is None:
+        sensor = {}
     if jenis == "sesi":
         if aksi == "tinjauan":
             layanan.simpan_tinjauan_dari_form(kon, identitas, guru, _tanpa_marker_transport(kon, identitas, data))
+            sensor.update(sesi_id=identitas, kode='tinjauan_disimpan')
             return f"/sesi/{identitas}?pesan=Tinjauan%20tersimpan"
         if aksi == "konfirmasi":
-            layanan.konfirmasi_dari_form(
+            konfirmasi_id = layanan.konfirmasi_dari_form(
                 kon, identitas, guru, _tanpa_marker_transport(kon, identitas, data)
             )
+            sensor.update(sesi_id=identitas, kode='dikonfirmasi', konfirmasi_id=konfirmasi_id)
             from mapping_results import bukti_pemetaan, sesi_pemetaan_aktif
             siswa_id = kon.execute(
                 "SELECT siswa_id FROM sesi WHERE id = ?", (identitas,)
@@ -138,6 +142,7 @@ def _jalankan(kon, jenis, identitas, aksi, guru, data):
         if set(data) - {"alasan"}:
             raise ValueError("Isian pembatalan tidak dikenal.")
         siswa_id = layanan.batalkan_sesi(kon, identitas, data.get("alasan", ""))
+        sensor.update(sesi_id=identitas, kode='dibatalkan')
         return f"/anak/{siswa_id}?section=rencana"
     if aksi == 'pilot':
         from skill_pilot_service import jalankan
@@ -145,18 +150,27 @@ def _jalankan(kon, jenis, identitas, aksi, guru, data):
     if aksi == "aksi":
         layanan.proses_aksi(kon, identitas, data)
         return f"/anak/{identitas}?section=rencana"
+    sumber_sensor = kon.execute(
+        "SELECT id FROM sesi WHERE siswa_id=? AND tujuan!='bebas' "
+        "AND dikonfirmasi_guru IS NOT NULL AND dibatalkan IS NULL "
+        "ORDER BY id DESC LIMIT 1", (identitas,),
+    ).fetchone()
     if data:
         if set(data) != {'profil_parameter'}:
             raise GalatForm("Rencana dihitung ulang oleh server.")
-        sesi_id, _ = layanan.mulai_dengan_variasi(kon, identitas, data['profil_parameter'])
+        sesi_id, baru = layanan.mulai_dengan_variasi(kon, identitas, data['profil_parameter'])
     else:
         siswa = kon.execute('SELECT tingkat FROM siswa WHERE id=?', (identitas,)).fetchone()
         if siswa is None:
             raise ValueError('siswa tidak dikenal')
         if siswa['tingkat'] == '':
-            sesi_id, _ = layanan.mulai_dengan_fondasi(kon, identitas)
+            sesi_id, baru = layanan.mulai_dengan_fondasi(kon, identitas)
         else:
-            sesi_id, _ = layanan.buat_dari_rekomendasi(kon, identitas)
+            sesi_id, baru = layanan.buat_dari_rekomendasi(kon, identitas)
+    if baru:
+        sensor.update(sesi_id=sesi_id, kode='disiapkan')
+        if sumber_sensor:
+            sensor['sumber'] = sumber_sensor['id']
     return f"/sesi/{sesi_id}"
 
 
@@ -168,6 +182,7 @@ def tangani(penangan, jalur: str, halaman) -> None:
     jenis, nomor, aksi = cocok.groups()
     identitas = int(nomor)
     guru = penangan._identitas()
+    sensor = {}
     with database.buka() as kon:
         boleh = penangan._bisa_lihat_sesi if jenis == "sesi" else penangan._bisa_lihat_siswa
         if not guru or not boleh(kon, identitas):
@@ -176,7 +191,7 @@ def tangani(penangan, jalur: str, halaman) -> None:
             _batasi_laju(penangan, guru[0])
             data = _baca_form(penangan)
             kon.execute("BEGIN IMMEDIATE")
-            tujuan = _jalankan(kon, jenis, identitas, aksi, guru[0], data)
+            tujuan = _jalankan(kon, jenis, identitas, aksi, guru[0], data, sensor)
         except layanan.KonfirmasiBelumLengkap as galat:
             kon.rollback()
             from teacher_pages import halaman_sesi_stitch
@@ -191,6 +206,12 @@ def tangani(penangan, jalur: str, halaman) -> None:
             status = getattr(galat, "status", 409 if aksi in {"buat", "batalkan"} else 400)
             pesan = _pesan_pengguna(aksi, galat)
             return penangan._kirim(halaman("Permintaan belum dapat diproses", "<h1>Permintaan belum dapat diproses</h1>" + f"<p>{html.escape(pesan)}</p>"), status)
+    if sensor:
+        import sensor_http
+        sensor_http.sesi(sensor['sesi_id'], sensor['kode'], pengguna=guru[0], peran=guru[1],
+                         konfirmasi_id=sensor.get('konfirmasi_id'))
+        if sensor.get('sumber'):
+            sensor_http.sesi(sensor['sumber'], 'lanjutan_disiapkan', pengguna=guru[0], peran=guru[1])
     penangan.send_response(303)
     penangan.send_header("Location", tujuan)
     penangan.send_header("Content-Length", "0")

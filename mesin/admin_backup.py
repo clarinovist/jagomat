@@ -69,6 +69,7 @@ class RingkasanBackup:
     skema_registrasi_profil: bool = False
     operasi_registrasi_profil_pending: int = 0
     skema_dukungan: bool = False
+    skema_sensor: bool = False
 
 
 def _sha256(path: Path) -> str:
@@ -354,6 +355,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
             except (ValueError, sqlite3.Error):
                 raise BackupTidakSah('schema langganan backup tidak lengkap') from None
     skema_dukungan = False
+    skema_sensor = False
     if versi_admin in (VERSI_TARGET['admin'], 8, 9):
         import admin_store
         import support_settings
@@ -362,6 +364,8 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
                 import subscription_store
                 subscription_store.validasi_ledger(kon)
                 skema_dukungan = support_settings.validasi_schema(kon)
+                import sensor_schema
+                skema_sensor = sensor_schema.validasi(kon)
                 if versi_admin == 9:
                     import assistant_quota_store
                     assistant_quota_store.validasi_sumber(kon)
@@ -402,7 +406,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
         bool(pending or uncertain or billing or kuota_pending or kuota_unknown)
         or bool(foto_pending or foto_unknown) or bool(registrasi_pending),
         kuota_pending, kuota_unknown, skema_foto, foto_pending, foto_unknown,
-        skema_registrasi, registrasi_pending, skema_dukungan,
+        skema_registrasi, registrasi_pending, skema_dukungan, skema_sensor,
     )
 
 
@@ -599,7 +603,7 @@ def _validasi_receipt_profil(admin, belajar, tabel, row):
 
 def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto=None,
                      target_registrasi=None, target_penutupan=None,
-                     target_dukungan=None) -> RingkasanBackup:
+                     target_dukungan=None, target_sensor=None) -> RingkasanBackup:
     """Migrasikan turunan temp dua kali; backup induk tidak pernah ditulis.
 
     ``migrator_ai`` wajib dari candidate AI2. ``target_admin`` None mempertahankan
@@ -617,6 +621,10 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
     import database
 
     sebelum = validasi_bundle(bundle)
+    if target_sensor is None:
+        target_sensor = sebelum.skema_sensor
+    if type(target_sensor) is not bool or (sebelum.skema_sensor and not target_sensor):
+        raise BackupTidakSah('target rehearsal sensor tidak sah')
     if target_registrasi is None:
         target_registrasi = sebelum.skema_registrasi_profil
     if type(target_registrasi) is not bool or (sebelum.skema_registrasi_profil and not target_registrasi):
@@ -681,6 +689,9 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
             if target_dukungan:
                 import support_settings
                 support_settings.migrasikan(turunan / BERKAS_WAJIB["admin"], sekarang=sebelum.cutoff)
+            if target_sensor:
+                import sensor_schema
+                sensor_schema.migrasikan(turunan / BERKAS_WAJIB['admin'])
             migrator_ai(turunan / BERKAS_WAJIB["ai"])
             assistant_schema.siapkan(turunan / BERKAS_WAJIB["pendamping"]) 
         foto_akhir = _validasi_foto(turunan / BERKAS_WAJIB['belajar'])
@@ -711,6 +722,9 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
             subscription_store.validasi_ledger(kon)
             if support_settings.validasi_schema(kon) != target_dukungan:
                 raise BackupTidakSah('state dukungan berubah selama rehearsal')
+            import sensor_schema
+            if sensor_schema.validasi(kon) != target_sensor:
+                raise BackupTidakSah('state sensor berubah selama rehearsal')
             if target_admin == 9:
                 import assistant_quota_store
                 assistant_quota_store.validasi_sumber(kon)
@@ -747,5 +761,5 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
         sebelum.perlu_rekonsiliasi, sebelum.operasi_kuota_pending, sebelum.operasi_kuota_unknown,
         target_foto, sebelum.operasi_foto_pending, sebelum.operasi_foto_unknown,
         target_registrasi, sebelum.operasi_registrasi_profil_pending,
-        target_dukungan,
+        target_dukungan, target_sensor,
     )

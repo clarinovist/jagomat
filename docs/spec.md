@@ -15,6 +15,11 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
 
 ## Cakupan produk
 
+- [Sensor perbaikan internal](sensor-perbaikan.md) opsional untuk keluarga lama/baru:
+  alur pasca-opt-in, ringkasan konfirmasi pertama dan kategori chat dengan pilihan
+  izin terpisah. Tanpa salinan teks mentah atau provider analitik, tanpa backfill;
+  detail 30 hari/consent 90 hari, restart perlu izin ulang, dashboard ≥5 keluarga per sel.
+  KPI cohort registrasi lama tetap terpisah. Source bukan bukti aktivasi produksi.
 - Generator soal berparameter dan seed deterministik, lembar cetak, latihan daring,
   tinjauan hasil, diagnosis B/K/H/E/T/N, serta laporan perkembangan per anak.
 - Panel privat admin `/admin/riset` menyimpan wawancara eksploratif konsumen

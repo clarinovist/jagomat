@@ -10,6 +10,13 @@ permintaan refund tahunan7hari secara terpisah. Panel v1 tidak boleh menafsirkan
 invoice lama dengan harga baru. Refund harus melalui bukti/jurnal dan pencabutan hak
 invoice terkait, bukan tombol 'lunas' atau edit ledger. Belum diklaim terintegrasi.
 
+## Sensor perbaikan — tambahan 18 Oktober 2026
+
+[Sensor internal](sensor-perbaikan.md) memakai namespace/consent terpisah untuk
+keluarga lama dan baru, termasuk opsi turunan hasil/chat. KPI v1 dan notice di bawah
+tetap hanya berlaku bagi eksperimen lama. Penambahan ini tidak memperluas izin lama,
+tidak menyalin teks/jawaban mentah, dan tidak mengaktifkan cohort secara otomatis.
+
 ## Empat bagian
 
 - **Langganan**: pencarian keluarga enrolled (nama dicari lewat POST, hasil

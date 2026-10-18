@@ -218,6 +218,9 @@ def _post_kerjakan(penangan, jalur: str) -> None:
                 kon, siswa_id, sesi_id, f"/murid/kerjakan/{sesi_id}"
             )
             kon.commit()
+            if hasil:
+                import sensor_http
+                sensor_http.sesi(sesi_id, 'pekerjaan_disimpan')
             penangan._kirim_privat(isi)
             return
 
@@ -234,7 +237,11 @@ def _post_kerjakan(penangan, jalur: str) -> None:
     if hasil is None:
         penangan._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
         return
+    import sensor_http
+    if hasil:
+        sensor_http.sesi(sesi_id, 'pekerjaan_disimpan')
     if selesai:
+        sensor_http.sesi(sesi_id, 'dikirim')
         import product_analytics_http as analitik
         analitik.aktivitas_sesi(sesi_id, "latihan_dikirim", baru=True)
         penangan.send_response(303)

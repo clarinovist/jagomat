@@ -244,6 +244,8 @@ def kirim_pesan(
                 return jawaban_lama.teks
             raise GalatPendamping("Permintaan ini sedang atau sudah gagal diproses.")
 
+    import sensor_http
+    izin_sensor = sensor_http.izin_akun(account_id, sekarang=kini)
     try:
         ikatan_kuota = _cadangkan_kuota(account_id, request_id, kini)
     except entitlement.GalatKuotaRuntime:
@@ -429,4 +431,10 @@ def kirim_pesan(
         logging.getLogger(__name__).warning(
             "Pendamping selesai; kategori=kuota_perlu_rekonsiliasi"
         )
+    def sumber_sensor_sah():
+        return (assistant_store.ambil_chat(kon, account_id, chat_id) is not None
+                and assistant_store.persetujuan_aktif(
+                    kon, account_id, kategori='chat_umum', provider_id=assistant_policy.PROVIDER_ID))
+    sensor_http.chat_selesai(izin_sensor, request_id, aman, dibuat=kini,
+                             sumber_valid=sumber_sensor_sah)
     return respons.jawaban

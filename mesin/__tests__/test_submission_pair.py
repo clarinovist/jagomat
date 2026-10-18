@@ -56,6 +56,9 @@ def docker(monkeypatch):
             if masukan==pair.DUKUNGAN_TULIS:return 'OSN_SUPPORT_WRITER_OK'
             if masukan==pair.DUKUNGAN_BACA:return 'OSN_SUPPORT_RECOVERY_OK'
             if masukan==pair.DUKUNGAN_KEMBALI:return 'OSN_SUPPORT_RETURN_OK'
+            if masukan==pair.SENSOR_TULIS:return 'OSN_SENSOR_WRITER_OK'
+            if masukan==pair.SENSOR_BACA:return 'OSN_SENSOR_RECOVERY_OK'
+            if masukan==pair.SENSOR_KEMBALI:return 'OSN_SENSOR_RETURN_OK'
         return ''
     monkeypatch.setattr(pair,'_panggil',panggil)
     return images,revisions,panggilan,panggil
@@ -68,7 +71,7 @@ def test_volume_probe_sendiri_dan_urutan_write_read_cleanup(docker):
     assert hasil['candidate_digest']==images[0].split('@')[1]
     assert hasil['recovery_digest']==images[1].split('@')[1]
     runs=[(a,s) for a,s in calls if a[0]=='run']
-    assert len(runs)==17
+    assert len(runs)==20
     assert (hasil['package_pair_checks'], hasil['quota_pair_checks'],
             hasil['photo_pair_checks'], hasil['registration_pair_checks'],
             hasil['support_pair_checks']) == (8, 8, 8, 8, 8)
@@ -78,8 +81,11 @@ def test_volume_probe_sendiri_dan_urutan_write_read_cleanup(docker):
     assert [a[-4] for a,_ in runs[8:11]]==[images[0],images[1],images[0]]
     assert [s for _,s in runs[11:14]]==[pair.REGISTRASI_TULIS,pair.REGISTRASI_BACA,pair.REGISTRASI_KEMBALI]
     assert [a[-4] for a,_ in runs[11:14]]==[images[0],images[1],images[0]]
-    assert [s for _,s in runs[14:]]==[pair.DUKUNGAN_TULIS,pair.DUKUNGAN_BACA,pair.DUKUNGAN_KEMBALI]
-    assert [a[-4] for a,_ in runs[14:]]==[images[0],images[1],images[0]]
+    assert [s for _,s in runs[14:17]]==[pair.DUKUNGAN_TULIS,pair.DUKUNGAN_BACA,pair.DUKUNGAN_KEMBALI]
+    assert [a[-4] for a,_ in runs[14:17]]==[images[0],images[1],images[0]]
+    assert [s for _,s in runs[17:]]==[pair.SENSOR_TULIS,pair.SENSOR_BACA,pair.SENSOR_KEMBALI]
+    assert [a[-4] for a,_ in runs[17:]]==[images[0],images[1],images[0]]
+    assert hasil['sensor_pair_checks']==8
     assert hasil['learning_pair_checks']==8
     assert runs[3][1]==pair.TULIS_PILOT and runs[4][1]==pair.BACA_PILOT
     for a,s in runs:

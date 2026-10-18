@@ -115,7 +115,8 @@ def tangani_get(
         panel_analitik = ""
         if section == "akun" and ident[1] == "guru" and penangan._ambil_token():
             try:
-                panel_analitik = analitik.form_akun(penangan)
+                import sensor_http
+                panel_analitik = analitik.form_akun(penangan) + sensor_http.form_akun(penangan)
             except (LookupError, RuntimeError, OSError):
                 panel_analitik = "<p>Analitik opsional belum tersedia.</p>"
         langganan_html = ""

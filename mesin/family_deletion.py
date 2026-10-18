@@ -108,6 +108,8 @@ def _jumlah_admin(kon, target_id: str) -> tuple[int, int]:
         _hitung(kon, "SELECT COUNT(*) FROM kpi_peserta WHERE akun_id=?", (target_id,))
         if _tabel(kon, "kpi_peserta") else 0
     )
+    if _tabel(kon, 'sensor_peserta'):
+        analitik += _hitung(kon, 'SELECT COUNT(*) FROM sensor_peserta WHERE akun_id=?', (target_id,))
     return ledger, analitik
 
 
@@ -252,6 +254,8 @@ def _ubah_admin(path, target_id: str):
     with admin_store._transaksi(path) as kon:
         if _tabel(kon, "kpi_peserta"):
             kon.execute("DELETE FROM kpi_peserta WHERE akun_id=?", (target_id,))
+        if _tabel(kon, "sensor_peserta"):
+            kon.execute("DELETE FROM sensor_peserta WHERE akun_id=?", (target_id,))
 
 
 def _ubah_auth(path, perintah: c.PerintahHapusKeluarga, pseudonim: str, siswa_ids):

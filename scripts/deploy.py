@@ -529,6 +529,33 @@ if support_settings is not None:
 print('OSN_IMAGE_ADMIN9_AI2_OK')
 ''')
 
+
+# Sensor optional-additive: metadata saja sebelum migrasi, tanpa import aplikasi.
+PROBE_SENSOR_SKEMA = '''
+import ast
+from pathlib import Path
+kon = sqlite3.connect('file:/data/admin-control.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only=ON')
+    sql = "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE tbl_name GLOB 'sensor_*' ORDER BY type,name"
+    aktual = kon.execute(sql).fetchall()
+    if aktual:
+        pohon = ast.parse(Path('/app/sensor_schema.py').read_text())
+        ddl = [ast.literal_eval(n.value) for n in pohon.body if isinstance(n, ast.Assign)
+               and any(isinstance(t, ast.Name) and t.id=='DDL' for t in n.targets)]
+        assert len(ddl)==1
+        acuan = sqlite3.connect(':memory:')
+        try:
+            acuan.executescript(ddl[0])
+            assert aktual == acuan.execute(sql).fetchall()
+        finally:
+            acuan.close()
+        assert kon.execute('SELECT versi FROM sensor_schema WHERE id=1').fetchall()==[(1,)]
+finally:
+    kon.close()
+'''
+PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_SENSOR_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
+
 PROBE_KONTRAK = '''import ast
 from collections import Counter
 import copy
@@ -537,7 +564,7 @@ import json
 from pathlib import Path
 akar = Path('/app')
 nama = {
-    'schema.py', 'assistant_schema.py', 'research_schema.py', 'database.py', 'serve.py', 'admin_registration.py',
+    'schema.py', 'assistant_schema.py', 'database.py', 'serve.py', 'admin_registration.py',
     'auth.py', 'sessions.py', 'assistant_store.py', 'assistant_actions.py',
     'assistant_maintenance.py', 'migrate_params.py', 'outcome_presentations.py',
     'question_views.py', 'visual_contract.py', 'templates.py',

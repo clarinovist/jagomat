@@ -118,6 +118,9 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
                 kon, siswa_id, sesi_id, f"/mulai/{token}"
             )
             kon.commit()
+            if hasil:
+                import sensor_http
+                sensor_http.sesi(sesi_id, 'pekerjaan_disimpan')
             penangan._kirim_tautan(isi)
             return True
         if hasil:
@@ -147,7 +150,11 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
                 penangan._kirim_tautan(tidak_ada, 404)
                 return True
         kon.commit()
+    import sensor_http
+    if hasil:
+        sensor_http.sesi(sesi_id, 'pekerjaan_disimpan')
     if selesai:
+        sensor_http.sesi(sesi_id, 'dikirim')
         import product_analytics_http as analitik
         analitik.aktivitas_sesi(
             sesi_id, "latihan_dikirim", baru=kiriman_baru

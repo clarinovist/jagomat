@@ -1,6 +1,7 @@
 """Pemeliharaan bounded untuk audit admin dan draft batch transient."""
 
 from dataclasses import dataclass
+import sqlite3
 
 import admin_bulk
 import admin_store
@@ -34,6 +35,17 @@ def jalankan(
     import product_analytics_store
     kini = int(time.time()) if sekarang is None else sekarang
     product_analytics_store.retensi(path_admin, sekarang=kini)
+    import sensor_store
+    sensor_store.retensi(path_admin, sekarang=kini)
+    import sensor_cleanup
+    import database
+    import auth
+    import assistant_schema
+    try:
+        sensor_cleanup.bersihkan(path_admin, database.BAWAAN, assistant_schema.BAWAAN,
+                                  auth.BERKAS_SANDI, sekarang=kini)
+    except (OSError, ValueError, RuntimeError, sqlite3.Error):
+        sensor_store.gangguan()
     riset = 0
     if path_riset is not None:
         import research_store

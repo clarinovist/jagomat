@@ -180,6 +180,9 @@ def tangani_pembuatan_biasa(
             )
             return True
 
+    import sensor_http
+    ident = penangan._identitas()
+    sensor_http.sesi(sesi_id, 'disiapkan', pengguna=ident[0], peran=ident[1])
     # PRG tetap menuju profil anak; refresh tidak membuat sesi kedua.
     pesan_sukses = (
         f"Sesi baru untuk {nama_siswa} berhasil dibuat — "
@@ -332,6 +335,9 @@ def tangani_pembuatan_gabungan(
             )
             return True
 
+    import sensor_http
+    ident = penangan._identitas()
+    sensor_http.sesi(sesi_id, 'disiapkan', pengguna=ident[0], peran=ident[1])
     qs = urllib.parse.urlencode({
         "section": "latihan",
         "pesan": (
@@ -437,6 +443,8 @@ def tangani_latihan_serupa(penangan, jalur: str, *, acak_seed) -> bool:
             )
             return True
 
+    import sensor_http
+    sensor_http.sesi(sesi_baru, 'disiapkan', pengguna=ident[0], peran=ident[1])
     penangan.send_response(303)
     penangan.send_header(
         "Location",
@@ -547,6 +555,10 @@ def tangani_pembuatan_remedial(
                         "Remedial belum dapat dibuat. Periksa pilihannya."
                     )
 
+    if sesi_id is not None and not pesan_gagal:
+        import sensor_http
+        ident = penangan._identitas()
+        sensor_http.sesi(sesi_id, 'disiapkan', pengguna=ident[0], peran=ident[1])
     if pesan_gagal:
         qs = urllib.parse.urlencode({"section": "latihan", "pesan": pesan_gagal})
     elif sesi_id is None:
@@ -793,6 +805,8 @@ def tangani_review_post(
             return True
         kon.commit()
         ident = penangan._identitas()
+        import sensor_http
+        sensor_http.sesi(sesi_id, 'tinjauan_disimpan', pengguna=ident[0], peran=ident[1])
         penangan._kirim(
             halaman_sesi(
                 kon,
@@ -840,6 +854,8 @@ def tangani_lembar_get(penangan, jalur: str, *, halaman_lembar) -> bool:
                 pengguna=ident[0],
                 peran=ident[1],
             )
+            import sensor_http
+            sensor_http.sesi(sesi_id, 'lembar_disajikan', pengguna=ident[0], peran=ident[1])
             return True
         penangan._kirim(isi)
         return True
@@ -979,6 +995,10 @@ def tangani_hapus_post(
                 409,
             )
             return True
+        pemilik_sensor = kon.execute(
+            'SELECT w.pemilik FROM sesi s JOIN siswa w ON w.id=s.siswa_id WHERE s.id=?',
+            (sesi_id,),
+        ).fetchone()
         dihapus = database.hapus_sesi(kon, sesi_id)
     if not dihapus:
         penangan._kirim(
@@ -987,6 +1007,9 @@ def tangani_hapus_post(
         return True
 
     # Cleanup filesystem hanya setelah penghapusan DB berhasil dan commit.
+    if pemilik_sensor:
+        import sensor_http
+        sensor_http.hapus_sesi(sesi_id, pemilik_sensor['pemilik'])
     bersihkan_berkas(sesi_id)
     tujuan = urllib.parse.urlencode({
         "section": "riwayat", "pesan": f"Sesi {sesi_id} dihapus."
