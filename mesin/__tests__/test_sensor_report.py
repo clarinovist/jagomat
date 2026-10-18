@@ -21,6 +21,21 @@ def test_sampel_kecil_tidak_terlihat_dari_total(keluarga,monkeypatch):
     assert r.laporan(k.admin,siap=False,sekarang=T0+3)['status']=='nonaktif'
 
 
+def test_chat_berizin_tanpa_funnel_tetap_independen(keluarga,monkeypatch):
+    k=keluarga
+    sensor_schema.migrasikan(k.admin)
+    monkeypatch.setattr(s,'GAGAL',False)
+    with s.buka(k.admin,tulis=True) as c:
+        for i in range(5):
+            gen=format(i,'032x')
+            c.execute('INSERT INTO sensor_peserta VALUES(?,?,?,?,?,?,?,?,?)',
+                      ('akun_'+gen,gen,'f'*64,s.BOOT,T0,T0+d.RETENSI_CONSENT,d.CONSENT,0,1))
+            c.execute('INSERT INTO sensor_chat VALUES(?,?,?,?)',(gen,'e'*64,'penjelasan',(T0+2)//3600))
+    out=r.laporan(k.admin,siap=True,sekarang=T0+3)
+    assert out['tahap']==()
+    assert dict(out['chat'])['penjelasan']==5
+
+
 def test_lima_keluarga_bukan_lima_episode(keluarga,monkeypatch):
     k=keluarga
     sensor_schema.migrasikan(k.admin)

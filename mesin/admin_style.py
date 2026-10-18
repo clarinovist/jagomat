@@ -267,6 +267,9 @@ body.admin-readonly {{
   text-align: left; vertical-align: top;
 }}
 .admin-tabel th {{ color: {T.TEKS_JUDUL}; background: {T.LATAR_SEKUNDER_LEMBUT}; }}
+.sensor-tabel {{ min-width: 0; table-layout: fixed; }}
+.sensor-tabel th, .sensor-tabel td {{ white-space: normal; overflow-wrap: anywhere; }}
+.sensor-tabel th:last-child {{ width: 38%; }}
 .admin-tabel td[data-angka] {{ text-align: right; font-variant-numeric: tabular-nums; }}
 .admin-tabel a {{ color: {T.AKSEN_TEAL_TUA}; }}
 .admin-meta {{ color: {T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_LABEL}; }}

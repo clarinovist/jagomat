@@ -33,7 +33,6 @@ def laporan(path, *, siap, sekarang):
             keluarga = kon.execute('SELECT COUNT(DISTINCT e.peserta)' + batas, basis).fetchone()[0]
             if keluarga < 5:
                 hasil['status'] = 'sampel_kecil'
-                return hasil
             # Tidak tampilkan total yang memungkinkan sel tersembunyi dihitung balik.
             tahap=[]
             for kode, label in TAHAP:
@@ -41,7 +40,7 @@ def laporan(path, *, siap, sekarang):
                     'AND EXISTS(SELECT 1 FROM sensor_event v WHERE v.peserta=e.peserta AND v.token=e.token AND v.kode=?)',
                     (*basis,kode)).fetchone()
                 tahap.append((label,row[0] if row[1]>=5 else None))
-            hasil['tahap']=tuple(tahap)
+            hasil['tahap']=tuple(tahap) if keluarga>=5 else ()
             outcomes=[]
             for kolom,label in (('benar','Jawaban benar'),('belum_jelas','Dilewati/belum jelas'),
                                 ('kode_b','Baca'),('kode_k','Konsep'),('kode_h','Hitung'),
@@ -52,7 +51,7 @@ def laporan(path, *, siap, sekarang):
                     'JOIN sensor_peserta p ON p.generasi=e.peserta '
                     'WHERE p.boot=? AND p.berakhir>? AND e.mulai>? AND p.hasil=1 AND h.' + kolom + '>0', basis).fetchone()
                 outcomes.append((label,outcome[1] if outcome[0]>=5 else None))
-            hasil['hasil']=tuple(outcomes)
+            hasil['hasil']=tuple(outcomes) if any(n is not None for _,n in outcomes) else None
             chat=[]
             for kategori in sorted(d.KATEGORI_CHAT):
                 row=kon.execute(
@@ -61,7 +60,7 @@ def laporan(path, *, siap, sekarang):
                     'WHERE p.boot=? AND p.berakhir>? AND p.chat=1 AND c.jam>? AND c.kategori=?',
                     (store.BOOT,sekarang,(sekarang-d.RETENSI_DETAIL)//3600,kategori)).fetchone()
                 chat.append((kategori,row[0] if row[1]>=5 else None))
-            hasil['chat']=tuple(chat)
+            hasil['chat']=tuple(chat) if any(n is not None for _,n in chat) else ()
             # Usia ≥48 jam adalah kesempatan observasi, bukan janji SLA/diagnosis.
             sinyal=[]
             for awal, akhir, label in (
@@ -74,7 +73,7 @@ def laporan(path, *, siap, sekarang):
                     'AND NOT EXISTS(SELECT 1 FROM sensor_event z WHERE z.peserta=e.peserta AND z.token=e.token AND z.kode=?)',
                     (*basis,awal,sekarang//3600-49,akhir)).fetchone()
                 sinyal.append((label,row[0] if row[1]>=5 else None))
-            hasil['hambatan']=tuple(sinyal)
+            hasil['hambatan']=tuple(sinyal) if keluarga>=5 else ()
             return hasil
     except (OSError, ValueError, RuntimeError, sqlite3.Error):
         return {'status':'tidak_teramati','tahap':(),'hasil':None,'chat':(),'hambatan':()}

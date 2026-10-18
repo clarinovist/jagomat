@@ -108,10 +108,10 @@ def get(penangan,p,q):
             fc=ui.formulir('eksperimen',c,t,fields,'Simpan pengaturan eksperimen')
         isi=ui.halaman_kpi(config,r,biaya,cakupan,bulan=bulan,form_biaya=fb,form_config=fc)
         import sensor_http
-        import sensor_store
+        import sensor_report
         import sensor_pages
-        status_sensor=sensor_store.kesehatan(h._path_admin(),siap=sensor_http.SIAP,sekarang=kini)
-        isi=sensor_pages.kesehatan(status_sensor['status'])+isi
+        laporan_sensor=sensor_report.laporan(h._path_admin(),siap=sensor_http.SIAP,sekarang=kini)
+        isi=sensor_pages.dashboard(laporan_sensor)+isi
     return _kirim(penangan,p,section,isi)
 
 
