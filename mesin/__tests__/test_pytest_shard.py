@@ -52,6 +52,7 @@ JUMLAH_RECOVERY = {
     "b76c15a5c2b464c17d6343324bfdfa978818bfc2": 13110,
     # Collect-only arsip exact receipt persetujuan, 18 Oktober 2026.
     "caa19b256ea81f48a167104d04168071db7eafcf": 13126,
+    "c71038bb3b8ceedf10e469eb94766aed7c4c8472": 13126,
 }
 
 
