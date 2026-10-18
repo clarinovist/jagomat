@@ -1,5 +1,28 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy persetujuan awal terpadu — 18 Oktober 2026
+
+Kandidat `5ee3b844001074a601a564f945a0c833dfe6fd78`, digest
+`sha256:0a37f88915619476e487d17758185cdf11c12240a936a79ad61cc6efa32c15f9`;
+recovery `c71038bb3b8ceedf10e469eb94766aed7c4c8472`, digest
+`sha256:6fd46ec45fbe50e8e22b48fe67a4d4c597694b65396f439a82f535decf5bfa03`.
+Kontrak sama `8e10d0fc114df780918916f923868b567dd4ef1af34797b7b755837301c6aa89`.
+CI `39127519019` lulus seluruh kandidat/recovery, build, probe dan pair policy6/sensor8.
+Kegagalan CSS scope pada run awal diperbaiki, bukan dilewati.
+
+Preflight read-only lulus sebelum hold. Bundle `deploy-policy-20261018T140000Z`
+empat DB+auth serta backup riset terpisah diverifikasi; rehearsal C2–B2–C2,
+migrasi policy opt-in, integrity/FK dan preservasi tabel lama lulus. Deployer teruji
+dipasang atomik. Epoch consent eksternal dikonfigurasi sekali di host, tidak di dalam
+bundle DB: restart normal mempertahankan izin, **restore wajib rotasi epoch dan
+recreate proses**, bukan docker restart. Lihat [kontrak persetujuan](persetujuan-awal.md).
+
+Controlled deploy-v2 exit0, image sehat; Caddy/cron dipulihkan hash-identik. Tidak
+ada receipt/peserta policy dibuat otomatis. Smoke `/`, `/syarat-penggunaan`,
+`/kebijakan-privasi`200, `/akun`401, `/murid/`303 lulus. Marker galat teknis pascarilis
+nol. Turunan rehearsal dibersihkan; kedua backup dipertahankan. Mode tetap migrasi,
+job pasang otomatis tetap false. Persetujuan provider AI dan KPI lama tidak disatukan.
+
 ## Deploy sensor perbaikan internal — 18 Oktober 2026
 
 Controlled `deploy-v2` kandidat `bd2c6c6783687c2f1661d128f2f2900b1148c761`,
