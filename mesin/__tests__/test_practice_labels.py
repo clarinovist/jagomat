@@ -85,7 +85,10 @@ def test_badge_soal_dan_remedial_geometri_sama_dengan_usulan(db):
         kon.execute("UPDATE sesi SET direview = datetime('now') WHERE id = ?", (sesi_id,))
         halaman = teacher_pages.halaman_sesi_stitch(kon, sesi_id).decode()
         badge = re.findall(r'<span class="koreksi-tipe-st">(.*?)</span>', halaman)
-        assert badge == [teacher_pages._nama_template(tid) for tid in template_ids]
+        # Exception-first mengurutkan kelompok pekerjaan, tetapi setiap tipe tetap
+        # tampil tepat sekali dengan label resmi yang sama.
+        assert sorted(badge) == sorted(teacher_pages._nama_template(tid) for tid in template_ids)
+        assert len(badge) == len(set(badge)) == len(template_ids)
         assert "Barisan geometri" in badge
         panel = halaman.split('<section class="remedial-st">', 1)[1].split('</section>', 1)[0]
         assert '<b>Barisan geometri</b>' in panel

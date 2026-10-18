@@ -48,8 +48,9 @@ def test_progres_dilipat_tetapi_tindakan_dan_peringatan_tetap_terlihat(tindakan)
     progres = learning_cycle_ui._progres(rencana, bukti)
     assert any(progres in t and d > 0 for t, d in struktur.teks)
     assert all('open' not in a for a in struktur.details)
-    assert any('Peran orang tua/guru · Sekarang' in t and d == 0 for t, d in struktur.teks)
+    assert any('Instruksi' in t and d == 0 for t, d in struktur.teks)
     assert any('Waktu' in t and d == 0 for t, d in struktur.teks)
+    assert any('Kapan kembali' in t and d == 0 for t, d in struktur.teks)
     assert 'Sesudah ini' not in isi
     assert 'class="ringkasan-setelah-st"' not in isi
     if tindakan == 'intervensi':

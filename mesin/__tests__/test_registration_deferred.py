@@ -71,7 +71,7 @@ def test_http_daftar_baru_dan_semua_halaman_profil(server):
             assert 'Jagomat memilih cakupan yang sesuai' in isi
         if 'section=rencana' in url:
             assert 'Mulai dengan latihan awal' in isi
-            assert 'cakupan fondasi' in isi
+            assert 'fondasi bukan kelas sekolah' in isi
     with server.buka() as kon:
         assert tuple(kon.iterdump()) == awal
 

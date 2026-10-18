@@ -209,13 +209,15 @@ def test_status_menyatu_dengan_nomor_dan_jenis_soal(db):
         )
         halaman = teacher_pages.halaman_sesi_stitch(kon, sesi_id).decode()
 
-    kepala = re.search(r'<div class="koreksi-kepala-st">(.*?)</div>', halaman, re.S)
+    sid = int(baris["sesi_soal_id"])
+    kartu = halaman.split(f'id="tinjau-soal-{sid}"', 1)[1]
+    kepala = re.search(r'<div class="koreksi-kepala-st">(.*?)</div>', kartu, re.S)
     assert kepala
-    ringkas = re.search(r'<summary class="koreksi-ringkas-st">(.*?)</summary>', halaman, re.S)
+    ringkas = re.search(r'<summary class="koreksi-ringkas-st">(.*?)</summary>', kartu, re.S)
     assert ringkas
     assert "koreksi-nomor-st" in ringkas.group(1)
     assert "koreksi-tipe-st" in ringkas.group(1)
-    assert "Periksa cara anak" in ringkas.group(1)
+    assert "Tanyakan cara anak" in ringkas.group(1)
     assert "koreksi-status-st" in kepala.group(1)
     assert '<span class="kode benar">BENAR</span>' in kepala.group(1)
     assert '<span class="koreksi-status-label-st">Tepat</span>' in kepala.group(1)
