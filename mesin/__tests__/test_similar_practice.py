@@ -113,7 +113,7 @@ def test_kandidat_ui_unik_per_template_dan_di_luar_form_koreksi(db):
     assert "Latihan manual:" in halaman
     assert "tidak mengubah progres rencana terpandu" in halaman
     posisi_aksi = halaman.index(f'action="/sesi/{sesi}/latihan-serupa"')
-    posisi_form_koreksi = halaman.index(f'method="post" action="/sesi/{sesi}">')
+    posisi_form_koreksi = halaman.index(f'method="post" action="/sesi/{sesi}" data-tinjauan-ringkas>')
     assert halaman.index("</form>", posisi_form_koreksi) < posisi_aksi
     blok = halaman.split('class="remedial-st latihan-serupa-st"', 1)[1].split(
         "</section>", 1

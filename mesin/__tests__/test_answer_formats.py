@@ -87,7 +87,7 @@ def test_usulan_guru_dan_simpan_konsisten(db, jenis, jawaban):
         database.tandai_selesai(kon, sesi)
         draf = DrafKoreksi(((ssid, DrafButir(jawaban, "", "Saya hitung", "", False, False)),), False)
         html = teacher_pages.halaman_sesi_stitch(kon, sesi, draf_koreksi=draf).decode()
-        assert '<span class="koreksi-status-label-st">Tepat</span>' in html
+        assert '>Jawaban tepat</span>' in html
         assert database.isi_sesi(kon, sesi)[0]["jawaban_id"] is None
         teacher_pages.simpan_sesi(kon, sesi, {
             f"jwb_{ssid}": jawaban, f"cara_{ssid}": "Saya hitung",
@@ -137,7 +137,7 @@ def test_hasil_lama_tidak_dinilai_ulang_saat_get_dan_noop(db, jenis, jawaban):
         sebelum = tuple(kon.iterdump())
         bukti = database.muat_bukti_siklus(kon, siswa)
         html = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
-        assert '<span class="koreksi-status-label-st">Salah hitung</span>' in html
+        assert '>Salah hitung</span>' in html
         assert '>Belum tepat</span>' in student_pages.halaman_hasil_murid(kon, siswa, sesi).decode()
         teacher_pages.simpan_sesi(kon, sesi, {
             f"jwb_{ssid}": jawaban, f"cara_{ssid}": "Saya hitung",

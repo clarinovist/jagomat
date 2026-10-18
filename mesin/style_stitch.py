@@ -3379,7 +3379,7 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 .koreksi-sisa-st {{ font-size: .85rem; }}
 .koreksi-editorial-st .koreksi-kartu-st[tabindex] {{ scroll-margin-top: 8rem; }}
 .koreksi-editorial-st form[id^="form-koreksi-"] {{ scroll-padding-top: 8rem; }}
-@media (min-width: 48rem) {{
+@media (min-width: {T.BATAS_TABLET}) {{
   .koreksi-pilihan-paham-grid-st {{ grid-template-columns: repeat(4, minmax(0, 1fr)); }}
 }}
 @media (max-width: {T.BATAS_HP}) {{

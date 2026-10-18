@@ -221,6 +221,6 @@ def test_http_murid_simpan_guru_langsung_lihat_benar(server):
         f"/sesi/{sesi_id}", auth=("guru", SANDI_GURU)
     )
     assert kode == 200
-    assert '<span class="kode benar">BENAR</span>' in isi, (
+    assert '>Jawaban tepat</span>' in isi, (
         "guru masih melihat '?' padahal jawaban anak sudah benar"
     )

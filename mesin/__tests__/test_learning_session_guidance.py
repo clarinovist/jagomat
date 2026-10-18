@@ -191,7 +191,7 @@ def test_selesai_meminta_tinjau_lalu_satu_jalan_kembali_setelah_sah(server):
     assert f'href="/anak/{siswa_id}?section=riwayat"' in sah
     assert "Semua sesi Anak Sintetis" in sah
     detail_edit = re.search(
-        r'<details class="panduan-edit-hasil-st">(.*?)</form></details>', sah, re.S
+        r'<section class="panduan-edit-hasil-st">(.*?)</form></section>', sah, re.S
     )
     assert detail_edit and "open" not in detail_edit.group(0).split(">", 1)[0]
     assert "Koreksi hasil — perlu konfirmasi ulang bila diubah" in detail_edit.group(1)
@@ -221,7 +221,7 @@ def test_koreksi_setelah_konfirmasi_meminta_konfirmasi_ulang(server):
 
     assert "Koreksi berubah — konfirmasi ulang diperlukan" in halaman
     assert halaman.count(">Konfirmasi ulang hasil sesi</button>") == 1
-    assert '<details class="panduan-edit-hasil-st">' not in halaman
+    assert '<section class="panduan-edit-hasil-st">' not in halaman
     assert ">Simpan koreksi</button>" not in halaman
     assert 'hidden disabled aria-hidden="true"' in halaman
 

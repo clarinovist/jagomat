@@ -579,7 +579,7 @@ def test_http_drill_alur_penuh_tanpa_kode_N(server):
         f"/sesi/{sesi_id}", auth=("guru", SANDI_GURU)
     )
     assert kode == 200
-    assert '<span class="kode benar">BENAR</span>' in isi, (
+    assert '>Jawaban tepat</span>' in isi, (
         "guru melihat N padahal anak drill jawab benar tanpa cara"
     )
     # Tidak ada kode N untuk soal ini
