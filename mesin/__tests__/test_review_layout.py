@@ -24,7 +24,7 @@ class Kartu(HTMLParser):
         kelas = a.get('class', '').split()
         if 'koreksi-kartu-st' in kelas:
             self.kartu[a['id']] = (tag, a)
-        if 'koreksi-sumber-st' in kelas:
+        if 'koreksi-tambahan-st' in kelas:
             self.sumber.append(a)
 
 
@@ -61,8 +61,8 @@ def test_benar_tanpa_cek_cara_masuk_tanyakan_cara_dan_semua_kartu_terbuka(db):
         kartu = Kartu(isi).kartu
         for n, sid in enumerate(ids):
             tag, a = kartu[f'tinjau-soal-{sid}']
-            assert tag == 'details'
-            assert 'open' in a
+            assert tag == 'article'
+            assert a['data-prioritas'] in {'1', '2'}
             assert a['data-tindakan'] == 'Tanyakan cara anak'
         form = FormKoreksi(isi, sesi).data
         assert all(form[f'cek_pemahaman_{sid}'] == '' for sid in ids)
@@ -95,11 +95,12 @@ def test_galat_dan_sumber_bantuan_tidak_tersembunyi_di_kelompok_tercatat(db, sum
         masalah = () if sumber else ((sid, 3, 'provenance'),)
         isi = teacher_pages.halaman_sesi_stitch(kon, sesi, masalah_konfirmasi=masalah).decode()
         kartu = Kartu(isi).kartu
-        assert 'open' in kartu[f'tinjau-soal-{sid}'][1]
+        assert kartu[f'tinjau-soal-{sid}'][1]['data-prioritas'] in {'1', '2'}
         assert f'data-tindakan="Periksa {"sumber jawaban" if sumber else "isian yang ditandai"}"' in isi
-        assert any('open' in atribut for atribut in Kartu(isi).sumber)
+        assert all('open' not in atribut for atribut in Kartu(isi).sumber)
+        assert 'Periksa catatan' in isi
         assert f'name="versi_tinjauan_{sid}"' in isi
-        assert not Struktur(isi).tertutup(f'provenance_{sid}')
+        assert Struktur(isi).tertutup(f'provenance_{sid}')
 
 
 def test_jawaban_utama_dan_koreksi_sumber_native_tanpa_duplikasi_terbuka(db):
@@ -138,8 +139,8 @@ def test_koreksi_arsip_tanpa_sumber_membuka_recovery_bukan_menghapus_asli(db):
         sebelum = tuple(kon.iterdump())
         isi = teacher_pages.halaman_sesi_stitch(kon, sesi, draf_koreksi=draf).decode()
         a = Kartu(isi).kartu[f'tinjau-soal-{sid}'][1]
-        assert a['data-tindakan'] == 'Periksa sumber jawaban' and 'open' in a
-        assert not Struktur(isi).tertutup(f'provenance_{sid}')
+        assert a['data-tindakan'] == 'Periksa sumber jawaban' and a['data-prioritas'] in {'1', '2'}
+        assert Struktur(isi).tertutup(f'provenance_{sid}')
         assert 'Jawaban anak — salinan dikoreksi' in isi
         assert tuple(kon.iterdump()) == sebelum
 
@@ -151,7 +152,7 @@ def test_override_benar_dengan_jawaban_kosong_tetap_perlu_sumber(db):
         draf = DrafKoreksi(((sid, DrafButir('', 'benar', 'Cara asli', 'bisa_menjelaskan', False, False)),), False)
         isi = teacher_pages.halaman_sesi_stitch(kon, sesi, draf_koreksi=draf).decode()
         a = Kartu(isi).kartu[f'tinjau-soal-{sid}'][1]
-        assert a['data-tindakan'] == 'Periksa sumber jawaban' and 'open' in a
+        assert a['data-tindakan'] == 'Periksa sumber jawaban' and a['data-prioritas'] in {'1', '2'}
         assert '0 dari 3 tinjauan tercatat' in isi
 
 
@@ -165,7 +166,7 @@ def test_draf_pemahaman_dikosongkan_mengembalikan_soal_ke_antrean(db):
         sebelum = tuple(kon.iterdump())
         isi = teacher_pages.halaman_sesi_stitch(kon, sesi, draf_koreksi=draf).decode()
         assert '0 dari 3 tinjauan tercatat' in isi
-        assert 'open' in Kartu(isi).kartu[f'tinjau-soal-{sid}'][1]
+        assert Kartu(isi).kartu[f'tinjau-soal-{sid}'][1]['data-prioritas'] in {'1', '2'}
         assert FormKoreksi(isi, sesi).data[f'cek_pemahaman_{sid}'] == ''
         assert tuple(kon.iterdump()) == sebelum
 

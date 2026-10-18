@@ -15,9 +15,9 @@ def test_tinjau_tanpa_usulan_palsu_dan_pendampingan_sebelum_penilaian(server):
     assert 'Usulan Jagomat: Perlu penilaian' not in badan
     assert 'Belum yakin — perlu ditinjau' in badan
     assert 'Gunakan usulan Jagomat' not in badan
-    assert badan.index('class="koreksi-pemahaman-st"') < badan.index('class="koreksi-opsi-st koreksi-penilaian-st"')
+    assert badan.index('class="koreksi-pemahaman-st"') < badan.index('class="koreksi-penilaian-st"')
     assert 'Tanyakan: “Kamu dapat jawaban ini dari mana?”' in badan
-    assert 'Tentukan penilaian — belum dipilih' in badan
+    assert 'Penilaian yang dipakai saat disimpan' in badan
     assert data[f'kode_{s.sid}'] == ''
     sebelum = keadaan(s)
     status, galat, _ = kirim(s, data)
@@ -81,7 +81,7 @@ def test_lewati_bernama_jelas_dan_tidak_diaktifkan_otomatis(server):
     isi_awal(s, 'Catatan asli', jawaban='999999')
     data, isi = form(s)
     assert '>Opsi lain' not in isi
-    assert '>Lewati soal ini dari penilaian</summary>' in isi
+    assert '>Lewati soal ini</button>' in isi
     assert 'Jangan sertakan soal ini dalam penilaian' in isi
     assert f'dilewati_{s.sid}' not in data
     assert 'bukan benar atau salah' in isi
@@ -92,7 +92,7 @@ def test_lewati_bernama_jelas_dan_tidak_diaktifkan_otomatis(server):
     assert snapshot[0]['dilewati'] == 1 and snapshot[0]['kode_final'] is None
     assert snapshot[0]['jawaban'] == ''
     _, isi = form(s)
-    assert '>Dilewati dari penilaian — ubah</summary>' in isi
+    assert '>Sertakan kembali soal ini</button>' in isi
 
 
 def test_radio_gaya_terbaca_fokus_dan_target_sentuh():

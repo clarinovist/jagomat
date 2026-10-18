@@ -3334,6 +3334,63 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
   .koreksi-aksi-sesi-st {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: {T.SP_2}; }}
 }}
 
+/* Tinjauan datar: collapse hanya presentasi; kontrol tertutup tetap terkirim. */
+.koreksi-editorial-st [hidden] {{ display: none !important; }}
+.koreksi-judul-kartu-st {{ margin: 0; font: inherit; }}
+.koreksi-editorial-st button.koreksi-ringkas-st {{
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+  width: 100%; text-align: left; margin: 0; padding: {T.SP_3} {T.SP_4};
+  background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; border: 0;
+  border-radius: {T.RADIUS_KARTU}; font: 600 1rem/1.4 {T.FONT_BODY};
+  min-height: {T.TARGET_SENTUH}; cursor: pointer; gap: {T.SP_1} {T.SP_3};
+}}
+.koreksi-ringkas-st .koreksi-ringkas-kepala-st {{ width: auto; grid-column: 1; }}
+.koreksi-ringkas-st .koreksi-ringkas-hasil-st {{
+  display: block; grid-column: 1; margin: 0 0 0 2.5rem; font-size: .85rem;
+}}
+.koreksi-penanda-st {{ grid-column: 1; margin-left: 2.5rem; font-size: .8rem; color: {T.AKSEN_TEAL_TUA}; }}
+.koreksi-chevron-st {{ grid-column: 2; grid-row: 1 / span 3; }}
+.koreksi-ringkas-st:disabled {{ cursor: default; opacity: 1; }}
+.koreksi-ringkas-st:disabled .koreksi-chevron-st {{ visibility: hidden; }}
+.koreksi-tache-st {{ margin: 0; font-weight: 600; color: {T.AKSEN_TEAL_TUA}; }}
+.koreksi-ringkas-st .koreksi-ringkas-hasil-st {{ justify-self: start; background: {T.LATAR_CATATAN}; padding: {T.SP_1} {T.SP_2}; border-radius: {T.RADIUS_PIL}; }}
+.koreksi-ringkas-st[aria-expanded="true"] .koreksi-chevron-st {{ transform: rotate(180deg); }}
+.koreksi-editorial-st button.koreksi-ringkas-st:focus-visible,
+.koreksi-lewati-tombol-st:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
+.koreksi-editorial-st .koreksi-lipat-st > .koreksi-isi-st {{ border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
+.koreksi-tambahan-isi-st {{ display: grid; gap: {T.SP_3}; }}
+.koreksi-tinjauan-st {{ display: grid; gap: {T.SP_2}; }}
+.koreksi-penilaian-st {{ border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; padding-top: {T.SP_3}; }}
+.koreksi-wajib-st {{ display: block; font-weight: 400; font-size: .8rem; color: {T.TEKS_VARIAN}; }}
+.koreksi-legenda-st {{ margin-bottom: {T.SP_3}; }}
+.koreksi-editorial-st .koreksi-tercatat-st {{ background: none; padding: 0; border: 0; }}
+.koreksi-editorial-st button.koreksi-lewati-tombol-st {{
+  min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} 0; font: inherit;
+  color: {T.TEKS_VARIAN}; background: transparent; border: 0;
+  text-decoration: underline; text-underline-offset: .2em; cursor: pointer;
+}}
+.koreksi-editorial-st .koreksi-simpan-st {{
+  display: flex; align-items: center; justify-content: space-between;
+  gap: {T.SP_3}; padding: {T.SP_1} {T.SP_2}; min-height: 56px;
+}}
+.koreksi-editorial-st .koreksi-simpan-st button {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3}; font-size: .9rem; }}
+.koreksi-aksi-sesi-st {{ display: flex; gap: {T.SP_2}; }}
+.koreksi-aksi-sesi-st button {{ width: auto; }}
+.koreksi-sisa-st {{ font-size: .85rem; }}
+.koreksi-editorial-st .koreksi-kartu-st[tabindex] {{ scroll-margin-top: 8rem; }}
+.koreksi-editorial-st form[id^="form-koreksi-"] {{ scroll-padding-top: 8rem; }}
+@media (min-width: 48rem) {{
+  .koreksi-pilihan-paham-grid-st {{ grid-template-columns: repeat(4, minmax(0, 1fr)); }}
+}}
+@media (max-width: {T.BATAS_HP}) {{
+  .koreksi-editorial-st .koreksi-simpan-st {{ gap: {T.SP_2}; padding: {T.SP_1}; }}
+  .koreksi-editorial-st .koreksi-simpan-st button {{ font-size: .8rem; padding: {T.SP_1}; }}
+  .koreksi-aksi-sesi-st {{ flex: 1; gap: {T.SP_1}; }}
+  .koreksi-aksi-sesi-st button {{ flex: 1; }}
+  .koreksi-sisa-st {{ flex: 0 0 6rem; font-size: .75rem; line-height: 1.35; }}
+  .koreksi-editorial-st button.koreksi-ringkas-st {{ padding: {T.SP_3}; }}
+}}
+
 /* Rencana belajar jelas — panduan sesi */
 .panduan-sesi-st > div {{ flex: 1; min-width: 0; }}
 .marker-status-lama-st {{ display: none; }}

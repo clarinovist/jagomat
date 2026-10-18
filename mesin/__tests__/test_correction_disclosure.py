@@ -28,7 +28,7 @@ class Struktur(HTMLParser):
             self.ids.append(a['id'])
         if tag == 'details':
             self.detail.append(a)
-            if 'koreksi-pendampingan-st' in a.get('class', '').split():
+            if 'koreksi-tambahan-st' in a.get('class', '').split():
                 self.disclosure.append(a)
         if tag in {'input', 'select', 'textarea'} and 'name' in a:
             self.kontrol.setdefault(a['name'], []).append((a, tuple(self.detail)))
@@ -83,8 +83,8 @@ def test_benar_tanpa_catatan_paham_membuka_pendampingan_dan_form_utuh(server, tu
     isi_awal(s)
     isi = halaman(s)
     m = Struktur(isi)
-    assert len(m.disclosure) == 1 and 'open' in m.disclosure[0]
-    assert 'Periksa cara anak' in isi
+    assert len(m.disclosure) == 1 and 'open' not in m.disclosure[0]
+    assert 'Tanyakan cara anak' in isi
     for nama in (f'cara_{s.sid}', f'cek_pemahaman_{s.sid}', f'belum_{s.sid}'):
         assert m.tertutup(nama) == (not nama.startswith('cek_pemahaman_'))
         assert len(m.kontrol[nama]) == (4 if nama.startswith('cek_pemahaman_') else 1)
@@ -93,8 +93,8 @@ def test_benar_tanpa_catatan_paham_membuka_pendampingan_dan_form_utuh(server, tu
     assert len(m.ids) == len(set(m.ids))
     assert isi.count(f'id="form-koreksi-{s.sesi}"') == 1
     assert isi.count('>Konfirmasi hasil sesi</button>') == 1
-    assert 'catatan tersimpan' in isi
-    assert '<div class="usulan-st">' not in isi.split('<details class="koreksi-opsi-st koreksi-penilaian-st"')[0]
+    assert 'Ada catatan' in isi
+    assert not m.tertutup(f'kode_{s.sid}')
 
 
 @pytest.mark.parametrize('tujuan', ['evaluasi', 'checkpoint'])
@@ -106,7 +106,7 @@ def test_evaluasi_checkpoint_semua_butir_tetap_terbuka(server, tujuan):
     isi = halaman(s)
     m = Struktur(isi)
     assert not m.tertutup(f'cek_pemahaman_{s.sid}')
-    assert not m.tertutup(f'cara_{s.sid}')
+    assert m.tertutup(f'cara_{s.sid}')
     assert 'catatan pemahaman pada soal fokus dipakai untuk menilai penguasaan' in isi
 
 
@@ -120,9 +120,8 @@ def test_salah_nt_dan_belum_dinilai_tidak_diringkas(server, cara, kode, jawaban,
     s = server
     isi_awal(s, cara=cara, kode=kode, jawaban=jawaban, belum=belum)
     m = Struktur(halaman(s))
-    perhatian = cara.startswith('[pilihan]') or belum
-    assert m.tertutup(f'cara_{s.sid}') == (not perhatian)
-    assert m.tertutup(f'cek_pemahaman_{s.sid}') == (jawaban == '' and not cara)
+    assert m.tertutup(f'cara_{s.sid}')
+    assert not m.tertutup(f'cek_pemahaman_{s.sid}')
 
 
 @pytest.mark.parametrize('cara,paham,belum,indikator', [
@@ -140,10 +139,10 @@ def test_override_benar_tidak_menyamarkan_sinyal_perhatian(server, cara, paham, 
     assert kirim(s, data)[0] == 200
     isi = halaman(s)
     m = Struktur(isi)
-    assert not m.tertutup(f'cara_{s.sid}')
+    assert m.tertutup(f'cara_{s.sid}')
     assert not m.tertutup(f'cek_pemahaman_{s.sid}')
-    ringkasan = re.search(r'<details class="koreksi-opsi-st koreksi-pendampingan-st"[^>]*>\s*<summary>(.*?)</summary>', isi, re.S)[1]
-    assert 'perlu perhatian' in ringkasan and indikator in ringkasan
+    ringkasan = re.search(r'<button[^>]*data-buka-kartu>(.*?)</button>', isi, re.S)[1]
+    assert indikator in ringkasan
 
 
 @pytest.mark.parametrize('kode_lama', ['', 'H'])
@@ -159,11 +158,11 @@ def test_status_dan_disclosure_mengikuti_draf_bukan_lencana_db(server, kode, jaw
     draf = DrafKoreksi(((s.sid, DrafButir(s.butir['kunci'] if jawaban is None else jawaban,
                                        kode, 'Cara draf', '', False, False)),), False)
     isi = halaman(s, draf_koreksi=draf)
-    assert f'<span class="koreksi-status-label-st">{label}</span>' in isi
+    assert {'Tepat': 'Jawaban tepat', 'Belum dinilai': 'Belum yakin'}.get(label, label) in re.search(r'<button[^>]*data-buka-kartu>(.*?)</button>', isi, re.S)[1]
     assert Struktur(isi).tertutup(f'cek_pemahaman_{s.sid}') == tertutup
-    assert Struktur(isi).tertutup(f'kode_{s.sid}') == (kode != '' or label == 'Tepat')
+    assert not Struktur(isi).tertutup(f'kode_{s.sid}')
     if label == 'Tepat':
-        assert 'catatan belum disimpan' in isi
+        assert 'Ada catatan — belum disimpan' in isi
         assert 'catatan tersimpan' not in isi.split('</style>')[-1]
 
 
@@ -191,7 +190,7 @@ def test_roundtrip_tidak_mengubah_nilai_snapshot_laporan_dan_siklus(server, paha
         assert reports.halaman_laporan(kon, anak) == laporan
         nilai = kon.execute('SELECT cek_pemahaman FROM snapshot_outcome').fetchone()[0]
         assert nilai == (paham or None)
-    assert Struktur(isi).tertutup(f'cek_pemahaman_{s.sid}') == (paham == 'bisa_menjelaskan')
+    assert not Struktur(isi).tertutup(f'cek_pemahaman_{s.sid}')
 
 
 def test_css_disclosure_native_dan_grid_tanpa_kolom_kosong():
@@ -231,7 +230,7 @@ def test_draf_pemahaman_mengalahkan_snapshot_termasuk_dikosongkan(server, paham)
     assert FormKoreksi(isi, s.sesi).data[f'cek_pemahaman_{s.sid}'] == paham
     # Draf selalu dibuka kembali agar input request-local dapat dipulihkan.
     assert not Struktur(isi).tertutup(f'cek_pemahaman_{s.sid}')
-    assert 'catatan belum disimpan' in isi
+    assert 'Ada catatan — belum disimpan' in isi
 
 
 def test_konfirmasi_gagal_membuka_kontrol_dan_mempertahankan_draf(server):
@@ -246,10 +245,10 @@ def test_konfirmasi_gagal_membuka_kontrol_dan_mempertahankan_draf(server):
     status, isi, _ = kirim(s, data)
     assert status == 400
     assert FormKoreksi(isi, s.sesi).data == data
-    assert not Struktur(isi).tertutup(f'cara_{s.sid}')
+    assert Struktur(isi).tertutup(f'cara_{s.sid}')
     assert not Struktur(isi).tertutup(f'cek_pemahaman_{s.sid}')
     assert f'id="masalah-soal-{s.sid}"' in isi
-    assert 'koreksi-status-st">Perlu ditinjau' in isi
+    assert 'Perlu ditinjau.</b>' in isi and 'Periksa catatan' in isi
     with s.buka() as kon:
         assert tuple(kon.iterdump()) == sebelum
 
@@ -261,7 +260,7 @@ def test_diagnosis_warisan_noop_tidak_diringkas_karena_kunci_cocok(server):
         jid = database.isi_sesi(kon, s.sesi)[0]['jawaban_id']
         database.simpan_diagnosis(kon, jid, False, 'H', 'H', alasan='Diagnosis warisan')
     isi = halaman(s)
-    assert '<span class="koreksi-status-label-st">Salah hitung</span>' in isi
+    assert '>Salah hitung</span>' in isi
     assert not Struktur(isi).tertutup(f'cek_pemahaman_{s.sid}')
 
 
@@ -269,9 +268,9 @@ def test_error_dan_dilewati_membuka_kontrol_walaupun_override_benar(server):
     s = server
     isi_awal(s, kode='benar')
     isi = halaman(s, masalah_konfirmasi=((s.sid, 1, 'tidak_konsisten'),))
-    assert not Struktur(isi).tertutup(f'cara_{s.sid}')
+    assert Struktur(isi).tertutup(f'cara_{s.sid}')
     assert f'id="masalah-soal-{s.sid}"' in isi
     draf = DrafKoreksi(((s.sid, DrafButir(s.butir['kunci'], 'benar', 'Cara', '', True, False)),), False)
     isi = halaman(s, draf_koreksi=draf)
     assert not Struktur(isi).tertutup(f'cek_pemahaman_{s.sid}')
-    assert 'Dilewati dari penilaian — ubah' in isi
+    assert 'Sertakan kembali soal ini' in isi

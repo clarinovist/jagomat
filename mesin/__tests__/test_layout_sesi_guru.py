@@ -57,8 +57,8 @@ def test_jawaban_satu_kolom_dan_cara_di_pendampingan(db):
         assert 'class="koreksi-input-st"' in isi
         assert 'class="koreksi-textarea-st"' not in isi
         assert 'name="kode_' not in isi
-    assert 'class="koreksi-opsi-st koreksi-penilaian-st"' in badan
-    assert 'class="koreksi-opsi-st koreksi-cara-st"' in badan
+    assert 'class="koreksi-penilaian-st"' in badan
+    assert 'class="koreksi-opsi-st koreksi-tambahan-st"' in badan
     assert 'class="koreksi-textarea-st"' in badan
     assert 'koreksi-bukti-tunggal-st' in style_stitch.CSS_SESI
 
@@ -97,7 +97,7 @@ def test_label_kode_ringkas_dan_nama_template_ramah(db):
     assert "Kode (kosong = usulan mesin)" not in badan
     assert "Penilaian yang dipakai" in badan
     assert "Usulan Jagomat: Perlu penilaian" not in badan
-    assert "Tentukan penilaian — belum dipilih" in badan
+    assert "Belum yakin" in badan
     assert "kosongkan = pakai usulan mesin" not in badan
     assert "median_modus" not in badan
     assert "Median &amp; modus" in badan
@@ -130,7 +130,7 @@ def test_alasan_mesin_benar_tidak_mengulang_status_benar(db):
 
     badan = halaman.split("</style>", 1)[-1]
     assert "Mesin: jawaban benar" not in badan
-    assert "BENAR" in badan
+    assert "Jawaban tepat" in badan
 
 
 def test_alasan_mesin_benar_tetap_tampil_saat_guru_mengoreksi_manual(db):
@@ -211,16 +211,12 @@ def test_status_menyatu_dengan_nomor_dan_jenis_soal(db):
 
     sid = int(baris["sesi_soal_id"])
     kartu = halaman.split(f'id="tinjau-soal-{sid}"', 1)[1]
-    kepala = re.search(r'<div class="koreksi-kepala-st">(.*?)</div>', kartu, re.S)
-    assert kepala
-    ringkas = re.search(r'<summary class="koreksi-ringkas-st">(.*?)</summary>', kartu, re.S)
+    ringkas = re.search(r'<button[^>]*data-buka-kartu>(.*?)</button>', kartu, re.S)
     assert ringkas
     assert "koreksi-nomor-st" in ringkas.group(1)
     assert "koreksi-tipe-st" in ringkas.group(1)
-    assert "Tanyakan cara anak" in ringkas.group(1)
-    assert "koreksi-status-st" in kepala.group(1)
-    assert '<span class="kode benar">BENAR</span>' in kepala.group(1)
-    assert '<span class="koreksi-status-label-st">Tepat</span>' in kepala.group(1)
+    assert "Jawaban tepat" in ringkas.group(1)
+    assert 'aria-controls="isi-soal-' in kartu
     assert f"background: {style_stitch.T.KODE_BENAR_BG}" in _blok(
         style_stitch.CSS_SESI, ".koreksi-status-st.benar"
     )

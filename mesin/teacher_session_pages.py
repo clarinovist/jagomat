@@ -132,6 +132,8 @@ def halaman_sesi_stitch(
     sudah_dikirim = bool(info["selesai"])
     drill = info["mode"] == "drill"
     sesi_dibatalkan = info["dibatalkan"] is not None
+    # Form tinjauan enhanced selalu dikirim dengan CSP privat, juga bagi admin.
+    privat = privat or (sudah_dikirim and not sesi_dibatalkan)
     sesi_terpandu = info["putaran_id"] is not None and info["tujuan"] != "bebas"
     from learning_cycle import OutcomeSiklus, _putaran_aktif, rencana_berikutnya
     import mapping_results
@@ -449,179 +451,111 @@ def halaman_sesi_stitch(
             'Jawaban benar saja belum cukup; catat setelah anak menjelaskan.</p>'
             if cek_penguasaan else ""
         )
-        catatan = []
-        label_pemahaman = {
-            "bisa_menjelaskan": "Bisa menjelaskan", "ragu": "Belum lancar menjelaskan",
-            "menghafal": "Hafal hasil, tak bisa menjelaskan cara",
-        }
-        if pemahaman_terpilih:
-            catatan.append(label_pemahaman[pemahaman_terpilih])
-        cara_asli = cara_dari_form(cara_tampil.strip(), b["cara"] or "")
-        menebak = cara_asli.startswith("[pilihan] tebak")
-        bingung = cara_asli.startswith("[pilihan] bingung")
-        if menebak:
-            catatan.append("Anak menandai menebak")
-        if bingung:
-            catatan.append("Anak menandai bingung")
-        if belum_terpilih:
-            catatan.append("Belum pernah melihat soal seperti ini")
-        perlu_perhatian = (
-            pemahaman_terpilih in {"ragu", "menghafal"}
-            or menebak or bingung or belum_terpilih
-        )
-        ringkas = not (tindakan or cek_penguasaan or perlu_perhatian or masalah_butir or dilewati_terpilih)
-        pengalaman_html = f"""
-      <details class="koreksi-opsi-st koreksi-pengalaman-st"{" open" if belum_terpilih else ""}>
-        <summary>{"Catatan pengalaman anak — tersimpan" if belum_terpilih else "Catatan pengalaman anak (opsional)"}</summary>
-        <div class="koreksi-centang-st">
-          <input type="hidden" name="hadir_belum_{sid}" value="1">
-          <input type="checkbox" id="bp{sid}" name="belum_{sid}" value="1"
-                 {"checked" if belum_terpilih else ""} aria-describedby="belum-info-{sid}">
-          <label for="bp{sid}"><span class="info-anak-label-st">Dari anak:</span> Belum pernah melihat soal seperti ini</label>
-        </div>
-        <p class="koreksi-catatan-st" id="belum-info-{sid}">Centang hanya jika anak mengatakannya, bukan karena ia bingung. Ini catatan pengalaman anak, bukan keputusan pengenalan. Pilih Perlu pengenalan hanya setelah guru memastikannya.</p>
-      </details>"""
-        if cara_html:
-            buka_cara = cek_penguasaan or perlu_perhatian or masalah_butir or dilewati_terpilih
-            judul_cara = "Catatan cara anak (opsional)" if cara_tampil.strip() else "Catat penjelasan anak (opsional)"
-            cara_html = (
-                f'<details class="koreksi-opsi-st koreksi-cara-st"{" open" if buka_cara else ""}>'
-                f'<summary>{judul_cara}</summary>{cara_html}</details>'
-            )
-        pendampingan = f"""
-    <fieldset class="koreksi-pemahaman-st">
-      <legend>Tinjau bersama anak</legend>
-      <p class="koreksi-tanya-st">Tanyakan: “{html.escape(pertanyaan_tinjauan)}”</p>
-      <p class="koreksi-catatan-st">Boleh dilewati — isi setelah mendengar penjelasan anak.</p>
-      {petunjuk_pemahaman}
-      {"<details class='koreksi-opsi-st'><summary>Catat pemahaman bila sudah diamati</summary>" if kosong_asli else ""}
-      <fieldset class="koreksi-radio-paham-st">
-        <legend>Apakah anak bisa menjelaskan caranya? (opsional)</legend>
-        <div class="koreksi-pilihan-paham-grid-st">{pilihan_pemahaman}</div>
-      </fieldset>
-      {"</details>" if kosong_asli else ""}
-      {cara_html}
-    </fieldset>"""
-        if benar_tampil:
-            judul_catatan = (
-                "Cek pemahaman" if cek_penguasaan else
-                "Catatan pendampingan — perlu perhatian" if perlu_perhatian else
-                "Periksa cara anak" if tindakan else "Catatan pendampingan (opsional)"
-            )
-            if cara_tampil.strip() or catatan:
-                catatan.append("catatan belum disimpan" if draf_butir else "catatan tersimpan")
-            ringkasan_catatan = (
-                '<span class="koreksi-ringkasan-catatan-st">'
-                + html.escape(" · ".join(catatan)) + '</span>' if catatan else ""
-            )
-            pendampingan = (
-                f'<details class="koreksi-opsi-st koreksi-pendampingan-st"{"" if ringkas else " open"}>'
-                f'<summary>{judul_catatan}{ringkasan_catatan}</summary>'
-                f'<div class="koreksi-pendampingan-isi-st">{pendampingan}</div></details>'
-            )
-        judul_penilaian = (
-            "Tentukan penilaian — belum dipilih" if belum_dinilai and not kode_tampil else
-            "Penilaian saat halaman dimuat: " + label_penilaian("benar" if benar_tampil else kode_efektif) + " — ubah"
-        )
-        ringkasan_hasil = 'Dilewati dari penilaian' if dilewati_terpilih else (
-            'Jawaban tepat' if benar_tampil else bulat_label
-        )
-        sinyal = [teks for teks in catatan if not teks.startswith('catatan ')]
-        if sinyal and not dilewati_terpilih:
-            ringkasan_hasil += ' · ' + ' · '.join(sinyal)
         label_tindakan = (
             'Tanyakan cara anak' if kategori_tinjauan == TANYAKAN_CARA
             else tindakan or 'Tidak perlu dibuka lagi'
         )
-        buka_sumber = bool(masalah_butir or sumber_perlu_diperiksa or koreksi_jawaban
-                           or draf_butir and jawaban_tampil != (b['jawaban'] or ''))
-        buka_lanjutan = bool(masalah_butir or sumber_perlu_diperiksa or dilewati_terpilih
-                             or not benar_tampil and not kode_efektif
-                             or belum_terpilih
-                             or kode_efektif == 'T' and not kode_tampil)
-        kontrol_tinjauan = review_pages.kontrol(
-            kon, sid, tinjauan_butir, draf_butir,
-            perlu_sumber=bool(sumber_perlu_diperiksa or masalah_butir),
+        kontrol_tinjauan = review_pages.kontrol(kon, sid, tinjauan_butir, draf_butir)
+        ada_catatan = bool(
+            cara_tampil.strip() or belum_terpilih or koreksi_jawaban
+            or any(review_pages.nilai(tinjauan_butir, draf_butir, nama).strip()
+                   for nama in ('catatan_tinjauan', 'provenance', 'jawaban_bantuan'))
+        )
+        ringkasan_hasil = 'Dilewati dari penilaian' if dilewati_terpilih else (
+            'Jawaban tepat' if benar_tampil else bulat_label if kode_efektif else 'Belum yakin'
+        )
+        label_pemahaman = {
+            'bisa_menjelaskan': 'Bisa menjelaskan', 'ragu': 'Belum lancar menjelaskan',
+            'menghafal': 'Hafal hasil, tak bisa menjelaskan cara',
+        }
+        sinyal = []
+        if pemahaman_terpilih:
+            sinyal.append(label_pemahaman[pemahaman_terpilih])
+        cara_asli = cara_dari_form(cara_tampil.strip(), b['cara'] or '')
+        if cara_asli.startswith('[pilihan] tebak'):
+            sinyal.append('Anak menandai menebak')
+        if cara_asli.startswith('[pilihan] bingung'):
+            sinyal.append('Anak menandai bingung')
+        if belum_terpilih:
+            sinyal.append('Belum pernah melihat soal seperti ini')
+        if sinyal and not dilewati_terpilih:
+            ringkasan_hasil += ' · ' + ' · '.join(sinyal)
+        penanda_catatan = (
+            'Periksa catatan' if masalah_butir or sumber_perlu_diperiksa else
+            'Ada catatan — belum disimpan' if ada_catatan and draf_butir else 'Ada catatan'
         )
         petunjuk_penilaian = (
-            '<p class="koreksi-catatan-st">Sesi dibatalkan; penilaian ini hanya untuk melihat riwayat.</p>'
-            if sesi_dibatalkan else
-            '<p class="koreksi-catatan-st">Pilihan dropdown baru disimpan setelah menekan Simpan draf atau Konfirmasi hasil sesi. '
-            'Ringkasan di atas belum mengikuti perubahan yang belum disimpan.</p>'
-            '<p class="koreksi-catatan-st">Setuju dengan usulan? Anda tidak perlu mengganti dropdown. '
-            'Konfirmasi hasil sesi berarti menyetujui penilaian, termasuk usulan Jagomat yang dipakai. '
-            'Simpan draf belum mengesahkan hasil.</p>'
+            'Sesi dibatalkan; penilaian ini hanya untuk melihat riwayat.' if sesi_dibatalkan else
+            'Simpan draf menyimpan pilihan tanpa mengesahkan; Konfirmasi hasil sesi menyimpan dan mengesahkan penilaian, termasuk usulan yang dipakai.'
         )
+        dampak_lewati = 'Saat dikonfirmasi, soal dicatat sebagai dilewati, bukan benar atau salah, dan bukan bukti pemahaman. Jawaban dan catatan asli tetap tersimpan.'
         kartu_html = f"""
-<details class="koreksi-kartu-st koreksi-lipat-st status-{bulat_cls} kategori-{kategori_tinjauan}"{atribut_kartu} data-tindakan="{html.escape(label_tindakan)}"{' open' if buka_kartu else ''}>
-  <summary class="koreksi-ringkas-st">
-    <span class="koreksi-ringkas-kepala-st">{nomor}{tipe}<span class="koreksi-tindakan-st">{html.escape(label_tindakan)}</span></span>
-    <span class="koreksi-ringkas-hasil-st">{html.escape(ringkasan_hasil)}</span>
-  </summary>
-  <div class="koreksi-isi-st {kelas_isi}">
-    <div class="koreksi-kepala-st">{status}</div>
+<article class="koreksi-kartu-st koreksi-lipat-st status-{bulat_cls} kategori-{kategori_tinjauan}"{atribut_kartu} data-tindakan="{html.escape(label_tindakan)}" data-kartu-tinjauan data-prioritas="{2 if masalah_butir or bantuan_nomor == int(b['nomor']) else 1 if buka_kartu else 0}">
+  <h3 class="koreksi-judul-kartu-st">
+    <button type="button" class="koreksi-ringkas-st" id="buka-soal-{sid}" aria-expanded="true" aria-controls="isi-soal-{sid}" disabled data-buka-kartu>
+      <span class="koreksi-ringkas-kepala-st">{nomor}{tipe}</span>
+      <span class="koreksi-ringkas-hasil-st">{html.escape(ringkasan_hasil)}</span>
+      <span class="koreksi-penanda-st" data-penanda-catatan{'' if ada_catatan or masalah_butir or sumber_perlu_diperiksa else ' hidden'}>{penanda_catatan}</span>
+      <span class="koreksi-chevron-st" aria-hidden="true">⌄</span>
+    </button>
+  </h3>
+  <div class="koreksi-isi-st {kelas_isi}" id="isi-soal-{sid}" aria-labelledby="buka-soal-{sid}" data-isi-kartu>
     {penilaian_status}
     {petunjuk_masalah}
     <div class="teks-soal-st">{teks_pertanyaan}</div>
     {ringkas_opsi(pg_butir, b['template_id'])}
     {'<p>Pilihan ganda · latihan manual, bukan bukti penguasaan.</p>' if pg_butir else ''}
     {review_pages.jawaban_utama(label_jawaban, dikoreksi=koreksi_jawaban)}
-    <details class="koreksi-opsi-st"><summary>Lihat kunci &amp; pembahasan</summary>
-      <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b["kunci"])}</span></div>
+    <fieldset class="koreksi-pemahaman-st">
+      <legend>Tinjau bersama anak</legend>
+      <p class="koreksi-tanya-st">Tanyakan: “{html.escape(pertanyaan_tinjauan)}”</p>
+      <fieldset class="koreksi-radio-paham-st">
+        <legend>Apakah anak bisa menjelaskan caranya?</legend>
+        <div class="koreksi-pilihan-paham-grid-st">{pilihan_pemahaman}</div>
+      </fieldset>
+      <p class="koreksi-catatan-st">Boleh dilewati — isi setelah mendengar penjelasan anak.</p>
+      {petunjuk_pemahaman}
+    </fieldset>
+    <section class="koreksi-penilaian-st" aria-labelledby="label-kode-{sid}">
+      <p class="koreksi-tache-st">{html.escape(label_tindakan)}</p>
+      {usulan}
+      <label class="koreksi-label-st" id="label-kode-{sid}" for="kode-{sid}">Penilaian yang dipakai saat disimpan <span class="koreksi-wajib-st">Wajib untuk konfirmasi, kecuali dilewati</span></label>
+      <select class="koreksi-select-st" id="kode-{sid}" name="kode_{sid}"{atribut_penilaian}>{pilih}</select>
+      <p class="koreksi-catatan-st">{petunjuk_penilaian}</p>
+    </section>
+    <details class="koreksi-opsi-st koreksi-tambahan-st" data-catatan-tambahan>
+      <summary>Catatan tambahan</summary>
+      <div class="koreksi-tambahan-isi-st">
+        {sumber_asli}
+        <div class="koreksi-bukti-st koreksi-bukti-tunggal-st">
+          <div><label class="koreksi-label-st" for="jwb-{sid}">Jawaban anak (koreksi salinan bila perlu)</label>{input_jawaban}</div>
+        </div>
+        <div class="koreksi-centang-st">
+          <input type="hidden" name="hadir_belum_{sid}" value="1">
+          <input type="checkbox" id="bp{sid}" name="belum_{sid}" value="1"{' checked' if belum_terpilih else ''} aria-describedby="belum-info-{sid}">
+          <label for="bp{sid}"><span class="info-anak-label-st">Dari anak:</span> Belum pernah melihat soal seperti ini</label>
+        </div>
+        <p class="koreksi-catatan-st" id="belum-info-{sid}">Centang hanya jika anak mengatakannya, bukan karena ia bingung. Ini catatan pengalaman anak, bukan keputusan pengenalan. Pilih Perlu pengenalan hanya setelah guru memastikannya.</p>
+        {cara_html}
+        {kontrol_tinjauan}
+      </div>
+    </details>
+    <details class="koreksi-opsi-st koreksi-kunci-st"><summary>Lihat kunci &amp; pembahasan</summary>
+      <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b['kunci'])}</span></div>
       {pembahasan_html}
     </details>
-    <p class="koreksi-catatan-st"><b>Langkah 1 — dengar cara anak.</b> Mulai dari sini; Langkah 2 hanya bila perlu.</p>
-    {pendampingan}
-    <details class="koreksi-opsi-st koreksi-langkah2-st"{' open' if (buka_sumber or buka_lanjutan) else ''}>
-    <summary>Langkah 2 — sumber &amp; penilaian lanjutan (opsional)</summary>
-    <details class="koreksi-opsi-st koreksi-sumber-st"{' open' if buka_sumber else ''}>
-    <summary>Sumber &amp; koreksi salinan (opsional)</summary>
-    {sumber_asli}
-    <div class="koreksi-bukti-st koreksi-bukti-tunggal-st">
-      <div>
-        <label class="koreksi-label-st" for="jwb-{b["sesi_soal_id"]}">Jawaban anak (koreksi salinan bila perlu)</label>
-        {input_jawaban}
+    <div class="koreksi-lewati-st">
+      <input type="hidden" name="hadir_dilewati_{sid}" value="1">
+      <div class="koreksi-lewati-native-st" data-lewati-native>
+        <input type="checkbox" id="lewati-{sid}" name="dilewati_{sid}" value="1"{' checked' if dilewati_terpilih else ''} aria-describedby="lewati-info-{sid}">
+        <label for="lewati-{sid}">Jangan sertakan soal ini dalam penilaian</label>
+        <p class="koreksi-catatan-st" id="lewati-info-{sid}">{dampak_lewati}</p>
       </div>
+      <button type="button" class="koreksi-lewati-tombol-st" data-lewati-tombol data-konfirmasi="{dampak_lewati}" hidden>{'Sertakan kembali soal ini' if dilewati_terpilih else 'Lewati soal ini'}</button>
+      <span class="koreksi-catatan-st" data-status-lewati role="status">{'Dilewati dari penilaian' if dilewati_terpilih else ''}</span>
     </div>
-    </details>
-    <details class="koreksi-opsi-st koreksi-lanjutan-st"{' open' if buka_lanjutan else ''}>
-    <summary>Catatan &amp; penilaian lanjutan (opsional)</summary>
-    {pengalaman_html}
-    {kontrol_tinjauan}
-    <details class="koreksi-opsi-st koreksi-penilaian-st"{" open" if buka_lanjutan else ""}>
-      <summary>{judul_penilaian}</summary>
-      {usulan}
-      <label class="koreksi-label-st" for="kode-{b["sesi_soal_id"]}">Penilaian yang dipakai saat disimpan</label>
-      <select class="koreksi-select-st" id="kode-{b["sesi_soal_id"]}" name="kode_{b["sesi_soal_id"]}"{atribut_penilaian}>{pilih}</select>
-      {petunjuk_penilaian}
-      <p class="koreksi-catatan-st">Belum yakin? Tinjau cara anak; jangan menebak penilaian agar bisa lanjut.</p>
-      <details class="koreksi-opsi-st koreksi-alasan-st">
-        <summary>Panduan memilih penilaian</summary>
-        <ul class="koreksi-catatan-st">
-          <li><b>Salah baca:</b> anak memahami pertanyaan berbeda dari yang dimaksud.</li>
-          <li><b>Salah konsep:</b> ada pemahaman konsep yang keliru dalam cara anak.</li>
-          <li><b>Salah hitung:</b> langkah sesuai, tetapi hitungannya keliru.</li>
-          <li><b>Salah tulis akhir:</b> hasil pengerjaan berbeda dari jawaban yang ditulis.</li>
-          {"" if drill else "<li><b>Menebak:</b> periksa cara anak, bukan hanya jawaban akhirnya.</li>"}
-        </ul>
-        <p class="koreksi-catatan-st">Otomatis memakai usulan Jagomat; pilihan lain menetapkan penilaian sendiri.</p>
-      </details>
-    </details>
-    <details class="koreksi-opsi-st koreksi-perbaikan-st">
-      <summary>{"Dilewati dari penilaian — ubah" if dilewati_terpilih else "Lewati soal ini dari penilaian"}</summary>
-      <div class="koreksi-centang-st">
-        <input type="hidden" name="hadir_dilewati_{b["sesi_soal_id"]}" value="1">
-        <input type="checkbox" id="lewati-{b["sesi_soal_id"]}"
-             name="dilewati_{b["sesi_soal_id"]}" value="1"
-             {"checked" if dilewati_terpilih else ""} aria-describedby="lewati-info-{b["sesi_soal_id"]}">
-        <label for="lewati-{b["sesi_soal_id"]}">Jangan sertakan soal ini dalam penilaian</label>
-      </div>
-      <p class="koreksi-catatan-st" id="lewati-info-{b["sesi_soal_id"]}">Saat dikonfirmasi, soal dicatat sebagai dilewati, bukan benar atau salah, dan bukan bukti pemahaman. Jawaban dan catatan asli tetap tersimpan.</p>
-    </details>
-    </details>
-    </details>
   </div>
-</details>"""
+</article>"""
         kelompok_kartu = {
             PERLU_DIPERIKSA: kartu_perlu_diperiksa,
             TANYAKAN_CARA: kartu_tanyakan_cara,
@@ -785,11 +719,11 @@ def halaman_sesi_stitch(
             )
         if kartu_tercatat:
             kumpulan_kartu += (
-                '<details class="koreksi-opsi-st koreksi-tercatat-st" id="tinjauan-tercatat">'
-                f'<summary>Tinjauan tercatat · {len(kartu_tercatat)} soal tidak perlu dibuka lagi</summary>'
+                '<section class="kelompok-tinjauan-st koreksi-tercatat-st" id="tinjauan-tercatat">'
+                f'<h2>Tinjauan tercatat · {len(kartu_tercatat)} soal tidak perlu dibuka lagi</h2>'
                 '<p class="koreksi-catatan-st">Termasuk jawaban belum tepat yang sudah diperiksa. '
                 'Seluruhnya tetap disahkan bersama saat Konfirmasi hasil sesi. Buka kembali bila perlu mengoreksi.</p>'
-                + ''.join(kartu_tercatat) + '</details>'
+                + ''.join(kartu_tercatat) + '</section>'
             )
         if sesi_dibatalkan:
             blok_isi = kumpulan_kartu
@@ -815,18 +749,36 @@ def halaman_sesi_stitch(
                 if not masalah_konfirmasi and (not konfirmasi_masih_aktif or draf_koreksi is not None)
                 else ''
             )
+            legenda_penilaian = (
+                '<details class="koreksi-opsi-st koreksi-legenda-st">'
+                '<summary>Panduan memilih penilaian</summary>'
+                '<ul class="koreksi-catatan-st">'
+                '<li><b>Salah baca:</b> anak memahami pertanyaan berbeda dari yang dimaksud.</li>'
+                '<li><b>Salah konsep:</b> ada pemahaman konsep yang keliru dalam cara anak.</li>'
+                '<li><b>Salah hitung:</b> langkah sesuai, tetapi hitungannya keliru.</li>'
+                '<li><b>Salah tulis akhir:</b> hasil pengerjaan berbeda dari jawaban yang ditulis.</li>'
+                + ('' if drill else '<li><b>Menebak:</b> periksa cara anak, bukan hanya jawaban akhirnya.</li>')
+                + '</ul><p class="koreksi-catatan-st">Otomatis memakai usulan Jagomat; pilihan lain menetapkan penilaian sendiri.</p>'
+                '<p class="koreksi-catatan-st">Setuju dengan usulan? Anda tidak perlu mengganti dropdown. '
+                'Konfirmasi hasil sesi berarti menyetujui penilaian, termasuk usulan Jagomat yang dipakai. '
+                'Simpan draf belum mengesahkan hasil.</p>'
+                '<p class="koreksi-catatan-st">Pilihan dropdown baru disimpan setelah menekan Simpan draf atau Konfirmasi hasil sesi. '
+                'Ringkasan di atas belum mengikuti perubahan yang belum disimpan.</p>'
+                '<p class="koreksi-catatan-st">Belum yakin? Tinjau cara anak; jangan menebak penilaian agar bisa lanjut.</p>'
+                '</details>'
+            )
             form_hasil = (
-                f'<form id="form-koreksi-{sesi_id}" method="post" action="/sesi/{sesi_id}">'
-                f'<div class="koreksi-simpan-st">{urutan_aksi}</div>{penjelasan_aksi}{navigasi_tinjauan}'
+                f'<form id="form-koreksi-{sesi_id}" method="post" action="/sesi/{sesi_id}" data-tinjauan-ringkas>'
+                f'<div class="koreksi-simpan-st">{urutan_aksi}</div>{penjelasan_aksi}{legenda_penilaian}{navigasi_tinjauan}'
                 f'{kumpulan_kartu}<input type="hidden" name="hadir_sertakan_pemetaan" value="1">{opsi_pemetaan}'
                 '</form>'
             )
             blok_isi = (
-                '<details class="panduan-edit-hasil-st">'
-                '<summary>Koreksi hasil — perlu konfirmasi ulang bila diubah</summary>'
+                '<section class="panduan-edit-hasil-st">'
+                '<h2>Koreksi hasil — perlu konfirmasi ulang bila diubah</h2>'
                 '<p class="sub">Hasil saat ini sudah sah. Jika koreksi diubah, '
                 'periksa kembali lalu konfirmasikan ulang.</p>'
-                f'{form_hasil}</details>'
+                f'{form_hasil}</section>'
                 if konfirmasi_masih_aktif and not masalah_konfirmasi else form_hasil
             )
     else:

@@ -91,7 +91,9 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   konfirmasi eksplisit guru. `direview` dan `kode_final` mutable bukan bukti sendiri.
   Tinjauan sesi diproyeksikan exception-first sebagai **Perlu diperiksa**,
   **Tanyakan cara anak**, atau **Tinjauan tercatat**; kelompok terakhir bukan
-  pengesahan dan tetap disahkan bersama saat Konfirmasi hasil sesi.
+  pengesahan dan tetap disahkan bersama saat Konfirmasi hasil sesi. Kartu aktif
+  menampilkan cek pemahaman dan penilaian langsung; catatan tambahan dan kunci
+  dilipat terpisah tanpa menghilangkan input saat menyimpan seluruh sesi.
   Koreksi menginvalidasi bukti aktif; snapshot lama dan provenance tetap terjaga.
 - Maksimal dua fokus per putaran, dengan kunci
   `(template_id, kode_intervensi, malrule_id)`. Terbimbing/penguatan tidak menambah

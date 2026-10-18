@@ -131,7 +131,7 @@ def test_get_host_inline_privat_tanpa_provider_write_atau_resource_eksternal(ser
     _privat(header)
     assert 'id="bantuan-soal-1"' in sesi_html
     assert "fonts.googleapis.com" not in sesi_html
-    assert sesi_html.count("<script>") == 1
+    assert sesi_html.count("<script>") == 2
     assert f"script-src 'sha256-{__import__('assistant_browser').HASH_CSP}'" in header["Content-Security-Policy"]
     assert "Tutup bantuan untuk membuka aksi pembatalan atau hapus." in sesi_html
     assert 'onsubmit="return confirm(' not in sesi_html
@@ -201,7 +201,7 @@ def test_tutup_bantuan_memulihkan_kontrol_tautan_dan_konfirmasi_destruktif(serve
         data={"inline_host": "sesi", "inline_host_id": str(sesi), "inline_posisi": "soal",
               "inline_nomor": "1", **draf}, headers=_origin(server),
     )
-    assert kode == 200 and sesi_normal.count('<script>') == 1
+    assert kode == 200 and sesi_normal.count('<script>') == 2
     assert "fonts.googleapis.com" not in sesi_normal
     assert 'action="/sesi/' in sesi_normal and '/hapus"' in sesi_normal
     assert "Baris satu\nbaris dua" in sesi_normal
@@ -877,7 +877,7 @@ def test_tutup_bantuan_memulihkan_host_native_dan_draf(server):
     assert f'name="jwb_{ids[0]}"\n               value=""' in isi
     _privat(header)
     assert "script-src 'unsafe-inline'" not in header["Content-Security-Policy"]
-    assert isi.count('<script>') == 1 and "fonts.googleapis.com" not in isi
+    assert isi.count('<script>') == 2 and "fonts.googleapis.com" not in isi
 
 
 def test_tutup_draf_koreksi_blank_checkbox_caraku_pemahaman_dan_galat_privat(server):
@@ -963,7 +963,7 @@ def test_draf_koreksi_riwayat_post_mempertahankan_form_dan_tidak_nested(server):
         data={**dasar, **draf, "chat": chat, "pilih_chat": chat}, headers=_origin(server),
     )
     assert kode == 200
-    assert isi.count(f'<form id="form-koreksi-{sesi}" method="post" action="/sesi/{sesi}">') == 1
+    assert isi.count(f'<form id="form-koreksi-{sesi}" method="post" action="/sesi/{sesi}" data-tinjauan-ringkas>') == 1
     assert "Baris satu\nbaris dua" in isi
     assert f'name="jwb_{ids[0]}"\n               value=""' in isi
 

@@ -194,7 +194,7 @@ def test_mesin_belum_yakin_dan_lewati_aman(server):
     s = server
     isi_awal(s, "Cara tidak terpetakan", jawaban="999999")
     data, isi = form(s)
-    assert '<summary>Tentukan penilaian — belum dipilih</summary>' in isi
+    assert 'Penilaian yang dipakai saat disimpan' in isi
     sebelum = keadaan(s)
     assert kirim(s, data)[0] == 400
     assert keadaan(s) == sebelum
@@ -204,7 +204,7 @@ def test_mesin_belum_yakin_dan_lewati_aman(server):
     assert hasil["jawaban"] == "999999"
     assert snapshot[0]["dilewati"] == 1
     assert snapshot[0]["jawaban"] == "" and snapshot[0]["kode_final"] is None
-    assert "Dilewati dari penilaian — ubah" in form(s)[1]
+    assert "Sertakan kembali soal ini" in form(s)[1]
 
 
 @pytest.mark.parametrize("pilihan,kode", [("tebak", "N"), ("bingung", None)])
@@ -282,10 +282,10 @@ def test_hierarki_form_tunggal_dan_palang_enter(server):
     assert badan.count(">Konfirmasi hasil sesi</button>") == 1
     assert re.search(r'<button type="submit" form="form-koreksi-\d+" hidden disabled', badan)
     paham = re.search(r'<fieldset class="koreksi-pemahaman-st">(.*?)</fieldset>', badan, re.S)[1]
-    pengalaman = re.search(r'<details class="koreksi-opsi-st koreksi-pengalaman-st"[^>]*>(.*?)</details>', badan, re.S)[1]
+    pengalaman = re.search(r'<details class="koreksi-opsi-st koreksi-tambahan-st"[^>]*>(.*?)</details>', badan, re.S)[1]
     assert f'name="belum_{s.sid}"' in pengalaman
     assert "Apakah anak bisa menjelaskan caranya?" in paham
-    lewati = re.search(r'<details class="koreksi-opsi-st koreksi-perbaikan-st">(.*?)</details>', badan, re.S)[1]
+    lewati = re.search(r'<div class="koreksi-lewati-st">(.*?)</div>', badan, re.S)[1]
     assert f'name="dilewati_{s.sid}"' in lewati
     assert "Jawaban dan catatan asli tetap tersimpan" in lewati
 

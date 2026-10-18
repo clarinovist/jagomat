@@ -20,11 +20,11 @@ def test_usulan_konkret_dan_alasan_di_dekat_dropdown(server):
     data, isi = form(s)
     assert data[f'kode_{s.sid}'] == ''
     assert '<option value="" selected>Otomatis — Jawaban benar</option>' in isi
-    sebelum_panduan = isi.split('<summary>Panduan memilih penilaian</summary>', 1)[0]
+    sebelum_panduan = isi.split('<section class="koreksi-penilaian-st"', 1)[1]
     assert '<b>Alasan:</b> jawaban benar' in sebelum_panduan
     assert 'tidak perlu mengganti dropdown' in isi
     assert 'Pilihan dropdown baru disimpan setelah menekan Simpan draf atau Konfirmasi hasil sesi.' in isi
-    assert 'Penilaian saat halaman dimuat: Jawaban benar — ubah' in isi
+    assert 'Penilaian saat halaman dimuat: Jawaban benar' in isi
     assert 'Belum dikonfirmasi' in status_penilaian(isi, s.sid)
     assert keadaan(s)[1:] == ([], [])
 
@@ -51,7 +51,7 @@ def test_konfirmasi_default_adalah_persetujuan_tanpa_override(server, kasus):
     label = {'benar': 'Jawaban benar', 'H': 'Perlu memeriksa hitungan', 'N': 'Menebak atau belum menunjukkan cara'}[kasus]
     assert label in status
     assert 'Usulan Jagomat · Disetujui saat konfirmasi sesi' in status
-    assert isi.index(f'id="penilaian-status-{s.sid}"') < isi.index('koreksi-lanjutan-st"')
+    assert isi.index(f'id="penilaian-status-{s.sid}"') < isi.index('data-catatan-tambahan>')
     assert kirim(s, form(s)[0])[0] == 200
     assert keadaan(s)[1:] == (snapshot, bukti)
 
@@ -73,7 +73,7 @@ def test_simpan_draf_menerapkan_otomatis_tanpa_mengklaim_persetujuan(server):
     data, isi = form(s)
     assert 'Pilihan ini tetap dipakai' not in isi
     assert 'Usulan ini tidak dipakai selama penilaian guru dipilih' not in isi
-    assert 'Penilaian saat halaman dimuat: Perlu memeriksa hitungan — ubah' in isi
+    assert 'Penilaian saat halaman dimuat: Perlu memeriksa hitungan' in isi
     data[f'kode_{s.sid}'] = ''
     assert kirim(s, data, jalur='/tinjauan')[0] == 200
     hasil, snapshot, bukti = keadaan(s)
@@ -148,7 +148,7 @@ def test_tanpa_usulan_tetap_perlu_tinjauan_dan_tidak_dikonfirmasi(server):
     assert 'Belum yakin — perlu ditinjau' in isi
     assert 'Otomatis —' not in isi
     assert 'Jagomat belum dapat mengusulkan penilaian.' in isi
-    assert '<b>Alasan:</b>' in isi.split('<summary>Panduan memilih penilaian</summary>', 1)[0]
+    assert '<b>Alasan:</b>' in isi.split('<section class="koreksi-penilaian-st"', 1)[1]
     sebelum = keadaan(s)
     assert kirim(s, data)[0] == 400
     assert keadaan(s) == sebelum
@@ -163,4 +163,4 @@ def test_alasan_di_escape_dan_tidak_digandakan(server):
     _, isi = form(s)
     assert '<script>contoh</script>' not in isi
     assert isi.count('&lt;script&gt;contoh&lt;/script&gt;') == 1
-    assert '&lt;script&gt;contoh&lt;/script&gt;' in isi.split('<summary>Panduan memilih penilaian</summary>', 1)[0]
+    assert '&lt;script&gt;contoh&lt;/script&gt;' in isi.split('<section class="koreksi-penilaian-st"', 1)[1]

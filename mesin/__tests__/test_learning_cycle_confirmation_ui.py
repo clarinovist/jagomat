@@ -194,10 +194,11 @@ def test_zona_pembatalan_menjelaskan_histori_dan_meminta_konfirmasi(db):
     assert "style=" not in formulir
     assert "hapus tidak bisa dibatalkan" not in halaman
     assert (
-        "Batalkan sesi ini? Sesi dan bukti tetap tersimpan dalam histori, "
+        "Sesi dan bukti tetap tersimpan dalam histori, "
         "tetapi tidak lagi aktif dalam siklus belajar."
     ) in halaman
-    assert "onsubmit=\"return confirm(" in halaman
+    assert 'type="checkbox" required' in formulir
+    assert "Saya memahami sesi ini akan dibatalkan." in formulir
 
 
 def test_tombol_koreksi_dan_konfirmasi_punya_jarak_dan_hierarki():

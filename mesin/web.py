@@ -80,7 +80,8 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _kirim(self, isi: bytes, kode: int = 200) -> None:
         import assistant_browser
-        if assistant_browser.memiliki_panel(isi) or assistant_browser.memiliki_bagikan(isi):
+        if (assistant_browser.memiliki_panel(isi) or assistant_browser.memiliki_bagikan(isi)
+                or assistant_browser.memiliki_tinjauan(isi)):
             return self._kirim_privat(isi, kode)
         if assistant_browser.memiliki_pilihan_isi(isi):
             isi, _izin_skrip = assistant_browser.lengkapi_respons(isi)
@@ -91,7 +92,7 @@ class Penangan(BaseHTTPRequestHandler):
         self.wfile.write(isi)
 
     def _kirim_privat(self, isi: bytes, kode: int = 200) -> None:
-        """Respons privat; hanya skrip chat berhash boleh mengakses origin sendiri."""
+        """Respons privat; enhancement terdaftar berhash dengan izin koneksi terbatas."""
         import assistant_browser
         isi, izin_skrip = assistant_browser.lengkapi_respons(isi)
         self.send_response(kode)

@@ -396,9 +396,14 @@ def memiliki_bagikan(isi: bytes) -> bool:
     return bool(re.search(rb'<form\b[^>]*\bdata-bagikan-sesi(?:\s|=|>)', isi))
 
 
+def memiliki_tinjauan(isi: bytes) -> bool:
+    """Deteksi form tinjauan nyata, bukan isi teks pengguna atau stylesheet."""
+    return bool(re.search(rb'<form\b[^>]*\bdata-tinjauan-ringkas(?:\s|=|>)', isi))
+
+
 def memiliki_enhancement(isi: bytes) -> bool:
     """Halaman memerlukan salah satu skrip kecil berhash yang diizinkan."""
-    return memiliki_panel(isi) or memiliki_pilihan_isi(isi) or memiliki_bagikan(isi)
+    return memiliki_panel(isi) or memiliki_pilihan_isi(isi) or memiliki_bagikan(isi) or memiliki_tinjauan(isi)
 
 
 def lengkapi_respons(isi: bytes):
@@ -419,6 +424,10 @@ def lengkapi_respons(isi: bytes):
         skrip.append(SKRIP_CHAT)
         hash_skrip.append(HASH_CSP)
         izin_koneksi = "connect-src 'self'; "
+    if memiliki_tinjauan(isi):
+        from review_browser import SKRIP_TINJAUAN, HASH_TINJAUAN
+        skrip.append(SKRIP_TINJAUAN)
+        hash_skrip.append(HASH_TINJAUAN)
     if not skrip:
         return isi, ""
     markup = ''.join('<script>' + item + '</script>' for item in skrip).encode("utf-8")

@@ -32,7 +32,9 @@ berparameter, diagnosis B/K/H/E/T/N, lembar cetak, dan laporan per anak.
   disetujui: toggle mata sandi, `confirm()` aksi destruktif, refresh pilihan isi ketika
   topik manual berubah, serta Kirim/Periksa status Pendamping inline tanpa reload
   (skrip berhash CSP, koneksi same-origin bila ada, fallback form native; bukan
-  streaming). Perlu approval untuk tambahan.
+  streaming). Tinjauan sesi memakai enhancement berhash CSP untuk accordion satu
+  kartu aktif, penanda isian dan konfirmasi lewati; tidak menilai/mengirim otomatis,
+  fallback form native tetap utuh. Perlu approval untuk tambahan.
 - `mesin/`: aplikasi, `__tests__/`, aset, Dockerfile, cadangan. `scripts/`: otomasi/palang.
   `docs/`: spesifikasi teknis; `docs/plan/` lokal/gitignored. `.github/`: CI/deploy.
 - Riset/materi/kurikulum/mockup/bisnis/eksperimen berada di `../osn-resources/referensi/` lokal,

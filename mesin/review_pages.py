@@ -73,16 +73,13 @@ def kontrol(kon, sid, tinjauan, draf, *, perlu_sumber=False):
         ('', 'Belum dicatat'), ('penjelasan_asli', 'Penjelasan pekerjaan asli, tanpa bantuan'),
         ('koreksi_transkripsi', 'Koreksi salinan pekerjaan asli'), ('setelah_bantuan', 'Hasil setelah diberi petunjuk atau contoh'),
     ))
-    buka = bool(catatan or provenance or bantuan or perlu_sumber)
-    return f'''<details class="koreksi-opsi-st koreksi-tinjauan-st"{' open' if buka else ''}><summary>Catatan tinjauan guru (opsional)</summary>
-<fieldset class="koreksi-pemahaman-st"><legend>Catatan tinjauan guru</legend>
+    return f'''<div class="koreksi-tinjauan-st">
 <label class="koreksi-label-st" for="tinjauan-{sid}">Catatan percakapan (boleh dilanjutkan nanti)</label>
 <textarea class="koreksi-textarea-st" name="catatan_tinjauan_{sid}" id="tinjauan-{sid}" maxlength="8000">{escape(catatan)}</textarea>
-<details class="koreksi-opsi-st"{' open' if provenance or bantuan or perlu_sumber else ''}><summary>Catat sumber koreksi atau hasil setelah dibantu</summary>
 <label class="koreksi-label-st" for="provenance-{sid}">Sumber penjelasan atau koreksi</label>
 <select class="koreksi-select-st" name="provenance_{sid}" id="provenance-{sid}">{opsi}</select>
 <label class="koreksi-label-st" for="bantuan-{sid}">Jawaban setelah dibantu (jika ada, bukan jawaban mandiri)</label>
 <input class="koreksi-input-st" name="jawaban_bantuan_{sid}" id="bantuan-{sid}" value="{escape(bantuan, quote=True)}" maxlength="8000">
-</details><input type="hidden" name="versi_tinjauan_{sid}" value="{escape(versi, quote=True)}">
+<input type="hidden" name="versi_tinjauan_{sid}" value="{escape(versi, quote=True)}">
 <p class="koreksi-catatan-st">Jangan menimpa jawaban awal dengan hasil bantuan. Bukti mandiri baru memerlukan soal berikutnya.</p>
-</fieldset></details>'''
+</div>'''
