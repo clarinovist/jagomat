@@ -1,5 +1,30 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy sensor perbaikan internal — 18 Oktober 2026
+
+Controlled `deploy-v2` kandidat `bd2c6c6783687c2f1661d128f2f2900b1148c761`,
+digest `sha256:ddede3b3ccbeb9feb39a583f905d9d9b9f3855e387c789b69f119ac72a2bdf3a`;
+recovery `b76c15a5c2b464c17d6343324bfdfa978818bfc2`, digest
+`sha256:df90b4650dee9cac2d93d53366217d6ab8e12cfe7fd55ba0478c82bb26a0623b`.
+Kontrak keduanya `af2ff2122f78bf6d80a041ef9436dc01075e10354a8ac918ca8def0018189395`.
+CI dispatch `39122534114` lulus seluruh shard kandidat/recovery, build, probe image,
+dan pair termasuk sensor (provider calls 0). Mode tetap migrasi; job pasang false.
+
+Preflight metadata live sebelum hold lulus. Attempt awal dibatalkan sebelum migrasi
+karena helper pemeriksaan belum menutup handle SQLite; layanan segera dipulihkan,
+helper diperbaiki dengan regression, dan backup final diambil ulang. Bundle final
+`deploy-sensor-20261018T100000Z` coherent empat DB+auth, rehearsal C2–B2–C2,
+preservasi/integrity/FK serta hash backup lulus. Namespace sensor dipasang opt-in,
+admin versi9 tidak berubah; tidak ada backfill atau enrollment otomatis.
+
+Deployer teruji dipasang atomik (hash `b4d9ab64fd8423a7fbcb4cb1658c3ce21141a2333f9ea6e4f45bb54b83e3e45c`).
+`SENSOR_KOLEKSI_SIAP=1` menawarkan consent di Akun, bukan izin koleksi seluruh keluarga;
+KPI lama tetap OFF. Cutover exit0, kandidat healthy, Caddy/cron dipulihkan hash-identik,
+tabel lama terjaga. Smoke publik `/`200, `/akun`401, `/murid/`303 ke `/masuk` lulus;
+marker galat teknis pada log pascarilis nol. Turunan rehearsal dibersihkan, induk
+backup dipertahankan. Feature riset existing yang belum live ikut terpasang dan
+startup membuat DB riset kosong terpisah. Kontrak [sensor](sensor-perbaikan.md).
+
 ## Deploy riwayat mockup-v2 — 4 Oktober 2026
 
 Cutover terkontrol `deploy-40c55ba-20261004T133000Z` untuk revision
