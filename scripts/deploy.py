@@ -556,6 +556,31 @@ finally:
 '''
 PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_SENSOR_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
 
+
+PROBE_POLICY_SKEMA = '''
+import ast
+from pathlib import Path
+kon = sqlite3.connect('file:/data/admin-control.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only=ON')
+    sql = "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE tbl_name GLOB 'policy_*' ORDER BY type,name"
+    aktual = kon.execute(sql).fetchall()
+    if aktual:
+        pohon = ast.parse(Path('/app/policy_schema.py').read_text())
+        ddl = [ast.literal_eval(n.value) for n in pohon.body if isinstance(n, ast.Assign)
+               and any(isinstance(t, ast.Name) and t.id=='DDL' for t in n.targets)]
+        assert len(ddl)==1
+        acuan = sqlite3.connect(':memory:')
+        try:
+            acuan.executescript(ddl[0])
+            assert aktual == acuan.execute(sql).fetchall()
+        finally:
+            acuan.close()
+finally:
+    kon.close()
+'''
+PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_POLICY_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
+
 PROBE_KONTRAK = '''import ast
 from collections import Counter
 import copy

@@ -12,7 +12,11 @@ import admin_store
 import sensor_domain as d
 import sensor_schema
 
-BOOT = secrets.token_hex(16)
+import policy_store
+
+# Epoch host berada di luar bundle DB: stabil saat restart, wajib dirotasi
+# sebelum restore. Jalur legacy tetap terisolasi untuk reader recovery lama.
+BOOT = policy_store.EPOCH
 GAGAL = False
 _kunci = threading.Lock()
 
@@ -63,7 +67,7 @@ def buka(path, *, tulis=False):
 
 
 def _izin(row, sekarang):
-    if (row is None or row['boot'] != BOOT or row['versi_consent'] != d.CONSENT
+    if (not policy_store.epoch_sah() or row is None or row['boot'] != BOOT or row['versi_consent'] != d.CONSENT
             or not row['mulai'] <= sekarang < row['berakhir']):
         return None
     return Izin(row['akun_id'], row['generasi'], row['salt'], row['mulai'],
@@ -80,7 +84,7 @@ def setuju(path, path_auth, principal, *, hasil, chat, sekarang):
     """Setiap perubahan izin memulai cohort baru dan menghapus derivasi lama."""
     import admin_launch_service
     waktu(sekarang)
-    if type(hasil) is not bool or type(chat) is not bool:
+    if not policy_store.epoch_sah() or type(hasil) is not bool or type(chat) is not bool:
         raise ValueError('pilihan sensor tidak sah')
     with admin_launch_service.kunci_principal(path_auth, principal, 'guru'):
         with buka(path, tulis=True) as kon:
@@ -95,6 +99,7 @@ def cabut(path, path_auth, principal):
     with admin_launch_service.kunci_principal(path_auth, principal, 'guru'):
         with buka(path, tulis=True) as kon:
             kon.execute('DELETE FROM sensor_peserta WHERE akun_id=?', (principal.id_akun,))
+            policy_store.cabut_dalam_transaksi(kon, principal.id_akun)
 
 
 def token(izin_sumber, jenis, identitas):
@@ -206,7 +211,7 @@ def kesehatan(path, *, siap, sekarang):
                                 (BOOT, sekarang, sekarang)).fetchone()[0]
             lama = kon.execute('SELECT COUNT(*) FROM sensor_peserta WHERE boot!=? AND berakhir>?',
                                (BOOT, sekarang)).fetchone()[0]
-        status = ('nonaktif' if not siap else 'terganggu' if GAGAL else
+        status = ('nonaktif' if not siap or not policy_store.epoch_sah() else 'terganggu' if GAGAL else
                   'menunggu_izin_ulang' if lama and not aktif else
                   'menunggu_peserta' if not aktif else 'siap_best_effort')
         return {'status': status, 'peserta': aktif}

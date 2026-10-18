@@ -123,8 +123,11 @@ cache dan cadangan tetap privat.
   pada admin DB: consent mandiri keluarga lama/baru, episode HMAC, milestone setelah
   commit, turunan konfirmasi pertama/chat tanpa teks, TTL/cascade/family deletion,
   health best-effort dan supresi ≥5 keluarga per sel. Gate deployment tersendiri;
-  boot baru perlu consent ulang. Migrator opt-in serta backup `target_sensor` mengenal
-  namespace tersebut. [Kontrak sensor](sensor-perbaikan.md); bukan aktivasi WS5 lama.
+  `policy_schema/store/http/pages/terms` menambahkan receipt dan satu layar persetujuan
+  awal. Epoch host terpisah backup mempertahankan izin saat restart; restore wajib
+  rotasi epoch+recreate. Decline/revoke tetap di receipt, tidak memicu gate ulang.
+  Migrator opt-in serta backup `target_sensor/target_policy` mengenal namespace;
+  [kontrak persetujuan](persetujuan-awal.md). Bukan aktivasi WS5 lama.
 - Lokal memakai `mesin/.venv/bin/python` (3.9.6); CI/container 3.12. Kode kompatibel
   3.9. Verifikasi sesuai risiko: Ringan/Normal/Kritis; tes scoped lokal, push CI cepat,
   full kandidat mingguan, dan gate rilis lengkap via dispatch pada SHA target. Palang

@@ -2662,6 +2662,10 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   accent-color: {T.AKSEN_MURID_UTAMA};
 }}
 
+.policy-notice summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; cursor: pointer; }}
+.policy-notice label {{ display: flex; align-items: flex-start; gap: {T.SP_3}; margin: {T.SP_3} 0; }}
+.policy-notice input[type=checkbox] {{ flex: none; width: 1.2rem; height: 1.2rem; }}
+.policy-notice button {{ margin-top: {T.SP_3}; margin-bottom: {T.SP_3}; }}
 .akun-editorial-st .layout-samping {{ display: grid; grid-template-columns: minmax(0, 1fr); gap: {T.SP_5}; }}
 .akun-editorial-st .nav-samping {{ position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: {T.SP_2}; padding-bottom: {T.SP_3}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
 .akun-editorial-st .nav-samping a {{ display: inline-flex; min-height: {T.TARGET_SENTUH}; align-items: center; border-radius: {T.RADIUS_KECIL}; padding: {T.SP_2} {T.SP_4}; }}

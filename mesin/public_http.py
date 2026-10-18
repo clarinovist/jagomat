@@ -59,6 +59,11 @@ def tangani_get(penangan, jalur: str) -> bool:
         penangan._kirim_aset(nama)
         return True
 
+    if jalur == '/syarat-penggunaan':
+        import policy_terms
+        penangan._kirim(policy_terms.halaman())
+        return True
+
     if jalur == "/kebijakan-privasi":
         import admin_store
         import support_settings

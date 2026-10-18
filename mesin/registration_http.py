@@ -35,10 +35,13 @@ def tangani_get(penangan, jalur: str) -> bool:
         )
         return True
     import product_analytics_http as analitik
+    import policy_http
+    import policy_pages
     penangan._kirim(landing.halaman_daftar(
         pendaftaran_dibuka=status.dibuka,
         token_form=token_form,
         analitik=analitik.form_daftar(),
+        kesepakatan=policy_pages.bidang() if policy_http.tersedia() else '',
     ))
     return True
 
@@ -62,6 +65,9 @@ def tangani_post(penangan, jalur: str) -> bool:
     nama_anak = ""
     kelas_sekolah = None
     profil_parameter = ""
+    import policy_http
+    import policy_pages
+    pilihan_policy = (False,False,False)
 
     def halaman_daftar(*args, **kwargs):
         return landing.halaman_daftar(
@@ -69,6 +75,7 @@ def tangani_post(penangan, jalur: str) -> bool:
             nama_anak=nama_anak,
             kelas_sekolah=kelas_sekolah,
             profil_parameter=profil_parameter,
+            kesepakatan=policy_pages.bidang(pilihan=pilihan_policy) if policy_http.tersedia() else '',
             **kwargs,
         )
 
@@ -77,13 +84,16 @@ def tangani_post(penangan, jalur: str) -> bool:
         if set(data) - {
             "nama", "sandi", "setuju", "token_form", "analitik",
             "sumber_analitik", "nama_anak", "kelas_sekolah",
-            "profil_parameter",
+            "profil_parameter", "policy_versi", "policy_revisi", "policy_operasi",
+            "policy_aksi", "policy_alur", "policy_hasil", "policy_chat", "policy_epoch",
         } or not {"nama", "sandi"} <= set(data):
             raise ValueError("Isian pendaftaran tidak sah.")
         if data.get("analitik", "0") not in ("0", "1"):
             raise ValueError("persetujuan analitik tidak sah")
         if data.get("sumber_analitik", "tidak_diketahui") not in analitik.d.SUMBER:
             raise ValueError("sumber analitik tidak sah")
+        if data.get('policy_versi'):
+            pilihan_policy = policy_http.pilihan(data)
         nama = data["nama"].strip()
         sandi = data["sandi"]
         nama_anak = data.get("nama_anak", "").strip()
@@ -142,6 +152,7 @@ def tangani_post(penangan, jalur: str) -> bool:
             token_form=admin_http.token_domain(data["token_form"]),
             sekarang=int(time.time()),
         ).akun
+        policy_http.setelah_daftar(akun_baru, data)
         analitik.setelah_daftar(
             auth.PrincipalAkun(
                 akun_baru.pengguna,
@@ -256,6 +267,8 @@ def tangani_post(penangan, jalur: str) -> bool:
         if type(akun_baru.siswa_id) is int and akun_baru.siswa_id > 0
         else "/guru"
     )
+    if policy_http.perlu(akun_baru):
+        tujuan_daftar = '/persetujuan'
     penangan.send_response(303)
     penangan.send_header("Location", tujuan_daftar)
     penangan.send_header("Set-Cookie", penangan._set_cookie(token))

@@ -256,6 +256,8 @@ def _ubah_admin(path, target_id: str):
             kon.execute("DELETE FROM kpi_peserta WHERE akun_id=?", (target_id,))
         if _tabel(kon, "sensor_peserta"):
             kon.execute("DELETE FROM sensor_peserta WHERE akun_id=?", (target_id,))
+        if _tabel(kon, 'policy_receipt'):
+            kon.execute('DELETE FROM policy_receipt WHERE akun_id=?', (target_id,))
 
 
 def _ubah_auth(path, perintah: c.PerintahHapusKeluarga, pseudonim: str, siswa_ids):

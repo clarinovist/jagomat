@@ -1,5 +1,7 @@
 """Probe sensor C→B→C dengan data sintetis, tanpa provider."""
 SUMBER_TULIS = '''
+import os
+os.environ['SENSOR_CONSENT_EPOCH']='0123456789abcdef0123456789abcdef'
 from pathlib import Path
 import auth, admin_store, sensor_schema, sensor_store as s, sensor_domain as d
 p=Path('/data/sensor-admin.db');a=Path('/data/sensor-auth.json')
@@ -17,6 +19,8 @@ assert s.catat_chat(p,i,'request',dibuat=101,sekarang=102,kategori='penjelasan')
 print('OSN_SENSOR_WRITER_OK')
 '''
 SUMBER_BACA = '''
+import os
+os.environ['SENSOR_CONSENT_EPOCH']='abcdef0123456789abcdef0123456789'
 from pathlib import Path
 import auth, sensor_schema, sensor_store as s
 p=Path('/data/sensor-admin.db');a=Path('/data/sensor-auth.json')
@@ -38,6 +42,8 @@ assert s.catat_sesi(p,i,2,kode='disiapkan',dibuat=105,jalur='manual',sekarang=10
 print('OSN_SENSOR_RECOVERY_OK')
 '''
 SUMBER_KEMBALI = '''
+import os
+os.environ['SENSOR_CONSENT_EPOCH']='11111111111111111111111111111111'
 from pathlib import Path
 import auth, sensor_store as s, sensor_domain as d
 p=Path('/data/sensor-admin.db');a=Path('/data/sensor-auth.json')

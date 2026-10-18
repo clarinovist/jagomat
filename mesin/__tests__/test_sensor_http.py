@@ -16,20 +16,21 @@ from test_subscription_store import T0
 
 
 def test_consent_form_tidak_dicentang_dan_cabut(server,monkeypatch):
-    sensor_schema.migrasikan(admin_store.BAWAAN)
+    import policy_schema
+    policy_schema.migrasikan(admin_store.BAWAAN)
     monkeypatch.setattr(h,'SIAP',True)
     auth.tambah_akun('Sensor-keluarga','sensor-sandi-123','guru')
     token=_login(server,'Sensor-keluarga','sensor-sandi-123')
-    body=_minta(server,'/akun?section=akun',cookie=token)[1]
+    body=_minta(server,'/persetujuan',cookie=token)[1]
     forms=FormParser(body).forms
-    form=forms['/analitik/sensor-setuju']
-    markup=body.split('action="/analitik/sensor-setuju"',1)[1].split('</form>',1)[0]
+    form=forms['/persetujuan']
+    markup=body.split('action="/persetujuan"',1)[1].split('</form>',1)[0]
     assert ' checked' not in markup
-    assert _minta(server,'/analitik/sensor-setuju',cookie=token,data={**form,'alur':'1','hasil':'1','chat':'1'})[0]==303
+    assert _minta(server,'/persetujuan',cookie=token,data={**form,'policy_aksi':'semua'})[0]==303
     p=auth.autentikasi('Sensor-keluarga','sensor-sandi-123')
     assert s.izin(admin_store.BAWAAN,p.id_akun,sekarang=int(time.time())).hasil
-    body=_minta(server,'/akun?section=akun',cookie=token)[1]
-    form=FormParser(body).forms['/analitik/sensor-cabut']
+    import product_analytics_http as lama
+    form={'token':lama._token(p,token,'sensor-cabut')}
     monkeypatch.setattr(h,'SIAP',False)
     assert _minta(server,'/analitik/sensor-cabut',cookie=token,data={**form,'konfirmasi':'1'})[0]==303
     assert s.izin(admin_store.BAWAAN,p.id_akun,sekarang=int(time.time())) is None

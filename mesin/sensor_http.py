@@ -22,7 +22,8 @@ def _waktu_sumber(teks):
 
 
 def izin_akun(akun_id, *, sekarang=None):
-    if not SIAP:
+    import policy_store
+    if not SIAP or not policy_store.epoch_sah():
         return None
     kini = int(time.time()) if sekarang is None else sekarang
     try:
@@ -119,6 +120,20 @@ def hapus_sesi(sesi_id, pemilik):
 
 
 def form_akun(penangan):
+    import policy_http
+    import policy_store
+    if policy_http.tersedia():
+        p=penangan._principal()
+        row=policy_store.baca(admin_store.BAWAAN,p.id_akun)
+        status='Pilihan belum tersimpan' if row is None else 'Pilihan tersimpan — dapat diubah kapan saja'
+        import product_analytics_http as lama
+        cabut_token=lama._token(p,penangan._ambil_token(),'sensor-cabut')
+        return ('<section id="sensor"><h2>Kesepakatan dan pilihan data</h2><p>'+status+'</p>'
+                '<p><a href="/persetujuan">Tinjau atau ubah persetujuan</a></p>'
+                '<p>Menolak penggunaan opsional tidak mengurangi fitur belajar inti. Restart biasa tidak meminta izin ulang.</p>'
+                '<form method="post" action="/analitik/sensor-cabut"><input type="hidden" name="token" value="'+html.escape(cabut_token)+'">'
+                '<label><input type="checkbox" name="konfirmasi" value="1" required> Cabut penggunaan opsional dan hapus detail sensor. Data belajar asli tetap ada.</label>'
+                '<button type="submit">Cabut dan hapus sensor</button></form></section>')
     import product_analytics_http as lama
     p = lama._principal(penangan)
     try:
@@ -171,13 +186,7 @@ def tangani_post(penangan, jalur):
                 raise ValueError('konfirmasi sensor tidak sah')
             store.cabut(admin_store.BAWAAN, auth.BERKAS_SANDI, p)
         else:
-            if (set(data) - {'alur','hasil','chat'} or data.get('alur') != '1'
-                    or any(v != '1' for v in data.values())):
-                raise ValueError('pilihan sensor tidak sah')
-            if not SIAP:
-                raise RuntimeError('sensor nonaktif')
-            store.setuju(admin_store.BAWAAN, auth.BERKAS_SANDI, p,
-                         hasil=data.get('hasil') == '1', chat=data.get('chat') == '1', sekarang=int(time.time()))
+            raise ValueError('gunakan kesepakatan berversi')
         penangan.send_response(303)
         penangan.send_header('Location', '/akun?section=akun#sensor')
         penangan.send_header('Content-Length', '0')

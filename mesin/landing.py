@@ -72,7 +72,7 @@ def _topbar_publik_st() -> str:
 def halaman_daftar(
     pesan: str = "", galat: bool = False, nama: str = "", *,
     pendaftaran_dibuka: bool = True, token_form: str = "", belum_tersedia: bool = False,
-    analitik: str = "", nama_anak: str = "", kelas_sekolah=None,
+    analitik: str = "", kesepakatan: str = "", nama_anak: str = "", kelas_sekolah=None,
     profil_parameter: str = "",
 ) -> bytes:
     """Form pendaftaran mandiri pendamping (orang tua / guru / les).
@@ -114,6 +114,7 @@ def halaman_daftar(
         f'<input type="hidden" name="profil_parameter" value="{html.escape(profil_parameter, quote=True)}">'
         if level_valid(profil_parameter) else ''
     )
+    tombol_daftar = '' if kesepakatan else '<button class="masuk-tombol-st" type="submit">Buat akun <span aria-hidden="true">→</span></button>'
     isi = f"""
 <main class="daftar-editorial-st" aria-labelledby="judul-daftar">
 {_topbar_publik_st()}
@@ -171,11 +172,13 @@ Profil anak pertama dibuat bersama akunmu. Akun login anak bisa dibuat nanti.</p
    <label class="koreksi-centang-st" for="setuju">
     <input type="checkbox" id="setuju" name="setuju" value="1" required>
     <span>Saya orang tua/wali atau pendidik yang bertanggung jawab, dan saya
-    menyetujui <a href="/kebijakan-privasi">Kebijakan Privasi</a>.</span>
+    menyetujui <a href="/syarat-penggunaan">Syarat Penggunaan</a> dan
+    memahami <a href="/kebijakan-privasi">Kebijakan Privasi</a>.</span>
    </label>
   </div>
   {analitik}
-  <button class="masuk-tombol-st" type="submit">Buat akun <span aria-hidden="true">→</span></button>
+  {kesepakatan}
+  {tombol_daftar}
 </form>
 <p class="daftar-bawah-st">Setelah mendaftar, kamu langsung melihat langkah pertama bersama anak.</p>
 </section>
@@ -183,6 +186,11 @@ Profil anak pertama dibuat bersama akunmu. Akun login anak bisa dibuat nanti.</p
 <p class="daftar-kaki-st">{html.escape(T.TAGLINE)}</p>
 </main>
 """
+    if kesepakatan:
+        # Tombol agree adalah afirmasi Terms/wali; tidak perlu checkbox wajib kedua.
+        mulai = isi.index('  <div class="daftar-persetujuan-st">')
+        akhir = isi.index('  </div>', mulai) + len('  </div>')
+        isi = isi[:mulai] + '<input type="hidden" name="setuju" value="1">' + isi[akhir:]
     return _halaman_publik_stitch(f"Daftar — {T.NAMA_PRODUK}", isi)
 
 
@@ -231,7 +239,7 @@ def halaman_kebijakan(dukungan=None) -> bytes:
 <p class="dukungan-alis-st">CATATAN TENTANG DATAMU</p>
 <div id="judul-privasi"><h1>Kebijakan Privasi</h1></div>
 <p class="publik-sub-st">Ringkas dan jujur, tanpa bahasa hukum.
-Terakhir diperbarui 30 September 2026.</p>
+Versi jagomat-2026-10-18-v2 · Diperbarui 18 Oktober 2026.</p>
 
 <div class="publik-isi-st">
 <h2>Data yang dikumpulkan</h2>
@@ -296,7 +304,20 @@ pelacakan, atau analitik.</li>
 pribadi lainnya.</li>
 </ul>
 
-<h2>Analitik opsional</h2>
+<h2>Kesepakatan awal dan sensor perbaikan</h2>
+<p>Pada pendaftaran atau kunjungan awal setelah perubahan kebijakan, Anda dapat menyetujui
+syarat dan memilih penggunaan tambahan dalam satu layar. Tombol Setuju &amp; aktifkan semua
+menyetujui analitik internal alur, ringkasan jawaban/hasil/pola kesalahan pada konfirmasi
+pertama, dan kategori topik pesan Pendamping baru. Pilihan opsional dapat diubah sebelum
+menyetujui atau kemudian melalui Akun; menolak tidak mengurangi fitur belajar inti.</p>
+<p>Sensor tidak menyalin jawaban atau chat mentah, tidak memproses histori sebelum izin,
+tidak untuk iklan/pelatihan model pihak ketiga, dan tidak mengirim data ke penyedia AI
+untuk analitik. Token sumber dipseudonimkan; laporan merinci minimal 5 keluarga per sel.
+Detail maksimal 30 hari dan izin sensor maksimal 90 hari. Penerimaan syarat disimpan
+berversi dengan pilihan dan waktu; pencabutan tidak menghapus catatan pilihan OFF.
+Restart biasa mempertahankan persetujuan. Restore backup memakai generasi izin baru
+sehingga izin lama tidak otomatis hidup kembali. Izin provider Pendamping tetap terpisah.</p>
+<h2>KPI uji coba opsional — kontrak terpisah</h2>
 <p>Jika eksperimen evaluasi diaktifkan, orang tua dapat memilih persetujuan terpisah.
 Jagomat mencatat keberadaan aktivitas latihan harian, sumber informasi berkategori,
 dan survei singkat—bukan jawaban, nilai, diagnosis, foto, chat, atau kontak.
@@ -641,7 +662,7 @@ sebagai bukti append-only.</p>
 </main>
 
 <footer class="landing-footer-st"><div class="landing-footer-isi-st">
-  <div><a href="/kebijakan-privasi">Kebijakan Privasi</a>
+  <div><a href="/syarat-penggunaan">Syarat Penggunaan</a> · <a href="/kebijakan-privasi">Kebijakan Privasi</a>
   {_kontak_dukungan(dukungan, konteks="umum")}</div>
   <div>{n} — {tag}</div>
 </div></footer>

@@ -390,6 +390,9 @@ class Penangan(BaseHTTPRequestHandler):
         import registration_http
         if registration_http.tangani_get(self, jalur):
             return
+        import policy_http
+        if policy_http.tangani_get(self, jalur):
+            return
         import teacher_http
         if teacher_http.tangani_beranda_get(
             self, jalur, self.path, halaman_utama=halaman_utama_stitch
@@ -469,6 +472,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         if jalur == "/admin" or jalur.startswith("/admin/"):
             return admin_http.tidak_ada(self)
+        import policy_http
+        if policy_http.tangani_post(self, jalur):
+            return
         import sensor_http
         if sensor_http.tangani_post(self, jalur):
             return

@@ -8,15 +8,19 @@ Sensor internal first-party membantu menemukan hambatan alur dan mengevaluasi pr
 bukan menentukan diagnosis/rekomendasi atau membuktikan efektivitas belajar. KPI v1
 (`kpi_*`, cohort registrasi) tetap terpisah dan tidak diubah.
 
-Keluarga lama/baru dapat memberi persetujuan `sensor-keluarga-v1` lewat Akun:
+[Kesepakatan awal](persetujuan-awal.md) berversi menawarkan persetujuan keluarga
+lama/baru di awal, dengan pengaturan lanjut dari Akun. Codec sensor tetap
+`sensor-keluarga-v1`; tujuan yang disetujui:
 - alur operasional (opt-in, tidak dicentang);
 - opsi terpisah ringkasan hasil pada konfirmasi pertama;
 - opsi terpisah kategori topik pesan Pendamping baru.
 
 Menolak tidak mengurangi layanan. Izin provider Pendamping bukan izin sensor. Menyimpan
 pilihan baru menghapus seluruh detail sensor sebelumnya dan membuat generasi/salt baru.
-Pencabutan bekerja meski koleksi dimatikan. Restart/recovery tidak mewarisi consent:
-keluarga harus setuju ulang. Consent maksimum 90 hari; detail maksimum 30 hari.
+Pencabutan bekerja meski koleksi dimatikan. Restart/redeploy tanpa restore mempertahankan
+epoch host dan consent. Restore wajib rotasi epoch di luar backup lalu recreate proses;
+izin backup tidak diwariskan. Consent sensor maksimum90hari; detail maksimum30hari.
+Receipt Terms dan pilihan OFF tetap ada agar penolakan tidak memicu gate berulang.
 Tidak ada auto-enrollment, ekspor provider, backfill, arsip agregat baru, atau scan histori.
 
 ## Sumber dan semantik
@@ -80,7 +84,7 @@ Default OFF. Status: belum dipasang/nonaktif/tidak teramati/terganggu/menunggu i
 menunggu peserta/siap best-effort. Tidak ada jaminan delivery lengkap: commit domain
 lalu sink admin bukan transaksi tunggal; crash di antaranya dapat kehilangan event.
 Tidak ada replay histori/outbox untuk menutup gap. Error sink menahan proyeksi; kegagalan
-sink tidak membatalkan belajar. Boot baru tidak mengklaim interval lama lengkap.
+sink tidak membatalkan belajar. Epoch restore baru tidak mengklaim interval lama lengkap.
 
 ## Rilis
 

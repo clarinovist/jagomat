@@ -15,11 +15,13 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
 
 ## Cakupan produk
 
-- [Sensor perbaikan internal](sensor-perbaikan.md) opsional untuk keluarga lama/baru:
-  alur pasca-opt-in, ringkasan konfirmasi pertama dan kategori chat dengan pilihan
-  izin terpisah. Tanpa salinan teks mentah atau provider analitik, tanpa backfill;
-  detail 30 hari/consent 90 hari, restart perlu izin ulang, dashboard ≥5 keluarga per sel.
-  KPI cohort registrasi lama tetap terpisah. Source bukan bukti aktivasi produksi.
+- [Persetujuan awal](persetujuan-awal.md) menyatukan Terms, Privacy, dan pilihan
+  [sensor internal](sensor-perbaikan.md) pada satu layar sejak daftar/kunjungan awal.
+  Klik Setuju & aktifkan semua menyetujui alur, ringkasan konfirmasi pertama dan
+  kategori chat; opsi penolakan/pilihan tetap tersedia tanpa mengurangi layanan inti.
+  Tanpa teks mentah/provider analitik/backfill; detail30hari/izin90hari, dashboard
+  ≥5keluarga per sel. Restart mempertahankan izin; restore mengganti epoch eksternal.
+  Receipt berversi tetap ada saat sensor dicabut. KPI/provider AI tetap terpisah.
 - Generator soal berparameter dan seed deterministik, lembar cetak, latihan daring,
   tinjauan hasil, diagnosis B/K/H/E/T/N, serta laporan perkembangan per anak.
 - Panel privat admin `/admin/riset` menyimpan wawancara eksploratif konsumen

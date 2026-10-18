@@ -12,6 +12,9 @@ from test_launch_onboarding_journey import server, _jalan
 
 def test_onboarding_hooks_berizin_dan_replay(server,monkeypatch):
     sensor_schema.migrasikan(admin_store.BAWAAN)
+    # Test hook domain existing; journey persetujuan baru diuji test_policy_http.
+    import policy_http
+    monkeypatch.setattr(policy_http,'perlu',lambda p:False)
     monkeypatch.setattr(h,'SIAP',True)
     monkeypatch.setattr(s,'GAGAL',False)
     asli=auth.autentikasi

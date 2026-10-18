@@ -256,8 +256,10 @@ def validasi_skema(kon: sqlite3.Connection) -> None:
     except (ValueError, sqlite3.Error):
         raise StoreBelumSiap("struktur layanan admin tidak lengkap") from None
     import sensor_schema
+    import policy_schema
     try:
         sensor_schema.validasi(kon)
+        policy_schema.validasi(kon)
     except (ValueError, sqlite3.Error):
         raise StoreBelumSiap('struktur sensor tidak lengkap') from None
     # Konfigurasi dukungan adalah schema aditif opt-in tanpa bump user_version:

@@ -26,6 +26,8 @@ if _AKAR_MESIN not in sys.path:
     sys.path.insert(0, _AKAR_MESIN)
 
 os.environ.setdefault("OSN_PBKDF2_ITERASI", "1000")
+# Epoch sintetis stabil untuk fixture; test missing/restore menggantinya eksplisit.
+os.environ.setdefault('SENSOR_CONSENT_EPOCH', '0123456789abcdef0123456789abcdef')
 
 # Suite fitur menguji matematika terkoreksi secara eksplisit, termasuk data
 # yang dibuat saat collection. Test rollout menghapus/mengganti env ini untuk
