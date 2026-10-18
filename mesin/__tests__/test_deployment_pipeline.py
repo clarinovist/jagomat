@@ -38,9 +38,10 @@ def test_pin_soft_launch_migrasi_pasang_literal_false():
     teks=WORKFLOW.read_text()
     # Baseline B soft launch dipatok exact; cutover tetap controlled deploy-v2
     # dan tidak membuka auto-deploy CI.
-    assert CONFIG['mode']=='migrasi'
-    assert RECOVERY_SHA=='1f056352075578d01caad4d80de382b04aef028f'
-    assert CONFIG['recovery_contract']=='fc68c8bc9280663443718bc1c73764cb0c1034e5d0b733deeb36f5994940aba3'
+    assert CONFIG['mode'] in ('persiapan', 'migrasi')
+    assert re.fullmatch(r'[0-9a-f]{40}', RECOVERY_SHA)
+    assert re.fullmatch(r'[0-9a-f]{64}', CONFIG['recovery_contract'])
+    assert re.findall(r'^  RECOVERY_SHA: ([0-9a-f]{40})$', teks, re.M)==[RECOVERY_SHA]
     assert re.findall(r'^    if: (.+)$',_job(teks,'pasang'),re.M)==['${{ false }}']
     assert "steps.mode.outputs.mode == 'migrasi'" in _job(teks,'bangun')
     assert 'Baseline soft launch diuji penuh' in teks

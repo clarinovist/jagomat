@@ -46,6 +46,8 @@ JUMLAH_RECOVERY = {
     "db492efa96a46626c3c5d599e82f47a02e4f34c6": 12856,
     # Baseline soft launch clock membekukan tanggal fixture; koleksi tetap exact.
     "1f056352075578d01caad4d80de382b04aef028f": 12856,
+    # Collect-only arsip exact fondasi sensor, 18 Oktober 2026 (tanpa menjalankan suite).
+    "ff0857fc674aa31d475007812c92ada22fcdaf5a": 13109,
 }
 
 

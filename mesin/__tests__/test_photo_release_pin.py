@@ -18,7 +18,7 @@ import release_quota_pair as pair
 import verify_release_image
 import verify_submission_pair
 
-REVISION='1f056352075578d01caad4d80de382b04aef028f'
+REVISION=release_metadata.baca_config(AKAR/'scripts/release-metadata.json')['recovery_revision']
 
 
 @pytest.fixture
@@ -59,7 +59,7 @@ def test_pair_pin_foto_bukti_wajib_delapan_checks():
                candidate_digest='sha256:'+'a'*64,recovery_digest='sha256:'+'b'*64,
                pengiriman_pair_checks=6,pilihan_pair_checks=8,learning_pair_checks=8,
                subscription_pair_checks=4,admin_launch_pair_checks=4,package_pair_checks=8,
-               quota_pair_checks=8,photo_pair_checks=8,registration_pair_checks=8,support_pair_checks=8,provider_calls=0)
+               quota_pair_checks=8,photo_pair_checks=8,registration_pair_checks=8,support_pair_checks=8,sensor_pair_checks=8,provider_calls=0)
     args=('a'*40,REVISION,'sha256:'+'a'*64,'sha256:'+'b'*64)
     assert release_metadata.validasi_bukti_pasangan(bukti,*args)
     for nilai in (None,0,True,7,9):

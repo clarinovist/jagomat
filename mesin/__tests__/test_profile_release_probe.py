@@ -48,7 +48,7 @@ def siap(tmp_path):
     # Readiness dukungan membandingkan schema aktual dengan DDL source,
     # jadi fixture minimal wajib membawa modul source yang sama.
     shutil.copy2(AKAR/'mesin'/'support_settings.py',source/'support_settings.py')
-    for nama, versi in [('admin_store', 7), ('assistant_schema', 4), ('ai_store', 2), ('subscription_package_schema', 8), ('assistant_quota_schema', 9)]:
+    for nama, versi in [('admin_store', 7), ('assistant_schema', 4), ('ai_store', 2), ('subscription_package_schema', 8), ('assistant_quota_schema', 9), ('research_schema', 1)]:
         (source / (nama + '.py')).write_text('VERSI_SKEMA = %d\nraise RuntimeError("jangan import")\n' % versi)
     return deploy, data, source
 
@@ -99,7 +99,7 @@ def test_readiness_admin5_memeriksa_metadata_dan_tidak_menulis(siap, rusak, tmp_
     sebelum = _hash_db(data)
     skrip = deploy.PROBE_SKEMA.replace("akar_app = Path('/app')", 'akar_app = Path(' + repr(str(source)) + ')').replace('/data/', str(data) + '/')
     hasil = _python(skrip, tmp_path)
-    assert (hasil.returncode == 0) is (rusak is None)
+    assert (hasil.returncode == 0) is (rusak is None), hasil.stderr
     if rusak is None:
         assert hasil.stdout.strip() == 'OSN_SCHEMA_ADMIN9_AI2_OK'
     else:
