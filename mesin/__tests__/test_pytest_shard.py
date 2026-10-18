@@ -50,6 +50,8 @@ JUMLAH_RECOVERY = {
     "ff0857fc674aa31d475007812c92ada22fcdaf5a": 13109,
     # Recovery sensor dengan fixture gate lengkap; koleksi exact 18 Oktober 2026.
     "b76c15a5c2b464c17d6343324bfdfa978818bfc2": 13110,
+    # Collect-only arsip exact receipt persetujuan, 18 Oktober 2026.
+    "caa19b256ea81f48a167104d04168071db7eafcf": 13126,
 }
 
 
