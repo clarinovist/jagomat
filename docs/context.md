@@ -122,6 +122,10 @@ cache dan cadangan tetap privat.
   tiga sesi terkirim sebelum proyeksi, dan tautan progres memakai adapter/peta
   laporan yang sama (gagal verifikasi: tanpa angka). Pilot aktif/pemulihan tetap
   memakai renderer khususnya, bukan diproyeksikan sebagai rencana utama.
+  Keempat tab `/anak/<id>` berbagi satu kontainer isi 960px (`child_style.py`, token
+  `ANAK_*`, mockup di `docs/mockup/`) dan komponen HTML bersama `child_components.py`
+  (chip status, pil filter, disclosure, banner tautan, kartu sesi); jangan menambal
+  lebar per tab.
   `profile_workspace.py` menjadi sumber navigasi empat tujuan profil: **Beranda**,
   **Latihan**, **Riwayat**, dan **Perkembangan**. Pascapendaftaran dan default
   `/anak/<id>` sama-sama membuka Beranda; POST latihan kembali eksplisit ke

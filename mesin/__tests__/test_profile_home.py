@@ -93,8 +93,7 @@ def test_semua_langkah_menjaga_satu_aksi_dan_tanggal_tunggu(tindakan):
 def test_gaya_beranda_scoped_dan_enam_segmen_tanpa_status_kelulusan():
     import profile_workspace
     css = profile_workspace.GAYA_PROFIL
-    selector = '.pendamping-editorial-st.profil-editorial-st.profil-workspace-st.beranda-profil-st'
-    assert 'max-width:60rem' in css.split(selector + ' {', 1)[1].split('}', 1)[0]
+    assert 'beranda-profil-st {{ max-width' not in css and 'beranda-profil-st { max-width' not in css
     assert 'grid-template-columns:repeat(6,minmax(0,1fr))' in css
     assert '.beranda-profil-st .beranda-posisi-st .tahap-rencana-st::after { display:none;' in css
 

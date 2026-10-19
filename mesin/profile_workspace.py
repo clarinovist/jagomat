@@ -288,7 +288,6 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-ringkas-st .riwayat-tinjau-st {{ border:1px solid {T.AKSEN_TEAL_TUA}; border-radius:{T.RADIUS_KARTU}; }}
 .profil-workspace-st .riwayat-ringkas-st .riwayat-lihat-st {{ text-decoration:underline; }}
 /* Beranda: satu tugas, peta tahap terbuka, lalu tinjauan sekunder. */
-.pendamping-editorial-st.profil-editorial-st.profil-workspace-st.beranda-profil-st {{ max-width:60rem; }}
 .beranda-profil-st .kartu-rencana-st {{ padding:{T.SP_6}; border-radius:{T.RADIUS_KARTU_BESAR}; border-top-width:1px; gap:{T.SP_4}; }}
 .beranda-profil-st #judul-rencana-belajar {{ font-size:{T.UKURAN_JUDUL_DEWASA}; max-width:none; }}
 .beranda-profil-st :is(.beranda-meta-st, .identitas-sesi-rencana-st) {{ margin:0; font-size:{T.UKURAN_TEKS_LABEL}; font-weight:400; color:{T.TEKS_VARIAN}; }}
@@ -331,7 +330,6 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .pilot-mulai-st > p {{ padding:0 {T.SP_4}; }}
 .profil-workspace-st .pilot-mulai-st label:has(input[type="checkbox"]) {{ display:flex; align-items:flex-start; gap:{T.SP_3}; }}
 .profil-workspace-st .pilot-mulai-st input[type="checkbox"] {{ width:1.25rem; height:1.25rem; min-height:0; flex:none; margin-top:.15rem; }}
-.pendamping-editorial-st.profil-editorial-st.profil-workspace-st,
 .pendamping-editorial-st.laporan-editorial-st.profil-workspace-st {{ max-width:{T.LEBAR_LANDING}; }}
 .profil-workspace-st .profil-tabs-st {{ display:flex; gap:{T.SP_5}; overflow-x:auto; border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; margin-bottom:{T.SP_5}; scrollbar-width:thin; }}
 .profil-workspace-st .profil-tabs-st a {{ display:inline-flex; align-items:center; gap:{T.SP_2}; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} 0; color:{T.TEKS_VARIAN}; text-decoration:none; white-space:nowrap; border-bottom:3px solid transparent; font-weight:650; }}

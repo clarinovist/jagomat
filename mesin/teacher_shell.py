@@ -6,6 +6,7 @@ import html
 import brand
 import design_tokens as T
 import profile_workspace
+from child_style import GAYA_ANAK
 from style_stitch import GAYA_STITCH
 from teacher_style import (
     GAYA_GURU as GAYA,
@@ -140,7 +141,7 @@ def _halaman_stitch(
     gaya = GAYA_STITCH
     if "profil-workspace-st" in kelas_bungkus:
         from question_variants_ui import GAYA_VARIASI
-        gaya += profile_workspace.GAYA_PROFIL + GAYA_VARIASI
+        gaya += profile_workspace.GAYA_PROFIL + GAYA_ANAK + GAYA_VARIASI
     if privat:
         gaya = gaya.replace(
             "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",

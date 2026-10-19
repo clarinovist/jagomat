@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Perkembangan Claudia</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0}
+a{color:#0F6B64}a:hover{color:#0A4F4A}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="min-height: 1100px; box-sizing: border-box; background: #FFF8F0; color: #16213A; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 16px; line-height: 1.5; padding: 20px 32px 64px; display: flex; flex-direction: column; align-items: center">
+<div style="width: 100%; max-width: 960px; display: flex; flex-direction: column; gap: 24px">
+
+<header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid #EADFCB">
+<div style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; color: #0F6B64">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F6B64" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 14c3-6 5-6 8-2s5 4 8-2l4-2"/></svg>
+Jagomat
+</div>
+<div style="font-size: 14px; color: #4B5563">Masuk sebagai <strong style="color: #16213A">keluarga-a</strong></div>
+</header>
+
+<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px">
+<div style="display: flex; align-items: center; gap: 12px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em">Claudia</h1>
+<span style="background: #EDE6D8; border-radius: 999px; padding: 2px 12px; font-size: 14px; font-weight: 600; color: #3F4654">Kelas 5</span>
+</div>
+<a href="#" style="font-size: 14px; font-weight: 600; text-decoration: none">← Semua anak</a>
+</div>
+
+<nav aria-label="Bagian halaman" style="display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid #EADFCB">
+<a href="Main.dc.html" style="padding: 12px 16px; font-weight: 600; color: #3F4654; text-decoration: none">Beranda</a>
+<a href="Latihan.dc.html" style="padding: 12px 16px; font-weight: 600; color: #3F4654; text-decoration: none">Latihan</a>
+<a href="Riwayat.dc.html" style="padding: 12px 16px; font-weight: 600; color: #3F4654; text-decoration: none">Riwayat</a>
+<a href="Perkembangan.dc.html" aria-current="page" style="padding: 12px 16px; font-weight: 700; color: #0F6B64; text-decoration: none; border-bottom: 3px solid #0F6B64; margin-bottom: -1px">Perkembangan</a>
+</nav>
+
+<!-- sub switch -->
+<div role="group" aria-label="Tampilan" style="display: inline-flex; align-self: flex-start; background: #EDE6D8; border-radius: 999px; padding: 4px; gap: 4px">
+<button type="button" onClick="{{showRingkasan}}" style="{{btnRingkasan}}">Ringkasan</button>
+<button type="button" onClick="{{showMateri}}" style="{{btnMateri}}">Per materi</button>
+</div>
+
+<!-- ====== RINGKASAN ====== -->
+<sc-if value="{{isRingkasan}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 24px">
+
+<section aria-labelledby="hero" style="background: #FFFFFF; border: 1px solid #EADFCB; border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 id="hero" style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2">12 dari 56 target sedang dipelajari</h2>
+<p style="margin: 0; font-size: 16px; color: #3F4654">Belum ada yang tercatat menunjukkan pemahaman. Sisanya, 44 target, belum dinilai. Belum dinilai bukan berarti tidak mampu.</p>
+</div>
+<div role="img" aria-label="12 target sedang dipelajari, 44 belum dinilai" style="display: flex; height: 16px; border-radius: 999px; overflow: hidden; background: #DAD3C3">
+<div style="width: 21.4%; background: #C97A00"></div>
+</div>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; gap: 24px; flex-wrap: wrap; font-size: 15px">
+<li style="display: flex; align-items: center; gap: 8px"><span style="width: 12px; height: 12px; border-radius: 3px; background: #0F6B64"></span><strong>0</strong> menunjukkan pemahaman</li>
+<li style="display: flex; align-items: center; gap: 8px"><span style="width: 12px; height: 12px; border-radius: 3px; background: #C97A00"></span><strong>12</strong> sedang dipelajari</li>
+<li style="display: flex; align-items: center; gap: 8px"><span style="width: 12px; height: 12px; border-radius: 3px; background: #B4423A"></span><strong>0</strong> perlu dicek kembali</li>
+<li style="display: flex; align-items: center; gap: 8px"><span style="width: 12px; height: 12px; border-radius: 3px; background: #DAD3C3"></span><strong>44</strong> belum dinilai</li>
+</ul>
+<details style="font-size: 15px">
+<summary style="font-weight: 600; color: #0F6B64; cursor: pointer">Cara membaca progres ini</summary>
+<p style="margin: 8px 0 0; color: #3F4654">Angka ini hanya mencakup soal di Jagomat, bukan kemampuan secara umum atau nilai sekolah. Sebuah target dihitung menunjukkan pemahaman bila hasilnya sudah dikonfirmasi dan Claudia bisa menjelaskan caranya, bukan hanya menjawab benar.</p>
+</details>
+</section>
+
+<section aria-labelledby="aktif" style="background: #FFFFFF; border: 1px solid #EADFCB; border-radius: 20px; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px">
+<h2 id="aktif" style="margin: 0; font-size: 20px; font-weight: 800">Aktivitas latihan</h2>
+<div role="group" aria-label="Periode" style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" onClick="{{pick7}}" style="{{chip7}}">7 hari terakhir</button>
+<button type="button" onClick="{{pickAll}}" style="{{chipAll}}">Semua</button>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px">
+<div style="background: #F4F1EA; border-radius: 14px; padding: 16px 20px"><div style="font-size: 32px; font-weight: 800; line-height: 1.1">{{act.soal}}</div><div style="font-size: 14px; color: #3F4654">soal dikerjakan</div></div>
+<div style="background: #F4F1EA; border-radius: 14px; padding: 16px 20px"><div style="font-size: 32px; font-weight: 800; line-height: 1.1">{{act.benar}}</div><div style="font-size: 14px; color: #3F4654">benar</div></div>
+<div style="background: #F4F1EA; border-radius: 14px; padding: 16px 20px"><div style="font-size: 32px; font-weight: 800; line-height: 1.1">{{act.salah}}</div><div style="font-size: 14px; color: #3F4654">salah</div></div>
+<div style="background: #F4F1EA; border-radius: 14px; padding: 16px 20px"><div style="font-size: 32px; font-weight: 800; line-height: 1.1">{{act.tinjau}}</div><div style="font-size: 14px; color: #3F4654">menunggu tinjauan</div></div>
+</div>
+<p style="margin: 0; font-size: 15px; color: #3F4654">{{act.note}}</p>
+</section>
+
+<a href="Main.dc.html" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; background: #E6F2EF; border-radius: 14px; padding: 16px 20px; text-decoration: none; color: #16213A">
+<span style="font-size: 15px"><strong>Tahap sekarang: Kenali cara anak (1 dari 6).</strong> Peta perjalanan lengkap ada di Beranda.</span>
+<span style="font-weight: 700; color: #0F6B64; font-size: 15px">Ke Beranda →</span>
+</a>
+
+</div>
+</sc-if>
+
+<!-- ====== PER MATERI ====== -->
+<sc-if value="{{isMateri}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+<section aria-labelledby="daftar" style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<h2 id="daftar" style="margin: 0; font-size: 20px; font-weight: 800">Pilih materi</h2>
+<sc-for list="{{materi}}" as="m" hint-placeholder-count="3">
+<button type="button" onClick="{{m.pick}}" aria-pressed="{{m.selected}}" style="{{m.cardStyle}}">
+<span style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline"><strong style="font-size: 16px">{{m.name}}</strong><span style="font-size: 13px; color: #4B5563">{{m.total}} target</span></span>
+<span style="display: block; height: 8px; border-radius: 999px; background: #DAD3C3; overflow: hidden"><span style="{{m.barStyle}}"></span></span>
+<span style="font-size: 14px; color: #3F4654">{{m.learning}} sedang dipelajari · {{m.unrated}} belum dinilai</span>
+</button>
+</sc-for>
+<p style="margin: 0; font-size: 14px; color: #4B5563">Menampilkan 6 dari 10 materi. [4 materi lain mengikuti pola yang sama.]</p>
+</section>
+
+<section aria-labelledby="target" style="flex: 999 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #EADFCB; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="target" style="margin: 0; font-size: 22px; font-weight: 800">{{sel.name}}</h2>
+<p style="margin: 0; font-size: 15px; color: #3F4654">0 dari {{sel.total}} target menunjukkan pemahaman. Belum dinilai bukan berarti tidak mampu.</p>
+</div>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+<sc-for list="{{sel.targets}}" as="t" hint-placeholder-count="3">
+<li style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-top: 1px solid #EFE7D6">
+<span style="font-weight: 600">{{t.name}}</span>
+<span style="{{t.chipStyle}}">{{t.status}}</span>
+</li>
+</sc-for>
+</ul>
+<p style="margin: 0; font-size: 14px; color: #4B5563">{{sel.more}}</p>
+</section>
+
+</div>
+</sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { view: 'ringkasan', period: 'semua', sel: 0 };
+}
+renderVals() {
+const s = this.state;
+const segOn = 'border: 0; border-radius: 999px; padding: 10px 22px; font-size: 15px; font-weight: 700; background: #0F6B64; color: #FFFFFF; min-height: 44px';
+const segOff = 'border: 0; border-radius: 999px; padding: 10px 22px; font-size: 15px; font-weight: 600; background: transparent; color: #3F4654; min-height: 44px';
+const chipOn = 'border: 2px solid #0F6B64; border-radius: 999px; padding: 8px 18px; font-size: 14px; font-weight: 700; background: #E6F2EF; color: #0A4F4A; min-height: 44px';
+const chipOff = 'border: 1px solid #D8CDB6; border-radius: 999px; padding: 8px 18px; font-size: 14px; font-weight: 600; background: #FFFFFF; color: #3F4654; min-height: 44px';
+
+const act = s.period === '7'
+? { soal: 0, benar: 0, salah: 0, tinjau: 0, note: 'Belum ada latihan pada 13–19 Okt 2026. Ini bukan tanda Claudia tidak mampu.' }
+: { soal: 45, benar: 28, salah: 6, tinjau: 10, note: 'Dari 34 soal yang sudah dinilai, 28 benar. Ini bukan persentase pemahaman: 10 soal masih menunggu tinjauan.' };
+
+const defs = [
+{ name: 'Aritmatika Lanjut', total: 7, learning: 2, unrated: 5,
+targets: [
+{ name: 'Konversi satuan', status: 'Sedang dipelajari' },
+{ name: 'Kecepatan, jarak, dan waktu', status: 'Sedang dipelajari' },
+{ name: 'Debit', status: 'Belum dinilai' },
+{ name: 'Perbandingan senilai', status: 'Belum dinilai' },
+{ name: 'Perbandingan berbalik nilai', status: 'Belum dinilai' }
+], more: '2 target lainnya belum ditampilkan di mockup ini.' },
+{ name: 'Aritmatika Dasar', total: 6, learning: 1, unrated: 5, targets: [], more: '[Daftar target materi ini mengikuti pola yang sama.]' },
+{ name: 'Geometri Datar', total: 6, learning: 1, unrated: 5, targets: [], more: '[Daftar target materi ini mengikuti pola yang sama.]' },
+{ name: 'Geometri Ruang', total: 4, learning: 2, unrated: 2, targets: [], more: '[Daftar target materi ini mengikuti pola yang sama.]' },
+{ name: 'Kombinatorik', total: 4, learning: 1, unrated: 3, targets: [], more: '[Daftar target materi ini mengikuti pola yang sama.]' },
+{ name: 'Logika & Penalaran', total: 4, learning: 1, unrated: 3, targets: [], more: '[Daftar target materi ini mengikuti pola yang sama.]' }
+];
+const materi = defs.map((d, i) => {
+const on = s.sel === i;
+return {
+name: d.name, total: d.total, learning: d.learning, unrated: d.unrated,
+selected: on,
+pick: () => this.setState({ sel: i }),
+cardStyle: 'text-align: left; font-size: 16px; color: #16213A; display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border-radius: 14px; background: ' + (on ? '#E6F2EF' : '#FFFFFF') + '; border: ' + (on ? '2px solid #0F6B64' : '1px solid #EADFCB'),
+barStyle: 'display: block; height: 8px; background: #C97A00; width: ' + Math.round(d.learning / d.total * 100) + '%'
+};
+});
+const cur = defs[s.sel];
+const sel = {
+name: cur.name, total: cur.total, more: cur.more,
+targets: cur.targets.map((t) => ({
+name: t.name, status: t.status,
+chipStyle: 'border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 700; white-space: nowrap; ' + (t.status === 'Sedang dipelajari' ? 'background: #FEF0D0; color: #6B3F00' : 'background: #ECE7DA; color: #3F4654')
+}))
+};
+
+return {
+isRingkasan: s.view === 'ringkasan',
+isMateri: s.view === 'materi',
+showRingkasan: () => this.setState({ view: 'ringkasan' }),
+showMateri: () => this.setState({ view: 'materi' }),
+btnRingkasan: s.view === 'ringkasan' ? segOn : segOff,
+btnMateri: s.view === 'materi' ? segOn : segOff,
+pick7: () => this.setState({ period: '7' }),
+pickAll: () => this.setState({ period: 'semua' }),
+chip7: s.period === '7' ? chipOn : chipOff,
+chipAll: s.period === 'semua' ? chipOn : chipOff,
+act, materi, sel
+};
+}
+}
+</script>
+</body>
+</html>

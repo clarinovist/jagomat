@@ -1,0 +1,16 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-19T09:00:00Z" },
+  "title": "Jagomat Beranda dan Riwayat Sederhana",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1280, "h": 1040, "title": "Beranda (usulan)", "expand": "fill", "is_interactive": true },
+    "Riwayat.dc.html": { "x": 1360, "y": 0, "w": 1280, "h": 960, "title": "Riwayat (usulan)", "expand": "fill", "is_interactive": true },
+    "Perkembangan.dc.html": { "x": 2720, "y": 0, "w": 1280, "h": 1100, "title": "Perkembangan (usulan)", "expand": "fill", "is_interactive": true },
+    "Latihan.dc.html": { "x": 4080, "y": 0, "w": 1280, "h": 960, "title": "Latihan (usulan)", "expand": "fill", "is_interactive": true }
+  },
+  "order": ["Main.dc.html", "Riwayat.dc.html", "Perkembangan.dc.html", "Latihan.dc.html"],
+  "notes": {},
+  "designSystems": []
+}

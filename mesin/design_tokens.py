@@ -529,3 +529,26 @@ ADMIN_RADIUS_KONTROL = "10px"
 ADMIN_UKURAN_ISI = "14.5px"
 ADMIN_UKURAN_JUDUL = "28px"
 ADMIN_UKURAN_KPI = "40px"
+
+# Halaman anak (/anak/{id}) — selaras mockup docs/mockup; hanya dipakai child_style.
+ANAK_LEBAR = "60rem"            # 960px lebar isi, sama di keempat tab
+ANAK_GUTTER = "2rem"            # 32px sisi; 1rem di layar sempit
+ANAK_LATAR = "#FFF8F0"
+ANAK_TEKS = "#16213A"
+ANAK_TEKS_REDUP = "#3F4654"
+ANAK_TEKS_BANTUAN = "#4B5563"
+ANAK_AKSEN = "#0F6B64"
+ANAK_AKSEN_HOVER = "#0A4F4A"
+ANAK_AKSEN_LATAR = "#E6F2EF"    # pilihan aktif, banner tautan
+ANAK_BORDER = "#EADFCB"
+ANAK_BORDER_PIL = "#D8CDB6"
+ANAK_ABU_HANGAT = "#F4F1EA"     # kotak angka, blok cara
+ANAK_PERHATIAN_LATAR = "#FEF0D0"
+ANAK_PERHATIAN_TEKS = "#6B3F00"
+ANAK_BAIK_LATAR = "#DDF1E4"
+ANAK_BAIK_TEKS = "#14532D"
+ANAK_NETRAL_LATAR = "#ECE7DA"
+ANAK_NETRAL_TEKS = "#3F4654"
+ANAK_BATAS_HP = "43.75rem"      # 700px
+ANAK_INFO_LATAR = "#E4E9F5"
+ANAK_INFO_TEKS = "#1E3A8A"

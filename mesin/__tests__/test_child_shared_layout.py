@@ -1,0 +1,118 @@
+"""Kontainer dan komponen bersama halaman /anak/<id> (selaras docs/mockup).
+
+Keempat tab harus berbagi satu lebar isi (ANAK_LEBAR). Lebar dulu tersebar di
+beberapa aturan per tab dan saling menimpa; test ini menghitung aturan yang
+benar-benar menang (spesifisitas, lalu urutan) untuk tiap section.
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+import child_components as K  # noqa: E402
+import database  # noqa: E402
+import design_tokens as T  # noqa: E402
+import teacher_pages  # noqa: E402
+from child_style import GAYA_ANAK  # noqa: E402
+
+SECTIONS = ("rencana", "latihan", "riwayat", "perkembangan")
+LEBAR_ISI = f"calc({T.ANAK_LEBAR} + 2 * {T.ANAK_GUTTER})"
+
+
+@pytest.fixture()
+def anak(tmp_path, monkeypatch):
+    p = tmp_path / "uji.db"
+    database.siapkan(p)
+    monkeypatch.setattr(database, "BAWAAN", p)
+    with database.buka(p) as kon:
+        sid = database.tambah_siswa(kon, "Claudia", pemilik="ortu", tingkat="P3")
+        database.buat_sesi(kon, sid, seed=11, topik="statistika")
+    return p, sid
+
+
+def _render(db, sid, section) -> str:
+    with database.buka(db) as kon:
+        baris = kon.execute("SELECT * FROM siswa WHERE id = ?", (sid,)).fetchone()
+        return teacher_pages.halaman_anak(
+            kon, baris, peran="guru", pengguna="ortu", query="section=" + section
+        ).decode()
+
+
+def _tanpa_media(css: str) -> str:
+    keluar, kedalaman, i = [], 0, 0
+    while i < len(css):
+        if css.startswith("@media", i) or css.startswith("@supports", i):
+            i = css.index("{", i)
+            kedalaman = 1
+            i += 1
+            while kedalaman:
+                kedalaman += {"{": 1, "}": -1}.get(css[i], 0)
+                i += 1
+            continue
+        keluar.append(css[i])
+        i += 1
+    return "".join(keluar)
+
+
+def _lebar_efektif(html: str) -> str:
+    kelas = set(re.search(r'<body class="st"><div class="([^"]+)"', html).group(1).split())
+    css = re.sub(r"/\*.*?\*/", "", "".join(re.findall(r"<style>(.*?)</style>", html, re.S)), flags=re.S)
+    kandidat = []
+    for urutan, (sel, isi) in enumerate(re.findall(r"([^{}]+)\{([^{}]*)\}", _tanpa_media(css))):
+        lebar = re.findall(r"max-width\s*:\s*([^;]+?)\s*(?:;|$)", isi.strip())
+        if not lebar:
+            continue
+        for satu in sel.split(","):
+            satu = satu.strip()
+            if re.fullmatch(r"(\.[\w-]+)+", satu) and set(satu.split(".")[1:]) <= kelas:
+                kandidat.append((satu.count("."), urutan, lebar[-1]))
+    return max(kandidat)[2]
+
+
+@pytest.mark.parametrize("section", SECTIONS)
+def test_lebar_isi_sama_di_keempat_tab(anak, section):
+    db, sid = anak
+    assert _lebar_efektif(_render(db, sid, section)) == LEBAR_ISI
+
+
+def test_kontainer_bersama_memakai_gutter_dan_rapat_di_hp():
+    assert f"padding-inline: {T.ANAK_GUTTER}" in GAYA_ANAK
+    hp = GAYA_ANAK.split(f"@media (max-width: {T.ANAK_BATAS_HP})", 1)[1]
+    assert f"padding-inline: {T.SP_4}" in hp
+
+
+def test_chip_status_memakai_nada_dan_meloloskan_teks():
+    assert K.chip_status("Selesai", "baik") == '<span class="anak-chip-st anak-chip-baik-st">Selesai</span>'
+    assert "&lt;b&gt;" in K.chip_status("<b>", "netral")
+    with pytest.raises(ValueError):
+        K.chip_status("x", "merah")
+
+
+def test_pil_filter_menandai_aktif_dan_meloloskan_href():
+    assert 'aria-current="true"' in K.pil_filter("Semua", "/a?x=1&y=2", aktif=True)
+    assert 'aria-current' not in K.pil_filter("Selesai", "/a")
+    assert 'href="/a?x=1&amp;y=2"' in K.pil_filter("Semua", "/a?x=1&y=2")
+
+
+def test_disclosure_tertutup_bawaan_dan_bisa_dibuka():
+    assert "<details class=\"anak-disclosure-st\"><summary>Cara</summary>" in K.disclosure("Cara", "<p>i</p>")
+    assert " open>" in K.disclosure("Cara", "<p>i</p>", terbuka=True)
+
+
+def test_banner_tautan_memuat_isi_dan_tautan_tebal():
+    html = K.banner_tautan("<strong>Tahap 1</strong>", "/anak/1?section=rencana", "Ke Beranda →")
+    assert html.startswith('<a class="anak-banner-st" href="/anak/1?section=rencana">')
+    assert '<span class="anak-banner-tautan-st">Ke Beranda →</span>' in html
+
+
+def test_kartu_sesi_satu_baris_dengan_slot_opsional():
+    html = K.kartu_sesi(judul="Pola", sub="15 soal", chip_html=K.chip_status("Draf", "info"),
+                        aksi_html="<a>Lanjutkan</a>", peringatan="Hasil 0 dari 10")
+    assert html.count("anak-kartu-sesi-st") == 1 and "anak-kartu-peringatan-st" in html
+    assert "anak-kartu-tanggal-st" not in html
