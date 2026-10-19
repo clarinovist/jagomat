@@ -35,7 +35,7 @@ mengubah backend untuk menyesuaikan mockup.
   `admin_store.daftar_riwayat` memberi uncertain/reserved; registrasi dan konfigurasi
   pembayaran dibaca di GET `admin_http`. Urutan aktivitas sudah WIB dan dibatasi 10.
   Status backup ringkasan saat ini hanya tautan pemeriksaan, bukan bukti kegagalan.
-- Filter keluarga: `memiliki_anak=semua|ya|tidak`, `status=semua|perlu_perhatian`.
+- Filter keluarga: chip memakai `memiliki_anak=semua|ya|tidak`, `status=semua|perlu_perhatian|normal`; panel Filter lanjutan memakai `kategori=semua|orang_tua|pemilik_tanpa_akun` dan `aktivitas=kapan_saja|7_hari|30_hari|belum_pernah`.
   Siswa: tingkat P3–P6, keluarga ID, kondisi spesifik. `normal` dan agregat
   `perlu_perhatian` siswa tidak boleh diasumsikan didukung. Search privat POST;
   jangan mengubahnya menjadi GET atau membocorkan alias/nama lewat chip.

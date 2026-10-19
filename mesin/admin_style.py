@@ -89,8 +89,9 @@ button, summary {{ cursor: pointer; }}
 .admin-bar-atas > form > label.admin-cari {{ display: block; flex: 1 1 14rem; margin: 0; }}
 .admin-cari input {{ display: block; width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 12px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
 .admin-bar-atas details {{ flex: 1 1 100%; }}
-.admin-bar-atas details > div {{ display: flex; flex-wrap: wrap; gap: 16px; padding: 4px 0 8px; }}
-.admin-bar-atas details label {{ flex: 1 1 160px; margin: 0; font-size: 14px; }}
+.admin-bar-atas details > div {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 240px)); gap: 16px; align-items: end; padding: 4px 0 8px; }}
+.admin-bar-atas details label {{ margin: 0; font-size: 14px; }}
+.admin-bar-atas details button {{ min-height: 44px; }}
 .admin-bar-atas details select {{ display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 10px 12px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 10px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
 .admin-bar-atas + .admin-grid-stat {{ margin-top: 16px; }}
 .admin-kpi-hero {{ display: flex; flex-direction: column; gap: 20px; }}
@@ -185,9 +186,6 @@ form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"]
 .admin-kartu label:has(input[type=checkbox]), .admin-kartu label:has(input[type=radio]) {{ min-height: 44px; padding: 10px 12px; background: {T.ADMIN_BANNER_LATAR}; border-radius: 10px; }}
 .admin-kartu button:not(.tombol-mata) {{ min-height: 44px; }}
 .admin-kartu form + form, .admin-form-tindakan form + form {{ margin-top: 24px; }}
-.admin-form-cari details {{ flex: 1 1 100%; }}
-.admin-form-cari details > div {{ display: flex; flex-wrap: wrap; gap: 16px; }}
-.admin-form-cari details label {{ flex: 1 1 160px; }}
 summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .kolom-sandi {{ display: block; position: relative; min-width: 0; }}
 .kolom-sandi > input {{ padding-right: 52px !important; }}

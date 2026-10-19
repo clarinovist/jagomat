@@ -754,3 +754,26 @@ def test_akun_admin_lama_tidak_menyediakan_bypass_lintas_keluarga(server):
     assert kode == 200
     assert "Akun saya" in isi
     assert "Tambah anak" not in isi
+
+
+def test_filter_lanjutan_keluarga_post_dan_get_menerima_kategori_aktivitas(server):
+    token = _login(server, "Admin-C", SANDI_ADMIN)
+    _, awal, _ = _minta(server, "/admin?section=keluarga", cookie=token)
+    csrf = _hidden(awal, "csrf")
+    kode, isi, _ = _minta(
+        server, "/admin", cookie=token,
+        headers={"Origin": server.alamat, "Sec-Fetch-Site": "same-origin"},
+        data={
+            "mode": "cari", "section": "keluarga", "csrf": csrf, "cari": "",
+            "status": "semua", "memiliki_anak": "semua",
+            "kategori": "orang_tua", "aktivitas": "belum_pernah",
+        },
+    )
+    assert kode == 200 and 'value="belum_pernah" selected' in isi
+    kode, isi, _ = _minta(
+        server, "/admin?section=keluarga&kategori=orang_tua&aktivitas=30_hari", cookie=token
+    )
+    assert kode == 200 and "<details open>" in isi
+    kode_status, _, _ = _minta(server, "/admin?section=keluarga&status=asing", cookie=token)
+    kode, _, _ = _minta(server, "/admin?section=keluarga&kategori=asing", cookie=token)
+    assert kode == kode_status != 200

@@ -349,6 +349,8 @@ def _render_get(penangan, principal, query):
                         kon, konteks,
                         status=query.get("status", "semua"),
                         memiliki_anak=query.get("memiliki_anak", "semua"),
+                        kategori=query.get("kategori", "semua"),
+                        aktivitas=query.get("aktivitas", "kapan_saja"),
                         halaman=halaman,
                     ),
                     csrf=csrf, tampilkan_aksi=principal.metode == "cookie",
@@ -486,7 +488,7 @@ def tangani_get(penangan, jalur):
             return True
         query = _query(
             penangan,
-            diizinkan={"section", "id", "halaman", "status", "memiliki_anak", "tingkat", "keluarga_id", "actor_id", "aksi", "mulai", "selesai", "sumber", "bulan", "dukungan"},
+            diizinkan={"section", "id", "halaman", "status", "memiliki_anak", "kategori", "aktivitas", "tingkat", "keluarga_id", "actor_id", "aksi", "mulai", "selesai", "sumber", "bulan", "dukungan"},
         )
         _render_get(penangan, principal, query)
     except LookupError:
@@ -824,13 +826,15 @@ def _post_cari(penangan, principal, data):
     with database.buka() as kon:
         konteks = _konteks(kon)
         if section == "keluarga":
-            diizinkan = {"cari", "status", "memiliki_anak"}
+            diizinkan = {"cari", "status", "memiliki_anak", "kategori", "aktivitas"}
             if set(data) - diizinkan:
                 raise ValueError("Field tidak dikenal.")
             hasil = admin_queries.daftar_keluarga(
                 kon, konteks, cari=data.get("cari", ""),
                 status=data.get("status", "semua"),
                 memiliki_anak=data.get("memiliki_anak", "semua"),
+                kategori=data.get("kategori", "semua"),
+                aktivitas=data.get("aktivitas", "kapan_saja"),
                 halaman=halaman,
             )
             isi = admin_pages.render_keluarga(

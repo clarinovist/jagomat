@@ -169,6 +169,8 @@ class HalamanKeluarga:
     status: str
     memiliki_anak: str
     jumlah_facet: Tuple[Tuple[str, int], ...] = ()
+    kategori: str = "semua"
+    aktivitas: str = "kapan_saja"
 
 
 @dataclass(frozen=True)
@@ -603,6 +605,29 @@ def _facet_siswa(data) -> Tuple[Tuple[str, int], ...]:
     )
 
 
+KATEGORI_FILTER_KELUARGA = ("semua", "orang_tua", "pemilik_tanpa_akun")
+AKTIVITAS_FILTER_KELUARGA = {"kapan_saja": None, "7_hari": 7, "30_hari": 30}
+
+
+def _aktivitas_sesuai(item: KeluargaRingkas, aktivitas: str, kini: datetime) -> bool:
+    """``belum_pernah`` berarti kolom Aktivitas terakhir kosong (—) di tabel."""
+    waktu_aktif = _waktu_aktivitas(item.aktivitas_terakhir)
+    if aktivitas == "belum_pernah":
+        return waktu_aktif is None
+    return waktu_aktif is not None and kini - timedelta(days=AKTIVITAS_FILTER_KELUARGA[aktivitas]) <= waktu_aktif
+
+
+def _waktu_aktivitas(nilai: Optional[str]) -> Optional[datetime]:
+    zona = timezone(timedelta(hours=7))
+    if nilai in (None, ""):
+        return None
+    try:
+        dt = datetime.fromisoformat(str(nilai).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return dt.replace(tzinfo=zona) if dt.tzinfo is None else dt.astimezone(zona)
+
+
 def daftar_keluarga(
     kon,
     konteks: KonteksAdmin,
@@ -610,8 +635,11 @@ def daftar_keluarga(
     cari: str = "",
     status: str = "semua",
     memiliki_anak: str = "semua",
+    kategori: str = "semua",
+    aktivitas: str = "kapan_saja",
     halaman: int = 1,
     per_halaman: int = BATAS_BAWAAN,
+    sekarang_wib: Optional[datetime] = None,
 ) -> HalamanKeluarga:
     """Daftar keluarga. Pencarian alias literal dilakukan pada snapshot."""
     halaman, per_halaman = _paginasi(halaman, per_halaman)
@@ -620,6 +648,11 @@ def daftar_keluarga(
         raise InputQueryTidakSah("filter status keluarga tidak sah")
     if memiliki_anak not in ("semua", "ya", "tidak"):
         raise InputQueryTidakSah("filter anak tidak sah")
+    if kategori not in KATEGORI_FILTER_KELUARGA:
+        raise InputQueryTidakSah("filter kategori keluarga tidak sah")
+    if aktivitas != "belum_pernah" and aktivitas not in AKTIVITAS_FILTER_KELUARGA:
+        raise InputQueryTidakSah("filter aktivitas keluarga tidak sah")
+    kini = _sekarang_wib(sekarang_wib)
     data = list(_keluarga_semua(kon, konteks))
     if cari:
         needle = cari.casefold()
@@ -633,6 +666,10 @@ def daftar_keluarga(
         data = [item for item in data if item.jumlah_siswa > 0]
     elif memiliki_anak == "tidak":
         data = [item for item in data if item.jumlah_siswa == 0]
+    if kategori != "semua":
+        data = [item for item in data if item.kategori == kategori]
+    if aktivitas != "kapan_saja":
+        data = [item for item in data if _aktivitas_sesuai(item, aktivitas, kini)]
     total = len(data)
     awal = (halaman - 1) * per_halaman
     return HalamanKeluarga(
@@ -645,6 +682,8 @@ def daftar_keluarga(
         status,
         memiliki_anak,
         jumlah_facet,
+        kategori,
+        aktivitas,
     )
 
 
