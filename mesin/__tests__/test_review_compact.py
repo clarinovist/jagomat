@@ -8,6 +8,8 @@ import assistant_browser
 import database
 import teacher_pages
 from test_review_layout import db, sesi_contoh
+import style_stitch
+import design_tokens as T
 from test_teacher_corrections import FormKoreksi
 from test_correction_disclosure import Struktur
 
@@ -65,6 +67,48 @@ def test_semua_soal_dua_detail_datar_dan_payload_native_utuh(db, mode):
         assert Detail(html).max_depth == 1
         assert 'Jangan menimpa jawaban awal dengan hasil bantuan.' in html
         assert 'Centang hanya jika anak mengatakannya, bukan karena ia bingung.' in html
+
+
+@pytest.mark.parametrize('mode,format_jawaban', [
+    ('diagnostik', 'isian'), ('drill', 'isian'),
+    ('diagnostik', 'pilihan_ganda'), ('drill', 'pilihan_ganda'),
+])
+def test_sepuluh_soal_termasuk_kosong_nomor_tujuh_tetap_datar(db, mode, format_jawaban):
+    with database.buka(db) as kon:
+        anak = database.tambah_siswa(kon, 'Anak Sintetis', pemilik='guru')
+        sesi = database.buat_sesi(kon, anak, 71, jumlah_soal=10,
+                                 mode=mode, format_jawaban=format_jawaban)
+        database.tandai_selesai(kon, sesi)
+        isi = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
+        kartu = re.findall(r'<article\b[^>]*data-kartu-tinjauan.*?</article>', isi, re.S)
+        assert len(kartu) == 10
+        for card in kartu:
+            assert (Detail(card).count, Detail(card).max_depth) == (2, 1)
+            assert len(re.findall(r'type="radio"[^>]*name="cek_pemahaman_', card)) == 4
+            assert 'Wajib untuk konfirmasi, kecuali dilewati' in card
+            assert '(opsional)' not in card
+        struktur = Struktur(isi)
+        data = FormKoreksi(isi, sesi).data
+        for b in database.isi_sesi(kon, sesi):
+            sid = b['sesi_soal_id']
+            assert not struktur.tertutup(f'kode_{sid}')
+            assert not struktur.tertutup(f'cek_pemahaman_{sid}')
+            assert data[f'hadir_belum_{sid}'] == data[f'hadir_dilewati_{sid}'] == '1'
+            assert (f'cara_{sid}' in data) == (mode != 'drill' or format_jawaban == 'pilihan_ganda')
+        assert isi.count('<summary>Panduan memilih penilaian</summary>') == 1
+
+
+def test_css_antrean_satu_aturan_utuh_dan_kartu_tidak_menggandakan_jarak():
+    css = style_stitch.CSS_SESI
+    aturan = re.search(r'\.koreksi-editorial-st \.antrean-tinjauan-st ul\s*\{([^}]+)\}', css)
+    assert aturan is not None
+    for deklarasi in ('display: flex', 'flex-wrap: wrap', 'padding: 0', 'list-style: none'):
+        assert deklarasi in aturan.group(1)
+    assert '.kelompok-tinjauan-st > .koreksi-kartu-st { margin-bottom: 0; }' in css
+    header = re.search(r'\.koreksi-editorial-st button\.koreksi-ringkas-st\s*\{([^}]+)\}', css).group(1)
+    assert 'display: flex' in header and 'flex-wrap: wrap' in header
+    assert 'min-height: ' + T.TARGET_SENTUH in header
+    assert 'text-overflow: ellipsis' not in header
 
 
 def test_hash_hanya_tinjauan_tanpa_izin_koneksi_dan_teks_palsu_tidak_memicu():

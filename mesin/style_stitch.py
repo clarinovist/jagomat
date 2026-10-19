@@ -3159,8 +3159,9 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 .koreksi-misi-st {{ background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU}; padding: {T.SP_4}; margin-bottom: {T.SP_4}; }}
 .koreksi-misi-st .koreksi-pengantar-st {{ margin-bottom: {T.SP_2}; }}
 .koreksi-misi-st .koreksi-progres-st {{ padding: 0; margin-bottom: 0; background: none; border: 0; }}
-.koreksi-editorial-st .antrean-tinjauan-st ul {{ counter-reset: antrean;}}
-  display: flex; flex-wrap: wrap; gap: {T.SP_2}; padding: 0; margin: {T.SP_3} 0; list-style: none;
+.koreksi-editorial-st .antrean-tinjauan-st ul {{
+  counter-reset: antrean; display: flex; flex-wrap: wrap; gap: {T.SP_2};
+  padding: 0; margin: {T.SP_3} 0; list-style: none;
 }}
 .koreksi-editorial-st .antrean-tinjauan-st a {{
   display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3};
@@ -3360,19 +3361,22 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 /* Tinjauan datar: collapse hanya presentasi; kontrol tertutup tetap terkirim. */
 .koreksi-editorial-st [hidden] {{ display: none !important; }}
 .koreksi-judul-kartu-st {{ margin: 0; font: inherit; }}
+.kelompok-tinjauan-st > .koreksi-kartu-st {{ margin-bottom: 0; }}
 .koreksi-editorial-st button.koreksi-ringkas-st {{
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
-  width: 100%; text-align: left; margin: 0; padding: {T.SP_3} {T.SP_4};
+  display: flex; flex-wrap: wrap; align-items: center; position: relative;
+  width: 100%; text-align: left; margin: 0; padding: {T.SP_2} {T.SP_6} {T.SP_2} {T.SP_3};
   background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; border: 0;
   border-radius: {T.RADIUS_KARTU}; font: 600 1rem/1.4 {T.FONT_BODY};
-  min-height: {T.TARGET_SENTUH}; cursor: pointer; gap: {T.SP_1} {T.SP_3};
+  min-height: {T.TARGET_SENTUH}; cursor: pointer; gap: {T.SP_1} {T.SP_2};
 }}
-.koreksi-ringkas-st .koreksi-ringkas-kepala-st {{ width: auto; grid-column: 1; }}
+.koreksi-ringkas-st .koreksi-ringkas-kepala-st {{ width: auto; flex: 1 1 16rem; }}
 .koreksi-ringkas-st .koreksi-ringkas-hasil-st {{
-  display: block; grid-column: 1; margin: 0 0 0 2.5rem; font-size: .85rem;
+  display: block; min-width: 0; max-width: 100%; margin: 0; font-size: .85rem;
 }}
-.koreksi-penanda-st {{ grid-column: 1; margin-left: 2.5rem; font-size: .8rem; color: {T.AKSEN_TEAL_TUA}; }}
-.koreksi-chevron-st {{ grid-column: 2; grid-row: 1 / span 3; }}
+.koreksi-penanda-st {{ font-size: .8rem; color: {T.AKSEN_TEAL_TUA}; }}
+.koreksi-chevron-st {{ position: absolute; right: {T.SP_2}; top: calc(50% - .7em); }}
+.koreksi-ringkas-st .koreksi-tipe-st {{ min-width: 0; overflow-wrap: anywhere; }}
+
 .koreksi-ringkas-st:disabled {{ cursor: default; opacity: 1; }}
 .koreksi-ringkas-st:disabled .koreksi-chevron-st {{ visibility: hidden; }}
 .koreksi-tache-st {{ margin: 0; font-weight: 600; color: {T.AKSEN_TEAL_TUA}; }}
@@ -3411,7 +3415,7 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
   .koreksi-aksi-sesi-st {{ flex: 1; gap: {T.SP_1}; }}
   .koreksi-aksi-sesi-st button {{ flex: 1; }}
   .koreksi-sisa-st {{ flex: 0 0 6rem; font-size: .75rem; line-height: 1.35; }}
-  .koreksi-editorial-st button.koreksi-ringkas-st {{ padding: {T.SP_3}; }}
+  .koreksi-ringkas-st .koreksi-ringkas-kepala-st {{ flex-basis: 100%; }}
 }}
 
 /* Rencana belajar jelas — panduan sesi */
