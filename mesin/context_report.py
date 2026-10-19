@@ -6,8 +6,8 @@ from question_context import daftar_konteks, label_profil_parameter
 from template_labels import nama_tipe_soal
 from report_navigation import halaman_daftar, navigasi_halaman, url_laporan
 
-_LABEL = {'terbukti': 'Menunjukkan pemahaman', 'dipelajari': 'Masih dipelajari',
-          'perlu_cek': 'Perlu cek kembali', 'belum_dinilai': 'Belum dinilai'}
+_LABEL = {'terbukti': 'Menunjukkan pemahaman', 'dipelajari': 'Sedang dipelajari',
+          'perlu_cek': 'Perlu dicek kembali', 'belum_dinilai': 'Belum dinilai'}
 
 
 def render_konteks(

@@ -286,9 +286,9 @@ def test_laporan_perkembangan_menjadi_tab_profil_tanpa_tautan_duplikat(anak, pri
     navigasi = markup[markup.index('class="profil-tabs-st"'):]
     navigasi = navigasi[:navigasi.index("</nav>")]
     assert [navigasi.index(label) for label in (
-        "Berikutnya", "Buat latihan", "Riwayat", "Perkembangan",
+        "Beranda", "Latihan", "Riwayat", "Perkembangan",
     )] == sorted(navigasi.index(label) for label in (
-        "Berikutnya", "Buat latihan", "Riwayat", "Perkembangan",
+        "Beranda", "Latihan", "Riwayat", "Perkembangan",
     ))
     assert f'href="/anak/{sid}?section=perkembangan"' in navigasi
     assert 'aria-current="page">Riwayat' in navigasi
@@ -346,8 +346,8 @@ def test_status_sesi_mengikuti_pengiriman_final_bukan_jumlah_isian():
     }
 
     assert "Sedang Dikerjakan" in teacher_pages._badge_review_status(tersimpan_penuh)
-    assert "Belum ditinjau" in teacher_pages._badge_review_status(terkirim_sebagian)
-    assert "Belum ditinjau" in teacher_pages._badge_review_status(terkirim_kosong)
+    assert "Perlu ditinjau" in teacher_pages._badge_review_status(terkirim_sebagian)
+    assert "Perlu ditinjau" in teacher_pages._badge_review_status(terkirim_kosong)
 
 
 @pytest.mark.parametrize("keadaan", ["baru", "sebagian", "selesai", "direview", "warisan"])
@@ -368,7 +368,7 @@ def test_badge_riwayat_mendahulukan_pembatalan(db, keadaan):
     markup = _tanpa_gaya(_render_anak(db, siswa, 'riwayat'))
     kartu = re.search(r'<li class="riwayat-kartu-st" data-sesi-id=".*?</li>', markup, re.S).group()
     assert ">Dibatalkan</span>" in kartu
-    for status in ("Belum Dikerjakan", "Sedang Dikerjakan", "Belum ditinjau", "Hasil dikonfirmasi", "belum dikonfirmasi"):
+    for status in ("Belum Dikerjakan", "Sedang Dikerjakan", "Perlu ditinjau", "✓ Selesai", "Draf tersimpan"):
         assert status not in kartu
     assert f'href="/sesi/{sesi}"' in kartu
     assert "data-bagikan-url" not in kartu

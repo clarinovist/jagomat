@@ -101,13 +101,13 @@ cache dan cadangan tetap privat.
   `question_context.profil_otomatis()` memilih profil efektif manual/gabungan yang
   didukung dan paling dekat tanpa mengubah profil rencana. Generator mempertahankan
   komposisi historis sambil memvariasikan parameter dan urutan sesuai seed.
-  `profile_workspace.py` menjadi sumber navigasi empat tujuan profil: **Berikutnya**,
-  **Buat latihan**, **Riwayat**, dan **Perkembangan**. Pascapendaftaran dan default
-  `/anak/<id>` sama-sama membuka Berikutnya; POST latihan kembali eksplisit ke
+  `profile_workspace.py` menjadi sumber navigasi empat tujuan profil: **Beranda**,
+  **Latihan**, **Riwayat**, dan **Perkembangan**. Pascapendaftaran dan default
+  `/anak/<id>` sama-sama membuka Beranda; POST latihan kembali eksplisit ke
   `?section=latihan`, aksi siklus ke `?section=rencana`, dan arsip ke
   `?section=riwayat`; starter pilot opsional hanya dirender oleh tab latihan,
   sedangkan kartu/status/pemulihan pilot aktif tetap berasal dari reducer di
-  Berikutnya; tab Perkembangan di `?section=perkembangan` memakai konten
+  Beranda; tab Perkembangan di `?section=perkembangan` memakai konten
   `reports.konten_laporan()` yang sama dengan halaman lama. Deep link laporan lama dialihkan oleh `teacher_http.py` setelah
   guard ownership. `reports.py` dan
   `report_metrics.py` menyediakan filter periode aktivitas

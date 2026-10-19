@@ -42,10 +42,10 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   terpilih. Semua permukaan riset memakai sumber publik, tidak membaca data
   keluarga, dan tidak menyatakan afiliasi atau market share.
 - Siklus terpandu; latihan manual tetap tersedia tanpa otomatis mengubah putaran.
-  Berikutnya merangkum progres, instruksi, waktu/kapan kembali dan satu CTA;
+  Beranda merangkum progres, instruksi, waktu/kapan kembali dan satu CTA;
   metodologi serta batas interpretasi panjang berada di detail, sementara form
-  awal Pendampingan orang tua opsional berada di Buat latihan. Pilot aktif,
-  pemulihan dan CTA reducer tetap di Berikutnya.
+  awal Pendampingan orang tua opsional berada di Latihan. Pilot aktif,
+  pemulihan dan CTA reducer tetap di Beranda.
 - Pendamping AI inline untuk orang tua; usulan latihan memerlukan tinjauan dan
   konfirmasi, bukan perubahan diagnosis atau bukti belajar otomatis.
 - Akun keluarga dan pengelolaan anak: nama login terlihat, penghapusan profil
@@ -63,7 +63,7 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   tidak mengirim pesan otomatis, dan bukan bukti kepemilikan akun. Reset hanya
   setelah verifikasi independen; bila tidak tersedia, reset ditahan. Pendaftaran
   membuat profil anak pertama tanpa meminta variasi soal; kelas sekolah opsional,
-  lalu mengarahkan orang tua ke **Berikutnya** untuk menyiapkan latihan awal.
+  lalu mengarahkan orang tua ke **Beranda** untuk menyiapkan latihan awal.
   Nilai pertama ditargetkan dalam 48 jam: latihan awal pertama selesai, hasilnya diperiksa
   dan dikonfirmasi, lalu satu langkah lanjutan tampil. Ini baru catatan awal, bukan diagnosis,
   bagian bantuan final, atau klaim penguasaan. Tautan satu sesi dibuat dan langsung disalin dari layar aktif pada browser yang
@@ -74,15 +74,18 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   disimpan sebagai konteks historis, bukan kelas atau ukuran kemampuan. Anak baru
   belum berpartisipasi sampai pemetaan pertama disiapkan; saat itu sistem memakai
   konteks fondasi internal P3 secara atomik, tanpa menebak dari kelas sekolah. Ruang
-  anak memiliki empat tujuan berurutan: **Berikutnya**, **Buat latihan**, **Riwayat**,
+  anak memiliki empat tujuan berurutan: **Beranda**, **Latihan**, **Riwayat**,
   dan **Perkembangan**. URL profil tanpa query serta `?section=rencana` membuka
-  Berikutnya; latihan manual berada di `?section=latihan`, arsip operasional tunggal
+  Beranda; latihan manual berada di `?section=latihan`, arsip operasional tunggal
   di `?section=riwayat`, dan proyeksi bukti di `?section=perkembangan` sebagai satu
   tab dengan tiga bagian (Progres, Materi, Perjalanan) yang dinavigasi lewat
   anchor `#progres`, `#materi`, `#perjalanan`; kelas sekolah hanya tampil sebagai
   badge profil bila metadata opsionalnya terisi. Deep link `/laporan/<id>` lama
   dialihkan ke tab setelah guard kepemilikan; `?section=`/`bagian=` lama tetap
   didukung sebagai alias anchor.
+  Aksi utama ruang anak memakai teal; label tinjauan Perlu ditinjau, Draf
+  tersimpan, atau ✓ Selesai mengikuti konfirmasi aktif, bukan penguasaan.
+  Konfirmasi yang tidak lagi aktif tetap meminta konfirmasi ulang.
   Ringkasan aktivitas dapat dilihat lewat preset 7 hari,
   minggu ini, bulan ini, atau rentang tanggal sendiri. Detail paket/aktivasi mengikuti
   kontraknya, bukan keberadaan kode.

@@ -196,7 +196,7 @@ def _perubahan(materi) -> str:
     return f"{arah} {angka} poin persentase"
 
 
-def render_aktivitas(data, tanggal, *, judul='Aktivitas 7 hari terakhir', kontrol='') -> str:
+def render_aktivitas(data, tanggal, *, judul='Aktivitas latihan', kontrol='') -> str:
     kini = data.kini
     kartu = "".join(
         f'<div class="stat"><strong>{nilai}</strong><span>{label}</span>'
@@ -338,14 +338,14 @@ def render_resume(perjalanan, tugas, siswa_id, nama_tipe, nama_topik, tanggal) -
     )
     if rencana.tindakan in {"lanjutkan_sesi", "konfirmasi_hasil"} and rencana.sesi_id:
         tujuan = f'/sesi/{int(rencana.sesi_id)}'
-        label = "Lanjutkan latihan" if rencana.tindakan == "lanjutkan_sesi" else "Tinjau hasil latihan"
+        label = "Lanjutkan latihan" if rencana.tindakan == "lanjutkan_sesi" else "Tinjau"
     else:
         tujuan = f'/anak/{int(siswa_id)}?section=rencana#judul-rencana-belajar'
-        label = "Buka langkah berikutnya"
+        label = "Buka Beranda"
     return (
         '<section class="kartu-st laporan-resume" id="rencana-belajar-laporan" aria-labelledby="judul-resume">'
         '<div class="kartu-st ringkasan-laporan">'
-        '<h2 id="judul-resume">Langkah berikutnya</h2>'
+        '<h2 id="judul-resume">Yang perlu dilakukan sekarang</h2>'
         f'{materi_html}<p class="resume-langkah">{_langkah(perjalanan, tanggal)}</p>'
         f'<a class="tombol aksi-rencana-laporan" href="{tujuan}">{label}</a>'
         '<div class="resume-konteks"><section><h3>Posisi belajar saat ini</h3>'

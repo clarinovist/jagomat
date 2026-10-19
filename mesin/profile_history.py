@@ -13,8 +13,8 @@ from topics import daftar_topik
 PER_HALAMAN = 20
 TINJAUAN = (
     ('semua', 'Semua status'), ('belum_dikirim', 'Belum dikirim'),
-    ('belum_ditinjau', 'Belum ditinjau'), ('dibuka', 'Sudah dibuka'),
-    ('draf', 'Draf tinjauan'), ('dikonfirmasi', 'Hasil dikonfirmasi'),
+    ('belum_ditinjau', 'Perlu ditinjau · belum dibuka'), ('dibuka', 'Perlu ditinjau · sudah dibuka'),
+    ('draf', 'Draf tersimpan'), ('dikonfirmasi', 'Selesai'),
     ('ulang', 'Perlu konfirmasi ulang'), ('dibatalkan', 'Dibatalkan'),
 )
 

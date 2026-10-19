@@ -155,7 +155,7 @@ def test_materi_baru_dan_unknown_state_dijelaskan_konservatif():
 def test_semua_action_rencana_punya_label_atau_fallback_tanpa_raw_state(tindakan):
     rencana = RencanaBelajar(tindakan, "alasan-rahasia")
     teks, html = _teks(PerjalananBelajar(rencana))
-    assert "Langkah berikutnya" in teks
+    assert "Yang perlu dilakukan sekarang" in teks
     assert "alasan-rahasia" not in html
     if "_" in tindakan or tindakan == "tidak_dikenal":
         assert tindakan not in html

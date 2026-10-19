@@ -464,7 +464,7 @@ def konten_laporan(kon, siswa_id: int, query: str = "", section: str = "ringkasa
         perjalanan = perjalanan_belajar(bukti, siswa_id)
         bukti_materi = lengkapi_bukti_materi(kon, bukti)
         peta_target = peta_penguasaan(bukti_materi, siswa_id)
-        periode, mulai, akhir, judul_aktivitas = _periode_aktivitas(parameter)
+        periode, mulai, akhir, _ = _periode_aktivitas(parameter)
         statistik = statistik_laporan(kon, siswa_id, mulai=mulai, akhir=akhir)
         materi = parameter.get('materi', '')
         if not materi and rincian in {'konteks', 'kriteria', 'catatan'} and peta_target.target:
@@ -481,7 +481,7 @@ def konten_laporan(kon, siswa_id: int, query: str = "", section: str = "ringkasa
             .replace('aria-labelledby="judul-peta"', 'aria-labelledby="judul-peta-ringkas"'))
         isi += peta_ringkas
         isi += render_aktivitas(
-            statistik, _tanggal_pendek, judul=judul_aktivitas,
+            statistik, _tanggal_pendek, judul="Aktivitas latihan",
             kontrol=_kontrol_periode_aktivitas(siswa_id, periode, mulai, akhir),
         )
         isi += '</div>'

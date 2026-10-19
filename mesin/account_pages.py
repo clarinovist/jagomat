@@ -539,8 +539,8 @@ def proses_akun(
             return "", str(e)
         return (
             f"Anak {nama} ditambahkan ({learning_profile.label_kelas_sekolah(kelas)}) "
-            f"beserta akun loginnya. Kembali ke Beranda, buka profil {nama}, "
-            f"lalu ikuti langkah di Berikutnya untuk menyiapkan latihan awal. "
+            f"beserta akun loginnya. Kembali ke daftar anak, buka profil {nama}, "
+            f"lalu ikuti langkah di Beranda untuk menyiapkan latihan awal. "
             f"Anak masuk lewat /murid dengan nama login {nama_akun}.",
             "",
         )

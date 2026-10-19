@@ -58,7 +58,7 @@ def test_http_pilih_buat_cetak_tinjau_konfirmasi(server):
     kode,body,_=s.minta('/anak/%d?section=rencana'%siswa,auth=('guru',SANDI_GURU))
     assert kode==200
     teks=body.decode() if isinstance(body,bytes) else body
-    assert 'Perkembangan keterampilan terarah' in teks and 'Masih dipelajari' in teks
+    assert 'Perkembangan keterampilan terarah' in teks and 'Sedang dipelajari' in teks
     for label_lama in ('Tuntutan pilot', 'Bukti per tuntutan pilot', 'pilot opsional'):
         assert label_lama not in teks
     assert 'pilot' not in _teks_tampil(teks).lower()
@@ -118,7 +118,7 @@ def test_pemulihan_http_owner_checkbox_dan_status_terpisah(server,pengguna,monke
     with s.buka() as kon: assert tuple(kon.iterdump())==sebelum
     kode,body,_=s.minta('/anak/%d?section=rencana'%siswa,auth=('guru',SANDI_GURU))
     assert kode==200 and 'Tinjau ulang sumber latihan terarah' in body
-    assert 'Menunjukkan pemahaman' in body and 'Perlu cek kembali' in body
+    assert 'Menunjukkan pemahaman' in body and 'Perlu dicek kembali' in body
     assert body.count('class="rencana-cta-utama-st"')==1
     assert 'name="konfirmasi_pemulihan"' in body and 'return confirm(' in body
     for sid in sesi[:1]: assert 'href="/sesi/%d"'%sid in body

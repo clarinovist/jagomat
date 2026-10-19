@@ -139,7 +139,7 @@ def test_tambah_anak_tidak_mengklaim_receipt_checkbox_lama(siap):
             persetujuan_ortu='1'), 'guru')
     assert not galat
     assert 'persetujuan orang tua dicatat' not in pesan
-    assert 'Berikutnya' in pesan
+    assert 'Beranda' in pesan
 
 
 def test_enhancement_hanya_lokal_dan_fallback_native(siap):

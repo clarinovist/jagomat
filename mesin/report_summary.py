@@ -139,7 +139,7 @@ def render_ringkasan(
         f'{_terlihat(perjalanan, nama_tipe)}</section>'
         '<section class="bagian-ringkasan-laporan"><h3>Yang masih perlu diperiksa</h3>'
         f'{_perlu_diperiksa(perjalanan, nama_tipe)}</section>'
-        '<section class="bagian-ringkasan-laporan"><h3>Langkah berikutnya</h3>'
+        '<section class="bagian-ringkasan-laporan"><h3>Yang perlu dilakukan sekarang</h3>'
         f'<p>{_langkah(perjalanan, tanggal)}</p></section>'
         '<p class="sumber-ringkasan-laporan">Dasar ringkasan: '
         '<a href="#perjalanan-belajar">perjalanan dan status catatan hasil</a>.</p>'

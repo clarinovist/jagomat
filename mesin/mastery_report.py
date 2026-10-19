@@ -14,8 +14,8 @@ from question_context import label_profil_parameter as label_kelas
 
 STATUS = (
     ("terbukti", "Menunjukkan pemahaman", T.AKSEN_TEAL_TUA),
-    ("dipelajari", "Masih dipelajari", T.STATUS_LEMAH),
-    ("perlu_cek", "Perlu cek kembali", T.STATUS_SALAH),
+    ("dipelajari", "Sedang dipelajari", T.STATUS_LEMAH),
+    ("perlu_cek", "Perlu dicek kembali", T.STATUS_SALAH),
     ("belum_dinilai", "Belum dinilai", T.BORDER_HALUS),
 )
 LABEL = {kode: nama for kode, nama, _ in STATUS}
@@ -142,7 +142,7 @@ def render_peta(
     if peta.level == '':
         return ('<section class="kartu-st peta-materi-st" id="peta-penguasaan">'
                 '<h2>Progres penguasaan materi Jagomat</h2>'
-                '<p>Latihan awal belum disiapkan. Buka tab Langkah berikutnya; '
+                '<p>Latihan awal belum disiapkan. Buka tab Beranda; '
                 'Jagomat akan memakai cakupan fondasi internal. Latihan manual tetap tersedia.</p></section>')
     if not peta.target:
         return ('<section class="kartu-st peta-materi-st" id="peta-penguasaan">'
@@ -184,7 +184,7 @@ def render_peta(
         f'· {sudah_dinilai}/{total} target dinilai atau diperiksa.</p>'
         '<p class="peta-catatan">Belum dinilai bukan berarti tidak mampu. '
         'Cakupan konteks soal internal ini, bukan kemampuan global atau nilai seluruh kurikulum sekolah.</p>'
-        '<details class="rincian-ui-st"><summary>Cara membaca progres</summary>'
+        '<details class="rincian-ui-st"><summary>Cara membaca progres ini</summary>'
         '<p class="peta-catatan">Cakupan target pada konteks soal internal ini, bukan kelas sekolah '
         'atau kemampuan global. Rincian historis tersedia di Bukti per konteks.</p>'
         '<p class="peta-catatan">Semua pola perlu bukti terkonfirmasi dan anak bisa menjelaskan; '
@@ -200,7 +200,7 @@ def render_kriteria(*, isi_saja=False):
         'bukan sekadar banyak latihan atau jawaban benar sekali.</li>'
         '<li>Latihan awal diperiksa pada tanggal berbeda atau melalui pemeriksaan terpandu. '
         'Catatan yang perlu diperbarui ditandai cek kembali.</li>'
-        '<li>Mulai dari latihan awal pada Berikutnya. Latihan biasa hanya ikut '
+        '<li>Mulai dari latihan awal pada Beranda. Latihan tambahan hanya ikut '
         'menentukan langkah bila hasil dikonfirmasi dan dipilih untuk pemeriksaan awal.</li></ul>'
         f'<p class="peta-catatan">Katalog {VERSI_KATALOG}; tiap target berbobot sama. '
         'Status tidak berarti penguasaan permanen.</p>'

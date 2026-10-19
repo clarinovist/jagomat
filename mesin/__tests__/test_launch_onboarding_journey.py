@@ -98,7 +98,7 @@ def _jalan(server, viewport, nomor):
 
     kode, ruang, _ = server.minta(header["Location"], auth=login)
     assert kode == 200
-    assert "Langkah berikutnya" in ruang
+    assert "Yang perlu dilakukan sekarang" in ruang
     assert "Mulai dengan latihan awal" in ruang
     assert "Perkiraan sekitar 45 menit" in ruang
     assert "Jagomat menampilkan catatan awal setelah hasil diperiksa" not in ruang

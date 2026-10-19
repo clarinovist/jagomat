@@ -100,7 +100,7 @@ def test_daftar_langsung_ke_langkah_berikutnya_anak(server):
     token = tajuk["Set-Cookie"].split(";", 1)[0].split("=", 1)[1]
     kode_profil, profil, _ = _minta(server, tajuk["Location"], token=token)
     assert kode_profil == 200
-    assert "Langkah berikutnya" in profil and "Siapkan latihan awal" in profil
+    assert "Yang perlu dilakukan sekarang" in profil and "Siapkan latihan awal" in profil
 
 
 def test_gagal_login_tidak_menerbitkan_kuki(server):

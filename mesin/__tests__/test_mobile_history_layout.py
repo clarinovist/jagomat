@@ -102,7 +102,7 @@ def test_metadata_dan_status_tidak_dibuang_demi_ringkas(db):
     assert 'Latihan bebas' in baris and 'Variasi A' in baris and 'Mode Diagnosa' in baris
     assert 'Sesi #' in baris and 'Belum Dikerjakan' in baris and 'Menunggu pengiriman' in baris
     assert baris.count('class="riwayat-buka-st"')==1
-    assert any(label in baris for label in ('>Buka sesi ', '>Mulai mengerjakan ', '>Lanjutkan mengerjakan ', '>Periksa sekarang '))
+    assert any(label in baris for label in ('>Lihat ', '>Mulai mengerjakan ', '>Lanjutkan mengerjakan ', '>Tinjau ', '>Lanjutkan '))
     assert '<span aria-hidden="true">→</span></a>' in baris
     assert 'riwayat-tagbar-st' in baris
     assert '<summary>Kelola tautan</summary>' in baris
@@ -197,7 +197,7 @@ def test_form_ramping_tanggal_masuk_lanjutan(db):
 def test_pil_nol_disembunyikan_kecuali_aktif(db):
     isi = render(db)
     assert 'Belum dikirim (41)' in isi
-    assert 'Draf tinjauan' not in isi and '(0)' not in isi.split('riwayat-pilbar-st', 1)[1].split('</div>', 1)[0]
+    assert 'Draf tersimpan' not in isi and '(0)' not in isi.split('riwayat-pilbar-st', 1)[1].split('</div>', 1)[0]
     isi = render(db, 'section=riwayat&tinjauan=dibatalkan')
     assert 'Dibatalkan' in isi
     assert 'Tidak ada sesi yang cocok' in isi
@@ -209,4 +209,5 @@ def test_riwayat_ringkas_tanpa_kartu_statistik_atau_klaim_penguasaan(db):
     assert 'Rata-rata benar terkirim' not in isi
     assert 'Hari beruntun latihan' not in isi
     assert '<div class="riwayat-toolbar-st"><p><strong>41 sesi</strong>' in isi
-    assert 'Status pengerjaan dan tinjauan bukan penilaian penguasaan materi.' in isi
+    assert 'Selesai berarti hasil sudah ditinjau dan dikonfirmasi.' in isi
+    assert isi.count('Ini bukan nilai penguasaan materi.') == 1

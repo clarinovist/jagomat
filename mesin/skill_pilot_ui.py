@@ -8,7 +8,7 @@ from skill_pilot_materials import pilihan_materi
 from skill_pilot_service import keadaan, revisi
 
 LABEL={'terbukti':'Menunjukkan pemahaman','belum_dinilai':'Belum dinilai',
-       'dipelajari':'Masih dipelajari','perlu_cek':'Perlu cek kembali'}
+       'dipelajari':'Sedang dipelajari','perlu_cek':'Perlu dicek kembali'}
 JUDUL={'pulihkan_sumber':'Tinjau ulang sumber latihan terarah','pemetaan':'Periksa pemahaman dengan soal baru','intervensi':'Pelajari konsep bersama',
        'pengenalan':'Kenalkan tugas ini bersama','lanjutkan_sesi':'Lanjutkan sesi pendampingan',
        'konfirmasi_hasil':'Tinjau dan konfirmasi hasil','latihan_terbimbing':'Coba dengan pendampingan',

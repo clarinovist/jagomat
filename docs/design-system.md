@@ -98,6 +98,12 @@ tidak dibesarkan secara global; override HP lama yang membesarkan judul dibuang.
 
 ### Ruang orang tua dan Pendamping
 
+Ruang profil anak (Beranda, Latihan, Riwayat, Perkembangan) memakai
+`AKSEN_TEAL_TUA` / `AKSEN_TEAL_HOVER` untuk aksi utama, bukan coral. Override
+terbatas `.profil-workspace-st`; layar pengerjaan, tinjauan sesi, dan aksi destruktif
+tidak berubah. Badge Draf tersimpan memakai permukaan biru muda; ✓ Selesai memakai
+`KODE_BENAR_BG` / `KODE_BENAR_TEKS` dan berarti konfirmasi aktif, bukan penguasaan.
+
 Header Stitch mengelompokkan peran dan nama akun dalam satu menu native; pemicu
 Pendamping memakai slot kanan saat panel tertutup. Kartu tindak lanjut menyatukan
 judul/status, metadata dan aksi; rincian topik serta pengelolaan tautan aktif

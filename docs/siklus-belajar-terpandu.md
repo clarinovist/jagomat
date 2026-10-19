@@ -270,41 +270,47 @@ keputusan pedagogis atau koreksi data anak saat verifikasi deploy.
 
 ## 10. Permukaan pengguna
 
-Profil anak memakai empat tujuan utama yang sejajar: **Berikutnya** (halaman
-awal dan route internal `?section=rencana`), **Buat latihan** (`?section=latihan`),
-**Riwayat**, dan **Perkembangan** (`/laporan/<id>`). Pendaftaran profil pertama dan
-kartu beranda membuka Berikutnya; latihan manual tetap dapat dibuka kapan saja.
-Berikutnya menampilkan satu CTA reducer utama dan maksimal tiga tugas sekunder.
+Profil anak memakai empat tujuan utama yang sejajar: **Beranda** (halaman
+awal dan route internal `?section=rencana`), **Latihan** (`?section=latihan`),
+**Riwayat**, dan **Perkembangan** (`?section=perkembangan`; `/laporan/<id>` alias lama).
+Pendaftaran profil pertama dan kartu beranda membuka Beranda; latihan manual tetap
+dapat dibuka kapan saja. Beranda menampilkan satu CTA reducer utama dan maksimal
+tiga tugas sekunder.
 Sesi yang menjadi CTA utama tidak diulang, dan tugas sekunder tidak menampilkan
-alat kelola tautan. Buat latihan hanya memuat latihan biasa, latihan terarah, dan
+alat kelola tautan. Latihan memuat Pilih satu topik, Dari hasil terbaru, dan
 gabungan topik; topik, jumlah, dan CTA terlihat langsung, sedangkan format/mode/
 timer berada dalam Pengaturan lanjutan native. Layar ini menjelaskan bahwa latihan
-tambahan tercatat di Riwayat tetapi tidak otomatis mengubah Langkah berikutnya.
+tambahan tercatat di Riwayat tetapi tidak otomatis mengubah tugas di Beranda.
 Tab rencana selalu tersedia; GET tidak menulis bukti. Sesi manual tidak mengambil
 alih rekomendasi reducer.
 
-Tujuan **Berikutnya** menampilkan satu kartu ringkas dengan progres, instruksi,
-perkiraan waktu, kapan kembali, dan satu CTA utama bila sah. Metodologi dan batas
-interpretasi panjang berada dalam detail, tetapi instruksi kritis, contoh visual/
+Tujuan **Beranda** menampilkan satu kartu ringkas dengan progres, instruksi,
+perkiraan waktu, tanggal kembali bila tersedia, dan satu CTA utama teal bila sah.
+Label kartu adalah Yang perlu dilakukan sekarang; CTA tinjauan Mulai tinjau.
+Metodologi dan batas interpretasi panjang berada dalam detail, tetapi instruksi kritis, contoh visual/
 terbimbing, beban pemetaan, tanggal tunggu, serta peringatan konfirmasi/eskalasi
 harus tetap langsung terlihat. Bahasa
 orang tua memakai latihan awal, bagian yang perlu dibantu, coba bersama, coba sendiri,
 cek setelah jeda, dan catatan hasil; istilah domain internal tetap pada kode/penyimpanan.
 Progres lengkap dan
-alur umum berada dalam `<details>` tertutup **Detail progres dan alur belajar**.
+alur umum berada dalam `<details>` tertutup **Apa yang terjadi di setiap tahap?**.
+Batas interpretasi berada di **Cara membaca progres ini**.
 Instruksi, contoh terbimbing/visual, beban pemetaan, tanggal menunggu, serta
 peringatan konfirmasi/eskalasi/histori tetap terlihat tanpa membuka detail.
 Label alat sesi **Cetak** mengutamakan lembar soal/kunci; perubahan cerita tetap
 manual dalam `<details>` tambahan. Hasil sukses/gagal tampil di luar disclosure;
 GET tidak memanggil AI dan penguncian penyajian tidak berubah. Tab Riwayat adalah arsip operasional tunggal: 20 sesi per halaman, filter
 tanggal/topik/jenis/tinjauan, status pengerjaan dan tinjauan terpisah, hasil ringkas
-untuk sesi selesai, aksi utama Buka sesi, serta pengelolaan tautan dalam disclosure
-sekunder. Pindah tab atau memfilter tidak menulis bukti maupun mengubah progres.
+untuk sesi terkirim, aksi Tinjau / Lanjutkan / Lihat sesuai status, serta pengelolaan
+tautan dalam disclosure sekunder. Badge Perlu ditinjau / Draf tersimpan / ✓ Selesai
+membedakan tinjauan dan konfirmasi aktif, bukan penguasaan; snapshot invalid tetap
+Perlu konfirmasi ulang. Sesi belum dikirim mempertahankan aksi mulai/lanjut
+mengerjakan. Pindah tab atau memfilter tidak menulis bukti maupun mengubah progres.
 Pendamping tetap pada konteks rencana, latihan, atau sesi/soal; riwayat lengkap tidak
 otomatis dikirim ke layanan AI.
 
 Perkembangan memiliki satu subnavigasi global: **Ringkasan**, **Materi**, dan
-**Perjalanan**. Ringkasan tidak mengulang CTA/tugas Berikutnya; Materi menempatkan
+**Perjalanan**. Ringkasan tidak mengulang CTA/tugas Beranda; Materi menempatkan
 bukti per konteks dan kriteria sebagai rincian materi; Perjalanan memuat histori
 putaran serta Pendampingan orang tua bila relevan. Semua target belum dinilai memakai
 empty state “Belum cukup bukti untuk menilai perkembangan materi”; `0 dari N` hanya
@@ -344,12 +350,12 @@ rekomendasi/fokus siklus existing. Kontrak bukti:
 - Representasi tidak dicampur. Koreksi yang belum dikonfirmasi ulang membutuhkan
   cek kembali, bukan diam-diam memilih keberhasilan lama. Bukti baru yang tidak
   mendukung pemahaman menahan klaim; drill/latihan terbimbing tidak membuat kelemahan.
-- Bukti penguasaan berumur28hari ditandai **perlu cek kembali**; tidak permanen.
+- Bukti penguasaan berumur28hari ditandai **perlu dicek kembali**; tidak permanen.
   Pergantian kelas memulai cakupan bukti kelas aktif yang baru, bukan menghidupkan
   sertifikasi kelas lama saat profil kembali ke kelas tersebut.
 
-Status target: **menunjukkan pemahaman**, **masih dipelajari** (termasuk sebagian pola
-belum diperiksa), **perlu cek kembali**, atau **belum dinilai**. Tanpa catatan bukti,
+Status target: **menunjukkan pemahaman**, **sedang dipelajari** (termasuk sebagian pola
+belum diperiksa), **perlu dicek kembali**, atau **belum dinilai**. Tanpa catatan bukti,
 persentase tampil—dan label belum dinilai; itu bukan ketidakmampuan anak. Bila ada
 bukti sebagian, persentase menunjukkan bagian dari seluruh target yang telah
 terbukti. Grafik komposisi menampilkan semua status; bukan rekonstruksi tren waktu

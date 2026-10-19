@@ -51,7 +51,7 @@ def test_default_dan_navigasi_empat_tujuan_berbasis_maksud(server):
     kode, isi, _ = server.minta(f"/anak/{server.anak}", auth=("guru", SANDI_GURU))
     assert kode == 200
     nav = isi.split('class="profil-tabs-st"', 1)[1].split("</nav>", 1)[0]
-    label = ("Berikutnya", "Buat latihan", "Riwayat", "Perkembangan")
+    label = ("Beranda", "Latihan", "Riwayat", "Perkembangan")
     assert [nav.index(teks) for teks in label] == sorted(nav.index(teks) for teks in label)
     assert f'href="/anak/{server.anak}?section=rencana" aria-current="page"' in nav
     assert "Langkah berikutnya" not in nav and "Laporan perkembangan" not in nav

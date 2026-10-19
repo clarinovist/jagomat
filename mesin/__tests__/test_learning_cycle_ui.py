@@ -89,9 +89,9 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     terlihat = Markup(isi).terlihat()
     assert "latihan 1 dari 3 · 15 soal pada tanggal berbeda" in terlihat
     assert "Instruksi" in isi
-    assert "Kapan kembali" in isi
+    assert "Kapan kembali" not in isi
     assert "Setelah selesai, periksa hasil dan konfirmasikan." in isi
-    for label in ("Instruksi", "Waktu", "Kapan kembali"):
+    for label in ("Instruksi", "Waktu"):
         assert label in terlihat
     assert "Sesudah ini" not in isi
     assert 'class="ringkasan-setelah-st"' not in isi
@@ -100,7 +100,7 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     assert "Setelah selesai, periksa hasil dan konfirmasikan." in terlihat
     assert '<details class="alur-rencana-jelas-st">' in isi
     assert "<summary>" in isi
-    assert "Detail progres dan alur belajar" in isi
+    assert "Apa yang terjadi di setiap tahap?" in isi
     assert "Tahap sekarang: Kenali cara anak" in isi
     kartu = isi.split('<section class="kartu-rencana-st"', 1)[1].split("</section>", 1)[0]
     assert kartu.count("<h2") == 1
@@ -389,7 +389,7 @@ def test_strip_tahap_dan_override_terpandu_terpisah_dari_latihan_bebas(server):
         assert label in kartu
     assert "Checkpoint" not in kartu
     assert '<details class="alur-rencana-jelas-st">' in kartu
-    assert "Detail progres dan alur belajar" in kartu
+    assert "Apa yang terjadi di setiap tahap?" in kartu
     assert "Tahap sekarang: Pelajari" in kartu
     assert 'class="tahap-rencana-st selesai"' not in kartu
     assert kartu.index('class="tindakan-rencana-st"') < kartu.index('class="alur-rencana-jelas-st"')

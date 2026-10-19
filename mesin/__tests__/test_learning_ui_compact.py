@@ -43,14 +43,15 @@ def test_progres_dilipat_tetapi_tindakan_dan_peringatan_tetap_terlihat(tindakan)
     bukti = BuktiSiklus(9, 'P3')
     isi = learning_cycle_ui.render_rencana(rencana, bukti, 9)
     struktur = LetakIsi(isi)
-    assert 'Langkah berikutnya' in isi
-    assert 'Detail progres dan alur belajar' in isi
+    assert 'Yang perlu dilakukan sekarang' in isi
+    assert 'Apa yang terjadi di setiap tahap?' in isi
     progres = learning_cycle_ui._progres(rencana, bukti)
     assert any(progres in t and d > 0 for t, d in struktur.teks)
     assert all('open' not in a for a in struktur.details)
     assert any('Instruksi' in t and d == 0 for t, d in struktur.teks)
     assert any('Waktu' in t and d == 0 for t, d in struktur.teks)
-    assert any('Kapan kembali' in t and d == 0 for t, d in struktur.teks)
+    assert any('Kapan kembali' in t and d == 0 for t, d in struktur.teks) == bool(rencana.tersedia_pada)
+    assert 'Setelah langkah ini selesai.' not in isi
     assert 'Sesudah ini' not in isi
     assert 'class="ringkasan-setelah-st"' not in isi
     if tindakan == 'intervensi':

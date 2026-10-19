@@ -53,6 +53,6 @@ def test_operasi_pilot_memotret_hari_sekali_tanpa_mutasi(server, monkeypatch, pe
             assert panggilan == []
             assert skill_pilot_ui.kartu(kon, siswa) == harapan
         else:
-            assert 'Masih dipelajari' in skill_pilot_ui.laporan(kon, siswa)
+            assert 'Sedang dipelajari' in skill_pilot_ui.laporan(kon, siswa)
         assert len(panggilan) == 1
         assert tuple(kon.iterdump()) == awal

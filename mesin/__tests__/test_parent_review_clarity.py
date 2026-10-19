@@ -31,15 +31,15 @@ def _render(kon, siswa_id, section='riwayat'):
     ("baru", "Belum Dikerjakan"),
     ("dibuka_belum_kirim", "Belum Dikerjakan"),
     ("sebagian_dibuka", "Sedang Dikerjakan"),
-    ("terkirim", "Belum ditinjau"),
-    ("dibuka", "Sudah dibuka · belum dikonfirmasi"),
-    ("draf", "Draf tinjauan tersimpan · belum dikonfirmasi"),
-    ("dikonfirmasi", "✓ Hasil dikonfirmasi"),
-    ("dikonfirmasi_ulang", "✓ Hasil dikonfirmasi"),
+    ("terkirim", "Perlu ditinjau"),
+    ("dibuka", "Perlu ditinjau"),
+    ("draf", "Draf tersimpan"),
+    ("dikonfirmasi", "✓ Selesai"),
+    ("dikonfirmasi_ulang", "✓ Selesai"),
     ("snapshot_lama", "Perlu konfirmasi ulang"),
     ("diinvalidasi", "Perlu konfirmasi ulang"),
     ("fingerprint_berbeda", "Perlu konfirmasi ulang"),
-    ("stamp_tanpa_snapshot", "Sudah dibuka · belum dikonfirmasi"),
+    ("stamp_tanpa_snapshot", "Perlu ditinjau"),
     ("snapshot_tanpa_stamp", "Perlu konfirmasi ulang"),
     ("batal_terkonfirmasi", "Dibatalkan"),
 ])
@@ -91,6 +91,15 @@ def test_badge_profil_mengikuti_status_hasil_bukan_sekadar_dibuka(db, keadaan, l
             assert badge == label
         assert "Sudah Direview" not in kartu
         assert ("✓" in badge) == (keadaan in {"dikonfirmasi", "dikonfirmasi_ulang"})
+        aksi = (
+            'Lihat' if keadaan in {'dikonfirmasi', 'dikonfirmasi_ulang', 'batal_terkonfirmasi'} else
+            'Lanjutkan' if keadaan == 'draf' else
+            'Lanjutkan mengerjakan' if keadaan == 'sebagian_dibuka' else
+            'Mulai mengerjakan' if keadaan in {'baru', 'dibuka_belum_kirim'} else 'Tinjau'
+        )
+        assert f'aria-label="{aksi} sesi {sesi_id}"' in kartu
+        if keadaan == 'draf':
+            assert 'class="badge-direview draf"' in kartu
         assert "masuk pemetaan" not in kartu
         import profile_history
         filter_status = (
@@ -124,7 +133,7 @@ def test_kartu_menyebut_sesi_rekomendasi_bukan_riwayat_terbaru(db):
         assert f'Sesi #{terpandu} · <time datetime="2026-09-12">12 September 2026</time>' in kartu
         assert f'Sesi #{manual}' not in kartu
         assert '15 September 2026' not in kartu
-        assert f'href="/sesi/{terpandu}">Tinjau hasil</a>' in kartu
+        assert f'href="/sesi/{terpandu}">Mulai tinjau</a>' in kartu
         assert kartu.count('class="rencana-cta-utama-st"') == 1
         assert 'Hasil belum dikonfirmasi.' in kartu
         assert 'Hasil sesi belum dikonfirmasi guru' not in kartu

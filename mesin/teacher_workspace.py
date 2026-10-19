@@ -200,15 +200,13 @@ def _badge_review_status(baris) -> str:
         )
         kelas = "perlu"
         if konfirmasi_aktif:
-            kelas, label = "sudah", "✓ Hasil dikonfirmasi"
+            kelas, label = "sudah", "✓ Selesai"
         elif fingerprint_terakhir is not None:
             label = "Perlu konfirmasi ulang"
         elif _ambil(baris, "ada_tinjauan", False):
-            label = "Draf tinjauan tersimpan · belum dikonfirmasi"
-        elif _ambil(baris, "direview", None) is not None:
-            label = "Sudah dibuka · belum dikonfirmasi"
+            kelas, label = "draf", "Draf tersimpan"
         else:
-            label = "Belum ditinjau"
+            label = "Perlu ditinjau"
     return f'<span class="badge-direview {kelas}">{label}</span>'
 
 def _fmt_durasi(mulai, selesai, dicatat_awal=None, dicatat_akhir=None) -> str:
@@ -474,7 +472,7 @@ def halaman_anak(
     strip_remedial = _form_remedial(
         sasaran,
         int(siswa["id"]),
-        judul="Latihan terarah",
+        judul="Dari hasil terbaru",
         penjelasan=(
             "Pilih yang ingin dilatih. Pilihan yang dicentang adalah rekomendasi "
             "berdasarkan hasil terbaru."
@@ -537,9 +535,9 @@ def halaman_anak(
     # Panel disusun dinamis: strip_remedial kosong kalau anak belum punya
     # kesalahan tercatat. Menyusunnya dari daftar mencegah tab hantu yang
     # menunjuk panel kosong.
-    panel = [("baru", "add_circle", "Latihan biasa", strip_sesi)]
+    panel = [("baru", "add_circle", "Pilih satu topik", strip_sesi)]
     if strip_remedial:
-        panel.append(("ulang", "restart_alt", "Latihan terarah", strip_remedial))
+        panel.append(("ulang", "restart_alt", "Dari hasil terbaru", strip_remedial))
     if strip_gabungan:
         panel.append(("gabungan", "library_add", "Gabungan topik", strip_gabungan))
 
@@ -573,7 +571,7 @@ def halaman_anak(
         )
         batas_manual = (
             '<p class="profil-batas-manual-st">Latihan tambahan tercatat di Riwayat, '
-            'tetapi tidak otomatis mengubah Langkah berikutnya.</p>'
+            'tetapi tidak otomatis mengubah tugas di Beranda.</p>'
         )
         blok_buat_latihan = (
             '<section class="buat-latihan-st">'
@@ -596,7 +594,7 @@ def halaman_anak(
             '<h2 class="st profil-sr-st">Buat latihan</h2>'
             f"{panduan}{strip_sesi}"
             '<p class="profil-batas-manual-st">Latihan tambahan tercatat di Riwayat, '
-            'tetapi tidak otomatis mengubah Langkah berikutnya.</p>'
+            'tetapi tidak otomatis mengubah tugas di Beranda.</p>'
             f'{eksplorasi_opsional}'
             "</section>"
         )

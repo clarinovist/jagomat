@@ -81,7 +81,7 @@ def test_konfirmasi_menuju_hasil_dengan_satu_rekomendasi_dan_koreksi_sekunder(se
     assert "Langkah pertama selesai" in isi
     assert "Latihan awal 1 dari 3 selesai" in isi
     assert "belum cukup untuk menyimpulkan" in isi
-    assert "Langkah berikutnya" in isi
+    assert "Yang perlu dilakukan sekarang" in isi
     assert "Cukup untuk hari ini" in isi
     assert "Lihat rencana berikutnya" not in isi
     assert isi.count('class="kartu-rencana-st"') == 1

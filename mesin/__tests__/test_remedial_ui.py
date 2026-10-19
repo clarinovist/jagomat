@@ -75,7 +75,7 @@ def test_profil_menjelaskan_dan_memilih_fokus_remedial(db):
             kon, siswa, query="section=latihan"
         ).decode()
 
-    assert "Latihan terarah" in halaman
+    assert "Dari hasil terbaru" in halaman
     assert "Pilihan yang dicentang adalah rekomendasi berdasarkan hasil terbaru" in halaman
     panel = halaman.split('<section class="remedial-st">', 1)[1].split("</section>", 1)[0]
     assert "Soal tentang umur" in panel

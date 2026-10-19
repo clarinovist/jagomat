@@ -231,7 +231,7 @@ def _alur_rencana(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
     label_aktif = _LABEL_TAHAP[_indeks_tahap(rencana, bukti)]
     return (
         '<details class="alur-rencana-jelas-st">'
-        '<summary><span>Detail progres dan alur belajar</span>'
+        '<summary><span>Apa yang terjadi di setiap tahap?</span>'
         f'<span class="tahap-aktif-ringkas-st">Tahap sekarang: {html.escape(label_aktif)}</span>'
         '</summary>'
         '<div class="isi-alur-rencana-st">'
@@ -323,14 +323,15 @@ def _ringkasan_langkah(
 ) -> str:
     """Informasi operasional ringkas sebelum satu tindakan utama."""
     kembali = (
-        _tanggal_indonesia(rencana.tersedia_pada)
-        if rencana.tersedia_pada else 'Setelah langkah ini selesai.'
+        '<div><b>Kapan kembali</b><p>'
+        + html.escape(_tanggal_indonesia(rencana.tersedia_pada)) + '</p></div>'
+        if rencana.tersedia_pada else ''
     )
     return (
         '<div class="ringkasan-langkah-st">'
         f'<div class="tindakan-rencana-st"><b>Instruksi</b><p>{html.escape(instruksi)}</p></div>'
         f'<div><b>Waktu</b><p>{html.escape(_waktu(rencana, bukti, tertahan=tertahan))}</p></div>'
-        f'<div><b>Kapan kembali</b><p>{html.escape(kembali)}</p></div>'
+        f'{kembali}'
         '</div>'
     )
 
@@ -384,7 +385,7 @@ def _pengenalan_siap_ditandai(
 
 def _cta(rencana: RencanaBelajar, bukti: BuktiSiklus, siswa_id: int, fokus, materi) -> str:
     if rencana.tindakan in {"lanjutkan_sesi", "konfirmasi_hasil"} and rencana.sesi_id:
-        label = "Lanjutkan sesi" if rencana.tindakan == "lanjutkan_sesi" else "Tinjau hasil"
+        label = "Lanjutkan sesi" if rencana.tindakan == "lanjutkan_sesi" else "Mulai tinjau"
         return f'<a class="rencana-cta-utama-st" href="/sesi/{rencana.sesi_id}">{label}</a>'
     if rencana.tindakan in {"intervensi", "pengenalan"}:
         if rencana.tindakan == "pengenalan":
@@ -475,7 +476,7 @@ def render_rencana(
     if rencana.tindakan == 'pilih_variasi':
         return (
             '<section class="kartu-rencana-st" aria-labelledby="judul-rencana-belajar">'
-            '<p class="label-rencana-st">Langkah berikutnya</p>'
+            '<p class="label-rencana-st">Yang perlu dilakukan sekarang</p>'
             '<h2 class="st" id="judul-rencana-belajar">Mulai dengan latihan awal</h2>'
             '<p class="progres-rencana-st">Latihan awal 0 dari 3 selesai</p>'
             + _ringkasan_langkah(
@@ -485,7 +486,7 @@ def render_rencana(
             + f'<form method="post" action="/siklus/{siswa_id}/buat" class="rencana-form-st">'
             + '<button type="submit" class="rencana-cta-utama-st">Siapkan latihan awal</button>'
             '</form>'
-            + '<details class="alur-rencana-jelas-st"><summary><span>Detail progres dan alur belajar</span>'
+            + '<details class="alur-rencana-jelas-st"><summary><span>Apa yang terjadi di setiap tahap?</span>'
             '<span class="tahap-aktif-ringkas-st">Tahap sekarang: Kenali cara anak</span></summary>'
             '<div class="isi-alur-rencana-st"><p>Latihan awal membantu menentukan bagian yang perlu dibantu; '
             'satu latihan tidak menyimpulkan kemampuan anak. Cakupan fondasi bukan kelas sekolah.</p></div></details>'
@@ -558,7 +559,7 @@ def render_rencana(
         '<section class="kartu-rencana-st" aria-labelledby="judul-rencana-belajar">'
         '<div class="studio-layout-st">'
         '<div class="studio-utama-st">'
-        '<p class="label-rencana-st">Langkah berikutnya</p>'
+        '<p class="label-rencana-st">Yang perlu dilakukan sekarang</p>'
         f'<h2 class="{kelas_judul}" id="judul-rencana-belajar">{html.escape(judul_tampil)}</h2>'
         f'{penanda_judul_lama}{_identitas_sesi(rencana, bukti)}'
         f'<p class="progres-rencana-st">{html.escape(_progres(rencana, bukti))}</p>'
@@ -570,7 +571,7 @@ def render_rencana(
         f'<div class="studio-konteks-st">{_konteks_pemetaan(rencana)}'
         f'{contoh}{catatan_materi}{tanggal}</div>'
         f'{_alur_rencana(rencana, bukti)}'
-        f'<details class="rincian-ui-st batas-rencana-st"><summary>Batas interpretasi</summary>'
+        f'<details class="rincian-ui-st batas-rencana-st"><summary>Cara membaca progres ini</summary>'
         f'<p>{html.escape(_alasan(rencana, fokus))}</p>{catatan_histori}{catatan_mode}</details>'
         '</div>'
         f'{slot_bantuan}'

@@ -91,7 +91,7 @@ def test_filter_aktivitas_preset_dan_rentang_custom_inklusif(db):
         h = reports.halaman_laporan(
             kon, sid, query="periode=custom&mulai=2026-09-01&sampai=2026-09-01"
         ).decode()
-    assert "Aktivitas pada rentang pilihan" in h
+    assert "Aktivitas latihan" in h
     assert "1 Sep 2026" in h
     assert '<a href="/anak/%d?section=perkembangan&amp;periode=7">7 hari</a>' % sid in h
     assert '>Minggu ini</a>' in h and '>Bulan ini</a>' in h
@@ -109,7 +109,7 @@ def test_filter_aktivitas_custom_tidak_sah_kembali_ke_7_hari(db, query):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Periode aman")
         h = reports.halaman_laporan(kon, sid, query=query).decode()
-    assert "Aktivitas 7 hari terakhir" in h
+    assert "Aktivitas latihan" in h
     assert 'aria-current="true">7 hari</a>' in h
     assert 'value="2026-09-01"' not in h
 
@@ -120,7 +120,7 @@ def test_filter_aktivitas_custom_ekstrem_tetap_dapat_dirender(db):
         h = reports.halaman_laporan(
             kon, sid, query="periode=custom&mulai=0001-01-01&sampai=9999-12-31"
         ).decode()
-    assert "Aktivitas 7 hari terakhir" in h
+    assert "Aktivitas latihan" in h
     assert 'aria-current="true">7 hari</a>' in h
 
 
@@ -134,7 +134,7 @@ def test_ringkasan_merayakan_tanpa_kata_teknis(db):
         sid = database.tambah_siswa(kon, "Rara")
         _sesi_dinilai(kon, sid, benar=10, jumlah=10)
         h = reports.halaman_laporan(kon, sid).decode()
-    assert "Aktivitas 7 hari terakhir" in h
+    assert "Aktivitas latihan" in h
     isi = h.split("</style>", 1)[1]
     assert "miskonsepsi" not in isi.lower()
     assert "malrule" not in isi.lower()
@@ -281,7 +281,7 @@ def test_ringkasan_laporan_tidak_memuat_prioritas_atau_materi_internal(db):
     assert "Prioritas latihan" not in utama
     assert "Materi berikutnya untuk dikenalkan" not in utama
     assert 'id="rencana-belajar-laporan"' not in utama
-    assert "Aktivitas 7 hari terakhir" in utama
+    assert "Aktivitas latihan" in utama
     assert tipe_k not in utama
     assert tipe_t not in utama
     assert "_" not in reports._nama_tipe_soal(tipe_k)

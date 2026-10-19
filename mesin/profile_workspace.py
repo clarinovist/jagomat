@@ -26,8 +26,8 @@ def navigasi_profil(siswa_id, total, aktif):
     """Empat tujuan utama ruang anak dengan penanda aktif yang konsisten."""
     del total  # jumlah arsip tersedia di kepala Riwayat, bukan badge navigasi.
     item = (
-        ('rencana', f'/anak/{siswa_id}?section=rencana', 'Berikutnya'),
-        ('latihan', f'/anak/{siswa_id}?section=latihan', 'Buat latihan'),
+        ('rencana', f'/anak/{siswa_id}?section=rencana', 'Beranda'),
+        ('latihan', f'/anak/{siswa_id}?section=latihan', 'Latihan'),
         ('riwayat', f'/anak/{siswa_id}?section=riwayat', 'Riwayat'),
         ('perkembangan', f'/anak/{siswa_id}?section=perkembangan', 'Perkembangan'),
     )
@@ -161,7 +161,7 @@ def _cta_riwayat(r):
         return None
     if r['selesai'] is None:
         return 'Lanjutkan mengerjakan' if r['terisi'] else 'Mulai mengerjakan'
-    return 'Buka sesi'
+    return 'Tinjau'
 
 
 def riwayat(
@@ -259,10 +259,12 @@ def riwayat(
                '<span class="riwayat-tag-st">%s</span></div>') % (
                    _e(label_kelas(r['level'])), _e(mode))
         cta = _cta_riwayat(r)
-        if r['selesai'] is not None and not batal and any(
-                label in tinjauan for label in ('Belum ditinjau', 'Sudah dibuka', 'Draf tinjauan', 'konfirmasi ulang')):
-            cta = 'Periksa sekarang'
-        label_cta = cta if cta else 'Buka sesi'
+        if r['selesai'] is not None and not batal:
+            if '✓ Selesai' in tinjauan:
+                cta = 'Lihat'
+            elif 'Draf tersimpan' in tinjauan:
+                cta = 'Lanjutkan'
+        label_cta = cta if cta else 'Lihat'
         isi.append('<li class="riwayat-kartu-st" data-sesi-id="%d">'
                    '<div class="riwayat-tanggal-blok-st">%s</div><span class="riwayat-rel-st" aria-hidden="true"></span>'
                    '<article class="riwayat-kartu-isi-st"><div class="riwayat-kartu-utama-st">'
@@ -301,12 +303,16 @@ def riwayat(
                  toolbar, paging, ''.join(isi), kaki)
     return ('<section aria-labelledby="judul-riwayat"><div class="kepala-riwayat-st">'
             '<h2 class="st" id="judul-riwayat">Riwayat latihan</h2></div>'
-            '<p class="sub">Status pengerjaan dan tinjauan bukan penilaian penguasaan materi.</p>'
-            + arsip + '</section>')
+            + arsip + '<p class="sub">Selesai berarti hasil sudah ditinjau dan dikonfirmasi. '
+            'Ini bukan nilai penguasaan materi.</p></section>')
 
 
 GAYA_PROFIL = f"""
 /* Ruang kerja profil v2: seluruh selector terbatas ke halaman profil. */
+.profil-workspace-st :is(.st-tombol-coral, .tombol-coral, .rencana-cta-utama-st) {{ background:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_PUTIH}; border-color:{T.AKSEN_TEAL_TUA}; }}
+.profil-workspace-st :is(.st-tombol-coral, .tombol-coral, .rencana-cta-utama-st):hover {{ background:{T.AKSEN_TEAL_HOVER}; border-color:{T.AKSEN_TEAL_HOVER}; }}
+.profil-workspace-st .badge-direview.draf {{ background:{T.LATAR_KARTU_SEKUNDER}; color:{T.TEKS_JUDUL}; }}
+.profil-workspace-st .badge-direview.sudah {{ background:{T.KODE_BENAR_BG}; color:{T.KODE_BENAR_TEKS}; }}
 .profil-workspace-st .pilot-pemulihan-st {{ display:grid; gap:{T.SP_4}; }}
 .profil-workspace-st .pilot-pemulihan-st label {{ display:flex; align-items:flex-start; gap:{T.SP_3}; font-size:1rem; }}
 .profil-workspace-st .pilot-pemulihan-st input[type="checkbox"] {{ flex:none; width:1.25rem; height:1.25rem; margin-top:.2rem; }}
