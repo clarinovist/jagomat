@@ -20,7 +20,7 @@ def test_menu_datar_dua_permukaan_satu_aktif(section):
     for nav in navs:
         assert '<details' not in nav
         assert nav.count('aria-current="page"') == 1
-        assert {href for href in re.findall(r'href="([^"]+)"', nav)} == {href for _, _, href in P.SECTION}
+        assert {href for href in re.findall(r'href="([^"]+)"', nav)} == {href for sid, _, href in P.SECTION if sid != 'perhatian'}
         for label in ('Pengguna', 'Layanan', 'Analitik', 'Sistem'):
             assert '<p class="admin-nav-label">%s</p>' % label in nav
     assert html.count('Tampilan privat · Data operasional') == 1

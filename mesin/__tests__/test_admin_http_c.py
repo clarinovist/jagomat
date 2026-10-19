@@ -193,7 +193,7 @@ def test_ringkasan_hierarki_baca_total_antrean_dan_tanpa_mutasi(server, monkeypa
         sebelum_db = tuple(kon.iterdump())
     kode, isi, header = _minta(server, '/admin', cookie=token)
     assert kode == 200
-    assert 'Antrean keputusan' in isi and '31</strong>' in isi
+    assert 'kategori menunggu keputusan' in isi and '31</strong>' in isi
     assert 'Konfigurasi AI</dt><dd>belum siap' in isi
     assert 'Pembayaran</dt><dd>Tahap nonaktif' in isi
     assert 'Semua normal' not in isi
