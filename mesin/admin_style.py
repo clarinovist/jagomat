@@ -167,6 +167,19 @@ form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"]
 .admin-kartu fieldset {{ min-width: 0; margin: 16px 0; padding: 16px 20px; border: 1px solid {T.ADMIN_BORDER}; border-radius: 12px; }}
 .admin-kartu legend {{ padding: 0 8px; font-weight: 600; }}
 .admin-kartu fieldset.admin-galat {{ border-color: {T.ADMIN_BAHAYA_BORDER}; }}
+.admin-ai-status {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 16px; margin: 0 0 16px; }}
+.admin-ai-status dt {{ font-size: 14px; color: {T.ADMIN_REDUP}; }}
+.admin-ai-status dd {{ margin: 6px 0 0; font-size: 17px; }}
+.admin-ai-pagu {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(14rem,1fr)); gap: 16px; }}
+.admin-ai-pagu label {{ margin: 0; }}
+.admin-ai-grup {{ margin: 0 0 20px; }}
+.admin-kartu fieldset.admin-henti {{ background: {T.ADMIN_PERMUKAAN}; border-color: {T.ADMIN_BAHAYA_BORDER}; color: {T.ADMIN_BAHAYA_TEKS}; }}
+.admin-henti legend {{ color: {T.ADMIN_BAHAYA_TEKS}; }}
+.admin-kartu .admin-henti label:has(input[type=checkbox]) {{ background: {T.ADMIN_BAHAYA_LATAR}; }}
+.admin-ai-tabel .admin-tabel td[data-angka], .admin-ai-tabel .admin-tabel code {{ white-space: nowrap; }}
+.admin-ai-tabel .admin-badge {{ border-radius: 12px; }}
+.admin-ai-simpan {{ display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }}
+.admin-ai-simpan > label {{ flex: 0 1 320px; margin: 0; }}
 ::placeholder {{ color: {T.ADMIN_REDUP}; opacity: 1; }}
 .admin-kartu input[type=checkbox], .admin-kartu input[type=radio] {{ width: 20px; height: 20px; vertical-align: middle; margin-right: 8px; accent-color: {T.ADMIN_AKSEN}; }}
 .admin-kartu label:has(input[type=checkbox]), .admin-kartu label:has(input[type=radio]) {{ min-height: 44px; padding: 10px 12px; background: {T.ADMIN_BANNER_LATAR}; border-radius: 10px; }}
