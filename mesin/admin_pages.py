@@ -34,7 +34,7 @@ SECTION = (
 )
 GRUP_SECTION = (
     ("Pusat kendali", ("ringkasan", "perhatian")),
-    ("Data pengguna", ("keluarga", "siswa")),
+    ("Pengguna", ("keluarga", "siswa")),
     ("Layanan", ("pendaftaran", "langganan")),
     ("Analitik", ("kpi", "riset")),
     ("Sistem", ("operasional", "ai", "riwayat")),
@@ -97,13 +97,9 @@ def _nav(section: str) -> str:
             grup.append('<li class="admin-nav-utama"><ul class="admin-nav-pilihan" '
                         'aria-label="Menu utama">%s</ul></li>' % tautan)
         else:
-            # Grup lipat tanpa JS: dibuka default hanya bila memuat halaman aktif.
-            buka = ' open' if section in daftar_section else ''
-            grup.append('<li class="admin-nav-grup"><details%s>'
-                        '<summary><span class="admin-nav-label">%s</span>'
-                        '<span class="admin-nav-chev" aria-hidden="true">\u203a</span></summary>'
-                        '<ul class="admin-nav-anak" aria-label="%s">%s</ul></details></li>'
-                        % (buka, _e(label_grup), _e(label_grup), tautan))
+            grup.append('<li class="admin-nav-grup"><p class="admin-nav-label">%s</p>'
+                        '<ul class="admin-nav-anak" aria-label="%s">%s</ul></li>'
+                        % (_e(label_grup), _e(label_grup), tautan))
     return '<ul class="admin-nav-daftar">%s</ul>' % "".join(grup)
 
 
@@ -146,16 +142,14 @@ def halaman_admin(
 <a class="admin-brand" href="/admin"><span class="admin-brand-mark" aria-hidden="true">J</span>
 <span><strong>{_e(T.NAMA_PRODUK)}</strong><small>Panel Pengelola</small></span></a>
 <nav class="admin-nav admin-menu" aria-label="Bagian panel pengelola">{_nav(section)}</nav>
-<p class="admin-identitas"><strong>{_e(pengguna)}</strong><span>Akun pengelola</span></p></aside>
+</aside>
 <section class="admin-utama"><header class="admin-topbar">
-<p class="admin-konteks"><strong>Panel privat</strong><span>Data operasional, bukan penilaian anak</span></p>
 <details class="admin-nav-mobile"><summary><span>Menu pengelola</span><strong>{_e(_label_section(section))}</strong></summary>
 <nav class="admin-menu" aria-label="Bagian panel pengelola seluler">{_nav(section)}</nav></details>
 <details class="menu-pengguna"><summary>{_e(pengguna)} <span class="admin-badge">Pengelola</span></summary>
 <div class="menu-isi"><a href="/akun?section=akun">Ganti sandi</a>
 <form method="post" action="/keluar"><button type="submit">Keluar</button></form></div></details></header>
-<header class="admin-kepala"><p class="admin-alis">Pusat kendali</p>
-<h1 id="judul-admin">{_e(judul)}</h1><p class="admin-sub">{_e(subjudul)}</p></header>
+<header class="admin-kepala"><h1 id="judul-admin">{_e(judul)}</h1><p class="admin-sub">{_e(subjudul)}</p></header>
 <main id="konten-admin" aria-labelledby="judul-admin">{isi}</main>
 <footer class="admin-footer">Tampilan privat · Data operasional, bukan penilaian kemampuan anak.</footer>
 </section></div></div>{'<script>' + skrip_sandi + '</script>' if skrip_sandi else ''}</body></html>"""

@@ -103,7 +103,7 @@ def test_frame_enam_menu_privasi_dan_fallback_section():
         "Ringkasan", "Keluarga", "Siswa", "Pendaftaran", "AI", "Riwayat admin"
     ):
         assert label in html
-    for label_grup in ("Data pengguna", "Layanan", "Analitik", "Sistem"):
+    for label_grup in ("Pengguna", "Layanan", "Analitik", "Sistem"):
         assert label_grup in navigasi
     assert 'href="/admin/ai"' in html
     assert '<meta name="robots" content="noindex,nofollow,noarchive">' in html
@@ -193,7 +193,7 @@ def test_ringkasan_fallback_operasi_dan_login_yatim_punya_jalur_valid():
 def test_sidebar_dan_kartu_memakai_design_system_tanpa_js_baru():
     import design_tokens as T
     isi = pages.halaman_admin('ringkasan', '', pengguna='Pengelola Demo').decode()
-    assert 'Pusat kendali' in isi
+    assert 'class="admin-alis">Pusat kendali' not in isi
     assert 'admin-brand-mark' in isi
     assert 'admin-antrean' in admin_style.GAYA_ADMIN
     assert T.FONT_BODY in admin_style.GAYA_ADMIN
@@ -291,7 +291,7 @@ def test_css_scoped_memakai_token_dan_responsif():
     sumber = Path(admin_style.__file__).read_text(encoding="utf-8")
 
     assert "body.admin-readonly" in css
-    assert "@media (max-width: 56rem)" in css
+    assert "@media (max-width: 51.25rem)" in css
     assert "@media (max-width: 32rem)" in css
     assert "min-height: 44px" in css
     assert ":focus-visible" in css
