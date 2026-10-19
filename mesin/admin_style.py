@@ -4,6 +4,83 @@ from form_style import GAYA_SELECT
 
 GAYA_ADMIN = f"""
 {GAYA_SELECT}
+:root {{
+  color-scheme: light;
+  --admin-latar: {T.ADMIN_LATAR_CERAH};
+  --admin-permukaan: {T.ADMIN_PERMUKAAN_CERAH};
+  --admin-border: {T.ADMIN_BORDER_CERAH};
+  --admin-border-kuat: {T.ADMIN_BORDER_KUAT_CERAH};
+  --admin-pemisah: {T.ADMIN_PEMISAH_CERAH};
+  --admin-teks: {T.ADMIN_TEKS_CERAH};
+  --admin-redup: {T.ADMIN_REDUP_CERAH};
+  --admin-chevron-select: {T.TEKS_VARIAN};
+  --admin-aksen: {T.ADMIN_AKSEN_CERAH};
+  --admin-aksen-teks: {T.ADMIN_AKSEN_TEKS_CERAH};
+  --admin-aksen-latar: {T.ADMIN_AKSEN_LATAR_CERAH};
+  --admin-aksen-border: {T.ADMIN_AKSEN_BORDER_CERAH};
+  --admin-baik-latar: {T.ADMIN_BAIK_LATAR_CERAH};
+  --admin-baik-teks: {T.ADMIN_BAIK_TEKS_CERAH};
+  --admin-perhatian-latar: {T.ADMIN_PERHATIAN_LATAR_CERAH};
+  --admin-perhatian-teks: {T.ADMIN_PERHATIAN_TEKS_CERAH};
+  --admin-banner-latar: {T.ADMIN_BANNER_LATAR_CERAH};
+  --admin-banner-border: {T.ADMIN_BANNER_BORDER_CERAH};
+  --admin-banner-teks: {T.ADMIN_BANNER_TEKS_CERAH};
+  --admin-bahaya-latar: {T.ADMIN_BAHAYA_LATAR_CERAH};
+  --admin-bahaya-border: {T.ADMIN_BAHAYA_BORDER_CERAH};
+  --admin-bahaya-teks: {T.ADMIN_BAHAYA_TEKS_CERAH};
+  --admin-bahaya-tombol: {T.ADMIN_BAHAYA_TOMBOL_CERAH};
+  --admin-netral-latar: {T.ADMIN_NETRAL_LATAR_CERAH};
+  --admin-netral-teks: {T.ADMIN_NETRAL_TEKS_CERAH};
+  --admin-hover: {T.ADMIN_HOVER_CERAH};
+  --admin-nav-hover: {T.ADMIN_NAV_HOVER_CERAH};
+  --admin-urgen-titik: {T.ADMIN_URGEN_TITIK_CERAH};
+  --admin-urgen-teks: {T.ADMIN_URGEN_TEKS_CERAH};
+  --admin-aksen-perhatian: {T.ADMIN_AKSEN_PERHATIAN_CERAH};
+  --admin-baik-titik: {T.ADMIN_BAIK_TITIK_CERAH};
+  --admin-netral-titik: {T.ADMIN_NETRAL_TITIK_CERAH};
+}}
+@media screen and (prefers-color-scheme: dark) {{
+  :root {{
+    color-scheme: dark;
+    --admin-latar: {T.ADMIN_LATAR_GELAP};
+    --admin-permukaan: {T.ADMIN_PERMUKAAN_GELAP};
+    --admin-border: {T.ADMIN_BORDER_GELAP};
+    --admin-border-kuat: {T.ADMIN_BORDER_KUAT_GELAP};
+    --admin-pemisah: {T.ADMIN_PEMISAH_GELAP};
+    --admin-teks: {T.ADMIN_TEKS_GELAP};
+    --admin-redup: {T.ADMIN_REDUP_GELAP};
+    --admin-chevron-select: {T.ADMIN_REDUP_GELAP};
+    --admin-aksen: {T.ADMIN_AKSEN_GELAP};
+    --admin-aksen-teks: {T.ADMIN_AKSEN_TEKS_GELAP};
+    --admin-aksen-latar: {T.ADMIN_AKSEN_LATAR_GELAP};
+    --admin-aksen-border: {T.ADMIN_AKSEN_BORDER_GELAP};
+    --admin-baik-latar: {T.ADMIN_BAIK_LATAR_GELAP};
+    --admin-baik-teks: {T.ADMIN_BAIK_TEKS_GELAP};
+    --admin-perhatian-latar: {T.ADMIN_PERHATIAN_LATAR_GELAP};
+    --admin-perhatian-teks: {T.ADMIN_PERHATIAN_TEKS_GELAP};
+    --admin-banner-latar: {T.ADMIN_BANNER_LATAR_GELAP};
+    --admin-banner-border: {T.ADMIN_BANNER_BORDER_GELAP};
+    --admin-banner-teks: {T.ADMIN_BANNER_TEKS_GELAP};
+    --admin-bahaya-latar: {T.ADMIN_BAHAYA_LATAR_GELAP};
+    --admin-bahaya-border: {T.ADMIN_BAHAYA_BORDER_GELAP};
+    --admin-bahaya-teks: {T.ADMIN_BAHAYA_TEKS_GELAP};
+    --admin-bahaya-tombol: {T.ADMIN_BAHAYA_TOMBOL_GELAP};
+    --admin-netral-latar: {T.ADMIN_NETRAL_LATAR_GELAP};
+    --admin-netral-teks: {T.ADMIN_NETRAL_TEKS_GELAP};
+    --admin-hover: {T.ADMIN_HOVER_GELAP};
+    --admin-nav-hover: {T.ADMIN_NAV_HOVER_GELAP};
+    --admin-urgen-titik: {T.ADMIN_URGEN_TITIK_GELAP};
+    --admin-urgen-teks: {T.ADMIN_URGEN_TEKS_GELAP};
+    --admin-aksen-perhatian: {T.ADMIN_AKSEN_PERHATIAN_GELAP};
+    --admin-baik-titik: {T.ADMIN_BAIK_TITIK_GELAP};
+    --admin-netral-titik: {T.ADMIN_NETRAL_TITIK_GELAP};
+  }}
+}}
+select:not([multiple]):not([size]) {{
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--admin-chevron-select) 50%),
+    linear-gradient(135deg, var(--admin-chevron-select) 50%, transparent 50%) !important;
+}}
 * {{ box-sizing: border-box; }}
 html {{ -webkit-text-size-adjust: 100%; }}
 body.admin-readonly {{ margin: 0; background: {T.ADMIN_LATAR}; color: {T.ADMIN_TEKS}; font-family: {T.FONT_BODY}; font-size: {T.ADMIN_UKURAN_ISI}; line-height: 1.6; }}
@@ -364,5 +441,6 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
   .riset-aksi-atas .admin-tautan {{ width: 100%; }}
 }}
 @media (prefers-reduced-motion: reduce) {{ *, *::before, *::after {{ scroll-behavior: auto; animation: none; transition: none; }} }}
+@media (forced-colors: active) {{ select:not([multiple]):not([size]) {{ background-image: none !important; }} }}
 @media print {{ .admin-sidebar, .admin-topbar, .admin-form-cari, .admin-pager {{ display: none; }} .admin-layout {{ display: block; }} }}
 """

@@ -335,6 +335,9 @@ def test_css_scoped_memakai_token_dan_responsif():
     assert "min-height: 44px" in css
     assert ":focus-visible" in css
     assert "overflow-x: auto" in css
+    assert "@media screen and (prefers-color-scheme: dark)" in css
+    assert "color-scheme: dark" in css
+    assert "var(--admin-latar)" in css
     assert "#" not in sumber
     assert "url(" not in css
     assert "@import" not in css

@@ -35,3 +35,10 @@ def test_mode_kontras_paksa_memulihkan_indikator_native():
 def test_gaya_select_terpasang_di_semua_shell_form():
     for gaya in (GAYA_STITCH, GAYA_GURU, GAYA_ADMIN, GAYA_PENDAMPING):
         assert GAYA_SELECT in gaya
+
+
+def test_admin_mewarnai_chevron_select_sesuai_tema():
+    blok = GAYA_ADMIN.split('@media screen and (prefers-color-scheme: dark)', 1)[1]
+    aturan = blok.split('select:not([multiple]):not([size]) {', 1)[1].split('}', 1)[0]
+    assert 'var(--admin-chevron-select)' in aturan
+    assert '--admin-chevron-select: ' + T.ADMIN_REDUP_GELAP in blok
