@@ -19,21 +19,11 @@ class Tautan(HTMLParser):
             self.hrefs.append(dict(attrs).get('href', ''))
 
 
-def test_kategori_bukan_penjumlahan_kondisi_dan_operasi_tidak_dihitung_dua_kali():
-    data = replace(_ringkasan(), perhatian=(Q.HitungPerhatian('student_without_login', 9), Q.HitungPerhatian('owner_without_account', 4)))
-    isi = P.render_ringkasan(data, jumlah_antrean=31, operasi_belum_pasti=20, operasi_tertunda=11)
-    assert '3</strong> kategori' in isi
-    assert '31</strong>' in isi
-    assert isi.index('Mendesak') < isi.index('Penting') < isi.index('Tinjau · Akun siswa')
-    assert 'Umur: —' in isi
-    assert 'Backup belum terverifikasi' not in isi
-
-
 def test_aktivitas_hanya_mengelompokkan_berurutan_dengan_hari_status_sama():
     a = _ringkasan().aktivitas_terbaru[0]
     items = (a, replace(a, sesi_id=8, waktu_aktivitas='2026-09-13 08:00:00'), replace(a, sesi_id=7, dibatalkan=True), replace(a, sesi_id=6, waktu_aktivitas='2026-09-12 09:00:00'))
     isi = P._aktivitas_ringkasan(items)
-    assert isi.count('<li>') == 3
+    assert isi.count('<li class="admin-aktivitas-baris">') == 3
     assert '2 sesi' in isi and 'Dibatalkan' in isi
     for n in (9, 8, 7, 6):
         assert 'href="/sesi/%d"' % n in isi

@@ -35,6 +35,22 @@ def antrean(path,*,halaman=1):
         return tuple(dict(r) for r in rows),total
 
 
+def bukti_backup(sekarang):
+    """Pasangan (label, cutoff) bukti backup; tanpa bundle terinjeksi cutoff None."""
+    if BUNDLE_BACKUP is None:
+        return 'Belum terverifikasi',None
+    import admin_backup
+    try:
+        # Validator tidak memigrasikan, tidak membongkar auth ke DTO/log.
+        b=admin_backup.validasi_bundle(BUNDLE_BACKUP)
+        if b.cutoff > sekarang:
+            raise ValueError('clock backup invalid')
+        label='Bundle valid; perlu rekonsiliasi sebelum restore' if b.perlu_rekonsiliasi else 'Bundle valid'
+        return label,b.cutoff
+    except (OSError,ValueError,RuntimeError,sqlite3.Error):
+        return 'Bukti backup tidak valid',None
+
+
 def ringkasan(path_admin,*,sekarang,runtime=None,kesiapan=None):
     hasil={'admin':'Belum tersedia','pembayaran':'Belum dikonfigurasi',
            'pembayaran_config':None,'pembayaran_kesiapan':dict(kesiapan or {}),
@@ -63,15 +79,5 @@ def ringkasan(path_admin,*,sekarang,runtime=None,kesiapan=None):
             hasil['ai_gagal']=c.execute("SELECT COUNT(*) FROM ledger WHERE dibuat>=? AND status IN ('gagal','tak_pasti')",(sekarang-86400,)).fetchone()[0]
     except (OSError,sqlite3.Error):
         pass
-    if BUNDLE_BACKUP is not None:
-        import admin_backup
-        try:
-            # Validator tidak memigrasikan, tidak membongkar auth ke DTO/log.
-            b=admin_backup.validasi_bundle(BUNDLE_BACKUP)
-            if b.cutoff > sekarang:
-                raise ValueError('clock backup invalid')
-            hasil['backup_cutoff']=b.cutoff
-            hasil['backup']='Bundle valid; perlu rekonsiliasi sebelum restore' if b.perlu_rekonsiliasi else 'Bundle valid'
-        except (OSError,ValueError,RuntimeError,sqlite3.Error):
-            hasil['backup']='Bukti backup tidak valid'
+    hasil['backup'],hasil['backup_cutoff']=bukti_backup(sekarang)
     return hasil

@@ -423,6 +423,12 @@ def _cari(nilai: str) -> str:
     return nilai.strip()
 
 
+def status_per_siswa(konteks: KonteksAdmin):
+    """Pasangan (identitas, kode status) tiap siswa dari snapshot; tanpa I/O."""
+    indeks = _buat_indeks(konteks)
+    return tuple((s, _status_siswa(s, indeks)[0]) for s in konteks.siswa)
+
+
 def ringkasan_admin(
     kon,
     konteks: KonteksAdmin,

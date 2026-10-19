@@ -7,12 +7,16 @@ import html
 import os
 import secrets
 import sqlite3
+import time
 import urllib.parse
 from pathlib import Path
 
 import admin_accounts
+import admin_antrean
+import admin_antrean_pages
 import admin_bulk
 import admin_bulk_http
+import admin_labels
 import admin_upload
 import admin_pages
 import admin_queries
@@ -258,11 +262,22 @@ def _konteks(kon):
     return admin_queries.buat_konteks(kon, auth.muat_akun())
 
 
-def _halaman_admin(principal, section, isi, *, skrip=False, judul=None, subjudul=None):
+def sinyal_nav():
+    """Penanda sidebar dari antrean yang sama dengan Ringkasan; gagal berarti tanpa penanda."""
+    try:
+        with database.buka() as kon:
+            antrean = admin_antrean.kumpulkan(_konteks(kon), _path_admin(), sekarang=time.time())
+    except (admin_store.StoreBelumSiap, sqlite3.Error, OSError, RuntimeError, ValueError):
+        return None
+    return admin_antrean_pages.sinyal_dari(antrean)
+
+
+def _halaman_admin(principal, section, isi, *, skrip=False, judul=None, subjudul=None, sinyal=None):
     return admin_pages.halaman_admin(
         section, isi, pengguna=principal.pengguna, judul=judul,
         subjudul=subjudul,
         skrip_sandi=(SKRIP_MATA_SANDI + admin_pages.SKRIP_KONFIRMASI_LOGIN) if skrip else "",
+        sinyal=sinyal_nav() if sinyal is None else sinyal,
     )
 
 
@@ -274,6 +289,7 @@ def _render_get(penangan, principal, query):
     if section not in _SECTION:
         section = "ringkasan"
     halaman = _angka(query.get("halaman"), 1)
+    sinyal = subjudul = None
     with database.buka() as kon:
         konteks = _konteks(kon)
         if section == "ringkasan":
@@ -283,29 +299,34 @@ def _render_get(penangan, principal, query):
             except admin_store.StoreBelumSiap:
                 teks_registrasi = "belum tersedia"
             status_ai = "siap" if __import__("ai_service").siap() else "belum siap"
+            antrean = admin_antrean.kumpulkan(konteks, _path_admin(), sekarang=time.time())
             ringkas_layanan = {
-                "Pendaftaran": teks_registrasi,
-                "Konfigurasi AI": status_ai,
-                "Pembayaran": "belum tersedia",
-                "Bukti backup": "Lihat pemeriksaan operasional",
+                "Pendaftaran": (teks_registrasi, "baik" if teks_registrasi == "dibuka" else "netral"),
+                "Konfigurasi AI": (status_ai, "baik" if status_ai == "siap" else "netral"),
+                "Pembayaran": ("belum tersedia", "netral"),
+                "Backup": (
+                    ("terverifikasi", "baik") if antrean.backup_terverifikasi else
+                    ("bukti tidak valid" if antrean.bukti_backup == "Bukti backup tidak valid"
+                     else "belum terverifikasi", "perhatian")
+                ),
             }
-            belum_pasti = tertunda = 0
-            jumlah_antrean = None
             try:
-                belum_pasti = admin_store.daftar_riwayat(_path_admin(), status='uncertain', per_halaman=1).total
-                tertunda = admin_store.daftar_riwayat(_path_admin(), status='reserved', per_halaman=1).total
-                import admin_operations
                 import admin_launch_service
-                _baris, jumlah_antrean = admin_operations.antrean(_path_admin())
                 with admin_store.buka_baca(_path_admin()) as layanan:
                     konfigurasi = admin_launch_service.konfigurasi_pembayaran(layanan)
-                ringkas_layanan["Pembayaran"] = "Tahap " + konfigurasi["tahap"] if konfigurasi else "belum tersedia"
+                if konfigurasi:
+                    ringkas_layanan["Pembayaran"] = ("Tahap " + konfigurasi["tahap"], "netral")
             except admin_store.StoreBelumSiap:
-                pass  # Sumber hilang tetap dibedakan dari antrean kosong.
+                pass  # Sumber hilang tetap dibedakan dari konfigurasi kosong.
+            sinyal = admin_antrean_pages.sinyal_dari(antrean)
+            subjudul = "%s · %s" % (
+                admin_labels.hari_ini(),
+                "%d hal menunggu keputusan" % antrean.total if antrean.total
+                else "tidak ada hal yang menunggu keputusan",
+            )
             isi = admin_pages.render_ringkasan(
                 admin_queries.ringkasan_admin(kon, konteks),
-                status_layanan=ringkas_layanan, jumlah_antrean=jumlah_antrean,
-                operasi_belum_pasti=belum_pasti, operasi_tertunda=tertunda,
+                status_layanan=ringkas_layanan, antrean=antrean,
             )
         elif section == "keluarga":
             if query.get("id"):
@@ -422,7 +443,11 @@ def _render_get(penangan, principal, query):
             else:
                 raise ValueError("Sumber tidak dikenal.")
     skrip = principal.metode == "cookie" and section in ("keluarga", "pendaftaran")
-    _kirim_privat(penangan, _halaman_admin(principal, section, isi, skrip=skrip), skrip=skrip)
+    _kirim_privat(
+        penangan,
+        _halaman_admin(principal, section, isi, skrip=skrip, subjudul=subjudul, sinyal=sinyal),
+        skrip=skrip,
+    )
 
 
 def tangani_get(penangan, jalur):

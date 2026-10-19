@@ -110,6 +110,6 @@ def test_student_delete_crash_sesudah_login_tidak_menyebut_sukses_replay_reconci
     with server.buka() as kon:
         assert kon.execute('SELECT 1 FROM siswa WHERE id=?', (server.siswa_c,)).fetchone()
     kode, ringkas, _ = _minta(server, '/admin', cookie=admin)
-    assert kode == 200 and 'Operasi perlu diperiksa' in ringkas and '1 belum pasti' in ringkas
+    assert kode == 200 and 'Tindakan admin belum pasti' in ringkas and 'admin-urgensi-mendesak' in ringkas
     monkeypatch.setattr(admin_service, 'hapus_siswa', asli)
     assert _minta(server, '/admin/siswa', cookie=admin, data=data)[0] == 303

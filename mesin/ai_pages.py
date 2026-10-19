@@ -23,7 +23,7 @@ def _uang(micro, presisi=2):
 
 
 def halaman(path, *, pengguna, csrf, pesan="", galat="",
-            tinjauan_pengaturan="", tinjauan_uji=""):
+            tinjauan_pengaturan="", tinjauan_uji="", sinyal=None):
     with ai_store.buka(path) as kon:
         utama, batas = ai_store.konfigurasi(kon)
         pakai = ai_store.ringkasan(kon)
@@ -107,5 +107,5 @@ def halaman(path, *, pengguna, csrf, pesan="", galat="",
     return admin_pages.halaman_admin(
         "ai", isi, pengguna=pengguna, judul="Pengaturan AI",
         subjudul="Kesiapan, batas biaya, dan pemakaian panggilan Jagomat.",
-        skrip_sandi=SKRIP_MATA_SANDI,
+        skrip_sandi=SKRIP_MATA_SANDI, sinyal=sinyal,
     )

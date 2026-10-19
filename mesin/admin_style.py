@@ -17,14 +17,20 @@ button, summary {{ cursor: pointer; }}
 .admin-bungkus {{ width: 100%; min-height: 100vh; }}
 .admin-layout {{ display: grid; grid-template-columns: {T.ADMIN_SIDEBAR} minmax(0,1fr); min-height: 100vh; }}
 .admin-sidebar {{ position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 20px 16px; background: {T.ADMIN_PERMUKAAN}; border-right: 1px solid {T.ADMIN_BORDER}; }}
-.admin-brand {{ display: flex; gap: 12px; align-items: center; padding: 0 4px 24px; color: {T.ADMIN_TEKS}; text-decoration: none; }}
+.admin-brand {{ display: flex; gap: 12px; align-items: center; padding: 0 4px 20px; line-height: normal; color: {T.ADMIN_TEKS}; text-decoration: none; }}
 .admin-brand strong {{ display: block; font-size: 16px; }}
 .admin-brand small {{ display: block; color: {T.ADMIN_REDUP}; font-size: 13px; }}
 .admin-brand-mark {{ display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 12px; background: {T.ADMIN_AKSEN}; color: {T.ADMIN_PERMUKAAN}; font-weight: 700; font-size: 18px; }}
 .admin-nav-daftar, .admin-nav-pilihan, .admin-nav-anak {{ list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }}
 .admin-nav-daftar {{ gap: 18px; }}
-.admin-nav-label {{ margin: 0; padding: 0 12px 6px; color: {T.ADMIN_REDUP}; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }}
-.admin-menu a {{ display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border-radius: {T.ADMIN_RADIUS_KONTROL}; color: {T.ADMIN_TEKS}; text-decoration: none; font-weight: 500; }}
+.admin-nav-label {{ margin: 0; padding: 0 12px 6px; line-height: normal; color: {T.ADMIN_REDUP}; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }}
+.admin-menu a {{ display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 8px 12px; border-radius: {T.ADMIN_RADIUS_KONTROL}; color: {T.ADMIN_TEKS}; text-decoration: none; font-size: {T.ADMIN_UKURAN_ISI}; font-weight: 500; }}
+.admin-menu a svg {{ flex: none; color: {T.ADMIN_REDUP}; }}
+.admin-menu a[aria-current="page"] svg {{ color: {T.ADMIN_AKSEN_TEKS}; }}
+.admin-nav-label-menu {{ flex: 1; min-width: 0; }}
+.admin-nav-badge {{ background: {T.ADMIN_AKSEN_PERHATIAN}; color: {T.ADMIN_PERMUKAAN}; font-size: 12px; font-weight: 700; line-height: 1.25; border-radius: 999px; padding: 2px 8px; }}
+.admin-nav-titik {{ width: 8px; height: 8px; border-radius: 50%; background: {T.ADMIN_AKSEN_PERHATIAN}; flex: none; }}
+.admin-sr {{ position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }}
 .admin-menu a:hover {{ background: {T.ADMIN_NAV_HOVER}; }}
 .admin-menu a[aria-current="page"] {{ color: {T.ADMIN_AKSEN_TEKS}; background: {T.ADMIN_AKSEN_LATAR}; font-weight: 600; }}
 .admin-utama {{ min-width: 0; width: 100%; max-width: 100rem; margin: 0 auto; padding: 28px 40px 48px; }}
@@ -36,12 +42,14 @@ button, summary {{ cursor: pointer; }}
 .menu-isi button {{ border: 1px solid {T.ADMIN_BORDER_KUAT}; background: {T.ADMIN_PERMUKAAN}; border-radius: 10px; }}
 .admin-nav-mobile {{ display: none; }}
 .admin-nav-mobile > summary {{ min-height: 44px; padding: 8px 12px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 10px; background: {T.ADMIN_PERMUKAAN}; }}
-.admin-nav-mobile > summary span {{ color: {T.ADMIN_REDUP}; margin-right: 8px; }}
+.admin-nav-mobile > summary {{ display: flex; align-items: center; gap: 8px; }}
+.admin-nav-mobile > summary span:not(.admin-nav-badge):not(.admin-sr) {{ color: {T.ADMIN_REDUP}; }}
+.admin-nav-mobile > summary .admin-nav-badge {{ margin-left: auto; }}
 .admin-nav-mobile > nav {{ position: absolute; left: 0; z-index: 10; width: min(28rem, calc(100vw - 32px)); margin-top: 8px; padding: 20px; border: 1px solid {T.ADMIN_BORDER}; border-radius: 12px; background: {T.ADMIN_PERMUKAAN}; max-height: calc(100vh - 8rem); max-height: calc(100dvh - 8rem); overflow-y: auto; overscroll-behavior: contain; }}
 .admin-kepala {{ margin-bottom: 28px; }}
 .admin-utama h1, .admin-utama h2, .admin-utama h3 {{ font-family: {T.FONT_HEADLINE}; line-height: 1.3; color: {T.ADMIN_TEKS}; }}
-.admin-kepala h1 {{ margin: 0 0 6px; font-size: {T.ADMIN_UKURAN_JUDUL}; font-weight: 700; letter-spacing: -.01em; }}
-.admin-sub {{ margin: 0; color: {T.ADMIN_REDUP}; }}
+.admin-kepala h1 {{ margin: 0 0 4px; line-height: 1.2; font-size: {T.ADMIN_UKURAN_JUDUL}; font-weight: 700; letter-spacing: -.01em; }}
+.admin-sub {{ margin: 0; color: {T.ADMIN_REDUP}; font-size: 15px; }}
 .admin-utama main {{ min-width: 0; overflow-wrap: anywhere; }}
 .admin-kartu, .admin-stat {{ background: {T.ADMIN_PERMUKAAN}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.ADMIN_RADIUS}; padding: 24px; min-width: 0; }}
 .admin-kartu {{ margin-bottom: 24px; }}
@@ -49,7 +57,7 @@ button, summary {{ cursor: pointer; }}
 .admin-kartu h3 {{ font-size: 15px; margin: 0 0 12px; }}
 .admin-meta, .admin-sub, .sub {{ color: {T.ADMIN_REDUP}; }}
 .admin-meta, .admin-footer, .admin-kartu small {{ font-size: 13px; }}
-.admin-footer {{ margin-top: 28px; color: {T.ADMIN_REDUP}; }}
+.admin-footer {{ margin-top: 28px; padding-top: 16px; border-top: 1px solid {T.ADMIN_BORDER}; color: {T.ADMIN_REDUP}; }}
 .admin-catatan, .admin-banner {{ background: {T.ADMIN_BANNER_LATAR}; border-color: {T.ADMIN_BANNER_BORDER}; color: {T.ADMIN_BANNER_TEKS}; }}
 .admin-galat, .pesan.galat {{ background: {T.ADMIN_BAHAYA_LATAR}; border: 1px solid {T.ADMIN_BAHAYA_BORDER}; color: {T.ADMIN_BAHAYA_TEKS}; }}
 .pesan {{ padding: 16px 20px; border: 1px solid {T.ADMIN_AKSEN_BORDER}; background: {T.ADMIN_AKSEN_LATAR}; border-radius: 12px; margin-bottom: 24px; }}
@@ -107,34 +115,68 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .admin-stat > div {{ display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }}
 .admin-stat strong {{ font-size: 28px; line-height: 1.2; font-variant-numeric: tabular-nums; }}
 .admin-stat span {{ font-size: 13px; color: {T.ADMIN_REDUP}; }}
-.admin-komando {{ display: grid; gap: 0; }}
-.admin-kartu.admin-prioritas {{ padding: 0; background: {T.ADMIN_PERMUKAAN}; }}
-.admin-prioritas-kepala {{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid {T.ADMIN_BORDER}; }}
+.admin-ringkasan {{ display: flex; flex-direction: column; gap: 28px; line-height: normal; }}
+.admin-ringkasan > .admin-kartu {{ margin-bottom: 0; }}
+.admin-kartu.admin-prioritas {{ padding: 0; background: {T.ADMIN_PERMUKAAN}; overflow: hidden; }}
+.admin-prioritas-kepala, .admin-seksi-kepala {{ display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }}
+.admin-prioritas-kepala {{ padding: 20px 24px; border-bottom: 1px solid {T.ADMIN_BORDER}; }}
 .admin-kartu.admin-prioritas h2 {{ margin: 0; font-size: 18px; }}
+.admin-seksi-kepala h2 {{ margin: 0; font-size: 18px; }}
+.admin-prioritas-ket {{ margin: 0; font-size: 14px; color: {T.ADMIN_REDUP}; }}
 .admin-alis {{ margin: 0 0 4px; font-size: 13px; color: {T.ADMIN_REDUP}; }}
-.admin-total-temuan {{ margin: 0; font-size: 14px; color: {T.ADMIN_REDUP}; }}
-.admin-total-temuan strong {{ font-size: {T.ADMIN_UKURAN_TOTAL}; color: {T.ADMIN_TEKS}; }}
 .admin-antrean {{ list-style: none; margin: 0; padding: 0; }}
-.admin-antrean-item {{ display: grid; grid-template-columns: 130px minmax(0,1fr) auto; gap: 8px 20px; padding: 20px 24px; border-bottom: 1px solid {T.ADMIN_PEMISAH}; }}
-.admin-antrean-urutan {{ grid-row: 1 / 5; font-size: 13px; color: {T.ADMIN_PERHATIAN_TEKS}; }}
-.admin-antrean-urutan strong {{ display: block; font-size: 20px; }}
-.admin-prioritas .admin-antrean-item h3 {{ grid-column: 2; margin: 0; font-size: 15px; }}
-.admin-antrean-item p, .admin-antrean-rincian {{ grid-column: 2; margin: 0; color: {T.ADMIN_REDUP}; font-size: 14px; }}
-.admin-antrean-rincian {{ padding-left: 18px; }}
-.admin-antrean-cta {{ grid-column: 3; grid-row: 1 / 5; align-self: center; }}
-.admin-antrean-rincian a {{ display: inline-flex; min-height: 44px; align-items: center; }}
+.admin-antrean-item {{ display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 18px 24px; border-bottom: 1px solid {T.ADMIN_PEMISAH}; }}
+.admin-antrean-item:hover {{ background: {T.ADMIN_HOVER}; }}
+.admin-urgensi {{ flex: 0 0 96px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: {T.ADMIN_REDUP}; }}
+.admin-urgensi-mendesak {{ color: {T.ADMIN_URGEN_TEKS}; }}
+.admin-urgensi-penting {{ color: {T.ADMIN_PERHATIAN_TEKS}; }}
+.admin-titik {{ width: 8px; height: 8px; flex: none; border-radius: 50%; background: {T.ADMIN_NETRAL_TITIK}; }}
+.admin-urgensi-mendesak .admin-titik {{ background: {T.ADMIN_URGEN_TITIK}; }}
+.admin-urgensi-penting .admin-titik {{ background: {T.ADMIN_AKSEN_PERHATIAN}; }}
+.admin-antrean-isi {{ flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }}
+.admin-prioritas .admin-antrean-item h3 {{ margin: 0; font-size: 15px; font-weight: 600; }}
+.admin-antrean-isi p {{ margin: 0; font-size: 14px; color: {T.ADMIN_REDUP}; }}
+.admin-ref {{ font-family: ui-monospace, Menlo, monospace; font-size: 13px; background: {T.ADMIN_NETRAL_LATAR}; border-radius: 6px; padding: 2px 6px; }}
+.admin-umur {{ flex: 0 0 84px; font-size: 14px; color: {T.ADMIN_REDUP}; }}
+.admin-umur-mendesak {{ color: {T.ADMIN_URGEN_TEKS}; font-weight: 600; }}
+.admin-antrean-sisa {{ padding: 16px 24px; font-size: 14px; color: {T.ADMIN_REDUP}; }}
 .admin-antrean-catatan, .admin-antrean-kosong {{ margin: 0; padding: 16px 24px; font-size: 13px; color: {T.ADMIN_REDUP}; }}
-.admin-layanan dl {{ display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; margin: 0; }}
-.admin-layanan dl > div {{ padding: 16px; border: 1px solid {T.ADMIN_BORDER}; border-radius: 12px; min-width: 0; }}
+.admin-layanan {{ display: flex; flex-direction: column; gap: 14px; }}
+.admin-layanan dl {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 16px; margin: 0; }}
+.admin-layanan-kartu {{ min-width: 0; display: flex; flex-direction: column; gap: 8px; padding: 18px 20px; background: {T.ADMIN_PERMUKAAN}; border: 1px solid {T.ADMIN_BORDER}; border-radius: 14px; }}
 .admin-layanan dt {{ color: {T.ADMIN_REDUP}; font-size: 14px; }}
-.admin-layanan dd {{ margin: 8px 0 0; font-weight: 600; }}
-.admin-layanan-cta {{ display: inline-flex; min-height: 44px; align-items: center; font-weight: 600; }}
-.admin-pendukung, .admin-dua-kolom {{ display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; align-items: start; }}
-.admin-pendukung .admin-grid-stat {{ grid-template-columns: repeat(2,minmax(0,1fr)); }}
-.admin-aktivitas header {{ display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }}
+.admin-layanan dd {{ margin: 0; display: inline-flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; }}
+.admin-layanan dd .admin-titik {{ width: 10px; height: 10px; }}
+.admin-layanan-baik .admin-titik {{ background: {T.ADMIN_BAIK_TITIK}; }}
+.admin-layanan-perhatian {{ background: {T.ADMIN_BANNER_LATAR}; border-color: {T.ADMIN_BANNER_BORDER}; }}
+.admin-layanan-perhatian dt {{ color: {T.ADMIN_PERHATIAN_TEKS}; }}
+.admin-layanan-perhatian dd {{ color: {T.ADMIN_BANNER_TEKS}; }}
+.admin-layanan-perhatian .admin-titik {{ background: {T.ADMIN_AKSEN_PERHATIAN}; }}
+.admin-layanan-cta {{ display: inline-flex; min-height: 44px; align-items: center; font-weight: 600; align-self: flex-start; }}
+.admin-pendukung {{ display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }}
+.admin-pendukung > .admin-kartu {{ margin-bottom: 0; }}
+.admin-dua-kolom {{ display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; align-items: start; }}
+.admin-angka-kartu {{ flex: 1 1 370px; display: flex; flex-direction: column; gap: 16px; }}
+.admin-angka-kartu h2 {{ margin: 0; }}
+.admin-angka-kartu p {{ margin: 0; line-height: 1.5; }}
+.admin-angka-daftar {{ margin: 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px 16px; }}
+.admin-angka-daftar dt {{ font-size: 14px; color: {T.ADMIN_REDUP}; }}
+.admin-angka-daftar dd {{ margin: 2px 0 0; font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }}
+.admin-kartu.admin-aktivitas {{ flex: 2 1 402px; padding: 0; overflow: hidden; }}
+.admin-aktivitas .admin-seksi-kepala {{ padding: 20px 24px; border-bottom: 1px solid {T.ADMIN_BORDER}; }}
+.admin-aktivitas li {{ padding: 16px 24px; }}
+.admin-aktivitas li + li {{ border-top: 1px solid {T.ADMIN_PEMISAH}; }}
+.admin-aktivitas-baris {{ display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }}
+.admin-aktivitas-baris:hover {{ background: {T.ADMIN_HOVER}; }}
+.admin-aktivitas a {{ display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }}
+.admin-aktivitas-judul-baris {{ display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; }}
+.admin-aktivitas a:hover {{ text-decoration: underline; }}
+.admin-aktivitas-isi {{ flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; }}
+.admin-aktivitas-isi .admin-meta {{ font-size: 14px; }}
+.admin-aktivitas-waktu {{ font-size: 14px; color: {T.ADMIN_REDUP}; }}
+.admin-pil {{ font-size: 13px; font-weight: 600; background: {T.ADMIN_NETRAL_LATAR}; color: {T.ADMIN_NETRAL_TEKS}; border-radius: 999px; padding: 3px 10px; }}
+.admin-pil-batal {{ background: {T.ADMIN_BAHAYA_LATAR}; color: {T.ADMIN_BAHAYA_TEKS}; }}
 .admin-aktivitas ul, .admin-login-detail ul {{ list-style: none; padding: 0; margin: 0; }}
-.admin-aktivitas li, .admin-login-detail li {{ padding: 14px 0; border-top: 1px solid {T.ADMIN_PEMISAH}; }}
-.admin-aktivitas p {{ margin: 4px 0; }}
 .admin-aktivitas-judul {{ font-size: 15px; font-weight: 600; }}
 .admin-aktivitas-ikon {{ display: none; }}
 .admin-cepat nav {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }}
@@ -174,10 +216,8 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .sensor-tabel {{ min-width: 50rem; }}
 @media (max-width: 70rem) {{
   .admin-utama {{ padding-left: 24px; padding-right: 24px; }}
-  .admin-layanan dl, .admin-grid-stat {{ grid-template-columns: repeat(2,minmax(0,1fr)); }}
-  .admin-pendukung, .admin-dua-kolom {{ grid-template-columns: 1fr; }}
-  .admin-antrean-item {{ grid-template-columns: 100px minmax(0,1fr); }}
-  .admin-antrean-cta {{ grid-column: 2; grid-row: auto; justify-self: start; }}
+  .admin-grid-stat {{ grid-template-columns: repeat(2,minmax(0,1fr)); }}
+  .admin-dua-kolom {{ grid-template-columns: 1fr; }}
 }}
 @media (max-width: 51.25rem) {{
   .admin-layout {{ display: block; }}
@@ -196,10 +236,7 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
   .admin-nav-mobile > summary {{ display: flex; flex-wrap: wrap; }}
   .admin-nav-mobile .admin-nav-daftar, .admin-rincian, .riset-grid-form {{ grid-template-columns: 1fr; }}
   .admin-rincian dd {{ margin-bottom: 12px; }}
-  .admin-layanan dl {{ grid-template-columns: 1fr; }}
-  .admin-antrean-item {{ display: flex; flex-direction: column; padding: 20px; }}
-  .admin-antrean-urutan {{ display: flex; gap: 12px; align-items: center; }}
-  .admin-antrean-cta {{ align-self: start; }}
+  .admin-antrean-item, .admin-prioritas-kepala, .admin-aktivitas .admin-seksi-kepala, .admin-aktivitas li {{ padding-left: 20px; padding-right: 20px; }}
   .admin-grid-stat {{ gap: 12px; }}
   .admin-stat {{ padding: 16px; }}
   .admin-stepper {{ grid-template-columns: 1fr 1fr; }}

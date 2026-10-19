@@ -193,9 +193,15 @@ def test_ringkasan_hierarki_baca_total_antrean_dan_tanpa_mutasi(server, monkeypa
         sebelum_db = tuple(kon.iterdump())
     kode, isi, header = _minta(server, '/admin', cookie=token)
     assert kode == 200
-    assert 'kategori menunggu keputusan' in isi and '31</strong>' in isi
-    assert 'Konfigurasi AI</dt><dd><span class="admin-badge">belum siap' in isi
-    assert 'Pembayaran</dt><dd><span class="admin-badge">Tahap nonaktif' in isi
+    # Total 31 dari proyeksi (bukan panjang halaman 25) + backup + siswa/keluarga bermasalah.
+    import re
+    total = int(re.search(r'· (\d+) hal menunggu keputusan', isi).group(1))
+    assert total >= 32
+    assert 'admin-nav-badge">%d<' % total in isi
+    assert 'dan %d lainnya' % (total - isi.count('<li class="admin-antrean-item">')) in isi
+    assert 'Konfigurasi AI</dt><dd><span class="admin-titik" aria-hidden="true"></span>Belum siap' in isi
+    assert 'Pembayaran</dt><dd><span class="admin-titik" aria-hidden="true"></span>Tahap nonaktif' in isi
+    assert 'Backup</dt><dd><span class="admin-titik" aria-hidden="true"></span>Belum terverifikasi' in isi
     assert 'Semua normal' not in isi
     assert '<script' not in isi and header['Cache-Control'] == 'no-store'
     assert len(panggilan) == 1 and panggilan[0][0] == admin_store.BAWAAN

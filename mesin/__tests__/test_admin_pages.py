@@ -6,6 +6,7 @@ from pathlib import Path
 import admin_pages as pages
 import admin_queries as q
 import admin_style
+from admin_antrean_pages import AntreanAdmin, ItemAntrean, SinyalNav
 
 
 PENGGUNA_BERBAHAYA = 'admin"><script>RAHASIA-XSS</script>'
@@ -98,7 +99,8 @@ def test_frame_enam_menu_privasi_dan_fallback_section():
     assert 'aria-label="Bagian panel pengelola"' in html
     navigasi = html.split('<nav class="admin-nav admin-menu"', 1)[1].split("</nav>", 1)[0]
     assert navigasi.count('aria-current="page"') == 1
-    assert '<a href="/admin" aria-current="page">Ringkasan</a>' in navigasi
+    assert '<a href="/admin" aria-current="page"><svg' in navigasi
+    assert '<span class="admin-nav-label-menu">Ringkasan</span></a>' in navigasi
     for label in (
         "Ringkasan", "Keluarga", "Siswa", "Pendaftaran", "AI", "Riwayat admin"
     ):
@@ -130,64 +132,101 @@ def test_ringkasan_tidak_menyebut_progres_dan_escape_nama():
     assert 'href="/sesi/9"' in isi
 
 
+ANTREAN_DEMO = AntreanAdmin(
+    item=(
+        ItemAntrean("mendesak", "Pembayaran perlu diperiksa", "menunggu pemeriksaan sejak 26 Sep 2026.",
+                    "/admin?section=perhatian", "Periksa invoice", "Invoice", "inv_87e4…6dfec9", 23),
+        ItemAntrean("penting", "Backup belum terverifikasi", "Belum ada cutoff.",
+                    "/admin?section=operasional", "Buka operasional"),
+        ItemAntrean("tinjau", "Ari <b> belum punya login", "Keluarga keluarga&aman.",
+                    "/admin?section=siswa&id=7", "Tinjau siswa"),
+    ),
+    total=3, mendesak=1,
+)
+
+
 def test_ringkasan_hierarki_dengan_cta_dan_angka_dari_proyeksi():
     isi = pages.render_ringkasan(
-        _ringkasan(), status_layanan={"Pendaftaran": "ditutup", "AI": "belum siap"},
-        jumlah_antrean=31, operasi_belum_pasti=2, operasi_tertunda=3,
+        _ringkasan(), status_layanan={"Pendaftaran": "ditutup", "AI": "belum siap"}, antrean=ANTREAN_DEMO,
     )
     assert isi.index('Perlu ditangani') < isi.index('Kondisi layanan')
     assert isi.index('Kondisi layanan') < isi.index('aria-label="Jumlah administratif"')
     assert isi.index('aria-label="Jumlah administratif"') < isi.index('Aktivitas sesi terbaru')
-    assert '2</strong> kategori menunggu keputusan' in isi
-    assert '31</strong>' in isi  # Total proyeksi, bukan panjang halaman 25 item.
-    assert '2 belum pasti · 3 menunggu hasil' in isi
-    assert 'Mendesak' in isi and 'Tinjau' in isi
-    assert 'href="/admin?section=siswa&amp;status=student_without_login"' in isi
-    assert 'href="/admin?section=perhatian"' in isi
-    assert 'href="#login-perlu-perhatian"' in isi
+    assert isi.count('<li class="admin-antrean-item">') == 3
+    assert isi.index('Mendesak') < isi.index('Penting') < isi.index('Tinjau<')
+    assert '<code class="admin-ref">inv_87e4…6dfec9</code>' in isi
+    assert '<span class="admin-umur admin-umur-mendesak">23 hari</span>' in isi
+    assert 'Umur tidak tersedia' in isi
+    assert 'Penanggung jawab' not in isi and 'Belum ditugaskan' not in isi
+    assert 'type="search"' not in isi and 'Lihat semua' not in isi
+    # Hanya item paling mendesak yang solid; sisanya outline.
+    assert isi.count('class="admin-tombol"') == 1
+    assert isi.count('class="admin-antrean-cta"') == 2
+    assert 'class="admin-tombol" href="/admin?section=perhatian">Periksa invoice' in isi
+    assert 'href="/admin?section=siswa&amp;id=7"' in isi
+    assert 'Ari &lt;b&gt; belum punya login' in isi and 'Ari <b> belum' not in isi
+    assert 'Kondisi layanan' in isi and 'Ditutup' in isi and 'Belum siap' in isi
     assert 'Akses cepat' not in isi
-    assert 'Aktivitas 7 hari' in isi and 'Seluruh catatan sesi: <strong>4</strong>' in isi
-    assert 'Rincian kondisi dapat tumpang-tindih' in isi
+    assert 'Sesi 7 hari terakhir' in isi and 'Seluruh catatan sesi: <strong>4</strong>' in isi
     assert 'Semua normal' not in isi and 'Data contoh' not in isi
+
+
+def test_ringkasan_antrean_memotong_dan_menyebut_sisa():
+    banyak = AntreanAdmin(item=ANTREAN_DEMO.item, total=57, mendesak=1)
+    isi = pages.render_ringkasan(_ringkasan(), antrean=banyak)
+    assert 'dan 54 lainnya' in isi
 
 
 def test_ringkasan_kosong_tidak_mengarang_kasus_atau_panel_login():
     data = replace(_ringkasan(), perhatian=(), login_bermasalah=(), aktivitas_terbaru=())
-    isi = pages.render_ringkasan(data, jumlah_antrean=0)
-    assert '0</strong> kategori menunggu keputusan' in isi
+    isi = pages.render_ringkasan(data, antrean=AntreanAdmin())
     assert 'Tidak ada kondisi administratif yang perlu perhatian' in isi
     assert 'Belum ada aktivitas sesi' in isi
     assert 'id="login-perlu-perhatian"' not in isi
     assert 'Prioritas 1' not in isi
-    assert 'Kondisi layanan' in isi and 'belum tersedia' in isi
+    assert 'Kondisi layanan' in isi and 'Belum tersedia' in isi
 
 
-def test_ringkasan_sumber_tidak_tersedia_bukan_nol_dan_semua_kode_tercakup():
-    data = replace(_ringkasan(), perhatian=(
-        q.HitungPerhatian('owner_empty', 2),
-        q.HitungPerhatian('owner_without_account', 3),
-        q.HitungPerhatian('legacy_same_name_ambiguous', 4),
-    ))
-    isi = pages.render_ringkasan(data, status_layanan={'AI': '<belum siap>'})
-    assert '2</strong> kategori menunggu keputusan' in isi
-    assert 'Jumlah antrean layanan belum tersedia' in isi
-    assert '5</strong>' in isi and '4</strong>' in isi
-    assert 'Pemilik siswa kosong' in isi and 'Pemilik tanpa akun' in isi
-    assert 'Nama lama cocok ke beberapa siswa' in isi
+def test_ringkasan_layanan_nada_dan_escape_dan_sumber_hilang():
+    isi = pages.render_ringkasan(
+        _ringkasan(), status_layanan={'AI': '<belum siap>', 'Backup': ('belum terverifikasi', 'perhatian'),
+                                      'Pendaftaran': ('dibuka', 'baik'), 'X': ('y', 'asing')},
+        antrean=AntreanAdmin(layanan_tersedia=False),
+    )
     assert '&lt;belum siap&gt;' in isi and '<belum siap>' not in isi
-    assert 'Semua normal' not in isi
-
-
-def test_ringkasan_fallback_operasi_dan_login_yatim_punya_jalur_valid():
-    data = replace(_ringkasan(), perhatian=(q.HitungPerhatian('orphan_login', 1),))
-    isi = pages.render_ringkasan(data, operasi_belum_pasti=2, operasi_tertunda=1)
-    assert '2</strong> kategori menunggu keputusan' in isi
+    assert 'admin-layanan-perhatian' in isi and 'admin-layanan-baik' in isi
+    assert isi.count('admin-layanan-netral') == 2  # nada asing jatuh ke netral
     assert 'Jumlah antrean layanan belum tersedia' in isi
-    assert 'href="/admin?section=riwayat"' in isi
-    assert 'href="#login-perlu-perhatian"' in isi
+
+
+def test_ringkasan_bagian_lama_tetap_ada_sampai_diputuskan():
+    isi = pages.render_ringkasan(_ringkasan(), antrean=ANTREAN_DEMO)
     assert 'id="login-perlu-perhatian"' in isi
-    assert '2 belum pasti · 1 menunggu hasil' in isi
-    assert 'href="/admin?section=perhatian"' not in isi
+    assert '<details class="admin-kartu admin-catatan admin-definisi">' in isi
+    assert 'href="/admin?section=operasional">Buka operasional' in isi
+    assert 'Maksimal 10 catatan' in isi
+
+
+def test_nav_badge_titik_dan_label_persis_mockup():
+    isi = pages.halaman_admin('ringkasan', '', pengguna='Pengelola',
+                              sinyal=SinyalNav(total=4, mendesak=1, operasional_perhatian=True)).decode()
+    for label in ('Ringkasan', 'Keluarga', 'Siswa', 'Pendaftaran', 'Langganan &amp; invoice',
+                  'KPI uji coba', 'Riset konsumen', 'Operasional', 'AI', 'Riwayat admin'):
+        assert '<span class="admin-nav-label-menu">%s</span>' % label in isi
+    assert isi.count('<svg') >= 20  # ikon per menu, desktop + seluler
+    assert 'admin-nav-badge">4<span class="admin-sr"> hal menunggu keputusan' in isi
+    assert 'role="img" aria-label="Perlu perhatian"' in isi
+    # Toggle seluler membawa badge jumlah item mendesak.
+    toggle = isi.split('<details class="admin-nav-mobile">', 1)[1].split('</summary>', 1)[0]
+    assert 'admin-nav-badge-mendesak">1<' in toggle
+    tanpa = pages.halaman_admin('ringkasan', '', pengguna='Pengelola').decode()
+    assert 'admin-nav-badge"' not in tanpa and 'Perlu perhatian' not in tanpa
+
+
+def test_nav_tanpa_mendesak_tidak_menampilkan_badge_toggle():
+    isi = pages.halaman_admin('ringkasan', '', pengguna='P', sinyal=SinyalNav(total=2, mendesak=0)).decode()
+    toggle = isi.split('<details class="admin-nav-mobile">', 1)[1].split('</summary>', 1)[0]
+    assert 'admin-nav-badge' not in toggle
 
 
 def test_sidebar_dan_kartu_memakai_design_system_tanpa_js_baru():

@@ -105,6 +105,7 @@ def tangani_get(penangan, jalur):
             akun, sesi, "ai_settings_update", {"revisi": revisi}),
         tinjauan_uji=admin_security.buat_tinjauan(akun, sesi, "ai_synthetic_test"),
         pesan=_query_pesan(penangan),
+        sinyal=__import__("admin_http").sinyal_nav(),
     )
     _kirim(penangan, isi)
     return True
