@@ -155,6 +155,24 @@ def operasional(r,form_pembayaran='',form_dukungan='',feedback=''):
     return isi+'<section class="admin-kartu" id="ai"><h2>AI</h2>'+tabel(('Fitur','Konfigurasi'),['<tr><td>%s</td><td>%s</td></tr>'%(e(k),e(v)) for k,v in r['ai']])+'<p>Gagal/tak pasti 24 jam: <strong>%s</strong></p><p class="admin-meta">Konfigurasi bukan jaminan provider sedang online. Tidak ada panggilan berbayar saat halaman dibuka.</p><a href="/admin/ai">Batas pemakaian dan tes sintetis</a></section>'%('—' if r['ai_gagal'] is None else r['ai_gagal'])
 
 
+def _hero_manfaat(m,judul,bantuan,angka,persen):
+    """KPI utama; tanpa respons hasil tetap "—" dan bilah tidak terisi."""
+    ada=bool(m.penyebut)
+    label=('Hasil %.1f persen; target %d persen'%(persen,m.target)) if ada else 'Belum ada respons; target %d persen'%m.target
+    isi_bilah='<span style="width:%.2f%%"></span>'%persen if ada else ''
+    ket='<p class="admin-meta">Jawaban Ya %d dari %d respons.</p>'%(m.pembilang,m.penyebut) if ada else ''
+    return ('<section class="admin-kartu admin-kpi-hero" aria-labelledby="h-kpi-manfaat">'
+            '<div class="admin-kpi-hero-kepala"><h2 id="h-kpi-manfaat">%s</h2>%s<span class="admin-meta">Target ≥ %d%%</span></div>'
+            '<div class="admin-kpi-hero-angka"><div><span class="admin-meta">Hasil saat ini</span>'
+            '<strong class="admin-angka%s">%s</strong></div>'
+            '<div><span class="admin-meta">Respons</span><strong>%d / %d</strong></div></div>'
+            '<div class="admin-bilah" role="img" aria-label="%s">%s<i style="left:%d%%"></i></div>'
+            '<div class="admin-bilah-skala"><span>0%%</span><span>Target %d%%</span><span>100%%</span></div>%s'
+            '<div><span class="admin-badge">%s</span>%s</div></section>')%(
+                e(judul),bantuan,m.target,'' if ada else ' admin-redup',angka,m.respons,m.penawaran,
+                e(label),isi_bilah,m.target,m.target,ket,e(m.status),'<p>Sampel kecil</p>' if m.kecil else '')
+
+
 def halaman_kpi(config,laporan,biaya,cakupan,*,bulan,form_biaya='',form_config=''):
     labels={'aktivasi':'Berhasil mencoba','retensi':'Memakai kembali','manfaat':'Merasa terbantu','organik':'Tumbuh organik'}
     bantuan={'aktivasi':'Pengiriman sah atau lembar soal dibuka pada minggu pertama. Populasi utama sudah melewati 14 hari.',
@@ -163,6 +181,7 @@ def halaman_kpi(config,laporan,biaya,cakupan,*,bulan,form_biaya='',form_config='
              'organik':'Sumber rekomendasi atau pencarian noniklan, dilaporkan pengguna. Khusus peserta teraktivasi yang mendaftar minggu 5–8.'}
     items=laporan.metrik if laporan else tuple(d.Metrik(k,0,0,t,'Belum ada eksperimen',False) for k,t in [('aktivasi',60),('retensi',25),('manfaat',70),('organik',20)])
     kartu=[]
+    hero=''
     for m in items:
         angka='%.1f%%'%(m.pembilang*100/m.penyebut) if m.penyebut else '—'
         detail='%d/%d · Target ≥%d%%'%(m.pembilang,m.penyebut,m.target)
@@ -170,6 +189,9 @@ def halaman_kpi(config,laporan,biaya,cakupan,*,bulan,form_biaya='',form_config='
         if m.kode=='organik': detail+='<br>Minggu 5–8'
         persen = min(100, max(0, m.pembilang*100/m.penyebut)) if m.penyebut else 0
         bilah = '<div class="admin-bilah" aria-hidden="true"><span style="width:%.2f%%"></span><i style="left:%d%%"></i></div>' % (persen, m.target)
+        if m.kode=='manfaat':
+            hero=_hero_manfaat(m,labels[m.kode],info(labels[m.kode],bantuan[m.kode]),angka,persen)
+            continue
         kartu.append('<article class="admin-kartu admin-kpi-carte"><header><h2>%s</h2>%s</header><strong class="admin-angka">%s</strong><p>%s</p>%s<span class="admin-badge">%s</span>%s</article>'%(labels[m.kode],info(labels[m.kode],bantuan[m.kode]),angka,detail,bilah,e(m.status),'<p>Sampel kecil</p>' if m.kecil else ''))
     total=sum(biaya[k] for k in ('server','domain','ai','pendukung')) if biaya else 0
     status='Belum ada anggaran' if not biaya else 'Data biaya belum lengkap' if not biaya['lengkap'] else 'Dalam anggaran' if total<=biaya['anggaran'] else 'Melebihi anggaran'
@@ -184,5 +206,5 @@ def halaman_kpi(config,laporan,biaya,cakupan,*,bulan,form_biaya='',form_config='
         ('Minggu','Peserta','Mencoba','Kembali','Ditawari','Respons','Ya','Organik'),
         ['<tr>'+''.join('<td>%d</td>'%x for x in row)+'</tr>' for row in cakupan.get('arsip',())]
     )+'<p>Tanpa mapping keluarga. Tidak digabung diam-diam dengan detail yang masih aktif.</p></details>'
-    kosong = '<section class="admin-kartu"><h2>Belum ada eksperimen</h2><p>Hasil belum ditampilkan agar tidak terbaca sebagai 0%. Angka muncul setelah eksperimen aktif dan ada respons yang memenuhi definisi metrik.</p></section>' if not laporan else ''
-    return kosong+'<p class="admin-meta">'+e(meta)+'</p><form class="admin-filtre-periode" method="get" action="/admin"><input type="hidden" name="section" value="kpi"><label>Bulan biaya<input type="month" name="bulan" value="'+e(bulan)+'" required></label><button class="admin-tombol">Terapkan</button></form><div class="admin-grid-kpi">'+''.join(kartu)+'</div><details class="admin-kartu"><summary>Per minggu</summary>'+tabel(('Minggu','Matang','Mencoba','Kembali'),['<tr>'+''.join('<td>%d</td>'%x for x in row)+'</tr>' for row in minggu])+'<p>Kelompok kurang dari 5 tidak dirinci. Metrik hanya untuk peserta analitik, bukan seluruh keluarga.</p></details><details class="admin-kartu"><summary>Catat biaya bulanan</summary>'+form_biaya+'</details><details class="admin-kartu"><summary>Pengaturan eksperimen</summary>'+form_config+'</details>'+arsip
+    kosong = '<section class="admin-kartu admin-kosong-kartu"><h2>Belum ada eksperimen</h2><p>Hasil belum ditampilkan agar tidak terbaca sebagai 0%. Angka muncul setelah eksperimen aktif dan ada respons yang memenuhi definisi metrik.</p></section>' if not laporan else ''
+    return hero+kosong+'<p class="admin-meta">'+e(meta)+'</p><form class="admin-filtre-periode" method="get" action="/admin"><input type="hidden" name="section" value="kpi"><label>Bulan biaya<input type="month" name="bulan" value="'+e(bulan)+'" required></label><button class="admin-tombol">Terapkan</button></form><div class="admin-grid-kpi">'+''.join(kartu)+'</div><details class="admin-kartu"><summary>Per minggu</summary>'+tabel(('Minggu','Matang','Mencoba','Kembali'),['<tr>'+''.join('<td>%d</td>'%x for x in row)+'</tr>' for row in minggu])+'<p>Kelompok kurang dari 5 tidak dirinci. Metrik hanya untuk peserta analitik, bukan seluruh keluarga.</p></details><details class="admin-kartu"><summary>Catat biaya bulanan</summary>'+form_biaya+'</details><details class="admin-kartu"><summary>Pengaturan eksperimen</summary>'+form_config+'</details>'+arsip

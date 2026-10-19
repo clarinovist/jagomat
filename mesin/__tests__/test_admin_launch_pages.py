@@ -47,3 +47,61 @@ def test_daftar_langganan_pager_post_saat_mencari_dan_tidak_membocorkan_ke_url()
     kandidat = [dict(akun_id="akun_z", alias="Siska")]
     dengan = ui.daftar_langganan(_rows(), 2, halaman=1, cari="si", csrf="c", kandidat=kandidat, forms={"akun_z": "<b>aksi</b>"})
     assert "Belum terdaftar di langganan · 1" in dengan and "<b>aksi</b>" in dengan
+
+
+import re
+
+import product_analytics as pa
+
+
+def _laporan(manfaat):
+    metrik = (
+        pa.Metrik("aktivasi", 3, 5, 60, "Di bawah target", False),
+        pa.Metrik("retensi", 1, 5, 25, "Di bawah target", False),
+        manfaat,
+        pa.Metrik("organik", 0, 0, 20, "Belum ada eksperimen", False),
+    )
+    return pa.Laporan(metrik, 5, 5, 0, 0, (), True)
+
+
+def _kpi(laporan):
+    return ui.halaman_kpi(
+        None if laporan is None else {"koleksi": True}, laporan, None,
+        {"dicabut": 0, "kedaluwarsa": 0, "pendaftaran": None}, bulan="2026-10",
+    )
+
+
+def test_kpi_tanpa_respons_menampilkan_strip_bukan_nol_dan_bilah_kosong():
+    isi = _kpi(None)
+
+    hero = isi.split('aria-labelledby="h-kpi-manfaat"', 1)[1].split("</section>", 1)[0]
+    assert '<strong class="admin-angka admin-redup">—</strong>' in hero
+    assert "0.0%" not in hero and "0%</strong>" not in hero
+    assert 'role="img" aria-label="Belum ada respons; target 70 persen"' in hero
+    assert '<span style="width' not in hero
+    assert "Respons</span><strong>0 / 0</strong>" in hero
+    assert "Target ≥ 70%" in hero
+    assert "Belum ada eksperimen" in isi  # keadaan kosong dipertahankan
+    assert isi.index("h-kpi-manfaat") < isi.index("Hasil belum ditampilkan agar tidak terbaca sebagai 0%")
+
+
+def test_kpi_dengan_respons_mengisi_bilah_sesuai_persentase():
+    isi = _kpi(_laporan(pa.Metrik("manfaat", 8, 10, 70, "Memenuhi target", False, 10, 12)))
+
+    hero = isi.split('aria-labelledby="h-kpi-manfaat"', 1)[1].split("</section>", 1)[0]
+    assert '<strong class="admin-angka">80.0%</strong>' in hero
+    assert 'aria-label="Hasil 80.0 persen; target 70 persen"' in hero
+    assert '<span style="width:80.00%"></span><i style="left:70%"></i>' in hero
+    assert "Respons</span><strong>10 / 12</strong>" in hero
+    assert "Memenuhi target" in hero
+    assert "Hasil belum ditampilkan agar tidak terbaca sebagai 0%" not in isi
+
+
+def test_kpi_tiga_metrik_lain_dan_biaya_tetap_ada_di_grid():
+    isi = _kpi(None)
+    grid = isi.split('<div class="admin-grid-kpi">', 1)[1]
+
+    for judul in ("Berhasil mencoba", "Memakai kembali", "Tumbuh organik", "Biaya · 2026-10"):
+        assert judul in grid
+    assert "Merasa terbantu" not in grid
+    assert re.search(r'<h2 id="h-kpi-manfaat">Merasa terbantu</h2>', isi)

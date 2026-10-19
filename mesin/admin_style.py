@@ -93,6 +93,19 @@ button, summary {{ cursor: pointer; }}
 .admin-bar-atas details label {{ flex: 1 1 160px; margin: 0; font-size: 14px; }}
 .admin-bar-atas details select {{ display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 10px 12px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 10px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
 .admin-bar-atas + .admin-grid-stat {{ margin-top: 16px; }}
+.admin-kpi-hero {{ display: flex; flex-direction: column; gap: 20px; }}
+.admin-kpi-hero-kepala {{ display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }}
+.admin-kpi-hero-kepala h2 {{ margin: 0; }}
+.admin-kpi-hero-kepala .admin-meta {{ margin-left: auto; font-size: 14px; }}
+.admin-kpi-hero-angka {{ display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 40px; }}
+.admin-kpi-hero-angka > div {{ display: flex; flex-direction: column; gap: 2px; }}
+.admin-kpi-hero-angka strong {{ font-size: 20px; }}
+.admin-kpi-hero-angka .admin-angka {{ font-size: {T.ADMIN_UKURAN_KPI}; line-height: 1.1; }}
+.admin-kpi-hero .admin-bilah {{ margin: 0; background: {T.ADMIN_NAV_HOVER}; }}
+.admin-bilah-skala {{ display: flex; justify-content: space-between; margin-top: -12px; font-size: 13px; color: {T.ADMIN_REDUP}; }}
+.admin-kartu.admin-kosong-kartu {{ display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px 24px; text-align: center; }}
+.admin-kosong-kartu h2, .admin-kosong-kartu p {{ margin: 0; }}
+.admin-kosong-kartu p {{ max-width: 34rem; color: {T.ADMIN_REDUP}; line-height: 1.6; }}
 .admin-cnt {{ font-size: 12px; font-weight: 700; line-height: 1.25; background: {T.ADMIN_NAV_HOVER}; color: {T.ADMIN_NETRAL_TEKS}; border-radius: 999px; padding: 2px 8px; }}
 .admin-chip[aria-current="true"] .admin-cnt {{ background: {T.ADMIN_PERMUKAAN}; }}
 .admin-kartu.admin-kartu-tabel {{ padding: 0; overflow: hidden; }}
