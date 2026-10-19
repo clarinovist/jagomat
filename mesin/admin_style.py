@@ -71,6 +71,19 @@ button, summary {{ cursor: pointer; }}
 .admin-chip-baris, .admin-aksi-baca, .riset-aksi-atas {{ display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }}
 .admin-chip {{ border-radius: 999px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
 .admin-chip[aria-current="true"] {{ background: {T.ADMIN_AKSEN_LATAR}; border-color: {T.ADMIN_AKSEN_BORDER}; color: {T.ADMIN_AKSEN_TEKS}; }}
+.admin-kartu.admin-status-baris {{ display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 20px 24px; }}
+.admin-status-baris h2 {{ display: inline-flex; align-items: center; gap: 10px; margin: 0; font-size: 20px; }}
+.admin-titik-status {{ width: 12px; height: 12px; flex: none; border-radius: 50%; background: {T.ADMIN_BAIK_TITIK}; }}
+.admin-titik-status.admin-titik-netral {{ background: {T.ADMIN_NETRAL_TITIK}; }}
+.admin-dua-kolom.admin-kolom-2-1 {{ grid-template-columns: minmax(0,2fr) minmax(0,1fr); }}
+.admin-form-bagian {{ display: flex; flex-direction: column; gap: 20px; }}
+.admin-form-bagian label {{ margin: 0; }}
+.admin-kartu label.admin-cek:has(input[type=checkbox]) {{ display: flex; align-items: flex-start; gap: 12px; min-height: 44px; padding: 0; background: none; }}
+.admin-cek input[type=checkbox] {{ margin: 2px 0 0; flex: none; }}
+.admin-cek > span {{ display: flex; flex-direction: column; gap: 2px; }}
+.admin-bagian {{ display: flex; flex-direction: column; gap: 12px; padding-top: 20px; border-top: 1px solid {T.ADMIN_PEMISAH}; }}
+.admin-sempit {{ max-width: 20rem; }}
+.admin-pratinjau {{ padding: 20px; border: 1px dashed {T.ADMIN_BORDER_KUAT}; border-radius: 12px; background: {T.ADMIN_HOVER}; font-size: 16px; }}
 .admin-bar-atas {{ display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: flex-end; gap: 12px; margin-bottom: 4px; }}
 .admin-bar-atas > form {{ flex: 1 1 24rem; max-width: 40rem; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }}
 .admin-bar-atas > form > label.admin-cari {{ display: block; flex: 1 1 14rem; margin: 0; }}
@@ -237,7 +250,7 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 @media (max-width: 70rem) {{
   .admin-utama {{ padding-left: 24px; padding-right: 24px; }}
   .admin-grid-stat {{ grid-template-columns: repeat(2,minmax(0,1fr)); }}
-  .admin-dua-kolom {{ grid-template-columns: 1fr; }}
+  .admin-dua-kolom, .admin-dua-kolom.admin-kolom-2-1 {{ grid-template-columns: 1fr; }}
 }}
 @media (max-width: 51.25rem) {{
   .admin-layout {{ display: block; }}

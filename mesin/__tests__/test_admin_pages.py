@@ -433,3 +433,39 @@ def test_keluarga_nama_bukan_tautan_kedua_dan_tanpa_id_tetap_strip():
     isi = pages.render_keluarga(replace(_keluarga(), item=(kosong,)), csrf="x")
     assert "<td>—</td>" in isi
     assert 'admin-sel-nama"><span class="admin-avatar" aria-hidden="true">p</span>pemilik-x' in isi
+
+
+def _status_pendaftaran(dibuka=True, kode="closed_maintenance"):
+    import admin_registration as reg
+    return reg.StatusPendaftaran(True, dibuka, kode, 3)
+
+
+def test_pendaftaran_kontrak_form_tidak_berubah():
+    isi = pages.render_pendaftaran(_status_pendaftaran(), csrf="csrf<x>", token="tok")
+
+    assert '<form class="admin-form-bagian" method="post" action="/admin/pendaftaran">' in isi
+    assert isi.count('<form') == 1
+    for tersembunyi in (
+        '<input type="hidden" name="aksi" value="registration_config_update">',
+        '<input type="hidden" name="csrf" value="csrf&lt;x&gt;">',
+        '<input type="hidden" name="tinjauan" value="tok">',
+    ):
+        assert tersembunyi in isi
+    assert 'name="dibuka" value="1" checked' in isi
+    assert '<option value="closed_maintenance" selected>' in isi
+    assert 'name="reauth" required autocomplete="current-password"' in isi
+    assert 'name="judul"' not in isi and '<textarea' not in isi and '<script' not in isi
+    assert 'Diminta untuk setiap perubahan pengaturan.' in isi
+
+
+def test_pendaftaran_status_teks_dan_pratinjau_mengikuti_keadaan():
+    buka = pages.render_pendaftaran(_status_pendaftaran(True, "closed_standard"), csrf="c", token="t")
+    tutup = pages.render_pendaftaran(_status_pendaftaran(False, "closed_maintenance"), csrf="c", token="t")
+
+    assert "Pendaftaran dibuka</h2>" in buka and "admin-titik-netral" not in buka
+    assert "pesan ini belum tampil" in buka
+    assert '<div class="admin-pratinjau"><strong>Pendaftaran baru sedang ditutup</strong>' in buka
+    assert "Pendaftaran ditutup</h2>" in tutup and "admin-titik-netral" in tutup
+    assert 'name="dibuka" value="1" checked' not in tutup
+    assert '<div class="admin-pratinjau"><strong>Pendaftaran sementara ditutup untuk pemeliharaan</strong>' in tutup
+    assert "Pesan tersimpan. Pratinjau diperbarui setelah pengaturan disimpan." in tutup

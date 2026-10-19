@@ -521,27 +521,44 @@ def form_hapus_siswa(csrf, token):
 
 
 def render_pendaftaran(status, *, csrf: str, token: str) -> str:
-    checked = " checked" if status.dibuka else ""
+    """Form dan field tidak berubah: pesan tetap pilihan baku ``pesan_kode``."""
+    dibuka = bool(status.dibuka)
+    pesan = (
+        'Pendaftaran sementara ditutup untuk pemeliharaan'
+        if status.pesan_kode == 'closed_maintenance' else 'Pendaftaran baru sedang ditutup'
+    )
+    keadaan = (
+        "Saat ini pendaftaran dibuka, jadi pesan ini belum tampil."
+        if dibuka else "Saat ini pendaftaran ditutup, jadi pesan ini yang tampil."
+    )
     return (
-        '<section class="admin-kartu"><h2>Pendaftaran %s</h2>'
-        '<p>Perubahan tidak memengaruhi login yang sudah ada.</p></section>'
-        '<div class="admin-dua-kolom"><section class="admin-kartu"><h2>Pengaturan pendaftaran</h2>'
-        '<form method="post" action="/admin/pendaftaran">'
+        '<section class="admin-kartu admin-status-baris" aria-labelledby="status-pendaftaran">'
+        '<h2 id="status-pendaftaran"><span class="admin-titik-status%s" aria-hidden="true"></span>Pendaftaran %s</h2>'
+        '<span class="admin-meta">Perubahan tidak memengaruhi login yang sudah ada.</span></section>'
+        '<div class="admin-dua-kolom admin-kolom-2-1"><section class="admin-kartu"><h2>Pengaturan pendaftaran</h2>'
+        '<form class="admin-form-bagian" method="post" action="/admin/pendaftaran">'
         '<input type="hidden" name="aksi" value="registration_config_update">'
         '<input type="hidden" name="csrf" value="%s"><input type="hidden" name="tinjauan" value="%s">'
-        '<label><input type="checkbox" name="dibuka" value="1"%s> Buka pendaftaran baru</label>'
-        '<label>Pesan saat ditutup<select name="pesan_kode">'
+        '<label class="admin-cek"><input type="checkbox" name="dibuka" value="1"%s>'
+        '<span><strong>Buka pendaftaran baru</strong>'
+        '<span class="admin-meta">Matikan untuk menutup pendaftaran. Keluarga yang sudah punya akun tetap bisa masuk.</span></span></label>'
+        '<div class="admin-bagian"><label>Pesan saat ditutup<select name="pesan_kode">'
         '<option value="closed_standard"%s>Pendaftaran baru sedang ditutup</option>'
         '<option value="closed_maintenance"%s>Pendaftaran sementara ditutup untuk pemeliharaan</option>'
-        '</select></label>'
-        '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
-        '<button class="admin-tombol" type="submit">Simpan pengaturan</button>'
-        '</form></section><aside class="admin-kartu admin-catatan"><h2>Pratinjau saat ditutup</h2>'
-        '<p>%s</p><p class="admin-meta">Pesan tersimpan. Pratinjau diperbarui setelah pengaturan disimpan.</p></aside></div>' % (
-            "dibuka" if status.dibuka else "ditutup", _e(csrf), _e(token), checked,
+        '</select></label></div>'
+        '<div class="admin-bagian"><label class="admin-sempit">Sandi admin saat ini'
+        '<input type="password" name="reauth" required autocomplete="current-password"></label>'
+        '<span class="admin-meta">Diminta untuk setiap perubahan pengaturan.</span>'
+        '<div><button class="admin-tombol" type="submit">Simpan pengaturan</button></div></div>'
+        '</form></section><aside class="admin-kartu" aria-label="Pratinjau"><h2>Pratinjau saat ditutup</h2>'
+        '<p class="admin-meta">Yang dilihat calon pengguna jika pendaftaran ditutup. %s</p>'
+        '<div class="admin-pratinjau"><strong>%s</strong></div>'
+        '<p class="admin-meta">Pesan tersimpan. Pratinjau diperbarui setelah pengaturan disimpan.</p></aside></div>' % (
+            "" if dibuka else " admin-titik-netral", "dibuka" if dibuka else "ditutup",
+            _e(csrf), _e(token), ' checked' if dibuka else '',
             ' selected' if status.pesan_kode == 'closed_standard' else '',
             ' selected' if status.pesan_kode == 'closed_maintenance' else '',
-            'Pendaftaran sementara ditutup untuk pemeliharaan' if status.pesan_kode == 'closed_maintenance' else 'Pendaftaran baru sedang ditutup',
+            keadaan, _e(pesan),
         )
     )
 
