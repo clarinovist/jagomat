@@ -9,7 +9,7 @@ from typing import Optional, Sequence, Tuple
 from urllib.parse import urlencode
 
 import admin_queries as Q
-from admin_komponen import e, hidden_filter, opsi, pager, waktu
+from admin_komponen import e, hidden_filter, kepala_cari, opsi, pager, waktu
 from admin_labels import LABEL_STATUS, label_status
 from learning_profile import label_kelas_sekolah
 
@@ -112,22 +112,28 @@ def _bar_cari(
     section: str, csrf: str, cari: str, label: str, lanjutan: str, aksi: str = "",
     kelas: str = "", tersembunyi: str = "", terbuka: bool = False,
 ) -> str:
+    """Form pencarian (pindah ke baris judul) + panel Filter lanjutan di bawah header.
+
+    Select panel memakai atribut ``form`` agar tetap terkirim bersama pencarian.
+    """
     if not csrf:
         return '<p class="admin-meta">Tampilan baca-saja. Masuk melalui formulir untuk mencari dan mengelola akun.</p>'
-    return (
-        '<div class="admin-bar-atas"><form class="admin-form-cari%s" method="post" action="/admin">'
+    id_form = "form-cari-" + section
+    pencarian = (
+        '<div class="admin-grup-cari"><form id="%s" class="admin-form-cari%s" method="post" action="/admin">'
         '<input type="hidden" name="mode" value="cari"><input type="hidden" name="section" value="%s">'
         '<input type="hidden" name="csrf" value="%s">%s'
         '<label class="admin-cari"><span class="admin-sr">%s</span>'
         '<input name="cari" maxlength="80" value="%s" autocomplete="off" placeholder="%s"></label>'
-        '<button class="admin-tombol" type="submit">Cari</button>'
-        '<details%s><summary>Filter lanjutan</summary><div>%s'
-        '<button class="admin-tombol" type="submit">Terapkan</button></div></details></form>%s</div>'
-        % (
-            kelas, e(section), e(csrf), tersembunyi, e(label), e(cari), e(label),
-            " open" if terbuka else "", lanjutan, aksi,
-        )
+        '<button class="admin-tombol" type="submit">Cari</button></form>%s</div>'
+        % (id_form, kelas, e(section), e(csrf), tersembunyi, e(label), e(cari), e(label), aksi)
     )
+    panel = (
+        '<details class="admin-filter-lanjutan"%s><summary>Filter lanjutan</summary><div>%s'
+        '<button class="admin-tombol" type="submit" form="%s">Terapkan</button></div></details>'
+        % (" open" if terbuka else "", lanjutan.replace("<select ", '<select form="%s" ' % id_form), id_form)
+    )
+    return kepala_cari(pencarian) + panel
 
 
 def render_keluarga(

@@ -7,6 +7,7 @@ import product_analytics as d
 import support_settings as dukungan
 import admin_labels as L
 from admin_daftar_pages import kartu_tabel, sel_nama
+from admin_komponen import kepala_cari
 
 
 def e(nilai):
@@ -37,11 +38,11 @@ def formulir(aksi,csrf,token,isi,tombol,hidden=(),konfirmasi=None):
 
 def _form_cari_langganan(csrf,cari):
     if not csrf: return ''
-    return ('<div class="admin-bar-atas"><form class="admin-form-cari" method="post" action="/admin/layanan/cari">'
+    return kepala_cari('<form class="admin-form-cari" method="post" action="/admin/layanan/cari">'
             '<input type="hidden" name="csrf" value="%s">'
             '<label class="admin-cari"><span class="admin-sr">Cari akun orang tua</span>'
             '<input name="cari" maxlength="80" value="%s" placeholder="Cari akun orang tua"></label>'
-            '<button class="admin-tombol" type="submit">Cari</button></form></div>')%(e(csrf),e(cari))
+            '<button class="admin-tombol" type="submit">Cari</button></form>')%(e(csrf),e(cari))
 
 
 def _pager_langganan(halaman,total,cari,csrf):

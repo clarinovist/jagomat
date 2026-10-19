@@ -84,16 +84,17 @@ button, summary {{ cursor: pointer; }}
 .admin-bagian {{ display: flex; flex-direction: column; gap: 12px; padding-top: 20px; border-top: 1px solid {T.ADMIN_PEMISAH}; }}
 .admin-sempit {{ max-width: 20rem; }}
 .admin-pratinjau {{ padding: 20px; border: 1px dashed {T.ADMIN_BORDER_KUAT}; border-radius: 12px; background: {T.ADMIN_HOVER}; font-size: 16px; }}
-.admin-bar-atas {{ display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: flex-end; gap: 12px; margin-bottom: 4px; }}
-.admin-bar-atas > form {{ flex: 1 1 24rem; max-width: 40rem; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }}
-.admin-bar-atas > form > label.admin-cari {{ display: block; flex: 1 1 14rem; margin: 0; }}
+.admin-kepala-aksi .admin-form-cari {{ flex: 0 1 360px; min-width: 240px; flex-wrap: nowrap; gap: 10px; align-items: center; }}
+.admin-kepala-aksi .admin-form-cari > label.admin-cari {{ display: block; flex: 1 1 auto; min-width: 0; margin: 0; }}
+.admin-kepala-aksi > .admin-grup-cari {{ flex: 0 1 auto; flex-wrap: nowrap; max-width: 100%; }}
+.admin-grup-cari .admin-tombol {{ white-space: nowrap; }}
+.admin-grup-cari {{ display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }}
 .admin-cari input {{ display: block; width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 12px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
-.admin-bar-atas details {{ flex: 1 1 100%; }}
-.admin-bar-atas details > div {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 240px)); gap: 16px; align-items: end; padding: 4px 0 8px; }}
-.admin-bar-atas details label {{ margin: 0; font-size: 14px; }}
-.admin-bar-atas details button {{ min-height: 44px; }}
-.admin-bar-atas details select {{ display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 10px 12px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 10px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
-.admin-bar-atas + .admin-grid-stat {{ margin-top: 16px; }}
+.admin-filter-lanjutan {{ margin: 0 0 16px; }}
+.admin-filter-lanjutan > div {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 240px)); gap: 16px; align-items: end; padding: 4px 0 8px; }}
+.admin-filter-lanjutan label {{ margin: 0; font-size: 14px; }}
+.admin-filter-lanjutan button {{ min-height: 44px; }}
+.admin-filter-lanjutan select {{ display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 10px 12px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 10px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
 .admin-kpi-hero {{ display: flex; flex-direction: column; gap: 20px; }}
 .admin-kpi-hero-kepala {{ display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }}
 .admin-kpi-hero-kepala h2 {{ margin: 0; }}
@@ -350,7 +351,8 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
   .riset-filter {{ flex-wrap: wrap; }}
   .admin-kartu-kepala, .admin-kartu-catatan {{ padding-left: 20px; padding-right: 20px; }}
   .admin-kartu-kaki {{ padding: 0 20px 20px; }}
-  .admin-bar-atas > form, .admin-bar-atas .admin-tombol {{ flex-basis: 100%; max-width: none; }}
+  .admin-kepala-aksi .admin-form-cari, .admin-kepala-aksi > .admin-grup-cari {{ flex-basis: 100%; }}
+  .admin-kepala-aksi > .admin-grup-cari {{ flex-wrap: wrap; }}
   .admin-rincian dd {{ margin-bottom: 12px; }}
   .admin-antrean-item, .admin-prioritas-kepala, .admin-aktivitas .admin-seksi-kepala, .admin-aktivitas li {{ padding-left: 20px; padding-right: 20px; }}
   .admin-grid-stat {{ gap: 12px; }}

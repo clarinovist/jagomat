@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import html
-from typing import Mapping, Optional, Sequence
+import re
+from typing import Mapping, Optional, Sequence, Tuple
 from urllib.parse import urlencode
 
 import admin_labels as L
@@ -85,3 +86,19 @@ def badge_status(status: Sequence[str]) -> str:
 
 def waktu(nilai: Optional[str]) -> str:
     return e(L.tanggal(nilai))
+
+
+TANDA_CARI = re.compile(r"<!--kepala-cari-->(.*?)<!--/kepala-cari-->", re.S)
+
+
+def kepala_cari(isi: str) -> str:
+    """Tandai blok pencarian agar ``halaman_admin`` memindahkannya ke baris judul."""
+    return "<!--kepala-cari-->%s<!--/kepala-cari-->" % isi
+
+
+def pisah_kepala_cari(isi: str) -> Tuple[str, str]:
+    """Kembalikan (isi tanpa blok pencarian, blok pencarian atau string kosong)."""
+    cocok = TANDA_CARI.search(isi)
+    if cocok is None:
+        return isi, ""
+    return isi[:cocok.start()] + isi[cocok.end():], cocok.group(1)

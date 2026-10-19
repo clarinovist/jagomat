@@ -247,7 +247,7 @@ def test_sidebar_dan_kartu_memakai_design_system_tanpa_js_baru():
 def test_daftar_keluarga_search_post_dan_pagination_post_tidak_ke_url():
     isi = pages.render_keluarga(_keluarga(cari="cari%rahasia<&"), csrf="csrf-sintetis")
 
-    assert '<form class="admin-form-cari" method="post" action="/admin">' in isi
+    assert 'class="admin-form-cari" method="post" action="/admin">' in isi
     assert 'name="cari"' in isi
     assert "?cari=" not in isi
     assert 'method="post"' in isi
@@ -262,7 +262,7 @@ def test_daftar_siswa_escape_label_filter_dan_tanpa_tombol_mutasi():
     keluarga = _keluarga().item
     isi = pages.render_siswa(_siswa(cari="Ari<&"), keluarga, csrf="csrf-sintetis")
 
-    assert '<form class="admin-form-cari admin-form-siswa" method="post"' in isi
+    assert 'class="admin-form-cari admin-form-siswa" method="post"' in isi
     assert "Ari &amp; &lt;B&gt;" in isi
     assert "keluarga&lt;script&gt;" in isi
     assert 'href="/admin?section=siswa&amp;id=7"' in isi

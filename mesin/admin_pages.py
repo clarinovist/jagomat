@@ -16,7 +16,7 @@ import admin_labels as L
 from admin_antrean_pages import AntreanAdmin, SinyalNav, render_antrean
 from admin_ikon import ikon
 from admin_labels import LABEL_STATUS
-from admin_komponen import badge_status as _badge_status, e as _e, hidden_filter as _hidden_filter, opsi as _opsi, pager as _pager, waktu as _waktu
+from admin_komponen import badge_status as _badge_status, e as _e, hidden_filter as _hidden_filter, opsi as _opsi, pager as _pager, pisah_kepala_cari as _pisah_kepala_cari, waktu as _waktu
 from admin_daftar_pages import render_keluarga, render_siswa  # noqa: F401 (API publik admin_pages)
 from admin_riwayat_pages import nav_riwayat, render_audit_batch, render_riwayat, render_riwayat_ai  # noqa: F401 (API publik admin_pages)
 import brand
@@ -150,9 +150,11 @@ def halaman_admin(
     judul_bawaan, sub_bawaan = _judul_section(section)
     judul = judul_bawaan if judul is None else judul
     subjudul = sub_bawaan if subjudul is None else subjudul
-    if aksi_header:
+    isi, pencarian = _pisah_kepala_cari(isi)
+    if aksi_header or pencarian:
+        blok_aksi = f'<div class="admin-aksi-header">{aksi_header}</div>' if aksi_header else ""
         kepala = (f'<header class="admin-kepala admin-kepala-aksi"><div><h1 id="judul-admin">{_e(judul)}</h1>'
-                  f'<p class="admin-sub">{_e(subjudul)}</p></div><div class="admin-aksi-header">{aksi_header}</div></header>')
+                  f'<p class="admin-sub">{_e(subjudul)}</p></div>{pencarian}{blok_aksi}</header>')
     else:
         kepala = f'<header class="admin-kepala"><h1 id="judul-admin">{_e(judul)}</h1><p class="admin-sub">{_e(subjudul)}</p></header>'
     dokumen = f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">

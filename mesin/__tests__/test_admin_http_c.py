@@ -773,7 +773,7 @@ def test_filter_lanjutan_keluarga_post_dan_get_menerima_kategori_aktivitas(serve
     kode, isi, _ = _minta(
         server, "/admin?section=keluarga&kategori=orang_tua&aktivitas=30_hari", cookie=token
     )
-    assert kode == 200 and "<details open>" in isi
+    assert kode == 200 and "<details class=\"admin-filter-lanjutan\" open>" in isi
     kode_status, _, _ = _minta(server, "/admin?section=keluarga&status=asing", cookie=token)
     kode, _, _ = _minta(server, "/admin?section=keluarga&kategori=asing", cookie=token)
     assert kode == kode_status != 200
