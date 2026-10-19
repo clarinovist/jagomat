@@ -78,14 +78,14 @@ def test_tipografi_riwayat_memakai_skala_label_untuk_data_utama():
     assert f"font-size:{T.UKURAN_TEKS_LABEL}" in aturan
 
 
-def test_riwayat_menyebut_format_pg_dan_id_sumber_remedial(db):
+def test_riwayat_menyebut_id_sumber_remedial_tanpa_istilah_teknis_pg(db):
     kon,anak,_=db
     pg=kon.execute("INSERT INTO sesi(siswa_id,tanggal,seed,level,topik,format_jawaban) VALUES(?,'2026-09-19',701,'P3','campuran','pilihan_ganda')",(anak,)).lastrowid
     kon.execute("UPDATE sesi SET jenis='remedial',sumber_sesi_id=1 WHERE id=2")
     isi=_isi(kon,anak,query='section=riwayat')
     satu=re.search(r'<li class="riwayat-kartu-st" data-sesi-id="%d">.*?</li>' % pg,isi,re.S).group()
     dua=re.search(r'<li class="riwayat-kartu-st" data-sesi-id="2">.*?</li>',isi,re.S).group()
-    assert 'Pilihan ganda · latihan manual' in satu
+    assert 'Pilihan ganda' not in satu and 'latihan manual' not in satu and 'Latihan bebas' in satu
     assert 'Remedial' in dua and 'dari sesi #1' in dua
 
 

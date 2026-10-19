@@ -1,6 +1,7 @@
 """Presentasi tab profil dan tabel riwayat; tidak menentukan rekomendasi belajar."""
 import html
 import design_tokens as T
+from child_components import pil_filter
 import profile_history as H
 from topics import daftar_topik, ambil
 
@@ -175,13 +176,11 @@ def riwayat(
     strip = ''
     if statistik.get('menunggu') and statistik.get('terlama_id'):
         strip = ('<aside class="riwayat-perhatian-st"><p><b>%d sesi menunggu tinjauan.</b> '
-                 'Mulai dari yang paling lama.</p><a class="st-tombol-coral" href="/sesi/%d">'
+                 'Mulai dari yang paling lama.</p><a class="anak-tombol-st" href="/sesi/%d">'
                  'Tinjau yang terlama</a></aside>') % (statistik['menunggu'], statistik['terlama_id'])
     aktif = ('perlu_tinjauan' if f.tinjauan in ('belum_ditinjau', 'dibuka', 'draf', 'ulang') else f.tinjauan)
     chips = '<nav class="riwayat-pilbar-st" aria-label="Status latihan">' + ''.join(
-        '<a class="riwayat-pil-st" href="%s"%s>%s</a>' % (
-            _e(replace(f, tinjauan=kode, halaman=1).tautan(siswa_id)),
-            ' aria-current="true"' if aktif == kode else '', label)
+        pil_filter(label, replace(f, tinjauan=kode, halaman=1).tautan(siswa_id), aktif == kode)
         for kode, label in (('semua','Semua'), ('perlu_tinjauan','Perlu ditinjau'), ('dikonfirmasi','Selesai'))
     ) + '</nav>'
     ringkasan = _ringkasan_filter(f)
@@ -222,8 +221,6 @@ def riwayat(
             jenis += ' · Remedial'
             if r['sumber_sesi_id'] is not None:
                 jenis += ' · dari sesi #%d' % r['sumber_sesi_id']
-        if r['format_jawaban'] == 'pilihan_ganda':
-            jenis += ' · Pilihan ganda · latihan manual'
         kelas = 'riwayat-lihat-st' if selesai or r['dibatalkan'] is not None else 'riwayat-tinjau-st'
         isi.append(
             '<li class="riwayat-kartu-st" data-sesi-id="%d">'
@@ -241,8 +238,9 @@ def riwayat(
     awal = (f.halaman-1)*H.PER_HALAMAN+1 if total else 0
     akhir = min(f.halaman*H.PER_HALAMAN, total)
     return (strip + '<section aria-labelledby="judul-riwayat" class="riwayat-ringkas-st">'
-            '<div class="kepala-riwayat-st"><h2 class="st" id="judul-riwayat">Semua latihan</h2></div>'
-            + chips + filter_html
+            '<div class="anak-filterbar-st"><div class="kepala-riwayat-st">'
+            '<h2 class="st" id="judul-riwayat">Semua latihan</h2></div>'
+            + chips + filter_html + '</div>'
             + ('<p class="profil-filter-aktif-st">' + _e(ringkasan) + '</p>' if ringkasan else '') + reset
             + '<div class="profil-arsip-st" id="filter-riwayat">' + ''.join(isi)
             + '<div class="profil-paging-st"><span>Menampilkan %d–%d dari %d sesi</span>%s</div></div>' % (
@@ -425,8 +423,6 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-filter-st .profil-cari-st {{ grid-column:1/-1; }}
 .profil-workspace-st .riwayat-pilbar-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_2}; margin-top:{T.SP_3}; }}
 .profil-workspace-st .riwayat-pilbar-st > span {{ font-size:{T.UKURAN_TEKS_META}; color:{T.TEKS_VARIAN}; }}
-.profil-workspace-st .riwayat-pil-st {{ display:inline-flex; align-items:center; min-height:{T.TARGET_SENTUH}; padding:{T.SP_1} {T.SP_3}; border-radius:{T.RADIUS_PIL}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; background:{T.LATAR_SEKUNDER_LEMBUT}; color:{T.TEKS_VARIAN}; text-decoration:none; font-size:{T.UKURAN_TEKS_LABEL}; }}
-.profil-workspace-st .riwayat-pil-st[aria-current] {{ background:{T.TEKS_JUDUL}; border-color:{T.TEKS_JUDUL}; color:{T.TEKS_PUTIH}; font-weight:700; }}
 .profil-workspace-st .riwayat-grup-daftar-st {{ display:grid; gap:{T.SP_5}; margin-top:{T.SP_2}; }}
 .profil-workspace-st .riwayat-grup-st {{ display:grid; gap:{T.SP_3}; }}
 .profil-workspace-st .riwayat-grup-judul-st {{ display:flex; align-items:center; gap:{T.SP_4}; margin:0; color:{T.TEKS_JUDUL}; font-size:{T.UKURAN_TEKS_META}; text-transform:uppercase; letter-spacing:.04em; }}

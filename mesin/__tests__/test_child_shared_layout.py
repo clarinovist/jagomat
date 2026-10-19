@@ -116,3 +116,42 @@ def test_kartu_sesi_satu_baris_dengan_slot_opsional():
                         aksi_html="<a>Lanjutkan</a>", peringatan="Hasil 0 dari 10")
     assert html.count("anak-kartu-sesi-st") == 1 and "anak-kartu-peringatan-st" in html
     assert "anak-kartu-tanggal-st" not in html
+
+
+# ── Riwayat ───────────────────────────────────────────────────────────
+
+def _riwayat(db, sid) -> str:
+    return _render(db, sid, "riwayat")
+
+
+def test_riwayat_filter_tambahan_satu_baris_dengan_judul_dan_pil(anak):
+    db, sid = anak
+    html = _riwayat(db, sid)
+    bar = html.split('<div class="anak-filterbar-st">', 1)[1].split("</details>", 1)[0]
+    assert bar.index("Semua latihan") < bar.index("riwayat-pilbar-st") < bar.index("Filter tambahan")
+    assert 'class="anak-pil-st" href="' in bar and 'aria-current="true"' in bar
+
+
+def test_riwayat_tombol_terlama_memakai_tombol_bersama_bukan_coral(anak):
+    db, sid = anak
+    with database.buka(db) as kon:
+        a = database.buat_sesi(kon, sid, seed=21, jumlah_soal=1)
+        database.tandai_selesai(kon, a)
+    html = _riwayat(db, sid)
+    aside = html.split('<aside class="riwayat-perhatian-st">', 1)[1].split("</aside>", 1)[0]
+    assert 'class="anak-tombol-st"' in aside and "st-tombol-coral" not in aside
+
+
+def test_riwayat_subteks_tanpa_istilah_teknis(anak):
+    db, sid = anak
+    kartu = _riwayat(db, sid).split('<li class="riwayat-kartu-st"', 1)[1].split("</li>", 1)[0]
+    assert "latihan manual" not in kartu and "Pilihan ganda" not in kartu
+
+
+def test_riwayat_baris_sesi_satu_lapis_di_desktop_dan_chip_netral_untuk_batal():
+    from child_history_style import GAYA_RIWAYAT as css
+    desktop = css.split("@media (min-width: 48.0625rem)", 1)[1].split("\n}\n", 1)[0]
+    assert "grid-area: auto" in desktop and "3.5rem minmax(0, 1fr) auto auto" in desktop
+    batal = [b for b in css.split("\n") if ".badge-direview:is(.belum, .batal)" in b][0]
+    assert T.ANAK_NETRAL_LATAR in batal and T.ANAK_NETRAL_TEKS in batal
+    assert f"background: {T.ANAK_AKSEN}; color: {T.TEKS_PUTIH}" in css
