@@ -19,7 +19,7 @@ import product_analytics as d
 import product_analytics_store as kpi
 
 SECTION = {'langganan','perhatian','operasional','kpi'}
-JUDUL = {'langganan':'Langganan','perhatian':'Perlu ditangani','operasional':'Status operasional','kpi':'KPI Uji Coba'}
+JUDUL = {'langganan':'Langganan','perhatian':'Perlu ditangani','operasional':'Operasional','kpi':'KPI uji coba'}
 FEEDBACK_DUKUNGAN = {'tersimpan': 'Pengaturan dukungan tersimpan dan siap dipakai halaman publik.'}
 
 
@@ -32,7 +32,7 @@ def _form(penangan,p,aksi,meta):
 def _kirim(penangan,p,section,isi):
     if h._principal_admin(penangan) != p:
         return h._tidak_ada(penangan)
-    h._kirim_privat(penangan,h._halaman_admin(p,section,isi,skrip=True,judul=JUDUL[section],subjudul=''),skrip=True)
+    h._kirim_privat(penangan,h._halaman_admin(p,section,isi,skrip=True,judul=JUDUL[section],subjudul=None),skrip=True)
 
 
 def get(penangan,p,q):

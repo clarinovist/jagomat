@@ -83,7 +83,16 @@ tercapai via system font di Apple/Windows.
 
 ### Skala layar dewasa (26 Sep 2026)
 
-Admin dan orang tua memakai hierarki lebih padat, bukan skala judul hero anak:
+Orang tua memakai hierarki lebih padat, bukan skala judul hero anak. Panel admin
+kini memakai varian scoped berikut, tanpa mengubah token permukaan lain:
+`ADMIN_LATAR` #F6F8F8, `ADMIN_TEKS` #14201F, `ADMIN_AKSEN` #0B7A75,
+`ADMIN_REDUP` #5B6866; h1 28px, isi 14,5px, h2 18px, catatan 13px.
+Sidebar 256px datar, disclosure seluler ≤820px, kartu 16px, kontrol 10px/
+minimal 44px. Tabel nowrap pada header dan scroll internal; status berteks.
+ID tetap dapat disalin lengkap. Nilai ada di `design_tokens.py`, komponen pada
+`admin_style.py`. Detail penyimpangan mockup: [keputusan redesain](redesign-decisions.md).
+
+Skala dewasa existing untuk permukaan lainnya:
 
 | Token | Nilai | Pemakaian |
 |-------|-------|-----------|

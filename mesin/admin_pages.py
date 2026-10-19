@@ -12,6 +12,8 @@ from typing import Mapping, Optional, Sequence, Tuple
 from urllib.parse import urlencode
 
 import admin_queries as Q
+import admin_labels as L
+from admin_labels import LABEL_STATUS
 import brand
 from admin_style import GAYA_ADMIN
 import design_tokens as T
@@ -33,8 +35,8 @@ SECTION = (
     ("riwayat", "Riwayat admin", "/admin?section=riwayat"),
 )
 GRUP_SECTION = (
-    ("Pusat kendali", ("ringkasan", "perhatian")),
-    ("Data pengguna", ("keluarga", "siswa")),
+    ("Pusat kendali", ("ringkasan",)),
+    ("Pengguna", ("keluarga", "siswa")),
     ("Layanan", ("pendaftaran", "langganan")),
     ("Analitik", ("kpi", "riset")),
     ("Sistem", ("operasional", "ai", "riwayat")),
@@ -42,19 +44,6 @@ GRUP_SECTION = (
 SECTION_LOKAL = frozenset(item[0] for item in SECTION if item[0] != "ai")
 SKRIP_KONFIRMASI_LOGIN = """document.querySelectorAll('form[data-konfirmasi-login],form[data-konfirmasi]').forEach(function(f){f.addEventListener('submit',function(e){if(!window.confirm(f.dataset.konfirmasiLogin||f.dataset.konfirmasi)){e.preventDefault();}});});"""
 
-LABEL_STATUS = {
-    "account_missing_id": "ID akun belum tersedia",
-    "no_students": "Belum memiliki siswa",
-    "student_without_login": "Siswa belum punya login eksplisit",
-    "duplicate_explicit_login": "Lebih dari satu login menunjuk siswa",
-    "owner_without_account": "Pemilik tidak memiliki akun",
-    "owner_empty": "Pemilik siswa kosong",
-    "owner_admin": "Dimiliki akun pengelola",
-    "orphan_login": "Login menunjuk siswa yang tidak ada",
-    "legacy_orphan_login": "Login warisan tidak punya kandidat siswa",
-    "legacy_login_unverified": "Login warisan belum terverifikasi",
-    "legacy_same_name_ambiguous": "Nama warisan cocok ke beberapa siswa",
-}
 LABEL_KATEGORI = {
     "orang_tua": "Orang Tua",
     "pengelola": "Pengelola",
@@ -75,13 +64,22 @@ def _judul_section(section: str) -> Tuple[str, str]:
     if section == "pendaftaran":
         return "Pendaftaran", "Status pengaturan pendaftaran mandiri."
     if section == "riwayat":
-        return "Riwayat admin", "Riwayat tindakan panel mulai dari cutover fitur."
+        return "Riwayat admin", "Tindakan pengelola yang tercatat sejak fitur diaktifkan."
     if section == "riset":
         return "Riset konsumen", "Data wawancara eksploratif anonim untuk keputusan produk."
-    return "Selamat datang, Pengelola.", "Tinjau yang perlu ditangani, lalu pantau kondisi layanan dan aktivitas administratif."
+    judul, subjudul = {
+        'ringkasan': ('Ringkasan', L.hari_ini()),
+        'perhatian': ('Perlu ditangani', 'Periksa hasil operasi yang memerlukan keputusan.'),
+        'langganan': ('Langganan', 'Catatan langganan dan akses keluarga.'),
+        'operasional': ('Operasional', 'Kesiapan layanan dan pengaturan operasional.'),
+        'kpi': ('KPI uji coba', 'Angka agregat untuk memahami penggunaan, bukan menilai anak.'),
+        'ai': ('Pengaturan AI', 'Kesiapan, batas biaya, dan pemakaian panggilan Jagomat.'),
+    }.get(section, ('Ringkasan', L.hari_ini()))
+    return judul, subjudul
 
 
 def _nav(section: str) -> str:
+    section = 'ringkasan' if section == 'perhatian' else section
     section_data = {sid: (label, jalur) for sid, label, jalur in SECTION}
     grup = []
     for label_grup, daftar_section in GRUP_SECTION:
@@ -97,13 +95,9 @@ def _nav(section: str) -> str:
             grup.append('<li class="admin-nav-utama"><ul class="admin-nav-pilihan" '
                         'aria-label="Menu utama">%s</ul></li>' % tautan)
         else:
-            # Grup lipat tanpa JS: dibuka default hanya bila memuat halaman aktif.
-            buka = ' open' if section in daftar_section else ''
-            grup.append('<li class="admin-nav-grup"><details%s>'
-                        '<summary><span class="admin-nav-label">%s</span>'
-                        '<span class="admin-nav-chev" aria-hidden="true">\u203a</span></summary>'
-                        '<ul class="admin-nav-anak" aria-label="%s">%s</ul></details></li>'
-                        % (buka, _e(label_grup), _e(label_grup), tautan))
+            grup.append('<li class="admin-nav-grup"><p class="admin-nav-label">%s</p>'
+                        '<ul class="admin-nav-anak" aria-label="%s">%s</ul></li>'
+                        % (_e(label_grup), _e(label_grup), tautan))
     return '<ul class="admin-nav-daftar">%s</ul>' % "".join(grup)
 
 
@@ -146,16 +140,14 @@ def halaman_admin(
 <a class="admin-brand" href="/admin"><span class="admin-brand-mark" aria-hidden="true">J</span>
 <span><strong>{_e(T.NAMA_PRODUK)}</strong><small>Panel Pengelola</small></span></a>
 <nav class="admin-nav admin-menu" aria-label="Bagian panel pengelola">{_nav(section)}</nav>
-<p class="admin-identitas"><strong>{_e(pengguna)}</strong><span>Akun pengelola</span></p></aside>
+</aside>
 <section class="admin-utama"><header class="admin-topbar">
-<p class="admin-konteks"><strong>Panel privat</strong><span>Data operasional, bukan penilaian anak</span></p>
 <details class="admin-nav-mobile"><summary><span>Menu pengelola</span><strong>{_e(_label_section(section))}</strong></summary>
 <nav class="admin-menu" aria-label="Bagian panel pengelola seluler">{_nav(section)}</nav></details>
 <details class="menu-pengguna"><summary>{_e(pengguna)} <span class="admin-badge">Pengelola</span></summary>
 <div class="menu-isi"><a href="/akun?section=akun">Ganti sandi</a>
 <form method="post" action="/keluar"><button type="submit">Keluar</button></form></div></details></header>
-<header class="admin-kepala"><p class="admin-alis">Pusat kendali</p>
-<h1 id="judul-admin">{_e(judul)}</h1><p class="admin-sub">{_e(subjudul)}</p></header>
+<header class="admin-kepala"><h1 id="judul-admin">{_e(judul)}</h1><p class="admin-sub">{_e(subjudul)}</p></header>
 <main id="konten-admin" aria-labelledby="judul-admin">{isi}</main>
 <footer class="admin-footer">Tampilan privat · Data operasional, bukan penilaian kemampuan anak.</footer>
 </section></div></div>{'<script>' + skrip_sandi + '</script>' if skrip_sandi else ''}</body></html>"""
@@ -166,18 +158,18 @@ def _badge_status(status: Sequence[str]) -> str:
     if not status:
         return '<span class="admin-badge">Normal</span>'
     return "".join(
-        '<span class="admin-badge perhatian">%s</span>'
-        % _e(LABEL_STATUS.get(kode, "Perlu ditinjau"))
+        '<span class="admin-badge%s">%s</span>'
+        % (' bien' if kode in ('succeeded', 'ok', 'completed', 'selesai') else ' perhatian', _e(L.label_status(kode)))
         for kode in status
     )
 
 
 def _waktu(nilai: Optional[str]) -> str:
-    return "—" if not nilai else _e(nilai)
+    return _e(L.tanggal(nilai))
 
 
 def _antrean_ringkasan(data, jumlah_antrean, operasi_belum_pasti, operasi_tertunda):
-    """Urutan peninjauan; jumlah temuan bukan jumlah unik siswa/operasi."""
+    """Satu kategori per baris; tidak mengarang jumlah entitas unik atau umur."""
     pemilik = tuple(item for item in data.perhatian if item.kode.startswith("owner_"))
     login = tuple(item for item in data.perhatian if not item.kode.startswith("owner_"))
     antrean = []
@@ -193,18 +185,20 @@ def _antrean_ringkasan(data, jumlah_antrean, operasi_belum_pasti, operasi_tertun
         antrean.append((
             "Operasi dan pembayaran", "Operasi perlu diperiksa",
             jumlah_antrean if jumlah_antrean is not None else operasi_belum_pasti + operasi_tertunda,
-            "Periksa hasil operasi yang sama; jangan mengulang atau memaksa status lunas.",
+            "Periksa hasil operasinya; jangan mengulang atau memaksa status lunas.",
             "/admin?section=perhatian" if jumlah_antrean is not None else "/admin?section=riwayat",
             "Tinjau operasi", (),
         ))
     if pemilik:
         antrean.append((
-            "Keluarga", "Kepemilikan perlu ditinjau", sum(item.jumlah for item in pemilik),
+            "Keluarga", "Pemilik siswa perlu diperiksa", sum(item.jumlah for item in pemilik),
             "Konfirmasi kaitan keluarga sebelum akun digunakan.",
             "/admin?section=keluarga&status=perlu_perhatian", "Tinjau keluarga", pemilik,
         ))
+    urutan = {'Operasi dan pembayaran': 0, 'Keluarga': 1, 'Akun siswa': 2}
+    antrean.sort(key=lambda item: urutan[item[0]])
     kartu = []
-    for nomor, (kategori, judul, jumlah, penjelasan, jalur, cta, rincian) in enumerate(antrean, 1):
+    for kategori, judul, jumlah, penjelasan, jalur, cta, rincian in antrean:
         detail = "".join('<li>%d · %s</li>' % (item.jumlah, _e(LABEL_STATUS.get(item.kode, "Perlu ditinjau")))
                          for item in rincian)
         if kategori == "Akun siswa" and data.login_bermasalah and jalur != "#login-perlu-perhatian":
@@ -214,22 +208,48 @@ def _antrean_ringkasan(data, jumlah_antrean, operasi_belum_pasti, operasi_tertun
                    if kategori == "Operasi dan pembayaran" and (operasi_belum_pasti or operasi_tertunda) else "")
         kartu.append(
             '<li class="admin-antrean-item"><div class="admin-antrean-urutan">'
-            '<span>Prioritas %d · %s</span><strong>%d</strong></div><h3>%s</h3><p>%s</p>%s%s'
+            '<span>%s · %s</span><strong>%d</strong><span>Umur: —</span></div><h3>%s</h3><p>%s</p>%s%s'
             '<a class="admin-antrean-cta" href="%s">%s <span aria-hidden="true">→</span></a></li>'
-            % (nomor, _e(kategori), jumlah, _e(judul), _e(penjelasan),
+            % ({'Operasi dan pembayaran': 'Mendesak', 'Keluarga': 'Penting', 'Akun siswa': 'Tinjau'}[kategori], _e(kategori), jumlah, _e(judul), _e(penjelasan),
                '<ul class="admin-antrean-rincian">%s</ul>' % detail if detail else "", operasi, _e(jalur), _e(cta))
         )
     isi = ('<ol class="admin-antrean">%s</ol>' % "".join(kartu) if kartu else
            '<p class="admin-antrean-kosong">Tidak ada kondisi administratif yang perlu perhatian pada sumber yang tersedia.</p>')
-    total = sum(item[2] for item in antrean)
+    total = len(antrean)
     return (
         '<section class="admin-kartu admin-prioritas" aria-labelledby="judul-antrean">'
-        '<header class="admin-prioritas-kepala"><div><p class="admin-alis">Antrean keputusan</p>'
-        '<h2 id="judul-antrean">Yang perlu kamu tangani</h2></div>'
-        '<p class="admin-total-temuan"><strong>%d</strong> temuan tercatat</p></header>%s'
-        '<p class="admin-antrean-catatan">Prioritas saat ini · Satu siswa atau operasi dapat muncul pada lebih dari satu temuan.%s</p></section>'
+        '<header class="admin-prioritas-kepala"><div>'
+        '<h2 id="judul-antrean">Perlu ditangani</h2></div>'
+        '<p class="admin-total-temuan"><strong>%d</strong> kategori menunggu keputusan</p></header>%s'
+        '<p class="admin-antrean-catatan">Satu baris per kategori. Rincian kondisi dapat tumpang-tindih, bukan jumlah orang unik. Umur tidak tersedia karena waktu awal masalah belum tercatat.%s</p></section>'
         % (total, isi, ' Jumlah antrean layanan belum tersedia.' if jumlah_antrean is None else "")
     )
+
+
+def _aktivitas_ringkasan(items):
+    """Kelompok berurutan, tanpa menyortir atau mengubah makna catatan sesi."""
+    kelompok = []
+    for item in items[:10]:
+        dt = L.waktu(item.waktu_aktivitas)
+        kunci = (item.siswa_id, dt.date() if dt else item.sesi_id, item.dibatalkan)
+        if kelompok and kelompok[-1][0] == kunci:
+            kelompok[-1][1].append(item)
+        else:
+            kelompok.append((kunci, [item]))
+    baris = []
+    for _kunci, sesi in kelompok:
+        item = sesi[0]
+        tautan = ' · '.join('<a href="/sesi/%d">Sesi %d</a>' % (s.sesi_id, s.sesi_id) for s in sesi)
+        label = ' · %d sesi' % len(sesi) if len(sesi) > 1 else ''
+        rentang = _waktu(sesi[-1].waktu_aktivitas)
+        if len(sesi) > 1:
+            rentang += ' – ' + _waktu(item.waktu_aktivitas)
+        baris.append('<li><a class="admin-aktivitas-judul" href="/anak/%d?section=riwayat">%s</a>%s'
+                     '<p>%s%s</p><p class="admin-meta">%s · %s</p></li>' % (
+                         item.siswa_id, _e(item.nama_siswa), label, tautan,
+                         ' · Dibatalkan' if item.dibatalkan else '',
+                         _e(item.pemilik or 'Pemilik kosong'), rentang))
+    return ''.join(baris) or '<li class="admin-kosong"><strong>Belum ada aktivitas sesi.</strong><br>Catatan muncul setelah sesi pertama dibuat.</li>'
 
 
 def render_ringkasan(
@@ -247,24 +267,9 @@ def render_ringkasan(
             (data.sesi_7_hari, "Aktivitas 7 hari", "catatan sesi"),
         )
     )
-    layanan = "".join('<div><dt>%s</dt><dd>%s</dd></div>' % (_e(label), _e(status))
+    layanan = "".join('<div><dt>%s</dt><dd><span class="admin-badge">%s</span></dd></div>' % (_e(label), _e(status))
                       for label, status in (status_layanan or {"Status layanan": "belum tersedia"}).items())
-    aktivitas = "".join(
-        '<li><span class="admin-aktivitas-ikon" aria-hidden="true">%s</span><div>'
-        '<a class="admin-aktivitas-judul" href="/sesi/%d">Sesi %d · %s</a>'
-        '<p><a href="/anak/%d?section=riwayat">%s</a> · %s</p><p class="admin-meta">%s WIB</p></div></li>'
-        % ("B" if item.dibatalkan else "S", item.sesi_id, item.sesi_id,
-           "Dibatalkan" if item.dibatalkan else "Tercatat", item.siswa_id,
-           _e(item.nama_siswa), _e(item.pemilik or "Pemilik kosong"), _e(item.waktu_aktivitas))
-        for item in data.aktivitas_terbaru
-    ) or '<li class="admin-kosong">Belum ada aktivitas sesi.</li>'
-    cepat = "".join('<a href="%s"><strong>%s</strong><span>%s</span></a>' % (_e(jalur), _e(label), _e(ket))
-                    for jalur, label, ket in (
-                        ("/admin?section=keluarga", "Cari keluarga", "Akun & kepemilikan"),
-                        ("/admin?section=siswa", "Cari siswa", "Identitas & login"),
-                        ("/admin?section=pendaftaran", "Pendaftaran", "Status & pengaturan"),
-                        ("/admin?section=langganan", "Langganan", "Invoice & akses"),
-                    ))
+    aktivitas = _aktivitas_ringkasan(data.aktivitas_terbaru)
     login_detail = ""
     if data.login_bermasalah:
         baris = "".join('<li><strong>%s</strong><span>%s · %d kandidat nama</span></li>' % (
@@ -282,14 +287,13 @@ def render_ringkasan(
         + '<section class="admin-kartu admin-layanan"><h2>Kondisi layanan</h2><dl>%s</dl>' % layanan
         + '<p class="admin-meta">Konfigurasi bukan jaminan provider sedang online. Bukti backup tidak menyatakan jadwal atau salinan luar server.</p>'
         '<a class="admin-layanan-cta" href="/admin?section=operasional">Buka operasional <span aria-hidden="true">→</span></a></section></div>'
-        + '<section class="admin-grid-stat" aria-label="Jumlah administratif">%s</section>' % stat
-        + '<div class="admin-pendukung"><section class="admin-kartu admin-aktivitas">'
-        '<header><h2>Aktivitas sesi terbaru</h2><span class="admin-meta">Maksimal 10 catatan</span></header>'
-        '<ul>%s</ul></section>' % aktivitas
-        + '<div class="admin-samping"><section class="admin-kartu admin-cepat"><h2>Akses cepat</h2>'
-        '<p class="admin-meta">Jalur kerja rutin pengelola.</p><nav aria-label="Akses cepat pengelola">%s</nav></section>' % cepat
-        + '<aside class="admin-kartu admin-catatan"><strong>Angka adalah konteks, bukan target.</strong>'
-        '<p class="admin-meta">Data administratif tidak menyatakan anak sedang online, sudah belajar, atau lulus.</p></aside></div></div>'
+        + '<div class="admin-pendukung"><section class="admin-kartu"><h2>Jumlah administratif</h2>'
+        '<div class="admin-grid-stat" aria-label="Jumlah administratif">%s</div>' % stat
+        + '<strong>Angka adalah konteks, bukan target.</strong>'
+        '<p class="admin-meta">Data administratif tidak menyatakan anak sedang online, sudah belajar, atau lulus.</p></section>'
+        '<section class="admin-kartu admin-aktivitas"><header><h2>Aktivitas sesi terbaru</h2>'
+        '<span class="admin-meta">Maksimal 10 catatan · dikelompokkan per siswa/hari</span></header>'
+        '<ul>%s</ul></section></div>' % aktivitas
         + login_detail
         + '<details class="admin-kartu admin-catatan admin-definisi"><summary>Tentang angka ringkasan</summary>'
         '<p>Catatan sesi mencakup sesi dibatalkan. Jendela 7/30 hari memakai '
@@ -354,6 +358,24 @@ def _pager(
     )
 
 
+def _chip_daftar(section, data, opsi):
+    """Tautan hanya filter publik; pencarian nama tetap di form POST."""
+    if data.cari:
+        return '<p class="admin-meta">%d hasil pencarian. Gunakan filter lanjutan untuk mempertahankan pencarian privat.</p>' % data.total
+    dasar = {'section': section}
+    for nama in ('memiliki_anak', 'status', 'tingkat', 'keluarga_id'):
+        if hasattr(data, nama):
+            dasar[nama] = getattr(data, nama)
+    chips = []
+    for label, nilai in opsi:
+        query = dict(dasar, **nilai)
+        aktif = all(getattr(data, k) == v for k, v in nilai.items())
+        chips.append('<a class="admin-chip"%s href="/admin?%s">%s%s</a>' % (
+            ' aria-current="true"' if aktif else '', _e(urlencode(query)), _e(label),
+            ' · %d' % data.total if aktif else ''))
+    return '<nav class="admin-chip-baris" aria-label="Filter cepat">%s</nav>' % ''.join(chips)
+
+
 def render_keluarga(
     data: Q.HalamanKeluarga, *, csrf: str = "", tampilkan_aksi: bool = True
 ) -> str:
@@ -384,8 +406,8 @@ def render_keluarga(
         '<input type="hidden" name="mode" value="cari"><input type="hidden" name="section" value="keluarga">'
         '<input type="hidden" name="csrf" value="%s">'
         '<label>Cari alias akun<input name="cari" maxlength="80" value="%s" autocomplete="off"></label>'
-        '<label>Kepemilikan siswa<select name="memiliki_anak">%s%s%s</select></label>'
-        '<label>Kondisi akses<select name="status">%s%s</select></label>'
+        '<details><summary>Filter lanjutan</summary><div><label>Kepemilikan siswa<select name="memiliki_anak">%s%s%s</select></label>'
+        '<label>Kondisi akses<select name="status">%s%s</select></label></div></details>'
         '<button class="admin-tombol" type="submit">Cari</button></form></section>'
         % (
             _e(csrf), _e(data.cari),
@@ -404,14 +426,18 @@ def render_keluarga(
         "status": data.status,
     }
     return (
-        form
+        _chip_daftar('keluarga', data, (
+            ('Semua', {'status': 'semua', 'memiliki_anak': 'semua'}),
+            ('Perlu perhatian', {'status': 'perlu_perhatian', 'memiliki_anak': 'semua'}),
+            ('Belum memiliki siswa', {'status': 'semua', 'memiliki_anak': 'tidak'}),
+        )) + form
         + (
-            '<p><a class="admin-tautan" href="/admin/tinjau?aksi=account_teacher_create">Buat akun orang tua</a></p>'
+            '<p><a class="admin-tombol" href="/admin/tinjau?aksi=account_teacher_create">Buat akun orang tua</a></p>'
             if tampilkan_aksi else ""
         )
         + '<section class="admin-kartu"><h2>Daftar keluarga</h2>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th>Akun/pemilik</th><th>Kategori</th><th>Siswa</th><th>Sesi</th><th>Aktivitas terakhir</th><th>Kondisi</th><th>Tindakan</th></tr></thead>'
+        '<thead><tr><th scope="col">Akun/pemilik</th><th scope="col">Kategori</th><th scope="col">Siswa</th><th scope="col">Sesi</th><th scope="col">Aktivitas terakhir</th><th scope="col">Kondisi</th><th scope="col">Tindakan</th></tr></thead>'
         '<tbody>%s</tbody></table></div>%s</section>'
         % (
             baris,
@@ -437,9 +463,9 @@ def render_siswa(
         '<input type="hidden" name="mode" value="cari"><input type="hidden" name="section" value="siswa">'
         '<input type="hidden" name="csrf" value="%s">'
         '<label>Cari nama, login, atau keluarga<input name="cari" maxlength="80" value="%s" autocomplete="off"></label>'
-        '<label>Profil parameter<select name="tingkat">%s%s</select></label>'
+        '<details><summary>Filter lanjutan</summary><div><label>Profil parameter<select name="tingkat">%s%s</select></label>'
         '<label>Keluarga<select name="keluarga_id">%s</select></label>'
-        '<label>Kondisi<select name="status">%s%s</select></label>'
+        '<label>Kondisi<select name="status">%s%s</select></label></div></details>'
         '<button class="admin-tombol" type="submit">Cari</button></form></section>'
         % (
             _e(csrf), _e(data.cari),
@@ -464,7 +490,7 @@ def render_siswa(
             _e(item.nama),
             _e(label_kelas_sekolah(item.kelas_sekolah)),
             _e(item.pemilik or "Pemilik kosong"),
-            _e(item.login_pengguna or "Belum ada login eksplisit"),
+            _e(item.login_pengguna or "Belum ada login tertaut"),
             item.jumlah_sesi,
             _badge_status(item.status),
         )
@@ -479,10 +505,15 @@ def render_siswa(
         "status": data.status,
     }
     return (
-        form
+        _chip_daftar('siswa', data, (
+            ('Semua', {'status': 'semua'}),
+            ('Belum ada login tertaut', {'status': 'student_without_login'}),
+            ('Pemilik tanpa akun', {'status': 'owner_without_account'}),
+        )) + form
         + '<section class="admin-kartu"><h2>Daftar siswa</h2>'
+        '<p class="admin-meta">Login tertaut adalah akun yang dihubungkan langsung ke profil siswa. Akun lama yang belum tertaut mungkin masih bisa masuk melalui kecocokan nama; periksa sebelum membuat akun baru.</p>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th>Siswa</th><th>Kelas sekolah</th><th>Keluarga</th><th>Login</th><th>Sesi</th><th>Kondisi</th></tr></thead>'
+        '<thead><tr><th scope="col">Siswa</th><th scope="col">Kelas sekolah</th><th scope="col">Keluarga</th><th scope="col">Login</th><th scope="col">Sesi</th><th scope="col">Kondisi</th></tr></thead>'
         '<tbody>%s</tbody></table></div>%s</section>'
         % (
             baris,
@@ -532,7 +563,7 @@ def render_detail_keluarga(
         + tindakan
         + '<section class="admin-kartu"><h2>Siswa dalam keluarga</h2>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th>Siswa</th><th>Kelas sekolah</th><th>Sesi</th><th>Kondisi</th></tr></thead>'
+        '<thead><tr><th scope="col">Siswa</th><th scope="col">Kelas sekolah</th><th scope="col">Sesi</th><th scope="col">Kondisi</th></tr></thead>'
         '<tbody>%s</tbody></table></div>%s</section>'
         % (
             baris,
@@ -593,7 +624,7 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
         'Data P3–P6 lama tidak dipakai untuk menebak kelas. '
         'Riwayat administratif saja; bukan status belajar atau kelulusan.</p>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th>Sesi</th><th>Profil parameter sesi</th><th>Waktu</th><th>Status</th></tr></thead>'
+        '<thead><tr><th scope="col">Sesi</th><th scope="col">Profil parameter sesi</th><th scope="col">Waktu</th><th scope="col">Status</th></tr></thead>'
         '<tbody>%s</tbody></table></div></section>' % sesi
     )
 
@@ -737,8 +768,9 @@ def form_hapus_siswa(csrf, token):
 def render_pendaftaran(status, *, csrf: str, token: str) -> str:
     checked = " checked" if status.dibuka else ""
     return (
-        '<section class="admin-kartu"><h2>Status pendaftaran mandiri</h2>'
-        '<p>Status saat ini: <strong>%s</strong>. Perubahan tidak memengaruhi login existing.</p>'
+        '<section class="admin-kartu"><h2>Pendaftaran %s</h2>'
+        '<p>Perubahan tidak memengaruhi login yang sudah ada.</p></section>'
+        '<div class="admin-dua-kolom"><section class="admin-kartu"><h2>Pengaturan pendaftaran</h2>'
         '<form method="post" action="/admin/pendaftaran">'
         '<input type="hidden" name="aksi" value="registration_config_update">'
         '<input type="hidden" name="csrf" value="%s"><input type="hidden" name="tinjauan" value="%s">'
@@ -749,10 +781,12 @@ def render_pendaftaran(status, *, csrf: str, token: str) -> str:
         '</select></label>'
         '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
         '<button class="admin-tombol" type="submit">Simpan pengaturan</button>'
-        '</form></section>' % (
-            "Dibuka" if status.dibuka else "Ditutup", _e(csrf), _e(token), checked,
+        '</form></section><aside class="admin-kartu admin-catatan"><h2>Pratinjau saat ditutup</h2>'
+        '<p>%s</p><p class="admin-meta">Pesan tersimpan. Pratinjau diperbarui setelah pengaturan disimpan.</p></aside></div>' % (
+            "dibuka" if status.dibuka else "ditutup", _e(csrf), _e(token), checked,
             ' selected' if status.pesan_kode == 'closed_standard' else '',
             ' selected' if status.pesan_kode == 'closed_maintenance' else '',
+            'Pendaftaran sementara ditutup untuk pemeliharaan' if status.pesan_kode == 'closed_maintenance' else 'Pendaftaran baru sedang ditutup',
         )
     )
 
@@ -760,7 +794,7 @@ def render_pendaftaran(status, *, csrf: str, token: str) -> str:
 def render_bulk_awal(csrf: str, token: str) -> str:
     return (
         '<p><a class="admin-tautan" href="/admin/bulk/pilih?peran=guru">Kelola akun orang tua terpilih</a></p>'
-        '<section class="admin-kartu"><h2>Buat akun orang tua massal</h2>'
+        '<details class="admin-kartu"><summary>Buat akun orang tua massal</summary>'
         '<p class="admin-meta">CSV UTF-8 satu kolom <code>pengguna</code>; maksimal 100 akun dan 64 KiB. Tahap ini hanya meninjau alias, bukan membuat akun.</p>'
         '<p><a href="/admin/bulk/templat">Unduh templat CSV kosong</a></p>'
         '<form method="post" action="/admin/bulk/impor" enctype="multipart/form-data">'
@@ -770,7 +804,7 @@ def render_bulk_awal(csrf: str, token: str) -> str:
         '<label>File CSV<input type="file" name="csv" accept=".csv,text/csv" required></label>'
         '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
         '<button class="admin-tombol" type="submit">Tinjau batch</button>'
-        '</form></section>' % (_e(csrf), _e(token))
+        '</form></details>' % (_e(csrf), _e(token))
     )
 
 
@@ -818,7 +852,7 @@ def render_bulk_batch(batch, hasil, csrf, tokens, aliases):
         'tidak disimpan untuk dibaca ulang. Kirim akses secara privat. Sukses bukan bukti akses telah diserahkan.</p>'
         '<p>Reset mencabut sesi lama. Cabut sesi hanya mengeluarkan cookie, bukan memblokir login baru '
         'atau Basic dengan sandi yang masih sah. Data siswa dan riwayat tetap ada.</p>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th>Akun</th><th>Hasil</th><th>Akses</th></tr></thead>'
+        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Akun</th><th scope="col">Hasil</th><th scope="col">Akses</th></tr></thead>'
         '<tbody>%s</tbody></table></div>'
         '<p><a href="/admin/bulk/hasil?id=%s">Lihat status tanpa sandi</a></p>'
         % (_e(aksi), len(batch.item), _e(label.get(batch.status, batch.status)), _e(ringkas), ''.join(baris), _e(batch.batch_id)))
@@ -872,9 +906,9 @@ def render_riwayat(data, *, filter_data=None) -> str:
     }
     baris = "".join(
         '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
-            _e(datetime.fromtimestamp(item.dibuat, timezone(timedelta(hours=7))).strftime('%d/%m/%Y %H:%M WIB')),
-            _e(item.actor_id), _e(label.get(item.aksi, item.aksi)),
-            _e(item.target_id), _e(item.status),
+            _e(L.tanggal(item.dibuat)),
+            L.referensi(item.actor_id), _e(label.get(item.aksi, L.label_status(item.aksi))),
+            L.referensi(item.target_id), _badge_status((item.status,)),
         ) for item in data.item
     ) or '<tr><td colspan="5" class="admin-kosong">Belum ada tindakan admin.</td></tr>'
     kini_aksi = (filter_data or {}).get('aksi', '')
@@ -902,7 +936,7 @@ def render_riwayat(data, *, filter_data=None) -> str:
         '<label>Aksi<select name="aksi">%s</select></label>'
         '<button class="admin-tombol admin-tombol-sekunder">Saring riwayat</button></form>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr>'
-        '<th>Waktu</th><th>Actor</th><th>Aksi</th><th>Target</th><th>Status</th>'
+        '<th scope="col">Waktu</th><th scope="col">Pelaku</th><th scope="col">Aksi</th><th scope="col">Target</th><th scope="col">Status</th>'
         '</tr></thead><tbody>%s</tbody></table></div>'
         '%s</section>'
         % (_e(filter_data.get('mulai', '')), _e(filter_data.get('selesai', '')),
@@ -921,9 +955,9 @@ def render_riwayat_ai(data, *, filter_data=None):
                    if k in ('actor_id', 'aksi', 'mulai', 'selesai')}
     label = {'ai_settings_update': 'Ubah pengaturan AI', 'ai_synthetic_test': 'Tes sintetis AI'}
     baris = ''.join('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
-        _e(datetime.fromtimestamp(x.dibuat, timezone(timedelta(hours=7))).strftime('%d/%m/%Y %H:%M WIB')),
-        _e(x.actor_id or 'Tidak tercatat (sebelum metadata)'), _e(label[x.aksi]), _e(x.status),
-        _e(x.operasi_id or ('Revisi %s (sebelum metadata operasi)' % x.revisi if x.revisi else 'Sebelum metadata operasi')),
+        _e(L.tanggal(x.dibuat)),
+        L.referensi(x.actor_id or 'Tidak tercatat (sebelum metadata)'), _e(label[x.aksi]), _badge_status((x.status,)),
+        L.referensi(x.operasi_id or ('Revisi %s (sebelum metadata operasi)' % x.revisi if x.revisi else 'Sebelum metadata operasi')),
     ) for x in data.item) or '<tr><td colspan="5">Belum ada riwayat AI.</td></tr>'
     return (
         _nav_riwayat() + '<section class="admin-kartu"><h2>Riwayat dari penyimpanan AI</h2>'
@@ -934,7 +968,7 @@ def render_riwayat_ai(data, *, filter_data=None):
         '<label>Sampai (WIB)<input type="date" name="selesai" value="%s"></label>'
         '<label>ID pengelola<input name="actor_id" maxlength="80" value="%s"></label>'
         '<label>Aksi<select name="aksi">%s</select></label><button class="admin-tombol">Saring riwayat</button></form>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th>Waktu</th><th>Actor</th><th>Aksi</th><th>Status</th><th>Referensi</th></tr></thead>'
+        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Waktu</th><th scope="col">Pelaku</th><th scope="col">Aksi</th><th scope="col">Status</th><th scope="col">Referensi</th></tr></thead>'
         '<tbody>%s</tbody></table></div>%s</section>'
         % (_e(filter_data.get('mulai', '')), _e(filter_data.get('selesai', '')), _e(filter_data.get('actor_id', '')),
            _opsi('', 'Semua aksi', filter_data.get('aksi', '')) + ''.join(
@@ -945,15 +979,11 @@ def render_riwayat_ai(data, *, filter_data=None):
 
 
 def _label_status_batch(status):
-    return {'pending': 'Belum diproses', 'succeeded': 'Berhasil', 'failed_before_commit': 'Gagal sebelum tulis',
-            'conflict': 'Konflik', 'uncertain': 'Belum pasti', 'cancelled': 'Dibatalkan',
-            'ready': 'Siap', 'running': 'Sedang diproses', 'partial': 'Sebagian selesai',
-            'stopped': 'Dihentikan', 'attention': 'Perlu pemeriksaan', 'completed': 'Selesai'}.get(status, status)
+    return L.label_status(status)
 
 
 def _waktu_audit_batch(epoch):
-    from datetime import datetime, timedelta, timezone
-    return datetime.fromtimestamp(epoch, timezone(timedelta(hours=7))).strftime('%d/%m/%Y %H:%M WIB')
+    return L.tanggal(epoch)
 
 
 def render_audit_batch(data, *, filter_data=None):
@@ -982,8 +1012,8 @@ def render_audit_batch(data, *, filter_data=None):
                for k in ('ready', 'running', 'partial', 'stopped', 'succeeded', 'attention'))))
     return (_nav_riwayat() + '<section class="admin-kartu"><h2>Riwayat batch tersimpan</h2>'
         '<p>Metadata operasi tanpa alias, sandi, atau isi draft. Satu batch dapat memiliki beberapa kelompok dan hasil parsial.</p>'
-        + form + '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th>Batch</th><th>Actor</th>'
-        '<th>Aksi</th><th>Target</th><th>Hasil</th><th>Waktu</th></tr></thead><tbody>' + baris + '</tbody></table></div>'
+        + form + '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Batch</th><th scope="col">Pelaku</th>'
+        '<th scope="col">Aksi</th><th scope="col">Target</th><th scope="col">Hasil</th><th scope="col">Waktu</th></tr></thead><tbody>' + baris + '</tbody></table></div>'
         + _pager(section='riwayat', halaman=data.halaman, jumlah_halaman=data.jumlah_halaman,
                  total=data.total, filter_data=dict(filters, sumber='batch'), via_post=False) + '</section>')
 
@@ -1004,8 +1034,8 @@ def render_audit_batch_detail(data):
     return (_nav_riwayat() + '<section class="admin-kartu"><h2>Metadata batch %s</h2>'
         '<p>Actor: %s · Aksi: %s · Status: %s · %d target.</p>'
         '<p>Tampilan audit hanya-baca; bukan akses untuk mengambil alih draft sesi lain.</p>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th>Item</th><th>Operasi</th>'
-        '<th>Target/hasil</th><th>Status</th><th>Penyerahan</th></tr></thead><tbody>%s</tbody></table></div>'
+        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Item</th><th scope="col">Operasi</th>'
+        '<th scope="col">Target/hasil</th><th scope="col">Status</th><th scope="col">Penyerahan</th></tr></thead><tbody>%s</tbody></table></div>'
         '<h3>Kelompok</h3><ul>%s</ul><h3>Konfirmasi penyerahan</h3><ul>%s</ul></section>'
         % (_e(batch.batch_id), _e(batch.actor_id), _e(batch.aksi), _e(_label_status_batch(batch.status)), batch.jumlah_total,
            item, kelompok, penyerahan))

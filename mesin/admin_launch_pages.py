@@ -5,6 +5,7 @@ from datetime import datetime
 
 import product_analytics as d
 import support_settings as dukungan
+import admin_labels as L
 
 
 def e(nilai):
@@ -16,7 +17,7 @@ def rupiah(n):
 
 
 def tanggal(epoch):
-    return datetime.fromtimestamp(epoch,d.WIB).strftime('%d/%m/%Y %H:%M WIB') if epoch is not None else '—'
+    return L.tanggal(epoch)
 
 
 def info(label,isi):
@@ -24,7 +25,7 @@ def info(label,isi):
 
 
 def tabel(kepala,baris):
-    return '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr>'+''.join('<th>'+e(x)+'</th>' for x in kepala)+'</tr></thead><tbody>'+(''.join(baris) or '<tr><td colspan="%d">Belum ada data.</td></tr>'%len(kepala))+'</tbody></table></div>'
+    return '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr>'+''.join('<th scope="col">'+e(x)+'</th>' for x in kepala)+'</tr></thead><tbody>'+(''.join(baris) or '<tr><td colspan="%d" class="admin-kosong">Belum ada catatan untuk tampilan ini. Data muncul setelah aktivitas terkait tercatat.</td></tr>'%len(kepala))+'</tbody></table></div>'
 
 
 def formulir(aksi,csrf,token,isi,tombol,hidden=(),konfirmasi=None):
@@ -35,7 +36,7 @@ def formulir(aksi,csrf,token,isi,tombol,hidden=(),konfirmasi=None):
 
 def daftar_langganan(rows,total,*,halaman,cari,csrf,kandidat=(),forms=None):
     form='<form method="post" action="/admin/layanan/cari"><input type="hidden" name="csrf" value="%s"><label>Cari akun orang tua<input name="cari" maxlength="80" value="%s"></label><button class="admin-tombol">Cari</button></form>'%(e(csrf),e(cari)) if csrf else ''
-    baris=['<tr><td><a href="/admin?section=langganan&amp;id=%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>'%(e(r['akun_id']),e(r['alias']),tanggal(r['mulai']),'Ya' if r['peserta_promo'] else 'Tidak',e(r['asal'])) for r in rows]
+    baris=['<tr><td><a href="/admin?section=langganan&amp;id=%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>'%(e(r['akun_id']),e(r['alias']),tanggal(r['mulai']),'Ya' if r['peserta_promo'] else 'Tidak',e(L.label_status(r['asal']))) for r in rows]
     pager=''
     for nomor, label in ((halaman-1, 'Sebelumnya'), (halaman+1, 'Berikutnya')):
         if nomor < 1 or (nomor > halaman and halaman*25 >= total):
@@ -68,7 +69,7 @@ def detail_langganan(r,forms):
     baris=[]
     for i in r['invoices']:
         g=i['grant']
-        baris.append('<tr><td>%s<br><small>Periode %d</small></td><td>%s<br>%d profil</td><td>%s</td><td>%s</td><td>%s</td></tr>'%(e(i['invoice_id']),i['urutan'],rupiah(i['rupiah']),i['jumlah_profil'],e(STATUS.get(i['status'],i['status'])),tanggal(g.periode.akhir) if g else 'Belum ada grant',forms.get(i['invoice_id'],'Tidak ada tindakan provider')))
+        baris.append('<tr><td>%s<br><small>Periode %d</small></td><td>%s<br>%d profil</td><td>%s</td><td>%s</td><td>%s</td></tr>'%(L.referensi(i['invoice_id']),i['urutan'],rupiah(i['rupiah']),i['jumlah_profil'],e(STATUS.get(i['status'],i['status'])),tanggal(g.periode.akhir) if g else 'Belum ada grant',forms.get(i['invoice_id'],'Tidak ada tindakan provider')))
     return isi+'<section class="admin-kartu"><h2>Invoice dan hak akses</h2>'+tabel(('Referensi','Nominal','Pembayaran','Akhir grant','Tindakan'),baris)+'</section><p class="admin-meta">Pembayaran tercatat tidak selalu berarti akses aktif sekarang. Refund, pembayaran lebih, dan kasus terlambat tetap perlu keputusan; tidak ada tombol paksa lunas.</p>'
 
 
@@ -76,13 +77,13 @@ def antrean(rows,total,halaman=1):
     baris=[]
     for r in rows:
         link='/admin?section=langganan&amp;id='+e(r['akun']) if r['sumber'] in ('pembayaran','layanan') and r['akun'].startswith('akun_') else '/admin?section=riwayat'
-        baris.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">Periksa sumber</a></td></tr>'%(e(r['sumber']),e(r['ref']),e(r['status']),tanggal(r['waktu']),link))
+        baris.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">Periksa sumber</a></td></tr>'%(e(L.label_status(r['sumber'])),L.referensi(r['ref']),'<span class="admin-badge perhatian">'+e(L.label_status(r['status']))+'</span>',tanggal(r['waktu']),link))
     pager = ''
     if halaman > 1:
         pager += '<a href="/admin?section=perhatian&amp;halaman=%d">Sebelumnya</a> ' % (halaman-1)
     if halaman*25 < total:
         pager += '<a href="/admin?section=perhatian&amp;halaman=%d">Berikutnya</a>' % (halaman+1)
-    return '<section class="admin-kartu"><h2>Perlu ditangani · %d</h2>'%total+tabel(('Sumber','Referensi','Status','Sejak','Lanjut'),baris)+pager+'</section><p class="admin-meta">Status belum pasti bukan gagal aman. Gunakan operasi yang sama; jangan membuat pembayaran atau batch pengganti.</p>'
+    return '<section class="admin-kartu"><h2>Perlu ditangani · %d</h2>'%total+tabel(('Sumber','Referensi','Status','Sejak','Lanjut'),baris)+pager+'</section><p class="admin-meta">Status belum pasti bukan gagal aman. Periksa hasil operasinya; jangan mengulang atau memaksa status lunas. Jangan membuat pembayaran atau kelompok pengganti.</p>'
 
 
 def formulir_dukungan(csrf, token, config):
@@ -108,27 +109,29 @@ def formulir_dukungan(csrf, token, config):
 
 def operasional(r,form_pembayaran='',form_dukungan='',feedback=''):
     status='<p class="admin-kartu admin-catatan" role="status" aria-atomic="true">%s</p>'%e(feedback) if feedback else ''
-    isi=status+'<section class="admin-kartu"><h2>Kesiapan layanan</h2>'+tabel(('Komponen','Status'),['<tr><td>%s</td><td>%s</td></tr>'%(e(k),e(r[v])) for k,v in [('Penyimpanan admin','admin'),('Pembayaran','pembayaran'),('Backup','backup')]])
+    navigasi = '<nav class="admin-chip-baris" aria-label="Bagian operasional">' + ''.join('<a class="admin-chip" href="#%s">%s</a>' % (sid, label) for sid, label in (('kesiapan','Kesiapan'),('dukungan','Dukungan pengguna'),('pembayaran','Sakelar pembayaran'),('ai','AI'))) + '</nav>'
+    isi=status+navigasi+'<section class="admin-kartu" id="kesiapan"><h2>Kesiapan layanan</h2>'+tabel(('Komponen','Status'),['<tr><td>%s</td><td><span class="admin-badge%s">%s</span></td></tr>'%(e(k),' perhatian' if v=='backup' and r['backup_cutoff'] is None else '',e(r[v])) for k,v in [('Penyimpanan admin','admin'),('Pembayaran','pembayaran'),('Backup','backup')]])
     isi+='<p>Cutoff backup: %s</p><p class="admin-meta">Validitas bundle bukan bukti backup terjadwal, salinan luar server, atau rehearsal terbaru.</p></section>'%tanggal(r['backup_cutoff'])
     support=r.get('dukungan_config')
     if support:
         publik=dukungan.proyeksi_publik(support)
-        isi+=('<section class="admin-kartu"><h2>Dukungan pengguna</h2><p>Status: <strong>Siap</strong> · revisi %d</p>'
+        isi+=('<section class="admin-kartu" id="dukungan"><h2>Dukungan pengguna</h2><p>Status: <strong>Siap</strong> · revisi %d</p>'
               '<dl class="admin-rincian"><dt>WhatsApp Business</dt><dd>%s</dd><dt>Jam layanan</dt><dd>%s</dd>'
               '<dt>Respons awal</dt><dd>Maksimal %d hari kerja</dd><dt>Status awal</dt><dd>Maksimal %d hari kerja</dd></dl>%s'
               '<p class="admin-meta">WhatsApp adalah kanal komunikasi, bukan bukti kepemilikan akun. Reset hanya setelah verifikasi independen; bila tidak tersedia, reset ditahan.</p></section>')%(
                   support.revisi,e(publik.whatsapp_label),e(publik.jam_layanan_label),
                   support.sla_respons_hari,support.sla_status_hari,form_dukungan)
     else:
-        isi+=('<section class="admin-kartu admin-galat"><h2>Dukungan pengguna</h2><p>Status: <strong>Belum siap</strong></p>'
+        isi+=('<section class="admin-kartu admin-galat" id="dukungan"><h2>Dukungan pengguna</h2><p>Status: <strong>Belum siap</strong></p>'
               '<p>Schema atau konfigurasi dukungan hilang/rusak. Kontak publik ditahan; jalankan migrator opt-in dan periksa recovery sebelum membuka layanan.</p></section>')
     cfg=r.get('pembayaran_config')
     tahap=cfg['tahap'] if cfg else 'tidak tersedia'
     kesiapan=r.get('pembayaran_kesiapan',{})
     status_kesiapan=''.join('<li>%s: <strong>%s</strong></li>'%(e(label),'Siap' if kesiapan.get(k) else 'Belum siap') for k,label in [('provider_produksi','Key/provider produksi'),('callback','Callback dan rekonsiliasi'),('recovery','Recovery exact-pair'),('kebijakan','Kebijakan D8/D9')])
     dampak={'nonaktif':'Tidak membuat atau memeriksa pembayaran.','rekonsiliasi':'Hanya memeriksa transaksi yang sudah ada; pembayaran baru tetap ditutup.','checkout':'Membuka pembayaran baru dan rekonsiliasi.','penegakan':'Menerapkan akses berbayar setelah checkout.'}.get(tahap,'Status tidak tersedia.')
-    isi+='<section class="admin-kartu"><h2>Sakelar pembayaran</h2><p>Tahap saat ini: <strong>%s</strong>%s</p><p>%s</p><ol><li>Nonaktif</li><li>Rekonsiliasi transaksi yang sudah ada</li><li>Checkout dan rekonsiliasi</li><li>Penegakan akses</li></ol><h3>Prasyarat tepercaya</h3><ul>%s</ul>%s<p class="admin-meta">Tahap harus dinaikkan satu per satu. Penurunan boleh langsung saat insiden. Secret hanya dipasang di server dan nilainya tidak pernah tampil di panel.</p></section>'%(e(tahap),' · revisi %d'%cfg['revisi'] if cfg else '',e(dampak),status_kesiapan,form_pembayaran)
-    return isi+'<section class="admin-kartu"><h2>AI</h2>'+tabel(('Fitur','Konfigurasi'),['<tr><td>%s</td><td>%s</td></tr>'%(e(k),e(v)) for k,v in r['ai']])+'<p>Gagal/tak pasti 24 jam: <strong>%s</strong></p><p class="admin-meta">Konfigurasi bukan jaminan provider sedang online. Tidak ada panggilan berbayar saat halaman dibuka.</p><a href="/admin/ai">Batas pemakaian dan tes sintetis</a></section>'%('—' if r['ai_gagal'] is None else r['ai_gagal'])
+    stepper='<ol class="admin-stepper">'+''.join('<li%s>%s</li>' % (' aria-current="step"' if kode==tahap else '', e(L.label_status(kode))) for kode in ('nonaktif','rekonsiliasi','checkout','penegakan'))+'</ol>'
+    isi+='<section class="admin-kartu" id="pembayaran"><h2>Sakelar pembayaran</h2><p>Tahap saat ini: <strong>%s</strong>%s</p><p>%s</p>%s<h3>Prasyarat tepercaya</h3><ul>%s</ul>%s<p class="admin-meta">Tahap harus dinaikkan satu per satu. Penurunan boleh langsung saat insiden. Secret hanya dipasang di server dan nilainya tidak pernah tampil di panel.</p></section>'%(e(L.label_status(tahap)),' · revisi %d'%cfg['revisi'] if cfg else '',e(dampak),stepper,status_kesiapan,form_pembayaran)
+    return isi+'<section class="admin-kartu" id="ai"><h2>AI</h2>'+tabel(('Fitur','Konfigurasi'),['<tr><td>%s</td><td>%s</td></tr>'%(e(k),e(v)) for k,v in r['ai']])+'<p>Gagal/tak pasti 24 jam: <strong>%s</strong></p><p class="admin-meta">Konfigurasi bukan jaminan provider sedang online. Tidak ada panggilan berbayar saat halaman dibuka.</p><a href="/admin/ai">Batas pemakaian dan tes sintetis</a></section>'%('—' if r['ai_gagal'] is None else r['ai_gagal'])
 
 
 def halaman_kpi(config,laporan,biaya,cakupan,*,bulan,form_biaya='',form_config=''):
@@ -144,7 +147,9 @@ def halaman_kpi(config,laporan,biaya,cakupan,*,bulan,form_biaya='',form_config='
         detail='%d/%d · Target ≥%d%%'%(m.pembilang,m.penyebut,m.target)
         if m.kode=='manfaat': detail+='<br>Respons %d/%d'%(m.respons,m.penawaran)
         if m.kode=='organik': detail+='<br>Minggu 5–8'
-        kartu.append('<article class="admin-kartu admin-kpi-carte"><header><h2>%s</h2>%s</header><strong class="admin-angka">%s</strong><p>%s</p><span class="admin-badge">%s</span>%s</article>'%(labels[m.kode],info(labels[m.kode],bantuan[m.kode]),angka,detail,e(m.status),'<p>Sampel kecil</p>' if m.kecil else ''))
+        persen = min(100, max(0, m.pembilang*100/m.penyebut)) if m.penyebut else 0
+        bilah = '<div class="admin-bilah" aria-hidden="true"><span style="width:%.2f%%"></span><i style="left:%d%%"></i></div>' % (persen, m.target)
+        kartu.append('<article class="admin-kartu admin-kpi-carte"><header><h2>%s</h2>%s</header><strong class="admin-angka">%s</strong><p>%s</p>%s<span class="admin-badge">%s</span>%s</article>'%(labels[m.kode],info(labels[m.kode],bantuan[m.kode]),angka,detail,bilah,e(m.status),'<p>Sampel kecil</p>' if m.kecil else ''))
     total=sum(biaya[k] for k in ('server','domain','ai','pendukung')) if biaya else 0
     status='Belum ada anggaran' if not biaya else 'Data biaya belum lengkap' if not biaya['lengkap'] else 'Dalam anggaran' if total<=biaya['anggaran'] else 'Melebihi anggaran'
     kartu.append('<article class="admin-kartu admin-kpi-biaya"><h2>Biaya · %s</h2><strong class="admin-angka">%s</strong><p>Anggaran %s</p><span class="admin-badge">%s</span></article>'%(e(bulan),rupiah(total) if biaya else '—',rupiah(biaya['anggaran']) if biaya else '—',status))
@@ -158,4 +163,5 @@ def halaman_kpi(config,laporan,biaya,cakupan,*,bulan,form_biaya='',form_config='
         ('Minggu','Peserta','Mencoba','Kembali','Ditawari','Respons','Ya','Organik'),
         ['<tr>'+''.join('<td>%d</td>'%x for x in row)+'</tr>' for row in cakupan.get('arsip',())]
     )+'<p>Tanpa mapping keluarga. Tidak digabung diam-diam dengan detail yang masih aktif.</p></details>'
-    return '<p class="admin-meta">'+e(meta)+'</p><form class="admin-filtre-periode" method="get" action="/admin"><input type="hidden" name="section" value="kpi"><label>Bulan biaya<input type="month" name="bulan" value="'+e(bulan)+'" required></label><button class="admin-tombol">Terapkan</button></form><div class="admin-grid-kpi">'+''.join(kartu)+'</div><details class="admin-kartu"><summary>Per minggu</summary>'+tabel(('Minggu','Matang','Mencoba','Kembali'),['<tr>'+''.join('<td>%d</td>'%x for x in row)+'</tr>' for row in minggu])+'<p>Kelompok kurang dari 5 tidak dirinci. Metrik hanya untuk peserta analitik, bukan seluruh keluarga.</p></details><details class="admin-kartu"><summary>Catat biaya bulanan</summary>'+form_biaya+'</details><details class="admin-kartu"><summary>Pengaturan eksperimen</summary>'+form_config+'</details>'+arsip
+    kosong = '<section class="admin-kartu"><h2>Belum ada eksperimen</h2><p>Hasil belum ditampilkan agar tidak terbaca sebagai 0%. Angka muncul setelah eksperimen aktif dan ada respons yang memenuhi definisi metrik.</p></section>' if not laporan else ''
+    return kosong+'<p class="admin-meta">'+e(meta)+'</p><form class="admin-filtre-periode" method="get" action="/admin"><input type="hidden" name="section" value="kpi"><label>Bulan biaya<input type="month" name="bulan" value="'+e(bulan)+'" required></label><button class="admin-tombol">Terapkan</button></form><div class="admin-grid-kpi">'+''.join(kartu)+'</div><details class="admin-kartu"><summary>Per minggu</summary>'+tabel(('Minggu','Matang','Mencoba','Kembali'),['<tr>'+''.join('<td>%d</td>'%x for x in row)+'</tr>' for row in minggu])+'<p>Kelompok kurang dari 5 tidak dirinci. Metrik hanya untuk peserta analitik, bukan seluruh keluarga.</p></details><details class="admin-kartu"><summary>Catat biaya bulanan</summary>'+form_biaya+'</details><details class="admin-kartu"><summary>Pengaturan eksperimen</summary>'+form_config+'</details>'+arsip

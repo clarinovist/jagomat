@@ -31,7 +31,7 @@ def test_hanya_admin_bisa_membaca_dan_angka_default_tampil(server):
     assert "USD 20.00" not in isi
     kode, isi, header = server.minta("/admin/ai", auth=("pengelola-ai", SANDI_ADMIN))
     assert kode == 200
-    for teks in ("USD 1.00", "USD 20.00", "USD 0.50", "USD 10.00", "USD 0.30", "USD 6.00", "USD 0.15", "USD 3.00", "USD 0.05"):
+    for teks in ("USD 1,00", "USD 20,00", "USD 0,50", "USD 10,00", "USD 0,30", "USD 6,00", "USD 0,15", "USD 3,00", "USD 0,05"):
         assert teks in isi
     assert "DEEPSEEK_API_KEY" not in isi
     assert 'name="request_akun_harian"' in isi

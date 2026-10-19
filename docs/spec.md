@@ -15,6 +15,12 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
 
 ## Cakupan produk
 
+- Panel pengelola memakai navigasi datar; Ringkasan memprioritaskan kategori
+  keputusan, bukan jumlah orang unik. Aktivitas mengelompokkan sesi berurutan
+  siswa/hari WIB tanpa mengubah bukti. Rute Perlu ditangani tetap hidup; pencarian
+  identitas dan ekspor riset tetap POST privat. Label login tertaut tidak meniadakan
+  kemungkinan akses akun lama melalui kecocokan nama.
+
 - [Persetujuan awal](persetujuan-awal.md) menyatukan Terms, Privacy, dan pilihan
   [sensor internal](sensor-perbaikan.md) pada satu layar sejak daftar/kunjungan awal.
   Klik Setuju & aktifkan semua menyetujui alur, ringkasan konfirmasi pertama dan

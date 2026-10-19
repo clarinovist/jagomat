@@ -58,7 +58,7 @@ def test_biaya_http_csrf_reauth_replay(server):
 def test_sakelar_pembayaran_http_gate_reauth_csrf_dan_tahap(server,monkeypatch):
     token=_login(server,'Admin-C',SANDI_ADMIN)
     body=_minta(server,'/admin?section=operasional',cookie=token)[1]
-    assert 'Tahap saat ini: <strong>nonaktif</strong>' in body
+    assert 'Tahap saat ini: <strong>Nonaktif</strong>' in body
     assert 'Tidak membuat atau memeriksa pembayaran.' in body
     assert 'Tahap tujuan' in body and 'Terapkan perubahan tahap' in body
     form=dict(csrf=_hidden(body,'csrf'),tinjauan=_hidden(body,'tinjauan'),
@@ -83,7 +83,7 @@ def test_sakelar_pembayaran_http_gate_reauth_csrf_dan_tahap(server,monkeypatch):
         assert cfg['tahap']=='rekonsiliasi' and cfg['revisi']==2
         assert c.execute('SELECT COUNT(*) FROM pembayaran_audit').fetchone()[0]==1
     body=_minta(server,'/admin?section=operasional',cookie=token)[1]
-    assert 'Tahap saat ini: <strong>rekonsiliasi</strong>' in body
+    assert 'Tahap saat ini: <strong>Rekonsiliasi</strong>' in body
     assert 'Key/provider produksi: <strong>Siap</strong>' in body
     assert 'kunci-sintetis' not in body and 'Server Key' not in body
 

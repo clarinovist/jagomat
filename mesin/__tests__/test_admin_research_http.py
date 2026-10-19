@@ -13,7 +13,8 @@ from test_admin_http_c import (
 
 
 def _form_buat(server, token, *, kode="R02"):
-    body = _minta(server, "/admin/riset", cookie=token)[1]
+    halaman = _minta(server, "/admin/riset", cookie=token)[1]
+    body = re.search(r'<form method="post" action="/admin/riset/buat">(.*?)</form>', halaman, re.S).group(1)
     return {
         "csrf": _hidden(body, "csrf"),
         "tinjauan": _hidden(body, "tinjauan"),
