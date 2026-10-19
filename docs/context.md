@@ -68,6 +68,10 @@ cache dan cadangan tetap privat.
   mata sandi, `confirm()` destruktif, salin tautan satu sesi langsung, serta
   Kirim/Periksa Pendamping inline, serta accordion/penanda isian/konfirmasi lewati
   pada tinjauan sesi (`review_browser.py`, tanpa penilaian atau kirim otomatis).
+  Kartu tinjauan memakai article/header button + panel hidden, bukan details
+  bersarang; hidden tidak men-disable field. Tanpa JS seluruh kartu terbaca dan
+  checkbox lewati native tersedia. Status penilaian tetap dekat dropdown, bukan
+  menggantikan pertanyaan; hash/formaction/nama field tidak diubah oleh layout.
   Skrip berhash CSP, same-origin dan punya fallback
   form native; bukan izin menambah JavaScript umum. `practice_workspace.py`
   merender satu form latihan dengan fieldset nonaktif disabled; `practice_browser.py`

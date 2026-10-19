@@ -3385,6 +3385,9 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 .koreksi-editorial-st button.koreksi-ringkas-st:focus-visible,
 .koreksi-lewati-tombol-st:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 .koreksi-editorial-st .koreksi-lipat-st > .koreksi-isi-st {{ border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
+.koreksi-editorial-st [data-kartu-tinjauan] > [data-isi-kartu] {{ gap: {T.SP_2}; }}
+.koreksi-editorial-st [data-kartu-tinjauan] > [data-isi-kartu] > .koreksi-opsi-st > summary {{ padding-block: {T.SP_2}; }}
+.koreksi-editorial-st [data-kartu-tinjauan] .koreksi-penilaian-st .koreksi-select-st {{ margin-bottom: 0; }}
 .koreksi-tambahan-isi-st {{ display: grid; gap: {T.SP_3}; }}
 .koreksi-tinjauan-st {{ display: grid; gap: {T.SP_2}; }}
 .koreksi-penilaian-st {{ border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; padding-top: {T.SP_3}; }}

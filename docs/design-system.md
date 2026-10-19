@@ -132,6 +132,17 @@ mengikuti tinggi isi, sedangkan percakapan menyediakan ruang gulir terbatas
 viewport. Di profil, panel sejajar kepala anak; HP tetap panel penuh. Kontrak izin,
 mode memori dan fallback mengikuti [runtime Pendamping](pendamping-runtime.md).
 
+### Tinjauan sesi datar
+
+Kartu berupa article dengan header nomor/tipe/status/penanda catatan yang tetap
+terlihat saat panel diciutkan. Satu kartu aktif melalui enhancement; empat radio
+pemahaman dan penilaian tampil langsung, hanya Catatan tambahan serta Kunci yang
+memakai details tertutup tanpa nesting. Legenda penilaian satu kali per sesi.
+Status penilaian dekat dropdown; pertanyaan dan jawaban anak lebih dahulu. Bar
+Simpan draf/Konfirmasi menargetkan 56px, target sentuh minimal44px; teks boleh
+membungkus tanpa dipotong. Kartu tertutup tidak kehilangan field, auto-next/submit
+tidak ditambahkan. UI diuji dengan fixture sintetis 10 soal desktop dan 375px.
+
 ## Spacing
 
 Skala 4px base, ratio 1.5x:

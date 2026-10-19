@@ -500,7 +500,6 @@ def halaman_sesi_stitch(
     </button>
   </h3>
   <div class="koreksi-isi-st {kelas_isi}" id="isi-soal-{sid}" aria-labelledby="buka-soal-{sid}" data-isi-kartu>
-    {penilaian_status}
     {petunjuk_masalah}
     <div class="teks-soal-st">{teks_pertanyaan}</div>
     {ringkas_opsi(pg_butir, b['template_id'])}
@@ -519,6 +518,7 @@ def halaman_sesi_stitch(
     <section class="koreksi-penilaian-st" aria-labelledby="label-kode-{sid}">
       <p class="koreksi-tache-st">{html.escape(label_tindakan)}</p>
       {usulan}
+      {penilaian_status}
       <label class="koreksi-label-st" id="label-kode-{sid}" for="kode-{sid}">Penilaian yang dipakai saat disimpan <span class="koreksi-wajib-st">Wajib untuk konfirmasi, kecuali dilewati</span></label>
       <select class="koreksi-select-st" id="kode-{sid}" name="kode_{sid}"{atribut_penilaian}>{pilih}</select>
       <p class="koreksi-catatan-st">{petunjuk_penilaian}</p>

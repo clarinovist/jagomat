@@ -50,6 +50,15 @@ disahkan sebagai bukti mandiri, baik benar maupun salah. Hasil setelah bantuan
 tidak boleh menambah bukti kelemahan K/H atau kategori lain. Gunakan probe berikutnya
 untuk bukti mandiri; penanda dilewati tetap harus eksplisit.
 
+Tampilan tinjauan mempertahankan satu form seluruh sesi: empat pilihan pemahaman
+per butir dan penilaian langsung terlihat pada kartu aktif, sedangkan catatan
+tambahan/kunci dilipat terpisah. Collapse tidak men-disable atau membuang field.
+Hitungan masih perlu diperiksa ialah proyeksi saat render, bukan penilaian lokal.
+Label wajib pada penilaian berlaku untuk konfirmasi (kecuali dilewati), bukan
+atribut required HTML yang menolak nilai kosong Otomatis atau menghalangi draf.
+Lewati memerlukan tindakan eksplisit; dialog mempertahankan dampak bahwa butir
+bukan benar/salah dan bukan bukti pemahaman. Tanpa JS checkbox native tetap ada.
+
 **Simpan tinjauan** menjaga catatan/keputusan sementara agar dapat dilanjutkan,
 tanpa snapshot bukti atau pemetaan. **Konfirmasi hasil** tetap mengharuskan outcome
 lengkap atau penanda dilewati eksplisit. Tinjauan dan provenance yang dipakai diikat

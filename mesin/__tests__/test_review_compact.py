@@ -111,6 +111,21 @@ def test_css_antrean_satu_aturan_utuh_dan_kartu_tidak_menggandakan_jarak():
     assert 'text-overflow: ellipsis' not in header
 
 
+def test_urutan_baca_pertanyaan_sebelum_status_dan_penilaian_tetap_terbuka(db):
+    with database.buka(db) as kon:
+        sesi, ids = sesi_contoh(kon)
+        isi = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
+        kartu = re.findall(r'<article\b[^>]*data-kartu-tinjauan.*?</article>', isi, re.S)
+        for card in kartu:
+            assert card.index('class="teks-soal-st"') < card.index('class="koreksi-jawaban-utama-st"')
+            assert card.index('class="koreksi-jawaban-utama-st"') < card.index('class="koreksi-pemahaman-st"')
+            assert card.index('class="koreksi-pemahaman-st"') < card.index('id="penilaian-status-')
+            assert card.index('id="penilaian-status-') < card.index('name="kode_')
+            assert card.index('name="kode_') < card.index('data-catatan-tambahan')
+        assert 'gap: ' + T.SP_2 in style_stitch.CSS_SESI.split(
+            '[data-kartu-tinjauan] > [data-isi-kartu] {', 1)[1].split('}', 1)[0]
+
+
 def test_hash_hanya_tinjauan_tanpa_izin_koneksi_dan_teks_palsu_tidak_memicu():
     from review_browser import SKRIP_TINJAUAN, HASH_TINJAUAN
     html = b'<body><form data-tinjauan-ringkas></form></body>'

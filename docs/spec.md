@@ -116,8 +116,10 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   Tinjauan sesi diproyeksikan exception-first sebagai **Perlu diperiksa**,
   **Tanyakan cara anak**, atau **Tinjauan tercatat**; kelompok terakhir bukan
   pengesahan dan tetap disahkan bersama saat Konfirmasi hasil sesi. Kartu aktif
-  menampilkan cek pemahaman dan penilaian langsung; catatan tambahan dan kunci
-  dilipat terpisah tanpa menghilangkan input saat menyimpan seluruh sesi.
+  menampilkan pertanyaan/jawaban, empat pilihan pemahaman, dan penilaian langsung;
+  dua disclosure datar (catatan tambahan dan kunci) tertutup tanpa menghilangkan
+  input saat menyimpan seluruh sesi. Accordion tidak menilai atau mengirim otomatis;
+  lewati memerlukan konfirmasi lokal, hitungan pekerjaan tetap proyeksi server.
   Koreksi menginvalidasi bukti aktif; snapshot lama dan provenance tetap terjaga.
 - Maksimal dua fokus per putaran, dengan kunci
   `(template_id, kode_intervensi, malrule_id)`. Terbimbing/penguatan tidak menambah
