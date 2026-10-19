@@ -6,7 +6,10 @@ ber-cookie (`/`, `/guru`, `/anak/*`), bukan penghalang untuk murid/admin/publik.
 `/kebijakan-privasi` tersedia publik. Tombol **Setuju & aktifkan semua** secara afirmatif
 menyetujui penggunaan internal yang disebutkan; **Atur pilihan** pada layar yang sama
 membolehkan memilih nol atau sebagian. Tidak ada perluasan iklan/pelatihan model/provider.
-Izin provider Pendamping dan KPI uji coba lama tetap terpisah.
+Izin provider Pendamping dan KPI uji coba lama tetap terpisah. Tambah anak tidak
+meminta checkbox privasi berulang: penggunaan inti mengikuti kesepakatan awal.
+Aksi tersebut tidak menulis receipt persetujuan baru, mengubah pilihan opsional,
+atau mengaktifkan kembali izin yang ditolak, kedaluwarsa, maupun dicabut.
 
 ## Receipt dan lifecycle
 

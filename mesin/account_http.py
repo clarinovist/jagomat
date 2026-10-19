@@ -54,9 +54,12 @@ def _fragmen_langganan(penangan, ident):
             token = _sandbox._token(runtime_sandbox, penangan._ambil_token(), principal, "siapkan")
             return _halaman_sandbox.isi_ringkasan(_profil, _inv, token)
     except _d.FiturNonaktif:
+        with database.buka() as kon:
+            jumlah_profil = len(database.daftar_siswa(kon, ident[0]))
         return (
             '<section class="kartu-st"><h2>Status layanan</h2>'
-            '<p>Pembayaran online belum tersedia di Jagomat.</p>'
+            f'<p>Profil anak yang digunakan: <b>{jumlah_profil}</b>.</p>'
+            '<p>Pembayaran online belum tersedia di Jagomat. Tidak ada penagihan baru dari halaman ini.</p>'
             '<p class="sub">Halaman ini tidak mengaktifkan paket atau tagihan baru. '
             'Untuk pertanyaan akses atau langganan yang sudah dimiliki, '
             '<a href="/lupa-sandi">hubungi dukungan Jagomat</a>.</p></section>'

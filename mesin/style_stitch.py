@@ -2683,6 +2683,11 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .akun-editorial-st .akun-form-sandi {{ flex-direction: column; align-items: stretch; }}
 .akun-editorial-st .akun-form-sandi .kolom-sandi {{ min-width: 0; width: 100%; }}
 .akun-editorial-st .akun-pilihan-data {{ margin-top: {T.SP_6}; }}
+.akun-editorial-st .akun-galat-field {{ color: {T.TEKS_GALAT}; font-size: {T.UKURAN_TEKS_BANTUAN}; margin: {T.SP_2} 0; }}
+.akun-editorial-st .akun-galat-field:empty {{ display: none; }}
+.akun-editorial-st [aria-invalid=true] {{ border-color: {T.TEKS_GALAT}; }}
+.akun-editorial-st .akun-status-kelas {{ flex-basis: 100%; margin: 0; }}
+.akun-editorial-st .form-kelas-sekolah button:disabled {{ background: {T.LATAR_KARTU}; color: {T.TEKS_VARIAN}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; cursor: not-allowed; }}
 .akun-editorial-st td {{ overflow-wrap: anywhere; }}
 @media (min-width: 769px) {{
   .akun-editorial-st td[data-label=Nama], .akun-editorial-st td[data-label="Nama login"] {{ min-width: 7rem; }}

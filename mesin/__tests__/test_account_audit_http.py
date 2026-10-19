@@ -67,3 +67,12 @@ def test_cabut_tanpa_konfirmasi_ditolak_dan_status_berubah(server, monkeypatch):
     server.minta('/analitik/sensor-cabut', cookie=token, data={**cabut, 'konfirmasi':'1'})
     assert policy_store.baca(admin_store.BAWAAN, principal.id_akun)['alur'] == 0
     assert 'Penggunaan tambahan tidak diizinkan' in server.minta('/akun?section=akun', cookie=token)[1]
+    sebelum = policy_store.baca(admin_store.BAWAAN, principal.id_akun)
+    code, body, _ = server.minta('/akun', cookie=token, data={
+        'aksi':'anak_baru', 'nama':'Demo Tambahan', 'nama_akun':'demo-tambahan',
+        'sandi_anak':'kata-sandi-demo-123', 'kelas_sekolah':''})
+    assert code == 200 and 'beserta akun loginnya' in body
+    assert policy_store.baca(admin_store.BAWAAN, principal.id_akun) == sebelum
+    import sensor_store
+    import time
+    assert sensor_store.izin(admin_store.BAWAAN, principal.id_akun, sekarang=int(time.time())) is None

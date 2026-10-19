@@ -43,7 +43,7 @@ def form_kelas(profil, nama):
     """Satu entry point edit kelas di akun; revisi berasal dari snapshot baca.
 
     Kolom tabel menamai bidang; nama aksesibel tombol menyebut anak.
-    Simpan manual tanpa autosave atau JavaScript tambahan.
+    Simpan eksplisit tanpa autosave; enhancement menandai perubahan lokal.
     """
     identitas = 'kelas-sekolah-%d' % profil.siswa_id
     return (

@@ -327,7 +327,7 @@ def halaman_akun(
         f'<input type="hidden" name="aksi" value="anak_baru">'
         f'<div class="baris">'
         f'<div><label for="anak-nama">Nama anak (nama panggilan)</label>'
-        f'<input id="anak-nama" type="text" name="nama" placeholder="mis. Aisha" required></div>'
+        f'<input id="anak-nama" type="text" name="nama" placeholder="mis. Aisha" maxlength="40" required></div>'
         f'<div><label for="anak-kelas">Kelas sekolah (opsional)</label>'
         f'<select id="anak-kelas" name="kelas_sekolah" aria-describedby="keterangan-kelas">'
         + learning_profile_ui.opsi_kelas()
@@ -343,12 +343,10 @@ def halaman_akun(
         'tetapi berbeda dari kata sandi orang tua. Jangan memakai nama atau tanggal lahir anak.</p>'
         f'<input id="anak-sandi" type="password" name="sandi_anak" autocomplete="new-password" '
         f'required minlength="8" aria-describedby="bantuan-sandi-anak">'
-        f'<p class="akun-persetujuan">'
-        f'<label class="akun-label-persetujuan">'
-        f'<input type="checkbox" name="persetujuan_ortu" value="1" class="akun-centang-persetujuan">'
-        f"<span>Saya orang tua/wali anak ini dan menyetujui "
-        f'<a href="/kebijakan-privasi" target="_blank" rel="noopener">Kebijakan Privasi</a> untuk data anak.</span>'
-        f"</label></p>"
+        '<p class="sub">Penggunaan data anak mengikuti '
+        '<a href="/kebijakan-privasi" target="_blank" rel="noopener">Kebijakan Privasi</a> '
+        'dalam persetujuan awal. Tidak perlu mencentang persetujuan lagi untuk setiap anak. '
+        'Menambah anak tidak mengubah pilihan penggunaan data tambahan.</p>'
         f'<button type="submit" class="tombol-utama-akun">Buat anak &amp; akunnya</button>'
         f"</form></div>"
     )
@@ -539,12 +537,11 @@ def proses_akun(
                 (siswa_id,),
             )
             return "", str(e)
-        catatan = " (persetujuan orang tua dicatat)" if data.get("persetujuan_ortu") else ""
         return (
             f"Anak {nama} ditambahkan ({learning_profile.label_kelas_sekolah(kelas)}) "
-            f"beserta akun latihannya{catatan}. Jagomat menyiapkan cakupan fondasi "
-            f"secara otomatis. Langkah 3: kembali ke beranda, klik nama {nama}, lalu tekan "
-            f"“Buat sesi baru”. Anak masuk lewat /murid dengan nama {nama_akun}.",
+            f"beserta akun loginnya. Kembali ke Beranda, buka profil {nama}, "
+            f"lalu ikuti langkah di Berikutnya untuk menyiapkan latihan awal. "
+            f"Anak masuk lewat /murid dengan nama login {nama_akun}.",
             "",
         )
 

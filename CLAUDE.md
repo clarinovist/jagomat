@@ -34,7 +34,9 @@ berparameter, diagnosis B/K/H/E/T/N, lembar cetak, dan laporan per anak.
   (skrip berhash CSP, koneksi same-origin bila ada, fallback form native; bukan
   streaming). Tinjauan sesi memakai enhancement berhash CSP untuk accordion satu
   kartu aktif, penanda isian dan konfirmasi lewati; tidak menilai/mengirim otomatis,
-  fallback form native tetap utuh. Perlu approval untuk tambahan.
+  fallback form native tetap utuh. Akun memakai penanda kelas belum tersimpan dan
+  validasi field Bahasa Indonesia secara lokal (tanpa network/autosave), disetujui
+  pada penuntasan audit akun; server tetap otoritatif. Perlu approval untuk tambahan.
 - `mesin/`: aplikasi, `__tests__/`, aset, Dockerfile, cadangan. `scripts/`: otomasi/palang.
   `docs/`: spesifikasi teknis; `docs/plan/` lokal/gitignored. `.github/`: CI/deploy.
 - Riset/materi/kurikulum/mockup/bisnis/eksperimen berada di `../osn-resources/referensi/` lokal,

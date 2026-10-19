@@ -69,6 +69,9 @@ def test_copy_dan_form_akun(siap):
     assert '<h2>Daftar anak</h2>' in h
     assert 'Pilih kelas (opsional)' in h
     assert 'target="_blank" rel="noopener"' in h
+    assert 'name="persetujuan_ortu"' not in h
+    assert 'persetujuan awal' in h
+    assert 'Menambah anak tidak mengubah pilihan penggunaan data tambahan' in h
     assert 'class="tombol-utama-akun">Buat anak' in h
     assert '/lupa-sandi' in akun
     assert 'autocomplete="current-password"' in akun
@@ -127,6 +130,43 @@ def test_csp_akun_hanya_hash_skrip_statis(siap):
     assert 'https:' not in csp
     assert headers['Cache-Control'] == 'no-store'
     assert p.wfile.getvalue() == body
+
+
+def test_tambah_anak_tidak_mengklaim_receipt_checkbox_lama(siap):
+    with database.buka(siap) as kon:
+        pesan, galat = account_pages.proses_akun(kon, dict(
+            aksi='anak_baru', nama='Contoh', sandi_anak='sandi-contoh-123',
+            persetujuan_ortu='1'), 'guru')
+    assert not galat
+    assert 'persetujuan orang tua dicatat' not in pesan
+    assert 'Berikutnya' in pesan
+
+
+def test_enhancement_hanya_lokal_dan_fallback_native(siap):
+    from account_browser import SKRIP_AKUN
+    with database.buka(siap) as kon:
+        h = halaman(kon)
+    assert 'novalidate' not in h.split('<script>', 1)[0].lower()
+    assert 'f.noValidate=true' in SKRIP_AKUN
+    assert "Perubahan kelas belum disimpan." in SKRIP_AKUN
+    assert 'fetch(' not in SKRIP_AKUN
+    assert 'XMLHttpRequest' not in SKRIP_AKUN
+
+
+def test_langganan_nonaktif_menampilkan_profil_sendiri(siap, monkeypatch):
+    import account_http
+    import subscription
+    with database.buka(siap) as kon:
+        database.tambah_siswa(kon, 'Sendiri', pemilik='guru')
+        database.tambah_siswa(kon, 'Bukan milik', pemilik='lain')
+    monkeypatch.setattr('subscription_produksi_http.ada', lambda p: True)
+    def nonaktif(p):
+        raise subscription.FiturNonaktif()
+    monkeypatch.setattr('subscription_produksi_http._runtime', nonaktif)
+    h = account_http._fragmen_langganan(None, ('guru', 'guru'))
+    assert 'Profil anak yang digunakan: <b>1</b>' in h
+    assert 'Tidak ada penagihan baru' in h
+    assert 'Bukan milik' not in h
 
 
 def test_kontras_teks_akun_memenuhi_empat_setengah():

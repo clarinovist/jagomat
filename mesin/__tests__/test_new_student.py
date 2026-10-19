@@ -6,8 +6,8 @@ Kontrak proses_akun aksi=anak_baru:
 3. Nama akun sudah dipakai (tapi siswa belum) -> galat, siswa TIDAK dibuat.
 4. Tingkat tak valid -> galat (kontrak sama dengan aksi "siswa").
 5. Sandi anak < 8 -> galat, siswa TIDAK dibuat (atomic, tanpa setengah jadi).
-6. Persetujuan anak: kolom opsional "persetujuan_ortu" dicatat di pesan bila
-   dicentang — bukti alur orang tua, bukan pengganti audit.
+6. Privasi mengikuti policy awal; tambah anak tidak mencatat consent baru
+   ataupun mengubah izin penggunaan data tambahan.
 """
 from __future__ import annotations
 
@@ -41,7 +41,6 @@ DATA_LENGKAP = {
     "nama": "Aisha",
     "tingkat": "P4",
     "sandi_anak": "sandi-aisha-12345",
-    "persetujuan_ortu": "1",
 }
 
 
