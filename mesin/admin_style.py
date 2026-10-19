@@ -92,6 +92,7 @@ button, summary {{ cursor: pointer; }}
 .admin-bar-atas details > div {{ display: flex; flex-wrap: wrap; gap: 16px; padding: 4px 0 8px; }}
 .admin-bar-atas details label {{ flex: 1 1 160px; margin: 0; font-size: 14px; }}
 .admin-bar-atas details select {{ display: block; width: 100%; min-height: 44px; margin-top: 6px; padding: 10px 12px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 10px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
+.admin-bar-atas + .admin-grid-stat {{ margin-top: 16px; }}
 .admin-cnt {{ font-size: 12px; font-weight: 700; line-height: 1.25; background: {T.ADMIN_NAV_HOVER}; color: {T.ADMIN_NETRAL_TEKS}; border-radius: 999px; padding: 2px 8px; }}
 .admin-chip[aria-current="true"] .admin-cnt {{ background: {T.ADMIN_PERMUKAAN}; }}
 .admin-kartu.admin-kartu-tabel {{ padding: 0; overflow: hidden; }}

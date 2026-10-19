@@ -73,7 +73,10 @@ def sel_nama(nama: str, href: Optional[str], *, kapital: bool = False) -> str:
     return '<div class="admin-sel-nama">%s%s</div>' % (avatar(nama, kapital=kapital), isi)
 
 
-def kartu_tabel(judul: str, kepala: Tuple[str, ...], baris: str, kaki: str, *, catatan: str = "") -> str:
+def kartu_tabel(
+    judul: str, kepala: Tuple[str, ...], baris: str, kaki: str, *,
+    catatan: str = "", keterangan: str = URUTAN_NAMA,
+) -> str:
     """Kartu daftar: judul + keterangan, tabel dengan ``th scope``, kaki pager."""
     th = "".join(kepala)
     return (
@@ -82,7 +85,7 @@ def kartu_tabel(judul: str, kepala: Tuple[str, ...], baris: str, kaki: str, *, c
         '<div class="admin-tabel-wrap"><table class="admin-tabel">'
         '<thead><tr>%s</tr></thead><tbody>%s</tbody></table></div>'
         '<div class="admin-kartu-kaki">%s</div></section>'
-        % (e(judul), URUTAN_NAMA, catatan, th, baris, kaki)
+        % (e(judul), e(keterangan), catatan, th, baris, kaki)
     )
 
 

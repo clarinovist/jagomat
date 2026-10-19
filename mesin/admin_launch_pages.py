@@ -6,6 +6,7 @@ from datetime import datetime
 import product_analytics as d
 import support_settings as dukungan
 import admin_labels as L
+from admin_daftar_pages import kartu_tabel, sel_nama
 
 
 def e(nilai):
@@ -34,29 +35,49 @@ def formulir(aksi,csrf,token,isi,tombol,hidden=(),konfirmasi=None):
     return '<form method="post" action="/admin/layanan/'+e(aksi)+'"'+atribut+'>'+''.join('<input type="hidden" name="%s" value="%s">'%(e(k),e(v)) for k,v in fields)+isi+'<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label><button class="admin-tombol" type="submit">'+e(tombol)+'</button></form>'
 
 
-def daftar_langganan(rows,total,*,halaman,cari,csrf,kandidat=(),forms=None):
-    form='<form method="post" action="/admin/layanan/cari"><input type="hidden" name="csrf" value="%s"><label>Cari akun orang tua<input name="cari" maxlength="80" value="%s"></label><button class="admin-tombol">Cari</button></form>'%(e(csrf),e(cari)) if csrf else ''
-    baris=['<tr><td><a href="/admin?section=langganan&amp;id=%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>'%(e(r['akun_id']),e(r['alias']),tanggal(r['mulai']),'Ya' if r['peserta_promo'] else 'Tidak',e(L.label_status(r['asal']))) for r in rows]
-    pager=''
+def _form_cari_langganan(csrf,cari):
+    if not csrf: return ''
+    return ('<div class="admin-bar-atas"><form class="admin-form-cari" method="post" action="/admin/layanan/cari">'
+            '<input type="hidden" name="csrf" value="%s">'
+            '<label class="admin-cari"><span class="admin-sr">Cari akun orang tua</span>'
+            '<input name="cari" maxlength="80" value="%s" placeholder="Cari akun orang tua"></label>'
+            '<button class="admin-tombol" type="submit">Cari</button></form></div>')%(e(csrf),e(cari))
+
+
+def _pager_langganan(halaman,total,cari,csrf):
+    kontrol=''
     for nomor, label in ((halaman-1, 'Sebelumnya'), (halaman+1, 'Berikutnya')):
         if nomor < 1 or (nomor > halaman and halaman*25 >= total):
             continue
         if cari and csrf:
-            pager += ('<form method="post" action="/admin/layanan/cari">'
-                      '<input type="hidden" name="csrf" value="%s">'
-                      '<input type="hidden" name="cari" value="%s">'
-                      '<input type="hidden" name="halaman" value="%d">'
-                      '<button class="admin-tombol">%s</button></form>'
-                      % (e(csrf), e(cari), nomor, label))
+            kontrol += ('<form method="post" action="/admin/layanan/cari">'
+                        '<input type="hidden" name="csrf" value="%s">'
+                        '<input type="hidden" name="cari" value="%s">'
+                        '<input type="hidden" name="halaman" value="%d">'
+                        '<button class="admin-tombol" type="submit">%s</button></form>'
+                        % (e(csrf), e(cari), nomor, label))
         else:
-            pager += '<a href="/admin?section=langganan&amp;halaman=%d">%s</a> ' % (nomor,label)
+            kontrol += '<a class="admin-tautan" href="/admin?section=langganan&amp;halaman=%d">%s</a>' % (nomor,label)
+    return '<div class="admin-aksi-baca">%s</div>'%kontrol if kontrol else ''
+
+
+def daftar_langganan(rows,total,*,halaman,cari,csrf,kandidat=(),forms=None):
+    baris=''.join('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'%(
+        sel_nama(r['alias'],'/admin?section=langganan&id=%s'%r['akun_id']),tanggal(r['mulai']),
+        '<span class="admin-badge bien">Ya</span>' if r['peserta_promo'] else '<span class="admin-badge">Tidak</span>',
+        e(L.label_status(r['asal']))) for r in rows) or '<tr><td colspan="4" class="admin-kosong">Belum ada catatan untuk tampilan ini.</td></tr>'
     kartu_kandidat=''
     if cari and kandidat:
         baris_k=''.join('<tr><td>%s</td><td>%s</td></tr>'%(e(k['alias']),(forms or {}).get(k['akun_id'],'Tidak ada tindakan')) for k in kandidat)
         kartu_kandidat=('<section class="admin-kartu"><h2>Belum terdaftar di langganan · %d</h2>'%len(kandidat)
                         +tabel(('Keluarga','Tindakan'),baris_k)
                         +'<p class="admin-meta">Jalur transisi untuk akun lama sebelum sinkron registrasi publik. Satu aksi melengkapi enrollment dan paket v2 akun; tidak membuat pembayaran dan tidak mengaktifkan paywall.</p></section>')
-    return '<section class="admin-kartu"><h2>Langganan keluarga</h2><p>%d tercatat · Halaman %d</p>%s%s%s</section>'%(total,halaman,form,tabel(('Keluarga','Mulai','Peserta promo','Sumber'),baris),pager)+kartu_kandidat+'<p class="admin-meta">Akun yang belum diikutkan tidak dianggap kedaluwarsa. Panel ini tidak mengaktifkan paywall.</p>'
+    kepala=tuple('<th scope="col">%s</th>'%x for x in ('Keluarga','Mulai','Peserta promo','Sumber'))
+    stat='<section class="admin-grid-stat" aria-label="Ringkasan langganan"><div class="admin-stat"><h2>Keluarga tercatat</h2><div><strong>%d</strong></div></div></section>'%total
+    return (_form_cari_langganan(csrf,cari)+stat
+            +kartu_tabel('Langganan keluarga',kepala,baris,_pager_langganan(halaman,total,cari,csrf),keterangan='%d tercatat · Halaman %d'%(total,halaman))
+            +kartu_kandidat
+            +'<p class="admin-meta">Akun yang belum diikutkan tidak dianggap kedaluwarsa. Panel ini tidak mengaktifkan paywall.</p>')
 
 
 AKSES={'promo':'Promo aktif','trial':'Masa coba','aktif':'Aktif','expired':'Masa aktif habis','kedaluwarsa':'Masa aktif habis','belum_terverifikasi':'Belum terverifikasi','paid':'Berbayar'}
