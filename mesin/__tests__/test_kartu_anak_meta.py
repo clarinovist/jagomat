@@ -30,9 +30,10 @@ def _siswa_dengan_sesi(db):
     )
     sid = db.execute("SELECT id FROM siswa WHERE nama='Uji'").fetchone()[0]
     siswa = db.execute("SELECT * FROM siswa WHERE id=?", (sid,)).fetchone()
-    database.buat_sesi(
+    sesi = database.buat_sesi(
         db, sid, seed=1, topik="pola-bilangan", level="P3", mode="diagnostik"
     )
+    database.tandai_selesai(db, sesi)
     return siswa
 
 
@@ -40,7 +41,7 @@ def test_kartu_sesi_tidak_punya_kurung_nyasar_di_style(db):
     html = teacher_pages.halaman_anak(
         db, _siswa_dengan_sesi(db), peran="guru", pengguna="g"
     ).decode()
-    assert 'class="meta-sesi-st"' in html
+    assert 'class="beranda-sesi-st"' in html or 'kartu-sesi-guru beranda-sesi-st' in html
     # tidak ada atribut style yang ditutup `}` paras — pola bug f-string
     for baris in html.splitlines():
         assert 'style="' not in baris or "}}" not in baris.split('style="')[1], (
@@ -54,7 +55,7 @@ def test_kartu_sesi_meta_tertutup_sebagai_div(db):
     html = teacher_pages.halaman_anak(
         db, _siswa_dengan_sesi(db), peran="guru", pengguna="g"
     ).decode()
-    i = html.find('<div class="meta-sesi-st"')
+    i = html.find('<article class="st-kartu-baris kartu-sesi-guru beranda-sesi-st"')
     assert i >= 0, "elemen metadata sesi hilang"
     akhir = html.find("</div>", i)
     assert akhir >= 0, "elemen metadata sesi tidak ditutup"
@@ -63,5 +64,5 @@ def test_kartu_sesi_meta_tertutup_sebagai_div(db):
     # atribut style rusak menjadi satu potongan raksasa.
     assert len(potongan) < 500, f"meta tertelan atribut: {potongan[:200]}"
     assert "<time " in potongan
-    assert "Variasi A" in potongan
+    assert "soal" in potongan and "Sesi #" in potongan
     assert "Pola Bilangan" in html

@@ -212,9 +212,10 @@ def test_profil_daftar_sesi_memuat_topik(db):
     with database.buka(db) as kon:
         sid = database.tambah_siswa(kon, "Daftar Bertopik")
         database.buat_sesi(kon, sid, seed=77)
-        isi = _profil_anak(kon, "rencana").decode()
-    assert "Pola Bilangan" in isi
-    assert "pola-bilangan" not in isi
+        isi = _profil_anak(kon, "riwayat").decode()
+    kartu = isi.split('class="riwayat-kartu-st"', 1)[1].split("</li>", 1)[0]
+    assert "Pola Bilangan" in kartu
+    assert "pola-bilangan" not in kartu
 
 
 def test_header_halaman_sesi_meringkas_metadata_tanpa_slug(db):

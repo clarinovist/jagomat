@@ -279,9 +279,12 @@ tiga sesi terkirim yang menunggu tinjauan, berurutan tanggal/ID terlama sebelum 
 Sesi CTA utama, dibatalkan, atau terkonfirmasi aktif tidak diulang. Sesi belum dikirim
 tersedia di Riwayat. Sorot lama tidak mengubah kriteria atau prioritas antrian.
 Tugas sekunder hanya memuat topik, tanggal/nomor/jumlah soal, badge dan satu aksi;
-tidak menampilkan alat kelola tautan. Latihan memuat Pilih satu topik, Dari hasil terbaru, dan
-gabungan topik; topik, jumlah, dan CTA terlihat langsung, sedangkan format/mode/
-timer berada dalam Pengaturan lanjutan native. Layar ini menjelaskan bahwa latihan
+tidak menampilkan alat kelola tautan. Latihan memuat satu form aktif dengan mode
+Pilih satu topik, Dari hasil terbaru, dan Gabungan topik; topik/jumlah/CTA terlihat,
+format/mode/timer dalam Pengaturan lanjutan native. Pemilih GET bekerja tanpa JS;
+enhancement berhash CSP mengganti fieldset aktif dan menahan Gabungan <2 topik,
+tanpa network/autosave. Server tetap memvalidasi, termasuk maksimal 3 tipe remedial;
+saran awal dicentang hingga batas tersebut. Draf Pendamping hanya request-local. Layar ini menjelaskan bahwa latihan
 tambahan tercatat di Riwayat tetapi tidak otomatis mengubah tugas di Beranda.
 Tab rencana selalu tersedia; GET tidak menulis bukti. Sesi manual tidak mengambil
 alih rekomendasi reducer.
@@ -302,29 +305,35 @@ kartu pada **Cara membaca progres ini**. Tautan Perkembangan sesudah antrian mem
 jumlah empat status dari adapter/reducer laporan yang sama, bukan data mutable atau
 menyamakan semua sisa dengan belum dinilai. Bukti berubah/tidak terverifikasi memberi
 tautan tanpa angka, bukan menahan CTA. Badge keterlambatan/dugaan belum dikerjakan
-belum diaktifkan. Perjalanan di laporan masih tersedia sampai perombakan tahap berikutnya.
+belum diaktifkan. Peta tahap hanya di Beranda; histori Perjalanan tetap dapat dibuka
+melalui tautan lama di disclosure Per materi.
 Instruksi, contoh terbimbing/visual, beban pemetaan, tanggal menunggu, serta
 peringatan konfirmasi/eskalasi/histori tetap terlihat tanpa membuka detail.
 Label alat sesi **Cetak** mengutamakan lembar soal/kunci; perubahan cerita tetap
 manual dalam `<details>` tambahan. Hasil sukses/gagal tampil di luar disclosure;
 GET tidak memanggil AI dan penguncian penyajian tidak berubah. Tab Riwayat adalah arsip operasional tunggal: 20 sesi per halaman, filter
-tanggal/topik/jenis/tinjauan, status pengerjaan dan tinjauan terpisah, hasil ringkas
-untuk sesi terkirim, aksi Tinjau / Lanjutkan / Lihat sesuai status, serta pengelolaan
-tautan dalam disclosure sekunder. Badge Perlu ditinjau / Draf tersimpan / ✓ Selesai
+tanggal/topik/jenis/tinjauan; tiap baris satu status dan satu aksi Tinjau / Lanjutkan /
+Lihat. Strip perhatian membuka tinjauan terlama; chip Semua / Perlu ditinjau / Selesai.
+Filter status lama tetap didukung; kelompok Perlu ditinjau mencakup draf/invalidasi.
+Pengelolaan tautan dipusatkan di halaman sesi, bukan diulang pada baris arsip. Badge Perlu ditinjau / Draf tersimpan / ✓ Selesai
 membedakan tinjauan dan konfirmasi aktif, bukan penguasaan; snapshot invalid tetap
 Perlu konfirmasi ulang. Sesi belum dikirim mempertahankan aksi mulai/lanjut
 mengerjakan. Pindah tab atau memfilter tidak menulis bukti maupun mengubah progres.
 Pendamping tetap pada konteks rencana, latihan, atau sesi/soal; riwayat lengkap tidak
 otomatis dikirim ke layanan AI.
 
-Perkembangan memiliki satu subnavigasi global: **Ringkasan**, **Materi**, dan
-**Perjalanan**. Ringkasan tidak mengulang CTA/tugas Beranda; Materi menempatkan
-bukti per konteks dan kriteria sebagai rincian materi; Perjalanan memuat histori
-putaran serta Pendampingan orang tua bila relevan. Semua target belum dinilai memakai
-empty state “Belum cukup bukti untuk menilai perkembangan materi”; `0 dari N` hanya
-rincian sekunder. Statistik seluruh latihan tetap dilabeli terpisah. Ringkasan
-aktivitas menyediakan rentang inklusif 7 hari, minggu berjalan, bulan berjalan, atau
-tanggal pilihan sendiri berdasarkan kalender WIB dan hanya menyaring tampilan.
+Perkembangan memakai saklar **Ringkasan / Per materi** server-side. Ringkasan
+menampilkan satu bar empat status dan angka legenda, bukan CTA operasional. Judul
+menggunakan jumlah menunjukkan pemahaman bila >0, selain itu sedang dipelajari;
+ini label presentasi, bukan peningkatan capaian. Cakupan/variasi dilipat bersama
+Cara membaca progres ini. Per materi memuat seluruh kartu katalog, detail target
+serta bukti konteks. Filter hanya muncul bila membedakan himpunan materi. Riwayat
+putaran dan Pendampingan orang tua dilipat di bawah Per materi; URL Perjalanan lama
+membuka disclosure, bukan hilang. Anchor lama punya tautan penerus.
+Aktivitas: Semua (default, termasuk catatan warisan), 7 hari terakhir, atau rentang
+inklusif pilihan kalender WIB. Empat angka netral dikerjakan/benar/salah/menunggu
+berasal dari agregat existing, bukan persentase pemahaman. URL minggu/bulan lama
+tetap terbaca. Ringkasan tanpa aktivitas tidak menyatakan ketidakmampuan anak.
 
 Permukaan anak hanya menampilkan istilah netral seperti **Pelajari bersama**,
 **Coba mandiri**, dan **Latihan campuran**. Jangan tampilkan kode diagnosis,

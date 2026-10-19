@@ -658,7 +658,7 @@ def test_semua_draf_native_melewati_consent_chat_status_history_error_memori(ser
             assert 'value="49"' in isi
             assert 'name="timer_mode" value="sesi" checked' not in isi
         elif jenis == 'gabungan':
-            assert 'id="tab-gabungan"' in isi
+            assert 'id="mode-gabungan" value="gabungan" checked' in isi
             assert 'name="topik" value="pola-bilangan" checked' not in isi
             assert 'value="pilihan_ganda" selected' in isi
         else:

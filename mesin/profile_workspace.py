@@ -168,146 +168,125 @@ def riwayat(
     siswa_id, baris, total, filter_data, *, judul_topik, tanggal,
     badge_tinjauan, ringkasan_hasil, aksi_bagikan, statistik=None,
 ):
-    f = filter_data
-    ringkasan = _ringkasan_filter(f)
-    reset = ('<a class="profil-reset-st" href="/anak/%d?section=riwayat">Reset filter</a>' % siswa_id
-             if ringkasan else '')
-    ada_rentang = bool(f.mulai or f.sampai)
-    form_filter = ('<form method="get" action="/anak/%d" class="profil-filter-st">'
-                   '<input type="hidden" name="section" value="riwayat">'
-                   '<input type="hidden" name="tinjauan" value="%s">'
-                   '<label class="profil-cari-st">Cari sesi / topik<input type="search" name="q" value="%s" placeholder="cth: KPK, sesi #128…" maxlength="64"></label>'
-                   '<label>Topik<select name="topik">%s</select></label>'
-                   '<label>Jenis<select name="jenis">%s</select></label>'
-                   '<button type="submit" class="st-tombol-sekunder">Terapkan filter</button>'
-                   '<details class="riwayat-tanggal-st"%s><summary>Rentang tanggal khusus</summary>'
-                   '<label>Dari tanggal<input type="date" name="mulai" value="%s"></label>'
-                   '<label>Sampai tanggal<input type="date" name="sampai" value="%s"></label></details></form>') % (
-                       siswa_id, _e(f.tinjauan), _e(f.q),
-                       _opsi([('', 'Semua topik')] + [(k, _nama_topik_filter(k)) for k in daftar_topik()], f.topik),
-                       _opsi([('semua', 'Semua jenis'), ('bebas', 'Latihan bebas'), ('terpandu', 'Rencana terpandu')], f.jenis),
-                       ' open' if ada_rentang else '', _e(f.mulai), _e(f.sampai))
+    """Arsip ringkas; status final/invalid tetap ditentukan presenter tinjauan."""
     from dataclasses import replace
-    from datetime import date, timedelta
-    hari_ini = date.today()
-    rentang = (("7 hari", hari_ini - timedelta(days=6), hari_ini),
-               ("30 hari", hari_ini - timedelta(days=29), hari_ini),
-               ("Bulan ini", hari_ini.replace(day=1), hari_ini))
-    cepat = []
-    preset_aktif = False
-    for label, awal, akhir in rentang:
-        cocok = (not preset_aktif and (f.mulai, f.sampai)
-                 == (awal.isoformat(), akhir.isoformat()))
-        preset_aktif = preset_aktif or cocok
-        chip = replace(f, mulai=awal.isoformat(), sampai=akhir.isoformat(), halaman=1)
-        cepat.append('<a href="%s"%s>%s</a>' % (
-            _e(chip.tautan(siswa_id)), ' aria-current="true"' if cocok else '', label))
-    polos = replace(f, mulai="", sampai="", halaman=1)
-    cepat.append('<a href="%s"%s>Semua</a>' % (
-        _e(polos.tautan(siswa_id)),
-        ' aria-current="true"' if not f.mulai and not f.sampai else ''))
-    cepat_html = '<div class="profil-cepat-st"><span>Rentang cepat:</span>%s</div>' % ''.join(cepat)
-    hitung_status = (statistik or {}).get('hitung_status') or {}
-    pil = []
-    for kode, label in H.TINJAUAN:
-        jumlah = int(hitung_status.get(kode) or 0)
-        if kode != 'semua' and not jumlah and f.tinjauan != kode:
-            continue
-        tandai = (' aria-current="true"'
-                   if f.tinjauan == kode or (kode == 'semua' and f.tinjauan == 'semua') else '')
-        tautan_filter = replace(f, tinjauan=kode, halaman=1).tautan(siswa_id)
-        angka = '' if kode == 'semua' else ' (%d)' % jumlah
-        pil.append('<a class="riwayat-pil-st" href="%s"%s>%s%s</a>' % (
-            _e(tautan_filter), tandai, _e(label), angka))
-    cepat_html += '<div class="riwayat-pilbar-st"><span>Status:</span>%s</div>' % ''.join(pil)
-    judul_saring = _e(ringkasan or 'Semua sesi · terbaru dahulu')
-    kelas_saring = 'profil-saring-st aktif' if ringkasan else 'profil-saring-st'
-    filter_html = ('<details class="%s"><summary class="riwayat-saring-judul-st">'
-                   '<span>Saring riwayat</span><small>%s</small></summary>'
-                   '<div class="riwayat-filterbar-st">%s%s%s</div></details>') % (
-                       kelas_saring, judul_saring, form_filter, cepat_html,
-                       ('<div class="profil-reset-wrap-st">' + reset + '</div>') if total and reset else '')
+    f = filter_data
+    statistik = statistik or {}
+    strip = ''
+    if statistik.get('menunggu') and statistik.get('terlama_id'):
+        strip = ('<aside class="riwayat-perhatian-st"><p><b>%d sesi menunggu tinjauan.</b> '
+                 'Mulai dari yang paling lama.</p><a class="st-tombol-coral" href="/sesi/%d">'
+                 'Tinjau yang terlama</a></aside>') % (statistik['menunggu'], statistik['terlama_id'])
+    aktif = ('perlu_tinjauan' if f.tinjauan in ('belum_ditinjau', 'dibuka', 'draf', 'ulang') else f.tinjauan)
+    chips = '<nav class="riwayat-pilbar-st" aria-label="Status latihan">' + ''.join(
+        '<a class="riwayat-pil-st" href="%s"%s>%s</a>' % (
+            _e(replace(f, tinjauan=kode, halaman=1).tautan(siswa_id)),
+            ' aria-current="true"' if aktif == kode else '', label)
+        for kode, label in (('semua','Semua'), ('perlu_tinjauan','Perlu ditinjau'), ('dikonfirmasi','Selesai'))
+    ) + '</nav>'
+    ringkasan = _ringkasan_filter(f)
+    filter_html = (
+        '<details class="profil-saring-st"' + (' open' if f.q or f.topik or f.mulai or f.sampai or f.jenis != 'semua' else '')
+        + '><summary>Filter tambahan</summary>'
+        '<form method="get" action="/anak/%d" class="profil-filter-st">'
+        '<input type="hidden" name="section" value="riwayat">'
+        '<input type="hidden" name="tinjauan" value="%s">'
+        '<label>Cari sesi / topik<input type="search" name="q" value="%s" maxlength="64"></label>'
+        '<label>Topik<select name="topik">%s</select></label>'
+        '<label>Jenis<select name="jenis">%s</select></label>'
+        '<label>Dari tanggal<input type="date" name="mulai" value="%s"></label>'
+        '<label>Sampai tanggal<input type="date" name="sampai" value="%s"></label>'
+        '<button class="st-tombol-sekunder" type="submit">Terapkan filter</button></form></details>'
+    ) % (siswa_id, _e(f.tinjauan), _e(f.q),
+         _opsi([('', 'Semua topik')] + [(k, _nama_topik_filter(k)) for k in daftar_topik()], f.topik),
+         _opsi([('semua','Semua jenis'), ('bebas','Latihan bebas'), ('terpandu','Rencana terpandu')], f.jenis),
+         _e(f.mulai), _e(f.sampai))
+    reset = ('<a class="profil-reset-st" href="/anak/%d?section=riwayat">Reset filter</a>' % siswa_id if ringkasan else '')
     isi = []
-    grup_terakhir = None
-    from question_context import label_profil_parameter as label_kelas
+    grup = None
     for r in baris:
-        judul, rincian = judul_topik(r['topik'])
-        batal = r['dibatalkan'] is not None
-        proses = ('Dibatalkan' if batal else 'Sudah dikirim' if r['selesai'] is not None
-                  else 'Sedang Dikerjakan' if r['terisi'] else 'Belum Dikerjakan')
-        tinjauan = ('<span class="badge-direview batal">Tidak berlaku</span>' if batal
-                    else '<span class="badge-direview belum">Menunggu pengiriman</span>'
-                    if r['selesai'] is None else badge_tinjauan(r))
+        judul, _ = judul_topik(r['topik'])
+        bulan = _grup_riwayat(r['tanggal'])
+        if bulan != grup:
+            if grup is not None:
+                isi.append('</ol></section>')
+            isi.append('<section class="riwayat-grup-st"><h3 class="riwayat-grup-judul-st">%s</h3>'
+                       '<ol class="riwayat-daftar-st">' % _e(bulan))
+            grup = bulan
+        badge = badge_tinjauan(r)
+        selesai = '✓ Selesai' in badge
+        aksi = ('Lihat' if selesai or r['dibatalkan'] is not None else
+                'Lanjutkan' if 'Draf tersimpan' in badge else _cta_riwayat(r))
         jenis = 'Latihan bebas' if r['tujuan'] == 'bebas' else 'Rencana terpandu'
         if r['jenis'] == 'remedial':
             jenis += ' · Remedial'
             if r['sumber_sesi_id'] is not None:
                 jenis += ' · dari sesi #%d' % r['sumber_sesi_id']
-        mode = ('Pilihan ganda · latihan manual' if r['format_jawaban'] == 'pilihan_ganda'
-                else 'Latihan Cepat' if r['mode'] == 'drill' else 'Mode Diagnosa')
-        meta = '%s · %s · Sesi #%d' % (label_kelas(r['level']), mode, r['id'])
-        grup = _grup_riwayat(r['tanggal'])
-        if grup != grup_terakhir:
-            if grup_terakhir is not None:
-                isi.append('</ol></section>')
-            isi.append('<section class="riwayat-grup-st"><h3 class="riwayat-grup-judul-st">%s</h3>'
-                       '<ol class="riwayat-daftar-st">' % _e(grup))
-            grup_terakhir = grup
-        hasil = ringkasan_hasil(r) if r['selesai'] is not None else ''
-        hasil_html = '<small class="riwayat-hasil-st">Hasil latihan: %s</small>' % hasil if hasil else ''
-        tag = ('<div class="riwayat-tagbar-st"><span class="riwayat-tag-st">%s</span>'
-               '<span class="riwayat-tag-st">%s</span></div>') % (
-                   _e(label_kelas(r['level'])), _e(mode))
-        cta = _cta_riwayat(r)
-        if r['selesai'] is not None and not batal:
-            if '✓ Selesai' in tinjauan:
-                cta = 'Lihat'
-            elif 'Draf tersimpan' in tinjauan:
-                cta = 'Lanjutkan'
-        label_cta = cta if cta else 'Lihat'
-        isi.append('<li class="riwayat-kartu-st" data-sesi-id="%d">'
-                   '<div class="riwayat-tanggal-blok-st">%s</div><span class="riwayat-rel-st" aria-hidden="true"></span>'
-                   '<article class="riwayat-kartu-isi-st"><div class="riwayat-kartu-utama-st">'
-                   '<div class="riwayat-kartu-kepala-st"><strong>%s</strong>'
-                   '<small>%d soal · %s</small></div>'
-                   '<div class="riwayat-status-st"><span><small>Pengerjaan</small>'
-                   '<span class="riwayat-proses-nilai-st">%s</span></span>'
-                   '<span><small>Tinjauan</small>%s</span></div></div>'
-                   '<div class="riwayat-aksi-st"><a class="riwayat-buka-st" href="/sesi/%d" '
-                   'aria-label="%s sesi %d">%s <span aria-hidden="true">→</span></a></div>'
-                   '<details class="rincian-ui-st riwayat-detail-st"><summary>Detail sesi</summary>'
-                   '<div class="riwayat-detail-isi-st">%s<small class="riwayat-meta-st">%s</small>%s%s'
-                   '<details class="riwayat-kelola-st"><summary>Kelola tautan</summary>%s</details>'
-                   '</div></details></article></li>' % (
-                       r['id'], _tanggal_timeline(r['tanggal'], tanggal), _e(judul), r['n'], _e(jenis),
-                       _e(proses), tinjauan, r['id'], _e(label_cta), r['id'], _e(label_cta),
-                       tag, _e(meta), hasil_html, ('<small>' + rincian + '</small>') if rincian else '',
-                       aksi_bagikan(r)))
-    if grup_terakhir is not None:
+        if r['format_jawaban'] == 'pilihan_ganda':
+            jenis += ' · Pilihan ganda · latihan manual'
+        kelas = 'riwayat-lihat-st' if selesai or r['dibatalkan'] is not None else 'riwayat-tinjau-st'
+        isi.append(
+            '<li class="riwayat-kartu-st" data-sesi-id="%d">'
+            '<div class="riwayat-tanggal-blok-st">%s</div>'
+            '<div class="riwayat-kartu-kepala-st"><strong>%s</strong><small>Sesi #%d · %d soal · %s</small></div>'
+            '<div class="riwayat-status-st">%s</div>'
+            '<div class="riwayat-aksi-st"><a class="riwayat-buka-st %s" href="/sesi/%d" '
+            'aria-label="%s sesi %d">%s</a></div></li>' % (
+                r['id'], _tanggal_timeline(r['tanggal'], tanggal), _e(judul), r['id'], r['n'], _e(jenis),
+                badge, kelas, r['id'], _e(aksi), r['id'], _e(aksi)))
+    if grup is not None:
         isi.append('</ol></section>')
     if not baris:
-        isi.append('<div class="profil-kosong-st"><p>Tidak ada sesi yang cocok. '
-                   'Ubah filter atau buat latihan baru.</p>%s</div>' % reset)
-    awal = (f.halaman - 1) * H.PER_HALAMAN + 1 if total else 0
-    akhir = min(f.halaman * H.PER_HALAMAN, total)
-    hitung = 'Menampilkan %d–%d dari %d sesi' % (awal, akhir, total)
-    pager = _pager(siswa_id, f, total)
-    paging = ('<div class="profil-paging-st"><span>%s</span>%s</div>' % (hitung, pager)
-              if pager or not total else '')
-    kaki = ('<div class="profil-paging-st profil-riwayat-kaki-st"><span>%s</span>'
-            '<a href="#filter-riwayat">Kembali ke filter &amp; halaman ↑</a></div>' % hitung) if total else ''
-    toolbar = ('<div class="riwayat-toolbar-st"><p><strong>%d sesi</strong>'
-               '<span> · Terbaru dahulu</span></p>%s</div>') % (total, filter_html)
-    arsip = ('<div class="profil-arsip-st" id="filter-riwayat">%s%s'
-             '<div class="riwayat-grup-daftar-st">%s</div>%s</div>') % (
-                 toolbar, paging, ''.join(isi), kaki)
-    return ('<section aria-labelledby="judul-riwayat"><div class="kepala-riwayat-st">'
-            '<h2 class="st" id="judul-riwayat">Riwayat latihan</h2></div>'
-            + arsip + '<p class="sub">Selesai berarti hasil sudah ditinjau dan dikonfirmasi. '
+        isi.append('<div class="profil-kosong-st"><p>Tidak ada sesi yang cocok. Ubah filter atau buat latihan baru.</p></div>')
+    awal = (f.halaman-1)*H.PER_HALAMAN+1 if total else 0
+    akhir = min(f.halaman*H.PER_HALAMAN, total)
+    return (strip + '<section aria-labelledby="judul-riwayat" class="riwayat-ringkas-st">'
+            '<div class="kepala-riwayat-st"><h2 class="st" id="judul-riwayat">Semua latihan</h2></div>'
+            + chips + filter_html
+            + ('<p class="profil-filter-aktif-st">' + _e(ringkasan) + '</p>' if ringkasan else '') + reset
+            + '<div class="profil-arsip-st" id="filter-riwayat">' + ''.join(isi)
+            + '<div class="profil-paging-st"><span>Menampilkan %d–%d dari %d sesi</span>%s</div></div>' % (
+                awal, akhir, total, _pager(siswa_id, f, total))
+            + '<p class="sub">Selesai berarti hasil sudah ditinjau dan dikonfirmasi. '
             'Ini bukan nilai penguasaan materi.</p></section>')
 
 
+
 GAYA_PROFIL = f"""
+/* Latihan: satu form aktif dengan radio mode native. */
+.profil-workspace-st .latihan-terpadu-st {{ padding:{T.SP_5}; background:{T.LATAR_KARTU}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU_BESAR}; }}
+.profil-workspace-st .latihan-terpadu-st fieldset {{ border:0; min-width:0; padding:0; margin:0 0 {T.SP_4}; }}
+.profil-workspace-st .latihan-terpadu-st fieldset[hidden] {{ display:none; }}
+.profil-workspace-st .latihan-terpadu-st legend {{ font-weight:600; margin-bottom:{T.SP_3}; }}
+.profil-workspace-st .latihan-mode-st {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:{T.SP_3}; }}
+.profil-workspace-st .latihan-mode-st label {{ display:flex; align-items:start; gap:{T.SP_2}; padding:{T.SP_4}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU}; cursor:pointer; }}
+.profil-workspace-st .latihan-mode-st label:has(:checked) {{ border-color:{T.AKSEN_TEAL_TUA}; background:{T.LATAR_TERSIMPAN}; }}
+.profil-workspace-st .latihan-terpadu-st small {{ display:block; color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_LABEL}; }}
+.profil-workspace-st .latihan-field-grid,.profil-workspace-st .latihan-topik-grid {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:{T.SP_4}; }}
+.profil-workspace-st .latihan-topik-grid label {{ display:flex; align-items:center; gap:{T.SP_2}; min-height:{T.TARGET_SENTUH}; }}
+.profil-workspace-st .latihan-terpadu-st input:is([type=radio],[type=checkbox]) {{ width:1.2rem; height:1.2rem; min-height:0; flex:none; accent-color:{T.AKSEN_TEAL_TUA}; }}
+.profil-workspace-st .latihan-terpadu-st select {{ display:block; width:100%; min-height:{T.TINGGI_KONTROL}; margin:{T.SP_2} 0; }}
+.profil-workspace-st .latihan-terpadu-st .atur-latihan-st {{ margin:{T.SP_4} 0; }}
+.profil-workspace-st .latihan-terpadu-st .atur-latihan-st summary {{ min-height:{T.TARGET_SENTUH}; cursor:pointer; display:list-item; }}
+.profil-workspace-st .latihan-terpadu-st .atur-latihan-st summary::before {{ content:none; }}
+.profil-workspace-st .latihan-aksi-st {{ display:flex; flex-wrap:wrap; gap:{T.SP_4}; align-items:center; }}
+.profil-workspace-st .latihan-aksi-st p {{ flex:1 1 18rem; font-size:{T.UKURAN_TEKS_LABEL}; color:{T.TEKS_VARIAN}; }}
+.profil-workspace-st .latihan-aksi-st button {{ min-height:{T.TINGGI_KONTROL}; }}
+.profil-workspace-st .latihan-aksi-st button:disabled {{ opacity:.55; cursor:not-allowed; }}
+.profil-workspace-st .latihan-mode-st label:has(:focus-visible) {{ outline:2px solid {T.AKSEN_TEAL_TUA}; outline-offset:3px; }}
+/* Arsip ringkas: satu status dan satu aksi per sesi. */
+.profil-workspace-st .riwayat-perhatian-st {{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:{T.SP_4}; padding:{T.SP_4}; margin-bottom:{T.SP_5}; background:{T.LATAR_CATATAN}; border-radius:{T.RADIUS_KARTU}; }}
+.profil-workspace-st .riwayat-perhatian-st p {{ margin:0; }}
+.profil-workspace-st .riwayat-ringkas-st .profil-saring-st {{ margin-bottom:{T.SP_4}; }}
+.profil-workspace-st .riwayat-ringkas-st .profil-saring-st > summary {{ display:list-item; min-height:{T.TARGET_SENTUH}; cursor:pointer; }}
+.profil-workspace-st .riwayat-ringkas-st .riwayat-kartu-st {{ display:grid; grid-template-columns:3rem minmax(0,1fr) auto auto; gap:{T.SP_4}; align-items:center; padding:{T.SP_4}; background:{T.LATAR_KARTU}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU}; }}
+.profil-workspace-st .riwayat-ringkas-st .riwayat-kartu-kepala-st {{ min-width:0; }}
+.profil-workspace-st .riwayat-ringkas-st .riwayat-kartu-kepala-st small {{ display:block; color:{T.TEKS_VARIAN}; }}
+.profil-workspace-st .riwayat-ringkas-st .riwayat-status-st {{ display:block; }}
+.profil-workspace-st .riwayat-ringkas-st .riwayat-aksi-st {{ padding:0; }}
+.profil-workspace-st .riwayat-ringkas-st .riwayat-buka-st {{ min-height:{T.TARGET_SENTUH}; padding:0 {T.SP_3}; background:transparent; color:{T.AKSEN_TEAL_TUA}; }}
+.profil-workspace-st .riwayat-ringkas-st .riwayat-tinjau-st {{ border:1px solid {T.AKSEN_TEAL_TUA}; border-radius:{T.RADIUS_KARTU}; }}
+.profil-workspace-st .riwayat-ringkas-st .riwayat-lihat-st {{ text-decoration:underline; }}
 /* Beranda: satu tugas, peta tahap terbuka, lalu tinjauan sekunder. */
 .pendamping-editorial-st.profil-editorial-st.profil-workspace-st.beranda-profil-st {{ max-width:60rem; }}
 .beranda-profil-st .kartu-rencana-st {{ padding:{T.SP_6}; border-radius:{T.RADIUS_KARTU_BESAR}; border-top-width:1px; gap:{T.SP_4}; }}
@@ -346,6 +325,8 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .pilot-pemulihan-st label {{ display:flex; align-items:flex-start; gap:{T.SP_3}; font-size:1rem; }}
 .profil-workspace-st .pilot-pemulihan-st input[type="checkbox"] {{ flex:none; width:1.25rem; height:1.25rem; margin-top:.2rem; }}
 .profil-workspace-st .pilot-pemulihan-st button {{ justify-self:start; }}
+.profil-workspace-st .pilot-pemulihan-st .rencana-cta-utama-st {{ background:{T.AKSEN_KORAL_TUA}; border-color:{T.AKSEN_KORAL_TUA}; }}
+.profil-workspace-st .pilot-pemulihan-st .rencana-cta-utama-st:hover {{ background:{T.AKSEN_KORAL_HOVER}; border-color:{T.AKSEN_KORAL_HOVER}; }}
 .profil-workspace-st .pilot-mulai-st summary {{ padding:{T.SP_3}; min-height:{T.TARGET_SENTUH}; }}
 .profil-workspace-st .pilot-mulai-st > p {{ padding:0 {T.SP_4}; }}
 .profil-workspace-st .pilot-mulai-st label:has(input[type="checkbox"]) {{ display:flex; align-items:flex-start; gap:{T.SP_3}; }}
@@ -491,6 +472,16 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .profil-champs-st .mode-opsi {{ margin:0; }}
 }}
 @media(max-width:{T.BATAS_TABLET}) {{
+ .profil-workspace-st .latihan-mode-st,.profil-workspace-st .latihan-field-grid,.profil-workspace-st .latihan-topik-grid {{ grid-template-columns:minmax(0,1fr); }}
+ .profil-workspace-st .latihan-terpadu-st {{ padding:{T.SP_4}; }}
+ .profil-workspace-st .latihan-aksi-st button {{ width:100%; }}
+ .profil-workspace-st .riwayat-ringkas-st .riwayat-kartu-st {{ grid-template-columns:3rem minmax(0,1fr); gap:{T.SP_3}; }}
+ .profil-workspace-st .riwayat-ringkas-st .riwayat-tanggal-blok-st {{ grid-column:1; grid-row:1; }}
+ .profil-workspace-st .riwayat-ringkas-st .riwayat-status-st {{ grid-column:2; grid-row:1; }}
+ .profil-workspace-st .riwayat-ringkas-st .riwayat-kartu-kepala-st {{ grid-column:1/-1; grid-row:2; }}
+ .profil-workspace-st .riwayat-ringkas-st .riwayat-aksi-st {{ grid-column:1/-1; grid-row:3; }}
+ .profil-workspace-st .riwayat-ringkas-st .riwayat-aksi-st > .riwayat-buka-st {{ background:transparent; color:{T.AKSEN_TEAL_TUA}; }}
+ .profil-workspace-st .riwayat-ringkas-st .riwayat-aksi-st > .riwayat-lihat-st {{ width:auto; text-decoration:underline; }}
  .beranda-profil-st .kartu-rencana-st {{ padding:{T.SP_4}; }}
  .beranda-profil-st .beranda-caranya-st {{ padding:{T.SP_4}; }}
  .beranda-profil-st .beranda-aksi-st {{ align-items:stretch; }}

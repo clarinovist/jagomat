@@ -49,7 +49,7 @@ def test_default_berikutnya_dan_hanya_tab_terpilih_dirender(db):
     assert isi.count('class="st-kartu-baris kartu-sesi-guru') <= 3
     manual = _isi(kon, anak, query='section=latihan')
     assert f'action="/sesi-baru/{anak}"' in manual
-    assert f'action="/sesi-gabungan/{anak}"' in manual
+    assert f'data-url="/sesi-gabungan/{anak}"' in manual
     assert '<summary>Pengaturan lanjutan</summary>' in manual
     assert 'class="profil-taches-st"' not in manual
 
@@ -214,19 +214,16 @@ def test_query_invalid_ditolak_tanpa_write(server,query):
     with s.buka() as kon: assert tuple(kon.iterdump()) == sebelum
 
 
-def test_rentang_cepat_tautan_tanpa_javascript(db):
-    from datetime import date, timedelta
+def test_chip_status_tautan_native_dan_rentang_legacy_tetap_didukung(db):
     kon, anak, _ = db
     isi = _isi(kon, anak, query='section=riwayat')
-    hari_ini = date.today()
-    assert 'Rentang cepat:' in isi
-    assert ('mulai=' + (hari_ini - timedelta(days=6)).isoformat()) in isi
-    assert ('mulai=' + hari_ini.replace(day=1).isoformat()) in isi
-    assert '>Semua</a>' in isi
-    assert 'aria-current="true"' in isi
-    isi_tujuh = _isi(kon, anak, query='section=riwayat&mulai=%s&sampai=%s' % ((hari_ini - timedelta(days=6)).isoformat(), hari_ini.isoformat()))
-    cepat_tujuh = isi_tujuh.split('Rentang cepat:', 1)[1].split('Status:', 1)[0]
-    assert cepat_tujuh.count('aria-current="true"') == 1
+    assert 'aria-current="true">Semua</a>' in isi
+    assert '>Perlu ditinjau</a>' in isi and '>Selesai</a>' in isi
+    assert 'Filter tambahan' in isi
+    isi_tujuh = _isi(kon, anak, query='section=riwayat&mulai=2026-09-12&sampai=2026-09-18')
+    assert 'name="mulai" value="2026-09-12"' in isi_tujuh
+    assert 'name="sampai" value="2026-09-18"' in isi_tujuh
+    assert 'Menampilkan 1–7 dari 7 sesi' in isi_tujuh
 
 
 @pytest.mark.parametrize('section',['latihan','rencana','riwayat'])

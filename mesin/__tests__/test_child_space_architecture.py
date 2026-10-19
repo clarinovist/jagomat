@@ -173,7 +173,7 @@ def test_ringkasan_tanpa_bukti_memakai_empty_state_jujur(server):
     kode, isi, _ = server.minta(f"/laporan/{server.anak}", auth=("guru", SANDI_GURU))
     assert kode == 200
     konten = isi.split('id="konten-laporan"', 1)[1]
-    assert "Belum cukup bukti untuk menilai perkembangan materi" in konten
+    assert "Belum ada yang tercatat menunjukkan pemahaman" in konten
     assert 'id="rencana-belajar-laporan"' not in konten
     assert "Rincian tugas" not in konten
 
@@ -202,4 +202,4 @@ def test_empty_state_presenter_tidak_mengubah_status_reducer():
     sesudah = tuple((s.id, s.status) for s in peta.status)
     assert sebelum == sesudah
     assert all(status == "belum_dinilai" for _, status in sesudah)
-    assert "Belum cukup bukti untuk menilai perkembangan materi" in isi
+    assert "Belum ada yang tercatat menunjukkan pemahaman" in isi

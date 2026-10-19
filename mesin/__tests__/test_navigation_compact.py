@@ -78,9 +78,9 @@ def test_pilihan_latihan_menjelaskan_isi_di_dekat_topik_tanpa_instruksi_ganda(db
     assert 'id="manual-topik"' in panel
     assert 'name="profil_parameter"' not in panel
     assert 'Jagomat memilih cakupan yang sesuai' in panel
-    assert teacher_pages.INFO_LATIHAN_BEBAS in h
-    assert h.count('name="jenis-latihan"') >= 2
+    assert "Latihan tambahan tercatat di Riwayat, tapi tidak mengubah tugas di Beranda." in h
+    assert h.count('name="mode_latihan"') == 3
     assert 'name="topik"' in h and 'type="checkbox"' in h
     assert 'A–D hanya penanda' not in panel
-    assert 'tanpa pilihan A–D' in panel
+    assert 'tanpa pilihan A–D' not in panel
     assert 'Pilihan ganda untuk latihan manual, belum menjadi bukti penguasaan.' in h

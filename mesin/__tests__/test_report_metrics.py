@@ -51,11 +51,11 @@ def test_regresi_laporan_menghitung_dijawab_bukan_soal_tersedia(db):
         sesi(kon, sid, ("benar",)*3 + ("H", "tanpa"), selesai=True)
         h = reports.halaman_laporan(kon, sid).decode()
         riwayat = reports.halaman_laporan(kon, sid, section="riwayat", query='tampilan=mingguan').decode()
-    assert "75%" in h
+    assert "Dari 4 soal yang sudah dinilai, 3 benar." in h
     assert "soal dikerjakan" in h
     assert "Ringkasan untuk orang tua" not in h
     assert "Hasil dan tren per materi" in riwayat
-    assert "3 benar dari 4 soal dinilai" in h
+    assert "Ini bukan persentase pemahaman" in h
 
 
 def test_status_tidak_dinilai_bukan_salah_dan_sesi_berjalan_ikut(db):

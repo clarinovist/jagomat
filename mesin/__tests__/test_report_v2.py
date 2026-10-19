@@ -41,11 +41,18 @@ def hanya_penjelasan_dilipat(isi):
         if blok.startswith('<details class="rincian-target-st">'):
             assert 'class="peta-bukti"' in blok
             continue
+        if blok.startswith('<details class="laporan-pilih-tanggal"'):
+            assert '<summary>Pilih tanggal</summary>' in blok
+            assert 'method="get"' in blok and 'name="mulai"' in blok
+            continue
+        if blok.startswith('<details class="riwayat-putaran-detail"'):
+            assert '<summary>Riwayat putaran sebelumnya</summary>' in blok
+            continue
         assert blok.startswith('<details class="rincian-ui-st"')
         assert not any(tag in blok for tag in ('<table', '<form', '<input', '<a ', '<section', '<ul'))
         assert any('<summary>' + judul + '</summary>' in blok for judul in (
             'Cara membaca progres ini', 'Tentang urutan dan filter',
-            'Aturan filter tanggal', 'Cara Jagomat menilai'))
+            'Aturan filter tanggal', 'Cara Jagomat menilai', 'Tentang catatan aktivitas'))
 
 
 @pytest.mark.parametrize('query', [
@@ -71,28 +78,25 @@ def test_materi_kartu_panel_pagination_dan_kembali_tanpa_menyusutkan_target():
     h = mr.render_peta(peta, reports._tanggal_pendek, siswa_id=1, materi='statistika')
     assert 'class="peta-pilihan"' in h
     assert 'id="detail-materi"' in h and 'data-materi="statistika"' in h
-    assert 'Dipilih' in h and 'aria-current="true"' in h
+    assert 'aria-current="true"' in h
     assert '✓' not in h
-    assert 'Kembali ke materi' in h
+    assert 'Kembali ke materi' not in h
     hanya_penjelasan_dilipat(h)
-    assert '1/5 target' in h and f'1 dari {len(peta.target)} target' in h
+    assert '1 dari 5 target' in h and f'1 dari {len(peta.target)} target' in h
     ringkas = mr.render_peta(peta, reports._tanggal_pendek, ringkas=True)
-    assert f'class="peta-angka">1 <small>dari {len(peta.target)} target' in ringkas
+    assert f'class="peta-angka">1 dari {len(peta.target)} target menunjukkan pemahaman' in ringkas
     assert 'class="peta-bukti"' in h and '/sesi/' in h
     filter_hasil = mr.render_peta(peta, reports._tanggal_pendek, siswa_id=1, status='terbukti')
     for target in peta.target:
         if target.topik_id == 'statistika':
             assert target.nama in filter_hasil
     assert '1 dari 5 target' in filter_hasil and 'Belum dinilai' in filter_hasil
-    kembali = re.search(r'href="([^"]+)"[^>]*>[^<]*Kembali ke materi', h)
-    assert kembali
-    assert 'materi=' not in unescape(kembali[1])
     dua = mr.render_peta(peta, reports._tanggal_pendek, siswa_id=1, halaman='2')
-    assert 'Halaman 2 dari 2' in dua
+    assert 'Halaman 2 dari 2' not in dua
     assert f'1 dari {len(peta.target)} target' in dua
     assert 'Belum dinilai (9)' in h
     kartu_1 = re.findall(r'class="peta-pilihan"[^>]*data-materi="([^"]+)"', h)
-    assert len(kartu_1) <= 6
+    assert len(kartu_1) == len({t.topik_id for t in peta.target})
     for atribut, _ in Struktur(h).tautan:
         if 'peta-pilihan' not in atribut.get('class', ''):
             continue
@@ -122,8 +126,8 @@ def test_filter_materi_status_campuran_kosong_dan_parameter_asing():
     asing = mr.render_peta(kosong, reports._tanggal_pendek, siswa_id=1,
                           status='<script>', materi='asing', halaman='-99')
     assert normal == asing
-    assert 'data-preview="true"' in normal  # Panel awal desktop; mobile tetap daftar.
-    assert 'class="peta-auto-lihat">Lihat target' in normal
+    assert 'aria-current="true"' in normal
+    assert 'id="detail-materi"' in normal
 
 
 def test_filter_sesi_tanggal_bukan_aktivitas_topik_dan_pagination(db):

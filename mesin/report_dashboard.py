@@ -12,6 +12,12 @@ from report_navigation import halaman_daftar, navigasi_halaman, url_laporan
 
 
 GAYA_LAPORAN = f"""
+.pendamping-editorial-st.laporan-editorial-st.profil-workspace-st {{max-width:60rem;}}
+.laporan-editorial-st .laporan-ke-beranda {{display:block;margin-top:{T.SP_5};padding:{T.SP_4};border-radius:{T.RADIUS_KARTU};background:{T.LATAR_TERSIMPAN};text-decoration:none;}}
+.laporan-editorial-st .riwayat-putaran-detail > summary {{min-height:{T.TARGET_SENTUH};cursor:pointer;padding:{T.SP_3} 0;}}
+.laporan-editorial-st .laporan-alias {{display:none;}}
+.laporan-editorial-st .laporan-alias:target {{display:block;}}
+
 .laporan-editorial-st .laporan-bagian-st {{margin-top:{T.SP_5};}}
 .laporan-editorial-st .laporan-bagian-st:first-of-type {{margin-top:0;}}
 .laporan-editorial-st .laporan-lipatan-st {{min-width:0;}}
@@ -29,12 +35,11 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .laporan-metrik .stat {{
   padding:{T.SP_4}; background:{T.LATAR_SEKUNDER_LEMBUT};
   border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS};
-  border-top:3px solid {T.BORDER_VARIAN}; border-radius:{T.RADIUS_SEDANG}; min-width:0;
+  border-radius:{T.RADIUS_SEDANG}; min-width:0;
 }}
-.laporan-editorial-st .laporan-metrik .stat:nth-child(1),
-.laporan-editorial-st .laporan-metrik .stat:nth-child(2) {{border-color:{T.AKSEN_TEAL_TUA};}}
-.laporan-editorial-st .laporan-metrik .stat:nth-child(3) {{border-color:{T.AKSEN_MURID_AMBER};}}
-.laporan-editorial-st .laporan-metrik .stat:nth-child(4) {{border-color:{T.AKSEN_KORAL_TUA};}}
+.laporan-editorial-st .laporan-periode-kontrol {{ display:flex; flex-wrap:wrap; align-items:start; gap:{T.SP_3}; }}
+.laporan-editorial-st .laporan-pilih-tanggal > summary {{ min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} {T.SP_3}; cursor:pointer; color:{T.AKSEN_TEAL_TUA}; }}
+.laporan-editorial-st .laporan-pilih-tanggal[open] {{ flex-basis:100%; }}
 .laporan-editorial-st .laporan-metrik strong {{
   display:block; font-size:{T.UKURAN_ANGKA_DEWASA}; color:{T.TEKS_JUDUL}; line-height:1.2;
 }}
@@ -56,16 +61,16 @@ GAYA_LAPORAN = f"""
   width:100%; max-width:10rem; accent-color:{T.AKSEN_TEAL_TUA}; display:block; margin-top:{T.SP_2};
 }}
 .laporan-editorial-st .laporan-navigasi {{
-  display:flex; flex-wrap:wrap; gap:{T.SP_5}; margin:0 0 {T.SP_5};
-  border-bottom:{T.TEBAL_GARIS} solid {T.BORDER_HALUS};
+  display:flex; flex-wrap:wrap; gap:{T.SP_1}; width:fit-content; margin:0 0 {T.SP_5};
+  padding:{T.SP_1}; border:1px solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KARTU}; background:{T.LATAR_SEKUNDER_LEMBUT};
 }}
 .laporan-editorial-st .laporan-navigasi a {{
   display:inline-flex; align-items:center; justify-content:center; min-height:{T.TARGET_SENTUH};
-  padding:{T.SP_2} 0; border-bottom:2px solid transparent; text-decoration:none;
+  padding:{T.SP_2} {T.SP_4}; border:0; border-radius:{T.RADIUS_KECIL}; text-decoration:none;
   color:{T.TEKS_VARIAN}; font-weight:600;
 }}
 .laporan-editorial-st .laporan-navigasi a[aria-current="page"] {{
-  background:transparent; color:{T.AKSEN_TEAL_TUA}; border-bottom:2px solid {T.AKSEN_TEAL_TUA};
+  background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; box-shadow:{T.BAYANGAN_KARTU_GURU};
 }}
 .laporan-editorial-st .laporan-resume {{border-top:3px solid {T.AKSEN_TEAL_TUA};}}
 .laporan-editorial-st .resume-langkah {{font-size:1.12rem; font-weight:600;}}
@@ -196,57 +201,41 @@ def _perubahan(materi) -> str:
     return f"{arah} {angka} poin persentase"
 
 
-def render_aktivitas(data, tanggal, *, judul='Aktivitas latihan', kontrol='') -> str:
-    kini = data.kini
-    kartu = "".join(
-        f'<div class="stat"><strong>{nilai}</strong><span>{label}</span>'
-        + (f'<span class="metrik-dasar">{kini.benar} benar dari {kini.dinilai} soal dinilai</span>'
-           if label == "ketepatan jawaban latihan" else '') + '</div>'
+def render_aktivitas(data, tanggal, *, judul='Aktivitas latihan', kontrol='', semua=False) -> str:
+    """Hitungan deskriptif tetap sama; satu kalimat, tanpa grafik penguasaan kedua."""
+    kini = data.semua if semua else data.kini
+    kartu = ''.join(
+        f'<div class="stat"><strong>{nilai}</strong><span>{label}</span></div>'
         for nilai, label in (
-            (str(kini.dikerjakan), "soal dikerjakan"),
-            (str(kini.benar), "butir benar"),
-            (str(kini.salah), "butir salah"),
-            (html.escape(persen(kini.persen)), "ketepatan jawaban latihan"),
+            (kini.dikerjakan, 'soal dikerjakan'), (kini.benar, 'benar'),
+            (kini.salah, 'salah'), (kini.perlu_ditinjau, 'menunggu tinjauan'),
         )
     )
-    label_sementara = '<span class="laporan-catatan">Hasil sementara</span>' if kini.dinilai > kini.terkonfirmasi else ''
-    denominator = max(1, kini.benar + kini.salah)
-    lebar_benar = 100 * kini.benar / denominator if kini.dinilai else 0
-    lebar_salah = 100 * kini.salah / denominator if kini.dinilai else 0
-    komposisi = (
-        '<div class="aktivitas-komposisi-st" role="img" '
-        f'aria-label="Komposisi jawaban dinilai: {kini.benar} benar dan {kini.salah} salah">'
-        f'<span class="aktivitas-benar-st" style="width:{lebar_benar:.4f}%"></span>'
-        f'<span class="aktivitas-salah-st" style="width:{lebar_salah:.4f}%"></span></div>'
-    )
-    if kini.perlu_ditinjau:
-        insight = f'Ada {kini.perlu_ditinjau} jawaban yang masih perlu ditinjau.'
-    elif kini.dikerjakan:
-        insight = 'Aktivitas sudah tercatat. Baca hasil sebagai catatan latihan, bukan nilai kemampuan.'
+    rentang = ('Semua waktu' if semua else
+               f'{tanggal(data.mulai.isoformat())} – {tanggal(data.akhir.isoformat())} · WIB')
+    if kini.dikerjakan or kini.dinilai:
+        kalimat = (f'Dari {kini.dinilai} soal yang sudah dinilai, {kini.benar} benar. '
+                   f'Ini bukan persentase pemahaman: {kini.perlu_ditinjau} soal masih menunggu tinjauan.')
     else:
-        insight = 'Belum ada aktivitas pada periode ini. Ini bukan tanda anak tidak mampu.'
+        kalimat = 'Belum ada latihan pada rentang ini. Ini bukan tanda anak tidak mampu.'
+    tambahan = []
+    if kini.belum_dikenalkan:
+        tambahan.append(f'{kini.belum_dikenalkan} perlu cek pengenalan materi')
+    if kini.dilewati:
+        tambahan.append(f'{kini.dilewati} dilewati')
+    rincian = '<p class="laporan-catatan">' + ' · '.join(tambahan) + '.</p>' if tambahan else ''
+    sementara = ('<span class="laporan-catatan">Hasil sementara</span>'
+                 if kini.dinilai > kini.terkonfirmasi else '')
     return (
         '<section class="aktivitas-kartu-st" aria-labelledby="judul-aktivitas">'
-        '<div class="aktivitas-kepala-st"><div>'
         f'<h2 id="judul-aktivitas">{html.escape(judul)}</h2>'
-        f'<p class="aktivitas-periode-st">{tanggal(data.mulai.isoformat())} – '
-        f'{tanggal(data.akhir.isoformat())} · WIB</p></div></div>{kontrol}'
-        f'<div class="kartu-stat laporan-metrik">{kartu}</div>{komposisi}{label_sementara}'
-        '<p class="laporan-catatan">Aktivitas mengikuti pencatatan jawaban pertama '
-        '(atau konfirmasi untuk butir tanpa jawaban), bukan tanggal sesi. '
-        'Ketepatan dihitung dari jawaban yang sudah dinilai benar atau salah, '
-        'bukan seluruh soal tersedia. Ini bukan persentase pemahaman. '
-        'Tanda — berarti belum ada jawaban yang bisa dinilai.</p>'
-        '<p class="laporan-catatan">'
-        f'{kini.perlu_ditinjau} jawaban perlu ditinjau · '
-        f'{kini.belum_dikenalkan} perlu cek pengenalan materi · {kini.dilewati} dilewati.</p>'
-
-        f'<p class="laporan-catatan laporan-seluruh">Total seluruh catatan: <b>{data.semua.dikerjakan} soal dikerjakan</b> '
-        f'· {data.semua.benar} benar · {data.semua.salah} salah '
-        f'· {data.semua.perlu_ditinjau} perlu ditinjau.</p>'
-        '<aside class="laporan-insight-st" aria-label="Catatan aktivitas">'
-        '<span class="laporan-insight-ikon-st" aria-hidden="true">i</span>'
-        f'<p><b>Catatan singkat</b><br>{html.escape(insight)}</p></aside></section>'
+        + kontrol + f'<p class="aktivitas-periode-st">{rentang}</p>'
+        f'<div class="kartu-stat laporan-metrik">{kartu}</div>'
+        + sementara + '<p class="laporan-catatan">' + kalimat + '</p>' + rincian
+        + '<details class="rincian-ui-st"><summary>Tentang catatan aktivitas</summary>'
+        '<p>Aktivitas mengikuti pencatatan jawaban pertama atau konfirmasi untuk butir tanpa jawaban, '
+        'bukan tanggal sesi. Angka benar/salah adalah catatan latihan, bukan penguasaan materi.</p>'
+        '</details></section>'
     )
 
 

@@ -81,17 +81,23 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   dan **Perkembangan**. URL profil tanpa query serta `?section=rencana` membuka
   Beranda; latihan manual berada di `?section=latihan`, arsip operasional tunggal
   di `?section=riwayat`, dan proyeksi bukti di `?section=perkembangan` sebagai satu
-  tab dengan tiga bagian (Progres, Materi, Perjalanan) yang dinavigasi lewat
-  anchor `#progres`, `#materi`, `#perjalanan`; kelas sekolah hanya tampil sebagai
-  badge profil bila metadata opsionalnya terisi. Deep link `/laporan/<id>` lama
-  dialihkan ke tab setelah guard kepemilikan; `?section=`/`bagian=` lama tetap
-  didukung sebagai alias anchor.
+  tab dengan saklar **Ringkasan / Per materi** server-side. Riwayat putaran
+  dilipat di bawah Per materi; tautan Perjalanan lama tetap membuka riwayat itu.
+  Anchor lama memiliki tautan penerus. Kelas sekolah hanya tampil sebagai badge
+  profil bila metadata opsionalnya terisi. Deep link `/laporan/<id>` lama
+  dialihkan setelah guard kepemilikan. Judul progres menampilkan jumlah target
+  menunjukkan pemahaman bila ada, atau sedang dipelajari bila belum ada; status
+  reducer dan denominator tidak berubah.
   Aksi utama ruang anak memakai teal; label tinjauan Perlu ditinjau, Draf
   tersimpan, atau ✓ Selesai mengikuti konfirmasi aktif, bukan penguasaan.
   Konfirmasi yang tidak lagi aktif tetap meminta konfirmasi ulang.
-  Ringkasan aktivitas dapat dilihat lewat preset 7 hari,
-  minggu ini, bulan ini, atau rentang tanggal sendiri. Detail paket/aktivasi mengikuti
-  kontraknya, bukan keberadaan kode.
+  Aktivitas memakai Semua (bawaan), 7 hari terakhir, atau tanggal pilihan; empat
+  angka netral bukan persentase pemahaman. Preset minggu/bulan lama tetap terbaca.
+  Riwayat menampilkan satu status/aksi per sesi dan strip tinjauan terlama; filter
+  tambahan/paging tetap tersedia, pengelolaan tautan di halaman sesi. Latihan memakai
+  satu form aktif dengan tiga mode, fallback pemilih GET, dan skrip lokal berhash
+  CSP untuk mode/disabled Gabungan minimal dua topik. Server tetap memvalidasi;
+  Pendamping tidak menerima draf sebagai data AI. Detail paket mengikuti kontraknya.
 
 ## Kontrak belajar utama
 

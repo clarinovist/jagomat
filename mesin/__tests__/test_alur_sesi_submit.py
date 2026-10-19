@@ -162,7 +162,10 @@ def test_simpan_sementara_tidak_mendiagnosis_atau_masuk_laporan(server):
         assert database.sasaran_remedial(kon, siswa_id) == []
     kode, isi, _ = s.minta(f"/anak/{siswa_id}", auth=("guru", SANDI_GURU))
     assert kode == 200
-    assert "1 dari 3 terisi" in isi
+    assert f'href="/sesi/{sesi_id}"' not in isi
+    _, riwayat, _ = s.minta(f"/anak/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU))
+    assert "Sedang Dikerjakan" in riwayat
+    assert f'href="/sesi/{sesi_id}"' in riwayat
     assert "Benar 1/" not in isi
     assert "Benar —" not in isi
 
@@ -302,7 +305,7 @@ def test_host_pendamping_memakai_salin_tautan_berhash_dengan_fallback_native(ser
     s, siswa_id, sesi_id = server
 
     kode, isi, header = s.minta(
-        f"/anak/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU)
+        f"/sesi/{sesi_id}", auth=("guru", SANDI_GURU)
     )
 
     assert kode == 200

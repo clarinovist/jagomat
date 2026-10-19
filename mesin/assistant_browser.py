@@ -190,7 +190,7 @@ function lengkapiFallback(form) {
   var draf = /^(inline_form|topik|jumlah_soal|mode|hadir_timer_mode|timer_mode|durasi_menit|timer_auto|format_jawaban|profil_parameter|versi_pilihan_isi|topik_dibandingkan|template_id|sumber_sesi_id|sertakan_pemetaan|hadir_sertakan_pemetaan|(?:jwb_|kode_|cara_|cek_pemahaman_|hadir_dilewati_|dilewati_|hadir_belum_|belum_|catatan_tinjauan_|provenance_|jawaban_bantuan_|versi_tinjauan_)\d+)$/;
   form.querySelectorAll('[data-draf-native]').forEach(function (item) { item.remove(); });
   Array.from(pekerjaan.elements).forEach(function (input) {
-    if (!draf.test(input.name) || input.disabled ||
+    if (!draf.test(input.name) || input.matches(':disabled') ||
         (['checkbox', 'radio'].includes(input.type) && !input.checked)) return;
     var salinan = document.createElement('input');
     salinan.type = 'hidden'; salinan.name = input.name; salinan.value = input.value;
@@ -403,7 +403,8 @@ def memiliki_tinjauan(isi: bytes) -> bool:
 
 def memiliki_enhancement(isi: bytes) -> bool:
     """Halaman memerlukan salah satu skrip kecil berhash yang diizinkan."""
-    return memiliki_panel(isi) or memiliki_pilihan_isi(isi) or memiliki_bagikan(isi) or memiliki_tinjauan(isi)
+    from practice_browser import memiliki_latihan
+    return memiliki_panel(isi) or memiliki_pilihan_isi(isi) or memiliki_bagikan(isi) or memiliki_tinjauan(isi) or memiliki_latihan(isi)
 
 
 def lengkapi_respons(isi: bytes):
@@ -428,6 +429,10 @@ def lengkapi_respons(isi: bytes):
         from review_browser import SKRIP_TINJAUAN, HASH_TINJAUAN
         skrip.append(SKRIP_TINJAUAN)
         hash_skrip.append(HASH_TINJAUAN)
+    from practice_browser import memiliki_latihan, SKRIP_LATIHAN, HASH_LATIHAN
+    if memiliki_latihan(isi):
+        skrip.append(SKRIP_LATIHAN)
+        hash_skrip.append(HASH_LATIHAN)
     if not skrip:
         return isi, ""
     markup = ''.join('<script>' + item + '</script>' for item in skrip).encode("utf-8")

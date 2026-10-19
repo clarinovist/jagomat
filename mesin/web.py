@@ -80,7 +80,8 @@ class Penangan(BaseHTTPRequestHandler):
 
     def _kirim(self, isi: bytes, kode: int = 200) -> None:
         import assistant_browser
-        if (assistant_browser.memiliki_panel(isi) or assistant_browser.memiliki_bagikan(isi)
+        from practice_browser import memiliki_latihan
+        if (memiliki_latihan(isi) or assistant_browser.memiliki_panel(isi) or assistant_browser.memiliki_bagikan(isi)
                 or assistant_browser.memiliki_tinjauan(isi)):
             return self._kirim_privat(isi, kode)
         if assistant_browser.memiliki_pilihan_isi(isi):

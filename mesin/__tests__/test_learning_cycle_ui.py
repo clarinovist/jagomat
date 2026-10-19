@@ -116,7 +116,7 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     assert f'action="/sesi-gabungan/{siswa_id}"' not in isi
     _, manual, _ = s.minta(f"/anak/{siswa_id}?section=latihan", auth=("guru", SANDI_GURU))
     assert manual.count(f'action="/sesi-baru/{siswa_id}"') == 1
-    assert manual.count(f'action="/sesi-gabungan/{siswa_id}"') == 1
+    assert manual.count(f'data-url="/sesi-gabungan/{siswa_id}"') == 1
 
 
 def test_get_profil_hanya_membaca_database(server):
@@ -403,7 +403,7 @@ def test_strip_tahap_dan_override_terpandu_terpisah_dari_latihan_bebas(server):
     assert f'action="/siklus/{siswa_id}/aksi"' in kartu
     assert 'name="aksi" value="ubah_fokus"' in kartu
     _, manual, _ = s.minta(f"/anak/{siswa_id}?section=latihan", auth=("guru", SANDI_GURU))
-    assert "Latihan bebas tidak mengubah progres rencana terpandu" in manual
+    assert "Latihan tambahan tercatat di Riwayat, tapi tidak mengubah tugas di Beranda." in manual
 
 
 @pytest.mark.parametrize("kasus", ["materi_lain", "dibatalkan", "diinvalidasi"])

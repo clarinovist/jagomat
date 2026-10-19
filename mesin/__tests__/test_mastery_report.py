@@ -89,7 +89,7 @@ def test_skor_topik_tidak_memakai_jenis_soal_yang_sudah_dikerjakan_saja():
     peta=mr.peta_penguasaan(_bukti(_baik()),1,HARI)
     h=mr.render_peta(peta,reports._tanggal_pendek,materi='statistika')
     bagian=h.split('<b>Statistika</b>',1)[1].split('</a>',1)[0]
-    assert "1/5 target" in bagian and "20%" in bagian
+    assert "5 target" in bagian and "Menunjukkan pemahaman: 1 dari 5 target" in bagian
     assert "100%" not in bagian
 
 
@@ -98,7 +98,7 @@ def test_peta_kosong_dan_kelas_asing_tidak_pura_pura_nol_kemampuan():
     assert peta.persen is None
     h=mr.render_peta(peta,reports._tanggal_pendek)
     ringkas=mr.render_peta(peta,reports._tanggal_pendek,ringkas=True)
-    assert 'peta-persentase">— · Belum dinilai' in ringkas
+    assert "0 dari" in ringkas and "target sedang dipelajari" in ringkas
     assert 'peta-persentase">0%' not in ringkas
     assert "Belum dinilai bukan berarti tidak mampu" in h
     asing=mr.peta_penguasaan(replace(_bukti(()),level_aktif="asing"),1,HARI)

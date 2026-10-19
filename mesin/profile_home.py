@@ -31,7 +31,8 @@ def posisi(rencana, bukti, nama):
         '<div class="isi-alur-rencana-st"><p>Latihan awal membantu menentukan bagian yang perlu dibantu. '
         'Setelah itu, anak belajar bersama, berlatih dengan bantuan lalu mandiri, menjalani cek setelah jeda, '
         'dan mengecek kembali pemahaman sebelum langkah berikutnya dipilih.</p>'
-        '<p>Urutan ini adalah peta perjalanan, bukan tanda bahwa tahap sebelumnya pasti selesai.</p>'
+        '<p>Urutan ini adalah peta perjalanan, bukan tanda bahwa tahap sebelumnya pasti selesai. '
+        'Cakupan fondasi bukan kelas sekolah.</p>'
         '</div></details></section>'
     )
 

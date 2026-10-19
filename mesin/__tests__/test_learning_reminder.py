@@ -149,7 +149,7 @@ def test_http_default_berikutnya_dan_latihan_manual_tetap_tersedia(server):
         kon.execute('UPDATE sesi SET selesai=CURRENT_TIMESTAMP WHERE id=?', (sesi,))
     status, isi, _ = server.minta('/anak/%d' % sid, auth=('guru', SANDI_GURU))
     assert status == 200
-    assert 'Tinjau dan konfirmasi hasil — Latihan awal' in isi
+    assert 'Tinjau hasil latihan' in isi and '>Mulai tinjau</a>' in isi
 
 
 def test_http_optin_manual_terkonfirmasi_memengaruhi_kartu_reducer(server):

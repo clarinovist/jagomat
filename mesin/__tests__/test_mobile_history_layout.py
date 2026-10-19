@@ -41,11 +41,9 @@ def render(db, query='section=riwayat'):
 
 def test_filter_terbuka_dengan_ringkasan_dan_satu_reset(db):
     isi = render(db, 'section=riwayat&topik=campuran&jenis=bebas&tinjauan=belum_dikirim&mulai=2026-01-01&halaman=2')
-    assert 'class="riwayat-filterbar-st"' in isi
-    assert 'class="profil-saring-st aktif"' in isi
-    assert '<details class="profil-saring-st aktif" open>' not in isi
-    judul = re.search(r'<summary class="riwayat-saring-judul-st">(.*?)</summary>',isi,re.S).group(1)
-    assert 'Saring riwayat' in judul and 'Campuran semua topik' in judul
+    assert '<details class="profil-saring-st" open>' in isi
+    judul = re.search(r'<p class="profil-filter-aktif-st">(.*?)</p>',isi,re.S).group(1)
+    assert 'Filter tambahan' in isi and 'Campuran semua topik' in judul
     assert 'Latihan bebas' in judul and 'Belum dikirim' in judul and '2026-01-01' in judul
     assert isi.count('>Reset filter</a>')==1
     assert f'href="/anak/{db[1]}?section=riwayat"' in isi
@@ -53,7 +51,7 @@ def test_filter_terbuka_dengan_ringkasan_dan_satu_reset(db):
     assert 'name="halaman"' not in isi
     assert 'name="q"' in isi
     assert 'topik=campuran' in isi and 'halaman=3' in isi
-    assert 'riwayat-pilbar-st' in isi and 'Belum dikirim (' in isi
+    assert 'riwayat-pilbar-st' in isi and '>Perlu ditinjau</a>' in isi
 
 
 def test_default_tanpa_reset_dan_empty_tanpa_paging_palsu(db):
@@ -90,23 +88,21 @@ def test_timeline_bulanan_memisahkan_tanggal_status_dan_detail(db):
     assert 'class="riwayat-grup-judul-st">September 2026</h3>' in isi
     assert '7 hari terakhir' not in isi
     assert 'class="riwayat-tanggal-blok-st"><time datetime="2026-09-18">' in isi
-    assert '<small>Pengerjaan</small>' in isi and '<small>Tinjauan</small>' in isi
-    assert 'riwayat-rel-st' in isi and 'riwayat-kartu-isi-st' in isi
+    assert '<small>Pengerjaan</small>' not in isi and '<small>Tinjauan</small>' not in isi
+    assert 'class="riwayat-rel-st"' not in isi and 'class="riwayat-status-st"' in isi
     assert 'riwayat-skor-st' not in isi and 'riwayat-stat-st' not in isi
 
 
 def test_metadata_dan_status_tidak_dibuang_demi_ringkas(db):
     isi=render(db)
     baris=re.search(r'<li class="riwayat-kartu-st" data-sesi-id=".*?</li>',isi,re.S).group()
-    assert 'class="riwayat-meta-st"' in baris
-    assert 'Latihan bebas' in baris and 'Variasi A' in baris and 'Mode Diagnosa' in baris
-    assert 'Sesi #' in baris and 'Belum Dikerjakan' in baris and 'Menunggu pengiriman' in baris
-    assert baris.count('class="riwayat-buka-st"')==1
-    assert any(label in baris for label in ('>Lihat ', '>Mulai mengerjakan ', '>Lanjutkan mengerjakan ', '>Tinjau ', '>Lanjutkan '))
-    assert '<span aria-hidden="true">→</span></a>' in baris
-    assert 'riwayat-tagbar-st' in baris
-    assert '<summary>Kelola tautan</summary>' in baris
-    assert 'Salin tautan sesi' in baris
+    assert 'Latihan bebas' in baris and 'soal' in baris
+    assert 'Sesi #' in baris and 'Belum Dikerjakan' in baris
+    assert baris.count('<a ')==1
+    assert '>Mulai mengerjakan</a>' in baris
+    assert baris.count('class="badge-direview ') == 1
+    assert '<summary>Detail sesi</summary>' not in baris
+    assert '<form' not in baris
 
 
 def test_css_mobile_filter_penuh_dan_status_tidak_dipotong():
@@ -185,19 +181,21 @@ def test_form_ramping_tanggal_masuk_lanjutan(db):
     form = re.search(r'<form method="get" action="/anak/\d+" class="profil-filter-st">(.*?)</form>', isi, re.S).group(1)
     assert 'name="q"' in form and 'name="topik"' in form and 'name="jenis"' in form
     assert 'name="tinjauan" value="semua"' in form
-    assert '<details class="riwayat-tanggal-st">' in form and 'open' not in form.split('<details')[1].split('>')[0]
-    assert 'Rentang tanggal khusus' in form
+    assert '<details class="profil-saring-st"><summary>Filter tambahan</summary>' in isi
+    assert 'name="mulai"' in form and 'name="sampai"' in form
     isi = render(db, 'section=riwayat&mulai=2026-01-01&sampai=2026-09-18')
     form = re.search(r'<form method="get" action="/anak/\d+" class="profil-filter-st">(.*?)</form>', isi, re.S).group(1)
-    assert '<details class="riwayat-tanggal-st" open>' in form
+    assert '<details class="profil-saring-st" open>' in isi
     assert 'name="mulai" value="2026-01-01"' in form
     assert 'dari 41 sesi' in isi
 
 
 def test_pil_nol_disembunyikan_kecuali_aktif(db):
     isi = render(db)
-    assert 'Belum dikirim (41)' in isi
-    assert 'Draf tersimpan' not in isi and '(0)' not in isi.split('riwayat-pilbar-st', 1)[1].split('</div>', 1)[0]
+    assert 'Menampilkan 1–20 dari 41 sesi' in isi
+    assert 'Draf tersimpan' not in isi
+    nav = isi.split('class="riwayat-pilbar-st"', 1)[1].split('</nav>', 1)[0]
+    assert nav.count('<a ') == 3 and '(0)' not in nav
     isi = render(db, 'section=riwayat&tinjauan=dibatalkan')
     assert 'Dibatalkan' in isi
     assert 'Tidak ada sesi yang cocok' in isi
@@ -208,6 +206,7 @@ def test_riwayat_ringkas_tanpa_kartu_statistik_atau_klaim_penguasaan(db):
     assert 'riwayat-stat-kartu-st' not in isi
     assert 'Rata-rata benar terkirim' not in isi
     assert 'Hari beruntun latihan' not in isi
-    assert '<div class="riwayat-toolbar-st"><p><strong>41 sesi</strong>' in isi
+    assert '>Semua latihan</h2>' in isi
+    assert 'Menampilkan 1–20 dari 41 sesi' in isi
     assert 'Selesai berarti hasil sudah ditinjau dan dikonfirmasi.' in isi
     assert isi.count('Ini bukan nilai penguasaan materi.') == 1

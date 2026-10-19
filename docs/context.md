@@ -63,13 +63,18 @@ cache dan cadangan tetap privat.
 
 - **Stdlib saja**, tanpa framework/dependensi runtime pihak ketiga; dev dependency
   hanya `pytest` dan `pytest-xdist`. Dependency baru perlu persetujuan pengguna.
-- **Zero-JS default**: `<details>` dan anchor `#progres`/`#materi`/`#perjalanan`
-  server-side; `?section=` lama tetap didukung sebagai alias anchor. Pengecualian disetujui:
+- **Zero-JS default**: `<details>` dan navigasi query server-side; anchor lama
+  memiliki tautan penerus. Pengecualian disetujui:
   mata sandi, `confirm()` destruktif, salin tautan satu sesi langsung, serta
   Kirim/Periksa Pendamping inline, serta accordion/penanda isian/konfirmasi lewati
   pada tinjauan sesi (`review_browser.py`, tanpa penilaian atau kirim otomatis).
   Skrip berhash CSP, same-origin dan punya fallback
-  form native; bukan izin menambah JavaScript umum. Semua tab akun memakai font
+  form native; bukan izin menambah JavaScript umum. `practice_workspace.py`
+  merender satu form latihan dengan fieldset nonaktif disabled; `practice_browser.py`
+  mengganti mode/action dan menahan Gabungan <2 topik, tanpa network/autosave.
+  Hash exact didaftarkan lewat `assistant_browser` hanya pada marker form aktual;
+  fallback mode GET tetap tersedia. Salinan draf Pendamping mengecualikan kontrol
+  dalam fieldset disabled, bukan hanya atribut disabled langsung. Semua tab akun memakai font
   sistem tanpa CDN; `account_browser.py` memuat mata sandi, konfirmasi via atribut
   data escaped, penanda perubahan kelas, dan validasi Indonesia semua field secara
   lokal tanpa network/autosave. Hash exact pada respons GET/POST `account_http.py`;
@@ -116,7 +121,9 @@ cache dan cadangan tetap privat.
   `reports.konten_laporan()` yang sama dengan halaman lama. Deep link laporan lama dialihkan oleh `teacher_http.py` setelah
   guard ownership. `reports.py` dan
   `report_metrics.py` menyediakan filter periode aktivitas
-  server-side melalui query GET. Layanan siklus menginisialisasi konteks fondasi dan
+  server-side; Semua memakai agregat existing. `reports.konten_laporan()` hanya
+  merender Ringkasan atau Per materi; histori lama lewat disclosure, tanpa reducer
+  kedua. Daftar materi lengkap, mini bar dan status memakai denominator katalog. Layanan siklus menginisialisasi konteks fondasi dan
   pemetaan pertama secara atomik dari satu tindakan eksplisit orang tua.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
   Pendamping tidak boleh mengambil alih reducer atau konfirmasi bukti belajar.

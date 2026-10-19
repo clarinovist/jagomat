@@ -36,7 +36,10 @@ berparameter, diagnosis B/K/H/E/T/N, lembar cetak, dan laporan per anak.
   kartu aktif, penanda isian dan konfirmasi lewati; tidak menilai/mengirim otomatis,
   fallback form native tetap utuh. Akun memakai penanda kelas belum tersimpan dan
   validasi field Bahasa Indonesia secara lokal (tanpa network/autosave), disetujui
-  pada penuntasan audit akun; server tetap otoritatif. Perlu approval untuk tambahan.
+  pada penuntasan audit akun; server tetap otoritatif. Form Latihan memakai
+  enhancement lokal berhash CSP untuk pilihan mode dan disabled Gabungan minimal
+  dua topik, tanpa network/autosave; fallback pemilih GET serta validasi server tetap
+  berlaku (disetujui pada penuntasan UI langkah 3–6). Perlu approval untuk tambahan.
 - `mesin/`: aplikasi, `__tests__/`, aset, Dockerfile, cadangan. `scripts/`: otomasi/palang.
   `docs/`: spesifikasi teknis; `docs/plan/` lokal/gitignored. `.github/`: CI/deploy.
 - Riset/materi/kurikulum/mockup/bisnis/eksperimen berada di `../osn-resources/referensi/` lokal,

@@ -59,7 +59,7 @@ def test_dashboard_menyebut_nama_dan_aktivitas(db):
     assert "Ringkasan untuk orang tua" not in h
     assert "Bima" in h
     assert "soal dikerjakan" in h
-    assert "butir benar" in h and "butir salah" in h
+    assert ">benar</span>" in h and ">salah</span>" in h
     assert f'<a href="/anak/{sid}?section=perkembangan" aria-current="page">Perkembangan</a>' in h
     assert f'href="/anak/{sid}?section=latihan"' in h
     assert f'href="/anak/{sid}?section=rencana"' in h
@@ -93,8 +93,8 @@ def test_filter_aktivitas_preset_dan_rentang_custom_inklusif(db):
         ).decode()
     assert "Aktivitas latihan" in h
     assert "1 Sep 2026" in h
-    assert '<a href="/anak/%d?section=perkembangan&amp;periode=7">7 hari</a>' % sid in h
-    assert '>Minggu ini</a>' in h and '>Bulan ini</a>' in h
+    assert '<a href="/anak/%d?section=perkembangan&amp;periode=7">7 hari terakhir</a>' % sid in h
+    assert '>Semua</a>' in h and 'Pilih tanggal' in h
     assert 'name="mulai" value="2026-09-01"' in h
     assert 'name="sampai" value="2026-09-01"' in h
     assert '<strong>1</strong><span>soal dikerjakan</span>' in h
@@ -110,7 +110,7 @@ def test_filter_aktivitas_custom_tidak_sah_kembali_ke_7_hari(db, query):
         sid = database.tambah_siswa(kon, "Periode aman")
         h = reports.halaman_laporan(kon, sid, query=query).decode()
     assert "Aktivitas latihan" in h
-    assert 'aria-current="true">7 hari</a>' in h
+    assert 'aria-current="true">7 hari terakhir</a>' in h
     assert 'value="2026-09-01"' not in h
 
 
@@ -121,7 +121,7 @@ def test_filter_aktivitas_custom_ekstrem_tetap_dapat_dirender(db):
             kon, sid, query="periode=custom&mulai=0001-01-01&sampai=9999-12-31"
         ).decode()
     assert "Aktivitas latihan" in h
-    assert 'aria-current="true">7 hari</a>' in h
+    assert 'aria-current="true">7 hari terakhir</a>' in h
 
 
 def test_ringkasan_merayakan_tanpa_kata_teknis(db):
@@ -177,7 +177,7 @@ def test_kartu_perhatian_tidak_bilang_kuat_saat_ada_k(db):
         h = reports.halaman_laporan(kon, sid).decode()
     isi = h.split('<main ', 1)[1]
     assert "Belum ada kekeliruan" not in isi
-    assert "butir salah" in isi
+    assert ">salah</span>" in isi
     assert "persentase pemahaman" in isi
 
 
@@ -194,7 +194,7 @@ def test_tabel_riwayat_terbuka_dan_rincian_sekunder_dipilih(db):
     isi = h.split('<main ', 1)[1]
     from test_report_v2 import hanya_penjelasan_dilipat
     hanya_penjelasan_dilipat(isi)
-    assert 'tampilan=catatan' in isi and 'tampilan=mingguan' in isi
+    assert 'Bagian laporan' in isi and '>Per materi</a>' in isi
 
 
 def test_topik_tak_dikenal_tidak_500(db):
@@ -355,7 +355,7 @@ def test_label_laporan_penguasaan_menggunakan_bahasa_orang_tua(db):
     isi = h.rsplit("</style>", 1)[1]
     assert "Tuntutan pilot" not in isi
     assert "pilot" not in isi.lower()
-    assert 'id="perjalanan-belajar"' in isi
+    assert 'id="perjalanan"' in isi and "Riwayat putaran sebelumnya" in isi
 
 
 def test_hierarki_utama_memisahkan_penguasaan_dari_aktivitas(db):
@@ -370,9 +370,10 @@ def test_hierarki_utama_memisahkan_penguasaan_dari_aktivitas(db):
     utama = h.split('<main ', 1)[1]
     assert "sesi dinilai" not in utama
     assert "soal dikerjakan" in utama
-    assert "butir benar" in utama and "butir salah" in utama
-    assert "ketepatan jawaban latihan" in utama
-    assert "Progres penguasaan materi Jagomat" in utama
+    assert ">benar</span>" in utama and ">salah</span>" in utama
+    assert "ketepatan jawaban latihan" not in utama
+    assert '>menunggu tinjauan</span>' in utama
+    assert "target sedang dipelajari" in utama
     assert "Persentase = benar" not in utama
     assert "Dasar hitungan dan total seluruh catatan" not in utama
     assert "Cara membaca laporan" not in utama
@@ -415,8 +416,8 @@ def test_nuansa_laporan_memakai_subnavigasi_tenang_dan_kartu_netral():
         ".laporan-editorial-st .laporan-ringkasan-grid .laporan-resume",
     )
 
-    assert "background:transparent" in aktif
-    assert "border-bottom:2px solid" in aktif
+    assert f"background:{T.LATAR_KARTU}" in aktif
+    assert "border-bottom:2px solid" not in aktif
     assert f"background:{T.LATAR_KARTU}" in kartu
     responsif = reports.GAYA_LAPORAN.split(
         f"@media(max-width:{T.BATAS_KOLOM_BACA})", 1
@@ -435,7 +436,7 @@ def test_urutan_penguasaan_lalu_aktivitas_tanpa_resume(db):
 
     isi = h.split("</style>", 1)[1]
     assert "Hasil dan tren per materi" not in isi
-    assert isi.index('id="peta-ringkas"') < isi.index('id="judul-aktivitas"')
+    assert isi.index('id="peta-penguasaan"') < isi.index('id="judul-aktivitas"')
     assert 'id="rencana-belajar-laporan"' not in isi
     assert "Perjalanan fokus belajar" not in isi
     assert "Ringkasan untuk orang tua" not in isi

@@ -66,9 +66,9 @@ def test_ringkasan_memakai_hero_kpi_visual_dan_insight_netral(db):
     assert 'class="perkembangan-maskot-st"' not in h
     assert 'id="progres"' in h and 'id="materi"' in h and 'id="perjalanan"' in h
     assert h.count('class="stat"') == 4
-    assert 'class="aktivitas-komposisi-st" role="img"' in h
-    assert 'class="laporan-insight-st"' in h
-    assert "bukan nilai kemampuan" in h
+    assert 'class="aktivitas-komposisi-st" role="img"' not in h
+    assert 'class="laporan-insight-st"' not in h
+    assert 'Ini bukan persentase pemahaman' in h
 
 
 def test_clock_resume_mengikuti_profil_bukan_batas_hari_statistik(db, monkeypatch):

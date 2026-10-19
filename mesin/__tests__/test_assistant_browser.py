@@ -293,13 +293,16 @@ const elements=[{name:'inline_form',value:'remedial'},{name:'jumlah_soal',value:
  {name:'versi_pilihan_isi',value:'1'},{name:'topik_dibandingkan',value:'pola-bilangan'},
  {name:'template_id',value:'pola_a',type:'checkbox',checked:false},
  {name:'jwb_11',value:'DRAF SINTETIS'},{name:'asing',value:'JANGAN SALIN'}];
+elements.forEach(e=>{e.matches=selector=>selector===':disabled'&&!!e.disabled;});
+elements.push({name:'topik',value:'MODE NONAKTIF',matches:selector=>selector===':disabled'});
 uji.pembuka({elements});
 const tambahan=[];
 const form={querySelectorAll:()=>[],appendChild:e=>tambahan.push(e)};
 uji.lengkapiFallback(form);
 assert.equal(tambahan.map(e=>e.name).join(','),'inline_form,jumlah_soal,versi_pilihan_isi,topik_dibandingkan,jwb_11');
 assert.equal(tambahan[4].value,'DRAF SINTETIS');
-assert.equal(elements.length,7,'form pekerjaan tidak diubah');
+assert.equal(elements.length,8,'form pekerjaan tidak diubah');
+assert(!tambahan.some(e=>e.value==='MODE NONAKTIF'));
 ''')
 
 

@@ -12,7 +12,8 @@ from topics import daftar_topik
 
 PER_HALAMAN = 20
 TINJAUAN = (
-    ('semua', 'Semua status'), ('belum_dikirim', 'Belum dikirim'),
+    ('semua', 'Semua status'), ('perlu_tinjauan', 'Perlu ditinjau'),
+    ('belum_dikirim', 'Belum dikirim'),
     ('belum_ditinjau', 'Perlu ditinjau · belum dibuka'), ('dibuka', 'Perlu ditinjau · sudah dibuka'),
     ('draf', 'Draf tersimpan'), ('dikonfirmasi', 'Selesai'),
     ('ulang', 'Perlu konfirmasi ulang'), ('dibatalkan', 'Dibatalkan'),
@@ -48,7 +49,7 @@ def parse_filter(query):
     if len(pasangan) != len({k for k, _ in pasangan}):
         raise ValueError('Parameter profil ganda.')
     nilai = dict(pasangan)
-    if set(nilai) - {'section', 'bagian', 'halaman', 'mulai', 'sampai', 'topik', 'jenis', 'tinjauan', 'q', 'pesan', 'sorot', 'periode', 'materi', 'status', 'tampilan', 'rincian'}:
+    if set(nilai) - {'section', 'bagian', 'halaman', 'mulai', 'sampai', 'topik', 'jenis', 'tinjauan', 'q', 'pesan', 'sorot', 'periode', 'materi', 'status', 'tampilan', 'rincian', 'mode_latihan'}:
         raise ValueError('Parameter profil tidak dikenal.')
     # Bare profil membuka Berikutnya. URL warisan PRG yang hanya membawa
     # ``sorot`` tetap membuka alat latihan agar sesi baru tidak terasa hilang.
@@ -126,7 +127,9 @@ def halaman_riwayat(kon, siswa_id, filter_data):
         parameter.extend((filter_data.topik, ',' + filter_data.topik + ','))
     if filter_data.jenis != 'semua':
         syarat.append("s.tujuan='bebas'" if filter_data.jenis == 'bebas' else "s.tujuan<>'bebas'")
-    if filter_data.tinjauan != 'semua':
+    if filter_data.tinjauan == 'perlu_tinjauan':
+        syarat.append('(' + _STATUS + ") IN ('belum_ditinjau','dibuka','draf','ulang')")
+    elif filter_data.tinjauan != 'semua':
         syarat.append('(' + _STATUS + ')=?')
         parameter.append(filter_data.tinjauan)
     if filter_data.q:
@@ -167,7 +170,10 @@ def ringkasan_riwayat(kon, siswa_id):
         ).fetchall())
     except Exception:
         return None
-    return {'hitung_status': hitung_status}
+    menunggu = sum(hitung_status.get(k, 0) for k in ('belum_ditinjau', 'dibuka', 'draf', 'ulang'))
+    terlama = tinjauan_terlama(kon, siswa_id) if menunggu else []
+    return {'hitung_status': hitung_status, 'menunggu': menunggu,
+            'terlama_id': terlama[0]['id'] if terlama else None}
 
 
 def tinjauan_terlama(kon, siswa_id, *, kecuali=None):

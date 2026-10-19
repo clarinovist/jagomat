@@ -319,9 +319,11 @@ def test_profil_menampilkan_terisi_lalu_skor_saat_selesai(db):
         h = _profil_anak(kon, sid).decode()
         database.tandai_selesai(kon, sesi_id)
         selesai = _profil_anak(kon, sid).decode()
-    assert "3 dari 12 terisi" in h
-    assert "2 dari 12 benar" in selesai
-    assert "2 dari 12 benar" not in h
+    assert f'href="/sesi/{sesi_id}"' not in h
+    assert f'href="/sesi/{sesi_id}"' in selesai
+    assert 'Perlu ditinjau' in selesai
+    assert '12 soal' in selesai
+    assert '2 dari 12 benar' not in h and '2 dari 12 benar' not in selesai
 
 
 def test_dashboard_tanpa_kolom_lembar(db):
@@ -346,7 +348,8 @@ def test_profil_badge_mode_hanya_untuk_drill(db):
         database.buat_sesi(kon, sid, seed=5, mode="drill")
         database.buat_sesi(kon, sid, seed=6)  # diagnostik
         h = _profil_anak(kon, sid).decode()
-    assert h.count('<span>Latihan Cepat</span>') == 1
+    assert '<span>Latihan Cepat</span>' not in h
+    assert 'class="profil-taches-st"' not in h
 
 
 def test_profil_menampilkan_durasi_sesi_selesai(db):
@@ -361,7 +364,9 @@ def test_profil_menampilkan_durasi_sesi_selesai(db):
         butir = database.isi_sesi(kon, sesi_id)[0]
         database.simpan_jawaban(kon, butir["sesi_soal_id"], "1")
         h = _profil_anak(kon, sid).decode()
-    assert "12:30" in h
+    assert '12:30' not in h
+    assert f'href="/sesi/{sesi_id}"' in h
+    assert teacher_pages._fmt_durasi('2026-08-30 10:00:00', '2026-08-30 10:12:30') == '12:30'
 
 
 def test_profil_tanpa_waktu_tidak_mengarang_durasi(db):

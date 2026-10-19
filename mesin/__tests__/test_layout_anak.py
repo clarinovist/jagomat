@@ -213,7 +213,8 @@ def test_halaman_anak_tetap_utuh(anak):
     assert "Sesi #" not in _tanpa_gaya(rencana)
     assert "Sesi #" in _render_anak(db, sid, 'riwayat')
     assert "Buat latihan" in latihan
-    assert "Buat latihan gabungan" in latihan
+    assert 'data-mode-latihan="gabungan"' in latihan
+    assert latihan.count('data-buat-latihan') == 1
     assert "Claudia" in rencana
 
 
@@ -232,7 +233,7 @@ def test_halaman_anak_punya_bungkus_ruang_kerja_scoped(anak):
     markup = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
     assert 'profil-workspace-st' in markup
     assert 'class="profil-formulaire-st"' in markup
-    assert 'class="profil-champs-st"' in markup
+    assert 'class="latihan-field-grid"' in markup
     assert 'class="profil-assistant-st"' in markup
 
 
@@ -240,7 +241,7 @@ def test_form_latihan_terpisah_dari_tugas_rencana(anak):
     db, sid = anak
     latihan = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
     rencana = _tanpa_gaya(_render_anak(db, sid, 'rencana'))
-    assert latihan.index('profil-champs-st') < latihan.index('profil-assistant-st')
+    assert latihan.index('latihan-field-grid') < latihan.index('profil-assistant-st')
     assert 'Buat latihan' in latihan and 'profil-taches-st' not in latihan
     assert 'profil-taches-st' not in rencana and 'Kelola tautan anak' not in rencana
     assert 'class="beranda-posisi-st"' in rencana
@@ -298,7 +299,7 @@ def test_laporan_perkembangan_menjadi_tab_profil_tanpa_tautan_duplikat(anak, pri
     assert 'aria-current="page">Riwayat' in navigasi
     kepala = markup[markup.index('class="kepala-riwayat-st"'):]
     kepala = kepala[:kepala.index("</div>")]
-    assert "Riwayat latihan" in kepala
+    assert "Semua latihan" in kepala
     assert "Lihat laporan perkembangan" not in kepala
     assert "History latihan" not in markup
 
@@ -395,7 +396,9 @@ def test_tanggal_kartu_kanonis_aman_dan_tidak_terpotong():
 
 def test_host_pendamping_memakai_salin_tautan_dengan_fallback_native(anak):
     db, sid = anak
-    markup = _tanpa_gaya(_render_anak(db, sid, 'riwayat'))
+    with database.buka(db) as kon:
+        sesi = kon.execute('SELECT id FROM sesi WHERE siswa_id=? LIMIT 1', (sid,)).fetchone()[0]
+        markup = _tanpa_gaya(teacher_pages.halaman_sesi_stitch(kon, sesi, pengguna='ortu', privat=True).decode())
     badan = markup.split("<script>", 1)[0]
     assert 'id="kabar-bagikan"' not in badan
     assert 'class="kabar-bagikan-st" role="status" aria-live="polite"' in badan
@@ -434,22 +437,22 @@ def test_tiga_form_tetap_utuh_dengan_action_masing_masing(anak):
     db, sid = anak
     markup = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
     assert f'action="/sesi-baru/{sid}"' in markup
-    assert f'action="/sesi-gabungan/{sid}"' in markup
-    assert len(re.findall(r'<form\b[^>]*\bmethod="post"', markup)) >= 2
+    assert f'data-url="/sesi-gabungan/{sid}"' in markup
+    assert markup.count('data-latihan-terpadu') == 1
 
 
 def test_kartu_buat_latihan_membungkus_form(anak):
     db, sid = anak
     markup = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
-    assert 'class="buat-latihan-st"' in markup
-    assert markup.index('buat-latihan-st') < markup.index('/sesi-baru/')
+    assert 'class="latihan-terpadu-st"' in markup
+    assert markup.index('latihan-terpadu-st') < markup.index('/sesi-baru/')
 
 
 def test_tab_memakai_radio_bukan_javascript(anak):
     """Tab harus radio murni; tidak boleh ada handler JS baru."""
     db, sid = anak
     markup = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
-    assert 'name="jenis-latihan"' in markup
+    assert 'name="mode_latihan"' in markup
     assert "addEventListener(\"click\"" not in markup
     assert "onclick=" not in markup
 
@@ -463,10 +466,10 @@ def test_radio_tab_di_luar_form(anak):
     """
     db, sid = anak
     markup = _tanpa_gaya(_render_anak(db, sid, 'latihan'))
-    sebelum = markup[: markup.index('name="jenis-latihan"')]
-    assert sebelum.count("<form") == sebelum.count("</form>"), (
-        "radio tab berada di dalam <form> — nilainya akan ikut terkirim"
-    )
+    pemilih = markup.split('class="latihan-pemilih-st"', 1)[1].split('</form>', 1)[0]
+    assert 'method="get"' in pemilih and 'name="mode_latihan"' in pemilih
+    form = markup.split('data-latihan-terpadu', 1)[1].split('</form>', 1)[0]
+    assert 'name="mode_latihan"' not in form
 
 
 def test_panel_disembunyikan_hanya_bila_has_didukung():

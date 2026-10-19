@@ -76,11 +76,10 @@ def test_profil_menjelaskan_dan_memilih_fokus_remedial(db):
         ).decode()
 
     assert "Dari hasil terbaru" in halaman
-    assert "Pilihan yang dicentang adalah rekomendasi berdasarkan hasil terbaru" in halaman
-    panel = halaman.split('<section class="remedial-st">', 1)[1].split("</section>", 1)[0]
+    assert "Yang sudah dicentang adalah saran dari hasil terbaru" in halaman
+    panel = halaman.split('<fieldset data-mode-latihan="remedial"', 1)[1].split("</fieldset>", 1)[0]
     assert "Soal tentang umur" in panel
-    assert "Salah konsep · 1 kali" in panel
-    assert "Salah hitung · 1 kali" in panel
+    assert panel.count("Perlu diperhatikan · 1 kali") == 2
     assert 'name="template_id" value="soal_umur" checked' in panel
     assert 'name="template_id" value="soal_uang" checked' not in panel
     assert "Logika &amp; Penalaran" not in panel

@@ -80,15 +80,12 @@ def test_badge_profil_mengikuti_status_hasil_bukan_sekadar_dibuka(db, keadaan, l
 
         assert tuple(kon.iterdump()) == sebelum
         kartu = re.search(r'<li class="riwayat-kartu-st" data-sesi-id=".*?</li>', isi, re.S).group()
-        baris = kon.execute('SELECT * FROM sesi WHERE id=?', (sesi_id,)).fetchone()
-        if keadaan in {'baru', 'dibuka_belum_kirim', 'sebagian_dibuka', 'batal_terkonfirmasi'}:
-            assert label in kartu
-            tinjauan = 'Menunggu pengiriman' if baris['selesai'] is None else 'Tidak berlaku'
-            assert tinjauan in kartu
-            badge = label
-        else:
-            badge = re.search(r'<span class="badge-direview [^"]*"[^>]*>(.*?)</span>', kartu, re.S).group(1)
-            assert badge == label
+        badge = re.search(r'<span class="badge-direview [^"]*"[^>]*>(.*?)</span>', kartu, re.S).group(1)
+        assert badge == label
+        assert kartu.count('class="badge-direview ') == 1
+        assert kartu.count('<a ') == 1
+        assert '<small>Pengerjaan</small>' not in kartu
+        assert '<small>Tinjauan</small>' not in kartu
         assert "Sudah Direview" not in kartu
         assert ("✓" in badge) == (keadaan in {"dikonfirmasi", "dikonfirmasi_ulang"})
         aksi = (

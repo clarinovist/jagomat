@@ -107,6 +107,13 @@ Beranda utama dibatasi 60rem: kartu satu kolom, meta/waktu pengerjaan sebaris,
 kotak Caranya, CTA 48px; enam segmen tahap terbuka dengan satu penanda aktif,
 bukan centang kelulusan. Sesi tinjauan sekunder memakai tombol outline; detail
 metodologi native. Gaya `.beranda-profil-st` tidak merombak hasil sesi atau tab lain.
+Perkembangan memakai saklar segmen dua tampilan server-side, satu bar komposisi
+berangka, aktivitas empat angka netral; materi penuh di kiri/atas dan detail di
+kanan/bawah. Badge target selalu berteks, tidak hanya warna. Riwayat satu status
+serta satu aksi per baris, strip perhatian bila relevan; aksi selesai tautan teks.
+Latihan satu form aktif dengan radio tiga mode dan satu CTA, fieldset nonaktif
+`disabled hidden`. Skrip mode lokal berhash CSP tidak menambah koneksi jaringan;
+fallback pemilih GET tetap tersedia. Seluruh panel menumpuk pada 360px.
 
 Header Stitch mengelompokkan peran dan nama akun dalam satu menu native; pemicu
 Pendamping memakai slot kanan saat panel tertutup. Kartu tindak lanjut menyatukan

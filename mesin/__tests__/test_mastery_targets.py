@@ -61,11 +61,11 @@ def test_regresi_angka_utama_bukan_rasio_latihan_parsial(db):
             database.simpan_diagnosis(kon,j,True,None,None)
         h=reports.halaman_laporan(kon,sid).decode()
     assert 'id="peta-penguasaan"' in h
-    assert "Progres penguasaan materi Jagomat" in h
+    assert "target sedang dipelajari" in h
     assert "Belum dinilai" in h
     assert "Dasar hitungan dan total seluruh catatan" not in h
     assert "Persentase = benar" not in h
-    assert h.index('id="peta-ringkas"') < h.index('id="judul-aktivitas"')
+    assert h.index('id="peta-penguasaan"') < h.index('id="judul-aktivitas"')
 
 
 @pytest.mark.parametrize("level",("P3","P4","P5","P6"))

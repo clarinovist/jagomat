@@ -319,229 +319,20 @@ def halaman_anak(
         sesi, total_hasil, filter_profil = profile_history.halaman_riwayat(kon, siswa["id"], filter_profil)
     else:
         sesi = []
-    opsi_topik = "".join(
-        f'<option value="{html.escape(t)}"'
-        f'{" selected" if (draf_latihan.topik if draf_latihan else TOPIK_BAWAAN) == t else ""}>'
-        f'{html.escape("Campuran semua topik" if t == "campuran" else ambil(t).nama)}</option>'
-        for t in daftar_topik()
-    )
-
-    def _aksi_tautan(baris):
-        rid = baris["id"]
-        if baris["selesai"] or baris["dibatalkan"] is not None:
-            return ""
-        aktif = share_links.aktif(kon, rid)
-        cabut = ""
-        if aktif:
-            cabut = (
-                f'<form method="post" action="/sesi/{rid}/cabut-tautan" style="margin:0">'
-                '<button type="submit" class="tombol-ikon-st" '
-                'aria-label="Cabut tautan sesi" title="Cabut tautan">'
-                f'{profile_workspace.ikon("link_off")}<span>Cabut tautan</span></button></form>'
-            )
-        if aktif:
-            return (
-                '<details class="tautan-sesi-opsi"><summary>Kelola tautan anak</summary>'
-                '<p class="sub">Membuat tautan baru akan menonaktifkan tautan sebelumnya. '
-                'Mencabut tautan menutup akses melalui tautan itu.</p>'
-                '<div class="blok-bagikan-st"><div class="aksi-bagikan-st">'
-                f'<form method="post" action="/sesi/{rid}/bagikan" '
-                'data-bagikan-sesi data-bagikan-aktif="1">'
-                '<button type="submit"><span data-label-bagikan>Buat dan salin tautan baru</span>'
-                '</button></form>' + cabut + '</div>'
-                '<span class="kabar-bagikan-st" role="status" aria-live="polite"></span>'
-                '</div></details>'
-            )
-        return (
-            '<div class="blok-bagikan-st"><div class="aksi-bagikan-st">'
-            f'<form method="post" action="/sesi/{rid}/bagikan" '
-            'data-bagikan-sesi data-bagikan-aktif="0">'
-            '<button type="submit"><span data-label-bagikan>Salin tautan sesi</span></button>'
-            '</form></div><span class="kabar-bagikan-st" role="status" '
-            'aria-live="polite"></span></div>'
+    from practice_workspace import render as render_latihan
+    from report_navigation import parameter_laporan
+    slot = ''
+    if section == 'latihan' and peran == 'guru' and pengguna:
+        slot = __import__('assistant_components').tombol_buka(
+            __import__('assistant_inline').tujuan_anak(int(siswa['id']), 'latihan'),
+            dalam_form=True, status_akses=__import__('assistant_entitlement_runtime').status_pengguna(pengguna),
         )
-
-    from choice_pages import kontrol_format
-    draf_aktif = (
-        "gabungan" if draf_gabungan is not None else
-        "remedial" if draf_remedial is not None else "manual"
-    )
-
-    def _slot_pendamping(jenis: str) -> str:
-        if peran != "guru" or not pengguna:
-            return ""
-        target = __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "latihan")
-        status_akses = __import__("assistant_entitlement_runtime").status_pengguna(pengguna)
-        return __import__("assistant_components").tombol_buka(
-            target, dalam_form=True, status_akses=status_akses,
-        )
-
-    topik_manual = draf_latihan.topik if draf_latihan else TOPIK_BAWAAN
-    strip_sesi = (
-        f'<form id="form-latihan-manual-{siswa["id"]}" method="post" action="/sesi-baru/{siswa["id"]}" class="strip-sesi profil-manuel-st">'
-        '<div class="profil-champs-st">'
-        + f'<div class="strip-kolom"><label for="manual-topik">Topik</label>'
-        f'<select id="manual-topik" name="topik" class="st-input">{opsi_topik}</select>'
-        '<small class="profil-petunjuk-st">Jagomat memilih cakupan yang sesuai untuk topik ini. '
-        'Angka dan model soal berganti otomatis tanpa pilihan A–D.</small></div>'
-        + '<div class="strip-kolom"><label for="manual-jumlah">Jumlah soal</label>'
-        '<select id="manual-jumlah" name="jumlah_soal" class="st-input" aria-describedby="manual-jumlah-petunjuk">'
-        + "".join(
-            f'<option value="{nilai}"'
-            f'{" selected" if (draf_latihan.jumlah_soal if draf_latihan else "") == nilai else ""}>'
-            f'{label}</option>'
-            for nilai, label in (("", "Sesuai topik"), ("10", "10 soal (± 30 mnt)"),
-                                 ("15", "15 soal (± 45 mnt)"), ("20", "20 soal (± 60 mnt)"),
-                                 ("25", "25 soal (± 75 mnt)"), ("30", "30 soal (± 90 mnt)"))
-        )
-        + '</select><small class="profil-petunjuk-st" id="manual-jumlah-petunjuk">'
-        'Estimasi ±3 menit per soal. “Sesuai topik” memakai jumlah bawaan topik.</small></div>'
-        + '<details class="atur-latihan-st profil-lanjutan-st"'
-        + (' open' if draf_latihan and (
-            getattr(draf_latihan, "format_jawaban", "isian") != "isian"
-            or draf_latihan.mode != "diagnostik" or draf_latihan.timer_mode
-        ) else '')
-        + '><summary>Pengaturan lanjutan</summary><div class="profil-lanjutan-isi-st">'
-        + f'{kontrol_format("manual", getattr(draf_latihan, "format_jawaban", "isian"))}{_kontrol_mode_sesi(draf_latihan)}'
-        + '</div></details><button type="submit" class="st-tombol-coral">'
-        f'{profile_workspace.ikon("play_arrow")}'
-        "Buat latihan</button></div>"
-        '<input type="hidden" name="inline_form" value="manual">'
-        '<div class="profil-assistant-st">'
-        + _slot_pendamping("manual") + "</div></form>"
-    )
-
-    # Remedial terarah dari seluruh riwayat yang sudah ditinjau. Guru melihat
-    # bukti dan memilih fokus; sistem tidak lagi mencampur enam tipe diam-diam.
-    sasaran = database.sasaran_remedial_anak(kon, siswa["id"]) if section == "latihan" else []
-    strip_remedial = _form_remedial(
-        sasaran,
-        int(siswa["id"]),
-        judul="Dari hasil terbaru",
-        penjelasan=(
-            "Pilih yang ingin dilatih. Pilihan yang dicentang adalah rekomendasi "
-            "berdasarkan hasil terbaru."
-        ),
-        draf_remedial=draf_remedial,
-        bantuan=_slot_pendamping("remedial"),
-    )
-
-    # Latihan gabungan (poin 4 tahap 2): guru memilih BEBERAPA topik saja,
-    # mis. "geometri datar + pengukuran" untuk anak yang lemah di dua itu.
-    # Berbeda dari topik "campuran" yang selalu memakai SEMUA topik.
-    centang_topik = "".join(
-        f'<label class="mode-opsi"><input type="checkbox" name="topik" '
-        f'value="{html.escape(t)}"{" checked" if draf_gabungan and t in draf_gabungan.topik else ""}> {html.escape(ambil(t).nama)}</label>'
-        for t in daftar_topik()
-        if t != "campuran"      # campuran sudah = semua, tak perlu dicentang
-    )
-    topik_gabungan = tuple(draf_gabungan.topik) if draf_gabungan else ()
-    strip_gabungan = (
-        f'<form id="form-latihan-gabungan-{siswa["id"]}" method="post" '
-        f'action="/sesi-gabungan/{siswa["id"]}" class="strip-sesi">'
-        '<input type="hidden" name="inline_form" value="gabungan">'
-        + '<div class="strip-kolom">'
-        "<label>Latihan gabungan — pilih beberapa topik</label>"
-        '<p class="sub">Centang dua topik atau lebih. Soalnya dicampur '
-        "bergantian antar-topik yang kamu pilih.</p>"
-        f'<div class="mode-pilih">{centang_topik}</div>'
-        '<small class="profil-petunjuk-st">Jagomat memilih satu cakupan yang tersedia pada semua topik pilihan.</small></div>'
-        '<div class="strip-kolom"><label for="gabungan-jumlah">Jumlah Soal</label>'
-        '<select id="gabungan-jumlah" name="jumlah_soal" class="st-input">'
-        + ''.join(
-            f'<option value="{nilai}"{" selected" if (draf_gabungan.jumlah_soal if draf_gabungan else "10") == nilai else ""}>{nilai} soal (± {int(nilai) * 3} mnt)</option>'
-            for nilai in ("10", "15", "20")
-        )
-        + "</select></div>"
-        + '<details class="atur-latihan-st profil-lanjutan-st"'
-        + (' open' if draf_gabungan and (
-            getattr(draf_gabungan, "format_jawaban", "isian") != "isian"
-            or draf_gabungan.mode != "drill"
-        ) else '')
-        + '><summary>Pengaturan lanjutan</summary><div class="profil-lanjutan-isi-st">'
-        + f'{kontrol_format("gabungan", getattr(draf_gabungan, "format_jawaban", "isian"))}'
-        + '<div class="strip-kolom"><span id="gabungan-mode-label">Mode latihan</span>'
-        '<div class="mode-pilih" role="radiogroup" aria-labelledby="gabungan-mode-label">'
-        '<label class="mode-opsi"><input type="radio" name="mode" value="drill"' + (' checked' if not draf_gabungan or draf_gabungan.mode == 'drill' else '') + '>'
-        '<span class="mode-teks">Latihan Cepat<span class="mode-desk">Anak langsung mengisi jawaban, tanpa menuliskan cara.</span></span></label>'
-        '<label class="mode-opsi"><input type="radio" name="mode" value="diagnostik"' + (' checked' if draf_gabungan and draf_gabungan.mode == 'diagnostik' else '') + '>'
-        '<span class="mode-teks">Diagnostik<span class="mode-desk">Jawaban dan cara berpikir anak ikut diperiksa.</span></span></label>'
-        '</div></div></div></details>'
-        '<button type="submit" class="st-tombol-coral">'
-        f'{profile_workspace.ikon("library_add")}Buat latihan gabungan</button>'
-        '<div class="profil-assistant-st">' + _slot_pendamping("gabungan") + '</div>'
-        "</form>"
-    )
-
-    # Fase C: tiga form di atas dibungkus SATU kartu "Buat latihan" dengan tab
-    # radio. Tanpa JS (CLAUDE.md: zero-JS by default) — pemilihan tab memakai
-    # :has(), teknik yang sudah dipakai .mode-opsi:has(input:checked).
-    #
-    # Panel disusun dinamis: strip_remedial kosong kalau anak belum punya
-    # kesalahan tercatat. Menyusunnya dari daftar mencegah tab hantu yang
-    # menunjuk panel kosong.
-    panel = [("baru", "add_circle", "Pilih satu topik", strip_sesi)]
-    if strip_remedial:
-        panel.append(("ulang", "restart_alt", "Dari hasil terbaru", strip_remedial))
-    if strip_gabungan:
-        panel.append(("gabungan", "library_add", "Gabungan topik", strip_gabungan))
-
-    panduan = (
-        '<div class="profil-aide-st info-baris"><p class="sub">'
-        'Pilih topik dan bentuk latihan. Jagomat mengatur cakupan soalnya secara otomatis.</p>'
-        + f'<button type="button" class="info" aria-label="{html.escape(INFO_LATIHAN_BEBAS, quote=True)}">'
-        f'i<span class="info-bubble" role="tooltip">{html.escape(INFO_LATIHAN_BEBAS)}</span></button></div>'
-    ) if section == 'latihan' else ''
-    if len(panel) > 1:
-        panel_aktif = "gabungan" if draf_gabungan else "ulang" if draf_remedial else "baru"
-        tab = "".join(
-            f'<input type="radio" name="jenis-latihan" id="tab-{kode}" '
-            f'class="tab-radio-st"{" checked" if kode == panel_aktif else ""}>'
-            for kode, _, _, _ in panel
-        )
-        label = "".join(
-            f'<label class="tab-label-st" for="tab-{kode}">'
-            f'{profile_workspace.ikon(ikon)}'
-            f"{html.escape(judul)}</label>"
-            for kode, ikon, judul, _ in panel
-        )
-        isi_panel = "".join(
-            f'<div class="panel-latihan-st" data-panel="{kode}">{badan}</div>'
-            for kode, _, _, badan in panel
-        )
-        starter_pilot = __import__('skill_pilot_ui').starter(kon, int(siswa['id']))
-        eksplorasi_opsional = (
-            '<section class="eksplorasi-opsional-st"><h2 class="st">Eksplorasi opsional</h2>'
-            + starter_pilot + '</section>' if starter_pilot else ''
-        )
-        batas_manual = (
-            '<p class="profil-batas-manual-st">Latihan tambahan tercatat di Riwayat, '
-            'tetapi tidak otomatis mengubah tugas di Beranda.</p>'
-        )
-        blok_buat_latihan = (
-            '<section class="buat-latihan-st">'
-            '<h2 class="st profil-sr-st">Buat latihan</h2>'
-            f"{tab}"
-            f'<div class="tab-bar-st">{label}</div>'
-            f"{panduan}{isi_panel}{batas_manual}{eksplorasi_opsional}"
-            "</section>"
-        )
-    else:
-        # Hanya satu bentuk latihan yang tersedia — tab justru menambah klik
-        # tanpa memberi pilihan. Tampilkan formnya langsung.
-        starter_pilot = __import__('skill_pilot_ui').starter(kon, int(siswa['id']))
-        eksplorasi_opsional = (
-            '<section class="eksplorasi-opsional-st"><h2 class="st">Eksplorasi opsional</h2>'
-            + starter_pilot + '</section>' if starter_pilot else ''
-        )
-        blok_buat_latihan = (
-            '<section class="buat-latihan-st">'
-            '<h2 class="st profil-sr-st">Buat latihan</h2>'
-            f"{panduan}{strip_sesi}"
-            '<p class="profil-batas-manual-st">Latihan tambahan tercatat di Riwayat, '
-            'tetapi tidak otomatis mengubah tugas di Beranda.</p>'
-            f'{eksplorasi_opsional}'
-            "</section>"
+    blok_buat_latihan, draf_aktif = ('', 'manual')
+    if section == 'latihan':
+        blok_buat_latihan, draf_aktif = render_latihan(
+            kon, siswa, mode=parameter_laporan(query).get('mode_latihan','manual'),
+            draf_latihan=draf_latihan, draf_gabungan=draf_gabungan, draf_remedial=draf_remedial,
+            bantuan=slot, kontrol_mode=_kontrol_mode_sesi,
         )
 
     tautan_bantuan = (
@@ -584,7 +375,7 @@ def halaman_anak(
             int(siswa["id"]), sesi, total_hasil, filter_profil, statistik=statistik,
             judul_topik=_nama_topik_sesi, tanggal=_tanggal_ringkas,
             badge_tinjauan=_badge_review_status,
-            ringkasan_hasil=_ringkasan_angka_sesi, aksi_bagikan=_aksi_tautan,
+            ringkasan_hasil=_ringkasan_angka_sesi, aksi_bagikan=None,
         )
     else:
         isi_profil = latihan_manual
