@@ -155,13 +155,11 @@ def sesi_lain(baris, *, judul_topik, tanggal, badge_tinjauan):
         judul, _ = judul_topik(r['topik'])
         badge = badge_tinjauan(r)
         label = 'Lanjutkan' if 'Draf tersimpan' in badge else 'Tinjau'
-        # Daftar ini sudah "menunggu tinjauan"; badge bawaan hanya diulang bila menambah informasi.
-        tampil_badge = '' if 'badge-direview perlu' in badge else badge
         kartu.append(
             '<article class="st-kartu-baris kartu-sesi-guru beranda-sesi-st" '
             f'data-sesi-id="{r["id"]}"><div class="beranda-sesi-isi-st"><h3>{_e(judul)}</h3>'
             f'<p>{tanggal(r["tanggal"])} · Sesi #{r["id"]} · {r["n"]} soal</p>'
-            + tampil_badge + _baris_hasil(r, badge) + '</div>'
+            + badge + _baris_hasil(r, badge) + '</div>'
             f'<a class="beranda-tinjau-st" href="/sesi/{r["id"]}" '
             f'aria-label="{label} sesi {r["id"]}">{label}</a></article>')
     return ('<section class="profil-taches-st"><h2 class="st">Sesi lain yang menunggu tinjauan</h2>'

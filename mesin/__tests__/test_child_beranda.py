@@ -62,7 +62,7 @@ def _sesi_lain(*baris):
 def test_sesi_lain_memperingatkan_hasil_nol_yang_terlalu_cepat():
     h = _sesi_lain(_baris(55))
     assert 'Hasil 0 dari 10 dalam 3 menit, mungkin belum dikerjakan' in h
-    assert 'badge-direview' not in h, 'badge "Perlu ditinjau" tidak diulang pada daftar yang sudah menunggu tinjauan'
+    assert 'Perlu ditinjau' in h, 'status tinjauan tetap tampil di kartu sesi lain'
 
 
 def test_sesi_lain_tanpa_peringatan_bila_waktu_wajar_atau_ada_benar():
