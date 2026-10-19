@@ -38,6 +38,11 @@ def hanya_penjelasan_dilipat(isi):
         if blok.startswith('<details class="bukti-konteks-rincian-st">'):
             assert '<summary>Rincian bukti dan pengaturan</summary>' in blok
             continue
+        if blok.startswith('<details class="anak-disclosure-st bukti-konteks-st"'):
+            # Keputusan produk: bukti per konteks dan cara menilai dilipat bersama, tertutup bawaan.
+            assert '<summary>Bukti per konteks</summary>' in blok
+            assert blok.count('<details') == 1
+            continue
         if blok.startswith('<details class="rincian-target-st">'):
             assert 'class="peta-bukti"' in blok
             continue

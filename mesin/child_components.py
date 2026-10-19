@@ -1,13 +1,16 @@
 """Komponen HTML bersama halaman anak: chip status, pil filter, disclosure, banner tautan, kartu sesi."""
 from html import escape
 
-NADA_CHIP = ("perhatian", "baik", "netral", "info")
+NADA_CHIP = ("perhatian", "baik", "netral", "info", "galat")
 
 
-def chip_status(teks, nada="netral"):
+def chip_status(teks, nada="netral", kelas_tambahan=""):
     if nada not in NADA_CHIP:
         raise ValueError("nada chip tidak dikenal: %r" % (nada,))
-    return '<span class="anak-chip-st anak-chip-%s-st">%s</span>' % (nada, escape(str(teks)))
+    kelas = "anak-chip-st anak-chip-%s-st" % nada
+    if kelas_tambahan:
+        kelas = "%s %s" % (kelas_tambahan, kelas)
+    return '<span class="%s">%s</span>' % (kelas, escape(str(teks)))
 
 
 def pil_filter(teks, href, aktif=False):

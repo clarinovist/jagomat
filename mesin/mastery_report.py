@@ -8,17 +8,19 @@ import design_tokens as T
 from learning_cycle import StatusTargetMateri, penguasaan_target
 from mastery_catalog import TargetMateri, VERSI_KATALOG, katalog_target
 from report_dashboard import persen
+from child_components import chip_status
 from report_navigation import halaman_daftar, navigasi_halaman, pilihan, url_laporan
 from template_labels import nama_tipe_soal
 from question_context import label_profil_parameter as label_kelas
 
 STATUS = (
-    ("terbukti", "Menunjukkan pemahaman", T.AKSEN_TEAL_TUA),
-    ("dipelajari", "Sedang dipelajari", T.KODE_SALAH_BACA_TEKS),
-    ("perlu_cek", "Perlu dicek kembali", T.KODE_SALAH_KONSEP_TEKS),
-    ("belum_dinilai", "Belum dinilai", T.BORDER_HALUS),
+    ("terbukti", "Menunjukkan pemahaman", T.ANAK_AKSEN),
+    ("dipelajari", "Sedang dipelajari", T.ANAK_STATUS_DIPELAJARI),
+    ("perlu_cek", "Perlu dicek kembali", T.ANAK_STATUS_PERLU_CEK),
+    ("belum_dinilai", "Belum dinilai", T.ANAK_STATUS_BELUM),
 )
 LABEL = {kode: nama for kode, nama, _ in STATUS}
+NADA_STATUS = {"terbukti": "baik", "dipelajari": "perhatian", "perlu_cek": "galat", "belum_dinilai": "netral"}
 
 GAYA_PETA = f"""
 .peta-materi-st {{margin:{T.SP_5} 0;}}
@@ -46,11 +48,6 @@ GAYA_PETA = f"""
 .peta-materi-st .peta-detail {{min-width:0;margin:0;}}
 .peta-materi-st .peta-auto-lihat {{display:none;}}
 .peta-materi-st .peta-kembali {{display:none;}}
-.peta-materi-st .peta-status {{display:block;font-size:{T.UKURAN_TEKS_LABEL};font-weight:600;color:{T.TEKS_SUBTLE};margin:{T.SP_2} 0;}}
-.peta-materi-st .peta-status {{display:inline-block;padding:{T.SP_1} {T.SP_2};border-radius:{T.RADIUS_PIL};background:{T.LATAR_NONAKTIF};}}
-.peta-materi-st .peta-status-terbukti {{color:{T.KODE_BENAR_TEKS};background:{T.KODE_BENAR_BG};}}
-.peta-materi-st .peta-status-dipelajari {{color:{T.TEKS_REVIEW};background:{T.LATAR_REVIEW};}}
-.peta-materi-st .peta-status-perlu_cek {{color:{T.KODE_SALAH_KONSEP_TEKS};background:{T.KODE_SALAH_KONSEP_BG};}}
 @media(min-width:46.01rem) and (max-width:63.99rem) {{
  .peta-materi-st .peta-daftar {{grid-template-columns:minmax(0,1fr);}}
 }}
@@ -132,8 +129,9 @@ def _rincian_target(target, hasil, tanggal):
     return (
         '<li><details class="rincian-target-st">'
         f'<summary><b>{html.escape(target.nama)}</b>'
-        f'<span class="peta-status peta-status-{hasil.status}">{LABEL[hasil.status]}</span>'
-        f'<span class="peta-catatan"><span class="rasio-laporan">{terpenuhi}/{len(target.pola)}</span> pola menunjukkan pemahaman</span></summary>'
+        + chip_status(LABEL[hasil.status], NADA_STATUS[hasil.status], f'peta-status peta-status-{hasil.status}')
+        + '</summary>'
+        f'<p class="peta-catatan"><span class="rasio-laporan">{terpenuhi}/{len(target.pola)}</span> pola menunjukkan pemahaman</p>'
         '<ul class="peta-bukti">' + ''.join(bukti) + '</ul></details></li>'
     )
 
@@ -256,7 +254,7 @@ def _pilih_materi(
             f'<a class="peta-pilihan" data-materi="{html.escape(kode)}" '
             f'href="{url(materi=kode, status=status, halaman=nomor)}"'
             + (' aria-current="true"' if kode == aktif else '') + '>'
-            f'<b>{html.escape(nama)}</b><small>{len(hasil)} target</small>'
+            f'<span class="peta-pilihan-kepala-st"><b>{html.escape(nama)}</b><small>{len(hasil)} target</small></span>'
             + _grafik(komposisi, len(hasil))
             + f'<small>{dipelajari} sedang dipelajari · {belum} belum dinilai</small></a>'
         )
@@ -268,24 +266,25 @@ def _pilih_materi(
                     bukti_konteks, siswa_id, tanggal,
                     materi=kode, template_ids=template_ids,
                     halaman=halaman if rincian == 'konteks' else '1',
+                    lipat_rincian=False,
                 ) if bukti_konteks is not None else ''
             )
             detail = (
                 '<section class="kartu-st peta-detail" id="detail-materi" aria-labelledby="judul-materi">'
-
                 f'<h2 id="judul-materi">{html.escape(nama)}</h2>'
-                f'<p><b>{terbukti} dari {len(hasil)} target</b> menunjukkan pemahaman.</p>'
-                '<p class="peta-catatan">Belum dinilai bukan berarti tidak mampu. '
-                'Bukti terkonfirmasi dan anak bisa menjelaskan diperlukan, bukan hanya jawaban benar.</p>'
+                f'<p><b>{terbukti} dari {len(hasil)} target</b> menunjukkan pemahaman. '
+                'Belum dinilai bukan berarti tidak mampu.</p>'
                 '<ul class="peta-target">' + ''.join(_rincian_target(t, s, tanggal) for t, s in pasangan)
                 + '</ul>'
-                '<details class="rincian-ui-st"' + (' open' if rincian == 'kriteria' else '')
-                + '><summary>Cara Jagomat menilai</summary>'
+                '<details class="anak-disclosure-st bukti-konteks-st"'
+                + (' open' if rincian in {'kriteria', 'konteks'} else '')
+                + '><summary>Bukti per konteks</summary>'
+                '<section class="cara-menilai-st"><h3>Cara Jagomat menilai</h3>'
                 '<p>Semua pola diperiksa dengan soal bervariasi, bukti terkonfirmasi, '
                 'hasil cukup baik, dan anak bisa menjelaskan. Jawaban benar sekali belum cukup.</p>'
                 f'<p class="peta-catatan">Katalog {VERSI_KATALOG}; tiap target berbobot sama. '
-                'Status tidak berarti penguasaan permanen.</p></details>'
-                + rincian_konteks
+                'Status tidak berarti penguasaan permanen.</p></section>'
+                + rincian_konteks + '</details>'
                 + f'<a class="laporan-tautan" href="{url(materi=kode, status=status, halaman=nomor, rincian="catatan")}">Catatan hasil latihan →</a></section>'
             )
     kosong = (
@@ -295,12 +294,13 @@ def _pilih_materi(
     return (
         '<section class="peta-materi-st' + (' peta-detail-aktif' if eksplisit else '')
         + '" id="peta-penguasaan" aria-labelledby="judul-peta">'
-        '<header class="peta-ringkas"><h2 id="judul-peta">Progres penguasaan materi Jagomat</h2>'
+        '<header class="peta-ringkas">'
+        '<h2 id="judul-peta" class="profil-sr-st">Progres penguasaan materi Jagomat</h2>'
+        '<details class="rincian-ui-st"><summary>Cara membaca progres ini</summary>'
         f'<p><b>{peta.jumlah["terbukti"]} dari {len(peta.target)} target</b> menunjukkan pemahaman '
         f'· {html.escape(label_kelas(peta.level))} · {len(per_topik)} materi.</p>'
         '<p class="peta-catatan">Cakupan target pada konteks soal internal ini, bukan kelas sekolah '
         'atau kemampuan global. Rincian historis tersedia di Bukti per konteks.</p>'
-        '<details class="rincian-ui-st"><summary>Tentang urutan dan filter</summary>'
         '<p class="peta-catatan">Filter hanya memilih kartu, bukan mengubah jumlah seluruh target. '
         'Urutan mengikuti katalog, bukan prioritas belajar.</p></details></header>'
         '<div class="peta-panel"><div class="peta-pemilih"><h3>Pilih materi untuk melihat targetnya</h3>'

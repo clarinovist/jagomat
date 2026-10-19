@@ -125,7 +125,7 @@ cache dan cadangan tetap privat.
   Keempat tab `/anak/<id>` berbagi satu kontainer isi 960px (`child_style.py`, token
   `ANAK_*`, mockup di `docs/mockup/`) dan komponen HTML bersama `child_components.py`
   (chip status, pil filter, disclosure, banner tautan, kartu sesi); CSS per tab ada di
-  `child_*_style.py` (kini Riwayat). Jangan menambal lebar per tab.
+  `child_*_style.py` (kini Riwayat dan Per materi). Jangan menambal lebar per tab.
   `profile_workspace.py` menjadi sumber navigasi empat tujuan profil: **Beranda**,
   **Latihan**, **Riwayat**, dan **Perkembangan**. Pascapendaftaran dan default
   `/anak/<id>` sama-sama membuka Beranda; POST latihan kembali eksplisit ke

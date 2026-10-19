@@ -155,3 +155,60 @@ def test_riwayat_baris_sesi_satu_lapis_di_desktop_dan_chip_netral_untuk_batal():
     batal = [b for b in css.split("\n") if ".badge-direview:is(.belum, .batal)" in b][0]
     assert T.ANAK_NETRAL_LATAR in batal and T.ANAK_NETRAL_TEKS in batal
     assert f"background: {T.ANAK_AKSEN}; color: {T.TEKS_PUTIH}" in css
+
+
+# ── Perkembangan > Per materi ─────────────────────────────────────────
+
+def _peta_materi(**opsi):
+    import mastery_report as mr
+    from learning_cycle import BuktiSiklus
+
+    bukti = BuktiSiklus(1, "P3")
+    peta = mr.peta_penguasaan(bukti, 1)
+    return peta, mr.render_peta(peta, lambda t: t, siswa_id=1, bukti_konteks=bukti, **opsi)
+
+
+def test_materi_header_dilipat_dan_judul_visual_hanya_untuk_pembaca_layar():
+    peta, h = _peta_materi()
+    kepala = h.split('<header class="peta-ringkas">', 1)[1].split("</header>", 1)[0]
+    assert 'class="profil-sr-st"' in kepala and 'id="judul-peta"' in kepala
+    lipatan = kepala.split("<details", 1)[1]
+    assert "Cara membaca progres ini" in lipatan
+    from question_context import label_profil_parameter
+    assert label_profil_parameter(peta.level) in lipatan and "Cakupan target" in lipatan
+
+
+def test_materi_baris_target_nama_dan_chip_dengan_rincian_pola_dilipat():
+    _, h = _peta_materi()
+    baris = h.split('<details class="rincian-target-st">', 1)[1].split("</details>", 1)[0]
+    ringkasan, badan = baris.split("</summary>", 1)
+    assert "anak-chip-netral-st" in ringkasan and "pola menunjukkan pemahaman" not in ringkasan
+    assert "pola menunjukkan pemahaman" in badan and 'class="peta-bukti"' in badan
+
+
+def test_materi_bukti_per_konteks_satu_disclosure_tertutup_tanpa_lipatan_bersarang():
+    _, h = _peta_materi()
+    awal = h.split('<details class="anak-disclosure-st bukti-konteks-st">', 1)[1]
+    blok = awal.split("</details>", 1)[0]
+    assert blok.startswith("<summary>Bukti per konteks</summary>")
+    assert "Cara Jagomat menilai" in blok and "Bukti per konteks latihan" in blok
+    assert "<details" not in blok
+    _, terbuka = _peta_materi(rincian="konteks")
+    assert '<details class="anak-disclosure-st bukti-konteks-st" open>' in terbuka
+
+
+def test_materi_detail_satu_kalimat_dan_warna_status_dari_token_anak():
+    import mastery_report as mr
+    _, h = _peta_materi()
+    detail = h.split('id="detail-materi"', 1)[1]
+    assert "menunjukkan pemahaman. Belum dinilai bukan berarti tidak mampu.</p>" in detail
+    assert "Bukti terkonfirmasi dan anak bisa menjelaskan diperlukan" not in detail
+    assert [w for _, _, w in mr.STATUS] == [
+        T.ANAK_AKSEN, T.ANAK_STATUS_DIPELAJARI, T.ANAK_STATUS_PERLU_CEK, T.ANAK_STATUS_BELUM]
+
+
+def test_materi_dua_kolom_hanya_di_layar_lebar():
+    from child_materi_style import GAYA_MATERI as css
+    lebar = css.split("@media (min-width: 46.0625rem)", 1)[1]
+    assert "minmax(16rem, 21.25rem) minmax(0, 1fr)" in lebar
+    assert "minmax(16rem, 21.25rem)" not in css.split("@media (min-width: 46.0625rem)", 1)[0]

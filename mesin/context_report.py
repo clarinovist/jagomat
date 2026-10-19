@@ -12,7 +12,7 @@ _LABEL = {'terbukti': 'Menunjukkan pemahaman', 'dipelajari': 'Sedang dipelajari'
 
 def render_konteks(
     bukti, siswa_id, tanggal, *, halaman='1', hari_ini=None, materi='',
-    template_ids=None,
+    template_ids=None, lipat_rincian=True,
 ):
     """Status reducer dalam konteks materi terpilih, tanpa penyebut baru."""
     konteks = daftar_konteks()
@@ -21,6 +21,12 @@ def render_konteks(
     hasil = penguasaan_konteks(bukti, siswa_id, konteks, hari_ini)
     tercatat = tuple(h for h in hasil if h.hasil.status != 'belum_dinilai')
     bagian, nomor, jumlah = halaman_daftar(tercatat, halaman, 12)
+    def rincian_item(isi):
+        if lipat_rincian:
+            return ('<details class="bukti-konteks-rincian-st"><summary>Rincian bukti dan pengaturan</summary>'
+                    + isi + '</details>')
+        return '<div class="bukti-konteks-rincian-st">' + isi + '</div>'
+
     baris = []
     for item in bagian:
         nilai = item.hasil
@@ -29,9 +35,9 @@ def render_konteks(
         baris.append('<li><b>' + html.escape(nama_tipe_soal(item.konteks.template_id)) + '</b>'
                      + '<p>' + _LABEL[nilai.status] + kapan + '</p>'
                      + '<p>' + html.escape(label_profil_parameter(item.konteks.profil_parameter)) + '</p>'
-                     + '<details class="bukti-konteks-rincian-st"><summary>Rincian bukti dan pengaturan</summary>'
-                     + '<p>Kode konfigurasi: ' + html.escape(item.konteks.profil_parameter) + '</p>'
-                     + (f'<p>Sumber: {sumber}</p>' if sumber else '') + '</details></li>')
+                     + rincian_item(
+                         '<p>Kode konfigurasi: ' + html.escape(item.konteks.profil_parameter) + '</p>'
+                         + (f'<p>Sumber: {sumber}</p>' if sumber else '')) + '</li>')
     return (
         '<section class="bukti-konteks-materi-st" id="bukti-per-konteks">'
         '<h3>Bukti per konteks latihan</h3>'

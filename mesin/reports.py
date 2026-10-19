@@ -14,6 +14,7 @@ import database
 import profile_workspace
 from learning_journey import perjalanan_belajar
 from cycle_report import render_perjalanan
+from child_style import GAYA_ANAK
 from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_tugas
 from report_navigation import halaman_daftar, navigasi_halaman, parameter_laporan, pilihan, url_laporan
 from report_metrics import hari_wib, statistik_laporan, tugas_belum_selesai
@@ -516,7 +517,7 @@ def halaman_laporan(
         ).kelas_sekolah
     return _halaman(
         f"Laporan {siswa['nama']}",
-        f'<style>{profile_workspace.GAYA_PROFIL}{GAYA_LAPORAN}{GAYA_PETA}</style>'
+        f'<style>{profile_workspace.GAYA_PROFIL}{GAYA_ANAK}{GAYA_LAPORAN}{GAYA_PETA}</style>'
         + profile_workspace.bagian_identitas(
             siswa, peran=peran, kelas_sekolah=kelas_sekolah,
             id_judul='judul-profil-laporan', kembali=kembali,

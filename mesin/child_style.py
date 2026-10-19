@@ -1,6 +1,7 @@
 """CSS bersama halaman anak: satu kontainer dan komponen yang dipakai ulang antar tab."""
 import design_tokens as T
 from child_history_style import GAYA_RIWAYAT
+from child_materi_style import GAYA_MATERI
 
 # Spesifisitas empat kelas agar menang atas aturan lebar lama per tab
 # (beranda 60rem, laporan 60rem/75rem, profil 75rem) tanpa menambal satu per satu.
@@ -23,6 +24,7 @@ GAYA_ANAK = f"""
 .anak-chip-baik-st {{ background: {T.ANAK_BAIK_LATAR}; color: {T.ANAK_BAIK_TEKS}; }}
 .anak-chip-netral-st {{ background: {T.ANAK_NETRAL_LATAR}; color: {T.ANAK_NETRAL_TEKS}; }}
 .anak-chip-info-st {{ background: {T.ANAK_INFO_LATAR}; color: {T.ANAK_INFO_TEKS}; }}
+.anak-chip-galat-st {{ background: {T.LATAR_GALAT}; color: {T.TEKS_GALAT}; }}
 .anak-pil-st {{
   display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_4};
   border-radius: {T.RADIUS_PIL}; border: 1px solid {T.ANAK_BORDER_PIL}; background: {T.LATAR_KARTU};
@@ -54,4 +56,4 @@ GAYA_ANAK = f"""
 .anak-kartu-peringatan-st {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; color: {T.ANAK_PERHATIAN_TEKS}; }}
 """
 
-GAYA_ANAK += GAYA_RIWAYAT
+GAYA_ANAK += GAYA_RIWAYAT + GAYA_MATERI
