@@ -260,3 +260,43 @@ def test_ringkasan_css_tanpa_garis_angka_pil_seragam_dan_legenda_satu_baris():
     assert f"border: 2px solid {T.ANAK_AKSEN}; background: {T.ANAK_AKSEN_LATAR}" in css
     legenda = css.split(".peta-legenda {", 1)[1].split("}", 1)[0]
     assert "display: flex" in legenda and "flex-wrap: wrap" in legenda
+
+
+# ── Latihan ───────────────────────────────────────────────────────────
+
+def test_latihan_judul_tunggal_legend_diringkas_dan_panel_tetap_beranama(anak):
+    db, sid = anak
+    html = _render(db, sid, "latihan")
+    assert "<legend>Latihan tentang apa?</legend>" in html and "Pilih latihan tentang apa" not in html
+    # legend panel tetap ada untuk pembaca layar, hanya disembunyikan secara visual
+    assert "<legend>Pilih satu topik</legend>" in html
+    from child_latihan_style import GAYA_LATIHAN as css
+    legend = css.split('fieldset[data-mode-latihan] > legend {', 1)[1].split("}", 1)[0]
+    assert "position: absolute" in legend and "clip-path: inset(50%)" in legend
+
+
+def test_latihan_teks_bantuan_cakupan_dilipat_di_pengaturan_lanjutan(anak):
+    db, sid = anak
+    html = _render(db, sid, "latihan")
+    manual = html.split('data-mode-latihan="manual"', 1)[1].split("</fieldset>", 1)[0]
+    luar, lanjutan = manual.split('<details class="atur-latihan-st profil-lanjutan-st">', 1)
+    teks = "Jagomat memilih cakupan yang sesuai untuk topik ini."
+    assert teks not in luar and teks in lanjutan
+
+
+def test_latihan_css_tanpa_garis_lanjutan_dan_tidak_membuka_panel_tersembunyi():
+    from child_latihan_style import GAYA_LATIHAN as css
+    lanjutan = css.split(".latihan-terpadu-st .atur-latihan-st {", 1)[1].split("}", 1)[0]
+    assert "border: 0" in lanjutan and "border-block" not in lanjutan
+    for blok in re.findall(r"([^{}]*data-mode-latihan[^{}]*)\{([^{}]*)\}", css):
+        assert "display" not in blok[1], "aturan display di panel mode akan membuka panel [hidden]"
+    assert "font-size: 1.625rem; font-weight: 800" in css
+    assert f"background: {T.ANAK_AKSEN_LATAR}; border: 2px solid {T.ANAK_AKSEN}" in css
+
+
+def test_latihan_ketiga_mode_tetap_ada_dan_satu_aktif(anak):
+    db, sid = anak
+    html = _render(db, sid, "latihan")
+    for kode in ("manual", "remedial", "gabungan"):
+        assert f'data-mode-latihan="{kode}"' in html
+    assert html.count("disabled hidden") == 2

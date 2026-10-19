@@ -555,3 +555,5 @@ ANAK_INFO_TEKS = "#1E3A8A"
 ANAK_STATUS_DIPELAJARI = "#C97A00"  # bar status peta materi
 ANAK_STATUS_PERLU_CEK = "#B4423A"
 ANAK_STATUS_BELUM = "#DAD3C3"
+ANAK_BORDER_KONTROL = "#BFB39A"      # select/input form Latihan
+ANAK_LATAR_KARTU_HALUS = "#FFFDF9"   # kartu centang topik/remedial
