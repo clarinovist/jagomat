@@ -94,7 +94,7 @@ def _bar_cari(section: str, csrf: str, cari: str, label: str, lanjutan: str, aks
         '<input type="hidden" name="mode" value="cari"><input type="hidden" name="section" value="%s">'
         '<input type="hidden" name="csrf" value="%s">'
         '<label class="admin-cari"><span class="admin-sr">%s</span>'
-        '<input name="cari" type="search" maxlength="80" value="%s" autocomplete="off" placeholder="%s"></label>'
+        '<input name="cari" maxlength="80" value="%s" autocomplete="off" placeholder="%s"></label>'
         '<button class="admin-tombol" type="submit">Cari</button>'
         '<details><summary>Filter lanjutan</summary><div>%s</div></details></form>%s</div>'
         % (kelas, e(section), e(csrf), e(label), e(cari), e(label), lanjutan, aksi)
