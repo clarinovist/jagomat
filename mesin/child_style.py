@@ -2,6 +2,7 @@
 import design_tokens as T
 from child_history_style import GAYA_RIWAYAT
 from child_materi_style import GAYA_MATERI
+from child_ringkasan_style import GAYA_RINGKASAN
 
 # Spesifisitas empat kelas agar menang atas aturan lebar lama per tab
 # (beranda 60rem, laporan 60rem/75rem, profil 75rem) tanpa menambal satu per satu.
@@ -56,4 +57,4 @@ GAYA_ANAK = f"""
 .anak-kartu-peringatan-st {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; color: {T.ANAK_PERHATIAN_TEKS}; }}
 """
 
-GAYA_ANAK += GAYA_RIWAYAT + GAYA_MATERI
+GAYA_ANAK += GAYA_RIWAYAT + GAYA_MATERI + GAYA_RINGKASAN

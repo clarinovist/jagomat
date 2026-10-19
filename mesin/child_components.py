@@ -23,10 +23,11 @@ def disclosure(judul, isi_html, terbuka=False):
         " open" if terbuka else "", escape(str(judul)), isi_html)
 
 
-def banner_tautan(isi_html, href, teks_tautan):
-    return ('<a class="anak-banner-st" href="%s"><span>%s</span>'
+def banner_tautan(isi_html, href, teks_tautan, kelas_tambahan=""):
+    kelas = ("%s anak-banner-st" % kelas_tambahan) if kelas_tambahan else "anak-banner-st"
+    return ('<a class="%s" href="%s"><span>%s</span>'
             '<span class="anak-banner-tautan-st">%s</span></a>') % (
-                escape(href, quote=True), isi_html, escape(str(teks_tautan)))
+                kelas, escape(href, quote=True), isi_html, escape(str(teks_tautan)))
 
 
 def kartu_sesi(*, judul, sub, tanggal_html="", chip_html="", aksi_html="", peringatan=""):

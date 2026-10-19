@@ -14,6 +14,7 @@ import database
 import profile_workspace
 from learning_journey import perjalanan_belajar
 from cycle_report import render_perjalanan
+from child_components import banner_tautan
 from child_style import GAYA_ANAK
 from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_tugas
 from report_navigation import halaman_daftar, navigasi_halaman, parameter_laporan, pilihan, url_laporan
@@ -456,8 +457,10 @@ def konten_laporan(kon, siswa_id: int, query: str = "", section: str = "ringkasa
         else:
             nomor = ui._indeks_tahap(perjalanan.rekomendasi, bukti)
             tahap = f'Tahap sekarang: {ui._LABEL_TAHAP[nomor]} ({nomor+1} dari 6). '
-        isi += (f'<a class="laporan-ke-beranda" href="/anak/{siswa_id}?section=rencana">'
-                + html.escape(tahap) + 'Peta perjalanan lengkap ada di Beranda.</a></section>')
+        isi += banner_tautan(
+            '<strong>' + html.escape(tahap.strip()) + '</strong> Peta perjalanan lengkap ada di Beranda.',
+            f'/anak/{siswa_id}?section=rencana', 'Ke Beranda →', 'laporan-ke-beranda',
+        ) + '</section>'
         # Anchor-only lama tetap mendarat pada penjelasan/tautan yang valid.
         isi += (f'<p id="materi" class="laporan-alias"><a href="{url_laporan(siswa_id,"penguasaan")}">Lihat per materi</a></p>'
                 f'<p id="perjalanan" class="laporan-alias"><a href="{url_laporan(siswa_id,"penguasaan",tampilan="perjalanan")}">Lihat riwayat putaran</a></p>')

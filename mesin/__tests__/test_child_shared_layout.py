@@ -212,3 +212,51 @@ def test_materi_dua_kolom_hanya_di_layar_lebar():
     lebar = css.split("@media (min-width: 46.0625rem)", 1)[1]
     assert "minmax(16rem, 21.25rem) minmax(0, 1fr)" in lebar
     assert "minmax(16rem, 21.25rem)" not in css.split("@media (min-width: 46.0625rem)", 1)[0]
+
+
+# ── Perkembangan > Ringkasan ──────────────────────────────────────────
+
+def _aktivitas(**nilai):
+    from datetime import date
+    from types import SimpleNamespace
+
+    import report_dashboard as rd
+
+    dasar = dict(dikerjakan=3, benar=2, salah=1, perlu_ditinjau=1, dinilai=3, terkonfirmasi=1,
+                 belum_dikenalkan=2, dilewati=1)
+    dasar.update(nilai)
+    kini = SimpleNamespace(**dasar)
+    data = SimpleNamespace(kini=kini, semua=kini, mulai=date(2026, 10, 13), akhir=date(2026, 10, 19))
+    return rd.render_aktivitas(data, lambda t: t, semua=True)
+
+
+def test_aktivitas_satu_kalimat_terlihat_dan_sisanya_dalam_satu_disclosure():
+    h = _aktivitas()
+    luar, lipatan = h.split('<details class="rincian-ui-st">', 1)
+    assert luar.count("laporan-catatan") == 1 and "Dari 3 soal yang sudah dinilai" in luar
+    for teks in ("Semua waktu", "Hasil sementara", "2 perlu cek pengenalan materi", "1 dilewati"):
+        assert teks not in luar and teks in lipatan
+    assert h.count("<details") == 1 and "<summary>Tentang catatan aktivitas</summary>" in lipatan
+    assert "<a " not in lipatan and "<ul" not in lipatan
+
+
+def test_aktivitas_tanpa_hasil_sementara_bila_semua_terkonfirmasi():
+    assert "Hasil sementara" not in _aktivitas(terkonfirmasi=3)
+
+
+def test_ringkasan_banner_ke_beranda_memakai_banner_bersama(anak):
+    db, sid = anak
+    html = _render(db, sid, "perkembangan")
+    banner = re.search(r'<a class="laporan-ke-beranda anak-banner-st" href="[^"]+">.*?</a>', html, re.S).group()
+    assert "<strong>Tahap sekarang:" in banner and "Ke Beranda →" in banner
+    assert f"/anak/{sid}?section=rencana" in banner
+
+
+def test_ringkasan_css_tanpa_garis_angka_pil_seragam_dan_legenda_satu_baris():
+    from child_ringkasan_style import GAYA_RINGKASAN as css
+    kartu_stat = css.split(".aktivitas-kartu-st .kartu-stat {", 1)[1].split("}", 1)[0]
+    assert "border: 0" in kartu_stat and "border-block" not in kartu_stat
+    assert f"background: {T.ANAK_ABU_HANGAT}" in css and f"min-height: {T.TARGET_SENTUH}" in css
+    assert f"border: 2px solid {T.ANAK_AKSEN}; background: {T.ANAK_AKSEN_LATAR}" in css
+    legenda = css.split(".peta-legenda {", 1)[1].split("}", 1)[0]
+    assert "display: flex" in legenda and "flex-wrap: wrap" in legenda
