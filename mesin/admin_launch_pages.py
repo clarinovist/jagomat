@@ -128,31 +128,73 @@ def formulir_dukungan(csrf, token, config):
                 config.sla_respons_hari,config.sla_status_hari)
 
 
-def operasional(r,form_pembayaran='',form_dukungan='',feedback=''):
-    status='<p class="admin-kartu admin-catatan" role="status" aria-atomic="true">%s</p>'%e(feedback) if feedback else ''
-    navigasi = '<nav class="admin-chip-baris" aria-label="Bagian operasional">' + ''.join('<a class="admin-chip" href="#%s">%s</a>' % (sid, label) for sid, label in (('kesiapan','Kesiapan'),('dukungan','Dukungan pengguna'),('pembayaran','Sakelar pembayaran'),('ai','AI'))) + '</nav>'
-    isi=status+navigasi+'<section class="admin-kartu" id="kesiapan"><h2>Kesiapan layanan</h2>'+tabel(('Komponen','Status'),['<tr><td>%s</td><td><span class="admin-badge%s">%s</span></td></tr>'%(e(k),' perhatian' if v=='backup' and r['backup_cutoff'] is None else '',e(r[v])) for k,v in [('Penyimpanan admin','admin'),('Pembayaran','pembayaran'),('Backup','backup')]])
-    isi+='<p>Cutoff backup: %s</p><p class="admin-meta">Validitas bundle bukan bukti backup terjadwal, salinan luar server, atau rehearsal terbaru.</p></section>'%tanggal(r['backup_cutoff'])
+DAMPAK_TAHAP={'nonaktif':'Tidak membuat atau memeriksa pembayaran.','rekonsiliasi':'Hanya memeriksa transaksi yang sudah ada; pembayaran baru tetap ditutup.','checkout':'Membuka pembayaran baru dan rekonsiliasi.','penegakan':'Menerapkan akses berbayar setelah checkout.'}
+TAHAP_PEMBAYARAN=('nonaktif','rekonsiliasi','checkout','penegakan')
+
+
+def _baris_status(nama,nilai,perhatian=False):
+    return '<li class="admin-baris-status%s"><span>%s</span><span class="admin-badge%s">%s</span></li>'%(' perhatian' if perhatian else '',e(nama),' perhatian' if perhatian else '',e(nilai))
+
+
+def _kartu_kesiapan(r):
+    baris=''.join(_baris_status(k,r[v],v=='backup' and r['backup_cutoff'] is None) for k,v in [('Penyimpanan admin','admin'),('Pembayaran','pembayaran'),('Backup','backup')])
+    cutoff='belum tercatat' if r['backup_cutoff'] is None else tanggal(r['backup_cutoff'])
+    return ('<section class="admin-kartu admin-kartu-tabel" id="kesiapan"><div class="admin-kartu-kepala"><h2>Kesiapan layanan</h2></div>'
+            '<ul class="admin-daftar-status">%s</ul><div class="admin-kartu-kaki admin-kaki-garis"><p>Cutoff backup: %s</p>'
+            '<p class="admin-meta">Validitas bundle bukan bukti backup terjadwal, salinan luar server, atau rehearsal terbaru.</p></div></section>')%(baris,cutoff)
+
+
+def _kartu_dukungan(r,form_dukungan):
     support=r.get('dukungan_config')
-    if support:
-        publik=dukungan.proyeksi_publik(support)
-        isi+=('<section class="admin-kartu" id="dukungan"><h2>Dukungan pengguna</h2><p>Status: <strong>Siap</strong> · revisi %d</p>'
-              '<dl class="admin-rincian"><dt>WhatsApp Business</dt><dd>%s</dd><dt>Jam layanan</dt><dd>%s</dd>'
-              '<dt>Respons awal</dt><dd>Maksimal %d hari kerja</dd><dt>Status awal</dt><dd>Maksimal %d hari kerja</dd></dl>%s'
-              '<p class="admin-meta">WhatsApp adalah kanal komunikasi, bukan bukti kepemilikan akun. Reset hanya setelah verifikasi independen; bila tidak tersedia, reset ditahan.</p></section>')%(
-                  support.revisi,e(publik.whatsapp_label),e(publik.jam_layanan_label),
-                  support.sla_respons_hari,support.sla_status_hari,form_dukungan)
-    else:
-        isi+=('<section class="admin-kartu admin-galat" id="dukungan"><h2>Dukungan pengguna</h2><p>Status: <strong>Belum siap</strong></p>'
-              '<p>Schema atau konfigurasi dukungan hilang/rusak. Kontak publik ditahan; jalankan migrator opt-in dan periksa recovery sebelum membuka layanan.</p></section>')
+    if not support:
+        return ('<section class="admin-kartu admin-galat" id="dukungan"><h2>Dukungan pengguna</h2><p>Status: <strong>Belum siap</strong></p>'
+                '<p>Schema atau konfigurasi dukungan hilang/rusak. Kontak publik ditahan; jalankan migrator opt-in dan periksa recovery sebelum membuka layanan.</p></section>')
+    publik=dukungan.proyeksi_publik(support)
+    return ('<section class="admin-kartu" id="dukungan"><div class="admin-seksi-kepala"><h2>Dukungan pengguna</h2>'
+            '<p>Status: <strong>Siap</strong> · revisi %d</p></div>'
+            '<dl class="admin-rincian"><dt>WhatsApp Business</dt><dd>%s</dd><dt>Jam layanan</dt><dd>%s</dd>'
+            '<dt>Respons awal</dt><dd>Maksimal %d hari kerja</dd><dt>Status awal</dt><dd>Maksimal %d hari kerja</dd></dl>%s'
+            '<p class="admin-meta">WhatsApp adalah kanal komunikasi, bukan bukti kepemilikan akun. Reset hanya setelah verifikasi independen; bila tidak tersedia, reset ditahan.</p></section>')%(
+                support.revisi,e(publik.whatsapp_label),e(publik.jam_layanan_label),
+                support.sla_respons_hari,support.sla_status_hari,form_dukungan)
+
+
+def _stepper(tahap):
+    kartu=''
+    for nomor,kode in enumerate(TAHAP_PEMBAYARAN,1):
+        aktif=kode==tahap
+        kartu+=('<li%s class="admin-tahap%s"><span class="admin-meta">Tahap %d%s</span><strong>%s</strong>'
+                '<span class="admin-tahap-hint">%s</span></li>')%(' aria-current="step"' if aktif else '',' admin-tahap-aktif' if aktif else '',nomor,' · saat ini' if aktif else '',e(L.label_status(kode)),e(DAMPAK_TAHAP[kode]))
+    return '<ol class="admin-stepper" aria-label="Tahap pembayaran">%s</ol>'%kartu
+
+
+def _kartu_pembayaran(r,form_pembayaran):
     cfg=r.get('pembayaran_config')
     tahap=cfg['tahap'] if cfg else 'tidak tersedia'
     kesiapan=r.get('pembayaran_kesiapan',{})
-    status_kesiapan=''.join('<li>%s: <strong>%s</strong></li>'%(e(label),'Siap' if kesiapan.get(k) else 'Belum siap') for k,label in [('provider_produksi','Key/provider produksi'),('callback','Callback dan rekonsiliasi'),('recovery','Recovery exact-pair'),('kebijakan','Kebijakan D8/D9')])
-    dampak={'nonaktif':'Tidak membuat atau memeriksa pembayaran.','rekonsiliasi':'Hanya memeriksa transaksi yang sudah ada; pembayaran baru tetap ditutup.','checkout':'Membuka pembayaran baru dan rekonsiliasi.','penegakan':'Menerapkan akses berbayar setelah checkout.'}.get(tahap,'Status tidak tersedia.')
-    stepper='<ol class="admin-stepper">'+''.join('<li%s>%s</li>' % (' aria-current="step"' if kode==tahap else '', e(L.label_status(kode))) for kode in ('nonaktif','rekonsiliasi','checkout','penegakan'))+'</ol>'
-    isi+='<section class="admin-kartu" id="pembayaran"><h2>Sakelar pembayaran</h2><p>Tahap saat ini: <strong>%s</strong>%s</p><p>%s</p>%s<h3>Prasyarat tepercaya</h3><ul>%s</ul>%s<p class="admin-meta">Tahap harus dinaikkan satu per satu. Penurunan boleh langsung saat insiden. Secret hanya dipasang di server dan nilainya tidak pernah tampil di panel.</p></section>'%(e(L.label_status(tahap)),' · revisi %d'%cfg['revisi'] if cfg else '',e(dampak),stepper,status_kesiapan,form_pembayaran)
-    return isi+'<section class="admin-kartu" id="ai"><h2>AI</h2>'+tabel(('Fitur','Konfigurasi'),['<tr><td>%s</td><td>%s</td></tr>'%(e(k),e(v)) for k,v in r['ai']])+'<p>Gagal/tak pasti 24 jam: <strong>%s</strong></p><p class="admin-meta">Konfigurasi bukan jaminan provider sedang online. Tidak ada panggilan berbayar saat halaman dibuka.</p><a href="/admin/ai">Batas pemakaian dan tes sintetis</a></section>'%('—' if r['ai_gagal'] is None else r['ai_gagal'])
+    prasyarat=''.join('<li class="admin-prasyarat-item%s">%s: <strong>%s</strong></li>'%('' if kesiapan.get(k) else ' perhatian',e(label),'Siap' if kesiapan.get(k) else 'Belum siap') for k,label in [('provider_produksi','Key/provider produksi'),('callback','Callback dan rekonsiliasi'),('recovery','Recovery exact-pair'),('kebijakan','Kebijakan D8/D9')])
+    dampak=DAMPAK_TAHAP.get(tahap,'Status tidak tersedia.')
+    return ('<section class="admin-kartu" id="pembayaran"><div class="admin-seksi-kepala"><h2>Sakelar pembayaran</h2>'
+            '<p>Tahap saat ini: <strong>%s</strong>%s</p></div><p>%s</p>%s'
+            '<div class="admin-prasyarat"><h3>Prasyarat tepercaya</h3><ul>%s</ul></div>%s'
+            '<p class="admin-meta">Tahap harus dinaikkan satu per satu. Penurunan boleh langsung saat insiden. Secret hanya dipasang di server dan nilainya tidak pernah tampil di panel.</p></section>')%(
+                e(L.label_status(tahap)),' · revisi %d'%cfg['revisi'] if cfg else '',e(dampak),_stepper(tahap),prasyarat,form_pembayaran)
+
+
+def _kartu_ai(r):
+    nama_fitur={'pendamping':'Pendamping','cerita':'Cerita soal','lampiran':'Lampiran'}
+    tile=''.join('<div class="admin-ai-tile"><span class="admin-meta">%s</span><span class="admin-badge%s">%s</span></div>'%(e(nama_fitur.get(k,k)),'' if v.startswith('Diizinkan') else ' perhatian',e(v)) for k,v in r['ai'])
+    gagal='—' if r['ai_gagal'] is None else r['ai_gagal']
+    tile+='<div class="admin-ai-tile"><span class="admin-meta">Gagal / tak pasti, 24 jam</span><strong>%s</strong></div>'%e(gagal)
+    return ('<section class="admin-kartu" id="ai"><div class="admin-seksi-kepala"><h2>AI</h2><a href="/admin/ai">Batas pemakaian dan tes sintetis</a></div>'
+            '<div class="admin-ai-grid">%s</div>'
+            '<p class="admin-meta">Konfigurasi bukan jaminan provider sedang online. Tidak ada panggilan berbayar saat halaman dibuka.</p></section>')%tile
+
+
+def operasional(r,form_pembayaran='',form_dukungan='',feedback=''):
+    status='<p class="admin-kartu admin-catatan" role="status" aria-atomic="true">%s</p>'%e(feedback) if feedback else ''
+    navigasi='<nav class="admin-tab-baris" aria-label="Bagian operasional">'+''.join('<a class="admin-tab" href="#%s">%s</a>'%(sid,label) for sid,label in (('kesiapan','Kesiapan'),('dukungan','Dukungan pengguna'),('pembayaran','Sakelar pembayaran'),('ai','AI')))+'</nav>'
+    return status+navigasi+_kartu_kesiapan(r)+_kartu_dukungan(r,form_dukungan)+_kartu_pembayaran(r,form_pembayaran)+_kartu_ai(r)
 
 
 def _hero_manfaat(m,judul,bantuan,angka,persen):

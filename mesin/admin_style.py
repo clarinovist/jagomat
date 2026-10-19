@@ -114,6 +114,33 @@ button, summary {{ cursor: pointer; }}
 .admin-kartu.admin-filter-riwayat > label {{ margin: 0; flex: 1 1 11rem; }}
 .admin-kartu.admin-filter-riwayat > label:first-of-type {{ flex-basis: 11rem; }}
 .admin-kartu.admin-cepat-aksi {{ padding: 0 24px; margin-bottom: 24px; }}
+.admin-daftar-status {{ list-style: none; margin: 0; padding: 0; }}
+.admin-baris-status {{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 16px 24px; border-bottom: 1px solid {T.ADMIN_PEMISAH}; font-weight: 600; }}
+.admin-baris-status.perhatian {{ background: {T.ADMIN_BANNER_LATAR}; color: {T.ADMIN_BANNER_TEKS}; }}
+.admin-kaki-garis {{ padding-top: 16px; border-top: 1px solid {T.ADMIN_BORDER}; }}
+.admin-kaki-garis p {{ margin: 0 0 6px; }}
+.admin-seksi-kepala p {{ margin: 0; }}
+.admin-seksi-kepala {{ margin-bottom: 16px; }}
+.admin-tahap {{ display: flex; flex-direction: column; gap: 4px; }}
+.admin-tahap-aktif .admin-meta {{ color: {T.ADMIN_AKSEN_TEKS}; font-weight: 600; }}
+.admin-tahap-hint {{ font-size: 13px; color: {T.ADMIN_REDUP}; }}
+.admin-prasyarat {{ margin: 16px 0; padding: 16px 20px; border: 1px solid {T.ADMIN_BORDER}; border-radius: 12px; }}
+.admin-prasyarat h3 {{ margin: 0 0 10px; }}
+.admin-prasyarat ul {{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit,minmax(15rem,1fr)); gap: 8px 24px; }}
+.admin-prasyarat-item {{ display: flex; align-items: center; gap: 10px; }}
+.admin-prasyarat-item::before {{ content: ''; width: 10px; height: 10px; flex: none; border-radius: 50%; background: {T.ADMIN_BAIK_TITIK}; }}
+.admin-prasyarat-item.perhatian::before {{ background: {T.ADMIN_AKSEN_PERHATIAN}; }}
+.admin-prasyarat-item.perhatian strong {{ color: {T.ADMIN_PERHATIAN_TEKS}; }}
+.admin-ai-grid {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(12.5rem,1fr)); gap: 12px; margin-bottom: 16px; }}
+.admin-ai-tile {{ display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px 16px; border: 1px solid {T.ADMIN_BORDER}; border-radius: 12px; }}
+.admin-ai-tile strong {{ font-size: 24px; }}
+form[action="/admin/layanan/dukungan"] {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(15rem,1fr)); gap: 4px 16px; align-items: start; }}
+form[action="/admin/layanan/dukungan"] > p, form[action="/admin/layanan/dukungan"] > label:has(input[type=checkbox]), form[action="/admin/layanan/dukungan"] > button {{ grid-column: 1 / -1; }}
+form[action="/admin/layanan/dukungan"] > label[for="dukungan-wa"] {{ grid-column: 1 / -1; max-width: 28rem; }}
+form[action="/admin/layanan/dukungan"] > button, form[action="/admin/layanan/pembayaran"] > button {{ justify-self: start; }}
+form[action="/admin/layanan/dukungan"] > label[for="dukungan-reauth"], form[action="/admin/layanan/pembayaran"] > label:not(:has(input[type=checkbox])):not(:has(select)) {{ max-width: 20rem; }}
+form[action="/admin/layanan/pembayaran"] > label:has(select) {{ max-width: 22rem; }}
+form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"] {{ padding-top: 16px; border-top: 1px solid {T.ADMIN_PEMISAH}; margin-top: 16px; }}
 .admin-cnt {{ font-size: 12px; font-weight: 700; line-height: 1.25; background: {T.ADMIN_NAV_HOVER}; color: {T.ADMIN_NETRAL_TEKS}; border-radius: 999px; padding: 2px 8px; }}
 .admin-chip[aria-current="true"] .admin-cnt {{ background: {T.ADMIN_PERMUKAAN}; }}
 .admin-kartu.admin-kartu-tabel {{ padding: 0; overflow: hidden; }}

@@ -105,3 +105,126 @@ def test_kpi_tiga_metrik_lain_dan_biaya_tetap_ada_di_grid():
         assert judul in grid
     assert "Merasa terbantu" not in grid
     assert re.search(r'<h2 id="h-kpi-manfaat">Merasa terbantu</h2>', isi)
+
+
+# --- Operasional (jalur Kritis): kontrak form dikunci, tampilan boleh berubah ---
+from html.parser import HTMLParser
+
+import support_settings as ss
+
+
+class _Form(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.forms, self._kini = [], None
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "form":
+            self._kini = {"action": a.get("action"), "method": a.get("method"), "fields": []}
+        elif self._kini is not None and tag in ("input", "select", "textarea") and a.get("name"):
+            self._kini["fields"].append((a["name"], a.get("type", tag), "required" in a))
+
+    def handle_endtag(self, tag):
+        if tag == "form":
+            self._kini["fields"].sort()
+            self.forms.append(self._kini)
+            self._kini = None
+
+
+def _forms(isi):
+    p = _Form()
+    p.feed(isi)
+    return {f["action"]: f for f in p.forms}
+
+
+def _config():
+    return ss.KonfigurasiDukungan("082137111988", ss.JAM_AWAL, 1, 3, 4, 1790000000, "akun_x")
+
+
+def _ringkas(tahap="checkout", dukungan=True, siap=True):
+    return {
+        "admin": "Siap", "pembayaran": "Terkonfigurasi", "backup": "Belum terverifikasi",
+        "backup_cutoff": None, "dukungan_config": _config() if dukungan else None,
+        "pembayaran_config": {"tahap": tahap, "revisi": 3},
+        "pembayaran_kesiapan": {k: siap for k in ("provider_produksi", "callback", "recovery", "kebijakan")},
+        "ai": (("pendamping", "Diizinkan oleh konfigurasi"), ("cerita", "Tertahan: kunci kosong")),
+        "ai_gagal": 2,
+    }
+
+
+def _form_pembayaran():
+    return ui.formulir(
+        "pembayaran", "c", "t",
+        '<label>Tahap tujuan<select name="tahap"><option value="checkout">Checkout</option></select></label>'
+        '<label><input type="checkbox" name="konfirmasi" value="1" required> Saya sudah meninjau.</label>',
+        "Terapkan perubahan tahap",
+    )
+
+
+def test_operasional_kontrak_form_dukungan_dan_pembayaran_tidak_berubah():
+    isi = ui.operasional(_ringkas(), _form_pembayaran(), ui.formulir_dukungan("c", "t", _config()))
+    forms = _forms(isi)
+
+    assert forms["/admin/layanan/dukungan"]["method"] == "post"
+    assert forms["/admin/layanan/dukungan"]["fields"] == sorted([
+        ("csrf_dukungan", "hidden", False), ("tinjauan_dukungan", "hidden", False),
+        ("whatsapp", "input", True), ("jam_layanan", "select", False),
+        ("sla_respons", "number", True), ("sla_status", "number", True),
+        ("konfirmasi", "checkbox", True), ("reauth", "password", True),
+    ])
+    assert forms["/admin/layanan/pembayaran"]["fields"] == sorted([
+        ("csrf", "hidden", False), ("tinjauan", "hidden", False), ("tahap", "select", False),
+        ("konfirmasi", "checkbox", True), ("reauth", "password", True),
+    ])
+    assert len(forms) == 2
+    assert "revisi" not in {n for f in forms.values() for n, _t, _r in f["fields"]}
+    assert "<script" not in isi
+
+
+def test_operasional_teks_keamanan_dan_konfirmasi_dipertahankan_kata_per_kata():
+    isi = ui.operasional(_ringkas(), _form_pembayaran(), ui.formulir_dukungan("c", "t", _config()))
+
+    for teks in (
+        "Saya memahami perubahan ini langsung menjadi kontak dan janji layanan pada halaman publik.",
+        "Contoh: 0821 3711 1988. URL wa.me dibuat oleh aplikasi; jangan masukkan URL atau kode negara.",
+        "Secret hanya dipasang di server dan nilainya tidak pernah tampil di panel.",
+        "Tahap harus dinaikkan satu per satu. Penurunan boleh langsung saat insiden.",
+        "WhatsApp adalah kanal komunikasi, bukan bukti kepemilikan akun.",
+        "Validitas bundle bukan bukti backup terjadwal, salinan luar server, atau rehearsal terbaru.",
+        "Konfigurasi bukan jaminan provider sedang online. Tidak ada panggilan berbayar saat halaman dibuka.",
+        "Tahap saat ini: <strong>Checkout</strong> · revisi 3",
+    ):
+        assert teks in isi, teks
+
+
+def test_operasional_tab_stepper_prasyarat_dan_tile_ai():
+    isi = ui.operasional(_ringkas(), "", "")
+
+    assert 'class="admin-tab-baris" aria-label="Bagian operasional"' in isi
+    for sid in ("kesiapan", "dukungan", "pembayaran", "ai"):
+        assert 'href="#%s"' % sid in isi and 'id="%s"' % sid in isi
+    assert isi.count('aria-current="step"') == 1
+    assert '<li aria-current="step"' in isi and "Tahap 3 · saat ini" in isi
+    for tahap in ("Nonaktif", "Rekonsiliasi", "Checkout", "Penegakan"):
+        assert tahap in isi
+    assert isi.count('class="admin-tahap-hint"') == 4
+    assert "Key/provider produksi" in isi and "Kebijakan D8/D9" in isi
+    assert isi.count('class="admin-ai-tile"') == 3  # dua fitur + gagal 24 jam
+    assert "Gagal / tak pasti, 24 jam" in isi and "<strong>2</strong>" in isi
+    assert 'href="/admin/ai"' in isi
+
+
+def test_operasional_backup_belum_tercatat_dan_prasyarat_belum_siap_tetap_teks():
+    isi = ui.operasional(_ringkas(siap=False), "", "")
+
+    assert "Cutoff backup:" in isi and "belum tercatat" in isi
+    assert isi.count("Belum siap") >= 4
+    assert 'admin-baris-status perhatian' in isi  # baris backup yang belum terverifikasi disorot
+
+
+def test_operasional_tanpa_config_dukungan_menampilkan_belum_siap():
+    isi = ui.operasional(_ringkas(dukungan=False), "", "")
+
+    assert 'class="admin-kartu admin-galat" id="dukungan"' in isi and "Belum siap" in isi
+    assert "<form" not in isi
