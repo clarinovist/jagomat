@@ -120,7 +120,7 @@ def test_sesi_aktif_dan_konfirmasi_mempertahankan_tautan_cta_tunggal():
 
     sesi = SesiSiklus(41, 9, "P3", "pemetaan", date(2026, 9, 2), putaran_id=7)
     bukti = BuktiSiklus(9, "P3", sesi=(sesi,))
-    for tindakan, label in (("lanjutkan_sesi", "Lanjutkan sesi"), ("konfirmasi_hasil", "Tinjau hasil")):
+    for tindakan, label in (("lanjutkan_sesi", "Lanjutkan sesi"), ("konfirmasi_hasil", "Mulai tinjau")):
         isi = learning_cycle_ui.render_rencana(
             RencanaBelajar(tindakan, "Sesi aktif", sesi_id=41), bukti, 9
         )

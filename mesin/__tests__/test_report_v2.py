@@ -44,7 +44,7 @@ def hanya_penjelasan_dilipat(isi):
         assert blok.startswith('<details class="rincian-ui-st"')
         assert not any(tag in blok for tag in ('<table', '<form', '<input', '<a ', '<section', '<ul'))
         assert any('<summary>' + judul + '</summary>' in blok for judul in (
-            'Cara membaca progres', 'Tentang urutan dan filter',
+            'Cara membaca progres ini', 'Tentang urutan dan filter',
             'Aturan filter tanggal', 'Cara Jagomat menilai'))
 
 
