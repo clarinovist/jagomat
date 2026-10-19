@@ -272,12 +272,13 @@ def sinyal_nav():
     return admin_antrean_pages.sinyal_dari(antrean)
 
 
-def _halaman_admin(principal, section, isi, *, skrip=False, judul=None, subjudul=None, sinyal=None):
+def _halaman_admin(principal, section, isi, *, skrip=False, judul=None, subjudul=None, sinyal=None, aksi_header=""):
     return admin_pages.halaman_admin(
         section, isi, pengguna=principal.pengguna, judul=judul,
         subjudul=subjudul,
         skrip_sandi=(SKRIP_MATA_SANDI + admin_pages.SKRIP_KONFIRMASI_LOGIN) if skrip else "",
         sinyal=sinyal_nav() if sinyal is None else sinyal,
+        aksi_header=aksi_header,
     )
 
 

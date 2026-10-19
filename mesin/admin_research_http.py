@@ -64,10 +64,11 @@ def _periksa_form(penangan, principal, data, aksi):
     return hasil
 
 
-def _kirim(penangan, principal, isi, *, judul=JUDUL, subjudul=SUBJUDUL, skrip=False):
+def _kirim(penangan, principal, isi, *, judul=JUDUL, subjudul=SUBJUDUL, skrip=False, aksi_header=""):
     h._kirim_privat(
         penangan,
-        h._halaman_admin(principal, "riset", isi, skrip=skrip, judul=judul, subjudul=subjudul),
+        h._halaman_admin(principal, "riset", isi, skrip=skrip, judul=judul, subjudul=subjudul,
+                         aksi_header=aksi_header),
         skrip=skrip,
     )
 
@@ -115,7 +116,7 @@ def tangani_get(penangan, jalur):
             _kirim(penangan, principal, ui.dashboard(
                 data, csrf=csrf, token_buat=token_buat,
                 token_ekspor=token_ekspor, status_filter=status,
-            ))
+            ), aksi_header=ui.aksi_data(csrf=csrf, token_ekspor=token_ekspor))
             return True
         if jalur == "/admin/riset/matriks":
             if _query(penangan, set()):

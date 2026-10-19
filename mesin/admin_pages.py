@@ -134,6 +134,7 @@ def halaman_admin(
     subjudul: Optional[str] = None,
     skrip_sandi: str = "",
     sinyal: Optional[SinyalNav] = None,
+    aksi_header: str = "",
 ) -> bytes:
     """Frame privat tanpa aset eksternal atau JS.
 
@@ -149,6 +150,11 @@ def halaman_admin(
     judul_bawaan, sub_bawaan = _judul_section(section)
     judul = judul_bawaan if judul is None else judul
     subjudul = sub_bawaan if subjudul is None else subjudul
+    if aksi_header:
+        kepala = (f'<header class="admin-kepala admin-kepala-aksi"><div><h1 id="judul-admin">{_e(judul)}</h1>'
+                  f'<p class="admin-sub">{_e(subjudul)}</p></div><div class="admin-aksi-header">{aksi_header}</div></header>')
+    else:
+        kepala = f'<header class="admin-kepala"><h1 id="judul-admin">{_e(judul)}</h1><p class="admin-sub">{_e(subjudul)}</p></header>'
     dokumen = f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
@@ -168,7 +174,7 @@ def halaman_admin(
 <details class="menu-pengguna"><summary>{_e(pengguna)} <span class="admin-badge">Pengelola</span></summary>
 <div class="menu-isi"><a href="/akun?section=akun">Ganti sandi</a>
 <form method="post" action="/keluar"><button type="submit">Keluar</button></form></div></details></header>
-<header class="admin-kepala"><h1 id="judul-admin">{_e(judul)}</h1><p class="admin-sub">{_e(subjudul)}</p></header>
+{kepala}
 <main id="konten-admin" aria-labelledby="judul-admin">{isi}</main>
 <footer class="admin-footer">Tampilan privat · Data operasional, bukan penilaian kemampuan anak.</footer>
 </section></div></div>{'<script>' + skrip_sandi + '</script>' if skrip_sandi else ''}</body></html>"""

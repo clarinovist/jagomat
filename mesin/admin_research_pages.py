@@ -52,48 +52,69 @@ def _badge(status) -> str:
     return '<span class="admin-badge%s">%s</span>' % (kelas, e(STATUS_LABEL.get(status, status)))
 
 
-def dashboard(data, *, csrf: str, token_buat: str, token_ekspor: dict,
-              status_filter: str = "") -> str:
-    ringkas = data["ringkasan"]
-    halaman = data["daftar"]
-    kartu = "".join(
+def aksi_data(*, csrf: str, token_ekspor: dict) -> str:
+    """Aksi data riset untuk kepala halaman; ekspor tetap POST signed."""
+    return (
+        '<nav class="riset-aksi-atas" aria-label="Aksi data riset">'
+        '<a class="admin-tautan" href="/admin/riset/matriks">Buka matriks lintas responden</a>'
+        '<form method="post" action="/admin/riset/ekspor">%s%s<input type="hidden" name="format" value="csv"><button class="admin-tautan" type="submit">Ekspor CSV anonim</button></form>'
+        '<form method="post" action="/admin/riset/ekspor">%s%s<input type="hidden" name="format" value="json"><button class="admin-tautan" type="submit">Ekspor JSON anonim</button></form></nav>'
+        % (_hidden("csrf", csrf), _hidden("tinjauan", token_ekspor["csv"]),
+           _hidden("csrf", csrf), _hidden("tinjauan", token_ekspor["json"]))
+    )
+
+
+def _kartu_ringkasan(ringkas) -> str:
+    return '<div class="admin-grid-stat riset-stat">%s</div>' % "".join(
         '<div class="admin-stat"><h2>%s</h2><div><strong>%d</strong><span>wawancara</span></div></div>'
         % (label, ringkas[kode])
         for kode, label in (("draf", "Draf"), ("final", "Final"),
                             ("perlu_redaksi", "Perlu redaksi"), ("mendekati_retensi", "Retensi ≤7 hari"))
     )
-    opsi_filter = [('','Semua status'),*[(kode,label) for kode,label in STATUS_LABEL.items()]]
-    filter_form = (
-        '<form class="admin-form-cari" method="get" action="/admin/riset">'
+
+
+def _form_filter(status_filter: str) -> str:
+    opsi_filter = [('', 'Semua status'), *[(kode, label) for kode, label in STATUS_LABEL.items()]]
+    return (
+        '<form class="admin-form-cari riset-filter" method="get" action="/admin/riset">'
         '<label>Status<select name="status">%s</select></label>'
-        '<button class="admin-tombol" type="submit">Terapkan</button></form>'
+        '<button class="admin-tombol admin-tombol-sekunder" type="submit">Terapkan</button></form>'
         % ''.join('<option value="%s"%s>%s</option>' % (
             e(kode), ' selected' if kode == status_filter else '', e(label)
         ) for kode, label in opsi_filter)
     )
-    if halaman.item:
-        rows = []
-        for item in halaman.item:
-            rows.append(
-                '<li><a class="riset-sesi" href="/admin/riset/wawancara?id=%s">'
-                '<span class="riset-sesi-kepala"><strong>%s</strong>%s</span>'
-                '<span class="riset-sesi-meta">%s · %d/9 topik · %s</span></a></li>' % (
-                    e(item["id"]), e(item["kode_responden"]), _badge(item["status"]),
-                    e(SUMBER_LABEL[item["sumber"]]), item["terisi"], e(_tanggal(item["diperbarui"])),
-                )
+
+
+def _daftar_sesi(halaman) -> str:
+    if not halaman.item:
+        return ('<p class="riset-kosong"><strong>Belum ada wawancara pada filter ini.</strong>'
+                '<span>Daftar muncul setelah draf wawancara dibuat, atau pilih status lainnya.</span></p>')
+    rows = []
+    for item in halaman.item:
+        rows.append(
+            '<li><a class="riset-sesi" href="/admin/riset/wawancara?id=%s">'
+            '<span class="riset-sesi-kepala"><strong>%s</strong>%s</span>'
+            '<span class="riset-sesi-meta">%s · %d/9 topik · %s</span></a></li>' % (
+                e(item["id"]), e(item["kode_responden"]), _badge(item["status"]),
+                e(SUMBER_LABEL[item["sumber"]]), item["terisi"], e(_tanggal(item["diperbarui"])),
             )
-        daftar = '<ul class="riset-daftar-sesi">%s</ul>' % ''.join(rows)
-    else:
-        daftar = '<p class="admin-kosong"><strong>Belum ada wawancara pada filter ini.</strong><br>Daftar muncul setelah draf wawancara dibuat, atau pilih status lainnya.</p>'
-    pager = ""
-    if halaman.total > halaman.per_halaman:
-        links = []
-        if halaman.halaman > 1:
-            links.append('<a href="/admin/riset?%s">Sebelumnya</a>' % e(urlencode({"status":status_filter,"halaman":halaman.halaman-1})))
-        if halaman.halaman * halaman.per_halaman < halaman.total:
-            links.append('<a href="/admin/riset?%s">Berikutnya</a>' % e(urlencode({"status":status_filter,"halaman":halaman.halaman+1})))
-        pager = '<nav class="admin-pager" aria-label="Halaman wawancara">%s</nav>' % ''.join(links)
-    buat = (
+        )
+    return '<ul class="riset-daftar-sesi">%s</ul>' % ''.join(rows)
+
+
+def _pager(halaman, status_filter: str) -> str:
+    if halaman.total <= halaman.per_halaman:
+        return ""
+    links = []
+    if halaman.halaman > 1:
+        links.append('<a href="/admin/riset?%s">Sebelumnya</a>' % e(urlencode({"status": status_filter, "halaman": halaman.halaman - 1})))
+    if halaman.halaman * halaman.per_halaman < halaman.total:
+        links.append('<a href="/admin/riset?%s">Berikutnya</a>' % e(urlencode({"status": status_filter, "halaman": halaman.halaman + 1})))
+    return '<nav class="admin-pager" aria-label="Halaman wawancara">%s</nav>' % ''.join(links)
+
+
+def _kartu_mulai(csrf: str, token_buat: str) -> str:
+    return (
         '<section class="admin-kartu riset-mulai"><h2>Mulai wawancara</h2>'
         '<p class="admin-kartu admin-catatan">Gunakan kode anonim. Jangan masukkan nama orang tua, nama anak, sekolah, kontak, foto, atau jawaban soal anak.</p>'
         '<form method="post" action="/admin/riset/buat">%s%s'
@@ -101,24 +122,27 @@ def dashboard(data, *, csrf: str, token_buat: str, token_ekspor: dict,
         'pattern="[A-Za-z0-9][A-Za-z0-9_-]{2,31}" placeholder="Contoh: R02" required></label>'
         '<label>Sumber rekrutmen<select name="sumber">%s</select></label>'
         '<label>Waktu wawancara<input type="datetime-local" name="diwawancarai" required></label></div>'
-        '<fieldset><legend>Persetujuan</legend>'
+        '<fieldset class="riset-persetujuan"><legend>Persetujuan</legend>'
         '<label><input type="checkbox" name="consent_wawancara" value="1" required> Responden setuju mengikuti wawancara.</label>'
         '<label><input type="checkbox" name="consent_rekaman" value="1"> Responden secara terpisah setuju direkam. Berkas rekaman tidak disimpan di Jagomat.</label>'
-        '</fieldset><button class="admin-tombol" type="submit">Buat draf wawancara</button></form></section>'
-        % (_hidden("csrf",csrf), _hidden("tinjauan",token_buat), ''.join(
-            '<option value="%s">%s</option>' % (e(k),e(v)) for k,v in SUMBER_LABEL.items()
+        '</fieldset><div><button class="admin-tombol" type="submit">Buat draf wawancara</button></div></form></section>'
+        % (_hidden("csrf", csrf), _hidden("tinjauan", token_buat), ''.join(
+            '<option value="%s">%s</option>' % (e(k), e(v)) for k, v in SUMBER_LABEL.items()
         ))
     )
+
+
+def dashboard(data, *, csrf: str, token_buat: str, token_ekspor: dict,
+              status_filter: str = "") -> str:
+    """Isi <main>; aksi data dipasang di kepala halaman lewat ``aksi_data``."""
+    halaman = data["daftar"]
     return (
-        '<nav class="riset-aksi-atas" aria-label="Aksi data riset">'
-        '<a class="admin-tautan" href="/admin/riset/matriks">Buka matriks lintas responden</a>'
-        '<form method="post" action="/admin/riset/ekspor">%s%s<input type="hidden" name="format" value="csv"><button class="admin-tautan" type="submit">Ekspor CSV anonim</button></form>'
-        '<form method="post" action="/admin/riset/ekspor">%s%s<input type="hidden" name="format" value="json"><button class="admin-tautan" type="submit">Ekspor JSON anonim</button></form></nav>'
-        '<div class="admin-grid-stat">%s</div><div class="admin-dua-kolom">%s'
-        '<section class="admin-kartu"><h2>Wawancara</h2>%s%s%s</section></div>'
-        % (_hidden("csrf", csrf), _hidden("tinjauan", token_ekspor["csv"]),
-           _hidden("csrf", csrf), _hidden("tinjauan", token_ekspor["json"]),
-           kartu, buat, filter_form, daftar, pager)
+        _kartu_ringkasan(data["ringkasan"])
+        + '<div class="admin-dua-kolom">%s'
+        '<section class="admin-kartu admin-kartu-tabel"><div class="admin-kartu-kepala riset-kepala-filter">'
+        '<h2>Wawancara</h2>%s</div>%s%s</section></div>'
+        % (_kartu_mulai(csrf, token_buat), _form_filter(status_filter),
+           _daftar_sesi(halaman), _pager(halaman, status_filter))
     )
 
 

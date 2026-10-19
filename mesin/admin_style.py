@@ -295,6 +295,24 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .riset-grid-form {{ display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }}
 .admin-dua-kolom .riset-grid-form {{ grid-template-columns: 1fr; }}
 .riset-aksi-atas form {{ margin: 0; }}
+.admin-kepala-aksi {{ display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }}
+.admin-kepala-aksi > div:first-child {{ flex: 1 1 22rem; min-width: 0; }}
+.admin-aksi-header {{ flex: 0 1 auto; max-width: 100%; }}
+.admin-aksi-header .riset-aksi-atas {{ margin: 0; justify-content: flex-end; }}
+.riset-stat .admin-stat > div {{ flex-direction: column; align-items: flex-start; gap: 2px; }}
+.riset-mulai form {{ display: flex; flex-direction: column; gap: 16px; }}
+.riset-mulai label {{ margin: 0; font-weight: 600; }}
+.riset-mulai .admin-catatan {{ margin: 0 0 16px; padding: 14px 16px; font-size: 14px; line-height: 1.5; }}
+.admin-kartu fieldset.riset-persetujuan {{ display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; border: 0; }}
+.riset-persetujuan legend {{ padding: 0 0 8px; font-size: 14px; }}
+.admin-kartu .riset-persetujuan label:has(input[type=checkbox]) {{ display: flex; align-items: flex-start; gap: 8px; min-height: 0; padding: 0; background: none; font-weight: 400; }}
+.admin-kartu .riset-persetujuan input[type=checkbox] {{ flex: none; margin: 1px 0 0; }}
+.riset-kepala-filter {{ align-items: flex-end; }}
+.riset-filter {{ display: flex; flex-wrap: nowrap; align-items: flex-end; gap: 10px; }}
+.admin-form-cari.riset-filter > label {{ flex: 0 1 180px; margin: 0; font-weight: 600; }}
+.riset-filter .admin-tombol {{ flex: none; }}
+.riset-kosong {{ display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 0; padding: 56px 24px; text-align: center; }}
+.riset-kosong span {{ max-width: 380px; color: {T.ADMIN_REDUP}; font-size: 14.5px; line-height: 1.6; }}
 .riset-prompt {{ max-width: 50rem; font-size: 18px; font-weight: 600; }}
 .riset-kode-baris {{ display: grid; grid-template-columns: 8rem 9rem minmax(0,1fr); gap: 8px; align-items: center; }}
 .riset-tombol, .riset-aksi-form {{ display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-top: 16px; }}
@@ -331,6 +349,7 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
   .admin-nav-mobile > summary {{ display: flex; flex-wrap: wrap; }}
   .admin-nav-mobile .admin-nav-daftar, .admin-rincian, .riset-grid-form {{ grid-template-columns: 1fr; }}
   .admin-kartu.admin-kartu-tabel {{ padding: 0; }}
+  .riset-filter {{ flex-wrap: wrap; }}
   .admin-kartu-kepala, .admin-kartu-catatan {{ padding-left: 20px; padding-right: 20px; }}
   .admin-kartu-kaki {{ padding: 0 20px 20px; }}
   .admin-bar-atas > form, .admin-bar-atas .admin-tombol {{ flex-basis: 100%; max-width: none; }}
