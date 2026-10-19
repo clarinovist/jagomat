@@ -150,7 +150,10 @@ def tangani_get(
             langganan_produksi=subscription_produksi_http.ada(penangan),
             langganan_html=langganan_html,
         )
-    _kirim_akun(penangan, hasil)
+    if section == 'arsip-pendamping' and arsip:
+        assistant_http._kirim_host_privat(penangan, hasil)
+    else:
+        _kirim_akun(penangan, hasil)
     return True
 
 

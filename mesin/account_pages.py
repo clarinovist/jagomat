@@ -425,7 +425,8 @@ def halaman_akun(
         f"</div>",
         ident=(pengguna or "guru", peran),
         stitch=True, kelas_bungkus="pendamping-editorial-st akun-editorial-st",
-        id_utama="judul-akun", privat=True, skrip_privat=SKRIP_AKUN,
+        id_utama="judul-akun", privat=True,
+        skrip_privat='' if section == 'arsip-pendamping' else SKRIP_AKUN,
     )
 
 def _akun_murid_milik(kon, pengguna: str, peran: str, nama: str) -> bool:
