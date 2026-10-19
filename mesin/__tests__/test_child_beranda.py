@@ -35,11 +35,15 @@ def test_badge_menunggu_kosong_bila_baru_hari_ini_atau_bukan_tinjauan():
     assert 'Menunggu' not in _kartu(tindakan="lanjutkan_sesi")
 
 
-def test_peringatan_konfirmasi_dilipat_di_cara_membaca_progres():
+def test_peringatan_konfirmasi_tetap_terlihat_satu_baris_dengan_petunjuk_draf():
     h = _kartu()
-    luar, lipatan = h.split('<details class="rincian-ui-st batas-rencana-st">', 1)
-    assert 'Konfirmasi hanya setelah hasil diperiksa.' not in luar
-    assert 'Konfirmasi hanya setelah hasil diperiksa.' in lipatan.split('</details>', 1)[0]
+    aksi = h.split('<div class="beranda-aksi-st">', 1)[1].split('</div>', 1)[0]
+    assert 'Bisa disimpan sebagai draf dan dilanjutkan nanti.' in aksi
+    assert 'Konfirmasi hanya setelah hasil diperiksa.' in aksi
+    assert aksi.count('<p ') == 1, 'satu baris kecil, bukan blok tambahan'
+    lipatan = h.split('<details class="rincian-ui-st batas-rencana-st">', 1)[1].split('</details>', 1)[0]
+    assert 'Konfirmasi hanya setelah' not in lipatan
+    assert 'Konfirmasi hanya setelah' not in _kartu(tindakan="lanjutkan_sesi")
 
 
 def test_kalimat_peta_perjalanan_sejajar_dengan_judul_posisi():

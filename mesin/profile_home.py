@@ -99,11 +99,10 @@ def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=
     konteks = UI._konteks_pemetaan(rencana)
     if rencana.tindakan == 'pilih_variasi':
         konteks = '<p class="catatan-tiga-latihan-st"><b>Rangkaian awal:</b> tiga latihan pada tanggal berbeda.</p>'
-    peringatan = ('<p class="beranda-konfirmasi-st">Konfirmasi hanya setelah hasil diperiksa.</p>'
-                  if rencana.tindakan == 'konfirmasi_hasil' else '')
-    menunggu = _badge_menunggu(rencana, bukti, hari_ini)
-    petunjuk = ('<p class="petunjuk-sesudah-cta-st">Bisa disimpan sebagai draf dan dilanjutkan nanti.</p>'
+    petunjuk = ('<p class="petunjuk-sesudah-cta-st">Bisa disimpan sebagai draf dan dilanjutkan nanti. '
+                '<span class="beranda-konfirmasi-st">Konfirmasi hanya setelah hasil diperiksa.</span></p>'
                 if rencana.tindakan == 'konfirmasi_hasil' else '')
+    menunggu = _badge_menunggu(rencana, bukti, hari_ini)
     meta = ('<p class="beranda-meta-st">' + _e(UI._waktu(rencana, bukti, tertahan=True)) + '</p>'
             if tertahan else _meta(rencana, bukti, jumlah_soal))
     return (
@@ -115,7 +114,7 @@ def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=
         + '<div class="beranda-caranya-st"><b>Caranya</b><p>' + _e(instruksi) + '</p></div>'
         + contoh + '<div class="beranda-aksi-st">' + cta + petunjuk + '</div>'
         + '<details class="rincian-ui-st batas-rencana-st"><summary>Cara membaca progres ini</summary>'
-        '<p>' + _e(UI._alasan(rencana, fokus)) + '</p>' + peringatan + catatan_mode + '</details>'
+        '<p>' + _e(UI._alasan(rencana, fokus)) + '</p>' + catatan_mode + '</details>'
         + histori + slot_bantuan + UI._override(rencana, sid) + '</section>'
         + posisi(rencana, bukti, siswa['nama'])
     )

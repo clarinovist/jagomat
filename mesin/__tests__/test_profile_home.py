@@ -56,8 +56,7 @@ def test_kartu_tinjau_ringkas_dan_peta_terlihat_tanpa_mutasi():
     assert 'Menunggu 27 hari' in terlihat
     assert '15 soal · sekitar 45 menit pengerjaan' in terlihat
     assert 'Caranya' in terlihat and 'tanpa memberi jawaban' in terlihat
-    # Dilipat di "Cara membaca progres ini": ada di markup, tidak tampil di kartu utama.
-    assert 'Konfirmasi hanya setelah hasil diperiksa.' in isi and 'Konfirmasi hanya setelah' not in terlihat
+    assert 'Konfirmasi hanya setelah hasil diperiksa.' in terlihat
     assert 'Bisa disimpan sebagai draf dan dilanjutkan nanti.' in terlihat
     assert 'Posisi <Anak>: tahap 4 dari 6' in terlihat
     assert isi.count('aria-current="step"') == 1

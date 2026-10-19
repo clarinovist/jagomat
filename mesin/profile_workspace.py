@@ -292,7 +292,6 @@ GAYA_PROFIL = f"""
 .beranda-profil-st .beranda-progres-st {{ margin:0; font-size:{T.UKURAN_TEKS_LABEL}; }}
 .beranda-profil-st .beranda-caranya-st {{ padding:{T.SP_5}; border-radius:{T.RADIUS_KARTU}; background:{T.LATAR_SEKUNDER_LEMBUT}; }}
 .beranda-profil-st .beranda-caranya-st p {{ margin:{T.SP_2} 0 0; }}
-.beranda-profil-st .beranda-caranya-st .beranda-konfirmasi-st {{ font-size:{T.UKURAN_TEKS_LABEL}; color:{T.TEKS_VARIAN}; }}
 .beranda-profil-st .beranda-aksi-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_4}; }}
 .beranda-profil-st .beranda-aksi-st:empty {{ display:none; }}
 .beranda-profil-st .rencana-cta-utama-st {{ min-height:{T.TINGGI_KONTROL}; box-sizing:border-box; }}
