@@ -8,7 +8,7 @@ BULAN_PENUH = ('Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', '
 HARI = ('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu')
 LABEL_STATUS = {
     'account_missing_id': 'ID akun belum tersedia', 'no_students': 'Belum memiliki siswa',
-    'student_without_login': 'Belum punya login', 'duplicate_explicit_login': 'Lebih dari satu login menunjuk siswa',
+    'student_without_login': 'Belum ada login tertaut', 'duplicate_explicit_login': 'Lebih dari satu login menunjuk siswa',
     'owner_without_account': 'Pemilik tanpa akun', 'owner_empty': 'Pemilik siswa kosong',
     'owner_admin': 'Dimiliki akun pengelola', 'orphan_login': 'Login menunjuk siswa yang tidak ada',
     'legacy_orphan_login': 'Login lama tidak punya kandidat siswa',
@@ -55,5 +55,4 @@ def hari_ini(sekarang=None):
 
 def referensi(nilai):
     teks = str(nilai or '—')
-    pendek = teks if len(teks) <= 20 else teks[:8] + '…' + teks[-6:]
-    return '<code class="admin-id" title="%s">%s</code>' % (html.escape(teks, quote=True), html.escape(pendek))
+    return '<code class="admin-id" title="%s">%s</code>' % (html.escape(teks, quote=True), html.escape(teks))

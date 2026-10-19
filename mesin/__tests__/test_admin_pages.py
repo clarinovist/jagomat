@@ -227,7 +227,7 @@ def test_daftar_siswa_escape_label_filter_dan_tanpa_tombol_mutasi():
     assert "Ari &amp; &lt;B&gt;" in isi
     assert "keluarga&lt;script&gt;" in isi
     assert 'href="/admin?section=siswa&amp;id=7"' in isi
-    assert "Belum punya login" in isi
+    assert "Belum ada login tertaut" in isi
     for terlarang in (
         "Hapus", "Reset sandi", "Buat akun", "Simpan", "Ubah kelas",
         'type="password"', "confirm(", "onsubmit=",

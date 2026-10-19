@@ -24,7 +24,7 @@ def kesehatan(status):
 def dashboard(r):
     """Rincian hanya dari DTO tersupresi; tidak menghitung balik sel kecil."""
     def tabel(rows, unit):
-        return ('<div class="admin-tabel-wrap"><table class="admin-tabel sensor-tabel"><thead><tr><th>Sinyal</th><th>'
+        return ('<div class="admin-tabel-wrap"><table class="admin-tabel sensor-tabel"><thead><tr><th scope="col">Sinyal</th><th scope="col">'
                 +html.escape(unit)+'</th></tr></thead><tbody>'+''.join(
                     '<tr><td>'+html.escape(label)+'</td><td>'+(str(n) if n is not None else 'Ditahan (&lt;5 keluarga)')+'</td></tr>'
                     for label,n in rows)+'</tbody></table></div>')

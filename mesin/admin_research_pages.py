@@ -84,7 +84,7 @@ def dashboard(data, *, csrf: str, token_buat: str, token_ekspor: dict,
             )
         daftar = '<ul class="riset-daftar-sesi">%s</ul>' % ''.join(rows)
     else:
-        daftar = '<p class="admin-kosong">Belum ada wawancara pada filter ini.</p>'
+        daftar = '<p class="admin-kosong"><strong>Belum ada wawancara pada filter ini.</strong><br>Daftar muncul setelah draf wawancara dibuat, atau pilih status lainnya.</p>'
     pager = ""
     if halaman.total > halaman.per_halaman:
         links = []

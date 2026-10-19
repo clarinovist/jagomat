@@ -6,6 +6,8 @@ pengguna; hasil branch untuk review, tanpa deploy.
 1. **Font:** gunakan font sistem existing, bukan Google Fonts. Mockup mengasumsikan
    Be Vietnam Pro aktif; panel privat sebenarnya tanpa aset eksternal. Tema admin
    mendapat token scoped agar halaman orang tua/murid tidak ikut berubah.
+   Menu akun tetap satu disclosure di atas, bukan menduplikasi form logout antara
+   sidebar/mobile; footer privat hanya sekali.
 2. **Form privat:** cari keluarga/siswa dan langganan tetap POST; nama tidak masuk
    URL. Chip hanya menuju filter yang backend sudah dukung; saat pencarian aktif,
    pertahankan form/pager POST. Dimensi tambahan tetap tersedia di disclosure.
@@ -16,6 +18,8 @@ pengguna; hasil branch untuk review, tanpa deploy.
    Rincian jumlah kondisi bisa overlap; jangan menjumlahkan menjadi orang unik.
    Waktu awal masalah tidak tersedia, sehingga umur tampil —. Backup Ringkasan
    hanya mengarahkan ke pemeriksaan, tidak diasumsikan gagal/terverifikasi.
+   Badge Ringkasan tidak direka pada halaman lain: shell tidak menerima total
+   antrean global. Total kategori yang sah tampil di kartu Ringkasan.
 4. **Pendaftaran:** pesan merupakan pilihan `pesan_kode`, bukan judul/textarea bebas.
    Preview statis menampilkan pesan tersimpan; tidak menambah field atau JavaScript.
 5. **AI:** `dihentikan` adalah checkbox pada form pengaturan. Tampilan kendali
@@ -32,3 +36,12 @@ pengguna; hasil branch untuk review, tanpa deploy.
    karena akan menyiratkan urutan global palsu; urutan kanonis query dipertahankan.
 9. **Isolasi:** main memiliki WIP sesi lain. Branch dikerjakan pada worktree
    saudara; venv yang sama dipakai via path absolut, tidak memasang dependency.
+10. **Review:** ID panjang tetap teks lengkap yang dapat dipilih/disalin, bukan
+    elipsis dengan ID hanya di tooltip; tidak menambah JS clipboard. Status login
+    memakai "Belum ada login tertaut" dengan catatan akun lama mungkin masih bisa
+    masuk melalui kecocokan nama. Ini menjaga makna query existing tanpa jargon
+    "eksplisit" yang membingungkan. Hover bahaya diberi selector khusus agar
+    teks putih tidak jatuh pada latar terang.
+11. **Gate tertunda:** instruksi terbaru pengguna menahan push sampai seluruh fase
+    selesai. Seluruh pekerjaan dan commit tetap lokal. Full suite CI/build belum
+    dijalankan; bukan klaim siap deploy atau seluruh gate rilis hijau.

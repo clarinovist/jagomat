@@ -64,7 +64,7 @@ def _judul_section(section: str) -> Tuple[str, str]:
     if section == "pendaftaran":
         return "Pendaftaran", "Status pengaturan pendaftaran mandiri."
     if section == "riwayat":
-        return "Riwayat admin", "Riwayat tindakan panel mulai dari cutover fitur."
+        return "Riwayat admin", "Tindakan pengelola yang tercatat sejak fitur diaktifkan."
     if section == "riset":
         return "Riset konsumen", "Data wawancara eksploratif anonim untuk keputusan produk."
     judul, subjudul = {
@@ -267,7 +267,7 @@ def render_ringkasan(
             (data.sesi_7_hari, "Aktivitas 7 hari", "catatan sesi"),
         )
     )
-    layanan = "".join('<div><dt>%s</dt><dd>%s</dd></div>' % (_e(label), _e(status))
+    layanan = "".join('<div><dt>%s</dt><dd><span class="admin-badge">%s</span></dd></div>' % (_e(label), _e(status))
                       for label, status in (status_layanan or {"Status layanan": "belum tersedia"}).items())
     aktivitas = _aktivitas_ringkasan(data.aktivitas_terbaru)
     login_detail = ""
@@ -490,7 +490,7 @@ def render_siswa(
             _e(item.nama),
             _e(label_kelas_sekolah(item.kelas_sekolah)),
             _e(item.pemilik or "Pemilik kosong"),
-            _e(item.login_pengguna or "Belum ada login"),
+            _e(item.login_pengguna or "Belum ada login tertaut"),
             item.jumlah_sesi,
             _badge_status(item.status),
         )
@@ -507,10 +507,11 @@ def render_siswa(
     return (
         _chip_daftar('siswa', data, (
             ('Semua', {'status': 'semua'}),
-            ('Belum ada login', {'status': 'student_without_login'}),
+            ('Belum ada login tertaut', {'status': 'student_without_login'}),
             ('Pemilik tanpa akun', {'status': 'owner_without_account'}),
         )) + form
         + '<section class="admin-kartu"><h2>Daftar siswa</h2>'
+        '<p class="admin-meta">Login tertaut adalah akun yang dihubungkan langsung ke profil siswa. Akun lama yang belum tertaut mungkin masih bisa masuk melalui kecocokan nama; periksa sebelum membuat akun baru.</p>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel">'
         '<thead><tr><th scope="col">Siswa</th><th scope="col">Kelas sekolah</th><th scope="col">Keluarga</th><th scope="col">Login</th><th scope="col">Sesi</th><th scope="col">Kondisi</th></tr></thead>'
         '<tbody>%s</tbody></table></div>%s</section>'
@@ -793,7 +794,7 @@ def render_pendaftaran(status, *, csrf: str, token: str) -> str:
 def render_bulk_awal(csrf: str, token: str) -> str:
     return (
         '<p><a class="admin-tautan" href="/admin/bulk/pilih?peran=guru">Kelola akun orang tua terpilih</a></p>'
-        '<section class="admin-kartu"><h2>Buat akun orang tua massal</h2>'
+        '<details class="admin-kartu"><summary>Buat akun orang tua massal</summary>'
         '<p class="admin-meta">CSV UTF-8 satu kolom <code>pengguna</code>; maksimal 100 akun dan 64 KiB. Tahap ini hanya meninjau alias, bukan membuat akun.</p>'
         '<p><a href="/admin/bulk/templat">Unduh templat CSV kosong</a></p>'
         '<form method="post" action="/admin/bulk/impor" enctype="multipart/form-data">'
@@ -803,7 +804,7 @@ def render_bulk_awal(csrf: str, token: str) -> str:
         '<label>File CSV<input type="file" name="csv" accept=".csv,text/csv" required></label>'
         '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
         '<button class="admin-tombol" type="submit">Tinjau batch</button>'
-        '</form></section>' % (_e(csrf), _e(token))
+        '</form></details>' % (_e(csrf), _e(token))
     )
 
 

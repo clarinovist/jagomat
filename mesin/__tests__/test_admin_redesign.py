@@ -67,3 +67,31 @@ def test_rute_perhatian_tetap_dikenali_tetapi_menu_tidak_ganda():
     assert '<h1 id="judul-admin">Perlu ditangani</h1>' in isi
     assert 'href="/admin?section=perhatian"' not in isi
     assert isi.count('href="/admin" aria-current="page"') == 2
+
+
+def test_id_panjang_tetap_dapat_disalin_utuh_untuk_filter():
+    import re
+    from admin_contracts import validasi_id
+    identitas = 'akun_' + 'a' * 32
+    markup = L.referensi(identitas)
+    teks = re.sub('<[^>]+>', '', markup)
+    assert teks == identitas and '…' not in teks
+    validasi_id(teks, 'akun')
+
+
+def test_login_warisan_tidak_dinyatakan_tanpa_akses():
+    data = _siswa()
+    item = replace(data.item[0], status=('student_without_login', 'legacy_login_unverified'))
+    isi = P.render_siswa(replace(data, item=(item,)), (), csrf='sintetis')
+    assert 'Belum ada login tertaut' in isi
+    assert 'Akun lama yang belum tertaut mungkin masih bisa masuk' in isi
+    assert 'Login lama belum terverifikasi' in isi
+    assert 'Belum punya login<' not in isi
+
+
+def test_hover_bahaya_mempertahankan_kontras():
+    import admin_style
+    import design_tokens as T
+    aturan = admin_style.GAYA_ADMIN.split('.admin-tautan.admin-bahaya:hover, .admin-tombol.admin-bahaya:hover {', 1)[1].split('}', 1)[0]
+    assert 'background: ' + T.ADMIN_BAHAYA_TEKS in aturan
+    assert 'color: ' + T.ADMIN_PERMUKAAN in aturan

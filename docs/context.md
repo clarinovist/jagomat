@@ -83,7 +83,9 @@ cache dan cadangan tetap privat.
   lagi dipakai karena alur baru tidak meminta variasi A–D.
 - Nama modul Inggris; fungsi/variabel, docstring, UI dan commit Bahasa Indonesia.
   Commit conventional (`fix(murid): …`). Nilai visual melalui `design_tokens.py`
-  (`T.*`); jangan hardcode hex di modul lain. Satu aksi, satu entry point.
+  (`T.*`); jangan hardcode hex di modul lain. Panel pengelola memakai token
+  `ADMIN_*` terisolasi, komponen `admin_style.py`, dan label/tanggal WIB bersama
+  `admin_labels.py`; font sistem tanpa aset jaringan. Satu aksi, satu entry point.
 - Primitive `family_deletion.py` tidak menulis state live: ia memerlukan verifikasi
   independen, preview exact dan backup coherent lima berkas, lalu menghasilkan bundle
   privat baru dengan receipt idempoten. Cutover/recovery tetap operasi terkontrol;

@@ -59,6 +59,7 @@ button, summary {{ cursor: pointer; }}
 .admin-tautan, .admin-tombol-sekunder, .admin-antrean-cta, .admin-pager button {{ background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
 .admin-tautan:hover, .admin-chip:hover, .admin-antrean-cta:hover {{ background: {T.ADMIN_NAV_HOVER}; text-decoration: none; }}
 .admin-bahaya {{ background: {T.ADMIN_BAHAYA_TOMBOL}; border-color: {T.ADMIN_BAHAYA_TOMBOL}; color: {T.ADMIN_PERMUKAAN}; }}
+.admin-tautan.admin-bahaya:hover, .admin-tombol.admin-bahaya:hover {{ background: {T.ADMIN_BAHAYA_TEKS}; border-color: {T.ADMIN_BAHAYA_TEKS}; color: {T.ADMIN_PERMUKAAN}; }}
 .admin-chip-baris, .admin-aksi-baca, .riset-aksi-atas {{ display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }}
 .admin-chip {{ border-radius: 999px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
 .admin-chip[aria-current="true"] {{ background: {T.ADMIN_AKSEN_LATAR}; border-color: {T.ADMIN_AKSEN_BORDER}; color: {T.ADMIN_AKSEN_TEKS}; }}
@@ -75,6 +76,8 @@ button, summary {{ cursor: pointer; }}
 .admin-kartu textarea {{ resize: vertical; min-height: 7rem; }}
 .admin-kartu fieldset {{ min-width: 0; margin: 16px 0; padding: 16px 20px; border: 1px solid {T.ADMIN_BORDER}; border-radius: 12px; }}
 .admin-kartu legend {{ padding: 0 8px; font-weight: 600; }}
+.admin-kartu fieldset.admin-galat {{ border-color: {T.ADMIN_BAHAYA_BORDER}; }}
+::placeholder {{ color: {T.ADMIN_REDUP}; opacity: 1; }}
 .admin-kartu input[type=checkbox], .admin-kartu input[type=radio] {{ width: 20px; height: 20px; vertical-align: middle; margin-right: 8px; accent-color: {T.ADMIN_AKSEN}; }}
 .admin-kartu label:has(input[type=checkbox]), .admin-kartu label:has(input[type=radio]) {{ min-height: 44px; padding: 10px 12px; background: {T.ADMIN_BANNER_LATAR}; border-radius: 10px; }}
 .admin-kartu button:not(.tombol-mata) {{ min-height: 44px; }}
@@ -88,7 +91,7 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .tombol-mata {{ position: absolute; right: 3px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; color: {T.ADMIN_REDUP}; }}
 .admin-tabel-wrap {{ overflow-x: auto; max-width: 100%; }}
 .admin-tabel {{ width: 100%; border-collapse: collapse; min-width: 42rem; }}
-.admin-tabel th, .admin-tabel td {{ padding: 14px 16px; border-bottom: 1px solid {T.ADMIN_PEMISAH}; text-align: left; vertical-align: top; }}
+.admin-tabel th, .admin-tabel td {{ overflow-wrap: normal; word-break: normal; padding: 14px 16px; border-bottom: 1px solid {T.ADMIN_PEMISAH}; text-align: left; vertical-align: top; }}
 .admin-tabel th {{ font-size: 13px; font-weight: 600; color: {T.ADMIN_REDUP}; background: {T.ADMIN_LATAR}; white-space: nowrap; }}
 .admin-tabel tbody tr:hover {{ background: {T.ADMIN_HOVER}; }}
 .admin-tabel td[data-angka], .admin-tabel th[data-angka] {{ text-align: right; font-variant-numeric: tabular-nums; }}
@@ -151,7 +154,7 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .admin-stepper {{ display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; padding: 0; list-style: none; }}
 .admin-stepper li {{ padding: 12px; border: 1px solid {T.ADMIN_BORDER}; border-radius: 12px; }}
 .admin-stepper [aria-current="step"] {{ border: 2px solid {T.ADMIN_AKSEN}; background: {T.ADMIN_AKSEN_LATAR}; font-weight: 600; }}
-.admin-id {{ white-space: nowrap; user-select: all; }}
+.admin-id {{ overflow-wrap: anywhere; user-select: all; }}
 .riset-grid-form {{ display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }}
 .admin-dua-kolom .riset-grid-form {{ grid-template-columns: 1fr; }}
 .riset-aksi-atas form {{ margin: 0; }}
