@@ -42,8 +42,11 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   terpilih. Semua permukaan riset memakai sumber publik, tidak membaca data
   keluarga, dan tidak menyatakan afiliasi atau market share.
 - Siklus terpandu; latihan manual tetap tersedia tanpa otomatis mengubah putaran.
-  Beranda merangkum progres, instruksi, waktu/kapan kembali dan satu CTA;
-  metodologi serta batas interpretasi panjang berada di detail, sementara form
+  Beranda menampilkan satu tugas/CTA, metadata sesi dan estimasi pengerjaan,
+  instruksi, peta enam tahap terbuka, maksimal tiga sesi terkirim yang menunggu
+  tinjauan (terlama dahulu), lalu tautan angka progres dari laporan yang sama.
+  Contoh, tanggal tunggu dan peringatan penting tetap terlihat; penjelasan panjang
+  dilipat. Sesi belum dikirim tetap di Riwayat. Sementara form
   awal Pendampingan orang tua opsional berada di Latihan. Pilot aktif,
   pemulihan dan CTA reducer tetap di Beranda.
 - Pendamping AI inline untuk orang tua; usulan latihan memerlukan tinjauan dan

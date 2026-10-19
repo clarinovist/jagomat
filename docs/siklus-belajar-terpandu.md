@@ -183,7 +183,7 @@ sistem boleh merekomendasikan mixed maintenance.
 
 Hanya sesi dengan putaran dan level aktif, tujuan bukan `bebas`, serta belum
 dibatalkan yang boleh memblokir kartu utama. Jika lebih dari satu, pilih yang
-tertua secara deterministik. Sesi manual/lama tampil sebagai tugas sekunder.
+tertua secara deterministik. Sesi manual/lama tetap di Riwayat; yang sudah dikirim\ndan menunggu tinjauan dapat tampil sebagai tugas sekunder Beranda.
 
 ## 9. Penyimpanan dan batas modul
 
@@ -275,26 +275,34 @@ awal dan route internal `?section=rencana`), **Latihan** (`?section=latihan`),
 **Riwayat**, dan **Perkembangan** (`?section=perkembangan`; `/laporan/<id>` alias lama).
 Pendaftaran profil pertama dan kartu beranda membuka Beranda; latihan manual tetap
 dapat dibuka kapan saja. Beranda menampilkan satu CTA reducer utama dan maksimal
-tiga tugas sekunder.
-Sesi yang menjadi CTA utama tidak diulang, dan tugas sekunder tidak menampilkan
-alat kelola tautan. Latihan memuat Pilih satu topik, Dari hasil terbaru, dan
+tiga sesi terkirim yang menunggu tinjauan, berurutan tanggal/ID terlama sebelum limit.
+Sesi CTA utama, dibatalkan, atau terkonfirmasi aktif tidak diulang. Sesi belum dikirim
+tersedia di Riwayat. Sorot lama tidak mengubah kriteria atau prioritas antrian.
+Tugas sekunder hanya memuat topik, tanggal/nomor/jumlah soal, badge dan satu aksi;
+tidak menampilkan alat kelola tautan. Latihan memuat Pilih satu topik, Dari hasil terbaru, dan
 gabungan topik; topik, jumlah, dan CTA terlihat langsung, sedangkan format/mode/
 timer berada dalam Pengaturan lanjutan native. Layar ini menjelaskan bahwa latihan
 tambahan tercatat di Riwayat tetapi tidak otomatis mengubah tugas di Beranda.
 Tab rencana selalu tersedia; GET tidak menulis bukti. Sesi manual tidak mengambil
 alih rekomendasi reducer.
 
-Tujuan **Beranda** menampilkan satu kartu ringkas dengan progres, instruksi,
-perkiraan waktu, tanggal kembali bila tersedia, dan satu CTA utama teal bila sah.
+Tujuan **Beranda** menampilkan satu kartu ringkas: judul tindakan, metadata sesi
+CTA (bukan sesi terbaru), jumlah soal dan estimasi pengerjaan, Caranya, serta satu
+CTA utama teal bila sah. Tanggal tunggu nyata tetap terlihat tanpa kotak Kapan kembali.
 Label kartu adalah Yang perlu dilakukan sekarang; CTA tinjauan Mulai tinjau.
-Metodologi dan batas interpretasi panjang berada dalam detail, tetapi instruksi kritis, contoh visual/
-terbimbing, beban pemetaan, tanggal tunggu, serta peringatan konfirmasi/eskalasi
-harus tetap langsung terlihat. Bahasa
+Contoh visual/terbimbing, beban pemetaan, tanggal tunggu, peringatan eskalasi/histori
+serta instruksi kritis tetap langsung terlihat. Kartu hasil sesi menggunakan renderer
+lama, bukan ikut dirombak. Pilot aktif/pemulihan mempertahankan kartu khususnya. Bahasa
 orang tua memakai latihan awal, bagian yang perlu dibantu, coba bersama, coba sendiri,
 cek setelah jeda, dan catatan hasil; istilah domain internal tetap pada kode/penyimpanan.
-Progres lengkap dan
-alur umum berada dalam `<details>` tertutup **Apa yang terjadi di setiap tahap?**.
-Batas interpretasi berada di **Cara membaca progres ini**.
+Peta enam tahap tampil terbuka setelah kartu utama: Posisi anak, tahap n dari 6,
+satu segmen aktif, serta penegasan peta perjalanan bukan nilai. Penjelasan berada
+dalam `<details>` tertutup **Apa yang terjadi di setiap tahap?**; batas interpretasi
+kartu pada **Cara membaca progres ini**. Tautan Perkembangan sesudah antrian memakai
+jumlah empat status dari adapter/reducer laporan yang sama, bukan data mutable atau
+menyamakan semua sisa dengan belum dinilai. Bukti berubah/tidak terverifikasi memberi
+tautan tanpa angka, bukan menahan CTA. Badge keterlambatan/dugaan belum dikerjakan
+belum diaktifkan. Perjalanan di laporan masih tersedia sampai perombakan tahap berikutnya.
 Instruksi, contoh terbimbing/visual, beban pemetaan, tanggal menunggu, serta
 peringatan konfirmasi/eskalasi/histori tetap terlihat tanpa membuka detail.
 Label alat sesi **Cetak** mengutamakan lembar soal/kunci; perubahan cerita tetap

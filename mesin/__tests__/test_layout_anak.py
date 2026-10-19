@@ -161,6 +161,8 @@ def test_aturan_baris_penuh_dibatasi_ke_kartu_guru():
 def test_kartu_guru_memakai_kelas_penanda_di_markup(anak):
     """CSS tanpa markup yang memakainya = aturan mati."""
     db, sid = anak
+    with database.buka(db) as kon:
+        kon.execute('UPDATE sesi SET selesai=CURRENT_TIMESTAMP WHERE siswa_id=?', (sid,))
     markup = _tanpa_gaya(_render_anak(db, sid))
     assert "kartu-sesi-guru" in markup
 
@@ -208,7 +210,8 @@ def test_halaman_anak_tetap_utuh(anak):
     db, sid = anak
     rencana = _render_anak(db, sid)
     latihan = _render_anak(db, sid, 'latihan')
-    assert "Sesi #" in rencana
+    assert "Sesi #" not in _tanpa_gaya(rencana)
+    assert "Sesi #" in _render_anak(db, sid, 'riwayat')
     assert "Buat latihan" in latihan
     assert "Buat latihan gabungan" in latihan
     assert "Claudia" in rencana
@@ -239,7 +242,8 @@ def test_form_latihan_terpisah_dari_tugas_rencana(anak):
     rencana = _tanpa_gaya(_render_anak(db, sid, 'rencana'))
     assert latihan.index('profil-champs-st') < latihan.index('profil-assistant-st')
     assert 'Buat latihan' in latihan and 'profil-taches-st' not in latihan
-    assert 'profil-taches-st' in rencana and 'Kelola tautan anak' not in rencana
+    assert 'profil-taches-st' not in rencana and 'Kelola tautan anak' not in rencana
+    assert 'class="beranda-posisi-st"' in rencana
 
 
 def test_grid_dua_kolom_hanya_di_desktop():
@@ -311,26 +315,26 @@ def test_kartu_sesi_mengutamakan_topik_dan_metadata_ramah(db):
             jumlah_soal=10,
         )
         kon.execute(
-            "UPDATE sesi SET tanggal = '2026-09-04' WHERE id = ?", (sesi_id,)
+            "UPDATE sesi SET tanggal = '2026-09-04', selesai='2026-09-04 10:00:00' WHERE id = ?", (sesi_id,)
         )
 
     markup = _tanpa_gaya(_render_anak(db, sid, 'rencana'))
 
-    assert '<a class="judul-sesi-st"' in markup
-    assert "Gabungan 3 topik" in markup
-    assert '<summary>Lihat 3 topik</summary><ul>' in markup
-    assert '<li>Logika &amp; Penalaran</li><li>Geometri Datar</li><li>Statistika</li>' in markup
+    assert '<h3>Gabungan 3 topik</h3>' in markup
+    assert '10 soal' in markup
     assert "gabungan:logika,geometri-datar,statistika" not in markup
     assert '<time datetime="2026-09-04">4 Sep 2026</time>' in markup
-    assert "Variasi A" in markup
-    assert "Mode Diagnosa" in markup
     assert f"Sesi #{sesi_id}" in markup
+    assert markup.count(f'href="/sesi/{sesi_id}"') == 1
+    assert f'aria-label="Tinjau sesi {sesi_id}"' in markup
 
 
 def test_kartu_belum_dikerjakan_tidak_memamerkan_statistik_kosong(anak):
     db, sid = anak
     markup = _tanpa_gaya(_render_anak(db, sid, 'rencana'))
-    assert "Belum Dikerjakan" in markup
+    assert "Belum Dikerjakan" not in markup
+    assert 'class="profil-taches-st"' not in markup
+    assert "Belum Dikerjakan" in _render_anak(db, sid, 'riwayat')
     assert "Terisi 0/" not in markup
     assert "Benar &mdash;" not in markup
     assert "Waktu &mdash;" not in markup

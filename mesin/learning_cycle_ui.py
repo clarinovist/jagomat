@@ -603,6 +603,7 @@ def pengingat_rencana(kon, siswa_id: int) -> str:
 
 def kartu_rencana(
     kon, siswa_id: int, slot_bantuan: str = "", *, dengan_identitas=False,
+    siswa=None,
 ):
     """Muat rekomendasi tunggal dan, bila diminta, identitas sesi CTA-nya."""
     from skill_pilot_ui import kartu, sesi_utama
@@ -613,9 +614,17 @@ def kartu_rencana(
     else:
         bukti = database.muat_bukti_siklus(kon, siswa_id)
         rencana = rencana_berikutnya(bukti, siswa_id)
-        hasil = render_rencana(
-            rencana, bukti, siswa_id, slot_bantuan=slot_bantuan
-        ) + tambahan
+        if siswa is None:
+            hasil = render_rencana(rencana, bukti, siswa_id, slot_bantuan=slot_bantuan)
+        else:
+            from profile_home import kartu as kartu_beranda
+            jumlah = kon.execute(
+                'SELECT COUNT(*) FROM sesi_soal ss JOIN sesi s ON s.id=ss.sesi_id '
+                'WHERE s.id=? AND s.siswa_id=?', (rencana.sesi_id, siswa_id),
+            ).fetchone()[0] if rencana.sesi_id else None
+            hasil = kartu_beranda(rencana, bukti, siswa, jumlah_soal=jumlah,
+                                  slot_bantuan=slot_bantuan)
+        hasil += tambahan
         identitas = (
             rencana.sesi_id
             if rencana.tindakan in {"lanjutkan_sesi", "konfirmasi_hasil"}

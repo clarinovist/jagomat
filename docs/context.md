@@ -101,6 +101,11 @@ cache dan cadangan tetap privat.
   `question_context.profil_otomatis()` memilih profil efektif manual/gabungan yang
   didukung dan paling dekat tanpa mengubah profil rencana. Generator mempertahankan
   komposisi historis sambil memvariasikan parameter dan urutan sesuai seed.
+  `profile_home.py` menyajikan Beranda dengan helper CTA/tahap siklus existing,
+  terpisah dari renderer hasil sesi; `profile_history.tinjauan_terlama()` membatasi
+  tiga sesi terkirim sebelum proyeksi, dan tautan progres memakai adapter/peta
+  laporan yang sama (gagal verifikasi: tanpa angka). Pilot aktif/pemulihan tetap
+  memakai renderer khususnya, bukan diproyeksikan sebagai rencana utama.
   `profile_workspace.py` menjadi sumber navigasi empat tujuan profil: **Beranda**,
   **Latihan**, **Riwayat**, dan **Perkembangan**. Pascapendaftaran dan default
   `/anak/<id>` sama-sama membuka Beranda; POST latihan kembali eksplisit ke

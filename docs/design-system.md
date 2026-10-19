@@ -103,6 +103,10 @@ Ruang profil anak (Beranda, Latihan, Riwayat, Perkembangan) memakai
 terbatas `.profil-workspace-st`; layar pengerjaan, tinjauan sesi, dan aksi destruktif
 tidak berubah. Badge Draf tersimpan memakai permukaan biru muda; ✓ Selesai memakai
 `KODE_BENAR_BG` / `KODE_BENAR_TEKS` dan berarti konfirmasi aktif, bukan penguasaan.
+Beranda utama dibatasi 60rem: kartu satu kolom, meta/waktu pengerjaan sebaris,
+kotak Caranya, CTA 48px; enam segmen tahap terbuka dengan satu penanda aktif,
+bukan centang kelulusan. Sesi tinjauan sekunder memakai tombol outline; detail
+metodologi native. Gaya `.beranda-profil-st` tidak merombak hasil sesi atau tab lain.
 
 Header Stitch mengelompokkan peran dan nama akun dalam satu menu native; pemicu
 Pendamping memakai slot kanan saat panel tertutup. Kartu tindak lanjut menyatukan

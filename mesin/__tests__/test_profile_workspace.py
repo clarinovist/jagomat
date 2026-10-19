@@ -146,8 +146,8 @@ def test_urutan_tanggal_sama_stabil_dan_sorot_tetap_milik_anak(db):
     assert ids(halaman_dua)==list(range(188,168,-1))
     kon.execute("UPDATE sesi SET selesai='2026-09-18', dikonfirmasi_guru='2026-09-18' WHERE siswa_id=?",(anak,))
     isi=_isi(kon,anak,sorot=1)
-    assert 'Sesi #1<' in isi and 'sorot-baru' in isi
-    assert 'Sesi #209<' not in _isi(kon,anak,sorot=209)
+    assert ids(isi) == [1, 2, 3]
+    assert ids(_isi(kon,anak,sorot=209)) == [1, 2, 3]
 
 
 def test_filter_status_konfirmasi_sesuai_snapshot_bukan_stamp(db):

@@ -103,11 +103,12 @@ def jumlah_sesi(kon, siswa_id):
     return kon.execute('SELECT COUNT(*) FROM sesi WHERE siswa_id=?', (siswa_id,)).fetchone()[0]
 
 
-def _muat(kon, siswa_id, where, parameter, limit, offset=0):
-    # CTE mencegah metadata mahal dimuat untuk seluruh arsip.
+def _muat(kon, siswa_id, where, parameter, limit, offset=0, *, terlama=False):
+    # Arah hanya konstanta internal; urutan diterapkan sebelum pembatasan CTE.
+    urutan = 's.tanggal ASC,s.id ASC' if terlama else 's.tanggal DESC,s.id DESC'
     return kon.execute('WITH pilihan AS (SELECT s.id FROM sesi s WHERE s.siswa_id=? ' + where +
-                       ' ORDER BY s.tanggal DESC,s.id DESC LIMIT ? OFFSET ?) SELECT ' + _PROYEKSI +
-                       ' FROM sesi s JOIN pilihan p ON p.id=s.id ORDER BY s.tanggal DESC,s.id DESC',
+                       ' ORDER BY ' + urutan + ' LIMIT ? OFFSET ?) SELECT ' + _PROYEKSI +
+                       ' FROM sesi s JOIN pilihan p ON p.id=s.id ORDER BY ' + urutan,
                        (siswa_id,) + tuple(parameter) + (limit, offset)).fetchall()
 
 
@@ -167,6 +168,16 @@ def ringkasan_riwayat(kon, siswa_id):
     except Exception:
         return None
     return {'hitung_status': hitung_status}
+
+
+def tinjauan_terlama(kon, siswa_id, *, kecuali=None):
+    """Beranda: terkirim, bukan dibatalkan/terkonfirmasi, terlama dahulu."""
+    where = ' AND s.dibatalkan IS NULL AND s.selesai IS NOT NULL AND NOT COALESCE(' + _AKTIF + ',0)'
+    parameter = ()
+    if kecuali is not None:
+        where += ' AND s.id<>?'
+        parameter = (int(kecuali),)
+    return _muat(kon, siswa_id, where, parameter, 3, terlama=True)
 
 
 def tugas_terbaru(kon, siswa_id, sorot=None, kecuali=None):

@@ -325,8 +325,6 @@ def halaman_anak(
         f'{html.escape("Campuran semua topik" if t == "campuran" else ambil(t).nama)}</option>'
         for t in daftar_topik()
     )
-    def _kelas_sorot(rid):
-        return "sorot-baru" if sorot is not None and rid == sorot else ""
 
     def _aksi_tautan(baris):
         rid = baris["id"]
@@ -361,59 +359,6 @@ def halaman_anak(
             '<button type="submit"><span data-label-bagikan>Salin tautan sesi</span></button>'
             '</form></div><span class="kabar-bagikan-st" role="status" '
             'aria-live="polite"></span></div>'
-        )
-
-    def _kartu_sesi(r, kelas, *, ringkas=False):
-        topik_id = str(_ambil(r, "topik", TOPIK_BAWAAN))
-        judul_topik, rincian_topik = _nama_topik_sesi(topik_id)
-        rincian = (
-            '<details class="rincian-topik-st"><summary>Lihat '
-            f'{len(rincian_topik.split(" &middot; "))} topik</summary>'
-            '<ul>' + ''.join(f'<li>{nama}</li>' for nama in rincian_topik.split(' &middot; '))
-            + '</ul></details>'
-            if rincian_topik
-            else ""
-        )
-        angka = _ringkasan_angka_sesi(r)
-        ringkasan = (
-            f'<div class="ringkasan-sesi-st">{angka}</div>' if angka else ""
-        )
-        identitas_remedial = ""
-        if _ambil(r, "jenis", "biasa") == "remedial":
-            fokus_ids = [
-                b["template_id"] for b in database.isi_sesi(kon, int(r["id"]))
-            ]
-            fokus_unik = list(dict.fromkeys(fokus_ids))
-            fokus = " & ".join(_nama_template(t) for t in fokus_unik)
-            asal = (
-                f' · dari sesi #{int(r["sumber_sesi_id"])}'
-                if _ambil(r, "sumber_sesi_id", None) else ""
-            )
-            identitas_remedial = (
-                '<div class="rincian-topik-st"><span class="st-badge latihan">'
-                'Remedial</span> '
-                f'Fokus {html.escape(fokus)}{asal}</div>'
-            )
-        return (
-            f'<article class="st-kartu-baris kartu-sesi-guru {kelas}">'
-            '<div class="isi-kartu-sesi-st">'
-            '<div class="kepala-kartu-sesi-st">'
-            f'<a class="judul-sesi-st" href="/sesi/{r["id"]}">'
-            f'{html.escape(judul_topik)}</a>{_badge_review_status(r)}</div>'
-            '<div class="meta-sesi-st">'
-            f'{_tanggal_ringkas(r["tanggal"])}<span aria-hidden="true">&middot;</span>'
-            f'<span>{html.escape(label_kelas(str(_ambil(r, "level", LEVEL_BAWAAN))))}</span>'
-            '<span aria-hidden="true">&middot;</span>'
-            f'<span>{html.escape(_mode_sesi(r))}</span>'
-            '<span aria-hidden="true">&middot;</span>'
-            f'<span class="nomor-sesi-st">Sesi #{r["id"]}</span>'
-            "</div>"
-            f"{rincian}{identitas_remedial}{ringkasan}"
-            "</div>"
-            '<div class="aksi-sesi-st">'
-            + ('' if ringkas else _aksi_tautan(r))
-            + "</div>"
-            "</article>"
         )
 
     from choice_pages import kontrol_format
@@ -611,20 +556,14 @@ def halaman_anak(
     if section == "rencana":
         kartu_rencana, sesi_utama = learning_cycle_ui.kartu_rencana(
             kon, int(siswa["id"]), slot_bantuan=tautan_bantuan,
-            dengan_identitas=True,
+            dengan_identitas=True, siswa=siswa,
         )
-        sesi = profile_history.tugas_terbaru(
-            kon, siswa["id"], sorot, kecuali=sesi_utama,
-        )
-        if sesi:
-            item = "".join(
-                _kartu_sesi(r, _kelas_sorot(r["id"]), ringkas=True) for r in sesi
-            )
-            tugas_rencana = (
-                '<section class="profil-taches-st"><h2 class="st">Tugas lain</h2>'
-                '<p class="sub">Maksimal tiga sesi yang masih perlu diselesaikan atau ditinjau.</p>'
-                f'<div class="daftar-anak">{item}</div></section>'
-            )
+        import profile_home
+        sesi = profile_history.tinjauan_terlama(kon, siswa["id"], kecuali=sesi_utama)
+        tugas_rencana = profile_home.sesi_lain(
+            sesi, judul_topik=_nama_topik_sesi, tanggal=_tanggal_ringkas,
+            badge_tinjauan=_badge_review_status,
+        ) + profile_home.tautan_perkembangan(kon, int(siswa['id']))
     latihan_manual = (
         '<section class="profil-formulaire-st">'
         f"{blok_buat_latihan}</section>"
@@ -666,6 +605,7 @@ def halaman_anak(
         ) if section == "riwayat" and peran == "guru" and pengguna else ""),
         ident=(pengguna if pengguna else "guru", peran),
         kelas_bungkus="lebar pendamping-editorial-st profil-editorial-st profil-workspace-st"
-        + (" laporan-editorial-st" if section == "perkembangan" else ""),
+        + (" laporan-editorial-st" if section == "perkembangan" else "")
+        + (" beranda-profil-st" if section == "rencana" else ""),
         privat=privat,
     )

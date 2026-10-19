@@ -308,6 +308,35 @@ def riwayat(
 
 
 GAYA_PROFIL = f"""
+/* Beranda: satu tugas, peta tahap terbuka, lalu tinjauan sekunder. */
+.pendamping-editorial-st.profil-editorial-st.profil-workspace-st.beranda-profil-st {{ max-width:60rem; }}
+.beranda-profil-st .kartu-rencana-st {{ padding:{T.SP_6}; border-radius:{T.RADIUS_KARTU_BESAR}; border-top-width:1px; gap:{T.SP_4}; }}
+.beranda-profil-st #judul-rencana-belajar {{ font-size:{T.UKURAN_JUDUL_DEWASA}; max-width:none; }}
+.beranda-profil-st :is(.beranda-meta-st, .identitas-sesi-rencana-st) {{ margin:0; font-size:{T.UKURAN_TEKS_LABEL}; font-weight:400; color:{T.TEKS_VARIAN}; }}
+.beranda-profil-st .beranda-progres-st {{ margin:0; font-size:{T.UKURAN_TEKS_LABEL}; }}
+.beranda-profil-st .beranda-caranya-st {{ padding:{T.SP_5}; border-radius:{T.RADIUS_KARTU}; background:{T.LATAR_SEKUNDER_LEMBUT}; }}
+.beranda-profil-st .beranda-caranya-st p {{ margin:{T.SP_2} 0 0; }}
+.beranda-profil-st .beranda-caranya-st .beranda-konfirmasi-st {{ font-size:{T.UKURAN_TEKS_LABEL}; color:{T.TEKS_VARIAN}; }}
+.beranda-profil-st .beranda-aksi-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_4}; }}
+.beranda-profil-st .beranda-aksi-st:empty {{ display:none; }}
+.beranda-profil-st .rencana-cta-utama-st {{ min-height:{T.TINGGI_KONTROL}; box-sizing:border-box; }}
+.beranda-profil-st .beranda-posisi-st {{ margin:{T.SP_5} 0; }}
+.beranda-profil-st .beranda-posisi-st > h2 {{ margin:0 0 {T.SP_4}; }}
+.beranda-profil-st .beranda-posisi-st > p {{ color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_LABEL}; }}
+.beranda-profil-st .beranda-posisi-st .strip-rencana-st {{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:{T.SP_2}; padding:0; margin:{T.SP_4} 0; }}
+.beranda-profil-st .beranda-posisi-st .tahap-rencana-st {{ padding:{T.SP_4} 0 0; text-align:left; font-size:{T.UKURAN_TEKS_LABEL}; line-height:1.4; overflow-wrap:anywhere; }}
+.beranda-profil-st .beranda-posisi-st .tahap-rencana-st::before {{ left:0; top:0; width:100%; height:.5rem; border:0; border-radius:{T.RADIUS_PIL}; background:{T.BORDER_HALUS}; }}
+.beranda-profil-st .beranda-posisi-st .tahap-rencana-st.aktif::before {{ background:{T.AKSEN_TEAL_TUA}; }}
+.beranda-profil-st .beranda-posisi-st .tahap-rencana-st.aktif {{ color:{T.AKSEN_TEAL_TUA}; }}
+.beranda-profil-st .beranda-posisi-st .tahap-rencana-st::after {{ display:none; }}
+.beranda-profil-st .beranda-posisi-st .isi-alur-rencana-st {{ display:block; }}
+.beranda-profil-st .beranda-posisi-st summary {{ min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} 0; cursor:pointer; color:{T.AKSEN_TEAL_TUA}; font-weight:600; }}
+.beranda-profil-st .beranda-sesi-st {{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:{T.SP_3}; padding:{T.SP_4} {T.SP_5}; border-radius:{T.RADIUS_KARTU}; }}
+.beranda-profil-st .beranda-sesi-st > div {{ flex:1 1 15rem; min-width:0; }}
+.beranda-profil-st .beranda-sesi-st h3 {{ margin:0; font-size:1rem; overflow-wrap:anywhere; }}
+.beranda-profil-st .beranda-sesi-st p {{ margin:{T.SP_1} 0 {T.SP_2}; font-size:{T.UKURAN_TEKS_LABEL}; color:{T.TEKS_VARIAN}; }}
+.beranda-profil-st .beranda-tinjau-st {{ display:inline-flex; align-items:center; justify-content:center; min-height:{T.TARGET_SENTUH}; padding:0 {T.SP_4}; border:1px solid {T.AKSEN_TEAL_TUA}; border-radius:{T.RADIUS_KARTU}; text-decoration:none; font-weight:600; }}
+.beranda-profil-st .beranda-perkembangan-st {{ display:flex; align-items:center; justify-content:space-between; gap:{T.SP_4}; padding:{T.SP_4} {T.SP_5}; margin-top:{T.SP_5}; border-radius:{T.RADIUS_KARTU}; background:{T.LATAR_TERSIMPAN}; color:{T.TEKS_JUDUL}; text-decoration:none; font-size:{T.UKURAN_TEKS_LABEL}; overflow-wrap:anywhere; }}
 /* Ruang kerja profil v2: seluruh selector terbatas ke halaman profil. */
 .profil-workspace-st :is(.st-tombol-coral, .tombol-coral, .rencana-cta-utama-st) {{ background:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_PUTIH}; border-color:{T.AKSEN_TEAL_TUA}; }}
 .profil-workspace-st :is(.st-tombol-coral, .tombol-coral, .rencana-cta-utama-st):hover {{ background:{T.AKSEN_TEAL_HOVER}; border-color:{T.AKSEN_TEAL_HOVER}; }}
@@ -462,6 +491,13 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .profil-champs-st .mode-opsi {{ margin:0; }}
 }}
 @media(max-width:{T.BATAS_TABLET}) {{
+ .beranda-profil-st .kartu-rencana-st {{ padding:{T.SP_4}; }}
+ .beranda-profil-st .beranda-caranya-st {{ padding:{T.SP_4}; }}
+ .beranda-profil-st .beranda-aksi-st {{ align-items:stretch; }}
+ .beranda-profil-st .beranda-aksi-st > :is(a, form) {{ width:100%; }}
+ .beranda-profil-st .beranda-aksi-st button {{ width:100%; }}
+ .beranda-profil-st .beranda-posisi-st .tahap-rencana-st {{ font-size:{T.UKURAN_TEKS_META}; }}
+ .beranda-profil-st .beranda-sesi-st {{ padding:{T.SP_4}; }}
  .profil-workspace-st .profil-tabs-st {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; overflow-x:hidden; padding-bottom:{T.SP_1}; font-size:{T.UKURAN_TEKS_META}; }}
  .profil-workspace-st .profil-tabs-st a {{ justify-content:center; padding:{T.SP_2} {T.SP_1}; white-space:nowrap; text-align:center; letter-spacing:-.02em; }}
  .profil-workspace-st .profil-filter-st {{ grid-template-columns:minmax(0,1fr); padding:{T.SP_4}; }}

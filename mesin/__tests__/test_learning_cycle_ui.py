@@ -88,11 +88,10 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     from test_concise_ui import Markup
     terlihat = Markup(isi).terlihat()
     assert "latihan 1 dari 3 · 15 soal pada tanggal berbeda" in terlihat
-    assert "Instruksi" in isi
+    assert "Caranya" in terlihat
     assert "Kapan kembali" not in isi
     assert "Setelah selesai, periksa hasil dan konfirmasikan." in isi
-    for label in ("Instruksi", "Waktu"):
-        assert label in terlihat
+    assert "Perkiraan sekitar 45 menit" in terlihat
     assert "Sesudah ini" not in isi
     assert 'class="ringkasan-setelah-st"' not in isi
     assert f'<form method="post" action="/siklus/{siswa_id}/buat"' in isi
@@ -101,14 +100,14 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     assert '<details class="alur-rencana-jelas-st">' in isi
     assert "<summary>" in isi
     assert "Apa yang terjadi di setiap tahap?" in isi
-    assert "Tahap sekarang: Kenali cara anak" in isi
+    assert "tahap 1 dari 6" in terlihat
     kartu = isi.split('<section class="kartu-rencana-st"', 1)[1].split("</section>", 1)[0]
     assert kartu.count("<h2") == 1
-    assert '<h2 class="st judul-tugas-rencana-st" id="judul-rencana-belajar">' in kartu
-    assert '<span class="penanda-judul-rencana-lama-st" aria-hidden="true">Mulai dengan latihan awal</span>' in kartu
+    assert '<h2 class="st" id="judul-rencana-belajar">' in kartu
     assert "Kenali cara anak mengerjakan tanpa menyimpulkan" in isi
     assert "Kenali cara anak mengerjakan tanpa menyimpulkan" not in terlihat
-    assert '<details class="alur-rencana-jelas-st">' in kartu
+    assert '<details class="alur-rencana-jelas-st">' not in kartu
+    assert 'class="beranda-posisi-st"' in isi
     assert "/* Rencana belajar jelas — kartu */" in isi.split("</style>", 1)[0]
     form_utama = isi.split(f'action="/siklus/{siswa_id}/buat"', 1)[1].split("</form>", 1)[0]
     assert "<input" not in form_utama
@@ -187,7 +186,7 @@ def test_sesi_terpandu_sudah_dilihat_tetap_meminta_konfirmasi(server):
 
     assert kode_buat == 200
     assert kode == 200
-    assert "Tinjau dan konfirmasi hasil" in kartu
+    assert "Tinjau hasil latihan" in kartu
     assert f'href="/sesi/{sesi}"' in kartu
     assert f'action="/siklus/{siswa_id}/buat"' not in kartu
 
@@ -385,14 +384,15 @@ def test_strip_tahap_dan_override_terpandu_terpisah_dari_latihan_bebas(server):
     _, isi, _ = s.minta(f"/anak/{siswa_id}?section=rencana", auth=("guru", SANDI_GURU))
     kartu = isi.split('<section class="kartu-rencana-st"', 1)[1].split('</section>', 1)[0]
 
+    posisi = isi.split('class="beranda-posisi-st"', 1)[1].split('</section>', 1)[0]
     for label in ("Kenali cara anak", "Pelajari", "Latihan", "Cek setelah jeda", "Cek kembali", "Lanjut"):
-        assert label in kartu
+        assert label in posisi
     assert "Checkpoint" not in kartu
-    assert '<details class="alur-rencana-jelas-st">' in kartu
-    assert "Apa yang terjadi di setiap tahap?" in kartu
-    assert "Tahap sekarang: Pelajari" in kartu
-    assert 'class="tahap-rencana-st selesai"' not in kartu
-    assert kartu.index('class="tindakan-rencana-st"') < kartu.index('class="alur-rencana-jelas-st"')
+    assert '<details class="alur-rencana-jelas-st">' in posisi
+    assert "Apa yang terjadi di setiap tahap?" in posisi
+    assert "tahap 2 dari 6" in posisi
+    assert 'class="tahap-rencana-st selesai"' not in posisi
+    assert isi.index('class="beranda-caranya-st"') < isi.index('class="alur-rencana-jelas-st"')
     assert '<details class="ubah-fokus-st">' in kartu
     assert "Ubah fokus terpandu" in kartu
     assert "menutup konfigurasi lama" in kartu

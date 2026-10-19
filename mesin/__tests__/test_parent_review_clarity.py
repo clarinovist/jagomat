@@ -139,8 +139,8 @@ def test_kartu_menyebut_sesi_rekomendasi_bukan_riwayat_terbaru(db):
         assert 'Hasil sesi belum dikonfirmasi guru' not in kartu
         assert 'Bagaimana kamu mendapat jawaban ini?' in kartu
         assert 'tanpa memberi jawaban' in kartu
-        assert 'Simpan draf' in kartu
-        assert 'Konfirmasi hanya setelah hasil diperiksa.' in kartu
+        assert 'Bisa disimpan sebagai draf dan dilanjutkan nanti.' in kartu
+        assert '1 soal · sekitar 3 menit pengerjaan' in kartu
 
 
 def test_kartu_tanpa_sesi_bukti_tidak_mengarang_tanggal():
