@@ -45,7 +45,7 @@ def test_chip_tidak_membocorkan_pencarian_dan_mempertahankan_filter_lain():
     chips = [parse_qs(urlsplit(h).query) for h in parser.hrefs if 'tingkat=' in h]
     assert chips
     assert all(c['tingkat'] == ['P4'] and c['keluarga_id'] == ['akun_demo'] for c in chips)
-    assert 'Semua · 126' in isi
+    assert 'Semua<span class="admin-cnt">126</span>' in isi
     cari = P.render_siswa(replace(data, cari='Nama Rahasia'), (), csrf='sintetis')
     parser = Tautan(); parser.feed(cari)
     assert all('Rahasia' not in href and 'cari=' not in href for href in parser.hrefs)

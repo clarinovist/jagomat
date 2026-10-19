@@ -16,6 +16,8 @@ import admin_labels as L
 from admin_antrean_pages import AntreanAdmin, SinyalNav, render_antrean
 from admin_ikon import ikon
 from admin_labels import LABEL_STATUS
+from admin_komponen import badge_status as _badge_status, e as _e, hidden_filter as _hidden_filter, opsi as _opsi, pager as _pager, waktu as _waktu
+from admin_daftar_pages import render_keluarga, render_siswa  # noqa: F401 (API publik admin_pages)
 import brand
 from admin_style import GAYA_ADMIN
 import design_tokens as T
@@ -52,10 +54,6 @@ LABEL_KATEGORI = {
     "pemilik_tanpa_akun": "Pemilik tanpa akun",
     "pemilik_kosong": "Pemilik kosong",
 }
-
-
-def _e(nilai) -> str:
-    return html.escape(str(nilai), quote=True)
 
 
 def _judul_section(section: str) -> Tuple[str, str]:
@@ -176,20 +174,6 @@ def halaman_admin(
     return dokumen.encode("utf-8")
 
 
-def _badge_status(status: Sequence[str]) -> str:
-    if not status:
-        return '<span class="admin-badge">Normal</span>'
-    return "".join(
-        '<span class="admin-badge%s">%s</span>'
-        % (' bien' if kode in ('succeeded', 'ok', 'completed', 'selesai') else ' perhatian', _e(L.label_status(kode)))
-        for kode in status
-    )
-
-
-def _waktu(nilai: Optional[str]) -> str:
-    return _e(L.tanggal(nilai))
-
-
 NADA_LAYANAN = frozenset(("baik", "netral", "perhatian"))
 
 
@@ -294,227 +278,6 @@ def render_ringkasan(
         '<p>Seluruh catatan sesi: <strong>%d</strong> · <strong>%d</strong> dalam 7 hari · '
         '<strong>%d</strong> dalam 30 hari · <strong>%d</strong> dibatalkan.</p></details></div>'
         % (data.jumlah_sesi, data.sesi_7_hari, data.sesi_30_hari, data.sesi_dibatalkan)
-    )
-
-
-def _opsi(nilai: str, label: str, kini: str) -> str:
-    return '<option value="%s"%s>%s</option>' % (
-        _e(nilai), ' selected' if nilai == kini else "", _e(label)
-    )
-
-
-def _hidden_filter(filter_data: Mapping[str, str]) -> str:
-    return "".join(
-        '<input type="hidden" name="%s" value="%s">' % (_e(kunci), _e(nilai))
-        for kunci, nilai in filter_data.items()
-        if nilai
-    )
-
-
-def _pager(
-    *,
-    section: str,
-    halaman: int,
-    jumlah_halaman: int,
-    total: int,
-    filter_data: Mapping[str, str],
-    via_post: bool,
-    csrf: str = "",
-) -> str:
-    if jumlah_halaman <= 1:
-        return '<p class="admin-meta">%d hasil.</p>' % total
-    kontrol = []
-    for target, label in ((halaman - 1, "Sebelumnya"), (halaman + 1, "Berikutnya")):
-        if target < 1 or target > jumlah_halaman:
-            continue
-        if via_post:
-            kontrol.append(
-                '<form method="post" action="/admin">'
-                '<input type="hidden" name="mode" value="cari">'
-                '<input type="hidden" name="section" value="%s">%s'
-                '<input type="hidden" name="csrf" value="%s">'
-                '<input type="hidden" name="halaman" value="%d">'
-                '<button type="submit">%s</button></form>'
-                % (_e(section), _hidden_filter(filter_data), _e(csrf), target, _e(label))
-            )
-        else:
-            query = {"section": section, "halaman": target}
-            query.update({k: v for k, v in filter_data.items() if v})
-            kontrol.append(
-                '<a class="admin-tautan" href="/admin?%s">%s</a>'
-                % (_e(urlencode(query)), _e(label))
-            )
-    return (
-        '<div class="admin-pager"><span>Halaman %d dari %d · %d hasil</span><div class="admin-aksi-baca">%s</div></div>'
-        % (halaman, jumlah_halaman, total, "".join(kontrol))
-    )
-
-
-def _chip_daftar(section, data, opsi):
-    """Tautan hanya filter publik; pencarian nama tetap di form POST."""
-    if data.cari:
-        return '<p class="admin-meta">%d hasil pencarian. Gunakan filter lanjutan untuk mempertahankan pencarian privat.</p>' % data.total
-    dasar = {'section': section}
-    for nama in ('memiliki_anak', 'status', 'tingkat', 'keluarga_id'):
-        if hasattr(data, nama):
-            dasar[nama] = getattr(data, nama)
-    chips = []
-    for label, nilai in opsi:
-        query = dict(dasar, **nilai)
-        aktif = all(getattr(data, k) == v for k, v in nilai.items())
-        chips.append('<a class="admin-chip"%s href="/admin?%s">%s%s</a>' % (
-            ' aria-current="true"' if aktif else '', _e(urlencode(query)), _e(label),
-            ' · %d' % data.total if aktif else ''))
-    return '<nav class="admin-chip-baris" aria-label="Filter cepat">%s</nav>' % ''.join(chips)
-
-
-def render_keluarga(
-    data: Q.HalamanKeluarga, *, csrf: str = "", tampilkan_aksi: bool = True
-) -> str:
-    baris_semua = []
-    for item in data.item:
-        label = _e(item.pengguna or "Pemilik kosong")
-        kelola = (
-            '<a href="/admin?section=keluarga&amp;id=%s">%s</a>'
-            % (_e(item.id_akun), 'Kelola akun' if tampilkan_aksi and item.kategori == 'orang_tua' else 'Lihat detail')
-            if item.id_akun is not None else '—'
-        )
-        baris_semua.append(
-            '<tr><td>%s</td><td>%s</td><td data-angka>%d</td><td data-angka>%d</td><td>%s</td><td>%s</td><td>%s</td></tr>'
-            % (
-                label,
-                _e(LABEL_KATEGORI[item.kategori]),
-                item.jumlah_siswa,
-                item.jumlah_sesi,
-                _waktu(item.aktivitas_terakhir),
-                _badge_status(item.status),
-                kelola,
-            )
-        )
-    baris = "".join(baris_semua) or '<tr><td colspan="7" class="admin-kosong">Tidak ada keluarga yang cocok.</td></tr>'
-    form = (
-        '<section class="admin-kartu"><h2>Cari dan saring keluarga</h2>'
-        '<form class="admin-form-cari" method="post" action="/admin">'
-        '<input type="hidden" name="mode" value="cari"><input type="hidden" name="section" value="keluarga">'
-        '<input type="hidden" name="csrf" value="%s">'
-        '<label>Cari alias akun<input name="cari" maxlength="80" value="%s" autocomplete="off"></label>'
-        '<details><summary>Filter lanjutan</summary><div><label>Kepemilikan siswa<select name="memiliki_anak">%s%s%s</select></label>'
-        '<label>Kondisi akses<select name="status">%s%s</select></label></div></details>'
-        '<button class="admin-tombol" type="submit">Cari</button></form></section>'
-        % (
-            _e(csrf), _e(data.cari),
-            _opsi("semua", "Semua", data.memiliki_anak),
-            _opsi("ya", "Memiliki siswa", data.memiliki_anak),
-            _opsi("tidak", "Belum memiliki siswa", data.memiliki_anak),
-            _opsi("semua", "Semua", data.status),
-            _opsi("perlu_perhatian", "Perlu perhatian", data.status),
-        )
-    )
-    if not csrf:
-        form = '<p class="admin-meta">Tampilan baca-saja. Masuk melalui formulir untuk mencari dan mengelola akun.</p>'
-    filter_data = {
-        "cari": data.cari,
-        "memiliki_anak": data.memiliki_anak,
-        "status": data.status,
-    }
-    return (
-        _chip_daftar('keluarga', data, (
-            ('Semua', {'status': 'semua', 'memiliki_anak': 'semua'}),
-            ('Perlu perhatian', {'status': 'perlu_perhatian', 'memiliki_anak': 'semua'}),
-            ('Belum memiliki siswa', {'status': 'semua', 'memiliki_anak': 'tidak'}),
-        )) + form
-        + (
-            '<p><a class="admin-tombol" href="/admin/tinjau?aksi=account_teacher_create">Buat akun orang tua</a></p>'
-            if tampilkan_aksi else ""
-        )
-        + '<section class="admin-kartu"><h2>Daftar keluarga</h2>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th scope="col">Akun/pemilik</th><th scope="col">Kategori</th><th scope="col">Siswa</th><th scope="col">Sesi</th><th scope="col">Aktivitas terakhir</th><th scope="col">Kondisi</th><th scope="col">Tindakan</th></tr></thead>'
-        '<tbody>%s</tbody></table></div>%s</section>'
-        % (
-            baris,
-            _pager(
-                section="keluarga", halaman=data.halaman,
-                jumlah_halaman=data.jumlah_halaman, total=data.total,
-                filter_data=filter_data, via_post=bool(data.cari), csrf=csrf,
-            ),
-        )
-    )
-
-
-def render_siswa(
-    data: Q.HalamanSiswa, keluarga: Sequence[Q.KeluargaRingkas], *, csrf: str = ""
-) -> str:
-    opsi_keluarga = _opsi("", "Semua keluarga", data.keluarga_id) + "".join(
-        _opsi(item.id_akun or "", item.pengguna, data.keluarga_id)
-        for item in keluarga if item.id_akun is not None
-    )
-    form = (
-        '<section class="admin-kartu"><h2>Cari dan saring siswa</h2>'
-        '<form class="admin-form-cari admin-form-siswa" method="post" action="/admin">'
-        '<input type="hidden" name="mode" value="cari"><input type="hidden" name="section" value="siswa">'
-        '<input type="hidden" name="csrf" value="%s">'
-        '<label>Cari nama, login, atau keluarga<input name="cari" maxlength="80" value="%s" autocomplete="off"></label>'
-        '<details><summary>Filter lanjutan</summary><div><label>Profil parameter<select name="tingkat">%s%s</select></label>'
-        '<label>Keluarga<select name="keluarga_id">%s</select></label>'
-        '<label>Kondisi<select name="status">%s%s</select></label></div></details>'
-        '<button class="admin-tombol" type="submit">Cari</button></form></section>'
-        % (
-            _e(csrf), _e(data.cari),
-            _opsi("", "Semua profil", data.tingkat),
-            "".join(_opsi(level, level, data.tingkat) for level in ("P3", "P4", "P5", "P6")),
-            opsi_keluarga,
-            _opsi("semua", "Semua", data.status),
-            "".join(
-                _opsi(kode, LABEL_STATUS[kode], data.status)
-                for kode in (
-                    "student_without_login", "owner_without_account", "owner_empty",
-                    "legacy_login_unverified", "legacy_same_name_ambiguous",
-                )
-            ),
-        )
-    )
-    baris = "".join(
-        '<tr><td><a href="/admin?section=siswa&amp;id=%d">%s</a></td><td>%s</td>'
-        '<td>%s</td><td>%s</td><td data-angka>%d</td><td>%s</td></tr>'
-        % (
-            item.id,
-            _e(item.nama),
-            _e(label_kelas_sekolah(item.kelas_sekolah)),
-            _e(item.pemilik or "Pemilik kosong"),
-            _e(item.login_pengguna or "Belum ada login tertaut"),
-            item.jumlah_sesi,
-            _badge_status(item.status),
-        )
-        for item in data.item
-    ) or '<tr><td colspan="6" class="admin-kosong">Tidak ada siswa yang cocok.</td></tr>'
-    if not csrf:
-        form = '<p class="admin-meta">Tampilan baca-saja. Masuk melalui formulir untuk mencari dan mengelola akun.</p>'
-    filter_data = {
-        "cari": data.cari,
-        "tingkat": data.tingkat,
-        "keluarga_id": data.keluarga_id,
-        "status": data.status,
-    }
-    return (
-        _chip_daftar('siswa', data, (
-            ('Semua', {'status': 'semua'}),
-            ('Belum ada login tertaut', {'status': 'student_without_login'}),
-            ('Pemilik tanpa akun', {'status': 'owner_without_account'}),
-        )) + form
-        + '<section class="admin-kartu"><h2>Daftar siswa</h2>'
-        '<p class="admin-meta">Login tertaut adalah akun yang dihubungkan langsung ke profil siswa. Akun lama yang belum tertaut mungkin masih bisa masuk melalui kecocokan nama; periksa sebelum membuat akun baru.</p>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel">'
-        '<thead><tr><th scope="col">Siswa</th><th scope="col">Kelas sekolah</th><th scope="col">Keluarga</th><th scope="col">Login</th><th scope="col">Sesi</th><th scope="col">Kondisi</th></tr></thead>'
-        '<tbody>%s</tbody></table></div>%s</section>'
-        % (
-            baris,
-            _pager(
-                section="siswa", halaman=data.halaman,
-                jumlah_halaman=data.jumlah_halaman, total=data.total,
-                filter_data=filter_data, via_post=bool(data.cari), csrf=csrf,
-            ),
-        )
     )
 
 

@@ -385,3 +385,51 @@ def test_riwayat_chip_semua_aksi_aktif_tanpa_filter():
     isi = pages.render_riwayat(_riwayat_contoh(), filter_data={})
     assert isi.count('aria-current="true"') == 1
     assert '>Semua aksi</a>' in isi
+
+
+def test_chip_daftar_menampilkan_hitungan_facet_dan_chip_normal():
+    facet = (
+        ("semua", 8), ("perlu_perhatian", 3), ("student_without_login", 1),
+        ("owner_without_account", 2), ("normal", 5),
+    )
+    from dataclasses import replace
+    isi = pages.render_siswa(replace(_siswa(), cari="", jumlah_facet=facet), (), csrf="x")
+
+    for label, jumlah in (
+        ("Semua", 8), ("Perlu perhatian", 3), ("Belum ada login tertaut", 1),
+        ("Pemilik tanpa akun", 2), ("Normal", 5),
+    ):
+        assert '%s<span class="admin-cnt">%d</span></a>' % (label, jumlah) in isi
+    assert "status=normal" in isi and "status=perlu_perhatian" in isi
+
+
+def test_chip_keluarga_membawa_hitungan_dan_normal():
+    from dataclasses import replace
+    facet = (("semua", 7), ("perlu_perhatian", 2), ("tanpa_siswa", 1), ("normal", 4))
+    isi = pages.render_keluarga(replace(_keluarga(), cari="", jumlah_facet=facet), csrf="x")
+
+    for label, jumlah in (("Semua", 7), ("Perlu perhatian", 2), ("Belum memiliki siswa", 1), ("Normal", 4)):
+        assert '%s<span class="admin-cnt">%d</span></a>' % (label, jumlah) in isi
+
+
+def test_tabel_siswa_avatar_tindakan_dan_scope_kolom():
+    isi = pages.render_siswa(_siswa(), (), csrf="x")
+
+    assert isi.count('<th scope="col"') == 7
+    assert '<span class="admin-avatar" aria-hidden="true">A</span>' in isi
+    assert '>Tinjau</a>' in isi  # siswa berstatus perhatian
+    assert 'class="admin-redup">Belum diisi</span>' in isi
+    assert "Diurutkan menurut nama." in isi
+    normal = q.SiswaRingkas(8, "Budi", "P3", "p", "a", "orang_tua", None, "budi", 0, None, (), 4)
+    from dataclasses import replace
+    halaman = pages.render_siswa(replace(_siswa(), item=(normal,)), (), csrf="x")
+    assert '>Buka</a>' in halaman and 'admin-badge bien">Normal' in halaman
+    assert "Kelas 4" in halaman
+
+
+def test_keluarga_nama_bukan_tautan_kedua_dan_tanpa_id_tetap_strip():
+    kosong = q.KeluargaRingkas(None, "pemilik-x", "pemilik_tanpa_akun", 1, 0, None, ("owner_without_account",))
+    from dataclasses import replace
+    isi = pages.render_keluarga(replace(_keluarga(), item=(kosong,)), csrf="x")
+    assert "<td>—</td>" in isi
+    assert 'admin-sel-nama"><span class="admin-avatar" aria-hidden="true">p</span>pemilik-x' in isi

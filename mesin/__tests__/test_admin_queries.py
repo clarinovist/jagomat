@@ -303,3 +303,64 @@ def test_fixture_1000_keluarga_5000_siswa_query_count_konstan(db):
     assert len(query_keluarga) == 1
     assert len(query_siswa) == 1
     assert "rahasia-0000" not in repr(konteks)
+
+
+def test_facet_siswa_dihitung_dari_populasi_sebelum_filter_status(db):
+    _isi_anomali(db)
+    konteks = q.buat_konteks(db, _akun())
+
+    semua = q.daftar_siswa(db, konteks, per_halaman=100)
+    facet = dict(semua.jumlah_facet)
+    perhatian = [item for item in semua.item if item.status]
+    normal = [item for item in semua.item if not item.status]
+
+    assert facet["semua"] == semua.total == len(semua.item)
+    assert facet["perlu_perhatian"] == len(perhatian)
+    assert facet["normal"] == len(normal)
+    assert facet["perlu_perhatian"] + facet["normal"] == facet["semua"]
+    assert facet["student_without_login"] == sum(
+        "student_without_login" in item.status for item in semua.item
+    )
+    assert facet["owner_without_account"] == sum(
+        "owner_without_account" in item.status for item in semua.item
+    )
+    # Filter status tidak mengubah facet: hitungan tetap dari populasi penuh.
+    terfilter = q.daftar_siswa(db, konteks, status="perlu_perhatian", per_halaman=100)
+    assert terfilter.jumlah_facet == semua.jumlah_facet
+    assert terfilter.total == facet["perlu_perhatian"]
+    assert all(item.status for item in terfilter.item)
+
+
+def test_filter_siswa_normal_hanya_tanpa_status(db):
+    _isi_anomali(db)
+    konteks = q.buat_konteks(db, _akun())
+
+    hasil = q.daftar_siswa(db, konteks, status="normal", per_halaman=100)
+
+    assert hasil.total == dict(hasil.jumlah_facet)["normal"]
+    assert all(item.status == () for item in hasil.item)
+
+
+def test_facet_dan_filter_keluarga_normal_serta_perlu_perhatian(db):
+    _isi_anomali(db)
+    konteks = q.buat_konteks(db, _akun())
+
+    semua = q.daftar_keluarga(db, konteks, per_halaman=100)
+    facet = dict(semua.jumlah_facet)
+    assert facet["semua"] == semua.total
+    assert facet["perlu_perhatian"] == sum(bool(i.status) for i in semua.item)
+    assert facet["normal"] == sum(not i.status for i in semua.item)
+    assert facet["tanpa_siswa"] == sum(i.jumlah_siswa == 0 for i in semua.item)
+
+    normal = q.daftar_keluarga(db, konteks, status="normal", per_halaman=100)
+    assert normal.total == facet["normal"]
+    assert all(not item.status for item in normal.item)
+    assert normal.jumlah_facet == semua.jumlah_facet
+
+
+def test_filter_status_normal_tetap_menolak_nilai_tak_dikenal(db):
+    konteks = q.buat_konteks(db, _akun())
+    with pytest.raises(q.InputQueryTidakSah):
+        q.daftar_keluarga(db, konteks, status="bukan-status")
+    with pytest.raises(q.InputQueryTidakSah):
+        q.daftar_siswa(db, konteks, status="bukan-status")

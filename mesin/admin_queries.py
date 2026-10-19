@@ -34,6 +34,9 @@ STATUS_SISWA = frozenset((
 ))
 
 
+STATUS_FILTER_SISWA = frozenset(("semua", "perlu_perhatian", "normal"))
+
+
 class InputQueryTidakSah(ValueError):
     """Filter atau snapshot tidak memenuhi kontrak sempit query admin."""
 
@@ -165,6 +168,7 @@ class HalamanKeluarga:
     cari: str
     status: str
     memiliki_anak: str
+    jumlah_facet: Tuple[Tuple[str, int], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -178,6 +182,7 @@ class HalamanSiswa:
     tingkat: str
     status: str
     keluarga_id: str
+    jumlah_facet: Tuple[Tuple[str, int], ...] = ()
 
 
 def _teks_wajib(nilai, label: str, *, maksimum: int = 160) -> str:
@@ -578,6 +583,26 @@ def _keluarga_semua(kon, konteks: KonteksAdmin) -> Tuple[KeluargaRingkas, ...]:
     ))
 
 
+def _facet_keluarga(data) -> Tuple[Tuple[str, int], ...]:
+    """Hitungan chip dari populasi yang sama dengan tabel, sebelum filter kondisi."""
+    return (
+        ("semua", len(data)),
+        ("perlu_perhatian", sum(1 for item in data if item.status)),
+        ("tanpa_siswa", sum(1 for item in data if item.jumlah_siswa == 0)),
+        ("normal", sum(1 for item in data if not item.status)),
+    )
+
+
+def _facet_siswa(data) -> Tuple[Tuple[str, int], ...]:
+    return (
+        ("semua", len(data)),
+        ("perlu_perhatian", sum(1 for item in data if item.status)),
+        ("student_without_login", sum(1 for item in data if "student_without_login" in item.status)),
+        ("owner_without_account", sum(1 for item in data if "owner_without_account" in item.status)),
+        ("normal", sum(1 for item in data if not item.status)),
+    )
+
+
 def daftar_keluarga(
     kon,
     konteks: KonteksAdmin,
@@ -591,7 +616,7 @@ def daftar_keluarga(
     """Daftar keluarga. Pencarian alias literal dilakukan pada snapshot."""
     halaman, per_halaman = _paginasi(halaman, per_halaman)
     cari = _cari(cari)
-    if status not in ("semua", "perlu_perhatian"):
+    if status not in ("semua", "perlu_perhatian", "normal"):
         raise InputQueryTidakSah("filter status keluarga tidak sah")
     if memiliki_anak not in ("semua", "ya", "tidak"):
         raise InputQueryTidakSah("filter anak tidak sah")
@@ -599,8 +624,11 @@ def daftar_keluarga(
     if cari:
         needle = cari.casefold()
         data = [item for item in data if needle in item.pengguna.casefold()]
+    jumlah_facet = _facet_keluarga(data)
     if status == "perlu_perhatian":
         data = [item for item in data if item.status]
+    elif status == "normal":
+        data = [item for item in data if not item.status]
     if memiliki_anak == "ya":
         data = [item for item in data if item.jumlah_siswa > 0]
     elif memiliki_anak == "tidak":
@@ -616,6 +644,7 @@ def daftar_keluarga(
         cari,
         status,
         memiliki_anak,
+        jumlah_facet,
     )
 
 
@@ -665,7 +694,7 @@ def daftar_siswa(
     cari = _cari(cari)
     if tingkat and tingkat not in LEVEL_DIIJINKAN:
         raise InputQueryTidakSah("filter tingkat tidak sah")
-    if status != "semua" and status not in STATUS_SISWA:
+    if status not in STATUS_FILTER_SISWA and status not in STATUS_SISWA:
         raise InputQueryTidakSah("filter status siswa tidak sah")
     keluarga_id = keluarga_id.strip()
     where, argumen = _klausa_siswa(
@@ -690,7 +719,12 @@ def daftar_siswa(
             dicari in nilai.casefold()
             for nilai in (item.nama, item.pemilik, item.login_pengguna or "")
         )]
-    if status != "semua":
+    jumlah_facet = _facet_siswa(data)
+    if status == "perlu_perhatian":
+        data = [item for item in data if item.status]
+    elif status == "normal":
+        data = [item for item in data if not item.status]
+    elif status != "semua":
         data = [item for item in data if status in item.status]
     total = len(data)
     awal = (halaman - 1) * per_halaman
@@ -704,6 +738,7 @@ def daftar_siswa(
         tingkat,
         status,
         keluarga_id,
+        jumlah_facet,
     )
 
 
