@@ -11,10 +11,15 @@ import ai_policy
 import ai_store
 import ai_service
 import admin_pages
+import admin_labels as L
 
 
 def _usd(micro):
     return f"{int(micro) / 1_000_000:.2f}"
+
+
+def _uang(micro, presisi=2):
+    return format(int(micro) / 1_000_000, '.%df' % presisi).replace('.', ',')
 
 
 def halaman(path, *, pengguna, csrf, pesan="", galat="",
@@ -41,9 +46,9 @@ def halaman(path, *, pengguna, csrf, pesan="", galat="",
             f'<tr><td data-label="Fitur">{ai_policy.LABEL_FITUR[fitur]}</td>'
             f'<td data-label="Status efektif">{html.escape(status)}</td>'
             f'<td data-label="Model">{html.escape(profil.model)}</td>'
-            f'<td data-label="Pagu per hari">USD {_usd(batas[fitur]["batas_harian"])}</td>'
-            f'<td data-label="Pagu per bulan">USD {_usd(batas[fitur]["batas_bulanan"])}</td>'
-            f'<td data-label="Terpakai hari / bulan (USD)">{pakai[fitur]["harian"] / 1_000_000:.4f} / {pakai[fitur]["bulanan"] / 1_000_000:.4f}</td></tr>'
+            f'<td data-angka data-label="Pagu per hari">USD {_uang(batas[fitur]["batas_harian"])}</td>'
+            f'<td data-angka data-label="Pagu per bulan">USD {_uang(batas[fitur]["batas_bulanan"])}</td>'
+            f'<td data-angka data-label="Terpakai hari / bulan (USD)">{_uang(pakai[fitur]["harian"], 4)} / {_uang(pakai[fitur]["bulanan"], 4)}</td></tr>'
         )
     field_batas = []
     for fitur in ("global", *ai_policy.FITUR):
@@ -60,32 +65,34 @@ def halaman(path, *, pengguna, csrf, pesan="", galat="",
             f'value="{_usd(batas[fitur]["batas_bulanan"])}" required></label></fieldset>'
         )
     audit_html = "".join(
-        f'<li>Revisi {a["revisi"]}: {html.escape(a["field"])} diubah oleh '
-        f'{html.escape(a["actor_id"])}.</li>' for a in audit
+        f'<li>{L.tanggal(a["dibuat"])} · Revisi {a["revisi"]}: {html.escape(L.label_status(a["field"]))} diubah oleh '
+        f'{L.referensi(a["actor_id"])}.</li>' for a in audit
     ) or "<li>Belum ada perubahan.</li>"
     isi = (
         kabar
         + '<div class="admin-kartu"><h2>Status layanan</h2>'
-        f'<p>Credential: <strong>{key}</strong>. Provider: DeepSeek. Hard ceiling bulanan deployment: '
-        f'<strong>USD {_usd(ai_policy.hard_ceiling_micro_usd())}</strong>.</p>'
-        f'<p>Pagu global: <strong>USD {_usd(batas["global"]["batas_harian"])}/hari</strong> dan '
-        f'<strong>USD {_usd(batas["global"]["batas_bulanan"])}/bulan</strong>.</p>'
+        f'<p>Kredensial: <strong>{key}</strong>. Provider: DeepSeek. Batas keras bulanan deployment: '
+        f'<strong>USD {_uang(ai_policy.hard_ceiling_micro_usd())}</strong>.</p>'
+        f'<p>Pagu global: <strong>USD {_uang(batas["global"]["batas_harian"])}/hari</strong> dan '
+        f'<strong>USD {_uang(batas["global"]["batas_bulanan"])}/bulan</strong>.</p>'
         '<p>Periode mengikuti WIB. Pagu 0 berarti tidak diizinkan. Izin admin tidak menggantikan izin deployment atau persetujuan keluarga.</p>'
         '<p>Biaya di halaman ini adalah perhitungan aplikasi, bukan tagihan provider.</p></div>'
         '<div class="admin-kartu"><h2>Status dan pemakaian per fitur</h2><div class="admin-tabel-wrap">'
-        '<table class="admin-tabel"><tr><th>Fitur</th><th>Status efektif</th><th>Model</th><th>Pagu/hari</th><th>Pagu/bulan</th><th>Terpakai hari/bulan (USD)</th></tr>'
+        '<table class="admin-tabel"><tr><th scope="col">Fitur</th><th scope="col">Status efektif</th><th scope="col">Model</th><th scope="col">Pagu/hari</th><th scope="col">Pagu/bulan</th><th scope="col">Terpakai hari/bulan (USD)</th></tr>'
         + "".join(baris) + '</table></div></div>'
         '<div class="admin-kartu"><h2>Ubah batas pemakaian</h2>'
         '<form method="post" action="/admin/ai/pengaturan">'
         f'<input type="hidden" name="csrf" value="{html.escape(csrf, quote=True)}">'
         f'<input type="hidden" name="tinjauan" value="{html.escape(tinjauan_pengaturan, quote=True)}">'
         f'<input type="hidden" name="revisi" value="{utama["revisi"]}">'
-        f'<label><input type="checkbox" name="dihentikan" value="1" {"checked" if utama["dihentikan"] else ""}>'
-        ' Hentikan panggilan AI baru</label><p class="sub">Permintaan yang sudah dikirim mungkin tetap selesai dan dikenai biaya. Data belajar dan hasil lama tidak dihapus.</p>'
         + "".join(field_batas)
-        + f'<label>Batas request per akun per hari<input name="request_akun_harian" type="number" min="0" value="{utama["request_akun_harian"]}" required></label>'
+        + f'<fieldset><legend>Batas lain</legend><label>Batas request per akun per hari<input name="request_akun_harian" type="number" min="0" value="{utama["request_akun_harian"]}" required></label>'
         f'<label>Batas tes per hari<input name="uji_harian" type="number" min="0" value="{utama["uji_harian"]}" required></label>'
-        f'<label>Jeda tes (menit)<input name="uji_cooldown_menit" type="number" min="0" value="{utama["uji_cooldown_detik"] // 60}" required></label>'
+        f'<label>Jeda tes (menit)<input name="uji_cooldown_menit" type="number" min="0" value="{utama["uji_cooldown_detik"] // 60}" required></label></fieldset>'
+        '<fieldset class="admin-galat"><legend>Kendali penghentian</legend>'
+        f'<label><input type="checkbox" name="dihentikan" value="1" {"checked" if utama["dihentikan"] else ""}>'
+        ' Hentikan panggilan AI baru</label><p>Permintaan yang sudah dikirim mungkin tetap selesai dan dikenai biaya. Data belajar dan hasil lama tidak dihapus.</p>'
+        '<p>Perubahan ini diterapkan bersama tombol Simpan pengaturan AI.</p></fieldset>'
         '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
         '<button type="submit" class="admin-tombol">Simpan pengaturan AI</button></form></div>'
         '<div class="admin-kartu"><h2>Tes koneksi sintetis</h2><p>Pengujian mengirim pesan tetap tanpa data keluarga dan memakai kuota tes serta global.</p>'

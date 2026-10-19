@@ -6,6 +6,7 @@ import html
 from urllib.parse import urlencode
 
 import research_instrument as instrumen
+import admin_labels as L
 
 
 SUMBER_LABEL = {
@@ -39,10 +40,7 @@ def e(nilai) -> str:
 
 
 def _tanggal(timestamp) -> str:
-    if timestamp is None:
-        return "—"
-    zona = timezone(timedelta(hours=7))
-    return datetime.fromtimestamp(int(timestamp), zona).strftime("%d %b %Y, %H.%M WIB")
+    return L.tanggal(timestamp)
 
 
 def _hidden(nama, nilai) -> str:
@@ -97,7 +95,7 @@ def dashboard(data, *, csrf: str, token_buat: str, token_ekspor: dict,
         pager = '<nav class="admin-pager" aria-label="Halaman wawancara">%s</nav>' % ''.join(links)
     buat = (
         '<section class="admin-kartu riset-mulai"><h2>Mulai wawancara</h2>'
-        '<p>Gunakan kode anonim. Jangan masukkan nama orang tua, nama anak, sekolah, kontak, foto, atau jawaban soal anak.</p>'
+        '<p class="admin-kartu admin-catatan">Gunakan kode anonim. Jangan masukkan nama orang tua, nama anak, sekolah, kontak, foto, atau jawaban soal anak.</p>'
         '<form method="post" action="/admin/riset/buat">%s%s'
         '<div class="riset-grid-form"><label>Kode responden<input name="kode_responden" maxlength="32" '
         'pattern="[A-Za-z0-9][A-Za-z0-9_-]{2,31}" placeholder="Contoh: R02" required></label>'
@@ -112,15 +110,15 @@ def dashboard(data, *, csrf: str, token_buat: str, token_ekspor: dict,
         ))
     )
     return (
-        '<div class="admin-grid-stat">%s</div>%s'
         '<nav class="riset-aksi-atas" aria-label="Aksi data riset">'
         '<a class="admin-tautan" href="/admin/riset/matriks">Buka matriks lintas responden</a>'
         '<form method="post" action="/admin/riset/ekspor">%s%s<input type="hidden" name="format" value="csv"><button class="admin-tautan" type="submit">Ekspor CSV anonim</button></form>'
         '<form method="post" action="/admin/riset/ekspor">%s%s<input type="hidden" name="format" value="json"><button class="admin-tautan" type="submit">Ekspor JSON anonim</button></form></nav>'
-        '<section class="admin-kartu"><h2>Wawancara</h2>%s%s%s</section>'
-        % (kartu, buat, _hidden("csrf", csrf), _hidden("tinjauan", token_ekspor["csv"]),
+        '<div class="admin-grid-stat">%s</div><div class="admin-dua-kolom">%s'
+        '<section class="admin-kartu"><h2>Wawancara</h2>%s%s%s</section></div>'
+        % (_hidden("csrf", csrf), _hidden("tinjauan", token_ekspor["csv"]),
            _hidden("csrf", csrf), _hidden("tinjauan", token_ekspor["json"]),
-           filter_form, daftar, pager)
+           kartu, buat, filter_form, daftar, pager)
     )
 
 
@@ -240,7 +238,7 @@ def matriks(data) -> str:
     if not data["wawancara"]:
         return ('<p><a href="/admin/riset">← Kembali ke riset konsumen</a></p>'
                 '<section class="admin-kartu"><p class="admin-kosong">Belum ada wawancara final untuk dibandingkan.</p></section>')
-    kepala = ''.join('<th>%s</th>' % e(label) for _kode,label in data["kolom"])
+    kepala = ''.join('<th scope="col">%s</th>' % e(label) for _kode,label in data["kolom"])
     rows = []
     for item in data["wawancara"]:
         cells = []
@@ -262,5 +260,5 @@ def matriks(data) -> str:
         ))
     return ('<p><a href="/admin/riset">← Kembali ke riset konsumen</a></p>'
             '<section class="admin-kartu admin-catatan"><strong>Batas pembacaan</strong><p>Studi eksploratif; tidak mewakili seluruh orang tua Indonesia dan bukan bukti PMF. Hitungan memakai denominator yang menjawab tiap topik.</p></section>'
-            '<div class="admin-tabel-wrap"><table class="admin-tabel riset-matriks"><thead><tr><th>Responden</th>%s</tr></thead><tbody>%s</tbody></table></div>'
+            '<div class="admin-tabel-wrap"><table class="admin-tabel riset-matriks"><thead><tr><th scope="col">Responden</th>%s</tr></thead><tbody>%s</tbody></table></div>'
             '<div class="riset-grid-ringkas">%s</div>' % (kepala,''.join(rows),''.join(counts)))

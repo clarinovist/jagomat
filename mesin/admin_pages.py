@@ -158,8 +158,8 @@ def _badge_status(status: Sequence[str]) -> str:
     if not status:
         return '<span class="admin-badge">Normal</span>'
     return "".join(
-        '<span class="admin-badge perhatian">%s</span>'
-        % _e(LABEL_STATUS.get(kode, "Perlu ditinjau"))
+        '<span class="admin-badge%s">%s</span>'
+        % (' bien' if kode in ('succeeded', 'ok', 'completed', 'selesai') else ' perhatian', _e(L.label_status(kode)))
         for kode in status
     )
 
@@ -767,8 +767,9 @@ def form_hapus_siswa(csrf, token):
 def render_pendaftaran(status, *, csrf: str, token: str) -> str:
     checked = " checked" if status.dibuka else ""
     return (
-        '<section class="admin-kartu"><h2>Status pendaftaran mandiri</h2>'
-        '<p>Status saat ini: <strong>%s</strong>. Perubahan tidak memengaruhi login existing.</p>'
+        '<section class="admin-kartu"><h2>Pendaftaran %s</h2>'
+        '<p>Perubahan tidak memengaruhi login yang sudah ada.</p></section>'
+        '<div class="admin-dua-kolom"><section class="admin-kartu"><h2>Pengaturan pendaftaran</h2>'
         '<form method="post" action="/admin/pendaftaran">'
         '<input type="hidden" name="aksi" value="registration_config_update">'
         '<input type="hidden" name="csrf" value="%s"><input type="hidden" name="tinjauan" value="%s">'
@@ -779,10 +780,12 @@ def render_pendaftaran(status, *, csrf: str, token: str) -> str:
         '</select></label>'
         '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
         '<button class="admin-tombol" type="submit">Simpan pengaturan</button>'
-        '</form></section>' % (
-            "Dibuka" if status.dibuka else "Ditutup", _e(csrf), _e(token), checked,
+        '</form></section><aside class="admin-kartu admin-catatan"><h2>Pratinjau saat ditutup</h2>'
+        '<p>%s</p><p class="admin-meta">Pesan tersimpan. Pratinjau diperbarui setelah pengaturan disimpan.</p></aside></div>' % (
+            "dibuka" if status.dibuka else "ditutup", _e(csrf), _e(token), checked,
             ' selected' if status.pesan_kode == 'closed_standard' else '',
             ' selected' if status.pesan_kode == 'closed_maintenance' else '',
+            'Pendaftaran sementara ditutup untuk pemeliharaan' if status.pesan_kode == 'closed_maintenance' else 'Pendaftaran baru sedang ditutup',
         )
     )
 
@@ -902,9 +905,9 @@ def render_riwayat(data, *, filter_data=None) -> str:
     }
     baris = "".join(
         '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
-            _e(datetime.fromtimestamp(item.dibuat, timezone(timedelta(hours=7))).strftime('%d/%m/%Y %H:%M WIB')),
-            _e(item.actor_id), _e(label.get(item.aksi, item.aksi)),
-            _e(item.target_id), _e(item.status),
+            _e(L.tanggal(item.dibuat)),
+            L.referensi(item.actor_id), _e(label.get(item.aksi, L.label_status(item.aksi))),
+            L.referensi(item.target_id), _badge_status((item.status,)),
         ) for item in data.item
     ) or '<tr><td colspan="5" class="admin-kosong">Belum ada tindakan admin.</td></tr>'
     kini_aksi = (filter_data or {}).get('aksi', '')
@@ -932,7 +935,7 @@ def render_riwayat(data, *, filter_data=None) -> str:
         '<label>Aksi<select name="aksi">%s</select></label>'
         '<button class="admin-tombol admin-tombol-sekunder">Saring riwayat</button></form>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr>'
-        '<th scope="col">Waktu</th><th scope="col">Actor</th><th scope="col">Aksi</th><th scope="col">Target</th><th scope="col">Status</th>'
+        '<th scope="col">Waktu</th><th scope="col">Pelaku</th><th scope="col">Aksi</th><th scope="col">Target</th><th scope="col">Status</th>'
         '</tr></thead><tbody>%s</tbody></table></div>'
         '%s</section>'
         % (_e(filter_data.get('mulai', '')), _e(filter_data.get('selesai', '')),
@@ -951,9 +954,9 @@ def render_riwayat_ai(data, *, filter_data=None):
                    if k in ('actor_id', 'aksi', 'mulai', 'selesai')}
     label = {'ai_settings_update': 'Ubah pengaturan AI', 'ai_synthetic_test': 'Tes sintetis AI'}
     baris = ''.join('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
-        _e(datetime.fromtimestamp(x.dibuat, timezone(timedelta(hours=7))).strftime('%d/%m/%Y %H:%M WIB')),
-        _e(x.actor_id or 'Tidak tercatat (sebelum metadata)'), _e(label[x.aksi]), _e(x.status),
-        _e(x.operasi_id or ('Revisi %s (sebelum metadata operasi)' % x.revisi if x.revisi else 'Sebelum metadata operasi')),
+        _e(L.tanggal(x.dibuat)),
+        L.referensi(x.actor_id or 'Tidak tercatat (sebelum metadata)'), _e(label[x.aksi]), _badge_status((x.status,)),
+        L.referensi(x.operasi_id or ('Revisi %s (sebelum metadata operasi)' % x.revisi if x.revisi else 'Sebelum metadata operasi')),
     ) for x in data.item) or '<tr><td colspan="5">Belum ada riwayat AI.</td></tr>'
     return (
         _nav_riwayat() + '<section class="admin-kartu"><h2>Riwayat dari penyimpanan AI</h2>'
@@ -964,7 +967,7 @@ def render_riwayat_ai(data, *, filter_data=None):
         '<label>Sampai (WIB)<input type="date" name="selesai" value="%s"></label>'
         '<label>ID pengelola<input name="actor_id" maxlength="80" value="%s"></label>'
         '<label>Aksi<select name="aksi">%s</select></label><button class="admin-tombol">Saring riwayat</button></form>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Waktu</th><th scope="col">Actor</th><th scope="col">Aksi</th><th scope="col">Status</th><th scope="col">Referensi</th></tr></thead>'
+        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Waktu</th><th scope="col">Pelaku</th><th scope="col">Aksi</th><th scope="col">Status</th><th scope="col">Referensi</th></tr></thead>'
         '<tbody>%s</tbody></table></div>%s</section>'
         % (_e(filter_data.get('mulai', '')), _e(filter_data.get('selesai', '')), _e(filter_data.get('actor_id', '')),
            _opsi('', 'Semua aksi', filter_data.get('aksi', '')) + ''.join(
@@ -975,15 +978,11 @@ def render_riwayat_ai(data, *, filter_data=None):
 
 
 def _label_status_batch(status):
-    return {'pending': 'Belum diproses', 'succeeded': 'Berhasil', 'failed_before_commit': 'Gagal sebelum tulis',
-            'conflict': 'Konflik', 'uncertain': 'Belum pasti', 'cancelled': 'Dibatalkan',
-            'ready': 'Siap', 'running': 'Sedang diproses', 'partial': 'Sebagian selesai',
-            'stopped': 'Dihentikan', 'attention': 'Perlu pemeriksaan', 'completed': 'Selesai'}.get(status, status)
+    return L.label_status(status)
 
 
 def _waktu_audit_batch(epoch):
-    from datetime import datetime, timedelta, timezone
-    return datetime.fromtimestamp(epoch, timezone(timedelta(hours=7))).strftime('%d/%m/%Y %H:%M WIB')
+    return L.tanggal(epoch)
 
 
 def render_audit_batch(data, *, filter_data=None):
@@ -1012,7 +1011,7 @@ def render_audit_batch(data, *, filter_data=None):
                for k in ('ready', 'running', 'partial', 'stopped', 'succeeded', 'attention'))))
     return (_nav_riwayat() + '<section class="admin-kartu"><h2>Riwayat batch tersimpan</h2>'
         '<p>Metadata operasi tanpa alias, sandi, atau isi draft. Satu batch dapat memiliki beberapa kelompok dan hasil parsial.</p>'
-        + form + '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Batch</th><th scope="col">Actor</th>'
+        + form + '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Batch</th><th scope="col">Pelaku</th>'
         '<th scope="col">Aksi</th><th scope="col">Target</th><th scope="col">Hasil</th><th scope="col">Waktu</th></tr></thead><tbody>' + baris + '</tbody></table></div>'
         + _pager(section='riwayat', halaman=data.halaman, jumlah_halaman=data.jumlah_halaman,
                  total=data.total, filter_data=dict(filters, sumber='batch'), via_post=False) + '</section>')
