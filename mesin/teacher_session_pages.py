@@ -859,7 +859,13 @@ def halaman_sesi_stitch(
                 f'data-bagikan-aktif="{1 if tautan_aktif else 0}">'
                 f'<button type="submit"><span data-label-bagikan>{label_bagikan}</span>'
                 '</button></form>'
-                '<span class="kabar-bagikan-st" role="status" aria-live="polite"></span>'
+                + (f'<details class="tautan-sesi-opsi"><summary>Kelola tautan anak</summary>'
+                   '<p>Membuat tautan baru akan menonaktifkan tautan sebelumnya. '
+                   'Mencabut tautan menutup akses melalui tautan itu.</p>'
+                   f'<form method="post" action="/sesi/{sesi_id}/cabut-tautan">'
+                   '<button type="submit" class="tombol-kecil-st" aria-label="Cabut tautan sesi">'
+                   'Cabut tautan</button></form></details>' if tautan_aktif else '')
+                + '<span class="kabar-bagikan-st" role="status" aria-live="polite"></span>'
                 '</div></div></section>'
             )
             blok_isi = (

@@ -45,6 +45,10 @@ def hanya_penjelasan_dilipat(isi):
             assert '<summary>Pilih tanggal</summary>' in blok
             assert 'method="get"' in blok and 'name="mulai"' in blok
             continue
+        if blok.startswith('<details class="catatan-putaran-detail"'):
+            assert '<summary>Catatan putaran aktif</summary>' in blok
+            assert 'perjalanan-titik-baris-st' not in blok
+            continue
         if blok.startswith('<details class="riwayat-putaran-detail"'):
             assert '<summary>Riwayat putaran sebelumnya</summary>' in blok
             continue

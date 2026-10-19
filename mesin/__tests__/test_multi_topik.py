@@ -160,9 +160,9 @@ def test_form_gabungan_muncul_di_halaman_anak(server):
         f"/anak/{sid}?section=latihan", auth=("guru", SANDI_GURU)
     )
     assert kode == 200
-    assert f'action="/sesi-gabungan/{sid}"' in isi
-    assert 'type="checkbox" name="topik"' in isi
-    assert "Buat latihan gabungan" in isi
+    assert f'data-url="/sesi-gabungan/{sid}"' in isi
+    assert 'type="checkbox" data-pilih name="topik"' in isi
+    assert "Gabungan topik" in isi and ">Buat latihan</button>" in isi
 
 
 def test_http_buat_sesi_gabungan(server):

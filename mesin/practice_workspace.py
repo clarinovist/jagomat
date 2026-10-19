@@ -31,19 +31,19 @@ def render(kon, siswa, *, mode='manual', draf_latihan=None, draf_gabungan=None,
                 + '</div></fieldset><noscript><button class="st-tombol-sekunder" type="submit">Tampilkan mode</button></noscript></form>')
     terakhir = kon.execute('SELECT topik FROM sesi WHERE siswa_id=? ORDER BY tanggal DESC,id DESC LIMIT 1', (sid,)).fetchone()
     topik = draf_latihan.topik if draf_latihan else terakhir['topik'] if terakhir and terakhir['topik'] in daftar_topik() else TOPIK_BAWAAN
-    options = ''.join(f'<option value="{_e(k)}"' + (' selected' if k == topik else '') + f'>{_e(ambil(k).nama)}</option>' for k in daftar_topik())
+    options = ''.join(f'<option value="{_e(k)}"' + (' selected' if k == topik else '') + f'>{_e("Campuran semua topik" if k == "campuran" else ambil(k).nama)}</option>' for k in daftar_topik())
 
     def jumlah(jenis, draf, bawaan, batas):
         nilai = draf.jumlah_soal if draf else bawaan
         opsi = ([('', 'Sesuai topik (disarankan)')] if jenis == 'manual' else []) + [(str(n), f'{n} soal') for n in batas]
-        return (f'<label for="{jenis}-jumlah">Jumlah soal</label><select class="st-input" id="{jenis}-jumlah" name="jumlah_soal">'
+        return (f'<label for="{jenis}-jumlah">Jumlah soal</label><select class="st-input" id="{jenis}-jumlah" name="jumlah_soal" aria-describedby="{jenis}-jumlah-petunjuk">'
                 + ''.join(f'<option value="{k}"' + (' selected' if k == nilai else '') + f'>{v}</option>' for k,v in opsi)
-                + '</select><small>Sekitar 3 menit per soal.</small>')
+                + f'</select><small id="{jenis}-jumlah-petunjuk">Sekitar 3 menit per soal.</small>')
     manual = ('<div class="latihan-field-grid"><div><label for="manual-topik">Topik</label>'
               f'<select class="st-input" id="manual-topik" name="topik">{options}</select>'
               '<small>Jagomat memilih cakupan yang sesuai untuk topik ini.</small></div><div>'
               + jumlah('manual',draf_latihan,'',(10,15,20,25,30)) + '</div></div>'
-              '<details class="atur-latihan-st"><summary>Pengaturan lanjutan</summary>'
+              '<details class="atur-latihan-st profil-lanjutan-st"><summary>Pengaturan lanjutan</summary>'
               + kontrol_format('manual', getattr(draf_latihan,'format_jawaban','isian')) + kontrol_mode(draf_latihan) + '</details>')
     dipilih = set(draf_gabungan.topik) if draf_gabungan else set()
     gabungan = ('<p>Pilih dua topik atau lebih. Soal akan dicampur bergantian.</p><div class="latihan-topik-grid">'
@@ -52,7 +52,7 @@ def render(kon, siswa, *, mode='manual', draf_latihan=None, draf_gabungan=None,
                           for k in daftar_topik() if k != 'campuran') + '</div>'
                 + '<small>Jagomat memilih satu cakupan yang tersedia pada semua topik pilihan.</small>'
                 + jumlah('gabungan',draf_gabungan,'10',(10,15,20))
-                + '<details class="atur-latihan-st"><summary>Pengaturan lanjutan</summary>'
+                + '<details class="atur-latihan-st profil-lanjutan-st"><summary>Pengaturan lanjutan</summary>'
                 + kontrol_format('gabungan',getattr(draf_gabungan,'format_jawaban','isian'))
                 + '<label>Mode sesi<select class="st-input" name="mode">'
                 + ''.join(f'<option value="{k}"' + (' selected' if k == getattr(draf_gabungan,'mode','drill') else '') + f'>{v}</option>'

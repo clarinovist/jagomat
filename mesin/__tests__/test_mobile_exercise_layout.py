@@ -51,12 +51,12 @@ def test_label_pendek_helper_terhubung_dan_nilai_default_tidak_berubah(db):
     # Jangan menambahkan selected pada topik; default tetap urutan registry.
     assert '<option value="campuran" selected>' not in isi
     assert '<option value="campuran">Campuran semua topik</option>' in isi
-    assert '<option value="" selected>Sesuai topik</option>' in isi
+    assert '<option value="" selected>Sesuai topik (disarankan)</option>' in isi
     dom = FormLatihan(isi)
     kontrol = next(a for t, a in dom.elemen if a.get('id') == 'manual-jumlah')
     assert kontrol['aria-describedby'] == 'manual-jumlah-petunjuk'
     assert 'id="manual-jumlah-petunjuk"' in isi
-    assert 'Estimasi ±3 menit per soal.' in isi
+    assert 'Sekitar 3 menit per soal.' in isi
     assert isi.count('action="/sesi-baru/%d"' % siswa['id']) == 1
     assert isi.count('formaction="/pendamping/inline/buka"') >= 1
     assert isi.count('class="pendamping-pemicu"') == isi.count('formaction="/pendamping/inline/buka"')

@@ -91,14 +91,12 @@ def test_form_gabungan_default_cepat_dan_form_biasa_tetap_diagnostik(server):
     )
     assert status == 200
     form = FormGabungan(html).form
-    gabungan = form[f"/sesi-gabungan/{server.siswa}"]
-    mode = [a for t, a in gabungan if t == "input" and a.get("name") == "mode"]
-    assert len(mode) == 2
-    assert {a["value"] for a in mode} == {"drill", "diagnostik"}
-    assert [a["value"] for a in mode if "checked" in a] == ["drill"]
-    assert all(a.get("type") == "radio" for a in mode)
-    assert any(a.get("role") == "radiogroup" and a.get("aria-labelledby") for _, a in gabungan)
-    assert not any(a.get("name") in {"timer_mode", "durasi_menit", "timer_auto"} for _, a in gabungan)
+    panel = html.split('<fieldset data-mode-latihan="gabungan"',1)[1].split('</fieldset>',1)[0]
+    assert '<option value="drill" selected>Latihan Cepat</option>' in panel
+    assert '<option value="diagnostik">Mode Diagnosa</option>' in panel
+    assert 'name="timer_mode"' not in panel
+    status, gabungan_html, _ = server.minta(f'/anak/{server.siswa}?section=latihan&mode_latihan=gabungan', auth=('guru',SANDI_GURU))
+    assert status == 200 and f'action="/sesi-gabungan/{server.siswa}"' in gabungan_html
     biasa = form[f"/sesi-baru/{server.siswa}"]
     assert [a["value"] for t, a in biasa if t == "input" and a.get("name") == "mode" and "checked" in a] == ["diagnostik"]
 

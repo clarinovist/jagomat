@@ -82,7 +82,8 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   Beranda; latihan manual berada di `?section=latihan`, arsip operasional tunggal
   di `?section=riwayat`, dan proyeksi bukti di `?section=perkembangan` sebagai satu
   tab dengan saklar **Ringkasan / Per materi** server-side. Riwayat putaran
-  dilipat di bawah Per materi; tautan Perjalanan lama tetap membuka riwayat itu.
+  dilipat di bawah Per materi bersama catatan putaran aktif dan histori variasi;
+  tautan Perjalanan lama tetap membuka riwayat itu.
   Anchor lama memiliki tautan penerus. Kelas sekolah hanya tampil sebagai badge
   profil bila metadata opsionalnya terisi. Deep link `/laporan/<id>` lama
   dialihkan setelah guard kepemilikan. Judul progres menampilkan jumlah target

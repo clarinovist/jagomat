@@ -315,7 +315,7 @@ GET tidak memanggil AI dan penguncian penyajian tidak berubah. Tab Riwayat adala
 tanggal/topik/jenis/tinjauan; tiap baris satu status dan satu aksi Tinjau / Lanjutkan /
 Lihat. Strip perhatian membuka tinjauan terlama; chip Semua / Perlu ditinjau / Selesai.
 Filter status lama tetap didukung; kelompok Perlu ditinjau mencakup draf/invalidasi.
-Pengelolaan tautan dipusatkan di halaman sesi, bukan diulang pada baris arsip. Badge Perlu ditinjau / Draf tersimpan / ✓ Selesai
+Pengelolaan tautan (salin/ganti/cabut) dipusatkan di halaman sesi, bukan diulang pada baris arsip. Badge Perlu ditinjau / Draf tersimpan / ✓ Selesai
 membedakan tinjauan dan konfirmasi aktif, bukan penguasaan; snapshot invalid tetap
 Perlu konfirmasi ulang. Sesi belum dikirim mempertahankan aksi mulai/lanjut
 mengerjakan. Pindah tab atau memfilter tidak menulis bukti maupun mengubah progres.
@@ -327,7 +327,8 @@ menampilkan satu bar empat status dan angka legenda, bukan CTA operasional. Judu
 menggunakan jumlah menunjukkan pemahaman bila >0, selain itu sedang dipelajari;
 ini label presentasi, bukan peningkatan capaian. Cakupan/variasi dilipat bersama
 Cara membaca progres ini. Per materi memuat seluruh kartu katalog, detail target
-serta bukti konteks. Filter hanya muncul bila membedakan himpunan materi. Riwayat
+serta bukti konteks. Filter hanya muncul bila membedakan himpunan materi. Catatan
+putaran aktif (termasuk status masing-masing fokus dan histori variasi), riwayat
 putaran dan Pendampingan orang tua dilipat di bawah Per materi; URL Perjalanan lama
 membuka disclosure, bukan hilang. Anchor lama punya tautan penerus.
 Aktivitas: Semua (default, termasuk catatan warisan), 7 hari terakhir, atau rentang

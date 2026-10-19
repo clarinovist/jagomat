@@ -110,8 +110,8 @@ def test_form_latihan_satu_bantuan_dan_judul_visual(db):
         kon, siswa, pengguna='guru', query='section=latihan'
     ).decode()
     dom = Markup(isi)
-    assert 'class="profil-aide-st info-baris"' in isi
-    assert 'class="st profil-sr-st"' in isi
+    assert "Buat latihan baru" in dom.terlihat()
+    assert 'class="profil-aide-st info-baris"' not in isi
     assert 'href="#panduan-variasi"' not in isi
     assert len([a for _, a, _ in dom.kontrol if a.get('id') == 'manual-topik']) == 1
     lanjutan = next(a for a in dom.details if a.get('class') == 'atur-latihan-st profil-lanjutan-st')

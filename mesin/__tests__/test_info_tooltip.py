@@ -188,18 +188,9 @@ def test_tanpa_js_tambahan(db):
 def test_buat_latihan_catatan_kaki_pindah_ke_bubble(db):
     h = _profil_latihan(db)
     assert "Pilih materi dan bentuk latihan." not in h
-    assert 'class="profil-aide-st info-baris"' in h
-    assert h.index('class="tab-bar-st"') < h.index('class="profil-aide-st info-baris"')
-    # Paragraf catatan kaki tidak lagi berdiri sendiri di layar.
-    assert ('<p class="sub">Latihan bebas tidak mengubah progres rencana terpandu.</p>'
-            not in h)
-    tombol = _BacaInfo(h).tombol
-    assert len(tombol) == 1
-    atribut, isi = tombol[0]
-    assert atribut["type"] == "button"
-    assert atribut.get("aria-label") == TEKS_LATIHAN
-    assert isi == TEKS_LATIHAN            # pindah apa adanya, tanpa makna baru
-    assert "title" not in atribut         # bukan andalan title= (HP)
+    assert 'class="profil-aide-st info-baris"' not in h
+    assert not _BacaInfo(h).tombol
+    assert 'Latihan tambahan tercatat di Riwayat, tapi tidak mengubah tugas di Beranda.' in h
 
 
 def test_buat_latihan_bubble_tanpa_data_anak_atau_kunci(db):
@@ -207,7 +198,7 @@ def test_buat_latihan_bubble_tanpa_data_anak_atau_kunci(db):
     nama = set(re.findall(r"AnakSintetis\w*", h))
     assert nama                            # fixture benar-benar tampil
     tombol = _BacaInfo(h).tombol
-    assert tombol
+    assert not tombol
     for _, isi in tombol:
         assert isi == TEKS_LATIHAN         # teks statis, bukan dinamis
         assert not re.search(r"\d", isi)   # tanpa angka (id/jumlah)

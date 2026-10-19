@@ -123,7 +123,9 @@ cache dan cadangan tetap privat.
   `report_metrics.py` menyediakan filter periode aktivitas
   server-side; Semua memakai agregat existing. `reports.konten_laporan()` hanya
   merender Ringkasan atau Per materi; histori lama lewat disclosure, tanpa reducer
-  kedua. Daftar materi lengkap, mini bar dan status memakai denominator katalog. Layanan siklus menginisialisasi konteks fondasi dan
+  kedua. Catatan putaran aktif dan histori variasi tetap dapat dibuka tanpa
+  stepper/CTA ganda; pencabutan tautan tetap tersedia di halaman sesi. Daftar materi
+  lengkap, mini bar dan status memakai denominator katalog. Layanan siklus menginisialisasi konteks fondasi dan
   pemetaan pertama secara atomik dari satu tindakan eksplisit orang tua.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
   Pendamping tidak boleh mengambil alih reducer atau konfirmasi bukti belajar.

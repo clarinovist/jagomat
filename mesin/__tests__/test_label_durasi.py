@@ -44,7 +44,7 @@ def test_opsi_jumlah_soal_memuat_estimasi_durasi(db):
     html = _html_dashboard(db)
     # tiap opsi memakai pola "<n> soal (± <m> menit)"
     for n, menit in ((10, 30), (15, 45), (20, 60), (25, 75), (30, 90)):
-        opsi = f"{n} soal (± {menit} mnt)"
+        opsi = f"{n} soal"
         assert opsi in html, f"opsi {n} hilang estimasinya"
 
 
@@ -58,5 +58,5 @@ def test_klaim_satu_jam_tidak_nempel_di_angka_dua_puluh(db):
 def test_opsi_default_tetap_ada(db):
     html = _html_dashboard(db)
     assert 'option value="" selected' in html
-    assert '<option value="" selected>Sesuai topik</option>' in html
-    assert 'memakai jumlah bawaan topik' in html
+    assert '<option value="" selected>Sesuai topik (disarankan)</option>' in html
+    assert 'Sekitar 3 menit per soal.' in html

@@ -408,8 +408,8 @@ def konten_laporan(kon, siswa_id: int, query: str = "", section: str = "ringkasa
     tampilan = parameter.get('tampilan', '')
     rincian = parameter.get('rincian', '')
     histori = section == 'perjalanan' or tampilan == 'perjalanan'
-    if tampilan == 'kriteria':
-        rincian = 'kriteria'
+    if tampilan in {'kriteria', 'konteks'}:
+        rincian = tampilan
     if histori or tampilan in {'konteks', 'kriteria', 'pilot', 'tugas'} or rincian in {'konteks', 'kriteria', 'catatan', 'pilot'}:
         section = 'penguasaan'
     if section not in {'riwayat', 'penguasaan'}:
@@ -469,7 +469,17 @@ def konten_laporan(kon, siswa_id: int, query: str = "", section: str = "ringkasa
             isi += _catatan_latihan(kon, siswa_id) + _kartu_kamus()
         if tampilan == 'tugas':
             isi += render_tugas(tugas_belum_selesai(kon,siswa_id), siswa_id, _nama_topik, halaman)
-        from cycle_report import _histori
+        from cycle_report import _histori, _kartu_fokus, _tanpa_fokus, judul_tindakan
+        catatan_fokus = ''.join(_kartu_fokus(f, n, _nama_tipe_soal, _tanggal_pendek)
+                               for n, f in enumerate(perjalanan.fokus, 1))
+        isi += ('<details class="catatan-putaran-detail"' + (' open' if histori else '')
+                + '><summary>Catatan putaran aktif</summary><section id="perjalanan-belajar">'
+                + (f'<p>Putaran #{perjalanan.putaran_id}</p>' if perjalanan.putaran_id else '')
+                + f'<p>Latihan awal {min(len(perjalanan.tanggal_pemetaan), 3)} dari 3 selesai</p>'
+                + '<p>' + html.escape(judul_tindakan(perjalanan)) + '</p>'
+                + ('<ul>' + catatan_fokus + '</ul>' if catatan_fokus else _tanpa_fokus(perjalanan, _nama_tipe_soal))
+                + ''.join('<p>' + html.escape(t) + '</p>' for t in perjalanan.catatan)
+                + '</section></details>')
         riwayat = _histori(perjalanan, _nama_tipe_soal, _tanggal_pendek, siswa_id, halaman)
         if riwayat or histori:
             isi += ('<details class="riwayat-putaran-detail" id="perjalanan"' + (' open' if histori else '')

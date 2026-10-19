@@ -129,7 +129,7 @@ def test_halaman_anak_menawarkan_salin_langsung_dan_cabut(server):
     _buat_tautan(s, sesi_id)
 
     kode, isi, header = s.minta(
-        f"/anak/{siswa_id}?section=riwayat", auth=("guru", SANDI_GURU)
+        f"/sesi/{sesi_id}", auth=("guru", SANDI_GURU)
     )
     assert kode == 200
     assert f'action="/sesi/{sesi_id}/bagikan"' in isi

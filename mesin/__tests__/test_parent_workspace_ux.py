@@ -76,14 +76,11 @@ def test_kartu_sesi_status_dekat_judul_topik_dilipat_dan_aksi_terkelompok(db):
     elemen = StrukturPanel(markup).elemen
     status = next(atas for t, a, atas in elemen if a.get('class', '').startswith('badge-direview'))
     assert any(a.get('class') == 'riwayat-status-st' for _, a in status)
-    assert '<small>Statistika &middot; Geometri Datar</small>' in markup
-    kelola_utama = next(a for t, a, _ in elemen if a.get('class') == 'riwayat-kelola-st')
-    kelola_tautan = next(a for t, a, _ in elemen if a.get('class') == 'tautan-sesi-opsi')
-    assert 'open' not in kelola_utama and 'open' not in kelola_tautan
+    assert 'Gabungan 2 topik' in markup
+    assert markup.count(f'href="/sesi/{sesi}"') == 1
+    assert 'riwayat-kelola-st' not in markup
+    halaman_sesi = teacher_pages.halaman_sesi_stitch(kon, sesi, pengguna='guru').decode()
     for akhiran in ['bagikan', 'cabut-tautan']:
-        form = next(atas for t, a, atas in elemen if a.get('action') == f'/sesi/{sesi}/{akhiran}')
-        assert any(a.get('class') == 'riwayat-kelola-st' for _, a in form)
-    assert '<span>Cabut tautan</span>' in markup
-    assert 'Membuat tautan baru akan menonaktifkan tautan sebelumnya.' in markup
-    assert 'Mencabut tautan menutup akses melalui tautan itu.' in markup
+        assert f'action="/sesi/{sesi}/{akhiran}"' in halaman_sesi
+    assert 'Membuat tautan baru akan menonaktifkan tautan sebelumnya.' in halaman_sesi
     assert tuple(kon.iterdump()) == sebelum

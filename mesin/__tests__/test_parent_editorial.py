@@ -124,7 +124,7 @@ def test_rencana_tetap_satu_di_tab_terpisah_dari_alat_manual(db):
     assert f'action="/sesi-baru/{sid}"' not in isi
     manual = _halaman(db)['profil'].decode().split('</style>', 1)[1]
     assert 'class="kartu-rencana-st"' not in manual
-    assert 'Latihan bebas tidak mengubah progres rencana terpandu.' in manual
+    assert 'Latihan tambahan tercatat di Riwayat, tapi tidak mengubah tugas di Beranda.' in manual
 
 
 def test_navigasi_section_dan_sesi_menandai_halaman_aktif(db):

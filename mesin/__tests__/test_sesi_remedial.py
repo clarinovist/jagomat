@@ -467,8 +467,8 @@ def test_tombol_latihan_ulang_muncul_kalau_ada_kesalahan(server):
         f"/anak/{sid}?section=latihan", auth=("guru", SANDI_GURU)
     )
     assert kode == 200
-    assert f'action="/sesi-remedial/{sid}"' in isi
-    assert "Buat latihan ulang" in isi
+    assert f'data-url="/sesi-remedial/{sid}"' in isi
+    assert "Dari hasil terbaru" in isi
 
 
 def test_tombol_latihan_ulang_absen_kalau_belum_ada_kesalahan(server):

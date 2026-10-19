@@ -62,7 +62,7 @@ def test_ringkasan_laporan_tidak_menduplikasi_perjalanan_atau_cta(db):
     assert 'id="rencana-belajar-laporan"' not in h
     assert 'class="resume-langkah"' not in h
     assert 'aksi-rencana-laporan' not in h.split('</style>')[-1]
-    assert 'id="perjalanan-belajar"' in h
+    assert 'id="perjalanan-belajar"' not in h
     assert 'id="peta-penguasaan"' in h
 
 
@@ -75,7 +75,7 @@ def test_laporan_baru_meminta_pemetaan_bukan_menyimpulkan_penguasaan(db):
     assert 'id="perjalanan-belajar"' in h
     assert "Latihan awal 0 dari 3" in _utama(h)
     assert "catatan hasil belum cukup" in _utama(h).lower()
-    assert 'href="#perjalanan" aria-current="page"' in h
+    assert 'bagian=penguasaan" aria-current="page"' in h
     assert 'id="judul-peta"' in h
 
 
@@ -398,7 +398,7 @@ def test_get_laporan_lewat_http_menjaga_kepemilikan(tmp_path, monkeypatch, bagia
         assert kode == kode_ulang == 200
         assert h == h_ulang
         assert isinstance(h, str)
-        assert 'id="perjalanan-belajar"' in h
+        assert ('id="perjalanan-belajar"' in h) == (bagian != "ringkasan")
         kode_asing, h_asing, _ = server.minta(f"/laporan/{asing}", auth=("guru", SANDI_GURU))
         kode_hilang, h_hilang, _ = server.minta("/laporan/999999", auth=("guru", SANDI_GURU))
         assert kode_asing == kode_hilang == 404
