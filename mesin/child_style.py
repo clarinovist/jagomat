@@ -1,5 +1,6 @@
 """CSS bersama halaman anak: satu kontainer dan komponen yang dipakai ulang antar tab."""
 import design_tokens as T
+from child_beranda_style import GAYA_BERANDA
 from child_history_style import GAYA_RIWAYAT
 from child_latihan_style import GAYA_LATIHAN
 from child_materi_style import GAYA_MATERI
@@ -47,7 +48,8 @@ GAYA_ANAK = f"""
   color: {T.ANAK_TEKS}; text-decoration: none; font-size: .9375rem;
 }}
 .anak-banner-st:hover {{ text-decoration: none; }}
-.anak-banner-tautan-st {{ font-weight: 700; color: {T.ANAK_AKSEN}; }}
+.anak-banner-st > span:first-child {{ flex: 1 1 18rem; min-width: 0; }}
+.anak-banner-tautan-st {{ flex: none; font-weight: 700; color: {T.ANAK_AKSEN}; }}
 .anak-kartu-sesi-st {{
   display: flex; align-items: center; flex-wrap: wrap; gap: {T.SP_4}; padding: {T.SP_4} 1.25rem;
   background: {T.LATAR_KARTU}; border: 1px solid {T.ANAK_BORDER}; border-radius: 14px;
@@ -58,4 +60,4 @@ GAYA_ANAK = f"""
 .anak-kartu-peringatan-st {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; color: {T.ANAK_PERHATIAN_TEKS}; }}
 """
 
-GAYA_ANAK += GAYA_RIWAYAT + GAYA_MATERI + GAYA_RINGKASAN + GAYA_LATIHAN
+GAYA_ANAK += GAYA_RIWAYAT + GAYA_MATERI + GAYA_RINGKASAN + GAYA_LATIHAN + GAYA_BERANDA

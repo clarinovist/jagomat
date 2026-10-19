@@ -100,6 +100,28 @@ _PROYEKSI = """s.*, %s AS fingerprint_terakhir, %s AS ada_tinjauan,
 """ % (_TERAKHIR, _DRAF)
 
 
+_BENTUK_WAKTU = "%Y-%m-%d %H:%M:%S"
+
+
+def durasi_detik(mulai, selesai, dicatat_awal=None, dicatat_akhir=None):
+    """Detik pengerjaan: selesai - mulai, lalu jatuh ke rentang waktu jawaban tercatat.
+
+    None bila tidak ada jejak waktu yang bermakna; durasi tidak pernah dikarang.
+    """
+    from datetime import datetime
+    for awal, akhir in ((mulai, selesai), (dicatat_awal, dicatat_akhir)):
+        if not awal or not akhir:
+            continue
+        try:
+            detik = int((datetime.strptime(str(akhir), _BENTUK_WAKTU)
+                         - datetime.strptime(str(awal), _BENTUK_WAKTU)).total_seconds())
+        except ValueError:
+            continue
+        if detik > 0:
+            return detik
+    return None
+
+
 def jumlah_sesi(kon, siswa_id):
     return kon.execute('SELECT COUNT(*) FROM sesi WHERE siswa_id=?', (siswa_id,)).fetchone()[0]
 

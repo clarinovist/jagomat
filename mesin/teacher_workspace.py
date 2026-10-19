@@ -220,22 +220,10 @@ def _fmt_durasi(mulai, selesai, dicatat_awal=None, dicatat_akhir=None) -> str:
     simpan mencatat waktunya. Tanpa jejak waktu sama sekali, tampil '—';
     mengarang durasi lebih buruk daripada menampilkan kosong.
     """
-    BENTUK = "%Y-%m-%d %H:%M:%S"
-    for awal, akhir in ((mulai, selesai), (dicatat_awal, dicatat_akhir)):
-        if not awal or not akhir:
-            continue
-        try:
-            detik = int(
-                (
-                    datetime.strptime(str(akhir), BENTUK)
-                    - datetime.strptime(str(awal), BENTUK)
-                ).total_seconds()
-            )
-        except ValueError:
-            continue
-        if detik > 0:
-            return f"{detik // 60}:{detik % 60:02d}"
-    return "&mdash;"
+    detik = profile_history.durasi_detik(mulai, selesai, dicatat_awal, dicatat_akhir)
+    if detik is None:
+        return "&mdash;"
+    return f"{detik // 60}:{detik % 60:02d}"
 
 def _kelas_sekolah_profil(kon, siswa):
     """Caller sudah mengotorisasi; profil tanpa pemilik tidak ditebak kelasnya."""

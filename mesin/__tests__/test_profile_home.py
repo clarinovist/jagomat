@@ -50,12 +50,14 @@ def test_kartu_tinjau_ringkas_dan_peta_terlihat_tanpa_mutasi():
     siswa = {'id': 9, 'nama': '<Anak>'}
     bukti = BuktiSiklus(9, 'P3', sesi=(SesiSiklus(41, 9, 'P3', 'evaluasi', date(2026, 9, 1)),))
     rencana = RencanaBelajar('konfirmasi_hasil', 'uji', sesi_id=41)
-    isi = profile_home.kartu(rencana, bukti, siswa, jumlah_soal=15)
+    isi = profile_home.kartu(rencana, bukti, siswa, jumlah_soal=15, hari_ini=date(2026, 9, 28))
     terlihat = Markup(isi).terlihat()
     assert 'Tinjau hasil latihan &lt;Anak&gt;' in isi
+    assert 'Menunggu 27 hari' in terlihat
     assert '15 soal · sekitar 45 menit pengerjaan' in terlihat
     assert 'Caranya' in terlihat and 'tanpa memberi jawaban' in terlihat
-    assert 'Konfirmasi hanya setelah hasil diperiksa.' in terlihat
+    # Dilipat di "Cara membaca progres ini": ada di markup, tidak tampil di kartu utama.
+    assert 'Konfirmasi hanya setelah hasil diperiksa.' in isi and 'Konfirmasi hanya setelah' not in terlihat
     assert 'Bisa disimpan sebagai draf dan dilanjutkan nanti.' in terlihat
     assert 'Posisi <Anak>: tahap 4 dari 6' in terlihat
     assert isi.count('aria-current="step"') == 1

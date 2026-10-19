@@ -1,8 +1,11 @@
 """CSS tab Riwayat halaman anak: baris sesi satu lapis, chip status, filter satu baris."""
 import design_tokens as T
+from child_badge_style import css_badge_review
 
 _R = ".bungkus-st.profil-workspace-st"
 _DESKTOP = "min-width: 48.0625rem"  # di atas BATAS_TABLET; tata letak HP lama tetap berlaku di bawahnya
+
+BADGE = css_badge_review(f"{_R} .riwayat-ringkas-st .riwayat-status-st")
 
 GAYA_RIWAYAT = f"""
 {_R} .riwayat-perhatian-st {{
@@ -25,16 +28,7 @@ GAYA_RIWAYAT = f"""
 }}
 {_R} .anak-filterbar-st .profil-saring-st[open] {{ flex: 1 1 100%; order: 9; }}
 {_R} .riwayat-grup-judul-st {{ color: {T.ANAK_TEKS}; }}
-{_R} .riwayat-ringkas-st .riwayat-status-st .badge-direview {{
-  width: fit-content; max-width: 100%; margin: 0; padding: {T.SP_1} {T.SP_3}; border-radius: {T.RADIUS_PIL};
-  font-size: .8125rem; font-weight: 700; line-height: 1.4; white-space: nowrap;
-  background: {T.ANAK_NETRAL_LATAR}; color: {T.ANAK_NETRAL_TEKS};
-}}
-{_R} .riwayat-ringkas-st .riwayat-status-st .badge-direview.perlu {{ background: {T.ANAK_PERHATIAN_LATAR}; color: {T.ANAK_PERHATIAN_TEKS}; }}
-{_R} .riwayat-ringkas-st .riwayat-status-st .badge-direview:is(.draf, .proses) {{ background: {T.ANAK_INFO_LATAR}; color: {T.ANAK_INFO_TEKS}; }}
-{_R} .riwayat-ringkas-st .riwayat-status-st .badge-direview.sudah {{ background: {T.ANAK_BAIK_LATAR}; color: {T.ANAK_BAIK_TEKS}; }}
-{_R} .riwayat-ringkas-st .riwayat-status-st .badge-direview:is(.belum, .batal) {{ background: {T.ANAK_NETRAL_LATAR}; color: {T.ANAK_NETRAL_TEKS}; }}
-@media ({_DESKTOP}) {{
+{BADGE}@media ({_DESKTOP}) {{
   {_R} .riwayat-ringkas-st .riwayat-kartu-st {{
     grid-template-columns: 3.5rem minmax(0, 1fr) auto auto; gap: {T.SP_4}; padding: .75rem 1.25rem;
     border-color: {T.ANAK_BORDER}; border-radius: 14px;
