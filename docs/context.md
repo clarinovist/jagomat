@@ -93,7 +93,8 @@ cache dan cadangan tetap privat.
   `admin_antrean.py` (read-only, tanpa skema baru), dirender `admin_antrean_pages.py`;
   sinyal sidebar memakai antrean yang sama. Markup bersama panel ada di `admin_komponen.py`;
   daftar Keluarga/Siswa (chip berhitungan dari `jumlah_facet` query, avatar, pill kondisi)
-  dirender `admin_daftar_pages.py`. Satu aksi, satu entry point.
+  dirender `admin_daftar_pages.py`; tiga tampilan riwayat (tindakan, batch, AI) dirender
+  `admin_riwayat_pages.py`. Satu aksi, satu entry point.
 - Primitive `family_deletion.py` tidak menulis state live: ia memerlukan verifikasi
   independen, preview exact dan backup coherent lima berkas, lalu menghasilkan bundle
   privat baru dengan receipt idempoten. Cutover/recovery tetap operasi terkontrol;

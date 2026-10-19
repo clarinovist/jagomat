@@ -469,3 +469,34 @@ def test_pendaftaran_status_teks_dan_pratinjau_mengikuti_keadaan():
     assert 'name="dibuka" value="1" checked' not in tutup
     assert '<div class="admin-pratinjau"><strong>Pendaftaran sementara ditutup untuk pemeliharaan</strong>' in tutup
     assert "Pesan tersimpan. Pratinjau diperbarui setelah pengaturan disimpan." in tutup
+
+
+def test_riwayat_tab_jenis_dan_kartu_tabel_di_tiga_tampilan():
+    import admin_riwayat_pages as rw
+    from admin_history_store import HalamanRiwayat
+
+    tindakan = pages.render_riwayat(_riwayat_contoh(), filter_data={})
+    kosong = HalamanRiwayat((), 0, 1, 25, 1)
+    ai = pages.render_riwayat_ai(kosong, filter_data={"aksi": "ai_synthetic_test"})
+    batch = pages.render_audit_batch(kosong, filter_data={"status": "partial"})
+
+    for isi, aktif in ((tindakan, "Tindakan akun dan siswa"), (ai, "Riwayat AI"), (batch, "Riwayat batch")):
+        assert 'role="group" aria-label="Jenis riwayat"' in isi
+        assert isi.count('aria-current="page"') == 1
+        assert 'aria-current="page">%s</a>' % aktif in isi
+        assert '<th scope="col"' in isi and "ID ditampilkan lengkap" in isi
+        assert 'method="get" action="/admin"' in isi
+    assert "1 hasil" in tindakan and "0 hasil" in ai
+    assert 'name="sumber" value="ai"' in ai and 'name="sumber" value="batch"' in batch
+    assert 'name="status"' in batch and 'name="status"' not in tindakan
+    assert '<option value="partial" selected>' in batch
+    assert 'class="admin-tombol">Saring riwayat<' in ai and 'class="admin-tombol">Saring batch<' in batch
+    assert rw.nav_riwayat(None).count("aria-current") == 0
+
+
+def test_riwayat_id_pelaku_lengkap_tanpa_elipsis_dan_catatan_tetap():
+    isi = pages.render_riwayat(_riwayat_contoh(), filter_data={})
+
+    assert "admin-demo" in isi and "…" not in isi
+    assert "Riwayat dimulai saat fitur aktif; bukan semua aktivitas belajar." in isi
+    assert "Tidak ada kejadian lama yang direka ulang." in isi

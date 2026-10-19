@@ -18,6 +18,7 @@ from admin_ikon import ikon
 from admin_labels import LABEL_STATUS
 from admin_komponen import badge_status as _badge_status, e as _e, hidden_filter as _hidden_filter, opsi as _opsi, pager as _pager, waktu as _waktu
 from admin_daftar_pages import render_keluarga, render_siswa  # noqa: F401 (API publik admin_pages)
+from admin_riwayat_pages import nav_riwayat, render_audit_batch, render_riwayat, render_riwayat_ai  # noqa: F401 (API publik admin_pages)
 import brand
 from admin_style import GAYA_ADMIN
 import design_tokens as T
@@ -656,138 +657,12 @@ def render_bulk_batch(batch, hasil, csrf, tokens, aliases):
     return isi + '</section>'
 
 
-def _nav_riwayat():
-    return ('<p class="admin-aksi-baca"><a class="admin-tautan" href="/admin?section=riwayat">Tindakan akun dan siswa</a>'
-            '<a class="admin-tautan" href="/admin?section=riwayat&amp;sumber=batch">Riwayat batch</a>'
-            '<a class="admin-tautan" href="/admin?section=riwayat&amp;sumber=ai">Riwayat AI</a></p>')
-
-
-def render_riwayat(data, *, filter_data=None) -> str:
-    from datetime import datetime, timedelta, timezone
-    filter_data = {k: v for k, v in (filter_data or {}).items()
-                   if k in ('actor_id', 'aksi', 'status', 'mulai', 'selesai')}
-    label = {
-        "account_password_reset": "Reset sandi",
-        "account_session_revoke": "Cabut sesi",
-        "account_login_delete": "Hapus login",
-        "account_teacher_create": "Buat orang tua",
-        "student_login_create": "Buat login murid",
-        "student_level_update": "Ubah profil parameter warisan",
-        "student_school_grade_update": "Ubah kelas sekolah", "student_delete": "Hapus siswa kosong",
-        "registration_config_update": "Ubah pendaftaran",
-    }
-    baris = "".join(
-        '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
-            _e(L.tanggal(item.dibuat)),
-            L.referensi(item.actor_id), _e(label.get(item.aksi, L.label_status(item.aksi))),
-            L.referensi(item.target_id), _badge_status((item.status,)),
-        ) for item in data.item
-    ) or '<tr><td colspan="5" class="admin-kosong">Belum ada tindakan admin.</td></tr>'
-    kini_aksi = (filter_data or {}).get('aksi', '')
-    dasar = [('section', 'riwayat')] + [
-        (kunci, filter_data[kunci]) for kunci in ('mulai', 'selesai', 'actor_id')
-        if filter_data.get(kunci)
-    ]
-    chips = ['<a class="admin-chip"%s href="/admin?%s">Semua aksi</a>' % (
-        ' aria-current="true"' if not kini_aksi else '', _e(urlencode(dasar)))]
-    chips.extend(
-        '<a class="admin-chip"%s href="/admin?%s">%s</a>' % (
-            ' aria-current="true"' if kini_aksi == kode else '',
-            _e(urlencode(dasar + [('aksi', kode)])), _e(nama))
-        for kode, nama in label.items()
-    )
-    return (
-        _nav_riwayat() + '<section class="admin-kartu"><h2>Riwayat tindakan</h2>'
-        '<p class="admin-meta">Riwayat dimulai saat fitur aktif; bukan semua aktivitas belajar. Tidak ada kejadian lama yang direka ulang.</p>'
-        '<nav class="admin-chip-baris" aria-label="Filter cepat aksi">' + "".join(chips) + '</nav>'
-        '<form method="get" action="/admin" class="admin-form-cari">'
-        '<input type="hidden" name="section" value="riwayat">'
-        '<label>Mulai (WIB)<input type="date" name="mulai" value="%s"></label>'
-        '<label>Sampai (WIB)<input type="date" name="selesai" value="%s"></label>'
-        '<label>ID pengelola<input name="actor_id" value="%s" maxlength="80"></label>'
-        '<label>Aksi<select name="aksi">%s</select></label>'
-        '<button class="admin-tombol admin-tombol-sekunder">Saring riwayat</button></form>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr>'
-        '<th scope="col">Waktu</th><th scope="col">Pelaku</th><th scope="col">Aksi</th><th scope="col">Target</th><th scope="col">Status</th>'
-        '</tr></thead><tbody>%s</tbody></table></div>'
-        '%s</section>'
-        % (_e(filter_data.get('mulai', '')), _e(filter_data.get('selesai', '')),
-           _e(filter_data.get('actor_id', '')),
-           _opsi('', 'Semua aksi', filter_data.get('aksi', '')) + ''.join(
-               _opsi(k, v, filter_data.get('aksi', '')) for k, v in label.items()),
-           baris, _pager(section='riwayat', halaman=data.halaman,
-               jumlah_halaman=data.jumlah_halaman, total=data.total,
-               filter_data=filter_data, via_post=False))
-    )
-
-
-def render_riwayat_ai(data, *, filter_data=None):
-    from datetime import datetime, timedelta, timezone
-    filter_data = {k: v for k, v in (filter_data or {}).items()
-                   if k in ('actor_id', 'aksi', 'mulai', 'selesai')}
-    label = {'ai_settings_update': 'Ubah pengaturan AI', 'ai_synthetic_test': 'Tes sintetis AI'}
-    baris = ''.join('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
-        _e(L.tanggal(x.dibuat)),
-        L.referensi(x.actor_id or 'Tidak tercatat (sebelum metadata)'), _e(label[x.aksi]), _badge_status((x.status,)),
-        L.referensi(x.operasi_id or ('Revisi %s (sebelum metadata operasi)' % x.revisi if x.revisi else 'Sebelum metadata operasi')),
-    ) for x in data.item) or '<tr><td colspan="5">Belum ada riwayat AI.</td></tr>'
-    return (
-        _nav_riwayat() + '<section class="admin-kartu"><h2>Riwayat dari penyimpanan AI</h2>'
-        '<p>Pengaturan dikelompokkan per operasi atau revisi. Identitas tes lama yang belum tercatat tidak ditebak.</p>'
-        '<form method="get" action="/admin" class="admin-form-cari">'
-        '<input type="hidden" name="section" value="riwayat"><input type="hidden" name="sumber" value="ai">'
-        '<label>Mulai (WIB)<input type="date" name="mulai" value="%s"></label>'
-        '<label>Sampai (WIB)<input type="date" name="selesai" value="%s"></label>'
-        '<label>ID pengelola<input name="actor_id" maxlength="80" value="%s"></label>'
-        '<label>Aksi<select name="aksi">%s</select></label><button class="admin-tombol">Saring riwayat</button></form>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Waktu</th><th scope="col">Pelaku</th><th scope="col">Aksi</th><th scope="col">Status</th><th scope="col">Referensi</th></tr></thead>'
-        '<tbody>%s</tbody></table></div>%s</section>'
-        % (_e(filter_data.get('mulai', '')), _e(filter_data.get('selesai', '')), _e(filter_data.get('actor_id', '')),
-           _opsi('', 'Semua aksi', filter_data.get('aksi', '')) + ''.join(
-               _opsi(k, v, filter_data.get('aksi', '')) for k, v in label.items()), baris,
-           _pager(section='riwayat', halaman=data.halaman, total=data.total,
-               jumlah_halaman=data.jumlah_halaman,
-               filter_data=dict(filter_data, sumber='ai'), via_post=False)))
-
-
 def _label_status_batch(status):
     return L.label_status(status)
 
 
 def _waktu_audit_batch(epoch):
     return L.tanggal(epoch)
-
-
-def render_audit_batch(data, *, filter_data=None):
-    filters = {k: v for k, v in (filter_data or {}).items()
-               if k in ('actor_id', 'aksi', 'status', 'mulai', 'selesai')}
-    baris = ''.join('<tr><td><a href="/admin?section=riwayat&amp;sumber=batch&amp;id=%s">%s</a></td>'
-        '<td>%s</td><td>%s</td><td>%d</td><td>%s</td><td>%s</td></tr>' % (
-            _e(x.batch_id), _e(x.batch_id), _e(x.actor_id),
-            _e({'account_teacher_create': 'Buat orang tua', 'account_password_reset': 'Reset sandi',
-                'account_session_revoke': 'Cabut sesi'}.get(x.aksi, x.aksi)), x.jumlah_total,
-            _e(' · '.join('%d %s' % (n, _label_status_batch(status)) for status, n in x.jumlah_status)),
-            _e(_waktu_audit_batch(x.dibuat))) for x in data.item)
-    baris = baris or '<tr><td colspan="6">Belum ada batch.</td></tr>'
-    form = ('<form method="get" action="/admin" class="admin-form-cari">'
-        '<input type="hidden" name="section" value="riwayat"><input type="hidden" name="sumber" value="batch">'
-        '<label>ID pengelola<input name="actor_id" maxlength="80" value="%s"></label>'
-        '<label>Mulai WIB<input type="date" name="mulai" value="%s"></label>'
-        '<label>Sampai WIB<input type="date" name="selesai" value="%s"></label>'
-        '<label>Aksi<select name="aksi">%s</select></label>'
-        '<label>Status<select name="status">%s</select></label>'
-        '<button class="admin-tombol">Saring batch</button></form>'
-        % (_e(filters.get('actor_id', '')), _e(filters.get('mulai', '')), _e(filters.get('selesai', '')),
-           _opsi('', 'Semua aksi', filters.get('aksi', '')) + ''.join(_opsi(k, v, filters.get('aksi', ''))
-               for k, v in (('account_teacher_create', 'Buat orang tua'), ('account_password_reset', 'Reset sandi'), ('account_session_revoke', 'Cabut sesi'))),
-           _opsi('', 'Semua status', filters.get('status', '')) + ''.join(_opsi(k, _label_status_batch(k), filters.get('status', ''))
-               for k in ('ready', 'running', 'partial', 'stopped', 'succeeded', 'attention'))))
-    return (_nav_riwayat() + '<section class="admin-kartu"><h2>Riwayat batch tersimpan</h2>'
-        '<p>Metadata operasi tanpa alias, sandi, atau isi draft. Satu batch dapat memiliki beberapa kelompok dan hasil parsial.</p>'
-        + form + '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Batch</th><th scope="col">Pelaku</th>'
-        '<th scope="col">Aksi</th><th scope="col">Target</th><th scope="col">Hasil</th><th scope="col">Waktu</th></tr></thead><tbody>' + baris + '</tbody></table></div>'
-        + _pager(section='riwayat', halaman=data.halaman, jumlah_halaman=data.jumlah_halaman,
-                 total=data.total, filter_data=dict(filters, sumber='batch'), via_post=False) + '</section>')
 
 
 def render_audit_batch_detail(data):
@@ -803,7 +678,7 @@ def render_audit_batch_detail(data):
     penyerahan = ''.join('<li>%s · %s · %d item · %s</li>' % (
         _e(x.operasi_id), _e(x.actor_id), x.jumlah, _e(_waktu_audit_batch(x.dibuat))
     ) for x in data.penyerahan) or '<li>Belum ada konfirmasi penyerahan.</li>'
-    return (_nav_riwayat() + '<section class="admin-kartu"><h2>Metadata batch %s</h2>'
+    return (nav_riwayat("batch") + '<section class="admin-kartu"><h2>Metadata batch %s</h2>'
         '<p>Actor: %s · Aksi: %s · Status: %s · %d target.</p>'
         '<p>Tampilan audit hanya-baca; bukan akses untuk mengambil alih draft sesi lain.</p>'
         '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Item</th><th scope="col">Operasi</th>'

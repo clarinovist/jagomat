@@ -106,6 +106,14 @@ button, summary {{ cursor: pointer; }}
 .admin-kartu.admin-kosong-kartu {{ display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px 24px; text-align: center; }}
 .admin-kosong-kartu h2, .admin-kosong-kartu p {{ margin: 0; }}
 .admin-kosong-kartu p {{ max-width: 34rem; color: {T.ADMIN_REDUP}; line-height: 1.6; }}
+.admin-tab-baris {{ display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }}
+.admin-tab {{ display: inline-flex; align-items: center; min-height: 44px; padding: 10px 16px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 999px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; font-weight: 600; text-decoration: none; }}
+.admin-tab:hover {{ background: {T.ADMIN_NAV_HOVER}; text-decoration: none; }}
+.admin-tab.admin-tab-aktif {{ background: {T.ADMIN_AKSEN_LATAR}; border-color: {T.ADMIN_AKSEN_BORDER}; color: {T.ADMIN_AKSEN_TEKS}; }}
+.admin-kartu.admin-filter-riwayat {{ padding: 20px 24px; margin-bottom: 16px; }}
+.admin-kartu.admin-filter-riwayat > label {{ margin: 0; flex: 1 1 11rem; }}
+.admin-kartu.admin-filter-riwayat > label:first-of-type {{ flex-basis: 11rem; }}
+.admin-kartu.admin-cepat-aksi {{ padding: 0 24px; margin-bottom: 24px; }}
 .admin-cnt {{ font-size: 12px; font-weight: 700; line-height: 1.25; background: {T.ADMIN_NAV_HOVER}; color: {T.ADMIN_NETRAL_TEKS}; border-radius: 999px; padding: 2px 8px; }}
 .admin-chip[aria-current="true"] .admin-cnt {{ background: {T.ADMIN_PERMUKAAN}; }}
 .admin-kartu.admin-kartu-tabel {{ padding: 0; overflow: hidden; }}
