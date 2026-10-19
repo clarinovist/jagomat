@@ -85,9 +85,9 @@ def _topbar_stitch(pengguna: str, peran: str) -> str:
 def _halaman(
     judul: str, isi: str, ident: tuple[str, str] | None = None,
     stitch: bool = False, kelas_bungkus: str = "", id_utama: str = "",
-    privat: bool = False,
+    privat: bool = False, skrip_privat: str = "",
 ) -> bytes:
-    """Bingkai halaman pengelola legacy maupun Stitch."""
+    """Bingkai pengelola; skrip privat statis harus diizinkan hash di respons HTTP."""
     if stitch:
         from style_stitch import gaya_stitch, CSS_SESI
         batang = _topbar_stitch(*ident) if ident else ""
@@ -109,13 +109,16 @@ def _halaman(
                 "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",
                 "",
             )
+        skrip = f'<script>{skrip_privat}</script>' if skrip_privat else ''
+        if not privat:
+            skrip = f'<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script>'
         return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(judul))}</title>
 {brand.tag_kepala()}
 {font}
 <style>{GAYA}{gaya}{CSS_SESI}</style></head>
-<body class="st"><div class="{kelas}">{batang}{buka_isi}{isi}{tutup_isi}</div>{'' if privat else f'<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script>'}</body></html>""".encode()
+<body class="st"><div class="{kelas}">{batang}{buka_isi}{isi}{tutup_isi}</div>{skrip}</body></html>""".encode()
     batang = _topbar(*ident) if ident else ""
     return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -125,26 +125,51 @@ def form_akun(penangan):
     if policy_http.tersedia():
         p=penangan._principal()
         row=policy_store.baca(admin_store.BAWAAN,p.id_akun)
-        status='Pilihan belum tersimpan' if row is None else 'Pilihan tersimpan — dapat diubah kapan saja'
+        izin = izin_akun(p.id_akun)
+        status = '<p>Belum ada persetujuan yang berlaku. Penggunaan tambahan tidak aktif.</p>'
+        if row is not None:
+            pilihan = ''.join(
+                '<li>' + label + ': ' + ('diizinkan' if row[kunci] else 'tidak diizinkan') + '</li>'
+                for kunci, label in (('alur', 'Aktivitas penggunaan aplikasi'),
+                                     ('hasil', 'Ringkasan hasil belajar'),
+                                     ('chat', 'Kategori topik percakapan'))
+            )
+            status = '<p><b>Pilihan tersimpan:</b></p><ul>' + pilihan + '</ul>'
+            if row['dibuat']:
+                tanggal = datetime.fromtimestamp(row['dibuat'], _WIB).strftime('%d-%m-%Y %H:%M WIB')
+                status += '<p>Tanggal persetujuan terakhir: ' + tanggal + '.</p>'
+            if not policy_store.berlaku(row):
+                status += '<p>Persetujuan perlu ditinjau ulang. Penggunaan tambahan tidak aktif.</p>'
+            elif not row['alur']:
+                status += '<p><b>Penggunaan tambahan tidak diizinkan.</b></p>'
+            elif izin is None:
+                status += '<p><b>Penggunaan tambahan tidak aktif.</b> Izin kedaluwarsa atau pencatatan sedang tidak tersedia.</p>'
+            else:
+                tanggal = datetime.fromtimestamp(izin.berakhir, _WIB).strftime('%d-%m-%Y %H:%M WIB')
+                status += '<p><b>Penggunaan tambahan aktif</b> sampai ' + tanggal + '.</p>'
         import product_analytics_http as lama
         cabut_token=lama._token(p,penangan._ambil_token(),'sensor-cabut')
-        return ('<section id="sensor"><h2>Kesepakatan dan pilihan data</h2><p>'+status+'</p>'
+        return ('<section class="kartu-st akun-pilihan-data" id="sensor"><h2>Kesepakatan dan pilihan data</h2>'+status+
+                '<p class="sub">Data tambahan membantu memperbaiki Jagomat: aktivitas penggunaan, ringkasan hasil, '
+                'dan kategori topik percakapan. Tidak menyalin jawaban atau isi pesan mentah ke analitik.</p>'
                 '<p><a href="/persetujuan">Tinjau atau ubah persetujuan</a></p>'
-                '<p>Menolak penggunaan opsional tidak mengurangi fitur belajar inti. Restart biasa tidak meminta izin ulang.</p>'
-                '<form method="post" action="/analitik/sensor-cabut"><input type="hidden" name="token" value="'+html.escape(cabut_token)+'">'
-                '<label><input type="checkbox" name="konfirmasi" value="1" required> Cabut penggunaan opsional dan hapus detail sensor. Data belajar asli tetap ada.</label>'
-                '<button type="submit">Cabut dan hapus sensor</button></form></section>')
+                '<p class="sub">Menolak penggunaan tambahan tidak mengurangi fitur belajar inti.</p>'
+                '<form method="post" action="/analitik/sensor-cabut" data-konfirmasi="Cabut izin penggunaan tambahan dan hapus data analitik tambahan? Data belajar dan percakapan asli tetap ada.">'
+                '<input type="hidden" name="token" value="'+html.escape(cabut_token)+'">'
+                '<label class="akun-label-persetujuan"><input type="checkbox" name="konfirmasi" value="1" required>'
+                '<span>Saya ingin mencabut izin dan menghapus data analitik tambahan. Data belajar dan percakapan asli tetap ada.</span></label>'
+                '<button type="submit" class="tombol-bahaya-akun">Cabut izin dan hapus data tambahan</button></form></section>')
     import product_analytics_http as lama
     p = lama._principal(penangan)
     try:
         with store.buka(admin_store.BAWAAN) as kon:
             row = kon.execute('SELECT boot,berakhir,hasil,chat FROM sensor_peserta WHERE akun_id=?', (p.id_akun,)).fetchone()
     except _GALAT:
-        return '<section><h2>Sensor perbaikan Jagomat</h2><p>Belum tersedia. Tidak ada pengumpulan baru.</p></section>'
+        return '<section class="kartu-st"><h2>Pilihan data tambahan</h2><p>Belum tersedia. Tidak ada pengumpulan baru.</p></section>'
     status = 'Belum memberikan izin.' if row is None else (
         'Persetujuan perlu diperbarui setelah restart atau kedaluwarsa.'
         if row['boot'] != store.BOOT or row['berakhir'] <= int(time.time()) else 'Persetujuan tercatat.')
-    isi = '<section id="sensor"><h2>Sensor perbaikan Jagomat — opsional</h2><p>' + status + '</p>'
+    isi = '<section class="kartu-st akun-pilihan-data" id="sensor"><h2>Data untuk perbaikan Jagomat — opsional</h2><p>' + status + '</p>'
     if row is not None:
         isi += '<p>Pilihan tersimpan: alur; hasil belajar ' + ('diizinkan' if row['hasil'] else 'tidak diizinkan') + '; kategori chat ' + ('diizinkan' if row['chat'] else 'tidak diizinkan') + '.</p>'
     isi += ('<p>Untuk keluarga lama maupun baru. Penolakan tidak mengurangi fitur belajar. '
@@ -164,9 +189,9 @@ def form_akun(penangan):
         isi += '<p>Koleksi nonaktif — tidak teramati, bukan nol penggunaan.</p>'
     if row is not None:
         token = lama._token(p, penangan._ambil_token(), 'sensor-cabut')
-        isi += ('<form method="post" action="/analitik/sensor-cabut"><input type="hidden" name="token" value="' + html.escape(token) + '">'
-                '<label><input type="checkbox" name="konfirmasi" value="1" required> Hapus semua persetujuan dan detail sensor saya; data belajar/chat asli tetap ada.</label>'
-                '<button type="submit">Cabut dan hapus sensor</button></form>')
+        isi += ('<form method="post" action="/analitik/sensor-cabut" data-konfirmasi="Cabut izin dan hapus data analitik tambahan? Data belajar dan percakapan asli tetap ada."><input type="hidden" name="token" value="' + html.escape(token) + '">'
+                '<label class="akun-label-persetujuan"><input type="checkbox" name="konfirmasi" value="1" required><span>Cabut izin dan hapus data analitik tambahan saya. Data belajar dan percakapan asli tetap ada.</span></label>'
+                '<button type="submit" class="tombol-bahaya-akun">Cabut izin dan hapus data tambahan</button></form>')
     return isi + '</section>'
 
 

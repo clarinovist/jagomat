@@ -220,14 +220,14 @@ def test_halaman_akun_menampilkan_siswa_dan_jumlah_sesi(siap):
 def test_tabel_siswa_menampilkan_status_akun_latihan(siap):
     """Hapus akun latihan tidak menghapus anaknya — status di tabel siswa
     harus menjelaskan hubungan itu, bukan membiarkannya jadi teka-teki.
-    Nama login tidak lagi diulang di sini (redundan dengan nama anak);
-    ia tetap terlihat di tab Akun latihan."""
+    Nama login ditampilkan langsung agar tidak tertukar dengan nama anak."""
     with database.buka(siap) as kon:
         sid = database.tambah_siswa(kon, "Tertaut", pemilik="guru")
         auth.tambah_akun("taut-login", "rahasia-taut-123", "murid", siswa_id=sid)
         database.tambah_siswa(kon, "Telanjang")
         h = account_pages.halaman_akun(kon, section="siswa").decode()
-    assert "terhubung" in h
+    assert "Login tersedia" in h
+    assert 'data-label="Nama login">taut-login</td>' in h
     assert "belum ada login" in h
     assert 'data-label="Akun latihan"' not in h
 
@@ -245,8 +245,8 @@ def test_tabel_siswa_tanpa_label_kelas_per_baris(siap):
     assert 'data-label="Status"' in h
 
 
-def test_tabel_siswa_aksi_ikon_dan_form_sandi(siap):
-    """Simpan/Setel/Hapus jadi tombol ikon berdampingan; form sandi membawa
+def test_tabel_siswa_aksi_teks_dan_form_sandi(siap):
+    """Simpan/Hapus memiliki label per anak; form kata sandi membawa
     nama akun supaya palang kepemilikan di server tetap berlaku."""
     with database.buka(siap) as kon:
         sid = database.tambah_siswa(kon, "Dina", pemilik="guru")
@@ -254,13 +254,13 @@ def test_tabel_siswa_aksi_ikon_dan_form_sandi(siap):
         h = account_pages.halaman_akun(
             kon, pengguna="guru", section="siswa"
         ).decode()
-    assert 'class="aksi-ikon-st" title="Simpan kelas sekolah"' in h
-    assert 'class="aksi-ikon-st" title="Setel sandi baru"' in h
-    assert 'class="aksi-ikon-st galat" title="Hapus Dina"' in h
+    assert 'aria-label="Simpan kelas sekolah Dina"' in h
+    assert 'aria-label="Simpan kata sandi Dina"' in h
+    assert 'class="tombol-bahaya-akun">Hapus Dina</button>' in h
     assert 'value="akun_murid_sandi"' in h
     assert 'value="dina-login"' in h
     assert 'value="siswa_hapus"' in h
-    assert "Setel sandi baru" in h  # nama aksesibel, bukan teks tampil
+    assert '>Simpan kata sandi</button>' in h
     assert "confirm(" in h
 
 
@@ -274,7 +274,7 @@ def test_kartu_akun_murid_tanpa_status_dan_sandi(siap):
     blok = h.split('id="perbaikan-login"', 1)[1]
     assert 'data-label="Status"' not in blok
     assert 'value="akun_murid_sandi"' not in blok
-    assert "belum terhubung ke siswa" in h.lower()
+    assert "tidak terpasang pada profil anak" in h.lower()
     assert "confirm(" in h
 
 
@@ -412,8 +412,8 @@ def test_kartu_akun_murid_tampil_dan_memuat_nama(siap):
         database.tambah_siswa(kon, "Sinta")
         auth.tambah_akun("Sinta", "rahasia-sinta-123", "murid")
         h = account_pages.halaman_akun(kon, section="akun-murid").decode()
-    assert "Akun murid" in h
-    assert "Sinta" in h
+    assert 'data-label="Nama login">Sinta</td>' in h
+    assert 'id="perbaikan-login"' not in h
 
 
 def test_akun_tidak_cocok_ditandai_belum_terhubung(siap):
@@ -422,7 +422,7 @@ def test_akun_tidak_cocok_ditandai_belum_terhubung(siap):
         auth.tambah_akun("Hantu", "rahasia-hantu-123", "murid")
         h = account_pages.halaman_akun(kon, section="akun-murid").decode()
     assert "Hantu" in h
-    assert "belum terhubung ke siswa" in h.lower()
+    assert "tidak terpasang pada profil anak" in h.lower()
 
 
 def test_tambah_akun_murid_berhasil(siap):
@@ -552,7 +552,7 @@ def test_semua_anak_terhubung_form_pembuat_tidak_tampil(siap):
         h = account_pages.halaman_akun(kon, section="akun-murid").decode()
     assert "Tambah akun murid" not in h
     assert "Buat akun masuk" not in h
-    assert "Semua anak sudah punya akun masuk" in h
+    assert 'id="perbaikan-login"' not in h
     # Penghapusan akun tetap konfirmasi dulu — sekali klik tidak boleh
     # langsung mencabut login anak.
     assert "confirm(" in h
@@ -606,7 +606,7 @@ def test_status_belum_ada_login_menuju_section_perbaikan(siap):
 def test_section_bawaan_akun_dengan_navigasi_samping(siap):
     with database.buka(siap) as kon:
         h = account_pages.halaman_akun(kon).decode()
-    assert "Ganti sandi" in h
+    assert "Ganti kata sandi" in h
     assert "nav-samping" in h
     assert 'href="/akun?section=siswa"' in h
     assert 'href="/akun?section=akun-murid"' not in h, "tab Akun latihan sudah digabung ke Siswa"
@@ -621,23 +621,23 @@ def test_section_siswa_memuat_daftar_dan_form(siap):
     assert "Andi" in h
     assert "Tambah siswa" not in h, "form tambah siswa sudah tidak ada"
     assert "Tambah anak" in h
-    assert "Ganti sandi" not in h
-    assert "Perbaikan login" in h, "subbagian login ikut di tab Siswa"
-    assert "Akun murid" in h
+    assert 'value="sandi"' not in h
+    assert "Perbaikan login" in h, "profil tanpa login memerlukan pemulihan"
+    assert 'value="akun_murid_tambah"' in h
 
 
 def test_section_akun_murid_memuat_kartunya(siap):
     with database.buka(siap) as kon:
         h = account_pages.halaman_akun(kon, section="akun-murid").decode()
-    assert "Akun murid" in h
-    assert "Ganti sandi" not in h
-    assert "Tambah siswa" not in h
+    assert 'id="perbaikan-login"' not in h
+    assert 'value="sandi"' not in h
+    assert "Tambah anak" in h
 
 
 def test_section_tak_dikenal_jatuh_ke_akun(siap):
     with database.buka(siap) as kon:
         h = account_pages.halaman_akun(kon, section="hxhx").decode()
-    assert "Ganti sandi" in h
+    assert "Ganti kata sandi" in h
     assert "Tambah siswa" not in h
 
 

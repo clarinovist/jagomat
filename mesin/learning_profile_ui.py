@@ -9,20 +9,12 @@ KETERANGAN_KELAS = (
     'mengubah soal lama, atau memulai ulang rencana belajar.'
 )
 
-IKON_SIMPAN = (
-    '<svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" width="20" '
-    'height="20" fill="none" stroke="currentColor" stroke-width="1.8" '
-    'stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/>'
-    '<path d="M8 4v5h7V4"/><path d="M8 20v-6h8v6"/></svg>'
-)
-
-
 def baca_kelas_form(nilai):
     """Terima hanya pilihan kelas formulir; kosong berarti belum dikonfirmasi."""
     if nilai == '':
         return None
     if type(nilai) is not str or nilai not in ('1', '2', '3', '4', '5', '6'):
-        raise ValueError('Pilih kelas sekolah 1–6 atau Kelas belum diisi.')
+        raise ValueError('Pilih kelas sekolah SD 1–6 atau kosongkan jika belum diisi.')
     return int(nilai)
 
 
@@ -42,7 +34,7 @@ def opsi_kelas(kelas_sekolah=None):
         '<option value="%s"%s>%s</option>' % (
             '' if kelas is None else kelas,
             ' selected' if kelas == kelas_sekolah else '',
-            label_kelas_sekolah(kelas),
+            'Pilih kelas (opsional)' if kelas is None else label_kelas_sekolah(kelas),
         ) for kelas in (None, 1, 2, 3, 4, 5, 6)
     )
 
@@ -50,9 +42,8 @@ def opsi_kelas(kelas_sekolah=None):
 def form_kelas(profil, nama):
     """Satu entry point edit kelas di akun; revisi berasal dari snapshot baca.
 
-    Label tidak tampil sebagai teks — kolom tabel sudah menamakannya
-    ("Kelas sekolah") dan sel tetap punya nama aksesibel lewat aria-label.
-    Tombolnya ikon supaya baris tidak membengkak.
+    Kolom tabel menamai bidang; nama aksesibel tombol menyebut anak.
+    Simpan manual tanpa autosave atau JavaScript tambahan.
     """
     identitas = 'kelas-sekolah-%d' % profil.siswa_id
     return (
@@ -62,8 +53,8 @@ def form_kelas(profil, nama):
         '<input type="hidden" name="revisi_profil" value="%d">'
         '<select id="%s" name="kelas_sekolah" '
         'aria-label="Kelas sekolah %s" aria-describedby="keterangan-kelas">%s</select>'
-        '<button type="submit" class="aksi-ikon-st" title="Simpan kelas sekolah">'
-        '%s<span class="pendamping-sr">Simpan kelas sekolah</span></button>'
+        '<button type="submit" class="tombol-sekunder" aria-label="Simpan kelas sekolah %s">'
+        'Simpan kelas</button>'
         '</form>'
     ) % (profil.siswa_id, profil.revisi, identitas, html.escape(nama),
-         opsi_kelas(profil.kelas_sekolah), IKON_SIMPAN)
+         opsi_kelas(profil.kelas_sekolah), html.escape(nama))

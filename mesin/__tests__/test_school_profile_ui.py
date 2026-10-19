@@ -64,8 +64,8 @@ def test_form_kelas_tidak_menebak_pn_dan_get_tanpa_tulis(db):
     assert len(kelas) == 1
     assert any(i.get('name') == 'revisi_profil' and i.get('value') == '0' for i in kelas[0]['input'])
     assert [(o.get('value'), 'selected' in o) for o in kelas[0]['option']] == [('', True)] + [(str(n), False) for n in range(1, 7)]
-    assert 'Kelas belum diisi' in isi and 'Konteks latihan: Profil' not in isi
-    assert 'tidak menentukan kemampuan' in isi
+    assert 'Pilih kelas (opsional)' in isi and 'Konteks latihan: Profil' not in isi
+    assert 'bukan kemampuan anak' in isi
     assert not formulir.aksi('tingkat')
     assert db.total_changes == sebelum
     assert learning_profile.baca(db, sid, pemilik='guru').kelas_sekolah is None

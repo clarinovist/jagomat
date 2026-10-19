@@ -48,7 +48,10 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   pemulihan dan CTA reducer tetap di Berikutnya.
 - Pendamping AI inline untuk orang tua; usulan latihan memerlukan tinjauan dan
   konfirmasi, bukan perubahan diagnosis atau bukti belajar otomatis.
-- Akun keluarga dan pengelolaan murid. Soft launch saat ini adalah akses awal
+- Akun keluarga dan pengelolaan anak: nama login terlihat, penghapusan profil
+  ber-riwayat atau bukti pendaftaran ditahan, dan pilihan data tambahan dibedakan
+  dari izin yang masih aktif. Pemulihan akun melalui bantuan tanpa kontak tersimpan.
+  Soft launch saat ini adalah akses awal
   nonkomersial; Jago/Jago Pro sedang disiapkan dan pendaftaran tidak mengaktifkan
   paket, masa coba, promo, atau pembayaran. Domain langganan/pembayaran tetap ada
   tetapi tidak dipromosikan sebagai penawaran aktif. Dukungan publik

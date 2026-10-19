@@ -69,7 +69,9 @@ cache dan cadangan tetap privat.
   Kirim/Periksa Pendamping inline, serta accordion/penanda isian/konfirmasi lewati
   pada tinjauan sesi (`review_browser.py`, tanpa penilaian atau kirim otomatis).
   Skrip berhash CSP, same-origin dan punya fallback
-  form native; bukan izin menambah JavaScript umum. Refresh pilihan isi lama tidak
+  form native; bukan izin menambah JavaScript umum. Semua tab akun memakai font
+  sistem tanpa CDN; `account_browser.py` memuat mata sandi dan konfirmasi via
+  atribut data escaped, dengan hash exact pada respons GET/POST `account_http.py`. Refresh pilihan isi lama tidak
   lagi dipakai karena alur baru tidak meminta variasi A–D.
 - Nama modul Inggris; fungsi/variabel, docstring, UI dan commit Bahasa Indonesia.
   Commit conventional (`fix(murid): …`). Nilai visual melalui `design_tokens.py`

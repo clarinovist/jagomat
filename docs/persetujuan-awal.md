@@ -26,6 +26,12 @@ tersimpan tidak memicu gate ulang; sensor yang habis tidak dibuat otomatis dari 
 Perubahan pilihan memulai sumber prospektif baru dan menghapus derivasi lama. Penghapusan
 keluarga menghapus receipt. Detail sensor tetap30hari, tidak ada penambahan raw data.
 
+Panel Akun menampilkan pilihan tersimpan, tanggal persetujuan terakhir (WIB), dan
+status izin efektif/masa berakhir secara terpisah. Waktu receipt bukan tanggal
+pencabutan; panel tidak mengarang waktu tersebut. Pencabutan memakai checkbox
+wajib dan konfirmasi dengan konsekuensi eksplisit: detail analitik tambahan dihapus,
+data belajar dan percakapan sumber tetap ada. Token dan validasi server tetap wajib.
+
 ## Restart dibanding restore
 
 `SENSOR_CONSENT_EPOCH` adalah 32 karakter hex acak, root-controlled di konfigurasi host

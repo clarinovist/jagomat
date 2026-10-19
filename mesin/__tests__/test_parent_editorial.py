@@ -225,7 +225,7 @@ def test_form_upload_terapkan_baca_ulang_dan_hapus_tetap_terpisah(db):
 def test_siswa_kosong_punya_petunjuk_dan_foto_punya_nama_menu(db):
     kon, _, _, _ = db
     kosong = account_pages.halaman_akun(kon, pengguna="tanpa-anak", section="siswa").decode()
-    assert "Belum ada siswa. Tambahkan anak pertama di bawah." in kosong
+    assert "Belum ada anak. Tambahkan anak pertama di bawah." in kosong
     foto = _halaman(db)["foto"].decode()
     assert '<summary aria-label="Menu pendamping">Menu</summary>' in foto
 
@@ -265,9 +265,9 @@ def test_siswa_tanpa_kartu_catatan_operasional_dan_batas_hapus_dekat_daftar(db):
     badan = isi.split('</style>', 1)[1]
     assert '<h2>Catatan</h2>' not in badan
     assert 'Mac' not in badan and '22:00' not in badan
-    daftar = badan.split('<h2>Siswa</h2>', 1)[1].split('<h2>Tambah anak</h2>', 1)[0]
+    daftar = badan.split('<h2>Daftar anak</h2>', 1)[1].split('<h2>Tambah anak</h2>', 1)[0]
     assert 'Anak dengan riwayat sesi tidak bisa dihapus.' in daftar
-    assert 'Anak tanpa sesi dapat dihapus beserta akun latihannya.' in daftar
+    assert 'Profil lain tanpa sesi dapat dihapus beserta akun loginnya.' in daftar
 
 
 def test_status_perlu_perhatian_dan_foto_tetap_terbaca():

@@ -2669,8 +2669,26 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .akun-editorial-st .layout-samping {{ display: grid; grid-template-columns: minmax(0, 1fr); gap: {T.SP_5}; }}
 .akun-editorial-st .nav-samping {{ position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: {T.SP_2}; padding-bottom: {T.SP_3}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
 .akun-editorial-st .nav-samping a {{ display: inline-flex; min-height: {T.TARGET_SENTUH}; align-items: center; border-radius: {T.RADIUS_KECIL}; padding: {T.SP_2} {T.SP_4}; }}
-.akun-editorial-st .nav-samping a.aktif {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; }}
-.akun-editorial-st .kartu:has(input[name=lama]) {{ max-width: 42rem; }}
+.akun-editorial-st .nav-samping a {{ font-weight: 600; }}
+.akun-editorial-st .nav-samping a.aktif {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; font-weight: 600; }}
+.akun-editorial-st {{ font-family: {T.FONT_LAYAR}; }}
+.akun-editorial-st :is(h1,h2,h3,button,input,select,label,summary) {{ font-family: inherit; }}
+.akun-editorial-st :is(button,input,select) {{ font-size: 1rem; }}
+.akun-editorial-st .sub, .akun-editorial-st input::placeholder {{ color: {T.TEKS_VARIAN}; opacity: 1; }}
+.akun-editorial-st .tombol-utama-akun {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; border-color: {T.AKSEN_TEAL_TUA}; }}
+.akun-editorial-st .tombol-bahaya-akun {{ background: {T.LATAR_GALAT}; color: {T.TEKS_GALAT}; border: {T.TEBAL_GARIS} solid {T.BORDER_GALAT}; }}
+.akun-editorial-st .tombol-bahaya-akun:disabled {{ opacity: 1; background: {T.LATAR_KARTU}; color: {T.TEKS_VARIAN}; border-color: {T.BORDER_VARIAN}; cursor: not-allowed; }}
+.akun-editorial-st .akun-label-persetujuan {{ display: flex; align-items: flex-start; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH}; padding-block: {T.SP_3}; cursor: pointer; }}
+.akun-editorial-st .akun-label-persetujuan input[type=checkbox] {{ flex: 0 0 auto; width: 1.25rem; height: 1.25rem; margin: .15rem 0 0; accent-color: {T.AKSEN_TEAL_TUA}; }}
+.akun-editorial-st .akun-form-sandi {{ flex-direction: column; align-items: stretch; }}
+.akun-editorial-st .akun-form-sandi .kolom-sandi {{ min-width: 0; width: 100%; }}
+.akun-editorial-st .akun-pilihan-data {{ margin-top: {T.SP_6}; }}
+.akun-editorial-st td {{ overflow-wrap: anywhere; }}
+@media (min-width: 769px) {{
+  .akun-editorial-st td[data-label=Nama], .akun-editorial-st td[data-label="Nama login"] {{ min-width: 7rem; }}
+  .akun-editorial-st td[data-label=Aksi] {{ width: 26%; }}
+}}
+.akun-editorial-st .akun-kartu-sandi form {{ max-width: 34rem; }}
 .akun-editorial-st .baris-aksi {{ flex-wrap: wrap; }}
 .akun-editorial-st .baris-aksi form {{ flex-wrap: wrap; max-width: 100%; margin-left: 0 !important; }}
 .akun-editorial-st .input-sandi-kecil {{ width: 100%; }}

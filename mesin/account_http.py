@@ -8,6 +8,19 @@ import sessions
 from support_pages import halaman_pesan as _halaman
 
 
+def _kirim_akun(penangan, isi, kode=200):
+    """Tanpa CDN/koneksi eksternal; hanya hash enhancement akun yang statis."""
+    import admin_security
+    from account_browser import SKRIP_AKUN
+    penangan.send_response(kode)
+    penangan.send_header('Content-Type', 'text/html; charset=utf-8')
+    penangan.send_header('Content-Length', str(len(isi)))
+    for nama, nilai in admin_security.header_privat(skrip_sandi=SKRIP_AKUN).items():
+        penangan.send_header(nama, nilai)
+    penangan.end_headers()
+    penangan.wfile.write(isi)
+
+
 def _fragmen_langganan(penangan, ident):
     """Bangun kartu ringkasan langganan untuk embed /akun?section=langganan.
 
@@ -42,8 +55,11 @@ def _fragmen_langganan(penangan, ident):
             return _halaman_sandbox.isi_ringkasan(_profil, _inv, token)
     except _d.FiturNonaktif:
         return (
-            '<section class="kartu-st"><h2>Langganan</h2>'
-            '<p class="peringatan">Pembayaran online belum diaktifkan pengelola.</p></section>'
+            '<section class="kartu-st"><h2>Status layanan</h2>'
+            '<p>Pembayaran online belum tersedia di Jagomat.</p>'
+            '<p class="sub">Halaman ini tidak mengaktifkan paket atau tagihan baru. '
+            'Untuk pertanyaan akses atau langganan yang sudah dimiliki, '
+            '<a href="/lupa-sandi">hubungi dukungan Jagomat</a>.</p></section>'
         )
     except Exception:
         pass
@@ -134,10 +150,7 @@ def tangani_get(
             langganan_produksi=subscription_produksi_http.ada(penangan),
             langganan_html=langganan_html,
         )
-    if arsip or panel_analitik or langganan_html:
-        assistant_http._kirim_host_privat(penangan, hasil)
-    else:
-        penangan._kirim(hasil)
+    _kirim_akun(penangan, hasil)
     return True
 
 
@@ -246,7 +259,8 @@ def tangani_post(
         section = data.get("section") or peta_section.get(
             data.get("aksi", ""), "akun"
         )
-        penangan._kirim(
+        _kirim_akun(
+            penangan,
             halaman(
                 kon,
                 pesan,
