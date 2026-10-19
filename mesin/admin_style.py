@@ -113,7 +113,7 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .admin-kartu.admin-prioritas h2 {{ margin: 0; font-size: 18px; }}
 .admin-alis {{ margin: 0 0 4px; font-size: 13px; color: {T.ADMIN_REDUP}; }}
 .admin-total-temuan {{ margin: 0; font-size: 14px; color: {T.ADMIN_REDUP}; }}
-.admin-total-temuan strong {{ font-size: 24px; color: {T.ADMIN_TEKS}; }}
+.admin-total-temuan strong {{ font-size: {T.ADMIN_UKURAN_TOTAL}; color: {T.ADMIN_TEKS}; }}
 .admin-antrean {{ list-style: none; margin: 0; padding: 0; }}
 .admin-antrean-item {{ display: grid; grid-template-columns: 130px minmax(0,1fr) auto; gap: 8px 20px; padding: 20px 24px; border-bottom: 1px solid {T.ADMIN_PEMISAH}; }}
 .admin-antrean-urutan {{ grid-row: 1 / 5; font-size: 13px; color: {T.ADMIN_PERHATIAN_TEKS}; }}
@@ -146,7 +146,7 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .admin-info {{ display: inline-block; font-size: 14px; font-weight: normal; }}
 .admin-info summary {{ min-width: 44px; display: grid; place-items: center; }}
 .admin-info p {{ max-width: 22rem; }}
-.admin-angka {{ font-size: 40px; font-variant-numeric: tabular-nums; }}
+.admin-angka {{ font-size: {T.ADMIN_UKURAN_KPI}; font-variant-numeric: tabular-nums; }}
 .admin-kpi-biaya {{ grid-column: 1 / -1; }}
 .admin-bilah {{ height: 12px; margin: 16px 0; border-radius: 999px; background: {T.ADMIN_NETRAL_LATAR}; position: relative; }}
 .admin-bilah span {{ display: block; height: 100%; border-radius: inherit; background: {T.ADMIN_AKSEN}; }}

@@ -21,7 +21,6 @@ def _aturan(css, selector):
 
 def test_judul_dewasa_seragam_dan_override_hp_tidak_membesar():
     for css, selector in (
-        (admin_style.GAYA_ADMIN, '.admin-kepala h1'),
         (style_stitch.GAYA_STITCH, '.guru-sapaan-st h1'),
         (style_stitch.GAYA_STITCH, '.pendamping-editorial-st h1'),
         (assistant_style.GAYA_PENDAMPING, '.pendamping-halaman h1'),
@@ -34,8 +33,6 @@ def test_judul_dewasa_seragam_dan_override_hp_tidak_membesar():
 
 def test_angka_ringkasan_dan_bagian_dewasa_memakai_token():
     for css, selector in (
-        (admin_style.GAYA_ADMIN, '.admin-angka'),
-        (admin_style.GAYA_ADMIN, '.admin-total-temuan strong'),
         (mastery_report.GAYA_PETA, '.peta-materi-st .peta-angka'),
         (report_dashboard.GAYA_LAPORAN, '.laporan-editorial-st .laporan-metrik strong'),
         (teacher_style.GAYA_GURU, '.stat .angka-besar'),
@@ -46,6 +43,17 @@ def test_angka_ringkasan_dan_bagian_dewasa_memakai_token():
     for selector in ('.guru-kepala-daftar-st h2', '.guru-kosong-st h2',
                      '.pendamping-editorial-st h2', '.profil-editorial-st #judul-rencana-belajar'):
         assert T.UKURAN_BAGIAN_DEWASA in _aturan(style_stitch.GAYA_STITCH, selector)
+
+
+def test_skala_admin_scoped_tanpa_override_hp():
+    for selector, token in (
+        ('.admin-kepala h1', T.ADMIN_UKURAN_JUDUL),
+        ('.admin-angka', T.ADMIN_UKURAN_KPI),
+        ('.admin-total-temuan strong', T.ADMIN_UKURAN_TOTAL),
+    ):
+        aturan = _aturan(admin_style.GAYA_ADMIN, selector)
+        assert 'font-size: ' + token in aturan
+        assert all(nilai.strip() == token for nilai in re.findall(r'font-size:\s*([^;]+);', aturan))
 
 
 def test_body_anak_dan_input_tetap_dengan_target_sentuh():
