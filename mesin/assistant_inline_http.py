@@ -183,7 +183,8 @@ def _render_host_dengan_fragmen(
                 raise LookupError("host tidak tersedia")
             isi = teacher_pages.halaman_anak(
                 kon_data, siswa, peran="guru", pengguna=principal.pengguna,
-                bantuan_rencana=fragmen if target.posisi == "rencana" else "",
+                bantuan_rencana=fragmen if target.posisi != "latihan" else "",
+                bantuan_tab=target.posisi, bantuan_target=target,
                 bantuan_latihan=fragmen if target.posisi == "latihan" else "",
                 draf_latihan=draf, draf_gabungan=draf_gabungan,
                 draf_remedial=draf_remedial,

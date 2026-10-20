@@ -29,11 +29,11 @@ _MAKS_ID = 2 ** 63 - 1
 
 
 def label_chat(chat: assistant_store.Chat) -> str:
-    """Identitas tetap dari waktu dibuat WIB dan ID penuh, bukan cuplikan pesan."""
+    """Judul netral dari jenis sumber/waktu, tidak menyalin pesan personal."""
     waktu = datetime.fromtimestamp(chat.dibuat, tz=_WIB)
     return (
-        f"Chat {waktu.day:02d} {_BULAN[waktu.month - 1]} {waktu.year} · "
-        f"{waktu:%H:%M} WIB · {chat.id}"
+        f"{dict(anak='Belajar', sesi='Tinjauan sesi', soal='Bahas soal').get(getattr(chat, 'context_kind', None), 'Percakapan')} · "
+        f"{waktu.day:02d} {_BULAN[waktu.month - 1]} {waktu.year} · {waktu:%H:%M:%S} WIB"
     )
 
 

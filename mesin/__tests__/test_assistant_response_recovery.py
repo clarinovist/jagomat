@@ -215,4 +215,4 @@ def test_konteks_tidak_aktif_tidak_membaca_kategori_ledger(server, monkeypatch, 
 def test_browser_tidak_mengklaim_pesan_belum_sampai_server():
     assert "Pesan belum terkirim" not in assistant_browser.SKRIP_CHAT
     assert "Balasan belum tersedia" in assistant_browser.SKRIP_CHAT
-    assert "tidak dikirim ulang otomatis" in assistant_browser.SKRIP_CHAT
+    assert "tidak ada pengiriman ulang otomatis" in assistant_browser.SKRIP_CHAT

@@ -106,6 +106,22 @@ var berjalan = null;
 var pembuka = null;
 var tertunda = null;
 var generasi = 0;
+var pengumuman = null;
+function umumkanJawaban(panel) {
+  if (!pengumuman) {
+    pengumuman = document.createElement('p');
+    pengumuman.className = 'pendamping-sr';
+    pengumuman.setAttribute('role', 'status');
+    pengumuman.setAttribute('aria-live', 'polite');
+    document.body.appendChild(pengumuman);
+  }
+  var jawaban = panel.querySelectorAll('.pendamping-pesan.asisten .pendamping-teks');
+  pengumuman.textContent = '';
+  if (jawaban.length) {
+    var teks = jawaban[jawaban.length - 1].textContent;
+    window.requestAnimationFrame(function () { pengumuman.textContent = 'Pendamping menjawab. ' + teks; });
+  }
+}
 var aksiPanel = /^(buka|persetujuan|mulai|riwayat|pilih-sumber|pesan|status)$/;
 var identitas = ['inline_host', 'inline_host_id', 'inline_posisi', 'inline_nomor'];
 var bidang = {
@@ -197,8 +213,26 @@ function lengkapiFallback(form) {
     salinan.dataset.drafNative = '1'; form.appendChild(salinan);
   });
 }
+function siapkanPanel(panel) {
+  var gulir = panel.querySelector('.pendamping-gulir');
+  if (gulir) gulir.scrollTop = gulir.scrollHeight;
+  panel.querySelectorAll('[data-contoh]').forEach(function (tombol) {
+    tombol.hidden = false;
+    var teks = tombol.parentElement.querySelector('.pendamping-contoh-native');
+    if (teks) teks.hidden = true;
+  });
+  var b = binding(panel);
+  if (b.host !== 'anak' || !/^[1-9][0-9]{0,18}$/.test(b.id)) return;
+  document.querySelectorAll('[data-tab-profil]').forEach(function (tautan) {
+    var tab = tautan.dataset.tabProfil;
+    if (!['rencana', 'latihan', 'riwayat', 'perkembangan'].includes(tab)) return;
+    var nilai = new URLSearchParams({bantuan: tab});
+    if (/^chat_[0-9a-f]{32}$/.test(b.chat)) nilai.set('chat', b.chat);
+    tautan.href = '/anak/' + b.id + '?' + nilai.toString() + '#bantuan-' + tab;
+  });
+}
 function pesanStatus(panel, teks, permintaan) {
-  var tempat = panel.querySelector('.pendamping-composer') ||
+  var tempat = panel.querySelector('.pendamping-gulir') ||
     panel.querySelector('.pendamping-inline-isi') || panel;
   var status = tempat.querySelector('[data-status-browser]');
   if (!status) {
@@ -210,6 +244,7 @@ function pesanStatus(panel, teks, permintaan) {
     tempat.appendChild(status);
   }
   status.textContent = teks;
+  if (tempat.classList.contains('pendamping-gulir')) tempat.scrollTop = tempat.scrollHeight;
   var lama = panel.querySelector('[data-ulang-browser]');
   if (lama) lama.remove();
   if (permintaan) {
@@ -246,6 +281,12 @@ function tutupLokal(panel) {
   }) || pembuka.tombol;
   tujuan.focus({preventScroll: true});
   window.scrollTo(pembuka.x, pembuka.y);
+  document.querySelectorAll('[data-tab-profil]').forEach(function (tautan) {
+    var tab = tautan.dataset.tabProfil;
+    if (['rencana', 'latihan', 'riwayat', 'perkembangan'].includes(tab)) {
+      tautan.href = '/anak/' + binding(panel).id + '?section=' + tab;
+    }
+  });
   pembuka = null;
 }
 async function kirim(p) {
@@ -257,7 +298,7 @@ async function kirim(p) {
   var fokusDiPanel = panel.contains(document.activeElement);
   var x = window.scrollX, y = window.scrollY;
   kunci(panel, true);
-  pesanStatus(panel, chat ? 'Jawaban sedang ditunggu. Pesan tidak dikirim ulang otomatis.' : 'Membuka bantuan…');
+  pesanStatus(panel, chat ? 'Pendamping sedang menjawab…' : 'Membuka bantuan…');
   var pengendali = new AbortController();
   var tenggat = setTimeout(function () { pengendali.abort(); }, 90000);
   function masihAktif() { return panel.isConnected && p.generasi === generasi; }
@@ -317,7 +358,11 @@ async function kirim(p) {
       panel.replaceWith(baru);
     }
     tertunda = null;
+    siapkanPanel(baru);
     if (chat) pesanStatus(baru, selesai ? 'Jawaban sudah tersedia.' : 'Balasan belum tersedia. Pesanmu tetap ada.');
+    var gulir = baru.querySelector('.pendamping-gulir');
+    if (chat && selesai && gulir) gulir.scrollTop = gulir.scrollHeight;
+    if (chat && selesai) umumkanJawaban(baru);
     // Tidak autofocus composer/keyboard HP; fokus tetap pada kontrol panel.
     var tujuan = baru.querySelector('.pendamping-tutup');
     if ((fokusDiPanel || aksi === 'buka') && tujuan) tujuan.focus({preventScroll: true});
@@ -335,6 +380,31 @@ async function kirim(p) {
     if (berjalan === p) berjalan = null;
   }
 }
+document.querySelectorAll('.pendamping-panel-kanan').forEach(siapkanPanel);
+document.addEventListener('click', function (kejadian) {
+  var contoh = kejadian.target.closest('[data-contoh]');
+  if (contoh) {
+    var panel = contoh.closest('.pendamping-panel-kanan');
+    var input = panel && panel.querySelector('[name="pesan"]');
+    if (!input || input.readOnly || (input.value.trim() && !window.confirm('Ganti pesan yang belum dikirim dengan contoh ini?'))) return;
+    input.value = contoh.dataset.contoh; input.focus();
+    contoh.closest('details').open = false;
+  }
+  var tab = kejadian.target.closest('[data-tab-profil]');
+  if (tab) {
+    var pesan = document.querySelector('.pendamping-panel-kanan [name="pesan"]');
+    if ((berjalan || tertunda || (pesan && pesan.value.trim())) &&
+        !window.confirm('Pindah tab akan meninggalkan pesan yang belum terkirim. Lanjutkan?')) kejadian.preventDefault();
+  }
+});
+document.addEventListener('keydown', function (kejadian) {
+  if (kejadian.key !== 'Escape') return;
+  var panel = document.querySelector('.pendamping-panel-kanan');
+  if (!panel) return;
+  var tombol = panel.querySelector('.pendamping-tutup');
+  if (!tombol) return;
+  kejadian.preventDefault(); tombol.click();
+});
 document.addEventListener('submit', function (kejadian) {
   var tombol = kejadian.submitter;
   if (!tombol) return;

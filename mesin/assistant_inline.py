@@ -113,7 +113,7 @@ def _id_kanonik(nilai: str) -> Optional[int]:
 def tujuan_anak(anak_id: int, posisi: str = "rencana", *, chat_id: str = "") -> TujuanInline:
     if type(anak_id) is not int or not 0 < anak_id <= _MAKS_ID:
         raise GalatInline("ID anak tidak sah.")
-    if posisi not in ("rencana", "latihan") or (chat_id and not _POLA_CHAT.fullmatch(chat_id)):
+    if posisi not in ("rencana", "latihan", "riwayat", "perkembangan") or (chat_id and not _POLA_CHAT.fullmatch(chat_id)):
         raise GalatInline("Tujuan bantuan tidak sah.")
     return TujuanInline("anak", anak_id, posisi, "anak", str(anak_id), chat_id=chat_id or None)
 

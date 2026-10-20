@@ -305,7 +305,7 @@ def fragmen_inline(
                 if not item.dikonfirmasi and item.sumber_chat_id == chat.id
             ),
             operasi=operasi, halaman_riwayat=halaman_riwayat,
-            ada_lagi=ada_lagi,
+            ada_lagi=ada_lagi, konteks=konteks_aktif,
         )
 
 def _chat_html(kon, principal, chat, *, galat='', request_id='', operasi_url=''):

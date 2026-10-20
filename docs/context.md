@@ -131,8 +131,15 @@ cache dan cadangan tetap privat.
   `child_badge_style.py`, durasi sesi dari `profile_history.durasi_detik`. Jangan menambal lebar per tab.
   `child_header.py` mengisolasi markup/style header orang tua `/anak/<id>` dengan
   marker `anak-header-st`, tanpa mengubah shell halaman lain. Sticky dan bayangan
-  memakai CSS (bayangan sebagai progressive enhancement); pemicu Pendamping
+  memakai CSS (bayangan sebagai progressive enhancement); pemicu Pendamping melayang
   tetap memakai binding/form native existing, termasuk ketika mode latihan berganti.
+  `assistant_context` membangun snapshot baca konsisten berkontrak v2: fakta minimum
+  dan binding alias lokal ikut fingerprint, kategori netral existing tanpa migrasi.
+  Antrean memakai predicate konfirmasi aktif bersama `profile_history`; izin versi
+  lama tidak mengesahkan payload baru. Empat posisi tab tetap resource anak sama;
+  navigasi membawa chat berizin tanpa draf/storage. `assistant_browser` menambah
+  contoh isi-draf, Esc dan scroll percakapan; `style_stitch` memisahkan composer
+  dari area gulir pada overlay desktop/sheet HP.
   `profile_workspace.py` menjadi sumber navigasi empat tujuan profil: **Beranda**,
   **Latihan**, **Riwayat**, dan **Perkembangan**. Pascapendaftaran dan default
   `/anak/<id>` sama-sama membuka Beranda; POST latihan kembali eksplisit ke

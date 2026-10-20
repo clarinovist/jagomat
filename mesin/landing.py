@@ -273,7 +273,11 @@ setiap upload. Hasil AI hanya berupa usulan dan harus diperiksa guru.</p>
 <p>Fitur <b>Pendamping</b>, bila diaktifkan dan setelah persetujuan terpisah,
 mengirim isi chat ke DeepSeek. Jangan menulis email, nomor telepon, sandi,
 token, atau data pribadi anak. Bantuan kontekstual hanya memakai sumber belajar
-minimum yang dipilih dan disetujui; jawaban/cara anak tidak dikirim otomatis. Isi
+minimum yang dipilih dan disetujui; jawaban/cara anak tidak dikirim otomatis.
+Ringkasan profil mencakup tahap, konteks variasi latihan, jumlah target belajar,
+waktu latihan berikutnya, serta maksimal tiga sesi perlu ditinjau memakai alias,
+jumlah soal dan urutan aplikasi. Nama, nomor sesi asli dan catatan anak tidak masuk
+ringkasan otomatis ini. Perubahan ringkasan memerlukan peninjauan izin baru. Isi
 chat dapat dilihat kembali oleh pemilik akun, tetapi panel pengelola tidak menyediakan
 pembacaan isi chat atau memori keluarga. Riwayat chat
 disimpan sampai 180 hari sejak aktivitas terakhir; operasi gagal disimpan paling

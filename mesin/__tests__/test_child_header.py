@@ -90,7 +90,8 @@ def test_css_header_scoped_sticky_dan_target_sentuh():
     assert 'height: 56px' in css and 'height: 48px' in css
     assert 'height: 44px' in css and 'font-weight: 700' in css
     assert '@media (max-width: 36rem)' in css and '@media (max-width: 24rem)' in css
-    assert 'clip-path: inset(50%)' in css
+    assert 'clip-path: inset(50%)' not in css
+    assert 'position: fixed; top: auto' in css
     assert 'display: none' not in css and 'display:none' not in css
     assert 'outline: 3px solid' in css
     assert '--anak-identitas' in css and 'animation-range: exit 99% exit 100%' in css

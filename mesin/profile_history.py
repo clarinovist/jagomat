@@ -198,9 +198,21 @@ def ringkasan_riwayat(kon, siswa_id):
             'terlama_id': terlama[0]['id'] if terlama else None}
 
 
+_PERLU_TINJAUAN = ' AND s.dibatalkan IS NULL AND s.selesai IS NOT NULL AND NOT COALESCE(' + _AKTIF + ',0)'
+
+
+def metadata_tinjauan(kon, siswa_id):
+    """Antrean sama dengan Beranda, hanya ID lokal dan jumlah soal tanpa jawaban."""
+    return kon.execute(
+        'SELECT s.id, (SELECT COUNT(*) FROM sesi_soal ss WHERE ss.sesi_id=s.id) AS n '
+        'FROM sesi s WHERE s.siswa_id=?' + _PERLU_TINJAUAN +
+        ' ORDER BY s.tanggal ASC,s.id ASC LIMIT 3', (siswa_id,),
+    ).fetchall()
+
+
 def tinjauan_terlama(kon, siswa_id, *, kecuali=None):
     """Beranda: terkirim, bukan dibatalkan/terkonfirmasi, terlama dahulu."""
-    where = ' AND s.dibatalkan IS NULL AND s.selesai IS NOT NULL AND NOT COALESCE(' + _AKTIF + ',0)'
+    where = _PERLU_TINJAUAN
     parameter = ()
     if kecuali is not None:
         where += ' AND s.id<>?'

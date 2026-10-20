@@ -24,6 +24,8 @@ class KonteksPendamping:
     versi: str
     kategori: str
     muatan: dict
+    # Metadata lokal saja; _pesan_provider hanya mengirim muatan.
+    tautan_sesi: tuple = ()
 
 
 def _sidik(muatan: dict) -> str:
@@ -55,8 +57,8 @@ def _tahap_netral(tindakan: str) -> str:
     }.get(tindakan, "Langkah berikutnya tersedia")
 
 
-def versi_ringkasan_anak(kon, siswa_id: int, *, pemilik: str) -> Optional[str]:
-    """Versi murah untuk revalidasi tanpa merakit payload reducer penuh."""
+def _versi_bukti_anak(kon, siswa_id: int, *, pemilik: str) -> Optional[str]:
+    """Pertahankan invalidasi kejadian/konfirmasi selain fakta yang ditampilkan."""
     if not database.siswa_milik(kon, siswa_id, pemilik):
         return None
     baris = kon.execute(
@@ -74,17 +76,38 @@ def versi_ringkasan_anak(kon, siswa_id: int, *, pemilik: str) -> Optional[str]:
     return _sidik(dict(baris)) if baris is not None else None
 
 
-def konteks_anak(
+def konteks_anak(kon, siswa_id: int, *, pemilik: str) -> Optional[KonteksPendamping]:
+    """Baca payload dan fingerprint dari satu snapshot SQLite yang konsisten."""
+    mulai = not kon.in_transaction
+    if mulai:
+        kon.execute("BEGIN")
+    try:
+        return _konteks_anak(kon, siswa_id, pemilik=pemilik)
+    finally:
+        if mulai:
+            kon.rollback()  # transaksi baca milik fungsi ini saja
+
+
+def _konteks_anak(
     kon,
     siswa_id: int,
     *,
     pemilik: str,
 ) -> Optional[KonteksPendamping]:
-    """Ringkasan reducer satu anak tanpa nama, fokus, atau alasan internal."""
+    """Snapshot fakta aplikasi; identitas sesi tetap lokal, bukan payload AI."""
     if not database.siswa_milik(kon, siswa_id, pemilik):
         return None
+    import profile_history
+    from learning_cycle_ui import _indeks_tahap
+    from mastery_evidence import lengkapi_bukti_materi
+    from mastery_report import peta_penguasaan
+    from domain_clock import hari_wib
+    hari = hari_wib()
     bukti = database.muat_bukti_siklus(kon, siswa_id)
-    rencana = rencana_berikutnya(bukti, siswa_id)
+    rencana = rencana_berikutnya(bukti, siswa_id, hari)
+    peta = peta_penguasaan(lengkapi_bukti_materi(kon, bukti), siswa_id, hari)
+    antrean = profile_history.metadata_tinjauan(kon, siswa_id)
+    tautan = tuple(("Sesi " + chr(65 + i), int(sesi["id"])) for i, sesi in enumerate(antrean))
     muatan = {
         "jenis": "ringkasan_anak",
         "level": bukti.level_aktif,
@@ -94,16 +117,34 @@ def konteks_anak(
             if rencana.tersedia_pada is not None else None
         ),
     }
-    versi = versi_ringkasan_anak(kon, siswa_id, pemilik=pemilik)
-    if versi is None:
+    muatan["posisi"] = {"tahap": _indeks_tahap(rencana, bukti) + 1, "total": 6}
+    muatan["target"] = {"total": len(peta.target), **{
+        nama: peta.jumlah[nama] for nama in ("dipelajari", "terbukti", "perlu_cek", "belum_dinilai")
+    }}
+    muatan["tinjauan"] = {
+        "urutan": "Maksimal tiga sesi perlu ditinjau, yang dibuat lebih dahulu diutamakan.",
+        "sesi": [
+            {"alias": alias, "jumlah_soal": int(sesi["n"]), "status": "perlu_ditinjau"}
+            for (alias, _), sesi in zip(tautan, antrean)
+        ],
+    }
+    versi_bukti = _versi_bukti_anak(kon, siswa_id, pemilik=pemilik)
+    if versi_bukti is None:
         return None
+    # v2 memutus izin snapshot lama meskipun kategori penyimpanan tetap netral.
+    # Binding ikut di-hash: Sesi A tidak boleh diam-diam menunjuk sesi berbeda.
+    versi = _sidik({"kontrak": "ringkasan-anak-v2", "bukti": versi_bukti,
+                   "muatan": muatan, "tautan": tautan})
     return KonteksPendamping(
-        jenis="anak",
-        resource_id=str(siswa_id),
-        versi=versi,
-        kategori="ringkasan_netral",
-        muatan=muatan,
+        jenis="anak", resource_id=str(siswa_id), versi=versi,
+        kategori="ringkasan_netral", muatan=muatan, tautan_sesi=tautan,
     )
+
+
+def versi_ringkasan_anak(kon, siswa_id: int, *, pemilik: str) -> Optional[str]:
+    """Validasi seluruh snapshot, termasuk status sesi yang bukan event reducer."""
+    konteks = konteks_anak(kon, siswa_id, pemilik=pemilik)
+    return konteks.versi if konteks is not None else None
 
 
 def konteks_sesi(

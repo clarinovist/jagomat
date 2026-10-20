@@ -39,7 +39,7 @@ def identitas(siswa, *, kelas_sekolah=None, id_judul='judul-profil', kembali=Non
 def tombol_pendamping(target, *, status_akses, form_id=''):
     """Pindahkan pemicu existing; form latihan dan draf native tetap terhubung."""
     from assistant_components import hubungkan_form, tombol_buka
-    tombol = tombol_buka(target, dalam_form=bool(form_id), label='Tanya Pendamping', status_akses=status_akses)
+    tombol = tombol_buka(target, dalam_form=bool(form_id), label='Tanya', status_akses=status_akses)
     # Label keadaan akses tetap terbaca; bukan meniadakan pembatasan paket.
     tombol = tombol.replace('aria-label="Pendamping', 'aria-label="Tanya Pendamping', 1)
     if form_id:
@@ -82,10 +82,10 @@ GAYA_HEADER_ANAK = f"""
 }}
 {_H} .topbar-navigasi > form {{ margin: 0; flex: none; }}
 {_H} .pendamping-pemicu {{
-  position: relative; top: auto; right: auto; z-index: auto; flex: none;
+  position: fixed; top: auto; right: {T.SP_4}; bottom: {T.SP_4}; z-index: 60; flex: none;
   width: auto; min-width: {T.TARGET_SENTUH}; height: {T.TARGET_SENTUH};
   min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_4}; gap: {T.SP_2};
-  border: 1.5px solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KARTU};
+  border: 1.5px solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_BULAT};
   background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA};
   font: 600 14px/1.4 {T.FONT_BODY}; white-space: nowrap;
 }}
@@ -143,13 +143,8 @@ GAYA_HEADER_ANAK = f"""
   {_H} > .st-topbar {{ gap: {T.SP_2}; }}
   {_H} .topbar-navigasi {{ gap: {T.SP_2}; }}
   {_H} .menu-pengguna summary {{ padding-inline: {T.SP_3}; gap: 6px; }}
-  {_H} .pendamping-pemicu {{ width: {T.TARGET_SENTUH}; padding: 0; }}
+  {_H} .pendamping-pemicu {{ width: auto; padding-inline: {T.SP_4}; bottom: max({T.SP_4}, env(safe-area-inset-bottom)); }}
   {_H} .pendamping-pemicu > svg {{ width: 20px; height: 20px; }}
-  /* Label ikon tetap dapat dibaca teknologi bantu. */
-  {_H} .pendamping-pemicu-label {{
-    position: absolute; width: 1px; height: 1px; overflow: hidden;
-    clip-path: inset(50%); white-space: nowrap;
-  }}
   {_H} .profil-identitas-st {{ gap: 10px; }}
   {_H} .profil-kembali-st {{ padding-left: {T.SP_2}; }}
   {_H} .profil-tabs-st {{

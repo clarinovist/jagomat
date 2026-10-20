@@ -40,7 +40,7 @@ def test_fragmen_panel_memakai_header_ringkas_dan_konteks_terlihat():
     )
     assert 'class="pendamping-inline pendamping-panel-kanan"' in markup
     assert '<h2' in markup and '>Pendamping</h2>' in markup
-    assert 'Anak Sintetis · Membahas rencana belajar' in markup
+    assert 'Anak Sintetis · Beranda' in markup
     assert 'Konteks belum diizinkan' not in markup
     assert 'data-tampilan="ringkas"' in markup
     assert 'aria-label="Tutup Pendamping"' in markup
@@ -52,7 +52,8 @@ def test_css_panel_memotong_header_pada_radius_dan_mobile_penuh():
     assert '.pendamping-panel-kanan' in css
     assert f'border-radius: {style_stitch.T.RADIUS_KARTU_BESAR}' in css
     assert 'overflow: clip' in css
-    assert 'grid-template-columns: minmax(0, 1fr) 400px' in css
+    assert 'grid-template-columns: minmax(0, 1fr) 400px' not in css
+    assert 'max-height: 85dvh' in css
     assert '@media (max-width: 59.9375rem)' in css
     assert 'position: fixed' in css
 
@@ -135,7 +136,7 @@ def test_header_rincian_terlihat_status_stale_jujur_dan_tutup_tidak_ganda():
     assert 'Informasi belajar berubah · hanya baca' in header
     assert 'Konteks disetujui' not in header
     assert '<summary>Tentang bantuan AI</summary>' in markup
-    assert '<details' not in header
+    assert 'Tentang bantuan AI' not in header
     assert 'data-tampilan="percakapan"' in markup
     assert 'class="pendamping-tutup-desktop" aria-hidden="true">×</span>' in header
     assert 'class="pendamping-tutup-hp" aria-hidden="true">← Kembali</span>' in header

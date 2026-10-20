@@ -174,7 +174,7 @@ def tangani_profil_get(
                     pesan=pesan,
                     bantuan_rencana=(
                         fragmen_inline
-                        if target_inline and target_inline.posisi == "rencana"
+                        if target_inline and target_inline.posisi != "latihan"
                         else ""
                     ),
                     bantuan_latihan=(
@@ -183,6 +183,8 @@ def tangani_profil_get(
                         else ""
                     ),
                     query=query_profil,
+                    bantuan_tab=target_inline.posisi if target_inline else "",
+                    bantuan_target=target_inline,
                 )
                 if target_inline:
                     penangan._kirim_privat(hasil)

@@ -87,10 +87,10 @@ def panel_persetujuan(target, *, sumber, dalam_form: bool = False, galat: str = 
         _identitas_target(target)
         + _hidden("kebijakan", assistant_policy.VERSI_KEBIJAKAN)
         + (f'<p class="pendamping-galat" role="alert">{_esc(galat)}</p>' if galat else "")
-        + '<p>Pendamping Jagomat mengirim pesan bantuan ke DeepSeek. Jangan tulis email, nomor telepon, sandi, token, atau data pribadi anak.</p>'
-        + '<p>Riwayat disimpan sampai 180 hari sejak aktivitas terakhir. Penghapusan aktif segera; salinan cadangan dapat bertahan maksimal 30 hari.</p>'
-        + '<p>Jawaban AI dapat keliru. Izin untuk sumber belajar ini diminta terpisah sesudahnya. '
-          '<a href="/kebijakan-privasi">Baca penjelasan privasi lengkap</a>.</p>'
+        + '<p>Pesan dikirim ke DeepSeek (AI, bisa keliru). Jangan tulis kontak, sandi, token, atau data pribadi anak. Izin ringkasan belajar diminta terpisah.</p>'
+        + '<details class="pendamping-pengaturan"><summary>Privasi dan penyimpanan</summary>'
+          '<p>Riwayat disimpan sampai 180 hari sejak aktivitas terakhir. Penghapusan aktif segera; salinan cadangan dapat bertahan maksimal 30 hari. '
+          '<a href="/kebijakan-privasi">Baca penjelasan privasi lengkap</a>.</p></details>'
         + '<label class="pendamping-cek"><input type="checkbox" name="setuju" value="1">'
           '<span>Saya memahami dan setuju memakai Pendamping Jagomat.</span></label>'
         + '<button class="pendamping-tombol" type="submit" formaction="/pendamping/inline/persetujuan">Setuju dan lanjutkan</button>'
@@ -202,7 +202,7 @@ def panel_konteks(target, konteks, *, sumber, dalam_form: bool = False, galat: s
     penjelasan = {
         "soal": "Untuk membahas soal ini, teks soal resmi, kunci, dan pembahasannya akan dikirim ke DeepSeek, layanan AI untuk Pendamping. Jawaban dan cara anak tidak ikut dikirim.",
         "sesi": "Untuk membahas sesi ini, ringkasan topik, tahap belajar, status pengerjaan, variasi, dan jumlah soal akan dikirim ke DeepSeek, layanan AI untuk Pendamping. Jawaban dan koreksi anak tidak ikut dikirim.",
-        "anak": "Untuk membantu mendampingi belajar, ringkasan tahap belajar, variasi soal, dan waktu latihan berikutnya akan dikirim ke DeepSeek, layanan AI untuk Pendamping. Nama, jawaban, dan catatan anak tidak ikut dikirim.",
+        "anak": "Izinkan ringkasan tahap dan jumlah target belajar, konteks variasi latihan, waktu latihan berikutnya, serta maksimal tiga sesi perlu ditinjau (alias, jumlah soal, urutan tinjauan) dikirim ke DeepSeek. Ringkasan otomatis ini tidak memuat nama, jawaban, atau catatan anak.",
     }[konteks.jenis]
     isi = (
         _identitas_target(target)
@@ -227,10 +227,43 @@ def panel_konteks(target, konteks, *, sumber, dalam_form: bool = False, galat: s
     judul = {
         "latihan": "Bantuan menyiapkan latihan",
         "rencana": "Bantuan mendampingi belajar",
+        "riwayat": "Bantuan meninjau riwayat",
+        "perkembangan": "Bantuan membaca perkembangan",
         "sesi": "Bantuan meninjau sesi",
         "soal": "Bantuan memahami soal",
     }[target.posisi]
     return _panel(target, judul, _wadah_form(isi, "/pendamping/inline/mulai", dalam_form=dalam_form), sumber=sumber, dalam_form=dalam_form)
+
+
+def contoh_pertanyaan(target) -> str:
+    """Contoh lokal hanya mengisi draf; tanpa JS tampil sebagai petunjuk teks."""
+    contoh = {
+        'rencana': ('Sesi mana yang sebaiknya saya tinjau dulu?', 'Apa langkah belajar berikutnya?', 'Bagaimana mendampingi tanpa memberi jawaban?'),
+        'latihan': ('Sesi mana yang sebaiknya saya tinjau dulu?', 'Bantu memilih latihan singkat.', 'Bagaimana memakai latihan manual?'),
+        'riwayat': ('Sesi mana yang sebaiknya saya tinjau dulu?', 'Apa arti perlu ditinjau?', 'Apa yang diperiksa sebelum konfirmasi?'),
+        'perkembangan': ('Apa arti jumlah target sedang dipelajari?', 'Apakah tahap sama dengan penguasaan?', 'Sesi mana yang sebaiknya saya tinjau dulu?'),
+        'sesi': ('Bagaimana meninjau sesi ini?', 'Apa arti status sesi ini?', 'Bagaimana menanyakan cara anak?'),
+        'soal': ('Jelaskan soal ini dengan sederhana.', 'Berikan petunjuk tanpa langsung menjawab.', 'Apa yang perlu dipahami dari soal ini?'),
+    }[target.posisi]
+    return '<details class="pendamping-contoh"><summary>Contoh pertanyaan</summary>' + ''.join(
+        '<p><span class="pendamping-contoh-native">' + _esc(teks) + '</span>'
+        '<button type="button" hidden class="pendamping-tautan" data-contoh="' + _esc(teks) + '">' + _esc(teks) + '</button></p>'
+        for teks in contoh) + '</details>'
+
+
+def fakta_tinjauan(konteks) -> str:
+    """Tautan dari snapshot terverifikasi, tidak pernah dari teks/URL model."""
+    if konteks is None or konteks.jenis != 'anak':
+        return ''
+    tautan = ''.join(
+        f'<li><a href="/sesi/{int(sesi_id)}">{_esc(alias)} · sesi #{int(sesi_id)}</a></li>'
+        for alias, sesi_id in konteks.tautan_sesi
+    )
+    return ('<details class="pendamping-fakta"><summary>Urutan tinjauan Jagomat</summary>'
+            '<p>Maksimal tiga sesi perlu ditinjau; yang dibuat lebih dahulu diutamakan. '
+            'Alias hanya berlaku untuk ringkasan ini.</p>'
+            + ('<ol>' + tautan + '</ol>' if tautan else '<p>Tidak ada sesi yang menunggu tinjauan.</p>')
+            + '</details>')
 
 
 def _tombol_aksi(target, chat_id: str, action: str, label: str, *,
@@ -337,7 +370,7 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
                galat: str = "", hanya_baca: bool = False, provider_aktif: bool = True,
                entitlement_aktif: bool = True, usulan=(), status_memori: str = "", versi_memori: int = 0,
                memori=(), draft_memori=(), operasi=None,
-               halaman_riwayat: int = 1, ada_lagi: bool = False) -> str:
+               halaman_riwayat: int = 1, ada_lagi: bool = False, konteks=None) -> str:
     identitas_form = (
         _identitas_target(target) + _hidden("chat", chat.id)
         if dalam_form else ""
@@ -346,7 +379,9 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
         '<article class="pendamping-pesan ' + ("pengguna" if item.peran == "pengguna" else "asisten") + '"'
         f' data-request-id="{_esc(getattr(item, "request_id", None) or "")}">'
         f'<h3 class="pendamping-peran">{"Kamu" if item.peran == "pengguna" else "Pendamping"}</h3>'
-        f'<p class="pendamping-teks">{_esc(item.teks)}</p></article>'
+        f'<p class="pendamping-teks">{_esc(item.teks)}</p>'
+        + ('<small class="pendamping-catatan">Dijawab AI, bisa keliru.</small>' if item.peran != "pengguna" else '')
+        + '</article>'
         for item in pesan
     )
     if dalam_form:
@@ -389,7 +424,9 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
     if galat:
         status = f'<p class="pendamping-galat" role="alert">{_esc(galat)}</p>'
     if hanya_baca:
-        status += '<p class="pendamping-info" role="status">Sumber berubah. Percakapan ini hanya dapat dibaca.</p>'
+        status += '<p class="pendamping-info" role="status">Sumber berubah. Percakapan ini hanya dapat dibaca; alias sesi lama tidak dipetakan ulang.</p>'
+        from dataclasses import replace
+        status += '<a class="pendamping-tautan" href="' + _esc(replace(target, chat_id=None).jalur) + '">Tinjau izin ringkasan terbaru</a>'
     elif operasi is not None and operasi["status"] == "pending":
         status += '<p class="pendamping-info" role="status">Jawaban masih ditunggu. Jangan kirim ulang pesan yang sama.</p>'
         status += _tombol_aksi(
@@ -408,11 +445,12 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
             + _hidden("request_id", "req_" + secrets.token_hex(16))
             + '<div class="pendamping-composer">'
               '<label class="pendamping-label" for="pesan-inline">Mau dibantu apa?</label>'
-              '<textarea id="pesan-inline" name="pesan" rows="5" maxlength="8000"></textarea>'
+              '<textarea id="pesan-inline" name="pesan" rows="2" maxlength="8000" aria-describedby="batas-pesan-inline"></textarea>'
+              '<small id="batas-pesan-inline" class="pendamping-catatan">Jangan tulis nama, jawaban, atau data pribadi anak.</small>'
               '<button class="pendamping-tombol" type="submit" formaction="/pendamping/inline/pesan">Kirim</button>'
               '</div>'
         )
-        composer = _wadah_form(isi, "/pendamping/inline/pesan", dalam_form=dalam_form)
+        composer = '<div class="pendamping-area-kirim">' + contoh_pertanyaan(target) + _wadah_form(isi, "/pendamping/inline/pesan", dalam_form=dalam_form) + '</div>'
     kontrol_memori = _kontrol_memori(
         target, chat, memori, status_memori=status_memori,
         versi_memori=versi_memori, dalam_form=dalam_form,
@@ -421,10 +459,12 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
         target, chat, draft_memori, dalam_form=dalam_form,
     ) if not hanya_baca and chat.mode_memori != "tanpa_memori" else ""
     return _panel(
-        target, "Bantuan terkait", identitas_form + histori
-        + f'<div class="pendamping-transkrip">{transkrip}</div>' + status
+        target, "Bantuan terkait", identitas_form
+        + '<div class="pendamping-gulir">' + histori
+        + fakta_tinjauan(konteks if not hanya_baca else None)
+        + f'<div class="pendamping-transkrip" role="log" aria-label="Percakapan" aria-live="polite" aria-relevant="additions text">{transkrip}</div>' + status
         + _kartu_usulan_inline(target, chat, usulan, dalam_form=dalam_form)
-        + draft_memori_html + composer + kontrol_memori,
+        + draft_memori_html + kontrol_memori + '</div>' + composer,
         sumber=sumber, dalam_form=dalam_form, chat_id=chat.id,
         status_konteks="Informasi belajar berubah · hanya baca" if hanya_baca else "",
         percakapan=True,
@@ -640,10 +680,20 @@ def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False,
     )
     tujuan = {
         "latihan": "Menyiapkan latihan",
-        "rencana": "Membahas rencana belajar",
+        "rencana": "Beranda",
+        "riwayat": "Riwayat",
+        "perkembangan": "Perkembangan",
         "sesi": "Meninjau sesi",
         "soal": "Membahas soal resmi",
     }[target.posisi]
+    navigasi = ''
+    if target.jenis_host == 'anak':
+        from dataclasses import replace
+        navigasi = '<details class="pendamping-tabs"><summary>Pindah tab</summary><nav aria-label="Tab profil dari Pendamping">' + ''.join(
+            '<a data-tab-profil="' + kode + '" href="' + _esc(replace(target, posisi=kode, chat_id=chat_id or None).jalur) + '"'
+            + (' aria-current="page"' if target.posisi == kode else '') + '>' + label + '</a>'
+            for kode, label in (('rencana', 'Beranda'), ('latihan', 'Latihan'), ('riwayat', 'Riwayat'), ('perkembangan', 'Perkembangan'))
+        ) + '</nav></details>'
     status_html = (
         f'<p class="pendamping-status-konteks" role="status">{_esc(status_konteks)}</p>'
         if status_konteks else ""
@@ -669,11 +719,11 @@ def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False,
         f'</svg><h2 id="nama-{_esc(target.anchor)}">Pendamping</h2>'
         + tutup + '</div>'
         + f'<p class="pendamping-identitas">{_esc(sumber_label + " · " if sumber_label else "")}{_esc(tujuan)}</p>'
-        + status_html + '</header>'
+        + navigasi + status_html + '</header>'
         + '<div class="pendamping-inline-isi">'
         f'<h3 id="judul-{_esc(target.anchor)}"' + (' class="pendamping-sr"' if percakapan else '') + f'>{_esc(judul)}</h3>'
-        + isi + '<details class="pendamping-rincian"><summary>Tentang bantuan AI</summary>'
+        + isi + '</div><details class="pendamping-rincian"><summary>Tentang bantuan AI</summary>'
           '<p>Percakapan membahas informasi belajar di atas. Isian pekerjaan yang belum dikirim '
           'tidak ikut dikirim ke AI. Jawaban AI dapat keliru; keputusan belajar tetap pada orang tua.'
-          '</p></details></div></aside>'
+          '</p></details></aside>'
     )

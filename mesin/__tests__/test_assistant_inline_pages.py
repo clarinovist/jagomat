@@ -99,7 +99,7 @@ def test_persetujuan_memuat_retensi_penerima_dan_kebijakan_lengkap():
 
 
 @pytest.mark.parametrize("jenis,teks_wajib,pengecualian,teks_dilarang", [
-    ("anak", "tahap belajar, variasi soal, dan waktu latihan berikutnya", "Nama, jawaban, dan catatan anak tidak ikut dikirim", "jumlah soal"),
+    ("anak", "ringkasan tahap dan jumlah target belajar", "Ringkasan otomatis ini tidak memuat nama, jawaban, atau catatan anak", "kunci"),
     ("sesi", "topik, tahap belajar, status pengerjaan, variasi, dan jumlah soal", "Jawaban dan koreksi anak tidak ikut dikirim", "waktu latihan berikutnya"),
     ("soal", "teks soal resmi, kunci, dan pembahasannya", "Jawaban dan cara anak tidak ikut dikirim", "jumlah soal"),
 ])
@@ -118,7 +118,7 @@ def test_copy_konteks_tepat_untuk_tiga_jenis(
     )
     assert teks_wajib in panel
     assert pengecualian in panel
-    assert "dikirim ke DeepSeek, layanan AI untuk Pendamping" in panel
+    assert "dikirim ke DeepSeek" in panel
     assert teks_dilarang not in panel
 
 
@@ -153,12 +153,12 @@ def test_composer_blok_dan_preferensi_ringkas_setelah_area_kirim(dalam_form):
     assert parser.maks == 1
     assert parser.form == (1 if dalam_form else 4)
     assert '<div class="pendamping-composer">' in panel
-    assert '<textarea id="pesan-inline" name="pesan" rows="5"' in panel
+    assert '<textarea id="pesan-inline" name="pesan" rows="2"' in panel
     assert 'formaction="/pendamping/inline/pesan">Kirim</button>' in panel
     assert "Enter membuat baris baru" not in panel
     assert 'name="pesan"' in panel and "required" not in panel
     assert '<details class="pendamping-memori"><summary>Preferensi</summary>' in panel
-    assert panel.index('name="pesan"') < panel.index("<summary>Preferensi</summary>")
+    assert panel.index("<summary>Preferensi</summary>") < panel.index('class="pendamping-area-kirim"') < panel.index('name="pesan"')
     assert "Preferensi berlaku lintas percakapan" not in panel
 
 
@@ -177,9 +177,9 @@ def test_gaya_pendamping_inline_tersedia_di_stylesheet_semua_host():
         r"\.pendamping-inline \.pendamping-transkrip, \.pendamping-inline \.pendamping-composer \{([^}]*)\}", css
     ).group(1)
     assert "grid-template-columns: minmax(0, 1fr)" in composer
-    assert "gap: 1rem" in composer and "min-width: 0" in composer
+    assert "gap: 0.5rem" in composer and "min-width: 0" in composer
     assert "width: 100%" in batas and f"max-width: {style_stitch.T.LEBAR_KONTEN}" in batas
-    assert "min-height: 7.5rem" in textarea
+    assert "min-height: 3.5rem" in textarea
     assert f"min-height: {style_stitch.T.TARGET_SENTUH}" in preferensi
     assert "display: list-item" in preferensi
     assert ".pendamping-inline .pendamping-composer" not in style_stitch.CSS_SESI

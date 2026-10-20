@@ -160,11 +160,13 @@ def test_riwayat_batas_offset_tidak_menawarkan_halaman_invalid(privat):
     assert ada_lagi is False
 
 
-def test_label_chat_stabil_wib_dan_id_penuh(privat):
+def test_label_chat_netral_wib_tanpa_id_atau_pesan(privat):
     chat = assistant_store.buat_chat(privat, AKUN, "aktif", sekarang=0)
-    assert view.label_chat(chat) == f"Chat 01 Jan 1970 · 07:00 WIB · {chat.id}"
+    assert view.label_chat(chat) == "Percakapan · 01 Jan 1970 · 07:00:00 WIB"
+    assert chat.id not in view.label_chat(chat)
     assert view.label_chat(chat) == view.label_chat(replace(chat, diperbarui=999))
-    assert view.label_chat(chat) != view.label_chat(replace(chat, id=chat.id + "1"))
+    assert view.label_chat(chat) == view.label_chat(replace(chat, id=chat.id + "1"))
+    assert view.label_chat(chat) != view.label_chat(replace(chat, dibuat=1))
     assert "02 Jan 1970" in view.label_chat(replace(chat, dibuat=17 * 3600))
 
 

@@ -125,7 +125,7 @@ def test_ringkasan_anak_netral_tanpa_nama_atau_kode(db):
         siswa = database.tambah_siswa(kon, "Nama Tidak Boleh Keluar", "P4", pemilik="ortu")
         hasil = assistant_context.konteks_anak(kon, siswa, pemilik="ortu")
     assert hasil.resource_id == str(siswa)
-    assert set(hasil.muatan) == {"jenis", "level", "tahap", "tersedia_pada"}
+    assert set(hasil.muatan) == {"jenis", "level", "tahap", "tersedia_pada", "posisi", "target", "tinjauan"}
     mentah = json.dumps(hasil.muatan)
     assert "Nama Tidak Boleh Keluar" not in mentah
     assert not any(kode in hasil.muatan["tahap"] for kode in ("K", "B", "H", "E", "N", "T"))

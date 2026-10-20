@@ -62,8 +62,13 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   dilipat. Sesi belum dikirim tetap di Riwayat. Sementara form
   awal Pendampingan orang tua opsional berada di Latihan. Pilot aktif,
   pemulihan dan CTA reducer tetap di Beranda.
-- Pendamping AI inline untuk orang tua; usulan latihan memerlukan tinjauan dan
-  konfirmasi, bukan perubahan diagnosis atau bukti belajar otomatis.
+- Pendamping AI inline untuk orang tua; konteks profil berizin memuat tahap/jumlah
+  target dan maksimal tiga sesi perlu ditinjau menurut urutan aplikasi, bukan pilihan
+  AI. Alias sesi dipetakan ke tautan lokal, bukan ID asli pada payload. Izin provider
+  dan snapshot sumber tetap terpisah; konteks berubah menjadi hanya-baca. Panel
+  overlay/sheet menjaga lebar konten dan tab asal; contoh hanya mengisi draf, tidak
+  mengirim otomatis. Usulan latihan tetap memerlukan tinjauan dan konfirmasi, bukan
+  perubahan diagnosis atau bukti belajar otomatis.
 - Akun keluarga dan pengelolaan anak: nama login terlihat, penghapusan profil
   ber-riwayat atau bukti pendaftaran ditahan, dan pilihan data tambahan dibedakan
   dari izin yang masih aktif. Tambah anak mengikuti policy awal tanpa checkbox
@@ -100,7 +105,8 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   dilipat dalam satu disclosure tertutup per materi, bukan dihapus.
   Anchor lama memiliki tautan penerus. Header orang tua di ruang anak memakai
   menu akun ringkas, avatar inisial, nama dan kelas sebagai teks terpisah, serta
-  tab sticky; topbar dan identitas tetap ikut scroll. Kelas hanya tampil bila
+  tab sticky; topbar dan identitas tetap ikut scroll. Pemicu Pendamping berupa
+  pill melayang “Tanya” yang tetap membawa konteks tab aktif. Kelas hanya tampil bila
   metadata opsionalnya terisi; nama akun diformat untuk tampilan tanpa mengubah login. Deep link `/laporan/<id>` lama
   dialihkan setelah guard kepemilikan. Judul progres menampilkan jumlah target
   menunjukkan pemahaman bila ada, atau sedang dipelajari bila belum ada; status

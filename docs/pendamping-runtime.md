@@ -55,6 +55,25 @@ dan bukan izin memperluas akses atau mengubah produksi.
 - Pemulihan request bukan izin menghidupkan chat yang dihapus atau konteks yang
   dicabut. Mode tanpa memori tetap immutable.
 
+### Ringkasan profil v2 — 20 Oktober 2026
+
+- Konteks otomatis profil memakai allow-list: jenis, level/konteks variasi, tahap
+  netral, waktu tersedia, posisi enam tahap, jumlah target (dipelajari/terbukti/
+  perlu cek/belum dinilai), dan maksimal tiga sesi perlu ditinjau dengan alias serta
+  jumlah soal. Tidak membawa nama, ID DB, jawaban/catatan/diagnosis atau URL lokal.
+  Teks chat yang diketik tetap dikirim sesuai izin provider; ini bukan klaim seluruh
+  request bebas data pribadi. Konteks satu soal/sesi tidak diperluas.
+- Urutan memakai predicate konfirmasi aktif yang sama dengan Riwayat/Beranda:
+  sesi sudah dikirim, tidak dibatalkan, belum memiliki konfirmasi aktif, lalu
+  tanggal dibuat dan ID menaik. Bukan urutan waktu pengiriman atau pilihan model.
+- Satu snapshot baca konsisten menghasilkan payload dan fingerprint kontrak v2;
+  seluruh fakta outbound serta pemetaan alias→ID lokal ikut fingerprint. Perubahan
+  status, progres atau binding membuat chat lama hanya-baca. Izin lama tidak dapat
+  mengesahkan payload baru; kategori `ringkasan_netral` tetap tanpa migrasi schema.
+- UI menampilkan tautan dari binding yang masih sah, tidak dari keluaran model.
+  Histori usang tidak memakai pemetaan alias terbaru dan menawarkan tinjauan izin
+  baru. AI diarahkan menjelaskan fakta, bukan mengarang nomor/tautan/urutan.
+
 ## Kegagalan balasan dan metadata teknis
 
 - Callback Pendamping memvalidasi kontrak balasan sebelum ledger AI berstatus
@@ -200,8 +219,9 @@ inline setelah principal, sumber, dan izin divalidasi.
 
 Source inline menyediakan:
 
-- Satu pemicu aktif di header host guru membuka panel samping nonmodal pada desktop,
-  atau panel penuh dengan Kembali pada HP. Sumber tetap rencana/latihan anak atau
+- Satu pemicu aktif (pill melayang Tanya pada profil) membuka overlay nonmodal
+  360px desktop atau sheet maksimal 85dvh dengan Kembali pada HP, tanpa menyempitkan
+  konten utama. Sumber tetap salah satu dari empat tab profil anak atau
   sesi/soal yang tepat. Pemicu sesi enhanced menawarkan ringkasan/nomor soal;
   bookmark konteks sesi/soal tetap langsung ke sumber kanoniknya.
 - Consent provider dan konteks tetap terpisah. Form izin memakai judul sesuai
@@ -210,10 +230,13 @@ Source inline menyediakan:
   Pengaturan percakapan native, bukan dua tombol mulai. Tanpa memori bukan tanpa
   konteks atau riwayat; default dan mode chat immutable tetap. Draf koreksi/manual
   tidak masuk payload provider, storage Pendamping, cookie, atau URL.
-- Kepala panel menampilkan sumber dan tujuan singkat, bukan kode variasi/status
-  izin berulang. Status hanya-baca tetap terlihat; penjelasan AI tersedia dalam
-  rincian. Desktop: layar pembuka mengikuti tinggi isi, chat memakai ruang gulir
-  viewport; panel profil sejajar kepala anak. HP tetap layar penuh dengan Kembali.
+- Kepala panel menampilkan sumber dan tab aktif; status hanya-baca tetap terlihat.
+  Chat menggulir percakapan terpisah dari composer; respons baru diberi penanda AI
+  dan log aksesibel, error tetap menjelaskan ketidakpastian tanpa retry otomatis.
+  Contoh pertanyaan per tab hanya mengisi draf setelah klik, bukan mengirim.
+  Label riwayat memakai jenis sumber dan waktu, bukan ID mentah atau cuplikan pesan.
+  Persetujuan provider dipadatkan dengan rincian retensi tetap tersedia; checkbox
+  provider/konteks dan mode tanpa memori tetap eksplisit. Tentang bantuan AI di footer.
 - History dibatasi exact-resource dan seluruh aksi dalam form koreksi memakai
   submit POST yang membawa kembali draf. Mode tanpa memori tetap menyimpan history.
 - Host yang mempunyai pemicu/panel memakai no-store/no-referrer/noindex/frame/CSP
@@ -259,9 +282,13 @@ Adapter warisan yang masih dipertahankan:
 ### Panel tanpa reload — persetujuan teknis 27 September 2026
 
 - Enhancement terbatas pada buka/tutup, persetujuan provider/konteks, picker sumber,
-  riwayat exact-resource, pemulihan fokus/scroll serta Kirim/Periksa status. Aksi
+  riwayat exact-resource, pemulihan fokus/scroll serta Kirim/Periksa status. Tambahan
+  20 Oktober: contoh isi-draf tanpa kirim, Esc, dan pembaruan tautan empat tab
+  profil agar membawa panel/chat pada resource anak sama. Navigasi tetap GET native,
+  draf tidak masuk URL/storage; pesan yang belum terkirim diperingatkan sebelum
+  pindah tab. Aksi
   memori/usulan tetap POST native. Semua fetch memakai allow-list path exact same-origin;
-  tidak ada navigasi global yang diintersep atau retry otomatis. Bila panel dibuka
+  tidak ada fetch navigasi global atau retry otomatis. Bila panel dibuka
   enhanced, submit native memori/usulan dilengkapi salinan field draf allow-list
   pada form panel untuk request lokal; form pekerjaan tidak diubah. Salinan bukan
   storage/autosave dan tidak disertakan dalam fetch/provider.

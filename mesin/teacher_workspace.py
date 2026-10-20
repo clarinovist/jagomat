@@ -288,6 +288,8 @@ def halaman_anak(
     pesan: str = "",
     bantuan_rencana: str = "",
     bantuan_latihan: str = "",
+    bantuan_tab: str = "",
+    bantuan_target=None,
     draf_latihan=None,
     draf_gabungan=None,
     draf_remedial=None,
@@ -300,8 +302,11 @@ def halaman_anak(
     tanpa memperluas query/resource Pendamping; draf tetap request-local.
     """
     privat = privat or bool(bantuan_rencana or bantuan_latihan) or (peran == 'guru' and bool(pengguna))
+    if bantuan_tab in ("rencana", "latihan", "riwayat", "perkembangan") and not query:
+        query = "section=" + bantuan_tab
     filter_profil = profile_history.parse_filter(query)
-    section = ("rencana" if bantuan_rencana else "latihan" if bantuan_latihan or draf_latihan or draf_gabungan or draf_remedial else filter_profil.section)
+    section = (bantuan_tab if bantuan_tab in ("rencana", "latihan", "riwayat", "perkembangan") else
+               "rencana" if bantuan_rencana else "latihan" if bantuan_latihan or draf_latihan or draf_gabungan or draf_remedial else filter_profil.section)
     total_sesi = profile_history.jumlah_sesi(kon, siswa["id"])
     if section == "riwayat":
         sesi, total_hasil, filter_profil = profile_history.halaman_riwayat(kon, siswa["id"], filter_profil)
@@ -322,7 +327,7 @@ def halaman_anak(
         from child_header import tombol_pendamping
         bantuan_topbar = tombol_pendamping(
             __import__('assistant_inline').tujuan_anak(
-                int(siswa['id']), 'latihan' if section == 'latihan' else 'rencana',
+                int(siswa['id']), section,
             ),
             status_akses=__import__('assistant_entitlement_runtime').status_pengguna(pengguna),
             form_id=f'form-latihan-{draf_aktif}-{siswa["id"]}' if section == 'latihan' else '',
@@ -368,8 +373,8 @@ def halaman_anak(
     return _halaman_stitch(
         f"{siswa['nama']} — {T.NAMA_PRODUK}",
         profile_workspace.bingkai(siswa, section, total_sesi, isi_profil, peran=peran, pesan=pesan,
-                                  kelas_sekolah=_kelas_sekolah_profil(kon, siswa))
-        + (bantuan_rencana if section == "rencana" else "")
+                                  kelas_sekolah=_kelas_sekolah_profil(kon, siswa), bantuan_target=bantuan_target)
+        + (bantuan_rencana if section != "latihan" else "")
         + (__import__("assistant_components").hubungkan_form(
             bantuan_latihan, f'form-latihan-{draf_aktif}-{siswa["id"]}', identitas_di_host=True,
         ) if section == "latihan" and bantuan_latihan else ""),

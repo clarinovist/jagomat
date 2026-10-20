@@ -225,7 +225,7 @@ def _jalankan_js(skenario):
 const SubmitEvent = function () {}; SubmitEvent.prototype.submitter = null;
 const dunia = {window: {fetch(){}, FormData: function(){}, DOMParser: function(){},
  AbortController, URLSearchParams, SubmitEvent}, SubmitEvent, URLSearchParams,
- document: {addEventListener(){}, querySelector(){return null;}, createElement(){return {dataset:{}};}}, console};
+ document: {addEventListener(){}, querySelectorAll(){return [];}, querySelector(){return null;}, createElement(){return {dataset:{}};}}, console};
 vm.createContext(dunia);
 '''
     hasil = subprocess.run([node, '-e', awal + 'vm.runInContext(' + json.dumps(skrip) +

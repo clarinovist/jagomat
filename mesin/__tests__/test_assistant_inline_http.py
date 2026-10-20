@@ -87,7 +87,8 @@ def test_draf_format_latihan_tidak_hilang_pada_buka_dan_tutup(server):
         assert 'value="pilihan_ganda" selected' in isi
         assert 'value="15" selected' in isi
         assert 'value="47"' in isi
-        assert f'href="/anak/{anak}?section=latihan" aria-current="page"' in isi
+        url_tab = f"/anak/{anak}?bantuan=latihan#bantuan-latihan" if aksi == "buka" else f"/anak/{anak}?section=latihan"
+        assert f'href="{url_tab}" aria-current="page"' in isi
         with server.buka() as kon:
             assert tuple(kon.iterdump()) == sebelum
     assert server.provider.panggilan == []
@@ -460,7 +461,7 @@ def test_history_exact_resource_pagination_inline(server):
         data={**dasar, "chat": aktif.id, "halaman": "2"}, headers=_origin(server),
     )
     assert kode == 200 and "Sebelumnya" in halaman_2 and "Halaman 2" in halaman_2
-    assert len(re.findall(r"Chat [0-9]{2} [A-Z][a-z]{2} 1970", halaman_2)) == 2
+    assert len(re.findall(r"Belajar · [0-9]{2} [A-Z][a-z]{2} 1970", halaman_2)) == 2
 
 
 @pytest.mark.parametrize('jenis_draf', ['', 'gabungan', 'remedial'])

@@ -23,7 +23,7 @@ def _e(nilai):
     return html.escape(str(nilai), quote=True)
 
 
-def navigasi_profil(siswa_id, total, aktif):
+def navigasi_profil(siswa_id, total, aktif, bantuan_target=None):
     """Empat tujuan utama ruang anak dengan penanda aktif yang konsisten."""
     del total  # jumlah arsip tersedia di kepala Riwayat, bukan badge navigasi.
     item = (
@@ -32,8 +32,14 @@ def navigasi_profil(siswa_id, total, aktif):
         ('riwayat', f'/anak/{siswa_id}?section=riwayat', 'Riwayat'),
         ('perkembangan', f'/anak/{siswa_id}?section=perkembangan', 'Perkembangan'),
     )
+    if bantuan_target is not None:
+        from assistant_inline import tujuan_anak
+        if bantuan_target.jenis_host != "anak" or bantuan_target.host_id != siswa_id:
+            raise ValueError("Target bantuan bukan milik host.")
+        item = tuple((kode, tujuan_anak(siswa_id, kode, chat_id=bantuan_target.chat_id or "").jalur, label)
+                     for kode, _, label in item)
     return ''.join(
-        f'<a href="{url}"' + (' aria-current="page"' if kode == aktif else '')
+        f'<a data-tab-profil="{kode}" href="{_e(url)}"' + (' aria-current="page"' if kode == aktif else '')
         + f'>{label}</a>' for kode, url, label in item
     )
 
@@ -69,9 +75,9 @@ def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul
     )
 
 
-def bingkai(siswa, section, total, isi, *, peran='guru', pesan='', kelas_sekolah=None):
+def bingkai(siswa, section, total, isi, *, peran='guru', pesan='', kelas_sekolah=None, bantuan_target=None):
     sid = int(siswa['id'])
-    nav = navigasi_profil(sid, total, section)
+    nav = navigasi_profil(sid, total, section, bantuan_target)
     kabar = '<div class="st-banner-sukses" role="status">%s</div>' % _e(pesan) if pesan else ''
     kembali = '/admin' if peran == 'admin' else '/guru'
     return ('<main aria-labelledby="judul-profil">%s'
