@@ -32,7 +32,7 @@ def _form(penangan,p,aksi,meta):
 def _kirim(penangan,p,section,isi):
     if h._principal_admin(penangan) != p:
         return h._tidak_ada(penangan)
-    h._kirim_privat(penangan,h._halaman_admin(p,section,isi,skrip=True,judul=JUDUL[section],subjudul=None),skrip=True)
+    h._kirim_privat(penangan,h._halaman_admin(p,section,isi,penangan=penangan,skrip=True,judul=JUDUL[section],subjudul=None),skrip=True)
 
 
 def get(penangan,p,q):

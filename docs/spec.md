@@ -16,8 +16,10 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
 ## Cakupan produk
 
 - Panel pengelola memakai navigasi datar dengan ikon, badge jumlah item di Ringkasan,
-  dan penanda perhatian di Operasional. Ringkasan memprioritaskan antrean satu baris
-  per item (invoice/operasi, backup, keluarga, siswa, login; maks 50 baris + "dan N
+  dan penanda perhatian di Operasional. Pengelola dapat memilih tampilan Sistem,
+  Terang, atau Gelap per browser; Sistem mengikuti preferensi perangkat. Ringkasan
+  memprioritaskan antrean satu baris per item (invoice/operasi, backup, keluarga,
+  siswa, login; maks 50 baris + "dan N
   lainnya"); umur hanya tampil bila waktu awalnya tercatat. Tanpa penanggung jawab
   dan pencarian global (belum ada fiturnya). Aktivitas mengelompokkan sesi berurutan
   siswa/hari WIB tanpa mengubah bukti. Rute Perlu ditangani tetap hidup; pencarian

@@ -147,7 +147,8 @@ def _kartu_riwayat(audit):
 
 
 def halaman(path, *, pengguna, csrf, pesan="", galat="",
-            tinjauan_pengaturan="", tinjauan_uji="", sinyal=None):
+            tinjauan_pengaturan="", tinjauan_uji="", sinyal=None,
+            tema="sistem", csrf_tema=""):
     with ai_store.buka(path) as kon:
         utama, batas = ai_store.konfigurasi(kon)
         pakai = ai_store.ringkasan(kon)
@@ -170,4 +171,5 @@ def halaman(path, *, pengguna, csrf, pesan="", galat="",
         "ai", isi, pengguna=pengguna, judul="Pengaturan AI",
         subjudul="Kesiapan, batas biaya, dan pemakaian panggilan Jagomat.",
         skrip_sandi=SKRIP_MATA_SANDI, sinyal=sinyal,
+        tema=tema, csrf_tema=csrf_tema,
     )

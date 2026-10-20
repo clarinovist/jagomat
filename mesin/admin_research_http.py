@@ -67,8 +67,8 @@ def _periksa_form(penangan, principal, data, aksi):
 def _kirim(penangan, principal, isi, *, judul=JUDUL, subjudul=SUBJUDUL, skrip=False, aksi_header=""):
     h._kirim_privat(
         penangan,
-        h._halaman_admin(principal, "riset", isi, skrip=skrip, judul=judul, subjudul=subjudul,
-                         aksi_header=aksi_header),
+        h._halaman_admin(principal, "riset", isi, penangan=penangan, skrip=skrip,
+                         judul=judul, subjudul=subjudul, aksi_header=aksi_header),
         skrip=skrip,
     )
 

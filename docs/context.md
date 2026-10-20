@@ -89,7 +89,9 @@ cache dan cadangan tetap privat.
   Commit conventional (`fix(murid): …`). Nilai visual melalui `design_tokens.py`
   (`T.*`); jangan hardcode hex di modul lain. Panel pengelola memakai token
   `ADMIN_*` terisolasi, komponen `admin_style.py`, dan label/tanggal WIB bersama
-  `admin_labels.py`; font sistem tanpa aset jaringan. Antrean Ringkasan dirakit
+  `admin_labels.py`; font sistem tanpa aset jaringan. Tema admin Sistem/Terang/Gelap
+  memakai form native server-side dan cookie preferensi browser `HttpOnly` scoped
+  `/admin`; tidak menambah JavaScript atau state akun/database. Antrean Ringkasan dirakit
   `admin_antrean.py` (read-only, tanpa skema baru), dirender `admin_antrean_pages.py`;
   sinyal sidebar memakai antrean yang sama. Markup bersama panel ada di `admin_komponen.py`;
   daftar Keluarga/Siswa (chip berhitungan dari `jumlah_facet` query, avatar, pill kondisi)

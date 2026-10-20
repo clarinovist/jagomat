@@ -87,10 +87,14 @@ Orang tua memakai hierarki lebih padat, bukan skala judul hero anak. Panel admin
 memakai varian scoped tanpa mengubah token permukaan lain. Tema cerah tetap
 berdasar `ADMIN_LATAR_CERAH` #F6F8F8, `ADMIN_TEKS_CERAH` #14201F,
 `ADMIN_AKSEN_CERAH` #0B7A75, dan `ADMIN_REDUP_CERAH` #5B6866. Tema gelap
-mengikuti `prefers-color-scheme: dark` perangkat secara otomatis, tanpa JavaScript;
-`ADMIN_*` semantik merujuk CSS custom property yang dipasangkan ke token
-`*_CERAH`/`*_GELAP`. Palet status, form, kartu, tabel, sidebar, hover, dan fokus
-memiliki pasangan gelap serta diuji dengan kontras teks normal minimal 4,5:1.
+mengikuti `prefers-color-scheme: dark` perangkat secara otomatis, tanpa JavaScript.
+Menu pengelola juga menyediakan **Sistem / Terang / Gelap**; pilihan dikirim lewat
+form native dan disimpan sebagai cookie preferensi `HttpOnly` per browser pada path
+`/admin`. Sistem mengikuti perangkat, sedangkan Terang/Gelap menimpa media query
+melalui atribut `data-tema` server-side. `ADMIN_*` semantik merujuk CSS custom
+property yang dipasangkan ke token `*_CERAH`/`*_GELAP`. Palet status, form, kartu,
+tabel, sidebar, hover, dan fokus memiliki pasangan gelap serta diuji dengan kontras
+teks normal minimal 4,5:1.
 
 Hierarki tetap h1 28px, isi 14,5px, h2 18px, catatan 13px. Sidebar 256px datar,
 disclosure seluler ≤820px, kartu 16px, kontrol 10px/minimal 44px. Tabel nowrap

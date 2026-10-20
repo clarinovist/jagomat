@@ -52,6 +52,8 @@ _AKSI_AKUN = frozenset((
     AKSI_CABUT_SESI, AKSI_HAPUS_LOGIN,
 ))
 _AKSI_DESTRUKTIF = frozenset((AKSI_CABUT_SESI, AKSI_HAPUS_LOGIN))
+_TEMA = frozenset(("sistem", "terang", "gelap"))
+_COOKIE_TEMA = "jagomat_admin_tema"
 
 
 def _path_admin() -> Path:
@@ -147,6 +149,32 @@ def _cek_csrf(akun, token_sesi, token):
         raise PermissionError("Form kedaluwarsa atau tidak sah.")
 
 
+def _tema_cookie(penangan) -> str:
+    import http.cookies
+    try:
+        nilai = http.cookies.SimpleCookie(penangan.headers.get("Cookie", "")).get(_COOKIE_TEMA)
+        return nilai.value if nilai is not None and nilai.value in _TEMA else "sistem"
+    except (http.cookies.CookieError, ValueError):
+        return "sistem"
+
+
+def _cookie_tema(penangan, tema: str) -> str:
+    if tema not in _TEMA:
+        raise ValueError("Tema tidak sah.")
+    bagian = [f"{_COOKIE_TEMA}={tema}", "Path=/admin", "Max-Age=31536000", "HttpOnly", "SameSite=Lax"]
+    if penangan._di_https():
+        bagian.append("Secure")
+    return "; ".join(bagian)
+
+
+def _token_tema(penangan, principal) -> str:
+    if principal.metode != "cookie":
+        return ""
+    akun = _akun_principal(principal)
+    sesi = _token_sesi(penangan, principal)
+    return admin_security.buat_tinjauan(akun, sesi, "tema_admin", {"section": "tema"})
+
+
 def _kirim_privat(penangan, isi: bytes, kode: int = 200, *, skrip=False):
     penangan.send_response(kode)
     penangan.send_header("Content-Type", "text/html; charset=utf-8")
@@ -155,6 +183,7 @@ def _kirim_privat(penangan, isi: bytes, kode: int = 200, *, skrip=False):
         skrip_sandi=(SKRIP_MATA_SANDI + admin_pages.SKRIP_KONFIRMASI_LOGIN) if skrip else ""
     ).items():
         penangan.send_header(nama, nilai)
+    penangan.send_header("Vary", "Cookie")
     penangan.end_headers()
     penangan.wfile.write(isi)
 
@@ -182,7 +211,7 @@ def _tidak_ada(penangan):
         penangan,
         admin_pages.halaman_admin(
             "ringkasan", '<section class="admin-kartu"><h2>Halaman tidak ada</h2></section>',
-            pengguna="pengelola",
+            pengguna="pengelola", tema=_tema_cookie(penangan),
         ),
         404,
     )
@@ -216,7 +245,7 @@ def _galat(penangan, kode, pesan):
             "ringkasan",
             '<section class="admin-kartu admin-galat" role="alert"><h2>Permintaan tidak dapat diproses</h2><p>%s</p></section>'
             % html.escape(pesan),
-            pengguna="pengelola",
+            pengguna="pengelola", tema=_tema_cookie(penangan),
         ),
         kode,
     )
@@ -272,13 +301,15 @@ def sinyal_nav():
     return admin_antrean_pages.sinyal_dari(antrean)
 
 
-def _halaman_admin(principal, section, isi, *, skrip=False, judul=None, subjudul=None, sinyal=None, aksi_header=""):
+def _halaman_admin(principal, section, isi, *, penangan=None, skrip=False, judul=None, subjudul=None, sinyal=None, aksi_header=""):
     return admin_pages.halaman_admin(
         section, isi, pengguna=principal.pengguna, judul=judul,
         subjudul=subjudul,
         skrip_sandi=(SKRIP_MATA_SANDI + admin_pages.SKRIP_KONFIRMASI_LOGIN) if skrip else "",
         sinyal=sinyal_nav() if sinyal is None else sinyal,
         aksi_header=aksi_header,
+        tema=_tema_cookie(penangan) if penangan is not None else "sistem",
+        csrf_tema=_token_tema(penangan, principal) if penangan is not None else "",
     )
 
 
@@ -448,7 +479,7 @@ def _render_get(penangan, principal, query):
     skrip = principal.metode == "cookie" and section in ("keluarga", "pendaftaran")
     _kirim_privat(
         penangan,
-        _halaman_admin(principal, section, isi, skrip=skrip, subjudul=subjudul, sinyal=sinyal),
+        _halaman_admin(principal, section, isi, penangan=penangan, skrip=skrip, subjudul=subjudul, sinyal=sinyal),
         skrip=skrip,
     )
 
@@ -521,7 +552,7 @@ def _render_tinjauan(penangan, principal, query):
         )
         isi = admin_pages.form_buat_keluarga(csrf, token)
         return _kirim_privat(
-            penangan, _halaman_admin(principal, "keluarga", isi, skrip=True),
+            penangan, _halaman_admin(principal, "keluarga", isi, penangan=penangan, skrip=True),
             skrip=True,
         )
     if aksi in (AKSI_RESET_SANDI, AKSI_CABUT_SESI, AKSI_HAPUS_LOGIN):
@@ -567,7 +598,7 @@ def _render_tinjauan(penangan, principal, query):
                 )
                 section = "siswa"
         return _kirim_privat(
-            penangan, _halaman_admin(principal, section, isi, skrip=True),
+            penangan, _halaman_admin(principal, section, isi, penangan=penangan, skrip=True),
             skrip=True,
         )
     if aksi == AKSI_HAPUS_SISWA:
@@ -583,7 +614,7 @@ def _render_tinjauan(penangan, principal, query):
         if detail is None:
             return _tidak_ada(penangan)
         isi = admin_pages.render_detail_siswa(detail, tindakan=admin_pages.form_hapus_siswa(csrf, token))
-        return _kirim_privat(penangan, _halaman_admin(principal, 'siswa', isi, skrip=True), skrip=True)
+        return _kirim_privat(penangan, _halaman_admin(principal, 'siswa', isi, penangan=penangan, skrip=True), skrip=True)
     if aksi in (AKSI_UBAH_LEVEL, AKSI_UBAH_KELAS_SEKOLAH, AKSI_BUAT_LOGIN_MURID):
         siswa_id = _angka(query.get("id"))
         with database.buka() as kon:
@@ -595,7 +626,7 @@ def _render_tinjauan(penangan, principal, query):
             payload = {'siswa_id': siswa_id, 'revisi_profil': detail.siswa.revisi_profil, 'section': 'siswa'}
             token = admin_security.buat_tinjauan(akun, token_sesi, aksi, payload)
             isi = admin_pages.render_detail_siswa(detail, tindakan=admin_pages.form_kelas_sekolah(detail, csrf, token))
-            return _kirim_privat(penangan, _halaman_admin(principal, 'siswa', isi, skrip=True), skrip=True)
+            return _kirim_privat(penangan, _halaman_admin(principal, 'siswa', isi, penangan=penangan, skrip=True), skrip=True)
         if aksi == AKSI_UBAH_LEVEL:
             payload = {"siswa_id": siswa_id, "tingkat": detail.siswa.tingkat, "section": "siswa"}
             token_level = admin_security.buat_tinjauan(akun, token_sesi, aksi, payload)
@@ -613,7 +644,7 @@ def _render_tinjauan(penangan, principal, query):
             ),
         )
         return _kirim_privat(
-            penangan, _halaman_admin(principal, "siswa", isi, skrip=True),
+            penangan, _halaman_admin(principal, "siswa", isi, penangan=penangan, skrip=True),
             skrip=True,
         )
     _tidak_ada(penangan)
@@ -694,7 +725,7 @@ def _post_akun(penangan, principal, data):
             return _kirim_privat(
                 penangan,
                 _halaman_admin(
-                    principal, "keluarga", isi, skrip=True,
+                    principal, "keluarga", isi, penangan=penangan, skrip=True,
                     judul="Akses baru", subjudul="Simpan akses sebelum meninggalkan halaman.",
                 ),
                 skrip=True,
@@ -715,7 +746,7 @@ def _post_akun(penangan, principal, data):
         if hasil.credential_sekali is not None:
             isi = admin_pages.render_hasil_credential(alias, hasil.credential_sekali)
             return _kirim_privat(
-                penangan, _halaman_admin(principal, "siswa", isi, skrip=True),
+                penangan, _halaman_admin(principal, "siswa", isi, penangan=penangan, skrip=True),
                 skrip=True,
             )
     else:
@@ -737,7 +768,7 @@ def _post_akun(penangan, principal, data):
                 penangan,
                 _halaman_admin(
                     principal, meta.get("section", "keluarga"), isi,
-                    skrip=True,
+                    penangan=penangan, skrip=True,
                 ),
                 skrip=True,
             )
@@ -815,6 +846,26 @@ def _post_pendaftaran(penangan, principal, data):
     _redirect(penangan, "/admin?section=pendaftaran")
 
 
+def _post_tema(penangan, principal, data):
+    if principal.metode != "cookie":
+        raise PermissionError("Masuk melalui formulir untuk mengubah tampilan.")
+    tema = data.pop("tema", "")
+    akun = _akun_principal(principal)
+    sesi = _wajib_cookie(penangan, principal)
+    token = admin_security.periksa_tinjauan(akun, sesi, data.pop("token_tema", None))
+    if token["aksi"] != "tema_admin" or token["data"] != {"section": "tema"} or data:
+        raise PermissionError("Form tampilan tidak sah.")
+    if tema not in _TEMA:
+        raise ValueError("Tema tidak sah.")
+    penangan.send_response(303)
+    penangan.send_header("Location", "/admin")
+    penangan.send_header("Set-Cookie", _cookie_tema(penangan, tema))
+    for nama, nilai in admin_security.header_privat().items():
+        penangan.send_header(nama, nilai)
+    penangan.send_header("Content-Length", "0")
+    penangan.end_headers()
+
+
 def _post_cari(penangan, principal, data):
     section = data.pop("section", "")
     if data.pop("mode", "") != "cari" or section not in ("keluarga", "siswa"):
@@ -856,7 +907,7 @@ def _post_cari(penangan, principal, data):
             isi = admin_pages.render_siswa(
                 hasil, keluarga, csrf=_csrf(akun, token_sesi),
             )
-    _kirim_privat(penangan, _halaman_admin(principal, section, isi))
+    _kirim_privat(penangan, _halaman_admin(principal, section, isi, penangan=penangan))
 
 
 def _post_bulk_impor(penangan, principal, data):
@@ -913,7 +964,7 @@ def tampilkan_batch(penangan, principal, batch_id, hasil=()):
     _identitas_bulk_hidup(penangan, principal)
     _kirim_privat(penangan, _halaman_admin(
         principal, "keluarga" if batch.target_peran == "guru" else "siswa",
-        isi, skrip=True, judul="Tinjau batch", subjudul="Target tetap; maksimal 10 akun per permintaan.",
+        isi, penangan=penangan, skrip=True, judul="Tinjau batch", subjudul="Target tetap; maksimal 10 akun per permintaan.",
     ), skrip=True)
 
 
@@ -955,7 +1006,7 @@ def tangani_post(penangan, jalur):
     if admin_launch_http.tangani_post(penangan, jalur):
         return True
     if jalur not in (
-        "/admin", "/admin/akun", "/admin/siswa", "/admin/pendaftaran",
+        "/admin", "/admin/tema", "/admin/akun", "/admin/siswa", "/admin/pendaftaran",
         "/admin/bulk/impor", "/admin/bulk/proses", "/admin/bulk/pilih",
         "/admin/bulk/hentikan", "/admin/bulk/serahkan",
     ):
@@ -975,6 +1026,8 @@ def tangani_post(penangan, jalur):
             )
         if jalur == "/admin":
             _post_cari(penangan, principal, data)
+        elif jalur == "/admin/tema":
+            _post_tema(penangan, principal, data)
         elif jalur == "/admin/akun":
             _post_akun(penangan, principal, data)
         elif jalur == "/admin/siswa":

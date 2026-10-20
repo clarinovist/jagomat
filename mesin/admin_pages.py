@@ -135,6 +135,8 @@ def halaman_admin(
     skrip_sandi: str = "",
     sinyal: Optional[SinyalNav] = None,
     aksi_header: str = "",
+    tema: str = "sistem",
+    csrf_tema: str = "",
 ) -> bytes:
     """Frame privat tanpa aset eksternal atau JS.
 
@@ -147,6 +149,22 @@ def halaman_admin(
         section = "ringkasan"
         judul = None
         subjudul = None
+    if tema not in ("sistem", "terang", "gelap"):
+        tema = "sistem"
+    tema_label = {"sistem": "Sistem", "terang": "Terang", "gelap": "Gelap"}
+    pilihan_tema = "".join(
+        '<button type="submit" name="tema" value="%s"%s>%s</button>' % (
+            nilai, ' aria-pressed="true"' if nilai == tema else "", label,
+        )
+        for nilai, label in tema_label.items()
+    )
+    form_tema = (
+        '<form class="admin-tema" method="post" action="/admin/tema">'
+        '<span>Tampilan</span><div class="admin-tema-pilihan">%s</div>'
+        '<input type="hidden" name="token_tema" value="%s"></form>'
+        % (pilihan_tema, _e(csrf_tema))
+        if csrf_tema else ""
+    )
     judul_bawaan, sub_bawaan = _judul_section(section)
     judul = judul_bawaan if judul is None else judul
     subjudul = sub_bawaan if subjudul is None else subjudul
@@ -164,7 +182,7 @@ def halaman_admin(
 <title>{_e(judul)} · {_e(T.NAMA_PRODUK)}</title>
 {brand.tag_kepala(cetak=True)}
 <style>{GAYA_ADMIN}</style></head>
-<body class="admin-readonly"><a class="admin-lompat" href="#konten-admin">Lewati navigasi</a>
+<body class="admin-readonly" data-tema="{tema}"><a class="admin-lompat" href="#konten-admin">Lewati navigasi</a>
 <div class="admin-bungkus"><div class="admin-layout"><aside class="admin-sidebar">
 <a class="admin-brand" href="/admin"><span class="admin-brand-mark" aria-hidden="true">J</span>
 <span><strong>{_e(T.NAMA_PRODUK)}</strong><small>Panel Pengelola</small></span></a>
@@ -174,7 +192,7 @@ def halaman_admin(
 <details class="admin-nav-mobile"><summary><span>Menu pengelola</span><strong>{_e(_label_section(section))}</strong>{_badge_mendesak(sinyal)}</summary>
 <nav class="admin-menu" aria-label="Bagian panel pengelola seluler">{_nav(section, sinyal)}</nav></details>
 <details class="menu-pengguna"><summary>{_e(pengguna)} <span class="admin-badge">Pengelola</span></summary>
-<div class="menu-isi"><a href="/akun?section=akun">Ganti sandi</a>
+<div class="menu-isi">{form_tema}<a href="/akun?section=akun">Ganti sandi</a>
 <form method="post" action="/keluar"><button type="submit">Keluar</button></form></div></details></header>
 {kepala}
 <main id="konten-admin" aria-labelledby="judul-admin">{isi}</main>

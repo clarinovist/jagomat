@@ -77,7 +77,7 @@ def _render(penangan, principal, *, peran, pilihan, cari='', halaman=1):
         '<label>Sandi admin saat ini<input type="password" name="reauth" autocomplete="current-password" required></label>'
         '<button name="mode" value="tinjau" class="admin-tombol">Tinjau pilihan</button></form></section>'
         % (len(pilihan), dasar, dipilih or '<p>Belum ada pilihan.</p>', dasar))
-    H._kirim_privat(penangan, H._halaman_admin(principal, 'keluarga' if peran == 'guru' else 'siswa', isi, skrip=True), skrip=True)
+    H._kirim_privat(penangan, H._halaman_admin(principal, 'keluarga' if peran == 'guru' else 'siswa', isi, penangan=penangan, skrip=True), skrip=True)
 
 
 def get_pilihan(penangan, principal):

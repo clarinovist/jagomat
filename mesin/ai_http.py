@@ -43,6 +43,7 @@ def _kirim(penangan, isi, kode=200):
     penangan.send_header("Content-Length", str(len(isi)))
     for nama, nilai in admin_security.header_privat(skrip_sandi=SKRIP_MATA_SANDI).items():
         penangan.send_header(nama, nilai)
+    penangan.send_header("Vary", "Cookie")
     penangan.end_headers()
     penangan.wfile.write(isi)
 
@@ -106,6 +107,8 @@ def tangani_get(penangan, jalur):
         tinjauan_uji=admin_security.buat_tinjauan(akun, sesi, "ai_synthetic_test"),
         pesan=_query_pesan(penangan),
         sinyal=__import__("admin_http").sinyal_nav(),
+        tema=__import__("admin_http")._tema_cookie(penangan),
+        csrf_tema=__import__("admin_http")._token_tema(penangan, principal),
     )
     _kirim(penangan, isi)
     return True

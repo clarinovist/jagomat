@@ -78,7 +78,7 @@ def test_paleta_gelap_admin_memenuhi_kontras_teks_normal(teks, latar):
 def test_dark_mode_mengikuti_preferensi_perangkat_tanpa_javascript():
     css = admin_style.GAYA_ADMIN
     blok = css.split('@media screen and (prefers-color-scheme: dark)', 1)[1].split(
-        'select:not([multiple]):not([size]) {', 1
+        'body.admin-readonly[data-tema="terang"]', 1
     )[0]
     assert 'color-scheme: dark' in blok
     assert '--admin-latar: ' + T.ADMIN_LATAR_GELAP in blok
@@ -88,3 +88,38 @@ def test_dark_mode_mengikuti_preferensi_perangkat_tanpa_javascript():
     assert '--admin-chevron-select: ' + T.ADMIN_REDUP_GELAP in blok
     assert 'var(--admin-latar)' in T.ADMIN_LATAR
     assert '<script' not in P.halaman_admin('ringkasan', '', pengguna='Pengelola Contoh').decode()
+
+
+def test_pilihan_tema_manual_menimpa_preferensi_sistem():
+    css = admin_style.GAYA_ADMIN
+    terang = css.split('body.admin-readonly[data-tema="terang"]', 1)[1].split(
+        'body.admin-readonly[data-tema="gelap"]', 1
+    )[0]
+    gelap = css.split('body.admin-readonly[data-tema="gelap"]', 1)[1].split(
+        'select:not([multiple]):not([size]) {', 1
+    )[0]
+    assert 'color-scheme: light' in terang
+    assert '--admin-latar: ' + T.ADMIN_LATAR_CERAH in terang
+    assert '--admin-permukaan: ' + T.ADMIN_PERMUKAAN_CERAH in terang
+    assert 'color-scheme: dark' in gelap
+    assert '--admin-latar: ' + T.ADMIN_LATAR_GELAP in gelap
+    assert '--admin-permukaan: ' + T.ADMIN_PERMUKAAN_GELAP in gelap
+    cetak = css.split('@media print', 1)[1]
+    assert 'body.admin-readonly' in cetak
+    assert 'color-scheme: light' in cetak
+    assert '--admin-latar: ' + T.ADMIN_LATAR_CERAH in cetak
+
+
+def test_menu_tema_tiga_pilihan_native_dan_aktif_eksplisit():
+    html = P.halaman_admin(
+        'ringkasan', '', pengguna='Pengelola Contoh', tema='gelap', csrf_tema='csrf-sintetis'
+    ).decode()
+    assert 'body class="admin-readonly" data-tema="gelap"' in html
+    assert 'class="admin-tema" method="post" action="/admin/tema"' in html
+    assert 'name="token_tema" value="csrf-sintetis"' in html
+    for tema in ('sistem', 'terang', 'gelap'):
+        assert 'name="tema" value="%s"' % tema in html
+    assert 'name="tema" value="gelap" aria-pressed="true">Gelap</button>' in html
+    menu = html.split('<form class="admin-tema"', 1)[1].split('</form>', 1)[0]
+    assert menu.count('aria-pressed="true"') == 1
+    assert '<script' not in html
