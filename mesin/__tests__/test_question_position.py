@@ -111,6 +111,19 @@ def test_modus_sampler_mempertahankan_k_yang_bermakna(level):
     assert jumlah >= 200 and konsep / jumlah >= 0.98
 
 
+def test_pg_modus_melengkapi_dari_data_tanpa_malrule_rekaan():
+    from choice_generation import kandidat
+
+    soal = statistika.median_modus("modus", [5, 5, 2, 8, 9])
+    aturan = soal.malrule
+    kebijakan, jenis, pengecoh = kandidat(soal)
+    assert (kebijakan, jenis) == ("empat-v1", "angka")
+    assert len(set(pengecoh)) == 3 and soal.kunci not in pengecoh
+    assert set(pengecoh) <= {m.jawaban for m in aturan} | {str(x) for x in soal.parameter["data"]}
+    assert soal.malrule == aturan
+    assert "modus.pertama" not in {m.id for m in soal.malrule}
+
+
 @pytest.mark.parametrize("topik", ("teori-bilangan", "statistika"))
 def test_fix_posisi_deterministik_antar_proses(topik):
     skrip = (

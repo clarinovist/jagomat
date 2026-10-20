@@ -66,6 +66,10 @@ def kandidat(soal):
     elif tid == 'siklus_hari':
         from templates import HARI
         nilai += HARI
+    elif tid == 'median_modus' and p['varian'] == 'modus':
+        # PG boleh menawarkan nilai lain yang benar-benar ada di data.
+        # Tidak menambah label miskonsepsi pada malrule isian.
+        nilai += [str(x) for x in p['data']]
     benar = nilai_semantis(soal.kunci, jenis)
     terpakai = {benar}
     bersih = []

@@ -26,7 +26,10 @@ isian. Tidak ada JavaScript atau layanan AI tambahan untuk membentuk opsi.
 `choice_generation.py` memilih kebijakan serta kandidat dari malrule atau
 kategori yang memang ada pada soal. Tambahan khusus tabung tanpa titik sudut:
 pengecoh menghitung dua alas/tutup sebagai titik sudut (dikalikan jumlah tabung
-untuk varian banyak tabung). Tidak mengubah malrule atau template isian.
+untuk varian banyak tabung). Modus boleh menambah nilai lain yang memang ada
+pada data sebagai kandidat PG, tanpa menambah label diagnosis atau mengarang
+malrule isian. Jumlah opsi tetap empat; bila kandidat kurang, retry terbatas
+memakai cabang yang sama. Tidak mengubah malrule atau template isian.
 Kandidat setara dan bentuk yang tidak didukung disaring; parameter dapat diulang
 terbatas pada template, cabang, kelas, dan kebijakan jumlah yang sama. Kekurangan
 tetap gagal atomik dengan pesan untuk memakai isian, bukan mengganti materi.
