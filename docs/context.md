@@ -129,6 +129,10 @@ cache dan cadangan tetap privat.
   (chip status, pil filter, disclosure, banner tautan, kartu sesi); CSS per tab ada di
   `child_*_style.py` (Beranda, Latihan, Riwayat, Perkembangan); warna badge review bersama di
   `child_badge_style.py`, durasi sesi dari `profile_history.durasi_detik`. Jangan menambal lebar per tab.
+  `child_header.py` mengisolasi markup/style header orang tua `/anak/<id>` dengan
+  marker `anak-header-st`, tanpa mengubah shell halaman lain. Sticky dan bayangan
+  memakai CSS (bayangan sebagai progressive enhancement); pemicu Pendamping
+  tetap memakai binding/form native existing, termasuk ketika mode latihan berganti.
   `profile_workspace.py` menjadi sumber navigasi empat tujuan profil: **Beranda**,
   **Latihan**, **Riwayat**, dan **Perkembangan**. Pascapendaftaran dan default
   `/anak/<id>` sama-sama membuka Beranda; POST latihan kembali eksplisit ke

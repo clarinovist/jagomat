@@ -50,7 +50,7 @@ def _topbar(pengguna: str, peran: str) -> str:
     )
 
 
-def _topbar_stitch(pengguna: str, peran: str) -> str:
+def _topbar_stitch(pengguna: str, peran: str, *, ringkas: bool = False, bantuan: str = "") -> str:
     """Topbar Stitch dengan menu akun CSS-only dan satu pintu keluar."""
     if peran == "admin":
         brand_href, item = "/admin", (
@@ -67,6 +67,18 @@ def _topbar_stitch(pengguna: str, peran: str) -> str:
         '<span class="panah-akun-st" aria-hidden="true">⌄</span></summary>'
         if siapa else '<summary aria-label="Menu pendamping">Menu</summary>'
     )
+    if ringkas:
+        from child_header import nama_akun
+        siapa = html.escape(nama_akun(pengguna))
+        ringkasan_akun = (
+            f'<summary aria-label="Menu akun: {siapa}">'
+            f'<span class="nama-akun-st">{siapa}</span>'
+            '<svg class="panah-akun-st" aria-hidden="true" focusable="false" '
+            'width="12" height="12" viewBox="0 0 12 12" fill="none" '
+            'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+            '<path d="M2.5 4.5 6 8l3.5-3.5"/></svg></summary>'
+        )
+        item = f'<p class="anak-peran-st">{_badge_peran(peran)}</p>' + item
     return (
         '<div class="st-topbar">'
         f'<a class="brand" href="{brand_href}">'
@@ -79,7 +91,7 @@ def _topbar_stitch(pengguna: str, peran: str) -> str:
         '<div class="menu-pisah"></div>'
         '<form method="post" action="/keluar" style="margin:0">'
         '<button type="submit" class="cta">Keluar</button>'
-        "</form></div></details></nav></div>"
+        f"</form></div></details>{bantuan}</nav></div>"
     )
 
 
@@ -130,10 +142,11 @@ def _halaman(
 
 def _halaman_stitch(
     judul: str, isi: str, ident: tuple[str, str] | None = None,
-    kelas_bungkus: str = "", privat: bool = False,
+    kelas_bungkus: str = "", privat: bool = False, bantuan_topbar: str = "",
 ) -> bytes:
     """Bingkai halaman Stitch untuk dashboard dan workspace anak."""
-    batang = _topbar_stitch(*ident) if ident else ""
+    ringkas = "anak-header-st" in kelas_bungkus.split()
+    batang = _topbar_stitch(*ident, ringkas=ringkas, bantuan=bantuan_topbar) if ident else ""
     kelas = f"bungkus-st {kelas_bungkus}".strip()
     font = "" if privat else """<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -142,6 +155,9 @@ def _halaman_stitch(
     if "profil-workspace-st" in kelas_bungkus:
         from question_variants_ui import GAYA_VARIASI
         gaya += profile_workspace.GAYA_PROFIL + GAYA_ANAK + GAYA_VARIASI
+    if ringkas:
+        from child_header import GAYA_HEADER_ANAK
+        gaya += GAYA_HEADER_ANAK
     if privat:
         gaya = gaya.replace(
             "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",

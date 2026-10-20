@@ -309,32 +309,29 @@ def halaman_anak(
         sesi = []
     from practice_workspace import render as render_latihan
     from report_navigation import parameter_laporan
-    slot = ''
-    if section == 'latihan' and peran == 'guru' and pengguna:
-        slot = __import__('assistant_components').tombol_buka(
-            __import__('assistant_inline').tujuan_anak(int(siswa['id']), 'latihan'),
-            dalam_form=True, status_akses=__import__('assistant_entitlement_runtime').status_pengguna(pengguna),
-        )
     blok_buat_latihan, draf_aktif = ('', 'manual')
     if section == 'latihan':
         blok_buat_latihan, draf_aktif = render_latihan(
             kon, siswa, mode=parameter_laporan(query).get('mode_latihan','manual'),
             draf_latihan=draf_latihan, draf_gabungan=draf_gabungan, draf_remedial=draf_remedial,
-            bantuan=slot, kontrol_mode=_kontrol_mode_sesi,
+            kontrol_mode=_kontrol_mode_sesi,
         )
 
-    tautan_bantuan = (
-        __import__("assistant_components").tombol_buka(
-            __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "rencana"),
-            status_akses=__import__("assistant_entitlement_runtime").status_pengguna(pengguna),
+    bantuan_topbar = ''
+    if peran == 'guru' and pengguna:
+        from child_header import tombol_pendamping
+        bantuan_topbar = tombol_pendamping(
+            __import__('assistant_inline').tujuan_anak(
+                int(siswa['id']), 'latihan' if section == 'latihan' else 'rencana',
+            ),
+            status_akses=__import__('assistant_entitlement_runtime').status_pengguna(pengguna),
+            form_id=f'form-latihan-{draf_aktif}-{siswa["id"]}' if section == 'latihan' else '',
         )
-        if peran == "guru" and pengguna else ""
-    )
     kartu_rencana = ""
     tugas_rencana = ""
     if section == "rencana":
         kartu_rencana, sesi_utama = learning_cycle_ui.kartu_rencana(
-            kon, int(siswa["id"]), slot_bantuan=tautan_bantuan,
+            kon, int(siswa["id"]),
             dengan_identitas=True, siswa=siswa,
         )
         import profile_home
@@ -375,16 +372,12 @@ def halaman_anak(
         + (bantuan_rencana if section == "rencana" else "")
         + (__import__("assistant_components").hubungkan_form(
             bantuan_latihan, f'form-latihan-{draf_aktif}-{siswa["id"]}', identitas_di_host=True,
-        ) if section == "latihan" and bantuan_latihan else "")
-        + ((
-            __import__("assistant_components").tombol_buka(
-                __import__("assistant_inline").tujuan_anak(int(siswa["id"]), "rencana"),
-                status_akses=__import__("assistant_entitlement_runtime").status_pengguna(pengguna),
-            )
-        ) if section == "riwayat" and peran == "guru" and pengguna else ""),
+        ) if section == "latihan" and bantuan_latihan else ""),
         ident=(pengguna if pengguna else "guru", peran),
         kelas_bungkus="lebar pendamping-editorial-st profil-editorial-st profil-workspace-st"
         + (" laporan-editorial-st" if section == "perkembangan" else "")
-        + (" beranda-profil-st" if section == "rencana" else ""),
+        + (" beranda-profil-st" if section == "rencana" else "")
+        + (" anak-header-st" if peran == "guru" else ""),
         privat=privat,
+        bantuan_topbar=bantuan_topbar,
     )

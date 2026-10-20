@@ -98,8 +98,10 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   dilipat di bawah Per materi bersama catatan putaran aktif dan histori variasi;
   tautan Perjalanan lama tetap membuka riwayat itu. Bukti per konteks dan cara menilai
   dilipat dalam satu disclosure tertutup per materi, bukan dihapus.
-  Anchor lama memiliki tautan penerus. Kelas sekolah hanya tampil sebagai badge
-  profil bila metadata opsionalnya terisi. Deep link `/laporan/<id>` lama
+  Anchor lama memiliki tautan penerus. Header orang tua di ruang anak memakai
+  menu akun ringkas, avatar inisial, nama dan kelas sebagai teks terpisah, serta
+  tab sticky; topbar dan identitas tetap ikut scroll. Kelas hanya tampil bila
+  metadata opsionalnya terisi; nama akun diformat untuk tampilan tanpa mengubah login. Deep link `/laporan/<id>` lama
   dialihkan setelah guard kepemilikan. Judul progres menampilkan jumlah target
   menunjukkan pemahaman bila ada, atau sedang dipelajari bila belum ada; status
   reducer dan denominator tidak berubah.

@@ -38,7 +38,7 @@ def navigasi_profil(siswa_id, total, aktif):
     )
 
 
-def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul-profil', kembali=None):
+def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul-profil', kembali=None, ringkas=False):
     """Header identitas tunggal untuk seluruh ruang anak, termasuk laporan.
 
     Tautan kembali digabung ke baris identitas supaya kepala halaman tidak
@@ -47,6 +47,9 @@ def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul
     menyediakan tautan "Ubah kelas" yang menduplikasi entry point itu.
     """
     from learning_profile import label_kelas_sekolah
+    if ringkas:
+        from child_header import identitas
+        return identitas(siswa, kelas_sekolah=kelas_sekolah, id_judul=id_judul, kembali=kembali)
     keluarga = '<span class="st-badge selesai">keluarga: %s</span>' % _e(siswa['pemilik'] or 'warisan') if peran=='admin' else ''
     kelas = (
         ' <span class="st-badge selesai">(%s)</span>'
@@ -60,7 +63,6 @@ def bagian_identitas(siswa, *, peran='guru', kelas_sekolah=None, id_judul='judul
     )
     return (
         '<header class="kepala-anak-st editorial-kepala-st">'
-        '<p class="editorial-alis-st">RUANG BELAJAR ANAK</p>'
         '<div class="profil-identitas-st"><h1 class="st" id="%s">%s%s%s</h1>%s</div></header>'
     ) % (
         _e(id_judul), _e(siswa['nama']), kelas, keluarga, aksi,
@@ -75,7 +77,7 @@ def bingkai(siswa, section, total, isi, *, peran='guru', pesan='', kelas_sekolah
     return ('<main aria-labelledby="judul-profil">%s'
             '<nav class="profil-tabs-st" aria-label="Bagian profil anak">%s</nav>%s%s</main>') % (
                 bagian_identitas(siswa, peran=peran, kelas_sekolah=kelas_sekolah,
-                                 kembali=kembali),
+                                 kembali=kembali, ringkas=peran == 'guru'),
                 nav, kabar, isi)
 
 
@@ -363,7 +365,6 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .riwayat-detail-st {{ margin:0; }}
 .profil-workspace-st .riwayat-detail-st > summary {{ font-size:{T.UKURAN_TEKS_META}; padding:{T.SP_1} 0; }}
 .profil-workspace-st .kepala-anak-st {{ margin-bottom:{T.SP_3}; }}
-.profil-workspace-st .kepala-anak-st .editorial-alis-st {{ display:none; }}
 .profil-workspace-st .profil-identitas-st {{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:{T.SP_2} {T.SP_3}; }}
 .profil-workspace-st .kepala-anak-st h1 {{ margin:0; }}
 .profil-workspace-st .profil-aksi-kepala-st {{ display:flex; flex-wrap:wrap; align-items:center; gap:{T.SP_2} {T.SP_4}; }}

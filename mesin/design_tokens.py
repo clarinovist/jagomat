@@ -623,3 +623,10 @@ ANAK_STATUS_PERLU_CEK = "#B4423A"
 ANAK_STATUS_BELUM = "#DAD3C3"
 ANAK_BORDER_KONTROL = "#BFB39A"      # select/input form Latihan
 ANAK_LATAR_KARTU_HALUS = "#FFFDF9"   # kartu centang topik/remedial
+
+# Header /anak/<id>, canvas Header Jagomat Anak; tidak mengubah token bersama.
+ANAK_HEADER_BORDER_AKUN = "#E6D9C0"
+ANAK_HEADER_AVATAR_LATAR = "#D5ECEC"
+ANAK_HEADER_AVATAR_TEKS = "#0A6666"
+ANAK_HEADER_META = "#556060"
+ANAK_HEADER_BAYANGAN = "0 3px 8px rgb(22 33 62 / 8%)"

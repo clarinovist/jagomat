@@ -276,7 +276,8 @@ def test_halaman_anak_kembali_ke_semua_anak(anak):
     """Breadcrumb singkat tetap menunjukkan tujuan kembali dengan jelas."""
     db, sid = anak
     markup = _tanpa_gaya(_render_anak(db, sid))
-    assert '<a class="profil-kembali-st" href="/guru">&larr; Semua anak</a>' in markup
+    assert '<a class="profil-kembali-st" href="/guru"><svg aria-hidden="true"' in markup
+    assert '</svg>Semua anak</a>' in markup
     assert "&larr; Daftar anak" not in markup
 
 

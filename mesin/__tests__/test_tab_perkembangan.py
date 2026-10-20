@@ -62,7 +62,11 @@ def test_tab_perkembangan_query_tak_sah_fallback_aman(server_tab):
         "/anak/%d?section=perkembangan&bagian=penguasaan&materi=<script>&halaman=nan&status=asing"
         % anak, auth=("guru", SANDI_GURU))
     assert kode == 200
-    assert "<script>" not in isi
+    # Pemicu header kini memuat enhancement Pendamping yang sudah disetujui.
+    # Tolak skrip dari query tanpa melarang skrip statis berhash milik aplikasi.
+    from assistant_browser import SKRIP_CHAT
+    assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [SKRIP_CHAT]
+    assert '<script>' not in isi.replace('<script>' + SKRIP_CHAT + '</script>', '')
     assert 'id="konten-laporan"' in isi
 
 

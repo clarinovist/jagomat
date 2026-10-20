@@ -53,7 +53,9 @@ def test_kepala_anak_meringkas_kembali_ke_baris_identitas():
     assert 'class="jejak"' not in h
     kepala = h.split('<header class="kepala-anak-st editorial-kepala-st">', 1)[1].split('</header>', 1)[0]
     assert 'class="profil-kembali-st"' in kepala
-    assert '&larr; Semua anak' in kepala
+    assert '</svg>Semua anak' in kepala
+    assert '&larr;' not in kepala
+    assert 'aria-hidden="true"' in kepala
     a = [a for a in Tautan(h).tautan if a.get('class') == 'profil-kembali-st']
     assert len(a) == 1 and a[0]['href'] == '/guru'
 

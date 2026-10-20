@@ -71,8 +71,14 @@ def test_halaman_profil_hanya_satu_pemicu_dan_bukan_di_bawah_cta():
                 kon, siswa, pengguna="guru", query="section=latihan"
             ).decode()
     assert markup.count('class="pendamping-pemicu"') == 1
-    assert markup.index('class="pendamping-pemicu"') > markup.index('Buat latihan')
-    assert 'class="profil-assistant-st"><span class="pendamping-buka-inline"' in markup
+    badan = markup.split('<body', 1)[1]
+    assert badan.index('class="pendamping-pemicu"') < badan.index('Buat latihan')
+    struktur = StrukturPanel(markup)
+    _, tombol, leluhur = next(e for e in struktur.elemen if e[1].get('class') == 'pendamping-pemicu')
+    assert any(a.get('class') == 'st-topbar' for _, a in leluhur)
+    assert tombol['form'] == f'form-latihan-manual-{sid}'
+    assert tombol['formaction'] == '/pendamping/inline/buka'
+    assert tombol['aria-label'] == 'Tanya Pendamping'
     assert '.panel-latihan-st:not(:first-of-type) .pendamping-buka-inline' not in markup
     assert "Bahas dengan Pendamping" not in markup
 
