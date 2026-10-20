@@ -60,4 +60,10 @@ def test_kontrak_form_http_sama_dengan_sebelum_redesain(server, nama):
     assert code == 200
     parser = KontrakForm(); parser.feed(body)
     assert parser.kini is None
-    assert _kanonis(parser.forms) == _kanonis(baseline[nama])
+    # Pemilih tema adalah kontrak baru yang sengaja dibagikan seluruh shell admin;
+    # baseline ini tetap menjaga form domain lama tidak berubah.
+    form_tema = [form for form in parser.forms if form['action'] == '/admin/tema']
+    assert len(form_tema) == 1
+    assert {field['name'] for field in form_tema[0]['fields']} == {'tema', 'token_tema'}
+    form_domain = [form for form in parser.forms if form['action'] != '/admin/tema']
+    assert _kanonis(form_domain) == _kanonis(baseline[nama])
