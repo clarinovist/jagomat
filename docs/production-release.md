@@ -1,5 +1,29 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy pemilih tema admin — 20 Oktober 2026
+
+Controlled `deploy-v2` memasang revision
+`babcdb5d6386a1cf1db32a81b3bcd7cc97ebaac8`, digest
+`sha256:23cf2cdbde860b061fbc4ec13b62c78771dd935b1147e8908adf9d5bf7a163b7`;
+recovery `c71038bb3b8ceedf10e469eb94766aed7c4c8472`, digest
+`sha256:c7658cb027605f325bd5c3811ea3fab99585ba7b865104fd4ba5d15f057ecca9`.
+Kontrak sama `8e10d0fc114df780918916f923868b567dd4ef1af34797b7b755837301c6aa89`.
+Gate manual final CI `39359933527` lulus seluruh shard kandidat/recovery, build,
+probe, dan pair exact. Dispatch awal `39358936623` gagal karena baseline test form
+belum mengecualikan kontrak form tema yang memang baru; kontrak test diperbaiki
+secara terarah pada commit final, bukan dilewati.
+
+Preflight image dan snapshot metadata read-only lulus sebelum hold. Bundle
+`deploy-admin-theme-babcdb5-20261020T024723Z` berisi empat DB + auth; riset
+dicadangkan terpisah pada cutoff yang sama. Rehearsal validator dan C2–B2–C2 exact
+image menjaga integrity/FK serta metadata/baris. Approval exact-pair sekali pakai
+diterbitkan sesudah hold, backup, dan rehearsal; deployer terpasang tetap hash
+`2479470f…`. Cutover exit 0, candidate healthy, Caddy dan dua cron pulih
+byte-identik. Image live memuat kontrol Sistem/Terang/Gelap serta penerapan
+server-side; smoke publik `/` 200, `/akun` 401, `/murid/` 303 ke `/masuk` lulus,
+marker galat teknis nol. Bundle induk dipertahankan tanpa prune dan helper sementara
+dibersihkan. Mode tetap migrasi, job pasang CI tetap false.
+
 ## Deploy dark mode admin — 20 Oktober 2026
 
 Controlled `deploy-v2` memasang revision
