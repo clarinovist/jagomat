@@ -59,7 +59,8 @@ def test_setiap_template_punya_bukti_eksplisit_dan_substantif():
     template_ids = {item["template_id"] for item in inventaris_template()}
     assert not hasattr(visual_inventory, "_BUKTI_KELUARGA")
     assert set(visual_inventory._BUKTI_TEMPLATE) == template_ids
-    assert len(template_ids) == 93
+    assert len(template_ids) >= 97
+    assert {"banyak_kelipatan", "sisa_operasi", "banyak_prima", "jumlah_kelipatan"} <= template_ids
 
     observasi_normal = set()
     boilerplate = (

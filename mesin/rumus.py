@@ -41,6 +41,26 @@ class Kartu:
 # Kartu per KONSEP. Bahasa sengaja bahasa anak SD: rumus ditulis dengan
 # kata, bukan notasi aljabar, dan selalu disertai satu contoh berangka.
 KARTU: dict[str, Kartu] = {
+    "kelipatan_rentang": Kartu(
+        judul="Menghitung kelipatan dalam rentang",
+        inti="Hitung kelipatan sampai batas akhir, lalu kurangi kelipatan sebelum batas awal. Kedua batas ikut dihitung.",
+        contoh="Kelipatan 3 dari 10 sampai 25: 12, 15, 18, 21, 24. Banyaknya 5.",
+    ),
+    "sisa_operasi": Kartu(
+        judul="Sisa penjumlahan dan perkalian",
+        inti="Jika pembaginya sama, jumlahkan atau kalikan sisanya, lalu ambil sisa pembagian lagi.",
+        contoh="Sisa 3 dan 4 terhadap 5: jumlah sisanya 7, lalu 7 dibagi 5 bersisa 2.",
+    ),
+    "prima_rentang": Kartu(
+        judul="Menghitung bilangan prima",
+        inti="Prima punya tepat dua faktor positif: 1 dan dirinya. Bilangan 1 bukan prima; 2 adalah prima genap.",
+        contoh="Prima dari 10 sampai 20 adalah 11, 13, 17, 19: ada 4 bilangan.",
+    ),
+    "jumlah_kelipatan": Kartu(
+        judul="Menjumlah kelipatan",
+        inti="Kelipatan k berurutan adalah k×1, k×2, dan seterusnya. Jika ada q kelipatan, jumlahnya k×q×(q+1)÷2.",
+        contoh="Kelipatan 3 sampai 14: 3+6+9+12 = 3×4×5÷2 = 30.",
+    ),
     "rata_rata": Kartu(
         judul="Rata-rata",
         inti="Rata-rata = jumlah semua data ÷ banyaknya data.",
@@ -389,6 +409,10 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "volume_kubus_balok": "volume",
     "volume_prisma_tabung": "volume",
     # teori bilangan
+    "banyak_kelipatan": "kelipatan_rentang",
+    "sisa_operasi": "sisa_operasi",
+    "banyak_prima": "prima_rentang",
+    "jumlah_kelipatan": "jumlah_kelipatan",
     "fpb_dua_bilangan": "fpb_kpk",
     "kpk_dua_bilangan": "fpb_kpk",
     "fpb_kpk_hubungan": "fpb_kpk",

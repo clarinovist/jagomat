@@ -48,9 +48,8 @@ def test_komposisi_p4_sepuluh_soal():
     komposisi = _paket().komposisi_untuk("P4")
     assert komposisi == (
         "keterbagian", "sisa_pembagian", "paritas",
+        "banyak_kelipatan", "sisa_operasi", "banyak_prima", "jumlah_kelipatan",
         "keterbagian", "sisa_pembagian", "paritas",
-        "keterbagian", "sisa_pembagian", "paritas",
-        "keterbagian",
     )
 
 
@@ -59,8 +58,7 @@ def test_komposisi_p5_sepuluh_soal():
     assert komposisi == (
         "keterbagian", "prima_faktorisasi", "kpk_dua_bilangan",
         "sisa_pembagian", "paritas", "gauss_deret",
-        "keterbagian", "prima_faktorisasi", "kpk_dua_bilangan",
-        "gauss_deret",
+        "banyak_kelipatan", "sisa_operasi", "banyak_prima", "jumlah_kelipatan",
     )
 
 
@@ -90,10 +88,11 @@ def test_teori_bilangan_level_teks_aneh_jatuh_ke_p4():
     assert aneh.tanda_tangan == p4.tanda_tangan
 
 
-def test_teori_bilangan_memuat_delapan_template():
-    """Task 3.5: seluruh 8 template sudah terimplementasi."""
+def test_teori_bilangan_memuat_template_lama_dan_empat_jenis_terpilih():
+    """Registry tetap superset: jenis lama tidak hilang ketika batch ditambahkan."""
     paket = _paket()
-    assert len(paket.templates) == 8
+    assert len(paket.templates) >= 12
+    assert {"banyak_kelipatan", "sisa_operasi", "banyak_prima", "jumlah_kelipatan"} <= paket.templates.keys()
     for nama in (
         "keterbagian",
         "prima_faktorisasi",

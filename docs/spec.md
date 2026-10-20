@@ -35,6 +35,9 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   Receipt berversi tetap ada saat sensor dicabut. KPI/provider AI tetap terpisah.
 - Generator soal berparameter dan seed deterministik, lembar cetak, latihan daring,
   tinjauan hasil, diagnosis B/K/H/E/T/N, serta laporan perkembangan per anak.
+  Teori-bilangan mencakup menghitung kelipatan/prima dalam rentang, sisa operasi,
+  dan jumlah kelipatan; komposisi internal P4/P5 masing-masing 7/10 jenis, P6 tetap 7.
+  Keragaman jenis bukan klaim penguasaan atau kesetaraan dengan kelas sekolah.
 - Panel privat admin `/admin/riset` menyimpan wawancara eksploratif konsumen
   dalam database terpisah tanpa hubungan ke akun keluarga/siswa. Instrumen hybrid
   berversi memisahkan jawaban/kutipan responden, coding, dan catatan interviewer;

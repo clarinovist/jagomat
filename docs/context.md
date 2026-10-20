@@ -157,6 +157,9 @@ cache dan cadangan tetap privat.
   lengkap, mini bar dan status memakai denominator katalog. Layanan siklus menginisialisasi konteks fondasi dan
   pemetaan pertama secara atomik dari satu tindakan eksplisit orang tua.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
+  `number_theory_expansion.py` menyediakan empat jenis hitung murni P4/P5 melalui
+  registry `topic_number_theory`; kartu/inventaris/katalog target eksplisit.
+  Katalog materi `jagomat-2026-10-v2` menambah target, tidak mengubah bukti lama.
   Cetak guru membaca kunci/malrule bank tersimpan, bukan aturan template terbaru;
   pembahasan masih dari template. Identitas bank idempoten tidak menulis ulang
   malrule historis ketika soal dipakai kembali. Pendamping tidak boleh mengambil

@@ -414,8 +414,8 @@ adanya". Ketiganya diperbaiki di sumber parameternya dan dikunci test.
   jalur K tidak dibuat-buat. Kunci/malrule bank lama tetap dipertahankan, termasuk
   saat identitas soal dipakai ulang pada sesi baru; cetak guru membaca tabel
   tersimpan. Tidak ada koreksi diagnosis historis otomatis. Pola pengecoh
-  keterbagian "dua dekat, satu jauh" masih terbuka; tambahan jenis soal belum
-  dipilih. Guard baseline G1–G4 ada di `test_kualitas_soal_generik.py`: 196 pasangan
+  keterbagian "dua dekat, satu jauh" masih terbuka. Guard baseline G1–G4 ada
+  di `test_kualitas_soal_generik.py`: 204 pasangan
   template×level, lantai bentuk/parameter, jumlah jenis dan konsentrasi lembar.
   Lantai ini provisional, bukan skor kualitas; audit posisi semantik masih terbatas
   pada keterbagian/modus, dan klasifikasi bentuk lainnya belum final. Regresi: `test_question_position.py`
@@ -425,19 +425,17 @@ adanya". Ketiganya diperbaiki di sumber parameternya dan dikunci test.
   tidak kompatibel dengan bank baru. Pasangan image recovery perlu diverifikasi
   sebelum deploy; hasil tes source bukan bukti kesiapan image pinned.
 
-- **Tiga paket masih di bawah ambang variasi, dan itu disengaja**
-  (gelombang 2, 2 Sep 2026). `teori-bilangan` P4 tetap 4 bentuk kalimat
-  karena ketiga templatenya (keterbagian, sisa pembagian, paritas)
-  hitung murni — memberi cerita akan mengaburkan konsep yang sedang
-  diuji. `aritmetika-dasar` berhenti di 11 karena metriknya menabrak
-  langit-langit struktural (lihat "Melawan monoton"). `pengukuran` SUDAH
-  dikerjakan (2 Sep 2026): empat jenis soal baru membawanya dari 18/21/21
-  ke 67/146/147, jadi paket ini tidak lagi jadi batas. Perbaikan yang
-  benar untuk dua sisanya **menambah jenis soal**, bukan menambah latar —
-  pekerjaan tersendiri.
-  Angka-angka itu dikunci test supaya tidak diam-diam turun, dan
-  `test_latar_teori_bilangan.py` juga akan MENOLAK kalau seseorang
-  membungkus template hitung murni dengan cerita demi menaikkan metrik.
+- **Hitung murni diukur lewat jenis, bukan ambang 25 kalimat.** Batch terpilih
+  20 Okt menambah banyak kelipatan rentang, sisa jumlah/hasil kali, banyak prima
+  rentang, dan jumlah kelipatan. Teori-bilangan P4 naik 3→7 jenis, P5 6→10;
+  10 soal per lembar tetap. Sampel 100 seed: P4 71,3% kerangka unik (sebelumnya
+  32%), P5 100% (sebelumnya67%); maksimum sebunyi rata-rata P4 2,0/P5 1,0.
+  P6 tetap7 jenis/70%—tidak diubah batch ini. Ini ukuran bentuk, bukan bukti
+  hasil belajar. Empat jenis memakai solver independen, malrule semantik dan
+  mutation di `test_number_theory_expansion.py`. ID baru membutuhkan reader
+  recovery yang mengenal template sebelum deploy; tidak mengubah soal lama.
+  Aritmetika-dasar tetap7 jenis, dan batas ruang pola-bilangan di bawah tidak
+  dilebarkan. `test_latar_teori_bilangan.py` tetap menolak cerita buatan.
 
 - **Lembar 12 soal = 5 halaman.** Sudah dicoba dipadatkan; memangkas kotak
   Caraku mengurangi ruang tulis tanpa mengurangi halaman. Kotak yang terlalu

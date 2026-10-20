@@ -1,6 +1,6 @@
 """Paket topik teori-bilangan — Fase 3 plan 30 Aug 2026.
 
-8 template menutup cakupan bilangan & teori bilangan OSN SD: keterbagian
+12 template melatih bilangan & teori bilangan OSN SD: keterbagian
 (bagian A), KPK & FPB (B), sisa & paritas (C), pola bilangan (D).
 Level P4/P5/P6 (P3 tidak didukung).
 """
@@ -12,6 +12,7 @@ import random
 
 from templates import Malrule, Soal, putar, saring_malrule
 from topics import Topik, daftarkan
+from number_theory_expansion import TEMPLATE as TEMPLATE_TAMBAHAN, parameter as parameter_tambahan
 
 
 # ── Latar cerita: HANYA untuk yang memang bercerita ────────────────────
@@ -29,11 +30,8 @@ from topics import Topik, daftarkan
 # (kejadian berulang yang bertemu).
 #
 # Konsekuensi yang diterima sadar (keputusan pemilik produk 2 Sep 2026):
-# teori-bilangan P4 tetap 4 bentuk kalimat, karena ketiga templatenya
-# (keterbagian, sisa_pembagian, paritas) semuanya hitung murni. Lebih
-# baik jujur di bawah ambang daripada memberi anak soal yang kabur.
-# Perbaikan yang benar untuk P4 adalah menambah JENIS soal, bukan latar —
-# dicatat di README sebagai batas yang diketahui.
+# teori-bilangan P4 semula 4 bentuk kalimat untuk tiga jenis hitung murni.
+# Batch 20 Okt menambah empat JENIS terpilih, bukan memberi latar buatan.
 
 
 # ── Bagian A — Keterbagian ─────────────────────────────────────────────
@@ -454,6 +452,7 @@ def gauss_deret(n: int) -> Soal:
 
 
 REGISTRI_TOPIK = {
+    **TEMPLATE_TAMBAHAN,
     "keterbagian": keterbagian,
     "prima_faktorisasi": prima_faktorisasi,
     "kpk_dua_bilangan": kpk_dua_bilangan,
@@ -465,19 +464,17 @@ REGISTRI_TOPIK = {
 }
 
 KOMPOSISI = {
-    # P4 (10): 1,5,6 x3 + 1
+    # P4: tujuh jenis; tiga jenis lama tetap berulang, maksimal dua kali.
     "P4": (
         "keterbagian", "sisa_pembagian", "paritas",
+        "banyak_kelipatan", "sisa_operasi", "banyak_prima", "jumlah_kelipatan",
         "keterbagian", "sisa_pembagian", "paritas",
-        "keterbagian", "sisa_pembagian", "paritas",
-        "keterbagian",
     ),
-    # P5 (10): 1,2,3,5,6,8,1,2,3,8
+    # P5: sepuluh jenis, masing-masing sekali tanpa menghapus jenis lama.
     "P5": (
         "keterbagian", "prima_faktorisasi", "kpk_dua_bilangan",
         "sisa_pembagian", "paritas", "gauss_deret",
-        "keterbagian", "prima_faktorisasi", "kpk_dua_bilangan",
-        "gauss_deret",
+        "banyak_kelipatan", "sisa_operasi", "banyak_prima", "jumlah_kelipatan",
     ),
     # P6 (10): 1,2,3,4,5,7,8,1,4,7
     "P6": (
@@ -503,6 +500,8 @@ CATATAN_BAGIAN = {
 
 
 def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
+    if template_id in TEMPLATE_TAMBAHAN:
+        return parameter_tambahan(template_id, rng, level)
     if template_id == "keterbagian":
         # d pool per level; pilih tiga bilangan, tepat satu habis dibagi d.
         if level == "P4":

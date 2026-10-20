@@ -115,6 +115,10 @@ _BUKTI_TEMPLATE = MappingProxyType({
     "paritas": ("ganjil_genap", "Operasi pada bilangan ganjil atau genap tertulis untuk menalar paritas hasilnya.", "bawaan"),
     "prima_faktorisasi": ("faktor_prima", "Satu bilangan tertulis diuraikan menjadi perkalian faktor prima tanpa informasi spasial.", "bawaan"),
     "sisa_pembagian": ("modulo", "Bilangan yang dibagi dan pembagi tertulis langsung untuk menentukan sisa aritmetika.", "bawaan"),
+    "banyak_kelipatan": ("kelipatan", "Pembagi dan batas rentang tertulis untuk menghitung kelipatan inklusif tanpa data spasial.", "bawaan"),
+    "sisa_operasi": ("modulo", "Dua sisa dan pembagi yang sama tertulis untuk operasi aritmetika modular.", "Cabang jumlah dan kali memakai operasi yang ditulis pada pertanyaan."),
+    "banyak_prima": ("prima", "Batas rentang bilangan tertulis untuk memeriksa faktor dan menghitung prima.", "bawaan"),
+    "jumlah_kelipatan": ("jumlah_bilangan", "Pembentuk kelipatan dan batas akhir tertulis untuk menjumlah kelipatan positif.", "bawaan"),
 })
 
 # topik, template, status, level, diskriminator, nilai varian, override per level
@@ -496,7 +500,11 @@ _ROWS = [('aritmatika-lanjut', 'berpapasan', 'visual_pendamping', ('P6',), (), (
  ('teori-bilangan', 'kpk_dua_bilangan', 'sengaja_teks', ('P5', 'P6'), (), ('bawaan',), {}),
  ('teori-bilangan', 'paritas', 'sengaja_teks', ('P4', 'P5'), (), ('bawaan',), {}),
  ('teori-bilangan', 'prima_faktorisasi', 'sengaja_teks', ('P5', 'P6'), (), ('bawaan',), {}),
- ('teori-bilangan', 'sisa_pembagian', 'sengaja_teks', ('P4', 'P5', 'P6'), (), ('bawaan',), {})]
+ ('teori-bilangan', 'sisa_pembagian', 'sengaja_teks', ('P4', 'P5', 'P6'), (), ('bawaan',), {}),
+ ('teori-bilangan', 'banyak_kelipatan', 'sengaja_teks', ('P4', 'P5'), (), ('bawaan',), {}),
+ ('teori-bilangan', 'sisa_operasi', 'sengaja_teks', ('P4', 'P5'), ('varian',), ('varian=jumlah', 'varian=kali'), {}),
+ ('teori-bilangan', 'banyak_prima', 'sengaja_teks', ('P4', 'P5'), (), ('bawaan',), {}),
+ ('teori-bilangan', 'jumlah_kelipatan', 'sengaja_teks', ('P4', 'P5'), (), ('bawaan',), {})]
 
 
 def _bekukan(nilai: Any) -> Any:

@@ -36,6 +36,7 @@ HITUNG_MURNI = (
     "gauss_deret",
     "angka_satuan_pangkat",
     "fpb_kpk_hubungan",
+    "banyak_kelipatan", "sisa_operasi", "banyak_prima", "jumlah_kelipatan",
 )
 
 LEVEL_UJI = {
@@ -124,23 +125,14 @@ def test_hitung_murni_tidak_dibungkus_cerita(template_id):
 
 
 def test_batas_jujur_teori_bilangan_p4():
-    """P4 TETAP di bawah ambang 25, dan itu disengaja.
-
-    Ketiga template P4 (keterbagian, sisa_pembagian, paritas) semuanya
-    hitung murni, jadi tidak ada satu pun yang boleh diberi latar menurut
-    kebijakan di atas. Perbaikan yang benar adalah menambah JENIS soal
-    P4 — pekerjaan tersendiri yang belum dilakukan.
-
-    Test ini mengunci angkanya supaya tidak diam-diam turun, DAN
-    mendokumentasikan batasnya di tempat yang pasti terbaca. Kalau kelak
-    template P4 ditambah, angka ini naik dan test perlu diperbarui —
-    itu perubahan yang disengaja, bukan regresi.
-    """
+    """P4 kini tujuh jenis; jangan mengejar 25 kalimat dengan cerita buatan."""
+    from topics import ambil
+    assert len(set(ambil("teori-bilangan").komposisi["P4"])) >= 7
     bentuk = set()
     for seed in range(300):
         for s in buat_lembar(seed, level="P4", topik="teori-bilangan").soal:
             bentuk.add(_pola(s.teks))
-    assert len(bentuk) >= 4, f"P4 turun jadi {len(bentuk)} bentuk"
+    assert len(bentuk) >= 8, f"P4 turun jadi {len(bentuk)} bentuk"
     assert len(bentuk) < 25, (
         "P4 sudah melewati ambang — bagus, perbarui test ini dan README "
         "(batas yang diketahui) supaya catatannya tidak menyesatkan"

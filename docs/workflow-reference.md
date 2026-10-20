@@ -108,13 +108,21 @@ mengunci kontrak ini tanpa mengubah snapshot atau diagnosis historis. Recovery
 wajib mempertahankan reader cetak bank: rollback template saja, bukan seluruh
 patch. Image recovery exact harus membuktikan pembacaan bank baru sebelum deploy.
 
-**Baseline generik.** `test_kualitas_soal_generik.py` mengunci 196 pasangan existing
+**Baseline generik.** `test_kualitas_soal_generik.py` mengunci 204 pasangan existing
 pada writer v2 (seed 0..299) dan komposisi lembar (seed 0..99), dengan mutation
 in-memory yang dipulihkan. Pasangan/varian baru perlu registrasi dan alasan;
 lantai bentuk/parameter adalah pengunci regresi, bukan target pedagogis universal.
 Hitung murni tidak wajib empat kalimat; sampel tanda tangan bukan ukuran seluruh
 support atau keterampilan. G1 memakai dua tes distribusi yang sudah ada; struktur
 posisi template lain masih pending audit, bukan dianggap lulus secara semantik.
+
+**Penambahan jenis dengan bantuan AI.** Pilih jenis/keterampilan lebih dulu;
+AI menulis dan meninjau offline, tidak menentukan kunci runtime. Setiap jenis
+memerlukan solver terpisah dari implementasi, domain/edge case, arti malrule,
+rejection terbatas, tes PG, kartu rumus, label, inventaris visual dan katalog
+materi. Review AI atas contoh sintetis bukan bukti kebenaran atau pengganti
+pemeriksaan manusia. Batch teori-bilangan ada di `number_theory_expansion.py`;
+P4/P5 memakai empat jenis tambahan, P6 tetap. Recovery harus mengenali ID baru.
 
 **Scope verifikasi wajib bila modul topik berubah:**
 

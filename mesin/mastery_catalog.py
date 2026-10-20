@@ -10,7 +10,7 @@ from typing import Tuple
 import topics
 from templates import LEVEL
 
-VERSI_KATALOG = "jagomat-2026-09-v1"
+VERSI_KATALOG = "jagomat-2026-10-v2"
 
 
 @dataclass(frozen=True)
@@ -115,6 +115,10 @@ KELOMPOK = {
         ("jangkauan", "Jangkauan data", ("jangkauan_data",)),
     ),
     "teori-bilangan": (
+        ("kelipatan_rentang", "Banyak kelipatan dalam rentang", ("banyak_kelipatan",)),
+        ("sisa_operasi", "Sisa penjumlahan dan perkalian", ("sisa_operasi",)),
+        ("prima_rentang", "Banyak bilangan prima", ("banyak_prima",)),
+        ("jumlah_kelipatan", "Jumlah kelipatan", ("jumlah_kelipatan",)),
         ("keterbagian", "Ciri keterbagian", ("keterbagian",)),
         ("prima", "Bilangan prima dan faktorisasi", ("prima_faktorisasi",)),
         ("kpk", "Kelipatan persekutuan terkecil", ("kpk_dua_bilangan",)),

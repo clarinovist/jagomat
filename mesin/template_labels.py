@@ -6,6 +6,10 @@ umum yang dapat menyamarkan perbedaan variasi soal.
 """
 
 NAMA_TIPE_SOAL = {
+    "banyak_kelipatan": "Banyak kelipatan dalam rentang",
+    "sisa_operasi": "Sisa penjumlahan dan perkalian",
+    "banyak_prima": "Banyak prima dalam rentang",
+    "jumlah_kelipatan": "Jumlah kelipatan sampai batas",
     "median_modus": "Median & modus",
     "diagram_batang_garis": "Diagram batang & garis",
     "soal_umur": "Soal tentang umur",

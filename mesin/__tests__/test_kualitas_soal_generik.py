@@ -1,7 +1,9 @@
 """G1–G4: cakupan eksplisit dan lantai regresi, bukan skor kualitas pedagogis.
 
 Baseline sintetis: SHA a96a7e16c0c427f20c014339ced46b3c4b939055, Python 3.9.6,
-writer matematika v2, seed soal 0..299 dan lembar 0..99. Tidak membutuhkan
+writer matematika v2, seed soal 0..299 dan lembar 0..99. Batch 1 menambah
+8 pasangan terpilih tanpa menurunkan lantai lama; komposisi P4/P5 diperketat.
+Angka batch diukur lewat ukur_batch_fase3.py (artefak lokal). Tidak membutuhkan
 artefak docs/plan yang di-ignore. Kebenaran kunci/malrule tetap solver domain.
 G1 numerik ada di test_question_position; registry di sini menolak kelompok
 baru tanpa triage. Belum berarti semua template diaudit bias posisi.
@@ -119,6 +121,10 @@ teori-bilangan kpk_dua_bilangan P5:5:299:- P6:5:299:-
 teori-bilangan prima_faktorisasi P5:1:276:- P6:1:290:-
 teori-bilangan angka_satuan_pangkat P6:1:220:-
 teori-bilangan fpb_kpk_hubungan P6:1:299:-
+teori-bilangan banyak_kelipatan P4:1:300:- P5:1:300:-
+teori-bilangan sisa_operasi P4:2:251:jumlah,kali P5:2:283:jumlah,kali
+teori-bilangan banyak_prima P4:1:264:- P5:1:292:-
+teori-bilangan jumlah_kelipatan P4:1:279:- P5:1:294:-
 """
 
 # topik level panjang_bawaan jenis_minimum. Tidak mengubah komposisi yang disetujui.
@@ -149,8 +155,8 @@ statistika P3 10 5
 statistika P4 10 6
 statistika P5 10 5
 statistika P6 10 5
-teori-bilangan P4 10 3
-teori-bilangan P5 10 6
+teori-bilangan P4 10 7
+teori-bilangan P5 10 10
 teori-bilangan P6 10 7
 """
 
@@ -161,6 +167,8 @@ HITUNG_MURNI = frozenset({
     "pecahan_operasi_campuran", "urut_pecahan_desimal_persen", "urutan_operasi_1",
     "keterbagian", "sisa_pembagian", "paritas", "prima_faktorisasi",
     "gauss_deret", "angka_satuan_pangkat", "fpb_kpk_hubungan",
+    # Empat jenis hitung murni dipilih pemilik untuk Batch 1, bukan utang bentuk.
+    "banyak_kelipatan", "sisa_operasi", "banyak_prima", "jumlah_kelipatan",
 })
 # Semua nama lain memakai lantai provisional, bukan otomatis UTANG_BENTUK.
 # Keputusan pemilik untuk klasifikasi tambahan/target baru tetap diperlukan.
@@ -176,7 +184,7 @@ ALASAN_RUANG = {
     "siklus_hari": "Tujuh hari dikali pool 6/7 jarak hari; support 42/49.",
     "jumlah_deret": "P6 awal 1..9 x empat beda x empat panjang; 119 sampel dari support 144.",
 }
-UTANG_LEMBAR = {("teori-bilangan", "P4"): (4.0, "Tiga jenis hitung murni untuk 10 soal; tambahan jenis menunggu pemilik.")}
+UTANG_LEMBAR = {}  # Batch 1 menghapus utang P4: konsentrasi 4,0 → 2,0.
 POLA_ANGKA = re.compile(r"\d+(?:[.,]\d+)?")
 
 

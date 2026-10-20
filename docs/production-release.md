@@ -1,6 +1,6 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
-## Kandidat kualitas soal Fase 1 — deploy tertahan
+## Kandidat kualitas soal Fase 1–3 — deploy tertahan
 
 Patch keterbagian/modus 20 Oktober 2026 membutuhkan reader cetak yang memakai
 kunci/malrule bank tersimpan. Recovery pinned `c71038bb3b8ceedf10e469eb94766aed7c4c8472`
@@ -12,7 +12,10 @@ Recovery yang didukung harus mempertahankan reader cetak bank ketika mengembalik
 generator/template. Tes `test_question_history.py` membuktikan kontrak source ini,
 bukan kompatibilitas image pinned. Penyiapan baseline recovery, pembaruan pin/kontrak,
 serta gate dan rehearsal pasangan exact perlu dituntaskan sebelum pemasangan.
-Pin/workflow/deployer belum diubah oleh patch Fase 1; ini bukan catatan deployment.
+Batch Fase 3 menambah ID `banyak_kelipatan`, `sisa_operasi`, `banyak_prima` dan
+`jumlah_kelipatan`: reader recovery harus mengenal fungsi-fungsi ini untuk
+memuat/cetak riwayat soal baru, walaupun writer komposisinya dikembalikan.
+Pin/workflow/deployer belum diubah oleh patch ini; ini bukan catatan deployment.
 
 ## Deploy Pendamping konteks dan panel — 20 Oktober 2026
 
