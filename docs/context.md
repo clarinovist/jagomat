@@ -159,6 +159,10 @@ cache dan cadangan tetap privat.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
   `number_theory_expansion.py` menyediakan empat jenis hitung murni P4/P5 melalui
   registry `topic_number_theory`; kartu/inventaris/katalog target eksplisit.
+  `number_theory_versions.py` memisahkan komposisi writer recovery (1) dan batch
+  baru (2); `Topik.komposisi_writer` hanya memilih latihan baru, sedangkan
+  `komposisi` tetap inventaris histori untuk konteks/laporan pada kedua versi. Probe rilis
+  `release_question_pair.py` wajib membuktikan bank/PG/cetak/diagnosis C→B→C.
   Katalog materi `jagomat-2026-10-v2` menambah target, tidak mengubah bukti lama.
   Cetak guru membaca kunci/malrule bank tersimpan, bukan aturan template terbaru;
   pembahasan masih dari template. Identitas bank idempoten tidak menulis ulang

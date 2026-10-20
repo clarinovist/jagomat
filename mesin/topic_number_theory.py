@@ -13,6 +13,7 @@ import random
 from templates import Malrule, Soal, putar, saring_malrule
 from topics import Topik, daftarkan
 from number_theory_expansion import TEMPLATE as TEMPLATE_TAMBAHAN, parameter as parameter_tambahan
+from number_theory_versions import pilih_komposisi
 
 
 # ── Latar cerita: HANYA untuk yang memang bercerita ────────────────────
@@ -592,6 +593,7 @@ TOPIK = Topik(
     judul_penilaian="Penilaian — Teori Bilangan",
     templates=REGISTRI_TOPIK,
     komposisi=KOMPOSISI,
+    komposisi_writer=pilih_komposisi(KOMPOSISI),
     profil={"P4": {}, "P5": {}, "P6": {}},
     judul_bagian=JUDUL_BAGIAN,
     catatan_bagian=CATATAN_BAGIAN,

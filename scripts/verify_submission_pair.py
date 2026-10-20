@@ -31,6 +31,8 @@ from release_policy_pair import (SUMBER_TULIS as POLICY_TULIS,
     SUMBER_BACA as POLICY_BACA, SUMBER_KEMBALI as POLICY_KEMBALI)
 from release_sensor_pair import (SUMBER_TULIS as SENSOR_TULIS,
     SUMBER_BACA as SENSOR_BACA, SUMBER_KEMBALI as SENSOR_KEMBALI)
+from release_question_pair import (SUMBER_TULIS as SOAL_TULIS,
+    SUMBER_BACA as SOAL_BACA, SUMBER_KEMBALI as SOAL_KEMBALI)
 
 TULIS_PILOT = 'FOKUS_TULIS = ' + repr(FOKUS_TULIS) + '\nPROBE_PROFIL = ' + repr(SUMBER_UJI_PROFIL) + '\nADMIN_TULIS = ' + repr(ADMIN_TULIS) + '\n' + TULIS_PILOT
 BACA_PILOT = 'FOKUS_BACA = ' + repr(FOKUS_BACA) + '\nADMIN_BACA = ' + repr(ADMIN_BACA) + '\n' + BACA_PILOT
@@ -243,6 +245,9 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             (20, candidate_image, POLICY_TULIS, 'OSN_POLICY_WRITER_OK'),
             (21, recovery_image, POLICY_BACA, 'OSN_POLICY_RECOVERY_OK'),
             (22, candidate_image, POLICY_KEMBALI, 'OSN_POLICY_RETURN_OK'),
+            (23, candidate_image, SOAL_TULIS, 'OSN_QUESTION_WRITER_OK'),
+            (24, recovery_image, SOAL_BACA, 'OSN_QUESTION_RECOVERY_OK'),
+            (25, candidate_image, SOAL_KEMBALI, 'OSN_QUESTION_RETURN_OK'),
         ):
             if _jalankan(image, volume, sumber, token, nomor) != marker:
                 raise GalatVerifikasi('probe_paket_kuota_gagal')
@@ -258,7 +263,8 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'pilihan_pair_checks': 8, 'learning_pair_checks': 8, 'subscription_pair_checks': 4, 'admin_launch_pair_checks': 4,
             'package_pair_checks': 8, 'quota_pair_checks': 8,
             'photo_pair_checks': 8, 'registration_pair_checks': 8,
-            'support_pair_checks': 8, 'sensor_pair_checks': 8, 'policy_pair_checks': 6, 'provider_calls': 0}
+            'support_pair_checks': 8, 'sensor_pair_checks': 8, 'policy_pair_checks': 6,
+            'question_pair_checks': 8, 'provider_calls': 0}
 
 
 def main(argv=None):

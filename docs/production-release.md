@@ -1,6 +1,6 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
-## Kandidat kualitas soal Fase 1–3 — deploy tertahan
+## Kandidat kualitas soal Fase 1–3 — penyiapan recovery
 
 Patch keterbagian/modus 20 Oktober 2026 membutuhkan reader cetak yang memakai
 kunci/malrule bank tersimpan. Recovery pinned `c71038bb3b8ceedf10e469eb94766aed7c4c8472`
@@ -15,7 +15,23 @@ serta gate dan rehearsal pasangan exact perlu dituntaskan sebelum pemasangan.
 Batch Fase 3 menambah ID `banyak_kelipatan`, `sisa_operasi`, `banyak_prima` dan
 `jumlah_kelipatan`: reader recovery harus mengenal fungsi-fungsi ini untuk
 memuat/cetak riwayat soal baru, walaupun writer komposisinya dikembalikan.
-Pin/workflow/deployer belum diubah oleh patch ini; ini bukan catatan deployment.
+Tinjauan manusia sudah dinyatakan lulus oleh pemilik. Baseline recovery berikutnya
+memuat reader seluruh jenis dan fix Fase1, tetapi `number_theory_versions.py`
+memilih komposisi lama secara default (1); kandidat memilih batch baru (2).
+Override `OSN_TEORI_BILANGAN_VERSI` tervalidasi hanya mengatur komposisi writer,
+bukan registry reader: `Topik.komposisi` tetap inventaris historis, override
+`komposisi_writer` hanya digunakan generator termasuk gabungan. Konteks butir,
+katalog laporan dan konfirmasi hasil tetap mengenali ID baru pada B.
+Tes domain secara eksplisit memakai2, tes default/image
+membuktikan perilaku recovery1 dan kandidat2 secara terpisah.
+
+Gate `release_question_pair.py` menguji C→B→C atas bank/PG sintetis, cetak,
+diagnosis, konteks dan arsip tanpa write ulang; termasuk konfirmasi yang dibuat C,
+draft C yang dikonfirmasi B, serta pembacaan bukti B→C. Manifest wajib
+`question_pair_checks=8`.
+Pin baru dibekukan setelah scoped test dan harus diuji penuh bersama kandidat
+pada image exact sebelum deploy. Mode tetap migrasi/job pasang false; deployer
+host tidak diubah. Ini belum catatan deployment.
 
 ## Deploy Pendamping konteks dan panel — 20 Oktober 2026
 

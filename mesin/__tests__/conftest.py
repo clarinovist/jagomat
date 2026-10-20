@@ -33,6 +33,8 @@ os.environ.setdefault('SENSOR_CONSENT_EPOCH', '0123456789abcdef0123456789abcdef'
 # yang dibuat saat collection. Test rollout menghapus/mengganti env ini untuk
 # menguji default image jembatan dan override warisan. Tidak masuk image app.
 os.environ.setdefault("OSN_MATEMATIKA_VERSI", "2")
+# Suite domain menguji writer batch baru; tes recovery menghapus override ini.
+os.environ.setdefault("OSN_TEORI_BILANGAN_VERSI", "2")
 
 
 @pytest.fixture(autouse=True)

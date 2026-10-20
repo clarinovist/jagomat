@@ -49,6 +49,9 @@ class Topik:
     # template_id + rng + level -> parameter; satu-satunya pemilik aturan
     # batas angka supaya seed yang sama selalu menghasilkan soal yang sama.
     parameter_untuk: Callable[..., dict[str, Any]] | None = None
+    # Inventaris historis tetap di komposisi. Override ini hanya untuk writer
+    # default; reader konteks/laporan tidak boleh menyusut saat recovery.
+    komposisi_writer: dict[str, tuple[str, ...]] | None = None
 
     def komposisi_untuk(self, level: str) -> tuple[str, ...]:
         """Urutan template untuk satu lembar di level itu.
@@ -59,8 +62,9 @@ class Topik:
         pertama yang mereka dukung, bukan mencoba mengakses P3 yang tidak
         mereka miliki.
         """
-        bawaan = self.komposisi.get(LEVEL[0], next(iter(self.komposisi.values())))
-        return self.komposisi.get(level, bawaan)
+        sumber = self.komposisi if self.komposisi_writer is None else self.komposisi_writer
+        bawaan = sumber.get(LEVEL[0], next(iter(sumber.values())))
+        return sumber.get(level, bawaan)
 
     def profil_untuk(self, level: str) -> dict[str, Any]:
         """Batas angka untuk level itu; tak dikenal jatuh ke P3 —
@@ -134,6 +138,7 @@ def _daftarkan_campuran() -> None:
         raise KeyError(f"template {template_id} tidak punya pemilik parameter")
 
     komposisi_campuran = {}
+    writer_campuran = {}
     for lvl in LEVEL:
         topik_level = [t for t in PAKET.values() if lvl in t.komposisi and t.id != "campuran"]
         urutan_gabungan = []
@@ -144,6 +149,9 @@ def _daftarkan_campuran() -> None:
                 if idx < len(comp):
                     urutan_gabungan.append(comp[idx])
         komposisi_campuran[lvl] = tuple(urutan_gabungan)
+        writers = [t.komposisi_untuk(lvl) for t in topik_level]
+        writer_campuran[lvl] = tuple(comp[i] for i in range(max(map(len, writers), default=0))
+                                     for comp in writers if i < len(comp))
 
     topik_campuran = Topik(
         id="campuran",
@@ -152,6 +160,7 @@ def _daftarkan_campuran() -> None:
         judul_penilaian="Penilaian — Simulasi Ujian",
         templates=gabungan_templates,
         komposisi=komposisi_campuran,
+        komposisi_writer=writer_campuran,
         profil={"P3": {}, "P4": {}, "P5": {}, "P6": {}},
         render_badan=_render_gabungan(
             [t for t in PAKET.values() if t.id != "campuran"]
@@ -222,6 +231,7 @@ def gabungan(topik_ids) -> Topik:
     # template ke-i dari tiap topik bergantian, supaya satu topik tidak
     # memborong bagian awal lembar.
     komposisi: dict[str, tuple[str, ...]] = {}
+    writer: dict[str, tuple[str, ...]] = {}
     for lvl in LEVEL:
         punya = [t for t in paket_terpilih if lvl in t.komposisi]
         if not punya:
@@ -234,6 +244,9 @@ def gabungan(topik_ids) -> Topik:
                 if i < len(comp):
                     deret.append(comp[i])
         komposisi[lvl] = tuple(deret)
+        writers = [t.komposisi_untuk(lvl) for t in punya]
+        writer[lvl] = tuple(comp[i] for i in range(max(map(len, writers), default=0))
+                            for comp in writers if i < len(comp))
 
     nama_pendek = " + ".join(t.nama for t in paket_terpilih)
     return Topik(
@@ -243,6 +256,7 @@ def gabungan(topik_ids) -> Topik:
         judul_penilaian="Penilaian — " + nama_pendek,
         templates=templates,
         komposisi=komposisi,
+        komposisi_writer=writer,
         profil={lvl: {} for lvl in komposisi},
         render_badan=_render_gabungan(paket_terpilih),
         parameter_untuk=parameter_gabungan,
