@@ -1,5 +1,30 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy dark mode admin — 20 Oktober 2026
+
+Controlled `deploy-v2` memasang revision
+`f94619afa6a5a336d441251f1e5f35da26e7c24a`, digest
+`sha256:0439b1bed24871e83223bd0b7b721eb9451d216322c6718777ce842b40e93a32`;
+recovery `c71038bb3b8ceedf10e469eb94766aed7c4c8472`, digest
+`sha256:1645c72658cc9ae733f7cb522692932394fb0811a732932edbd5c89b10dc1557`.
+Kontrak sama `8e10d0fc114df780918916f923868b567dd4ef1af34797b7b755837301c6aa89`.
+Gate manual CI `39342489319` lulus seluruh shard kandidat/recovery, build, probe,
+dan pair exact tanpa provider call. Mode tetap migrasi dan job pasang CI tetap false.
+
+Preflight image/metadata read-only lulus sebelum hold. Bundle
+`deploy-admin-dark-f94619a-20261019T234729Z` berisi empat DB + auth; backup riset
+terpisah pada cutoff yang sama. Rehearsal validator dan C2–B2–C2 exact image menjaga
+integrity/FK serta metadata/baris. Attempt awal setelah hold berhenti sebelum approval,
+migrasi, atau swap karena modul operator rehearsal tidak tersedia di host; current
+sudah ditahan dan bundle tetap utuh. Modul source exact dipakai privat untuk melanjutkan
+rehearsal, lalu dibersihkan sebelum approval sekali pakai diterbitkan.
+
+Deployer terpasang cocok source (`2479470f…`); cutover exit 0 dan candidate healthy.
+Caddy serta dua cron dipulihkan byte-identik. Container live memuat media query dark
+mode dan chevron bertema; smoke publik `/` 200, `/akun` 401, `/murid/` 303 ke `/masuk`
+lulus. Marker galat teknis pascarilis nol. Bundle induk dan bukti operasi dipertahankan
+tanpa prune; helper/probe sementara dibersihkan.
+
 ## Deploy persetujuan awal terpadu — 18 Oktober 2026
 
 Kandidat `5ee3b844001074a601a564f945a0c833dfe6fd78`, digest
