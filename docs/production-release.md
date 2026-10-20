@@ -1,5 +1,30 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy Pendamping konteks dan panel — 20 Oktober 2026
+
+Controlled `deploy-v2` memasang revision
+`c7c18fb858c0f2b57f2732a5f1a7a501ecf12b7e`, digest
+`sha256:deb6fc258f019b228ac16e904b2e50a9dd786173ad47783a3d19fab1a6844f5c`;
+recovery `c71038bb3b8ceedf10e469eb94766aed7c4c8472`, digest
+`sha256:ce439ef45768f02051c9484f1a83dcd1bdf4b7dcfc080989d6950022db7276d8`.
+Kontrak sama `8e10d0fc114df780918916f923868b567dd4ef1af34797b7b755837301c6aa89`.
+Gate manual CI `39410734621` lulus 13.396 tes kandidat exact-once, 13.126 tes
+recovery, build/probe, dan pair exact; push `39410726564` juga hijau.
+
+Preflight image/config dan `PROBE_SKEMA` metadata live read-only lulus sebelum hold.
+Bundle `deploy-pendamping-c7c18fb-20261020T120000Z` empat DB + auth dan backup riset
+terpisah diverifikasi, termasuk hash salinan privat lokal; rehearsal C2–B2–C2,
+validator kanonis, preservasi, integrity/FK lulus. Deployer tetap hash `2479470f…`.
+Tidak ada migrasi skema, perubahan konfigurasi fitur, atau pemanggilan provider uji.
+
+Cutover exit 0; kandidat healthy, metadata/baris terjaga, Caddy dan kedua cron
+pulih byte-identik. Marker konteks profil v2, alias lokal, log aksesibel dan sheet
+HP terkonfirmasi dalam source image live tanpa membuka profil keluarga. Smoke
+publik `/` 200, `/akun` 401, `/murid/` 303 ke `/masuk` lulus; marker traceback,
+OperationalError dan IntegrityError nol. Turunan rehearsal dibersihkan; backup
+induk tetap disimpan tanpa prune. Mode migrasi/job pasang otomatis tetap false.
+Uji percakapan provider nyata dan keyboard HP fisik tidak termasuk smoke ini.
+
 ## Deploy header halaman anak — 20 Oktober 2026
 
 Controlled `deploy-v2` memasang revision
