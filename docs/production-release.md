@@ -1,5 +1,30 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy header halaman anak — 20 Oktober 2026
+
+Controlled `deploy-v2` memasang revision
+`004858f81992a6a465b00ea644fa35f3192acfdd`, digest
+`sha256:c920ee9e64c2d223c5f37f38d1fc2536d21b174f142c0e7deb8022ea821c3af3`;
+recovery `c71038bb3b8ceedf10e469eb94766aed7c4c8472`, digest
+`sha256:b11d453f0172615c07c81a2402ac184143492b800e61a1ce06c0c3b98427b13b`.
+Kontrak sama `8e10d0fc114df780918916f923868b567dd4ef1af34797b7b755837301c6aa89`.
+Gate manual CI `39375457567` lulus kandidat/recovery, build, probe, dan pair exact.
+Uji lokal terkait header 388 lulus; render sintetis 974/390/320px memverifikasi
+konten pertama y185/y181/y181, tab sticky, target sentuh, menu, dan binding form.
+
+Preflight image/config serta `PROBE_SKEMA` read-only lulus sebelum hold. Bundle
+`deploy-header-004858f-20261020T060000Z` empat DB + auth, backup riset terpisah,
+validator kanonis, rehearsal exact C2–B2–C2, integrity/FK dan preservasi lulus;
+salinan backup privat lokal diverifikasi hash. Tidak ada migrasi skema atau
+perubahan konfigurasi fitur. Deployer tetap hash `2479470f…`.
+
+Cutover exit 0, kandidat healthy; metadata/baris terjaga dan Caddy/dua cron pulih
+byte-identik. Marker header scoped dan sticky terkonfirmasi dalam image live,
+tanpa membuka profil keluarga. Smoke publik `/` 200, `/akun` 401, `/murid/` 303 ke
+`/masuk` lulus; marker traceback/OperationalError/IntegrityError nol. Turunan
+rehearsal dibersihkan, backup induk dipertahankan tanpa prune. Mode tetap migrasi
+dan job pasang otomatis tetap false.
+
 ## Deploy pemilih tema admin — 20 Oktober 2026
 
 Controlled `deploy-v2` memasang revision
