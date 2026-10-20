@@ -56,6 +56,39 @@ baru, tidak memakai ulang ledger untuk melewati batas 20 request. P3–P7 belum
 selesai, tidak ada rilis atau klaim manfaat orang tua/PMF. Runtime yang sudah ada
 tetap berlaku. [Indeks keputusan](README.md#pembukaan-kembali-pendamping--20-oktober-2026).
 
+### Retest perbaikan prompt 01 — 20 Oktober 2026
+
+Satu retest berizin menambah maksimal 20 request/plafon USD 0,10 tanpa retry.
+Hanya system prompt diubah: petunjuk konkret, konsep keliling, batas diagram,
+dan istilah status. Dataset, rubrik, model/parameter serta batas output tetap;
+batch pertama dan ledger-nya dipertahankan. Preflight 20 body exact, 20 tes
+transport/9 mutasi mock serta 3 tes loader credential tiruan lulus sebelum run.
+
+Hasil **20/20 request selesai, parser 20/20, 0 retry/hard fail**, tetapi
+**retest tetap belum lulus**. Akurasi/sumber penuh naik 16→19/20; konteks penuh
+turun 20→17/20. Kejelasan+langkah penuh naik 18→20/20 (soal 9/9,
+percakapan 5/5, batas 6/6). Syarat akurasi/konteks 2 pada semua kasus belum terpenuhi.
+
+S02/S05/S06/S17 membaik. Regresi: S03 belum menjelaskan lima posisi putaran
+secara eksplisit; S13/S15/S19 melebar ke status, latihan atau skrip yang tidak
+diminta. Kekurangan konteks ini bukan insiden privasi atau aksi terlarang. S06
+masih menambah penjelasan umum tetapi memenuhi rubrik semula; tidak ditambah
+syarat gagal baru sesudah melihat hasil. Skor berasal dari koordinator AI dengan
+rubrik yang sama, bukan penerimaan manusia atau bukti generalisasi.
+
+Usage retest 26.806 input/2.236 output token; estimasi peak cache-miss
+**USD 0,010735**, bukan invoice. Median respons 1.250 ms, rentang 812–1.479 ms,
+tanpa waktu SSH/review. Total dua batch 40 request, estimasi peak USD 0,018370.
+Jumlah request kedua batch sudah habis; sisa estimasi biaya bukan izin putaran
+ketiga. Tidak ada perubahan source aplikasi, konfigurasi atau DB keluarga.
+
+Keputusan: **hentikan iterasi otomatis; jangan lanjutkan P3–P6 atau pilot P7
+pada kandidat ini**. Prioritaskan pembanding non-AI atau ajukan keputusan scope
+AI lebih sempit, bukan menurunkan rubrik/menambah data anak. Ini keputusan pada
+gerbang evaluasi, bukan klaim seluruh fase selesai atau bahwa AI tak mungkin
+berguna. Penerimaan manusia, perangkat dan walkthrough belum dilakukan; tidak
+ada rilis dari eksperimen ini.
+
 ## Tinjauan dan pembuatan latihan
 
 - GET tinjauan yang sah menerbitkan token acak, menyimpan **hash token** dan

@@ -42,9 +42,10 @@ non-AI serta implementasi kendali hapus/cabut dan penyederhanaan **bersyarat uji
 awal lulus**. Tabel 18 September tetap histori, bukan status terbaru scope ini.
 Editor memori lebih luas, K4, dan pekerjaan lain dalam tabel tidak ikut dibuka.
 
-Batch awal 20 kasus selesai, tetapi kandidat belum memenuhi rubrik; implementasi
-luas dan pilot tetap ditahan. Review manusia ditunda sampai sebelum pilot hanya
-untuk batch sintetis berizin, bukan diganti AI untuk penerimaan penggunaan nyata.
+Batch awal 20 kasus dan satu retest 20 kasus selesai; perbaikan terarah disertai
+regresi, kedua kandidat belum memenuhi seluruh rubrik. Iterasi otomatis dihentikan;
+implementasi luas dan pilot tetap ditahan. Review manusia ditunda sampai sebelum
+pilot hanya untuk batch sintetis berizin, bukan diganti AI untuk penerimaan penggunaan nyata.
 Walkthrough/perangkat tidak dinyatakan selesai. Detail hasil agregat dan batasnya
 ada di [evaluasi sintetis Pendamping](pendamping-runtime.md#evaluasi-kandidat-sempit--20-oktober-2026).
 Tidak ada perubahan runtime atau aktivasi komersial dari keputusan ini.
