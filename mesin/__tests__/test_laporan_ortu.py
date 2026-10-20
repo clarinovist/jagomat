@@ -60,7 +60,7 @@ def test_dashboard_menyebut_nama_dan_aktivitas(db):
     assert "Bima" in h
     assert "soal dikerjakan" in h
     assert ">benar</span>" in h and ">salah</span>" in h
-    assert f'<a href="/anak/{sid}?section=perkembangan" aria-current="page">Perkembangan</a>' in h
+    assert f'<a data-tab-profil="perkembangan" href="/anak/{sid}?section=perkembangan" aria-current="page">Perkembangan</a>' in h
     assert f'href="/anak/{sid}?section=latihan"' in h
     assert f'href="/anak/{sid}?section=rencana"' in h
     assert f'href="/anak/{sid}?section=riwayat"' in h
@@ -394,7 +394,7 @@ def test_laporan_memakai_identitas_dan_kanvas_ruang_anak_yang_sama(db):
     assert '<header class="kepala-anak-st editorial-kepala-st">' in isi
     assert '<h1 class="st" id="judul-profil-laporan">Claudia' in isi
     assert "Kelas belum diisi" not in isi
-    assert f'<a href="/anak/{sid}?section=riwayat">Riwayat' in isi
+    assert f'<a data-tab-profil="riwayat" href="/anak/{sid}?section=riwayat">Riwayat' in isi
     assert '<nav class="laporan-navigasi"' in isi
     assert 'id="progres"' in isi and 'id="materi"' in isi and 'id="perjalanan"' in isi
     assert "CATATAN PERKEMBANGAN" not in isi

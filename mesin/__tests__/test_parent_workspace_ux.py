@@ -39,7 +39,8 @@ def test_mulai_tunggal_mode_native_dan_izin_tidak_dicentang(dalam_form):
     assert 'Riwayat tetap disimpan pada kedua pilihan.' in panel
     assert 'Mulai tanpa memori' not in panel and 'Konteks belum diizinkan' not in panel
     assert 'Anak &lt;Sintetis&gt;' in panel and 'P3' not in panel.split('</header>')[0]
-    assert 'DeepSeek' in panel and 'Nama, jawaban, dan catatan anak tidak ikut dikirim' in panel
+    assert 'DeepSeek' in panel and 'Ringkasan otomatis ini tidak memuat nama, jawaban, atau catatan anak' in panel
+    assert 'maksimal tiga sesi perlu ditinjau (alias, jumlah soal, urutan tinjauan)' in panel
 
 
 def test_header_akun_satu_kelompok_peran_nama_dan_tujuan_tetap():
