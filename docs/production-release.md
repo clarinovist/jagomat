@@ -29,8 +29,10 @@ Gate `release_question_pair.py` menguji C→B→C atas bank/PG sintetis, cetak,
 diagnosis, konteks dan arsip tanpa write ulang; termasuk konfirmasi yang dibuat C,
 draft C yang dikonfirmasi B, serta pembacaan bukti B→C. Manifest wajib
 `question_pair_checks=8`.
-Pin baru dibekukan setelah scoped test dan harus diuji penuh bersama kandidat
-pada image exact sebelum deploy. Mode tetap migrasi/job pasang false; deployer
+Pin baru **`ff6acb158985f78ef0287ec18fb045d273921bdc`** dibekukan setelah scoped test
+(269 lulus); kandidat default2 memakai pin tersebut. Koleksi recovery 13.507 tes
+terverifikasi dari git archive, fingerprint tetap `8e10d0fc…` tanpa perubahan
+skema/deployer. Keduanya masih harus diuji penuh pada image exact sebelum deploy. Mode tetap migrasi/job pasang false; deployer
 host tidak diubah. Ini belum catatan deployment.
 
 ## Deploy Pendamping konteks dan panel — 20 Oktober 2026

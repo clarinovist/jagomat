@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import os
 
-# Baseline recovery: writer konservatif. Kandidat menaikkan default setelah
-# baseline immutable dibekukan; env opsional tidak membatasi reader histori.
-VERSI_TEORI_BILANGAN_BAWAAN = 1
+# Kandidat batch baru; recovery ff6acb1 tetap default1 dengan reader yang sama.
+# Override operator tidak membatasi inventaris/konteks histori.
+VERSI_TEORI_BILANGAN_BAWAAN = 2
 LAMA = {
     "P4": ("keterbagian", "sisa_pembagian", "paritas") * 3 + ("keterbagian",),
     "P5": ("keterbagian", "prima_faktorisasi", "kpk_dua_bilangan",
