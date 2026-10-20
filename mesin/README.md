@@ -414,8 +414,11 @@ adanya". Ketiganya diperbaiki di sumber parameternya dan dikunci test.
   jalur K tidak dibuat-buat. Kunci/malrule bank lama tetap dipertahankan, termasuk
   saat identitas soal dipakai ulang pada sesi baru; cetak guru membaca tabel
   tersimpan. Tidak ada koreksi diagnosis historis otomatis. Pola pengecoh
-  keterbagian "dua dekat, satu jauh" masih terbuka; empat guard generik dan
-  tambahan jenis soal belum dikerjakan. Regresi: `test_question_position.py`
+  keterbagian "dua dekat, satu jauh" masih terbuka; tambahan jenis soal belum
+  dipilih. Guard baseline G1–G4 ada di `test_kualitas_soal_generik.py`: 196 pasangan
+  template×level, lantai bentuk/parameter, jumlah jenis dan konsentrasi lembar.
+  Lantai ini provisional, bukan skor kualitas; audit posisi semantik masih terbatas
+  pada keterbagian/modus, dan klasifikasi bentuk lainnya belum final. Regresi: `test_question_position.py`
   dan `test_question_history.py` (seed tetap, solver mentah, snapshot sintetis).
   H modus dibuang bila kedua nilai berselisih satu sudah dipakai K, bukan digeser
   lebih jauh. Recovery wajib mempertahankan reader bank; revert seluruh patch
