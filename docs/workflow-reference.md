@@ -84,6 +84,10 @@ atau malrule lain. Jalur diagnosis K bisa hilang walau test biasa hijau.
 2. Bentrok identitas aritmetika (`N//d == N%d`, `d == 2*sisa`, siklus satuan 1 pada `a^b`)
    diperbaiki di `_parameter` dengan while-loop reject, bukan urutan saja.
 3. Nudge memakai **while**, bukan `if` sekali: `while str(h) in (kunci, k1, k2): h += 1`.
+   Jangan memakai nudge untuk menyamarkan malrule yang tidak berlaku: "data pertama"
+   harus tetap menjawab data pertama, atau dibuang bila sama dengan kunci. Sampler modus
+   menolak semua-data-sama agar kandidat K berasal dari data, bukan angka rekaan.
+   H modus terbatas selisih satu; bila kedua tetangga dipakai K, H dihilangkan.
 4. Kunci desimal (π=3,14): kunci/malrule memakai format koma desimal yang sama;
    H desimal = kunci−0,1, bukan kunci−1.
 5. Nama variabel malrule konsisten di semua branch (`k1`/`k2`/`h`); nama berbeda per
@@ -94,6 +98,15 @@ atau malrule lain. Jalur diagnosis K bisa hilang walau test biasa hijau.
 8. **Jangan `hash()` untuk randomisasi.** `PYTHONHASHSEED` berbeda per proses; seed sama
    bisa menghasilkan soal berbeda. Hitung via `rng` di `_parameter`, kirim parameter
    eksplisit; determinisme satu-proses saja tidak cukup.
+
+**Posisi dan riwayat.** Keterbagian diuji 600 seed per level dengan solver modulo
+serta distribusi tiga posisi; modus dibandingkan dengan ekspektasi frekuensi m/n,
+bukan batas universal. Cetak guru memakai kunci/malrule bank tersimpan, sedangkan
+pembahasan masih dari template. Bank idempoten tidak mengoreksi malrule lama saat
+identitas dipakai ulang. Tes `test_question_position.py` dan `test_question_history.py`
+mengunci kontrak ini tanpa mengubah snapshot atau diagnosis historis. Recovery
+wajib mempertahankan reader cetak bank: rollback template saja, bukan seluruh
+patch. Image recovery exact harus membuktikan pembacaan bank baru sebelum deploy.
 
 **Scope verifikasi wajib bila modul topik berubah:**
 

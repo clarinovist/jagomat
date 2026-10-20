@@ -166,21 +166,19 @@ def median_modus(varian: str, data: list[int]) -> Soal:
         hitung = Counter(data)
         modus = max(hitung.items(), key=lambda kv: kv[1])[0]
         kunci = str(modus)
-        # malrule: nilai pertama, nilai terbanyak kedua (bila ada)
-        k_pertama = str(data[0])
-        if k_pertama == kunci:
-            k_pertama = str(int(kunci) + 1)
+        # Nilai pertama yang benar bukan miskonsepsi. Biarkan filter
+        # membuangnya, bukan mengganti jawabannya sambil memakai label lama.
+        mal = [Malrule("modus.pertama", str(data[0]), "K", "menjawab data pertama, bukan yang paling sering muncul")]
         urut_modus = sorted(hitung, key=lambda x: -hitung[x])
-        kedua = urut_modus[1] if len(urut_modus) > 1 and hitung[urut_modus[1]] != hitung[urut_modus[0]] else int(kunci) + 2
-        h = int(kunci) - 1
-        # jaga H tidak bertabrakan dengan K (saring_malrule membuang duplikat)
-        while str(h) in (kunci, k_pertama, str(kedua)):
-            h += 1
-        mal = [
-            Malrule("modus.pertama", k_pertama, "K", "menjawab data pertama, bukan yang paling sering muncul"),
-            Malrule("modus.kedua", str(kedua), "K", "menjawab nilai yang bukan paling sering muncul"),
-            Malrule("modus.kurang_satu", str(h), "H", "perhitungan benar, hasilnya meleset satu"),
-        ]
+        if len(urut_modus) > 1 and hitung[urut_modus[1]] < hitung[modus]:
+            mal.append(Malrule("modus.kedua", str(urut_modus[1]), "K", "menjawab nilai yang bukan paling sering muncul"))
+        # H hanya boleh meleset satu. Jika kedua tetangga sudah dipakai
+        # K, tidak ada H yang dapat dibedakan; jangan mengarang selisih lain.
+        terpakai = {m.jawaban for m in mal}
+        for h in (modus - 1, modus + 1):
+            if str(h) not in terpakai:
+                mal.append(Malrule("modus.kurang_satu", str(h), "H", "perhitungan benar, hasilnya meleset satu"))
+                break
         teks = f"Data: {', '.join(str(x) for x in data)}. Berapa modusnya (nilai yang paling sering muncul)?"
         pembahasan = f"Langkah: Kemunculan data ({', '.join(f'{k}:{v}x' for k, v in hitung.items())}). Modus (paling sering muncul) = {kunci}."
         param = {"varian": varian, "data": data}
@@ -645,7 +643,7 @@ def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
             n = rng.randint(3, 9)
             data = [rng.randint(1, 30) for _ in range(n)]
             return {"varian": varian, "data": data}
-        # modus: 3-7 data (P3: 3-5, nilai 1-12), minimal satu nilai muncul ≥2 kali.
+        # Modus: 3-8 data (P3: 3-5, nilai 1-12), minimal satu nilai muncul ≥2 kali.
         # Modus wajib TUNGGAL: kalau dua nilai seri (mis. 1,1,3,3,10),
         # soalnya tidak punya satu jawaban benar — pola yang sama dengan
         # "terbanyak tunggal" di tabel_turus & jangkauan_data di bawah.
@@ -665,8 +663,11 @@ def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
                 data[1] = modus
             hitung = Counter(data)
             tertinggi = max(hitung.values())
-            if sum(1 for v in hitung.values() if v == tertinggi) == 1:
+            # Semua data sama sah secara matematika, tetapi tidak punya
+            # kandidat K "nilai lain"; jangan mengarang angka untuk diagnosis.
+            if len(hitung) > 1 and sum(1 for v in hitung.values() if v == tertinggi) == 1:
                 break
+        rng.shuffle(data)
         return {"varian": varian, "data": data}
     if template_id == "diagram_lingkaran":
         varian = rng.choice(("cari_nilai", "cari_sudut"))

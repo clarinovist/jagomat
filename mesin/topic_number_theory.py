@@ -524,7 +524,13 @@ def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
         salah = benar + 1
         while _habis(salah, d) or _habis(salah, trap) or salah == benar:
             salah += 1
-        return {"d": d, "a": benar, "b": salah, "c": trap_num, "jawab": 0}
+        # Rotasi menjaga salah tetap setelah kunci untuk malrule B,
+        # tanpa membocorkan posisi benar atau mengubah renderer lama.
+        pilihan = [benar, salah, trap_num]
+        geser = rng.randrange(3)
+        pilihan = pilihan[geser:] + pilihan[:geser]
+        return {"d": d, "a": pilihan[0], "b": pilihan[1], "c": pilihan[2],
+                "jawab": (-geser) % 3}
     if template_id == "prima_faktorisasi":
         # n acak rentang lebar: berapa pun n, faktorisasinya dihitung di
         # template (banyak faktor positif = ∏(eᵢ+1)). P5 lebih kecil.

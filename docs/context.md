@@ -157,7 +157,10 @@ cache dan cadangan tetap privat.
   lengkap, mini bar dan status memakai denominator katalog. Layanan siklus menginisialisasi konteks fondasi dan
   pemetaan pertama secara atomik dari satu tindakan eksplisit orang tua.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
-  Pendamping tidak boleh mengambil alih reducer atau konfirmasi bukti belajar.
+  Cetak guru membaca kunci/malrule bank tersimpan, bukan aturan template terbaru;
+  pembahasan masih dari template. Identitas bank idempoten tidak menulis ulang
+  malrule historis ketika soal dipakai kembali. Pendamping tidak boleh mengambil
+  alih reducer atau konfirmasi bukti belajar.
   Adapter GET/POST lama sengaja tetap di `assistant_http.py`: alurnya berbagi helper
   privat dengan façade dan compatibility lookup dari alur inline; ekstraksi lanjutan
   akan menambah siklus/duplikasi guard tanpa boundary yang lebih aman.

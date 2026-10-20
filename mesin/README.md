@@ -407,6 +407,21 @@ adanya". Ketiganya diperbaiki di sumber parameternya dan dikunci test.
 
 ## Batas yang diketahui
 
+- **Posisi kunci dan malrule modus (20 Okt 2026).** Generator keterbagian kini
+  merotasi tiga bilangan tanpa mengubah arti malrule; data modus diacak setelah
+  modus tunggal dipastikan. `modus.pertama` yang kebetulan benar dibuang, bukan
+  diganti kunci+1. Data modus baru memiliki sedikitnya dua nilai berbeda agar
+  jalur K tidak dibuat-buat. Kunci/malrule bank lama tetap dipertahankan, termasuk
+  saat identitas soal dipakai ulang pada sesi baru; cetak guru membaca tabel
+  tersimpan. Tidak ada koreksi diagnosis historis otomatis. Pola pengecoh
+  keterbagian "dua dekat, satu jauh" masih terbuka; empat guard generik dan
+  tambahan jenis soal belum dikerjakan. Regresi: `test_question_position.py`
+  dan `test_question_history.py` (seed tetap, solver mentah, snapshot sintetis).
+  H modus dibuang bila kedua nilai berselisih satu sudah dipakai K, bukan digeser
+  lebih jauh. Recovery wajib mempertahankan reader bank; revert seluruh patch
+  tidak kompatibel dengan bank baru. Pasangan image recovery perlu diverifikasi
+  sebelum deploy; hasil tes source bukan bukti kesiapan image pinned.
+
 - **Tiga paket masih di bawah ambang variasi, dan itu disengaja**
   (gelombang 2, 2 Sep 2026). `teori-bilangan` P4 tetap 4 bentuk kalimat
   karena ketiga templatenya (keterbagian, sisa pembagian, paritas)

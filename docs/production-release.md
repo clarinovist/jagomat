@@ -1,5 +1,19 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Kandidat kualitas soal Fase 1 — deploy tertahan
+
+Patch keterbagian/modus 20 Oktober 2026 membutuhkan reader cetak yang memakai
+kunci/malrule bank tersimpan. Recovery pinned `c71038bb3b8ceedf10e469eb94766aed7c4c8472`
+masih merekonstruksi malrule dari template: pada bank baru ia dapat mencetak aturan
+yang berbeda dari diagnosis. **Jangan deploy kandidat ini dengan recovery tersebut**,
+meskipun gate struktur/persistensi umum lulus. Tidak ada migrasi atau koreksi riwayat.
+
+Recovery yang didukung harus mempertahankan reader cetak bank ketika mengembalikan
+generator/template. Tes `test_question_history.py` membuktikan kontrak source ini,
+bukan kompatibilitas image pinned. Penyiapan baseline recovery, pembaruan pin/kontrak,
+serta gate dan rehearsal pasangan exact perlu dituntaskan sebelum pemasangan.
+Pin/workflow/deployer belum diubah oleh patch Fase 1; ini bukan catatan deployment.
+
 ## Deploy Pendamping konteks dan panel — 20 Oktober 2026
 
 Controlled `deploy-v2` memasang revision

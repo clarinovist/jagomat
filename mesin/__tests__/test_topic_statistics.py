@@ -238,7 +238,7 @@ def test_median_modus_p3_modus_saja():
     """P3: median tidak boleh lolos — selalu varian modus, data kecil.
 
     Median di atas kelas 3; band SASMO Primary 1-4 (statistics) memuat
-    modus. P3: n 3-5, nilai 1-12, konstruksi jamin-modus data[0]=data[1].
+    modus. P3: n 3-5, nilai 1-12, modus tunggal berulang tanpa posisi tetap.
     """
     from collections import Counter
 
@@ -251,7 +251,8 @@ def test_median_modus_p3_modus_saja():
         assert all(1 <= x <= 12 for x in data), p
         hitung = Counter(data)
         expected = max(hitung.items(), key=lambda kv: kv[1])[0]
-        assert data[0] == data[1], p  # jamin-modus: nilai ganda di depan
+        assert hitung[expected] >= 2, p
+        assert sum(v == hitung[expected] for v in hitung.values()) == 1, p
         assert s.kunci == str(expected), f"{p=}, kunci={s.kunci}"
         assert s.kunci not in [m.jawaban for m in s.malrule]
         assert {"K", "H"} <= {m.kode for m in s.malrule}, p

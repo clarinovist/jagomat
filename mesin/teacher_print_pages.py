@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import html
+from dataclasses import replace
 
 import database
 import presentation_lock
@@ -13,6 +14,7 @@ from teacher_session_pages import _badge_mode, _pil_sesi_stitch
 from teacher_shell import _halaman
 from teacher_workspace import _ambil
 from topics import TOPIK_BAWAAN, dari_sesi
+from templates import Malrule
 
 
 def _soal_dari_baris(baris):
@@ -271,12 +273,10 @@ def halaman_lembar(
     kon, sesi_id: int, untuk_guru: bool = False, *,
     soal_dari_baris=None, worksheets_module=None,
 ) -> bytes | None:
-    """Lembar siap cetak, dibangkitkan ulang dari seed.
+    """Cetak penyajian sesi dan kunci/malrule bank, bukan regenerasi seed.
 
-    Tidak membaca berkas dari cakram: seed tersimpan di basis data, dan
-    membangkitkan ulang menjamin lembar yang tampil SELALU cocok dengan soal
-    yang tercatat di sesi ini. Berkas di cakram bisa terhapus, tertimpa, atau
-    tertinggal versi lama; seed tidak bisa.
+    Template masih menyediakan pembahasan, tetapi perubahan malrule template
+    tidak boleh mengubah tabel penilaian untuk soal yang sudah tersimpan.
     """
     soal_dari_baris = soal_dari_baris or _soal_dari_baris
     worksheets_module = worksheets_module or worksheets
@@ -298,7 +298,23 @@ def halaman_lembar(
     if format_sesi(kon, sesi_id) == 'pilihan_ganda':
         from choice_pages import lembar_pilihan
         return lembar_pilihan(kon, sesi_id, untuk_guru)
-    soal = [soal_dari_baris(b) for b in database.isi_sesi(kon, sesi_id)]
+    soal = []
+    for b in database.isi_sesi(kon, sesi_id):
+        hasil = soal_dari_baris(b)
+        if untuk_guru:
+            hasil = replace(
+                hasil, kunci=b["kunci"],
+                malrule=tuple(
+                    Malrule(m["malrule_id"], m["jawaban"], m["kode"], m["alasan"])
+                    # Urutan cetak mengikuti urutan simpan template lama,
+                    # bukan urutan indeks SQLite pada pencarian malrule.
+                    for m in kon.execute(
+                        "SELECT malrule_id, jawaban, kode, alasan FROM malrule "
+                        "WHERE soal_id = ? ORDER BY id", (b["soal_id"],),
+                    )
+                ),
+            )
+        soal.append(hasil)
     # Judul dari paket topik sesi ini — bukan selalu paket bawaan. Sesi lama
     # dengan nilai kolom aneh jatuh ke bawaan lewat dari_sesi(), sesuai
     # kontrak data produksi.
