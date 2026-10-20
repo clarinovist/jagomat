@@ -35,6 +35,20 @@ sudah lulus dan tidak melemahkan gerbang aktivasi maupun batas klaim. Pekerjaan
 tersebut hanya dapat dibuka kembali lewat keputusan baru pengguna. Checklist lama
 tetap menjadi histori, bukan backlog aktif atau bukti kelulusan.
 
+### Pembukaan kembali Pendamping — 20 Oktober 2026
+
+Keputusan terbaru membuka uji sintetis dua kegunaan Pendamping dengan pembanding
+non-AI serta implementasi kendali hapus/cabut dan penyederhanaan **bersyarat uji
+awal lulus**. Tabel 18 September tetap histori, bukan status terbaru scope ini.
+Editor memori lebih luas, K4, dan pekerjaan lain dalam tabel tidak ikut dibuka.
+
+Batch awal 20 kasus selesai, tetapi kandidat belum memenuhi rubrik; implementasi
+luas dan pilot tetap ditahan. Review manusia ditunda sampai sebelum pilot hanya
+untuk batch sintetis berizin, bukan diganti AI untuk penerimaan penggunaan nyata.
+Walkthrough/perangkat tidak dinyatakan selesai. Detail hasil agregat dan batasnya
+ada di [evaluasi sintetis Pendamping](pendamping-runtime.md#evaluasi-kandidat-sempit--20-oktober-2026).
+Tidak ada perubahan runtime atau aktivasi komersial dari keputusan ini.
+
 ## Acuan teknis dan historis
 
 - [Paket Jago dan Jago Pro v2](subscription-packages.md): keputusan aktif harga
@@ -52,7 +66,7 @@ tetap menjadi histori, bukan backlog aktif atau bukti kelulusan.
   sebelumnya ditahan oleh hasil spike sintetis.
 - [Design system](design-system.md): dokumentasi token dan gaya aplikasi.
 - [Runtime Pendamping](pendamping-runtime.md): kontrak implementasi inline yang
-  tersedia; pengembangan lanjutan yang dicatat di atas dibatalkan.
+  tersedia; histori pembatalan, pembukaan kembali bersyarat, dan hasil uji kandidat dijelaskan terpisah.
 - [Pendamping Jagomat](pendamping-jagomat.md): spesifikasi awal/historis; arah
   halaman chat terpisah sudah digantikan oleh Pendamping inline.
 - [Referensi workflow](workflow-reference.md): prosedur soal/malrule, test/mutation,

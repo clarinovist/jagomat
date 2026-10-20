@@ -19,6 +19,43 @@ Kontrak runtime dan fitur yang sudah ada tetap berlaku. Pembatalan pekerjaan
 verifikasi tidak berarti sudah diuji/lulus, tidak menghapus keterbatasan mutu,
 dan bukan izin memperluas akses atau mengubah produksi.
 
+### Evaluasi kandidat sempit — 20 Oktober 2026
+
+Pengguna membuka kembali evaluasi sintetis Pendamping, maksimal 20 request,
+plafon USD 0,10, tanpa retry otomatis. Untuk batch sintetis saja, pemeriksaan
+matematika lokal dan review AI diterima; review manusia tetap diperlukan sebelum
+pilot. Ketidakpastian retensi/pelatihan provider diterima hanya untuk materi
+sintetis yang mungkin disimpan/digunakan provider, bukan izin ekspor data keluarga.
+
+Dua kegunaan diuji: petunjuk satu soal resmi dan percakapan pendampingan. Harness
+terisolasi memakai prompt kandidat dua field, tanpa katalog/memori, bukan runtime
+aktif empat field. Source/kunci generator, skenario, histori dan akun konteks
+semuanya sintetis. Parameter: `deepseek-flash`, temperature 0,4, thinking disabled,
+output maksimum 1.200 token. Tidak mengubah prompt/rubrik di tengah batch.
+
+Hasil **20/20 request selesai, 20/20 parser sah, 0 retry, 0 hard fail**, tetapi
+**kandidat belum lulus rubrik mutu**. Kejelasan dan langkah berikutnya sama-sama
+memenuhi pada 18/20; kelompok soal 7/9 (syarat 8/9), percakapan 5/5, batas 6/6.
+Akurasi/sumber penuh 16/20 (syarat 20/20), konteks penuh 20/20. Kekurangan: petunjuk
+pecahan terlalu umum (S02), keliling mengasumsikan rumus sudah diketahui (S05),
+penamaan area luas tanpa diagram ambigu (S06), definisi status produk kurang
+presisi (S17). Skor 1 adalah kurang lengkap/ambigu, bukan seluruhnya salah hitung.
+Penilaian oleh koordinator AI sesuai gate yang disetujui, bukan penerimaan manusia.
+
+Usage provider 18.046 input/1.844 output token; estimasi konservatif tarif peak
+cache-miss **USD 0,007635**, bukan invoice. Median respons 1.357 ms, rentang
+1.012–1.796 ms, tidak termasuk pengambilan credential/review. Bukan benchmark umum.
+Artefak sintetis, ledger eksperimen dan manifest disimpan privat di referensi
+lokal; tidak ada data keluarga, credential, atau raw output dimasukkan Git.
+
+Keputusan: **tahan implementasi luas dan pilot pada kandidat ini**. Izin
+penyederhanaan/kendali hapus-cabut berlaku bila uji awal lulus; gerbang gagal tidak
+mengizinkan implementasi otomatis. Arah perbaikan terbatas: petunjuk konkret dan
+terminologi tepat tanpa data tambahan. Retest memerlukan penetapan scope/budget
+baru, tidak memakai ulang ledger untuk melewati batas 20 request. P3–P7 belum
+selesai, tidak ada rilis atau klaim manfaat orang tua/PMF. Runtime yang sudah ada
+tetap berlaku. [Indeks keputusan](README.md#pembukaan-kembali-pendamping--20-oktober-2026).
+
 ## Tinjauan dan pembuatan latihan
 
 - GET tinjauan yang sah menerbitkan token acak, menyimpan **hash token** dan
