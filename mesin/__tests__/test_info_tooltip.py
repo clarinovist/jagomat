@@ -216,3 +216,10 @@ def test_buat_latihan_tanpa_js_tambahan(db):
     assert skrip == []
     assert 'fonts.googleapis.com' not in h
     assert not re.search(r"\son(?:click|focus|mouseenter|mousemove|mouseover)\s*=", h)
+
+
+def test_target_sentuh_info_44px_tanpa_membesarkan_baris():
+    assert T.TARGET_INFO == T.TARGET_SENTUH
+    aturan = _isi_rule(".info ")
+    # Area klik besar, jejak tata letak tetap kecil lewat margin negatif.
+    assert "margin: calc(" in aturan

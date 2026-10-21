@@ -217,7 +217,8 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .info {{
   position: relative;
   display: inline-flex; align-items: center; justify-content: center;
-  width: {T.TARGET_INFO}; height: {T.TARGET_INFO};   /* kotak sentuh 26x26 */
+  width: {T.TARGET_INFO}; height: {T.TARGET_INFO};   /* area sentuh 44x44, jejak layout 26x26 */
+  margin: calc((26px - {T.TARGET_INFO}) / 2);
   padding: 0; border: 0; background: transparent;
   color: {T.AKSEN_TEAL_TUA};
   font: 700 .75rem/1 {T.FONT_BODY};

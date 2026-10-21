@@ -405,7 +405,7 @@ TEKS_TOOLTIP = TEKS_PUTIH
 # Geometri komponen Info "ⓘ" (Figma `Jagomat/Info` 28:14): lingkaran ikon 18px
 # di dalam kotak sentuh 26x26, lebar maksimum balon 260px.
 UKURAN_INFO = "18px"
-TARGET_INFO = "26px"
+TARGET_INFO = TARGET_SENTUH  # area klik 44px; jejak layout tetap 26px lewat margin negatif
 LEBAR_TOOLTIP = "260px"
 
 # Radius kartu utama versi Figma (22px). Kode masih memakai RADIUS_KARTU 12px
