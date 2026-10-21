@@ -53,7 +53,7 @@ def test_kartu_tinjau_ringkas_dan_peta_terlihat_tanpa_mutasi():
     isi = profile_home.kartu(rencana, bukti, siswa, jumlah_soal=15, hari_ini=date(2026, 9, 28))
     terlihat = Markup(isi).terlihat()
     assert 'Tinjau hasil latihan &lt;Anak&gt;' in isi
-    assert 'Menunggu 27 hari' in terlihat
+    assert 'Sudah menunggu 27 hari' in terlihat
     assert '15 soal · sekitar 45 menit pengerjaan' in terlihat
     assert 'Caranya' in terlihat and 'tanpa memberi jawaban' in terlihat
     assert 'Konfirmasi hanya setelah hasil diperiksa.' in terlihat

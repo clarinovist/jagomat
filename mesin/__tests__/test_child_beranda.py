@@ -26,7 +26,7 @@ def _kartu(tindakan="konfirmasi_hasil", hari_ini=date(2026, 10, 19)):
 
 
 def test_badge_menunggu_menghitung_hari_sejak_sesi_yang_dituju():
-    assert 'Menunggu 27 hari' in _kartu()
+    assert 'Sudah menunggu 27 hari' in _kartu()
     assert 'anak-chip-perhatian-st' in _kartu().split('beranda-kepala-kartu-st', 1)[1].split('</div>', 1)[0]
 
 

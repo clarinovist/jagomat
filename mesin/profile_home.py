@@ -52,7 +52,7 @@ def _badge_menunggu(rencana, bukti, hari_ini=None):
     if sesi is None:
         return ''
     hari = ((hari_ini or hari_wib()) - sesi.tanggal).days
-    return chip_status(f'Menunggu {hari} hari', 'perhatian') if hari >= 1 else ''
+    return chip_status(f'Sudah menunggu {hari} hari', 'perhatian') if hari >= 1 else ''
 
 
 def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=None, peran=None):
