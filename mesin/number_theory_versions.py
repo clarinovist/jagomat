@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import os
 
-# Baseline recovery katalog: writer komposisi konservatif1, reader lengkap.
-# Writer katalog juga tetap1; kandidat berikutnya kembali komposisi2.
-VERSI_TEORI_BILANGAN_BAWAAN = 1
+# Kandidat komposisi2; recovery katalog542dcd9 komposisi1, reader lengkap.
+# Katalog perbaikan tetap default1 sampai tinjauan manusia/aktivasi terkontrol.
+VERSI_TEORI_BILANGAN_BAWAAN = 2
 LAMA = {
     "P4": ("keterbagian", "sisa_pembagian", "paritas") * 3 + ("keterbagian",),
     "P5": ("keterbagian", "prima_faktorisasi", "kpk_dua_bilangan",

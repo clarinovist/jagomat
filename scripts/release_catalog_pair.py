@@ -2,6 +2,10 @@
 # Ditempel ke probe existing agar menjalankan modul milik image, bukan host.
 TULIS = r'''
 from catalog_versions import versi_writer, TEMPLATE_DIPERBAIKI
+# Hanya proses sandbox probe sintetis: exercise writer2 meski aktivasi aplikasi
+# menunggu manusia. Reader B tidak mengikuti flag C. Pulihkan flag di akhir.
+_catalog_flag_lama=os.environ.get('OSN_KATALOG_VERSI')
+os.environ['OSN_KATALOG_VERSI']='2'
 catalog_versi=versi_writer()
 catalog_pembahasan=[]
 if catalog_versi==2:
@@ -36,6 +40,10 @@ if catalog_versi==2:
             # Opsi PG harus cocok bank baru, juga sesudah writer dimundurkan.
             sid_pg=database.buat_sesi(c,anak,51,topik=topik,level=lv,format_jawaban='pilihan_ganda')
             sesi.append(sid_pg)
+if _catalog_flag_lama is None:
+    os.environ.pop('OSN_KATALOG_VERSI',None)
+else:
+    os.environ['OSN_KATALOG_VERSI']=_catalog_flag_lama
 '''
 BACA = r'''
     if m.get('catalog_versi',1)==2:

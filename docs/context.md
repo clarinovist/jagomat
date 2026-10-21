@@ -186,7 +186,9 @@ cache dan cadangan tetap privat.
   `catalog_versions.py` menyiapkan versi konten opt-in terpisah untuk koreksi audit:
   marker parameter membedakan identitas bank baru, reader tanpa marker mempertahankan
   fungsi historis. Bawaan writer masih warisan; [koreksi katalog](catalog-corrections.md)
-  belum aktif dan memerlukan review manusia serta pair exact baru. Konteks umur
+  belum aktif dan memerlukan review manusia serta pair exact baru; baseline reader
+  recovery542dcd9 telah dibekukan. Probe selalu membuat katalog2 di sandbox walau
+  default aplikasi1, agar kompatibilitas tidak lolos akibat flag nonaktif. Konteks umur
   Ari/Bima memiliki marker sendiri; reader tetap mengenali konteks ayah–anak lama.
   `catalog_preview.py` membekukan contoh sintetis+hash pada artefak CI.
   Cetak guru membaca kunci/malrule bank tersimpan, bukan aturan template terbaru;

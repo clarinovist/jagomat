@@ -76,13 +76,16 @@ pembahasan/cetak serta konfirmasi/outcome/konteks dengan data sintetis.
 Baseline kualitas generik yang sama diuji pada kedua writer, tanpa penurunan guard.
 
 Probe `release_catalog_pair.py` terhubung ke `release_question_pair.py`:
-writer2 menambah bank lama/baru, PG, konfirmasi dan pembahasan ke C→B→C. Reader yang
-belum mendukung marker diblokir eksplisit sebelum memuat data. Writer1 masih
-memakai jalur existing. Tes source bukan bukti pasangan image exact sudah lulus.
+probe selalu mengaktifkan writer2 hanya dalam proses sandbox sintetis dan
+memulihkan flag setelah menambah bank lama/baru, PG, konfirmasi dan pembahasan ke
+C→B→C. Gate tidak boleh lolos karena default writer1. Reader yang belum mendukung
+marker diblokir eksplisit sebelum memuat data. Tes source bukan bukti image exact.
 
-Recovery pinned belum mendukung katalog baru. **Jangan aktifkan/deploy writer2**
-sebelum reader jembatan, full CI/build, review manusia konten berubah dan gate
-pasangan exact lulus. Pin tidak diubah untuk meloloskan gate; review versi sebelumnya
+Recovery pinned `542dcd94132c4b91bca78004643c8eb2c82686d7` mendukung katalog2 dan
+kedua konteks umur, tetapi tetap menulis katalog1/komposisi teori-bilangan1.
+Baseline ini lulus CI39596225447 dalam mode persiapan sebelum dipatok kandidat.
+**Jangan aktifkan/deploy writer2** sebelum full CI/build, review manusia konten
+berubah dan gate pasangan exact kandidat–recovery baru lulus. Pin tidak diubah untuk meloloskan gate; review versi sebelumnya
 tidak mengesahkan konten baru. Tidak ada runtime LLM untuk kunci/diagnosis.
 
 ## Batas dan follow-up

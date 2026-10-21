@@ -122,6 +122,15 @@ print('writer_reader_ok')
     assert hasil.stdout.strip() == 'writer_reader_ok'
 
 
+def test_gate_image_menguji_katalog2_meski_default_belum_diaktifkan(tmp_path):
+    import json
+    hasil=_jalankan(tmp_path,pair.SUMBER_TULIS)
+    assert hasil.returncode==0,hasil.stderr
+    m=json.loads((tmp_path/'question-pair/manifest.json').read_text())
+    assert m['catalog_versi']==2, 'gate wajib membuat data katalog baru, bukan lolos karena flag nonaktif'
+    assert m['catalog_pembahasan'], 'gate wajib membaca pembahasan baru di recovery'
+
+
 def test_katalog_baru_cbc_mempertahankan_bank_dan_pembahasan(tmp_path):
     for sumber in (pair.SUMBER_TULIS,pair.SUMBER_BACA,pair.SUMBER_KEMBALI):
         flag = '2' if sumber != pair.SUMBER_BACA else '1'

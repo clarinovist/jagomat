@@ -7,9 +7,13 @@ itu bukan bukti aktivasi perbaikan. Baseline berikutnya mempertahankan reader
 katalog2 dan marker konteks umur Ari/Bima, dengan writer katalog1 serta komposisi
 teori-bilangan1. Mode **persiapan** untuk pembekuan reader, bukan pelemahan gate
 rilis: manifest persiapan tidak mengklaim pair teruji atau siap pasang.
-Pin historis c228749 tetap sampai baseline baru dibekukan dan diuji. Kandidat
-berikutnya kembali mode migrasi/komposisi2 dan harus membuktikan C→B→C katalog2
-pada exact image sebelum aktivasi. Job pasang tetap false, tidak ada deploy.
+Baseline baru **542dcd94132c4b91bca78004643c8eb2c82686d7** lulus full CI39596225447
+beserta build/probe digest `sha256:a0be7b3f52679ce8f2ab72997755d1530be37c011a18a2be079457a0952bfac9`.
+Fingerprint persistensi tetap7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8;
+manifest persiapan tidak mengklaim pair teruji. Kandidat sekarang mematok baseline
+ini dan kembali mode migrasi/komposisi2. Probe wajib exercise writer katalog2
+meski default aplikasi1, untuk membuktikan C→B→C exact sebelum aktivasi.
+Job pasang tetap false, tidak ada deploy.
 Contoh tinjauan26 template kini menjadi artefak `catalog-review` terikat SHA/hash;
 review manusia belum dinyatakan selesai. Detail [koreksi katalog](catalog-corrections.md).
 
