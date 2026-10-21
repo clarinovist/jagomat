@@ -131,3 +131,28 @@ def test_http_ownership_dan_murid_tetap_terjaga(tmp_path, monkeypatch):
             assert 'data-faq-lokal=' not in isi and 'kunci-val' not in isi
     finally:
         server.berhenti()
+
+
+@pytest.mark.parametrize('section', ['rencana', 'latihan', 'perkembangan', 'riwayat'])
+def test_disclaimer_belum_dinilai_tidak_diulang_dalam_satu_tab(db, section):
+    with database.buka(db) as kon:
+        sesi_contoh(kon)
+        siswa = kon.execute('SELECT * FROM siswa LIMIT 1').fetchone()
+        markup = teacher_pages.halaman_anak(kon, siswa, query='section=' + section).decode()
+    assert markup.count('Belum dinilai bukan berarti tidak mampu') <= 1
+    assert markup.count('belum dinilai bukan berarti tidak mampu') <= 1
+
+
+def test_beranda_menggabung_bantuan_dalam_satu_akordeon(db):
+    with database.buka(db) as kon:
+        sesi_contoh(kon)
+        siswa = kon.execute('SELECT * FROM siswa LIMIT 1').fetchone()
+        markup = teacher_pages.halaman_anak(kon, siswa, query='section=rencana').decode()
+    awal = markup.index('<details class="bantuan-gabungan-st">')
+    gabungan = markup[awal:markup.index('</section></details>', awal)]
+    assert '<summary>Bantuan</summary>' in gabungan
+    assert 'data-faq-lokal="rencana"' in gabungan and 'id="judul-bantuan-pendampingan"' in gabungan
+    assert markup.count('<details class="bantuan-statis-faq"') == 1
+    # Tidak ada akordeon bantuan di luar gabungan.
+    luar = (markup[:awal] + markup[awal + len(gabungan):]).split('<body', 1)[1]
+    assert 'class="bantuan-statis-faq"' not in luar and 'class="bantuan-statis-kartu"' not in luar

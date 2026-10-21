@@ -372,9 +372,7 @@ def halaman_anak(
 
     import parent_help
     if section in parent_help.FAQ:
-        isi_profil += parent_help.faq(section)
-        if section == 'rencana':
-            isi_profil += parent_help.kartu_pendampingan()
+        isi_profil += parent_help.bantuan(section)
 
     return _halaman_stitch(
         f"{siswa['nama']} — {T.NAMA_PRODUK}",

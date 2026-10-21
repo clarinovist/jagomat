@@ -31,7 +31,7 @@ FAQ = {
                      'Sedang dipelajari berarti target sedang dipelajari, bukan otomatis sudah dipahami. '
                      'Menunjukkan pemahaman berarti ada bukti yang memenuhi kriteria target yang tersedia, '
                      'bukan penguasaan seluruh matematika atau kelulusan permanen. '
-                     'Belum dinilai bukan berarti tidak mampu. Lihat rincian bukti dan kriteria pada Perkembangan ini.'),
+                     'Lihat rincian bukti dan kriteria pada Perkembangan ini.'),
 }
 
 
@@ -60,6 +60,14 @@ def faq(konteks):
             '<summary>' + escape(judul) + '</summary><p>' + escape(isi) + '</p></details>')
 
 
+def bantuan(konteks):
+    """Satu entry point bantuan per tab; Beranda menggabung FAQ dan panduan situasi."""
+    if konteks != 'rencana':
+        return faq(konteks)
+    return ('<details class="bantuan-gabungan-st"><summary>Bantuan</summary>'
+            + faq(konteks) + kartu_pendampingan() + '</details>')
+
+
 GAYA = f'''
 .bantuan-statis-st {{ margin-block: {T.SP_5}; color: {T.TEKS_UTAMA}; }}
 .bantuan-statis-st h2 {{ margin: 0 0 {T.SP_2}; font-size: 1.1rem; }}
@@ -71,6 +79,8 @@ GAYA = f'''
   color: {T.TEKS_UTAMA}; overflow-wrap: anywhere;
 }}
 .bantuan-statis-faq {{ margin-block: {T.SP_4}; }}
+.bantuan-gabungan-st {{ margin-block: {T.SP_5}; }}
+.bantuan-gabungan-st > summary {{ cursor: pointer; box-sizing: border-box; min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-size: 1rem; color: {T.AKSEN_TEAL_TUA}; font-weight: 600; }}
 .bantuan-statis-kartu > summary, .bantuan-statis-faq > summary {{
   cursor: pointer; box-sizing: border-box; min-height: {T.TARGET_SENTUH};
   padding: {T.SP_3} {T.SP_4}; font-size: 1rem; line-height: 1.5;
