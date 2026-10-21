@@ -11,13 +11,14 @@ sys.path.insert(0, str(AKAR / "scripts"))
 import release_question_pair as pair
 
 
-def _jalankan(tmp_path, sumber, injeksi=""):
-    env = {"PATH": os.environ.get("PATH", ""), "PYTHONPATH": str(AKAR / "mesin"),
+def _jalankan(tmp_path, sumber, injeksi="", akar_mesin=None):
+    env = {"PATH": os.environ.get("PATH", ""), "PYTHONPATH": str(akar_mesin or AKAR / "mesin"),
            "PYTHONDONTWRITEBYTECODE": "1"}
     # Simulasi default B/C pada satu checkout; probe image sendiri TIDAK
     # menginjeksi default dan wajib membaca default dari masing-masing image.
-    versi = 1 if sumber == pair.SUMBER_BACA else 2
-    injeksi = f"import number_theory_versions as v\nv.VERSI_TEORI_BILANGAN_BAWAAN={versi}\n" + injeksi
+    if akar_mesin is None:
+        versi = 1 if sumber == pair.SUMBER_BACA else 2
+        injeksi = f"import number_theory_versions as v\nv.VERSI_TEORI_BILANGAN_BAWAAN={versi}\n" + injeksi
     return subprocess.run([sys.executable, "-B", "-"],
         input=injeksi + sumber.replace("/data/", str(tmp_path) + "/"),
         env=env, capture_output=True, text=True, timeout=30)
@@ -28,6 +29,36 @@ def test_soal_cbc_source(tmp_path):
                            (pair.SUMBER_BACA, "OSN_QUESTION_RECOVERY_OK"),
                            (pair.SUMBER_KEMBALI, "OSN_QUESTION_RETURN_OK")):
         hasil = _jalankan(tmp_path, sumber)
+        assert hasil.returncode == 0, hasil.stderr
+        assert hasil.stdout.strip() == marker
+
+
+def test_bingkai_cbc_reader_recovery_exact_dan_isolasi_cache(tmp_path):
+    import json
+    import tarfile
+    from test_release_image import ekstrak_tar_aman
+
+    revision = json.loads((AKAR / "scripts/release-metadata.json").read_text())["recovery_revision"]
+    arsip = tmp_path / "recovery.tar"
+    with arsip.open("wb") as out:
+        subprocess.run(["git", "-C", str(AKAR), "archive", revision, "mesin"], stdout=out, check=True)
+    recovery = tmp_path / "recovery"
+    recovery.mkdir()
+    with tarfile.open(arsip) as tar:
+        ekstrak_tar_aman(tar, recovery)
+    data = tmp_path / "sintetis"
+    data.mkdir()
+    for sumber, marker, akar in (
+        (pair.SUMBER_TULIS, "OSN_QUESTION_WRITER_OK", None),
+        (pair.SUMBER_BACA, "OSN_QUESTION_RECOVERY_OK", recovery / "mesin"),
+        (pair.SUMBER_KEMBALI, "OSN_QUESTION_RETURN_OK", None),
+    ):
+        hasil = _jalankan(data, sumber, akar_mesin=akar)
+        if akar is not None and revision == 'ff6acb158985f78ef0287ec18fb045d273921bdc':
+            # Pin historis: replay teks bekerja, tetapi cache B2 belum terisolasi.
+            # Bukti penolakan baseline lama, bukan pengecualian untuk pin baru.
+            assert hasil.returncode == 1 and 'cache_recovery_miss' in hasil.stderr
+            return
         assert hasil.returncode == 0, hasil.stderr
         assert hasil.stdout.strip() == marker
 

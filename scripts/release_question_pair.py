@@ -79,6 +79,40 @@ with database.buka(path) as c:
     lama=replace(lama,malrule=(Malrule('modus.pertama','8','K','menjawab data pertama, bukan yang paling sering muncul'),*lama.malrule))
     lama_id=database.buat_sesi_dari_urutan(c,anak,44,('median_modus',),topik='statistika',level='P4',soal_terpilih=(lama,))
     sesi.append(lama_id)
+    # Bingkai offline diuji pada C; B tidak perlu memiliki modul bank untuk
+    # membaca teks exact snapshotv1. Tidak ada provider atau metadata baru.
+    import story_frames
+    os.environ['OSN_BANK_KALIMAT']='0'
+    asli_kpk=replace(REGISTRI['kpk_dua_bilangan'](a=6,b=8),level='P5')
+    sumber_lama=database.buat_sesi_dari_urutan(c,anak,46,('kpk_dua_bilangan',),topik='teori-bilangan',level='P5',soal_terpilih=(asli_kpk,))
+    sesi.append(sumber_lama)
+    cache_sesi=[sumber_lama]
+    os.environ['OSN_BANK_KALIMAT']='1'
+    for tid,param,topik in (
+        ('kpk_dua_bilangan',{'a':6,'b':8},'teori-bilangan'),
+        ('aturan_kali',{'m':3,'n':4},'kombinatorik'),
+        ('jabat_tangan',{'n':5},'kombinatorik'),
+    ):
+        soal=replace(REGISTRI[tid](**param),level='P5')
+        sid_bingkai=database.buat_sesi_dari_urutan(c,anak,45,(tid,),topik=topik,level='P5',soal_terpilih=(soal,))
+        row=database.isi_sesi(c,sid_bingkai)[0]
+        assert row['teks_soal']==story_frames.kalimat_baru(tid,'P5',param).teks
+        assert row['teks_soal']!=soal.teks and row['kunci']==soal.kunci
+        sesi.append(sid_bingkai)
+        if tid=='kpk_dua_bilangan':cache_sesi.append(sid_bingkai)
+    # Cache B2 memakai mock lokal: tidak ada provider. Sumber berbeda harus
+    # menghasilkan dua cache terpisah dan dapat dibaca recovery.
+    import llm
+    llm.ensure_table(c)
+    llm.aktif=lambda:True
+    llm.konfigurasi=lambda:{'model':'model-pair-sintetis'}
+    for sid_cache in cache_sesi:
+        src=question_views.soal_dari_baris(database.isi_sesi(c,sid_cache)[0])
+        llm._panggil=lambda prompt,teks=src.teks:teks
+        assert llm.bungkus(c,src)==src.teks, 'cache_sumber_tabrakan'
+    assert c.execute('SELECT COUNT(*) FROM llm_cache').fetchone()[0]==2
+    cache=[[r['kunci_hash'],r['kalimat']] for r in c.execute('SELECT kunci_hash,kalimat FROM llm_cache ORDER BY kunci_hash')]
+    os.environ['OSN_BANK_KALIMAT']='0'
     import reports
     konfirmasi=[]
     for s in sesi[:2]:
@@ -87,7 +121,7 @@ with database.buka(path) as c:
         konfirmasi.append((s,database.konfirmasi_hasil(c,s,'guru')))
     hashes=[(s,cetak(c,s)) for s in sesi]
     m={'anak':anak,'sesi':sesi,'modus':sid,'lama':lama_id,'cetak':hashes,'bank':bank(c),
-       'bukti':bukti(c),'konfirmasi':konfirmasi}
+       'bukti':bukti(c),'konfirmasi':konfirmasi,'cache_sesi':cache_sesi,'cache':cache}
     sehat(c)
 (root/'manifest.json').write_text(json.dumps(m,sort_keys=True))
 print('OSN_QUESTION_WRITER_OK')
@@ -95,10 +129,20 @@ print('OSN_QUESTION_WRITER_OK')
 SUMBER_BACA = "import os\nos.environ.pop('OSN_TEORI_BILANGAN_VERSI',None)\n" + BERSAMA + r'''
 from number_theory_versions import versi_writer
 assert versi_writer()==1, 'recovery_writer_bukan_konservatif'
+os.environ.pop('OSN_BANK_KALIMAT',None)
 assert not set(jenis)&{s.template_id for s in buat_lembar(42,level='P4',topik='teori-bilangan').soal}
 m=baca_manifest()
 with database.buka(path) as c:
     periksa(c,m)
+    import llm
+    llm.aktif=lambda:True
+    llm.konfigurasi=lambda:{'model':'model-pair-sintetis'}
+    def tidak_ada_provider(*args):raise AssertionError('cache_recovery_miss')
+    llm._panggil=tidak_ada_provider
+    for sid_cache in m['cache_sesi']:
+        src=question_views.soal_dari_baris(database.isi_sesi(c,sid_cache)[0])
+        assert llm.bungkus(c,src)==src.teks, 'cache_recovery_sumber_berbeda'
+    assert [[r['kunci_hash'],r['kalimat']] for r in c.execute('SELECT kunci_hash,kalimat FROM llm_cache ORDER BY kunci_hash')]==m['cache']
     # Diagnosis memakai bank tersimpan untuk aturan lama maupun baru.
     for sid,jwb,harapan in ((m['modus'],'6',None),(m['lama'],'8','modus.pertama')):
         b=database.isi_sesi(c,sid)[0]
@@ -127,6 +171,7 @@ print('OSN_QUESTION_RECOVERY_OK')
 SUMBER_KEMBALI = "import os\nos.environ.pop('OSN_TEORI_BILANGAN_VERSI',None)\n" + BERSAMA + r'''
 from number_theory_versions import versi_writer
 assert versi_writer()==2, 'return_writer_bukan_batch_baru'
+os.environ['OSN_BANK_KALIMAT']='0'
 m=baca_manifest()
 with database.buka(path) as c:
     periksa(c,m)

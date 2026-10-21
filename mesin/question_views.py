@@ -167,6 +167,13 @@ def penyajian_dari_soal(soal: Soal) -> PenyajianPertanyaan:
         teks, descriptor = proyeksi
         status_visual = "siap"
         mode_representasi = f"{descriptor.jenis}-v{descriptor.versi}"
+    else:
+        # Bank statis hanya untuk snapshot BARU. Reader warisan/snapshot di
+        # bawah tidak memanggilnya, sehingga teks riwayat tetap exact.
+        from story_frames import untuk_snapshot_baru
+        kalimat = untuk_snapshot_baru(soal)
+        if kalimat is not None:
+            teks = kalimat.teks
 
     return buat_penyajian(
         template_id=soal.template_id,

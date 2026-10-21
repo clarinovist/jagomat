@@ -181,8 +181,9 @@ def kunci_cache(
     model: str | None = None,
     template_id: str = "",
     latar: str = "",
+    *, fingerprint_sumber: str | None = None,
 ) -> str:
-    """Sidik jari cache: template + parameter + latar + versi prompt + model.
+    """Sidik jari cache termasuk penyajian sumber bila soal bersnapshot.
 
     Parameter diurutkan agar {"awal": 2, "beda": 3} dan {"beda": 3,
     "awal": 2} berbagi entri cache — soal yang sama, bayar sekali.
@@ -200,14 +201,18 @@ def kunci_cache(
     """
     if model is None:
         model = konfigurasi()["model"]
+    payload = {
+        "template_id": template_id, "parameter": parameter, "latar": latar,
+        "versi_prompt": VERSI_PROMPT, "model": model,
+    }
+    # Tanpa snapshot, encoding/kunci cache lama dipertahankan byte-identik.
+    # Teks bersnapshot berbeda tidak boleh memakai cerita dari sumber lama.
+    if fingerprint_sumber is not None:
+        if not isinstance(fingerprint_sumber, str) or not re.fullmatch(r"[0-9a-f]{64}", fingerprint_sumber):
+            raise ValueError("fingerprint sumber cache tidak sah")
+        payload["fingerprint_sumber"] = fingerprint_sumber
     butir = json.dumps(
-        {
-            "template_id": template_id,
-            "parameter": parameter,
-            "latar": latar,
-            "versi_prompt": VERSI_PROMPT,
-            "model": model,
-        },
+        payload,
         ensure_ascii=False,
         sort_keys=True,
     )
@@ -750,14 +755,16 @@ def bungkus(
 
     Cache hit sengaja TIDAK diverifikasi ulang: yang masuk cache sudah
     lolos verifikasi saat pertama disimpan. Itu aman HANYA karena kunci
-    cache memuat template_id — lihat catatan di kunci_cache().
+    cache memuat template_id dan fingerprint penyajian untuk soal bersnapshot.
+    Ini isolasi sumber, bukan verifikasi semantik keluaran provider.
     """
     if not aktif():
         return None
 
     latar = pilih_latar(soal, putaran)
     hash_kunci = kunci_cache(
-        soal.parameter, template_id=soal.template_id, latar=latar
+        soal.parameter, template_id=soal.template_id, latar=latar,
+        fingerprint_sumber=(soal.penyajian.fingerprint_penyajian if soal.penyajian is not None else None),
     )
     baris = kon.execute(
         "SELECT kalimat FROM llm_cache WHERE kunci_hash = ?", (hash_kunci,)

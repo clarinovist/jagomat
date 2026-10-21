@@ -293,12 +293,18 @@ jobs:
               print('mode=' + hasil['mode'], file=output)
               print('siap_pasang=' + str(hasil['siap_pasang']).lower(), file=output)
           PY
+      - name: Bekukan bank kalimat dan contoh sintetis untuk tinjauan
+        run: |
+          python scripts/story_frames_preview.py --output story-frames-review --require-committed
+          python scripts/challenge_packet.py --output challenge-packet-review
       - uses: actions/upload-artifact@v7
         with:
           name: release-manifest-${{ github.sha }}
           path: |
             release-manifest.json
             submission-pair.json
+            story-frames-review/
+            challenge-packet-review/
           if-no-files-found: error
           retention-days: 30
 

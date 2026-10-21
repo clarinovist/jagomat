@@ -1,5 +1,22 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Kandidat Fase 4 — persiapan bank kalimat dan paket cetak
+
+Bank kalimat statis opt-in default0 memerlukan fingerprint penyajian baru
+`7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8`.
+Schema snapshot tetapv1; teks lama dan kunci/malrule tidak ditulis ulang.
+Cache B2 bersnapshot kini diikat fingerprint sumber agar tidak memakai cerita
+sumber lain. Baseline recovery Fase4 memuat hook/cache/bank sama tetapi writer
+teori-bilangan default1; kandidat default2. Tidak memetakan hash baru ke hash lama.
+Mode baseline persiapan sengaja mencatat mismatch anchor historis; kandidat harus
+kembali migrasi dengan pin/fingerprint B exact dan seluruh gate pasangan lulus.
+
+Probe soal C→B→C mencakup snapshot bank, cache dua sumber tanpa provider, konteks,
+konfirmasi, PG dan cetak; artifact rilis memuat manifest bank18 bingkai dan paket
+cetak6 tantangan kelas5. Paket cetak tidak punya sesi/DB/diagnosis/penguasaan.
+Belum deploy atau mengaktifkan `OSN_BANK_KALIMAT`; tinjauan manusia isi Fase4
+masih gate terpisah, bukan diwarisi dari persetujuan contoh Fase3.
+
 ## Deploy kualitas soal Fase 1–3 — 21 Oktober 2026
 
 Controlled `deploy-v2` berhasil memasang kandidat

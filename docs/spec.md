@@ -38,6 +38,10 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   Teori-bilangan mencakup menghitung kelipatan/prima dalam rentang, sisa operasi,
   dan jumlah kelipatan; komposisi internal P4/P5 masing-masing 7/10 jenis, P6 tetap 7.
   Keragaman jenis bukan klaim penguasaan atau kesetaraan dengan kelas sekolah.
+  [Bank kalimat offline](story-frames.md) tersedia lewat opt-in default nonaktif
+  untuk tiga konsep bercerita; snapshot lama/kunci/diagnosis tetap. Paket cetak
+  mandiri 6 tantangan KPK/pencacahan kelas5 memiliki solusi terpisah tanpa akun,
+  penyimpanan jawaban, atau kaitan ke diagnosis/penguasaan aplikasi.
 - Panel privat admin `/admin/riset` menyimpan wawancara eksploratif konsumen
   dalam database terpisah tanpa hubungan ke akun keluarga/siswa. Instrumen hybrid
   berversi memisahkan jawaban/kutipan responden, coding, dan catatan interviewer;

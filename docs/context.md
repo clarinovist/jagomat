@@ -161,6 +161,12 @@ cache dan cadangan tetap privat.
   baru. Disclosure native menjaga form/draf; kunci/pembahasan tetap dari loader
   soal existing, escaped dan ditampilkan sekali dekat soal pada tinjauan.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
+  `story_frames.py` menyediakan bingkai offline opt-in default0 di proyeksi snapshot
+  baru, bukan reader histori; visual/custom dan KPK murni tetap utuh. Provenance
+  bank ada pada artefak rilis, bukan field snapshotv1. Cache B2 bersnapshot diikat
+  fingerprint sumber; detail [bank kalimat](story-frames.md).
+  `scripts/challenge_packet.py` mengekspor paket cetak terpisah beserta solusi dan
+  manifest; hanya stdlib, tanpa impor/runtime aplikasi atau jalur bukti belajar.
   `number_theory_expansion.py` menyediakan empat jenis hitung murni P4/P5 melalui
   registry `topic_number_theory`; kartu/inventaris/katalog target eksplisit.
   `number_theory_versions.py` memisahkan komposisi writer recovery (1) dan batch

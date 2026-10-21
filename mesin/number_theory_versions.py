@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import os
 
-# Kandidat batch baru; recovery ff6acb1 tetap default1 dengan reader yang sama.
-# Override operator tidak membatasi inventaris/konteks histori.
-VERSI_TEORI_BILANGAN_BAWAAN = 2
+# Baseline recovery Fase4: komposisi konservatif, reader/cache/bank lengkap.
+# Kandidat menaikkan default setelah SHA baseline dibekukan.
+VERSI_TEORI_BILANGAN_BAWAAN = 1
 LAMA = {
     "P4": ("keterbagian", "sisa_pembagian", "paritas") * 3 + ("keterbagian",),
     "P5": ("keterbagian", "prima_faktorisasi", "kpk_dua_bilangan",
