@@ -20,7 +20,10 @@ def test_lima_belas_pola_disetujui_semuanya_draf(monkeypatch):
         assert 'belum direview manusia' in e['batas']
         assert pb.validasi_entri(e) == (), e['template_id']
         fokus = (e['template_id'], e['kode_intervensi'], e['malrule_id'])
-        assert pb.render(fokus, 'P3', peran='guru') == ''
+        isi = pb.render(fokus, 'P3', peran='guru')
+        assert 'data-playbook-draf' in isi
+        assert 'DRAF — belum direview manusia; jangan dianggap panduan ajar final' in isi
+        assert 'Ulasan:' not in isi
         pasangan = set()
         for seed in range(25):
             soal = buat_soal(e['template_id'], seed, 'P3', topics.pemilik_template(e['template_id']))

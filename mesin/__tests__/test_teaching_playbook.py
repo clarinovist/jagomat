@@ -211,10 +211,43 @@ def test_entri_rusak_tidak_menghilangkan_entri_lain(konten):
     assert 'PENANDA SINTETIS' in render()
 
 
-def test_draf_valid_bisa_diulas_offline_tetapi_tidak_dirender(konten):
+def test_draf_valid_tampil_dengan_peringatan_terlihat_tanpa_pengesahan(konten):
+    from html.parser import HTMLParser
+    class Summary(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.aktif = False
+            self.teks = ''
+        def handle_starttag(self, tag, attrs):
+            if tag == 'summary':
+                self.aktif = True
+        def handle_endtag(self, tag):
+            if tag == 'summary':
+                self.aktif = False
+        def handle_data(self, data):
+            if self.aktif:
+                self.teks += data
     e = entri_sintetis()
     e.update(status='draf', reviewer=None, tanggal_review=None, versi_review=None, sha256_review=None)
     assert pb.validasi_entri(e) == ()
+    simpan(konten, [e])
+    sebelum = konten.read_bytes()
+    isi = render()
+    assert 'PENANDA SINTETIS' in isi and 'data-playbook-draf' in isi
+    summary = Summary()
+    summary.feed(isi)
+    assert 'DRAF — belum direview manusia; jangan dianggap panduan ajar final' in summary.teks
+    assert '<details open' not in isi and 'Ulasan:' not in isi and 'None' not in isi
+    assert 'ULASAN SINTETIS' not in isi and '2026-10-22' not in isi
+    assert konten.read_bytes() == sebelum
+
+
+@pytest.mark.parametrize('field', ['reviewer', 'tanggal_review', 'versi_review', 'sha256_review'])
+def test_draf_metadata_pengesahan_ambigu_tidak_tampil(konten, field):
+    e = entri_sintetis()
+    nilai = e[field]
+    e.update(status='draf', reviewer=None, tanggal_review=None, versi_review=None, sha256_review=None)
+    e[field] = nilai
     simpan(konten, [e])
     assert render() == ''
 

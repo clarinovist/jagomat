@@ -55,7 +55,7 @@ def sesi_sintetis(kon, nama='Anak Sintetis', pemilik='guru', selesai=True):
     return anak, sesi
 
 
-def test_slot_tinjauan_tambahan_tanpa_write_dan_draf_identik(db, konten):
+def test_slot_tinjauan_tambahan_draf_tanpa_write(db, konten):
     with database.buka(db) as kon:
         _, sesi = sesi_sintetis(kon)
         sebelum = tuple(kon.iterdump())
@@ -69,7 +69,11 @@ def test_slot_tinjauan_tambahan_tanpa_write_dan_draf_identik(db, konten):
         assert isi.index('data-playbook-guru') > isi.index('pembahasan-soal-')
         e.update(status='draf', reviewer=None, tanggal_review=None, versi_review=None, sha256_review=None)
         simpan(konten, [e])
-        assert teacher_session_pages.halaman_sesi_stitch(kon, sesi).decode() == kosong
+        isi_draf = teacher_session_pages.halaman_sesi_stitch(kon, sesi).decode()
+        assert 'data-playbook-draf' in isi_draf and 'PENANDA SINTETIS' in isi_draf
+        assert 'belum direview manusia; jangan dianggap panduan ajar final' in isi_draf
+        assert 'data-playbook-guru' not in kosong
+        assert isi_draf.count('<form') == kosong.count('<form')
         assert tuple(kon.iterdump()) == sebelum
 
 
@@ -99,7 +103,10 @@ def test_slot_profil_mengikuti_pendekatan_dan_cta_tetap(konten):
     e = entri_sintetis()
     e.update(status='draf', reviewer=None, tanggal_review=None, versi_review=None, sha256_review=None)
     simpan(konten, [e])
-    assert profile_home.kartu(r, b, anak, peran='guru') == kosong
+    isi_draf = profile_home.kartu(r, b, anak, peran='guru')
+    assert 'data-playbook-draf' in isi_draf
+    assert 'belum direview manusia; jangan dianggap panduan ajar final' in isi_draf
+    assert isi_draf.count('class="rencana-cta-utama-st"') == kosong.count('class="rencana-cta-utama-st"')
 
 
 def test_profil_http_meneruskan_peran_dan_fokus(tmp_path, monkeypatch, konten):
@@ -118,6 +125,25 @@ def test_profil_http_meneruskan_peran_dan_fokus(tmp_path, monkeypatch, konten):
         server.berhenti()
 
 
+def test_draf_tersedia_juga_untuk_guru_kedua(tmp_path, monkeypatch, konten):
+    import auth
+    e = entri_sintetis()
+    e.update(status='draf', reviewer=None, tanggal_review=None, versi_review=None, sha256_review=None)
+    simpan(konten, [e])
+    server = ServerUji(tmp_path, monkeypatch)
+    try:
+        auth.tambah_akun('guru-kedua', 'sandi-sintetis-kedua', 'guru')
+        with server.buka() as kon:
+            _, sesi = sesi_sintetis(kon, pemilik='guru-kedua')
+        kode, isi, _ = server.minta('/sesi/' + str(sesi), auth=('guru-kedua', 'sandi-sintetis-kedua'))
+        assert kode == 200 and 'data-playbook-draf' in isi
+        assert 'belum direview manusia; jangan dianggap panduan ajar final' in isi
+        kode, _, _ = server.minta('/sesi/' + str(sesi), auth=('guru', SANDI_GURU))
+        assert kode == 404
+    finally:
+        server.berhenti()
+
+
 def test_murid_row_dan_loader_terjaga(db_terjaga, monkeypatch):
     def dilarang():
         pytest.fail('Loader dipanggil sisi murid')
@@ -129,6 +155,9 @@ def test_murid_row_dan_loader_terjaga(db_terjaga, monkeypatch):
 
 
 def test_http_murid_share_asing_tidak_membaca_playbook(tmp_path, monkeypatch, konten):
+    e = entri_sintetis()
+    e.update(status='draf', reviewer=None, tanggal_review=None, versi_review=None, sha256_review=None)
+    simpan(konten, [e])
     server = ServerUji(tmp_path, monkeypatch)
     try:
         with server.buka() as kon:

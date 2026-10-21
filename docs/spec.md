@@ -78,13 +78,15 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   langkah dengan label laporan, tanpa skor atau peringkat kelemahan baru. Bila rencana satu anak
   gagal dibaca, kartunya tetap tampil dengan penanda "buka profil" dan beranda tidak rusak.
 - Kerangka [playbook guru](playbook-guru.md) menambah panduan pra-tulis tanpa menentukan
-  diagnosis/status/rekomendasi. Belum ada reviewer matematika manusia: konten baru hanya
-  draf dan tidak ditampilkan. Slot ringkas pada kartu tinjauan dan Beranda profil
-  hanya menerima isi disahkan yang cocok, tertutup secara default; materi/CTA existing
-  tidak diganti. Tidak tersedia di murid, tautan sesi, atau resource guru lain.
-  Selector gagal tertutup untuk konten rusak, tidak cocok,
-  atau tanpa pengesahan manusia atas versi/hash isi. Prioritas berdasarkan analisis;
-  observasi guru sengaja dilewati, bukan bukti kebutuhan tervalidasi.
+  diagnosis/status/rekomendasi. Pengecualian eksplisit pemilik (2026-10-22): **draf
+  boleh tampil kepada semua akun guru sebelum review manusia**, pada resource miliknya
+  dan fokus/profil yang cocok. Status tetap draf, metadata pengesahan kosong. Peringatan
+  “DRAF — belum direview manusia; jangan dianggap panduan ajar final” selalu terlihat
+  di ringkasan slot kartu tinjauan/Beranda profil, termasuk saat isi dilipat.
+  Materi/CTA existing tidak diganti. Murid, tautan sesi, dan resource guru lain tetap
+  tidak membaca playbook. Konten rusak/tidak cocok atau draf bermetadata pengesahan
+  ambigu ditolak; isi berstatus disahkan tetap wajib ulasan manusia versi/hash sah.
+  Prioritas berdasarkan analisis; observasi guru sengaja dilewati, bukan bukti kebutuhan.
 - Bantuan orang tua tanpa AI: satu disclosure kunci/pembahasan tiap soal tinjauan
   berada dekat soal dan jawaban anak, tertutup sampai dibuka. Sumber pembahasan
   existing tetap, bukan petunjuk buatan model atau hasil mandiri anak. Tiga kartu

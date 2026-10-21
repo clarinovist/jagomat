@@ -174,12 +174,15 @@ cache dan cadangan tetap privat.
 - `teaching_playbook.py` memvalidasi JSON internal `konten/playbook_p3.json`, tanpa
   I/O saat impor, DB, network, atau cache konten. Selector hanya guru, fokus/profil
   exact dan pendekatan existing; saksi seed memeriksa pasangan malrule/kode, bukan
-  mengesahkan pedagogi. Draf/invalid/duplikat/review usang menghasilkan fragmen kosong.
+  mengesahkan pedagogi. `_boleh_tampil` menerima draf dengan metadata review seluruhnya
+  null (pengecualian eksplisit pemilik), atau disahkan dengan ulasan/hash sah.
+  Invalid/duplikat/review usang tetap kosong; tidak fallback dari disahkan rusak ke draf.
   Hash mengikat ulasan ke isi/versi, bukan membuktikan identitas manusia. JSON ikut
   image lewat COPY internal, bukan aset publik. Slot `teacher_session_pages` memakai
   kode efektif dan malrule usulan yang cocok; `profile_home` menerima peran eksplisit
   melalui `teacher_workspace`/`learning_cycle_ui`, mengikuti fokus/pendekatan reducer.
-  Tanpa peran guru/materi cocok tidak membaca isi; draf tidak menambah markup/CSS.
+  Bukan guru tidak membaca isi. Draf memakai warning permanen di summary native
+  tertutup/terbuka, metadata “belum ada pengesahan manusia”; tanpa identitas reviewer rekaan.
   Tidak mengubah reducer/materi existing. [Kontrak dan ulasan](playbook-guru.md); prioritas guru in-house, data sintetis dulu.
 - `parent_help.py` merender kartu pra-tulis dan FAQ kontekstual pada permukaan
   guru melalui `teacher_workspace`/`teacher_session_pages`, tanpa DB/AI atau route

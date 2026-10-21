@@ -11,11 +11,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize('lama,baru,tes', [
-    ("if e['status'] != 'disahkan':", 'if False:', 'test_draf_tidak_tampil_walau_metadata_review_lengkap'),
+    ("return all(e[k] is None for k in _REVIEW - {'status'})", 'return True',
+     'test_draf_metadata_pengesahan_ambigu_tidak_tampil'),
+    ("+ peringatan + '</summary>'", "+ '' + '</summary>'",
+     'test_draf_valid_tampil_dengan_peringatan_terlihat_tanpa_pengesahan'),
     ("if peran != 'guru':", 'if False:', 'test_peran_lain_tidak_membaca_berkas'),
-    ('if validasi_entri(e) or not _review_sah(e):', 'if validasi_entri(e):',
+    ('if validasi_entri(e) or not _boleh_tampil(e):', 'if validasi_entri(e):',
      'test_edit_isi_membatalkan_review_tanpa_perlu_ganti_versi'),
-    ('if validasi_entri(e) or not _review_sah(e):', 'if not _review_sah(e):',
+    ('if validasi_entri(e) or not _boleh_tampil(e):', 'if not _boleh_tampil(e):',
      'test_validasi_skema_gagal_sebelum_render'),
     ('if _identitas(e) == identitas]', 'if True]', 'test_kecocokan_tepat_tanpa_fallback'),
     ('if not _cocok_domain(e):', 'if False:', 'test_pasangan_malrule_kode_rekaan_ditolak'),

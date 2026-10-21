@@ -12,6 +12,8 @@ from pathlib import Path
 import design_tokens as T
 
 BERKAS = Path(__file__).resolve().parent / 'konten' / 'playbook_p3.json'
+# Pengecualian pemilik 2026-10-22: draf boleh dibaca semua guru, bukan disahkan.
+PERINGATAN_DRAF = 'DRAF — belum direview manusia; jangan dianggap panduan ajar final'
 _REVIEW = {'status', 'reviewer', 'tanggal_review', 'versi_review', 'sha256_review'}
 _ISI = {'template_id', 'profil', 'kode_intervensi', 'malrule_id', 'versi', 'saksi_seed',
         'miskonsepsi', 'batas', 'urutan', 'pertanyaan', 'pendekatan', 'tanda_paham', 'sumber'}
@@ -110,6 +112,13 @@ def _review_sah(e):
         return False
 
 
+def _boleh_tampil(e):
+    """Draf harus jujur tanpa pengesahan; isi disahkan tetap perlu ulasan sah."""
+    if e['status'] == 'draf':
+        return all(e[k] is None for k in _REVIEW - {'status'})
+    return _review_sah(e)
+
+
 def _tanpa_kunci_ganda(pasangan):
     hasil = {}
     for k, v in pasangan:
@@ -137,7 +146,7 @@ def _baca():
 
 
 def render(fokus, profil, *, peran, pendekatan_id=None):
-    """Fragmen kosong untuk bukan guru, draf, invalid, atau kecocokan ambigu."""
+    """Guru boleh membaca draf berlabel; invalid/ambigu/review rusak tetap kosong."""
     if peran != 'guru':
         return ''
     if not isinstance(fokus, tuple) or len(fokus) != 3:
@@ -148,7 +157,7 @@ def render(fokus, profil, *, peran, pendekatan_id=None):
     if len(cocok) != 1:
         return ''
     e = cocok[0]
-    if validasi_entri(e) or not _review_sah(e):
+    if validasi_entri(e) or not _boleh_tampil(e):
         return ''
     pilihan = [p for p in e['pendekatan'] if pendekatan_id is None or p['pendekatan_id'] == pendekatan_id]
     if not pilihan:
@@ -159,14 +168,20 @@ def render(fokus, profil, *, peran, pendekatan_id=None):
                       for k, judul in (('benda', 'Benda'), ('gambar', 'Gambar'), ('simbol', 'Simbol')))
     contoh = ''.join('<p><b>Contoh ' + str(i) + ':</b> ' + escape(p['contoh']) + '</p>'
                      for i, p in enumerate(pilihan, 1))
-    return ('<details class="playbook-guru" data-playbook-guru><summary>Panduan mengajar</summary>'
+    draf = e['status'] == 'draf'
+    peringatan = ('<span class="playbook-peringatan">' + PERINGATAN_DRAF + '</span>') if draf else ''
+    metadata = ('Draf versi ' + str(e['versi']) + ' · Belum ada pengesahan manusia.' if draf else
+                'Versi ' + str(e['versi']) + ' · Ulasan: ' + escape(e['reviewer'])
+                + ' · ' + escape(e['tanggal_review']))
+    return ('<details class="playbook-guru" data-playbook-guru'
+            + (' data-playbook-draf' if draf else '') + '><summary>Panduan mengajar'
+            + peringatan + '</summary>'
             '<div class="playbook-isi"><p><b>Miskonsepsi yang perlu diperiksa:</b> ' + escape(e['miskonsepsi'])
             + '</p><p>' + escape(e['batas']) + '</p><ol>' + langkah + '</ol>'
             '<b>Pertanyaan pancingan</b>' + daftar(e['pertanyaan']) + contoh
             + '<b>Tanda pemahaman — bukan kelulusan otomatis</b>' + daftar(e['tanda_paham'])
             + '<p>Hasil setelah dibantu bukan jawaban mandiri. Status belajar tetap dari siklus.</p>'
-            '<p class="playbook-meta">Versi ' + str(e['versi']) + ' · Ulasan: ' + escape(e['reviewer'])
-            + ' · ' + escape(e['tanggal_review']) + '</p></div></details>')
+            '<p class="playbook-meta">' + metadata + '</p></div></details>')
 
 
 GAYA = f'''
@@ -178,4 +193,6 @@ GAYA = f'''
 .playbook-guru > summary:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; }}
 .playbook-isi {{ padding: 0 {T.SP_4} {T.SP_3}; line-height: 1.6; }}
 .playbook-meta {{ color: {T.TEKS_SUBTLE}; }}
+.playbook-peringatan {{ display: block; margin-top: {T.SP_2}; color: {T.TEKS_REVIEW};
+  line-height: 1.5; }}
 '''

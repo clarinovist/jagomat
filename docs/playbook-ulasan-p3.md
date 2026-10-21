@@ -6,6 +6,10 @@ berlaku pada setiap baris. Konten: `mesin/konten/playbook_p3.json` versi entri 1
 katalog writer2, profil internal P3. Masing-masing satu malrule K per pola, bukan
 cakupan seluruh malrule/B/H/E/N/T. Data/identitas contoh sintetis.
 
+Pemilik memilih B pada 2026-10-22: draf boleh tampil kepada semua guru dengan
+peringatan permanen sebelum review. Ini pengecualian gerbang tampil, **bukan**
+pengesahan matematika; kolom keputusan manusia di bawah tetap belum diisi.
+
 Pemilihan 15 pola disetujui pemilik berdasarkan pemetaan awal tanpa fokus.
 Seed 0–24 menghasilkan 375 soal, masing-masing pola 25 kali; bukan statistik
 kesalahan atau bukti pola paling dibutuhkan guru. Satu entri tidak otomatis cocok
@@ -41,6 +45,6 @@ seluruh variasi; reviewer harus memeriksa batas varian yang tertulis.
 - Koreksi angka/satuan/bahasa/batas varian/sumber: **belum diisi manusia**
 - Catatan uji coba mengajar (jika benar-benar dilakukan, pisahkan dari review): **belum ada**
 
-Setuju bukan publikasi otomatis. Pengesahan JSON merupakan tindakan manusia
+Tampilan draf bukan persetujuan manusia. Pengesahan JSON merupakan tindakan manusia
 setelah review exact; agent tidak boleh mengisi reviewer, tanggal atau status
 `disahkan`. Jika belum ada reviewer, pertahankan `draf` dan metadata `null`.

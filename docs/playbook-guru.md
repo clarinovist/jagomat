@@ -5,13 +5,20 @@
 Prioritas Fase 2 berdasarkan analisis kode; observasi guru sengaja dilewati atas
 keputusan pemilik, bukan bukti kebutuhan tervalidasi. Pilot/pengembangan hanya
 memakai data sintetis. **Reviewer matematika manusia belum ditetapkan.**
-Agent hanya menyusun draf. Isi ajar wajib ditulis/disunting dan direview manusia;
-tidak ada LLM runtime yang menentukan isi, diagnosis, atau rekomendasi.
+Agent hanya menyusun draf. Pengesahan final wajib penulisan/penyuntingan dan review
+manusia; tidak ada LLM runtime yang menentukan isi, diagnosis, atau rekomendasi.
 
-Konten baru di `mesin/konten/playbook_p3.json` hanya boleh tampil kepada guru
-setelah manusia mengesahkan versi exact. Semua entri pada tahap ini `draf` dengan
-reviewer/tanggal/versi_review/sha256_review `null`. JSON bukan aset publik atau rute
-unduh. Materi existing tidak diganti atau diklaim telah direview melalui playbook.
+**Pengecualian eksplisit pemilik 2026-10-22 (pilihan B): draf boleh tampil ke semua
+akun guru sebelum review manusia.** Ini melonggarkan gerbang tampil sebelumnya,
+bukan pengesahan isi atau bukti bahwa isinya benar. Risiko isi ajar yang belum
+diperiksa manusia tetap ada. Guru harus memeriksanya, bukan menganggapnya panduan final.
+
+Konten di `mesin/konten/playbook_p3.json` tetap `draf` dengan
+reviewer/tanggal/versi_review/sha256_review `null`. Peringatan “DRAF — belum direview
+manusia; jangan dianggap panduan ajar final” terlihat di summary slot, saat tertutup
+maupun terbuka. Kecocokan fokus/profil/pendekatan tetap wajib; semua guru hanya
+mengakses resource miliknya. JSON bukan aset publik atau rute unduh. Materi existing
+tidak diganti atau diklaim telah direview melalui playbook.
 
 ## Kontrak teknis
 
@@ -37,11 +44,12 @@ proses review manusia dan riwayat Git tetap diperlukan. Agent tidak mengisi stat
 
 Loader membaca path paket tetap hanya ketika dipanggil; tanpa I/O saat impor,
 DB/network, atau cache yang mempertahankan isi dicabut. Entri rusak, identitas
-ambigu, belum disahkan, atau hash/versi ulasan tidak cocok → fragmen kosong, bukan
-error halaman atau pengganti materi/CTA. Schema/domain boleh divalidasi untuk draf;
-valid secara teknis **bukan** sah tampil. Penghapusan/pengubahan konten berlaku pada
-pembacaan berikutnya. Test positif memakai fixture sintetis terpisah, tidak mengesahkan
-konten nyata. JSON dibawa image melalui COPY internal, bukan folder aset/publik.
+ambigu, metadata draf tidak seluruhnya null, atau hash/versi ulasan disahkan tidak
+cocok → fragmen kosong, bukan error halaman atau pengganti materi/CTA. Draf valid
+boleh tampil dengan peringatan sesuai pengecualian pemilik; valid secara teknis
+**bukan** pengesahan pedagogis. Disahkan rusak tidak boleh fallback ke draf.
+Penghapusan/pengubahan konten berlaku pada pembacaan berikutnya. Test pengesahan
+positif memakai fixture sintetis terpisah, tidak mengesahkan konten nyata. JSON dibawa image melalui COPY internal, bukan folder aset/publik.
 
 ## Ulasan manusia (belum dilakukan)
 
@@ -63,16 +71,17 @@ Untuk setiap entri, reviewer perlu menjawab dan menyimpan catatan Markdown:
 
 Format catatan: identitas entri, versi dan sidik isi yang diperiksa; keputusan
 **setuju / ubah / tolak**; jawaban tujuh pertanyaan; koreksi; identitas reviewer dan
-tanggal ditulis manusia. Setuju atas draf tidak otomatis memublikasikan konten.
+tanggal ditulis manusia. Tampilan draf tidak menandakan keputusan setuju.
 
 - **Ubah:** manusia menyunting isi, menaikkan versi, mengosongkan metadata pengesahan,
   tetap draf, lalu mengulang review exact.
-- **Tolak:** tetap draf/tidak dipublikasikan; tulis sebab dan batas perbaikan.
+- **Tolak:** keluarkan entri dari bundle runtime agar tidak tampil sebagai draf;
+  pertahankan catatan penolakan dan sejarah Git. Tulis sebab dan batas perbaikan.
 - **Setuju:** hanya setelah penulisan/penyuntingan serta review manusia selesai,
   manusia sendiri mencatat reviewer, tanggal, versi_review, sidik isi dan `disahkan`.
   Jalankan validasi/test; perubahan konten setelah itu membatalkan sidik ulasan.
 
-Tidak ada antarmuka admin atau migrasi DB dalam fase ini. Jangan mengaktifkan isi
-sementara reviewer belum ada. Playbook tidak menentukan status belajar; sumber
+Tidak ada antarmuka admin atau migrasi DB dalam fase ini. Izin tampil draf tidak
+mengizinkan agent mengisi pengesahan atau menghapus label draf. Playbook tidak menentukan status belajar; sumber
 keputusan tetap `learning_cycle.py`. Rute murid, tautan sesi, dan resource guru
 asing tidak boleh membaca loader atau menerima fragmennya.
