@@ -2700,6 +2700,15 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 }}
 .akun-editorial-st .akun-kartu-sandi form {{ max-width: 34rem; }}
 .akun-editorial-st .baris-aksi {{ flex-wrap: wrap; }}
+.akun-editorial-st .akun-anak-daftar {{ display: grid; gap: {T.SP_3}; margin-top: {T.SP_4}; }}
+.akun-editorial-st .akun-anak-kartu {{ background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU}; padding: {T.SP_4}; min-width: 0; }}
+.akun-editorial-st .akun-anak-kepala h3 {{ margin: 0 0 {T.SP_1}; color: {T.TEKS_JUDUL}; font: 700 1.05rem/1.4 {T.FONT_HEADLINE}; overflow-wrap: anywhere; }}
+.akun-editorial-st .akun-anak-meta {{ margin: 0; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; overflow-wrap: anywhere; }}
+.akun-editorial-st .akun-kelola {{ margin-top: {T.SP_3}; }}
+.akun-editorial-st .akun-kelola > summary {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; cursor: pointer; color: {T.AKSEN_TEAL_TUA}; font-weight: 600; }}
+.akun-editorial-st .akun-kelola-isi {{ display: grid; gap: {T.SP_4}; padding-top: {T.SP_3}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
+.akun-editorial-st .akun-kelola-bagian h4 {{ margin: 0 0 {T.SP_2}; color: {T.TEKS_JUDUL}; font-size: .85rem; }}
+.akun-editorial-st .akun-kelola-bagian :is(form, .form-kelas-sekolah) {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; align-items: center; margin-left: 0; max-width: 100%; }}
 .akun-editorial-st .baris-aksi form {{ flex-wrap: wrap; max-width: 100%; margin-left: 0 !important; }}
 .akun-editorial-st .input-sandi-kecil {{ width: 100%; }}
 .akun-editorial-st td[data-label=Nama] {{ font-weight: 700; color: {T.TEKS_JUDUL}; }}

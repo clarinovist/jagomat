@@ -135,17 +135,18 @@ def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
 
     nama = html.escape(s["nama"])
     if pengguna and peran == "guru":
-        kelas = learning_profile_ui.form_kelas(
-            learning_profile.baca(kon, s["id"], pemilik=pengguna), s["nama"]
-        )
+        profil = learning_profile.baca(kon, s["id"], pemilik=pengguna)
+        kelas = learning_profile_ui.form_kelas(profil, s["nama"])
+        kelas_label = learning_profile.label_kelas_sekolah(profil.kelas_sekolah)
     else:
-        kelas = "Kelas belum diisi"
+        kelas = ""
+        kelas_label = "Kelas belum diisi"
     sesi = kon.execute(
         "SELECT COUNT(*) AS n FROM sesi WHERE siswa_id = ?", (s["id"],)
     ).fetchone()["n"]
     login = _murid.akun_murid_dari_siswa(kon, s["id"])
     if login:
-        status = '<span class="status-ok"><span aria-hidden="true">●</span> Login tersedia</span>'
+        status = f'Login: {html.escape(login)}'
         sandi = (
             '<form method="post" action="/akun" class="akun-form-aksi akun-form-sandi">'
             '<input type="hidden" name="aksi" value="akun_murid_sandi">'
@@ -188,14 +189,21 @@ def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
             f'<input type="hidden" name="siswa_id" value="{s["id"]}">'
             f'<button type="submit" class="tombol-bahaya-akun">Hapus {nama}</button></form>'
         )
+    bagian_kelas = (
+        f'<div class="akun-kelola-bagian"><h4>Kelas sekolah</h4>{kelas}</div>' if kelas else ''
+    )
+    bagian_sandi = (
+        f'<div class="akun-kelola-bagian"><h4>Kata sandi anak</h4>{sandi}</div>' if sandi else ''
+    )
     return (
-        f'<tr><td data-label="Nama">{nama}</td>'
-        f'<td data-label="Nama login">{html.escape(login) if login else "Belum dibuat"}</td>'
-        f'<td data-label="Kelas sekolah">{kelas}</td>'
-        f'<td class="angka" data-label="Sesi latihan">{sesi}</td>'
-        f'<td data-label="Status">{status}</td>'
-        f'<td data-label="Aksi"><div class="baris-aksi">{sandi}'
-        f'{hapus}</div></td></tr>'
+        f'<article class="akun-anak-kartu" aria-labelledby="anak-nama-{s["id"]}">'
+        '<div class="akun-anak-kepala">'
+        f'<h3 id="anak-nama-{s["id"]}">{nama}</h3>'
+        f'<p class="akun-anak-meta">{html.escape(kelas_label)} · {status} · {sesi} sesi latihan</p></div>'
+        '<details class="akun-kelola"><summary>Kelola</summary>'
+        f'<div class="akun-kelola-isi">{bagian_kelas}{bagian_sandi}'
+        f'<div class="akun-kelola-bagian"><h4>Hapus anak</h4>{hapus}</div></div></details>'
+        '</article>'
     )
 
 def _perlu_perbaikan_login(kon, pengguna, peran) -> bool:
@@ -264,7 +272,7 @@ def halaman_akun(
     daftar = "".join(
         _baris_siswa(kon, s, pengguna, peran)
         for s in database.daftar_siswa(kon, None if peran == "admin" else pengguna)
-    ) or '<tr><td colspan="6" class="kosong">Belum ada anak. Tambahkan anak pertama di bawah.</td></tr>'
+    ) or '<p class="kosong">Belum ada anak. Tambahkan anak pertama di bawah.</p>'
 
     kabar = f'<div class="pesan" role="status">{html.escape(pesan)}</div>' if pesan else ""
     if galat:
@@ -311,8 +319,7 @@ def halaman_akun(
         '<details class="rincian-ui-st"><summary>Tentang kelas dan sesi latihan</summary>'
         '<p class="sub">Mengubah kelas tidak mengubah soal lama atau memulai ulang rencana belajar. '
         'Sesi latihan adalah satu kumpulan soal yang disiapkan untuk anak, termasuk yang belum selesai.</p></details>'
-        f'<div class="tabel-wrap"><table><tr><th>Nama</th><th>Nama login</th><th>Kelas sekolah</th>'
-        f"<th>Sesi latihan</th><th>Status</th><th>Aksi</th></tr>{daftar}</table></div>"
+        f'<div class="akun-anak-daftar">{daftar}</div>'
         '<p class="sub akun-catatan-hapus">Anak dengan riwayat sesi tidak bisa dihapus. '
         'Profil pendaftaran juga dilindungi. Profil lain tanpa sesi dapat dihapus beserta akun loginnya.</p></div>'
     )

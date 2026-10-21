@@ -214,7 +214,7 @@ def test_halaman_akun_menampilkan_siswa_dan_jumlah_sesi(siap):
         h = account_pages.halaman_akun(kon, section="siswa").decode()
 
     assert "Andi" in h
-    assert ">2<" in h  # jumlah sesi
+    assert "2 sesi latihan" in h
 
 
 def test_tabel_siswa_menampilkan_status_akun_latihan(siap):
@@ -226,8 +226,7 @@ def test_tabel_siswa_menampilkan_status_akun_latihan(siap):
         auth.tambah_akun("taut-login", "rahasia-taut-123", "murid", siswa_id=sid)
         database.tambah_siswa(kon, "Telanjang")
         h = account_pages.halaman_akun(kon, section="siswa").decode()
-    assert "Login tersedia" in h
-    assert 'data-label="Nama login">taut-login</td>' in h
+    assert "Login: taut-login" in h
     assert "belum ada login" in h
     assert 'data-label="Akun latihan"' not in h
 
@@ -242,7 +241,7 @@ def test_tabel_siswa_tanpa_label_kelas_per_baris(siap):
         ).decode()
     assert '<label for="kelas-sekolah-' not in h
     assert 'aria-label="Kelas sekolah Clara"' in h
-    assert 'data-label="Status"' in h
+    assert 'class="akun-anak-kartu"' in h
 
 
 def test_tabel_siswa_aksi_teks_dan_form_sandi(siap):
@@ -412,7 +411,7 @@ def test_kartu_akun_murid_tampil_dan_memuat_nama(siap):
         database.tambah_siswa(kon, "Sinta")
         auth.tambah_akun("Sinta", "rahasia-sinta-123", "murid")
         h = account_pages.halaman_akun(kon, section="akun-murid").decode()
-    assert 'data-label="Nama login">Sinta</td>' in h
+    assert "Login: Sinta" in h
     assert 'id="perbaikan-login"' not in h
 
 
@@ -851,3 +850,34 @@ def test_hapus_akun_guru_langsung(siap):
     assert auth.hapus_akun_guru("murid-x") is False
     assert auth.periksa("pengelola", "sandi-admin-123456")
     assert auth.periksa("murid-x", "sandi-murid-123456")
+
+
+def _kartu_anak(h, nama):
+    awal = h.index('<article class="akun-anak-kartu"', h.index('>' + nama + '<') - 400)
+    return h[awal:h.index("</article>", awal)]
+
+
+def test_daftar_anak_berupa_kartu_dengan_kelola_tanpa_js_baru(siap):
+    with database.buka(siap) as kon:
+        sid = database.tambah_siswa(kon, "Kartu Satu", pemilik="guru")
+        auth.tambah_akun("kartu-login", "rahasia-kartu-123", "murid", siswa_id=sid)
+        h = account_pages.halaman_akun(kon, pengguna="guru", section="siswa").decode()
+    assert "<th>Sesi latihan</th>" not in h and "Login tersedia" not in h
+    kartu = _kartu_anak(h, "Kartu Satu")
+    assert "kartu-login" in kartu and "0 sesi" in kartu
+    luar, _, dalam = kartu.partition('<details class="akun-kelola">')
+    assert "<summary>Kelola</summary>" in dalam
+    # Aksi sensitif hanya terlihat setelah Kelola dibuka.
+    assert "Hapus Kartu Satu" not in luar and "Hapus Kartu Satu" in dalam
+    assert 'value="akun_murid_sandi"' in dalam and 'value="kelas_sekolah"' in dalam
+    assert "<script" not in kartu
+
+
+def test_kartu_anak_dengan_sesi_menaruh_alasan_hapus_di_dalam_kelola(siap):
+    with database.buka(siap) as kon:
+        sid = database.tambah_siswa(kon, "Kartu Dua", pemilik="guru")
+        database.buat_sesi(kon, sid, seed=1)
+        h = account_pages.halaman_akun(kon, pengguna="guru", section="siswa").decode()
+    luar, _, dalam = _kartu_anak(h, "Kartu Dua").partition('<details class="akun-kelola">')
+    assert "tidak bisa dihapus" not in luar
+    assert "Punya 1 sesi latihan; tidak bisa dihapus." in dalam and "disabled" in dalam

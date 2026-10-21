@@ -25,7 +25,7 @@ def test_hapus_riwayat_nonaktif_dan_login_terlihat(siap):
         h = halaman(kon)
     assert 'Punya 1 sesi latihan; tidak bisa dihapus.' in h
     assert re.search(r'<button[^>]*disabled[^>]*>Hapus Demo</button>', h)
-    assert 'data-label="Nama login">demo-login</td>' in h
+    assert 'Login: demo-login' in h
     assert 'id="perbaikan-login"' not in h
 
 
