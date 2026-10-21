@@ -1,5 +1,38 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Rilis bantuan non-AI dan kendali data Pendamping — 21 Oktober 2026
+
+Controlled `deploy-v2` berhasil memasang kandidat
+`1406079e9b805450c42604d7ac2864804a9de034`, digest
+`sha256:57b84789b98a102adb2d6b29124e20d5b64d7067ee5bc65be54eb336b689bb7a`;
+recovery `c228749faef8acf29b7d6895173ead6aa5bc9e66`, digest
+`sha256:a139936994ad67dff880d3feb77516dd5c27f9bab4c93c36d5910b9f1c884a02`.
+CI lengkap `39545456250` lulus 13.593 tes kandidat exact-once, seluruh shard
+recovery, build/probe/pair. Kontrak kedua image
+`7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8`.
+
+Pemeriksaan live sebelum rilis menunjukkan `34f596e` sehat: bantuan non-AI sudah
+tercakup pada deployment Fase 4 tersebut; rilis ini menambahkan kendali data
+Pendamping tanpa menurunkan versi atau memasukkan WIP foto dari sesi lain.
+
+Kedua image ditarik dan probe schema metadata read-only lulus sebelum maintenance.
+Bundle `deploy-pendamping-1406079-20261021` empat DB + auth, serta backup riset
+terpisah, diverifikasi hash remote/lokal. Rehearsal preservasi C2–B2–C2 dan
+validator bundle lulus. Tidak ada migrasi, perubahan retensi, pencabutan izin,
+penghapusan data pengguna, atau request provider dalam operasi rilis.
+
+Cutover exit 0; kandidat healthy, jumlah baris/schema terjaga sebelum membuka
+akses. Caddy/cron/config dipulihkan hash-identik; `OSN_BANK_KALIMAT=1` tetap aktif.
+Marker source kedua paket ditemukan dalam container yang berjalan. Smoke publik
+`/` 200, `/akun` 401, `/murid/` 303 ke `/masuk`, serta `/pendamping/kelola` 401
+anonim lulus. Marker Traceback/OperationalError/IntegrityError nol. Alur pengguna
+hapus/cabut tidak diuji memakai data keluarga; bukti fungsional berasal dari
+fixture dan preview sintetis yang lulus sebelum rilis, bukan walkthrough manusia.
+
+Backup induk dan receipt dipertahankan; turunan rehearsal/helper remote tugas
+sudah dibersihkan. Deployer tetap hash `2479470f…`, tanpa build di VPS atau
+aktivasi auto-deploy. Prompt AI kandidat hasil eksperimen tidak dipasang.
+
 ## Deploy Fase 4 dan aktivasi bank kalimat — 21 Oktober 2026
 
 Controlled `deploy-v2` memasang kandidat
