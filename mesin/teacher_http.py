@@ -37,7 +37,7 @@ def tangani_beranda_get(
         # Alias lama mempertahankan kabar, bukan tujuan bebas dari URL.
         qs = urllib.parse.urlencode({
             kunci: q[kunci][0]
-            for kunci in ("pesan", "sorot")
+            for kunci in ("pesan", "sorot", "cari", "kelompok")
             if kunci in q
         })
         penangan.send_response(303)
@@ -58,14 +58,15 @@ def tangani_beranda_get(
             pemilik=ident[0],
             peran=ident[1],
             sorot=sorot,
+            cari=(q.get('cari') or [''])[0],
+            kelompok=(q.get('kelompok') or ['semua'])[0],
         )
     import product_analytics_http as analitik
     survei = analitik.form_survei(penangan)
     if survei:
         isi = isi.replace(b"</main>", survei.encode() + b"</main>", 1)
-        penangan._kirim_privat(isi)
-    else:
-        penangan._kirim(isi)
+    # Query dapat memuat nama akun: jangan cache atau kirim sebagai referrer.
+    penangan._kirim_privat(isi)
     return True
 
 

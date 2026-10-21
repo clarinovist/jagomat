@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import html
 import random
+import design_tokens as T
 import database
 import domain_clock
 import question_views
@@ -94,12 +95,63 @@ def _daftar_anak_berkelompok(baris) -> str:
     return "".join(bagian)
 
 
+GAYA_FILTER_GURU = f'''
+.guru-filter-st {{ display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap:{T.SP_3}; align-items:end; margin:{T.SP_4} 0; padding:{T.SP_4};
+  border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius:{T.RADIUS_SEDANG}; }}
+.guru-filter-st label {{ display:block; margin-bottom:{T.SP_2}; color:{T.TEKS_UTAMA}; }}
+.guru-filter-st > div {{ min-width:0; }}
+.guru-filter-st input, .guru-filter-st select {{ width:100%; min-width:0;
+  box-sizing:border-box; min-height:{T.TARGET_SENTUH}; font:inherit; padding:{T.SP_2};
+  color:{T.TEKS_UTAMA}; background:{T.LATAR_KARTU}; border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
+.guru-filter-aksi-st {{ display:flex; gap:{T.SP_3}; align-items:center; flex-wrap:wrap; }}
+.guru-filter-aksi-st button, .guru-filter-aksi-st a {{ min-height:{T.TARGET_SENTUH};
+  display:inline-flex; align-items:center; justify-content:center; font:inherit; }}
+.guru-filter-aksi-st a {{ color:{T.AKSEN_TEAL_TUA}; padding-inline:{T.SP_2}; }}
+.guru-filter-aksi-st button {{ padding:{T.SP_2} {T.SP_4}; background:{T.AKSEN_TEAL_TUA};
+  color:{T.TEKS_PUTIH}; border:0; border-radius:{T.RADIUS_KECIL}; cursor:pointer; }}
+.guru-filter-st :is(input, select, button, a):focus-visible {{
+  outline:{T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset:2px; }}
+.guru-hasil-filter-st {{ color:{T.TEKS_VARIAN}; margin:{T.SP_3} 0 {T.SP_4}; }}
+.guru-beranda-st .guru-langkah-st, .guru-beranda-st .guru-status-st {{ overflow-wrap:anywhere; }}
+@media (max-width:36rem) {{
+  .guru-filter-st {{ grid-template-columns:minmax(0, 1fr); }}
+  .guru-filter-aksi-st button {{ flex:1; }}
+  .guru-beranda-st .guru-sapaan-st {{ padding:{T.SP_4} 0 {T.SP_5}; }}
+  .guru-beranda-st .guru-kepala-daftar-st {{ align-items:stretch; }}
+  .guru-beranda-st .guru-tambah-st {{ width:100%; box-sizing:border-box; }}
+  .guru-beranda-st .kartu-anak {{ align-items:start; }}
+  .guru-beranda-st .guru-buka-st {{ justify-self:start; }}
+}}
+'''
+
+
+def _form_filter_guru(cari, kelompok):
+    pilihan = ''.join(
+        '<option value="' + nilai + '"' + (' selected' if nilai == kelompok else '')
+        + '>' + html.escape(label) + '</option>'
+        for nilai, label in teacher_home_priority.PILIHAN_FILTER.items()
+    )
+    reset = ('<a id="guru-hapus-filter" href="/guru">Hapus filter</a>'
+             if cari or kelompok != 'semua' else '')
+    return ('<form id="guru-filter" class="guru-filter-st" method="get" action="/guru" role="search">'
+            '<div><label for="guru-cari">Cari nama siswa atau akun murid</label>'
+            '<input id="guru-cari" name="cari" type="search" maxlength="100" '
+            'autocomplete="off" value="' + html.escape(cari, quote=True) + '"></div>'
+            '<div><label for="guru-kelompok">Kelompok langkah</label>'
+            '<select id="guru-kelompok" name="kelompok">' + pilihan + '</select></div>'
+            '<div class="guru-filter-aksi-st"><button type="submit">Terapkan</button>'
+            + reset + '</div></form>')
+
+
 def halaman_utama_stitch(
     kon,
     pesan: str = "",
     pemilik: str | None = None,
     peran: str = "guru",
     sorot: int | None = None,
+    cari: str = '',
+    kelompok: str = 'semua',
 ) -> bytes:
     """Beranda pendamping: satu pintu per anak, tanpa keputusan belajar baru.
 
@@ -108,9 +160,19 @@ def halaman_utama_stitch(
     aktivitas, bukan bukti penguasaan.
     """
     baris = []
+    cari, kelompok = teacher_home_priority.normalkan_filter(cari, kelompok)
+    siswa_sendiri = database.daftar_siswa(kon, pemilik)
+    total = len(siswa_sendiri)
     hari_ini = domain_clock.hari_wib()
-    for s in database.daftar_siswa(kon, pemilik):
+    for s in siswa_sendiri:
         langkah = teacher_home_priority.langkah_anak(kon, s)
+        nama_akun = None
+        if cari:
+            # Lookup existing hanya untuk siswa yang sudah lolos scope pemilik.
+            from students import akun_murid_dari_siswa
+            nama_akun = akun_murid_dari_siswa(kon, int(s['id']))
+        if not teacher_home_priority.cocok_filter(langkah, cari, kelompok, nama_akun):
+            continue
         rekap = kon.execute(
             """SELECT COUNT(*) AS jumlah,
                       SUM(CASE WHEN dibatalkan IS NOT NULL
@@ -170,25 +232,29 @@ def halaman_utama_stitch(
     tambah = (
         '<a class="guru-tambah-st" href="/akun?section=siswa">'
         '<span aria-hidden="true">＋</span> '
-        + ('Tambah anak' if baris else 'Tambahkan anak pertama') + '</a>'
+        + ('Tambah anak' if total else 'Tambahkan anak pertama') + '</a>'
     )
     isi_utama = (
         '<div class="guru-kepala-daftar-st"><div>'
         '<p class="guru-alis-st">RUANG BELAJAR MEREKA</p>'
-        f'<h2 id="daftar-anak">Anak &amp; siswa <span>{len(baris)}</span></h2>'
+        f'<h2 id="daftar-anak">Anak &amp; siswa <span>{total}</span></h2>'
         f'</div>{tambah}</div>'
         '<p class="guru-petunjuk-st info-baris">Pilih nama untuk mulai. '
         f'<button type="button" class="info" aria-label="{html.escape(INFO_DAFTAR_ANAK, quote=True)}">'
         f'i<span class="info-bubble" role="tooltip">{html.escape(INFO_DAFTAR_ANAK)}</span></button></p>'
-        f'{_daftar_anak_berkelompok(baris)}'
-    ) if baris else (
+        + _form_filter_guru(cari, kelompok)
+        + f'<p class="guru-hasil-filter-st" role="status">{len(baris)} dari {total} siswa ditampilkan.</p>'
+        + (_daftar_anak_berkelompok(baris) if baris else
+           '<p class="guru-hasil-kosong-st">Tidak ada siswa yang cocok. Ubah pencarian atau kelompok.</p>')
+    ) if total else (
         '<div class="guru-kosong-st">'
         '<p class="guru-alis-st">MULAI DARI SINI</p>'
         '<h2 id="daftar-anak">Kenali langkah pertama mereka.</h2>'
         '<p>Akunmu sudah siap. Tambahkan anak dengan nama panggilan, '
         'lalu buka profilnya untuk mulai mendampingi belajar.</p>'
         f'{tambah}<p class="guru-petunjuk-st">Belum ada latihan. '
-        'Langkah berikutnya akan tersedia di profil anak.</p></div>'
+        'Langkah berikutnya akan tersedia di profil anak.</p>'
+        + (_form_filter_guru(cari, kelompok) if cari or kelompok != 'semua' else '') + '</div>'
     )
     kabar = (
         '<div class="st-banner-sukses" role="status"><span class="ikon" aria-hidden="true">✓</span>'
@@ -196,7 +262,7 @@ def halaman_utama_stitch(
     )
     return _halaman_stitch(
         "Ruang pendamping",
-        '<main aria-labelledby="judul-guru">'
+        f'<style>{GAYA_FILTER_GURU}</style><main aria-labelledby="judul-guru">'
         '<header class="guru-sapaan-st"><div>'
         '<p class="guru-alis-st">RUANG PENDAMPING</p>'
         '<h1 id="judul-guru">Langkah kecil,<br><span>tumbuh bersama.</span></h1>'
@@ -211,6 +277,7 @@ def halaman_utama_stitch(
         'Beri ruang untuk mencoba, bertanya, dan menjelaskan.</footer></main>',
         ident=(pemilik if pemilik else "guru", peran),
         kelas_bungkus="guru-beranda-st",
+        privat=True,
     )
 
 

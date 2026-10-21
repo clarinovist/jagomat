@@ -129,7 +129,13 @@ cache dan cadangan tetap privat.
   `cycle_report.TINDAKAN`; kegagalan baca per anak dicatat tanpa nama dan menjadi kartu
   fallback; `urutkan` mendahulukan sesi yang terlama menunggu konfirmasi (tanggal sesi,
   `menunggu_sejak`) lalu nama. Murni turunan reducer (tanpa tulis DB, tanpa penilaian baru); render di
-  `teacher_pages._daftar_anak_berkelompok`. Biaya terukur ±13 ms untuk 30 anak sintetis.
+  `teacher_pages._daftar_anak_berkelompok`. `normalkan_filter`/`cocok_filter` menyaring
+  proyeksi owner-scoped melalui GET `cari`/`kelompok` yang diteruskan `teacher_http`;
+  pencarian login memakai lookup `students.akun_murid_dari_siswa` existing hanya saat
+  kata pencarian terisi, tanpa query/writer DB baru. Form/CSS HP scoped di `teacher_pages`
+  memakai T.*, shell privat tanpa skrip/CDN dan response no-store/no-referrer.
+  Biaya baseline sebelum filter terukur ±13 ms untuk 30 anak sintetis; bukan klaim
+  performa pencarian akun atau produksi.
   Keempat tab `/anak/<id>` berbagi satu kontainer isi 960px (`child_style.py`, token
   `ANAK_*`, mockup di `docs/mockup/`) dan komponen HTML bersama `child_components.py`
   (chip status, pil filter, disclosure, banner tautan, kartu sesi); CSS per tab ada di

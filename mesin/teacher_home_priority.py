@@ -120,6 +120,33 @@ def keterangan_langkah(langkah: LangkahAnak, hari_ini: date) -> str:
     return langkah.label
 
 
+PILIHAN_FILTER = {
+    'semua': 'Semua kelompok',
+    'perlu-tindakan': JUDUL_KELOMPOK[PERLU_TINDAKAN],
+    'siap': JUDUL_KELOMPOK[SIAP],
+    'menunggu': JUDUL_KELOMPOK[MENUNGGU],
+}
+_FILTER_KELOMPOK = {'perlu-tindakan': PERLU_TINDAKAN, 'siap': SIAP, 'menunggu': MENUNGGU}
+
+
+def normalkan_filter(cari='', kelompok='semua'):
+    """Input presentasi terbatas; nilai asing tidak menghilangkan seluruh daftar."""
+    cari = ' '.join(cari.split())[:100] if isinstance(cari, str) else ''
+    kelompok = kelompok if isinstance(kelompok, str) and kelompok in PILIHAN_FILTER else 'semua'
+    return cari, kelompok
+
+
+def cocok_filter(langkah, cari='', kelompok='semua', nama_akun=None):
+    """Saring proyeksi yang sudah owner-scoped, tanpa mengubah langkah/urutannya."""
+    cari, kelompok = normalkan_filter(cari, kelompok)
+    target = _FILTER_KELOMPOK.get(kelompok)
+    cocok_kelompok = target is None or langkah.kelompok == target
+    nama = ' '.join(langkah.nama.split()).casefold()
+    akun = ' '.join((nama_akun or '').split()).casefold()
+    cocok_nama = not cari or cari.casefold() in nama or cari.casefold() in akun
+    return cocok_kelompok and cocok_nama
+
+
 def urutkan(daftar) -> list[LangkahAnak]:
     """Kelompok kerja, lalu yang terlama menunggu, lalu nama (tanpa beda huruf)."""
     return sorted(daftar, key=lambda a: (
