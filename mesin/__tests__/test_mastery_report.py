@@ -174,3 +174,23 @@ def test_get_laporan_peta_menjaga_ownership_murid_dan_tidak_menulis(tmp_path,mon
         assert km in (401,403) and 'id="peta-penguasaan"' not in hm
         with server.buka() as kon:assert tuple(kon.iterdump())==sebelum
     finally:server.berhenti()
+
+
+def _kontras_hex(a, b):
+    def lum(h):
+        h = h.lstrip('#')
+        rgb = [int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+        rgb = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb]
+        return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+    terang, gelap = sorted((lum(a), lum(b)), reverse=True)
+    return (terang + 0.05) / (gelap + 0.05)
+
+
+def test_dipelajari_tidak_berbagi_amber_dengan_status_butuh_tindakan():
+    import design_tokens as T
+    assert mr.NADA_STATUS['dipelajari'] != 'perhatian'
+    assert mr.NADA_STATUS['dipelajari'] not in {mr.NADA_STATUS['perlu_cek'], mr.NADA_STATUS['terbukti']}
+    # Grafik ≥3:1 dan teks chip ≥4.5:1 terhadap latar krem/chip.
+    assert _kontras_hex(T.ANAK_STATUS_DIPELAJARI, T.LATAR_MURID) >= 3
+    assert _kontras_hex(T.ANAK_INFO_TEKS, T.ANAK_INFO_LATAR) >= 4.5
+    assert T.ANAK_STATUS_DIPELAJARI.lower() != T.ANAK_PERHATIAN_LATAR.lower()

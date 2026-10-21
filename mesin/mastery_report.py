@@ -20,7 +20,7 @@ STATUS = (
     ("belum_dinilai", "Belum dinilai", T.ANAK_STATUS_BELUM),
 )
 LABEL = {kode: nama for kode, nama, _ in STATUS}
-NADA_STATUS = {"terbukti": "baik", "dipelajari": "perhatian", "perlu_cek": "galat", "belum_dinilai": "netral"}
+NADA_STATUS = {"terbukti": "baik", "dipelajari": "info", "perlu_cek": "galat", "belum_dinilai": "netral"}
 
 GAYA_PETA = f"""
 .peta-materi-st {{margin:{T.SP_5} 0;}}
