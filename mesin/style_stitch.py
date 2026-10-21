@@ -3532,6 +3532,33 @@ from choice_pages import gaya_pilihan
 GAYA_STITCH += gaya_pilihan()
 
 
+# Halaman sesi guru (tinjauan) di ponsel: teks informatif >= 14px, kotak centang
+# 24px pada baris 44px, aksi bertumpuk, dan label penilaian tidak berdesakan.
+SELEKTOR_TEKS_SESI = (
+    ".koreksi-catatan-st", ".koreksi-ringkasan-catatan-st", ".koreksi-ringkas-hasil-st",
+    ".koreksi-pemahaman-st legend", ".koreksi-pilihan-paham-st label", ".koreksi-penanda-st",
+    ".koreksi-wajib-st", ".koreksi-label-st", ".koreksi-tipe-st", ".koreksi-sisa-st",
+    ".koreksi-simpan-st button", ".koreksi-aksi-sesi-st button", ".panduan-edit-hasil-st > .sub",
+    ".danger-zone-st p.sub", ".koreksi-editorial-st :is(label, legend, .sub, .badge-peran, .pendamping-pemicu-label)", ".sesi-jejak-st a",
+)
+GAYA_SESI_MOBILE = (
+    "\n/* Perbaikan mobile sesi (audit 22 Okt 2026) */\n"
+    + "".join(f"body.st {sel} {{ font-size: {T.UKURAN_TEKS_LABEL}; }}\n" for sel in SELEKTOR_TEKS_SESI)
+    + f"""body.st .koreksi-editorial-st input[type=checkbox] {{ width: 1.5rem; height: 1.5rem; }}
+body.st .koreksi-editorial-st .koreksi-centang-st {{ min-height: {T.TARGET_SENTUH}; }}
+@media (max-width: {T.BATAS_HP}) {{
+  body.st .koreksi-editorial-st .koreksi-simpan-st {{ flex-direction: column; align-items: stretch; }}
+  body.st .koreksi-editorial-st .koreksi-aksi-sesi-st {{ flex-direction: row; gap: {T.SP_2}; }}
+  body.st .koreksi-editorial-st .koreksi-simpan-st button {{ flex: 1 1 0; min-width: 0; min-height: {T.TARGET_SENTUH}; }}
+  body.st .koreksi-editorial-st .koreksi-sisa-st {{ flex: none; }}
+  body.st .koreksi-editorial-st .koreksi-label-st {{ flex-wrap: wrap; }}
+  body.st .koreksi-editorial-st .koreksi-wajib-st {{ flex-basis: 100%; }}
+  body.st .koreksi-editorial-st .koreksi-select-st {{ font-size: {T.UKURAN_TEKS_LABEL}; padding-inline: {T.SP_2}; }}
+}}
+"""
+)
+CSS_SESI = CSS_SESI + GAYA_SESI_MOBILE
+
 # Teks informatif halaman dewasa (/guru, /akun, /anak) minimal 14px. Label
 # dekoratif beralis huruf kapital (eyebrow) dan glif ikon tidak termasuk.
 # Prefiks body.st menaikkan spesifisitas agar menang atas aturan per-komponen
