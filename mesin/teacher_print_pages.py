@@ -209,9 +209,9 @@ def halaman_sesi_lampiran(
     kon, sesi_id: int, pesan: str = "", peran: str = "guru",
     pengguna: str = "",
 ) -> bytes | None:
-    """Halaman lampiran foto per sesi — daftar + upload."""
+    """Halaman lampiran foto per sesi — daftar + upload opsional."""
     info = kon.execute(
-        """SELECT s.id, s.tanggal, s.seed, s.level, s.topik, s.mode,
+        """SELECT s.id, s.tanggal, s.seed, s.level, s.topik, s.mode, s.format_jawaban,
                   w.nama, w.id AS siswa_id
            FROM sesi s JOIN siswa w ON w.id = s.siswa_id WHERE s.id = ?""",
         (sesi_id,),
@@ -242,6 +242,9 @@ def halaman_sesi_lampiran(
         '<input id="foto-lembar" type="file" name="foto" accept="image/jpeg,image/png">'
         '<button type="submit">Upload foto</button>'
         "</form>"
+    ) if _ambil(info, 'format_jawaban', '') != 'pilihan_ganda' or baris_lampiran else (
+        '<p class="sub">Untuk latihan pilihan ganda ini, anak memilih jawaban '
+        'langsung di halaman latihan. Foto tidak diperlukan.</p>'
     )
     blok_lampiran = (
         '<div class="kartu-st blok-lampiran">'

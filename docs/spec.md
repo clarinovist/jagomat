@@ -155,6 +155,12 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   dua disclosure datar (catatan tambahan dan kunci) tertutup tanpa menghilangkan
   input saat menyimpan seluruh sesi. Accordion tidak menilai atau mengirim otomatis;
   lewati memerlukan konfirmasi lokal, hitungan pekerjaan tetap proyeksi server.
+  Pada kategori Tanyakan cara anak, guru dapat membuka **Minta foto cara** ke
+  Lampiran bila upload tersedia; simpan draf sebelum pindah. Tidak mengirim permintaan
+  otomatis atau membuka upload lewat tautan anak. Konfirmasi foto melipat kartu tanpa
+  penanda masalah dengan preview bacaan awal; kosong/ragu/berbeda dari jawaban lama
+  dan PG tetap terbuka. Semua field tetap terkirim; AI belum diverifikasi manusia,
+  Terapkan tetap eksplisit dan bukan konfirmasi bukti belajar.
   Koreksi menginvalidasi bukti aktif; snapshot lama dan provenance tetap terjaga.
 - Maksimal dua fokus per putaran, dengan kunci
   `(template_id, kode_intervensi, malrule_id)`. Terbimbing/penguatan tidak menambah
@@ -165,6 +171,8 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   per fokus; checkpoint setiap 28 hari minimal tiga probe per fokus. Gagal kedua
   atau tidak ada pendekatan alternatif → eskalasi. Detail kelulusan ada di kontrak.
 - Pilihan ganda manual adalah riwayat latihan, bukan bukti pemetaan/penguasaan.
+  Form foto disembunyikan pada PG tanpa lampiran; lampiran lama dan sesi isian
+  tetap didukung, tanpa mengubah handler atau batas akses.
 
 ## Batas yang tidak boleh dilanggar
 

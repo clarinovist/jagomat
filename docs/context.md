@@ -156,6 +156,12 @@ cache dan cadangan tetap privat.
   stepper/CTA ganda; pencabutan tautan tetap tersedia di halaman sesi. Daftar materi
   lengkap, mini bar dan status memakai denominator katalog. Layanan siklus menginisialisasi konteks fondasi dan
   pemetaan pertama secara atomik dari satu tindakan eksplisit orang tua.
+- Konfirmasi foto di `attachments.py` memakai `<details>` native: preview bacaan
+  awal tetap terlihat, pengecualian terbuka, seluruh field berada dalam form Terapkan.
+  Lipatan bukan penilaian/disabled; GET tidak menerapkan AI. Entry upload PG tanpa
+  lampiran disembunyikan pada renderer guru/akun anak, bukan pada guard HTTP.
+  CTA foto tinjauan hanya muncul bila tujuan upload tersedia; tidak ada JS/schema
+  atau kapabilitas tautan anak baru.
 - `parent_help.py` merender kartu pra-tulis dan FAQ kontekstual pada permukaan
   guru melalui `teacher_workspace`/`teacher_session_pages`, tanpa DB/AI atau route
   baru. Disclosure native menjaga form/draf; kunci/pembahasan tetap dari loader

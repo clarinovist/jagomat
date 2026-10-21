@@ -456,6 +456,13 @@ def halaman_sesi_stitch(
             'Tanyakan cara anak' if kategori_tinjauan == TANYAKAN_CARA
             else tindakan or 'Tidak perlu dibuka lagi'
         )
+        minta_foto = (
+            '<p class="koreksi-catatan-st">Minta anak menulis caranya di kertas, '
+            'lalu foto. Simpan draf sebelum pindah ke Lampiran. '
+            f'<a href="/sesi/{sesi_id}/lampiran">Minta foto cara</a></p>'
+            if kategori_tinjauan == TANYAKAN_CARA and peran == 'guru'
+            and not sesi_dibatalkan and (not pilihan_pg or ada_foto) else ''
+        )
         kontrol_tinjauan = review_pages.kontrol(kon, sid, tinjauan_butir, draf_butir)
         ada_catatan = bool(
             cara_tampil.strip() or belum_terpilih or koreksi_jawaban
@@ -515,6 +522,7 @@ def halaman_sesi_stitch(
     <fieldset class="koreksi-pemahaman-st">
       <legend>Tinjau bersama anak</legend>
       <p class="koreksi-tanya-st">Tanyakan: “{html.escape(pertanyaan_tinjauan)}”</p>
+      {minta_foto}
       <fieldset class="koreksi-radio-paham-st">
         <legend>Apakah anak bisa menjelaskan caranya?</legend>
         <div class="koreksi-pilihan-paham-grid-st">{pilihan_pemahaman}</div>

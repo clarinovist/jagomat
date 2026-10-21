@@ -593,16 +593,18 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
     # berbagi sengaja hanya memberi kapabilitas mengerjakan satu sesi; upload
     # berkas merupakan permukaan terpisah dan tidak ikut dibuka.
     blok_foto = ""
+    n_foto = 0
     if not akses_tautan:
+        n_foto = kon.execute(
+            "SELECT COUNT(*) AS n FROM lampiran WHERE sesi_id = ?", (sesi_id,)
+        ).fetchone()["n"]
+    if not akses_tautan and (info.get('format_jawaban') != 'pilihan_ganda' or n_foto):
         daftar_foto = ""
         kabar_foto_html = ""
         if kabar_foto:
             kabar_foto_html = (
                 f'<p class="kerja-foto-kabar-st" role="status">{_escape(kabar_foto)}</p>'
             )
-        n_foto = kon.execute(
-            "SELECT COUNT(*) AS n FROM lampiran WHERE sesi_id = ?", (sesi_id,)
-        ).fetchone()["n"]
         if n_foto:
             daftar_foto = (
                 f'<p class="kerja-foto-jumlah-st">Sudah terkirim: {n_foto} foto. '

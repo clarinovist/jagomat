@@ -758,8 +758,17 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
     usulan = {}
     if lampiran["hasil_json"]:
         try:
-            for butir in json.loads(lampiran["hasil_json"]).get("soal", []):
-                usulan[butir["nomor"]] = butir
+            hasil = json.loads(lampiran["hasil_json"])
+            if not isinstance(hasil, dict) or not isinstance(hasil.get('soal'), list):
+                raise ValueError('Struktur bacaan tidak sah')
+            for butir in hasil['soal']:
+                if (not isinstance(butir, dict)
+                        or type(butir.get('nomor')) is not int
+                        or butir['nomor'] < 1 or butir['nomor'] in usulan
+                        or not isinstance(butir.get('jawaban', ''), str)
+                        or not isinstance(butir.get('caraku', ''), str)):
+                    raise ValueError('Butir bacaan tidak sah')
+                usulan[butir['nomor']] = butir
         except (ValueError, KeyError, TypeError):
             usulan = {}
 
@@ -767,11 +776,33 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
     from choice_pages import select_guru
     pilihan_pg = daftar_pilihan(kon, sesi_id)
     kartu: list[str] = []
+    jumlah_dibaca = 0
+    jumlah_periksa = 0
     for s in _soal_konteks(kon, sesi_id):
         u = usulan.get(s["nomor"], {})
-        jwb_u = html.escape(u.get("jawaban", ""))
-        cara_u = html.escape(u.get("caraku", ""))
+        jawaban = u.get('jawaban', '').strip()
+        cara = u.get('caraku', '').strip()
+        jwb_u = html.escape(jawaban)
+        cara_u = html.escape(cara)
         pg = pilihan_pg.get(s['sesi_soal_id'])
+        alasan = []
+        if pg:
+            alasan.append('Pilihan ganda: pilih sesuai foto')
+        else:
+            jumlah_dibaca += bool(jawaban)
+            if not jawaban:
+                alasan.append('Jawaban belum terbaca')
+            if not cara:
+                alasan.append('Cara belum terbaca')
+            if '?' in jawaban or '?' in cara:
+                alasan.append('Ada tanda ragu')
+            if s['jawaban_lama'].strip() and jawaban != s['jawaban_lama'].strip():
+                alasan.append('Berbeda dari jawaban lama')
+        perlu_periksa = bool(alasan)
+        jumlah_periksa += perlu_periksa
+        ringkasan_jawaban = 'Pilih sesuai foto' if pg else jawaban or 'Belum terbaca'
+        cuplikan_cara = cara[:80] + ('…' if len(cara) > 80 else '')
+        catatan = ' · '.join(alasan) if alasan else 'Belum diverifikasi manusia'
         input_jawaban = (select_guru(pg, s['jawaban_lama'], f'foto-jwb-{s["sesi_soal_id"]}') if pg else
                          f'<input id="foto-jwb-{s["sesi_soal_id"]}" type="text" name="jwb_{s["sesi_soal_id"]}" value="{jwb_u}">')
         tanda = (
@@ -780,7 +811,13 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
             else ""
         )
         kartu.append(f"""
-<div class="kartu-st soal-lampiran">
+<details class="kartu-st soal-lampiran"{' open' if perlu_periksa else ''}>
+  <summary class="foto-ringkas">
+    <span class="foto-ringkas-nomor">Soal {s['nomor']}</span>
+    <span class="foto-preview">Bacaan awal — jawaban: {html.escape(ringkasan_jawaban)} · cara: {html.escape(cuplikan_cara or 'Belum terbaca')}</span>
+    <span class="foto-catatan">{html.escape(catatan)}</span>
+  </summary>
+  <div class="foto-rincian">
   <div class="kartu-kepala"><span class="nomor">{s['nomor']}</span>
     <span class="tipe">Soal {s['nomor']}</span>
     <span class="kunci">kunci: {html.escape(s['kunci'])}</span>{tanda}</div>
@@ -795,7 +832,8 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
   </div>
   <label class="centang"><input type="checkbox" name="blm_{s['sesi_soal_id']}">
     anak menulis "belum pernah lihat"</label>
-</div>""")
+  </div>
+</details>""")
 
     kabar = f'<div class="pesan">{html.escape(pesan)}</div>' if pesan else ""
     catatan_status = (
@@ -834,6 +872,12 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
 <div class="kartu-st pratinjau-foto-st"><img class="foto-lembar"
   src="/lampiran/berkas/{lampiran_id}" alt="Foto lembar anak"></div>
 {blok_baca_ulang}
+<section class="foto-progres" aria-label="Ringkasan bacaan foto">
+  <h2>{jumlah_dibaca} dari {len(kartu)} soal memiliki bacaan jawaban · {jumlah_periksa} perlu dicek lebih dulu</h2>
+  <p>Belum diverifikasi manusia. Tidak ada penanda masalah bukan berarti bacaan AI benar.
+  Cocokkan semua bacaan awal dengan foto; buka kartu untuk mengoreksi.
+  Ringkasan menampilkan bacaan awal, bukan koreksi yang belum diterapkan.</p>
+</section>
 <form method="post" action="/lampiran/{lampiran_id}/terapkan">
 {''.join(kartu)}
 <div class="koreksi-simpan-st"><button type="submit">Terapkan &amp; diagnosis</button></div>
@@ -858,6 +902,14 @@ h1 {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_JUDUL_DEWASA}; color:
   background: {T.LATAR_KARTU_MURID}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
   border-radius: {T.RADIUS_KARTU_BESAR}; padding: {T.SP_4} 1.1rem; margin-bottom: {T.SP_4};
 }}
+.foto-ringkas {{ cursor: pointer; min-height: {T.TARGET_SENTUH}; overflow-wrap: anywhere; }}
+.foto-ringkas:focus-visible {{ outline: 2px solid {T.AKSEN_TEAL_TUA}; outline-offset: 4px; }}
+.foto-ringkas-nomor {{ font-weight: 700; }}
+.foto-preview, .foto-catatan {{ display: block; margin-top: {T.SP_2}; }}
+.foto-catatan {{ color: {T.TEKS_SUBTLE}; font-size: .88rem; }}
+.foto-rincian {{ margin-top: {T.SP_4}; }}
+.foto-progres {{ margin: {T.SP_4} 0; }}
+.foto-editorial-st .koreksi-simpan-st {{ position: static; }}
 .kartu-kepala {{ display: flex; align-items: center; gap: .55rem; margin-bottom: .5rem; flex-wrap: wrap; }}
 .nomor {{
   display: inline-flex; align-items: center; justify-content: center;

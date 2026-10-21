@@ -18,6 +18,9 @@ isian. Tidak ada JavaScript atau layanan AI tambahan untuk membentuk opsi.
 - Opsi dan urutannya immutable per butir, sama di layar/cetak/tinjauan.
   Penilaian guru menampilkan label dan nilai. Foto memakai konfirmasi pilihan
   manual; hasil OCR tidak diterapkan sebagai huruf/nilai secara otomatis.
+  Form upload guru/akun anak disembunyikan pada PG tanpa lampiran; lampiran lama
+  tetap dapat dibuka dan dikonfirmasi manual (kartu PG selalu terbuka), tanpa
+  perubahan handler maupun kapabilitas tautan anak.
 - Setelah pengiriman, koreksi harus melalui tinjauan dengan sumber koreksi
   transkripsi; hasil setelah bantuan tetap terpisah dari pekerjaan asli.
 
