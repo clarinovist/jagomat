@@ -95,7 +95,7 @@ def test_bank_snapshot_diagnosis_konteks_dan_outcome_tidak_ditulis_ulang(db,monk
             varian=(p.get('varian'),p.get('tanya'),p.get('bangun'))
             if varian in cabang: continue
             cabang.add(varian)
-            lama=replace(REGISTRI[tid](**{k:v for k,v in p.items() if k!='versi_katalog'}),level=lv)
+            lama=replace(REGISTRI[tid](**{k:v for k,v in p.items() if k not in ('versi_katalog','konteks_umur')}),level=lv)
             old_id=database.simpan_soal(db,lama)
             new_id=database.simpan_soal(db,baru)
             assert old_id!=new_id

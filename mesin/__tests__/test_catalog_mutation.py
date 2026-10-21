@@ -9,6 +9,8 @@ import pytest
 
 MESIN = Path(__file__).resolve().parents[1]
 MUTASI = (
+    ('konteks-umur', 'catalog_logic.py', 'if konteks_umur == "dua_orang_v1":', 'if False:',
+     'test_catalog_age_context.py::test_umur_baru_dua_orang_tanpa_relasi_keluarga', 'AssertionError'),
     ('umur', 'catalog_logic.py', 'kunci = (a + n) // (b + n)', 'kunci = k * b',
      'test_catalog_keys.py::test_umur_dari_perjalanan_waktu', 'AssertionError'),
     ('ceiling', 'catalog_keys.py', 'kunci = F(p["q"] * p["n"], p["p"])',
@@ -31,9 +33,11 @@ MUTASI = (
      'test_catalog_diagnosis.py::test_jaring_kategori_stabil_terhadap_urutan', 'AssertionError'),
     ('pengandaian', 'catalog_diagnosis.py', "'ABCDE'[pos], 'K', alasan[i]", "'ABCDE'[pos], 'H', alasan[i]",
      'test_catalog_diagnosis.py::test_pengandaian_tidak_mengklaim_kesalahan_hitung[P5]', 'AssertionError'),
-    ('identitas', 'catalog_versions.py', 'parameter={**soal.parameter, "versi_katalog": 2}', 'parameter=soal.parameter',
+    ('identitas', 'catalog_versions.py', 'parameter={**soal.parameter, "versi_katalog": 2}',
+     'parameter={k:v for k,v in soal.parameter.items() if k != "konteks_umur"}',
      'test_catalog_history.py::test_identitas_baru_tidak_meminjam_kunci_bank_lama', 'identitas konten baru bertabrakan'),
-    ('reader', 'catalog_versions.py', 'if versi_katalog == 1:', 'if versi_katalog == 1 or versi_writer() == 1:',
+    ('reader', 'catalog_versions.py', 'if versi_katalog == 1:\n                return lama(*args, **kwargs)',
+     'if versi_katalog == 1 or versi_writer() == 1:\n                return lama(*args, **{k:v for k,v in kwargs.items() if k != "konteks_umur"})',
      'test_catalog_history.py::test_reader_histori_tidak_mengikuti_flag_writer[1]', 'AssertionError'),
 )
 

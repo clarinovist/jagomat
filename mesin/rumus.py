@@ -343,7 +343,7 @@ KARTU: dict[str, Kartu] = {
              "tambahkan n pada KEDUA umur, lalu bagi umur yang lebih tua dengan "
              "umur yang lebih muda. Untuk mencari waktunya, cocokkan kedua umur "
              "pada tahun yang sama dengan rasio yang diminta.",
-        contoh="Ayah 44 tahun, anak 8 tahun. Setahun lagi: 45 : 9 = 5 kali.",
+        contoh="Ari 44 tahun, Bima 8 tahun. Setahun lagi: 45 : 9 = 5 kali.",
     ),
     "jumlah_selisih": Kartu(
         judul="Jumlah dan selisih",

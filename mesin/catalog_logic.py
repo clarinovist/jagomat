@@ -1,9 +1,12 @@
 """Koreksi konten logika tanpa mengubah rekonstruksi soal historis."""
+from dataclasses import replace
 from templates import Malrule, Soal, saring_malrule
 
 
-def soal_umur(a, b, k, n, tanya):
-    """Jawab besaran yang diminta dengan umur pada waktu yang sama."""
+def soal_umur(a, b, k, n, tanya, konteks_umur="ayah_anak_v1"):
+    """Jawab besaran yang diminta; konteks eksplisit tidak mengubah histori."""
+    if konteks_umur not in ("ayah_anak_v1", "dua_orang_v1"):
+        raise ValueError("konteks umur tidak didukung")
     if any(type(v) is not int or v <= 0 for v in (a, b, k, n)) or k <= 1:
         raise ValueError("parameter umur wajib bulat positif dan rasio lebih dari satu")
     if a + n != k * (b + n):
@@ -46,6 +49,14 @@ def soal_umur(a, b, k, n, tanya):
     mal = [Malrule("umur.kurang_satu", str(kunci - 1), "H",
                    "perhitungan benar, hasilnya meleset satu")]
     mal.extend(Malrule(ident, str(nilai), "K", alasan) for ident, nilai, alasan in kandidat)
-    return Soal("soal_umur", {"a": a, "b": b, "k": k, "n": n, "tanya": tanya},
+    parameter = {"a": a, "b": b, "k": k, "n": n, "tanya": tanya}
+    if konteks_umur == "dua_orang_v1":
+        # Nama tanpa hubungan keluarga sah untuk seluruh domain umur existing.
+        # Marker masuk identitas; parameter katalog2 tanpa marker tetap persis.
+        parameter["konteks_umur"] = konteks_umur
+        teks = teks.replace("ayah", "Ari").replace("anak", "Bima")
+        pembahasan = pembahasan.replace("ayah", "Ari").replace("anak", "Bima")
+        mal = [replace(m, alasan=m.alasan.replace("ayah", "Ari").replace("anak", "Bima")) for m in mal]
+    return Soal("soal_umur", parameter,
                 teks, str(kunci), saring_malrule(str(kunci), mal),
                 minta_restatement=True, bagian="B", pembahasan=pembahasan)

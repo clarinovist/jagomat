@@ -18,7 +18,7 @@ if catalog_versi==2:
                     varian=(p.get('varian'),p.get('tanya'),p.get('bangun'))
                     if varian in cabang:continue
                     cabang.add(varian)
-                    lama=replace(REGISTRI[tid](**{k:v for k,v in p.items() if k!='versi_katalog'}),level=lv)
+                    lama=replace(REGISTRI[tid](**{k:v for k,v in p.items() if k not in ('versi_katalog','konteks_umur')}),level=lv)
                     assert database.simpan_soal(c,lama)!=database.simpan_soal(c,baru), 'identitas_katalog_tabrakan'
                     soal_katalog.extend((lama,baru))
             if not soal_katalog:continue

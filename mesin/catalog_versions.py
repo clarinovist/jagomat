@@ -71,6 +71,8 @@ def parameter_baru(lama):
             if (template_id == "volume_prisma_tabung" and hasil.get("varian", "").startswith("tabung")
                     and hasil.get("versi") != 2):
                 raise ValueError("katalog tabung memerlukan writer matematika versi 2")
+            if template_id == "soal_umur":
+                hasil = {**hasil, "konteks_umur": "dua_orang_v1"}
             return {**hasil, "versi_katalog": 2}
         return hasil
     return parameter

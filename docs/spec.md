@@ -192,7 +192,9 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   append-only tetap dipertahankan.
 - [Koreksi katalog](catalog-corrections.md) memakai identitas konten baru tanpa
   mengoreksi riwayat; writer perbaikan masih opt-in/nonaktif bawaan dan belum dirilis.
-  Tinjauan manusia konten berubah serta gate recovery exact tetap wajib.
+  Soal umur baru memakai dua orang tanpa hubungan keluarga, bukan menaikkan rentang
+  angka agar usia ayah masuk akal. Tinjauan manusia konten berubah serta gate
+  recovery exact tetap wajib.
 - Kunci dan diagnosis tidak ditentukan LLM. Tidak menjanjikan kesiapan juara atau
   menyamakan progres target Jagomat dengan penguasaan seluruh kurikulum sekolah.
 

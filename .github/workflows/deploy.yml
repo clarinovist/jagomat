@@ -297,6 +297,7 @@ jobs:
         run: |
           python scripts/story_frames_preview.py --output story-frames-review --require-committed
           python scripts/challenge_packet.py --output challenge-packet-review
+          python scripts/catalog_preview.py --output catalog-review --require-committed
       - uses: actions/upload-artifact@v7
         with:
           name: release-manifest-${{ github.sha }}
@@ -305,6 +306,7 @@ jobs:
             submission-pair.json
             story-frames-review/
             challenge-packet-review/
+            catalog-review/
           if-no-files-found: error
           retention-days: 30
 

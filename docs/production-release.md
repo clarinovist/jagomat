@@ -1,5 +1,18 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Penyiapan recovery katalog A–C — 21 Oktober 2026
+
+Batch A–C `251d50e` lulus CI39567283483 tetapi writer katalog masih1;
+itu bukan bukti aktivasi perbaikan. Baseline berikutnya mempertahankan reader
+katalog2 dan marker konteks umur Ari/Bima, dengan writer katalog1 serta komposisi
+teori-bilangan1. Mode **persiapan** untuk pembekuan reader, bukan pelemahan gate
+rilis: manifest persiapan tidak mengklaim pair teruji atau siap pasang.
+Pin historis c228749 tetap sampai baseline baru dibekukan dan diuji. Kandidat
+berikutnya kembali mode migrasi/komposisi2 dan harus membuktikan C→B→C katalog2
+pada exact image sebelum aktivasi. Job pasang tetap false, tidak ada deploy.
+Contoh tinjauan26 template kini menjadi artefak `catalog-review` terikat SHA/hash;
+review manusia belum dinyatakan selesai. Detail [koreksi katalog](catalog-corrections.md).
+
 ## Deploy foto opsional dan konfirmasi ringkas — 21 Oktober 2026
 
 Controlled `deploy-v2` berhasil memasang kandidat

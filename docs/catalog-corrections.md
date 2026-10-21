@@ -20,8 +20,10 @@ Tidak ada migrasi/backfill bank, snapshot, konteks, outcome atau diagnosis.
 ## Batch A — kunci, teks, pembahasan
 
 - Umur: rasio memakai kedua umur pada waktu yang diminta, bukan k×umur anak
-  sekarang. Pembahasan menunjukkan substitusi. Kandidat besaran berbeda memakai
-  ID prosedur baru, tanpa memetakan ulang fokus/malrule historis.
+  sekarang. Pembahasan menunjukkan substitusi. Soal baru memakai Ari/Bima tanpa
+  hubungan keluarga dengan marker `konteks_umur=dua_orang_v1`; angka dan RNG tetap.
+  Tanpa marker, pembacaan katalog2 ayah–anak lama tetap persis. Kandidat besaran
+  berbeda memakai ID prosedur baru, tanpa memetakan ulang fokus/malrule historis.
 - Senilai, berbalik dan kerja bersama: hasil rasional eksak, tanpa ceiling.
 - Lingkaran/juring: π sesuai fakta soal dihitung rasional, tanpa pembulatan satu
   desimal tersembunyi. Teks biasa maupun visual menyebut jawaban tanpa pembulatan.
@@ -85,8 +87,10 @@ tidak mengesahkan konten baru. Tidak ada runtime LLM untuk kunci/diagnosis.
 
 ## Batas dan follow-up
 
-- Kewajaran ayah12/anak3 tetap masalah konteks, meskipun rasio sudah benar. Perlu
-  keputusan cerita/sampler tersendiri sebelum aktivasi; tidak disembunyikan oleh tes.
+- Kewajaran ayah12/anak3 sudah ditangani pada soal baru dengan melepas hubungan
+  keluarga (Ari/Bima); histori lama tidak ditulis ulang. Contoh baru tetap menunggu
+  tinjauan manusia. Ekspor `scripts/catalog_preview.py` menghasilkan HTML dan
+  manifest hash konten yang terikat SHA; disertakan pada artefak CI.
 - Cabang tabung existing, pembagian pecahan terpotong di rule lain, dan template
   tak ditandai tidak otomatis benar. Audit lanjutan di luar temuan ini tetap perlu.
 - Second opinion JEV atas ringkasan nonsensitif mendukung usulan kategori terbatas
