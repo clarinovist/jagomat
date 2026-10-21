@@ -217,6 +217,10 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   Soal umur baru memakai dua orang tanpa hubungan keluarga, bukan menaikkan rentang
   angka agar usia ayah masuk akal. Tinjauan manusia konten berubah serta gate
   recovery exact tetap wajib.
+- [Pilot bank terkurasi](catalog-pilot.md) membandingkan lima konsep existing
+  secara offline; revisi penilaian default nonaktif, tidak mengubah histori atau
+  melayani paket authored kepada anak. Kelolosan mesin bukan review manusia atau
+  bukti efektivitas belajar; belum ada keputusan migrasi seluruh katalog.
 - Kunci dan diagnosis tidak ditentukan LLM. Tidak menjanjikan kesiapan juara atau
   menyamakan progres target Jagomat dengan penguasaan seluruh kurikulum sekolah.
 

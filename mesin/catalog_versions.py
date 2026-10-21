@@ -65,6 +65,9 @@ def parameter_baru(lama):
     def parameter(template_id, rng, level):
         versi = versi_writer()
         hasil = lama(template_id, rng, level)
+        from assessment_revision import aktif, didukung
+        if aktif() and didukung(template_id, hasil):
+            hasil = {**hasil, "revisi_penilaian": 1}
         if versi == 2 and template_id in TEMPLATE_DIPERBAIKI:
             if template_id in {"jaring_jaring", "perbandingan_volume", "skala_peta", "jam_menit_detik"}:
                 if hasil.get("versi") != 2:

@@ -12,6 +12,7 @@ import random
 
 from templates import Malrule, Soal, saring_malrule
 from topics import Topik, daftarkan
+from assessment_revision import soal_berrevisi
 from solid_geometry_versions import soal_berversi, parameter_baru
 from catalog_versions import koreksi_soal, parameter_baru as parameter_katalog
 from catalog_malrules import prisma, unsur, perbandingan_volume as koreksi_perbandingan
@@ -309,6 +310,7 @@ def volume_prisma_tabung(varian: str, a: int = 0, t_segitiga: int = 0,
 # ── Bagian B — Luas permukaan & jaring ─────────────────────────────────
 
 
+@soal_berrevisi
 @soal_berversi
 def luas_permukaan(varian: str, s: int = 0,
                    p: int = 0, l: int = 0, t: int = 0,

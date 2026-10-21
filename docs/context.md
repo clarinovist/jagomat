@@ -206,6 +206,10 @@ cache dan cadangan tetap privat.
   di sandbox agar kompatibilitas tidak lolos akibat flag nonaktif. Konteks umur
   Ari/Bima memiliki marker sendiri; reader tetap mengenali konteks ayah–anak lama.
   `catalog_preview.py` membekukan contoh sintetis+hash pada artefak CI.
+  [Pilot bank terkurasi](catalog-pilot.md) memakai `assessment_revision.py` opt-in
+  default0 untuk codec/prosedur baru tanpa mengubah histori. `scripts/catalog_pilot*`
+  membandingkan90 draf offline A/B/C dengan oracle terpisah; belum jalur serving
+  atau keputusan migrasi bank, dan belum memiliki hasil review manusia.
   Cetak guru membaca kunci/malrule bank tersimpan, bukan aturan template terbaru;
   pembahasan masih dari template sesuai versi parameter. Identitas bank idempoten tidak menulis ulang
   malrule historis ketika soal dipakai kembali. Pendamping tidak boleh mengambil

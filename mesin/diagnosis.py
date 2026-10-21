@@ -102,7 +102,11 @@ def setara(a: str, b: str, *, soal: Soal | None = None) -> bool:
     bukan kunci yang dihitung ulang pada objek soal.
     """
     if soal is not None:
+        from assessment_revision import kontrak
         from catalog_exact import TEMPLATE_EKSAK, baca_angka
+        if kontrak(soal) is not None:
+            pa, pb = baca_angka(a), baca_angka(b)
+            return pa is not None and pb is not None and pa == pb
         if (soal.parameter.get("versi_katalog") == 2
                 and soal.template_id in TEMPLATE_EKSAK
                 and not (soal.template_id == "skala_peta" and soal.parameter.get("varian") == "cari_skala")):
@@ -197,6 +201,14 @@ def diagnosa(
 
     if benar:
         return Usulan(True, None, None, "jawaban benar", True)
+
+    if soal is not None:
+        from assessment_revision import kontrak
+        if kontrak(soal) is not None:
+            cocok = [m for m in malrule if setara(jwb, m['jawaban'], soal=soal)]
+            if len(cocok) > 1:
+                return Usulan(False, None, None,
+                              "jawaban cocok beberapa prosedur — periksa cara anak", False)
 
     # 3 — cocokkan dengan kesalahan yang sudah diprediksi.
     #

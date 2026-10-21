@@ -11,6 +11,7 @@ import random
 
 from templates import Malrule, Soal, putar, saring_malrule
 from topics import Topik, daftarkan
+from assessment_revision import soal_berrevisi
 from catalog_versions import koreksi_soal, parameter_baru
 from catalog_keys import aritmatika
 from catalog_diagnosis import satuan
@@ -103,6 +104,7 @@ def satuan_konversi(varian: str, nilai: int) -> Soal:
     )
 
 
+@soal_berrevisi
 def kecepatan_jarak_waktu(varian: str, s: int, t: int, v: int) -> Soal:
     """v = s/t; dua arah: cari v, s, atau t. Semua bilangan bulat."""
     if varian == "cari_v":
@@ -185,6 +187,7 @@ def berpapasan(jarak: int, v1: int, v2: int) -> Soal:
     )
 
 
+@soal_berrevisi
 def menyusul(jarak: int, v1: int, v2: int) -> Soal:
     """Waktu menyusul = jarak_awal/(v2−v1), v2 > v1."""
     kunci = jarak // (v2 - v1)

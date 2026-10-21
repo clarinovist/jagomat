@@ -14,6 +14,7 @@ from fractions import Fraction
 
 from templates import Malrule, Soal, saring_malrule
 from topics import Topik, daftarkan
+from assessment_revision import soal_berrevisi
 from catalog_versions import koreksi_soal, parameter_baru
 from catalog_malrules import fpb
 
@@ -322,6 +323,7 @@ def fpb_dua_bilangan(a: int, b: int) -> Soal:
     )
 
 
+@soal_berrevisi
 def pecahan_operasi_campuran(
     n1: int, d1: int, n2: int, d2: int, n3: int, d3: int
 ) -> Soal:
@@ -459,6 +461,7 @@ def urut_pecahan_desimal_persen(
     )
 
 
+@soal_berrevisi
 def pecahan_kali_bagi(n1: int, d1: int, n2: int, d2: int, op: str) -> Soal:
     """Kali atau bagi dua pecahan.
 

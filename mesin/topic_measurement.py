@@ -17,6 +17,7 @@ from catalog_versions import koreksi_soal, parameter_baru as parameter_katalog
 from catalog_malrules import skala, waktu
 from templates import Malrule, Soal, saring_malrule
 from topics import Topik, daftarkan
+from assessment_revision import soal_berrevisi
 
 
 # ── Bagian A — Skala peta ──────────────────────────────────────────────
@@ -81,6 +82,7 @@ def skala_peta(varian: str, sebenarnya: int, peta: int, skala: int) -> Soal:
 # ── Bagian B — Waktu & konversi ────────────────────────────────────────
 
 
+@soal_berrevisi
 def satuan_waktu_lama(varian: str, nilai: int, hasil: int) -> Soal:
     """Konversi satuan waktu lama: abad, windu, lustrum, dasawarsa, tahun."""
     SATUAN = {
