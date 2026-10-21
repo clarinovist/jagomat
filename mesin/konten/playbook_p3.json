@@ -1,4 +1,635 @@
 {
   "versi_format": 1,
-  "entri": []
+  "entri": [
+    {
+      "template_id": "luas_kotak_satuan",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "datar.hanya_satu_baris",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin menghitung satu baris saja dan belum menghubungkannya dengan seluruh daerah.",
+      "batas": "Draf agent, belum direview manusia. Kotak pengisi sama besar; bukan petak tepi. Contoh memakai petak satuan, bukan konversi luas.",
+      "urutan": {
+        "benda": "Susun keping persegi sama besar dalam beberapa baris tanpa celah atau tumpang tindih. Minta anak menyentuh setiap keping sekali.",
+        "gambar": "Gambar petak yang sama; beri warna berbeda per baris, lalu hubungkan banyak petak tiap baris dengan banyak baris.",
+        "simbol": "Tuliskan penjumlahan berulang lebih dulu, kemudian perkalian banyak petak tiap baris dengan banyak baris. Bedakan luas dari panjang tepi."
+      },
+      "pertanyaan": [
+        "Bagian mana yang sudah kamu hitung?",
+        "Bagaimana memastikan semua baris terhitung sekali?",
+        "Apa satuan untuk daerah yang ditutupi?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:luas_kotak_satuan:datar.hanya_satu_baris",
+          "contoh": "Susun 3 baris, tiap baris 4 petak satuan. Hitung 4 + 4 + 4 = 12 petak, lalu tulis 3 × 4 = 12 satuan persegi."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:luas_kotak_satuan:datar.hanya_satu_baris",
+          "contoh": "Tanpa melihat contoh awal, jelaskan mengapa 2 baris berisi 5 petak per baris menutupi 10 satuan persegi, bukan 5. Tunjuk kedua baris pada gambar baru."
+        }
+      ],
+      "tanda_paham": [
+        "Menghubungkan seluruh baris dengan perkalian tanpa kehilangan satu baris.",
+        "Membedakan satuan panjang sisi dari satuan luas."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template luas_kotak_satuan, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "benar_salah_pengandaian",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "pengandaian.bekal_1",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin menambah kesimpulan yang mungkin terjadi tetapi tidak dijamin oleh fakta.",
+      "batas": "Draf agent, belum direview manusia. Draf hanya untuk kesimpulan bekal tambahan pengandaian.bekal_1; jangan digeneralisasi menjadi penilaian semua pengandaian.",
+      "urutan": {
+        "benda": "Sediakan kartu fakta dan kartu dugaan berbeda warna. Bacakan fakta lalu minta anak mengelompokkan pernyataan yang dijamin, bertentangan, atau belum diketahui.",
+        "gambar": "Gambar dua kotak: fakta yang diberikan dan hal yang belum diketahui. Letakkan tiap pernyataan beserta alasan, bukan hanya pilihan huruf.",
+        "simbol": "Tulis pola: jika hari sekolah maka membawa bekal; hari ini sekolah; jadi hari ini membawa bekal. Jangan menambahkan informasi bekal lain."
+      },
+      "pertanyaan": [
+        "Fakta mana yang mendukung pernyataan itu?",
+        "Bisakah fakta tetap benar tanpa bekal tambahan?",
+        "Apa yang belum kita ketahui?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:benar_salah_pengandaian:pengandaian.bekal_1",
+          "contoh": "Fakta: setiap latihan, Rani membawa botol air; hari ini Rani latihan. Pasti: Rani membawa botol air. Membawa jus juga belum diketahui, bukan otomatis salah."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:benar_salah_pengandaian:pengandaian.bekal_1",
+          "contoh": "Tutup contoh awal. Fakta baru: setiap kunjungan perpustakaan, Dito membawa kartu; hari ini Dito ke perpustakaan. Jelaskan mengapa membawa kartu pasti, sedangkan membawa buku sendiri belum dijamin."
+        }
+      ],
+      "tanda_paham": [
+        "Membedakan pasti benar dari mungkin benar dan bertentangan.",
+        "Menyebut fakta pendukung tanpa menambah syarat."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template benar_salah_pengandaian, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "deret_aritmetika",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "aritmetika.beda_dikira_satu",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin memakai kebiasaan menghitung satu-satu tanpa memeriksa selisih antar suku.",
+      "batas": "Draf agent, belum direview manusia. Hanya deret bertambah dengan beda tetap; bukan semua deret atau klaim pola satu-satunya dari data terbatas.",
+      "urutan": {
+        "benda": "Susun tumpukan keping yang bertambah sama banyak. Pisahkan keping tambahan agar tiap perubahan dapat ditunjuk.",
+        "gambar": "Gambar tumpukan atau garis bilangan dengan panah antar suku dan tulis banyak tambahan di setiap panah.",
+        "simbol": "Catat selisih tiap pasangan berdekatan. Jika selisih sama, lanjutkan dengan selisih itu, bukan otomatis satu."
+      },
+      "pertanyaan": [
+        "Apa yang berubah dari tumpukan pertama ke kedua?",
+        "Apakah perubahan berikutnya sama?",
+        "Bagaimana memeriksa dua suku yang kamu tambahkan?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:deret_aritmetika:aritmetika.beda_dikira_satu",
+          "contoh": "Tumpukan 3, 6, 9 keping bertambah 3 setiap langkah. Dua berikutnya 12 dan 15; periksa 12 − 9 = 3 dan 15 − 12 = 3."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:deret_aritmetika:aritmetika.beda_dikira_satu",
+          "contoh": "Tutup contoh. Pada 4, 8, 12, jelaskan mengapa berikutnya 16 lalu 20. Hubungkan setiap selisih 4 dengan tambahan pada gambar baru."
+        }
+      ],
+      "tanda_paham": [
+        "Menunjukkan selisih tetap pada lebih dari satu pasangan.",
+        "Membuat dua suku lanjutan dan menjelaskan alasan, bukan menghafal hasil."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template deret_aritmetika, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "jangkauan_data",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "jangkau.arah_salah",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin menukar yang terbesar dan terkecil atau menjawab tanpa memeriksa arah pertanyaan.",
+      "batas": "Draf agent, belum direview manusia. Nama template menyebut jangkauan, tetapi P3 pada konteks ini menanyakan terbesar/terkecil. Jangan mengajarkan rumus jangkauan sebagai jawaban setiap varian.",
+      "urutan": {
+        "benda": "Urutkan kartu angka; minta anak menunjuk ujung kecil dan ujung besar lalu membaca kembali yang ditanya.",
+        "gambar": "Letakkan angka pada garis bilangan dan beri label kecil di kiri, besar di kanan.",
+        "simbol": "Tuliskan nilai minimum dan maksimum secara terpisah. Pilih sesuai pertanyaan; jangan otomatis mengurangkan."
+      },
+      "pertanyaan": [
+        "Yang diminta nilai terbesar atau terkecil?",
+        "Di ujung mana nilai itu pada garis bilangan?",
+        "Bagaimana memeriksa semua data sudah dibandingkan?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:jangkauan_data:jangkau.arah_salah",
+          "contoh": "Kartu 7, 2, 9, 4 diurutkan menjadi 2, 4, 7, 9. Nilai terkecil 2, terbesar 9. Pertanyaan terkecil dijawab 2, bukan 9."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:jangkauan_data:jangkau.arah_salah",
+          "contoh": "Tutup contoh. Untuk 6, 11, 3, 8, jelaskan mengapa terbesar 11 dan terkecil 3. Minta guru menunjuk pertanyaan baru sebelum anak menjawab."
+        }
+      ],
+      "tanda_paham": [
+        "Membaca arah pertanyaan dan memeriksa seluruh data.",
+        "Tidak mencampur nilai ekstrem dengan selisih dua ekstrem."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template jangkauan_data, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "simetri_bangun",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "simetri.hitung_sisi",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin menghitung sisi bangun alih-alih garis lipat yang membuat dua bagian berhimpit.",
+      "batas": "Draf agent, belum direview manusia. Jumlah sumbu bergantung jenis bangun; jangan menyatakan semua segi empat bersumbu dua. Alat kertas harus sesuai bangun yang disebut, bukan sketsa sembarang.",
+      "urutan": {
+        "benda": "Gunakan potongan kertas belah ketupat yang bukan persegi. Coba lipat, cocokkan tepi, lalu buka kembali; garis yang tidak membuat berhimpit bukan sumbu.",
+        "gambar": "Gambar bekas lipatan yang valid dengan garis putus-putus. Bedakan garis lipat dari sisi pembatas bangun.",
+        "simbol": "Hitung garis lipat valid yang berbeda, bukan jumlah sisi. Uji bangun lain lagi tanpa menganggap semua segi empat sama."
+      },
+      "pertanyaan": [
+        "Apa yang harus berhimpit agar lipatan ini sah?",
+        "Apakah garis itu sisi atau garis lipat?",
+        "Adakah lipatan yang tampak mungkin tetapi tidak berhimpit?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:simetri_bangun:simetri.hitung_sisi",
+          "contoh": "Belah ketupat bukan persegi memiliki 4 sisi tetapi 2 sumbu simetri, yaitu kedua diagonal. Lipat kertas pada masing-masing diagonal untuk memeriksa."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:simetri_bangun:simetri.hitung_sisi",
+          "contoh": "Tutup contoh. Persegi panjang yang bukan persegi memiliki 4 sisi dan 2 sumbu simetri melalui titik tengah sisi berhadapan. Jelaskan mengapa diagonalnya bukan garis lipat yang valid."
+        }
+      ],
+      "tanda_paham": [
+        "Memeriksa kecocokan bagian, bukan menebak dari jumlah sisi.",
+        "Membedakan sumbu simetri dengan simetri putar."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template simetri_bangun, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "tabel_penalaran",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "tabel.terendah",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin membalik urutan tinggi-rendah saat menggabungkan dua informasi perbandingan.",
+      "batas": "Draf agent, belum direview manusia. Draf ini untuk pertanyaan tertinggi yang dijawab terendah; nama orang adalah label sintetis, bukan informasi murid.",
+      "urutan": {
+        "benda": "Pakai tiga balok berbeda tinggi yang diberi nama sintetis. Cocokkan satu kalimat perbandingan setiap kali.",
+        "gambar": "Susun kartu nama dalam urutan tinggi ke rendah; beri panah dengan label lebih tinggi agar arah jelas.",
+        "simbol": "Tulis A lebih tinggi dari B dan B lebih tinggi dari C, lalu simpulkan A paling tinggi dan C paling rendah dalam tiga orang ini."
+      },
+      "pertanyaan": [
+        "Siapa dibandingkan dengan siapa pada kalimat pertama?",
+        "Ke mana kartu ketiga harus diletakkan agar kedua kalimat benar?",
+        "Ujung mana menjawab yang paling tinggi?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:tabel_penalaran:tabel.terendah",
+          "contoh": "Raka lebih tinggi dari Sita; Sita lebih tinggi dari Tono. Urutan Raka, Sita, Tono dari tinggi ke rendah. Paling tinggi Raka, bukan Tono."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:tabel_penalaran:tabel.terendah",
+          "contoh": "Tutup contoh. Lani lebih tinggi dari Miko; Miko lebih tinggi dari Nuri. Susun kartu baru dan jelaskan mengapa Lani paling tinggi tanpa hanya memilih nama pertama."
+        }
+      ],
+      "tanda_paham": [
+        "Memenuhi dua perbandingan sekaligus.",
+        "Dapat menunjukkan yang tertinggi, tengah, dan terendah beserta alasan."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template tabel_penalaran, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "deret_aritmetika_turun",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "aritmetika_turun.arah_dibalik",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin melihat besarnya selisih tetapi menambahkan ketika deret justru menurun.",
+      "batas": "Draf agent, belum direview manusia. Contoh bilangan positif dengan pengurangan tetap; tidak memperkenalkan bilangan negatif atau kurikulum baru.",
+      "urutan": {
+        "benda": "Mulai dengan tumpukan keping, ambil jumlah sama pada setiap langkah. Minta anak mengamati sisa, bukan keping yang diambil saja.",
+        "gambar": "Gambar garis bilangan dengan panah ke kiri; tandai panjang lompatan yang sama.",
+        "simbol": "Tuliskan pengurangan yang sama dari suku ke suku. Periksa bahwa hasil makin kecil dengan beda tetap."
+      },
+      "pertanyaan": [
+        "Jumlahnya bertambah atau berkurang?",
+        "Berapa yang diambil tiap langkah?",
+        "Apakah suku baru sesuai arah semua panah sebelumnya?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:deret_aritmetika_turun:aritmetika_turun.arah_dibalik",
+          "contoh": "Tumpukan 20, 16, 12 berkurang 4. Berikutnya 8 karena 12 − 4 = 8, bukan 16."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:deret_aritmetika_turun:aritmetika_turun.arah_dibalik",
+          "contoh": "Tutup contoh. Jelaskan kelanjutan 27, 22, 17 menjadi 12; tunjukkan tiga panah ke kiri sepanjang 5."
+        }
+      ],
+      "tanda_paham": [
+        "Menjelaskan arah turun dan besar pengurangan.",
+        "Membedakan turun dengan pengurangan tetap dari pembagian tetap."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template deret_aritmetika_turun, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "median_modus",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "modus.kedua",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin mengambil nilai yang mudah terlihat tanpa membandingkan frekuensi setiap nilai.",
+      "batas": "Draf agent, belum direview manusia. P3 yang diperiksa hanya varian modus, meski nama template median_modus. Contoh memiliki satu modus; kasus multimodus perlu review tersendiri.",
+      "urutan": {
+        "benda": "Buat satu kartu untuk setiap data, termasuk pengulangan. Kelompokkan kartu yang nilainya sama tanpa membuang duplikat.",
+        "gambar": "Gambar kelompok atau tabel nilai-frekuensi; satu tanda mewakili satu kemunculan.",
+        "simbol": "Tuliskan nilai dengan frekuensi terbesar sebagai modus. Bedakan nilai data dari banyak kemunculannya."
+      },
+      "pertanyaan": [
+        "Nilai mana muncul paling sering?",
+        "Apakah kartu yang sama nilainya boleh dibuang?",
+        "Jawaban yang diminta nilai datanya atau banyak kemunculannya?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:median_modus:modus.kedua",
+          "contoh": "Data 2, 5, 5, 8: nilai 5 muncul dua kali, lainnya sekali. Modusnya 5, bukan 2 (banyak kemunculan) atau 8 (nilai terbesar)."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:median_modus:modus.kedua",
+          "contoh": "Tutup contoh. Pada 3, 7, 3, 9, 3, buat kelompok dan jelaskan mengapa modus 3. Jangan menyalin nilai 5 dari contoh sebelumnya."
+        }
+      ],
+      "tanda_paham": [
+        "Menghitung frekuensi termasuk pengulangan.",
+        "Menjawab nilai modus dan menjelaskan frekuensinya."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template median_modus, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "keliling_luas_datar",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "datar.tukar_luas",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin memakai perkalian luas ketika yang diminta panjang seluruh tepi.",
+      "batas": "Draf agent, belum direview manusia. Hanya pertanyaan keliling persegi panjang P3. Reviewer perlu menilai apakah contoh pertama dengan angka sama membantu atau justru membingungkan.",
+      "urutan": {
+        "benda": "Letakkan tali mengikuti empat sisi persegi panjang tanpa menyeberangi bagian dalam. Tandai awal dan akhir agar setiap sisi dihitung sekali.",
+        "gambar": "Gambar empat sisi dan tuliskan panjang masing-masing. Bedakan garis tepi dari arsiran bagian dalam.",
+        "simbol": "Jumlahkan empat sisi sebelum meringkas menjadi 2 × (panjang + lebar). Gunakan satuan panjang, bukan satuan persegi."
+      },
+      "pertanyaan": [
+        "Bagian yang dilalui tali itu tepi atau daerah dalam?",
+        "Apakah semua sisi sudah dihitung sekali?",
+        "Mengapa panjang dan lebar masing-masing muncul dua kali?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:keliling_luas_datar:datar.tukar_luas",
+          "contoh": "Persegi panjang 6 cm × 3 cm: tepinya 6 + 3 + 6 + 3 = 18 cm. Luas 18 cm² kebetulan bernilai sama, tetapi menjawab besaran berbeda; bandingkan satuannya."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:keliling_luas_datar:datar.tukar_luas",
+          "contoh": "Tutup contoh. Pada panjang 5 cm dan lebar 2 cm, jelaskan keliling 5 + 2 + 5 + 2 = 14 cm, bukan luas 10 cm²."
+        }
+      ],
+      "tanda_paham": [
+        "Menunjuk empat sisi dan memilih satuan panjang.",
+        "Membedakan keliling dan luas meskipun kadang angka kebetulan sama."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template keliling_luas_datar, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "soal_uang",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "uang.salah_bagi_uang_besar",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin membagi total dengan pengali saja tanpa memasukkan satu bagian milik pemilik uang kecil.",
+      "batas": "Draf agent, belum direview manusia. Rupiah contoh dipakai sebagai model hitung, bukan harga realistis atau pecahan uang beredar. Hanya varian mencari uang besar.",
+      "urutan": {
+        "benda": "Pakai keping sebagai rupiah contoh; buat satu kelompok kecil dan beberapa kelompok sama besar untuk uang besar. Gabungkan keduanya sebagai total.",
+        "gambar": "Gambar diagram batang: satu kotak untuk uang kecil dan k kotak sama untuk uang besar. Beri kurung total pada seluruh k+1 kotak.",
+        "simbol": "Tulis banyak bagian total k+1, nilai satu bagian total dibagi k+1, lalu k kali satu bagian untuk uang besar."
+      },
+      "pertanyaan": [
+        "Total itu milik satu orang atau dua orang?",
+        "Ada berapa bagian sama besar seluruhnya?",
+        "Bagaimana memeriksa jumlah dan hubungan kali sekaligus?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:soal_uang:uang.salah_bagi_uang_besar",
+          "contoh": "Uang besar 3 kali uang kecil, total 40 rupiah. Diagram berisi 3 + 1 = 4 bagian; tiap bagian 10 rupiah. Uang besar 30 rupiah dan kecil 10 rupiah."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:soal_uang:uang.salah_bagi_uang_besar",
+          "contoh": "Tutup contoh. Total 60 rupiah, uang besar 4 kali uang kecil. Jelaskan lima bagian bernilai 12 rupiah; uang besar 48 dan kecil 12, lalu periksa jumlahnya."
+        }
+      ],
+      "tanda_paham": [
+        "Menghitung k+1 bagian dan memilih uang yang ditanya.",
+        "Memeriksa jumlah serta perbandingan setelah mendapat hasil."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template soal_uang, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "deret_geometri",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "geometri.pola_tambah_dipaksakan",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin mengulang selisih terakhir ketika hubungan antarsuku sebenarnya perkalian tetap.",
+      "batas": "Draf agent, belum direview manusia. Contoh pertumbuhan bilangan positif dengan rasio bulat; bukan barisan pecahan atau klaim pola tunggal dari sembarang deret terbatas.",
+      "urutan": {
+        "benda": "Gunakan kelompok keping: setiap kelompok digandakan menjadi jumlah kelompok yang sama pada tiap langkah. Batasi angka agar dapat diamati.",
+        "gambar": "Gambar cabang dari tiap keping ke dua keping baru, atau kelompok yang menjadi dua kali banyak.",
+        "simbol": "Tulis perkalian antarsuku dan bandingkan dengan selisih. Periksa aturan yang sama berlaku pada seluruh pasangan yang diberikan."
+      },
+      "pertanyaan": [
+        "Berapa kali banyaknya kelompok berubah?",
+        "Apakah selisihnya tetap?",
+        "Apakah aturanmu cocok pada semua langkah, bukan hanya terakhir?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:deret_geometri:geometri.pola_tambah_dipaksakan",
+          "contoh": "Kelompok 2, 4, 8 keping selalu menjadi dua kali. Berikutnya 16. Selisih 2 lalu 4 tidak tetap; menambahkan 4 lagi menghasilkan 12 yang tidak mengikuti penggandaan."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:deret_geometri:geometri.pola_tambah_dipaksakan",
+          "contoh": "Tutup contoh. Pada 3, 9, 27, jelaskan perkalian 3 setiap langkah sehingga berikutnya 81, bukan menambahkan selisih terakhir 18 menjadi 45."
+        }
+      ],
+      "tanda_paham": [
+        "Menunjukkan pengali tetap pada beberapa pasangan.",
+        "Menjelaskan mengapa selisih terakhir tidak cukup untuk aturan perkalian."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template deret_geometri, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "tabel_turus",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "turus.terkecil",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin tertukar memilih kategori paling sedikit saat diminta kategori paling banyak.",
+      "batas": "Draf agent, belum direview manusia. Hanya varian terbanyak; bukan membaca satu baris atau menjumlah semua kategori.",
+      "urutan": {
+        "benda": "Susun keping berlabel kategori dalam baris; satu keping mewakili satu pilihan. Cocokkan nama kategori dan jumlahnya.",
+        "gambar": "Ganti setiap keping dengan satu turus, kelompokkan lima secara jelas. Bandingkan jumlah tiap baris, bukan panjang tulisan nama.",
+        "simbol": "Tulis tabel kategori dan frekuensi. Pilih nama kategori dengan frekuensi terbesar, bukan angka atau kategori terkecil."
+      },
+      "pertanyaan": [
+        "Pertanyaan meminta paling banyak atau paling sedikit?",
+        "Turus ini milik kategori yang mana?",
+        "Bagaimana membandingkan tanpa tertukar baris?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:tabel_turus:turus.terkecil",
+          "contoh": "Turus untuk apel 3, jeruk 7, pisang 5. Jeruk paling banyak karena 7 lebih besar dari 3 dan 5; apel paling sedikit."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:tabel_turus:turus.terkecil",
+          "contoh": "Tutup contoh. Pilihan merah 6, biru 2, hijau 4. Buat turusnya dan jelaskan mengapa merah paling banyak, bukan biru."
+        }
+      ],
+      "tanda_paham": [
+        "Menjaga pasangan kategori-frekuensi.",
+        "Menyebut kategori terbesar setelah menghitung semua turus."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template tabel_turus, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "soal_umur",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "umur.selisih_umur_n_tahun",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin menjawab selisih umur yang tetap, bukan jumlah tahun sampai hubungan kali terpenuhi.",
+      "batas": "Draf agent, belum direview manusia. Konteks dua orang versi katalog2, bukan ayah-anak. Hanya varian n_tahun; belum direview untuk varian mencari umur seseorang.",
+      "urutan": {
+        "benda": "Pakai dua baris keping untuk umur dua tokoh. Tambahkan satu keping pada keduanya untuk setiap tahun, bukan hanya pada tokoh lebih muda.",
+        "gambar": "Buat tabel sekarang, satu tahun lagi, dua tahun lagi; dua kolom umur bertambah bersamaan. Tandai hubungan kali yang ditanyakan.",
+        "simbol": "Uji umur pada tahun calon dan periksa hubungan kali. Selisih umur tetap, tetapi rasio berubah; jawaban adalah banyak tahun yang berlalu."
+      },
+      "pertanyaan": [
+        "Siapa saja yang bertambah umur setiap tahun?",
+        "Apakah selisih umur sama dengan waktu yang ditanya?",
+        "Bagaimana memeriksa perbandingan pada tahun calon?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:soal_umur:umur.selisih_umur_n_tahun",
+          "contoh": "Ari 14 tahun, Bima 4 tahun. Dalam 1 tahun umur 15 dan 5, sehingga Ari 3 kali Bima. Selisih 10 tahun tetap, tetapi waktu yang dicari 1 tahun."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:soal_umur:umur.selisih_umur_n_tahun",
+          "contoh": "Tutup contoh. Raka 16 tahun, Sita 6 tahun. Dua tahun lagi 18 dan 8 belum dua kali; empat tahun lagi 20 dan 10 tepat dua kali. Jelaskan mengapa jawaban 4 tahun, bukan selisih umur 10."
+        }
+      ],
+      "tanda_paham": [
+        "Menambah waktu yang sama pada kedua umur.",
+        "Memeriksa hubungan kali dan menjawab waktu, bukan umur atau selisih."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template soal_umur, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "deret_bertingkat",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "bertingkat.selisih_terakhir_diulang",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin memakai selisih terakhir lagi tanpa melihat bahwa selisih-selisih itu bertambah teratur.",
+      "batas": "Draf agent, belum direview manusia. Hanya deret dengan kenaikan selisih tetap; contoh kedua menunjukkan kenaikan tidak selalu satu.",
+      "urutan": {
+        "benda": "Susun tumpukan keping dan pisahkan tambahan setiap langkah; letakkan keping tambahan pada baris kedua agar pertumbuhannya terlihat.",
+        "gambar": "Gambar suku pada baris atas, selisih pada baris bawah. Hubungkan panah pertama dan kedua dengan warna atau label berbeda.",
+        "simbol": "Hitung selisih berurutan, cari kenaikan selisih, lalu tentukan selisih berikutnya sebelum suku berikutnya."
+      },
+      "pertanyaan": [
+        "Berapa tambahan pada setiap langkah?",
+        "Apa pola pada baris tambahan itu?",
+        "Mana yang harus dicari dulu: tambahan berikutnya atau suku berikutnya?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:deret_bertingkat:bertingkat.selisih_terakhir_diulang",
+          "contoh": "Suku 2, 5, 9, 14 memiliki tambahan 3, 4, 5. Tambahan berikutnya 6 sehingga suku berikutnya 20, bukan 19 dari mengulang 5."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:deret_bertingkat:bertingkat.selisih_terakhir_diulang",
+          "contoh": "Tutup contoh. Suku 1, 5, 11, 19 memiliki tambahan 4, 6, 8. Jelaskan tambahan berikutnya 10 dan suku 29; jangan memaksakan kenaikan selisih satu."
+        }
+      ],
+      "tanda_paham": [
+        "Membedakan suku dari selisih.",
+        "Memeriksa pola selisih pada lebih dari satu langkah sebelum melanjutkan."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template deret_bertingkat, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    },
+    {
+      "template_id": "diagram_batang_garis",
+      "profil": "P3",
+      "kode_intervensi": "K",
+      "malrule_id": "batang.terbesar",
+      "versi": 1,
+      "saksi_seed": 0,
+      "miskonsepsi": "Anak mungkin memilih nilai batang tertinggi ketika yang diminta total seluruh nilai.",
+      "batas": "Draf agent, belum direview manusia. Hanya varian jumlah; tidak menerapkan penjumlahan semua batang pada varian baca atau selisih. Skala contoh satu satuan.",
+      "urutan": {
+        "benda": "Susun empat tumpukan keping berlabel. Gabungkan semua tumpukan untuk menunjukkan total, tanpa hanya mengambil yang tertinggi.",
+        "gambar": "Gambar empat batang dengan skala satuan yang jelas; tulis nilai setiap batang dan beri tanda setelah masuk penjumlahan.",
+        "simbol": "Jumlahkan semua nilai tepat sekali. Bedakan operasi total, selisih, dan membaca satu batang sesuai pertanyaan."
+      },
+      "pertanyaan": [
+        "Diminta satu batang atau seluruhnya?",
+        "Bagaimana menandai batang yang sudah masuk hitungan?",
+        "Apakah total masuk akal dibanding batang paling tinggi?"
+      ],
+      "pendekatan": [
+        {
+          "pendekatan_id": "konsep:diagram_batang_garis:batang.terbesar",
+          "contoh": "Nilai empat batang 2, 4, 3, 5. Total 2 + 4 + 3 + 5 = 14, bukan 5. Tandai keempat batang setelah dijumlahkan."
+        },
+        {
+          "pendekatan_id": "jelaskan-balik:diagram_batang_garis:batang.terbesar",
+          "contoh": "Tutup contoh. Nilai batang 6, 1, 4, 2. Jelaskan jumlah 13 dengan mengelompokkan 6 + 4 dan 1 + 2, sambil menunjukkan semua batang dihitung sekali."
+        }
+      ],
+      "tanda_paham": [
+        "Menentukan operasi dari pertanyaan.",
+        "Memasukkan seluruh batang tepat sekali dan dapat menjelaskan pengelompokan."
+      ],
+      "sumber": [
+        "Analisis generator existing pada accd998; template diagram_batang_garis, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+      ],
+      "status": "draf",
+      "reviewer": null,
+      "tanggal_review": null,
+      "versi_review": null,
+      "sha256_review": null
+    }
+  ]
 }

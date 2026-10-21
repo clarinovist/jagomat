@@ -45,6 +45,11 @@ konten nyata. JSON dibawa image melalui COPY internal, bukan folder aset/publik.
 
 ## Ulasan manusia (belum dilakukan)
 
+Tersedia **15 draf, 0 disahkan**, satu malrule K per pola P3, dengan dua contoh
+berbeda per entri. Bukan cakupan semua malrule atau lima kode lainnya. Antrean dan
+lembar isian reviewer: [ulasan P3](playbook-ulasan-p3.md). Validasi memakai katalog2;
+recovery katalog1 tidak dipaksa menerima identitas baru.
+
 Untuk setiap entri, reviewer perlu menjawab dan menyimpan catatan Markdown:
 
 1. Apakah dugaan miskonsepsi cocok dengan malrule dan **seluruh varian P3 yang dicakup**?
