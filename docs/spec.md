@@ -37,7 +37,9 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   tinjauan hasil, diagnosis B/K/H/E/T/N, serta laporan perkembangan per anak.
   Teori-bilangan mencakup menghitung kelipatan/prima dalam rentang, sisa operasi,
   dan jumlah kelipatan; komposisi internal P4/P5 masing-masing 7/10 jenis, P6 tetap 7.
-  Keragaman jenis bukan klaim penguasaan atau kesetaraan dengan kelas sekolah.
+  Branch recovery Pendamping memakai komposisi writer konservatif versi1 untuk
+  latihan baru; reader semua jenis dan histori tetap tersedia. Keragaman jenis
+  bukan klaim penguasaan atau kesetaraan dengan kelas sekolah.
   [Bank kalimat offline](story-frames.md) tersedia lewat opt-in default nonaktif
   untuk tiga konsep bercerita; snapshot lama/kunci/diagnosis tetap. Paket cetak
   mandiri 6 tantangan KPK/pencacahan kelas5 memiliki solusi terpisah tanpa akun,

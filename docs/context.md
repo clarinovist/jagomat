@@ -181,7 +181,8 @@ cache dan cadangan tetap privat.
   `number_theory_expansion.py` menyediakan empat jenis hitung murni P4/P5 melalui
   registry `topic_number_theory`; kartu/inventaris/katalog target eksplisit.
   `number_theory_versions.py` memisahkan komposisi writer recovery (1) dan batch
-  baru (2); `Topik.komposisi_writer` hanya memilih latihan baru, sedangkan
+  baru (2); branch recovery Pendamping memakai default1 tanpa mengubah reader atau
+  penghentian fitur AI. `Topik.komposisi_writer` hanya memilih latihan baru, sedangkan
   `komposisi` tetap inventaris histori untuk konteks/laporan pada kedua versi. Probe rilis
   `release_question_pair.py` wajib membuktikan bank/PG/cetak/diagnosis C→B→C.
   Katalog materi `jagomat-2026-10-v2` menambah target, tidak mengubah bukti lama.

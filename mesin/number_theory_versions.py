@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import os
 
-# Kandidat writer2, recovery Fase4 c228749 writer1; reader/cache/bank lengkap.
-# Opt-in bank kalimat tetap default0 sampai tinjauan manusia.
-VERSI_TEORI_BILANGAN_BAWAAN = 2
+# Anchor recovery Pendamping: writer konservatif, reader/cache/bank tetap lengkap.
+# Retirement AI tetap aktif; candidate mempertahankan writer2 di branch terpisah.
+VERSI_TEORI_BILANGAN_BAWAAN = 1
 LAMA = {
     "P4": ("keterbagian", "sisa_pembagian", "paritas") * 3 + ("keterbagian",),
     "P5": ("keterbagian", "prima_faktorisasi", "kpk_dua_bilangan",
