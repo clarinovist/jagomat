@@ -134,6 +134,8 @@ print('OSN_QUESTION_WRITER_OK')
 SUMBER_BACA = "import os\nos.environ.pop('OSN_TEORI_BILANGAN_VERSI',None)\n" + BERSAMA + r'''
 from number_theory_versions import versi_writer
 assert versi_writer()==1, 'recovery_writer_bukan_konservatif'
+from catalog_versions import versi_writer as versi_katalog
+assert versi_katalog()==1, 'recovery_writer_katalog_harus_1'
 os.environ.pop('OSN_BANK_KALIMAT',None)
 assert not set(jenis)&{s.template_id for s in buat_lembar(42,level='P4',topik='teori-bilangan').soal}
 m=baca_manifest()

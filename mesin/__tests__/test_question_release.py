@@ -18,7 +18,10 @@ def _jalankan(tmp_path, sumber, injeksi="", akar_mesin=None):
     # menginjeksi default dan wajib membaca default dari masing-masing image.
     if akar_mesin is None:
         versi = 1 if sumber == pair.SUMBER_BACA else 2
-        injeksi = f"import number_theory_versions as v\nv.VERSI_TEORI_BILANGAN_BAWAAN={versi}\n" + injeksi
+        injeksi = (f"import number_theory_versions as v\nv.VERSI_TEORI_BILANGAN_BAWAAN={versi}\n"
+                   f"import catalog_versions as k\nk.VERSI_KATALOG_BAWAAN={versi}\n") + injeksi
+    if sumber == pair.SUMBER_BACA:
+        injeksi += "import catalog_versions\nassert catalog_versions.versi_writer()==1, 'recovery_writer_katalog_harus_1'\n"
     return subprocess.run([sys.executable, "-B", "-"],
         input=injeksi + sumber.replace("/data/", str(tmp_path) + "/"),
         env=env, capture_output=True, text=True, timeout=30)

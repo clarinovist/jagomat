@@ -35,6 +35,9 @@ os.environ.setdefault('SENSOR_CONSENT_EPOCH', '0123456789abcdef0123456789abcdef'
 os.environ.setdefault("OSN_MATEMATIKA_VERSI", "2")
 # Suite domain menguji writer batch baru; tes recovery menghapus override ini.
 os.environ.setdefault("OSN_TEORI_BILANGAN_VERSI", "2")
+# Suite warisan mengunci rekonstruksi lama. Suite test_catalog_* dan baseline
+# generik menguji writer2 eksplisit; test default menghapus override ini.
+os.environ.setdefault("OSN_KATALOG_VERSI", "1")
 
 
 @pytest.fixture(autouse=True)

@@ -1,6 +1,6 @@
 # Koreksi katalog soal dan perlindungan histori
 
-Status: **Batch A–C diimplementasikan, writer baru belum diaktifkan**. Audit
+Status: **konten Batch A–C disetujui manusia; kandidat writer2 disiapkan untuk rilis**. Audit
 semantik mendalam hanya subset, bukan sertifikasi seluruh 97 template.
 Tidak ada koreksi otomatis terhadap data historis.
 
@@ -11,7 +11,8 @@ geometri existing. Parameter `versi_katalog=2` ikut tanda tangan bank, sehingga
 kunci/malrule baru tidak memakai ID soal lama. Tanpa marker, fungsi historis tetap
 dipakai, termasuk pembahasan; reader tidak membaca flag writer.
 
-`OSN_KATALOG_VERSI` hanya menerima `1` atau `2`. Bawaan masih `1` (jembatan reader).
+`OSN_KATALOG_VERSI` hanya menerima `1` atau `2`. Bawaan kandidat kini `2`, recovery
+`542dcd9` tetap `1`; tidak memasang override bersama yang mengaktifkan recovery.
 `2` memilih koreksi untuk 26 template terdaftar, tidak mengubah rentang parameter
 atau komposisi. Pengukuran, jaring, perbandingan volume dan tabung mensyaratkan
 matematika versi2; kombinasi tidak didukung ditolak, bukan memakai kunci warisan.
@@ -84,15 +85,18 @@ marker diblokir eksplisit sebelum memuat data. Tes source bukan bukti image exac
 Recovery pinned `542dcd94132c4b91bca78004643c8eb2c82686d7` mendukung katalog2 dan
 kedua konteks umur, tetapi tetap menulis katalog1/komposisi teori-bilangan1.
 Baseline ini lulus CI39596225447 dalam mode persiapan sebelum dipatok kandidat.
-**Jangan aktifkan/deploy writer2** sebelum full CI/build, review manusia konten
-berubah dan gate pasangan exact kandidat–recovery baru lulus. Pin tidak diubah untuk meloloskan gate; review versi sebelumnya
+Tinjauan manusia dinyatakan disetujui pengguna pada paket hash
+`6522bc48bc9cce2c8edcf354fa1a50adf7b317ea8c6a9a2c83c1097d039e32bc`.
+Aktivasi produksi tetap memerlukan full CI/build kandidat aktif, gate pasangan
+exact, preflight, backup/rehearsal, dan cutover terkontrol. Persetujuan ini bukan
+bukti deployment dan tidak mencakup perubahan konten berikutnya. Pin tidak diubah untuk meloloskan gate; review versi sebelumnya
 tidak mengesahkan konten baru. Tidak ada runtime LLM untuk kunci/diagnosis.
 
 ## Batas dan follow-up
 
 - Kewajaran ayah12/anak3 sudah ditangani pada soal baru dengan melepas hubungan
-  keluarga (Ari/Bima); histori lama tidak ditulis ulang. Contoh baru tetap menunggu
-  tinjauan manusia. Ekspor `scripts/catalog_preview.py` menghasilkan HTML dan
+  keluarga (Ari/Bima); histori lama tidak ditulis ulang. Contoh baru sudah ditinjau
+  dan disetujui pengguna pada hash di atas. Ekspor `scripts/catalog_preview.py` menghasilkan HTML dan
   manifest hash konten yang terikat SHA; disertakan pada artefak CI.
 - Cabang tabung existing, pembagian pecahan terpotong di rule lain, dan template
   tak ditandai tidak otomatis benar. Audit lanjutan di luar temuan ini tetap perlu.
