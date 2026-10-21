@@ -1,6 +1,7 @@
 # Koreksi katalog soal dan perlindungan histori
 
-Status: **konten Batch A–C disetujui manusia; kandidat writer2 disiapkan untuk rilis**. Audit
+Status: **konten Batch A–C disetujui manusia dan writer2 aktif di produksi**
+pada kandidat `1472f8c` (21 Oktober 2026). Audit
 semantik mendalam hanya subset, bukan sertifikasi seluruh 97 template.
 Tidak ada koreksi otomatis terhadap data historis.
 
@@ -90,7 +91,9 @@ Tinjauan manusia dinyatakan disetujui pengguna pada paket hash
 `6522bc48bc9cce2c8edcf354fa1a50adf7b317ea8c6a9a2c83c1097d039e32bc`.
 Aktivasi produksi tetap memerlukan full CI/build kandidat aktif, gate pasangan
 exact, preflight, backup/rehearsal, dan cutover terkontrol. Persetujuan ini bukan
-bukti deployment dan tidak mencakup perubahan konten berikutnya. Pin tidak diubah untuk meloloskan gate; review versi sebelumnya
+bukti deployment dan tidak mencakup perubahan konten berikutnya.
+Deployment `1472f8c` telah lulus CI39610870417, pair exact dengan recoveryedd323c,
+backup/rehearsal dan smoke produksi; rincian bukti pada [runbook](production-release.md). Pin tidak diubah untuk meloloskan gate; review versi sebelumnya
 tidak mengesahkan konten baru. Tidak ada runtime LLM untuk kunci/diagnosis.
 
 ## Kompatibilitas pilot keterampilan

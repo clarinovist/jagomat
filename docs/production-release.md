@@ -1,5 +1,35 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Aktivasi katalog A–C — 21 Oktober 2026
+
+Controlled deploy-v2 berhasil memasang **1472f8c2255f4f9d2c5b552fc71f61a30d194808**,
+digest `sha256:c5e70b0fd4c7546c95d0f40f0c277b7c1e115a1460ae0951335952326a488f05`;
+recovery **edd323c4822347f6d584bb0f311e76cac4962e40**, digest
+`sha256:dea0dcb8a106e57fd6c0aa7104f6b3fc7daa2d8fac68517125b4c5616ee9abdd`.
+CI lengkap39610870417 dan push39610870119 sukses. Full kandidat/recovery empat
+shard, build/probe dan C→B→C katalog2/pilot lulus. Persetujuan manusia eksplisit
+terikat hash konten6522bc48bc9cce2c8edcf354fa1a50adf7b317ea8c6a9a2c83c1097d039e32bc.
+
+Aktivasi awal49a372c ditahan CI karena validator pilot kisi belum memahami marker
+katalog2. Reader diperbaiki, regression/mutation ditambahkan, baselineedd323c
+(writer katalog1/komposisi1) dibekukan dan diuji CI39609036312 sebelum dipatok.
+Koleksi13.896 tes recovery identik arsip exact dan manifest CI. Kandidat final
+writer katalog2; tidak memasang env bersama yang mengaktifkan writer recovery.
+
+Preflight dua digest dan metadata skema live read-only lulus sebelum maintenance.
+Bundle `deploy-katalog-1472f8c-20261021` empat DB+auth dan riset terpisah diverifikasi
+hash remote/lokal. Rehearsal startup/preservasi C–B–C serta validator bundle lulus.
+Tanpa migrasi atau koreksi historis: hash sepuluh tabel soal, malrule, jawaban,
+diagnosis, snapshot/konfirmasi/konteks tetap sebelum membuka akses.
+
+Cutover exit0, kandidat healthy. Caddy/dua cron/config dipulihkan hash-identik;
+probe sintetis dalam memori membuktikan writer2, umur Ari/Bima dan selector pilot.
+Smoke publik dari luar VPS `/`200, `/akun`401, `/murid/`303 ke `/masuk`; loopback
+sama. Request domain publik dari VPS sempat403 (bukan hasil smoke eksternal);
+marker Traceback/OperationalError/IntegrityError nol. Tidak memakai akun/data anak
+untuk walkthrough. Empat turunan rehearsal dibersihkan, backup induk/receipt tetap.
+Deployer2479470f… tidak diubah; job pasang otomatis tetap false.
+
 ## Penyiapan recovery katalog A–C — 21 Oktober 2026
 
 Batch A–C `251d50e` lulus CI39567283483 tetapi writer katalog masih1;

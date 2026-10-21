@@ -109,8 +109,9 @@ wajib mempertahankan reader cetak bank: rollback template saja, bukan seluruh
 patch. Image recovery exact harus membuktikan pembacaan bank baru sebelum deploy.
 [Koreksi katalog](catalog-corrections.md) menyiapkan marker `versi_katalog` untuk
 memisahkan konten baru dari bank lama. Reader harus memilih dari parameter, bukan
-flag writer; kunci/malrule/pembahasan lama tidak ditulis ulang. Bawaan writer masih
-warisan sampai review konten dan gate exact baru, bukan otomatis aktif dari patch.
+flag writer; kunci/malrule/pembahasan lama tidak ditulis ulang. Writer katalog2
+sudah aktif setelah review konten dan gate exact; recoveryedd323c tetap writer1
+namun membaca katalog2 termasuk kontrak pilot. Perubahan berikutnya tetap perlu gate.
 
 **Baseline generik.** `test_kualitas_soal_generik.py` mengunci 204 pasangan existing
 pada writer v2 (seed 0..299) dan komposisi lembar (seed 0..99), dengan mutation

@@ -199,7 +199,8 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   identitas pada arsip diputus bila kontrak mengizinkan, sementara bukti/ledger
   append-only tetap dipertahankan.
 - [Koreksi katalog](catalog-corrections.md) memakai identitas konten baru tanpa
-  mengoreksi riwayat; writer perbaikan masih opt-in/nonaktif bawaan dan belum dirilis.
+  mengoreksi riwayat; writer perbaikan aktif pada kandidat/produksi, sedangkan
+  recovery tetap memakai writer lama dan memahami reader baru.
   Soal umur baru memakai dua orang tanpa hubungan keluarga, bukan menaikkan rentang
   angka agar usia ayah masuk akal. Tinjauan manusia konten berubah serta gate
   recovery exact tetap wajib.

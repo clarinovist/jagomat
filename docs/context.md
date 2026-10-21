@@ -188,12 +188,11 @@ cache dan cadangan tetap privat.
   `komposisi` tetap inventaris histori untuk konteks/laporan pada kedua versi. Probe rilis
   `release_question_pair.py` wajib membuktikan bank/PG/cetak/diagnosis C→B→C.
   Katalog materi `jagomat-2026-10-v2` menambah target, tidak mengubah bukti lama.
-  `catalog_versions.py` menyiapkan versi konten opt-in terpisah untuk koreksi audit:
+  `catalog_versions.py` memisahkan versi konten untuk [koreksi katalog](catalog-corrections.md):
   marker parameter membedakan identitas bank baru, reader tanpa marker mempertahankan
-  fungsi historis. Bawaan writer masih warisan; [koreksi katalog](catalog-corrections.md)
-  belum aktif dan memerlukan review manusia serta pair exact baru; baseline reader
-  recovery542dcd9 telah dibekukan. Probe selalu membuat katalog2 di sandbox walau
-  default aplikasi1, agar kompatibilitas tidak lolos akibat flag nonaktif. Konteks umur
+  fungsi historis. Kandidat/produksi writer2, recoveryedd323c writer1 dan reader lengkap
+  termasuk pilot kisi; konten telah ditinjau manusia. Probe selalu membuat katalog2
+  di sandbox agar kompatibilitas tidak lolos akibat flag nonaktif. Konteks umur
   Ari/Bima memiliki marker sendiri; reader tetap mengenali konteks ayah–anak lama.
   `catalog_preview.py` membekukan contoh sintetis+hash pada artefak CI.
   Cetak guru membaca kunci/malrule bank tersimpan, bukan aturan template terbaru;
