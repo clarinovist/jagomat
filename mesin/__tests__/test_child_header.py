@@ -34,7 +34,9 @@ def test_identitas_sibling_inisial_dan_escape():
 def test_shell_shared_dan_admin_tidak_memakai_varian_baru():
     biasa = S._topbar_stitch('keluarga-a', 'guru')
     ringkas = S._topbar_stitch('keluarga-a', 'guru', ringkas=True)
-    assert 'class="identitas-akun-st"' in biasa and '>keluarga-a</span>' in biasa
+    # Satu label akun di semua halaman: format tampilan sama, nama login tidak berubah.
+    assert 'class="identitas-akun-st"' in biasa and '>Keluarga A</span>' in biasa
+    assert '>keluarga-a</span>' not in biasa
     assert 'class="identitas-akun-st"' not in ringkas and '>Keluarga A</span>' in ringkas
     assert 'Pendamping' not in ringkas.split('</summary>')[0]
     assert 'Pendamping' in ringkas.split('class="menu-isi"')[1]

@@ -60,7 +60,8 @@ def _topbar_stitch(pengguna: str, peran: str, *, ringkas: bool = False, bantuan:
         )
     else:
         brand_href, item = "/guru", '<a href="/akun">Akun &amp; Siswa</a>'
-    siapa = html.escape(pengguna) if pengguna else ""
+    from child_header import nama_akun
+    siapa = html.escape(nama_akun(pengguna)) if pengguna and pengguna.strip() else ""
     ringkasan_akun = (
         '<summary><span class="identitas-akun-st">'
         f'{_badge_peran(peran)}<span class="nama-akun-st">{siapa}</span></span>'
@@ -68,7 +69,6 @@ def _topbar_stitch(pengguna: str, peran: str, *, ringkas: bool = False, bantuan:
         if siapa else '<summary aria-label="Menu pendamping">Menu</summary>'
     )
     if ringkas:
-        from child_header import nama_akun
         siapa = html.escape(nama_akun(pengguna))
         ringkasan_akun = (
             f'<summary aria-label="Menu akun: {siapa}">'
