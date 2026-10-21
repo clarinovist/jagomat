@@ -156,3 +156,15 @@ def test_beranda_menggabung_bantuan_dalam_satu_akordeon(db):
     # Tidak ada akordeon bantuan di luar gabungan.
     luar = (markup[:awal] + markup[awal + len(gabungan):]).split('<body', 1)[1]
     assert 'class="bantuan-statis-faq"' not in luar and 'class="bantuan-statis-kartu"' not in luar
+
+
+def test_akordeon_bantuan_memakai_gaya_polos_sama_dengan_rincian_ui():
+    import re
+    import style_stitch
+    css = parent_help.GAYA
+    kotak = re.search(r'\.bantuan-statis-kartu, \.bantuan-statis-faq \{([^}]+)\}', css).group(1)
+    assert 'border: 0' in kotak and 'background: transparent' in kotak and 'border-radius' not in kotak
+    ringkas = re.search(r'\.bantuan-statis-kartu > summary, \.bantuan-statis-faq > summary \{([^}]+)\}', css).group(1)
+    rincian = re.search(r'\.rincian-ui-st > summary \{([^}]+)\}', style_stitch.GAYA_STITCH).group(1)
+    for sama in (f'color: {parent_help.T.AKSEN_TEAL_TUA}', f'font-size: {parent_help.T.UKURAN_TEKS_BANTUAN}'):
+        assert sama in ringkas and sama in rincian

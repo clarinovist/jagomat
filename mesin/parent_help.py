@@ -74,22 +74,22 @@ GAYA = f'''
 .bantuan-statis-pengantar {{ margin: 0 0 {T.SP_3}; line-height: 1.6; }}
 .bantuan-statis-daftar {{ display: grid; gap: {T.SP_2}; }}
 .bantuan-statis-kartu, .bantuan-statis-faq {{
-  min-width: 0; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
-  border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_KARTU};
+  min-width: 0; border: 0; background: transparent;
   color: {T.TEKS_UTAMA}; overflow-wrap: anywhere;
 }}
+.bantuan-statis-kartu + .bantuan-statis-kartu {{ border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
 .bantuan-statis-faq {{ margin-block: {T.SP_4}; }}
 .bantuan-gabungan-st {{ margin-block: {T.SP_5}; }}
-.bantuan-gabungan-st > summary {{ cursor: pointer; box-sizing: border-box; min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-size: 1rem; color: {T.AKSEN_TEAL_TUA}; font-weight: 600; }}
+.bantuan-gabungan-st > summary {{ cursor: pointer; box-sizing: border-box; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} 0; font-size: {T.UKURAN_TEKS_BANTUAN}; line-height: 1.5; color: {T.AKSEN_TEAL_TUA}; font-weight: 600; }}
 .bantuan-statis-kartu > summary, .bantuan-statis-faq > summary {{
   cursor: pointer; box-sizing: border-box; min-height: {T.TARGET_SENTUH};
-  padding: {T.SP_3} {T.SP_4}; font-size: 1rem; line-height: 1.5;
+  padding: {T.SP_2} 0; font-size: {T.UKURAN_TEKS_BANTUAN}; line-height: 1.5;
   color: {T.AKSEN_TEAL_TUA}; font-weight: 600;
 }}
 .bantuan-statis-kartu > summary:focus-visible, .bantuan-statis-faq > summary:focus-visible {{
   outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px;
 }}
-.bantuan-statis-isi {{ padding: 0 {T.SP_4} {T.SP_3}; }}
+.bantuan-statis-isi {{ padding: 0 0 {T.SP_3}; }}
 .bantuan-statis-isi p, .bantuan-statis-faq > p {{ line-height: 1.6; margin: {T.SP_2} 0; }}
-.bantuan-statis-faq > p {{ padding: 0 {T.SP_4} {T.SP_3}; }}
+.bantuan-statis-faq > p {{ padding: 0 0 {T.SP_3}; }}
 '''
