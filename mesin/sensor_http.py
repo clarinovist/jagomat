@@ -10,6 +10,7 @@ import admin_store
 import auth
 import database
 import sensor_domain as d
+from format_tanggal import waktu_wib
 import sensor_store as store
 
 SIAP = os.environ.get('SENSOR_KOLEKSI_SIAP', '0') == '1'
@@ -136,7 +137,7 @@ def form_akun(penangan):
             )
             status = '<p><b>Pilihan tersimpan:</b></p><ul>' + pilihan + '</ul>'
             if row['dibuat']:
-                tanggal = datetime.fromtimestamp(row['dibuat'], _WIB).strftime('%d-%m-%Y %H:%M WIB')
+                tanggal = waktu_wib(datetime.fromtimestamp(row['dibuat'], _WIB))
                 status += '<p>Tanggal persetujuan terakhir: ' + tanggal + '.</p>'
             if not policy_store.berlaku(row):
                 status += '<p>Persetujuan perlu ditinjau ulang. Penggunaan tambahan tidak aktif.</p>'
@@ -145,7 +146,7 @@ def form_akun(penangan):
             elif izin is None:
                 status += '<p><b>Penggunaan tambahan tidak aktif.</b> Izin kedaluwarsa atau pencatatan sedang tidak tersedia.</p>'
             else:
-                tanggal = datetime.fromtimestamp(izin.berakhir, _WIB).strftime('%d-%m-%Y %H:%M WIB')
+                tanggal = waktu_wib(datetime.fromtimestamp(izin.berakhir, _WIB))
                 status += '<p><b>Penggunaan tambahan aktif</b> sampai ' + tanggal + '.</p>'
         import product_analytics_http as lama
         cabut_token=lama._token(p,penangan._ambil_token(),'sensor-cabut')

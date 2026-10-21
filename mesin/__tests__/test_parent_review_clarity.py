@@ -127,9 +127,9 @@ def test_kartu_menyebut_sesi_rekomendasi_bukan_riwayat_terbaru(db):
 
         assert tuple(kon.iterdump()) == sebelum
         kartu = re.search(r'<section class="kartu-rencana-st".*?</section>', isi, re.S).group()
-        assert f'Sesi #{terpandu} · <time datetime="2026-09-12">12 September 2026</time>' in kartu
+        assert f'Sesi #{terpandu} · <time datetime="2026-09-12">12 Sep 2026</time>' in kartu
         assert f'Sesi #{manual}' not in kartu
-        assert '15 September 2026' not in kartu
+        assert '15 Sep 2026' not in kartu
         assert f'href="/sesi/{terpandu}">Mulai tinjau</a>' in kartu
         assert kartu.count('class="rencana-cta-utama-st"') == 1
         assert 'Hasil belum dikonfirmasi.' in kartu

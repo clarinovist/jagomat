@@ -59,7 +59,7 @@ def test_progres_dilipat_tetapi_tindakan_dan_peringatan_tetap_terlihat(tindakan)
         assert any(materi.contoh_terbimbing in t and d == 0 for t, d in struktur.teks)
         assert any(materi.instruksi_orang_tua in t and d == 0 for t, d in struktur.teks)
     if tindakan.startswith('tunggu'):
-        assert any('1 Oktober 2026' in t and d == 0 for t, d in struktur.teks)
+        assert any('1 Okt 2026' in t and d == 0 for t, d in struktur.teks)
     if tindakan == 'pemetaan':
         assert any('15 soal' in t and d == 0 for t, d in struktur.teks)
         assert any('tanggal berbeda' in t and d == 0 for t, d in struktur.teks)

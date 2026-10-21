@@ -252,7 +252,7 @@ def test_tunggu_dan_materi_tidak_tersedia_tidak_menawarkan_buat(monkeypatch):
     html_tunggu = learning_cycle_ui.render_rencana(tunggu, bukti, 9)
     html_materi = learning_cycle_ui.render_rencana(intervensi, bukti, 9)
 
-    assert "12 September 2026" in html_tunggu
+    assert "12 Sep 2026" in html_tunggu
     assert "/siklus/9/buat" not in html_tunggu
     assert "Materi &lt;belum&gt; tersedia &amp; perlu ditinjau." in html_materi
     assert "materi_<baru>" not in html_materi
@@ -471,7 +471,7 @@ def test_tunggu_pemetaan_memakai_copy_positif_dan_tanggal_reducer():
 
     assert '<h2 class="st" id="judul-rencana-belajar">Cukup untuk hari ini</h2>' in isi
     assert "Latihan awal 1 dari 3 selesai untuk hari ini." in isi
-    assert "11 September 2026" in isi
+    assert "11 Sep 2026" in isi
     assert "Lanjutkan pemetaan besok" not in isi
 
 

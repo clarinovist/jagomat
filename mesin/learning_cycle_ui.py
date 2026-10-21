@@ -187,11 +187,8 @@ def _progres(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
 
 
 def _tanggal_indonesia(nilai: date) -> str:
-    bulan = (
-        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember",
-    )
-    return f"{nilai.day} {bulan[nilai.month - 1]} {nilai.year}"
+    from format_tanggal import tanggal_pendek
+    return tanggal_pendek(nilai)
 
 
 def _identitas_sesi(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:

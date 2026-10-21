@@ -20,7 +20,8 @@ def nominal(rupiah):
 
 def tanggal_wib(detik):
     d.waktu(detik)
-    return datetime.fromtimestamp(detik, d.WIB).strftime("%d-%m-%Y %H:%M WIB")
+    from format_tanggal import waktu_wib
+    return waktu_wib(datetime.fromtimestamp(detik, d.WIB))
 
 
 def _catatan(sebab):

@@ -85,7 +85,7 @@ def test_semua_langkah_menjaga_satu_aksi_dan_tanggal_tunggu(tindakan):
     assert isi.count('class="rencana-cta-utama-st"') == (0 if tanpa else 1)
     assert isi.count('aria-current="step"') == 1
     if tindakan.startswith('tunggu'):
-        assert '22 Oktober 2026' in terlihat
+        assert '22 Okt 2026' in terlihat
     if tindakan == 'intervensi':
         materi = interventions.untuk_fokus(fokus)
         assert materi.instruksi_orang_tua in terlihat and materi.contoh_terbimbing in terlihat

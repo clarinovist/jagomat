@@ -130,7 +130,7 @@ def test_sesi_aktif_dan_konfirmasi_mempertahankan_tautan_cta_tunggal():
 
 def test_menunggu_memiliki_layout_utuh_tanggal_dan_tanpa_kolom_aksi_palsu():
     isi = _render("tunggu_evaluasi", tanggal=date(2026, 9, 20))
-    assert "20 September 2026" in isi
+    assert "20 Sep 2026" in isi
     assert 'class="studio-pendamping-st"' in isi
     assert '<div class="studio-aksi-st"></div>' in isi
     assert 'class="rencana-cta-utama-st"' not in isi
