@@ -395,6 +395,6 @@ def test_beranda_guru_satu_chevron_dan_tautan_internal_tanpa_panah_keluar(server
 
 
 def test_maskot_beranda_disembunyikan_di_ponsel_agar_kartu_anak_terlihat():
-    blok = [b for b in style_stitch.GAYA_STITCH.split("@media (max-width: 36rem) {")[1:]
-            if ".guru-sapaan-st" in b.split("/* Akhir beranda pendamping */", 1)[0]]
-    assert blok and ".guru-catatan-st { display: none; }" in blok[0]
+    css = style_stitch.GAYA_STITCH
+    posisi = css.index(".guru-catatan-st { display: none; }")
+    assert css[:posisi].rsplit("@media", 1)[1].startswith(" (max-width: 36rem)")
