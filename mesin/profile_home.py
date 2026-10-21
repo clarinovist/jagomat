@@ -55,7 +55,7 @@ def _badge_menunggu(rencana, bukti, hari_ini=None):
     return chip_status(f'Menunggu {hari} hari', 'perhatian') if hari >= 1 else ''
 
 
-def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=None):
+def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=None, peran=None):
     """Susun kartu Beranda; aksi, materi dan status tetap milik helper siklus."""
     from cycle_carry import bukti_lanjutan
     from cycle_representations import CATATAN_PEMISAHAN, bukti_satu_representasi
@@ -88,6 +88,14 @@ def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=
             contoh = ('<div class="contoh-rencana-st"><b>Contoh terbimbing</b><p>'
                       + _e(materi.contoh_terbimbing) + '</p>'
                       + UI._visual_materi(rencana, materi, sid) + '</div>')
+    playbook = ''
+    if materi is not None and not tertahan:
+        import teaching_playbook
+        playbook = teaching_playbook.render(
+            fokus, bukti.level_aktif, peran=peran, pendekatan_id=materi.pendekatan_id,
+        )
+        if playbook:
+            playbook = '<style>' + teaching_playbook.GAYA + '</style>' + playbook
     tanggal = (f'<p class="tanggal-rencana-st">Tersedia pada {_e(UI._tanggal_indonesia(rencana.tersedia_pada))}.</p>'
                if rencana.tersedia_pada else '')
     histori = ''.join('<p class="catatan-histori-level-st">' + _e(teks) + '</p>'
@@ -112,7 +120,7 @@ def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=
         f'<h2 class="st" id="judul-rencana-belajar">{_e(judul)}</h2>'
         + meta + progres + tanggal + konteks
         + '<div class="beranda-caranya-st"><b>Caranya</b><p>' + _e(instruksi) + '</p></div>'
-        + contoh + '<div class="beranda-aksi-st">' + cta + petunjuk + '</div>'
+        + contoh + playbook + '<div class="beranda-aksi-st">' + cta + petunjuk + '</div>'
         + '<details class="rincian-ui-st batas-rencana-st"><summary>Cara membaca progres ini</summary>'
         '<p>' + _e(UI._alasan(rencana, fokus)) + '</p>' + catatan_mode + '</details>'
         + histori + slot_bantuan + UI._override(rencana, sid) + '</section>'

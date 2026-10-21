@@ -603,7 +603,7 @@ def pengingat_rencana(kon, siswa_id: int) -> str:
 
 def kartu_rencana(
     kon, siswa_id: int, slot_bantuan: str = "", *, dengan_identitas=False,
-    siswa=None,
+    siswa=None, peran=None,
 ):
     """Muat rekomendasi tunggal dan, bila diminta, identitas sesi CTA-nya."""
     from skill_pilot_ui import kartu, sesi_utama
@@ -623,7 +623,7 @@ def kartu_rencana(
                 'WHERE s.id=? AND s.siswa_id=?', (rencana.sesi_id, siswa_id),
             ).fetchone()[0] if rencana.sesi_id else None
             hasil = kartu_beranda(rencana, bukti, siswa, jumlah_soal=jumlah,
-                                  slot_bantuan=slot_bantuan)
+                                  slot_bantuan=slot_bantuan, peran=peran)
         hasil += tambahan
         identitas = (
             rencana.sesi_id

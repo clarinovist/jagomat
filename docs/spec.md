@@ -79,7 +79,10 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   gagal dibaca, kartunya tetap tampil dengan penanda "buka profil" dan beranda tidak rusak.
 - Kerangka [playbook guru](playbook-guru.md) menambah panduan pra-tulis tanpa menentukan
   diagnosis/status/rekomendasi. Belum ada reviewer matematika manusia: konten baru hanya
-  draf dan tidak ditampilkan. Selector gagal tertutup untuk konten rusak, tidak cocok,
+  draf dan tidak ditampilkan. Slot ringkas pada kartu tinjauan dan Beranda profil
+  hanya menerima isi disahkan yang cocok, tertutup secara default; materi/CTA existing
+  tidak diganti. Tidak tersedia di murid, tautan sesi, atau resource guru lain.
+  Selector gagal tertutup untuk konten rusak, tidak cocok,
   atau tanpa pengesahan manusia atas versi/hash isi. Prioritas berdasarkan analisis;
   observasi guru sengaja dilewati, bukan bukti kebutuhan tervalidasi.
 - Bantuan orang tua tanpa AI: satu disclosure kunci/pembahasan tiap soal tinjauan

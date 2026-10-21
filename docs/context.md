@@ -176,8 +176,11 @@ cache dan cadangan tetap privat.
   exact dan pendekatan existing; saksi seed memeriksa pasangan malrule/kode, bukan
   mengesahkan pedagogi. Draf/invalid/duplikat/review usang menghasilkan fragmen kosong.
   Hash mengikat ulasan ke isi/versi, bukan membuktikan identitas manusia. JSON ikut
-  image lewat COPY internal, bukan aset publik. Tidak mengubah reducer/materi existing.
-  [Kontrak dan ulasan](playbook-guru.md); prioritas guru in-house, data sintetis dulu.
+  image lewat COPY internal, bukan aset publik. Slot `teacher_session_pages` memakai
+  kode efektif dan malrule usulan yang cocok; `profile_home` menerima peran eksplisit
+  melalui `teacher_workspace`/`learning_cycle_ui`, mengikuti fokus/pendekatan reducer.
+  Tanpa peran guru/materi cocok tidak membaca isi; draf tidak menambah markup/CSS.
+  Tidak mengubah reducer/materi existing. [Kontrak dan ulasan](playbook-guru.md); prioritas guru in-house, data sintetis dulu.
 - `parent_help.py` merender kartu pra-tulis dan FAQ kontekstual pada permukaan
   guru melalui `teacher_workspace`/`teacher_session_pages`, tanpa DB/AI atau route
   baru. Disclosure native menjaga form/draf; kunci/pembahasan tetap dari loader

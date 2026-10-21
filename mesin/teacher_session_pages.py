@@ -211,6 +211,7 @@ def halaman_sesi_stitch(
     kartu_tercatat = []
     antrean_tinjauan = []
     outcome_tampilan = []
+    gaya_playbook = ''
     for b in database.isi_sesi(kon, sesi_id):
         soal = soal_dari_baris(b)
         sudah = b["jawaban_id"] is not None
@@ -497,6 +498,16 @@ def halaman_sesi_stitch(
             'Simpan draf menyimpan pilihan tanpa mengesahkan; Konfirmasi hasil sesi menyimpan dan mengesahkan penilaian, termasuk usulan yang dipakai.'
         )
         dampak_lewati = 'Saat dikonfirmasi, soal dicatat sebagai dilewati, bukan benar atau salah, dan bukan bukti pemahaman. Jawaban dan catatan asli tetap tersimpan.'
+        playbook = ''
+        if sudah_dikirim and not sesi_dibatalkan and not dilewati_terpilih and kode_efektif:
+            import teaching_playbook
+            # Jangan gabungkan kode pilihan guru dengan malrule usulan kode lain.
+            malrule_playbook = rekomendasi.malrule_id if rekomendasi.kode == kode_efektif else None
+            playbook = teaching_playbook.render(
+                (b['template_id'], kode_efektif, malrule_playbook), info['level'], peran=peran,
+            )
+            if playbook:
+                gaya_playbook = teaching_playbook.GAYA
         kartu_html = f"""
 <article class="koreksi-kartu-st koreksi-lipat-st status-{bulat_cls} kategori-{kategori_tinjauan}"{atribut_kartu} data-tindakan="{html.escape(label_tindakan)}" data-kartu-tinjauan data-prioritas="{2 if masalah_butir or bantuan_nomor == int(b['nomor']) else 1 if buka_kartu else 0}">
   <h3 class="koreksi-judul-kartu-st">
@@ -519,6 +530,7 @@ def halaman_sesi_stitch(
       <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b['kunci'])}</span></div>
       {pembahasan_html or '<p class="koreksi-catatan-st">Pembahasan belum tersedia untuk soal ini.</p>'}
     </details>
+    {playbook}
     <fieldset class="koreksi-pemahaman-st">
       <legend>Tinjau bersama anak</legend>
       <p class="koreksi-tanya-st">Tanyakan: “{html.escape(pertanyaan_tinjauan)}”</p>
@@ -1033,6 +1045,6 @@ def halaman_sesi_stitch(
 <title>{html.escape(brand.judul(f"Sesi #{sesi_id}"))}</title>
 {brand.tag_kepala(cetak=bool(bantuan or privat))}
 {'' if (bantuan or privat) else '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">'}
-<style>{gaya_sesi}{CSS_SESI}{parent_help.GAYA}{mapping_results.GAYA_HASIL if hasil_pemetaan else ''}</style></head>
+<style>{gaya_sesi}{CSS_SESI}{gaya_playbook}{parent_help.GAYA}{mapping_results.GAYA_HASIL if hasil_pemetaan else ''}</style></head>
 <body class="st"><div class="bungkus-st pendamping-editorial-st koreksi-editorial-st">{batang}{isi}</div>{skrip_extra}</body></html>"""
     ).encode()

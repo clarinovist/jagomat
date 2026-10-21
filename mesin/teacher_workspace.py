@@ -337,7 +337,7 @@ def halaman_anak(
     if section == "rencana":
         kartu_rencana, sesi_utama = learning_cycle_ui.kartu_rencana(
             kon, int(siswa["id"]),
-            dengan_identitas=True, siswa=siswa,
+            dengan_identitas=True, siswa=siswa, peran=peran,
         )
         import profile_home
         sesi = profile_history.tinjauan_terlama(kon, siswa["id"], kecuali=sesi_utama)

@@ -1,6 +1,4 @@
 """Inventaris draf sintetis P3; validasi teknis bukan review matematika manusia."""
-import json
-
 import teaching_playbook as pb
 from generator import buat_soal
 from learning_cycle import RencanaBelajar
@@ -11,7 +9,8 @@ import topics
 def test_lima_belas_pola_disetujui_semuanya_draf(monkeypatch):
     # Draf ditujukan writer katalog2. Recovery katalog1 tidak dipaksa menerima ID baru.
     monkeypatch.setenv('OSN_KATALOG_VERSI', '2')
-    entri = json.loads(pb.BERKAS.read_text())['entri']
+    # Parser strict yang sama: envelope versi salah/kunci ganda -> kosong -> test merah.
+    entri = pb._baca()
     disetujui = set(_urutan_rencana(RencanaBelajar('pemetaan', ''), (), 'P3'))
     assert len(entri) == 15
     assert {e['template_id'] for e in entri} == disetujui

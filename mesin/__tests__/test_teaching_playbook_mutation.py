@@ -15,8 +15,14 @@ ROOT = Path(__file__).resolve().parents[1]
     ("if peran != 'guru':", 'if False:', 'test_peran_lain_tidak_membaca_berkas'),
     ('if validasi_entri(e) or not _review_sah(e):', 'if validasi_entri(e):',
      'test_edit_isi_membatalkan_review_tanpa_perlu_ganti_versi'),
+    ('if validasi_entri(e) or not _review_sah(e):', 'if not _review_sah(e):',
+     'test_validasi_skema_gagal_sebelum_render'),
     ('if _identitas(e) == identitas]', 'if True]', 'test_kecocokan_tepat_tanpa_fallback'),
-    ('if not _cocok_domain(e):', 'if False:', 'test_contoh_alternatif_harus_berbeda_dan_id_existing'),
+    ('if not _cocok_domain(e):', 'if False:', 'test_pasangan_malrule_kode_rekaan_ditolak'),
+    ('if not _cocok_domain(e):', 'if False:', 'test_profil_template_tidak_didukung_meski_request_cocok'),
+    ("        nilai.encode('utf-8')", '        pass', 'test_surrogate_json_gagal_tertutup'),
+    ('if len(cocok) != 1:', 'if not cocok:', 'test_duplikat_identitas_ditolak_bukan_ambil_pertama'),
+    ('if k in hasil:', 'if False:', 'test_kunci_json_ganda_pada_entri_valid_ditolak'),
 ])
 def test_mutasi_guard_merah_dan_pulih(tmp_path, lama, baru, tes):
     target = tmp_path / 'teaching_playbook.py'

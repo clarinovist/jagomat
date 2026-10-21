@@ -25,7 +25,13 @@ def sidik_isi(entri):
 
 
 def _teks(nilai):
-    return type(nilai) is str and 0 < len(nilai.strip()) <= 3000
+    if type(nilai) is not str or not 0 < len(nilai.strip()) <= 3000:
+        return False
+    try:
+        nilai.encode('utf-8')
+    except UnicodeError:
+        return False
+    return True
 
 
 def _daftar(nilai, minimum=1, maksimum=8):

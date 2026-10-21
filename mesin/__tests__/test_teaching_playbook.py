@@ -151,9 +151,58 @@ def test_berkas_hilang_dan_encoding_rusak(konten):
     assert render() == ''
 
 
+def test_kunci_json_ganda_pada_entri_valid_ditolak(konten):
+    simpan(konten, [entri_sintetis()])
+    isi = konten.read_text()
+    konten.write_text(isi.replace('"versi_format": 1', '"versi_format": 1, "versi_format": 1'))
+    assert render() == ''
+
+
 def test_duplikat_identitas_ditolak_bukan_ambil_pertama(konten):
     e = entri_sintetis()
     simpan(konten, [e, copy.deepcopy(e)])
+    assert render() == ''
+
+
+def test_pasangan_malrule_kode_rekaan_ditolak(konten):
+    e = entri_sintetis()
+    e['malrule_id'] = 'aritmetika.rekaan'
+    for p in e['pendekatan']:
+        p['pendekatan_id'] = p['pendekatan_id'].replace(FOKUS[2], e['malrule_id'])
+    e['sha256_review'] = pb.sidik_isi(e)
+    simpan(konten, [e])
+    assert render(fokus=(FOKUS[0], 'K', e['malrule_id'])) == ''
+
+
+@pytest.mark.parametrize('field', ['miskonsepsi', 'reviewer', 'sumber', 'urutan', 'pendekatan'])
+def test_surrogate_json_gagal_tertutup(konten, field):
+    e = entri_sintetis()
+    if field == 'sumber':
+        e[field] = ['\ud800']
+    elif field == 'urutan':
+        e[field]['benda'] = '\ud800'
+    elif field == 'pendekatan':
+        e[field][0]['contoh'] = '\ud800'
+    else:
+        e[field] = '\ud800'
+    simpan(konten, [e])
+    assert render() == ''
+
+
+def test_profil_template_tidak_didukung_meski_request_cocok(konten):
+    e = entri_sintetis()
+    e['profil'] = 'P99'
+    e['sha256_review'] = pb.sidik_isi(e)
+    simpan(konten, [e])
+    assert render(profil='P99') == ''
+
+
+def test_validasi_skema_gagal_sebelum_render(konten):
+    e = entri_sintetis()
+    e['versi'] = True
+    e['versi_review'] = 1
+    e['sha256_review'] = pb.sidik_isi(e)
+    simpan(konten, [e])
     assert render() == ''
 
 
