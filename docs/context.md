@@ -124,6 +124,11 @@ cache dan cadangan tetap privat.
   tiga sesi terkirim sebelum proyeksi, dan tautan progres memakai adapter/peta
   laporan yang sama (gagal verifikasi: tanpa angka). Pilot aktif/pemulihan tetap
   memakai renderer khususnya, bukan diproyeksikan sebagai rencana utama.
+- `teacher_home_priority.py` memberi beranda guru langkah, kelompok, dan urutan per anak:
+  pilot aktif lewat `skill_pilot_ui.keadaan`, selain itu `rencana_berikutnya`; label dari
+  `cycle_report.TINDAKAN`; kegagalan baca per anak dicatat tanpa nama dan menjadi kartu
+  fallback. Murni turunan reducer (tanpa tulis DB, tanpa penilaian baru); render di
+  `teacher_pages._daftar_anak_berkelompok`. Biaya terukur ±13 ms untuk 30 anak sintetis.
   Keempat tab `/anak/<id>` berbagi satu kontainer isi 960px (`child_style.py`, token
   `ANAK_*`, mockup di `docs/mockup/`) dan komponen HTML bersama `child_components.py`
   (chip status, pil filter, disclosure, banner tautan, kartu sesi); CSS per tab ada di

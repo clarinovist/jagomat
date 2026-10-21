@@ -69,6 +69,11 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   dilipat. Sesi belum dikirim tetap di Riwayat. Sementara form
   awal Pendampingan orang tua opsional berada di Latihan. Pilot aktif,
   pemulihan dan CTA reducer tetap di Beranda.
+- Beranda guru (`/guru`) mengelompokkan anak menurut langkah berikutnya dari reducer yang sama
+  dengan profil anak: **Perlu tindakan Anda** (konfirmasi hasil, eskalasi), **Siap dilanjutkan**,
+  dan **Menunggu** (sesi berjalan, jeda); urutan dalam kelompok menurut nama. Kartu menampilkan
+  langkah dengan label laporan, tanpa skor atau peringkat kelemahan baru. Bila rencana satu anak
+  gagal dibaca, kartunya tetap tampil dengan penanda "buka profil" dan beranda tidak rusak.
 - Bantuan orang tua tanpa AI: satu disclosure kunci/pembahasan tiap soal tinjauan
   berada dekat soal dan jawaban anak, tertutup sampai dibuka. Sumber pembahasan
   existing tetap, bukan petunjuk buatan model atau hasil mandiri anak. Tiga kartu

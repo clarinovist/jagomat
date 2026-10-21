@@ -12,6 +12,7 @@ import html
 import random
 import database
 import question_views
+import teacher_home_priority
 import worksheets
 from generator import LEVEL_BAWAAN
 from topics import TOPIK_BAWAAN, ambil
@@ -76,6 +77,22 @@ def _soal_dari_baris(baris) -> Soal:
 
 
 
+def _daftar_anak_berkelompok(baris) -> str:
+    """Kartu anak per kelompok kerja guru; urutan dan label dari reducer."""
+    kartu = {langkah.siswa_id: isi for langkah, isi in baris}
+    urut = teacher_home_priority.urutkan([langkah for langkah, _ in baris])
+    bagian = []
+    for kelompok in sorted({langkah.kelompok for langkah in urut}):
+        anggota = [kartu[a.siswa_id] for a in urut if a.kelompok == kelompok]
+        bagian.append(
+            f'<section class="guru-kelompok-bagian-st" aria-labelledby="kelompok-{kelompok}">'
+            f'<h3 class="guru-kelompok-st" id="kelompok-{kelompok}">'
+            f'{teacher_home_priority.JUDUL_KELOMPOK[kelompok]} <span>{len(anggota)}</span></h3>'
+            f'<div class="daftar-anak">{"".join(anggota)}</div></section>'
+        )
+    return "".join(bagian)
+
+
 def halaman_utama_stitch(
     kon,
     pesan: str = "",
@@ -85,11 +102,13 @@ def halaman_utama_stitch(
 ) -> bytes:
     """Beranda pendamping: satu pintu per anak, tanpa keputusan belajar baru.
 
-    Status kirim/review hanya ringkasan aktivitas, bukan bukti penguasaan.
-    Langkah berikutnya tetap berada pada profil anak dan reducer yang sama.
+    Anak dikelompokkan menurut langkah berikutnya dari reducer yang sama dengan
+    profil anak (``teacher_home_priority``); status kirim/review hanya ringkasan
+    aktivitas, bukan bukti penguasaan.
     """
     baris = []
     for s in database.daftar_siswa(kon, pemilik):
+        langkah = teacher_home_priority.langkah_anak(kon, s)
         rekap = kon.execute(
             """SELECT COUNT(*) AS jumlah,
                       SUM(CASE WHEN dibatalkan IS NOT NULL
@@ -116,6 +135,9 @@ def halaman_utama_stitch(
                 ringkasan = "Belum ada sesi"
             elif jumlah_sesi == dibatalkan:
                 ringkasan = "Tidak ada latihan yang perlu dikerjakan."
+            elif langkah.tindakan == "konfirmasi_hasil":
+                # Dibuka bukan dikonfirmasi: jangan tampak selesai di samping langkahnya.
+                ringkasan = "Sudah dibuka, belum dikonfirmasi"
             else:
                 ringkasan = "semua direview"
             status.append(f'<span class="guru-status-st">{ringkasan}</span>')
@@ -129,7 +151,7 @@ def halaman_utama_stitch(
         from learning_profile import label_kelas_sekolah
         kelas_sekolah = _kelas_sekolah_profil(kon, s)
         tujuan_anak = f'/anak/{s["id"]}'
-        baris.append(
+        baris.append((langkah,
             f'<a class="st-kartu kartu-anak" href="{tujuan_anak}">'
             f'<span class="guru-inisial-st" aria-hidden="true">{html.escape(nama[:1].upper())}</span>'
             '<div class="guru-identitas-st">'
@@ -137,10 +159,11 @@ def halaman_utama_stitch(
             '<div class="guru-meta-st">'
             f'<span>{html.escape(label_kelas_sekolah(kelas_sekolah))}</span>'
             f'<span>{jumlah_sesi} latihan tercatat</span>{label_batal}{label_keluarga}</div>'
-            f'<div class="guru-status-daftar-st">{"".join(status)}</div></div>'
+            f'<div class="guru-status-daftar-st">{"".join(status)}</div>'
+            f'<p class="guru-langkah-st">Langkah: {html.escape(langkah.label)}</p></div>'
             '<span class="guru-buka-st">Buka profil <span aria-hidden="true">↗</span></span>'
             '</a>'
-        )
+        ))
 
     tambah = (
         '<a class="guru-tambah-st" href="/akun?section=siswa">'
@@ -155,7 +178,7 @@ def halaman_utama_stitch(
         '<p class="guru-petunjuk-st info-baris">Pilih nama untuk mulai. '
         f'<button type="button" class="info" aria-label="{html.escape(INFO_DAFTAR_ANAK, quote=True)}">'
         f'i<span class="info-bubble" role="tooltip">{html.escape(INFO_DAFTAR_ANAK)}</span></button></p>'
-        f'<div class="daftar-anak">{"".join(baris)}</div>'
+        f'{_daftar_anak_berkelompok(baris)}'
     ) if baris else (
         '<div class="guru-kosong-st">'
         '<p class="guru-alis-st">MULAI DARI SINI</p>'

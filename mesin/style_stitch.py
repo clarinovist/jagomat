@@ -320,6 +320,10 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-meta-st {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; overflow-wrap: anywhere; }}
 .guru-meta-st > span + span::before {{ content: '·'; margin-right: {T.SP_2}; }}
 .guru-status-daftar-st {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; margin-top: {T.SP_3}; }}
+.guru-kelompok-bagian-st + .guru-kelompok-bagian-st {{ margin-top: {T.SP_5}; }}
+.guru-kelompok-st {{ color: {T.TEKS_JUDUL}; font: 700 1rem/1.4 {T.FONT_HEADLINE}; margin: 0 0 {T.SP_3}; }}
+.guru-kelompok-st span {{ font-size: .85rem; font-weight: 500; color: {T.TEKS_VARIAN}; margin-left: {T.SP_2}; }}
+.guru-langkah-st {{ color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; margin: {T.SP_2} 0 0; overflow-wrap: anywhere; }}
 .guru-status-st {{ font-size: .72rem; color: {T.TEKS_VARIAN}; }}
 .guru-status-st.periksa {{ color: {T.BADGE_ADMIN_TEKS}; background: {T.BADGE_ADMIN_BG}; padding: 0 {T.SP_2}; border-radius: {T.RADIUS_KECIL}; }}
 .guru-buka-st {{ font: 700 .75rem/1.5 {T.FONT_HEADLINE}; color: {T.AKSEN_TEAL_TUA}; }}
