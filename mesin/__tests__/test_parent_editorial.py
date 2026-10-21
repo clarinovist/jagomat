@@ -206,7 +206,8 @@ def test_empat_host_merender_style_dan_markup_composer_shared(db):
             assert tombol_kirim[0]['form'] == (
                 f'form-latihan-manual-{sid}' if nama == 'latihan' else f'form-koreksi-{sesi}'
             ), nama
-        assert '<summary>Preferensi</summary>' in isi, nama
+        assert '<summary>Catatan preferensi lama</summary>' in isi, nama
+        assert 'formaction="/pendamping/inline/aktifkan-memori"' not in isi, nama
 
 
 def test_form_upload_terapkan_baca_ulang_dan_hapus_tetap_terpisah(db):

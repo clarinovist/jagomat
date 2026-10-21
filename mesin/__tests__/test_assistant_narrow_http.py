@@ -74,6 +74,41 @@ def test_reuse_tidak_menghidupkan_chat_tidak_sah(server, perubahan):
     assert server.provider.panggilan == []
 
 
+def test_picker_http_reuse_diterima_guard_browser_exact_resource(server):
+    import json
+    from html.parser import HTMLParser
+    from test_assistant_browser import _jalankan_js
+    token, akun, target, chat, _, _ = siapkan(server, nomor=1)
+    with assistant_schema.buka() as kon:
+        sebelum = tuple(kon.iterdump())
+    kode, isi, _ = server.minta('/pendamping/inline/pilih-sumber', cookie=token,
+        data={'inline_host': 'sesi', 'inline_host_id': str(target.host_id),
+              'inline_posisi': 'sesi', 'pilih_nomor': '1'},
+        headers={**_origin(server), 'X-Pendamping-Panel': 'fragment'})
+    assert kode == 200
+    class Panel(HTMLParser):
+        atribut = None
+        def handle_starttag(self, tag, attrs):
+            a = dict(attrs)
+            if tag == 'aside' and 'pendamping-panel-kanan' in a.get('class', ''):
+                self.atribut = a
+    parser = Panel()
+    parser.feed(isi)
+    a = parser.atribut
+    assert a['data-pendamping-chat'] == chat.id
+    dataset = {''.join([k.split('-')[1]] + [v.title() for v in k.split('-')[2:]]): v
+               for k, v in a.items() if k.startswith('data-')}
+    harap = {'host': 'sesi', 'id': str(target.host_id), 'posisi': 'sesi',
+             'resource': 'sesi', 'resourceId': str(target.host_id), 'chat': ''}
+    _jalankan_js('const harap=' + json.dumps(harap) + '; const dataset=' + json.dumps(dataset) + ''';
+const panel={classList:{contains:n=>n==='pendamping-panel-kanan'},dataset};
+assert.equal(uji.cocokPanel(harap,panel,'pilih-sumber',new URLSearchParams({pilih_nomor:'1'})),true);
+''')
+    with assistant_schema.buka() as kon:
+        assert tuple(kon.iterdump()) == sebelum
+    assert server.provider.panggilan == []
+
+
 def test_lookup_exact_owner_jenis_resource_dan_grant(server):
     from dataclasses import replace
     import assistant_view

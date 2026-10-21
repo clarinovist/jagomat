@@ -157,7 +157,7 @@ function cocokPanel(harap, baru, aksi, data) {
   }
   if (!resource || !resourceId || b.posisi !== posisi || b.resource !== resource ||
       b.resourceId !== resourceId) return false;
-  if (aksi === 'mulai' || (aksi === 'buka' && !harap.chat)) {
+  if (aksi === 'mulai' || aksi === 'pilih-sumber' || (aksi === 'buka' && !harap.chat)) {
     // Server boleh mereuse chat exact-resource setelah guard izin; binding
     // host/resource di atas tetap wajib, ID tidak boleh berasal dari sumber lain.
     return !b.chat || /^chat_[0-9a-f]{32}$/.test(b.chat);

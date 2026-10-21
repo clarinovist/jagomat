@@ -29,14 +29,14 @@ def test_mulai_tunggal_mode_native_dan_izin_tidak_dicentang(dalam_form):
     assert len(mulai) == 1 and 'name' not in mulai[0]
     cek = next(a for t, a, _ in elemen if a.get('name') == 'setuju_konteks')
     assert 'checked' not in cek and 'required' not in cek
-    mode = [(a, atas) for t, a, atas in elemen if t == 'select' and a.get('name') == 'mode_chat']
+    mode = [(a, atas) for t, a, atas in elemen if t == 'input' and a.get('name') == 'mode_chat']
     assert len(mode) == 1
-    assert any(t == 'details' and a.get('class') == 'pendamping-pengaturan' for t, a in mode[0][1])
+    assert mode[0][0]['type'] == 'hidden' and mode[0][0]['value'] == 'tanpa_memori'
     if dalam_form:
         assert mode[0][0]['form'] == cek['form'] == mulai[0]['form'] == 'form-latihan'
-    assert '<option value="aktif" selected>' in panel
-    assert '<option value="tanpa_memori">' in panel
-    assert 'Riwayat tetap disimpan pada kedua pilihan.' in panel
+    assert not any(t == 'select' and a.get('name') == 'mode_chat' for t, a, _ in elemen)
+    assert 'Preferensi lintas percakapan tidak digunakan.' in panel
+    assert 'Tidak ada pesan yang dikirim otomatis.' in panel
     assert 'Mulai tanpa memori' not in panel and 'Konteks belum diizinkan' not in panel
     assert 'Anak &lt;Sintetis&gt;' in panel and 'P3' not in panel.split('</header>')[0]
     assert 'DeepSeek' in panel and 'Ringkasan otomatis ini tidak memuat nama, jawaban, atau catatan anak' in panel

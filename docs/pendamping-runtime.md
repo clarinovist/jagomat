@@ -154,7 +154,8 @@ outbound in-flight sesuai runbook, jangan replay pending/unknown. Respons lama
 empat-field yang tiba pada binary baru ditolak, tidak membuat usulan/draft. Recovery
 binary lama dapat membuat fitur retired lagi: kesamaan schema bukan bukti aman.
 Koordinator harus membuktikan exact candidate/recovery yang menghormati retirement
-atau memilih hold outbound/perbaikan maju; tidak memulihkan DB/izin terhapus.
+atau memilih hold seluruh Pendamping/perbaikan maju; hold outbound saja tidak
+menahan endpoint konfirmasi/aktivasi memori legacy. Jangan memulihkan DB/izin terhapus.
 CI full/exact pair, fakta provider/notice, penerimaan manusia, Android/iOS fisik dan
 walkthrough tetap gerbang terbuka. Source ini bukan klaim rilis/P6 selesai.
 
@@ -438,7 +439,8 @@ Adapter warisan yang masih dipertahankan:
   draf pada request fragmen. Buka gagal tidak pernah memanggil submit form pekerjaan.
 - Respons hanya mengganti panel, tidak form host. Binding host jenis/ID dan resource
   divalidasi per aksi: picker sesi boleh ke nomor yang dipilih dalam sesi sama;
-  riwayat boleh mengganti chat hanya exact-resource; Kirim/Status wajib chat dan
+  riwayat boleh mengganti chat hanya exact-resource; picker boleh menerima ID reuse
+  hanya sesudah binding sumber yang dipilih sah. Kirim/Status wajib chat dan
   request asal yang sama. ID DOM/anchor bukan identitas keamanan.
 - Close lokal hanya untuk panel yang dibuka enhanced pada dokumen yang sama:
   pemicu, fokus, dan scroll dipulihkan; late response diabaikan dan provider tidak

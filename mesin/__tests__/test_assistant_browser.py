@@ -251,6 +251,10 @@ for (const ubah of [{host:'anak'},{id:'99'},{resource:'soal'},{resourceId:'42:2'
 const soal={...harap,posisi:'soal',resource:'soal',resourceId:'42:2'};
 const pilih=new URLSearchParams({pilih_nomor:'2'});
 assert.equal(uji.cocokPanel(harap,panel(soal),'pilih-sumber',pilih),true);
+const reused={...soal,chat:'chat_'+'c'.repeat(32)};
+assert.equal(uji.cocokPanel(harap,panel(reused),'pilih-sumber',pilih),true);
+assert.equal(uji.cocokPanel(harap,panel({...reused,resourceId:'42:1'}),'pilih-sumber',pilih),false);
+assert.equal(uji.cocokPanel(harap,panel({...reused,chat:'chat_asing'}),'pilih-sumber',pilih),false);
 assert.equal(uji.cocokPanel(harap,panel({...soal,resourceId:'42:1'}),'pilih-sumber',pilih),false);
 const chat={...soal,chat:'chat_'+ 'a'.repeat(32)}, lain='chat_'+ 'b'.repeat(32);
 assert.equal(uji.cocokPanel(chat,panel({...chat,chat:lain}),'riwayat',new URLSearchParams({pilih_chat:lain})),true);
