@@ -1,6 +1,29 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
-## Kandidat kualitas soal Fase 1–3 — penyiapan recovery
+## Deploy kualitas soal Fase 1–3 — 21 Oktober 2026
+
+Controlled `deploy-v2` berhasil memasang kandidat
+`690a9801652be4151d1ca3e85ec41d46eb06246c`, digest
+`sha256:2bcf11e05ba2ec0fa4069835aee68bca479557e0d6b5eed116263665e70a2616`;
+recovery `ff6acb158985f78ef0287ec18fb045d273921bdc`, digest
+`sha256:a5e4f45d6d7b763b581638e58142d65f7eb885540d60cdbdaad4c4c3fae4bf1b`.
+CI manual `39517155836` lulus 13.507 tes kandidat exact-once dan seluruh shard
+recovery, build/probe serta pair exact dengan `question_pair_checks=8`.
+CI push `39517155432` juga sukses. Tinjauan manusia dinyatakan lulus pemilik.
+
+Preflight metadata live read-only, kontrak dan hash deployer lulus sebelum hold.
+Bundle `deploy-soal-690a980-20261020T234700Z` empat DB + auth dan backup riset
+terpisah terverifikasi remote/lokal. Rehearsal startup/preservasi C–B–C pada salinan
+backup dan validator kanonis lulus. Tidak ada migrasi atau koreksi data historis.
+
+Cutover exit0; kandidat healthy. P4 tujuh jenis/P5 sepuluh jenis, writer2 dan
+reader baru terverifikasi live tanpa membuka data anak. Smoke `/`200, `/akun`401,
+`/murid/`303 ke `/masuk` lulus; marker traceback/OperationalError/IntegrityError nol.
+Caddy/cron/config dipulihkan hash-identik, helper/turunan rehearsal tugas dibersihkan,
+backup induk tetap disimpan. Deployer tetap hash `2479470f…`; mode migrasi dan
+job pasang otomatis tetap false. Catatan penyiapan di bawah menjelaskan batas recovery lama.
+
+### Penyiapan dan kontrak recovery soal
 
 Patch keterbagian/modus 20 Oktober 2026 membutuhkan reader cetak yang memakai
 kunci/malrule bank tersimpan. Recovery pinned `c71038bb3b8ceedf10e469eb94766aed7c4c8472`
@@ -11,11 +34,11 @@ meskipun gate struktur/persistensi umum lulus. Tidak ada migrasi atau koreksi ri
 Recovery yang didukung harus mempertahankan reader cetak bank ketika mengembalikan
 generator/template. Tes `test_question_history.py` membuktikan kontrak source ini,
 bukan kompatibilitas image pinned. Penyiapan baseline recovery, pembaruan pin/kontrak,
-serta gate dan rehearsal pasangan exact perlu dituntaskan sebelum pemasangan.
+serta gate dan rehearsal pasangan exact telah dituntaskan untuk pasangan di atas.
 Batch Fase 3 menambah ID `banyak_kelipatan`, `sisa_operasi`, `banyak_prima` dan
 `jumlah_kelipatan`: reader recovery harus mengenal fungsi-fungsi ini untuk
 memuat/cetak riwayat soal baru, walaupun writer komposisinya dikembalikan.
-Tinjauan manusia sudah dinyatakan lulus oleh pemilik. Baseline recovery berikutnya
+Tinjauan manusia sudah dinyatakan lulus oleh pemilik. Baseline recovery baru
 memuat reader seluruh jenis dan fix Fase1, tetapi `number_theory_versions.py`
 memilih komposisi lama secara default (1); kandidat memilih batch baru (2).
 Override `OSN_TEORI_BILANGAN_VERSI` tervalidasi hanya mengatur komposisi writer,
@@ -32,8 +55,8 @@ draft C yang dikonfirmasi B, serta pembacaan bukti B→C. Manifest wajib
 Pin baru **`ff6acb158985f78ef0287ec18fb045d273921bdc`** dibekukan setelah scoped test
 (269 lulus); kandidat default2 memakai pin tersebut. Koleksi recovery 13.507 tes
 terverifikasi dari git archive, fingerprint tetap `8e10d0fc…` tanpa perubahan
-skema/deployer. Keduanya masih harus diuji penuh pada image exact sebelum deploy. Mode tetap migrasi/job pasang false; deployer
-host tidak diubah. Ini belum catatan deployment.
+skema/deployer. Kedua image exact lulus gate di atas. Mode tetap migrasi/job pasang false;
+deployer host tidak diubah.
 
 ## Deploy Pendamping konteks dan panel — 20 Oktober 2026
 
