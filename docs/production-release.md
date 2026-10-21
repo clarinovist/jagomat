@@ -1,6 +1,34 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
-## Kandidat Fase 4 — persiapan bank kalimat dan paket cetak
+## Deploy Fase 4 dan aktivasi bank kalimat — 21 Oktober 2026
+
+Controlled `deploy-v2` memasang kandidat
+`34f596ea38f791d48d51e70b9139c47c8b77c230`, digest
+`sha256:c43c8a5fac02c0a63588da1d3fd4ffe148b96f58d6bb512e17c205c9d15f0f33`;
+recovery `c228749faef8acf29b7d6895173ead6aa5bc9e66`, digest
+`sha256:d4c5a9dd129c20a7ae0379659147aad466109036fd10bcc2db8414ffa5cb169b`.
+CI lengkap `39541440130` sukses (13.572 kandidat exact-once, seluruh recovery,
+build/probe/pair), push `39541438305` sukses; isi disetujui manusia sebelum aktivasi.
+
+Preflight metadata live read-only dan probe bank1→off pada kedua image tanpa
+volume/provider lulus sebelum maintenance. Bundle
+`deploy-fase4-34f596e-20261021T043000Z` empat DB+auth, riset terpisah dan config
+asal disimpan; hash backup remote/lokal terverifikasi. Rehearsal pada salinan dengan
+bank1 serta validator kanonis lulus. CAS menambah tepat `OSN_BANK_KALIMAT=1` di
+`/opt/osn/visual.conf`; byte config lain dipertahankan. Tidak ada migrasi/ubah riwayat.
+
+Cutover exit0, kandidat healthy dan bank aktif terverifikasi memakai contoh
+sintetis tanpa menyimpan sesi. Helper reopen sempat berhenti karena membandingkan
+Caddy/cron yang sedang held dengan hash sebelum hold; diperbaiki terbatas agar
+membandingkan hash held untuk maintenance, hash aktivasi untuk env. Setelahnya
+semua pemeriksaan lulus dan akses dibuka; tidak ada rollback image/data.
+Smoke `/`200, `/akun`401, `/murid/`303 lulus, marker galat teknis0.
+Caddy/cron dipulihkan hash-identik; perubahan env hanya flag bank yang disetujui.
+Backup induk dipertahankan, turunan rehearsal/helper tugas dibersihkan.
+Deployer tetap `2479470f…`; auto-deploy tetap nonaktif. Paket tantangan tetap
+file cetak terpisah, bukan menu/sesi/diagnosis baru.
+
+### Kontrak bank kalimat dan recovery
 
 Bank kalimat statis opt-in default0 memerlukan fingerprint penyajian baru
 `7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8`.
@@ -11,13 +39,13 @@ teori-bilangan default1; kandidat default2. Tidak memetakan hash baru ke hash la
 Baseline **`c228749faef8acf29b7d6895173ead6aa5bc9e66`** dibekukan dalam mode
 persiapan untuk mencatat mismatch anchor historis. Kandidat kembali migrasi dengan
 pin/fingerprint B exact; koleksi B 13.572 tes diverifikasi dari git archive.
-Seluruh gate pasangan image masih wajib lulus sebelum rilis.
+Seluruh gate pasangan image exact tersebut telah lulus pada CI di atas.
 
 Probe soal C→B→C mencakup snapshot bank, cache dua sumber tanpa provider, konteks,
 konfirmasi, PG dan cetak; artifact rilis memuat manifest bank18 bingkai dan paket
 cetak6 tantangan kelas5. Paket cetak tidak punya sesi/DB/diagnosis/penguasaan.
-Belum deploy atau mengaktifkan `OSN_BANK_KALIMAT`; tinjauan manusia isi Fase4
-masih gate terpisah, bukan diwarisi dari persetujuan contoh Fase3.
+`OSN_BANK_KALIMAT=1` aktif pada deployment di atas setelah tinjauan manusia Fase4.
+Default source tetap0; perubahan bank berikutnya memerlukan review/gate baru.
 
 ## Deploy kualitas soal Fase 1–3 — 21 Oktober 2026
 

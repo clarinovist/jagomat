@@ -1,6 +1,7 @@
 # Bank kalimat offline (Fase 4A)
 
-Implementasi opt-in; **belum berarti fitur aktif di produksi atau tinjauan manusia lulus**.
+Implementasi opt-in; **aktif di produksi sejak 21 Oktober 2026** setelah tinjauan
+manusia Fase4 dan gate pasangan image lulus. Bukti exact di [runbook rilis](production-release.md).
 AI membantu menyusun/memeriksa draf di luar aplikasi. Runtime tidak memanggil AI
 untuk memilih bingkai, menentukan kunci, atau membuat malrule.
 
@@ -11,7 +12,7 @@ KPK kejadian berulang (P5/P6), aturan perkalian pilihan (P5), dan jabat tangan (
 Ini variasi penyajian tiga konsep existing, bukan penambahan jenis/kurikulum.
 
 - `OSN_BANK_KALIMAT=1` mengaktifkan bank **untuk snapshot baru**; default `0`.
-  Nilai konfigurasi lain ditolak. Bank invalid gagal sebelum sesi tersimpan;
+  Produksi memasang flag1 secara eksplisit; default source tetap0. Nilai konfigurasi lain ditolak. Bank invalid gagal sebelum sesi tersimpan;
   savepoint writer menggulung perubahan parsial.
 - Hook `question_views.penyajian_dari_soal` mendahulukan proyektor visual. Template
   di luar allowlist, level tak didukung, soal dengan penyajian, dan teks custom
