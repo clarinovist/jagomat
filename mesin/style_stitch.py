@@ -3163,6 +3163,11 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 .koreksi-opsi-st summary {{ cursor: pointer; min-height: {T.TARGET_SENTUH}; padding-block: {T.SP_3}; font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.AKSEN_TEAL_TUA}; }}
 .koreksi-opsi-st summary:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 .koreksi-opsi-st .pembahasan-soal-st {{ margin-top: {T.SP_2}; }}
+.koreksi-kunci-st {{ border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG}; padding-inline: {T.SP_3}; }}
+.koreksi-kunci-st > summary {{ font-size: 1rem; font-weight: 600; }}
+.koreksi-kunci-st[open] {{ padding-bottom: {T.SP_3}; }}
+.koreksi-kunci-st .pembahasan-soal-st {{ font-size: 1rem; line-height: 1.6; color: {T.TEKS_UTAMA}; overflow-wrap: anywhere; }}
+.koreksi-kunci-st .pembahasan-soal-st p {{ margin: {T.SP_2} 0 0; white-space: pre-line; }}
 .koreksi-simpan-st .koreksi-catatan-st {{ margin: 0; }}
 
 /* Navigasi kandidat C tetap opsional: kartu dan form tidak bergantung padanya. */

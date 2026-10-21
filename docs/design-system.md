@@ -147,7 +147,11 @@ mode memori dan fallback mengikuti [runtime Pendamping](pendamping-runtime.md).
 Kartu berupa article dengan header nomor/tipe/status/penanda catatan yang tetap
 terlihat saat panel diciutkan. Satu kartu aktif melalui enhancement; empat radio
 pemahaman dan penilaian tampil langsung, hanya Catatan tambahan serta Kunci yang
-memakai details tertutup tanpa nesting. Legenda penilaian satu kali per sesi.
+memakai details tertutup tanpa nesting. Kunci/pembahasan berada setelah jawaban
+anak dan sebelum kontrol tinjauan; label menyebut nomor soal, teks pembahasan 1rem
+berbaris 1,6 dan tidak dibuka otomatis. Legenda penilaian satu kali per sesi.
+Kartu bantuan pra-tulis di luar form memakai tiga disclosure sibling berjarak
+8px, target minimal44px; FAQ hanya sesuai konteks halaman, tanpa CTA duplikat.
 Status penilaian dekat dropdown; pertanyaan dan jawaban anak lebih dahulu. Bar
 Simpan draf/Konfirmasi menargetkan 56px, target sentuh minimal44px; teks boleh
 membungkus tanpa dipotong. Kartu tertutup tidak kehilangan field, auto-next/submit

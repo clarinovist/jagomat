@@ -65,6 +65,13 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   dilipat. Sesi belum dikirim tetap di Riwayat. Sementara form
   awal Pendampingan orang tua opsional berada di Latihan. Pilot aktif,
   pemulihan dan CTA reducer tetap di Beranda.
+- Bantuan orang tua tanpa AI: satu disclosure kunci/pembahasan tiap soal tinjauan
+  berada dekat soal dan jawaban anak, tertutup sampai dibuka. Sumber pembahasan
+  existing tetap, bukan petunjuk buatan model atau hasil mandiri anak. Tiga kartu
+  pra-tulis (bingung mulai, menolak bantuan, pendamping kesal) tersedia di Beranda
+  profil dan setelah tinjauan sesi. FAQ kontekstual menjelaskan langkah Beranda,
+  latihan dari hasil terbaru, serta arti status Perkembangan. Tanpa izin/kuota AI,
+  input personalisasi, event baru atau perubahan penilaian.
 - Pendamping AI inline untuk orang tua; konteks profil berizin memuat tahap/jumlah
   target dan maksimal tiga sesi perlu ditinjau menurut urutan aplikasi, bukan pilihan
   AI. Alias sesi dipetakan ke tautan lokal, bukan ID asli pada payload. Izin provider

@@ -156,6 +156,10 @@ cache dan cadangan tetap privat.
   stepper/CTA ganda; pencabutan tautan tetap tersedia di halaman sesi. Daftar materi
   lengkap, mini bar dan status memakai denominator katalog. Layanan siklus menginisialisasi konteks fondasi dan
   pemetaan pertama secara atomik dari satu tindakan eksplisit orang tua.
+- `parent_help.py` merender kartu pra-tulis dan FAQ kontekstual pada permukaan
+  guru melalui `teacher_workspace`/`teacher_session_pages`, tanpa DB/AI atau route
+  baru. Disclosure native menjaga form/draf; kunci/pembahasan tetap dari loader
+  soal existing, escaped dan ditampilkan sekali dekat soal pada tinjauan.
 - Kunci/diagnosis tetap deterministik; `llm.py` hanya memparafrase kalimat soal.
   `number_theory_expansion.py` menyediakan empat jenis hitung murni P4/P5 melalui
   registry `topic_number_theory`; kartu/inventaris/katalog target eksplisit.

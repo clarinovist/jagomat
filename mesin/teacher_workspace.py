@@ -370,6 +370,13 @@ def halaman_anak(
     else:
         isi_profil = latihan_manual
 
+    import parent_help
+    if section in parent_help.FAQ:
+        isi_profil += parent_help.faq(section)
+        if section == 'rencana':
+            isi_profil += parent_help.kartu_pendampingan()
+        isi_profil += '<style>' + parent_help.GAYA + '</style>'
+
     return _halaman_stitch(
         f"{siswa['nama']} — {T.NAMA_PRODUK}",
         profile_workspace.bingkai(siswa, section, total_sesi, isi_profil, peran=peran, pesan=pesan,

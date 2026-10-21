@@ -7,6 +7,7 @@ import brand
 import database
 import design_tokens as T
 import question_views
+import parent_help
 import share_links
 from diagnosis import diagnosa, Usulan
 from generator import LEVEL_BAWAAN
@@ -319,7 +320,7 @@ def halaman_sesi_stitch(
         if getattr(soal, "pembahasan", ""):
             pembahasan_html = (
                 '<div class="pembahasan-soal-st">'
-                f'<b>Perhitungan/Langkah:</b> {html.escape(soal.pembahasan)}'
+                f'<b>Pembahasan soal {int(b["nomor"])}:</b> <p>{html.escape(soal.pembahasan)}</p>'
                 '</div>'
             )
 
@@ -505,6 +506,12 @@ def halaman_sesi_stitch(
     {ringkas_opsi(pg_butir, b['template_id'])}
     {'<p>Pilihan ganda · latihan manual, bukan bukti penguasaan.</p>' if pg_butir else ''}
     {review_pages.jawaban_utama(label_jawaban, dikoreksi=koreksi_jawaban)}
+    <details class="koreksi-opsi-st koreksi-kunci-st" id="pembahasan-soal-{sid}">
+      <summary>Lihat kunci &amp; pembahasan soal {int(b['nomor'])}</summary>
+      <p class="koreksi-catatan-st">Untuk orang tua. Dengarkan cara anak sebelum memberi petunjuk; hasil setelah dibantu bukan jawaban mandiri.</p>
+      <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b['kunci'])}</span></div>
+      {pembahasan_html or '<p class="koreksi-catatan-st">Pembahasan belum tersedia untuk soal ini.</p>'}
+    </details>
     <fieldset class="koreksi-pemahaman-st">
       <legend>Tinjau bersama anak</legend>
       <p class="koreksi-tanya-st">Tanyakan: “{html.escape(pertanyaan_tinjauan)}”</p>
@@ -539,10 +546,6 @@ def halaman_sesi_stitch(
         {cara_html}
         {kontrol_tinjauan}
       </div>
-    </details>
-    <details class="koreksi-opsi-st koreksi-kunci-st"><summary>Lihat kunci &amp; pembahasan</summary>
-      <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b['kunci'])}</span></div>
-      {pembahasan_html}
     </details>
     <div class="koreksi-lewati-st">
       <input type="hidden" name="hadir_dilewati_{sid}" value="1">
@@ -996,7 +999,8 @@ def halaman_sesi_stitch(
         + (__import__('skill_pilot_ui').materi_sesi(kon,sesi_id,int(info['siswa_id'])) if sesi_pilot else '') +
         f"{aksi_rencana}"
         f"{blok_isi}"
-        f"{alat_lanjutan}"
+        + (parent_help.kartu_pendampingan() if sudah_dikirim and not sesi_dibatalkan else '')
+        + f"{alat_lanjutan}"
         f'<div class="danger-zone-st">'
         f'<p class="sub">{keterangan_bahaya}</p>'
         f'{aksi_bahaya_tampil}</div>'
@@ -1021,6 +1025,6 @@ def halaman_sesi_stitch(
 <title>{html.escape(brand.judul(f"Sesi #{sesi_id}"))}</title>
 {brand.tag_kepala(cetak=bool(bantuan or privat))}
 {'' if (bantuan or privat) else '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">'}
-<style>{gaya_sesi}{CSS_SESI}{mapping_results.GAYA_HASIL if hasil_pemetaan else ''}</style></head>
+<style>{gaya_sesi}{CSS_SESI}{parent_help.GAYA}{mapping_results.GAYA_HASIL if hasil_pemetaan else ''}</style></head>
 <body class="st"><div class="bungkus-st pendamping-editorial-st koreksi-editorial-st">{batang}{isi}</div>{skrip_extra}</body></html>"""
     ).encode()
