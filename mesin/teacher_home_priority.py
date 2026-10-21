@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import sqlite3
 from dataclasses import dataclass
+from datetime import date
 from typing import Optional
 
 import database
@@ -49,6 +50,7 @@ class LangkahAnak:
     tindakan: Optional[str]
     kelompok: int
     label: str
+    menunggu_sejak: Optional[date] = None
 
 
 def kelompok_untuk(tindakan: Optional[str]) -> int:
@@ -67,6 +69,17 @@ def _rencana(kon, siswa_id: int):
     return rencana_berikutnya(bukti, siswa_id)
 
 
+def _tanggal_sesi(kon, sesi_id: Optional[int]) -> Optional[date]:
+    """Tanggal sesi yang menunggu konfirmasi; sama dengan dasar chip di profil anak."""
+    if sesi_id is None:
+        return None
+    baris = kon.execute("SELECT tanggal FROM sesi WHERE id = ?", (sesi_id,)).fetchone()
+    try:
+        return date.fromisoformat(str(baris["tanggal"])[:10]) if baris else None
+    except ValueError:
+        return None
+
+
 def _punya_sesi(kon, siswa_id: int) -> bool:
     return kon.execute(
         "SELECT 1 FROM sesi WHERE siswa_id = ? LIMIT 1", (siswa_id,)
@@ -77,7 +90,8 @@ def langkah_anak(kon, siswa) -> LangkahAnak:
     """Langkah berikutnya satu anak; kegagalan baca tidak merusak beranda."""
     siswa_id, nama = int(siswa["id"]), str(siswa["nama"])
     try:
-        tindakan = _rencana(kon, siswa_id).tindakan
+        rencana = _rencana(kon, siswa_id)
+        tindakan = rencana.tindakan
     except (ValueError, sqlite3.Error) as galat:
         _log.warning(
             "beranda: rencana siswa %s tidak terbaca (%s)", siswa_id, type(galat).__name__
@@ -87,9 +101,27 @@ def langkah_anak(kon, siswa) -> LangkahAnak:
     if tindakan == "pemetaan" and not _punya_sesi(kon, siswa_id):
         # Anak baru belum "melanjutkan" apa pun; tampilan saja, tindakan tetap reducer.
         label = TINDAKAN["pilih_variasi"]
-    return LangkahAnak(siswa_id, nama, tindakan, kelompok_untuk(tindakan), label)
+    sejak = _tanggal_sesi(kon, rencana.sesi_id) if tindakan == "konfirmasi_hasil" else None
+    return LangkahAnak(siswa_id, nama, tindakan, kelompok_untuk(tindakan), label, sejak)
+
+
+def hari_menunggu(langkah: LangkahAnak, hari_ini: date) -> Optional[int]:
+    """Hari sejak sesi menunggu konfirmasi; None bila langkahnya bukan menunggu hasil."""
+    if langkah.menunggu_sejak is None:
+        return None
+    return (hari_ini - langkah.menunggu_sejak).days
+
+
+def keterangan_langkah(langkah: LangkahAnak, hari_ini: date) -> str:
+    """Label langkah, ditambah lama menunggu hanya bila sudah sehari atau lebih."""
+    hari = hari_menunggu(langkah, hari_ini)
+    if hari is not None and hari >= 1:
+        return f"{langkah.label} · menunggu {hari} hari"
+    return langkah.label
 
 
 def urutkan(daftar) -> list[LangkahAnak]:
-    """Kelompok kerja dulu, lalu nama tanpa membedakan huruf besar-kecil."""
-    return sorted(daftar, key=lambda a: (a.kelompok, a.nama.casefold(), a.siswa_id))
+    """Kelompok kerja, lalu yang terlama menunggu, lalu nama (tanpa beda huruf)."""
+    return sorted(daftar, key=lambda a: (
+        a.kelompok, a.menunggu_sejak or date.max, a.nama.casefold(), a.siswa_id,
+    ))

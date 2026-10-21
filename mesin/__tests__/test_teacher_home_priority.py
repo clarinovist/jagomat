@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import database  # noqa: E402
+import domain_clock  # noqa: E402
 import reports  # noqa: E402
 import teacher_home_priority as P  # noqa: E402
 from http_test_kit import SANDI_GURU, ServerUji  # noqa: E402
@@ -159,3 +161,66 @@ def test_urutkan_menurut_kelompok_lalu_nama_tanpa_mengubah_masukan():
     hasil = P.urutkan(masuk)
     assert [a.nama for a in hasil] == ["budi", "Citra", "Andi", "Dini"]
     assert masuk == salinan
+
+
+# ── lama menunggu: yang terlama dahulu ───────────────────────────────
+
+
+def _terkirim_dengan_tanggal(kon, nama, hari_lalu, seed):
+    siswa = database.tambah_siswa(kon, nama, "P3", pemilik="guru")
+    sesi = _sesi_terpandu(kon, siswa, seed)
+    _kirim(kon, sesi)
+    tanggal = (domain_clock.hari_wib() - timedelta(days=hari_lalu)).isoformat()
+    kon.execute("UPDATE sesi SET tanggal = ? WHERE id = ?", (tanggal, sesi))
+    return sesi
+
+
+@pytest.fixture()
+def server_menunggu(tmp_path, monkeypatch):
+    uji = ServerUji(tmp_path, monkeypatch)
+    with uji.buka() as kon:
+        # Abjad terbalik terhadap lama menunggu: Aaa baru, Zzz paling lama.
+        _terkirim_dengan_tanggal(kon, "Aaa Hari Ini", 0, 811)
+        _terkirim_dengan_tanggal(kon, "Mmm Dua Hari", 2, 812)
+        _terkirim_dengan_tanggal(kon, "Zzz Lima Hari", 5, 813)
+    yield uji
+    uji.berhenti()
+
+
+def test_perlu_tindakan_diurutkan_terlama_dahulu(server_menunggu):
+    isi = _beranda(server_menunggu)
+    assert _urutan_nama(isi) == ["Zzz Lima Hari", "Mmm Dua Hari", "Aaa Hari Ini"]
+
+
+def test_lama_menunggu_ditampilkan_hanya_bila_sehari_atau_lebih(server_menunggu):
+    isi = _beranda(server_menunggu)
+    assert "menunggu 5 hari" in isi
+    assert "menunggu 2 hari" in isi
+    assert "menunggu 0 hari" not in isi
+    assert isi.count("menunggu 5 hari") == 1
+
+
+def test_urutkan_menaruh_yang_bertanggal_sebelum_tanpa_tanggal_dalam_kelompok():
+    hari = domain_clock.hari_wib()
+    masuk = [
+        P.LangkahAnak(1, "Andi", "eskalasi", P.PERLU_TINDAKAN, "Tinjau"),
+        P.LangkahAnak(2, "Zed", "konfirmasi_hasil", P.PERLU_TINDAKAN, "Periksa",
+                      hari - timedelta(days=1)),
+        P.LangkahAnak(3, "Budi", "konfirmasi_hasil", P.PERLU_TINDAKAN, "Periksa",
+                      hari - timedelta(days=4)),
+    ]
+    assert [a.nama for a in P.urutkan(masuk)] == ["Budi", "Zed", "Andi"]
+
+
+def test_hari_menunggu_dan_keterangan():
+    hari = domain_clock.hari_wib()
+    lama = P.LangkahAnak(1, "A", "konfirmasi_hasil", P.PERLU_TINDAKAN, "Periksa",
+                         hari - timedelta(days=3))
+    baru = P.LangkahAnak(2, "B", "konfirmasi_hasil", P.PERLU_TINDAKAN, "Periksa", hari)
+    tanpa = P.LangkahAnak(3, "C", "pemetaan", P.SIAP, "Lanjutkan")
+    assert P.hari_menunggu(lama, hari) == 3
+    assert P.hari_menunggu(baru, hari) == 0
+    assert P.hari_menunggu(tanpa, hari) is None
+    assert P.keterangan_langkah(lama, hari) == "Periksa · menunggu 3 hari"
+    assert P.keterangan_langkah(baru, hari) == "Periksa"
+    assert P.keterangan_langkah(tanpa, hari) == "Lanjutkan"

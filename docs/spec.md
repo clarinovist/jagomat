@@ -71,7 +71,9 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   pemulihan dan CTA reducer tetap di Beranda.
 - Beranda guru (`/guru`) mengelompokkan anak menurut langkah berikutnya dari reducer yang sama
   dengan profil anak: **Perlu tindakan Anda** (konfirmasi hasil, eskalasi), **Siap dilanjutkan**,
-  dan **Menunggu** (sesi berjalan, jeda); urutan dalam kelompok menurut nama. Kartu menampilkan
+  dan **Menunggu** (sesi berjalan, jeda). Dalam *Perlu tindakan Anda* yang terlama menunggu
+  konfirmasi didahulukan (dasar tanggal sesi, sama dengan profil anak; "menunggu N hari" tampil
+  bila ≥1 hari); selebihnya menurut nama. Kartu menampilkan
   langkah dengan label laporan, tanpa skor atau peringkat kelemahan baru. Bila rencana satu anak
   gagal dibaca, kartunya tetap tampil dengan penanda "buka profil" dan beranda tidak rusak.
 - Bantuan orang tua tanpa AI: satu disclosure kunci/pembahasan tiap soal tinjauan

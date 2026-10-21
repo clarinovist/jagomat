@@ -11,6 +11,7 @@ from __future__ import annotations
 import html
 import random
 import database
+import domain_clock
 import question_views
 import teacher_home_priority
 import worksheets
@@ -107,6 +108,7 @@ def halaman_utama_stitch(
     aktivitas, bukan bukti penguasaan.
     """
     baris = []
+    hari_ini = domain_clock.hari_wib()
     for s in database.daftar_siswa(kon, pemilik):
         langkah = teacher_home_priority.langkah_anak(kon, s)
         rekap = kon.execute(
@@ -160,7 +162,7 @@ def halaman_utama_stitch(
             f'<span>{html.escape(label_kelas_sekolah(kelas_sekolah))}</span>'
             f'<span>{jumlah_sesi} latihan tercatat</span>{label_batal}{label_keluarga}</div>'
             f'<div class="guru-status-daftar-st">{"".join(status)}</div>'
-            f'<p class="guru-langkah-st">Langkah: {html.escape(langkah.label)}</p></div>'
+            f'<p class="guru-langkah-st">Langkah: {html.escape(teacher_home_priority.keterangan_langkah(langkah, hari_ini))}</p></div>'
             '<span class="guru-buka-st">Buka profil <span aria-hidden="true">↗</span></span>'
             '</a>'
         ))

@@ -127,7 +127,8 @@ cache dan cadangan tetap privat.
 - `teacher_home_priority.py` memberi beranda guru langkah, kelompok, dan urutan per anak:
   pilot aktif lewat `skill_pilot_ui.keadaan`, selain itu `rencana_berikutnya`; label dari
   `cycle_report.TINDAKAN`; kegagalan baca per anak dicatat tanpa nama dan menjadi kartu
-  fallback. Murni turunan reducer (tanpa tulis DB, tanpa penilaian baru); render di
+  fallback; `urutkan` mendahulukan sesi yang terlama menunggu konfirmasi (tanggal sesi,
+  `menunggu_sejak`) lalu nama. Murni turunan reducer (tanpa tulis DB, tanpa penilaian baru); render di
   `teacher_pages._daftar_anak_berkelompok`. Biaya terukur ±13 ms untuk 30 anak sintetis.
   Keempat tab `/anak/<id>` berbagi satu kontainer isi 960px (`child_style.py`, token
   `ANAK_*`, mockup di `docs/mockup/`) dan komponen HTML bersama `child_components.py`
