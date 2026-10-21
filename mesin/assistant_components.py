@@ -89,7 +89,7 @@ def panel_persetujuan(target, *, sumber, dalam_form: bool = False, galat: str = 
         + (f'<p class="pendamping-galat" role="alert">{_esc(galat)}</p>' if galat else "")
         + '<p>Pesan dikirim ke DeepSeek (AI, bisa keliru). Jangan tulis kontak, sandi, token, atau data pribadi anak. Izin ringkasan belajar diminta terpisah.</p>'
         + '<details class="pendamping-pengaturan"><summary>Privasi dan penyimpanan</summary>'
-          '<p>Riwayat disimpan sampai 180 hari sejak aktivitas terakhir. Penghapusan aktif segera; salinan cadangan dapat bertahan maksimal 30 hari. '
+          '<p>Riwayat disimpan sampai 180 hari sejak aktivitas terakhir. Hapus chat menghilangkan akses aktif; penghapusan fisik mengikuti pemeliharaan berkala. Memori terkonfirmasi terpisah; salinan cadangan dapat bertahan maksimal 30 hari. '
           '<a href="/kebijakan-privasi">Baca penjelasan privasi lengkap</a>.</p></details>'
         + '<label class="pendamping-cek"><input type="checkbox" name="setuju" value="1">'
           '<span>Saya memahami dan setuju memakai Pendamping Jagomat.</span></label>'
@@ -167,7 +167,7 @@ def _panel_akses_netral(target, judul, isi, *, dalam_form, status_teks):
         '<header class="pendamping-kepala-panel"><div class="pendamping-kepala-baris">'
         '<h2 id="nama-' + _esc(target.anchor) + '">Pendamping</h2>' + tutup + '</div>'
         f'<p class="pendamping-status-konteks" role="status">{_esc(status_teks)}</p></header>'
-        f'<div class="pendamping-inline-isi">{isi}</div></aside>'
+        f'<div class="pendamping-inline-isi">{isi}<p><a href="/pendamping/kelola" target="_blank" rel="noopener noreferrer">Kelola data Pendamping (tab baru)</a></p></div></aside>'
     )
 
 
@@ -725,5 +725,5 @@ def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False,
         + isi + '</div><details class="pendamping-rincian"><summary>Tentang bantuan AI</summary>'
           '<p>Percakapan membahas informasi belajar di atas. Isian pekerjaan yang belum dikirim '
           'tidak ikut dikirim ke AI. Jawaban AI dapat keliru; keputusan belajar tetap pada orang tua.'
-          '</p></details></aside>'
+          '</p><p><a href="/pendamping/kelola" target="_blank" rel="noopener noreferrer">Kelola data Pendamping (tab baru)</a></p></details></aside>'
     )

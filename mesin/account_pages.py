@@ -392,6 +392,11 @@ def halaman_akun(
             )
 
     if section == 'akun' and peran == 'guru':
+        isi_section += (
+            '<section class="kartu-st"><h2>Data Pendamping AI</h2>'
+            '<p>Kelola chat tersimpan dan izin pengiriman AI, juga saat pengiriman AI tidak tersedia.</p>'
+            '<a href="/pendamping/kelola">Kelola data Pendamping</a></section>'
+        )
         isi_section += analitik
     item = [("akun", "Akun saya", "/akun?section=akun")]
     if peran != "admin":

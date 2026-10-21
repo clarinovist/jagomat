@@ -23,6 +23,7 @@ class GalatPendamping(RuntimeError):
 
 
 _konteks_ai = ContextVar("konteks_ai_pendamping", default=(None, None))
+_sebelum_jaringan = ContextVar("pagar_jaringan_pendamping", default=None)
 
 
 def konfigurasi() -> assistant_client.Konfigurasi:
@@ -79,6 +80,9 @@ def panggil_provider_default(pesan):
         ) from None
 
     def kirim_dan_validasi():
+        pagar = _sebelum_jaringan.get()
+        if pagar is not None:
+            pagar()
         mentah = assistant_client.kirim(config, pesan)
         # Meter selesai berarti kontrak balasan lolos, bukan sekadar HTTP/JSON sah.
         assistant_policy.validasi_respons(mentah)
@@ -288,6 +292,24 @@ def kirim_pesan(
 
     pemanggil = panggil_provider or panggil_provider_default
     token_ai = _konteks_ai.set((account_id, "pendamping:" + request_id))
+
+    def pagar_jaringan():
+        # Admission AI dapat menunggu setelah reserve domain. Jangan kirim bila
+        # delete/revoke telah committed selama menunggu itu. Tidak menahan lock saat network.
+        with kon:
+            _kunci_reservasi(kon)
+            if (assistant_store.versi_persetujuan(kon, account_id) != consent_version
+                    or not assistant_store.persetujuan_aktif(
+                        kon, account_id, kategori='chat_umum', provider_id=assistant_policy.PROVIDER_ID)):
+                raise ValueError('Izin berubah sebelum pengiriman.')
+            try:
+                terbaru = _chat_dan_konteks_sah(kon, account_id, chat_id, konteks, validasi_konteks)
+            except GalatPendamping:
+                raise ValueError('Percakapan berubah sebelum pengiriman.') from None
+            if terbaru.versi != operasi.chat_version:
+                raise ValueError('Percakapan berubah sebelum pengiriman.')
+
+    token_pagar = _sebelum_jaringan.set(pagar_jaringan)
     try:
         mentah = pemanggil(pesan)
         respons = assistant_policy.validasi_respons(mentah)
@@ -321,6 +343,7 @@ def kirim_pesan(
         logging.getLogger(__name__).warning("Pendamping gagal: kategori=%s", kategori)
         raise GalatPendamping(ai_errors.pesan_pendamping(kategori)) from None
     finally:
+        _sebelum_jaringan.reset(token_pagar)
         _konteks_ai.reset(token_ai)
 
     try:

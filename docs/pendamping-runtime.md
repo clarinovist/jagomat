@@ -89,6 +89,38 @@ gerbang evaluasi, bukan klaim seluruh fase selesai atau bahwa AI tak mungkin
 berguna. Penerimaan manusia, perangkat dan walkthrough belum dilakukan; tidak
 ada rilis dari eksperimen ini.
 
+### Kendali data existing — 21 Oktober 2026
+
+Paket kendali data dibuka kembali secara eksplisit dan **dipisahkan dari syarat
+kelulusan eksperimen P2**. Bukan penghentian fitur memori/usulan atau rilis prompt
+kandidat. Source menyediakan `/pendamping/kelola` dari Akun dan tautan tab baru
+pada panel AI; tidak menavigasikan form host yang masih berisi draf.
+
+- Principal cookie guru terbaru wajib; admin/murid/Basic tidak mendapat akses.
+  Halaman tersedia walau `PENDAMPING_AKTIF=0`, provider belum dikonfigurasi atau
+  kuota habis. GET hanya metadata dan owner sumber, tidak transkrip/payload AI,
+  tidak membuat/migrasikan DB yang belum ada. DB rusak gagal dengan pesan generik.
+- Hapus satu chat melalui GET tinjauan lalu POST versi+konfirmasi dan pemeriksaan
+  asal request. Tombstone menghilangkan akses aktif; `purge_setelah=sekarang`
+  dijadwalkan untuk janitor existing, bukan purge massal dalam endpoint. Memori
+  terkonfirmasi, sesi hasil usulan serta marker deduplikasi tidak ikut dihapus;
+  purge memutus provenance memori, menghapus draft/chat/pesan sesuai kontrak lama.
+- Cabut izin melalui tinjauan/POST versi mencabut seluruh grant `chat_umum` akun
+  dan semua snapshot konteks secara atomik. Izin ulang provider tidak menghidupkan
+  snapshot lama. Ini tindakan eksplisit pemilik satu akun, bukan reset lintas akun.
+- Setelah cabut, metadata dan hapus tetap tersedia; akses transkrip tidak diperluas
+  melewati coupling consent existing. Tidak ada janji chat lama otomatis dapat
+  dilanjutkan. Izin sensor tetap terpisah; kategori chat dibersihkan oleh rekonsiliasi
+  existing/retensi, bukan atomik lintas DB. Backup maksimal30hari dan provider terpisah.
+- Pagar sebelum client memeriksa ulang versi izin/chat/konteks setelah admission AI
+  dapat menunggu; response terlambat tetap melewati guard simpan existing. Tidak
+  menahan lock DB sepanjang jaringan. Request yang sudah melewati pemeriksaan dan
+  terkirim tidak dapat ditarik kembali; jangan menjanjikan pembatalan retroaktif.
+
+Tidak ada schema/migration/backfill, penghapusan massal, perubahan kuota atau
+akses admin tambahan. Source/test bukan bukti deployment; paket ini belum
+memasang perubahan ke produksi atau mengesahkan walkthrough/perangkat manusia.
+
 ## Tinjauan dan pembuatan latihan
 
 - GET tinjauan yang sah menerbitkan token acak, menyimpan **hash token** dan

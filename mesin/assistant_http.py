@@ -354,6 +354,9 @@ def _chat_html(kon, principal, chat, *, galat='', request_id='', operasi_url='')
 
 
 def tangani_get(penangan, jalur: str) -> bool:
+    import assistant_manage
+    if assistant_manage.tangani(penangan, jalur):
+        return True
     if not (jalur == '/pendamping' or jalur.startswith('/pendamping/')):
         return False
     if not aktif():
@@ -487,6 +490,9 @@ def tangani_get(penangan, jalur: str) -> bool:
     return True
 
 def tangani_post(penangan, jalur: str) -> bool:
+    import assistant_manage
+    if assistant_manage.tangani(penangan, jalur, post=True):
+        return True
     if not (jalur == "/pendamping" or jalur.startswith("/pendamping/")):
         return False
     if not aktif():

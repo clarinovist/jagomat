@@ -187,6 +187,11 @@ cache dan cadangan tetap privat.
 - Lock file/thread dan session fence batch admin sengaja tetap bersama orkestrasi
   `admin_bulk.py`: callback durable/transient dan test crash mem-patch boundary façade
   tersebut; memindahkannya akan menambah callback/cycle pada batas crash dua SQLite.
+- `assistant_manage.py` menangani `/pendamping/kelola` sebelum gate feature/provider
+  melalui `assistant_http`; principal cookie guru, ownership sumber, versi dan
+  CSRF tetap wajib. GET metadata read-only tidak bootstrap DB; POST memakai
+  primitive tombstone/revoke existing dalam satu transaksi. Pagar client dalam
+  `assistant_service` mengecek ulang chat/izin setelah admission AI menunggu.
 - `assistant_store.py` kini sekitar 890 baris setelah concern memori dipisah;
   chat/pesan, persetujuan, usulan, operasi, dan retensi tetap satu agregat owner-scoped
   dengan transaksi/foreign key bersama, sehingga tidak dipecah lagi hanya demi LOC.

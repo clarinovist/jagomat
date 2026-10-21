@@ -82,7 +82,12 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   dan snapshot sumber tetap terpisah; konteks berubah menjadi hanya-baca. Panel
   overlay/sheet menjaga lebar konten dan tab asal; contoh hanya mengisi draf, tidak
   mengirim otomatis. Usulan latihan tetap memerlukan tinjauan dan konfirmasi, bukan
-  perubahan diagnosis atau bukti belajar otomatis.
+  perubahan diagnosis atau bukti belajar otomatis. Kelola data Pendamping dari
+  Akun tersedia dengan sesi guru meski provider/fitur kirim nonaktif atau kuota
+  habis: tinjau lalu hapus satu chat, atau cabut izin AI beserta izin sumber lama.
+  Metadata/hapus tetap tersedia pasca-cabut; transkrip tetap mengikuti izin baca.
+  Hapus memberi tombstone dan jadwal purge, bukan jaminan hapus fisik seketika;
+  memori terkonfirmasi, sesi hasil, backup dan provider memiliki aturan terpisah.
 - Akun keluarga dan pengelolaan anak: nama login terlihat, penghapusan profil
   ber-riwayat atau bukti pendaftaran ditahan, dan pilihan data tambahan dibedakan
   dari izin yang masih aktif. Tambah anak mengikuti policy awal tanpa checkbox

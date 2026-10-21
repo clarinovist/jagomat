@@ -106,6 +106,7 @@ def halaman_tidak_aktif() -> bytes:
         "Pendamping belum aktif",
         '<h1 id="judul-pendamping">Pendamping belum aktif</h1>'
         '<p>Pengiriman AI belum tersedia. Ini tidak berarti riwayat atau memori terhapus.</p>'
+        '<p><a href="/pendamping/kelola">Kelola data Pendamping</a></p>'
         '<p>Latihan Jagomat tetap dapat digunakan seperti biasa.</p>'
         + _tautan('/guru', 'Kembali ke ruang belajar'),
     )
@@ -164,7 +165,7 @@ def halaman_persetujuan(galat: str = "", *, lanjut: str = "", sumber=None) -> by
         '<section class="pendamping-panel"><p>Pesan chat akan dikirim ke DeepSeek untuk membuat jawaban. '
         'Jangan menulis email, nomor telepon, sandi, token, atau data pribadi anak.</p>'
         '<p>Riwayat chat disimpan sampai 180 hari sejak aktivitas terakhir. '
-        'Penghapusan aktif dilakukan segera; salinan cadangan dapat bertahan maksimal 30 hari.</p>'
+        'Hapus chat menghilangkan akses aktif; penghapusan fisik mengikuti pemeliharaan berkala. Memori terkonfirmasi terpisah; salinan cadangan dapat bertahan maksimal 30 hari.</p>'
         '<p>Jawaban AI dapat keliru. Izin sumber belajar akan diminta terpisah sebelum sumber digunakan.</p>'
         + _galat(galat) + '<form method="post" action="/pendamping/persetujuan">'
         + _hidden('kebijakan', assistant_policy.VERSI_KEBIJAKAN)

@@ -48,7 +48,12 @@ implementasi luas dan pilot tetap ditahan. Review manusia ditunda sampai sebelum
 pilot hanya untuk batch sintetis berizin, bukan diganti AI untuk penerimaan penggunaan nyata.
 Walkthrough/perangkat tidak dinyatakan selesai. Detail hasil agregat dan batasnya
 ada di [evaluasi sintetis Pendamping](pendamping-runtime.md#evaluasi-kandidat-sempit--20-oktober-2026).
-Tidak ada perubahan runtime atau aktivasi komersial dari keputusan ini.
+Tidak ada perubahan runtime atau aktivasi komersial dari keputusan eksperimen ini.
+
+Keputusan terpisah 21 Oktober membuka paket **kendali data existing** tanpa
+menunggu P2 lulus: halaman kelola, hapus satu chat, cabut izin/snapshot, dan akses
+pengelolaan saat provider mati. Editor memori lebih luas tetap di luar scope.
+Kontrak source dan batas retensi/race ada di [kendali data Pendamping](pendamping-runtime.md#kendali-data-existing--21-oktober-2026); bukan bukti deployment.
 
 ## Acuan teknis dan historis
 
