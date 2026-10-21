@@ -45,7 +45,8 @@ def test_menu_pengguna_di_semua_halaman_guru(server):
             f"{jalur} tidak memuat menu pengguna"
         )
         kepala = re.search(r'<details class="menu-pengguna">\s*<summary>(.*?)</summary>', isi, re.S).group(1)
-        assert 'ortu-a' in re.sub(r'<[^>]+>', '', kepala), f"{jalur} tidak menampilkan nama"
+        # Label akun diformat seragam di semua halaman (nama login tetap "ortu-a").
+        assert 'Ortu A' in re.sub(r'<[^>]+>', '', kepala), f"{jalur} tidak menampilkan nama"
         assert 'action="/keluar"' in isi, f"{jalur} tidak memuat pintu keluar"
         assert 'href="/akun"' in isi, f"{jalur} tidak memuat pintu akun"
 
