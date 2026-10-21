@@ -13,7 +13,10 @@ Fingerprint persistensi tetap7a924b190298c326efcedc6f8a1eb0c7bd57579c346b6914409
 manifest persiapan tidak mengklaim pair teruji. Kandidat sekarang mematok baseline
 ini dan kembali mode migrasi/komposisi2. Probe wajib exercise writer katalog2
 meski default aplikasi1, untuk membuktikan C→B→C exact sebelum aktivasi.
-Job pasang tetap false, tidak ada deploy.
+Koleksi recovery exact **13.859 nodeid** identik dengan empat manifest CI baseline
+(lintas Python3.9/3.12, hash himpunan83c2010d…). Gate kandidat b92ec91 sempat menolak
+anchor yang belum terdaftar; jumlah diukur dari arsip immutable sebelum dicatat,
+bukan menurunkan guard. Job pasang tetap false, tidak ada deploy.
 Contoh tinjauan26 template kini menjadi artefak `catalog-review` terikat SHA/hash;
 review manusia belum dinyatakan selesai. Detail [koreksi katalog](catalog-corrections.md).
 

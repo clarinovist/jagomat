@@ -55,6 +55,9 @@ JUMLAH_RECOVERY = {
     "c71038bb3b8ceedf10e469eb94766aed7c4c8472": 13126,
     "ff6acb158985f78ef0287ec18fb045d273921bdc": 13507,
     "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
+    # Arsip exact reader katalog; nodeid identik empat manifest CI39596225447
+    # lintas Python3.9/3.12, SHA256 himpunan 83c2010d… (21 Oktober 2026).
+    "542dcd94132c4b91bca78004643c8eb2c82686d7": 13859,
 }
 
 
