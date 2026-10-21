@@ -9,6 +9,8 @@ import pytest
 
 MESIN = Path(__file__).resolve().parents[1]
 MUTASI = (
+    ('pilot-marker', 'skill_pilot.py', 'if "versi_katalog" in parameter:', 'if False:',
+     'test_catalog_pilot.py::test_selector_pilot_katalog2_dan_sidik_geometri_tetap', 'reader pilot menolak marker'),
     ('konteks-umur', 'catalog_logic.py', 'if konteks_umur == "dua_orang_v1":', 'if False:',
      'test_catalog_age_context.py::test_umur_baru_dua_orang_tanpa_relasi_keluarga', 'AssertionError'),
     ('umur', 'catalog_logic.py', 'kunci = (a + n) // (b + n)', 'kunci = k * b',

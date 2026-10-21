@@ -120,12 +120,11 @@ def test_fakta_umur_tidak_konsisten_ditolak(ganti):
         REGISTRI["soal_umur"](**dict(PARAMETER_UMUR, **ganti), versi_katalog=2)
 
 
-def test_bawaan_kandidat_mengaktifkan_writer_setelah_review(monkeypatch):
+def test_bawaan_recovery_tetap_writer1(monkeypatch):
     monkeypatch.delenv("OSN_KATALOG_VERSI", raising=False)
     soal = buat_soal("soal_umur", 0, "P6", "logika")
-    assert soal.parameter.get("versi_katalog") == 2
-    assert soal.kunci == "5"
-    assert soal.parameter.get("konteks_umur") == "dua_orang_v1"
+    assert "versi_katalog" not in soal.parameter
+    assert soal.kunci == "40"
 
 
 def test_bukti_terkonfirmasi_lama_tetap_utuh(db, monkeypatch):

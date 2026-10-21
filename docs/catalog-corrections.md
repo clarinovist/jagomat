@@ -92,6 +92,14 @@ exact, preflight, backup/rehearsal, dan cutover terkontrol. Persetujuan ini buka
 bukti deployment dan tidak mencakup perubahan konten berikutnya. Pin tidak diubah untuk meloloskan gate; review versi sebelumnya
 tidak mengesahkan konten baru. Tidak ada runtime LLM untuk kunci/diagnosis.
 
+## Kompatibilitas pilot keterampilan
+
+Aktivasi default menemukan validator kisi pilot yang masih menolak marker katalog2.
+Reader kini menerima tepat marker2 pada sumber kisi yang sah, tanpa mengubah sidik
+ukuran atau melonggarkan field/rentang. Fokus tepi K baru dan H historis tetap
+dibedakan oleh kode; selector mencocokkan malrule aktual. Baseline recovery berikutnya
+harus memuat reader ini sebelum kandidat aktif dirilis. Tidak ada retag bukti lama.
+
 ## Batas dan follow-up
 
 - Kewajaran ayah12/anak3 sudah ditangani pada soal baru dengan melepas hubungan

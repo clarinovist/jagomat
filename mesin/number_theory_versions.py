@@ -5,7 +5,7 @@ import os
 
 # Kandidat komposisi2; recovery katalog542dcd9 komposisi1, reader lengkap.
 # Katalog perbaikan tetap default1 sampai tinjauan manusia/aktivasi terkontrol.
-VERSI_TEORI_BILANGAN_BAWAAN = 2
+VERSI_TEORI_BILANGAN_BAWAAN = 1
 LAMA = {
     "P4": ("keterbagian", "sisa_pembagian", "paritas") * 3 + ("keterbagian",),
     "P5": ("keterbagian", "prima_faktorisasi", "kpk_dua_bilangan",

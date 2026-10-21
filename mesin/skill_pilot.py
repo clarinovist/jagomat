@@ -99,6 +99,11 @@ def validasi_fokus(konteks, fokus):
         PRASYARAT: {"datar.hitung_keliling": "H", "datar.hanya_satu_baris": "K",
                     "datar.hanya_satu_kolom": "K", "datar.kurang_satu": "H"},
     }
+    # Rule katalog2 mengartikan hitung-tepi sebagai kesalahan konsep. Kode H
+    # historis tetap diterima untuk arsip; selector mencocokkan rule soal aktual.
+    if (konteks.tuntutan_id == PRASYARAT
+            and fokus[2] == "datar.hitung_keliling" and fokus[1] == "K"):
+        return
     if daftar[konteks.tuntutan_id].get(fokus[2]) != fokus[1]:
         raise ValueError("malrule tidak cocok dengan tuntutan dan diagnosis")
 
@@ -110,6 +115,10 @@ def ukuran_matematis(konteks, template_id, parameter):
     if type(parameter) is not dict:
         raise ValueError("parameter pilot wajib objek")
     if konteks.tuntutan_id == PRASYARAT:
+        if "versi_katalog" in parameter:
+            if type(parameter["versi_katalog"]) is not int or parameter["versi_katalog"] != 2:
+                raise ValueError("versi katalog kisi tidak didukung")
+            parameter = {k: v for k, v in parameter.items() if k != "versi_katalog"}
         if (set(parameter) != {"p", "l", "satuan", "konteks"}
                 or type(parameter["satuan"]) is not str or parameter["satuan"] not in ("cm", "m")
                 or type(parameter["konteks"]) is not str
