@@ -184,8 +184,8 @@ def riwayat(
     strip = ''
     if statistik.get('menunggu') and statistik.get('terlama_id'):
         strip = ('<aside class="riwayat-perhatian-st"><p><b>%d sesi menunggu tinjauan.</b> '
-                 'Mulai dari yang paling lama.</p><a class="anak-tombol-st" href="/sesi/%d">'
-                 'Tinjau yang terlama</a></aside>') % (statistik['menunggu'], statistik['terlama_id'])
+                 'Sesi yang paling lama menunggu bisa dibuka dari sini.</p>'
+                 '<a class="anak-tombol-st" href="/sesi/%d">Tinjau sesi terlama</a></aside>') % (statistik['menunggu'], statistik['terlama_id'])
     aktif = ('perlu_tinjauan' if f.tinjauan in ('belum_ditinjau', 'dibuka', 'draf', 'ulang') else f.tinjauan)
     chips = '<nav class="riwayat-pilbar-st" aria-label="Status latihan">' + ''.join(
         pil_filter(label, replace(f, tinjauan=kode, halaman=1).tautan(siswa_id), aktif == kode)

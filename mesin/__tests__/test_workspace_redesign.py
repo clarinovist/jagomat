@@ -128,7 +128,9 @@ def test_strip_dan_chip_antrian_sesuai_snapshot_aktif(server):
         siswa=kon.execute('SELECT * FROM siswa WHERE id=?',(server.anak,)).fetchone()
         isi=teacher_pages.halaman_anak(kon,siswa,query='section=riwayat').decode()
         assert '1 sesi menunggu tinjauan.' in isi
-        assert f'href="/sesi/{a}">Tinjau yang terlama</a>' in isi
+        assert f'href="/sesi/{a}">Tinjau sesi terlama</a>' in isi
+        # Banner tidak menyiratkan urutan wajib yang bisa berbeda dari tombol utama Beranda.
+        assert 'Mulai dari yang paling lama' not in isi
         hasil,total,_=profile_history.halaman_riwayat(kon,server.anak,profile_history.parse_filter('section=riwayat&tinjauan=perlu_tinjauan'))
         assert total==1 and hasil[0]['id']==a
         assert tuple(kon.iterdump())==awal
