@@ -375,7 +375,6 @@ def halaman_anak(
         isi_profil += parent_help.faq(section)
         if section == 'rencana':
             isi_profil += parent_help.kartu_pendampingan()
-        isi_profil += '<style>' + parent_help.GAYA + '</style>'
 
     return _halaman_stitch(
         f"{siswa['nama']} — {T.NAMA_PRODUK}",

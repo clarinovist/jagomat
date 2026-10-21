@@ -154,7 +154,8 @@ def _halaman_stitch(
     gaya = GAYA_STITCH
     if "profil-workspace-st" in kelas_bungkus:
         from question_variants_ui import GAYA_VARIASI
-        gaya += profile_workspace.GAYA_PROFIL + GAYA_ANAK + GAYA_VARIASI
+        from parent_help import GAYA as GAYA_BANTUAN
+        gaya += profile_workspace.GAYA_PROFIL + GAYA_ANAK + GAYA_VARIASI + GAYA_BANTUAN
     if ringkas:
         from child_header import GAYA_HEADER_ANAK
         gaya += GAYA_HEADER_ANAK

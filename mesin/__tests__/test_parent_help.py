@@ -98,6 +98,9 @@ def test_faq_sesuai_tab_tanpa_outbound_dan_tanpa_write(db, monkeypatch, section)
             assert markup.count('data-faq-lokal=') == 1
             assert f'data-faq-lokal="{section}"' in markup
             assert html.escape(parent_help.FAQ[section][0]) in markup
+        if section != 'riwayat':
+            assert 'bantuan-statis-faq' in markup.split('</head>', 1)[0]
+            assert 'bantuan-statis-faq {' not in markup.split('<body', 1)[1]
         assert ('id="judul-bantuan-pendampingan"' in markup) == (section == 'rencana')
         assert tuple(kon.iterdump()) == sebelum
 
