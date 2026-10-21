@@ -38,7 +38,7 @@ def tangani_get(penangan, jalur: str) -> bool:
                     _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
                 )
                 return True
-            isi = lampiran_mod.halaman_konfirmasi(kon, lampiran_id)
+            isi = lampiran_mod.halaman_konfirmasi_guru(kon, lampiran_id)
         if isi:
             penangan._kirim(isi)
         else:
@@ -131,7 +131,7 @@ def _baca_ulang(penangan, lampiran_id: int) -> None:
         terjaga = lampiran_mod.penegakan_foto()
         if not terjaga:
             pesan = lampiran_mod.baca_ulang(kon, lampiran_id)
-            isi = lampiran_mod.halaman_konfirmasi(kon, lampiran_id, pesan)
+            isi = lampiran_mod.halaman_konfirmasi_guru(kon, lampiran_id, pesan)
             if isi is None:
                 penangan._kirim(
                     _halaman("404", "<h1>Lampiran hilang</h1>"), 404
@@ -177,7 +177,7 @@ def _baca_ulang(penangan, lampiran_id: int) -> None:
             )
             return
         penangan._kirim(
-            lampiran_mod.halaman_konfirmasi(kon, lampiran_id, pesan)
+            lampiran_mod.halaman_konfirmasi_guru(kon, lampiran_id, pesan)
         )
 
 
@@ -202,7 +202,7 @@ def _terapkan(penangan, lampiran_id: int) -> None:
             "SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?", (sesi_foto,)
         ).fetchone()
         _jumlah, pesan = lampiran_mod.terapkan(kon, lampiran_id, data)
-        isi = lampiran_mod.halaman_konfirmasi(kon, lampiran_id, pesan)
+        isi = lampiran_mod.halaman_konfirmasi_guru(kon, lampiran_id, pesan)
         if isi is None:
             penangan._kirim(
                 _halaman("404", "<h1>Lampiran hilang</h1>"), 404

@@ -162,6 +162,9 @@ cache dan cadangan tetap privat.
   lampiran disembunyikan pada renderer guru/akun anak, bukan pada guard HTTP.
   CTA foto tinjauan hanya muncul bila tujuan upload tersedia; tidak ada JS/schema
   atau kapabilitas tautan anak baru.
+  `halaman_konfirmasi_guru` memilih mode lewat `ai_pembacaan_aktif()` (kunci vision);
+  `halaman_konfirmasi(ai_aktif=False)` menyajikan isi-manual tanpa menyentuh jalur
+  tulis (`terapkan`), arsip `sumber='foto'`, atau schema.
 - `parent_help.py` merender kartu pra-tulis dan FAQ kontekstual pada permukaan
   guru melalui `teacher_workspace`/`teacher_session_pages`, tanpa DB/AI atau route
   baru. Disclosure native menjaga form/draf; kunci/pembahasan tetap dari loader

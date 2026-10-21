@@ -161,6 +161,9 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   penanda masalah dengan preview bacaan awal; kosong/ragu/berbeda dari jawaban lama
   dan PG tetap terbuka. Semua field tetap terkirim; AI belum diverifikasi manusia,
   Terapkan tetap eksplisit dan bukan konfirmasi bukti belajar.
+  Tanpa kunci vision AI, halaman konfirmasi berubah menjadi **isi dari lembar**: guru
+  mengetik jawaban dan cara anak dari foto, semua kartu terbuka, tanpa bahasa AI,
+  tombol baca ulang, atau kunci jawaban; foto tetap bukti dan sumber arsip tetap `foto`.
   Koreksi menginvalidasi bukti aktif; snapshot lama dan provenance tetap terjaga.
 - Maksimal dua fokus per putaran, dengan kunci
   `(template_id, kode_intervensi, malrule_id)`. Terbimbing/penguatan tidak menambah

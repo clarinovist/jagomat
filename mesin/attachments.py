@@ -180,6 +180,28 @@ def proses_upload(
     return lid, pesan
 
 
+PESAN_FOTO_ISI_MANUAL = (
+    "Foto tersimpan. Isi jawaban dan cara anak dari lembar di bawah, "
+    "lalu tekan Terapkan."
+)
+
+
+def ai_pembacaan_aktif() -> bool:
+    """Benar bila pembacaan foto oleh AI dikonfigurasi (kunci vision ada).
+
+    Tanpa kunci, halaman guru memakai bahasa isi-manual: foto tetap bukti,
+    jawaban diketik guru, dan tidak ada tombol atau teks yang menjanjikan AI.
+    """
+    import llm
+
+    return bool(llm.konfigurasi_vision().get("api_key"))
+
+
+def halaman_konfirmasi_guru(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
+    """Halaman konfirmasi untuk guru: mode mengikuti konfigurasi AI saat ini."""
+    return halaman_konfirmasi(kon, lampiran_id, pesan, ai_aktif=ai_pembacaan_aktif())
+
+
 def _ekstraksi_untuk(kon, sesi_id: int, isi: bytes) -> tuple[str, str]:
     """Jalankan ekstraksi AI atas satu foto -> (hasil_json, pesan untuk guru).
 
@@ -200,6 +222,8 @@ def _ekstraksi_untuk(kon, sesi_id: int, isi: bytes) -> tuple[str, str]:
     ).fetchone()
     with llm.gunakan_bucket_akun(pemilik["pemilik"] if pemilik else None):
         hasil = llm.ekstrak_lembar(konteks, b64)
+    if hasil is None and not ai_pembacaan_aktif():
+        return "", PESAN_FOTO_ISI_MANUAL
     if hasil is None:
         return "", (
             "Foto tersimpan, tapi AI tidak bisa membaca lembar dengan yakin. "
@@ -746,8 +770,15 @@ def _blok_jawaban_lama(s: dict) -> str:
     return "".join(bagian)
 
 
-def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
-    """Foto + usulan AI per soal + form koreksi + tombol Terapkan."""
+def halaman_konfirmasi(
+    kon, lampiran_id: int, pesan: str = "", *, ai_aktif: bool = True,
+) -> bytes | None:
+    """Foto + usulan AI per soal + form koreksi + tombol Terapkan.
+
+    ``ai_aktif=False`` menyajikan mode isi manual: gurulah yang mengetik isi
+    lembar dari foto, tanpa bahasa AI, tombol baca ulang, atau kunci jawaban
+    yang dapat membiaskan transkripsi.
+    """
     from style_stitch import gaya_stitch, CSS_SESI
     from teacher_pages import _topbar_stitch
 
@@ -790,6 +821,7 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
             alasan.append('Pilihan ganda: pilih sesuai foto')
         else:
             jumlah_dibaca += bool(jawaban)
+        if not pg and ai_aktif:
             if not jawaban:
                 alasan.append('Jawaban belum terbaca')
             if not cara:
@@ -800,9 +832,26 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
                 alasan.append('Berbeda dari jawaban lama')
         perlu_periksa = bool(alasan)
         jumlah_periksa += perlu_periksa
-        ringkasan_jawaban = 'Pilih sesuai foto' if pg else jawaban or 'Belum terbaca'
+        ringkasan_jawaban = (
+            'Pilih sesuai foto' if pg
+            else jawaban or ('Belum diisi' if not ai_aktif else 'Belum terbaca')
+        )
         cuplikan_cara = cara[:80] + ('…' if len(cara) > 80 else '')
         catatan = ' · '.join(alasan) if alasan else 'Belum diverifikasi manusia'
+        if ai_aktif:
+            teks_ringkas = (
+                f'Bacaan awal — jawaban: {html.escape(ringkasan_jawaban)} · '
+                f'cara: {html.escape(cuplikan_cara or "Belum terbaca")}'
+            )
+            label_jawaban, label_cara = 'Jawaban (bacaan AI)', 'Caraku (bacaan AI)'
+            petunjuk_pg = 'Pilih sesuai foto; bacaan AI tidak diterapkan otomatis.'
+            kunci_html = f'<span class="kunci">kunci: {html.escape(s["kunci"])}</span>'
+        else:
+            teks_ringkas = f'Jawaban anak: {html.escape(ringkasan_jawaban)}'
+            catatan = ' · '.join(alasan)
+            label_jawaban, label_cara = 'Jawaban anak', 'Caraku anak'
+            petunjuk_pg = 'Pilih sesuai foto lembar.'
+            kunci_html = ''
         input_jawaban = (select_guru(pg, s['jawaban_lama'], f'foto-jwb-{s["sesi_soal_id"]}') if pg else
                          f'<input id="foto-jwb-{s["sesi_soal_id"]}" type="text" name="jwb_{s["sesi_soal_id"]}" value="{jwb_u}">')
         tanda = (
@@ -811,23 +860,23 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
             else ""
         )
         kartu.append(f"""
-<details class="kartu-st soal-lampiran"{' open' if perlu_periksa else ''}>
+<details class="kartu-st soal-lampiran"{' open' if perlu_periksa or not ai_aktif else ''}>
   <summary class="foto-ringkas">
     <span class="foto-ringkas-nomor">Soal {s['nomor']}</span>
-    <span class="foto-preview">Bacaan awal — jawaban: {html.escape(ringkasan_jawaban)} · cara: {html.escape(cuplikan_cara or 'Belum terbaca')}</span>
+    <span class="foto-preview">{teks_ringkas}</span>
     <span class="foto-catatan">{html.escape(catatan)}</span>
   </summary>
   <div class="foto-rincian">
   <div class="kartu-kepala"><span class="nomor">{s['nomor']}</span>
     <span class="tipe">Soal {s['nomor']}</span>
-    <span class="kunci">kunci: {html.escape(s['kunci'])}</span>{tanda}</div>
+    {kunci_html}{tanda}</div>
   {visual_renderer.render_pertanyaan(s['penyajian'], gaya='guru', namespace=str(s['nomor']))}
   {_blok_jawaban_lama(s)}
   <div class="baris">
-    <div><label for="foto-jwb-{s['sesi_soal_id']}">Jawaban (bacaan AI)</label>
+    <div><label for="foto-jwb-{s['sesi_soal_id']}">{label_jawaban}</label>
       {input_jawaban}
-      {'<small>Pilih sesuai foto; bacaan AI tidak diterapkan otomatis.</small>' if pg else ''}</div>
-    <div><label for="foto-cara-{s['sesi_soal_id']}">Caraku (bacaan AI)</label>
+      {f'<small>{petunjuk_pg}</small>' if pg else ''}</div>
+    <div><label for="foto-cara-{s['sesi_soal_id']}">{label_cara}</label>
       <input id="foto-cara-{s['sesi_soal_id']}" type="text" name="cara_{s['sesi_soal_id']}" value="{cara_u}"></div>
   </div>
   <label class="centang"><input type="checkbox" name="blm_{s['sesi_soal_id']}">
@@ -853,6 +902,28 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
         "</form>"
     )
 
+    if ai_aktif:
+        judul_halaman = f"Konfirmasi bacaan AI — Sesi #{sesi_id}"
+        sub_halaman = "Cocokkan bacaan dengan foto sebelum menerapkan. Hasil AI masih perlu diperiksa."
+        ringkasan_progres = (
+            f"{jumlah_dibaca} dari {len(kartu)} soal memiliki bacaan jawaban · "
+            f"{jumlah_periksa} perlu dicek lebih dulu"
+        )
+        catatan_progres = (
+            "Belum diverifikasi manusia. Tidak ada penanda masalah bukan berarti bacaan AI benar. "
+            "Cocokkan semua bacaan awal dengan foto; buka kartu untuk mengoreksi. "
+            "Ringkasan menampilkan bacaan awal, bukan koreksi yang belum diterapkan."
+        )
+    else:
+        blok_baca_ulang = ""
+        judul_halaman = f"Isi jawaban dari lembar — Sesi #{sesi_id}"
+        sub_halaman = "Lihat foto lembar anak, lalu ketik jawaban dan cara anak pada tiap soal."
+        ringkasan_progres = f"{len(kartu)} soal untuk diisi dari lembar"
+        catatan_progres = (
+            "Kosongkan soal yang tidak dikerjakan anak; soal kosong tidak disimpan. "
+            "Sesi ditandai selesai setelah semua soal terisi."
+        )
+
     isi = f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{brand.judul("Konfirmasi lembar foto")}</title>
@@ -866,17 +937,15 @@ def halaman_konfirmasi(kon, lampiran_id: int, pesan: str = "") -> bytes | None:
 <main class="sesi-badan-st" aria-labelledby="judul-foto">
 <div class="jejak"><a href="/sesi/{sesi_id}">&larr; Kembali ke sesi</a></div>
 <header class="editorial-kepala-st"><p class="editorial-alis-st">DARI KERTAS KE CATATAN</p>
-<h1 class="sesi-judul-st" id="judul-foto">Konfirmasi bacaan AI — Sesi #{sesi_id}</h1>
-<p class="sub">Cocokkan bacaan dengan foto sebelum menerapkan. Hasil AI masih perlu diperiksa.</p></header>
+<h1 class="sesi-judul-st" id="judul-foto">{judul_halaman}</h1>
+<p class="sub">{sub_halaman}</p></header>
 {kabar}{catatan_status}
 <div class="kartu-st pratinjau-foto-st"><img class="foto-lembar"
   src="/lampiran/berkas/{lampiran_id}" alt="Foto lembar anak"></div>
 {blok_baca_ulang}
 <section class="foto-progres" aria-label="Ringkasan bacaan foto">
-  <h2>{jumlah_dibaca} dari {len(kartu)} soal memiliki bacaan jawaban · {jumlah_periksa} perlu dicek lebih dulu</h2>
-  <p>Belum diverifikasi manusia. Tidak ada penanda masalah bukan berarti bacaan AI benar.
-  Cocokkan semua bacaan awal dengan foto; buka kartu untuk mengoreksi.
-  Ringkasan menampilkan bacaan awal, bukan koreksi yang belum diterapkan.</p>
+  <h2>{ringkasan_progres}</h2>
+  <p>{catatan_progres}</p>
 </section>
 <form method="post" action="/lampiran/{lampiran_id}/terapkan">
 {''.join(kartu)}

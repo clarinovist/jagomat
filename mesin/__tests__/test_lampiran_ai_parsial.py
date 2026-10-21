@@ -159,6 +159,10 @@ def test_pesan_khusus_kalau_semua_kosong(db, monkeypatch):
 
 
 def test_pesan_gagal_menyarankan_baca_ulang(db, monkeypatch):
+    # AI dikonfigurasi tetapi gagal baca; tanpa kunci berlaku mode isi manual
+    # (lihat test_lampiran_isi_manual).
+    monkeypatch.setattr(llm, "konfigurasi_vision",
+                        lambda: {"base_url": "", "api_key": "kunci-sintetis", "model": ""})
     monkeypatch.setattr(llm, "ekstrak_lembar", lambda konteks, b64: None)
     with database.buka(db) as kon:
         sesi_id = _sesi_uji(kon, "AnakGagal")
