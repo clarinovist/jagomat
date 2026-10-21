@@ -213,16 +213,10 @@ def panel_konteks(target, konteks, *, sumber, dalam_form: bool = False, galat: s
         + f'<p>{_esc(penjelasan)}</p>'
         + '<label class="pendamping-cek"><input type="checkbox" name="setuju_konteks" value="1">'
           '<span>Saya mengizinkan informasi ini digunakan dalam percakapan.</span></label>'
-        + '<details class="pendamping-pengaturan"><summary>Pengaturan percakapan</summary>'
-          '<label class="pendamping-label" for="mode-chat-inline">Preferensi cara menjawab</label>'
-          '<select id="mode-chat-inline" name="mode_chat" aria-describedby="catatan-mode-chat">'
-          '<option value="aktif" selected>Ikuti pengaturan preferensi saya</option>'
-          '<option value="tanpa_memori">Tanpa preferensi lintas percakapan</option></select>'
-          '<p class="pendamping-catatan" id="catatan-mode-chat">Pilihan kedua tidak membaca atau '
-          'menambah preferensi lintas percakapan. Riwayat tetap disimpan pada kedua pilihan. '
-          'Pilihan ini tidak dapat diubah setelah percakapan dibuat.</p></details>'
+        + _hidden("mode_chat", "tanpa_memori")
+        + '<p class="pendamping-catatan">Preferensi lintas percakapan tidak digunakan. Tidak ada pesan yang dikirim otomatis.</p>'
         + '<div class="pendamping-aksi">'
-          '<button class="pendamping-tombol" type="submit" formaction="/pendamping/inline/mulai">Mulai percakapan</button></div>'
+          '<button class="pendamping-tombol" type="submit" formaction="/pendamping/inline/mulai">Setuju dan buka percakapan</button></div>'
     )
     judul = {
         "latihan": "Bantuan menyiapkan latihan",
@@ -237,14 +231,13 @@ def panel_konteks(target, konteks, *, sumber, dalam_form: bool = False, galat: s
 
 def contoh_pertanyaan(target) -> str:
     """Contoh lokal hanya mengisi draf; tanpa JS tampil sebagai petunjuk teks."""
-    contoh = {
-        'rencana': ('Sesi mana yang sebaiknya saya tinjau dulu?', 'Apa langkah belajar berikutnya?', 'Bagaimana mendampingi tanpa memberi jawaban?'),
-        'latihan': ('Sesi mana yang sebaiknya saya tinjau dulu?', 'Bantu memilih latihan singkat.', 'Bagaimana memakai latihan manual?'),
-        'riwayat': ('Sesi mana yang sebaiknya saya tinjau dulu?', 'Apa arti perlu ditinjau?', 'Apa yang diperiksa sebelum konfirmasi?'),
-        'perkembangan': ('Apa arti jumlah target sedang dipelajari?', 'Apakah tahap sama dengan penguasaan?', 'Sesi mana yang sebaiknya saya tinjau dulu?'),
-        'sesi': ('Bagaimana meninjau sesi ini?', 'Apa arti status sesi ini?', 'Bagaimana menanyakan cara anak?'),
-        'soal': ('Jelaskan soal ini dengan sederhana.', 'Berikan petunjuk tanpa langsung menjawab.', 'Apa yang perlu dipahami dari soal ini?'),
-    }[target.posisi]
+    contoh = ('Jelaskan soal ini dengan sederhana.',
+              'Berikan petunjuk tanpa langsung menjawab.',
+              'Apa yang perlu dipahami dari soal ini?')
+    if target.posisi != "soal":
+        contoh = ("Bagaimana membuka percakapan saat anak buntu?",
+                  "Berikan contoh kalimat saat anak menolak bantuan.",
+                  "Bagaimana mengajak jeda saat pendamping mulai kesal?")
     return '<details class="pendamping-contoh"><summary>Contoh pertanyaan</summary>' + ''.join(
         '<p><span class="pendamping-contoh-native">' + _esc(teks) + '</span>'
         '<button type="button" hidden class="pendamping-tautan" data-contoh="' + _esc(teks) + '">' + _esc(teks) + '</button></p>'
@@ -303,67 +296,25 @@ def _kartu_usulan_inline(target, chat, usulan, *, dalam_form: bool) -> str:
 
 
 def _draft_memori_inline(target, chat, draft, *, dalam_form: bool) -> str:
-    hasil = []
-    for item in draft:
-        field = (("memori", item.id), ("versi_item", item.versi))
-        hasil.append(
-            '<aside class="pendamping-memori"><h4>Simpan preferensi ini?</h4>'
-            f'<p class="pendamping-teks">{_esc(item.isi)}</p><div class="pendamping-aksi">'
-            + _tombol_aksi(target, chat.id, "/pendamping/inline/konfirmasi-memori",
-                           "Konfirmasi memori", dalam_form=dalam_form, field=field)
-            + _tombol_aksi(target, chat.id, "/pendamping/inline/tinjau-hapus-memori",
-                           "Tinjau cara mengabaikan", dalam_form=dalam_form,
-                           field=field,
-                           kelas="pendamping-tombol pendamping-sekunder")
-            + '</div></aside>'
-        )
-    return "".join(hasil)
+    return _kontrol_memori(target, chat, draft, status_memori="Draft lama",
+                           versi_memori=0, dalam_form=dalam_form) if draft else ""
 
 
 def _kontrol_memori(target, chat, memori, *, status_memori: str, versi_memori: int,
                      dalam_form: bool) -> str:
-    aktif = status_memori.startswith("Memori aktif")
-    aksi = "nonaktifkan-memori" if aktif else "aktifkan-memori"
-    label = "Nonaktifkan memori" if aktif else "Aktifkan memori"
-    tombol = _tombol_aksi(
-        target, chat.id, f"/pendamping/inline/{aksi}", label,
-        dalam_form=dalam_form, field=(("versi_memori", versi_memori),),
-        kelas="pendamping-tombol pendamping-sekunder",
-    )
-    daftar_baris = []
+    """Catatan lama hanya dapat dilihat/dihapus; bukan preferensi outbound."""
+    daftar = []
     for item in memori:
-        if not item.dikonfirmasi:
-            continue
-        nama_isi = f"isi_memori_{item.id}"
-        if dalam_form:
-            kontrol = (
-                f'<label>Isi preferensi<textarea name="{_esc(nama_isi)}">{_esc(item.isi)}</textarea></label>'
-                '<div class="pendamping-aksi">'
-                + _tombol_aksi(target, chat.id, "/pendamping/inline/ubah-memori", "Simpan koreksi",
-                               dalam_form=True, field=(("memori", item.id), ("versi_item", item.versi),
-                                                        ("isi_field", nama_isi)))
-                + _tombol_aksi(target, chat.id, "/pendamping/inline/tinjau-hapus-memori", "Tinjau penghapusan",
-                               dalam_form=True, field=(("memori", item.id), ("versi_item", item.versi)),
-                               kelas="pendamping-tombol pendamping-sekunder")
-                + '</div>'
-            )
-        else:
-            kontrol = (
-                '<form method="post" action="/pendamping/inline/ubah-memori">'
-                + _identitas_target(target) + _hidden("chat", chat.id)
-                + _hidden("memori", item.id) + _hidden("versi_item", item.versi)
-                + f'<label>Isi preferensi<textarea name="isi_memori">{_esc(item.isi)}</textarea></label>'
-                '<button class="pendamping-tombol" type="submit">Simpan koreksi</button></form>'
-                + _tombol_aksi(target, chat.id, "/pendamping/inline/tinjau-hapus-memori", "Tinjau penghapusan",
-                               dalam_form=False, field=(("memori", item.id), ("versi_item", item.versi)),
-                               kelas="pendamping-tombol pendamping-sekunder")
-            )
-        daftar_baris.append('<article class="pendamping-memori">' + kontrol + '</article>')
-    daftar = "".join(daftar_baris)
-    return (
-        '<details class="pendamping-memori"><summary>Preferensi</summary>'
-        f'<p>{_esc(status_memori)}</p>' + tombol + daftar + '</details>'
-    )
+        daftar.append(
+            '<article class="pendamping-memori"><p class="pendamping-teks">'
+            + _esc(item.isi) + '</p>'
+            + _tombol_aksi(target, chat.id, "/pendamping/inline/tinjau-hapus-memori",
+                "Tinjau penghapusan", dalam_form=dalam_form,
+                field=(("memori", item.id), ("versi_item", item.versi)),
+                kelas="pendamping-tombol pendamping-sekunder") + '</article>')
+    return ('<details class="pendamping-memori"><summary>Catatan preferensi lama</summary>'
+            '<p>Preferensi tidak lagi digunakan atau dibuat. Riwayat balasan lama mungkin sudah dipengaruhi preferensi.</p>'
+            + "".join(daftar) + '</details>')
 
 
 def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False,
@@ -450,24 +401,23 @@ def panel_chat(target, chat, pesan, riwayat, *, sumber, dalam_form: bool = False
               '<button class="pendamping-tombol" type="submit" formaction="/pendamping/inline/pesan">Kirim</button>'
               '</div>'
         )
-        composer = '<div class="pendamping-area-kirim">' + contoh_pertanyaan(target) + _wadah_form(isi, "/pendamping/inline/pesan", dalam_form=dalam_form) + '</div>'
+        composer = '<div class="pendamping-area-kirim">' + _wadah_form(isi, "/pendamping/inline/pesan", dalam_form=dalam_form) + '</div>'
     kontrol_memori = _kontrol_memori(
-        target, chat, memori, status_memori=status_memori,
+        target, chat, tuple(memori) + tuple(draft_memori), status_memori=status_memori,
         versi_memori=versi_memori, dalam_form=dalam_form,
-    ) if status_memori and not hanya_baca else ""
-    draft_memori_html = _draft_memori_inline(
-        target, chat, draft_memori, dalam_form=dalam_form,
-    ) if not hanya_baca and chat.mode_memori != "tanpa_memori" else ""
+    ) if status_memori or draft_memori else ""
     return _panel(
         target, "Bantuan terkait", identitas_form
-        + '<div class="pendamping-gulir">' + histori
-        + fakta_tinjauan(konteks if not hanya_baca else None)
+        + '<div class="pendamping-gulir">'
         + f'<div class="pendamping-transkrip" role="log" aria-label="Percakapan" aria-live="polite" aria-relevant="additions text">{transkrip}</div>' + status
         + _kartu_usulan_inline(target, chat, usulan, dalam_form=dalam_form)
-        + draft_memori_html + kontrol_memori + '</div>' + composer,
+        + '</div>' + composer,
         sumber=sumber, dalam_form=dalam_form, chat_id=chat.id,
         status_konteks="Informasi belajar berubah · hanya baca" if hanya_baca else "",
-        percakapan=True,
+        percakapan=True, menu=histori + contoh_pertanyaan(target)
+        + fakta_tinjauan(konteks if not hanya_baca else None)
+        + '<p>Usulan latihan dan preferensi baru sudah dihentikan. Gunakan form Latihan untuk menyiapkan latihan baru.</p>'
+        + kontrol_memori,
     )
 
 
@@ -628,7 +578,7 @@ def tombol_buka(
         "kuota_habis": "Pendamping — kuota balasan habis",
         "belum_ditransisikan": "Pendamping — status paket perlu ditinjau",
         "storage_tidak_terverifikasi": "Pendamping — status paket belum terverifikasi",
-    }.get(kode_akses, "Pendamping")
+    }.get(kode_akses, label if target.posisi == "soal" else "Pendamping")
     terkunci = kode_akses in {"jago_tanpa_ai", "akses_berakhir", "belum_ditransisikan", "storage_tidak_terverifikasi"}
     lencana = (
         '<span class="pendamping-lencana-akses" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>'
@@ -656,6 +606,8 @@ def tombol_buka(
           '<path d="m18 2 1.2 3.3L22.5 6.5l-3.3 1.2L18 11l-1.2-3.3-3.3-1.2 3.3-1.2Z"/>'
           f'</svg>{lencana}<span class="pendamping-pemicu-label">{_esc(label)}</span></button></span>'
     )
+    if target.posisi == "soal":
+        isi = isi.replace('class="pendamping-pemicu"', 'class="pendamping-pemicu pendamping-pemicu-soal"')
     return isi if (dalam_form or form_id) else f'<form method="post" action="{_esc(action)}">{isi}</form>'
 
 
@@ -672,7 +624,7 @@ def _binding_panel(target, chat_id: str = "") -> str:
 
 
 def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False,
-           chat_id: str = "", status_konteks: str = "", percakapan: bool = False) -> str:
+           chat_id: str = "", status_konteks: str = "", percakapan: bool = False, menu: str = "") -> str:
     # Nama lokal membantu mengenali anak; level/kode internal tidak perlu di kepala.
     sumber_label = " · ".join(
         str(sumber[k]) for k in ("nama", "label")
@@ -716,14 +668,15 @@ def _panel(target, judul: str, isi: str, *, sumber, dalam_form: bool = False,
         'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
         '<path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 3v-8a7.5 7.5 0 0 1 7.5-7.5H13"/>'
         '<path d="m18 2 1.2 3.3L22.5 6.5l-3.3 1.2L18 11l-1.2-3.3-3.3-1.2 3.3-1.2Z"/>'
-        f'</svg><h2 id="nama-{_esc(target.anchor)}">Pendamping</h2>'
+        f'</svg><h2 id="nama-{_esc(target.anchor)}">Pendamping AI</h2>'
         + tutup + '</div>'
         + f'<p class="pendamping-identitas">{_esc(sumber_label + " · " if sumber_label else "")}{_esc(tujuan)}</p>'
-        + navigasi + status_html + '</header>'
+        + status_html + '</header>'
         + '<div class="pendamping-inline-isi">'
         f'<h3 id="judul-{_esc(target.anchor)}"' + (' class="pendamping-sr"' if percakapan else '') + f'>{_esc(judul)}</h3>'
-        + isi + '</div><details class="pendamping-rincian"><summary>Tentang bantuan AI</summary>'
-          '<p>Percakapan membahas informasi belajar di atas. Isian pekerjaan yang belum dikirim '
+        + isi + '</div><details class="pendamping-rincian"><summary>Riwayat, bantuan &amp; data</summary>'
+        + menu + navigasi
+        + '<p>Percakapan membahas informasi belajar di atas. Isian pekerjaan yang belum dikirim '
           'tidak ikut dikirim ke AI. Jawaban AI dapat keliru; keputusan belajar tetap pada orang tua.'
           '</p><p><a href="/pendamping/kelola" target="_blank" rel="noopener noreferrer">Kelola data Pendamping (tab baru)</a></p></details></aside>'
     )

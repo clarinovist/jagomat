@@ -84,8 +84,8 @@ def _siapkan_default(monkeypatch):
 @pytest.mark.parametrize("ganti,kategori", [
     ({"asing": RAHASIA}, "respons_bentuk"),
     ({"jawaban": "<b>" + RAHASIA + "</b>"}, "respons_jawaban"),
-    ({"draft_memori": {"lingkup": "preferensi_orang_tua", "isi": RAHASIA}}, "respons_memori"),
-    ({"usulan_latihan": {"asing": RAHASIA}}, "respons_usulan"),
+    ({"draft_memori": {"lingkup": "preferensi_orang_tua", "isi": RAHASIA}}, "respons_bentuk"),
+    ({"usulan_latihan": {"asing": RAHASIA}}, "respons_bentuk"),
     ({"butuh_klarifikasi": RAHASIA}, "respons_klarifikasi"),
 ])
 def test_respons_invalid_tidak_dicatat_sukses_atau_disimpan(monkeypatch, tmp_path, caplog, ganti, kategori):
@@ -328,8 +328,8 @@ def test_fitur_lain_tidak_berubah_kategori(monkeypatch):
 
 def test_prompt_menyatakan_kontrak_lengkap_dan_batas():
     sistem = assistant_policy.PROMPT_SISTEM
-    contoh = '{"jawaban":"Mari bahas satu langkah dulu.","draft_memori":null,"usulan_latihan":null,"butuh_klarifikasi":false}'
+    contoh = '{"jawaban":"Mari mulai dari satu langkah yang tersedia pada soal.","butuh_klarifikasi":false}'
     assert contoh in sistem
     assistant_policy.validasi_respons(json.loads(contoh))
-    for batas in ("6000", "10, 15, 20, 25, atau 30", "maksimal 8", "tanpa HTML", "boolean"):
+    for batas in ("6000", "120 kata", "tanpa HTML", "boolean", "Jangan keluarkan aksi"):
         assert batas in sistem

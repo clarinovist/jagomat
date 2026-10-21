@@ -164,6 +164,20 @@ def _akses_terkunci(account_id, *, sekarang=None):
         "trial_aktif", "pro_aktif",
     } else None
 
+def _punya_histori_target(principal, target):
+    """Metadata saja untuk memisahkan hak histori dari status kuota/composer."""
+    if not _host_milik(principal, target):
+        raise LookupError("host tidak tersedia")
+    if not assistant_schema.BAWAAN.exists():
+        return False
+    with assistant_schema.buka() as kon:
+        return bool(kon.execute(
+            "SELECT 1 FROM chat WHERE account_id=? AND context_kind=? "
+            "AND context_id=? AND dihapus IS NULL LIMIT 1",
+            (principal.id_akun, target.jenis_resource, target.resource_id),
+        ).fetchone())
+
+
 def _host_milik(principal, target):
     """Owner check minimum tanpa merakit payload konteks AI."""
     import database
@@ -223,7 +237,7 @@ def fragmen_inline(
     if principal is None or principal.pengguna == "" or principal.peran != "guru":
         raise LookupError("bantuan tidak tersedia")
     akses = _akses_terkunci(principal.id_akun)
-    if akses is not None and not target.chat_id:
+    if akses is not None and not target.chat_id and not _punya_histori_target(principal, target):
         return assistant_components.panel_akses(
             target, akses, dalam_form=dalam_form,
         )
@@ -248,9 +262,14 @@ def fragmen_inline(
                 target, sumber=sumber, dalam_form=dalam_form, galat=galat,
             )
         if not target.chat_id:
-            return assistant_components.panel_konteks(
-                target, konteks, sumber=sumber, dalam_form=dalam_form, galat=galat,
+            terbaru = assistant_view.chat_terbaru_sah(
+                kon, principal.id_akun, konteks, pemilik=principal.pengguna,
             )
+            if terbaru is None:
+                return assistant_components.panel_konteks(
+                    target, konteks, sumber=sumber, dalam_form=dalam_form, galat=galat,
+                )
+            target = replace(target, chat_id=terbaru.id)
         chat = assistant_store.ambil_chat(kon, principal.id_akun, target.chat_id)
         if (
             chat is None
@@ -630,7 +649,7 @@ def tangani_post(penangan, jalur: str) -> bool:
             chat = assistant_store.buat_chat(
                 kon,
                 principal.id_akun,
-                data["mode"],
+                "tanpa_memori",
                 sekarang=kini,
                 context_kind=konteks.jenis,
                 context_id=konteks.resource_id,
@@ -658,6 +677,9 @@ def tangani_post(penangan, jalur: str) -> bool:
                     versi=assistant_store.versi_memori(kon, principal.id_akun),
                     galat="Versi memori tidak sah.", kembali=kembali,
                 ), 400)
+                return True
+            if jalur.endswith('aktifkan') and not jalur.endswith('nonaktifkan'):
+                _kirim_privat(penangan, assistant_pages.halaman_tidak_aktif(), 410)
                 return True
             if jalur.endswith('hapus-semua') and data.get('persetujuan_hapus') != '1':
                 memori = assistant_store.daftar_memori(kon, principal.id_akun)
@@ -710,6 +732,11 @@ def tangani_post(penangan, jalur: str) -> bool:
             item = next((m for m in assistant_store.daftar_memori(kon,principal.id_akun) if m.id==memori_id),None)
             if item is None:
                 _tidak_ada(penangan)
+                return True
+            if aksi in ('konfirmasi', 'ubah'):
+                _kirim_privat(penangan, assistant_pages._bingkai(
+                    'Preferensi dihentikan', '<p>Pembuatan dan perubahan preferensi sudah dihentikan. Catatan lama dapat dilihat atau dihapus.</p>'
+                ), 410)
                 return True
             if aksi=='hapus' and data.get('persetujuan_hapus')!='1':
                 _kirim_privat(penangan,assistant_pages.halaman_hapus_memori((item,),versi=item.versi,kembali=kembali),400)

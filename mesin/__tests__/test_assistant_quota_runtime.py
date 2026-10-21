@@ -10,8 +10,8 @@ import assistant_store
 
 AKUN = "akun_" + "a" * 32
 RESPONS = {
-    "jawaban": "Jawaban sintetis.", "draft_memori": None,
-    "usulan_latihan": None, "butuh_klarifikasi": False,
+    "jawaban": "Jawaban sintetis.",
+     "butuh_klarifikasi": False,
 }
 
 

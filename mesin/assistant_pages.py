@@ -148,7 +148,7 @@ def halaman_pilih_konteks(konteks, *, sumber=None) -> bytes:
         '<form method="post" action="/pendamping/konteks/pilih">'
         + _hidden('jenis', konteks.jenis) + _hidden('resource_id', konteks.resource_id)
         + _hidden('resource_version', konteks.versi) + _hidden('kategori', konteks.kategori)
-        + _hidden('mode', 'aktif')
+        + _hidden('mode', 'tanpa_memori')
         + '<div class="pendamping-aksi"><button class="pendamping-tombol" type="submit">'
         'Gunakan di chat baru</button>' + batal + '</div></form></section>', navigasi=True,
     )
@@ -239,11 +239,9 @@ def _draft_memori(item, kembali: str = '') -> str:
     field = _hidden('versi', item.versi) + _hidden('kembali', _kembali_id(kembali))
     return (
         '<aside class="pendamping-panel pendamping-memori">'
-        '<h2>Simpan preferensi ini?</h2><p class="pendamping-catatan">Belum menjadi memori. '
-        'Hanya digunakan setelah kamu mengonfirmasi.</p>'
+        '<h2>Draft preferensi lama</h2><p class="pendamping-catatan">Pembuatan preferensi sudah dihentikan. Draft ini tidak dapat diaktifkan.</p>'
         f'<p class="pendamping-teks">{_esc(item.isi)}</p><div class="pendamping-aksi">'
-        f'<form method="post" action="/pendamping/memori/{_esc(item.id)}/konfirmasi">{field}'
-        '<button class="pendamping-tombol pendamping-sekunder" type="submit">Konfirmasi memori</button></form>'
+
         f'<form method="post" action="/pendamping/memori/{_esc(item.id)}/hapus">{field}'
         + _hidden('persetujuan_hapus', '1') +
         '<button class="pendamping-tombol pendamping-sekunder" type="submit">Abaikan</button>'
@@ -265,7 +263,6 @@ def _daftar_memori(memori, kembali: str = '') -> str:
             '<p class="pendamping-catatan">Tersimpan · Preferensi orang tua</p>'
             f'<p class="pendamping-teks">{_esc(item.isi)}</p>'
             '<div class="pendamping-aksi">'
-            + _tautan(_memori_url(dasar + '/ubah', kembali), 'Ubah')
             + _tautan(_memori_url(dasar + '/hapus', kembali), 'Hapus', 'pendamping-tautan pendamping-bahaya')
             + '</div></article>'
         )
@@ -274,50 +271,19 @@ def _daftar_memori(memori, kembali: str = '') -> str:
 
 def halaman_memori(memori, *, aktif: bool, versi: int, galat: str = '', kembali: str = '') -> bytes:
     memori = tuple(memori)
-    jumlah = sum(bool(item.dikonfirmasi) for item in memori)
-    status = ('Memori aktif' if aktif else 'Memori nonaktif') + (
-        f' · {jumlah} catatan' if jumlah else ' · belum ada catatan')
-    aksi = 'nonaktifkan' if aktif else 'aktifkan'
-    label = 'Nonaktifkan penggunaan' if aktif else 'Aktifkan penggunaan'
     kembali_chat = _kembali_id(kembali)
     return _bingkai(
-        'Memori Pendamping', '<h1 id="judul-pendamping">Memori Pendamping</h1>'
-        '<p>Hanya preferensi cara Pendamping menjawab. Memori tidak menyimpan '
-        'profil, diagnosis, kontak, atau ringkasan curhatan anak.</p>'
-        + _galat(galat) + f'<p class="pendamping-status">{status}</p>'
-        '<p class="pendamping-catatan">Menonaktifkan penggunaan tidak menghapus catatan. '
-        'Kamu tetap dapat melihat, mengoreksi, atau menghapusnya. Saat nonaktif, Pendamping tidak memakai '
-        'atau menambah memori. Catatan belum dikonfirmasi tidak digunakan.</p>'
-        f'<form method="post" action="/pendamping/memori/{aksi}">'
-        + _hidden('versi', versi) + _hidden('kembali', kembali_chat)
-        + f'<button class="pendamping-tombol pendamping-sekunder" type="submit">{label}</button></form>'
-        + _daftar_memori(memori, kembali)
-        + '<div class="pendamping-aksi">'
-        + (_tautan(_memori_url('/pendamping/memori/hapus-semua', kembali), 'Hapus semua memori',
-                   'pendamping-tautan pendamping-bahaya') if memori else '')
-        + (_tautan(f'/pendamping/chat/{kembali_chat}', 'Kembali ke chat') if kembali_chat else '')
-        + '</div>', navigasi=True, chat_id=kembali_chat,
+        "Catatan preferensi lama", '<h1 id="judul-pendamping">Catatan preferensi lama</h1>'
+        '<p>Preferensi tidak lagi dibuat, diubah, atau digunakan untuk balasan baru. Riwayat lama mungkin sudah dipengaruhi preferensi. Catatan tersimpan dapat dilihat atau dihapus.</p>'
+        + _galat(galat) + _daftar_memori(memori, kembali)
+        + (_tautan(_memori_url("/pendamping/memori/hapus-semua", kembali), "Hapus semua memori") if memori else ""),
+        navigasi=True, chat_id=kembali_chat,
     )
 
 
-def halaman_edit_memori(item, *, galat: str = '', kembali: str = '') -> bytes:
-    isi = '' if galat else _esc(item.isi)
-    invalid = ' aria-invalid="true"' if galat else ''
-    deskripsi = 'petunjuk-memori' + (' galat-pendamping' if galat else '')
-    return _bingkai(
-        'Ubah preferensi', '<h1 id="judul-pendamping">Ubah preferensi</h1>'
-        '<p id="petunjuk-memori">Tuliskan preferensi cara menjawab, bukan cerita atau data pribadi. '
-        'Contoh yang didukung: “Jawab ringkas dengan contoh konkret.”</p>'
-        + _galat(galat)
-        + f'<form method="post" action="/pendamping/memori/{_esc(item.id)}/ubah">'
-        + _hidden('versi', item.versi) + _hidden('kembali', _kembali_id(kembali))
-        + '<label class="pendamping-label" for="isi-memori">Isi preferensi</label>'
-        f'<textarea class="pendamping-input pendamping-input-pendek pendamping-editor" id="isi-memori" name="isi" '
-        f'required maxlength="500" aria-describedby="{deskripsi}"{invalid}>{isi}</textarea>'
-        '<div class="pendamping-aksi"><button class="pendamping-tombol" type="submit">Simpan koreksi</button>'
-        + _tautan(_memori_url('/pendamping/memori', kembali), 'Batal') + '</div></form>',
-        navigasi=True, chat_id=_kembali_id(kembali),
-    )
+def halaman_edit_memori(item, *, galat: str = "", kembali: str = "") -> bytes:
+    return halaman_memori((item,), aktif=False, versi=item.versi,
+                          galat=galat, kembali=kembali)
 
 
 def halaman_hapus_memori(memori, *, versi: int, semua: bool = False, kembali: str = '') -> bytes:

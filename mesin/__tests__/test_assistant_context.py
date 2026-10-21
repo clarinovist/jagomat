@@ -243,10 +243,7 @@ def test_service_dua_konteks_sah_menyimpan_versi_chat_sendiri(privat, saat_netwo
             kedua.append(_chat_konteks(kon, "2"))
         kon.commit()
         provider = ProviderPalsu(respons={
-            "jawaban": "Mari tinjau latihan ini.", "draft_memori": None,
-            "usulan_latihan": {"topik_id": "pola-bilangan",
-                               "template_ids": ["deret_aritmetika"],
-                               "level": "P3", "jumlah_soal": 10},
+            "jawaban": "Mari tinjau latihan ini.",
             "butuh_klarifikasi": False,
         })
 
@@ -271,12 +268,12 @@ def test_service_dua_konteks_sah_menyimpan_versi_chat_sendiri(privat, saat_netwo
         )
         assert len(provider.panggilan) == 2
         for item, sumber, izin in (pertama, kedua[0]):
-            usulan, = assistant_store.daftar_usulan_chat(kon, AKUN, item.id)
-            assert usulan.context_version == item.context_version == izin.versi
-            assert usulan.context_resource_version == sumber.versi
+            assert not assistant_store.daftar_usulan_chat(kon, AKUN, item.id)
+            assert item.context_version == izin.versi
+            assert item.context_resource_version == sumber.versi
             operasi = kon.execute(
-                "SELECT * FROM operasi WHERE request_id = ?",
-                (usulan.sumber_request_id,),
+                "SELECT * FROM operasi WHERE chat_id = ?",
+                (item.id,),
             ).fetchone()
             assert operasi["context_version"] == izin.versi
             assert operasi["chat_id"] == item.id

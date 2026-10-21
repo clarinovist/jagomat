@@ -316,7 +316,7 @@ def test_satu_cta_tetap_menolak_tanpa_izin_konteks_dan_tidak_mengubah_data(serve
     assert kode == 200 and 'Mau dibantu apa?' in isi
     with assistant_schema.buka() as kon:
         chat = kon.execute('SELECT mode_memori, context_kind, context_id FROM chat').fetchone()
-        assert tuple(chat) == (mode, 'anak', str(anak))
+        assert tuple(chat) == ('tanpa_memori', 'anak', str(anak))
     assert server.provider.panggilan == []
 
 
@@ -335,7 +335,7 @@ def test_mode_tanpa_memori_inline_immutable_dan_riwayat_tetap_ada(server):
               "mode_chat": "tanpa_memori", "request_id": "buka_tanpa_123", "setuju_konteks": "1"},
         headers=_origin(server),
     )
-    assert kode == 200 and "Chat tanpa memori" in chat_html
+    assert kode == 200 and "Preferensi tidak lagi" in chat_html
     chat = re.search(r'name="chat" value="(chat_[0-9a-f]{32})"', chat_html).group(1)
     req = re.search(r'name="request_id" value="(req_[^"]+)"', chat_html).group(1)
     kode, hasil, _ = server.minta(
@@ -381,16 +381,16 @@ def test_draft_memori_konfirmasi_ubah_hapus_semua_inline(server):
         "/pendamping/inline/konfirmasi-memori", cookie=token,
         data={**identitas, "memori": draft.id, "versi_item": str(draft.versi)}, headers=_origin(server),
     )
-    assert kode == 200 and "Jawab singkat." in isi
+    assert kode == 410 and "dihentikan" in isi
     with assistant_schema.buka() as kon:
         item = next(m for m in assistant_store.daftar_memori(kon, akun) if m.id == draft.id)
-        assert item.dikonfirmasi
+        assert not item.dikonfirmasi
     kode, isi, _ = server.minta(
         "/pendamping/inline/ubah-memori", cookie=token,
         data={**identitas, "memori": item.id, "versi_item": str(item.versi),
               "isi_memori": "Jawab singkat dengan satu analogi."}, headers=_origin(server),
     )
-    assert kode == 200 and "Jawab singkat dengan satu analogi." in isi
+    assert kode == 410 and "dihentikan" in isi
     with assistant_schema.buka() as kon:
         item = next(m for m in assistant_store.daftar_memori(kon, akun) if m.id == item.id)
     kode, tinjau, _ = server.minta(
@@ -399,7 +399,7 @@ def test_draft_memori_konfirmasi_ubah_hapus_semua_inline(server):
         headers=_origin(server),
     )
     assert kode == 200 and "Tinjau penghapusan memori" in tinjau
-    assert "Jawab singkat dengan satu analogi." in tinjau
+    assert "Jawab singkat." in tinjau
     assert "Chat sumber tetap ada" in tinjau and "maksimal 30 hari" in tinjau
     assert 'name="persetujuan_hapus" value="1"' in tinjau
     with assistant_schema.buka() as kon:
@@ -408,7 +408,7 @@ def test_draft_memori_konfirmasi_ubah_hapus_semua_inline(server):
         "/pendamping/inline/batal-hapus-memori", cookie=token,
         data=identitas, headers=_origin(server),
     )
-    assert kode == 200 and "Jawab singkat dengan satu analogi." in batal
+    assert kode == 200 and "Jawab singkat." in batal
     kode, tanpa_izin, _ = server.minta(
         "/pendamping/inline/hapus-memori", cookie=token,
         data={**identitas, "memori": item.id, "versi_item": str(item.versi)},
@@ -468,8 +468,7 @@ def test_history_exact_resource_pagination_inline(server):
 def test_usulan_inline_tinjau_konfirmasi_hasil_idempoten_tanpa_bukti(server, monkeypatch, jenis_draf):
     usulan_sah = {"topik_id": "pola-bilangan", "template_ids": ["deret_aritmetika"],
                   "level": "P3", "jumlah_soal": 10}
-    provider = ProviderPalsu({"jawaban": "Usulan siap ditinjau.", "draft_memori": None,
-                              "usulan_latihan": usulan_sah, "butuh_klarifikasi": False})
+    provider = ProviderPalsu({"jawaban": "Usulan lama tersedia.", "butuh_klarifikasi": False})
     monkeypatch.setattr(assistant_service, "panggil_provider_default", provider)
     token = _token_guru(server)
     anak, _, _, _ = server.ids_inline
@@ -498,7 +497,8 @@ def test_usulan_inline_tinjau_konfirmasi_hasil_idempoten_tanpa_bukti(server, mon
         "/pendamping/inline/pesan", cookie=token,
         data={**dasar, "chat": chat, "request_id": req, "pesan": "Tolong usulkan latihan."}, headers=_origin(server),
     )
-    usulan = re.search(r'name="data_aksi" value="usulan=(usulan_[0-9a-f]{32})"', jawaban).group(1)
+    from test_assistant_actions import simpan_usulan_lama
+    usulan = simpan_usulan_lama(auth.cari_akun("guru")["id_akun"], chat, req, usulan_sah)
     with server.buka() as kon:
         sebelum_sesi = kon.execute("SELECT COUNT(*) FROM sesi").fetchone()[0]
         sebelum_bukti = kon.execute("SELECT COUNT(*) FROM bukti_fokus").fetchone()[0]
@@ -575,8 +575,10 @@ def test_edit_memori_dalam_form_koreksi_hanya_mengambil_field_target(server):
     kode, isi, _ = server.minta(
         "/pendamping/inline/ubah-memori", cookie=token, data=payload, headers=_origin(server),
     )
-    assert kode == 200 and "Jawab singkat dengan satu analogi." in isi
+    assert kode == 410 and "dihentikan" in isi
     assert "Baris satu\nbaris dua" in isi
+    with assistant_schema.buka() as kon:
+        assert assistant_store.daftar_memori(kon, akun)[0].isi == "Jawab singkat."
     with server.buka() as kon:
         assert kon.execute("SELECT jawaban FROM jawaban WHERE sesi_soal_id=?", (ids[0],)).fetchone() is None
 
@@ -850,9 +852,9 @@ def test_host_biasa_membuka_bantuan_via_post_dengan_draf(server):
     ids, draf = _draf(server, sesi)
     kode, awal, _ = server.minta(f"/sesi/{sesi}", cookie=token)
     assert kode == 200
-    assert f'formaction="/pendamping/inline/buka/sesi/{sesi}/sesi"' in awal
+    assert f'formaction="/pendamping/inline/buka/sesi/{sesi}/soal/1"' in awal
     assert f'form="form-koreksi-{sesi}"' in awal
-    assert awal.count('class="pendamping-pemicu"') == 1
+    assert awal.count('class="pendamping-pemicu pendamping-pemicu-soal"') == 2
     dasar = {"inline_host": "sesi", "inline_host_id": str(sesi), "inline_posisi": "sesi"}
     kode, isi, _ = server.minta(
         f"/pendamping/inline/buka/sesi/{sesi}/sesi", cookie=token, data=draf, headers=_origin(server),

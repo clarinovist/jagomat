@@ -137,9 +137,14 @@ cache dan cadangan tetap privat.
   dan binding alias lokal ikut fingerprint, kategori netral existing tanpa migrasi.
   Antrean memakai predicate konfirmasi aktif bersama `profile_history`; izin versi
   lama tidak mengesahkan payload baru. Empat posisi tab tetap resource anak sama;
-  navigasi membawa chat berizin tanpa draf/storage. `assistant_browser` menambah
-  contoh isi-draf, Esc dan scroll percakapan; `style_stitch` memisahkan composer
-  dari area gulir pada overlay desktop/sheet HP.
+  navigasi membawa chat berizin tanpa draf/storage. `assistant_browser` menjaga
+  contoh isi-draf, Esc ke pemicu asal dan scroll; `style_stitch` memisahkan composer
+  dari area gulir pada overlay/sheet HP. Kandidat `assistant_policy/service` memakai
+  kontrak jawaban v2 dua field tanpa katalog/memori outbound; prompt retest01 belum
+  diterima untuk rilis. Selector `assistant_view.chat_terbaru_sah` memakai metadata
+  exact fingerprint+grant dan hak baca owner-scoped; GET tanpa write. Handler memori
+  retired, storage/guard operasi dan usulan legacy dipertahankan tanpa migrasi.
+  Entry per-soal mengganti picker berulang; menu sekunder tunggal, draf host tetap lokal.
   `profile_workspace.py` menjadi sumber navigasi empat tujuan profil: **Beranda**,
   **Latihan**, **Riwayat**, dan **Perkembangan**. Pascapendaftaran dan default
   `/anak/<id>` sama-sama membuka Beranda; POST latihan kembali eksplisit ke

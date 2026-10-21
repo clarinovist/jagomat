@@ -2795,6 +2795,8 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-editorial-st .pendamping-pemicu:hover {{ background: {T.LATAR_SEKUNDER_LEMBUT}; }}
 .pendamping-editorial-st .pendamping-pemicu:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
 .pendamping-pemicu svg {{ width: {T.UKURAN_IKON}; height: {T.UKURAN_IKON}; }}
+.pendamping-editorial-st .koreksi-isi-st .pendamping-pemicu-soal {{ position: relative; inset: auto; z-index: auto; width: auto; padding-inline: {T.SP_3}; margin-block: {T.SP_2}; }}
+.pendamping-pemicu-soal .pendamping-pemicu-label {{ display: inline; position: static; padding: 0; background: transparent; color: inherit; }}
 .pendamping-lencana-akses {{ position: absolute; right: -.2rem; bottom: -.2rem; display: grid; place-items: center; width: 1.1rem; height: 1.1rem; border-radius: {T.RADIUS_BULAT}; background: {T.LATAR_KARTU}; color: {T.TEKS_VARIAN}; line-height: 1; }}
 .pendamping-lencana-akses svg {{ width: .8rem; height: .8rem; stroke-width: 2; }}
 .pendamping-pemicu-label {{

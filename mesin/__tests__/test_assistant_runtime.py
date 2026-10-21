@@ -30,8 +30,6 @@ class ProviderPalsu:
     def __init__(self, respons=None, galat=None):
         self.respons = respons or {
             "jawaban": "Mari kita bahas satu langkah dulu.",
-            "draft_memori": None,
-            "usulan_latihan": None,
             "butuh_klarifikasi": False,
         }
         self.galat = galat
@@ -53,26 +51,25 @@ def _kon(tmp_path):
 def test_policy_karakter_dan_output_ketat():
     sistem = assistant_policy.PROMPT_SISTEM
     for teks in (
-        "hangat", "ringkas", "tidak asal mengiyakan", "tanpa mengambil alih",
-        "bukan profesional kesehatan", "bukan diagnosis",
+        "hangat", "ringkas", "jangan mendiagnosis", "jangan mengganti soal",
     ):
         assert teks in sistem.lower()
 
     sah = assistant_policy.validasi_respons({
         "jawaban": "Kita cek bagian yang membingungkan dulu.",
-        "draft_memori": None,
-        "usulan_latihan": None,
+
+
         "butuh_klarifikasi": True,
     })
     assert sah.jawaban.startswith("Kita cek")
     for rusak in (
-        {"jawaban": "x", "draft_memori": None, "usulan_latihan": None,
+        {"jawaban": "x",
          "butuh_klarifikasi": False, "asing": 1},
-        {"jawaban": "<script>alert(1)</script>", "draft_memori": None,
-         "usulan_latihan": None, "butuh_klarifikasi": False},
-        {"jawaban": "orang@example.test", "draft_memori": None,
-         "usulan_latihan": None, "butuh_klarifikasi": False},
-        {"jawaban": "x", "draft_memori": {}, "usulan_latihan": None,
+        {"jawaban": "<script>alert(1)</script>",
+          "butuh_klarifikasi": False},
+        {"jawaban": "orang@example.test",
+          "butuh_klarifikasi": False},
+        {"jawaban": "x", "draft_memori": {},
          "butuh_klarifikasi": False},
     ):
         with pytest.raises(ValueError):
@@ -95,8 +92,8 @@ def test_client_request_exact_dan_api_key_hanya_header(monkeypatch):
         def read(self, _batas):
             return json.dumps({
                 "choices": [{"message": {"content": json.dumps({
-                    "jawaban": "Jawaban aman.", "draft_memori": None,
-                    "usulan_latihan": None, "butuh_klarifikasi": False,
+                    "jawaban": "Jawaban aman.",
+                     "butuh_klarifikasi": False,
                 })}}]
             }).encode()
 
@@ -193,8 +190,8 @@ def test_service_payload_minimum_dan_tanpa_data_anak(tmp_path):
     pesan = provider.panggilan[0]
     assert {item["role"] for item in pesan} == {"system", "user"}
     muatan = json.loads(next(item["content"] for item in pesan if item["role"] == "user"))
-    assert set(muatan) == {"katalog", "memori", "percakapan"}
-    assert muatan["memori"] == []
+    assert set(muatan) == {"percakapan"}
+    assert "memori" not in muatan
     mentah = json.dumps(muatan)
     for terlarang in ("nama_anak", "siswa_id", "diagnosis", "malrule", "kunci"):
         assert terlarang not in mentah.lower()
@@ -216,8 +213,8 @@ def test_service_version_berubah_saat_provider_berjalan_tidak_commit(tmp_path):
             kon.commit()
             return {
                 "jawaban": "Jawaban yang sudah usang.",
-                "draft_memori": None,
-                "usulan_latihan": None,
+
+
                 "butuh_klarifikasi": False,
             }
 
@@ -270,7 +267,7 @@ def test_service_chat_tanpa_memori_tidak_mengirim_memori(tmp_path):
             sekarang=101,
         )
         muatan = json.loads(provider.panggilan[0][1]["content"])
-        assert muatan["memori"] == []
+        assert "memori" not in muatan
 
 
 def test_service_tanpa_consent_nol_provider_dan_nol_pesan(tmp_path):

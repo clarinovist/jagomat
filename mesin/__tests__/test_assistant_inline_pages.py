@@ -151,14 +151,14 @@ def test_composer_blok_dan_preferensi_ringkas_setelah_area_kirim(dalam_form):
     parser = FormParser(('<form id="host">' if dalam_form else "") + panel
                         + ("</form>" if dalam_form else ""))
     assert parser.maks == 1
-    assert parser.form == (1 if dalam_form else 4)
+    assert parser.form == (1 if dalam_form else 3)
     assert '<div class="pendamping-composer">' in panel
     assert '<textarea id="pesan-inline" name="pesan" rows="2"' in panel
     assert 'formaction="/pendamping/inline/pesan">Kirim</button>' in panel
     assert "Enter membuat baris baru" not in panel
     assert 'name="pesan"' in panel and "required" not in panel
-    assert '<details class="pendamping-memori"><summary>Preferensi</summary>' in panel
-    assert panel.index("<summary>Preferensi</summary>") < panel.index('class="pendamping-area-kirim"') < panel.index('name="pesan"')
+    assert '<details class="pendamping-memori"><summary>Catatan preferensi lama</summary>' in panel
+    assert panel.index('class="pendamping-area-kirim"') < panel.index('name="pesan"') < panel.index("<summary>Catatan preferensi lama</summary>")
     assert "Preferensi berlaku lintas percakapan" not in panel
 
 
@@ -223,11 +223,11 @@ def test_pagination_dan_crud_memori_dalam_form_memakai_satu_data_aksi_per_tombol
         memori=(memori,), halaman_riwayat=2, ada_lagi=True,
     )
     assert 'value="halaman=1"' in panel and 'value="halaman=3"' in panel
-    assert 'isi_memori_memori_' in panel
-    assert 'formaction="/pendamping/inline/ubah-memori"' in panel
+    assert 'isi_memori_memori_' not in panel
+    assert 'formaction="/pendamping/inline/ubah-memori"' not in panel
     assert 'formaction="/pendamping/inline/tinjau-hapus-memori"' in panel
     assert 'persetujuan_hapus=1' not in panel
-    assert panel.count('name="data_aksi"') >= 5
+    assert panel.count('name="data_aksi"') == 3
     assert panel.count('name="memori"') == 0
 
 

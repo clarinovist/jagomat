@@ -38,6 +38,16 @@ class Konfigurasi:
         object.__setattr__(self, "base_url", self.base_url.rstrip("/"))
 
 
+def _objek_unik(pasangan):
+    """JSON duplikat ambigu ditolak, bukan memilih field terakhir."""
+    hasil = {}
+    for kunci, nilai in pasangan:
+        if kunci in hasil:
+            raise ValueError("Field respons ganda.")
+        hasil[kunci] = nilai
+    return hasil
+
+
 class _TanpaRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
@@ -110,7 +120,7 @@ def kirim(
         konten = pilihan["message"]["content"]
         if type(konten) is not str:
             raise ValueError
-        hasil = json.loads(konten)
+        hasil = json.loads(konten, object_pairs_hook=_objek_unik)
         if type(hasil) is not dict:
             raise ValueError
         return hasil

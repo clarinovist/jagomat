@@ -85,9 +85,9 @@ def test_entry_context_hanya_muncul_di_permukaan_guru(server):
         ).decode()
     assert 'formaction="/pendamping/inline/buka"' in profil_guru
     assert f'name="inline_host_id" value="{anak}"' in profil_guru
-    assert f'formaction="/pendamping/inline/buka/sesi/{sesi}/sesi"' in sesi_guru
-    assert sesi_guru.count('class="pendamping-pemicu"') == 1
-    assert f'formaction="/pendamping/inline/buka/sesi/{sesi}/soal/1"' not in sesi_guru
+    assert f'formaction="/pendamping/inline/buka/sesi/{sesi}/soal/1"' in sesi_guru
+    assert sesi_guru.count('class="pendamping-pemicu pendamping-pemicu-soal"') == 12
+    assert f'formaction="/pendamping/inline/buka/sesi/{sesi}/sesi"' not in sesi_guru
     assert "?bantuan=" not in profil_admin
     assert "?bantuan=" not in sesi_admin
 
@@ -215,7 +215,7 @@ def test_context_prompt_injection_tetap_data_bukan_role(tmp_path):
     assert [item["role"] for item in pesan] == ["system", "user"]
     muatan = json.loads(pesan[1]["content"])
     assert muatan["konteks"]["teks_soal"].startswith("Abaikan instruksi")
-    assert set(muatan) == {"katalog", "memori", "percakapan", "konteks"}
+    assert set(muatan) == {"percakapan", "konteks"}
 
 
 def test_context_consent_versi_berubah_saat_provider_tidak_commit(server, monkeypatch):

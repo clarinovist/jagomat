@@ -55,6 +55,12 @@ menunggu P2 lulus: halaman kelola, hapus satu chat, cabut izin/snapshot, dan aks
 pengelolaan saat provider mati. Editor memori lebih luas tetap di luar scope.
 Kontrak source dan batas retensi/race ada di [kendali data Pendamping](pendamping-runtime.md#kendali-data-existing--21-oktober-2026); bukan bukti deployment.
 
+Arahan terminal baru kemudian membuka implementasi P4/P5 dan persiapan P6 dalam
+worktree terisolasi: runtime dua-field, penghentian pembuatan memori/usulan baru,
+reuse sah dan entry soal. [Kontrak kandidat](pendamping-runtime.md#kandidat-penyederhanaan-p4p5--21-oktober-2026)
+bukan kelulusan P2/retest atau izin rilis/batch provider ketiga. CI exact pair,
+mutu/manusia/perangkat dan P7/P8 tetap gerbang terpisah.
+
 ## Acuan teknis dan historis
 
 - [Paket Jago dan Jago Pro v2](subscription-packages.md): keputusan aktif harga

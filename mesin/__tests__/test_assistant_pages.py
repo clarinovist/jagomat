@@ -118,7 +118,7 @@ def test_memori_daftar_editor_dan_hapus_tidak_langsung():
     assert not dom.ambil("form", action=f"/pendamping/memori/{MEMORI_ID}/ubah")
     assert not dom.ambil("form", action=f"/pendamping/memori/{MEMORI_ID}/hapus")
     assert not dom.ambil("form", action="/pendamping/memori/hapus-semua")
-    assert dom.ambil("a", href=f"/pendamping/memori/{MEMORI_ID}/ubah")
+    assert not dom.ambil("a", href=f"/pendamping/memori/{MEMORI_ID}/ubah")
 
 
 def test_usulan_hasil_tidak_memakai_pointer_sesi_mentah(proyeksi):
@@ -242,9 +242,9 @@ def test_status_operasi_hanya_get(status):
 def test_draft_konfirmasi_dan_abaikan_endpoint_existing(proyeksi):
     isi = pages.halaman_chat(chat(), (), (), request_id="req", draft=(memori(dikonfirmasi=False),))
     dom = Markup(isi)
-    assert dom.ambil("form", action=f"/pendamping/memori/{MEMORI_ID}/konfirmasi")
+    assert not dom.ambil("form", action=f"/pendamping/memori/{MEMORI_ID}/konfirmasi")
     assert dom.ambil("form", action=f"/pendamping/memori/{MEMORI_ID}/hapus")
-    assert len(dom.ambil("input", name="kembali", value=CHAT_ID)) == 2
+    assert len(dom.ambil("input", name="kembali", value=CHAT_ID)) == 1
     assert dom.ambil("input", name="persetujuan_hapus", value="1")
     assert dom.ambil("input", name="versi", value="3")
     assert b"Abaikan" in isi
@@ -255,12 +255,10 @@ def test_memori_status_hanya_menghitung_terkonfirmasi(aktif):
     isi = pages.halaman_memori((memori(), memori(id="draft", dikonfirmasi=False)), aktif=aktif,
                                versi=4, kembali=CHAT_ID)
     dom = Markup(isi)
-    assert "1 catatan" in isi.decode()
-    assert "Belum menjadi memori" in isi.decode()
-    assert dom.ambil("a", href=f"/pendamping/chat/{CHAT_ID}")
+    assert "tidak lagi dibuat, diubah, atau digunakan" in isi.decode()
+    assert "Draft ini tidak dapat diaktifkan" in isi.decode()
     assert not dom.ambil("textarea")
-    toggle = next(f for f in dom.forms if f['action'].endswith('/nonaktifkan' if aktif else '/aktifkan'))
-    assert any(i.get('name') == 'kembali' and i.get('value') == CHAT_ID for i in toggle['inputs'])
+    assert not any(f['action'].endswith(('/nonaktifkan', '/aktifkan')) for f in dom.forms)
 
 
 def test_memori_kosong_tanpa_hapus_semua():
@@ -273,12 +271,11 @@ def test_editor_versi_kembali_isi_escaped_dan_galat_tidak_echo():
     isi = pages.halaman_edit_memori(item, kembali=CHAT_ID)
     dom = Markup(isi)
     assert "&lt;b&gt;Isi tersimpan&lt;/b&gt;" in isi.decode()
-    assert len(dom.ambil("form")) == 1
-    assert dom.ambil("input", name="versi", value="3")
-    assert dom.ambil("input", name="kembali", value=CHAT_ID)
+    assert not dom.ambil("form") and not dom.ambil("textarea")
+    assert dom.ambil("a", href=f"/pendamping/memori/{MEMORI_ID}/hapus?kembali={CHAT_ID}")
     gagal = pages.halaman_edit_memori(item, galat="Isi di luar preferensi")
-    assert b"Isi tersimpan" not in gagal
-    assert Markup(gagal).ambil("textarea", **{"aria-invalid": "true"})
+    assert b"Isi di luar preferensi" in gagal
+    assert not Markup(gagal).ambil("textarea")
 
 
 @pytest.mark.parametrize("semua", [True, False])
@@ -378,7 +375,7 @@ def test_chat_satu_cta_primer_meski_ada_draft_dan_usulan(proyeksi):
 
 def test_kembali_invalid_tidak_menjadi_field_atau_url_bebas():
     dom = Markup(pages.halaman_edit_memori(memori(), kembali="https://asing.invalid"))
-    assert dom.ambil("input", name="kembali", value="")
+    assert not dom.ambil("input", name="kembali")
     assert not [a for a in dom.ambil("a") if "asing.invalid" in a.get("href", "")]
 
 

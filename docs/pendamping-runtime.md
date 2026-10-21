@@ -121,7 +121,44 @@ Tidak ada schema/migration/backfill, penghapusan massal, perubahan kuota atau
 akses admin tambahan. Source/test bukan bukti deployment; paket ini belum
 memasang perubahan ke produksi atau mengesahkan walkthrough/perangkat manusia.
 
-## Tinjauan dan pembuatan latihan
+### Kandidat penyederhanaan P4/P5 — 21 Oktober 2026
+
+Arahan terminal baru membuka **implementasi terisolasi**, bukan penerimaan mutu
+atau aktivasi produksi. Dua batch P2/retest tetap belum lulus; tidak ada izin batch
+ketiga. `assistant_policy.VERSI_KONTRAK=pendamping-jawaban-v2` memakai byte prompt
+retest01 yang ditandai belum diterima. Versi kebijakan provider tidak dinaikkan.
+
+- Respons outbound baru tepat `jawaban` + `butuh_klarifikasi`; field extra termasuk
+  aksi/memori null ditolak. Client menolak key JSON ganda. Payload hanya percakapan
+  dan konteks berizin; tidak mengambil katalog atau memori terkonfirmasi.
+- Chat baru memakai `tanpa_memori`; mode chat lama tidak ditulis ulang. Histori lama
+  dapat dipengaruhi preferensi; kelanjutan sah memakai kontrak baru. Replay membaca
+  jawaban durable tanpa parsing ulang atau provider kedua. Memory-version fence,
+  request/ledger, reserve/finalisasi/unknown dan penghapusan tetap dipertahankan.
+- Tidak ada pembuatan usulan/draft model baru. Endpoint konfirmasi/ubah/aktivasi
+  preferensi ditahan, UI hanya lihat/hapus catatan lama. Usulan lama sah tetap dapat
+  ditinjau/dikonfirmasi idempoten; hasil/sesi/marker tidak dihapus. Sumber stale
+  tidak diaktifkan ulang; gunakan form Latihan lokal untuk kebutuhan baru.
+- Open tanpa chat ID mencari metadata terbaru dengan urutan diperbarui/ID menurun,
+  owner, exact-resource, fingerprint, grant terbaru dan izin provider/kebijakan sah.
+  GET tidak memberi consent, membuat chat atau mengirim. Reconsent tidak menghidupkan
+  snapshot/chat lama; kuota mengunci composer, bukan histori yang sah.
+- Entry **Tanya soal ini** berada pada soal persis (preview/tinjauan guru), bukan
+  picker berulang atau tebakan scroll. Panel memakai satu menu sekunder untuk
+  riwayat/bantuan/data; contoh profil berupa skenario pendampingan generik. Form
+  native dan draf host tetap lokal. Enhanced open menerima ID reuse hanya setelah
+  binding resource exact; Tutup/Esc kembali ke pemicu asal yang masih terlihat.
+
+Tidak ada schema/backfill/perubahan release pin. **Sebelum cutover:** drain/tahan
+outbound in-flight sesuai runbook, jangan replay pending/unknown. Respons lama
+empat-field yang tiba pada binary baru ditolak, tidak membuat usulan/draft. Recovery
+binary lama dapat membuat fitur retired lagi: kesamaan schema bukan bukti aman.
+Koordinator harus membuktikan exact candidate/recovery yang menghormati retirement
+atau memilih hold outbound/perbaikan maju; tidak memulihkan DB/izin terhapus.
+CI full/exact pair, fakta provider/notice, penerimaan manusia, Android/iOS fisik dan
+walkthrough tetap gerbang terbuka. Source ini bukan klaim rilis/P6 selesai.
+
+## Tinjauan dan pembuatan latihan lama
 
 - GET tinjauan yang sah menerbitkan token acak, menyimpan **hash token** dan
   ikatan snapshot usulan di DB Pendamping. Ini bukti server menerbitkan tinjauan,
@@ -185,9 +222,9 @@ memasang perubahan ke produksi atau mengesahkan walkthrough/perangkat manusia.
   Model DeepSeek mengaktifkan penalaran secara bawaan, sementara budget keluaran
   Pendamping tetap 1.200 token dan timeout 25 detik. Mode ini hanya untuk chat
   Pendamping; cerita/lampiran, reservasi biaya, dan batas penggunaan tidak berubah.
-- JSON sah saja belum cukup. Jawaban, draft memori, usulan latihan, dan boolean
-  klarifikasi tetap divalidasi ketat sebagai satu paket; field invalid tidak
-  dibuang atau dinormalisasi diam-diam. Balasan terpotong (`finish_reason=length`)
+- JSON sah saja belum cukup. Jawaban dan boolean klarifikasi divalidasi ketat;
+  field extra, aksi/memori lama, key ganda atau field invalid tidak dibuang atau
+  dinormalisasi diam-diam. Balasan terpotong (`finish_reason=length`)
   ditolak, meskipun potongannya kebetulan bisa dibaca sebagai JSON.
 - Kategori teknis membedakan timeout/koneksi/status provider, JSON/terpotong,
   serta bagian kontrak balasan. Ledger memakai kolom kategori existing; tidak ada
@@ -253,9 +290,11 @@ hanya sekali mengonsumsi jatah; unknown tidak membolehkan panggilan baru sampai
 rekonsiliasi. Habis kuota AI tidak mematikan fitur belajar inti. AI tambahan tidak
 boleh melewati pagu provider/global atau membuka kembali pengembangan yang dibatalkan.
 
-## Isi memori
+## Isi memori legacy
 
-Koreksi manual dan draft model menggunakan validator isi yang sama. Memori
+Validator storage lama dipertahankan untuk kompatibilitas dan pengujian; bukan
+jalur membuat/mengubah memori baru. Endpoint perubahan/konfirmasi ditahan pada
+kandidat P4. Sebelum retirement, koreksi manual dan draft model memakai validator sama. Memori
 hanya menerima bentuk preferensi cara menjawab yang dikenali, misalnya:
 
 - “Jawab ringkas dengan contoh konkret.”
@@ -266,8 +305,8 @@ Ini **bukan penyimpanan bahasa alami bebas**. Frasa di luar bentuk yang didukung
 (termasuk preferensi yang mungkin aman tetapi belum dikenali) ditolak, bukan
 teksnya dibersihkan atau diparafrase diam-diam. Label/profil/curhatan/kontak/
 credential, termasuk awalan preferensi diikuti cerita personal, tidak diterima.
-Penggunaan nonaktif tetap mengizinkan koreksi manual; draft tidak otomatis
-terkonfirmasi. Invalidasi versi dan kepemilikan tetap berlaku.
+Pada kontrak legacy penggunaan nonaktif mengizinkan koreksi manual; pada kandidat
+P4 koreksi/konfirmasi melalui server ditahan. Invalidasi versi dan kepemilikan tetap berlaku.
 
 Batas patch: validator baru tidak melakukan audit/backfill memori warisan dan
 bukan klaim filter chat umum mendeteksi seluruh kemungkinan data personal.
@@ -294,7 +333,7 @@ editor yang lebih membantu merupakan pekerjaan UX yang **dibatalkan** pada
   tersedia tidak dapat direkonstruksi pasti; patch tidak mengarang riwayat atau
   melakukan backfill dari data keluarga.
 - Jangan menurunkan `user_version` atau menghapus catatan eksekusi untuk
-  memulihkan request. Usulan usang perlu usulan baru, bukan reaktivasi data lama.
+  memulihkan request. Usulan usang diarahkan ke form Latihan, bukan reaktivasi data lama.
 - Rollback binary sebelum skema privat v4 **tidak otomatis kompatibel** karena
   aplikasi lama menolak versi lebih baru. Recovery harus memakai binary yang
   memahami v4 atau perbaikan maju; jangan memulihkan DB lama sebagai rollback UI.
@@ -324,21 +363,21 @@ Source inline menyediakan:
 - Satu pemicu aktif (pill melayang Tanya pada profil) membuka overlay nonmodal
   360px desktop atau sheet maksimal 85dvh dengan Kembali pada HP, tanpa menyempitkan
   konten utama. Sumber tetap salah satu dari empat tab profil anak atau
-  sesi/soal yang tepat. Pemicu sesi enhanced menawarkan ringkasan/nomor soal;
+  sesi/soal yang tepat. Entry per-soal menggantikan picker untuk aksi yang sama;
   bookmark konteks sesi/soal tetap langsung ke sumber kanoniknya.
 - Consent provider dan konteks tetap terpisah. Form izin memakai judul sesuai
   tujuan host, penjelasan data/penerima DeepSeek, checkbox tidak dicentang, serta
-  satu CTA Mulai percakapan. Mode aktif/tanpa memori dipilih sebelum mulai pada
-  Pengaturan percakapan native, bukan dua tombol mulai. Tanpa memori bukan tanpa
-  konteks atau riwayat; default dan mode chat immutable tetap. Draf koreksi/manual
+  satu CTA Setuju dan buka percakapan setelah pilihan sumber. Setelah seluruh izin
+  disubmit langsung tampil composer, tanpa mengirim otomatis. Chat baru tanpa memori
+  bukan tanpa konteks atau riwayat; mode chat lama tetap immutable. Draf koreksi/manual
   tidak masuk payload provider, storage Pendamping, cookie, atau URL.
 - Kepala panel menampilkan sumber dan tab aktif; status hanya-baca tetap terlihat.
   Chat menggulir percakapan terpisah dari composer; respons baru diberi penanda AI
   dan log aksesibel, error tetap menjelaskan ketidakpastian tanpa retry otomatis.
-  Contoh pertanyaan per tab hanya mengisi draf setelah klik, bukan mengirim.
+  Contoh pertanyaan soal/pendampingan hanya mengisi draf setelah klik, bukan mengirim.
   Label riwayat memakai jenis sumber dan waktu, bukan ID mentah atau cuplikan pesan.
   Persetujuan provider dipadatkan dengan rincian retensi tetap tersedia; checkbox
-  provider/konteks dan mode tanpa memori tetap eksplisit. Tentang bantuan AI di footer.
+  provider/konteks tetap eksplisit. Riwayat, bantuan dan data dalam satu menu footer.
 - History dibatasi exact-resource dan seluruh aksi dalam form koreksi memakai
   submit POST yang membawa kembali draf. Mode tanpa memori tetap menyimpan history.
 - Host yang mempunyai pemicu/panel memakai no-store/no-referrer/noindex/frame/CSP
@@ -370,9 +409,8 @@ Adapter warisan yang masih dipertahankan:
   baca masih sah; composer/draft/kandidat baru tidak tampil. Hasil yang pernah
   dibuat tetap bisa ditemukan melalui GET usulan yang memvalidasi pemilik.
   Consent dicabut atau resource asing bukan izin membuka histori.
-- Pengaturan memori membedakan aktif kosong/berisi, nonaktif dan tanpa memori.
-  Pengelolaan aktif dilakukan inline pada host sumber. Koreksi ditolak tidak
-  memantulkan input. Hapus memerlukan persetujuan eksplisit dan tidak mengandalkan
+- Catatan preferensi lama dapat dilihat/dihapus inline; pengaktifan/konfirmasi/
+  perubahan ditahan. Penolakan tidak memantulkan input baru. Hapus memerlukan persetujuan eksplisit dan tidak mengandalkan
   JavaScript.
 - Label usulan dari topik/kartu resmi, parameter readonly, pesan sumber beranchor.
   GET hasil memakai hasil mesin sebenarnya; POST konfirmasi tetap terikat guard
@@ -416,15 +454,16 @@ Adapter warisan yang masih dipertahankan:
 - Skrip berada di modul Python agar termasuk COPY wildcard image; izin CSP hanya
   hash tepat skrip tersebut, bukan `unsafe-inline` atau seluruh script same-origin.
 
-**Dibatalkan, tidak tersedia melalui UI baru:** hapus chat/cabut izin dan
-pengelolaan saat provider tidak dikonfigurasi. Picker keluarga langsung, editor
+**Histori pembatalan 18 September:** hapus chat/cabut izin dan pengelolaan saat
+provider mati telah dibuka kembali pada paket existing 21 Oktober di atas.
+Picker keluarga langsung, editor
 parameter dan streaming tetap di luar cakupan, bukan janji implementasi atau tombol
 palsu. Persetujuan JS panel bukan persetujuan provider/konteks, entitlement paket,
 perubahan diagnosis/reducer, atau izin mengirim draf pekerjaan.
 
 Wireframe/prototype lokal opsional, bukan dependensi aplikasi/build/test.
-Pekerjaan walkthrough pengguna, Safari/keyboard HP fisik dan aksesibilitas
-menyeluruh **dibatalkan**; penerimaannya tetap belum terverifikasi, bukan lulus.
+Walkthrough pengguna dan Safari/keyboard HP fisik pernah dibatalkan, lalu scope
+D5 dibuka bersyarat; pelaksanaan/penerimaannya tetap belum terverifikasi, bukan lulus.
 Source tersedia, ter-deploy, dan berfungsi pada produksi bukan tiga klaim yang
 dapat disamakan. Migrasi v3→v4 merupakan histori rollout, bukan langkah yang
 harus diulang. Pemasangan berikutnya tetap perlu backup/recovery kompatibel dan

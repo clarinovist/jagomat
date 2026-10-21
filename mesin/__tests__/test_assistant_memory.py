@@ -44,7 +44,7 @@ def server(tmp_path, monkeypatch):
             "lingkup": "preferensi_orang_tua",
             "isi": "Jelaskan secara ringkas dengan satu contoh konkret.",
         },
-        "usulan_latihan": None,
+
         "butuh_klarifikasi": False,
     })
     monkeypatch.setattr(assistant_service, "panggil_provider_default", palsu)
@@ -70,7 +70,7 @@ def test_policy_draft_hanya_preferensi_orang_tua():
             assistant_policy.validasi_draft_memori(rusak)
 
 
-def test_draft_tidak_aktif_sebelum_konfirmasi(kon):
+def test_draft_baru_ditolak_meski_memori_lama_aktif(kon):
     assistant_store.beri_persetujuan(
         kon, AKUN, policy_version=assistant_policy.VERSI_KEBIJAKAN,
         provider_id="deepseek", kategori="chat_umum", sekarang=100,
@@ -85,16 +85,15 @@ def test_draft_tidak_aktif_sebelum_konfirmasi(kon):
             "lingkup": "preferensi_orang_tua",
             "isi": "Gunakan kalimat pendek.",
         },
-        "usulan_latihan": None,
+
         "butuh_klarifikasi": False,
     })
-    assistant_service.kirim_pesan(
-        kon, AKUN, chat.id, "Tolong jawab lebih pendek.",
-        request_id="req_draft_memori", panggil_provider=provider, sekarang=101,
-    )
-    daftar = assistant_store.daftar_memori(kon, AKUN)
-    assert len(daftar) == 1
-    assert not daftar[0].dikonfirmasi
+    with pytest.raises(assistant_service.GalatPendamping, match="Format balasan"):
+        assistant_service.kirim_pesan(
+            kon, AKUN, chat.id, "Tolong jawab lebih pendek.",
+            request_id="req_draft_memori", panggil_provider=provider, sekarang=101,
+        )
+    assert assistant_store.daftar_memori(kon, AKUN) == ()
     assert assistant_store.memori_untuk_chat(kon, AKUN, chat.id) == ()
 
 
@@ -109,15 +108,15 @@ def test_memori_nonaktif_tidak_dibaca_di_service(kon):
         dikonfirmasi=True, sekarang=100,
     )
     provider = ProviderPalsu(respons={
-        "jawaban": "Baik.", "draft_memori": None,
-        "usulan_latihan": None, "butuh_klarifikasi": False,
+        "jawaban": "Baik.",
+         "butuh_klarifikasi": False,
     })
     assistant_service.kirim_pesan(
         kon, AKUN, chat.id, "Halo.", request_id="req_off_memory_read",
         panggil_provider=provider, sekarang=101,
     )
     muatan = json.loads(provider.panggilan[0][1]["content"])
-    assert muatan["memori"] == []
+    assert "memori" not in muatan
 
 
 def test_memori_nonaktif_tidak_menyimpan_draft(kon):
@@ -131,10 +130,10 @@ def test_memori_nonaktif_tidak_menyimpan_draft(kon):
         "draft_memori": {
             "lingkup": "preferensi_orang_tua", "isi": "Jawab singkat."
         },
-        "usulan_latihan": None,
+
         "butuh_klarifikasi": False,
     })
-    with pytest.raises(assistant_service.GalatPendamping, match="nonaktif"):
+    with pytest.raises(assistant_service.GalatPendamping, match="Format balasan"):
         assistant_service.kirim_pesan(
             kon, AKUN, chat.id, "Jawab singkat.", request_id="req_off_memory",
             panggil_provider=provider, sekarang=101,
@@ -162,15 +161,15 @@ def test_chat_tanpa_memori_tidak_membaca_memori_di_service(kon):
     )
     chat = assistant_store.buat_chat(kon, AKUN, "tanpa_memori", sekarang=100)
     provider = ProviderPalsu(respons={
-        "jawaban": "Baik.", "draft_memori": None,
-        "usulan_latihan": None, "butuh_klarifikasi": False,
+        "jawaban": "Baik.",
+         "butuh_klarifikasi": False,
     })
     assistant_service.kirim_pesan(
         kon, AKUN, chat.id, "Halo.", request_id="req_no_memory_read",
         panggil_provider=provider, sekarang=101,
     )
     muatan = json.loads(provider.panggilan[0][1]["content"])
-    assert muatan["memori"] == []
+    assert "memori" not in muatan
 
 
 def test_chat_tanpa_memori_tidak_menyimpan_draft(kon):
@@ -184,10 +183,10 @@ def test_chat_tanpa_memori_tidak_menyimpan_draft(kon):
         "draft_memori": {
             "lingkup": "preferensi_orang_tua", "isi": "Jawab singkat."
         },
-        "usulan_latihan": None,
+
         "butuh_klarifikasi": False,
     })
-    with pytest.raises(assistant_service.GalatPendamping, match="memori nonaktif"):
+    with pytest.raises(assistant_service.GalatPendamping, match="Format balasan"):
         assistant_service.kirim_pesan(
             kon, AKUN, chat.id, "Jawab singkat.", request_id="req_no_memory",
             panggil_provider=provider, sekarang=101,

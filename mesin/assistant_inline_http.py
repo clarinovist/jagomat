@@ -250,7 +250,8 @@ def tangani_inline_post(penangan, jalur: str) -> bool:
             target = assistant_inline.target_dari_form(data)
         aksi = "buka" if cocok_buka else jalur.rsplit("/", 1)[-1]
         akses = _akses_terkunci(principal.id_akun)
-        if aksi == "buka" and akses is not None and not target.chat_id:
+        if (aksi == "buka" and akses is not None and not target.chat_id
+                and not _legacy("_punya_histori_target")(principal, target)):
             if not _host_milik(principal, target):
                 raise LookupError("host tidak tersedia")
             fragmen_request = penangan.headers.get("X-Pendamping-Panel") == "fragment"
@@ -402,12 +403,9 @@ def tangani_inline_post(penangan, jalur: str) -> bool:
                     raise LookupError("sumber berubah")
                 # Deduplikasi sebelum membuat grant baru: grant terbaru baru
                 # akan membuat versi chat lama tidak aktif.
-                chat = next((c for c in assistant_store.daftar_chat(kon, principal.id_akun)
-                             if c.context_kind == konteks.jenis and c.context_id == konteks.resource_id
-                             and c.context_resource_version == konteks.versi and c.mode_memori == mode_chat
-                             and assistant_view.hak_baca_chat(
-                                 kon, principal.id_akun, c, pemilik=principal.pengguna
-                             )), None)
+                chat = assistant_view.chat_terbaru_sah(
+                    kon, principal.id_akun, konteks, pemilik=principal.pengguna,
+                )
                 if chat is None:
                     persetujuan = assistant_store.beri_persetujuan_konteks(
                         kon, principal.id_akun, jenis=konteks.jenis,
@@ -415,7 +413,7 @@ def tangani_inline_post(penangan, jalur: str) -> bool:
                         kategori=konteks.kategori, sekarang=kini,
                     )
                     chat = assistant_store.buat_chat(
-                        kon, principal.id_akun, mode_chat, sekarang=kini,
+                        kon, principal.id_akun, "tanpa_memori", sekarang=kini,
                         context_kind=konteks.jenis, context_id=konteks.resource_id,
                         context_version=persetujuan.versi,
                         context_resource_version=konteks.versi,
@@ -461,6 +459,8 @@ def tangani_inline_post(penangan, jalur: str) -> bool:
                         penangan, principal, target, fragmen, **draf_host,
                     )
                     return True
+                if aksi in ("konfirmasi-memori", "ubah-memori"):
+                    raise GalatForm("Pembuatan dan perubahan preferensi sudah dihentikan. Catatan lama dapat dilihat atau dihapus.", 410)
                 if aksi == "konfirmasi-memori":
                     berhasil = assistant_store.konfirmasi_memori(
                         kon, principal.id_akun, memori_id,
@@ -507,6 +507,8 @@ def tangani_inline_post(penangan, jalur: str) -> bool:
                 versi = data.get("versi_memori", [""])[0]
                 if not versi.isdigit():
                     raise GalatForm("Versi memori tidak sah.")
+                if aksi == "aktifkan-memori":
+                    raise GalatForm("Preferensi lintas percakapan tidak lagi digunakan.", 410)
                 assistant_store.atur_penggunaan_memori(
                     kon, principal.id_akun, aksi == "aktifkan-memori",
                     versi_diharapkan=int(versi), sekarang=kini,

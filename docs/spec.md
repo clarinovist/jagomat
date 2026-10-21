@@ -81,8 +81,11 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   AI. Alias sesi dipetakan ke tautan lokal, bukan ID asli pada payload. Izin provider
   dan snapshot sumber tetap terpisah; konteks berubah menjadi hanya-baca. Panel
   overlay/sheet menjaga lebar konten dan tab asal; contoh hanya mengisi draf, tidak
-  mengirim otomatis. Usulan latihan tetap memerlukan tinjauan dan konfirmasi, bukan
-  perubahan diagnosis atau bukti belajar otomatis. Kelola data Pendamping dari
+  mengirim otomatis. Kandidat sempit menyediakan “Tanya soal ini” per soal, reuse
+  chat exact-resource berizin, tanpa katalog/memori outbound atau usulan/draft baru.
+  Catatan lama hanya lihat/hapus; usulan lama tetap tinjau/konfirmasi idempoten, bukan
+  perubahan diagnosis/bukti. Implementasi bukan penerimaan mutu/rilis prompt: P2
+  dan retest belum lulus; CI/recovery dan penerimaan manusia tetap gerbang. Kelola data Pendamping dari
   Akun tersedia dengan sesi guru meski provider/fitur kirim nonaktif atau kuota
   habis: tinjau lalu hapus satu chat, atau cabut izin AI beserta izin sumber lama.
   Metadata/hapus tetap tersedia pasca-cabut; transkrip tetap mengikuti izin baca.

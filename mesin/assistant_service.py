@@ -10,8 +10,6 @@ import time
 
 import ai_errors
 import ai_service
-import assistant_actions
-import assistant_catalog
 import assistant_client
 import assistant_policy
 import assistant_store
@@ -96,20 +94,12 @@ def panggil_provider_default(pesan):
 def _pesan_provider(
     kon, account_id: str, chat_id: str, teks_baru: str, *, konteks=None
 ):
-    katalog = json.loads(
-        assistant_catalog.serialisasi_ringkas(assistant_catalog.buat_katalog())
-    )
-    memori = [item.isi for item in assistant_store.memori_untuk_chat(
-        kon, account_id, chat_id
-    )]
     percakapan = [
         {"peran": item.peran, "teks": item.teks}
         for item in assistant_store.daftar_pesan(kon, account_id, chat_id)
     ]
     percakapan.append({"peran": "pengguna", "teks": teks_baru})
     isi = {
-        "katalog": katalog,
-        "memori": memori,
         "percakapan": percakapan,
     }
     if konteks is not None:
@@ -386,53 +376,6 @@ def kirim_pesan(
                 kon, account_id, chat_id, "asisten", respons.jawaban,
                 request_id=request_id + ":jawaban", sekarang=kini,
             )
-            if respons.usulan_latihan is not None:
-                if konteks is None:
-                    raise GalatPendamping(
-                        "Pilih konteks belajar sebelum meninjau usulan latihan."
-                    )
-                payload = json.dumps(
-                    respons.usulan_latihan.ke_dict(),
-                    ensure_ascii=False,
-                    sort_keys=True,
-                    separators=(",", ":"),
-                )
-                assistant_store.simpan_usulan(
-                    kon,
-                    account_id,
-                    chat_id,
-                    request_id,
-                    payload_json=payload,
-                    hash_usulan=assistant_actions.hash_usulan(
-                        respons.usulan_latihan
-                    ),
-                    chat_version=operasi.chat_version + 2,
-                    consent_version=consent_version,
-                    context_version=context_version,
-                    context_resource_version=konteks.versi,
-                    sekarang=kini,
-                )
-            if respons.draft_memori is not None:
-                chat = assistant_store.ambil_chat(kon, account_id, chat_id)
-                if (
-                    chat is None
-                    or chat.mode_memori == "tanpa_memori"
-                    or not assistant_store.penggunaan_memori_aktif(
-                        kon, account_id
-                    )
-                ):
-                    raise GalatPendamping(
-                        "Penggunaan memori nonaktif untuk chat ini."
-                    )
-                assistant_store.tambah_memori(
-                    kon,
-                    account_id,
-                    respons.draft_memori.isi,
-                    sumber_chat_id=chat_id,
-                    dikonfirmasi=False,
-                    sekarang=kini,
-                    lingkup=respons.draft_memori.lingkup,
-                )
     except GalatPendamping:
         try:
             entitlement.tandai_unknown(ikatan_kuota, sekarang=kini)

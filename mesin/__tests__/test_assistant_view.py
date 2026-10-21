@@ -285,23 +285,22 @@ def _catatan(kon, *, account_id=AKUN, dikonfirmasi=True):
 
 
 def test_status_memori_count_confirmed_live_owner_saja(privat):
-    assert view.status_memori(privat, AKUN) == "Memori nonaktif"
+    assert view.status_memori(privat, AKUN) == "Preferensi lintas percakapan tidak digunakan"
     _aktifkan_memori(privat)
-    assert view.status_memori(privat, AKUN) == "Memori aktif · belum ada catatan"
+    assert view.status_memori(privat, AKUN) == "Preferensi lintas percakapan tidak digunakan"
     _catatan(privat, dikonfirmasi=False)
     _catatan(privat, account_id=ASING)
     dihapus = _catatan(privat)
     assistant_store.hapus_memori(
         privat, AKUN, dihapus.id, versi_diharapkan=dihapus.versi, sekarang=102
     )
-    assert view.status_memori(privat, AKUN) == "Memori aktif · belum ada catatan"
+    assert view.status_memori(privat, AKUN) == "Preferensi lintas percakapan tidak digunakan"
     _catatan(privat)
     sebelum = privat.total_changes
     jejak = []
     privat.set_trace_callback(jejak.append)
-    assert view.status_memori(privat, AKUN) == "Memori aktif · 1 catatan"
-    assert len(jejak) == 2
-    assert "SELECT COUNT(*)" in jejak[1]
+    assert view.status_memori(privat, AKUN) == "Preferensi lintas percakapan tidak digunakan"
+    assert jejak == []
     assert privat.total_changes == sebelum
 
 
@@ -311,7 +310,7 @@ def test_status_tanpa_memori_tidak_query_preferensi_atau_count(privat):
     chat = assistant_store.buat_chat(privat, AKUN, "tanpa_memori", sekarang=100)
     jejak = []
     privat.set_trace_callback(jejak.append)
-    assert view.status_memori(privat, AKUN, chat) == "Chat tanpa memori"
+    assert view.status_memori(privat, AKUN, chat) == "Preferensi lintas percakapan tidak digunakan"
     assert jejak == []
 
 
@@ -319,8 +318,8 @@ def test_status_nonaktif_tidak_count(privat):
     _catatan(privat)
     jejak = []
     privat.set_trace_callback(jejak.append)
-    assert view.status_memori(privat, AKUN) == "Memori nonaktif"
-    assert len(jejak) == 1 and "preferensi_memori" in jejak[0]
+    assert view.status_memori(privat, AKUN) == "Preferensi lintas percakapan tidak digunakan"
+    assert jejak == []
 
 
 @pytest.mark.parametrize("rusak", ["asing", "dihapus", "mode"])
@@ -555,7 +554,7 @@ def test_proyeksi_tidak_bocor_ke_payload_provider(privat, db, jenis):
     assert NAMA not in json.dumps(provider_akhir, ensure_ascii=False)
     assert "Nama tampilan berubah" not in json.dumps(provider_akhir, ensure_ascii=False)
     isi = json.loads(provider_akhir[1]["content"])
-    assert set(isi) == {"katalog", "memori", "percakapan", "konteks"}
+    assert set(isi) == {"percakapan", "konteks"}
     assert not {"nama", "url", "label", "sumber"}.intersection(isi["konteks"])
 
 

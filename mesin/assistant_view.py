@@ -99,26 +99,41 @@ def sumber_tampilan(kon_data, jenis: str, resource_id: str, *, pemilik: str
 
 
 def status_memori(kon_priv, account_id: str, chat=None) -> str:
-    """Mode chat mendahului preferensi; tidak membaca isi atau menghitung draft."""
+    """Label retirement, tanpa mengubah mode historis atau membaca isi memori."""
     assistant_store._wajib_account_id(account_id)
-    if chat is not None:
-        if chat.account_id != account_id or chat.dihapus is not None:
-            raise ValueError("Percakapan tidak tersedia.")
-        if chat.mode_memori == "tanpa_memori":
-            return "Chat tanpa memori"
-        if chat.mode_memori != "aktif":
-            raise ValueError("Mode memori tidak sah.")
-    if not assistant_store.penggunaan_memori_aktif(kon_priv, account_id):
-        return "Memori nonaktif"
-    jumlah = kon_priv.execute(
-        """SELECT COUNT(*) FROM memori
-           WHERE account_id = ? AND dikonfirmasi = 1 AND dihapus IS NULL
-             AND lingkup = 'preferensi_orang_tua'""",
-        (account_id,),
-    ).fetchone()[0]
-    if not jumlah:
-        return "Memori aktif · belum ada catatan"
-    return f"Memori aktif · {jumlah} catatan"
+    if chat is not None and (chat.account_id != account_id or chat.dihapus is not None
+                             or chat.mode_memori not in ("aktif", "tanpa_memori")):
+        raise ValueError("Percakapan tidak tersedia.")
+    return "Preferensi lintas percakapan tidak digunakan"
+
+
+def chat_terbaru_sah(kon_priv, account_id: str, konteks, *, pemilik: str):
+    """Lookup metadata terbatas exact snapshot; GET tidak menerbitkan izin.
+
+    Hak baca memeriksa principal pemilik sumber dan grant terbaru. Kandidat
+    dibatasi pada versi grant yang sama agar chat lama setelah reconsent tidak
+    dapat terpilih hanya karena fingerprint kebetulan identik.
+    """
+    assistant_store._wajib_account_id(account_id)
+    baris = kon_priv.execute(
+        """SELECT c.* FROM chat c
+           WHERE c.account_id = ? AND c.dihapus IS NULL
+             AND c.context_kind = ? AND c.context_id = ?
+             AND c.context_resource_version = ?
+             AND c.context_version = (
+                 SELECT versi FROM persetujuan_konteks
+                 WHERE account_id = ? AND jenis = ? AND resource_id = ?
+                 ORDER BY versi DESC, rowid DESC LIMIT 1)
+           ORDER BY c.diperbarui DESC, c.id DESC LIMIT 1""",
+        (account_id, konteks.jenis, konteks.resource_id, konteks.versi,
+         account_id, konteks.jenis, konteks.resource_id),
+    ).fetchone()
+    if baris is None:
+        return None
+    chat = assistant_store._chat_dari_baris(baris)
+    if not hak_baca_chat(kon_priv, account_id, chat, pemilik=pemilik):
+        return None
+    return chat
 
 
 def riwayat(kon_priv, account_id: str, *, halaman: int = 1, batas: int = 20,

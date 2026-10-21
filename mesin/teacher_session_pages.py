@@ -211,6 +211,10 @@ def halaman_sesi_stitch(
     kartu_tercatat = []
     antrean_tinjauan = []
     outcome_tampilan = []
+    status_akses_pendamping = (
+        __import__("assistant_entitlement_runtime").status_pengguna(pengguna)
+        if peran == "guru" and pengguna else None
+    )
     for b in database.isi_sesi(kon, sesi_id):
         soal = soal_dari_baris(b)
         sudah = b["jawaban_id"] is not None
@@ -324,6 +328,16 @@ def halaman_sesi_stitch(
                 '</div>'
             )
 
+        tanya_soal = ""
+        if peran == "guru" and pengguna and not sesi_dibatalkan:
+            import assistant_components
+            import assistant_inline
+            tanya_soal = assistant_components.tombol_buka(
+                assistant_inline.tujuan_sesi(sesi_id, nomor=int(b['nomor'])),
+                form_id=f"form-koreksi-{sesi_id}" if sudah_dikirim else "",
+                label="Tanya soal ini",
+                status_akses=status_akses_pendamping,
+            )
         if not sudah_dikirim:
             kartu_perlu_diperiksa.append(f"""
 <div class="koreksi-kartu-st pratinjau">
@@ -331,6 +345,7 @@ def halaman_sesi_stitch(
     <div class="koreksi-kepala-st">{nomor}{tipe}</div>
     <div class="teks-soal-st">{teks_pertanyaan}</div>
     {ringkas_opsi(pg_butir, b['template_id'])}
+    {tanya_soal}
     <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b["kunci"])}</span></div>
   </div>
 </div>""")
@@ -512,6 +527,7 @@ def halaman_sesi_stitch(
     <div class="teks-soal-st">{teks_pertanyaan}</div>
     {ringkas_opsi(pg_butir, b['template_id'])}
     {'<p>Pilihan ganda · latihan manual, bukan bukti penguasaan.</p>' if pg_butir else ''}
+    {tanya_soal}
     {review_pages.jawaban_utama(label_jawaban, dikoreksi=koreksi_jawaban)}
     <details class="koreksi-opsi-st koreksi-kunci-st" id="pembahasan-soal-{sid}">
       <summary>Lihat kunci &amp; pembahasan soal {int(b['nomor'])}</summary>
@@ -598,15 +614,8 @@ def halaman_sesi_stitch(
         import assistant_components
         import assistant_inline
         target_sesi = assistant_inline.tujuan_sesi(sesi_id)
-        status_akses = __import__("assistant_entitlement_runtime").status_pengguna(pengguna)
-        if sudah_dikirim and not sesi_dibatalkan:
-            # Satu entry konsisten; pilihan soal tetap dilakukan di dalam panel,
-            # bukan lewat sederet tombol yang bersaing dengan koreksi.
-            konteks_pendamping = assistant_components.tombol_buka(
-                target_sesi, form_id=f"form-koreksi-{sesi_id}", label="Pendamping",
-                status_akses=status_akses,
-            )
-        else:
+        status_akses = status_akses_pendamping
+        if sesi_dibatalkan:
             konteks_pendamping = assistant_components.tombol_buka(
                 target_sesi, status_akses=status_akses,
             )

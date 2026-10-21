@@ -166,7 +166,7 @@ def test_http_koreksi_menolak_di_luar_preferensi(server, isi, capfd):
     token, _, _, memori = _siapkan_memori(server)
     sebelum = _snapshot(server)
     kode, tubuh, header = _ubah(server, token, memori.id, memori.versi, isi)
-    assert kode == 409, "Koreksi di luar lingkup diterima lewat POST."
+    assert kode == 410, "Endpoint perubahan preferensi belum dihentikan."
     assert _snapshot(server) == sebelum, "Penolakan mengubah DB."
     assert server.provider.panggilan == []
     assert header["Cache-Control"] == "no-store"
@@ -202,24 +202,24 @@ def test_validator_model_menerima_preferensi_tanpa_mengubah_isi(isi):
 
 
 @pytest.mark.parametrize("isi", DITERIMA)
-def test_http_koreksi_sah_saat_nonaktif_tetap_tepat(server, isi):
+def test_http_koreksi_preferensi_sah_juga_dihentikan(server, isi):
     token, akun, chat, memori = _siapkan_memori(server)
     with closing(assistant_schema.buka()) as kon:
         versi = assistant_store.versi_memori(kon, akun)
     kode, tubuh, _ = _ubah(server, token, memori.id, memori.versi, isi)
-    assert kode == 200  # urllib mengikuti POST 303 ke pengaturan.
-    assert html.escape(isi.strip()) in tubuh
+    assert kode == 410
+    assert 'dihentikan' in tubuh
     with closing(assistant_schema.buka()) as kon:
         kini, = assistant_store.daftar_memori(kon, akun)
-        assert kini.isi == isi.strip()
-        assert kini.versi == memori.versi + 1
+        assert kini.isi == memori.isi
+        assert kini.versi == memori.versi
         assert kini.lingkup == memori.lingkup
         assert kini.sumber_chat_id == chat.id
         assert kini.dikonfirmasi
         assert not assistant_store.penggunaan_memori_aktif(kon, akun)
-        assert assistant_store.versi_memori(kon, akun) == versi + 1
+        assert assistant_store.versi_memori(kon, akun) == versi
     sebelum_retry = _snapshot(server)
-    assert _ubah(server, token, memori.id, memori.versi, "Gunakan tabel.")[0] == 409
+    assert _ubah(server, token, memori.id, memori.versi, "Gunakan tabel.")[0] == 410
     assert _snapshot(server) == sebelum_retry
     assert server.provider.panggilan == []
 
@@ -275,10 +275,10 @@ def test_http_koreksi_memori_terhapus_nol_efek(server):
 
 def test_http_koreksi_draft_tidak_otomatis_konfirmasi(server):
     token, akun, chat, memori = _siapkan_memori(server, dikonfirmasi=False, aktif=True)
-    assert _ubah(server, token, memori.id, memori.versi, "Jawab singkat.")[0] == 200
+    assert _ubah(server, token, memori.id, memori.versi, "Jawab singkat.")[0] == 410
     with closing(assistant_schema.buka()) as kon:
         kini, = assistant_store.daftar_memori(kon, akun)
-        assert kini.isi == "Jawab singkat."
+        assert kini.isi == memori.isi
         assert not kini.dikonfirmasi
         assert kini.sumber_chat_id == chat.id
         assert assistant_store.memori_untuk_chat(kon, akun, chat.id) == ()

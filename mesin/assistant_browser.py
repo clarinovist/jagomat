@@ -157,7 +157,11 @@ function cocokPanel(harap, baru, aksi, data) {
   }
   if (!resource || !resourceId || b.posisi !== posisi || b.resource !== resource ||
       b.resourceId !== resourceId) return false;
-  if (aksi === 'mulai') return !b.chat || /^chat_[0-9a-f]{32}$/.test(b.chat);
+  if (aksi === 'mulai' || (aksi === 'buka' && !harap.chat)) {
+    // Server boleh mereuse chat exact-resource setelah guard izin; binding
+    // host/resource di atas tetap wajib, ID tidak boleh berasal dari sumber lain.
+    return !b.chat || /^chat_[0-9a-f]{32}$/.test(b.chat);
+  }
   var chat = aksi === 'riwayat' ? (data.get('pilih_chat') || harap.chat) : harap.chat;
   if (b.chat !== chat) return false;
   return !['pesan', 'status'].includes(aksi) ||
@@ -276,9 +280,12 @@ function tutupLokal(panel) {
   panel.remove();
   pembuka.bungkus.hidden = false;
   pembuka.tombol.setAttribute('aria-expanded', 'false');
-  var tujuan = Array.from(document.querySelectorAll('.pendamping-pemicu')).find(function (item) {
-    return item.getClientRects().length && getComputedStyle(item).visibility !== 'hidden';
-  }) || pembuka.tombol;
+  var tujuan = pembuka.tombol;
+  if (!tujuan.getClientRects().length || getComputedStyle(tujuan).visibility === 'hidden') {
+    tujuan = Array.from(document.querySelectorAll('.pendamping-pemicu')).find(function (item) {
+      return item.getClientRects().length && getComputedStyle(item).visibility !== 'hidden';
+    }) || pembuka.tombol;
+  }
   tujuan.focus({preventScroll: true});
   window.scrollTo(pembuka.x, pembuka.y);
   document.querySelectorAll('[data-tab-profil]').forEach(function (tautan) {

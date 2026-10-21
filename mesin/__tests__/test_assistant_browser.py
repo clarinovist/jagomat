@@ -45,7 +45,7 @@ def test_host_awal_memuat_skrip_dan_header_privat(server, jenis):
     identitas = server.ids_inline[0 if jenis == 'anak' else 1]
     kode, isi, header = server.minta(f'/{jenis}/{identitas}', cookie=token)
     assert kode == 200
-    assert 'class="pendamping-pemicu"' in isi
+    assert 'class="pendamping-pemicu' in isi
     assert '<script>' + assistant_browser.SKRIP_CHAT + '</script>' in isi
     assert "'sha256-%s'" % assistant_browser.HASH_CSP in header['Content-Security-Policy']
     # Alur baru tidak memuat skrip refresh pilihan A–D pada host mana pun.
@@ -243,6 +243,8 @@ function panel(b) { return {classList:{contains:n=>n==='pendamping-panel-kanan'}
  pendampingRequest:b.request}}; }
 const kosong = new URLSearchParams();
 assert.equal(uji.cocokPanel(harap,panel(harap),'buka',kosong),true);
+assert.equal(uji.cocokPanel(harap,panel({...harap,chat:'chat_'+'a'.repeat(32)}),'buka',kosong),true);
+assert.equal(uji.cocokPanel(harap,panel({...harap,chat:'chat_asing'}),'buka',kosong),false);
 for (const ubah of [{host:'anak'},{id:'99'},{resource:'soal'},{resourceId:'42:2'},{posisi:'soal'}]) {
  assert.equal(uji.cocokPanel(harap,panel({...harap,...ubah}),'buka',kosong),false,'respons asing ditolak');
 }

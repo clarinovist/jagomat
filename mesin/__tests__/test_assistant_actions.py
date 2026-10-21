@@ -59,8 +59,6 @@ def server(tmp_path, monkeypatch):
     monkeypatch.setattr(assistant_schema, "BAWAAN", tmp_path / "pendamping.db")
     provider = ProviderPalsu({
         "jawaban": "Saya sudah menyiapkan usulan untuk ditinjau.",
-        "draft_memori": None,
-        "usulan_latihan": USULAN_SAH,
         "butuh_klarifikasi": False,
     })
     monkeypatch.setattr(assistant_service, "panggil_provider_default", provider)
@@ -108,10 +106,25 @@ def _buat_usulan_http(server):
         headers=_origin(server),
     )
     assert kode == 200
-    usulan_id = re.search(
-        r'(usulan_[0-9a-f]{32})', hasil
-    ).group(1)
+    # Fixture kompatibilitas: usulan yang telah tersimpan sebelum cutover.
+    # Runtime baru tidak lagi menghasilkan usulan lewat balasan provider.
+    usulan_id = simpan_usulan_lama(auth.cari_akun('guru')['id_akun'], chat_id, request_id)
     return token, chat_id, usulan_id
+
+
+def simpan_usulan_lama(akun, chat_id, request_id, payload=USULAN_SAH):
+    import time
+    with assistant_schema.buka() as kon:
+        chat = assistant_store.ambil_chat(kon, akun, chat_id)
+        sah = assistant_actions.validasi_usulan(payload)
+        catatan = assistant_store.simpan_usulan(
+            kon, akun, chat_id, request_id, payload_json=json.dumps(sah.ke_dict()),
+            hash_usulan=assistant_actions.hash_usulan(sah), chat_version=chat.versi,
+            consent_version=assistant_store.versi_persetujuan(kon, akun),
+            context_version=chat.context_version,
+            context_resource_version=chat.context_resource_version, sekarang=int(time.time()),
+        )
+    return catatan.id
 
 
 def test_validator_hanya_menerima_katalog_aktual_dan_field_allow_list():
@@ -151,7 +164,7 @@ def test_chat_umum_tidak_boleh_menyimpan_usulan(tmp_path):
         )
         chat = assistant_store.buat_chat(kon, account_id, "aktif", sekarang=100)
         with pytest.raises(
-            assistant_service.GalatPendamping, match="Pilih konteks"
+            assistant_service.GalatPendamping, match="Format balasan"
         ):
             assistant_service.kirim_pesan(
                 kon, account_id, chat.id, "Buat latihan.",
