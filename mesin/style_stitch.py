@@ -308,8 +308,8 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-kepala-daftar-st .guru-alis-st {{ margin-bottom: {T.SP_1}; }}
 .guru-kepala-daftar-st h2 {{ color: {T.TEKS_JUDUL}; font: 700 {T.UKURAN_BAGIAN_DEWASA}/1.4 {T.FONT_HEADLINE}; margin: 0; }}
 .guru-kepala-daftar-st h2 span {{ font-size: .85rem; font-weight: 500; color: {T.TEKS_VARIAN}; margin-left: {T.SP_2}; }}
-.guru-tambah-st {{ display: inline-flex; align-items: center; justify-content: center; gap: {T.SP_2}; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2} {T.SP_4}; color: {T.TEKS_PUTIH}; background: {T.AKSEN_KORAL_TUA}; border-radius: {T.RADIUS_KECIL}; text-decoration: none; font: 700 .8rem/1.5 {T.FONT_HEADLINE}; }}
-.guru-tambah-st:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
+.guru-tambah-st {{ display: inline-flex; align-items: center; justify-content: center; gap: {T.SP_2}; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2} {T.SP_4}; color: {T.AKSEN_TEAL_TUA}; background: transparent; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KECIL}; text-decoration: none; font: 700 .8rem/1.5 {T.FONT_HEADLINE}; }}
+.guru-tambah-st:hover {{ background: color-mix(in srgb, {T.LATAR_KARTU} 92%, {T.AKSEN_TEAL_TUA}); }}
 .guru-petunjuk-st {{ color: {T.TEKS_VARIAN}; font-size: .8rem; line-height: 1.7; margin: {T.SP_3} 0 {T.SP_5}; }}
 .guru-beranda-st .daftar-anak {{ display: grid; gap: {T.SP_3}; }}
 .guru-beranda-st .kartu-anak {{ display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; align-items: center; gap: {T.SP_4}; padding: {T.SP_5}; text-decoration: none; color: inherit; box-shadow: none; }}
@@ -331,7 +331,8 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-kosong-st {{ border: {T.TEBAL_GARIS} dashed {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU}; padding: {T.SP_6}; background: color-mix(in srgb, {T.LATAR_KARTU} 65%, transparent); }}
 .guru-kosong-st h2 {{ font: 700 {T.UKURAN_BAGIAN_DEWASA}/1.4 {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; max-width: 20rem; margin: 0 0 {T.SP_4}; }}
 .guru-kosong-st > p:not(.guru-alis-st) {{ color: {T.TEKS_VARIAN}; font-size: .85rem; max-width: 32rem; }}
-.guru-kosong-st .guru-tambah-st {{ margin-top: {T.SP_3}; }}
+.guru-kosong-st .guru-tambah-st {{ margin-top: {T.SP_3}; color: {T.TEKS_PUTIH}; background: {T.AKSEN_TEAL_TUA}; }}
+.guru-kosong-st .guru-tambah-st:hover {{ background: {T.AKSEN_TEAL_HOVER}; }}
 .guru-kosong-st .guru-petunjuk-st {{ margin-bottom: 0; }}
 .guru-kaki-st {{ display: flex; gap: {T.SP_2}; align-items: center; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; margin-top: {T.SP_6}; padding-top: {T.SP_5}; }}
 .guru-kaki-st > span {{ color: {T.AKSEN_KORAL_TUA}; font-size: 1.5rem; }}

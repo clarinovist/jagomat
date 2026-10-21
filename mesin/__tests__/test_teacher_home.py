@@ -366,3 +366,19 @@ def test_css_terisolasi_fokus_dan_nama_panjang():
     assert "overflow-wrap: anywhere" in blok
     assert "@media" in blok
     assert not re.search(r"#[0-9a-fA-F]{3,8}\b", blok)
+
+
+def _blok_css(selector):
+    css = style_stitch.GAYA_STITCH
+    awal = css.index(selector + " {")
+    return css[awal:css.index("}", awal)]
+
+
+def test_tambah_anak_sekunder_saat_ada_anak_dan_primer_saat_kosong():
+    # Merah/koral solid hanya untuk aksi destruktif; Tambah anak tidak boleh menyaingi kartu tindakan.
+    biasa = _blok_css(".guru-tambah-st")
+    assert T.AKSEN_KORAL_TUA not in biasa
+    assert f"color: {T.AKSEN_TEAL_TUA}" in biasa and "background: transparent" in biasa
+    kosong = _blok_css(".guru-kosong-st .guru-tambah-st")
+    assert f"background: {T.AKSEN_TEAL_TUA}" in kosong and f"color: {T.TEKS_PUTIH}" in kosong
+    assert T.AKSEN_KORAL_HOVER not in _blok_css(".guru-tambah-st:hover")
