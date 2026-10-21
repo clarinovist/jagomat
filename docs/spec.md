@@ -85,7 +85,8 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   chat exact-resource berizin, tanpa katalog/memori outbound atau usulan/draft baru.
   Catatan lama hanya lihat/hapus; usulan lama tetap tinjau/konfirmasi idempoten, bukan
   perubahan diagnosis/bukti. Implementasi bukan penerimaan mutu/rilis prompt: P2
-  dan retest belum lulus; CI/recovery dan penerimaan manusia tetap gerbang. Kelola data Pendamping dari
+  dan retest belum lulus; recovery wajib mempertahankan penghentian fitur,
+  bukan hanya schema kompatibel. CI/recovery dan penerimaan manusia tetap gerbang. Kelola data Pendamping dari
   Akun tersedia dengan sesi guru meski provider/fitur kirim nonaktif atau kuota
   habis: tinjau lalu hapus satu chat, atau cabut izin AI beserta izin sumber lama.
   Metadata/hapus tetap tersedia pasca-cabut; transkrip tetap mengikuti izin baca.

@@ -1,5 +1,34 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Kandidat recovery Pendamping sempit — belum dipasang
+
+Arahan penutupan blocker P6 menyiapkan anchor `f4c043ae25184f0e947c800e54c8f14a53279c3b`
+pada branch tugas. Anchor ini telah lulus CI39566081410 (13.661 tes exact-once),
+bukan last-known-good produksi. Runtime kandidat saat penambahan gate sama dengan
+anchor; ia tidak menjadi fallback untuk cacat runtime yang sama. Integrasi katalog
+atau perubahan berikutnya memerlukan verifikasi pasangan ulang, bukan menganggap
+anchor ini mengikuti main. Histori deployment/pin lama di bawah tidak ditulis ulang.
+
+Pin calon recovery di metadata dan dua checkout workflow diganti atomik, tetapi
+mode tetap migrasi, `pasang=false`, tanpa perubahan policy host atau SSH/deploy.
+Fingerprint schema/persistensi tetap `7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8`;
+kesamaan ini **tidak** cukup mengesahkan retirement. Verifier pasangan kini wajib
+menjalankan `release_assistant_pair.py` C→R→C dan menghasilkan
+`assistant_retirement_pair_checks=8`, terikat dua revision/digest. Bukti lama yang
+tidak memuat gate ini ditolak oleh validator metadata.
+
+Probe mencakup payload/response sempit, endpoint memori retired, replay/pending,
+usulan legacy/dedupe, akses/hapus, penolakan output lama, fence client/late response,
+dan revoke/reconsent/tombstone. DB/auth fixture sintetis terpisah, hanya loopback
+untuk HTTP, transport provider mock serta container network none; bukan request AI.
+Recovery `c228749…` gagal guard pengambilan katalog/memori; tidak diluluskan dengan
+reset versi/izin atau hold outbound yang masih membiarkan mutasi legacy.
+
+Full CI/build/probe exact pasangan baru tetap wajib sebelum klaim gate ini lulus.
+Mutu prompt P2/retest, fakta provider, penerimaan manusia dan perangkat fisik belum
+lulus. Anchor baru bukan izin aktivasi/rilis AI; prosedur preflight/backup/cutover
+existing tetap berlaku bila scope rilis kelak disetujui.
+
 ## Rilis bantuan non-AI dan kendali data Pendamping — 21 Oktober 2026
 
 Controlled `deploy-v2` berhasil memasang kandidat

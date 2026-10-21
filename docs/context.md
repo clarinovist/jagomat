@@ -227,6 +227,9 @@ cache dan cadangan tetap privat.
   recovery memproyeksikan AST operasi/guard persistensi sehingga ekstraksi murni
   lintas modul tidak mengubah kontrak, sedangkan perubahan SQL/guard/transaksi tetap
   tertangkap; ID kontrak lama dipetakan eksplisit hanya untuk proyeksi yang identik.
+  Gate kandidat Pendamping menambah `release_assistant_pair.py` C→R→C dan bukti
+  retirement wajib pada validator manifest; fingerprint sama saja tidak cukup.
+  Anchor `f4c043a` teruji sintetis, bukan last-known-good produksi.
   CI hijau bukan bukti pemasangan; jangan build di VPS atau menyalakan Docker lokal.
 
 Detail: [workflow](workflow-reference.md) · [design system](design-system.md) ·

@@ -156,8 +156,13 @@ binary lama dapat membuat fitur retired lagi: kesamaan schema bukan bukti aman.
 Koordinator harus membuktikan exact candidate/recovery yang menghormati retirement
 atau memilih hold seluruh Pendamping/perbaikan maju; hold outbound saja tidak
 menahan endpoint konfirmasi/aktivasi memori legacy. Jangan memulihkan DB/izin terhapus.
-CI full/exact pair, fakta provider/notice, penerimaan manusia, Android/iOS fisik dan
-walkthrough tetap gerbang terbuka. Source ini bukan klaim rilis/P6 selesai.
+Penutupan blocker recovery menyiapkan anchor `f4c043a` dan gate wajib
+`assistant_retirement_pair_checks=8` pada pasangan image exact. Recovery lama
+`c228749` wajib gagal retirement walau fingerprint/schema identik. Ini calon
+anchor sintetis teruji, bukan last-known-good produksi atau fallback runtime
+yang berbeda dari kandidat sempit. [Batas recovery](production-release.md#kandidat-recovery-pendamping-sempit--belum-dipasang).
+CI full/exact pair terbaru, fakta provider/notice, penerimaan manusia, Android/iOS fisik dan
+walkthrough tetap gerbang terpisah. Source ini bukan klaim rilis/P6 selesai.
 
 ## Tinjauan dan pembuatan latihan lama
 

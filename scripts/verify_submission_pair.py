@@ -45,6 +45,9 @@ from release_admin_launch_pair import SUMBER_TULIS as LAYANAN_TULIS, SUMBER_BACA
 TULIS_PILOT = LAYANAN_TULIS + '\n' + TULIS_PILOT
 BACA_PILOT = LAYANAN_BACA + '\n' + BACA_PILOT
 
+from release_assistant_pair import (SUMBER_TULIS as PENDAMPING_TULIS,
+    SUMBER_BACA as PENDAMPING_BACA, SUMBER_KEMBALI as PENDAMPING_KEMBALI)
+
 LABEL = 'osn.release.submission-probe'
 AWALAN = 'osn-submission-pair-'
 
@@ -248,6 +251,9 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             (23, candidate_image, SOAL_TULIS, 'OSN_QUESTION_WRITER_OK'),
             (24, recovery_image, SOAL_BACA, 'OSN_QUESTION_RECOVERY_OK'),
             (25, candidate_image, SOAL_KEMBALI, 'OSN_QUESTION_RETURN_OK'),
+            (26, candidate_image, PENDAMPING_TULIS, 'OSN_ASSISTANT_WRITER_OK'),
+            (27, recovery_image, PENDAMPING_BACA, 'OSN_ASSISTANT_RECOVERY_OK'),
+            (28, candidate_image, PENDAMPING_KEMBALI, 'OSN_ASSISTANT_RETURN_OK'),
         ):
             if _jalankan(image, volume, sumber, token, nomor) != marker:
                 raise GalatVerifikasi('probe_paket_kuota_gagal')
@@ -264,7 +270,7 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'package_pair_checks': 8, 'quota_pair_checks': 8,
             'photo_pair_checks': 8, 'registration_pair_checks': 8,
             'support_pair_checks': 8, 'sensor_pair_checks': 8, 'policy_pair_checks': 6,
-            'question_pair_checks': 8, 'provider_calls': 0}
+            'question_pair_checks': 8, 'assistant_retirement_pair_checks': 8, 'provider_calls': 0}
 
 
 def main(argv=None):
