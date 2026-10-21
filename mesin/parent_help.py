@@ -12,7 +12,7 @@ KARTU = (
      'Aku tidak akan mengambil alih.',
      'Kamu ingin aku mendengarkan dulu atau kita jeda sebentar?',
      'Ikuti pilihannya. Tunggu sampai ia bersedia sebelum melanjutkan satu langkah.'),
-    ('Orang tua mulai kesal',
+    ('Pendamping mulai kesal',
      'Kita jeda dulu; nanti kita coba satu bagian kecil bersama.',
      'Mau istirahat sebentar?',
      'Ambil jeda untuk menenangkan diri. Jangan memaksa melanjutkan ketika masih kesal.'),

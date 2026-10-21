@@ -173,7 +173,7 @@ def halaman_utama_stitch(
         "Ruang pendamping",
         '<main aria-labelledby="judul-guru">'
         '<header class="guru-sapaan-st"><div>'
-        '<p class="guru-alis-st">RUANG ORANG TUA &amp; GURU</p>'
+        '<p class="guru-alis-st">RUANG PENDAMPING</p>'
         '<h1 id="judul-guru">Langkah kecil,<br><span>tumbuh bersama.</span></h1>'
         '<p>Temani prosesnya, bukan hanya hasilnya.<br>'
         'Mulai dari ruang belajar anak di bawah ini.</p></div>'

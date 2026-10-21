@@ -36,8 +36,8 @@ def test_shell_shared_dan_admin_tidak_memakai_varian_baru():
     ringkas = S._topbar_stitch('keluarga-a', 'guru', ringkas=True)
     assert 'class="identitas-akun-st"' in biasa and '>keluarga-a</span>' in biasa
     assert 'class="identitas-akun-st"' not in ringkas and '>Keluarga A</span>' in ringkas
-    assert 'Orang Tua / Guru' not in ringkas.split('</summary>')[0]
-    assert 'Orang Tua / Guru' in ringkas.split('class="menu-isi"')[1]
+    assert 'Pendamping' not in ringkas.split('</summary>')[0]
+    assert 'Pendamping' in ringkas.split('class="menu-isi"')[1]
     assert 'keluarga-&lt;uji&gt;' not in S._topbar_stitch('keluarga-<uji>', 'guru', ringkas=True)
     assert 'Keluarga &lt;Uji&gt;' in S._topbar_stitch('keluarga-<uji>', 'guru', ringkas=True)
     admin = P.bingkai(dict(id=1,nama='Contoh',pemilik='keluarga-a'), 'rencana', 0, '', peran='admin')

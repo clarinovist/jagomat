@@ -189,7 +189,7 @@ def test_semantik_satu_kartu_dan_satu_tambah_anak(server):
     assert 'role="status"' in isi
     assert '&lt;img src=x onerror=&quot;x&quot;&gt;' in isi
     assert '<img src=x' not in isi
-    assert "Orang Tua / Guru" in isi
+    assert "Pendamping" in isi
 
 
 def test_keadaan_kosong_bukan_klaim_selesai(server):

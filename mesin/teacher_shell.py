@@ -20,7 +20,7 @@ def _badge_peran(peran: str) -> str:
     if peran == "admin":
         return '<span class="badge-peran badge-peran-admin">Pengelola</span>'
     if peran == "guru":
-        return '<span class="badge-peran badge-peran-guru">Orang Tua / Guru</span>'
+        return '<span class="badge-peran badge-peran-guru">Pendamping</span>'
     return ""
 
 

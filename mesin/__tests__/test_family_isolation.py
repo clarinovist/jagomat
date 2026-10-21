@@ -190,10 +190,10 @@ def test_dashboard_guru_hanya_anaknya(dua_keluarga):
     assert "RaraB" not in isi
 
 
-def test_dashboard_guru_menampilkan_badge_orang_tua(dua_keluarga):
+def test_dashboard_guru_menampilkan_badge_pendamping(dua_keluarga):
     s, ids = dua_keluarga
     _, isi, _ = s.minta("/", auth=("ortu-a", SANDI_A))
-    assert "Orang Tua" in isi
+    assert ">Pendamping</span>" in isi
 
 
 def test_admin_diarahkan_ke_panel_semua_keluarga(dua_keluarga):

@@ -42,7 +42,7 @@ def test_sesi_siap_mengarahkan_handoff_dengan_post_tanpa_efek_get(server):
 
     halaman = _halaman(uji, sesi_id)
 
-    assert "Pemetaan · giliran orang tua/guru" in halaman
+    assert "Pemetaan · giliran pendamping" in halaman
     assert "Sesi siap — berikut cara anak mengerjakan" in halaman
     form = re.search(
         rf'<form[^>]+method="post"[^>]+action="/sesi/{sesi_id}/bagikan"[^>]*>(.*?)</form>',
