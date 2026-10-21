@@ -17,6 +17,9 @@ class Hitungan:
     belum_dikenalkan: int = 0
     dilewati: int = 0
     terkonfirmasi: int = 0
+    # Dikerjakan tetapi berstatus belum dikenalkan/dilewati: ada di "dikerjakan"
+    # namun bukan benar, salah, atau menunggu tinjauan.
+    dikerjakan_lain: int = 0
 
     @property
     def dinilai(self) -> int:
@@ -105,6 +108,8 @@ def _hitung(baris) -> Hitungan:
         # H menjadi T/dilewati tidak menghapus pekerjaan yang sudah tercatat.
         if _ada_kerja(satu):
             angka["dikerjakan"] += 1
+            if kategori in {"belum_dikenalkan", "dilewati"}:
+                angka["dikerjakan_lain"] += 1
         if kategori in {"benar", "salah"} and satu["snapshot_id"] is not None:
             angka["terkonfirmasi"] += 1
     return Hitungan(**angka)

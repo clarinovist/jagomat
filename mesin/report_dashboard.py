@@ -224,6 +224,11 @@ def render_aktivitas(data, tanggal, *, judul='Aktivitas latihan', kontrol='', se
     if kini.dilewati:
         tambahan.append(f'{kini.dilewati} dilewati')
     rincian = '<p class="laporan-catatan">' + ' · '.join(tambahan) + '.</p>' if tambahan else ''
+    selisih = (
+        f'<p class="laporan-catatan">{kini.dikerjakan_lain} dari {kini.dikerjakan} soal dikerjakan '
+        'ditandai perlu cek pengenalan atau dilewati, jadi tidak masuk benar, salah, atau menunggu tinjauan.</p>'
+        if kini.dikerjakan_lain else ''
+    )
     sementara = ('<p class="laporan-catatan">Hasil sementara: sebagian soal yang dinilai belum dikonfirmasi.</p>'
                  if kini.dinilai > kini.terkonfirmasi else '')
     return (
@@ -231,7 +236,8 @@ def render_aktivitas(data, tanggal, *, judul='Aktivitas latihan', kontrol='', se
         f'<h2 id="judul-aktivitas">{html.escape(judul)}</h2>'
         + kontrol
         + f'<div class="kartu-stat laporan-metrik">{kartu}</div>'
-        '<p class="laporan-catatan">' + kalimat + '</p>'
+        + selisih
+        + '<p class="laporan-catatan">' + kalimat + '</p>'
         '<details class="rincian-ui-st"><summary>Tentang catatan aktivitas</summary>'
         f'<p class="aktivitas-periode-st">{rentang}</p>'
         + sementara + rincian +

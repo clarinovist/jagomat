@@ -63,7 +63,7 @@ def test_status_tidak_dinilai_bukan_salah_dan_sesi_berjalan_ikut(db):
         sid = database.tambah_siswa(kon, "Aktivitas")
         sesi(kon, sid, ("benar", "H", "K", "N", "T", "unknown", "belum", "kosong", "tanpa"))
         data = metrik.statistik_laporan(kon, sid, HARI)
-    assert data.kini == metrik.Hitungan(7, 1, 2, 3, 1)
+    assert data.kini == metrik.Hitungan(7, 1, 2, 3, 1, dikerjakan_lain=1)
     assert data.kini.dinilai == 3
     assert data.kini.persen == pytest.approx(100 / 3)
 
@@ -143,7 +143,7 @@ def test_snapshot_dilewati_tidak_menjadi_salah_tapi_kerja_tetap_tercatat(db):
         butir = database.isi_sesi(kon, ses)
         database.konfirmasi_hasil(kon, ses, "guru", dilewati={butir[1]["sesi_soal_id"]})
         data = metrik.statistik_laporan(kon, sid, HARI)
-    assert data.kini == metrik.Hitungan(dikerjakan=2, benar=1, dilewati=1, terkonfirmasi=1)
+    assert data.kini == metrik.Hitungan(dikerjakan=2, benar=1, dilewati=1, terkonfirmasi=1, dikerjakan_lain=1)
 
 
 def test_invalidasi_rekonfirmasi_snapshot_tidak_ganda(db):

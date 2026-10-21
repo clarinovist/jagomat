@@ -150,7 +150,9 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   tersimpan, atau ✓ Selesai mengikuti konfirmasi aktif, bukan penguasaan.
   Konfirmasi yang tidak lagi aktif tetap meminta konfirmasi ulang.
   Aktivitas memakai Semua (bawaan), 7 hari terakhir, atau tanggal pilihan; empat
-  angka netral bukan persentase pemahaman. Preset minggu/bulan lama tetap terbaca.
+  angka netral bukan persentase pemahaman; soal dikerjakan yang ditandai belum
+  dikenalkan/dilewati dijelaskan satu baris agar jumlah angka tertelusuri. Preset
+  minggu/bulan lama tetap terbaca.
   Riwayat menampilkan satu status/aksi per sesi dan strip tinjauan terlama; filter
   tambahan/paging tetap tersedia, pengelolaan tautan di halaman sesi. Latihan memakai
   satu form aktif dengan tiga mode, fallback pemilih GET, dan skrip lokal berhash

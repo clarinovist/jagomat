@@ -223,7 +223,7 @@ def _aktivitas(**nilai):
     import report_dashboard as rd
 
     dasar = dict(dikerjakan=3, benar=2, salah=1, perlu_ditinjau=1, dinilai=3, terkonfirmasi=1,
-                 belum_dikenalkan=2, dilewati=1)
+                 belum_dikenalkan=2, dilewati=1, dikerjakan_lain=0)
     dasar.update(nilai)
     kini = SimpleNamespace(**dasar)
     data = SimpleNamespace(kini=kini, semua=kini, mulai=date(2026, 10, 13), akhir=date(2026, 10, 19))

@@ -184,3 +184,35 @@ def test_tampilan_persen_dan_nama_escape_tanpa_markup_injeksi():
     h=tampilan.render_materi(data,lambda x:x,reports._tanggal_pendek)
     assert "&lt;100%" in h and "<100%" not in h
     assert "<script>" not in h and "&lt;script&gt;" in h
+
+
+@pytest.mark.parametrize("jenis", [
+    ("benar", "H", "K", "N", "T", "unknown", "belum", "kosong", "tanpa"),
+    ("T", "T", "benar"),
+    ("benar", "benar"),
+])
+def test_tile_aktivitas_menjumlah_ke_dikerjakan_tanpa_selisih_gaib(db, jenis):
+    with database.buka(db) as kon:
+        sid = database.tambah_siswa(kon, "Jumlah Tile")
+        sesi(kon, sid, jenis)
+        h = metrik.statistik_laporan(kon, sid, HARI).kini
+    assert h.dikerjakan == h.benar + h.salah + h.perlu_ditinjau + h.dikerjakan_lain
+
+
+def test_selisih_tile_dijelaskan_di_luar_rincian_tertutup(db):
+    with database.buka(db) as kon:
+        sid = database.tambah_siswa(kon, "Selisih Tile")
+        sesi(kon, sid, ("benar", "H", "T"))
+        h = metrik.statistik_laporan(kon, sid, HARI)
+    isi = tampilan.render_aktivitas(h, reports._tanggal_pendek)
+    catatan = isi.split("<details", 1)[0]
+    assert "1 dari 3 soal dikerjakan" in catatan
+    assert "tidak masuk benar, salah, atau menunggu tinjauan" in catatan
+
+
+def test_tanpa_selisih_tidak_ada_penjelasan_tambahan(db):
+    with database.buka(db) as kon:
+        sid = database.tambah_siswa(kon, "Tanpa Selisih")
+        sesi(kon, sid, ("benar", "H"))
+        h = metrik.statistik_laporan(kon, sid, HARI)
+    assert "tidak masuk benar" not in tampilan.render_aktivitas(h, reports._tanggal_pendek)
