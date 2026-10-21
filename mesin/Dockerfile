@@ -39,6 +39,9 @@ COPY --chown=osn:osn aset/ /app/aset/
 # Folder ini hanya berisi artefak publik tanpa data keluarga atau state runtime.
 COPY --chown=osn:osn publik/ /app/publik/
 
+# Konten internal guru; tidak dilayani sebagai aset atau unduhan publik.
+COPY --chown=osn:osn konten/ /app/konten/
+
 # Basis data & sandi tinggal di volume supaya selamat saat container diganti.
 ENV OSN_BERKAS_SANDI=/data/sandi.json \
     OSN_BERKAS_SESI=/data/sesi.json \

@@ -171,6 +171,13 @@ cache dan cadangan tetap privat.
   `halaman_konfirmasi_guru` memilih mode lewat `ai_pembacaan_aktif()` (kunci vision);
   `halaman_konfirmasi(ai_aktif=False)` menyajikan isi-manual tanpa menyentuh jalur
   tulis (`terapkan`), arsip `sumber='foto'`, atau schema.
+- `teaching_playbook.py` memvalidasi JSON internal `konten/playbook_p3.json`, tanpa
+  I/O saat impor, DB, network, atau cache konten. Selector hanya guru, fokus/profil
+  exact dan pendekatan existing; saksi seed memeriksa pasangan malrule/kode, bukan
+  mengesahkan pedagogi. Draf/invalid/duplikat/review usang menghasilkan fragmen kosong.
+  Hash mengikat ulasan ke isi/versi, bukan membuktikan identitas manusia. JSON ikut
+  image lewat COPY internal, bukan aset publik. Tidak mengubah reducer/materi existing.
+  [Kontrak dan ulasan](playbook-guru.md); prioritas guru in-house, data sintetis dulu.
 - `parent_help.py` merender kartu pra-tulis dan FAQ kontekstual pada permukaan
   guru melalui `teacher_workspace`/`teacher_session_pages`, tanpa DB/AI atau route
   baru. Disclosure native menjaga form/draf; kunci/pembahasan tetap dari loader

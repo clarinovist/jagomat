@@ -1,0 +1,73 @@
+# Playbook guru — kontrak kerangka dan ulasan
+
+## Status dan batas
+
+Prioritas Fase 2 berdasarkan analisis kode; observasi guru sengaja dilewati atas
+keputusan pemilik, bukan bukti kebutuhan tervalidasi. Pilot/pengembangan hanya
+memakai data sintetis. **Reviewer matematika manusia belum ditetapkan.**
+Agent hanya menyusun draf. Isi ajar wajib ditulis/disunting dan direview manusia;
+tidak ada LLM runtime yang menentukan isi, diagnosis, atau rekomendasi.
+
+Konten baru di `mesin/konten/playbook_p3.json` hanya boleh tampil kepada guru
+setelah manusia mengesahkan versi exact. Semua entri pada tahap ini `draf` dengan
+reviewer/tanggal/versi_review/sha256_review `null`. JSON bukan aset publik atau rute
+unduh. Materi existing tidak diganti atau diklaim telah direview melalui playbook.
+
+## Kontrak teknis
+
+Envelope `versi_format: 1`, `entri: [...]`. Identitas unik:
+`(template_id, profil, kode_intervensi, malrule_id)`. Profil memakai keanggotaan
+komposisi eksplisit; P3 internal bukan kelas sekolah. `malrule_id: null` berarti
+fokus tanpa malrule, **bukan wildcard**. Entri tidak diwariskan ke profil lain.
+
+Isi plain text: `miskonsepsi`, `batas`, `urutan` (benda/gambar/simbol), 2–3
+`pertanyaan`, `pendekatan` (ID existing dan contoh berbeda), `tanda_paham`, `sumber`,
+`versi`, `saksi_seed`. Saksi generator membuktikan ID/kode tersedia pada konteks
+tersebut, bukan seluruh variasi atau kebenaran pedagogis. Batas varian harus
+diperiksa manusia; entri tidak boleh disahkan bila petunjuk hanya cocok sebagian
+varian tanpa penjelasan batas yang memadai.
+
+Metadata review: `status`, `reviewer`, `tanggal_review` (YYYY-MM-DD), `versi_review`,
+`sha256_review`. Sidik SHA-256 berasal dari JSON seluruh field selain lima metadata
+review, UTF-8, kunci terurut, pemisah `,` dan `:`, tanpa ASCII escaping.
+`teaching_playbook.sidik_isi()` menyediakan hitungan deterministik.
+Hash mengikat isi dan versi, **bukan bukti bahwa reviewer manusia benar-benar ada**;
+proses review manusia dan riwayat Git tetap diperlukan. Agent tidak mengisi status
+`disahkan`, identitas reviewer, tanggal, atau hash pengesahan konten runtime.
+
+Loader membaca path paket tetap hanya ketika dipanggil; tanpa I/O saat impor,
+DB/network, atau cache yang mempertahankan isi dicabut. Entri rusak, identitas
+ambigu, belum disahkan, atau hash/versi ulasan tidak cocok → fragmen kosong, bukan
+error halaman atau pengganti materi/CTA. Schema/domain boleh divalidasi untuk draf;
+valid secara teknis **bukan** sah tampil. Penghapusan/pengubahan konten berlaku pada
+pembacaan berikutnya. Test positif memakai fixture sintetis terpisah, tidak mengesahkan
+konten nyata. JSON dibawa image melalui COPY internal, bukan folder aset/publik.
+
+## Ulasan manusia (belum dilakukan)
+
+Untuk setiap entri, reviewer perlu menjawab dan menyimpan catatan Markdown:
+
+1. Apakah dugaan miskonsepsi cocok dengan malrule dan **seluruh varian P3 yang dicakup**?
+   Apakah bahasa menyatakan dugaan yang diperiksa, bukan diagnosis baru?
+2. Apakah semua hitungan, satuan, diagram yang dijelaskan, dan contoh benar?
+3. Apakah benda → gambar → simbol dapat dilakukan tanpa melompati konsep?
+4. Apakah pertanyaan memancing penjelasan, bukan membocorkan jawaban latihan anak?
+5. Apakah contoh tiap pendekatan berbeda dan sesuai `pendekatan_id` existing?
+6. Apakah indikator pemahaman tidak menyamakan hafalan/jawaban benar dengan kelulusan?
+7. Apakah sumber dapat diperiksa dan batas bantuan/varian cukup jelas?
+
+Format catatan: identitas entri, versi dan sidik isi yang diperiksa; keputusan
+**setuju / ubah / tolak**; jawaban tujuh pertanyaan; koreksi; identitas reviewer dan
+tanggal ditulis manusia. Setuju atas draf tidak otomatis memublikasikan konten.
+
+- **Ubah:** manusia menyunting isi, menaikkan versi, mengosongkan metadata pengesahan,
+  tetap draf, lalu mengulang review exact.
+- **Tolak:** tetap draf/tidak dipublikasikan; tulis sebab dan batas perbaikan.
+- **Setuju:** hanya setelah penulisan/penyuntingan serta review manusia selesai,
+  manusia sendiri mencatat reviewer, tanggal, versi_review, sidik isi dan `disahkan`.
+  Jalankan validasi/test; perubahan konten setelah itu membatalkan sidik ulasan.
+
+Tidak ada antarmuka admin atau migrasi DB dalam fase ini. Jangan mengaktifkan isi
+sementara reviewer belum ada. Playbook tidak menentukan status belajar; sumber
+keputusan tetap `learning_cycle.py`. Rute murid, tautan sesi, dan resource guru
+asing tidak boleh membaca loader atau menerima fragmennya.

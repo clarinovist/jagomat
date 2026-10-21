@@ -8,9 +8,10 @@
 
 ## Tujuan dan pengguna
 
-Aplikasi web latihan matematika SD untuk persiapan OSN/SASMO yang membantu orang
-tua menentukan **satu langkah belajar berikutnya**, bukan sekadar menambah soal.
-Peran: **guru** = orang tua yang mengelola keluarganya; **murid** = anak yang
+Aplikasi web latihan matematika SD untuk persiapan OSN/SASMO, kini diprioritaskan
+sebagai alat guru les in-house untuk menentukan **satu langkah belajar berikutnya**.
+Pilot/pengembangan pivot memakai data sintetis; ini bukan izin memakai data anak nyata.
+Peran teknis **guru** tetap pengelola data miliknya (termasuk orang tua); **murid** = anak yang
 mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khusus.
 
 ## Cakupan produk
@@ -76,6 +77,11 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   bila ≥1 hari); selebihnya menurut nama. Kartu menampilkan
   langkah dengan label laporan, tanpa skor atau peringkat kelemahan baru. Bila rencana satu anak
   gagal dibaca, kartunya tetap tampil dengan penanda "buka profil" dan beranda tidak rusak.
+- Kerangka [playbook guru](playbook-guru.md) menambah panduan pra-tulis tanpa menentukan
+  diagnosis/status/rekomendasi. Belum ada reviewer matematika manusia: konten baru hanya
+  draf dan tidak ditampilkan. Selector gagal tertutup untuk konten rusak, tidak cocok,
+  atau tanpa pengesahan manusia atas versi/hash isi. Prioritas berdasarkan analisis;
+  observasi guru sengaja dilewati, bukan bukti kebutuhan tervalidasi.
 - Bantuan orang tua tanpa AI: satu disclosure kunci/pembahasan tiap soal tinjauan
   berada dekat soal dan jawaban anak, tertutup sampai dibuka. Sumber pembahasan
   existing tetap, bukan petunjuk buatan model atau hasil mandiri anak. Tiga kartu
