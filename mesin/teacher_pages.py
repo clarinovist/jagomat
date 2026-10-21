@@ -138,8 +138,8 @@ def halaman_utama_stitch(
             elif jumlah_sesi == dibatalkan:
                 ringkasan = "Tidak ada latihan yang perlu dikerjakan."
             elif langkah.tindakan == "konfirmasi_hasil":
-                # Dibuka bukan dikonfirmasi: jangan tampak selesai di samping langkahnya.
-                ringkasan = "Sudah dibuka, belum dikonfirmasi"
+                # Dibuka bukan dikonfirmasi: jangan tampak selesai; kalimat berupa tindakan.
+                ringkasan = "Hasil menunggu Anda tinjau"
             else:
                 ringkasan = "semua direview"
             status.append(f'<span class="guru-status-st">{ringkasan}</span>')

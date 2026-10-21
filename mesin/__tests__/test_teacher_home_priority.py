@@ -87,7 +87,8 @@ def test_sesi_dibuka_belum_dikonfirmasi_tidak_dilabeli_semua_direview(server):
             "WHERE siswa_id = (SELECT id FROM siswa WHERE nama = 'Ccc Terkirim')"
         )
     isi = _beranda(server)
-    assert "Sudah dibuka, belum dikonfirmasi" in isi
+    assert "Hasil menunggu Anda tinjau" in isi
+    assert "Sudah dibuka, belum dikonfirmasi" not in isi
     assert "semua direview" not in isi
     assert "Periksa dan konfirmasi hasil" in isi
 
