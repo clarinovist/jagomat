@@ -20,7 +20,7 @@ GAYA_ANAK = f"""
 }}
 .anak-chip-st {{
   display: inline-flex; align-items: center; gap: {T.SP_1}; width: fit-content; flex: none;
-  border-radius: {T.RADIUS_PIL}; padding: {T.SP_1} {T.SP_3}; font-size: .8125rem; font-weight: 700;
+  border-radius: {T.RADIUS_PIL}; padding: {T.SP_1} {T.SP_3}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700;
   line-height: 1.4; white-space: nowrap;
 }}
 .anak-chip-perhatian-st {{ background: {T.ANAK_PERHATIAN_LATAR}; color: {T.ANAK_PERHATIAN_TEKS}; }}

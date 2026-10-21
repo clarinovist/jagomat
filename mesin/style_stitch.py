@@ -3532,6 +3532,24 @@ from choice_pages import gaya_pilihan
 GAYA_STITCH += gaya_pilihan()
 
 
+# Teks informatif halaman dewasa (/guru, /akun, /anak) minimal 14px. Label
+# dekoratif beralis huruf kapital (eyebrow) dan glif ikon tidak termasuk.
+# Prefiks body.st menaikkan spesifisitas agar menang atas aturan per-komponen
+# yang dimuat sesudahnya (GAYA_PROFIL).
+SELEKTOR_TEKS_INFORMATIF = (
+    ".guru-beranda-st :is(.guru-status-st, .guru-petunjuk-st, .guru-tambah-st, .guru-buka-st,"
+    " .guru-langkah-st, .guru-meta-st, .guru-kaki-st, .badge-peran, .guru-kepala-daftar-st h2 span,"
+    " .guru-kelompok-st span, .guru-catatan-st > span:last-child)",
+    ".akun-editorial-st :is(.akun-anak-meta, .status-buruk, .badge-peran, .akun-kelola-bagian h4, .jejak a)",
+    ".bungkus-st.profil-workspace-st :is(.badge-direview, .label-rencana-st, .mode-desk, .riwayat-grup-judul-st,"
+    " .profil-paging-st, .profil-paging-st span, label, .riwayat-ringkas-st time span)",
+)
+GAYA_TEKS_MIN = "\n/* Teks informatif dewasa >= 14px */\n" + "".join(
+    f"body.st {sel} {{ font-size: {T.UKURAN_TEKS_LABEL}; }}\n" for sel in SELEKTOR_TEKS_INFORMATIF
+)
+GAYA_STITCH = GAYA_STITCH + GAYA_TEKS_MIN
+
+
 def gaya_stitch() -> str:
     """
     Kembalikan string CSS lengkap untuk halaman yang difase-in ke Stitch.

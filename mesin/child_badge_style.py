@@ -14,7 +14,7 @@ def css_badge_review(lingkup):
     dasar = (
         f"{lingkup} .badge-direview {{\n"
         f"  width: fit-content; max-width: 100%; margin: 0; padding: {T.SP_1} {T.SP_3}; border-radius: {T.RADIUS_PIL};\n"
-        f"  font-size: .8125rem; font-weight: 700; line-height: 1.4; white-space: nowrap;\n"
+        f"  font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; line-height: 1.4; white-space: nowrap;\n"
         f"  background: {T.ANAK_NETRAL_LATAR}; color: {T.ANAK_NETRAL_TEKS};\n}}\n"
     )
     nada = "".join(

@@ -68,3 +68,19 @@ def test_body_anak_dan_input_tetap_dengan_target_sentuh():
     for selector, aturan in re.findall(r'([^{}]+)\{([^{}]+)\}', css):
         if T.UKURAN_JUDUL_DEWASA in aturan:
             assert '.guru-sapaan-st h1' in selector or '.pendamping-editorial-st h1' in selector
+
+
+def test_teks_informatif_dewasa_minimal_14px_dan_menang_atas_komponen():
+    assert T.UKURAN_TEKS_LABEL == ".875rem"  # 14px
+    css = style_stitch.GAYA_STITCH
+    for selektor in style_stitch.SELEKTOR_TEKS_INFORMATIF:
+        assert f"body.st {selektor} {{ font-size: {T.UKURAN_TEKS_LABEL}; }}" in css
+    # Blok berada paling akhir supaya tidak tertimpa aturan komponen lain di GAYA_STITCH.
+    assert css.rstrip().endswith("}") and css.rfind("Teks informatif dewasa") > css.rfind("Akhir beranda pendamping")
+
+
+def test_badge_dan_chip_status_anak_minimal_14px():
+    import child_badge_style
+    import child_style
+    assert f"font-size: {T.UKURAN_TEKS_LABEL}" in child_badge_style.css_badge_review(".x")
+    assert f"font-size: {T.UKURAN_TEKS_LABEL}" in _aturan(child_style.GAYA_ANAK, ".anak-chip-st")
