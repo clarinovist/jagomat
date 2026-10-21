@@ -382,3 +382,13 @@ def test_tambah_anak_sekunder_saat_ada_anak_dan_primer_saat_kosong():
     kosong = _blok_css(".guru-kosong-st .guru-tambah-st")
     assert f"background: {T.AKSEN_TEAL_TUA}" in kosong and f"color: {T.TEKS_PUTIH}" in kosong
     assert T.AKSEN_KORAL_HOVER not in _blok_css(".guru-tambah-st:hover")
+
+
+def test_beranda_guru_satu_chevron_dan_tautan_internal_tanpa_panah_keluar(server):
+    kode, isi, _ = server.minta("/guru", auth=("guru", SANDI_GURU))
+    assert kode == 200
+    badan = isi.split("<body", 1)[1]
+    assert "↗" not in badan and "Buka profil <span aria-hidden=\"true\">→</span>" in badan
+    # Chevron menu akun hanya satu: elemen panah, bukan ::after ganda.
+    assert badan.count("⌄") == 1
+    assert "summary::after { content: '⌄'" not in style_stitch.GAYA_STITCH

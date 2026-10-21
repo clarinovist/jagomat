@@ -289,7 +289,6 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-beranda-st .menu-pengguna summary {{
   font-size: .82rem; overflow-wrap: anywhere; gap: {T.SP_2};
 }}
-.guru-beranda-st .menu-pengguna summary::after {{ content: '⌄'; flex: none; }}
 .guru-beranda-st .badge-peran-guru {{ background: transparent; color: {T.TEKS_VARIAN}; font-weight: 500; }}
 .guru-sapaan-st {{ display: grid; grid-template-columns: minmax(0, 1fr) 13rem; gap: {T.SP_5}; align-items: center; padding: {T.SP_7} 0; }}
 .guru-alis-st {{ color: {T.AKSEN_TEAL_TUA}; font: 700 .7rem/1.5 {T.FONT_HEADLINE}; letter-spacing: .1em; margin: 0 0 {T.SP_3}; }}

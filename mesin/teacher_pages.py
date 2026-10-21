@@ -163,7 +163,7 @@ def halaman_utama_stitch(
             f'<span>{jumlah_sesi} latihan tercatat</span>{label_batal}{label_keluarga}</div>'
             f'<div class="guru-status-daftar-st">{"".join(status)}</div>'
             f'<p class="guru-langkah-st">Langkah: {html.escape(teacher_home_priority.keterangan_langkah(langkah, hari_ini))}</p></div>'
-            '<span class="guru-buka-st">Buka profil <span aria-hidden="true">↗</span></span>'
+            '<span class="guru-buka-st">Buka profil <span aria-hidden="true">→</span></span>'
             '</a>'
         ))
 

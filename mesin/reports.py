@@ -343,7 +343,7 @@ def _riwayat_latihan(kon, siswa_id: int, periode='semua', topik='semua', halaman
         f'<small>{html.escape(label_kelas(str(_ambil(r, "level", LEVEL_BAWAAN))))}</small></span></td>'
         f'<td class="angka" data-label="Benar / tersedia"><span class="rasio-laporan">{r["benar"] or 0} / {r["jumlah_soal"]}</span></td>'
         f'<td data-label="Rincian"><a href="/sesi/{r["sesi_id"]}" '
-        f'aria-label="Buka sesi {r["sesi_id"]}">Buka sesi <span aria-hidden="true">↗</span></a></td></tr>'
+        f'aria-label="Buka sesi {r["sesi_id"]}">Buka sesi <span aria-hidden="true">→</span></a></td></tr>'
         for r in ring
     ) or '<tr><td colspan="4" class="kosong">Tidak ada sesi yang cocok dengan filter. Belum ada sesi yang selesai dikirim pada pilihan ini.</td></tr>'
     return (
