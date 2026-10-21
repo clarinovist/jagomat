@@ -8,6 +8,7 @@ karena hanya dipakai di sini. Leaf murni — tidak mengimpor modul topik.
 from __future__ import annotations
 
 import random
+from catalog_versions import parameter_baru
 
 # Hiasan teks NON-jawaban untuk template dasar P3 — melebarkan variasi
 # parameter (target >= 200 kombinasi unik) tanpa menyentuh kunci.
@@ -20,6 +21,7 @@ KONTEKS_KOTAK = (
     "kancing",
 )
 WARNA_KERTAS = ("merah", "biru", "hijau", "kuning", "oranye", "ungu")
+@parameter_baru
 def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
     if template_id == "sudut_pelurus_berpenyiku":
         varian = rng.choice(("pelurus", "penyiku", "balik_pelurus", "balik_penyiku", "tiga_kali"))

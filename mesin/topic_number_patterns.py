@@ -15,6 +15,9 @@ Sumber malrule: arsip lokal ~/Documents/osn-resources/referensi/latihan/2026-08-
 
 from __future__ import annotations
 
+from catalog_versions import koreksi_soal
+from catalog_diagnosis import jumlah_deret as koreksi_jumlah_deret, korek
+
 from typing import Callable
 
 from templates import HARI, Malrule, Soal, _deret, saring_malrule
@@ -408,6 +411,7 @@ def siklus_warna(pola: tuple[str, ...], posisi: int) -> Soal:
 # ── Bagian C — pola gambar ──────────────────────────────────────────────
 
 
+@koreksi_soal(korek)
 def korek_api(awal: int, tambah: int, gambar_ke: int) -> Soal:
     jawab = awal + tambah * (gambar_ke - 1)
 
@@ -962,6 +966,7 @@ def pola_pecahan(pembilang: int, penyebut: int, beda_pembilang: int, n_tampil: i
     )
 
 
+@koreksi_soal(koreksi_jumlah_deret)
 def jumlah_deret(awal: int, beda: int, n: int) -> Soal:
     """Jumlah n suku pertama. Menuntut rumus, bukan penjumlahan beruntun.
 

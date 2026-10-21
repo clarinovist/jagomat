@@ -219,33 +219,36 @@ def test_kelompok_gerak_sweep(template_id, level):
 KELOMPOK_PERBANDINGAN = ("perbandingan_senilai", "perbandingan_berbalik", "kerja_bersama")
 
 
-def test_perbandingan_senilai_kunci():
+def test_perbandingan_senilai_kunci(monkeypatch):
     """#6: a₁/b₁ = a₂/b₂ → cari yang tak diketahui."""
+    monkeypatch.setenv('OSN_KATALOG_VERSI', '2')
     s = buat_soal("perbandingan_senilai", 7, level="P5", topik="aritmatika-lanjut")
     p = s.parameter
-    # perbandingan p:q = n:x → x = q·n/p (pembulatan atas)
-    expected = (p["q"] * p["n"] + p["p"] - 1) // p["p"]
-    assert s.kunci == str(expected), f"{p=}, kunci={s.kunci}"
+    from fractions import Fraction
+    assert Fraction(s.kunci.replace(',', '.')) / p['n'] == Fraction(p['q'], p['p'])
     assert s.kunci not in [m.jawaban for m in s.malrule]
     assert {"K", "H"} <= {m.kode for m in s.malrule}, p
 
 
-def test_perbandingan_berbalik_kunci():
+def test_perbandingan_berbalik_kunci(monkeypatch):
     """#7: a₁×b₁ = a₂×b₂ → cari yang tak diketahui."""
+    monkeypatch.setenv('OSN_KATALOG_VERSI', '2')
     s = buat_soal("perbandingan_berbalik", 7, level="P5", topik="aritmatika-lanjut")
     p = s.parameter
-    expected = (p["a1"] * p["b1"] + p["a2"] - 1) // p["a2"]
-    assert s.kunci == str(expected), f"{p=}, kunci={s.kunci}"
+    from fractions import Fraction
+    assert Fraction(s.kunci.replace(',', '.')) * p['a2'] == p['a1'] * p['b1']
     assert s.kunci not in [m.jawaban for m in s.malrule]
     assert {"K", "H"} <= {m.kode for m in s.malrule}, p
 
 
-def test_kerja_bersama_kunci():
+def test_kerja_bersama_kunci(monkeypatch):
     """#8: waktu bersama = a·b/(a+b)."""
+    monkeypatch.setenv('OSN_KATALOG_VERSI', '2')
     s = buat_soal("kerja_bersama", 7, level="P5", topik="aritmatika-lanjut")
     p = s.parameter
-    expected = (p["a"] * p["b"] + p["a"] + p["b"] - 1) // (p["a"] + p["b"])
-    assert s.kunci == str(expected), f"{p=}, kunci={s.kunci}"
+    from fractions import Fraction
+    waktu = Fraction(s.kunci.replace(',', '.'))
+    assert waktu / p['a'] + waktu / p['b'] == 1
     assert s.kunci not in [m.jawaban for m in s.malrule]
     assert {"K", "H"} <= {m.kode for m in s.malrule}, p
 

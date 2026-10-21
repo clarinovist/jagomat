@@ -10,7 +10,8 @@ from visual_contract import DescriptorVisual
 def proyeksi_pengukuran(template_id, parameter):
     if template_id == "skala_peta":
         from measurement_scale_visual import proyeksi_skala
-        return proyeksi_skala(parameter)
+        from catalog_versions import parameter_visual
+        return proyeksi_skala(parameter_visual(template_id, parameter, {"skala_peta"}))
     if template_id != "jam_selesai":
         return None
     field_tepat(parameter, {"varian", "jam", "menit", "durasi_jam", "durasi_menit"})

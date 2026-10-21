@@ -102,6 +102,12 @@ def setara(a: str, b: str, *, soal: Soal | None = None) -> bool:
     bukan kunci yang dihitung ulang pada objek soal.
     """
     if soal is not None:
+        from catalog_exact import TEMPLATE_EKSAK, baca_angka
+        if (soal.parameter.get("versi_katalog") == 2
+                and soal.template_id in TEMPLATE_EKSAK
+                and not (soal.template_id == "skala_peta" and soal.parameter.get("varian") == "cari_skala")):
+            pa, pb = baca_angka(a), baca_angka(b)
+            return pa is not None and pb is not None and pa == pb
         if (soal.template_id == "deret_aritmetika"
                 and isinstance(soal.parameter.get("n_minta"), int)
                 and soal.parameter["n_minta"] > 1):

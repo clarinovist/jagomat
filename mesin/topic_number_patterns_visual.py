@@ -8,6 +8,8 @@ def proyeksi_pola(template_id, parameter):
     if not isinstance(template_id, str):
         raise ValueError("template pola wajib teks")
     if template_id == "korek_api":
+        from catalog_versions import parameter_visual
+        parameter = parameter_visual(template_id, parameter, {"korek_api"})
         bidang(parameter, ("awal", "tambah", "gambar_ke"))
         bulat(parameter["gambar_ke"], "gambar_ke", 4, 100)
         data = {"n_tampil": 3, "awal": parameter["awal"], "tambah": parameter["tambah"]}

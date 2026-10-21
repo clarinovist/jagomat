@@ -186,16 +186,17 @@ def test_jumlah_selisih_kunci():
         assert {"K", "H"} <= {m.kode for m in s.malrule}, p
 
 
-def test_soal_umur_kunci():
-    """#4: n = (a−kb)/(k−1) bulat."""
+def test_soal_umur_kunci(monkeypatch):
+    """Writer diperbaiki memenuhi fakta umur pada waktu yang sama."""
+    monkeypatch.setenv("OSN_KATALOG_VERSI", "2")
     for seed in range(1, 120):
         s = buat_soal("soal_umur", seed, level="P6", topik="logika")
         p = s.parameter
+        jawaban = int(s.kunci)
         if p["tanya"] == "n_tahun":
-            expected = (p["a"] - p["k"] * p["b"]) // (p["k"] - 1)
+            assert p["a"] + jawaban == (p["b"] + jawaban) * p["k"]
         else:
-            expected = p["k"] * p["b"]
-        assert s.kunci == str(expected), f"{p=}, kunci={s.kunci}"
+            assert (p["b"] + p["n"]) * jawaban == p["a"] + p["n"]
         assert s.kunci not in [m.jawaban for m in s.malrule]
         assert {"K", "H"} <= {m.kode for m in s.malrule}, p
 

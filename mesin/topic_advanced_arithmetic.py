@@ -11,6 +11,9 @@ import random
 
 from templates import Malrule, Soal, putar, saring_malrule
 from topics import Topik, daftarkan
+from catalog_versions import koreksi_soal, parameter_baru
+from catalog_keys import aritmatika
+from catalog_diagnosis import satuan
 
 
 # ── Latar cerita berputar (gelombang 2, 2 Sep 2026) ────────────────────
@@ -49,6 +52,7 @@ _RUTE = (
 # ── Bagian A — Konversi & kecepatan ────────────────────────────────────
 
 
+@koreksi_soal(satuan)
 def satuan_konversi(varian: str, nilai: int) -> Soal:
     """Konversi satuan: km↔m, jam↔menit, kg↔g, liter↔ml.
 
@@ -278,6 +282,7 @@ def debit(
     )
 
 
+@koreksi_soal(aritmatika)
 def perbandingan_senilai(p: int, q: int, n: int) -> Soal:
     """p:q = n:x → x = q·n/p. Senilai (searah)."""
     kunci = (q * n + p - 1) // p
@@ -321,6 +326,7 @@ def perbandingan_senilai(p: int, q: int, n: int) -> Soal:
     )
 
 
+@koreksi_soal(aritmatika)
 def perbandingan_berbalik(a1: int, b1: int, a2: int) -> Soal:
     """a1·b1 = a2·b2 → b2 = a1·b1/a2. Berbalik (kebalikan)."""
     kunci = (a1 * b1 + a2 - 1) // a2
@@ -364,6 +370,7 @@ def perbandingan_berbalik(a1: int, b1: int, a2: int) -> Soal:
     )
 
 
+@koreksi_soal(aritmatika)
 def kerja_bersama(a: int, b: int) -> Soal:
     """Waktu bersama = a·b/(a+b)."""
     kunci = (a * b + a + b - 1) // (a + b)
@@ -570,6 +577,7 @@ CATATAN_BAGIAN = {
 }
 
 
+@parameter_baru
 def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
     if template_id == "satuan_konversi":
         varian = rng.choice((

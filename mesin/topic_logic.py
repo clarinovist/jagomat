@@ -13,11 +13,17 @@ import random
 
 from templates import Malrule, Soal, saring_malrule
 from topics import Topik, daftarkan
+from catalog_versions import parameter_baru, soal_berversi
+from catalog_logic import soal_umur as soal_umur_diperbaiki
+from catalog_versions import koreksi_soal
+from catalog_diagnosis import pengandaian
+from catalog_malrules import jumlah_selisih as koreksi_jumlah_selisih
 
 
 # ── Bagian A — Penalaran ────────────────────────────────────────────────
 
 
+@koreksi_soal(pengandaian)
 def benar_salah_pengandaian(
     varian: str, nama: str, warna: str, barang: str, kelas: int,
     pilihan_benar: int, urutan_tampil: list[int] | tuple[int, ...],
@@ -210,6 +216,7 @@ def tabel_penalaran(urutan: list[str], tanya: str) -> Soal:
 # ── Bagian B — Besaran & umur ──────────────────────────────────────────
 
 
+@koreksi_soal(koreksi_jumlah_selisih)
 def jumlah_selisih(jumlah: int, selisih: int, tanya: str) -> Soal:
     """Dua bilangan: jumlah & selisih → (j+s)/2 dan (j−s)/2."""
     besar = (jumlah + selisih) // 2
@@ -254,6 +261,7 @@ def jumlah_selisih(jumlah: int, selisih: int, tanya: str) -> Soal:
     )
 
 
+@soal_berversi(soal_umur_diperbaiki)
 def soal_umur(a: int, b: int, k: int, n: int, tanya: str) -> Soal:
     """Umur ayah sekarang a, anak b. Dalam n tahun, ayah k× anak. Cari n."""
     # a + n = k(b + n) → a + n = kb + kn → a − kb = n(k−1) → n = (a−kb)/(k−1)
@@ -458,6 +466,7 @@ CATATAN_BAGIAN = {
 }
 
 
+@parameter_baru
 def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
     if template_id == "benar_salah_pengandaian":
         varian = rng.choice(("warna", "bekal"))

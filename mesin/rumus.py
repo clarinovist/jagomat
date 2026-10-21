@@ -249,6 +249,19 @@ KARTU: dict[str, Kartu] = {
              "Pakai π = 22/7 kalau jari-jarinya kelipatan 7, selain itu 3,14.",
         contoh="r = 84 cm, π = 22/7 → luas = 22/7 × 84 × 84 = 22.176 cm².",
     ),
+    "juring": Kartu(
+        judul="Juring lingkaran",
+        inti="Bagian lingkaran = sudut pusat ÷ 360°. Luas juring = bagian × πr². "
+             "Keliling juring = bagian × 2πr + 2r; kedua sisi lurus tetap dihitung.",
+        contoh="Sudut 90°, r = 7 cm, π = 22/7: busur = 11 cm, "
+               "keliling juring = 11 + 14 = 25 cm.",
+    ),
+    "paritas": Kartu(
+        judul="Jumlah deret genap atau ganjil",
+        inti="Bilangan genap atau ganjil berurutan memiliki beda 2. Suku terakhir "
+             "= awal + 2 × (banyak suku − 1). Jumlah = banyak suku × (awal + akhir) ÷ 2.",
+        contoh="4 + 6 + 8 + 10 = 4 × (4 + 10) ÷ 2 = 28.",
+    ),
     "luas_permukaan": Kartu(
         judul="Luas permukaan bangun ruang",
         inti="Kubus = 6 × rusuk × rusuk. Balok = 2 × (pl + pt + lt). "
@@ -321,7 +334,16 @@ KARTU: dict[str, Kartu] = {
         judul="Bekerja bersama",
         inti="Ubah ke bagian per jam: 1/a + 1/b, lalu waktu bersama = "
              "1 dibagi hasil penjumlahan itu.",
-        contoh="21 jam dan 10 jam → 1/21 + 1/10, waktu bersama ≈ 7 jam.",
+        contoh="6 jam dan 3 jam → 1/6 + 1/3 = 1/2 pekerjaan per jam; "
+               "waktu bersama = 2 jam. Jangan membulatkan bila soal tidak memintanya.",
+    ),
+    "umur": Kartu(
+        judul="Perbandingan umur",
+        inti="Selisih umur tetap, tetapi rasio umur berubah. Untuk n tahun lagi, "
+             "tambahkan n pada KEDUA umur, lalu bagi umur yang lebih tua dengan "
+             "umur yang lebih muda. Untuk mencari waktunya, cocokkan kedua umur "
+             "pada tahun yang sama dengan rasio yang diminta.",
+        contoh="Ayah 44 tahun, anak 8 tahun. Setahun lagi: 45 : 9 = 5 kali.",
     ),
     "jumlah_selisih": Kartu(
         judul="Jumlah dan selisih",
@@ -443,7 +465,7 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "soal_uang": "jumlah_selisih",
     "jumlah_selisih": "jumlah_selisih",
     "dua_besaran_selisih": "jumlah_selisih",
-    "soal_umur": "jumlah_selisih",
+    "soal_umur": "umur",
     # kecepatan & debit
     "kecepatan_jarak_waktu": "kecepatan",
     "berpapasan": "berpapasan",
@@ -456,7 +478,7 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "perbandingan_volume": "perbandingan_ukuran",
     # geometri lanjut
     "lingkaran_keliling_luas": "lingkaran",
-    "juring": "lingkaran",
+    "juring": "juring",
     "luas_arsiran": "keliling_luas",
     "luas_permukaan": "luas_permukaan",
     "jaring_jaring": "unsur_bangun",
@@ -482,7 +504,7 @@ KONSEP_TEMPLATE: dict[str, str] = {
     # teori bilangan lanjut
     "prima_faktorisasi": "faktor_prima",
     "angka_satuan_pangkat": "siklus",
-    "paritas": "pola_bilangan",
+    "paritas": "paritas",
     # statistika: diagram
     "diagram_batang_garis": "diagram",
     "diagram_lingkaran": "diagram",

@@ -18,6 +18,9 @@ from __future__ import annotations
 from templates import Malrule, Soal, putar, saring_malrule
 from topics import Topik, daftarkan
 from topic_plane_geometry_param import _parameter
+from catalog_versions import koreksi_soal
+from catalog_keys import lingkaran
+from catalog_diagnosis import kotak
 
 
 # ── Latar objek nyata (gelombang 2, 2 Sep 2026) ────────────────────────
@@ -685,6 +688,7 @@ def luas_segiempat_lain(varian: str, **nilai: int) -> Soal:
     )
 
 
+@koreksi_soal(lingkaran)
 def lingkaran_keliling_luas(varian: str, r: int) -> Soal:
     """K=2πr, L=πr²; π=22/7 bila r kelipatan 7, selain itu π=3,14.
 
@@ -775,6 +779,7 @@ def lingkaran_keliling_luas(varian: str, r: int) -> Soal:
     )
 
 
+@koreksi_soal(lingkaran)
 def juring(varian: str, s: int, r: int) -> Soal:
     """Luas juring = (s/360)πr²; keliling juring = busur + 2r.
 
@@ -1062,6 +1067,7 @@ def perbandingan_ukuran(varian: str, k: int, ukuran: int) -> Soal:
 
 
 
+@koreksi_soal(kotak)
 def luas_kotak_satuan(p: int, l: int, satuan: str = "cm", konteks: str = "kotak") -> Soal:
     """Luas persegi panjang dibaca dari kotak-kotak satuan: grid p × l.
 

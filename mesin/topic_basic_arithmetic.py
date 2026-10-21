@@ -14,6 +14,8 @@ from fractions import Fraction
 
 from templates import Malrule, Soal, saring_malrule
 from topics import Topik, daftarkan
+from catalog_versions import koreksi_soal, parameter_baru
+from catalog_malrules import fpb
 
 
 def _teks_pecahan(nilai: Fraction) -> str:
@@ -280,6 +282,7 @@ def urutan_operasi_1(a: int, b: int, c: int, d: int, e: int) -> Soal:
     )
 
 
+@koreksi_soal(fpb)
 def fpb_dua_bilangan(a: int, b: int) -> Soal:
     """FPB dua bilangan dengan pembeda eksplisit terhadap KPK."""
     jawab = math.gcd(a, b)
@@ -672,6 +675,7 @@ KOMPOSISI = {
 }
 
 
+@parameter_baru
 def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
     if template_id == "urutan_operasi_1":
         c, d = rng.choice(((3, 2), (4, 3), (5, 2)))

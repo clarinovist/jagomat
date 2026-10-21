@@ -190,6 +190,9 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
   terkontrol; tidak boleh dirangkai dari penghapusan login guru. Data aktif dihapus,
   identitas pada arsip diputus bila kontrak mengizinkan, sementara bukti/ledger
   append-only tetap dipertahankan.
+- [Koreksi katalog](catalog-corrections.md) memakai identitas konten baru tanpa
+  mengoreksi riwayat; writer perbaikan masih opt-in/nonaktif bawaan dan belum dirilis.
+  Tinjauan manusia konten berubah serta gate recovery exact tetap wajib.
 - Kunci dan diagnosis tidak ditentukan LLM. Tidak menjanjikan kesiapan juara atau
   menyamakan progres target Jagomat dengan penguasaan seluruh kurikulum sekolah.
 

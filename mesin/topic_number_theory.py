@@ -14,6 +14,8 @@ from templates import Malrule, Soal, putar, saring_malrule
 from topics import Topik, daftarkan
 from number_theory_expansion import TEMPLATE as TEMPLATE_TAMBAHAN, parameter as parameter_tambahan
 from number_theory_versions import pilih_komposisi
+from catalog_versions import koreksi_soal, parameter_baru
+from catalog_keys import paritas as koreksi_paritas
 
 
 # ── Latar cerita: HANYA untuk yang memang bercerita ────────────────────
@@ -314,6 +316,7 @@ def sisa_pembagian(N: int, d: int) -> Soal:
     )
 
 
+@koreksi_soal(koreksi_paritas)
 def paritas(a: int, n: int) -> Soal:
     """Jumlah n bilangan ganjil berurutan mulai a = n·(a+n−1).
 
@@ -500,6 +503,7 @@ CATATAN_BAGIAN = {
 }
 
 
+@parameter_baru
 def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
     if template_id in TEMPLATE_TAMBAHAN:
         return parameter_tambahan(template_id, rng, level)

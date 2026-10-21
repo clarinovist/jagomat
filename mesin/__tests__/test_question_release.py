@@ -122,6 +122,25 @@ print('writer_reader_ok')
     assert hasil.stdout.strip() == 'writer_reader_ok'
 
 
+def test_katalog_baru_cbc_mempertahankan_bank_dan_pembahasan(tmp_path):
+    for sumber in (pair.SUMBER_TULIS,pair.SUMBER_BACA,pair.SUMBER_KEMBALI):
+        flag = '2' if sumber != pair.SUMBER_BACA else '1'
+        hasil = _jalankan(tmp_path,sumber,"import os\nos.environ['OSN_KATALOG_VERSI']='"+flag+"'\n")
+        assert hasil.returncode == 0, hasil.stderr
+
+
+def test_gate_menolak_recovery_tanpa_reader_katalog_baru(tmp_path):
+    injeksi="import os\nos.environ['OSN_KATALOG_VERSI']='2'\n"
+    tulis=_jalankan(tmp_path,pair.SUMBER_TULIS,injeksi)
+    assert tulis.returncode==0,tulis.stderr
+    # Simulasikan kemampuan image lama, assertion kapabilitas harus memblokir
+    # sebelum loader mencoba keyword baru (bukan gagal import/fixture).
+    injeksi="import importlib.util\nimportlib.util.find_spec=lambda nama: None\n"
+    baca=_jalankan(tmp_path,pair.SUMBER_BACA,injeksi)
+    assert baca.returncode==1 and 'reader_katalog_baru_belum_didukung' in baca.stderr
+    assert 'TypeError' not in baca.stderr and 'ImportError' not in baca.stderr
+
+
 def test_writer_lama_tidak_membatasi_reader(monkeypatch):
     from number_theory_versions import pilih_komposisi, LAMA
     from templates import REGISTRI

@@ -1,4 +1,6 @@
 """Probe soal C→B→C: bank/arsip sintetis, reader tetap mengenali seluruh ID."""
+from release_catalog_pair import TULIS as KATALOG_TULIS, BACA as KATALOG_BACA
+
 BERSAMA = r'''
 import hashlib,json,os
 from pathlib import Path
@@ -27,6 +29,7 @@ def sehat(c):
 def baca_manifest():return json.loads((root/'manifest.json').read_text())
 def periksa(c,m):
     assert all(tid in REGISTRI for tid in jenis), 'reader_tidak_mengenal_jenis'
+''' + KATALOG_BACA + r'''
     for sesi,hashes in m['cetak']:
         assert cetak(c,sesi)==hashes, 'cetak_bank_berubah'
     import context_store
@@ -119,9 +122,11 @@ with database.buka(path) as c:
         reports.diagnosa_murid(c,s)
         database.tandai_selesai(c,s)
         konfirmasi.append((s,database.konfirmasi_hasil(c,s,'guru')))
+''' + '\n'.join('    '+baris if baris else '' for baris in KATALOG_TULIS.splitlines()) + r'''
     hashes=[(s,cetak(c,s)) for s in sesi]
     m={'anak':anak,'sesi':sesi,'modus':sid,'lama':lama_id,'cetak':hashes,'bank':bank(c),
-       'bukti':bukti(c),'konfirmasi':konfirmasi,'cache_sesi':cache_sesi,'cache':cache}
+       'bukti':bukti(c),'konfirmasi':konfirmasi,'cache_sesi':cache_sesi,'cache':cache,
+       'catalog_versi':catalog_versi,'catalog_pembahasan':catalog_pembahasan}
     sehat(c)
 (root/'manifest.json').write_text(json.dumps(m,sort_keys=True))
 print('OSN_QUESTION_WRITER_OK')

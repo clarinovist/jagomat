@@ -234,4 +234,15 @@ def proyeksi_geometri_datar(
     proyektor = _PROYEKTOR.get(template_id)
     if proyektor is None:
         return None
+    if "versi_katalog" in parameter:
+        if type(parameter["versi_katalog"]) is not int or parameter["versi_katalog"] != 2:
+            raise ValueError("versi katalog visual tidak didukung")
+        if template_id not in {"lingkaran_keliling_luas", "juring", "luas_kotak_satuan"}:
+            raise ValueError("template tidak mendukung versi katalog")
+        parameter = {k: v for k, v in parameter.items() if k != "versi_katalog"}
+        teks, descriptor = proyektor(parameter)
+        if template_id in {"lingkaran_keliling_luas", "juring"}:
+            from catalog_exact import PETUNJUK_EKSAK
+            teks += PETUNJUK_EKSAK
+        return teks, descriptor
     return proyektor(parameter)

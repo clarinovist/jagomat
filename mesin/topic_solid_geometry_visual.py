@@ -122,6 +122,8 @@ def proyeksi_geometri_ruang(template_id, parameter):
         raise ValueError('template dan parameter visual tidak valid')
     if template_id not in _FIELD:
         return None
+    from catalog_versions import parameter_visual
+    parameter = parameter_visual(template_id, parameter, {'unsur_bangun', 'jaring_jaring', 'volume_prisma_tabung'})
     if any(not isinstance(k, str) for k in parameter) or set(parameter) - _FIELD[template_id]:
         raise ValueError('field parameter visual tidak dikenal')
     if 'versi' in parameter and (type(parameter['versi']) is not int or parameter['versi'] not in (1, 2)):

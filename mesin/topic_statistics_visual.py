@@ -197,4 +197,6 @@ def proyeksi_statistika(
     proyektor = _PROYEKTOR.get(template_id)
     if proyektor is None:
         return None
+    from catalog_versions import parameter_visual
+    parameter = parameter_visual(template_id, parameter, {"diagram_batang_garis", "tabel_turus", "piktogram"})
     return proyektor(parameter)

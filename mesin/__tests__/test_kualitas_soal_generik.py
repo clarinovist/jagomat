@@ -235,10 +235,14 @@ def _ukur_katalog():
     return {k: _ukur(paket, k[1], k[2]) for k, paket in _pasangan()}
 
 
-@pytest.fixture(scope="module")
-def pengukuran():
+@pytest.fixture(scope="module", params=("1", "2"))
+def pengukuran(request):
     assert versi_generator_baru() == 2, "baseline hanya untuk writer matematika v2"
-    return _ukur_katalog()
+    # Baseline struktural yang sama wajib ditahan pada writer warisan DAN
+    # koreksi katalog; tidak menurunkan lantai saat aturan palsu dibuang.
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setenv("OSN_KATALOG_VERSI", request.param)
+        return _ukur_katalog()
 
 
 def test_g1_katalog_dan_varian_wajib_tercatat(pengukuran):

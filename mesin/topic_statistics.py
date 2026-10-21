@@ -23,6 +23,8 @@ import random
 
 from templates import Malrule, Soal, saring_malrule
 from topics import Topik, daftarkan
+from catalog_versions import koreksi_soal, parameter_baru
+from catalog_malrules import statistika
 
 
 # ── Bagian A — Rata-rata ────────────────────────────────────────────────
@@ -73,6 +75,7 @@ def rata_rata(varian: str, data: list[int], rata: int = 0) -> Soal:
     )
 
 
+@koreksi_soal(statistika)
 def rata_rata_gabungan(n1: int, n2: int, x1: int, x2: int) -> Soal:
     """Rata gabung = (n₁·x̄₁ + n₂·x̄₂)/(n₁+n₂)."""
     total1 = n1 * x1
@@ -114,6 +117,7 @@ def rata_rata_gabungan(n1: int, n2: int, x1: int, x2: int) -> Soal:
 # ── Bagian B — Median & modus, diagram ─────────────────────────────────
 
 
+@koreksi_soal(statistika)
 def median_modus(varian: str, data: list[int]) -> Soal:
     """Median = nilai tengah data urut; modus = nilai paling sering."""
     n = len(data)
@@ -239,6 +243,7 @@ def diagram_lingkaran(varian: str, s: int, total: int, nilai: int = 0) -> Soal:
     )
 
 
+@koreksi_soal(statistika)
 def diagram_batang_garis(varian: str, data: list[int], i: int = 0) -> Soal:
     """Dari diagram batang: baca nilai, jumlah, selisih, atau total."""
     n = len(data)
@@ -307,6 +312,7 @@ def diagram_batang_garis(varian: str, data: list[int], i: int = 0) -> Soal:
     )
 
 
+@koreksi_soal(statistika)
 def tabel_turus(varian: str, nama: list[str], data: list[int], i: int = 0) -> Soal:
     """Tabel turus (tally): baca frekuensi, cari terbanyak, atau total.
 
@@ -387,6 +393,7 @@ def tabel_turus(varian: str, nama: list[str], data: list[int], i: int = 0) -> So
     )
 
 
+@koreksi_soal(statistika)
 def piktogram(varian: str, satuan: int, gambar: list[int], nama: list[str], i: int = 0) -> Soal:
     """Piktogram: 1 gambar mewakili `satuan` benda.
 
@@ -458,6 +465,7 @@ def piktogram(varian: str, satuan: int, gambar: list[int], nama: list[str], i: i
     )
 
 
+@koreksi_soal(statistika)
 def jangkauan_data(varian: str, data: list[int]) -> Soal:
     """Nilai terbesar, terkecil, atau jangkauan (terbesar − terkecil).
 
@@ -606,6 +614,7 @@ CATATAN_BAGIAN = {
 }
 
 
+@parameter_baru
 def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
     if template_id == "rata_rata":
         varian = rng.choice(("cari_rata", "cari_data_ke_n"))

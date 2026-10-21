@@ -13,6 +13,9 @@ import random
 from templates import Malrule, Soal, saring_malrule
 from topics import Topik, daftarkan
 from solid_geometry_versions import soal_berversi, parameter_baru
+from catalog_versions import koreksi_soal, parameter_baru as parameter_katalog
+from catalog_malrules import prisma, unsur, perbandingan_volume as koreksi_perbandingan
+from catalog_diagnosis import jaring
 
 
 # ── Data bangun ruang ───────────────────────────────────────────────────
@@ -94,6 +97,7 @@ JARING_PALSU: tuple[tuple[tuple[int, int], ...], ...] = (
 # ── Bagian A — Unsur & volume ────────────────────────────────────────────
 
 
+@koreksi_soal(unsur)
 def unsur_bangun(bangun: str, tanya: str, n: int = 1) -> Soal:
     """Hitung jumlah rusuk/sisi/titik sudut bangun ruang,
     atau total jika ada n bangun identik (varian *_kali)."""
@@ -226,6 +230,7 @@ def volume_kubus_balok(varian: str, s: int = 0, p: int = 0,
     )
 
 
+@koreksi_soal(prisma)
 @soal_berversi
 def volume_prisma_tabung(varian: str, a: int = 0, t_segitiga: int = 0,
                           t_prisma: int = 0, r: int = 0,
@@ -404,6 +409,7 @@ def _gambar_jaring(koordinat: tuple[tuple[int, int], ...]) -> str:
     return "\n".join(baris) if baris else "(kosong)"
 
 
+@koreksi_soal(jaring)
 @soal_berversi
 def jaring_jaring(pilihan_benar: int, urutan: tuple[int, ...]) -> Soal:
     """Dari 5 pilihan, pilih jaring yang bisa dilipat jadi kubus."""
@@ -562,6 +568,7 @@ def kubus_dicat(n: int, tanya: str, n_kubus: int = 1) -> Soal:
     )
 
 
+@koreksi_soal(koreksi_perbandingan)
 @soal_berversi
 def perbandingan_volume(varian: str, k: int, s: int = 0,
                          V: int = 0, V_baru: int = 0) -> Soal:
@@ -666,6 +673,7 @@ CATATAN_BAGIAN = {
 }
 
 
+@parameter_katalog
 @parameter_baru
 def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
     if template_id == "unsur_bangun":

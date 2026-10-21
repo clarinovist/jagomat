@@ -180,8 +180,12 @@ cache dan cadangan tetap privat.
   `komposisi` tetap inventaris histori untuk konteks/laporan pada kedua versi. Probe rilis
   `release_question_pair.py` wajib membuktikan bank/PG/cetak/diagnosis C→B→C.
   Katalog materi `jagomat-2026-10-v2` menambah target, tidak mengubah bukti lama.
+  `catalog_versions.py` menyiapkan versi konten opt-in terpisah untuk koreksi audit:
+  marker parameter membedakan identitas bank baru, reader tanpa marker mempertahankan
+  fungsi historis. Bawaan writer masih warisan; [koreksi katalog](catalog-corrections.md)
+  belum aktif dan memerlukan review manusia serta pair exact baru.
   Cetak guru membaca kunci/malrule bank tersimpan, bukan aturan template terbaru;
-  pembahasan masih dari template. Identitas bank idempoten tidak menulis ulang
+  pembahasan masih dari template sesuai versi parameter. Identitas bank idempoten tidak menulis ulang
   malrule historis ketika soal dipakai kembali. Pendamping tidak boleh mengambil
   alih reducer atau konfirmasi bukti belajar.
   Adapter GET/POST lama sengaja tetap di `assistant_http.py`: alurnya berbagi helper

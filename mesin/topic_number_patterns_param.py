@@ -9,6 +9,7 @@ publik (hindari siklus) — modul ini sengaja tidak mengimpor publik di atas.
 from __future__ import annotations
 
 import random
+from catalog_versions import parameter_baru
 
 from templates import HARI
 
@@ -56,6 +57,7 @@ def _pola_huruf(rng: random.Random) -> tuple[str, ...]:
     return tuple(dasar)
 
 
+@parameter_baru
 def _parameter(template_id: str, rng: random.Random, level: str = LEVEL_BAWAAN) -> dict:
     from topic_number_patterns import profil  # late import: hindari siklus
     """Batas parameter dijaga supaya soal tetap pada levelnya.
