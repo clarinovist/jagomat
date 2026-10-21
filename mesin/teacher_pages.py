@@ -277,7 +277,6 @@ def halaman_utama_stitch(
         'Beri ruang untuk mencoba, bertanya, dan menjelaskan.</footer></main>',
         ident=(pemilik if pemilik else "guru", peran),
         kelas_bungkus="guru-beranda-st",
-        privat=True,
     )
 
 

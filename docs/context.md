@@ -133,7 +133,10 @@ cache dan cadangan tetap privat.
   proyeksi owner-scoped melalui GET `cari`/`kelompok` yang diteruskan `teacher_http`;
   pencarian login memakai lookup `students.akun_murid_dari_siswa` existing hanya saat
   kata pencarian terisi, tanpa query/writer DB baru. Form/CSS HP scoped di `teacher_pages`
-  memakai T.*, shell privat tanpa skrip/CDN dan response no-store/no-referrer.
+  memakai T.*; filter tidak menambah JS. Shell beranda mempertahankan dua skrip
+  existing (mata sandi/cegah kirim ganda) dan Google Fonts. Respons no-store/no-referrer
+  memakai opsi CSP khusus beranda di `web._kirim_privat`: dua hash exact, sumber font
+  existing dan manifest same-origin; CSP halaman privat lain tidak diperluas.
   Biaya baseline sebelum filter terukur ±13 ms untuk 30 anak sintetis; bukan klaim
   performa pencarian akun atau produksi.
   Keempat tab `/anak/<id>` berbagi satu kontainer isi 960px (`child_style.py`, token

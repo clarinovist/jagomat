@@ -1,4 +1,4 @@
-"""Pencarian/filter GET beranda: identitas sendiri, HTML aman, tanpa JavaScript."""
+"""Pencarian/filter GET tanpa JS baru; dua skrip shell existing tetap utuh."""
 import html
 import re
 from html.parser import HTMLParser
@@ -95,12 +95,38 @@ def test_form_get_native_tanpa_js_dan_nilai_escape(server):
     tags = Markup(isi).tags
     forms = [a for t, a in tags if t == 'form' and a.get('id') == 'guru-filter']
     assert len(forms) == 1 and forms[0]['method'] == 'get' and forms[0]['action'] == '/guru'
-    assert not any(t == 'script' or any(k.startswith('on') for k in a) for t, a in tags)
+    from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
+    assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
+    assert not any(any(k.startswith('on') for k in a) for t, a in tags)
+    assert 'fonts.googleapis.com/css2' in isi
     assert any(t == 'input' and a.get('name') == 'cari' and a.get('value') == cari for t, a in tags)
     assert not any(t == 'img' and a.get('src') == 'x' for t, a in tags)
     assert html.escape(cari, quote=True) in isi
     assert any(t == 'label' and a.get('for') == 'guru-cari' for t, a in tags)
     assert any(t == 'label' and a.get('for') == 'guru-kelompok' for t, a in tags)
+
+
+def test_csp_beranda_mengizinkan_dua_skrip_dan_font_existing_saja(server):
+    import base64
+    import hashlib
+    from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
+    kode, isi, tajuk = server.minta('/guru?cari=Bbb', auth=('guru', SANDI_GURU))
+    assert kode == 200
+    csp = tajuk['Content-Security-Policy']
+    hash_skrip = ["'sha256-" + base64.b64encode(hashlib.sha256(s.encode()).digest()).decode() + "'"
+                  for s in (SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)]
+    direktif = dict((p.split()[0], p.split()[1:]) for p in csp.split(';') if p.strip())
+    assert direktif['script-src'] == hash_skrip
+    assert 'https://fonts.googleapis.com' in direktif['style-src']
+    assert direktif['font-src'] == ['https://fonts.gstatic.com']
+    assert direktif['manifest-src'] == ["'self'"]
+    assert "'unsafe-inline'" not in direktif['script-src']
+    assert tajuk['Cache-Control'] == 'no-store' and tajuk['Referrer-Policy'] == 'no-referrer'
+    assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
+    # Halaman akun privat lain tidak memperoleh izin font/CDN beranda.
+    _, _, akun = server.minta('/akun', auth=('guru', SANDI_GURU))
+    assert 'fonts.googleapis.com' not in akun['Content-Security-Policy']
+    assert 'fonts.gstatic.com' not in akun['Content-Security-Policy']
 
 
 def test_nama_siswa_bermarkup_tetap_teks(server):

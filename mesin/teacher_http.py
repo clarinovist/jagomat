@@ -66,7 +66,7 @@ def tangani_beranda_get(
     if survei:
         isi = isi.replace(b"</main>", survei.encode() + b"</main>", 1)
     # Query dapat memuat nama akun: jangan cache atau kirim sebagai referrer.
-    penangan._kirim_privat(isi)
+    penangan._kirim_privat(isi, beranda_guru=True)
     return True
 
 

@@ -92,10 +92,21 @@ class Penangan(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(isi)
 
-    def _kirim_privat(self, isi: bytes, kode: int = 200) -> None:
+    def _kirim_privat(self, isi: bytes, kode: int = 200, *, beranda_guru: bool = False) -> None:
         """Respons privat; enhancement terdaftar berhash dengan izin koneksi terbatas."""
         import assistant_browser
         isi, izin_skrip = assistant_browser.lengkapi_respons(isi)
+        izin_gaya = "style-src 'unsafe-inline'; "
+        if beranda_guru:
+            # Dua skrip shell dan font beranda existing, bukan izin JS filter baru.
+            import base64
+            import hashlib
+            from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
+            hashes = [base64.b64encode(hashlib.sha256(s.encode()).digest()).decode()
+                      for s in (SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)]
+            izin_skrip = "script-src " + ' '.join("'sha256-" + h + "'" for h in hashes) + '; '
+            izin_gaya = ("style-src 'unsafe-inline' https://fonts.googleapis.com; "
+                         "font-src https://fonts.gstatic.com; manifest-src 'self'; ")
         self.send_response(kode)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(isi)))
@@ -105,7 +116,7 @@ class Penangan(BaseHTTPRequestHandler):
         self.send_header("X-Frame-Options", "DENY")
         self.send_header(
             "Content-Security-Policy",
-            "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; "
+            "default-src 'none'; img-src 'self'; " + izin_gaya
             + izin_skrip + "form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
         )
         self.end_headers()

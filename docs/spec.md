@@ -77,12 +77,13 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   bila ≥1 hari); selebihnya menurut nama. Kartu menampilkan
   langkah dengan label laporan, tanpa skor atau peringkat kelemahan baru. Bila rencana satu anak
   gagal dibaca, kartunya tetap tampil dengan penanda "buka profil" dan beranda tidak rusak.
-  Form GET tanpa JavaScript mencari potongan nama siswa atau login akun murid terhubung
+  Form GET tanpa JavaScript baru mencari potongan nama siswa atau login akun murid terhubung
   (abaikan besar-kecil huruf, spasi dinormalkan, maksimal 100 karakter), sekaligus
   memfilter Semua/Perlu tindakan/Siap/Menunggu. Pencarian hanya siswa milik guru;
   filter tidak mengubah langkah atau urutan reducer. Hasil menampilkan jumlah dari total,
   keadaan kosong dan Hapus filter, bukan ajakan tambah anak pertama yang menyesatkan.
-  HP memakai kontrol satu kolom dan nama/keterangan membungkus. Respons beranda
+  HP memakai kontrol satu kolom dan nama/keterangan membungkus. Dua skrip shell
+  existing (mata sandi/cegah kirim ganda) dan font tetap; filter berjalan native. Respons beranda
   tidak di-cache dan tidak mengirim referrer; kata pencarian tetap ada di URL GET
   serta riwayat browser, bukan disimpan ke DB.
 - Kerangka [playbook guru](playbook-guru.md) menambah panduan pra-tulis tanpa menentukan
