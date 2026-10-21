@@ -98,3 +98,12 @@ def test_css_header_scoped_sticky_dan_target_sentuh():
     assert 'outline: 3px solid' in css
     assert '--anak-identitas' in css and 'animation-range: exit 99% exit 100%' in css
     assert 'RUANG BELAJAR ANAK' not in P.bagian_identitas({'nama':'Contoh','pemilik':'guru'})
+
+
+def test_tombol_tanya_tidak_menutupi_dasar_halaman():
+    # Pemicu melayang setinggi TARGET_SENTUH; halaman perlu ruang bawah sebesar itu plus jarak.
+    css = H.GAYA_HEADER_ANAK
+    blok = [b.split('}', 1)[0] for b in css.split(H._H + ' {')[1:] if 'padding-bottom' in b.split('}', 1)[0]]
+    assert blok, 'tidak ada ruang bawah halaman untuk pemicu melayang'
+    assert 'padding-bottom: calc(' in blok[0] and 'safe-area-inset-bottom' in blok[0]
+    assert H.T.TARGET_SENTUH in blok[0]

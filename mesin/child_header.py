@@ -81,6 +81,7 @@ GAYA_HEADER_ANAK = f"""
   padding: 0; background: transparent; font: inherit; color: {T.TEKS_VARIAN};
 }}
 {_H} .topbar-navigasi > form {{ margin: 0; flex: none; }}
+{_H} {{ padding-bottom: calc({T.TARGET_SENTUH} + {T.SP_4} * 2 + env(safe-area-inset-bottom, 0px)); }}
 {_H} .pendamping-pemicu {{
   position: fixed; top: auto; right: {T.SP_4}; bottom: {T.SP_4}; z-index: 60; flex: none;
   width: auto; min-width: {T.TARGET_SENTUH}; height: {T.TARGET_SENTUH};
