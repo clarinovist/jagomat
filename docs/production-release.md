@@ -1,5 +1,36 @@
 # Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
 
+## Deploy foto opsional dan konfirmasi ringkas — 21 Oktober 2026
+
+Controlled `deploy-v2` berhasil memasang kandidat
+`de7c971d9f5c1280f96fc3ad90bcd34be9be644c`, digest
+`sha256:91d828ea9e8c6db798a3489032afade7ee0bcfa9c1e5e19a2e2f8f58456789d1`;
+recovery `c228749faef8acf29b7d6895173ead6aa5bc9e66`, digest
+`sha256:b31048a3149fcc3ef899734b195a01d42ab0b2c9eb9ee90bca65fce4c0d7cde7`.
+CI lengkap `39551837740` lulus 13.628 tes kandidat exact-once, seluruh shard
+recovery, kompilasi, build/probe/pair; CI push `39551836769` sukses.
+
+P3 menyembunyikan upload PG tanpa lampiran; P2 memakai lipatan native dengan
+preview bacaan awal dan Terapkan eksplisit; P1 Tahap 1 memberi tautan foto pada
+kategori tinjauan yang sesuai dan tujuan upload tersedia, bukan sesi dibatalkan.
+Upload lewat tautan anak tetap tertutup; handler, kuota dan skema tidak berubah.
+Lokal 172 tes terkait termasuk mutation lulus; browser sintetis 390/1024px
+membuktikan field terlipat tetap masuk FormData, keyboard bekerja dan tidak ada
+overflow. Ini bukan bukti empiris pengurangan beban orang tua.
+
+Produksi awal `1406079` healthy; kedua image exact ditarik dan probe metadata live
+read-only lulus sebelum hold. Bundle `deploy-foto-de7c971-20261021` empat DB+auth
+serta riset terpisah terverifikasi hash remote/lokal. Rehearsal preservasi startup
+C2–B2–C2, validator bundle, integrity/FK lulus; tanpa migrasi atau request provider.
+
+Cutover exit0, kandidat healthy; schema dan jumlah baris terjaga sebelum membuka
+akses. Caddy/cron/config dipulihkan hash-identik, bank kalimat tetap aktif. Marker
+source foto ditemukan pada container live; smoke `/`200, `/akun`401,
+`/murid/`303 ke `/masuk` lulus. Marker Traceback/OperationalError/IntegrityError nol.
+Backup induk dan receipt dipertahankan, turunan rehearsal/helper remote dibersihkan.
+Deployer tetap `2479470f…`; job pasang otomatis tetap nonaktif. Tidak melakukan
+walkthrough memakai akun/data keluarga atau memperluas kapabilitas tautan anak.
+
 ## Rilis bantuan non-AI dan kendali data Pendamping — 21 Oktober 2026
 
 Controlled `deploy-v2` berhasil memasang kandidat
