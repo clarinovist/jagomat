@@ -229,7 +229,8 @@ cache dan cadangan tetap privat.
   tertangkap; ID kontrak lama dipetakan eksplisit hanya untuk proyeksi yang identik.
   Gate kandidat Pendamping menambah `release_assistant_pair.py` C→R→C dan bukti
   retirement wajib pada validator manifest; fingerprint sama saja tidak cukup.
-  Anchor `f4c043a` teruji sintetis, bukan last-known-good produksi.
+  Anchor `2d7d7aa` mempertahankan writer soal konservatif1 dan retirement AI;
+  teruji sintetis, bukan last-known-good produksi.
   CI hijau bukan bukti pemasangan; jangan build di VPS atau menyalakan Docker lokal.
 
 Detail: [workflow](workflow-reference.md) · [design system](design-system.md) ·

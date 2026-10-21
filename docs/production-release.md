@@ -2,10 +2,12 @@
 
 ## Kandidat recovery Pendamping sempit — belum dipasang
 
-Arahan penutupan blocker P6 menyiapkan anchor `f4c043ae25184f0e947c800e54c8f14a53279c3b`
-pada branch tugas. Anchor ini telah lulus CI39566081410 (13.661 tes exact-once),
-bukan last-known-good produksi. Runtime kandidat saat penambahan gate sama dengan
-anchor; ia tidak menjadi fallback untuk cacat runtime yang sama. Integrasi katalog
+Arahan penutupan blocker P6 menyiapkan anchor `2d7d7aa20a0bef3741ca707ae6eb35a295260e24`
+pada branch recovery tugas. Base `f4c043a` telah lulus CI39566081410, tetapi CI39571158292
+membuktikan base itu bukan recovery soal konservatif (writer2). Anchor baru hanya
+menurunkan default writer teori-bilangan ke1 serta menambah tesnya; reader/bank/cache
+dan retirement Pendamping tetap. Koleksi exact13.662 tes, bukan last-known-good
+produksi. Runtime Pendamping sama sehingga bukan fallback bagi cacat AI yang sama. Integrasi katalog
 atau perubahan berikutnya memerlukan verifikasi pasangan ulang, bukan menganggap
 anchor ini mengikuti main. Histori deployment/pin lama di bawah tidak ditulis ulang.
 

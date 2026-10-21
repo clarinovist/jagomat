@@ -57,6 +57,8 @@ JUMLAH_RECOVERY = {
     "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
     # Manifest CI39566081410 diverifikasi exact-once empat shard pada anchor ini.
     "f4c043ae25184f0e947c800e54c8f14a53279c3b": 13661,
+    # Anchor writer1: koleksi f4c043a + satu regression subprocess default recovery.
+    "2d7d7aa20a0bef3741ca707ae6eb35a295260e24": 13662,
 }
 
 
