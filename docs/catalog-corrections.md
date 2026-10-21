@@ -12,7 +12,7 @@ kunci/malrule baru tidak memakai ID soal lama. Tanpa marker, fungsi historis tet
 dipakai, termasuk pembahasan; reader tidak membaca flag writer.
 
 `OSN_KATALOG_VERSI` hanya menerima `1` atau `2`. Bawaan kandidat kini `2`, recovery
-`542dcd9` tetap `1`; tidak memasang override bersama yang mengaktifkan recovery.
+`edd323c` tetap `1`; tidak memasang override bersama yang mengaktifkan recovery.
 `2` memilih koreksi untuk 26 template terdaftar, tidak mengubah rentang parameter
 atau komposisi. Pengukuran, jaring, perbandingan volume dan tabung mensyaratkan
 matematika versi2; kombinasi tidak didukung ditolak, bukan memakai kunci warisan.
@@ -82,9 +82,10 @@ memulihkan flag setelah menambah bank lama/baru, PG, konfirmasi dan pembahasan k
 C→B→C. Gate tidak boleh lolos karena default writer1. Reader yang belum mendukung
 marker diblokir eksplisit sebelum memuat data. Tes source bukan bukti image exact.
 
-Recovery pinned `542dcd94132c4b91bca78004643c8eb2c82686d7` mendukung katalog2 dan
-kedua konteks umur, tetapi tetap menulis katalog1/komposisi teori-bilangan1.
-Baseline ini lulus CI39596225447 dalam mode persiapan sebelum dipatok kandidat.
+Recovery pinned `edd323c4822347f6d584bb0f311e76cac4962e40` mendukung katalog2,
+kedua konteks umur dan validator pilot kisi; tetap menulis katalog1/komposisi1.
+Baseline ini lulus CI39609036312 dalam mode persiapan sebelum dipatok kandidat;
+koleksi13.896 tes diukur dari arsip dan identik empat manifest CI.
 Tinjauan manusia dinyatakan disetujui pengguna pada paket hash
 `6522bc48bc9cce2c8edcf354fa1a50adf7b317ea8c6a9a2c83c1097d039e32bc`.
 Aktivasi produksi tetap memerlukan full CI/build kandidat aktif, gate pasangan
@@ -98,7 +99,7 @@ Aktivasi default menemukan validator kisi pilot yang masih menolak marker katalo
 Reader kini menerima tepat marker2 pada sumber kisi yang sah, tanpa mengubah sidik
 ukuran atau melonggarkan field/rentang. Fokus tepi K baru dan H historis tetap
 dibedakan oleh kode; selector mencocokkan malrule aktual. Baseline recovery berikutnya
-harus memuat reader ini sebelum kandidat aktif dirilis. Tidak ada retag bukti lama.
+sudah memuat reader ini sebelum kandidat aktif dirilis. Tidak ada retag bukti lama.
 
 ## Batas dan follow-up
 

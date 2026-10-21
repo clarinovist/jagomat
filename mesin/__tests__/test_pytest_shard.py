@@ -58,6 +58,8 @@ JUMLAH_RECOVERY = {
     # Arsip exact reader katalog; nodeid identik empat manifest CI39596225447
     # lintas Python3.9/3.12, SHA256 himpunan 83c2010d… (21 Oktober 2026).
     "542dcd94132c4b91bca78004643c8eb2c82686d7": 13859,
+    # Reader pilot katalog; collect-only arsip identik CI39609036312 empat shard.
+    "edd323c4822347f6d584bb0f311e76cac4962e40": 13896,
 }
 
 
