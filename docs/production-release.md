@@ -8,8 +8,10 @@ Schema snapshot tetapv1; teks lama dan kunci/malrule tidak ditulis ulang.
 Cache B2 bersnapshot kini diikat fingerprint sumber agar tidak memakai cerita
 sumber lain. Baseline recovery Fase4 memuat hook/cache/bank sama tetapi writer
 teori-bilangan default1; kandidat default2. Tidak memetakan hash baru ke hash lama.
-Mode baseline persiapan sengaja mencatat mismatch anchor historis; kandidat harus
-kembali migrasi dengan pin/fingerprint B exact dan seluruh gate pasangan lulus.
+Baseline **`c228749faef8acf29b7d6895173ead6aa5bc9e66`** dibekukan dalam mode
+persiapan untuk mencatat mismatch anchor historis. Kandidat kembali migrasi dengan
+pin/fingerprint B exact; koleksi B 13.572 tes diverifikasi dari git archive.
+Seluruh gate pasangan image masih wajib lulus sebelum rilis.
 
 Probe soal C→B→C mencakup snapshot bank, cache dua sumber tanpa provider, konteks,
 konfirmasi, PG dan cetak; artifact rilis memuat manifest bank18 bingkai dan paket

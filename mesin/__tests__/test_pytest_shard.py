@@ -54,6 +54,7 @@ JUMLAH_RECOVERY = {
     "caa19b256ea81f48a167104d04168071db7eafcf": 13126,
     "c71038bb3b8ceedf10e469eb94766aed7c4c8472": 13126,
     "ff6acb158985f78ef0287ec18fb045d273921bdc": 13507,
+    "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
 }
 
 

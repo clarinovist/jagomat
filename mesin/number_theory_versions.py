@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import os
 
-# Baseline recovery Fase4: komposisi konservatif, reader/cache/bank lengkap.
-# Kandidat menaikkan default setelah SHA baseline dibekukan.
-VERSI_TEORI_BILANGAN_BAWAAN = 1
+# Kandidat writer2, recovery Fase4 c228749 writer1; reader/cache/bank lengkap.
+# Opt-in bank kalimat tetap default0 sampai tinjauan manusia.
+VERSI_TEORI_BILANGAN_BAWAAN = 2
 LAMA = {
     "P4": ("keterbagian", "sisa_pembagian", "paritas") * 3 + ("keterbagian",),
     "P5": ("keterbagian", "prima_faktorisasi", "kpk_dua_bilangan",
