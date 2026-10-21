@@ -296,19 +296,22 @@ def halaman_akun(
         f"<h2>Ganti kata sandi</h2></div>"
         f'<p class="sub">Nama login Anda: <b>{pengguna_tampil}</b>. Setelah diganti, '
         f'masuk lagi dengan kata sandi baru.</p>'
-        '<p class="sub"><a href="/lupa-sandi">Bantuan pemulihan akun</a>. '
-        'Untuk keluar, buka menu nama akun di kanan atas lalu pilih <b>Keluar</b>.</p>'
+        '<p class="sub"><a href="/lupa-sandi">Bantuan pemulihan akun</a>.</p>'
         f'<form method="post" action="/akun">'
         f'<input type="hidden" name="aksi" value="sandi">'
         f'<label for="sandi-lama">Kata sandi lama</label>'
         f'<input id="sandi-lama" type="password" name="lama" autocomplete="current-password" required>'
         f'<label for="sandi-baru">Kata sandi baru (minimal 12 karakter)</label>'
-        f'<input id="sandi-baru" type="password" name="baru" autocomplete="new-password" minlength="12" required>'
+        f'<input id="sandi-baru" type="password" name="baru" autocomplete="new-password" minlength="12" required aria-describedby="alasan-sandi-baru">'
+        '<p class="sub" id="alasan-sandi-baru">Minimal 12 karakter karena akun ini melindungi data semua anak. '
+        'Kata sandi anak cukup 8 karakter agar mudah diingat.</p>'
         f'<label for="sandi-ulang">Ulangi kata sandi baru</label>'
         f'<input id="sandi-ulang" type="password" name="ulang" autocomplete="new-password" required>'
         f'<p class="akun-aksi-sandi">'
         f'<button type="submit" class="tombol-utama-akun">Ganti kata sandi</button></p>'
-        f"</form></div>"
+        f"</form>"
+        '<form class="akun-form-keluar" method="post" action="/keluar">'
+        '<button type="submit" class="tombol-sekunder">Keluar</button></form></div>'
     )
     kartu_siswa = (
         f'<div class="kartu-st">'

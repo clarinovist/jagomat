@@ -881,3 +881,19 @@ def test_kartu_anak_dengan_sesi_menaruh_alasan_hapus_di_dalam_kelola(siap):
     luar, _, dalam = _kartu_anak(h, "Kartu Dua").partition('<details class="akun-kelola">')
     assert "tidak bisa dihapus" not in luar
     assert "Punya 1 sesi latihan; tidak bisa dihapus." in dalam and "disabled" in dalam
+
+
+def test_akun_saya_punya_tombol_keluar_terlihat_tanpa_petunjuk_menu(siap):
+    with database.buka(siap) as kon:
+        h = account_pages.halaman_akun(kon, pengguna="guru", section="akun").decode()
+    badan = h.split('<main', 1)[-1] if '<main' in h else h.split('class="sesi-badan-st"', 1)[1]
+    assert 'class="akun-form-keluar" method="post" action="/keluar"' in badan
+    assert 'type="submit" class="tombol-sekunder">Keluar</button>' in badan
+    assert "buka menu nama akun" not in h
+
+
+def test_alasan_panjang_sandi_terlihat_di_dekat_kolom(siap):
+    with database.buka(siap) as kon:
+        h = account_pages.halaman_akun(kon, pengguna="guru", section="akun").decode()
+    assert 'id="sandi-baru"' in h and 'aria-describedby="alasan-sandi-baru"' in h
+    assert 'id="alasan-sandi-baru"' in h and "Minimal 12 karakter karena" in h and "cukup 8 karakter" in h
