@@ -6,6 +6,41 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy redesain akun — 22 Oktober 2026
+
+Controlled `deploy-v2` berhasil memasang **f610d09b35dade259339b9b349a6c6e2ddca9d1a**
+pada 13.08 WIB (container started `2026-10-22T06:08:48Z`), mencakup seluruh
+commit aplikasi `origin/main` saat fetch akhir operasi:
+
+- Candidate digest `sha256:f2b8644ca847f125c0f36f2adcc41d5cab83bb769f794af037b5cd199699e37e`.
+- Recovery **edd323c4822347f6d584bb0f311e76cac4962e40**, digest
+  `sha256:72b531841665a76467eb936e7360f9effafa3661d4d88cabb8eca5d1763ecf43`.
+- [CI lengkap 39730859671](https://github.com/clarinovist/jagomat/actions/runs/39730859671)
+  sukses: 14.148 tes kandidat exact-once, seluruh shard recovery, palang/kompilasi,
+  build/probe/pair exact. CI push 39729799769 sukses, bukan pengganti gate rilis.
+- Kontrak kedua image tetap `7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8`;
+  deployer host tetap `2479470f927627ab00d7af26876d6525bef897e52cff77c413ac5656b168c810`.
+
+Produksi awal `ccb8906` healthy. Kedua digest ditarik; revision, kontrak, config
+dan `PROBE_SKEMA` live read-only lulus sebelum maintenance. Backup coherent empat
+DB+auth serta riset terpisah diverifikasi hash remote/lokal. Rehearsal preservasi
+startup C2–B2–C2 pada turunan, validator bundle, integrity/FK lulus. Tidak ada
+migrasi, koreksi data historis, perubahan izin/retensi, atau request provider uji.
+
+Cutover exit0; kandidat healthy. Sebelum membuka akses, jumlah baris dan hash
+10 tabel histori terjaga. Caddy/dua cron/config dipulihkan hash-identik. Smoke
+eksternal `https://jagomat.id`: `/`200, `/akun`401, `/murid/`303 ke `/masuk`; loopback
+sama. Marker Traceback/OperationalError/IntegrityError nol. Probe sintetis dalam
+container memastikan modul redesain akun, langganan, persetujuan dan Data Pendamping.
+Bank kalimat tetap aktif; revisi penilaian baru tetap nonaktif. Tidak melakukan
+walkthrough memakai akun/data keluarga atau mengklaim penerimaan visual live.
+
+Lokal: 345 tes helper/deployer, 33 tes redesain akun, kompilasi helper dan probe
+sintetis lulus. Empat direktori turunan rehearsal/validation dibersihkan; backup
+induk/receipt tetap privat dengan ID `deploy-akun-f610d09-20261022`. Bukti ignored
+di `docs/plan/deploy-akun-f610d09/`. Mode migrasi/job pasang otomatis tetap false.
+Commit catatan sesudah operasi tidak mengubah revision image.
+
 ## Deploy seluruh commit terbaru — 22 Oktober 2026
 
 Controlled `deploy-v2` berhasil memasang **ccb8906e7475b804a1eac1c267ce4352e8bebf94**
