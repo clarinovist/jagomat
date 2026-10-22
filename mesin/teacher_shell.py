@@ -20,7 +20,7 @@ def _badge_peran(peran: str) -> str:
     if peran == "admin":
         return '<span class="badge-peran badge-peran-admin">Pengelola</span>'
     if peran == "guru":
-        return '<span class="badge-peran badge-peran-guru">Pendamping</span>'
+        return '<span class="badge-peran badge-peran-guru">Guru</span>'
     return ""
 
 
@@ -66,7 +66,7 @@ def _topbar_stitch(pengguna: str, peran: str, *, ringkas: bool = False, bantuan:
         '<summary><span class="identitas-akun-st">'
         f'{_badge_peran(peran)}<span class="nama-akun-st">{siapa}</span></span>'
         '<span class="panah-akun-st" aria-hidden="true">⌄</span></summary>'
-        if siapa else '<summary aria-label="Menu pendamping">Menu</summary>'
+        if siapa else '<summary aria-label="Menu akun">Menu</summary>'
     )
     if ringkas:
         siapa = html.escape(nama_akun(pengguna))

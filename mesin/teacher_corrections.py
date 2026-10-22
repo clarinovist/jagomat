@@ -54,5 +54,5 @@ def label_penilaian(kode):
         "E": "Perlu memeriksa penulisan jawaban akhir",
         "N": "Menebak atau belum menunjukkan cara",
         "T": "Perlu pengenalan tipe soal",
-        "": "Perlu penilaian pendamping",
+        "": "Perlu penilaian guru",
     }[kode or ""]

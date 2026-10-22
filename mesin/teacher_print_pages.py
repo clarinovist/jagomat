@@ -199,7 +199,7 @@ def halaman_sesi_cetak(
         f'<p><a class="btn-st" href="/lembar/{sesi_id}" target="_blank">Lembar soal</a> '
         f'<a class="btn-st" href="/lembar/{sesi_id}/penilaian" target="_blank">Lembar kunci</a></p>'
         f'<p class="sub">Dibuka di tab baru — siap cetak. Lembar soal untuk anak; '
-        f'lembar kunci untuk pendamping.</p></div>'
+        f'lembar kunci untuk guru.</p></div>'
         f"{blok_cerita}",
         ident=(pengguna, peran) if pengguna else None,
         stitch=True, kelas_bungkus="pendamping-editorial-st cetak-editorial-st",

@@ -30,7 +30,7 @@ def test_root_dan_tanpa_memori_kembali_ke_workflow_tanpa_membuat_chat(server):
     akun = auth.cari_akun("guru")["id_akun"]
     for jalur in ("/pendamping", "/pendamping/tanpa-memori"):
         kode, isi, _ = server.minta(jalur, cookie=token)
-        assert kode == 200 and "Ruang pendamping" in isi
+        assert kode == 200 and "Ruang guru" in isi
         assert 'action="/pendamping/chat-baru"' not in isi
     with assistant_schema.buka() as kon:
         assert assistant_store.daftar_chat(kon, akun) == ()

@@ -350,7 +350,7 @@ def test_http_provider_tidak_lengkap_tidak_membuat_db(tmp_path, monkeypatch):
     try:
         kode, isi, _ = s.minta("/pendamping", cookie=_token_guru(s))
         assert kode == 200
-        assert "Ruang pendamping" in isi
+        assert "Ruang guru" in isi
         assert not assistant_schema.BAWAAN.exists()
     finally:
         s.berhenti()
@@ -430,7 +430,7 @@ def test_http_rute_umum_dialihkan_dan_post_umum_ditolak_tanpa_efek_samping(serve
     token = _token_guru(server)
     kode, isi, _ = server.minta("/pendamping", cookie=token)
     assert kode == 200
-    assert "Ruang pendamping" in isi
+    assert "Ruang guru" in isi
     akun = auth.cari_akun("guru")["id_akun"]
     assert _consent(server, token)[0] == 200
     with assistant_schema.buka() as kon:

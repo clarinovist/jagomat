@@ -227,7 +227,7 @@ def test_siswa_kosong_punya_petunjuk_dan_foto_punya_nama_menu(db):
     kosong = account_pages.halaman_akun(kon, pengguna="tanpa-anak", section="siswa").decode()
     assert "Belum ada anak. Tambahkan anak pertama di bawah." in kosong
     foto = _halaman(db)["foto"].decode()
-    assert '<summary aria-label="Menu pendamping">Menu</summary>' in foto
+    assert '<summary aria-label="Menu akun">Menu</summary>' in foto
 
 
 def test_bingkai_opsional_tidak_mengubah_landmark_pemanggil_lama():

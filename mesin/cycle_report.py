@@ -23,7 +23,7 @@ TINDAKAN = {
     "pilih_variasi": "Siapkan latihan awal",
     "lanjutkan_sesi": "Lanjutkan latihan",
     "konfirmasi_hasil": "Periksa dan konfirmasi hasil",
-    "eskalasi": "Tinjau bersama pendamping",
+    "eskalasi": "Perlu tinjauan lanjutan",
     "pemetaan": "Lanjutkan latihan awal",
     "tunggu_pemetaan": "Kembali untuk latihan awal berikutnya",
     "probe_diagnostik": "Periksa kembali bagian yang dipantau",
@@ -52,7 +52,7 @@ PEMAHAMAN = {
 }
 PENUTUP = {
     "putaran_ditutup": "Putaran ditutup", "diganti_level": "Variasi soal rencana berubah",
-    "override_ditutup": "Fokus diganti oleh pendamping",
+    "override_ditutup": "Fokus diganti oleh guru",
 }
 
 

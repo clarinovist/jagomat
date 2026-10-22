@@ -193,7 +193,7 @@ def test_dashboard_guru_hanya_anaknya(dua_keluarga):
 def test_dashboard_guru_menampilkan_badge_pendamping(dua_keluarga):
     s, ids = dua_keluarga
     _, isi, _ = s.minta("/", auth=("ortu-a", SANDI_A))
-    assert ">Pendamping</span>" in isi
+    assert ">Guru</span>" in isi
 
 
 def test_admin_diarahkan_ke_panel_semua_keluarga(dua_keluarga):

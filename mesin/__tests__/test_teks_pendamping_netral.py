@@ -1,8 +1,8 @@
-"""Teks permukaan guru memakai istilah netral "pendamping", bukan "orang tua".
+"""Teks permukaan guru menyebut orang dewasa "Guru"/"Anda"; "Pendamping" hanya fitur AI.
 
 Pivot ke guru les in-house: halaman yang dilihat guru tidak boleh bernada
-orang tua, tetapi juga tidak mengklaim peran lain. "Pendamping" sudah menjadi
-istilah produk ("Ruang pendamping").
+orang tua. Keputusan 22 Okt 2026: orang dewasa = "Guru" (label) atau "Anda" (kalimat);
+"Pendamping" dicadangkan untuk fitur AI.
 """
 
 from __future__ import annotations
@@ -58,26 +58,26 @@ def test_topbar_guru_memakai_label_pendamping():
     for ringkas in (False, True):
         topbar = teacher_pages._topbar_stitch("keluarga-a", "guru", ringkas=ringkas)
         assert "Orang Tua / Guru" not in topbar
-        assert ">Pendamping</span>" in topbar
+        assert ">Guru</span>" in topbar
 
 
 def test_label_penilaian_kosong_memakai_pendamping():
-    assert teacher_corrections.label_penilaian("") == "Perlu penilaian pendamping"
-    assert teacher_corrections.label_penilaian(None) == "Perlu penilaian pendamping"
+    assert teacher_corrections.label_penilaian("") == "Perlu penilaian guru"
+    assert teacher_corrections.label_penilaian(None) == "Perlu penilaian guru"
 
 
 def test_beranda_guru_tanpa_bahasa_orang_tua(server):
     uji, _, _ = server
     isi = _ambil(uji, "/guru")
     _tanpa_larangan(isi)
-    assert "RUANG PENDAMPING" in isi
+    assert "RUANG GURU" in isi
 
 
 def test_halaman_sesi_tanpa_bahasa_orang_tua(server):
     uji, _, sesi_id = server
     isi = _ambil(uji, f"/sesi/{sesi_id}")
     _tanpa_larangan(isi)
-    assert "Untuk pendamping. Dengarkan cara anak" in isi
+    assert "Untuk guru. Dengarkan cara anak" in isi
 
 
 def test_sesi_siap_memakai_giliran_pendamping(tmp_path, monkeypatch):
@@ -94,7 +94,7 @@ def test_sesi_siap_memakai_giliran_pendamping(tmp_path, monkeypatch):
         isi = _ambil(uji, f"/sesi/{sesi_id}")
     finally:
         uji.berhenti()
-    assert "Pemetaan · giliran pendamping" in isi
+    assert "Pemetaan · giliran guru" in isi
     _tanpa_larangan(isi)
 
 
@@ -102,4 +102,4 @@ def test_panduan_saat_sulit_netral(server):
     uji, siswa_id, _ = server
     isi = _ambil(uji, f"/anak/{siswa_id}?section=rencana")
     _tanpa_larangan(isi)
-    assert "Pendamping mulai kesal" in isi
+    assert "Guru mulai kesal" in isi

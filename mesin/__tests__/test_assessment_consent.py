@@ -19,7 +19,7 @@ def test_usulan_konkret_dan_alasan_di_dekat_dropdown(server):
     isi_awal(s, 'Cara asli')
     data, isi = form(s)
     assert data[f'kode_{s.sid}'] == ''
-    assert '<option value="" selected>Otomatis — Jawaban benar</option>' in isi
+    assert '<option value="" selected>Usulan: Jawaban benar</option>' in isi
     sebelum_panduan = isi.split('<section class="koreksi-penilaian-st"', 1)[1]
     assert '<b>Alasan:</b> jawaban benar' in sebelum_panduan
     assert 'tidak perlu mengganti dropdown' in isi
@@ -146,7 +146,7 @@ def test_tanpa_usulan_tetap_perlu_tinjauan_dan_tidak_dikonfirmasi(server):
     isi_awal(s, 'Cara belum terpetakan', jawaban='999999')
     data, isi = form(s)
     assert 'Belum yakin — perlu ditinjau' in isi
-    assert 'Otomatis —' not in isi
+    assert 'selected>Usulan: ' not in isi
     assert 'Jagomat belum dapat mengusulkan penilaian.' in isi
     assert '<b>Alasan:</b>' in isi.split('<section class="koreksi-penilaian-st"', 1)[1]
     sebelum = keadaan(s)

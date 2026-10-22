@@ -20,7 +20,7 @@ _STATUS_TERLIHAT = {
     "mulai_membaik": "mulai membaik berdasarkan evaluasi terkonfirmasi",
     "bertahan": "bertahan pada pemeriksaan terakhir",
     "perlu_diperkuat": "masih perlu diperkuat dengan pendekatan berikutnya",
-    "perlu_eskalasi": "perlu ditinjau bersama pendamping",
+    "perlu_eskalasi": "perlu tinjauan lanjutan",
 }
 _TINDAKAN_DENGAN_INSTRUKSI = {"intervensi", "pengenalan"}
 _STATUS_PERIKSA = {

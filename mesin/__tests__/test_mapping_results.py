@@ -294,6 +294,6 @@ def test_istilah_penilaian_memakai_jagomat(server):
     isi = _halaman(uji, sesi)
     assert "Usulan Jagomat" in isi
     assert "mesin" not in isi.lower()
-    assert '<option value="" selected>Otomatis — Jawaban benar</option>' in isi
+    assert '<option value="" selected>Usulan: Jawaban benar</option>' in isi
     assert "Usulan mesin" not in isi
     assert ">Mesin:</b>" not in isi

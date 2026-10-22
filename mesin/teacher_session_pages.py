@@ -284,7 +284,7 @@ def halaman_sesi_stitch(
             'Jika jawaban, cara, atau pengalaman diubah, Jagomat menilai ulang saat disimpan.</p></div>'
         )
         label_otomatis = (
-            "Belum yakin — perlu ditinjau" if belum_dinilai else f"Otomatis — {label_usulan}"
+            "Belum yakin — perlu ditinjau" if belum_dinilai else f"Usulan: {label_usulan}"
         )
         pilihan_kode = [v for v, _ in KODE_PILIHAN if not (drill and v == "N")]
         if "T" not in pilihan_kode:
@@ -526,7 +526,7 @@ def halaman_sesi_stitch(
     {review_pages.jawaban_utama(label_jawaban, dikoreksi=koreksi_jawaban)}
     <details class="koreksi-opsi-st koreksi-kunci-st" id="pembahasan-soal-{sid}">
       <summary>Lihat kunci &amp; pembahasan soal {int(b['nomor'])}</summary>
-      <p class="koreksi-catatan-st">Untuk pendamping. Dengarkan cara anak sebelum memberi petunjuk; hasil setelah dibantu bukan jawaban mandiri.</p>
+      <p class="koreksi-catatan-st">Untuk guru. Dengarkan cara anak sebelum memberi petunjuk; hasil setelah dibantu bukan jawaban mandiri.</p>
       <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b['kunci'])}</span></div>
       {pembahasan_html or '<p class="koreksi-catatan-st">Pembahasan belum tersedia untuk soal ini.</p>'}
     </details>
@@ -894,7 +894,7 @@ def halaman_sesi_stitch(
             blok_isi = (
                 '<details class="panduan-pratinjau-st">'
                 '<summary>Pratinjau soal &amp; kunci untuk guru</summary>'
-                '<p class="sub">Bagian ini untuk pendamping, bukan halaman yang dibagikan kepada anak.</p>'
+                '<p class="sub">Bagian ini untuk guru, bukan halaman yang dibagikan kepada anak.</p>'
                 f'{"".join(kartu_perlu_diperiksa)}</details>'
             )
 
@@ -932,11 +932,11 @@ def halaman_sesi_stitch(
     if sesi_dibatalkan or sesi_terpandu_riwayat:
         orientasi_peran = "tidak aktif"
     elif sudah_dikirim:
-        orientasi_peran = "hasil sah" if konfirmasi_masih_aktif and not masalah_konfirmasi else "giliran pendamping"
+        orientasi_peran = "hasil sah" if konfirmasi_masih_aktif and not masalah_konfirmasi else "giliran guru"
     elif info["mulai"] or info["terisi"]:
         orientasi_peran = "giliran anak"
     else:
-        orientasi_peran = "giliran pendamping"
+        orientasi_peran = "giliran guru"
     hasil_pemetaan = ""
     rencana_pemetaan = ""
     pemetaan_aktif = mapping_results.sesi_pemetaan_aktif(bukti_siklus, sesi_id)

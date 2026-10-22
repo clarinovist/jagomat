@@ -261,10 +261,10 @@ def halaman_utama_stitch(
         f'<span>{html.escape(pesan)}</span></div>' if pesan else ''
     )
     return _halaman_stitch(
-        "Ruang pendamping",
+        "Ruang guru",
         f'<style>{GAYA_FILTER_GURU}</style><main aria-labelledby="judul-guru">'
         '<header class="guru-sapaan-st"><div>'
-        '<p class="guru-alis-st">RUANG PENDAMPING</p>'
+        '<p class="guru-alis-st">RUANG GURU</p>'
         '<h1 id="judul-guru">Langkah kecil,<br><span>tumbuh bersama.</span></h1>'
         '<p>Temani prosesnya, bukan hanya hasilnya.<br>'
         'Mulai dari ruang belajar anak di bawah ini.</p></div>'

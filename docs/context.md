@@ -61,6 +61,9 @@ cache dan cadangan tetap privat.
 
 ## Konvensi dan keputusan penting
 
+- **Istilah UI** (keputusan 22 Okt 2026): orang dewasa disebut "Guru" (label) atau
+  "Anda" (kalimat); "Pendamping" hanya untuk fitur AI. Landing publik dan panel
+  pengelola belum diseragamkan; "pendampingan" tetap berarti kegiatan mendampingi.
 - **Stdlib saja**, tanpa framework/dependensi runtime pihak ketiga; dev dependency
   hanya `pytest` dan `pytest-xdist`. Dependency baru perlu persetujuan pengguna.
 - **Zero-JS default**: `<details>` dan navigasi query server-side; anchor lama
