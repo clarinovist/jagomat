@@ -866,7 +866,7 @@ def test_daftar_anak_berupa_kartu_dengan_kelola_tanpa_js_baru(siap):
     kartu = _kartu_anak(h, "Kartu Satu")
     assert "kartu-login" in kartu and "0 sesi" in kartu
     luar, _, dalam = kartu.partition('<details class="akun-kelola">')
-    assert "<summary>Kelola</summary>" in dalam
+    assert '<span class="akun-kelola-buka">Kelola</span>' in dalam.split("</summary>", 1)[0]
     # Aksi sensitif hanya terlihat setelah Kelola dibuka.
     assert "Hapus Kartu Satu" not in luar and "Hapus Kartu Satu" in dalam
     assert 'value="akun_murid_sandi"' in dalam and 'value="kelas_sekolah"' in dalam

@@ -195,12 +195,18 @@ def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
     bagian_sandi = (
         f'<div class="akun-kelola-bagian"><h4>Kata sandi anak</h4>{sandi}</div>' if sandi else ''
     )
+    inisial = html.escape((s["nama"].strip()[:1] or "?").upper())
     return (
         f'<article class="akun-anak-kartu" aria-labelledby="anak-nama-{s["id"]}">'
         '<div class="akun-anak-kepala">'
+        f'<span class="akun-inisial-st" aria-hidden="true">{inisial}</span>'
+        '<div class="akun-anak-judul">'
         f'<h3 id="anak-nama-{s["id"]}">{nama}</h3>'
-        f'<p class="akun-anak-meta">{html.escape(kelas_label)} · {status} · {sesi} sesi latihan</p></div>'
-        '<details class="akun-kelola"><summary>Kelola</summary>'
+        f'<p class="akun-anak-meta"><span class="akun-chip-st">{html.escape(kelas_label)}</span>'
+        f'<span class="akun-chip-st">{sesi} sesi latihan</span></p>'
+        f'<p class="akun-anak-login">{status}</p></div></div>'
+        '<details class="akun-kelola"><summary>'
+        '<span class="akun-kelola-buka">Kelola</span><span class="akun-kelola-tutup">Tutup</span></summary>'
         f'<div class="akun-kelola-isi">{bagian_kelas}{bagian_sandi}'
         f'<div class="akun-kelola-bagian"><h4>Hapus anak</h4>{hapus}</div></div></details>'
         '</article>'
@@ -269,9 +275,9 @@ def halaman_akun(
     if peran == "admin" and section not in ("akun", "arsip-pendamping"):
         section = "akun"
 
+    daftar_anak = database.daftar_siswa(kon, None if peran == "admin" else pengguna)
     daftar = "".join(
-        _baris_siswa(kon, s, pengguna, peran)
-        for s in database.daftar_siswa(kon, None if peran == "admin" else pengguna)
+        _baris_siswa(kon, s, pengguna, peran) for s in daftar_anak
     ) or '<p class="kosong">Belum ada anak. Tambahkan anak pertama di bawah.</p>'
 
     kabar = f'<div class="pesan" role="status">{html.escape(pesan)}</div>' if pesan else ""
@@ -292,11 +298,9 @@ def halaman_akun(
 
     kartu_sandi = (
         f'<div class="kartu-st akun-kartu-sandi">'
-        f'<div class="kartu-judul"><span class="ikon-kartu">🔑</span>'
-        f"<h2>Ganti kata sandi</h2></div>"
+        f"<h2>Ganti kata sandi</h2>"
         f'<p class="sub">Nama login Anda: <b>{pengguna_tampil}</b>. Setelah diganti, '
         f'masuk lagi dengan kata sandi baru.</p>'
-        '<p class="sub"><a href="/lupa-sandi">Bantuan pemulihan akun</a>.</p>'
         f'<form method="post" action="/akun">'
         f'<input type="hidden" name="aksi" value="sandi">'
         f'<label for="sandi-lama">Kata sandi lama</label>'
@@ -308,15 +312,13 @@ def halaman_akun(
         f'<label for="sandi-ulang">Ulangi kata sandi baru</label>'
         f'<input id="sandi-ulang" type="password" name="ulang" autocomplete="new-password" required>'
         f'<p class="akun-aksi-sandi">'
-        f'<button type="submit" class="tombol-utama-akun">Ganti kata sandi</button></p>'
-        f"</form>"
-        '<form class="akun-form-keluar" method="post" action="/keluar">'
-        '<button type="submit" class="tombol-sekunder">Keluar</button></form></div>'
+        f'<button type="submit" class="tombol-utama-akun">Ganti kata sandi</button>'
+        '<a href="/lupa-sandi">Bantuan pemulihan akun</a></p>'
+        f"</form></div>"
     )
     kartu_siswa = (
         f'<div class="kartu-st">'
-        f'<div class="kartu-judul"><span class="ikon-kartu">📚</span>'
-        f"<h2>Daftar anak</h2></div>"
+        f"<h2>Daftar anak</h2>"
         '<p class="sub" id="keterangan-kelas">Kelas sekolah SD 1–6 bersifat opsional. '
         'Kelas hanya informasi profil, bukan kemampuan anak. Pilih kelas lalu tekan Simpan kelas.</p>'
         '<details class="rincian-ui-st"><summary>Tentang kelas dan sesi latihan</summary>'
@@ -328,8 +330,7 @@ def halaman_akun(
     )
     kartu_anak = (
         f'<div class="kartu-st">'
-        f'<div class="kartu-judul"><span class="ikon-kartu">🧒</span>'
-        f"<h2>Tambah anak</h2></div>"
+        f"<h2>Tambah anak</h2>"
         '<p class="sub">Buat profil dan akun login anak sekaligus. '
         'Gunakan nama panggilan atau inisial untuk menjaga privasi. '
         'Gratis selama akses awal nonkomersial.</p>'
@@ -350,7 +351,7 @@ def halaman_akun(
         'Jika nama login sudah dipakai, pilih nama lain atau tambahkan angka. Ketersediaan diperiksa saat disimpan.</p>'
         f'<label for="anak-sandi">Kata sandi anak (minimal 8 karakter)</label>'
         '<p class="sub" id="bantuan-sandi-anak">Pilih gabungan kata yang mudah diingat, '
-        'tetapi berbeda dari kata sandi orang tua. Jangan memakai nama atau tanggal lahir anak.</p>'
+        'tetapi berbeda dari kata sandi Anda. Jangan memakai nama atau tanggal lahir anak.</p>'
         f'<input id="anak-sandi" type="password" name="sandi_anak" autocomplete="new-password" '
         f'required minlength="8" aria-describedby="bantuan-sandi-anak">'
         '<p class="sub">Penggunaan data anak mengikuti '
@@ -360,54 +361,50 @@ def halaman_akun(
         f'<button type="submit" class="tombol-utama-akun">Buat anak &amp; akunnya</button>'
         f"</form></div>"
     )
+    arsip_kartu = (
+        '<div class="kartu-st"><details><summary>Arsip percakapan lama</summary>'
+        '<p class="sub">Percakapan umum lama tersedia hanya-baca.</p>'
+        '<a href="/akun?section=arsip-pendamping">Buka arsip</a>'
+        '</details></div>'
+    ) if arsip_pendamping else ""
+    kiri = kanan = bawah = penuh = ""
     if section == "langganan" and peran == "guru" and (langganan_produksi or langganan_sandbox):
-        isi_section = langganan_html or (
+        penuh = langganan_html or (
             '<div class="kartu-st"><h2>Langganan</h2>'
             '<p class="sub">Ringkasan langganan belum tersedia. '
             '<a href="/langganan">Buka halaman tagihan</a>.</p></div>'
         )
-    elif section == "langganan":
-        section = "akun"
-        isi_section = kartu_sandi
-        if arsip_pendamping:
-            isi_section += (
-                '<div class="kartu-st"><details><summary>Arsip percakapan lama</summary>'
-                '<p class="sub">Percakapan umum lama tersedia hanya-baca.</p>'
-                '<a href="/akun?section=arsip-pendamping">Buka arsip</a>'
-                '</details></div>'
-            )
     elif section == "siswa" and peran != "admin":
-        sub_login = ''
+        kiri, kanan = kartu_siswa, kartu_anak
         if _perlu_perbaikan_login(kon, pengguna, peran):
-            sub_login = (
+            bawah = (
                 '<details class="kartu-st rincian-ui-st" id="perbaikan-login" open>'
                 '<summary>Perbaikan login anak</summary>'
                 '<p class="sub">Ada profil tanpa akun masuk atau akun login tanpa profil anak. '
                 'Buat akun masuk untuk profil yang belum memilikinya.</p>'
                 f'{_kartu_akun_murid(kon, pengguna, peran)}</details>'
             )
-        isi_section = kartu_siswa + kartu_anak + sub_login
-    elif section == "arsip-pendamping":
-        isi_section = arsip_pendamping or kartu_sandi
-        if not arsip_pendamping:
-            section = "akun"
+    elif section == "arsip-pendamping" and arsip_pendamping:
+        penuh = arsip_pendamping
     else:
-        isi_section = kartu_sandi
-        if arsip_pendamping:
-            isi_section += (
-                '<div class="kartu-st"><details><summary>Arsip percakapan lama</summary>'
-                '<p class="sub">Percakapan umum lama tersedia hanya-baca.</p>'
-                '<a href="/akun?section=arsip-pendamping">Buka arsip</a>'
-                '</details></div>'
-            )
+        # Langganan tak tersedia, arsip kosong, atau Akun saya: jatuh ke Akun saya.
+        section = "akun"
+        kiri = kartu_sandi + arsip_kartu
 
-    if section == 'akun' and peran == 'guru':
-        isi_section += (
+    if section == "akun" and peran == "guru":
+        kanan = (
             '<section class="kartu-st"><h2>Data Pendamping AI</h2>'
-            '<p>Kelola chat tersimpan dan izin pengiriman AI, juga saat pengiriman AI tidak tersedia.</p>'
-            '<a href="/pendamping/kelola">Kelola data Pendamping</a></section>'
-        )
-        isi_section += analitik
+            '<p class="sub">Kelola chat tersimpan dan izin pengiriman AI, juga saat pengiriman AI tidak tersedia.</p>'
+            '<a class="akun-tombol-garis-st" href="/pendamping/kelola">Kelola data Pendamping</a></section>'
+        ) + analitik
+    isi_section = penuh or (
+        f'<div class="akun-grid-st"><div class="akun-kolom-st">{kiri}</div>'
+        + (f'<div class="akun-kolom-st">{kanan}</div>' if kanan else "")
+        + f"</div>{bawah}"
+    )
+    chip_anak = (
+        f'<span class="akun-chip-st">{len(daftar_anak)} profil anak</span>' if peran != "admin" else ""
+    )
     item = [("akun", "Akun saya", "/akun?section=akun")]
     if peran != "admin":
         item.append(("siswa", "Anak", "/akun?section=siswa"))
@@ -428,16 +425,20 @@ def halaman_akun(
     return _halaman(
         "Akun",
         f'<div class="jejak"><a href="{"/admin" if peran == "admin" else "/guru"}">&larr; Beranda</a></div>'
-        '<header class="editorial-kepala-st"><p class="editorial-alis-st">AKUN KELUARGA</p>'
+        '<header class="editorial-kepala-st akun-kepala-st"><div>'
+        '<p class="editorial-alis-st">AKUN KELUARGA</p>'
         '<h1 id="judul-akun">Akun &amp; pengaturan</h1>'
-        '<p class="sub">Kelola akses dan ruang belajar keluarga.</p></header>'
+        '<p class="sub">Kelola akses dan ruang belajar keluarga.</p></div>'
+        f'<div class="akun-aksi-kepala-st">{chip_anak}'
+        '<form class="akun-form-keluar" method="post" action="/keluar">'
+        '<button type="submit" class="tombol-sekunder">Keluar</button></form></div></header>'
         f"{kabar}"
         f'<div class="layout-samping">'
         f'<nav class="nav-samping" aria-label="Pengaturan akun">{nav}</nav>'
         f"<div>{isi_section}</div>"
         f"</div>",
         ident=(pengguna or "guru", peran),
-        stitch=True, kelas_bungkus="pendamping-editorial-st akun-editorial-st",
+        stitch=True, kelas_bungkus="pendamping-editorial-st akun-editorial-st lebar",
         id_utama="judul-akun", privat=True,
         skrip_privat='' if section == 'arsip-pendamping' else SKRIP_AKUN,
     )

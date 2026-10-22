@@ -161,6 +161,21 @@ mengikuti tinggi isi, sedangkan percakapan menyediakan ruang gulir terbatas
 viewport. Di profil, panel sejajar kepala anak; HP tetap panel penuh. Kontrak izin,
 mode memori dan fallback mengikuti [runtime Pendamping](pendamping-runtime.md).
 
+### Akun & pengaturan (22 Okt 2026, fase 1)
+
+Tab Akun saya dan Anak memakai wadah `lebar` (72rem) dengan `.akun-grid-st`: dua
+kolom ≥ `MULAI_DESKTOP`, satu kolom di HP. Akun saya: kolom kiri kartu Ganti kata sandi
+(tautan Bantuan pemulihan sejajar tombol), kolom kanan Data Pendamping AI dan pilihan
+data. Anak: daftar di kiri, form Tambah anak di kanan. Header memuat chip jumlah profil
+anak (guru) dan tombol Keluar (garis, bukan di dalam kartu sandi). Kartu tanpa ikon
+emoji. Kartu anak: inisial, chip kelas dan jumlah sesi, tombol Kelola/Tutup lewat CSS
+`details[open]` (tanpa JS); di ≤ `BATAS_HP` tombol turun di bawah kepala kartu. Gaya
+tersekop `.akun-editorial-st` di `account_style.py`, hanya token, font sistem.
+Mockup: canvas "Jagomat Akun Redesign". Belum didesain ulang (fase 2–4): Langganan,
+Persetujuan data/Kesepakatan, Data Pendamping. Tidak diadopsi dari mockup: meter
+"0/12 karakter" (butuh JS baru) dan chip paket "Akses awal · gratis" (butuh data
+langganan di header).
+
 ### Tinjauan sesi datar
 
 Kartu berupa article dengan header nomor/tipe/status/penanda catatan yang tetap

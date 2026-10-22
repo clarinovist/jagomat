@@ -64,7 +64,7 @@ def test_copy_dan_form_akun(siap):
         h = halaman(kon)
         akun = halaman(kon, 'akun')
     assert 'boleh sama polanya' not in h
-    assert 'berbeda dari kata sandi orang tua' in h
+    assert 'berbeda dari kata sandi Anda' in h
     assert 'Rp10.000' not in h
     assert '<h2>Daftar anak</h2>' in h
     assert 'Pilih kelas (opsional)' in h

@@ -116,7 +116,8 @@ def _halaman(
         gaya = gaya_stitch()
         if 'akun-editorial-st' in kelas_bungkus.split():
             from question_variants_ui import GAYA_VARIASI
-            gaya += GAYA_VARIASI
+            from account_style import GAYA_AKUN
+            gaya += GAYA_VARIASI + GAYA_AKUN
         if privat:
             gaya = gaya.replace(
                 "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",

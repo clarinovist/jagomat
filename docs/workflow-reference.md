@@ -74,7 +74,7 @@ sebagai instruksi deploy/backfill baru. Periksa tautan lokal dan anchor yang diu
 | `topics.py`, `topic_*.py` | `Topik`, registry `PAKET`, `gabungan()`, paket per topik |
 | `generator.py` | `buat_lembar`, `PROFIL_LEVEL`, parameter/pola |
 | `render.py`, `worksheets.py` | Struktur HTML lembar tanpa CSS |
-| `screen_style.py`, `print_style.py`, `teacher_style.py`, `style_stitch.py` | Gaya layar/cetak |
+| `screen_style.py`, `print_style.py`, `teacher_style.py`, `style_stitch.py`, `account_style.py` | Gaya layar/cetak (`account_style` = `/akun`) |
 | `design_tokens.py` | Sumber tunggal nilai visual |
 | `teacher_pages.py`, `student_pages.py`, `account_pages.py`, `reports.py`, `landing.py` | Halaman per permukaan |
 | `rumus.py` | Kartu rumus per konsep |
