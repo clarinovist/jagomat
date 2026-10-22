@@ -230,3 +230,11 @@ def test_skrip_filter_tanpa_jaringan_penyimpanan_atau_eval():
 def test_hidden_menang_atas_display_kartu_dan_blok_kosong():
     import style_stitch
     assert ".guru-kartu-st[hidden], .guru-cocok-kosong-st[hidden] { display: none; }" in style_stitch.GAYA_STITCH
+
+
+def test_maskot_hero_tanpa_teks_dekoratif_tambahan(server):
+    """23 Okt 2026: caption maskot dihapus; tagline hero sudah menyampaikan pesan yang sama."""
+    isi = _beranda(server)
+    assert "Satu langkah yang berarti" not in isi
+    maskot = re.search(r'<div class="guru-catatan-st" aria-hidden="true">(.*?)</div>', isi, re.S).group(1)
+    assert maskot.startswith("<img ") and maskot.count("<") == 1 and 'alt=""' in maskot

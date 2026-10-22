@@ -298,7 +298,6 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-sapaan-st p:not(.guru-alis-st) {{ color: {T.ANAK_TEKS_REDUP}; font-size: 1.125rem; line-height: 1.5; margin: 0; overflow-wrap: anywhere; }}
 .guru-catatan-st {{ display: flex; align-items: center; gap: {T.SP_3}; }}
 .guru-catatan-st img {{ display: block; width: 6rem; height: 6rem; }}
-.guru-catatan-st > span:last-child {{ max-width: 7.5rem; color: {T.ANAK_TEKS_REDUP}; }}
 .guru-kepala-daftar-st {{ display: flex; gap: {T.SP_4}; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }}
 .guru-kepala-daftar-st > div {{ flex: 1 1 20rem; min-width: 0; }}
 .guru-kepala-daftar-st h2 {{ color: {T.ANAK_TEKS}; font: 800 {T.UKURAN_BAGIAN_DEWASA}/1.4 {T.FONT_HEADLINE}; margin: 0; }}
@@ -3585,8 +3584,7 @@ CSS_SESI = CSS_SESI + GAYA_SESI_MOBILE
 # yang dimuat sesudahnya (GAYA_PROFIL).
 SELEKTOR_TEKS_INFORMATIF = (
     ".guru-beranda-st :is(.guru-status-st, .guru-petunjuk-st, .guru-tambah-st, .guru-kelas-st,"
-    " .guru-pil-st, .guru-tunggu-st, .guru-meta-st, .guru-kaki-st, .badge-peran,"
-    " .guru-catatan-st > span:last-child)",
+    " .guru-pil-st, .guru-tunggu-st, .guru-meta-st, .guru-kaki-st, .badge-peran)",
     ".akun-editorial-st :is(.akun-anak-meta, .status-buruk, .badge-peran, .akun-kelola-bagian h4, .jejak a)",
     ".bungkus-st.profil-workspace-st :is(.badge-direview, .label-rencana-st, .mode-desk, .riwayat-grup-judul-st,"
     " .profil-paging-st, .profil-paging-st span, label, .riwayat-ringkas-st time span,"

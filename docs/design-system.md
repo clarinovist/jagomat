@@ -26,7 +26,8 @@ Mockup lama di arsip lokal `../../osn-resources/referensi/desain-ui/`, sedangkan
   (`UKURAN_JUDUL_DEWASA`, bukan 38px mockup); chip tetap tautan GET `aria-current` (bukan tombol
   `aria-pressed`) dengan filter instan berhash di atasnya (`guru_browser.py`); banner Riwayat tidak memakai "Mulai dari yang paling
   lama" agar tidak menyiratkan urutan wajib. Warna dari token `ANAK_*`; avatar memilih
-  warna dari `id % 4`. Empat tab `/anak` diperiksa di source terhadap artboard Riwayat/Perkembangan/Latihan (belum dirender ulang).
+  warna dari `id % 4`. Caption maskot "Satu langkah yang berarti." dihapus (23 Okt):
+  mengulang tagline hero dan hanya terbaca oleh mata (maskot `aria-hidden`). Empat tab `/anak` diperiksa di source terhadap artboard Riwayat/Perkembangan/Latihan (belum dirender ulang).
 - Bagian bertanggal di bawah merekam keputusan saat itu, bukan override kontrak
   terbaru. Pembaruan UI harus dirender dengan data sintetis dan diuji; mockup/teks
   dokumentasi saja bukan bukti aksesibilitas atau penerimaan perangkat nyata.
