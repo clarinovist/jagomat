@@ -67,6 +67,25 @@ GAYA_AKUN = f"""
   {_A} .akun-anak-kepala {{ padding-right: 0; }}
   {_A} .akun-kelola > summary {{ position: static; justify-content: center; width: 100%; margin-top: {T.SP_3}; box-sizing: border-box; }}
 }}
+{_A} .akun-paket-kepala-st {{ display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: {T.SP_3}; }}
+{_A} .akun-paket-kepala-st h2 {{ margin: {T.SP_1} 0 0; font-size: {T.UKURAN_JUDUL_DEWASA}; }}
+{_A} .akun-paket-profil-st {{
+  display: flex; align-items: center; flex-wrap: wrap; gap: {T.SP_2}; min-height: {T.TARGET_SENTUH}; margin: 0;
+  padding: {T.SP_2} {T.SP_4}; border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_SEKUNDER_LEMBUT};
+}}
+{_A} .akun-paket-profil-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; margin-left: auto; font-weight: 700; }}
+{_A} .akun-catatan-st, {_A} .peringatan {{
+  margin: 0; padding: {T.SP_3} {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN};
+  border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_CATATAN}; color: {T.TEKS_UTAMA};
+}}
+{_A} .akun-langganan-st > :not(.akun-grid-st) {{ max-width: {T.LEBAR_KONTEN}; }}
+{_A} fieldset {{ border: 0; padding: 0; margin: {T.SP_3} 0; }}
+{_A} fieldset label {{ display: flex; align-items: center; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH}; font-size: 1rem; color: {T.TEKS_UTAMA}; }}
+{_A} fieldset input[type=checkbox] {{ flex: none; width: 1.25rem; height: 1.25rem; accent-color: {T.AKSEN_TEAL_TUA}; }}
+{_A} a.tombol {{
+  display: inline-flex; align-items: center; justify-content: center; min-height: {T.TINGGI_KONTROL}; padding: 0 {T.SP_4};
+  border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KECIL}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; text-decoration: none;
+}}
 {_A} .akun-kelola-tutup {{ display: none; }}
 {_A} .akun-kelola[open] .akun-kelola-tutup {{ display: inline; }}
 {_A} .akun-kelola[open] .akun-kelola-buka {{ display: none; }}

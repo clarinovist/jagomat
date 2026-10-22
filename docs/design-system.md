@@ -171,8 +171,13 @@ anak (guru) dan tombol Keluar (garis, bukan di dalam kartu sandi). Kartu tanpa i
 emoji. Kartu anak: inisial, chip kelas dan jumlah sesi, tombol Kelola/Tutup lewat CSS
 `details[open]` (tanpa JS); di ≤ `BATAS_HP` tombol turun di bawah kepala kartu. Gaya
 tersekop `.akun-editorial-st` di `account_style.py`, hanya token, font sistem.
-Mockup: canvas "Jagomat Akun Redesign". Belum didesain ulang (fase 2–4): Langganan,
-Persetujuan data/Kesepakatan, Data Pendamping. Tidak diadopsi dari mockup: meter
+Tab Langganan (fase 2): saat pembayaran belum aktif, `kartu_status_layanan` menampilkan
+kartu Paket saat ini (Akses awal, chip Gratis · nonkomersial, jumlah profil + Lihat) dan
+Pembayaran & bantuan (catatan amber penuh-border, tombol garis); tanpa form. Varian
+sandbox/produksi tidak diubah markup-nya (form dikunci test), hanya CSS tersekop;
+halaman mandiri `/langganan/...` tidak berubah.
+Mockup: canvas "Jagomat Akun Redesign". Belum didesain ulang (fase 3–4): Persetujuan
+data/Kesepakatan, Data Pendamping. Tidak diadopsi dari mockup: meter
 "0/12 karakter" (butuh JS baru) dan chip paket "Akses awal · gratis" (butuh data
 langganan di header).
 

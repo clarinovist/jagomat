@@ -141,3 +141,57 @@ def test_gaya_akun_tanpa_font_atau_sumber_luar():
     css = account_style.GAYA_AKUN
     assert "@import" not in css and "url(" not in css and "font-family" not in css
 
+
+# ── Fase 2: tab Langganan ───────────────────────────────────────────────
+
+
+def _status_layanan(siap, monkeypatch, anak=1):
+    import account_http
+    import subscription
+
+    with database.buka(siap) as kon:
+        for n in range(anak):
+            database.tambah_siswa(kon, f"Sendiri {n}", pemilik="guru")
+        database.tambah_siswa(kon, "Bukan milik", pemilik="lain")
+    monkeypatch.setattr("subscription_produksi_http.ada", lambda p: True)
+
+    def nonaktif(p):
+        raise subscription.FiturNonaktif()
+
+    monkeypatch.setattr("subscription_produksi_http._runtime", nonaktif)
+    return account_http._fragmen_langganan(None, ("guru", "guru"))
+
+
+def test_status_layanan_dua_kartu_paket_dan_bantuan(siap, monkeypatch):
+    h = _status_layanan(siap, monkeypatch, anak=2)
+    assert h.count('<div class="akun-kolom-st">') == 2 and 'class="akun-grid-st"' in h
+    paket, _, bantuan = h.partition('<div class="akun-kolom-st">')[2].partition('<div class="akun-kolom-st">')
+    assert "PAKET SAAT INI" in paket and "<h2" in paket and ">Akses awal</h2>" in paket
+    assert '<span class="akun-chip-st">Gratis · nonkomersial</span>' in paket
+    assert "Profil anak yang digunakan: <b>2</b>" in paket and "Tidak ada penagihan baru" in paket
+    assert '<a href="/akun?section=siswa">Lihat</a>' in paket
+    assert "<h2>Pembayaran &amp; bantuan</h2>" in bantuan
+    assert 'class="akun-tombol-garis-st" href="/lupa-sandi">Hubungi dukungan Jagomat</a>' in bantuan
+    assert "Bukan milik" not in h and "Status layanan" not in h
+
+
+def test_status_layanan_tanpa_form_atau_aksi_pembayaran(siap, monkeypatch):
+    h = _status_layanan(siap, monkeypatch)
+    assert "<form" not in h and "<button" not in h and "/langganan/" not in h
+
+
+def test_tab_langganan_membungkus_fragmen_agar_tertata(siap):
+    with database.buka(siap) as kon:
+        isi = account_pages.halaman_akun(
+            kon, pengguna="guru", section="langganan", langganan_sandbox=True,
+            langganan_html='<section class="kartu-st"><h2>Siapkan tagihan</h2></section>',
+        ).decode()
+    badan = _badan(isi).split("</style>", 1)[-1]
+    assert '<div class="akun-kolom-st akun-langganan-st"><section class="kartu-st"><h2>Siapkan tagihan' in badan
+
+
+def test_gaya_langganan_di_akun_tanpa_garis_kiri_dan_kontrol_44():
+    css = account_style.GAYA_AKUN
+    aturan = re.search(r"\.akun-editorial-st \.peringatan[^{]*\{([^}]+)\}", css).group(1)
+    assert "border-left" not in aturan and f"border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}" in aturan
+    assert f"min-height: {T.TARGET_SENTUH}" in re.search(r"\.akun-editorial-st fieldset label[^{]*\{([^}]+)\}", css).group(1)

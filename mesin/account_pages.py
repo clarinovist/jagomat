@@ -212,6 +212,28 @@ def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
         '</article>'
     )
 
+def kartu_status_layanan(jumlah_profil: int) -> str:
+    """Tab Langganan saat pembayaran online belum aktif: paket + bantuan, tanpa aksi."""
+    return (
+        '<div class="akun-grid-st"><div class="akun-kolom-st">'
+        '<section class="kartu-st akun-paket-st" aria-labelledby="akun-paket">'
+        '<div class="akun-paket-kepala-st"><div>'
+        '<p class="editorial-alis-st">PAKET SAAT INI</p><h2 id="akun-paket">Akses awal</h2></div>'
+        '<span class="akun-chip-st">Gratis · nonkomersial</span></div>'
+        '<p class="sub">Pembayaran online belum tersedia di Jagomat. '
+        'Tidak ada penagihan baru dari halaman ini.</p>'
+        f'<p class="akun-paket-profil-st">Profil anak yang digunakan: <b>{int(jumlah_profil)}</b>'
+        '<a href="/akun?section=siswa">Lihat</a></p></section></div>'
+        '<div class="akun-kolom-st"><section class="kartu-st">'
+        '<h2>Pembayaran &amp; bantuan</h2>'
+        '<p class="akun-catatan-st">Halaman ini tidak mengaktifkan paket atau tagihan baru.</p>'
+        '<p class="sub">Untuk pertanyaan akses atau langganan yang sudah dimiliki, '
+        'tim dukungan Jagomat siap membantu.</p>'
+        '<a class="akun-tombol-garis-st" href="/lupa-sandi">Hubungi dukungan Jagomat</a>'
+        '</section></div></div>'
+    )
+
+
 def _perlu_perbaikan_login(kon, pengguna, peran) -> bool:
     """Ada anak tanpa login atau akun yatim? Buka subbagian bila ya."""
     import students as _murid
@@ -397,6 +419,8 @@ def halaman_akun(
             '<p class="sub">Kelola chat tersimpan dan izin pengiriman AI, juga saat pengiriman AI tidak tersedia.</p>'
             '<a class="akun-tombol-garis-st" href="/pendamping/kelola">Kelola data Pendamping</a></section>'
         ) + analitik
+    if penuh and section == "langganan":
+        penuh = f'<div class="akun-kolom-st akun-langganan-st">{penuh}</div>'
     isi_section = penuh or (
         f'<div class="akun-grid-st"><div class="akun-kolom-st">{kiri}</div>'
         + (f'<div class="akun-kolom-st">{kanan}</div>' if kanan else "")

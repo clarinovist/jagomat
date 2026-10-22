@@ -56,14 +56,8 @@ def _fragmen_langganan(penangan, ident):
     except _d.FiturNonaktif:
         with database.buka() as kon:
             jumlah_profil = len(database.daftar_siswa(kon, ident[0]))
-        return (
-            '<section class="kartu-st"><h2>Status layanan</h2>'
-            f'<p>Profil anak yang digunakan: <b>{jumlah_profil}</b>.</p>'
-            '<p>Pembayaran online belum tersedia di Jagomat. Tidak ada penagihan baru dari halaman ini.</p>'
-            '<p class="sub">Halaman ini tidak mengaktifkan paket atau tagihan baru. '
-            'Untuk pertanyaan akses atau langganan yang sudah dimiliki, '
-            '<a href="/lupa-sandi">hubungi dukungan Jagomat</a>.</p></section>'
-        )
+        from account_pages import kartu_status_layanan
+        return kartu_status_layanan(jumlah_profil)
     except Exception:
         pass
     return (
