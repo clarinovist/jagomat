@@ -53,7 +53,8 @@ dan runbook aktif terlebih dahulu; jangan menganggap histori sebagai status terk
 2. Deploy image Fase 8 sebagai pembaca pendahulu dengan visual tetap OFF. Jangan mengganti versi matematika hanya untuk mematikan visual; keduanya konfigurasi berbeda.
 3. Pastikan image rollback juga sudah mempunyai sidecar dan reducer pemisah representasi. Image lama dapat mengabaikan provenance meski masih membaca SVG: kemampuan membaca gambar tidak sama dengan keamanan bukti belajar.
 4. Setelah gate pembaca pendahulu lulus, aktifkan satu keluarga pada satu waktu. Snapshot yang sudah tersimpan tetap dibaca saat flag dimatikan. Kill switch menghentikan writer keluarga, bukan menulis ulang soal/hasil lama.
-5. Jika ada cacat, matikan keluarga dan pertahankan image pembaca kompatibel. Jangan rollback ke image sebelum Fase 8 setelah ada bukti lintas representasi; jangan hard-delete sesi berbukti.
+5. Jika ada cacat, matikan writer keluarga **representasi visual** terkait
+   (bukan akun keluarga/pengguna) dan pertahankan image pembaca kompatibel. Jangan rollback ke image sebelum Fase 8 setelah ada bukti lintas representasi; jangan hard-delete sesi berbukti.
 6. Verifikasi revisi/digest, healthcheck, rute publik/otorisasi, serta probe sintetis. Jangan membuka data anak untuk smoke test atau menyalinnya ke log/repo.
 
 ## Batas klaim

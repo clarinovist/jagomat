@@ -1,4 +1,47 @@
-# Rilis integrasi — persiapan baseline, migrasi, dan deploy rutin
+# Rilis integrasi — status, kontrak dan riwayat
+
+Mulai dari snapshot terbaru di bawah. Bagian bertanggal berikutnya adalah histori;
+SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada di
+`scripts/release-metadata.json` dan workflow; status pekerjaan di [status proyek](status-proyek.md).
+Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
+tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
+
+## Deploy seluruh commit terbaru — 22 Oktober 2026
+
+Controlled `deploy-v2` berhasil memasang **ccb8906e7475b804a1eac1c267ce4352e8bebf94**
+pada 09.44 WIB (container started `2026-10-22T02:44:24Z`):
+
+- Candidate digest `sha256:7519b1372474a509930dd1cabe3d0143e95c81c019ee094156fc61bc1126e1e7`.
+- Recovery **edd323c4822347f6d584bb0f311e76cac4962e40**, digest
+  `sha256:45c9afae3fd9391bfdae3e48e0e30d89659f57e8fcc1a2bc31fb99457606a54c`.
+- [CI lengkap 39711789044](https://github.com/clarinovist/jagomat/actions/runs/39711789044)
+  sukses: 14.115 tes kandidat exact-once, seluruh shard recovery, palang/kompilasi,
+  build/probe/pair exact. CI push 39710075550 sukses, bukan pengganti gate rilis.
+- Kontrak kedua image `7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8`;
+  deployer host tetap `2479470f927627ab00d7af26876d6525bef897e52cff77c413ac5656b168c810`.
+
+Produksi awal `1472f8c` tertinggal 34 commit. Kedua image ditarik, revision/kontrak/config
+dan `PROBE_SKEMA` live read-only lulus **sebelum maintenance**. Bundle coherent
+empat DB+auth dan riset terpisah diverifikasi hash remote/lokal. Rehearsal startup
+idempoten/preservasi C2–B2–C2, validator bundle, integrity/FK lulus. Tidak ada migrasi
+atau koreksi data historis. Approval exact-pair diterbitkan setelah seluruh syarat.
+
+Cutover exit 0, candidate healthy. Sebelum akses dibuka: jumlah baris dan hash 10
+tabel histori terjaga; Caddy/dua cron/config dipulihkan hash-identik. Smoke eksternal
+`https://jagomat.id`: `/`200, `/akun`401, `/murid/`303 ke `/masuk`; loopback sama.
+Marker Traceback/OperationalError/IntegrityError nol pada pemeriksaan pascarilis.
+Probe sintetis memastikan katalog writer2/pilot, 15 draf playbook dan modul UI terbaru;
+`OSN_BANK_KALIMAT=1` tetap, **revisi penilaian baru nonaktif**. Hash contoh katalog
+aktif identik dengan persetujuan sebelumnya, bukan pengesahan pilot/draf baru.
+
+Fetch akhir saat operasi: `origin/main=ccb8906`, tidak ada commit aplikasi tertinggal.
+Commit dokumentasi sesudahnya tidak mengubah revision image dan tidak memerlukan
+restart/build aplikasi. Mode tetap migrasi; job pasang otomatis tetap false. Tidak ada
+walkthrough akun keluarga, request provider uji, atau klaim efektivitas pedagogis.
+
+Empat turunan rehearsal/validation dibersihkan; backup induk/receipt dipertahankan
+privat dengan ID `deploy-terbaru-ccb8906-20261022`. Bukti lokal di
+`docs/plan/deploy-terbaru-ccb8906/` (ignored); isi data/backup tidak masuk dokumentasi.
 
 ## Aktivasi katalog A–C — 21 Oktober 2026
 
@@ -1185,7 +1228,8 @@ schema saja, dan bukan memilih kembali candidate yang sama ketika gagal.
 **Baseline B pengiriman pada tahap itu adalah
 `0ee93109f7950fb6fd86ae93fb63ffbd69bcb10c`**, yang juga memahami arsip pengiriman dan
 provenance tinjauan. Pin PG `e38e2e1` dan pilot awal `175d8fb` tersebut historis;
-source kini memakai recovery kalender `e206563`, sebagaimana status terbaru di atas.
+source pada tahap kalender memakai `e206563`; pin aktif sekarang mengikuti
+metadata dan snapshot terbaru di atas, bukan baseline historis pada paragraf ini.
 Recovery pengendali AI33e241 dan Pendampingbc9c973 di atas merupakan histori,
 bukan fallback schema pengiriman baru. Baseline B pengiriman menyediakan
 seluruh kartu koreksi; kandidat C menambah navigasi antrean tinjauan server-side.

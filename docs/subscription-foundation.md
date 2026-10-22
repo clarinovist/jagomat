@@ -11,6 +11,16 @@ checkout, callback publik, countdown, enrollment/backfill akun nyata, atau gate
 latihan/Pendamping. Semua `subscription.SAKELAR` default OFF, tidak membaca env.
 Tidak ada SDK, dependency atau JavaScript baru.
 
+## Status lanjutan — 22 Oktober 2026
+
+Bagian service tanpa caller di bawah adalah **checkpoint historis**, bukan keadaan
+source terbaru. Adapter HTTP, callback, worker dan sink registrasi bergate telah
+tersedia; cutoff registrasi publik tetap None. Ledger v1 dipertahankan, fondasi
+admin8/paket dan admin9/kuota ditambahkan tanpa membuka penawaran.
+Lihat [runtime pembayaran](pembayaran-produksi.md), [status v2](subscription-packages.md),
+dan [rilis](production-release.md). D8/D9 telah diputuskan 26 September; tidak perlu
+mengulang keputusan atau migrasi admin6 dari dokumen ini.
+
 ## Adapter sandbox opt-in
 
 `mesin/midtrans_sandbox.py` menyediakan `TransportSandbox(config)` untuk injeksi
@@ -131,7 +141,8 @@ invoice/receipt/grant, preservasi row dan FK/integrity. Bundle berisi invoice me
 `perlu_rekonsiliasi=true`: restore bukan izin langsung create charge; transaksi
 setelah cutoff tetap harus direkonsiliasi pada fase operasional berikutnya.
 
-Metadata kini memakai mode existing **migrasi**, recovery service admin6 pinned.
+Metadata pada checkpoint service ini memakai mode **migrasi**, recovery admin6 pinned.
+Pin aktif terbaru ada di metadata/runbook; paragraf berikut menjelaskan uji historis.
 Verifier historis hanya menerima kontrak admin5 untuk SHA explicit; kandidat dan
 recovery baru wajib admin6 + `subscription_checks=4`. Proof pair wajib
 `subscription_pair_checks=4` selain seluruh proof sebelumnya, mencakup service
@@ -139,7 +150,7 @@ registrasi/intent/query/replay. Reader admin5 historis tetap ditolak, bukan dilo
 Uji source memakai arsip Git baseline pinned; kelulusan image tetap menunggu pair
 exact digest CI. Job `pasang` literal false dan `siap_pasang=false` meski pair lulus.
 
-Sebelum rilis/aktivasi: putuskan D8/D9/batas AI/tanggal, adapter otorisasi dan lifecycle
+Daftar prasyarat pada fase awal (bukan daftar pekerjaan terkini): D8/D9/batas AI/tanggal, adapter otorisasi dan lifecycle
 registrasi, kontrak transaksi lintas store, sandbox/UX/merchant no-contact, baseline
 recovery kompatibel + pair exact digest, bundle coherent/rehearsal dan rekonsiliasi
 cutoff. Jangan downgrade schema, hapus ledger, atau memakai binary admin5 sebagai

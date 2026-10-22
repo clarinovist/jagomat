@@ -6,6 +6,11 @@ atau codec campuran v2. Persetujuan mencakup rujukan terbatas luas kotak satuan 
 variasi matematis tambahan, serta tawaran probe balik melalui keputusan orang tua.
 Kontrak aktif dirinci pada [siklus belajar](siklus-belajar-terpandu.md).
 Bagian usulan historis di bawah merekam dasar keputusan, bukan izin rilis produksi.
+**Pembaruan 22 Oktober:** pilot homogen dua tuntutan sudah tercakup artifact produksi
+dan probe rilis; contoh balik/selector pilot telah diimplementasikan. Kalimat
+“belum aktif/belum ada contoh” dalam usulan awal bukan status pilot kini. Codec
+campuran v2 tetap nonaktif/belum terintegrasi; katalog luas belum disahkan.
+Pin aktif ada di [runbook](production-release.md), bukan baseline175d8fb historis.
 
 ## 1. Audit yang dapat diulang
 
@@ -52,7 +57,7 @@ Tabel ini triase review, **bukan 10 rubrik final**. Inventaris lengkap ada pada 
 alat, termasuk rujukan fungsi dan contoh tiap pola/profil. Tidak ada perubahan topik,
 parameter, kunci, malrule, rumus atau pembahasan pada checkpoint ini.
 
-## 2. Pilot yang direkomendasikan untuk disetujui
+## 2. Usulan pilot awal — kemudian disetujui terbatas
 
 Versi usulan: `pilot-keliling-luas-draft-v1`. Dua ID berikut stabil terhadap perubahan
 angka/profil, tetapi **belum menyatakan kesetaraan bukti antarprofil/representasi**.
@@ -108,7 +113,7 @@ Keberhasilan langsung tidak meluluskan balik. Gagal balik tidak menghapus
 keberhasilan langsung. Bukti usang tetap perlu cek kembali. Perubahan kelas tidak
 mereset bukti. Tidak ada status global anak atau sertifikasi permanen.
 
-### Aturan menawarkan berikutnya yang diusulkan (belum aktif)
+### Aturan menawarkan berikutnya pada usulan awal
 
 1. Pertahankan urutan prioritas reducer: tugas aktif/konfirmasi/eskalasi dan tugas
    wajib existing mengalahkan penawaran baru; hanya satu CTA.
@@ -221,8 +226,9 @@ migrasi idempoten dalam transaksi yang gagal atomik, preservasi ID/hash histori,
 FK/integrity dan replay konfirmasi/cetak. Bukti lama ambigu tetap histori, bukan
 konfirmasi baru. Kasus `diganti_level` historis/invalidasi tidak dihapus.
 
-Rilis pilot homogen kini mode **migrasi**, pasang literal false dan baseline
-recovery pilot175d8fb; ini bukan izin atau dukungan kontrak campuran v2. Tidak
+Rilis pilot homogen awal memakai mode **migrasi**, pasang literal false dan
+recovery175d8fb. Pin tersebut historis; recovery sekarang mengikuti metadata/rilis
+terbaru. Ini bukan izin atau dukungan kontrak campuran v2. Tidak
 mengubah policy/probe atau deployer untuk menyembunyikan mismatch. Setelah writer
 v2 aktif, recovery harus pembaca v2 yang teruji; rollback ke codec lama tidak
 membuktikan keselamatan data. Lihat [panduan rilis](production-release.md).

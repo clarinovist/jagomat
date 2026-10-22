@@ -4,13 +4,20 @@ Folder ini berisi spesifikasi aktif, keputusan desain, dan prosedur verifikasi
 codebase. Kode dan tes di `../mesin/` membuktikan perilaku yang tersedia;
 `../CLAUDE.md` menetapkan palang arsitektur, privasi, dan pengujian.
 
-## Mulai dari ringkasan
+## Mulai dari sini
 
-- [spec.md](spec.md): tujuan, cakupan, kontrak belajar, dan batas produk.
-- [context.md](context.md): arsitektur, struktur folder, konvensi, dan keputusan teknis.
+1. [Status proyek](status-proyek.md): tersedia, eksperimen, pekerjaan terbuka,
+   ditunda/dibatalkan, serta batas bukti per 22 Oktober 2026.
+2. [spec.md](spec.md): ringkasan tujuan, cakupan dan perlindungan produk.
+3. [context.md](context.md): ringkasan arsitektur dan workflow.
+4. [Referensi produk](product-reference.md) dan [arsitektur](architecture-reference.md):
+   rincian yang dipindahkan dari ringkasan, bukan kontrak baru.
+5. [Rilis produksi](production-release.md): snapshot exact image, CI, backup dan health.
 
-Masing-masing sekitar satu halaman sebagai orientasi awal, bukan pengganti
-kontrak domain atau `../CLAUDE.md`. Perbarui bersama perubahan keputusan terkait.
+Ringkasan bukan tempat menumpuk changelog. Kontrak domain tetap di dokumen terkait;
+status bertanggal tidak membuktikan keadaan live selamanya. Source, tes, artifact,
+deployment dan efektivitas produk adalah klaim berbeda. `docs/plan/` adalah histori
+kerja lokal; label “belum push/deploy” di sana dapat telah digantikan rilis berikutnya.
 
 ## Keputusan pembatalan pengembangan — 18 September 2026
 
@@ -53,7 +60,9 @@ Tidak ada perubahan runtime atau aktivasi komersial dari keputusan eksperimen in
 Keputusan terpisah 21 Oktober membuka paket **kendali data existing** tanpa
 menunggu P2 lulus: halaman kelola, hapus satu chat, cabut izin/snapshot, dan akses
 pengelolaan saat provider mati. Editor memori lebih luas tetap di luar scope.
-Kontrak source dan batas retensi/race ada di [kendali data Pendamping](pendamping-runtime.md#kendali-data-existing--21-oktober-2026); bukan bukti deployment.
+Kontrak source dan batas retensi/race ada di [kendali data Pendamping](pendamping-runtime.md#kendali-data-existing--21-oktober-2026). Paket ini telah dipasang dan tetap tercakup
+rilis 22 Oktober; bukti exact di [runbook](production-release.md). Pembukaan terbatas
+ini tidak menghidupkan editor memori atau seluruh eksperimen AI yang ditahan.
 
 ## Acuan teknis dan historis
 
@@ -92,6 +101,28 @@ Kontrak source dan batas retensi/race ada di [kendali data Pendamping](pendampin
 - [Verifikasi statistika visual](verifikasi-statistika-visual.md).
 - [Keputusan cleanup dead code](dead-code-cleanup.md): bukti penghapusan,
   migrasi assertion ke jalur aktif, dan kandidat yang sengaja dipertahankan.
+
+## Acuan tambahan dan klasifikasi
+
+| Dokumen | Peran / batas |
+| --- | --- |
+| [Playbook guru](playbook-guru.md), [ulasan P3](playbook-ulasan-p3.md) | Kontrak aktif dan antrean review manusia; draf bukan pengesahan |
+| [Koreksi katalog](catalog-corrections.md), [pilot bank](catalog-pilot.md) | Pisahkan katalog aktif dari revisi eksperimen nonaktif |
+| [Bank kalimat](story-frames.md), [riwayat kualitas soal](question-quality-history.md) | Kontrak aktif dan catatan eksperimen historis |
+| [Tuntutan keterampilan](skill-demand-proposal.md) | Pilot homogen aktif; katalog luas/usulan v2 tidak otomatis aktif |
+| [Pilihan ganda](multiple-choice.md) | Kontrak manual, bukan bukti penguasaan terpandu |
+| [Persetujuan awal](persetujuan-awal.md), [sensor](sensor-perbaikan.md) | Consent, retensi dan batas proyeksi |
+| [Dukungan](support-operations.md) | Runbook manusia, verifikasi identitas/hak data |
+| [Panel layanan](admin-service-launch.md) | Kontrak panel dan snapshot tahap layanan; bukan launch komersial |
+| [Rencana](redesign-plan.md), [keputusan](redesign-decisions.md), [verifikasi redesain](redesign-verification.md) | Histori desain yang sudah diintegrasikan; status baru tercantum di bagian pembuka |
+| [Penamaan repo](repository-naming.md) | Identitas kanonis, kompatibilitas dan histori rename |
+
+Dokumen verifikasi merekam scope pada tanggal pengujian; kegagalan/ketiadaan uji
+perangkat tidak berubah menjadi lulus karena rilis berikutnya. Runbook historis
+admin4/PG/pilot tidak boleh dieksekusi mentah pada skema produksi kini. Aturan
+operasional workspace dan `CLAUDE.md` mengungguli larangan operasional lama, tanpa
+melemahkan guard domain atau izin data. Mockup HTML/JSON di `mockup/` adalah
+referensi desain, bukan implementasi atau daftar pekerjaan baru.
 
 ## Berkas lokal
 

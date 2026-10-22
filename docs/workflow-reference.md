@@ -56,6 +56,16 @@ selidiki scope-nya; jangan langsung menyebut aman karena “bukan perubahan saya
 verifikasi hanya boleh dipakai ulang untuk input relevan identik, dengan command/output/
 exit status nyata. Gagal/terblokir bukan lolos.
 
+## Dokumentasi dan status
+
+[Spec](spec.md)/[context](context.md) adalah ringkasan; rincian ada di
+[referensi produk](product-reference.md)/[arsitektur](architecture-reference.md).
+[Status proyek](status-proyek.md) membedakan selesai, eksperimen, usulan dan
+dibatalkan; [runbook](production-release.md) menyimpan bukti deployment exact.
+Saat merapikan dokumen, jangan mengubah harga/guard/izin manusia atau menghapus
+keterbatasan pengujian. Catatan historis diberi tanggal/supersesi, bukan dipakai
+sebagai instruksi deploy/backfill baru. Periksa tautan lokal dan anchor yang diubah.
+
 ## Peta modul tambahan
 
 | Modul di `mesin/` | Peran |
@@ -68,7 +78,7 @@ exit status nyata. Gagal/terblokir bukan lolos.
 | `design_tokens.py` | Sumber tunggal nilai visual |
 | `teacher_pages.py`, `student_pages.py`, `account_pages.py`, `reports.py`, `landing.py` | Halaman per permukaan |
 | `rumus.py` | Kartu rumus per konsep |
-| `attachments.py` | Foto lembar → AI vision → konfirmasi guru; bukan izin menggunakan data asli untuk pengujian |
+| `attachments.py` | Foto lembar → bacaan vision atau isi-manual tanpa kunci vision → penerapan guru; konfirmasi bukti tetap terpisah, test memakai data sintetis |
 | `learning_cycle.py`, `interventions.py` | Siklus/rekomendasi dan intervensi; kontrak di spesifikasi siklus |
 
 Ketersediaan fitur dibuktikan dari kode/test atau container untuk klaim live, bukan dari
@@ -79,11 +89,15 @@ label “direncanakan”/angka baseline yang bisa basi dalam dokumentasi.
 **Malrule bisa runtuh diam-diam.** `saring_malrule` membuang nilai sama dengan kunci
 atau malrule lain. Jalur diagnosis K bisa hilang walau test biasa hijau.
 
-1. Urutan menentukan yang selamat: yang pertama disimpan. Jika K bisa sama dengan H,
-   taruh **H dulu**.
+1. Filter legacy menyimpan yang pertama; panduan legacy menaruh **H dulu** bila
+   K bisa sama dengan H. Urutan historis/bank tanpa marker tetap dipertahankan.
+   Itu bukan bukti dua prosedur ambigu bisa didiagnosis pasti; revisi penilaian1
+   mempunyai filter berbeda (lihat bawah).
 2. Bentrok identitas aritmetika (`N//d == N%d`, `d == 2*sisa`, siklus satuan 1 pada `a^b`)
    diperbaiki di `_parameter` dengan while-loop reject, bukan urutan saja.
-3. Nudge memakai **while**, bukan `if` sekali: `while str(h) in (kunci, k1, k2): h += 1`.
+3. Pada generator legacy yang memang memakai nudge, loop **while** (bukan `if`
+   sekali) mencegah benturan berulang. Ini tidak berlaku pada revisi penilaian1
+   yang membuang collision tanpa nudge. Pertahankan histori/identitas versinya.
    Jangan memakai nudge untuk menyamarkan malrule yang tidak berlaku: "data pertama"
    harus tetap menjawab data pertama, atau dibuang bila sama dengan kunci. Sampler modus
    menolak semua-data-sama agar kandidat K berasal dari data, bukan angka rekaan.
@@ -98,6 +112,11 @@ atau malrule lain. Jalur diagnosis K bisa hilang walau test biasa hijau.
 8. **Jangan `hash()` untuk randomisasi.** `PYTHONHASHSEED` berbeda per proses; seed sama
    bisa menghasilkan soal berbeda. Hitung via `rng` di `_parameter`, kirim parameter
    eksplisit; determinisme satu-proses saja tidak cukup.
+
+**Revisi penilaian eksperimen:** `assessment_revision.saring_eksak` membuang seluruh
+kandidat collision serta kandidat setara kunci; tidak mengejar jumlah rule dengan
+nudge. Default0, bukan mengganti perilaku legacy atau izin aktivasi produksi.
+[Kontrak pilot](catalog-pilot.md) mengatur review/reader recovery/pair exact.
 
 **Posisi dan riwayat.** Keterbagian diuji 600 seed per level dengan solver modulo
 serta distribusi tiga posisi; modus dibandingkan dengan ekspektasi frekuensi m/n,

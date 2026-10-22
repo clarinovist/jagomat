@@ -1,5 +1,10 @@
 # Rencana redesain panel pengelola
 
+**Status 22 Oktober 2026: implementasi inti selesai, diintegrasikan dan dirilis.**
+Dokumen ini mempertahankan mandat/urutan branch awal, bukan instruksi menahan
+main atau mengulang implementasi sekarang. Bukti lokal dan integrasi terbaru di
+[verifikasi](redesign-verification.md); opsi backend yang dikecualikan bukan backlog otomatis.
+
 ## Mandat dan batas
 
 Brief: `/Users/nugroho/Downloads/jagomat-admin-redesign.zip`, 19 Oktober 2026.

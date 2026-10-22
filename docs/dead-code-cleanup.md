@@ -130,7 +130,12 @@ menghidupkan kembali desain jawaban + kode dua kolom yang sudah ditinggalkan.
   guard, atau tuple contract. Tidak menukar ketiadaan pembacaan dengan asumsi
   ketiadaan efek samping.
 
-## Verifikasi lokal
+## Verifikasi lokal — bukti checkpoint historis
+
+Perintah/parallelism di bawah dicatat apa adanya sebagai hasil saat itu, **bukan
+default workflow sekarang**. Ikuti CLAUDE: scoped lokal, full suite CI empat
+shard; jangan otomatis `-n auto` untuk test HTTP yang berbagi socket. Inventaris
+93template di atas juga historis, bukan target cleanup katalog terbaru.
 
 Semua scoped command memakai interpreter workspace Python 3.12.3, pytest
 `-q -n auto -W error -p no:cacheprovider`, env worker tetap 2:

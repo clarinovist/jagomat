@@ -4,6 +4,11 @@ Status: **eksperimen offline, bukan migrasi katalog atau serving baru**. Ekspans
 template ditunda dalam pekerjaan ini. Lima konsep existing P6 dibandingkan:
 pecahan campuran, kali/bagi pecahan, menyusul, windu→lustrum, LP tabung.
 
+**Pembaruan 22 Oktober:** source fondasi ikut artifact `ccb8906`, tetapi
+`OSN_PENILAIAN_REVISI` terverifikasi tetap nonaktif. “Tidak ada aktivasi produksi”
+di dokumen ini berarti fitur revisi tidak diaktifkan, bukan source belum dipasang.
+[Status proyek](status-proyek.md) memisahkan deployment dari penerimaan pilot.
+
 ## Fondasi bersama
 
 `assessment_revision.py` menambahkan `revisi_penilaian=1` hanya lewat opt-in

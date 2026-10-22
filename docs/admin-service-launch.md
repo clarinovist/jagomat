@@ -1,7 +1,10 @@
-# Panel layanan dan KPI — kandidat admin7
+# Panel layanan dan KPI — kontrak dan histori
 
-Status bagian berikut: snapshot implementasi kandidat admin7; bukan bukti deployment
-atau pengaktifan pembayaran/analitik.
+**Status 22 Oktober 2026:** panel telah diintegrasikan, diredesain dan tercakup
+[rilis terbaru](production-release.md). Runtime/callback/checkout v1 sudah ada;
+skema admin9 dan sensor/policy telah diverifikasi. Launch paket v2 dan KPI
+eksperimen lama tidak otomatis aktif. Bagian admin7 berikut merekam checkpoint
+awal; gunakan [status proyek](status-proyek.md) untuk pekerjaan tersisa.
 
 **Target baru 27 September 2026:** panel layanan akan mengikuti
 [paket Jago/Jago Pro v2](subscription-packages.md). Perlu menampilkan versi kontrak,
@@ -25,8 +28,9 @@ tidak menyalin teks/jawaban mentah, dan tidak mengaktifkan cohort secara otomati
   lewat POST cookie admin+reauth+token signed, intent existing, order sama,
   pemeriksaan owner/principal sebelum-sesudah jaringan, journal dan deduplikasi;
   jam penyelesaian dipakai setelah network agar settlement terlambat dinilai benar.
-  Runtime sekarang mengikuti preview sandbox loopback terisolasi; produksi belum
-  mempunyai adapter/callback siap. Tidak ada override lunas, refund, atau grant manual.
+  Runtime produksi kini mempunyai adapter/callback dan checkout v1; readiness serta
+  tahap tetap fail-closed. Ini bukan UI paket v2 lengkap atau bukti pembayaran berhasil.
+  Jangan menafsirkan ledger v1 dengan harga v2; lihat [kontrak pembayaran](pembayaran-produksi.md).
 - **Perlu ditangani**: halaman antrean berpaginasi untuk journal admin, pemeriksaan
   pembayaran, invoice bermasalah. Tautan menuju sumber. Operasi admin lama yang
   tidak mempunyai perintah/receipt lengkap tetap memerlukan operator teknis;
@@ -96,9 +100,10 @@ efektif runtime juga digerbangi readiness: state tersimpan hanya menghasilkan
 rekonsiliasi bila provider produksi siap, checkout bila callback+recovery siap, dan
 penegakan bila kebijakan siap. Kegagalan membaca config/DB kembali ke sakelar OFF. Ini menggantikan perubahan `.env`
 berulang untuk operasi rutin, tetapi bukan cara melewati gate rilis.
-Baseline recovery admin6 tidak kompatibel. Baseline B7 (`781fbcd`) sudah lolos CI
-`36131909868` (11.866 test, build/probe). Kandidat sekarang mematok SHA+contract B7
-pada mode `migrasi` sehingga pair exact digest wajib; pasang tetap literal false.
+Pada rollout admin7, baseline recovery admin6 tidak kompatibel. B7 (`781fbcd`) lolos CI
+`36131909868` (11.866 test, build/probe). Kandidat saat itu mematok SHA+contract B7
+pada mode `migrasi`; pin terkini mengikuti metadata/runbook, bukan B7. Pair exact
+digest tetap wajib dan pasang otomatis tetap literal false.
 Tidak downgrade schema, restore otomatis, atau aktivasi produksi melalui perubahan
 metadata.
 

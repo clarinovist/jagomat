@@ -1,5 +1,10 @@
 # Verifikasi penyajian soal — Fase 1–2
 
+**Catatan historis fase1–2.** Scope visual/bukti kemudian dilanjutkan pada
+[Fase8](verifikasi-soal-visual.md). Status pekerjaan dan pembatalan di
+[status proyek](status-proyek.md). Pernyataan aktivasi/nonvisual awal bukan status
+konfigurasi sekarang, dan dokumen ini bukan perintah backfill produksi.
+
 ## Cakupan
 
 Snapshot per `sesi_soal` dan satu renderer aman seluruh permukaan sesi. Writer default tetap `teks-v1`, tanpa aktivasi keluarga diagram baru. Descriptor korek/titik tersedia sebagai jembatan teruji dengan fixture. Fase 3–8 bukan bagian penyelesaian ini.
@@ -43,5 +48,11 @@ Laporan tidak merender badan pertanyaan; jalur diagnosis tetap terpisah. CLI lem
 - Tidak ada aktivasi SVG otomatis untuk sesi baru pada fase ini. Lembar sesi yang sebelumnya menyisipkan SVG korek/titik dari renderer topik kini mengikuti snapshot teks, sama dengan anak/guru. Isian deret tetap berupa karakter garis bawah dari teks snapshot, bukan span khusus renderer lama. Ini transisi nonvisual eksplisit, bukan klaim bahwa gambar lama sudah dibekukan. CLI tanpa sesi tetap kompatibel.
 - Deploy additive tanpa backfill dapat melayani sesi warisan, tetapi tampilan baris all-NULL masih direkonstruksi. Backfill tidak wajib untuk startup, namun wajib sebelum mengklaim seluruh histori stabil terhadap perubahan template berikutnya.
 - Build image dan smoke container menjadi gate CI/deploy integrator. Uji lokal bukan klaim produksi sudah berubah.
-- Sebelum push skema: backup `cadangkan.sh`, uji salinan dan baca hanya angka agregat.
-- Setelah deploy: jalankan backfill dengan satu `BEGIN IMMEDIATE`, panggil `jalankan` lalu `verifikasi` sebelum commit, dengan backup terbaru tersedia. Jangan membiarkan writer berpacu saat mengisi warisan. Verifikasi ulang idempotensi/integritas serta smoke publik 200, /akun 401, /murid/ 303.
+- Sebelum rilis skema, gunakan [runbook aktif](production-release.md): backup coherent
+  seluruh state durable, rehearsal dan pasangan image exact. `cadangkan.sh` dua DB
+  lama tidak memenuhi bundle saat ini. Push bukan izin mengubah data.
+- Backfill bukan langkah otomatis setiap deploy. Jika diperlukan dan diotorisasi,
+  preview target/backup dan tahan writer. Pada helper backfill fase ini, gunakan
+  satu `BEGIN IMMEDIATE`, panggil `jalankan` lalu `verifikasi` sebelum commit;
+  buktikan idempotensi, preservasi/integritas dan smoke. Jangan mengulang backfill historis
+  hanya karena checkbox fase ini belum diperbarui.

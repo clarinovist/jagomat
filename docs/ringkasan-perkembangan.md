@@ -23,6 +23,11 @@ boleh dilakukan; izin Pendamping existing bukan izin baru untuk data laporan.
 Acuan: [siklus belajar](siklus-belajar-terpandu.md),
 [runtime Pendamping](pendamping-runtime.md), dan [palang proyek](../CLAUDE.md).
 
+**Pembaruan 22 Oktober:** pembatalan AI v1 tetap berlaku. Dashboard deterministik
+berikut telah berkembang menjadi tab Perkembangan (Ringkasan/Per materi), sedangkan
+CTA/rencana utama di Beranda. Lihat [referensi produk](product-reference.md);
+deskripsi layout lama di bawah adalah histori, bukan backlog mengembalikan UI.
+
 ## 1. Tujuan dan sumber kebenaran
 
 Ringkasan menjawab **yang terlihat → yang masih perlu diperiksa → langkah

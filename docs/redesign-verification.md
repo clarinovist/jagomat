@@ -1,4 +1,11 @@
-# Verifikasi redesain admin — hasil lokal
+# Verifikasi redesain admin — bukti awal dan integrasi
+
+**Pembaruan 22 Oktober 2026:** redesain digabung pada commit `fcb4d66` dan tercakup
+artifact produksi `ccb8906`. Full CI/build/probe/pair dan deployment telah lulus
+pada [rilis 22 Oktober](production-release.md#deploy-seluruh-commit-terbaru--22-oktober-2026).
+Hasil lokal berikut tetap bukti fase awal; larangan push saat itu telah diselesaikan
+melalui integrasi/rilis berikutnya. Uji perangkat fisik/screen reader tetap tidak
+diklaim lulus. Fitur mockup opsional yang belum dibangun tetap terpisah.
 
 ## Status fase
 
@@ -12,7 +19,8 @@
 
 Implementasi lokal selesai dengan penyimpangan konservatif yang tercatat pada
 [keputusan](redesign-decisions.md). Ini **bukan** bukti rilis atau deploy.
-Tidak push, merge main, deploy, atau mutasi produksi. WIP checkout utama tidak disentuh.
+Pada fase branch awal tidak ada push/merge/deploy atau mutasi produksi; WIP
+checkout utama tidak disentuh. Integrasi berikutnya dicatat pada pembaruan di atas.
 
 ## Bukti yang dijalankan
 
@@ -53,9 +61,10 @@ Tidak push, merge main, deploy, atau mutasi produksi. WIP checkout utama tidak d
 
 ## Belum dijalankan / tidak termasuk
 
-- **Full suite CI, build image, deploy** belum dijalankan karena push ditahan.
-  Jangan menyatakan branch sudah lolos gate rilis. Full suite exact SHA tetap
-  diperlukan sebelum merge/rilis sesuai workflow repo.
+- **Pada penutupan branch awal**, full suite CI/build/deploy belum dijalankan
+  karena push ditahan. Status tersebut digantikan pembaruan 22 Oktober di atas.
+  Bukti branch awal bukan bukti rilis sendiri; gunakan hasil exact CI/artifact
+  pada pembaruan di atas, bukan menganggap tes lokal dahulu sudah cukup.
 - Tidak menambah linter/typechecker/npm gate karena proyek tidak memilikinya.
 - Tidak mengubah domain/backend/schema/guard; tidak ada guard keamanan baru yang
   perlu mutation baru. Mutation existing yang masuk tes scoped tetap dijalankan.

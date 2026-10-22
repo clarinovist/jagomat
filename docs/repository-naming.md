@@ -47,11 +47,16 @@ termasuk ketika folder induk dilewati lewat alias. Tidak bergantung pada `$HOME`
 atau cwd pemanggil. Pindahkan **folder proyek utuh**, bukan hanya skrip cadangan.
 Retensi, koneksi VPS, pemeriksaan integritas, dan penamaan cadangan tidak diubah.
 
-## Prosedur cutover dan verifikasi
+## Prosedur cutover dan verifikasi — historis rename
 
-1. Review patch pengaman, full gate lokal, commit hanya scope sendiri. Perubahan
+Rename selesai 20 September dan build/probe/deploy sesudahnya telah berhasil;
+lihat [runbook](production-release.md). Urutan ini bukan pekerjaan rename yang
+masih terbuka. Izin push/SSH sekarang mengikuti workspace/CLAUDE; alias lokal
+dan namespace image tidak dihapus/diganti hanya untuk cleanup.
+
+1. Review patch pengaman, gate sesuai risiko (berat di CI), commit hanya scope sendiri. Perubahan
    staged milik sesi lain tidak boleh ikut commit.
-2. Sebelum rename, setelah izin **push eksplisit**, push patch ke repo lama. Pantau run commit
+2. Pada operasi rename yang diotorisasi, push patch pengaman ke repo lama. Pantau run commit
    yang tepat sampai seluruh test/build/probe candidate dan recovery sukses.
    Jangan rename repo saat run masih berjalan. Periksa mode rilis saat itu:
    snapshot transisi memakai `pasang: if false`, bukan izin mengaktifkan deploy.

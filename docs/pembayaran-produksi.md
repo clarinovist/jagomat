@@ -6,15 +6,24 @@
 > otomatis checkout/ledger v1 atau aktivasi kampanye. Snapshot pembukaan di bawah
 > bersifat historis; baca pembaruan bertanggal dan verifikasi live sebelum operasi.
 
-Lanjutan [fondasi langganan](subscription-foundation.md) untuk tiga hal yang tertunda:
-runtime produksi eksplisit, callback durable, dan rekonsiliasi terjadwal. Source dan tes
-ada; **pembayaran tetap belum aktif**: tier Admin belum pernah dinaikkan, tidak ada secret
-terpasang, dan job `pasang` tetap literal false. Dokumen ini menjelaskan kontraknya, bukan
-klaim bahwa collection berjalan.
+**Status 22 Oktober 2026:** runtime, callback, checkout v1 dan worker rekonsiliasi
+sudah diimplementasikan serta tercakup artifact produksi. Penawaran publik tetap
+**akses awal nonkomersial**, bukan launch paket v2. Jangan menyimpulkan secret belum
+pernah dipasang atau tahap belum pernah dinaikkan: operasi 26 September tercatat pada
+[riwayat rilis](production-release.md). Status merchant/kanal/transaksi dan tahap
+efektif harus diperiksa tersendiri sebelum aktivasi; harmonisasi dokumen tidak
+memanggil provider atau mengaktifkan pembayaran. Auto-deploy tetap nonaktif.
+
+Dokumen ini meneruskan [fondasi v1](subscription-foundation.md); detail paket baru
+dan pekerjaan terbukanya di [paket v2](subscription-packages.md).
 
 ## Batas yang dipatok
 
-Modul baru: `midtrans_secret.py`, `midtrans_produksi.py`, `subscription_produksi.py`,
+Inventaris berikut merekam penambahan runtime v1 pada fase awal, bukan klaim
+skema produksi saat ini masih admin7. Entry worker kanonis sekarang juga berada
+di `mesin/rekonsiliasi_langganan.py` agar ikut image.
+
+Modul awal: `midtrans_secret.py`, `midtrans_produksi.py`, `subscription_produksi.py`,
 `subscription_callback.py`, `subscription_worker.py`, dan `scripts/rekonsiliasi_langganan.py`.
 Tidak ada tabel/schema baru, tidak ada migrasi, dan `serve.py` tidak disentuh — kontrak
 persistensi yang dipakai pair recovery (baseline admin7) tetap utuh. Dispatch callback
@@ -57,7 +66,8 @@ dan penurunan tahap saat insiden tetap boleh meski provider/callback sedang rusa
 
 Transport `midtrans_produksi.TransportProduksi` hanya menerima host `api.midtrans.com`,
 konfigurasi `production`, request kanonik, TLS terverifikasi, tanpa redirect/retry, dan hanya
-membaca respons bounded `application/json`. Merender QR produksi belum dipakai fase ini.
+membaca respons bounded `application/json`. QR checkout kini memakai permukaan
+produksi yang dijelaskan di bawah; status provider tidak disimpulkan dari renderer.
 
 ## Callback `POST /midtrans/callback`
 
@@ -201,12 +211,12 @@ Jadwal cron terpasang 26 Sep 2026: `/etc/cron.d/osn-rekonsiliasi-langganan` menj
 lease file menolak proses kedua), log agregat di `/opt/osn/log/rekonsiliasi-langganan.log`.
 Sebelum secret/tahap siap, worker keluar `2`/`4` (fail-closed) dan tidak menulis apa pun.
 
-## Yang belum dilakukan fase ini
+## Batas checkpoint sebelum aktivasi — historis
 
-Tidak ada aktivasi pembayaran, tidak ada deploy, tidak ada secret yang dibuat/dipasang,
-tidak ada perubahan `.env`/entrypoint, tidak ada pemanggilan Midtrans (sandbox maupun
-produksi), tidak ada perubahan schema, dan job `pasang` tetap literal false. Tier Admin
-disarankan tetap `nonaktif` sampai keputusan di bawah diambil.
+Pada checkpoint source awal, deploy/secret/provider belum dijalankan. Operasi
+26September kemudian menambahkan mount, worker, transisi dan uji checkout; jangan
+menafsirkan catatan awal sebagai status live sekarang. Keputusan D8/D9 di bawah
+sudah diambil. Launch v2 tetap terpisah, dan job pasang otomatis tetap false.
 
 ## Keputusan pengguna — SUDAH DIAMBIL 26 September 2026
 
@@ -244,9 +254,12 @@ lokal). Diaktifkan di kode pada commit aktivasi; kenaikan tahap Admin tetap gerb
    dibuat ulang; tidak ada dana tertahan"; dukungan = teks statis halaman bantuan tanpa
    menyimpan kontak pengguna. (Diterapkan saat surface checkout produksi guru dibangun.)
 
-Terbuka (bukan keputusan kode): status akun merchant Midtrans + provisioning secret oleh
-pemilik (Server Key tidak pernah lewat chat), dan surface checkout produksi guru yang belum
-ada — uji "checkout nyata" menunggu fase surface terpisah.
+Pada saat keputusan awal, provisioning dan surface checkout masih terbuka.
+Surface kemudian diimplementasikan dan uji 26 September menemukan kanal QRIS belum
+aktif (lihat riwayat rilis); catatan itu bukan pemeriksaan merchant terkini.
+Sebelum launch, verifikasi readiness/kanal dan bukti transaksi pada scope berizin.
+Server Key tidak pernah lewat chat, dan uji pembayaran nyata tidak boleh direka
+sebagai sudah berhasil hanya karena callback/checkout tersedia.
 
 Riset yang mempersempit dua keputusan pertama: `docs/plan/2026-09-24-payment-provider-research.md`
 dan `docs/plan/2026-09-24-tax-retention-research.md` (lokal, gitignored).

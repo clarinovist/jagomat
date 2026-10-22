@@ -1,15 +1,34 @@
-# Design System — OSN Mesin Latihan
+# Design system — Jagomat
 
-Sumber tunggal untuk semua nilai visual aplikasi. Implementasi ada di
-`mesin/design_tokens.py`; dokumen ini adalah referensi naratif.
+**Sumber nilai visual otoritatif: `mesin/design_tokens.py`.** Dokumen ini referensi
+naratif dan riwayat penerapan; nilai/cascade aktual harus dicek di source/DOM.
+Mockup lama di arsip lokal `../../osn-resources/referensi/desain-ui/`, sedangkan
+`docs/mockup/` memuat referensi empat tab profil. Keduanya bukan runtime aplikasi.
 
-Mockup UI/UX (9 halaman) ada di arsip lokal `../../osn-resources/referensi/desain-ui/`. Generator: `gen_guru.py`
-(gpt-image-2 via chenzk.top).
+## Kontrak visual saat ini — 22 Oktober 2026
+
+- Guru/profil memakai cream/teal sesuai komponen aktif; admin mempunyai token
+  `ADMIN_*`, font sistem dan tema Sistem/Terang/Gelap tersendiri. Bukan satu
+  latar/font identik di semua permukaan. Akun memakai font sistem; beranda guru
+  mempertahankan Google Fonts existing melalui CSP khususnya.
+- Empat tab profil berbagi lebar960px `ANAK_LEBAR`/`child_style.py`; lebar halaman
+  lain mengikuti komponen, belum keputusan menyeragamkan semuanya ke960px.
+- Orang dewasa di UI guru disebut Guru/Anda; Pendamping nama fitur AI. Peringatan
+  draf playbook tetap terlihat saat disclosure tertutup.
+- Area sentuh Info dan kontrol terkait44px; teks informatif pada permukaan yang
+  diperbaiki22Oktober minimal14px. Token meta legacy12/13px masih ada; jangan
+  mengklaim semua UI sudah memakai ukuran baru atau semua token diganti global.
+- Tinjauan memakai enhancement accordion berhash CSP dengan fallback native;
+  menyembunyikan panel tidak men-disable field. Penilaian/konfirmasi tetap server-side.
+- Bagian bertanggal di bawah merekam keputusan saat itu, bukan override kontrak
+  terbaru. Pembaruan UI harus dirender dengan data sintetis dan diuji; mockup/teks
+  dokumentasi saja bukan bukti aksesibilitas atau penerimaan perangkat nyata.
 
 ## Satu palet hangat (restyle 29 Agu 2026)
 
-Sejak restyle, seluruh permukaan — guru, murid, dan lembar cetak — memakai
-SATU palet hangat dari mockup. Keputusan ini diambil karena mockup guru
+Pada restyle 29 Agustus, permukaan guru, murid dan lembar cetak diarahkan ke
+palet hangat dari mockup; admin dan komponen baru kemudian memakai scope tersendiri.
+Keputusan awal ini diambil karena mockup guru
 (guru-*.png) semuanya dibangkitkan dengan palet yang sama dengan murid
 (cream + teal + coral + amber), sehingga memisahkan dua palet justru
 membuat halaman guru tidak cocok dengan desain yang sudah disetujui.
@@ -77,9 +96,9 @@ Dari mockup guru-laporan, untuk diagram tren dan diagnosis.
 | UKURAN_BADAN_CETAK | 10.5pt | Body text cetak |
 | LINE_HEIGHT | 1.55 | Spacing baris |
 
-Tidak ada font custom/webfont — pakai system stack supaya tidak ada loading
-delay dan konsisten di semua device. Rounded sans-serif (terlihat di mockup)
-tercapai via system font di Apple/Windows.
+Tabel ini merekam stack dasar/legacy. Admin dan Akun memakai font sistem;
+beberapa shell guru/public mempertahankan webfont existing. Jangan menghapus
+atau memperluas sumber font/CSP berdasarkan asumsi semua halaman sama.
 
 ### Skala layar dewasa (26 Sep 2026)
 
@@ -422,7 +441,8 @@ File CSS per permukaan (semuanya `import design_tokens as T`):
 
 ### Perampingan halaman setelah login (26 Sep 2026)
 
-- Ikon Info memakai `.info-baris`: glyph tetap 18px/kotak 26px, transparan,
+- Pada fase26September ikon Info memakai glyph18px/kotak26px; target sentuh
+  kemudian diperbesar44px pada22Oktober. `.info-baris` tetap transparan,
   tidak mewarisi warna/font tombol utama. Bubble rata kanan terhadap baris
   petunjuk dan dibatasi lebar baris agar tidak keluar layar sempit.
 - `.rincian-ui-st` adalah disclosure native untuk penjelasan sekunder, bukan
@@ -450,6 +470,10 @@ File CSS per permukaan (semuanya `import design_tokens as T`):
   konfirmasi, pilihan cara, maupun status pedagogis. Tidak ada JS/dependensi baru.
 
 ### Navigasi dan pengantar ringkas (27 Sep 2026)
+
+Histori: pemilih variasi isi A–D/POST refresh di bawah telah digantikan profil
+otomatis dan satu form tiga mode; [referensi produk](product-reference.md)
+menjelaskan alur kini. Jangan mengembalikan kontrol lama sebagai backlog.
 
 - Tab/filter laporan tidak memakai centang dekoratif. Pilihan aktif tetap memiliki
   `aria-current`, latar berbeda, border lebih tebal, dan teks tebal; kartu materi

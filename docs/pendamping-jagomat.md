@@ -8,7 +8,10 @@ menyatu pada profil anak dan pemeriksaan sesi; lihat
 sebagai arsip hanya-baca di pengaturan akun; tidak ada composer atau halaman
 Pendamping mandiri. Penerimaan redesign dan keadaan produksi tetap harus
 dibuktikan terpisah; dokumen
-ini bukan persetujuan mengirim data personal ke layanan AI.
+ini bukan persetujuan mengirim data personal ke layanan AI. Pengelolaan hapus/cabut
+sudah tersedia lewat halaman kelola terpisah sejak 21 Oktober; lihat
+[runtime aktif](pendamping-runtime.md#kendali-data-existing--21-oktober-2026).
+Composer standalone tetap tidak dihidupkan kembali oleh perubahan itu.
 
 Acuan: [palang proyek](../CLAUDE.md), [siklus belajar](siklus-belajar-terpandu.md),
 [design system](design-system.md), dan [workflow](workflow-reference.md).
@@ -184,7 +187,7 @@ selalu membahas masa lalu.
   inline tanpa reload, status menunggu, dan pemulihan pesan gagal; fallback native
   tetap tersedia. Streaming, auto-scroll ke balasan, textarea auto-grow, atau
   interaksi JS lain memerlukan persetujuan tersendiri. Lihat
-  [kontrak runtime](pendamping-runtime.md#kirim-tanpa-reload).
+  [kontrak runtime](pendamping-runtime.md#panel-tanpa-reload--persetujuan-teknis-27-september-2026).
 
 Mockup lokal: `../../osn-resources/referensi/desain-ui/pendamping-2026-09-11/`.
 Folder tersebut opsional dan tidak diperlukan untuk clone, test, atau build.

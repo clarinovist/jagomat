@@ -7,6 +7,19 @@ izin mengubah invoice/grant lama atau mengaktifkan kampanye tanpa tanggal.
 
 ## 1. Status dan sumber kebenaran
 
+**Pembaruan 22 Oktober 2026:** penawaran tetap akses awal nonkomersial. Katalog v2,
+ledger/service admin8 serta ledger/adapter kuota admin9 tersedia di source dan
+tercakup artifact produksi; ini bukan aktivasi trial/paywall atau checkout v2 lengkap.
+`assistant_entitlement_runtime.py` sudah menghubungkan status/reservasi kuota ke
+Pendamping/foto dengan gate penegakan. `CUTOFF_AKTIVASI=None` tetap menutup sinkron
+trial publik otomatis. UI pemilih paket/detail admin v2 lengkap, transisi akun,
+pengajuan/pemenuhan refund serta keputusan promo masih pekerjaan terpisah.
+Pin/recovery admin7 di checkpoint awal di bawah adalah histori, **bukan blocker
+migrasi yang perlu diulang**; schema produksi admin9 telah diverifikasi.
+Status exact di [runbook](production-release.md), daftar pekerjaan di [status proyek](status-proyek.md).
+
+### Snapshot keputusan dan checkpoint awal — 27 September 2026
+
 | Lapisan | Status saat keputusan |
 | --- | --- |
 | Keputusan harga/fitur di dokumen ini | Disetujui |
@@ -34,8 +47,9 @@ izin mengubah invoice/grant lama atau mengaktifkan kampanye tanpa tanggal.
   provider, callback dan worker memakai dispatcher invoice v1/v2. Duplikasi sumber
   transaksi lintas versi ditolak, replay tidak menambah grant, unknown/terlambat tetap
   untuk pemeriksaan. Pemilihan promo tidak diwarisi dari kampanye v1.
-- HTTP pemilih paket, tampilan detail admin v2, enforcement paket/kuota, transisi akun
-  nyata, request/pemenuhan refund dan aktivasi **belum tersedia**. Permukaan lama
+- Pada checkpoint D1: HTTP pemilih paket, tampilan detail admin v2, enforcement
+  paket/kuota, transisi akun nyata, request/pemenuhan refund dan aktivasi belum tersedia.
+  Fondasi kuota kemudian bertambah; lihat pembaruan 22 Oktober di atas. Permukaan lama
   ditahan untuk akun/invoice v2 agar tidak menampilkan status/fitur v1 yang keliru.
   Service D1 diuji sintetis; tidak mengklaim checkout pengguna v2 siap.
 - Rilis admin8 belum diizinkan oleh probe/recovery admin7 yang terpasang. Perlu baseline
@@ -186,8 +200,9 @@ bukan Jago gratis, Pro, atau trial baru. Entitlement harus ditegakkan server-sid
 jalur sebenarnya, bukan dengan menyembunyikan tombol.
 
 Aktivasi kampanye, penegakan, pemberian masa coba akun lama, dan migrasi state tidak
-terjadi melalui perubahan landing. UI sebelum integrasi tetap berlabel **penawaran
-belum dibuka**, dengan harga sebagai rencana dan tanpa CTA yang menjanjikan trial aktif.
+terjadi melalui perubahan landing. UI publik kini berlabel **akses awal nonkomersial** dan paket sedang disiapkan;
+bukan CTA yang menjanjikan trial/checkout v2 aktif. Harga yang disetujui di dokumen
+ini tetap keputusan penawaran mendatang, bukan harga yang otomatis ditagihkan.
 
 ## 8. Urutan eksekusi dan acceptance
 

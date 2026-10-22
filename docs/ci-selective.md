@@ -67,6 +67,11 @@ image, menerbitkan manifest pasangan, atau memasang aplikasi.
 
 ## Gate rilis manual
 
+Dokumentasi kontrak/runbook di luar allow-list tetap menjalankan jalur push kode;
+jangan memperluas allow-list untuk meloloskan harmonisasi. Commit dokumentasi
+tanpa perubahan artifact aplikasi tidak memerlukan rebuild/restart produksi.
+Catat revision image terakhir terpisah dari HEAD dokumentasi.
+
 Sebelum release/cutover, jalankan workflow manual pada SHA `main` yang akan dirilis:
 
 ```bash

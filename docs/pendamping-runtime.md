@@ -6,6 +6,15 @@ awal; bagian UI inline di dokumen ini menjelaskan kontrak implementasi sekarang;
 [palang proyek](../CLAUDE.md) dan [siklus belajar](siklus-belajar-terpandu.md)
 tetap berlaku. Seluruh verifikasi lokal menggunakan DB, akun, dan provider sintetis.
 
+## Status saat ini — 22 Oktober 2026
+
+Panel inline/konteks dan kendali data existing tersedia serta tercakup
+[rilis ccb8906](production-release.md#deploy-seluruh-commit-terbaru--22-oktober-2026).
+Hapus/cabut dan pengelolaan saat provider mati **sudah dibuka kembali dan selesai**.
+Eksperimen prompt baru tetap ditahan setelah dua batch; editor memori lebih luas
+dan penerimaan perangkat yang dibatalkan tidak ikut dibuka. Status per scope di
+[status proyek](status-proyek.md); bagian bertanggal di bawah mempertahankan histori.
+
 ## Status pengembangan lanjutan — 18 September 2026
 
 **DIBATALKAN (cancelled)** atas permintaan pengguna: UI hapus chat/cabut izin,
@@ -416,10 +425,11 @@ Adapter warisan yang masih dipertahankan:
 - Skrip berada di modul Python agar termasuk COPY wildcard image; izin CSP hanya
   hash tepat skrip tersebut, bukan `unsafe-inline` atau seluruh script same-origin.
 
-**Dibatalkan, tidak tersedia melalui UI baru:** hapus chat/cabut izin dan
-pengelolaan saat provider tidak dikonfigurasi. Picker keluarga langsung, editor
-parameter dan streaming tetap di luar cakupan, bukan janji implementasi atau tombol
-palsu. Persetujuan JS panel bukan persetujuan provider/konteks, entitlement paket,
+**Pembaruan 21 Oktober:** hapus chat/cabut izin dan pengelolaan ketika provider mati
+tersedia melalui [halaman kelola](#kendali-data-existing--21-oktober-2026), bukan
+kontrol ganda di composer. Pembatalan 18 September tidak lagi berlaku untuk scope ini.
+Picker keluarga langsung, editor parameter dan streaming tetap di luar cakupan,
+bukan janji implementasi atau tombol palsu. Persetujuan JS panel bukan persetujuan provider/konteks, entitlement paket,
 perubahan diagnosis/reducer, atau izin mengirim draf pekerjaan.
 
 Wireframe/prototype lokal opsional, bukan dependensi aplikasi/build/test.

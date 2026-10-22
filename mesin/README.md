@@ -1,466 +1,154 @@
 # Jagomat — Mesin Latihan
 
-Alur mingguan: cetak lembar -> anak kerjakan di kertas -> masukkan hasil ->
-baca laporan.
+Aplikasi matematika SD: **siapkan latihan → anak mengerjakan → guru meninjau dan
+mengonfirmasi → ikuti langkah berikutnya**. Fokus sekarang guru les in-house;
+peran guru tetap mencakup orang tua. [Spesifikasi](../docs/spec.md) ·
+[Status dan pekerjaan tersisa](../docs/status-proyek.md) · [Arsitektur](../docs/context.md).
 
-Folder proyek kanonis `~/Documents/jagomat/`. Alias `~/Documents/osn/` sementara
-tetap tersedia untuk sesi/venv lama. Repo GitHub kanonis **`clarinovist/jagomat`**;
-namespace image GHCR tetap lama untuk kompatibilitas deploy/recovery. Lihat
-[panduan penamaan](../docs/repository-naming.md).
+## Menggunakan website
 
-## Sekali saja (sudah dilakukan)
+Situs kanonis **https://jagomat.id**. Masuk melalui `/masuk`; guru menuju `/guru`,
+murid ke ruang latihan, admin ke panel pengelola. Akses awal nonkomersial; keberadaan
+kode langganan bukan penawaran berbayar aktif.
 
-```bash
-cd ~/Documents/jagomat/mesin
-python3 -m venv .venv
-./.venv/bin/pip install pytest
-./.venv/bin/python setup_db.py
-```
+1. **Beranda guru:** cari anak milik Anda atau filter kelompok langkah berikutnya.
+   Yang terlama menunggu konfirmasi diprioritaskan. Kelompok bukan peringkat kemampuan.
+2. **Profil anak:** empat tab **Beranda, Latihan, Riwayat, Perkembangan**. Beranda
+   menunjukkan satu CTA dari siklus; latihan manual tetap tersedia. Kelas sekolah
+   opsional, berbeda dari konfigurasi internal P3–P6.
+3. **Kerjakan:** gunakan halaman murid/tautan satu sesi atau cetak lembar dari
+   halaman sesi. Kunci dan pembahasan hanya untuk guru, bukan untuk dibagikan ke anak.
+   Seed deterministik membantu reproduksi, **bukan jaminan soal tidak pernah berulang**.
+4. **Dari kertas:** unggah foto sebagai bukti. Jika vision tidak dikonfigurasi,
+   halaman **Isi dari lembar** meminta transkripsi guru tanpa menyebutnya bacaan AI.
+   Terapkan tidak menggantikan tinjauan dan konfirmasi hasil.
+5. **Tinjau:** periksa jawaban, cara dan pemahaman; usulan diagnosis bukan keputusan
+   final. Simpan draf bila perlu, lalu **Konfirmasi hasil sesi** secara eksplisit.
+6. **Perkembangan:** Ringkasan/Per materi memproyeksikan bukti yang sama dengan
+   Beranda. Angka aktivitas bukan skor kemampuan; belum dinilai bukan tidak mampu.
 
-## Dipakai lewat website (cara utama)
+Cetak lewat browser pada ukuran kertas/skala yang sesuai preview. Untuk cetak ulang,
+buka **sesi tersimpan**: snapshot/bank historis menjadi acuan; jangan membuat sesi baru
+hanya dari seed dan menganggap hasilnya selalu byte-identik setelah perubahan versi.
 
-**https://<domain-anda>** — akun `guru` (orang tua) atau `admin`
-(pengelola).
+## Membaca diagnosis
 
-Semuanya dari satu tempat, tidak perlu terminal:
+| Kode | Dugaan yang perlu diperiksa | Arah tindakan |
+| --- | --- | --- |
+| B | Baca/makna soal | Minta anak menjelaskan yang diketahui dan ditanyakan |
+| K | Konsep | Gunakan pengenalan/contoh atau intervensi yang cocok |
+| H | Hitung | Periksa langkah perhitungan, bukan langsung menambah drill |
+| E | Penulisan akhir | Cocokkan hasil cara dengan jawaban akhir |
+| N | Menebak | Periksa alasan/pemahaman; benar saja belum cukup |
+| T | Belum mengenal | Pengenalan lalu probe, bukan label kelemahan |
 
-**1. Buat sesi** — tombol "Buat sesi baru untuk <nama>" di halaman utama.
-Seed-nya selalu baru dan berbeda antar anak, jadi soalnya tidak pernah
-terulang dan Andi tidak bisa menyalin Bila.
+Tidak ada aturan “K≥3 turunkan level” atau “H banyak pasti sudah paham”. Sumber
+status/rekomendasi adalah [siklus belajar](../docs/siklus-belajar-terpandu.md),
+dengan konteks, bukti terkonfirmasi, jeda dan pemeriksaan penjelasan. Malrule adalah
+hipotesis prosedur, belum bukti bahwa anak sungguhan memakai prosedur tersebut.
 
-**2. Cetak lembar** — kolom **Lembar** di tabel sesi:
+## Akun dan batas akses
 
-- `soal` — untuk anak. Buka lalu Ctrl+P (Cmd+P).
-- `kunci` — untuk kamu. Memuat kunci + tabel diagnosis, **jangan sampai
-  terlihat anak**.
+- `/akun` menyediakan pengaturan akun, kartu daftar anak/Kelola, dan akun latihan
+  melalui `?section=`. Anak ber-riwayat/bukti terkait tidak bisa dihapus sembarangan.
+- Nama tampilan anak dan login berbeda; nama anak dapat sama antar keluarga, login
+  harus unik. Menghapus login bukan menghapus profil atau seluruh data keluarga.
+- Guru hanya mengakses datanya sendiri; resource asing → **404 identik**, tanpa
+  efek samping. Murid tidak melihat kunci/malrule/diagnosis/laporan.
+- Admin dapat mengelola data murid lintas keluarga melalui permukaan pengelola,
+  tetapi tidak mengubah akun/sandi admin lain. Jangan mengedit DB/auth manual.
+  Bootstrap `serve.py` dapat mempromosikan guru pertama bila admin belum ada dan
+  memberi pemilik pada data warisan; bukan perintah menjalankannya terhadap data
+  produksi/preview tanpa memahami efek startup.
+- Keluar memakai POST dan mencabut sesi. Reset/hapus keluarga memerlukan verifikasi
+  independen dan [prosedur dukungan](../docs/support-operations.md).
 
-Cetak pada **skala 100%**, jangan "fit to page". Menyekalakan mengecilkan
-kotak Caraku, padahal itu inti lembarnya.
+## Bantuan dan AI
 
-**3. Masukkan hasil** — klik nomor sesinya. Ketik jawaban anak dan ringkasan
-kotak "Caraku". Kode diagnosis muncul otomatis; kolom Kode hanya diisi kalau
-kamu tidak setuju dengan usulan mesin.
+Bantuan statis tersedia tanpa AI. Playbook berisi **15 draf P3**, tampil dengan
+peringatan permanen; belum disahkan manusia. [Prosedur review](../docs/playbook-guru.md).
 
-**4. Baca laporan** — tab **Laporan perkembangan** di profil anak:
+**Pendamping** adalah fitur AI, bukan sebutan orang dewasa. Konteks dan pengiriman
+ke provider memerlukan izin sesuai produk. Usulan tidak mengubah diagnosis/bukti
+secara otomatis. Kelola data dari Akun: hapus satu chat atau cabut izin, termasuk
+ketika provider mati. Hapus akses aktif tidak menjanjikan penghapusan fisik semua
+salinan seketika. [Kontrak runtime/retensi](../docs/pendamping-runtime.md).
 
-- **Progres penguasaan materi Jagomat** — seluruh target keterampilan kelas anak,
-  bukan hanya yang sudah dikerjakan. Grafik memisahkan target menunjukkan pemahaman,
-  masih dipelajari, perlu cek kembali, dan belum dinilai. Bukan seluruh kurikulum sekolah.
-- **Penguasaan per materi** — persentase target yang sudah terbukti; buka topik untuk
-  melihat target, pola, dan bukti. Belum dinilai bukan berarti tidak mampu.
-- **Aktivitas** — soal dikerjakan, benar, salah, dan ketepatan jawaban sebagai
-  catatan sekunder. Pilih 7 hari, minggu ini, bulan ini, atau rentang tanggal sendiri.
-  Rincian/tren latihan dapat dibuka, bukan skor penguasaan.
-- **Lihat rencana belajar** — buka resume di laporan: tugas belum selesai, posisi
-  belajar, materi/langkah berikutnya, jadwal, dan satu tindakan utama.
-- **Perjalanan dan bukti / Detail per sesi** — rincian opsional dalam `<details>`.
-  Panduan hitungan ada di bawah data, kamus penilaian ada di rincian teknis.
+Kunci provider disimpan privat di host, tidak di repo/image/log. Konfigurasi
+`DEEPSEEK_MODEL` dan `DEEPSEEK_VISION_MODEL` mengikuti deployer teruji; jangan
+menyalin secret dari sumber yang ditebak. Fitur AI dapat nonaktif ketika konfigurasi
+hilang; kesehatan halaman publik tidak membuktikan provider bekerja.
 
-Tanggal aktivitas mengikuti pencatatan jawaban pertama, termasuk latihan berjalan;
-untuk hasil kertas, ini tanggal input. Koreksi dapat mengubah hasil statistik, tetapi
-status belajar tetap memakai bukti terkonfirmasi dan reducer yang sama dengan profil.
+## Pengembangan lokal
 
-## Membaca kodenya
-
-| Kode | Artinya | Tindakan |
-|---|---|---|
-| **K** | salah konsep | **yang paling penting** — ajar ulang |
-| **B** | salah baca soal | latih baca, bukan ajar ulang materi |
-| **H** | salah hitung | paling ringan, latihan saja |
-| **E** | salah tulis akhir | kecerobohan menyalin |
-| **T** | belum pernah lihat | bukan kegagalan, ini peta materi |
-| **N** | menebak | berhenti nilai, tanya lisan dulu |
-
-**Metrik utama jumlah K, bukan skor.** Anak dengan 9 H skor 3 lebih siap
-daripada anak dengan 3 K skor 9.
-
-Cara membaca polanya:
-
-- **K = 0, H banyak** -> konsep sudah terbentuk; latih aritmetika, jangan
-  tambah soal pola
-- **K = 1-2 terkumpul di satu tipe** -> sasaran jelas, ajar ulang satu topik
-  itu lalu uji dengan soal beda angka
-- **K >= 3 tersebar** -> jangan naik level, turunkan dulu
-- **B banyak** -> bukan masalah matematika; latihannya kotak "mintanya apa"
-- **N banyak** -> hentikan penilaian, tanya lisan; kode lain tidak bisa
-  dipercaya tanpa coretan
-
-## Dipakai lokal di Mac (cadangan)
-
-Berguna kalau VPS bermasalah, atau untuk menghasilkan PDF (container tidak
-punya Chrome, jadi tautan `soal` di website menghasilkan halaman untuk
-dicetak langsung dari browser, bukan berkas PDF).
+Repo Git benar berada **satu tingkat di atas folder ini**. Semua Git memakai
+`git -C /Users/nugroho/Documents/jagomat …`, bukan repo basi `mesin/.git`.
+Interpreter existing: `mesin/.venv/bin/python` (lokal3.9.6); CI/container3.12.
+Runtime hanya stdlib; dev dependency pytest/pytest-xdist. Jangan membuat ulang
+venv atau menjalankan `setup_db.py` hanya untuk membaca/menguji kode.
 
 ```bash
-cd ~/Documents/jagomat/mesin
-./.venv/bin/python generate_worksheet.py --pdf   # cetak lembar + PDF
-./.venv/bin/python serve.py             # halaman guru di 127.0.0.1:8724
+cd /Users/nugroho/Documents/jagomat
+# Contoh scoped test; sesuaikan dengan perubahan.
+mesin/.venv/bin/python -m pytest mesin/__tests__/test_generator.py -q -W error -p no:cacheprovider
+# Sesudah stage scope yang direview; membaca index Git.
+mesin/.venv/bin/python scripts/check_repo.py
 ```
 
-Basis data lokal terpisah dari VPS. Pakai salah satu saja supaya datanya
-tidak bercabang.
+Full suite sebelum rilis memakai CI empat shard, bukan `-n auto` lokal karena test
+HTTP berbagi socket. Preview harus memakai DB/sandi/session temp dan fixture
+sintetis; **jangan menjalankan `serve.py` dengan default data nyata untuk preview**.
+Panduan lengkap: [workflow](../CLAUDE.md), [preview/verifikasi](../docs/workflow-reference.md).
+CLI `generate_worksheet.py` tetap alat latihan manual; gunakan `--help` dan path
+keluaran terisolasi, bukan asumsi CLI mengorkestrasi siklus terpandu.
 
-## Masuk & akun
+## Struktur kode
 
-Buka **/masuk**, isi nama & sandi. Sesi disimpan sebagai kuki HttpOnly
-(`osn_sesi`, TTL 14 hari, SameSite=Lax; atribut Secure hanya dipasang saat
-permintaan benar-benar lewat HTTPS — terdeteksi dari `X-Forwarded-Proto`
-proxy atau env `OSN_HTTPS=1`, bukan nama host, supaya kuki tetap tersimpan
-di peramban anak yang membuka lewat HTTP LAN) — tidak ada popup peramban. Admin diarahkan ke **/admin** setelah masuk; guru ke beranda;
-murid ke halaman kerja. Keluar lewat tombol **Keluar** (POST /keluar) yang
-menghapus sesi di server dan kuki di peramban. Percobaan masuk yang gagal
-dibatasi 5 kali / 15 menit per nama+IP; akun yang tidak ada tetap menjalankan
-PBKDF2 umpan (~120 ms) sehingga tidak dapat dibedakan lewat waktu respons.
+| Area | Modul |
+| --- | --- |
+| Topik/soal | `topics.py`, `topic_*.py`, `templates.py`, `generator.py` |
+| Snapshot/lembar | `question_views.py`, `render.py`, `worksheets.py` |
+| Data/identitas | `database.py`, `*_store.py`, `*_schema.py`, `auth.py`, `sessions.py`, `students.py` |
+| Belajar/laporan | `diagnosis.py`, `learning_cycle.py`, `learning_cycle_service.py`, `reports.py`, `mastery_*` |
+| Halaman/HTTP | `web.py`, `*_http.py`, `*_pages.py`, `teacher_shell.py`, `child_*` |
+| Layanan | `assistant_*`, `ai_*`, `subscription_*`, `midtrans_*`, `admin_*`, `research_*` |
+| Gaya | `design_tokens.py`, `style_stitch.py`, `teacher_style.py`, `admin_style.py`, `child_*_style.py` |
 
-## Akun & siswa
+Peta façade dan alasan boundary: [referensi arsitektur](../docs/architecture-reference.md).
+`konten/` internal guru, `publik/` aset publik; jangan mencampurkan keduanya.
 
-Tautan **"Akun & Siswa"** di menu pengguna (dropdown topbar) membuka
-**/akun** — halaman dengan nav samping (sidebar) dan tiga section via
-`?section=`:
+## Produksi, CI dan backup
 
-- **akun** — ganti sandi (minimal 12 karakter, perlu sandi lama). Ganti
-  sandi acak bawaan deploy dengan yang kamu ingat.
-- **siswa** — tabel siswa: select tingkat + simpan, kolom status akun
-  latihan (nama login anak, atau "belum ada login"), dan tombol Hapus.
-  Anak baru ditambahkan lewat kartu "Tambah anak" (satu pintu: siswa +
-  akun latihannya sekaligus; nama login opsional, bawaan sama dengan
-  nama anak). Anak yang kamu buat otomatis jadi milik keluargamu.
-- **akun-murid** — tabel status akun latihan anak, setel sandi, tambah akun
-  murid, hapus akun.
-
-Section tak dikenal jatuh ke "akun". Setelah aksi POST, kamu kembali ke
-section asalnya.
-
-Menghapus akun latihan TIDAK menghapus anaknya — anak tetap ada di
-tabel siswa, tinggal dikasih login baru dari section akun-murid. Sebaliknya,
-menghapus siswa menghapus sesi, jawaban, dan diagnosisnya (riwayat yang
-tidak bisa dibangun ulang), jadi siswa ber-riwayat sengaja tidak bisa
-dihapus; siswa tanpa riwayat (salah ketik / data uji) boleh dihapus dan
-akun latihannya ikut dihapus sekalian.
-
-Admin melihat ketiga section dengan daftar SEMUA keluarga.
-
-Untuk pemasangan lokal di Mac, daftar awal ada di `SISWA` pada
-`setup_db.py` (aman dijalankan ulang).
-
-### Tiga peran (multi-keluarga)
-
-Aplikasi ini sekarang dipakai beberapa keluarga. Setiap akun di
-`sandi.json` punya salah satu dari tiga peran:
-
-- **admin** — pengelola produk: dashboard khusus di **/admin** berisi
-  ringkasan jumlah keluarga/siswa/sesi, tabel keluarga dengan nama anak
-  sebagai tautan ke `/laporan/<id>`, form buat akun orang tua, setel ulang
-  sandi, dan hapus akun orang tua (typo/duplikat — anak & sesinya tetap).
-  Admin full-write: boleh menulis data murid keluarga mana pun persis
-  seperti guru (sesi baru, simpan/hapus sesi, cerita, lampiran, /akun
-  semua section). Satu-satunya yang tetap tertutup: menyentuh akun/sandi
-  sesama pengelola (milik deploy).
-- **guru** — orang tua: hanya melihat anak yang jadi miliknya. Keluarga
-  lain tidak lewat di matamu — bukan disembunyikan setengah-setengah,
-  memang tidak ada di datamu.
-- **murid** — anak: terikat ke satu siswa lewat `siswa_id` di akunnya,
-  jadi nama login boleh berbeda dari nama tampilan anak.
-
-Setiap halaman pengelola (guru & admin) punya **topbar dengan menu
-pengguna** — dropdown CSS-only (`<details>`). Guru melihat "Akun & Siswa"
-+ "Keluar"; admin melihat "Dashboard admin" + "Ganti sandi" + "Keluar".
-Brand di topbar adalah tautan beranda (`/` untuk guru, `/admin` untuk admin).
-
-Kepemilikan tertulis di kolom `siswa.pemilik` — username orang tuanya.
-Guru membaca `WHERE pemilik = username-nya`; admin tanpa filter. Baris
-ber-pemilik kosong itu warisan lama dan hanya terlihat admin. Kalau belum
-ada admin, `serve.py` saat startup mempromosikan akun guru PERTAMA jadi
-admin lalu membubuhkan namanya ke semua siswa warisan — otomatis,
-idempoten, tanpa menyunting `sandi.json` lewat tangan.
-
-Nama siswa kini unik per keluarga, bukan global: dua keluarga boleh
-sama-sama punya "Bima". Nama akun (login) tetap unik global — kalau
-tabrakan, pakai variasi nama.
-
-Rute guru yang ber-id (sesi, laporan, lembar, lampiran, cerita) menolak
-milik orang lain dengan **404**, bukan 403 — keberadaan id orang lain
-bukan informasi yang boleh bocor. Orang tua baru boleh daftar sendiri di
-**/daftar**; itu tetap terbuka justru karena isolasinya — pendaftar baru
-melihat nol data keluarga mana pun.
-
-## Cetak ulang lembar yang hilang
-
-Seed tercantum di kolom terakhir tabel sesi dan di lembar kunci. Sesi lama
-tetap bisa dibuka lewat tautan `soal` — lembarnya dibangkitkan ulang dari
-seed, jadi selalu sama persis.
-
-## Menjalankan test
+- Domain `https://jagomat.id`, SSH `biznet-sekolahdesain`, container `osn-mesin`,
+  data `/opt/osn/data`, image `ghcr.io/clarinovist/osn-mesin-latihan`.
+- **Push bukan deploy.** CI push menjalankan palang/tes cepat; dispatch menjalankan
+  full kandidat+recovery, build/probe/pair. Job `pasang` tetap literal false.
+- Pemasangan memakai pasangan **digest exact** yang lolos CI, bukan `latest` atau
+  sekadar SHA/tag. Preflight live sebelum maintenance, backup/rehearsal, approval
+  sekali pakai, swap/health dan pemulihan akses mengikuti [runbook](../docs/production-release.md).
+- Recovery adalah image pinned kompatibel, **bukan selalu image sebelumnya**.
+  Recovery sehat setelah kegagalan kandidat tetap kegagalan rilis; tidak auto-restore DB.
+- Smoke anonim: `/`200, `/akun`401, `/murid/`303 ke `/masuk`. Jangan memakai akun
+  atau data anak untuk smoke dan jangan membuang log privat ke chat.
+- `cadangkan.sh` adalah helper lama dua DB dengan retensi; **bukan** backup lengkap
+  rilis saat ini. Bundle inti: empat DB+auth; riset terpisah. Jadwal/off-site/restore
+  berkala perlu bukti operasional sendiri. Jangan menjalankan prune atau restore
+  hanya demi perapian. Tidak build di VPS atau menyalakan Docker lokal otomatis.
 
 ```bash
-# paralel di semua inti CPU — butuh pytest-xdist (pip install pytest-xdist)
-./.venv/bin/python -m pytest __tests__/ -q -n auto
-
-# atau serial
-./.venv/bin/python -m pytest __tests__/ -q
+gh run list --repo clarinovist/jagomat --branch main
+gh run watch <id-run> --repo clarinovist/jagomat --exit-status
 ```
 
-## Susunan berkas
+## Batas dan sejarah
 
-| Berkas | Isi |
-|---|---|
-| `templates.py` | tipe soal per level P3–P6 — soal, kunci, dan malrule dihitung dari parameter |
-| `generator.py` | seed -> parameter, dibatasi profil level (`PROFIL_LEVEL`) |
-| `schema.py` | definisi tabel |
-| `database.py` | akses basis data |
-| `diagnosis.py` | jawaban -> kode B/K/H/E/T/N |
-| `worksheets.py` | fasad render HTML lembar soal & penilaian |
-| `render.py` + `screen_style.py` + `print_style.py` | satu sumber render, dua tampilan (layar & cetak) |
-| `generate_worksheet.py` | perintah cetak |
-| `web.py` | router HTTP + palang peran/kepemilikan |
-| `teacher_pages.py` | halaman guru: dashboard, sesi, konfirmasi hapus, lembar |
-| `reports.py` | laporan per anak + diagnosa otomatis |
-| `report_summary.py` | ringkasan deterministik berbasis perjalanan belajar |
-| `account_pages.py` | halaman akun guru & admin |
-| `landing.py` | halaman publik (daftar, masuk) — brand tautan beranda |
-| `teacher_style.py` | CSS terpusat untuk halaman pengelola — token dari `design_tokens.py` |
-| `students.py` | lapisan data siswa: soal, jawaban, kepemilikan akun |
-| `student_pages.py` | halaman kerja murid — tanpa kunci/malrule/diagnosis (palang test) |
-| `llm.py` | klien DeepSeek untuk variasi cerita — gagal-diam tanpa key |
-| `sessions.py` | sesi cookie (berkas JSON atomik, TTL 14 hari, rate-limit) |
-| `auth.py` | palang sandi, akun ber-peran admin/guru/murid |
-| `serve.py` | menjalankan server + bootstrap admin |
-| `cadangkan.sh` | tarik cadangan basis data latihan dan Pendamping dari VPS ke Mac |
-| `Dockerfile` | container untuk VPS |
-
-Generator soal per topik: `topics.py` (registrasi) + `topic_*.py`
-(generator), topik besar punya pasangan `topic_*_param.py` (pembatas
-parameter) dan `topic_*_svg.py` (renderer visual).
-
-## Di VPS
-
-| | |
-|---|---|
-| Alamat | https://<domain-anda> |
-| Container | `osn-mesin`, restart otomatis |
-| Data | `/opt/osn/data` (basis data, sandi, lembar) |
-| Cadangan | harian 22:00 ke `mesin/cadangan/` di Mac; DB latihan dan Pendamping dipisah |
-
-```bash
-ssh <host-vps> "sudo docker ps --filter name=osn-mesin"
-ssh <host-vps> "sudo docker logs osn-mesin --tail 30"
-./cadangkan.sh          # cadangan manual kapan saja
-```
-
-Perubahan kode dideploy otomatis lewat GitHub Actions:
-
-```
-push ke main -> test -> build image -> dorong ke GHCR -> VPS tarik & ganti
-             -> verifikasi situs hidup dari internet
-```
-
-Cukup `git push`. Tidak ada langkah manual di VPS, dan **jangan build di
-VPS** — build yang gagal di sana bisa menjatuhkan situs yang sedang jalan.
-
-Pantau:
-
-```bash
-gh run list --repo clarinovist/jagomat
-gh run watch <id> --repo clarinovist/jagomat --exit-status
-```
-
-**Kenapa deploy memakai digest, bukan tag `latest`**: tag bisa berubah
-antara build dan deploy. Yang terpasang harus persis image yang baru saja
-lolos test.
-
-**Kalau deploy gagal**, skrip di VPS memulihkan image sebelumnya sendiri.
-Container hanya diganti setelah image baru terbukti ada, dan hanya
-dipertahankan kalau lolos pemeriksaan sehat. Sehat berarti menjawab **401**
-tanpa kredensial — server hidup dan palang sandi aktif. Menjawab 200 tanpa
-diminta sandi justru berarti palangnya jebol.
-
-### Akses deploy
-
-Kunci deploy terpisah dari kunci pribadi, dipasang dengan `command=` di
-`authorized_keys` sehingga hanya `/usr/local/bin/osn-deploy` yang bisa
-jalan. Kalau kunci itu bocor, yang bisa dilakukan penyerang terbatas pada
-menarik image dan mengganti satu container — bukan shell, bukan sudo.
-
-Secret yang dipakai: `VPS_DEPLOY_KEY`, `VPS_HOST_KEY`, `VPS_HOST`,
-`VPS_USER`, `SITUS`.
-
-### Kunci DeepSeek (fitur variasi cerita)
-
-Fitur "variasi cerita" (`llm.py`) membaca kunci API dari env
-`DEEPSEEK_API_KEY` di dalam container. Rantainya di VPS:
-
-1. Kunci disimpan sebagai berkas `/opt/osn/data/deepseek.key`
-   (volume data, owner `osn`, mode 640). Sumber aslinya script monitoring
-   cron di `/root/monitoring/deepseek-balance.py` — salin manual dari sana
-   kalau berkasnya hilang. Kunci TIDAK pernah ada di repo, image, atau log.
-2. `osn-deploy` (di VPS) membaca berkas itu saat deploy dan menyuntikkannya
-   sebagai `-e DEEPSEEK_API_KEY=...` ke `docker run` — di jalur deploy baru
-   maupun rollback.
-3. Tanpa berkas/env itu, fitur mati diam-diam sesuai desain gagal-diam:
-   tombol cerita hanya melapor bahwa LLM tidak aktif, aplikasi tetap jalan.
-4. `DEEPSEEK_MODEL=deepseek-flash` dan
-   `DEEPSEEK_VISION_MODEL=deepseek-flash` diset eksplisit di `osn-deploy`
-   (pola sama dengan kunci: env `docker run`). Nama kanonik ini dipakai
-   agar aplikasi tidak bergantung pada alias atau nama eksperimen berversi.
-   Model reasoning tetap membutuhkan `max_tokens` besar (sudah diatur di
-   `llm.MAX_TOKENS` dan `llm.MAX_TOKENS_VISION`). Kedua env harus hadir di
-   jalur deploy utama maupun rollback.
-
-Respons API LLM di-cache per soal (`llm_cache`) — satu soal tidak dibayar
-dua kali. Kunci cache = hash(`template_id` + parameter + latar + versi
-prompt + model). `template_id` WAJIB ada di situ: tanpa itu dua template
-berbeda yang kebetulan berparameter sama berbagi entri (terukur 354
-tabrakan di bank soal), dan karena cache hit pulang tanpa verifikasi,
-soal yang satu tampil memakai cerita milik soal yang lain. Saldo dipantau
-oleh cron harian yang sama dengan sumber kuncinya.
-
-### Melawan monoton (2 Sep 2026)
-
-Monoton diukur sebagai "pola-kalimat unik": teks soal dengan seluruh
-angka dinormalkan jadi `N`. Tiga jalur dipakai, urut dari yang paling
-ampuh:
-
-1. **Tambah template.** Statistika P3 dulu cuma 2 template — 3000 soal
-   hanya melahirkan 6 bentuk kalimat. Ditambah `tabel_turus`,
-   `piktogram`, `jangkauan_data` → 53 bentuk. Nol biaya per soal, dan
-   `piktogram` sekaligus menambah jalur diagnosis baru (lupa mengali
-   skala) yang tidak ada di template mana pun.
-2. **Latar turunan parameter.** Beberapa template kombinatorik dulu
-   punya satu cerita yang ditulis mati di f-string (roti & selai,
-   pertemuan). Latarnya kini dipilih dari parameter lewat `_putar()` —
-   deterministik, tanpa menambah parameter (parameter ikut
-   `tanda_tangan`, menambahnya membatalkan bank soal + snapshot golden).
-   Kombinatorik P5: 14 → 30 bentuk.
-3. **Variasi cerita LLM** (`llm.py`, tombol manual di halaman cetak).
-   Lapisan paling mahal dan paling rapuh — dipakai terakhir, bukan
-   pertama. Kini punya latar berputar: `PERCOBAAN_LATAR` latar dicoba
-   per soal, tiap (soal, latar) punya entri cache sendiri, jadi satu
-   soal bisa punya beberapa cerita tanpa satu pun dibayar dua kali.
-
-Patch ini hanya ada di VPS (`/usr/local/bin/osn-deploy` tidak ter-track);
-backup sebelum patch: `/root/osn-deploy.bak.<tanggal>`.
-
-### Gelombang 2 — akar masalahnya lebih luas (2 Sep 2026)
-
-Gelombang 1 menutup dengan dugaan "template sudah ada, tinggal dipakai".
-Dugaan itu **diverifikasi salah**: tidak ada satu pun template tidur di
-topik mana pun. Yang benar:
-
-```
-SELURUH APLIKASI: 43 dari 85 template hanya punya <= 2 bentuk kalimat.
-```
-
-Separuh bank template menulis satu kalimat mati di f-string. Empat
-perbaikan, dan yang menentukan bukan tekniknya melainkan **pilihan obat
-per paket**:
-
-| paket | obat | hasil |
-|---|---|---|
-| aritmatika-lanjut | latar berputar (8 template) | P5 18→34, P6 22→94 |
-| geometri-datar | objek nyata seukuran cm | P4 11→39, P5 21→60, P6 21→63 |
-| aritmetika-dasar | **tambah jenis soal**, bukan latar | 3→7 jenis, 3→11 bentuk |
-| teori-bilangan | latar untuk KPK **saja** | P5/P6 7→11 |
-| pengukuran | **tambah jenis soal**, bukan latar | 3→7 jenis; P4 18→67, P5 21→146, P6 21→147 |
-
-`_putar()` naik jadi `templates.putar` karena dipakai bersama; kontrak
-lengkapnya (deterministik atas parameter, bukan `hash()`, tanpa parameter
-baru) ada di docstringnya.
-
-**Kapan latar BUKAN obatnya.** Soal hitung murni tidak selalu penyakit.
-`Hitung: 24 + 54 ÷ 3 × 2 − 7` memang bentuk yang benar untuk melatih
-urutan operasi; membungkusnya jadi cerita menambah beban baca yang bukan
-sedang diuji. Untuk paket seperti itu obatnya menambah **jenis soal**.
-Aturan yang dipakai: latar diberi kalau ia bagian dari konsepnya (KPK
-lewat "lampu berkedip bersamaan" — bentuk baku di naskah OSN), ditolak
-kalau ia cuma bungkus (keterbagian, sisa pembagian, paritas).
-
-**Metrik ada batasnya.** Untuk paket hitung murni, "pola-kalimat unik"
-menabrak langit-langit struktural: satu template = satu pola, berapa pun
-angkanya, jadi ambang 25 berarti 25 template untuk satu paket P5/P6.
-Untuk aritmetika-dasar yang dikunci adalah **berapa jenis soal yang
-dilatih** (≥7) — metrik yang benar untuk paket seperti itu.
-
-Sisa di bawah ambang 25: 5 dari 29 kombinasi topik×level (dari 13).
-
-**Pengukuran (2 Sep 2026).** Paket terakhir yang tercatat sebagai batas
-yang diketahui. Obatnya menambah jenis soal, karena akar masalahnya bukan
-kalimat mati — ketiga template lama sudah punya 3, 10, dan 8 varian —
-melainkan paketnya cuma punya TIGA template dan dua di antaranya
-sama-sama konversi waktu. Empat jenis baru dipilih karena masing-masing
-membawa **jalur diagnosis yang belum ada**, bukan sekadar kalimat baru:
-
-| jenis | miskonsepsi yang jadi bisa dibaca |
-|---|---|
-| `satuan_kuantitas` | lusin/kodi/gros/rim tertukar isinya (kodi dihitung 12) |
-| `tangga_satuan_campuran` | satu faktor dipakai untuk semua suku |
-| `satuan_luas_volume` | faktor 10 dipakai di satuan luas (harusnya 100/1.000) |
-| `jam_selesai` | menit dijumlahkan melewati 60 tanpa menaikkan jam |
-
-Tiga cacat ketahuan hanya dengan MEMBACA keluaran nyatanya, bukan dari
-test yang lolos: `satuan_luas_volume` jarak 1 tangga kehilangan jalur H
-(malrule "satu tangga kurang" = kunci); `satuan_kuantitas` angka kecil
-kehilangan H juga (24 buah → 2 lusin: K dan H sama-sama 1); dan malrule
-"arah terbalik" pada kuantitas menghasilkan angka seperti 1.250.000 yang
-tidak akan ditulis anak mana pun — diganti "menyalin angka soal apa
-adanya". Ketiganya diperbaiki di sumber parameternya dan dikunci test.
-
-
-## Batas yang diketahui
-
-- **Posisi kunci dan malrule modus (20 Okt 2026).** Generator keterbagian kini
-  merotasi tiga bilangan tanpa mengubah arti malrule; data modus diacak setelah
-  modus tunggal dipastikan. `modus.pertama` yang kebetulan benar dibuang, bukan
-  diganti kunci+1. Data modus baru memiliki sedikitnya dua nilai berbeda agar
-  jalur K tidak dibuat-buat. Kunci/malrule bank lama tetap dipertahankan, termasuk
-  saat identitas soal dipakai ulang pada sesi baru; cetak guru membaca tabel
-  tersimpan. Tidak ada koreksi diagnosis historis otomatis. Pola pengecoh
-  keterbagian "dua dekat, satu jauh" masih terbuka. Guard baseline G1–G4 ada
-  di `test_kualitas_soal_generik.py`: 204 pasangan
-  template×level, lantai bentuk/parameter, jumlah jenis dan konsentrasi lembar.
-  Lantai ini provisional, bukan skor kualitas; audit posisi semantik masih terbatas
-  pada keterbagian/modus, dan klasifikasi bentuk lainnya belum final. Regresi: `test_question_position.py`
-  dan `test_question_history.py` (seed tetap, solver mentah, snapshot sintetis).
-  H modus dibuang bila kedua nilai berselisih satu sudah dipakai K, bukan digeser
-  lebih jauh. Recovery wajib mempertahankan reader bank; revert seluruh patch
-  tidak kompatibel dengan bank baru. Pasangan image recovery perlu diverifikasi
-  sebelum deploy; hasil tes source bukan bukti kesiapan image pinned.
-
-- **Hitung murni diukur lewat jenis, bukan ambang 25 kalimat.** Batch terpilih
-  20 Okt menambah banyak kelipatan rentang, sisa jumlah/hasil kali, banyak prima
-  rentang, dan jumlah kelipatan. Teori-bilangan P4 naik 3→7 jenis, P5 6→10;
-  10 soal per lembar tetap. Sampel 100 seed: P4 71,3% kerangka unik (sebelumnya
-  32%), P5 100% (sebelumnya67%); maksimum sebunyi rata-rata P4 2,0/P5 1,0.
-  P6 tetap7 jenis/70%—tidak diubah batch ini. Ini ukuran bentuk, bukan bukti
-  hasil belajar. Empat jenis memakai solver independen, malrule semantik dan
-  mutation di `test_number_theory_expansion.py`. ID baru membutuhkan reader
-  recovery yang mengenal template sebelum deploy; tidak mengubah soal lama.
-  Aritmetika-dasar tetap7 jenis, dan batas ruang pola-bilangan di bawah tidak
-  dilebarkan. `test_latar_teori_bilangan.py` tetap menolak cerita buatan.
-
-- **Lembar 12 soal = 5 halaman.** Sudah dicoba dipadatkan; memangkas kotak
-  Caraku mengurangi ruang tulis tanpa mengurangi halaman. Kotak yang terlalu
-  kecil membuat anak berhenti menulis, dan kotak kosong tidak bisa dibedakan
-  dari tidak bisa mengerjakan.
-
-- **Tiga tipe soal variasinya tipis**: `titik_segitiga` 7 varian,
-  `deret_geometri` 18, `deret_terbalik_geometri` 24. Batas matematis, bukan
-  bug — memperlebar akan melewati level P3. Untuk 2 anak mingguan,
-  `titik_segitiga` mulai berulang setelah ~2 bulan. Solusinya menambah tipe
-  soal baru, bukan memaksa parameter yang ada.
-
-- **Tabel malrule belum diuji ke anak nyata.** Disusun dari bentuk soalnya.
-  Sebagian pasti meleset. Kalau anak menjawab di luar tabel, mesin mengaku
-  tidak tahu dan menyerahkan ke guru — itu disengaja. Kolom `kode_usulan`
-  dan `kode_final` disimpan terpisah supaya nanti bisa diukur seberapa
-  sering mesin salah.
-
-- **Data anak tidak masuk git.** `latihan.db` dan `lembar/` diblokir
-  .gitignore.
-
-- **Variasi cerita menulis ke bank soal bersama.** Baris `soal` di-share
-  antar keluarga (dedup per tanda tangan), jadi kalau dua keluarga kebetulan
-  dapat sesi ber-seed identik dan salah satunya menekan "variasi cerita",
-  teks kalimat di lembar keluarga lain ikut berubah — angka, kunci, dan
-  diagnosis tidak. Perbaikan yang benar (cerita per `sesi_soal`) butuh
-  migrasi sendiri. Selain itu, POST `/daftar` masih mengungkap keberadaan
-  username yang sudah dipakai — perilaku lama, risikonya enumerasi akun.
+- Katalog Batch A–C/bank kalimat aktif tidak mengesahkan semua97 template. Audit
+  lanjutan dan review manusia tetap dibedakan dari kelolosan tes mesin.
+- Revisi penilaian baru default0; pilot bank90 item offline, belum serving authored.
+  [Katalog](../docs/catalog-corrections.md) · [Pilot](../docs/catalog-pilot.md).
+- Penerimaan perangkat nyata, efektivitas mengajar, dan kecepatan transkripsi belum
+  boleh disimpulkan dari screenshot/CI. Pembatalan/penundaan tetap dihormati.
+- Riwayat eksperimen variasi dan metrik sampel lama dipindahkan ke
+  [riwayat kualitas soal](../docs/question-quality-history.md); bukan backlog otomatis.
+- Data anak, sesi, credential, riset privat, cache dan backup tetap ignored;
+  jangan `git add -f` atau mengirimnya ke layanan evaluasi eksternal.

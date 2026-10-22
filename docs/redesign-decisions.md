@@ -1,7 +1,12 @@
 # Keputusan redesain admin
 
 Acuan: `redesign-plan.md` dan brief privat 19 Oktober 2026. Semua fase disetujui
-pengguna; hasil branch untuk review, tanpa deploy.
+pengguna; hasil branch awal untuk review tanpa deploy. **Pembaruan 22 Oktober:**
+branch sudah diintegrasikan dan tercakup rilis `ccb8906`; lihat [verifikasi](redesign-verification.md).
+Keputusan bernomor berikut mencatat keadaan/desain fase awal. Antrean per-item,
+badge/sidebar dan hitungan facet kemudian berkembang; peta implementasi terbaru
+ada di [arsitektur](architecture-reference.md). Opsi global search/assignment
+yang dikecualikan tetap bukan fitur tersedia.
 
 1. **Font:** gunakan font sistem existing, bukan Google Fonts. Mockup mengasumsikan
    Be Vietnam Pro aktif; panel privat sebenarnya tanpa aset eksternal. Tema admin
@@ -42,6 +47,6 @@ pengguna; hasil branch untuk review, tanpa deploy.
     masuk melalui kecocokan nama. Ini menjaga makna query existing tanpa jargon
     "eksplisit" yang membingungkan. Hover bahaya diberi selector khusus agar
     teks putih tidak jatuh pada latar terang.
-11. **Gate tertunda:** instruksi terbaru pengguna menahan push sampai seluruh fase
+11. **Gate pada penutupan branch awal (historis):** instruksi terbaru pengguna menahan push sampai seluruh fase
     selesai. Seluruh pekerjaan dan commit tetap lokal. Full suite CI/build belum
     dijalankan; bukan klaim siap deploy atau seluruh gate rilis hijau.

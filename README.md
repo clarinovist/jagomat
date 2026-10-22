@@ -1,7 +1,9 @@
 # Jagomat — Codebase
 
 Aplikasi web latihan matematika SD: generator soal, diagnosis kesalahan,
-siklus belajar terpandu, lembar cetak, dan laporan per anak.
+siklus belajar terpandu, lembar cetak, dan laporan per anak. Prioritas saat ini
+adalah alat guru les in-house, dengan pilot pivot memakai data sintetis dan
+akses awal nonkomersial. [Status proyek dan pekerjaan tersisa](docs/status-proyek.md).
 Pure Python stdlib; dependensi pengembangan hanya pytest dan pytest-xdist.
 
 ## Identitas repo dan folder
@@ -31,9 +33,16 @@ Kompatibilitas dan pemulihan: [panduan penamaan](docs/repository-naming.md).
 Jalankan dari root repo, dengan venv aplikasi yang sudah disiapkan:
 
 ```bash
-mesin/.venv/bin/python -m pytest mesin/__tests__/ -q -n auto -W error
+cd /Users/nugroho/Documents/jagomat
+# Contoh scoped test; pilih area yang diubah.
+mesin/.venv/bin/python -m pytest mesin/__tests__/test_generator.py -q -W error -p no:cacheprovider
+# Palang membaca index Git; jalankan setelah stage scope yang direview.
 mesin/.venv/bin/python scripts/check_repo.py
 ```
+
+Gunakan interpreter venv existing (lokal3.9.6; CI/container3.12). Full suite
+sebelum rilis dijalankan melalui CI empat shard; jangan memakai `-n auto`
+secara lokal karena test HTTP berbagi socket. Aturan lengkap di [CLAUDE.md](CLAUDE.md).
 
 Palang repo memeriksa nama berkas di index Git, bukan isi berkas atau data
 runtime. Kegagalan membaca Git membuat pemeriksaan gagal, bukan dianggap

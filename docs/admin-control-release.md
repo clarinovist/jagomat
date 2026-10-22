@@ -1,12 +1,15 @@
 # Runbook rilis pusat kendali admin
 
-Status: **runbook historis admin4, bukan siap-eksekusi untuk pilot admin5**.
+Status: **runbook historis admin4, bukan siap-eksekusi untuk produksi sekarang**.
+Pada rilis 22 Oktober skema admin9 dan bundle empat DB+auth/riset terpisah telah
+diverifikasi; pin aktif mengikuti metadata/[rilis terbaru](production-release.md).
+Tidak mengulang rollout admin4/5 dari dokumen ini.
 Dokumen ini melengkapi [`production-release.md`](production-release.md), bukan
 menggantikan policy/deployer/approval di sana. **Seluruh langkah admin4 di bawah
 adalah histori**, bukan resep untuk dijalankan ulang pada admin5. Versi, pin,
 metode backup/rehearsal, dan kondisi live wajib dicocokkan dengan runbook aktif.
 
-**Pembaruan 22 September 2026:** recovery source aktif kini
+**Snapshot 22 September 2026 (historis):** recovery source saat itu
 `e206563468afb805af9612711f3c4d0f9ec81539`, bukan pin pilot awal di snapshot
 berikut. [CI kalender WIB](https://github.com/clarinovist/jagomat/actions/runs/35668660016)
 lulus untuk pasangan kandidat `7ac63da`/recovery `e206563`; pemasangan dilewati.

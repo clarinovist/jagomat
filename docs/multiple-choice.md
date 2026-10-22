@@ -53,10 +53,12 @@ mendapat penanda opsi benar, ID malrule, kode diagnosis, atau alasan guru.
 ## Rilis
 
 Perubahan skema membutuhkan pasangan recovery baru yang diuji sebelum pemasangan.
-Baseline recovery PG tetap dipatok, tetapi source kini memakai **persiapan/build-only**
-untuk schema profil belajar baru; recovery PG belum dinyatakan cocok dengan seluruh
-schema kandidat. Job pasang otomatis tetap nonaktif. Lihat [status rilis](production-release.md).
-Saat kembali ke migrasi/rutin, uji pasangan tetap wajib mencakup sesi PG dan arsipnya,
+Fase persiapan/build-only recovery PG adalah histori yang telah dilanjutkan oleh
+rilis profil/katalog. Pada rilis22Oktober mode source **migrasi**, recovery pinned
+`edd323c` dan pasangan exact telah lolos gate. Jangan memakai baseline PG lama
+untuk skema sekarang. Job pasang otomatis tetap nonaktif; pin/digest otoritatif
+ada di metadata dan [status rilis](production-release.md).
+Pada setiap rilis migrasi/rutin, uji pasangan tetap wajib mencakup sesi PG dan arsipnya,
 selain metadata baru. Push tidak sama dengan deploy. Jangan downgrade ke pembaca
 pra-PG setelah data PG terbuat. Pemulihan mempertahankan reader dan arsip, bukan
 menghapus data PG.
