@@ -127,39 +127,40 @@ def form_akun(penangan):
         p=penangan._principal()
         row=policy_store.baca(admin_store.BAWAAN,p.id_akun)
         izin = izin_akun(p.id_akun)
-        status = '<p>Belum ada persetujuan yang berlaku. Penggunaan tambahan tidak aktif.</p>'
+        status = '<p class="sub">Belum ada persetujuan yang berlaku. Penggunaan tambahan tidak aktif.</p>'
         if row is not None:
-            pilihan = ''.join(
-                '<li>' + label + ': ' + ('diizinkan' if row[kunci] else 'tidak diizinkan') + '</li>'
+            status = ''.join(
+                '<div class="akun-baris-pilihan-st"><span class="akun-label-st">' + label + '</span>'
+                '<span class="akun-chip-st' + (' akun-chip-ok-st">Diizinkan' if row[kunci] else '">Tidak diizinkan') + '</span></div>'
                 for kunci, label in (('alur', 'Aktivitas penggunaan aplikasi'),
                                      ('hasil', 'Ringkasan hasil belajar'),
                                      ('chat', 'Kategori topik percakapan'))
             )
-            status = '<p><b>Pilihan tersimpan:</b></p><ul>' + pilihan + '</ul>'
             if row['dibuat']:
                 tanggal = waktu_wib(datetime.fromtimestamp(row['dibuat'], _WIB))
-                status += '<p>Tanggal persetujuan terakhir: ' + tanggal + '.</p>'
+                status += '<p class="sub">Tanggal persetujuan terakhir: ' + tanggal + '.</p>'
             if not policy_store.berlaku(row):
-                status += '<p>Persetujuan perlu ditinjau ulang. Penggunaan tambahan tidak aktif.</p>'
+                status += '<p class="sub">Persetujuan perlu ditinjau ulang. Penggunaan tambahan tidak aktif.</p>'
             elif not row['alur']:
-                status += '<p><b>Penggunaan tambahan tidak diizinkan.</b></p>'
+                status += '<p class="sub"><b>Penggunaan tambahan tidak diizinkan.</b></p>'
             elif izin is None:
-                status += '<p><b>Penggunaan tambahan tidak aktif.</b> Izin kedaluwarsa atau pencatatan sedang tidak tersedia.</p>'
+                status += '<p class="sub"><b>Penggunaan tambahan tidak aktif.</b> Izin kedaluwarsa atau pencatatan sedang tidak tersedia.</p>'
             else:
                 tanggal = waktu_wib(datetime.fromtimestamp(izin.berakhir, _WIB))
-                status += '<p><b>Penggunaan tambahan aktif</b> sampai ' + tanggal + '.</p>'
+                status += '<p class="sub"><b>Penggunaan tambahan aktif</b> sampai ' + tanggal + '.</p>'
         import product_analytics_http as lama
         cabut_token=lama._token(p,penangan._ambil_token(),'sensor-cabut')
         return ('<section class="kartu-st akun-pilihan-data" id="sensor"><h2>Kesepakatan dan pilihan data</h2>'+status+
                 '<p class="sub">Data tambahan membantu memperbaiki Jagomat: aktivitas penggunaan, ringkasan hasil, '
                 'dan kategori topik percakapan. Tidak menyalin jawaban atau isi pesan mentah ke analitik.</p>'
-                '<p><a href="/persetujuan">Tinjau atau ubah persetujuan</a></p>'
+                '<a class="akun-tautan-st" href="/persetujuan">Tinjau atau ubah persetujuan</a>'
                 '<p class="sub">Menolak penggunaan tambahan tidak mengurangi fitur belajar inti.</p>'
+                '<details class="akun-bahaya-st"><summary>Cabut izin dan hapus data tambahan</summary>'
                 '<form method="post" action="/analitik/sensor-cabut" data-konfirmasi="Cabut izin penggunaan tambahan dan hapus data analitik tambahan? Data belajar dan percakapan asli tetap ada.">'
                 '<input type="hidden" name="token" value="'+html.escape(cabut_token)+'">'
                 '<label class="akun-label-persetujuan"><input type="checkbox" name="konfirmasi" value="1" required>'
                 '<span>Saya ingin mencabut izin dan menghapus data analitik tambahan. Data belajar dan percakapan asli tetap ada.</span></label>'
-                '<button type="submit" class="tombol-bahaya-akun">Cabut izin dan hapus data tambahan</button></form></section>')
+                '<button type="submit" class="tombol-bahaya-akun">Cabut izin dan hapus data tambahan</button></form></details></section>')
     import product_analytics_http as lama
     p = lama._principal(penangan)
     try:

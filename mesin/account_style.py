@@ -86,6 +86,36 @@ GAYA_AKUN = f"""
   display: inline-flex; align-items: center; justify-content: center; min-height: {T.TINGGI_KONTROL}; padding: 0 {T.SP_4};
   border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KECIL}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; text-decoration: none;
 }}
+{_A} .tombol-bahaya-akun {{ min-height: {T.TARGET_SENTUH}; border-radius: {T.RADIUS_KECIL}; font-weight: 700; cursor: pointer; }}
+{_A} .akun-baris-pilihan-st {{
+  display: flex; align-items: center; justify-content: space-between; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH};
+  padding: {T.SP_2} 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
+}}
+{_A} .akun-label-st {{ flex: 1; min-width: 0; }}
+{_A} .akun-chip-ok-st {{ background: {T.LATAR_TERSIMPAN}; color: {T.TEKS_TERSIMPAN}; }}
+{_A} .akun-tautan-st {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; font-weight: 600; }}
+{_A} .akun-aksi-baris-st {{ display: flex; align-items: center; flex-wrap: wrap; gap: {T.SP_2} {T.SP_4}; }}
+{_A} .akun-bahaya-st, {_A} .akun-bahaya-kartu-st {{
+  margin-top: {T.SP_2}; padding: {T.SP_1} {T.SP_4} {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.BORDER_GALAT};
+  border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_GALAT};
+}}
+{_A} .akun-bahaya-kartu-st {{ padding: {T.SP_4}; }}
+{_A} .akun-bahaya-kartu-st h2, {_A} .akun-bahaya-st > summary {{ color: {T.TEKS_GALAT}; }}
+{_A} .akun-bahaya-st > summary, {_A} .kartu-st > summary {{
+  min-height: {T.TARGET_SENTUH}; display: list-item; cursor: pointer; font-weight: 600;
+}}
+{_A} .kartu-st > summary {{ color: {T.AKSEN_TEAL_TUA}; }}
+{_A} .akun-status-data-st {{ background: {T.LATAR_TERSIMPAN}; border-color: {T.BORDER_TERSIMPAN}; }}
+{_A} .akun-status-data-st h2 {{ margin-bottom: {T.SP_1}; }}
+{_A} .akun-opsi-st {{ display: flex; align-items: flex-start; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
+{_A} .akun-opsi-st input {{ flex: none; width: 1.5rem; height: 1.5rem; margin: 2px 0 0; accent-color: {T.AKSEN_TEAL_TUA}; }}
+{_A} .akun-opsi-st label {{ display: flex; flex-direction: column; gap: {T.SP_1}; flex: 1; cursor: pointer; }}
+{_A} .akun-opsi-judul-st {{ font-weight: 700; }}
+{_A} .akun-opsi-isi-st {{ font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; }}
+{_A} .akun-pilihan-data .sub, {_A} .akun-status-data-st .sub {{ margin: {T.SP_2} 0 0; }}
+{_A} .akun-status-data-st .sub {{ margin-top: 0; }}
+{_A} details.kartu-st {{ padding-block: {T.SP_1}; }}
+{_A} .akun-bahaya-st:not([open]) {{ padding-bottom: {T.SP_1}; }}
 {_A} .akun-kelola-tutup {{ display: none; }}
 {_A} .akun-kelola[open] .akun-kelola-tutup {{ display: inline; }}
 {_A} .akun-kelola[open] .akun-kelola-buka {{ display: none; }}

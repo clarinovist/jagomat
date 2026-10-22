@@ -176,8 +176,15 @@ kartu Paket saat ini (Akses awal, chip Gratis · nonkomersial, jumlah profil + L
 Pembayaran & bantuan (catatan amber penuh-border, tombol garis); tanpa form. Varian
 sandbox/produksi tidak diubah markup-nya (form dikunci test), hanya CSS tersekop;
 halaman mandiri `/langganan/...` tidak berubah.
-Mockup: canvas "Jagomat Akun Redesign". Belum didesain ulang (fase 3–4): Persetujuan
-data/Kesepakatan, Data Pendamping. Tidak diadopsi dari mockup: meter
+Kesepakatan dan pilihan data (fase 3): kartu di Akun saya memakai baris label + chip
+(`Diizinkan` hijau, `Tidak diizinkan` netral) dan pencabutan di `<details>` bergaya galat;
+form, token dan `data-konfirmasi` tidak berubah. `/persetujuan` punya dua mode di
+`policy_http.halaman`: **gate** (belum ada izin berlaku) tetap halaman penuh lama bersama
+`bidang()` (yang juga dipakai /daftar), **tinjau** (izin berlaku, `policy_pages.halaman_tinjau`)
+memakai shell akun 46rem: kartu status, tiga checkbox, Simpan/Batal, detail kesepakatan dan
+zona Cabut semua izin. POST tetap `policy_aksi=pilihan` dan `/analitik/sensor-cabut`; chip status
+per opsi sengaja tidak ada (tanpa JS akan basi saat checkbox diubah).
+Mockup: canvas "Jagomat Akun Redesign". Belum didesain ulang (fase 4): Data Pendamping. Tidak diadopsi dari mockup: meter
 "0/12 karakter" (butuh JS baru) dan chip paket "Akses awal · gratis" (butuh data
 langganan di header).
 

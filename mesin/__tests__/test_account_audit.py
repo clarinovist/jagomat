@@ -104,7 +104,7 @@ def test_status_pilihan_dan_izin_efektif(monkeypatch, pilihan, aktif, expected):
     p = SimpleNamespace(_principal=lambda: SimpleNamespace(id_akun='sintetis'), _ambil_token=lambda: 'sintetis')
     h = sensor_http.form_akun(p)
     assert expected in h
-    assert 'Ringkasan hasil belajar: tidak diizinkan' in h
+    assert '<span class="akun-label-st">Ringkasan hasil belajar</span><span class="akun-chip-st">Tidak diizinkan</span>' in h
     assert 'Tanggal persetujuan terakhir:' in h
     assert 'Tanggal pencabutan' not in h
     assert 'class="kartu-st' in h

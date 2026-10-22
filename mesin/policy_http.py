@@ -52,9 +52,17 @@ def halaman(penangan,p,*,lanjut='/guru',galat=''):
     row=store.baca(admin_store.BAWAAN,p.id_akun)
     revisi=row['revisi'] if row else 0
     operasi=secrets.token_hex(16)
-    return policy_pages.halaman(token=_ikatan(p,penangan._ambil_token(),operasi,revisi),
-        operasi=operasi,revisi=revisi,lanjut=lanjut,galat=galat,
-        pilihan=tuple(bool(row[k]) for k in ('alur','hasil','chat')) if row else (False,False,False))
+    token=_ikatan(p,penangan._ambil_token(),operasi,revisi)
+    pilihan_kini=tuple(bool(row[k]) for k in ('alur','hasil','chat')) if row else (False,False,False)
+    if row and store.berlaku(row):
+        # Izin sudah berlaku: mode tinjau/ubah. Gate (tanpa izin berlaku) tetap halaman penuh lama.
+        import product_analytics_http as lama
+        izin=sensor_http.izin_akun(p.id_akun)
+        return policy_pages.halaman_tinjau(pengguna=p.pengguna,token=token,operasi=operasi,revisi=revisi,
+            pilihan=pilihan_kini,dibuat=row['dibuat'],berakhir=izin.berakhir if izin else None,aktif=izin is not None,
+            token_cabut=lama._token(p,penangan._ambil_token(),'sensor-cabut'),lanjut=lanjut,galat=galat)
+    return policy_pages.halaman(token=token,
+        operasi=operasi,revisi=revisi,lanjut=lanjut,galat=galat,pilihan=pilihan_kini)
 
 
 def perlu(p):
