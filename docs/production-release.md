@@ -6,6 +6,38 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy filter instan Ruang guru — 22 Oktober 2026
+
+Controlled `deploy-v2` berhasil memasang **fb7f64bbb83a199190e88dda640793ea72f7bb93**
+pada 22.18 WIB (container started `2026-10-22T15:18:01Z`). Perubahan: filter instan chip
+langkah di `/guru` (JS berhash CSP `guru_browser.py`, disetujui pemilik 22 Oktober; hanya
+menyembunyikan/menampilkan kartu yang sudah dirender server, tanpa network/storage/eval,
+fallback tautan GET utuh). CSP beranda guru kini memuat tiga hash skrip dan tetap tanpa
+`connect-src`. Tidak ada perubahan schema, data, atau config.
+
+- Candidate digest `sha256:d6440a99420b02d36098ff766fa2067a0538f74bd4ac7daeb37fbe209b403f6f`.
+- Recovery **edd323c4822347f6d584bb0f311e76cac4962e40**, digest
+  `sha256:a7aea9b2c8acd4c613879b64052819d7193add32c387404d7775ec4ce61b206b`.
+- Dispatch gate [39800524048](https://github.com/clarinovist/jagomat/actions/runs/39800524048):
+  seluruh job sukses (empat shard kandidat, empat shard recovery, build, Status CI), manifest
+  pair terverifikasi, 14.189 tes kandidat exact-once tanpa kegagalan, katalog identik dengan
+  yang disetujui. Snapshot API sempat telat memperbarui status job recovery; hasil akhir
+  dibaca ulang eksplisit sebelum cutover.
+- Kontrak kedua image tetap `7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8`;
+  deployer host tetap `2479470f927627ab00d7af26876d6525bef897e52cff77c413ac5656b168c810`.
+
+Produksi awal `2a86eba` healthy. Prosedur sama dengan rilis sebelumnya: kedua digest ditarik,
+preflight read-only, backup coherent empat DB+auth dan riset terpisah (hash remote/lokal
+cocok), rehearsal C2–B2–C2, approval exact-pair sekali pakai, cutover exit 0, histori 10 tabel
+terjaga, Caddy/dua cron/config dipulihkan hash-identik. Smoke eksternal `https://jagomat.id`:
+`/`200, `/akun`401, `/guru` anonim 401, `/murid/`303. Marker galat nol. Perilaku filter
+diverifikasi di Chrome headless dengan data sintetis lokal (klik chip, hitungan, `aria-current`,
+form pencarian, klik modifier); **belum** diuji pada halaman live berdata keluarga. Bila skrip
+diblokir, chip tetap tautan biasa. Esc menutup menu akun belum disetujui/dikerjakan.
+
+Backup induk/receipt tetap privat dengan ID `deploy-guru-fb7f64b-20261022`; bukti ignored di
+`docs/plan/deploy-guru-fb7f64b/`. Mode migrasi/job pasang otomatis tetap false.
+
 ## Deploy Ruang guru selaras mockup — 22 Oktober 2026
 
 Controlled `deploy-v2` berhasil memasang **2a86ebad563359b40d6c6e83b1b6b0b414c4cc9c**
