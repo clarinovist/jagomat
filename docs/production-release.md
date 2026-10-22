@@ -6,6 +6,40 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy Ruang guru selaras mockup — 22 Oktober 2026
+
+Controlled `deploy-v2` berhasil memasang **2a86ebad563359b40d6c6e83b1b6b0b414c4cc9c**
+pada 21.48 WIB (container started `2026-10-22T14:48:05Z`). Perubahan hanya tampilan `/guru`:
+kartu anak dengan satu tombol aksi, chip kelompok berhitungan (tautan GET tanpa JS), pencarian
+bersyarat, penjelasan daftar sebagai teks terlihat, dan modul render `guru_beranda_pages.py`.
+
+- Candidate digest `sha256:f67ebac4a2b55b0812c5511a15d54fc99f4d6def438e0bcf60e728425e54ed73`.
+- Recovery **edd323c4822347f6d584bb0f311e76cac4962e40**, digest
+  `sha256:b8efde239265105a7fdb48ea519041b42d10b10e02163963d7e5bcae236b4479`.
+- Dispatch gate [39795907908](https://github.com/clarinovist/jagomat/actions/runs/39795907908):
+  manifest pair terverifikasi, empat shard kandidat exit 0, 14.179 tes terpilih tepat sekali
+  tanpa kegagalan, katalog identik dengan yang disetujui. CI push 39794999922 sukses.
+  **Catatan:** API GitHub sempat menampilkan beberapa job (kandidat 1/4, agregat, build) tanpa
+  hasil padahal run berstatus sukses dan artifact manifest/shard sudah terbit; keputusan memakai
+  artifact exact di atas, bukan status job itu.
+- Kontrak kedua image tetap `7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8`;
+  deployer host tetap `2479470f927627ab00d7af26876d6525bef897e52cff77c413ac5656b168c810`.
+
+Produksi awal `250b875` healthy. Kedua digest ditarik; revision, kontrak, config dan
+`PROBE_SKEMA` live read-only lulus sebelum maintenance. Backup coherent empat DB+auth dan riset
+terpisah diverifikasi hash remote/lokal. Rehearsal preservasi C2–B2–C2, validator bundle,
+integrity/FK lulus. Tidak ada migrasi, koreksi data, atau perubahan izin/retensi/config.
+Cutover exit 0, kandidat healthy, restart 0; jumlah baris dan hash 10 tabel histori terjaga,
+Caddy/dua cron/config dipulihkan hash-identik. Smoke eksternal `https://jagomat.id`: `/`200,
+`/akun`401, `/guru` anonim 401, `/murid/`303 ke `/masuk`; domain lama mengalihkan 308. Marker
+Traceback/OperationalError/IntegrityError nol. Probe sintetis dalam container memastikan modul
+dan CSS Ruang guru terbaru. Tidak ada walkthrough akun keluarga atau klaim penerimaan visual live.
+
+Lokal: 278 tes yang menyentuh markup guru lama, 134 tes ulang akhir, 9 tes mutasi pencarian/akses,
+dan helper/probe sintetis lulus. Empat turunan rehearsal dibersihkan; backup induk/receipt tetap
+privat dengan ID `deploy-guru-2a86eba-20261022`. Bukti ignored di `docs/plan/deploy-guru-2a86eba/`.
+Mode migrasi/job pasang otomatis tetap false.
+
 ## Deploy selaras mockup akun — 22 Oktober 2026
 
 Controlled `deploy-v2` berhasil memasang **250b875e018e8f6f9ed0596dbca9553a3bafe9db**
