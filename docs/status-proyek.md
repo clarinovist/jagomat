@@ -10,12 +10,12 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   sintetis. Peran `guru` tetap mencakup orang tua dan hanya mengakses data miliknya.
 - Akses awal **nonkomersial**. Keputusan paket Jago/Jago Pro tidak sama dengan
   pembukaan penjualan, trial otomatis, promo, atau paywall.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`f610d09`**, mulai
-  berjalan 22 Oktober 2026 13.08 WIB, termasuk redesain akun, langganan,
-  persetujuan dan Data Pendamping. CI lengkap
-  [39730859671](https://github.com/clarinovist/jagomat/actions/runs/39730859671)
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`250b875`**, mulai
+  berjalan 22 Oktober 2026 15.10 WIB, termasuk penyelarasan tampilan akun,
+  langganan, persetujuan dan Data Pendamping dengan mockup. CI lengkap
+  [39738942147](https://github.com/clarinovist/jagomat/actions/runs/39738942147)
   lulus, container healthy, smoke publik lulus. Digest/recovery/backup ada di
-  [catatan rilis](production-release.md#deploy-redesain-akun--22-oktober-2026).
+  [catatan rilis](production-release.md#deploy-selaras-mockup-akun--22-oktober-2026).
 - Commit dokumentasi sesudahnya tidak otomatis menjadi revision image. Status
   di sini adalah snapshot bertanggal, bukan monitor live atau klaim `main` selalu deployed.
 - Auto-deploy tetap nonaktif: push hanya feedback CI; dispatch manual menjalankan

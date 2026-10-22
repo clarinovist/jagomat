@@ -6,6 +6,37 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy selaras mockup akun — 22 Oktober 2026
+
+Controlled `deploy-v2` berhasil memasang **250b875e018e8f6f9ed0596dbca9553a3bafe9db**
+pada 15.10 WIB (container started `2026-10-22T08:10:34Z`). Perubahan hanya tampilan:
+label/placeholder form sandi, status Kesepakatan satu baris, catatan Langganan berikon,
+kolom 46rem untuk Persetujuan (tinjau) dan Data Pendamping, serta CSS HP.
+
+- Candidate digest `sha256:78c300dc25fd688ca34ee2a75f297cd97d03bf144b42e2adcbd50834e3048bda`.
+- Recovery **edd323c4822347f6d584bb0f311e76cac4962e40**, digest
+  `sha256:b6960349378ef8e6aeab50be03ebf9c82e8d58dc8306a2345261da241515b47f`.
+- [CI lengkap 39738942147](https://github.com/clarinovist/jagomat/actions/runs/39738942147)
+  sukses: 14.156 tes kandidat exact-once, seluruh shard recovery, palang/kompilasi,
+  build/probe/pair exact. CI push 39737174869 hanya jalur ringan, bukan gate rilis.
+- Kontrak kedua image tetap `7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8`;
+  deployer host tetap `2479470f927627ab00d7af26876d6525bef897e52cff77c413ac5656b168c810`.
+
+Produksi awal `f610d09` healthy. Kedua digest ditarik; revision, kontrak, config dan
+`PROBE_SKEMA` live read-only lulus sebelum maintenance. Backup coherent empat DB+auth
+dan riset terpisah diverifikasi hash remote/lokal. Rehearsal preservasi C2–B2–C2,
+validator bundle, integrity/FK lulus. Tidak ada migrasi, koreksi data, atau perubahan
+izin/retensi/config. Cutover exit 0, kandidat healthy; histori 10 tabel terjaga,
+Caddy/dua cron/config dipulihkan hash-identik. Smoke eksternal `https://jagomat.id`:
+`/`200, `/akun`401, `/murid/`303 ke `/masuk`; loopback sama; marker galat nol. Probe
+sintetis dalam container memastikan modul akun terbaru. Tidak ada walkthrough akun
+keluarga atau klaim penerimaan visual live.
+
+Lokal: 594 tes deployer/release, 161 tes akun/sensor/pendamping, helper dan probe
+sintetis lulus. Empat turunan rehearsal dibersihkan; backup induk/receipt tetap privat
+dengan ID `deploy-akun-250b875-20261022`. Bukti ignored di `docs/plan/deploy-akun-250b875/`.
+Mode migrasi/job pasang otomatis tetap false.
+
 ## Deploy redesain akun — 22 Oktober 2026
 
 Controlled `deploy-v2` berhasil memasang **f610d09b35dade259339b9b349a6c6e2ddca9d1a**
