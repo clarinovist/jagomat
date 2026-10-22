@@ -8,6 +8,7 @@ import database
 import presentation_lock
 import question_views
 import worksheets
+from format_tanggal import tanggal_dari_teks, waktu_dari_teks
 from generator import LEVEL_BAWAAN
 from question_context import label_profil_parameter as label_kelas
 from teacher_session_pages import _badge_mode, _pil_sesi_stitch
@@ -138,7 +139,7 @@ def halaman_konfirmasi_hapus(
         f'<h1 id="judul-hapus">Hapus sesi #{sesi_id}?</h1></header>'
         f'<div class="kartu-st">'
         f'<p>Sesi <b>#{sesi_id}</b> milik <b>{html.escape(info["nama"])}</b> '
-        f'&middot; {info["tanggal"]} &middot; {html.escape(label_kelas(_ambil(info, "level", LEVEL_BAWAAN)))} '
+        f'&middot; {tanggal_dari_teks(info["tanggal"])} &middot; {html.escape(label_kelas(_ambil(info, "level", LEVEL_BAWAAN)))} '
         f'&middot; {_ambil(info, "topik", TOPIK_BAWAAN)}</p>'
         f"<p>Yang ikut hilang bersama sesi ini:</p>"
         f"<ul><li><b>{n_jawaban} jawaban</b></li>"
@@ -188,7 +189,7 @@ def halaman_sesi_cetak(
         f'Riwayat {html.escape(info["nama"])}</a></div>'
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">CETAK</p>'
         f'<h1 id="judul-cetak">{html.escape(info["nama"])} — Sesi #{sesi_id}</h1></header>'
-        f'<p class="sub">{info["tanggal"]} &middot; '
+        f'<p class="sub">{tanggal_dari_teks(info["tanggal"])} &middot; '
         f'{html.escape(label_kelas(_ambil(info, "level", LEVEL_BAWAAN)))} &middot; '
         f'{_ambil(info, "topik", TOPIK_BAWAAN)} &middot; '
         f'seed {info["seed"]} {badge_mode}</p>'
@@ -227,7 +228,7 @@ def halaman_sesi_lampiran(
             f'<li><a href="/lampiran/{lamp["id"]}">'
             f'{html.escape(lamp["nama_berkas"])}</a> '
             f'<span class="kode {status_cls}">{lamp["status"]}</span> '
-            f'<span class="waktu">{html.escape(lamp["dibuat"])}</span></li>'
+            f'<span class="waktu">{html.escape(waktu_dari_teks(lamp["dibuat"]))}</span></li>'
         )
     daftar = (
         f'<ul class="daftar-lampiran">{"".join(baris_lampiran)}</ul>'
@@ -260,7 +261,7 @@ def halaman_sesi_lampiran(
         f'Riwayat {html.escape(info["nama"])}</a></div>'
         '<header class="editorial-kepala-st"><p class="editorial-alis-st">ARSIP LEMBAR LATIHAN</p>'
         f'<h1 id="judul-lampiran">{html.escape(info["nama"])} — Sesi #{sesi_id}</h1></header>'
-        f'<p class="sub">{info["tanggal"]} &middot; '
+        f'<p class="sub">{tanggal_dari_teks(info["tanggal"])} &middot; '
         f'{html.escape(label_kelas(_ambil(info, "level", LEVEL_BAWAAN)))} &middot; '
         f'{_ambil(info, "topik", TOPIK_BAWAAN)} &middot; '
         f'seed {info["seed"]} {badge_mode}</p>'

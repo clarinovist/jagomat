@@ -86,3 +86,13 @@ def test_badge_dan_chip_status_anak_minimal_14px():
     import child_style
     assert f"font-size: {T.UKURAN_TEKS_LABEL}" in child_badge_style.css_badge_review(".x")
     assert f"font-size: {T.UKURAN_TEKS_LABEL}" in _aturan(child_style.GAYA_ANAK, ".anak-chip-st")
+
+
+def test_baris_centang_foto_lampiran_24px_dan_rata_tengah():
+    css = style_stitch.GAYA_STITCH
+    assert "body.st .foto-editorial-st .centang input[type=checkbox] { width: 1.5rem; height: 1.5rem; flex: none; }" in css
+    assert "body.st .foto-editorial-st .centang { display: flex; align-items: center;" in css
+
+
+def test_tautan_brand_topbar_target_sentuh_44px():
+    assert f"body.st .st-topbar .brand {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}" in style_stitch.GAYA_STITCH

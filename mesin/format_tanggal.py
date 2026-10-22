@@ -14,3 +14,25 @@ def tanggal_pendek(nilai: date) -> str:
 def waktu_wib(nilai: datetime) -> str:
     """Waktu sudah dalam WIB; jam memakai titik sesuai kebiasaan Indonesia."""
     return f"{tanggal_pendek(nilai)}, {nilai:%H.%M} WIB"
+
+
+def tanggal_dari_teks(nilai) -> str:
+    """Tanggal ISO dari database; nilai warisan yang aneh tampil apa adanya."""
+    mentah = str(nilai or "").strip()
+    if not mentah:
+        return "—"
+    try:
+        return tanggal_pendek(date.fromisoformat(mentah[:10]))
+    except ValueError:
+        return mentah
+
+
+def waktu_dari_teks(nilai) -> str:
+    """Stempel waktu database (sudah WIB); tanggal saja bila tanpa jam."""
+    mentah = str(nilai or "").strip()
+    if not mentah:
+        return "—"
+    try:
+        return waktu_wib(datetime.fromisoformat(mentah)) if len(mentah) > 10 else tanggal_pendek(date.fromisoformat(mentah))
+    except ValueError:
+        return mentah

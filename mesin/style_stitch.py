@@ -3572,13 +3572,21 @@ SELEKTOR_TEKS_INFORMATIF = (
     " .profil-paging-st, .profil-paging-st span, label, .riwayat-ringkas-st time span,"
     " .peta-pilihan small, .laporan-navigasi a)",
     ".pendamping-editorial-st :is(.jejak a, .bagikan-perhatian-st, .badge-peran)",
+    ".lampiran-editorial-st :is(.kode, .waktu, .sub)",
+    ".foto-editorial-st :is(.sub, .centang)",
     "body.st.kerja-editorial-st :is(.kerja-meta-st, .kerja-pill-st, .kerja-pill-st span,"
     " .kerja-centang-st, .kerja-label-st, .kerja-petunjuk-st p, .kerja-petunjuk-st b)",
 )
 GAYA_TEKS_MIN = "\n/* Teks informatif dewasa >= 14px */\n" + "".join(
     f"{sel if sel.startswith('body') else 'body.st ' + sel} {{ font-size: {T.UKURAN_TEKS_LABEL}; }}\n"
     for sel in SELEKTOR_TEKS_INFORMATIF
-) + f"body.st.kerja-editorial-st input[type=checkbox] {{ width: 1.5rem; height: 1.5rem; }}\n"
+) + (
+    f"body.st.kerja-editorial-st input[type=checkbox] {{ width: 1.5rem; height: 1.5rem; }}\n"
+    f"body.st .foto-editorial-st .centang {{ display: flex; align-items: center; gap: {T.SP_2}; }}\n"
+    f"body.st .foto-editorial-st .centang input[type=checkbox] {{ width: 1.5rem; height: 1.5rem; flex: none; }}\n"
+    f"body.st .lampiran-editorial-st .waktu {{ color: {T.TEKS_VARIAN}; }}\n"
+    f"body.st .st-topbar .brand {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}\n"
+)
 GAYA_STITCH = GAYA_STITCH + GAYA_TEKS_MIN
 
 
