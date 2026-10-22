@@ -87,7 +87,7 @@ GAYA_AKUN = f"""
   border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KECIL}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; text-decoration: none;
 }}
 {_A} .tombol-bahaya-akun {{ min-height: {T.TARGET_SENTUH}; border-radius: {T.RADIUS_KECIL}; font-weight: 700; cursor: pointer; }}
-{_A} .akun-baris-pilihan-st {{
+{_A} .akun-baris-pilihan-st, {_A} .akun-chat-st {{
   display: flex; align-items: center; justify-content: space-between; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH};
   padding: {T.SP_2} 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
 }}
@@ -101,10 +101,10 @@ GAYA_AKUN = f"""
 }}
 {_A} .akun-bahaya-kartu-st {{ padding: {T.SP_4}; }}
 {_A} .akun-bahaya-kartu-st h2, {_A} .akun-bahaya-st > summary {{ color: {T.TEKS_GALAT}; }}
-{_A} .akun-bahaya-st > summary, {_A} .kartu-st > summary {{
+{_A} .akun-bahaya-st > summary, {_A} .kartu-st > summary, {_A} .akun-retensi-lipat-st > summary {{
   min-height: {T.TARGET_SENTUH}; display: list-item; cursor: pointer; font-weight: 600;
 }}
-{_A} .kartu-st > summary {{ color: {T.AKSEN_TEAL_TUA}; }}
+{_A} .kartu-st > summary, {_A} .akun-retensi-lipat-st > summary {{ color: {T.AKSEN_TEAL_TUA}; }}
 {_A} .akun-status-data-st {{ background: {T.LATAR_TERSIMPAN}; border-color: {T.BORDER_TERSIMPAN}; }}
 {_A} .akun-status-data-st h2 {{ margin-bottom: {T.SP_1}; }}
 {_A} .akun-opsi-st {{ display: flex; align-items: flex-start; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
@@ -112,10 +112,22 @@ GAYA_AKUN = f"""
 {_A} .akun-opsi-st label {{ display: flex; flex-direction: column; gap: {T.SP_1}; flex: 1; cursor: pointer; }}
 {_A} .akun-opsi-judul-st {{ font-weight: 700; }}
 {_A} .akun-opsi-isi-st {{ font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; }}
-{_A} .akun-pilihan-data .sub, {_A} .akun-status-data-st .sub {{ margin: {T.SP_2} 0 0; }}
-{_A} .akun-status-data-st .sub {{ margin-top: 0; }}
+{_A} .akun-izin-st {{ display: flex; gap: {T.SP_3}; flex-direction: row; align-items: center; flex-wrap: wrap; background: {T.LATAR_TERSIMPAN}; border-color: {T.BORDER_TERSIMPAN}; }}
+{_A} .akun-izin-st > div {{ flex: 1 1 14rem; }}
+{_A} .akun-izin-st h2 {{ margin-bottom: {T.SP_1}; }}
+{_A} .akun-chat-judul-st {{ display: block; font-weight: 700; }}
+{_A} .akun-chat-waktu-st {{ display: block; font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; }}
+{_A} .akun-grup-tanggal-st {{ margin: {T.SP_3} 0 0; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; letter-spacing: .06em; color: {T.TEKS_VARIAN}; }}
+{_A} .akun-retensi-st {{ margin: 0; padding-left: {T.SP_5}; }}
+{_A} .akun-retensi-st li {{ margin-block: {T.SP_2}; }}
+{_A} .akun-retensi-lipat-st {{ border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
+{_A} .akun-retensi-lipat-st .akun-retensi-st {{ padding-bottom: {T.SP_2}; }}
+{_A} .akun-pilihan-data .sub, {_A} .akun-status-data-st .sub, {_A} .akun-izin-st .sub {{ margin: {T.SP_2} 0 0; }}
+{_A} .akun-status-data-st .sub, {_A} .akun-izin-st .sub {{ margin-top: 0; }}
 {_A} details.kartu-st {{ padding-block: {T.SP_1}; }}
 {_A} .akun-bahaya-st:not([open]) {{ padding-bottom: {T.SP_1}; }}
+{_A} .akun-izin-st .akun-chip-ok-st {{ background: {T.LATAR_KARTU}; }}
+{_A} .kartu-st > .akun-catatan-st {{ margin-bottom: {T.SP_2}; }}
 {_A} .akun-kelola-tutup {{ display: none; }}
 {_A} .akun-kelola[open] .akun-kelola-tutup {{ display: inline; }}
 {_A} .akun-kelola[open] .akun-kelola-buka {{ display: none; }}

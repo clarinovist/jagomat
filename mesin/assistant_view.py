@@ -28,11 +28,15 @@ _ID_SUMBER = re.compile(r"[1-9][0-9]{0,18}\Z")
 _MAKS_ID = 2 ** 63 - 1
 
 
+def jenis_chat(chat: assistant_store.Chat) -> str:
+    return dict(anak='Belajar', sesi='Tinjauan sesi', soal='Bahas soal').get(getattr(chat, 'context_kind', None), 'Percakapan')
+
+
 def label_chat(chat: assistant_store.Chat) -> str:
     """Judul netral dari jenis sumber/waktu, tidak menyalin pesan personal."""
     waktu = datetime.fromtimestamp(chat.dibuat, tz=_WIB)
     return (
-        f"{dict(anak='Belajar', sesi='Tinjauan sesi', soal='Bahas soal').get(getattr(chat, 'context_kind', None), 'Percakapan')} · "
+        f"{jenis_chat(chat)} · "
         f"{waktu.day:02d} {_BULAN[waktu.month - 1]} {waktu.year} · {waktu:%H:%M:%S} WIB"
     )
 

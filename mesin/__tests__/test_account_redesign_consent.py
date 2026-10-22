@@ -20,6 +20,7 @@ import policy_http  # noqa: E402
 import policy_pages  # noqa: E402
 import policy_store  # noqa: E402
 import sensor_http  # noqa: E402
+from test_assistant_manage import manage, server  # noqa: E402,F401
 
 
 # ── 3a: kartu "Kesepakatan dan pilihan data" ───────────────────────────
@@ -136,3 +137,42 @@ def test_gate_tidak_berubah_dan_tetap_dipakai_tanpa_izin(monkeypatch, tmp_path):
     h = policy_http.halaman(pen, p).decode()
     assert "Pilihan data Anda" in h and "Satu persetujuan" not in h
     assert 'name="policy_revisi" value="2"' in h
+
+
+# ── 4: Data Pendamping ─────────────────────────────────────────────────
+
+
+def test_data_pendamping_memakai_shell_akun(server):
+    kode, isi, _ = server.minta(manage.DASAR, cookie=server.token)
+    assert kode == 200 and "<title>Kelola data Pendamping" in isi
+    assert "pendamping-halaman" not in isi and "akun-editorial-st" in isi
+    assert '<div class="jejak"><a href="/akun">← Kembali ke Akun</a></div>' in isi
+    assert '<h1 id="judul-pendamping">Data Pendamping</h1>' in isi
+    assert "<script" not in isi
+
+
+def test_data_pendamping_izin_dan_baris_chat_per_tanggal(server):
+    _, isi, _ = server.minta(manage.DASAR, cookie=server.token)
+    assert '<span class="akun-chip-st akun-chip-ok-st">Ada izin</span>' in isi
+    assert f'class="akun-tombol-garis-st" href="{manage.DASAR}/cabut">Tinjau pencabutan izin AI</a>' in isi
+    assert "akun-grup-tanggal-st" in isi and isi.count('class="akun-chat-st"') >= 2
+    assert f'href="{manage.DASAR}/chat/{server.chat.id}/hapus"' in isi
+    assert re.search(r'aria-label="Tinjau dan hapus chat [^"]+ WIB"', isi)
+    assert "Isi privat sintetis" not in isi
+
+
+def test_data_pendamping_retensi_dilipat_di_halaman_utama(server):
+    _, isi, _ = server.minta(manage.DASAR, cookie=server.token)
+    for judul in ("Penyimpanan dan cadangan", "Yang tetap ada", "Layanan AI"):
+        assert f"<summary>{judul}</summary>" in isi
+    assert "Salinan cadangan dapat bertahan maksimal 30 hari." in isi
+
+
+def test_halaman_konfirmasi_tetap_menampilkan_konsekuensi_penuh(server):
+    path = manage.DASAR + "/chat/" + server.chat.id + "/hapus"
+    _, isi, _ = server.minta(path, cookie=server.token)
+    assert '<ul class="akun-retensi-st">' in isi and "<details" not in isi.split("<main", 1)[1].split("<form", 1)[0]
+    assert 'class="tombol-bahaya-akun"' in isi and 'name="konfirmasi" value="1" required' in isi
+    assert f'<a class="akun-tautan-st" href="{manage.DASAR}">Batal</a>' in isi
+    _, cabut, _ = server.minta(manage.DASAR + "/cabut", cookie=server.token)
+    assert "Cabut izin Pendamping AI" in cabut and 'class="tombol-bahaya-akun"' in cabut

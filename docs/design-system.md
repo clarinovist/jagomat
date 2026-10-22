@@ -184,7 +184,10 @@ form, token dan `data-konfirmasi` tidak berubah. `/persetujuan` punya dua mode d
 memakai shell akun 46rem: kartu status, tiga checkbox, Simpan/Batal, detail kesepakatan dan
 zona Cabut semua izin. POST tetap `policy_aksi=pilihan` dan `/analitik/sensor-cabut`; chip status
 per opsi sengaja tidak ada (tanpa JS akan basi saat checkbox diubah).
-Mockup: canvas "Jagomat Akun Redesign". Belum didesain ulang (fase 4): Data Pendamping. Tidak diadopsi dari mockup: meter
+Data Pendamping (fase 4): `assistant_manage._page` memakai shell akun (bukan bingkai chat):
+kartu izin AI, chat per tanggal dengan tombol Tinjau & hapus, dan retensi dilipat di halaman
+utama; halaman konfirmasi hapus/cabut tetap menampilkan daftar konsekuensi penuh (`RETENSI`).
+Mockup: canvas "Jagomat Akun Redesign" (keenam artboard sudah diterapkan). Tidak diadopsi dari mockup: meter
 "0/12 karakter" (butuh JS baru) dan chip paket "Akses awal · gratis" (butuh data
 langganan di header).
 
