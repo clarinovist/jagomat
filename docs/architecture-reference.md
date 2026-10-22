@@ -80,6 +80,11 @@ cache dan cadangan tetap privat.
   form native; bukan izin menambah JavaScript umum. `practice_workspace.py`
   merender satu form latihan dengan fieldset nonaktif disabled; `practice_browser.py`
   mengganti mode/action dan menahan Gabungan <2 topik, tanpa network/autosave.
+  Beranda guru: `guru_browser.py` (disetujui 22 Okt 2026) menyembunyikan/menampilkan kartu
+  menurut chip langkah, memperbarui `aria-current`, hitungan, URL (`replaceState`) dan input
+  `kelompok` form pencarian; tanpa network/storage/eval. Server merender semua kartu yang
+  cocok pencarian (di luar kelompok aktif diberi `hidden`), jadi tanpa JS hasilnya sama
+  dengan filter server; chip tetap tautan GET. Hash skrip masuk CSP beranda di `web.py`.
   Hash exact didaftarkan lewat `assistant_browser` hanya pada marker form aktual;
   fallback mode GET tetap tersedia. Salinan draf Pendamping mengecualikan kontrol
   dalam fieldset disabled, bukan hanya atribut disabled langsung. Semua tab akun memakai font

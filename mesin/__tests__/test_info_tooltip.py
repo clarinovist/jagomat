@@ -167,8 +167,9 @@ def test_keterangan_beranda_statis_tanpa_data_anak_atau_kunci(db):
 
 def test_tanpa_js_tambahan(db):
     h = _dashboard(db)
+    from guru_browser import SKRIP_FILTER_GURU
     assert re.findall(r"<script>(.*?)</script>", h, re.S) == [
-        SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA,
+        SKRIP_FILTER_GURU, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA,
     ]
     assert not re.search(r"\son(?:click|focus|mouseenter|mousemove|mouseover)\s*=", h)
     assert "data-tooltip" not in h

@@ -89,10 +89,13 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   karakter) hanya tampil bila anak lebih dari `AMBANG_PENCARIAN` (5, tebakan awal) atau pencarian sedang
   aktif; hanya siswa milik guru. Hasil menampilkan jumlah dari total; keadaan kosong menawarkan
   Tampilkan semua, bukan ajakan tambah anak pertama yang menyesatkan. HP memakai satu kolom, tombol aksi
-  penuh, maskot disembunyikan. Dua skrip shell existing (mata sandi/cegah kirim ganda) dan font tetap.
+  penuh, maskot disembunyikan. Dua skrip shell existing (mata sandi/cegah kirim ganda) dan font tetap, ditambah satu skrip
+  berhash untuk filter instan (lihat berikut).
   Respons beranda tidak di-cache dan tidak mengirim referrer; kata pencarian tetap ada di URL GET serta
-  riwayat browser, bukan disimpan ke DB. Penyaringan instan tanpa muat ulang dan Esc menutup menu akun
-  butuh JavaScript baru dan belum disetujui.
+  riwayat browser, bukan disimpan ke DB. Filter chip berjalan instan tanpa muat ulang (JS berhash
+  disetujui 22 Okt 2026): kartu di luar kelompok aktif tetap dirender tetapi `hidden`, klik biasa
+  menyaring di tempat, klik dengan modifier atau tanpa JS memakai tautan GET. Pencarian tetap
+  submit ke server. Esc menutup menu akun butuh JavaScript baru dan belum disetujui.
 - Kerangka [playbook guru](playbook-guru.md) menambah panduan pra-tulis tanpa menentukan
   diagnosis/status/rekomendasi. Pengecualian eksplisit pemilik (2026-10-22): **draf
   boleh tampil kepada semua akun guru sebelum review manusia**, pada resource miliknya

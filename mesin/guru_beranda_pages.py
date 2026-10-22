@@ -14,6 +14,7 @@ import database
 import domain_clock
 import teacher_home_priority as prioritas
 from cycle_report import TINDAKAN
+from guru_browser import SKRIP_FILTER_GURU
 from teacher_shell import _halaman_stitch
 from teacher_workspace import _kelas_sekolah_profil
 
@@ -36,6 +37,8 @@ _KELOMPOK_CHIP = {
     "siap": prioritas.SIAP,
     "menunggu": prioritas.MENUNGGU,
 }
+
+_KUNCI_KELOMPOK = {nilai: kunci for kunci, nilai in _KELOMPOK_CHIP.items()}
 
 _CTA = {
     "konfirmasi_hasil": "Tinjau hasil",
@@ -85,7 +88,7 @@ def _chip_filter(jumlah: dict[int, int], total: int, kelompok: str, cari: str) -
     for nilai in _URUT_CHIP:
         aktif = ' aria-current="true"' if nilai == kelompok else ""
         chip.append(
-            f'<a class="guru-chip-st" href="{html.escape(_tautan(nilai, cari), quote=True)}"{aktif}>'
+            f'<a class="guru-chip-st" data-chip-kelompok="{nilai}" href="{html.escape(_tautan(nilai, cari), quote=True)}"{aktif}>'
             f'{html.escape(prioritas.PILIHAN_FILTER[nilai])} <strong>{hitung[nilai]}</strong></a>'
         )
     return (
@@ -150,7 +153,7 @@ def _status(kon, siswa_id: int, langkah) -> tuple[str, str, str]:
     return "".join(status), label_batal, f"<span>{jumlah_sesi} latihan tercatat</span>"
 
 
-def _kartu(kon, siswa, langkah, hari_ini, peran: str) -> str:
+def _kartu(kon, siswa, langkah, hari_ini, peran: str, tampil: bool) -> str:
     from learning_profile import label_kelas_sekolah
     siswa_id, nama = int(siswa["id"]), str(siswa["nama"])
     catatan, label_batal, label_jumlah = _status(kon, siswa_id, langkah)
@@ -169,7 +172,8 @@ def _kartu(kon, siswa, langkah, hari_ini, peran: str) -> str:
     cta = _cta(langkah)
     kelas = label_kelas_sekolah(_kelas_sekolah_profil(kon, siswa))
     return (
-        f'<article class="{kelas_kartu}">'
+        f'<article class="{kelas_kartu}" data-kelompok="{_KUNCI_KELOMPOK[langkah.kelompok]}"'
+        f'{"" if tampil else " hidden"}>'
         f'<span class="guru-inisial-st guru-avatar-{siswa_id % JUMLAH_WARNA_AVATAR}" aria-hidden="true">'
         f'{html.escape(nama[:1].upper())}</span>'
         '<div class="guru-identitas-st">'
@@ -189,11 +193,19 @@ def _kartu(kon, siswa, langkah, hari_ini, peran: str) -> str:
     )
 
 
-def _daftar(kon, baris, hari_ini, peran: str) -> str:
+def _daftar(kon, baris, tampil_id, hari_ini, peran: str) -> str:
+    """Semua kartu yang cocok pencarian; yang di luar kelompok aktif diberi ``hidden``.
+
+    Fallback tanpa JS sama dengan filter server, dan JS dapat menampilkan ulang
+    tanpa muat ulang. Urutan tetap dari reducer.
+    """
     per_anak = {langkah.siswa_id: (siswa, langkah) for siswa, langkah in baris}
     urut = prioritas.urutkan([langkah for _, langkah in baris])
-    kartu = [_kartu(kon, *per_anak[a.siswa_id], hari_ini, peran) for a in urut]
-    return f'<div class="daftar-anak">{"".join(kartu)}</div>'
+    kartu = [
+        _kartu(kon, *per_anak[a.siswa_id], hari_ini, peran, a.siswa_id in tampil_id)
+        for a in urut
+    ]
+    return f'<div class="daftar-anak" data-daftar-guru>{"".join(kartu)}</div>'
 
 
 def _tambah_anak(total: int) -> str:
@@ -207,24 +219,24 @@ def _tambah_anak(total: int) -> str:
 def _isi_daftar(kon, baris_semua, jumlah, cari, kelompok, hari_ini, peran) -> str:
     """Bagian daftar anak: chip, pencarian bersyarat, hitungan, dan kartu."""
     total = len(baris_semua)
-    tampil = []
+    cocok_cari = []
+    tampil_id = set()
     for s, langkah in baris_semua:
         nama_akun = None
         if cari:
             # Lookup existing hanya untuk siswa yang sudah lolos scope pemilik.
             from students import akun_murid_dari_siswa
             nama_akun = akun_murid_dari_siswa(kon, int(s["id"]))
+        if prioritas.cocok_filter(langkah, cari, "semua", nama_akun):
+            cocok_cari.append((s, langkah))
         if prioritas.cocok_filter(langkah, cari, kelompok, nama_akun):
-            tampil.append((s, langkah))
-    if tampil:
-        isi = _daftar(kon, tampil, hari_ini, peran)
-    else:
-        isi = (
-            '<div class="guru-cocok-kosong-st">'
-            "<strong>Tidak ada siswa yang cocok.</strong>"
-            "<p>Ubah pencarian atau pilih kelompok lain.</p>"
-            '<a class="guru-tambah-st" href="/guru">Tampilkan semua</a></div>'
-        )
+            tampil_id.add(langkah.siswa_id)
+    kosong = (
+        f'<div class="guru-cocok-kosong-st" data-kosong-guru{"" if not tampil_id else " hidden"}>'
+        "<strong>Tidak ada siswa yang cocok.</strong>"
+        "<p>Ubah pencarian atau pilih kelompok lain.</p>"
+        '<a class="guru-tambah-st" href="/guru">Tampilkan semua</a></div>'
+    )
     form = _form_cari(kelompok, cari) if total > AMBANG_PENCARIAN or cari else ""
     return (
         '<div class="guru-kepala-daftar-st"><div>'
@@ -232,8 +244,9 @@ def _isi_daftar(kon, baris_semua, jumlah, cari, kelompok, hari_ini, peran) -> st
         f'<p class="guru-petunjuk-st">{html.escape(KETERANGAN_DAFTAR)}</p>'
         f'</div>{_tambah_anak(total)}</div>'
         + _chip_filter(jumlah, total, kelompok, cari) + form
-        + f'<p class="guru-hasil-filter-st" role="status">{len(tampil)} dari {total} siswa ditampilkan.</p>'
-        + isi
+        + f'<p class="guru-hasil-filter-st" role="status" data-hasil-guru data-total="{total}">'
+        f'{len(tampil_id)} dari {total} siswa ditampilkan.</p>'
+        + _daftar(kon, cocok_cari, tampil_id, hari_ini, peran) + kosong
     )
 
 
@@ -276,7 +289,8 @@ def halaman(kon, pesan: str, pemilik, peran: str, cari: str, kelompok: str) -> b
         '<span>Satu langkah yang berarti.</span></div></header>'
         f'{kabar}<section aria-labelledby="daftar-anak">{isi_utama}</section>'
         '<footer class="guru-kaki-st"><span aria-hidden="true">✳</span> '
-        'Beri ruang untuk mencoba, bertanya, dan menjelaskan.</footer></main>',
+        'Beri ruang untuk mencoba, bertanya, dan menjelaskan.</footer>'
+        + (f'<script>{SKRIP_FILTER_GURU}</script>' if total else '') + '</main>',
         ident=(pemilik if pemilik else "guru", peran),
         kelas_bungkus="guru-beranda-st",
     )

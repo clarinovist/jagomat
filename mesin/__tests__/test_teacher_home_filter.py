@@ -23,7 +23,9 @@ class Markup(HTMLParser):
 
 
 def nama_kartu(isi):
-    return [html.unescape(n) for n in re.findall(r'<h3 class="guru-nama-st">(.*?)</h3>', isi)]
+    """Nama pada kartu yang terlihat; kartu di luar kelompok aktif dirender ``hidden``."""
+    return [html.unescape(n) for n in re.findall(
+        r'<article class="guru-kartu-st[^"]*" data-kelompok="[^"]+">.*?<h3 class="guru-nama-st">(.*?)</h3>', isi, re.S)]
 
 
 @pytest.fixture
@@ -97,8 +99,10 @@ def test_form_get_native_tanpa_js_dan_nilai_escape(server):
     tags = Markup(isi).tags
     forms = [a for t, a in tags if t == 'form' and a.get('id') == 'guru-filter']
     assert len(forms) == 1 and forms[0]['method'] == 'get' and forms[0]['action'] == '/guru'
+    from guru_browser import SKRIP_FILTER_GURU
     from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
-    assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
+    assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [
+        SKRIP_FILTER_GURU, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
     assert not any(any(k.startswith('on') for k in a) for t, a in tags)
     assert 'fonts.googleapis.com/css2' in isi
     assert any(t == 'input' and a.get('name') == 'cari' and a.get('value') == cari for t, a in tags)
@@ -108,15 +112,16 @@ def test_form_get_native_tanpa_js_dan_nilai_escape(server):
     assert not any(t == 'select' for t, a in tags)
 
 
-def test_csp_beranda_mengizinkan_dua_skrip_dan_font_existing_saja(server):
+def test_csp_beranda_mengizinkan_tiga_skrip_berhash_dan_font_existing_saja(server):
     import base64
     import hashlib
+    from guru_browser import SKRIP_FILTER_GURU
     from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
     kode, isi, tajuk = server.minta('/guru?cari=Bbb', auth=('guru', SANDI_GURU))
     assert kode == 200
     csp = tajuk['Content-Security-Policy']
     hash_skrip = ["'sha256-" + base64.b64encode(hashlib.sha256(s.encode()).digest()).decode() + "'"
-                  for s in (SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)]
+                  for s in (SKRIP_FILTER_GURU, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)]
     direktif = dict((p.split()[0], p.split()[1:]) for p in csp.split(';') if p.strip())
     assert direktif['script-src'] == hash_skrip
     assert 'https://fonts.googleapis.com' in direktif['style-src']
@@ -124,7 +129,10 @@ def test_csp_beranda_mengizinkan_dua_skrip_dan_font_existing_saja(server):
     assert direktif['manifest-src'] == ["'self'"]
     assert "'unsafe-inline'" not in direktif['script-src']
     assert tajuk['Cache-Control'] == 'no-store' and tajuk['Referrer-Policy'] == 'no-referrer'
-    assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
+    assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [
+        SKRIP_FILTER_GURU, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
+    # Skrip filter tidak memakai jaringan: tanpa connect-src.
+    assert 'connect-src' not in direktif
     # Halaman akun privat lain tidak memperoleh izin font/CDN beranda.
     _, _, akun = server.minta('/akun', auth=('guru', SANDI_GURU))
     assert 'fonts.googleapis.com' not in akun['Content-Security-Policy']

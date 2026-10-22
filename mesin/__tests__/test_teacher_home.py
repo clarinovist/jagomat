@@ -164,7 +164,7 @@ class Markup(HTMLParser):
 
 def _kartu_per_anak(isi):
     """Markup tiap kartu anak /guru, dikunci pada id dari satu-satunya tautan /anak/."""
-    kartu = re.findall(r'<article class="guru-kartu-st[^"]*">(.*?)</article>', isi, re.S)
+    kartu = re.findall(r'<article class="guru-kartu-st[^"]*" data-kelompok="[^"]+">(.*?)</article>', isi, re.S)
     return {re.search(r'href="/anak/(\d+)"', k).group(1): k for k in kartu}
 
 

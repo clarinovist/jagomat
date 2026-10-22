@@ -23,8 +23,8 @@ Mockup lama di arsip lokal `../../osn-resources/referensi/desain-ui/`, sedangkan
 - Ruang guru (`/guru`) diselaraskan 22 Oktober dengan artboard `mockup/Guru.dc.html`
   (kartu aksi, chip berhitungan, penjelasan daftar sebagai teks terlihat, bukan tooltip
   ⓘ seperti keputusan 26 Sep). Penyimpangan disengaja: judul hero tetap skala dewasa
-  (`UKURAN_JUDUL_DEWASA`, bukan 38px mockup); chip memakai tautan GET `aria-current`,
-  bukan tombol `aria-pressed` + JS; banner Riwayat tidak memakai "Mulai dari yang paling
+  (`UKURAN_JUDUL_DEWASA`, bukan 38px mockup); chip tetap tautan GET `aria-current` (bukan tombol
+  `aria-pressed`) dengan filter instan berhash di atasnya (`guru_browser.py`); banner Riwayat tidak memakai "Mulai dari yang paling
   lama" agar tidak menyiratkan urutan wajib. Warna dari token `ANAK_*`; avatar memilih
   warna dari `id % 4`. Empat tab `/anak` diperiksa di source terhadap artboard Riwayat/Perkembangan/Latihan (belum dirender ulang).
 - Bagian bertanggal di bawah merekam keputusan saat itu, bukan override kontrak

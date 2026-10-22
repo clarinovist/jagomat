@@ -36,7 +36,7 @@ def _chip(isi):
     return {
         label: (int(jumlah), href.replace("&amp;", "&"), bool(aktif))
         for href, aktif, label, jumlah in re.findall(
-            r'<a class="guru-chip-st" href="([^"]+)"( aria-current="true")?>([^<]+?) <strong>(\d+)</strong></a>',
+            r'<a class="guru-chip-st" data-chip-kelompok="[^"]+" href="([^"]+)"( aria-current="true")?>([^<]+?) <strong>(\d+)</strong></a>',
             nav)
     }
 
@@ -92,7 +92,7 @@ def test_form_pencarian_membawa_kelompok_aktif(server):
 
 def test_satu_tautan_per_kartu_dengan_nama_yang_menyebut_anak(server):
     isi = _beranda(server)
-    kartu = re.findall(r'<article class="guru-kartu-st[^"]*">(.*?)</article>', isi, re.S)
+    kartu = re.findall(r'<article class="guru-kartu-st[^"]*" data-kelompok="[^"]+">(.*?)</article>', isi, re.S)
     assert len(kartu) == 3
     for k in kartu:
         assert k.count("<a ") == 1
@@ -105,7 +105,7 @@ def test_label_tombol_mengikuti_langkah_dan_hanya_perlu_tindakan_yang_utama(serv
     isi = _beranda(server)
     kartu = {
         re.search(r'class="guru-nama-st">([^<]+)<', k).group(1): k
-        for k in re.findall(r'<article class="guru-kartu-st[^"]*">(.*?)</article>', isi, re.S)
+        for k in re.findall(r'<article class="guru-kartu-st[^"]*" data-kelompok="[^"]+">(.*?)</article>', isi, re.S)
     }
     assert "Tinjau hasil" in kartu["Ccc Terkirim"]
     assert "guru-cta-utama-st" in kartu["Ccc Terkirim"]
@@ -161,3 +161,72 @@ def test_warna_avatar_deterministik_per_id_anak(server):
     for i in ids:
         assert f'guru-avatar-{i % G.JUMLAH_WARNA_AVATAR}" aria-hidden="true">' in isi
     assert _beranda(server) == isi
+
+
+# ── Filter instan (JS disetujui 22 Okt 2026) ─────────────────────────────
+
+
+def _artikel(isi):
+    """[(kelompok, tersembunyi, nama)] semua kartu, urutan tampil."""
+    return [
+        (k, bool(h), n) for k, h, n in re.findall(
+            r'<article class="guru-kartu-st[^"]*" data-kelompok="([^"]+)"( hidden)?>.*?'
+            r'<h3 class="guru-nama-st">([^<]+)</h3>', isi, re.S)
+    ]
+
+
+def test_semua_kartu_dirender_dan_di_luar_kelompok_aktif_hidden(server):
+    semua = _artikel(_beranda(server))
+    assert [(k, h) for k, h, _ in semua] == [
+        ("perlu-tindakan", False), ("siap", False), ("menunggu", False)]
+    siap = _artikel(_beranda(server, "/guru?kelompok=siap"))
+    # Fallback tanpa JS: urutan reducer sama, hanya kelompok aktif yang terlihat.
+    assert [(k, h) for k, h, _ in siap] == [
+        ("perlu-tindakan", True), ("siap", False), ("menunggu", True)]
+    assert [n for _, _, n in siap] == [n for _, _, n in semua]
+
+
+def test_pencarian_tetap_menyaring_di_server_bukan_hanya_hidden(server):
+    kartu = _artikel(_beranda(server, "/guru?cari=Bbb"))
+    assert [n for _, _, n in kartu] == ["Bbb Baru"]
+    kosong = _artikel(_beranda(server, "/guru?cari=Bbb&kelompok=menunggu"))
+    assert [(n, h) for _, h, n in kosong] == [("Bbb Baru", True)]
+
+
+def test_blok_kosong_hanya_terlihat_saat_tak_ada_yang_tampil(server):
+    ada = _beranda(server, "/guru?kelompok=siap")
+    assert re.search(r'<div class="guru-cocok-kosong-st" data-kosong-guru hidden>', ada)
+    nol = _beranda(server, "/guru?cari=Bbb&kelompok=menunggu")
+    assert re.search(r'<div class="guru-cocok-kosong-st" data-kosong-guru>', nol)
+    assert "0 dari 3 siswa ditampilkan." in nol
+
+
+def test_penanda_hasil_membawa_total_untuk_skrip(server):
+    assert 'role="status" data-hasil-guru data-total="3">3 dari 3 siswa ditampilkan.' in _beranda(server)
+
+
+def test_chip_membawa_kelompok_untuk_skrip_dan_tetap_tautan_biasa(server):
+    isi = _beranda(server)
+    for nilai in ("semua", "perlu-tindakan", "siap", "menunggu"):
+        assert f'<a class="guru-chip-st" data-chip-kelompok="{nilai}" href="/guru' in isi
+
+
+def test_skrip_filter_tersisip_hanya_bila_ada_anak(server):
+    from guru_browser import SKRIP_FILTER_GURU
+    assert f"<script>{SKRIP_FILTER_GURU}</script>" in _beranda(server)
+    with server.buka() as kon:
+        import teacher_pages
+        kosong = teacher_pages.halaman_utama_stitch(kon, pemilik="tanpa-anak").decode()
+    assert SKRIP_FILTER_GURU not in kosong
+
+
+def test_skrip_filter_tanpa_jaringan_penyimpanan_atau_eval():
+    from guru_browser import SKRIP_FILTER_GURU as s
+    for terlarang in ("fetch(", "XMLHttpRequest", "WebSocket", "sendBeacon", "eval(", "Function(",
+                      "localStorage", "sessionStorage", "document.cookie", "innerHTML", "document.write"):
+        assert terlarang not in s, terlarang
+
+
+def test_hidden_menang_atas_display_kartu_dan_blok_kosong():
+    import style_stitch
+    assert ".guru-kartu-st[hidden], .guru-cocok-kosong-st[hidden] { display: none; }" in style_stitch.GAYA_STITCH

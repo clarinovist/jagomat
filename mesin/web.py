@@ -98,12 +98,15 @@ class Penangan(BaseHTTPRequestHandler):
         isi, izin_skrip = assistant_browser.lengkapi_respons(isi)
         izin_gaya = "style-src 'unsafe-inline'; "
         if beranda_guru:
-            # Dua skrip shell dan font beranda existing, bukan izin JS filter baru.
+            # Dua skrip shell existing + filter instan chip (disetujui 22 Okt 2026), semuanya
+            # berhash; tanpa connect-src karena skrip filter tidak memakai jaringan.
             import base64
             import hashlib
+            from guru_browser import HASH_FILTER_GURU
             from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
-            hashes = [base64.b64encode(hashlib.sha256(s.encode()).digest()).decode()
-                      for s in (SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)]
+            hashes = [HASH_FILTER_GURU] + [
+                base64.b64encode(hashlib.sha256(s.encode()).digest()).decode()
+                for s in (SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)]
             izin_skrip = "script-src " + ' '.join("'sha256-" + h + "'" for h in hashes) + '; '
             izin_gaya = ("style-src 'unsafe-inline' https://fonts.googleapis.com; "
                          "font-src https://fonts.gstatic.com; manifest-src 'self'; ")

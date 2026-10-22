@@ -39,7 +39,10 @@ berparameter, diagnosis B/K/H/E/T/N, lembar cetak, dan laporan per anak.
   pada penuntasan audit akun; server tetap otoritatif. Form Latihan memakai
   enhancement lokal berhash CSP untuk pilihan mode dan disabled Gabungan minimal
   dua topik, tanpa network/autosave; fallback pemilih GET serta validasi server tetap
-  berlaku (disetujui pada penuntasan UI langkah 3–6). Perlu approval untuk tambahan.
+  berlaku (disetujui pada penuntasan UI langkah 3–6). Beranda guru (`/guru`) memakai filter
+  instan chip langkah berhash CSP (`guru_browser.py`; disetujui 22 Okt 2026): hanya
+  menyembunyikan/menampilkan kartu yang sudah dirender server, tanpa network/storage;
+  fallback chip tautan GET tetap utuh. Perlu approval untuk tambahan.
 - `mesin/`: aplikasi, `__tests__/`, aset, Dockerfile, cadangan. `scripts/`: otomasi/palang.
   `docs/`: spesifikasi teknis; `docs/plan/` lokal/gitignored. `.github/`: CI/deploy.
 - Riset/materi/kurikulum/mockup/bisnis/eksperimen berada di `../osn-resources/referensi/` lokal,

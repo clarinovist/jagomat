@@ -32,7 +32,11 @@ TES = 'mesin/__tests__/test_teacher_home_filter.py'
     ('teacher_http.py', '    penangan._kirim_privat(isi, beranda_guru=True)\n    return True',
      '    penangan._kirim(isi)\n    return True', 'test_cari_nama_siswa_atau_login_terhubung'),
     ('web.py', '        if beranda_guru:', '        if False:',
-     'test_csp_beranda_mengizinkan_dua_skrip_dan_font_existing_saja'),
+     'test_csp_beranda_mengizinkan_tiga_skrip_berhash_dan_font_existing_saja'),
+    ('web.py', 'hashes = [HASH_FILTER_GURU] + [', 'hashes = [',
+     'test_csp_beranda_mengizinkan_tiga_skrip_berhash_dan_font_existing_saja'),
+    ('guru_beranda_pages.py', '{"" if tampil else " hidden"}', '',
+     'test_filter_kelompok_menjaga_sumber_dan_urutan'),
 ])
 def test_mutasi_filter_dan_akses_merah_lalu_pulih(tmp_path, monkeypatch, berkas, lama, baru, tes):
     def extractall_terlarang(*a, **kw):
@@ -45,7 +49,7 @@ def test_mutasi_filter_dan_akses_merah_lalu_pulih(tmp_path, monkeypatch, berkas,
     salinan.mkdir()
     with tarfile.open(arsip) as t:
         ekstrak_tar_aman(t, salinan)
-    for nama in ('guru_beranda_pages.py', 'teacher_pages.py', 'teacher_home_priority.py',
+    for nama in ('guru_beranda_pages.py', 'guru_browser.py', 'teacher_pages.py', 'teacher_home_priority.py',
                  'teacher_http.py', 'web.py'):
         shutil.copyfile(AKAR / 'mesin' / nama, salinan / 'mesin' / nama)
     shutil.copyfile(AKAR / TES, salinan / TES)

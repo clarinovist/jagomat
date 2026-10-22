@@ -344,6 +344,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-cta-utama-st {{ background: {T.ANAK_AKSEN}; color: {T.TEKS_PUTIH}; }}
 .guru-cta-utama-st:hover {{ background: {T.ANAK_AKSEN_HOVER}; }}
 .guru-cocok-kosong-st {{ display: flex; flex-direction: column; align-items: flex-start; gap: {T.SP_2}; padding: {T.SP_5}; border: {T.TEBAL_GARIS} dashed {T.ANAK_BORDER_KONTROL}; border-radius: {T.RADIUS_KARTU_BESAR}; background: {T.LATAR_KARTU}; }}
+.guru-kartu-st[hidden], .guru-cocok-kosong-st[hidden] {{ display: none; }}
 .guru-cocok-kosong-st p {{ margin: 0; color: {T.ANAK_TEKS_REDUP}; overflow-wrap: anywhere; }}
 .guru-kosong-st {{ border: {T.TEBAL_GARIS} dashed {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU}; padding: {T.SP_6}; background: color-mix(in srgb, {T.LATAR_KARTU} 65%, transparent); }}
 .guru-kosong-st h2 {{ font: 700 {T.UKURAN_BAGIAN_DEWASA}/1.4 {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; max-width: 20rem; margin: 0 0 {T.SP_4}; }}
