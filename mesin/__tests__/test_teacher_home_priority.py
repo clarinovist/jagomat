@@ -27,7 +27,7 @@ def _urutan_nama(isi):
 
 
 def _judul_kelompok(isi):
-    return re.findall(r'<h3 class="guru-kelompok-st"[^>]*>([^<]+?)\s*<span', isi)
+    return re.findall(r'<span class="guru-pil-st[^"]*">([^<]+)</span>', isi)
 
 
 def _sesi_terpandu(kon, siswa_id, seed):
@@ -195,10 +195,10 @@ def test_perlu_tindakan_diurutkan_terlama_dahulu(server_menunggu):
 
 def test_lama_menunggu_ditampilkan_hanya_bila_sehari_atau_lebih(server_menunggu):
     isi = _beranda(server_menunggu)
-    assert "menunggu 5 hari" in isi
-    assert "menunggu 2 hari" in isi
-    assert "menunggu 0 hari" not in isi
-    assert isi.count("menunggu 5 hari") == 1
+    assert "Menunggu 5 hari" in isi
+    assert "Menunggu 2 hari" in isi
+    assert "Menunggu 0 hari" not in isi
+    assert isi.count("Menunggu 5 hari") == 1
 
 
 def test_urutkan_menaruh_yang_bertanggal_sebelum_tanpa_tanggal_dalam_kelompok():
@@ -213,7 +213,7 @@ def test_urutkan_menaruh_yang_bertanggal_sebelum_tanpa_tanggal_dalam_kelompok():
     assert [a.nama for a in P.urutkan(masuk)] == ["Budi", "Zed", "Andi"]
 
 
-def test_hari_menunggu_dan_keterangan():
+def test_hari_menunggu():
     hari = domain_clock.hari_wib()
     lama = P.LangkahAnak(1, "A", "konfirmasi_hasil", P.PERLU_TINDAKAN, "Periksa",
                          hari - timedelta(days=3))
@@ -222,6 +222,13 @@ def test_hari_menunggu_dan_keterangan():
     assert P.hari_menunggu(lama, hari) == 3
     assert P.hari_menunggu(baru, hari) == 0
     assert P.hari_menunggu(tanpa, hari) is None
-    assert P.keterangan_langkah(lama, hari) == "Periksa · menunggu 3 hari"
-    assert P.keterangan_langkah(baru, hari) == "Periksa"
-    assert P.keterangan_langkah(tanpa, hari) == "Lanjutkan"
+
+
+def test_hitung_kelompok_menghitung_tiap_kelompok_termasuk_yang_kosong():
+    daftar = [
+        P.LangkahAnak(1, "A", "konfirmasi_hasil", P.PERLU_TINDAKAN, "x"),
+        P.LangkahAnak(2, "B", "eskalasi", P.PERLU_TINDAKAN, "x"),
+        P.LangkahAnak(3, "C", "pemetaan", P.SIAP, "x"),
+    ]
+    assert P.hitung_kelompok(daftar) == {P.PERLU_TINDAKAN: 2, P.SIAP: 1, P.MENUNGGU: 0}
+    assert P.hitung_kelompok([]) == {P.PERLU_TINDAKAN: 0, P.SIAP: 0, P.MENUNGGU: 0}

@@ -11,7 +11,8 @@ bubble ikon ⓘ yang muncul saat kursor mendekat atau saat difokus keyboard
 - bubble tidak boleh memuat data anak, angka, atau kunci;
 - tidak ada JS tambahan dan tombol bukan submit.
 
-Contoh pertama: beranda guru (/guru), kalimat disetujui 26 Sep 2026.
+Contoh pertama: beranda guru (/guru), kalimat disetujui 26 Sep 2026. Sejak
+22 Okt 2026 kalimat itu tampil sebagai teks biasa (mockup Ruang guru).
 Contoh kedua (26 Sep 2026): tab "Buat latihan" (/anak/<id>) — catatan kaki
 "Latihan bebas tidak mengubah progres rencana terpandu." pindah ke bubble.
 """
@@ -117,18 +118,12 @@ def _profil_latihan(db) -> str:
         ).decode()
 
 
-def test_petunjuk_satu_baris_plus_tombol_info(db):
+def test_keterangan_daftar_beranda_terlihat_tanpa_tombol_info(db):
+    """22 Okt 2026: mengikuti mockup Ruang guru, penjelasan inti tidak lagi di bubble."""
     h = _dashboard(db)
-    assert "Pilih nama untuk mulai." in h
-    # Kalimat lama pindah ke bubble — tidak lagi memadati layar.
-    assert "membuka rencana belajar dan riwayat sesi" not in h
-    tombol = _BacaInfo(h).tombol
-    assert len(tombol) == 1
-    atribut, isi = tombol[0]
-    assert atribut["type"] == "button"                      # bukan submit
-    assert atribut.get("aria-label") == TEKS_DISETUJUI      # pembaca layar dapat isinya
-    assert isi == TEKS_DISETUJUI                            # isi bubble
-    assert "title" not in atribut                           # bukan andalan title=
+    assert f'<p class="guru-petunjuk-st">{TEKS_DISETUJUI}</p>' in h
+    assert "Pilih nama untuk mulai." not in h
+    assert not _BacaInfo(h).tombol
 
 
 def test_css_menampilkan_bubble_saat_hover_dan_fokus():
@@ -158,19 +153,16 @@ def test_css_kotak_sentuh_tidak_dilarkan_aturan_permukaan():
         assert "min-height: 0" in isi
 
 
-def test_bubble_tanpa_data_anak_atau_kunci(db):
+def test_keterangan_beranda_statis_tanpa_data_anak_atau_kunci(db):
     h = _dashboard(db)
     nama = set(re.findall(r"AnakSintetis\w*", h))
     assert nama == {"AnakSintetis", "AnakSintetisDua"}       # fixture benar-benar tampil
-    tombol = _BacaInfo(h).tombol
-    assert tombol
-    for _, isi in tombol:
-        assert isi == TEKS_DISETUJUI                        # teks statis, bukan dinamis
-        assert not re.search(r"\d", isi)                    # tanpa angka (id/jumlah)
-        for n in nama:
-            assert n not in isi
-        assert "kunci" not in isi.lower()
-        assert "malrule" not in isi.lower()
+    assert not _BacaInfo(h).tombol
+    assert not re.search(r"\d", TEKS_DISETUJUI)              # teks statis, tanpa angka
+    for n in nama:
+        assert n not in TEKS_DISETUJUI
+    assert "kunci" not in TEKS_DISETUJUI.lower()
+    assert "malrule" not in TEKS_DISETUJUI.lower()
 
 
 def test_tanpa_js_tambahan(db):

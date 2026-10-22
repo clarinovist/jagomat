@@ -40,8 +40,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   Daftar pengecualian/perilaku lengkap di [arsitektur](architecture-reference.md#konvensi-dan-keputusan-penting).
 - Token visual di `design_tokens.py`. Admin `ADMIN_*` terisolasi; empat tab profil
   berbagi `child_components.py` dan lebar `ANAK_*`. Jangan menambal lebar per tab.
-- `teacher_home_priority.py` hanya memproyeksi reducer; pencarian/filter owner-scoped
-  tidak menulis DB atau membuat ranking kemampuan. Respons privat no-store/no-referrer.
+- `teacher_home_priority.py` hanya memproyeksi reducer; `guru_beranda_pages.py` merender /guru
+  (chip/pencarian GET owner-scoped, tanpa JS) tanpa menulis DB atau membuat ranking
+  kemampuan. Respons privat no-store/no-referrer.
 - `teaching_playbook.py` membaca JSON internal dengan validasi identitas/versi/hash;
   draf berlabel diizinkan tampil, bukan disahkan. `assistant_manage.py` menangani
   pengelolaan data sebelum gate provider; AI tidak mengambil alih konfirmasi/reducer.

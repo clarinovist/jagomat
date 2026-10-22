@@ -72,8 +72,8 @@ def test_cari_nama_siswa_atau_login_terhubung(server, cari):
 def test_filter_kelompok_menjaga_sumber_dan_urutan(server, kelompok, nama):
     isi = beranda(server, kelompok=kelompok)
     assert nama_kartu(isi) == nama
-    tags = Markup(isi).tags
-    assert any(t == 'option' and a.get('value') == kelompok and 'selected' in a for t, a in tags)
+    aktif = [a['href'] for t, a in Markup(isi).tags if t == 'a' and a.get('aria-current') == 'true']
+    assert aktif == ['/guru' if kelompok == 'semua' else '/guru?kelompok=' + kelompok]
 
 
 def test_kombinasi_kosong_bukan_belum_punya_siswa(server):
@@ -81,7 +81,9 @@ def test_kombinasi_kosong_bukan_belum_punya_siswa(server):
     assert nama_kartu(isi) == []
     assert 'Tidak ada siswa yang cocok' in isi and '0 dari 3' in isi
     assert 'Tambahkan anak pertama' not in isi
-    assert 'id="guru-hapus-filter" href="/guru"' in isi
+    # Hapus pencarian mempertahankan chip kelompok; Tampilkan semua mengosongkan keduanya.
+    assert 'id="guru-hapus-filter" href="/guru?kelompok=menunggu"' in isi
+    assert '<a class="guru-tambah-st" href="/guru">Tampilkan semua</a>' in isi
     assert 'name="cari"' in isi and 'value="Bbb"' in isi
 
 
@@ -103,7 +105,7 @@ def test_form_get_native_tanpa_js_dan_nilai_escape(server):
     assert not any(t == 'img' and a.get('src') == 'x' for t, a in tags)
     assert html.escape(cari, quote=True) in isi
     assert any(t == 'label' and a.get('for') == 'guru-cari' for t, a in tags)
-    assert any(t == 'label' and a.get('for') == 'guru-kelompok' for t, a in tags)
+    assert not any(t == 'select' for t, a in tags)
 
 
 def test_csp_beranda_mengizinkan_dua_skrip_dan_font_existing_saja(server):
@@ -204,13 +206,15 @@ def test_palang_murid_share_dan_404_asing_tetap(server, monkeypatch):
 
 def test_gaya_hp_terbatas_beranda_dan_target_sentuh():
     import design_tokens as T
-    import teacher_pages
-    gaya = teacher_pages.GAYA_FILTER_GURU
-    assert '.guru-filter-st' in gaya and '@media (max-width:36rem)' in gaya
-    assert 'grid-template-columns:minmax(0, 1fr)' in gaya
-    assert 'overflow-wrap:anywhere' in gaya
-    assert 'min-height:' + T.TARGET_SENTUH in gaya
-    assert '.guru-filter-aksi-st a { color:' + T.AKSEN_TEAL_TUA in gaya
+    import style_stitch
+    css = style_stitch.GAYA_STITCH
+    blok = css[css.index('/* Beranda pendamping editorial'):css.index('/* Akhir beranda pendamping */')]
+    for kelas in ('.guru-chip-st', '.guru-cari-st a'):
+        awal = blok.index(kelas + ' {')
+        assert 'min-height: ' + T.TARGET_SENTUH in blok[awal:blok.index('}', awal)]
+    ponsel = blok.split('@media (max-width: 36rem)', 1)[1]
+    assert '.guru-cta-st { flex: 1 1 100%; }' in ponsel
+    assert 'overflow-wrap: anywhere' in blok
 
 
 def test_tanpa_pencarian_tidak_memuat_akun(server, monkeypatch):

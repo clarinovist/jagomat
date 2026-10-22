@@ -72,22 +72,27 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   dilipat. Sesi belum dikirim tetap di Riwayat. Sementara form
   awal Pendampingan orang tua opsional berada di Latihan. Pilot aktif,
   pemulihan dan CTA reducer tetap di Beranda.
-- Beranda guru (`/guru`) mengelompokkan anak menurut langkah berikutnya dari reducer yang sama
-  dengan profil anak: **Perlu tindakan Anda** (konfirmasi hasil, eskalasi), **Siap dilanjutkan**,
-  dan **Menunggu** (sesi berjalan, jeda). Dalam *Perlu tindakan Anda* yang terlama menunggu
-  konfirmasi didahulukan (dasar tanggal sesi, sama dengan profil anak; "menunggu N hari" tampil
-  bila ≥1 hari); selebihnya menurut nama. Kartu menampilkan
-  langkah dengan label laporan, tanpa skor atau peringkat kelemahan baru. Bila rencana satu anak
-  gagal dibaca, kartunya tetap tampil dengan penanda "buka profil" dan beranda tidak rusak.
-  Form GET tanpa JavaScript baru mencari potongan nama siswa atau login akun murid terhubung
-  (abaikan besar-kecil huruf, spasi dinormalkan, maksimal 100 karakter), sekaligus
-  memfilter Semua/Perlu tindakan/Siap/Menunggu. Pencarian hanya siswa milik guru;
-  filter tidak mengubah langkah atau urutan reducer. Hasil menampilkan jumlah dari total,
-  keadaan kosong dan Hapus filter, bukan ajakan tambah anak pertama yang menyesatkan.
-  HP memakai kontrol satu kolom dan nama/keterangan membungkus. Dua skrip shell
-  existing (mata sandi/cegah kirim ganda) dan font tetap; filter berjalan native. Respons beranda
-  tidak di-cache dan tidak mengirim referrer; kata pencarian tetap ada di URL GET
-  serta riwayat browser, bukan disimpan ke DB.
+- Beranda guru (`/guru`, mockup "Ruang guru" di `mockup/Guru.dc.html`) memakai kelompok langkah dari
+  reducer yang sama dengan profil anak: **Perlu tindakan Anda** (konfirmasi hasil, eskalasi),
+  **Siap dilanjutkan**, dan **Menunggu** (sesi berjalan, jeda). Hero memuat satu kalimat ringkasan dari
+  hitungan kelompok ("N anak perlu tindakan Anda. M anak siap dilanjutkan."), bukan klaim hasil siap
+  ditinjau. Kartu anak datar (nama h3 di bawah h2 daftar) tanpa judul grup: pil kelompok, langkah
+  berikutnya dengan label laporan (tebal), catatan status sesi, chip "Menunggu N hari" bila ≥1 hari,
+  dan satu tombol aksi ke `/anak/{id}` (label dari langkah: Tinjau hasil, Lanjutkan latihan, Siapkan
+  latihan, Lihat rencana, atau Buka profil bila rencana gagal dibaca; hanya *Perlu tindakan Anda* yang
+  berisi penuh). Urutan tetap dari reducer: yang terlama menunggu konfirmasi didahulukan, selebihnya
+  menurut nama. Tanpa skor atau peringkat kelemahan baru. Penjelasan daftar tampil sebagai teks biasa,
+  bukan tooltip.
+  Chip Semua/Perlu tindakan/Siap/Menunggu adalah tautan GET tanpa JavaScript (`aria-current` pada yang
+  aktif); hitungannya dari seluruh anak milik guru ini sebelum chip atau pencarian diterapkan. Pencarian
+  nama siswa atau login akun murid terhubung (abaikan besar-kecil huruf, spasi dinormalkan, maksimal 100
+  karakter) hanya tampil bila anak lebih dari `AMBANG_PENCARIAN` (5, tebakan awal) atau pencarian sedang
+  aktif; hanya siswa milik guru. Hasil menampilkan jumlah dari total; keadaan kosong menawarkan
+  Tampilkan semua, bukan ajakan tambah anak pertama yang menyesatkan. HP memakai satu kolom, tombol aksi
+  penuh, maskot disembunyikan. Dua skrip shell existing (mata sandi/cegah kirim ganda) dan font tetap.
+  Respons beranda tidak di-cache dan tidak mengirim referrer; kata pencarian tetap ada di URL GET serta
+  riwayat browser, bukan disimpan ke DB. Penyaringan instan tanpa muat ulang dan Esc menutup menu akun
+  butuh JavaScript baru dan belum disetujui.
 - Kerangka [playbook guru](playbook-guru.md) menambah panduan pra-tulis tanpa menentukan
   diagnosis/status/rekomendasi. Pengecualian eksplisit pemilik (2026-10-22): **draf
   boleh tampil kepada semua akun guru sebelum review manusia**, pada resource miliknya

@@ -112,16 +112,16 @@ def hari_menunggu(langkah: LangkahAnak, hari_ini: date) -> Optional[int]:
     return (hari_ini - langkah.menunggu_sejak).days
 
 
-def keterangan_langkah(langkah: LangkahAnak, hari_ini: date) -> str:
-    """Label langkah, ditambah lama menunggu hanya bila sudah sehari atau lebih."""
-    hari = hari_menunggu(langkah, hari_ini)
-    if hari is not None and hari >= 1:
-        return f"{langkah.label} · menunggu {hari} hari"
-    return langkah.label
+def hitung_kelompok(daftar) -> dict[int, int]:
+    """Jumlah anak per kelompok kerja; masukan harus sudah owner-scoped."""
+    jumlah = {PERLU_TINDAKAN: 0, SIAP: 0, MENUNGGU: 0}
+    for langkah in daftar:
+        jumlah[langkah.kelompok] += 1
+    return jumlah
 
 
 PILIHAN_FILTER = {
-    'semua': 'Semua kelompok',
+    'semua': 'Semua',
     'perlu-tindakan': JUDUL_KELOMPOK[PERLU_TINDAKAN],
     'siap': JUDUL_KELOMPOK[SIAP],
     'menunggu': JUDUL_KELOMPOK[MENUNGGU],

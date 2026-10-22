@@ -162,6 +162,12 @@ class Markup(HTMLParser):
         self.tag.append((tag, dict(attrs)))
 
 
+def _kartu_per_anak(isi):
+    """Markup tiap kartu anak /guru, dikunci pada id dari satu-satunya tautan /anak/."""
+    kartu = re.findall(r'<article class="guru-kartu-st[^"]*">(.*?)</article>', isi, re.S)
+    return {re.search(r'href="/anak/(\d+)"', k).group(1): k for k in kartu}
+
+
 def _isi(server, pesan=""):
     with server.buka() as kon:
         return teacher_pages.halaman_utama_stitch(kon, pemilik="guru", pesan=pesan).decode()
@@ -258,7 +264,7 @@ def test_sesi_dibatalkan_dipisah_dari_antrean(server, keadaan_batal, keadaan_lai
         sebelum = tuple(kon.iterdump())
     kode, isi, _ = server.minta("/guru", auth=("guru", SANDI_GURU))
     assert kode == 200
-    kartu = re.search(r'<a class="st-kartu kartu-anak"[^>]*>.*?</a>', isi, re.S).group()
+    kartu = next(iter(_kartu_per_anak(isi).values()))
     # Assertion status ditempatkan sebelum label total: merah harus menangkap
     # bug antrean, bukan hanya pergantian kata "sesi" menjadi "latihan".
     assert ("belum dikirim" in kartu) == (keadaan_lain in ("baru", "warisan"))
@@ -294,9 +300,7 @@ def test_rekap_pembatalan_tidak_tercampur_antar_anak(server):
         database.batalkan_sesi(kon, database.buat_sesi(kon, kedua, seed=24))
         database.batalkan_sesi(kon, database.buat_sesi(kon, kedua, seed=25))
     isi = _isi(server)
-    kartu = dict(re.findall(
-        r'<a class="st-kartu kartu-anak" href="/anak/(\d+)(?:\?section=rencana)?">(.*?)</a>', isi, re.S,
-    ))
+    kartu = _kartu_per_anak(isi)
     assert set(kartu) == {str(pertama), str(kedua), str(kosong)}
     assert ">4 latihan tercatat</span>" in kartu[str(pertama)]
     for teks in ("1 dibatalkan", "1 belum dikirim", "1 menunggu diperiksa"):
@@ -388,7 +392,11 @@ def test_beranda_guru_satu_chevron_dan_tautan_internal_tanpa_panah_keluar(server
     kode, isi, _ = server.minta("/guru", auth=("guru", SANDI_GURU))
     assert kode == 200
     badan = isi.split("<body", 1)[1]
-    assert "↗" not in badan and "Buka profil <span aria-hidden=\"true\">→</span>" in badan
+    assert "↗" not in badan and "Buka profil" not in badan
+    # Satu-satunya tautan kartu adalah tombol aksi; panahnya dekoratif.
+    assert re.search(
+        r'<a class="guru-cta-st[^"]*" href="/anak/\d+" aria-label="[^"]+">[^<]+ '
+        r'<span aria-hidden="true">→</span></a>', badan)
     # Chevron menu akun hanya satu: elemen panah, bukan ::after ganda.
     assert badan.count("⌄") == 1
     assert "summary::after { content: '⌄'" not in style_stitch.GAYA_STITCH

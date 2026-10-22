@@ -13,6 +13,7 @@
 <style>
 body{margin:0}
 a{color:#0F6B64}a:hover{color:#0A4F4A}
+button{font-family:inherit;cursor:pointer}
 </style>
 </helmet>
 <div style="min-height: 960px; box-sizing: border-box; background: #FFF8F0; color: #16213A; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 16px; line-height: 1.5; padding: 20px 32px 64px; display: flex; flex-direction: column; align-items: center">
@@ -24,7 +25,7 @@ a{color:#0F6B64}a:hover{color:#0A4F4A}
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F6B64" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 14c3-6 5-6 8-2s5 4 8-2l4-2"/></svg>
 Jagomat
 </div>
-<div style="font-size: 14px; color: #4B5563">Masuk sebagai <strong style="color: #16213A">keluarga-a</strong></div>
+<button type="button" aria-haspopup="menu" aria-expanded="false" style="display: inline-flex; align-items: center; gap: 10px; background: #FFFFFF; border: 1px solid #D8CDB6; border-radius: 12px; padding: 6px 14px; min-height: 44px; color: #16213A; font-size: 15px; font-weight: 700">Keluarga A<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16213A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 </header>
 
 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px">
@@ -32,7 +33,7 @@ Jagomat
 <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em">Claudia</h1>
 <span style="background: #EDE6D8; border-radius: 999px; padding: 2px 12px; font-size: 14px; font-weight: 600; color: #3F4654">Kelas 5</span>
 </div>
-<a href="#" style="font-size: 14px; font-weight: 600; text-decoration: none">← Semua anak</a>
+<a href="Guru.dc.html" style="font-size: 14px; font-weight: 600; text-decoration: none">← Semua anak</a>
 </div>
 
 <nav aria-label="Bagian halaman" style="display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid #EADFCB">
@@ -45,73 +46,34 @@ Jagomat
 <!-- attention strip -->
 <section aria-label="Ringkasan" style="background: #FEF0D0; border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px">
 <span style="font-size: 16px; color: #3B2A00"><strong>3 sesi menunggu tinjauan.</strong> Mulai dari yang paling lama.</span>
-<a href="#" style="background: #0F6B64; color: #FFFFFF; text-decoration: none; font-weight: 700; padding: 10px 20px; border-radius: 10px; min-height: 24px">Tinjau yang terlama</a>
+<a href="#" style="display: inline-flex; align-items: center; justify-content: center; background: #0F6B64; color: #FFFFFF; text-decoration: none; font-weight: 700; padding: 10px 20px; border-radius: 10px; min-height: 44px; box-sizing: border-box">Tinjau yang terlama</a>
 </section>
 
 <!-- list header + filter -->
 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px">
 <h2 style="margin: 0; font-size: 20px; font-weight: 800">Semua latihan</h2>
 <div style="display: flex; gap: 8px; flex-wrap: wrap" role="group" aria-label="Saring">
-<a href="#" aria-current="true" style="background: #0F6B64; color: #FFFFFF; text-decoration: none; font-weight: 700; font-size: 14px; padding: 8px 16px; border-radius: 999px">Semua</a>
-<a href="#" style="background: #FFFFFF; border: 1px solid #D8CDB6; color: #3F4654; text-decoration: none; font-weight: 600; font-size: 14px; padding: 7px 16px; border-radius: 999px">Perlu ditinjau</a>
-<a href="#" style="background: #FFFFFF; border: 1px solid #D8CDB6; color: #3F4654; text-decoration: none; font-weight: 600; font-size: 14px; padding: 7px 16px; border-radius: 999px">Selesai</a>
+<button type="button" onClick="{{setSemua}}" aria-pressed="{{pSemua}}" style="{{chipSemua}}">Semua</button>
+<button type="button" onClick="{{setTinjau}}" aria-pressed="{{pTinjau}}" style="{{chipTinjau}}">Perlu ditinjau</button>
+<button type="button" onClick="{{setSelesai}}" aria-pressed="{{pSelesai}}" style="{{chipSelesai}}">Selesai</button>
 </div>
 </div>
+<p aria-live="polite" style="margin: 0; font-size: 14px; color: #4B5563">{{shownCount}} latihan ditampilkan.</p>
 
 <!-- list -->
-<div style="display: flex; flex-direction: column; gap: 10px">
-
-<div style="display: flex; align-items: center; gap: 16px; background: #FFFFFF; border: 1px solid #EADFCB; border-radius: 14px; padding: 16px 20px; flex-wrap: wrap">
-<div style="width: 56px; text-align: center; line-height: 1.1"><div style="font-size: 24px; font-weight: 800">22</div><div style="font-size: 13px; color: #4B5563">Sep</div></div>
-<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
-<strong style="font-size: 17px">Gabungan 10 topik</strong>
-<span style="font-size: 14px; color: #4B5563">15 soal · Rencana terpadu</span>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+<li style="display: flex; align-items: center; gap: 16px; background: #FFFFFF; border: 1px solid #EADFCB; border-radius: 14px; padding: 16px 20px; flex-wrap: wrap">
+<div style="width: 56px; text-align: center; line-height: 1.1"><div style="font-size: 24px; font-weight: 800">{{r.day}}</div><div style="font-size: 13px; color: #4B5563">{{r.mon}}</div></div>
+<div style="flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<strong style="font-size: 17px">{{r.title}}</strong>
+<span style="font-size: 14px; color: #4B5563">{{r.meta}}</span>
 </div>
-<span style="background: #FEF0D0; color: #6B3F00; border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 700">Perlu ditinjau</span>
-<a href="#" style="font-weight: 700; text-decoration: none; border: 2px solid #0F6B64; border-radius: 10px; padding: 8px 20px; min-width: 56px; text-align: center">Tinjau</a>
-</div>
-
-<div style="display: flex; align-items: center; gap: 16px; background: #FFFFFF; border: 1px solid #EADFCB; border-radius: 14px; padding: 16px 20px; flex-wrap: wrap">
-<div style="width: 56px; text-align: center; line-height: 1.1"><div style="font-size: 24px; font-weight: 800">17</div><div style="font-size: 13px; color: #4B5563">Sep</div></div>
-<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
-<strong style="font-size: 17px">Pola Bilangan</strong>
-<span style="font-size: 14px; color: #4B5563">15 soal · Latihan bebas</span>
-</div>
-<span style="background: #DDF1E4; color: #14532D; border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 700">✓ Selesai</span>
-<a href="#" style="font-weight: 700; text-decoration: none; padding: 8px 20px; min-width: 56px; text-align: center">Lihat</a>
-</div>
-
-<div style="display: flex; align-items: center; gap: 16px; background: #FFFFFF; border: 1px solid #EADFCB; border-radius: 14px; padding: 16px 20px; flex-wrap: wrap">
-<div style="width: 56px; text-align: center; line-height: 1.1"><div style="font-size: 24px; font-weight: 800">15</div><div style="font-size: 13px; color: #4B5563">Sep</div></div>
-<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
-<strong style="font-size: 17px">Geometri Datar</strong>
-<span style="font-size: 14px; color: #4B5563">10 soal · Latihan bebas</span>
-</div>
-<span style="background: #FEF0D0; color: #6B3F00; border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 700">Perlu ditinjau</span>
-<a href="#" style="font-weight: 700; text-decoration: none; border: 2px solid #0F6B64; border-radius: 10px; padding: 8px 20px; min-width: 56px; text-align: center">Tinjau</a>
-</div>
-
-<div style="display: flex; align-items: center; gap: 16px; background: #FFFFFF; border: 1px solid #EADFCB; border-radius: 14px; padding: 16px 20px; flex-wrap: wrap">
-<div style="width: 56px; text-align: center; line-height: 1.1"><div style="font-size: 24px; font-weight: 800">15</div><div style="font-size: 13px; color: #4B5563">Sep</div></div>
-<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
-<strong style="font-size: 17px">Pola Bilangan</strong>
-<span style="font-size: 14px; color: #4B5563">15 soal · Latihan bebas</span>
-</div>
-<span style="background: #E4E9F5; color: #1E3A8A; border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 700">Draf tersimpan</span>
-<a href="#" style="font-weight: 700; text-decoration: none; border: 2px solid #0F6B64; border-radius: 10px; padding: 8px 20px; min-width: 56px; text-align: center">Lanjutkan</a>
-</div>
-
-<div style="display: flex; align-items: center; gap: 16px; background: #FFFFFF; border: 1px solid #EADFCB; border-radius: 14px; padding: 16px 20px; flex-wrap: wrap">
-<div style="width: 56px; text-align: center; line-height: 1.1"><div style="font-size: 24px; font-weight: 800">10</div><div style="font-size: 13px; color: #4B5563">Sep</div></div>
-<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
-<strong style="font-size: 17px">Gabungan 10 topik</strong>
-<span style="font-size: 14px; color: #4B5563">15 soal · Rencana terpadu</span>
-</div>
-<span style="background: #DDF1E4; color: #14532D; border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 700">✓ Selesai</span>
-<a href="#" style="font-weight: 700; text-decoration: none; padding: 8px 20px; min-width: 56px; text-align: center">Lihat</a>
-</div>
-
-</div>
+<span style="{{r.badgeStyle}}">{{r.badge}}</span>
+<a href="#" aria-label="{{r.label}}" style="{{r.actionStyle}}">{{r.action}}</a>
+</li>
+</sc-for>
+</ul>
 
 <p style="margin: 0; font-size: 14px; color: #4B5563">“Selesai” berarti hasil sudah ditinjau dan dikonfirmasi. Ini bukan nilai penguasaan materi.</p>
 
@@ -120,8 +82,43 @@ Jagomat
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":960}}'>
 class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { filter: 'semua' };
+}
 renderVals() {
-return {};
+const f = this.state.filter;
+const all = [
+{ day: '22', mon: 'Sep', title: 'Gabungan 10 topik', meta: '15 soal · Rencana terpadu', kind: 'tinjau', badge: 'Perlu ditinjau', action: 'Tinjau' },
+{ day: '17', mon: 'Sep', title: 'Pola Bilangan', meta: '15 soal · Latihan bebas', kind: 'selesai', badge: '✓ Selesai', action: 'Lihat' },
+{ day: '15', mon: 'Sep', title: 'Geometri Datar', meta: '10 soal · Latihan bebas', kind: 'tinjau', badge: 'Perlu ditinjau', action: 'Tinjau' },
+{ day: '15', mon: 'Sep', title: 'Pola Bilangan', meta: '15 soal · Latihan bebas', kind: 'draf', badge: 'Draf tersimpan', action: 'Lanjutkan' },
+{ day: '10', mon: 'Sep', title: 'Gabungan 10 topik', meta: '15 soal · Rencana terpadu', kind: 'selesai', badge: '✓ Selesai', action: 'Lihat' }
+];
+const badgeBase = 'border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 700; ';
+const badgeBy = {
+tinjau: 'background: #FEF0D0; color: #6B3F00',
+draf: 'background: #E4E9F5; color: #1E3A8A',
+selesai: 'background: #DDF1E4; color: #14532D'
+};
+const actBase = 'display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 56px; box-sizing: border-box; font-weight: 700; text-decoration: none; padding: 8px 20px; border-radius: 10px; ';
+const shown = all.filter((r) => f === 'semua' || (f === 'tinjau' && (r.kind === 'tinjau' || r.kind === 'draf')) || (f === 'selesai' && r.kind === 'selesai'));
+const rows = shown.map((r) => ({
+day: r.day, mon: r.mon, title: r.title, meta: r.meta, badge: r.badge, action: r.action,
+label: r.action + ' ' + r.title + ', ' + r.day + ' ' + r.mon,
+badgeStyle: badgeBase + badgeBy[r.kind],
+actionStyle: actBase + (r.action === 'Lihat' ? '' : 'border: 2px solid #0F6B64')
+}));
+const on = 'background: #0F6B64; color: #FFFFFF; border: 1px solid #0F6B64; font-weight: 700; font-size: 14px; padding: 8px 16px; border-radius: 999px; min-height: 44px';
+const off = 'background: #FFFFFF; color: #3F4654; border: 1px solid #D8CDB6; font-weight: 600; font-size: 14px; padding: 8px 16px; border-radius: 999px; min-height: 44px';
+return {
+rows, shownCount: shown.length,
+pSemua: f === 'semua', pTinjau: f === 'tinjau', pSelesai: f === 'selesai',
+chipSemua: f === 'semua' ? on : off, chipTinjau: f === 'tinjau' ? on : off, chipSelesai: f === 'selesai' ? on : off,
+setSemua: () => this.setState({ filter: 'semua' }),
+setTinjau: () => this.setState({ filter: 'tinjau' }),
+setSelesai: () => this.setState({ filter: 'selesai' })
+};
 }
 }
 </script>

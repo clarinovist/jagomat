@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Ruang guru</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+body{margin:0}
+a{color:#0F6B64}a:hover{color:#0A4F4A}
+button{font-family:inherit;cursor:pointer}
+@media (max-width: 600px){.maskot{display:none}}
+</style>
+</helmet>
+<div style="min-height: 980px; box-sizing: border-box; background: #FFF8F0; color: #16213A; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 16px; line-height: 1.5; padding: 20px 32px 64px; display: flex; flex-direction: column; align-items: center">
+<div style="width: 100%; max-width: 960px; display: flex; flex-direction: column; gap: 28px">
+
+<!-- header -->
+<header style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid #EADFCB">
+<div style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; color: #0F6B64">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F6B64" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 14c3-6 5-6 8-2s5 4 8-2l4-2"/></svg>
+Jagomat
+</div>
+<button type="button" aria-haspopup="menu" aria-expanded="false" style="display: inline-flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid #D8CDB6; border-radius: 12px; padding: 6px 14px; min-height: 44px; color: #16213A; text-align: left">
+<span style="display: flex; flex-direction: column; line-height: 1.2"><span style="font-size: 12px; color: #4B5563">Guru</span><strong style="font-size: 15px">Keluarga A</strong></span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16213A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+</button>
+</header>
+
+<!-- hero, compact -->
+<section aria-labelledby="judul" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px">
+<div style="flex: 1 1 420px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #0F6B64">Ruang guru</span>
+<h1 id="judul" style="margin: 0; font-size: 38px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15">Langkah kecil, <span style="color: #0F6B64">tumbuh bersama.</span></h1>
+<p style="margin: 0; font-size: 18px; color: #3F4654">1 anak menunggu tinjauan Anda. 1 anak siap melanjutkan latihan.</p>
+</div>
+<figure class="maskot" style="margin: 0; display: flex; align-items: center; gap: 14px">
+<div style="width: 96px; height: 96px; box-sizing: border-box; border: 2px dashed #BFB39A; border-radius: 20px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; font-weight: 600; color: #4B5563; padding: 8px">[Maskot Jagomat]</div>
+<figcaption style="font-size: 14px; color: #3F4654; max-width: 120px">Satu langkah yang berarti.</figcaption>
+</figure>
+</section>
+
+<!-- children -->
+<section aria-labelledby="anak" style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="anak" style="margin: 0; font-size: 22px; font-weight: 800">Anak &amp; siswa</h2>
+<p style="margin: 0; font-size: 15px; color: #3F4654">Setiap anak punya halaman sendiri: buat latihan, rencana belajar, dan riwayat.</p>
+</div>
+<a href="#" style="display: inline-flex; align-items: center; gap: 8px; border: 2px solid #0F6B64; border-radius: 12px; padding: 8px 18px; min-height: 44px; box-sizing: border-box; font-weight: 700; text-decoration: none">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6B64" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+Tambah anak
+</a>
+</div>
+
+<div role="group" aria-label="Saring menurut langkah" style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" onClick="{{setSemua}}" aria-pressed="{{pSemua}}" style="{{chipSemua}}">Semua <strong>{{nSemua}}</strong></button>
+<button type="button" onClick="{{setAksi}}" aria-pressed="{{pAksi}}" style="{{chipAksi}}">Perlu tindakan Anda <strong>{{nAksi}}</strong></button>
+<button type="button" onClick="{{setSiap}}" aria-pressed="{{pSiap}}" style="{{chipSiap}}">Siap dilanjutkan <strong>{{nSiap}}</strong></button>
+<button type="button" onClick="{{setMenunggu}}" aria-pressed="{{pMenunggu}}" style="{{chipMenunggu}}">Menunggu <strong>{{nMenunggu}}</strong></button>
+</div>
+
+<p aria-live="polite" style="margin: 0; font-size: 14px; color: #4B5563">{{shownCount}} dari 2 siswa ditampilkan.</p>
+
+<div style="display: flex; flex-direction: column; gap: 14px">
+<sc-for list="{{kids}}" as="c" hint-placeholder-count="2">
+<article style="{{c.cardStyle}}">
+<div style="flex: 1 1 340px; min-width: 0; display: flex; align-items: center; gap: 20px">
+<div aria-hidden="true" style="{{c.avatarStyle}}">{{c.initial}}</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+<h3 style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.01em">{{c.name}}</h3>
+<span style="background: #EDE6D8; color: #3F4654; border-radius: 999px; padding: 2px 12px; font-size: 14px; font-weight: 600">{{c.kelas}}</span>
+<span style="{{c.statusStyle}}">{{c.statusLabel}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #0F6B64">Langkah berikutnya</span>
+<strong style="font-size: 18px; line-height: 1.35">{{c.action}}</strong>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 15px; color: #3F4654">
+<span>{{c.note}}</span>
+<span style="{{c.waitStyle}}">{{c.wait}}</span>
+</div>
+<span style="font-size: 14px; color: #4B5563">{{c.meta}}</span>
+</div>
+</div>
+<a href="{{c.href}}" style="{{c.ctaStyle}}">
+{{c.cta}}
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+</a>
+</article>
+</sc-for>
+</div>
+
+<sc-if value="{{isEmpty}}" hint-placeholder-val="{{ false }}">
+<div style="background: #FFFFFF; border: 1px dashed #BFB39A; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px">
+<strong style="font-size: 18px">Belum ada anak di kelompok ini.</strong>
+<p style="margin: 0; font-size: 15px; color: #3F4654">Anak akan muncul di sini saat langkahnya sesuai.</p>
+<button type="button" onClick="{{setSemua}}" style="border: 2px solid #0F6B64; background: #FFFFFF; color: #0F6B64; border-radius: 12px; padding: 8px 18px; min-height: 44px; font-size: 15px; font-weight: 700">Tampilkan semua</button>
+</div>
+</sc-if>
+</section>
+
+<!-- footer tip -->
+<footer style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #EADFCB; padding-top: 20px; font-size: 15px; color: #3F4654">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B4423A" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/></svg>
+Beri ruang untuk mencoba, bertanya, dan menjelaskan.
+</footer>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":980}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { filter: 'semua' };
+}
+renderVals() {
+const f = this.state.filter;
+const all = [
+{ id: 'claudia', name: 'Claudia', initial: 'C', kelas: 'Kelas 5', status: 'aksi', statusLabel: 'Perlu tindakan Anda',
+action: 'Periksa dan konfirmasi hasil', note: 'Hasil menunggu Anda tinjau', wait: 'Menunggu 30 hari',
+meta: '6 latihan tercatat · 1 dibatalkan', cta: 'Tinjau hasil', href: 'Main.dc.html',
+av: 'background: #E6F2EF; color: #0A4F4A' },
+{ id: 'neilsen', name: 'Neilsen', initial: 'N', kelas: 'Kelas 2', status: 'siap', statusLabel: 'Siap dilanjutkan',
+action: 'Lanjutkan latihan awal', note: '1 belum dikirim', wait: '',
+meta: '1 latihan tercatat', cta: 'Lanjutkan latihan', href: '#',
+av: 'background: #E4E9F5; color: #1E3A8A' }
+];
+const count = (k) => all.filter((c) => c.status === k).length;
+const statusChip = {
+aksi: 'background: #FEF0D0; color: #6B3F00',
+siap: 'background: #DDF1E4; color: #14532D',
+menunggu: 'background: #ECE7DA; color: #3F4654'
+};
+const shown = all.filter((c) => f === 'semua' || c.status === f);
+const kids = shown.map((c) => {
+const urgent = c.status === 'aksi';
+return {
+name: c.name, initial: c.initial, kelas: c.kelas, statusLabel: c.statusLabel, action: c.action, note: c.note, wait: c.wait, meta: c.meta, cta: c.cta, href: c.href,
+cardStyle: 'display: flex; align-items: center; gap: 20px; flex-wrap: wrap; background: #FFFFFF; border-radius: 20px; padding: 24px 28px; box-sizing: border-box; border: ' + (urgent ? '2px solid #E3B15A' : '1px solid #EADFCB'),
+avatarStyle: 'width: 56px; height: 56px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; flex: none; ' + c.av,
+statusStyle: 'border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 700; ' + statusChip[c.status],
+waitStyle: c.wait ? 'background: #FEF0D0; color: #6B3F00; border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 700' : 'display: none',
+ctaStyle: 'display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-weight: 700; font-size: 17px; padding: 12px 24px; border-radius: 12px; min-height: 48px; box-sizing: border-box; flex: none; ' + (urgent ? 'background: #0F6B64; color: #FFFFFF' : 'background: #FFFFFF; color: #0F6B64; border: 2px solid #0F6B64')
+};
+});
+const on = 'border: 2px solid #0F6B64; border-radius: 999px; padding: 8px 18px; font-size: 14px; font-weight: 600; background: #E6F2EF; color: #0A4F4A; min-height: 44px';
+const off = 'border: 1px solid #D8CDB6; border-radius: 999px; padding: 8px 18px; font-size: 14px; font-weight: 600; background: #FFFFFF; color: #3F4654; min-height: 44px';
+return {
+kids,
+shownCount: shown.length,
+isEmpty: shown.length === 0,
+nSemua: all.length, nAksi: count('aksi'), nSiap: count('siap'), nMenunggu: count('menunggu'),
+pSemua: f === 'semua', pAksi: f === 'aksi', pSiap: f === 'siap', pMenunggu: f === 'menunggu',
+chipSemua: f === 'semua' ? on : off, chipAksi: f === 'aksi' ? on : off, chipSiap: f === 'siap' ? on : off, chipMenunggu: f === 'menunggu' ? on : off,
+setSemua: () => this.setState({ filter: 'semua' }),
+setAksi: () => this.setState({ filter: 'aksi' }),
+setSiap: () => this.setState({ filter: 'siap' }),
+setMenunggu: () => this.setState({ filter: 'menunggu' })
+};
+}
+}
+</script>
+</body>
+</html>

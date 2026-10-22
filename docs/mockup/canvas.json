@@ -5,12 +5,13 @@
   "launch": { "view": "canvas" },
   "pages": [],
   "boards": {
+    "Guru.dc.html": { "x": -1360, "y": 0, "w": 1280, "h": 980, "title": "Ruang guru (usulan)", "expand": "fill", "is_interactive": true },
     "Main.dc.html": { "x": 0, "y": 0, "w": 1280, "h": 1040, "title": "Beranda (usulan)", "expand": "fill", "is_interactive": true },
     "Riwayat.dc.html": { "x": 1360, "y": 0, "w": 1280, "h": 960, "title": "Riwayat (usulan)", "expand": "fill", "is_interactive": true },
     "Perkembangan.dc.html": { "x": 2720, "y": 0, "w": 1280, "h": 1100, "title": "Perkembangan (usulan)", "expand": "fill", "is_interactive": true },
     "Latihan.dc.html": { "x": 4080, "y": 0, "w": 1280, "h": 960, "title": "Latihan (usulan)", "expand": "fill", "is_interactive": true }
   },
-  "order": ["Main.dc.html", "Riwayat.dc.html", "Perkembangan.dc.html", "Latihan.dc.html"],
+  "order": ["Guru.dc.html", "Main.dc.html", "Riwayat.dc.html", "Perkembangan.dc.html", "Latihan.dc.html"],
   "notes": {},
   "designSystems": []
 }

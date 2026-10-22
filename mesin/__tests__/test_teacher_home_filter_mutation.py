@@ -19,10 +19,10 @@ TES = 'mesin/__tests__/test_teacher_home_filter.py'
      'test_cari_nama_siswa_atau_login_terhubung'),
     ('teacher_home_priority.py', 'return cocok_kelompok and cocok_nama', 'return cocok_nama',
      'test_filter_kelompok_menjaga_sumber_dan_urutan'),
-    ('teacher_pages.py', 'html.escape(cari, quote=True)', 'cari',
+    ('guru_beranda_pages.py', 'html.escape(cari, quote=True)', 'cari',
      'test_form_get_native_tanpa_js_dan_nilai_escape'),
-    ('teacher_pages.py', 'siswa_sendiri = database.daftar_siswa(kon, pemilik)',
-     'siswa_sendiri = database.daftar_siswa(kon, None)', 'test_akun_asing_tidak_dicari_atau_dihitung'),
+    ('guru_beranda_pages.py', 'siswa_milik = database.daftar_siswa(kon, pemilik)',
+     'siswa_milik = database.daftar_siswa(kon, None)', 'test_akun_asing_tidak_dicari_atau_dihitung'),
     ('teacher_http.py', 'if not penangan._lolos_sandi():', 'if False:',
      'test_palang_murid_share_dan_404_asing_tetap'),
     ('web.py', 'return database.siswa_milik(kon, siswa_id, ident[0])', 'return True',
@@ -45,7 +45,8 @@ def test_mutasi_filter_dan_akses_merah_lalu_pulih(tmp_path, monkeypatch, berkas,
     salinan.mkdir()
     with tarfile.open(arsip) as t:
         ekstrak_tar_aman(t, salinan)
-    for nama in ('teacher_pages.py', 'teacher_home_priority.py', 'teacher_http.py', 'web.py'):
+    for nama in ('guru_beranda_pages.py', 'teacher_pages.py', 'teacher_home_priority.py',
+                 'teacher_http.py', 'web.py'):
         shutil.copyfile(AKAR / 'mesin' / nama, salinan / 'mesin' / nama)
     shutil.copyfile(AKAR / TES, salinan / TES)
     target = salinan / 'mesin' / berkas

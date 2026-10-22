@@ -24,7 +24,7 @@ button{font-family:inherit;cursor:pointer}
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F6B64" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 14c3-6 5-6 8-2s5 4 8-2l4-2"/></svg>
 Jagomat
 </div>
-<div style="font-size: 14px; color: #4B5563">Masuk sebagai <strong style="color: #16213A">keluarga-a</strong></div>
+<button type="button" aria-haspopup="menu" aria-expanded="false" style="display: inline-flex; align-items: center; gap: 10px; background: #FFFFFF; border: 1px solid #D8CDB6; border-radius: 12px; padding: 6px 14px; min-height: 44px; color: #16213A; font-size: 15px; font-weight: 700">Keluarga A<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16213A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 </header>
 
 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px">
@@ -32,7 +32,7 @@ Jagomat
 <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em">Claudia</h1>
 <span style="background: #EDE6D8; border-radius: 999px; padding: 2px 12px; font-size: 14px; font-weight: 600; color: #3F4654">Kelas 5</span>
 </div>
-<a href="#" style="font-size: 14px; font-weight: 600; text-decoration: none">← Semua anak</a>
+<a href="Guru.dc.html" style="font-size: 14px; font-weight: 600; text-decoration: none">← Semua anak</a>
 </div>
 
 <nav aria-label="Bagian halaman" style="display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid #EADFCB">
@@ -44,8 +44,8 @@ Jagomat
 
 <!-- sub switch -->
 <div role="group" aria-label="Tampilan" style="display: inline-flex; align-self: flex-start; background: #EDE6D8; border-radius: 999px; padding: 4px; gap: 4px">
-<button type="button" onClick="{{showRingkasan}}" style="{{btnRingkasan}}">Ringkasan</button>
-<button type="button" onClick="{{showMateri}}" style="{{btnMateri}}">Per materi</button>
+<button type="button" onClick="{{showRingkasan}}" aria-pressed="{{isRingkasan}}" style="{{btnRingkasan}}">Ringkasan</button>
+<button type="button" onClick="{{showMateri}}" aria-pressed="{{isMateri}}" style="{{btnMateri}}">Per materi</button>
 </div>
 
 <!-- ====== RINGKASAN ====== -->
@@ -76,11 +76,11 @@ Jagomat
 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px">
 <h2 id="aktif" style="margin: 0; font-size: 20px; font-weight: 800">Aktivitas latihan</h2>
 <div role="group" aria-label="Periode" style="display: flex; gap: 8px; flex-wrap: wrap">
-<button type="button" onClick="{{pick7}}" style="{{chip7}}">7 hari terakhir</button>
-<button type="button" onClick="{{pickAll}}" style="{{chipAll}}">Semua</button>
+<button type="button" onClick="{{pick7}}" aria-pressed="{{p7}}" style="{{chip7}}">7 hari terakhir</button>
+<button type="button" onClick="{{pickAll}}" aria-pressed="{{pAll}}" style="{{chipAll}}">Semua</button>
 </div>
 </div>
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px">
 <div style="background: #F4F1EA; border-radius: 14px; padding: 16px 20px"><div style="font-size: 32px; font-weight: 800; line-height: 1.1">{{act.soal}}</div><div style="font-size: 14px; color: #3F4654">soal dikerjakan</div></div>
 <div style="background: #F4F1EA; border-radius: 14px; padding: 16px 20px"><div style="font-size: 32px; font-weight: 800; line-height: 1.1">{{act.benar}}</div><div style="font-size: 14px; color: #3F4654">benar</div></div>
 <div style="background: #F4F1EA; border-radius: 14px; padding: 16px 20px"><div style="font-size: 32px; font-weight: 800; line-height: 1.1">{{act.salah}}</div><div style="font-size: 14px; color: #3F4654">salah</div></div>
@@ -195,6 +195,7 @@ btnRingkasan: s.view === 'ringkasan' ? segOn : segOff,
 btnMateri: s.view === 'materi' ? segOn : segOff,
 pick7: () => this.setState({ period: '7' }),
 pickAll: () => this.setState({ period: 'semua' }),
+p7: s.period === '7', pAll: s.period === 'semua',
 chip7: s.period === '7' ? chipOn : chipOff,
 chipAll: s.period === 'semua' ? chipOn : chipOff,
 act, materi, sel

@@ -17,9 +17,10 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
 
 - Generator deterministik, lembar cetak, latihan daring/manual, foto atau isi dari
   lembar, tinjauan dan laporan per anak. Kunci/diagnosis bukan keputusan LLM.
-- Beranda guru memprioritaskan yang terlama menunggu konfirmasi, dengan pencarian
-  nama/login dan filter kelompok owner-scoped. Query GET tidak di-cache atau
-  dikirim sebagai referrer, tetapi tetap berada di URL/riwayat browser.
+- Beranda guru memprioritaskan yang terlama menunggu konfirmasi: kartu anak dengan satu
+  tombol aksi, chip kelompok berhitungan, dan pencarian nama/login (untuk daftar panjang),
+  semuanya owner-scoped. Query GET tidak di-cache atau dikirim sebagai referrer, tetapi
+  tetap berada di URL/riwayat browser.
 - Ruang anak: **Beranda → Latihan → Riwayat → Perkembangan**. Satu CTA dari reducer;
   laporan Ringkasan/Per materi memakai bukti yang sama, bukan skor global anak.
   P3–P6 adalah konfigurasi internal/historis, bukan kelas atau ukuran kemampuan.
