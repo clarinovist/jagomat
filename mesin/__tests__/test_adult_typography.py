@@ -74,7 +74,9 @@ def test_teks_informatif_dewasa_minimal_14px_dan_menang_atas_komponen():
     assert T.UKURAN_TEKS_LABEL == ".875rem"  # 14px
     css = style_stitch.GAYA_STITCH
     for selektor in style_stitch.SELEKTOR_TEKS_INFORMATIF:
-        assert f"body.st {selektor} {{ font-size: {T.UKURAN_TEKS_LABEL}; }}" in css
+        awalan = "" if selektor.startswith("body") else "body.st "
+        assert f"{awalan}{selektor} {{ font-size: {T.UKURAN_TEKS_LABEL}; }}" in css
+    assert "body.st.kerja-editorial-st input[type=checkbox] { width: 1.5rem; height: 1.5rem; }" in css
     # Blok berada paling akhir supaya tidak tertimpa aturan komponen lain di GAYA_STITCH.
     assert css.rstrip().endswith("}") and css.rfind("Teks informatif dewasa") > css.rfind("Akhir beranda pendamping")
 
