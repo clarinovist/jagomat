@@ -90,7 +90,7 @@ def test_semua_tab_akun_tanpa_font_eksternal_dengan_skrip_terbatas(siap):
 
 
 @pytest.mark.parametrize('pilihan,aktif,expected', [
-    ((1, 0, 1), True, 'Penggunaan tambahan aktif'),
+    ((1, 0, 1), True, 'aktif sampai'),
     ((1, 0, 1), False, 'Penggunaan tambahan tidak aktif'),
     ((0, 0, 0), False, 'Penggunaan tambahan tidak diizinkan'),
 ])
@@ -105,7 +105,8 @@ def test_status_pilihan_dan_izin_efektif(monkeypatch, pilihan, aktif, expected):
     h = sensor_http.form_akun(p)
     assert expected in h
     assert '<span class="akun-label-st">Ringkasan hasil belajar</span><span class="akun-chip-st">Tidak diizinkan</span>' in h
-    assert 'Tanggal persetujuan terakhir:' in h
+    # Izin berlaku: satu baris ringkas; selain itu tanggal persetujuan terakhir.
+    assert ('Disetujui' in h) if aktif else ('Tanggal persetujuan terakhir:' in h)
     assert 'Tanggal pencabutan' not in h
     assert 'class="kartu-st' in h
     assert 'class="tombol-bahaya-akun"' in h
@@ -164,7 +165,7 @@ def test_langganan_nonaktif_menampilkan_profil_sendiri(siap, monkeypatch):
         raise subscription.FiturNonaktif()
     monkeypatch.setattr('subscription_produksi_http._runtime', nonaktif)
     h = account_http._fragmen_langganan(None, ('guru', 'guru'))
-    assert 'Profil anak yang digunakan: <b>1</b>' in h
+    assert '<b>1 profil anak</b> sedang digunakan' in h
     assert 'Tidak ada penagihan baru' in h
     assert 'Bukan milik' not in h
 

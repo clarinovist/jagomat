@@ -59,7 +59,7 @@ def _page(isi, *, pesan='', pengguna='guru'):
         '<p class="sub">Kontrol ini tidak memanggil AI dan tidak memerlukan kuota balasan.</p></header>'
         + (f'<p class="akun-catatan-st" role="alert">{html.escape(pesan)}</p>' if pesan else '')
         + isi,
-        ident=(pengguna, 'guru'), stitch=True, kelas_bungkus='pendamping-editorial-st akun-editorial-st',
+        ident=(pengguna, 'guru'), stitch=True, kelas_bungkus='pendamping-editorial-st akun-editorial-st akun-sempit-st',
         id_utama='judul-pendamping', privat=True)
 
 

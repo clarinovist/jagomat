@@ -212,6 +212,12 @@ def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
         '</article>'
     )
 
+_IKON_INFO = (
+    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>'
+)
+
+
 def kartu_status_layanan(jumlah_profil: int) -> str:
     """Tab Langganan saat pembayaran online belum aktif: paket + bantuan, tanpa aksi."""
     return (
@@ -220,13 +226,15 @@ def kartu_status_layanan(jumlah_profil: int) -> str:
         '<div class="akun-paket-kepala-st"><div>'
         '<p class="editorial-alis-st">PAKET SAAT INI</p><h2 id="akun-paket">Akses awal</h2></div>'
         '<span class="akun-chip-st">Gratis · nonkomersial</span></div>'
-        '<p class="sub">Pembayaran online belum tersedia di Jagomat. '
+        '<p class="sub akun-paket-isi-st">Akun ini memakai akses awal Jagomat tanpa biaya. '
         'Tidak ada penagihan baru dari halaman ini.</p>'
-        f'<p class="akun-paket-profil-st">Profil anak yang digunakan: <b>{int(jumlah_profil)}</b>'
+        f'<p class="akun-paket-profil-st"><span><b>{int(jumlah_profil)} profil anak</b> sedang digunakan</span>'
         '<a href="/akun?section=siswa">Lihat</a></p></section></div>'
         '<div class="akun-kolom-st"><section class="kartu-st">'
         '<h2>Pembayaran &amp; bantuan</h2>'
-        '<p class="akun-catatan-st">Halaman ini tidak mengaktifkan paket atau tagihan baru.</p>'
+        '<p class="akun-catatan-st akun-catatan-ikon-st">' + _IKON_INFO +
+        '<span>Pembayaran online belum tersedia di Jagomat. '
+        'Halaman ini tidak mengaktifkan paket atau tagihan baru.</span></p>'
         '<p class="sub">Untuk pertanyaan akses atau langganan yang sudah dimiliki, '
         'tim dukungan Jagomat siap membantu.</p>'
         '<a class="akun-tombol-garis-st" href="/lupa-sandi">Hubungi dukungan Jagomat</a>'
@@ -327,12 +335,14 @@ def halaman_akun(
         f'<input type="hidden" name="aksi" value="sandi">'
         f'<label for="sandi-lama">Kata sandi lama</label>'
         f'<input id="sandi-lama" type="password" name="lama" autocomplete="current-password" required>'
-        f'<label for="sandi-baru">Kata sandi baru (minimal 12 karakter)</label>'
-        f'<input id="sandi-baru" type="password" name="baru" autocomplete="new-password" minlength="12" required aria-describedby="alasan-sandi-baru">'
+        f'<label for="sandi-baru">Kata sandi baru</label>'
+        f'<input id="sandi-baru" type="password" name="baru" autocomplete="new-password" minlength="12" required '
+        f'placeholder="Minimal 12 karakter" aria-describedby="alasan-sandi-baru">'
         '<p class="sub" id="alasan-sandi-baru">Minimal 12 karakter karena akun ini melindungi data semua anak. '
         'Kata sandi anak cukup 8 karakter agar mudah diingat.</p>'
         f'<label for="sandi-ulang">Ulangi kata sandi baru</label>'
-        f'<input id="sandi-ulang" type="password" name="ulang" autocomplete="new-password" required>'
+        f'<input id="sandi-ulang" type="password" name="ulang" autocomplete="new-password" required '
+        f'placeholder="Ketik ulang">'
         f'<p class="akun-aksi-sandi">'
         f'<button type="submit" class="tombol-utama-akun">Ganti kata sandi</button>'
         '<a href="/lupa-sandi">Bantuan pemulihan akun</a></p>'

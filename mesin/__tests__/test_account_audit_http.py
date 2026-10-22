@@ -59,7 +59,7 @@ def test_cabut_tanpa_konfirmasi_ditolak_dan_status_berubah(server, monkeypatch):
     assert row['alur'] == 1
     _, body, headers = server.minta('/akun?section=akun', cookie=token)
     cek_header(body, headers)
-    assert 'Penggunaan tambahan aktif' in body
+    assert 'aktif sampai' in body
     cabut = FormParser(body).forms['/analitik/sensor-cabut']
     cabut.pop('konfirmasi', None)
     assert server.minta('/analitik/sensor-cabut', cookie=token, data=cabut)[0] == 400

@@ -134,4 +134,20 @@ GAYA_AKUN = f"""
 {_A} .akun-kelola-isi {{ display: flex; flex-direction: column; gap: {T.SP_4}; margin-top: {T.SP_4}; padding-top: {T.SP_4}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; }}
 {_A} .akun-kelola-bagian .akun-form-sandi button {{ align-self: flex-start; }}
 {_A} .akun-kelola-bagian h4 {{ margin: 0 0 {T.SP_2}; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.TEKS_JUDUL}; }}
+{_A}.akun-sempit-st {{ max-width: {T.LEBAR_KONTEN}; }}
+{_A} form > label:not(.akun-label-persetujuan):not(.pendamping-sr), {_A} form .baris label {{
+  font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; color: {T.TEKS_UTAMA};
+}}
+{_A} .akun-opsi-st label {{ font-size: 1rem; font-weight: 700; color: {T.TEKS_UTAMA}; }}
+{_A} .akun-opsi-st .akun-opsi-isi-st {{ font-size: {T.UKURAN_TEKS_BANTUAN}; font-weight: 400; color: {T.TEKS_VARIAN}; }}
+{_A} .akun-pilihan-data a.akun-tautan-st[href="/persetujuan"]::after {{ content: "→"; content: "→" / ""; margin-left: {T.SP_1}; }}
+{_A} .akun-catatan-ikon-st {{ display: flex; align-items: flex-start; gap: {T.SP_3}; }}
+{_A} .akun-catatan-ikon-st svg {{ flex: none; margin-top: 2px; color: {T.TEKS_REVIEW}; }}
+{_A} .akun-paket-isi-st {{ font-size: 1rem; }}
+{_A} .akun-pilihan-data .akun-label-st {{ font-weight: 600; color: {T.TEKS_UTAMA}; }}
+@media (max-width: {T.BATAS_HP}) {{
+  {_A} .kartu-st {{ padding: {T.SP_4}; }}
+  {_A} .akun-kartu-sandi .akun-aksi-sandi {{ flex-direction: column; align-items: stretch; }}
+  {_A} .akun-kartu-sandi .akun-aksi-sandi a {{ justify-content: center; }}
+}}
 """

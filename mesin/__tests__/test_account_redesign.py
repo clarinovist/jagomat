@@ -168,7 +168,7 @@ def test_status_layanan_dua_kartu_paket_dan_bantuan(siap, monkeypatch):
     paket, _, bantuan = h.partition('<div class="akun-kolom-st">')[2].partition('<div class="akun-kolom-st">')
     assert "PAKET SAAT INI" in paket and "<h2" in paket and ">Akses awal</h2>" in paket
     assert '<span class="akun-chip-st">Gratis · nonkomersial</span>' in paket
-    assert "Profil anak yang digunakan: <b>2</b>" in paket and "Tidak ada penagihan baru" in paket
+    assert "<b>2 profil anak</b> sedang digunakan" in paket and "Tidak ada penagihan baru" in paket
     assert '<a href="/akun?section=siswa">Lihat</a>' in paket
     assert "<h2>Pembayaran &amp; bantuan</h2>" in bantuan
     assert 'class="akun-tombol-garis-st" href="/lupa-sandi">Hubungi dukungan Jagomat</a>' in bantuan
@@ -195,3 +195,40 @@ def test_gaya_langganan_di_akun_tanpa_garis_kiri_dan_kontrol_44():
     aturan = re.search(r"\.akun-editorial-st \.peringatan[^{]*\{([^}]+)\}", css).group(1)
     assert "border-left" not in aturan and f"border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}" in aturan
     assert f"min-height: {T.TARGET_SENTUH}" in re.search(r"\.akun-editorial-st fieldset label[^{]*\{([^}]+)\}", css).group(1)
+
+
+# ── Penyelarasan dengan mockup: label, placeholder, Langganan, CSS HP ──
+
+
+def test_form_sandi_label_bersih_dan_petunjuk_jadi_placeholder(siap):
+    badan = _badan(_halaman(siap))
+    assert '<label for="sandi-baru">Kata sandi baru</label>' in badan
+    assert re.search(r'<input id="sandi-baru"[^>]*minlength="12"[^>]*placeholder="Minimal 12 karakter"', badan)
+    assert re.search(r'<input id="sandi-ulang"[^>]*placeholder="Ketik ulang"', badan)
+    # Alasan lengkap tetap tersambung ke kolom lewat aria-describedby, bukan hanya placeholder.
+    assert 'aria-describedby="alasan-sandi-baru"' in badan and 'id="alasan-sandi-baru"' in badan
+
+
+def test_status_layanan_catatan_berikon_menyatukan_pernyataan_pembayaran(siap, monkeypatch):
+    h = _status_layanan(siap, monkeypatch, anak=2)
+    _, _, bantuan = h.partition('<div class="akun-kolom-st">')[2].partition('<div class="akun-kolom-st">')
+    catatan = bantuan.split('<p class="akun-catatan-st akun-catatan-ikon-st">', 1)[1].split("</p>", 1)[0]
+    assert catatan.startswith("<svg") and 'aria-hidden="true"' in catatan
+    assert "Pembayaran online belum tersedia di Jagomat." in catatan
+    assert "Halaman ini tidak mengaktifkan paket atau tagihan baru." in catatan
+    assert "Pembayaran online belum tersedia" not in h.split("<h2>Pembayaran", 1)[0]
+
+
+def test_css_akun_label_tebal_dan_ikon_tersekop_token():
+    css = account_style.GAYA_AKUN
+    assert re.search(r"\.akun-editorial-st form > label:not\(\.akun-label-persetujuan\):not\(\.pendamping-sr\)[^{]*\{[^}]*font-weight: 600", css)
+    assert '[href="/persetujuan"]::after' in css and ".akun-catatan-ikon-st svg" in css
+    sumber = Path(account_style.__file__).read_text()
+    assert not re.search(r"#[0-9a-fA-F]{3,6}\b", sumber), "CSS akun hanya boleh memakai token T.*"
+
+
+def test_css_hp_tombol_sandi_penuh_dan_tautan_di_tengah():
+    css = account_style.GAYA_AKUN
+    blok = css.split(f"@media (max-width: {T.BATAS_HP})")[-1]
+    assert ".akun-kartu-sandi .akun-aksi-sandi" in blok and "flex-direction: column" in blok
+    assert "align-items: stretch" in blok and "justify-content: center" in blok

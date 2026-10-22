@@ -128,6 +128,7 @@ def form_akun(penangan):
         row=policy_store.baca(admin_store.BAWAAN,p.id_akun)
         izin = izin_akun(p.id_akun)
         status = '<p class="sub">Belum ada persetujuan yang berlaku. Penggunaan tambahan tidak aktif.</p>'
+        ringkas = ''
         if row is not None:
             status = ''.join(
                 '<div class="akun-baris-pilihan-st"><span class="akun-label-st">' + label + '</span>'
@@ -136,21 +137,26 @@ def form_akun(penangan):
                                      ('hasil', 'Ringkasan hasil belajar'),
                                      ('chat', 'Kategori topik percakapan'))
             )
-            if row['dibuat']:
-                tanggal = waktu_wib(datetime.fromtimestamp(row['dibuat'], _WIB))
-                status += '<p class="sub">Tanggal persetujuan terakhir: ' + tanggal + '.</p>'
-            if not policy_store.berlaku(row):
-                status += '<p class="sub">Persetujuan perlu ditinjau ulang. Penggunaan tambahan tidak aktif.</p>'
-            elif not row['alur']:
-                status += '<p class="sub"><b>Penggunaan tambahan tidak diizinkan.</b></p>'
-            elif izin is None:
-                status += '<p class="sub"><b>Penggunaan tambahan tidak aktif.</b> Izin kedaluwarsa atau pencatatan sedang tidak tersedia.</p>'
+            disetujui = waktu_wib(datetime.fromtimestamp(row['dibuat'], _WIB)) if row['dibuat'] else ''
+            aktif = policy_store.berlaku(row) and row['alur'] and izin is not None
+            if aktif:
+                # Izin berlaku: satu baris ringkas di bawah judul, bukan dua kalimat terpisah.
+                sampai = waktu_wib(datetime.fromtimestamp(izin.berakhir, _WIB))
+                ringkas = ('<p class="sub akun-status-ringkas-st">'
+                           + ('Disetujui ' + disetujui + ' · aktif' if disetujui else 'Aktif')
+                           + ' sampai ' + sampai + '</p>')
             else:
-                tanggal = waktu_wib(datetime.fromtimestamp(izin.berakhir, _WIB))
-                status += '<p class="sub"><b>Penggunaan tambahan aktif</b> sampai ' + tanggal + '.</p>'
+                if disetujui:
+                    status += '<p class="sub">Tanggal persetujuan terakhir: ' + disetujui + '.</p>'
+                if not policy_store.berlaku(row):
+                    status += '<p class="sub">Persetujuan perlu ditinjau ulang. Penggunaan tambahan tidak aktif.</p>'
+                elif not row['alur']:
+                    status += '<p class="sub"><b>Penggunaan tambahan tidak diizinkan.</b></p>'
+                else:
+                    status += '<p class="sub"><b>Penggunaan tambahan tidak aktif.</b> Izin kedaluwarsa atau pencatatan sedang tidak tersedia.</p>'
         import product_analytics_http as lama
         cabut_token=lama._token(p,penangan._ambil_token(),'sensor-cabut')
-        return ('<section class="kartu-st akun-pilihan-data" id="sensor"><h2>Kesepakatan dan pilihan data</h2>'+status+
+        return ('<section class="kartu-st akun-pilihan-data" id="sensor"><h2>Kesepakatan dan pilihan data</h2>'+ringkas+status+
                 '<p class="sub">Data tambahan membantu memperbaiki Jagomat: aktivitas penggunaan, ringkasan hasil, '
                 'dan kategori topik percakapan. Tidak menyalin jawaban atau isi pesan mentah ke analitik.</p>'
                 '<a class="akun-tautan-st" href="/persetujuan">Tinjau atau ubah persetujuan</a>'

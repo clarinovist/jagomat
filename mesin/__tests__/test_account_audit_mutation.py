@@ -6,7 +6,7 @@ import pytest
 @pytest.mark.parametrize('file,old,new,test,name', [
     ('account_pages.py', '    if alasan_hapus:', '    if False:',
      'test_account_audit.py', 'test_tombol_hapus_tidak_aktif_bila_ada_alasan'),
-    ('sensor_http.py', '            elif izin is None:', '            elif True:',
+    ('sensor_http.py', "row['alur'] and izin is not None", "row['alur'] and izin is None",
      'test_account_audit.py', 'test_status_pilihan_dan_izin_efektif'),
     ('account_http.py', 'header_privat(skrip_sandi=SKRIP_AKUN)', 'header_privat(skrip_sandi="")',
      'test_account_audit_http.py', 'test_get_post_akun_memakai_header_privat'),

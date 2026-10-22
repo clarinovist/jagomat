@@ -137,5 +137,5 @@ def halaman_tinjau(*, pengguna, token, operasi, revisi, pilihan, dibuat, berakhi
         '<button type="submit" class="tombol-bahaya-akun">Cabut izin dan hapus data tambahan</button></form></section>'
     )
     return _halaman('Persetujuan data', isi, ident=(pengguna, 'guru'), stitch=True,
-                    kelas_bungkus='pendamping-editorial-st akun-editorial-st', id_utama='judul-persetujuan',
+                    kelas_bungkus='pendamping-editorial-st akun-editorial-st akun-sempit-st', id_utama='judul-persetujuan',
                     privat=True)

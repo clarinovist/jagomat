@@ -190,6 +190,12 @@ utama; halaman konfirmasi hapus/cabut tetap menampilkan daftar konsekuensi penuh
 Mockup: canvas "Jagomat Akun Redesign" (keenam artboard sudah diterapkan). Tidak diadopsi dari mockup: meter
 "0/12 karakter" (butuh JS baru) dan chip paket "Akses awal · gratis" (butuh data
 langganan di header).
+Penyelarasan lanjutan (22 Okt 2026): label form tebal dengan petunjuk sebagai placeholder, status
+Kesepakatan satu baris "Disetujui … · aktif sampai …" (hanya saat izin efektif berlaku) dengan panah
+CSS di tautan tinjau, catatan Langganan berikon, `/persetujuan` (tinjau) dan Data Pendamping memakai
+`.akun-sempit-st` (46rem), serta tombol sandi penuh di HP. Belum disamakan dan menunggu keputusan:
+header bersama (topbar abu rata), isi kartu anak terbuka (satu tombol Simpan), tombol Keluar di dasar
+halaman HP (butuh form kedua), serta ikon/jumlah/rentang tanggal di daftar chat Pendamping.
 
 ### Tinjauan sesi datar
 

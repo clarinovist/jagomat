@@ -44,7 +44,7 @@ def test_kartu_kesepakatan_baris_dengan_chip_status(monkeypatch):
     assert '<span class="akun-label-st">Aktivitas penggunaan aplikasi</span><span class="akun-chip-st akun-chip-ok-st">Diizinkan</span>' in h
     assert '<span class="akun-label-st">Ringkasan hasil belajar</span><span class="akun-chip-st">Tidak diizinkan</span>' in h
     assert '<span class="akun-label-st">Kategori topik percakapan</span><span class="akun-chip-st akun-chip-ok-st">Diizinkan</span>' in h
-    assert "<ul>" not in h and "Penggunaan tambahan aktif" in h
+    assert "<ul>" not in h and "aktif sampai" in h
 
 
 def test_kartu_kesepakatan_cabut_dilipat_tapi_form_utuh(monkeypatch):
@@ -176,3 +176,30 @@ def test_halaman_konfirmasi_tetap_menampilkan_konsekuensi_penuh(server):
     assert f'<a class="akun-tautan-st" href="{manage.DASAR}">Batal</a>' in isi
     _, cabut, _ = server.minta(manage.DASAR + "/cabut", cookie=server.token)
     assert "Cabut izin Pendamping AI" in cabut and 'class="tombol-bahaya-akun"' in cabut
+
+
+# ── Penyelarasan dengan mockup: ringkasan status, arrow, lebar kolom ───
+
+
+def test_kartu_kesepakatan_izin_berlaku_satu_baris_ringkas_di_bawah_judul(monkeypatch):
+    h = _kartu(monkeypatch)
+    judul, _, sisa = h.partition("<h2>Kesepakatan dan pilihan data</h2>")
+    ringkas = re.match(r'<p class="sub akun-status-ringkas-st">Disetujui [^<]+ · aktif sampai [^<]+</p>', sisa)
+    assert ringkas, sisa[:200]
+    assert "Tanggal persetujuan terakhir" not in h and h.count("aktif sampai") == 1
+
+
+@pytest.mark.parametrize("kw,ada,tidak", [
+    (dict(aktif=False), "Tanggal persetujuan terakhir:", "akun-status-ringkas-st"),
+    (dict(pilihan=(0, 0, 0), aktif=False), "Penggunaan tambahan tidak diizinkan", "akun-status-ringkas-st"),
+])
+def test_kartu_kesepakatan_tanpa_izin_berlaku_tetap_jujur(monkeypatch, kw, ada, tidak):
+    h = _kartu(monkeypatch, **kw)
+    assert ada in h and tidak not in h and "aktif sampai" not in h
+
+
+def test_tinjau_dan_data_pendamping_memakai_kolom_sempit():
+    assert "akun-sempit-st" in _tinjau()
+    assert "akun-sempit-st" in manage._page("<p>isi</p>").decode()
+    import account_style
+    assert re.search(r"\.akun-editorial-st\.akun-sempit-st \{ max-width: 46rem; \}", account_style.GAYA_AKUN)
