@@ -39,6 +39,7 @@ _TAHAP_TINDAKAN = {
     "tunggu_checkpoint": 4,
     "checkpoint": 4,
     "probe_setelah_pengenalan": 1,
+    "pilih_variasi": 0,
     "mixed_maintenance": 5,
     "putaran_baru": 5,
     "eskalasi": 5,
@@ -210,8 +211,29 @@ def _indeks_tahap(rencana: RencanaBelajar, bukti: BuktiSiklus) -> int:
     return _TAHAP_TINDAKAN.get(efektif, {"maintenance": 5}.get(efektif, 0))
 
 
+# Pemulihan sumber bukan tahap perjalanan: jangan berpura-pura "tahap 1".
+_TANPA_TAHAP = frozenset({"pulihkan_sumber"})
+_KALIMAT_TANPA_TAHAP = "Tahap belum bisa ditunjukkan sampai sumber fokus dipulihkan. "
+
+
+def _tahap_tampil(rencana: RencanaBelajar, bukti: BuktiSiklus) -> Optional[int]:
+    """Indeks tahap untuk UI; None bila reducer sedang di luar peta enam tahap."""
+    if _tahap_efektif(rencana, bukti) in _TANPA_TAHAP:
+        return None
+    return _indeks_tahap(rencana, bukti)
+
+
+def _kalimat_tahap(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
+    nomor = _tahap_tampil(rencana, bukti)
+    if nomor is None:
+        return _KALIMAT_TANPA_TAHAP
+    return f"Tahap sekarang: {_LABEL_TAHAP[nomor]} ({nomor + 1} dari 6). "
+
+
 def _strip_tahap(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
-    aktif = _indeks_tahap(rencana, bukti)
+    aktif = _tahap_tampil(rencana, bukti)
+    if aktif is None:
+        return ""
     bagian = []
     for indeks, label in enumerate(_LABEL_TAHAP):
         kelas = " aktif" if indeks == aktif else ""
@@ -225,11 +247,15 @@ def _strip_tahap(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
 
 def _alur_rencana(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
     """Berikan orientasi tanpa menyimpulkan tahap sebelumnya sudah selesai."""
-    label_aktif = _LABEL_TAHAP[_indeks_tahap(rencana, bukti)]
+    nomor = _tahap_tampil(rencana, bukti)
+    ringkas = (
+        f'<span class="tahap-aktif-ringkas-st">Tahap sekarang: {html.escape(_LABEL_TAHAP[nomor])}</span>'
+        if nomor is not None else ''
+    )
     return (
         '<details class="alur-rencana-jelas-st">'
         '<summary><span>Apa yang terjadi di setiap tahap?</span>'
-        f'<span class="tahap-aktif-ringkas-st">Tahap sekarang: {html.escape(label_aktif)}</span>'
+        + ringkas +
         '</summary>'
         '<div class="isi-alur-rencana-st">'
         f'<p class="progres-rencana-st">{html.escape(_progres(rencana, bukti))}'

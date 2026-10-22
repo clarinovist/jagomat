@@ -62,7 +62,8 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   keluarga, dan tidak menyatakan afiliasi atau market share.
 - Siklus terpandu; latihan manual tetap tersedia tanpa otomatis mengubah putaran.
   Beranda menampilkan satu tugas/CTA, metadata sesi dan estimasi pengerjaan,
-  instruksi, peta enam tahap terbuka, maksimal tiga sesi terkirim yang menunggu
+  instruksi, peta enam tahap terbuka (tanpa tahap aktif saat sumber fokus sedang
+  dipulihkan), maksimal tiga sesi terkirim yang menunggu
   tinjauan (terlama dahulu; sesi dengan hasil 0 benar yang terlalu cepat diberi catatan
   "mungkin belum dikerjakan"), lalu tautan angka progres dari laporan yang sama. Kartu
   tinjau menampilkan lama menunggu sejak tanggal sesinya.

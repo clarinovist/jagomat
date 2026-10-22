@@ -27,12 +27,16 @@ def _meta(rencana, bukti, jumlah_soal):
 
 def posisi(rencana, bukti, nama):
     """Tahap aktif dari pemetaan presenter existing; bukan indikator kelulusan."""
-    nomor = UI._indeks_tahap(rencana, bukti) + 1
+    indeks = UI._tahap_tampil(rencana, bukti)
+    judul = (f'Posisi {_e(nama)}: tahap {indeks + 1} dari 6' if indeks is not None
+             else f'Posisi {_e(nama)}')
+    catatan = ('Ini peta perjalanan, bukan nilai.' if indeks is not None
+               else 'Tahap belum bisa ditunjukkan sampai sumber fokus dipulihkan.')
     return (
         '<section class="beranda-posisi-st" aria-labelledby="judul-posisi">'
         '<div class="beranda-posisi-kepala-st">'
-        f'<h2 class="st" id="judul-posisi">Posisi {_e(nama)}: tahap {nomor} dari 6</h2>'
-        '<p>Ini peta perjalanan, bukan nilai.</p></div>'
+        f'<h2 class="st" id="judul-posisi">{judul}</h2>'
+        f'<p>{catatan}</p></div>'
         + UI._strip_tahap(rencana, bukti)
         + '<details class="alur-rencana-jelas-st"><summary>Apa yang terjadi di setiap tahap?</summary>'
         '<div class="isi-alur-rencana-st"><p>Latihan awal membantu menentukan bagian yang perlu dibantu. '

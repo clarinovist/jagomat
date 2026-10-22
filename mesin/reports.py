@@ -455,8 +455,7 @@ def konten_laporan(kon, siswa_id: int, query: str = "", section: str = "ringkasa
         if pilot and warisan is None:
             tahap = 'Pendampingan orang tua sedang aktif. '
         else:
-            nomor = ui._indeks_tahap(perjalanan.rekomendasi, bukti)
-            tahap = f'Tahap sekarang: {ui._LABEL_TAHAP[nomor]} ({nomor+1} dari 6). '
+            tahap = ui._kalimat_tahap(perjalanan.rekomendasi, bukti)
         isi += banner_tautan(
             '<strong>' + html.escape(tahap.strip()) + '</strong> Peta perjalanan lengkap ada di Beranda.',
             f'/anak/{siswa_id}?section=rencana', 'Ke Beranda →', 'laporan-ke-beranda',
