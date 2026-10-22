@@ -3586,6 +3586,8 @@ GAYA_TEKS_MIN = "\n/* Teks informatif dewasa >= 14px */\n" + "".join(
     f"body.st .foto-editorial-st .centang input[type=checkbox] {{ width: 1.5rem; height: 1.5rem; flex: none; }}\n"
     f"body.st .lampiran-editorial-st .waktu {{ color: {T.TEKS_VARIAN}; }}\n"
     f"body.st .st-topbar .brand {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}\n"
+    # Eyebrow dekoratif: sedikit lebih besar dan jarak huruf lebih rapat agar rapi, tetap kapital.
+    f"body.st :is(.guru-alis-st, .editorial-alis-st, .kerja-alis-st) {{ font-size: {T.UKURAN_TEKS_CATATAN}; letter-spacing: .08em; line-height: 1.4; }}\n"
 )
 GAYA_STITCH = GAYA_STITCH + GAYA_TEKS_MIN
 

@@ -96,3 +96,10 @@ def test_baris_centang_foto_lampiran_24px_dan_rata_tengah():
 
 def test_tautan_brand_topbar_target_sentuh_44px():
     assert f"body.st .st-topbar .brand {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}" in style_stitch.GAYA_STITCH
+
+
+def test_eyebrow_dekoratif_rapi_13px_dengan_jarak_huruf_rapat():
+    css = style_stitch.GAYA_STITCH
+    aturan = (f"body.st :is(.guru-alis-st, .editorial-alis-st, .kerja-alis-st) "
+              f"{{ font-size: {T.UKURAN_TEKS_CATATAN}; letter-spacing: .08em; line-height: 1.4; }}")
+    assert aturan in css and T.UKURAN_TEKS_CATATAN == ".8125rem"
