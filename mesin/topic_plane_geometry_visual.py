@@ -234,6 +234,8 @@ def proyeksi_geometri_datar(
     proyektor = _PROYEKTOR.get(template_id)
     if proyektor is None:
         return None
+    from catalog_followup import parameter_visual
+    parameter = parameter_visual(template_id, parameter)
     if "versi_katalog" in parameter:
         if type(parameter["versi_katalog"]) is not int or parameter["versi_katalog"] != 2:
             raise ValueError("versi katalog visual tidak didukung")

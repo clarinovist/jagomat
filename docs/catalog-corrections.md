@@ -111,6 +111,8 @@ sudah memuat reader ini sebelum kandidat aktif dirilis. Tidak ada retag bukti la
   dan disetujui pengguna pada hash di atas. Ekspor `scripts/catalog_preview.py` menghasilkan HTML dan
   manifest hash konten yang terikat SHA; disertakan pada artefak CI.
 - Cabang tabung existing, pembagian pecahan terpotong di rule lain, dan template
-  tak ditandai tidak otomatis benar. Audit lanjutan di luar temuan ini tetap perlu.
+  tak ditandai tidak otomatis benar. [Audit lanjutan 24 Oktober](catalog-followup.md)
+  menyiapkan draf2 nonaktif untuk kuantitas/rata-rata/arsiran; follow-up lain dan
+  review manusia tetap terbuka. Bukan pengesahan seluruh katalog.
 - Second opinion JEV atas ringkasan nonsensitif mendukung usulan kategori terbatas
   dan rule jenis unsur. Itu sinyal probabilistik, bukan review manusia atau gate.

@@ -21,6 +21,7 @@ from topic_plane_geometry_param import _parameter
 from catalog_versions import koreksi_soal
 from catalog_keys import lingkaran
 from catalog_diagnosis import kotak
+from assessment_revision import soal_berrevisi
 
 
 # ── Latar objek nyata (gelombang 2, 2 Sep 2026) ────────────────────────
@@ -867,6 +868,7 @@ def juring(varian: str, s: int, r: int) -> Soal:
     )
 
 
+@soal_berrevisi
 def luas_arsiran(varian: str, **nilai: int) -> Soal:
     """Luas arsiran = bangun pembungkus − bagian dibuang.
 

@@ -48,7 +48,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   pengelolaan data sebelum gate provider; AI tidak mengambil alih konfirmasi/reducer.
 - `catalog_versions.py`/`number_theory_versions.py` memisahkan writer dan reader
   historis. Bank kalimat hanya mengubah snapshot baru. `assessment_revision.py`
-  default0; codec sesi campuran v2 belum terhubung writer. Tidak backfill otomatis.
+  revisi1 default0; `catalog_followup.py` menyediakan draf revisi2 terpisah
+  (`OSN_KATALOG_LANJUTAN=0`), reader berdasarkan marker dan tanpa backfill.
+  Codec sesi campuran v2 belum terhubung writer.
 - `family_deletion.py` menghasilkan bundle privat tervalidasi, bukan mutasi live
   langsung. Sensor/policy, billing dan riset tetap mempunyai consent/retensi berbeda.
 - Façade/adapter legacy dan reducer besar sengaja dipertahankan ketika pemisahan

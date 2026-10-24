@@ -25,11 +25,13 @@ from templates import Malrule, Soal, saring_malrule
 from topics import Topik, daftarkan
 from catalog_versions import koreksi_soal, parameter_baru
 from catalog_malrules import statistika
+from assessment_revision import soal_berrevisi
 
 
 # ── Bagian A — Rata-rata ────────────────────────────────────────────────
 
 
+@soal_berrevisi
 def rata_rata(varian: str, data: list[int], rata: int = 0) -> Soal:
     """Rata-rata = jumlah/n; dua arah (cari rata atau cari data ke-n)."""
     n = len(data)

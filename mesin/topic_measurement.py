@@ -256,6 +256,7 @@ _BENDA_KUANTITAS = {
 }
 
 
+@soal_berrevisi
 def satuan_kuantitas(satuan: str, benda: str, nilai: int, arah: str) -> Soal:
     """Konversi satuan kuantitas: lusin, kodi, gros, rim.
 

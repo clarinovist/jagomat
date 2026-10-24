@@ -117,6 +117,9 @@ atau malrule lain. Jalur diagnosis K bisa hilang walau test biasa hijau.
 kandidat collision serta kandidat setara kunci; tidak mengejar jumlah rule dengan
 nudge. Default0, bukan mengganti perilaku legacy atau izin aktivasi produksi.
 [Kontrak pilot](catalog-pilot.md) mengatur review/reader recovery/pair exact.
+Draf [revisi2 katalog lanjutan](catalog-followup.md) memakai sakelar terpisah
+`OSN_KATALOG_LANJUTAN=0`; tidak memperluas revisi1, tidak mengubah histori, dan
+belum boleh diaktifkan sebelum review manusia/recovery reader/pair exact.
 
 **Posisi dan riwayat.** Keterbagian diuji 600 seed per level dengan solver modulo
 serta distribusi tiga posisi; modus dibandingkan dengan ekspektasi frekuensi m/n,

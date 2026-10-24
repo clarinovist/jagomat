@@ -57,7 +57,8 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
 ## Batas dan keputusan
 
 Batch katalog aktif dan bank kalimat tidak mengesahkan seluruh katalog. Revisi
-penilaian baru/pilot bank tetap offline/default0; playbook masih draf; efektivitas
+penilaian1/pilot bank dan [draf koreksi lanjutan2](catalog-followup.md) tetap
+offline/default0; playbook masih draf; efektivitas
 pada guru/anak belum dibuktikan. Tidak menjanjikan siap juara atau penguasaan seluruh
 kurikulum. Pekerjaan [dibatalkan/ditunda](status-proyek.md) tidak dibuka otomatis.
 

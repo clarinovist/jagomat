@@ -1,6 +1,6 @@
 # Status proyek dan pekerjaan tersisa
 
-**Diperbarui 22 Oktober 2026.** Ini indeks status, bukan perubahan keputusan produk
+**Diperbarui 24 Oktober 2026.** Ini indeks status, bukan perubahan keputusan produk
 atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
 [CLAUDE.md](../CLAUDE.md). Catatan lama harus dibaca menurut tanggal dan scope-nya.
 
@@ -46,7 +46,7 @@ seluruh kombinasi penggunaan nyata telah terbukti.
 | K1 | Review 15 playbook P3 | **Menunggu manusia.** Tetapkan reviewer; nilai isi exact, putuskan setuju/ubah/tolak. Agent tidak mengisi pengesahan. [Antrean](playbook-ulasan-p3.md) |
 | K2 | Pilot bank terkurasi 90 item A/B/C | **Eksperimen offline selesai, evaluasi manusia belum.** Catat kualitas dan waktu nyata; B belum punya malrule, belum setara kapabilitas diagnosis A/C. [Pilot](catalog-pilot.md) |
 | K3 | Revisi penilaian1 | **Source tersedia, aktivasi ditahan.** Default0 dan produksi nonaktif; perlu review isi, reader recovery baru serta pair exact sebelum aktivasi. [Kontrak](catalog-pilot.md#fondasi-bersama) |
-| K4 | Audit katalog di luar batch/pilot | **Follow-up terbatas.** Cabang tabung/rule pecahan lain serta kuantitas, rata-rata, arsiran perlu investigasi. Bukan pernyataan semua template itu cacat. [Batas](catalog-corrections.md#batas-dan-follow-up) |
+| K4 | Audit katalog di luar batch/pilot | **Audit batch terbatas dan draf2 tersedia; belum diaktifkan/disahkan.** Kuantitas, rata-rata dan arsiran diperbaiki di jalur opt-in default0. LP/pecahan memakai fondasi revisi1 existing; berkurung/label volume masih follow-up. Review manusia dan recovery/pair baru wajib sebelum aktivasi. [Hasil/batas](catalog-followup.md) |
 | G1 | Kecepatan transkripsi dan tinjauan guru | **Belum terukur.** Target 15 soal ≤5 menit masih usulan; UI yang lebih ringkas bukan bukti penghematan waktu. Pengukuran dapat memakai data sintetis; observasi guru sebelumnya sengaja dilewati. |
 | G2 | Penutupan brief UI lintas halaman | **Perlu audit scope kecil.** Lebar kontainer/pola tombol kembali belum memiliki bukti penutupan menyeluruh; bukan bug terkonfirmasi. Empat tab profil sudah berbagi lebar 960px. |
 | G3 | Laporan khusus guru→orang tua, sesi per topik/kelompok, mutu per guru | **Usulan, bukan kontrak aktif.** Dashboard/latihan manual existing tidak sama dengan fitur ini. Prioritas/scope dan kebutuhan pilot perlu diputuskan. |

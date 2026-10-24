@@ -32,7 +32,10 @@ def kontrak(soal):
     if 'revisi_penilaian' not in soal.parameter:
         return None
     revisi=soal.parameter['revisi_penilaian']
-    if type(revisi) is not int or revisi!=1 or not didukung(soal.template_id,soal.parameter):
+    from catalog_followup import didukung as didukung_lanjutan
+    if type(revisi) is not int or not (
+            revisi == 1 and didukung(soal.template_id, soal.parameter)
+            or revisi == 2 and didukung_lanjutan(soal.template_id, soal.parameter)):
         raise ValueError('revisi penilaian tidak didukung')
     return KONTRAK
 
@@ -52,9 +55,12 @@ def soal_berrevisi(lama):
     def panggil(*args,revisi_penilaian=_TANPA_REVISI,**kwargs):
         if revisi_penilaian is _TANPA_REVISI:
             return lama(*args,**kwargs)
-        if type(revisi_penilaian) is not int or revisi_penilaian!=1:
+        if type(revisi_penilaian) is not int or revisi_penilaian not in (1, 2):
             raise ValueError('revisi penilaian tidak didukung')
         s=lama(*args,**kwargs)
+        if revisi_penilaian == 2:
+            from catalog_followup import perbaiki as perbaiki_lanjutan
+            return perbaiki_lanjutan(s)
         if not didukung(s.template_id,s.parameter):
             raise ValueError('cabang tidak mendukung revisi penilaian')
         return perbaiki(s)
