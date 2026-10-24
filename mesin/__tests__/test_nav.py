@@ -44,7 +44,8 @@ def test_menu_pengguna_di_semua_halaman_guru(server):
         assert '<details class="menu-pengguna">' in isi, (
             f"{jalur} tidak memuat menu pengguna"
         )
-        kepala = re.search(r'<details class="menu-pengguna">\s*<summary>(.*?)</summary>', isi, re.S).group(1)
+        kepala = re.search(r'<details class="menu-pengguna">\s*<summary\b[^>]*>(.*?)</summary>', isi, re.S).group(1)
+        # Header ringkas mempunyai aria-label; nama terlihat tetap wajib.
         # Label akun diformat seragam di semua halaman (nama login tetap "ortu-a").
         assert 'Ortu A' in re.sub(r'<[^>]+>', '', kepala), f"{jalur} tidak menampilkan nama"
         assert 'action="/keluar"' in isi, f"{jalur} tidak memuat pintu keluar"
@@ -64,7 +65,7 @@ def test_menu_admin_di_panel_dan_halaman_baca(server):
         kode, isi, _ = s.minta(jalur, auth=("pengelola", SANDI_ADMIN))
         assert kode == 200, f"{jalur} gagal"
         assert '<details class="menu-pengguna">' in isi
-        kepala = re.search(r'<details class="menu-pengguna">\s*<summary>(.*?)</summary>', isi, re.S).group(1)
+        kepala = re.search(r'<details class="menu-pengguna">\s*<summary\b[^>]*>(.*?)</summary>', isi, re.S).group(1)
         assert 'pengelola' in re.sub(r'<[^>]+>', '', kepala)
         assert 'action="/keluar"' in isi
         assert 'href="/admin"' in isi, f"{jalur} tanpa pintu dashboard admin"
