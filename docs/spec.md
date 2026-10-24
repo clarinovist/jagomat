@@ -53,6 +53,8 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
 - Data anak, credential, sesi, wawancara dan backup tidak masuk Git/log/fixture.
   Tidak menyimpan email/telepon pengguna. Hapus keluarga memerlukan verifikasi,
   preview/backup/cutover; bukan sekadar menghapus login atau bukti immutable.
+- [Backup operasional](operational-backup.md) manual mencakup core, riset dan foto;
+  scheduler/off-site otomatis belum tersedia, bukan janji pemulihan seluruh VPS.
 
 ## Batas dan keputusan
 

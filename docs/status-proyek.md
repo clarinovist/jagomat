@@ -54,7 +54,7 @@ seluruh kombinasi penggunaan nyata telah terbukti.
 | L1 | Kontrak sesi campuran v2 dan katalog tuntutan luas | **Codec saja; integrasi nonaktif.** Pilot homogen dua tuntutan sudah ada, bukan implementasi writer campuran. [Matriks integrasi](skill-demand-proposal.md#integrasi-wajib-sebelum-writer-v2-boleh-aktif) |
 | A1 | Penyederhanaan Pendamping kandidat baru | **Ditahan gate mutu.** Dua batch selesai tetapi tidak memenuhi seluruh rubrik; tidak ada retry/pilot otomatis. Kendali data existing sudah selesai, tidak ikut ditahan. [Evaluasi](pendamping-runtime.md#retest-perbaikan-prompt-01--20-oktober-2026) |
 | B1 | Launch komersial paket v2 | **Ditunda.** Katalog/ledger/service dan fondasi kuota ada; checkout/panel v2 lengkap, transisi, refund, eligibility/promo dan aktivasi perlu dituntaskan bila dipilih. [Paket](subscription-packages.md) |
-| O1 | Backup operasional terjadwal end-to-end | **Belum dibuktikan oleh audit ini.** Backup rilis exact tersedia; itu bukan bukti jadwal backup lengkap/off-site/restore berkala. Audit operasional terpisah, jangan mengandalkan skrip dua DB lama. [Runbook](production-release.md) |
+| O1 | Backup operasional terjadwal end-to-end | **Jalur manual lengkap disiapkan; jadwal otomatis belum ada bukti.** Collector quiescent, empat DB+auth, riset/lampiran, validator dan transfer Mac mengganti jalur tiga DB parsial. Jadwal/downtime berulang, off-site independen laptop, alert dan retensi operasional masih perlu keputusan. [Runbook backup](operational-backup.md) |
 
 G1–G4 berasal dari rencana lokal pivot/brief 21–22 Oktober; keputusan dan batasnya
 ringkas di sini agar tidak hanya tersimpan dalam `docs/plan/`. Angka target tetap

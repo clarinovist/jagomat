@@ -28,6 +28,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - Empat DB durable inti: belajar, Pendamping, kontrol AI, kontrol admin; auth
   `sandi.json` ikut bundle backup. Riset konsumen mempunyai DB/retensi/backup terpisah.
   Sesi/transient bukan pengganti state durable; detail inventaris di runbook.
+  `scripts/operational_backup.py` menambahkan envelope core+riset+lampiran saat
+  quiescent dan transfer privat tervalidasi; `mesin/cadangkan.sh` fetch-only, tanpa prune.
 - Riset/materi historis di `../osn-resources/referensi/`; bukan dependency runtime.
   DB, credential, `.venv`, cache, backup dan artefak privat tidak dilacak Git.
 

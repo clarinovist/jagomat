@@ -1,6 +1,7 @@
-"""Cadangan sintetis mengikuti skrip yang dipindah, tanpa SSH atau DB nyata."""
-from pathlib import Path
+"""Entry point backup mengikuti repo/alias; tidak diam-diam membuat snapshot parsial."""
+import json
 import os
+from pathlib import Path
 import shutil
 import subprocess
 
@@ -9,52 +10,41 @@ import pytest
 AKAR = Path(__file__).resolve().parents[2]
 
 
-@pytest.mark.parametrize("basis_opsional", [False, True])
-@pytest.mark.parametrize("lewat_alias", [False, True])
-def test_cadangan_mengikuti_folder_baru_bukan_home_atau_cwd(tmp_path, basis_opsional, lewat_alias):
-    lama = tmp_path / "osn lama"
-    (lama / "mesin").mkdir(parents=True)
-    shutil.copyfile(AKAR / "mesin/cadangkan.sh", lama / "mesin/cadangkan.sh")
-    baru = tmp_path / "jagomat baru"
+@pytest.mark.parametrize('lewat_alias', [False, True])
+def test_cadangan_mengikuti_folder_baru_bukan_home_atau_cwd(tmp_path, lewat_alias):
+    lama = tmp_path / 'osn lama'
+    (lama / 'mesin/.venv/bin').mkdir(parents=True)
+    shutil.copyfile(AKAR / 'mesin/cadangkan.sh', lama / 'mesin/cadangkan.sh')
+    # Double interpreter mencatat argv, tidak pernah mengakses jaringan/data.
+    program = lama / 'mesin/.venv/bin/python'
+    program.write_text('#!/bin/bash\nset -euo pipefail\nprintf "%s\\n" "$@" > "$ARG_LOG"\n')
+    program.chmod(0o700)
+    baru = tmp_path / 'jagomat baru'
     lama.rename(baru)
     lama.symlink_to(baru, target_is_directory=True)
-    skrip = (lama if lewat_alias else baru) / "mesin/cadangkan.sh"
-    home = tmp_path / "home sintetis"
-    cwd = tmp_path / "cwd lain"
-    binari = tmp_path / "bin"
-    for direktori in (home, cwd, binari):
-        direktori.mkdir()
-    # Double shell tidak pernah meneruskan panggilan ke jaringan/SQLite asli.
-    (binari / "ssh").write_text('''#!/bin/bash
-set -euo pipefail
-case "${*: -1}" in
-  *"test -f"*) printf '%s\\n' "$BASIS_OPSIONAL" ;;
-  *"sudo -n cat "*) printf 'basis sintetis\\n' ;;
-  *"docker exec "*|*"sudo -n rm -f "*) : ;;
-  *) exit 97 ;;
-esac
-''')
-    (binari / "sqlite3").write_text('''#!/bin/bash
-set -euo pipefail
-test -s "$1"
-case "$2" in
-  "PRAGMA integrity_check;") printf 'ok\\n' ;;
-  "SELECT COUNT(*) FROM "*) printf '0\\n' ;;
-  *) exit 98 ;;
-esac
-''')
-    for berkas in binari.iterdir():
-        berkas.chmod(0o700)
-    hasil = subprocess.run(
-        ["bash", str(skrip)], cwd=cwd, capture_output=True, text=True, timeout=10,
-        env={**os.environ, "HOME": str(home), "PATH": str(binari) + ":/usr/bin:/bin",
-             "OSN_HOST_VPS": "host-sintetis.invalid", "BASIS_OPSIONAL": str(int(basis_opsional))},
-    )
-    assert hasil.returncode == 0, hasil.stdout + hasil.stderr
-    tujuan = baru / "mesin/cadangan"
-    for jenis in ("latihan", "pendamping", "ai-control"):
-        berkas = list(tujuan.glob(jenis + "-*.db"))
-        assert len(berkas) == (1 if jenis == "latihan" or basis_opsional else 0)
-        assert all(p.read_text() == "basis sintetis\n" for p in berkas)
-    assert not list(home.rglob("*.db"))
-    assert not list(cwd.rglob("*.db"))
+    script = (lama if lewat_alias else baru) / 'mesin/cadangkan.sh'
+    cwd = tmp_path / 'cwd lain'
+    cwd.mkdir()
+    log = tmp_path / 'args.txt'
+    r = subprocess.run(['bash', str(script), 'backup-sintetis'], cwd=cwd,
+                       env={**os.environ, 'ARG_LOG': str(log), 'OSN_HOST_VPS': 'host-sintetis.invalid'},
+                       capture_output=True, text=True, timeout=10)
+    assert r.returncode == 0, r.stdout + r.stderr
+    args = log.read_text().splitlines()
+    assert args == ['-B', str(baru / 'mesin/../scripts/operational_backup.py'), 'fetch',
+                    '--id', 'backup-sintetis', '--host', 'host-sintetis.invalid',
+                    '--destination', str(baru / 'mesin/cadangan/operasional')]
+    assert not list(cwd.rglob('*.db'))
+
+
+def test_entrypoint_tanpa_id_gagal_tanpa_jaringan(tmp_path):
+    r = subprocess.run(['bash', str(AKAR / 'mesin/cadangkan.sh')], cwd=tmp_path,
+                       capture_output=True, text=True, timeout=10)
+    assert r.returncode == 2 and 'id-bundle-operasional' in r.stderr
+    assert not list(tmp_path.iterdir())
+
+
+def test_tidak_ada_prune_dan_backup_live_tiga_db():
+    text = (AKAR / 'mesin/cadangkan.sh').read_text()
+    assert 'SIMPAN_HARI' not in text and '-delete' not in text
+    assert 'docker exec' not in text and 'cadangan-sementara.db' not in text
