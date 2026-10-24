@@ -68,6 +68,19 @@ def test_capture_lengkap_privat_dan_transfer_roundtrip(sumber, tmp_path):
     assert backup.inventory(restored) == backup.inventory(target)
 
 
+def test_sumber_wal_menjadi_snapshot_portabel_tanpa_sidecar(sumber, tmp_path):
+    for name in ('latihan.db', 'admin-control.db', 'ai-control.db', 'pendamping.db', 'riset-konsumen.db'):
+        with sqlite3.connect(sumber / name) as c:
+            assert c.execute('PRAGMA journal_mode=WAL').fetchone()[0] == 'wal'
+    target = buat(sumber, tmp_path)
+    assert backup.validate(target)['ok']
+    assert not list(target.rglob('*-wal')) and not list(target.rglob('*-shm'))
+    for name in ('latihan.db', 'admin-control.db', 'ai-control.db', 'pendamping.db'):
+        with sqlite3.connect(target / 'bundle' / name) as c:
+            assert c.execute('PRAGMA journal_mode').fetchone()[0] == 'delete'
+    assert backup.validate(target)['ok']
+
+
 def test_foto_durable_img_dari_writer_kanonis_ikut_roundtrip(sumber, tmp_path, monkeypatch):
     import attachments
     monkeypatch.setattr(attachments, 'direktori_lampiran', lambda: sumber / 'lampiran')

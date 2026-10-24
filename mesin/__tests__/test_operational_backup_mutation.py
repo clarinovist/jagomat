@@ -9,6 +9,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 MUTASI = (
+    ('wal', "dst.execute('PRAGMA journal_mode=DELETE').fetchone()[0] != 'delete'",
+     "False", 'test_sumber_wal_menjadi_snapshot_portabel_tanpa_sidecar'),
     ('hash', "if m['files'] != actual or m['directories'] != dirs:", 'if False:',
      'test_hash_berubah_dan_file_tambahan_ditolak'),
     ('linkage', "    attachment_links(root / 'bundle' / 'latihan.db', root / 'lampiran')", '    pass',
@@ -44,5 +46,6 @@ def test_mutation_backup(tmp_path, name, old, new, test):
                        cwd=tmp_path, env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'),
                        capture_output=True, text=True, timeout=60)
     assert r.returncode == 1, r.stdout + r.stderr
-    assert 'DID NOT RAISE' in r.stdout or 'AssertionError' in r.stdout, r.stdout + r.stderr
+    assert ('DID NOT RAISE' in r.stdout or 'AssertionError' in r.stdout
+            or name == 'wal' and 'header snapshot bukan rollback journal' in r.stdout), r.stdout + r.stderr
     assert 'ERROR collecting' not in r.stdout

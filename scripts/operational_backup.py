@@ -166,6 +166,23 @@ def sqlite_copy(source, target):
     with closing(sqlite3.connect(source.resolve().as_uri() + '?mode=ro', uri=True)) as src:
         with closing(sqlite3.connect(str(target))) as dst:
             src.backup(dst)
+            # Mode WAL dari sumber ikut header backup. Normalisasi HANYA salinan
+            # agar reader read-only tidak menciptakan -wal/-shm di bundle frozen.
+            if dst.execute('PRAGMA journal_mode=DELETE').fetchone()[0] != 'delete':
+                raise Ditolak('snapshot tidak dapat dibuat portabel')
+    # SQLite3.9 dapat meninggalkan SHM kosong setelah perpindahan WAL→DELETE.
+    # Hanya sidecar salinan baru milik fungsi ini, setelah semua koneksi ditutup.
+    with target.open('rb') as header_file:
+        header = header_file.read(20)
+    if header[18:20] != b'\x01\x01':
+        raise Ditolak('header snapshot bukan rollback journal')
+    for suffix in ('-wal', '-shm'):
+        sidecar = target.with_name(target.name + suffix)
+        if sidecar.exists():
+            regular(sidecar)
+            if suffix == '-wal' and sidecar.stat().st_size:
+                raise Ditolak('WAL snapshot masih berisi data')
+            sidecar.unlink()
     os.chmod(target, 0o600)
     with target.open('rb') as f:
         os.fsync(f.fileno())

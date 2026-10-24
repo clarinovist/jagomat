@@ -55,7 +55,9 @@ python3 -B /opt/osn/backup-tool/scripts/operational_backup.py capture --id <id-b
 
 Target tetap `/opt/osn/data`, output `/opt/osn/cadangan/operasional/<id>`. ID hanya
 huruf kecil/angka/tanda-hubung,2–80 karakter; tidak ada path bebas di capture.
-Tidak menimpa. Salinan memakai SQLite backup API, auth lock dan copy foto; output
+Tidak menimpa. Salinan memakai SQLite backup API, auth lock dan copy foto. Mode
+journal salinan dinormalkan ke DELETE; header dan WAL kosong diperiksa sebelum
+sidecar salinan milik collector dibersihkan. Mode/sidecar DB live tidak diubah. Output
 stage privat baru dipublikasikan setelah validator/hash/fsync lulus. Failure
 meninggalkan `.partial-*` privat, bukan marker sukses. Jangan menghapusnya sebelum
 penyebab diketahui. Setelah capture dan kondisi data sehat, pulihkan akses segera;
