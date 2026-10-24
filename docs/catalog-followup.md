@@ -5,7 +5,8 @@
 Audit terbatas pada kuantitas, rata-rata, arsiran, tabung, pecahan dan pembagian
 berkurung. Bukan pengesahan seluruh97 template. **Draf revisi penilaian2 belum
 direview manusia dan writer default nonaktif** (`OSN_KATALOG_LANJUTAN=0`).
-Source/CI/deployment dicatat terpisah di [runbook](production-release.md).
+Fondasi source `c335ce5` telah dipasang24 Oktober, tetapi kedua writer revisi1/2
+terverifikasi nonaktif. Bukti exact CI/deployment di [runbook](production-release.md).
 Izin deploy fondasi tidak mengesahkan atau mengaktifkan isi baru.
 
 ## Temuan terkonfirmasi dan tindakan

@@ -6,6 +6,47 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy fondasi katalog lanjutan nonaktif — 24 Oktober 2026
+
+Controlled `deploy-v2` memasang **c335ce5c4ffc2297321badf0218ec5e3a8a2cd70**;
+container started `2026-10-24T14:17:11Z` (21.17 WIB), healthy. Isi: audit lanjutan,
+reader/draf revisi2 untuk kuantitas/rata-rata/arsiran, tes dan exporter review.
+**`OSN_KATALOG_LANJUTAN` dan `OSN_PENILAIAN_REVISI` tetap nonaktif.** Tidak ada
+pengesahan manusia baru, aktivasi penilaian, migrasi/backfill atau perubahan config.
+Temuan pada konten live yang memerlukan review tetap terbuka; lihat
+[hasil audit dan batas](catalog-followup.md).
+
+- Kandidat digest `sha256:05d67c6de9d35ec940190a06d8b60174ca15bc303c59d9dd2aa7d4b030b77340`.
+- Recovery `edd323c4822347f6d584bb0f311e76cac4962e40`, digest
+  `sha256:ea15b60b72110c81e70b2848172dee01b9d8fb5c63d81dc4adecd8037dec7fa9`.
+- Dispatch [40100808120](https://github.com/clarinovist/jagomat/actions/runs/40100808120)
+  sukses:14.237 tes kandidat exact-once, empat shard recovery, build/probe/pair.
+  Push40100808060 juga sukses. Auto-pasang tetap skipped/literal false.
+- Kontrak kedua image `7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8`;
+  hash deployer host `2479470f927627ab00d7af26876d6525bef897e52cff77c413ac5656b168c810`.
+  Katalog aktif hash6522bc48 tetap identik dengan persetujuan sebelumnya; bukan
+  persetujuan draf2 hash589780b3.
+
+Lokal final:1.403 tes terkait lolos (32,53s), compile12 berkas, palang947 berkas,
+mutation terisolasi. 5.100 keluaran bawaan identik dengan HEAD awal; 5.100 keluaran
+opt-in deterministik antarproses. Reviewer read-only: OK with notes **fondasi
+nonaktif saja**; guard enum cabang diperbaiki dan dimutasi sebelum commit.
+
+Produksi awal fb7f64b healthy. Pull dua digest → preflight exact-image schema
+read-only dan writer0 sebelum maintenance → backup coherent empat DB+auth,
+riset terpisah → rehearsal C2–B2–C2 dan validator → hash backup lokal/remote →
+approval sekali pakai → deploy exit0 → reopen. Hash10 tabel histori tetap, config,
+Caddy dan dua cron kembali identik. Smoke publik jagomat.id `/`200, `/akun`401,
+`/murid/`303 ke `/masuk`; marker galat0. Probe in-memory pada container membuktikan
+kedua revisi penilaian nonaktif; tidak menggunakan akun/hasil anak untuk test.
+
+Empat turunan rehearsal dibersihkan; backup/receipt privat dipertahankan dengan
+ID `deploy-catalog-followup-20261024`. Bukti lokal di folder ignored
+`docs/plan/deploy-catalog-followup-20261024/`; paket34 contoh review exact di
+`docs/plan/catalog-followup-review-exact-c335ce5/`. WIP UI sesi lain tidak masuk
+commit/image ini. Recovery belum mendukung marker2: aktivasi berikutnya tetap
+wajib review manusia, reader recovery dan pair konten baru.
+
 ## Deploy filter instan Ruang guru — 22 Oktober 2026
 
 Controlled `deploy-v2` berhasil memasang **fb7f64bbb83a199190e88dda640793ea72f7bb93**

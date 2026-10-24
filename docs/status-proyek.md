@@ -10,13 +10,13 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   sintetis. Peran `guru` tetap mencakup orang tua dan hanya mengakses data miliknya.
 - Akses awal **nonkomersial**. Keputusan paket Jago/Jago Pro tidak sama dengan
   pembukaan penjualan, trial otomatis, promo, atau paywall.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`fb7f64b`**, mulai
-  berjalan 22 Oktober 2026 22.18 WIB, termasuk Ruang guru (`/guru`) selaras mockup dengan
-  filter instan chip (JS berhash, disetujui). Dispatch gate
-  [39800524048](https://github.com/clarinovist/jagomat/actions/runs/39800524048)
-  (14.189 tes kandidat exact-once, pair terverifikasi), container healthy, smoke publik
-  lulus. Digest/recovery/backup ada di
-  [catatan rilis](production-release.md#deploy-filter-instan-ruang-guru--22-oktober-2026).
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`c335ce5`**, mulai
+  berjalan 24 Oktober 2026 21.17 WIB. Fondasi/draf revisi2 ikut image tetapi
+  **writer revisi1/2 tetap nonaktif**; tidak mengubah penilaian live atau histori.
+  Dispatch gate [40100808120](https://github.com/clarinovist/jagomat/actions/runs/40100808120)
+  (14.237 tes kandidat exact-once, pair terverifikasi), container healthy, smoke publik
+  lulus. Digest/recovery/backup dan batas aktivasi ada di
+  [catatan rilis](production-release.md#deploy-fondasi-katalog-lanjutan-nonaktif--24-oktober-2026).
 - Commit dokumentasi sesudahnya tidak otomatis menjadi revision image. Status
   di sini adalah snapshot bertanggal, bukan monitor live atau klaim `main` selalu deployed.
 - Auto-deploy tetap nonaktif: push hanya feedback CI; dispatch manual menjalankan
