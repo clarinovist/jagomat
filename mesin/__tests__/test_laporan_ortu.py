@@ -389,8 +389,11 @@ def test_laporan_memakai_identitas_dan_kanvas_ruang_anak_yang_sama(db):
         h = reports.halaman_laporan(kon, sid, pengguna="ortu").decode()
 
     isi = h.split("</style>", 1)[1]
-    assert 'class="bungkus-st laporan-lebar pendamping-editorial-st laporan-editorial-st profil-workspace-st"' in h
-    assert '<a class="profil-kembali-st" href="/guru">&larr; Semua anak</a>' in isi
+    from test_child_shared_layout import _lebar_efektif, LEBAR_ISI
+    assert _lebar_efektif(h) == LEBAR_ISI
+    assert 'anak-header-st' in h.split('<body', 1)[1]
+    kembali = re.search(r'<a class="profil-kembali-st" href="/guru">(.*?)</a>', isi, re.S).group(1)
+    assert 'Semua anak' in kembali and '<svg aria-hidden="true"' in kembali
     assert '<header class="kepala-anak-st editorial-kepala-st">' in isi
     assert '<h1 class="st" id="judul-profil-laporan">Claudia' in isi
     assert "Kelas belum diisi" not in isi
