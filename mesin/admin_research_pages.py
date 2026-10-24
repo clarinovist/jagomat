@@ -107,9 +107,9 @@ def _pager(halaman, status_filter: str) -> str:
         return ""
     links = []
     if halaman.halaman > 1:
-        links.append('<a href="/admin/riset?%s">Sebelumnya</a>' % e(urlencode({"status": status_filter, "halaman": halaman.halaman - 1})))
+        links.append('<a class="admin-tautan" href="/admin/riset?%s">Sebelumnya</a>' % e(urlencode({"status": status_filter, "halaman": halaman.halaman - 1})))
     if halaman.halaman * halaman.per_halaman < halaman.total:
-        links.append('<a href="/admin/riset?%s">Berikutnya</a>' % e(urlencode({"status": status_filter, "halaman": halaman.halaman + 1})))
+        links.append('<a class="admin-tautan" href="/admin/riset?%s">Berikutnya</a>' % e(urlencode({"status": status_filter, "halaman": halaman.halaman + 1})))
     return '<nav class="admin-pager" aria-label="Halaman wawancara">%s</nav>' % ''.join(links)
 
 
@@ -160,7 +160,8 @@ def ringkasan_wawancara(detail, *, csrf: str, token_aksi: dict) -> str:
         daftar.append(
             '<li><div><span class="riset-nomor">%d</span><div><strong>%s</strong><p>%s</p>%s</div></div>'
             '%s</li>' % (nomor, e(item["judul"]), e(status), kode,
-                         '<a href="/admin/riset/isi?id=%s&amp;q=%s">%s</a>' % (
+                         '<a class="admin-tautan" aria-label="%s topik: %s" href="/admin/riset/isi?id=%s&amp;q=%s">%s</a>' % (
+                             "Lihat" if detail["status"] == "final" else "Isi", e(item["judul"]),
                              e(detail["id"]), e(item["kode"]), "Lihat" if detail["status"] == "final" else "Isi"
                          ))
         )
@@ -190,11 +191,11 @@ def ringkasan_wawancara(detail, *, csrf: str, token_aksi: dict) -> str:
                 ))
     if detail["status"] not in ("ditarik", "perlu_redaksi"):
         aksi += ('<form method="post" action="/admin/riset/redaksi">%s%s%s'
-                 '<button class="admin-tombol" type="submit">Tandai perlu redaksi</button></form>' % (
+                 '<button class="admin-tombol admin-tombol-sekunder" type="submit">Tandai perlu redaksi</button></form>' % (
                     _hidden("csrf",csrf),_hidden("tinjauan",token_aksi["redaksi"]),_hidden("id",detail["id"])
                  ))
     if detail["status"] != "ditarik":
-        aksi += ('<form method="post" action="/admin/riset/tarik" data-konfirmasi="Tarik consent dan hapus seluruh jawaban serta kutipan responden ini?">%s%s%s'
+        aksi += ('<form method="post" action="/admin/riset/tarik" class="admin-zona-bahaya" data-konfirmasi="Tarik consent dan hapus seluruh jawaban serta kutipan responden ini?">%s%s%s'
                  '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
                  '<button class="admin-tombol admin-bahaya" type="submit">Tarik consent dan hapus jawaban</button></form>' % (
                     _hidden("csrf",csrf),_hidden("tinjauan",token_aksi["tarik"]),_hidden("id",detail["id"])
@@ -252,7 +253,7 @@ def formulir_pertanyaan(detail, kode_q, *, csrf, token, readonly=False) -> str:
             ' readonly' if readonly else '', e(jawaban.get("catatan_interviewer","")),
             ' open' if utama or tambahan else '', ''.join(isi_opsi),
             ' disabled' if readonly else '', ''.join('<option value="%s"%s>%s</option>'%(e(k),' selected' if k==jawaban.get("status_klarifikasi","tidak_perlu") else '',e(v)) for k,v in STATUS_KLARIFIKASI),
-            '<div class="riset-tombol"><button class="admin-tombol" name="lanjut" value="ringkasan" type="submit">Simpan draf</button><button class="admin-tombol" name="lanjut" value="berikut" type="submit">Simpan &amp; lanjut</button></div>' if not readonly else '',
+            '<div class="riset-tombol"><button class="admin-tombol admin-tombol-sekunder" name="lanjut" value="ringkasan" type="submit">Simpan draf</button><button class="admin-tombol" name="lanjut" value="berikut" type="submit">Simpan &amp; lanjut</button></div>' if not readonly else '',
         )
     )
     return body

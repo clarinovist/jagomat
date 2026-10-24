@@ -102,10 +102,10 @@ def antrean(rows,total,halaman=1):
         baris.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">Periksa sumber</a></td></tr>'%(e(L.label_status(r['sumber'])),L.referensi(r['ref']),'<span class="admin-badge perhatian">'+e(L.label_status(r['status']))+'</span>',tanggal(r['waktu']),link))
     pager = ''
     if halaman > 1:
-        pager += '<a href="/admin?section=perhatian&amp;halaman=%d">Sebelumnya</a> ' % (halaman-1)
+        pager += '<a class="admin-tautan" href="/admin?section=perhatian&amp;halaman=%d">Sebelumnya</a> ' % (halaman-1)
     if halaman*25 < total:
-        pager += '<a href="/admin?section=perhatian&amp;halaman=%d">Berikutnya</a>' % (halaman+1)
-    return '<section class="admin-kartu"><h2>Perlu ditangani · %d</h2>'%total+tabel(('Sumber','Referensi','Status','Sejak','Lanjut'),baris,label='Antrean layanan')+pager+'</section><p class="admin-meta">Status belum pasti bukan gagal aman. Periksa hasil operasinya; jangan mengulang atau memaksa status lunas. Jangan membuat pembayaran atau kelompok pengganti.</p>'
+        pager += '<a class="admin-tautan" href="/admin?section=perhatian&amp;halaman=%d">Berikutnya</a>' % (halaman+1)
+    return '<section class="admin-kartu"><h2>Perlu ditangani · %d</h2>'%total+tabel(('Sumber','Referensi','Status','Sejak','Lanjut'),baris,label='Antrean layanan')+('<nav class="admin-pager" aria-label="Halaman antrean">'+pager+'</nav>' if pager else '')+'</section><p class="admin-meta">Status belum pasti bukan gagal aman. Periksa hasil operasinya; jangan mengulang atau memaksa status lunas. Jangan membuat pembayaran atau kelompok pengganti.</p>'
 
 
 def formulir_dukungan(csrf, token, config):
@@ -187,7 +187,7 @@ def _kartu_ai(r):
     tile=''.join('<div class="admin-ai-tile"><span class="admin-meta">%s</span><span class="admin-badge%s">%s</span></div>'%(e(nama_fitur.get(k,k)),'' if v.startswith('Diizinkan') else ' perhatian',e(v)) for k,v in r['ai'])
     gagal='—' if r['ai_gagal'] is None else r['ai_gagal']
     tile+='<div class="admin-ai-tile"><span class="admin-meta">Gagal / tak pasti, 24 jam</span><strong>%s</strong></div>'%e(gagal)
-    return ('<section class="admin-kartu" id="ai"><div class="admin-seksi-kepala"><h2>AI</h2><a href="/admin/ai">Batas pemakaian dan tes sintetis</a></div>'
+    return ('<section class="admin-kartu" id="ai"><div class="admin-seksi-kepala"><h2>AI</h2><a class="admin-tautan" href="/admin/ai">Batas pemakaian dan tes sintetis</a></div>'
             '<div class="admin-ai-grid">%s</div>'
             '<p class="admin-meta">Konfigurasi bukan jaminan provider sedang online. Tidak ada panggilan berbayar saat halaman dibuka.</p></section>')%tile
 

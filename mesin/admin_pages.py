@@ -195,7 +195,7 @@ def halaman_admin(
 <div class="menu-isi">{form_tema}<a href="/akun?section=akun">Ganti sandi</a>
 <form method="post" action="/keluar"><button type="submit">Keluar</button></form></div></details></header>
 {kepala}
-<main id="konten-admin" aria-labelledby="judul-admin">{isi}</main>
+<main id="konten-admin" tabindex="-1" aria-labelledby="judul-admin">{isi}</main>
 <footer class="admin-footer">Tampilan privat · Data operasional, bukan penilaian kemampuan anak.</footer>
 </section></div></div>{'<script>' + skrip_sandi + '</script>' if skrip_sandi else ''}</body></html>"""
     return dokumen.encode("utf-8")
@@ -539,7 +539,7 @@ def form_hapus_siswa(csrf, token):
     return (
         '<section class="admin-kartu"><h2>Hapus profil siswa kosong</h2>'
         '<p>Hanya profil tanpa riwayat atau referensi terlindungi yang boleh dihapus. Pemeriksaan diulang saat konfirmasi.</p>'
-        '<form method="post" action="/admin/siswa"><input type="hidden" name="aksi" value="student_delete">'
+        '<form method="post" action="/admin/siswa" data-konfirmasi="Hapus login dan profil siswa kosong ini? Tindakan tidak dapat dibatalkan."><input type="hidden" name="aksi" value="student_delete">'
         '<input type="hidden" name="csrf" value="%s"><input type="hidden" name="tinjauan" value="%s">'
         '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
         '<label><input type="checkbox" name="konfirmasi" value="1" required> Saya memahami login dan profil siswa kosong dihapus; tindakan ini tidak dapat dibatalkan.</label>'
@@ -595,7 +595,7 @@ def render_bulk_awal(csrf: str, token: str) -> str:
         '<p><a class="admin-tautan" href="/admin/bulk/pilih?peran=guru">Kelola akun orang tua terpilih</a></p>'
         '<details class="admin-kartu"><summary>Buat akun orang tua massal</summary>'
         '<p class="admin-meta">CSV UTF-8 satu kolom <code>pengguna</code>; maksimal 100 akun dan 64 KiB. Tahap ini hanya meninjau alias, bukan membuat akun.</p>'
-        '<p><a href="/admin/bulk/templat">Unduh templat CSV kosong</a></p>'
+        '<p><a class="admin-tautan" href="/admin/bulk/templat">Unduh templat CSV kosong</a></p>'
         '<form method="post" action="/admin/bulk/impor" enctype="multipart/form-data">'
         '<input type="hidden" name="aksi" value="bulk_teacher_create">'
         '<input type="hidden" name="csrf" value="%s">'
@@ -653,7 +653,7 @@ def render_bulk_batch(batch, hasil, csrf, tokens, aliases):
         'atau Basic dengan sandi yang masih sah. Data siswa dan riwayat tetap ada.</p>'
         '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Hasil operasi akun"><table class="admin-tabel"><thead><tr><th scope="col">Akun</th><th scope="col">Hasil</th><th scope="col">Akses</th></tr></thead>'
         '<tbody>%s</tbody></table></div>'
-        '<p><a href="/admin/bulk/hasil?id=%s">Lihat status tanpa sandi</a></p>'
+        '<p><a class="admin-tautan" href="/admin/bulk/hasil?id=%s">Lihat status tanpa sandi</a></p>'
         % (_e(aksi), len(batch.item), _e(label.get(batch.status, batch.status)), _e(ringkas), ''.join(baris), _e(batch.batch_id)))
     def form(jalur, token, teks, dampak, tambahan=''):
         return ('<form method="post" action="/admin/bulk/%s">'

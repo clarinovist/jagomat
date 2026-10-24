@@ -92,7 +92,7 @@ def test_frame_enam_menu_privasi_dan_fallback_section():
 
     assert html.startswith("<!DOCTYPE html>")
     assert '<html lang="id">' in html
-    assert '<main id="konten-admin" aria-labelledby="judul-admin">' in html
+    assert '<main id="konten-admin" tabindex="-1" aria-labelledby="judul-admin">' in html
     assert '<aside class="admin-sidebar">' in html
     assert '<details class="admin-nav-mobile">' in html
     assert '<strong>Ringkasan</strong>' in html

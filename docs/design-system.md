@@ -7,6 +7,11 @@ Mockup lama di arsip lokal `../../osn-resources/referensi/desain-ui/`, sedangkan
 
 ## Kontrak visual saat ini — 25 Oktober 2026
 
+- Audit admin25Oktober menyelaraskan target sentuh44px, fokus keyboard, state
+  disabled/read-only, zona destruktif, menu seluler dan cetak. Border kontrol terang
+  `ADMIN_BORDER_KUAT_CERAH` #7C8B88 memenuhi ≥3:1 terhadap permukaan/latar; border
+  kartu tidak berubah. Checkbox biasa netral, bukan peringatan amber. [Cakupan dan
+  bukti audit admin](admin-ui-audit.md); bukan sertifikasi aksesibilitas semua perangkat.
 - Guru/profil memakai cream/teal sesuai komponen aktif; admin mempunyai token
   `ADMIN_*`, font sistem dan tema Sistem/Terang/Gelap tersendiri. Bukan satu
   latar/font identik di semua permukaan. Akun memakai font sistem; beranda guru

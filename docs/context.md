@@ -42,7 +42,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   Daftar pengecualian/perilaku lengkap di [arsitektur](architecture-reference.md#konvensi-dan-keputusan-penting).
 - Token visual di `design_tokens.py`. Admin `ADMIN_*` terisolasi; empat tab profil
   dan laporan lama berbagi shell/lebar `ANAK_*`. CSS rincian legacy hanya dimuat
-  pada laporan, sebelum override profil; [audit UI](ui-consistency-audit.md).
+  pada laporan, sebelum override profil; [audit UI](ui-consistency-audit.md) dan
+  [audit admin](admin-ui-audit.md) (fokus, kontrol, state dan tema/cetak).
 - `teacher_home_priority.py` hanya memproyeksi reducer; `guru_beranda_pages.py` merender /guru
   (chip GET owner-scoped dengan filter instan berhash/fallback native) tanpa menulis DB atau membuat ranking
   kemampuan. Respons privat no-store/no-referrer.

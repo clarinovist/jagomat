@@ -55,8 +55,8 @@ def _render(penangan, principal, *, peran, pilihan, cari='', halaman=1):
         '<button name="mode" value="cari" class="admin-tombol">Cari</button></form>'
         '<form method="post" action="/admin/bulk/pilih">%s%s%s%s'
         '<fieldset><legend>Halaman %d dari %d</legend>%s</fieldset>'
-        '<button name="mode" value="tambah" class="admin-tombol">Tambahkan yang dicentang</button>'
-        '<button name="mode" value="halaman" class="admin-tombol">Tambahkan halaman ini ke pilihan</button>'
+        '<div class="admin-aksi-baca"><button name="mode" value="tambah" class="admin-tombol">Tambahkan yang dicentang</button>'
+        '<button name="mode" value="halaman" class="admin-tombol admin-tombol-sekunder">Tambahkan halaman ini ke pilihan</button></div>'
         '</form>'
         % ('orang tua' if peran == 'guru' else 'murid', dasar, _hidden('halaman', 1), _e(cari),
            dasar, _hidden('halaman_token', token_halaman), _hidden('halaman', halaman), _hidden('cari', cari),
@@ -64,12 +64,12 @@ def _render(penangan, principal, *, peran, pilihan, cari='', halaman=1):
     )
     for tujuan, label in ((halaman - 1, 'Sebelumnya'), (halaman + 1, 'Berikutnya')):
         if 1 <= tujuan <= jumlah_halaman:
-            isi += '<form method="post" action="/admin/bulk/pilih">%s%s%s<button name="mode" value="cari">%s</button></form>' % (
+            isi += '<form method="post" action="/admin/bulk/pilih">%s%s%s<button name="mode" value="cari" class="admin-tautan">%s</button></form>' % (
                 dasar, _hidden('halaman', tujuan), _hidden('cari', cari), label)
     isi += ('</section><section class="admin-kartu"><h2>Pilihan: %d akun</h2>'
         '<form method="post" action="/admin/bulk/pilih">%s%s'
-        '<button name="mode" value="hapus">Hapus yang dicentang dari pilihan</button>'
-        '<button name="mode" value="kosongkan">Kosongkan pilihan</button></form>'
+        '<div class="admin-aksi-baca"><button name="mode" value="hapus" class="admin-tautan">Hapus yang dicentang dari pilihan</button>'
+        '<button name="mode" value="kosongkan" class="admin-tautan">Kosongkan pilihan</button></div></form>'
         '<form method="post" action="/admin/bulk/pilih">%s'
         '<label>Aksi<select name="aksi"><option value="account_password_reset">Setel ulang sandi unik</option>'
         '<option value="account_session_revoke">Keluarkan semua perangkat</option></select></label>'
