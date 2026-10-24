@@ -103,6 +103,38 @@ Mutation menghapus guard hash/linkage/schema/writer/traversal untuk membuktikan
 kegagalan ditangkap; data sintetis saja. Status live/hasil satu eksekusi dicatat
 terpisah di plan/runbook, bukan disimpulkan dari keberadaan skrip.
 
+## Eksekusi terverifikasi25 Oktober2026
+
+Tool host **5c2e07b** dipasang privat pada `/opt/osn/backup-tool`, SHA256 script
+`2975238e56058c96d9ca3587a9c268abf926d5bea94cc4c96cb63b9eefe8b5bc`.
+CI dispatch [40141156791](https://github.com/clarinovist/jagomat/actions/runs/40141156791)
+lulus14.332 tes kandidat exact-once, recovery/build/pair; push40141156237 sukses.
+Lokal69 tes terarah termasuk6mutation lulus; reviewer source OK with notes.
+Image aplikasi **tetap ab3234d**, tidak diganti oleh pemasangan tool backup.
+
+Capture pertama pada a5bae28 ditolak karena sidecar WAL salinan. Akses langsung
+dipulihkan; bukan backup sukses. Akar masalah direproduksi sintetis, diperbaiki pada
+salinan saja, kemudian CI baru lulus sebelum retry. Validator inventaris tidak
+dilonggarkan. Partial gagal disimpan privat untuk diagnosis, bukan restore target.
+
+Capture `manual-20261025-02` berhasil setelah preflight/maintenance/drain existing;
+core5file, riset terpisah, lampiran0file pada state saat itu. Dukungan foto `.img`
+dibuktikan fixture writer kanonis, bukan diasumsikan dari direktori produksi kosong.
+Akses publik dipulihkan sebelum transfer/rehearsal. Paket ditarik ke Mac dan
+hash/schema/linkage/ID tervalidasi di
+`mesin/cadangan/operasional/manual-20261025-02/` (privat, ignored).
+
+Rehearsal startup idempoten pada turunan dengan image exact ab3234d/digest69d900d0…,
+networknone, preserve core dan riset lulus; bundle asli tidak berubah. Turunan
+rehearsal dibersihkan. Tidak ada restore live. Validator menandai
+`needs_reconciliation=true`: bila restore kelak, state layanan/billing perlu
+rekonsiliasi sesuai runbook, bukan langsung membuka transaksi.
+
+Final read-only: image tetap healthy, hash10tabel histori identik, Caddy/cron/config
+kembali identik, smoke publik `/`200 `/akun`401 `/murid/`303. Backup pengaman/partial
+privat dipertahankan; tidak ada cron baru, prune, perubahan retensi atau provider.
+Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
+
 ## Yang tetap terbuka
 
 1. Frekuensi/jam backup dan toleransi downtime berulang belum diputuskan.
