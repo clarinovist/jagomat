@@ -6,6 +6,48 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy state UI lanjutan — 25 Oktober 2026
+
+Controlled `deploy-v2` memasang **ab3234d02db81aadc44b1092dad3ed375c63a789**;
+container started `2026-10-24T22:37:24Z` (25Oktober05.37WIB), healthy, restart0.
+Isi: perbaikan detail Pengelola, filter pencarian privat, recovery refleksi/upload,
+feedback foto terlihat, peringatan retry AI, region tabel tambahan dan kontras.
+[Cakupan/batas](ui-consistency-audit.md#putaran-tambahan--25-oktober-2026).
+Tidak ada schema, konfigurasi, aktivasi fitur/penilaian atau perubahan reducer.
+
+- Kandidat digest `sha256:69d900d0a0347a7effa8e7027308b227ba7c0cbec0d39180e68066bf9bdbfa19`.
+- Recovery `edd323c4822347f6d584bb0f311e76cac4962e40`, digest
+  `sha256:467df9c22728f673de444ad7d091693af837b846f57aeff040bc3039c61d6eef`.
+- Dispatch [40138480199](https://github.com/clarinovist/jagomat/actions/runs/40138480199)
+  sukses:14.285 tes kandidat exact-once, empat shard recovery, build/probe/pair.
+  Auto-pasang tetap skipped/literal false.
+- Push40138479698 menemukan flake existing `test_lampiran_asing_404_identik_tanpa_efek_samping`:
+  hanya header Date berbeda satu detik, body/status/header lain sama. Test yang sama
+  lulus pada full dispatch exact. Commit test-only86409de mengunci perbedaan waktu
+  secara deterministik dan tetap membandingkan body/status/semua header selain Date;
+  tidak mengubah aplikasi yang sudah dirilis.
+- Kontrak dan deployer hash tetap sama dengan rilis sebelumnya, katalog aktif hash6522bc48
+  identik dengan persetujuan; revisi penilaian/katalog lanjutan tetap nonaktif.
+
+Lokal297 tes terkait lulus (7,05s), compile14, palang950,9 regression merah pada snapshot
+HEAD lama lalu hijau. Tambahan50 tes foto/state UI lulus setelah stabilisasi tes Date.
+Scout+reviewer read-only: OK with notes. Snapshot21state×4viewport320–1280px tanpa
+page overflow; HTTP browser membuktikan detail Pengelola tanpa aksi mutasi admin,
+filter tetap POST/nama tidak di URL, feedback foto langsung terlihat dan retry
+memerlukan konfirmasi native tanpa menyimpan jawaban. Tidak ada provider/data anak
+nyata untuk pengujian.
+
+Current223eb35 healthy → pull exact → schema preflight live read-only sebelum hold →
+backup coherent4DB+auth,riset terpisah → rehearsal C2–B2–C2/validator/hash lokal →
+approval sekali pakai → swap exit0 → reopen. Hash10 tabel histori dan konfigurasi
+terjaga; Caddy/dua cron dipulihkan identik. Probe murni dalam memori membuktikan patch
+UI pada container; marker Traceback/OperationalError/IntegrityError0. Smoke publik
+jagomat.id `/`200, `/akun`401, `/murid/`303 ke `/masuk`.
+
+Empat turunan rehearsal dibersihkan; backup/receipt privat ID `deploy-ui-states-20261025`
+dipertahankan, bukti ignored `docs/plan/deploy-ui-states-20261025/`. WIP backup operasional
+sesi lain tidak masuk commit/image UI ini. Safari/perangkat fisik tetap belum diuji.
+
 ## Deploy audit konsistensi UI lintas halaman — 24 Oktober 2026
 
 Controlled `deploy-v2` memasang **223eb358aeeff7989c2d7b1a6d9d2e373060b5dc**;
