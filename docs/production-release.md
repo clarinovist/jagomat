@@ -6,6 +6,47 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy audit konsistensi UI lintas halaman — 24 Oktober 2026
+
+Controlled `deploy-v2` memasang **223eb358aeeff7989c2d7b1a6d9d2e373060b5dc**;
+container started `2026-10-24T14:51:16Z` (21.51 WIB), healthy, restart0. Patch
+aplikasi86e4bae mencakup16 kelompok perbaikan presentasi, diikuti dua commit
+penyesuaian tes markup lama tanpa perubahan aplikasi. [Audit/cakupan UI](ui-consistency-audit.md).
+Tidak ada schema, konfigurasi, aktivasi paket/penilaian, atau perubahan data belajar.
+
+- Kandidat digest `sha256:349962c591227ffcfe102daa01c8adecc7bf15c8f5e2db8207b28fdf4064e68d`.
+- Recovery `edd323c4822347f6d584bb0f311e76cac4962e40`, digest
+  `sha256:5921919695ee2a64e3c4a61dfef188c1cf8bac5061162c14ce4a9acef9967751`.
+- Dispatch [40103390129](https://github.com/clarinovist/jagomat/actions/runs/40103390129)
+  sukses:14.267 tes kandidat exact-once, empat shard recovery, build/probe/pair.
+  Push40103349416 sukses. Auto-pasang tetap skipped/literal false.
+- Run awal40102690595 gagal pada dua assertion markup lama (summary beratribut dan
+  shell laporan); diperbaiki tanpa meniadakan pemeriksaan nama/akses/lebar. Run antara
+  b579788 dibatalkan karena sudah digantikan223eb35; bukan bukti rilis.
+- Kontrak kedua image tetap `7a924b190298c326efcedc6f8a1eb0c7bd57579c346b691440984dee069bdae8`;
+  hash deployer host tetap `2479470f927627ab00d7af26876d6525bef897e52cff77c413ac5656b168c810`.
+  Hash katalog6522bc48 identik dengan persetujuan sebelumnya; revisi penilaian dan
+  katalog lanjutan tetap nonaktif,15 playbook tetap draf.
+
+Lokal:362 tes terkait lulus (7,38s), tambahan65 tes navigasi/laporan/regresi lulus
+setelah koreksi assertion CI, compile24 berkas, palang949 berkas.14 regression
+merah pada salinan HEAD sebelum fix, hijau setelah fix. Dua scout read-only dan
+reviewer menutup temuan CSS rincian, import font, dan cascade print; verdict OK.
+Browser sintetis320–1280px, interaksi keyboard/pointer, fallback tanpa JS, tema admin,
+CSSOM print/font dan pembesaran relatif200% diperiksa; batas perangkat di dokumen audit.
+
+Produksi awal c335ce5 healthy. Pull kedua digest → preflight schema live read-only
+sebelum hold → backup coherent empat DB+auth dan riset terpisah → rehearsal C2–B2–C2
+serta validator → transfer backup/hash lokal → approval sekali pakai → swap exit0 →
+reopen. Hash10 tabel histori terjaga; Caddy, dua cron dan konfigurasi dipulihkan identik.
+Smoke loopback/publik jagomat.id `/`200, `/akun`401, `/murid/`303 ke `/masuk`.
+Marker Traceback/OperationalError/IntegrityError nol. Probe UI murni dalam memori pada
+container membuktikan patch tersedia; tidak menggunakan akun/hasil anak untuk smoke.
+
+Empat turunan rehearsal dibersihkan, probe container0. Backup induk/receipt privat
+ID `deploy-ui-consistency-20261024` dipertahankan. Bukti rilis ignored di
+`docs/plan/deploy-ui-consistency-20261024/`; bukti UI sintetis dipertahankan terpisah.
+
 ## Deploy fondasi katalog lanjutan nonaktif — 24 Oktober 2026
 
 Controlled `deploy-v2` memasang **c335ce5c4ffc2297321badf0218ec5e3a8a2cd70**;
