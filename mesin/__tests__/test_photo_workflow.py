@@ -234,9 +234,17 @@ def test_lampiran_asing_404_identik_tanpa_efek_samping(tmp_path, monkeypatch):
         assert server.minta(f'/sesi/{sesi}/lampiran', auth=('guru', SANDI_GURU))[0] == 200
         with server.buka() as kon:
             sebelum = tuple(kon.iterdump())
+        # Waktu respons bukan identitas resource; paksa pergantian detik agar
+        # tes tidak kebetulan lulus hanya karena kedua request sangat cepat.
+        tanggal = iter(('Sat, 24 Oct 2026 22:31:25 GMT', 'Sat, 24 Oct 2026 22:31:26 GMT'))
+        monkeypatch.setattr(server.server.RequestHandlerClass, 'date_time_string', lambda self, timestamp=None: next(tanggal))
         respon = [server.minta(f'/sesi/{sid}/lampiran', auth=('guru', SANDI_GURU))
                   for sid in (sesi_asing, 999999)]
-        assert respon[0] == respon[1]
+        assert respon[0][2]['Date'] != respon[1][2]['Date']
+        assert respon[0][:2] == respon[1][:2]
+        assert {k: v for k, v in respon[0][2].items() if k.lower() != 'date'} == {
+            k: v for k, v in respon[1][2].items() if k.lower() != 'date'
+        }
         assert respon[0][0] == 404
         with server.buka() as kon:
             assert tuple(kon.iterdump()) == sebelum
