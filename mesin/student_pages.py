@@ -264,7 +264,7 @@ def halaman_daftar_sesi_baru(kon, siswa_id: int, nama: str, sesi_selesai: int | 
 def halaman_kerja_baru(
     kon, siswa_id: int, sesi_id: int, tersimpan: int = 0,
     topik_paket: Topik | None = None, kabar_foto: str = "",
-    jalur_aksi: str | None = None, akses_tautan: bool = False,
+    jalur_aksi: str | None = None, akses_tautan: bool = False, foto_galat: bool = False,
 ) -> bytes | None:
     """Versi Stitch dari halaman kerja murid (S4).
 
@@ -603,7 +603,8 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
         kabar_foto_html = ""
         if kabar_foto:
             kabar_foto_html = (
-                f'<p class="kerja-foto-kabar-st" role="status">{_escape(kabar_foto)}</p>'
+                f'<p id="kabar-foto" tabindex="-1" class="kerja-foto-kabar-st{" galat" if foto_galat else ""}" '
+                f'role="{"alert" if foto_galat else "status"}">{_escape(kabar_foto)}</p>'
             )
         if n_foto:
             daftar_foto = (
@@ -611,7 +612,7 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
                 "Boleh kirim lagi kalau ada lembar lain.</p>"
             )
         blok_foto = f"""
-<div class="kerja-foto-st hanya-layar">
+<div id="foto-cara-anak" class="kerja-foto-st hanya-layar">
   <div class="kerja-foto-kepala-st">
     <span class="material-symbols-outlined">photo_camera</span>
     <b>Kerjakan di kertas? Kirim fotonya</b>

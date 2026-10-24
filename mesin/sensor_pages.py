@@ -23,8 +23,8 @@ def kesehatan(status):
 
 def dashboard(r):
     """Rincian hanya dari DTO tersupresi; tidak menghitung balik sel kecil."""
-    def tabel(rows, unit):
-        return ('<div class="admin-tabel-wrap"><table class="admin-tabel sensor-tabel"><thead><tr><th scope="col">Sinyal</th><th scope="col">'
+    def tabel(rows, unit, label):
+        return ('<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="'+html.escape(label)+'"><table class="admin-tabel sensor-tabel"><thead><tr><th scope="col">Sinyal</th><th scope="col">'
                 +html.escape(unit)+'</th></tr></thead><tbody>'+''.join(
                     '<tr><td>'+html.escape(label)+'</td><td>'+(str(n) if n is not None else 'Ditahan (&lt;5 keluarga)')+'</td></tr>'
                     for label,n in rows)+'</tbody></table></div>')
@@ -33,24 +33,24 @@ def dashboard(r):
         isi+=('<section class="admin-kartu"><h2>Siklus teramati setelah opt-in</h2>'
               '<p>Episode terpandu 30 hari terakhir, tanpa penanda cetak. Satu milestone per sesi; '
               'baris bukan langkah wajib berurutan. Manual/pilot/CLI di luar cakupan funnel ini.</p>'
-              +tabel(r['tahap'],'Episode')+'</section>')
+              +tabel(r['tahap'],'Episode','Siklus teramati')+'</section>')
     if r['hambatan']:
         isi+=('<section class="admin-kartu"><h2>Petunjuk hambatan, bukan vonis</h2>'
-              +tabel(r['hambatan'],'Episode')+
+              +tabel(r['hambatan'],'Episode','Petunjuk hambatan')+
               '<p>Waktu tunggu bukan waktu kerja orang tua. Periksa kejelasan akses dan beban tinjauan; '
               'jangan menyimpulkan anak kesulitan dari ketidakaktifan. Ketiadaan event bisa akibat jeda atau pencatatan terlewat.</p></section>')
     if r['hasil']:
         isi+=('<section class="admin-kartu"><h2>Potret konfirmasi pertama</h2>'
               '<p>Semua episode berizin hasil, termasuk manual. Hitungan butir historis; '
               'bukan nilai aktif, efektivitas intervensi, atau penguasaan. Koreksi berikutnya tidak dihitung ulang.</p>'
-              +tabel(r['hasil'],'Butir')+'</section>')
+              +tabel(r['hasil'],'Butir','Potret konfirmasi pertama')+'</section>')
     if r['chat']:
         labels={'penjelasan':'Penjelasan konsep','latihan':'Permintaan latihan','hasil':'Hasil/perkembangan',
                 'penggunaan':'Penggunaan aplikasi','belum_diketahui':'Belum diketahui/ambigu'}
         isi+=('<section class="admin-kartu"><h2>Topik bantuan yang teramati</h2>'
               '<p>Pesan baru berizin yang berhasil tersimpan. Aturan kata lokal adalah proksi dan dapat keliru; '
               'bukan kepuasan atau profil anak.</p>'
-              +tabel(tuple((labels[k],n) for k,n in r['chat']),'Pesan')+'</section>')
+              +tabel(tuple((labels[k],n) for k,n in r['chat']),'Pesan','Topik bantuan teramati')+'</section>')
     isi+=('<p class="admin-meta">Tidak ada drill-down keluarga/anak. Setiap sel perlu sedikitnya 5 keluarga berbeda. '
           'Sel ditahan tidak boleh dibaca sebagai nol. Sumber yang dihapus dibersihkan melalui hook dan janitor; '
           'ada jeda rekonsiliasi. Perubahan produk tetap perlu pembanding dan pemeriksaan hasil belajar.</p>')

@@ -258,7 +258,8 @@ def _unggah(penangan, sesi_id: int) -> None:
         penangan._kirim(
             _halaman(
                 "Upload ditolak",
-                f"<h1>Upload ditolak</h1><p>{html.escape(pesan)}</p>",
+                f"<h1>Upload ditolak</h1><p>{html.escape(pesan)}</p>"
+                f'<p><a href="/sesi/{sesi_id}/lampiran">Pilih foto lain</a></p>',
             ),
             400,
         )

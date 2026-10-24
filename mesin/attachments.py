@@ -896,8 +896,13 @@ def halaman_konfirmasi(
     blok_baca_ulang = (
         f'<form method="post" action="/lampiran/{lampiran_id}/baca-ulang" '
         'class="baca-ulang-form">'
-        + field_operasi_foto() + '<button type="submit" class="tombol-baca-ulang">'
-        "Coba baca ulang dengan AI</button>"
+        + field_operasi_foto()
+        + '<p class="foto-peringatan-ulang" id="peringatan-baca-ulang">Baca ulang mengganti isian pada halaman ini. '
+        'Koreksi yang belum diterapkan akan hilang, termasuk jika pembacaan gagal. '
+        'Selesaikan dan terapkan koreksi terlebih dahulu bila ingin menyimpannya.</p>'
+        '<label class="centang"><input type="checkbox" required aria-describedby="peringatan-baca-ulang">'
+        '<span>Saya siap mengganti isian yang belum diterapkan.</span></label>'
+        '<button type="submit" class="tombol-baca-ulang">Coba baca ulang dengan AI</button>'
         '<span class="sub">Foto tidak perlu diunggah ulang.</span>'
         "</form>"
     )
@@ -1025,6 +1030,11 @@ button {{
   margin: 0 0 {T.SP_4};
 }}
 .baca-ulang-form .sub {{ color: {T.TEKS_SUBTLE}; font-size: .84rem; }}
+.baca-ulang-form .foto-peringatan-ulang {{
+  flex-basis: 100%; margin: 0; padding: {T.SP_3}; border: 1px solid {T.BORDER_CATATAN};
+  border-radius: {T.RADIUS_KECIL}; background: {T.LATAR_CATATAN}; color: {T.TEKS_VARIAN};
+}}
+.baca-ulang-form .centang {{ flex-basis: 100%; }}
 button.tombol-baca-ulang {{
   width: auto; min-height: {T.TARGET_SENTUH}; padding: .6rem {T.SP_4};
   background: {T.LATAR_KARTU_MURID}; color: {T.AKSEN_TEAL_TUA};

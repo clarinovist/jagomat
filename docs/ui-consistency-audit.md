@@ -74,10 +74,47 @@ Aturan print tersekop menyembunyikan topbar/tab/kembali; override layar tetap ut
   dari3; sinyal tab utuh0,53→0,97. Hanya tiga screenshot sintetis tiap evaluasi,
   satu evaluasi ulang. Ini sinyal probabilistik terbatas, **bukan ukuran mutu seluruh UI**.
 
-Bukti lokal sementara di `docs/plan/ui-audit-20261024/` (ignored); tidak berisi data
-pengguna nyata. Audit tidak mengubah auth/ownership, schema, reducer, penilaian,
+Bukti24Oktober diarsipkan hash-identik ke
+`../osn-resources/referensi/ui-consistency-20261024/` (lokal, di luar Git); tidak berisi
+data pengguna nyata. Audit tidak mengubah auth/ownership, schema, reducer, penilaian,
 aktivasi paket atau izin data. [Spec](spec.md) tidak berubah cakupan; [context](context.md)
 dan [design system](design-system.md) diperbarui untuk komposisi shell.
+
+## Putaran tambahan — 25 Oktober 2026
+
+Audit state langka menemukan dan memperbaiki hal yang tidak terjangkau putaran
+pertama, bukan mengulang temuan lama:
+
+- Detail keluarga kategori Pengelola/pemilik tanpa akun gagal karena concatenation
+  `None`. Kini tetap dapat dibaca tanpa memberi kontrol mutasi akun pengelola.
+- Pencarian privat menghilangkan chip GET sehingga status sulit dilepas. Filter
+  aktif kini tersedia di select terkait form POST yang sama; nama pencarian tetap
+  tidak dimasukkan ke URL dan tidak ada field status ganda.
+- Konflik revisi refleksi akun murid/tautan aktif mempunyai GET pemulihan untuk
+  mengambil form baru; token dicabut tetap404 tanpa tautan. Upload guru ditolak
+  juga mempunyai tautan kembali setelah otorisasi.
+- Feedback foto murid memakai target fragment stabil; penolakan dibedakan dengan
+  `role=alert` dan warna galat, bukan keberhasilan hijau. Flag hanya presentasi,
+  bukan bukti penyimpanan atau hak akses.
+- Baca ulang foto AI memperingatkan bahwa koreksi belum diterapkan akan hilang,
+  termasuk jika pembacaan gagal. Checkbox native wajib tidak punya `name`, sehingga
+  tidak mengubah payload allowlist; form retry tetap terpisah dari Terapkan.
+  Ini peringatan sebelum tindakan, **bukan autosave atau preservasi draf**.
+- Region scroll bernama dilengkapi pada detail keluarga/siswa, hasil/audit batch,
+  matriks wawancara, tabel layanan/KPI dan sensor. Tautan kembali detail memakai
+  target44px. Picker guru mencakup WebP yang sudah didukung backend.
+- Tautan pencabutan izin pada kartu Pendamping mendapat latar putih agar pasangan
+  teal/permukaan tidak jatuh di bawah4,5:1; bukan perubahan izin.
+
+Bukti: snapshot21 state ×320/360/768/1280, termasuk refleksi, foto manual/AI,
+nama tanpa spasi panjang, disclosure terbuka, chat panjang, panel aktif/pending/
+provider mati dan filter admin. Tidak ditemukan page overflow pada sampel tersebut.
+HTTP browser membuktikan detail Pengelola, pelepasan filter POST, keyboard scroll,
+feedback foto terlihat setelah redirect, serta konfirmasi retry native. Tidak ada
+provider/unggah data anak nyata.9 regresi merah pada snapshot HEAD lama, lalu hijau;
+reviewer read-only menyatakan OK dengan catatan gate test tetap milik parent.
+Cakupan/kontrak produk [spec](spec.md) dan arsitektur ringkas [context](context.md)
+tetap berlaku; detail perilaku foto ditambahkan ke [arsitektur](architecture-reference.md).
 
 ## Batas yang tetap terbuka
 

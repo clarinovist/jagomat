@@ -26,8 +26,8 @@ def info(label,isi):
     return '<details class="admin-info"><summary aria-label="Info %s">ⓘ</summary><p>%s</p></details>'%(e(label),e(isi))
 
 
-def tabel(kepala,baris):
-    return '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr>'+''.join('<th scope="col">'+e(x)+'</th>' for x in kepala)+'</tr></thead><tbody>'+(''.join(baris) or '<tr><td colspan="%d" class="admin-kosong">Belum ada catatan untuk tampilan ini. Data muncul setelah aktivitas terkait tercatat.</td></tr>'%len(kepala))+'</tbody></table></div>'
+def tabel(kepala,baris, *, label='Rincian layanan'):
+    return '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="'+e(label)+'"><table class="admin-tabel"><thead><tr>'+''.join('<th scope="col">'+e(x)+'</th>' for x in kepala)+'</tr></thead><tbody>'+(''.join(baris) or '<tr><td colspan="%d" class="admin-kosong">Belum ada catatan untuk tampilan ini. Data muncul setelah aktivitas terkait tercatat.</td></tr>'%len(kepala))+'</tbody></table></div>'
 
 
 def formulir(aksi,csrf,token,isi,tombol,hidden=(),konfirmasi=None):
@@ -71,7 +71,7 @@ def daftar_langganan(rows,total,*,halaman,cari,csrf,kandidat=(),forms=None):
     if cari and kandidat:
         baris_k=''.join('<tr><td>%s</td><td>%s</td></tr>'%(e(k['alias']),(forms or {}).get(k['akun_id'],'Tidak ada tindakan')) for k in kandidat)
         kartu_kandidat=('<section class="admin-kartu"><h2>Belum terdaftar di langganan · %d</h2>'%len(kandidat)
-                        +tabel(('Keluarga','Tindakan'),baris_k)
+                        +tabel(('Keluarga','Tindakan'),baris_k,label='Keluarga calon transisi')
                         +'<p class="admin-meta">Jalur transisi untuk akun lama sebelum sinkron registrasi publik. Satu aksi melengkapi enrollment dan paket v2 akun; tidak membuat pembayaran dan tidak mengaktifkan paywall.</p></section>')
     kepala=tuple('<th scope="col">%s</th>'%x for x in ('Keluarga','Mulai','Peserta promo','Sumber'))
     stat='<section class="admin-grid-stat" aria-label="Ringkasan langganan"><div class="admin-stat"><h2>Keluarga tercatat</h2><div><strong>%d</strong></div></div></section>'%total
@@ -92,7 +92,7 @@ def detail_langganan(r,forms):
     for i in r['invoices']:
         g=i['grant']
         baris.append('<tr><td>%s<br><small>Periode %d</small></td><td>%s<br>%d profil</td><td>%s</td><td>%s</td><td>%s</td></tr>'%(L.referensi(i['invoice_id']),i['urutan'],rupiah(i['rupiah']),i['jumlah_profil'],e(STATUS.get(i['status'],i['status'])),tanggal(g.periode.akhir) if g else 'Belum ada grant',forms.get(i['invoice_id'],'Tidak ada tindakan provider')))
-    return isi+'<section class="admin-kartu"><h2>Invoice dan hak akses</h2>'+tabel(('Referensi','Nominal','Pembayaran','Akhir grant','Tindakan'),baris)+'</section><p class="admin-meta">Pembayaran tercatat tidak selalu berarti akses aktif sekarang. Refund, pembayaran lebih, dan kasus terlambat tetap perlu keputusan; tidak ada tombol paksa lunas.</p>'
+    return isi+'<section class="admin-kartu"><h2>Invoice dan hak akses</h2>'+tabel(('Referensi','Nominal','Pembayaran','Akhir grant','Tindakan'),baris,label='Invoice dan hak akses')+'</section><p class="admin-meta">Pembayaran tercatat tidak selalu berarti akses aktif sekarang. Refund, pembayaran lebih, dan kasus terlambat tetap perlu keputusan; tidak ada tombol paksa lunas.</p>'
 
 
 def antrean(rows,total,halaman=1):
@@ -105,7 +105,7 @@ def antrean(rows,total,halaman=1):
         pager += '<a href="/admin?section=perhatian&amp;halaman=%d">Sebelumnya</a> ' % (halaman-1)
     if halaman*25 < total:
         pager += '<a href="/admin?section=perhatian&amp;halaman=%d">Berikutnya</a>' % (halaman+1)
-    return '<section class="admin-kartu"><h2>Perlu ditangani · %d</h2>'%total+tabel(('Sumber','Referensi','Status','Sejak','Lanjut'),baris)+pager+'</section><p class="admin-meta">Status belum pasti bukan gagal aman. Periksa hasil operasinya; jangan mengulang atau memaksa status lunas. Jangan membuat pembayaran atau kelompok pengganti.</p>'
+    return '<section class="admin-kartu"><h2>Perlu ditangani · %d</h2>'%total+tabel(('Sumber','Referensi','Status','Sejak','Lanjut'),baris,label='Antrean layanan')+pager+'</section><p class="admin-meta">Status belum pasti bukan gagal aman. Periksa hasil operasinya; jangan mengulang atau memaksa status lunas. Jangan membuat pembayaran atau kelompok pengganti.</p>'
 
 
 def formulir_dukungan(csrf, token, config):

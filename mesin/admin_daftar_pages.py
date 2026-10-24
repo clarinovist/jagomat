@@ -48,7 +48,7 @@ def chip_daftar(section, data, daftar_chip) -> str:
     chip aktif yang menampilkan total.
     """
     if data.cari:
-        return '<p class="admin-meta">%d hasil pencarian. Gunakan filter lanjutan untuk mempertahankan pencarian privat.</p>' % data.total
+        return '<p class="admin-meta">%d hasil pencarian. Filter aktif dapat diubah atau dilepas di Filter lanjutan tanpa menghapus pencarian privat.</p>' % data.total
     dasar = {"section": section}
     for nama in ("memiliki_anak", "status", "tingkat", "keluarga_id"):
         if hasattr(data, nama):
@@ -165,8 +165,18 @@ def render_keluarga(
             "".join(opsi(nilai, label, data.aktivitas) for nilai, label in OPSI_AKTIVITAS),
         )
     )
-    # Chip aktif tetap ikut submit pencarian karena selectnya sudah tidak ada.
-    tersembunyi = hidden_filter({"status": data.status, "memiliki_anak": data.memiliki_anak})
+    # Saat pencarian menyembunyikan chip GET, filter tetap terlihat dan dapat dilepas
+    # lewat form POST yang sama; nama pencarian tidak pernah dimasukkan ke URL.
+    if data.cari:
+        lanjutan += (
+            '<label>Kondisi<select name="status">%s</select></label>'
+            '<label>Memiliki siswa<select name="memiliki_anak">%s</select></label>'
+            % (''.join(opsi(v, label, data.status) for v, label in (
+                ('semua', 'Semua'), ('perlu_perhatian', 'Perlu perhatian'), ('normal', 'Normal'))),
+               ''.join(opsi(v, label, data.memiliki_anak) for v, label in (
+                ('semua', 'Semua'), ('ya', 'Memiliki siswa'), ('tidak', 'Belum memiliki siswa'))))
+        )
+    tersembunyi = '' if data.cari else hidden_filter({"status": data.status, "memiliki_anak": data.memiliki_anak})
     buat = (
         '<a class="admin-tombol" href="/admin/tinjau?aksi=account_teacher_create">Buat akun orang tua</a>'
         if tampilkan_aksi else ""
@@ -184,7 +194,7 @@ def render_keluarga(
     return (
         _bar_cari(
             "keluarga", csrf, data.cari, "Cari alias akun", lanjutan, buat,
-            tersembunyi=tersembunyi, terbuka=bool(_filter_aktif(data, ("kategori", "aktivitas"))),
+            tersembunyi=tersembunyi, terbuka=bool(data.cari or _filter_aktif(data, ("kategori", "aktivitas"))),
         )
         + ("" if csrf or not buat else '<p>%s</p>' % buat)
         + chip_daftar("keluarga", data, (
@@ -213,10 +223,17 @@ def render_siswa(
     )
     # Chip dan select memakai satu parameter ``status``: nilai dari chip harus
     # tetap terkirim agar Terapkan tidak menimpanya menjadi "Semua".
-    pilihan_pertama = (
-        opsi(data.status, "Sesuai chip di atas", data.status)
-        if data.status in STATUS_DARI_CHIP_SISWA else opsi("semua", "Semua", data.status)
-    )
+    if data.cari:
+        pilihan_pertama = ''.join(opsi(kode, label, data.status) for kode, label in (
+            ('semua', 'Semua'), ('perlu_perhatian', 'Perlu perhatian'),
+            ('normal', 'Normal'), ('student_without_login', 'Belum ada login tertaut'),
+            ('owner_without_account', 'Pemilik tanpa akun'),
+        ))
+    else:
+        pilihan_pertama = (
+            opsi(data.status, "Sesuai chip di atas", data.status)
+            if data.status in STATUS_DARI_CHIP_SISWA else opsi("semua", "Semua", data.status)
+        )
     lanjutan = (
         '<label>Profil parameter<select name="tingkat">%s%s</select></label>'
         '<label>Keluarga<select name="keluarga_id">%s</select></label>'
@@ -261,7 +278,7 @@ def render_siswa(
     )
     return (
         _bar_cari("siswa", csrf, data.cari, "Cari nama, login, atau keluarga", lanjutan, kelas=" admin-form-siswa",
-            terbuka=bool(data.tingkat or data.keluarga_id or data.status in KONDISI_LAINNYA_SISWA),
+            terbuka=bool(data.cari or data.tingkat or data.keluarga_id or data.status in KONDISI_LAINNYA_SISWA),
         )
         + chip_daftar("siswa", data, (
             ("Semua", {"status": "semua"}, "semua"),

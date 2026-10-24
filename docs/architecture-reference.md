@@ -188,7 +188,10 @@ cache dan cadangan tetap privat.
   atau kapabilitas tautan anak baru.
   `halaman_konfirmasi_guru` memilih mode lewat `ai_pembacaan_aktif()` (kunci vision);
   `halaman_konfirmasi(ai_aktif=False)` menyajikan isi-manual tanpa menyentuh jalur
-  tulis (`terapkan`), arsip `sumber='foto'`, atau schema.
+  tulis (`terapkan`), arsip `sumber='foto'`, atau schema. Retry baca AI menampilkan
+  peringatan kehilangan isian dan checkbox native tanpa nama; tidak menambah field
+  POST, menyimpan draf, atau menerapkan jawaban otomatis. Feedback upload anak
+  memakai fragment `#kabar-foto`; `foto_galat` hanya memilih tampilan alert.
 - `teaching_playbook.py` memvalidasi JSON internal `konten/playbook_p3.json`, tanpa
   I/O saat impor, DB, network, atau cache konten. Selector hanya guru, fokus/profil
   exact dan pendekatan existing; saksi seed memeriksa pasangan malrule/kode, bukan

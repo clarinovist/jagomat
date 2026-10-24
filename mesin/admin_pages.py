@@ -330,7 +330,7 @@ def render_detail_keluarga(
             % (target, target, target)
         )
     return (
-        '<p><a href="/admin?section=keluarga">← Kembali ke daftar keluarga</a></p>'
+        '<p><a class="admin-tautan" href="/admin?section=keluarga">← Kembali ke daftar keluarga</a></p>'
         '<section class="admin-kartu"><h2>Identitas keluarga</h2><dl class="admin-rincian">'
         '<dt>Alias akun</dt><dd>%s</dd><dt>ID generasi</dt><dd>%s</dd>'
         '<dt>Kategori</dt><dd>%s</dd><dt>Jumlah siswa</dt><dd>%d</dd>'
@@ -342,9 +342,9 @@ def render_detail_keluarga(
             keluarga.jumlah_sesi, _waktu(keluarga.aktivitas_terakhir),
             _badge_status(keluarga.status),
         )
-        + tindakan
+        + (tindakan or '')
         + '<section class="admin-kartu"><h2>Siswa dalam keluarga</h2>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel">'
+        '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Siswa dalam keluarga"><table class="admin-tabel">'
         '<thead><tr><th scope="col">Siswa</th><th scope="col">Kelas sekolah</th><th scope="col">Sesi</th><th scope="col">Kondisi</th></tr></thead>'
         '<tbody>%s</tbody></table></div>%s</section>'
         % (
@@ -385,7 +385,7 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
             % (siswa.id, login)
         )
     return (
-        '<p><a href="/admin?section=siswa">← Kembali ke daftar siswa</a></p>'
+        '<p><a class="admin-tautan" href="/admin?section=siswa">← Kembali ke daftar siswa</a></p>'
         '<section class="admin-kartu"><h2>Identitas siswa</h2><dl class="admin-rincian">'
         '<dt>Nama panggilan</dt><dd>%s</dd><dt>ID siswa</dt><dd>%d</dd>'
         '<dt>Kelas sekolah</dt><dd>%s</dd><dt>Konteks latihan</dt><dd>Profil %s</dd>'
@@ -405,7 +405,7 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
         '<p class="admin-meta">Kelas sekolah tidak menentukan kemampuan atau konteks soal lama. '
         'Data P3–P6 lama tidak dipakai untuk menebak kelas. '
         'Riwayat administratif saja; bukan status belajar atau kelulusan.</p>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel">'
+        '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Aktivitas sesi terbaru"><table class="admin-tabel">'
         '<thead><tr><th scope="col">Sesi</th><th scope="col">Profil parameter sesi</th><th scope="col">Waktu</th><th scope="col">Status</th></tr></thead>'
         '<tbody>%s</tbody></table></div></section>' % sesi
     )
@@ -413,7 +413,7 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
 
 def form_buat_keluarga(csrf: str, token: str) -> str:
     return (
-        '<p><a href="/admin?section=keluarga">← Kembali ke daftar keluarga</a></p>'
+        '<p><a class="admin-tautan" href="/admin?section=keluarga">← Kembali ke daftar keluarga</a></p>'
         '<section class="admin-kartu"><h2>Buat akun orang tua</h2>'
         '<p class="admin-meta">Alias baru tidak boleh mengambil alih keluarga lama.</p>'
         '<form method="post" action="/admin/akun">'
@@ -651,7 +651,7 @@ def render_bulk_batch(batch, hasil, csrf, tokens, aliases):
         'tidak disimpan untuk dibaca ulang. Kirim akses secara privat. Sukses bukan bukti akses telah diserahkan.</p>'
         '<p>Reset mencabut sesi lama. Cabut sesi hanya mengeluarkan cookie, bukan memblokir login baru '
         'atau Basic dengan sandi yang masih sah. Data siswa dan riwayat tetap ada.</p>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Akun</th><th scope="col">Hasil</th><th scope="col">Akses</th></tr></thead>'
+        '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Hasil operasi akun"><table class="admin-tabel"><thead><tr><th scope="col">Akun</th><th scope="col">Hasil</th><th scope="col">Akses</th></tr></thead>'
         '<tbody>%s</tbody></table></div>'
         '<p><a href="/admin/bulk/hasil?id=%s">Lihat status tanpa sandi</a></p>'
         % (_e(aksi), len(batch.item), _e(label.get(batch.status, batch.status)), _e(ringkas), ''.join(baris), _e(batch.batch_id)))
@@ -707,7 +707,7 @@ def render_audit_batch_detail(data):
     return (nav_riwayat("batch") + '<section class="admin-kartu"><h2>Metadata batch %s</h2>'
         '<p>Actor: %s · Aksi: %s · Status: %s · %d target.</p>'
         '<p>Tampilan audit hanya-baca; bukan akses untuk mengambil alih draft sesi lain.</p>'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel"><thead><tr><th scope="col">Item</th><th scope="col">Operasi</th>'
+        '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Metadata item batch"><table class="admin-tabel"><thead><tr><th scope="col">Item</th><th scope="col">Operasi</th>'
         '<th scope="col">Target/hasil</th><th scope="col">Status</th><th scope="col">Penyerahan</th></tr></thead><tbody>%s</tbody></table></div>'
         '<h3>Kelompok</h3><ul>%s</ul><h3>Konfirmasi penyerahan</h3><ul>%s</ul></section>'
         % (_e(batch.batch_id), _e(batch.actor_id), _e(batch.aksi), _e(_label_status_batch(batch.status)), batch.jumlah_total,

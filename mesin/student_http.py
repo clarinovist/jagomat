@@ -105,17 +105,19 @@ def _get(penangan, kon, jalur: str, jalur_penuh: str) -> None:
                 tersimpan = 0
         sesi_id_kerja = int(bagian[3])
         kabar_foto = ""
+        foto_galat = False
         if jalur_penuh:
             q_foto = urllib.parse.parse_qs(
                 urllib.parse.urlparse(jalur_penuh).query
             )
             kabar_foto = (q_foto.get("foto", [""])[0] or "")[:200]
+            foto_galat = q_foto.get("foto_galat", [""])[0] == "1"
         if students.sesi_murid(kon, siswa_id, sesi_id_kerja):
             database.tandai_mulai(kon, sesi_id_kerja)
             kon.commit()
         isi = student_pages.halaman_kerja_baru(
             kon, siswa_id, sesi_id_kerja, tersimpan,
-            kabar_foto=kabar_foto,
+            kabar_foto=kabar_foto, foto_galat=foto_galat,
         )
         if isi is None:
             penangan._kirim(
@@ -207,7 +209,8 @@ def _post_kerjakan(penangan, jalur: str) -> None:
             penangan._kirim(
                 _halaman(
                     "Belum tersimpan",
-                    f"<h1>Belum tersimpan</h1><p>{html.escape(str(galat))}</p>",
+                    f"<h1>Belum tersimpan</h1><p>{html.escape(str(galat))}</p>"
+                    f'<p><a href="/murid/kerjakan/{sesi_id}">Buka kembali latihan</a></p>',
                 ),
                 getattr(galat, "status", 400),
             )
@@ -305,8 +308,8 @@ def _post_foto(penangan, jalur: str) -> None:
             return
         if _lid is None:
             pesan = lampiran_mod.PESAN_FOTO_TERTAHAN
-    qs = urllib.parse.urlencode({"foto": pesan})
+    qs = urllib.parse.urlencode({"foto": pesan, **({"foto_galat": "1"} if _lid is None else {})})
     penangan.send_response(303)
-    penangan.send_header("Location", f"/murid/kerjakan/{sesi_id}?{qs}")
+    penangan.send_header("Location", f"/murid/kerjakan/{sesi_id}?{qs}#kabar-foto")
     penangan.send_header("Content-Length", "0")
     penangan.end_headers()

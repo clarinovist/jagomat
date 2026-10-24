@@ -101,7 +101,8 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
             penangan._kirim_tautan(
                 _halaman(
                     "Belum tersimpan",
-                    f"<h1>Belum tersimpan</h1><p>{html.escape(str(galat))}</p>",
+                    f"<h1>Belum tersimpan</h1><p>{html.escape(str(galat))}</p>"
+                    f'<p><a href="/mulai/{html.escape(token, quote=True)}">Buka kembali latihan</a></p>',
                 ),
                 getattr(galat, "status", 400),
             )

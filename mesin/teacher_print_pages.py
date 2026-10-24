@@ -239,8 +239,8 @@ def halaman_sesi_lampiran(
         f'<form method="post" action="/lampiran/{sesi_id}" '
         'enctype="multipart/form-data">'
         + __import__('attachments').field_operasi_foto()
-        + '<label for="foto-lembar">Foto lembar yang sudah diisi anak (jpeg/png, maks 8MB)</label>'
-        '<input id="foto-lembar" type="file" name="foto" accept="image/jpeg,image/png">'
+        + '<label for="foto-lembar">Foto lembar yang sudah diisi anak (JPEG/PNG/WebP, maks 8 MB)</label>'
+        '<input id="foto-lembar" type="file" name="foto" accept="image/jpeg,image/png,image/webp">'
         '<button type="submit">Upload foto</button>'
         "</form>"
     ) if _ambil(info, 'format_jawaban', '') != 'pilihan_ganda' or baris_lampiran else (

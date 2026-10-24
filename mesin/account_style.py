@@ -127,6 +127,7 @@ GAYA_AKUN = f"""
 {_A} details.kartu-st {{ padding-block: {T.SP_1}; }}
 {_A} .akun-bahaya-st:not([open]) {{ padding-bottom: {T.SP_1}; }}
 {_A} .akun-izin-st .akun-chip-ok-st {{ background: {T.LATAR_KARTU}; }}
+{_A} .akun-izin-st .akun-tombol-garis-st {{ background: {T.LATAR_KARTU}; }}
 {_A} .kartu-st > .akun-catatan-st {{ margin-bottom: {T.SP_2}; }}
 {_A} .akun-kelola-tutup {{ display: none; }}
 {_A} .akun-kelola[open] .akun-kelola-tutup {{ display: inline; }}

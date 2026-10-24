@@ -1181,6 +1181,8 @@ tr.sorot-baru, div.sorot-baru {{
   color: {T.TEKS_TERSIMPAN}; border-radius: {T.RADIUS_SEDANG};
   padding: {T.SP_2} {T.SP_3}; margin: 0 0 {T.SP_3}; font-size: .92rem;
 }}
+.kerja-foto-kabar-st {{ scroll-margin-top: calc({T.TARGET_SENTUH} + {T.SP_5}); }}
+.kerja-foto-kabar-st.galat {{ background: {T.LATAR_GALAT}; border-color: {T.BORDER_GALAT}; color: {T.TEKS_GALAT}; }}
 .kerja-foto-jumlah-st {{
   color: {T.TEKS_SUBTLE}; font-size: .88rem; margin: 0 0 {T.SP_3};
 }}

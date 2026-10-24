@@ -5,7 +5,7 @@ naratif dan riwayat penerapan; nilai/cascade aktual harus dicek di source/DOM.
 Mockup lama di arsip lokal `../../osn-resources/referensi/desain-ui/`, sedangkan
 `docs/mockup/` memuat referensi empat tab profil. Keduanya bukan runtime aplikasi.
 
-## Kontrak visual saat ini — 24 Oktober 2026
+## Kontrak visual saat ini — 25 Oktober 2026
 
 - Guru/profil memakai cream/teal sesuai komponen aktif; admin mempunyai token
   `ADMIN_*`, font sistem dan tema Sistem/Terang/Gelap tersendiri. Bukan satu
@@ -15,6 +15,10 @@ Mockup lama di arsip lokal `../../osn-resources/referensi/desain-ui/`, sedangkan
   Wadah lain mengikuti fungsi halaman, bukan semua960px. Tab HP utuh pada320px dengan
   target48px; kontrol teks editorial/admin16px. [Audit lintas halaman](ui-consistency-audit.md)
   mencatat perbaikan, ukuran DOM, cakupan dan batas perangkat.
+- State langka25Oktober: filter privat tetap dapat dilepas lewat POST, detail admin
+  berbagi region scroll/fokus, feedback foto menuju target terlihat dan galat berbeda
+  dari sukses. Retry AI memakai peringatan+checkbox native sebelum mengganti isian
+  belum diterapkan, bukan autosave. Rincian di [audit](ui-consistency-audit.md#putaran-tambahan--25-oktober-2026).
 - Orang dewasa di UI guru disebut Guru/Anda; Pendamping nama fitur AI. Peringatan
   draf playbook tetap terlihat saat disclosure tertutup.
 - Area sentuh Info dan kontrol terkait44px; teks informatif pada permukaan yang
