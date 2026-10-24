@@ -157,6 +157,7 @@ body.admin-readonly {{ margin: 0; background: {T.ADMIN_LATAR}; color: {T.ADMIN_T
 a {{ color: {T.ADMIN_AKSEN}; text-underline-offset: .2em; }}
 a:hover {{ text-decoration: underline; }}
 button, input, select, textarea {{ font: inherit; }}
+input, select, textarea {{ font-size: {T.UKURAN_BADAN_LAYAR}; }}
 button, summary {{ cursor: pointer; }}
 :focus-visible {{ outline: 3px solid {T.ADMIN_AKSEN}; outline-offset: 3px; }}
 .admin-lompat {{ position: absolute; left: 16px; top: -10rem; z-index: 30; padding: 12px 16px; background: {T.ADMIN_AKSEN_TEKS}; color: {T.ADMIN_PERMUKAAN}; border-radius: 10px; }}
@@ -190,7 +191,7 @@ button, summary {{ cursor: pointer; }}
 .admin-tema {{ padding: 4px 0 12px; margin-bottom: 8px; border-bottom: 1px solid {T.ADMIN_PEMISAH}; }}
 .admin-tema > span {{ display: block; margin: 0 0 8px; color: {T.ADMIN_REDUP}; font-size: 13px; font-weight: 600; }}
 .admin-tema-pilihan {{ display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; }}
-.menu-isi .admin-tema-pilihan button {{ min-height: 40px; width: 100%; padding: 6px 4px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 8px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; font-size: 12px; font-weight: 600; }}
+.menu-isi .admin-tema-pilihan button {{ min-height: {T.TARGET_SENTUH}; width: 100%; padding: 6px 4px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 8px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; font-size: 12px; font-weight: 600; }}
 .menu-isi .admin-tema-pilihan button:hover {{ background: {T.ADMIN_NAV_HOVER}; }}
 .menu-isi .admin-tema-pilihan button[aria-pressed="true"] {{ border: 2px solid {T.ADMIN_AKSEN}; background: {T.ADMIN_AKSEN_LATAR}; color: {T.ADMIN_AKSEN_TEKS}; font-weight: 700; }}
 .menu-isi .admin-tema-pilihan button[aria-pressed="true"]::before {{ content: '✓'; margin-right: 3px; }}
@@ -326,7 +327,7 @@ form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"]
 .admin-ai-status {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 16px; margin: 0 0 16px; }}
 .admin-ai-status dt {{ font-size: 14px; color: {T.ADMIN_REDUP}; }}
 .admin-ai-status dd {{ margin: 6px 0 0; font-size: 17px; }}
-.admin-ai-pagu {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(14rem,1fr)); gap: 16px; }}
+.admin-ai-pagu {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,14rem),1fr)); gap: 16px; }}
 .admin-ai-pagu label {{ margin: 0; }}
 .admin-ai-grup {{ margin: 0 0 20px; }}
 .admin-kartu fieldset.admin-henti {{ background: {T.ADMIN_PERMUKAAN}; border-color: {T.ADMIN_BAHAYA_BORDER}; color: {T.ADMIN_BAHAYA_TEKS}; }}
@@ -458,7 +459,7 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .riset-mulai .admin-catatan {{ margin: 0 0 16px; padding: 14px 16px; font-size: 14px; line-height: 1.5; }}
 .admin-kartu fieldset.riset-persetujuan {{ display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; border: 0; }}
 .riset-persetujuan legend {{ padding: 0 0 8px; font-size: 14px; }}
-.admin-kartu .riset-persetujuan label:has(input[type=checkbox]) {{ display: flex; align-items: flex-start; gap: 8px; min-height: 0; padding: 0; background: none; font-weight: 400; }}
+.admin-kartu .riset-persetujuan label:has(input[type=checkbox]) {{ display: flex; align-items: flex-start; gap: 8px; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} 0; background: none; font-weight: 400; }}
 .admin-kartu .riset-persetujuan input[type=checkbox] {{ flex: none; margin: 1px 0 0; }}
 .riset-kepala-filter {{ align-items: flex-end; }}
 .riset-filter {{ display: flex; flex-wrap: nowrap; align-items: flex-end; gap: 10px; }}

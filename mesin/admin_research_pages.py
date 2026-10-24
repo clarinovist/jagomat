@@ -219,10 +219,10 @@ def formulir_pertanyaan(detail, kode_q, *, csrf, token, readonly=False) -> str:
         for opsi in pilihan:
             kode = opsi["kode"]
             isi_opsi.append(
-                '<div class="riset-kode-baris"><label><input type="radio" name="kode_utama" value="%s"%s%s> Utama</label>'
-                '<label><input type="checkbox" name="kode_tambahan" value="%s"%s%s> Tambahan</label><span>%s</span></div>' % (
-                    e(kode), ' checked' if kode == utama else '', ' disabled' if readonly else '',
-                    e(kode), ' checked' if kode in tambahan else '', ' disabled' if readonly else '', e(opsi["label"]),
+                '<div class="riset-kode-baris"><label><input type="radio" name="kode_utama" value="%s"%s%s> Utama<span class="admin-sr">: %s</span></label>'
+                '<label><input type="checkbox" name="kode_tambahan" value="%s"%s%s> Tambahan<span class="admin-sr">: %s</span></label><span>%s</span></div>' % (
+                    e(kode), ' checked' if kode == utama else '', ' disabled' if readonly else '', e(opsi["label"]),
+                    e(kode), ' checked' if kode in tambahan else '', ' disabled' if readonly else '', e(opsi["label"]), e(opsi["label"]),
                 )
             )
         isi_opsi.append('</fieldset>')

@@ -37,7 +37,10 @@ def test_stale_epoch_dan_cabut_form_ditolak(server,monkeypatch):
     assert _minta(server,'/persetujuan',cookie=token,data={**form,'policy_aksi':'semua'})[0]==303
     p=auth.autentikasi('guru',SANDI_GURU)
     sensor_store.cabut(admin_store.BAWAAN,auth.BERKAS_SANDI,p)
-    assert _minta(server,'/persetujuan',cookie=token,data={**form,'policy_aksi':'semua'})[0]==409
+    kode, gagal, _ = _minta(server,'/persetujuan',cookie=token,data={**form,'policy_aksi':'semua'})
+    assert kode == 409
+    assert '<a href="/persetujuan">Tinjau kembali pilihan data</a>' in gagal
+    assert '<form' not in gagal
     assert sensor_store.izin(admin_store.BAWAAN,p.id_akun,sekarang=int(time.time())) is None
     fresh=FormParser(_minta(server,'/persetujuan',cookie=token)[1]).forms['/persetujuan']
     monkeypatch.setattr(s,'EPOCH','e'*32)

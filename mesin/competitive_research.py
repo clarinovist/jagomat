@@ -163,6 +163,7 @@ p {{ margin: 0; }}
 .riset-lensa b {{ color: {T.TEKS_JUDUL}; }}
 .riset-confidence {{ font-size: {T.UKURAN_TEKS_CATATAN}; color: {T.TEKS_VARIAN}; font-weight: 700; }}
 .riset-tabel-bungkus {{ overflow-x: auto; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU_BESAR}; }}
+.riset-tabel-bungkus:focus-visible {{ outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: 3px; }}
 table {{ width: 100%; min-width: 50rem; border-collapse: collapse; background: {T.LATAR_KARTU}; }}
 th, td {{ padding: {T.SP_4}; text-align: left; vertical-align: top; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
 th {{ color: {T.TEKS_JUDUL}; background: {T.LATAR_SEKUNDER_LEMBUT}; font-family: {T.FONT_HEADLINE}; }}
@@ -344,7 +345,7 @@ def halaman() -> bytes:
 <div><small>Fokus sempit · keputusan</small><p><span class="riset-titik riset-titik-jagomat">Target Jagomat</span></p></div>
 </div><div class="riset-sumbu-x"><span>Konten & kelas</span><span>Keputusan & bukti</span></div>
 </div>
-<div class="riset-tabel-bungkus" style="margin-top:{T.SP_5}"><table>
+<div class="riset-tabel-bungkus" tabindex="0" role="region" aria-label="Perbandingan pemain" style="margin-top:{T.SP_5}"><table>
 <caption class="riset-lewati">Perbandingan mesin keunggulan dan celah relatif pemain</caption>
 <thead><tr><th>Arena</th><th>Pemain</th><th>Mesin keunggulan</th><th>Celah relatif yang relevan</th></tr></thead>
 <tbody>

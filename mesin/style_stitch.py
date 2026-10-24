@@ -72,7 +72,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .st-topbar .brand img {{ width: {T.LOGO_TOPBAR}; height: {T.LOGO_TOPBAR}; flex: none; }}
 .st-topbar .brand .nama {{ color: {T.WARNA_WORDMARK}; font-size: 1.1rem; }}
 .st-topbar .cta {{
-  font: inherit; color: {T.AKSEN_MURID_KORAL};
+  font: inherit; color: {T.AKSEN_KORAL_TUA};
   background: none; border: 0;
   padding: {T.SP_2} {T.SP_4}; font-weight: 700;
   min-height: {T.TARGET_SENTUH};
@@ -2438,7 +2438,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   min-height: {T.TINGGI_KONTROL}; max-width: 100%; min-width: 0;
   background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
   border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL};
-  font: inherit; padding: {T.SP_2} {T.SP_3};
+  font: inherit; font-size: {T.UKURAN_BADAN_LAYAR}; padding: {T.SP_2} {T.SP_3};
 }}
 .pendamping-editorial-st label {{ color: {T.TEKS_VARIAN}; font-size: .88rem; }}
 .pendamping-editorial-st :is(.baris, .baris-aksi) {{ gap: {T.SP_3}; }}

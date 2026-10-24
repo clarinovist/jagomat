@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import html
+from datetime import datetime, timedelta, timezone
+from format_tanggal import waktu_wib
 from html.parser import HTMLParser
 import secrets
 import urllib.parse
@@ -132,7 +134,8 @@ def panel_akses(target, status, *, dalam_form: bool = False) -> str:
         aksi = tujuan = ""
         status_teks = "Jago Pro · kuota balasan habis"
         if isi_ulang is not None:
-            pesan += f" Kuota berikutnya tersedia pada waktu layanan {int(isi_ulang)}."
+            waktu = datetime.fromtimestamp(int(isi_ulang), timezone(timedelta(hours=7)))
+            pesan += f" Kuota berikutnya tersedia pada {waktu_wib(waktu)}."
     else:
         judul, pesan, aksi, tujuan, status_teks = data.get(kode, data["storage_tidak_terverifikasi"])
     isi = (

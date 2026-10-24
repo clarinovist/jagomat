@@ -473,7 +473,7 @@ def halaman_akun(
         f"</div>",
         ident=(pengguna or "guru", peran),
         stitch=True, kelas_bungkus="pendamping-editorial-st akun-editorial-st lebar",
-        id_utama="judul-akun", privat=True,
+        id_utama="judul-akun", privat=True, keluar_topbar=False,
         skrip_privat='' if section == 'arsip-pendamping' else SKRIP_AKUN,
     )
 

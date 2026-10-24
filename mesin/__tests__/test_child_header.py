@@ -94,7 +94,9 @@ def test_css_header_scoped_sticky_dan_target_sentuh():
     assert '@media (max-width: 36rem)' in css and '@media (max-width: 24rem)' in css
     assert 'clip-path: inset(50%)' not in css
     assert 'position: fixed; top: auto' in css
-    assert 'display: none' not in css and 'display:none' not in css
+    layar, cetak = css.split('@media print', 1)
+    assert 'display: none' not in layar and 'display:none' not in layar
+    assert '.st-topbar' in cetak and '.profil-tabs-st' in cetak and 'display: none' in cetak
     assert 'outline: 3px solid' in css
     assert '--anak-identitas' in css and 'animation-range: exit 99% exit 100%' in css
     assert 'RUANG BELAJAR ANAK' not in P.bagian_identitas({'nama':'Contoh','pemilik':'guru'})

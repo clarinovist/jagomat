@@ -96,7 +96,8 @@ def isi_ringkasan(profil, invoice, token, *, merchant, aktif):
                      + '</section>')
     elif not profil:
         kartu.append('<section class="kartu-st"><h2>Belum ada profil</h2>'
-                     '<p>Tambahkan profil anak dulu di menu Siswa.</p></section>')
+                     '<p>Tambahkan profil anak dulu di tab Anak.</p>'
+                     '<a class="tombol" href="/akun?section=siswa">Tambah anak</a></section>')
     else:
         kartu.append('<section class="kartu-st"><h2>Pembayaran belum dibuka</h2>'
                      '<p class="peringatan">' + html.escape(_catatan("belum_aktif"))

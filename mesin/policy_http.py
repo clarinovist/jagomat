@@ -129,7 +129,7 @@ def tangani_post(penangan,jalur):
     except PermissionError:
         penangan._kirim_privat(halaman_pesan('Form tidak sah','<h1>Form tidak sah</h1>'),403)
     except GALAT:
-        penangan._kirim_privat(halaman_pesan('Belum tersimpan','<h1>Persetujuan belum tersimpan</h1><p>Pilihan berubah atau form tidak berlaku. Buka kembali halaman persetujuan.</p>'),409)
+        penangan._kirim_privat(halaman_pesan('Belum tersimpan','<h1>Persetujuan belum tersimpan</h1><p>Pilihan berubah atau form tidak berlaku. Buka kembali halaman persetujuan.</p><p><a href="/persetujuan">Tinjau kembali pilihan data</a></p>'),409)
     return True
 
 

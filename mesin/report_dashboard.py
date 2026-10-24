@@ -17,6 +17,10 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .riwayat-putaran-detail > summary {{min-height:{T.TARGET_SENTUH};cursor:pointer;padding:{T.SP_3} 0;}}
 .laporan-editorial-st .laporan-alias {{display:none;}}
 .laporan-editorial-st .laporan-alias:target {{display:block;}}
+@media print {{
+  .laporan-editorial-st .st-topbar, .laporan-editorial-st .profil-tabs-st,
+  .laporan-editorial-st .profil-kembali-st {{ display:none; }}
+}}
 
 .laporan-editorial-st .laporan-bagian-st {{margin-top:{T.SP_5};}}
 .laporan-editorial-st .laporan-bagian-st:first-of-type {{margin-top:0;}}

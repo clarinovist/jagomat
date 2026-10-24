@@ -667,14 +667,14 @@ def halaman_sesi_stitch(
             )
         status_sesi = (
             '<div class="status-sesi-st selesai">'
-            '<span class="material-symbols-outlined">cancel</span>'
+            f'{review_pages.ikon_status("batal")}'
             '<div><b>Sesi dibatalkan</b>'
             '<p>Sesi dibatalkan. Riwayat tetap tersimpan dan hasilnya tidak aktif dalam rencana.</p>'
             '</div></div>'
             if sesi_dibatalkan
             else (
                 '<div class="status-sesi-st selesai">'
-                '<span class="material-symbols-outlined">task_alt</span>'
+                f'{review_pages.ikon_status("selesai")}'
                 '<div><b>Hasil sudah dikonfirmasi</b>'
                 '<p>Snapshot hasil ini sudah menjadi bukti perjalanan belajar.</p>'
                 '</div></div>'
@@ -809,7 +809,7 @@ def halaman_sesi_stitch(
         if sesi_dibatalkan:
             status_sesi = (
                 '<div class="status-sesi-st selesai">'
-                '<span class="material-symbols-outlined">cancel</span>'
+                f'{review_pages.ikon_status("batal")}'
                 '<div><b>Sesi dibatalkan</b>'
                 '<p>Sesi dibatalkan. Riwayat tetap tersimpan dan hasilnya tidak aktif dalam rencana.</p>'
                 '</div></div>'
@@ -823,7 +823,7 @@ def halaman_sesi_stitch(
             )
             status_sesi = (
                 '<div class="status-sesi-st">'
-                '<span class="material-symbols-outlined">history</span>'
+                f'{review_pages.ikon_status("riwayat")}'
                 '<div><b>Riwayat sesi terpandu</b>'
                 f'<p>{keterangan_riwayat}</p></div></div>'
             )

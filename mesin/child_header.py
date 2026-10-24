@@ -149,10 +149,10 @@ GAYA_HEADER_ANAK = f"""
   {_H} .profil-identitas-st {{ gap: 10px; }}
   {_H} .profil-kembali-st {{ padding-left: {T.SP_2}; }}
   {_H} .profil-tabs-st {{
-    margin-inline: -1rem; padding-inline: {T.SP_4}; margin-bottom: 20px; gap: {T.SP_1};
+    margin-inline: -1rem; padding-inline: {T.SP_4}; margin-bottom: 20px; gap: 0;
     scroll-padding-inline: {T.SP_4};
   }}
-  {_H} .profil-tabs-st a {{ padding-inline: {T.SP_3}; }}
+  {_H} .profil-tabs-st a {{ padding-inline: {T.SP_1}; font-size: {T.UKURAN_TEKS_LABEL}; }}
 }}
 @media (max-width: 24rem) {{
   /* Nama dan kelas bertumpuk pada kolom yang sama; semua teks tetap terbaca. */
@@ -165,5 +165,9 @@ GAYA_HEADER_ANAK = f"""
   {_H} .profil-identitas-st:has(.anak-meta-st) h1 {{ grid-row: 1; align-self: end; font-size: 20px; }}
   {_H} .anak-meta-st {{ grid-column: 2; grid-row: 2; align-self: start; }}
   {_H} .profil-kembali-st {{ grid-column: 3; grid-row: 1 / 3; padding-left: 0; }}
+}}
+@media print {{
+  {_H} > .st-topbar, {_H} .profil-tabs-st, {_H} .profil-kembali-st {{ display: none; }}
+  {_H} {{ padding-bottom: 0; }}
 }}
 """

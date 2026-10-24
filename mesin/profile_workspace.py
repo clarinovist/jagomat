@@ -487,7 +487,7 @@ GAYA_PROFIL = f"""
  .beranda-profil-st .beranda-aksi-st {{ align-items:stretch; }}
  .beranda-profil-st .beranda-aksi-st > :is(a, form) {{ width:100%; }}
  .beranda-profil-st .beranda-aksi-st button {{ width:100%; }}
- .beranda-profil-st .beranda-posisi-st .tahap-rencana-st {{ font-size:{T.UKURAN_TEKS_META}; }}
+ .beranda-profil-st .beranda-posisi-st .tahap-rencana-st {{ font-size:{T.UKURAN_TEKS_LABEL}; }}
  .beranda-profil-st .beranda-sesi-st {{ padding:{T.SP_4}; }}
  .profil-workspace-st .profil-tabs-st {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; overflow-x:hidden; padding-bottom:{T.SP_1}; font-size:{T.UKURAN_TEKS_META}; }}
  .profil-workspace-st .profil-tabs-st a {{ justify-content:center; padding:{T.SP_2} {T.SP_1}; white-space:nowrap; text-align:center; letter-spacing:-.02em; }}

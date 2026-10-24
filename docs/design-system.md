@@ -5,14 +5,16 @@ naratif dan riwayat penerapan; nilai/cascade aktual harus dicek di source/DOM.
 Mockup lama di arsip lokal `../../osn-resources/referensi/desain-ui/`, sedangkan
 `docs/mockup/` memuat referensi empat tab profil. Keduanya bukan runtime aplikasi.
 
-## Kontrak visual saat ini — 22 Oktober 2026
+## Kontrak visual saat ini — 24 Oktober 2026
 
 - Guru/profil memakai cream/teal sesuai komponen aktif; admin mempunyai token
   `ADMIN_*`, font sistem dan tema Sistem/Terang/Gelap tersendiri. Bukan satu
   latar/font identik di semua permukaan. Akun memakai font sistem; beranda guru
   mempertahankan Google Fonts existing melalui CSP khususnya.
-- Empat tab profil berbagi lebar960px `ANAK_LEBAR`/`child_style.py`; lebar halaman
-  lain mengikuti komponen, belum keputusan menyeragamkan semuanya ke960px.
+- Empat tab profil dan laporan lama berbagi lebar isi960px `ANAK_LEBAR`/`child_style.py`.
+  Wadah lain mengikuti fungsi halaman, bukan semua960px. Tab HP utuh pada320px dengan
+  target48px; kontrol teks editorial/admin16px. [Audit lintas halaman](ui-consistency-audit.md)
+  mencatat perbaikan, ukuran DOM, cakupan dan batas perangkat.
 - Orang dewasa di UI guru disebut Guru/Anda; Pendamping nama fitur AI. Peringatan
   draf playbook tetap terlihat saat disclosure tertutup.
 - Area sentuh Info dan kontrol terkait44px; teks informatif pada permukaan yang
@@ -27,7 +29,7 @@ Mockup lama di arsip lokal `../../osn-resources/referensi/desain-ui/`, sedangkan
   `aria-pressed`) dengan filter instan berhash di atasnya (`guru_browser.py`); banner Riwayat tidak memakai "Mulai dari yang paling
   lama" agar tidak menyiratkan urutan wajib. Warna dari token `ANAK_*`; avatar memilih
   warna dari `id % 4`. Caption maskot "Satu langkah yang berarti." dihapus (23 Okt):
-  mengulang tagline hero dan hanya terbaca oleh mata (maskot `aria-hidden`). Empat tab `/anak` diperiksa di source terhadap artboard Riwayat/Perkembangan/Latihan (belum dirender ulang).
+  mengulang tagline hero dan hanya terbaca oleh mata (maskot `aria-hidden`). Empat tab `/anak` telah dirender ulang dengan data sintetis pada audit24Oktober.
 - Bagian bertanggal di bawah merekam keputusan saat itu, bukan override kontrak
   terbaru. Pembaruan UI harus dirender dengan data sintetis dan diuji; mockup/teks
   dokumentasi saja bukan bukti aksesibilitas atau penerimaan perangkat nyata.
@@ -175,7 +177,8 @@ Tab Akun saya dan Anak memakai wadah `lebar` (72rem) dengan `.akun-grid-st`: dua
 kolom ≥ `MULAI_DESKTOP`, satu kolom di HP. Akun saya: kolom kiri kartu Ganti kata sandi
 (tautan Bantuan pemulihan sejajar tombol), kolom kanan Data Pendamping AI dan pilihan
 data. Anak: daftar di kiri, form Tambah anak di kanan. Header memuat chip jumlah profil
-anak (guru) dan tombol Keluar (garis, bukan di dalam kartu sandi). Kartu tanpa ikon
+anak (guru) dan tombol Keluar (garis, bukan di dalam kartu sandi); menu topbar Akun tidak mengulang
+aksi Keluar. Kartu tanpa ikon
 emoji. Kartu anak: inisial, chip kelas dan jumlah sesi, tombol Kelola/Tutup lewat CSS
 `details[open]` (tanpa JS); di ≤ `BATAS_HP` tombol turun di bawah kepala kartu. Gaya
 tersekop `.akun-editorial-st` di `account_style.py`, hanya token, font sistem.

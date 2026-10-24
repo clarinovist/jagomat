@@ -28,6 +28,7 @@ GAYA_RIWAYAT = f"""
 }}
 {_R} .anak-filterbar-st .profil-saring-st[open] {{ flex: 1 1 100%; order: 9; }}
 {_R} .riwayat-grup-judul-st {{ color: {T.ANAK_TEKS}; }}
+{_R} .riwayat-ringkas-st .riwayat-kartu-kepala-st small {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ANAK_TEKS_BANTUAN}; }}
 {BADGE}@media ({_DESKTOP}) {{
   {_R} .riwayat-ringkas-st .riwayat-kartu-st {{
     grid-template-columns: 3.5rem minmax(0, 1fr) auto auto; gap: {T.SP_4}; padding: .75rem 1.25rem;
@@ -38,7 +39,6 @@ GAYA_RIWAYAT = f"""
   {_R} .riwayat-ringkas-st .riwayat-tanggal-blok-st {{ justify-content: center; text-align: center; }}
   {_R} .riwayat-ringkas-st .riwayat-tanggal-blok-st span {{ font-size: .8125rem; color: {T.ANAK_TEKS_BANTUAN}; }}
   {_R} .riwayat-ringkas-st .riwayat-kartu-kepala-st strong {{ font-size: 1.0625rem; color: {T.ANAK_TEKS}; }}
-  {_R} .riwayat-ringkas-st .riwayat-kartu-kepala-st small {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ANAK_TEKS_BANTUAN}; }}
 }}
 @media (max-width: 48rem) {{
   {_R} .riwayat-ringkas-st .riwayat-tanggal-blok-st {{ grid-column: 1; grid-row: 1; }}

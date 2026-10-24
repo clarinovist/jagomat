@@ -67,7 +67,8 @@ def _kartu_fitur(batas, pakai):
     baris = "".join(_baris_fitur(fitur, batas, pakai) for fitur in ai_policy.FITUR)
     return (
         '<section class="admin-kartu admin-kartu-tabel admin-ai-tabel"><div class="admin-kartu-kepala">'
-        '<h2>Status dan pemakaian per fitur</h2></div><div class="admin-tabel-wrap">'
+        '<h2>Status dan pemakaian per fitur</h2></div>'
+        '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Status dan pemakaian per fitur">'
         f'<table class="admin-tabel"><thead><tr>{th}</tr></thead><tbody>{baris}</tbody></table></div></section>'
     )
 

@@ -32,11 +32,11 @@ GAYA_LATIHAN = f"""
 {_R} .latihan-terpadu-st :is(label[for="gabungan-jumlah"], label[for="remedial-jumlah"]) {{
   display: block; margin-top: {T.SP_4}; font-size: .9375rem; font-weight: 700; color: {T.ANAK_TEKS};
 }}
-{_R} .latihan-terpadu-st select {{
+{_R}.pendamping-editorial-st .latihan-terpadu-st select {{
   min-height: 3rem; margin: {T.SP_2} 0 {T.SP_1}; padding: 0 {T.SP_3};
   border: 1px solid {T.ANAK_BORDER_KONTROL}; border-radius: 12px; color: {T.ANAK_TEKS};
 }}
-{_R} .latihan-topik-grid {{ grid-template-columns: repeat(auto-fit, minmax(16.25rem, 1fr)); gap: {T.SP_3}; }}
+{_R} .latihan-topik-grid {{ grid-template-columns: repeat(auto-fit, minmax(min(100%, 16.25rem), 1fr)); gap: {T.SP_3}; }}
 {_R} .latihan-topik-grid label {{{_KARTU_CENTANG}
 }}
 {_R} .daftar-remedial-st .pilihan-remedial-st {{{_KARTU_CENTANG}

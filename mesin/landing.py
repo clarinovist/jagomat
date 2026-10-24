@@ -100,7 +100,6 @@ def halaman_daftar(
 <section class="publik-kartu-st daftar-kartu-st" aria-labelledby="judul-daftar">
 <p class="daftar-alis-st">PENDAFTARAN</p><h1 id="judul-daftar">{judul_status}</h1>
 <p class="publik-sub-st">Akun yang sudah terdaftar tetap bisa masuk.</p>{kotak}
-<p><a class="masuk-tombol-st" href="/masuk">Masuk ke akun</a></p>
 </section></div></main>"""
         return _halaman_publik_stitch(f"Daftar — {T.NAMA_PRODUK}", isi)
 

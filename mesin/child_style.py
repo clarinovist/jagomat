@@ -28,15 +28,15 @@ GAYA_ANAK = f"""
 .anak-chip-netral-st {{ background: {T.ANAK_NETRAL_LATAR}; color: {T.ANAK_NETRAL_TEKS}; }}
 .anak-chip-info-st {{ background: {T.ANAK_INFO_LATAR}; color: {T.ANAK_INFO_TEKS}; }}
 .anak-chip-galat-st {{ background: {T.LATAR_GALAT}; color: {T.TEKS_GALAT}; }}
-.anak-pil-st {{
+.profil-workspace-st .anak-pil-st {{
   display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_4};
   border-radius: {T.RADIUS_PIL}; border: 1px solid {T.ANAK_BORDER_PIL}; background: {T.LATAR_KARTU};
   color: {T.ANAK_TEKS_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; text-decoration: none;
 }}
-.anak-pil-st[aria-current="true"] {{
-  border: 2px solid {T.ANAK_AKSEN}; background: {T.ANAK_AKSEN_LATAR}; color: {T.ANAK_AKSEN_HOVER}; font-weight: 700;
+.profil-workspace-st .anak-pil-st[aria-current="true"] {{
+  padding-inline: calc({T.SP_4} - 1px); border: 2px solid {T.ANAK_AKSEN}; background: {T.ANAK_AKSEN_LATAR}; color: {T.ANAK_AKSEN_HOVER}; font-weight: 700;
 }}
-.anak-pil-st:hover {{ border-color: {T.ANAK_AKSEN}; }}
+.profil-workspace-st .anak-pil-st:hover {{ border-color: {T.ANAK_AKSEN}; }}
 .anak-disclosure-st {{ font-size: .9375rem; }}
 .anak-disclosure-st > summary {{
   display: list-item; min-height: {T.TARGET_SENTUH}; cursor: pointer; font-weight: 600; color: {T.ANAK_AKSEN};

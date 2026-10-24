@@ -12,6 +12,21 @@ PERTANYAAN = {
 }
 
 
+def ikon_status(nama):
+    """Ikon dekoratif lokal; halaman privat tidak memuat font eksternal."""
+    bentuk = {
+        'batal': '<circle cx="12" cy="12" r="8.5"/><path d="m9 9 6 6m0-6-6 6"/>',
+        'selesai': '<circle cx="12" cy="12" r="8.5"/><path d="m7.5 12 3 3 6-6"/>',
+        'riwayat': '<path d="M4 10a8 8 0 1 1 1 8M4 4v6h6M12 7.5V12l3 2"/>',
+    }
+    return (
+        '<svg class="ikon-status-sesi-st" viewBox="0 0 24 24" '
+        'fill="none" stroke="currentColor" stroke-width="1.8" '
+        'stroke-linecap="round" stroke-linejoin="round" '
+        'aria-hidden="true" focusable="false">' + bentuk[nama] + '</svg>'
+    )
+
+
 def nilai(tinjauan, draf, nama, bawaan=''):
     v = getattr(draf, nama, None) if draf else None
     if v is not None:

@@ -101,10 +101,10 @@ def kartu_tabel(
     return (
         '<section class="admin-kartu admin-kartu-tabel"><div class="admin-kartu-kepala">'
         '<h2>%s</h2><span class="admin-meta">%s</span></div>%s'
-        '<div class="admin-tabel-wrap"><table class="admin-tabel">'
+        '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="%s"><table class="admin-tabel">'
         '<thead><tr>%s</tr></thead><tbody>%s</tbody></table></div>'
         '<div class="admin-kartu-kaki">%s</div></section>'
-        % (e(judul), e(keterangan), catatan, th, baris, kaki)
+        % (e(judul), e(keterangan), catatan, e(judul), th, baris, kaki)
     )
 
 

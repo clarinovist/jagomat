@@ -15,7 +15,6 @@ import profile_workspace
 from learning_journey import perjalanan_belajar
 from cycle_report import render_perjalanan
 from child_components import banner_tautan
-from child_style import GAYA_ANAK
 from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_tugas
 from report_navigation import halaman_daftar, navigasi_halaman, parameter_laporan, pilihan, url_laporan
 from report_metrics import hari_wib, statistik_laporan, tugas_belum_selesai
@@ -517,18 +516,20 @@ def halaman_laporan(
         kelas_sekolah = baca(
             kon, siswa_id, pemilik=siswa['pemilik']
         ).kelas_sekolah
-    return _halaman(
+    from teacher_shell import _halaman_stitch
+    return _halaman_stitch(
         f"Laporan {siswa['nama']}",
-        f'<style>{profile_workspace.GAYA_PROFIL}{GAYA_ANAK}{GAYA_LAPORAN}{GAYA_PETA}</style>'
+        '<main aria-labelledby="judul-profil-laporan">'
+        + f'<style>{GAYA_LAPORAN}{GAYA_PETA}</style>'
         + profile_workspace.bagian_identitas(
             siswa, peran=peran, kelas_sekolah=kelas_sekolah,
-            id_judul='judul-profil-laporan', kembali=kembali,
+            id_judul='judul-profil-laporan', kembali=kembali, ringkas=peran == 'guru',
         )
         + '<nav class="profil-tabs-st" aria-label="Bagian profil anak">'
         + profile_workspace.navigasi_profil(siswa_id, total_sesi, 'perkembangan')
-        + '</nav>' + isi,
+        + '</nav>' + isi + '</main>',
         ident=(pengguna, peran) if pengguna else None,
-        stitch=True,
-        kelas_bungkus="laporan-lebar pendamping-editorial-st laporan-editorial-st profil-workspace-st",
-        id_utama="judul-profil-laporan",
+        kelas_bungkus="lebar pendamping-editorial-st profil-editorial-st laporan-editorial-st profil-workspace-st"
+        + (" anak-header-st" if peran == "guru" else ""),
+        privat=peran == 'guru' and bool(pengguna),
     )

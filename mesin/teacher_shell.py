@@ -50,7 +50,7 @@ def _topbar(pengguna: str, peran: str) -> str:
     )
 
 
-def _topbar_stitch(pengguna: str, peran: str, *, ringkas: bool = False, bantuan: str = "") -> str:
+def _topbar_stitch(pengguna: str, peran: str, *, ringkas: bool = False, bantuan: str = "", keluar: bool = True) -> str:
     """Topbar Stitch dengan menu akun CSS-only dan satu pintu keluar."""
     if peran == "admin":
         brand_href, item = "/admin", (
@@ -79,6 +79,12 @@ def _topbar_stitch(pengguna: str, peran: str, *, ringkas: bool = False, bantuan:
             '<path d="M2.5 4.5 6 8l3.5-3.5"/></svg></summary>'
         )
         item = f'<p class="anak-peran-st">{_badge_peran(peran)}</p>' + item
+    aksi_keluar = (
+        '<div class="menu-pisah"></div>'
+        '<form method="post" action="/keluar" style="margin:0">'
+        '<button type="submit" class="cta">Keluar</button></form>'
+        if keluar else ''
+    )
     return (
         '<div class="st-topbar">'
         f'<a class="brand" href="{brand_href}">'
@@ -87,23 +93,20 @@ def _topbar_stitch(pengguna: str, peran: str, *, ringkas: bool = False, bantuan:
         "</a>"
         '<nav class="topbar-navigasi" aria-label="Menu akun">'
         '<details class="menu-pengguna">'
-        f'{ringkasan_akun}<div class="menu-isi">{item}'
-        '<div class="menu-pisah"></div>'
-        '<form method="post" action="/keluar" style="margin:0">'
-        '<button type="submit" class="cta">Keluar</button>'
-        f"</form></div></details>{bantuan}</nav></div>"
+        f'{ringkasan_akun}<div class="menu-isi">{item}{aksi_keluar}'
+        f"</div></details>{bantuan}</nav></div>"
     )
 
 
 def _halaman(
     judul: str, isi: str, ident: tuple[str, str] | None = None,
     stitch: bool = False, kelas_bungkus: str = "", id_utama: str = "",
-    privat: bool = False, skrip_privat: str = "",
+    privat: bool = False, skrip_privat: str = "", keluar_topbar: bool = True,
 ) -> bytes:
     """Bingkai pengelola; skrip privat statis harus diizinkan hash di respons HTTP."""
     if stitch:
         from style_stitch import gaya_stitch, CSS_SESI
-        batang = _topbar_stitch(*ident) if ident else ""
+        batang = _topbar_stitch(*ident, keluar=keluar_topbar) if ident else ""
         kelas = f"bungkus-st {kelas_bungkus}".strip()
         buka_isi = (
             f'<main class="sesi-badan-st" aria-labelledby="{html.escape(id_utama)}">'
@@ -153,6 +156,12 @@ def _halaman_stitch(
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">"""
     gaya = GAYA_STITCH
+    gaya_dasar = ''
+    if "laporan-editorial-st" in kelas_bungkus.split():
+        # Rincian kedua URL masih memakai kelas legacy. Stylesheet terpisah menjaga
+        # @import font nonprivat tetap di awal, sebelum override profil/anak.
+        from style_stitch import CSS_SESI
+        gaya_dasar = f'<style>{GAYA}{CSS_SESI}</style>'
     if "profil-workspace-st" in kelas_bungkus:
         from question_variants_ui import GAYA_VARIASI
         from parent_help import GAYA as GAYA_BANTUAN
@@ -171,5 +180,5 @@ def _halaman_stitch(
 <title>{html.escape(brand.judul(judul))}</title>
 {brand.tag_kepala(cetak=privat)}
 {font}
-<style>{gaya}</style></head>
+{gaya_dasar}<style>{gaya}</style></head>
 <body class="st"><div class="{kelas}">{batang}{isi}</div>{skrip}</body></html>""".encode()
