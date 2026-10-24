@@ -63,7 +63,10 @@ Form/negative-path diperiksa terpisah melalui regression test HTTP.
   markup AI, token dan state UI: **638 tes lulus** (47,24s, Python3.9.6,
   `-W error`), compile8 berkas lulus. Print manual Gelap terbukti kembali ke
   latar terang rgb(246,248,248) dengan sidebar tersembunyi.
-  Bukti CI/rilis dicatat setelah tersedia.
+  Gate rilis [40142093633](https://github.com/clarinovist/jagomat/actions/runs/40142093633)
+  sukses pada `7695cf9`: **14.341 tes kandidat exact-once**, empat shard recovery,
+  build/probe/pair. CI push dibatalkan oleh push dokumentasi sesi backup lain,
+  bukan kegagalan test; gate dispatch exact tetap selesai penuh.
 
 Bukti lokal ignored: `docs/plan/admin-audit-20261025/` (script preview, metrics JSON,
 screenshot sintetis, log pengujian). Audit ini tidak menyertifikasi WCAG menyeluruh:
@@ -71,6 +74,18 @@ Safari/iOS/Android fisik, screen reader, forced-colors OS, dan seluruh kombinasi
 produksi belum diuji. Escape/click-outside pada menu native tidak ditambahkan karena
 memerlukan enhancement JS baru. Batas akses, kesiapan pembayaran dan izin riset
 bukan target perubahan.
+
+## Produksi
+
+Controlled deploy memasang `7695cf9a5450029a71d8e88d9a351439155233cf` pada
+25Oktober2026 06.30WIB, healthy/restart0. Preflight live read-only dilakukan sebelum
+hold; backup4DB+auth dan riset terpisah, rehearsal C2–B2–C2, validator, transfer/hash
+privat serta approval exact-pair lulus. Histori dan konfigurasi tetap; tidak ada migrasi.
+Probe sintetis dalam memori container membuktikan patch UI tersedia. Smoke publik
+`/`200, `/akun`401, `/murid/`303 menuju `/masuk`; marker galat0.
+[Identitas artifact/recovery dan rincian rilis](production-release.md#deploy-audit-ui-admin--25-oktober-2026).
+Backup induk/receipt disimpan privat; empat turunan rehearsal dan container probe
+milik tugas sudah dibersihkan. Ini bukan walkthrough akun keluarga nyata.
 
 `docs/spec.md` dan `docs/context.md` diperiksa: kontrak produk dan arsitektur tetap;
 hanya tautan referensi audit admin ditambahkan pada konteks/desain.

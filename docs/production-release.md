@@ -6,6 +6,40 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy audit UI admin — 25 Oktober 2026
+
+Controlled `deploy-v2` memasang **7695cf9a5450029a71d8e88d9a351439155233cf**;
+container started `2026-10-24T23:30:29Z` (25Oktober06.30WIB), healthy/restart0.
+Isi: penyelarasan komponen admin, target sentuh/fokus, state nonaktif/read-only,
+kontras batas kontrol, menu seluler, konfirmasi profil kosong dan tema cetak.
+[Cakupan audit51state dan batas perangkat](admin-ui-audit.md).
+
+- Kandidat digest `sha256:ee9858fe5644d02b2d3f74db08f8403d62b7efaecb1f3543f41dabde4f18ae52`.
+- Recovery `edd323c4822347f6d584bb0f311e76cac4962e40`, digest
+  `sha256:9c6d71aa67efcda4b52608898cc49efbfcc19a8f7554b35c08d0c58668fc2ffb`.
+- Dispatch [40142093633](https://github.com/clarinovist/jagomat/actions/runs/40142093633)
+  sukses:14.341 tes kandidat exact-once, empat shard recovery, build/probe/pair.
+  Auto-pasang skipped/literal false. Push40142083070 dibatalkan oleh push dokumentasi
+  sesi backup; bukan test gagal, dan tidak membatalkan gate dispatch exact.
+- Kontrak/deployer dan hash katalog6522bc48 tetap identik; revisi penilaian/katalog
+  lanjutan nonaktif,15 playbook tetap draf. Tidak ada migrasi, config atau aktivasi fitur.
+
+Lokal638 tes lulus47,24s, compile8, palang957; review diff mandiri tanpa subagent.
+510 render sintetis pada320/375/768/1024/1440px dua tema tanpa overflow dokumen;
+keyboard, pointer, POST privat, fallback no-JS, tema/cetak dan text stress200% diperiksa.
+
+Produksi awal ab3234d healthy → pull exact → PROBE_SKEMA live read-only sebelum hold →
+backup coherent4DB+auth dan riset terpisah → rehearsal C2–B2–C2/validator → transfer/hash
+privat → approval sekali pakai → swap exit0 → reopen. Hash10 tabel histori dan seluruh
+jumlah tabel terjaga; Caddy/dua cron/config kembali identik. Probe UI murni dalam memori
+container lulus; marker Traceback/OperationalError/IntegrityError0. Smoke publik
+jagomat.id `/`200, `/akun`401, `/murid/`303 menuju `/masuk`.
+
+Empat turunan rehearsal dibersihkan, probe0. Backup induk/receipt privat ID
+`deploy-admin-audit-20261025` dipertahankan; bukti ignored pada
+`docs/plan/deploy-admin-audit-20261025/`. Tidak memakai akun/data keluarga untuk
+pengujian visual live; Safari/perangkat fisik/screen reader belum diuji.
+
 ## Deploy state UI lanjutan — 25 Oktober 2026
 
 Controlled `deploy-v2` memasang **ab3234d02db81aadc44b1092dad3ed375c63a789**;

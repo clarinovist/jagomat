@@ -1,6 +1,6 @@
 # Status proyek dan pekerjaan tersisa
 
-**Diperbarui 24 Oktober 2026.** Ini indeks status, bukan perubahan keputusan produk
+**Diperbarui 25 Oktober 2026.** Ini indeks status, bukan perubahan keputusan produk
 atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
 [CLAUDE.md](../CLAUDE.md). Catatan lama harus dibaca menurut tanggal dan scope-nya.
 
@@ -10,13 +10,13 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   sintetis. Peran `guru` tetap mencakup orang tua dan hanya mengakses data miliknya.
 - Akses awal **nonkomersial**. Keputusan paket Jago/Jago Pro tidak sama dengan
   pembukaan penjualan, trial otomatis, promo, atau paywall.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`c335ce5`**, mulai
-  berjalan 24 Oktober 2026 21.17 WIB. Fondasi/draf revisi2 ikut image tetapi
-  **writer revisi1/2 tetap nonaktif**; tidak mengubah penilaian live atau histori.
-  Dispatch gate [40100808120](https://github.com/clarinovist/jagomat/actions/runs/40100808120)
-  (14.237 tes kandidat exact-once, pair terverifikasi), container healthy, smoke publik
-  lulus. Digest/recovery/backup dan batas aktivasi ada di
-  [catatan rilis](production-release.md#deploy-fondasi-katalog-lanjutan-nonaktif--24-oktober-2026).
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`7695cf9`**, mulai
+  berjalan25Oktober2026 06.30WIB. Audit UI admin mencakup kontrol, state, keyboard,
+  tema/cetak; **writer revisi penilaian1/2 tetap nonaktif**, histori tidak diubah.
+  Dispatch gate [40142093633](https://github.com/clarinovist/jagomat/actions/runs/40142093633)
+  (14.341 tes kandidat exact-once, pair terverifikasi), container healthy, smoke publik
+  lulus. Digest/recovery/backup dan batas perangkat ada di
+  [catatan rilis](production-release.md#deploy-audit-ui-admin--25-oktober-2026).
 - Commit dokumentasi sesudahnya tidak otomatis menjadi revision image. Status
   di sini adalah snapshot bertanggal, bukan monitor live atau klaim `main` selalu deployed.
 - Auto-deploy tetap nonaktif: push hanya feedback CI; dispatch manual menjalankan
@@ -32,7 +32,7 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
 | Bantuan mengajar | Bantuan statis dan **15 draf playbook** berperingatan; **0 disahkan manusia** | [Playbook](playbook-guru.md) |
 | Pendamping | Panel inline/konteks berizin; hapus chat dan cabut izin tersedia meski provider mati | [Runtime](pendamping-runtime.md#kendali-data-existing--21-oktober-2026) |
 | Katalog/variasi | Batch A–C writer2 dan bank kalimat aktif; reader histori/recovery tetap terjaga | [Katalog](catalog-corrections.md), [bank kalimat](story-frames.md) |
-| Admin | Redesain, antrean dan tema Sistem/Terang/Gelap; guard akun/kepemilikan tetap | [Verifikasi](redesign-verification.md), [arsitektur](architecture-reference.md) |
+| Admin | Audit51state, kontrol/fokus/tema/cetak selaras; guard akun/kepemilikan tetap | [Audit admin](admin-ui-audit.md), [arsitektur](architecture-reference.md) |
 | Persetujuan/sensor | Receipt persetujuan awal dan sensor terpisah dari KPI lama; koleksi tetap memerlukan izin keluarga | [Persetujuan](persetujuan-awal.md), [sensor](sensor-perbaikan.md) |
 | Riset | Halaman riset publik dan panel wawancara privat tersedia; bukan bukti outcome atau launch komersial | [Produk](product-reference.md) |
 
