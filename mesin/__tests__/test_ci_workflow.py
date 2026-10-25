@@ -85,9 +85,11 @@ def test_ci_tetap_menguji_sebelum_build_dan_memasang_digest_yang_sama():
     assert "always()" not in agregat
     assert 'python scripts/verify_pytest_shards.py' in agregat
     assert '--directory shard-manifests --total 4 --revision "$GITHUB_SHA"' in agregat
-    assert "actions/download-artifact@v8" in agregat
-    assert "pattern: kandidat-shard-*" in agregat
-    assert "merge-multiple: true" in agregat
+    assert "actions/download-artifact" not in agregat
+    assert "GH_TOKEN: ${{ github.token }}" in agregat
+    assert "GH_REPO: ${{ github.repository }}" in agregat
+    assert "    permissions:\n      contents: read\n      actions: read\n" in agregat
+    assert "NODE_OPTIONS" not in agregat and "NODE_NO_WARNINGS" not in agregat
     assert "  pasang:\n    name: Deploy ke VPS\n    needs: bangun\n" in teks
     assert "digest: ${{ steps.dorong.outputs.digest }}" in teks
     assert '"deploy-rutin-v1 ${{ needs.bangun.outputs.digest }} ${{ needs.bangun.outputs.recovery_digest }}"' in teks
@@ -197,6 +199,61 @@ def test_shell_recovery_berhenti_pada_kegagalan(tmp_path, gagal, urutan):
     )
     assert hasil.returncode == (7 if gagal else 0), hasil.stdout + hasil.stderr
     assert jejak.read_text().splitlines() == urutan
+
+
+def _skrip_unduh_manifest():
+    job = _job(ALUR.read_text(), "uji")
+    nama = "      - name: Unduh manifest kandidat dari run yang sama\n"
+    assert nama in job
+    langkah = job.split(nama, 1)[1].split("      - name:", 1)[0]
+    assert "        shell: bash\n" in langkah
+    return textwrap.dedent(langkah.split("        run: |\n", 1)[1]).strip()
+
+
+def _cli_unduh_palsu(path):
+    """Stub CLI lokal; tidak mengakses GitHub atau token asli."""
+    path.write_text("#!" + sys.executable + "\n" + textwrap.dedent('''\
+        import json, os, sys
+        from pathlib import Path
+        args = sys.argv[1:]
+        assert args[:3] == ['run', 'download', os.environ['GITHUB_RUN_ID']]
+        assert args[3] == '--name' and args[5:] == ['--dir', 'shard-manifests']
+        nama = args[4]
+        assert os.environ['GH_REPO'] == 'contoh/repo'
+        with Path(os.environ['JEJAK_UJI']).open('a') as f:
+            f.write(nama + '\\n')
+        if nama == os.environ['GAGAL_UJI']:
+            raise SystemExit(7)
+        nomor = int(nama.removeprefix('kandidat-shard-'))
+        folder = Path('shard-manifests')
+        folder.mkdir(exist_ok=True)
+        (folder / ('kandidat-%s.json' % nomor)).write_text(json.dumps({'shard': nomor}))
+    '''))
+    path.chmod(0o700)
+
+
+@pytest.mark.parametrize("gagal", [0, 1, 2, 3, 4])
+def test_unduh_empat_manifest_exact_dan_berhenti_saat_gagal(tmp_path, gagal):
+    skrip = _skrip_unduh_manifest()
+    binari = tmp_path / "bin"
+    binari.mkdir()
+    _cli_unduh_palsu(binari / "gh")
+    berkas = tmp_path / "unduh.sh"
+    berkas.write_text(skrip)
+    jejak = tmp_path / "jejak.txt"
+    hasil = subprocess.run(
+        ["bash", str(berkas)], cwd=tmp_path, capture_output=True, text=True, timeout=10,
+        env={"PATH": str(binari) + os.pathsep + os.environ["PATH"],
+             "GH_TOKEN": "token-sintetis-jangan-dicetak", "GH_REPO": "contoh/repo",
+             "GITHUB_RUN_ID": "12345", "JEJAK_UJI": str(jejak),
+             "GAGAL_UJI": "kandidat-shard-%s" % gagal},
+    )
+    assert hasil.returncode == (7 if gagal else 0), hasil.stdout + hasil.stderr
+    terakhir = gagal or 4
+    assert jejak.read_text().splitlines() == ["kandidat-shard-%s" % n for n in range(1, terakhir + 1)]
+    unduhan = [json.loads(p.read_text())["shard"] for p in sorted((tmp_path / "shard-manifests").glob("*.json"))]
+    assert unduhan == list(range(1, gagal if gagal else 5))
+    assert "token-sintetis" not in hasil.stdout + hasil.stderr
 
 
 def test_periksa_selalu_aktif_dan_gagal_tidak_boleh_diabaikan():

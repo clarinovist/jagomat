@@ -122,6 +122,9 @@ jobs:
     name: Test kandidat
     needs: uji_kandidat
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -129,11 +132,16 @@ jobs:
           python-version: "3.12"
       - name: Pasang pytest untuk helper verifikasi
         run: pip install --quiet pytest
-      - uses: actions/download-artifact@v8
-        with:
-          pattern: kandidat-shard-*
-          path: shard-manifests
-          merge-multiple: true
+      - name: Unduh manifest kandidat dari run yang sama
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          for shard in 1 2 3 4; do
+            gh run download "$GITHUB_RUN_ID" --name "kandidat-shard-$shard" --dir shard-manifests
+          done
       - name: Buktikan semua test kandidat lulus tepat sekali
         run: >-
           python scripts/verify_pytest_shards.py

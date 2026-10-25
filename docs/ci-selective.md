@@ -16,6 +16,13 @@ dijalankan pada setiap push kode.
 Push baru pada ref yang sama membatalkan run push lama. Schedule dan dispatch
 berbagi antrean release, tidak dibatalkan oleh push, dan tidak berjalan bersamaan.
 
+Job agregat mengunduh tepat empat artefak `kandidat-shard-1` sampai `-4` dari
+`GITHUB_RUN_ID` yang sama lewat GitHub CLI bawaan runner. Token job hanya mendapat
+`contents: read` dan `actions: read`, diberikan lewat environment, bukan argumen.
+Unduhan gagal menghentikan job; verifier revision/koleksi/exact-once tetap wajib.
+Jalur ini menggantikan `actions/download-artifact` yang mengeluarkan peringatan
+Node `Buffer()`; warning tidak disembunyikan dengan filter atau environment.
+
 ## Test cepat pada push
 
 `scripts/ci_fast_tests.py` selalu menjalankan smoke test tetap untuk auth, database,
