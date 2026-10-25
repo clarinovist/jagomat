@@ -88,13 +88,18 @@ def _tinjauan() -> str:
 
 
 def _admin() -> str:
-    return f"""<main class="admin-utama"><div class="admin-kartu"><h2>Kartu admin</h2>
+    return f"""<main class="admin-utama"><p class="admin-jejak"><a href="#">← Kembali ke daftar</a></p>
+<div class="admin-tab-baris"><a class="admin-tab" href="#" aria-current="page">Tab aktif</a>
+<a class="admin-tab" href="#">Tab</a></div><div class="admin-kartu"><h2>Kartu admin</h2>
 <p><button class="admin-tombol" type="button">Simpan</button>
+<button class="admin-tombol admin-tombol-sekunder" type="button">Cari</button>
 <button class="admin-tombol admin-bahaya" type="button">Hapus</button>
-<a class="admin-tautan" href="#">Tautan</a> <a class="admin-chip" href="#">Chip</a>
-<a class="admin-tab" href="#" aria-current="page">Tab</a></p>
+<a class="admin-tautan" href="#">Tautan</a></p>
+<p class="admin-chip-baris"><a class="admin-chip" href="#" aria-current="true">Semua</a>
+<a class="admin-chip" href="#">Pil filter</a></p>
 <form class="admin-cari"><label>Cari <input value="contoh"></label></form>
-<p>{admin_komponen.badge_status(("ok",))} {admin_komponen.badge_status(("perlu_diperiksa",))}</p></div></main>"""
+<p>{admin_komponen.badge_status(())} {admin_komponen.badge_status(("ok",))}
+{admin_komponen.badge_status(("perlu_diperiksa",))}</p></div></main>"""
 
 
 def _akun() -> str:
@@ -111,8 +116,8 @@ def demo() -> tuple:
         Demo("Profil anak dan ruang guru", profil, 'class="st"', f'<div class="{PROFIL}">{_profil()}</div>', 760),
         Demo("Tinjauan: pill kode", teacher_style.GAYA_GURU + style_stitch.CSS_SESI, "", _tinjauan(), 200),
         Demo("Akun", stitch + account_style.GAYA_AKUN, 'class="st"', _akun(), 200),
-        Demo("Admin — terang", admin, 'class="admin-readonly" data-tema="terang"', _admin(), 340),
-        Demo("Admin — gelap", admin, 'class="admin-readonly" data-tema="gelap"', _admin(), 340),
+        Demo("Admin — terang", admin, 'class="admin-readonly" data-tema="terang"', _admin(), 470),
+        Demo("Admin — gelap", admin, 'class="admin-readonly" data-tema="gelap"', _admin(), 470),
     )
 
 

@@ -109,7 +109,8 @@ Mengubah gaya lembar hanya bersama pembaruan pasangan recovery menurut
 **Admin adalah varian layout dari fondasi yang sama**, bukan palet atau skala
 komponen terpisah. Seluruh `ADMIN_*_CERAH` adalah alias token dasar/profil: cream
 `LATAR_MURID`, kartu `LATAR_KARTU`, teal `AKSEN_TEAL_TUA`, batas `BORDER_KONTROL`,
-dan status bersama. `ADMIN_*`/`--admin-*` hanya adapter tema agar gelap tetap terbaca.
+dan status bersama. `ADMIN_*`/`--admin-*` hanya adapter tema agar gelap tetap terbaca;
+garis pil filter memakai adapter `ADMIN_BORDER_PIL` (terang = `ANAK_BORDER_PIL`).
 Tema Sistem mengikuti `prefers-color-scheme`; Terang/Gelap tetap cookie `HttpOnly`
 server-side (`data-tema`). Tidak ada skala `ADMIN_UKURAN_*` atau `ADMIN_RADIUS*`.
 Logo sidebar dan header HP memakai `brand.mark()` lokal yang sama; hanya satu
@@ -258,10 +259,13 @@ textarea dasar `GAYA_GURU` yang tidak ditimpa aturan lebih spesifik. Tab profil 
   (halaman murid) dan tombol kelola tautan `.aksi-bagikan-st button` (profil);
 - nav, tautan tabel, disclosure, tombol mata sandi dan kontrol topbar admin.
 
-Form/input/tombol aksi/tab admin mengikuti `TINGGI_KONTROL`48px. Toolbar memakai
-aksi Cari/Terapkan sekunder, aksi pembuatan utama. Form akun/siswa pendek memakai
-`.admin-form-pendek` dengan `LEBAR_KONTEN`46rem; daftar/tabel tetap kanvas fluida.
-Pencarian privat tetap POST, form dan guard server tidak diubah oleh presentasi.
+Form/input/tombol aksi/tab admin mengikuti `TINGGI_KONTROL`48px; pil filter 44px
+seperti keluarga. Satu aksi utama (solid) per kartu; Cari/Terapkan/Saring, pager dan
+aksi pendamping selalu Tombol sekunder (dijaga `test_admin_komponen_konsisten.py`
+lewat render dan pindai sumber). Form akun/siswa/bulk pendek memakai
+`.admin-form-pendek` dengan `LEBAR_KONTEN`46rem; field sandi konfirmasi selebar
+kolomnya, maksimal 46rem. Daftar/tabel tetap kanvas fluida. Pencarian privat tetap
+POST, form dan guard server tidak diubah oleh presentasi.
 
 Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px.
 
@@ -284,6 +288,7 @@ Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px.
 | --- | --- | --- | --- |
 | Kartu | `.st-kartu` | `style_stitch.py` | Putih, `BORDER_VARIAN`, radius 22px, hover border aksen |
 | Tombol utama | `.st-tombol-coral`, `a.tombol-coral` | `style_stitch.py` | `AKSEN_KORAL_TUA` berteks putih, hover `AKSEN_KORAL_HOVER`, tinggi 48px |
+| Tombol sekunder | `.admin-tombol-sekunder`, `.admin-tautan`, `.admin-antrean-cta`; keluarga `.guru-tambah-st`, Keluar Akun | `admin_style.py`, `style_stitch.py`, `account_style.py` | Latar permukaan, garis 1px + teks teal berteks, hover latar aksen; untuk aksi pendamping (Cari, Terapkan, pager, Tinjau) di samping satu aksi utama |
 | CTA rencana | `.rencana-cta-utama-st` | `style_stitch.py`, `child_beranda_style.py`, `profile_workspace.py` | Satu per halaman; 52px (`TINGGI_CTA`), 48px di beranda profil (`profile_workspace.py`); di profil teal |
 | Input teks | `.st-input` | `style_stitch.py` | 16px, 48px, fokus border + ring aksen |
 | Dropdown | `<select>` native | `form_style.GAYA_SELECT` | Chevron CSS 16px dari kanan, padding kanan 48px; `multiple`/forced-colors tetap native |
@@ -291,17 +296,19 @@ Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px.
 | Info ⓘ | `button.info` + `.info-bubble[role=tooltip]` | `style_stitch.py` | Tanpa JS, `aria-label` = isi bubble; hanya penjelasan produk |
 | Disclosure | `.rincian-ui-st`, `.anak-disclosure-st`, `child_components.disclosure()` | `style_stitch.py`, `child_style.py` | Untuk penjelasan sekunder, bukan menyembunyikan status/konsekuensi |
 | Chip status | `.anak-chip-st` + nada, `child_components.chip_status()` | `child_style.py` | Nada perhatian/baik/netral/info/galat; selalu berteks |
-| Pil filter | `.anak-pil-st[aria-current]`, `child_components.pil_filter()` | `child_style.py` | Tautan GET, aktif = border 2px + latar aksen |
+| Pil filter | `.anak-pil-st[aria-current]`, `.guru-chip-st`, `.admin-chip[aria-current]` | `child_style.py`, `style_stitch.py`, `admin_style.py` | Tautan GET 44px, garis `ANAK_BORDER_PIL`, teks redup; aktif = border 2px teal + `ANAK_AKSEN_LATAR`, tebal 700 |
 | Badge | `.st-badge` (`diagnostik`, `latihan`, `baru`, `selesai`, `review`) | `style_stitch.py` | Status berteks; "Selesai" = konfirmasi aktif, bukan penguasaan |
 | Badge peran | `.badge-peran` | `style_stitch.py`, `child_header.py`, `teacher_style.py` | Pengelola amber, Guru teal |
 | Pill kode diagnosis | `.koreksi-status-st.<kode>`, pill lama `.kode.<kode>` | `style_stitch.py` (`CSS_SESI`), `teacher_style.py` | `KODE_*`; hanya permukaan guru |
 | Banner tautan | `.anak-banner-st`, `child_components.banner_tautan()` | `child_style.py` | Satu tautan aksi di kanan |
 | Kartu sesi | `.anak-kartu-sesi-st`, `child_components.kartu_sesi()` | `child_style.py` | Satu status dan satu aksi per baris |
 | Tab profil | `.profil-tabs-st`, `profile_workspace.navigasi_profil()` | `child_header.py` | Beranda, Latihan, Riwayat, Perkembangan; 48px; satu baris di 320px |
-| Header | `.st-topbar`, `.menu-pengguna` | `style_stitch.py`, `child_header.py` | Peran + nama dalam satu menu native; satu form Keluar |
+| Tab | `.profil-tabs-st a`, `.admin-tab` | `child_header.py`, `admin_style.py` | Ganti tampilan; aktif = `aria-current="page"`, teks + garis bawah 3px teal, 48px, bukan pil. Lompat dalam halaman memakai tautan teks (`.admin-navigasi-bagian`) |
+| Tautan kembali | `.sesi-jejak-st`, `.jejak` editorial, `.admin-jejak` | `style_stitch.py`, `admin_style.py` | Teks "← tujuan" teal, target 44px, bukan tombol (`.jejak` abu di `teacher_style.py` adalah gaya lama) |
+| Header | `.st-topbar`, `.menu-pengguna` | `style_stitch.py`, `child_header.py`, `admin_style.py` | Peran + nama dalam satu menu native dengan chevron, tanpa marker bawaan; satu form Keluar |
 | Bar simpan | `.kerja-simpan-strip-st`, `.koreksi-simpan-st` | `style_stitch.py` | Mengikuti aliran form, tidak menutupi kontrol, tidak menggandakan CTA |
 | Banner peringatan cetak | `.mesin-banner` | `screen_style.py`, `print_style.py` | Radius 12px |
-| Admin | `.admin-kartu`, `.admin-tombol`, `.admin-bahaya`, `.admin-chip`, `.admin-tab`, `.admin-form-pendek`; `admin_komponen.py` | `admin_style.py` | Fondasi bersama, kontrol48px/target44px, adapter tema terang/gelap |
+| Admin | `.admin-kartu`, `.admin-tombol`, `.admin-bahaya`, `.admin-form-pendek`, badge `admin_komponen.badge_status()` | `admin_style.py` | Fondasi bersama; tombol sekunder, pil, tab, tautan kembali dan header memakai baris komponen di atas; badge "Normal" netral |
 | Pendamping | `.pendamping-tombol`, `.pendamping-tautan` | `assistant_style.py` | Kontrak izin/memori di [runtime Pendamping](pendamping-runtime.md) |
 
 Lembar anak (`/lembar/<id>`) tidak boleh memuat kunci; lembar penilaian memuatnya.
@@ -388,7 +395,10 @@ Membuka kembali salah satunya memerlukan keputusan produk baru.
 
 Tindak lanjut terbuka: PDF statis riset publik di `mesin/publik/` dibuat sebelum teal
 disatukan; isinya sama, tetapi aksen tealnya sedikit berbeda dari HTML sampai PDF
-dibuat ulang dari renderer.
+dibuat ulang dari renderer. Keluarga masih menyimpang kecil dari acuan komponen:
+tombol Akun dan Ruang guru beradius 8px (`RADIUS_KECIL`, bukan `RADIUS_SEDANG`),
+dan tab Akun aktif berupa blok teal solid, bukan pola Tab. Belum diubah karena di
+luar scope penuntasan admin 26 Okt 2026; font merek halaman privat tetap keputusan terpisah.
 
 ## Batas verifikasi
 

@@ -200,7 +200,7 @@ def ringkasan_wawancara(detail, *, csrf: str, token_aksi: dict) -> str:
                  '<button class="admin-tombol admin-bahaya" type="submit">Tarik consent dan hapus jawaban</button></form>' % (
                     _hidden("csrf",csrf),_hidden("tinjauan",token_aksi["tarik"]),_hidden("id",detail["id"])
                  ))
-    return ('<p><a class="admin-tautan" href="/admin/riset">← Kembali ke daftar</a></p>'
+    return ('<p class="admin-jejak"><a href="/admin/riset">← Kembali ke daftar</a></p>'
             '<section class="admin-kartu">%s</section>'
             '<section class="admin-kartu"><h2>Topik wawancara</h2><ol class="riset-daftar-pertanyaan">%s</ol></section>'
             '<section class="admin-kartu"><h2>Tindakan</h2><div class="riset-aksi-form">%s</div></section>'
@@ -229,7 +229,7 @@ def formulir_pertanyaan(detail, kode_q, *, csrf, token, readonly=False) -> str:
         isi_opsi.append('</fieldset>')
     nomor = [x["kode"] for x in detail["instrumen"]["pertanyaan"]].index(kode_q) + 1
     body = (
-        '<p><a class="admin-tautan" href="/admin/riset/wawancara?id=%s">← Ringkasan wawancara</a></p>'
+        '<p class="admin-jejak"><a href="/admin/riset/wawancara?id=%s">← Ringkasan wawancara</a></p>'
         '<section class="admin-kartu riset-pertanyaan"><p class="admin-alis">Pertanyaan %d dari %d</p>'
         '<h2>%s</h2><p class="riset-prompt">%s</p><p class="admin-meta">%s</p>'
         '<div class="admin-kartu admin-catatan"><strong>Catatan privasi</strong><p>Jangan tulis nama, sekolah, kontak, foto, atau jawaban soal anak.</p></div>'
@@ -261,7 +261,7 @@ def formulir_pertanyaan(detail, kode_q, *, csrf, token, readonly=False) -> str:
 
 def matriks(data) -> str:
     if not data["wawancara"]:
-        return ('<p><a class="admin-tautan" href="/admin/riset">← Kembali ke riset konsumen</a></p>'
+        return ('<p class="admin-jejak"><a href="/admin/riset">← Kembali ke riset konsumen</a></p>'
                 '<section class="admin-kartu"><p class="admin-kosong">Belum ada wawancara final untuk dibandingkan.</p></section>')
     kepala = ''.join('<th scope="col">%s</th>' % e(label) for _kode,label in data["kolom"])
     rows = []
@@ -283,7 +283,7 @@ def matriks(data) -> str:
         counts.append('<section class="admin-kartu"><h3>%s</h3><p>Denominator: %d responden yang menjawab.</p><ul>%s</ul></section>' % (
             e(label), denominator, ''.join('<li>%s: <strong>%d</strong></li>'%(e(k),n) for k,n in pairs) or '<li>Belum ada kode.</li>'
         ))
-    return ('<p><a class="admin-tautan" href="/admin/riset">← Kembali ke riset konsumen</a></p>'
+    return ('<p class="admin-jejak"><a href="/admin/riset">← Kembali ke riset konsumen</a></p>'
             '<section class="admin-kartu admin-catatan"><strong>Batas pembacaan</strong><p>Studi eksploratif; tidak mewakili seluruh orang tua Indonesia dan bukan bukti PMF. Hitungan memakai denominator yang menjawab tiap topik.</p></section>'
             '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Perbandingan wawancara"><table class="admin-tabel riset-matriks"><thead><tr><th scope="col">Responden</th>%s</tr></thead><tbody>%s</tbody></table></div>'
             '<div class="riset-grid-ringkas">%s</div>' % (kepala,''.join(rows),''.join(counts)))

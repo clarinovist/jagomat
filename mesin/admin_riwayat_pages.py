@@ -41,9 +41,8 @@ def nav_riwayat(aktif=None) -> str:
         ("ai", "Riwayat AI", "/admin?section=riwayat&amp;sumber=ai"),
     )
     return '<div class="admin-tab-baris" role="group" aria-label="Jenis riwayat">%s</div>' % "".join(
-        '<a class="admin-tab%s" href="%s"%s>%s</a>' % (
-            " admin-tab-aktif" if kode == aktif else "", href,
-            ' aria-current="page"' if kode == aktif else "", e(nama))
+        '<a class="admin-tab" href="%s"%s>%s</a>' % (
+            href, ' aria-current="page"' if kode == aktif else "", e(nama))
         for kode, nama, href in tab
     )
 
@@ -56,11 +55,12 @@ def _filter_bersih(filter_data, diizinkan):
     return {k: v for k, v in (filter_data or {}).items() if k in diizinkan}
 
 
-def _form_filter(tersembunyi, isi, tombol, kelas_tombol) -> str:
+def _form_filter(tersembunyi, isi, tombol) -> str:
+    """Penyaring selalu aksi sekunder; aksi utama halaman tetap satu."""
     return (
         '<form method="get" action="/admin" class="admin-kartu admin-form-cari admin-filter-riwayat" '
-        'aria-label="Saring riwayat">%s%s<button class="%s">%s</button></form>'
-        % (tersembunyi, isi, kelas_tombol, e(tombol))
+        'aria-label="Saring riwayat">%s%s<button class="admin-tombol admin-tombol-sekunder">%s</button></form>'
+        % (tersembunyi, isi, e(tombol))
     )
 
 
@@ -106,7 +106,7 @@ def render_riwayat(data, *, filter_data=None) -> str:
         '<label>Aksi<select name="aksi">%s</select></label>' % (
             e(filter_data.get("mulai", "")), e(filter_data.get("selesai", "")),
             e(filter_data.get("actor_id", "")), _opsi_aksi(LABEL_AKSI, kini_aksi)),
-        "Saring riwayat", "admin-tombol admin-tombol-sekunder",
+        "Saring riwayat",
     )
     return (
         nav_riwayat("tindakan") + form + cepat
@@ -138,7 +138,7 @@ def render_riwayat_ai(data, *, filter_data=None) -> str:
         '<label>Aksi<select name="aksi">%s</select></label>' % (
             e(filter_data.get("mulai", "")), e(filter_data.get("selesai", "")),
             e(filter_data.get("actor_id", "")), _opsi_aksi(LABEL_AKSI_AI, filter_data.get("aksi", ""))),
-        "Saring riwayat", "admin-tombol",
+        "Saring riwayat",
     )
     return (
         nav_riwayat("ai") + form
@@ -174,7 +174,7 @@ def render_audit_batch(data, *, filter_data=None) -> str:
             _opsi_aksi(LABEL_AKSI_BATCH, filters.get("aksi", "")),
             opsi("", "Semua status", filters.get("status", "")) + "".join(
                 opsi(k, L.label_status(k), filters.get("status", "")) for k in STATUS_BATCH)),
-        "Saring batch", "admin-tombol",
+        "Saring batch",
     )
     return (
         nav_riwayat("batch") + form

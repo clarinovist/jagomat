@@ -87,13 +87,13 @@ def _item_backup(sekarang: float):
         item = ItemAntrean(
             "penting", "Bukti backup tidak valid",
             "Bundle backup tidak lolos validasi. " + CATATAN_BACKUP,
-            "/admin?section=operasional", "Buka operasional",
+            "/admin?section=operasional#kesiapan", "Periksa backup",
         )
     else:
         item = ItemAntrean(
             "penting", "Backup belum terverifikasi",
             "Belum ada cutoff backup yang tercatat. " + CATATAN_BACKUP,
-            "/admin?section=operasional", "Buka operasional",
+            "/admin?section=operasional#kesiapan", "Periksa backup",
         )
     return (item,), label, False
 

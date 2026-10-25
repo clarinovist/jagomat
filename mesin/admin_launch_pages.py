@@ -42,7 +42,7 @@ def _form_cari_langganan(csrf,cari):
             '<input type="hidden" name="csrf" value="%s">'
             '<label class="admin-cari"><span class="admin-sr">Cari akun orang tua</span>'
             '<input name="cari" maxlength="80" value="%s" placeholder="Cari akun orang tua"></label>'
-            '<button class="admin-tombol" type="submit">Cari</button></form>')%(e(csrf),e(cari))
+            '<button class="admin-tombol admin-tombol-sekunder" type="submit">Cari</button></form>')%(e(csrf),e(cari))
 
 
 def _pager_langganan(halaman,total,cari,csrf):
@@ -55,7 +55,7 @@ def _pager_langganan(halaman,total,cari,csrf):
                         '<input type="hidden" name="csrf" value="%s">'
                         '<input type="hidden" name="cari" value="%s">'
                         '<input type="hidden" name="halaman" value="%d">'
-                        '<button class="admin-tombol" type="submit">%s</button></form>'
+                        '<button class="admin-tombol admin-tombol-sekunder" type="submit">%s</button></form>'
                         % (e(csrf), e(cari), nomor, label))
         else:
             kontrol += '<a class="admin-tautan" href="/admin?section=langganan&amp;halaman=%d">%s</a>' % (nomor,label)
@@ -87,7 +87,7 @@ STATUS={'grant':'Hak akses tercatat','lunas':'Pembayaran tercatat','perlu_diperi
 
 def detail_langganan(r,forms):
     a=r['akses']
-    isi='<section class="admin-kartu"><h2>%s</h2><dl class="admin-rincian"><dt>Status akses</dt><dd>%s</dd><dt>Batas periode</dt><dd>%s</dd><dt>Cakupan terbaru</dt><dd>%d profil</dd><dt>Promo tersisa</dt><dd>%d periode berbayar</dd></dl></section>'%(e(r['alias']),e(AKSES.get(a.status,a.status)),tanggal(a.akhir),r['jumlah_profil'],r['promo_tersisa'])
+    isi='<p class="admin-jejak"><a href="/admin?section=langganan">← Kembali ke daftar langganan</a></p><section class="admin-kartu"><h2>%s</h2><dl class="admin-rincian"><dt>Status akses</dt><dd>%s</dd><dt>Batas periode</dt><dd>%s</dd><dt>Cakupan terbaru</dt><dd>%d profil</dd><dt>Promo tersisa</dt><dd>%d periode berbayar</dd></dl></section>'%(e(r['alias']),e(AKSES.get(a.status,a.status)),tanggal(a.akhir),r['jumlah_profil'],r['promo_tersisa'])
     baris=[]
     for i in r['invoices']:
         g=i['grant']
@@ -194,7 +194,7 @@ def _kartu_ai(r):
 
 def operasional(r,form_pembayaran='',form_dukungan='',feedback=''):
     status='<p class="admin-kartu admin-catatan" role="status" aria-atomic="true">%s</p>'%e(feedback) if feedback else ''
-    navigasi='<nav class="admin-tab-baris" aria-label="Bagian operasional">'+''.join('<a class="admin-tab" href="#%s">%s</a>'%(sid,label) for sid,label in (('kesiapan','Kesiapan'),('dukungan','Dukungan pengguna'),('pembayaran','Sakelar pembayaran'),('ai','AI')))+'</nav>'
+    navigasi='<nav class="admin-navigasi-bagian" aria-label="Bagian operasional"><span>Lompat ke</span>'+''.join('<a href="#%s">%s</a>'%(sid,label) for sid,label in (('kesiapan','Kesiapan'),('dukungan','Dukungan pengguna'),('pembayaran','Sakelar pembayaran'),('ai','AI')))+'</nav>'
     return status+navigasi+_kartu_kesiapan(r)+_kartu_dukungan(r,form_dukungan)+_kartu_pembayaran(r,form_pembayaran)+_kartu_ai(r)
 
 
@@ -250,4 +250,4 @@ def halaman_kpi(config,laporan,biaya,cakupan,*,bulan,form_biaya='',form_config='
         ['<tr>'+''.join('<td>%d</td>'%x for x in row)+'</tr>' for row in cakupan.get('arsip',())]
     )+'<p>Tanpa mapping keluarga. Tidak digabung diam-diam dengan detail yang masih aktif.</p></details>'
     kosong = '<section class="admin-kartu admin-kosong-kartu"><h2>Belum ada eksperimen</h2><p>Hasil belum ditampilkan agar tidak terbaca sebagai 0%. Angka muncul setelah eksperimen aktif dan ada respons yang memenuhi definisi metrik.</p></section>' if not laporan else ''
-    return hero+kosong+'<p class="admin-meta">'+e(meta)+'</p><form class="admin-filtre-periode" method="get" action="/admin"><input type="hidden" name="section" value="kpi"><label>Bulan biaya<input type="month" name="bulan" value="'+e(bulan)+'" required></label><button class="admin-tombol">Terapkan</button></form><div class="admin-grid-kpi">'+''.join(kartu)+'</div><details class="admin-kartu"><summary>Per minggu</summary>'+tabel(('Minggu','Matang','Mencoba','Kembali'),['<tr>'+''.join('<td>%d</td>'%x for x in row)+'</tr>' for row in minggu])+'<p>Kelompok kurang dari 5 tidak dirinci. Metrik hanya untuk peserta analitik, bukan seluruh keluarga.</p></details><details class="admin-kartu"><summary>Catat biaya bulanan</summary>'+form_biaya+'</details><details class="admin-kartu"><summary>Pengaturan eksperimen</summary>'+form_config+'</details>'+arsip
+    return hero+kosong+'<p class="admin-meta">'+e(meta)+'</p><form class="admin-filtre-periode" method="get" action="/admin"><input type="hidden" name="section" value="kpi"><label>Bulan biaya<input type="month" name="bulan" value="'+e(bulan)+'" required></label><button class="admin-tombol admin-tombol-sekunder">Terapkan</button></form><div class="admin-grid-kpi">'+''.join(kartu)+'</div><details class="admin-kartu"><summary>Per minggu</summary>'+tabel(('Minggu','Matang','Mencoba','Kembali'),['<tr>'+''.join('<td>%d</td>'%x for x in row)+'</tr>' for row in minggu])+'<p>Kelompok kurang dari 5 tidak dirinci. Metrik hanya untuk peserta analitik, bukan seluruh keluarga.</p></details><details class="admin-kartu"><summary>Catat biaya bulanan</summary>'+form_biaya+'</details><details class="admin-kartu"><summary>Pengaturan eksperimen</summary>'+form_config+'</details>'+arsip

@@ -128,3 +128,31 @@ interactions/probe dan katalog hidup. Review mandiri, bukan reviewer independen.
 karena fitur/akses tetap. Full suite/CI dan deploy belum dilakukan untuk restyle
 ini; perlu gate exact sebelum rilis. Safari/iOS/perangkat fisik, screen reader,
 forced-colors OS dan seluruh state produksi belum diverifikasi.
+
+## Penuntasan audit lanjutan — 26 Oktober 2026
+
+Audit render sintetis membandingkan produksi `5ae9b00` (masih palet/skala admin
+terisolasi, logo "J", tanpa logo di HP) dengan HEAD `b8aea69` (fondasi sudah alias).
+Sisa gap HEAD ada di tingkat komponen; acuannya kini tercatat di
+[design system](design-system.md#komponen). Font merek halaman privat tetap keputusan terpisah.
+
+| Severity | Temuan | Perbaikan |
+| --- | --- | --- |
+| Medium | Cari/Terapkan/Saring dan pager pencarian Langganan masih primer di 6 tempat; guard hanya Keluarga | Semua sekunder; `_form_filter` tanpa pilihan kelas; guard render 8 halaman + pindai sumber |
+| Medium | Tombol sekunder navy/abu, keluarga teal | Garis + teks aksen, hover latar aksen; pasangan peran terang/gelap |
+| Medium | Chip bukan Pil filter (garis gelap, aktif 1px, 48px) | Nilai `.anak-pil-st`: garis `ADMIN_BORDER_PIL`, aktif 2px teal, 44px |
+| Medium | Menu akun bersegitiga bawaan + badge | Peran di atas nama + chevron, marker disembunyikan |
+| Low | Tab, jangkar Operasional dan chip sama-sama pil; tab terpotong di HP | Tab bergaris bawah (pola tab profil) dan membungkus; jangkar jadi tautan teks |
+| Low | "Normal" hijau di daftar, netral di detail | Satu helper `badge_status(())`, netral |
+| Low | "← Kembali" berbentuk tombol; detail Langganan tanpa kembali | `.admin-jejak` teks teal 44px; tautan kembali Langganan |
+| Low | Lebar sandi konfirmasi 20rem/46rem/kanvas penuh | Selebar kolom, maks. 46rem; form bulk pilih pendek |
+| Low | "—" umur tanpa label; dua "Buka operasional" | Teks layar-baca saja; CTA antrean "Periksa backup" → `#kesiapan` |
+| Low | Badge status tabel AI terlipat per kata di 375px; kartu batch bisa punya 3 tombol primer | Badge min. 12rem; aksi pertama solid, sisanya sekunder |
+
+Verifikasi lokal: regression 14 test baru merah pada salinan HEAD lalu hijau;
+scoped **1.078 tes lulus** (52s, Python3.9.6, `-W error`), kompilasi 15 berkas.
+Render 51 halaman/state × 375/1440 × terang/gelap (**204**, semua 200): tanpa overflow,
+kontrol <44px, field tanpa label atau input <16px. Interaksi native 22/22: keyboard
+menu akun, hover sekunder/pil, tab, jangkar, tautan kembali, menu HP dalam viewport,
+tema Gelap→Sistem. Chrome headless profil sementara, DB/sandi temp; bukan data keluarga.
+Belum: Safari/iOS/Android fisik, screen reader, forced-colors OS, full suite/CI dan deploy.

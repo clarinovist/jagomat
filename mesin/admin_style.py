@@ -10,6 +10,7 @@ GAYA_ADMIN = f"""
   --admin-permukaan: {T.ADMIN_PERMUKAAN_CERAH};
   --admin-border: {T.ADMIN_BORDER_CERAH};
   --admin-border-kuat: {T.ADMIN_BORDER_KUAT_CERAH};
+  --admin-border-pil: {T.ADMIN_BORDER_PIL_CERAH};
   --admin-pemisah: {T.ADMIN_PEMISAH_CERAH};
   --admin-teks: {T.ADMIN_TEKS_CERAH};
   --admin-redup: {T.ADMIN_REDUP_CERAH};
@@ -46,6 +47,7 @@ GAYA_ADMIN = f"""
     --admin-permukaan: {T.ADMIN_PERMUKAAN_GELAP};
     --admin-border: {T.ADMIN_BORDER_GELAP};
     --admin-border-kuat: {T.ADMIN_BORDER_KUAT_GELAP};
+    --admin-border-pil: {T.ADMIN_BORDER_PIL_GELAP};
     --admin-pemisah: {T.ADMIN_PEMISAH_GELAP};
     --admin-teks: {T.ADMIN_TEKS_GELAP};
     --admin-redup: {T.ADMIN_REDUP_GELAP};
@@ -82,6 +84,7 @@ body.admin-readonly[data-tema="terang"] {{
   --admin-permukaan: {T.ADMIN_PERMUKAAN_CERAH};
   --admin-border: {T.ADMIN_BORDER_CERAH};
   --admin-border-kuat: {T.ADMIN_BORDER_KUAT_CERAH};
+  --admin-border-pil: {T.ADMIN_BORDER_PIL_CERAH};
   --admin-pemisah: {T.ADMIN_PEMISAH_CERAH};
   --admin-teks: {T.ADMIN_TEKS_CERAH};
   --admin-redup: {T.ADMIN_REDUP_CERAH};
@@ -117,6 +120,7 @@ body.admin-readonly[data-tema="gelap"] {{
   --admin-permukaan: {T.ADMIN_PERMUKAAN_GELAP};
   --admin-border: {T.ADMIN_BORDER_GELAP};
   --admin-border-kuat: {T.ADMIN_BORDER_KUAT_GELAP};
+  --admin-border-pil: {T.ADMIN_BORDER_PIL_GELAP};
   --admin-pemisah: {T.ADMIN_PEMISAH_GELAP};
   --admin-teks: {T.ADMIN_TEKS_GELAP};
   --admin-redup: {T.ADMIN_REDUP_GELAP};
@@ -184,7 +188,14 @@ button, summary {{ cursor: pointer; }}
 .admin-utama {{ min-width: 0; width: 100%; max-width: 100rem; margin: 0 auto; padding: {T.SP_5} {T.SP_6} {T.SP_7}; }}
 .admin-topbar {{ display: flex; justify-content: flex-end; align-items: center; gap: {T.SP_3}; margin-bottom: {T.SP_4}; }}
 .menu-pengguna {{ position: relative; min-width: 0; }}
-.menu-pengguna summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_SEDANG}; overflow-wrap: anywhere; }}
+.menu-pengguna summary {{ list-style: none; display: flex; align-items: center; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_SEDANG}; background: {T.ADMIN_PERMUKAAN}; overflow-wrap: anywhere; }}
+.menu-pengguna summary::-webkit-details-marker {{ display: none; }}
+.menu-pengguna summary:hover, .menu-pengguna[open] > summary {{ background: {T.ADMIN_NAV_HOVER}; }}
+.admin-identitas {{ display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }}
+.admin-peran {{ color: {T.ADMIN_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 500; }}
+.admin-nama {{ color: {T.ADMIN_TEKS}; font-weight: 600; }}
+.admin-panah {{ flex: none; margin-left: auto; color: {T.ADMIN_REDUP}; }}
+.menu-pengguna[open] .admin-panah {{ transform: rotate(180deg); }}
 .menu-pengguna .menu-isi {{ position: absolute; right: 0; z-index: 20; width: min(260px, calc(100vw - 32px)); padding: {T.SP_3}; border: 1px solid {T.ADMIN_BORDER}; background: {T.ADMIN_PERMUKAAN}; border-radius: {T.RADIUS_KARTU}; }}
 .menu-isi a, .menu-isi > form:not(.admin-tema) button {{ display: flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3}; width: 100%; text-align: left; }}
 .menu-isi > form:not(.admin-tema) button {{ border: 1px solid {T.ADMIN_BORDER_KUAT}; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; border-radius: {T.RADIUS_SEDANG}; }}
@@ -219,8 +230,8 @@ button, summary {{ cursor: pointer; }}
 .admin-tombol, .admin-tautan, .admin-chip, .admin-antrean-cta, .admin-pager button {{ min-height: {T.TINGGI_KONTROL}; display: inline-flex; align-items: center; justify-content: center; gap: {T.SP_2}; padding: {T.SP_3} {T.SP_4}; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: {T.RADIUS_SEDANG}; text-decoration: none; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; cursor: pointer; }}
 .admin-tombol {{ background: {T.ADMIN_AKSEN}; border-color: {T.ADMIN_AKSEN}; color: {T.ADMIN_PERMUKAAN}; }}
 .admin-tombol:hover {{ background: {T.ADMIN_AKSEN_TEKS}; color: {T.ADMIN_PERMUKAAN}; text-decoration: none; }}
-.admin-tautan, .admin-tombol-sekunder, .admin-antrean-cta, .admin-pager button {{ background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
-.admin-tombol-sekunder:hover, .admin-tautan:hover, .admin-chip:hover, .admin-antrean-cta:hover {{ background: {T.ADMIN_NAV_HOVER}; color: {T.ADMIN_TEKS}; text-decoration: none; }}
+.admin-tautan, .admin-tombol-sekunder, .admin-antrean-cta, .admin-pager button {{ background: {T.ADMIN_PERMUKAAN}; border-color: {T.ADMIN_AKSEN}; color: {T.ADMIN_AKSEN}; }}
+.admin-tautan:hover, .admin-tombol-sekunder:hover, .admin-antrean-cta:hover, .admin-pager button:hover {{ background: {T.ADMIN_AKSEN_LATAR}; color: {T.ADMIN_AKSEN_TEKS}; text-decoration: none; }}
 .admin-bahaya {{ background: {T.ADMIN_BAHAYA_TOMBOL}; border-color: {T.ADMIN_BAHAYA_TOMBOL}; color: {T.ADMIN_PERMUKAAN}; }}
 .admin-tautan.admin-bahaya:hover, .admin-tombol.admin-bahaya:hover {{ background: {T.ADMIN_BAHAYA_TEKS}; border-color: {T.ADMIN_BAHAYA_TEKS}; color: {T.ADMIN_PERMUKAAN}; }}
 button:disabled, button:disabled:hover {{ background: {T.ADMIN_NETRAL_LATAR}; border-color: {T.ADMIN_BORDER}; color: {T.ADMIN_REDUP}; cursor: not-allowed; }}
@@ -229,8 +240,9 @@ button:disabled, button:disabled:hover {{ background: {T.ADMIN_NETRAL_LATAR}; bo
 .admin-zona-bahaya {{ padding: {T.SP_4}; border: 1px solid {T.ADMIN_BAHAYA_BORDER}; border-radius: {T.RADIUS_SEDANG}; background: {T.ADMIN_BAHAYA_LATAR}; }}
 .admin-zona-bahaya label {{ color: {T.ADMIN_BAHAYA_TEKS}; }}
 .admin-chip-baris, .admin-aksi-baca, .riset-aksi-atas {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; margin: {T.SP_4} 0; }}
-.admin-chip {{ border-radius: {T.RADIUS_PIL}; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; }}
-.admin-chip[aria-current="true"] {{ background: {T.ADMIN_AKSEN_LATAR}; border-color: {T.ADMIN_AKSEN_BORDER}; color: {T.ADMIN_AKSEN_TEKS}; }}
+.admin-chip {{ min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_4}; border-radius: {T.RADIUS_PIL}; border-color: {T.ADMIN_BORDER_PIL}; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_REDUP}; }}
+.admin-chip:hover {{ border-color: {T.ADMIN_AKSEN}; text-decoration: none; }}
+.admin-chip[aria-current="true"] {{ padding: 0 calc({T.SP_4} - 1px); border: 2px solid {T.ADMIN_AKSEN}; background: {T.ADMIN_AKSEN_LATAR}; color: {T.ADMIN_AKSEN_TEKS}; font-weight: 700; }}
 .admin-kartu.admin-status-baris {{ display: flex; flex-wrap: wrap; align-items: center; gap: {T.SP_3} {T.SP_5}; padding: {T.SP_5} {T.SP_5}; }}
 .admin-status-baris h2 {{ display: inline-flex; align-items: center; gap: {T.SP_3}; margin: 0; font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
 .admin-titik-status {{ width: 12px; height: 12px; flex: none; border-radius: {T.RADIUS_BULAT}; background: {T.ADMIN_BAIK_TITIK}; }}
@@ -242,7 +254,7 @@ button:disabled, button:disabled:hover {{ background: {T.ADMIN_NETRAL_LATAR}; bo
 .admin-cek input[type=checkbox] {{ margin: 2px 0 0; flex: none; }}
 .admin-cek > span {{ display: flex; flex-direction: column; gap: 2px; }}
 .admin-bagian {{ display: flex; flex-direction: column; gap: {T.SP_3}; padding-top: {T.SP_5}; border-top: 1px solid {T.ADMIN_PEMISAH}; }}
-.admin-sempit {{ max-width: 20rem; }}
+.admin-kartu label:has(input[name="reauth"]) {{ max-width: {T.LEBAR_KONTEN}; }}
 .admin-form-pendek {{ max-width: {T.LEBAR_KONTEN}; }}
 .admin-pratinjau {{ padding: {T.SP_5}; border: 1px dashed {T.ADMIN_BORDER_KUAT}; border-radius: {T.RADIUS_KARTU}; background: {T.ADMIN_HOVER}; font-size: {T.UKURAN_BADAN_LAYAR}; }}
 .admin-kepala-aksi .admin-form-cari {{ flex: 0 1 360px; min-width: 240px; flex-wrap: nowrap; gap: {T.SP_3}; align-items: center; }}
@@ -269,10 +281,16 @@ button:disabled, button:disabled:hover {{ background: {T.ADMIN_NETRAL_LATAR}; bo
 .admin-kartu.admin-kosong-kartu {{ display: flex; flex-direction: column; align-items: center; gap: {T.SP_2}; padding: {T.SP_6} {T.SP_5}; text-align: center; }}
 .admin-kosong-kartu h2, .admin-kosong-kartu p {{ margin: 0; }}
 .admin-kosong-kartu p {{ max-width: 34rem; color: {T.ADMIN_REDUP}; line-height: 1.6; }}
-.admin-tab-baris {{ display: flex; flex-wrap: wrap; gap: {T.SP_3}; margin-bottom: {T.SP_4}; }}
-.admin-tab {{ display: inline-flex; align-items: center; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_3} {T.SP_4}; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: {T.RADIUS_PIL}; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; font-weight: 600; text-decoration: none; }}
-.admin-tab:hover {{ background: {T.ADMIN_NAV_HOVER}; text-decoration: none; }}
-.admin-tab.admin-tab-aktif {{ background: {T.ADMIN_AKSEN_LATAR}; border-color: {T.ADMIN_AKSEN_BORDER}; color: {T.ADMIN_AKSEN_TEKS}; }}
+.admin-tab-baris {{ display: flex; flex-wrap: wrap; column-gap: {T.SP_5}; margin-bottom: {T.SP_4}; border-bottom: 1px solid {T.ADMIN_BORDER}; }}
+.admin-tab {{ display: inline-flex; align-items: center; flex: none; min-height: {T.TINGGI_KONTROL}; padding: 0; border-bottom: 3px solid transparent; color: {T.ADMIN_REDUP}; font-weight: 600; text-decoration: none; }}
+.admin-tab:hover {{ color: {T.ADMIN_AKSEN}; text-decoration: none; }}
+.admin-tab[aria-current="page"] {{ color: {T.ADMIN_AKSEN}; border-bottom-color: {T.ADMIN_AKSEN}; font-weight: 700; }}
+.admin-navigasi-bagian {{ display: flex; flex-wrap: wrap; align-items: center; gap: 0 {T.SP_4}; margin: 0 0 {T.SP_4}; font-size: {T.UKURAN_TEKS_LABEL}; }}
+.admin-navigasi-bagian > span {{ color: {T.ADMIN_REDUP}; }}
+.admin-navigasi-bagian a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; font-weight: 600; }}
+.admin-jejak {{ margin: 0 0 {T.SP_4}; }}
+.admin-jejak a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; color: {T.ADMIN_AKSEN}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; text-decoration: none; }}
+.admin-jejak a:hover {{ text-decoration: underline; }}
 .admin-kartu.admin-filter-riwayat {{ padding: {T.SP_5} {T.SP_5}; margin-bottom: {T.SP_4}; }}
 .admin-kartu.admin-filter-riwayat > label {{ margin: 0; flex: 1 1 11rem; }}
 .admin-kartu.admin-filter-riwayat > label:first-of-type {{ flex-basis: 11rem; }}
@@ -298,12 +316,9 @@ button:disabled, button:disabled:hover {{ background: {T.ADMIN_NETRAL_LATAR}; bo
 .admin-ai-tile {{ display: flex; flex-direction: column; align-items: flex-start; gap: {T.SP_2}; padding: {T.SP_4} {T.SP_4}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_KARTU}; }}
 .admin-ai-tile strong {{ font-size: {T.UKURAN_ANGKA_DEWASA}; }}
 form[action="/admin/layanan/dukungan"] {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,15rem),1fr)); gap: {T.SP_1} {T.SP_4}; align-items: start; }}
-form[action="/admin/layanan/dukungan"] > p, form[action="/admin/layanan/dukungan"] > label:has(input[type=checkbox]), form[action="/admin/layanan/dukungan"] > button {{ grid-column: 1 / -1; }}
-form[action="/admin/layanan/dukungan"] > label[for="dukungan-wa"] {{ grid-column: 1 / -1; max-width: 28rem; }}
+form[action="/admin/layanan/dukungan"] > p, form[action="/admin/layanan/dukungan"] > label:has(input[type=checkbox]), form[action="/admin/layanan/dukungan"] > label[for="dukungan-wa"], form[action="/admin/layanan/dukungan"] > label[for="dukungan-reauth"], form[action="/admin/layanan/dukungan"] > button {{ grid-column: 1 / -1; }}
 form[action="/admin/layanan/dukungan"] > button, form[action="/admin/layanan/pembayaran"] > button {{ justify-self: start; }}
-form[action="/admin/layanan/dukungan"] > label[for="dukungan-reauth"], form[action="/admin/layanan/pembayaran"] > label:not(:has(input[type=checkbox])):not(:has(select)) {{ max-width: 20rem; }}
-form[action="/admin/layanan/pembayaran"] > label:has(select) {{ max-width: 22rem; }}
-form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"] {{ padding-top: {T.SP_4}; border-top: 1px solid {T.ADMIN_PEMISAH}; margin-top: {T.SP_4}; }}
+form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"] {{ max-width: {T.LEBAR_KONTEN}; padding-top: {T.SP_4}; border-top: 1px solid {T.ADMIN_PEMISAH}; margin-top: {T.SP_4}; }}
 .admin-cnt {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; line-height: 1.25; background: {T.ADMIN_NAV_HOVER}; color: {T.ADMIN_NETRAL_TEKS}; border-radius: {T.RADIUS_PIL}; padding: 2px {T.SP_2}; }}
 .admin-chip[aria-current="true"] .admin-cnt {{ background: {T.ADMIN_PERMUKAAN}; }}
 .admin-kartu.admin-kartu-tabel {{ padding: 0; overflow: hidden; }}
@@ -340,7 +355,7 @@ form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"]
 .admin-henti legend {{ color: {T.ADMIN_BAHAYA_TEKS}; }}
 .admin-kartu .admin-henti label:has(input[type=checkbox]) {{ background: {T.ADMIN_BAHAYA_LATAR}; }}
 .admin-ai-tabel .admin-tabel td[data-angka], .admin-ai-tabel .admin-tabel code {{ white-space: nowrap; }}
-.admin-ai-tabel .admin-badge {{ border-radius: {T.RADIUS_KARTU}; }}
+.admin-ai-tabel .admin-badge {{ min-width: 12rem; border-radius: {T.RADIUS_KARTU}; }}
 .admin-ai-simpan {{ display: flex; flex-wrap: wrap; gap: {T.SP_4}; align-items: flex-end; }}
 .admin-ai-simpan > label {{ flex: 0 1 320px; margin: 0; }}
 ::placeholder {{ color: {T.ADMIN_REDUP}; opacity: 1; }}
@@ -509,7 +524,6 @@ summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-weight: 600;
   .menu-pengguna {{ grid-column: 2; grid-row: 1; max-width: 100%; margin-left: auto; }}
   .menu-pengguna > summary {{ max-width: 100%; }}
   .admin-nav-mobile > summary {{ flex-wrap: wrap; }}
-  .menu-pengguna .admin-badge {{ display: none; }}
   .admin-nav-mobile .admin-nav-daftar {{ grid-template-columns: 1fr 1fr; }}
   .admin-nav-utama {{ grid-column: 1 / -1; }}
 }}
@@ -544,6 +558,7 @@ summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-weight: 600;
     --admin-permukaan: {T.ADMIN_PERMUKAAN_CERAH};
     --admin-border: {T.ADMIN_BORDER_CERAH};
     --admin-border-kuat: {T.ADMIN_BORDER_KUAT_CERAH};
+    --admin-border-pil: {T.ADMIN_BORDER_PIL_CERAH};
     --admin-pemisah: {T.ADMIN_PEMISAH_CERAH};
     --admin-teks: {T.ADMIN_TEKS_CERAH};
     --admin-redup: {T.ADMIN_REDUP_CERAH};

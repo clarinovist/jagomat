@@ -55,8 +55,7 @@ def _e(nilai) -> str:
 
 def _umur(item: ItemAntrean) -> str:
     if item.umur_hari is None:
-        return ('<span class="admin-umur"><span aria-hidden="true">—</span>'
-                '<span class="admin-sr">Umur tidak tersedia</span></span>')
+        return '<span class="admin-sr">Umur tidak tersedia</span>'
     teks = "Hari ini" if item.umur_hari == 0 else "%d hari" % item.umur_hari
     kelas = " admin-umur-mendesak" if item.tingkat == "mendesak" else ""
     return '<span class="admin-umur%s">%s</span>' % (kelas, _e(teks))

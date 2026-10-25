@@ -50,10 +50,10 @@ def _render(penangan, principal, *, peran, pilihan, cari='', halaman=1):
     isi = (
         '<section class="admin-kartu"><h2>Pilih akun %s</h2>'
         '<p>Maksimal 100 akun. Filter dan pindah halaman tidak mengubah pilihan.</p>'
-        '<form method="post" action="/admin/bulk/pilih">%s%s'
+        '<form class="admin-form-pendek" method="post" action="/admin/bulk/pilih">%s%s'
         '<label>Cari alias<input name="cari" maxlength="80" value="%s"></label>'
-        '<button name="mode" value="cari" class="admin-tombol">Cari</button></form>'
-        '<form method="post" action="/admin/bulk/pilih">%s%s%s%s'
+        '<button name="mode" value="cari" class="admin-tombol admin-tombol-sekunder">Cari</button></form>'
+        '<form class="admin-form-pendek" method="post" action="/admin/bulk/pilih">%s%s%s%s'
         '<fieldset><legend>Halaman %d dari %d</legend>%s</fieldset>'
         '<div class="admin-aksi-baca"><button name="mode" value="tambah" class="admin-tombol">Tambahkan yang dicentang</button>'
         '<button name="mode" value="halaman" class="admin-tombol admin-tombol-sekunder">Tambahkan halaman ini ke pilihan</button></div>'
@@ -67,10 +67,10 @@ def _render(penangan, principal, *, peran, pilihan, cari='', halaman=1):
             isi += '<form method="post" action="/admin/bulk/pilih">%s%s%s<button name="mode" value="cari" class="admin-tautan">%s</button></form>' % (
                 dasar, _hidden('halaman', tujuan), _hidden('cari', cari), label)
     isi += ('</section><section class="admin-kartu"><h2>Pilihan: %d akun</h2>'
-        '<form method="post" action="/admin/bulk/pilih">%s%s'
+        '<form class="admin-form-pendek" method="post" action="/admin/bulk/pilih">%s%s'
         '<div class="admin-aksi-baca"><button name="mode" value="hapus" class="admin-tautan">Hapus yang dicentang dari pilihan</button>'
         '<button name="mode" value="kosongkan" class="admin-tautan">Kosongkan pilihan</button></div></form>'
-        '<form method="post" action="/admin/bulk/pilih">%s'
+        '<form class="admin-form-pendek" method="post" action="/admin/bulk/pilih">%s'
         '<label>Aksi<select name="aksi"><option value="account_password_reset">Setel ulang sandi unik</option>'
         '<option value="account_session_revoke">Keluarkan semua perangkat</option></select></label>'
         '<label><input type="checkbox" name="verifikasi_independen" value="1"> Untuk reset sandi, saya sudah memverifikasi setiap pemohon secara independen.</label>'

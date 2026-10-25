@@ -42,8 +42,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   Daftar pengecualian/perilaku lengkap di [arsitektur](architecture-reference.md#konvensi-dan-keputusan-penting).
 - Token visual di `design_tokens.py`; peran semantik per permukaan dan pasangan kontras
   di `design_roles.py` (rujukan + guard test, bukan import runtime); kontrak di
-  [design system](design-system.md). Admin berbagi token terang/skala/brand dengan
-  keluarga; `ADMIN_*` hanya adapter tema, sidebar/tabel tetap layout admin. Empat tab
+  [design system](design-system.md). Admin berbagi token terang/skala/brand dan acuan
+  komponen (tombol sekunder, pil, tab, tautan kembali, header) dengan keluarga;
+  `ADMIN_*` hanya adapter tema, sidebar/tabel tetap layout admin. Empat tab
   profil dan laporan lama berbagi shell/lebar `ANAK_*`. CSS rincian legacy hanya dimuat
   pada laporan, sebelum override profil; [audit UI](ui-consistency-audit.md) dan
   [audit admin](admin-ui-audit.md) (fokus, kontrol, state dan tema/cetak).

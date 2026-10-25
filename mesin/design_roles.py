@@ -168,7 +168,23 @@ def _permukaan_admin(tema):
     kartu = sisi("latar_kartu", "PERMUKAAN", ".admin-kartu", "background")
     teks_aksi = sisi("teks_aksi", "PERMUKAAN", ".admin-tombol", "color")
     batas = sisi("batas_kontrol", "BORDER_KUAT", ".admin-cari input", "border")
-    return (
+    sekunder = sisi("latar_kartu", "PERMUKAAN", ".admin-tombol-sekunder", "background")
+    pil_aktif = '.admin-chip[aria-current="true"]'
+    latar_pil_aktif = sisi("latar_aksen", "AKSEN_LATAR", pil_aktif, "background")
+    komponen = (
+        _teks(sisi("aksi_sekunder", "AKSEN", ".admin-tombol-sekunder", "color"), sekunder),
+        _grafis(sisi("batas_aksi_sekunder", "AKSEN", ".admin-tombol-sekunder", "border-color"), sekunder),
+        _teks(sisi("aksi_sekunder_hover", "AKSEN_TEKS", ".admin-tombol-sekunder:hover", "color"),
+              sisi("latar_aksen", "AKSEN_LATAR", ".admin-tombol-sekunder:hover", "background")),
+        _teks(sisi("pil_teks", "REDUP", ".admin-chip", "color"),
+              sisi("latar_kartu", "PERMUKAAN", ".admin-chip", "background")),
+        _teks(sisi("pil_aktif_teks", "AKSEN_TEKS", pil_aktif, "color"), latar_pil_aktif),
+        _grafis(sisi("pil_aktif_batas", "AKSEN", pil_aktif, "border"), latar_pil_aktif),
+        _teks(sisi("tab_teks", "REDUP", ".admin-tab", "color"), halaman),
+        _teks(sisi("tab_aktif", "AKSEN", '.admin-tab[aria-current="page"]', "color"), halaman),
+        _teks(sisi("jejak", "AKSEN", ".admin-jejak a", "color"), halaman),
+    )
+    return komponen + (
         _teks(sisi("teks_utama", "TEKS", "body.admin-readonly", "color"), halaman),
         _teks(sisi("teks_redup", "REDUP", ".admin-brand small", "color"),
               sisi("latar_kartu", "PERMUKAAN", ".admin-sidebar", "background")),

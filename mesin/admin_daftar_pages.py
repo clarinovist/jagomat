@@ -9,7 +9,7 @@ from typing import Optional, Sequence, Tuple
 from urllib.parse import urlencode
 
 import admin_queries as Q
-from admin_komponen import e, hidden_filter, kepala_cari, opsi, pager, waktu
+from admin_komponen import badge_status, e, hidden_filter, kepala_cari, opsi, pager, waktu
 from admin_labels import LABEL_STATUS, label_status
 from learning_profile import label_kelas_sekolah
 
@@ -81,7 +81,7 @@ def avatar(nama: str, *, kapital: bool = False) -> str:
 
 def pill_kondisi(status: Sequence[str]) -> str:
     if not status:
-        return '<span class="admin-badge bien">Normal</span>'
+        return badge_status(())
     return "".join(
         '<span class="admin-badge perhatian">%s</span>' % e(label_status(kode)) for kode in status
     )

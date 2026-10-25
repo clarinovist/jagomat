@@ -47,6 +47,11 @@ GRUP_SECTION = (
     ("Sistem", ("operasional", "ai", "riwayat")),
 )
 SECTION_LOKAL = frozenset(item[0] for item in SECTION if item[0] != "ai")
+_PANAH_MENU = (
+    '<svg class="admin-panah" aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" '
+    'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M2.5 4.5 6 8l3.5-3.5"/></svg>'
+)
 SKRIP_KONFIRMASI_LOGIN = """document.querySelectorAll('form[data-konfirmasi-login],form[data-konfirmasi]').forEach(function(f){f.addEventListener('submit',function(e){if(!window.confirm(f.dataset.konfirmasiLogin||f.dataset.konfirmasi)){e.preventDefault();}});});"""
 
 LABEL_KATEGORI = {
@@ -192,7 +197,7 @@ def halaman_admin(
 <a class="admin-brand admin-brand-mobile" href="/admin">{brand.mark('topbar')}<strong>{_e(T.NAMA_PRODUK)}</strong></a>
 <details class="admin-nav-mobile"><summary><span>Menu pengelola</span><strong>{_e(_label_section(section))}</strong>{_badge_mendesak(sinyal)}</summary>
 <nav class="admin-menu" aria-label="Bagian panel pengelola seluler">{_nav(section, sinyal)}</nav></details>
-<details class="menu-pengguna"><summary>{_e(pengguna)} <span class="admin-badge">Pengelola</span></summary>
+<details class="menu-pengguna"><summary><span class="admin-identitas"><span class="admin-peran">Pengelola</span><span class="admin-nama">{_e(pengguna)}</span></span>{_PANAH_MENU}</summary>
 <div class="menu-isi">{form_tema}<a href="/akun?section=akun">Ganti sandi</a>
 <form method="post" action="/keluar"><button type="submit">Keluar</button></form></div></details></header>
 {kepala}
@@ -331,7 +336,7 @@ def render_detail_keluarga(
             % (target, target, target)
         )
     return (
-        '<p><a class="admin-tautan" href="/admin?section=keluarga">← Kembali ke daftar keluarga</a></p>'
+        '<p class="admin-jejak"><a href="/admin?section=keluarga">← Kembali ke daftar keluarga</a></p>'
         '<section class="admin-kartu"><h2>Identitas keluarga</h2><dl class="admin-rincian">'
         '<dt>Alias akun</dt><dd>%s</dd><dt>ID generasi</dt><dd>%s</dd>'
         '<dt>Kategori</dt><dd>%s</dd><dt>Jumlah siswa</dt><dd>%d</dd>'
@@ -386,7 +391,7 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
             % (siswa.id, login)
         )
     return (
-        '<p><a class="admin-tautan" href="/admin?section=siswa">← Kembali ke daftar siswa</a></p>'
+        '<p class="admin-jejak"><a href="/admin?section=siswa">← Kembali ke daftar siswa</a></p>'
         '<section class="admin-kartu"><h2>Identitas siswa</h2><dl class="admin-rincian">'
         '<dt>Nama panggilan</dt><dd>%s</dd><dt>ID siswa</dt><dd>%d</dd>'
         '<dt>Kelas sekolah</dt><dd>%s</dd><dt>Konteks latihan</dt><dd>Profil %s</dd>'
@@ -414,7 +419,7 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
 
 def form_buat_keluarga(csrf: str, token: str) -> str:
     return (
-        '<p><a class="admin-tautan" href="/admin?section=keluarga">← Kembali ke daftar keluarga</a></p>'
+        '<p class="admin-jejak"><a href="/admin?section=keluarga">← Kembali ke daftar keluarga</a></p>'
         '<section class="admin-kartu admin-form-pendek"><h2>Buat akun orang tua</h2>'
         '<p class="admin-meta">Alias baru tidak boleh mengambil alih keluarga lama.</p>'
         '<form method="post" action="/admin/akun">'
@@ -574,7 +579,7 @@ def render_pendaftaran(status, *, csrf: str, token: str) -> str:
         '<option value="closed_standard"%s>Pendaftaran baru sedang ditutup</option>'
         '<option value="closed_maintenance"%s>Pendaftaran sementara ditutup untuk pemeliharaan</option>'
         '</select></label></div>'
-        '<div class="admin-bagian"><label class="admin-sempit">Sandi admin saat ini'
+        '<div class="admin-bagian"><label>Sandi admin saat ini'
         '<input type="password" name="reauth" required autocomplete="current-password"></label>'
         '<span class="admin-meta">Diminta untuk setiap perubahan pengaturan.</span>'
         '<div><button class="admin-tombol" type="submit">Simpan pengaturan</button></div></div>'
@@ -656,27 +661,31 @@ def render_bulk_batch(batch, hasil, csrf, tokens, aliases):
         '<tbody>%s</tbody></table></div>'
         '<p><a class="admin-tautan" href="/admin/bulk/hasil?id=%s">Lihat status tanpa sandi</a></p>'
         % (_e(aksi), len(batch.item), _e(label.get(batch.status, batch.status)), _e(ringkas), ''.join(baris), _e(batch.batch_id)))
-    def form(jalur, token, teks, dampak, tambahan=''):
+    def form(jalur, token, teks, dampak, tambahan='', utama=True):
         return ('<form method="post" action="/admin/bulk/%s">'
             '<input type="hidden" name="batch_id" value="%s"><input type="hidden" name="csrf" value="%s">'
             '<input type="hidden" name="tinjauan" value="%s">%s'
             '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
             '<label><input type="checkbox" name="konfirmasi" value="1" required> %s</label>'
-            '<button class="admin-tombol" type="submit">%s</button></form>'
-            % (jalur, _e(batch.batch_id), _e(csrf), _e(token), tambahan, _e(dampak), _e(teks)))
+            '<button class="%s" type="submit">%s</button></form>'
+            % (jalur, _e(batch.batch_id), _e(csrf), _e(token), tambahan, _e(dampak),
+               'admin-tombol' if utama else 'admin-tombol admin-tombol-sekunder', _e(teks)))
     if not batch.draft_tersedia:
         isi += '<p class="admin-catatan">Draft alias sudah tidak tersedia. Hasil ini berasal dari metadata tersimpan tanpa sandi. Item yang belum pasti tidak dijalankan ulang otomatis.</p>'
+    aksi = []
     if batch.boleh_proses:
         tombol = 'Pulihkan kelompok yang sama' if batch.kelompok_aktif_id else 'Proses kelompok berikutnya'
-        isi += form('proses', tokens['process'], tombol,
-            'Saya menyetujui tindakan pada maksimal 10 akun berikutnya dan dampak pencabutan sesi; hasil selesai tidak dibatalkan.')
+        aksi.append(('proses', tokens['process'], tombol,
+            'Saya menyetujui tindakan pada maksimal 10 akun berikutnya dan dampak pencabutan sesi; hasil selesai tidak dibatalkan.'))
     if batch.status in ('ready', 'partial', 'attention'):
-        isi += form('hentikan', tokens['stop'], 'Hentikan item yang belum mulai',
-            'Item yang belum mulai dibatalkan; perubahan yang sudah selesai tetap tercatat.')
+        aksi.append(('hentikan', tokens['stop'], 'Hentikan item yang belum mulai',
+            'Item yang belum mulai dibatalkan; perubahan yang sudah selesai tetap tercatat.'))
     if belum_diserahkan:
-        isi += form('serahkan', tokens['handover'], 'Konfirmasi akses telah diserahkan',
+        aksi.append(('serahkan', tokens['handover'], 'Konfirmasi akses telah diserahkan',
             'Saya sudah menyerahkan akses akun berhasil yang belum dikonfirmasi melalui kanal privat.',
-            '<input type="hidden" name="item_ids" value="%s">' % _e(','.join(belum_diserahkan)))
+            '<input type="hidden" name="item_ids" value="%s">' % _e(','.join(belum_diserahkan))))
+    # Satu aksi utama per kartu: aksi pertama yang tersedia solid, sisanya sekunder.
+    isi += ''.join(form(*a, utama=i == 0) for i, a in enumerate(aksi))
     if batch.status == 'running':
         isi += '<p role="alert">Kelompok belum memiliki hasil final. Pemulihan hanya menggunakan identitas kelompok yang sama dan memeriksa receipt; jangan membuat batch pengganti.</p>'
     if batch.status == 'attention':

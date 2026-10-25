@@ -201,7 +201,7 @@ def test_operasional_teks_keamanan_dan_konfirmasi_dipertahankan_kata_per_kata():
 def test_operasional_tab_stepper_prasyarat_dan_tile_ai():
     isi = ui.operasional(_ringkas(), "", "")
 
-    assert 'class="admin-tab-baris" aria-label="Bagian operasional"' in isi
+    assert '<nav class="admin-navigasi-bagian" aria-label="Bagian operasional">' in isi
     for sid in ("kesiapan", "dukungan", "pembayaran", "ai"):
         assert 'href="#%s"' % sid in isi and 'id="%s"' % sid in isi
     assert isi.count('aria-current="step"') == 1

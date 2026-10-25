@@ -426,7 +426,7 @@ def test_tabel_siswa_avatar_tindakan_dan_scope_kolom():
     normal = q.SiswaRingkas(8, "Budi", "P3", "p", "a", "orang_tua", None, "budi", 0, None, (), 4)
     from dataclasses import replace
     halaman = pages.render_siswa(replace(_siswa(), item=(normal,)), (), csrf="x")
-    assert '>Buka</a>' in halaman and 'admin-badge bien">Normal' in halaman
+    assert '>Buka</a>' in halaman and '<span class="admin-badge">Normal</span>' in halaman
     assert "Kelas 4" in halaman
 
 
@@ -493,7 +493,8 @@ def test_riwayat_tab_jenis_dan_kartu_tabel_di_tiga_tampilan():
     assert 'name="sumber" value="ai"' in ai and 'name="sumber" value="batch"' in batch
     assert 'name="status"' in batch and 'name="status"' not in tindakan
     assert '<option value="partial" selected>' in batch
-    assert 'class="admin-tombol">Saring riwayat<' in ai and 'class="admin-tombol">Saring batch<' in batch
+    sekunder = 'class="admin-tombol admin-tombol-sekunder">'
+    assert sekunder + 'Saring riwayat<' in ai and sekunder + 'Saring batch<' in batch
     assert rw.nav_riwayat(None).count("aria-current") == 0
 
 
