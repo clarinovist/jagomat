@@ -10,6 +10,7 @@ Catatan bertanggal dan alasan keputusan lama ada di
 | --- | --- |
 | Nilai warna, ukuran, jarak, bayangan | `mesin/design_tokens.py` (`T.*`) |
 | Token mana untuk peran apa di permukaan tertentu | `mesin/design_roles.py` (`peta_peran()`), dijaga `test_design_roles.py` |
+| Melihat token, kontras, dan komponen ter-render | Katalog hidup `scripts/design_catalog.py` (lihat [Katalog](#katalog-hidup)) |
 | Aturan pakai, komponen, keputusan | Dokumen ini |
 | Bukti audit dan batas perangkat | [Audit UI lintas halaman](ui-consistency-audit.md), [audit admin](admin-ui-audit.md) |
 | Alasan lama | [Riwayat](design-system-history.md), [keputusan redesain admin](redesign-decisions.md) |
@@ -237,6 +238,23 @@ Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px. Status penerapan
 
 Lembar anak (`/lembar/<id>`) tidak boleh memuat kunci; lembar penilaian memuatnya.
 Dijaga `test_web_worksheet.py`.
+
+### Katalog hidup
+
+```bash
+cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python scripts/design_catalog.py --output <folder-baru>
+```
+
+Skrip menulis satu `index.html` statis ke folder baru (tidak menimpa): tabel peran
+dan kontras tiap permukaan, skala tipe/jarak/radius, lalu contoh komponen di dalam
+`iframe sandbox srcdoc` yang memuat **CSS aplikasi asli** per permukaan (dasar,
+profil/ruang guru, tinjauan, akun, admin terang/gelap). Tanpa DB, jaringan, atau
+JavaScript; webfont dibuang sehingga teks memakai font sistem. Contoh memakai helper
+nyata bila ada (`child_components`, `profile_workspace.navigasi_profil`,
+`admin_komponen.badge_status`). `test_design_catalog.py` menolak kelas contoh yang
+tidak punya aturan di CSS permukaannya, jadi katalog ikut merah bila komponen
+berganti nama. Hover dan fokus tetap harus dicoba langsung di browser. Simpan keluaran
+di folder sementara, bukan di repo.
 
 ## Bahasa dan konten UI
 

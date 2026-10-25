@@ -208,6 +208,9 @@ Ikuti token di `design_tokens.py` dan [design system](design-system.md). Tidak a
 hardcoded di modul lain. Halaman murid memakai `GAYA_STITCH`, bukan `CSS_SESI`.
 
 - Jangan diagnosis keluhan tampilan hanya dari CSS. Render halaman yang benar dan lihat.
+- Untuk meninjau token/komponen tanpa server, jalankan katalog hidup
+  `scripts/design_catalog.py --output <folder-baru>` (luring, tanpa DB/JS); bukan pengganti
+  render halaman nyata untuk alur berdata.
 - `serve.py` bisa menempel DB/sandi asli. Untuk preview berdata, server sekali-pakai
   mengarahkan `database.BAWAAN` dan berkas sandi ke temp serta seed sintetis minimal.
   Jangan salin profil/sesi akun asli. Matikan server sesudah selesai.

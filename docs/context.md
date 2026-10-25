@@ -23,7 +23,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 ## Struktur dan data
 
 - `mesin/`: aplikasi, `__tests__/`, aset, `publik/`, konten internal `konten/`, Dockerfile.
-- `scripts/`: palang repo, shard CI, build/probe/pair/deployer dan eksperimen sintetis.
+- `scripts/`: palang repo, shard CI, build/probe/pair/deployer, katalog desain luring dan eksperimen sintetis.
 - `docs/`: kontrak permanen; `docs/plan/` lokal/gitignored, bukan satu-satunya sumber keputusan.
 - Empat DB durable inti: belajar, Pendamping, kontrol AI, kontrol admin; auth
   `sandi.json` ikut bundle backup. Riset konsumen mempunyai DB/retensi/backup terpisah.
