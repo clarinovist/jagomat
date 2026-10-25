@@ -8,6 +8,13 @@ badge/sidebar dan hitungan facet kemudian berkembang; peta implementasi terbaru
 ada di [arsitektur](architecture-reference.md). Opsi global search/assignment
 yang dikecualikan tetap bukan fitur tersedia.
 
+**Keputusan lanjutan setelah audit25 Oktober:** pengguna meminta satu design system.
+Admin kini memakai token terang, logo, tipografi dewasa, radius, spacing dan ukuran
+kontrol Jagomat bersama. `ADMIN_*` hanya adapter warna terang/gelap, bukan palet/skala
+independen. Ini menggantikan isolasi fondasi visual pada poin1; batas font privat,
+form/POST, akses dan keputusan operasional lain tetap. Kontrak aktif ada di
+[design system](design-system.md).
+
 1. **Font:** gunakan font sistem existing, bukan Google Fonts. Mockup mengasumsikan
    Be Vietnam Pro aktif; panel privat sebenarnya tanpa aset eksternal. Tema admin
    mendapat token scoped agar halaman orang tua/murid tidak ikut berubah.

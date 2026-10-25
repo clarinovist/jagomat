@@ -49,8 +49,8 @@ def test_warna_css_bersumber_token_bukan_literal():
     ('screen_style', 'GAYA_LAYAR', 'GARIS_ISIAN', '.garis', 'border-bottom: 2px solid __uji__'),
     ('print_style', 'GAYA_CETAK', 'CETAK_TINTA', '.soal', 'border: 1.2pt solid __uji__'),
     ('assistant_style', 'GAYA_PENDAMPING', 'UKURAN_BAGIAN_DEWASA', '.pendamping-halaman h2', 'font-size:__uji__'),
-    ('admin_style', 'GAYA_ADMIN', 'ADMIN_UKURAN_JUDUL', '.admin-kepala h1', 'font-size: __uji__'),
-    ('admin_style', 'GAYA_ADMIN', 'ADMIN_UKURAN_KPI', '.admin-angka', 'font-size: __uji__'),
+    ('admin_style', 'GAYA_ADMIN', 'UKURAN_JUDUL_DEWASA', '.admin-kepala h1', 'font-size: __uji__'),
+    ('admin_style', 'GAYA_ADMIN', 'UKURAN_ANGKA_DEWASA', '.admin-angka', 'font-size: __uji__'),
     ('report_dashboard', 'GAYA_LAPORAN', 'TEBAL_GARIS', '.laporan-editorial-st .laporan-metrik .stat', 'border:__uji__ solid'),
     ('subscription_style', 'GAYA_LANGGANAN', 'SP_4', '.langganan-panel fieldset', 'margin:__uji__ 0'),
 ])

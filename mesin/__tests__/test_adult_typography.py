@@ -47,8 +47,8 @@ def test_angka_ringkasan_dan_bagian_dewasa_memakai_token():
 
 def test_skala_admin_scoped_tanpa_override_hp():
     for selector, token in (
-        ('.admin-kepala h1', T.ADMIN_UKURAN_JUDUL),
-        ('.admin-angka', T.ADMIN_UKURAN_KPI),
+        ('.admin-kepala h1', T.UKURAN_JUDUL_DEWASA),
+        ('.admin-angka', T.UKURAN_ANGKA_DEWASA),
     ):
         aturan = _aturan(admin_style.GAYA_ADMIN, selector)
         assert 'font-size: ' + token in aturan

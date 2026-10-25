@@ -32,8 +32,9 @@ dirender dengan data sintetis sebelum diterima.
    minimal 44px.
 5. **Hanya token.** Tidak ada hex/RGB literal di CSS modul lain (dijaga
    `test_ui_tokens.py`). Nilai baru masuk `design_tokens.py` dulu.
-6. **Palet per permukaan itu sengaja.** Tiap permukaan memakai keluarga tokennya
-   sendiri secara konsisten; jangan mencampur keluarga dalam satu komponen.
+6. **Satu fondasi Jagomat.** Admin, keluarga, dan murid berbagi token warna terang,
+   skala tipe/jarak/radius serta ukuran kontrol. Varian layout boleh berbeda sesuai
+   tugas; adapter tema gelap bukan design system kedua.
 7. **Sisi murid netral.** Anak hanya melihat tahap netral: tanpa kode diagnosis,
    label kelemahan, kunci, malrule, atau alasan internal.
 
@@ -49,7 +50,7 @@ dirender dengan data sintetis sebelum diterima.
 | Pendamping | panel inline, kelola | `assistant_style.GAYA_PENDAMPING` | Dasar hangat | Panel penuh di HP |
 | Murid | `/murid`, pengerjaan | `GAYA_STITCH` | Dasar hangat | Mobile-first, kolom 46rem di desktop |
 | Lembar | `/lembar/<id>`, penilaian | `screen_style.GAYA_LAYAR`, `print_style.GAYA_CETAK` | Dasar + `LEMBAR_AKSEN` beku (layar), `CETAK_*` (kertas) | A4 |
-| Admin | `/admin/...` | `admin_style.GAYA_ADMIN` | `ADMIN_*` (`--admin-*`) | Sidebar 256px, kanvas fluida |
+| Admin | `/admin/...` | `admin_style.GAYA_ADMIN` | Dasar hangat + alias profil lewat `ADMIN_*` (adapter tema) | Sidebar 256px, kanvas fluida; form pendek maks. 46rem |
 
 Font: `FONT_HEADLINE` (Plus Jakarta Sans) dan `FONT_BODY` (Be Vietnam Pro) hanya
 tampil di halaman yang memasang webfont: publik, murid, lampiran, dan halaman guru
@@ -92,7 +93,7 @@ teks-aman, #0F6B64 dari mockup profil 19 Okt (6,0:1 di cream). Sebelumnya #0a7d7
 (tombol profil, tautan) dan #0F6B64 (pil, disclosure) tampil berdampingan di halaman
 yang sama. Teal yang tersisa punya peran berbeda dan memang dibedakan:
 `AKSEN_MURID_UTAMA` #0FA3A3 untuk grafis/border terang, `AKSEN_TEAL_HOVER` #0A4F4A
-untuk hover, `ADMIN_AKSEN_*` (#0B7A75 cerah) yang terisolasi di admin, dan
+untuk hover, tema gelap admin yang memerlukan pasangan kontras berbeda, dan
 `LEMBAR_AKSEN` #0a7d7d yang dibekukan pada lembar (lihat di bawah). Duplikat satu
 peran ditulis sebagai alias eksplisit (`STATUS_*`, `ANAK_TEKS`, `ANAK_AKSEN*`,
 `ANAK_BAIK_TEKS`, `ANAK_HEADER_AVATAR_TEKS`, `BORDER_KUAT`, `TEKS_REVIEW`, dan
@@ -105,11 +106,14 @@ lembar memakai `LEMBAR_AKSEN`/`BORDER_CORET` sendiri dan tidak ikut restyle laya
 Mengubah gaya lembar hanya bersama pembaruan pasangan recovery menurut
 [runbook rilis](production-release.md).
 
-**Admin** memakai alias semantik `ADMIN_*` yang menunjuk custom property
-`--admin-*`; nilainya dipasangkan dari `ADMIN_*_CERAH` dan `ADMIN_*_GELAP`. Tema
-Sistem mengikuti `prefers-color-scheme`; Terang/Gelap disimpan sebagai cookie
-`HttpOnly` dan diterapkan server-side lewat `data-tema`. Admin sengaja tidak
-di-alias ke token keluarga agar restyle salah satu tidak menyeret yang lain.
+**Admin adalah varian layout dari fondasi yang sama**, bukan palet atau skala
+komponen terpisah. Seluruh `ADMIN_*_CERAH` adalah alias token dasar/profil: cream
+`LATAR_MURID`, kartu `LATAR_KARTU`, teal `AKSEN_TEAL_TUA`, batas `BORDER_KONTROL`,
+dan status bersama. `ADMIN_*`/`--admin-*` hanya adapter tema agar gelap tetap terbaca.
+Tema Sistem mengikuti `prefers-color-scheme`; Terang/Gelap tetap cookie `HttpOnly`
+server-side (`data-tema`). Tidak ada skala `ADMIN_UKURAN_*` atau `ADMIN_RADIUS*`.
+Logo sidebar dan header HP memakai `brand.mark()` lokal yang sama; hanya satu
+logo terlihat pada tiap viewport. CSS shell admin tetap tersekop; tidak memuat webfont.
 
 **Cetak** memakai `CETAK_*` (tinta hitam, garis abu, tanpa latar berwarna) agar
 tema layar tidak mengubah kertas.
@@ -157,7 +161,7 @@ dependensi runtime.
 | `tautan` | `AKSEN_TEAL_TUA` | `ANAK_AKSEN` | — |
 | `aksi_utama` / `teks_aksi` | `AKSEN_KORAL_TUA` / `TEKS_PUTIH` | `AKSEN_TEAL_TUA` / `TEKS_PUTIH` | `ADMIN_AKSEN_CERAH` / `ADMIN_PERMUKAAN_CERAH` |
 | `batas_kontrol` | `BORDER_KONTROL` | `BORDER_KONTROL` | `ADMIN_BORDER_KUAT_CERAH` |
-| `fokus` | `FOKUS_AKSEN` (= `AKSEN_TEAL_TUA`) | `AKSEN_TEAL_TUA` | — |
+| `fokus` | `FOKUS_AKSEN` (= `AKSEN_TEAL_TUA`) | `AKSEN_TEAL_TUA` | `ADMIN_AKSEN_CERAH` (= `AKSEN_TEAL_TUA`) |
 
 Peta lengkap (badge, chip, pill kode, galat/sukses) dibaca lewat
 `design_roles.peta_peran("<permukaan>")`. Komponen baru yang memperkenalkan pasangan
@@ -183,7 +187,7 @@ lama itu merah lagi bila dikembalikan.
 | Catatan | `UKURAN_TEKS_CATATAN` | 13px | Eyebrow kapital dekoratif saja |
 | Meta | `UKURAN_TEKS_META` | 12px | Warisan; jangan dipakai untuk informasi baru |
 | Judul Stitch | `UKURAN_JUDUL_STITCH` / `UKURAN_BAGIAN_STITCH` | 28 / 20px | `h1.st`/`h2.st` publik, murid, judul halaman anak |
-| Admin | `ADMIN_UKURAN_JUDUL` / `_ISI` / `_KPI` | 28 / 14,5 / 40px | Panel admin |
+| Admin | Skala dewasa yang sama | Judul 22–26 / isi 16 / statistik 24px | Tidak punya skala tersendiri |
 | Cetak | `UKURAN_BADAN_CETAK` | 10,5pt | Lembar A4 |
 
 `LINE_HEIGHT` 1,55 untuk badan. Judul anak/murid dan landing memakai skala Stitch
@@ -197,7 +201,9 @@ rem/px (`font-size` dan shorthand `font:`) di dalam string Python berada di luar
 `test_type_scale.py` mengunci jumlah per berkas: literal di luar skala tidak boleh
 bertambah, dan setiap pengurangan wajib menurunkan `BATAS`.
 Menyamakan sisa literal itu ke skala adalah perubahan visual dan dikerjakan bertahap
-per permukaan dengan render, bukan sapuan massal.
+per permukaan dengan render, bukan sapuan massal. Admin kini tanpa literal ukuran
+font dan radius; tujuh penyimpangan tipenya sudah dihapus. Dua judul promosi40px
+non-admin tetap dalam cakupan ratchet lama agar restyle admin tidak mengubahnya.
 
 ## Jarak, radius, wadah, breakpoint
 
@@ -215,7 +221,9 @@ mengikat tinggi/font ke skala jarak.
 | `RADIUS_SEDANG` | 10px | Tombol dan input Stitch |
 | `RADIUS_KECIL` | 8px | Catatan, input kecil |
 | `RADIUS_PIL` / `RADIUS_BULAT` | 999px / 50% | Chip, pill / nomor bulat |
-| `ADMIN_RADIUS` / `ADMIN_RADIUS_KONTROL` | 16px / 10px | Kartu / kontrol admin |
+
+Admin memakai radius bersama: kartu utama22px, kartu layanan/menu12px, kontrol10px,
+dan pil999px; tidak ada token radius khusus admin.
 
 Breakpoint: `BATAS_HP` 30rem, `BATAS_KOLOM_BACA` 46rem, `BATAS_TABLET` 48rem,
 `MULAI_DESKTOP` 64rem, `ANAK_BATAS_HP` 43,75rem; admin memakai ≤820px lokal. Kondisi
@@ -231,7 +239,7 @@ harus mati saat cetak serta `prefers-reduced-motion`.
 | Token | Nilai | Pakai untuk |
 | --- | --- | --- |
 | `TINGGI_CTA` | 52px | CTA utama halaman |
-| `TINGGI_KONTROL` | 48px | Tombol form, input teks, select, textarea, input berkas di permukaan keluarga/murid |
+| `TINGGI_KONTROL` | 48px | Tombol form, input teks, select, textarea, input berkas di keluarga/murid/admin |
 | `TARGET_SENTUH` | 44px | Tautan, `summary`, chip/pill, nav, baris daftar, label centang, tombol ikon inset (mata sandi), tombol kecil, topbar |
 
 `TINGGI_KONTROL` dipakai tombol dan input form di Stitch, akun, profil (filter, pilihan
@@ -248,7 +256,12 @@ textarea dasar `GAYA_GURU` yang tidak ditimpa aturan lebih spesifik. Tab profil 
   Pendamping, `.tombol-kecil-st`, dan `.tombol-mata` (inset);
 - tombol sekunder ringkas yang juga dipakai sebagai tautan: `.kerja-btn-sekunder-st`
   (halaman murid) dan tombol kelola tautan `.aksi-bagikan-st button` (profil);
-- seluruh admin (panel padat; keputusan audit admin 25 Okt).
+- nav, tautan tabel, disclosure, tombol mata sandi dan kontrol topbar admin.
+
+Form/input/tombol aksi/tab admin mengikuti `TINGGI_KONTROL`48px. Toolbar memakai
+aksi Cari/Terapkan sekunder, aksi pembuatan utama. Form akun/siswa pendek memakai
+`.admin-form-pendek` dengan `LEBAR_KONTEN`46rem; daftar/tabel tetap kanvas fluida.
+Pencarian privat tetap POST, form dan guard server tidak diubah oleh presentasi.
 
 Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px.
 
@@ -288,7 +301,7 @@ Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px.
 | Header | `.st-topbar`, `.menu-pengguna` | `style_stitch.py`, `child_header.py` | Peran + nama dalam satu menu native; satu form Keluar |
 | Bar simpan | `.kerja-simpan-strip-st`, `.koreksi-simpan-st` | `style_stitch.py` | Mengikuti aliran form, tidak menutupi kontrol, tidak menggandakan CTA |
 | Banner peringatan cetak | `.mesin-banner` | `screen_style.py`, `print_style.py` | Radius 12px |
-| Admin | `.admin-kartu`, `.admin-tombol`, `.admin-bahaya`, `.admin-chip`, `.admin-tab`; `admin_komponen.py` | `admin_style.py` | Token `ADMIN_*`, 44px, tema terang/gelap |
+| Admin | `.admin-kartu`, `.admin-tombol`, `.admin-bahaya`, `.admin-chip`, `.admin-tab`, `.admin-form-pendek`; `admin_komponen.py` | `admin_style.py` | Fondasi bersama, kontrol48px/target44px, adapter tema terang/gelap |
 | Pendamping | `.pendamping-tombol`, `.pendamping-tautan` | `assistant_style.py` | Kontrak izin/memori di [runtime Pendamping](pendamping-runtime.md) |
 
 Lembar anak (`/lembar/<id>`) tidak boleh memuat kunci; lembar penilaian memuatnya.
@@ -369,7 +382,7 @@ Membuka kembali salah satunya memerlukan keputusan produk baru.
 | Ikon, jumlah pesan, dan rentang tanggal di daftar chat Pendamping | Tidak diadopsi | Daftar sengaja hanya metadata minimal; jumlah/rentang butuh query turunan isi percakapan, ikon tidak menambah makna. Pengelompokan per tanggal tetap |
 | Meter "0/12 karakter" dan chip paket di header | Tetap tidak diadopsi | Butuh JavaScript baru dan data langganan di header (keputusan 22 Okt) |
 | Satu konfigurasi pemuatan font | Tetap per halaman | Halaman privat tanpa aset jaringan; sumber font mengikuti CSP masing-masing |
-| Admin ikut 48px | Tidak | Panel padat 44px sesuai audit admin 25 Okt |
+| Admin satu design system | Disetujui pengguna setelah audit lanjutan | Menggantikan pengecualian palet/skala admin25 Okt: token terang, logo, tipe, radius, spacing dan kontrol48px bersama; sidebar/tabel serta adapter gelap tetap |
 | Lembar latihan ikut teal tunggal | Ditunda | Lembar dibekukan gate rilis question pair; perlu pembaruan pasangan recovery tersendiri |
 | Sisa literal `font-size` di luar skala | Bertahap | Dikunci ratchet `test_type_scale.py`; tiap penyamaan dirender per permukaan |
 

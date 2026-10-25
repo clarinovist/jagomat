@@ -125,12 +125,12 @@ def _bar_cari(
         '<input type="hidden" name="csrf" value="%s">%s'
         '<label class="admin-cari"><span class="admin-sr">%s</span>'
         '<input name="cari" maxlength="80" value="%s" autocomplete="off" placeholder="%s"></label>'
-        '<button class="admin-tombol" type="submit">Cari</button></form>%s</div>'
+        '<button class="admin-tombol admin-tombol-sekunder" type="submit">Cari</button></form>%s</div>'
         % (id_form, kelas, e(section), e(csrf), tersembunyi, e(label), e(cari), e(label), aksi)
     )
     panel = (
         '<details class="admin-filter-lanjutan"%s><summary>Filter lanjutan</summary><div>%s'
-        '<button class="admin-tombol" type="submit" form="%s">Terapkan</button></div></details>'
+        '<button class="admin-tombol admin-tombol-sekunder" type="submit" form="%s">Terapkan</button></div></details>'
         % (" open" if terbuka else "", lanjutan.replace("<select ", '<select form="%s" ' % id_form), id_form)
     )
     return kepala_cari(pencarian) + panel

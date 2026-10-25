@@ -364,6 +364,7 @@ def test_mark_dipakai_di_semua_permukaan_brand(server):
         ("/daftar", None),
         ("/", ("guru", SANDI_GURU)),
         ("/murid", ("feby", SANDI_MURID)),
+        ("/admin", ("pengelola-brand", "sandi-brand-sintetis-123")),
     )
     for jalur, kred in permukaan:
         kode, isi, _ = server.minta(jalur, auth=kred)

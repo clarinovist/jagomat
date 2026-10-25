@@ -184,11 +184,12 @@ def halaman_admin(
 <style>{GAYA_ADMIN}</style></head>
 <body class="admin-readonly" data-tema="{tema}"><a class="admin-lompat" href="#konten-admin">Lewati navigasi</a>
 <div class="admin-bungkus"><div class="admin-layout"><aside class="admin-sidebar">
-<a class="admin-brand" href="/admin"><span class="admin-brand-mark" aria-hidden="true">J</span>
+<a class="admin-brand" href="/admin">{brand.mark('topbar')}
 <span><strong>{_e(T.NAMA_PRODUK)}</strong><small>Panel Pengelola</small></span></a>
 <nav class="admin-nav admin-menu" aria-label="Bagian panel pengelola">{_nav(section, sinyal)}</nav>
 </aside>
 <section class="admin-utama"><header class="admin-topbar">
+<a class="admin-brand admin-brand-mobile" href="/admin">{brand.mark('topbar')}<strong>{_e(T.NAMA_PRODUK)}</strong></a>
 <details class="admin-nav-mobile"><summary><span>Menu pengelola</span><strong>{_e(_label_section(section))}</strong>{_badge_mendesak(sinyal)}</summary>
 <nav class="admin-menu" aria-label="Bagian panel pengelola seluler">{_nav(section, sinyal)}</nav></details>
 <details class="menu-pengguna"><summary>{_e(pengguna)} <span class="admin-badge">Pengelola</span></summary>
@@ -414,7 +415,7 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
 def form_buat_keluarga(csrf: str, token: str) -> str:
     return (
         '<p><a class="admin-tautan" href="/admin?section=keluarga">← Kembali ke daftar keluarga</a></p>'
-        '<section class="admin-kartu"><h2>Buat akun orang tua</h2>'
+        '<section class="admin-kartu admin-form-pendek"><h2>Buat akun orang tua</h2>'
         '<p class="admin-meta">Alias baru tidak boleh mengambil alih keluarga lama.</p>'
         '<form method="post" action="/admin/akun">'
         '<input type="hidden" name="aksi" value="account_teacher_create">'
@@ -480,13 +481,13 @@ def form_tindakan_akun(
             % (_e(konsekuensi), judul, target, 'Orang Tua' if peran == 'guru' else 'Murid',
                _e(konsekuensi), rekap, _e(csrf), _e(tokens["account_login_delete"]), _e(kembali), judul)
         )
-    return '<section class="admin-kartu admin-form-tindakan"><h2>Tindakan akun</h2>%s</section>' % "".join(bagian)
+    return '<section class="admin-kartu admin-form-tindakan admin-form-pendek"><h2>Tindakan akun</h2>%s</section>' % "".join(bagian)
 
 
 def form_kelas_sekolah(data: Q.DetailSiswa, csrf: str, token: str) -> str:
     """Aksi baru metadata, bukan form ubah level warisan."""
     return (
-        '<section class="admin-kartu"><h2>Ubah kelas sekolah</h2>'
+        '<section class="admin-kartu admin-form-pendek"><h2>Ubah kelas sekolah</h2>'
         '<p id="keterangan-kelas">%s</p>'
         '<form method="post" action="/admin/siswa">'
         '<input type="hidden" name="csrf" value="%s">'
@@ -510,7 +511,7 @@ def form_tindakan_siswa(data: Q.DetailSiswa, csrf: str, token_level: str, token_
         ) for nilai in ("P3", "P4", "P5", "P6")
     )
     hasil = (
-        '<section class="admin-kartu admin-form-tindakan"><h2>Tindakan siswa</h2>'
+        '<section class="admin-kartu admin-form-tindakan admin-form-pendek"><h2>Tindakan siswa</h2>'
         '<form method="post" action="/admin/siswa">'
         '<input type="hidden" name="aksi" value="student_level_update">'
         '<input type="hidden" name="csrf" value="%s"><input type="hidden" name="tinjauan" value="%s">'
@@ -520,7 +521,7 @@ def form_tindakan_siswa(data: Q.DetailSiswa, csrf: str, token_level: str, token_
         % (_e(csrf), _e(token_level), level)
     )
     if not token_level:
-        hasil = '<section class="admin-kartu admin-form-tindakan"><h2>Tindakan siswa</h2>'
+        hasil = '<section class="admin-kartu admin-form-tindakan admin-form-pendek"><h2>Tindakan siswa</h2>'
     if token_login:
         hasil += (
             '<form method="post" action="/admin/akun"><h3>Pulihkan login murid</h3>'
@@ -537,7 +538,7 @@ def form_tindakan_siswa(data: Q.DetailSiswa, csrf: str, token_level: str, token_
 
 def form_hapus_siswa(csrf, token):
     return (
-        '<section class="admin-kartu"><h2>Hapus profil siswa kosong</h2>'
+        '<section class="admin-kartu admin-form-pendek"><h2>Hapus profil siswa kosong</h2>'
         '<p>Hanya profil tanpa riwayat atau referensi terlindungi yang boleh dihapus. Pemeriksaan diulang saat konfirmasi.</p>'
         '<form method="post" action="/admin/siswa" data-konfirmasi="Hapus login dan profil siswa kosong ini? Tindakan tidak dapat dibatalkan."><input type="hidden" name="aksi" value="student_delete">'
         '<input type="hidden" name="csrf" value="%s"><input type="hidden" name="tinjauan" value="%s">'

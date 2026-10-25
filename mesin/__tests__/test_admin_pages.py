@@ -233,10 +233,10 @@ def test_sidebar_dan_kartu_memakai_design_system_tanpa_js_baru():
     import design_tokens as T
     isi = pages.halaman_admin('ringkasan', '', pengguna='Pengelola Demo').decode()
     assert 'class="admin-alis">Pusat kendali' not in isi
-    assert 'admin-brand-mark' in isi
+    assert '/aset/mark-sederhana.svg' in isi
+    assert 'admin-brand-mark' not in isi
     assert 'admin-antrean' in admin_style.GAYA_ADMIN
-    assert T.FONT_BODY in admin_style.GAYA_ADMIN
-    assert T.FONT_HEADLINE in admin_style.GAYA_ADMIN
+    assert T.FONT_LAYAR in admin_style.GAYA_ADMIN
     assert 'overflow-x: hidden' not in admin_style.GAYA_ADMIN
     # Palang specificity: judul prioritas tetap memakai aturan komponennya.
     assert '.admin-kartu.admin-prioritas h2 {' in admin_style.GAYA_ADMIN

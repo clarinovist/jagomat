@@ -1,5 +1,11 @@
 # Audit ulang UI/UX admin — 25 Oktober 2026
 
+**Pembaruan setelah audit lanjutan:** pengguna meminta satu design system Jagomat.
+Pengecualian palet/skala/44px seluruh admin di catatan historis berikut telah
+digantikan oleh [fondasi bersama](design-system.md#warna); rincian verifikasi
+implementasi lokal ada di [bagian akhir](#penyatuan-fondasi-admin-dengan-jagomat).
+Catatan deployment di bawah tetap milik artifact audit sebelumnya, bukan restyle baru.
+
 Acuan: [design system](design-system.md), `design_tokens.py` (`ADMIN_*`) dan
 komponen server-side yang aktif. Ini penyelarasan, bukan desain baru. Admin tetap
 font sistem, teal/netral, sidebar256px, kartu16px dan tema Sistem/Terang/Gelap.
@@ -89,3 +95,36 @@ milik tugas sudah dibersihkan. Ini bukan walkthrough akun keluarga nyata.
 
 `docs/spec.md` dan `docs/context.md` diperiksa: kontrak produk dan arsitektur tetap;
 hanya tautan referensi audit admin ditambahkan pada konteks/desain.
+
+## Penyatuan fondasi admin dengan Jagomat
+
+Implementasi lokal mengikuti permintaan pengguna: admin adalah varian layout,
+bukan sistem desain terpisah. Seluruh31 warna terang `ADMIN_*_CERAH` kini alias
+token dasar/profil; tidak menambah hex. Skala tipe/radius admin dihapus: body16,
+judul22–26, bagian18, angka24, kartu22/kecil12, kontrol10 dan48px. Tujuh literal
+tipe di luar skala hilang; spacing mengikuti skala bersama. Adapter gelap existing,
+sidebar256px, tabel scroll internal dan kontrol topbar/nav44px tetap.
+
+- Logo memakai mark lokal bersama, terlihat satu kali per viewport. HP memakai
+  logo + akun satu baris dan menu di bawah; nama panjang tetap membungkus.
+- Form akun/siswa pendek dibatasi46rem; tabel tetap fluida. Cari/Terapkan sekunder,
+  pembuatan akun utama; routes/field/CSRF/reauth/konfirmasi dan POST tidak berubah.
+- Guard alias/tipografi/radius/logo ditambahkan, test brand HTTP mencakup `/admin`.
+  Peta peran/kontras juga mencakup brand, fokus dan badge admin terang/gelap.
+- **451 tes scoped lulus** (19,27s, Python3.9.6, warning-as-error), kompilasi12 berkas
+  lulus. Semua token non-admin identik baseline`10a48a7`; lembar tidak direstyle.
+- **510 render final**:51 halaman/state x320/375/768/1024/1440 xterang/gelap, seluruh
+  respons200; tanpa overflow dokumen, kontrol kecil pada pemindai, field tanpa label
+  atau input di bawah16px. DOM form: input48px, radius10px, kartu22px, maks736px.
+- Keyboard skip/nav/tabel, tiga pilihan tema, mata sandi, pembatalan hapus,
+  pencarian POST dan fallback tanpa JS lulus. Stress teks200% pada4 halaman tidak
+  overflow. Print menimpa tema gelap ke cream dan menyembunyikan shell; reduced
+  motion tanpa animasi/transisi. Screenshot sintetis ditinjau, estimasi visual
+  diperiksa kembali dengan DOM (bukan klaim ukuran berdasarkan gambar saja).
+
+Bukti lokal di `/tmp/jagomat-admin-shared-PJ7oj7/`: log, metrics, screenshot,
+interactions/probe dan katalog hidup. Review mandiri, bukan reviewer independen.
+`docs/context.md` dan kontrak desain diperbarui; `docs/spec.md` tidak terdampak
+karena fitur/akses tetap. Full suite/CI dan deploy belum dilakukan untuk restyle
+ini; perlu gate exact sebelum rilis. Safari/iOS/perangkat fisik, screen reader,
+forced-colors OS dan seluruh state produksi belum diverifikasi.

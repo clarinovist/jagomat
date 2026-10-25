@@ -13,13 +13,11 @@ TOKEN_SKALA = (
     "UKURAN_TEKS_META", "UKURAN_TEKS_CATATAN", "UKURAN_TEKS_LABEL", "UKURAN_TEKS_BANTUAN",
     "UKURAN_BADAN_LAYAR", "UKURAN_BAGIAN_DEWASA", "UKURAN_ANGKA_DEWASA",
     "UKURAN_JUDUL_STITCH", "UKURAN_BAGIAN_STITCH",
-    "ADMIN_UKURAN_ISI", "ADMIN_UKURAN_JUDUL", "ADMIN_UKURAN_KPI",
 )
 
 # Baseline 25 Okt 2026: 293 dari 444 deklarasi literal rem/px di luar skala.
 # Turunkan angka ini setiap kali literal diganti token/nilai skala; jangan naikkan.
 BATAS = {
-    "admin_style.py": 7,
     "assistant_style.py": 4,
     "attachments.py": 10,
     "bootstrap_research.py": 1,
@@ -48,6 +46,10 @@ def _px(angka, satuan):
 
 
 SKALA_PX = frozenset(_px(*re.fullmatch(r"(\d*\.?\d+)(rem|px)", getattr(T, t)).groups()) for t in TOKEN_SKALA)
+# Dua judul promosi 40px sudah diizinkan sebelum skala admin dihapus.
+# Pertahankan cakupan ratchet permukaan lain tanpa mengubah tampilannya.
+# Ini bukan token/skala admin; test_admin_shared_design menolak literal admin.
+SKALA_RATCHET_PX = SKALA_PX | {40.0}
 
 
 def _isi_string(teks):
@@ -66,7 +68,7 @@ def hitung_di_luar_skala(akar=ROOT):
     for path in sorted(akar.glob("*.py")):
         if path.name == "design_tokens.py":
             continue
-        n = sum(1 for a, s in POLA.findall(_isi_string(path.read_text())) if _px(a, s) not in SKALA_PX)
+        n = sum(1 for a, s in POLA.findall(_isi_string(path.read_text())) if _px(a, s) not in SKALA_RATCHET_PX)
         if n:
             hasil[path.name] = n
     return hasil

@@ -176,6 +176,17 @@ def _permukaan_admin(tema):
         _teks(teks_aksi, sisi("aksi_utama_hover", "AKSEN_TEKS", ".admin-tombol:hover", "background")),
         _grafis(batas, kartu),
         _grafis(batas, halaman),
+        _grafis(sisi("fokus", "AKSEN", ":focus-visible", "outline"), halaman),
+        _teks(sisi("brand", "AKSEN", ".admin-brand", "color"), kartu),
+    ) + tuple(
+        _teks(sisi("badge_" + nama + "_teks", awalan + "_TEKS", selektor, "color"),
+              sisi("badge_" + nama + "_latar", awalan + "_LATAR", selektor, "background"))
+        for nama, awalan, selektor in (
+            ("netral", "NETRAL", ".admin-badge"),
+            ("baik", "BAIK", ".admin-badge.bien"),
+            ("perhatian", "PERHATIAN", ".admin-badge.perhatian"),
+            ("batal", "BAHAYA", ".admin-badge.batal"),
+        )
     )
 
 

@@ -49,6 +49,8 @@ def test_menu_hp_disclosure_dapat_digulir():
 
 def _kontras(teks, latar):
     def luminansi(warna):
+        if len(warna) == 4:
+            warna = '#' + ''.join(kanal * 2 for kanal in warna[1:])
         kanal = [int(warna[i:i + 2], 16) / 255 for i in (1, 3, 5)]
         kanal = [v / 12.92 if v <= .04045 else ((v + .055) / 1.055) ** 2.4 for v in kanal]
         return .2126 * kanal[0] + .7152 * kanal[1] + .0722 * kanal[2]

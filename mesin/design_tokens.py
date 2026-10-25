@@ -11,7 +11,8 @@ latar, teks, aksi, batas kontrol, fokus) dipetakan di design_roles.py.
 - Dasar hangat (cream LATAR_MURID + teal/coral/amber AKSEN_*, teks TEKS_*):
   landing, masuk, akun, tinjauan, Pendamping, murid.
 - Profil anak dan beranda guru: ANAK_* (child_*_style.py, .guru-beranda-st).
-- Panel pengelola: ADMIN_* dengan pasangan *_CERAH/*_GELAP, sengaja terisolasi.
+- Panel pengelola: tema terang memakai alias token keluarga; ADMIN_* hanya
+  adapter warna untuk tema server-side, ukuran/komponen mengikuti skala bersama.
 - Cetak A4: CETAK_* hemat tinta, terpisah dari tema layar; lembar layar
   memakai LEMBAR_AKSEN yang dibekukan gate rilis.
 - Geometri SVG soal (POLA_/STAT_/GEO_/RUANG_/...): satuan viewBox, bukan UI.
@@ -497,40 +498,75 @@ AKUN_JARAK_BLOK = ".8rem"
 DURASI_CEPAT = "0.15s"
 DURASI_STANDAR = "0.35s"
 
-# Panel pengelola: palet terisolasi dari permukaan keluarga dan murid.
-# Alias semantik ADMIN_* dipakai stylesheet sebagai custom property. Nilai
-# cerah tetap sama; varian gelap aktif hanya mengikuti preferensi perangkat.
-ADMIN_LATAR_CERAH = "#F6F8F8"
-ADMIN_PERMUKAAN_CERAH = "#FFFFFF"
-ADMIN_BORDER_CERAH = "#E4E8E8"
-ADMIN_BORDER_KUAT_CERAH = "#7C8B88"  # Batas kontrol ≥3:1 terhadap latar/permukaan.
-ADMIN_PEMISAH_CERAH = "#EEF1F1"
-ADMIN_TEKS_CERAH = "#14201F"
-ADMIN_REDUP_CERAH = "#5B6866"
-ADMIN_AKSEN_CERAH = "#0B7A75"
-ADMIN_AKSEN_TEKS_CERAH = "#075E5A"
-ADMIN_AKSEN_LATAR_CERAH = "#E3F3F1"
-ADMIN_AKSEN_BORDER_CERAH = "#9ED3CE"
-ADMIN_BAIK_LATAR_CERAH = "#E4F5EC"
-ADMIN_BAIK_TEKS_CERAH = "#12663A"
-ADMIN_PERHATIAN_LATAR_CERAH = "#FFF1D6"
-ADMIN_PERHATIAN_TEKS_CERAH = "#7A4B00"
-ADMIN_BANNER_LATAR_CERAH = "#FFF8E8"
-ADMIN_BANNER_BORDER_CERAH = "#F1D9A0"
-ADMIN_BANNER_TEKS_CERAH = "#5C3A00"
-ADMIN_BAHAYA_LATAR_CERAH = "#FDECEA"
-ADMIN_BAHAYA_BORDER_CERAH = "#F3B8B2"
-ADMIN_BAHAYA_TEKS_CERAH = "#7F1D1D"
-ADMIN_BAHAYA_TOMBOL_CERAH = "#B42318"
-ADMIN_NETRAL_LATAR_CERAH = "#F0F3F3"
-ADMIN_NETRAL_TEKS_CERAH = "#3E4B49"
-ADMIN_HOVER_CERAH = "#FAFBFB"
-ADMIN_NAV_HOVER_CERAH = "#EDF1F1"
-ADMIN_URGEN_TITIK_CERAH = "#C62828"
-ADMIN_URGEN_TEKS_CERAH = "#9B1C1C"
-ADMIN_AKSEN_PERHATIAN_CERAH = "#B45309"
-ADMIN_BAIK_TITIK_CERAH = "#1E8E5A"
-ADMIN_NETRAL_TITIK_CERAH = "#8A9694"
+# Profil anak (/anak/{id}) dan beranda guru — selaras mockup docs/mockup;
+# dipakai child_*_style.py, child_header.py, mastery_report.py, style_stitch.py.
+ANAK_LEBAR = "60rem"            # 960px lebar isi, sama di keempat tab
+ANAK_GUTTER = "2rem"            # 32px sisi; 1rem di layar sempit
+ANAK_TEKS = TEKS_JUDUL
+ANAK_TEKS_REDUP = "#3F4654"
+ANAK_TEKS_BANTUAN = "#4B5563"
+ANAK_AKSEN = AKSEN_TEAL_TUA
+ANAK_AKSEN_HOVER = AKSEN_TEAL_HOVER
+ANAK_AKSEN_LATAR = "#E6F2EF"    # pilihan aktif, banner tautan
+ANAK_BORDER = "#EADFCB"
+ANAK_BORDER_PIL = "#D8CDB6"
+ANAK_ABU_HANGAT = "#F4F1EA"     # kotak angka, blok cara
+ANAK_PERHATIAN_LATAR = "#FEF0D0"
+ANAK_PERHATIAN_TEKS = "#6B3F00"
+ANAK_PERHATIAN_BORDER = "#E3B15A"   # tepi kartu anak yang menunggu tindakan guru
+ANAK_BAIK_LATAR = "#DDF1E4"
+ANAK_BAIK_TEKS = TEKS_TERSIMPAN
+ANAK_NETRAL_LATAR = "#ECE7DA"
+ANAK_NETRAL_TEKS = ANAK_TEKS_REDUP
+ANAK_BATAS_HP = "43.75rem"      # 700px
+ANAK_INFO_LATAR = "#E4E9F5"
+ANAK_INFO_TEKS = "#1E3A8A"
+ANAK_STATUS_DIPELAJARI = "#3F7FD1"  # bar status peta materi; biru agar tak sama dengan amber butuh tindakan
+ANAK_STATUS_PERLU_CEK = "#B4423A"
+ANAK_STATUS_BELUM = "#DAD3C3"
+ANAK_LATAR_KARTU_HALUS = "#FFFDF9"   # kartu centang topik/remedial
+
+# Header /anak/<id>, canvas Header Jagomat Anak; tidak mengubah token bersama.
+ANAK_HEADER_BORDER_AKUN = "#E6D9C0"
+ANAK_HEADER_AVATAR_LATAR = "#D5ECEC"
+ANAK_HEADER_AVATAR_TEKS = AKSEN_TEAL_TUA
+ANAK_HEADER_META = "#556060"
+ANAK_HEADER_BAYANGAN = "0 3px 8px rgb(22 33 62 / 8%)"
+
+# Admin adalah layout dari design system yang sama. Tema terang hanya alias
+# token keluarga; custom property mempertahankan pilihan tema server-side.
+# Gelap adalah adapter warna existing, bukan skala/komponen tersendiri.
+ADMIN_LATAR_CERAH = LATAR_MURID
+ADMIN_PERMUKAAN_CERAH = LATAR_KARTU
+ADMIN_BORDER_CERAH = ANAK_BORDER
+ADMIN_BORDER_KUAT_CERAH = BORDER_KONTROL
+ADMIN_PEMISAH_CERAH = ANAK_BORDER
+ADMIN_TEKS_CERAH = TEKS_JUDUL
+ADMIN_REDUP_CERAH = TEKS_SUBTLE
+ADMIN_AKSEN_CERAH = AKSEN_TEAL_TUA
+ADMIN_AKSEN_TEKS_CERAH = AKSEN_TEAL_HOVER
+ADMIN_AKSEN_LATAR_CERAH = ANAK_AKSEN_LATAR
+ADMIN_AKSEN_BORDER_CERAH = BORDER_TERSIMPAN
+ADMIN_BAIK_LATAR_CERAH = ANAK_BAIK_LATAR
+ADMIN_BAIK_TEKS_CERAH = TEKS_TERSIMPAN
+ADMIN_PERHATIAN_LATAR_CERAH = ANAK_PERHATIAN_LATAR
+ADMIN_PERHATIAN_TEKS_CERAH = ANAK_PERHATIAN_TEKS
+ADMIN_BANNER_LATAR_CERAH = LATAR_CATATAN
+ADMIN_BANNER_BORDER_CERAH = BORDER_CATATAN
+ADMIN_BANNER_TEKS_CERAH = ANAK_PERHATIAN_TEKS
+ADMIN_BAHAYA_LATAR_CERAH = LATAR_GALAT
+ADMIN_BAHAYA_BORDER_CERAH = BORDER_GALAT
+ADMIN_BAHAYA_TEKS_CERAH = TEKS_GALAT
+ADMIN_BAHAYA_TOMBOL_CERAH = AKSEN_KORAL_TUA
+ADMIN_NETRAL_LATAR_CERAH = ANAK_NETRAL_LATAR
+ADMIN_NETRAL_TEKS_CERAH = ANAK_NETRAL_TEKS
+ADMIN_HOVER_CERAH = ANAK_LATAR_KARTU_HALUS
+ADMIN_NAV_HOVER_CERAH = ANAK_ABU_HANGAT
+ADMIN_URGEN_TITIK_CERAH = AKSEN_KORAL_TUA
+ADMIN_URGEN_TEKS_CERAH = TEKS_GALAT
+ADMIN_AKSEN_PERHATIAN_CERAH = AKSEN_AMBER_TUA
+ADMIN_BAIK_TITIK_CERAH = AKSEN_TEAL_TUA
+ADMIN_NETRAL_TITIK_CERAH = TEKS_SUBTLE
 
 ADMIN_LATAR_GELAP = "#0F1717"
 ADMIN_PERMUKAAN_GELAP = "#182222"
@@ -596,43 +632,3 @@ ADMIN_AKSEN_PERHATIAN = "var(--admin-aksen-perhatian)"
 ADMIN_BAIK_TITIK = "var(--admin-baik-titik)"
 ADMIN_NETRAL_TITIK = "var(--admin-netral-titik)"
 ADMIN_SIDEBAR = "256px"
-ADMIN_RADIUS = "16px"
-ADMIN_RADIUS_KONTROL = "10px"
-ADMIN_UKURAN_ISI = "14.5px"
-ADMIN_UKURAN_JUDUL = "28px"
-ADMIN_UKURAN_KPI = "40px"
-
-# Profil anak (/anak/{id}) dan beranda guru — selaras mockup docs/mockup;
-# dipakai child_*_style.py, child_header.py, mastery_report.py, style_stitch.py.
-ANAK_LEBAR = "60rem"            # 960px lebar isi, sama di keempat tab
-ANAK_GUTTER = "2rem"            # 32px sisi; 1rem di layar sempit
-ANAK_TEKS = TEKS_JUDUL
-ANAK_TEKS_REDUP = "#3F4654"
-ANAK_TEKS_BANTUAN = "#4B5563"
-ANAK_AKSEN = AKSEN_TEAL_TUA
-ANAK_AKSEN_HOVER = AKSEN_TEAL_HOVER
-ANAK_AKSEN_LATAR = "#E6F2EF"    # pilihan aktif, banner tautan
-ANAK_BORDER = "#EADFCB"
-ANAK_BORDER_PIL = "#D8CDB6"
-ANAK_ABU_HANGAT = "#F4F1EA"     # kotak angka, blok cara
-ANAK_PERHATIAN_LATAR = "#FEF0D0"
-ANAK_PERHATIAN_TEKS = "#6B3F00"
-ANAK_PERHATIAN_BORDER = "#E3B15A"   # tepi kartu anak yang menunggu tindakan guru
-ANAK_BAIK_LATAR = "#DDF1E4"
-ANAK_BAIK_TEKS = TEKS_TERSIMPAN
-ANAK_NETRAL_LATAR = "#ECE7DA"
-ANAK_NETRAL_TEKS = ANAK_TEKS_REDUP
-ANAK_BATAS_HP = "43.75rem"      # 700px
-ANAK_INFO_LATAR = "#E4E9F5"
-ANAK_INFO_TEKS = "#1E3A8A"
-ANAK_STATUS_DIPELAJARI = "#3F7FD1"  # bar status peta materi; biru agar tak sama dengan amber butuh tindakan
-ANAK_STATUS_PERLU_CEK = "#B4423A"
-ANAK_STATUS_BELUM = "#DAD3C3"
-ANAK_LATAR_KARTU_HALUS = "#FFFDF9"   # kartu centang topik/remedial
-
-# Header /anak/<id>, canvas Header Jagomat Anak; tidak mengubah token bersama.
-ANAK_HEADER_BORDER_AKUN = "#E6D9C0"
-ANAK_HEADER_AVATAR_LATAR = "#D5ECEC"
-ANAK_HEADER_AVATAR_TEKS = AKSEN_TEAL_TUA
-ANAK_HEADER_META = "#556060"
-ANAK_HEADER_BAYANGAN = "0 3px 8px rgb(22 33 62 / 8%)"
