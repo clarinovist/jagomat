@@ -1,33 +1,22 @@
 """Design tokens — sumber tunggal untuk semua nilai visual aplikasi.
 
-Dipakai oleh screen_style.py, print_style.py, teacher_style.py, dan students.py
-(GAYA_STITCH). Tujuan: konsistensi antar-viewport (layar sentuh, cetak A4,
-dashboard guru) tanpa duplikasi nilai. Ubah di sini, efek ke semua permukaan.
+Modul lain merujuk `T.<TOKEN>`; hex/RGB literal di CSS dijaga
+`__tests__/test_ui_tokens.py`. Kontrak pemakaian (permukaan, aturan 48/44px,
+skala tipe, komponen) ada di docs/design-system.md; riwayat keputusan di
+docs/design-system-history.md.
 
-== Palet ==
+== Keluarga palet ==
 
-Sejak restyle 29 Agu 2026 seluruh permukaan (guru, murid, lembar) memakai
-SATU palet hangat dari mockup — cream #FFF8EE + teal #0FA3A3 + coral
-#FF6B5B + amber #FFB020. Yang dulu disebut "palet INTI" (biru tua #16213e +
-abu) kini hanya tersisa sebagai warna judul/teks (TEKS_JUDUL, BORDER_KUAT)
-dan garis cetak; latar semua halaman adalah LATAR_MURID.
-
-== Mockup ==
-
-9 mockup UI/UX ada di ~/Documents/osn-resources/referensi/desain-ui/:
-  - murid-sesiku.png, murid-kerjakan.png (mobile portrait)
-  - guru-masuk.png, guru-dashboard.png, guru-sesi.png, guru-laporan.png,
-    guru-akun.png (desktop landscape)
-  - guru-lembar-soal.png, guru-lembar-kunci.png (A4 portrait)
-
-Script generator (arsip lokal): ~/Documents/osn-resources/referensi/desain-ui/gen_guru.py (gpt-image-2 via chenzk.top).
-
-Permukaan guru diimplementasi di teacher_style.py (5 halaman layar); lembar di
-screen_style.py (browser) + print_style.py (kertas A4); murid di students.py.
+- Dasar hangat (cream LATAR_MURID + teal/coral/amber AKSEN_*, teks TEKS_*):
+  landing, masuk, ruang guru Stitch, akun, tinjauan, murid.
+- Profil anak dan beranda guru: ANAK_* (child_*_style.py, .guru-beranda-st).
+- Panel pengelola: ADMIN_* dengan pasangan *_CERAH/*_GELAP, sengaja terisolasi.
+- Cetak A4: CETAK_* hemat tinta, terpisah dari tema layar.
+- Geometri SVG soal (POLA_/STAT_/GEO_/RUANG_/...): satuan viewBox, bukan UI.
 """
 
 # ─────────────────────────────────────────────────────────────────────
-# Palet INTI (permukaan guru: dashboard, sesi, laporan, akun, cetak)
+# Geometri visual soal (SVG). Satuan koordinat viewBox, bukan token UI.
 # ─────────────────────────────────────────────────────────────────────
 
 # Ukuran diagram pertanyaan yang dibagikan seluruh permukaan.
@@ -197,6 +186,10 @@ SLOT_LABEL_JARAK = 19
 TIM_UJUNG_X = (65, 295)
 SUSUNAN_CATATAN_Y = 282
 
+# ─────────────────────────────────────────────────────────────────────
+# Palet dasar (nama lama "INTI"): judul/teks/garis, kartu, status bersama
+# ─────────────────────────────────────────────────────────────────────
+
 # Latar
 LATAR_INTI = "#f0f1f4"          # abu muda, badan halaman
 LATAR_KARTU = "#fff"            # putih, kartu/soal
@@ -213,7 +206,6 @@ BORDER_KUAT = "#16213e"
 # Aksen sekunder (catatan, penanda)
 LATAR_CATATAN = "#fff7e6"
 BORDER_CATATAN = "#ecd9a8"
-BINTANG = "#b8860b"             # challenge star (legacy gold)
 
 # Konfirmasi positif
 LATAR_TERSIMPAN = "#e8f6ec"
@@ -271,7 +263,8 @@ CHART_GRID = "#e2e6ef"
 CHART_AXIS = "#6f7690"
 
 # ─────────────────────────────────────────────────────────────────────
-# Palet MURID (permukaan murid: /murid, /murid/kerjakan)
+# Palet hangat (nama lama "MURID"): latar cream + aksen grafis seluruh
+# permukaan keluarga, bukan hanya /murid
 # ─────────────────────────────────────────────────────────────────────
 
 LATAR_MURID = "#FFF8EE"         # cream hangat
@@ -309,7 +302,7 @@ FONT_LAYAR = (
 )
 FONT_CETAK = '"Helvetica Neue", Arial, sans-serif'
 
-# Ukuran teks — skala modular 1.2x (lihat docs/design-system.md)
+# Ukuran teks dasar; skala tipe resmi di docs/design-system.md
 UKURAN_BADAN_LAYAR = "16px"
 UKURAN_BADAN_CETAK = "10.5pt"
 LINE_HEIGHT = "1.55"
@@ -388,9 +381,8 @@ FOKUS_AKSEN = "#0fa3a3"
 # teal-strong = AKSEN_TEAL_TUA, radius/lg 12 = RADIUS_KARTU,
 # radius/pill = RADIUS_PIL, size/touch-min 44 = TARGET_SENTUH).
 #
-# Sejak 25 Sep 2026 sebagian token blok ini sudah dipakai style_stitch.py
-# (radius kartu 22, tinggi CTA/kontrol, hover aksi); sisanya masih menunggu
-# penerapan. Rinciannya dicatat di docs/design-system.md.
+# Semua token blok ini sudah dipakai di CSS; aturan pemakaiannya di
+# docs/design-system.md.
 # ─────────────────────────────────────────────────────────────────────
 
 # Warna hover tombol solid (Figma action/*-hover) — lebih gelap dari dasarnya.
@@ -408,8 +400,8 @@ UKURAN_INFO = "18px"
 TARGET_INFO = TARGET_SENTUH  # area klik 44px; jejak layout tetap 26px lewat margin negatif
 LEBAR_TOOLTIP = "260px"
 
-# Radius kartu utama versi Figma (22px). Kode masih memakai RADIUS_KARTU 12px
-# di kartu; token ini belum diterapkan agar sinkron ini tidak mengubah tampilan.
+# Radius kartu konten utama versi Figma (22px); kontrol/penanda kecil tetap
+# RADIUS_KARTU 12px.
 RADIUS_KARTU_BESAR = "22px"
 
 # Tinggi kontrol & CTA (ukuran Figma: kontrol 48, CTA utama 52) + ikon standar.
@@ -489,7 +481,6 @@ AKUN_JARAK_BLOK = ".8rem"
 # prefers-reduced-motion wajib mematikannya di stylesheet.
 DURASI_CEPAT = "0.15s"
 DURASI_STANDAR = "0.35s"
-DURASI_LAMBAT = "0.6s"
 
 # Panel pengelola: palet terisolasi dari permukaan keluarga dan murid.
 # Alias semantik ADMIN_* dipakai stylesheet sebagai custom property. Nilai
@@ -596,10 +587,10 @@ ADMIN_UKURAN_ISI = "14.5px"
 ADMIN_UKURAN_JUDUL = "28px"
 ADMIN_UKURAN_KPI = "40px"
 
-# Halaman anak (/anak/{id}) — selaras mockup docs/mockup; hanya dipakai child_style.
+# Profil anak (/anak/{id}) dan beranda guru — selaras mockup docs/mockup;
+# dipakai child_*_style.py, child_header.py, mastery_report.py, style_stitch.py.
 ANAK_LEBAR = "60rem"            # 960px lebar isi, sama di keempat tab
 ANAK_GUTTER = "2rem"            # 32px sisi; 1rem di layar sempit
-ANAK_LATAR = "#FFF8F0"
 ANAK_TEKS = "#16213A"
 ANAK_TEKS_REDUP = "#3F4654"
 ANAK_TEKS_BANTUAN = "#4B5563"

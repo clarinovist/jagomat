@@ -1,629 +1,259 @@
 # Design system — Jagomat
 
-**Sumber nilai visual otoritatif: `mesin/design_tokens.py`.** Dokumen ini referensi
-naratif dan riwayat penerapan; nilai/cascade aktual harus dicek di source/DOM.
-Mockup lama di arsip lokal `../../osn-resources/referensi/desain-ui/`, sedangkan
-`docs/mockup/` memuat referensi empat tab profil. Keduanya bukan runtime aplikasi.
+Rujukan desain tunggal untuk UI Jagomat. Isinya **kontrak yang berlaku sekarang**.
+Catatan bertanggal dan alasan keputusan lama ada di
+[riwayat design system](design-system-history.md).
 
-## Kontrak visual saat ini — 25 Oktober 2026
+## Sumber kebenaran
 
-- Audit admin25Oktober menyelaraskan target sentuh44px, fokus keyboard, state
-  disabled/read-only, zona destruktif, menu seluler dan cetak. Border kontrol terang
-  `ADMIN_BORDER_KUAT_CERAH` #7C8B88 memenuhi ≥3:1 terhadap permukaan/latar; border
-  kartu tidak berubah. Checkbox biasa netral, bukan peringatan amber. [Cakupan dan
-  bukti audit admin](admin-ui-audit.md); bukan sertifikasi aksesibilitas semua perangkat.
-- Guru/profil memakai cream/teal sesuai komponen aktif; admin mempunyai token
-  `ADMIN_*`, font sistem dan tema Sistem/Terang/Gelap tersendiri. Bukan satu
-  latar/font identik di semua permukaan. Akun memakai font sistem; beranda guru
-  mempertahankan Google Fonts existing melalui CSP khususnya.
-- Empat tab profil dan laporan lama berbagi lebar isi960px `ANAK_LEBAR`/`child_style.py`.
-  Wadah lain mengikuti fungsi halaman, bukan semua960px. Tab HP utuh pada320px dengan
-  target48px; kontrol teks editorial/admin16px. [Audit lintas halaman](ui-consistency-audit.md)
-  mencatat perbaikan, ukuran DOM, cakupan dan batas perangkat.
-- State langka25Oktober: filter privat tetap dapat dilepas lewat POST, detail admin
-  berbagi region scroll/fokus, feedback foto menuju target terlihat dan galat berbeda
-  dari sukses. Retry AI memakai peringatan+checkbox native sebelum mengganti isian
-  belum diterapkan, bukan autosave. Rincian di [audit](ui-consistency-audit.md#putaran-tambahan--25-oktober-2026).
-- Orang dewasa di UI guru disebut Guru/Anda; Pendamping nama fitur AI. Peringatan
-  draf playbook tetap terlihat saat disclosure tertutup.
-- Area sentuh Info dan kontrol terkait44px; teks informatif pada permukaan yang
-  diperbaiki22Oktober minimal14px. Token meta legacy12/13px masih ada; jangan
-  mengklaim semua UI sudah memakai ukuran baru atau semua token diganti global.
-- Tinjauan memakai enhancement accordion berhash CSP dengan fallback native;
-  menyembunyikan panel tidak men-disable field. Penilaian/konfirmasi tetap server-side.
-- Ruang guru (`/guru`) diselaraskan 22 Oktober dengan artboard `mockup/Guru.dc.html`
-  (kartu aksi, chip berhitungan, penjelasan daftar sebagai teks terlihat, bukan tooltip
-  ⓘ seperti keputusan 26 Sep). Penyimpangan disengaja: judul hero tetap skala dewasa
-  (`UKURAN_JUDUL_DEWASA`, bukan 38px mockup); chip tetap tautan GET `aria-current` (bukan tombol
-  `aria-pressed`) dengan filter instan berhash di atasnya (`guru_browser.py`); banner Riwayat tidak memakai "Mulai dari yang paling
-  lama" agar tidak menyiratkan urutan wajib. Warna dari token `ANAK_*`; avatar memilih
-  warna dari `id % 4`. Caption maskot "Satu langkah yang berarti." dihapus (23 Okt):
-  mengulang tagline hero dan hanya terbaca oleh mata (maskot `aria-hidden`). Empat tab `/anak` telah dirender ulang dengan data sintetis pada audit24Oktober.
-- Bagian bertanggal di bawah merekam keputusan saat itu, bukan override kontrak
-  terbaru. Pembaruan UI harus dirender dengan data sintetis dan diuji; mockup/teks
-  dokumentasi saja bukan bukti aksesibilitas atau penerimaan perangkat nyata.
+| Pertanyaan | Sumber |
+| --- | --- |
+| Nilai warna, ukuran, jarak, bayangan | `mesin/design_tokens.py` (`T.*`) |
+| Aturan pakai, komponen, keputusan | Dokumen ini |
+| Bukti audit dan batas perangkat | [Audit UI lintas halaman](ui-consistency-audit.md), [audit admin](admin-ui-audit.md) |
+| Alasan lama | [Riwayat](design-system-history.md), [keputusan redesain admin](redesign-decisions.md) |
+| Mockup | `docs/mockup/` (canvas profil/ruang guru 19 Okt 2026), arsip lokal `../osn-resources/referensi/desain-ui/` (PNG Agustus, pilot Figma 25 Sep) |
 
-## Satu palet hangat (restyle 29 Agu 2026)
+Urutan otoritas: **kode/DOM ter-render → dokumen ini → mockup**. Mockup adalah
+acuan desain, bukan runtime dan bukan bukti aksesibilitas. Perubahan UI tetap
+dirender dengan data sintetis sebelum diterima.
 
-Pada restyle 29 Agustus, permukaan guru, murid dan lembar cetak diarahkan ke
-palet hangat dari mockup; admin dan komponen baru kemudian memakai scope tersendiri.
-Keputusan awal ini diambil karena mockup guru
-(guru-*.png) semuanya dibangkitkan dengan palet yang sama dengan murid
-(cream + teal + coral + amber), sehingga memisahkan dua palet justru
-membuat halaman guru tidak cocok dengan desain yang sudah disetujui.
+## Prinsip
 
-### Palet INTI (biru tua #16213e + abu #f0f1f4)
+1. **Zero-JS default.** Interaksi memakai HTML native (`<details>`, form, tautan
+   GET). Enhancement hanya yang disetujui di `CLAUDE.md`, berhash CSP, dengan
+   fallback native utuh.
+2. **Satu aksi, satu entry point.** CTA atau form ganda untuk aksi yang sama adalah bug.
+3. **Makna selalu berteks.** Ikon dan warna mendukung, tidak menggantikan label aksi
+   atau status (status/badge selalu punya teks).
+4. **Terbaca dewasa.** Teks informatif minimal 14px; input teks 16px; target sentuh
+   minimal 44px.
+5. **Hanya token.** Tidak ada hex/RGB literal di CSS modul lain (dijaga
+   `test_ui_tokens.py`). Nilai baru masuk `design_tokens.py` dulu.
+6. **Palet per permukaan itu sengaja.** Tiap permukaan memakai keluarga tokennya
+   sendiri secara konsisten; jangan mencampur keluarga dalam satu komponen.
+7. **Sisi murid netral.** Anak hanya melihat tahap netral: tanpa kode diagnosis,
+   label kelemahan, kunci, malrule, atau alasan internal.
 
-Dipakai di: dashboard, sesi, laporan, akun, lembar cetak (5 mockup guru).
+## Permukaan
 
-| Token | Nilai | Konteks |
-|-------|-------|---------|
-| LATAR_INTI | #f0f1f4 | Badan halaman, abu muda netral |
-| LATAR_KARTU | #fff | Kartu soal, identitas |
-| LATAR_KARTU_SEKUNDER | #eef3fb | Petunjuk, kartu interaktif |
-| TEKS_UTAMA | #111 | Body text |
-| TEKS_JUDUL | #16213e | Heading, border, judul — biru tua |
-| TEKS_SUBTLE | #555 | Label, meta |
-| BORDER_HALUS | #d5d8de | Border kartu |
-| BORDER_INTERAKTIF | #c4d3ea | Border petunjuk |
-| LATAR_CATATAN | #fff7e6 | Catatan bagian |
-| BORDER_CATATAN | #ecd9a8 | Border catatan |
-| BINTANG | #b8860b | Challenge star (legacy gold) |
+| Permukaan | Rute contoh | Stylesheet utama | Token warna | Wadah isi |
+| --- | --- | --- | --- | --- |
+| Publik | `/`, `/masuk`, `/daftar`, legal, riset publik | `style_stitch.GAYA_STITCH`, `landing.py`, `competitive_research.py` | Dasar hangat | `LEBAR_LANDING` 75rem (landing), `LEBAR_KONTEN` 46rem |
+| Ruang guru | `/guru` | `GAYA_STITCH` (`.guru-beranda-st`) | `ANAK_*` + dasar | 46rem, kartu satu kolom |
+| Profil anak | `/anak/<id>` empat tab, laporan lama | `GAYA_STITCH` + `GAYA_PROFIL` + `child_style.GAYA_ANAK` | `ANAK_*` | `ANAK_LEBAR` 60rem isi, gutter 32/16px |
+| Akun | `/akun`, `/persetujuan` (tinjau), Data Pendamping | `account_style.GAYA_AKUN` (`.akun-editorial-st`) | Dasar hangat | 72rem dua kolom; 46rem (`.akun-sempit-st`) |
+| Tinjauan, cetak, lampiran | sesi guru, lampiran foto | `CSS_SESI`, `teacher_style.GAYA_GURU` | Dasar + `KODE_*` | Editorial 60rem termasuk padding |
+| Pendamping | panel inline, kelola | `assistant_style.GAYA_PENDAMPING` | Dasar hangat | Panel penuh di HP |
+| Murid | `/murid`, pengerjaan | `GAYA_STITCH` | Dasar hangat | Mobile-first, kolom 46rem di desktop |
+| Lembar | `/lembar/<id>`, penilaian | `screen_style.GAYA_LAYAR`, `print_style.GAYA_CETAK` | Dasar (layar), `CETAK_*` (kertas) | A4 |
+| Admin | `/admin/...` | `admin_style.GAYA_ADMIN` | `ADMIN_*` (`--admin-*`) | Sidebar 256px, kanvas fluida |
 
-Filosofi: biru tua (#16213e) sebagai warna otoritas — guru butuh konsentrasi,
-bukan semangat. Netral, terbaca lama, tidak melelahkan mata.
+Font: `FONT_HEADLINE` (Plus Jakarta Sans) dan `FONT_BODY` (Be Vietnam Pro) hanya
+tampil di halaman yang memasang webfont (publik, ruang guru Stitch, murid,
+lampiran). Halaman privat (`teacher_shell._halaman(privat=True)`, termasuk Akun)
+membuang `@import` webfont, dan Admin tidak memuatnya; keduanya jatuh ke font
+sistem lewat stack fallback. `FONT_CETAK` khusus A4. Jangan menambah atau menghapus
+sumber font tanpa memeriksa CSP halaman yang bersangkutan.
 
-> CATATAN (29 Agu 2026): token di atas masih ada untuk kompatibilitas dan
-> sebagai warna judul/teks/garis cetak, TETAPI bukan lagi palet latar default.
-> Foto yang benar: lihat bagian "Palet MURID" di bawah — semua halaman kini
-> berlatar LATAR_MURID (cream). Biru tua tersisa sebagai TEKS_JUDUL.
+## Warna
 
-### Palet MURID (permukaan semua halaman)
+### Keluarga palet
 
-Dipakai di: /murid, /murid/kerjakan (2 mockup murid) DAN semua halaman guru
-+ lembar cetak. Ini palet latar default seluruh aplikasi sejak restyle.
+**Dasar hangat** (publik, akun, tinjauan, Pendamping, murid, lembar layar):
 
-| Token | Nilai | Konteks |
-|-------|-------|---------|
-| LATAR_MURID | #FFF8EE | Cream hangat — badan halaman (guru & murid) |
-| AKSEN_MURID_UTAMA | #0FA3A3 | Teal — primary action, nomor badge |
-| AKSEN_MURID_KORAL | #FF6B5B | Coral — tombol simpan/CTA, headline kunci |
-| AKSEN_MURID_AMBER | #FFB020 | Amber — star/challenge, tombol variasi cerita |
-| LATAR_KARTU_MURID | #fff | Kartu soal |
+| Token | Nilai | Peran |
+| --- | --- | --- |
+| `LATAR_MURID` | #FFF8EE | Latar halaman (cream) |
+| `LATAR_KARTU` | #fff | Permukaan kartu |
+| `TEKS_UTAMA` / `TEKS_JUDUL` | #111 / #16213e | Badan / judul |
+| `TEKS_SUBTLE` / `TEKS_VARIAN` | #555 / #3d4949 | Teks sekunder |
+| `BORDER_VARIAN` / `BORDER_HALUS` | #bcc9c8 / #d5d8de | Garis kartu (dekoratif) |
+| `AKSEN_MURID_UTAMA` / `_KORAL` / `_AMBER` | #0FA3A3 / #FF6B5B / #FFB020 | Aksen **grafis**: border, ilustrasi, latar dengan teks gelap |
+| `AKSEN_TEAL_TUA` / `AKSEN_KORAL_TUA` | #0a7d7d / #cc3f2b | Aksen **berteks**: tautan, teks status, tombol solid berteks putih |
+| `AKSEN_TEAL_HOVER` / `AKSEN_KORAL_HOVER` | #0b7477 / #ba3c2d | Hover tombol solid |
+| `LATAR_GALAT` / `TEKS_GALAT` | #fdecea / #93352b | Galat |
+| `LATAR_TERSIMPAN` / `TEKS_TERSIMPAN` | #e8f6ec / #14532d | Sukses/tersimpan |
 
-Filosofi: hangat dan cerah untuk anak SD — dan, sesuai mockup, juga yang
-dipakai permukaan guru. Teal sebagai aksen utama (bukan biru tua) karena lebih
-ramah dan menos intimidating. Coral untuk CTA supaya menonjol dari teal.
+**Profil anak dan ruang guru** memakai `ANAK_*`: teks `ANAK_TEKS`, aksi
+`ANAK_AKSEN` #0F6B64 (teal lebih tua dari dasar, sesuai mockup 19 Okt), garis
+`ANAK_BORDER`, serta chip nada `ANAK_PERHATIAN_*`, `ANAK_BAIK_*`, `ANAK_NETRAL_*`,
+`ANAK_INFO_*`. Aksi utama profil memakai teal, bukan coral.
 
-### Status (diagnosis)
+**Admin** memakai alias semantik `ADMIN_*` yang menunjuk custom property
+`--admin-*`; nilainya dipasangkan dari `ADMIN_*_CERAH` dan `ADMIN_*_GELAP`. Tema
+Sistem mengikuti `prefers-color-scheme`; Terang/Gelap disimpan sebagai cookie
+`HttpOnly` dan diterapkan server-side lewat `data-tema`. Admin sengaja tidak
+di-alias ke token keluarga agar restyle salah satu tidak menyeret yang lain.
 
-Dari mockup guru-laporan, untuk diagram tren dan diagnosis.
+**Cetak** memakai `CETAK_*` (tinta hitam, garis abu, tanpa latar berwarna) agar
+tema layar tidak mengubah kertas.
 
-| Token | Nilai | Status |
-|-------|-------|--------|
-| STATUS_KUAT | #0FA3A3 | Teal — kuat |
-| STATUS_LEMAH | #FFB020 | Amber — lemah |
-| STATUS_SALAH | #FF6B5B | Coral — salah konsep |
+**Status dan diagnosis:** `STATUS_KUAT/LEMAH/SALAH` untuk grafik tren;
+`KODE_*_BG/_TEKS` untuk pill kode B/K/H/E/T/N di tinjauan guru. Pill kode tidak
+pernah tampil di sisi murid.
+
+### Aturan kontras
+
+| Pemakaian | Minimum |
+| --- | --- |
+| Teks normal | 4,5:1 |
+| Teks besar (≥24px, atau ≥18,66px tebal) | 3:1 |
+| Batas kontrol (input, select, checkbox) terhadap latar sekitarnya | 3:1 |
+| Indikator fokus | 3:1 |
+| Grafis yang membawa informasi | 3:1 |
+
+Aksen terang (`AKSEN_MURID_*`, `STATUS_*`) tidak dipakai untuk teks kecil atau
+sebagai latar teks putih. Rasio dihitung dengan luminansi relatif sRGB (WCAG), bukan
+selisih hex.
 
 ## Tipografi
 
-| Token | Nilai | Konteks |
-|-------|-------|---------|
-| FONT_LAYAR | -apple-system, "Segoe UI", Roboto, ... | Semua permukaan layar |
-| FONT_CETAK | "Helvetica Neue", Arial, sans-serif | Lembar cetak A4 |
-| UKURAN_BADAN_LAYAR | 16px | Body text layar |
-| UKURAN_BADAN_CETAK | 10.5pt | Body text cetak |
-| LINE_HEIGHT | 1.55 | Spacing baris |
+| Peran | Token | Nilai | Pakai untuk |
+| --- | --- | --- | --- |
+| Judul halaman dewasa | `UKURAN_JUDUL_DEWASA` | clamp 22–26px | h1 ruang guru, akun, laporan, Pendamping |
+| Judul bagian dewasa | `UKURAN_BAGIAN_DEWASA` | 18px | h2 dan judul kartu |
+| Angka statistik | `UKURAN_ANGKA_DEWASA` | 24px | Statistik, peta laporan, nominal |
+| Badan | `UKURAN_BADAN_LAYAR` | 16px | Body dan semua input teks |
+| Bantuan | `UKURAN_TEKS_BANTUAN` | 14,4px | Petunjuk dan teks bantuan |
+| Label | `UKURAN_TEKS_LABEL` | 14px | Label, chip, metadata informatif; **batas bawah teks informatif** |
+| Catatan | `UKURAN_TEKS_CATATAN` | 13px | Eyebrow kapital dekoratif saja |
+| Meta | `UKURAN_TEKS_META` | 12px | Warisan; jangan dipakai untuk informasi baru |
+| Admin | `ADMIN_UKURAN_JUDUL` / `_ISI` / `_KPI` | 28 / 14,5 / 40px | Panel admin |
+| Cetak | `UKURAN_BADAN_CETAK` | 10,5pt | Lembar A4 |
 
-Tabel ini merekam stack dasar/legacy. Admin dan Akun memakai font sistem;
-beberapa shell guru/public mempertahankan webfont existing. Jangan menghapus
-atau memperluas sumber font/CSP berdasarkan asumsi semua halaman sama.
+`LINE_HEIGHT` 1,55 untuk badan. Judul anak/murid dan landing memakai skala
+Stitch sendiri (`h1.st` 1,75rem, `h2.st` 1,25rem) karena audiensnya berbeda.
+`GAYA_TEKS_MIN` di `style_stitch.py` menaikkan teks informatif yang diketahui ke
+14px secara tersekop.
 
-### Skala layar dewasa (26 Sep 2026)
+## Jarak, radius, wadah, breakpoint
 
-Orang tua memakai hierarki lebih padat, bukan skala judul hero anak. Panel admin
-memakai varian scoped tanpa mengubah token permukaan lain. Tema cerah tetap
-berdasar `ADMIN_LATAR_CERAH` #F6F8F8, `ADMIN_TEKS_CERAH` #14201F,
-`ADMIN_AKSEN_CERAH` #0B7A75, dan `ADMIN_REDUP_CERAH` #5B6866. Tema gelap
-mengikuti `prefers-color-scheme: dark` perangkat secara otomatis, tanpa JavaScript.
-Menu pengelola juga menyediakan **Sistem / Terang / Gelap**; pilihan dikirim lewat
-form native dan disimpan sebagai cookie preferensi `HttpOnly` per browser pada path
-`/admin`. Sistem mengikuti perangkat, sedangkan Terang/Gelap menimpa media query
-melalui atribut `data-tema` server-side. `ADMIN_*` semantik merujuk CSS custom
-property yang dipasangkan ke token `*_CERAH`/`*_GELAP`. Palet status, form, kartu,
-tabel, sidebar, hover, dan fokus memiliki pasangan gelap serta diuji dengan kontras
-teks normal minimal 4,5:1.
+| Jarak | `SP_1` | `SP_2` | `SP_3` | `SP_4` | `SP_5` | `SP_6` | `SP_7` | `SP_8` |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Nilai | 4px | 8px | 12px | 16px | 24px | 32px | 48px | 64px |
 
-Hierarki tetap h1 28px, isi 14,5px, h2 18px, catatan 13px. Sidebar 256px datar,
-disclosure seluler ≤820px, kartu 16px, kontrol 10px/minimal 44px. Tabel nowrap
-pada header dan scroll internal; status berteks. ID tetap dapat disalin lengkap.
-Nilai ada di `design_tokens.py`, komponen pada `admin_style.py`. Detail
-penyimpangan mockup: [keputusan redesain](redesign-decisions.md).
+Pakai `SP_*` hanya bila nilainya persis sama; jangan membulatkan nilai lain atau
+mengikat tinggi/font ke skala jarak.
 
-Skala dewasa existing untuk permukaan lainnya:
+| Radius | Nilai | Pakai untuk |
+| --- | --- | --- |
+| `RADIUS_KARTU_BESAR` | 22px | Kartu konten utama |
+| `RADIUS_KARTU` | 12px | Menu dropdown, banner peringatan, kartu kecil |
+| `RADIUS_SEDANG` | 10px | Tombol dan input Stitch |
+| `RADIUS_KECIL` | 8px | Catatan, input kecil |
+| `RADIUS_PIL` / `RADIUS_BULAT` | 999px / 50% | Chip, pill / nomor bulat |
+| `ADMIN_RADIUS` / `ADMIN_RADIUS_KONTROL` | 16px / 10px | Kartu / kontrol admin |
 
-| Token | Nilai | Pemakaian |
-|-------|-------|-----------|
-| `UKURAN_JUDUL_DEWASA` | `clamp(1.375rem, 2.2vw, 1.625rem)` (22–26px) | Judul admin, beranda/profil/akun/laporan/koreksi orang tua, Pendamping |
-| `UKURAN_BAGIAN_DEWASA` | `1.125rem` (18px) | Judul bagian/kartu dewasa yang sebelumnya terlalu dominan |
-| `UKURAN_ANGKA_DEWASA` | `1.5rem` (24px) | Statistik, peta laporan, nominal langganan |
+Breakpoint: `BATAS_HP` 30rem, `BATAS_KOLOM_BACA` 46rem, `BATAS_TABLET` 48rem,
+`MULAI_DESKTOP` 64rem, `ANAK_BATAS_HP` 43,75rem; admin memakai ≤820px lokal. Kondisi
+`@media` memakai interpolasi Python, bukan `var()`. Breakpoint khusus komponen boleh
+tetap lokal.
 
-Ukuran body/menu existing tetap, input tidak diperkecil dari 16px, target sentuh
-44/48px tetap. Tidak mengubah akar `rem`, token global body, landing/login,
-halaman anak, isi soal, atau lembar cetak. Ukuran heading yang sudah lebih kecil
-tidak dibesarkan secara global; override HP lama yang membesarkan judul dibuang.
+Bayangan memakai deklarasi utuh `BAYANGAN_*`; varian yang ada sengaja tidak
+disamakan. Gerak memakai `DURASI_CEPAT` dan `DURASI_STANDAR`, hanya di layar, dan
+harus mati saat cetak serta `prefers-reduced-motion`.
 
-### Ruang orang tua dan Pendamping
+## Ukuran kontrol dan target sentuh
 
-Ruang profil anak (Beranda, Latihan, Riwayat, Perkembangan) memakai
-`AKSEN_TEAL_TUA` / `AKSEN_TEAL_HOVER` untuk aksi utama, bukan coral. Override
-terbatas `.profil-workspace-st`; layar pengerjaan, tinjauan sesi, dan aksi destruktif
-tidak berubah. Badge Draf tersimpan memakai permukaan biru muda; ✓ Selesai memakai
-`KODE_BENAR_BG` / `KODE_BENAR_TEKS` dan berarti konfirmasi aktif, bukan penguasaan.
-Beranda utama dibatasi 60rem: kartu satu kolom, meta/waktu pengerjaan sebaris,
-kotak Caranya, CTA 48px; enam segmen tahap terbuka dengan satu penanda aktif,
-bukan centang kelulusan. Sesi tinjauan sekunder memakai tombol outline; detail
-metodologi native. Gaya `.beranda-profil-st` tidak merombak hasil sesi atau tab lain.
-Perkembangan memakai saklar segmen dua tampilan server-side, satu bar komposisi
-berangka, aktivitas empat angka netral; materi penuh di kiri/atas dan detail di
-kanan/bawah. Badge target selalu berteks, tidak hanya warna. Riwayat satu status
-serta satu aksi per baris, strip perhatian bila relevan; aksi selesai tautan teks.
-Latihan satu form aktif dengan radio tiga mode dan satu CTA, fieldset nonaktif
-`disabled hidden`. Skrip mode lokal berhash CSP tidak menambah koneksi jaringan;
-fallback pemilih GET tetap tersedia. Seluruh panel menumpuk pada 360px.
+| Token | Nilai | Pakai untuk |
+| --- | --- | --- |
+| `TINGGI_CTA` | 52px | CTA utama halaman |
+| `TINGGI_KONTROL` | 48px | Tombol form, input teks, select, textarea, input berkas di permukaan keluarga/murid |
+| `TARGET_SENTUH` | 44px | Tautan, `summary`, chip/pill, tab/nav, baris daftar, label centang, tombol ikon inset (mata sandi), tombol kecil, topbar |
 
-Header Stitch mengelompokkan peran dan nama akun dalam satu menu native; pemicu
-Pendamping memakai slot kanan saat panel tertutup. Kartu tindak lanjut menyatukan
-judul/status, metadata dan aksi; rincian topik serta pengelolaan tautan aktif
-memakai `<details>`, bukan kolom aksi yang mendesak isi. Panel izin desktop
-mengikuti tinggi isi, sedangkan percakapan menyediakan ruang gulir terbatas
-viewport. Di profil, panel sejajar kepala anak; HP tetap panel penuh. Kontrak izin,
-mode memori dan fallback mengikuti [runtime Pendamping](pendamping-runtime.md).
+Admin memakai 44px untuk semua kontrol (panel padat; keputusan audit admin 25 Okt).
+Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px. Status penerapan
+`TINGGI_KONTROL` di luar `style_stitch.py`, akun, dan profil masih bertahap; lihat
+[riwayat](design-system-history.md).
 
-### Akun & pengaturan (22 Okt 2026, fase 1)
+## Fokus dan state
 
-Tab Akun saya dan Anak memakai wadah `lebar` (72rem) dengan `.akun-grid-st`: dua
-kolom ≥ `MULAI_DESKTOP`, satu kolom di HP. Akun saya: kolom kiri kartu Ganti kata sandi
-(tautan Bantuan pemulihan sejajar tombol), kolom kanan Data Pendamping AI dan pilihan
-data. Anak: daftar di kiri, form Tambah anak di kanan. Header memuat chip jumlah profil
-anak (guru) dan tombol Keluar (garis, bukan di dalam kartu sandi); menu topbar Akun tidak mengulang
-aksi Keluar. Kartu tanpa ikon
-emoji. Kartu anak: inisial, chip kelas dan jumlah sesi, tombol Kelola/Tutup lewat CSS
-`details[open]` (tanpa JS); di ≤ `BATAS_HP` tombol turun di bawah kepala kartu. Gaya
-tersekop `.akun-editorial-st` di `account_style.py`, hanya token, font sistem.
-Tab Langganan (fase 2): saat pembayaran belum aktif, `kartu_status_layanan` menampilkan
-kartu Paket saat ini (Akses awal, chip Gratis · nonkomersial, jumlah profil + Lihat) dan
-Pembayaran & bantuan (catatan amber penuh-border, tombol garis); tanpa form. Varian
-sandbox/produksi tidak diubah markup-nya (form dikunci test), hanya CSS tersekop;
-halaman mandiri `/langganan/...` tidak berubah.
-Kesepakatan dan pilihan data (fase 3): kartu di Akun saya memakai baris label + chip
-(`Diizinkan` hijau, `Tidak diizinkan` netral) dan pencabutan di `<details>` bergaya galat;
-form, token dan `data-konfirmasi` tidak berubah. `/persetujuan` punya dua mode di
-`policy_http.halaman`: **gate** (belum ada izin berlaku) tetap halaman penuh lama bersama
-`bidang()` (yang juga dipakai /daftar), **tinjau** (izin berlaku, `policy_pages.halaman_tinjau`)
-memakai shell akun 46rem: kartu status, tiga checkbox, Simpan/Batal, detail kesepakatan dan
-zona Cabut semua izin. POST tetap `policy_aksi=pilihan` dan `/analitik/sensor-cabut`; chip status
-per opsi sengaja tidak ada (tanpa JS akan basi saat checkbox diubah).
-Data Pendamping (fase 4): `assistant_manage._page` memakai shell akun (bukan bingkai chat):
-kartu izin AI, chat per tanggal dengan tombol Tinjau & hapus, dan retensi dilipat di halaman
-utama; halaman konfirmasi hapus/cabut tetap menampilkan daftar konsekuensi penuh (`RETENSI`).
-Mockup: canvas "Jagomat Akun Redesign" (keenam artboard sudah diterapkan). Tidak diadopsi dari mockup: meter
-"0/12 karakter" (butuh JS baru) dan chip paket "Akses awal · gratis" (butuh data
-langganan di header).
-Penyelarasan lanjutan (22 Okt 2026): label form tebal dengan petunjuk sebagai placeholder, status
-Kesepakatan satu baris "Disetujui … · aktif sampai …" (hanya saat izin efektif berlaku) dengan panah
-CSS di tautan tinjau, catatan Langganan berikon, `/persetujuan` (tinjau) dan Data Pendamping memakai
-`.akun-sempit-st` (46rem), serta tombol sandi penuh di HP. Belum disamakan dan menunggu keputusan:
-header bersama (topbar abu rata), isi kartu anak terbuka (satu tombol Simpan), tombol Keluar di dasar
-halaman HP (butuh form kedua), serta ikon/jumlah/rentang tanggal di daftar chat Pendamping.
+- Fokus keyboard: `:focus-visible` dengan `outline: {T.TEBAL_FOKUS} solid <aksen>`,
+  offset 2px. Jangan `outline: 0` tanpa pengganti yang sama jelasnya.
+- Hover tombol solid memakai token `*_HOVER`; tombol berlatar terang memakai
+  `LATAR_ELEVASI` atau `filter: brightness` (alasan di riwayat, Penerapan keempat).
+- Disabled/read-only tetap terbaca; panel tersembunyi tidak men-disable field
+  kecuali fieldset nonaktif `disabled hidden`.
+- Galat berbeda dari sukses (warna **dan** teks). Konflik/basi menyediakan jalan
+  pulih (tautan GET), bukan kiriman ulang diam-diam.
+- Aksi destruktif memakai `confirm()` yang menyebut konsekuensi persis; handler POST
+  tetap menegakkan invariant.
 
-### Tinjauan sesi datar
+## Komponen
 
-Kartu berupa article dengan header nomor/tipe/status/penanda catatan yang tetap
-terlihat saat panel diciutkan. Satu kartu aktif melalui enhancement; empat radio
-pemahaman dan penilaian tampil langsung, hanya Catatan tambahan serta Kunci yang
-memakai details tertutup tanpa nesting. Kunci/pembahasan berada setelah jawaban
-anak dan sebelum kontrol tinjauan; label menyebut nomor soal, teks pembahasan 1rem
-berbaris 1,6 dan tidak dibuka otomatis. Legenda penilaian satu kali per sesi.
-Kartu bantuan pra-tulis di luar form memakai tiga disclosure sibling berjarak
-8px, target minimal44px; FAQ hanya sesuai konteks halaman, tanpa CTA duplikat.
-Status penilaian dekat dropdown; pertanyaan dan jawaban anak lebih dahulu. Bar
-Simpan draf/Konfirmasi menargetkan 56px, target sentuh minimal44px; teks boleh
-membungkus tanpa dipotong. Kartu tertutup tidak kehilangan field, auto-next/submit
-tidak ditambahkan. UI diuji dengan fixture sintetis 10 soal desktop dan 375px.
+| Komponen | Kelas / helper | CSS | Aturan inti |
+| --- | --- | --- | --- |
+| Kartu | `.st-kartu` | `style_stitch.py` | Putih, `BORDER_VARIAN`, radius 22px, hover border aksen |
+| Tombol utama | `.st-tombol-coral`, `a.tombol-coral` | `style_stitch.py` | `AKSEN_KORAL_TUA` berteks putih, hover `AKSEN_KORAL_HOVER`, tinggi 48px |
+| CTA rencana | `.rencana-cta-utama-st` | `style_stitch.py`, `child_beranda_style.py` | Satu per halaman; 52px (`TINGGI_CTA`), 48px di beranda profil; di profil teal |
+| Input teks | `.st-input` | `style_stitch.py` | 16px, 48px, fokus border + ring aksen |
+| Dropdown | `<select>` native | `form_style.GAYA_SELECT` | Chevron CSS 16px dari kanan, padding kanan 48px; `multiple`/forced-colors tetap native |
+| Toggle sandi | `.kolom-sandi`, `.tombol-mata` | `style_stitch.py`, `teacher_style.py`, `admin_style.py` | Wajib di setiap input sandi |
+| Info ⓘ | `button.info` + `.info-bubble[role=tooltip]` | `style_stitch.py` | Tanpa JS, `aria-label` = isi bubble; hanya penjelasan produk |
+| Disclosure | `.rincian-ui-st`, `.anak-disclosure-st`, `child_components.disclosure()` | `style_stitch.py`, `child_style.py` | Untuk penjelasan sekunder, bukan menyembunyikan status/konsekuensi |
+| Chip status | `.anak-chip-st` + nada, `child_components.chip_status()` | `child_style.py` | Nada perhatian/baik/netral/info/galat; selalu berteks |
+| Pil filter | `.anak-pil-st[aria-current]`, `child_components.pil_filter()` | `child_style.py` | Tautan GET, aktif = border 2px + latar aksen |
+| Badge | `.st-badge` (`diagnostik`, `latihan`, `baru`, `selesai`, `review`) | `style_stitch.py` | Status berteks; "Selesai" = konfirmasi aktif, bukan penguasaan |
+| Badge peran | `.badge-peran` | `style_stitch.py`, `child_header.py`, `teacher_style.py` | Pengelola amber, Guru teal |
+| Pill kode diagnosis | `.koreksi-status-st.<kode>` | `style_stitch.py` | `KODE_*`; hanya permukaan guru |
+| Banner tautan | `.anak-banner-st`, `child_components.banner_tautan()` | `child_style.py` | Satu tautan aksi di kanan |
+| Kartu sesi | `.anak-kartu-sesi-st`, `child_components.kartu_sesi()` | `child_style.py` | Satu status dan satu aksi per baris |
+| Tab profil | `.profil-tabs-st` | `child_header.py` | Berikutnya, Buat latihan, Riwayat, Perkembangan; satu baris di 320px |
+| Header | `.st-topbar`, `.menu-pengguna` | `style_stitch.py`, `child_header.py` | Peran + nama dalam satu menu native; satu form Keluar |
+| Bar simpan | `.kerja-simpan-strip-st`, `.koreksi-simpan-st` | `style_stitch.py` | Mengikuti aliran form, tidak menutupi kontrol, tidak menggandakan CTA |
+| Banner peringatan cetak | `.mesin-banner` | `screen_style.py`, `print_style.py` | Radius 12px |
+| Admin | `.admin-kartu`, `.admin-tombol`, `.admin-bahaya`, `.admin-chip`, `.admin-tab`; `admin_komponen.py` | `admin_style.py` | Token `ADMIN_*`, 44px, tema terang/gelap |
+| Pendamping | `.pendamping-tombol`, `.pendamping-tautan` | `assistant_style.py` | Kontrak izin/memori di [runtime Pendamping](pendamping-runtime.md) |
 
-## Spacing
+Lembar anak (`/lembar/<id>`) tidak boleh memuat kunci; lembar penilaian memuatnya.
+Dijaga `test_web_worksheet.py`.
 
-Skala 4px base, ratio 1.5x:
+## Bahasa dan konten UI
 
-| Token | rem | px | Penggunaan |
-|-------|-----|----|------------|
-| SP_1 | 0.25rem | 4px | Gap mini |
-| SP_2 | 0.5rem | 8px | Padding dalam, gap |
-| SP_3 | 0.75rem | 12px | Padding kartu |
-| SP_4 | 1rem | 16px | Default padding, margin |
-| SP_5 | 1.5rem | 24px | Margin section |
-| SP_6 | 2rem | 32px | Margin besar |
+- Orang dewasa di UI guru disebut **Guru/Anda**; **Pendamping** adalah nama fitur AI.
+- Aksi utama berlabel teks. Kartu akun tanpa ikon emoji.
+- Tahap belajar memakai enam segmen terbuka dengan satu penanda aktif, bukan
+  centang kelulusan.
+- Bubble Info tidak memuat kunci jawaban, aturan kritis yang wajib terbaca, atau data
+  anak. Jangan memakai atribut `title=` sebagai pengganti (tidak muncul di layar sentuh).
 
-## Radius
-
-| Token | Nilai | Konteks |
-|-------|-------|---------|
-| RADIUS_KARTU | 12px | Kartu soal |
-| RADIUS_SEDANG | 10px | Petunjuk, identitas |
-| RADIUS_KECIL | 8px | Catatan, input |
-| RADIUS_PIL | 999px | Pilihan cara, badge |
-| RADIUS_BULAT | 50% | Nomor badge (lingkaran) |
-
-## Touch target
-
-| Token | Nilai | Sumber |
-|-------|-------|--------|
-| TARGET_SENTUH | 44px | WCAG 2.5.5 — minimum untuk layar sentuh |
-| TINGGI_KONTROL / TINGGI_CTA | 48px / 52px | `size/control` & `size/cta` Figma — kontrol & CTA utama |
-| LEBAR_KONTEN | 46rem | Max-width konten layar |
-
-## Komponen patterns
-
-Dari 9 mockup, pattern yang berulang:
-
-1. **Kartu** — kontainer dasar: background putih/cream, border halus,
-   radius 12px, padding 1rem, shadow halus. Dipakai di soal, petunjuk,
-   identitas, stat cards, session cards.
-
-2. **Nomor badge** — lingkaran dengan angka, border 2px teal (murid) atau
-   biru tua (guru). Min 2rem x 2rem.
-
-3. **Pill / badge** — border-radius 999px, padding .55rem .9rem,
-   min-height 44px (touch target). Dipakai di pilihan "Caraku", badge soal,
-   badge status.
-
-4. **Btn (primary)** — background teal/coral (murid) atau biru tua (guru),
-   text putih, border-radius 9px, padding .7rem 1.2rem.
-
-5. **Btn (secondary)** — background abu muda, text biru tua, border halus.
-
-6. **Sticky action bar** — halaman kerja murid memakai strip simpan di bawah;
-   tinjauan orang tua memakai satu action bar sesi dekat awal form dan sticky di
-   atas saat menggulir. Keduanya tidak boleh menutupi kontrol atau menggandakan CTA.
-
-7. **Tabel** — border-collapse, th background #eef/#eee, td border halus.
-   Dipakai di dashboard (sesi), lembar penilaian (kunci), rekap.
-
-8. **Kartu pilihan isi** — nama isi menjadi judul utama; nomor urut lokal 1–N
-   hanya badge kecil sekunder. Ringkasan cakupan dibatasi satu kalimat
-   (`Mencakup … pola soal.` atau `Mencakup … materi dan … pola soal.`), tanpa
-   daftar seluruh pola atau label “+ N pola lain”; aksi “Lihat contoh” berada pada
-   tingkat ketiga. Pada form manual, perubahan Topik mengirim fallback POST read-only
-   secara progresif; tombol “Tampilkan pilihan isi” tetap tersedia bila JavaScript
-   tidak aktif. Gabungan topik tetap memakai aksi eksplisit.
-
-9. **Navigasi profil dan periode laporan** — empat tujuan selalu berurutan
-   **Berikutnya**, **Buat latihan**, **Riwayat**, **Perkembangan**. Pada HP 375 px
-   keempatnya tetap satu baris tanpa badge jumlah atau overflow dokumen. Keempat tujuan
-   mempertahankan header identitas anak yang sama; tautan “← Semua anak” menyatu di
-   baris identitas, bukan baris terpisah di atasnya, dan kelas sekolah diubah dari menu
-   akun sehingga kepala profil tidak menyediakan tautan “Ubah kelas”; di laporan, nama anak tetap menjadi
-   H1 dan “Perkembangan” menjadi judul bagian. Subnavigasi laporan hanya Ringkasan,
-   Materi, Perjalanan dan memakai tab garis bawah yang tenang, bukan pill terisi.
-   Ringkasan laporan memakai tautan preset 7 hari, minggu ini, bulan ini, serta form
-   GET tanggal mulai dan selesai untuk rentang sendiri; seluruh rentang bersifat
-   inklusif dan berzona WIB.
-
-10. **Dropdown** — `<select>` satu-pilihan tetap memakai kontrol native, tetapi
-    indikator bawaan diganti chevron CSS bersama dari `form_style.py`. Chevron
-    berjarak 16px dari tepi kanan dan area teks diberi ruang 48px agar tidak
-    bertabrakan. Select `multiple`/`size` tidak diubah; mode forced-colors kembali
-    ke indikator native sistem operasi.
-
-## Viewport
-
-| Viewport | Halaman | Orientasi mockup |
-|----------|---------|-----------------|
-| Mobile portrait | /murid, /murid/kerjakan | 1024x1536 |
-| Desktop landscape | /, /masuk, /sesi, /laporan, /akun | 1536x1024 |
-| A4 portrait | /lembar, /lembar/penilaian | 1024x1536 |
-
-Halaman murid adalah mobile-first — di desktop, layout sama tapi column
-di-tengah (max-width 46rem). Tidak perlu layout desktop terpisah.
-
-## Cara pakai tokens di kode
+## Pemakaian di kode
 
 ```python
 import design_tokens as T
 
-# CSS string pakai f-string, escape {} jadi {{ }}
+# CSS sebagai f-string; kurung kurawal CSS digandakan.
 CSS = f"""
 .soal {{
   background: {T.LATAR_KARTU};
-  border-radius: {T.RADIUS_KARTU};
+  border-radius: {T.RADIUS_KARTU_BESAR};
 }}
+@media (max-width: {T.BATAS_HP}) {{ .soal {{ padding: {T.SP_3}; }} }}
 """
 ```
 
-Aturan:
-- Ubah nilai visual di `design_tokens.py`, bukan di file CSS.
-- Jangan hardcode hex literal di file CSS — selalu rujuk token.
-- Token baru tambahkan ke `design_tokens.py` + catat di dokumen ini.
+- Ubah nilai di `design_tokens.py`, bukan di CSS modul.
+- Token baru: tambahkan ke `design_tokens.py`, catat di dokumen ini, dan pastikan
+  ada pemakainya (token tanpa pemakai dihapus).
+- Gaya tersekop memakai kelas pembungkus permukaan (`.akun-editorial-st`,
+  `.profil-workspace-st`, `.guru-beranda-st`), bukan override global.
+- Ukuran/progres dinamis boleh inline; gaya statis tidak.
 
-### Token Figma v2 (sinkron 2026-09-25)
+## Workflow halaman atau komponen baru
 
-Sumber: file desain "Jagomat · Sistem Desain & Pilot UI" (pilot 25 Sep 2026,
-arsip di `osn-resources/referensi/desain-ui/figma-pilot-2026-09-25/`). Hanya
-nilai yang belum ada yang ditambahkan; padanan lama tetap dipakai apa adanya
-(cream = `LATAR_MURID`, teal-strong = `AKSEN_TEAL_TUA`, radius/lg 12 =
-`RADIUS_KARTU`, radius/pill = `RADIUS_PIL`, size/touch-min 44 = `TARGET_SENTUH`).
+1. Tentukan jalur risiko menurut `CLAUDE.md`; halaman/alur baru minimal Normal,
+   perubahan akses/data tetap Kritis. Mockup baru hanya bila butuh keputusan visual.
+2. Pilih permukaan dan keluarga tokennya dari tabel di atas.
+3. Pakai komponen yang ada sebelum membuat yang baru; komponen baru dicatat di
+   tabel Komponen.
+4. Ekstrak nilai visual baru ke `design_tokens.py` bila memang perlu.
+5. Render dan lihat dengan data/profil sintetis sesuai
+   [workflow](workflow-reference.md#visual-sintetis--desain); jalankan scoped test
+   markup/style dan gate jalur.
 
-| Token | Nilai | Asal di Figma |
-|-------|-------|---------------|
-| `AKSEN_KORAL_HOVER` / `AKSEN_TEAL_HOVER` | `#ba3c2d` / `#0b7477` | `action/primary-hover`, `action/secondary-hover` |
-| `LATAR_TOOLTIP` / `TEKS_TOOLTIP` | `#16213e` / `#ffffff` | `bg/tooltip`, `text/tooltip` — balon pola "ⓘ" |
-| `RADIUS_KARTU_BESAR` | `22px` | `radius/card` |
-| `TINGGI_KONTROL` / `TINGGI_CTA` | `48px` / `52px` | `size/control`, `size/cta` |
-| `UKURAN_IKON` | `24px` | `size/icon` |
-| `TEBAL_GARIS` / `TEBAL_FOKUS` | `1px` / `2px` | `border/width`, `border/focus-width` |
-| `SP_7` / `SP_8` | `3rem` / `4rem` | `space/3xl`, `space/4xl` |
+## Batas verifikasi
 
-Penerapan pertama (25 Sep 2026, `style_stitch.py`):
-- `RADIUS_KARTU_BESAR` 22px → kartu utama `.st-kartu`, `.kartu-rencana-st`,
-  `.murid-riwayat-st` (termasuk `summary`-nya).
-- `TINGGI_CTA` 52px → CTA utama `.murid-tombol-utama-st`, `.rencana-cta-utama-st`,
-  `.daftar-editorial-st .masuk-tombol-st`.
-- `TINGGI_KONTROL` 48px → menggantikan literal `48px` di
-  `.kerja-simpan-strip-st button`, `.masuk-tombol-st`, `.koreksi-simpan-st button`.
-- `AKSEN_KORAL_HOVER` / `AKSEN_TEAL_HOVER` → hover tombol solid, menggantikan
-  `color-mix(...)` dan `filter: brightness(1.06)` (tuntas 26 Sep; lihat
-  "Penerapan keempat").
-
-`LATAR_TOOLTIP`/`TEKS_TOOLTIP` dan `TEBAL_GARIS`/`TEBAL_FOKUS` sudah terpakai
-sejak komponen Info "ⓘ" (lihat "Penerapan ketiga"). Status token sisanya —
-eksplisit, bukan menggantung:
-
-- `TEBAL_FOKUS` juga dipakai seluruh `outline: 2px` keadaan fokus (lihat
-  "Penerapan keempat").
-- `UKURAN_IKON` (24px): **khusus Figma / belum dipakai** — ikon nyata di kode
-  dirender 19–22px (`.profil-ikon-st` 1.2rem, `.murid-ikon-st` 1.35rem) atau
-  lewat variasi font Material Symbols; belum ada elemen yang memang 24px.
-- `SP_7` (3rem) / `SP_8` (4rem): kini dipakai untuk margin/padding/gap dengan
-  nilai yang persis sama (lihat refactor token UI 27 Sep). Tinggi, font, dan
-  geometri khusus tidak otomatis mengikuti skala spacing.
-- `TEBAL_GARIS` (1px): kini dipakai untuk deklarasi border umum. Pixel mekanis
-  seperti elemen sr-only 1×1px dan garis SVG bukan token ketebalan border UI.
-
-Penerapan kedua (25 Sep 2026, permukaan non-Stitch) — 14 aturan kartu di 11 berkas
-jadi `RADIUS_KARTU_BESAR`: `teacher_style` (`.kartu`, `.stat`, `.ringkasan-laporan`,
-`.masuk-luar`), `admin_style` (`.admin-kartu`, `.admin-stat`), `screen_style` (`.soal`),
-`report_dashboard` (`.laporan-metrik .stat`), `mapping_results` (`.hasil-pemetaan-st`),
-`mastery_report` (`.peta-pilihan`), `question_variants_ui` (`.panduan-variasi`),
-`subscription_pages` (`.langganan-panel .kartu`), `profile_workspace`
-(`.buat-latihan-st`, `.profil-arsip-st`), `attachments` (`.kartu`).
-Sengaja **tetap 12px**: `.menu-isi` (menu dropdown guru) dan `.mesin-banner` (strip
-peringatan) — keduanya kontrol/penanda kecil, bukan kartu konten.
-Tinggi: literal `44px` → `TARGET_SENTUH` di `attachments` dan `subscription_pages`.
-Hover: `.admin-tombol` dan `.pendamping-tombol` (solid teal) kini punya hover
-`AKSEN_TEAL_HOVER`; varian `.admin-bahaya`, `.pendamping-sekunder`, `.pendamping-bahaya`
-dikecualikan karena latarnya terang.
-
-Penerapan ketiga (26 Sep 2026): komponen Info "ⓘ" (Figma `Jagomat/Info` 28:14,
-varian Diam/Terbuka). Aturan baru layar guru: maksimal satu baris penjelasan di
-layar, sisanya masuk bubble yang muncul saat kursor mendekat atau saat difokus
-dengan keyboard — tanpa JS. Contoh pertama di beranda guru; kalimat disetujui
-26 Sep: baris "Pilih nama untuk mulai." + bubble "Setiap anak punya halaman
-sendiri: buat latihan, rencana belajar, dan riwayat."
-
-| Token | Nilai | Konteks |
-|-------|-------|---------|
-| `UKURAN_INFO` | 18px | Diameter lingkaran ikon (outline teal, huruf "i") |
-| `TARGET_INFO` | 26px | Kotak sentuh tombol ⓘ |
-| `LEBAR_TOOLTIP` | 260px | Lebar maksimum bubble (mengecil di layar sempit) |
-
-Markup — tombol, bukan tautan; `aria-label` = isi bubble supaya pembaca layar
-tetap dapat isinya:
-
-```html
-<button type="button" class="info" aria-label="…">
-i<span class="info-bubble" role="tooltip">…</span>
-</button>
-```
-
-- CSS di `style_stitch.py` (`GAYA_STITCH`; ikut termuat di permukaan profil
-  karena gaya Stitch selalu dipasang). Bubble tampil pada `:hover`,
-  `:focus-visible` (keyboard), dan `:focus` (tap di HP yang memfokus tombol;
-  iOS Safari tidak memfokus tombol saat tap sehingga di sana mengandalkan
-  emulasi hover — bubble menutup saat menyentuh tempat lain).
-- Jangan kembali ke atribut `title=`: tidak muncul di perangkat sentuh.
-- Bubble hanya untuk penjelasan produk — dilarang memuat kunci jawaban, aturan
-  kritis yang wajib terbaca, atau data anak. Dijaga
-  `__tests__/test_info_tooltip.py` (markup, CSS hover/focus, tanpa JS).
-
-Penerapan keempat (26 Sep 2026) — hover tombol, token fokus, tinggi kontrol,
-dan kontras coral.
-
-- 6 dari 7 aturan hover → `background: AKSEN_KORAL_HOVER` (`.st-tombol-coral`,
-  `.rencana-cta-utama-st`, `.kerja-simpan-strip-st button`, `.masuk-tombol-st`,
-  `a.tombol-coral`, `.koreksi-simpan-st button`), termasuk salinan yang menimpa
-  dasar di permukaan editorial (`.landing-cta-baris-st`, strip `.kerja-editorial-st`,
-  trio koral `.pendamping-editorial-st`).
-- Varian berlatar putih (`.sekunder`, tombol non-`formaction` saat ada `formaction`)
-  memakai `LATAR_ELEVASI` supaya tidak ikut koral.
-- Hover editorial `/masuk` & `/daftar` sengaja tetap tenang (underline, warna dasar
-  dipertahankan); ditulis eksplisit agar tidak bergantung urutan kaskade.
-- Tetap `filter: brightness(1.04)`: `.tombol-kecil-st` — latar galat lembut
-  (`LATAR_GALAT`); menggelapkan latar menurunkan kontras `TEKS_GALAT`, tidak ada
-  token hover yang cocok.
-- Tetap `filter: brightness(0.94)` di `teacher_style.py`: satu aturan `button:hover`
-  dipakai bersama tombol berlatar terang (`tombol-sekunder`, `tombol-putih`,
-  `tombol-amber`), menu-isi (hover sendiri), dan `.cta` topbar; `button:disabled`
-  juga mengandalkan `filter: none`. Membatasi dengan `:not(...)` harus menyebut
-  semua varian itu — lebih rapuh daripada nilainya.
-- `TEBAL_FOKUS`: 12 aturan `outline: 2px` (keadaan fokus) diganti
-  `outline: {T.TEBAL_FOKUS} solid …` di `style_stitch.py` (10),
-  `choice_pages.py`, dan `mapping_results.py` — nilai rendered identik.
-- Kontras tombol coral (keputusan produk 26 Sep): dasar tombol coral berteks
-  putih berganti `AKSEN_MURID_KORAL` `#ff6b5b` (2,7:1) → `AKSEN_KORAL_TUA`
-  `#cc3f2b` (4,9:1) — sama dengan `action/primary` Figma dan override editorial
-  yang sudah ada; hover tetap `AKSEN_KORAL_HOVER`.
-- Tinggi kontrol: `TINGGI_KONTROL` 48px menggantikan `TARGET_SENTUH` 44px di 21
-  aturan + 3 literal `3rem` pada kontrol nyata `style_stitch.py` — tombol
-  (termasuk `.tombol-ikon-st` 48×48), input/select/textarea (`.st-input`,
-  `.koreksi-input-st`, `.koreksi-select-st`, `.masuk-field-st input`,
-  `:is(input, select, textarea)` pendamping, input berkas +
-  `::file-selector-button`), dan CTA padat (`.st-tombol-coral`, `.guru-tambah-st`,
-  `a.tombol-coral`, `.panduan-rencana-st`).
-- Tinggi sengaja **tetap 44px**: header/topbar (harus muat `height: 44px`), baris
-  daftar/nav/tautan, chip & label pilihan (`.mode-opsi`, `.kerja-pill-st`, label
-  centang), semua `summary` disclosure, `.tombol-mata` (inset di dalam input), dan
-  `.tombol-kecil-st` (varian kecil).
-- Test: 4 assert `TARGET_SENTUH` diperbarui sengaja — `test_alur_sesi_submit`
-  (blok `.tombol-ikon-st`), `test_layout_sesi_guru` (`.koreksi-input-st`),
-  `test_learning_cycle_confirmation_ui` (input pembatalan); 7 assert lain tetap
-  valid karena aturannya memang sengaja 44px.
-
-Belum seragam — kandidat berikutnya, jangan dicampur ke sini: `TINGGI_KONTROL`
-48px baru diterapkan di `style_stitch.py`; permukaan lain (`admin_style`,
-`assistant_style`, `profile_workspace`, `report_dashboard`, `subscription_pages`,
-`teacher_style`) masih `TARGET_SENTUH` 44px dan menunggu putaran tersendiri.
-
-Belum ditindaklanjuti — sisa kecil dari keputusan kontras coral (26 Sep):
-`.st-badge.baru` masih `AKSEN_MURID_KORAL` + teks putih (permukaan editorial
-sudah `AKSEN_KORAL_TUA` lewat override), dan bayangan `rgba(255,107,91,…)`
-pada strip simpan masih memakai rona lama.
-
-File CSS per permukaan (semuanya `import design_tokens as T`):
-- `teacher_style.py` → 5 halaman layar guru (masuk, dashboard, sesi, laporan, akun)
-- `screen_style.py` → lembar yang dibaca di browser/HP (anak & guru)
-- `print_style.py` → lembar kertas A4 (satuan mm/pt, hemat tinta: garis saja)
-- `student_pages.py` (CSS_MURID) → halaman murid
-
-### Perampingan halaman setelah login (26 Sep 2026)
-
-- Pada fase26September ikon Info memakai glyph18px/kotak26px; target sentuh
-  kemudian diperbesar44px pada22Oktober. `.info-baris` tetap transparan,
-  tidak mewarisi warna/font tombol utama. Bubble rata kanan terhadap baris
-  petunjuk dan dibatasi lebar baris agar tidak keluar layar sempit.
-- `.rincian-ui-st` adalah disclosure native untuk penjelasan sekunder, bukan
-  tempat menyembunyikan status penting, persetujuan, atau konsekuensi tindakan.
-  Summary bertarget sentuh 44px dan punya fokus keyboard.
-- Anak: jawaban mendahului pilihan cara; enam nilai cara tetap sama. Penjelasan
-  teks opsional dilipat hanya bila kosong, tetap bagian form, dan dibuka jika
-  sudah berisi. Petunjuk singkat mendahului detail lengkap; PG mempertahankan
-  instruksi ringkasnya. Bar simpan/kirim mengikuti aliran form agar tidak
-  menutupi kontrol; detail tetap tercetak pada browser yang mendukung CSS
-  `::details-content` (Chrome terverifikasi, Safari belum diuji). Hasil menyediakan pembahasan semua soal; yang benar dan
-  kartu rumus dapat dibuka, sementara pembahasan belum tepat tetap terlihat.
-- Profil: header berulang dikurangi. Buat latihan menampilkan topik, jumlah, dan CTA
-  langsung; format/mode/timer berada dalam Pengaturan lanjutan. Riwayat memakai kartu
-  mobile satu kolom, memisahkan pengerjaan/tinjauan, menempatkan Buka sesi sebagai aksi
-  utama dan kelola tautan dalam disclosure sekunder. Kartu Langkah berikutnya tidak lagi
-  memuat blok penjelasan “Sesudah ini”/“Kembali”; Perjalanan menampilkan progres latihan
-  awal sebagai stepper, status fokus sebagai lencana, dan riwayat putaran sebagai garis
-  waktu, sementara metodologi/rincian kontekstual tetap dilipat dan data utama tidak.
-- Tinjauan orang tua mengelompokkan kartu menjadi **Perlu diperiksa** (terbuka),
-  **Tanyakan cara anak** (prompt dan pilihan pemahaman per butir), serta
-  **Tinjauan tercatat** (tertutup). Label terakhir berarti tidak perlu dibuka lagi,
-  bukan klaim hasil sudah sah; semua tetap disahkan saat Konfirmasi hasil sesi.
-- Aksi utama tetap berlabel teks. Ikon bukan pengganti makna simpan/kirim,
-  konfirmasi, pilihan cara, maupun status pedagogis. Tidak ada JS/dependensi baru.
-
-### Navigasi dan pengantar ringkas (27 Sep 2026)
-
-Histori: pemilih variasi isi A–D/POST refresh di bawah telah digantikan profil
-otomatis dan satu form tiga mode; [referensi produk](product-reference.md)
-menjelaskan alur kini. Jangan mengembalikan kontrol lama sebagai backlog.
-
-- Tab/filter laporan tidak memakai centang dekoratif. Pilihan aktif tetap memiliki
-  `aria-current`, latar berbeda, border lebih tebal, dan teks tebal; kartu materi
-  tetap berlabel “Dipilih”. Centang status konfirmasi/tersimpan dan checkbox isian
-  bukan dekorasi navigasi, sehingga tetap dipertahankan.
-- Profil: “Ubah kelas” dekat identitas, tujuan pengelolaan tetap. Pengingat rencana
-  hanya menampilkan tindakan yang ditentukan reducer dan tautan “Buka rencana”; tidak
-  mengulang heading generik atau berpura-pura langsung melanjutkan sesi.
-- Tab jenis latihan tampil sebelum bantuan ringkas; batas latihan manual tetap
-  tersedia lewat ikon Info. Untuk pembuatan sesi, panduan katalog terpisah diganti
-  kartu radio **Pilih isi latihan**: nama isi dan cakupan ringkas dari registry,
-  nomor urut lokal sebagai penanda sekunder, contoh deterministik dalam disclosure
-  di tiap kartu. Topik berada
-  sebelum kartu; perubahan topik mengirim POST read-only secara progresif, sementara
-  tombol sekunder tetap menjadi fallback tanpa JS. CTA pembuatan tetap satu. Form akun
-  lama tetap memakai panduan ringkasnya.
-
-## Refactor token lintas UI (27 Sep 2026)
-
-Putaran ini mempertahankan nilai dan urutan cascade, bukan restyle. Semua
-literal hex/RGB pada definisi CSS Python dipusatkan; warna di aset SVG statis
-berversi bukan bagian sweep ini. Tidak mengubah akses, font jaringan pada halaman
-privat, logika pembayaran, label diagnosis, atau ukuran ruang tulis/A4.
-
-- **Warna:** `LATAR_NONAKTIF`, `LATAR_REVIEW`, `TEKS_REVIEW`, `GARIS_ISIAN`,
-  `GARIS_RESTATE`, `BORDER_CORET`, `LATAR_CORET`, `TEKS_CENTANG`, `TEKS_INVERS`.
-  Token `CETAK_*` terpisah agar perubahan tema layar tidak mengubah tinta kertas.
-  Warna garis tulis SVG data-URI juga berasal dari token sebelum URL-encoding.
-- **Bayangan:** `BAYANGAN_*` menyimpan deklarasi lengkap kartu, menu, nomor,
-  fokus, dan strip simpan. Varian existing tetap berbeda; ekstraksi tidak
-  menyamakan rona/intensitasnya.
-- **Teks:** `UKURAN_TEKS_META` (.75rem), `UKURAN_TEKS_CATATAN` (.8125rem),
-  `UKURAN_TEKS_LABEL` (.875rem), `UKURAN_TEKS_BANTUAN` (.9rem). Skala existing
-  lain belum diseragamkan; ukuran judul bagian dewasa memakai token existing.
-- **Spacing/radius:** gunakan `SP_1..SP_8` pada margin/padding/gap yang persis
-  sama, `RADIUS_KECIL` pada radius 8px. Tidak membulatkan .7rem menjadi .75rem
-  atau mengaitkan tinggi/font dengan spacing hanya karena angkanya sama.
-- **Responsive:** `BATAS_HP` 30rem, `BATAS_KOLOM_BACA` 46rem, `BATAS_TABLET`
-  48rem, `MULAI_DESKTOP` 64rem. Breakpoint khusus komponen tetap lokal.
-  Gunakan interpolasi Python, bukan CSS `var()` dalam kondisi `@media`.
-- **Komponen:** `subscription_style.GAYA_LANGGANAN` dipakai sandbox dan
-  produksi lewat alias `GAYA`; hanya CSS yang dibagikan, bukan service pembayaran.
-  Isi halaman akun memakai kelas `akun-*`, bukan inline style statis.
-  Nilai `AKUN_JARAK_*` scoped mempertahankan layout lama. Progress/ukuran aset
-  dinamis tetap boleh inline.
-
-`test_ui_tokens.py` menyapu definisi CSS untuk mencegah literal warna kembali,
-serta mengganti nilai token di namespace terisolasi untuk membuktikan bahwa
-aturan komponen benar-benar menggunakannya. Test tidak sekadar mencari warna
-rendered yang kebetulan sama. Pergantian nilai desain berikutnya tetap perlu
-render sintetis dan review viewport/cetak yang terdampak.
-
-Belum termasuk: penyatuan konfigurasi pemuatan font (terkait pengecualian
-halaman privat), angka promo di copy landing (kontrak katalog), dan penyamaan
-seluruh skala tipografi/komponen. Nama produk pada heading paket sudah membaca
-`NAMA_PRODUK`, bukan literal terpisah.
-
-## Laporan riset publik (13 Okt 2026)
-
-Halaman `/riset/persaingan-bimbel-2026` memakai token yang sama, tetapi menjadi
-permukaan editorial read-only dengan container `LEBAR_LANDING`. Interaksi dibatasi
-ke anchor dan `<details>/<summary>` native: tidak ada JavaScript atau library chart.
-Peta posisi selalu memiliki penjelasan teks dan tabel, label tidak mengandalkan
-warna saja, target navigasi minimum `TARGET_SENTUH`, serta `:focus-visible` yang
-jelas. CSS cetak menampilkan seluruh isi disclosure dan menghasilkan PDF A4;
-header navigasi web disembunyikan. PDF statis berada di `mesin/publik/` dan harus
-dibuat ulang dari renderer pada source yang sama ketika isi laporan berubah.
-
-## Mockup reference
-
-| File | Halaman | Viewport | Implementasi |
-|------|---------|----------|--------------|
-| murid-sesiku.png | /murid — daftar sesi | Mobile | student_pages.py |
-| murid-kerjakan.png | /murid/kerjakan — halaman kerja | Mobile | student_pages.py |
-| guru-masuk.png | /masuk — login | Desktop | web.py + teacher_style.py |
-| guru-dashboard.png | / — dashboard utama | Desktop | teacher_pages.py + teacher_style.py |
-| guru-sesi.png | /sesi/<id> — detail sesi | Desktop | teacher_pages.py + teacher_style.py |
-| guru-laporan.png | /laporan/<id> — laporan + tren | Desktop | reports.py + teacher_style.py |
-| guru-akun.png | /akun — kelola akun & siswa | Desktop | account_pages.py + teacher_style.py |
-| guru-lembar-soal.png | /lembar/<id> — soal cetak | A4 | render.py + print_style.py |
-| guru-lembar-kunci.png | /lembar/<id>/penilaian — kunci cetak | A4 | render.py + print_style.py |
-
-Kontrak penting: implementasi lembar anak (`/lembar/<id>`) TIDAK boleh memuat
-kunci; lembar kunci (`/lembar/<id>/penilaian`) justru memuat semuanya. Keduanya
-hanya beda satu ruas URL — dijaga `__tests__/test_web_worksheet.py`.
-
-## Workflow: halaman baru
-
-1. Tentukan jalur risiko menurut `../CLAUDE.md`; halaman/alur baru minimal Normal,
-   perubahan akses/data tetap Kritis. Mockup baru hanya bila desainnya membutuhkan
-   keputusan visual, bukan syarat setiap typo atau perubahan gaya lokal.
-2. Ekstrak nilai visual baru ke `design_tokens.py` (jika ada).
-3. Implementasi HTML/CSS di file yang sesuai, rujuk tokens.
-4. Perbarui referensi desain bila relevan; mockup tetap lokal di `osn-resources/referensi`.
-5. Render dan cek visual dengan data/profil sintetis sesuai `workflow-reference.md`.
-   Jalankan scoped test markup/style dan gate jalur di `../CLAUDE.md`; full suite
-   mengikuti risiko/trigger, bukan otomatis untuk semua perubahan tampilan.
+Safari/iOS, screen reader nyata, HP/printer fisik, dan semua kombinasi data/state
+belum dibuktikan. Kontras dan ukuran di dokumen ini adalah target desain yang
+diuji pada data sintetis, bukan sertifikasi aksesibilitas.

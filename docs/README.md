@@ -79,7 +79,9 @@ ini tidak menghidupkan editor memori atau seluruh eksperimen AI yang ditahan.
 - [Ringkasan perkembangan berbasis bukti](ringkasan-perkembangan.md): baseline
   dashboard deterministik tetap tersedia; pengembangan AI v1 dibatalkan setelah
   sebelumnya ditahan oleh hasil spike sintetis.
-- [Design system](design-system.md): dokumentasi token dan gaya aplikasi.
+- [Design system](design-system.md): rujukan desain tunggal — permukaan, token,
+  kontras, tipografi, ukuran kontrol, komponen dan workflow UI yang berlaku kini;
+  [riwayatnya](design-system-history.md) menyimpan catatan bertanggal.
 - [Runtime Pendamping](pendamping-runtime.md): kontrak implementasi inline yang
   tersedia; histori pembatalan, pembukaan kembali bersyarat, dan hasil uji kandidat dijelaskan terpisah.
 - [Pendamping Jagomat](pendamping-jagomat.md): spesifikasi awal/historis; arah

@@ -124,7 +124,8 @@ menghidupkan kembali desain jawaban + kode dua kolom yang sudah ditinggalkan.
 - CSS di luar lima class brief, termasuk `.masuk-kiri`, `.kartu-masuk`,
   `.badge-tingkat`, `.pendamping-awal`: belum dibuktikan seluruh state/konsumennya
   dalam scope ini. `.kolom-sandi`/`.tombol-mata` jelas aktif lewat JavaScript.
-- Token `LATAR_INTI`/`BINTANG` masih tercatat dalam design system.
+- Token `LATAR_INTI`/`BINTANG` masih tercatat dalam design system. (25 Okt 2026:
+  `BINTANG` dihapus karena tanpa pemakai; `LATAR_INTI` masih dipakai.)
 - Binding `akun`/`tinjauan` hasil `_token_final`, `belum` pada `_ubah_fokus`, dan
   unpack `a,b,c` pada `_prisma` tidak dihapus: RHS/struktur membawa validasi,
   guard, atau tuple contract. Tidak menukar ketiadaan pembacaan dengan asumsi
