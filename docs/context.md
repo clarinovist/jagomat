@@ -40,7 +40,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - Zero-JS default. Enhancement yang disetujui berhash CSP dan fallback native;
   validasi server tetap otoritatif. Tidak ada izin JS/dependency umum dari pola ini.
   Daftar pengecualian/perilaku lengkap di [arsitektur](architecture-reference.md#konvensi-dan-keputusan-penting).
-- Token visual di `design_tokens.py`. Admin `ADMIN_*` terisolasi; empat tab profil
+- Token visual di `design_tokens.py`; peran semantik per permukaan dan pasangan kontras
+  di `design_roles.py` (rujukan + guard test, bukan import runtime); kontrak di
+  [design system](design-system.md). Admin `ADMIN_*` terisolasi; empat tab profil
   dan laporan lama berbagi shell/lebar `ANAK_*`. CSS rincian legacy hanya dimuat
   pada laporan, sebelum override profil; [audit UI](ui-consistency-audit.md) dan
   [audit admin](admin-ui-audit.md) (fokus, kontrol, state dan tema/cetak).

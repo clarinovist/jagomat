@@ -9,6 +9,7 @@ Catatan bertanggal dan alasan keputusan lama ada di
 | Pertanyaan | Sumber |
 | --- | --- |
 | Nilai warna, ukuran, jarak, bayangan | `mesin/design_tokens.py` (`T.*`) |
+| Token mana untuk peran apa di permukaan tertentu | `mesin/design_roles.py` (`peta_peran()`), dijaga `test_design_roles.py` |
 | Aturan pakai, komponen, keputusan | Dokumen ini |
 | Bukti audit dan batas perangkat | [Audit UI lintas halaman](ui-consistency-audit.md), [audit admin](admin-ui-audit.md) |
 | Alasan lama | [Riwayat](design-system-history.md), [keputusan redesain admin](redesign-decisions.md) |
@@ -106,6 +107,34 @@ pernah tampil di sisi murid.
 Aksen terang (`AKSEN_MURID_*`, `STATUS_*`) tidak dipakai untuk teks kecil atau
 sebagai latar teks putih. Rasio dihitung dengan luminansi relatif sRGB (WCAG), bukan
 selisih hex.
+
+### Peta peran
+
+`design_roles.py` memetakan **peran semantik** ke nama token untuk tiap permukaan:
+`dasar`, `profil` (profil anak dan ruang guru), `tinjauan` (pill kode), `admin_cerah`,
+`admin_gelap`, `cetak`. Setiap entri menunjuk aturan CSS nyata (modul, konstanta,
+selektor, properti). `test_design_roles.py` menukar token di namespace terisolasi
+untuk membuktikan token itu mencapai aturan tersebut, menjaga satu peran = satu token
+per permukaan, lalu menghitung kontras pasangan yang tampil bersama. Modul ini rujukan
+dan guard, bukan dependensi runtime.
+
+| Peran | dasar | profil | admin (cerah) |
+| --- | --- | --- | --- |
+| `latar_halaman` | `LATAR_MURID` | `LATAR_MURID` | `ADMIN_LATAR_CERAH` |
+| `latar_kartu` | `LATAR_KARTU` | `LATAR_KARTU` | `ADMIN_PERMUKAAN_CERAH` |
+| `teks_utama` | `TEKS_UTAMA` | `ANAK_TEKS` | `ADMIN_TEKS_CERAH` |
+| `tautan` | `AKSEN_TEAL_TUA` | `ANAK_AKSEN` | — |
+| `aksi_utama` / `teks_aksi` | `AKSEN_KORAL_TUA` / `TEKS_PUTIH` | `AKSEN_TEAL_TUA` / `TEKS_PUTIH` | `ADMIN_AKSEN_CERAH` / `ADMIN_PERMUKAAN_CERAH` |
+| `batas_kontrol` | `BORDER_VARIAN` | `ANAK_BORDER_KONTROL` | `ADMIN_BORDER_KUAT_CERAH` |
+| `fokus` | `FOKUS_AKSEN` | `AKSEN_TEAL_TUA` | — |
+
+Peta lengkap (badge, chip, pill kode, galat/sukses) dibaca lewat
+`design_roles.peta_peran("<permukaan>")`. Komponen baru yang memperkenalkan pasangan
+warna teks/latar atau batas kontrol menambahkan pasangannya ke `design_roles.py`.
+
+`PENGECUALIAN` mencatat pasangan yang diketahui gagal kontras beserta alasannya;
+test menuntut daftar itu sama persis dengan kegagalan nyata, sehingga perbaikan wajib
+menghapus entrinya dan kegagalan baru langsung memerahkan test.
 
 ## Tipografi
 

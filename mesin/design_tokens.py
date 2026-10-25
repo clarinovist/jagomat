@@ -3,7 +3,8 @@
 Modul lain merujuk `T.<TOKEN>`; hex/RGB literal di CSS dijaga
 `__tests__/test_ui_tokens.py`. Kontrak pemakaian (permukaan, aturan 48/44px,
 skala tipe, komponen) ada di docs/design-system.md; riwayat keputusan di
-docs/design-system-history.md.
+docs/design-system-history.md. Peran semantik per permukaan (token mana untuk
+latar, teks, aksi, batas kontrol, fokus) dipetakan di design_roles.py.
 
 == Keluarga palet ==
 
@@ -201,7 +202,7 @@ TEKS_JUDUL = "#16213e"          # biru tua, heading/judul/border
 TEKS_SUBTLE = "#555"            # abu, label/meta
 BORDER_HALUS = "#d5d8de"
 BORDER_INTERAKTIF = "#c4d3ea"
-BORDER_KUAT = "#16213e"
+BORDER_KUAT = TEKS_JUDUL
 
 # Aksen sekunder (catatan, penanda)
 LATAR_CATATAN = "#fff7e6"
@@ -220,10 +221,21 @@ LATAR_GALAT = "#fdecea"
 BORDER_GALAT = "#f5b5ae"
 TEKS_GALAT = "#93352b"
 
+# ─────────────────────────────────────────────────────────────────────
+# Palet hangat (nama lama "MURID"): latar cream + aksen grafis seluruh
+# permukaan keluarga, bukan hanya /murid
+# ─────────────────────────────────────────────────────────────────────
+
+LATAR_MURID = "#FFF8EE"         # cream hangat
+AKSEN_MURID_UTAMA = "#0FA3A3"   # teal grafis: border, nomor badge (teks: AKSEN_TEAL_TUA)
+AKSEN_MURID_KORAL = "#FF6B5B"   # coral grafis (tombol/teks: AKSEN_KORAL_TUA)
+AKSEN_MURID_AMBER = "#FFB020"   # amber grafis: star/challenge, latar berteks gelap
+LATAR_KARTU_MURID = LATAR_KARTU
+
 # Status Dashboard (mockup guru-laporan)
-STATUS_KUAT = "#0FA3A3"          # teal
-STATUS_LEMAH = "#FFB020"        # amber
-STATUS_SALAH = "#FF6B5B"        # coral
+STATUS_KUAT = AKSEN_MURID_UTAMA    # teal
+STATUS_LEMAH = AKSEN_MURID_AMBER   # amber
+STATUS_SALAH = AKSEN_MURID_KORAL   # coral
 
 # Aksen versi teks-aman: kontras >= 4.5:1 di atas putih/krem. Dipakai saat
 # aksen menjadi WARNA TEKS (tautan, status, badge) atau latar tombol solid
@@ -235,7 +247,7 @@ AKSEN_KORAL_TUA = "#cc3f2b"
 
 # Badge peran topbar (multi-keluarga): Pengelola amber, Orang Tua teal —
 # warna status yang sama supaya tetap satu rasa visual.
-BADGE_ADMIN_BG = "#FFB020"
+BADGE_ADMIN_BG = AKSEN_MURID_AMBER
 BADGE_ADMIN_TEKS = "#5b430a"
 BADGE_GURU_BG = "#0FA3A3"
 BADGE_GURU_TEKS = TEKS_PUTIH
@@ -261,17 +273,6 @@ KODE_MENEBAK_TEKS = "#5b5b63"
 # label 11px-nya teks kecil, butuh ~4.5:1 di atas putih.
 CHART_GRID = "#e2e6ef"
 CHART_AXIS = "#6f7690"
-
-# ─────────────────────────────────────────────────────────────────────
-# Palet hangat (nama lama "MURID"): latar cream + aksen grafis seluruh
-# permukaan keluarga, bukan hanya /murid
-# ─────────────────────────────────────────────────────────────────────
-
-LATAR_MURID = "#FFF8EE"         # cream hangat
-AKSEN_MURID_UTAMA = "#0FA3A3"   # teal — primary action, nomor badge
-AKSEN_MURID_KORAL = "#FF6B5B"   # coral — tombol simpan, highlight baru
-AKSEN_MURID_AMBER = "#FFB020"   # amber — star/challenge
-LATAR_KARTU_MURID = "#fff"
 
 # ─────────────────────────────────────────────────────────────────────
 # Identitas produk — SUMBER TUNGGAL nama & tagline (launch publik).
@@ -367,7 +368,7 @@ BORDER_VARIAN         = "#bcc9c8"   # outline-variant (border kartu lembut)
 
 # Status
 STATUS_DIAGNOSTIK_BG  = AKSEN_MURID_UTAMA   # bg pill diagnostik (teal teks putih)
-STATUS_DIAGNOSTIK_TEKS = "#ffffff"
+STATUS_DIAGNOSTIK_TEKS = TEKS_PUTIH
 STATUS_LATIHAN_BG     = "#ffba4b"           # broader "latihan" (amber gelap)
 STATUS_LATIHAN_TEKS   = "#291800"           # amber text on light pill
 
@@ -606,7 +607,7 @@ ANAK_PERHATIAN_BORDER = "#E3B15A"   # tepi kartu anak yang menunggu tindakan gur
 ANAK_BAIK_LATAR = "#DDF1E4"
 ANAK_BAIK_TEKS = "#14532D"
 ANAK_NETRAL_LATAR = "#ECE7DA"
-ANAK_NETRAL_TEKS = "#3F4654"
+ANAK_NETRAL_TEKS = ANAK_TEKS_REDUP
 ANAK_BATAS_HP = "43.75rem"      # 700px
 ANAK_INFO_LATAR = "#E4E9F5"
 ANAK_INFO_TEKS = "#1E3A8A"

@@ -76,6 +76,7 @@ sebagai instruksi deploy/backfill baru. Periksa tautan lokal dan anchor yang diu
 | `render.py`, `worksheets.py` | Struktur HTML lembar tanpa CSS |
 | `screen_style.py`, `print_style.py`, `teacher_style.py`, `style_stitch.py`, `account_style.py` | Gaya layar/cetak (`account_style` = `/akun`) |
 | `design_tokens.py` | Sumber tunggal nilai visual |
+| `design_roles.py` | Peta peran → token per permukaan + pasangan kontras; rujukan dan guard test, bukan runtime |
 | `teacher_pages.py`, `student_pages.py`, `account_pages.py`, `reports.py`, `landing.py` | Halaman per permukaan |
 | `rumus.py` | Kartu rumus per konsep |
 | `attachments.py` | Foto lembar → bacaan vision atau isi-manual tanpa kunci vision → penerapan guru; konfirmasi bukti tetap terpisah, test memakai data sintetis |
