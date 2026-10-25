@@ -6,6 +6,26 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy sistem desain — 25 Oktober 2026
+
+Controlled `deploy-v2` memasang **5ae9b006c1f2f73cc28095f040d1c4396023ab04**;
+container terverifikasi healthy/restart0. Cakupan: token/peran visual, kontras,
+skala tipe, tinggi kontrol, katalog desain luring dan dokumentasi keputusan.
+
+- Kandidat `sha256:1cc053e5074b074b362612237474f3b96a3a0ee632240da84471185c47af94e1`.
+- Recovery edd323c, digest `sha256:44ac7e6ff8060aa7e8eb938eb22f239ba1b6de3b8035ffc7e33a4a6498ed0b3a`.
+- Dispatch [40150679801](https://github.com/clarinovist/jagomat/actions/runs/40150679801)
+  sukses: 14.495 test kandidat exact, empat shard recovery, build/probe/pair.
+  Anotasi CI hanya notice perubahan runner; tidak ada warning/failure. Auto-pasang tetap off.
+- Preflight sebelum hold; backup empat DB+auth dan riset terpisah; rehearsal C–B–C,
+  hash transfer privat, approval baru exclusive, swap/reopen dan postcheck lulus.
+  Approval lama diarsipkan hanya setelah receipt exact membuktikan sudah dikonsumsi.
+- Histori dan jumlah tabel terjaga; Caddy/cron/config kembali identik. Tidak ada
+  migrasi, rotasi secret, atau aktivasi fitur. Smoke publik `/`200 `/akun`401 `/murid/`303.
+
+Bukti privat `docs/plan/deploy-desain-claude-20261025/`; backup induk dipertahankan,
+empat turunan rehearsal dibersihkan. Safari/perangkat fisik/screen reader belum diuji.
+
 ## Deploy audit UI admin — 25 Oktober 2026
 
 Controlled `deploy-v2` memasang **7695cf9a5450029a71d8e88d9a351439155233cf**;
