@@ -48,15 +48,17 @@ dirender dengan data sintetis sebelum diterima.
 | Tinjauan, cetak, lampiran | sesi guru, lampiran foto | `CSS_SESI`, `teacher_style.GAYA_GURU` | Dasar + `KODE_*` | Editorial 60rem termasuk padding |
 | Pendamping | panel inline, kelola | `assistant_style.GAYA_PENDAMPING` | Dasar hangat | Panel penuh di HP |
 | Murid | `/murid`, pengerjaan | `GAYA_STITCH` | Dasar hangat | Mobile-first, kolom 46rem di desktop |
-| Lembar | `/lembar/<id>`, penilaian | `screen_style.GAYA_LAYAR`, `print_style.GAYA_CETAK` | Dasar (layar), `CETAK_*` (kertas) | A4 |
+| Lembar | `/lembar/<id>`, penilaian | `screen_style.GAYA_LAYAR`, `print_style.GAYA_CETAK` | Dasar + `LEMBAR_AKSEN` beku (layar), `CETAK_*` (kertas) | A4 |
 | Admin | `/admin/...` | `admin_style.GAYA_ADMIN` | `ADMIN_*` (`--admin-*`) | Sidebar 256px, kanvas fluida |
 
 Font: `FONT_HEADLINE` (Plus Jakarta Sans) dan `FONT_BODY` (Be Vietnam Pro) hanya
-tampil di halaman yang memasang webfont (publik, ruang guru Stitch, murid,
-lampiran). Halaman privat (`teacher_shell._halaman(privat=True)`, termasuk Akun)
-membuang `@import` webfont, dan Admin tidak memuatnya; keduanya jatuh ke font
-sistem lewat stack fallback. `FONT_CETAK` khusus A4. Jangan menambah atau menghapus
-sumber font tanpa memeriksa CSP halaman yang bersangkutan.
+tampil di halaman yang memasang webfont: publik, murid, lampiran, dan halaman guru
+yang tidak privat. Halaman privat (`privat=True` pada `teacher_shell._halaman` atau
+`_halaman_stitch`: Akun, profil anak dan laporan untuk guru yang masuk, kelola
+Pendamping, persetujuan, langganan, sebagian sesi) membuang `@import` webfont, dan
+Admin tidak memuatnya; semuanya jatuh ke font sistem lewat stack fallback.
+`FONT_CETAK` khusus A4. Jangan menambah atau menghapus sumber font tanpa memeriksa CSP
+halaman yang bersangkutan.
 
 ## Warna
 
@@ -80,18 +82,28 @@ sumber font tanpa memeriksa CSP halaman yang bersangkutan.
 | `LATAR_TERSIMPAN` / `TEKS_TERSIMPAN` | #e8f6ec / #14532d | Sukses/tersimpan |
 
 **Profil anak dan ruang guru** memakai `ANAK_*`: teks `ANAK_TEKS` (= `TEKS_JUDUL`),
-aksen `ANAK_AKSEN` (= `AKSEN_TEAL_TUA`), garis `ANAK_BORDER`, batas kontrol
-`ANAK_BORDER_KONTROL` #8f8571, serta chip nada `ANAK_PERHATIAN_*`, `ANAK_BAIK_*`,
-`ANAK_NETRAL_*`, `ANAK_INFO_*`. Aksi utama profil memakai teal, bukan coral.
+aksen `ANAK_AKSEN` (= `AKSEN_TEAL_TUA`), garis kartu `ANAK_BORDER`, serta chip nada
+`ANAK_PERHATIAN_*`, `ANAK_BAIK_*`, `ANAK_NETRAL_*`, `ANAK_INFO_*`. Batas kontrol
+memakai `BORDER_KONTROL` yang sama dengan permukaan lain. Aksi utama profil memakai
+teal, bukan coral.
 
 **Satu teal berteks.** Sejak 25 Okt 2026 seluruh permukaan keluarga memakai satu teal
 teks-aman, #0F6B64 dari mockup profil 19 Okt (6,0:1 di cream). Sebelumnya #0a7d7d
 (tombol profil, tautan) dan #0F6B64 (pil, disclosure) tampil berdampingan di halaman
 yang sama. Teal yang tersisa punya peran berbeda dan memang dibedakan:
 `AKSEN_MURID_UTAMA` #0FA3A3 untuk grafis/border terang, `AKSEN_TEAL_HOVER` #0A4F4A
-untuk hover, dan `ADMIN_AKSEN_*` (#0B7A75 cerah) yang terisolasi di admin. Duplikat
-satu peran ditulis sebagai alias eksplisit (`STATUS_*`, `ANAK_TEKS`, `ANAK_AKSEN*`,
-`ANAK_BAIK_TEKS`, `BORDER_KUAT`, dan lain-lain), bukan hex kembar.
+untuk hover, `ADMIN_AKSEN_*` (#0B7A75 cerah) yang terisolasi di admin, dan
+`LEMBAR_AKSEN` #0a7d7d yang dibekukan pada lembar (lihat di bawah). Duplikat satu
+peran ditulis sebagai alias eksplisit (`STATUS_*`, `ANAK_TEKS`, `ANAK_AKSEN*`,
+`ANAK_BAIK_TEKS`, `ANAK_HEADER_AVATAR_TEKS`, `BORDER_KUAT`, `TEKS_REVIEW`, dan
+lain-lain), bukan hex kembar.
+
+**Lembar dibekukan.** HTML lembar latihan (`teacher_print_pages.halaman_lembar`, CSS
+`screen_style.GAYA_LAYAR`) wajib identik byte-per-byte antara writer dan image
+recovery yang dipin (`test_question_release.py`, gate rilis question pair). Karena itu
+lembar memakai `LEMBAR_AKSEN`/`BORDER_CORET` sendiri dan tidak ikut restyle layar.
+Mengubah gaya lembar hanya bersama pembaruan pasangan recovery menurut
+[runbook rilis](production-release.md).
 
 **Admin** memakai alias semantik `ADMIN_*` yang menunjuk custom property
 `--admin-*`; nilainya dipasangkan dari `ADMIN_*_CERAH` dan `ADMIN_*_GELAP`. Tema
@@ -103,8 +115,9 @@ di-alias ke token keluarga agar restyle salah satu tidak menyeret yang lain.
 tema layar tidak mengubah kertas.
 
 **Status dan diagnosis:** `STATUS_KUAT/LEMAH/SALAH` untuk grafik tren;
-`KODE_*_BG/_TEKS` untuk pill kode B/K/H/E/T/N di tinjauan guru. Pill kode tidak
-pernah tampil di sisi murid.
+`KODE_*_BG/_TEKS` untuk pill kode B/K/H/E/T/N di tinjauan guru (pill tinjauan B dan T
+memakai teks `TEKS_JUDUL` di atas latar kodenya; pill lama `.kode.*` memakai
+`KODE_*_TEKS`). Pill kode tidak pernah tampil di sisi murid.
 
 ### Aturan kontras
 
@@ -116,19 +129,25 @@ pernah tampil di sisi murid.
 | Indikator fokus | 3:1 |
 | Grafis yang membawa informasi | 3:1 |
 
-Aksen terang (`AKSEN_MURID_*`, `STATUS_*`) tidak dipakai untuk teks kecil atau
-sebagai latar teks putih. Rasio dihitung dengan luminansi relatif sRGB (WCAG), bukan
-selisih hex.
+Aksen terang (`AKSEN_MURID_*`, `STATUS_*`) tidak dipakai sebagai warna teks atau
+latar teks putih; versi berteksnya `AKSEN_TEAL_TUA`, `AKSEN_KORAL_TUA`,
+`AKSEN_AMBER_TUA` #815600. `test_design_roles.py` memindai semua CSS dan hanya
+mengizinkan daftar beralasan `design_roles.AKSEN_TERANG_DIIZINKAN` (amber di atas latar
+navy, ikon dekoratif, glyph ikon, lembar beku). Rasio dihitung dengan luminansi relatif
+sRGB (WCAG), bukan selisih hex.
 
 ### Peta peran
 
 `design_roles.py` memetakan **peran semantik** ke nama token untuk tiap permukaan:
-`dasar`, `profil` (profil anak dan ruang guru), `tinjauan` (pill kode), `admin_cerah`,
-`admin_gelap`, `cetak`. Setiap entri menunjuk aturan CSS nyata (modul, konstanta,
-selektor, properti). `test_design_roles.py` menukar token di namespace terisolasi
-untuk membuktikan token itu mencapai aturan tersebut, menjaga satu peran = satu token
-per permukaan, lalu menghitung kontras pasangan yang tampil bersama. Modul ini rujukan
-dan guard, bukan dependensi runtime.
+`dasar`, `profil` (profil anak dan ruang guru), `murid` (pengerjaan), `tinjauan`
+(pill kode, nomor, jejak), `admin_cerah`, `admin_gelap`, `cetak`. Setiap entri menunjuk
+aturan CSS nyata (modul, konstanta, selektor, properti). `test_design_roles.py` menukar
+token di namespace terisolasi untuk membuktikan token itu mencapai aturan tersebut
+(untuk admin juga bahwa nilai tema dipasang di blok `data-tema` yang benar), menjaga
+satu peran = satu token per permukaan, lalu menghitung kontras pasangan yang tampil
+bersama. Pemeriksaan hanya mencakup assignment pertama tiap konstanta CSS; blok `+=`
+sesudahnya (mis. `GAYA_TEKS_MIN`) tidak dipetakan. Modul ini rujukan dan guard, bukan
+dependensi runtime.
 
 | Peran | dasar | profil | admin (cerah) |
 | --- | --- | --- | --- |
@@ -137,7 +156,7 @@ dan guard, bukan dependensi runtime.
 | `teks_utama` | `TEKS_UTAMA` | `ANAK_TEKS` | `ADMIN_TEKS_CERAH` |
 | `tautan` | `AKSEN_TEAL_TUA` | `ANAK_AKSEN` | — |
 | `aksi_utama` / `teks_aksi` | `AKSEN_KORAL_TUA` / `TEKS_PUTIH` | `AKSEN_TEAL_TUA` / `TEKS_PUTIH` | `ADMIN_AKSEN_CERAH` / `ADMIN_PERMUKAAN_CERAH` |
-| `batas_kontrol` | `BORDER_KONTROL` | `ANAK_BORDER_KONTROL` | `ADMIN_BORDER_KUAT_CERAH` |
+| `batas_kontrol` | `BORDER_KONTROL` | `BORDER_KONTROL` | `ADMIN_BORDER_KUAT_CERAH` |
 | `fokus` | `FOKUS_AKSEN` (= `AKSEN_TEAL_TUA`) | `AKSEN_TEAL_TUA` | — |
 
 Peta lengkap (badge, chip, pill kode, galat/sukses) dibaca lewat
@@ -172,10 +191,11 @@ sendiri karena audiensnya berbeda. `GAYA_TEKS_MIN` di `style_stitch.py` menaikka
 informatif yang diketahui ke 14px secara tersekop. Ukuran relatif (`em`, `%`) dan
 `clamp()` boleh untuk konteks komponen; nilai rem/px baru harus salah satu ukuran skala.
 
-**Ratchet skala tipe.** Per 25 Okt 2026, 266 dari 393 deklarasi `font-size` literal
-rem/px berada di luar skala (terbanyak `style_stitch.py` 172, `teacher_style.py` 29,
-`screen_style.py` 14). `test_type_scale.py` mengunci jumlah per berkas: literal di
-luar skala tidak boleh bertambah, dan setiap pengurangan wajib menurunkan `BATAS`.
+**Ratchet skala tipe.** Per 25 Okt 2026, 293 dari 444 deklarasi ukuran huruf literal
+rem/px (`font-size` dan shorthand `font:`) di dalam string Python berada di luar skala
+(terbanyak `style_stitch.py` 198, `teacher_style.py` 29, `screen_style.py` 14).
+`test_type_scale.py` mengunci jumlah per berkas: literal di luar skala tidak boleh
+bertambah, dan setiap pengurangan wajib menurunkan `BATAS`.
 Menyamakan sisa literal itu ke skala adalah perubahan visual dan dikerjakan bertahap
 per permukaan dengan render, bukan sapuan massal.
 
@@ -212,17 +232,20 @@ harus mati saat cetak serta `prefers-reduced-motion`.
 | --- | --- | --- |
 | `TINGGI_CTA` | 52px | CTA utama halaman |
 | `TINGGI_KONTROL` | 48px | Tombol form, input teks, select, textarea, input berkas di permukaan keluarga/murid |
-| `TARGET_SENTUH` | 44px | Tautan, `summary`, chip/pill, tab/nav, baris daftar, label centang, tombol ikon inset (mata sandi), tombol kecil, topbar |
+| `TARGET_SENTUH` | 44px | Tautan, `summary`, chip/pill, nav, baris daftar, label centang, tombol ikon inset (mata sandi), tombol kecil, topbar |
 
 `TINGGI_KONTROL` dipakai tombol dan input form di Stitch, akun, profil (filter, pilihan
-isi, select Latihan), rentang tanggal laporan, langganan, lampiran (baca ulang) dan
-tombol Pendamping. Pengecualian yang disengaja tetap 44px:
+isi, select Latihan), rentang tanggal laporan, langganan, lampiran (input dan baca
+ulang), tombol halaman kelola Pendamping (`GAYA_PENDAMPING`), serta input/select/
+textarea dasar `GAYA_GURU` yang tidak ditimpa aturan lebih spesifik. Tab profil juga
+48px. Pengecualian yang disengaja tetap 44px:
 
 - topbar/header dan tombol di dalamnya (harus muat `height: 44px`), termasuk tombol
   Keluar di kepala Akun;
-- bar Simpan draf/Konfirmasi tinjauan (target 56px, minimal 44px) dan tombol ringkas/
-  lewati di kartu tinjauan;
-- `.tombol-kecil-st`, `.tombol-mata` (inset), dan tombol kirim bulat Pendamping;
+- tombol bar Simpan draf/Konfirmasi di tinjauan editorial (versi dasar
+  `.koreksi-simpan-st button` 48px) dan tombol ringkas/lewati di kartu tinjauan;
+- tombol panel Pendamping inline (`.pendamping-inline button`), tombol kirim bulat
+  Pendamping, `.tombol-kecil-st`, dan `.tombol-mata` (inset);
 - tombol sekunder ringkas yang juga dipakai sebagai tautan: `.kerja-btn-sekunder-st`
   (halaman murid) dan tombol kelola tautan `.aksi-bagikan-st button` (profil);
 - seluruh admin (panel padat; keputusan audit admin 25 Okt).
@@ -248,7 +271,7 @@ Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px.
 | --- | --- | --- | --- |
 | Kartu | `.st-kartu` | `style_stitch.py` | Putih, `BORDER_VARIAN`, radius 22px, hover border aksen |
 | Tombol utama | `.st-tombol-coral`, `a.tombol-coral` | `style_stitch.py` | `AKSEN_KORAL_TUA` berteks putih, hover `AKSEN_KORAL_HOVER`, tinggi 48px |
-| CTA rencana | `.rencana-cta-utama-st` | `style_stitch.py`, `child_beranda_style.py` | Satu per halaman; 52px (`TINGGI_CTA`), 48px di beranda profil; di profil teal |
+| CTA rencana | `.rencana-cta-utama-st` | `style_stitch.py`, `child_beranda_style.py`, `profile_workspace.py` | Satu per halaman; 52px (`TINGGI_CTA`), 48px di beranda profil (`profile_workspace.py`); di profil teal |
 | Input teks | `.st-input` | `style_stitch.py` | 16px, 48px, fokus border + ring aksen |
 | Dropdown | `<select>` native | `form_style.GAYA_SELECT` | Chevron CSS 16px dari kanan, padding kanan 48px; `multiple`/forced-colors tetap native |
 | Toggle sandi | `.kolom-sandi`, `.tombol-mata` | `style_stitch.py`, `teacher_style.py`, `admin_style.py` | Wajib di setiap input sandi |
@@ -258,10 +281,10 @@ Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px.
 | Pil filter | `.anak-pil-st[aria-current]`, `child_components.pil_filter()` | `child_style.py` | Tautan GET, aktif = border 2px + latar aksen |
 | Badge | `.st-badge` (`diagnostik`, `latihan`, `baru`, `selesai`, `review`) | `style_stitch.py` | Status berteks; "Selesai" = konfirmasi aktif, bukan penguasaan |
 | Badge peran | `.badge-peran` | `style_stitch.py`, `child_header.py`, `teacher_style.py` | Pengelola amber, Guru teal |
-| Pill kode diagnosis | `.koreksi-status-st.<kode>` | `style_stitch.py` | `KODE_*`; hanya permukaan guru |
+| Pill kode diagnosis | `.koreksi-status-st.<kode>`, pill lama `.kode.<kode>` | `style_stitch.py` (`CSS_SESI`), `teacher_style.py` | `KODE_*`; hanya permukaan guru |
 | Banner tautan | `.anak-banner-st`, `child_components.banner_tautan()` | `child_style.py` | Satu tautan aksi di kanan |
 | Kartu sesi | `.anak-kartu-sesi-st`, `child_components.kartu_sesi()` | `child_style.py` | Satu status dan satu aksi per baris |
-| Tab profil | `.profil-tabs-st` | `child_header.py` | Berikutnya, Buat latihan, Riwayat, Perkembangan; satu baris di 320px |
+| Tab profil | `.profil-tabs-st`, `profile_workspace.navigasi_profil()` | `child_header.py` | Beranda, Latihan, Riwayat, Perkembangan; 48px; satu baris di 320px |
 | Header | `.st-topbar`, `.menu-pengguna` | `style_stitch.py`, `child_header.py` | Peran + nama dalam satu menu native; satu form Keluar |
 | Bar simpan | `.kerja-simpan-strip-st`, `.koreksi-simpan-st` | `style_stitch.py` | Mengikuti aliran form, tidak menutupi kontrol, tidak menggandakan CTA |
 | Banner peringatan cetak | `.mesin-banner` | `screen_style.py`, `print_style.py` | Radius 12px |
@@ -286,7 +309,8 @@ nyata bila ada (`child_components`, `profile_workspace.navigasi_profil`,
 `admin_komponen.badge_status`). `test_design_catalog.py` menolak kelas contoh yang
 tidak punya aturan di CSS permukaannya, jadi katalog ikut merah bila komponen
 berganti nama. Hover dan fokus tetap harus dicoba langsung di browser. Simpan keluaran
-di folder sementara, bukan di repo.
+di folder sementara, bukan di repo dan bukan di `mesin/publik/` (folder itu masuk image
+dan disajikan publik; katalog memuat contoh gaya kunci/kode diagnosis).
 
 ## Bahasa dan konten UI
 
@@ -346,6 +370,7 @@ Membuka kembali salah satunya memerlukan keputusan produk baru.
 | Meter "0/12 karakter" dan chip paket di header | Tetap tidak diadopsi | Butuh JavaScript baru dan data langganan di header (keputusan 22 Okt) |
 | Satu konfigurasi pemuatan font | Tetap per halaman | Halaman privat tanpa aset jaringan; sumber font mengikuti CSP masing-masing |
 | Admin ikut 48px | Tidak | Panel padat 44px sesuai audit admin 25 Okt |
+| Lembar latihan ikut teal tunggal | Ditunda | Lembar dibekukan gate rilis question pair; perlu pembaruan pasangan recovery tersendiri |
 | Sisa literal `font-size` di luar skala | Bertahap | Dikunci ratchet `test_type_scale.py`; tiap penyamaan dirender per permukaan |
 
 Tindak lanjut terbuka: PDF statis riset publik di `mesin/publik/` dibuat sebelum teal

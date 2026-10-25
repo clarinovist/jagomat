@@ -995,11 +995,11 @@ h1 {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_JUDUL_DEWASA}; color:
 .tanda {{ color: {T.AKSEN_KORAL_TUA}; font-weight: 700; }}
 label {{ display: block; font-size: .84rem; color: {T.TEKS_SUBTLE}; margin: .4rem 0 .15rem; }}
 input[type=text] {{
-  width: 100%; padding: .5rem .6rem; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
+  width: 100%; min-height: {T.TINGGI_KONTROL}; padding: .5rem .6rem; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   border-radius: {T.RADIUS_KECIL}; font-size: 1rem; font-family: inherit;
 }}
 input[type=text]:focus {{
-  outline: none; border-color: {T.AKSEN_MURID_UTAMA};
+  outline: none; border-color: {T.FOKUS_AKSEN};
   box-shadow: {T.BAYANGAN_FOKUS_GURU};
 }}
 .baris {{ display: flex; gap: .8rem; flex-wrap: wrap; }}

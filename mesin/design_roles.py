@@ -25,8 +25,10 @@ class Sisi:
     konstanta: str
     selektor: str
     properti: str
-    # Token var(--x) yang dirujuk aturan; nilai `token` dipasang ke --x (admin).
+    # Token var(--x) yang dirujuk aturan; nilai `token` dipasang ke --x pada
+    # aturan `pemasang` (blok tema admin).
     alias: Optional[str] = None
+    pemasang: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -37,8 +39,8 @@ class Pasangan:
 
 
 def _sumber(modul, konstanta):
-    def sisi(peran, token, selektor, properti, alias=None):
-        return Sisi(peran, token, modul, konstanta, selektor, properti, alias)
+    def sisi(peran, token, selektor, properti, alias=None, pemasang=None):
+        return Sisi(peran, token, modul, konstanta, selektor, properti, alias, pemasang)
     return sisi
 
 
@@ -76,6 +78,7 @@ _DASAR = (
     _teks(_stitch("teks_judul", "TEKS_JUDUL", "h1.st", "color"), _HALAMAN),
     _teks(_stitch("tautan", "AKSEN_TEAL_TUA", ".pesan-editorial-st a", "color"), _HALAMAN),
     _teks(_stitch("tautan", "AKSEN_TEAL_TUA", ".publik-isi-st a", "color"), _HALAMAN),
+    _teks(_stitch("tautan", "AKSEN_TEAL_TUA", ".masuk-link-st a", "color"), _HALAMAN),
     _teks(_TEKS_AKSI, _stitch("aksi_utama", "AKSEN_KORAL_TUA", ".st-tombol-coral", "background")),
     _teks(_TEKS_AKSI, _stitch("aksi_utama_hover", "AKSEN_KORAL_HOVER", ".st-tombol-coral:hover", "background")),
     _grafis(_stitch("batas_kontrol", "BORDER_KONTROL", ".st-input", "border"), _KARTU),
@@ -90,6 +93,7 @@ _DASAR = (
     _badge("peran_guru", "BADGE_GURU_BG", "BADGE_GURU_TEKS", ".badge-peran-guru"),
     _badge("galat", "LATAR_GALAT", "TEKS_GALAT", ".kerja-timer-st.habis"),
     _badge("sukses", "LATAR_TERSIMPAN", "TEKS_TERSIMPAN", ".tahap-rencana-st.selesai"),
+    _badge("tahap_aktif", "AKSEN_TEAL_TUA", "TEKS_PUTIH", ".tahap-rencana-st.aktif"),
 )
 
 _KARTU_SESI = _anak("latar_kartu", "LATAR_KARTU", ".anak-kartu-sesi-st", "background")
@@ -115,10 +119,22 @@ _PROFIL = (
           _profil("aksi_utama", "AKSEN_TEAL_TUA", _TOMBOL_PROFIL, "background")),
     _grafis(_stitch("fokus", "AKSEN_TEAL_TUA", ".guru-beranda-st :is(a, button, summary):focus-visible", "outline"),
             _HALAMAN),
-    _grafis(_latihan("batas_kontrol", "ANAK_BORDER_KONTROL",
+    _grafis(_latihan("batas_kontrol", "BORDER_KONTROL",
                      ".bungkus-st.profil-workspace-st.pendamping-editorial-st .latihan-terpadu-st select",
                      "border"), _KARTU),
-    _grafis(_stitch("batas_kontrol", "ANAK_BORDER_KONTROL", ".guru-cari-st input[type=search]", "border"), _KARTU),
+    _grafis(_stitch("batas_kontrol", "BORDER_KONTROL", ".guru-cari-st input[type=search]", "border"), _KARTU),
+    _grafis(_profil("batas_kontrol", "BORDER_KONTROL", ".profil-workspace-st .profil-filter-st input", "border"), _KARTU),
+)
+
+_MURID = (
+    _badge("nomor", "AKSEN_TEAL_TUA", "TEKS_PUTIH", ".kerja-nomor-st"),
+    _badge("pilihan_aktif", "AKSEN_TEAL_TUA", "TEKS_PUTIH", ".kerja-pill-st:has(input:checked)"),
+    _badge("timer", "AKSEN_TEAL_TUA", "TEKS_INVERS", ".kerja-timer-st"),
+    _grafis(_stitch("batas_kontrol", "BORDER_KONTROL", ".kerja-jawab-st input[type=text]", "border"), _KARTU),
+    _grafis(_stitch("batas_kontrol", "BORDER_KONTROL", ".kerja-cara-st", "border"), _KARTU),
+    _grafis(_stitch("batas_kontrol", "BORDER_KONTROL", ".kerja-restate-st", "border"), _KARTU),
+    _grafis(_stitch("fokus", "FOKUS_AKSEN", ".kerja-cara-st:focus", "border-color"), _KARTU),
+    _grafis(_stitch("bintang", "AKSEN_AMBER_TUA", ".kerja-bintang-st", "color"), _KARTU),
 )
 
 _KODE = (("benar", "KODE_BENAR"), ("K", "KODE_SALAH_KONSEP"), ("H", "KODE_SALAH_HITUNG"),
@@ -129,6 +145,8 @@ _TINJAUAN = tuple(
 ) + (
     _badge("kode_B", "KODE_SALAH_BACA_BG", "TEKS_JUDUL", ".koreksi-status-st.B", _sesi),
     _badge("kode_T", "KODE_BELUM_LIAT_BG", "TEKS_JUDUL", ".koreksi-status-st.T", _sesi),
+    _badge("nomor", "AKSEN_TEAL_TUA", "TEKS_PUTIH", ".koreksi-nomor-st", _sesi),
+    _teks(_sesi("tautan", "AKSEN_TEAL_TUA", ".sesi-jejak-st a", "color"), _HALAMAN),
 ) + tuple(
     _badge("kode_lama_" + kode, awalan + "_BG", awalan + "_TEKS", ".kode." + kode, _guru)
     for kode, awalan in _KODE + (("B", "KODE_SALAH_BACA"), ("T", "KODE_BELUM_LIAT"))
@@ -141,8 +159,11 @@ _TINJAUAN = tuple(
 
 
 def _permukaan_admin(tema):
+    pemasang = 'body.admin-readonly[data-tema="%s"]' % ("terang" if tema == "CERAH" else "gelap")
+
     def sisi(peran, nama, selektor, properti):
-        return _admin(peran, f"ADMIN_{nama}_{tema}", selektor, properti, alias=f"ADMIN_{nama}")
+        return _admin(peran, f"ADMIN_{nama}_{tema}", selektor, properti,
+                      alias=f"ADMIN_{nama}", pemasang=pemasang)
     halaman = sisi("latar_halaman", "LATAR", "body.admin-readonly", "background")
     kartu = sisi("latar_kartu", "PERMUKAAN", ".admin-kartu", "background")
     teks_aksi = sisi("teks_aksi", "PERMUKAAN", ".admin-tombol", "color")
@@ -166,6 +187,7 @@ _CETAK = (
 PERMUKAAN = MappingProxyType({
     "dasar": _DASAR,
     "profil": _PROFIL,
+    "murid": _MURID,
     "tinjauan": _TINJAUAN,
     "admin_cerah": _permukaan_admin("CERAH"),
     "admin_gelap": _permukaan_admin("GELAP"),
@@ -176,6 +198,27 @@ PERMUKAAN = MappingProxyType({
 # Kunci: (permukaan, peran depan, peran belakang). Test menuntut daftar ini sama
 # persis dengan kegagalan nyata, jadi perbaikan wajib menghapus entrinya.
 PENGECUALIAN = MappingProxyType({})
+
+
+# Aturan yang sah memakai aksen terang (AKSEN_MURID_*/STATUS_*) sebagai warna teks
+# atau latar teks putih. Kunci: (modul, konstanta, daftar selektor). Test memindai
+# semua CSS dan menuntut temuan sama persis dengan daftar ini.
+AKSEN_TERANG_DIIZINKAN = MappingProxyType({
+    ("competitive_research", "GAYA_RISET", ".riset-keputusan .riset-alis"): "amber di atas latar navy TEKS_JUDUL",
+    ("competitive_research", "GAYA_RISET", ".riset-keputusan strong"): "amber di atas latar navy TEKS_JUDUL",
+    ("style_stitch", "GAYA_STITCH", ".landing-cara-st .landing-nomor-st"): "amber di atas latar navy TEKS_JUDUL",
+    ("style_stitch", "GAYA_STITCH", ".landing-cara-st li::before"): "amber di atas latar navy TEKS_JUDUL",
+    ("style_stitch", "GAYA_STITCH", ".landing-pilot-st .landing-alis-st"): "amber di atas latar navy TEKS_JUDUL",
+    ("style_stitch", "GAYA_STITCH", ".kerja-jawab-st .head-jawab .material-symbols-outlined"): "ikon dekoratif, makna di teks",
+    ("style_stitch", "GAYA_STITCH", ".kerja-foto-kepala-st .material-symbols-outlined"): "ikon dekoratif, makna di teks",
+    ("style_stitch", "GAYA_STITCH", ".hasil-langkah-st .material-symbols-outlined"): "ikon dekoratif, makna di teks",
+    ("style_stitch", "GAYA_STITCH", ".rumus-kepala-st .material-symbols-outlined"): "ikon dekoratif, makna di teks",
+    ("style_stitch", "CSS_SESI", ".status-sesi-st .material-symbols-outlined, .status-sesi-st .ikon-status-sesi-st"):
+        "ikon status dekoratif, status berteks",
+    ("teacher_style", "GAYA_GURU", ".ikon-kartu"): "glyph ikon putih di teal terang: grafis 3,1:1",
+    ("screen_style", "GAYA_LAYAR", ".nomor"): "lembar dibekukan gate rilis; tertimpa .lembar-editorial .nomor",
+    ("screen_style", "GAYA_LAYAR", ".bintang"): "lembar dibekukan gate rilis",
+})
 
 
 def _kanal(hex_warna: str) -> Tuple[float, float, float]:

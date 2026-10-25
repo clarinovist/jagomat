@@ -1,11 +1,14 @@
 """Skala tipe resmi: literal font-size di luar skala hanya boleh berkurang (ratchet)."""
+import ast
 from pathlib import Path
 import re
 
 import design_tokens as T
 
 ROOT = Path(__file__).resolve().parent.parent
-POLA = re.compile(r"font-size\s*:\s*(\d*\.?\d+)(rem|px)\b")
+# font-size: N dan shorthand `font: [gaya/berat] N...`; hanya satuan rem/px.
+POLA = re.compile(r"font(?:-size\s*:\s*|\s*:\s*(?:(?:italic|oblique|normal|bold|bolder|lighter|small-caps|\d{3})\s+)*)"
+                  r"(\d*\.?\d+)(rem|px)\b")
 TOKEN_SKALA = (
     "UKURAN_TEKS_META", "UKURAN_TEKS_CATATAN", "UKURAN_TEKS_LABEL", "UKURAN_TEKS_BANTUAN",
     "UKURAN_BADAN_LAYAR", "UKURAN_BAGIAN_DEWASA", "UKURAN_ANGKA_DEWASA",
@@ -13,7 +16,7 @@ TOKEN_SKALA = (
     "ADMIN_UKURAN_ISI", "ADMIN_UKURAN_JUDUL", "ADMIN_UKURAN_KPI",
 )
 
-# Baseline 25 Okt 2026: 266 dari 393 deklarasi literal rem/px di luar skala.
+# Baseline 25 Okt 2026: 293 dari 444 deklarasi literal rem/px di luar skala.
 # Turunkan angka ini setiap kali literal diganti token/nilai skala; jangan naikkan.
 BATAS = {
     "admin_style.py": 7,
@@ -22,6 +25,7 @@ BATAS = {
     "bootstrap_research.py": 1,
     "business_research.py": 2,
     "child_beranda_style.py": 4,
+    "child_header.py": 1,
     "child_history_style.py": 1,
     "child_latihan_style.py": 6,
     "child_materi_style.py": 2,
@@ -33,7 +37,7 @@ BATAS = {
     "report_dashboard.py": 3,
     "screen_style.py": 14,
     "student_pages.py": 2,
-    "style_stitch.py": 172,
+    "style_stitch.py": 198,
     "teacher_style.py": 29,
 }
 
@@ -46,9 +50,14 @@ def _px(angka, satuan):
 SKALA_PX = frozenset(_px(*re.fullmatch(r"(\d*\.?\d+)(rem|px)", getattr(T, t)).groups()) for t in TOKEN_SKALA)
 
 
-def _tanpa_komentar(teks):
-    teks = re.sub(r"/\*.*?\*/", "", teks, flags=re.S)
-    return "\n".join(b for b in teks.splitlines() if not b.lstrip().startswith("#"))
+def _isi_string(teks):
+    """Isi literal string (tempat CSS berada) via AST, sama di Python 3.9 dan 3.12.
+
+    Komentar Python tidak masuk AST; bagian f-string di luar ekspresi ikut, komentar CSS dibuang.
+    """
+    isi = "\n".join(n.value for n in ast.walk(ast.parse(teks))
+                    if isinstance(n, ast.Constant) and isinstance(n.value, str))
+    return re.sub(r"/\*.*?\*/", "", isi, flags=re.S)
 
 
 def hitung_di_luar_skala(akar=ROOT):
@@ -57,7 +66,7 @@ def hitung_di_luar_skala(akar=ROOT):
     for path in sorted(akar.glob("*.py")):
         if path.name == "design_tokens.py":
             continue
-        n = sum(1 for a, s in POLA.findall(_tanpa_komentar(path.read_text())) if _px(a, s) not in SKALA_PX)
+        n = sum(1 for a, s in POLA.findall(_isi_string(path.read_text())) if _px(a, s) not in SKALA_PX)
         if n:
             hasil[path.name] = n
     return hasil
@@ -79,6 +88,7 @@ def test_penghitung_menyamakan_ejaan_dan_melewati_komentar(tmp_path):
     (tmp_path / "contoh.py").write_text(
         'CSS = """a { font-size: 0.875rem; } b { font-size: .875rem; } c { font-size: 15px; }"""\n'
         '# font-size: 11px di komentar Python\n'
-        'X = "/* font-size: 9px */ d { font-size: 1.05rem; }"\n'
+        'X = "/* font-size: 9px */ d { font-size: 1.05rem; } e { font: 700 .8rem/1.5 x; } f { font: inherit; }"\n'
+        'Y = """\n#id { font: italic 1rem x; }"""\n'
     )
-    assert hitung_di_luar_skala(tmp_path) == {"contoh.py": 2}
+    assert hitung_di_luar_skala(tmp_path) == {"contoh.py": 3}

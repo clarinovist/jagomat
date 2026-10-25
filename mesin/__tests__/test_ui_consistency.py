@@ -210,7 +210,8 @@ def test_kontrol_teks_tidak_mewarisi_label_kecil():
 
 def test_grid_dan_select_latihan_tidak_kalah_aturan_lama():
     selector = child_latihan_style._R + '.pendamping-editorial-st .latihan-terpadu-st select'
-    assert T.ANAK_BORDER_KONTROL in _aturan(child_latihan_style.GAYA_LATIHAN, selector)
+    # Batas kontrol profil disatukan ke BORDER_KONTROL (25 Okt 2026, >=3:1).
+    assert T.BORDER_KONTROL in _aturan(child_latihan_style.GAYA_LATIHAN, selector)
     assert 'minmax(min(100%, 16.25rem), 1fr)' in child_latihan_style.GAYA_LATIHAN
     assert 'minmax(min(100%,14rem),1fr)' in admin_style.GAYA_ADMIN
 

@@ -286,13 +286,13 @@ label {{ display: block; font-size: .84rem; color: {T.TEKS_SUBTLE}; margin: .55r
    bawaan peramban (dan ikut memicu zoom). */
 input[type=text], input[type=password], input[type=number], input[type=file],
 textarea, select {{
-  width: 100%; padding: .5rem .6rem; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
+  width: 100%; min-height: {T.TINGGI_KONTROL}; padding: .5rem .6rem; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   border-radius: {T.RADIUS_KECIL}; font-size: 1rem; font-family: inherit;
   background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
 }}
 input[type=text]:focus, input[type=password]:focus, input[type=number]:focus,
 textarea:focus, select:focus {{
-  outline: none; border-color: {T.AKSEN_MURID_UTAMA};
+  outline: none; border-color: {T.FOKUS_AKSEN};
   box-shadow: {T.BAYANGAN_FOKUS_GURU};
 }}
 textarea {{ min-height: 3.2rem; resize: vertical; }}
@@ -424,7 +424,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
   box-shadow: {T.BAYANGAN_KARTU_GURU};
 }}
 .stat .angka-besar {{
-  font-size: {T.UKURAN_ANGKA_DEWASA}; font-weight: 800; color: {T.AKSEN_MURID_UTAMA};
+  font-size: {T.UKURAN_ANGKA_DEWASA}; font-weight: 800; color: {T.AKSEN_TEAL_TUA};
   line-height: 1.1;
 }}
 .stat .stat-label {{ color: {T.TEKS_SUBTLE}; font-size: .88rem; margin-top: .3rem; }}
@@ -581,7 +581,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .masuk-kiri {{ text-align: center; }}
 .masuk-kiri img {{ width: 200px; height: 200px; max-width: 70vw; }}
 .masuk-kiri h1 {{
-  font-size: 1.8rem; margin: .4rem 0 0; color: {T.AKSEN_MURID_UTAMA};
+  font-size: 1.8rem; margin: .4rem 0 0; color: {T.AKSEN_TEAL_TUA};
 }}
 .masuk-kiri p {{ color: {T.TEKS_SUBTLE}; margin: .2rem 0 0; }}
 .masuk-kanan {{ display: flex; justify-content: center; }}

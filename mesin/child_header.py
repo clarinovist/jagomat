@@ -130,7 +130,7 @@ GAYA_HEADER_ANAK = f"""
   }}
 }}
 {_H} .profil-tabs-st a {{
-  flex: none; height: 48px; min-height: 48px; padding: 0;
+  flex: none; height: {T.TINGGI_KONTROL}; min-height: {T.TINGGI_KONTROL}; padding: 0;
   font: 600 15px/1.4 {T.FONT_BODY}; color: {T.TEKS_VARIAN};
   border-bottom: 3px solid transparent;
 }}

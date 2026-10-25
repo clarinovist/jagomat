@@ -193,9 +193,11 @@ state statis (aktif, terbuka, nonaktif) ditampilkan.</p>{iframe}</body></html>""
 
 
 def ekspor(tujuan: Path) -> Path:
+    # Bangun dulu: kegagalan render tidak meninggalkan folder kosong yang memblokir ulang.
+    isi = bangun_html()
     tujuan.mkdir(parents=True, exist_ok=False)
     berkas = tujuan / "index.html"
-    berkas.write_text(bangun_html(), encoding="utf-8")
+    berkas.write_text(isi, encoding="utf-8")
     return berkas
 
 

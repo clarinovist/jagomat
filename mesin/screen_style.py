@@ -41,7 +41,7 @@ h1 {{
   background: {T.LATAR_KARTU_MURID}; border: 2px solid {T.AKSEN_MURID_UTAMA};
   border-radius: {T.RADIUS_KARTU}; padding: 0.55rem 0.9rem; margin-bottom: 0.7rem;
 }}
-.mesin-banner .nama-app {{ font-weight: 800; color: {T.AKSEN_TEAL_TUA}; }}
+.mesin-banner .nama-app {{ font-weight: 800; color: {T.LEMBAR_AKSEN}; }}
 .mesin-banner .meta-sesi {{ font-size: 0.9rem; color: {T.TEKS_SUBTLE}; }}
 .banner-kunci {{ border-color: {T.AKSEN_MURID_KORAL}; }}
 .banner-kunci .nama-app {{ color: {T.AKSEN_KORAL_TUA}; }}
@@ -179,8 +179,8 @@ svg {{ display: block; margin: 0.6rem 0; max-width: 100%; height: auto; }}
     background: {T.LATAR_CATATAN}; border: 0; border-left: 3px solid {T.BORDER_CATATAN};
     border-radius: 0; font-size: {T.UKURAN_TEKS_BANTUAN};
   }}
-  .lembar-editorial .nomor {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; }}
-  .lembar-editorial .bagian {{ color: {T.AKSEN_TEAL_TUA}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
+  .lembar-editorial .nomor {{ background: {T.LEMBAR_AKSEN}; color: {T.TEKS_PUTIH}; }}
+  .lembar-editorial .bagian {{ color: {T.LEMBAR_AKSEN}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
   .lembar-editorial .soal {{ border-radius: {T.RADIUS_KECIL}; }}
   .lembar-editorial .cara {{ background: {T.LATAR_KARTU}; border-color: {T.BORDER_VARIAN}; }}
   .lembar-editorial .meta-template {{ overflow-wrap: anywhere; }}

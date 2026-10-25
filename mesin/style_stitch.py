@@ -311,7 +311,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-cari-st {{ display: flex; align-items: flex-end; flex-wrap: wrap; gap: {T.SP_3}; margin: 0 0 {T.SP_3}; }}
 .guru-cari-st > div {{ flex: 1 1 16rem; min-width: 0; }}
 .guru-cari-st label {{ display: block; margin-bottom: {T.SP_1}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; color: {T.ANAK_TEKS}; }}
-.guru-cari-st input[type=search] {{ width: 100%; box-sizing: border-box; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2} {T.SP_3}; font: inherit; color: {T.ANAK_TEKS}; background: {T.LATAR_KARTU}; border: 1px solid {T.ANAK_BORDER_KONTROL}; border-radius: {T.RADIUS_SEDANG}; }}
+.guru-cari-st input[type=search] {{ width: 100%; box-sizing: border-box; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2} {T.SP_3}; font: inherit; color: {T.ANAK_TEKS}; background: {T.LATAR_KARTU}; border: 1px solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_SEDANG}; }}
 .guru-cari-st button {{ min-height: {T.TINGGI_KONTROL}; padding: 0 {T.SP_4}; font: 700 {T.UKURAN_TEKS_LABEL}/1.4 {T.FONT_HEADLINE}; color: {T.TEKS_PUTIH}; background: {T.ANAK_AKSEN}; border: 0; border-radius: {T.RADIUS_SEDANG}; cursor: pointer; }}
 .guru-cari-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_2}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; color: {T.ANAK_AKSEN}; }}
 .guru-hasil-filter-st {{ color: {T.ANAK_TEKS_BANTUAN}; font-size: {T.UKURAN_TEKS_LABEL}; margin: 0 0 {T.SP_3}; }}
@@ -342,7 +342,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-cta-st:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}
 .guru-cta-utama-st {{ background: {T.ANAK_AKSEN}; color: {T.TEKS_PUTIH}; }}
 .guru-cta-utama-st:hover {{ background: {T.ANAK_AKSEN_HOVER}; }}
-.guru-cocok-kosong-st {{ display: flex; flex-direction: column; align-items: flex-start; gap: {T.SP_2}; padding: {T.SP_5}; border: {T.TEBAL_GARIS} dashed {T.ANAK_BORDER_KONTROL}; border-radius: {T.RADIUS_KARTU_BESAR}; background: {T.LATAR_KARTU}; }}
+.guru-cocok-kosong-st {{ display: flex; flex-direction: column; align-items: flex-start; gap: {T.SP_2}; padding: {T.SP_5}; border: {T.TEBAL_GARIS} dashed {T.BORDER_KONTROL}; border-radius: {T.RADIUS_KARTU_BESAR}; background: {T.LATAR_KARTU}; }}
 .guru-kartu-st[hidden], .guru-cocok-kosong-st[hidden] {{ display: none; }}
 .guru-cocok-kosong-st p {{ margin: 0; color: {T.ANAK_TEKS_REDUP}; overflow-wrap: anywhere; }}
 .guru-kosong-st {{ border: {T.TEBAL_GARIS} dashed {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU}; padding: {T.SP_6}; background: color-mix(in srgb, {T.LATAR_KARTU} 65%, transparent); }}
@@ -801,7 +801,7 @@ tr.sorot-baru, div.sorot-baru {{
   font-weight: 600; overflow-wrap: anywhere;
 }}
 .tahap-rencana-st.selesai {{ background: {T.LATAR_TERSIMPAN}; color: {T.TEKS_TERSIMPAN}; }}
-.tahap-rencana-st.aktif {{ background: {T.AKSEN_MURID_UTAMA}; color: {T.TEKS_PUTIH}; }}
+.tahap-rencana-st.aktif {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; }}
 .tindakan-rencana-st {{
   background: {T.LATAR_SEKUNDER_LEMBUT}; border-radius: {T.RADIUS_SEDANG};
   padding: {T.SP_3} {T.SP_4};
@@ -906,7 +906,7 @@ tr.sorot-baru, div.sorot-baru {{
   .buat-latihan-st:has(#tab-baru:checked) .tab-label-st[for="tab-baru"],
   .buat-latihan-st:has(#tab-ulang:checked) .tab-label-st[for="tab-ulang"],
   .buat-latihan-st:has(#tab-gabungan:checked) .tab-label-st[for="tab-gabungan"] {{
-    color: {T.AKSEN_MURID_UTAMA}; border-bottom-color: {T.AKSEN_MURID_UTAMA};
+    color: {T.AKSEN_TEAL_TUA}; border-bottom-color: {T.AKSEN_TEAL_TUA};
   }}
 }}
 /* Fokus papan ketik harus terlihat: radio-nya kasat mata nol, jadi cincin
@@ -959,7 +959,7 @@ tr.sorot-baru, div.sorot-baru {{
 /* Timer strip per-sesi (Latihan Cepat). Sticky di bawah topbar, teal penuh.  */
 .kerja-timer-st {{
   position: sticky; top: {T.TARGET_SENTUH}; z-index: 40;
-  background: {T.AKSEN_MURID_UTAMA}; color: {T.TEKS_INVERS};
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS};
   padding: {T.SP_2} {T.SP_4}; border-radius: {T.RADIUS_SEDANG};
   margin-bottom: {T.SP_5}; font-size: .98rem; font-weight: 600;
   text-align: center; display: flex; justify-content: center; align-items: center; gap: {T.SP_2};
@@ -1009,13 +1009,13 @@ tr.sorot-baru, div.sorot-baru {{
 .kerja-nomor-st {{
   position: absolute; top: -0.85rem; left: {T.SP_3};
   width: 2.2rem; height: 2.2rem;
-  background: {T.AKSEN_MURID_UTAMA}; color: {T.TEKS_PUTIH};
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH};
   border-radius: {T.RADIUS_BULAT}; border: 2px solid {T.LATAR_KARTU};
   display: inline-flex; align-items: center; justify-content: center;
   font-family: {T.FONT_HEADLINE}; font-weight: 700; font-size: .95rem;
   box-shadow: {T.BAYANGAN_NOMOR};
 }}
-.kerja-bintang-st {{ font-weight: 700; color: {T.AKSEN_MURID_AMBER}; margin-left: {T.SP_2}; }}
+.kerja-bintang-st {{ font-weight: 700; color: {T.AKSEN_AMBER_TUA}; margin-left: {T.SP_2}; }}
 
 .kerja-teks-st {{ display: block; margin-top: {T.SP_2}; color: {T.TEKS_UTAMA}; }}
 .kerja-tanya-st {{
@@ -1034,12 +1034,12 @@ tr.sorot-baru, div.sorot-baru {{
 /* Restatement textarea. */
 .kerja-restate-st {{
   width: 100%; min-height: 84px;
-  border: 1.5px dashed {T.BORDER_CORET}; border-radius: {T.RADIUS_KECIL};
+  border: 1.5px dashed {T.BORDER_KONTROL}; border-radius: {T.RADIUS_KECIL};
   padding: .6rem; font-size: 1rem; font-family: inherit;
   background: {T.LATAR_SEKUNDER_LEMBUT};
 }}
 .kerja-restate-st:focus {{
-  outline: none; border-color: {T.AKSEN_MURID_UTAMA}; border-style: solid;
+  outline: none; border-color: {T.FOKUS_AKSEN}; border-style: solid;
   box-shadow: {T.BAYANGAN_FOKUS};
 }}
 
@@ -1060,8 +1060,8 @@ tr.sorot-baru, div.sorot-baru {{
 .kerja-pill-st input {{ position: absolute; opacity: 0; pointer-events: none; }}
 /* :has() — terpilih = teal solid penuh. */
 .kerja-pill-st:has(input:checked) {{
-  background: {T.AKSEN_MURID_UTAMA}; color: {T.TEKS_PUTIH};
-  border-color: {T.AKSEN_MURID_UTAMA}; font-weight: 700;
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH};
+  border-color: {T.AKSEN_TEAL_TUA}; font-weight: 700;
 }}
 .kerja-pill-st:has(input:focus-visible) {{
   border-color: {T.AKSEN_MURID_UTAMA};
@@ -1072,12 +1072,12 @@ tr.sorot-baru, div.sorot-baru {{
 /* Textarea "tulis lebih jelas" opsional di Caraku. */
 .kerja-cara-st {{
   width: 100%; min-height: 70px;
-  border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_SEDANG};
   padding: .6rem; font-size: 1rem; font-family: inherit;
   background: {T.LATAR_SEKUNDER_LEMBUT};
 }}
 .kerja-cara-st:focus {{
-  outline: none; border-color: {T.AKSEN_MURID_UTAMA};
+  outline: none; border-color: {T.FOKUS_AKSEN};
   box-shadow: {T.BAYANGAN_FOKUS};
 }}
 
@@ -1100,7 +1100,7 @@ tr.sorot-baru, div.sorot-baru {{
   background: {T.LATAR_KARTU};
 }}
 .kerja-jawab-st input[type=text]:focus {{
-  outline: none; border-color: {T.AKSEN_MURID_UTAMA};
+  outline: none; border-color: {T.FOKUS_AKSEN};
   box-shadow: {T.BAYANGAN_FOKUS_PILIHAN};
 }}
 
@@ -1596,7 +1596,7 @@ tr.sorot-baru, div.sorot-baru {{
   font-family: {T.FONT_HEADLINE};
 }}
 .masuk-link-st a {{
-  color: {T.AKSEN_MURID_UTAMA}; text-decoration: none; font-weight: 600;
+  color: {T.AKSEN_TEAL_TUA}; text-decoration: none; font-weight: 600;
 }}
 .masuk-link-st a:hover {{ text-decoration: underline; }}
 
@@ -1660,7 +1660,7 @@ tr.sorot-baru, div.sorot-baru {{
   display: inline-flex; align-items: center; gap: {T.SP_1};
 }}
 .publik-topbar-st .tombol-putih:hover {{
-  border-color: {T.AKSEN_MURID_UTAMA}; color: {T.AKSEN_MURID_UTAMA};
+  border-color: {T.AKSEN_TEAL_TUA}; color: {T.AKSEN_TEAL_TUA};
 }}
 
 .publik-bungkus-st {{
@@ -2999,7 +2999,7 @@ CSS_SESI = f"""
 
 .sesi-badan-st {{ max-width: {T.LEBAR_KONTEN}; margin: 0 auto; padding: {T.SP_4} 0.9rem {T.SP_7}; }}
 .sesi-jejak-st {{ margin-bottom: {T.SP_3}; font-size:{T.UKURAN_TEKS_BANTUAN}; }}
-.sesi-jejak-st a {{ color: {T.AKSEN_MURID_UTAMA}; text-decoration: none; }}
+.sesi-jejak-st a {{ color: {T.AKSEN_TEAL_TUA}; text-decoration: none; }}
 .sesi-jejak-st a:hover {{ text-decoration: underline; }}
 
 .sesi-judul-st {{
@@ -3135,7 +3135,7 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 .koreksi-kepala-st {{ display: flex; align-items: center; gap: {T.SP_3}; flex-wrap: wrap; }}
 .koreksi-nomor-st {{
   flex: none; width: 2rem; height: 2rem;
-  background: {T.AKSEN_MURID_UTAMA}; color: {T.TEKS_PUTIH};
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH};
   border-radius: {T.RADIUS_BULAT}; border: 2px solid {T.LATAR_KARTU};
   display: inline-flex; align-items: center; justify-content: center;
   font-family: {T.FONT_HEADLINE}; font-weight: 700; font-size: {T.UKURAN_TEKS_BANTUAN};
@@ -3313,7 +3313,7 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
   background: {T.LATAR_SEKUNDER_LEMBUT};
 }}
 .koreksi-textarea-st:focus {{
-  outline: none; border-color: {T.AKSEN_MURID_UTAMA};
+  outline: none; border-color: {T.FOKUS_AKSEN};
   box-shadow: {T.BAYANGAN_FOKUS};
 }}
 

@@ -34,7 +34,7 @@ GAYA_LATIHAN = f"""
 }}
 {_R}.pendamping-editorial-st .latihan-terpadu-st select {{
   min-height: {T.TINGGI_KONTROL}; margin: {T.SP_2} 0 {T.SP_1}; padding: 0 {T.SP_3};
-  border: 1px solid {T.ANAK_BORDER_KONTROL}; border-radius: 12px; color: {T.ANAK_TEKS};
+  border: 1px solid {T.BORDER_KONTROL}; border-radius: 12px; color: {T.ANAK_TEKS};
 }}
 {_R} .latihan-topik-grid {{ grid-template-columns: repeat(auto-fit, minmax(min(100%, 16.25rem), 1fr)); gap: {T.SP_3}; }}
 {_R} .latihan-topik-grid label {{{_KARTU_CENTANG}

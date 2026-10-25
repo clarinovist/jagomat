@@ -62,13 +62,24 @@ def test_setiap_pasangan_peran_dan_status_kontras_tampil(katalog):
     assert "GAGAL<" not in isi, "kegagalan kontras tak tercatat tampil di katalog"
 
 
-@pytest.mark.parametrize("indeks", range(6))
-def test_kelas_contoh_ada_di_css_permukaannya(katalog, indeks):
-    """Contoh yang memakai kelas tanpa aturan CSS berarti katalog sudah basi."""
-    demo = katalog.demo()[indeks]
-    hilang = sorted(k for k in _Kelas(demo.isi).kelas
-                    if not re.search(r"\." + re.escape(k) + r"(?![\w-])", demo.css))
-    assert not hilang, (demo.judul, hilang)
+def test_kelas_contoh_ada_di_css_permukaannya(katalog):
+    """Contoh yang memakai kelas tanpa aturan CSS berarti katalog sudah basi (semua demo)."""
+    hilang = {}
+    for demo in katalog.demo():
+        kelas = sorted(k for k in _Kelas(demo.isi).kelas
+                       if not re.search(r"\." + re.escape(k) + r"(?![\w-])", demo.css))
+        if kelas:
+            hilang[demo.judul] = kelas
+    assert katalog.demo() and not hilang, hilang
+
+
+def test_ekspor_gagal_tidak_meninggalkan_folder(katalog, tmp_path, monkeypatch):
+    def rusak():
+        raise ValueError("render gagal")
+    monkeypatch.setattr(katalog, "bangun_html", rusak)
+    with pytest.raises(ValueError):
+        katalog.ekspor(tmp_path / "katalog")
+    assert not (tmp_path / "katalog").exists()
 
 
 def test_katalog_membuang_webfont(katalog):

@@ -9,10 +9,11 @@ latar, teks, aksi, batas kontrol, fokus) dipetakan di design_roles.py.
 == Keluarga palet ==
 
 - Dasar hangat (cream LATAR_MURID + teal/coral/amber AKSEN_*, teks TEKS_*):
-  landing, masuk, ruang guru Stitch, akun, tinjauan, murid.
+  landing, masuk, akun, tinjauan, Pendamping, murid.
 - Profil anak dan beranda guru: ANAK_* (child_*_style.py, .guru-beranda-st).
 - Panel pengelola: ADMIN_* dengan pasangan *_CERAH/*_GELAP, sengaja terisolasi.
-- Cetak A4: CETAK_* hemat tinta, terpisah dari tema layar.
+- Cetak A4: CETAK_* hemat tinta, terpisah dari tema layar; lembar layar
+  memakai LEMBAR_AKSEN yang dibekukan gate rilis.
 - Geometri SVG soal (POLA_/STAT_/GEO_/RUANG_/...): satuan viewBox, bukan UI.
 """
 
@@ -246,9 +247,10 @@ STATUS_SALAH = AKSEN_MURID_KORAL   # coral
 # dengan teal mockup profil #0F6B64; sebelumnya #0a7d7d bercampur di satu halaman).
 AKSEN_TEAL_TUA = "#0F6B64"
 AKSEN_KORAL_TUA = "#cc3f2b"
+AKSEN_AMBER_TUA = "#815600"   # amber teks-aman (bintang tantangan, teks status review)
 
-# Badge peran topbar (multi-keluarga): Pengelola amber, Orang Tua teal —
-# warna status yang sama supaya tetap satu rasa visual.
+# Badge peran topbar: Pengelola amber berteks gelap, Guru teal teks-aman
+# berteks putih.
 BADGE_ADMIN_BG = AKSEN_MURID_AMBER
 BADGE_ADMIN_TEKS = "#5b430a"
 BADGE_GURU_BG = AKSEN_TEAL_TUA     # teks putih butuh teal teks-aman
@@ -408,8 +410,8 @@ UKURAN_INFO = "18px"
 TARGET_INFO = TARGET_SENTUH  # area klik 44px; jejak layout tetap 26px lewat margin negatif
 LEBAR_TOOLTIP = "260px"
 
-# Radius kartu konten utama versi Figma (22px); kontrol/penanda kecil tetap
-# RADIUS_KARTU 12px.
+# Radius kartu konten utama versi Figma (22px); menu dropdown dan banner kecil
+# tetap RADIUS_KARTU 12px, kontrol memakai RADIUS_SEDANG/RADIUS_KECIL.
 RADIUS_KARTU_BESAR = "22px"
 
 # Tinggi kontrol & CTA (ukuran Figma: kontrol 48, CTA utama 52) + ikon standar.
@@ -435,7 +437,7 @@ SP_8 = "4rem"                    # 64px
 TEKS_INVERS = "#fff"
 LATAR_NONAKTIF = "#f3f4f6"
 LATAR_REVIEW = "#fff0d6"
-TEKS_REVIEW = "#815600"
+TEKS_REVIEW = AKSEN_AMBER_TUA
 GARIS_ISIAN = "#333"
 GARIS_RESTATE = "#667"
 BORDER_CORET = "#99a"
@@ -449,6 +451,11 @@ CETAK_GARIS_HALUS = "#666"
 CETAK_GARIS_TULIS = "#c4c4c4"
 CETAK_LATAR_PETUNJUK = "#f7f7f7"
 CETAK_LATAR_TABEL = "#eee"
+
+# Lembar latihan layar dibekukan byte-per-byte: gate rilis question pair
+# menuntut render lembar identik antara writer dan image recovery. Ubah hanya
+# bersama pembaruan pasangan recovery (docs/production-release.md).
+LEMBAR_AKSEN = "#0a7d7d"
 
 # Bayangan utuh, bukan warna RGB yang tercecer per stylesheet.
 BAYANGAN_KARTU_GURU = "0 1px 3px rgba(22,33,62,0.04)"
@@ -621,12 +628,11 @@ ANAK_INFO_TEKS = "#1E3A8A"
 ANAK_STATUS_DIPELAJARI = "#3F7FD1"  # bar status peta materi; biru agar tak sama dengan amber butuh tindakan
 ANAK_STATUS_PERLU_CEK = "#B4423A"
 ANAK_STATUS_BELUM = "#DAD3C3"
-ANAK_BORDER_KONTROL = "#8f8571"      # select/input profil & cari guru, >=3:1
 ANAK_LATAR_KARTU_HALUS = "#FFFDF9"   # kartu centang topik/remedial
 
 # Header /anak/<id>, canvas Header Jagomat Anak; tidak mengubah token bersama.
 ANAK_HEADER_BORDER_AKUN = "#E6D9C0"
 ANAK_HEADER_AVATAR_LATAR = "#D5ECEC"
-ANAK_HEADER_AVATAR_TEKS = "#0A6666"
+ANAK_HEADER_AVATAR_TEKS = AKSEN_TEAL_TUA
 ANAK_HEADER_META = "#556060"
 ANAK_HEADER_BAYANGAN = "0 3px 8px rgb(22 33 62 / 8%)"
