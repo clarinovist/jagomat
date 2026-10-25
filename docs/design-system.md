@@ -331,6 +331,27 @@ CSS = f"""
    [workflow](workflow-reference.md#visual-sintetis--desain); jalankan scoped test
    markup/style dan gate jalur.
 
+## Keputusan desain
+
+Usulan mockup/riwayat yang sebelumnya menunggu keputusan diputuskan 25 Okt 2026 atas
+rekomendasi agent yang diterima umum oleh pengguna (bukan keputusan per butir).
+Membuka kembali salah satunya memerlukan keputusan produk baru.
+
+| Usulan | Keputusan | Alasan |
+| --- | --- | --- |
+| Header Akun abu rata khusus (canvas "Jagomat Akun Redesign") | Tidak diadopsi | Akun memakai `teacher_shell._topbar_stitch` yang sama dengan ruang guru dan profil; varian header per halaman memecah shell bersama |
+| Isi kartu anak terbuka dengan satu tombol Simpan | Tidak diadopsi | Kelola berisi tiga aksi independen (kelas sekolah, sandi anak, hapus anak) dengan form/handler sendiri; satu Simpan mencampur aksi destruktif dengan edit dan mengubah kontrak handler data anak (jalur Kritis) demi kosmetik |
+| Tombol Keluar kedua di dasar halaman HP | Ditolak | Melanggar satu aksi satu entry point; audit 24 Okt sengaja menyisakan satu form Keluar di header |
+| Ikon, jumlah pesan, dan rentang tanggal di daftar chat Pendamping | Tidak diadopsi | Daftar sengaja hanya metadata minimal; jumlah/rentang butuh query turunan isi percakapan, ikon tidak menambah makna. Pengelompokan per tanggal tetap |
+| Meter "0/12 karakter" dan chip paket di header | Tetap tidak diadopsi | Butuh JavaScript baru dan data langganan di header (keputusan 22 Okt) |
+| Satu konfigurasi pemuatan font | Tetap per halaman | Halaman privat tanpa aset jaringan; sumber font mengikuti CSP masing-masing |
+| Admin ikut 48px | Tidak | Panel padat 44px sesuai audit admin 25 Okt |
+| Sisa literal `font-size` di luar skala | Bertahap | Dikunci ratchet `test_type_scale.py`; tiap penyamaan dirender per permukaan |
+
+Tindak lanjut terbuka: PDF statis riset publik di `mesin/publik/` dibuat sebelum teal
+disatukan; isinya sama, tetapi aksen tealnya sedikit berbeda dari HTML sampai PDF
+dibuat ulang dari renderer.
+
 ## Batas verifikasi
 
 Safari/iOS, screen reader nyata, HP/printer fisik, dan semua kombinasi data/state

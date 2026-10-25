@@ -13,6 +13,8 @@ Koreksi status yang diketahui saat pemisahan (25 Okt 2026):
 - Token tanpa pemakai `BINTANG`, `DURASI_LAMBAT`, `ANAK_LATAR` dihapus.
 - Rollout `TINGGI_KONTROL`, sisa coral, dan skala tipe: status kini di
   [design system](design-system.md#ukuran-kontrol-dan-target-sentuh).
+- Butir Akun "belum disamakan dan menunggu keputusan" (22 Okt) sudah diputuskan;
+  lihat [keputusan desain](design-system.md#keputusan-desain).
 
 ## Ringkasan kontrak per 25 Oktober 2026 (sebelum pemisahan)
 

@@ -122,4 +122,5 @@ Safari/iOS, HP/printer fisik, screen reader nyata, semua kombinasi data/state, s
 uji performa transkripsi guru belum dibuktikan. Panel AI diuji tanpa provider;
 checkout aktif/QRIS/pembayaran dan pengiriman foto bukan transaksi audit ini.
 Tidak menambah JavaScript atau dependency. Perubahan header/desain akun yang masih
-menunggu keputusan pada design system tidak diadopsi diam-diam.
+menunggu keputusan pada design system tidak diadopsi diam-diam; keputusan 25 Okt
+tercatat di [design system](design-system.md#keputusan-desain).
