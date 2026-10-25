@@ -110,7 +110,26 @@ def test_image_workflow_tetap_cocok_saat_repo_github_diganti_nama():
     assert metadata.deploy.REGISTRI == metadata.verify_release_image.REPOSITORI
     # Override job/step tidak boleh diam-diam kembali mengikuti nama repo.
     assert re.findall(r"^\s+IMAGE: (.+)$", teks, re.M) == image
-    assert "${{ github.repository }}" not in teks
+    # API artefak mengikuti repo saat ini; identitas image tetap namespace lama.
+    # Pemakaian lain (termasuk tags atau override IMAGE) tetap ditolak.
+    pemakai = [baris.strip() for baris in teks.splitlines()
+               if "${{ github.repository }}" in baris]
+    assert pemakai == ["GH_REPO: ${{ github.repository }}"]
+
+
+@pytest.mark.parametrize("tambahan", [
+    "  IMAGE: ${{ github.repository }}",
+    "          tags: ghcr.io/${{ github.repository }}:candidate",
+    "          GH_REPO: ${{ github.repository }}/repo-lain",
+])
+def test_repo_artefak_tidak_mengizinkan_image_dinamis(tmp_path, monkeypatch, tambahan):
+    sumber = (AKAR / ".github/workflows/deploy.yml").read_text()
+    tujuan = tmp_path / ".github/workflows/deploy.yml"
+    tujuan.parent.mkdir(parents=True)
+    tujuan.write_text(sumber + "\n" + tambahan + "\n")
+    monkeypatch.setattr(sys.modules[__name__], "AKAR", tmp_path)
+    with pytest.raises(AssertionError):
+        test_image_workflow_tetap_cocok_saat_repo_github_diganti_nama()
 
 
 def test_workflow_aktual_cocok_dengan_mode_dan_pin_config():
