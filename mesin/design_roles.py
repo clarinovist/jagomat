@@ -75,14 +75,15 @@ _DASAR = (
     _teks(_TEKS, _KARTU),
     _teks(_stitch("teks_judul", "TEKS_JUDUL", "h1.st", "color"), _HALAMAN),
     _teks(_stitch("tautan", "AKSEN_TEAL_TUA", ".pesan-editorial-st a", "color"), _HALAMAN),
-    _teks(_stitch("tautan_publik", "AKSEN_MURID_UTAMA", ".publik-isi-st a", "color"), _HALAMAN),
+    _teks(_stitch("tautan", "AKSEN_TEAL_TUA", ".publik-isi-st a", "color"), _HALAMAN),
     _teks(_TEKS_AKSI, _stitch("aksi_utama", "AKSEN_KORAL_TUA", ".st-tombol-coral", "background")),
     _teks(_TEKS_AKSI, _stitch("aksi_utama_hover", "AKSEN_KORAL_HOVER", ".st-tombol-coral:hover", "background")),
-    _grafis(_stitch("batas_kontrol", "BORDER_VARIAN", ".st-input", "border"), _KARTU),
+    _grafis(_stitch("batas_kontrol", "BORDER_KONTROL", ".st-input", "border"), _KARTU),
+    _grafis(_stitch("batas_kontrol", "BORDER_KONTROL", ".st-input", "border"), _HALAMAN),
     _grafis(_stitch("fokus", "FOKUS_AKSEN", ".info:focus-visible", "outline"), _HALAMAN),
     _badge("badge_diagnostik", "STATUS_DIAGNOSTIK_BG", "STATUS_DIAGNOSTIK_TEKS", ".st-badge.diagnostik"),
     _badge("badge_latihan", "STATUS_LATIHAN_BG", "STATUS_LATIHAN_TEKS", ".st-badge.latihan"),
-    _badge("badge_baru", "AKSEN_MURID_KORAL", "TEKS_INVERS", ".st-badge.baru"),
+    _badge("badge_baru", "AKSEN_KORAL_TUA", "TEKS_INVERS", ".st-badge.baru"),
     _badge("badge_selesai", "LATAR_ELEVASI", "TEKS_VARIAN", ".st-badge.selesai"),
     _badge("badge_review", "LATAR_REVIEW", "TEKS_REVIEW", ".st-badge.review"),
     _badge("peran_pengelola", "BADGE_ADMIN_BG", "BADGE_ADMIN_TEKS", ".badge-peran-admin"),
@@ -134,6 +135,8 @@ _TINJAUAN = tuple(
 ) + (
     _teks(_guru("teks_kunci", "KODE_SALAH_BACA_TEKS", ".kunci", "color"),
           _guru("latar_halaman", "LATAR_MURID", "body", "background")),
+    _grafis(_guru("batas_kontrol", "BORDER_KONTROL", "input[type=text]", "border"),
+            _guru("latar_halaman", "LATAR_MURID", "body", "background")),
 )
 
 
@@ -169,21 +172,10 @@ PERMUKAAN = MappingProxyType({
     "cetak": _CETAK,
 })
 
-# Pasangan yang diketahui gagal kontras, menunggu perbaikan visual tersendiri.
+# Pasangan yang diketahui gagal kontras dan sengaja ditunda, dengan alasannya.
 # Kunci: (permukaan, peran depan, peran belakang). Test menuntut daftar ini sama
 # persis dengan kegagalan nyata, jadi perbaikan wajib menghapus entrinya.
-PENGECUALIAN = MappingProxyType({
-    ("dasar", "tautan_publik", "latar_halaman"): "teal terang untuk teks tautan",
-    ("dasar", "batas_kontrol", "latar_kartu"): "garis input BORDER_VARIAN 1,7:1",
-    ("dasar", "fokus", "latar_halaman"): "cincin fokus teal terang 2,9:1 di cream",
-    ("dasar", "badge_diagnostik_teks", "badge_diagnostik_latar"): "teks putih di teal terang",
-    ("dasar", "badge_baru_teks", "badge_baru_latar"): "teks putih di coral terang",
-    ("dasar", "peran_guru_teks", "peran_guru_latar"): "teks putih di teal terang",
-    ("profil", "batas_kontrol", "latar_kartu"): "garis select ANAK_BORDER_KONTROL 2,1:1",
-    ("tinjauan", "kode_lama_B_teks", "kode_lama_B_latar"): "amber teks pill lama 3,9:1",
-    ("tinjauan", "kode_lama_T_teks", "kode_lama_T_latar"): "hijau teks pill lama 4,4:1",
-    ("tinjauan", "teks_kunci", "latar_halaman"): "amber teks kunci di cream",
-})
+PENGECUALIAN = MappingProxyType({})
 
 
 def _kanal(hex_warna: str) -> Tuple[float, float, float]:

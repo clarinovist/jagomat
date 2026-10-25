@@ -8,7 +8,7 @@ GAYA_LANGGANAN = f"""
 .langganan-panel .peringatan {{padding:{T.SP_4};border-left:4px solid {T.AKSEN_MURID_AMBER};background:{T.LATAR_CATATAN};color:{T.TEKS_UTAMA}}}
 .langganan-panel label {{display:flex;gap:.75rem;align-items:center;min-height:{T.TARGET_SENTUH}}}
 .langganan-panel input[type=checkbox] {{width:1.25rem;height:1.25rem;flex-shrink:0}}
-.langganan-panel button,.langganan-panel .tombol {{min-height:{T.TARGET_SENTUH};display:inline-flex;align-items:center;justify-content:center;padding:{T.SP_3} {T.SP_4};border-radius:{T.RADIUS_KECIL}}}
+.langganan-panel button,.langganan-panel .tombol {{min-height:{T.TINGGI_KONTROL};display:inline-flex;align-items:center;justify-content:center;padding:{T.SP_3} {T.SP_4};border-radius:{T.RADIUS_KECIL}}}
 .langganan-panel .qr {{display:block;width:280px;max-width:100%;height:auto;margin:{T.SP_4} auto}}
 .langganan-panel .nominal {{font-size:{T.UKURAN_ANGKA_DEWASA};font-weight:800;color:{T.TEKS_JUDUL}}}
 .langganan-panel fieldset {{border:0;padding:0;margin:{T.SP_4} 0}}

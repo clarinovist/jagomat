@@ -80,14 +80,21 @@ def test_kontras_hanya_gagal_pada_pengecualian_tercatat():
     assert all(alasan.strip() for alasan in R.PENGECUALIAN.values())
 
 
-def test_pemeriksa_kontras_bereaksi_pada_nilai_token():
-    """Menukar coral terang dengan coral teks-aman menghapus kegagalan badge baru."""
-    kunci = ("dasar", "badge_baru_teks", "badge_baru_latar")
-    diperbaiki = SimpleNamespace(**dict(vars(T), AKSEN_MURID_KORAL=T.AKSEN_KORAL_TUA))
-    rusak = SimpleNamespace(**dict(vars(T), TEKS_UTAMA=T.LATAR_MURID))
-    assert kunci in R.kegagalan(T) or kunci not in R.PENGECUALIAN
-    assert kunci not in R.kegagalan(diperbaiki)
-    assert ("dasar", "teks_utama", "latar_halaman") in R.kegagalan(rusak)
+def _ns(**tukar):
+    return SimpleNamespace(**dict(vars(T), **tukar))
+
+
+@pytest.mark.parametrize("tukar,kunci", (
+    ({"AKSEN_KORAL_TUA": T.AKSEN_MURID_KORAL}, ("dasar", "badge_baru_teks", "badge_baru_latar")),
+    ({"BORDER_KONTROL": T.BORDER_VARIAN}, ("dasar", "batas_kontrol", "latar_kartu")),
+    ({"FOKUS_AKSEN": T.AKSEN_MURID_UTAMA}, ("dasar", "fokus", "latar_halaman")),
+    ({"ANAK_BORDER_KONTROL": "#BFB39A"}, ("profil", "batas_kontrol", "latar_kartu")),
+    ({"TEKS_UTAMA": T.LATAR_MURID}, ("dasar", "teks_utama", "latar_halaman")),
+))
+def test_pemeriksa_kontras_menangkap_nilai_lama_yang_gagal(tukar, kunci):
+    """Mengembalikan nilai sebelum perbaikan 25 Okt memunculkan lagi kegagalannya."""
+    assert kunci not in R.kegagalan(T)
+    assert kunci in R.kegagalan(_ns(**tukar))
 
 
 @pytest.mark.parametrize("depan,belakang,harapan", (

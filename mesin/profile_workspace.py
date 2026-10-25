@@ -350,7 +350,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-champs-st > * {{ grid-column:1/-1; min-width:0; }}
 .profil-workspace-st .profil-champs-st label {{ white-space:normal; overflow-wrap:anywhere; }}
 .profil-workspace-st .profil-champs-st .strip-kolom > label {{ font-size:{T.UKURAN_TEKS_LABEL}; color:{T.TEKS_JUDUL}; line-height:1.4; }}
-.profil-workspace-st .profil-champs-st select.st-input {{ font-size:{T.UKURAN_BADAN_LAYAR}; min-height:{T.TARGET_SENTUH}; padding:{T.SP_3}; }}
+.profil-workspace-st .profil-champs-st select.st-input {{ font-size:{T.UKURAN_BADAN_LAYAR}; min-height:{T.TINGGI_KONTROL}; padding:{T.SP_3}; }}
 .profil-workspace-st .profil-champs-st .strip-kolom > small {{ font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.5; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .profil-assistant-st > .pendamping-buka-inline {{ display:contents; }}
 .profil-workspace-st .profil-formulaire-st .tab-label-st {{ border-radius:{T.RADIUS_KECIL}; }}
@@ -400,7 +400,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-cepat-st a[aria-current] {{ background:{T.AKSEN_TEAL_TUA}; border-color:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_INVERS}; font-weight:700; }}
 .profil-workspace-st .profil-filter-st input[type="date"] {{ color-scheme:light; }}
 .profil-workspace-st .profil-filter-st input[type="date"]::-webkit-calendar-picker-indicator {{ cursor:pointer; opacity:.65; }}
-.profil-workspace-st .profil-filter-st input,.profil-workspace-st .profil-filter-st select {{ width:100%; min-width:0; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2}; font:inherit; font-size:{T.UKURAN_BADAN_LAYAR}; border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; background:{T.LATAR_KARTU}; border-radius:{T.RADIUS_KECIL}; }}
+.profil-workspace-st .profil-filter-st input,.profil-workspace-st .profil-filter-st select {{ width:100%; min-width:0; min-height:{T.TINGGI_KONTROL}; padding:{T.SP_2}; font:inherit; font-size:{T.UKURAN_BADAN_LAYAR}; border:{T.TEBAL_GARIS} solid {T.BORDER_KONTROL}; background:{T.LATAR_KARTU}; border-radius:{T.RADIUS_KECIL}; }}
 .profil-workspace-st .profil-paging-st {{ display:flex; gap:{T.SP_4}; flex-wrap:wrap; justify-content:space-between; align-items:center; padding:{T.SP_3} 0; font-size:{T.UKURAN_TEKS_CATATAN}; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .profil-paging-st a {{ color:{T.AKSEN_TEAL_TUA}; }}
 .profil-workspace-st .profil-pager-st {{ display:flex; flex-wrap:wrap; gap:{T.SP_1}; }}

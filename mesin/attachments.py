@@ -995,7 +995,7 @@ h1 {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_JUDUL_DEWASA}; color:
 .tanda {{ color: {T.AKSEN_KORAL_TUA}; font-weight: 700; }}
 label {{ display: block; font-size: .84rem; color: {T.TEKS_SUBTLE}; margin: .4rem 0 .15rem; }}
 input[type=text] {{
-  width: 100%; padding: .5rem .6rem; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
+  width: 100%; padding: .5rem .6rem; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   border-radius: {T.RADIUS_KECIL}; font-size: 1rem; font-family: inherit;
 }}
 input[type=text]:focus {{
@@ -1036,7 +1036,7 @@ button {{
 }}
 .baca-ulang-form .centang {{ flex-basis: 100%; }}
 button.tombol-baca-ulang {{
-  width: auto; min-height: {T.TARGET_SENTUH}; padding: .6rem {T.SP_4};
+  width: auto; min-height: {T.TINGGI_KONTROL}; padding: .6rem {T.SP_4};
   background: {T.LATAR_KARTU_MURID}; color: {T.AKSEN_TEAL_TUA};
   border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; font-size: .95rem;
 }}

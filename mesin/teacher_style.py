@@ -286,7 +286,7 @@ label {{ display: block; font-size: .84rem; color: {T.TEKS_SUBTLE}; margin: .55r
    bawaan peramban (dan ikut memicu zoom). */
 input[type=text], input[type=password], input[type=number], input[type=file],
 textarea, select {{
-  width: 100%; padding: .5rem .6rem; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
+  width: 100%; padding: .5rem .6rem; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   border-radius: {T.RADIUS_KECIL}; font-size: 1rem; font-family: inherit;
   background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
 }}
@@ -649,7 +649,7 @@ textarea {{ min-height: 3.2rem; resize: vertical; }}
 .baris-aksi {{ display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }}
 .input-sandi-kecil {{
   width: 8.5rem; max-width: 42vw; padding: .3rem .5rem; font-size: {T.UKURAN_TEKS_BANTUAN};
-  border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius: {T.RADIUS_KECIL};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_KECIL};
   font-family: inherit;
 }}
 @media (max-width: {T.BATAS_HP}) {{

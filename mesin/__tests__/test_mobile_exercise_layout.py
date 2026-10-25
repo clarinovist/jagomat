@@ -75,7 +75,8 @@ def test_grid_field_mobile_satu_kolom_dan_kontrol_teks_aman():
     assert 'grid-template-columns:minmax(0,1fr)' in grid
     kontrol = _blok(css, '.profil-workspace-st .profil-champs-st select.st-input')
     assert 'font-size:16px' in kontrol
-    assert 'min-height:44px' in kontrol
+    # Select form = kontrol 48px (TINGGI_KONTROL), bukan target tautan 44px.
+    assert 'min-height:48px' in kontrol
 
 
 def test_tab_mobile_satu_kelompok_dan_tombol_utama_lebar_penuh():

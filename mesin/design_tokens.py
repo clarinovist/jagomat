@@ -242,14 +242,16 @@ STATUS_SALAH = AKSEN_MURID_KORAL   # coral
 # ber-teks putih. AKSEN_MURID_* tetap untuk border, badge besar, dan elemen
 # grafis besar (di sana 3:1 cukup). Teal/coral terang di atas teks kecil
 # gagal kontras (3.1:1 / 2.8:1) — dua token ini penggantinya.
-AKSEN_TEAL_TUA = "#0a7d7d"
+# Teal teks-aman TUNGGAL seluruh permukaan keluarga (25 Okt 2026: disatukan
+# dengan teal mockup profil #0F6B64; sebelumnya #0a7d7d bercampur di satu halaman).
+AKSEN_TEAL_TUA = "#0F6B64"
 AKSEN_KORAL_TUA = "#cc3f2b"
 
 # Badge peran topbar (multi-keluarga): Pengelola amber, Orang Tua teal —
 # warna status yang sama supaya tetap satu rasa visual.
 BADGE_ADMIN_BG = AKSEN_MURID_AMBER
 BADGE_ADMIN_TEKS = "#5b430a"
-BADGE_GURU_BG = "#0FA3A3"
+BADGE_GURU_BG = AKSEN_TEAL_TUA     # teks putih butuh teal teks-aman
 BADGE_GURU_TEKS = TEKS_PUTIH
 
 # Kode diagnosis — warna pill di halaman sesi guru (mockup guru-sesi).
@@ -259,13 +261,13 @@ KODE_BENAR_TEKS = "#157347"
 KODE_SALAH_KONSEP_BG = "#fdecea"   # K
 KODE_SALAH_KONSEP_TEKS = "#c2352b"
 KODE_SALAH_BACA_BG = "#fdf3e0"     # B
-KODE_SALAH_BACA_TEKS = "#a4700f"
+KODE_SALAH_BACA_TEKS = "#8c600d"   # >=4,5:1 di latar B dan cream
 KODE_SALAH_HITUNG_BG = "#e8f0fc"   # H
 KODE_SALAH_HITUNG_TEKS = "#2c60ad"
 KODE_SALAH_TULIS_BG = "#f0ecfb"    # E
 KODE_SALAH_TULIS_TEKS = "#6a4bb0"
 KODE_BELUM_LIAT_BG = "#eaf4ef"     # T
-KODE_BELUM_LIAT_TEKS = "#3f7d57"
+KODE_BELUM_LIAT_TEKS = "#37704c"   # >=4,5:1 di latar T
 KODE_MENEBAK_BG = "#efeff1"        # N
 KODE_MENEBAK_TEKS = "#5b5b63"
 
@@ -364,16 +366,17 @@ LATAR_SEKUNDER_LEMBUT = "#f6f3f2"   # surface-container-low (bg blok murid, grid
 LATAR_SEKUNDER_NETRAL = "#f0edec"   # surface-container (elemen di dalam kartu)
 LATAR_ELEVASI         = "#ebe7e7"   # surface-container-high (hover ringan, level 2)
 TEKS_VARIAN           = "#3d4949"   # on-surface-variant — pengganti TEKS_SUBTLE untuk kartu
-BORDER_VARIAN         = "#bcc9c8"   # outline-variant (border kartu lembut)
+BORDER_VARIAN         = "#bcc9c8"   # outline-variant (border kartu lembut, dekoratif)
+BORDER_KONTROL        = "#7b8786"   # batas input/select/textarea >=3:1 di putih & cream
 
 # Status
-STATUS_DIAGNOSTIK_BG  = AKSEN_MURID_UTAMA   # bg pill diagnostik (teal teks putih)
+STATUS_DIAGNOSTIK_BG  = AKSEN_TEAL_TUA      # bg pill diagnostik (teal teks putih)
 STATUS_DIAGNOSTIK_TEKS = TEKS_PUTIH
 STATUS_LATIHAN_BG     = "#ffba4b"           # broader "latihan" (amber gelap)
 STATUS_LATIHAN_TEKS   = "#291800"           # amber text on light pill
 
-# Glow/fokus aksen (border fokus 2px)
-FOKUS_AKSEN = "#0fa3a3"
+# Indikator fokus/hover (outline 2px, border fokus input): >=3:1 di cream.
+FOKUS_AKSEN = AKSEN_TEAL_TUA
 
 # ─────────────────────────────────────────────────────────────────────
 # Token Figma v2 — sinkron dari file "Jagomat · Sistem Desain & Pilot UI"
@@ -388,7 +391,7 @@ FOKUS_AKSEN = "#0fa3a3"
 
 # Warna hover tombol solid (Figma action/*-hover) — lebih gelap dari dasarnya.
 AKSEN_KORAL_HOVER = "#ba3c2d"    # hover tombol coral (aksi utama)
-AKSEN_TEAL_HOVER = "#0b7477"     # hover tombol teal (aksi sekunder)
+AKSEN_TEAL_HOVER = "#0A4F4A"     # hover tombol teal, lebih gelap dari AKSEN_TEAL_TUA
 
 # Balon penjelasan pola "ⓘ" (komponen Info di Figma: bg/tooltip & text/tooltip).
 # Nilainya sama dengan token judul/putih supaya balon tetap tinggi kontras.
@@ -455,8 +458,8 @@ BAYANGAN_FOKUS_RINGAN = "0 0 0 3px rgba(15,163,163,0.12)"
 BAYANGAN_FOKUS = "0 0 0 3px rgba(15,163,163,0.18)"
 BAYANGAN_FOKUS_PILIHAN = "0 0 0 3px rgba(15,163,163,0.20)"
 BAYANGAN_FOKUS_KUAT = "0 0 0 3px rgba(15,163,163,0.28)"
-BAYANGAN_SIMPAN = "0 4px 12px rgba(255,107,91,.25)"
-BAYANGAN_SIMPAN_MURID = "0 4px 12px rgba(255,107,91,.30)"
+BAYANGAN_SIMPAN = "0 4px 12px rgba(204,63,43,.25)"        # rona AKSEN_KORAL_TUA
+BAYANGAN_SIMPAN_MURID = "0 4px 12px rgba(204,63,43,.30)"
 
 # Skala teks kecil existing, bukan pembulatan/penyamaan hierarki.
 UKURAN_TEKS_META = ".75rem"
@@ -592,11 +595,11 @@ ADMIN_UKURAN_KPI = "40px"
 # dipakai child_*_style.py, child_header.py, mastery_report.py, style_stitch.py.
 ANAK_LEBAR = "60rem"            # 960px lebar isi, sama di keempat tab
 ANAK_GUTTER = "2rem"            # 32px sisi; 1rem di layar sempit
-ANAK_TEKS = "#16213A"
+ANAK_TEKS = TEKS_JUDUL
 ANAK_TEKS_REDUP = "#3F4654"
 ANAK_TEKS_BANTUAN = "#4B5563"
-ANAK_AKSEN = "#0F6B64"
-ANAK_AKSEN_HOVER = "#0A4F4A"
+ANAK_AKSEN = AKSEN_TEAL_TUA
+ANAK_AKSEN_HOVER = AKSEN_TEAL_HOVER
 ANAK_AKSEN_LATAR = "#E6F2EF"    # pilihan aktif, banner tautan
 ANAK_BORDER = "#EADFCB"
 ANAK_BORDER_PIL = "#D8CDB6"
@@ -605,7 +608,7 @@ ANAK_PERHATIAN_LATAR = "#FEF0D0"
 ANAK_PERHATIAN_TEKS = "#6B3F00"
 ANAK_PERHATIAN_BORDER = "#E3B15A"   # tepi kartu anak yang menunggu tindakan guru
 ANAK_BAIK_LATAR = "#DDF1E4"
-ANAK_BAIK_TEKS = "#14532D"
+ANAK_BAIK_TEKS = TEKS_TERSIMPAN
 ANAK_NETRAL_LATAR = "#ECE7DA"
 ANAK_NETRAL_TEKS = ANAK_TEKS_REDUP
 ANAK_BATAS_HP = "43.75rem"      # 700px
@@ -614,7 +617,7 @@ ANAK_INFO_TEKS = "#1E3A8A"
 ANAK_STATUS_DIPELAJARI = "#3F7FD1"  # bar status peta materi; biru agar tak sama dengan amber butuh tindakan
 ANAK_STATUS_PERLU_CEK = "#B4423A"
 ANAK_STATUS_BELUM = "#DAD3C3"
-ANAK_BORDER_KONTROL = "#BFB39A"      # select/input form Latihan
+ANAK_BORDER_KONTROL = "#8f8571"      # select/input profil & cari guru, >=3:1
 ANAK_LATAR_KARTU_HALUS = "#FFFDF9"   # kartu centang topik/remedial
 
 # Header /anak/<id>, canvas Header Jagomat Anak; tidak mengubah token bersama.

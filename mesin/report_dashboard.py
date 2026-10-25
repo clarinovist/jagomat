@@ -154,8 +154,8 @@ GAYA_LAPORAN = f"""
 .laporan-editorial-st .laporan-rentang-form {{display:flex;flex-wrap:wrap;align-items:end;gap:{T.SP_3};}}
 .laporan-editorial-st .laporan-rentang-label {{flex-basis:100%;font-size:{T.UKURAN_TEKS_LABEL};color:{T.TEKS_JUDUL};}}
 .laporan-editorial-st .laporan-rentang-form label {{display:grid;gap:{T.SP_1};color:{T.TEKS_SUBTLE};font-size:{T.UKURAN_TEKS_CATATAN};}}
-.laporan-editorial-st .laporan-rentang-form input {{min-height:{T.TARGET_SENTUH};padding:{T.SP_2};font:inherit;border:{T.TEBAL_GARIS} solid {T.BORDER_VARIAN};border-radius:{T.RADIUS_KECIL};background:{T.LATAR_KARTU};}}
-.laporan-editorial-st .laporan-rentang-form button {{min-height:{T.TARGET_SENTUH};}}
+.laporan-editorial-st .laporan-rentang-form input {{min-height:{T.TINGGI_KONTROL};padding:{T.SP_2};font:inherit;border:{T.TEBAL_GARIS} solid {T.BORDER_KONTROL};border-radius:{T.RADIUS_KECIL};background:{T.LATAR_KARTU};}}
+.laporan-editorial-st .laporan-rentang-form button {{min-height:{T.TINGGI_KONTROL};}}
 .laporan-editorial-st .editorial-kepala-st h1 {{overflow-wrap:anywhere;}}
 @media(max-width:{T.BATAS_KOLOM_BACA}) {{
   .laporan-editorial-st .laporan-ringkasan-grid {{grid-template-columns:minmax(0,1fr);}}

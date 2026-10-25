@@ -70,17 +70,28 @@ sumber font tanpa memeriksa CSP halaman yang bersangkutan.
 | `LATAR_KARTU` | #fff | Permukaan kartu |
 | `TEKS_UTAMA` / `TEKS_JUDUL` | #111 / #16213e | Badan / judul |
 | `TEKS_SUBTLE` / `TEKS_VARIAN` | #555 / #3d4949 | Teks sekunder |
-| `BORDER_VARIAN` / `BORDER_HALUS` | #bcc9c8 / #d5d8de | Garis kartu (dekoratif) |
+| `BORDER_VARIAN` / `BORDER_HALUS` | #bcc9c8 / #d5d8de | Garis kartu dan pemisah (dekoratif, bukan batas kontrol) |
+| `BORDER_KONTROL` | #7b8786 | Batas input, select, textarea (≥3:1 di putih dan cream) |
 | `AKSEN_MURID_UTAMA` / `_KORAL` / `_AMBER` | #0FA3A3 / #FF6B5B / #FFB020 | Aksen **grafis**: border, ilustrasi, latar dengan teks gelap |
-| `AKSEN_TEAL_TUA` / `AKSEN_KORAL_TUA` | #0a7d7d / #cc3f2b | Aksen **berteks**: tautan, teks status, tombol solid berteks putih |
-| `AKSEN_TEAL_HOVER` / `AKSEN_KORAL_HOVER` | #0b7477 / #ba3c2d | Hover tombol solid |
+| `AKSEN_TEAL_TUA` / `AKSEN_KORAL_TUA` | #0F6B64 / #cc3f2b | Aksen **berteks**: tautan, teks status, tombol solid berteks putih |
+| `AKSEN_TEAL_HOVER` / `AKSEN_KORAL_HOVER` | #0A4F4A / #ba3c2d | Hover tombol solid (lebih gelap) |
+| `FOKUS_AKSEN` | = `AKSEN_TEAL_TUA` | Cincin fokus, border fokus input, hover kartu (≥3:1 di cream) |
 | `LATAR_GALAT` / `TEKS_GALAT` | #fdecea / #93352b | Galat |
 | `LATAR_TERSIMPAN` / `TEKS_TERSIMPAN` | #e8f6ec / #14532d | Sukses/tersimpan |
 
-**Profil anak dan ruang guru** memakai `ANAK_*`: teks `ANAK_TEKS`, aksi
-`ANAK_AKSEN` #0F6B64 (teal lebih tua dari dasar, sesuai mockup 19 Okt), garis
-`ANAK_BORDER`, serta chip nada `ANAK_PERHATIAN_*`, `ANAK_BAIK_*`, `ANAK_NETRAL_*`,
-`ANAK_INFO_*`. Aksi utama profil memakai teal, bukan coral.
+**Profil anak dan ruang guru** memakai `ANAK_*`: teks `ANAK_TEKS` (= `TEKS_JUDUL`),
+aksen `ANAK_AKSEN` (= `AKSEN_TEAL_TUA`), garis `ANAK_BORDER`, batas kontrol
+`ANAK_BORDER_KONTROL` #8f8571, serta chip nada `ANAK_PERHATIAN_*`, `ANAK_BAIK_*`,
+`ANAK_NETRAL_*`, `ANAK_INFO_*`. Aksi utama profil memakai teal, bukan coral.
+
+**Satu teal berteks.** Sejak 25 Okt 2026 seluruh permukaan keluarga memakai satu teal
+teks-aman, #0F6B64 dari mockup profil 19 Okt (6,0:1 di cream). Sebelumnya #0a7d7d
+(tombol profil, tautan) dan #0F6B64 (pil, disclosure) tampil berdampingan di halaman
+yang sama. Teal yang tersisa punya peran berbeda dan memang dibedakan:
+`AKSEN_MURID_UTAMA` #0FA3A3 untuk grafis/border terang, `AKSEN_TEAL_HOVER` #0A4F4A
+untuk hover, dan `ADMIN_AKSEN_*` (#0B7A75 cerah) yang terisolasi di admin. Duplikat
+satu peran ditulis sebagai alias eksplisit (`STATUS_*`, `ANAK_TEKS`, `ANAK_AKSEN*`,
+`ANAK_BAIK_TEKS`, `BORDER_KUAT`, dan lain-lain), bukan hex kembar.
 
 **Admin** memakai alias semantik `ADMIN_*` yang menunjuk custom property
 `--admin-*`; nilainya dipasangkan dari `ADMIN_*_CERAH` dan `ADMIN_*_GELAP`. Tema
@@ -126,16 +137,19 @@ dan guard, bukan dependensi runtime.
 | `teks_utama` | `TEKS_UTAMA` | `ANAK_TEKS` | `ADMIN_TEKS_CERAH` |
 | `tautan` | `AKSEN_TEAL_TUA` | `ANAK_AKSEN` | — |
 | `aksi_utama` / `teks_aksi` | `AKSEN_KORAL_TUA` / `TEKS_PUTIH` | `AKSEN_TEAL_TUA` / `TEKS_PUTIH` | `ADMIN_AKSEN_CERAH` / `ADMIN_PERMUKAAN_CERAH` |
-| `batas_kontrol` | `BORDER_VARIAN` | `ANAK_BORDER_KONTROL` | `ADMIN_BORDER_KUAT_CERAH` |
-| `fokus` | `FOKUS_AKSEN` | `AKSEN_TEAL_TUA` | — |
+| `batas_kontrol` | `BORDER_KONTROL` | `ANAK_BORDER_KONTROL` | `ADMIN_BORDER_KUAT_CERAH` |
+| `fokus` | `FOKUS_AKSEN` (= `AKSEN_TEAL_TUA`) | `AKSEN_TEAL_TUA` | — |
 
 Peta lengkap (badge, chip, pill kode, galat/sukses) dibaca lewat
 `design_roles.peta_peran("<permukaan>")`. Komponen baru yang memperkenalkan pasangan
 warna teks/latar atau batas kontrol menambahkan pasangannya ke `design_roles.py`.
 
-`PENGECUALIAN` mencatat pasangan yang diketahui gagal kontras beserta alasannya;
-test menuntut daftar itu sama persis dengan kegagalan nyata, sehingga perbaikan wajib
-menghapus entrinya dan kegagalan baru langsung memerahkan test.
+`PENGECUALIAN` mencatat pasangan yang sengaja ditunda beserta alasannya; test menuntut
+daftar itu sama persis dengan kegagalan nyata. **Saat ini kosong**: sepuluh kegagalan
+yang ditemukan saat peta dibuat (garis input 1,7:1, cincin fokus 2,9:1 di cream, badge
+teks putih di teal/coral terang, tautan publik teal terang, select profil 2,1:1, pill
+kode lama B/T dan teks kunci) diperbaiki 25 Okt 2026, dan test regresi memastikan nilai
+lama itu merah lagi bila dikembalikan.
 
 ## Tipografi
 
@@ -192,10 +206,20 @@ harus mati saat cetak serta `prefers-reduced-motion`.
 | `TINGGI_KONTROL` | 48px | Tombol form, input teks, select, textarea, input berkas di permukaan keluarga/murid |
 | `TARGET_SENTUH` | 44px | Tautan, `summary`, chip/pill, tab/nav, baris daftar, label centang, tombol ikon inset (mata sandi), tombol kecil, topbar |
 
-Admin memakai 44px untuk semua kontrol (panel padat; keputusan audit admin 25 Okt).
-Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px. Status penerapan
-`TINGGI_KONTROL` di luar `style_stitch.py`, akun, dan profil masih bertahap; lihat
-[riwayat](design-system-history.md).
+`TINGGI_KONTROL` dipakai tombol dan input form di Stitch, akun, profil (filter, pilihan
+isi, select Latihan), rentang tanggal laporan, langganan, lampiran (baca ulang) dan
+tombol Pendamping. Pengecualian yang disengaja tetap 44px:
+
+- topbar/header dan tombol di dalamnya (harus muat `height: 44px`), termasuk tombol
+  Keluar di kepala Akun;
+- bar Simpan draf/Konfirmasi tinjauan (target 56px, minimal 44px) dan tombol ringkas/
+  lewati di kartu tinjauan;
+- `.tombol-kecil-st`, `.tombol-mata` (inset), dan tombol kirim bulat Pendamping;
+- tombol sekunder ringkas yang juga dipakai sebagai tautan: `.kerja-btn-sekunder-st`
+  (halaman murid) dan tombol kelola tautan `.aksi-bagikan-st button` (profil);
+- seluruh admin (panel padat; keputusan audit admin 25 Okt).
+
+Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px.
 
 ## Fokus dan state
 

@@ -147,7 +147,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 }}
 .st-badge.diagnostik {{ background: {T.STATUS_DIAGNOSTIK_BG}; color: {T.STATUS_DIAGNOSTIK_TEKS}; }}
 .st-badge.latihan    {{ background: {T.STATUS_LATIHAN_BG};    color: {T.STATUS_LATIHAN_TEKS}; }}
-.st-badge.baru       {{ background: {T.AKSEN_MURID_KORAL};    color: {T.TEKS_INVERS}; }}
+.st-badge.baru       {{ background: {T.AKSEN_KORAL_TUA};      color: {T.TEKS_INVERS}; }}
 .st-badge.selesai    {{ background: {T.LATAR_ELEVASI};        color: {T.TEKS_VARIAN}; }}
 /* Status review (1 Sep, feedback orang tua): "masih direview" dan
    "selesai" tidak boleh sama tampilannya — dulunya dua-duanya kelas
@@ -374,7 +374,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
   font: inherit; font-size: 1rem;
   min-height: {T.TINGGI_KONTROL};
   border-radius: {T.RADIUS_SEDANG};
-  border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   background: {T.LATAR_KARTU};
   padding: 0 {T.SP_3};
   width: 100%;
@@ -841,7 +841,7 @@ tr.sorot-baru, div.sorot-baru {{
 .ubah-fokus-st form {{ display: grid; gap: {T.SP_3}; padding-bottom: {T.SP_4}; }}
 .ubah-fokus-st label {{ display: grid; gap: {T.SP_1}; font-weight: 600; }}
 .ubah-fokus-st input, .ubah-fokus-st select {{
-  min-height: {T.TINGGI_KONTROL}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
+  min-height: {T.TINGGI_KONTROL}; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   border-radius: {T.RADIUS_SEDANG}; padding: 0 {T.SP_3}; font: inherit;
 }}
 .ubah-fokus-st button {{
@@ -913,7 +913,7 @@ tr.sorot-baru, div.sorot-baru {{
    fokus dipinjamkan ke labelnya. */
 .tab-radio-st:focus-visible + .tab-bar-st .tab-label-st,
 .buat-latihan-st:has(.tab-radio-st:focus-visible) .tab-bar-st {{
-  outline: {T.TEBAL_FOKUS} solid {T.AKSEN_MURID_UTAMA}; outline-offset: 2px;
+  outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px;
 }}
 
 /* ── Halaman kerja murid (/murid/kerjakan/<id>) — S4 adopsi Stitch ── */
@@ -1095,7 +1095,7 @@ tr.sorot-baru, div.sorot-baru {{
   width: 100%; min-height: {T.TINGGI_KONTROL};
   font-size: 1.15rem; font-family: inherit;
   text-align: center;
-  border: 1.5px solid {T.BORDER_VARIAN};
+  border: 1.5px solid {T.BORDER_KONTROL};
   border-radius: {T.RADIUS_SEDANG}; padding: .55rem .7rem;
   background: {T.LATAR_KARTU};
 }}
@@ -1360,7 +1360,7 @@ tr.sorot-baru, div.sorot-baru {{
 .pengaturan-timer input[name=durasi_menit] {{
   width: 4.5rem; display: inline-block;
   font: inherit; font-size: 1rem; min-height: {T.TINGGI_KONTROL};
-  border-radius: {T.RADIUS_SEDANG}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
+  border-radius: {T.RADIUS_SEDANG}; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   background: {T.LATAR_KARTU}; padding: 0 {T.SP_3};
 }}
 
@@ -1410,10 +1410,10 @@ tr.sorot-baru, div.sorot-baru {{
 .daftar-editorial-st .masuk-form-st {{ gap: {T.SP_5}; }}
 .daftar-editorial-st .masuk-field-st {{ gap: {T.SP_2}; }}
 .daftar-editorial-st .masuk-field-st label {{ font-size: .85rem; color: {T.TEKS_JUDUL}; }}
-.daftar-editorial-st .masuk-field-st input {{ min-height: {T.TINGGI_KONTROL}; border-color: {T.BORDER_VARIAN}; }}
+.daftar-editorial-st .masuk-field-st input {{ min-height: {T.TINGGI_KONTROL}; border-color: {T.BORDER_KONTROL}; }}
 .daftar-editorial-st .masuk-field-st select {{
   font: inherit; font-size: 1rem; min-height: {T.TINGGI_KONTROL};
-  border-radius: {T.RADIUS_SEDANG}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
+  border-radius: {T.RADIUS_SEDANG}; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   background: {T.LATAR_KARTU}; padding: 0 {T.SP_3}; width: 100%;
 }}
 .daftar-editorial-st .daftar-petunjuk-st {{ font-size: {T.UKURAN_TEKS_META}; color: {T.TEKS_VARIAN}; line-height: 1.65; margin: 0; }}
@@ -1554,7 +1554,7 @@ tr.sorot-baru, div.sorot-baru {{
 }}
 .masuk-field-st input {{
   font: inherit; font-size: 1rem; min-height: {T.TINGGI_KONTROL};
-  border-radius: {T.RADIUS_SEDANG}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
+  border-radius: {T.RADIUS_SEDANG}; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   background: {T.LATAR_KARTU}; padding: 0 {T.SP_3}; width: 100%;
 }}
 .masuk-field-st input:focus {{
@@ -1604,7 +1604,7 @@ tr.sorot-baru, div.sorot-baru {{
 .masuk-badan-st .masuk-form-st {{ gap: {T.SP_5}; }}
 .masuk-badan-st .masuk-field-st {{ gap: {T.SP_2}; }}
 .masuk-badan-st .masuk-field-st label {{ font-size: .85rem; color: {T.TEKS_JUDUL}; }}
-.masuk-badan-st .masuk-field-st input {{ min-height: {T.TINGGI_KONTROL}; border-color: {T.BORDER_VARIAN}; }}
+.masuk-badan-st .masuk-field-st input {{ min-height: {T.TINGGI_KONTROL}; border-color: {T.BORDER_KONTROL}; }}
 .masuk-badan-st .masuk-petunjuk-st {{
   margin: 0; font-size: {T.UKURAN_TEKS_META}; line-height: 1.65; color: {T.TEKS_VARIAN};
 }}
@@ -1696,7 +1696,7 @@ tr.sorot-baru, div.sorot-baru {{
   padding-left: 1.2rem; margin: {T.SP_2} 0;
 }}
 .publik-isi-st li {{ margin-bottom: 0.4rem; }}
-.publik-isi-st a {{ color: {T.AKSEN_MURID_UTAMA}; }}
+.publik-isi-st a {{ color: {T.AKSEN_TEAL_TUA}; }}
 
 /* Tombol coral reusable di halaman publik. */
 a.tombol-coral {{
@@ -2439,7 +2439,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-editorial-st :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select, textarea) {{
   min-height: {T.TINGGI_KONTROL}; max-width: 100%; min-width: 0;
   background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
-  border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_KECIL};
   font: inherit; font-size: {T.UKURAN_BADAN_LAYAR}; padding: {T.SP_2} {T.SP_3};
 }}
 .pendamping-editorial-st label {{ color: {T.TEKS_VARIAN}; font-size: .88rem; }}
@@ -2667,7 +2667,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 }}
 .koreksi-editorial-st .form-pembatalan-st input {{
   box-sizing: border-box; width: 100%; min-height: {T.TINGGI_KONTROL};
-  border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_KECIL};
   padding: {T.SP_2} {T.SP_3}; background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
   font: inherit;
 }}
@@ -2924,7 +2924,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-inline-isi {{ padding: {T.SP_3} 0 0; min-width: 0; }}
 .pendamping-inline-isi h3 {{ margin: 0 0 {T.SP_2}; color: {T.TEKS_JUDUL}; }}
 .pendamping-inline .pendamping-sumber, .pendamping-inline .pendamping-catatan {{ color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_LABEL}; }}
-.pendamping-inline textarea, .pendamping-inline select {{ display: block; width: 100%; min-height: {T.TINGGI_KONTROL}; margin: {T.SP_2} 0; padding: {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA}; font: inherit; }}
+.pendamping-inline textarea, .pendamping-inline select {{ display: block; width: 100%; min-height: {T.TINGGI_KONTROL}; margin: {T.SP_2} 0; padding: {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA}; font: inherit; }}
 .pendamping-inline textarea {{ min-height: 5.5rem; resize: vertical; }}
 .pendamping-inline button, .pendamping-inline a {{ min-height: {T.TARGET_SENTUH}; }}
 .pendamping-inline .pendamping-tombol {{ display: inline-flex; align-items: center; justify-content: center; padding: {T.SP_2} {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_SEDANG}; background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; font: inherit; font-weight: 700; cursor: pointer; }}
@@ -3288,7 +3288,7 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 
 .koreksi-input-st {{
   font: inherit; font-size: 1rem; min-height: {T.TINGGI_KONTROL};
-  border-radius: {T.RADIUS_SEDANG}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
+  border-radius: {T.RADIUS_SEDANG}; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   background: {T.LATAR_KARTU}; padding: 0 {T.SP_3}; width: 100%;
 }}
 .koreksi-input-st:focus {{
@@ -3297,7 +3297,7 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 }}
 .koreksi-select-st {{
   font: inherit; font-size: .95rem; min-height: {T.TINGGI_KONTROL};
-  border-radius: {T.RADIUS_SEDANG}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
+  border-radius: {T.RADIUS_SEDANG}; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   background: {T.LATAR_SEKUNDER_LEMBUT}; padding: 0 {T.SP_3}; width: 100%;
   cursor: pointer;
 }}
@@ -3308,7 +3308,7 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 
 .koreksi-textarea-st {{
   width: 100%; min-height: 56px;
-  border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_SEDANG};
   padding: .6rem; font-size: 1rem; font-family: inherit;
   background: {T.LATAR_SEKUNDER_LEMBUT};
 }}

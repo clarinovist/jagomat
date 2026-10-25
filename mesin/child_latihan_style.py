@@ -33,7 +33,7 @@ GAYA_LATIHAN = f"""
   display: block; margin-top: {T.SP_4}; font-size: .9375rem; font-weight: 700; color: {T.ANAK_TEKS};
 }}
 {_R}.pendamping-editorial-st .latihan-terpadu-st select {{
-  min-height: 3rem; margin: {T.SP_2} 0 {T.SP_1}; padding: 0 {T.SP_3};
+  min-height: {T.TINGGI_KONTROL}; margin: {T.SP_2} 0 {T.SP_1}; padding: 0 {T.SP_3};
   border: 1px solid {T.ANAK_BORDER_KONTROL}; border-radius: 12px; color: {T.ANAK_TEKS};
 }}
 {_R} .latihan-topik-grid {{ grid-template-columns: repeat(auto-fit, minmax(min(100%, 16.25rem), 1fr)); gap: {T.SP_3}; }}

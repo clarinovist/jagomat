@@ -86,7 +86,7 @@ GAYA_AKUN = f"""
   display: inline-flex; align-items: center; justify-content: center; min-height: {T.TINGGI_KONTROL}; padding: 0 {T.SP_4};
   border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KECIL}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; text-decoration: none;
 }}
-{_A} .tombol-bahaya-akun {{ min-height: {T.TARGET_SENTUH}; border-radius: {T.RADIUS_KECIL}; font-weight: 700; cursor: pointer; }}
+{_A} .tombol-bahaya-akun {{ min-height: {T.TINGGI_KONTROL}; border-radius: {T.RADIUS_KECIL}; font-weight: 700; cursor: pointer; }}
 {_A} .akun-baris-pilihan-st, {_A} .akun-chat-st {{
   display: flex; align-items: center; justify-content: space-between; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH};
   padding: {T.SP_2} 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
