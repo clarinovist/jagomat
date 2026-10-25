@@ -3,7 +3,25 @@
 Baca `CLAUDE.md` sebagai panduan utama workflow, arsitektur, domain, privasi anak,
 gate verifikasi, Git, dan produksi. Instruksi workspace induk tetap berlaku.
 
-## Codemode — routing adaptif
+## Runner dan batas rilis
+
+- Jika tersedia, baca kebijakan workspace `../AGENTS.md`. Commit lokal dulu;
+  push/deploy perlu izin eksplisit. Izin push tidak mencakup deploy; jika push
+  memicu auto-deploy, izin deploy harus ada sebelum push.
+- Dalam Hermes, kerjakan langsung di sesi yang sama. CommandCode tidak aktif;
+  jangan otomatis menjalankan CLI/API, login, atau smoke-test CommandCode.
+- Worker/reviewer tambahan hanya setelah persetujuan atas runner, model, scope,
+  dan biaya yang relevan; verifikasi akses sebelum tugas nyata. Jangan otomatis
+  berpindah CLI atau mengaktifkan delegasi bawaan. Review sendiri adalah
+  self-review, bukan review independen; gate dan bukti nyata tetap wajib.
+- Gunakan tool yang tersedia pada runner aktif. Di luar Pi, jangan mengasumsikan
+  adanya `codemode`, `bash`, atau ekstensi Pi. Payload kompleks tetap file-backed;
+  call independen boleh paralel, mutasi bergantung berurutan, exit status diperiksa.
+
+## Codemode — khusus Pi
+
+Bagian berikut berlaku hanya ketika berjalan di Pi dengan `codemode` tersedia.
+Di Hermes gunakan tool native sesi; jangan memasang Pi hanya untuk mengikuti resep ini.
 
 - Gunakan `codemode` hanya bila manfaatnya material: minimal dua tool call independen,
   loop/filter/agregasi, output besar yang perlu diringkas, atau chaining sederhana.

@@ -1,18 +1,25 @@
 # CLAUDE.md — Jagomat
 
-## Izin tetap & resource lokal
+## Commit lokal, izin rilis & resource lokal
 
-- Commit/push langsung ke `main`, CI/CD, deploy, dan SSH ke seluruh VPS milik pengguna
-  (root/sudo bila perlu) diizinkan dalam scope tugas tanpa approval ulang. Verifikasi
-  remote/target, jaga WIP dan secret, serta hormati instruksi terbaru seperti “lokal saja”.
+- Commit lokal dulu; push/deploy perlu izin eksplisit untuk scope yang disetujui.
+  Izin push bukan izin deploy: periksa pemicu auto-deploy dan dapatkan izin deploy
+  sebelum push bila pipeline akan merilis. Jangan mengirim WIP sesi lain.
+- SSH read-only untuk diagnosis dalam scope tetap diizinkan setelah target terverifikasi;
+  akses SSH/root/sudo bukan izin deploy, mengubah akses, atau memodifikasi data.
+- Dalam Hermes, kerjakan langsung di sesi yang sama. CommandCode tidak aktif;
+  jangan otomatis login, smoke-test, atau menjalankan CLI/API-nya. Worker tambahan
+  memerlukan persetujuan runner/model/scope dan verifikasi akses. Review sendiri
+  adalah self-review, bukan review independen; jangan mengendurkan gate.
 - Lokal untuk review, palang, kompilasi, dan scoped test yang terjangkau. Full suite,
   mutation berat, integration/E2E, dan build image diutamakan di CI/remote test terisolasi;
   bukan prasyarat lokal sebelum commit/push. Gate rilis tetap wajib pada SHA yang sama.
 - Jangan otomatis menyalakan Docker, membuat container/Compose stack, atau menarik/build
   image lokal. Utamakan runner CI; Docker lokal hanya bila reproduksi khusus benar-benar
   memerlukan lokal dan resource memadai. Batasi resource dan bersihkan milik tugas sendiri.
-- Aturan ini menggantikan larangan izin ulang push/deploy/SSH dan kewajiban gate berat
-  lokal di referensi lama. Bukan izin force-push, menghapus data, atau operasi di luar scope.
+- Batas ini menggantikan izin push/deploy otomatis di referensi lama. Gate berat
+  tetap boleh melalui CI setelah izin yang diperlukan ada. Bukan izin force-push,
+  menghapus data, atau operasi di luar scope.
 
 Panduan utama agent untuk repo ini. **Verifikasi mengikuti risiko, bukan jumlah
 file/baris. Kurangi administrasi, bukan perlindungan data.** Baca detail domain
@@ -143,7 +150,11 @@ menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
 - Jika pekerjaan melebar, jelaskan blocker spesifik dan langkah berikutnya; temuan tidak
   terkait tidak otomatis menjadi proyek tambahan.
 
-### Codemode — routing adaptif
+### Codemode — khusus Pi
+
+Resep berikut hanya berlaku di Pi dengan `codemode` tersedia. Di Hermes gunakan
+tool yang tersedia pada sesi aktif, bukan memasang Pi atau menebak nama tool.
+Prinsip file-backed, urutan mutasi, exit status, dan privasi tetap berlaku di semua runner.
 
 - Gunakan `codemode` untuk minimal dua call independen, loop/filter/agregasi, output besar
   yang perlu diringkas, atau chaining sederhana. Satu `read`/`bash`/`edit`/`write`
@@ -171,7 +182,8 @@ menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
   test regression dan caller yang terdampak; jangan menjalankan seluruh `mesin/__tests__/`
   secara lokal sebagai default, termasuk dari salinan kerja `/tmp`.
 - Full suite tetap wajib sebelum rilis, tetapi jalur defaultnya **CI empat shard** dengan
-  interpreter workflow. Push boleh dilakukan setelah gate lokal scoped lulus agar CI menjadi
+  interpreter workflow. Setelah izin push/deploy yang diperlukan ada dan gate lokal
+  scoped lulus, push boleh dilakukan agar CI menjadi
   gate lengkap pada SHA yang sama; jangan menunggu full suite serial lokal sebelum push.
   Full suite lokal hanya untuk reproduksi kegagalan CI yang belum dapat diisolasi, instruksi
   eksplisit pengguna/harness, atau ketika CI benar-benar tidak tersedia. Sebelum memulainya,
@@ -221,9 +233,10 @@ namespace image GHCR tetap lama. Detail kompatibilitas dan pemulihan ada di
   Pesan multi-baris lewat berkas temp unik dan `git ... commit -F <berkas>`.
   Bila index berisi sesi lain, gunakan pathspec scope sendiri; file campuran harus dipisahkan
   dahulu karena commit pathspec mengambil isi working tree, bukan hanya hunk staged.
-- **Push langsung ke `main` diizinkan** dalam scope tugas tanpa izin ulang; pantau CI
-  karena push dapat memicu deploy produksi. Jika user membatasi “commit dulu/lokal saja”,
-  patuhi pembatasan tersebut. Jangan mengirim WIP sesi lain.
+- **Commit lokal dulu; push dan deploy masing-masing perlu izin eksplisit.** Periksa
+  pemicu pipeline sebelum push ke branch rilis: jika akan memicu deploy produksi,
+  dapatkan izin deploy juga. Setelah diizinkan, pantau CI untuk SHA yang benar.
+  Jangan mengirim WIP sesi lain atau memakai izin untuk rilis lain.
 
 ### Rapikan setelah pekerjaan selesai
 
@@ -241,7 +254,7 @@ Preferensi pengguna: **selalu rapikan setelah selesai, tanpa menunggu permintaan
   dan backup yang diperlukan tetap aman. Jangan memakai penghapusan massal, Docker prune,
   atau commit/push otomatis hanya untuk merapikan.
 - Cleanup bukan alasan menghapus artefak produksi atau mengubah retensi/backup di luar scope.
-  Restart rutin untuk deploy/recovery dalam scope memakai izin tetap di atas.
+  Restart untuk deploy/recovery hanya dalam operasi yang sudah diizinkan.
 - Laporkan singkat yang dirapikan serta yang sengaja disimpan atau ditunda. Jangan membuat
   artefak tambahan yang tidak diperlukan hanya untuk mencatat pembersihan sederhana.
 
@@ -305,7 +318,8 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
   `scripts/release-metadata.json` dan `.github/workflows/deploy.yml`. Selama job
   `pasang` literal false, CI sukses bukan deployment. Status dan prosedur ada di
   [`docs/production-release.md`](docs/production-release.md).
-- SSH dan operasi produksi rutin dalam scope tugas memakai izin tetap, tanpa approval ulang.
+- SSH read-only untuk diagnosis tetap diizinkan dalam scope; deploy/restart produksi
+  dan mutasi data memerlukan izin operasi yang spesifik.
   Server lewat SSH alias `biznet-sekolahdesain`; perintah Docker produksi diawali `ssh biznet-sekolahdesain '...'`,
   jangan sampai mengenai Docker lokal. Tidak build di VPS atau menghapus container sebelum image siap.
 - Setelah push, pantau run untuk commit yang benar sampai selesai:
@@ -332,7 +346,7 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
 - “Ada di source”, “ter-deploy”, dan “berfungsi” tiga klaim berbeda. Untuk keadaan live,
   cek container berjalan secara read-only lewat SSH yang sudah diizinkan; jangan menganggap checkout sama
   dengan produksi. `llm.py` fail-dry: konfigurasi hilang bisa mematikan fitur tanpa error.
-- Migrasi produksi dalam scope rilis diizinkan setelah target, backup konsisten seluruh
+- Migrasi produksi hanya dalam rilis yang sudah diizinkan, setelah target, backup konsisten seluruh
   state durable, uji idempotensi/FK, serta recovery terverifikasi. Ikuti runbook aktif:
   bundle admin5 mencakup empat DB + auth `sandi.json`, bukan hanya DB belajar. Database riset konsumen punya retensi/backup terpisah dan tidak ikut bundle kampanye.
   `cadangkan.sh` lama bukan bukti bundle lengkap/no-prune. Token approval exact-pair
