@@ -167,16 +167,16 @@ button, summary {{ cursor: pointer; }}
 .admin-sidebar {{ position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 20px 16px; background: {T.ADMIN_PERMUKAAN}; border-right: 1px solid {T.ADMIN_BORDER}; }}
 .admin-brand {{ display: flex; gap: 12px; align-items: center; padding: 0 4px 20px; line-height: normal; color: {T.ADMIN_TEKS}; text-decoration: none; }}
 .admin-brand strong {{ display: block; font-size: 16px; }}
-.admin-brand small {{ display: block; color: {T.ADMIN_REDUP}; font-size: 13px; }}
+.admin-brand small {{ display: block; color: {T.ADMIN_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; }}
 .admin-brand-mark {{ display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 12px; background: {T.ADMIN_AKSEN}; color: {T.ADMIN_PERMUKAAN}; font-weight: 700; font-size: 18px; }}
 .admin-nav-daftar, .admin-nav-pilihan, .admin-nav-anak {{ list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }}
 .admin-nav-daftar {{ gap: 18px; }}
-.admin-nav-label {{ margin: 0; padding: 0 12px 6px; line-height: normal; color: {T.ADMIN_REDUP}; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }}
+.admin-nav-label {{ margin: 0; padding: 0 12px 6px; line-height: normal; color: {T.ADMIN_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }}
 .admin-menu a {{ display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 8px 12px; border-radius: {T.ADMIN_RADIUS_KONTROL}; color: {T.ADMIN_TEKS}; text-decoration: none; font-size: {T.ADMIN_UKURAN_ISI}; font-weight: 500; }}
 .admin-menu a svg {{ flex: none; color: {T.ADMIN_REDUP}; }}
 .admin-menu a[aria-current="page"] svg {{ color: {T.ADMIN_AKSEN_TEKS}; }}
 .admin-nav-label-menu {{ flex: 1; min-width: 0; }}
-.admin-nav-badge {{ background: {T.ADMIN_AKSEN_PERHATIAN}; color: {T.ADMIN_PERMUKAAN}; font-size: 12px; font-weight: 700; line-height: 1.25; border-radius: 999px; padding: 2px 8px; }}
+.admin-nav-badge {{ background: {T.ADMIN_AKSEN_PERHATIAN}; color: {T.ADMIN_PERMUKAAN}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; line-height: 1.25; border-radius: 999px; padding: 2px 8px; }}
 .admin-nav-titik {{ width: 8px; height: 8px; border-radius: 50%; background: {T.ADMIN_AKSEN_PERHATIAN}; flex: none; }}
 .admin-sr {{ position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }}
 .admin-menu a:hover {{ background: {T.ADMIN_NAV_HOVER}; }}
@@ -189,9 +189,9 @@ button, summary {{ cursor: pointer; }}
 .menu-isi a, .menu-isi > form:not(.admin-tema) button {{ display: flex; align-items: center; min-height: 44px; padding: 8px 12px; width: 100%; text-align: left; }}
 .menu-isi > form:not(.admin-tema) button {{ border: 1px solid {T.ADMIN_BORDER_KUAT}; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; border-radius: {T.ADMIN_RADIUS_KONTROL}; }}
 .admin-tema {{ padding: 4px 0 12px; margin-bottom: 8px; border-bottom: 1px solid {T.ADMIN_PEMISAH}; }}
-.admin-tema > span {{ display: block; margin: 0 0 8px; color: {T.ADMIN_REDUP}; font-size: 13px; font-weight: 600; }}
+.admin-tema > span {{ display: block; margin: 0 0 8px; color: {T.ADMIN_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; }}
 .admin-tema-pilihan {{ display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; }}
-.menu-isi .admin-tema-pilihan button {{ min-height: {T.TARGET_SENTUH}; width: 100%; padding: 6px 4px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 8px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; font-size: 12px; font-weight: 600; }}
+.menu-isi .admin-tema-pilihan button {{ min-height: {T.TARGET_SENTUH}; width: 100%; padding: 6px 4px; border: 1px solid {T.ADMIN_BORDER_KUAT}; border-radius: 8px; background: {T.ADMIN_PERMUKAAN}; color: {T.ADMIN_TEKS}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; }}
 .menu-isi .admin-tema-pilihan button:hover {{ background: {T.ADMIN_NAV_HOVER}; }}
 .menu-isi .admin-tema-pilihan button[aria-pressed="true"] {{ border: 2px solid {T.ADMIN_AKSEN}; background: {T.ADMIN_AKSEN_LATAR}; color: {T.ADMIN_AKSEN_TEKS}; font-weight: 700; }}
 .menu-isi .admin-tema-pilihan button[aria-pressed="true"]::before {{ content: '✓'; margin-right: 3px; }}
@@ -211,7 +211,7 @@ button, summary {{ cursor: pointer; }}
 .admin-kartu h2 {{ font-size: 18px; margin: 0 0 16px; }}
 .admin-kartu h3 {{ font-size: 15px; margin: 0 0 12px; }}
 .admin-meta, .admin-sub, .sub {{ color: {T.ADMIN_REDUP}; }}
-.admin-meta, .admin-footer, .admin-kartu small {{ font-size: 13px; }}
+.admin-meta, .admin-footer, .admin-kartu small {{ font-size: {T.UKURAN_TEKS_LABEL}; }}
 .admin-footer {{ margin-top: 28px; padding-top: 16px; border-top: 1px solid {T.ADMIN_BORDER}; color: {T.ADMIN_REDUP}; }}
 .admin-catatan, .admin-banner {{ background: {T.ADMIN_BANNER_LATAR}; border-color: {T.ADMIN_BANNER_BORDER}; color: {T.ADMIN_BANNER_TEKS}; }}
 .admin-galat, .pesan.galat {{ background: {T.ADMIN_BAHAYA_LATAR}; border: 1px solid {T.ADMIN_BAHAYA_BORDER}; color: {T.ADMIN_BAHAYA_TEKS}; }}
@@ -264,7 +264,7 @@ button:disabled, button:disabled:hover {{ background: {T.ADMIN_NETRAL_LATAR}; bo
 .admin-kpi-hero-angka strong {{ font-size: 20px; }}
 .admin-kpi-hero-angka .admin-angka {{ font-size: {T.ADMIN_UKURAN_KPI}; line-height: 1.1; }}
 .admin-kpi-hero .admin-bilah {{ margin: 0; background: {T.ADMIN_NAV_HOVER}; }}
-.admin-bilah-skala {{ display: flex; justify-content: space-between; margin-top: -12px; font-size: 13px; color: {T.ADMIN_REDUP}; }}
+.admin-bilah-skala {{ display: flex; justify-content: space-between; margin-top: -12px; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ADMIN_REDUP}; }}
 .admin-kartu.admin-kosong-kartu {{ display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px 24px; text-align: center; }}
 .admin-kosong-kartu h2, .admin-kosong-kartu p {{ margin: 0; }}
 .admin-kosong-kartu p {{ max-width: 34rem; color: {T.ADMIN_REDUP}; line-height: 1.6; }}
@@ -285,7 +285,7 @@ button:disabled, button:disabled:hover {{ background: {T.ADMIN_NETRAL_LATAR}; bo
 .admin-seksi-kepala {{ margin-bottom: 16px; }}
 .admin-tahap {{ display: flex; flex-direction: column; gap: 4px; }}
 .admin-tahap-aktif .admin-meta {{ color: {T.ADMIN_AKSEN_TEKS}; font-weight: 600; }}
-.admin-tahap-hint {{ font-size: 13px; color: {T.ADMIN_REDUP}; }}
+.admin-tahap-hint {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ADMIN_REDUP}; }}
 .admin-prasyarat {{ margin: 16px 0; padding: 16px 20px; border: 1px solid {T.ADMIN_BORDER}; border-radius: 12px; }}
 .admin-prasyarat h3 {{ margin: 0 0 10px; }}
 .admin-prasyarat ul {{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,15rem),1fr)); gap: 8px 24px; }}
@@ -303,7 +303,7 @@ form[action="/admin/layanan/dukungan"] > button, form[action="/admin/layanan/pem
 form[action="/admin/layanan/dukungan"] > label[for="dukungan-reauth"], form[action="/admin/layanan/pembayaran"] > label:not(:has(input[type=checkbox])):not(:has(select)) {{ max-width: 20rem; }}
 form[action="/admin/layanan/pembayaran"] > label:has(select) {{ max-width: 22rem; }}
 form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"] {{ padding-top: 16px; border-top: 1px solid {T.ADMIN_PEMISAH}; margin-top: 16px; }}
-.admin-cnt {{ font-size: 12px; font-weight: 700; line-height: 1.25; background: {T.ADMIN_NAV_HOVER}; color: {T.ADMIN_NETRAL_TEKS}; border-radius: 999px; padding: 2px 8px; }}
+.admin-cnt {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; line-height: 1.25; background: {T.ADMIN_NAV_HOVER}; color: {T.ADMIN_NETRAL_TEKS}; border-radius: 999px; padding: 2px 8px; }}
 .admin-chip[aria-current="true"] .admin-cnt {{ background: {T.ADMIN_PERMUKAAN}; }}
 .admin-kartu.admin-kartu-tabel {{ padding: 0; overflow: hidden; }}
 .admin-kartu-kepala {{ display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; padding: 18px 24px; border-bottom: 1px solid {T.ADMIN_BORDER}; }}
@@ -315,7 +315,7 @@ form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"]
 .admin-sel-nama {{ display: flex; align-items: center; gap: 12px; font-weight: 600; }}
 .admin-avatar {{ display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: 50%; background: {T.ADMIN_NAV_HOVER}; color: {T.ADMIN_NETRAL_TEKS}; font-weight: 700; font-size: 14px; }}
 .admin-redup {{ color: {T.ADMIN_REDUP}; }}
-.admin-badge {{ display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; margin: 2px 4px 2px 0; border-radius: 999px; font-size: 13px; font-weight: 600; color: {T.ADMIN_NETRAL_TEKS}; background: {T.ADMIN_NETRAL_LATAR}; }}
+.admin-badge {{ display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; margin: 2px 4px 2px 0; border-radius: 999px; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; color: {T.ADMIN_NETRAL_TEKS}; background: {T.ADMIN_NETRAL_LATAR}; }}
 .admin-badge::before {{ content: '•'; }}
 .admin-badge.perhatian {{ color: {T.ADMIN_PERHATIAN_TEKS}; background: {T.ADMIN_PERHATIAN_LATAR}; }}
 .admin-badge.batal {{ color: {T.ADMIN_BAHAYA_TEKS}; background: {T.ADMIN_BAHAYA_LATAR}; }}
@@ -356,7 +356,7 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .admin-tabel a:focus-visible {{ outline-offset: -3px; }}
 .admin-tabel {{ width: 100%; border-collapse: collapse; min-width: 42rem; }}
 .admin-tabel th, .admin-tabel td {{ overflow-wrap: normal; word-break: normal; padding: 14px 16px; border-bottom: 1px solid {T.ADMIN_PEMISAH}; text-align: left; vertical-align: top; }}
-.admin-tabel th {{ font-size: 13px; font-weight: 600; color: {T.ADMIN_REDUP}; background: {T.ADMIN_LATAR}; white-space: nowrap; }}
+.admin-tabel th {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; color: {T.ADMIN_REDUP}; background: {T.ADMIN_LATAR}; white-space: nowrap; }}
 .admin-tabel tbody tr:hover {{ background: {T.ADMIN_HOVER}; }}
 .admin-tabel td[data-angka], .admin-tabel th[data-angka] {{ text-align: right; font-variant-numeric: tabular-nums; }}
 .admin-tabel a {{ display: inline-flex; min-height: {T.TARGET_SENTUH}; min-width: {T.TARGET_SENTUH}; align-items: center; }}
@@ -370,7 +370,7 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .admin-stat h2 {{ font-size: 14px; font-weight: 500; margin: 0 0 8px; color: {T.ADMIN_REDUP}; }}
 .admin-stat > div {{ display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }}
 .admin-stat strong {{ font-size: 28px; line-height: 1.2; font-variant-numeric: tabular-nums; }}
-.admin-stat span {{ font-size: 13px; color: {T.ADMIN_REDUP}; }}
+.admin-stat span {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ADMIN_REDUP}; }}
 .admin-ringkasan {{ display: flex; flex-direction: column; gap: 28px; }}
 .admin-ringkasan > .admin-kartu {{ margin-bottom: 0; }}
 .admin-kartu.admin-prioritas {{ padding: 0; background: {T.ADMIN_PERMUKAAN}; overflow: hidden; }}
@@ -379,11 +379,11 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .admin-kartu.admin-prioritas h2 {{ margin: 0; font-size: 18px; }}
 .admin-seksi-kepala h2 {{ margin: 0; font-size: 18px; }}
 .admin-prioritas-ket {{ margin: 0; font-size: 14px; color: {T.ADMIN_REDUP}; }}
-.admin-alis {{ margin: 0 0 4px; font-size: 13px; color: {T.ADMIN_REDUP}; }}
+.admin-alis {{ margin: 0 0 4px; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ADMIN_REDUP}; }}
 .admin-antrean {{ list-style: none; margin: 0; padding: 0; }}
 .admin-antrean-item {{ display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 18px 24px; border-bottom: 1px solid {T.ADMIN_PEMISAH}; }}
 .admin-antrean-item:hover {{ background: {T.ADMIN_HOVER}; }}
-.admin-urgensi {{ flex: 0 0 96px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: {T.ADMIN_REDUP}; }}
+.admin-urgensi {{ flex: 0 0 96px; display: inline-flex; align-items: center; gap: 6px; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; color: {T.ADMIN_REDUP}; }}
 .admin-urgensi-mendesak {{ color: {T.ADMIN_URGEN_TEKS}; }}
 .admin-urgensi-penting {{ color: {T.ADMIN_PERHATIAN_TEKS}; }}
 .admin-titik {{ width: 8px; height: 8px; flex: none; border-radius: 50%; background: {T.ADMIN_NETRAL_TITIK}; }}
@@ -392,11 +392,11 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .admin-antrean-isi {{ flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }}
 .admin-prioritas .admin-antrean-item h3 {{ margin: 0; font-size: 15px; font-weight: 600; }}
 .admin-antrean-isi p {{ margin: 0; font-size: 14px; color: {T.ADMIN_REDUP}; }}
-.admin-ref {{ font-family: ui-monospace, Menlo, monospace; font-size: 13px; background: {T.ADMIN_NETRAL_LATAR}; border-radius: 6px; padding: 2px 6px; }}
+.admin-ref {{ font-family: ui-monospace, Menlo, monospace; font-size: {T.UKURAN_TEKS_LABEL}; background: {T.ADMIN_NETRAL_LATAR}; border-radius: 6px; padding: 2px 6px; }}
 .admin-umur {{ flex: 0 0 84px; font-size: 14px; color: {T.ADMIN_REDUP}; }}
 .admin-umur-mendesak {{ color: {T.ADMIN_URGEN_TEKS}; font-weight: 600; }}
 .admin-antrean-sisa {{ padding: 16px 24px; font-size: 14px; color: {T.ADMIN_REDUP}; }}
-.admin-antrean-catatan, .admin-antrean-kosong {{ margin: 0; padding: 16px 24px; font-size: 13px; color: {T.ADMIN_REDUP}; }}
+.admin-antrean-catatan, .admin-antrean-kosong {{ margin: 0; padding: 16px 24px; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ADMIN_REDUP}; }}
 .admin-layanan {{ display: flex; flex-direction: column; gap: 14px; }}
 .admin-layanan dl {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 16px; margin: 0; }}
 .admin-layanan-kartu {{ min-width: 0; display: flex; flex-direction: column; gap: 8px; padding: 18px 20px; background: {T.ADMIN_PERMUKAAN}; border: 1px solid {T.ADMIN_BORDER}; border-radius: 14px; }}
@@ -424,13 +424,13 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .admin-aktivitas li + li {{ border-top: 1px solid {T.ADMIN_PEMISAH}; }}
 .admin-aktivitas-baris {{ display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }}
 .admin-aktivitas-baris:hover {{ background: {T.ADMIN_HOVER}; }}
-.admin-aktivitas a {{ display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }}
+.admin-aktivitas a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; min-width: {T.TARGET_SENTUH}; text-decoration: none; }}
 .admin-aktivitas-judul-baris {{ display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; }}
 .admin-aktivitas a:hover {{ text-decoration: underline; }}
 .admin-aktivitas-isi {{ flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 15px; }}
 .admin-aktivitas-isi .admin-meta {{ font-size: 14px; }}
 .admin-aktivitas-waktu {{ font-size: 14px; color: {T.ADMIN_REDUP}; }}
-.admin-pil {{ font-size: 13px; font-weight: 600; background: {T.ADMIN_NETRAL_LATAR}; color: {T.ADMIN_NETRAL_TEKS}; border-radius: 999px; padding: 3px 10px; }}
+.admin-pil {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; background: {T.ADMIN_NETRAL_LATAR}; color: {T.ADMIN_NETRAL_TEKS}; border-radius: 999px; padding: 3px 10px; }}
 .admin-pil-batal {{ background: {T.ADMIN_BAHAYA_LATAR}; color: {T.ADMIN_BAHAYA_TEKS}; }}
 .admin-aktivitas ul, .admin-login-detail ul {{ list-style: none; padding: 0; margin: 0; }}
 .admin-aktivitas-judul {{ font-size: 15px; font-weight: 600; }}
@@ -488,10 +488,10 @@ summary {{ min-height: 44px; padding: 10px 0; font-weight: 600; }}
 .riset-daftar-pertanyaan > li > div > div {{ flex: 1; min-width: 0; }}
 .riset-daftar-sesi + .admin-pager {{ padding: 0 {T.SP_5} {T.SP_5}; }}
 .riset-sesi {{ display: block; text-decoration: none; }}
-.riset-sesi-meta {{ display: block; color: {T.ADMIN_REDUP}; font-size: 13px; }}
+.riset-sesi-meta {{ display: block; color: {T.ADMIN_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; }}
 .riset-nomor {{ min-width: 28px; font-weight: 600; }}
 .riset-matriks {{ min-width: 80rem; }}
-.riset-matriks q {{ display: block; font-size: 13px; color: {T.ADMIN_REDUP}; }}
+.riset-matriks q {{ display: block; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ADMIN_REDUP}; }}
 .riset-grid-ringkas {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,16rem),1fr)); gap: 16px; }}
 .sensor-tabel {{ min-width: 50rem; }}
 @media (max-width: 70rem) {{

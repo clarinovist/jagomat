@@ -116,6 +116,70 @@ reviewer read-only menyatakan OK dengan catatan gate test tetap milik parent.
 Cakupan/kontrak produk [spec](spec.md) dan arsitektur ringkas [context](context.md)
 tetap berlaku; detail perilaku foto ditambahkan ke [arsitektur](architecture-reference.md).
 
+## Penuntasan keterbacaan dan target sentuh — 25 Oktober 2026
+
+Putaran ini melanjutkan WIP setelah `10d32f6`, **lokal tanpa push/deploy**.
+Perubahan hanya presentasi; auth, data, payload form, kunci dan reducer tidak berubah.
+
+| Area | Perbaikan |
+| --- | --- |
+| Publik/murid | Label dan metadata informatif memakai batas 14px tersekop; petunjuk pendaftaran desktop ikut diperiksa, bukan hanya layout HP |
+| Akun/tinjauan/legal | Area tautan dan label centang minimal 44px; tautan pendek diberi lebar minimum pada permukaan terkait |
+| Admin | Label, badge, metadata, tema dan tabel memakai token label 14px; tema terisolasi tetap |
+| Pemilih foto murid | Font 16px; ratchet literal `style_stitch.py` diperketat 198→197 |
+| Riset persaingan | Label sumbu, chip, catatan dan peta minimal 14px; tautan 44px di layar tetapi kembali inline tanpa tinggi/lebar minimum saat cetak |
+| Test CSS | Tidak menganggap blok media terakhir menghapus font sebelumnya; penghapusan/pengecilan font tetap tertangkap |
+
+### Sampel dan hasil
+
+Renderer asli memakai DB/sandi sementara dan data sintetis; HTML disajikan oleh
+server lokal terisolasi. Tiga kelompok yang sama dibandingkan pada 320/390/768/1440px.
+Angka kontrol di bawah adalah **temuan elemen per viewport**, bukan jumlah bug unik.
+
+| Kelompok | Halaman/state | Sampel viewport | Target <44px sebelum→sesudah | Overflow halaman sesudah |
+| --- | --- | --- | --- | --- |
+| Publik, guru, profil/laporan, akun, murid, lembar dan contoh tema admin | 17 | 68 | 40→0 | 0 |
+| State publik/akun/Pendamping/lampiran dan riset | 15 | 60 | 77→0 | 0 |
+| Admin: kosong, berisi, detail dan state operasi | 51 | 204 | 32→0 | 0 |
+| Total | 83 | 332 | 149→0 | 0 |
+
+Tidak ada input terlihat di bawah 16px pada sampel akhir (checkbox/radio dikecualikan).
+Teks kecil tersisa adalah lembar beku, eyebrow dekoratif, glif panah, serta caption
+ilustrasi `aria-hidden`; bukan alasan menaikkan semua ukuran global. Tabel dengan
+scroll internal tidak dihitung sebagai overflow halaman.
+
+Screenshot landing/tinjauan/admin pada HP, pendaftaran/akun desktop dan pengerjaan
+murid diperiksa visual: tidak ditemukan clipping/overlap yang terbukti. Estimasi
+ukuran dari vision tidak menggantikan computed style. Data contoh berisi markup
+escaped memang sengaja menguji rendering, bukan kebocoran HTML.
+
+12 pemeriksaan browser lulus pada 390/1440px: disclosure landing, Kelola anak,
+riset, detail admin, toggle sandi, serta ukuran sumbu dan CSS cetak. Pointer dikirim
+melalui hit-test koordinat, bukan `element.click()`. Harness diperbaiki agar
+scroll selesai sebelum ukur dan tidak memilih menu mobile tersembunyi di desktop.
+Ini bukan uji submit semua form atau perangkat sentuh fisik.
+
+### Gate dan batas
+
+- 433 test dari 18 berkas terkait lulus dengan `-W error`; 37,42 detik di bawah
+  stdlib trace. Termasuk regresi desain, akun, HTTP riset, foto murid dan lembar.
+- Kompilasi Python 3.9 seluruh 856 berkas tracked/baru yang diperiksa lulus.
+- Cakupan **baris scoped**, bukan coverage global/cabang: `account_style` 100%,
+  `admin_style` 100%, `competitive_research` 90%, `style_stitch` 98%.
+- Dua kegagalan awal direproduksi; guard cetak dan lima kasus tambahan terlebih
+  dahulu merah lalu hijau. Empat bukti negatif font menghapus/mengecilkan deklarasi
+  sumbu X/Y dalam namespace terisolasi dan semuanya tertangkap.
+- Review diff/security dilakukan di sesi utama; Command Code tidak terautentikasi,
+  jadi **tidak ada klaim reviewer independen untuk putaran ini**.
+- Full suite CI/build/rilis tidak dijalankan karena scope lokal. Pusat Cek, seluruh
+  state tersembunyi, Safari/iOS, HP/printer dan pembaca layar nyata tidak disahkan.
+- `spec.md` dan `context.md` tidak terdampak: tidak ada fitur, alur, akses, komposisi
+  arsitektur atau keluarga token baru. Kontrak design system yang ada diterapkan.
+
+Bukti sintetis dan hash source disimpan lokal di
+`docs/plan/readability-20261025/final-evidence.tar.gz`; bukan artefak publik.
+Browser/server helper sudah dihentikan setelah verifikasi.
+
 ## Batas yang tetap terbuka
 
 Safari/iOS, HP/printer fisik, screen reader nyata, semua kombinasi data/state, serta

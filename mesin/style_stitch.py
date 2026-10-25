@@ -1420,7 +1420,8 @@ tr.sorot-baru, div.sorot-baru {{
 .daftar-editorial-st .daftar-persetujuan-st {{ background: {T.LATAR_CATATAN}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius: {T.RADIUS_SEDANG}; padding: {T.SP_3}; }}
 .daftar-editorial-st .koreksi-centang-st {{ gap: {T.SP_3}; margin: 0; align-items: flex-start; font: 400 .8rem/1.7 {T.FONT_BODY}; color: {T.TEKS_VARIAN}; cursor: pointer; }}
 .daftar-editorial-st .koreksi-centang-st input {{ margin: .2rem 0 0; width: 1.2rem; height: 1.2rem; accent-color: {T.AKSEN_TEAL_TUA}; flex: none; }}
-.daftar-editorial-st .koreksi-centang-st a {{ color: {T.AKSEN_TEAL_TUA}; text-underline-offset: .2em; }}
+.daftar-editorial-st .koreksi-centang-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; color: {T.AKSEN_TEAL_TUA}; text-underline-offset: .2em; }}
+.dukungan-editorial-st .publik-kartu-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
 .daftar-editorial-st .masuk-tombol-st {{
   min-height: {T.TINGGI_CTA}; justify-content: space-between; padding: {T.SP_3} {T.SP_5};
   font-size: 1rem; background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
@@ -2252,7 +2253,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   padding: {T.SP_5} 0 0; margin-top: {T.SP_5};
 }}
 .kerja-editorial-st .kerja-foto-form-st {{ display: grid; grid-template-columns: minmax(0, 1fr); gap: {T.SP_2}; }}
-.kerja-editorial-st .kerja-foto-form-st input[type=file] {{ min-height: {T.TINGGI_KONTROL}; font: inherit; font-size: .85rem; }}
+.kerja-editorial-st .kerja-foto-form-st input[type=file] {{ min-height: {T.TINGGI_KONTROL}; font: inherit; font-size: {T.UKURAN_BADAN_LAYAR}; }}
 .kerja-editorial-st input[type=file]::file-selector-button {{
   font: inherit; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
   border-radius: {T.RADIUS_KECIL}; background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; margin-right: {T.SP_2};
@@ -2647,8 +2648,10 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .koreksi-editorial-st .koreksi-tipe-st {{ background: transparent; padding-left: 0; }}
 .koreksi-editorial-st .kunci-baris-st {{ background: {T.LATAR_CATATAN}; border-color: {T.BORDER_CATATAN}; }}
 .koreksi-editorial-st .pembahasan-soal-st {{ background: {T.LATAR_CATATAN}; }}
+.koreksi-lewati-native-st label {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; cursor: pointer; }}
 .koreksi-editorial-st .koreksi-centang-st {{ min-height: {T.TARGET_SENTUH}; }}
-.koreksi-editorial-st .koreksi-centang-st label {{ padding-block: {T.SP_2}; }}
+.koreksi-editorial-st .koreksi-centang-st label {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding-block: {T.SP_2}; }}
+.koreksi-editorial-st .koreksi-catatan-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
 .pendamping-editorial-st .koreksi-simpan-st {{ background: {T.LATAR_MURID}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
 .pendamping-editorial-st .koreksi-simpan-st button {{ background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH}; box-shadow: none; }}
 .pendamping-editorial-st .koreksi-simpan-st button.sekunder {{ background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
@@ -2680,7 +2683,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
    baris. Jangan pakai .koreksi-centang-st di sini — kelas itu wadah daftar
    centang (flex row berisi <label>), bukan label pembungkus checkbox. */
 .koreksi-editorial-st .koreksi-persetujuan-st {{
-  display: inline-flex; align-items: center; gap: .5rem;
+  display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; gap: .5rem;
   font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN};
   cursor: pointer; margin: 0;
 }}
@@ -3585,6 +3588,33 @@ CSS_SESI = CSS_SESI + GAYA_SESI_MOBILE
 # Prefiks body.st menaikkan spesifisitas agar menang atas aturan per-komponen
 # yang dimuat sesudahnya (GAYA_PROFIL).
 SELEKTOR_TEKS_INFORMATIF = (
+    # Publik/murid ikut batas 14px; tidak mengubah skala judul atau lembar beku.
+    ".landing-nav-st", ".landing-topbar-st .tombol-putih",
+    ".landing-alis-st", ".landing-penawaran-st", ".landing-catatan-cta-st",
+    ".landing-catatan-kertas-st", ".landing-demo-kepala-st",
+    ".landing-demo-label-st", ".landing-kode-st", ".landing-demo-catatan-st",
+    ".landing-demo-keterangan-st", ".landing-pill-st > span", ".landing-nomor-st",
+    ".landing-contoh-kode-st", ".landing-resep-st", ".landing-footer-isi-st",
+    ".masuk-beranda-st", ".masuk-alis-st", ".masuk-catatan-kecil-st",
+    ".masuk-badan-st .masuk-field-st label", ".masuk-badan-st .masuk-petunjuk-st",
+    ".masuk-badan-st .masuk-link-st a", ".masuk-badan-st .masuk-galat-st",
+    ".murid-kepala-st button", ".murid-alis-st", ".murid-akun-hint-st",
+    ".murid-label-utama-st", ".murid-tahap-st", ".murid-sub-sampul-st",
+    ".murid-meta-st", ".murid-jumlah-st", "body.st.murid-beranda-st .st-badge",
+    "body.st.murid-beranda-st .st-progres-label", ".murid-aksi-st", ".murid-aman-st",
+    ".murid-kepala-bagian-st > span", ".murid-riwayat-st summary span span",
+    ".murid-kaki-st", ".kerja-btn-sekunder-st",
+    ".daftar-editorial-st label", ".daftar-editorial-st .daftar-petunjuk-st",
+    ".daftar-editorial-st .koreksi-centang-st", ".daftar-editorial-st .masuk-galat-st",
+    ".daftar-alis-st", ".daftar-bawah-st", ".daftar-kaki-st",
+    ".daftar-editorial-st .daftar-pengantar-st",
+    ".daftar-editorial-st .daftar-langkah-st li > span",
+    ".daftar-editorial-st .daftar-langkah-st b",
+    ".daftar-editorial-st .daftar-langkah-st p",
+    ".guru-kosong-st > p:not(.guru-alis-st)",
+    ".dukungan-editorial-st .dukungan-topbar-catatan-st",
+    ".dukungan-editorial-st .dukungan-alis-st",
+    ".koreksi-editorial-st .editorial-alis-st",
     ".guru-beranda-st :is(.guru-status-st, .guru-petunjuk-st, .guru-tambah-st, .guru-kelas-st,"
     " .guru-pil-st, .guru-tunggu-st, .guru-meta-st, .guru-kaki-st, .badge-peran)",
     ".akun-editorial-st :is(.akun-anak-meta, .status-buruk, .badge-peran, .akun-kelola-bagian h4, .jejak a)",

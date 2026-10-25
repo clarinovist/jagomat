@@ -40,7 +40,7 @@ body {{
   font-family: {T.FONT_BODY}; font-size: {T.UKURAN_BADAN_LAYAR};
   line-height: {T.LINE_HEIGHT}; -webkit-text-size-adjust: 100%;
 }}
-a {{ color: {T.AKSEN_TEAL_TUA}; text-underline-offset: .18em; }}
+a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; min-width: {T.TARGET_SENTUH}; color: {T.AKSEN_TEAL_TUA}; text-underline-offset: .18em; }}
 a:hover {{ color: {T.AKSEN_TEAL_HOVER}; }}
 a:focus-visible, summary:focus-visible {{
   outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: {T.SP_1};
@@ -95,7 +95,7 @@ p {{ margin: 0; }}
 .riset-chip {{
   display: inline-flex; align-items: center; min-height: 2rem; padding: {T.SP_1} {T.SP_3};
   background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
-  border-radius: {T.RADIUS_PIL}; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_CATATAN}; font-weight: 700;
+  border-radius: {T.RADIUS_PIL}; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700;
 }}
 .riset-keputusan {{
   display: grid; gap: {T.SP_4}; align-content: start; padding: {T.SP_6};
@@ -136,7 +136,7 @@ p {{ margin: 0; }}
 .riset-label {{
   width: fit-content; padding: {T.SP_1} {T.SP_3}; border-radius: {T.RADIUS_PIL};
   background: {T.LATAR_SEKUNDER_NETRAL}; color: {T.TEKS_VARIAN};
-  font-size: {T.UKURAN_TEKS_META}; font-weight: 800; letter-spacing: .045em; text-transform: uppercase;
+  font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 800; letter-spacing: .045em; text-transform: uppercase;
 }}
 .riset-label-teal {{ background: {T.LATAR_TERSIMPAN}; color: {T.TEKS_TERSIMPAN}; }}
 .riset-label-koral {{ background: {T.LATAR_GALAT}; color: {T.TEKS_GALAT}; }}
@@ -161,7 +161,7 @@ p {{ margin: 0; }}
   border-radius: {T.RADIUS_KARTU}; background: {T.LATAR_SEKUNDER_LEMBUT};
 }}
 .riset-lensa b {{ color: {T.TEKS_JUDUL}; }}
-.riset-confidence {{ font-size: {T.UKURAN_TEKS_CATATAN}; color: {T.TEKS_VARIAN}; font-weight: 700; }}
+.riset-confidence {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.TEKS_VARIAN}; font-weight: 700; }}
 .riset-tabel-bungkus {{ overflow-x: auto; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU_BESAR}; }}
 .riset-tabel-bungkus:focus-visible {{ outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: 3px; }}
 table {{ width: 100%; min-width: 50rem; border-collapse: collapse; background: {T.LATAR_KARTU}; }}
@@ -175,20 +175,20 @@ tr:last-child td {{ border-bottom: 0; }}
 }}
 .riset-sumbu-y {{
   writing-mode: vertical-rl; transform: rotate(180deg); text-align: center;
-  color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_CATATAN}; font-weight: 700;
+  color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700;
 }}
 .riset-kuadran {{
   min-height: 27rem; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
   background: {T.LATAR_SEKUNDER_LEMBUT}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
 }}
 .riset-kuadran > div {{ position: relative; padding: {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
-.riset-kuadran small {{ color: {T.TEKS_VARIAN}; font-weight: 700; }}
+.riset-kuadran small {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.TEKS_VARIAN}; font-weight: 700; }}
 .riset-titik {{
   display: inline-flex; margin: {T.SP_1}; padding: {T.SP_2} {T.SP_3}; border-radius: {T.RADIUS_PIL};
   background: {T.TEKS_JUDUL}; color: {T.TEKS_PUTIH}; font-weight: 800; box-shadow: {T.BAYANGAN_NOMOR};
 }}
 .riset-titik-jagomat {{ background: {T.AKSEN_TEAL_TUA}; }}
-.riset-sumbu-x {{ grid-column: 2; display: flex; justify-content: space-between; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_CATATAN}; font-weight: 700; }}
+.riset-sumbu-x {{ grid-column: 2; display: flex; justify-content: space-between; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; }}
 .riset-loop {{ display: grid; gap: {T.SP_3}; counter-reset: loop; }}
 .riset-loop li {{
   counter-increment: loop; list-style: none; display: grid; grid-template-columns: 2.6rem 1fr;
@@ -221,7 +221,7 @@ tr:last-child td {{ border-bottom: 0; }}
 .riset-roadmap time {{ color: {T.AKSEN_TEAL_TUA}; font-family: {T.FONT_HEADLINE}; font-weight: 800; }}
 .riset-roadmap ul {{ margin: {T.SP_2} 0 0; padding-left: {T.SP_5}; }}
 .riset-sumber {{ padding-left: {T.SP_5}; display: grid; gap: {T.SP_3}; }}
-.riset-catatan {{ color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_CATATAN}; }}
+.riset-catatan {{ color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_LABEL}; }}
 .riset-footer {{
   padding: {T.SP_6} 0; background: {T.TEKS_JUDUL}; color: {T.TEKS_PUTIH};
 }}
@@ -245,7 +245,7 @@ tr:last-child td {{ border-bottom: 0; }}
   .riset-sumbu-y {{ writing-mode: horizontal-tb; transform: none; }}
   .riset-sumbu-x {{ grid-column: 1; }}
   .riset-kuadran {{ min-height: 32rem; }}
-  .riset-titik {{ font-size: {T.UKURAN_TEKS_META}; }}
+  .riset-titik {{ font-size: {T.UKURAN_TEKS_LABEL}; }}
   .riset-roadmap article {{ grid-template-columns: 1fr; }}
 }}
 @media (prefers-reduced-motion: reduce) {{ html {{ scroll-behavior: auto; }} * {{ transition-duration: 0.01ms !important; }} }}
@@ -263,7 +263,7 @@ tr:last-child td {{ border-bottom: 0; }}
   .riset-detail > summary {{ display: none; }}
   .riset-detail > .riset-detail-isi {{ display: grid; padding: 5mm; }}
   .riset-detail:not([open]) > .riset-detail-isi {{ display: grid; }}
-  a {{ color: {T.CETAK_TINTA}; text-decoration: none; }}
+  a {{ display: inline; min-height: 0; min-width: 0; color: {T.CETAK_TINTA}; text-decoration: none; }}
   a[href^="http"]::after {{ content: " — " attr(href); font-size: 7pt; overflow-wrap: anywhere; }}
   h1 {{ font-size: 28pt; }} h2 {{ font-size: 20pt; }} h3 {{ font-size: 13pt; }}
 }}

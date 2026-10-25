@@ -55,6 +55,8 @@ GAYA_AKUN = f"""
 {_A} .akun-anak-judul h3 {{ margin: 0; font-size: {T.UKURAN_BAGIAN_DEWASA}; line-height: 1.4; color: {T.TEKS_JUDUL}; overflow-wrap: anywhere; }}
 {_A} .akun-anak-meta {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; margin: {T.SP_1} 0 0; }}
 {_A} .akun-anak-login {{ margin: {T.SP_1} 0 0; font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; overflow-wrap: anywhere; }}
+{_A} .akun-anak-login a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
+{_A} a[href="/kebijakan-privasi"] {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
 {_A} .akun-kelola > summary {{
   position: absolute; top: {T.SP_4}; right: {T.SP_4}; display: inline-flex; align-items: center; list-style: none;
   min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA};
@@ -93,7 +95,7 @@ GAYA_AKUN = f"""
 }}
 {_A} .akun-label-st {{ flex: 1; min-width: 0; }}
 {_A} .akun-chip-ok-st {{ background: {T.LATAR_TERSIMPAN}; color: {T.TEKS_TERSIMPAN}; }}
-{_A} .akun-tautan-st {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; font-weight: 600; }}
+{_A} .akun-tautan-st {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; min-width: {T.TARGET_SENTUH}; font-weight: 600; }}
 {_A} .akun-aksi-baris-st {{ display: flex; align-items: center; flex-wrap: wrap; gap: {T.SP_2} {T.SP_4}; }}
 {_A} .akun-bahaya-st, {_A} .akun-bahaya-kartu-st {{
   margin-top: {T.SP_2}; padding: {T.SP_1} {T.SP_4} {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.BORDER_GALAT};
