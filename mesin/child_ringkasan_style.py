@@ -12,7 +12,7 @@ GAYA_RINGKASAN = f"""
 }}
 {_R} .peta-materi-st.kartu-st > * {{ margin: 0; }}
 {_R} .peta-materi-st.kartu-st .peta-angka {{
-  font-size: 1.75rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; color: {T.ANAK_TEKS};
+  font-size: {T.UKURAN_JUDUL_STITCH}; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; color: {T.ANAK_TEKS};
 }}
 {_R} .peta-materi-st.kartu-st > p {{ font-size: 1rem; color: {T.ANAK_TEKS_REDUP}; }}
 {_R} .peta-materi-st .peta-grafik {{ height: 1rem; margin: 0; }}

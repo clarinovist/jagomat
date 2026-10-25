@@ -47,8 +47,8 @@ h1.st, h2.st, h3.st, .st-headline {{
   font-family: {T.FONT_HEADLINE};
   color: {T.TEKS_JUDUL};
 }}
-h1.st {{ font-size: 1.75rem; margin: 0.4rem 0; font-weight: 800; letter-spacing: -0.02em; }}
-h2.st {{ font-size: 1.25rem; margin: {T.SP_4} 0 0.6rem; font-weight: 700; }}
+h1.st {{ font-size: {T.UKURAN_JUDUL_STITCH}; margin: 0.4rem 0; font-weight: 800; letter-spacing: -0.02em; }}
+h2.st {{ font-size: {T.UKURAN_BAGIAN_STITCH}; margin: {T.SP_4} 0 0.6rem; font-weight: 700; }}
 h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 
 /* Topbar */
@@ -654,7 +654,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 }}
 @media (max-width: 23.5rem) {{
   .murid-kanvas-st {{ padding-left: {T.SP_4}; padding-right: {T.SP_4}; }}
-  .murid-sapaan-st h1 {{ font-size: 1.75rem; }}
+  .murid-sapaan-st h1 {{ font-size: {T.UKURAN_JUDUL_STITCH}; }}
   .murid-beranda-st [data-utama] > .st-kartu-teks {{ padding: {T.SP_4}; padding-right: 39%; }}
   .murid-judul-sampul-st {{ font-size: 1.85rem; }}
   .murid-ilustrasi-st {{ width: 6.3rem; top: 4.2rem; right: .25rem; }}
@@ -3474,7 +3474,7 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
   .koreksi-editorial-st .koreksi-simpan-st button {{ font-size: .8rem; padding: {T.SP_1}; }}
   .koreksi-aksi-sesi-st {{ flex: 1; gap: {T.SP_1}; }}
   .koreksi-aksi-sesi-st button {{ flex: 1; }}
-  .koreksi-sisa-st {{ flex: 0 0 6rem; font-size: .75rem; line-height: 1.35; }}
+  .koreksi-sisa-st {{ flex: 0 0 6rem; font-size: {T.UKURAN_TEKS_META}; line-height: 1.35; }}
   .koreksi-ringkas-st .koreksi-ringkas-kepala-st {{ flex-basis: 100%; }}
 }}
 

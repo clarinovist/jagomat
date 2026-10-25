@@ -316,6 +316,10 @@ UKURAN_JUDUL_DEWASA = "clamp(1.375rem, 2.2vw, 1.625rem)"  # 22–26px
 UKURAN_BAGIAN_DEWASA = "1.125rem"                         # 18px
 UKURAN_ANGKA_DEWASA = "1.5rem"                            # 24px
 
+# Judul Stitch (publik, murid, judul halaman anak): skala sendiri, lebih besar.
+UKURAN_JUDUL_STITCH = "1.75rem"   # 28px, h1.st
+UKURAN_BAGIAN_STITCH = "1.25rem"  # 20px, h2.st
+
 # ─────────────────────────────────────────────────────────────────────
 # Spacing — skala 4px base (lihat docs/design-system.md)
 # ─────────────────────────────────────────────────────────────────────

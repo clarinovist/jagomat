@@ -163,13 +163,21 @@ lama itu merah lagi bila dikembalikan.
 | Label | `UKURAN_TEKS_LABEL` | 14px | Label, chip, metadata informatif; **batas bawah teks informatif** |
 | Catatan | `UKURAN_TEKS_CATATAN` | 13px | Eyebrow kapital dekoratif saja |
 | Meta | `UKURAN_TEKS_META` | 12px | Warisan; jangan dipakai untuk informasi baru |
+| Judul Stitch | `UKURAN_JUDUL_STITCH` / `UKURAN_BAGIAN_STITCH` | 28 / 20px | `h1.st`/`h2.st` publik, murid, judul halaman anak |
 | Admin | `ADMIN_UKURAN_JUDUL` / `_ISI` / `_KPI` | 28 / 14,5 / 40px | Panel admin |
 | Cetak | `UKURAN_BADAN_CETAK` | 10,5pt | Lembar A4 |
 
-`LINE_HEIGHT` 1,55 untuk badan. Judul anak/murid dan landing memakai skala
-Stitch sendiri (`h1.st` 1,75rem, `h2.st` 1,25rem) karena audiensnya berbeda.
-`GAYA_TEKS_MIN` di `style_stitch.py` menaikkan teks informatif yang diketahui ke
-14px secara tersekop.
+`LINE_HEIGHT` 1,55 untuk badan. Judul anak/murid dan landing memakai skala Stitch
+sendiri karena audiensnya berbeda. `GAYA_TEKS_MIN` di `style_stitch.py` menaikkan teks
+informatif yang diketahui ke 14px secara tersekop. Ukuran relatif (`em`, `%`) dan
+`clamp()` boleh untuk konteks komponen; nilai rem/px baru harus salah satu ukuran skala.
+
+**Ratchet skala tipe.** Per 25 Okt 2026, 266 dari 393 deklarasi `font-size` literal
+rem/px berada di luar skala (terbanyak `style_stitch.py` 172, `teacher_style.py` 29,
+`screen_style.py` 14). `test_type_scale.py` mengunci jumlah per berkas: literal di
+luar skala tidak boleh bertambah, dan setiap pengurangan wajib menurunkan `BATAS`.
+Menyamakan sisa literal itu ke skala adalah perubahan visual dan dikerjakan bertahap
+per permukaan dengan render, bukan sapuan massal.
 
 ## Jarak, radius, wadah, breakpoint
 

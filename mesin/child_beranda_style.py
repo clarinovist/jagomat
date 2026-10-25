@@ -15,9 +15,9 @@ GAYA_BERANDA = f"""
 {_R} .kartu-rencana-st > .batas-rencana-st {{ margin: 0; }}
 {_R} .beranda-kepala-kartu-st {{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: {T.SP_2}; }}
 {_R} .label-rencana-st {{
-  margin: 0; font-size: .8125rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: {T.ANAK_AKSEN};
+  margin: 0; font-size: {T.UKURAN_TEKS_CATATAN}; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: {T.ANAK_AKSEN};
 }}
-{_R} #judul-rencana-belajar {{ font-size: 1.75rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; color: {T.ANAK_TEKS}; }}
+{_R} #judul-rencana-belajar {{ font-size: {T.UKURAN_JUDUL_STITCH}; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; color: {T.ANAK_TEKS}; }}
 {_R} :is(.beranda-meta-st, .identitas-sesi-rencana-st) {{ font-size: .9375rem; color: {T.ANAK_TEKS_BANTUAN}; }}
 {_R} .beranda-caranya-st {{ padding: 1.25rem {T.SP_5}; border-radius: 14px; background: {T.ANAK_ABU_HANGAT}; }}
 {_R} .beranda-caranya-st p {{ margin: 6px 0 0; font-size: 1.0625rem; color: {T.ANAK_TEKS}; }}
@@ -30,14 +30,14 @@ GAYA_BERANDA = f"""
 {_R} .beranda-posisi-kepala-st {{
   display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: {T.SP_2}; margin: 0 0 {T.SP_4};
 }}
-{_R} .beranda-posisi-kepala-st h2 {{ margin: 0; font-size: 1.125rem; font-weight: 800; color: {T.ANAK_TEKS}; }}
+{_R} .beranda-posisi-kepala-st h2 {{ margin: 0; font-size: {T.UKURAN_BAGIAN_DEWASA}; font-weight: 800; color: {T.ANAK_TEKS}; }}
 {_R} .beranda-posisi-kepala-st p {{ margin: 0; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ANAK_TEKS_BANTUAN}; }}
 {_R} .beranda-posisi-st .tahap-rencana-st::before {{ background: {T.ANAK_STATUS_BELUM}; }}
 {_R} .beranda-posisi-st .tahap-rencana-st.aktif::before {{ background: {T.ANAK_AKSEN}; }}
 {_R} .beranda-posisi-st .tahap-rencana-st.aktif {{ color: {T.ANAK_AKSEN}; font-weight: 800; }}
 {_R} .beranda-posisi-st .alur-rencana-jelas-st {{ margin: 0; padding: 0; border: 0; }}
 {_R} .beranda-posisi-st .alur-rencana-jelas-st > summary {{ font-size: .9375rem; font-weight: 600; color: {T.ANAK_AKSEN}; }}
-{_R} .profil-taches-st > h2.st {{ margin: 0 0 {T.SP_3}; font-size: 1.125rem; font-weight: 800; color: {T.ANAK_TEKS}; }}
+{_R} .profil-taches-st > h2.st {{ margin: 0 0 {T.SP_3}; font-size: {T.UKURAN_BAGIAN_DEWASA}; font-weight: 800; color: {T.ANAK_TEKS}; }}
 {_R} .beranda-sesi-st {{
   padding: {T.SP_4} 1.25rem; background: {T.LATAR_KARTU}; border: 1px solid {T.ANAK_BORDER}; border-radius: 14px;
 }}
