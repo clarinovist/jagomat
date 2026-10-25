@@ -33,7 +33,7 @@ def test_permukaan_admin_memakai_token_scoped():
         assert 'background: ' + T.ADMIN_PERMUKAAN in _aturan(selector)
     assert 'font-weight: 600' in _aturan('.admin-menu a[aria-current="page"]')
     assert 'background: ' + T.ADMIN_AKSEN_LATAR in _aturan('.admin-menu a[aria-current="page"]')
-    assert 'font-size: 12px' in _aturan('.admin-nav-label')
+    assert 'font-size: ' + T.UKURAN_TEKS_LABEL in _aturan('.admin-nav-label')
     assert 'white-space: nowrap' in _aturan('.admin-tabel th')
 
 

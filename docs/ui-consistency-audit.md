@@ -176,6 +176,14 @@ Ini bukan uji submit semua form atau perangkat sentuh fisik.
 - `spec.md` dan `context.md` tidak terdampak: tidak ada fitur, alur, akses, komposisi
   arsitektur atau keluarga token baru. Kontrak design system yang ada diterapkan.
 
+Koreksi pra-rilis: CI lengkap awal pada `bdd9ffc` menemukan tiga gap yang tidak
+tercakup suite lokal di atas. Ekspektasi font navigasi admin diperbarui dari
+literal 12px ke token label14px; aturan tautan legal dipindah ke blok dukungan;
+label lewati dibatasi ke pembungkus `.koreksi-editorial-st` yang sudah ada.
+Guard scope tidak dilemahkan. Tiga kegagalan direproduksi lokal, kemudian 314 tes
+terkait lulus dan lima halaman terdampak × empat viewport diukur ulang tanpa
+overflow/kontrol kecil. Status gate lengkap final dan deployment mengikuti runbook.
+
 Bukti sintetis dan hash source disimpan lokal di
 `docs/plan/readability-20261025/final-evidence.tar.gz`; bukan artefak publik.
 Browser/server helper sudah dihentikan setelah verifikasi.

@@ -1421,7 +1421,6 @@ tr.sorot-baru, div.sorot-baru {{
 .daftar-editorial-st .koreksi-centang-st {{ gap: {T.SP_3}; margin: 0; align-items: flex-start; font: 400 .8rem/1.7 {T.FONT_BODY}; color: {T.TEKS_VARIAN}; cursor: pointer; }}
 .daftar-editorial-st .koreksi-centang-st input {{ margin: .2rem 0 0; width: 1.2rem; height: 1.2rem; accent-color: {T.AKSEN_TEAL_TUA}; flex: none; }}
 .daftar-editorial-st .koreksi-centang-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; color: {T.AKSEN_TEAL_TUA}; text-underline-offset: .2em; }}
-.dukungan-editorial-st .publik-kartu-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
 .daftar-editorial-st .masuk-tombol-st {{
   min-height: {T.TINGGI_CTA}; justify-content: space-between; padding: {T.SP_3} {T.SP_5};
   font-size: 1rem; background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
@@ -2296,6 +2295,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .dukungan-editorial-st .dukungan-topbar-catatan-st {{ color: {T.TEKS_VARIAN}; font-size: .8rem; }}
 .dukungan-editorial-st .publik-bungkus-st {{ max-width: 48rem; padding: clamp({T.SP_5}, 5vw, 3.5rem) 0; margin: 0 auto; }}
 .dukungan-editorial-st .publik-kartu-st {{ max-width: none; background: transparent; border: 0; border-radius: 0; padding: 0; box-shadow: none; }}
+.dukungan-editorial-st .publik-kartu-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
 .dukungan-editorial-st h1 {{
   font-family: {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL};
   font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -.045em; line-height: 1.15; margin: 0 0 {T.SP_4};
@@ -2648,7 +2648,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .koreksi-editorial-st .koreksi-tipe-st {{ background: transparent; padding-left: 0; }}
 .koreksi-editorial-st .kunci-baris-st {{ background: {T.LATAR_CATATAN}; border-color: {T.BORDER_CATATAN}; }}
 .koreksi-editorial-st .pembahasan-soal-st {{ background: {T.LATAR_CATATAN}; }}
-.koreksi-lewati-native-st label {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; cursor: pointer; }}
+.koreksi-editorial-st .koreksi-lewati-native-st label {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; cursor: pointer; }}
 .koreksi-editorial-st .koreksi-centang-st {{ min-height: {T.TARGET_SENTUH}; }}
 .koreksi-editorial-st .koreksi-centang-st label {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding-block: {T.SP_2}; }}
 .koreksi-editorial-st .koreksi-catatan-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}

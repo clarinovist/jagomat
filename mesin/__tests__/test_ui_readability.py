@@ -94,7 +94,7 @@ def test_tautan_akun_punya_area_sentuh(selector):
     '.koreksi-editorial-st .koreksi-catatan-st a',
     '.koreksi-editorial-st .koreksi-centang-st label',
     '.koreksi-editorial-st .koreksi-persetujuan-st',
-    '.koreksi-lewati-native-st label',
+    '.koreksi-editorial-st .koreksi-lewati-native-st label',
 ])
 def test_label_dan_tautan_tinjauan_punya_area_sentuh(selector):
     blok = aturan(style_stitch.GAYA_STITCH, selector)
