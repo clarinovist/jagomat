@@ -219,7 +219,7 @@ mengikat tinggi/font ke skala jarak.
 | --- | --- | --- |
 | `RADIUS_KARTU_BESAR` | 22px | Kartu konten utama |
 | `RADIUS_KARTU` | 12px | Menu dropdown, banner peringatan, kartu kecil |
-| `RADIUS_SEDANG` | 10px | Tombol dan input Stitch |
+| `RADIUS_SEDANG` | 10px | Tombol dan input Stitch; semua kontrol tombol keluarga dan admin (termasuk tautan bergaya tombol dan summary Kelola) |
 | `RADIUS_KECIL` | 8px | Catatan, input kecil |
 | `RADIUS_PIL` / `RADIUS_BULAT` | 999px / 50% | Chip, pill / nomor bulat |
 
@@ -288,7 +288,7 @@ Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px.
 | --- | --- | --- | --- |
 | Kartu | `.st-kartu` | `style_stitch.py` | Putih, `BORDER_VARIAN`, radius 22px, hover border aksen |
 | Tombol utama | `.st-tombol-coral`, `a.tombol-coral` | `style_stitch.py` | `AKSEN_KORAL_TUA` berteks putih, hover `AKSEN_KORAL_HOVER`, tinggi 48px |
-| Tombol sekunder | `.admin-tombol-sekunder`, `.admin-tautan`, `.admin-antrean-cta`; keluarga `.guru-tambah-st`, Keluar Akun | `admin_style.py`, `style_stitch.py`, `account_style.py` | Latar permukaan, garis 1px + teks teal berteks, hover latar aksen; untuk aksi pendamping (Cari, Terapkan, pager, Tinjau) di samping satu aksi utama |
+| Tombol sekunder | `.admin-tombol-sekunder`, `.admin-tautan`, `.admin-antrean-cta`; keluarga `.guru-tambah-st`, `.akun-tombol-garis-st`, Keluar dan Kelola Akun | `admin_style.py`, `style_stitch.py`, `account_style.py` | Latar permukaan, garis teal, radius 10px, hover `ANAK_AKSEN_LATAR`; untuk aksi pendamping (Cari, Terapkan, pager, Tinjau) di samping satu aksi utama |
 | CTA rencana | `.rencana-cta-utama-st` | `style_stitch.py`, `child_beranda_style.py`, `profile_workspace.py` | Satu per halaman; 52px (`TINGGI_CTA`), 48px di beranda profil (`profile_workspace.py`); di profil teal |
 | Input teks | `.st-input` | `style_stitch.py` | 16px, 48px, fokus border + ring aksen |
 | Dropdown | `<select>` native | `form_style.GAYA_SELECT` | Chevron CSS 16px dari kanan, padding kanan 48px; `multiple`/forced-colors tetap native |
@@ -303,7 +303,7 @@ Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px.
 | Banner tautan | `.anak-banner-st`, `child_components.banner_tautan()` | `child_style.py` | Satu tautan aksi di kanan |
 | Kartu sesi | `.anak-kartu-sesi-st`, `child_components.kartu_sesi()` | `child_style.py` | Satu status dan satu aksi per baris |
 | Tab profil | `.profil-tabs-st`, `profile_workspace.navigasi_profil()` | `child_header.py` | Beranda, Latihan, Riwayat, Perkembangan; 48px; satu baris di 320px |
-| Tab | `.profil-tabs-st a`, `.admin-tab` | `child_header.py`, `admin_style.py` | Ganti tampilan; aktif = `aria-current="page"`, teks + garis bawah 3px teal, 48px, bukan pil. Lompat dalam halaman memakai tautan teks (`.admin-navigasi-bagian`) |
+| Tab | `.profil-tabs-st a`, `.admin-tab`, Akun `.nav-samping a`, Alat sesi `.pil-sesi-st a` | `child_header.py`, `admin_style.py`, `style_stitch.py` | Ganti tampilan; aktif = `aria-current="page"`, teks + garis bawah 3px teal, 48px, bukan pil. Lompat dalam halaman memakai tautan teks (`.admin-navigasi-bagian`) |
 | Tautan kembali | `.sesi-jejak-st`, `.jejak` editorial, `.admin-jejak` | `style_stitch.py`, `admin_style.py` | Teks "← tujuan" teal, target 44px, bukan tombol (`.jejak` abu di `teacher_style.py` adalah gaya lama) |
 | Header | `.st-topbar`, `.menu-pengguna` | `style_stitch.py`, `child_header.py`, `admin_style.py` | Peran + nama dalam satu menu native dengan chevron, tanpa marker bawaan; satu form Keluar |
 | Bar simpan | `.kerja-simpan-strip-st`, `.koreksi-simpan-st` | `style_stitch.py` | Mengikuti aliran form, tidak menutupi kontrol, tidak menggandakan CTA |
@@ -395,10 +395,11 @@ Membuka kembali salah satunya memerlukan keputusan produk baru.
 
 Tindak lanjut terbuka: PDF statis riset publik di `mesin/publik/` dibuat sebelum teal
 disatukan; isinya sama, tetapi aksen tealnya sedikit berbeda dari HTML sampai PDF
-dibuat ulang dari renderer. Keluarga masih menyimpang kecil dari acuan komponen:
-tombol Akun dan Ruang guru beradius 8px (`RADIUS_KECIL`, bukan `RADIUS_SEDANG`),
-dan tab Akun aktif berupa blok teal solid, bukan pola Tab. Belum diubah karena di
-luar scope penuntasan admin 26 Okt 2026; font merek halaman privat tetap keputusan terpisah.
+dibuat ulang dari renderer. Sisa penyimpangan keluarga dari acuan komponen (di luar
+penyamaan tombol 10px dan tab Akun/Alat sesi, 26 Okt 2026): pemilih Ringkasan/Per materi
+laporan masih kotak 8px, CTA profil/murid memakai literal 12px dan banner profil 14px,
+tombol Keluar murid tanpa radius, dan input keluarga masih campuran 8px/10px. Font merek
+halaman privat tetap keputusan terpisah.
 
 ## Batas verifikasi
 

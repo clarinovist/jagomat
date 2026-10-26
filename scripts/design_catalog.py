@@ -103,7 +103,10 @@ def _admin() -> str:
 
 
 def _akun() -> str:
-    return ('<div class="akun-editorial-st"><p><a class="akun-tautan-st" href="#">Tautan akun</a></p>'
+    return ('<div class="akun-editorial-st"><nav class="nav-samping" aria-label="Contoh tab akun">'
+            '<a href="#" aria-current="page">Akun saya</a><a href="#">Anak</a></nav>'
+            '<p><a class="akun-tombol-garis-st" href="#">Tombol garis</a> '
+            '<a class="akun-tautan-st" href="#">Tautan akun</a></p>'
             '<p><button class="tombol-bahaya-akun" type="button">Cabut semua izin</button></p></div>')
 
 
@@ -115,7 +118,7 @@ def demo() -> tuple:
         Demo("Dasar (Stitch)", stitch, 'class="st"', _dasar(), 900),
         Demo("Profil anak dan ruang guru", profil, 'class="st"', f'<div class="{PROFIL}">{_profil()}</div>', 760),
         Demo("Tinjauan: pill kode", teacher_style.GAYA_GURU + style_stitch.CSS_SESI, "", _tinjauan(), 200),
-        Demo("Akun", stitch + account_style.GAYA_AKUN, 'class="st"', _akun(), 200),
+        Demo("Akun", stitch + account_style.GAYA_AKUN, 'class="st"', _akun(), 210),
         Demo("Admin — terang", admin, 'class="admin-readonly" data-tema="terang"', _admin(), 470),
         Demo("Admin — gelap", admin, 'class="admin-readonly" data-tema="gelap"', _admin(), 470),
     )

@@ -404,7 +404,7 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-paging-st {{ display:flex; gap:{T.SP_4}; flex-wrap:wrap; justify-content:space-between; align-items:center; padding:{T.SP_3} 0; font-size:{T.UKURAN_TEKS_CATATAN}; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .profil-paging-st a {{ color:{T.AKSEN_TEAL_TUA}; }}
 .profil-workspace-st .profil-pager-st {{ display:flex; flex-wrap:wrap; gap:{T.SP_1}; }}
-.profil-workspace-st .profil-pager-st > * {{ display:inline-flex; align-items:center; justify-content:center; min-width:2.75rem; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2}; border-radius:{T.RADIUS_KECIL}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; text-decoration:none; }}
+.profil-workspace-st .profil-pager-st > * {{ display:inline-flex; align-items:center; justify-content:center; min-width:2.75rem; min-height:{T.TARGET_SENTUH}; padding:{T.SP_2}; border-radius:{T.RADIUS_SEDANG}; border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; text-decoration:none; }}
 .profil-workspace-st .profil-pager-st [aria-current] {{ background:{T.LATAR_TERSIMPAN}; color:{T.AKSEN_TEAL_TUA}; }}
 .profil-workspace-st .profil-lanjutan-st {{ grid-column:1/-1; }}
 .profil-workspace-st .profil-lanjutan-isi-st {{ display:grid; gap:{T.SP_4}; padding-bottom:{T.SP_4}; }}
@@ -524,6 +524,6 @@ GAYA_PROFIL = f"""
  .profil-workspace-st .riwayat-daftar-st .badge-direview {{ max-width:100%; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.4; }}
  .profil-workspace-st .riwayat-daftar-st .profil-kosong-st {{ grid-column:1/-1; padding:{T.SP_4}; }}
  .profil-workspace-st .riwayat-aksi-st {{ align-self:stretch; justify-content:stretch; padding-top:{T.SP_3}; }}
- .profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ width:100%; justify-content:center; min-height:{T.TINGGI_CTA}; background:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_PUTIH}; border-radius:{T.RADIUS_KECIL}; text-decoration:none; }}
+ .profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st {{ width:100%; justify-content:center; min-height:{T.TINGGI_CTA}; background:{T.AKSEN_TEAL_TUA}; color:{T.TEKS_PUTIH}; border-radius:{T.RADIUS_SEDANG}; text-decoration:none; }}
 }}
 """

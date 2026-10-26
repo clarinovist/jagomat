@@ -301,7 +301,7 @@ GAYA_VARIASI = f"""
 .variasi-contoh-dekat > summary {{ min-height:{T.TARGET_SENTUH}; padding:{T.SP_2} 0; color:{T.AKSEN_TEAL_TUA}; cursor:pointer; line-height:1.4; }}
 .variasi-contoh-dekat > .profil-petunjuk-st {{ color:{T.TEKS_VARIAN}; font-size:{T.UKURAN_TEKS_CATATAN}; line-height:1.5; }}
 .variasi-kosong {{ margin:{T.SP_2} 0; padding:{T.SP_3}; border:{T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius:{T.RADIUS_KECIL}; background:{T.LATAR_CATATAN}; }}
-.profil-workspace-st .variasi-bandingkan {{ width:fit-content; min-height:{T.TARGET_SENTUH}; margin-top:{T.SP_2}; padding:{T.SP_2} {T.SP_3}; border:{T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius:{T.RADIUS_KECIL}; background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; font:inherit; font-weight:650; cursor:pointer; }}
+.profil-workspace-st .variasi-bandingkan {{ width:fit-content; min-height:{T.TARGET_SENTUH}; margin-top:{T.SP_2}; padding:{T.SP_2} {T.SP_3}; border:{T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius:{T.RADIUS_SEDANG}; background:{T.LATAR_KARTU}; color:{T.AKSEN_TEAL_TUA}; font:inherit; font-weight:650; cursor:pointer; }}
 .profil-workspace-st .variasi-bandingkan:hover {{ background:{T.LATAR_SEKUNDER_LEMBUT}; }}
 .pengaturan-awal {{ border:{T.TEBAL_GARIS} solid {T.BORDER_HALUS}; border-radius:{T.RADIUS_KECIL}; margin:{T.SP_4} 0; padding:{T.SP_4}; min-width:0; }}
 """

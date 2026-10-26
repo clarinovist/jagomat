@@ -301,8 +301,8 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-kepala-daftar-st {{ display: flex; gap: {T.SP_4}; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }}
 .guru-kepala-daftar-st > div {{ flex: 1 1 20rem; min-width: 0; }}
 .guru-kepala-daftar-st h2 {{ color: {T.ANAK_TEKS}; font: 800 {T.UKURAN_BAGIAN_DEWASA}/1.4 {T.FONT_HEADLINE}; margin: 0; }}
-.guru-tambah-st {{ display: inline-flex; align-items: center; justify-content: center; gap: {T.SP_2}; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2} {T.SP_4}; color: {T.AKSEN_TEAL_TUA}; background: transparent; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KECIL}; text-decoration: none; font: 700 .8rem/1.5 {T.FONT_HEADLINE}; }}
-.guru-tambah-st:hover {{ background: color-mix(in srgb, {T.LATAR_KARTU} 92%, {T.AKSEN_TEAL_TUA}); }}
+.guru-tambah-st {{ display: inline-flex; align-items: center; justify-content: center; gap: {T.SP_2}; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2} {T.SP_4}; color: {T.AKSEN_TEAL_TUA}; background: transparent; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_SEDANG}; text-decoration: none; font: 700 .8rem/1.5 {T.FONT_HEADLINE}; }}
+.guru-tambah-st:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}
 .guru-petunjuk-st {{ color: {T.ANAK_TEKS_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; line-height: 1.5; margin: {T.SP_1} 0 0; }}
 .guru-chip-baris-st {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; margin: {T.SP_4} 0 {T.SP_3}; }}
 .guru-chip-st {{ display: inline-flex; align-items: center; gap: {T.SP_2}; min-height: {T.TARGET_SENTUH}; box-sizing: border-box; padding: 0 {T.SP_4}; border: 1px solid {T.ANAK_BORDER_PIL}; border-radius: {T.RADIUS_PIL}; background: {T.LATAR_KARTU}; color: {T.ANAK_TEKS_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; text-decoration: none; }}
@@ -2255,7 +2255,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .kerja-editorial-st .kerja-foto-form-st input[type=file] {{ min-height: {T.TINGGI_KONTROL}; font: inherit; font-size: {T.UKURAN_BADAN_LAYAR}; }}
 .kerja-editorial-st input[type=file]::file-selector-button {{
   font: inherit; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
-  border-radius: {T.RADIUS_KECIL}; background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; margin-right: {T.SP_2};
+  border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; margin-right: {T.SP_2};
 }}
 :is(.kerja-editorial-st, .hasil-editorial-st) .kerja-btn-sekunder-st {{
   background: transparent; color: {T.AKSEN_TEAL_TUA}; border-color: {T.BORDER_VARIAN};
@@ -2447,7 +2447,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-editorial-st :is(.baris, .baris-aksi) {{ gap: {T.SP_3}; }}
 .pendamping-editorial-st .baris > div {{ min-width: 0; }}
 .pendamping-editorial-st :is(button, .btn, .st-tombol-coral, .rencana-cta-utama-st) {{
-  min-height: {T.TINGGI_KONTROL}; border-radius: {T.RADIUS_KECIL};
+  min-height: {T.TINGGI_KONTROL}; border-radius: {T.RADIUS_SEDANG};
   background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; box-shadow: none;
   font: 600 .92rem/1.4 {T.FONT_LAYAR}; white-space: normal;
 }}
@@ -2461,16 +2461,16 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
    dan garisnya tampak hilang. */
 .pendamping-editorial-st .tombol-mata {{ background: none; }}
 .pendamping-editorial-st :is(.pil-sesi, .pil-sesi-st) {{
-  display: flex; flex-wrap: wrap; gap: {T.SP_2}; padding: 0 0 {T.SP_3};
-  border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; margin: 0 0 {T.SP_5};
+  display: flex; flex-wrap: wrap; gap: 0 {T.SP_5}; padding: 0;
+  border-bottom: 1px solid {T.ANAK_BORDER}; margin: 0 0 {T.SP_5};
 }}
 .pendamping-editorial-st :is(.pil-sesi, .pil-sesi-st) a {{
-  display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH};
-  padding: {T.SP_2} {T.SP_3}; border: {T.TEBAL_GARIS} solid transparent;
-  border-radius: {T.RADIUS_KECIL}; color: {T.TEKS_VARIAN}; text-decoration: none;
+  display: inline-flex; align-items: center; min-height: {T.TINGGI_KONTROL};
+  padding: 0; border: 0; border-bottom: 3px solid transparent;
+  border-radius: 0; background: transparent; color: {T.TEKS_VARIAN}; font-weight: 600; text-decoration: none;
 }}
-.pendamping-editorial-st :is(.pil-sesi, .pil-sesi-st) a.aktif {{
-  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; border-color: {T.AKSEN_TEAL_TUA};
+.pendamping-editorial-st :is(.pil-sesi, .pil-sesi-st) a[aria-current="page"] {{
+  color: {T.AKSEN_TEAL_TUA}; border-bottom-color: {T.AKSEN_TEAL_TUA}; background: transparent; font-weight: 700;
 }}
 .pendamping-editorial-st :is(.kartu, .koreksi-kartu-st) {{
   border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius: {T.RADIUS_KARTU};
@@ -2616,7 +2616,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .profil-editorial-st .aksi-bagikan-st form {{ margin: 0; max-width: 100%; }}
 .profil-editorial-st .aksi-bagikan-st button > span {{ white-space: nowrap; }}
 .profil-editorial-st .aksi-bagikan-st button > svg {{ flex: none; }}
-.profil-editorial-st .aksi-bagikan-st button {{ display: inline-flex; align-items: center; gap: {T.SP_2}; width: auto; height: auto; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL}; background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; font: inherit; font-size: {T.UKURAN_TEKS_LABEL}; cursor: pointer; }}
+.profil-editorial-st .aksi-bagikan-st button {{ display: inline-flex; align-items: center; gap: {T.SP_2}; width: auto; height: auto; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; font: inherit; font-size: {T.UKURAN_TEKS_LABEL}; cursor: pointer; }}
 .profil-editorial-st .tautan-sesi-opsi > summary,
 .profil-editorial-st details.rincian-topik-st > summary {{ display: flex; align-items: center; gap: {T.SP_2}; min-height: {T.TARGET_SENTUH}; color: {T.AKSEN_TEAL_TUA}; cursor: pointer; list-style: none; font-size: {T.UKURAN_TEKS_LABEL}; }}
 .profil-editorial-st :is(.tautan-sesi-opsi, details.rincian-topik-st) > summary::before {{ content: '+'; }}
@@ -2697,10 +2697,11 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .daftar-editorial-st .policy-notice input[type=checkbox] {{ flex: none; width: 1.2rem; height: 1.2rem; }}
 .daftar-editorial-st .policy-notice button {{ margin-top: {T.SP_3}; margin-bottom: {T.SP_3}; }}
 .akun-editorial-st .layout-samping {{ display: grid; grid-template-columns: minmax(0, 1fr); gap: {T.SP_5}; }}
-.akun-editorial-st .nav-samping {{ position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: {T.SP_2}; padding-bottom: {T.SP_3}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
-.akun-editorial-st .nav-samping a {{ display: inline-flex; min-height: {T.TARGET_SENTUH}; align-items: center; border-radius: {T.RADIUS_KECIL}; padding: {T.SP_2} {T.SP_4}; }}
-.akun-editorial-st .nav-samping a {{ font-weight: 600; }}
-.akun-editorial-st .nav-samping a.aktif {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; font-weight: 600; }}
+/* Navigasi Akun = pola Tab (sama dengan tab profil/admin): teks + garis bawah, bukan blok. */
+.akun-editorial-st .nav-samping {{ position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: 0 {T.SP_5}; padding: 0; border-bottom: 1px solid {T.ANAK_BORDER}; }}
+.akun-editorial-st .nav-samping a {{ display: inline-flex; align-items: center; min-height: {T.TINGGI_KONTROL}; padding: 0; border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; color: {T.TEKS_VARIAN}; font-weight: 600; text-decoration: none; }}
+.akun-editorial-st .nav-samping a:hover {{ color: {T.AKSEN_TEAL_TUA}; }}
+.akun-editorial-st .nav-samping a[aria-current="page"] {{ color: {T.AKSEN_TEAL_TUA}; border-bottom-color: {T.AKSEN_TEAL_TUA}; background: transparent; font-weight: 700; }}
 .akun-editorial-st {{ font-family: {T.FONT_LAYAR}; }}
 .akun-editorial-st :is(h1,h2,h3,button,input,select,label,summary) {{ font-family: inherit; }}
 .akun-editorial-st :is(button,input,select) {{ font-size: 1rem; }}
@@ -3038,30 +3039,29 @@ CSS_SESI = f"""
 .kartu-st h2 {{ margin-top: 0; }}
 /* Tombol tautan generik Stitch — pengganti .btn legacy. */
 .btn-st {{
-  display: inline-block; padding: .55rem {T.SP_4}; border-radius: {T.RADIUS_KECIL};
+  display: inline-block; padding: .55rem {T.SP_4}; border-radius: {T.RADIUS_SEDANG};
   font-size: {T.UKURAN_TEKS_BANTUAN}; text-decoration: none;
   background: {T.LATAR_KARTU_SEKUNDER}; color: {T.TEKS_JUDUL};
   border: {T.TEBAL_GARIS} solid {T.BORDER_INTERAKTIF};
 }}
 .btn-st.utama {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS}; border: 0; }}
 
-/* Pil navigasi antar-alat sesi (Koreksi · Lampiran; Cetak disembunyikan 2026-10-04). */
+/* Tab antar-alat sesi (Koreksi · Lampiran; Cetak disembunyikan 2026-10-04): pola Tab bersama. */
 .pil-sesi-st {{
-  display: flex; gap: {T.SP_2}; flex-wrap: wrap;
+  display: flex; gap: 0 {T.SP_5}; flex-wrap: wrap;
   margin: 0 0 {T.SP_4};
-  border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; padding-bottom: {T.SP_2};
+  border-bottom: 1px solid {T.ANAK_BORDER}; padding: 0;
 }}
 .pil-sesi-st a {{
   font-family: {T.FONT_HEADLINE}; font-weight: 600; font-size: .88rem;
   color: {T.TEKS_VARIAN}; text-decoration: none;
-  padding: {T.SP_2} {T.SP_3}; border-radius: {T.RADIUS_SEDANG};
-  border: {T.TEBAL_GARIS} solid transparent; min-height: {T.TARGET_SENTUH};
+  padding: 0; border: 0; border-bottom: 3px solid transparent; border-radius: 0;
+  background: transparent; min-height: {T.TINGGI_KONTROL};
   display: inline-flex; align-items: center; gap: {T.SP_1};
 }}
-.pil-sesi-st a:hover {{ background: {T.LATAR_SEKUNDER_LEMBUT}; color: {T.TEKS_JUDUL}; }}
-.pil-sesi-st a.aktif {{
-  background: {T.LATAR_SEKUNDER_NETRAL}; color: {T.TEKS_JUDUL};
-  border-color: {T.BORDER_VARIAN};
+.pil-sesi-st a:hover {{ color: {T.AKSEN_TEAL_TUA}; }}
+.pil-sesi-st a[aria-current="page"] {{
+  color: {T.AKSEN_TEAL_TUA}; border-bottom-color: {T.AKSEN_TEAL_TUA}; background: transparent; font-weight: 700;
 }}
 
 /* ── Gerak modern CSS-only (2026-10-04, Opsi 1, Zero-JS) ────────────────

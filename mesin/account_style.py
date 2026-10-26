@@ -13,9 +13,9 @@ GAYA_AKUN = f"""
 {_A} .akun-aksi-kepala-st {{ display: flex; align-items: center; flex-wrap: wrap; gap: {T.SP_2}; }}
 {_A} .akun-aksi-kepala-st .akun-form-keluar button {{
   min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA};
-  border-radius: {T.RADIUS_KECIL}; background: transparent; color: {T.AKSEN_TEAL_TUA}; font-weight: 700;
+  border-radius: {T.RADIUS_SEDANG}; background: transparent; color: {T.AKSEN_TEAL_TUA}; font-weight: 700;
 }}
-{_A} .akun-aksi-kepala-st .akun-form-keluar button:hover {{ background: {T.LATAR_SEKUNDER_NETRAL}; filter: none; }}
+{_A} .akun-aksi-kepala-st .akun-form-keluar button:hover {{ background: {T.ANAK_AKSEN_LATAR}; filter: none; }}
 {_A} .akun-chip-st {{
   display: inline-flex; align-items: center; width: fit-content; padding: {T.SP_1} {T.SP_3};
   border-radius: {T.RADIUS_PIL}; background: {T.LATAR_SEKUNDER_NETRAL}; color: {T.TEKS_VARIAN};
@@ -34,10 +34,10 @@ GAYA_AKUN = f"""
 {_A} .akun-aksi-sandi a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; font-weight: 600; }}
 {_A} .akun-tombol-garis-st {{
   display: inline-flex; align-items: center; justify-content: center; min-height: {T.TINGGI_KONTROL};
-  padding: 0 {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KECIL};
+  padding: 0 {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_SEDANG};
   background: transparent; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; text-decoration: none;
 }}
-{_A} .akun-tombol-garis-st:hover {{ background: {T.LATAR_SEKUNDER_NETRAL}; }}
+{_A} .akun-tombol-garis-st:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}
 {_A} .akun-tombol-garis-st:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 {_A} .akun-anak-daftar {{ display: flex; flex-direction: column; gap: {T.SP_3}; margin-top: {T.SP_3}; }}
 {_A} .akun-anak-kartu {{
@@ -60,10 +60,10 @@ GAYA_AKUN = f"""
 {_A} .akun-kelola > summary {{
   position: absolute; top: {T.SP_4}; right: {T.SP_4}; display: inline-flex; align-items: center; list-style: none;
   min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA};
-  border-radius: {T.RADIUS_KECIL}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; cursor: pointer;
+  border-radius: {T.RADIUS_SEDANG}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; cursor: pointer;
 }}
 {_A} .akun-kelola > summary::-webkit-details-marker {{ display: none; }}
-{_A} .akun-kelola > summary:hover {{ background: {T.LATAR_SEKUNDER_NETRAL}; }}
+{_A} .akun-kelola > summary:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}
 {_A} .akun-kelola > summary:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 @media (max-width: {T.BATAS_HP}) {{
   {_A} .akun-anak-kepala {{ padding-right: 0; }}
@@ -86,9 +86,9 @@ GAYA_AKUN = f"""
 {_A} fieldset input[type=checkbox] {{ flex: none; width: 1.25rem; height: 1.25rem; accent-color: {T.AKSEN_TEAL_TUA}; }}
 {_A} a.tombol {{
   display: inline-flex; align-items: center; justify-content: center; min-height: {T.TINGGI_KONTROL}; padding: 0 {T.SP_4};
-  border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KECIL}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; text-decoration: none;
+  border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_SEDANG}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; text-decoration: none;
 }}
-{_A} .tombol-bahaya-akun {{ min-height: {T.TINGGI_KONTROL}; border-radius: {T.RADIUS_KECIL}; font-weight: 700; cursor: pointer; }}
+{_A} .tombol-bahaya-akun {{ min-height: {T.TINGGI_KONTROL}; border-radius: {T.RADIUS_SEDANG}; font-weight: 700; cursor: pointer; }}
 {_A} .akun-baris-pilihan-st, {_A} .akun-chat-st {{
   display: flex; align-items: center; justify-content: space-between; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH};
   padding: {T.SP_2} 0; border-top: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
