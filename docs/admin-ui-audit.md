@@ -134,7 +134,8 @@ forced-colors OS dan seluruh state produksi belum diverifikasi.
 Audit render sintetis membandingkan produksi `5ae9b00` (masih palet/skala admin
 terisolasi, logo "J", tanpa logo di HP) dengan HEAD `b8aea69` (fondasi sudah alias).
 Sisa gap HEAD ada di tingkat komponen; acuannya kini tercatat di
-[design system](design-system.md#komponen). Font merek halaman privat tetap keputusan terpisah.
+[design system](design-system.md#komponen). Font halaman privat/admin diputuskan 26 Okt 2026:
+mengikuti design system (font sistem, tanpa webfont/aset jaringan).
 
 | Severity | Temuan | Perbaikan |
 | --- | --- | --- |

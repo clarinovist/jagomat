@@ -388,7 +388,7 @@ Membuka kembali salah satunya memerlukan keputusan produk baru.
 | Tombol Keluar kedua di dasar halaman HP | Ditolak | Melanggar satu aksi satu entry point; audit 24 Okt sengaja menyisakan satu form Keluar di header |
 | Ikon, jumlah pesan, dan rentang tanggal di daftar chat Pendamping | Tidak diadopsi | Daftar sengaja hanya metadata minimal; jumlah/rentang butuh query turunan isi percakapan, ikon tidak menambah makna. Pengelompokan per tanggal tetap |
 | Meter "0/12 karakter" dan chip paket di header | Tetap tidak diadopsi | Butuh JavaScript baru dan data langganan di header (keputusan 22 Okt) |
-| Satu konfigurasi pemuatan font | Tetap per halaman | Halaman privat tanpa aset jaringan; sumber font mengikuti CSP masing-masing |
+| Satu konfigurasi pemuatan font | Tetap per halaman (dikonfirmasi pengguna 26 Okt 2026) | Halaman privat dan admin tetap font sistem tanpa aset jaringan; webfont merek hanya di halaman yang memasangnya; sumber font mengikuti CSP masing-masing |
 | Admin satu design system | Disetujui pengguna setelah audit lanjutan | Menggantikan pengecualian palet/skala admin25 Okt: token terang, logo, tipe, radius, spacing dan kontrol48px bersama; sidebar/tabel serta adapter gelap tetap |
 | Lembar latihan ikut teal tunggal | Ditunda | Lembar dibekukan gate rilis question pair; perlu pembaruan pasangan recovery tersendiri |
 | Sisa literal `font-size` di luar skala | Bertahap | Dikunci ratchet `test_type_scale.py`; tiap penyamaan dirender per permukaan |
@@ -398,8 +398,7 @@ disatukan; isinya sama, tetapi aksen tealnya sedikit berbeda dari HTML sampai PD
 dibuat ulang dari renderer. Sisa penyimpangan keluarga dari acuan komponen (di luar
 penyamaan tombol 10px dan tab Akun/Alat sesi, 26 Okt 2026): pemilih Ringkasan/Per materi
 laporan masih kotak 8px, CTA profil/murid memakai literal 12px dan banner profil 14px,
-tombol Keluar murid tanpa radius, dan input keluarga masih campuran 8px/10px. Font merek
-halaman privat tetap keputusan terpisah.
+tombol Keluar murid tanpa radius, dan input keluarga masih campuran 8px/10px.
 
 ## Batas verifikasi
 

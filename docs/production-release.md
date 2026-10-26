@@ -6,6 +6,30 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy komponen keluarga — 26 Oktober 2026
+
+Controlled `deploy-v2` memasang **f65bc7881d5a7f4ccdf69b2b5afef115e281cf97**; container
+started `2026-10-26T04:50:30Z`, healthy/restart0. Cakupan sejak `54f1903`: tombol keluarga
+radius 10px dan tab Akun/Alat sesi berpola Tab (`f65bc78`), dokumen rilis (`2825ab9`).
+Lembar latihan tidak berubah (hash sintetis identik).
+
+- Kandidat `sha256:b6ace2f29e225981f6ce2fba0f9ad02d61d6b2df3e9228ad4dccd8fafda669fd`.
+- Recovery edd323c, digest `sha256:0548b93d7b4d44fa84814abc9e041c5b44277d2f73b9df69ae61ad9dd38c0cd0`
+  (build ulang gate ini); kontrak `7a924b19…` sama, hash katalog `6522bc48` identik.
+- Dispatch [40269634837](https://github.com/clarinovist/jagomat/actions/runs/40269634837)
+  sukses: 14.667 test kandidat exact, empat shard recovery, build/probe/pair; anotasi hanya
+  notice runner. Push [40268757871](https://github.com/clarinovist/jagomat/actions/runs/40268757871)
+  sukses. Auto-pasang tetap skipped/literal false.
+- Approval 54f1903 diarsipkan setelah kedaluwarsa + receipt consumed exact. `prepare` lulus
+  sebelum hold. Hold 04.47–04.51 UTC: backup empat DB+auth dan riset, transfer lokal hash
+  cocok, rehearsal C–B–C, `deploy-v2` exit0, reopen. Histori/config identik; tanpa migrasi,
+  rotasi secret, atau aktivasi fitur. Postcheck `keluarga_komponen`, galat0; smoke publik
+  `/`200 `/akun`401 `/murid/`303 menuju `/masuk`.
+
+Bukti privat `docs/plan/deploy-drift-keluarga-20261026/`; backup induk remote dan lokal
+dipertahankan. Approval rilis ini terkonsumsi dan masih di `/opt/osn/rollout-approval.json`
+(arsipkan sebelum `prepare` berikutnya). Safari/perangkat fisik/screen reader belum diuji.
+
 ## Deploy komponen admin — 26 Oktober 2026
 
 Controlled `deploy-v2` memasang **54f1903a6676e368ea759b762a70528bda5b668b**; container
