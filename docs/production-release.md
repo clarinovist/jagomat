@@ -6,6 +6,33 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy komponen admin — 26 Oktober 2026
+
+Controlled `deploy-v2` memasang **54f1903a6676e368ea759b762a70528bda5b668b**; container
+started `2026-10-26T02:52:52Z`, healthy/restart0. Cakupan sejak `5ae9b00`: fondasi desain
+admin bersama (`acce9ea`), acuan komponen admin (`54f1903`), keterbacaan lintas halaman
+(`bdd9ffc`), scope CSS/navigasi admin (`10a48a7`), CI (`c7492d0`, `e3da17a`) dan dokumen.
+[Temuan dan verifikasi UI](admin-ui-audit.md#penuntasan-audit-lanjutan--26-oktober-2026).
+
+- Kandidat `sha256:4b6e3416b6cae352f0012ab7a2d636977fd8c70dc295b5ae25d2c00d1d257641`.
+- Recovery edd323c, digest `sha256:bea67475eb238af106cffda9b8bedbdb4a784057281304a886a2afc3198f7047`;
+  kontrak `7a924b19…` sama dengan kandidat, hash katalog `6522bc48` identik dengan yang disetujui.
+- Dispatch [40246782318](https://github.com/clarinovist/jagomat/actions/runs/40246782318)
+  sukses: 14.663 test kandidat exact, empat shard recovery, build/probe/pair; anotasi hanya
+  notice runner. Push [40245707374](https://github.com/clarinovist/jagomat/actions/runs/40245707374)
+  sukses. Auto-pasang tetap skipped/literal false.
+- Approval 25 Okt diarsipkan hanya setelah kedaluwarsa dan receipt consumed exact; approval
+  baru exclusive. `prepare` (PROBE_SKEMA dan probe katalog kedua image, read-only) lulus
+  sebelum hold. Hold 02.49–02.53 UTC: backup empat DB+auth dan riset terpisah, transfer
+  lokal hash cocok, rehearsal C–B–C+validator, `deploy-v2` exit0, reopen.
+- Histori hash dan jumlah tabel terjaga; Caddy/cron/config/env/secret identik. Tidak ada
+  migrasi, rotasi secret, atau aktivasi fitur. Postcheck probe UI sintetis dalam memori,
+  marker galat0. Smoke publik `/`200 `/akun`401 `/murid/`303 menuju `/masuk`.
+
+Bukti privat `docs/plan/deploy-admin-komponen-20261026/`; backup induk remote dan lokal
+dipertahankan, empat turunan rehearsal dibersihkan. Tidak memakai akun/data keluarga untuk
+uji visual live; Safari/perangkat fisik/screen reader belum diuji.
+
 ## Deploy sistem desain — 25 Oktober 2026
 
 Controlled `deploy-v2` memasang **5ae9b006c1f2f73cc28095f040d1c4396023ab04**;

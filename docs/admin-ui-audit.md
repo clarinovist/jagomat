@@ -155,4 +155,6 @@ Render 51 halaman/state × 375/1440 × terang/gelap (**204**, semua 200): tanpa 
 kontrol <44px, field tanpa label atau input <16px. Interaksi native 22/22: keyboard
 menu akun, hover sekunder/pil, tab, jangkar, tautan kembali, menu HP dalam viewport,
 tema Gelap→Sistem. Chrome headless profil sementara, DB/sandi temp; bukan data keluarga.
-Belum: Safari/iOS/Android fisik, screen reader, forced-colors OS, full suite/CI dan deploy.
+Rilis: gate dispatch 14.663 tes kandidat dan controlled deploy `54f1903` (26 Okt, healthy;
+[rincian](production-release.md#deploy-komponen-admin--26-oktober-2026)). Belum: Safari/iOS/Android
+fisik, screen reader, forced-colors OS.
