@@ -163,7 +163,8 @@ def test_hero_cukup_satu_baris_status_dekat_cta():
     assert hero.count('class="landing-penawaran-st"') == 1
     assert hero.index("landing-cta-baris-st") < hero.index("landing-penawaran-st")
     teks = " ".join(re.sub(r"<[^>]+>", " ", hero).split())
-    assert "Akses awal nonkomersial · pendaftaran tidak mengaktifkan paket atau pembayaran." in teks
+    assert ("Akses awal nonkomersial · latihan kelas 3–6 SD dibuka lebih dulu, jenjang lain "
+            "bertahap. Pendaftaran tidak mengaktifkan paket atau pembayaran.") in teks
     # Rincian status cukup di bagian #akses-awal dan FAQ.
     assert "Jago/Jago Pro sedang disiapkan" not in teks
     assert "Fokus utama" not in teks
@@ -172,8 +173,24 @@ def test_hero_cukup_satu_baris_status_dekat_cta():
 def test_eyebrow_hero_tidak_memisahkan_jenjang():
     # Eyebrow memakai flex: teks sesudah ✳ harus satu item agar tidak terbelah kolom.
     assert ('<span>Pendampingan matematika · '
-            '<span class="landing-jenjang-st">Kelas 3–6 SD</span></span>') in _hero_teks()
+            '<span class="landing-jenjang-st">Kelas 1 SD–3 SMP</span></span>') in _hero_teks()
     assert "white-space: nowrap" in _aturan(".landing-jenjang-st", _blok_landing())[0]
+
+
+def test_jenjang_sasaran_selalu_bersama_ketersediaan_saat_ini():
+    """Keputusan pemilik 28 Okt 2026: sasaran kelas 1 SD–3 SMP dibuka bertahap.
+
+    Profil dan soal baru melayani kelas 3–6 SD, jadi rentang sasaran di hero dan
+    FAQ wajib disertai jenjang yang sudah tersedia. Deskripsi share tampil tanpa
+    konteks sehingga tidak menyebut rentang sama sekali.
+    """
+    teks = " ".join(re.sub(r"<[^>]+>", " ", _hero_teks()).split())
+    assert "Kelas 1 SD–3 SMP" in teks
+    assert "latihan kelas 3–6 SD dibuka lebih dulu" in teks
+    faq = halaman_landing().decode().split("Siapa yang paling cocok", 1)[1].split("</details>", 1)[0]
+    assert "kelas 1 SD hingga 3 SMP" in faq and "kelas 3–6 SD dibuka lebih dulu" in faq
+    deskripsi = re.search(r'property="og:description" content="([^"]*)"', halaman_landing().decode())
+    assert not re.search(r"kelas|SD|SMP", deskripsi.group(1))
 
 
 def test_hp_menampilkan_demo_sebelum_paragraf_pengantar():

@@ -44,7 +44,7 @@ def test_hero_akses_awal_nonkomersial_dan_audiens_utama(publik):
     assert "Pahami cara berpikir anak. Dampingi langkah berikutnya." in teks
     assert "Buat akun pendamping." in teks
     assert "Akses awal nonkomersial" in teks
-    assert "orang tua yang ingin membantu anak kelas 3–6" in teks
+    assert "orang tua yang ingin membantu anak kelas 1 SD hingga 3 SMP" in teks
     assert "Guru dan pendamping les juga dapat memakai alur yang sama" in teks
 
 

@@ -99,7 +99,7 @@ def test_landing_dan_kebijakan_memakai_istilah_kelas():
         assert "P4" not in isi
         assert "P5" not in isi
         assert "P6" not in isi
-    assert "Kelas 3–6 SD" in _badan(landing.halaman_landing().decode())
+    assert "Kelas 1 SD–3 SMP" in _badan(landing.halaman_landing().decode())
     kebijakan = _badan(landing.halaman_kebijakan().decode())
     assert "kelas sekolah opsional (kelas 1–6" in kebijakan
     assert "akses awal" in kebijakan and "kelas 3–6" in kebijakan

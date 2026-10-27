@@ -244,6 +244,13 @@ ukuran otomatis cakupan kode terbaru. Jika arsip tidak tersedia, jangan mengaran
   dengan menambah template diagnosis/malrule.
 - `dua_besaran_selisih` dan `piktogram` jangan dihapus hanya karena belum muncul di audit;
   piktogram ada di silabus resmi. P3 tidak dibatasi pola-bilangan saja (SASMO band P1–4).
+- **Jenjang sasaran (keputusan pemilik 28 Okt 2026): kelas 1 SD–kelas 9 (3 SMP), dibuka
+  bertahap.** Komunikasi publik boleh menyebut rentang sasaran ini hanya bersama
+  ketersediaan saat ini di dekatnya; sekarang latihan P3–P6 untuk kelas 3–6 SD, dan profil
+  anak baru menyimpan kelas 1–6. Deskripsi share/meta yang tampil tanpa konteks tidak
+  menyebut rentang. Menyebut jenjang lain sebagai sudah tersedia tetap memerlukan bukti
+  kode/test (profil, kurikulum, soal/diagnosis), dan perluasan itu mengikuti persetujuan
+  kurikulum/jalur Kritis biasa.
 
 ## Pelajaran insiden, bukan ritual universal
 

@@ -31,7 +31,9 @@ santai tapi akurat. Nama berkas modul bahasa Inggris; fungsi/variabel tetap Indo
 ## 1. Konteks & batas arsitektur
 
 Aplikasi orang tua (peran guru) untuk latihan OSN/SASMO anak SD: generator soal
-berparameter, diagnosis B/K/H/E/T/N, lembar cetak, dan laporan per anak.
+berparameter, diagnosis B/K/H/E/T/N, lembar cetak, dan laporan per anak. Sasaran
+diperluas bertahap hingga kelas 9 (keputusan pemilik 28 Okt 2026); klaim publik
+mengikuti batas jenjang di referensi workflow.
 
 - **Pure Python stdlib**, tanpa framework/dependensi pihak ketiga. Dev dependency hanya
   `pytest` + `pytest-xdist`. Paket tambahan harus diajukan ke user dulu.
