@@ -6,6 +6,7 @@ T.LEBAR_KONTEN=46rem. Mockup punya container 1200px + hero 2 kolom.
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -92,9 +93,11 @@ def test_kode_demo_konsisten_dengan_taksonomi():
         assert label in h
 
 
-def test_pill_fitur_ada():
-    h = _html()
-    assert "landing-pill-st" in h
+def test_baris_manfaat_tanpa_deret_mirip_tab():
+    """Deret 01/02/03 statis terlihat seperti tab dan mengulang tiga kartu."""
+    manfaat = _html().split('class="landing-manfaat-st"', 1)[1].split("</section>", 1)[0]
+    assert "Kenali kebutuhan. Dampingi latihan. Cek pemahaman." in manfaat
+    assert "landing-pill" not in manfaat
 
 
 # ──────────────── kejujuran klaim ────────────────
@@ -110,7 +113,8 @@ def test_akses_awal_tidak_menonjolkan_penawaran_nonaktif():
     h = _html().lower()
     assert "akses awal nonkomersial" in h
     assert "jago/jago pro sedang disiapkan" in h
-    teks = " ".join(h.split())
+    # Kalimat lengkap hidup di bagian #akses-awal (berpenekanan), bukan di hero.
+    teks = " ".join(re.sub(r"<[^>]+>", " ", h).split())
     assert "pendaftaran saat ini tidak mengaktifkan paket, masa coba, promo, atau pembayaran" in teks
     for klaim in ("30 hari gratis", "coba gratis", "harga promo", "refund", "rp25.000"):
         assert klaim not in h

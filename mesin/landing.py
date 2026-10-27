@@ -440,7 +440,7 @@ def halaman_landing(dukungan=None) -> bytes:
 <main class="landing-bungkus-st" id="konten" tabindex="-1">
 <section class="landing-hero-st" aria-labelledby="judul-landing">
 <div class="landing-hero-teks-st">
-  <p class="landing-alis-st"><span aria-hidden="true">✳</span> Pendampingan matematika · Kelas 3–6 SD</p>
+  <p class="landing-alis-st"><span aria-hidden="true">✳</span> <span>Pendampingan matematika · <span class="landing-jenjang-st">Kelas 3–6 SD</span></span></p>
   <h1 class="landing-judul-st" id="judul-landing">Pahami cara berpikir anak.
   <span>Dampingi langkah berikutnya.</span></h1>
   <p class="landing-tagline-st">{tag}</p>
@@ -449,17 +449,15 @@ def halaman_landing(dukungan=None) -> bytes:
   belajar terpandu. Guru dan pendamping les juga dapat memakai alur yang sama.</p>
   <p class="landing-cta-baris-st"><a class="tombol-coral" href="/daftar">
   Buat akun pendamping. <span aria-hidden="true">↗</span></a></p>
-  <p class="landing-penawaran-st"><b>Akses awal nonkomersial.</b>
-  Jago/Jago Pro sedang disiapkan. Pendaftaran saat ini tidak mengaktifkan paket,
-  masa coba, promo, atau pembayaran.</p>
-  <p class="landing-catatan-cta-st">Fokus utama: orang tua anak kelas 3–6 · Guru/les sebagai pengguna tambahan</p>
+  <p class="landing-penawaran-st"><b>Akses awal nonkomersial</b> · pendaftaran tidak
+  mengaktifkan paket atau pembayaran.</p>
 </div>
 
 <div class="landing-panggung-st">
   <span class="landing-coret-st" aria-hidden="true">✳</span>
   <p class="landing-catatan-kertas-st">Di balik jawaban,<br><b>ada cara berpikir.</b></p>
 <div class="landing-demo-st">
-  <div class="landing-demo-kepala-st"><span>Soal 4/10</span><span>Contoh</span></div>
+  <div class="landing-demo-kepala-st"><span>Soal 4/15</span><span>Contoh</span></div>
   <p class="landing-demo-soal-st">Berapa hasil dari 345 + 128?</p>
   <div class="landing-demo-cara-st">  345
 + 128
@@ -486,11 +484,6 @@ def halaman_landing(dukungan=None) -> bytes:
 
 <section class="landing-manfaat-st" aria-labelledby="judul-manfaat">
   <h2 id="judul-manfaat">Kenali kebutuhan. Dampingi latihan. Cek pemahaman.</h2>
-  <div class="landing-pill-baris-st">
-    <span class="landing-pill-st"><span aria-hidden="true">01 /</span> Langkah berikutnya</span>
-    <span class="landing-pill-st"><span aria-hidden="true">02 /</span> Peta penguasaan</span>
-    <span class="landing-pill-st"><span aria-hidden="true">03 /</span> Latihan fleksibel</span>
-  </div>
 </section>
 
 <section class="landing-kenali-st" id="cara-kerja" aria-labelledby="judul-kenali">

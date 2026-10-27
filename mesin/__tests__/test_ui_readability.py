@@ -13,10 +13,10 @@ import style_stitch
 
 TEKS = (
     '.landing-nav-st', '.landing-topbar-st .tombol-putih',
-    '.landing-alis-st', '.landing-penawaran-st', '.landing-catatan-cta-st',
+    '.landing-alis-st', '.landing-penawaran-st',
     '.landing-catatan-kertas-st', '.landing-demo-kepala-st',
     '.landing-demo-label-st', '.landing-kode-st', '.landing-demo-catatan-st',
-    '.landing-demo-keterangan-st', '.landing-pill-st > span', '.landing-nomor-st',
+    '.landing-demo-keterangan-st', '.landing-nomor-st',
     '.landing-contoh-kode-st', '.landing-resep-st', '.landing-footer-isi-st',
     '.masuk-beranda-st', '.masuk-alis-st', '.masuk-catatan-kecil-st',
     '.masuk-badan-st .masuk-field-st label', '.masuk-badan-st .masuk-petunjuk-st',

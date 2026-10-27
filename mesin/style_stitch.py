@@ -1768,11 +1768,12 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   font-family: {T.FONT_HEADLINE}; font-size: .72rem; font-weight: 800;
   letter-spacing: .1em; color: {T.AKSEN_TEAL_TUA}; margin: 0 0 {T.SP_5};
 }}
-.landing-alis-st > span {{ color: {T.AKSEN_KORAL_TUA}; font-size: 1.6rem; line-height: 1; }}
+.landing-alis-st > span[aria-hidden="true"] {{ color: {T.AKSEN_KORAL_TUA}; font-size: 1.6rem; line-height: 1; }}
+.landing-jenjang-st {{ white-space: nowrap; }}
 .landing-judul-st {{
   font-family: {T.FONT_HEADLINE}; font-weight: 800;
   font-size: clamp(2.6rem, 4.7vw, 4.25rem); line-height: 1.08;
-  letter-spacing: -.065em; color: {T.TEKS_JUDUL}; margin: 0 0 {T.SP_5};
+  letter-spacing: -.035em; color: {T.TEKS_JUDUL}; margin: 0 0 {T.SP_5};
 }}
 .landing-judul-st > span {{
   display: block; color: {T.AKSEN_TEAL_TUA};
@@ -1795,14 +1796,12 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 }}
 .landing-cta-baris-st a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .landing-cta-baris-st a > span {{ font-size: 1.3rem; line-height: 1; }}
-.landing-catatan-cta-st {{ color: {T.TEKS_VARIAN}; font-size: .72rem; margin: 0; }}
 .landing-penawaran-st {{
   border-left: 3px solid {T.AKSEN_TEAL_TUA}; padding-left: {T.SP_4};
   margin: {T.SP_5} 0 0; max-width: 32rem;
   color: {T.TEKS_VARIAN}; font-size: .85rem; line-height: 1.7;
 }}
-.landing-penawaran-st b {{ display: block; color: {T.TEKS_JUDUL}; }}
-.landing-penawaran-st span {{ display: block; margin-top: {T.SP_2}; }}
+.landing-penawaran-st b {{ color: {T.TEKS_JUDUL}; }}
 
 /* Kertas bergaris + maskot lokal, tanpa kontrol palsu atau animasi. */
 .landing-panggung-st {{
@@ -1884,29 +1883,22 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   font-size: .66rem; color: {T.TEKS_VARIAN}; margin: {T.SP_5} 5rem 0 0; text-align: center;
 }}
 
-/* Baris manfaat: penanda editorial, bukan tombol. */
+/* Baris manfaat: satu pernyataan editorial di antara garis, bukan deret tab. */
 .landing-manfaat-st {{
-  display: grid; gap: {T.SP_5}; align-items: center;
   border-top: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN};
   padding: {T.SP_6} 0;
 }}
 .landing-manfaat-st h2 {{
-  font-family: {T.FONT_HEADLINE}; font-size: 1rem; font-weight: 700;
-  line-height: 1.6; max-width: 17rem; color: {T.TEKS_JUDUL}; margin: 0;
+  font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800;
+  line-height: 1.4; letter-spacing: -.02em; color: {T.TEKS_JUDUL}; margin: 0;
 }}
-.landing-pill-baris-st {{ display: flex; flex-wrap: wrap; gap: {T.SP_5}; justify-content: space-between; }}
-.landing-pill-st {{
-  display: inline-flex; align-items: center; gap: {T.SP_3};
-  font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_TEKS_BANTUAN}; font-weight: 700; color: {T.TEKS_JUDUL};
-}}
-.landing-pill-st > span {{ color: {T.AKSEN_TEAL_TUA}; font-size: .72rem; }}
 .landing-kenali-st, .landing-contoh-st {{ padding-top: 5rem; }}
 .landing-bagian-kepala-st {{ margin-bottom: {T.SP_6}; }}
 .landing-bagian-kepala-st .landing-alis-st {{ margin-bottom: {T.SP_3}; }}
 .landing-bagian-kepala-st h2, .landing-contoh-judul-st {{
   font-family: {T.FONT_HEADLINE}; font-weight: 800;
   font-size: clamp(1.7rem, 3vw, 2.5rem); line-height: 1.2;
-  letter-spacing: -.045em; color: {T.TEKS_JUDUL}; margin: 0 0 {T.SP_4};
+  letter-spacing: -.03em; color: {T.TEKS_JUDUL}; margin: 0 0 {T.SP_4};
 }}
 .landing-bagian-kepala-st > p:last-child, .landing-contoh-sub-st {{
   color: {T.TEKS_VARIAN}; font-size: .92rem; line-height: 1.8; margin: 0;
@@ -1951,13 +1943,15 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   border-top: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN};
   padding-top: {T.SP_3}; margin-top: {T.SP_4}; font-size: .85rem;
 }}
+/* Pendamping bersyarat: kartu terang; navy tetap milik kartu Cara kerja. */
 .landing-pilot-st {{
   display: grid; gap: {T.SP_5}; margin: 5rem 0; padding: {T.SP_6};
-  background: {T.TEKS_JUDUL}; border-radius: {T.RADIUS_KARTU};
+  background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN};
+  border-left: 4px solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_KARTU};
 }}
-.landing-pilot-st .landing-alis-st {{ color: {T.AKSEN_MURID_AMBER}; margin-bottom: {T.SP_3}; }}
-.landing-pilot-st .landing-contoh-judul-st {{ color: {T.TEKS_PUTIH}; font-size: 3rem; margin: 0; }}
-.landing-pilot-st .landing-contoh-sub-st {{ color: {T.TEKS_PUTIH}; align-self: center; }}
+.landing-pilot-st .landing-alis-st {{ margin-bottom: {T.SP_3}; }}
+.landing-pilot-st .landing-contoh-judul-st {{ margin: 0; }}
+.landing-pilot-st .landing-contoh-sub-st {{ align-self: center; }}
 
 /* Paket v2: pilihan periode radio native, tanpa JS/checkout. */
 .landing-harga-st {{ margin-bottom: 5rem; }}
@@ -2061,7 +2055,6 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 }}
 .landing-footer-isi-st a {{ display: inline-flex; min-height: {T.TARGET_SENTUH}; align-items: center; }}
 @media (min-width: {T.BATAS_TABLET}) {{
-  .landing-manfaat-st {{ grid-template-columns: 1fr 2fr; gap: {T.SP_6}; }}
   .landing-grid-st {{ grid-template-columns: repeat(3, minmax(0, 1fr)); }}
   .landing-info-st {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
   .landing-cara-st {{ grid-column: 2; grid-row: 1 / 3; padding: {T.SP_6}; }}
@@ -2077,14 +2070,16 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   .landing-nav-harga-st {{ display: inline-flex; }}
   .landing-topbar-st .topbar-navigasi {{ gap: {T.SP_3}; }}
   .landing-topbar-st .tombol-putih {{ padding: {T.SP_2} {T.SP_4}; }}
-  .landing-hero-st {{ padding-top: {T.SP_6}; }}
+  /* HP: bukti demo tampil setelah CTA; paragraf pengantar menyusul. */
+  .landing-hero-st {{ padding-top: {T.SP_6}; gap: 0; }}
+  .landing-hero-teks-st {{ display: contents; }}
   .landing-judul-st {{ font-size: clamp(2.6rem, 9vw, 3.6rem); }}
-  .landing-panggung-st {{ padding: 3.5rem {T.SP_2} {T.SP_7}; margin-top: {T.SP_5}; }}
+  .landing-panggung-st {{ padding: 3.5rem {T.SP_2} {T.SP_7}; margin-top: {T.SP_5}; order: 1; }}
+  .landing-sub-st {{ order: 2; }}
   .landing-demo-st {{ padding: {T.SP_4}; }}
   .landing-demo-soal-st {{ font-size: .95rem; }}
   .landing-maskot-st {{ width: 6rem; height: 6rem; right: 0; }}
   .landing-demo-keterangan-st {{ text-align: left; font-size: .6rem; }}
-  .landing-pill-baris-st {{ flex-direction: column; gap: {T.SP_4}; }}
   .landing-kenali-st, .landing-contoh-st {{ padding-top: 3.5rem; }}
   .landing-pilot-st {{ margin: 3.5rem 0; padding: {T.SP_5}; }}
   .landing-harga-st {{ margin-bottom: 3.5rem; }}
@@ -3590,10 +3585,10 @@ CSS_SESI = CSS_SESI + GAYA_SESI_MOBILE
 SELEKTOR_TEKS_INFORMATIF = (
     # Publik/murid ikut batas 14px; tidak mengubah skala judul atau lembar beku.
     ".landing-nav-st", ".landing-topbar-st .tombol-putih",
-    ".landing-alis-st", ".landing-penawaran-st", ".landing-catatan-cta-st",
+    ".landing-alis-st", ".landing-penawaran-st",
     ".landing-catatan-kertas-st", ".landing-demo-kepala-st",
     ".landing-demo-label-st", ".landing-kode-st", ".landing-demo-catatan-st",
-    ".landing-demo-keterangan-st", ".landing-pill-st > span", ".landing-nomor-st",
+    ".landing-demo-keterangan-st", ".landing-nomor-st",
     ".landing-contoh-kode-st", ".landing-resep-st", ".landing-footer-isi-st",
     ".masuk-beranda-st", ".masuk-alis-st", ".masuk-catatan-kecil-st",
     ".masuk-badan-st .masuk-field-st label", ".masuk-badan-st .masuk-petunjuk-st",

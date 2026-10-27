@@ -133,6 +133,74 @@ def test_aturan_editorial_hanya_mengenai_landing():
     assert ".landing-faq-st details[open] summary::after" in blok
 
 
+def _blok_landing():
+    return GAYA_STITCH.split("/* ══ Landing editorial", 1)[1].split("/* Halaman hasil murid", 1)[0]
+
+
+def _aturan(selector, css):
+    """Isi blok selector tepat, termasuk deklarasi ulang di media query."""
+    return re.findall(r"(?:^|\n)\s*" + re.escape(selector) + r"\s*\{([^{}]*)\}", css)
+
+
+def _hero_teks():
+    sumber = halaman_landing().decode()
+    return sumber.split('class="landing-hero-teks-st"', 1)[1].split('class="landing-panggung-st"', 1)[0]
+
+
+@pytest.mark.parametrize("selector, batas_em", [
+    (".landing-judul-st", -0.04),
+    (".landing-bagian-kepala-st h2, .landing-contoh-judul-st", -0.035),
+])
+def test_tracking_judul_tidak_menelan_spasi_antarkata(selector, batas_em):
+    blok = _aturan(selector, _blok_landing())
+    assert blok, selector
+    tracking = re.search(r"letter-spacing:\s*(-?\d*\.?\d+)em", blok[0])
+    assert float(tracking.group(1)) >= batas_em
+
+
+def test_hero_cukup_satu_baris_status_dekat_cta():
+    hero = _hero_teks()
+    assert hero.count('class="landing-penawaran-st"') == 1
+    assert hero.index("landing-cta-baris-st") < hero.index("landing-penawaran-st")
+    teks = " ".join(re.sub(r"<[^>]+>", " ", hero).split())
+    assert "Akses awal nonkomersial · pendaftaran tidak mengaktifkan paket atau pembayaran." in teks
+    # Rincian status cukup di bagian #akses-awal dan FAQ.
+    assert "Jago/Jago Pro sedang disiapkan" not in teks
+    assert "Fokus utama" not in teks
+
+
+def test_eyebrow_hero_tidak_memisahkan_jenjang():
+    # Eyebrow memakai flex: teks sesudah ✳ harus satu item agar tidak terbelah kolom.
+    assert ('<span>Pendampingan matematika · '
+            '<span class="landing-jenjang-st">Kelas 3–6 SD</span></span>') in _hero_teks()
+    assert "white-space: nowrap" in _aturan(".landing-jenjang-st", _blok_landing())[0]
+
+
+def test_hp_menampilkan_demo_sebelum_paragraf_pengantar():
+    hp = _blok_landing().split("@media (max-width: 40rem) {", 1)[1].split("\n}", 1)[0]
+    assert "display: contents" in _aturan(".landing-hero-teks-st", hp)[0]
+    urutan = {
+        selector: int(re.search(r"order:\s*(\d+)", _aturan(selector, hp)[0]).group(1))
+        for selector in (".landing-panggung-st", ".landing-sub-st")
+    }
+    assert urutan[".landing-panggung-st"] < urutan[".landing-sub-st"]
+
+
+def test_nomor_soal_demo_sesuai_jumlah_latihan_pertama():
+    sumber = halaman_landing().decode()
+    jumlah = re.search(r"Latihan pertama berisi (\d+) soal", sumber).group(1)
+    assert f"<span>Soal 4/{jumlah}</span>" in sumber
+
+
+def test_blok_pendamping_tidak_lebih_menonjol_dari_alur_inti():
+    blok = _blok_landing()
+    pilot = "".join(re.findall(r"(?:^|\n)\s*\.landing-pilot-st[^{}]*\{([^{}]*)\}", blok))
+    assert f"background: {T.TEKS_JUDUL}" not in pilot
+    assert f"color: {T.TEKS_PUTIH}" not in pilot
+    # Navy tetap satu aksen: kartu Cara kerja.
+    assert f"background: {T.TEKS_JUDUL}" in _aturan(".landing-cara-st", blok)[0]
+
+
 def test_css_landing_memakai_token_warna():
     sumber = (Path(__file__).resolve().parent.parent / "style_stitch.py").read_text()
     blok = sumber.split("/* ══ Landing editorial", 1)[1].split("/* Halaman hasil murid", 1)[0]
