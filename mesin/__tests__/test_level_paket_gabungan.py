@@ -72,8 +72,10 @@ def test_gabungan_level_tersimpan_adalah_level_efektif(db):
     """
     with database.buka(db) as kon:
         sid = database.tambah_siswa(
-            kon, "AnakP4b", pemilik="guru", tingkat="kelas 4"
+            kon, "AnakP4b", pemilik="guru", tingkat="P3"
         )
+        # Simulasikan data historis; writer baru menolak tingkat teks bebas.
+        kon.execute("UPDATE siswa SET tingkat='kelas 4' WHERE id=?", (sid,))
         sesi_id = database.buat_sesi_gabungan(
             kon, sid, seed=2,
             topik_ids=["logika", "kombinatorik"],
@@ -103,8 +105,10 @@ def test_sesi_dari_urutan_menyimpan_level_efektif(db):
     """
     with database.buka(db) as kon:
         sid = database.tambah_siswa(
-            kon, "AnakUrutan", pemilik="guru", tingkat="kelas 4"
+            kon, "AnakUrutan", pemilik="guru", tingkat="P3"
         )
+        # Simulasikan data historis; writer baru menolak tingkat teks bebas.
+        kon.execute("UPDATE siswa SET tingkat='kelas 4' WHERE id=?", (sid,))
         sesi_id = database.buat_sesi_dari_urutan(
             kon, sid, seed=4,
             urutan=("deret_aritmetika",) * 3,
@@ -140,8 +144,10 @@ def test_gabungan_level_teks_bebas_tidak_meledak(db):
     """Tingkat lama berformat bebas ('kelas 4') sudah ada di data produksi."""
     with database.buka(db) as kon:
         sid = database.tambah_siswa(
-            kon, "AnakLama", pemilik="guru", tingkat="kelas 4"
+            kon, "AnakLama", pemilik="guru", tingkat="P3"
         )
+        # Simulasikan data historis; writer baru menolak tingkat teks bebas.
+        kon.execute("UPDATE siswa SET tingkat='kelas 4' WHERE id=?", (sid,))
         sesi_id = database.buat_sesi_gabungan(
             kon, sid, seed=3,
             topik_ids=["logika", "statistika"],

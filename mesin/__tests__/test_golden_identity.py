@@ -20,7 +20,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from generator import buat_lembar, buat_soal  # noqa: E402
-from templates import LEVEL  # noqa: E402
+from templates import LEVEL_TINGKAT  # noqa: E402
 from topics import paket_bawaan  # noqa: E402
 
 EMAS = {
@@ -117,14 +117,20 @@ EMAS = {
 SEEDS = [1, 7, 42, 2026, 99999]
 
 
-@pytest.mark.parametrize("level", LEVEL)
+def test_cakupan_snapshot_tepat_p3_sampai_p6():
+    assert set(LEVEL_TINGKAT) == {"P3", "P4", "P5", "P6"}
+    for bagian in EMAS.values():
+        assert {k.split("|", 1)[0] for k in bagian} == set(LEVEL_TINGKAT)
+
+
+@pytest.mark.parametrize("level", LEVEL_TINGKAT)
 @pytest.mark.parametrize("seed", SEEDS)
 def test_lembar_identik_dengan_snapshot_a4(level, seed):
     kunci = EMAS["lembar"][f"{level}|{seed}"]
     assert buat_lembar(seed, level=level).tanda_tangan == kunci
 
 
-@pytest.mark.parametrize("level", LEVEL)
+@pytest.mark.parametrize("level", LEVEL_TINGKAT)
 def test_setiap_template_identik_dengan_snapshot_a4(level):
     for tid in sorted(paket_bawaan().templates):
         kunci = EMAS["soal"][f"{level}|{tid}|7"]

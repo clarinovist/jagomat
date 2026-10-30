@@ -379,7 +379,7 @@ def daftar_dengan_profil(path_admin, path_auth, path_db, *, operasi_id, alias,
     import sqlite3
     import time
     import learning_profile
-    from templates import level_valid
+    from templates import tingkat_valid
     validasi_id(operasi_id, 'operasi_id')
     alias = admin_accounts.validasi_alias(alias)
     if type(nama_anak) is not str or not nama_anak.strip() or len(nama_anak.strip()) > 40:
@@ -391,7 +391,7 @@ def daftar_dengan_profil(path_admin, path_auth, path_db, *, operasi_id, alias,
         raise ValueError('Pilih kelas sekolah 1–6 atau Kelas belum diisi.')
     if profil_parameter is None:
         profil_parameter = ''
-    elif type(profil_parameter) is not str or not level_valid(profil_parameter):
+    elif type(profil_parameter) is not str or not tingkat_valid(profil_parameter):
         raise ValueError('Pilihan variasi soal tidak sah. Muat ulang formulir pendaftaran.')
     if type(sandi) is not str or not 8 <= len(sandi) <= 4096:
         raise ValueError('Kata sandi minimal 8 karakter.')

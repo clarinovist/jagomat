@@ -9,7 +9,9 @@ Bukan keputusan produk baru atau bukti deployment.
 Latihan matematika SD untuk persiapan OSN/SASMO, diprioritaskan sebagai alat guru
 les **in-house** untuk menentukan satu langkah belajar berikutnya. Sasaran jenjang
 kelas 1 SD–kelas 9 dibuka bertahap (keputusan pemilik 28 Okt 2026); saat ini latihan
-P3–P6 untuk kelas 3–6 SD dan profil anak menyimpan kelas 1–6. Batas klaim publik di
+berkonten P3–P6 dan profil anak menyimpan kelas sekolah 1–6. Kode P1/P2
+(Variasi Dasar 1/2) disiapkan khusus Latihan manual, belum berkonten; tingkat
+internal siswa, siklus dan pilot tetap P3–P6 (keputusan 30 Okt 2026). Batas klaim publik di
 [referensi workflow](workflow-reference.md#konteks-kurikulum--batas-klaim-produk). Pengembangan
 pivot memakai data sintetis; pilot dengan data nyata perlu keputusan dan gerbang
 privasi tersendiri. Peran teknis `guru` mencakup orang tua dan hanya mengelola data

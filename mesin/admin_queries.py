@@ -18,12 +18,12 @@ from datetime import datetime, timedelta, timezone
 import math
 from typing import Iterable, Mapping, Optional, Tuple
 
-from templates import LEVEL
+from templates import LEVEL_TINGKAT
 
 
 BATAS_BAWAAN = 25
 BATAS_MAKSIMUM = 100
-LEVEL_DIIJINKAN = frozenset(LEVEL)
+LEVEL_DIIJINKAN = frozenset(LEVEL_TINGKAT)
 PERAN_DIIJINKAN = frozenset(("admin", "guru", "murid"))
 STATUS_SISWA = frozenset((
     "student_without_login",

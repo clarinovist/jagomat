@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS konteks_sesi (
 CREATE TABLE IF NOT EXISTS konteks_butir (
     sesi_soal_id INTEGER PRIMARY KEY REFERENCES sesi_soal(id) ON DELETE CASCADE,
     template_id TEXT NOT NULL,
-    profil_parameter TEXT NOT NULL CHECK(profil_parameter IN ('P3','P4','P5','P6')),
+    profil_parameter TEXT NOT NULL CHECK(profil_parameter IN ('P1','P2','P3','P4','P5','P6')),
     konteks_id TEXT
 );
 CREATE TRIGGER IF NOT EXISTS konteks_butir_validasi_insert

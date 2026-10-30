@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Tuple
 
 import topics
-from templates import LEVEL, LEVEL_BAWAAN
+from templates import LEVEL, LEVEL_BAWAAN, tingkat_valid
 
 
 @dataclass(frozen=True)
@@ -45,7 +45,8 @@ def label_profil_parameter(profil: str) -> str:
     """Label konfigurasi, tidak menebak kelas sekolah atau kemampuan."""
     if profil == '':
         return 'Variasi belum dipilih'
-    nama = {'P3': 'Variasi A', 'P4': 'Variasi B', 'P5': 'Variasi C', 'P6': 'Variasi D'}
+    nama = {'P1': 'Variasi Dasar 1', 'P2': 'Variasi Dasar 2',
+            'P3': 'Variasi A', 'P4': 'Variasi B', 'P5': 'Variasi C', 'P6': 'Variasi D'}
     return nama[profil] if profil in LEVEL else 'Konfigurasi lama: ' + str(profil)
 
 
@@ -57,11 +58,11 @@ def label_konteks(konteks: KonteksSoal) -> str:
 
 
 def profil_otomatis(topik_ids, profil_acuan: str = 'P3') -> str:
-    """Pilih satu profil internal bersama tanpa meminta keputusan pengguna.
+    """Pilih profil sesi Latihan bersama tanpa mengubah tingkat siswa.
 
-    Profil acuan dipertahankan bila didukung. Jika topik tidak mendukungnya,
-    pilih profil bersama yang paling dekat; seri diputus ke bawah. Kelas sekolah
-    tidak pernah menjadi input fungsi ini.
+    Acuan tingkat yang sah dipertahankan bila didukung. Jika topik tidak
+    mendukungnya, pilih profil bersama terdekat dari LEVEL; seri diputus ke bawah.
+    Kelas sekolah tidak pernah menjadi input fungsi ini.
     """
     topik_ids = tuple(dict.fromkeys(topik_ids))
     if not topik_ids:
@@ -74,7 +75,7 @@ def profil_otomatis(topik_ids, profil_acuan: str = 'P3') -> str:
     )
     if not tersedia:
         raise ValueError('Materi yang dipilih belum memiliki profil soal bersama.')
-    acuan = profil_acuan if profil_acuan in LEVEL else LEVEL_BAWAAN
+    acuan = profil_acuan if tingkat_valid(profil_acuan) else LEVEL_BAWAAN
     posisi = LEVEL.index(acuan)
     return min(
         tersedia,

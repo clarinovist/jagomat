@@ -3,11 +3,15 @@ from __future__ import annotations
 
 import sqlite3
 
+from templates import tingkat_valid
+
 
 def tambah_siswa(
     kon: sqlite3.Connection, nama: str, tingkat: str = "P3", pemilik: str = "",
 ) -> int:
     """Tambahkan siswa secara idempoten dalam lingkup satu keluarga."""
+    if tingkat != "" and not tingkat_valid(tingkat):
+        raise ValueError("tingkat siswa tidak sah")
     kon.execute(
         "INSERT OR IGNORE INTO siswa (nama, tingkat, pemilik) VALUES (?, ?, ?)",
         (nama, tingkat, pemilik),

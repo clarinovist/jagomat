@@ -24,7 +24,7 @@ from admin_style import GAYA_ADMIN
 import design_tokens as T
 import learning_profile_ui
 from learning_profile import label_kelas_sekolah
-from templates import LEVEL
+from templates import LEVEL_TINGKAT
 
 
 SECTION = (
@@ -514,7 +514,7 @@ def form_tindakan_siswa(data: Q.DetailSiswa, csrf: str, token_level: str, token_
     level = "".join(
         '<option value="%s"%s>%s</option>' % (
             _e(nilai), ' selected' if nilai == siswa.tingkat else '', _e(nilai)
-        ) for nilai in LEVEL
+        ) for nilai in LEVEL_TINGKAT
     )
     hasil = (
         '<section class="admin-kartu admin-form-tindakan admin-form-pendek"><h2>Tindakan siswa</h2>'

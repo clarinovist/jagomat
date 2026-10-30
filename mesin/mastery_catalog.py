@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Tuple
 
 import topics
-from templates import LEVEL
+from templates import LEVEL_TINGKAT
 
 VERSI_KATALOG = "jagomat-2026-10-v2"
 
@@ -133,7 +133,7 @@ KELOMPOK = {
 
 def katalog_target(level: str) -> Tuple[TargetMateri, ...]:
     """Kelas tidak dikenal tidak diam-diam diberi target kelas lain."""
-    if level not in LEVEL:
+    if level not in LEVEL_TINGKAT:
         return ()
     hasil = []
     for topik_id in topics.daftar_topik():

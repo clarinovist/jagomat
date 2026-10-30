@@ -316,7 +316,9 @@ def test_progres_menghitung_cara_dan_centang_tetapi_bukan_baris_kosong(db):
 
 def test_nama_tanggal_level_dan_topik_aneh_tetap_aman(db):
     with database.buka(db) as kon:
-        siswa = _siswa(kon, level='<svg onload="alert(1)">')
+        siswa = _siswa(kon)
+        # Simulasikan data historis berbahaya tanpa melonggarkan writer baru.
+        kon.execute('UPDATE siswa SET tingkat=? WHERE id=?', ('<svg onload="alert(1)">', siswa))
         sesi = _sesi(kon, siswa)
         kon.execute("UPDATE sesi SET tanggal=?, topik=? WHERE id=?",
                     ('<b>tanggal</b>', '<script>topik</script>', sesi))

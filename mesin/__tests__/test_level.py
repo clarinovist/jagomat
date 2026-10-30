@@ -21,10 +21,11 @@ import teacher_pages  # noqa: E402
 import account_pages  # noqa: E402
 from generator import buat_lembar, buat_soal, profil  # noqa: E402
 from schema import MIGRASI  # noqa: E402
-from templates import LEVEL, URUTAN_PER_LEVEL, level_valid, susun_lembar  # noqa: E402
+from templates import LEVEL, LEVEL_TINGKAT, URUTAN_PER_LEVEL, level_valid, susun_lembar  # noqa: E402
 from topic_number_patterns import PROFIL_LEVEL  # noqa: E402
 
 SEED_UJI = list(range(1, 61))
+LEVEL_PROFIL = tuple(lv for lv in LEVEL if lv in PROFIL_LEVEL)
 
 
 @pytest.fixture()
@@ -39,7 +40,7 @@ def db(tmp_path):
 
 
 def test_semua_level_punya_profil():
-    assert set(PROFIL_LEVEL) == set(LEVEL)
+    assert set(PROFIL_LEVEL) == set(LEVEL_PROFIL) == {"P3", "P4", "P5", "P6"}
 
 
 def test_level_tak_dikenal_jatuh_ke_bawaan():
@@ -75,7 +76,7 @@ def test_batas_angka_naik_monoton_antar_level():
     ]
     assert berentang, "tidak ada satu pun batas berbentuk rentang"
     for kunci in berentang:
-        nilai = [PROFIL_LEVEL[lv][kunci] for lv in LEVEL]
+        nilai = [PROFIL_LEVEL[lv][kunci] for lv in LEVEL_PROFIL]
         atas = [hi for _, hi in nilai]
         assert atas == sorted(atas), f"{kunci}: batas atas tidak menaik: {atas}"
         assert len(set(atas)) == len(atas), f"{kunci}: ada level yang batasnya sama"
@@ -99,7 +100,7 @@ def test_daftar_pilihan_maksimumnya_menaik():
     for kunci in DAFTAR_PILIHAN:
         if kunci == "posisi_terbalik_geometri":
             continue  # bentuknya (lo2, hi2, lo3, hi3), diuji terpisah
-        maks = [max(PROFIL_LEVEL[lv][kunci]) for lv in LEVEL]
+        maks = [max(PROFIL_LEVEL[lv][kunci]) for lv in LEVEL_PROFIL]
         assert maks == sorted(maks), f"{kunci}: maksimum tidak menaik: {maks}"
         assert len(set(maks)) > 1, f"{kunci}: semua level punya maksimum sama"
 
@@ -136,7 +137,7 @@ def test_setiap_template_berubah_antara_p3_dan_p6(seed):
 
 def test_tiap_level_berbeda_dari_tetangganya():
     """P3≠P4, P4≠P5, P5≠P6 — bukan cuma ujung ke ujung."""
-    for kiri, kanan in zip(LEVEL, LEVEL[1:]):
+    for kiri, kanan in zip(LEVEL_PROFIL, LEVEL_PROFIL[1:]):
         beda = 0
         for seed in SEED_UJI:
             a = buat_lembar(seed, level=kiri)
@@ -148,14 +149,14 @@ def test_tiap_level_berbeda_dari_tetangganya():
         assert beda > len(SEED_UJI) * 0.9, f"{kiri} vs {kanan}: cuma {beda} beda"
 
 
-@pytest.mark.parametrize("level", LEVEL)
+@pytest.mark.parametrize("level", [lv for lv in LEVEL if lv in URUTAN_PER_LEVEL])
 def test_lembar_membawa_levelnya(level):
     lembar = buat_lembar(99, level=level)
     assert lembar.level == level
     assert all(s.level == level for s in lembar.soal)
 
 
-@pytest.mark.parametrize("level", LEVEL)
+@pytest.mark.parametrize("level", [lv for lv in LEVEL if lv in URUTAN_PER_LEVEL])
 def test_deterministik_per_level(level):
     a = buat_lembar(4242, level=level)
     b = buat_lembar(4242, level=level)
@@ -165,7 +166,7 @@ def test_deterministik_per_level(level):
 
 @pytest.mark.parametrize("seed", SEED_UJI)
 def test_titik_segitiga_menghormati_batas_level(seed):
-    for lv in LEVEL:
+    for lv in LEVEL_PROFIL:
         s = buat_soal("titik_segitiga", seed, level=lv)
         lo, hi = PROFIL_LEVEL[lv]["gambar_titik"]
         assert lo <= s.parameter["gambar_ke"] <= hi
@@ -173,7 +174,7 @@ def test_titik_segitiga_menghormati_batas_level(seed):
 
 @pytest.mark.parametrize("seed", SEED_UJI)
 def test_siklus_huruf_posisi_dalam_batas_level(seed):
-    for lv in LEVEL:
+    for lv in LEVEL_PROFIL:
         s = buat_soal("siklus_huruf", seed, level=lv)
         lo, hi = PROFIL_LEVEL[lv]["posisi_siklus"]
         # cabang "sisa 0" membulatkan ke kelipatan panjang pola, jadi batas
@@ -185,6 +186,8 @@ def test_siklus_huruf_posisi_dalam_batas_level(seed):
 def test_semua_level_tetap_punya_malrule(seed):
     """Soal tanpa malrule = beban menulis tanpa imbalan diagnosis."""
     for lv in LEVEL:
+        if lv not in URUTAN_PER_LEVEL:
+            continue
         for s in buat_lembar(seed, level=lv).soal:
             assert s.malrule, f"{s.template_id} di {lv} tidak punya malrule"
 
@@ -192,6 +195,8 @@ def test_semua_level_tetap_punya_malrule(seed):
 @pytest.mark.parametrize("seed", SEED_UJI)
 def test_kunci_tidak_pernah_negatif_di_level_mana_pun(seed):
     for lv in LEVEL:
+        if lv not in URUTAN_PER_LEVEL:
+            continue
         s = buat_soal("deret_aritmetika_turun", seed, level=lv)
         assert int(s.kunci) >= 0
 
@@ -226,7 +231,7 @@ def test_bank_tidak_menggabungkan_soal_lintas_level(db):
 # -- Sesi menyimpan level -------------------------------------------------
 
 
-@pytest.mark.parametrize("level", LEVEL)
+@pytest.mark.parametrize("level", LEVEL_TINGKAT)
 def test_sesi_menyimpan_levelnya(db, level):
     sid = database.tambah_siswa(db, f"Anak{level}", level)
     sesi_id = database.buat_sesi(db, sid, 5150, level=level)
@@ -402,7 +407,7 @@ def test_bagian_f_tidak_muncul_di_p3():
 
 def test_bagian_f_makin_banyak_di_level_atas():
     jumlah = [
-        sum(1 for t in susun_lembar(lv) if t in BAGIAN_F) for lv in LEVEL
+        sum(1 for t in susun_lembar(lv) if t in BAGIAN_F) for lv in LEVEL_PROFIL
     ]
     assert jumlah == sorted(jumlah), f"porsi Bagian F tidak menaik: {jumlah}"
     assert jumlah[0] == 0, "P3 seharusnya tanpa Bagian F"
@@ -411,12 +416,12 @@ def test_bagian_f_makin_banyak_di_level_atas():
 
 def test_tiap_level_tetap_dua_belas_soal():
     """Batas stamina, bukan angka keramat — lihat komentar URUTAN_PER_LEVEL."""
-    for lv in LEVEL:
+    for lv in LEVEL_PROFIL:
         assert len(susun_lembar(lv)) == 12, lv
 
 
 def test_tidak_ada_template_terulang_dalam_satu_lembar():
-    for lv in LEVEL:
+    for lv in LEVEL_PROFIL:
         urutan = susun_lembar(lv)
         assert len(set(urutan)) == len(urutan), f"{lv} punya template ganda"
 
@@ -560,7 +565,7 @@ def test_setiap_template_bisa_membedakan_k_dari_h():
     paket = paket_bawaan()
     tanpa_h: list[str] = []
     for nama in paket.templates:
-        level_pemakai = [lv for lv in LEVEL if nama in paket.komposisi[lv]]
+        level_pemakai = [lv for lv in LEVEL if nama in paket.komposisi.get(lv, ())]
         kode = set()
         for seed in range(1, 60):
             for lv in level_pemakai:
@@ -585,7 +590,7 @@ def test_soal_bermalrule_tunggal_tidak_mendominasi():
     paket = paket_bawaan()
     buruk: list[str] = []
     for nama in paket.templates:
-        level_pemakai = [lv for lv in LEVEL if nama in paket.komposisi[lv]]
+        level_pemakai = [lv for lv in LEVEL if nama in paket.komposisi.get(lv, ())]
         tunggal = total = 0
         for seed in range(1, 120):
             for lv in level_pemakai:
@@ -642,6 +647,8 @@ def test_bagian_tidak_pernah_terpecah_dalam_satu_lembar():
     seluruh soalnya benar — yang rusak hanya urutannya.
     """
     for lv in LEVEL:
+        if lv not in URUTAN_PER_LEVEL:
+            continue
         urut = [s.bagian for s in buat_lembar(7, level=lv).soal]
         blok: list[str] = []
         for b in urut:
@@ -660,6 +667,8 @@ def test_urutan_bagian_selalu_menaik():
     tenaganya masih dibutuhkan untuk sisa lembar.
     """
     for lv in LEVEL:
+        if lv not in URUTAN_PER_LEVEL:
+            continue
         urut = [s.bagian for s in buat_lembar(7, level=lv).soal]
         assert urut == sorted(urut), f"{lv}: urutan bagian mundur — {''.join(urut)}"
 
@@ -673,6 +682,8 @@ def test_tiap_bagian_yang_terpakai_punya_judul_sendiri():
     judul_bagian = paket_bawaan().judul_bagian
 
     for lv in LEVEL:
+        if lv not in URUTAN_PER_LEVEL:
+            continue
         for s in buat_lembar(7, level=lv).soal:
             assert s.bagian in judul_bagian, f"{lv}: bagian {s.bagian} tanpa judul"
 
@@ -700,7 +711,7 @@ def _tanpa_jalur(nama: str, lv: str, kode_dibutuhkan: set[str]) -> int:
 
     jumlah = total = 0
     paket = paket_bawaan()
-    level_pemakai = [l for l in LEVEL if nama in paket.komposisi[l]]
+    level_pemakai = [l for l in LEVEL if nama in paket.komposisi.get(l, ())]
     if lv not in level_pemakai:
         return 0
     for seed in range(1, 200):
@@ -738,7 +749,7 @@ def test_malrule_kolaps_tidak_ada_yang_identik_dengan_kunci():
     paket = paket_bawaan()
     buruk = []
     for nama in paket.templates:
-        level_pemakai = [lv for lv in LEVEL if nama in paket.komposisi[lv]]
+        level_pemakai = [lv for lv in LEVEL if nama in paket.komposisi.get(lv, ())]
         for seed in range(1, 120):
             for lv in level_pemakai:
                 s = buat_soal(nama, seed, level=lv)

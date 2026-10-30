@@ -47,8 +47,10 @@ def test_buat_sesi_menyimpan_level_efektif(db):
     """Jalur pembuatan sesi paling umum — inilah bug fase 5."""
     with database.buka(db) as kon:
         sid = database.tambah_siswa(
-            kon, "AnakTeksBebas", pemilik="guru", tingkat="kelas 4"
+            kon, "AnakTeksBebas", pemilik="guru", tingkat="P3"
         )
+        # Simulasikan data historis; writer baru menolak tingkat teks bebas.
+        kon.execute("UPDATE siswa SET tingkat='kelas 4' WHERE id=?", (sid,))
         sesi_id = database.buat_sesi(
             kon, sid, seed=1, level="kelas 4", jumlah_soal=3
         )
@@ -64,8 +66,10 @@ def test_buat_sesi_seed_baru_menyimpan_level_efektif(db):
     """Jalur tombol 'Buat sesi baru' membaca tingkat anak apa adanya."""
     with database.buka(db) as kon:
         sid = database.tambah_siswa(
-            kon, "AnakTombol", pemilik="guru", tingkat="kelas 4"
+            kon, "AnakTombol", pemilik="guru", tingkat="P3"
         )
+        # Simulasikan data historis; writer baru menolak tingkat teks bebas.
+        kon.execute("UPDATE siswa SET tingkat='kelas 4' WHERE id=?", (sid,))
         sesi_id = teacher_pages.buat_sesi_seed_baru(kon, sid, jumlah_soal=3)
         tersimpan, soal = _level(kon, sesi_id)
     assert tersimpan != "kelas 4"
@@ -99,8 +103,10 @@ def test_semua_jalur_pembuatan_sesi_konsisten(db):
     hasil = {}
     with database.buka(db) as kon:
         sid = database.tambah_siswa(
-            kon, "AnakSapu", pemilik="guru", tingkat="kelas 4"
+            kon, "AnakSapu", pemilik="guru", tingkat="P3"
         )
+        # Simulasikan data historis; writer baru menolak tingkat teks bebas.
+        kon.execute("UPDATE siswa SET tingkat='kelas 4' WHERE id=?", (sid,))
         hasil["buat_sesi"] = database.buat_sesi(
             kon, sid, seed=11, level="kelas 4", jumlah_soal=3
         )

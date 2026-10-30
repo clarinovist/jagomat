@@ -8,6 +8,9 @@ import hashlib
 import json
 from typing import Optional, Tuple
 
+# Cakupan konten pilot tetap terpisah dari variasi Latihan manual.
+LEVEL_PILOT = ("P3", "P4", "P5", "P6")
+
 VERSI_RUBRIK = "pilot-keliling-luas-v1"
 VERSI_VARIASI = "persegi-panjang-variasi-v1"
 LANGSUNG = "persegi-panjang.keliling-langsung.v1"
@@ -32,7 +35,7 @@ class TuntutanPilot:
 
 TUNTUTAN = (
     TuntutanPilot(LANGSUNG, "Keliling dari panjang dan lebar", POLA, "keliling",
-                  ("P3", "P4", "P5", "P6"),
+                  LEVEL_PILOT,
                   ("Tunjukkan dua pasang sisi yang sama panjang.",
                    "Mengapa dua sisi dijumlahkan lalu dikali dua, bukan dikalikan?")),
     TuntutanPilot(BALIK, "Luas setelah mencari sisi dari keliling", POLA, "balik_luas",

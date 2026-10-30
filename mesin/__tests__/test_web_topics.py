@@ -188,7 +188,9 @@ def test_semua_topik_ditawarkan_tetapi_kombinasi_profil_tidak_tersedia_ditolak(s
 def test_siswa_level_teks_lama_tetap_ditawari_dan_bisa_membuat_sesi(server):
     """Profil teks warisan tidak menghalangi pilihan konfigurasi eksplisit."""
     with server.buka() as kon:
-        siswa_id = database.tambah_siswa(kon, "Topik Level Lama", "tingkat-lama", pemilik="guru")
+        siswa_id = database.tambah_siswa(kon, "Topik Level Lama", "P3", pemilik="guru")
+        # Simulasikan data historis; writer baru menolak tingkat teks bebas.
+        kon.execute("UPDATE siswa SET tingkat='tingkat-lama' WHERE id=?", (siswa_id,))
         isi = _profil_anak(kon).decode()
     assert 'value="pola-bilangan"' in isi
     assert 'value="aritmetika-dasar"' in isi

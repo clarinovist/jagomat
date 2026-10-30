@@ -23,7 +23,7 @@ def test_draf_lama_tidak_menebak_default_profil():
     assert parse_draf_latihan(data, ['pola-bilangan']).profil_parameter == ''
 
 
-@pytest.mark.parametrize('nilai', [None, [], [''], ['P2'], ['P3', 'P6'], 'P3'])
+@pytest.mark.parametrize('nilai', [None, [], [''], ['P0'], ['P3', 'P6'], 'P3'])
 def test_pilihan_profil_eksplisit_tanpa_fallback(nilai):
     with pytest.raises(ValueError):
         profil_dari_form({'profil_parameter': nilai})

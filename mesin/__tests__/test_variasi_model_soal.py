@@ -33,7 +33,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import generator  # noqa: E402
 
 JUMLAH_SEED = 500
-LEVEL = ("P3", "P4", "P5", "P6")
+from templates import LEVEL
+from topics import ambil
 
 
 def _fraksi_pola_sama(level: str, n_seed: int = JUMLAH_SEED) -> float:
@@ -51,7 +52,7 @@ def _fraksi_pola_sama(level: str, n_seed: int = JUMLAH_SEED) -> float:
     return total_sama / total_pos
 
 
-@pytest.mark.parametrize("level", LEVEL)
+@pytest.mark.parametrize("level", [lv for lv in LEVEL if lv in ambil("statistika").komposisi])
 def test_posisi_tidak_terkunci_pada_model_yang_sama(level):
     """Cetak angka per level & pastikan jauh di bawah baseline terkunci."""
     f = _fraksi_pola_sama(level)

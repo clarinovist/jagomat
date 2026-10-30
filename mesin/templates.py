@@ -34,13 +34,21 @@ HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 # Dipakai sebagai daftar tertutup di banyak tempat (validasi form, profil
 # parameter, komposisi lembar). Ditulis sekali di sini supaya menambah level
 # tidak berarti berburu string "P3" di seluruh berkas.
-LEVEL = ("P3", "P4", "P5", "P6")
+LEVEL = ("P1", "P2", "P3", "P4", "P5", "P6")
+# Level yang boleh menjadi siswa.tingkat dan dipakai siklus terpandu/pilot;
+# P1/P2 hanya Latihan manual (keputusan 30 Okt 2026).
+LEVEL_TINGKAT = ("P3", "P4", "P5", "P6")
 # Cadangan teks level lama/tak dikenal, sengaja tidak mengikuti urutan LEVEL.
 LEVEL_BAWAAN = "P3"
 
 
 def level_valid(level: str) -> bool:
     return level in LEVEL
+
+
+def tingkat_valid(nilai) -> bool:
+    """Periksa tingkat siswa dengan keanggotaan tuple, termasuk nilai nonteks."""
+    return nilai in LEVEL_TINGKAT
 
 
 def label_kelas(level: str) -> str:

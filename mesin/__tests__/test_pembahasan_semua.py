@@ -77,7 +77,7 @@ def test_pembahasan_bukan_kunci_mentah(topik_id):
     import random
     rng = random.Random(3)
     from templates import REGISTRI
-    lvl = LEVEL[0]
+    lvl = next(lv for lv in LEVEL if paket.komposisi.get(lv))
     for template_id in sorted(set(paket.komposisi.get(lvl, ())))[:6]:
         param = paket.parameter_untuk(template_id, rng, lvl) if paket.parameter_untuk else {}
         if not param:

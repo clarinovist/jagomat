@@ -9,7 +9,7 @@ import json
 from typing import Optional, Tuple
 
 from skill_pilot import KonteksPilot, KunciFokus, validasi_fokus
-from templates import LEVEL
+from skill_pilot import LEVEL_PILOT
 
 
 @dataclass(frozen=True)
@@ -52,7 +52,7 @@ class KontrakPilot:
     def __post_init__(self):
         if (type(self.versi) is not int or self.versi != 1
                 or any(type(n) is not int or n < 1 for n in (self.siswa_id,self.sesi_id))
-                or type(self.profil_parameter) is not str or self.profil_parameter not in LEVEL
+                or type(self.profil_parameter) is not str or self.profil_parameter not in LEVEL_PILOT
                 or type(self.versi_generator) is not int or self.versi_generator not in (1, 2)
                 or type(self.butir) is not tuple or not self.butir
                 or any(type(b) is not ButirKontrakPilot for b in self.butir)):

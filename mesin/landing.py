@@ -81,7 +81,7 @@ def halaman_daftar(
     nama = nama yang diketik pengguna (dikembalikan supaya tidak mengetik ulang).
     """
     import learning_profile_ui
-    from templates import level_valid
+    from templates import tingkat_valid
     kotak = ""
     if pesan:
         kelas = "masuk-galat-st" if galat else "pesan-st"
@@ -111,7 +111,7 @@ def halaman_daftar(
     # pengguna baru memilih konfigurasi sebelum melihat latihan.
     profil_lama = (
         f'<input type="hidden" name="profil_parameter" value="{html.escape(profil_parameter, quote=True)}">'
-        if level_valid(profil_parameter) else ''
+        if tingkat_valid(profil_parameter) else ''
     )
     tombol_daftar = '' if kesepakatan else '<button class="masuk-tombol-st" type="submit">Buat akun <span aria-hidden="true">→</span></button>'
     isi = f"""

@@ -14,7 +14,7 @@ from templates import LEVEL
 
 def test_nama_variasi_netral_kode_tetap_kanonis():
     assert [question_context.label_profil_parameter(p) for p in LEVEL] == [
-        'Variasi A', 'Variasi B', 'Variasi C', 'Variasi D']
+        'Variasi Dasar 1', 'Variasi Dasar 2', 'Variasi A', 'Variasi B', 'Variasi C', 'Variasi D']
     assert question_context.label_profil_parameter('lama') == 'Konfigurasi lama: lama'
     assert question_context.konteks_warisan('keliling_luas_datar', 'P3').id == 'warisan-v1:keliling_luas_datar:P3'
 

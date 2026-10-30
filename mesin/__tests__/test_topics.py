@@ -140,7 +140,7 @@ def test_templates_masih_mengekspor_simbol_lama():
 # ── Generator sadar-topik (A2) ─────────────────────────────────────────
 
 
-@pytest.mark.parametrize("level", LEVEL)
+@pytest.mark.parametrize("level", [lv for lv in LEVEL if lv in templates.URUTAN_PER_LEVEL])
 def test_buat_lembar_bertopik_eksplisit_identik_dengan_bawaan(level):
     """Seed sama + topik sama = lembar identik, apa pun cara menyebutnya."""
     from generator import buat_lembar
@@ -150,7 +150,7 @@ def test_buat_lembar_bertopik_eksplisit_identik_dengan_bawaan(level):
     assert bawaan.tanda_tangan == eksplisit.tanda_tangan
 
 
-@pytest.mark.parametrize("level", LEVEL)
+@pytest.mark.parametrize("level", [lv for lv in LEVEL if lv in templates.URUTAN_PER_LEVEL])
 def test_buat_soal_bertopik_eksplisit_identik_dengan_bawaan(level):
     from generator import buat_soal
 

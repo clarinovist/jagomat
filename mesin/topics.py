@@ -27,7 +27,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from templates import LEVEL, LEVEL_BAWAAN, Soal
+from templates import LEVEL, LEVEL_BAWAAN, LEVEL_TINGKAT, Soal
 
 TOPIK_BAWAAN = "pola-bilangan"
 
@@ -139,7 +139,8 @@ def _daftarkan_campuran() -> None:
 
     komposisi_campuran = {}
     writer_campuran = {}
-    for lvl in LEVEL:
+    # Campuran simulasi ujian tetap P3–P6; P1/P2 dipilih per materi manual.
+    for lvl in LEVEL_TINGKAT:
         topik_level = [t for t in PAKET.values() if lvl in t.komposisi and t.id != "campuran"]
         urutan_gabungan = []
         max_len = max((len(t.komposisi[lvl]) for t in topik_level), default=0)

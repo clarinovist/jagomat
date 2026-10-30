@@ -6,7 +6,7 @@ import learning_cycle as lc
 from skill_pilot import TUNTUTAN, RUJUKAN_LUAS
 from skill_pilot_materials import pilihan_materi
 from skill_pilot_service import keadaan, revisi
-from templates import LEVEL
+from skill_pilot import LEVEL_PILOT
 
 LABEL={'terbukti':'Menunjukkan pemahaman','belum_dinilai':'Belum dinilai',
        'dipelajari':'Sedang dipelajari','perlu_cek':'Perlu dicek kembali'}
@@ -34,7 +34,7 @@ def form_mulai(siswa_id, versi, balik_tersedia=False):
       f'<input type="hidden" name="aksi" value="mulai"><input type="hidden" name="revisi" value="{versi}">'
       f'<label>Keterampilan<select name="tuntutan" required>{pilihan}</select></label>'
       '<label>Variasi soal<select name="profil" required><option value="">Pilih variasi soal</option>'
-      + ''.join('<option value="%s">%s</option>' % (p, label_profil_parameter(p)) for p in LEVEL)
+      + ''.join('<option value="%s">%s</option>' % (p, label_profil_parameter(p)) for p in LEVEL_PILOT)
       + '</select></label>'
       '<label>Penyajian<select name="representasi" required><option value="teks-v1">Soal cerita</option>'
       '<option value="geometri_datar-v1">Diagram</option></select></label>'

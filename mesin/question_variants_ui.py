@@ -8,7 +8,7 @@ from generator import buat_lembar
 from question_context import label_profil_parameter, validasi_pilihan
 from render import _badan_soal
 from template_labels import nama_tipe_soal
-from templates import LEVEL
+from templates import LEVEL, LEVEL_TINGKAT
 
 
 def kontrol_variasi(identitas, terpilih=None, *, ringkas=False):
@@ -123,7 +123,7 @@ def _kartu_isi(profil, topik_ids, identitas, terpilih, *, pemetaan=False):
     id_radio = f'{identitas}-profil-{kode}'
     checked = ' checked' if profil == terpilih else ''
     konteks = 'pemetaan' if pemetaan else ','.join(topik_ids)
-    penanda = label_profil_parameter(profil).rsplit(' ', 1)[-1]
+    penanda = label_profil_parameter(profil).removeprefix('Variasi ')
     return (
         f'<article class="variasi-pilihan" data-contoh="{html.escape(konteks, quote=True)}:{kode}">'
         f'<label class="variasi-label" for="{id_radio}">'
@@ -159,7 +159,7 @@ def pemilih_isi(topik_ids, identitas, terpilih=None):
     if 'campuran' in topik_ids:
         if topik_ids != ('campuran',):
             raise ValueError('Campuran tidak dapat digabungkan sebagai materi biasa.')
-        tersedia = tuple(LEVEL)
+        tersedia = tuple(profil for profil in LEVEL if topics.ambil('campuran').komposisi.get(profil))
         topik_ids = ('campuran',)
     else:
         tersedia = tuple(
@@ -206,7 +206,7 @@ def pemilih_pemetaan(identitas, terpilih=None):
             profil, _topik_tersedia(semua_topik, profil), identitas, terpilih,
             pemetaan=True,
         )
-        for profil in LEVEL
+        for profil in LEVEL_TINGKAT
     )
     return (
         f'<fieldset class="pilih-isi-latihan pilih-isi-pemetaan" '

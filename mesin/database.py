@@ -725,6 +725,10 @@ def batalkan_sesi(
 def ganti_level(
     kon: sqlite3.Connection, siswa_id: int, level_baru: str
 ) -> None:
+    from templates import tingkat_valid
+
+    if not tingkat_valid(level_baru):
+        raise ValueError("tingkat siswa tidak sah")
     siswa = kon.execute(
         "SELECT tingkat FROM siswa WHERE id = ?", (siswa_id,)
     ).fetchone()

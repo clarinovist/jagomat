@@ -394,8 +394,8 @@ def mulai_dengan_fondasi(kon: sqlite3.Connection, siswa_id: int) -> tuple[int, b
 
 def mulai_dengan_variasi(kon: sqlite3.Connection, siswa_id: int, profil: str) -> tuple[int, bool]:
     """Adapter payload lama; UI baru memakai fondasi otomatis tanpa field ini."""
-    from templates import LEVEL
-    if type(profil) is not str or profil not in LEVEL:
+    from templates import tingkat_valid
+    if type(profil) is not str or not tingkat_valid(profil):
         raise ValueError('Pilihan variasi soal tidak sah. Muat ulang form.')
     kon.execute('SAVEPOINT mulai_variasi')
     try:

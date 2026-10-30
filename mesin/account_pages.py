@@ -12,7 +12,7 @@ import auth
 import database
 import learning_profile
 import learning_profile_ui
-from templates import LEVEL, label_kelas, level_valid
+from templates import LEVEL_TINGKAT, label_kelas, tingkat_valid
 from teacher_pages import _halaman
 from account_browser import SKRIP_AKUN
 
@@ -557,7 +557,7 @@ def proses_akun(
             return "", "Nama terlalu panjang."
         if ('profil_parameter' in data and 'tingkat' in data) or 'level' in data:
             return '', 'Form pengaturan soal lama tidak cocok. Muat ulang sebelum menambahkan anak.'
-        if tingkat and not level_valid(tingkat):
+        if tingkat and not tingkat_valid(tingkat):
             return '', 'Pilihan variasi soal tidak sah. Muat ulang formulir.'
         try:
             kelas = learning_profile_ui.baca_kelas_form(data.get('kelas_sekolah', ''))
@@ -628,8 +628,8 @@ def proses_akun(
         except ValueError:
             return "", "Siswa tidak dikenal."
         tingkat = data.get("tingkat", "").strip()
-        if not level_valid(tingkat):
-            return "", f"Kelas harus salah satu dari: {', '.join(label_kelas(lv) for lv in LEVEL)}."
+        if not tingkat_valid(tingkat):
+            return "", f"Kelas harus salah satu dari: {', '.join(label_kelas(lv) for lv in LEVEL_TINGKAT)}."
         baris = kon.execute(
             "SELECT nama FROM siswa WHERE id = ?", (siswa_id,)
         ).fetchone()

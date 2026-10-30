@@ -178,7 +178,8 @@ def _topik_untuk_level(level: str) -> list[str]:
         for topik_id in daftar_topik()
         if level_efektif in ambil(topik_id).komposisi and topik_id != "campuran"
     ]
-    if "campuran" in daftar_topik():
+    if ("campuran" in daftar_topik()
+            and level_efektif in ambil("campuran").komposisi):
         daftar = ["campuran"] + daftar
     return daftar
 

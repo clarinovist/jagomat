@@ -35,6 +35,10 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 
 ## Konvensi dan keputusan teknis
 
+- `templates.LEVEL` mencakup variasi Latihan P1–P6; `LEVEL_TINGKAT` menjaga
+  `siswa.tingkat` dan siklus P3–P6 (kosong tetap sah saat onboarding).
+  `skill_pilot.LEVEL_PILOT` membatasi konten pilot P3–P6. DDL konteks baru
+  menerima P1/P2; migrasi DB lama dan konten dasar ditangani tahap terpisah.
 - Stdlib runtime; dev dependency hanya pytest/pytest-xdist. Python lokal3.9.6 dan
   CI/container3.12. Nama modul Inggris; fungsi/docstring/UI/commit Bahasa Indonesia.
 - Zero-JS default. Enhancement yang disetujui berhash CSP dan fallback native;
