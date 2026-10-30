@@ -42,7 +42,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   verifikasi jumlah/SHA-256 baris; DDL baru menerima P1/P2. `topic_basic_numbers.py`
   memuat `tambah_dasar` manual P1/P2 terpisah: domain eksplisit 45/145 pasangan,
   cakupan ≥90% dalam 500 seed; PG tiga opsi, tanpa marker koreksi histori atau
-  target mastery. Opt-in `Topik.unik_per_lembar` + enumerator domain menjaga soal
+  target mastery; grup katalog terdaftar untuk audit, bukan target siklus.
+  Opt-in `Topik.unik_per_lembar` + enumerator domain menjaga soal
   tidak kembar; retry terbatas memilih sisa domain, pengulangan boleh setelah habis.
   Flag mati mempertahankan RNG lama. Campuran tetap P3–P6; lembar 10 soal satu jenis
   berutang variasi.

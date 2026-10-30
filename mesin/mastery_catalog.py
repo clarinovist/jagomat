@@ -46,6 +46,10 @@ KELOMPOK = {
         ("pecahan_kali_bagi", "Mengalikan dan membagi pecahan", ("pecahan_kali_bagi",)),
         ("taksiran", "Pembulatan dan taksiran", ("pembulatan_taksiran",)),
     ),
+    # Grup audit untuk latihan manual P1/P2; bukan target siklus P3–P6.
+    "bilangan-dasar": (
+        ("penjumlahan_dasar", "Penjumlahan sampai 20", ("tambah_dasar",)),
+    ),
     "geometri-datar": (
         ("sudut", "Hubungan sudut", ("sudut_pelurus_berpenyiku", "jumlah_sudut_segitiga", "sudut_luar_segitiga")),
         ("keliling_luas", "Keliling dan luas persegi panjang", ("keliling_luas_datar",)),
