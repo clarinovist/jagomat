@@ -24,6 +24,7 @@ from attachment_store import (
     tandai_lampiran,
 )
 import outcome_presentations
+from context_migration import rebuild_konteks_butir
 from question_bank_store import simpan_soal, statistik_bank
 from report_store import miskonsepsi_berulang, peta_materi_baru, ringkasan
 from session_read_store import (
@@ -173,6 +174,7 @@ def siapkan(path: Path | str = BAWAAN) -> None:
             kon.execute(f"DROP VIEW IF EXISTS {nama}")
         migrasi(kon)
         rebuild_siswa_unik(kon)
+        rebuild_konteks_butir(kon)
         _segarkan_trigger_snapshot(kon)
         _jalankan_skema(kon, SKEMA)
         # Migrasi bentuk parameter (A4): pola string per-template → list
