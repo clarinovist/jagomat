@@ -86,10 +86,18 @@ def tangani_pembuatan_biasa(
             penangan._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
             return True
 
-        from question_context import profil_otomatis, validasi_pilihan
+        from question_context import profil_otomatis, topik_dasar, validasi_pilihan
         try:
             profil_lama = data.get("profil_parameter", [])
-            if profil_lama:
+            if topik_dasar(pilihan_topik) and "variasi_dasar" in data:
+                variasi = data["variasi_dasar"]
+                if len(variasi) != 1 or variasi[0] not in ("P1", "P2"):
+                    raise ValueError(
+                        "Variasi materi dasar tidak sah. Pilih satu: Dasar 1 atau Dasar 2."
+                    )
+                level = variasi[0]
+                validasi_pilihan([pilihan_topik], level)
+            elif profil_lama:
                 if len(profil_lama) != 1:
                     raise ValueError(
                         "Pilihan variasi soal tidak sah. Muat ulang form."

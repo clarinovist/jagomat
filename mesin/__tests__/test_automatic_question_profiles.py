@@ -1,5 +1,6 @@
 """Alur baru memilih topik, bukan variasi A–D; kode lama tetap internal."""
 from collections import Counter
+import re
 
 import pytest
 
@@ -72,7 +73,11 @@ def test_sepuluh_soal_pola_bilangan_tetap_deterministik_dan_sah():
         assert ulang.tanda_tangan == lembar.tanda_tangan
 
 
-def test_ui_latihan_baru_tidak_meminta_variasi_atau_bandingkan(server):
+@pytest.mark.parametrize('topik', ['pola-bilangan', 'aritmatika-lanjut', 'bilangan-dasar'])
+def test_ui_latihan_baru_tidak_meminta_variasi_atau_bandingkan(server, topik):
+    with server.buka() as kon:
+        database.buat_sesi(kon, server.siswa, seed=42, topik=topik,
+                           level=question_context.profil_otomatis([topik], 'P3'))
     kode, isi, _ = server.minta('/anak/%d?section=latihan' % server.siswa,
                                 auth=('guru', SANDI_GURU))
     assert kode == 200
@@ -82,7 +87,11 @@ def test_ui_latihan_baru_tidak_meminta_variasi_atau_bandingkan(server):
         assert 'name="profil_parameter"' not in panel
         assert 'Bandingkan isi' not in panel
         assert 'Tampilkan pilihan isi' not in panel
-        assert 'Variasi A' not in panel and 'Variasi D' not in panel
+        # Cocokkan A–D utuh; label Variasi Dasar bukan Variasi D.
+        assert not re.search(r'\bVariasi [ABCD]\b', panel)
+    assert f'<option value="{topik}" selected' in manual
+    if not question_context.topik_dasar(topik):
+        assert not re.search(r'<input\b(?=[^>]*type="radio")(?=[^>]*name="profil_parameter")[^>]*>', manual)
     # Tidak ada marker refresh pilihan isi, sehingga halaman tidak memuat JS khusus itu.
     assert 'data-pilihan-isi-otomatis' not in isi
 

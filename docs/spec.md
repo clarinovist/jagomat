@@ -12,7 +12,9 @@ kelas 1 SD–kelas 9 dibuka bertahap (keputusan pemilik 28 Okt 2026); saat ini l
 berkonten P3–P6 dan profil anak menyimpan kelas sekolah 1–6. Topik `bilangan-dasar`
 menambah penjumlahan teks untuk Latihan manual P1 (hasil ≤10) / P2 (11–20).
 Soal dalam lembar tidak kembar hingga seluruh domain level terpakai; setelah itu
-pengulangan diizinkan. Jenis lain, visual, cerita, dan UI pemilih Dasar menyusul. Tingkat internal siswa,
+pengulangan diizinkan. Latihan satu topik menawarkan kartu Variasi Dasar 1/2 dengan contoh
+hanya untuk materi dasar; bawaan tetap otomatis dan tingkat anak tidak berubah.
+Jenis lain, visual, dan cerita menyusul. Tingkat internal siswa,
 siklus dan pilot tetap P3–P6 (keputusan 30 Okt 2026). Batas klaim publik di
 [referensi workflow](workflow-reference.md#konteks-kurikulum--batas-klaim-produk). Pengembangan
 pivot memakai data sintetis; pilot dengan data nyata perlu keputusan dan gerbang

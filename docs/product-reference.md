@@ -180,7 +180,12 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   tambahan/paging tetap tersedia, pengelolaan tautan di halaman sesi. Latihan memakai
   satu form aktif dengan tiga mode, fallback pemilih GET, dan skrip lokal berhash
   CSP untuk mode/disabled Gabungan minimal dua topik. Server tetap memvalidasi;
-  Pendamping tidak menerima draf sebagai data AI. Detail paket mengikuti kontraknya.
+  Pendamping tidak menerima draf sebagai data AI. Materi dasar menyediakan kartu Variasi
+  Dasar 1/2 beserta contoh dan keterangan rentang (sampai 10 / 11–20, termasuk melewati 10)
+  hanya pada mode satu topik (bawaan otomatis); topik lain tetap
+  otomatis dan Gabungan tidak menawarkan materi dasar. Latihan ulang khusus template dasar
+  mengikuti level sesi sumber, atau sesi terbaru anak yang memuat template itu bila tanpa
+  sumber; tingkat anak dan siklus terpandu tidak berubah. Detail paket mengikuti kontraknya.
 
 ## Kontrak belajar utama
 

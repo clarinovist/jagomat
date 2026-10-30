@@ -278,7 +278,9 @@ def test_latihan_judul_tunggal_legend_diringkas_dan_panel_tetap_beranama(anak):
 def test_latihan_teks_bantuan_cakupan_dilipat_di_pengaturan_lanjutan(anak):
     db, sid = anak
     html = _render(db, sid, "latihan")
-    manual = html.split('data-mode-latihan="manual"', 1)[1].split("</fieldset>", 1)[0]
+    # Akhiri pada panel mode berikutnya, bukan fieldset variasi yang bersarang.
+    manual = html.split('<fieldset data-mode-latihan="manual"', 1)[1]
+    manual = re.split(r'<fieldset\b[^>]*data-mode-latihan=', manual, maxsplit=1)[0]
     luar, lanjutan = manual.split('<details class="atur-latihan-st profil-lanjutan-st">', 1)
     teks = "Jagomat memilih cakupan yang sesuai untuk topik ini."
     assert teks not in luar and teks in lanjutan

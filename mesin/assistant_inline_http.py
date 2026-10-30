@@ -149,7 +149,7 @@ def _pisahkan_draf_inline(data, target):
         return {k: v for k, v in data.items() if k not in nama}, None, None, draf
     if jenis_form not in ("", "manual"):
         raise GalatForm("Identitas form bantuan tidak sah.")
-    nama_sah = {"topik", "jumlah_soal", "mode", "hadir_timer_mode", "timer_mode", "durasi_menit", "timer_auto", "format_jawaban", "profil_parameter"}
+    nama_sah = {"topik", "jumlah_soal", "mode", "hadir_timer_mode", "timer_mode", "durasi_menit", "timer_auto", "format_jawaban", "profil_parameter", "variasi_dasar"}
     nama = nama_sah & set(data)
     if not (nama - {"mode"}):
         return data, None, None, None

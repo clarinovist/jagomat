@@ -57,6 +57,9 @@ class Topik:
     # domain benar-benar habis dari sampler yang kebetulan mengulang terus.
     unik_per_lembar: bool = False
     domain_parameter: Callable[[str, str], tuple[dict, ...]] | None = None
+    # Keterangan pilihan UI saat nama template sama tetapi cakupan level berbeda;
+    # opsional agar paket lama tidak berubah, bukan input generator atau tingkat anak.
+    keterangan_level: dict[str, str] | None = None
 
     def komposisi_untuk(self, level: str) -> tuple[str, ...]:
         """Urutan template untuk satu lembar di level itu.

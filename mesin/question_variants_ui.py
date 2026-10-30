@@ -108,7 +108,8 @@ def _topik_tersedia(topik_ids, profil):
     )
 
 
-def _kartu_isi(profil, topik_ids, identitas, terpilih, *, pemetaan=False):
+def _kartu_isi(profil, topik_ids, identitas, terpilih, *, pemetaan=False,
+               nama_field='profil_parameter', wajib=True, keterangan=None):
     topik_ids = tuple(topik_ids)
     pola_per_topik = [(topik, _pola_soal(topik, profil)) for topik in topik_ids]
     jumlah_pola = len({pola for _topik, daftar in pola_per_topik for pola in daftar})
@@ -123,23 +124,50 @@ def _kartu_isi(profil, topik_ids, identitas, terpilih, *, pemetaan=False):
     id_radio = f'{identitas}-profil-{kode}'
     checked = ' checked' if profil == terpilih else ''
     konteks = 'pemetaan' if pemetaan else ','.join(topik_ids)
-    penanda = label_profil_parameter(profil).removeprefix('Variasi ')
+    penanda = label_profil_parameter(profil)
+    if nama_field == 'profil_parameter':
+        penanda = penanda.removeprefix('Variasi ')
+    required = ' required' if wajib else ''
+    keterangan_html = ('<span class="variasi-keterangan-level">'
+                       + html.escape(keterangan) + '</span>') if keterangan else ''
     return (
         f'<article class="variasi-pilihan" data-contoh="{html.escape(konteks, quote=True)}:{kode}">'
         f'<label class="variasi-label" for="{id_radio}">'
-        f'<input type="radio" name="profil_parameter" value="{kode}"{checked} '
-        f'id="{id_radio}" required>'
+        f'<input type="radio" name="{html.escape(nama_field, quote=True)}" value="{kode}"{checked} '
+        f'id="{id_radio}"{required}>'
         '<span class="variasi-identitas"><span class="variasi-judul">'
         '<span class="variasi-penanda"><span class="variasi-sr">Pilihan </span>'
         + penanda
         + '</span><strong class="variasi-nama-isi">' + html.escape(nama_isi)
-        + '</strong></span><span class="variasi-meta">' + ringkasan + '</span></span></label>'
+        + '</strong></span><span class="variasi-meta">' + ringkasan + keterangan_html + '</span></span></label>'
         '<details class="variasi-contoh-dekat"><summary>Lihat contoh'
         + (' materi' if pemetaan or len(topik_ids) > 1 else '') + ': '
         + html.escape(nama_contoh) + '</summary><div class="variasi-soal">' + contoh
         + '</div><p class="profil-petunjuk-st">Contoh dari '
         + html.escape(topics.ambil(contoh_topik).nama)
         + '; angka dan bentuk soal sesi dapat berbeda.</p></details></article>'
+    )
+
+
+def pemilih_dasar(topik, terpilih):
+    """Dua variasi manual opsional; contoh memakai komposisi nyata topik dasar."""
+    identitas = 'manual-dasar'
+    paket = topics.ambil(topik)
+    keterangan = paket.keterangan_level or {}
+    kartu = ''.join(
+        _kartu_isi(profil, (topik,), identitas, terpilih,
+                   nama_field='variasi_dasar', wajib=False,
+                   keterangan=keterangan.get(profil))
+        for profil in ('P1', 'P2') if profil in paket.komposisi
+    )
+    return (
+        '<fieldset class="pilih-isi-latihan variasi-dasar-st" '
+        'aria-describedby="manual-dasar-bantuan">'
+        '<legend>Variasi materi dasar</legend>'
+        '<p class="profil-petunjuk-st" id="manual-dasar-bantuan">Berlaku untuk topik '
+        + html.escape(topics.ambil(topik).nama)
+        + '. Pilih isi latihan, bukan kelas atau tingkat anak.</p>'
+        f'<div class="variasi-pilihan-daftar">{kartu}</div></fieldset>'
     )
 
 

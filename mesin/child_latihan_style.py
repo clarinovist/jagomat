@@ -17,6 +17,10 @@ GAYA_LATIHAN = f"""
 {_R} .latihan-terpadu-st fieldset[data-mode-latihan] > legend {{
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%);
 }}
+{_R} .latihan-terpadu-st:has(#manual-topik option:checked:not([data-topik-dasar])) .variasi-dasar-st {{ display: none; }}
+{_R} .latihan-terpadu-st .variasi-dasar-st {{ margin-top: {T.SP_5}; }}
+{_R} .variasi-dasar-st :is(.variasi-penanda, .variasi-meta, .profil-petunjuk-st) {{ font-size: {T.UKURAN_TEKS_LABEL}; }}
+{_R} .variasi-dasar-st .variasi-judul {{ flex-wrap: wrap; }}
 {_R} .latihan-pemilih-st legend {{ margin-bottom: 10px; padding: 0; font-size: .9375rem; font-weight: 700; color: {T.ANAK_TEKS}; }}
 {_R} .latihan-mode-st label {{
   gap: {T.SP_3}; padding: {T.SP_4} 1.125rem; background: {T.LATAR_KARTU};

@@ -99,4 +99,9 @@ daftarkan(Topik(
     parameter_untuk=_parameter,
     unik_per_lembar=True,
     domain_parameter=domain_parameter,
+    # Perbarui keterangan cakupan ini saat jenis soal baru masuk.
+    keterangan_level={
+        "P1": "Hasil penjumlahan sampai 10",
+        "P2": "Hasil penjumlahan 11–20, termasuk melewati 10",
+    },
 ))

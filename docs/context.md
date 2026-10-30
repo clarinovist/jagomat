@@ -46,7 +46,10 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   Opt-in `Topik.unik_per_lembar` + enumerator domain menjaga soal
   tidak kembar; retry terbatas memilih sisa domain, pengulangan boleh setelah habis.
   Flag mati mempertahankan RNG lama. Campuran tetap P3–P6; lembar 10 soal satu jenis
-  berutang variasi.
+  berutang variasi. `question_context.topik_dasar` berbagi definisi komposisi di luar
+  `LEVEL_TINGKAT` untuk UI/server; radio manual `variasi_dasar` ditampilkan dengan CSS
+  `:has()` (fallback tetap terlihat), terpisah dari payload warisan `profil_parameter`.
+  Metadata opsional `Topik.keterangan_level` menjelaskan rentang kartu tanpa mengubah generator.
 - Stdlib runtime; dev dependency hanya pytest/pytest-xdist. Python lokal3.9.6 dan
   CI/container3.12. Nama modul Inggris; fungsi/docstring/UI/commit Bahasa Indonesia.
 - Zero-JS default. Enhancement yang disetujui berhash CSP dan fallback native;

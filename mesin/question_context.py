@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Tuple
 
 import topics
-from templates import LEVEL, LEVEL_BAWAAN, tingkat_valid
+from templates import LEVEL, LEVEL_BAWAAN, LEVEL_TINGKAT, tingkat_valid
 
 
 @dataclass(frozen=True)
@@ -55,6 +55,14 @@ def label_konteks(konteks: KonteksSoal) -> str:
     from template_labels import nama_tipe_soal
     return '{} · {}'.format(nama_tipe_soal(konteks.template_id),
                             label_profil_parameter(konteks.profil_parameter))
+
+
+def topik_dasar(topik_id: str) -> bool:
+    """Topik nonkosong yang hanya memuat level di luar tingkat siswa/siklus."""
+    if topik_id not in topics.daftar_topik():
+        return False
+    komposisi = topics.ambil(topik_id).komposisi
+    return bool(komposisi) and not set(komposisi).intersection(LEVEL_TINGKAT)
 
 
 def profil_otomatis(topik_ids, profil_acuan: str = 'P3') -> str:

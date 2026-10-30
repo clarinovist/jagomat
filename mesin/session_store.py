@@ -454,7 +454,7 @@ def buat_sesi_remedial(
         kandidat_ids = [b["template_id"] for b in kandidat]
     else:
         sumber = kon.execute(
-            """SELECT 1 FROM sesi
+            """SELECT level FROM sesi
                WHERE id = ? AND siswa_id = ?
                  AND selesai IS NOT NULL AND direview IS NOT NULL""",
             (sumber_sesi_id, siswa_id),
@@ -484,6 +484,28 @@ def buat_sesi_remedial(
 
     if not sasaran:
         return None
+    from question_context import topik_dasar
+    from topics import pemilik_template
+
+    # Dasar bukan tingkat siswa: latihan ulang menjaga variasi materi asal.
+    # Sumber eksplisit sudah divalidasi kepemilikan/statusnya di atas.
+    if all(topik_dasar(pemilik_template(tid)) for tid in sasaran):
+        if sumber_sesi_id is not None:
+            level = sumber["level"]
+        else:
+            penanda = ','.join('?' for _ in sasaran)
+            terbaru = kon.execute(
+                f"""SELECT se.level FROM sesi se
+                    JOIN sesi_soal ss ON ss.sesi_id = se.id
+                    JOIN soal s ON s.id = ss.soal_id
+                    WHERE se.siswa_id = ? AND s.template_id IN ({penanda})
+                    GROUP BY se.id
+                    HAVING COUNT(DISTINCT s.template_id) = ?
+                    ORDER BY se.tanggal DESC, se.id DESC LIMIT 1""",
+                (siswa_id, *sasaran, len(set(sasaran))),
+            ).fetchone()
+            if terbaru:
+                level = terbaru["level"]
     if topik is None:
         from topics import paket_untuk_template
 
