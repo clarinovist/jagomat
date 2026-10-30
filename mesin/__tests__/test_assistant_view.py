@@ -351,6 +351,7 @@ def test_ringkasan_memakai_nama_tipe_bukan_judul_kartu_umum():
 
 @pytest.mark.parametrize("jumlah", [10, 15, 20, 25, 30])
 def test_ringkasan_distribusi_sama_eksekusi_tanpa_generator(jumlah, monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     import generator
     from template_labels import nama_tipe_soal
     monkeypatch.setattr(generator, "buat_lembar", lambda *_a, **_k: pytest.fail("generator"))

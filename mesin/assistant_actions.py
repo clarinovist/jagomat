@@ -46,8 +46,8 @@ class GalatTindakan(ValueError):
     """Usulan atau konfirmasi tidak lagi aman untuk dijalankan."""
 
 
-def validasi_usulan(data) -> UsulanLatihan:
-    """Terima hanya kombinasi topik/template/level/jumlah dari katalog aktif."""
+def validasi_usulan(data, *, untuk_penawaran: bool = True) -> UsulanLatihan:
+    """Validasi katalog; pembaca histori boleh memakai registri tanpa izin membuat."""
     if type(data) is not dict or set(data) != {
         "topik_id", "template_ids", "level", "jumlah_soal"
     }:
@@ -66,7 +66,7 @@ def validasi_usulan(data) -> UsulanLatihan:
     if data["jumlah_soal"] not in JUMLAH_SOAL_SAH:
         raise GalatTindakan("Jumlah soal usulan tidak tersedia.")
 
-    katalog = assistant_catalog.buat_katalog()
+    katalog = assistant_catalog.buat_katalog(untuk_penawaran=untuk_penawaran)
     topik = {item.id: item for item in katalog.topik}.get(data["topik_id"])
     template = {item.id: item for item in katalog.template}
     if topik is None or data["level"] not in topik.level:
@@ -227,9 +227,9 @@ def _periksa_kebaruan(kon_data, chat, pemilik: str) -> None:
         raise GalatTindakan("Konteks berubah. Tinjau ulang usulan.")
 
 
-def _usulan_tersimpan(catatan) -> UsulanLatihan:
+def _usulan_tersimpan(catatan, *, untuk_penawaran: bool = True) -> UsulanLatihan:
     try:
-        usulan = validasi_usulan(json.loads(catatan.payload_json))
+        usulan = validasi_usulan(json.loads(catatan.payload_json), untuk_penawaran=untuk_penawaran)
     except (ValueError, TypeError):
         raise GalatTindakan("Isi usulan tidak lagi tersedia. Tinjau ulang.") from None
     if hash_usulan(usulan) != catatan.hash_usulan:
@@ -288,7 +288,7 @@ def ambil_hasil_usulan(kon, account_id: str, pemilik: str, usulan_id: str) -> Op
         _periksa_izin(kon, catatan, chat)
         sesi_id, ledger = _hasil_tersimpan(kon_data, catatan, siswa_id, pemilik)
         if ledger is not None:
-            _usulan_tersimpan(catatan)
+            _usulan_tersimpan(catatan, untuk_penawaran=False)
             if ledger["ikatan_hash"] != _ikatan(catatan, chat, pemilik):
                 raise GalatTindakan("Hasil konfirmasi tidak cocok dengan tinjauan.")
         return sesi_id
@@ -357,13 +357,15 @@ def konfirmasi_dan_buat_sesi(
                 or tinjauan["ikatan_hash"] != ikatan
             ):
                 raise GalatTindakan("Tinjauan tidak sah. Tinjau ulang usulan.")
-            usulan = _usulan_tersimpan(catatan)
+            usulan = _usulan_tersimpan(catatan, untuk_penawaran=False)
             sesi_id, ledger = _hasil_tersimpan(kon_data, catatan, siswa_id, pemilik)
             if ledger is not None and (
                 ledger["token_hash"] != _sidik(request_id) or ledger["ikatan_hash"] != ikatan
             ):
                 raise GalatTindakan("Konfirmasi tidak cocok dengan eksekusi tersimpan.")
             if sesi_id is None:
+                # Retry hasil lama boleh dibaca; sesi baru wajib lolos sakelar kini.
+                _usulan_tersimpan(catatan)
                 if not tinjauan["dibuat"] <= sekarang < tinjauan["kedaluarsa"]:
                     raise GalatTindakan("Tinjauan kedaluwarsa. Tinjau ulang usulan.")
                 _periksa_kebaruan(kon_data, chat, pemilik)

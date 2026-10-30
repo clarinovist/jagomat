@@ -75,6 +75,8 @@ def buat_sesi(
     simpan_butir,
 ) -> int:
     """Bangkitkan lembar dari seed, simpan soalnya ke bank, rangkai jadi sesi."""
+    from question_context import pastikan_materi_dibuka
+    pastikan_materi_dibuka([topik])
     MODE_SAH = ("diagnostik", "drill")
     TIMER_SAH = ("tanpa", "sesi", "soal")
     if mode not in MODE_SAH:
@@ -160,6 +162,9 @@ def buat_sesi_dari_urutan(
     ke kolom `sesi.topik` adalah id-nya, supaya `topics.dari_sesi` bisa
     merekonstruksi paket yang sama saat lembar dicetak ulang.
     """
+    from question_context import pastikan_materi_dibuka
+    from topics import pemilik_template
+    pastikan_materi_dibuka([pemilik_template(tid) for tid in urutan])
     if jenis not in ("biasa", "remedial"):
         raise ValueError(f"jenis sesi tidak dikenal: {jenis!r}")
     if jenis == "biasa" and sumber_sesi_id is not None:
@@ -221,7 +226,9 @@ def buat_sesi_gabungan(
         raise ValueError(f"mode tidak dikenal: {mode!r}")
 
     from topics import gabungan
+    from question_context import pastikan_materi_dibuka
 
+    pastikan_materi_dibuka(topik_ids)
     paket = gabungan(topik_ids)
     # Level datang dari `siswa.tingkat` (teks bebas), bukan dari pilihan
     # guru — dan tidak semua topik punya semua level (logika melompati P4,
@@ -484,9 +491,10 @@ def buat_sesi_remedial(
 
     if not sasaran:
         return None
-    from question_context import topik_dasar
+    from question_context import pastikan_materi_dibuka, topik_dasar
     from topics import pemilik_template
 
+    pastikan_materi_dibuka([pemilik_template(tid) for tid in sasaran])
     # Dasar bukan tingkat siswa: latihan ulang menjaga variasi materi asal.
     # Sumber eksplisit sudah divalidasi kepemilikan/statusnya di atas.
     if all(topik_dasar(pemilik_template(tid)) for tid in sasaran):

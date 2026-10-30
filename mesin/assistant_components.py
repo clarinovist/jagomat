@@ -291,6 +291,9 @@ def _kartu_usulan_inline(target, chat, usulan, *, dalam_form: bool) -> str:
         if item.sesi_id is not None:
             aksi = f'<a class="pendamping-tombol" href="/sesi/{int(item.sesi_id)}">Buka latihan #{int(item.sesi_id)}</a>'
             catatan = "Latihan bebas sudah dibuat; membuka lagi tidak membuat sesi kedua."
+        elif not assistant_view.usulan_boleh_ditawarkan(item.payload_json):
+            aksi = ""
+            catatan = "Materi ini belum dibuka."
         else:
             aksi = _tombol_aksi(
                 target, chat.id, "/pendamping/inline/tinjau", "Tinjau usulan",

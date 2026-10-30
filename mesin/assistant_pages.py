@@ -346,12 +346,18 @@ def halaman_hapus_memori(memori, *, versi: int, semua: bool = False, kembali: st
 def _kartu_usulan(usulan) -> str:
     if not usulan:
         return ''
-    from assistant_view import ringkasan_usulan
+    from assistant_view import ringkasan_usulan, usulan_boleh_ditawarkan
 
     kartu = []
     for item in usulan:
         data = ringkasan_usulan(item.payload_json)
         selesai = item.sesi_id is not None
+        if not selesai and not usulan_boleh_ditawarkan(item.payload_json):
+            kartu.append(
+                '<aside class="pendamping-panel pendamping-usulan">'
+                '<h2>Usulan latihan</h2><p>Materi ini belum dibuka.</p></aside>'
+            )
+            continue
         kartu.append(
             '<aside class="pendamping-panel pendamping-usulan"><h2>'
             + ('Hasil latihan' if selesai else 'Usulan latihan') + '</h2>'

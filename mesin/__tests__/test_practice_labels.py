@@ -18,7 +18,8 @@ import topics
 
 
 @pytest.mark.parametrize("template_id", sorted(topics.registri()))
-def test_nama_usulan_sama_dengan_pilihan_dan_laporan(template_id):
+def test_nama_usulan_sama_dengan_pilihan_dan_laporan(template_id, monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     paket = topics.ambil(topics.pemilik_template(template_id))
     level = next(lv for lv, isi in paket.komposisi.items() if template_id in isi)
     ringkasan = assistant_view.ringkasan_usulan(json.dumps({

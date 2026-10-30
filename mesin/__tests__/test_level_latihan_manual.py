@@ -55,7 +55,8 @@ def test_bentuk_latihan_dasar_hanya_untuk_konten_yang_disetujui(profil):
 
 
 @pytest.mark.parametrize('profil,label', [('P1', 'Variasi Dasar 1'), ('P2', 'Variasi Dasar 2')])
-def test_label_dasar_dan_kelas(profil, label):
+def test_label_dasar_dan_kelas(profil, label, monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     assert konteks.label_profil_parameter(profil) == label
     assert templates.label_kelas(profil) == 'Kelas ' + profil[1:]
     assert '<option value="%s">%s</option>' % (profil, label) in variasi.kontrol_variasi('uji')

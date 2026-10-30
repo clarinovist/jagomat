@@ -40,6 +40,7 @@ def panel(markup, mode):
 
 @pytest.fixture
 def server(tmp_path, monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     srv = ServerUji(tmp_path, monkeypatch)
     with srv.buka() as kon:
         srv.siswa = database.tambah_siswa(kon, 'Anak Sintetis T2', 'P3', pemilik='guru')
@@ -155,6 +156,7 @@ def test_topik_tanpa_keterangan_mempertahankan_markup_kartu():
 
 
 def test_keterangan_level_opsional_tidak_mengubah_pemilih_lama(monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     paket = topics.ambil('bilangan-dasar')
     lama = question_variants_ui.pemilih_isi(['bilangan-dasar'], 'uji', 'P2')
     monkeypatch.setitem(paket.keterangan_level, 'P1', 'Keterangan sintetis tambahan')
@@ -163,6 +165,7 @@ def test_keterangan_level_opsional_tidak_mengubah_pemilih_lama(monkeypatch):
 
 
 def test_keterangan_di_escape_dan_kosong_tidak_menambah_elemen(monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     paket = topics.ambil('bilangan-dasar')
     monkeypatch.setitem(paket.keterangan_level, 'P1', '<b>Hasil & batas</b>')
     monkeypatch.delitem(paket.keterangan_level, 'P2')

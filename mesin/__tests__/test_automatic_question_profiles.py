@@ -74,7 +74,8 @@ def test_sepuluh_soal_pola_bilangan_tetap_deterministik_dan_sah():
 
 
 @pytest.mark.parametrize('topik', ['pola-bilangan', 'aritmatika-lanjut', 'bilangan-dasar'])
-def test_ui_latihan_baru_tidak_meminta_variasi_atau_bandingkan(server, topik):
+def test_ui_latihan_baru_tidak_meminta_variasi_atau_bandingkan(server, topik, monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     with server.buka() as kon:
         database.buat_sesi(kon, server.siswa, seed=42, topik=topik,
                            level=question_context.profil_otomatis([topik], 'P3'))

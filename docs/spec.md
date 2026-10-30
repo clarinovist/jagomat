@@ -14,6 +14,8 @@ menambah penjumlahan teks untuk Latihan manual P1 (hasil ≤10) / P2 (11–20).
 Soal dalam lembar tidak kembar hingga seluruh domain level terpakai; setelah itu
 pengulangan diizinkan. Latihan satu topik menawarkan kartu Variasi Dasar 1/2 dengan contoh
 hanya untuk materi dasar; bawaan tetap otomatis dan tingkat anak tidak berubah.
+`OSN_MATERI_DASAR=0` (bawaan) menyembunyikan penawaran dan menolak pembuatan materi
+dasar, termasuk draf Pendamping/remedial; sesi yang sudah ada tetap dapat dibaca, ditinjau, dicetak, dan dilaporkan.
 Jenis lain, visual, dan cerita menyusul. Tingkat internal siswa,
 siklus dan pilot tetap P3–P6 (keputusan 30 Okt 2026). Batas klaim publik di
 [referensi workflow](workflow-reference.md#konteks-kurikulum--batas-klaim-produk). Pengembangan

@@ -96,7 +96,7 @@ def _salin_kartu(template_id: str) -> Optional[KartuKatalog]:
     )
 
 
-def buat_katalog() -> KatalogPendamping:
+def buat_katalog(*, untuk_penawaran: bool = True) -> KatalogPendamping:
     """Bangun snapshot deterministik langsung dari registry aktif.
 
     Paket ``campuran`` hanya komposisi sintetis, sehingga tidak dicatat sebagai
@@ -118,6 +118,12 @@ def buat_katalog() -> KatalogPendamping:
     registry = topics.registri()
     if set(pemilik) != set(registry):
         raise ValueError("pemilik template tidak sama dengan registry aktif")
+
+    # Audit registry utuh dahulu; hanya snapshot penawaran ke AI yang disaring.
+    from question_context import daftar_topik_latihan
+    tersedia = set(daftar_topik_latihan() if untuk_penawaran else topics.daftar_topik())
+    topik_asli = tuple(t for t in topik_asli if t.id in tersedia)
+    registry = {tid: t for tid, t in registry.items() if pemilik[tid].id in tersedia}
 
     daftar_topik = tuple(
         TopikKatalog(id=topik.id, nama=topik.nama, level=_level_topik(topik))

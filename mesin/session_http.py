@@ -12,6 +12,7 @@ import urllib.parse
 
 import database
 import sessions
+from question_context import daftar_topik_latihan, pastikan_materi_dibuka
 from support_pages import halaman_pesan as _halaman
 
 
@@ -57,7 +58,7 @@ def tangani_pembuatan_biasa(
             f"<h1>Topik tidak dikenal</h1>"
             f"<p><code>{html.escape(pilihan_topik)}</code> tidak "
             f"terdaftar. Yang tersedia: "
-            f"{', '.join(html.escape(t) for t in daftar_topik())}.</p>"
+            f"{', '.join(html.escape(t) for t in daftar_topik_latihan())}.</p>"
         )
         penangan._kirim(_halaman("Topik tidak dikenal", pesan), 400)
         return True
@@ -88,6 +89,7 @@ def tangani_pembuatan_biasa(
 
         from question_context import profil_otomatis, topik_dasar, validasi_pilihan
         try:
+            pastikan_materi_dibuka([pilihan_topik])
             profil_lama = data.get("profil_parameter", [])
             if topik_dasar(pilihan_topik) and "variasi_dasar" in data:
                 variasi = data["variasi_dasar"]
@@ -311,6 +313,7 @@ def tangani_pembuatan_gabungan(
         try:
             from choice_pages import format_dari_form
             from question_context import profil_otomatis, validasi_pilihan
+            pastikan_materi_dibuka(dipilih)
             profil_lama = data.get("profil_parameter", [])
             if profil_lama:
                 if len(profil_lama) != 1:
@@ -542,6 +545,9 @@ def tangani_pembuatan_remedial(
                 )
             except ValueError as galat:
                 detail = str(galat)
+                if detail == "Materi ini belum dibuka.":
+                    penangan._kirim(_halaman("Latihan belum dibuat", "<p>" + detail + "</p>"), 400)
+                    return True
                 if "bukan kandidat" in detail:
                     pesan_gagal = (
                         "Pilihan itu bukan pilihan remedial yang tersedia."

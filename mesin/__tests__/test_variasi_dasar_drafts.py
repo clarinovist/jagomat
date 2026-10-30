@@ -12,7 +12,8 @@ def data_draf():
             'timer_auto': '0', 'variasi_dasar': 'P1'}
 
 
-def test_draf_baru_terpisah_dari_muatan_pendamping():
+def test_draf_baru_terpisah_dari_muatan_pendamping(monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     data = {k: [v] for k, v in data_draf().items()}
     data['aksi'] = ['buka']
     target = assistant_inline.tujuan_anak(7, 'latihan')
@@ -30,7 +31,8 @@ def test_draf_variasi_tidak_sah_ditolak(nilai):
         assistant_inline.parse_draf_latihan(data, ['bilangan-dasar'])
 
 
-def test_draf_p1_native_buka_tutup_tanpa_provider_atau_sesi(server):
+def test_draf_p1_native_buka_tutup_tanpa_provider_atau_sesi(server, monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     token = _token_guru(server)
     anak = server.ids_inline[0]
     data = dict(data_draf(), inline_host='anak', inline_host_id=str(anak), inline_posisi='latihan')

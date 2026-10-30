@@ -128,7 +128,8 @@ def _cek_bank(kon, sesi, jumlah, kapasitas):
 @pytest.mark.parametrize("level,kapasitas", (("P1", 45), ("P2", 145)))
 @pytest.mark.parametrize("jumlah", tuple(range(10, 51, 5)))
 @pytest.mark.parametrize("format_jawaban", ("isian", "pilihan_ganda"))
-def test_sesi_manual_dan_bank_deterministik(db, level, kapasitas, jumlah, format_jawaban):
+def test_sesi_manual_dan_bank_deterministik(db, level, kapasitas, jumlah, format_jawaban, monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     siswa = database.tambah_siswa(db, "Sintetis", tingkat="P3", pemilik="guru")
     kwargs = dict(topik=TOPIK, level=level, jumlah_soal=jumlah, format_jawaban=format_jawaban)
     sesi = database.buat_sesi(db, siswa, 7, **kwargs)
@@ -141,6 +142,7 @@ def test_sesi_manual_dan_bank_deterministik(db, level, kapasitas, jumlah, format
 @pytest.mark.parametrize("level", ("P1", "P2"))
 @pytest.mark.parametrize("format_jawaban", ("isian", "pilihan_ganda"))
 def test_seed_baru_dan_gabungan_tunggal(db, monkeypatch, level, format_jawaban):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     import teacher_pages
     siswa = database.tambah_siswa(db, "Sintetis", tingkat="P3", pemilik="guru")
     monkeypatch.setattr(teacher_pages.random, "randint", lambda *a: 77)
@@ -153,7 +155,8 @@ def test_seed_baru_dan_gabungan_tunggal(db, monkeypatch, level, format_jawaban):
 
 
 @pytest.mark.parametrize("level", ("P1", "P2"))
-def test_sesi_urutan_remedial_dan_snapshot_terpilih(db, level):
+def test_sesi_urutan_remedial_dan_snapshot_terpilih(db, level, monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     siswa = database.tambah_siswa(db, "Sintetis", tingkat="P3", pemilik="guru")
     sumber = database.buat_sesi_dari_urutan(db, siswa, 7, (JENIS,) * 30, topik=TOPIK, level=level)
     _cek_bank(db, sumber, 30, 45)

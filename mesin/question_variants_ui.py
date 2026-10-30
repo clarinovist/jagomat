@@ -5,7 +5,8 @@ from functools import lru_cache
 import design_tokens as T
 import topics
 from generator import buat_lembar
-from question_context import label_profil_parameter, validasi_pilihan
+from question_context import (daftar_topik_latihan, label_profil_parameter,
+                              materi_dasar_aktif, pastikan_materi_dibuka, validasi_pilihan)
 from render import _badan_soal
 from template_labels import nama_tipe_soal
 from templates import LEVEL, LEVEL_TINGKAT
@@ -14,6 +15,7 @@ from templates import LEVEL, LEVEL_TINGKAT
 def kontrol_variasi(identitas, terpilih=None, *, ringkas=False):
     """Pilihan native; onboarding memakai summary di dekatnya, bukan tautan ganda."""
     identitas = html.escape(identitas, quote=True)
+    profil_tersedia = LEVEL if materi_dasar_aktif() else LEVEL_TINGKAT
     bantuan = (
         'A–D membedakan isi soal, bukan urutan kemampuan atau kelas anak.'
         if ringkas else
@@ -25,7 +27,7 @@ def kontrol_variasi(identitas, terpilih=None, *, ringkas=False):
         f'aria-describedby="{identitas}-profil-bantuan">'
         '<option value="">Pilih variasi soal</option>'
         + ''.join(f'<option value="{p}"' + (' selected' if p == terpilih else '')
-                  + f'>{label_profil_parameter(p)}</option>' for p in LEVEL)
+                  + f'>{label_profil_parameter(p)}</option>' for p in profil_tersedia)
         + f'</select><small class="profil-petunjuk-st" id="{identitas}-profil-bantuan">'
         + bantuan + '</small></div>'
     )
@@ -151,6 +153,8 @@ def _kartu_isi(profil, topik_ids, identitas, terpilih, *, pemetaan=False,
 
 def pemilih_dasar(topik, terpilih):
     """Dua variasi manual opsional; contoh memakai komposisi nyata topik dasar."""
+    if topik not in daftar_topik_latihan():
+        return ''
     identitas = 'manual-dasar'
     paket = topics.ambil(topik)
     keterangan = paket.keterangan_level or {}
@@ -184,6 +188,7 @@ def pemilih_isi(topik_ids, identitas, terpilih=None):
         )
     if any(topik not in topics.daftar_topik() for topik in topik_ids):
         raise ValueError('Pilih materi latihan sebelum membandingkan isi.')
+    pastikan_materi_dibuka(topik_ids)
     if 'campuran' in topik_ids:
         if topik_ids != ('campuran',):
             raise ValueError('Campuran tidak dapat digabungkan sebagai materi biasa.')
@@ -246,11 +251,10 @@ def pemilih_pemetaan(identitas, terpilih=None):
     )
 
 
-@lru_cache(maxsize=4)
 def panduan_variasi(*, ringkas=False, judul="Bandingkan isi dan contoh soal"):
     """Daftar pola nyata; onboarding menyimpan penjelasan lanjut dalam details."""
     bagian = []
-    for topik in topics.daftar_topik():
+    for topik in daftar_topik_latihan():
         if topik == 'campuran':
             continue
         paket = topics.ambil(topik)

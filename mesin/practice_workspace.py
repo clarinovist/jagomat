@@ -1,9 +1,9 @@
 """Satu form latihan orang tua; mode native tetap bekerja tanpa JavaScript."""
 import html
 
-from topics import TOPIK_BAWAAN, ambil, daftar_topik
+from topics import TOPIK_BAWAAN, ambil
 from template_labels import nama_tipe_soal
-from question_context import profil_otomatis, topik_dasar
+from question_context import daftar_topik_latihan, profil_otomatis, topik_dasar
 from question_variants_ui import pemilih_dasar
 
 MODES = (('manual','Pilih satu topik','Cocok untuk melatih topik tertentu.'),
@@ -32,11 +32,14 @@ def render(kon, siswa, *, mode='manual', draf_latihan=None, draf_gabungan=None,
                           for kode,nama,desk in MODES)
                 + '</div></fieldset><noscript><button class="st-tombol-sekunder" type="submit">Tampilkan mode</button></noscript></form>')
     terakhir = kon.execute('SELECT topik,level FROM sesi WHERE siswa_id=? ORDER BY tanggal DESC,id DESC LIMIT 1', (sid,)).fetchone()
-    topik = draf_latihan.topik if draf_latihan else terakhir['topik'] if terakhir and terakhir['topik'] in daftar_topik() else TOPIK_BAWAAN
-    dasar_ids = [k for k in daftar_topik() if topik_dasar(k)]
+    tersedia = daftar_topik_latihan()
+    topik = draf_latihan.topik if draf_latihan else terakhir['topik'] if terakhir else TOPIK_BAWAAN
+    if topik not in tersedia:
+        topik = TOPIK_BAWAAN
+    dasar_ids = [k for k in tersedia if topik_dasar(k)]
     options = ''.join(f'<option value="{_e(k)}"' + (' selected' if k == topik else '')
                       + (' data-topik-dasar' if k in dasar_ids else '')
-                      + f'>{_e("Campuran semua topik" if k == "campuran" else ambil(k).nama)}</option>' for k in daftar_topik())
+                      + f'>{_e("Campuran semua topik" if k == "campuran" else ambil(k).nama)}</option>' for k in tersedia)
     variasi = ''
     if dasar_ids:
         dasar = topik if topik in dasar_ids else dasar_ids[0]
@@ -66,7 +69,7 @@ def render(kon, siswa, *, mode='manual', draf_latihan=None, draf_gabungan=None,
     gabungan = ('<p>Pilih dua topik atau lebih. Soal akan dicampur bergantian.</p><div class="latihan-topik-grid">'
                 + ''.join(f'<label><input type="checkbox" data-pilih name="topik" value="{_e(k)}"'
                           + (' checked' if k in dipilih else '') + f'> {_e(ambil(k).nama)}</label>'
-                          for k in daftar_topik() if k != 'campuran' and not topik_dasar(k)) + '</div>'
+                          for k in tersedia if k != 'campuran' and not topik_dasar(k)) + '</div>'
                 + jumlah('gabungan',draf_gabungan,'10',(10,15,20))
                 + '<details class="atur-latihan-st profil-lanjutan-st"><summary>Pengaturan lanjutan</summary>'
                 + '<small>Jagomat memilih satu cakupan yang tersedia pada semua topik pilihan.</small>'
@@ -77,6 +80,7 @@ def render(kon, siswa, *, mode='manual', draf_latihan=None, draf_gabungan=None,
                 + '</select></label></details>')
     sasaran = (database.sasaran_remedial_sesi(kon, sid, int(draf_remedial.sumber_sesi_id))
                if draf_remedial and draf_remedial.sumber_sesi_id else database.sasaran_remedial_anak(kon, sid))
+    sasaran = [s for s in sasaran if s['topik'] in tersedia]
     saran = [str(s['template_id']) for s in sasaran if s['direkomendasikan']]
     dicentang = set(draf_remedial.template_id) if draf_remedial else set(saran[:3])
     remedial = ('<p>Yang sudah dicentang adalah saran dari hasil terbaru. Anda bisa mengubahnya. Pilih maksimal 3 tipe soal.</p>'

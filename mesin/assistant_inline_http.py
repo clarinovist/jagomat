@@ -118,11 +118,11 @@ def _pisahkan_draf_inline(data, target):
         if jenis_form:
             raise GalatForm("Identitas form bantuan tidak sah.")
         return data, None, None, None
-    import topics
+    from question_context import daftar_topik_latihan
     if jenis_form == "gabungan":
         nama = {"topik", "jumlah_soal", "mode", "format_jawaban", "profil_parameter"}
         draf = assistant_inline.parse_draf_gabungan(
-            {k: data[k] for k in nama if k in data}, topics.daftar_topik()
+            {k: data[k] for k in nama if k in data}, daftar_topik_latihan()
         )
         return {k: v for k, v in data.items() if k not in nama}, None, draf, None
     if jenis_form == "remedial":
@@ -141,7 +141,8 @@ def _pisahkan_draf_inline(data, target):
                 kandidat = database.sasaran_remedial_sesi(kon_data, target.host_id, sumber_id)
             else:
                 kandidat = database.sasaran_remedial_anak(kon_data, target.host_id)
-            remedial_sah = tuple(str(k["template_id"]) for k in kandidat)
+            remedial_sah = tuple(str(k["template_id"]) for k in kandidat
+                                 if k["topik"] in daftar_topik_latihan())
         nama = {"template_id", "jumlah_soal", "sumber_sesi_id"}
         draf = assistant_inline.parse_draf_remedial(
             {k: data[k] for k in nama if k in data}, remedial_sah
@@ -153,7 +154,7 @@ def _pisahkan_draf_inline(data, target):
     nama = nama_sah & set(data)
     if not (nama - {"mode"}):
         return data, None, None, None
-    draf = assistant_inline.parse_draf_latihan({k: data[k] for k in nama}, topics.daftar_topik())
+    draf = assistant_inline.parse_draf_latihan({k: data[k] for k in nama}, daftar_topik_latihan())
     return {k: v for k, v in data.items() if k not in nama}, draf, None, None
 
 def _dalam_form_inline(target, draf, draf_gabungan=None, draf_remedial=None) -> bool:

@@ -235,8 +235,9 @@ def test_butir_dari_sesi_lain_anak_yang_sama_ditolak_tanpa_efek(db):
         assert tuple(kon.iterdump()) == sebelum
 
 
-def test_orchestrasi_lintas_topik_level_dan_seed(db):
+def test_orchestrasi_lintas_topik_level_dan_seed(db, monkeypatch):
     """Paket lama memilih template nyata; sesi dasar tidak melewati guard selevel."""
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     kombinasi = []
     for topik_id in topics.daftar_topik():
         if topik_id == "campuran":

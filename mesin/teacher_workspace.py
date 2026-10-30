@@ -11,7 +11,7 @@ import profile_history
 import profile_workspace
 import share_links
 from generator import LEVEL_BAWAAN
-from question_context import label_profil_parameter as label_kelas
+from question_context import daftar_topik_latihan, label_profil_parameter as label_kelas
 from template_labels import nama_tipe_soal as _nama_template
 from templates import LEVEL
 from topics import TOPIK_BAWAAN, ambil, daftar_topik
@@ -42,6 +42,9 @@ def _form_remedial(
     bantuan: str = "",
 ) -> str:
     """Form pilihan remedial bersama untuk profil anak dan hasil satu sesi."""
+    ditutup = set(daftar_topik()) - set(daftar_topik_latihan())
+    from topics import pemilik_template
+    sasaran = [s for s in sasaran if pemilik_template(s["template_id"]) not in ditutup]
     if not sasaran:
         return ""
     pilihan = []
@@ -175,7 +178,7 @@ def _topik_untuk_level(level: str) -> list[str]:
     level_efektif = level if level in LEVEL else LEVEL_BAWAAN
     daftar = [
         topik_id
-        for topik_id in daftar_topik()
+        for topik_id in daftar_topik_latihan()
         if level_efektif in ambil(topik_id).komposisi and topik_id != "campuran"
     ]
     if ("campuran" in daftar_topik()

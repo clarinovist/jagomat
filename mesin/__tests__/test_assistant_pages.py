@@ -76,7 +76,8 @@ def usulan(**kw):
 @pytest.fixture
 def proyeksi(monkeypatch):
     """Stub kontrak helper: unit renderer tidak mengulang logika/query helper."""
-    modul = NS(label_chat=lambda c: "LABEL RESMI " + c.id,
+    modul = NS(usulan_boleh_ditawarkan=lambda payload: True,
+               label_chat=lambda c: "LABEL RESMI " + c.id,
                ringkasan_usulan=lambda payload: dict(topik="Pola Bilangan", level="P3",
                     jumlah=10, materi=(("Pola bilangan", 10, "deret_aritmetika"),)))
     monkeypatch.setitem(sys.modules, "assistant_view", modul)

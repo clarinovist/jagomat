@@ -193,7 +193,7 @@ def ringkasan_usulan(payload_json: str) -> dict:
         raise ValueError("Isi usulan tidak sah.")
     try:
         data = json.loads(payload_json, object_pairs_hook=_objek_unik)
-        usulan = assistant_actions.validasi_usulan(data)
+        usulan = assistant_actions.validasi_usulan(data, untuk_penawaran=False)
     except (ValueError, RecursionError):
         raise ValueError("Isi usulan tidak sah.") from None
     dasar, sisa = divmod(usulan.jumlah_soal, len(usulan.template_ids))
@@ -208,6 +208,15 @@ def ringkasan_usulan(payload_json: str) -> dict:
         "level": usulan.level, "jumlah": usulan.jumlah_soal,
         "materi": tuple(materi),
     }
+
+
+def usulan_boleh_ditawarkan(payload_json: str) -> bool:
+    """Sembunyikan aksi usulan tertutup, tanpa menghilangkan ringkasan histori."""
+    try:
+        assistant_actions.validasi_usulan(json.loads(payload_json, object_pairs_hook=_objek_unik))
+    except (ValueError, TypeError, RecursionError):
+        return False
+    return True
 
 
 def hak_baca_chat(kon_priv, account_id: str, chat, *, pemilik: str) -> bool:

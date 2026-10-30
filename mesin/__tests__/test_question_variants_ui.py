@@ -99,7 +99,8 @@ def test_contoh_tepat_paket_profil_deterministik_dan_hanya_soal(topik):
         assert 'data-kunci' not in badan and 'malrule' not in badan and 'diagnosis' not in badan
 
 
-def test_panduan_mencakup_registry_tanpa_klaim_jenjang():
+def test_panduan_mencakup_registry_tanpa_klaim_jenjang(monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     from question_variants_ui import panduan_variasi
     from template_labels import nama_tipe_soal
     import html

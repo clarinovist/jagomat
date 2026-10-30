@@ -4,6 +4,7 @@ P3–P6 tetap identitas parameter historis. Konteks yang berbeda tidak menyataka
 urutan kesulitan atau kesetaraan bukti; penetapan tuntutan memerlukan rubrik terpisah.
 """
 from dataclasses import dataclass
+import os
 from typing import Tuple
 
 import topics
@@ -63,6 +64,26 @@ def topik_dasar(topik_id: str) -> bool:
         return False
     komposisi = topics.ambil(topik_id).komposisi
     return bool(komposisi) and not set(komposisi).intersection(LEVEL_TINGKAT)
+
+
+def materi_dasar_aktif() -> bool:
+    """Aktivasi bukan pengesahan isi; default 0 sampai review guru dan pasangan recovery baru."""
+    nilai = os.environ.get('OSN_MATERI_DASAR', '0').strip()
+    if nilai not in ('0', '1'):
+        raise ValueError('OSN_MATERI_DASAR hanya menerima 0 atau 1')
+    return nilai == '1'
+
+
+def daftar_topik_latihan():
+    """Topik yang boleh ditawarkan; registri pembaca histori tidak disaring."""
+    aktif = materi_dasar_aktif()
+    return [t for t in topics.daftar_topik() if aktif or not topik_dasar(t)]
+
+
+def pastikan_materi_dibuka(topik_ids) -> None:
+    """Palang pembuat sebelum generator/writer, bukan validasi pembaca konteks."""
+    if not materi_dasar_aktif() and any(topik_dasar(t) for t in topik_ids):
+        raise ValueError('Materi ini belum dibuka.')
 
 
 def profil_otomatis(topik_ids, profil_acuan: str = 'P3') -> str:

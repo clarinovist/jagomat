@@ -194,6 +194,9 @@ Empat turunan rehearsal dibersihkan, probe container0. Backup induk/receipt priv
 ID `deploy-ui-consistency-20261024` dipertahankan. Bukti rilis ignored di
 `docs/plan/deploy-ui-consistency-20261024/`; bukti UI sintetis dipertahankan terpisah.
 
+**`OSN_MATERI_DASAR` tetap nonaktif (bawaan `0`).** Aktivasi perlu review guru,
+pasangan recovery yang mengenali topik dasar, dan izin rilis; sakelar tidak menutup pembacaan sesi dasar yang sudah ada.
+
 ## Deploy fondasi katalog lanjutan nonaktif — 24 Oktober 2026
 
 Controlled `deploy-v2` memasang **c335ce5c4ffc2297321badf0218ec5e3a8a2cd70**;

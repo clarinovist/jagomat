@@ -50,6 +50,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `LEVEL_TINGKAT` untuk UI/server; radio manual `variasi_dasar` ditampilkan dengan CSS
   `:has()` (fallback tetap terlihat), terpisah dari payload warisan `profil_parameter`.
   Metadata opsional `Topik.keterangan_level` menjelaskan rentang kartu tanpa mengubah generator.
+  `question_context.materi_dasar_aktif()` membaca `OSN_MATERI_DASAR` ketat 0/1 (default0):
+  penawaran UI/AI dan pembuat sesi dikunci, registri/generator serta pembaca histori tetap utuh.
 - Stdlib runtime; dev dependency hanya pytest/pytest-xdist. Python lokal3.9.6 dan
   CI/container3.12. Nama modul Inggris; fungsi/docstring/UI/commit Bahasa Indonesia.
 - Zero-JS default. Enhancement yang disetujui berhash CSP dan fallback native;

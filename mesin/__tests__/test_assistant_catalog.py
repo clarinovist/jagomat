@@ -29,7 +29,8 @@ def _topik_asli():
     )
 
 
-def test_katalog_mencakup_registry_dengan_satu_pemilik_asli():
+def test_katalog_mencakup_registry_dengan_satu_pemilik_asli(monkeypatch):
+    monkeypatch.setenv('OSN_MATERI_DASAR', '1')
     katalog = assistant_catalog.buat_katalog()
     registry = topics.registri()
 
