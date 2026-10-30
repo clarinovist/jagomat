@@ -10,7 +10,9 @@ from topics import paket_untuk_template
 TERTANAM = frozenset({'benar_salah_pengandaian', 'jaring_jaring'})
 TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   'susun_bilangan_syarat', 'unsur_bangun', 'luas_permukaan',
-                  'luas_arsiran', 'jam_selesai'})
+                  'luas_arsiran', 'jam_selesai',
+                  # Dua pengecoh selalu sah; collision tidak diisi angka rekaan.
+                  'tambah_dasar'})
 
 
 def kebijakan_soal(soal):

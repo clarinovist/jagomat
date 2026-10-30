@@ -3,6 +3,8 @@
 Baseline sintetis: SHA a96a7e16c0c427f20c014339ced46b3c4b939055, Python 3.9.6,
 writer matematika v2, seed soal 0..299 dan lembar 0..99. Batch 1 menambah
 8 pasangan terpilih tanpa menurunkan lantai lama; komposisi P4/P5 diperketat.
+Bilangan-dasar (30 Okt 2026): tambah_dasar P1/P2 hitung murni; seed 0..299
+menghasilkan 45/133 tanda tangan, dari domain eksplisit 45/145 pasangan.
 Angka batch diukur lewat ukur_batch_fase3.py (artefak lokal). Tidak membutuhkan
 artefak docs/plan yang di-ignore. Kebenaran kunci/malrule tetap solver domain.
 G1 numerik ada di test_question_position; registry di sini menolak kelompok
@@ -28,6 +30,7 @@ from test_question_position import (
 # topik template level:bentuk:tanda_tangan:varian (nilai per level, bukan gabungan).
 # Lantai = observasi seed tetap, bukan target kualitas atau ukuran seluruh support.
 _DATA = """
+bilangan-dasar tambah_dasar P1:1:45:- P2:1:133:-
 aritmatika-lanjut debit P5:3:285:cari_debit,cari_volume,cari_waktu P6:3:285:cari_debit,cari_volume,cari_waktu
 aritmatika-lanjut kecepatan_jarak_waktu P5:3:280:cari_s,cari_t,cari_v P6:3:280:cari_s,cari_t,cari_v
 aritmatika-lanjut kerja_bersama P5:5:227:- P6:5:227:-
@@ -129,6 +132,8 @@ teori-bilangan jumlah_kelipatan P4:1:279:- P5:1:294:-
 
 # topik level panjang_bawaan jenis_minimum. Tidak mengubah komposisi yang disetujui.
 _LEMBAR = """
+bilangan-dasar P1 10 1
+bilangan-dasar P2 10 1
 aritmatika-lanjut P5 10 7
 aritmatika-lanjut P6 10 10
 aritmetika-dasar P5 10 7
@@ -163,6 +168,7 @@ teori-bilangan P6 10 7
 # Keputusan existing README dan test_latar_teori_bilangan; bukan izin baru
 # untuk menyebut semua satu-bentuk sah. Lantai numerik tetap dijaga per level.
 HITUNG_MURNI = frozenset({
+    "tambah_dasar",  # Penjumlahan teks saja, keputusan pengguna 30 Okt 2026.
     "fpb_dua_bilangan", "operasi_berkurung", "pecahan_kali_bagi",
     "pecahan_operasi_campuran", "urut_pecahan_desimal_persen", "urutan_operasi_1",
     "keterbagian", "sisa_pembagian", "paritas", "prima_faktorisasi",
@@ -173,6 +179,7 @@ HITUNG_MURNI = frozenset({
 # Semua nama lain memakai lantai provisional, bukan otomatis UTANG_BENTUK.
 # Keputusan pemilik untuk klasifikasi tambahan/target baru tetap diperlukan.
 ALASAN_RUANG = {
+    "tambah_dasar": "Domain sah P1=45/P2=145; >=90% dalam 500 seed diuji enumerator, bukan variasi nama/benda.",
     "titik_segitiga": "Batas gambar per level terdokumentasi; jangan perlebar demi hitungan.",
     "deret_geometri": "Rasio/awal dan plafon nilai membatasi support; README.",
     "deret_terbalik_geometri": "Posisi dan plafon 4000 membatasi awal; README.",
@@ -184,7 +191,11 @@ ALASAN_RUANG = {
     "siklus_hari": "Tujuh hari dikali pool 6/7 jarak hari; support 42/49.",
     "jumlah_deret": "P6 awal 1..9 x empat beda x empat panjang; 119 sampel dari support 144.",
 }
-UTANG_LEMBAR = {}  # Batch 1 menghapus utang P4: konsentrasi 4,0 → 2,0.
+# Utang lama P4 tetap lunas. Pengecualian baru hanya topik manual P1/P2.
+UTANG_LEMBAR = {
+    ("bilangan-dasar", "P1"): (10.0, "batch 1 bertahap; jenis lain menyusul"),
+    ("bilangan-dasar", "P2"): (10.0, "batch 1 bertahap; jenis lain menyusul"),
+}
 POLA_ANGKA = re.compile(r"\d+(?:[.,]\d+)?")
 
 

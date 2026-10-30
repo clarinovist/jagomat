@@ -41,13 +41,17 @@ def test_guard_tingkat_semantik_tuple(nilai):
 
 
 @pytest.mark.parametrize('profil', DASAR)
-def test_bentuk_latihan_dasar_diterima_tanpa_mengarang_konten(profil):
+def test_bentuk_latihan_dasar_hanya_untuk_konten_yang_disetujui(profil):
     assert templates.level_valid(profil)
     assert konteks.profil_dari_form({'profil_parameter': [profil]}) == profil
     for topik in topics.daftar_topik():
-        assert profil not in topics.ambil(topik).komposisi
-        with pytest.raises(ValueError, match='Materi tidak tersedia'):
+        if topik == 'bilangan-dasar':
+            assert profil in topics.ambil(topik).komposisi
             konteks.validasi_pilihan([topik], profil)
+        else:
+            assert profil not in topics.ambil(topik).komposisi
+            with pytest.raises(ValueError, match='Materi tidak tersedia'):
+                konteks.validasi_pilihan([topik], profil)
 
 
 @pytest.mark.parametrize('profil,label', [('P1', 'Variasi Dasar 1'), ('P2', 'Variasi Dasar 2')])
@@ -115,6 +119,11 @@ def test_level_terdekat_topik_dasar_memilih_level_sesi(topik_dasar_sintetis, acu
 @pytest.mark.parametrize('topik', topics.daftar_topik())
 def test_pemilih_level_sesi_topik_nyata_tetap_seperti_d0(topik, acuan):
     import session_store
+    if topik == 'bilangan-dasar':
+        assert set(topics.ambil(topik).komposisi) == set(DASAR)
+        assert konteks.profil_otomatis([topik], acuan) == 'P2'
+        assert session_store._level_terdekat(acuan, DASAR) == 'P2'
+        return
     tersedia = [p for p in TINGKAT if p in topics.ambil(topik).komposisi]
     assert tersedia
     asal = acuan if acuan in TINGKAT else 'P3'

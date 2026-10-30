@@ -5,6 +5,12 @@ ditemukan saat diskusi seed: pecahan_operasi_campuran memilih dari 2
 kombinasi per level — dua anak beda seed bisa dapat soal pecahan
 identik). Paket baru WAJIB rentang parameter lebar.
 
+Pengecualian sempit: keputusan pengguna 30 Okt 2026 untuk bilangan-dasar
+P1/P2 membatasi hasil sampai 20. Domain sah memang kecil (45/145 pasangan),
+bukan sampler hardcoded; jangan memperlebar angka atau variasi nama/benda.
+Tiap (template, level) wajib >=ceil(90% domain enumerator) dalam 500 seed,
+dan seluruh sampel wajib anggota domain. Topik lain tetap >=200.
+
 Kontrak yang diuji:
   - tiap (template, level) di paket BARU (di luar 19 template asli)
     punya >= 200 kombinasi parameter unik dari 500 seed;
@@ -15,6 +21,7 @@ Kontrak yang diuji:
 from __future__ import annotations
 
 import sys
+from math import ceil
 from pathlib import Path
 
 import pytest
@@ -105,7 +112,14 @@ def test_template_baru_punya_cukup_kombinasi():
     """
     for topik_id, level, template_id in _pasangan_pakai():
         unik = _kombinasi_unik(topik_id, level, template_id)
-        batas = BATAS_UNIK_BARU if template_id not in _TEMPLATE_BAWAAN else BATAS_UNIK_LAMA
+        if topik_id == "bilangan-dasar":
+            from topic_basic_numbers import domain_parameter
+            domain = {_canonical(p) for p in domain_parameter(template_id, level)}
+            assert domain, (topik_id, template_id, level)
+            assert unik <= domain, ("sampler keluar domain", topik_id, level, unik - domain)
+            batas = ceil(0.9 * len(domain))
+        else:
+            batas = BATAS_UNIK_BARU if template_id not in _TEMPLATE_BAWAAN else BATAS_UNIK_LAMA
         assert len(unik) >= batas, (
             f"{topik_id}/{template_id}@{level}: "
             f"cuma {len(unik)} kombinasi unik (batas {batas})"

@@ -20,6 +20,9 @@ from templates import LEVEL, LEVEL_BAWAAN, Soal
 from topics import TOPIK_BAWAAN, Topik, ambil
 
 
+_BATAS_UNDI_UNIK = 40
+
+
 def profil(level: str) -> dict:
     """Batas angka untuk satu level — milik paket topik sejak Fase A.
 
@@ -112,8 +115,52 @@ def buat_lembar(
             base.extend(urutan)
         urutan = tuple(base[:jumlah_soal])
     urutan = _acak_urutan(urutan, rng)
-    soal = tuple(_soal_layak(paket, t, rng, level_efektif) for t in urutan)
+    if paket.unik_per_lembar:
+        soal = _soal_unik_per_lembar(paket, urutan, rng, level_efektif)
+    else:
+        # Jalur historis persis: tanpa enumerasi atau undian tambahan.
+        soal = tuple(_soal_layak(paket, t, rng, level_efektif) for t in urutan)
     return Lembar(seed=seed, soal=soal, level=level_efektif)
+
+
+def _soal_unik_per_lembar(paket, urutan, rng, level):
+    """Undi ulang slot kembar; ulang boleh hanya setelah domain sah habis.
+
+    Domain lokal per template, tanpa mengubah parameter atau state paket.
+    Batas retry bukan bukti domain habis: jika RNG terus memilih duplikat,
+    pilih sisa enumerator dalam urutan stabil memakai RNG yang sama.
+    """
+    if paket.domain_parameter is None:
+        raise ValueError("topik unik_per_lembar memerlukan enumerator domain")
+    domain_per_template = {}
+    dipakai_per_template = {}
+    hasil = []
+    for tid in urutan:
+        if tid not in domain_per_template:
+            parameter = paket.domain_parameter(tid, level)
+            if not parameter:
+                raise ValueError(f"{tid}: domain parameter kosong")
+            calon = (replace(paket.templates[tid](**p), level=level) for p in parameter)
+            domain = {s.tanda_tangan: s for s in calon if s.malrule}
+            if not domain:
+                raise RuntimeError(f"{tid}: domain tanpa malrule yang sah")
+            domain_per_template[tid] = domain
+            dipakai_per_template[tid] = set()
+        domain = domain_per_template[tid]
+        dipakai = dipakai_per_template[tid]
+        habis = len(dipakai) == len(domain)
+        for _ in range(_BATAS_UNDI_UNIK):
+            soal = _soal_layak(paket, tid, rng, level)
+            if soal.tanda_tangan not in domain:
+                raise ValueError(f"{tid}: sampler keluar domain")
+            if habis or soal.tanda_tangan not in dipakai:
+                break
+        else:
+            sisa = tuple(s for tanda, s in domain.items() if tanda not in dipakai)
+            soal = rng.choice(sisa)
+        dipakai.add(soal.tanda_tangan)
+        hasil.append(soal)
+    return tuple(hasil)
 
 
 def _soal_layak(

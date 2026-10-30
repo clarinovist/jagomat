@@ -39,7 +39,13 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `siswa.tingkat` dan siklus P3–P6 (kosong tetap sah saat onboarding).
   `skill_pilot.LEVEL_PILOT` membatasi konten pilot P3–P6. `context_migration.py`
   memperluas CHECK konteks lama saat startup lewat rebuild transaksional dengan
-  verifikasi jumlah/SHA-256 baris; DDL baru menerima P1/P2. Konten dasar tetap terpisah.
+  verifikasi jumlah/SHA-256 baris; DDL baru menerima P1/P2. `topic_basic_numbers.py`
+  memuat `tambah_dasar` manual P1/P2 terpisah: domain eksplisit 45/145 pasangan,
+  cakupan ≥90% dalam 500 seed; PG tiga opsi, tanpa marker koreksi histori atau
+  target mastery. Opt-in `Topik.unik_per_lembar` + enumerator domain menjaga soal
+  tidak kembar; retry terbatas memilih sisa domain, pengulangan boleh setelah habis.
+  Flag mati mempertahankan RNG lama. Campuran tetap P3–P6; lembar 10 soal satu jenis
+  berutang variasi.
 - Stdlib runtime; dev dependency hanya pytest/pytest-xdist. Python lokal3.9.6 dan
   CI/container3.12. Nama modul Inggris; fungsi/docstring/UI/commit Bahasa Indonesia.
 - Zero-JS default. Enhancement yang disetujui berhash CSP dan fallback native;

@@ -52,6 +52,11 @@ class Topik:
     # Inventaris historis tetap di komposisi. Override ini hanya untuk writer
     # default; reader konteks/laporan tidak boleh menyusut saat recovery.
     komposisi_writer: dict[str, tuple[str, ...]] | None = None
+    # Domain kecil perlu undian tanpa soal kembar dalam lembar. Opt-in agar
+    # urutan RNG dan identitas topik lama tidak berubah. Enumerator membedakan
+    # domain benar-benar habis dari sampler yang kebetulan mengulang terus.
+    unik_per_lembar: bool = False
+    domain_parameter: Callable[[str, str], tuple[dict, ...]] | None = None
 
     def komposisi_untuk(self, level: str) -> tuple[str, ...]:
         """Urutan template untuk satu lembar di level itu.
@@ -112,6 +117,7 @@ def _pastikan_dimuat() -> None:
     import topic_statistics  # noqa: F401  (mendaftarkan diri saat impor)
     import topic_logic  # noqa: F401  (mendaftarkan diri saat impor)
     import topic_measurement  # noqa: F401  (mendaftarkan diri saat impor)
+    import topic_basic_numbers  # noqa: F401  (mendaftarkan diri saat impor)
 
     if not PAKET:
         raise RuntimeError("paket topik dimuat tapi tidak mendaftarkan diri")
@@ -123,9 +129,12 @@ def _pastikan_dimuat() -> None:
 def _daftarkan_campuran() -> None:
     if "campuran" in PAKET:
         return
+    # Topik manual P1/P2 bukan materi simulasi ujian, termasuk registrinya.
+    paket_ujian = [t for t in PAKET.values()
+                   if any(lv in t.komposisi for lv in LEVEL_TINGKAT)]
     gabungan_templates = {}
     pemilik_param = {}
-    for t in list(PAKET.values()):
+    for t in paket_ujian:
         for tid, fn in t.templates.items():
             gabungan_templates[tid] = fn
         if t.parameter_untuk:
@@ -141,7 +150,7 @@ def _daftarkan_campuran() -> None:
     writer_campuran = {}
     # Campuran simulasi ujian tetap P3–P6; P1/P2 dipilih per materi manual.
     for lvl in LEVEL_TINGKAT:
-        topik_level = [t for t in PAKET.values() if lvl in t.komposisi and t.id != "campuran"]
+        topik_level = [t for t in paket_ujian if lvl in t.komposisi]
         urutan_gabungan = []
         max_len = max((len(t.komposisi[lvl]) for t in topik_level), default=0)
         for idx in range(max_len):
@@ -163,9 +172,7 @@ def _daftarkan_campuran() -> None:
         komposisi=komposisi_campuran,
         komposisi_writer=writer_campuran,
         profil={"P3": {}, "P4": {}, "P5": {}, "P6": {}},
-        render_badan=_render_gabungan(
-            [t for t in PAKET.values() if t.id != "campuran"]
-        ),
+        render_badan=_render_gabungan(paket_ujian),
         parameter_untuk=parameter_campuran,
     )
     PAKET["campuran"] = topik_campuran

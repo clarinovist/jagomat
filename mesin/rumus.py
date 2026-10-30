@@ -41,6 +41,11 @@ class Kartu:
 # Kartu per KONSEP. Bahasa sengaja bahasa anak SD: rumus ditulis dengan
 # kata, bukan notasi aljabar, dan selalu disertai satu contoh berangka.
 KARTU: dict[str, Kartu] = {
+    "tambah_dasar": Kartu(
+        judul="Menjumlah sampai 20",
+        inti="Hitung maju dari bilangan yang lebih besar. Bila lewat 10, lengkapi ke 10 dulu.",
+        contoh="8 + 5 = 8 + 2 + 3 = 13",
+    ),
     "kelipatan_rentang": Kartu(
         judul="Menghitung kelipatan dalam rentang",
         inti="Hitung kelipatan sampai batas akhir, lalu kurangi kelipatan sebelum batas awal. Kedua batas ikut dihitung.",
@@ -405,6 +410,7 @@ KARTU: dict[str, Kartu] = {
 # pas lebih baik tidak menampilkan apa pun. Guard test menjaga setiap nilai
 # di sini menunjuk konsep yang ADA di KARTU dan kunci yang ADA di REGISTRI.
 KONSEP_TEMPLATE: dict[str, str] = {
+    "tambah_dasar": "tambah_dasar",
     # statistika
     "rata_rata": "rata_rata",
     "rata_rata_gabungan": "rata_rata",

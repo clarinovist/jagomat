@@ -236,7 +236,7 @@ def test_butir_dari_sesi_lain_anak_yang_sama_ditolak_tanpa_efek(db):
 
 
 def test_orchestrasi_lintas_topik_level_dan_seed(db):
-    """Semua paket/level memilih template nyata tanpa mengubah generator."""
+    """Paket lama memilih template nyata; sesi dasar tidak melewati guard selevel."""
     kombinasi = []
     for topik_id in topics.daftar_topik():
         if topik_id == "campuran":
@@ -247,8 +247,10 @@ def test_orchestrasi_lintas_topik_level_dan_seed(db):
                 kombinasi.append((topik_id, level, urutan[0]))
     with database.buka(db) as kon:
         for indeks, (topik_id, level, template_id) in enumerate(kombinasi):
+            # P1/P2 adalah profil sesi manual, bukan nilai siswa.tingkat.
+            tingkat = "P3" if topik_id == "bilangan-dasar" else level
             siswa = database.tambah_siswa(
-                kon, f"Sapuan-{indeks}", tingkat=level, pemilik="guru"
+                kon, f"Sapuan-{indeks}", tingkat=tingkat, pemilik="guru"
             )
             sumber = database.buat_sesi_dari_urutan(
                 kon, siswa, 60_000 + indeks, (template_id,),
@@ -263,6 +265,17 @@ def test_orchestrasi_lintas_topik_level_dan_seed(db):
                 kon, jid, False, "T", "T", alasan="Data sintetis"
             )
             database.tandai_selesai(kon, sumber)
+            if topik_id == "bilangan-dasar":
+                # Jalur ini masih mensyaratkan level sesi == tingkat siswa.
+                # T1 tidak memperluas latihan serupa dari hasil T ke P1/P2.
+                sebelum = tuple(kon.iterdump())
+                assert similar_practice.kandidat_sesi(kon, sumber) == []
+                with pytest.raises(similar_practice.LatihanSerupaTidakTersedia):
+                    similar_practice.buat_dari_hasil_t(
+                        kon, sumber, int(item["sesi_soal_id"]), seed=70_000 + indeks,
+                    )
+                assert tuple(kon.iterdump()) == sebelum
+                continue
             sumber_sig = kon.execute(
                 "SELECT tanda_tangan FROM soal WHERE id = ?", (item["soal_id"],)
             ).fetchone()[0]
