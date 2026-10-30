@@ -35,6 +35,8 @@ HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 # parameter, komposisi lembar). Ditulis sekali di sini supaya menambah level
 # tidak berarti berburu string "P3" di seluruh berkas.
 LEVEL = ("P3", "P4", "P5", "P6")
+# Cadangan teks level lama/tak dikenal, sengaja tidak mengikuti urutan LEVEL.
+LEVEL_BAWAAN = "P3"
 
 
 def level_valid(level: str) -> bool:

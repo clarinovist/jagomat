@@ -397,13 +397,13 @@ def _level_terdekat(level: str, tersedia) -> str:
     Seri (mis. P4 antara P3 dan P5) diputus ke bawah: lebih baik sedikit
     terlalu mudah daripada terlalu sulit untuk latihan ulang.
     """
-    from templates import LEVEL
+    from templates import LEVEL, LEVEL_BAWAAN
 
     urut = [lv for lv in LEVEL if lv in tersedia]
     if not urut:
         return level
     if level not in LEVEL:
-        return urut[0]
+        level = LEVEL_BAWAAN
     posisi = LEVEL.index(level)
     return min(urut, key=lambda lv: (abs(LEVEL.index(lv) - posisi),
                                      LEVEL.index(lv)))

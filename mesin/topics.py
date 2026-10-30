@@ -27,7 +27,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from templates import LEVEL, Soal
+from templates import LEVEL, LEVEL_BAWAAN, Soal
 
 TOPIK_BAWAAN = "pola-bilangan"
 
@@ -63,14 +63,14 @@ class Topik:
         mereka miliki.
         """
         sumber = self.komposisi if self.komposisi_writer is None else self.komposisi_writer
-        bawaan = sumber.get(LEVEL[0], next(iter(sumber.values())))
+        bawaan = sumber.get(LEVEL_BAWAAN, next(iter(sumber.values())))
         return sumber.get(level, bawaan)
 
     def profil_untuk(self, level: str) -> dict[str, Any]:
         """Batas angka untuk level itu; tak dikenal jatuh ke P3 —
         kontrak lama `generator.profil`, dengan alasan yang sama. Paket yang
         mulai di level lebih tinggi jatuh ke profil pertama yang tersedia."""
-        bawaan = self.profil.get(LEVEL[0], next(iter(self.profil.values())))
+        bawaan = self.profil.get(LEVEL_BAWAAN, next(iter(self.profil.values())))
         return dict(self.profil.get(level, bawaan))
 
     def susun_lembar(self, level: str) -> tuple[str, ...]:

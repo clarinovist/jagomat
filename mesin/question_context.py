@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Tuple
 
 import topics
-from templates import LEVEL
+from templates import LEVEL, LEVEL_BAWAAN
 
 
 @dataclass(frozen=True)
@@ -74,7 +74,7 @@ def profil_otomatis(topik_ids, profil_acuan: str = 'P3') -> str:
     )
     if not tersedia:
         raise ValueError('Materi yang dipilih belum memiliki profil soal bersama.')
-    acuan = profil_acuan if profil_acuan in LEVEL else LEVEL[0]
+    acuan = profil_acuan if profil_acuan in LEVEL else LEVEL_BAWAAN
     posisi = LEVEL.index(acuan)
     return min(
         tersedia,

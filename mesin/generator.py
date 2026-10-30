@@ -16,10 +16,8 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass, replace
 
-from templates import LEVEL, Soal
+from templates import LEVEL, LEVEL_BAWAAN, Soal
 from topics import TOPIK_BAWAAN, Topik, ambil
-
-LEVEL_BAWAAN = "P3"
 
 
 def profil(level: str) -> dict:
