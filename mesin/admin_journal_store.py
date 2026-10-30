@@ -129,7 +129,9 @@ def _validasi_nilai_audit(field_kode: str, nilai: str) -> None:
     if field_kode == "auth_revision":
         sah = nilai.isdigit() and 0 <= int(nilai) <= 2_147_483_647
     elif field_kode == "student_level":
-        sah = nilai in ("P3", "P4", "P5", "P6")
+        from templates import LEVEL
+
+        sah = nilai in LEVEL
     elif field_kode == 'student_school_grade':
         sah = nilai in ('', '1', '2', '3', '4', '5', '6')
     elif field_kode == "registration_open":

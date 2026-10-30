@@ -209,6 +209,8 @@ class PerintahSiswa:
         return 0
 
     def __post_init__(self):
+        from templates import LEVEL
+
         validasi_id(self.operasi_id, "operasi_id")
         validasi_id(self.actor_id, "actor_id")
         validasi_revisi(self.actor_revisi, "actor_revisi")
@@ -216,9 +218,9 @@ class PerintahSiswa:
             raise KontrakTidakSah("aksi siswa tidak diizinkan")
         if type(self.siswa_id) is not int or self.siswa_id <= 0:
             raise KontrakTidakSah("siswa_id tidak sah")
-        if self.expected_level not in ("P3", "P4", "P5", "P6"):
+        if self.expected_level not in LEVEL:
             raise KontrakTidakSah("level awal tidak sah")
-        if self.level_baru not in ("P3", "P4", "P5", "P6"):
+        if self.level_baru not in LEVEL:
             raise KontrakTidakSah("level baru tidak sah")
         if (
             type(self.token_tinjauan) is not str
@@ -292,6 +294,8 @@ class PerintahHapusSiswa:
         return 0
 
     def __post_init__(self):
+        from templates import LEVEL
+
         validasi_id(self.operasi_id, "operasi_id")
         validasi_id(self.actor_id, "actor_id")
         validasi_revisi(self.actor_revisi, "actor_revisi")
@@ -299,7 +303,7 @@ class PerintahHapusSiswa:
             raise KontrakTidakSah("aksi hapus siswa tidak sah")
         if type(self.siswa_id) is not int or self.siswa_id <= 0:
             raise KontrakTidakSah("siswa_id tidak sah")
-        if self.expected_level not in ("P3", "P4", "P5", "P6"):
+        if self.expected_level not in LEVEL:
             raise KontrakTidakSah("level awal tidak sah")
         if (self.login_id is None) != (self.login_revisi is None):
             raise KontrakTidakSah("ID/revisi login harus berpasangan")

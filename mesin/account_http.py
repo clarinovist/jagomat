@@ -6,6 +6,7 @@ import urllib.parse
 import database
 import sessions
 from support_pages import halaman_pesan as _halaman
+from templates import LEVEL
 
 
 def _kirim_akun(penangan, isi, kode=200):
@@ -238,7 +239,7 @@ def tangani_post(
             if (
                 "tingkat" in data
                 or "level" in data
-                or profil_lama not in ("", "P3", "P4", "P5", "P6")
+                or profil_lama not in ("",) + LEVEL
             ):
                 penangan._kirim(
                     _halaman(

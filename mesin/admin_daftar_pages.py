@@ -12,6 +12,7 @@ import admin_queries as Q
 from admin_komponen import badge_status, e, hidden_filter, kepala_cari, opsi, pager, waktu
 from admin_labels import LABEL_STATUS, label_status
 from learning_profile import label_kelas_sekolah
+from templates import LEVEL
 
 LABEL_KATEGORI = {
     "orang_tua": "Orang Tua",
@@ -240,7 +241,7 @@ def render_siswa(
         '<label>Kondisi lainnya<select name="status">%s%s</select></label>'
         % (
             opsi("", "Semua profil", data.tingkat),
-            "".join(opsi(level, level, data.tingkat) for level in ("P3", "P4", "P5", "P6")),
+            "".join(opsi(level, level, data.tingkat) for level in LEVEL),
             opsi_keluarga,
             pilihan_pertama,
             "".join(opsi(kode, LABEL_STATUS[kode], data.status) for kode in KONDISI_LAINNYA_SISWA),

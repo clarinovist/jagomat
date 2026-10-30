@@ -11,6 +11,8 @@ import re
 from typing import Mapping, Optional, Sequence, Tuple
 from urllib.parse import urlencode
 
+from templates import LEVEL
+
 
 _MAKS_ID = 2 ** 63 - 1
 _POLA_ID = re.compile(r"[1-9][0-9]{0,18}\Z")
@@ -202,7 +204,7 @@ def parse_draf_latihan(data: Mapping[str, Sequence[str]], topik_sah: Sequence[st
         or not re.fullmatch(r"[0-9]{1,3}", satu["durasi_menit"])
         or satu["timer_auto"] not in ("0", "1")
         or satu.get('format_jawaban', 'isian') not in ('isian', 'pilihan_ganda')
-        or satu.get('profil_parameter', '') not in ('', 'P3', 'P4', 'P5', 'P6')
+        or satu.get('profil_parameter', '') not in ('',) + LEVEL
     ):
         raise GalatInline("Nilai latihan tidak sah.")
     return DrafLatihan(
@@ -232,7 +234,7 @@ def parse_draf_gabungan(
         or data["jumlah_soal"][0] not in ("10", "15", "20")
         or data["mode"][0] not in ("drill", "diagnostik")
         or data["format_jawaban"][0] not in ("isian", "pilihan_ganda")
-        or data.get("profil_parameter", ("",))[0] not in ("", "P3", "P4", "P5", "P6")
+        or data.get("profil_parameter", ("",))[0] not in ("",) + LEVEL
         or (profil_wajib and data.get("profil_parameter", ("",))[0] == "")
     ):
         raise GalatInline("Nilai latihan gabungan tidak sah.")
