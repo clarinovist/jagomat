@@ -52,7 +52,7 @@ GAYA_RINGKASAN = f"""
 {_R} .aktivitas-kartu-st .rincian-ui-st {{ margin: 0; }}
 {_R} .laporan-ke-beranda.anak-banner-st {{
   display: flex; margin: 0; padding: {T.SP_4} 1.25rem; background: {T.ANAK_AKSEN_LATAR};
-  border-radius: 14px; color: {T.ANAK_TEKS};
+  border-radius: {T.RADIUS_KARTU}; color: {T.ANAK_TEKS};
 }}
 @media (max-width: {T.ANAK_BATAS_HP}) {{
   {_R} .peta-materi-st.kartu-st {{ padding: 1.25rem; }}

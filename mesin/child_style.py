@@ -44,7 +44,7 @@ GAYA_ANAK = f"""
 .anak-disclosure-st > :not(summary) {{ margin: {T.SP_2} 0 0; color: {T.ANAK_TEKS_REDUP}; }}
 .anak-banner-st {{
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: {T.SP_2};
-  padding: {T.SP_4} 1.25rem; border-radius: 14px; background: {T.ANAK_AKSEN_LATAR};
+  padding: {T.SP_4} 1.25rem; border-radius: {T.RADIUS_KARTU}; background: {T.ANAK_AKSEN_LATAR};
   color: {T.ANAK_TEKS}; text-decoration: none; font-size: .9375rem;
 }}
 .anak-banner-st:hover {{ text-decoration: none; }}

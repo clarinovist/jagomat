@@ -3,14 +3,21 @@ import re
 
 import account_pages
 import account_style
+import child_beranda_style
+import child_latihan_style
+import child_ringkasan_style
+import child_style
 import database
 import design_tokens as T
 import profile_workspace
 import question_variants_ui
+import report_dashboard
 import style_stitch
+import teacher_style
 
 SEDANG = r'border-radius:\s*' + re.escape(T.RADIUS_SEDANG)
 KECIL = r'border-radius:\s*' + re.escape(T.RADIUS_KECIL)
+KARTU = r'border-radius:\s*' + re.escape(T.RADIUS_KARTU)
 
 # Kontrol tombol keluarga (tombol, tautan bergaya tombol, summary Kelola) — bukan catatan/input/menu.
 TOMBOL = {
@@ -33,7 +40,27 @@ TOMBOL = {
         '.profil-workspace-st .riwayat-aksi-st > .riwayat-buka-st',
     )),
     'variasi': (question_variants_ui.GAYA_VARIASI, ('.profil-workspace-st .variasi-bandingkan',)),
+    # Sisa penyimpangan yang dicatat 26 Okt 2026 (CTA 12px literal, Keluar murid tanpa radius).
+    'beranda': (child_beranda_style.GAYA_BERANDA, (
+        '.bungkus-st.profil-workspace-st.beranda-profil-st .beranda-aksi-st .rencana-cta-utama-st',)),
+    'latihan': (child_latihan_style.GAYA_LATIHAN, ('.bungkus-st.profil-workspace-st .latihan-aksi-st button',)),
+    'murid': (style_stitch.GAYA_STITCH, ('.murid-tombol-utama-st', '.kerja-topbar-st .cta-keluar')),
 }
+
+# Input/select keluarga: radius kontrol bersama, bukan campuran 8px/12px. `.input-sandi-kecil`
+# sengaja tetap RADIUS_KECIL (input kecil menurut tabel radius).
+INPUT = {
+    # Aturan dasar shell editorial menang spesifisitas atas aturan input tersekop lain.
+    'editorial-dasar': (style_stitch.GAYA_STITCH, re.escape(
+        '.pendamping-editorial-st :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select, textarea)')),
+    'guru-dasar': (teacher_style.GAYA_GURU, r'input\[type=text\], input\[type=password\], input\[type=number\], '
+                   r'input\[type=file\],\s*textarea, select'),
+    'profil-filter': (profile_workspace.GAYA_PROFIL, re.escape(
+        '.profil-workspace-st .profil-filter-st input,.profil-workspace-st .profil-filter-st select')),
+    'latihan-select': (child_latihan_style.GAYA_LATIHAN, re.escape(
+        '.bungkus-st.profil-workspace-st.pendamping-editorial-st .latihan-terpadu-st select')),
+}
+NAV_LAPORAN = '.laporan-editorial-st .laporan-navigasi'
 
 NAV_AKUN = '.akun-editorial-st .nav-samping'
 NAV_SESI = '.pendamping-editorial-st :is(.pil-sesi, .pil-sesi-st)'
@@ -96,3 +123,28 @@ def test_navigasi_akun_satu_halaman_aktif_dan_tetap_baris(tmp_path):
     assert re.search(r'<a href="/akun\?section=siswa"[^>]*aria-current="page">Anak</a>', nav)
     baris = _aturan(style_stitch.GAYA_STITCH, NAV_AKUN)
     assert 'position: static' in baris and 'flex-direction: row' in baris
+
+
+def test_input_keluarga_beradius_kontrol_bersama():
+    for nama, (css, pola) in INPUT.items():
+        cocok = re.findall(r'(?:^|\n)\s*' + pola + r'\s*\{([^{}]+)\}', css)
+        assert cocok, nama
+        aturan = ' '.join(cocok)
+        assert re.search(SEDANG, aturan) and not re.search(KECIL, aturan), (nama, aturan)
+        assert not re.search(r'border-radius:\s*12px', aturan), nama
+
+
+def test_banner_profil_beradius_kartu():
+    for css, selector in ((child_style.GAYA_ANAK, '.anak-banner-st'),
+                          (child_ringkasan_style.GAYA_RINGKASAN,
+                           '.bungkus-st.profil-workspace-st .laporan-ke-beranda.anak-banner-st')):
+        aturan = _aturan(css, selector)
+        assert re.search(KARTU, aturan) and not re.search(r'border-radius:\s*14px', aturan), (selector, aturan)
+
+
+def test_pemilih_ringkasan_per_materi_beradius_kontrol_bersama():
+    # Sakelar segmen (mockup Perkembangan 19 Okt), sengaja beda dari tab profil di atasnya;
+    # yang menyimpang hanya sudut 8px. Pola tenang dijaga test_laporan_ortu.
+    for selector in (NAV_LAPORAN + ' a', NAV_LAPORAN + ' a[aria-current="page"]'):
+        assert not re.search(KECIL, _aturan(report_dashboard.GAYA_LAPORAN, selector)), selector
+    assert re.search(SEDANG, _aturan(report_dashboard.GAYA_LAPORAN, NAV_LAPORAN + ' a'))

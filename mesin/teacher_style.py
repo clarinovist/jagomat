@@ -287,7 +287,7 @@ label {{ display: block; font-size: .84rem; color: {T.TEKS_SUBTLE}; margin: .55r
 input[type=text], input[type=password], input[type=number], input[type=file],
 textarea, select {{
   width: 100%; min-height: {T.TINGGI_KONTROL}; padding: .5rem .6rem; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
-  border-radius: {T.RADIUS_KECIL}; font-size: 1rem; font-family: inherit;
+  border-radius: {T.RADIUS_SEDANG}; font-size: 1rem; font-family: inherit;
   background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
 }}
 input[type=text]:focus, input[type=password]:focus, input[type=number]:focus,

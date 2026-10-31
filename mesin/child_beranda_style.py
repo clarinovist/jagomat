@@ -22,7 +22,7 @@ GAYA_BERANDA = f"""
 {_R} .beranda-caranya-st {{ padding: 1.25rem {T.SP_5}; border-radius: 14px; background: {T.ANAK_ABU_HANGAT}; }}
 {_R} .beranda-caranya-st p {{ margin: 6px 0 0; font-size: 1.0625rem; color: {T.ANAK_TEKS}; }}
 {_R} .beranda-aksi-st .rencana-cta-utama-st {{
-  min-height: 3rem; padding: .875rem 1.75rem; border-radius: 12px; background: {T.ANAK_AKSEN};
+  min-height: 3rem; padding: .875rem 1.75rem; border-radius: {T.RADIUS_SEDANG}; background: {T.ANAK_AKSEN};
   border-color: {T.ANAK_AKSEN}; color: {T.TEKS_PUTIH}; font-size: 1.0625rem; font-weight: 700;
 }}
 {_R} .beranda-aksi-st .rencana-cta-utama-st:hover {{ background: {T.ANAK_AKSEN_HOVER}; border-color: {T.ANAK_AKSEN_HOVER}; }}

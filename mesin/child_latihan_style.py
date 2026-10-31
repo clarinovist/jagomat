@@ -38,7 +38,7 @@ GAYA_LATIHAN = f"""
 }}
 {_R}.pendamping-editorial-st .latihan-terpadu-st select {{
   min-height: {T.TINGGI_KONTROL}; margin: {T.SP_2} 0 {T.SP_1}; padding: 0 {T.SP_3};
-  border: 1px solid {T.BORDER_KONTROL}; border-radius: 12px; color: {T.ANAK_TEKS};
+  border: 1px solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_SEDANG}; color: {T.ANAK_TEKS};
 }}
 {_R} .latihan-topik-grid {{ grid-template-columns: repeat(auto-fit, minmax(min(100%, 16.25rem), 1fr)); gap: {T.SP_3}; }}
 {_R} .latihan-topik-grid label {{{_KARTU_CENTANG}
@@ -54,7 +54,7 @@ GAYA_LATIHAN = f"""
 {_R} .latihan-terpadu-st .atur-latihan-st summary {{ font-size: .9375rem; font-weight: 600; color: {T.ANAK_AKSEN}; }}
 {_R} .latihan-terpadu-st .atur-latihan-st > small {{ display: block; margin: {T.SP_2} 0; }}
 {_R} .latihan-aksi-st button {{
-  min-height: 3rem; padding: .875rem 1.75rem; border-radius: 12px; background: {T.ANAK_AKSEN};
+  min-height: 3rem; padding: .875rem 1.75rem; border-radius: {T.RADIUS_SEDANG}; background: {T.ANAK_AKSEN};
   color: {T.TEKS_PUTIH}; font-size: 1.0625rem; font-weight: 700;
 }}
 {_R} .latihan-aksi-st button:hover:not(:disabled) {{ background: {T.ANAK_AKSEN_HOVER}; }}

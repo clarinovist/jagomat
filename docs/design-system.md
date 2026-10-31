@@ -429,13 +429,20 @@ Membuka kembali salah satunya memerlukan keputusan produk baru.
 
 Tindak lanjut terbuka: PDF statis riset publik di `mesin/publik/` dibuat sebelum teal
 disatukan; isinya sama, tetapi aksen tealnya sedikit berbeda dari HTML sampai PDF
-dibuat ulang dari renderer. Sisa penyimpangan keluarga dari acuan komponen (di luar
-penyamaan tombol 10px dan tab Akun/Alat sesi, 26 Okt 2026): pemilih Ringkasan/Per materi
-laporan masih kotak 8px, CTA profil/murid memakai literal 12px dan banner profil 14px,
-tombol Keluar murid tanpa radius, dan input keluarga masih campuran 8px/10px.
+dibuat ulang dari renderer. Penyimpangan yang dicatat 26 Okt dirapikan 31 Okt 2026
+(dijaga `test_keluarga_komponen_konsisten.py`). CTA beranda/latihan profil, CTA murid, dan
+Keluar murid kini memakai `RADIUS_SEDANG`. Begitu juga input/select keluarga, termasuk
+aturan dasar shell editorial yang dulu menimpa input tersekop dengan 8px. Banner profil
+memakai `RADIUS_KARTU`. Pemilih Ringkasan/Per materi tetap **sakelar segmen** sesuai mockup
+Perkembangan 19 Okt (sengaja beda dari tab profil di atasnya); hanya sudutnya yang menjadi
+10px. Sisa yang belum disentuh: tombol dasar `GAYA_GURU` (`button` 9px, `.btn` 8px,
+`.tombol-kecil` 6px), tombol panel Langganan 8px, dan tombol lampiran 9px literal. Satu
+checkbox Latihan berlabel 42px, kurang dari 44px.
 
 ## Batas verifikasi
 
 Safari/iOS, screen reader nyata, HP/printer fisik, dan semua kombinasi data/state
-belum dibuktikan. Kontras dan ukuran di dokumen ini adalah target desain yang
+belum dibuktikan. Proksi yang sudah dijalankan 31 Okt 2026: mesin WebKit Playwright dengan
+emulasi iPhone (320/390px, data sintetis, 15 rute publik/guru/murid), tanpa page overflow
+dan tanpa error JS. Itu bukan Safari iOS di perangkat. Kontras dan ukuran di dokumen ini adalah target desain yang
 diuji pada data sintetis, bukan sertifikasi aksesibilitas.

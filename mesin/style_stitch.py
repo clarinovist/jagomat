@@ -588,7 +588,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
   background: {T.LATAR_KARTU}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
 }}
 .murid-beranda-st [data-utama] .st-progres-label {{ font-size: {T.UKURAN_TEKS_BANTUAN}; }}
-.murid-tombol-utama-st {{ display: flex; align-items: center; justify-content: space-between; gap: {T.SP_4}; min-height: {T.TINGGI_CTA}; padding: {T.SP_3} {T.SP_5}; border-radius: {T.RADIUS_KARTU}; background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH}; font: 700 1rem/1.4 {T.FONT_HEADLINE}; margin-top: {T.SP_2}; }}
+.murid-tombol-utama-st {{ display: flex; align-items: center; justify-content: space-between; gap: {T.SP_4}; min-height: {T.TINGGI_CTA}; padding: {T.SP_3} {T.SP_5}; border-radius: {T.RADIUS_SEDANG}; background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH}; font: 700 1rem/1.4 {T.FONT_HEADLINE}; margin-top: {T.SP_2}; }}
 .murid-beranda-st [data-utama]:hover .murid-tombol-utama-st {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .murid-aman-st {{ text-align: center; font-size: {T.UKURAN_TEKS_META}; color: {T.TEKS_SUBTLE}; }}
 .murid-latihan-lain-st {{ margin-top: {T.SP_6}; }}
@@ -938,7 +938,7 @@ tr.sorot-baru, div.sorot-baru {{
 .kerja-topbar-st .brand .nama-osn {{ color: {T.WARNA_WORDMARK}; font-size: 1.1rem; font-weight: 800; }}
 .kerja-topbar-st .cta-keluar {{
   font: inherit; color: {T.AKSEN_KORAL_TUA};
-  background: none; border: 0; padding: {T.SP_2} {T.SP_4};
+  background: none; border: 0; border-radius: {T.RADIUS_SEDANG}; padding: {T.SP_2} {T.SP_4};
   font-weight: 700; min-height: {T.TARGET_SENTUH};
 }}
 
@@ -2435,7 +2435,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-editorial-st :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select, textarea) {{
   min-height: {T.TINGGI_KONTROL}; max-width: 100%; min-width: 0;
   background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
-  border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_KECIL};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_SEDANG};
   font: inherit; font-size: {T.UKURAN_BADAN_LAYAR}; padding: {T.SP_2} {T.SP_3};
 }}
 .pendamping-editorial-st label {{ color: {T.TEKS_VARIAN}; font-size: .88rem; }}

@@ -70,7 +70,7 @@ GAYA_LAPORAN = f"""
 }}
 .laporan-editorial-st .laporan-navigasi a {{
   display:inline-flex; align-items:center; justify-content:center; min-height:{T.TARGET_SENTUH};
-  padding:{T.SP_2} {T.SP_4}; border:0; border-radius:{T.RADIUS_KECIL}; text-decoration:none;
+  padding:{T.SP_2} {T.SP_4}; border:0; border-radius:{T.RADIUS_SEDANG}; text-decoration:none;
   color:{T.TEKS_VARIAN}; font-weight:600;
 }}
 .laporan-editorial-st .laporan-navigasi a[aria-current="page"] {{
