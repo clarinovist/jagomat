@@ -11,6 +11,7 @@ Catatan bertanggal dan alasan keputusan lama ada di
 | Nilai warna, ukuran, jarak, bayangan | `mesin/design_tokens.py` (`T.*`) |
 | Token mana untuk peran apa di permukaan tertentu | `mesin/design_roles.py` (`peta_peran()`), dijaga `test_design_roles.py` |
 | Melihat token, kontras, dan komponen ter-render | Katalog hidup `scripts/design_catalog.py` (lihat [Katalog](#katalog-hidup)) |
+| Token untuk alat desain (Figma/Tokens Studio, VectorCraft, Canva) | `scripts/design_tokens_export.py` → `tokens.json` gaya DTCG + `tokens.css`, salinan baca (lihat [Ekspor token](#ekspor-token)) |
 | Aturan pakai, komponen, keputusan | Dokumen ini |
 | Bukti audit dan batas perangkat | [Audit UI lintas halaman](ui-consistency-audit.md), [audit admin](admin-ui-audit.md) |
 | Alasan lama | [Riwayat](design-system-history.md), [keputusan redesain admin](redesign-decisions.md) |
@@ -331,6 +332,20 @@ tidak punya aturan di CSS permukaannya, jadi katalog ikut merah bila komponen
 berganti nama. Hover dan fokus tetap harus dicoba langsung di browser. Simpan keluaran
 di folder sementara, bukan di repo dan bukan di `mesin/publik/` (folder itu masuk image
 dan disajikan publik; katalog memuat contoh gaya kunci/kode diagnosis).
+
+### Ekspor token
+
+```bash
+cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python scripts/design_tokens_export.py --output <folder-baru>
+```
+
+Menulis `tokens.json` (gaya DTCG: `$type`/`$value`, dikelompokkan per keluarga palet
+dan skala, plus `peran.<permukaan>` sebagai alias ke token dari `design_roles.py`) dan
+`tokens.css` (custom property `--nama-token` untuk template HTML/SVG). Geometri SVG soal
+dan adapter `var(--admin-*)` tidak diekspor; clamp dan bayangan hanya ada di CSS (daftar
+di `$extensions.jagomat.hanya_css`). Hasilnya salinan baca dengan SHA sumber: jangan
+diedit manual atau di-commit, ekspor ulang bila token berubah. Dijaga
+`test_design_tokens_export.py` (nilai identik sumber, peran valid, tidak menimpa).
 
 ## Bahasa dan konten UI
 
