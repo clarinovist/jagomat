@@ -60,6 +60,9 @@ JUMLAH_RECOVERY = {
     "542dcd94132c4b91bca78004643c8eb2c82686d7": 13859,
     # Reader pilot katalog; collect-only arsip identik CI39609036312 empat shard.
     "edd323c4822347f6d584bb0f311e76cac4962e40": 13896,
+    # Baseline recovery P1/P2 writer1 (mode persiapan, 1 Nov 2026): collect-only arsip
+    # 15.083 nodeid unik, sama dengan koleksi shard CI kandidat 9b0c3df/d799d3a.
+    "39fcfa7c5558444f014fd88a6d562847b4d132cc": 15083,
 }
 
 

@@ -6,6 +6,26 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Penyiapan recovery P1/P2 — 1 November 2026
+
+Rangkaian 30 Okt (level P1/P2, rebuild CHECK `konteks_butir` lewat `context_migration`,
+topik `bilangan-dasar`, Variasi Dasar) menggeser fingerprint persistensi kandidat dari
+`7a924b19…` (recovery `edd323c` dan live `f65bc78`) ke
+`c2aa0f021eb147e191bd0fb9bddb0cd7ef01dcbb809ff4716a3c6ce3d40d68fe`, sehingga gate kontrak merah
+sejak `b3ec8f2` (dispatch 41247367893). Bukan regresi desain: test identik gagal di `b3ec8f2`.
+
+- `9b0c3df` (mode persiapan, tanpa kode) lulus dispatch 41250372576, tetapi **bukan recovery
+  sah**: writer2 diwarisi HEAD, sedangkan `release_question_pair` mewajibkan recovery writer
+  katalog1/komposisi1. Tidak dipatok.
+- Baseline **39fcfa7c5558444f014fd88a6d562847b4d132cc**: writer katalog1/komposisi1, test
+  recovery writer1, mode persiapan; 9.240 test terdampak lulus lokal; koleksi 15.083 nodeid dari
+  arsip. Kontrak sama dengan kandidat. Baseline bukan target deploy.
+- Kandidat berikutnya mematok baseline ini (env + dua checkout, metadata), writer kembali 2,
+  mode **migrasi** karena membawa rebuild `konteks_butir` terhadap DB produksi.
+- Deploy tidak termasuk: perlu izin terpisah, preflight `PROBE_SKEMA` mode=ro pada DB live,
+  backup bundle empat DB+auth, writehold, rehearsal C–B–C, approval sekali pakai, `deploy-v2`.
+  Job pasang tetap literal false.
+
 ## Deploy komponen keluarga — 26 Oktober 2026
 
 Controlled `deploy-v2` memasang **f65bc7881d5a7f4ccdf69b2b5afef115e281cf97**; container

@@ -83,7 +83,9 @@ memulihkan flag setelah menambah bank lama/baru, PG, konfirmasi dan pembahasan k
 C→B→C. Gate tidak boleh lolos karena default writer1. Reader yang belum mendukung
 marker diblokir eksplisit sebelum memuat data. Tes source bukan bukti image exact.
 
-Recovery pinned `edd323c4822347f6d584bb0f311e76cac4962e40` mendukung katalog2,
+Recovery pinned sejak 1 Nov 2026 adalah baseline `39fcfa7c5558444f014fd88a6d562847b4d132cc`
+(writer katalog1/komposisi1, reader katalog2 serta level P1/P2; detail di
+[runbook rilis](production-release.md)). Pin sebelumnya `edd323c4822347f6d584bb0f311e76cac4962e40` mendukung katalog2,
 kedua konteks umur dan validator pilot kisi; tetap menulis katalog1/komposisi1.
 Baseline ini lulus CI39609036312 dalam mode persiapan sebelum dipatok kandidat;
 koleksi13.896 tes diukur dari arsip dan identik empat manifest CI.
