@@ -360,17 +360,32 @@ diedit manual atau di-commit, ekspor ulang bila token berubah. Dijaga
   (`LOGO_HERO`). `mark-tinta.svg`/`lockup-cetak.svg` (navy) untuk cetak atau satu tinta.
   Lambang di UI dekoratif (`alt=""`); jangan digambar ulang atau diubah warnanya.
   Teal logo di cream hanya 2,9:1. Itu sah untuk logotype besar, tetapi di ukuran kecil
-  atau di latar ramai pakai versi tinta. Ruang kosong dan ukuran minimum lockup masih **usulan**.
+  atau di latar ramai pakai versi tinta. Ruang kosong di sekeliling lockup minimal setengah
+  tinggi lockup; lockup minimal 120px lebar di layar; lambang minimal 16px (favicon).
 - **Maskot bukan logo** (`brand.maskot()`): enam pose v3, 240px atau 96px, `alt=""`
-  kecuali membawa informasi. Versi terbesar 240px, jadi materi besar (slide 1080px)
-  perlu crop resolusi tinggi dari master dulu.
+  kecuali membawa informasi. Aset runtime terbesar 240px; materi besar (slide 1080px)
+  memakai crop HD 900px dari master yang sama (`maskot-<pose>-v3-900.png` di kit merek dan
+  Design System, bukan aset runtime).
 - Aset baru di `mesin/aset/` wajib masuk allow-list `brand.ASET` (dijaga `test_brand.py`).
 - **Kit merek** di luar Git, `../osn-resources/referensi/desain-ui/brand-kit/`: panduan
   merek, template SVG feed 1080×1350 (tepi aman 64px) dan story 1080×1920 (aman
   250px atas/bawah), font, logo, maskot, dan hasil ekspor token. Versi daring untuk
   desain dengan Claude ada di Design System "Jagomat" di claude.ai (privat). Keduanya
   salinan; repo tetap sumber kebenaran, jadi ekspor ulang bila token atau aset berubah.
-  Copy sosmed berupa slot sampai sasaran komunikasi diputuskan.
+  Arah komunikasi sosmed lihat Keputusan desain; copy di kit masih draf dan belum terbit.
+
+## Ikon
+
+- Ikon selalu dekoratif (`aria-hidden="true"`, `focusable="false"`); makna ada di teks.
+  Tanpa emoji di UI produk. Ukuran standar `UKURAN_IKON` 24px.
+- Halaman publik/murid nonprivat boleh memakai Material Symbols Outlined dari Google Fonts
+  (`arrow_forward`, `close`, `lightbulb`, `menu_book`, `photo_camera`, `restart_alt`,
+  `schedule`). Halaman privat dan admin tidak memuat aset jaringan, jadi memakai SVG lokal.
+- SVG lokal: garis 24×24, `stroke="currentColor"`, tebal 1,8, ujung bulat, nama mengikuti
+  Material Symbols. Helper: `admin_ikon.ikon()` (sidebar admin), `review_pages.ikon_status()`
+  (status sesi), `profile_workspace.ikon()` (profil), `student_pages._ikon_beranda()` (beranda
+  murid). Ikon baru masuk helper permukaannya, bukan SVG tempel di markup.
+- Daftar lengkap per helper ada di Design System dan kit merek.
 
 ## Bahasa dan konten UI
 
@@ -432,6 +447,8 @@ Membuka kembali salah satunya memerlukan keputusan produk baru.
 | Admin satu design system | Disetujui pengguna setelah audit lanjutan | Menggantikan pengecualian palet/skala admin25 Okt: token terang, logo, tipe, radius, spacing dan kontrol48px bersama; sidebar/tabel serta adapter gelap tetap |
 | Lembar latihan ikut teal tunggal | Ditunda | Lembar dibekukan gate rilis question pair; perlu pembaruan pasangan recovery tersendiri |
 | Sisa literal `font-size` di luar skala | Bertahap | Dikunci ratchet `test_type_scale.py`; tiap penyamaan dirender per permukaan |
+| Ruang kosong dan ukuran minimum logo | Ditetapkan 1 Nov 2026 (rekomendasi agent diterima pengguna lewat delegasi) | Ruang kosong ≥ setengah tinggi lockup, lockup ≥ 120px, lambang ≥ 16px; dasar: favicon 16px tetap terbaca |
+| Arah komunikasi sosmed | Ditetapkan 1 Nov 2026 (rekomendasi agent diterima pengguna lewat delegasi) | Mengikuti `spec.md` (alat guru les in-house): konten edukasi metode untuk orang tua, tanpa menawarkan layanan atau klaim hasil sebelum pilot berjalan; tanpa ajakan yang mengumpulkan kontak |
 
 Tindak lanjut terbuka: tiga PDF riset publik di `mesin/publik/` dicetak ulang 1 Nov 2026
 dari `halaman()` dengan Chromium (origin `jagomat.id` diintersepsi, A4, latar dicetak), jadi
