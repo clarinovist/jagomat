@@ -433,9 +433,10 @@ Membuka kembali salah satunya memerlukan keputusan produk baru.
 | Lembar latihan ikut teal tunggal | Ditunda | Lembar dibekukan gate rilis question pair; perlu pembaruan pasangan recovery tersendiri |
 | Sisa literal `font-size` di luar skala | Bertahap | Dikunci ratchet `test_type_scale.py`; tiap penyamaan dirender per permukaan |
 
-Tindak lanjut terbuka: PDF statis riset publik di `mesin/publik/` dibuat sebelum teal
-disatukan; isinya sama, tetapi aksen tealnya sedikit berbeda dari HTML sampai PDF
-dibuat ulang dari renderer. Penyimpangan yang dicatat 26 Okt dirapikan 31 Okt 2026
+Tindak lanjut terbuka: tiga PDF riset publik di `mesin/publik/` dicetak ulang 1 Nov 2026
+dari `halaman()` dengan Chromium (origin `jagomat.id` diintersepsi, A4, latar dicetak), jadi
+aksennya kini teal tunggal `AKSEN_TEAL_TUA`. Isi dan `VERSI_ISI` tetap; PDF bisnis dicetak
+dengan `<details>` terbuka seperti versi sebelumnya. Penyimpangan yang dicatat 26 Okt dirapikan 31 Okt 2026
 (dijaga `test_keluarga_komponen_konsisten.py`). CTA beranda/latihan profil, CTA murid, dan
 Keluar murid kini memakai `RADIUS_SEDANG`. Begitu juga input/select keluarga, termasuk
 aturan dasar shell editorial yang dulu menimpa input tersekop dengan 8px. Banner profil
