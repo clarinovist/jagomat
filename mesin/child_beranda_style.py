@@ -18,12 +18,12 @@ GAYA_BERANDA = f"""
   margin: 0; font-size: {T.UKURAN_TEKS_CATATAN}; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: {T.ANAK_AKSEN};
 }}
 {_R} #judul-rencana-belajar {{ font-size: {T.UKURAN_JUDUL_STITCH}; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; color: {T.ANAK_TEKS}; }}
-{_R} :is(.beranda-meta-st, .identitas-sesi-rencana-st) {{ font-size: .9375rem; color: {T.ANAK_TEKS_BANTUAN}; }}
+{_R} :is(.beranda-meta-st, .identitas-sesi-rencana-st) {{ font-size: {T.UKURAN_BADAN_LAYAR}; color: {T.ANAK_TEKS_BANTUAN}; }}
 {_R} .beranda-caranya-st {{ padding: 1.25rem {T.SP_5}; border-radius: 14px; background: {T.ANAK_ABU_HANGAT}; }}
-{_R} .beranda-caranya-st p {{ margin: 6px 0 0; font-size: 1.0625rem; color: {T.ANAK_TEKS}; }}
+{_R} .beranda-caranya-st p {{ margin: 6px 0 0; font-size: {T.UKURAN_BAGIAN_DEWASA}; color: {T.ANAK_TEKS}; }}
 {_R} .beranda-aksi-st .rencana-cta-utama-st {{
   min-height: 3rem; padding: .875rem 1.75rem; border-radius: {T.RADIUS_SEDANG}; background: {T.ANAK_AKSEN};
-  border-color: {T.ANAK_AKSEN}; color: {T.TEKS_PUTIH}; font-size: 1.0625rem; font-weight: 700;
+  border-color: {T.ANAK_AKSEN}; color: {T.TEKS_PUTIH}; font-size: {T.UKURAN_BAGIAN_DEWASA}; font-weight: 700;
 }}
 {_R} .beranda-aksi-st .rencana-cta-utama-st:hover {{ background: {T.ANAK_AKSEN_HOVER}; border-color: {T.ANAK_AKSEN_HOVER}; }}
 {_R} .petunjuk-sesudah-cta-st {{ margin: 0; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ANAK_TEKS_BANTUAN}; }}
@@ -36,7 +36,7 @@ GAYA_BERANDA = f"""
 {_R} .beranda-posisi-st .tahap-rencana-st.aktif::before {{ background: {T.ANAK_AKSEN}; }}
 {_R} .beranda-posisi-st .tahap-rencana-st.aktif {{ color: {T.ANAK_AKSEN}; font-weight: 800; }}
 {_R} .beranda-posisi-st .alur-rencana-jelas-st {{ margin: 0; padding: 0; border: 0; }}
-{_R} .beranda-posisi-st .alur-rencana-jelas-st > summary {{ font-size: .9375rem; font-weight: 600; color: {T.ANAK_AKSEN}; }}
+{_R} .beranda-posisi-st .alur-rencana-jelas-st > summary {{ font-size: {T.UKURAN_BADAN_LAYAR}; font-weight: 600; color: {T.ANAK_AKSEN}; }}
 {_R} .profil-taches-st > h2.st {{ margin: 0 0 {T.SP_3}; font-size: {T.UKURAN_BAGIAN_DEWASA}; font-weight: 800; color: {T.ANAK_TEKS}; }}
 {_R} .beranda-sesi-st {{
   padding: {T.SP_4} 1.25rem; background: {T.LATAR_KARTU}; border: 1px solid {T.ANAK_BORDER}; border-radius: 14px;

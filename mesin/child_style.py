@@ -37,7 +37,7 @@ GAYA_ANAK = f"""
   padding-inline: calc({T.SP_4} - 1px); border: 2px solid {T.ANAK_AKSEN}; background: {T.ANAK_AKSEN_LATAR}; color: {T.ANAK_AKSEN_HOVER}; font-weight: 700;
 }}
 .profil-workspace-st .anak-pil-st:hover {{ border-color: {T.ANAK_AKSEN}; }}
-.anak-disclosure-st {{ font-size: .9375rem; }}
+.anak-disclosure-st {{ font-size: {T.UKURAN_BADAN_LAYAR}; }}
 .anak-disclosure-st > summary {{
   display: list-item; min-height: {T.TARGET_SENTUH}; cursor: pointer; font-weight: 600; color: {T.ANAK_AKSEN};
 }}
@@ -45,7 +45,7 @@ GAYA_ANAK = f"""
 .anak-banner-st {{
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: {T.SP_2};
   padding: {T.SP_4} 1.25rem; border-radius: {T.RADIUS_KARTU}; background: {T.ANAK_AKSEN_LATAR};
-  color: {T.ANAK_TEKS}; text-decoration: none; font-size: .9375rem;
+  color: {T.ANAK_TEKS}; text-decoration: none; font-size: {T.UKURAN_BADAN_LAYAR};
 }}
 .anak-banner-st:hover {{ text-decoration: none; }}
 .anak-banner-st > span:first-child {{ flex: 1 1 18rem; min-width: 0; }}

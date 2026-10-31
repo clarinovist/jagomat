@@ -206,6 +206,12 @@ Menyamakan sisa literal itu ke skala adalah perubahan visual dan dikerjakan bert
 per permukaan dengan render, bukan sapuan massal. Admin kini tanpa literal ukuran
 font dan radius; tujuh penyimpangan tipenya sudah dihapus. Dua judul promosi40px
 non-admin tetap dalam cakupan ratchet lama agar restyle admin tidak mengubahnya.
+Per 1 Nov 2026 tersisa 265 (`style_stitch.py` 194, `teacher_style.py` 29, `screen_style.py`
+14, `attachments.py` 10). Permukaan profil (`child_*`) sudah disamakan dengan aturan
+**teks informatif dibulatkan ke atas, tidak pernah mengecil**: 15px → 16px, 17px → 18px,
+judul 22px → `UKURAN_JUDUL_DEWASA`. Sisa yang sengaja dipertahankan: judul Latihan 26px
+(mockup 19 Okt, dikunci test) dan angka statistik 32px (anak tangga di bawahnya
+mengecilkan angka).
 
 ## Jarak, radius, wadah, breakpoint
 
@@ -435,9 +441,13 @@ Keluar murid kini memakai `RADIUS_SEDANG`. Begitu juga input/select keluarga, te
 aturan dasar shell editorial yang dulu menimpa input tersekop dengan 8px. Banner profil
 memakai `RADIUS_KARTU`. Pemilih Ringkasan/Per materi tetap **sakelar segmen** sesuai mockup
 Perkembangan 19 Okt (sengaja beda dari tab profil di atasnya); hanya sudutnya yang menjadi
-10px. Sisa yang belum disentuh: tombol dasar `GAYA_GURU` (`button` 9px, `.btn` 8px,
-`.tombol-kecil` 6px), tombol panel Langganan 8px, dan tombol lampiran 9px literal. Satu
-checkbox Latihan berlabel 42px, kurang dari 44px.
+10px. Sisa yang dicatat 31 Okt dirapikan 1 Nov 2026: tombol dasar `GAYA_GURU` (`button`,
+`.btn`, `.tombol-kecil`), tombol panel Langganan, dan tombol lampiran kini `RADIUS_SEDANG`;
+label centang filter profil ("belum mengenal tugas") minimal 44px. `.menu-isi` (baris
+menu, 6px) dan `.tombol-mata` (ikon inset) sengaja di luar acuan tombol. Masih terbuka:
+halaman Langganan memakai shell tanpa wadah editorial sehingga header dasar `.st-topbar`
+lama (pita abu) masih tampil di sana; tombol mengambang Tanya (Pendamping) menutupi sebagian
+judul tahap dan CTA Latihan di lebar 390px.
 
 ## Batas verifikasi
 

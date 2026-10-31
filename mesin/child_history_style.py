@@ -38,7 +38,7 @@ GAYA_RIWAYAT = f"""
   {_R} .riwayat-ringkas-st .riwayat-status-st {{ display: flex; justify-content: flex-end; }}
   {_R} .riwayat-ringkas-st .riwayat-tanggal-blok-st {{ justify-content: center; text-align: center; }}
   {_R} .riwayat-ringkas-st .riwayat-tanggal-blok-st span {{ font-size: .8125rem; color: {T.ANAK_TEKS_BANTUAN}; }}
-  {_R} .riwayat-ringkas-st .riwayat-kartu-kepala-st strong {{ font-size: 1.0625rem; color: {T.ANAK_TEKS}; }}
+  {_R} .riwayat-ringkas-st .riwayat-kartu-kepala-st strong {{ font-size: {T.UKURAN_BAGIAN_DEWASA}; color: {T.ANAK_TEKS}; }}
 }}
 @media (max-width: 48rem) {{
   {_R} .riwayat-ringkas-st .riwayat-tanggal-blok-st {{ grid-column: 1; grid-row: 1; }}

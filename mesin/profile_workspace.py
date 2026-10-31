@@ -401,6 +401,8 @@ GAYA_PROFIL = f"""
 .profil-workspace-st .profil-filter-st input[type="date"] {{ color-scheme:light; }}
 .profil-workspace-st .profil-filter-st input[type="date"]::-webkit-calendar-picker-indicator {{ cursor:pointer; opacity:.65; }}
 .profil-workspace-st .profil-filter-st input,.profil-workspace-st .profil-filter-st select {{ width:100%; min-width:0; min-height:{T.TINGGI_KONTROL}; padding:{T.SP_2}; font:inherit; font-size:{T.UKURAN_BADAN_LAYAR}; border:{T.TEBAL_GARIS} solid {T.BORDER_KONTROL}; background:{T.LATAR_KARTU}; border-radius:{T.RADIUS_SEDANG}; }}
+.profil-workspace-st .profil-filter-st label:has(> input[type=checkbox]) {{ display:flex; align-items:center; gap:{T.SP_2}; min-height:{T.TARGET_SENTUH}; }}
+.profil-workspace-st .profil-filter-st label:has(> input[type=checkbox]) > input[type=checkbox] {{ flex:none; width:auto; min-height:0; margin:0; }}
 .profil-workspace-st .profil-paging-st {{ display:flex; gap:{T.SP_4}; flex-wrap:wrap; justify-content:space-between; align-items:center; padding:{T.SP_3} 0; font-size:{T.UKURAN_TEKS_CATATAN}; color:{T.TEKS_VARIAN}; }}
 .profil-workspace-st .profil-paging-st a {{ color:{T.AKSEN_TEAL_TUA}; }}
 .profil-workspace-st .profil-pager-st {{ display:flex; flex-wrap:wrap; gap:{T.SP_1}; }}

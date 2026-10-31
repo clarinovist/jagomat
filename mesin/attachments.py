@@ -1021,7 +1021,7 @@ input[type=text]:focus {{
 }}
 button {{
   background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS}; border: 0;
-  border-radius: 9px; padding: .85rem 1.3rem; font-size: 1rem; cursor: pointer; width: 100%;
+  border-radius: {T.RADIUS_SEDANG}; padding: .85rem 1.3rem; font-size: 1rem; cursor: pointer; width: 100%;
 }}
 /* Baca ulang = aksi sekunder: jangan menyaingi tombol Terapkan yang
    penuh-lebar teal, tapi tetap target sentuh 44px di HP. */

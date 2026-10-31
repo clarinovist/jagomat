@@ -24,8 +24,8 @@ GAYA_MATERI = f"""
   display: flex; flex-direction: column; gap: {T.SP_4}; padding: 1.75rem; background: {T.LATAR_KARTU};
   border: 1px solid {T.ANAK_BORDER}; border-radius: 20px; box-shadow: none;
 }}
-{_R} .peta-materi-st .peta-detail h2 {{ margin: 0; font-size: 1.375rem; font-weight: 800; color: {T.ANAK_TEKS}; }}
-{_R} .peta-materi-st .peta-detail > p {{ margin: 0; font-size: .9375rem; color: {T.ANAK_TEKS_REDUP}; }}
+{_R} .peta-materi-st .peta-detail h2 {{ margin: 0; font-size: {T.UKURAN_JUDUL_DEWASA}; font-weight: 800; color: {T.ANAK_TEKS}; }}
+{_R} .peta-materi-st .peta-detail > p {{ margin: 0; font-size: {T.UKURAN_BADAN_LAYAR}; color: {T.ANAK_TEKS_REDUP}; }}
 {_R} .peta-materi-st .peta-detail .peta-target {{ display: flex; flex-direction: column; }}
 {_R} .peta-materi-st .peta-detail .peta-target > li {{ padding: 0; border-top: 1px solid {T.ANAK_BORDER}; }}
 {_R} .peta-materi-st .rincian-target-st {{ padding: 0; }}

@@ -3,6 +3,7 @@ import re
 
 import account_pages
 import account_style
+import attachments
 import child_beranda_style
 import child_latihan_style
 import child_ringkasan_style
@@ -13,6 +14,7 @@ import profile_workspace
 import question_variants_ui
 import report_dashboard
 import style_stitch
+import subscription_style
 import teacher_style
 
 SEDANG = r'border-radius:\s*' + re.escape(T.RADIUS_SEDANG)
@@ -45,6 +47,10 @@ TOMBOL = {
         '.bungkus-st.profil-workspace-st.beranda-profil-st .beranda-aksi-st .rencana-cta-utama-st',)),
     'latihan': (child_latihan_style.GAYA_LATIHAN, ('.bungkus-st.profil-workspace-st .latihan-aksi-st button',)),
     'murid': (style_stitch.GAYA_STITCH, ('.murid-tombol-utama-st', '.kerja-topbar-st .cta-keluar')),
+    # Sisa 1 Nov 2026: tombol dasar GAYA_GURU (9px/8px/6px), Langganan (8px), lampiran (9px).
+    'guru-dasar': (teacher_style.GAYA_GURU, ('button', '.btn', 'button.tombol-kecil')),
+    'langganan': (subscription_style.GAYA_LANGGANAN, ('.langganan-panel button,.langganan-panel .tombol',)),
+    'lampiran': (attachments.GAYA_KONFIRMASI, ('button',)),
 }
 
 # Input/select keluarga: radius kontrol bersama, bukan campuran 8px/12px. `.input-sandi-kecil`
@@ -148,3 +154,11 @@ def test_pemilih_ringkasan_per_materi_beradius_kontrol_bersama():
     for selector in (NAV_LAPORAN + ' a', NAV_LAPORAN + ' a[aria-current="page"]'):
         assert not re.search(KECIL, _aturan(report_dashboard.GAYA_LAPORAN, selector)), selector
     assert re.search(SEDANG, _aturan(report_dashboard.GAYA_LAPORAN, NAV_LAPORAN + ' a'))
+
+
+def test_label_centang_filter_profil_setinggi_target_sentuh():
+    # Checkbox "belum mengenal tugas" di Latihan berlabel 25px (desktop) / 43px (390px) sebelum 1 Nov 2026.
+    aturan = _aturan(profile_workspace.GAYA_PROFIL,
+                     '.profil-workspace-st .profil-filter-st label:has(> input[type=checkbox])')
+    assert 'min-height:' + T.TARGET_SENTUH in aturan.replace(' ', ''), aturan
+    assert 'align-items:center' in aturan.replace(' ', ''), aturan

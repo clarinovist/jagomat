@@ -17,18 +17,15 @@ TOKEN_SKALA = (
 
 # Baseline 25 Okt 2026: 293 dari 444 deklarasi literal rem/px di luar skala.
 # Turunkan angka ini setiap kali literal diganti token/nilai skala; jangan naikkan.
+# 1 Nov 2026: permukaan profil (child_*) disamakan; sisa sengaja = judul Latihan 26px
+# (dikunci mockup 19 Okt) dan angka statistik 32px (skala di bawahnya mengecilkan angka).
 BATAS = {
     "assistant_style.py": 4,
     "attachments.py": 10,
     "bootstrap_research.py": 1,
     "business_research.py": 2,
-    "child_beranda_style.py": 4,
-    "child_header.py": 1,
-    "child_history_style.py": 1,
-    "child_latihan_style.py": 6,
-    "child_materi_style.py": 2,
-    "child_ringkasan_style.py": 3,
-    "child_style.py": 2,
+    "child_latihan_style.py": 1,
+    "child_ringkasan_style.py": 1,
     "competitive_research.py": 1,
     "parent_help.py": 1,
     "profile_workspace.py": 2,

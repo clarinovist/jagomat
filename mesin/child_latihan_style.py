@@ -21,7 +21,7 @@ GAYA_LATIHAN = f"""
 {_R} .latihan-terpadu-st .variasi-dasar-st {{ margin-top: {T.SP_5}; }}
 {_R} .variasi-dasar-st :is(.variasi-penanda, .variasi-meta, .profil-petunjuk-st) {{ font-size: {T.UKURAN_TEKS_LABEL}; }}
 {_R} .variasi-dasar-st .variasi-judul {{ flex-wrap: wrap; }}
-{_R} .latihan-pemilih-st legend {{ margin-bottom: 10px; padding: 0; font-size: .9375rem; font-weight: 700; color: {T.ANAK_TEKS}; }}
+{_R} .latihan-pemilih-st legend {{ margin-bottom: 10px; padding: 0; font-size: {T.UKURAN_BADAN_LAYAR}; font-weight: 700; color: {T.ANAK_TEKS}; }}
 {_R} .latihan-mode-st label {{
   gap: {T.SP_3}; padding: {T.SP_4} 1.125rem; background: {T.LATAR_KARTU};
   border: 1px solid {T.ANAK_BORDER_PIL}; border-radius: 14px;
@@ -32,9 +32,9 @@ GAYA_LATIHAN = f"""
 {_R} .latihan-mode-st b {{ font-size: 1rem; color: {T.ANAK_TEKS}; }}
 {_R} .latihan-terpadu-st small {{ color: {T.ANAK_TEKS_REDUP}; }}
 {_R} .latihan-terpadu-st input:is([type=radio], [type=checkbox]) {{ accent-color: {T.ANAK_AKSEN}; }}
-{_R} .latihan-field-grid label {{ font-size: .9375rem; font-weight: 700; color: {T.ANAK_TEKS}; }}
+{_R} .latihan-field-grid label {{ font-size: {T.UKURAN_BADAN_LAYAR}; font-weight: 700; color: {T.ANAK_TEKS}; }}
 {_R} .latihan-terpadu-st :is(label[for="gabungan-jumlah"], label[for="remedial-jumlah"]) {{
-  display: block; margin-top: {T.SP_4}; font-size: .9375rem; font-weight: 700; color: {T.ANAK_TEKS};
+  display: block; margin-top: {T.SP_4}; font-size: {T.UKURAN_BADAN_LAYAR}; font-weight: 700; color: {T.ANAK_TEKS};
 }}
 {_R}.pendamping-editorial-st .latihan-terpadu-st select {{
   min-height: {T.TINGGI_KONTROL}; margin: {T.SP_2} 0 {T.SP_1}; padding: 0 {T.SP_3};
@@ -51,11 +51,11 @@ GAYA_LATIHAN = f"""
 {_R} .latihan-terpadu-st .atur-latihan-st {{
   margin: {T.SP_3} 0 0; padding: 0; background: transparent; border: 0; border-radius: 0;
 }}
-{_R} .latihan-terpadu-st .atur-latihan-st summary {{ font-size: .9375rem; font-weight: 600; color: {T.ANAK_AKSEN}; }}
+{_R} .latihan-terpadu-st .atur-latihan-st summary {{ font-size: {T.UKURAN_BADAN_LAYAR}; font-weight: 600; color: {T.ANAK_AKSEN}; }}
 {_R} .latihan-terpadu-st .atur-latihan-st > small {{ display: block; margin: {T.SP_2} 0; }}
 {_R} .latihan-aksi-st button {{
   min-height: 3rem; padding: .875rem 1.75rem; border-radius: {T.RADIUS_SEDANG}; background: {T.ANAK_AKSEN};
-  color: {T.TEKS_PUTIH}; font-size: 1.0625rem; font-weight: 700;
+  color: {T.TEKS_PUTIH}; font-size: {T.UKURAN_BAGIAN_DEWASA}; font-weight: 700;
 }}
 {_R} .latihan-aksi-st button:hover:not(:disabled) {{ background: {T.ANAK_AKSEN_HOVER}; }}
 {_R} .latihan-aksi-st p {{ margin: 0; color: {T.ANAK_TEKS_BANTUAN}; }}

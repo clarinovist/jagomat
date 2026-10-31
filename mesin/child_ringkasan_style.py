@@ -17,13 +17,13 @@ GAYA_RINGKASAN = f"""
 {_R} .peta-materi-st.kartu-st > p {{ font-size: 1rem; color: {T.ANAK_TEKS_REDUP}; }}
 {_R} .peta-materi-st .peta-grafik {{ height: 1rem; margin: 0; }}
 {_R} .peta-materi-st .peta-legenda {{
-  display: flex; flex-wrap: wrap; gap: {T.SP_2} {T.SP_5}; margin: 0; padding: 0; font-size: .9375rem;
+  display: flex; flex-wrap: wrap; gap: {T.SP_2} {T.SP_5}; margin: 0; padding: 0; font-size: {T.UKURAN_BADAN_LAYAR};
 }}
 {_R} .peta-materi-st .peta-swatch {{ width: .75rem; height: .75rem; border: 0; border-radius: 3px; }}
 {_R} .aktivitas-kartu-st {{{_KARTU} padding: 1.75rem {T.SP_6};
 }}
 {_R} .aktivitas-kartu-st h2 {{ margin: 0; font-size: 1.25rem; font-weight: 800; color: {T.ANAK_TEKS}; }}
-{_R} .aktivitas-kartu-st .laporan-catatan {{ margin: 0; font-size: .9375rem; color: {T.ANAK_TEKS_REDUP}; }}
+{_R} .aktivitas-kartu-st .laporan-catatan {{ margin: 0; font-size: {T.UKURAN_BADAN_LAYAR}; color: {T.ANAK_TEKS_REDUP}; }}
 {_R} .aktivitas-kartu-st .laporan-periode-kontrol {{ display: flex; align-items: center; gap: {T.SP_3}; margin: 0; }}
 {_R} .aktivitas-kartu-st .laporan-pilihan {{ margin: 0; }}
 {_R} .laporan-pilihan a {{

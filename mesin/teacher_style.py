@@ -56,7 +56,7 @@ h2 {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BAGIAN_DEWASA}; margi
    berukuran normal. Warna tetap satu rasa, hanya lebih dalam. */
 button {{
   background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS}; border: 0;
-  border-radius: 9px; padding: .7rem 1.2rem; font-size: 1rem; cursor: pointer;
+  border-radius: {T.RADIUS_SEDANG}; padding: .7rem 1.2rem; font-size: 1rem; cursor: pointer;
 }}
 button:hover {{ filter: brightness(0.94); }}
 button.tombol-sekunder {{
@@ -69,12 +69,12 @@ button.tombol-coral {{ background: {T.AKSEN_KORAL_TUA}; }}
 button.tombol-amber {{
   background: {T.BADGE_ADMIN_BG}; color: {T.BADGE_ADMIN_TEKS};
 }}
-button.tombol-kecil {{ padding: .35rem .7rem; font-size: .82rem; border-radius: 6px; }}
+button.tombol-kecil {{ padding: .35rem .7rem; font-size: .82rem; border-radius: {T.RADIUS_SEDANG}; }}
 button.tombol-putih {{
   background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; border: {T.TEBAL_GARIS} solid {T.BORDER_KUAT};
 }}
 .btn {{
-  display: inline-block; padding: .55rem {T.SP_4}; border-radius: {T.RADIUS_KECIL};
+  display: inline-block; padding: .55rem {T.SP_4}; border-radius: {T.RADIUS_SEDANG};
   font-size: {T.UKURAN_TEKS_BANTUAN}; text-decoration: none; background: {T.LATAR_KARTU_SEKUNDER};
   color: {T.TEKS_JUDUL}; border: {T.TEBAL_GARIS} solid {T.BORDER_INTERAKTIF};
 }}
