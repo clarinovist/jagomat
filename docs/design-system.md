@@ -347,6 +347,25 @@ di `$extensions.jagomat.hanya_css`). Hasilnya salinan baca dengan SHA sumber: ja
 diedit manual atau di-commit, ekspor ulang bila token berubah. Dijaga
 `test_design_tokens_export.py` (nilai identik sumber, peran valid, tidak menimpa).
 
+## Merek: logo, maskot, sosial media
+
+- **Satu lambang** untuk semua permukaan lewat `brand.mark()`: `mark-sederhana.svg` untuk
+  ukuran ≤32px (`LOGO_TOPBAR`, `LOGO_BADGE`), `mark-penuh.svg` untuk hero ≥48px
+  (`LOGO_HERO`). `mark-tinta.svg`/`lockup-cetak.svg` (navy) untuk cetak atau satu tinta.
+  Lambang di UI dekoratif (`alt=""`); jangan digambar ulang atau diubah warnanya.
+  Teal logo di cream hanya 2,9:1. Itu sah untuk logotype besar, tetapi di ukuran kecil
+  atau di latar ramai pakai versi tinta. Ruang kosong dan ukuran minimum lockup masih **usulan**.
+- **Maskot bukan logo** (`brand.maskot()`): enam pose v3, 240px atau 96px, `alt=""`
+  kecuali membawa informasi. Versi terbesar 240px, jadi materi besar (slide 1080px)
+  perlu crop resolusi tinggi dari master dulu.
+- Aset baru di `mesin/aset/` wajib masuk allow-list `brand.ASET` (dijaga `test_brand.py`).
+- **Kit merek** di luar Git, `../osn-resources/referensi/desain-ui/brand-kit/`: panduan
+  merek, template SVG feed 1080×1350 (tepi aman 64px) dan story 1080×1920 (aman
+  250px atas/bawah), font, logo, maskot, dan hasil ekspor token. Versi daring untuk
+  desain dengan Claude ada di Design System "Jagomat" di claude.ai (privat). Keduanya
+  salinan; repo tetap sumber kebenaran, jadi ekspor ulang bila token atau aset berubah.
+  Copy sosmed berupa slot sampai sasaran komunikasi diputuskan.
+
 ## Bahasa dan konten UI
 
 - Orang dewasa di UI guru disebut **Guru/Anda**; **Pendamping** adalah nama fitur AI.
