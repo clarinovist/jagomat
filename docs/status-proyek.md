@@ -1,6 +1,6 @@
 # Status proyek dan pekerjaan tersisa
 
-**Diperbarui 30 Oktober 2026.** Ini indeks status, bukan perubahan keputusan produk
+**Diperbarui 1 November 2026.** Ini indeks status, bukan perubahan keputusan produk
 atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
 [CLAUDE.md](../CLAUDE.md). Catatan lama harus dibaca menurut tanggal dan scope-nya.
 
@@ -21,6 +21,12 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   di sini adalah snapshot bertanggal, bukan monitor live atau klaim `main` selalu deployed.
 - Auto-deploy tetap nonaktif: push hanya feedback CI; dispatch manual menjalankan
   gate rilis lengkap, lalu pemasangan terkontrol sesuai [runbook](production-release.md).
+- **Lingkungan uji** `https://uji.jagomat.id` (1 November 2026): image yang sama dengan
+  produksi (digest `b6ace2f2…`), data sintetis kosong, di VPS non-produksi yang dipakai
+  bersama proyek lain. Dilindungi gerbang sandi tim di depan login app, `noindex`;
+  Pendamping/LLM dan pembayaran nonaktif; tautan berbagi diarahkan ke host uji. Bukan
+  deployment produksi, tidak ikut backup, hanya untuk data sintetis. Walkthrough
+  admin → guru → anak → sesi → tautan berbagi lulus dari luar.
 
 ## Sudah tersedia dan tercakup artifact tersebut
 
