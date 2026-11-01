@@ -29,7 +29,7 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   admin → guru → anak → sesi → tautan berbagi lulus dari luar.
 - **Ruang berkas tim** `https://tim.jagomat.id` (1 November 2026): Nextcloud 34.0.5 di VPS
   non-produksi yang sama, terpisah dari app. Akun per peran, folder tim milik organisasi,
-  2FA wajib, tautan publik mati; backup harian lokal + Cloudflare R2. **Bukan tempat data
+  tautan publik mati; backup harian lokal + Cloudflare R2. **Bukan tempat data
   anak.** Konfigurasi dan runbook di luar repo: `~/Documents/jagomat-berkas`.
 
 ## Sudah tersedia dan tercakup artifact tersebut
