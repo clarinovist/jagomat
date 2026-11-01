@@ -10,13 +10,13 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   sintetis. Peran `guru` tetap mencakup orang tua dan hanya mengakses data miliknya.
 - Akses awal **nonkomersial**. Keputusan paket Jago/Jago Pro tidak sama dengan
   pembukaan penjualan, trial otomatis, promo, atau paywall.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`7695cf9`**, mulai
-  berjalan25Oktober2026 06.30WIB. Audit UI admin mencakup kontrol, state, keyboard,
-  tema/cetak; **writer revisi penilaian1/2 tetap nonaktif**, histori tidak diubah.
-  Dispatch gate [40142093633](https://github.com/clarinovist/jagomat/actions/runs/40142093633)
-  (14.341 tes kandidat exact-once, pair terverifikasi), container healthy, smoke publik
-  lulus. Digest/recovery/backup dan batas perangkat ada di
-  [catatan rilis](production-release.md#deploy-audit-ui-admin--25-oktober-2026).
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`a9977f8`**, mulai
+  berjalan2November2026 05.26WIB. Rilis membawa migrasi `konteks_butir` P1–P6,
+  level P1/P2, dan lembar persiapan sesi; writer2 aktif, histori tidak diubah.
+  Dispatch gate [41355603056](https://github.com/clarinovist/jagomat/actions/runs/41355603056)
+  (delapan shard kandidat/recovery hijau, pair terverifikasi), container healthy,
+  smoke publik lulus. Digest/recovery/backup ada di
+  [catatan rilis](production-release.md#deploy-migrasi-p1p2--2-november-2026).
 - Commit dokumentasi sesudahnya tidak otomatis menjadi revision image. Status
   di sini adalah snapshot bertanggal, bukan monitor live atau klaim `main` selalu deployed.
 - Auto-deploy tetap nonaktif: push hanya feedback CI; dispatch manual menjalankan

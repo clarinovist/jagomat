@@ -6,6 +6,39 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy migrasi P1/P2 — 2 November 2026
+
+Controlled `deploy-v2` memasang **a9977f8c01f240ba65ab801c124eb828e975d59c**;
+container started `2026-11-01T22:26:53Z` (2 Nov 05.26 WIB), healthy/restart0.
+Rilis membawa `context_migration.rebuild_konteks_butir` (CHECK `profil_parameter`
+P1–P6), level P1/P2, materi dasar tetap nonaktif, dan lembar persiapan sesi cetak
+per anak.
+
+- Kandidat `sha256:756e23d6…`; recovery `39fcfa7c…` digest `sha256:460dd2d9…`;
+  kontrak persistensi `c2aa0f02…` identik pada kedua image; mode `migrasi`,
+  `compatible=true`, `pair_verified=true`, `siap_pasang=false`.
+- Dispatch [41355603056](https://github.com/clarinovist/jagomat/actions/runs/41355603056)
+  sukses: empat shard kandidat dan empat shard recovery hijau, build/probe dua
+  image, `verify_submission_pair` lulus; anotasi hanya notice runner. Job `pasang`
+  tetap literal false.
+- Preflight `PROBE_SKEMA` pada salinan konsisten metadata live (backup API;
+  `latihan.db` WAL) lulus untuk kedua image sebelum hold; probe katalog writer 2
+  kandidat / 1 recovery.
+- Hold 22.25–22.27 UTC (±2 menit): Caddy 503 dan dua cron ditahan, container
+  dihentikan, nol writer, backup empat DB + `sandi.json` + riset terpisah,
+  rehearsal C–B–C+validator (preservasi baris, integrity/FK, DDL `konteks_butir`
+  P1–P6, `tabel_baru=[]`). Backup induk remote
+  `/opt/osn/cadangan/deploy-p1p2-20261102/`, salinan lokal hash cocok.
+- Approval sekali pakai TTL 600 dtk; `deploy-v2` exit0; reopen memulihkan
+  Caddy/cron hash-identik. Histori dan jumlah tabel terjaga; tidak ada aktivasi
+  `OSN_MATERI_DASAR`, `OSN_PENILAIAN_REVISI`, atau `OSN_KATALOG_LANJUTAN`.
+- Postcheck: digest/revision exact, probe sintetis lulus (writer2, level P1–P6,
+  `konteks_butir` termigrasi, modul persiapan + rute), log galat0, smoke publik
+  `/`200 `/akun`401 `/murid/`303 menuju `/masuk`.
+- Bukti privat `docs/plan/deploy-p1p2-20261102/`; approval terkonsumsi masih di
+  `/opt/osn/rollout-approval.json` (arsipkan sebelum `prepare` berikutnya).
+  Safari/perangkat fisik/screen reader belum diuji.
+
 ## Penyiapan recovery P1/P2 — 1 November 2026
 
 Rangkaian 30 Okt (level P1/P2, rebuild CHECK `konteks_butir` lewat `context_migration`,
