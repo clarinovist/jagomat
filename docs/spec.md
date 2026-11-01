@@ -37,6 +37,13 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
   P3–P6 adalah konfigurasi internal/historis, bukan kelas atau ukuran kemampuan.
 - Bantuan statis dan **15 draf playbook P3 berperingatan**, bukan materi yang telah
   disahkan manusia. Hanya guru pada fokus/profil yang cocok; tidak dikirim ke murid.
+- **Lembar persiapan sesi** `/anak/{id}/persiapan`: halaman cetak satu anak untuk guru
+  pemilik (asing → 404 identik), isi rencana sama dengan kartu Beranda, playbook draf
+  terbuka berperingatan, tanpa form/kunci, `no-store`. Satu tautan dari Beranda profil;
+  belum tersedia pada kartu pilot. Bukan bukti belajar dan tidak menulis DB.
+- **Fitur khusus orang tua dibekukan (keputusan pemilik 1 Nov 2026):** Pendamping AI,
+  kartu pra-tulis dan bantuan orang tua tetap berjalan tanpa investasi baru; kendali
+  data tetap tersedia. Penghapusannya perlu keputusan terpisah.
 - Pendamping inline memakai konteks berizin dan usulan yang harus ditinjau.
   Hapus chat/cabut izin tersedia walau provider mati; tombstone/purge, memori,
   hasil latihan, backup dan provider mempunyai batas retensi berbeda.

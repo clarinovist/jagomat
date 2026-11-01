@@ -59,8 +59,13 @@ def _badge_menunggu(rencana, bukti, hari_ini=None):
     return chip_status(f'Sudah menunggu {hari} hari', 'perhatian') if hari >= 1 else ''
 
 
-def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=None, peran=None):
-    """Susun kartu Beranda; aksi, materi dan status tetap milik helper siklus."""
+def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=None, peran=None,
+          tautan_persiapan=True):
+    """Susun kartu Beranda; aksi, materi dan status tetap milik helper siklus.
+
+    ``tautan_persiapan`` dimatikan oleh halaman persiapan supaya tautan
+    "Cetak persiapan sesi" tidak menunjuk ke halaman yang sedang dibaca.
+    """
     from cycle_carry import bukti_lanjutan
     from cycle_representations import CATATAN_PEMISAHAN, bukti_satu_representasi
     from learning_cycle import _putaran_aktif
@@ -115,6 +120,11 @@ def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=
                 '<span class="beranda-konfirmasi-st">Konfirmasi hanya setelah hasil diperiksa.</span></p>'
                 if rencana.tindakan == 'konfirmasi_hasil' else '')
     menunggu = _badge_menunggu(rencana, bukti, hari_ini)
+    tautan = (
+        f'<p class="tautan-persiapan-st"><a href="/anak/{sid}/persiapan">'
+        'Cetak persiapan sesi</a></p>'
+        if peran == 'guru' and tautan_persiapan else ''
+    )
     meta = ('<p class="beranda-meta-st">' + _e(UI._waktu(rencana, bukti, tertahan=True)) + '</p>'
             if tertahan else _meta(rencana, bukti, jumlah_soal))
     return (
@@ -127,7 +137,7 @@ def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=
         + contoh + playbook + '<div class="beranda-aksi-st">' + cta + petunjuk + '</div>'
         + '<details class="rincian-ui-st batas-rencana-st"><summary>Cara membaca progres ini</summary>'
         '<p>' + _e(UI._alasan(rencana, fokus)) + '</p>' + catatan_mode + '</details>'
-        + histori + slot_bantuan + UI._override(rencana, sid) + '</section>'
+        + histori + tautan + slot_bantuan + UI._override(rencana, sid) + '</section>'
         + posisi(rencana, bukti, siswa['nama'])
     )
 

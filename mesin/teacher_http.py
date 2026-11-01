@@ -6,9 +6,12 @@ respons tetap dimiliki ``web.Penangan``.
 """
 from __future__ import annotations
 
+import re
 import urllib.parse
 
 import database
+
+_POLA_PERSIAPAN = re.compile(r"/anak/(\d+)/persiapan\Z")
 
 
 def tangani_beranda_get(
@@ -67,6 +70,60 @@ def tangani_beranda_get(
         isi = isi.replace(b"</main>", survei.encode() + b"</main>", 1)
     # Query dapat memuat nama akun: jangan cache atau kirim sebagai referrer.
     penangan._kirim_privat(isi, beranda_guru=True)
+    return True
+
+
+def tangani_persiapan_get(
+    penangan,
+    jalur: str,
+    *,
+    halaman_persiapan,
+) -> bool:
+    """Tangani lembar persiapan sesi; jalur lain tetap milik handler lama.
+
+    Hanya path persis ``/anak/<id>/persiapan`` (setelah ``web`` memangkas
+    garis miring akhir). Tolakan kepemilikan memakai 404 yang identik dengan
+    halaman profil supaya keberadaan id orang lain tidak bocor.
+    """
+    cocok = _POLA_PERSIAPAN.fullmatch(jalur)
+    if cocok is None:
+        return False
+    try:
+        anak_id = int(cocok.group(1))
+    except ValueError:
+        return False
+    # Di luar jangkauan INTEGER SQLite: biarkan rute lain yang memutuskan.
+    if anak_id > 2**63 - 1:
+        return False
+
+    from support_pages import halaman_pesan as halaman_galat
+
+    try:
+        with database.buka() as kon:
+            if not penangan._bisa_lihat_siswa(kon, anak_id):
+                penangan._kirim(
+                    halaman_galat("404", "<h1>Halaman tidak ada</h1>"), 404
+                )
+                return True
+            siswa_baris = kon.execute(
+                "SELECT * FROM siswa WHERE id = ?", (anak_id,)
+            ).fetchone()
+            if not siswa_baris:
+                penangan._kirim(
+                    halaman_galat("404", "<h1>Halaman tidak ada</h1>"), 404
+                )
+                return True
+            ident = penangan._identitas()
+            isi = halaman_persiapan(
+                kon, siswa_baris, peran=ident[1] if ident else "guru"
+            )
+    except (ValueError, IndexError):
+        penangan._kirim(
+            halaman_galat("404", "<h1>Halaman tidak ada</h1>"), 404
+        )
+        return True
+    # Halaman memuat nama anak dan rencana privat: jangan cache atau kirim referrer.
+    penangan._kirim_privat(isi)
     return True
 
 

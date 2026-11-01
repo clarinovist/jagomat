@@ -65,6 +65,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   profil dan laporan lama berbagi shell/lebar `ANAK_*`. CSS rincian legacy hanya dimuat
   pada laporan, sebelum override profil; [audit UI](ui-consistency-audit.md) dan
   [audit admin](admin-ui-audit.md) (fokus, kontrol, state dan tema/cetak).
+- `session_prep.py` membungkus `learning_cycle_ui.kartu_rencana` menjadi lembar cetak
+  persiapan (form dibuang, playbook `open`), dirutekan `teacher_http.tangani_persiapan_get`
+  setelah `_lolos_sandi` dan sebelum rute profil; tanpa logika rencana sendiri atau tulis DB.
 - `teacher_home_priority.py` hanya memproyeksi reducer; `guru_beranda_pages.py` merender /guru
   (chip GET owner-scoped dengan filter instan berhash/fallback native) tanpa menulis DB atau membuat ranking
   kemampuan. Respons privat no-store/no-referrer.

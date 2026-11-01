@@ -420,6 +420,11 @@ class Penangan(BaseHTTPRequestHandler):
             return
         if not self._lolos_sandi():
             return
+        import session_prep
+        if teacher_http.tangani_persiapan_get(
+            self, jalur, halaman_persiapan=session_prep.halaman_persiapan
+        ):
+            return
         import attachment_http
         if attachment_http.tangani_get(self, jalur):
             return
