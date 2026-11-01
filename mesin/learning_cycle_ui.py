@@ -223,6 +223,21 @@ def _tahap_tampil(rencana: RencanaBelajar, bukti: BuktiSiklus) -> Optional[int]:
     return _indeks_tahap(rencana, bukti)
 
 
+def tahap_netral(
+    rencana: RencanaBelajar, bukti: BuktiSiklus
+) -> Optional[Tuple[int, str]]:
+    """(nomor 1-6, label netral) untuk pembaca di luar permukaan guru.
+
+    Satu sumber dengan pita tahap guru supaya laporan orang tua tidak
+    menghitung ulang peta sendiri. Tidak membawa kode diagnosis atau status
+    per fokus: hanya posisi perjalanan yang sudah disahkan sebagai bukan nilai.
+    """
+    nomor = _tahap_tampil(rencana, bukti)
+    if nomor is None:
+        return None
+    return nomor + 1, _LABEL_TAHAP[nomor]
+
+
 def _kalimat_tahap(rencana: RencanaBelajar, bukti: BuktiSiklus) -> str:
     nomor = _tahap_tampil(rencana, bukti)
     if nomor is None:

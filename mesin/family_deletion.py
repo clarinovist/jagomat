@@ -209,6 +209,13 @@ def _ubah_belajar(path, pemilik: str, target_id: str, pseudonim: str):
             kon.execute("DELETE FROM diagnosis WHERE jawaban_id IN (SELECT j.id FROM jawaban j JOIN sesi_soal ss ON ss.id=j.sesi_soal_id JOIN sesi s ON s.id=ss.sesi_id WHERE s.siswa_id IN (%s))" % q, siswa_ids)
             kon.execute("DELETE FROM jawaban WHERE sesi_soal_id IN (SELECT ss.id FROM sesi_soal ss JOIN sesi s ON s.id=ss.sesi_id WHERE s.siswa_id IN (%s))" % q, siswa_ids)
             kon.execute("DELETE FROM lampiran WHERE sesi_id IN (SELECT id FROM sesi WHERE siswa_id IN (%s))" % q, siswa_ids)
+            if _tabel(kon, "laporan_ortu"):
+                # Laporan orang tua BUKAN bukti belajar: catatan guru dan nama
+                # anak adalah data aktif, jadi ikut dihapus (tautan ikut cascade).
+                kon.execute(
+                    "DELETE FROM laporan_ortu WHERE siswa_id IN (%s)" % q,
+                    siswa_ids,
+                )
             if _tabel(kon, "operasi_foto_baca"):
                 # Receipt foto durable tidak dihapus; identity link-nya diputus.
                 kon.execute("UPDATE operasi_foto_baca SET akun_id=? WHERE akun_id=?",

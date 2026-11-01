@@ -65,6 +65,12 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   profil dan laporan lama berbagi shell/lebar `ANAK_*`. CSS rincian legacy hanya dimuat
   pada laporan, sebelum override profil; [audit UI](ui-consistency-audit.md) dan
   [audit admin](admin-ui-audit.md) (fokus, kontrol, state dan tema/cetak).
+- `parent_report_store.py` (tabel aditif `laporan_ortu` + `tautan_laporan`),
+  `parent_report.py` (proyeksi allowlist dari bukti terkonfirmasi),
+  `parent_report_pages.py` (halaman baca-saja: tanpa skrip/webfont/tautan keluar) dan
+  `parent_report_http.py` (rute token sebelum palang guru; aksi guru pemilik sesudahnya)
+  menghasilkan laporan orang tua. Snapshot terbit append-only; token 30 hari, satu per
+  anak, disimpan sebagai hash SHA-256, dapat dicabut; menerbitkan tidak menulis bukti.
 - `session_prep.py` membungkus `learning_cycle_ui.kartu_rencana` menjadi lembar cetak
   persiapan (form dibuang, playbook `open`), dirutekan `teacher_http.tangani_persiapan_get`
   setelah `_lolos_sandi` dan sebelum rute profil; tanpa logika rencana sendiri atau tulis DB.

@@ -137,8 +137,13 @@ class Penangan(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(isi)
 
-    def _kirim_tautan(self, isi: bytes, kode: int = 200) -> None:
-        """Respons tautan bearer: jangan simpan, indeks, atau bocorkan URL."""
+    def _kirim_tautan(self, isi: bytes, kode: int = 200, *, ketat: bool = False) -> None:
+        """Respons tautan bearer: jangan simpan, indeks, atau bocorkan URL.
+
+        ``ketat`` khusus halaman baca-saja orang tua: tanpa skrip/gaya luar,
+        tanpa form. Rute ``/mulai/`` sengaja tidak berubah karena halaman kerja
+        anak membutuhkan skrip/form yang sudah disetujui.
+        """
         self.send_response(kode)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(isi)))
@@ -146,7 +151,15 @@ class Penangan(BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("X-Robots-Tag", "noindex, nofollow")
         self.send_header("X-Frame-Options", "DENY")
-        self.send_header("Content-Security-Policy", "frame-ancestors 'none'")
+        if ketat:
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header(
+                "Content-Security-Policy",
+                "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; "
+                "form-action 'none'; base-uri 'none'; frame-ancestors 'none'",
+            )
+        else:
+            self.send_header("Content-Security-Policy", "frame-ancestors 'none'")
         self.end_headers()
         self.wfile.write(isi)
 
@@ -397,6 +410,9 @@ class Penangan(BaseHTTPRequestHandler):
         import share_http
         if share_http.tangani_tautan_get(self, jalur):
             return
+        import parent_report_http
+        if parent_report_http.tangani_publik_get(self, jalur):
+            return
         import public_http
         if public_http.tangani_get(self, jalur):
             return
@@ -419,6 +435,9 @@ class Penangan(BaseHTTPRequestHandler):
             student_http.tangani_get(self, jalur, self.path)
             return
         if not self._lolos_sandi():
+            return
+        import parent_report_http
+        if parent_report_http.tangani_guru_get(self, jalur, self.path):
             return
         import session_prep
         if teacher_http.tangani_persiapan_get(
@@ -522,6 +541,10 @@ class Penangan(BaseHTTPRequestHandler):
             return
 
         if share_http.tangani_guru_post(self, jalur):
+            return
+
+        import parent_report_http
+        if parent_report_http.tangani_guru_post(self, jalur, self.path):
             return
 
         import account_http

@@ -421,6 +421,13 @@ def konten_laporan(kon, siswa_id: int, query: str = "", section: str = "ringkasa
         + (' aria-current="page"' if kode == nav_aktif else '')
         + f'>{label}</a>' for kode, label in BAGIAN_LAPORAN
     ) + '</nav>'
+    # Satu entry point laporan orang tua, hanya di tab Perkembangan (bukan
+    # alias riwayat internal). Kartu ini tanpa form dan tanpa skrip.
+    kartu_orang_tua = ''
+    if section != 'riwayat':
+        from parent_report_pages import kartu_masuk
+        kartu_orang_tua = kartu_masuk(siswa_id)
+        navigasi += kartu_orang_tua
     halaman = parameter.get('halaman', '1')
     if section == 'riwayat':
         # Caller internal lama; HTTP alias tetap diarahkan setelah ownership guard.

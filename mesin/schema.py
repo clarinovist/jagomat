@@ -199,6 +199,55 @@ CREATE TABLE IF NOT EXISTS tautan_sesi (
 );
 CREATE INDEX IF NOT EXISTS idx_tautan_sesi_hash ON tautan_sesi(token_hash);
 
+-- Laporan guru untuk orang tua. Kepala laporan + snapshot presentasi JSON;
+-- sengaja BUKAN turunan bukti (laporan tidak pernah menjadi bukti belajar).
+-- Setelah `diterbitkan` terisi baris tidak boleh berubah: koreksi = laporan
+-- baru, bukan suntingan diam-diam pada apa yang sudah dibaca orang tua.
+-- Tidak ada kolom kontak: pengiriman lewat tautan yang disalin guru.
+CREATE TABLE IF NOT EXISTS laporan_ortu (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    siswa_id          INTEGER NOT NULL REFERENCES siswa(id) ON DELETE CASCADE,
+    periode_mulai     TEXT    NOT NULL CHECK (length(periode_mulai) = 10),
+    periode_akhir     TEXT    NOT NULL CHECK (length(periode_akhir) = 10),
+    catatan           TEXT    NOT NULL DEFAULT '' CHECK (length(catatan) <= 2000),
+    isi               TEXT    NOT NULL CHECK (length(isi) > 0),
+    guru              TEXT    NOT NULL DEFAULT '',
+    dibuat            TEXT    NOT NULL DEFAULT (datetime('now', '+7 hours')),
+    diterbitkan       TEXT,
+    kejadian_terakhir INTEGER NOT NULL DEFAULT 0,
+    CHECK (periode_mulai <= periode_akhir),
+    -- Kunci induk FK komposit di tautan_laporan: mustahil menautkan laporan
+    -- milik anak lain di level basis data.
+    UNIQUE (id, siswa_id)
+);
+CREATE INDEX IF NOT EXISTS idx_laporan_ortu_siswa
+    ON laporan_ortu(siswa_id, id);
+
+-- Append-only untuk laporan terbit. DELETE tetap bebas agar hapus anak
+-- (cascade) dan hapus draf tidak terhalang; service yang menolak hapus terbit.
+CREATE TRIGGER IF NOT EXISTS laporan_ortu_tolak_ubah_terbit
+BEFORE UPDATE ON laporan_ortu
+WHEN OLD.diterbitkan IS NOT NULL
+BEGIN
+    SELECT RAISE(ABORT, 'laporan terbit tidak dapat diubah');
+END;
+
+-- Tautan baca-saja untuk satu anak; cermin tautan_sesi pada tingkat yang
+-- berbeda. Satu baris per anak = terbitkan laporan baru merotasi token dan
+-- mematikan tautan lama. Hanya hash SHA-256 yang disimpan.
+CREATE TABLE IF NOT EXISTS tautan_laporan (
+    siswa_id    INTEGER PRIMARY KEY REFERENCES siswa(id) ON DELETE CASCADE,
+    laporan_id  INTEGER NOT NULL,
+    token_hash  TEXT    NOT NULL UNIQUE CHECK (length(token_hash) = 64),
+    dibuat      INTEGER NOT NULL,
+    kedaluarsa  INTEGER NOT NULL,
+    dicabut     INTEGER,
+    FOREIGN KEY (laporan_id, siswa_id)
+        REFERENCES laporan_ortu(id, siswa_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_tautan_laporan_hash
+    ON tautan_laporan(token_hash);
+
 -- Urutan soal dalam satu sesi.
 CREATE TABLE IF NOT EXISTS sesi_soal (
     id                       INTEGER PRIMARY KEY AUTOINCREMENT,

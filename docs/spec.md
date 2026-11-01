@@ -41,6 +41,11 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
   pemilik (asing → 404 identik), isi rencana sama dengan kartu Beranda, playbook draf
   terbuka berperingatan, tanpa form/kunci, `no-store`. Satu tautan dari Beranda profil;
   belum tersedia pada kartu pilot. Bukan bukti belajar dan tidak menulis DB.
+- **Laporan guru → orang tua** `/anak/{id}/laporan-ortu` → tautan baca-saja
+  `/laporan-ortu/{token}`: snapshot saat terbit (topik dari sesi selesai + terkonfirmasi,
+  label tahap netral 1–6, satu kalimat langkah bahasa awam, catatan guru), berlaku 30 hari,
+  satu tautan aktif per anak yang selalu bisa dicabut; admin hanya membaca. Isi tanpa
+  skor/persentase/kode/ID/kelas; laporan terbit append-only dan **bukan bukti belajar**.
 - **Fitur khusus orang tua dibekukan (keputusan pemilik 1 Nov 2026):** Pendamping AI,
   kartu pra-tulis dan bantuan orang tua tetap berjalan tanpa investasi baru; kendali
   data tetap tersedia. Penghapusannya perlu keputusan terpisah.
@@ -66,6 +71,9 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   lengkap tetap mengikuti kontrak, bukan jumlah soal saja.
 - Manual/PG/terbimbing/penguatan tidak otomatis menjadi bukti penguasaan;
   konteks profil/representasi dan provenance tidak dicampur diam-diam.
+- Laporan orang tua adalah salinan presentasi, bukan bukti: terbit = snapshot
+  append-only (koreksi = laporan baru, tautan lama mati), penerbitan tidak menulis
+  sesi/bukti, dan hapus anak/keluarga ikut menghapus laporan beserta tautannya.
 - Guru asing mendapat **404 identik**, tanpa efek samping; murid tidak menerima
   kunci, malrule, diagnosis atau laporan. Admin tidak mengubah akun sesama admin.
 - Data anak, credential, sesi, wawancara dan backup tidak masuk Git/log/fixture.
