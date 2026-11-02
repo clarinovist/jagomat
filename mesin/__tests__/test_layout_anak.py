@@ -405,7 +405,9 @@ def test_host_pendamping_memakai_salin_tautan_dengan_fallback_native(anak):
     assert 'class="kabar-bagikan-st" role="status" aria-live="polite"' in badan
     assert 'Salin tautan sesi</span></button>' in badan
     assert 'data-bagikan-sesi' in badan
-    assert '<script>' not in markup, "renderer murni tidak menyisipkan enhancement HTTP"
+    from offline_browser import SKRIP_OFFLINE
+    assert re.findall(r"<script>(.*?)</script>", markup, re.S) == [SKRIP_OFFLINE], \
+        "renderer murni hanya memuat banner offline, bukan enhancement HTTP"
     assert "Tautan berlaku 7 hari" not in badan
 
 

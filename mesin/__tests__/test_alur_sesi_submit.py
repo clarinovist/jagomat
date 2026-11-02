@@ -317,7 +317,9 @@ def test_host_pendamping_memakai_salin_tautan_berhash_dengan_fallback_native(ser
     assert "navigator.clipboard.writeText" in isi
     assert "window.prompt(" in isi
     import assistant_browser
-    assert isi.count('<script>') == 2
+    from offline_browser import SKRIP_OFFLINE
+    assert isi.count('<script>') == 3
+    assert '<script>' + SKRIP_OFFLINE + '</script>' in isi
     assert '<script>' + assistant_browser.SKRIP_CHAT + '</script>' in isi
     assert assistant_browser.SKRIP_PILIHAN_ISI not in isi
     assert '<script>' + assistant_browser.SKRIP_BAGIKAN + '</script>' in isi

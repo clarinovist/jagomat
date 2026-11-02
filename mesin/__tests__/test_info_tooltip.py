@@ -34,9 +34,11 @@ import teacher_pages
 from style_stitch import GAYA_STITCH
 from teacher_style import SKRIP_CEGAH_KIRIM_GANDA, SKRIP_MATA_SANDI
 
-TEKS_DISETUJUI = (
-    "Setiap anak punya halaman sendiri: buat latihan, rencana belajar, "
-    "dan riwayat."
+# 2 Nov 2026 (cek tim, opsi A): petunjuk menjadi tiga langkah ringkas.
+LANGKAH_DISETUJUI = (
+    '<ol class="guru-langkah-ringkas-st"><li>Pilih anak.</li>'
+    '<li>Buka halaman profilnya.</li>'
+    '<li>Pilih <b>Siapkan latihan</b>.</li></ol>'
 )
 
 TEKS_LATIHAN = "Latihan bebas tidak mengubah progres rencana terpandu."
@@ -121,7 +123,7 @@ def _profil_latihan(db) -> str:
 def test_keterangan_daftar_beranda_terlihat_tanpa_tombol_info(db):
     """22 Okt 2026: mengikuti mockup Ruang guru, penjelasan inti tidak lagi di bubble."""
     h = _dashboard(db)
-    assert f'<p class="guru-petunjuk-st">{TEKS_DISETUJUI}</p>' in h
+    assert LANGKAH_DISETUJUI in h
     assert "Pilih nama untuk mulai." not in h
     assert not _BacaInfo(h).tombol
 
@@ -158,18 +160,19 @@ def test_keterangan_beranda_statis_tanpa_data_anak_atau_kunci(db):
     nama = set(re.findall(r"AnakSintetis\w*", h))
     assert nama == {"AnakSintetis", "AnakSintetisDua"}       # fixture benar-benar tampil
     assert not _BacaInfo(h).tombol
-    assert not re.search(r"\d", TEKS_DISETUJUI)              # teks statis, tanpa angka
+    assert not re.search(r"\d", LANGKAH_DISETUJUI)              # teks statis, tanpa angka
     for n in nama:
-        assert n not in TEKS_DISETUJUI
-    assert "kunci" not in TEKS_DISETUJUI.lower()
-    assert "malrule" not in TEKS_DISETUJUI.lower()
+        assert n not in LANGKAH_DISETUJUI
+    assert "kunci" not in LANGKAH_DISETUJUI.lower()
+    assert "malrule" not in LANGKAH_DISETUJUI.lower()
 
 
 def test_tanpa_js_tambahan(db):
     h = _dashboard(db)
     from guru_browser import SKRIP_FILTER_GURU
+    from offline_browser import SKRIP_OFFLINE
     assert re.findall(r"<script>(.*?)</script>", h, re.S) == [
-        SKRIP_FILTER_GURU, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA,
+        SKRIP_FILTER_GURU, SKRIP_OFFLINE, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA,
     ]
     assert not re.search(r"\son(?:click|focus|mouseenter|mousemove|mouseover)\s*=", h)
     assert "data-tooltip" not in h
@@ -206,7 +209,8 @@ def test_buat_latihan_tanpa_js_tambahan(db):
     skrip = re.findall(r"<script>(.*?)</script>", h, re.S)
     # Host Pendamping dirender privat. Enhancement berhash baru ditambahkan
     # pengirim HTTP; tooltip tetap CSS tanpa skrip/handler sendiri.
-    assert skrip == []
+    from offline_browser import SKRIP_OFFLINE
+    assert skrip == [SKRIP_OFFLINE]
     assert 'fonts.googleapis.com' not in h
     assert not re.search(r"\son(?:click|focus|mouseenter|mousemove|mouseover)\s*=", h)
 
