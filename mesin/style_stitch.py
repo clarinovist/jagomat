@@ -3041,7 +3041,7 @@ CSS_SESI = f"""
 }}
 .btn-st.utama {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS}; border: 0; }}
 
-/* Tab antar-alat sesi (Koreksi · Lampiran; Cetak disembunyikan 2026-10-04): pola Tab bersama. */
+/* Tab antar-alat sesi (Koreksi · Cetak · Lampiran; Cetak dikembalikan 2026-11-02): pola Tab bersama. */
 .pil-sesi-st {{
   display: flex; gap: 0 {T.SP_5}; flex-wrap: wrap;
   margin: 0 0 {T.SP_4};

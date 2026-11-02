@@ -161,8 +161,8 @@ def halaman_konfirmasi_hapus(
 def _pil_sesi(kon, sesi_id: int, aktif: str) -> str:
     """Pil navigasi di halaman sesi: Soal & kunci · Lampiran, satu gaya Stitch di semua tab."""
     # Delegasi ke builder yang sama dengan halaman koreksi supaya pindah tab
-    # tidak terasa seperti buka halaman baru (2026-10-04). Cetak tetap
-    # disembunyikan: aktif="cetak" tidak menandai item apa pun, rute deep-link hidup.
+    # tidak terasa seperti buka halaman baru (2026-10-04). Pil Cetak tampil
+    # lagi sejak 2026-11-02; aktif="cetak" menandainya sebagai halaman aktif.
     pil = _pil_sesi_stitch(kon, sesi_id, aktif)
     return pil.replace(">Koreksi</a>", ">Soal &amp; kunci</a>")
 
