@@ -56,3 +56,21 @@ def storage_ai_sintetis(monkeypatch):
         monkeypatch.setenv("AI_BERKAS_DB", str(path))
         ai_store.siapkan(path, sekarang=1)
         yield
+
+
+@pytest.fixture(autouse=True)
+def isolasi_pembatas_laju():
+    """Pembatas laju menyimpan state global; test tidak boleh mewarisi hitungan.
+
+    Tanpa ini, rangkaian test login dengan sandi salah bisa menyentuh batas
+    5 percobaan dan membuat test berikutnya menerima 429 secara misterius —
+    pelajaran dari `test_teacher_home.py` pada seleksi CI cepat.
+    """
+    import laju_masuk
+    import sessions
+
+    laju_masuk._reset()
+    sessions._reset_rate_limit()
+    yield
+    laju_masuk._reset()
+    sessions._reset_rate_limit()
