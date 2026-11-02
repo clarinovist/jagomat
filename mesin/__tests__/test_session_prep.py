@@ -139,9 +139,9 @@ def test_tautan_cetak_ada_di_beranda_guru_tetapi_tidak_di_halaman_persiapan(db):
         kon, siswa, peran="guru", pengguna="guru"
     ).decode()
     assert f'href="/anak/{anak}/persiapan"' in beranda
-    assert "Cetak persiapan sesi" in beranda
+    assert "Cetak catatan persiapan guru" in beranda
     halaman = _halaman(kon, anak)
-    assert "Cetak persiapan sesi" not in halaman
+    assert "Cetak catatan persiapan guru" not in halaman
     assert f'href="/anak/{anak}/persiapan"' not in halaman
 
 

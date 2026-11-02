@@ -39,8 +39,9 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
   disahkan manusia. Hanya guru pada fokus/profil yang cocok; tidak dikirim ke murid.
 - **Lembar persiapan sesi** `/anak/{id}/persiapan`: halaman cetak satu anak untuk guru
   pemilik (asing → 404 identik), isi rencana sama dengan kartu Beranda, playbook draf
-  terbuka berperingatan, tanpa form/kunci, `no-store`. Satu tautan dari Beranda profil;
-  belum tersedia pada kartu pilot. Bukan bukti belajar dan tidak menulis DB.
+  terbuka berperingatan, tanpa form/kunci, `no-store`. Satu tautan "Cetak catatan persiapan
+  guru" dari Beranda profil (hanya peran guru), juga saat Pendampingan aktif. Bukan bukti
+  belajar dan tidak menulis DB; lembar soal murid tetap lewat pil Cetak di sesi.
 - **Fitur khusus orang tua dibekukan (keputusan pemilik 1 Nov 2026):** Pendamping AI,
   kartu pra-tulis dan bantuan orang tua tetap berjalan tanpa investasi baru; kendali
   data tetap tersedia. Penghapusannya perlu keputusan terpisah.

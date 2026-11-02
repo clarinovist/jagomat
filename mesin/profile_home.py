@@ -10,6 +10,9 @@ from learning_history import catatan_histori_beda_level
 # Hasil 0 benar dengan rata-rata di bawah ini per soal dianggap tidak wajar (kemungkinan belum dikerjakan).
 DETIK_PER_SOAL_TIDAK_WAJAR = 30
 
+# Satu sumber label tautan lembar persiapan guru di kartu Beranda dan kartu pilot.
+LABEL_TAUTAN_PERSIAPAN = 'Cetak catatan persiapan guru'
+
 
 def _e(nilai):
     return html.escape(str(nilai), quote=True)
@@ -59,12 +62,20 @@ def _badge_menunggu(rencana, bukti, hari_ini=None):
     return chip_status(f'Sudah menunggu {hari} hari', 'perhatian') if hari >= 1 else ''
 
 
+def tautan_persiapan_html(siswa_id, peran):
+    """Tautan lembar persiapan guru; peran lain tidak mendapat tautan ini."""
+    if peran != 'guru':
+        return ''
+    return (f'<p class="tautan-persiapan-st"><a href="/anak/{int(siswa_id)}/persiapan">'
+            + LABEL_TAUTAN_PERSIAPAN + '</a></p>')
+
+
 def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=None, peran=None,
           tautan_persiapan=True):
     """Susun kartu Beranda; aksi, materi dan status tetap milik helper siklus.
 
     ``tautan_persiapan`` dimatikan oleh halaman persiapan supaya tautan
-    "Cetak persiapan sesi" tidak menunjuk ke halaman yang sedang dibaca.
+    "Cetak catatan persiapan guru" tidak menunjuk ke halaman yang sedang dibaca.
     """
     from cycle_carry import bukti_lanjutan
     from cycle_representations import CATATAN_PEMISAHAN, bukti_satu_representasi
@@ -120,11 +131,7 @@ def kartu(rencana, bukti, siswa, *, jumlah_soal=None, slot_bantuan='', hari_ini=
                 '<span class="beranda-konfirmasi-st">Konfirmasi hanya setelah hasil diperiksa.</span></p>'
                 if rencana.tindakan == 'konfirmasi_hasil' else '')
     menunggu = _badge_menunggu(rencana, bukti, hari_ini)
-    tautan = (
-        f'<p class="tautan-persiapan-st"><a href="/anak/{sid}/persiapan">'
-        'Cetak persiapan sesi</a></p>'
-        if peran == 'guru' and tautan_persiapan else ''
-    )
+    tautan = tautan_persiapan_html(sid, peran) if tautan_persiapan else ''
     meta = ('<p class="beranda-meta-st">' + _e(UI._waktu(rencana, bukti, tertahan=True)) + '</p>'
             if tertahan else _meta(rencana, bukti, jumlah_soal))
     return (

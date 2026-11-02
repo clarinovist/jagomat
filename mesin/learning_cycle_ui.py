@@ -637,6 +637,9 @@ def kartu_rencana(
     pilot, tambahan = kartu(kon, siswa_id)
     if pilot is not None:
         hasil = pilot + tambahan + slot_bantuan
+        if tautan_persiapan:
+            from profile_home import tautan_persiapan_html
+            hasil += tautan_persiapan_html(siswa_id, peran)
         identitas = sesi_utama(kon, siswa_id)
     else:
         bukti = database.muat_bukti_siklus(kon, siswa_id)
