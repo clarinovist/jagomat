@@ -9,6 +9,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import auth
 import sessions
+import laju_masuk
 import landing
 import style_stitch
 import design_tokens as T
@@ -138,7 +139,7 @@ def test_style_scoped_tidak_mengubah_login_dan_form_publik_lain():
 @pytest.fixture()
 def server(tmp_path,monkeypatch):
     monkeypatch.setattr(sessions,'BERKAS_SESI',tmp_path/'sessions.json')
-    monkeypatch.setattr(sessions,'_jalur_dari_kunci_ip',{})
+    laju_masuk._reset()
     s=ServerUji(tmp_path,monkeypatch)
     auth.tambah_akun('admin-register','sandi-admin-register-123','admin')
     try: yield s
@@ -158,7 +159,7 @@ def _token_form(server):
 
 
 def test_pendaftaran_diblokir_mengembalikan_429_tanpa_akun_sesi(server):
-    for _ in range(5): sessions.catat_gagal('pendamping-demo','127.0.0.1')
+    for _ in range(5): laju_masuk.catat_gagal('pendamping-demo','127.0.0.1')
     token_form = _token_form(server)
     sebelum=_keadaan(server)
     kode,isi,header=server.minta('/daftar',data={'nama':'pendamping-demo','sandi':'sandi-sintetis-jangan-pantulkan','setuju':'1','token_form':token_form})

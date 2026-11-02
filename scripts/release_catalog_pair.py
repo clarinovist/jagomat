@@ -52,3 +52,8 @@ BACA = r'''
         for sid,pembahasan in m['catalog_pembahasan']:
             assert [question_views.soal_dari_baris(b).pembahasan for b in database.isi_sesi(c,sid)]==pembahasan, 'pembahasan_katalog_berubah'
 '''
+
+# Nama kanonik kontrak pasangan (`release_pair_common`); `TULIS`/`BACA` tetap
+# dipertahankan karena `release_question_pair.py` menempelkannya.
+SUMBER_TULIS = TULIS
+SUMBER_BACA = BACA

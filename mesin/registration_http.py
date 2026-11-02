@@ -6,6 +6,7 @@ import time
 import auth
 import database
 import ip_klien
+import laju_masuk
 import sessions
 
 
@@ -127,7 +128,7 @@ def tangani_post(penangan, jalur: str) -> bool:
                 token_form=token_baru,
             ))
             return True
-        if sessions.sedang_diblokir(nama, kunci_ip):
+        if laju_masuk.sedang_diblokir(nama, kunci_ip):
             penangan._kirim(
                 halaman_daftar(
                     "Terlalu banyak percobaan. Coba lagi 15 menit lagi.",
@@ -239,7 +240,7 @@ def tangani_post(penangan, jalur: str) -> bool:
             # Pendaftaran juga menghitung percobaan gagal: tanpa ini cek
             # `sedang_diblokir` di atas membaca state yang tak pernah diisi.
             if locals().get("nama"):
-                sessions.catat_gagal(nama, kunci_ip)
+                laju_masuk.catat_gagal(nama, kunci_ip)
             aman = (
                 "Nama sudah dipakai. Pakai nama lain, atau masuk bila memang "
                 "akunmu."

@@ -12,6 +12,7 @@ import auth
 import brand
 import design_tokens as T
 import ip_klien
+import laju_masuk
 import sessions
 from assistant_navigation import tujuan_lanjut
 
@@ -126,7 +127,7 @@ def proses_masuk(penangan, data: dict) -> None:
             )
         )
         return
-    if sessions.sedang_diblokir(nama, ip):
+    if laju_masuk.sedang_diblokir(nama, ip):
         penangan._kirim(
             penangan._halaman_masuk_stitch(
                 "Terlalu banyak percobaan. Coba lagi 15 menit lagi.",
@@ -137,7 +138,7 @@ def proses_masuk(penangan, data: dict) -> None:
         return
     principal = auth.autentikasi(nama, sandi)
     if principal is None:
-        sessions.catat_gagal(nama, ip)
+        laju_masuk.catat_gagal(nama, ip)
         penangan._kirim(
             penangan._halaman_masuk_stitch(
                 "Nama atau sandi belum cocok. Coba lagi, atau minta gurumu.",
@@ -147,7 +148,7 @@ def proses_masuk(penangan, data: dict) -> None:
         return
     token = sessions.buat_dari_principal(principal)
     if token is None:
-        sessions.catat_gagal(nama, ip)
+        laju_masuk.catat_gagal(nama, ip)
         penangan._kirim(
             penangan._halaman_masuk_stitch(
                 "Akun berubah saat masuk. Coba lagi.", lanjut=lanjut
@@ -155,7 +156,7 @@ def proses_masuk(penangan, data: dict) -> None:
             409,
         )
         return
-    sessions.catat_berhasil(principal.pengguna, ip)
+    laju_masuk.catat_berhasil(principal.pengguna, ip)
     tujuan = (
         "/murid" if principal.peran == "murid"
         else "/admin" if principal.peran == "admin"

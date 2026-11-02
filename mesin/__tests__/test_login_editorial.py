@@ -11,6 +11,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import design_tokens as T
+import laju_masuk
 import sessions
 import web
 from http_test_kit import ServerUji
@@ -174,7 +175,7 @@ def test_responsif_dan_warna_dari_token():
 def server(tmp_path, monkeypatch):
     """Server sintetis untuk memeriksa UI dari respons GET/POST sebenarnya."""
     monkeypatch.setattr(sessions, "BERKAS_SESI", tmp_path / "sesi.json")
-    monkeypatch.setattr(sessions, "_jalur_dari_kunci_ip", {})
+    laju_masuk._reset()
     s = ServerUji(tmp_path, monkeypatch)
     try:
         yield s

@@ -23,7 +23,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 ## Struktur dan data
 
 - `mesin/`: aplikasi, `__tests__/`, aset, `publik/`, konten internal `konten/`, Dockerfile.
-- `scripts/`: palang repo, shard CI, build/probe/pair/deployer, katalog desain luring, ekspor token untuk alat desain, dan eksperimen sintetis.
+- `scripts/`: palang repo, shard CI, build/probe/pair/deployer, katalog desain luring, ekspor token untuk alat desain, dan eksperimen sintetis. Modul `release_*_pair.py` adalah data probe; bentuknya (konstanta wajib + penanda unik) dijaga `release_pair_common.py` dan test kontrak, bukan disalin manual.
 - `docs/`: kontrak permanen; `docs/plan/` lokal/gitignored, bukan satu-satunya sumber keputusan.
 - Empat DB durable inti: belajar, Pendamping, kontrol AI, kontrol admin; auth
   `sandi.json` ikut bundle backup. Riset konsumen mempunyai DB/retensi/backup terpisah.

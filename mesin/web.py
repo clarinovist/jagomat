@@ -49,6 +49,52 @@ from teacher_pages import (
 )
 from topics import TOPIK_BAWAAN, daftar_topik
 
+# ---------------------------------------------------------------------------
+# Tabel akses rute — DOKUMENTASI, bukan penggerak dispatch.
+#
+# `_rute_get`/`_rute_post` memanggil handler berurutan, dan urutan itu sendiri
+# adalah batas auth. `/murid` ditangani sebelum palang `_lolos_sandi` karena
+# permukaan anak memegang pengalihan 303 sendiri; `/admin` (termasuk `/admin/...`)
+# dijawab `admin_http` sebelum palang guru, jadi anonim dan guru menerima 404
+# yang sama alih-alih 401; siklus `/sesi/` memegang guard asalnya sendiri
+# sehingga palang asal POST melewati prefix itu. Menyisipkan modul baru di
+# posisi yang salah tidak membuat test lama merah — karena itu tabel ini diuji
+# terhadap perilaku nyata (bukan dibaca ulang) oleh
+# `__tests__/test_route_access_matrix.py`, dan setiap entri di sini wajib punya
+# probe di sana.
+#
+# Tingkat: "publik" (tanpa identitas), "murid", "guru" (guru atau admin),
+# "admin" (pengelola saja). Urutan entri mengikuti urutan pemeriksaan handler
+# pertama di dispatcher. Permukaan yang statusnya ditentukan flag/langganan
+# (`/pendamping` lewat PENDAMPING_AKTIF, tautan bearer `/mulai/<token>`,
+# `/langganan`) sengaja tidak dicatat: statusnya bukan fungsi tingkat peran.
+AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
+    ("/admin", "admin"),  # `/admin` dan `/admin/...`: 404 untuk anonim & guru
+    ("/", "publik"),  # landing; guru/admin melihat berandanya sendiri
+    ("/masuk", "publik"),
+    ("/daftar", "publik"),
+    ("/aset/", "publik"),
+    ("/guru", "guru"),
+    ("/ortu", "guru"),  # alias lama beranda guru
+    ("/murid", "murid"),  # sebelum palang sandi: 303 ke /masuk tanpa sesi murid
+    ("/sesi/", "guru"),
+    ("/lampiran/", "guru"),
+    ("/lembar/", "guru"),
+    ("/akun", "guru"),
+    ("/anak/", "guru"),
+    ("/laporan/", "guru"),
+)
+
+AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
+    ("/admin", "admin"),
+    ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
+    ("/daftar", "publik"),
+    ("/murid/", "murid"),
+    ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
+    ("/akun", "guru"),
+)
+
+
 class Penangan(BaseHTTPRequestHandler):
     # Batas tunggu socket: klien lambat tidak boleh menahan thread tanpa akhir.
     timeout = 15

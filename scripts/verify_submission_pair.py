@@ -7,6 +7,7 @@ import json
 import re
 import secrets
 import subprocess
+import sys
 
 from verify_release_image import GalatVerifikasi, ParserAman, periksa_inspect, validasi_rujukan
 from release_learning_pair import SUMBER_TULIS as TULIS_PILOT, SUMBER_BACA as BACA_PILOT
@@ -42,6 +43,18 @@ TULIS_PILOT = ('PROBE_LANGGANAN = ' + repr(SUMBER_UJI_LANGGANAN) + '\n'
 BACA_PILOT = LANGGANAN_BACA + '\n' + SERVICE_BACA + '\n' + BACA_PILOT
 
 from release_admin_launch_pair import SUMBER_TULIS as LAYANAN_TULIS, SUMBER_BACA as LAYANAN_BACA
+from release_pair_common import validasi_modul as _validasi_pair
+
+# Kontrak bentuk modul pasangan: gagal cepat sebelum probe dijalankan di image.
+for _nama in (
+    "release_learning_pair", "release_focus_pair", "release_admin_pair",
+    "release_subscription_pair", "release_subscription_service_pair",
+    "release_package_pair", "release_quota_pair", "release_registration_pair",
+    "release_support_pair", "release_policy_pair", "release_sensor_pair",
+    "release_question_pair", "release_admin_launch_pair",
+):
+    _validasi_pair(sys.modules[_nama], nama=_nama)
+
 TULIS_PILOT = LAYANAN_TULIS + '\n' + TULIS_PILOT
 BACA_PILOT = LAYANAN_BACA + '\n' + BACA_PILOT
 

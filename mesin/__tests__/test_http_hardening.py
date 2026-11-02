@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import socket
 import sys
+import threading
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -14,9 +15,19 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import sessions  # noqa: E402
 import ip_klien  # noqa: E402
+import laju_masuk  # noqa: E402
 from http_test_kit import ServerUji  # noqa: E402
+
+
+class _Header:
+    """Header minimal bergaya ``http.client.HTTPMessage`` untuk uji XFF."""
+
+    def __init__(self, nilai):
+        self._nilai = nilai
+
+    def get_all(self, nama, default=None):
+        return [self._nilai] if nama == "X-Forwarded-For" else (default or [])
 
 
 @pytest.fixture()
@@ -54,6 +65,16 @@ def _kode(respons: bytes) -> int:
 def _host(server) -> str:
     alamat = urlsplit(server.alamat)
     return f"{alamat.hostname}:{alamat.port}"
+
+
+def _jalankan_thread(kerja, jumlah: int) -> list[threading.Thread]:
+    """Jalankan ``kerja(0..jumlah-1)`` serentak dan tunggu semua selesai."""
+    ulir = [threading.Thread(target=kerja, args=(indeks,)) for indeks in range(jumlah)]
+    for t in ulir:
+        t.start()
+    for t in ulir:
+        t.join()
+    return ulir
 
 
 @pytest.mark.parametrize(
@@ -177,13 +198,6 @@ def test_lampiran_tidak_menyajikan_nama_berkas_keluar_direktori(server, monkeypa
 
 
 def test_ip_klien_memakai_entri_kanan_di_belakang_proxy_privat():
-    class _Header:
-        def __init__(self, nilai):
-            self._nilai = nilai
-
-        def get_all(self, nama, default=None):
-            return [self._nilai] if nama == "X-Forwarded-For" else (default or [])
-
     # Proxy loopback menambahkan IP asli di kanan; entri kiri kiriman klien diabaikan.
     assert ip_klien.ip_klien(_Header("1.2.3.4, 203.0.113.9"), ("127.0.0.1", 1)) == "203.0.113.9"
     # Peer publik tidak dipercaya membawa XFF.
@@ -192,10 +206,84 @@ def test_ip_klien_memakai_entri_kanan_di_belakang_proxy_privat():
     assert ip_klien.ip_klien(_Header("bukan-ip"), ("127.0.0.1", 1)) == "127.0.0.1"
 
 
-def test_pembatas_laju_tetap_menolak_setelah_batas(monkeypatch):
-    """Key berbasis IP hasil resolusi tetap memakai limiter `sessions`."""
-    sessions._reset_rate_limit()
-    for _ in range(sessions._BATAS_GAGAL):
-        sessions.catat_gagal("feby", "203.0.113.9")
-    assert sessions.sedang_diblokir("feby", "203.0.113.9")
-    sessions._reset_rate_limit()
+def test_pembatas_laju_tetap_menolak_setelah_batas():
+    """Key berbasis IP hasil resolusi tetap memakai limiter aplikasi."""
+    laju_masuk._reset()
+    ip = ip_klien.ip_klien(_Header("1.2.3.4, 203.0.113.9"), ("127.0.0.1", 1))
+    for _ in range(laju_masuk.BATAS_GAGAL):
+        laju_masuk.catat_gagal("feby", ip)
+    assert laju_masuk.sedang_diblokir("feby", ip)
+    laju_masuk._reset()
+
+
+def test_batas_kunci_membuang_yang_tertua_tanpa_mengosongkan_state(monkeypatch):
+    """Nama acak dari penyerang tidak boleh menumbuhkan state tanpa batas."""
+    monkeypatch.setattr(laju_masuk, "BATAS_KUNCI", 8)
+    laju_masuk._reset()
+    for urutan in range(50):
+        # Jam sintetis menaik: urutan eviction tidak bergantung pada resolusi waktu.
+        laju_masuk.catat_gagal(
+            f"nama-{urutan}", "203.0.113.9", sekarang=1000.0 + urutan
+        )
+    # Plafon ditegakkan tanpa mengosongkan semuanya: hanya kunci tertua hilang.
+    assert len(laju_masuk._RIWAYAT) == 8
+    nama_tersisa = {nama for nama, _ip in laju_masuk._RIWAYAT}
+    assert "nama-0" not in nama_tersisa
+    assert "nama-49" in nama_tersisa
+    for _ in range(laju_masuk.BATAS_GAGAL):
+        laju_masuk.catat_gagal("nama-49", "203.0.113.9", sekarang=1060.0)
+    assert laju_masuk.sedang_diblokir("nama-49", "203.0.113.9", sekarang=1060.0)
+    laju_masuk._reset()
+
+
+def test_pembatas_laju_aman_dipanggil_banyak_thread(monkeypatch):
+    """8 thread × 100 panggilan: eviction tetap menjaga plafon kunci."""
+    monkeypatch.setattr(laju_masuk, "BATAS_KUNCI", 32)
+    laju_masuk._reset()
+    galat: list[Exception] = []
+    jumlah_thread = 8
+    jumlah_panggilan = 100
+
+    def kerja(indeks):
+        try:
+            for urutan in range(jumlah_panggilan):
+                # Kunci unik memaksa eviction berjalan bersamaan dengan pembacaan.
+                laju_masuk.catat_gagal(f"nama-{indeks}-{urutan}", "203.0.113.9")
+                laju_masuk.sedang_diblokir(f"nama-{indeks}-{urutan}", "203.0.113.9")
+        except Exception as exc:  # kegagalan thread = test merah, bukan senyap
+            galat.append(exc)
+
+    _jalankan_thread(kerja, jumlah_thread)
+    assert galat == []
+    assert 0 < len(laju_masuk._RIWAYAT) <= 32
+    laju_masuk._reset()
+
+
+def test_lock_menjaga_catatan_gagal_tidak_hilang_antar_thread():
+    """Baca-ubah-tulis riwayat harus utuh: tanpa lock, catatan saling menimpa."""
+    laju_masuk._reset()
+    galat: list[Exception] = []
+    jumlah_thread = 8
+    jumlah_panggilan = 100
+
+    def kerja(_indeks):
+        try:
+            for _urutan in range(jumlah_panggilan):
+                laju_masuk.catat_gagal("bersama", "203.0.113.9")
+        except Exception as exc:  # kegagalan thread = test merah, bukan senyap
+            galat.append(exc)
+
+    # Switch interval kecil: GIL berpindah di tengah baca-ubah-tulis sehingga
+    # versi tanpa lock kehilangan ratusan catatan dari 800.
+    interval_asli = sys.getswitchinterval()
+    try:
+        sys.setswitchinterval(1e-6)
+        _jalankan_thread(kerja, jumlah_thread)
+    finally:
+        sys.setswitchinterval(interval_asli)
+    assert galat == []
+    assert len(laju_masuk._RIWAYAT[("bersama", "203.0.113.9")]) == (
+        jumlah_thread * jumlah_panggilan
+    )
+    laju_masuk._reset()
+

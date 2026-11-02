@@ -19,6 +19,7 @@ import assistant_service  # noqa: E402
 import assistant_store  # noqa: E402
 import auth  # noqa: E402
 import database  # noqa: E402
+import laju_masuk  # noqa: E402
 import sessions  # noqa: E402
 import web  # noqa: E402
 from http_test_kit import SANDI_GURU, SANDI_MURID, ServerUji  # noqa: E402
@@ -108,7 +109,7 @@ def server(tmp_path, monkeypatch):
     monkeypatch.setenv("DEEPSEEK_API_KEY", "kunci-sintetis")
     monkeypatch.setenv("DEEPSEEK_MODEL", "deepseek-flash")
     monkeypatch.setattr(sessions, "BERKAS_SESI", tmp_path / "sesi.json")
-    monkeypatch.setattr(sessions, "_jalur_dari_kunci_ip", {})
+    laju_masuk._reset()
     monkeypatch.setattr(assistant_schema, "BAWAAN", tmp_path / "pendamping.db")
     monkeypatch.setattr(web.Penangan, "log_message", lambda *args: None)
     panggilan = []
@@ -187,7 +188,7 @@ def test_http_error_login_hanya_simpan_lanjut_aman(server, jenis_gagal, tujuan):
     sandi = "" if jenis_gagal == "kosong" else "salah-sintetis"
     if jenis_gagal == "blocked":
         for _ in range(5):
-            sessions.catat_gagal("guru", "127.0.0.1")
+            laju_masuk.catat_gagal("guru", "127.0.0.1")
         sandi = SANDI_GURU
     kode, isi, tajuk = _masuk(server, tujuan, sandi=sandi)
     assert kode == (429 if jenis_gagal == "blocked" else 200)
