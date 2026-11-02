@@ -6,6 +6,35 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy banner offline dan petunjuk beranda — 2 November 2026
+
+Controlled `deploy-v2` memasang **3d5c215f49da3e28300c2e91f08ef1984087076e**;
+container started `2026-11-02T13:11:04Z`, healthy. Delta sejak `38a5e5b` hanya UI/teks: banner
+sinyal offline berhash CSP (`offline_browser.py`, hanya event `offline`/`online`),
+petunjuk tiga langkah dan panduan guru baru di beranda `/guru`, serta pesan nama
+pengguna tanpa spasi di `/daftar`; plus test isolasi chat privat. Tanpa perubahan
+schema/persistensi atau aktivasi fitur.
+
+- Kandidat `sha256:8d891d8e…`; recovery `39fcfa7c…` digest `sha256:5df374e4…`
+  (rebuild); kontrak `c2aa0f02…` identik pada kandidat, recovery, dan live; mode
+  `migrasi`, `compatible=true`, `pair_verified=true`, `siap_pasang=false`. Job
+  `pasang` tetap literal false.
+- Push pertama `9a12ac6` merah pada lima test lama yang belum mengikuti perilaku baru;
+  diselaraskan di `3d5c215` (test saja). Push
+  [41447817215](https://github.com/clarinovist/jagomat/actions/runs/41447817215) dan
+  dispatch gate [41448073407](https://github.com/clarinovist/jagomat/actions/runs/41448073407)
+  sukses: delapan shard kandidat/recovery, build/probe dua image, pair 8/8/6, provider0.
+- Approval terkonsumsi rilis `38a5e5b` diarsipkan lebih dulu (dry-run lalu apply, receipt
+  exact). `prepare` (preflight read-only) lulus sebelum hold; hold, backup empat DB +
+  `sandi.json` + riset terpisah, rehearsal C–B–C, hash backup lokal cocok, `deploy-v2`
+  exit0, reopen. Urutan: reopen → postcheck → cleanup.
+- Postcheck: digest/revision exact, probe sintetis (banner offline, beranda guru,
+  writer2, level P1–P6, pil Cetak, tautan persiapan), log galat0, smoke publik
+  `/`200 `/akun`401 `/murid/`303. Konfigurasi dipulihkan, histori terjaga.
+- Approval terkonsumsi rilis ini masih di `/opt/osn/rollout-approval.json`; arsipkan
+  sebelum `prepare` berikutnya. Bukti privat `docs/plan/deploy-banner-20261102/`; backup
+  induk remote `/opt/osn/cadangan/deploy-banner-20261102/`. `uji.jagomat.id` belum disamakan.
+
 ## Deploy label dan tautan persiapan — 2 November 2026
 
 Controlled `deploy-v2` memasang **38a5e5b339a7b16a429d2bbbf48c474020b98ec5**;
