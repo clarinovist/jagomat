@@ -6,6 +6,35 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy label dan tautan persiapan — 2 November 2026
+
+Controlled `deploy-v2` memasang **38a5e5b339a7b16a429d2bbbf48c474020b98ec5**;
+container started `2026-11-02T05:29:28Z` (12.29 WIB), healthy/restart0. Delta sejak
+`53d1e63` hanya UI guru: label tautan lembar persiapan menjadi "Cetak catatan persiapan
+guru" (satu konstanta) dan tautan itu juga tampil pada kartu Pendampingan (pilot) aktif,
+hanya peran guru. Tanpa perubahan schema/persistensi atau aktivasi fitur.
+
+- Kandidat `sha256:1814686d…`; recovery `39fcfa7c…` digest `sha256:9bf9d05d…`
+  (rebuild; bukti pair run lama tidak dipinjam); kontrak `c2aa0f02…` identik pada
+  kandidat, recovery, dan live; mode `migrasi`, `compatible=true`, `pair_verified=true`,
+  `siap_pasang=false`. Job `pasang` tetap literal false.
+- Push [41392986086](https://github.com/clarinovist/jagomat/actions/runs/41392986086) dan
+  dispatch gate [41392992387](https://github.com/clarinovist/jagomat/actions/runs/41392992387)
+  sukses: delapan shard kandidat/recovery, build/probe dua image, pair 8/8/6, provider0.
+- Approval terkonsumsi rilis `53d1e63` diarsipkan lebih dulu (dry-run lalu apply, receipt
+  exact) ke `/opt/osn/cadangan/deploy-persiapan-20261102/approval-consumed-navcetak.json`.
+  Preflight `PROBE_SKEMA` pada salinan metadata live lulus untuk kedua image.
+- Hold 05.28–05.30 UTC (±1,75 menit, Caddy 503): backup empat DB + `sandi.json` + riset
+  terpisah, rehearsal C–B–C, hash backup lokal cocok, `deploy-v2` exit0, reopen
+  hash-identik. Histori dan jumlah tabel terjaga.
+- Urutan operator nyata: **reopen → postcheck → cleanup**. Postcheck: digest/revision exact,
+  probe sintetis (writer2, level P1–P6, pil Cetak, label/tautan persiapan pada image live),
+  log galat0, smoke publik `/`200 `/akun`401 `/murid/`303.
+- Approval terkonsumsi rilis ini masih di `/opt/osn/rollout-approval.json`; arsipkan
+  (`archive_approval.py`) sebelum `prepare` berikutnya. Bukti privat
+  `docs/plan/deploy-persiapan-20261102/`; backup induk remote
+  `/opt/osn/cadangan/deploy-persiapan-20261102/`. `uji.jagomat.id` belum disamakan.
+
 ## Deploy navigasi Cetak sesi — 2 November 2026
 
 Controlled `deploy-v2` memasang **53d1e633a564b20e1866780340bc35edf6be0959**;

@@ -10,14 +10,15 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   sintetis. Peran `guru` tetap mencakup orang tua dan hanya mengakses data miliknya.
 - Akses awal **nonkomersial**. Keputusan paket Jago/Jago Pro tidak sama dengan
   pembukaan penjualan, trial otomatis, promo, atau paywall.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`53d1e63`**, mulai
-  berjalan 2 November 2026 11.58 WIB. Rilis ini hanya mengembalikan pil Cetak di
-  navigasi sesi (lembar soal/kunci); sebelumnya `a9977f8` membawa migrasi
-  `konteks_butir` P1–P6, level P1/P2, dan lembar persiapan sesi. Dispatch gate
-  [41390157441](https://github.com/clarinovist/jagomat/actions/runs/41390157441)
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`38a5e5b`**, mulai
+  berjalan 2 November 2026 12.29 WIB. Rilis ini mengganti label tautan lembar persiapan
+  menjadi "Cetak catatan persiapan guru" dan memunculkannya juga pada kartu Pendampingan
+  aktif; sebelumnya `53d1e63` mengembalikan pil Cetak sesi dan `a9977f8` membawa migrasi
+  `konteks_butir` P1–P6, level P1/P2, serta lembar persiapan sesi. Dispatch gate
+  [41392992387](https://github.com/clarinovist/jagomat/actions/runs/41392992387)
   (delapan shard hijau, pair terverifikasi), container healthy, smoke publik lulus.
   Digest/recovery/backup ada di
-  [catatan rilis](production-release.md#deploy-navigasi-cetak-sesi--2-november-2026).
+  [catatan rilis](production-release.md#deploy-label-dan-tautan-persiapan--2-november-2026).
 - Commit dokumentasi sesudahnya tidak otomatis menjadi revision image. Status
   di sini adalah snapshot bertanggal, bukan monitor live atau klaim `main` selalu deployed.
 - Auto-deploy tetap nonaktif: push hanya feedback CI; dispatch manual menjalankan
