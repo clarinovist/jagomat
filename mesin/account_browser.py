@@ -4,9 +4,10 @@ Tanpa jaringan/autosave. Pesan dimasukkan sebagai teks, bukan HTML. JavaScript
 hanya membantu UX; validasi dan kepemilikan tetap ditegakkan server. Bila skrip
 tidak tersedia, form native beserta validasi browser tetap dapat digunakan.
 """
+from offline_browser import SKRIP_OFFLINE
 from teacher_style import SKRIP_MATA_SANDI
 
-SKRIP_AKUN = SKRIP_MATA_SANDI + """(function(){
+SKRIP_AKUN = SKRIP_MATA_SANDI + SKRIP_OFFLINE + """(function(){
   document.querySelectorAll('form[data-konfirmasi]').forEach(function(f){
     f.addEventListener('submit',function(e){
       if(!window.confirm(f.dataset.konfirmasi)){e.preventDefault();}

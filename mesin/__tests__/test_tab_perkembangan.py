@@ -65,8 +65,10 @@ def test_tab_perkembangan_query_tak_sah_fallback_aman(server_tab):
     # Pemicu header kini memuat enhancement Pendamping yang sudah disetujui.
     # Tolak skrip dari query tanpa melarang skrip statis berhash milik aplikasi.
     from assistant_browser import SKRIP_CHAT
-    assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [SKRIP_CHAT]
-    assert '<script>' not in isi.replace('<script>' + SKRIP_CHAT + '</script>', '')
+    from offline_browser import SKRIP_OFFLINE
+    assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [SKRIP_OFFLINE, SKRIP_CHAT]
+    sisa = isi.replace('<script>' + SKRIP_OFFLINE + '</script>', '')
+    assert '<script>' not in sisa.replace('<script>' + SKRIP_CHAT + '</script>', '')
     assert 'id="konten-laporan"' in isi
 
 

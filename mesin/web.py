@@ -95,7 +95,14 @@ class Penangan(BaseHTTPRequestHandler):
     def _kirim_privat(self, isi: bytes, kode: int = 200, *, beranda_guru: bool = False) -> None:
         """Respons privat; enhancement terdaftar berhash dengan izin koneksi terbatas."""
         import assistant_browser
+        from offline_browser import HASH_OFFLINE
         isi, izin_skrip = assistant_browser.lengkapi_respons(isi)
+        izin_offline = "'sha256-" + HASH_OFFLINE + "'"
+        if izin_skrip.startswith("script-src "):
+            izin_skrip = izin_skrip.replace(
+                "script-src ", "script-src " + izin_offline + " ", 1)
+        else:
+            izin_skrip = "script-src " + izin_offline + "; " + izin_skrip
         izin_gaya = "style-src 'unsafe-inline'; "
         if beranda_guru:
             # Dua skrip shell existing + filter instan chip (disetujui 22 Okt 2026), semuanya
@@ -104,7 +111,7 @@ class Penangan(BaseHTTPRequestHandler):
             import hashlib
             from guru_browser import HASH_FILTER_GURU
             from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
-            hashes = [HASH_FILTER_GURU] + [
+            hashes = [HASH_FILTER_GURU, HASH_OFFLINE] + [
                 base64.b64encode(hashlib.sha256(s.encode()).digest()).decode()
                 for s in (SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)]
             izin_skrip = "script-src " + ' '.join("'sha256-" + h + "'" for h in hashes) + '; '

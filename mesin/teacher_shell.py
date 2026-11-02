@@ -7,6 +7,7 @@ import brand
 import design_tokens as T
 import profile_workspace
 from child_style import GAYA_ANAK
+from offline_browser import SKRIP_OFFLINE
 from style_stitch import GAYA_STITCH
 from teacher_style import (
     GAYA_GURU as GAYA,
@@ -126,9 +127,13 @@ def _halaman(
                 "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",
                 "",
             )
-        skrip = f'<script>{skrip_privat}</script>' if skrip_privat else ''
-        if not privat:
-            skrip = f'<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script>'
+        skrip = '' if (privat and not skrip_privat) else f'<script>{SKRIP_OFFLINE}</script>'
+        if skrip_privat:
+            if SKRIP_OFFLINE in skrip_privat:
+                skrip = ''
+            skrip += f'<script>{skrip_privat}</script>'
+        elif not privat:
+            skrip += f'<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script>'
         return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(judul))}</title>
@@ -141,7 +146,7 @@ def _halaman(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(judul))}</title>
 {brand.tag_kepala()}<style>{GAYA}</style></head>
-<body><div class="bungkus">{batang}{isi}</div><script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script></body></html>""".encode()
+<body><div class="bungkus">{batang}{isi}</div><script>{SKRIP_OFFLINE}</script><script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script></body></html>""".encode()
 
 
 def _halaman_stitch(
@@ -174,7 +179,9 @@ def _halaman_stitch(
             "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",
             "",
         )
-    skrip = "" if privat else f"<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script>"
+    skrip = f"<script>{SKRIP_OFFLINE}</script>"
+    if not privat:
+        skrip += f"<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script>"
     return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(judul))}</title>

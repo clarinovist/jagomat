@@ -18,6 +18,7 @@ from teacher_corrections import (
     label_penilaian,
 )
 from teacher_shell import _halaman, _topbar_stitch
+from offline_browser import SKRIP_OFFLINE
 from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
 from teacher_workspace import _ambil, _form_remedial, _tanggal_ringkas
 
@@ -1030,10 +1031,12 @@ def halaman_sesi_stitch(
             bantuan, f"form-koreksi-{sesi_id}",
         ) if bantuan else "")
     )
-    skrip_extra = "" if (bantuan or privat) else (
-        f"<script>{SKRIP_MATA_SANDI}</script>"
-        f"<script>{SKRIP_CEGAH_KIRIM_GANDA}</script>"
-    )
+    skrip_extra = f"<script>{SKRIP_OFFLINE}</script>"
+    if not (bantuan or privat):
+        skrip_extra += (
+            f"<script>{SKRIP_MATA_SANDI}</script>"
+            f"<script>{SKRIP_CEGAH_KIRIM_GANDA}</script>"
+        )
     gaya_sesi = gaya_stitch()
     if bantuan or privat:
         gaya_sesi = gaya_sesi.replace(

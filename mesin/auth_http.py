@@ -18,6 +18,7 @@ from assistant_navigation import tujuan_lanjut
 def halaman_masuk(galat: str = "", *, lanjut: str = "") -> bytes:
     """Render form masuk editorial; façade lama tetap berada di ``web``."""
     from style_stitch import gaya_stitch
+    from offline_browser import SKRIP_OFFLINE
     from teacher_style import SKRIP_MATA_SANDI
 
     lanjut = tujuan_lanjut(lanjut)
@@ -87,7 +88,7 @@ def halaman_masuk(galat: str = "", *, lanjut: str = "") -> bytes:
     </section>
   </div>
 </main>
-<script>{SKRIP_MATA_SANDI}</script>
+<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_OFFLINE}</script>
 </body></html>"""
     return body.encode()
 

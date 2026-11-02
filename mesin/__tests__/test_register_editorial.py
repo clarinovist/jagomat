@@ -13,6 +13,7 @@ import landing
 import style_stitch
 import design_tokens as T
 from http_test_kit import ServerUji
+from offline_browser import SKRIP_OFFLINE
 from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
 
 
@@ -66,7 +67,8 @@ def test_form_sandi_dan_persetujuan_tetap(pesan, galat):
     assert kolom['setuju']['value'] == '1'
     assert all('required' in a for a in kolom.values())
     assert all('autofocus' not in a for a in kolom.values())
-    assert re.findall(r'<script>(.*?)</script>', h, re.S) == [SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
+    assert re.findall(r'<script>(.*?)</script>', h, re.S) == [
+        SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA, SKRIP_OFFLINE]
     assert not any(k.startswith('on') for _, a in m.elemen for k in a)
 
 

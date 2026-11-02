@@ -117,7 +117,7 @@ def test_get_host_inline_privat_tanpa_provider_write_atau_resource_eksternal(ser
     assert 'data-bagikan-url=' not in profil
     assert 'action="/pendamping/inline/tutup"' in profil
     assert "fonts.googleapis.com" not in profil
-    assert profil.count("<script>") == 1
+    assert profil.count("<script>") == 2
     browser = __import__('assistant_browser')
     assert "'sha256-%s'" % browser.HASH_CSP in header["Content-Security-Policy"]
     assert "'sha256-%s'" % browser.HASH_PILIHAN_ISI not in header["Content-Security-Policy"]
@@ -132,8 +132,8 @@ def test_get_host_inline_privat_tanpa_provider_write_atau_resource_eksternal(ser
     _privat(header)
     assert 'id="bantuan-soal-1"' in sesi_html
     assert "fonts.googleapis.com" not in sesi_html
-    assert sesi_html.count("<script>") == 2
-    assert f"script-src 'sha256-{__import__('assistant_browser').HASH_CSP}'" in header["Content-Security-Policy"]
+    assert sesi_html.count("<script>") == 3
+    assert f"'sha256-{__import__('assistant_browser').HASH_CSP}'" in header["Content-Security-Policy"]
     assert "Tutup bantuan untuk membuka aksi pembatalan atau hapus." in sesi_html
     assert 'onsubmit="return confirm(' not in sesi_html
 
@@ -193,7 +193,7 @@ def test_tutup_bantuan_memulihkan_kontrol_tautan_dan_konfirmasi_destruktif(serve
         data={"inline_host": "anak", "inline_host_id": str(anak), "inline_posisi": "rencana"},
         headers=_origin(server),
     )
-    assert kode == 200 and normal.count('<script>') == 1
+    assert kode == 200 and normal.count('<script>') == 2
     kode, sesi_assisted, _ = server.minta(f"/sesi/{sesi}?bantuan=soal&nomor=1", cookie=token)
     assert kode == 200 and 'onsubmit="return confirm(' not in sesi_assisted
     ids, draf = _draf(server, sesi)
@@ -202,7 +202,7 @@ def test_tutup_bantuan_memulihkan_kontrol_tautan_dan_konfirmasi_destruktif(serve
         data={"inline_host": "sesi", "inline_host_id": str(sesi), "inline_posisi": "soal",
               "inline_nomor": "1", **draf}, headers=_origin(server),
     )
-    assert kode == 200 and sesi_normal.count('<script>') == 2
+    assert kode == 200 and sesi_normal.count('<script>') == 3
     assert "fonts.googleapis.com" not in sesi_normal
     assert 'action="/sesi/' in sesi_normal and '/hapus"' in sesi_normal
     assert "Baris satu\nbaris dua" in sesi_normal
@@ -878,7 +878,7 @@ def test_tutup_bantuan_memulihkan_host_native_dan_draf(server):
     assert f'name="jwb_{ids[0]}"\n               value=""' in isi
     _privat(header)
     assert "script-src 'unsafe-inline'" not in header["Content-Security-Policy"]
-    assert isi.count('<script>') == 2 and "fonts.googleapis.com" not in isi
+    assert isi.count('<script>') == 3 and "fonts.googleapis.com" not in isi
 
 
 def test_tutup_draf_koreksi_blank_checkbox_caraku_pemahaman_dan_galat_privat(server):

@@ -324,6 +324,9 @@ def halaman(kon, pesan: str, pemilik, peran: str, cari: str, kelompok: str) -> b
         '<div class="guru-catatan-st" aria-hidden="true">'
         '<img src="/aset/maskot-membaca-v3-240.png" width="96" height="96" alt=""></div></header>'
         f'{kabar}<section aria-labelledby="daftar-anak">{isi_utama}</section>'
+        '<p class="guru-catatan-sinyal-st">'
+        'Aplikasi butuh sinyal. Kalau sinyal hilang, jangan tutup halaman; '
+        'tunggu sampai kembali lalu kirim ulang.</p>'
         '<footer class="guru-kaki-st"><span aria-hidden="true">✳</span> '
         'Beri ruang untuk mencoba, bertanya, dan menjelaskan.</footer>'
         + (f'<script>{SKRIP_FILTER_GURU}</script>' if total else '') + '</main>',

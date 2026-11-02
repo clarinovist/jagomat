@@ -56,6 +56,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   CI/container3.12. Nama modul Inggris; fungsi/docstring/UI/commit Bahasa Indonesia.
 - Zero-JS default. Enhancement yang disetujui berhash CSP dan fallback native;
   validasi server tetap otoritatif. Tidak ada izin JS/dependency umum dari pola ini.
+  `offline_browser.py` hanya mendengar event `offline`/`online` dan mengganti teks
+  banner di halaman terbuka; tanpa network/storage/autosave; hash diizinkan di
+  respons privat.
   Daftar pengecualian/perilaku lengkap di [arsitektur](architecture-reference.md#konvensi-dan-keputusan-penting).
 - Token visual di `design_tokens.py`; peran semantik per permukaan dan pasangan kontras
   di `design_roles.py` (rujukan + guard test, bukan import runtime); kontrak di
@@ -69,8 +72,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   persiapan (form dibuang, playbook `open`), dirutekan `teacher_http.tangani_persiapan_get`
   setelah `_lolos_sandi` dan sebelum rute profil; tanpa logika rencana sendiri atau tulis DB.
 - `teacher_home_priority.py` hanya memproyeksi reducer; `guru_beranda_pages.py` merender /guru
-  (chip GET owner-scoped dengan filter instan berhash/fallback native) tanpa menulis DB atau membuat ranking
-  kemampuan. Respons privat no-store/no-referrer.
+  (chip GET owner-scoped dengan filter instan berhash/fallback native, petunjuk langkah
+  ringkas, panduan guru baru yang hilang setelah sesi pertama) tanpa menulis DB atau
+  membuat ranking kemampuan. Respons privat no-store/no-referrer.
 - `teaching_playbook.py` membaca JSON internal dengan validasi identitas/versi/hash;
   draf berlabel diizinkan tampil, bukan disahkan. `assistant_manage.py` menangani
   pengelolaan data sebelum gate provider; AI tidak mengambil alih konfirmasi/reducer.

@@ -38,7 +38,8 @@ mengikuti batas jenjang di referensi workflow.
 - **Pure Python stdlib**, tanpa framework/dependensi pihak ketiga. Dev dependency hanya
   `pytest` + `pytest-xdist`. Paket tambahan harus diajukan ke user dulu.
 - **Zero-JS default**: menu `<details>`, navigasi `?section=` server-side. Pengecualian
-  disetujui: toggle mata sandi, `confirm()` aksi destruktif, refresh pilihan isi ketika
+  disetujui: toggle mata sandi, banner status sinyal (`offline_browser.py`; hanya event
+  `offline`/`online`, tanpa network/storage/autosave), `confirm()` aksi destruktif, refresh pilihan isi ketika
   topik manual berubah, serta Kirim/Periksa status Pendamping inline tanpa reload
   (skrip berhash CSP, koneksi same-origin bila ada, fallback form native; bukan
   streaming). Tinjauan sesi memakai enhancement berhash CSP untuk accordion satu

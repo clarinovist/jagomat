@@ -99,7 +99,7 @@ def test_izin_skrip_hanya_hash_persis_pada_chat():
 @pytest.mark.parametrize("soal", [False, True])
 def test_chat_native_dan_fetch_memakai_guard_dan_request_yang_sama(server, soal):
     token, data, isi, header = mulai(server, soal=soal)
-    assert isi.count('<script>') == (2 if soal else 1)
+    assert isi.count('<script>') == (3 if soal else 2)
     if soal:
         from review_browser import HASH_TINJAUAN
         assert "'sha256-%s'" % HASH_TINJAUAN in header['Content-Security-Policy']

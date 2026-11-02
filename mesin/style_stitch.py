@@ -361,8 +361,11 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-kosong-st .guru-tambah-st {{ margin-top: {T.SP_3}; color: {T.TEKS_PUTIH}; background: {T.AKSEN_TEAL_TUA}; }}
 .guru-kosong-st .guru-tambah-st:hover {{ background: {T.AKSEN_TEAL_HOVER}; }}
 .guru-kosong-st .guru-petunjuk-st {{ margin-bottom: 0; }}
+.guru-catatan-sinyal-st {{ margin: {T.SP_4} 0 0; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; line-height: 1.5; max-width: 60ch; }}
 .guru-kaki-st {{ display: flex; gap: {T.SP_2}; align-items: center; color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; margin-top: {T.SP_6}; padding-top: {T.SP_5}; }}
 .guru-kaki-st > span {{ color: {T.AKSEN_KORAL_TUA}; font-size: 1.5rem; }}
+.banner-offline-st {{ box-sizing: border-box; margin: 0; padding: {T.SP_3} {T.SP_4}; background: {T.ANAK_PERHATIAN_LATAR}; color: {T.ANAK_PERHATIAN_TEKS}; border-bottom: 1px solid {T.ANAK_PERHATIAN_BORDER}; font: 600 {T.UKURAN_TEKS_LABEL}/1.5 {T.FONT_BODY}; text-align: center; }}
+.banner-offline-st[hidden] {{ display: none; }}
 @media (max-width: 36rem) {{
   .guru-beranda-st .st-topbar {{ flex-wrap: wrap; }}
   .guru-beranda-st .topbar-navigasi {{ flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }}

@@ -16,6 +16,7 @@ import html
 
 import brand
 import design_tokens as T
+from offline_browser import SKRIP_OFFLINE
 from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
 
 
@@ -53,7 +54,7 @@ def _halaman_publik_stitch(
 {_font_link()}
 <style>{gaya_stitch()}</style></head>
 <body class="st"><div class="{html.escape(kelas_badan, quote=True)}">{isi}</div>
-<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script></body></html>""".encode()
+<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script><script>{SKRIP_OFFLINE}</script></body></html>""".encode()
 
 
 def _topbar_publik_st() -> str:

@@ -100,9 +100,10 @@ def test_form_get_native_tanpa_js_dan_nilai_escape(server):
     forms = [a for t, a in tags if t == 'form' and a.get('id') == 'guru-filter']
     assert len(forms) == 1 and forms[0]['method'] == 'get' and forms[0]['action'] == '/guru'
     from guru_browser import SKRIP_FILTER_GURU
+    from offline_browser import SKRIP_OFFLINE
     from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
     assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [
-        SKRIP_FILTER_GURU, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
+        SKRIP_FILTER_GURU, SKRIP_OFFLINE, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
     assert not any(any(k.startswith('on') for k in a) for t, a in tags)
     assert 'fonts.googleapis.com/css2' in isi
     assert any(t == 'input' and a.get('name') == 'cari' and a.get('value') == cari for t, a in tags)
@@ -116,12 +117,14 @@ def test_csp_beranda_mengizinkan_tiga_skrip_berhash_dan_font_existing_saja(serve
     import base64
     import hashlib
     from guru_browser import SKRIP_FILTER_GURU
+    from offline_browser import HASH_OFFLINE, SKRIP_OFFLINE
     from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
     kode, isi, tajuk = server.minta('/guru?cari=Bbb', auth=('guru', SANDI_GURU))
     assert kode == 200
     csp = tajuk['Content-Security-Policy']
     hash_skrip = ["'sha256-" + base64.b64encode(hashlib.sha256(s.encode()).digest()).decode() + "'"
                   for s in (SKRIP_FILTER_GURU, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)]
+    hash_skrip.insert(1, "'sha256-" + HASH_OFFLINE + "'")
     direktif = dict((p.split()[0], p.split()[1:]) for p in csp.split(';') if p.strip())
     assert direktif['script-src'] == hash_skrip
     assert 'https://fonts.googleapis.com' in direktif['style-src']
@@ -130,7 +133,7 @@ def test_csp_beranda_mengizinkan_tiga_skrip_berhash_dan_font_existing_saja(serve
     assert "'unsafe-inline'" not in direktif['script-src']
     assert tajuk['Cache-Control'] == 'no-store' and tajuk['Referrer-Policy'] == 'no-referrer'
     assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [
-        SKRIP_FILTER_GURU, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
+        SKRIP_FILTER_GURU, SKRIP_OFFLINE, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
     # Skrip filter tidak memakai jaringan: tanpa connect-src.
     assert 'connect-src' not in direktif
     # Halaman akun privat lain tidak memperoleh izin font/CDN beranda.

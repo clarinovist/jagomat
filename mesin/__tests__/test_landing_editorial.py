@@ -98,8 +98,9 @@ def test_maskot_lokal_dekoratif_berukuran_tetap(markup):
 def test_faq_native_dan_tidak_ada_skrip_baru(markup):
     sumber = halaman_landing().decode()
     assert len(markup.cari("details")) == len(markup.cari("summary")) == 8
+    from offline_browser import SKRIP_OFFLINE
     assert re.findall(r"<script>(.*?)</script>", sumber, re.S) == [
-        SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA,
+        SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA, SKRIP_OFFLINE,
     ]
     assert not any(nama.startswith("on") for _, atribut in markup.elemen for nama in atribut)
     assert not markup.cari("button")

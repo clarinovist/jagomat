@@ -99,7 +99,9 @@ def test_kontrak_form_dan_skrip_mata_tidak_berubah(galat):
         assert "value" not in e
     assert len(markup.cari("button")) == 1  # Mata ditambahkan skrip existing.
     assert markup.cari("button")[0]["type"] == "submit"
-    assert re.findall(r"<script>(.*?)</script>", h, re.S) == [SKRIP_MATA_SANDI]
+    from offline_browser import SKRIP_OFFLINE
+    assert re.findall(r"<script>(.*?)</script>", h, re.S) == [
+        SKRIP_MATA_SANDI, SKRIP_OFFLINE]
 
 
 def test_galat_punya_semantik_dan_relasi_ke_form():

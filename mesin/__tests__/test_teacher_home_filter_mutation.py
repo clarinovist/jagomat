@@ -33,7 +33,7 @@ TES = 'mesin/__tests__/test_teacher_home_filter.py'
      '    penangan._kirim(isi)\n    return True', 'test_cari_nama_siswa_atau_login_terhubung'),
     ('web.py', '        if beranda_guru:', '        if False:',
      'test_csp_beranda_mengizinkan_tiga_skrip_berhash_dan_font_existing_saja'),
-    ('web.py', 'hashes = [HASH_FILTER_GURU] + [', 'hashes = [',
+    ('web.py', 'hashes = [HASH_FILTER_GURU, HASH_OFFLINE] + [', 'hashes = [HASH_OFFLINE] + [',
      'test_csp_beranda_mengizinkan_tiga_skrip_berhash_dan_font_existing_saja'),
     ('guru_beranda_pages.py', '{"" if tampil else " hidden"}', '',
      'test_filter_kelompok_menjaga_sumber_dan_urutan'),
