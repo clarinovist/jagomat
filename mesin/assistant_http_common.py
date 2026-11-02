@@ -10,6 +10,7 @@ import urllib.parse
 
 import assistant_navigation
 import assistant_pages
+import ip_klien
 import sessions
 
 
@@ -141,7 +142,7 @@ def _baca_form(penangan) -> dict[str, str]:
 
 def _batasi_laju(penangan, account_id: str) -> None:
     kini = time.monotonic()
-    ip = sessions.ip_klien(penangan.headers, penangan.client_address)
+    ip = ip_klien.ip_klien(penangan.headers, penangan.client_address)
     kunci = (account_id, ip)
     with _kunci_laju:
         aktif = tuple(waktu for waktu in _riwayat_laju.get(kunci, ()) if kini - waktu < 60)

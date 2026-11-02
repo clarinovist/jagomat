@@ -5,6 +5,7 @@ import time
 
 import auth
 import database
+import ip_klien
 import sessions
 
 
@@ -68,7 +69,7 @@ def tangani_post(penangan, jalur: str) -> bool:
     import policy_http
     import policy_pages
     pilihan_policy = (False,False,False)
-    kunci_ip = sessions.ip_klien(penangan.headers, penangan.client_address)
+    kunci_ip = ip_klien.ip_klien(penangan.headers, penangan.client_address)
 
     def halaman_daftar(*args, **kwargs):
         return landing.halaman_daftar(

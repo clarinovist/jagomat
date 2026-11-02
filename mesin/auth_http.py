@@ -11,6 +11,7 @@ import urllib.parse
 import auth
 import brand
 import design_tokens as T
+import ip_klien
 import sessions
 from assistant_navigation import tujuan_lanjut
 
@@ -117,7 +118,7 @@ def proses_masuk(penangan, data: dict) -> None:
     nama = (data.get("nama") or "").strip()
     sandi = data.get("sandi") or ""
     lanjut = tujuan_lanjut(data.get("lanjut", ""))
-    ip = sessions.ip_klien(penangan.headers, penangan.client_address)
+    ip = ip_klien.ip_klien(penangan.headers, penangan.client_address)
     if not nama or not sandi:
         penangan._kirim(
             penangan._halaman_masuk_stitch(

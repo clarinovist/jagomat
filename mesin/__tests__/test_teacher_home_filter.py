@@ -122,19 +122,23 @@ def test_csp_beranda_mengizinkan_tiga_skrip_berhash_dan_font_existing_saja(serve
     kode, isi, tajuk = server.minta('/guru?cari=Bbb', auth=('guru', SANDI_GURU))
     assert kode == 200
     csp = tajuk['Content-Security-Policy']
-    hash_skrip = ["'sha256-" + base64.b64encode(hashlib.sha256(s.encode()).digest()).decode() + "'"
-                  for s in (SKRIP_FILTER_GURU, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)]
-    hash_skrip.insert(1, "'sha256-" + HASH_OFFLINE + "'")
     direktif = dict((p.split()[0], p.split()[1:]) for p in csp.split(';') if p.strip())
-    assert direktif['script-src'] == hash_skrip
+    skrip_terpasang = re.findall(r'<script>(.*?)</script>', isi, re.S)
+    # Setiap skrip yang benar-benar dirender wajib punya hash dan tidak boleh
+    # ada hash asing. Beranda juga membawa enhancement berhash yang dulu
+    # tertimpa daftar tetap, jadi daftar dihitung dari isi respons.
+    harap = ["'sha256-" + base64.b64encode(hashlib.sha256(s.encode()).digest()).decode() + "'"
+             for s in skrip_terpasang]
+    assert sorted(direktif['script-src']) == sorted(harap)
+    assert len(direktif['script-src']) == len(set(direktif['script-src']))
+    assert skrip_terpasang[:4] == [
+        SKRIP_FILTER_GURU, SKRIP_OFFLINE, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
     assert 'https://fonts.googleapis.com' in direktif['style-src']
     assert direktif['font-src'] == ['https://fonts.gstatic.com']
     assert direktif['manifest-src'] == ["'self'"]
     assert "'unsafe-inline'" not in direktif['script-src']
     assert tajuk['Cache-Control'] == 'no-store' and tajuk['Referrer-Policy'] == 'no-referrer'
-    assert re.findall(r'<script>(.*?)</script>', isi, re.S) == [
-        SKRIP_FILTER_GURU, SKRIP_OFFLINE, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
-    # Skrip filter tidak memakai jaringan: tanpa connect-src.
+    # Enhancement pilihan isi tidak memakai jaringan: tanpa connect-src.
     assert 'connect-src' not in direktif
     # Halaman akun privat lain tidak memperoleh izin font/CDN beranda.
     _, _, akun = server.minta('/akun', auth=('guru', SANDI_GURU))

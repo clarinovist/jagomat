@@ -313,9 +313,13 @@ class Penangan(BaseHTTPRequestHandler):
         try:
             admin_security._asal_sama(headers)
         except PermissionError:
-            self._kirim(
-                _halaman("Akses ditolak", "<h1>Permintaan ditolak</h1>"), 403
-            )
+            isi = _halaman("Akses ditolak", "<h1>Permintaan ditolak</h1>")
+            self.send_response(403)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(isi)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(isi)
             return False
         return True
 
@@ -614,8 +618,11 @@ class Penangan(BaseHTTPRequestHandler):
         # Form publik (masuk/daftar/tautan bearer) punya pembatas laju/token sendiri
         # dan sebagian peramban lama mengirim `Origin: null` tanpa Fetch Metadata;
         # permukaan guru/admin/murid di bawah ini wajib lolos cek asal yang sama.
+        # Siklus belajar punya guard asalnya sendiri (`learning_cycle_http._baca_form`);
+        # jangan mendahuluinya supaya status/pesan kontraknya tetap utuh.
+        siklus = jalur.startswith("/sesi/") or jalur.startswith("/siklus/")
         publik = jalur in ("/masuk", "/daftar") or jalur.startswith("/mulai/")
-        if not publik and not self._asal_sama_post():
+        if not (publik or siklus) and not self._asal_sama_post():
             return
         import admin_http
         import ai_http

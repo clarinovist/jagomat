@@ -8,8 +8,8 @@ import time
 import urllib.parse
 
 import database
+import ip_klien
 import learning_cycle_service as layanan
-import sessions
 
 _POLA = re.compile(r"/(sesi|siklus)/([1-9][0-9]*)/(konfirmasi|tinjauan|batalkan|aksi|buat|pilot)")
 _AKSI = {"sesi": {"konfirmasi", "tinjauan", "batalkan"}, "siklus": {"aksi", "buat", "pilot"}}
@@ -26,7 +26,7 @@ def _batasi_laju(penangan, guru):
     kunci = (
         penangan.server.server_address,
         guru,
-        sessions.ip_klien(penangan.headers, penangan.client_address),
+        ip_klien.ip_klien(penangan.headers, penangan.client_address),
     )
     with _kunci_laju:
         aktif = {k: tuple(t for t in waktu if kini - t < 60)

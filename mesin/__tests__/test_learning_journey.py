@@ -142,7 +142,7 @@ def _event_intervensi(fokus=FOKUS_A, identitas=1, putaran=1):
     )
 
 
-def _evaluasi(identitas, fokus=FOKUS_A, *, lulus=True, tanggal="2026-09-10"):
+def _evaluasi(identitas, fokus=FOKUS_A, *, lulus=True, tanggal="2026-09-05"):
     outcomes = tuple(
         _outcome(
             fokus,

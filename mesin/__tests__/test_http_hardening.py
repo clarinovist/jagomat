@@ -15,6 +15,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import sessions  # noqa: E402
+import ip_klien  # noqa: E402
 from http_test_kit import ServerUji  # noqa: E402
 
 
@@ -184,17 +185,17 @@ def test_ip_klien_memakai_entri_kanan_di_belakang_proxy_privat():
             return [self._nilai] if nama == "X-Forwarded-For" else (default or [])
 
     # Proxy loopback menambahkan IP asli di kanan; entri kiri kiriman klien diabaikan.
-    assert sessions.ip_klien(_Header("1.2.3.4, 203.0.113.9"), ("127.0.0.1", 1)) == "203.0.113.9"
+    assert ip_klien.ip_klien(_Header("1.2.3.4, 203.0.113.9"), ("127.0.0.1", 1)) == "203.0.113.9"
     # Peer publik tidak dipercaya membawa XFF.
-    assert sessions.ip_klien(_Header("203.0.113.9"), ("8.8.8.8", 1)) == "8.8.8.8"
+    assert ip_klien.ip_klien(_Header("203.0.113.9"), ("8.8.8.8", 1)) == "8.8.8.8"
     # Nilai tidak sah jatuh ke peer.
-    assert sessions.ip_klien(_Header("bukan-ip"), ("127.0.0.1", 1)) == "127.0.0.1"
+    assert ip_klien.ip_klien(_Header("bukan-ip"), ("127.0.0.1", 1)) == "127.0.0.1"
 
 
-def test_kunci_rate_limit_tidak_tumbuh_tanpa_batas(monkeypatch):
-    monkeypatch.setattr(sessions, "_BATAS_KUNCI", 16)
+def test_pembatas_laju_tetap_menolak_setelah_batas(monkeypatch):
+    """Key berbasis IP hasil resolusi tetap memakai limiter `sessions`."""
     sessions._reset_rate_limit()
-    for nomor in range(64):
-        sessions.catat_gagal(f"nama-{nomor}", "203.0.113.9")
-    assert len(sessions._jalur_dari_kunci_ip) <= 16
+    for _ in range(sessions._BATAS_GAGAL):
+        sessions.catat_gagal("feby", "203.0.113.9")
+    assert sessions.sedang_diblokir("feby", "203.0.113.9")
     sessions._reset_rate_limit()
