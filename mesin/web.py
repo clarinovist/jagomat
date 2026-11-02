@@ -124,10 +124,14 @@ class Penangan(BaseHTTPRequestHandler):
                 for s in (SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)]
             hash_guru = ' '.join("'sha256-" + h + "'" for h in hashes)
             # Gabungkan, jangan timpa: enhancement beranda membawa hash sendiri
-            # dan `connect-src` yang wajib tetap ada.
+            # dan `connect-src` yang wajib tetap ada. Dedupe perlu karena hash
+            # offline sudah disisipkan lebih awal di jalur ini.
             if izin_skrip.startswith("script-src "):
                 isi_skrip, _, lain = izin_skrip[len("script-src "):].partition("; ")
-                izin_skrip = ("script-src " + isi_skrip.strip() + " " + hash_guru
+                gabung = dict.fromkeys(
+                    isi_skrip.split() + ["'sha256-" + h + "'" for h in hashes]
+                )
+                izin_skrip = ("script-src " + " ".join(gabung)
                               + "; " + (lain.strip() + " " if lain.strip() else ""))
             elif izin_skrip:
                 izin_skrip = "script-src " + hash_guru + "; " + izin_skrip

@@ -72,13 +72,21 @@ def test_checkpoint_dua_bagian_berbeda_mode_tidak_digabung():
 
 
 def test_checkpoint_sama_mode_lulus_dan_histori_tidak_dimutasi():
-    sumber = bukti(sesi(1, "korek-v2"), *(sesi(i, "korek-v2", tujuan="checkpoint", jumlah=2,
-        bagian_checkpoint=i-1, occurrence=1) for i in (2, 3)))
+    # Checkpoint baru sah sebagai retensi setelah jeda 28 hari dari evaluasi.
+    bagian = tuple(
+        replace(
+            sesi(i, "korek-v2", tujuan="checkpoint", jumlah=2,
+                 bagian_checkpoint=i - 1, occurrence=1),
+            tanggal=date(2026, 9, 27 + i),
+        )
+        for i in (2, 3)
+    )
+    sumber = bukti(sesi(1, "korek-v2"), *bagian)
     sebelum = repr(sumber)
-    assert lc._checkpoint_sukses(sumber, PUTARAN, FOKUS)[0] == date(2026, 9, 3)
-    hasil = perjalanan_belajar(sumber, 1, date(2026, 9, 10))
+    assert lc._checkpoint_sukses(sumber, PUTARAN, FOKUS)[0] == date(2026, 9, 30)
+    hasil = perjalanan_belajar(sumber, 1, date(2026, 10, 1))
     assert hasil.fokus[0].tahap == "bertahan"
-    assert hasil == perjalanan_belajar(sumber, 1, date(2026, 9, 10))
+    assert hasil == perjalanan_belajar(sumber, 1, date(2026, 10, 1))
     assert repr(sumber) == sebelum
 
 
