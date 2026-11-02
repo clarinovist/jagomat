@@ -68,6 +68,7 @@ def tangani_post(penangan, jalur: str) -> bool:
     import policy_http
     import policy_pages
     pilihan_policy = (False,False,False)
+    kunci_ip = sessions.ip_klien(penangan.headers, penangan.client_address)
 
     def halaman_daftar(*args, **kwargs):
         return landing.halaman_daftar(
@@ -125,7 +126,7 @@ def tangani_post(penangan, jalur: str) -> bool:
                 token_form=token_baru,
             ))
             return True
-        if sessions.sedang_diblokir(nama, penangan.client_address[0]):
+        if sessions.sedang_diblokir(nama, kunci_ip):
             penangan._kirim(
                 halaman_daftar(
                     "Terlalu banyak percobaan. Coba lagi 15 menit lagi.",
@@ -234,6 +235,10 @@ def tangani_post(penangan, jalur: str) -> bool:
         aman = teks_galat
         status = 200
         if "alias tidak tersedia" in teks_galat:
+            # Pendaftaran juga menghitung percobaan gagal: tanpa ini cek
+            # `sedang_diblokir` di atas membaca state yang tak pernah diisi.
+            if locals().get("nama"):
+                sessions.catat_gagal(nama, kunci_ip)
             aman = (
                 "Nama sudah dipakai. Pakai nama lain, atau masuk bila memang "
                 "akunmu."

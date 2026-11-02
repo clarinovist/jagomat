@@ -18,6 +18,29 @@ FOLDER_LOKAL = frozenset((
     'build', '.gradle', '.tmp_txt',
 ))
 POLA_DATA = re.compile(r'\.(?:db|sqlite|sqlite3)(?:-(?:wal|shm|journal))?$')
+# Folder aset resmi: satu-satunya tempat media/spreadsheet boleh masuk Git.
+FOLDER_ASET = (('mesin', 'aset'), ('mesin', 'publik'), ('docs', 'mockup'))
+# Media, spreadsheet, dan arsip: isinya bisa memuat lembar terisi/foto anak,
+# jadi ditolak berdasarkan nama di luar folder aset resmi tanpa dibuka isinya.
+EKSTENSI_MEDIA_DATA = frozenset((
+    'csv', 'tsv', 'xlsx', 'xls', 'xlsm', 'ods',
+    'jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'bmp', 'tif', 'tiff',
+    'mp4', 'mov', 'avi', 'mkv', 'webm',
+    'zip', '7z', 'rar', 'tar', 'gz', 'tgz', 'bz2', 'xz',
+))
+
+
+def _ekstensi(berkas: str) -> str:
+    """Ambil ekstensi huruf kecil tanpa titik, hanya dari string path."""
+    _, titik, ekstensi = berkas.rpartition('.')
+    return ekstensi if titik else ''
+
+
+def _di_folder_aset(kecil: Tuple[str, ...]) -> bool:
+    """True bila path berada di folder aset resmi atau gambar dokumentasi docs/."""
+    if len(kecil) == 2 and kecil[0] == 'docs' and _ekstensi(kecil[1]) == 'png':
+        return True
+    return any(kecil[:len(awal)] == awal for awal in FOLDER_ASET)
 
 
 def alasan_larangan(nama: str) -> Optional[str]:
@@ -40,6 +63,8 @@ def alasan_larangan(nama: str) -> Optional[str]:
     if kecil[0] == 'docs' and (len(kecil) > 1 and kecil[1] == 'plan'
                               or any(x.startswith('riset-') for x in kecil[1:])):
         return 'riset atau rencana lokal'
+    if _ekstensi(kecil[-1]) in EKSTENSI_MEDIA_DATA and not _di_folder_aset(kecil):
+        return 'media atau data di luar folder aset resmi'
     if len(bagian) == 1:
         return None if nama in BERKAS_AKAR else 'berkas root bukan codebase'
     return None if bagian[0] in FOLDER_KODE else 'folder bukan codebase'

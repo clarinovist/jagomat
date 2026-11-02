@@ -34,10 +34,17 @@ def tangani_pembuatan_biasa(
         penangan._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
         return True
 
-    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
+    tubuh = penangan._baca_tubuh(65536)
+    if tubuh is None:
+        penangan._tolak_isian(413)
+        return True
+    try:
+        mentah = tubuh.decode("utf-8", "strict")
+    except UnicodeDecodeError:
+        penangan._tolak_isian(400)
+        return True
     data = urllib.parse.parse_qs(
-        penangan.rfile.read(panjang).decode("utf-8"),
-        keep_blank_values=True,
+        mentah, keep_blank_values=True, max_num_fields=64
     )
     pilihan_topik = (data.get("topik") or [topik_bawaan])[0].strip()
     aksi_form = data.get("aksi_form", [])
@@ -223,10 +230,17 @@ def tangani_pembuatan_gabungan(
         penangan._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
         return True
 
-    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
+    tubuh = penangan._baca_tubuh(65536)
+    if tubuh is None:
+        penangan._tolak_isian(413)
+        return True
+    try:
+        mentah = tubuh.decode("utf-8", "strict")
+    except UnicodeDecodeError:
+        penangan._tolak_isian(400)
+        return True
     data = urllib.parse.parse_qs(
-        penangan.rfile.read(panjang).decode("utf-8"),
-        keep_blank_values=True,
+        mentah, keep_blank_values=True, max_num_fields=64
     )
     # Checkbox bernama sama menghasilkan daftar nilai.
     dipilih = [topik.strip() for topik in data.get("topik", []) if topik.strip()]
@@ -393,10 +407,17 @@ def tangani_latihan_serupa(penangan, jalur: str, *, acak_seed) -> bool:
         return True
 
     # Jangan menahan lock writer saat menunggu body dari jaringan.
-    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
+    tubuh = penangan._baca_tubuh(65536)
+    if tubuh is None:
+        penangan._tolak_isian(413)
+        return True
+    try:
+        mentah = tubuh.decode("utf-8", "strict")
+    except UnicodeDecodeError:
+        penangan._tolak_isian(400)
+        return True
     data = urllib.parse.parse_qs(
-        penangan.rfile.read(panjang).decode("utf-8"),
-        keep_blank_values=True,
+        mentah, keep_blank_values=True, max_num_fields=64
     )
     ident = penangan._identitas()
     with database.buka() as kon:
@@ -487,10 +508,17 @@ def tangani_pembuatan_remedial(
         penangan._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
         return True
 
-    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
+    tubuh = penangan._baca_tubuh(65536)
+    if tubuh is None:
+        penangan._tolak_isian(413)
+        return True
+    try:
+        mentah = tubuh.decode("utf-8", "strict")
+    except UnicodeDecodeError:
+        penangan._tolak_isian(400)
+        return True
     data = urllib.parse.parse_qs(
-        penangan.rfile.read(panjang).decode("utf-8"),
-        keep_blank_values=True,
+        mentah, keep_blank_values=True, max_num_fields=64
     )
     jumlah_valid = True
     try:
@@ -764,12 +792,19 @@ def tangani_review_post(
     if not jalur.startswith("/sesi/"):
         return False
 
-    panjang = int(penangan.headers.get("Content-Length", 0))
-    mentah = penangan.rfile.read(panjang).decode("utf-8")
+    tubuh = penangan._baca_tubuh(262144)
+    if tubuh is None:
+        penangan._tolak_isian(413)
+        return True
+    try:
+        mentah = tubuh.decode("utf-8", "strict")
+    except UnicodeDecodeError:
+        penangan._tolak_isian(400)
+        return True
     data = {
         kunci: nilai[0]
         for kunci, nilai in urllib.parse.parse_qs(
-            mentah, keep_blank_values=True
+            mentah, keep_blank_values=True, max_num_fields=400
         ).items()
     }
     data = {
@@ -966,10 +1001,17 @@ def tangani_hapus_post(
                 _halaman("404", "<h1>Halaman tidak ada</h1>"), 404
             )
             return True
-    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
+    tubuh = penangan._baca_tubuh(65536)
+    if tubuh is None:
+        penangan._tolak_isian(413)
+        return True
+    try:
+        mentah = tubuh.decode("utf-8", "strict")
+    except UnicodeDecodeError:
+        penangan._tolak_isian(400)
+        return True
     data = urllib.parse.parse_qs(
-        penangan.rfile.read(panjang).decode("utf-8"),
-        keep_blank_values=True,
+        mentah, keep_blank_values=True, max_num_fields=64
     )
     if (data.get("konfirmasi") or [""])[0] != "1":
         with database.buka() as kon:

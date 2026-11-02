@@ -28,6 +28,19 @@ TEST_KHUSUS = {
     "mesin/Dockerfile": (
         "mesin/__tests__/test_image.py",
     ),
+    # conftest mengubah perilaku semua test; seleksi minimalnya tetap smoke
+    # inti, bukan menebak berkas tambahan.
+    "mesin/__tests__/conftest.py": TEST_INTI,
+    # Shell cadangan, healthcheck, dan verifier pasangan rilis tidak punya
+    # test bernama sama, jadi heuristik `test_<stem>*.py` tidak memilih apa
+    # pun: guard yang justru menguji berkas itu tidak pernah jalan.
+    "mesin/cadangkan.sh": (
+        "mesin/__tests__/test_backup_location.py",
+    ),
+    "mesin/healthcheck.py": (
+        "mesin/__tests__/test_healthcheck.py",
+        "mesin/__tests__/test_image.py",
+    ),
     "scripts/check_repo.py": (
         "mesin/__tests__/test_repo_hygiene.py",
     ),
@@ -55,7 +68,26 @@ TEST_KHUSUS = {
     "scripts/verify_release_image.py": (
         "mesin/__tests__/test_release_image.py",
     ),
+    "scripts/verify_submission_pair.py": (
+        "mesin/__tests__/test_submission_pair.py",
+    ),
 }
+# Pemetaan berpola untuk keluarga berkas yang berbagi guard sama; kunci
+# `TEST_KHUSUS` tidak bisa menampung wildcard.
+TEST_POLA = (
+    (re.compile(r"scripts/release_[a-z0-9_]+_pair\.py"), (
+        "mesin/__tests__/test_package_release_pair.py",
+        "mesin/__tests__/test_submission_pair.py",
+    )),
+)
+
+
+def _test_pola(nama):
+    """Test pemetaan berpola untuk satu path relatif; kosong bila tak cocok."""
+    for pola, test in TEST_POLA:
+        if pola.fullmatch(nama):
+            return test
+    return ()
 
 
 def _git(akar, *argumen):
@@ -161,7 +193,7 @@ def pilih_test(akar, event, revisi):
             _tambah_pola_test(akar, terpilih, path.stem)
         elif path.parent.as_posix() == "scripts" and path.suffix == ".py":
             _tambah_pola_test(akar, terpilih, path.stem)
-        for test in TEST_KHUSUS.get(nama, ()):
+        for test in TEST_KHUSUS.get(nama) or _test_pola(nama):
             _tambah_jika_ada(akar, terpilih, test)
         if nama.startswith("mesin/aset/"):
             _tambah_jika_ada(akar, terpilih, "mesin/__tests__/test_image.py")

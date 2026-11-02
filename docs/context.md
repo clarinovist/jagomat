@@ -60,6 +60,15 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   banner di halaman terbuka; tanpa network/storage/autosave; hash diizinkan di
   respons privat.
   Daftar pengecualian/perilaku lengkap di [arsitektur](architecture-reference.md#konvensi-dan-keputusan-penting).
+  `web.Penangan` menetapkan batas waktu socket dan membaca body POST berbatas
+  ketat (menolak `Content-Length` negatif/ganda/raksasa dan `Transfer-Encoding`);
+  POST permukaan guru/admin/murid menolak lintas situs lewat `admin_security._asal_sama`,
+  sementara form publik tetap dilayani. Halaman kredensial (`/masuk`, `/daftar`)
+  mengirim CSP berhash sendiri; semua respons mendapat `nosniff`/`X-Frame-Options`
+  default. Pembatas laju memakai IP klien sadar proxy (`sessions.ip_klien`,
+  entri kanan `X-Forwarded-For` hanya bila peer loopback/privat).
+  `scripts/check_repo.py` juga menolak media/spreadsheet/arsip di luar folder aset
+  resmi, bukan hanya ekstensi basis data.
 - Token visual di `design_tokens.py`; peran semantik per permukaan dan pasangan kontras
   di `design_roles.py` (rujukan + guard test, bukan import runtime); kontrak di
   [design system](design-system.md). Admin berbagi token terang/skala/brand dan acuan

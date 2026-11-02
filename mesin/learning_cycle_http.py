@@ -9,6 +9,7 @@ import urllib.parse
 
 import database
 import learning_cycle_service as layanan
+import sessions
 
 _POLA = re.compile(r"/(sesi|siklus)/([1-9][0-9]*)/(konfirmasi|tinjauan|batalkan|aksi|buat|pilot)")
 _AKSI = {"sesi": {"konfirmasi", "tinjauan", "batalkan"}, "siklus": {"aksi", "buat", "pilot"}}
@@ -22,7 +23,11 @@ def _batasi_laju(penangan, guru):
     """Batasi burst per akun/IP tanpa menahan transaksi database."""
     global _riwayat
     kini = time.monotonic()
-    kunci = (penangan.server.server_address, guru, penangan.client_address[0])
+    kunci = (
+        penangan.server.server_address,
+        guru,
+        sessions.ip_klien(penangan.headers, penangan.client_address),
+    )
     with _kunci_laju:
         aktif = {k: tuple(t for t in waktu if kini - t < 60)
                  for k, waktu in _riwayat.items() if waktu and kini - waktu[-1] < 60}

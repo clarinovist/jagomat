@@ -41,6 +41,8 @@ _garam_dummy = hashlib.pbkdf2_hmac(
 _BATAS_JENDELA = 15 * 60  # hitung gagal dalam 15 menit
 _BATAS_GAGAL = 5  # gagal ke-5 menutup keran
 _BATAS_TUNGGU = 15 * 60
+_BATAS_KUNCI = 4096  # batas entri pembatas laju; kunci liar tidak boleh menumpuk
+_KUNCI_LOCK = threading.Lock()
 
 
 # ── sesi token ──────────────────────────────────────────────────────────────
@@ -327,30 +329,90 @@ def bersihkan(path: Path | None = None) -> int:
 
 
 # ── rate limit percobaan masuk ──────────────────────────────────────────────
+def _ip_privat(teks: str) -> bool:
+    """Benar bila alamat loopback/jaringan privat (kandidat proxy terdekat)."""
+    import ipaddress
+
+    try:
+        alamat = ipaddress.ip_address(teks)
+    except ValueError:
+        return False
+    return bool(alamat.is_loopback or alamat.is_private)
+
+
+def _ip_sah(teks: str) -> bool:
+    import ipaddress
+
+    try:
+        ipaddress.ip_address(teks)
+    except ValueError:
+        return False
+    return True
+
+
+def ip_klien(headers, client_address) -> str:
+    """IP klien untuk pembatas laju, sadar proxy.
+
+    Di produksi aplikasi berada di belakang Caddy: `client_address` adalah IP
+    proxy sehingga kunci per-IP menyusut. Ambil entri **paling kanan**
+    `X-Forwarded-For` (ditambahkan proxy terdekat) hanya bila peer langsung
+    loopback/privat; di luar itu pakai peer apa adanya supaya header kiriman
+    klien tidak bisa memalsukan kunci.
+    """
+    peer = client_address[0] if client_address else "unknown"
+    if headers is None or not _ip_privat(peer):
+        return peer
+    nilai = headers.get_all("X-Forwarded-For", [])
+    if len(nilai) != 1:
+        return peer
+    bagian = [item.strip() for item in str(nilai[0]).split(",") if item.strip()]
+    if not bagian or not _ip_sah(bagian[-1]):
+        return peer
+    return bagian[-1]
+
+
 def _pangkas(kunci: tuple[str, str], kini: float) -> list[float]:
     lst = _jalur_dari_kunci_ip.get(kunci, [])
     lst = [t for t in lst if kini - t < _BATAS_JENDELA]
-    _jalur_dari_kunci_ip[kunci] = lst
+    if lst:
+        _jalur_dari_kunci_ip[kunci] = lst
+    else:
+        _jalur_dari_kunci_ip.pop(kunci, None)
     return lst
+
+
+def _pangkas_global(kini: float) -> None:
+    """Buang kunci kedaluwarsa saat dict melewati batas."""
+    if len(_jalur_dari_kunci_ip) <= _BATAS_KUNCI:
+        return
+    for kunci in [k for k, v in _jalur_dari_kunci_ip.items()
+                  if not [t for t in v if kini - t < _BATAS_JENDELA]]:
+        _jalur_dari_kunci_ip.pop(kunci, None)
+    while len(_jalur_dari_kunci_ip) > _BATAS_KUNCI:
+        _jalur_dari_kunci_ip.pop(next(iter(_jalur_dari_kunci_ip)), None)
 
 
 def sedang_diblokir(nama: str, kunci_ip: str, sekarang: float | None = None) -> bool:
     kini = sekarang if sekarang is not None else time.time()
     kunci = (nama.strip().lower(), kunci_ip)
-    lst = _pangkas(kunci, kini)
+    with _KUNCI_LOCK:
+        lst = _pangkas(kunci, kini)
     return len(lst) >= _BATAS_GAGAL
 
 
 def catat_gagal(nama: str, kunci_ip: str, sekarang: float | None = None) -> None:
     kini = sekarang if sekarang is not None else time.time()
     kunci = (nama.strip().lower(), kunci_ip)
-    lst = _pangkas(kunci, kini)
-    lst.append(kini)
-    _jalur_dari_kunci_ip[kunci] = lst
+    with _KUNCI_LOCK:
+        lst = _pangkas(kunci, kini)
+        lst.append(kini)
+        _jalur_dari_kunci_ip[kunci] = lst
+        _pangkas_global(kini)
 
 
 def catat_berhasil(nama: str, kunci_ip: str) -> None:
-    _jalur_dari_kunci_ip.pop((nama.strip().lower(), kunci_ip), None)
+    with _KUNCI_LOCK:
+        _jalur_dari_kunci_ip.pop((nama.strip().lower(), kunci_ip), None)
 
 
 def _reset_rate_limit() -> None:  # khusus test

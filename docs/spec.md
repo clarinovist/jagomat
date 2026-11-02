@@ -64,7 +64,11 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   mempunyai tindakan masing-masing; T lewat pengenalan, bukan langsung remedial.
 - Benar belum cukup tanpa penjelasan. Evaluasi ≥4 probe/fokus; checkpoint 28 hari
   ≥3 probe/fokus; gagal kedua/tidak ada alternatif → eskalasi. Syarat kelulusan
-  lengkap tetap mengikuti kontrak, bukan jumlah soal saja.
+  lengkap tetap mengikuti kontrak, bukan jumlah soal saja. Checkpoint yang lebih dini
+  dari 28 hari tidak dihitung sebagai retensi, meski sesinya ada.
+- Jawaban angka ditulis bebas: pemisah ribuan titik atau spasi (`8.000`, `8 000`)
+  dibaca sebagai bilangan bulat; koma tetap desimal. Format salah bukan alasan
+  mencatat jawaban benar sebagai salah.
 - Manual/PG/terbimbing/penguatan tidak otomatis menjadi bukti penguasaan;
   konteks profil/representasi dan provenance tidak dicampur diam-diam.
 - Guru asing mendapat **404 identik**, tanpa efek samping; murid tidak menerima

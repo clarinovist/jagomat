@@ -186,9 +186,18 @@ def tangani_post(
             penangan._kirim_privat(b"Form tidak sah.", 400)
             return True
     else:
-        panjang = int(penangan.headers.get("Content-Length", 0))
-        mentah = penangan.rfile.read(panjang).decode("utf-8")
-        pasangan = urllib.parse.parse_qs(mentah, keep_blank_values=True)
+        tubuh = penangan._baca_tubuh(8192)
+        if tubuh is None:
+            penangan._tolak_isian(413)
+            return True
+        try:
+            mentah = tubuh.decode("utf-8", "strict")
+        except UnicodeDecodeError:
+            penangan._tolak_isian(400)
+            return True
+        pasangan = urllib.parse.parse_qs(
+            mentah, keep_blank_values=True, max_num_fields=32
+        )
         if any(len(nilai) != 1 for nilai in pasangan.values()):
             penangan._kirim(
                 _halaman(

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import html
 import urllib.parse
+from pathlib import Path
 
 import attachments as lampiran_mod
 import database
@@ -87,6 +88,11 @@ def _kirim_berkas(penangan, kon, lampiran_id: int) -> None:
         / str(lampiran["sesi_id"])
         / lampiran["nama_berkas"]
     )
+    if Path(lampiran["nama_berkas"]).name != lampiran["nama_berkas"]:
+        # Nama berkas berasal dari DB, bukan klien; penjaga ini pertahanan
+        # berlapis bila baris/berkas lain keliru ditulis di masa depan.
+        penangan._kirim(_halaman("404", "<h1>Berkas hilang</h1>"), 404)
+        return
     try:
         isi = berkas.read_bytes()
     except OSError:
@@ -182,12 +188,19 @@ def _baca_ulang(penangan, lampiran_id: int) -> None:
 
 
 def _terapkan(penangan, lampiran_id: int) -> None:
-    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
-    mentah = penangan.rfile.read(panjang).decode("utf-8")
+    tubuh = penangan._baca_tubuh(8192)
+    if tubuh is None:
+        penangan._tolak_isian(413)
+        return
+    try:
+        mentah = tubuh.decode("utf-8", "strict")
+    except UnicodeDecodeError:
+        penangan._tolak_isian(400)
+        return
     data = {
         nama: nilai[0]
         for nama, nilai in urllib.parse.parse_qs(
-            mentah, keep_blank_values=True
+            mentah, keep_blank_values=True, max_num_fields=32
         ).items()
     }
     with database.buka() as kon:
@@ -225,13 +238,12 @@ def _terapkan(penangan, lampiran_id: int) -> None:
 
 def _unggah(penangan, sesi_id: int) -> None:
     content_type = penangan.headers.get("Content-Type", "")
-    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
-    if panjang > lampiran_mod.BATAS_UKURAN * 2:
+    tubuh = penangan._baca_tubuh(lampiran_mod.BATAS_UKURAN * 2)
+    if tubuh is None:
         penangan._kirim(
             _halaman("Terlalu besar", "<h1>Upload terlalu besar</h1>"), 400
         )
         return
-    tubuh = penangan.rfile.read(panjang)
     with database.buka() as kon:
         if not kon.execute(
             "SELECT 1 FROM sesi WHERE id = ?", (sesi_id,)

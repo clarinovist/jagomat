@@ -50,6 +50,7 @@ def _jalankan_ci(akar):
     'mesin/lembar/contoh.html', 'mesin/latihan.db-wal',
     'riset-pasar/laporan.md', 'desain-ui/mockup.png',
     'mesin/.tmp_txt/a.txt', 'mesin/PROMPT-catatan.md',
+    'mesin/foto-anak.jpg',
 ])
 def test_ci_menolak_berkas_terlarang(tmp_path, nama):
     akar = _repo(tmp_path, nama)
@@ -102,6 +103,31 @@ def test_nama_terlarang(penjaga, nama):
     'docs/design-system.md', 'mesin/__tests__/fixtures/contoh.json',
 ])
 def test_nama_diizinkan(penjaga, nama):
+    assert penjaga.alasan_larangan(nama) is None
+
+
+@pytest.mark.parametrize('nama', [
+    'mesin/foto-anak.jpg', 'mesin/ekspor-nilai.csv',
+    'docs/lembar-terisi.xlsx', 'mesin/arsip.zip',
+    'mesin/lampiran/lembar-terisi.png', 'mesin/rekaman-belajar.mp4',
+    'docs/tabel-nilai.tsv', 'mesin/ekspor-nilai.ods',
+])
+def test_media_data_di_luar_folder_aset_ditolak(penjaga, nama):
+    """Media dan tabel data bukan aset resmi: harus ditolak walau nama netral."""
+    alasan = penjaga.alasan_larangan(nama)
+    assert alasan and 'media' in alasan.lower()
+    assert nama not in alasan
+
+
+@pytest.mark.parametrize('nama', [
+    'mesin/aset/maskot-netral-240.png',
+    'mesin/aset/favicon.ico', 'mesin/aset/mark-penuh.svg',
+    'mesin/publik/jagomat-riset-bisnis-2026.pdf',
+    'docs/mockup/Main.dc.html', 'docs/mockup/canvas.json',
+    'docs/arsitektur-jagomat.png',
+    'mesin/__tests__/fixtures/contoh.json', 'docs/design-system.md',
+])
+def test_media_di_folder_aset_dan_fixture_diterima(penjaga, nama):
     assert penjaga.alasan_larangan(nama) is None
 
 

@@ -25,7 +25,7 @@ def main() -> int:
     with database.buka() as kon:
         for nama in SISWA:
             sid = database.tambah_siswa(kon, nama)
-            print(f"  siswa: {nama} (id={sid})")
+            print(f"  siswa id={sid} ditambahkan")
 
         print()
         for baris in database.daftar_siswa(kon):
@@ -33,14 +33,14 @@ def main() -> int:
                 "SELECT COUNT(*) AS n FROM sesi WHERE siswa_id = ?", (baris["id"],)
             ).fetchone()["n"]
             if sudah:
-                print(f"  {baris['nama']}: sudah punya {sudah} sesi — dilewati")
+                print(f"  siswa id={baris['id']}: sudah punya {sudah} sesi — dilewati")
                 continue
             # Seed diambil dari id siswa + tanggal supaya dua anak dapat
             # lembar BERBEDA di hari yang sama. Kalau seed-nya sama, satu
             # anak bisa menyalin jawaban yang lain.
             seed = 1000 + baris["id"]
             sesi_id = database.buat_sesi(kon, baris["id"], seed)
-            print(f"  {baris['nama']}: sesi #{sesi_id} dibuat (seed {seed})")
+            print(f"  siswa id={baris['id']}: sesi #{sesi_id} dibuat (seed {seed})")
 
         print()
         print("bank soal terisi:")

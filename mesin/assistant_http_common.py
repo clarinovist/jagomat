@@ -141,7 +141,7 @@ def _baca_form(penangan) -> dict[str, str]:
 
 def _batasi_laju(penangan, account_id: str) -> None:
     kini = time.monotonic()
-    ip = penangan.client_address[0] if penangan.client_address else "unknown"
+    ip = sessions.ip_klien(penangan.headers, penangan.client_address)
     kunci = (account_id, ip)
     with _kunci_laju:
         aktif = tuple(waktu for waktu in _riwayat_laju.get(kunci, ()) if kini - waktu < 60)

@@ -222,6 +222,38 @@ def test_siswa_dari_akun_fallback_nama_untuk_akun_warisan(db, tmp_path, monkeypa
         assert students.siswa_dari_akun(kon, "feby") == sid
 
 
+def test_siswa_dari_akun_ambigu_lintas_keluarga_tidak_memilih_baris(
+    db, tmp_path, monkeypatch
+):
+    """Dua anak bernama sama dari keluarga berbeda tidak boleh ditebak.
+
+    Akun warisan tanpa siswa_id hanya punya nama sebagai dasar pemetaan,
+    dan nama anak boleh dobel antar keluarga. Dulu SQLite memilih baris
+    pertama secara diam-diam — itu bisa membuka sesi anak keluarga lain.
+    Hasil ambigu harus fail-closed (None -> 404/tolak di pemanggil).
+    """
+    berkas = tmp_path / "sandi.json"
+    monkeypatch.setattr(auth, "BERKAS_SANDI", berkas)
+    with database.buka(db) as kon:
+        database.tambah_siswa(kon, "feby", pemilik="ortu-a")
+        database.tambah_siswa(kon, "feby", pemilik="ortu-b")
+    auth.tambah_akun("feby", "sandi-feby-12345", "murid")  # tanpa siswa_id
+    with database.buka(db) as kon:
+        assert students.siswa_dari_akun(kon, "feby") is None
+
+
+def test_siswa_dari_akun_nama_tunggal_tetap_terpetakan(db, tmp_path, monkeypatch):
+    """Fail-closed hanya untuk hasil ambigu: satu-satunya siswa bernama itu
+    tetap terhubung, termasuk saat nama ditulis beda kapitalisasi."""
+    berkas = tmp_path / "sandi.json"
+    monkeypatch.setattr(auth, "BERKAS_SANDI", berkas)
+    with database.buka(db) as kon:
+        sid = database.tambah_siswa(kon, "Feby", pemilik="ortu-a")
+    auth.tambah_akun("feby", "sandi-feby-12345", "murid")  # tanpa siswa_id
+    with database.buka(db) as kon:
+        assert students.siswa_dari_akun(kon, "feby") == sid
+
+
 # ── Halaman HTML murid bersih dari jejak jawaban ───────────────────────
 
 

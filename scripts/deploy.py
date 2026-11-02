@@ -1198,6 +1198,15 @@ def deploy(teks, *, docker=None, berkas=None, sekarang=time.time,
                 tahap = "recovery"
                 # Gagal cleanup => jangan menjalankan recovery dengan writer saingan.
                 docker.bersihkan_gagal()
+                # Container recovery membaca pasangan sekali saat start, jadi berkas
+                # harus SUDAH menunjuk image recovery sebelum run. Tanpa tulis ulang,
+                # berkas tetap mengklaim digest kandidat gagal sebagai
+                # pasangan_terverifikasi/kompatibel. Setelah cleanup kandidat sudah
+                # hilang, sehingga isi lama tidak lagi mewakili yang berjalan. Kontrak
+                # recovery sudah dibuktikan sama dengan kontrak_kandidat di preflight;
+                # gagal tulis = raise (exit 2), bukan recovery dengan artefak basi.
+                berkas.tulis_pasangan(docker.revision_image(id_pemulihan), id_pemulihan,
+                                      kontrak_kandidat, "rutin" if rutin else "migrasi")
                 docker.jalankan(pemulihan, konfigurasi)
                 if not tunggu_sehat(docker, id_pemulihan, http, monotonic, tidur):
                     raise Ditolak()

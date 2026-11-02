@@ -51,23 +51,52 @@ def _impor_lokal(blok: str) -> set[str]:
     return hasil
 
 
+# `COPY --chown=osn:osn SUMBER TUJUAN`; flag --chown dipatok supaya berkas
+# milik user non-root saat container jalan.
+POLA_COPY = re.compile(r"^COPY\s+--chown=osn:osn\s+(\S+)\s+(\S+)\s*$")
+
+
+def _baris_copy(dockerfile: str) -> list[tuple[int, str, str]]:
+    """Semua baris COPY --chown sebagai (nomor baris, sumber, tujuan).
+
+    Memeriksa satu blok saja membuat COPY manual di blok lain lolos: itulah
+    celah yang menutupi `COPY healthcheck.py` setelah wildcard A4.
+    """
+    hasil = []
+    for nomor, baris in enumerate(dockerfile.splitlines(), start=1):
+        teks = baris.strip()
+        if not teks.startswith("COPY "):
+            continue
+        cocok = POLA_COPY.match(teks)
+        assert cocok, f"baris {nomor}: COPY tidak dapat dibaca: {teks}"
+        hasil.append((nomor, cocok.group(1), cocok.group(2)))
+    return hasil
+
+
 def test_copy_dockerfile_paket_utuh_wildcard():
     """Kontrak A4 (keputusan desain #6): daftar COPY manual adalah sumber
     insiden 25 Aug — modul baru lahir, lupa didaftarkan, semua test lokal
     hijau, lalu deploy gagal sehat dan rollback menyembunyikan penyebabnya.
     Daftar manual diganti `COPY *.py`: modul apa pun yang ada di root repo
     otomatis ada di image. Guard ini merah bila ada yang mengembalikan
-    Dockerfile ke daftar manual (lengkap ataupun tidak)."""
+    Dockerfile ke daftar manual di baris mana pun (lengkap ataupun tidak)."""
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
-    blok = re.search(r"COPY --chown=osn:osn(.*?)\n\n", dockerfile, flags=re.S)
-    assert blok, "blok COPY tidak ditemukan di Dockerfile"
-    assert "*.py" in blok.group(1), (
+    perintah = _baris_copy(dockerfile)
+    assert perintah, "COPY --chown tidak ditemukan di Dockerfile"
+    assert any(sumber == "*.py" and tujuan == "/app/"
+               for _, sumber, tujuan in perintah), (
         "Dockerfile harus menyalin paket utuh lewat 'COPY ... *.py /app/' — "
         "daftar modul manual adalah sumber insiden deploy 25 Aug"
     )
-    nama_eksplisit = re.findall(r"([a-z_]+\.py)", blok.group(1))
-    assert not nama_eksplisit, (
-        f"COPY masih menyebut modul manual: {nama_eksplisit} — pakai *.py"
+    manual = []
+    for nomor, sumber, _ in perintah:
+        if "*" in sumber:
+            continue
+        nama_eksplisit = re.findall(r"([A-Za-z_][A-Za-z0-9_]*\.py)", sumber)
+        if nama_eksplisit or sumber.endswith(".py"):
+            manual.append((nomor, sumber))
+    assert not manual, (
+        f"COPY masih menyalin modul .py manual di baris {manual} — pakai *.py"
     )
 
 

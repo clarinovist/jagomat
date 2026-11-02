@@ -30,6 +30,23 @@ def _simpan(akar, nama, teks):
     path.write_text(teks, encoding="utf-8")
 
 
+# Berkas yang heuristik `test_<stem>*.py` tidak menjangkaunya: shell, modul
+# yang guard-nya bernama lain, verifier pasangan, dan conftest bersama.
+BERKAS_PEMETAAN = (
+    ("mesin/cadangkan.sh", "#!/bin/bash\nset -euo pipefail\n"),
+    ("mesin/healthcheck.py", "NILAI = 1\n"),
+    ("mesin/__tests__/conftest.py", "import os\n"),
+    ("scripts/verify_submission_pair.py", "NILAI = 1\n"),
+    ("scripts/release_contoh_pair.py", "NILAI = 1\n"),
+)
+GUARD_PEMETAAN = (
+    "mesin/__tests__/test_backup_location.py",
+    "mesin/__tests__/test_healthcheck.py",
+    "mesin/__tests__/test_image.py",
+    "mesin/__tests__/test_submission_pair.py",
+    "mesin/__tests__/test_package_release_pair.py",
+)
+
 def _commit(akar):
     _git(akar, "add", "-A")
     _git(akar, "-c", "user.name=Uji CI", "-c", "user.email=ci@example.invalid",
@@ -53,6 +70,10 @@ def repo(tmp_path):
     _simpan(akar, "scripts/ci_fast_tests.py", "# helper\n")
     _simpan(akar, "mesin/__tests__/test_ci_fast_tests.py", "def test_helper():\n    assert True\n")
     _simpan(akar, "mesin/__tests__/test_ci_workflow.py", "def test_workflow():\n    assert True\n")
+    for nama, teks in BERKAS_PEMETAAN:
+        _simpan(akar, nama, teks)
+    for nama in GUARD_PEMETAAN:
+        _simpan(akar, nama, "def test_guard():\n    assert True\n")
     sebelum = _commit(akar)
     return akar, sebelum
 
@@ -118,6 +139,56 @@ def test_workflow_memilih_seluruh_kontrak_rilis(tmp_path):
     sesudah = _commit(akar)
     test, _ = ci.pilih_test(akar, _event(sebelum, sesudah), sesudah)
     assert set(ci.TEST_KHUSUS[".github/workflows/deploy.yml"]) <= set(test)
+
+
+@pytest.mark.parametrize("berkas, guard", [
+    ("mesin/cadangkan.sh", (
+        "mesin/__tests__/test_backup_location.py",
+    )),
+    ("mesin/healthcheck.py", (
+        "mesin/__tests__/test_healthcheck.py",
+        "mesin/__tests__/test_image.py",
+    )),
+    ("scripts/verify_submission_pair.py", (
+        "mesin/__tests__/test_submission_pair.py",
+    )),
+    ("scripts/release_contoh_pair.py", (
+        "mesin/__tests__/test_package_release_pair.py",
+        "mesin/__tests__/test_submission_pair.py",
+    )),
+])
+def test_pemetaan_khusus_memilih_guard_nyata(repo, berkas, guard):
+    """Shell, healthcheck, dan verifier pasangan tidak punya test bernama
+    sama, jadi tanpa pemetaan eksplisit perubahannya hanya menjalankan smoke
+    inti dan guard yang justru menguji berkas itu tidak pernah jalan."""
+    akar, sebelum = repo
+    _simpan(akar, berkas, (akar / berkas).read_text(encoding="utf-8") + "# ubah\n")
+    sesudah = _commit(akar)
+    test, mode = ci.pilih_test(akar, _event(sebelum, sesudah), sesudah)
+    assert mode == "delta"
+    assert set(guard) <= set(test)
+    assert set(test) != set(ci.TEST_INTI), "seleksi tidak boleh berhenti di smoke inti"
+
+
+def test_perubahan_conftest_memilih_seluruh_smoke_inti(repo):
+    """conftest mengubah perilaku semua test; seleksi minimalnya tetap smoke
+    inti, tanpa menambah berkas lain secara liar."""
+    akar, sebelum = repo
+    _simpan(akar, "mesin/__tests__/conftest.py",
+            (akar / "mesin/__tests__/conftest.py").read_text(encoding="utf-8") + "# ubah\n")
+    sesudah = _commit(akar)
+    test, mode = ci.pilih_test(akar, _event(sebelum, sesudah), sesudah)
+    assert mode == "delta"
+    assert test == tuple(sorted(ci.TEST_INTI))
+
+
+def test_berkas_tak_dikenal_tetap_hanya_smoke_inti(repo):
+    akar, sebelum = repo
+    _simpan(akar, "mesin/contoh-baru.txt", "isi\n")
+    sesudah = _commit(akar)
+    test, mode = ci.pilih_test(akar, _event(sebelum, sesudah), sesudah)
+    assert mode == "delta"
+    assert test == tuple(sorted(ci.TEST_INTI))
 
 
 def test_helper_ci_memilih_test_helper_dan_kontrak_workflow(repo):

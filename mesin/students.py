@@ -382,7 +382,15 @@ def simpan_jawaban_murid(kon, siswa_id: int, sesi_id: int, data: dict) -> int | 
     return jumlah
 
 def siswa_dari_akun(kon, pengguna: str) -> int | None:
-    """ID siswa untuk akun murid ini, atau None kalau belum terhubung."""
+    """ID siswa untuk akun murid ini, atau None kalau belum terhubung.
+
+    Akun warisan tanpa ``siswa_id`` hanya punya nama sebagai dasar
+    pencocokan, padahal nama anak boleh dobel antar keluarga. Lebih dari
+    satu baris bernama itu berarti tidak ada dasar memilih salah satunya,
+    jadi hasilnya None (pemanggil sudah memperlakukan None sebagai
+    404/tolak). Tanpa ini SQLite memilih baris pertama diam-diam, dan
+    primitif ini juga dipakai sebagai cek kepemilikan.
+    """
     akun = auth.cari_akun(pengguna)
     if akun and akun.get("siswa_id") is not None:
         baris = kon.execute(
@@ -391,8 +399,10 @@ def siswa_dari_akun(kon, pengguna: str) -> int | None:
         return int(baris["id"]) if baris else None
     baris = kon.execute(
         "SELECT id FROM siswa WHERE nama = ? COLLATE NOCASE", (pengguna.strip(),)
-    ).fetchone()
-    return int(baris["id"]) if baris else None
+    ).fetchall()
+    if len(baris) != 1:
+        return None
+    return int(baris[0]["id"])
 
 def akun_murid_dari_siswa(kon, siswa_id: int) -> str | None:
     """Nama login akun murid yang terikat ke siswa ini, atau None.

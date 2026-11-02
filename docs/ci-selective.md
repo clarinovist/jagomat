@@ -35,7 +35,9 @@ menambahkan:
 - test yang mengimpor modul terdampak, termasuk reverse-import transitif antarmodul
   aplikasi;
 - pemetaan khusus untuk workflow, palang repo, Dockerfile/aset runtime, sharding,
-  metadata rilis, deployer, dan verifier image.
+  metadata rilis, deployer, dan verifier image. Berkas non-Python yang tidak punya
+  modul test senama (`mesin/cadangkan.sh`, `mesin/healthcheck.py`, skrip pair,
+  `conftest.py`) dipetakan eksplisit ke guard-nya, bukan jatuh ke smoke tetap saja.
 
 Helper membaca seluruh rentang `before..after`, bukan hanya commit terakhir.
 Metadata event/Git yang meragukan jatuh ke smoke tetap, bukan daftar kosong. Daftar

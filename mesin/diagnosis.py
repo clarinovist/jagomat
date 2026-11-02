@@ -51,6 +51,41 @@ def _rapikan_teks(teks: str) -> str:
     return t.replace("−", "-").replace("–", "-")
 
 
+# Satu deret angka utuh (opsional bertanda); batasnya karakter non-angka,
+# supaya keputusan diambil per token, bukan per potongan regex.
+_POLA_DERET_ANGKA = re.compile(r"[+-]?\d[\d.,]*")
+
+# Bentuk ribuan bertitik: "8.000" / "357.000" / "1.234.567", boleh diikuti
+# koma desimal ("8.000,5"). Bukan desimal bersusun: grup wajib 3 digit dan
+# minimal ada satu titik, jadi "1.5" dan "8.00" tidak tersentuh.
+_POLA_RIBUAN_TITIK = re.compile(r"[+-]?\d{1,3}(?:\.\d{3})+(?:,\d+)?")
+
+# Ribuan berspasi: "8 000" / "1 234 567". Grup pertama dibatasi 1-2 digit
+# karena grup 3 digit tak bisa dibedakan dari daftar bilangan ("125 250 375"
+# tetap tiga suku, bukan seratus dua puluh lima ribu). (?!\s*\d) mencegah
+# potongan separuh dari grup yang lebih panjang.
+_POLA_RIBUAN_SPASI = re.compile(
+    r"(?<!\S)([+-]?\d{1,2}(?: \d{3})+)(?!\s*\d)(?!\S)")
+
+
+def _rapatkan_ribuan(teks: str) -> str:
+    """Baca grup ribuan sebagai bilangan bulat: "8.000" -> "8000".
+
+    Hanya titik dan spasi yang dibaca pemisah ribuan. Koma tidak pernah
+    dirapatkan: dalam penulisan Indonesia koma adalah desimal, jadi "2,400"
+    tetap berarti 2,4 seperti sebelum perbaikan ini.
+    """
+    def ganti_titik(cocok: re.Match) -> str:
+        inti = cocok.group(0).rstrip(".,")  # titik/koma di ujung kalimat
+        ekor = cocok.group(0)[len(inti):]
+        if _POLA_RIBUAN_TITIK.fullmatch(inti):
+            inti = inti.replace(".", "")
+        return inti + ekor
+
+    t = _POLA_DERET_ANGKA.sub(ganti_titik, teks)
+    return _POLA_RIBUAN_SPASI.sub(lambda m: m.group(1).replace(" ", ""), t)
+
+
 def normalisasi(teks: str) -> str:
     """Samakan bentuk penulisan sebelum dibandingkan.
 
@@ -58,18 +93,22 @@ def normalisasi(teks: str) -> str:
     kunci "6 jam 25 menit" — benar tapi terhitung salah karena spasi. Kalau
     dibiarkan, angka kecocokan tercemar oleh kesalahan yang bukan kesalahan.
 
-    Yang disamakan: huruf besar-kecil, spasi berlebih, koma/titik desimal,
-    spasi antara angka dan huruf, serta tanda baca di ujung.
+    Yang disamakan: huruf besar-kecil, spasi berlebih, grup ribuan titik atau
+    spasi ("8.000" / "8 000" -> "8000"), koma/titik desimal, spasi antara
+    angka dan huruf, serta tanda baca di ujung.
     """
     t = _rapikan_teks(teks)
+    t = re.sub(r"\s+", " ", t).strip(" .;:")
+    # Dibaca SEBELUM koma menjadi titik: "2,400" harus tetap desimal 2,4,
+    # sedangkan "2.400" berarti dua ribu empat ratus.
+    t = _rapatkan_ribuan(t)
     # Konteks skalar: koma rapat dibaca sebagai desimal. Daftar bilangan
     # ditangani setara() SEBELUM normalisasi ini, dengan metadata soal.
     t = re.sub(r"(?<=\d),(?=\d)", ".", t)
     # sisipkan spasi di batas angka<->huruf: "25menit" -> "25 menit"
     t = re.sub(r"(?<=\d)(?=[a-z])", " ", t)
     t = re.sub(r"(?<=[a-z])(?=\d)", " ", t)
-    t = re.sub(r"\s+", " ", t)
-    return t.strip(" .;:")
+    return t
 
 
 def _daftar_bulat(teks: str) -> list[str] | None:

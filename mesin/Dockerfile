@@ -65,7 +65,8 @@ EXPOSE 8724
 # Pemeriksaan kesehatan: 401 dihitung SEHAT, karena justru menandakan server
 # menjawab DAN palang sandi aktif. Yang tidak sehat adalah tidak menjawab
 # sama sekali, atau menjawab 200 tanpa diminta sandi (palang jebol).
-COPY --chown=osn:osn healthcheck.py /app/
+# healthcheck.py ikut tersalin lewat wildcard *.py di atas dan guard test_image.py
+# menolak kembalinya daftar manual, jadi tidak perlu baris COPY sendiri.
 HEALTHCHECK --interval=60s --timeout=8s --start-period=15s --retries=3 \
   CMD ["python", "/app/healthcheck.py"]
 

@@ -396,6 +396,9 @@ def _checkpoint_sukses(
 
     Dua bagian dari occurrence berbeda tidak pernah dipasangkan. Metadata
     occurrence kosong tidak cukup untuk membuktikan checkpoint baru.
+    Occurrence hanya sah bila sesi checkpoint dimulai minimal 28 hari
+    setelah evaluasi lulus terakhir; occurrence yang lebih dini tidak dihitung
+    sebagai retensi maupun sebagai bagian yang sedang berjalan.
     """
     bukti = bukti_satu_representasi(bukti, putaran)
     evaluasi = _evaluasi_fokus(bukti, putaran, kunci)
@@ -403,6 +406,7 @@ def _checkpoint_sukses(
         return None, ()
     evaluasi_terakhir = evaluasi[-1][0]
     evaluasi_sah = (evaluasi_terakhir,)
+    batas_jeda = evaluasi_terakhir.tanggal + timedelta(days=28)
     per_occurrence: Dict[int, Dict[int, SesiSiklus]] = {}
     for sesi in sorted(bukti.sesi, key=lambda s: (s.tanggal, s.id)):
         if (
@@ -425,13 +429,15 @@ def _checkpoint_sukses(
     bagian_aktif: Tuple[int, ...] = ()
     for occurrence in sorted(per_occurrence):
         bagian = per_occurrence[occurrence]
+        awal = min(s.tanggal for s in bagian.values())
+        if awal < batas_jeda:
+            continue
         if set(bagian) == {1, 2}:
             outcomes = tuple(
                 outcome
                 for nomor in (1, 2)
                 for outcome in _hasil_fokus(bagian[nomor], kunci)
             )
-            awal = min(s.tanggal for s in bagian.values())
             cocok = any(s.tanggal <= awal and satu_mode((*_hasil_fokus(s, kunci), *outcomes))
                         for s in evaluasi_sah)
             if any(s.tuntutan_pilot for s in bagian.values()):

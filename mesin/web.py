@@ -50,6 +50,12 @@ from teacher_pages import (
 from topics import TOPIK_BAWAAN, daftar_topik
 
 class Penangan(BaseHTTPRequestHandler):
+    # Batas tunggu socket: klien lambat tidak boleh menahan thread tanpa akhir.
+    timeout = 15
+    # Jangan bocorkan versi interpreter; identitas server tidak perlu publik.
+    server_version = "jagomat"
+    sys_version = ""
+
     def finish(self) -> None:
         """Akhiri respons sebelum menguras sisa input secara terbatas.
 
@@ -89,6 +95,8 @@ class Penangan(BaseHTTPRequestHandler):
         self.send_response(kode)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(isi)))
+        if self._jalur_kredensial():
+            self._header_csp_kredensial()
         self.end_headers()
         self.wfile.write(isi)
 
@@ -114,7 +122,17 @@ class Penangan(BaseHTTPRequestHandler):
             hashes = [HASH_FILTER_GURU, HASH_OFFLINE] + [
                 base64.b64encode(hashlib.sha256(s.encode()).digest()).decode()
                 for s in (SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)]
-            izin_skrip = "script-src " + ' '.join("'sha256-" + h + "'" for h in hashes) + '; '
+            hash_guru = ' '.join("'sha256-" + h + "'" for h in hashes)
+            # Gabungkan, jangan timpa: enhancement beranda membawa hash sendiri
+            # dan `connect-src` yang wajib tetap ada.
+            if izin_skrip.startswith("script-src "):
+                isi_skrip, _, lain = izin_skrip[len("script-src "):].partition("; ")
+                izin_skrip = ("script-src " + isi_skrip.strip() + " " + hash_guru
+                              + "; " + (lain.strip() + " " if lain.strip() else ""))
+            elif izin_skrip:
+                izin_skrip = "script-src " + hash_guru + "; " + izin_skrip
+            else:
+                izin_skrip = "script-src " + hash_guru + "; "
             izin_gaya = ("style-src 'unsafe-inline' https://fonts.googleapis.com; "
                          "font-src https://fonts.gstatic.com; manifest-src 'self'; ")
         self.send_response(kode)
@@ -158,13 +176,20 @@ class Penangan(BaseHTTPRequestHandler):
         self.wfile.write(isi)
 
     def end_headers(self) -> None:
-        """Satu titik penanda "respons sudah keluar".
+        """Satu titik penanda "respons sudah keluar" dan header aman default.
 
         Ditaruh di sini, bukan di tiap rute: ada 17 tempat yang menutup
         header sendiri (redirect 303, berkas lampiran, halaman cetak), dan
         menandai satu per satu pasti terlewat saat rute baru ditambahkan.
         Dipakai `_galat_500` untuk tahu kapan ia harus diam.
         """
+        terkirim = getattr(self, "_header_terkirim", set())
+        if "x-content-type-options" not in terkirim:
+            self.send_header("X-Content-Type-Options", "nosniff")
+        if "x-frame-options" not in terkirim:
+            self.send_header("X-Frame-Options", "DENY")
+        if "referrer-policy" not in terkirim:
+            self.send_header("Referrer-Policy", "no-referrer")
         self._sudah_menjawab = True
         super().end_headers()
 
@@ -205,7 +230,94 @@ class Penangan(BaseHTTPRequestHandler):
     def handle_one_request(self) -> None:
         """Reset penanda respons tiap permintaan (koneksi bisa keep-alive)."""
         self._sudah_menjawab = False
+        self._header_terkirim = set()
         super().handle_one_request()
+
+    def send_header(self, keyword, value) -> None:  # noqa: N802
+        """Catat nama header agar `end_headers` menambah default tanpa duplikat."""
+        terkirim = getattr(self, "_header_terkirim", None)
+        if terkirim is None:
+            terkirim = self._header_terkirim = set()
+        terkirim.add(str(keyword).lower())
+        super().send_header(keyword, value)
+
+    def _baca_tubuh(self, batas: int) -> bytes | None:
+        """Baca body POST berbatas ketat; `None` berarti permintaan harus ditolak.
+
+        `Content-Length` negatif, raksasa, ganda, atau `Transfer-Encoding`
+        bukan isian sah. Tanpa batas ini `rfile.read(-1)` membaca sampai EOF
+        dan klien anonim bisa menahan thread serta memori tanpa akhir.
+        """
+        headers = self.headers
+        if headers.get("Transfer-Encoding"):
+            return None
+        nilai = headers.get_all("Content-Length", [])
+        if len(nilai) != 1:
+            return None
+        teks = nilai[0].strip()
+        if not teks.isascii() or not teks.isdigit():
+            return None
+        panjang = int(teks)
+        if panjang > batas:
+            return None
+        isi = self.rfile.read(panjang)
+        return isi if len(isi) == panjang else None
+
+    def _tolak_isian(self, kode: int = 400) -> None:
+        """Balasan generik untuk isian tidak sah; tidak memantulkan nilai klien."""
+        if kode == 413:
+            pesan = "<h1>Isian terlalu besar</h1><p>Coba muat ulang halaman.</p>"
+        else:
+            pesan = "<h1>Form tidak sah</h1><p>Muat ulang form lalu coba lagi.</p>"
+        self._kirim(_halaman("Isian tidak sah", pesan), kode)
+
+    def _jalur_kredensial(self) -> bool:
+        """Halaman yang memuat isian sandi: CSP ketat wajib, termasuk anti-frame."""
+        return urllib.parse.urlparse(self.path).path.rstrip("/") in ("/masuk", "/daftar")
+
+    def _header_csp_kredensial(self) -> None:
+        """CSP halaman kredensial; hash dihitung dari skrip yang dipakai halaman."""
+        import base64
+        import hashlib
+
+        from offline_browser import SKRIP_OFFLINE
+        from teacher_style import SKRIP_CEGAH_KIRIM_GANDA, SKRIP_MATA_SANDI
+
+        hash_skrip = [
+            base64.b64encode(hashlib.sha256(skrip.encode()).digest()).decode()
+            for skrip in (SKRIP_OFFLINE, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA)
+        ]
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'none'; img-src 'self' data:; manifest-src 'self'; "
+            "style-src 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src https://fonts.gstatic.com; "
+            "script-src " + " ".join("'sha256-" + h + "'" for h in hash_skrip)
+            + "; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+        )
+
+    def _asal_sama_post(self) -> bool:
+        """Tolak POST lintas situs untuk permukaan non-pembayaran.
+
+        Callback pembayaran dibuktikan tanda tangan penyedia dan sudah ditangani
+        sebelum titik ini. `_asal_sama` mengizinkan permintaan tanpa `Origin`
+        (form native lama) tetapi menolak `Sec-Fetch-Site: cross-site`;
+        token admin tetap diverifikasi terpisah di `admin_http`.
+        """
+        import admin_security
+
+        headers = getattr(self, "headers", None)
+        if headers is None:
+            # Shim unit-test dispatch tanpa header; runtime selalu punya headers.
+            return True
+        try:
+            admin_security._asal_sama(headers)
+        except PermissionError:
+            self._kirim(
+                _halaman("Akses ditolak", "<h1>Permintaan ditolak</h1>"), 403
+            )
+            return False
+        return True
 
     def _ambil_token(self) -> str | None:
         import http.cookies
@@ -372,6 +484,14 @@ class Penangan(BaseHTTPRequestHandler):
         except Exception:
             self._galat_500()
 
+    def do_HEAD(self) -> None:  # noqa: N802
+        """HEAD dijawab eksplisit: monitor tidak perlu 501, isi tetap tidak dikirim."""
+        self.send_response(405)
+        self.send_header("Allow", "GET, POST")
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
     def _rute_get(self) -> None:
         jalur = urllib.parse.urlparse(self.path).path.rstrip("/") or "/"
         # Runtime pembayaran produksi (fail-closed) dicoba sekali per server sebelum
@@ -489,6 +609,13 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import subscription_http
         if subscription_http.tangani_post(self, jalur):
+            return
+        # Callback pembayaran sudah ditangani di atas dengan tanda tangan penyedia.
+        # Form publik (masuk/daftar/tautan bearer) punya pembatas laju/token sendiri
+        # dan sebagian peramban lama mengirim `Origin: null` tanpa Fetch Metadata;
+        # permukaan guru/admin/murid di bawah ini wajib lolos cek asal yang sama.
+        publik = jalur in ("/masuk", "/daftar") or jalur.startswith("/mulai/")
+        if not publik and not self._asal_sama_post():
             return
         import admin_http
         import ai_http

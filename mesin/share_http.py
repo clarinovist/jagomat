@@ -51,15 +51,23 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
 
     token = jalur[len("/mulai/"):]
     tidak_ada = _halaman("404", "<h1>Halaman tidak ada</h1>")
-    panjang = int(penangan.headers.get("Content-Length", 0) or 0)
-    if panjang > 1_000_000:
+    tubuh = penangan._baca_tubuh(1_000_000)
+    if tubuh is None:
         penangan._kirim_tautan(_halaman(
             "Terlalu besar",
             "<h1>Isian terlalu besar</h1><p>Coba muat ulang halaman.</p>",
         ), 413)
         return True
-    mentah = penangan.rfile.read(panjang).decode("utf-8")
-    pasangan = urllib.parse.parse_qs(mentah, keep_blank_values=True)
+    try:
+        mentah = tubuh.decode("utf-8", "strict")
+    except UnicodeDecodeError:
+        penangan._kirim_tautan(
+            _halaman("Isian tidak sah", "<h1>Isian tidak sah</h1>"), 400
+        )
+        return True
+    pasangan = urllib.parse.parse_qs(
+        mentah, keep_blank_values=True, max_num_fields=64
+    )
     if any(len(nilai) != 1 for nilai in pasangan.values()):
         penangan._kirim_tautan(
             _halaman("Isian tidak sah", "<h1>Isian ganda tidak diizinkan</h1>"),

@@ -53,13 +53,29 @@ def test_hash_offline_cocok_dengan_skrip():
     ).decode("ascii")
 
 
-def test_daftar_dan_masuk_memuat_banner_tanpa_csp_publik(server):
+def test_daftar_dan_masuk_memuat_banner_dengan_csp_ketat(server):
+    """Halaman kredensial wajib ber-CSP: skrip shell berhash, tanpa frame."""
+    import base64
+    import hashlib
+
+    from teacher_style import SKRIP_CEGAH_KIRIM_GANDA, SKRIP_MATA_SANDI
+
     for jalur in ("/daftar", "/masuk"):
         kode, isi, header = server.minta(jalur)
         assert kode == 200
         assert O.SKRIP_OFFLINE in _skrip(isi)
         assert ".banner-offline-st {" in isi
-        assert "Content-Security-Policy" not in header
+        csp = header["Content-Security-Policy"]
+        assert "default-src 'none'" in csp
+        assert "frame-ancestors 'none'" in csp
+        assert "form-action 'self'" in csp
+        assert "'sha256-" + O.HASH_OFFLINE + "'" in csp
+        for skrip in (SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA):
+            if skrip in _skrip(isi):
+                digest = base64.b64encode(
+                    hashlib.sha256(skrip.encode()).digest()
+                ).decode("ascii")
+                assert "'sha256-" + digest + "'" in csp
 
 
 def test_guru_csp_mengizinkan_offline_dan_catatan_sinyal(server):

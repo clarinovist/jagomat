@@ -117,7 +117,7 @@ def proses_masuk(penangan, data: dict) -> None:
     nama = (data.get("nama") or "").strip()
     sandi = data.get("sandi") or ""
     lanjut = tujuan_lanjut(data.get("lanjut", ""))
-    ip = penangan.client_address[0] if penangan.client_address else "unknown"
+    ip = sessions.ip_klien(penangan.headers, penangan.client_address)
     if not nama or not sandi:
         penangan._kirim(
             penangan._halaman_masuk_stitch(
@@ -172,9 +172,18 @@ def proses_masuk(penangan, data: dict) -> None:
 def tangani_post(penangan, jalur: str) -> bool:
     """Tangani POST login/logout tanpa mengambil rute akun lain."""
     if jalur == "/masuk":
-        panjang = int(penangan.headers.get("Content-Length", 0) or 0)
-        mentah = penangan.rfile.read(panjang).decode("utf-8") if panjang else ""
-        bidang = urllib.parse.parse_qs(mentah, keep_blank_values=True)
+        tubuh = penangan._baca_tubuh(8192)
+        if tubuh is None:
+            penangan._tolak_isian(413)
+            return True
+        try:
+            mentah = tubuh.decode("utf-8", "strict")
+        except UnicodeDecodeError:
+            penangan._tolak_isian(400)
+            return True
+        bidang = urllib.parse.parse_qs(
+            mentah, keep_blank_values=True, max_num_fields=32
+        )
         data = {kunci: nilai[0] for kunci, nilai in bidang.items()}
         if len(bidang.get("lanjut", [])) != 1:
             data.pop("lanjut", None)

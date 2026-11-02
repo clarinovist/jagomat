@@ -114,6 +114,8 @@ class RunnerPalsu:
         self.run_gagal_tanpa_create = False
         self.probes = {}
         self.probe_id = "f" * 64
+        # Revisi per nama image; default "b" * 40 seperti policy rutin sintetis.
+        self.revisi = {}
 
     def __call__(self, argv, **kwargs):
         self.calls.append((argv, kwargs))
@@ -132,7 +134,7 @@ class RunnerPalsu:
             hasil = (json.dumps([a[-1]]) if label.startswith("repo-") else self.image_id(nama))
             if "org.opencontainers.image.revision" in a[3]:
                 label = "revision-" + nama
-                hasil = "b" * 40
+                hasil = self.revisi.get(nama, "b" * 40)
         elif a[0] == "run" and "--rm" in a:
             label = "probe-" + self.image_nama(a[a.index("--entrypoint") + 2])
             hasil = "OSN_IMAGE_ADMIN9_AI2_OK"
@@ -389,6 +391,36 @@ def test_artefak_pasangan_gagal_menghentikan_sebelum_swap(kasus):
     assert kasus.jalan() == 2
     assert "stop-lama" not in kasus.jejak and "run-candidate" not in kasus.jejak
     assert kasus.r.current == "lama" and kasus.r.running
+
+
+def test_pasangan_recovery_ditulis_ulang_sebelum_run_recovery(kasus):
+    """Kandidat tidak sehat: artefak pasangan wajib menunjuk image recovery."""
+    kasus.r.revisi["recovery"] = "d" * 40
+    kasus.r.health["candidate"] = "unhealthy"
+    assert kasus.jalan() == 1
+    assert kasus.b.pasangan == ("d" * 40, ID_RECOVERY, "f" * 64, "migrasi")
+    tulis = [i for i, tahap in enumerate(kasus.jejak) if tahap == "pasangan"]
+    assert len(tulis) == 2
+    assert tulis[-1] < kasus.jejak.index("run-recovery")
+
+
+def test_pasangan_recovery_gagal_tidak_diam_lanjut(kasus):
+    """Gagal tulis pasangan recovery harus terlihat: recovery tidak dijalankan."""
+    asli = kasus.b.tulis_pasangan
+    panggilan = []
+
+    def gagal_kedua(revisi, digest, kontrak, mode):
+        panggilan.append((revisi, digest, kontrak, mode))
+        if len(panggilan) == 2:
+            raise OSError("disk penuh sintetis")
+        return asli(revisi, digest, kontrak, mode)
+
+    kasus.b.tulis_pasangan = gagal_kedua
+    kasus.r.health["candidate"] = "unhealthy"
+    assert kasus.jalan() == 2
+    assert len(panggilan) == 2 and panggilan[-1][1] == ID_RECOVERY
+    assert "run-recovery" not in kasus.jejak
+    assert "intervensi manual" in kasus.pesan[-1]
 
 
 @pytest.mark.parametrize("tahap", ["stop-lama", "rm-lama"])
