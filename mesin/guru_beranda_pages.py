@@ -21,9 +21,26 @@ from teacher_workspace import _kelas_sekolah_profil
 # Pencarian baru berguna setelah daftar cukup panjang; tebakan, bukan data.
 AMBANG_PENCARIAN = 5
 JUMLAH_WARNA_AVATAR = 4
-KETERANGAN_DAFTAR = (
-    "Setiap anak punya halaman sendiri: buat latihan, rencana belajar, "
-    "dan riwayat."
+_PETUNJUK_DAFTAR = (
+    '<ol class="guru-langkah-ringkas-st">'
+    '<li>Pilih anak.</li>'
+    '<li>Buka halaman profilnya.</li>'
+    '<li>Pilih <b>Siapkan latihan</b>.</li></ol>'
+)
+
+# Panduan pertama hanya untuk guru yang belum pernah punya sesi. Tanpa
+# tautan/tombol baru supaya tidak menjadi CTA kedua di beranda.
+_PANDUAN_BARU = (
+    '<aside class="guru-panduan-st" aria-labelledby="judul-panduan-guru">'
+    '<p class="guru-alis-st">PANDUAN PERTAMA</p>'
+    '<h2 id="judul-panduan-guru">Cara membuat latihan</h2>'
+    '<ol class="guru-langkah-panduan-st">'
+    '<li>Pilih anak pada daftar di bawah.</li>'
+    '<li>Buka halaman profilnya.</li>'
+    '<li>Pilih <b>Siapkan latihan</b>, lalu atur jumlah soal.</li></ol>'
+    '<p class="guru-petunjuk-st">Nama tombol di kartu mengikuti tahap anak. '
+    'Kalau tidak ada kata “latihan”, tombol itu tetap membuka profil tempat '
+    'latihan dibuat.</p></aside>'
 )
 
 _NADA_PIL = {
@@ -170,6 +187,10 @@ def _kartu(kon, siswa, langkah, hari_ini, peran: str, tampil: bool) -> str:
     kelas_kartu = "guru-kartu-st guru-kartu-perhatian-st" if perlu else "guru-kartu-st"
     kelas_cta = "guru-cta-st guru-cta-utama-st" if perlu else "guru-cta-st"
     cta = _cta(langkah)
+    catatan_cta = (
+        '<span class="guru-cta-petunjuk-st">Buat latihan ada di dalam profil anak.</span>'
+        if "latihan" not in cta.casefold() else ""
+    )
     kelas = label_kelas_sekolah(_kelas_sekolah_profil(kon, siswa))
     return (
         f'<article class="{kelas_kartu}" data-kelompok="{_KUNCI_KELOMPOK[langkah.kelompok]}"'
@@ -186,9 +207,11 @@ def _kartu(kon, siswa, langkah, hari_ini, peran: str, tampil: bool) -> str:
         f'<strong class="guru-langkah-st">{html.escape(langkah.label)}</strong>'
         f'<div class="guru-status-daftar-st">{catatan}{tunggu}</div>'
         f'<div class="guru-meta-st">{label_jumlah}{label_batal}{keluarga}</div></div>'
+        f'<div class="guru-aksi-st">'
         f'<a class="{kelas_cta}" href="/anak/{siswa_id}" '
         f'aria-label="{html.escape(cta + ": " + nama, quote=True)}">'
         f'{html.escape(cta)} <span aria-hidden="true">→</span></a>'
+        f'{catatan_cta}</div>'
         '</article>'
     )
 
@@ -216,8 +239,20 @@ def _tambah_anak(total: int) -> str:
     )
 
 
-def _isi_daftar(kon, baris_semua, jumlah, cari, kelompok, hari_ini, peran) -> str:
-    """Bagian daftar anak: chip, pencarian bersyarat, hitungan, dan kartu."""
+def _ada_sesi(kon, siswa_milik) -> bool:
+    """True bila keluarga ini sudah pernah membuat sesi, termasuk dibatalkan."""
+    ids = [int(s["id"]) for s in siswa_milik]
+    if not ids:
+        return False
+    tanda = ",".join("?" * len(ids))
+    return kon.execute(
+        f"SELECT 1 FROM sesi WHERE siswa_id IN ({tanda}) LIMIT 1", ids
+    ).fetchone() is not None
+
+
+def _isi_daftar(kon, baris_semua, jumlah, cari, kelompok, hari_ini, peran,
+                baru: bool) -> str:
+    """Bagian daftar anak: panduan pertama, chip, pencarian, hitungan, kartu."""
     total = len(baris_semua)
     cocok_cari = []
     tampil_id = set()
@@ -239,10 +274,11 @@ def _isi_daftar(kon, baris_semua, jumlah, cari, kelompok, hari_ini, peran) -> st
     )
     form = _form_cari(kelompok, cari) if total > AMBANG_PENCARIAN or cari else ""
     return (
-        '<div class="guru-kepala-daftar-st"><div>'
+        (_PANDUAN_BARU if baru else "")
+        + '<div class="guru-kepala-daftar-st"><div>'
         '<h2 id="daftar-anak">Anak &amp; siswa</h2>'
-        f'<p class="guru-petunjuk-st">{html.escape(KETERANGAN_DAFTAR)}</p>'
-        f'</div>{_tambah_anak(total)}</div>'
+        + _PETUNJUK_DAFTAR
+        + f'</div>{_tambah_anak(total)}</div>'
         + _chip_filter(jumlah, total, kelompok, cari) + form
         + f'<p class="guru-hasil-filter-st" role="status" data-hasil-guru data-total="{total}">'
         f'{len(tampil_id)} dari {total} siswa ditampilkan.</p>'
@@ -270,7 +306,8 @@ def halaman(kon, pesan: str, pemilik, peran: str, cari: str, kelompok: str) -> b
     baris_semua = [(s, prioritas.langkah_anak(kon, s)) for s in siswa_milik]
     jumlah = prioritas.hitung_kelompok(langkah for _, langkah in baris_semua)
     isi_utama = (
-        _isi_daftar(kon, baris_semua, jumlah, cari, kelompok, hari_ini, peran)
+        _isi_daftar(kon, baris_semua, jumlah, cari, kelompok, hari_ini, peran,
+                    baru=not _ada_sesi(kon, siswa_milik))
         if total else _isi_kosong(total)
     )
     kabar = (

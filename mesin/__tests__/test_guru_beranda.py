@@ -101,6 +101,35 @@ def test_satu_tautan_per_kartu_dengan_nama_yang_menyebut_anak(server):
     assert "Buka profil" not in isi
 
 
+def test_petunjuk_berurutan_dan_catatan_cta_tanpa_latihan(server):
+    isi = _beranda(server)
+    assert '<ol class="guru-langkah-ringkas-st">' in isi
+    for teks in ("Pilih anak.", "Buka halaman profilnya.", "Siapkan latihan</b>."):
+        assert teks in isi
+    kartu = {
+        re.search(r'class="guru-nama-st">([^<]+)<', k).group(1): k
+        for k in re.findall(r'<article class="guru-kartu-st[^"]*" data-kelompok="[^"]+">(.*?)</article>', isi, re.S)
+    }
+    catatan = "Buat latihan ada di dalam profil anak."
+    assert "Tinjau hasil" in kartu["Ccc Terkirim"] and catatan in kartu["Ccc Terkirim"]
+    assert "Siapkan latihan" in kartu["Bbb Baru"] and catatan not in kartu["Bbb Baru"]
+
+
+def test_panduan_guru_baru_hilang_setelah_sesi_pertama(tmp_path, monkeypatch):
+    uji = ServerUji(tmp_path, monkeypatch)
+    try:
+        with uji.buka() as kon:
+            anak = database.tambah_siswa(kon, "Anak Baru", "P3", pemilik="guru")
+        isi = _beranda(uji)
+        assert "Cara membuat latihan" in isi and "PANDUAN PERTAMA" in isi
+        with uji.buka() as kon:
+            database.buat_sesi(kon, anak, seed=7)
+        isi = _beranda(uji)
+        assert "Cara membuat latihan" not in isi and "PANDUAN PERTAMA" not in isi
+    finally:
+        uji.berhenti()
+
+
 def test_label_tombol_mengikuti_langkah_dan_hanya_perlu_tindakan_yang_utama(server):
     isi = _beranda(server)
     kartu = {

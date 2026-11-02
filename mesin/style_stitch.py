@@ -304,6 +304,16 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-tambah-st {{ display: inline-flex; align-items: center; justify-content: center; gap: {T.SP_2}; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2} {T.SP_4}; color: {T.AKSEN_TEAL_TUA}; background: transparent; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_SEDANG}; text-decoration: none; font: 700 .8rem/1.5 {T.FONT_HEADLINE}; }}
 .guru-tambah-st:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}
 .guru-petunjuk-st {{ color: {T.ANAK_TEKS_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; line-height: 1.5; margin: {T.SP_1} 0 0; }}
+.guru-panduan-st {{ box-sizing: border-box; padding: {T.SP_5}; margin: 0 0 {T.SP_5}; background: {T.ANAK_INFO_LATAR}; border: 1px solid {T.ANAK_BORDER}; border-radius: {T.RADIUS_KARTU_BESAR}; }}
+.guru-panduan-st h2 {{ color: {T.ANAK_TEKS}; font: 800 {T.UKURAN_BAGIAN_DEWASA}/1.4 {T.FONT_HEADLINE}; margin: 0 0 {T.SP_3}; }}
+.guru-langkah-panduan-st {{ margin: {T.SP_1} 0 0; padding-left: 1.4rem; color: {T.ANAK_TEKS_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; line-height: 1.55; }}
+.guru-langkah-panduan-st li + li {{ margin-top: {T.SP_1}; }}
+.guru-langkah-panduan-st b {{ color: {T.ANAK_TEKS}; }}
+.guru-langkah-ringkas-st {{ display: flex; flex-wrap: wrap; align-items: baseline; gap: {T.SP_1} {T.SP_3}; margin: {T.SP_2} 0 0; padding: 0; list-style: none; color: {T.ANAK_TEKS_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; line-height: 1.5; }}
+.guru-langkah-ringkas-st li {{ display: block; }}
+.guru-langkah-ringkas-st li + li::before {{ content: '→'; margin-right: {T.SP_2}; color: {T.ANAK_AKSEN}; font-weight: 700; }}
+.guru-aksi-st {{ display: flex; flex-direction: column; gap: {T.SP_2}; flex: none; }}
+.guru-cta-petunjuk-st {{ max-width: 14rem; color: {T.ANAK_TEKS_BANTUAN}; font-size: {T.UKURAN_TEKS_META}; line-height: 1.4; }}
 .guru-chip-baris-st {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; margin: {T.SP_4} 0 {T.SP_3}; }}
 .guru-chip-st {{ display: inline-flex; align-items: center; gap: {T.SP_2}; min-height: {T.TARGET_SENTUH}; box-sizing: border-box; padding: 0 {T.SP_4}; border: 1px solid {T.ANAK_BORDER_PIL}; border-radius: {T.RADIUS_PIL}; background: {T.LATAR_KARTU}; color: {T.ANAK_TEKS_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; text-decoration: none; }}
 .guru-chip-st:hover {{ border-color: {T.ANAK_AKSEN}; }}
@@ -363,7 +373,9 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
   .guru-kartu-perhatian-st {{ padding: calc({T.SP_4} - 1px); }}
   .guru-inisial-st {{ width: 2.75rem; height: 2.75rem; font-size: 1.125rem; align-self: flex-start; }}
   .guru-identitas-st {{ flex: 1 1 0; }}
+  .guru-aksi-st {{ flex: 1 1 100%; }}
   .guru-cta-st {{ flex: 1 1 100%; }}
+  .guru-cta-petunjuk-st {{ max-width: none; }}
   .guru-cari-st button {{ flex: 1; }}
   .guru-kosong-st {{ padding: {T.SP_5}; }}
 }}
