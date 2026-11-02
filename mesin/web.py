@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import os
 import random
+import re
 import socket
 import time
 import urllib.parse
@@ -93,6 +94,37 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),
 )
+
+_POLA_SKRIP_INLINE = re.compile(rb"<script>(.*?)</script>", re.S)
+
+
+def csp_tautan(isi: bytes) -> str:
+    """CSP untuk halaman bearer `/mulai/<token>` (anak tanpa login).
+
+    Hash dihitung dari skrip inline yang **benar-benar** ada di respons, karena
+    sebagian skrip halaman murid memuat angka sesi/timer (tidak bisa di-hash
+    dari konstanta statis). Skrip dengan atribut sengaja tidak dihash: perilaku
+    itu fail-closed (skrip diblokir, terlihat saat uji), bukan diam-diam
+    diizinkan.
+    """
+    import base64
+    import hashlib
+
+    hash_skrip = [
+        base64.b64encode(hashlib.sha256(cocok.group(1)).digest()).decode("ascii")
+        for cocok in _POLA_SKRIP_INLINE.finditer(isi)
+    ]
+    izin_skrip = (
+        "script-src " + " ".join("'sha256-" + h + "'" for h in hash_skrip)
+        if hash_skrip else "script-src 'none'"
+    )
+    return (
+        "default-src 'none'; img-src 'self' data:; manifest-src 'self'; "
+        "style-src 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src https://fonts.gstatic.com; " + izin_skrip + "; "
+        "connect-src 'self'; form-action 'self'; base-uri 'none'; "
+        "frame-ancestors 'none'"
+    )
 
 
 class Penangan(BaseHTTPRequestHandler):
@@ -221,7 +253,7 @@ class Penangan(BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("X-Robots-Tag", "noindex, nofollow")
         self.send_header("X-Frame-Options", "DENY")
-        self.send_header("Content-Security-Policy", "frame-ancestors 'none'")
+        self.send_header("Content-Security-Policy", csp_tautan(isi))
         self.end_headers()
         self.wfile.write(isi)
 
