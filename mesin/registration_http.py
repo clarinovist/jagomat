@@ -238,6 +238,11 @@ def tangani_post(penangan, jalur: str) -> bool:
                 "Nama sudah dipakai. Pakai nama lain, atau masuk bila memang "
                 "akunmu."
             )
+        elif "alias tidak sah" in teks_galat:
+            aman = (
+                "Nama pengguna hanya boleh huruf, angka, titik, garis bawah, "
+                "atau tanda hubung, tanpa spasi, 3–40 karakter."
+            )
         elif aman not in (
             "Nama wajib diisi.",
             "Kata sandi minimal 8 karakter.",

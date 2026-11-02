@@ -38,6 +38,11 @@ def test_kerangka_editorial_dan_satu_aksi():
     assert len(m.cari('form')) == len(m.cari('button')) == 1
 
 
+def test_petunjuk_nama_pengguna_menyebut_tanpa_spasi():
+    h = landing.halaman_daftar().decode()
+    assert "tanpa spasi" in h and "3–40 karakter" in h
+
+
 @pytest.mark.parametrize('pesan,galat', [('',False),('Nama sudah dipakai.',True),('Coba kembali.',False)])
 def test_form_sandi_dan_persetujuan_tetap(pesan, galat):
     h = landing.halaman_daftar(pesan, galat, 'pendamping-demo').decode()

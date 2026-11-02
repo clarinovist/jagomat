@@ -146,7 +146,7 @@ Profil anak pertama dibuat bersama akunmu. Akun login anak bisa dibuat nanti.</p
     <label for="nama">Nama pengguna</label>
     <input type="text" id="nama" name="nama" autocomplete="username" required
      aria-describedby="petunjuk-nama-daftar" value="{html.escape(nama)}">
-    <p class="daftar-petunjuk-st" id="petunjuk-nama-daftar">Pilih nama pengguna yang mudah diingat. Tidak perlu email atau nomor telepon.</p>
+    <p class="daftar-petunjuk-st" id="petunjuk-nama-daftar">Pilih nama pengguna tanpa spasi (3–40 karakter): huruf, angka, titik, garis bawah, atau tanda hubung. Tidak perlu email atau nomor telepon.</p>
   </div>
   <div class="masuk-field-st">
     <label for="sandi">Kata sandi</label>

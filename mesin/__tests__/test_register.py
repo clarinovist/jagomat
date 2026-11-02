@@ -107,6 +107,20 @@ def test_post_daftar_membuat_akun_guru_dan_login(server):
 
 
 
+def test_post_daftar_nama_dengan_spasi_ditolak_dengan_pesan_jelas(server):
+    # Temuan cek tim 2 Nov 2026: nama lengkap berspasi jatuh ke pesan generik.
+    sebelum = auth.BERKAS_SANDI.read_bytes()
+    kode, isi, header = server.minta("/daftar", data={
+        "nama": "Muti Citra", "sandi": SANDI_BARU, "setuju": "1",
+        "token_form": _token_daftar(server), "nama_anak": "Profil Sintetis",
+    })
+    assert kode == 200
+    assert "Nama pengguna" in isi and "tanpa spasi" in isi
+    assert auth.BERKAS_SANDI.read_bytes() == sebelum
+    assert auth.cari_akun("Muti Citra") is None
+    assert "Set-Cookie" not in header
+
+
 def test_post_daftar_lama_tanpa_token_ditolak(server):
     kode, isi, header = s_minta(
         server, "/daftar",
