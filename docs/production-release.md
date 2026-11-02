@@ -6,6 +6,35 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy navigasi Cetak sesi — 2 November 2026
+
+Controlled `deploy-v2` memasang **53d1e633a564b20e1866780340bc35edf6be0959**;
+container started `2026-11-02T04:58:27Z` (11.58 WIB), healthy/restart0. Delta sejak
+`a9977f8` hanya UI: pil **Cetak** kembali di navigasi sesi (Koreksi · Cetak · Lampiran)
+supaya lembar soal/kunci terjangkau dari UI. Tanpa perubahan schema/persistensi,
+tanpa aktivasi fitur.
+
+- Kandidat `sha256:8871ec62…`; recovery `39fcfa7c…` digest `sha256:8adc7cd2…`
+  (rebuild; bukti pair run lama tidak dipinjam); kontrak `c2aa0f02…` identik pada
+  kandidat, recovery, dan live; mode `migrasi`, `compatible=true`,
+  `pair_verified=true`, `siap_pasang=false`. Job `pasang` tetap literal false.
+- Push [41389568740](https://github.com/clarinovist/jagomat/actions/runs/41389568740)
+  dan dispatch gate [41390157441](https://github.com/clarinovist/jagomat/actions/runs/41390157441)
+  sukses: delapan shard kandidat/recovery, build/probe dua image, pair 8/8/6, provider0.
+- Preflight `PROBE_SKEMA` pada salinan metadata live lulus untuk kedua image sebelum
+  hold. Hold 04.56–04.59 UTC (±2,5 menit, Caddy 503): backup empat DB + `sandi.json`
+  + riset terpisah, rehearsal C–B–C, hash backup lokal cocok, `deploy-v2` exit0, reopen
+  hash-identik. Histori dan jumlah tabel terjaga.
+- Postcheck: digest/revision exact, probe sintetis (writer2, level P1–P6, pil Cetak
+  pada image live), log galat0, smoke publik `/`200 `/akun`401 `/murid/`303.
+- Catatan operator: `postcheck.py` membaca `completed.json` yang ditulis `reopen`, jadi
+  urutan nyata **reopen → postcheck → cleanup** (plan lama menulis postcheck dulu).
+  Approval terkonsumsi masih di `/opt/osn/rollout-approval.json`; arsipkan
+  (`archive_approval.py`) sebelum `prepare` berikutnya. Bukti privat
+  `docs/plan/deploy-navcetak-20261102/`; backup induk remote
+  `/opt/osn/cadangan/deploy-navcetak-20261102/`. Lingkungan uji `uji.jagomat.id`
+  belum disamakan ke `53d1e63`.
+
 ## Deploy migrasi P1/P2 — 2 November 2026
 
 Controlled `deploy-v2` memasang **a9977f8c01f240ba65ab801c124eb828e975d59c**;
