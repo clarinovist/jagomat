@@ -6,6 +6,40 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy pecahan bertumpuk dan pengerasan keamanan — 3 November 2026
+
+Controlled `deploy-v2` memasang **ac87170b0ea0bdada34f9d90fd83275caf37d256**;
+container started `2026-11-03T08:45:57Z` (15.45 WIB), healthy. Delta sejak `3d5c215`
+mencakup tampilan pecahan bertumpuk di layar (`a903f32` + perbaikan `ac87170`) dan
+lima commit pengerasan keamanan yang sudah ada di `main` tetapi belum live
+(`b9345b2`, `834f929`, `7d18e34`, `c663b08`, `521f73b`), plus test isolasi pembatas
+laju. Tanpa perubahan schema/persistensi atau aktivasi fitur.
+
+- Kandidat `sha256:afecd753…`; recovery `39fcfa7c…` digest `sha256:f311e45a…`
+  (rebuild). Kontrak `c2aa0f02…` identik pada kandidat, recovery, dan live; mode
+  `migrasi`, `compatible=true`, `pair_verified=true`, `siap_pasang=false`. Job
+  `pasang` tetap literal false.
+- Gate [41595651322](https://github.com/clarinovist/jagomat/actions/runs/41595651322)
+  (dispatch; push [41595637709](https://github.com/clarinovist/jagomat/actions/runs/41595637709))
+  sukses: delapan shard, build/probe dua image, pair 8/8/6, provider0.
+- Gate pertama `a903f32` merah pada test pasangan: CSS pecahan ikut mengubah hash
+  bank cetak kandidat sehingga berbeda dari recovery. Perbaikan `ac87170`
+  memisahkan CSS/pecahan layar (`GAYA_STITCH`/`GAYA_GURU`) dari gaya `cetak`;
+  lembar cetak tetap menampilkan `5/6` mendatar.
+- Approval terkonsumsi `3d5c215` diarsipkan lebih dulu (dry-run lalu apply, receipt
+  exact) ke `deploy-pecahan-20261103/approval-consumed-3d5c215.json` sebelum `prepare`.
+- Hold `08.42.38–08.46.22Z` (±3 menit 44 detik, Caddy 503): backup empat DB +
+  `sandi.json` + riset terpisah, rehearsal C–B–C, hash backup lokal cocok,
+  `deploy-v2` exit0, reopen.
+- Postcheck: digest/revision exact, probe `pecahan_layar`, banner offline, beranda
+  guru, persiapan sesi, level P1–P6, smoke publik `/`200 `/akun`401 `/murid/`303,
+  log galat0, histori terjaga. Cleanup 4 direktori turunan; backup preserved.
+- Approval terkonsumsi rilis ini masih di `/opt/osn/rollout-approval.json`; arsipkan
+  sebelum `prepare` berikutnya. Backup induk remote
+  `/opt/osn/cadangan/deploy-pecahan-20261103/`; salinan lokal
+  `mesin/cadangan/deploy-pecahan-20261103/` (gitignored). `uji.jagomat.id` belum
+  disamakan.
+
 ## Deploy banner offline dan petunjuk beranda — 2 November 2026
 
 Controlled `deploy-v2` memasang **3d5c215f49da3e28300c2e91f08ef1984087076e**;
