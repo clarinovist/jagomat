@@ -3,6 +3,7 @@ import html
 import re
 
 import brand
+import pecahan
 import visual_renderer
 import design_tokens as T
 
@@ -26,7 +27,7 @@ def kontrol_format(identitas, nilai='isian'):
 def pertanyaan(penyajian, pilihan, template_id, gaya='stitch', namespace='soal'):
     if pilihan is not None and template_id == 'benar_salah_pengandaian':
         teks = re.split(r'^A\.\s', penyajian.teks_soal, maxsplit=1, flags=re.M)[0].strip()
-        return '<div class="teks">' + html.escape(teks).replace('\n', '<br>') + '</div>'
+        return '<div class="teks">' + pecahan.render(teks).replace('\n', '<br>') + '</div>'
     return visual_renderer.render_pertanyaan(penyajian, gaya=gaya, namespace=namespace)
 
 
@@ -38,7 +39,7 @@ def radio_pilihan(pilihan, jawaban='', template_id=''):
         teks = f'Pilihan {o.label}' if template_id == 'jaring_jaring' else f'{o.label}. {o.teks}'
         isi.append(f'<label class="pg-opsi"><input type="radio" name="opsi_{sid}" '
                    f'value="{o.id}"{" checked" if jawaban == o.nilai else ""}>'
-                   f'<span>{html.escape(teks)}</span></label>')
+                   f'<span>{pecahan.render(teks)}</span></label>')
     isi.append(f'<label class="pg-kosong"><input type="radio" name="opsi_{sid}" value=""'
                f'{" checked" if not jawaban else ""}> Belum menjawab</label>')
     return f'<fieldset class="pg-pilihan"><legend>Jawabanku — pilih satu</legend>{"".join(isi)}</fieldset>'
@@ -61,7 +62,7 @@ def ringkas_opsi(pilihan, template_id=''):
     if template_id == 'jaring_jaring':
         return '<p>Pilih salah satu gambar A–E.</p>'
     return '<div class="pg-daftar">' + ''.join(
-        '<p>' + html.escape(o.label + '. ' + o.teks) + '</p>' for o in pilihan.opsi) + '</div>'
+        '<p>' + pecahan.render(o.label + '. ' + o.teks) + '</p>' for o in pilihan.opsi) + '</div>'
 
 
 def gaya_pilihan():
@@ -98,7 +99,7 @@ def lembar_pilihan(kon, sesi_id, untuk_guru=False):
         kunci = ''
         if untuk_guru:
             benar = next(o for o in p.opsi if o.nilai == b['kunci'])
-            kunci = '<p><b>Kunci: ' + html.escape(benar.label + ' — ' + benar.teks) + '</b></p>'
+            kunci = '<p><b>Kunci: ' + pecahan.render(benar.label + ' — ' + benar.teks) + '</b></p>'
         kartu.append(f'<section class="soal"><span class="nomor">{b["nomor"]}</span>{teks}{opsi}{kunci}'
                      '<p>Jawabanku: ______</p><div class="label">Caraku (boleh dikosongkan):</div><div class="cara sedang"></div></section>')
     judul = 'Penilaian pilihan ganda — khusus orang tua' if untuk_guru else 'Latihan pilihan ganda'

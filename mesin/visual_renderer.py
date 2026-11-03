@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import pecahan
 from statistics_svg import render_statistika
 from topic_number_patterns_svg import _svg_korek, _svg_titik
 from visual_contract import (
@@ -33,16 +34,16 @@ def _baris(teks: str) -> list[str]:
 def _render_baris(teks: str, kelas_teks: str, kelas_tanya: str) -> str:
     baris = _baris(teks)
     if len(baris) == 1:
-        return f'<div class="{kelas_teks}">{html.escape(baris[0])}</div>'
+        return f'<div class="{kelas_teks}">{pecahan.render(baris[0])}</div>'
     return "".join(
         f'<div class="{kelas_tanya if indeks == len(baris) - 1 else kelas_teks}">'
-        f"{html.escape(isi)}</div>"
+        f"{pecahan.render(isi)}</div>"
         for indeks, isi in enumerate(baris)
     )
 
 
 def _render_teks_guru(teks: str) -> str:
-    return f'<div class="teks-soal">{html.escape(teks)}</div>'
+    return f'<div class="teks-soal">{pecahan.render(teks)}</div>'
 
 
 def _render_teks_per_gaya(teks: str, gaya: str) -> str:

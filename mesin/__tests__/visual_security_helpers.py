@@ -143,6 +143,26 @@ def _periksa_atribut(e, ids):
             assert isi.split() and all(i in ids for i in isi.split()), isi
 
 
+_KELAS_PECAHAN = frozenset({"pecahan", "pecahan-angka"})
+_LABEL_PECAHAN = re.compile(r"\d{1,3} per \d{1,3}")
+
+
+def _periksa_pecahan(e):
+    """Markup pecahan adalah satu-satunya elemen non-div/non-SVG yang diizinkan."""
+    kelas = (e.get("class") or "").split()
+    assert kelas and set(kelas) <= _KELAS_PECAHAN, kelas
+    assert set(e.attrib) <= {"class", "role", "aria-label", "aria-hidden"}, e.attrib
+    if e.get("role") is not None:
+        assert e.get("role") == "math" and kelas == ["pecahan"]
+    if e.get("aria-label") is not None:
+        assert _LABEL_PECAHAN.fullmatch(e.get("aria-label")), e.get("aria-label")
+    if e.get("aria-hidden") is not None:
+        assert e.get("aria-hidden") == "true" and kelas == ["pecahan-angka"]
+    for isi in (e.text or "", e.tail or ""):
+        assert not any(unicodedata.category(c).startswith("C")
+                       and c not in "\n\r\t" for c in isi), repr(isi)
+
+
 def periksa_xml(hasil):
     """Parse seluruh fragmen, bukan potongan SVG yang dapat menutupi injeksi."""
     assert not re.search(r"<!DOCTYPE|<!ENTITY|<\?", hasil, re.I)
@@ -157,6 +177,9 @@ def periksa_xml(hasil):
     for e in akar.iter():
         if e.tag == "div":
             assert set(e.attrib) <= {"class", "data-fingerprint-penyajian"}
+            continue
+        if e.tag == "span":
+            _periksa_pecahan(e)
             continue
         assert e.tag == "{" + NS + "}" + lokal(e), e.tag
         assert lokal(e) in _ATRIBUT, e.tag
