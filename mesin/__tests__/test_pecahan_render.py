@@ -46,6 +46,14 @@ def test_renderer_pertanyaan_memakai_pecahan():
     assert 'class="kerja-teks-st"' in hasil
 
 
+def test_cetak_tetap_polos_untuk_kompatibilitas_pasangan():
+    # Bank cetak wajib identik dengan recovery; pecahan hanya di layar.
+    hasil = visual_renderer._render_baris(
+        "Hitung 5/6 × 3/8", "teks", "tanya", pecahan_aktif=False)
+    assert "pecahan" not in hasil and "5/6" in hasil
+    assert "pecahan" not in visual_renderer._render_teks_per_gaya("5/6", "cetak")
+
+
 def test_opsi_pilihan_ganda_memakai_pecahan():
     class Opsi:
         label = "A"

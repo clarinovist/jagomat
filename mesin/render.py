@@ -30,7 +30,6 @@ import html
 import json
 
 import brand
-import pecahan
 import visual_renderer
 import design_tokens as T
 from print_style import GAYA_CETAK
@@ -57,10 +56,10 @@ def _badan_soal(soal: Soal, topik_paket: Topik | None = None,
 
     baris = [b for b in soal.teks.split("\n") if b.strip()]
     if len(baris) == 1:
-        return f'<div class="teks">{pecahan.render(baris[0])}</div>'
+        return f'<div class="teks">{html.escape(baris[0])}</div>'
     isi = "".join(
         f'<div class="{"tanya" if i == len(baris) - 1 else "teks"}">'
-        f"{pecahan.render(b.strip())}</div>"
+        f"{html.escape(b.strip())}</div>"
         for i, b in enumerate(baris)
     )
     return isi

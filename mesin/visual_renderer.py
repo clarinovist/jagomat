@@ -31,13 +31,16 @@ def _baris(teks: str) -> list[str]:
     return [baris.strip() for baris in teks.split("\n") if baris.strip()]
 
 
-def _render_baris(teks: str, kelas_teks: str, kelas_tanya: str) -> str:
+def _render_baris(teks: str, kelas_teks: str, kelas_tanya: str,
+                  pecahan_aktif: bool = True) -> str:
+    """Cetak wajib identik dengan baseline recovery; pecahan hanya di layar."""
+    ubah = pecahan.render if pecahan_aktif else html.escape
     baris = _baris(teks)
     if len(baris) == 1:
-        return f'<div class="{kelas_teks}">{pecahan.render(baris[0])}</div>'
+        return f'<div class="{kelas_teks}">{ubah(baris[0])}</div>'
     return "".join(
         f'<div class="{kelas_tanya if indeks == len(baris) - 1 else kelas_teks}">'
-        f"{pecahan.render(isi)}</div>"
+        f"{ubah(isi)}</div>"
         for indeks, isi in enumerate(baris)
     )
 
@@ -47,10 +50,11 @@ def _render_teks_guru(teks: str) -> str:
 
 
 def _render_teks_per_gaya(teks: str, gaya: str) -> str:
+    aktif = gaya != "cetak"
     if gaya in {"cetak", "murid"}:
-        return _render_baris(teks, "teks", "tanya")
+        return _render_baris(teks, "teks", "tanya", pecahan_aktif=aktif)
     if gaya == "stitch":
-        return _render_baris(teks, "kerja-teks-st", "kerja-tanya-st")
+        return _render_baris(teks, "kerja-teks-st", "kerja-tanya-st", pecahan_aktif=aktif)
     return _render_teks_guru(teks)
 
 
@@ -117,7 +121,8 @@ def _sisipkan_visual(teks: str, gaya: str, visual: str) -> str:
     else:
         kelas_teks, kelas_tanya = "kerja-teks-st", "kerja-tanya-st"
     return (
-        _render_baris(pengantar, kelas_teks, kelas_teks)
+        _render_baris(pengantar, kelas_teks, kelas_teks,
+                      pecahan_aktif=gaya != "cetak")
         + visual
         + f'<div class="{kelas_tanya}">{html.escape(pertanyaan)}</div>'
     )

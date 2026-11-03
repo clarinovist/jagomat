@@ -19,11 +19,13 @@ _halaman_masuk, _kartu_akun_murid, _tombol_cerita, _halaman.
 
 import design_tokens as T
 from form_style import GAYA_SELECT
+from pecahan_style import GAYA_PECAHAN
 from presentation_style import GAYA_PENYAJIAN
 from question_variants_ui import GAYA_VARIASI
 
 GAYA_GURU = f"""
 {GAYA_PENYAJIAN}
+{GAYA_PECAHAN}
 {GAYA_SELECT}
 {GAYA_VARIASI}
 * {{ box-sizing: border-box; }}
