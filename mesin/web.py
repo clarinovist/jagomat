@@ -244,8 +244,12 @@ class Penangan(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(isi)
 
-    def _kirim_tautan(self, isi: bytes, kode: int = 200) -> None:
-        """Respons tautan bearer: jangan simpan, indeks, atau bocorkan URL."""
+    def _kirim_tautan(self, isi: bytes, kode: int = 200, csp: str | None = None) -> None:
+        """Respons tautan bearer: jangan simpan, indeks, atau bocorkan URL.
+
+        `csp` opsional untuk permukaan yang lebih sempit dari halaman murid
+        (laporan orang tua); `/mulai/` tidak memakainya dan perilakunya tetap.
+        """
         self.send_response(kode)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(isi)))
@@ -253,7 +257,7 @@ class Penangan(BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("X-Robots-Tag", "noindex, nofollow")
         self.send_header("X-Frame-Options", "DENY")
-        self.send_header("Content-Security-Policy", csp_tautan(isi))
+        self.send_header("Content-Security-Policy", csp if csp is not None else csp_tautan(isi))
         self.end_headers()
         self.wfile.write(isi)
 
@@ -610,6 +614,9 @@ class Penangan(BaseHTTPRequestHandler):
         import share_http
         if share_http.tangani_tautan_get(self, jalur):
             return
+        import parent_report_http
+        if parent_report_http.tangani_get(self, jalur):
+            return
         import public_http
         if public_http.tangani_get(self, jalur):
             return
@@ -731,6 +738,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import share_http
         if share_http.tangani_tautan_post(self, jalur):
+            return
+        import parent_report_http
+        if parent_report_http.tangani_post(self, jalur):
             return
         import student_http
         if student_http.tangani_post(self, jalur):
