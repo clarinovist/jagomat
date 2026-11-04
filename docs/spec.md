@@ -42,6 +42,14 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
   terbuka berperingatan, tanpa form/kunci, `no-store`. Satu tautan "Cetak catatan persiapan
   guru" dari Beranda profil (hanya peran guru), juga saat Pendampingan aktif. Bukan bukti
   belajar dan tidak menulis DB; lembar soal murid tetap lewat pil Cetak di sesi.
+- **Laporan guru → orang tua (G3; implementasi lokal 4 Nov 2026, belum rilis):** guru memilih
+  periode di tab Perkembangan, meninjau pratinjau identik, menulis catatan (≤2000 karakter),
+  lalu menerbitkan tautan baca-saja `/laporan-ortu/<token>` (30 hari, bisa dicabut, satu tautan
+  aktif per anak, tanpa login/JS/tautan keluar). Isi hanya nama anak, periode, topik dari sesi
+  selesai+terkonfirmasi, tahap netral "n dari 6", satu kalimat langkah, catatan, nama guru;
+  tanpa skor, kode diagnosis, malrule, ID, level, atau kelas. Snapshot dibekukan saat terbit,
+  tidak ada edit sesudahnya, admin hanya melihat, dan semua tautan tidak sah satu 404 identik.
+  Menulis laporan tidak menyentuh bukti belajar. Tidak menyimpan email/telepon.
 - **Fitur khusus orang tua dibekukan (keputusan pemilik 1 Nov 2026):** Pendamping AI,
   kartu pra-tulis dan bantuan orang tua tetap berjalan tanpa investasi baru; kendali
   data tetap tersedia. Penghapusannya perlu keputusan terpisah.

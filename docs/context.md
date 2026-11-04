@@ -82,6 +82,13 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - `session_prep.py` membungkus `learning_cycle_ui.kartu_rencana` menjadi lembar cetak
   persiapan (form dibuang, playbook `open`), dirutekan `teacher_http.tangani_persiapan_get`
   setelah `_lolos_sandi` dan sebelum rute profil; tanpa logika rencana sendiri atau tulis DB.
+- Laporan orang tua (G3, lokal): `parent_report_store.py` (dua tabel `laporan_ortu`/`tautan_laporan`
+  dari `schema_parent_report.py`, token SHA-256 di `parent_report_links.py`), `parent_report_snapshot.py`
+  (allowlist topik/tahap/langkah, hanya baca), `parent_report_page.py` (renderer murni: hanya stdlib +
+  token desain), `parent_report_http.py` (`/laporan-ortu/<token>` sebelum login, 404 identik, `_kirim_tautan`
+  dengan `csp` sempit; rute guru `/anak/<id>/laporan-ortu...` setelah `_lolos_sandi`, sebelum profil) dan
+  `parent_report_guru_pages.py`. Hanya menulis dua tabel sendiri; dijaga M1 authorizer SQLite, M2 allowlist,
+  M3 teks terlarang, M4 tanpa tulis bukti (`test_laporan_ortu_field_guard.py`).
 - `teacher_home_priority.py` hanya memproyeksi reducer; `guru_beranda_pages.py` merender /guru
   (chip GET owner-scoped dengan filter instan berhash/fallback native, petunjuk langkah
   ringkas, panduan guru baru yang hilang setelah sesi pertama) tanpa menulis DB atau
