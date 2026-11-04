@@ -49,15 +49,16 @@ def _pembahasan(a, b):
     if besar < 10:
         ambil = 10 - besar
         sisa = kecil - ambil
-        return (f"{a} + {b}: ambil {ambil} dari {kecil} supaya {besar} menjadi 10. "
-                f"Sisanya {sisa}. 10 + {sisa} = {jumlah}.")
+        return (f"{a} + {b}: {besar} butuh {ambil} lagi supaya menjadi 10. "
+                f"Ambil {ambil} dari {kecil}, tersisa {sisa}. "
+                f"Maka 10 + {sisa} = {jumlah}.")
     if besar == 10:
-        return (f"{a} + {b}: mulai dari 10, tambah {kecil}. "
+        return (f"{a} + {b}: bilangan terbesarnya 10, jadi tambahkan {kecil} ke 10. "
                 f"10 + {kecil} = {jumlah}.")
     satuan = besar - 10
-    return (f"{a} + {b}: {besar} adalah 10 dan {satuan}. "
-            f"{satuan} + {kecil} = {satuan + kecil}. "
-            f"10 + {satuan + kecil} = {jumlah}.")
+    return (f"{a} + {b}: pecah {besar} menjadi 10 dan {satuan}. "
+            f"Jumlahkan satuannya: {satuan} + {kecil} = {satuan + kecil}. "
+            f"Lalu 10 + {satuan + kecil} = {jumlah}.")
 
 
 def tambah_dasar(a: int, b: int) -> Soal:

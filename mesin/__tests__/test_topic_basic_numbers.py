@@ -147,17 +147,17 @@ def test_pembahasan_langkah_dan_hasil(level):
             assert [int(n) for n in urut.split(", ")] == list(range(besar + 1, a + b + 1))
             assert (int(kiri), int(kanan), int(hasil)) == (a, b, a + b)
         elif besar < 10:
-            cocok = re.fullmatch(r"(\d+) \+ (\d+): ambil (\d+) dari (\d+) supaya (\d+) menjadi 10\. Sisanya (\d+)\. 10 \+ (\d+) = (\d+)\.", pb)
+            cocok = re.fullmatch(r"(\d+) \+ (\d+): (\d+) butuh (\d+) lagi supaya menjadi 10\. Ambil (\d+) dari (\d+), tersisa (\d+)\. Maka 10 \+ (\d+) = (\d+)\.", pb)
             assert cocok, (a, b, pb)
-            kiri, kanan, ambil, asal, awal, sisa, tambah, hasil = map(int, cocok.groups())
+            kiri, kanan, awal, butuh, ambil, asal, sisa, tambah, hasil = map(int, cocok.groups())
             assert (kiri, kanan) == (a, b)
             assert (awal, asal) == (besar, kecil)
-            assert awal + ambil == 10 and asal - ambil == sisa == tambah
+            assert awal + butuh == 10 and ambil == butuh and asal - ambil == sisa == tambah
             assert 10 + tambah == hasil == a + b
         elif besar == 10:
-            assert pb == f"{a} + {b}: mulai dari 10, tambah {kecil}. 10 + {kecil} = {a + b}."
+            assert pb == f"{a} + {b}: bilangan terbesarnya 10, jadi tambahkan {kecil} ke 10. 10 + {kecil} = {a + b}."
         else:
-            cocok = re.fullmatch(r"(\d+) \+ (\d+): (\d+) adalah 10 dan (\d+)\. (\d+) \+ (\d+) = (\d+)\. 10 \+ (\d+) = (\d+)\.", pb)
+            cocok = re.fullmatch(r"(\d+) \+ (\d+): pecah (\d+) menjadi 10 dan (\d+)\. Jumlahkan satuannya: (\d+) \+ (\d+) = (\d+)\. Lalu 10 \+ (\d+) = (\d+)\.", pb)
             assert cocok, (a, b, pb)
             kiri, kanan, awal, satuan, tambah1, tambah2, jumlah, akhir, hasil = map(int, cocok.groups())
             assert (kiri, kanan) == (a, b)
