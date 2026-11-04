@@ -834,3 +834,9 @@ BEGIN
  WHERE hasil_id=OLD.id AND status IN ('result','no_output');
 END;
 """
+
+# G3: laporan guru -> orang tua (aditif, idempoten).
+from schema_parent_report import SKEMA_LAPORAN_ORTU  # noqa: E402
+
+# Sebelum view ringkasan_sesi (view dibangun ulang tiap siapkan; urutan dump harus stabil).
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_LAPORAN_ORTU + '\n-- Ringkasan per sesi supaya laporan', 1)
