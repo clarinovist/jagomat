@@ -63,6 +63,8 @@ JUMLAH_RECOVERY = {
     # Baseline recovery P1/P2 writer1 (mode persiapan, 1 Nov 2026): collect-only arsip
     # 15.083 nodeid unik, sama dengan koleksi shard CI kandidat 9b0c3df/d799d3a.
     "39fcfa7c5558444f014fd88a6d562847b4d132cc": 15083,
+    # Recovery G3 (schema laporan_ortu, 4 Nov 2026): collect-only arsip exact, 15.280 nodeid unik.
+    "f06e25d89e7f5c36735fe1676c24e8f9d9bef6ca": 15280,
 }
 
 
