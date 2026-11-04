@@ -52,6 +52,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   Metadata opsional `Topik.keterangan_level` menjelaskan rentang kartu tanpa mengubah generator.
   `question_context.materi_dasar_aktif()` membaca `OSN_MATERI_DASAR` ketat 0/1 (default0; produksi diset 1 lewat `/opt/osn/visual.conf` sejak 4 Nov 2026):
   penawaran UI/AI dan pembuat sesi dikunci, registri/generator serta pembaca histori tetap utuh.
+  `choice_pages.cetak_ringkas_aktif()` membaca `OSN_CETAK_RINGKAS` ketat 0/1 (default0, agar hash cetak
+  PG identik dengan recovery): bila 1, lembar cetak PG memakai opsi dua kolom dan jarak kertas.
 - Stdlib runtime; dev dependency hanya pytest/pytest-xdist. Python lokal3.9.6 dan
   CI/container3.12. Nama modul Inggris; fungsi/docstring/UI/commit Bahasa Indonesia.
 - Zero-JS default. Enhancement yang disetujui berhash CSP dan fallback native;

@@ -1,5 +1,6 @@
 """Kontrol native PG dan cetak; seluruh opsi berasal dari snapshot publik."""
 import html
+import os
 import re
 
 import brand
@@ -86,6 +87,28 @@ def gaya_pilihan():
 '''
 
 
+def cetak_ringkas_aktif():
+    """Tata letak cetak PG ringkas; default 0 agar keluaran cetak identik dengan recovery."""
+    nilai = os.environ.get('OSN_CETAK_RINGKAS', '0').strip()
+    if nilai not in ('0', '1'):
+        raise ValueError('OSN_CETAK_RINGKAS hanya menerima 0 atau 1')
+    return nilai == '1'
+
+
+def gaya_cetak_pilihan():
+    """Lembar PG dicetak dengan CSS layar; ringkas dengan satuan kertas (mm/pt)."""
+    return """
+@page { size: A4; margin: 13mm 12mm 11mm 12mm; }
+body.lembar-editorial { font-size: 11pt; line-height: 1.4; }
+.lembar-editorial .wrap { max-width: none; padding: 0; }
+.lembar-editorial h1 { font-size: 14pt; margin: 0 0 1mm; }
+.lembar-editorial .soal { padding: 2mm 2.5mm; margin-bottom: 2.2mm; break-inside: avoid; page-break-inside: avoid; }
+.lembar-editorial .soal p { margin: 1mm 0; }
+.lembar-editorial .pg-daftar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1mm 6mm; margin: 1.5mm 0; }
+.lembar-editorial .pg-daftar p { margin: 0; }
+"""
+
+
 def lembar_pilihan(kon, sesi_id, untuk_guru=False):
     import database
     import question_views
@@ -104,11 +127,12 @@ def lembar_pilihan(kon, sesi_id, untuk_guru=False):
             kunci = '<p><b>Kunci: ' + html.escape(benar.label + ' — ' + benar.teks) + '</b></p>'
         kartu.append(f'<section class="soal"><span class="nomor">{b["nomor"]}</span>{teks}{opsi}{kunci}'
                      '<p>Jawabanku: ______</p><div class="label">Caraku (boleh dikosongkan):</div><div class="cara sedang"></div></section>')
+    gaya_ringkas = gaya_cetak_pilihan() if cetak_ringkas_aktif() else ''
     judul = 'Penilaian pilihan ganda — khusus orang tua' if untuk_guru else 'Latihan pilihan ganda'
     pesan = ('Pilihan benar belum membuktikan pemahaman. Tanyakan cara anak; jangan menyimpulkan diagnosis hanya dari opsi.' if untuk_guru else
              'Pilih satu jawaban tiap soal. Boleh menuliskan caramu dan boleh melewati soal yang belum bisa.')
     return (f'<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<title>{html.escape(brand.judul(judul))}</title>{brand.tag_kepala(cetak=True)}'
-            f'<style>{GAYA_LAYAR}{gaya_pilihan()}</style></head><body class="lembar-editorial"><main class="wrap">'
+            f'<style>{GAYA_LAYAR}{gaya_pilihan()}{gaya_ringkas}</style></head><body class="lembar-editorial"><main class="wrap">'
             f'<h1>{judul}</h1><p>{html.escape(info["nama"])} · {html.escape(info["tanggal"])}</p><p>{pesan}</p>'
             + ''.join(kartu) + '</main></body></html>').encode()
