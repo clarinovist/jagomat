@@ -10,8 +10,8 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   sintetis. Peran `guru` tetap mencakup orang tua dan hanya mengakses data miliknya.
 - Akses awal **nonkomersial**. Keputusan paket Jago/Jago Pro tidak sama dengan
   pembukaan penjualan, trial otomatis, promo, atau paywall.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`5245656`** (4 November 2026;
-  tata letak cetak PG ringkas, `OSN_CETAK_RINGKAS=1`; lihat catatan rilis). Rilis `7dee2ed` menulis ulang pembahasan
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`efb9a03`** (5 November 2026;
+  laporan guru→orang tua G3; lihat catatan rilis). Rilis `5245656` (4 November) membawa tata letak cetak PG ringkas, `OSN_CETAK_RINGKAS=1`. Rilis `7dee2ed` menulis ulang pembahasan
   Bilangan Dasar P2 dan **mengaktifkan `OSN_MATERI_DASAR=1` di produksi atas keputusan
   pemilik**, sebelum pembahasan baru diulas ulang. Rilis `ac87170` (3 November
   15.45 WIB) membawa
@@ -66,7 +66,7 @@ seluruh kombinasi penggunaan nyata telah terbukti.
 | K4 | Audit katalog di luar batch/pilot | **Audit batch terbatas dan draf2 tersedia; belum diaktifkan/disahkan; ulasan manusia revisi2 4 Nov: perlu perbaikan.** Kuantitas, rata-rata dan arsiran diperbaiki di jalur opt-in default0. LP/pecahan memakai fondasi revisi1 existing; berkurung/label volume masih follow-up. Review manusia dan recovery/pair baru wajib sebelum aktivasi. [Hasil/batas](catalog-followup.md) |
 | G1 | Kecepatan transkripsi dan tinjauan guru | **Belum terukur.** Target 15 soal ≤5 menit masih usulan; UI yang lebih ringkas bukan bukti penghematan waktu. Pengukuran dapat memakai data sintetis; observasi guru sebelumnya sengaja dilewati. |
 | G2 | Penutupan brief UI lintas halaman | **Ditutup24Oktober; rilis223eb35 healthy.** Shell laporan/profil, kontrol, target sentuh, ikon, navigasi, aksesibilitas markup dan state pendukung diperbaiki; CI14.267 tes kandidat lulus. [Cakupan/batas](ui-consistency-audit.md), [bukti rilis](production-release.md); bukan klaim semua perangkat lulus. |
-| G3 | Laporan khusus guru→orang tua, sesi per topik/kelompok, mutu per guru | **Laporan guru→orang tua: implementasi lokal 4 Nov 2026 (pemilik memilih membangun), belum rilis** — dua tabel aditif, tautan baca-saja, guard M1–M4 lulus; rilis memerlukan `deploy-v2` terkontrol (schema). Sesi per topik/kelompok dan mutu per guru tetap usulan. Plan: `docs/plan/2026-11-04-laporan-ortu-g3.md`. |
+| G3 | Laporan khusus guru→orang tua, sesi per topik/kelompok, mutu per guru | **Laporan guru→orang tua: live di produksi sejak 5 Nov 2026 (`efb9a03`)** — dua tabel aditif, tautan baca-saja, guard M1–M4 lulus; `postcheck` hanya mencatat 1 `BrokenPipeError` jinak. Sesi per topik/kelompok dan mutu per guru tetap usulan. Plan: `docs/plan/2026-11-04-laporan-ortu-g3.md`. |
 | G4 | Pilot in-house dengan anak sungguhan / fondasi lembaga | **Menunggu keputusan.** Rencana pivot mensyaratkan persetujuan wali/serah-terima serta tinjauan jalur foto→AI sebelum data nyata. Ini tidak mengubah izin alur keluarga existing. |
 | L1 | Kontrak sesi campuran v2 dan katalog tuntutan luas | **Codec saja; integrasi nonaktif.** Pilot homogen dua tuntutan sudah ada, bukan implementasi writer campuran. [Matriks integrasi](skill-demand-proposal.md#integrasi-wajib-sebelum-writer-v2-boleh-aktif) |
 | A1 | Penyederhanaan Pendamping kandidat baru | **Ditahan gate mutu.** Dua batch selesai tetapi tidak memenuhi seluruh rubrik; tidak ada retry/pilot otomatis. Kendali data existing sudah selesai, tidak ikut ditahan. [Evaluasi](pendamping-runtime.md#retest-perbaikan-prompt-01--20-oktober-2026) |

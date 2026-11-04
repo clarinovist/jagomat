@@ -6,6 +6,29 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy laporan guru → orang tua (G3) — 5 November 2026
+
+Controlled `deploy-v2` memasang **efb9a03f6bf1dbd38f87ba86890767317c07913b**, healthy
+(started `2026-11-04T21:51Z`). Delta sejak `5245656`: rute baca-saja
+`/laporan-ortu/<token>`, rute guru, dan dua tabel aditif `laporan_ortu`/`tautan_laporan`.
+Tanpa flag baru. Smoke publik `jagomat.id`: `/` 200, `/akun` 401, `/murid/` 303,
+`/laporan-ortu/<token tak sah>` 404 (sebelum rilis 401).
+
+- Kandidat `sha256:a4911193…`; recovery `cb3c5f53…` digest `sha256:e5a39f25…`.
+- Percobaan pertama berhenti di `rehearse`: kedua image belum di-pull dan sandbox memakai
+  `--pull never`. `abort` memulihkan akses tanpa migrasi atau tulis data. Pesan "SSH gagal"
+  di `drive.py` generik; sebab asli ada di `last-error.log`. `drive.py pull` kini wajib
+  sebelum `jalankan-rilis.py`.
+- Percobaan kedua: `prepare`, hold, backup empat DB + `sandi.json` + riset, rehearsal C–B–C,
+  hash backup lokal cocok, `deploy` exit0, `reopen` `LIVE_ADMIN_HEALTHY`. **`postcheck` tidak
+  lulus penuh:** semua asersi lolos (smoke, 404 identik, hash config) kecuali hitungan
+  `Traceback`=1, yaitu `BrokenPipeError` di `web.py` `_lolos_sandi` (klien memutus koneksi
+  saat respons 401). Dinilai jinak, bukan dari kode baru; gate belum hijau secara formal.
+  Cleanup menghapus 4 direktori turunan.
+- Backup induk `/opt/osn/cadangan/deploy-laporan2-20261104/`, salinan lokal
+  `mesin/cadangan/deploy-laporan2-20261104/` (gitignored). Direktori lama
+  `deploy-laporan-20261104/` hanya berisi hold percobaan pertama yang sudah di-`abort`.
+
 ## Deploy tata letak cetak PG ringkas — 4 November 2026
 
 Controlled `deploy-v2` memasang **5245656b1b216c6683f085798068eee4ccc74df9**, healthy;
