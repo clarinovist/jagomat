@@ -640,6 +640,8 @@ class Penangan(BaseHTTPRequestHandler):
             return
         if not self._lolos_sandi():
             return
+        if parent_report_http.tangani_guru_get(self, jalur):
+            return
         import session_prep
         if teacher_http.tangani_persiapan_get(
             self, jalur, halaman_persiapan=session_prep.halaman_persiapan
@@ -755,6 +757,8 @@ class Penangan(BaseHTTPRequestHandler):
             return
 
         if share_http.tangani_guru_post(self, jalur):
+            return
+        if parent_report_http.tangani_guru_post(self, jalur):
             return
 
         import account_http

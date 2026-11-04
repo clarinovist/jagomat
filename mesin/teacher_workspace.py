@@ -359,8 +359,10 @@ def halaman_anak(
         from mastery_report import GAYA_PETA
         from report_dashboard import GAYA_LAPORAN
         from reports import konten_laporan
+        from parent_report_guru_pages import kartu_masuk
         isi_profil = (
             f'<style>{GAYA_LAPORAN}{GAYA_PETA}</style>'
+            + kartu_masuk(int(siswa["id"]))
             + konten_laporan(kon, int(siswa["id"]), query=query)
         )
     elif section == "riwayat":
