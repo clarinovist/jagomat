@@ -6,6 +6,34 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy pembahasan Bilangan Dasar dan aktivasi `OSN_MATERI_DASAR` — 4 November 2026
+
+Controlled `deploy-v2` memasang **7dee2ed27e9bd763058d9cf44dd32116eeb3e5db**;
+container started `2026-11-04T12:04:05Z`, healthy. Delta sejak `ac87170`: pembahasan
+Bilangan Dasar P2 ditulis ulang (soal/kunci/malrule/PG identik pada 190 pasangan) dan
+**`OSN_MATERI_DASAR=1` diaktifkan** lewat satu baris di `/opt/osn/visual.conf`
+(CAS dalam hold, seperti aktivasi bank kalimat 21 Okt; deployer tetap hash `2479470f…`).
+**Aktivasi dilakukan atas keputusan pemilik, bukan persetujuan ulasan:** ulasan Materi
+Dasar 4 Nov berbunyi "ubah dulu" dan pembahasan baru belum diulas ulang. Tanpa perubahan
+schema atau persistensi; pembahasan dibangun ulang saat dibaca, jadi rollback aman.
+
+- Kandidat `sha256:3795c1b0…`; recovery `39fcfa7c…` digest `sha256:760a8604…`. Kontrak
+  `c2aa0f02…` identik pada kandidat, recovery, dan live; `pair_verified=true`,
+  `siap_pasang=false`; job `pasang` tetap literal false.
+- Push [41820601449](https://github.com/clarinovist/jagomat/actions/runs/41820601449) dan
+  dispatch gate [41822920066](https://github.com/clarinovist/jagomat/actions/runs/41822920066)
+  sukses (delapan shard, pair 8/8/6, provider0). Lebih dulu dicoba di uji
+  (`uji.jagomat.id`, flag aktif, digest sama).
+- Approval terkonsumsi `ac87170` diarsipkan (dry-run lalu apply), `prepare` lulus, hold,
+  backup empat DB + `sandi.json` + riset terpisah, rehearsal C–B–C, hash backup lokal
+  cocok, `deploy-v2` exit0, reopen. Probe flag pada kandidat dan recovery lulus.
+- Postcheck: digest/revision exact, flag `1` di container, probe sintetis, log galat0,
+  smoke publik `/`200 `/akun`401 `/murid/`303, histori terjaga. Cleanup 4 direktori turunan.
+- Backup induk `/opt/osn/cadangan/deploy-materidasar-20261104/`, salinan lokal
+  `mesin/cadangan/deploy-materidasar-20261104/` (gitignored). Approval terkonsumsi rilis ini
+  masih di `/opt/osn/rollout-approval.json`; arsipkan sebelum `prepare` berikutnya.
+  Rollback flag: hapus baris dari `visual.conf` lewat rilis terkontrol berikutnya.
+
 ## Deploy pecahan bertumpuk dan pengerasan keamanan — 3 November 2026
 
 Controlled `deploy-v2` memasang **ac87170b0ea0bdada34f9d90fd83275caf37d256**;
