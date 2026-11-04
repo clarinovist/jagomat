@@ -6,6 +6,29 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy tata letak cetak PG ringkas — 4 November 2026
+
+Controlled `deploy-v2` memasang **5245656b1b216c6683f085798068eee4ccc74df9**, healthy;
+**`OSN_CETAK_RINGKAS=1` diaktifkan** lewat `/opt/osn/visual.conf` (CAS dalam hold, pola
+sama dengan `OSN_MATERI_DASAR`). `OSN_MATERI_DASAR=1` tetap. Delta sejak `7dee2ed`: lembar
+cetak PG memakai opsi dua kolom dan jarak kertas (8 soal: 4 → 3 halaman; ruang Caraku
+tidak dikecilkan). Dengan flag mati keluaran identik byte-per-byte dengan `7dee2ed`
+(dibuktikan 6 lembar), sehingga pasangan rilis tetap lulus. Tanpa perubahan schema.
+
+- Kandidat `sha256:795c4d77…`; recovery `39fcfa7c…` digest `sha256:4b2c7542…`. Kontrak
+  `c2aa0f02…` identik; `pair_verified=true`, `siap_pasang=false`; job `pasang` literal false.
+- Push [41827118997](https://github.com/clarinovist/jagomat/actions/runs/41827118997) dan
+  dispatch gate [41827138927](https://github.com/clarinovist/jagomat/actions/runs/41827138927)
+  sukses (delapan shard, pair 8/8/6, provider0).
+- Approval `7dee2ed` diarsipkan, `prepare`, hold, backup empat DB + `sandi.json` + riset,
+  rehearsal C–B–C, hash backup lokal cocok, `deploy-v2` exit0, reopen, postcheck
+  (flag `1`, probe sintetis, galat0, smoke `/`200 `/akun`401 `/murid/`303, histori terjaga).
+  Cleanup 4 direktori turunan. Uji disamakan (digest sama, kedua flag aktif); sesi PG
+  sintetis di uji memakai gaya ringkas.
+- Backup induk `/opt/osn/cadangan/deploy-cetak-20261104/`, salinan lokal
+  `mesin/cadangan/deploy-cetak-20261104/` (gitignored). Approval terkonsumsi masih di
+  `/opt/osn/rollout-approval.json`; arsipkan sebelum `prepare` berikutnya.
+
 ## Deploy pembahasan Bilangan Dasar dan aktivasi `OSN_MATERI_DASAR` — 4 November 2026
 
 Controlled `deploy-v2` memasang **7dee2ed27e9bd763058d9cf44dd32116eeb3e5db**;

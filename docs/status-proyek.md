@@ -10,8 +10,8 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   sintetis. Peran `guru` tetap mencakup orang tua dan hanya mengakses data miliknya.
 - Akses awal **nonkomersial**. Keputusan paket Jago/Jago Pro tidak sama dengan
   pembukaan penjualan, trial otomatis, promo, atau paywall.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`7dee2ed`**, mulai
-  berjalan 4 November 2026 (lihat catatan rilis). Rilis ini menulis ulang pembahasan
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`5245656`** (4 November 2026;
+  tata letak cetak PG ringkas, `OSN_CETAK_RINGKAS=1`; lihat catatan rilis). Rilis `7dee2ed` menulis ulang pembahasan
   Bilangan Dasar P2 dan **mengaktifkan `OSN_MATERI_DASAR=1` di produksi atas keputusan
   pemilik**, sebelum pembahasan baru diulas ulang. Rilis `ac87170` (3 November
   15.45 WIB) membawa
