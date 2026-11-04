@@ -153,24 +153,16 @@ menyentuh invariant kritis. Perubahan interaksi UI minimal Normal.
 - Jika pekerjaan melebar, jelaskan blocker spesifik dan langkah berikutnya; temuan tidak
   terkait tidak otomatis menjadi proyek tambahan.
 
-### Codemode — khusus Pi
+### Codemode (khusus Pi — di runner lain jangan dibaca atau diikuti)
 
-Resep berikut hanya berlaku di Pi dengan `codemode` tersedia. Di Hermes gunakan
-tool yang tersedia pada sesi aktif, bukan memasang Pi atau menebak nama tool.
-Prinsip file-backed, urutan mutasi, exit status, dan privasi tetap berlaku di semua runner.
+Aturan pemicu dan resep lengkap ada di `~/.pi/agent/AGENTS.md` (bagian Codemode) dan
+`AGENTS.md` repo ini. Bagian itu khusus Pi: di Claude Code, Codex, Cursor, Hermes, atau
+runner lain jangan membaca atau mengikutinya, dan jangan meniru `codemode` dengan
+membungkus tool native dalam JavaScript. Pakai tool native runner tersebut langsung.
 
-- Gunakan `codemode` untuk minimal dua call independen, loop/filter/agregasi, output besar
-  yang perlu diringkas, atau chaining sederhana. Satu `read`/`bash`/`edit`/`write`
-  trivial memakai tool langsung.
-- Heredoc, SQL multi-statement, Markdown/code fence, SSH→SQLite/DB, dan nested quoting
-  wajib file-backed: tulis file → inspect → jalankan file. Setelah satu parse failure,
-  jangan retry inline kompleks; beralih ke direct/file-backed dan cek partial side effect.
-- Untuk `bash`, periksa `exit_code`, `truncated`, `full_output_path`; expected-nonzero
-  dinyatakan eksplisit. Jalur data/produksi tetap berurutan: target+backup → dry-run →
-  apply → verifikasi. Resep lengkap ada di `~/.pi/agent/docs/codemode-playbook.md`.
-- Personal codemode quality guard memberi syntax preflight, memblokir payload inline
-  kompleks, dan mengklasifikasikan parse/tool/shell/timeout/stalled/output-limit error.
-  Jangan melemahkan guard. Aturan privasi anak tetap berlaku pada seluruh tool/model.
+Prinsip yang tetap berlaku di semua runner: payload kompleks file-backed (tulis file →
+inspect → jalankan), mutasi bergantung berurutan dengan backup dan verifikasi, exit status
+diperiksa apa adanya, serta aturan privasi anak berlaku pada seluruh tool dan model.
 
 ## 3. Runtime & perintah verifikasi
 

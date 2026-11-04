@@ -18,14 +18,19 @@ gate verifikasi, Git, dan produksi. Instruksi workspace induk tetap berlaku.
   adanya `codemode`, `bash`, atau ekstensi Pi. Payload kompleks tetap file-backed;
   call independen boleh paralel, mutasi bergantung berurutan, exit status diperiksa.
 
-## Codemode — khusus Pi
+## Codemode — hanya di Pi; runner lain lewati seluruh bagian ini
 
-Bagian berikut berlaku hanya ketika berjalan di Pi dengan `codemode` tersedia.
-Di Hermes gunakan tool native sesi; jangan memasang Pi hanya untuk mengikuti resep ini.
+Prasyarat keras: bagian ini berlaku hanya bila tool `codemode` ada di daftar tool
+sesi (Pi). Di Claude Code, Codex, Cursor, Hermes, atau runner lain — **lewati seluruh
+bagian ini**: jangan mencari, memasang, atau meniru `codemode`; jangan membungkus tool
+native dalam JavaScript. Pakai tool native runner tersebut langsung. Prinsip file-backed,
+urutan mutasi, exit status, dan privasi tetap berlaku di semua runner.
 
-- Gunakan `codemode` hanya bila manfaatnya material: minimal dua tool call independen,
-  loop/filter/agregasi, output besar yang perlu diringkas, atau chaining sederhana.
-  Untuk satu `read`, `bash`, `edit`, atau `write` trivial, panggil tool langsung.
+- Aturan pemicu (kapan wajib, kapan dilarang) mengikuti bagian codemode di
+  `~/.pi/agent/AGENTS.md`; jangan menyimpulkan ulang di sini. Pemicu ringkas untuk
+  repo ini: **≥2 call independen**, loop/filter/agregasi, atau output besar → `codemode`;
+  satu `read`/`bash`/`edit`/`write` trivial atau call yang dependen secara semantik
+  → tool langsung.
 - Repo ini punya banyak Python/shell/SQLite/SSH. Payload heredoc, SQL multi-statement,
   Markdown/code fence, SSH→SQLite/DB, atau nested quoting wajib **file-backed**:
   `write` file sementara → `read`/inspect → `bash` menjalankan file. Jangan menanam
