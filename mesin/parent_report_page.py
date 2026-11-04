@@ -49,22 +49,22 @@ def _batas(epoch) -> str:
 
 
 GAYA_LO = f"""
-.lo{{font-family:{T.FONT_CETAK};font-size:1.0625rem;line-height:1.65;color:{T.TEKS_UTAMA}}}
+.lo{{font-family:{T.FONT_CETAK};font-size:{T.UKURAN_BAGIAN_DEWASA};line-height:1.65;color:{T.TEKS_UTAMA}}}
 .lo *{{box-sizing:border-box}}
 .lo .merek{{font-weight:700;color:{T.TEKS_JUDUL};margin:0 0 {T.SP_4}}}
-.lo .judul{{font-size:1.5rem;line-height:1.3;margin:0;color:{T.TEKS_JUDUL};font-weight:700}}
-.lo .anak{{font-size:1.25rem;font-weight:700;margin:{T.SP_1} 0 0}}
+.lo .judul{{font-size:{T.UKURAN_ANGKA_DEWASA};line-height:1.3;margin:0;color:{T.TEKS_JUDUL};font-weight:700}}
+.lo .anak{{font-size:{T.UKURAN_BAGIAN_STITCH};font-weight:700;margin:{T.SP_1} 0 0}}
 .lo .periode{{color:{T.TEKS_SUBTLE};margin:0 0 {T.SP_5}}}
 .lo section{{margin:0 0 {T.SP_5}}}
-.lo .sub{{font-size:1.0625rem;margin:0 0 {T.SP_2};color:{T.TEKS_JUDUL};font-weight:700}}
+.lo .sub{{font-size:{T.UKURAN_BAGIAN_DEWASA};margin:0 0 {T.SP_2};color:{T.TEKS_JUDUL};font-weight:700}}
 .lo ul{{margin:0;padding-left:1.25rem}}
 .lo p{{margin:0 0 {T.SP_2}}}
 .lo .tahap{{font-weight:700}}
 .lo .catatan{{white-space:pre-line;background:{T.LATAR_CATATAN};border:1px solid {T.BORDER_CATATAN};
 border-radius:{T.RADIUS_SEDANG};padding:{T.SP_3} {T.SP_4}}}
-.lo .kecil{{color:{T.TEKS_SUBTLE};font-size:.9375rem}}
+.lo .kecil{{color:{T.TEKS_SUBTLE};font-size:{T.UKURAN_TEKS_LABEL}}}
 .lo footer{{border-top:1px solid {T.BORDER_HALUS};padding-top:{T.SP_4}}}
-@media print{{.lo{{color:#000}}.lo section,.lo footer{{break-inside:avoid;page-break-inside:avoid}}}}
+@media print{{.lo{{color:{T.CETAK_TINTA}}}.lo section,.lo footer{{break-inside:avoid;page-break-inside:avoid}}}}
 """
 
 _GAYA_HALAMAN = f"""
