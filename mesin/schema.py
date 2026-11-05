@@ -840,3 +840,8 @@ from schema_parent_report import SKEMA_LAPORAN_ORTU  # noqa: E402
 
 # Sebelum view ringkasan_sesi (view dibangun ulang tiap siapkan; urutan dump harus stabil).
 SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_LAPORAN_ORTU + '\n-- Ringkasan per sesi supaya laporan', 1)
+
+# Lembaga les (pemilik les): aditif, idempoten, tanpa migrasi.
+from schema_lembaga import SKEMA_LEMBAGA  # noqa: E402
+
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_LEMBAGA + '\n-- Ringkasan per sesi supaya laporan', 1)

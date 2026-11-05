@@ -191,6 +191,24 @@ def _arsip_belajar(kon, siswa_ids) -> set[int]:
     return hasil
 
 
+def _ubah_lembaga(kon, pemilik: str, pseudonim: str) -> None:
+    """Lepas keanggotaan, bubarkan lembaga milik guru ini, pseudonimkan jejak pindah.
+
+    Anggota lembaga yang dibubarkan tetap memegang anak mereka (``siswa.pemilik``
+    tidak disentuh); hanya nama guru di jejak pindah yang dipseudonimkan, sama
+    seperti ``tinjauan_guru.guru``.
+    """
+    if not _tabel(kon, "lembaga"):
+        return
+    kon.execute("DELETE FROM anggota_lembaga WHERE guru=?", (pemilik,))
+    kon.execute("DELETE FROM anggota_lembaga WHERE lembaga_id IN "
+                "(SELECT id FROM lembaga WHERE pemilik=?)", (pemilik,))
+    kon.execute("DELETE FROM lembaga WHERE pemilik=?", (pemilik,))
+    for kolom in ("dari", "ke", "oleh"):
+        kon.execute('UPDATE pindah_siswa SET "%s"=? WHERE "%s"=?' % (kolom, kolom),
+                    (pseudonim, pemilik))
+
+
 def _ubah_belajar(path, pemilik: str, target_id: str, pseudonim: str):
     with database.buka(path) as kon:
         kon.execute("BEGIN IMMEDIATE")
@@ -219,6 +237,7 @@ def _ubah_belajar(path, pemilik: str, target_id: str, pseudonim: str):
             for urutan, siswa_id in enumerate(siswa_ids, 1):
                 kon.execute("UPDATE siswa SET nama=?,pemilik=? WHERE id=?",
                             ("Dihapus-%d" % urutan, pseudonim, siswa_id))
+        _ubah_lembaga(kon, pemilik, pseudonim)
         if kon.execute("PRAGMA foreign_key_check").fetchone() is not None:
             raise PenghapusanDitolak("integritas basis belajar gagal")
         return siswa_ids

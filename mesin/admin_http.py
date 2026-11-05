@@ -485,11 +485,14 @@ def _render_get(penangan, principal, query):
 
 
 def tangani_get(penangan, jalur):
+    import admin_lembaga_http
     import admin_research_http
     import admin_usage_http
     if admin_research_http.tangani_get(penangan, jalur):
         return True
     if admin_usage_http.tangani_get(penangan, jalur):
+        return True
+    if admin_lembaga_http.tangani_get(penangan, jalur):
         return True
     if jalur not in ("/admin", "/admin/tinjau", "/admin/bulk/pilih", "/admin/bulk/hasil", "/admin/bulk/templat"):
         return False
@@ -698,12 +701,33 @@ def _pastikan_sukses(hasil):
     return hasil
 
 
+class _AkunDitahan(Exception):
+    """Aksi akun ditolak karena aturan domain; pesannya aman ditampilkan ke admin."""
+
+
+def _pastikan_tidak_terikat_lembaga(aksi, target_id):
+    """Login guru pemilik/anggota lembaga tidak boleh dihapus (cegah pemakaian ulang nama)."""
+    if aksi != AKSI_HAPUS_LOGIN:
+        return
+    target = _target_akun(target_id)
+    if target is None or target.get("peran") != "guru":
+        return
+    import lembaga_store
+    with database.buka() as kon:
+        nama = lembaga_store.nama_lembaga_terikat(kon, target["pengguna"])
+    if nama is not None:
+        raise _AkunDitahan(
+            "Akun ini masih pemilik/anggota lembaga %s. "
+            "Lepaskan atau bubarkan lembaganya dulu." % nama)
+
+
 def _post_akun(penangan, principal, data):
     aksi = data.get("aksi", "")
     if aksi not in _AKSI_AKUN:
         raise ValueError("Aksi akun tidak dikenal.")
     akun, tinjauan, token = _token_final(penangan, principal, data, aksi)
     meta = tinjauan["data"]
+    _pastikan_tidak_terikat_lembaga(aksi, meta.get("target_id"))
     sandi = data.pop("sandi_baru", None)
     if aksi == AKSI_RESET_SANDI and data.pop("verifikasi_independen", None) != "1":
         raise PermissionError("Reset ditahan sampai verifikasi independen selesai.")
@@ -1002,8 +1026,11 @@ def _post_bulk_proses(penangan, principal, data, mode="process"):
 
 
 def tangani_post(penangan, jalur):
+    import admin_lembaga_http
     import admin_research_http
     if admin_research_http.tangani_post(penangan, jalur):
+        return True
+    if admin_lembaga_http.tangani_post(penangan, jalur):
         return True
     import admin_launch_http
     if admin_launch_http.tangani_post(penangan, jalur):
@@ -1044,6 +1071,8 @@ def tangani_post(penangan, jalur):
         else:
             mode = {"/admin/bulk/proses": "process", "/admin/bulk/hentikan": "stop", "/admin/bulk/serahkan": "handover"}[jalur]
             _post_bulk_proses(penangan, principal, data, mode)
+    except _AkunDitahan as galat:
+        _galat(penangan, 409, str(galat))
     except KeyError:
         _galat(penangan, 400, "Isian tidak sah.")
     except LookupError:

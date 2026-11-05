@@ -52,6 +52,7 @@ _PROBE_GET = {
     "/guru": "/guru",
     "/ortu": "/ortu",
     "/murid": "/murid",
+    "/lembaga": "/lembaga",
     "/sesi/": "/sesi/1",
     "/lampiran/": "/lampiran/1",
     "/lembar/": "/lembar/1",
@@ -65,6 +66,7 @@ _PROBE_POST = {
     "/masuk": "/masuk",
     "/daftar": "/daftar",
     "/murid/": "/murid/kerjakan/1",
+    "/lembaga": "/lembaga/pindah",
     "/sesi/": "/sesi/1",
     "/akun": "/akun",
 }
@@ -85,7 +87,7 @@ _HARAPAN_ANONIM_POST = {
 }
 
 # Permukaan guru yang berisi data anak; akun murid tidak boleh menyentuhnya.
-RUTE_PERMUKAAN_GURU = ("/guru", "/akun", "/sesi/1", "/lampiran/1", "/lembar/1")
+RUTE_PERMUKAAN_GURU = ("/guru", "/akun", "/lembaga", "/sesi/1", "/lampiran/1", "/lembar/1")
 
 
 class _TanpaIkut(urllib.request.HTTPRedirectHandler):
@@ -278,6 +280,27 @@ def test_post_lintas_situs_ditolak_guard_asal_siklus(server):
     )
     assert kode == 403
     assert "berasal dari situs ini" in isi
+
+
+def test_post_lintas_situs_ke_lembaga_ditolak_palang_asal(server):
+    """`/lembaga/pindah` tidak dikecualikan dari palang asal dispatcher."""
+    kode, isi, _tajuk = server.minta(
+        "/lembaga/pindah", auth=("guru", SANDI_GURU), data={}, headers=LINTAS_SITUS
+    )
+    assert kode == 403 and "Permintaan ditolak" in isi
+
+
+def test_guru_biasa_di_lembaga_mendapat_404_identik_rute_tak_dikenal(server):
+    """Guru yang bukan pemilik les: 404 yang sama untuk GET dan POST."""
+    acuan = server.minta("/rute-tidak-ada", auth=("guru", SANDI_GURU))
+    assert acuan[0] == 404
+    for jalur in ("/lembaga", "/lembaga/pindah"):
+        kode, isi, _tajuk = server.minta(jalur, auth=("guru", SANDI_GURU))
+        assert (kode, isi) == (acuan[0], acuan[1]), jalur
+    kode, isi, _tajuk = server.minta(
+        "/lembaga/pindah", auth=("guru", SANDI_GURU), data={}
+    )
+    assert (kode, isi) == (acuan[0], acuan[1])
 
 
 def test_head_ditolak_eksplisit(server):

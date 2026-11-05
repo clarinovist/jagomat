@@ -8,6 +8,7 @@ _BENTUK = {
     "keluarga": ('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/>'
                  '<path d="M16 4.7a3.5 3.5 0 010 6.6"/><path d="M18 14.3c2 .7 3.5 2.6 3.5 5.7"/>'),
     "siswa": '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/>',
+    "lembaga": '<path d="M3 21h18M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6M9 11h.01M15 11h.01"/>',
     "pendaftaran": '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 12h6M9 16h4"/>',
     "langganan": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>',
     "kpi": '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',

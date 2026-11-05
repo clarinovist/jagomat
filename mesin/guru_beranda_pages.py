@@ -239,6 +239,15 @@ def _tambah_anak(total: int) -> str:
     )
 
 
+def _tautan_lembaga(kon, pemilik, peran: str) -> str:
+    """Satu pintu ke ringkasan lembaga; hanya untuk guru pemilik les."""
+    import lembaga_store
+
+    if peran != "guru" or lembaga_store.lembaga_milik(kon, pemilik or "") is None:
+        return ""
+    return ('<p><a class="guru-tambah-st" href="/lembaga">Lembaga les</a></p>')
+
+
 def _ada_sesi(kon, siswa_milik) -> bool:
     """True bila keluarga ini sudah pernah membuat sesi, termasuk dibatalkan."""
     ids = [int(s["id"]) for s in siswa_milik]
@@ -314,6 +323,7 @@ def halaman(kon, pesan: str, pemilik, peran: str, cari: str, kelompok: str) -> b
         '<div class="st-banner-sukses" role="status"><span class="ikon" aria-hidden="true">✓</span>'
         f'<span>{html.escape(pesan)}</span></div>' if pesan else ""
     )
+    kabar += _tautan_lembaga(kon, pemilik, peran)
     return _halaman_stitch(
         "Ruang guru",
         '<main aria-labelledby="judul-guru">'

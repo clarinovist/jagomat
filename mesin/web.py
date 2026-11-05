@@ -78,6 +78,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/guru", "guru"),
     ("/ortu", "guru"),  # alias lama beranda guru
     ("/murid", "murid"),  # sebelum palang sandi: 303 ke /masuk tanpa sesi murid
+    ("/lembaga", "guru"),  # hanya pemilik les; selain itu 404 identik rute tak dikenal
     ("/sesi/", "guru"),
     ("/lampiran/", "guru"),
     ("/lembar/", "guru"),
@@ -91,6 +92,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
     ("/daftar", "publik"),
     ("/murid/", "murid"),
+    ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),
 )
@@ -640,6 +642,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         if not self._lolos_sandi():
             return
+        import lembaga_http
+        if lembaga_http.tangani_get(self, jalur):
+            return
         if parent_report_http.tangani_guru_get(self, jalur):
             return
         import session_prep
@@ -754,6 +759,10 @@ class Penangan(BaseHTTPRequestHandler):
         if registration_http.tangani_post(self, jalur):
             return
         if not self._lolos_sandi():
+            return
+
+        import lembaga_http
+        if lembaga_http.tangani_post(self, jalur):
             return
 
         if share_http.tangani_guru_post(self, jalur):

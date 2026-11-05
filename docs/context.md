@@ -85,6 +85,14 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - `teacher_usage.py` (SELECT saja, dari kolom sesi/pengiriman/laporan yang ada; tanpa migrasi)
   → `admin_usage_pages.py` → `admin_usage_http.py` untuk `/admin/pemakaian`. SQL sengaja di modul
   bernama non-`*store*` karena hanya membaca; sidik kontrak persistensi tidak berubah.
+- Lembaga les: `schema_lembaga.py` (tabel aditif `lembaga`, `anggota_lembaga`, `pindah_siswa`
+  append-only lewat trigger) + `lembaga_store.py` (semua SQL; `pindahkan` mengecek ulang semua
+  predikat dalam `BEGIN IMMEDIATE`) → `lembaga_pages.py`/`lembaga_http.py` (`/lembaga`) dan
+  `admin_lembaga_*` (`/admin/lembaga`). Kemampuan pemilik di DB, bukan nilai `peran`, agar format
+  `sandi.json` tetap dan recovery lama bisa login. `siswa_milik`/`sesi_milik` tidak dilonggarkan.
+  Penghapusan keluarga melepas keanggotaan/membubarkan lembaga dan memseudonimkan jejak pindah.
+  Tabel baru menggeser sidik kontrak persistensi, jadi recovery dipatok ke baseline
+  `cb3c5f5` + schema/store lembaga (pola baseline G3).
 - Teks yang dibaca guru mengikuti [`docs/glosarium-guru.md`](glosarium-guru.md): kalimat pendek,
   istilah internal tidak tampil; palang `test_bahasa_guru_tinjauan.py` memeriksa halaman tinjauan.
 - Stdlib runtime; dev dependency hanya pytest/pytest-xdist. Python lokal3.9.6 dan
