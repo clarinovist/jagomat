@@ -695,8 +695,15 @@ def halaman_sesi_stitch(
                 '<div class="status-sesi-st selesai">'
                 f'{review_pages.ikon_status("selesai")}'
                 '<div><b>Hasil sudah dikonfirmasi</b>'
-                '<p>Snapshot hasil ini sudah menjadi bukti perjalanan belajar.</p>'
-                '</div></div>'
+                '<p>Hasil ini sudah final dan tercatat dalam perjalanan belajar anak.</p>'
+                + (
+                    # Rantai satu alur sesi: lanjut ke tab Perkembangan, satu-satunya pintu
+                    # masuk laporan orang tua (bukan tautan langsung ke laporan).
+                    f'<p><a href="/anak/{int(info["siswa_id"])}?section=perkembangan">'
+                    'Siapkan laporan untuk orang tua</a> dari tab Perkembangan.</p>'
+                    if peran == 'guru' else ''
+                )
+                + '</div></div>'
                 if sudah_dikonfirmasi
                 else (
                     '<div class="status-sesi-st koreksi-pengantar-st">'

@@ -54,3 +54,19 @@ def test_halaman_tinjauan_bebas_istilah_internal(db):
     teks = _teks_terlihat(html).lower()
     ditemukan = [kata for kata in ISTILAH_INTERNAL if kata in teks]
     assert not ditemukan, ditemukan
+
+
+def test_halaman_tinjauan_terkonfirmasi_bebas_istilah_internal(db):
+    with database.buka(db) as kon:
+        anak = database.tambah_siswa(kon, "Anak Final", "P3", pemilik="guru")
+        sesi = database.buat_sesi(kon, anak, 77, jumlah_soal=2, topik="logika")
+        for b in database.isi_sesi(kon, sesi):
+            jid = database.simpan_jawaban(kon, b["sesi_soal_id"], jawaban="x", cara="hitung")
+            database.simpan_diagnosis(kon, jid, benar=False, kode_usulan="K", kode_final="K")
+        database.tandai_selesai(kon, sesi)
+        database.konfirmasi_hasil(kon, sesi, "guru", dilewati=set())
+        html = teacher_session_pages.halaman_sesi_stitch(kon, sesi).decode()
+    teks = _teks_terlihat(html).lower()
+    assert "hasil sudah dikonfirmasi" in teks
+    ditemukan = [kata for kata in ISTILAH_INTERNAL if kata in teks]
+    assert not ditemukan, ditemukan

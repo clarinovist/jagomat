@@ -58,6 +58,8 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
   tanpa skor, kode diagnosis, malrule, ID, level, atau kelas. Snapshot dibekukan saat terbit,
   tidak ada edit sesudahnya, admin hanya melihat, dan semua tautan tidak sah satu 404 identik.
   Menulis laporan tidak menyentuh bukti belajar. Tidak menyimpan email/telepon.
+  Setelah hasil sesi dikonfirmasi, halaman tinjauan guru menautkan tab Perkembangan
+  (bukan laporan langsung), dan lembar persiapan menyebut langkah sesudah sesi.
 - **Fitur khusus orang tua dibekukan (keputusan pemilik 1 Nov 2026):** Pendamping AI,
   kartu pra-tulis dan bantuan orang tua tetap berjalan tanpa investasi baru; kendali
   data tetap tersedia. Penghapusannya perlu keputusan terpisah.
