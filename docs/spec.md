@@ -64,6 +64,10 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
   sebelum konfirmasi dari dugaan Jagomat dan tanya cara yang opsional (proyeksi UI, server tetap
   otoritatif). Setelah konfirmasi, satu tautan menuju halaman laporan orang tua (laporan per
   periode, tidak wajib tiap sesi). Lembar persiapan menyebut langkah sesudah sesi.
+  Soal yang kosong di lembar dicentang “Anak tidak mengerjakan soal ini” (tidak menulis jawaban), sehingga
+  sesi tetap selesai; di tinjauan soal tanpa jawaban (kertas maupun tautan) bawaan dilewati dari penilaian:
+  bukan benar, bukan salah, bukan bukti (keputusan pemilik 6 Nov 2026). Guru bisa menyertakannya kembali;
+  sesi tanpa satu jawaban pun tidak diberi bawaan dan tidak bisa diterapkan dari lembar.
 - **Fitur khusus orang tua dibekukan (keputusan pemilik 1 Nov 2026):** Pendamping AI,
   kartu pra-tulis dan bantuan orang tua tetap berjalan tanpa investasi baru; kendali
   data tetap tersedia. Penghapusannya perlu keputusan terpisah.

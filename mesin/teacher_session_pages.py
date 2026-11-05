@@ -236,7 +236,9 @@ def halaman_sesi_stitch(
     cek_dugaan = 0
     gaya_playbook = ''
     gaya_pancingan = ''
-    for b in database.isi_sesi(kon, sesi_id):
+    butir_sesi = database.isi_sesi(kon, sesi_id)
+    ada_jawaban_di_sesi = any(b["jawaban_id"] is not None for b in butir_sesi)
+    for b in butir_sesi:
         soal = soal_dari_baris(b)
         sudah = b["jawaban_id"] is not None
         kode = b["kode_final"]
@@ -379,10 +381,15 @@ def halaman_sesi_stitch(
             tinjauan_butir['pemahaman'] if tinjauan_butir else
             snapshot_butir["cek_pemahaman"] if snapshot_butir is not None else None
         )
+        tidak_dikerjakan = answer_marks.tidak_dikerjakan_bawaan(
+            sudah_dikirim=sudah_dikirim, dibatalkan=sesi_dibatalkan,
+            jawaban_id=b["jawaban_id"], ada_jawaban_di_sesi=ada_jawaban_di_sesi,
+        )
         dilewati_terpilih = (
             draf_butir.dilewati if draf_butir else
             bool(tinjauan_butir['dilewati']) if tinjauan_butir else
             bool(snapshot_butir is not None and snapshot_butir["dilewati"])
+            or tidak_dikerjakan
         )
         # Persetujuan hanya untuk outcome yang cocok dengan snapshot aktif.
         # Draf/diagnosis mutable saja bukan bukti keputusan yang sudah disahkan.
@@ -404,7 +411,11 @@ def halaman_sesi_stitch(
         elif draf_koreksi is not None:
             status_persetujuan = "Belum disimpan · Periksa draf lalu konfirmasikan hasil sesi."
         elif dilewati_terpilih:
-            status_persetujuan = "Dilewati dari penilaian · Bukan persetujuan atas usulan diagnosis."
+            status_persetujuan = (
+                f"{answer_marks.LABEL_TIDAK_DIKERJAKAN} · dilewati dari penilaian. Centang dapat dilepas bila anak sebenarnya mengerjakan."
+                if tidak_dikerjakan and not draf_butir else
+                "Dilewati dari penilaian · Bukan persetujuan atas usulan diagnosis."
+            )
         elif penilaian_disahkan:
             status_persetujuan = sumber_penilaian + (
                 " · Ditetapkan saat konfirmasi sesi" if kode_tampil else
@@ -515,7 +526,11 @@ def halaman_sesi_stitch(
             or any(review_pages.nilai(tinjauan_butir, draf_butir, nama).strip()
                    for nama in ('catatan_tinjauan', 'provenance', 'jawaban_bantuan'))
         )
-        ringkasan_hasil = 'Dilewati dari penilaian' if dilewati_terpilih else (
+        ringkasan_hasil = (
+            f'{answer_marks.LABEL_TIDAK_DIKERJAKAN} · dilewati'
+            if dilewati_terpilih and tidak_dikerjakan and not draf_butir else
+            'Dilewati dari penilaian'
+        ) if dilewati_terpilih else (
             'Jawaban tepat' if benar_tampil else bulat_label if kode_efektif else 'Belum yakin'
         )
         label_pemahaman = {

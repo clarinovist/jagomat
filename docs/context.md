@@ -68,6 +68,11 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   yang ditolak konfirmasi; diuji dua arah terhadap `konfirmasi_dari_form`); kartu memakai penanda yang sama.
   Kalimat pembuka catatan laporan (`parent_report_guru_pages.KALIMAT_PEMBUKA`, penanda `[isi]`) hanya render;
   guard simpan di `parent_report_http`, bukan `parent_report_store` (berkas kontrak).
+- Soal tidak dikerjakan (6 Nov 2026): `attachments.terapkan` menerima `kosong_<ssid>` (ditolak utuh bila
+  bertentangan dengan isian, soal sudah berjawaban, atau semua soal kosong) dan menghitung soal itu lengkap
+  tanpa menulis `jawaban`. Bawaan dilewati di tinjauan = `answer_marks.tidak_dikerjakan_bawaan` (proyeksi UI
+  sesudah draf/tinjauan/snapshot; sesi tanpa jawaban dikecualikan). Bukti memakai `snapshot_outcome.dilewati`
+  yang sudah ada; “salah tanpa kode” tidak dipakai karena CHECK snapshot mewajibkan kode (butuh migrasi).
 - `probe_questions.py` (5 Nov 2026): pertanyaan pancingan statis per topik (fallback umum)
   untuk halaman tinjauan guru saat `diagnosa` tidak punya dugaan; `render()` kosong untuk
   peran selain guru. Topik diambil dari `topics.pemilik_template`, lalu topik sesi.

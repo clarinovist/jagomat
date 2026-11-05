@@ -106,10 +106,13 @@ def test_antrean_kosong_dan_pekerjaan_sebagian_tanpa_mengubah_form_atau_data(db)
         sebelum = tuple(kon.iterdump())
         html = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
         nav = Navigasi(html)
-        assert nav.tautan == [f'#tinjau-soal-{sid}' for sid in ids[1:]]
-        assert '2 soal perlu ditinjau' in html
-        # Ringkasan membedakan wajib (2: sebagian & kosong) dari tanya cara (1, opsional).
-        assert '2 wajib diputuskan' in html and '2 soal wajib Anda putuskan' in html
+        # K5 (6 Nov 2026): soal kosong total bawaan dilewati (tidak dikerjakan), jadi
+        # hanya pekerjaan sebagian yang wajib; tanya cara (1) tetap opsional.
+        assert nav.tautan == [f'#tinjau-soal-{ids[1]}']
+        assert '1 soal perlu ditinjau' in html
+        assert '1 wajib diputuskan' in html and '1 soal wajib Anda putuskan' in html
+        assert f'name="dilewati_{ids[2]}" value="1" checked' in html
+        assert f'name="dilewati_{ids[1]}" value="1" checked' not in html
         assert len(nav.kartu) == 3
         assert len(nav.ids) == len(set(nav.ids))
         for sid in ids:

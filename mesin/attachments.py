@@ -723,11 +723,15 @@ def terapkan(kon, lampiran_id: int, data: dict) -> tuple[int, str]:
             if nilai and nilai not in {o.nilai for o in p.opsi}:
                 raise ValueError('Pilih jawaban foto sesuai opsi pada lembar.')
     from diagnosis import setara
+    butir_sesi = database.isi_sesi(kon, sesi_id)
+    kosong = _soal_tidak_dikerjakan(butir_sesi, data)
     jumlah = 0
     ditandai: list[int] = []
     dilepas: list[int] = []
-    for b in database.isi_sesi(kon, sesi_id):
+    for b in butir_sesi:
         ssid = b["sesi_soal_id"]
+        if ssid in kosong:
+            continue  # tidak menulis baris jawaban: sama dengan soal kosong di jalur tautan
         jawaban = (data.get(f"jwb_{ssid}") or "").strip()
         cara = (data.get(f"cara_{ssid}") or "").strip()
         belum = f"blm_{ssid}" in data
@@ -778,11 +782,48 @@ def terapkan(kon, lampiran_id: int, data: dict) -> tuple[int, str]:
                WHERE ss.sesi_id = ?""",
             (sesi_id,),
         ).fetchone()[0]
-        if n_soal and terisi >= n_soal:
+        # Soal yang guru nyatakan tidak dikerjakan dihitung lengkap: tanpa ini sesi
+        # kertas dengan satu soal kosong tidak pernah selesai (jalan buntu, 6 Nov).
+        if n_soal and terisi + len(kosong) >= n_soal:
             from student_submissions import arsipkan
             arsipkan(kon, sesi_id, 'foto')
             database.tandai_selesai(kon, sesi_id)
     return jumlah, f"{jumlah} soal dari foto masuk dan didiagnosis."
+
+
+def _soal_tidak_dikerjakan(butir_sesi: list, data: dict) -> set[int]:
+    """Soal bercentang ``kosong_<ssid>`` ("Anak tidak mengerjakan soal ini").
+
+    Pernyataan eksplisit guru per soal, hanya berlaku di kiriman ini. Ditolak utuh
+    (ValueError) bila bertentangan dengan isian lain, bila soal sudah punya jawaban
+    tersimpan, atau bila semua soal kosong (sesi itu sebaiknya dibatalkan). Di
+    tinjauan, soal tanpa jawaban bawaan dilewati dari penilaian (bukan bukti).
+    """
+    kosong = {b["sesi_soal_id"] for b in butir_sesi if f"kosong_{b['sesi_soal_id']}" in data}
+    for b in butir_sesi:
+        ssid = b["sesi_soal_id"]
+        if ssid not in kosong:
+            continue
+        ada_isian = (
+            (data.get(f"jwb_{ssid}") or "").strip() or (data.get(f"cara_{ssid}") or "").strip()
+            or f"benar_{ssid}" in data or f"blm_{ssid}" in data
+        )
+        if ada_isian:
+            raise ValueError(
+                f"Soal {b['nomor']}: ditandai tidak dikerjakan, tetapi ada isian atau centang lain. "
+                "Pilih salah satu."
+            )
+        if b["jawaban_id"] is not None:
+            raise ValueError(
+                f"Soal {b['nomor']}: sudah punya jawaban tersimpan, jadi tidak bisa ditandai tidak "
+                "dikerjakan di sini. Perbaiki atau lewati soal itu di halaman tinjauan."
+            )
+    if kosong and len(kosong) == len(butir_sesi):
+        raise ValueError(
+            "Semua soal ditandai tidak dikerjakan. Bila anak tidak mengerjakan lembar ini, "
+            "Batalkan sesi dari halaman sesi."
+        )
+    return kosong
 
 
 def _tandai_benar(kon, sesi_id: int, ditandai: list[int]) -> None:
@@ -935,6 +976,8 @@ def halaman_konfirmasi(
   {centang_benar}
   <label class="centang"><input type="checkbox" name="blm_{s['sesi_soal_id']}">
     anak menulis "belum pernah lihat"</label>
+  <label class="centang centang-kosong"><input type="checkbox" name="kosong_{s['sesi_soal_id']}">
+    {answer_marks.LABEL_TIDAK_DIKERJAKAN} (kosong di lembar). Biarkan kolom lain kosong.</label>
   </div>
 </details>""")
 
@@ -979,8 +1022,9 @@ def halaman_konfirmasi(
         sub_halaman = "Lihat foto lembar anak, lalu ketik jawaban dan cara anak pada tiap soal."
         ringkasan_progres = f"{len(kartu)} soal untuk diisi dari lembar"
         catatan_progres = (
-            "Kosongkan soal yang tidak dikerjakan anak; soal kosong tidak disimpan. "
-            "Sesi ditandai selesai setelah semua soal terisi."
+            f"Soal yang kosong di lembar: centang “{answer_marks.LABEL_TIDAK_DIKERJAKAN}”. "
+            "Sesi selesai bila setiap soal terisi atau ditandai tidak dikerjakan; "
+            "soal itu dilewati dari penilaian saat tinjauan."
         )
 
     isi = f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
