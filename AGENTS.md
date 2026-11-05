@@ -14,6 +14,10 @@ gate verifikasi, Git, dan produksi. Instruksi workspace induk tetap berlaku.
   dan biaya yang relevan; verifikasi akses sebelum tugas nyata. Jangan otomatis
   berpindah CLI atau mengaktifkan delegasi bawaan. Review sendiri adalah
   self-review, bukan review independen; gate dan bukti nyata tetap wajib.
+- Pengecualian Claude Code: subagent bawaan `fast-explorer` dan `implementer` sudah
+  disetujui dan wajib dipakai sesuai pemicu `~/.claude/rules/common/agents.md`.
+  Larangan worker di atas berlaku untuk CLI/runner/model eksternal. Palang privasi
+  berlaku untuk brief; keputusan dan review akhir pekerjaan Kritis tetap di sesi utama.
 - Gunakan tool yang tersedia pada runner aktif. Di luar Pi, jangan mengasumsikan
   adanya `codemode`, `bash`, atau ekstensi Pi. Payload kompleks tetap file-backed;
   call independen boleh paralel, mutasi bergantung berurutan, exit status diperiksa.

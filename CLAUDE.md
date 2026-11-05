@@ -11,6 +11,12 @@
   jangan otomatis login, smoke-test, atau menjalankan CLI/API-nya. Worker tambahan
   memerlukan persetujuan runner/model/scope dan verifikasi akses. Review sendiri
   adalah self-review, bukan review independen; jangan mengendurkan gate.
+- **Pengecualian Claude Code:** subagent bawaan `fast-explorer` (Haiku) dan `implementer`
+  (Sonnet) sudah disetujui; runner, model, dan scope mengikuti brief dan pemicu di
+  `~/.claude/rules/common/agents.md` (pakai bila pemicunya terpenuhi, bukan opsional).
+  Larangan "worker tambahan" di atas berlaku untuk CLI/runner/model eksternal
+  (CommandCode, Pi, Codex, dll.). Palang privasi berlaku untuk setiap brief; plan,
+  invariant, dan review diff akhir pekerjaan Kritis tetap di sesi utama.
 - Lokal untuk review, palang, kompilasi, dan scoped test yang terjangkau. Full suite,
   mutation berat, integration/E2E, dan build image diutamakan di CI/remote test terisolasi;
   bukan prasyarat lokal sebelum commit/push. Gate rilis tetap wajib pada SHA yang sama.
