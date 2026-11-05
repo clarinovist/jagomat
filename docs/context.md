@@ -76,7 +76,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - HP anak (6 Nov 2026): `qr_code.py` encoder QR stdlib (byte, ECC M, versi 1–10, SVG; golden libqrencode per mask).
   `share_http._situs_tautan` memakai Host hanya bila ada di `HOST_TAUTAN` (`jagomat.id`, `uji.jagomat.id`), selain
   itu `brand.URL_SITUS`. `share_links.TTL_DETIK` 12 jam. Form sesi tidak lagi beratribut `data-bagikan-sesi`, jadi
-  `SKRIP_BAGIKAN` tidak disisipkan (kode JS dan cabang `fetch` tinggal sebagai follow-up pembersihan).
+  `SKRIP_BAGIKAN` tidak disisipkan (follow-up: buang). Cabang `fetch` JSON tetap: dipakai verifikasi lingkungan uji.
 - `probe_questions.py` (5 Nov 2026): pertanyaan pancingan statis per topik (fallback umum)
   untuk halaman tinjauan guru saat `diagnosa` tidak punya dugaan; `render()` kosong untuk
   peran selain guru. Topik diambil dari `topics.pemilik_template`, lalu topik sesi.
