@@ -58,7 +58,7 @@ def test_pembahasan_tunggal_dekat_soal_dengan_sumber_dan_payload_utuh(db):
             assert html.escape(b['kunci']) in card
             soal = teacher_pages._soal_dari_baris(b)
             assert html.escape(soal.pembahasan) in card
-            assert 'hasil setelah dibantu bukan jawaban mandiri' in card
+            assert 'Jawaban setelah dibantu tidak dihitung sebagai jawaban sendiri' in card
             details = [a for t, a in Elemen(card).tags if t == 'details']
             assert len(details) == 2 and all('open' not in a for a in details)
             assert not struktur.tertutup(f'kode_{sid}')

@@ -129,8 +129,18 @@ def simpan(kon, sesi_id, data, guru='guru'):
     return len(perubahan)
 
 
+KOLOM_OUTCOME_WAJIB = frozenset({'sesi_soal_id', 'jawaban', 'cara', 'benar', 'kode_final', 'manual', 'catatan', 'kunci'})
+
+
 def validasi_bukti(kon, sesi_id, outcome, dilewati):
-    """Palang domain, juga untuk caller konfirmasi langsung tanpa formulir."""
+    """Palang domain, juga untuk caller konfirmasi langsung tanpa formulir.
+
+    Baris outcome wajib membawa kolom penanda dan kunci (``database.isi_sesi``);
+    baris yang kurang ditolak, bukan dianggap tidak bertanda (gagal tertutup).
+    """
+    for b in outcome:
+        if not KOLOM_OUTCOME_WAJIB <= set(b.keys()):
+            raise ValueError('Data hasil sesi tidak lengkap untuk diperiksa sebelum disahkan.')
     tinjauan = muat(kon, sesi_id)
     arsip = pengiriman(kon, sesi_id)
     for b in outcome:
@@ -147,9 +157,8 @@ def validasi_bukti(kon, sesi_id, outcome, dilewati):
             # Centang "benar" dari lembar hanya sah selama jawaban tersimpan masih kunci.
             # Bila anak mengubah jawabannya dari HP setelah guru mencentang (sesi belum
             # selesai), arsip memuat jawaban baru dan aturan arsip di atas tidak melihat
-            # perbedaan; palang ini yang menangkapnya. Tanpa kunci di baris outcome: tolak.
-            kunci = (b['kunci'] if 'kunci' in b.keys() else None)
-            if kunci is None or (b['jawaban'] or '').strip() != (kunci or '').strip():
+            # perbedaan; palang ini yang menangkapnya.
+            if (b['jawaban'] or '').strip() != (b['kunci'] or '').strip():
                 raise TinjauanTidakSah(sid, 'Jawaban anak berubah setelah ditandai benar dari lembar. Pilih penilaian pada butir ini untuk menilai ulang sebelum disahkan.')
         if awal:
             berubah = ((b['jawaban'] or '').strip() != awal['jawaban'].strip())

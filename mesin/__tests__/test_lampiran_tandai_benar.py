@@ -124,7 +124,8 @@ def _centang_sebagian_lalu_anak_lanjut(kon, ubah_jawaban):
     assert not kon.execute("SELECT selesai FROM sesi WHERE id=?", (sesi_id,)).fetchone()[0]
     if ubah_jawaban:
         database.simpan_jawaban(kon, sid_centang, "tidak", "cara anak", "", False)
-    database.simpan_jawaban(kon, sid_kosong, "tidak", "cara anak", "", False)
+    kunci_kosong = butir[-1]["kunci"]
+    database.simpan_jawaban(kon, sid_kosong, kunci_kosong, "cara anak", "", False)
     reports.diagnosa_murid(kon, sesi_id)
     student_submissions.arsipkan(kon, sesi_id, "akun")
     database.tandai_selesai(kon, sesi_id)
@@ -246,3 +247,30 @@ def test_halaman_mengisi_ulang_centang_untuk_butir_yang_sudah_ditandai(db):
     assert f'name="benar_{sid_salah}">' in html  # tidak tercentang
     for b in butir[1:]:
         assert f'name="benar_{b["sesi_soal_id"]}" checked>' in html
+
+
+def test_konfirmasi_sungguhan_lolos_bila_centang_tetap_kunci(db):
+    """Jalur yang dipakai produksi: database.konfirmasi_hasil -> muat_outcome=isi_sesi."""
+    with database.buka(db) as kon:
+        sesi_id, _sid = _centang_sebagian_lalu_anak_lanjut(kon, ubah_jawaban=False)
+        konfirmasi_id = database.konfirmasi_hasil(kon, sesi_id, "guru", dilewati=set())
+        kon.commit()
+    assert konfirmasi_id
+
+
+def test_konfirmasi_sungguhan_menolak_centang_yang_jawabannya_diubah_anak(db):
+    with database.buka(db) as kon:
+        sesi_id, _sid = _centang_sebagian_lalu_anak_lanjut(kon, ubah_jawaban=True)
+        with pytest.raises(review_store.TinjauanTidakSah, match="berubah setelah ditandai benar"):
+            database.konfirmasi_hasil(kon, sesi_id, "guru", dilewati=set())
+        kon.rollback()
+        n = kon.execute("SELECT COUNT(*) FROM konfirmasi_hasil WHERE sesi_id=?", (sesi_id,)).fetchone()[0]
+    assert n == 0
+
+
+def test_validasi_bukti_menolak_baris_tanpa_kolom_penanda(db):
+    with database.buka(db) as kon:
+        sesi_id, _sid = _centang_sebagian_lalu_anak_lanjut(kon, ubah_jawaban=False)
+        outcome = [{k: b[k] for k in b.keys() if k != "catatan"} for b in _butir(kon, sesi_id)]
+        with pytest.raises(ValueError, match="tidak lengkap"):
+            review_store.validasi_bukti(kon, sesi_id, outcome, set())
