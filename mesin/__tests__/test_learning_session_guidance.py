@@ -49,7 +49,10 @@ def test_sesi_siap_mengarahkan_handoff_dengan_post_tanpa_efek_get(server):
         halaman,
         re.S,
     )
-    assert form and "Salin tautan sesi" in form.group(1)
+    # K7/K8 (6 Nov 2026): label "Mulai di HP anak", form native tanpa data-bagikan-sesi.
+    assert form and "Mulai di HP anak" in form.group(1)
+    assert "Salin tautan sesi" not in halaman
+    assert "data-bagikan-sesi" not in halaman
     assert halaman.count(f'action="/sesi/{sesi_id}/bagikan"') == 1
     assert '<details class="panduan-pratinjau-st">' in halaman
     assert "Pratinjau soal &amp; kunci untuk guru" in halaman
@@ -64,11 +67,15 @@ def test_tautan_aktif_memperingatkan_rotasi_dengan_teks_persis(server):
 
     halaman = _halaman(uji, sesi_id)
 
-    assert "Buat dan salin tautan baru" in halaman
+    # K7/K8 (6 Nov 2026): label tombol berubah; peringatan rotasi tetap persis.
+    assert "Buat kode baru untuk HP anak (tautan lama berhenti)" in halaman
+    assert "Buat dan salin tautan baru" not in halaman
+    # Kalimat "Lanjutkan?" milik confirm() di skrip salin yang sudah dicabut;
+    # peringatan rotasi kini teks statis di "Kelola tautan anak" + label tombol.
     assert (
-        "Membuat tautan baru akan menonaktifkan tautan sebelumnya. Lanjutkan?"
-        in halaman
-    )
+        "Membuat tautan baru akan menonaktifkan tautan sebelumnya. "
+        "Mencabut tautan menutup akses melalui tautan itu."
+    ) in halaman
 
 
 def test_sesi_mulai_menunggu_anak_dan_bagikan_ulang_sekunder(server):
@@ -82,7 +89,9 @@ def test_sesi_mulai_menunggu_anak_dan_bagikan_ulang_sekunder(server):
     halaman = _halaman(uji, sesi_id)
 
     assert "Sedang dikerjakan · giliran anak" in halaman
-    assert "Salin tautan sesi" in halaman
+    # K7/K8 (6 Nov 2026): label tombol bagikan ulang menjadi "Mulai di HP anak".
+    assert "Mulai di HP anak" in halaman
+    assert "Salin tautan sesi" not in halaman
     assert 'class="panduan-aksi-sekunder-st"' in halaman
     blok_status = re.search(
         r'<section class="status-sesi-st panduan-sesi-st">(.*?)</section>',

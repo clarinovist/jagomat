@@ -31,9 +31,13 @@ PESAN_TIDAK_TERBACA = (
 LABEL_GURU = "Untuk guru — jangan diberikan ke anak."
 PETUNJUK_CETAK = "Gunakan Cetak di browser (Ctrl/⌘+P)."
 JUDUL_CATATAN = "Catatan sesi (tulis tangan)"
+SAAT_SESI = (
+    "Saat sesi: anak mengerjakan di HP-nya sendiri. Buka sesi, tekan Mulai di HP anak, "
+    "lalu anak memindai kode QR. Kertas sebagai cadangan: tombol Cetak di halaman sesi."
+)
 SETELAH_SESI = (
     "Setelah sesi: buka Tinjau hasil untuk latihan anak, lalu Konfirmasi hasil sesi. "
-    "Laporan untuk orang tua disiapkan dari tab Perkembangan."
+    "Tautan laporan untuk orang tua muncul sesudah konfirmasi."
 )
 JUMLAH_GARIS_CATATAN = 6
 
@@ -176,6 +180,7 @@ def halaman_persiapan(kon, siswa, *, peran, hari_ini=None) -> bytes:
         f"<h2>{html.escape(JUDUL_CATATAN)}</h2>"
         "<p>Tulis hal yang perlu diingat sebelum dan sesudah sesi.</p>"
         f"{garis}"
+        f"<p class=\"persiapan-setelah-st\">{html.escape(SAAT_SESI)}</p>"
         f"<p class=\"persiapan-setelah-st\">{html.escape(SETELAH_SESI)}</p></section>"
         f'<p class="persiapan-petunjuk-cetak-st">{html.escape(PETUNJUK_CETAK)}</p>'
         "</main></body></html>"

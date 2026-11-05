@@ -941,8 +941,8 @@ def halaman_sesi_stitch(
                 'Bagikan tautan sesi, lalu biarkan anak mencoba dengan caranya sendiri.'
             )
             label_bagikan = (
-                "Buat dan salin tautan baru" if tautan_aktif else
-                "Salin tautan sesi"
+                "Buat kode baru untuk HP anak (tautan lama berhenti)" if tautan_aktif else
+                "Mulai di HP anak"
             )
             kelas_aksi = (
                 "panduan-aksi-sekunder-st" if sudah_mulai else
@@ -959,7 +959,7 @@ def halaman_sesi_stitch(
                 f'<p>{penjelasan_status}</p>'
                 '<div class="blok-bagikan-st">'
                 f'<form class="{kelas_aksi}" method="post" '
-                f'action="/sesi/{sesi_id}/bagikan" data-bagikan-sesi '
+                f'action="/sesi/{sesi_id}/bagikan" '
                 f'data-bagikan-aktif="{1 if tautan_aktif else 0}">'
                 f'<button type="submit"><span data-label-bagikan>{label_bagikan}</span>'
                 '</button></form>'

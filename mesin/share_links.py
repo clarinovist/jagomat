@@ -2,8 +2,9 @@
 
 Token mentah hanya dikembalikan sekali saat dibuat. Basis data menyimpan hash
 SHA-256 supaya cadangan basis data tidak langsung berisi tautan yang dapat
-dipakai. Tautan kedaluwarsa setelah tujuh hari, dapat dicabut, dan berhenti
-berlaku ketika sesi selesai atau dibatalkan.
+dipakai. Tautan kedaluwarsa setelah 12 jam (keputusan pemilik K8, 6 Nov 2026:
+tautan yang belum dikirim tidak tertinggal lama di riwayat HP), dapat dicabut,
+dan berhenti berlaku ketika sesi selesai atau dibatalkan.
 """
 from __future__ import annotations
 
@@ -13,7 +14,8 @@ import secrets
 import time
 
 
-TTL_DETIK = 7 * 24 * 60 * 60
+TTL_DETIK = 12 * 60 * 60
+LABEL_MASA_BERLAKU = "12 jam"
 _TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{43}$")
 
 

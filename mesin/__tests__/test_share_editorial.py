@@ -44,8 +44,10 @@ def test_fallback_label_landmark_tautan_dan_header_aman(server):
     assert bidang[0]['aria-describedby'] == 'petunjuk-tautan'
     tautan = bidang[0]['value']
     assert tautan.startswith('https://jagomat.id/mulai/')
-    assert isi.count(f'href="/anak/{sid}?section=riwayat"') == 1
-    assert '7 hari' in isi and 'tanpa masuk' in isi
+    # K7/K8 (6 Nov 2026): tautan kembali ke sesi, masa berlaku 12 jam, ada QR inline.
+    assert isi.count(f'href="/sesi/{sesi}"') == 1
+    assert '12 jam' in isi and '7 hari' not in isi and 'tanpa masuk' in isi
+    assert '<figure class="bagikan-qr-st">' in isi and '<svg class="kode-qr"' in isi
     assert tajuk['Cache-Control'] == 'no-store'
     assert tajuk['Referrer-Policy'] == 'no-referrer'
     assert tajuk['X-Robots-Tag'] == 'noindex, nofollow'

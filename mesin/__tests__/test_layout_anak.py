@@ -395,7 +395,8 @@ def test_tanggal_kartu_kanonis_aman_dan_tidak_terpotong():
     assert "white-space: nowrap" in blok
 
 
-def test_host_pendamping_memakai_salin_tautan_dengan_fallback_native(anak):
+def test_host_pendamping_bagikan_sesi_form_native_tanpa_skrip_salin(anak):
+    # K7/K8 (6 Nov 2026): tombol "Mulai di HP anak" = form POST native ke halaman QR.
     db, sid = anak
     with database.buka(db) as kon:
         sesi = kon.execute('SELECT id FROM sesi WHERE siswa_id=? LIMIT 1', (sid,)).fetchone()[0]
@@ -403,8 +404,8 @@ def test_host_pendamping_memakai_salin_tautan_dengan_fallback_native(anak):
     badan = markup.split("<script>", 1)[0]
     assert 'id="kabar-bagikan"' not in badan
     assert 'class="kabar-bagikan-st" role="status" aria-live="polite"' in badan
-    assert 'Salin tautan sesi</span></button>' in badan
-    assert 'data-bagikan-sesi' in badan
+    assert 'Mulai di HP anak</span></button>' in badan
+    assert 'data-bagikan-sesi' not in badan
     from offline_browser import SKRIP_OFFLINE
     assert re.findall(r"<script>(.*?)</script>", markup, re.S) == [SKRIP_OFFLINE], \
         "renderer murni hanya memuat banner offline, bukan enhancement HTTP"

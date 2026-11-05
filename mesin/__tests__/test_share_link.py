@@ -40,7 +40,7 @@ def _buat_tautan(server, sesi_id):
     return kode, isi, header, cocok.group(1)
 
 
-def test_token_mentah_tidak_disimpan_dan_berlaku_tujuh_hari(tmp_path):
+def test_token_mentah_tidak_disimpan_dan_berlaku_dua_belas_jam(tmp_path):
     db = tmp_path / "tautan.db"
     database.siapkan(db)
     with database.buka(db) as kon:
@@ -54,7 +54,10 @@ def test_token_mentah_tidak_disimpan_dan_berlaku_tujuh_hari(tmp_path):
 
         assert baris["token_hash"] == hashlib.sha256(token.encode()).hexdigest()
         assert token not in tuple(baris)
-        assert baris["kedaluarsa"] == 1_000 + 7 * 24 * 60 * 60
+        # K7/K8 (6 Nov 2026): masa berlaku tautan 12 jam (bukan 7 hari).
+        assert baris["kedaluarsa"] == 1_000 + 12 * 60 * 60
+        assert share_links.TTL_DETIK == 12 * 60 * 60
+        assert share_links.LABEL_MASA_BERLAKU == "12 jam"
         assert share_links.ambil(kon, token, sekarang=baris["kedaluarsa"] - 1)
         assert share_links.ambil(kon, token, sekarang=baris["kedaluarsa"]) is None
 
@@ -124,7 +127,7 @@ def test_guru_membuat_tautan_absolut_untuk_fallback_tanpa_js(server):
     assert 'id="tautan-sesi"' in isi
 
 
-def test_halaman_anak_menawarkan_salin_langsung_dan_cabut(server):
+def test_halaman_sesi_tautan_aktif_menawarkan_kode_baru_native_dan_cabut(server):
     s, siswa_id, sesi_id = server
     _buat_tautan(s, sesi_id)
 
@@ -133,38 +136,41 @@ def test_halaman_anak_menawarkan_salin_langsung_dan_cabut(server):
     )
     assert kode == 200
     assert f'action="/sesi/{sesi_id}/bagikan"' in isi
-    assert 'data-bagikan-sesi' in isi
+    # K7/K8 (6 Nov 2026): form native tanpa skrip salin; label kode baru.
+    assert 'data-bagikan-sesi' not in isi
     assert 'data-bagikan-aktif="1"' in isi
-    assert "Buat dan salin tautan baru" in isi
+    assert "Buat kode baru untuk HP anak (tautan lama berhenti)" in isi
     assert 'role="status" aria-live="polite"' in isi
     assert "Membuat tautan baru akan menonaktifkan tautan sebelumnya." in isi
     assert f'action="/sesi/{sesi_id}/cabut-tautan"' in isi
     assert 'aria-label="Cabut tautan sesi"' in isi
-    assert assistant_browser.SKRIP_BAGIKAN in isi
+    assert assistant_browser.SKRIP_BAGIKAN not in isi
     assert (
         f"'sha256-{assistant_browser.HASH_BAGIKAN}'"
-        in header["Content-Security-Policy"]
+        not in header["Content-Security-Policy"]
     )
     assert "connect-src 'self'" in header["Content-Security-Policy"]
     assert header["Cache-Control"] == "no-store"
 
 
-def test_halaman_sesi_menawarkan_salin_langsung_tanpa_halaman_perantara(server):
+def test_halaman_sesi_menawarkan_mulai_di_hp_anak_lewat_post_native(server):
     s, _, sesi_id = server
 
     kode, isi, header = s.minta(f"/sesi/{sesi_id}", auth=("guru", SANDI_GURU))
 
     assert kode == 200
     assert f'action="/sesi/{sesi_id}/bagikan"' in isi
-    assert 'data-bagikan-sesi' in isi
+    # K7/K8 (6 Nov 2026): POST native ke halaman QR, tanpa skrip salin inline.
+    assert 'data-bagikan-sesi' not in isi
     assert 'data-bagikan-aktif="0"' in isi
-    assert "Salin tautan sesi" in isi
-    assert "navigator.clipboard.writeText" in isi
-    assert 'id="tautan-sesi"' not in isi
-    assert assistant_browser.SKRIP_BAGIKAN in isi
+    assert "Mulai di HP anak" in isi
+    assert "Salin tautan sesi" not in isi
+    assert "navigator.clipboard.writeText" not in isi
+    assert 'id="tautan-sesi"' not in isi, "tautan tidak dibuat/ditampilkan oleh GET"
+    assert assistant_browser.SKRIP_BAGIKAN not in isi
     assert (
         f"'sha256-{assistant_browser.HASH_BAGIKAN}'"
-        in header["Content-Security-Policy"]
+        not in header["Content-Security-Policy"]
     )
 
 

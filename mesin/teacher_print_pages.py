@@ -5,6 +5,7 @@ import html
 from dataclasses import replace
 
 import database
+import design_tokens as T
 import presentation_lock
 import question_views
 import worksheets
@@ -79,22 +80,50 @@ def _tombol_cerita(kon, sesi_id: int) -> str:
         f'<p class="sub">{catatan}</p>{tombol}</div></details>'
     )
 
-def halaman_bagikan_sesi(sesi_id: int, siswa_id: int, tautan: str, pengguna: str, peran: str) -> bytes:
-    """Salin tautan secara manual; hanya presentasi, tanpa membaca/membuat token."""
+def _blok_qr(tautan: str) -> str:
+    """Kode QR server-side; gagal (tautan terlalu panjang) → cukup tautan teks."""
+    import qr_code
+
+    try:
+        gambar = qr_code.svg(
+            tautan, warna_gelap=T.TEKS_UTAMA, warna_terang=T.LATAR_KARTU,
+            label="Kode QR tautan latihan anak",
+        )
+    except ValueError:
+        return ""
+    return (
+        '<figure class="bagikan-qr-st">'
+        f'{gambar}'
+        '<figcaption>Anak membuka kamera HP-nya, arahkan ke kode ini, lalu ketuk tautan yang muncul.</figcaption>'
+        '</figure>'
+    )
+
+
+def halaman_bagikan_sesi(
+    sesi_id: int, siswa_id: int, tautan: str, pengguna: str, peran: str,
+    *, nama_anak: str = "",
+) -> bytes:
+    """Kode QR + tautan teks untuk HP anak; hanya presentasi, tanpa membaca/membuat token."""
+    import share_links
+
+    untuk = f" untuk {html.escape(nama_anak)}" if nama_anak else ""
     return _halaman(
-        f"Bagikan sesi #{sesi_id}",
-        f'<div class="jejak"><a href="/anak/{siswa_id}?section=riwayat">&larr; Kembali ke riwayat anak</a></div>'
-        '<header class="editorial-kepala-st"><p class="editorial-alis-st">BELAJAR LEWAT TAUTAN</p>'
-        f'<h1 id="judul-bagikan">Bagikan sesi #{sesi_id}</h1>'
-        '<p class="sub">Salin tautan ini dan berikan kepada anak yang mengerjakan sesi ini.</p></header>'
+        f"Mulai di HP anak — sesi #{sesi_id}",
+        f'<div class="jejak"><a href="/sesi/{sesi_id}">&larr; Kembali ke sesi</a></div>'
+        '<header class="editorial-kepala-st"><p class="editorial-alis-st">MULAI DI HP ANAK</p>'
+        f'<h1 id="judul-bagikan">Sesi #{sesi_id}{untuk}</h1>'
+        '<p class="sub">Anak memindai kode ini dengan HP-nya sendiri dan mengerjakan di sana. '
+        'Anda tidak perlu mengetik jawaban; tinjau setelah anak menekan “Selesai &amp; kirim”.</p></header>'
         '<section class="kartu-st bagikan-kartu-st" aria-labelledby="label-tautan">'
-        '<label id="label-tautan" for="tautan-sesi">Tautan latihan anak</label>'
+        f'{_blok_qr(tautan)}'
+        '<label id="label-tautan" for="tautan-sesi">Atau kirim tautan ini ke HP anak</label>'
         f'<input id="tautan-sesi" type="text" readonly value="{html.escape(tautan, quote=True)}" '
         'aria-describedby="petunjuk-tautan" spellcheck="false">'
         '<p id="petunjuk-tautan" class="sub">Pilih seluruh isi kotak, lalu salin. '
-        'Tautan berlaku 7 hari, atau sampai sesi selesai maupun tautan dicabut.</p>'
+        f'Tautan berlaku {share_links.LABEL_MASA_BERLAKU}, atau sampai sesi selesai maupun tautan dicabut.</p>'
         '<p class="bagikan-perhatian-st">Siapa pun yang memegang tautan dapat mengerjakan '
-        'sesi ini tanpa masuk. Bagikan hanya kepada anak yang dituju, bukan di tempat umum.</p>'
+        'sesi ini tanpa masuk. Tunjukkan kode hanya kepada anak yang dituju. Bila anak tidak '
+        'selesai hari ini, cabut tautan dari halaman sesi. Jangan masuk sebagai guru di HP anak.</p>'
         '</section>',
         ident=(pengguna, peran), stitch=True,
         kelas_bungkus="pendamping-editorial-st bagikan-editorial-st",

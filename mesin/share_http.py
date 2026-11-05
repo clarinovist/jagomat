@@ -172,6 +172,16 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
     return True
 
 
+# Host yang boleh muncul di tautan/QR. Tanpa ini tautan dari uji.jagomat.id
+# menunjuk produksi (404); Host lain (termasuk header palsu) jatuh ke URL_SITUS.
+HOST_TAUTAN = frozenset({"jagomat.id", "uji.jagomat.id"})
+
+
+def _situs_tautan(penangan) -> str:
+    host = (penangan.headers.get("Host") or "").strip().lower()
+    return f"https://{host}" if host in HOST_TAUTAN else brand.URL_SITUS
+
+
 def tangani_guru_post(penangan, jalur: str) -> bool:
     """Buat atau cabut tautan sesi setelah palang guru utama lolos."""
     if not (
@@ -230,13 +240,14 @@ def tangani_guru_post(penangan, jalur: str) -> bool:
                 return True
             token = share_links.buat(kon, sesi_id)
             kon.commit()
-            tautan = f"{brand.URL_SITUS}/mulai/{token}"
+            tautan = f"{_situs_tautan(penangan)}/mulai/{token}"
             if penangan.headers.get("X-Requested-With") == "fetch":
                 penangan._kirim_json({"tautan": tautan})
                 return True
             from teacher_pages import halaman_bagikan_sesi
             isi = halaman_bagikan_sesi(
                 sesi_id, info["siswa_id"], tautan, ident[0], ident[1],
+                nama_anak=info["nama"],
             )
             penangan._kirim_tautan(isi)
             return True

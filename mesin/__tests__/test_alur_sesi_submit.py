@@ -301,7 +301,9 @@ def test_koreksi_latihan_cepat_tanpa_caraku_dan_submit_tetap_benar(db):
     assert hasil["kode_final"] is None
 
 
-def test_host_pendamping_memakai_salin_tautan_berhash_dengan_fallback_native(server):
+def test_host_pendamping_bagikan_sesi_native_tanpa_skrip_salin(server):
+    # K7/K8 (6 Nov 2026): tombol "Mulai di HP anak" POST native ke halaman QR;
+    # skrip salin inline tidak lagi dipasang di halaman sesi.
     s, siswa_id, sesi_id = server
 
     kode, isi, header = s.minta(
@@ -310,20 +312,18 @@ def test_host_pendamping_memakai_salin_tautan_berhash_dengan_fallback_native(ser
 
     assert kode == 200
     assert f'action="/sesi/{sesi_id}/bagikan"' in isi
-    assert 'data-bagikan-sesi' in isi
-    assert 'Salin tautan sesi</span>' in isi
-    assert 'class="kabar-bagikan-st" role="status" aria-live="polite"' in isi
-    assert "navigator.share" not in isi
-    assert "navigator.clipboard.writeText" in isi
-    assert "window.prompt(" in isi
+    assert 'data-bagikan-sesi' not in isi
+    assert 'Mulai di HP anak</span>' in isi
+    assert "navigator.clipboard.writeText" not in isi
+    assert "window.prompt(" not in isi
     import assistant_browser
     from offline_browser import SKRIP_OFFLINE
-    assert isi.count('<script>') == 3
+    assert isi.count('<script>') == 2
     assert '<script>' + SKRIP_OFFLINE + '</script>' in isi
     assert '<script>' + assistant_browser.SKRIP_CHAT + '</script>' in isi
     assert assistant_browser.SKRIP_PILIHAN_ISI not in isi
-    assert '<script>' + assistant_browser.SKRIP_BAGIKAN + '</script>' in isi
-    assert f"'sha256-{assistant_browser.HASH_BAGIKAN}'" in header['Content-Security-Policy']
+    assert assistant_browser.SKRIP_BAGIKAN not in isi
+    assert f"'sha256-{assistant_browser.HASH_BAGIKAN}'" not in header['Content-Security-Policy']
     assert "connect-src 'self'" in header['Content-Security-Policy']
 
 

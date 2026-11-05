@@ -68,6 +68,11 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
   sesi tetap selesai; di tinjauan soal tanpa jawaban (kertas maupun tautan) bawaan dilewati dari penilaian:
   bukan benar, bukan salah, bukan bukti (keputusan pemilik 6 Nov 2026). Guru bisa menyertakannya kembali;
   sesi tanpa satu jawaban pun tidak diberi bawaan dan tidak bisa diterapkan dari lembar.
+- **HP anak sebagai jalur utama sesi les** (keputusan pemilik 6 Nov 2026): tombol utama sesi “Mulai di HP anak”
+  (POST, tanpa JS) menampilkan kode QR server-side + tautan teks; anak memindai dengan HP-nya sendiri dan guru
+  hanya meninjau. Tautan sesi berlaku 12 jam (sebelumnya 7 hari), satu per sesi, mati setelah dikirim/dicabut.
+  Kertas tetap cadangan lewat Cetak; lembar persiapan menyebut keduanya. Anak sungguhan tetap menunggu gerbang
+  privasi/izin wali (G4).
 - **Fitur khusus orang tua dibekukan (keputusan pemilik 1 Nov 2026):** Pendamping AI,
   kartu pra-tulis dan bantuan orang tua tetap berjalan tanpa investasi baru; kendali
   data tetap tersedia. Penghapusannya perlu keputusan terpisah.
