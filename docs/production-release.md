@@ -6,6 +6,38 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy pancingan per template, pemakaian guru, pemilik les — 6 November 2026
+
+Controlled `deploy-v2` memasang **b412b427099cfc25f13753447bd9407e5fd456ca**, healthy
+(started `2026-11-05T23:47Z`), menggantikan `3e89bb1`. Delta: pancingan "Belum yakin" per
+template (98, draf), `/admin/pemakaian`, lembaga les (`/lembaga`, `/admin/lembaga`).
+**Skema aditif:** tabel `lembaga`, `anggota_lembaga`, `pindah_siswa` (0 baris setelah deploy);
+tanpa ALTER/rebuild tabel lama, flag tidak berubah. Smoke publik `jagomat.id`: `/` 200,
+`/akun` 401, `/lembaga` anonim 401, `/murid/` 303, `/admin/pemakaian` anonim 404.
+
+- Kandidat `sha256:0757224c…`; recovery **68a262c** (`68a262c0a7391c8e95f409cf704703de4b90cea9`,
+  branch `recovery-lembaga` = `cb3c5f5` + schema/store lembaga, writer1) digest `sha256:e8f937c5…`.
+  Kontrak kandidat = recovery `7b3c7835…` (live lama `d79a79ca…`); mode `migrasi`,
+  `pair_verified=true`, `siap_pasang=false`. Branch `recovery-lembaga` wajib dipertahankan di origin
+  (pin dan checkout CI). Gate [42128230342](https://github.com/clarinovist/jagomat/actions/runs/42128230342)
+  hijau (kandidat 4/4, recovery 4/4, build). Gate `8de87d7` sebelumnya merah di `test_type_scale`
+  (ukuran huruf literal), diperbaiki `b412b42`.
+- Kit `deploy-lembaga-20261106` (salinan kit sesihp, `deploy.py` identik byte; probe pancingan/tabel
+  lembaga ditambah, asersi tiga tabel baru kosong setelah deploy). Approval `3e89bb1` diarsipkan
+  (`approval-consumed-3e89bb1.json`); prepare, hold-backup, rehearsal C–B–C, verify-backup, fetch,
+  deploy, reopen, pasang-pascacek, postcheck exit0; hold ±1 menit (06.46–06.47 WIB). Postcheck:
+  error 0, writer 2, config dipulihkan, hash histori terjaga. Approval rilis ini kini di server dan
+  harus diarsipkan sebelum rilis berikutnya. Uji (`uji.jagomat.id`) juga di `b412b42`.
+
+## Deploy sesi HP anak (QR) dan soal tidak dikerjakan — 6 November 2026
+
+Controlled `deploy-v2` memasang **3e89bb1133a65d299c25e83224c0df2a7a4ac21f** (started
+`2026-11-05T22:13Z`), menggantikan `7a363cf`: tombol "Mulai di HP anak" + kode QR server-side,
+tautan 12 jam, centang "Anak tidak mengerjakan soal ini" (soal kosong dilewati). Tanpa schema.
+Kandidat `sha256:c51cec5f…`; recovery `cb3c5f5`; kontrak `d79a79ca…` identik. Gate
+[42043815443](https://github.com/clarinovist/jagomat/actions/runs/42043815443) hijau. Kit
+`deploy-sesihp-20261106`, approval `7a363cf` diarsipkan sebelum prepare.
+
 ## Deploy alur guru (tandai benar, pancingan, bahasa tinjauan) — 5 November 2026
 
 Controlled `deploy-v2` memasang **7a363cfbedd5d4bf54cdbc354090676829edc58e**, healthy
