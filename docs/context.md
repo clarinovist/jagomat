@@ -82,6 +82,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   tindak lanjut, status draf, 98 template; 6 Nov 2026) → topik pemilik template → topik sesi → umum.
   Berkas divalidasi gagal-tertutup (berkas rusak dilewati, uji CI memastikan berkas terkirim sah);
   `render()` kosong untuk peran selain guru.
+- `teacher_usage.py` (SELECT saja, dari kolom sesi/pengiriman/laporan yang ada; tanpa migrasi)
+  → `admin_usage_pages.py` → `admin_usage_http.py` untuk `/admin/pemakaian`. SQL sengaja di modul
+  bernama non-`*store*` karena hanya membaca; sidik kontrak persistensi tidak berubah.
 - Teks yang dibaca guru mengikuti [`docs/glosarium-guru.md`](glosarium-guru.md): kalimat pendek,
   istilah internal tidak tampil; palang `test_bahasa_guru_tinjauan.py` memeriksa halaman tinjauan.
 - Stdlib runtime; dev dependency hanya pytest/pytest-xdist. Python lokal3.9.6 dan

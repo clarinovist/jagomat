@@ -36,6 +36,7 @@ SECTION = (
     ("langganan", "Langganan & invoice", "/admin?section=langganan"),
     ("kpi", "KPI uji coba", "/admin?section=kpi"),
     ("riset", "Riset konsumen", "/admin/riset"),
+    ("pemakaian", "Pemakaian guru", "/admin/pemakaian"),
     ("operasional", "Operasional", "/admin?section=operasional"),
     ("ai", "AI", "/admin/ai"),
     ("riwayat", "Riwayat admin", "/admin?section=riwayat"),
@@ -44,7 +45,7 @@ GRUP_SECTION = (
     ("Pusat kendali", ("ringkasan",)),
     ("Pengguna", ("keluarga", "siswa")),
     ("Layanan", ("pendaftaran", "langganan")),
-    ("Analitik", ("kpi", "riset")),
+    ("Analitik", ("kpi", "riset", "pemakaian")),
     ("Sistem", ("operasional", "ai", "riwayat")),
 )
 SECTION_LOKAL = frozenset(item[0] for item in SECTION if item[0] != "ai")

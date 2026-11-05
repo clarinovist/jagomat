@@ -486,7 +486,10 @@ def _render_get(penangan, principal, query):
 
 def tangani_get(penangan, jalur):
     import admin_research_http
+    import admin_usage_http
     if admin_research_http.tangani_get(penangan, jalur):
+        return True
+    if admin_usage_http.tangani_get(penangan, jalur):
         return True
     if jalur not in ("/admin", "/admin/tinjau", "/admin/bulk/pilih", "/admin/bulk/hasil", "/admin/bulk/templat"):
         return False

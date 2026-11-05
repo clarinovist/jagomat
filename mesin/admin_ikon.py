@@ -12,6 +12,7 @@ _BENTUK = {
     "langganan": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>',
     "kpi": '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',
     "riset": '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    "pemakaian": '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     "operasional": '<rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01"/>',
     "ai": '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
     "riwayat": '<path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.5L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',

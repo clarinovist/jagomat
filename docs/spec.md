@@ -82,6 +82,10 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
   hasil latihan, backup dan provider mempunyai batas retensi berbeda.
 - Akun, persetujuan awal, sensor internal opt-in, panel admin/tema, dukungan akun,
   riset publik dan wawancara privat tersedia. Sensor bukan bukti efektivitas belajar.
+- Admin melihat **Pemakaian guru** (`/admin/pemakaian`, baca-saja): per akun guru per minggu
+  WIB, 8 minggu terakhir: minggu aktif, sesi dibuat/selesai/dikonfirmasi, median lama anak,
+  jeda selesai→konfirmasi, perkiraan waktu tinjau, sumber, laporan terbit. Tanpa nama anak;
+  waktu persiapan belum terukur.
 - Akses awal **nonkomersial**. Fondasi paket/pembayaran tidak berarti trial,
   kampanye, checkout v2, refund atau penegakan paket telah dibuka.
 
