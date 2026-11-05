@@ -37,7 +37,7 @@ GAYA = f"""<style>
 .lembaga-pindah-st select {{ min-height: {T.TINGGI_KONTROL}; min-width: 10rem; max-width: 100%;
   padding: {T.SP_2} {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL};
   border-radius: {T.RADIUS_SEDANG}; background-color: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
-  font: inherit; font-size: 1rem; }}
+  font: inherit; font-size: {T.UKURAN_BADAN_LAYAR}; }}
 .lembaga-pindah-st select:focus-visible {{ outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: 2px; }}
 .lembaga-meta-st {{ color: {T.TEKS_SUBTLE}; font-size: {T.UKURAN_TEKS_LABEL}; }}
 @media (max-width: 560px) {{
@@ -48,7 +48,7 @@ GAYA = f"""<style>
     clip: rect(0 0 0 0); white-space: nowrap; }}
   .lembaga-tabel-st tr {{ border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
     border-radius: {T.RADIUS_SEDANG}; padding: {T.SP_2}; margin-bottom: {T.SP_3}; }}
-  .lembaga-tabel-st th[scope="row"] {{ font-size: 1.1rem; border-bottom: 0; }}
+  .lembaga-tabel-st th[scope="row"] {{ font-size: {T.UKURAN_BAGIAN_DEWASA}; border-bottom: 0; }}
   .lembaga-tabel-st td {{ display: flex; justify-content: space-between; gap: {T.SP_3}; }}
   .lembaga-tabel-st td[data-label]::before {{ content: attr(data-label); color: {T.TEKS_SUBTLE}; }}
   .lembaga-tabel-st td.lembaga-aksi-st {{ display: block; border-bottom: 0; }}
