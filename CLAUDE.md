@@ -262,9 +262,16 @@ Preferensi pengguna: **selalu rapikan setelah selesai, tanpa menunggu permintaan
 ## 5. Palang domain yang tidak boleh dilemahkan
 
 - **Privasi anak:** DB, sandi/sesi, lembar terisi, cache, turunan, kejadian, cadangan tetap
-  ignored/lokal. Jangan `git add -f` atau mengirim data/credential ke repo, prompt, log,
-  screenshot, layanan AI, atau fixture. Uji menggunakan data sintetis; jangan memperluas
-  akses/pengiriman data di luar alur produk yang telah disetujui.
+  ignored/lokal. Jangan `git add -f` atau mengirim data/credential ke repo, log, screenshot
+  publik, layanan AI pihak ketiga (Jev/TypeSafe, LLM produk `llm.py`), atau fixture. Uji
+  menggunakan data sintetis; jangan memperluas akses/pengiriman data di luar alur produk
+  yang telah disetujui.
+- **Pelonggaran pemilik (6 Nov 2026):** untuk diagnosis/investigasi, sesi agent coding
+  (termasuk subagent bawaannya) boleh membaca dan menampilkan rekaman data anak dari DB
+  produksi/cadangan secara read-only bila relevan; tetap tanpa sandi/hash/token sesi dan
+  tanpa menyalin isinya ke Git, berkas plan, atau fixture. Gerbang izin wali (G4) bukan
+  blocker untuk kunjungan/uji coba lapangan yang memakai akun buatan tim; jangan diangkat
+  sebagai isu kesiapan.
 - Tidak menyimpan email/telepon siapa pun; jangan usulkan fitur yang membutuhkan kontak.
 - **Palang murid:** sisi anak tidak boleh membaca kunci/malrule/diagnosis/laporan. Fixture
   `db` guru dan `db_terjaga` harus terpisah; stamp `pemilik="guru"` bila perlu, bukan kendurkan
@@ -352,9 +359,10 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
   bundle admin5 mencakup empat DB + auth `sandi.json`, bukan hanya DB belajar. Database riset konsumen punya retensi/backup terpisah dan tidak ikut bundle kampanye.
   `cadangkan.sh` lama bukan bukti bundle lengkap/no-prune. Token approval exact-pair
   dan preflight deployer tetap wajib; izin tetap tidak membuat artefak itu otomatis sah.
-  Laporkan agregat saja, tidak nama anak.
+  Laporan rilis memakai agregat.
 - Investigasi data kosong yang diizinkan: backup terbaru di `mesin/cadangan/` read-only
-  (`sqlite3 "file:...?mode=ro"`), bukan DB lokal kosong. Jangan tampilkan rekaman pribadi.
+  (`sqlite3 "file:...?mode=ro"`), bukan DB lokal kosong. Rekaman boleh ditampilkan di sesi
+  bila relevan (lihat pelonggaran pemilik di §5), bukan disalin ke berkas tracked.
 - `Dockerfile` memakai `COPY *.py` (guard `test_image.py`); aset non-Python punya COPY/guard
   tersendiri. Jangan kembali ke daftar modul manual.
 - `/usr/local/bin/osn-deploy` tidak tracked; bila perubahannya disetujui, periksa kedua
