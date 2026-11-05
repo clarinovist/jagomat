@@ -188,7 +188,10 @@ def _baca_ulang(penangan, lampiran_id: int) -> None:
 
 
 def _terapkan(penangan, lampiran_id: int) -> None:
-    tubuh = penangan._baca_tubuh(8192)
+    # 15 soal × (jawaban + cara) sudah 30 field; centang benar/belum menambah
+    # sampai 60. Batas 400 mengikuti session_http; tubuh 32 KiB cukup untuk
+    # cara anak yang panjang.
+    tubuh = penangan._baca_tubuh(32768)
     if tubuh is None:
         penangan._tolak_isian(413)
         return
@@ -200,9 +203,10 @@ def _terapkan(penangan, lampiran_id: int) -> None:
     data = {
         nama: nilai[0]
         for nama, nilai in urllib.parse.parse_qs(
-            mentah, keep_blank_values=True, max_num_fields=32
+            mentah, keep_blank_values=True, max_num_fields=400
         ).items()
     }
+    ident = penangan._identitas()
     with database.buka() as kon:
         if not penangan._bisa_lihat_lampiran(kon, lampiran_id):
             penangan._kirim(
@@ -214,7 +218,14 @@ def _terapkan(penangan, lampiran_id: int) -> None:
         sudah_kirim = kon.execute(
             "SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?", (sesi_foto,)
         ).fetchone()
-        _jumlah, pesan = lampiran_mod.terapkan(kon, lampiran_id, data)
+        try:
+            _jumlah, pesan = lampiran_mod.terapkan(kon, lampiran_id, data)
+        except ValueError as galat:
+            # Tolak seluruh kiriman: tidak ada butir yang ditulis sebagian.
+            kon.rollback()
+            isi = lampiran_mod.halaman_konfirmasi_guru(kon, lampiran_id, str(galat))
+            penangan._kirim(isi if isi is not None else _halaman("404", "<h1>Lampiran hilang</h1>"), 400 if isi is not None else 404)
+            return
         isi = lampiran_mod.halaman_konfirmasi_guru(kon, lampiran_id, pesan)
         if isi is None:
             penangan._kirim(
@@ -224,7 +235,6 @@ def _terapkan(penangan, lampiran_id: int) -> None:
         baru_kirim = not sudah_kirim and bool(kon.execute(
             "SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?", (sesi_foto,)
         ).fetchone())
-    ident = penangan._identitas()
     if baru_kirim:
         import sensor_http
         sensor_http.sesi(sesi_foto, 'dikirim', pengguna=ident[0], peran=ident[1])

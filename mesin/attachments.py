@@ -334,6 +334,11 @@ def _teks_konteks(kon, sesi_id: int) -> list[str]:
     ]
 
 
+def _review_store():
+    import review_store  # late import: hindari siklus modul
+    return review_store
+
+
 def _soal_konteks(kon, sesi_id: int) -> list[dict]:
     """Soal sesi untuk konteks AI dan halaman konfirmasi (teks + kunci)."""
     from teacher_pages import _soal_dari_baris  # late import: hindari siklus
@@ -350,6 +355,9 @@ def _soal_konteks(kon, sesi_id: int) -> list[dict]:
                 "kunci": b["kunci"],
                 "jawaban_lama": b["jawaban"] or "",
                 "cara_lama": b["cara"] or "",
+                # Centang "benar" terisi ulang saat lampiran diterapkan lagi; tanpa ini
+                # penerapan ulang melepas semua keputusan benar secara diam-diam.
+                "ditandai_benar": _review_store().ditandai_benar(b),
             }
         )
     return keluar
@@ -697,7 +705,10 @@ def _gagal_foto(path, operasi_id, ikatan, kini, *, unknown):
 def terapkan(kon, lampiran_id: int, data: dict) -> tuple[int, str]:
     """Tulis jawaban hasil konfirmasi guru ke jalur simpan yang resmi.
 
-    Form mengirim per soal: jwb_<ssid>, cara_<ssid>, blm_<ssid>.
+    Form mengirim per soal: jwb_<ssid>, cara_<ssid>, blm_<ssid>, dan benar_<ssid>
+    ("tandai benar": jawaban disimpan sebagai kunci, diagnosis manual benar
+    berpenanda ``ditandai_benar`` di diagnosis.catatan). Centang + teks
+    yang berbeda dari kunci ditolak lewat ValueError tanpa menulis apa pun.
     Mengembalikan (jumlah_soal, pesan). Setelah menulis, diagnosis dijalankan
     lewat reports.diagnosa_murid (satu jalur untuk semua sumber jawaban).
     """
@@ -715,12 +726,29 @@ def terapkan(kon, lampiran_id: int, data: dict) -> tuple[int, str]:
             nilai = (data.get(f'jwb_{sid}') or '').strip()
             if nilai and nilai not in {o.nilai for o in p.opsi}:
                 raise ValueError('Pilih jawaban foto sesuai opsi pada lembar.')
+    import review_store
+    from diagnosis import setara
     jumlah = 0
+    ditandai: list[int] = []
+    dilepas: list[int] = []
     for b in database.isi_sesi(kon, sesi_id):
         ssid = b["sesi_soal_id"]
         jawaban = (data.get(f"jwb_{ssid}") or "").strip()
         cara = (data.get(f"cara_{ssid}") or "").strip()
         belum = f"blm_{ssid}" in data
+        tandai = f"benar_{ssid}" in data and ssid not in pilihan_pg
+        if tandai:
+            kunci = (b["kunci"] or "").strip()
+            if jawaban and not setara(jawaban, kunci):
+                raise ValueError(
+                    f"Soal {b['nomor']}: dicentang benar, tetapi jawaban yang diketik berbeda "
+                    "dari jawaban yang tepat. Kosongkan kolom jawaban atau hapus centangnya."
+                )
+            jawaban = kunci
+        elif review_store.ditandai_benar(b):
+            # Centang dicabut saat menerapkan ulang: lepaskan keputusan manual lama
+            # supaya diagnosa_murid menilai ulang jawaban yang sekarang diketik.
+            dilepas.append(ssid)
         if not (jawaban or cara or belum):
             continue
         database.simpan_jawaban(
@@ -728,11 +756,19 @@ def terapkan(kon, lampiran_id: int, data: dict) -> tuple[int, str]:
             jawaban=jawaban, cara=cara,
             restatement="", belum_pernah=belum,
         )
+        if tandai:
+            ditandai.append(ssid)
         jumlah += 1
     if jumlah:
         import reports  # late: diagnosa_murid tinggal di reports
 
+        if dilepas:
+            for b in database.isi_sesi(kon, sesi_id):
+                if b["sesi_soal_id"] in dilepas and b["jawaban_id"] is not None:
+                    database.simpan_diagnosis(kon, b["jawaban_id"], False, None, None, None, "", False, "")
         reports.diagnosa_murid(kon, sesi_id)
+        if ditandai:
+            _tandai_benar(kon, sesi_id, ditandai)
         database.tandai_lampiran(kon, lampiran_id, "diterapkan")
         # Sesi yang jadi terisi penuh lewat foto dianggap terkirim: kolom
         # selesai menentukan badge daftar murid ("Masih di review", bukan
@@ -752,6 +788,24 @@ def terapkan(kon, lampiran_id: int, data: dict) -> tuple[int, str]:
             arsipkan(kon, sesi_id, 'foto')
             database.tandai_selesai(kon, sesi_id)
     return jumlah, f"{jumlah} soal dari foto masuk dan didiagnosis."
+
+
+def _tandai_benar(kon, sesi_id: int, ditandai: list[int]) -> None:
+    """Keputusan guru "benar" dari lembar: sama dengan pilihan benar di tinjauan.
+
+    Usulan mesin tetap disimpan di kode_usulan supaya akurasinya bisa diukur;
+    kode_final kosong dan manual=1 seperti dropdown tinjauan. Penanda
+    ``ditandai_benar`` di diagnosis.catatan membuat palang bukti review_store
+    menolak pengesahan bila jawaban tersimpan tidak lagi sama dengan kunci.
+    """
+    import review_store
+    for b in database.isi_sesi(kon, sesi_id):
+        if b["sesi_soal_id"] in ditandai and b["jawaban_id"] is not None:
+            database.simpan_diagnosis(
+                kon, b["jawaban_id"], True, b["kode_usulan"], None, None,
+                b["alasan"] or "ditandai benar oleh guru dari lembar", True,
+                review_store.PENANDA_DITANDAI_BENAR,
+            )
 
 
 def _blok_jawaban_lama(s: dict) -> str:
@@ -854,6 +908,11 @@ def halaman_konfirmasi(
             kunci_html = ''
         input_jawaban = (select_guru(pg, s['jawaban_lama'], f'foto-jwb-{s["sesi_soal_id"]}') if pg else
                          f'<input id="foto-jwb-{s["sesi_soal_id"]}" type="text" name="jwb_{s["sesi_soal_id"]}" value="{jwb_u}">')
+        centang_benar = '' if pg else (
+            f'<label class="centang centang-benar"><input type="checkbox" name="benar_{s["sesi_soal_id"]}"'
+            f'{" checked" if s.get("ditandai_benar") else ""}> '
+            f'Jawaban anak benar (jawaban yang tepat: {html.escape(s["kunci"])}). Kolom jawaban boleh kosong.</label>'
+        )
         tanda = (
             f'<span class="tanda">{"?" if u.get("caraku") == "?" else ""}</span>'
             if u.get("caraku") == "?"
@@ -879,6 +938,7 @@ def halaman_konfirmasi(
     <div><label for="foto-cara-{s['sesi_soal_id']}">{label_cara}</label>
       <input id="foto-cara-{s['sesi_soal_id']}" type="text" name="cara_{s['sesi_soal_id']}" value="{cara_u}"></div>
   </div>
+  {centang_benar}
   <label class="centang"><input type="checkbox" name="blm_{s['sesi_soal_id']}">
     anak menulis "belum pernah lihat"</label>
   </div>

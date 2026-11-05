@@ -51,11 +51,16 @@ def test_mode_manual_tidak_memakai_bahasa_ai(db):
 
 
 def test_mode_manual_tidak_menampilkan_kunci_sebelum_diisi(db):
+    """Kunci tidak membiaskan transkripsi: hanya muncul di label centang "benar",
+    bukan di kolom jawaban, badge kunci, atau ringkasan bacaan (keputusan 5 Nov 2026)."""
     with database.buka(db) as kon:
         sesi_id, lid = _lampiran(kon)
+        kunci = _kunci_pertama(kon, sesi_id)
         html = attachments.halaman_konfirmasi(kon, lid, ai_aktif=False).decode()
     assert 'class="kunci"' not in html
     assert "kunci:" not in html
+    assert f'value="{kunci}"' not in html
+    assert f"(jawaban yang tepat: {kunci})" in html
 
 
 def test_mode_manual_membuka_semua_kartu_soal(db):

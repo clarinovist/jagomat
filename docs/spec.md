@@ -28,6 +28,11 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
 
 - Generator deterministik, lembar cetak, latihan daring/manual, foto atau isi dari
   lembar, tinjauan dan laporan per anak. Kunci/diagnosis bukan keputusan LLM.
+  Di halaman isi dari lembar, guru boleh mencentang "jawaban anak benar" alih-alih
+  mengetik: jawaban tersimpan sebagai kunci, dinilai benar sebagai keputusan guru
+  (manual, berpenanda), dan butir salah tetap diketik persis. Centang dengan teks yang
+  berbeda dari kunci ditolak utuh. Konfirmasi sesi menolak butir tercentang yang
+  jawabannya berubah sesudahnya sampai guru menilai ulang.
 - Beranda guru memprioritaskan yang terlama menunggu konfirmasi: kartu anak dengan satu
   tombol aksi, chip kelompok berhitungan, dan pencarian nama/login (untuk daftar panjang),
   semuanya owner-scoped. Query GET tidak di-cache atau dikirim sebagai referrer, tetapi

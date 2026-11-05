@@ -397,6 +397,11 @@ def halaman_sesi_stitch(
             f'<b>Penilaian saat halaman dimuat: {html.escape(label_penilaian("benar" if benar_tampil else kode_efektif))}</b>'
             f'<br>{html.escape(status_persetujuan)}</p>'
         )
+        if review_store.ditandai_benar(b):
+            penilaian_status += (
+                '<p class="koreksi-catatan-st koreksi-ditandai-benar-st">Ditandai benar dari lembar oleh guru, '
+                'tanpa mengetik jawaban anak. Minta anak menjelaskan caranya saat sesi.</p>'
+            )
         # Proyeksi pekerjaan bukan palang konfirmasi. Semua nilai form tetap
         # dikirim, termasuk saat kartu dilipat; server memvalidasi ulang.
         sumber_tampil = review_pages.nilai(tinjauan_butir, draf_butir, 'provenance')

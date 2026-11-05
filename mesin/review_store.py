@@ -8,7 +8,19 @@ from teacher_corrections import cara_dari_form
 
 AWALAN = ('catatan_tinjauan_', 'provenance_', 'jawaban_bantuan_', 'versi_tinjauan_')
 PROVENANCE = {'', 'penjelasan_asli', 'koreksi_transkripsi', 'setelah_bantuan'}
+# Penanda di diagnosis.catatan untuk butir yang guru centang "benar" dari lembar
+# (attachments.terapkan). Bukan nilai provenance: CHECK skema tinjauan_guru
+# mengunci daftar provenance, dan kolom catatan diagnosis tidak diedit pengguna.
+PENANDA_DITANDAI_BENAR = 'ditandai_benar'
 PEMAHAMAN = {'', 'bisa_menjelaskan', 'ragu', 'menghafal'}
+
+
+def ditandai_benar(b) -> bool:
+    """Butir manual benar yang berasal dari centang lembar, bukan ketikan."""
+    try:
+        return bool(b['manual']) and bool(b['benar']) and b['catatan'] == PENANDA_DITANDAI_BENAR
+    except (KeyError, IndexError):
+        return False
 
 
 class TinjauanTidakSah(ValueError):
@@ -131,6 +143,14 @@ def validasi_bukti(kon, sesi_id, outcome, dilewati):
             raise TinjauanTidakSah(sid, 'Pengalaman anak belum dipastikan guru; tinjau sebelum memilih pengenalan.')
         if t.get('provenance') == 'setelah_bantuan':
             raise TinjauanTidakSah(sid, 'Hasil setelah bantuan bukan bukti jawaban mandiri. Gunakan probe berikutnya.')
+        if ditandai_benar(b):
+            # Centang "benar" dari lembar hanya sah selama jawaban tersimpan masih kunci.
+            # Bila anak mengubah jawabannya dari HP setelah guru mencentang (sesi belum
+            # selesai), arsip memuat jawaban baru dan aturan arsip di atas tidak melihat
+            # perbedaan; palang ini yang menangkapnya. Tanpa kunci di baris outcome: tolak.
+            kunci = (b['kunci'] if 'kunci' in b.keys() else None)
+            if kunci is None or (b['jawaban'] or '').strip() != (kunci or '').strip():
+                raise TinjauanTidakSah(sid, 'Jawaban anak berubah setelah ditandai benar dari lembar. Pilih penilaian pada butir ini untuk menilai ulang sebelum disahkan.')
         if awal:
             berubah = ((b['jawaban'] or '').strip() != awal['jawaban'].strip())
             if berubah and not (t.get('provenance') == 'koreksi_transkripsi' and t.get('catatan')):
