@@ -61,6 +61,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   karena kolom itu punya CHECK skema; nilai provenance resmi menunggu migrasi.
   `validasi_bukti` menolak butir berpenanda yang jawabannya bukan kunci lagi. Parser
   `/lampiran/<id>/terapkan` menerima 400 field dan menjawab 400 untuk kiriman yang ditolak.
+- `probe_questions.py` (5 Nov 2026): pertanyaan pancingan statis per topik (fallback umum)
+  untuk halaman tinjauan guru saat `diagnosa` tidak punya dugaan; `render()` kosong untuk
+  peran selain guru. Topik diambil dari `topics.pemilik_template`, lalu topik sesi.
 - Stdlib runtime; dev dependency hanya pytest/pytest-xdist. Python lokal3.9.6 dan
   CI/container3.12. Nama modul Inggris; fungsi/docstring/UI/commit Bahasa Indonesia.
 - Zero-JS default. Enhancement yang disetujui berhash CSP dan fallback native;

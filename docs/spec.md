@@ -33,6 +33,9 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
   (manual, berpenanda), dan butir salah tetap diketik persis. Centang dengan teks yang
   berbeda dari kunci ditolak utuh. Konfirmasi sesi menolak butir tercentang yang
   jawabannya berubah sesudahnya sampai guru menilai ulang.
+- Jawaban salah tanpa dugaan ("Belum yakin") di halaman tinjauan menampilkan tiga
+  pertanyaan pancingan umum per topik untuk guru, berlabel draf; bukan diagnosis,
+  bukan bukti, dan tidak pernah tampil di permukaan murid atau tautan.
 - Beranda guru memprioritaskan yang terlama menunggu konfirmasi: kartu anak dengan satu
   tombol aksi, chip kelompok berhitungan, dan pencarian nama/login (untuk daftar panjang),
   semuanya owner-scoped. Query GET tidak di-cache atau dikirim sebagai referrer, tetapi
