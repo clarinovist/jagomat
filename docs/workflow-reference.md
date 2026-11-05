@@ -14,12 +14,18 @@ Masalah / dugaan sebab:
 Scope file + di luar scope:
 Acceptance criteria:
 Rencana fix + regression test:
+Delegasi (Claude Code): per blok → fast-explorer / implementer / inline + alasan
 Review: acceptance criteria, invariant, regresi, dan blocker patch
 Verifikasi: command, hasil, alasan tidak dijalankan
 Follow-up:
 ```
 
 Kritis tambahkan invariant, failure path, risiko data/runtime, dan rollback/recovery.
+Prompt sesi baru (`docs/plan/*-prompt-*.md`) memuat bagian `## Delegasi` yang sama:
+pemetaan kode lintas berkas → `fast-explorer`; kode mekanis/terisolasi (helper murni,
+encoder, perbaikan test massal) → `implementer` dengan daftar test scoped; edit invariant
+Kritis boleh inline. Sesi utama tidak membaca ulang target yang sedang dipetakan
+explorer dan tetap me-review diff `implementer` sendiri.
 Kritis kecil cukup satu catatan ringkas; tidak perlu checklist Residual Gap atau laporan
 pendamping. Plan rutin tetap lokal/gitignored, bukan dokumen permanen yang di-commit.
 Cek read-only tidak otomatis memerlukan plan implementasi. Untuk operasi data/tooling
