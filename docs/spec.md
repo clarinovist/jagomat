@@ -51,7 +51,8 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
   guru" dari Beranda profil (hanya peran guru), juga saat Pendampingan aktif. Bukan bukti
   belajar dan tidak menulis DB; lembar soal murid tetap lewat pil Cetak di sesi.
 - **Laporan guru → orang tua (G3; live di produksi sejak 5 Nov 2026):** guru memilih
-  periode di tab Perkembangan, meninjau pratinjau identik, menulis catatan (≤2000 karakter),
+  periode di tab Perkembangan, meninjau pratinjau identik, menulis catatan (≤2000 karakter; draf menawarkan
+  satu kalimat pembuka netral berpenanda `[isi]` yang wajib dilengkapi sebelum disimpan, tidak pernah terbit sendiri),
   lalu menerbitkan tautan baca-saja `/laporan-ortu/<token>` (30 hari, bisa dicabut, satu tautan
   aktif per anak, tanpa login/JS/tautan keluar). Isi hanya nama anak, periode, topik dari sesi
   selesai+terkonfirmasi, tahap netral "n dari 6", satu kalimat langkah, catatan, nama guru;

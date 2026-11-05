@@ -243,3 +243,51 @@ def test_terbit_baru_mematikan_tautan_laporan_lama(s):
     _, isi2, _ = s.minta(d2 + "/terbitkan", auth=GURU, data={})
     t2 = re.search(r"/laporan-ortu/([A-Za-z0-9_-]{43})", isi2).group(1)
     assert s.minta(f"/laporan-ortu/{t1}")[0] == 404 and s.minta(f"/laporan-ortu/{t2}")[0] == 200
+
+
+# --- Kalimat pembuka catatan (keputusan pemilik 6 Nov, K1): templat netral berpenanda
+# [isi] yang wajib dilengkapi guru; tidak pernah terbit diam-diam.
+
+import html as _html  # noqa: E402
+
+import parent_report_guru_pages as guru_pages  # noqa: E402
+
+
+def test_draf_kosong_menampilkan_kalimat_pembuka_berpenanda(s):
+    _, _, h = _buat(s)
+    _, isi, _ = s.minta(h["Location"], auth=GURU)
+    textarea = re.search(r'<textarea id="catatan"[^>]*>(.*?)</textarea>', isi, re.S).group(1)
+    assert _html.unescape(textarea) == guru_pages.KALIMAT_PEMBUKA
+    assert guru_pages.PENANDA_ISI in guru_pages.KALIMAT_PEMBUKA
+
+
+def test_simpan_catatan_yang_masih_memuat_penanda_ditolak_tanpa_tulis(s):
+    _, _, h = _buat(s)
+    lid = _id_dari(h)
+    sebelum = _dump(s)
+    kode, _, isi = raw(s, f"/anak/{s.anak}/laporan-ortu/{lid}/catatan",
+                       {"catatan": "Minggu ini kami berlatih pola bilangan. Di rumah, [isi]."})
+    assert kode == 400
+    assert "[isi]" in _html.unescape(isi) and "Lengkapi" in isi
+    # Ketikan guru tetap tampil untuk dilengkapi, bukan diganti templat lagi.
+    assert "berlatih pola bilangan. Di rumah, [isi]." in _html.unescape(isi)
+    assert _dump(s) == sebelum
+
+
+def test_terbit_tanpa_simpan_catatan_tidak_memuat_templat(s):
+    _, _, h = _buat(s)
+    lid = _id_dari(h)
+    kode, isi, _ = s.minta(f"/anak/{s.anak}/laporan-ortu/{lid}/terbitkan", auth=GURU, data={})
+    token = re.search(r"/laporan-ortu/([A-Za-z0-9_-]{43})", isi).group(1)
+    _, ortu, _ = s.minta(f"/laporan-ortu/{token}")
+    with s.buka() as kon:
+        assert toko.ambil(kon, s.anak, lid)["catatan"] == ""
+    assert "[isi]" not in ortu and "kami berlatih" not in ortu
+
+
+def test_catatan_tersimpan_tidak_ditimpa_kalimat_pembuka(s):
+    _, _, h = _buat(s)
+    lid = _id_dari(h)
+    raw(s, f"/anak/{s.anak}/laporan-ortu/{lid}/catatan", {"catatan": "Sudah lebih teliti."})
+    _, isi, _ = s.minta(h["Location"], auth=GURU)
+    assert "Sudah lebih teliti." in isi and "[isi]" not in _html.unescape(isi.split("<textarea", 1)[1].split("</textarea>", 1)[0])

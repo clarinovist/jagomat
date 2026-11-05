@@ -27,6 +27,13 @@ _GAYA = f"""<style>
 </style>"""
 
 
+# Kalimat pembuka catatan (keputusan pemilik 6 Nov 2026, K1): templat netral yang harus
+# dilengkapi guru. Tidak mengambil isi laporan; simpan ditolak selama PENANDA_ISI tersisa,
+# dan terbit memakai catatan tersimpan saja, jadi templat tidak pernah terbit diam-diam.
+PENANDA_ISI = "[isi]"
+KALIMAT_PEMBUKA = f"Minggu ini kami berlatih {PENANDA_ISI}. Di rumah, Anda bisa membantu dengan {PENANDA_ISI}."
+
+
 def _e(nilai) -> str:
     return html.escape(str(nilai), quote=True)
 
@@ -114,7 +121,7 @@ def _konfirmasi(sid, lid, aksi, judul, akibat, tombol):
 
 
 def halaman_detail(siswa, lap, ident, *, tautan=None, berubah=0, token_url="", hanya_lihat=False,
-                   galat="") -> bytes:
+                   galat="", catatan_kiriman=None) -> bytes:
     sid, lid = siswa["id"], lap["id"]
     dasar = f"/anak/{sid}/laporan-ortu/{lid}"
     kedaluarsa = tautan["kedaluarsa"] if tautan and tautan["laporan_id"] == lid else None
@@ -134,8 +141,9 @@ def halaman_detail(siswa, lap, ident, *, tautan=None, berubah=0, token_url="", h
     elif lap["diterbitkan"] is None:
         aksi = (
             f'<form method="post" action="{dasar}/catatan" class="kartu-st"><label for="catatan">Catatan guru (opsional)</label>'
-            f'<textarea id="catatan" name="catatan" maxlength="2000">{_e(lap["catatan"])}</textarea>'
-            '<p class="sub">Teks biasa, sampai 2000 karakter. Tidak bisa diubah setelah diterbitkan.</p>'
+            f'<textarea id="catatan" name="catatan" maxlength="2000">{_e(catatan_kiriman if catatan_kiriman is not None else (lap["catatan"] or KALIMAT_PEMBUKA))}</textarea>'
+            f'<p class="sub">Ganti setiap {_e(PENANDA_ISI)} dengan kata-kata Anda, atau hapus kalimatnya, lalu Simpan catatan. '
+            'Teks biasa, sampai 2000 karakter. Tidak bisa diubah setelah diterbitkan.</p>'
             '<div class="baris-aksi"><button class="btn-st" type="submit">Simpan catatan</button></div></form>'
             f'<form method="post" action="{dasar}/terbitkan" class="kartu-st"><p>Menerbitkan membuat tautan baca-saja '
             "30 hari dan mematikan tautan laporan lain untuk anak ini.</p>"

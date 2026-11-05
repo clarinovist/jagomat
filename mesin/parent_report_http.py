@@ -182,11 +182,11 @@ def _buat(penangan, kon, siswa, ident, data) -> bool:
     return True
 
 
-def _detail(penangan, kon, siswa, ident, lid, *, token="", galat="", kode=200) -> bool:
+def _detail(penangan, kon, siswa, ident, lid, *, token="", galat="", kode=200, catatan_kiriman=None) -> bool:
     lap = toko.ambil(kon, siswa["id"], lid)
     isi = guru_pages.halaman_detail(
         siswa, lap, ident, tautan=toko.tautan_aktif(kon, siswa["id"]),
-        berubah=toko.bukti_berubah(kon, siswa["id"], lid), galat=galat,
+        berubah=toko.bukti_berubah(kon, siswa["id"], lid), galat=galat, catatan_kiriman=catatan_kiriman,
         token_url=f"{brand.URL_SITUS}/laporan-ortu/{token}" if token else "")
     penangan._kirim_tautan(isi, kode)
     return True
@@ -201,6 +201,10 @@ def _aksi_laporan(penangan, kon, siswa, ident, lid, aksi, data) -> bool:
             if len(catatan) > toko.BATAS_CATATAN:
                 kon.rollback()
                 return _detail(penangan, kon, siswa, ident, lid, galat="Catatan terlalu panjang (maksimal 2000 karakter).", kode=400)
+            if guru_pages.PENANDA_ISI in catatan:
+                kon.rollback()
+                return _detail(penangan, kon, siswa, ident, lid, kode=400, catatan_kiriman=catatan, galat=(
+                    f"Lengkapi setiap {guru_pages.PENANDA_ISI} di catatan atau hapus kalimatnya. Catatan belum disimpan."))
             toko.simpan_catatan(kon, sid, lid, catatan)
             kon.commit()
             _alihkan(penangan, dasar)
