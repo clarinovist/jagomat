@@ -71,10 +71,14 @@ def diagnosa_murid(kon, sesi_id: int) -> int:
         cara = b["cara"] or ""
         return students.AWALAN_DRILL + cara if drill else cara
 
+    import answer_marks
+
     for b in database.isi_sesi(kon, sesi_id):
         if b["jawaban_id"] is None:
             continue  # anak melewati soal ini: biarkan tanpa baris
-        if b["manual"] == 1:
+        # Centang "benar" dari lembar hanya sah selama jawaban masih kunci. Bila anak
+        # mengubahnya sesudah dicentang, tanda dilepas dan butir dinilai ulang di bawah.
+        if b["manual"] == 1 and not answer_marks.tanda_basi(b):
             # Segarkan usulan mesin saja; vonis guru tidak disentuh.
             soal = _soal_dari_baris(b)
             u = diagnosa(

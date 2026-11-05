@@ -31,8 +31,8 @@ batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** n
   Di halaman isi dari lembar, guru boleh mencentang "jawaban anak benar" alih-alih
   mengetik: jawaban tersimpan sebagai kunci, dinilai benar sebagai keputusan guru
   (manual, berpenanda), dan butir salah tetap diketik persis. Centang dengan teks yang
-  berbeda dari kunci ditolak utuh. Konfirmasi sesi menolak butir tercentang yang
-  jawabannya berubah sesudahnya sampai guru menilai ulang.
+  berbeda dari kunci ditolak utuh. Bila anak mengubah jawaban tercentang sesudahnya,
+  tanda benar dilepas dan Jagomat menilai ulang butir itu seperti jawaban biasa.
 - Jawaban salah tanpa dugaan ("Belum yakin") di halaman tinjauan menampilkan tiga
   pertanyaan pancingan umum per topik untuk guru, berlabel draf; bukan diagnosis,
   bukan bukti, dan tidak pernah tampil di permukaan murid atau tautan.

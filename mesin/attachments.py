@@ -34,6 +34,7 @@ import sqlite3
 import time
 from pathlib import Path
 
+import answer_marks
 import database
 import question_views
 import visual_renderer
@@ -334,11 +335,6 @@ def _teks_konteks(kon, sesi_id: int) -> list[str]:
     ]
 
 
-def _review_store():
-    import review_store  # late import: hindari siklus modul
-    return review_store
-
-
 def _soal_konteks(kon, sesi_id: int) -> list[dict]:
     """Soal sesi untuk konteks AI dan halaman konfirmasi (teks + kunci)."""
     from teacher_pages import _soal_dari_baris  # late import: hindari siklus
@@ -357,7 +353,7 @@ def _soal_konteks(kon, sesi_id: int) -> list[dict]:
                 "cara_lama": b["cara"] or "",
                 # Centang "benar" terisi ulang saat lampiran diterapkan lagi; tanpa ini
                 # penerapan ulang melepas semua keputusan benar secara diam-diam.
-                "ditandai_benar": _review_store().ditandai_benar(b),
+                "ditandai_benar": answer_marks.ditandai_benar(b),
             }
         )
     return keluar
@@ -726,7 +722,6 @@ def terapkan(kon, lampiran_id: int, data: dict) -> tuple[int, str]:
             nilai = (data.get(f'jwb_{sid}') or '').strip()
             if nilai and nilai not in {o.nilai for o in p.opsi}:
                 raise ValueError('Pilih jawaban foto sesuai opsi pada lembar.')
-    import review_store
     from diagnosis import setara
     jumlah = 0
     ditandai: list[int] = []
@@ -745,7 +740,7 @@ def terapkan(kon, lampiran_id: int, data: dict) -> tuple[int, str]:
                     "dari jawaban yang tepat. Kosongkan kolom jawaban atau hapus centangnya."
                 )
             jawaban = kunci
-        elif review_store.ditandai_benar(b):
+        elif answer_marks.ditandai_benar(b):
             # Centang dicabut saat menerapkan ulang: lepaskan keputusan manual lama
             # supaya diagnosa_murid menilai ulang jawaban yang sekarang diketik.
             dilepas.append(ssid)
@@ -795,16 +790,15 @@ def _tandai_benar(kon, sesi_id: int, ditandai: list[int]) -> None:
 
     Usulan mesin tetap disimpan di kode_usulan supaya akurasinya bisa diukur;
     kode_final kosong dan manual=1 seperti dropdown tinjauan. Penanda
-    ``ditandai_benar`` di diagnosis.catatan membuat palang bukti review_store
-    menolak pengesahan bila jawaban tersimpan tidak lagi sama dengan kunci.
+    ``ditandai_benar`` di diagnosis.catatan (answer_marks) dilepas otomatis oleh
+    reports.diagnosa_murid bila jawaban tersimpan tidak lagi sama dengan kunci.
     """
-    import review_store
     for b in database.isi_sesi(kon, sesi_id):
         if b["sesi_soal_id"] in ditandai and b["jawaban_id"] is not None:
             database.simpan_diagnosis(
                 kon, b["jawaban_id"], True, b["kode_usulan"], None, None,
                 b["alasan"] or "ditandai benar oleh guru dari lembar", True,
-                review_store.PENANDA_DITANDAI_BENAR,
+                answer_marks.PENANDA_DITANDAI_BENAR,
             )
 
 

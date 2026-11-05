@@ -1,8 +1,9 @@
 """Mode "tandai benar" pada halaman isi jawaban dari lembar (blok A, 5 Nov 2026).
 
 Guru mencentang "jawaban anak benar" alih-alih mengetik; jawaban tersimpan
-sebagai kunci (bentuk kanonis), diagnosis manual benar, dan asal jawaban
-``ditandai_benar`` tercatat di tinjauan. Butir salah tetap diketik persis.
+sebagai kunci (bentuk kanonis), diagnosis manual benar berpenanda
+``ditandai_benar`` (answer_marks). Butir salah tetap diketik persis. Bila anak
+mengubah jawaban tercentang, tanda dilepas dan butir dinilai ulang.
 """
 from __future__ import annotations
 
@@ -13,6 +14,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import answer_marks  # noqa: E402
 import attachments  # noqa: E402
 import database  # noqa: E402
 import llm  # noqa: E402
@@ -85,11 +87,11 @@ def test_terapkan_centang_benar_menyimpan_kunci_manual_dan_provenance(db):
     for sid, b in sesudah.items():
         if sid == sid_salah:
             assert b["jawaban"] == "tidak" and not b["benar"]
-            assert not review_store.ditandai_benar(b)
+            assert not answer_marks.ditandai_benar(b)
             continue
         assert b["jawaban"] == b["kunci"]
         assert b["benar"] == 1 and b["manual"] == 1 and b["kode_final"] is None
-        assert review_store.ditandai_benar(b)
+        assert answer_marks.ditandai_benar(b)
     assert selesai and arsip["sumber"] == "foto"
 
 
@@ -140,15 +142,14 @@ def test_validasi_bukti_lolos_bila_jawaban_tercentang_tetap_kunci(db):
         review_store.validasi_bukti(kon, sesi_id, outcome, set())
 
 
-def test_validasi_bukti_menolak_centang_benar_yang_jawabannya_diubah_anak(db):
-    """Arsip memuat jawaban baru anak, jadi aturan arsip diam; palang penanda yang menangkap."""
+def test_anak_mengubah_jawaban_tercentang_tanda_dilepas_dan_dinilai_ulang(db):
+    """Arsip memuat jawaban baru anak; diagnosa_murid melepas tanda basi dan menilai ulang."""
     with database.buka(db) as kon:
         sesi_id, sid = _centang_sebagian_lalu_anak_lanjut(kon, ubah_jawaban=True)
-        outcome = _butir(kon, sesi_id)
-        b = {x["sesi_soal_id"]: x for x in outcome}[sid]
-        assert review_store.ditandai_benar(b) and b["jawaban"] == "tidak"
-        with pytest.raises(review_store.TinjauanTidakSah, match="berubah setelah ditandai benar"):
-            review_store.validasi_bukti(kon, sesi_id, outcome, set())
+        b = {x["sesi_soal_id"]: x for x in _butir(kon, sesi_id)}[sid]
+    assert b["jawaban"] == "tidak"
+    assert not answer_marks.ditandai_benar(b)
+    assert b["manual"] == 0 and not b["benar"] and b["catatan"] == ""
 
 
 def test_arsip_menolak_ubah_jawaban_butir_ditandai_benar_tanpa_koreksi_salinan(db):
@@ -232,7 +233,7 @@ def test_terapkan_ulang_tanpa_centang_melepas_keputusan_benar_lama(db):
         kon.commit()
         b = {x["sesi_soal_id"]: x for x in _butir(kon, sesi_id)}[sid]
     assert b["jawaban"] == "tidak"
-    assert not review_store.ditandai_benar(b)
+    assert not answer_marks.ditandai_benar(b)
     assert not b["benar"]
 
 
@@ -258,19 +259,63 @@ def test_konfirmasi_sungguhan_lolos_bila_centang_tetap_kunci(db):
     assert konfirmasi_id
 
 
-def test_konfirmasi_sungguhan_menolak_centang_yang_jawabannya_diubah_anak(db):
+def test_konfirmasi_sungguhan_menunggu_guru_bila_jawaban_tercentang_diubah_anak(db):
+    """Butir dinilai ulang tanpa kode cocok, jadi konfirmasi menunggu penilaian guru."""
     with database.buka(db) as kon:
         sesi_id, _sid = _centang_sebagian_lalu_anak_lanjut(kon, ubah_jawaban=True)
-        with pytest.raises(review_store.TinjauanTidakSah, match="berubah setelah ditandai benar"):
+        with pytest.raises(ValueError, match="outcome belum lengkap"):
             database.konfirmasi_hasil(kon, sesi_id, "guru", dilewati=set())
         kon.rollback()
         n = kon.execute("SELECT COUNT(*) FROM konfirmasi_hasil WHERE sesi_id=?", (sesi_id,)).fetchone()[0]
     assert n == 0
 
 
-def test_validasi_bukti_menolak_baris_tanpa_kolom_penanda(db):
+def test_edit_guru_di_tinjauan_melepas_tanda(db):
+    """simpan_sesi menulis ulang diagnosis tanpa catatan, jadi tanda benar hilang.
+
+    Dropdown tinjauan membawa pilihan tersimpan (Benar), sama seperti keputusan manual
+    guru lain; setelah edit, keputusan itu menjadi pilihan dropdown biasa, bukan tanda lembar.
+    """
+    import teacher_review_service
     with database.buka(db) as kon:
-        sesi_id, _sid = _centang_sebagian_lalu_anak_lanjut(kon, ubah_jawaban=False)
-        outcome = [{k: b[k] for k in b.keys() if k != "catatan"} for b in _butir(kon, sesi_id)]
-        with pytest.raises(ValueError, match="tidak lengkap"):
-            review_store.validasi_bukti(kon, sesi_id, outcome, set())
+        sesi_id, lid = _lampiran(kon)
+        butir = _butir(kon, sesi_id)
+        attachments.terapkan(kon, lid, _data_semua_benar_kecuali(butir, {}))
+        kon.commit()
+        sid = butir[0]["sesi_soal_id"]
+        teacher_review_service.simpan_sesi(kon, sesi_id, {
+            f"jwb_{sid}": "tidak", f"provenance_{sid}": "koreksi_transkripsi",
+            f"catatan_tinjauan_{sid}": "Salah centang; tulisan anak berbeda.",
+        }, guru="guru")
+        kon.commit()
+        b = {x["sesi_soal_id"]: x for x in _butir(kon, sesi_id)}[sid]
+    assert b["jawaban"] == "tidak" and not answer_marks.ditandai_benar(b)
+    assert b["manual"] == 1 and b["catatan"] == ""
+
+
+def test_http_anak_mengubah_jawaban_tercentang_lewat_tautan_tanda_dilepas(server, tmp_path, monkeypatch):
+    """Jalur sungguhan: centang sebagian dari lembar, lalu anak selesai lewat /mulai/<token>."""
+    import share_links
+    sesi_id, lid = _buat_lampiran_http(server, tmp_path, monkeypatch)
+    with server.buka() as kon:
+        butir = _butir(kon, sesi_id)
+        sid_centang, sid_kosong = butir[0]["sesi_soal_id"], butir[-1]["sesi_soal_id"]
+        data = _data_semua_benar_kecuali(butir, {})
+        del data[f"benar_{sid_kosong}"]
+        attachments.terapkan(kon, lid, data)
+        kunci_kosong = butir[-1]["kunci"]
+        token = share_links.buat(kon, sesi_id)
+        kon.commit()
+        assert not kon.execute("SELECT selesai FROM sesi WHERE id=?", (sesi_id,)).fetchone()[0]
+    payload = {f"jwb_{sid_centang}": "tidak", f"cara_{sid_centang}": "cara anak",
+               f"jwb_{sid_kosong}": kunci_kosong, f"cara_{sid_kosong}": "cara anak", "aksi": "selesai"}
+    kode, _isi, _ = server.minta(f"/mulai/{token}", data=payload)
+    assert kode in (200, 303), kode
+    with server.buka() as kon:
+        selesai = kon.execute("SELECT selesai FROM sesi WHERE id=?", (sesi_id,)).fetchone()[0]
+        semua = {x["sesi_soal_id"]: x for x in _butir(kon, sesi_id)}
+    assert selesai
+    b = semua[sid_centang]
+    assert b["jawaban"] == "tidak" and not answer_marks.ditandai_benar(b)
+    assert b["manual"] == 0 and not b["benar"]
+    assert answer_marks.ditandai_benar(semua[butir[1]["sesi_soal_id"]])  # centang lain tetap

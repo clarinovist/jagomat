@@ -195,6 +195,7 @@ def halaman_sesi_stitch(
         "tidak_konsisten": "Penilaian tersimpan belum konsisten. Periksa jawaban dan cara anak, lalu pilih kembali penilaian yang sesuai.",
     }
     masalah_per_butir = {sid: pesan_masalah.get(alasan, alasan) for sid, _, alasan in masalah_konfirmasi}
+    import answer_marks
     import review_store
     import review_pages
     from choice_store import daftar_pilihan
@@ -398,7 +399,7 @@ def halaman_sesi_stitch(
             f'<b>Penilaian saat halaman dimuat: {html.escape(label_penilaian("benar" if benar_tampil else kode_efektif))}</b>'
             f'<br>{html.escape(status_persetujuan)}</p>'
         )
-        if review_store.ditandai_benar(b):
+        if answer_marks.ditandai_benar(b):
             penilaian_status += (
                 '<p class="koreksi-catatan-st koreksi-ditandai-benar-st">Ditandai benar dari lembar oleh guru, '
                 'tanpa mengetik jawaban anak. Minta anak menjelaskan caranya saat sesi.</p>'

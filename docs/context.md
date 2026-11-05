@@ -56,10 +56,11 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   PG identik dengan recovery; produksi 1 sejak 4 Nov 2026): bila 1, lembar cetak PG memakai opsi dua kolom dan jarak kertas.
 - Tandai benar dari lembar (5 Nov 2026): `attachments.terapkan` menerima `benar_<ssid>`,
   menyimpan jawaban = kunci dan diagnosis manual benar berpenanda
-  `diagnosis.catatan='ditandai_benar'` (`review_store.PENANDA_DITANDAI_BENAR`,
-  `review_store.ditandai_benar()`). Penanda tidak memakai `tinjauan_guru.provenance`
-  karena kolom itu punya CHECK skema; nilai provenance resmi menunggu migrasi.
-  `validasi_bukti` menolak butir berpenanda yang jawabannya bukan kunci lagi. Parser
+  `diagnosis.catatan='ditandai_benar'` (`answer_marks.py`). Penanda tidak memakai
+  `tinjauan_guru.provenance` (CHECK skema; nilai resmi menunggu migrasi). `reports.diagnosa_murid`
+  melepas tanda yang jawabannya bukan kunci lagi lalu menilai ulang. Logika ini sengaja di luar
+  berkas kontrak persistensi (nama `*store*`/`*schema*`/`*migrat*`/`database`): mengubah berkas
+  itu menggeser sidik kontrak dan memutus pasangan recovery yang di-pin. Parser
   `/lampiran/<id>/terapkan` menerima 400 field dan menjawab 400 untuk kiriman yang ditolak.
 - `probe_questions.py` (5 Nov 2026): pertanyaan pancingan statis per topik (fallback umum)
   untuk halaman tinjauan guru saat `diagnosa` tidak punya dugaan; `render()` kosong untuk
