@@ -1,0 +1,15 @@
+{
+ "versi_format": 1,
+ "topik": "bilangan-dasar",
+ "status": "draf",
+ "template": {
+  "tambah_dasar": {
+   "pertanyaan": [
+    "Minta anak menunjukkan caranya menambah dengan jari atau benda sambil menghitung keras-keras.",
+    "Tanya: kamu mulai menghitung dari angka yang mana? Angka itu ikut dihitung atau tidak?",
+    "Tanya: tanda di soal ini artinya apa? Tambah, kurang, atau yang lain?"
+   ],
+   "tindak_lanjut": "Ambil benda sebanyak angka pertama, tambahkan benda sebanyak angka kedua, lalu hitung semuanya bersama anak dan bandingkan dengan jawabannya di kertas."
+  }
+ }
+}

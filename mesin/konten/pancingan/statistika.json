@@ -1,0 +1,71 @@
+{
+ "versi_format": 1,
+ "topik": "statistika",
+ "status": "draf",
+ "template": {
+  "rata_rata": {
+   "pertanyaan": [
+    "Tanya: rata-rata itu apa? Ceritakan dengan kata-katamu sendiri.",
+    "Tanya: ada berapa data di soal? Hitung sambil menunjuk satu per satu.",
+    "Minta anak menulis langkahnya: data dijumlah dulu atau dibagi dulu?"
+   ],
+   "tindak_lanjut": "Beri anak beberapa balok susun dengan tinggi berbeda; minta ia meratakan tinggi balok antar tumpukan, lalu cocokkan dengan jumlah dibagi banyaknya."
+  },
+  "rata_rata_gabungan": {
+   "pertanyaan": [
+    "Tanya: ada berapa kelompok, dan masing-masing berapa anak dan rata-ratanya?",
+    "Tanya: kalau satu kelompok jauh lebih banyak anaknya, rata-rata gabungan mendekati yang mana?",
+    "Tanya: jumlah nilai tiap kelompok dihitung dengan cara apa?"
+   ],
+   "tindak_lanjut": "Minta anak mencari jumlah nilai tiap kelompok dari rata-rata dikali banyak anak, jumlahkan keduanya, lalu bagi dengan jumlah semua anak."
+  },
+  "median_modus": {
+   "pertanyaan": [
+    "Tanya: yang diminta median atau modus? Apa bedanya menurutmu?",
+    "Tanya: sebelum mengambil jawabannya, apakah datanya kamu urutkan dulu?",
+    "Minta anak menunjuk nilai yang dipilih, lalu menjelaskan kenapa nilai itu."
+   ],
+   "tindak_lanjut": "Minta anak menulis tiap data di kartu kecil lalu mengurutkannya dari terkecil; untuk median tunjuk kartu tengah, untuk modus kelompokkan kartu yang sama."
+  },
+  "diagram_lingkaran": {
+   "pertanyaan": [
+    "Tanya: seluruh lingkaran itu mewakili apa, dan berapa derajatnya?",
+    "Tanya: bagian yang ditanyakan itu menempati sudut berapa, dan apa yang diminta soal?",
+    "Tanya: kalau hasilnya banyak siswa atau sudut, satuannya apa?"
+   ],
+   "tindak_lanjut": "Gambar lingkaran dan bagi jadi dua, empat, lalu delapan bagian sama; minta anak menyebut sudut tiap bagian dan berapa siswa yang diwakilinya."
+  },
+  "diagram_batang_garis": {
+   "pertanyaan": [
+    "Tanya: batang mana yang ditanyakan soal ini? Tunjuk di gambar atau data.",
+    "Tanya: nilai batang itu kamu baca dari mana? Tunjukkan dengan jari.",
+    "Tanya: yang diminta satu nilai, jumlah semua nilai, atau selisih dua nilai?"
+   ],
+   "tindak_lanjut": "Minta anak menandai tiap batang dengan nama dan nilainya di kertas, lalu menunjuk batang yang dipakai sambil menjalankan hitungannya."
+  },
+  "tabel_turus": {
+   "pertanyaan": [
+    "Tanya: satu turus itu mewakili berapa? Bagaimana kamu menghitung coretannya?",
+    "Tanya: baris mana yang ditanyakan soal ini? Tunjuk.",
+    "Tanya: yang diminta nama, banyaknya, atau jumlah seluruhnya?"
+   ],
+   "tindak_lanjut": "Minta anak menghitung turus per kelompok lima dan menulis hasilnya di samping tiap baris, lalu menjawab pertanyaan dari angka-angka itu."
+  },
+  "piktogram": {
+   "pertanyaan": [
+    "Tanya: satu gambar mewakili berapa buah? Cari di keterangan.",
+    "Tanya: baris mana yang ditanyakan soal ini? Tunjuk.",
+    "Tanya: kamu menghitung jumlah gambar saja, atau sudah memperhitungkan nilai tiap gambar?"
+   ],
+   "tindak_lanjut": "Minta anak menggambar ulang satu baris, menulis angka nilai di samping tiap gambar, lalu menjumlahkannya untuk melihat hasil seluruhnya."
+  },
+  "jangkauan_data": {
+   "pertanyaan": [
+    "Tanya: jangkauan itu apa? Ceritakan dengan kata-katamu sendiri.",
+    "Minta anak menunjuk nilai terbesar dan nilai terkecil di datanya.",
+    "Tanya: apakah kamu melihat semua angka di datanya? Ada yang terlewat?"
+   ],
+   "tindak_lanjut": "Minta anak menuliskan data berurutan dari terkecil, menandai angka pertama dan terakhir, lalu menentukan hasil yang diminta soal."
+  }
+ }
+}

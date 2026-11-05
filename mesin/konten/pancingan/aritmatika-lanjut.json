@@ -1,0 +1,95 @@
+{
+ "versi_format": 1,
+ "topik": "aritmatika-lanjut",
+ "status": "draf",
+ "template": {
+  "satuan_konversi": {
+   "pertanyaan": [
+    "Tanya: satuan di soal ini mau diubah ke satuan apa? Mana yang lebih besar, satuan awal atau tujuan?",
+    "Tanya: satu satuan awal sama dengan berapa satuan tujuan? Dari mana kamu tahu angkanya?",
+    "Tanya: setelah diubah, angkanya jadi lebih banyak atau lebih sedikit? Masuk akal, tidak?"
+   ],
+   "tindak_lanjut": "Pakai contoh yang bisa dibayangkan, misalnya 1 km sama dengan berapa meter jalan. Minta anak menyusun tangga satuan lalu mengulang soal dengan memeriksa arah naik atau turun."
+  },
+  "kecepatan_jarak_waktu": {
+   "pertanyaan": [
+    "Tanya: soal ini mencari apa, jarak, waktu, atau kecepatan? Tunjuk kata di soal yang memberitahu.",
+    "Tanya: dua angka di soal itu masing-masing artinya apa? Pakai satuannya untuk menjelaskan.",
+    "Tanya: kamu pakai tambah, kurang, kali, atau bagi? Kenapa itu yang dipilih?"
+   ],
+   "tindak_lanjut": "Pakai contoh mudah: 2 jam naik sepeda 10 km tiap jam. Minta anak menghitung jauhnya, lalu cari hubungan antara tiga besaran itu dan terapkan ke soal."
+  },
+  "berpapasan": {
+   "pertanyaan": [
+    "Tanya: dua kendaraan itu bergerak mendekat atau searah? Gambar dulu di kertas.",
+    "Tanya: dalam satu jam, jarak di antara mereka berkurang berapa? Bagaimana kamu menghitungnya?",
+    "Tanya: soal ini minta waktu, jarak, atau kecepatan? Satuan jawabanmu apa?"
+   ],
+   "tindak_lanjut": "Gambar dua kendaraan di kedua ujung garis. Minta anak menandai gerak tiap kendaraan selama satu jam, lihat berapa jarak yang menyempit, lalu lanjutkan sampai bertemu."
+  },
+  "menyusul": {
+   "pertanyaan": [
+    "Tanya: dua kendaraan itu bergerak searah atau berhadapan? Gambar dulu di kertas.",
+    "Tanya: tiap jam, jarak antara yang mengejar dan yang dikejar berkurang berapa? Dari mana?",
+    "Tanya: soal ini minta waktu, jarak, atau kecepatan? Satuan jawabanmu apa?"
+   ],
+   "tindak_lanjut": "Gambar dua kendaraan satu di depan satu di belakang. Hitung bersama berapa jarak yang berkurang tiap jam, sambil membuat tabel jam ke-1, ke-2, dan seterusnya sampai bertemu."
+  },
+  "debit": {
+   "pertanyaan": [
+    "Tanya: soal ini mencari apa, volume, waktu, atau debit? Tunjuk kata di soal yang memberitahu.",
+    "Tanya: debit itu artinya apa menurutmu? Apa yang mengalir tiap menit?",
+    "Tanya: dua angka di soal itu masing-masing artinya apa? Kamu pakai tambah, kurang, kali, atau bagi?"
+   ],
+   "tindak_lanjut": "Pakai contoh: keran mengalirkan 5 liter tiap menit. Minta anak menghitung isi bak setelah 1, 2, dan 3 menit, lalu cari hubungan tiga besaran itu dan terapkan ke soal."
+  },
+  "perbandingan_senilai": {
+   "pertanyaan": [
+    "Tanya: perbandingan di soal artinya apa? Jelaskan dengan contoh bendanya.",
+    "Tanya: kalau satu bahan jadi dua kali lipat, bahan yang lain ikut bagaimana?",
+    "Minta anak menuliskan perbandingan dua bahan itu dalam dua baris yang sejajar, lalu menunjukkan angka yang dicari."
+   ],
+   "tindak_lanjut": "Buat tabel bertingkat dengan benda, misalnya 1 gelas tepung untuk 2 gelas gula, lalu 2 untuk berapa, 3 untuk berapa. Lanjutkan sampai angka yang ditanya."
+  },
+  "perbandingan_berbalik": {
+   "pertanyaan": [
+    "Tanya: kalau pekerjanya makin banyak, waktunya jadi lebih lama atau lebih cepat? Kenapa?",
+    "Tanya: kamu pakai cara apa untuk mencari angka yang ditanya? Kenapa cara itu?",
+    "Tanya: jawabanmu masuk akal, tidak? Coba bandingkan dengan keadaan awal."
+   ],
+   "tindak_lanjut": "Pakai angka kecil: 2 orang selesai 6 hari. Minta anak membayangkan 4 orang dan menebak waktunya, lalu cari kerja total sebagai kerja kali orang dan pakai pada soal."
+  },
+  "kerja_bersama": {
+   "pertanyaan": [
+    "Tanya: kalau dua orang bekerja bersama, waktunya lebih lama atau lebih cepat dari sendiri-sendiri?",
+    "Tanya: dalam satu jam, tiap orang menyelesaikan berapa bagian dari pekerjaan?",
+    "Tanya: caramu menggabungkan dua waktu itu bagaimana? Kenapa dipilih cara itu?"
+   ],
+   "tindak_lanjut": "Pakai angka mudah: satu orang 2 jam, satu lagi 2 jam. Bahas berapa lama berdua, lalu minta anak menghitung bagian tiap orang per jam dan menjumlahkannya."
+  },
+  "persen_diskon": {
+   "pertanyaan": [
+    "Tanya: soal ini minta apa, besar potongan atau harga yang harus dibayar? Ulangi dengan kata-katamu.",
+    "Tanya: diskon sekian persen itu dihitung dari apa? Bagaimana kamu menghitungnya?",
+    "Tanya: harga setelah diskon lebih murah atau lebih mahal dari harga awal? Jawabanmu cocok?"
+   ],
+   "tindak_lanjut": "Pakai harga mudah, misalnya 1.000 rupiah diskon 10%. Hitung potongannya bersama anak, lalu kurangkan dari harga awal dan terapkan langkah yang sama pada soal."
+  },
+  "persen_untung_rugi": {
+   "pertanyaan": [
+    "Tanya: soal ini minta apa, untungnya atau harga jualnya? Ulangi dengan kata-katamu.",
+    "Tanya: persen untung atau rugi itu dihitung dari harga yang mana, harga beli atau harga jual?",
+    "Tanya: kalau untung, harga jual lebih besar atau lebih kecil dari harga beli? Jawabanmu cocok?"
+   ],
+   "tindak_lanjut": "Pakai angka mudah: beli 1.000, untung 10%. Hitung untungnya bersama anak, tambahkan atau kurangkan ke harga beli, lalu ulangi dengan angka di soal."
+  },
+  "persen_bertingkat": {
+   "pertanyaan": [
+    "Tanya: diskon di soal ada berapa kali? Diskon kedua dihitung dari harga yang mana?",
+    "Tanya: caramu menggabungkan dua diskon itu bagaimana? Tunjuk langkahnya di kertas.",
+    "Minta anak menuliskan harga setelah diskon pertama, lalu harga setelah diskon kedua, di dua baris terpisah."
+   ],
+   "tindak_lanjut": "Pakai angka mudah: 1.000 rupiah, diskon 10% lalu 10% lagi. Hitung harga setelah diskon pertama, lalu diskon kedua dari harga baru itu, dan bandingkan dengan menjumlah diskon."
+  }
+ }
+}

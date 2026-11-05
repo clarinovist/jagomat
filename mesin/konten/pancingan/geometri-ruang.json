@@ -1,0 +1,63 @@
+{
+ "versi_format": 1,
+ "topik": "geometri-ruang",
+ "status": "draf",
+ "template": {
+  "unsur_bangun": {
+   "pertanyaan": [
+    "Minta anak menunjuk dengan jari: ini sisi, ini rusuk, ini titik sudut.",
+    "Tanya: yang kamu hitung tadi bangun apa? Hitung sambil menunjuk satu per satu.",
+    "Tanya: kalau soal menyebut beberapa bangun, apakah jawabanmu sudah untuk semuanya?"
+   ],
+   "tindak_lanjut": "Pakai benda nyata seperti kardus atau dadu; minta anak menempel stiker kecil pada tiap rusuk, sisi, atau titik sudut yang dihitung."
+  },
+  "volume_kubus_balok": {
+   "pertanyaan": [
+    "Tanya: yang dicari volume atau salah satu ukuran bangunnya?",
+    "Minta anak menggambar bangunnya dan menulis ukuran di tiap rusuk.",
+    "Tanya: ukuran mana saja yang kamu pakai? Ada yang tertinggal?"
+   ],
+   "tindak_lanjut": "Susun kubus satuan menjadi balok kecil; minta anak menghitung kubus per lapis, lalu menghubungkannya dengan panjang, lebar, dan tinggi."
+  },
+  "volume_prisma_tabung": {
+   "pertanyaan": [
+    "Tanya: bangunnya apa, dan bagian alasnya berbentuk apa?",
+    "Tanya: ukuran mana yang dipakai untuk menghitung luas alas, dan mana untuk tinggi?",
+    "Tanya: yang dicari volume atau salah satu ukuran bangunnya?"
+   ],
+   "tindak_lanjut": "Minta anak menggambar alasnya dulu dan menghitung luasnya sendiri, lalu membayangkan alas itu ditumpuk setinggi bangunnya."
+  },
+  "luas_permukaan": {
+   "pertanyaan": [
+    "Tanya: bangunnya punya berapa sisi, dan bentuk tiap sisinya apa?",
+    "Tanya: luas permukaan itu apa? Sisi mana saja yang dihitung?",
+    "Tanya: yang dicari luas permukaan atau salah satu ukuran bangunnya?"
+   ],
+   "tindak_lanjut": "Minta anak membuka kotak kardus menjadi jaring-jaring datar, menghitung luas tiap sisi, lalu menjumlahkan semuanya."
+  },
+  "jaring_jaring": {
+   "pertanyaan": [
+    "Tanya: persegi mana yang jadi alas kubus? Tunjuk di tiap gambar.",
+    "Tanya: kalau digambar dilipat, persegi mana akan menempel di persegi mana?",
+    "Tanya: kamu memilih jaring itu karena apa? Ada bagian yang kamu ragukan?"
+   ],
+   "tindak_lanjut": "Gambar jaring pilihan anak di kertas, gunting, lalu minta anak melipatnya jadi kubus dan melihat sendiri sisi mana yang bertumpuk."
+  },
+  "kubus_dicat": {
+   "pertanyaan": [
+    "Tanya: kubus kecil mana yang kena cat? Tunjuk di gambar kubus besar.",
+    "Tanya: di bagian mana kubus kecil kena cat tiga sisi, dua sisi, dan satu sisi?",
+    "Tanya: apakah ada kubus kecil yang tidak kena cat? Letaknya di mana?"
+   ],
+   "tindak_lanjut": "Susun kubus mainan menjadi kubus besar 3 x 3 x 3; minta anak menunjuk kubus di pojok, di rusuk, dan di tengah sisi, lalu menghitung tiap jenisnya."
+  },
+  "perbandingan_volume": {
+   "pertanyaan": [
+    "Tanya: apa yang diperbesar, dan apa yang ditanyakan di soal ini?",
+    "Tanya: kalau rusuk jadi dua kali, ada berapa kubus kecil yang memenuhi bangun baru?",
+    "Minta anak menggambar bangun kecil dan bangun yang diperbesar, lalu membandingkan."
+   ],
+   "tindak_lanjut": "Susun satu kubus satuan, lalu susun kubus yang rusuknya dua kali dari kubus satuan; minta anak menghitung ada berapa kubus satuan di dalamnya."
+  }
+ }
+}

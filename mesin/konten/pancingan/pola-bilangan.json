@@ -1,0 +1,135 @@
+{
+ "versi_format": 1,
+ "topik": "pola-bilangan",
+ "status": "draf",
+ "template": {
+  "deret_aritmetika": {
+   "pertanyaan": [
+    "Tanya: dari satu angka ke angka berikutnya, bertambah berapa? Tunjuk dua pasang angka di lembar.",
+    "Minta anak menyebut dengan suara angka-angka yang diminta satu per satu, bukan hanya yang terakhir.",
+    "Tanya: kamu mulai menghitung dari angka yang mana? Kenapa dari situ?"
+   ],
+   "tindak_lanjut": "Tulis selisih di antara tiap dua angka dengan busur kecil. Minta anak membacanya, lalu melanjutkan satu suku dan mencocokkan dengan jawabannya."
+  },
+  "deret_aritmetika_turun": {
+   "pertanyaan": [
+    "Tanya: angka-angka ini makin besar atau makin kecil? Tunjuk dari mana kamu tahu.",
+    "Tanya: dari satu angka ke angka berikutnya, kamu menambah atau mengurangi? Berapa?",
+    "Minta anak menghitung selisih dua angka berurutan, lalu menerapkannya pada angka terakhir sambil bersuara."
+   ],
+   "tindak_lanjut": "Pakai garis bilangan atau anak tangga di kertas. Minta anak melangkah mundur dari angka terakhir sebesar selisihnya, lalu bandingkan dengan jawabannya."
+  },
+  "deret_geometri": {
+   "pertanyaan": [
+    "Tanya: dari satu angka ke angka berikutnya, kamu menambah atau mengalikan? Coba tunjukkan.",
+    "Tanya: apakah selisih tiap dua angka selalu sama? Cek dua pasang.",
+    "Minta anak menebak angka kedua dari angka pertama dengan caranya, lalu cek apakah cocok."
+   ],
+   "tindak_lanjut": "Tulis dua cara berdampingan, misalnya 2, 4, 8 dibaca sebagai tambah dan sebagai kali. Minta anak mencoba keduanya pada angka pertama dan kedua, mana yang cocok."
+  },
+  "deret_bertingkat": {
+   "pertanyaan": [
+    "Tanya: dari satu angka ke angka berikutnya, bertambah berapa? Apakah tambahannya sama terus?",
+    "Minta anak menulis selisih tiap dua angka di bawah deretnya, lalu membacanya keras-keras.",
+    "Tanya: apakah selisih-selisih itu sendiri punya pola? Apa yang kamu lihat?"
+   ],
+   "tindak_lanjut": "Buat dua baris di kertas: baris angka dan baris selisihnya. Minta anak meneruskan baris selisih dulu satu langkah, lalu menjumlahkannya ke angka terakhir."
+  },
+  "siklus_huruf": {
+   "pertanyaan": [
+    "Tanya: huruf apa saja yang berulang? Berapa huruf dalam satu putaran?",
+    "Minta anak menuliskan polanya berulang di kertas sampai posisi yang ditanyakan, atau sampai ia menemukan jalan pintas.",
+    "Tanya: caramu menentukan huruf di posisi itu bagaimana? Kamu menghitung satu per satu atau memakai pembagian?"
+   ],
+   "tindak_lanjut": "Tulis pola dua putaran, beri nomor di bawah tiap huruf. Minta anak menunjuk huruf nomor tertentu dan menjelaskan di putaran keberapa ia berada."
+  },
+  "siklus_warna": {
+   "pertanyaan": [
+    "Tanya: warna apa saja yang berulang? Berapa manik dalam satu putaran?",
+    "Minta anak menggambar atau mewarnai manik-maniknya berurutan, lalu menunjuk manik yang ditanyakan.",
+    "Tanya: setelah putaran penuh, manik mana yang tersisa? Bagaimana kamu tahu?"
+   ],
+   "tindak_lanjut": "Pakai kertas berwarna atau benda berbeda warna. Susun berulang bersama anak, beri nomor, lalu minta ia mencari manik yang ditanya dan menjelaskannya."
+  },
+  "korek_api": {
+   "pertanyaan": [
+    "Tanya: dari Gambar 1 ke Gambar 2, batangnya bertambah berapa? Dari Gambar 2 ke 3?",
+    "Minta anak menunjuk batang mana yang dipakai bersama dua segitiga di gambar.",
+    "Tanya: apakah tiap segitiga baru butuh batang sebanyak segitiga pertama? Kenapa?"
+   ],
+   "tindak_lanjut": "Susun segitiga dari batang sungguhan atau lidi: satu, lalu dua, lalu tiga. Hitung bersama berapa batang yang ditambah tiap kali, lalu catat polanya."
+  },
+  "titik_segitiga": {
+   "pertanyaan": [
+    "Tanya: dari gambar ke gambar, jumlah titiknya bertambah berapa? Apakah tambahannya sama?",
+    "Minta anak menggambar titik untuk gambar berikutnya, lalu menghitung titik yang baru ditambahkan.",
+    "Tanya: gambar ke berapa yang sedang ditanyakan? Kamu berhenti di gambar ke berapa?"
+   ],
+   "tindak_lanjut": "Tulis selisih jumlah titik di antara gambar-gambar berurutan. Minta anak melihat pola selisihnya, lalu meneruskannya satu gambar demi satu gambar sampai yang ditanyakan."
+  },
+  "deret_terbalik_aritmetika": {
+   "pertanyaan": [
+    "Tanya: soal ini menanyakan apa, nilainya atau urutannya? Ulangi dengan kata-katamu sendiri.",
+    "Minta anak menuliskan deretnya sampai bilangan yang disebut, lalu menghitung angka itu ada di urutan berapa.",
+    "Tanya: dari awal sampai bilangan itu, berapa kali kamu menambah? Bagaimana kamu menghitungnya?"
+   ],
+   "tindak_lanjut": "Tulis deret dengan nomor urut di bawahnya. Minta anak menunjuk bilangan yang disebut di soal, lalu membaca nomor di bawahnya sebagai jawaban."
+  },
+  "deret_terbalik_geometri": {
+   "pertanyaan": [
+    "Tanya: soal ini menanyakan apa, nilainya atau urutannya? Ulangi dengan kata-katamu sendiri.",
+    "Tanya: dari satu angka ke angka berikutnya, kamu menambah atau mengalikan? Berapa?",
+    "Minta anak menuliskan deretnya sampai bilangan yang disebut, lalu menghitung ada di urutan berapa."
+   ],
+   "tindak_lanjut": "Tulis deret dengan nomor urut di bawahnya. Minta anak mengalikan satu langkah demi satu langkah sampai bilangan yang disebut, lalu membaca nomor urutnya."
+  },
+  "siklus_hari": {
+   "pertanyaan": [
+    "Tanya: satu minggu ada berapa hari? Setelah berapa hari kita kembali ke hari yang sama?",
+    "Minta anak menyebut nama hari satu per satu, mulai dari hari berikutnya, sambil menghitung dengan jari.",
+    "Tanya: kamu mulai menghitung dari hari ini atau dari besok? Kenapa?"
+   ],
+   "tindak_lanjut": "Gambar tujuh kotak untuk hari dalam seminggu. Minta anak menaruh jari di hari ini, lalu maju satu kotak tiap hitungan sampai selesai, dan berhenti di hari yang ia temukan."
+  },
+  "jumlah_siklus": {
+   "pertanyaan": [
+    "Tanya: soal ini minta apa, berapa banyak angka atau jumlah nilai angkanya? Ulangi dengan kata-katamu.",
+    "Tanya: berapa angka dalam satu putaran? Jumlahnya berapa kalau satu putaran dijumlah?",
+    "Tanya: setelah putaran penuh, apakah ada angka yang tersisa di ujung? Ikut dijumlah atau tidak?"
+   ],
+   "tindak_lanjut": "Tulis polanya dua kali, lingkari tiap putaran penuh dan tandai sisa di ujung. Minta anak menjumlah satu putaran, lalu menghitung berapa putaran dan sisanya."
+  },
+  "suku_ke_n": {
+   "pertanyaan": [
+    "Tanya: dari satu angka ke angka berikutnya, bertambah berapa? Dari urutan 1 ke 2, lalu 2 ke 3?",
+    "Tanya: untuk sampai ke urutan yang ditanya, berapa kali kamu harus menambah? Dari mana hitunganmu?",
+    "Minta anak menyebut dengan kata-kata bagaimana ia mendapat jawabannya, langkah demi langkah."
+   ],
+   "tindak_lanjut": "Pakai urutan yang kecil dulu, misalnya urutan ke-3 dan ke-4. Minta anak menghitung berapa kali menambah dari angka pertama, lalu pakai cara yang sama ke urutan yang jauh."
+  },
+  "sisa_bagi_siklus": {
+   "pertanyaan": [
+    "Tanya: huruf apa saja yang berulang? Berapa huruf dalam satu putaran?",
+    "Tanya: posisinya jauh sekali, bagaimana caramu mencari tanpa menulis semuanya?",
+    "Tanya: dari pembagian itu, kamu pakai hasil baginya atau sisanya? Apa artinya sisa itu?"
+   ],
+   "tindak_lanjut": "Pakai posisi kecil dulu, misalnya 10 dengan siklus 3 huruf. Tulis semua, cari hurufnya, lalu cocokkan dengan sisa pembagian 10 dibagi 3 sebelum mencoba posisi besar."
+  },
+  "pola_pecahan": {
+   "pertanyaan": [
+    "Tanya: dari satu pecahan ke pecahan berikutnya, angka bawahnya berubah atau tetap? Angka atasnya?",
+    "Minta anak menyebut dengan suara pecahan yang diminta, atas dan bawah secara terpisah.",
+    "Tanya: angka atas bertambah berapa tiap langkah? Tunjuk di lembar."
+   ],
+   "tindak_lanjut": "Tulis angka atas dan angka bawah dalam dua baris terpisah. Minta anak mencari pola tiap baris sendiri, lalu menggabungkannya menjadi pecahan berikutnya."
+  },
+  "jumlah_deret": {
+   "pertanyaan": [
+    "Tanya: soal ini minta apa, bilangan terakhirnya atau jumlah semuanya? Ulangi dengan kata-katamu.",
+    "Tanya: berapa banyak bilangan yang harus dijumlah? Bagaimana kamu menghitungnya?",
+    "Minta anak menunjukkan caranya menjumlah, apakah satu per satu atau dengan cara lain, sambil bersuara."
+   ],
+   "tindak_lanjut": "Coba dengan deret kecil, misalnya 2, 4, 6, 8. Jumlahkan satu per satu, lalu pasangkan angka pertama dengan terakhir dan kedua dengan ketiga, dan lihat apa yang sama."
+  }
+ }
+}

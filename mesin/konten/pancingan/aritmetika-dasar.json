@@ -1,0 +1,63 @@
+{
+ "versi_format": 1,
+ "topik": "aritmetika-dasar",
+ "status": "draf",
+ "template": {
+  "urutan_operasi_1": {
+   "pertanyaan": [
+    "Tanya: dari semua tanda hitung di soal, mana yang kamu kerjakan pertama? Kenapa?",
+    "Minta anak menulis tiap langkah di baris terpisah sambil menyebut hasil sementaranya.",
+    "Tanya: apakah kali dan bagi dikerjakan sebelum tambah dan kurang? Dari mana kamu tahu?"
+   ],
+   "tindak_lanjut": "Beri soal kecil seperti 2 + 3 x 4. Minta anak menghitungnya dengan dua urutan berbeda, lalu bahas mana yang benar dengan menggambar 3 kelompok isi 4."
+  },
+  "fpb_dua_bilangan": {
+   "pertanyaan": [
+    "Tanya: FPB itu artinya apa menurutmu? Jelaskan dengan kata-katamu sendiri.",
+    "Minta anak menuliskan semua bilangan yang bisa membagi habis kedua bilangan itu.",
+    "Tanya: dari bilangan-bilangan itu, kamu pilih yang mana? Kenapa yang itu?"
+   ],
+   "tindak_lanjut": "Daftar faktor kedua bilangan berdampingan di kertas. Minta anak melingkari yang sama di kedua daftar, lalu menunjuk yang terbesar sebagai jawabannya."
+  },
+  "pecahan_operasi_campuran": {
+   "pertanyaan": [
+    "Tanya: apa langkah pertamamu saat melihat tiga pecahan dengan penyebut berbeda?",
+    "Minta anak menunjukkan caranya menyamakan penyebut, sambil menyebut angka yang dipakai.",
+    "Tanya: setelah penyebut sama, mana yang dijumlah dan mana yang dikurang? Urutannya bagaimana?"
+   ],
+   "tindak_lanjut": "Pakai dua pecahan dulu, misalnya 1/2 + 1/3. Gambar dua persegi dibagi berbeda, bantu anak membaginya sama banyak, lalu ulangi dengan tiga pecahan."
+  },
+  "urut_pecahan_desimal_persen": {
+   "pertanyaan": [
+    "Tanya: soal ini minta urutan dari yang kecil atau yang besar? Ulangi dengan kata-katamu.",
+    "Tanya: bagaimana caramu membandingkan pecahan dengan desimal dan persen?",
+    "Minta anak menyebut satu per satu, mana yang lebih besar di antara dua bentuk yang berbeda."
+   ],
+   "tindak_lanjut": "Ubah ketiganya ke satu bentuk bersama anak, misalnya 1/2, 0,5, dan 50%. Tulis ketiganya dalam bentuk yang sama, lalu minta anak mengurutkannya."
+  },
+  "pecahan_kali_bagi": {
+   "pertanyaan": [
+    "Tanya: tanda di soal ini kali atau bagi? Apa yang kamu lakukan pada kedua pecahan itu?",
+    "Minta anak menunjukkan angka atas dan angka bawah mana yang dihitung bersama, sambil bersuara.",
+    "Tanya: apakah kamu menyamakan penyebut dulu? Kenapa begitu, atau kenapa tidak?"
+   ],
+   "tindak_lanjut": "Pakai contoh kecil, misalnya 1/2 dari 1/2. Gambar persegi, bagi dua, lalu bagi lagi, dan lihat hasilnya. Setelah itu minta anak mencari caranya sendiri."
+  },
+  "pembulatan_taksiran": {
+   "pertanyaan": [
+    "Tanya: soal ini minta apa, mengerjakan angka aslinya atau membulatkan dulu? Ulangi dengan kata-katamu.",
+    "Minta anak menunjukkan caranya membulatkan tiap bilangan, dan angka mana yang ia lihat untuk memutuskan.",
+    "Tanya: setelah membulatkan, apa yang kamu hitung? Angka aslinya atau angka yang sudah bulat?"
+   ],
+   "tindak_lanjut": "Tulis dua bilangan di garis bilangan dan minta anak menunjuk bulatan terdekat. Lalu tulis bilangan bulatnya di baris baru dan hitung hanya dari situ."
+  },
+  "operasi_berkurung": {
+   "pertanyaan": [
+    "Tanya: dari semua bagian di soal, mana yang kamu kerjakan pertama? Kenapa itu dulu?",
+    "Minta anak menuliskan tiap langkah di baris terpisah, dan menyebut hasil sementaranya.",
+    "Tanya: bilangan di belakang tanda bagi itu membagi apa saja? Tunjuk di soal."
+   ],
+   "tindak_lanjut": "Beri soal kecil seperti (2 + 3) x 4. Minta anak menghitung dengan dan tanpa kurung, lalu bahas mengapa hasilnya berbeda dan apa gunanya kurung."
+  }
+ }
+}

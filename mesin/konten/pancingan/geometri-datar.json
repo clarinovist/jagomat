@@ -1,0 +1,103 @@
+{
+ "versi_format": 1,
+ "topik": "geometri-datar",
+ "status": "draf",
+ "template": {
+  "sudut_pelurus_berpenyiku": {
+   "pertanyaan": [
+    "Minta anak menggambar sudutnya, lalu menandai bagian yang ditanyakan di gambar itu.",
+    "Tanya: sudut berpelurus dan berpenyiku, mana yang jumlahnya 180° dan mana 90°?",
+    "Tanya: sudut mana yang sudah diketahui, dan sudut mana yang kamu cari?"
+   ],
+   "tindak_lanjut": "Gambar garis lurus lalu satu sudut di atasnya; minta anak menunjuk sisa sudut di garis itu dan menghitung sisanya dari 180°."
+  },
+  "jumlah_sudut_segitiga": {
+   "pertanyaan": [
+    "Minta anak menggambar segitiganya dan menulis besar sudut yang sudah diketahui.",
+    "Tanya: jumlah semua sudut dalam segitiga itu berapa? Dari mana kamu tahu?",
+    "Minta anak menyebutkan langkahnya: angka mana dipakai dulu, lalu diapakan?"
+   ],
+   "tindak_lanjut": "Minta anak menggunting segitiga kertas, merobek ketiga sudutnya, lalu menyusunnya berjajar sampai membentuk garis lurus."
+  },
+  "sudut_luar_segitiga": {
+   "pertanyaan": [
+    "Minta anak menggambar segitiga dan menunjuk sudut luar yang ditanyakan.",
+    "Tanya: dua sudut dalam mana yang dipakai? Kenapa bukan sudut yang satunya?",
+    "Tanya: sudut luar itu letaknya di dalam atau di luar segitiga? Tunjuk."
+   ],
+   "tindak_lanjut": "Gambar segitiga dengan satu sisi diperpanjang; minta anak menandai sudut luar, lalu mencari jumlah dua sudut dalam yang tidak bersisian."
+  },
+  "keliling_luas_datar": {
+   "pertanyaan": [
+    "Tanya: yang diminta soal ini keliling atau luas? Bagaimana kamu tahu?",
+    "Minta anak menggambar persegi panjangnya dan menulis ukuran di tiap sisi.",
+    "Tanya: kalau berjalan mengelilingi bangun ini, sisi mana saja yang dilewati?"
+   ],
+   "tindak_lanjut": "Minta anak menggambar persegi panjang di kertas berpetak, menelusuri tepinya untuk keliling, lalu menghitung petak di dalamnya untuk luas."
+  },
+  "luas_segitiga_jajargenjang": {
+   "pertanyaan": [
+    "Minta anak menggambar bangunnya dan menandai ukuran alas, tinggi, dan sisi miringnya.",
+    "Tanya: ukuran mana yang kamu pakai dari soal ini? Kenapa itu?",
+    "Tanya: garis tinggi itu posisinya miring atau tegak terhadap alas? Tunjuk."
+   ],
+   "tindak_lanjut": "Gambar bangun dengan tinggi putus-putus yang tegak lurus alas; minta anak menunjuk mana tinggi dan mana sisi miring, lalu menghitung luasnya."
+  },
+  "luas_segiempat_lain": {
+   "pertanyaan": [
+    "Tanya: bangunnya apa, dan ukuran mana yang diberikan di soal?",
+    "Minta anak menggambar bangunnya dan menandai garis yang dipakai untuk menghitung.",
+    "Tanya: yang dicari luas, atau panjang sebuah garis? Bagaimana kamu tahu?"
+   ],
+   "tindak_lanjut": "Minta anak menggambar bangunnya, memotong dan menyusunnya jadi persegi panjang, lalu membandingkan ukuran potongan dengan rumus luasnya."
+  },
+  "lingkaran_keliling_luas": {
+   "pertanyaan": [
+    "Tanya: yang diminta keliling atau luas lingkaran? Tunjuk bagian yang dimaksud.",
+    "Tanya: ukuran yang diberikan jari-jari atau diameter? Tunjuk di gambar.",
+    "Tanya: nilai pi yang dipakai berapa? Kenapa memilih itu?"
+   ],
+   "tindak_lanjut": "Minta anak menggambar lingkaran, menarik jari-jari dan diameter dengan warna berbeda, lalu mencocokkan ukuran soal dengan garis yang benar."
+  },
+  "juring": {
+   "pertanyaan": [
+    "Minta anak menggambar lingkarannya dan mengarsir juring yang dimaksud.",
+    "Tanya: juring itu berapa bagian dari seluruh lingkaran? Dari mana kamu tahu?",
+    "Tanya: yang diminta luas juring atau keliling juring? Garis mana saja yang dihitung?"
+   ],
+   "tindak_lanjut": "Minta anak melipat kertas bundar jadi beberapa bagian, mencocokkan sudut pusat dengan bagian lingkaran, lalu menandai tepi lengkung dan dua jari-jari."
+  },
+  "luas_arsiran": {
+   "pertanyaan": [
+    "Minta anak menggambar bangunnya dan mewarnai daerah yang diarsir.",
+    "Tanya: bangun besar apa yang ada, dan bagian mana yang tidak diarsir?",
+    "Tanya: luas yang diminta dihitung dari bangun apa saja? Sebutkan urutannya."
+   ],
+   "tindak_lanjut": "Minta anak menghitung luas bangun besar, lalu luas bagian yang tidak diarsir, dan mencocokkannya dengan daerah yang diwarnai di gambar."
+  },
+  "perbandingan_ukuran": {
+   "pertanyaan": [
+    "Tanya: apa yang diperbesar, dan apa yang ditanyakan di soal ini?",
+    "Minta anak menggambar persegi kecil dan persegi yang diperbesar, lalu membandingkannya.",
+    "Tanya: kalau sisinya jadi dua kali, yang dihitung keliling, luas, atau volume?"
+   ],
+   "tindak_lanjut": "Minta anak menggambar persegi 1 cm dan 2 cm di kertas berpetak, lalu menghitung kelilingnya dan petak di dalamnya untuk membandingkan."
+  },
+  "luas_kotak_satuan": {
+   "pertanyaan": [
+    "Minta anak menggambar kotak-kotaknya, lalu menunjuk satu kotak sambil menyebut ukurannya.",
+    "Tanya: luas itu menghitung kotak di tepi saja, atau seluruh kotak di dalam bangun?",
+    "Minta anak menghitung kotak dengan caranya sendiri sambil bersuara."
+   ],
+   "tindak_lanjut": "Minta anak menghitung kotak satu per satu per baris, lalu tanya: ada berapa baris dan berapa kotak tiap baris, apakah bisa lebih cepat?"
+  },
+  "simetri_bangun": {
+   "pertanyaan": [
+    "Minta anak menggambar bangunnya, lalu melipatnya agar kedua sisi persis menumpuk.",
+    "Tanya: apa yang kamu hitung, garis lipatnya atau bagian bangunnya?",
+    "Tanya: selain lipatan tegak dan mendatar, adakah lipatan lain yang juga pas?"
+   ],
+   "tindak_lanjut": "Beri kertas berbentuk bangun itu; minta anak melipatnya dengan berbagai arah, menandai tiap lipatan yang menumpuk pas, lalu menghitung garisnya."
+  }
+ }
+}

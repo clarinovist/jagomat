@@ -1,0 +1,103 @@
+{
+ "versi_format": 1,
+ "topik": "teori-bilangan",
+ "status": "draf",
+ "template": {
+  "banyak_kelipatan": {
+   "pertanyaan": [
+    "Tanya: bilangan pertama dan terakhir yang disebut di soal ikut dihitung atau tidak?",
+    "Minta anak menuliskan beberapa kelipatan pertama yang masuk rentang, sambil bersuara.",
+    "Tanya: yang dihitung semua bilangan di rentang atau hanya kelipatan tertentu?"
+   ],
+   "tindak_lanjut": "Pakai rentang kecil, misal kelipatan 3 dari 4 sampai 13. Minta anak menulis semua bilangannya, mencoret yang bukan kelipatan, lalu menghitung."
+  },
+  "sisa_operasi": {
+   "pertanyaan": [
+    "Tanya: yang diketahui sisanya atau bilangannya? Tunjuk di soal.",
+    "Minta anak memilih satu contoh bilangan yang sisanya sesuai soal dan menghitung hasilnya sendiri.",
+    "Tanya: setelah dua sisa digabung, hasilnya masih lebih besar dari pembagi? Lalu diapakan?"
+   ],
+   "tindak_lanjut": "Pilih dua bilangan nyata yang sisanya sama dengan soal (misal sisa 2 dan 3 dibagi 5). Gabungkan bilangannya, bagi, bandingkan dengan gabungan sisanya."
+  },
+  "banyak_prima": {
+   "pertanyaan": [
+    "Tanya: bilangan prima menurutmu seperti apa? Sebutkan tiga contoh.",
+    "Tanya: apakah 1 dan 2 termasuk prima? Kenapa?",
+    "Minta anak menuliskan semua bilangan di rentang, lalu menandai yang menurutnya prima sambil bersuara."
+   ],
+   "tindak_lanjut": "Tulis bilangan di rentang kecil. Minta anak mencari faktor tiap bilangan, lalu menandai yang faktornya hanya 1 dan dirinya sendiri."
+  },
+  "jumlah_kelipatan": {
+   "pertanyaan": [
+    "Tanya: yang diminta berapa banyak kelipatan atau jumlah nilai kelipatan itu?",
+    "Minta anak menuliskan kelipatan pertama, kedua, dan ketiga yang masuk batas soal.",
+    "Tanya: sampai kelipatan ke berapa yang masih tidak melebihi batas?"
+   ],
+   "tindak_lanjut": "Pakai batas kecil, misal kelipatan 4 sampai 20. Minta anak menulis semua kelipatannya satu baris, lalu menjumlahkan pelan-pelan."
+  },
+  "keterbagian": {
+   "pertanyaan": [
+    "Tanya: habis dibagi artinya apa? Beri satu contoh dari bilangan kecil.",
+    "Minta anak menunjukkan caranya memeriksa satu bilangan, dengan cara apa saja.",
+    "Tanya: yang kamu cari yang habis dibagi atau yang tidak habis? Tunjuk di soal."
+   ],
+   "tindak_lanjut": "Minta anak membagi tiap bilangan secara langsung di kertas, lalu lihat mana yang tidak bersisa. Setelah itu bahas ciri angka pembagi itu."
+  },
+  "prima_faktorisasi": {
+   "pertanyaan": [
+    "Tanya: yang diminta banyak faktor atau faktor prima? Tunjuk di soal.",
+    "Minta anak menuliskan beberapa faktor bilangan itu, sambil bersuara bagaimana mencarinya.",
+    "Tanya: apakah 1 dan bilangan itu sendiri ikut dihitung sebagai faktor?"
+   ],
+   "tindak_lanjut": "Pakai bilangan kecil, misal 12. Minta anak menulis semua pasangan faktor yang kalau dikalikan hasilnya 12, lalu hitung faktornya satu per satu."
+  },
+  "kpk_dua_bilangan": {
+   "pertanyaan": [
+    "Tanya: yang dicari kelipatan bersama atau faktor bersama? Terkecil atau terbesar?",
+    "Minta anak menuliskan beberapa kelipatan pertama dari kedua bilangan, berdampingan.",
+    "Tanya: kalau soal bercerita, kejadian apa yang terulang dan kapan keduanya bertemu lagi?"
+   ],
+   "tindak_lanjut": "Tulis kelipatan kedua bilangan berderet di dua baris, minta anak mencari angka sama yang paling kecil. Pakai garis waktu bila soal cerita."
+  },
+  "fpb_kpk_hubungan": {
+   "pertanyaan": [
+    "Tanya: soal ini minta hasil apa? Apakah bilangan FPB, bilangan KPK, atau hal lain?",
+    "Minta anak mencari FPB dan KPK kedua bilangan dengan caranya sendiri.",
+    "Tanya: setelah dapat keduanya, apa yang kamu lakukan dengan dua bilangan itu?"
+   ],
+   "tindak_lanjut": "Pakai dua bilangan kecil, misal 4 dan 6. Hitung FPB dan KPK, kalikan keduanya, bandingkan dengan hasil kali kedua bilangan. Ulangi dengan pasangan lain."
+  },
+  "sisa_pembagian": {
+   "pertanyaan": [
+    "Tanya: yang diminta hasil bagi atau sisanya? Tunjuk kata di soal.",
+    "Minta anak membagi dengan caranya, lalu menunjuk mana hasil bagi dan mana sisa.",
+    "Tanya: sisanya boleh sama atau lebih besar dari pembagi? Kenapa?"
+   ],
+   "tindak_lanjut": "Pakai benda: bagikan 17 kancing ke 5 piring. Hitung tiap piring dan kancing sisa, lalu tuliskan sebagai kalimat pembagian."
+  },
+  "paritas": {
+   "pertanyaan": [
+    "Tanya: bilangan ganjil pertama itu bilangan yang mana saja? Sebutkan beberapa.",
+    "Minta anak menuliskan beberapa suku pertama deretnya dan mencari yang dijumlah.",
+    "Tanya: dari satu suku ke suku berikutnya, bertambah berapa?"
+   ],
+   "tindak_lanjut": "Minta anak menjumlah dua, tiga, empat suku pertama deret itu satu per satu dan mencatat hasilnya, lalu cari pola di tabelnya."
+  },
+  "angka_satuan_pangkat": {
+   "pertanyaan": [
+    "Tanya: yang diminta angka satuan atau hasil pangkat seluruhnya?",
+    "Minta anak menghitung pangkat satu, dua, tiga, empat dari bilangan itu dan melihat angka satuannya.",
+    "Tanya: apakah angka satuannya berulang? Setelah berapa pangkat?"
+   ],
+   "tindak_lanjut": "Tulis angka satuan pangkat 1, 2, 3, 4, dan seterusnya dalam satu baris. Minta anak menemukan polanya, lalu menunjuk posisi pangkat soal."
+  },
+  "gauss_deret": {
+   "pertanyaan": [
+    "Tanya: deret ini dimulai dari angka berapa dan berhenti di angka berapa?",
+    "Minta anak menjumlah beberapa suku pertama sambil bersuara, lalu mengira jumlah seluruhnya.",
+    "Tanya: ada cara lain menjumlah selain satu per satu? Ceritakan idemu."
+   ],
+   "tindak_lanjut": "Pakai deret pendek, misal 1 sampai 10. Pasangkan 1 dengan 10, 2 dengan 9, dan seterusnya, lalu minta anak menghitung banyak pasangan dan jumlahnya."
+  }
+ }
+}

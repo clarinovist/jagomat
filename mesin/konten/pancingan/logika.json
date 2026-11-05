@@ -1,0 +1,55 @@
+{
+ "versi_format": 1,
+ "topik": "logika",
+ "status": "draf",
+ "template": {
+  "benar_salah_pengandaian": {
+   "pertanyaan": [
+    "Tanya: ceritakan ulang fakta di soal dengan kata-katamu sendiri.",
+    "Tanya: dari fakta itu, pernyataan mana yang pasti benar dan mana yang mungkin saja benar?",
+    "Minta anak membacakan tiap pilihan lalu bilang cocok atau bertentangan dengan fakta."
+   ],
+   "tindak_lanjut": "Gambar lingkaran besar untuk kelompok di fakta dan titik untuk orangnya. Minta anak menaruh tiap pernyataan, lalu menilai pasti, mungkin, atau tidak."
+  },
+  "tabel_penalaran": {
+   "pertanyaan": [
+    "Tanya: soal ini menanyakan yang paling atas, paling bawah, atau urutan tertentu?",
+    "Minta anak menuliskan semua nama dari petunjuk, satu garis untuk tiap petunjuk.",
+    "Tanya: dalam kalimat 'A lebih tinggi dari B', siapa yang di atas dan siapa di bawah?"
+   ],
+   "tindak_lanjut": "Minta anak menyusun nama di kertas dari atas ke bawah memakai potongan kertas, lalu menunjuk posisi yang ditanyakan di soal."
+  },
+  "jumlah_selisih": {
+   "pertanyaan": [
+    "Tanya: bilangan mana yang ditanya, yang lebih besar atau lebih kecil? Tunjuk di soal.",
+    "Minta anak menyebut dua bilangan yang jumlahnya sama dengan soal, lalu cek selisihnya.",
+    "Tanya: kalau dua bilangan itu ditambah, hasilnya berapa? Kalau dikurang, berapa?"
+   ],
+   "tindak_lanjut": "Pakai contoh kecil: jumlah 10, selisih 2. Minta anak mencoba pasangan bilangan sampai cocok, lalu cari polanya pada jumlah, selisih, dan hasilnya."
+  },
+  "soal_umur": {
+   "pertanyaan": [
+    "Tanya: umur siapa yang ditanya dan kapan, sekarang atau beberapa tahun lagi?",
+    "Tanya: setelah beberapa tahun, umur ayah dan umur anak sama-sama bertambah berapa?",
+    "Minta anak menuliskan umur keduanya sekarang, lalu umur keduanya setelah satu tahun."
+   ],
+   "tindak_lanjut": "Buat tabel: kolom tahun ke depan, umur ayah, umur anak, hasil bagi. Isi baris demi baris sampai syarat soal terpenuhi, lalu lihat selisih umurnya."
+  },
+  "soal_uang": {
+   "pertanyaan": [
+    "Tanya: uang siapa yang ditanya? Siapa yang lebih banyak?",
+    "Minta anak menggambar kotak untuk uang masing-masing sesuai perbandingan di soal.",
+    "Tanya: dari gambar itu, ada berapa bagian semuanya? Sama dengan berapa rupiah?"
+   ],
+   "tindak_lanjut": "Gambar uang Budi sebagai satu kotak dan uang Andi sebagai beberapa kotak sama besar. Hitung seluruh kotak, bagi total, lalu jawab yang ditanya."
+  },
+  "dua_besaran_selisih": {
+   "pertanyaan": [
+    "Tanya: yang ditanya kelereng siapa, Andi atau Budi? Tunjuk di soal.",
+    "Minta anak menggambar kotak untuk kelereng masing-masing sesuai perbandingan.",
+    "Tanya: selisih itu sama dengan berapa kotak pada gambarmu?"
+   ],
+   "tindak_lanjut": "Gambar kotak sama besar: satu untuk Budi dan beberapa untuk Andi. Tandai kotak kelebihannya sebagai selisih, lalu hitung nilai satu kotak."
+  }
+ }
+}

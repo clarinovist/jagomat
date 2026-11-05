@@ -1,0 +1,95 @@
+{
+ "versi_format": 1,
+ "topik": "kombinatorik",
+ "status": "draf",
+ "template": {
+  "aturan_tambah": {
+   "pertanyaan": [
+    "Tanya: pilihan di soal ini diambil satu saja atau dua-duanya sekaligus? Tunjuk di kalimat soal.",
+    "Minta anak menyebut dua kelompok pilihan itu dengan kata sendiri, lalu bilang berapa isi masing-masing.",
+    "Tanya: kalau membeli satu barang saja, apakah boleh dari kelompok pertama dan kedua bersamaan?"
+   ],
+   "tindak_lanjut": "Pakai benda sungguhan (misal 3 pensil dan 2 penghapus), minta anak memilih satu benda lalu menghitung semua kemungkinan satu per satu."
+  },
+  "aturan_kali": {
+   "pertanyaan": [
+    "Tanya: yang dipilih satu hal saja atau dua hal sekaligus? Tunjuk di soal.",
+    "Minta anak menyebutkan satu contoh pilihan lengkap, lalu satu contoh lain yang berbeda.",
+    "Tanya: kalau pilihan pertama sudah dipegang, ada berapa pilihan kedua yang bisa dipasangkan?"
+   ],
+   "tindak_lanjut": "Minta anak menggambar tabel atau pohon pilihan kecil (misal 2 kaus dan 3 celana) dan menulis semua pasangan yang mungkin satu per satu."
+  },
+  "susun_bilangan": {
+   "pertanyaan": [
+    "Tanya: bilangan apa yang sedang kita susun? Boleh pakai angka yang sama dua kali?",
+    "Minta anak menuliskan tiga contoh bilangan yang memenuhi soal, sambil menjelaskan kenapa sah.",
+    "Tanya: angka mana yang boleh dan tidak boleh ada di depan? Kenapa?"
+   ],
+   "tindak_lanjut": "Beri kartu angka, minta anak menyusun bilangan satu per satu dan mencatat semuanya, lalu cek ada yang kembar atau salah posisi depan."
+  },
+  "susun_bilangan_syarat": {
+   "pertanyaan": [
+    "Tanya: syarat apa saja yang harus dipenuhi bilangan ini? Tunjuk di soal.",
+    "Minta anak menuliskan tiga bilangan yang memenuhi syarat dan satu yang tidak, lalu jelaskan bedanya.",
+    "Tanya: bagian mana dari bilangan yang kamu tentukan lebih dulu? Kenapa itu?"
+   ],
+   "tindak_lanjut": "Beri kartu angka, minta anak menyusun semua bilangan dan mencoret yang tidak memenuhi syarat, lalu menghitung sisanya satu per satu."
+  },
+  "permutasi_urutan": {
+   "pertanyaan": [
+    "Tanya: kalau dua orang yang sama menempati posisi bertukar, itu dianggap susunan sama atau beda?",
+    "Tanya: satu orang boleh menempati dua posisi sekaligus atau tidak?",
+    "Minta anak menyebut dua susunan yang berbeda dari orang-orang yang sama, sambil menunjuk posisinya."
+   ],
+   "tindak_lanjut": "Pakai 3 kartu nama, minta anak menyusun semua urutan di meja dan mencatatnya satu baris per urutan, lalu hitung semuanya."
+  },
+  "permutasi_blok": {
+   "pertanyaan": [
+    "Tanya: buku mana yang harus berdampingan? Tunjukkan di rak gambar atau dengan kartu.",
+    "Minta anak menyusun satu contoh yang memenuhi syarat dan satu yang tidak.",
+    "Tanya: di dalam kelompok yang berdampingan itu, urutan buku boleh bertukar atau tidak?"
+   ],
+   "tindak_lanjut": "Pakai kartu buku: ikat dua kartu yang harus berdampingan dengan klip, susun semua kemungkinan, lalu tukar isi ikatan dan susun lagi."
+  },
+  "kombinasi_pilih": {
+   "pertanyaan": [
+    "Tanya: kalau memilih dua orang yang sama tapi disebut dalam urutan berbeda, itu tim yang sama atau beda?",
+    "Minta anak menyebut dua tim yang berbeda dan satu pasangan nama yang sebenarnya tim sama.",
+    "Tanya: dalam tim, apakah ada yang jadi ketua atau posisinya dibedakan?"
+   ],
+   "tindak_lanjut": "Pakai kartu nama, minta anak membentuk semua tim dan mencoret tim yang isinya sama walau namanya dibaca terbalik, lalu hitung yang tersisa."
+  },
+  "jabat_tangan": {
+   "pertanyaan": [
+    "Tanya: kalau Ani menyalami Budi, apakah Budi masih perlu menyalami Ani lagi?",
+    "Tanya: apakah seseorang menyalami dirinya sendiri? Kenapa?",
+    "Minta anak menunjukkan dengan 3 orang saja: siapa menyalami siapa, satu per satu."
+   ],
+   "tindak_lanjut": "Mulai dari 3 orang: gambar titik, tarik garis untuk tiap jabat tangan, hitung garisnya. Lanjutkan ke 4 orang lalu cari polanya."
+  },
+  "jalur_petak": {
+   "pertanyaan": [
+    "Tanya: boleh bergerak ke arah mana saja di petak ini? Tunjuk arahnya di gambar.",
+    "Minta anak menelusuri satu jalur dari awal sampai tujuan dengan jari, lalu satu jalur lain yang berbeda.",
+    "Tanya: berapa langkah ke kanan dan ke bawah dalam satu jalur? Apakah selalu sama?"
+   ],
+   "tindak_lanjut": "Mulai dari petak kecil (misal 2 kali 2). Tulis angka di tiap titik: banyak jalur ke titik itu, lalu perluas ke petak yang lebih besar."
+  },
+  "sarang_merpati": {
+   "pertanyaan": [
+    "Tanya: yang ditanya paling banyak atau paling sedikit di satu sangkar? Tunjuk di soal.",
+    "Tanya: kalau merpati dibagi serata mungkin, apa yang terjadi dengan sisanya?",
+    "Minta anak menunjukkan satu cara membagi, lalu bilang sangkar mana yang paling penuh."
+   ],
+   "tindak_lanjut": "Pakai kancing sebagai merpati dan gelas sebagai sangkar: bagikan satu-satu bergiliran, lalu lihat isi gelas paling banyak dan hitung."
+  },
+  "inklusi_eksklusi_2": {
+   "pertanyaan": [
+    "Tanya: anak yang suka keduanya masuk hitungan kelompok pertama, kedua, atau keduanya?",
+    "Tanya: yang ditanya yang suka salah satu saja atau salah satu sampai kedua-duanya?",
+    "Minta anak menggambar dua lingkaran yang beririsan dan menaruh angka dari soal di tempatnya."
+   ],
+   "tindak_lanjut": "Gambar dua lingkaran beririsan, isi angka irisan lebih dulu, lalu isi bagian lingkaran yang tersisa. Minta anak menjumlah semua bagian."
+  }
+ }
+}

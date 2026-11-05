@@ -1,0 +1,63 @@
+{
+ "versi_format": 1,
+ "topik": "pengukuran",
+ "status": "draf",
+ "template": {
+  "skala_peta": {
+   "pertanyaan": [
+    "Tanya: angka mana di soal yang jarak sebenarnya, dan mana yang jarak di peta?",
+    "Tanya: satuan jarak di soal sama atau berbeda? Satuan mana yang kamu pakai?",
+    "Tanya: skala itu artinya 1 cm di peta sama dengan berapa di tempat sebenarnya?"
+   ],
+   "tindak_lanjut": "Minta anak mengukur 1 cm di penggaris, menganggapnya mewakili jarak tertentu di tanah, lalu mengubah satuan sebenarnya jadi cm."
+  },
+  "satuan_waktu_lama": {
+   "pertanyaan": [
+    "Tanya: satu abad, windu, lustrum, dan dasawarsa itu masing-masing berapa tahun?",
+    "Tanya: kamu mengubah ke satuan yang lebih besar atau lebih kecil? Jadi dikali atau dibagi?",
+    "Minta anak menyebut satuan awal dan satuan tujuan dari soal ini."
+   ],
+   "tindak_lanjut": "Buat tabel kecil bersama anak: satu abad = berapa tahun, satu windu = berapa tahun, dst., lalu minta anak memakainya untuk soal ini."
+  },
+  "jam_menit_detik": {
+   "pertanyaan": [
+    "Tanya: satu jam sama dengan berapa menit, dan satu menit sama dengan berapa detik?",
+    "Tanya: kamu mengubah ke satuan yang lebih besar atau lebih kecil? Jadi dikali atau dibagi?",
+    "Minta anak menyebut satuan awal dan satuan tujuan dari soal ini."
+   ],
+   "tindak_lanjut": "Pakai jam dinding: minta anak menggeser jarum menit satu putaran penuh dan menyebut berapa menit lalu berapa detik, lalu mengubah angka soal."
+  },
+  "satuan_kuantitas": {
+   "pertanyaan": [
+    "Tanya: satu lusin, kodi, gros, atau rim itu berisi berapa buah?",
+    "Tanya: kamu mengubah ke satuan yang lebih besar atau lebih kecil? Jadi dikali atau dibagi?",
+    "Minta anak menyebut satuan awal dan satuan tujuan dari soal ini."
+   ],
+   "tindak_lanjut": "Siapkan 12 kelereng; minta anak mengelompokkan jadi satu lusin, lalu menghitung kelompok untuk 2 atau 3 lusin dan mencocokkannya dengan soal."
+  },
+  "tangga_satuan_campuran": {
+   "pertanyaan": [
+    "Tanya: ada berapa satuan berbeda di soal, dan satuan apa yang diminta di akhir?",
+    "Tanya: tiap satuan itu naik atau turun berapa tangga ke satuan tujuan?",
+    "Tanya: apakah kamu mengubah tiap satuan sendiri-sendiri, atau sekaligus?"
+   ],
+   "tindak_lanjut": "Gambar tangga satuan, minta anak mengubah suku pertama ke satuan tujuan dulu, lalu suku kedua, lalu suku ketiga, baru dijumlahkan."
+  },
+  "satuan_luas_volume": {
+   "pertanyaan": [
+    "Tanya: satuan di soal ini satuan panjang, luas, atau volume? Bagaimana kamu tahu?",
+    "Tanya: satu m² itu sama dengan berapa cm²? Gambar kotaknya.",
+    "Tanya: turun satu tangga, dikali berapa? Dari mana kamu tahu angkanya?"
+   ],
+   "tindak_lanjut": "Minta anak menggambar kotak 1 m kali 1 m dan membaginya per 10 cm, lalu menghitung ada berapa kotak kecil, agar tahu faktor satuan luas."
+  },
+  "jam_selesai": {
+   "pertanyaan": [
+    "Tanya: jam dan menit mana yang dipakai? Mulai dari jam atau menit dulu?",
+    "Tanya: kalau menitnya sudah lebih dari 60, apa yang kamu lakukan dengan jamnya?",
+    "Minta anak menggambar jam dinding dan menggeser jarumnya mengikuti soal."
+   ],
+   "tindak_lanjut": "Pakai jam mainan atau garis waktu: minta anak menambah atau mengurangi jam dulu, lalu menit, dan berhenti tiap lewat angka 60 untuk menukar jam."
+  }
+ }
+}

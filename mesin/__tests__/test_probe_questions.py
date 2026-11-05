@@ -20,6 +20,14 @@ import topics  # noqa: E402
 from http_test_kit import SANDI_GURU, SANDI_MURID, ServerUji  # noqa: E402
 
 
+@pytest.fixture()
+def konten_kosong(tmp_path, monkeypatch):
+    monkeypatch.setattr(pq, "DIREKTORI", tmp_path)
+    pq._muat.cache_clear()
+    yield tmp_path
+    pq._muat.cache_clear()
+
+
 def test_tiap_topik_punya_tiga_pertanyaan_pendek_tanpa_kunci():
     for topik in topics.daftar_topik():
         daftar = pq.pertanyaan_untuk("template-tidak-dikenal", topik)
@@ -29,7 +37,7 @@ def test_tiap_topik_punya_tiga_pertanyaan_pendek_tanpa_kunci():
             assert "kunci" not in teks.lower() and "jawaban yang benar" not in teks.lower()
 
 
-def test_template_dikenal_memakai_topik_pemiliknya_bukan_topik_sesi():
+def test_template_dikenal_memakai_topik_pemiliknya_bukan_topik_sesi(konten_kosong):
     template = "luas_kotak_satuan"
     pemilik = topics.pemilik_template(template)
     assert pemilik

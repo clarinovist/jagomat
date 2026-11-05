@@ -77,9 +77,11 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `share_http._situs_tautan` memakai Host hanya bila ada di `HOST_TAUTAN` (`jagomat.id`, `uji.jagomat.id`), selain
   itu `brand.URL_SITUS`. `share_links.TTL_DETIK` 12 jam. Form sesi tidak lagi beratribut `data-bagikan-sesi`, jadi
   `SKRIP_BAGIKAN` tidak disisipkan (follow-up: buang). Cabang `fetch` JSON tetap: dipakai verifikasi lingkungan uji.
-- `probe_questions.py` (5 Nov 2026): pertanyaan pancingan statis per topik (fallback umum)
-  untuk halaman tinjauan guru saat `diagnosa` tidak punya dugaan; `render()` kosong untuk
-  peran selain guru. Topik diambil dari `topics.pemilik_template`, lalu topik sesi.
+- `probe_questions.py`: pertanyaan pancingan untuk halaman tinjauan guru saat `diagnosa` tidak
+  punya dugaan. Urutan: entri per template di `konten/pancingan/<topik>.json` (3 pertanyaan +
+  tindak lanjut, status draf, 98 template; 6 Nov 2026) → topik pemilik template → topik sesi → umum.
+  Berkas divalidasi gagal-tertutup (berkas rusak dilewati, uji CI memastikan berkas terkirim sah);
+  `render()` kosong untuk peran selain guru.
 - Teks yang dibaca guru mengikuti [`docs/glosarium-guru.md`](glosarium-guru.md): kalimat pendek,
   istilah internal tidak tampil; palang `test_bahasa_guru_tinjauan.py` memeriksa halaman tinjauan.
 - Stdlib runtime; dev dependency hanya pytest/pytest-xdist. Python lokal3.9.6 dan
