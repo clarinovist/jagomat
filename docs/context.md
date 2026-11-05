@@ -65,7 +65,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - Satu alur sesi (6 Nov 2026): `attachment_http._terapkan` mengalihkan (303) ke `/sesi/<id>` bila sesi
   menjadi selesai; pesan memakai kode allowlist di `session_http`, bukan teks query. Ringkasan wajib di
   tinjauan memakai `review_navigation.wajib_sebelum_konfirmasi` (konservatif: tidak boleh lebih kecil dari
-  yang ditolak konfirmasi; diuji dua arah terhadap `konfirmasi_dari_form`).
+  yang ditolak konfirmasi; diuji dua arah terhadap `konfirmasi_dari_form`); kartu memakai penanda yang sama.
+  Kalimat pembuka catatan laporan (`parent_report_guru_pages.KALIMAT_PEMBUKA`, penanda `[isi]`) hanya render;
+  guard simpan di `parent_report_http`, bukan `parent_report_store` (berkas kontrak).
 - `probe_questions.py` (5 Nov 2026): pertanyaan pancingan statis per topik (fallback umum)
   untuk halaman tinjauan guru saat `diagnosa` tidak punya dugaan; `render()` kosong untuk
   peran selain guru. Topik diambil dari `topics.pemilik_template`, lalu topik sesi.

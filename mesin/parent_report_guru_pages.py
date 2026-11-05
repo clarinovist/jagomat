@@ -146,7 +146,8 @@ def halaman_detail(siswa, lap, ident, *, tautan=None, berubah=0, token_url="", h
             'Teks biasa, sampai 2000 karakter. Tidak bisa diubah setelah diterbitkan.</p>'
             '<div class="baris-aksi"><button class="btn-st" type="submit">Simpan catatan</button></div></form>'
             f'<form method="post" action="{dasar}/terbitkan" class="kartu-st"><p>Menerbitkan membuat tautan baca-saja '
-            "30 hari dan mematikan tautan laporan lain untuk anak ini.</p>"
+            "30 hari dan mematikan tautan laporan lain untuk anak ini. Catatan yang belum disimpan tidak ikut terbit; "
+            "tekan Simpan catatan dulu bila menulis catatan.</p>"
             '<div class="baris-aksi"><button class="btn-st" type="submit">Terbitkan dan buat tautan</button></div></form>'
             + _konfirmasi(sid, lid, "hapus", "Hapus draf", "Draf ini akan dihapus dan tidak bisa dikembalikan.", "Ya, hapus draf")
         )

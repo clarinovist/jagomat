@@ -277,6 +277,9 @@ def test_simpan_catatan_yang_masih_memuat_penanda_ditolak_tanpa_tulis(s):
 def test_terbit_tanpa_simpan_catatan_tidak_memuat_templat(s):
     _, _, h = _buat(s)
     lid = _id_dari(h)
+    _, detail, _ = s.minta(h["Location"], auth=GURU)
+    form_terbit = detail.split(f'action="/anak/{s.anak}/laporan-ortu/{lid}/terbitkan"', 1)[1].split("</form>", 1)[0]
+    assert "Catatan yang belum disimpan tidak ikut terbit" in form_terbit
     kode, isi, _ = s.minta(f"/anak/{s.anak}/laporan-ortu/{lid}/terbitkan", auth=GURU, data={})
     token = re.search(r"/laporan-ortu/([A-Za-z0-9_-]{43})", isi).group(1)
     _, ortu, _ = s.minta(f"/laporan-ortu/{token}")

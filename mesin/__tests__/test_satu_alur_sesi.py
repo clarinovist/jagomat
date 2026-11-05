@@ -213,6 +213,10 @@ def test_ringkasan_wajib_sama_dengan_yang_ditolak_server(db):
         assert "2 wajib diputuskan" in html
         assert "masih perlu diperiksa" not in html
         assert "tidak wajib untuk konfirmasi" in html  # soal benar: tanya cara opsional
+        # Kartu selaras dengan ringkasan: 2 wajib, 2 dugaan yang boleh disetujui.
+        assert html.count("Wajib diputuskan sebelum konfirmasi.") == 2
+        assert html.count("Dugaan Jagomat. Boleh disetujui apa adanya saat konfirmasi.") == 2
+        assert "Periksa soal yang ditandai sebelum" not in html
         with pytest.raises(learning_cycle_service.KonfirmasiBelumLengkap) as galat:
             learning_cycle_service.konfirmasi_dari_form(kon, sesi, "guru", {})
         kon.rollback()
@@ -221,8 +225,11 @@ def test_ringkasan_wajib_sama_dengan_yang_ditolak_server(db):
         html = teacher_session_pages.halaman_sesi_stitch(kon, sesi).decode()
         assert _angka_wajib(html) == 0
         assert "Siap dikonfirmasi" in html
+        assert "Wajib diputuskan sebelum konfirmasi." not in html
         learning_cycle_service.konfirmasi_dari_form(kon, sesi, "guru", {})
         assert kon.execute("SELECT dikonfirmasi_guru FROM sesi WHERE id=?", (sesi,)).fetchone()[0]
+        html = teacher_session_pages.halaman_sesi_stitch(kon, sesi).decode()
+        assert "Sudah dikonfirmasi" in html and "Siap dikonfirmasi" not in html
 
 
 def test_tautan_laporan_sesudah_konfirmasi_langsung_ke_halaman_laporan(db):

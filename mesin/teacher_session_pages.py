@@ -449,12 +449,14 @@ def halaman_sesi_stitch(
         kategori_tinjauan = klasifikasi_tinjauan(**parameter_tinjauan)
         if kategori_tinjauan not in KATEGORI_TINJAUAN:
             kategori_tinjauan = PERLU_DIPERIKSA
+        butir_wajib = butir_dugaan = False
         if sudah_dikirim and not sesi_dibatalkan:
             from review_navigation import hanya_cek_dugaan, wajib_sebelum_konfirmasi
-            if wajib_sebelum_konfirmasi(**parameter_tinjauan):
-                wajib_diputuskan += 1
-            elif kategori_tinjauan == PERLU_DIPERIKSA and hanya_cek_dugaan(**parameter_tinjauan):
-                cek_dugaan += 1
+            butir_wajib = wajib_sebelum_konfirmasi(**parameter_tinjauan)
+            butir_dugaan = (not butir_wajib and kategori_tinjauan == PERLU_DIPERIKSA
+                            and hanya_cek_dugaan(**parameter_tinjauan))
+            wajib_diputuskan += butir_wajib
+            cek_dugaan += butir_dugaan
         tindakan = tindakan_tinjauan(**parameter_tinjauan)
         if kategori_tinjauan == PERLU_DIPERIKSA:
             antrean_tinjauan.append((sid, int(b['nomor'])))
@@ -490,7 +492,15 @@ def halaman_sesi_stitch(
         )
         label_tindakan = (
             'Tanyakan cara anak' if kategori_tinjauan == TANYAKAN_CARA
+            else 'Cek dugaan Jagomat bila sempat' if butir_dugaan
             else tindakan or 'Tidak perlu dibuka lagi'
+        )
+        # Penanda per kartu selaras dengan ringkasan: wajib vs dugaan yang boleh disetujui.
+        penanda_wajib = (
+            '<p class="koreksi-catatan-st koreksi-status-wajib-st"><b>Wajib diputuskan sebelum konfirmasi.</b></p>'
+            if butir_wajib else
+            '<p class="koreksi-catatan-st koreksi-status-dugaan-st">Dugaan Jagomat. Boleh disetujui apa adanya saat konfirmasi.</p>'
+            if butir_dugaan else ''
         )
         minta_foto = (
             '<p class="koreksi-catatan-st">Minta anak menulis caranya di kertas, '
@@ -590,6 +600,7 @@ def halaman_sesi_stitch(
     </fieldset>
     <section class="koreksi-penilaian-st" aria-labelledby="label-kode-{sid}">
       <p class="koreksi-tache-st">{html.escape(label_tindakan)}</p>
+      {penanda_wajib}
       {usulan}
       {penilaian_status}
       <label class="koreksi-label-st" id="label-kode-{sid}" for="kode-{sid}">Penilaian yang dipakai saat disimpan <span class="koreksi-wajib-st">Wajib untuk konfirmasi, kecuali dilewati</span></label>
@@ -783,7 +794,8 @@ def halaman_sesi_stitch(
                 '<section class="kelompok-tinjauan-st perlu-diperiksa-st" '
                 'aria-labelledby="judul-perlu-diperiksa">'
                 '<h2 id="judul-perlu-diperiksa">Perlu diperiksa</h2>'
-                '<p class="koreksi-catatan-st">Periksa soal yang ditandai sebelum menekan Konfirmasi hasil sesi.</p>'
+                '<p class="koreksi-catatan-st">Soal bertanda wajib harus diputuskan sebelum Konfirmasi hasil sesi. '
+                'Dugaan Jagomat boleh disetujui apa adanya.</p>'
                 + ''.join(kartu_perlu_diperiksa) + '</section>'
             )
         if kartu_tanyakan_cara:
@@ -808,7 +820,7 @@ def halaman_sesi_stitch(
             # Tidak ada disable berbasis proyeksi UI. Palang Enter tersembunyi
             # hanya memastikan konfirmasi dipilih eksplisit; server tetap otoritatif.
             urutan_aksi = (
-                f'<p class="koreksi-sisa-st"><b>{f"{wajib_diputuskan} wajib diputuskan" if wajib_diputuskan else "Siap dikonfirmasi"}</b></p>'
+                f'<p class="koreksi-sisa-st"><b>{f"{wajib_diputuskan} wajib diputuskan" if wajib_diputuskan else "Sudah dikonfirmasi" if konfirmasi_masih_aktif and draf_koreksi is None else "Siap dikonfirmasi"}</b></p>'
                 '<div class="koreksi-aksi-sesi-st">'
                 f'<button type="submit" class="sekunder" formaction="/sesi/{sesi_id}/tinjauan">Simpan draf</button>'
                 f'{aksi_konfirmasi}</div>'
