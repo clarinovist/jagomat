@@ -106,7 +106,7 @@ def test_default_mesin_roundtrip_tidak_menciptakan_override_atau_pengakuan(serve
         assert keadaan(s)[1] == []
         return
     assert "Usulan Jagomat:" in isi
-    assert "Konfirmasi hasil sesi berarti menyetujui penilaian" in isi
+    assert "Konfirmasi hasil sesi berarti Anda menyetujui semua penilaian" in isi
     assert kirim(s, data)[0] == 200
     hasil, snapshot, bukti = keadaan(s)
     for key in ("cara", "jawaban", "manual", "belum_pernah", "kode_usulan", "alasan", "malrule_id"):
@@ -287,7 +287,7 @@ def test_hierarki_form_tunggal_dan_palang_enter(server):
     assert "Apakah anak bisa menjelaskan caranya?" in paham
     lewati = re.search(r'<div class="koreksi-lewati-st">(.*?)</div>', badan, re.S)[1]
     assert f'name="dilewati_{s.sid}"' in lewati
-    assert "Jawaban dan catatan asli tetap tersimpan" in lewati
+    assert "Jawaban dan catatan anak tetap tersimpan" in lewati
 
 
 @pytest.mark.parametrize("field,nilai", [

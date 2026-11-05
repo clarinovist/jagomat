@@ -22,7 +22,7 @@ def test_usulan_konkret_dan_alasan_di_dekat_dropdown(server):
     assert '<option value="" selected>Usulan: Jawaban benar</option>' in isi
     sebelum_panduan = isi.split('<section class="koreksi-penilaian-st"', 1)[1]
     assert '<b>Alasan:</b> jawaban benar' in sebelum_panduan
-    assert 'tidak perlu mengganti dropdown' in isi
+    assert 'Tidak perlu mengubah pilihan' in isi
     assert 'Pilihan dropdown baru disimpan setelah menekan Simpan draf atau Konfirmasi hasil sesi.' in isi
     assert 'Penilaian saat halaman dimuat: Jawaban benar' in isi
     assert 'Belum dikonfirmasi' in status_penilaian(isi, s.sid)

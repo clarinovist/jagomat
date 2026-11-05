@@ -85,16 +85,16 @@ def kontrol(kon, sid, tinjauan, draf, *, perlu_sumber=False):
     bantuan = nilai(tinjauan, draf, 'jawaban_bantuan')
     versi = nilai({}, draf, 'versi_tinjauan', review_store.tanda(kon, sid))
     opsi = ''.join(f'<option value="{v}"{" selected" if v == provenance else ""}>{label}</option>' for v, label in (
-        ('', 'Belum dicatat'), ('penjelasan_asli', 'Penjelasan pekerjaan asli, tanpa bantuan'),
-        ('koreksi_transkripsi', 'Koreksi salinan pekerjaan asli'), ('setelah_bantuan', 'Hasil setelah diberi petunjuk atau contoh'),
+        ('', 'Belum dicatat'), ('penjelasan_asli', 'Anak menjelaskan pekerjaannya sendiri, tanpa bantuan'),
+        ('koreksi_transkripsi', 'Koreksi salinan: yang diketik tidak sama dengan tulisan anak'), ('setelah_bantuan', 'Hasil setelah diberi petunjuk atau contoh'),
     ))
     return f'''<div class="koreksi-tinjauan-st">
-<label class="koreksi-label-st" for="tinjauan-{sid}">Catatan percakapan (boleh dilanjutkan nanti)</label>
+<label class="koreksi-label-st" for="tinjauan-{sid}">Catatan percakapan dengan anak (boleh dilanjutkan nanti)</label>
 <textarea class="koreksi-textarea-st" name="catatan_tinjauan_{sid}" id="tinjauan-{sid}" maxlength="8000">{escape(catatan)}</textarea>
-<label class="koreksi-label-st" for="provenance-{sid}">Sumber penjelasan atau koreksi</label>
+<label class="koreksi-label-st" for="provenance-{sid}">Dari mana penjelasan atau koreksi ini</label>
 <select class="koreksi-select-st" name="provenance_{sid}" id="provenance-{sid}">{opsi}</select>
-<label class="koreksi-label-st" for="bantuan-{sid}">Jawaban setelah dibantu (jika ada, bukan jawaban mandiri)</label>
+<label class="koreksi-label-st" for="bantuan-{sid}">Jawaban setelah dibantu (kalau ada; tidak dihitung sebagai jawaban sendiri)</label>
 <input class="koreksi-input-st" name="jawaban_bantuan_{sid}" id="bantuan-{sid}" value="{escape(bantuan, quote=True)}" maxlength="8000">
 <input type="hidden" name="versi_tinjauan_{sid}" value="{escape(versi, quote=True)}">
-<p class="koreksi-catatan-st">Jangan menimpa jawaban awal dengan hasil bantuan. Bukti mandiri baru memerlukan soal berikutnya.</p>
+<p class="koreksi-catatan-st">Jangan menimpa jawaban awal dengan hasil bantuan. Kemampuan anak sendiri dibuktikan lewat soal berikutnya.</p>
 </div>'''

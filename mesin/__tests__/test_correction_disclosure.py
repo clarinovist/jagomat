@@ -107,7 +107,7 @@ def test_evaluasi_checkpoint_semua_butir_tetap_terbuka(server, tujuan):
     m = Struktur(isi)
     assert not m.tertutup(f'cek_pemahaman_{s.sid}')
     assert m.tertutup(f'cara_{s.sid}')
-    assert 'catatan pemahaman pada soal fokus dipakai untuk menilai penguasaan' in isi
+    assert 'yang dinilai adalah apakah anak bisa menjelaskan caranya' in isi
 
 
 @pytest.mark.parametrize('cara,kode,jawaban,belum', [

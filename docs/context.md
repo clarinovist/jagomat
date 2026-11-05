@@ -64,6 +64,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - `probe_questions.py` (5 Nov 2026): pertanyaan pancingan statis per topik (fallback umum)
   untuk halaman tinjauan guru saat `diagnosa` tidak punya dugaan; `render()` kosong untuk
   peran selain guru. Topik diambil dari `topics.pemilik_template`, lalu topik sesi.
+- Teks yang dibaca guru mengikuti [`docs/glosarium-guru.md`](glosarium-guru.md): kalimat pendek,
+  istilah internal tidak tampil; palang `test_bahasa_guru_tinjauan.py` memeriksa halaman tinjauan.
 - Stdlib runtime; dev dependency hanya pytest/pytest-xdist. Python lokal3.9.6 dan
   CI/container3.12. Nama modul Inggris; fungsi/docstring/UI/commit Bahasa Indonesia.
 - Zero-JS default. Enhancement yang disetujui berhash CSP dan fallback native;

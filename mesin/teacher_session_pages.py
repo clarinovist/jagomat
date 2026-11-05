@@ -283,8 +283,8 @@ def halaman_sesi_stitch(
         usulan = (
             f'<div class="usulan-st"><b>{html.escape(judul_usulan)}</b>'
             f'<p class="koreksi-catatan-st"><b>Alasan:</b> {html.escape(rekomendasi.alasan)}</p>'
-            '<p class="koreksi-catatan-st">Usulan berdasarkan isian saat halaman dimuat. '
-            'Jika jawaban, cara, atau pengalaman diubah, Jagomat menilai ulang saat disimpan.</p></div>'
+            '<p class="koreksi-catatan-st">Dugaan ini dari isian saat halaman dibuka. '
+            'Kalau jawaban atau cara anak diubah, Jagomat menilai ulang saat disimpan.</p></div>'
         )
         label_otomatis = (
             "Belum yakin — perlu ditinjau" if belum_dinilai else f"Usulan: {label_usulan}"
@@ -456,9 +456,9 @@ def halaman_sesi_stitch(
         )
         cek_penguasaan = info["tujuan"] in {"evaluasi", "checkpoint"}
         petunjuk_pemahaman = (
-            '<p class="koreksi-catatan-st">Pada evaluasi dan cek kembali, '
-            'catatan pemahaman pada soal fokus dipakai untuk menilai penguasaan. '
-            'Jawaban benar saja belum cukup; catat setelah anak menjelaskan.</p>'
+            '<p class="koreksi-catatan-st">Di sesi evaluasi dan cek ulang, yang dinilai adalah '
+            'apakah anak bisa menjelaskan caranya. Jawaban benar saja belum cukup. '
+            'Isi setelah mendengar anak.</p>'
             if cek_penguasaan else ""
         )
         label_tindakan = (
@@ -503,9 +503,9 @@ def halaman_sesi_stitch(
         )
         petunjuk_penilaian = (
             'Sesi dibatalkan; penilaian ini hanya untuk melihat riwayat.' if sesi_dibatalkan else
-            'Simpan draf menyimpan pilihan tanpa mengesahkan; Konfirmasi hasil sesi menyimpan dan mengesahkan penilaian, termasuk usulan yang dipakai.'
+            'Simpan draf: pilihan tersimpan, hasil belum final. Konfirmasi hasil sesi: penilaian jadi final, termasuk dugaan Jagomat yang dipakai.'
         )
-        dampak_lewati = 'Saat dikonfirmasi, soal dicatat sebagai dilewati, bukan benar atau salah, dan bukan bukti pemahaman. Jawaban dan catatan asli tetap tersimpan.'
+        dampak_lewati = 'Saat dikonfirmasi, soal ini dicatat sebagai dilewati: bukan benar, bukan salah, dan tidak dihitung sebagai bukti. Jawaban dan catatan anak tetap tersimpan.'
         playbook = ''
         if sudah_dikirim and not sesi_dibatalkan and not dilewati_terpilih and kode_efektif:
             import teaching_playbook
@@ -544,7 +544,7 @@ def halaman_sesi_stitch(
     {review_pages.jawaban_utama(label_jawaban, dikoreksi=koreksi_jawaban)}
     <details class="koreksi-opsi-st koreksi-kunci-st" id="pembahasan-soal-{sid}">
       <summary>Lihat kunci &amp; pembahasan soal {int(b['nomor'])}</summary>
-      <p class="koreksi-catatan-st">Untuk guru. Dengarkan cara anak sebelum memberi petunjuk; hasil setelah dibantu bukan jawaban mandiri.</p>
+      <p class="koreksi-catatan-st">Untuk guru. Dengarkan cara anak dulu, baru beri petunjuk. Jawaban setelah dibantu tidak dihitung sebagai jawaban sendiri.</p>
       <div class="kunci-baris-st">Kunci: <span class="kunci-val">{html.escape(b['kunci'])}</span></div>
       {pembahasan_html or '<p class="koreksi-catatan-st">Pembahasan belum tersedia untuk soal ini.</p>'}
     </details>
@@ -558,7 +558,7 @@ def halaman_sesi_stitch(
         <legend>Apakah anak bisa menjelaskan caranya?</legend>
         <div class="koreksi-pilihan-paham-grid-st">{pilihan_pemahaman}</div>
       </fieldset>
-      <p class="koreksi-catatan-st">Boleh dilewati — isi setelah mendengar penjelasan anak.</p>
+      <p class="koreksi-catatan-st">Boleh dikosongkan dulu. Isi setelah anak menjelaskan.</p>
       {petunjuk_pemahaman}
     </fieldset>
     <section class="koreksi-penilaian-st" aria-labelledby="label-kode-{sid}">
@@ -574,14 +574,14 @@ def halaman_sesi_stitch(
       <div class="koreksi-tambahan-isi-st">
         {sumber_asli}
         <div class="koreksi-bukti-st koreksi-bukti-tunggal-st">
-          <div><label class="koreksi-label-st" for="jwb-{sid}">Jawaban anak (koreksi salinan bila perlu)</label>{input_jawaban}</div>
+          <div><label class="koreksi-label-st" for="jwb-{sid}">Jawaban anak (perbaiki salinannya bila salah ketik)</label>{input_jawaban}</div>
         </div>
         <div class="koreksi-centang-st">
           <input type="hidden" name="hadir_belum_{sid}" value="1">
           <input type="checkbox" id="bp{sid}" name="belum_{sid}" value="1"{' checked' if belum_terpilih else ''} aria-describedby="belum-info-{sid}">
           <label for="bp{sid}"><span class="info-anak-label-st">Dari anak:</span> Belum pernah melihat soal seperti ini</label>
         </div>
-        <p class="koreksi-catatan-st" id="belum-info-{sid}">Centang hanya jika anak mengatakannya, bukan karena ia bingung. Ini catatan pengalaman anak, bukan keputusan pengenalan. Pilih Perlu pengenalan hanya setelah guru memastikannya.</p>
+        <p class="koreksi-catatan-st" id="belum-info-{sid}">Centang hanya jika anak mengatakannya, bukan karena ia bingung. Ini catatan dari anak. Pilih “Perlu pengenalan” di penilaian hanya setelah Anda memastikannya.</p>
         {cara_html}
         {kontrol_tinjauan}
       </div>
@@ -748,7 +748,7 @@ def halaman_sesi_stitch(
                 '<section class="kelompok-tinjauan-st perlu-diperiksa-st" '
                 'aria-labelledby="judul-perlu-diperiksa">'
                 '<h2 id="judul-perlu-diperiksa">Perlu diperiksa</h2>'
-                '<p class="koreksi-catatan-st">Periksa isian yang ditandai sebelum mengonfirmasi.</p>'
+                '<p class="koreksi-catatan-st">Periksa soal yang ditandai sebelum menekan Konfirmasi hasil sesi.</p>'
                 + ''.join(kartu_perlu_diperiksa) + '</section>'
             )
         if kartu_tanyakan_cara:
@@ -756,15 +756,15 @@ def halaman_sesi_stitch(
                 '<section class="kelompok-tinjauan-st tanyakan-cara-st" '
                 'aria-labelledby="judul-tanyakan-cara">'
                 '<h2 id="judul-tanyakan-cara">Tanyakan cara anak</h2>'
-                '<p class="koreksi-catatan-st">Tanyakan prompt pada tiap soal, lalu pilih catatan pemahaman per butir.</p>'
+                '<p class="koreksi-catatan-st">Ajukan pertanyaan yang tertulis di tiap soal, lalu catat apakah anak bisa menjelaskan.</p>'
                 + ''.join(kartu_tanyakan_cara) + '</section>'
             )
         if kartu_tercatat:
             kumpulan_kartu += (
                 '<section class="kelompok-tinjauan-st koreksi-tercatat-st" id="tinjauan-tercatat">'
                 f'<h2>Tinjauan tercatat · {len(kartu_tercatat)} soal tidak perlu dibuka lagi</h2>'
-                '<p class="koreksi-catatan-st">Termasuk jawaban belum tepat yang sudah diperiksa. '
-                'Seluruhnya tetap disahkan bersama saat Konfirmasi hasil sesi. Buka kembali bila perlu mengoreksi.</p>'
+                '<p class="koreksi-catatan-st">Termasuk jawaban salah yang sudah diperiksa. '
+                'Semuanya ikut final saat Konfirmasi hasil sesi. Buka lagi kalau perlu mengubah.</p>'
                 + ''.join(kartu_tercatat) + '</section>'
             )
         if sesi_dibatalkan:
@@ -781,9 +781,9 @@ def halaman_sesi_stitch(
             penjelasan_aksi = (
                 '<div class="koreksi-penjelasan-aksi-st">'
                 '<p class="koreksi-catatan-st">Berlaku untuk seluruh sesi. '
-                'Simpan draf untuk melanjutkan nanti, tanpa mengesahkan hasil.</p>'
+                'Simpan draf kalau mau lanjut nanti; hasil belum final.</p>'
                 '<p class="koreksi-catatan-st">Konfirmasi menyimpan semua isian dan mengesahkan hasil sesi. '
-                'Server tetap memeriksa kelengkapan dan akan menandai isian yang belum sah.</p></div>'
+                'Jagomat memeriksa kelengkapannya dan menandai bagian yang masih kurang.</p></div>'
             )
             from review_navigation import render_antrean
             navigasi_tinjauan = (
@@ -800,13 +800,13 @@ def halaman_sesi_stitch(
                 '<li><b>Salah hitung:</b> langkah sesuai, tetapi hitungannya keliru.</li>'
                 '<li><b>Salah tulis akhir:</b> hasil pengerjaan berbeda dari jawaban yang ditulis.</li>'
                 + ('' if drill else '<li><b>Menebak:</b> periksa cara anak, bukan hanya jawaban akhirnya.</li>')
-                + '</ul><p class="koreksi-catatan-st">Otomatis memakai usulan Jagomat; pilihan lain menetapkan penilaian sendiri.</p>'
-                '<p class="koreksi-catatan-st">Setuju dengan usulan? Anda tidak perlu mengganti dropdown. '
-                'Konfirmasi hasil sesi berarti menyetujui penilaian, termasuk usulan Jagomat yang dipakai. '
-                'Simpan draf belum mengesahkan hasil.</p>'
+                + '</ul><p class="koreksi-catatan-st">Pilihan pertama memakai dugaan Jagomat. Pilihan lain berarti Anda menetapkan sendiri.</p>'
+                '<p class="koreksi-catatan-st">Setuju dengan dugaan Jagomat? Tidak perlu mengubah pilihan. '
+                'Konfirmasi hasil sesi berarti Anda menyetujui semua penilaian, termasuk dugaan yang dipakai. '
+                'Simpan draf belum membuat hasil final.</p>'
                 '<p class="koreksi-catatan-st">Pilihan dropdown baru disimpan setelah menekan Simpan draf atau Konfirmasi hasil sesi. '
-                'Ringkasan di atas belum mengikuti perubahan yang belum disimpan.</p>'
-                '<p class="koreksi-catatan-st">Belum yakin? Tinjau cara anak; jangan menebak penilaian agar bisa lanjut.</p>'
+                'Ringkasan di atas baru berubah setelah disimpan.</p>'
+                '<p class="koreksi-catatan-st">Belum yakin? Lihat cara anak dulu. Jangan menebak penilaian hanya supaya bisa lanjut.</p>'
                 '</details>'
             )
             form_hasil = (

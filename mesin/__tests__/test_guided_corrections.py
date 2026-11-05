@@ -84,7 +84,7 @@ def test_lewati_bernama_jelas_dan_tidak_diaktifkan_otomatis(server):
     assert '>Lewati soal ini</button>' in isi
     assert 'Jangan sertakan soal ini dalam penilaian' in isi
     assert f'dilewati_{s.sid}' not in data
-    assert 'bukan benar atau salah' in isi
+    assert 'bukan benar, bukan salah' in isi
     data[f'dilewati_{s.sid}'] = '1'
     assert kirim(s, data)[0] == 200
     hasil, snapshot, _ = keadaan(s)
