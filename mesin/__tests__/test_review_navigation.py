@@ -108,7 +108,8 @@ def test_antrean_kosong_dan_pekerjaan_sebagian_tanpa_mengubah_form_atau_data(db)
         nav = Navigasi(html)
         assert nav.tautan == [f'#tinjau-soal-{sid}' for sid in ids[1:]]
         assert '2 soal perlu ditinjau' in html
-        assert '3 masih perlu diperiksa' in html
+        # Ringkasan membedakan wajib (2: sebagian & kosong) dari tanya cara (1, opsional).
+        assert '2 wajib diputuskan' in html and '2 soal wajib Anda putuskan' in html
         assert len(nav.kartu) == 3
         assert len(nav.ids) == len(set(nav.ids))
         for sid in ids:

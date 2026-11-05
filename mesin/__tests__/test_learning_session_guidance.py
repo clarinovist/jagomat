@@ -169,7 +169,7 @@ def test_selesai_meminta_tinjau_lalu_satu_jalan_kembali_setelah_sah(server):
 
     perlu_tinjau = _halaman(uji, sesi_id)
     assert "Tinjau bersama anak" in perlu_tinjau
-    assert "masih memerlukan tinjauan" in perlu_tinjau
+    assert "soal benar: tanyakan caranya" in perlu_tinjau
     assert "Tanyakan cara anak" in perlu_tinjau
     assert "tetap disahkan bersama saat Konfirmasi hasil sesi" in perlu_tinjau
     assert perlu_tinjau.count(">Konfirmasi hasil sesi</button>") == 1

@@ -730,14 +730,17 @@ def tangani_get(
                     )
                     kon.commit()
 
-            pesan_tinjauan = (
-                "Tinjauan tersimpan. Konfirmasi hasil tetap merupakan langkah "
-                "terpisah."
-                if [
-                    nilai for kunci, nilai in pasangan if kunci == "pesan"
-                ] == ["Tinjauan tersimpan"]
-                else ""
-            )
+            # Allowlist kode pesan; teks query tidak pernah dipantulkan.
+            pesan_tinjauan = {
+                ("Tinjauan tersimpan",): (
+                    "Tinjauan tersimpan. Konfirmasi hasil tetap merupakan langkah "
+                    "terpisah."
+                ),
+                ("Hasil lembar tersimpan",): (
+                    "Hasil dari lembar tersimpan. Putuskan soal yang wajib, "
+                    "lalu tekan Konfirmasi hasil sesi."
+                ),
+            }.get(tuple(nilai for kunci, nilai in pasangan if kunci == "pesan"), "")
             hasil = halaman_sesi(
                 kon,
                 sesi_id,

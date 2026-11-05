@@ -68,6 +68,24 @@ def _blok_latihan_serupa(kon, sesi_id: int) -> str:
         f'<div class="daftar-remedial-st">{"".join(aksi)}</div></section>'
     )
 
+def _rincian_triase(wajib: int, cek_dugaan: int, tanya_cara: int, *, cek_penguasaan: bool) -> str:
+    """Ringkasan sisa tinjauan yang membedakan wajib dari yang boleh dikerjakan bila sempat."""
+    bagian = []
+    if wajib:
+        bagian.append(f'{wajib} soal wajib Anda putuskan sebelum Konfirmasi hasil sesi.')
+    else:
+        bagian.append('Tidak ada soal yang wajib diputuskan; hasil siap dikonfirmasi.')
+    if cek_dugaan:
+        bagian.append(f'{cek_dugaan} soal memakai dugaan Jagomat; cek bila sempat.')
+    if tanya_cara:
+        bagian.append(
+            f'{tanya_cara} soal benar: tanyakan caranya. Tanpa penjelasan, jawaban benar belum cukup untuk lulus.'
+            if cek_penguasaan else
+            f'{tanya_cara} soal benar: tanyakan caranya bila sempat, tidak wajib untuk konfirmasi.'
+        )
+    return ' '.join(bagian)
+
+
 def _pil_sesi_stitch(kon, sesi_id: int, aktif: str) -> str:
     """Pil navigasi sesi versi Stitch."""
     n_lamp = kon.execute(
@@ -214,6 +232,8 @@ def halaman_sesi_stitch(
     kartu_tercatat = []
     antrean_tinjauan = []
     outcome_tampilan = []
+    wajib_diputuskan = 0
+    cek_dugaan = 0
     gaya_playbook = ''
     gaya_pancingan = ''
     for b in database.isi_sesi(kon, sesi_id):
@@ -429,6 +449,12 @@ def halaman_sesi_stitch(
         kategori_tinjauan = klasifikasi_tinjauan(**parameter_tinjauan)
         if kategori_tinjauan not in KATEGORI_TINJAUAN:
             kategori_tinjauan = PERLU_DIPERIKSA
+        if sudah_dikirim and not sesi_dibatalkan:
+            from review_navigation import hanya_cek_dugaan, wajib_sebelum_konfirmasi
+            if wajib_sebelum_konfirmasi(**parameter_tinjauan):
+                wajib_diputuskan += 1
+            elif kategori_tinjauan == PERLU_DIPERIKSA and hanya_cek_dugaan(**parameter_tinjauan):
+                cek_dugaan += 1
         tindakan = tindakan_tinjauan(**parameter_tinjauan)
         if kategori_tinjauan == PERLU_DIPERIKSA:
             antrean_tinjauan.append((sid, int(b['nomor'])))
@@ -675,11 +701,10 @@ def halaman_sesi_stitch(
             rincian_tercatat = (
                 f' {tercatat} soal tidak perlu dibuka lagi.' if tercatat else ''
             )
-            pengantar_triase = (
-                f'{pekerjaan_tersisa} soal masih memerlukan tinjauan.'
-                f'{rincian_tercatat} Tinjauan tercatat tetap disahkan bersama saat '
-                'Konfirmasi hasil sesi.'
-            )
+            pengantar_triase = _rincian_triase(
+                wajib_diputuskan, cek_dugaan, perlu_tanya,
+                cek_penguasaan=info["tujuan"] in {"evaluasi", "checkpoint"},
+            ) + f'{rincian_tercatat} Semua hasil tetap disahkan bersama saat Konfirmasi hasil sesi.'
         else:
             pengantar_triase = (
                 f'Tinjauan {tercatat} soal sudah tercatat; tidak perlu membuka kartu '
@@ -698,10 +723,12 @@ def halaman_sesi_stitch(
                 '<div><b>Hasil sudah dikonfirmasi</b>'
                 '<p>Hasil ini sudah final dan tercatat dalam perjalanan belajar anak.</p>'
                 + (
-                    # Rantai satu alur sesi: lanjut ke tab Perkembangan, satu-satunya pintu
-                    # masuk laporan orang tua (bukan tautan langsung ke laporan).
-                    f'<p><a href="/anak/{int(info["siswa_id"])}?section=perkembangan">'
-                    'Siapkan laporan untuk orang tua</a> dari tab Perkembangan.</p>'
+                    # Rantai satu alur sesi: langsung ke halaman laporan orang tua
+                    # (keputusan pemilik 6 Nov, K3); kartu di tab Perkembangan menuju
+                    # halaman yang sama, jadi tetap satu tujuan.
+                    f'<p><a href="/anak/{int(info["siswa_id"])}/laporan-ortu">'
+                    'Siapkan laporan untuk orang tua</a>. Laporan berlaku per periode; '
+                    'tidak wajib dikirim setiap sesi.</p>'
                     if peran == 'guru' else ''
                 )
                 + '</div></div>'
@@ -781,7 +808,7 @@ def halaman_sesi_stitch(
             # Tidak ada disable berbasis proyeksi UI. Palang Enter tersembunyi
             # hanya memastikan konfirmasi dipilih eksplisit; server tetap otoritatif.
             urutan_aksi = (
-                f'<p class="koreksi-sisa-st"><b>{pekerjaan_tersisa} masih perlu diperiksa</b></p>'
+                f'<p class="koreksi-sisa-st"><b>{f"{wajib_diputuskan} wajib diputuskan" if wajib_diputuskan else "Siap dikonfirmasi"}</b></p>'
                 '<div class="koreksi-aksi-sesi-st">'
                 f'<button type="submit" class="sekunder" formaction="/sesi/{sesi_id}/tinjauan">Simpan draf</button>'
                 f'{aksi_konfirmasi}</div>'

@@ -14,6 +14,9 @@ import database
 from support_pages import halaman_pesan as _halaman
 from teacher_pages import halaman_sesi_lampiran
 
+# Kode pesan (bukan teks bebas) untuk redirect ke tinjauan; dipetakan di session_http.
+PESAN_LEMBAR_TERSIMPAN = "Hasil%20lembar%20tersimpan"
+
 
 def tangani_get(penangan, jalur: str) -> bool:
     """Tangani file/konfirmasi lampiran dan tab lampiran satu sesi."""
@@ -235,6 +238,10 @@ def _terapkan(penangan, lampiran_id: int) -> None:
         baru_kirim = not sudah_kirim and bool(kon.execute(
             "SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?", (sesi_foto,)
         ).fetchone())
+        # Satu alur sesi: lembar lengkap → langsung ke tinjauan (bukan halaman isi lagi).
+        lengkap = bool(kon.execute(
+            "SELECT 1 FROM sesi WHERE id=? AND selesai IS NOT NULL", (sesi_foto,)
+        ).fetchone())
     if baru_kirim:
         import sensor_http
         sensor_http.sesi(sesi_foto, 'dikirim', pengguna=ident[0], peran=ident[1])
@@ -243,6 +250,12 @@ def _terapkan(penangan, lampiran_id: int) -> None:
         sesi_foto, "latihan_dikirim",
         pengguna=ident[0], peran=ident[1], baru=baru_kirim,
     )
+    if lengkap:
+        penangan.send_response(303)
+        penangan.send_header("Location", f"/sesi/{int(sesi_foto)}?pesan={PESAN_LEMBAR_TERSIMPAN}")
+        penangan.send_header("Content-Length", "0")
+        penangan.end_headers()
+        return
     penangan._kirim(isi)
 
 

@@ -57,7 +57,7 @@ def test_benar_tanpa_cek_cara_masuk_tanyakan_cara_dan_semua_kartu_terbuka(db):
         isi = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
         assert '0 dari 3 tinjauan tercatat' in isi
         assert 'Tanyakan cara anak' in isi
-        assert '3 masih perlu diperiksa' in isi
+        assert 'Siap dikonfirmasi' in isi and '3 soal benar: tanyakan caranya' in isi
         kartu = Kartu(isi).kartu
         for n, sid in enumerate(ids):
             tag, a = kartu[f'tinjau-soal-{sid}']
@@ -179,5 +179,5 @@ def test_panel_misi_dan_aksen_status_terrender(db):
         isi = teacher_pages.halaman_sesi_stitch(kon, sesi).decode()
         assert 'aria-label="Misi tinjauan"' in isi
         assert 'Tinjauan tercatat' in isi
-        assert 'masih perlu diperiksa' in isi
+        assert 'soal benar: tanyakan caranya' in isi
         assert 'koreksi-kartu-st koreksi-lipat-st status-' in isi

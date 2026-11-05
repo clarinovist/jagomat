@@ -251,7 +251,7 @@ def test_guru_setelah_kirim_mendapat_form_simpan_koreksi(db):
 
     badan = halaman.split("</style>", 1)[-1]
     assert "soal aman" not in badan
-    assert "masih perlu diperiksa" in badan
+    assert "1 wajib diputuskan" in badan and "1 soal wajib Anda putuskan" in badan
     assert "tetap disahkan bersama saat Konfirmasi hasil sesi" in badan
     assert "Konfirmasi hasil" in badan
     assert ">Simpan koreksi</button>" not in badan

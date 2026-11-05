@@ -72,6 +72,34 @@ def tindakan_tinjauan(*, benar, kode, pilihan, pemahaman, dilewati,
     return 'Periksa langkah anak'
 
 
+def wajib_sebelum_konfirmasi(**parameter):
+    """Apakah butir ini harus diputuskan guru sebelum Konfirmasi hasil sesi.
+
+    Proyeksi UI untuk ringkasan, bukan palang: server tetap otoritatif. Dibuat
+    konservatif (fail-closed) agar UI tidak pernah menyebut lebih sedikit butir
+    wajib daripada yang ditolak server. Satu-satunya butir "perlu diperiksa" yang
+    tidak wajib adalah salah dengan dugaan kode Jagomat (bukan T) yang belum
+    disentuh: konfirmasi menyetujuinya apa adanya. Status draf sendiri tidak
+    membuat butir wajib; isian draf yang ditampilkan tetap dinilai.
+    """
+    tanpa_draf = dict(parameter, draf=False)
+    if klasifikasi_tinjauan(**tanpa_draf) != PERLU_DIPERIKSA:
+        return False
+    return not hanya_cek_dugaan(**parameter)
+
+
+def hanya_cek_dugaan(*, benar, kode, pilihan, pemahaman, dilewati,
+                     masalah=False, sumber_perlu_diperiksa=False,
+                     terkonfirmasi=False, draf=False, tidak_konsisten=False):
+    """Salah dengan dugaan kode Jagomat yang boleh disetujui saat konfirmasi."""
+    return (
+        benar is False and dilewati is False
+        and kode in _KODE and kode != 'T'
+        and not pilihan
+        and not (masalah or sumber_perlu_diperiksa or tidak_konsisten)
+    )
+
+
 def render_progres(jumlah, tercatat, *, draf=False):
     """Progres pengisian saat render, tidak menyatakan hasil sudah disahkan."""
     catatan = (
