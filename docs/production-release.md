@@ -6,6 +6,33 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy alur guru (tandai benar, pancingan, bahasa tinjauan) — 5 November 2026
+
+Controlled `deploy-v2` memasang **7a363cfbedd5d4bf54cdbc354090676829edc58e**, healthy
+(started `2026-11-05T12:21Z`), menggantikan `efb9a03`. Delta: centang "jawaban anak benar"
+di halaman isi dari lembar (jawaban = kunci, diagnosis manual berpenanda `answer_marks`),
+pertanyaan pancingan saat "Belum yakin", bahasa halaman tinjauan untuk guru, tautan tab
+Perkembangan setelah konfirmasi. Tanpa schema, migrasi, atau flag baru. Smoke publik
+`jagomat.id`: `/` 200, `/akun` 401, `/murid/` 303 ke `/masuk`.
+
+- Kandidat `sha256:d032ecd2…`; recovery `cb3c5f53…` digest `sha256:7f96abcc…` (rebuild).
+  Kontrak `d79a79ca…` identik pada kandidat, recovery, dan live; mode `migrasi`,
+  `compatible=true`, `pair_verified=true`, `siap_pasang=false`. Dispatch gate
+  [42024124044](https://github.com/clarinovist/jagomat/actions/runs/42024124044) hijau
+  (kandidat 4/4, recovery 4/4, build).
+- Gate pertama [42021447158](https://github.com/clarinovist/jagomat/actions/runs/42021447158)
+  pada `635ed82` merah di `test_kontrak_candidate_identik_dengan_recovery_pinned`: perubahan
+  `review_store.py` (berkas kontrak, nama `*store*`) menggeser sidik kontrak. Diperbaiki
+  `7a363cf` dengan memindah logika ke `answer_marks.py`; pin recovery tidak diubah.
+- Kit `deploy-gurualur-20261105` (salinan kit laporan, `deploy.py` identik byte; langkah arsip
+  approval dibuang karena approval efb9a03 sudah diarsipkan; asersi tabel laporan kosong
+  dibuang karena laporan live sejak efb9a03; probe alur guru ditambahkan). Pemilik menjalankan
+  `jalankan-rilis.py`: prepare, hold, backup empat DB + `sandi.json` + riset, rehearsal C–B–C,
+  hash backup lokal cocok, `deploy` exit0, `reopen` `LIVE_ADMIN_HEALTHY`, **postcheck lulus
+  penuh** (Traceback0, config pulih, hash histori tetap). Cleanup menghapus 4 direktori turunan.
+- Backup induk `/opt/osn/cadangan/deploy-gurualur-20261105/`, salinan lokal
+  `mesin/cadangan/deploy-gurualur-20261105/` (gitignored). Lingkungan uji belum disamakan.
+
 ## Deploy laporan guru → orang tua (G3) — 5 November 2026
 
 Controlled `deploy-v2` memasang **efb9a03f6bf1dbd38f87ba86890767317c07913b**, healthy
