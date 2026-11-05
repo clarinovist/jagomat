@@ -31,7 +31,8 @@ Perkembangan setelah konfirmasi. Tanpa schema, migrasi, atau flag baru. Smoke pu
   hash backup lokal cocok, `deploy` exit0, `reopen` `LIVE_ADMIN_HEALTHY`, **postcheck lulus
   penuh** (Traceback0, config pulih, hash histori tetap). Cleanup menghapus 4 direktori turunan.
 - Backup induk `/opt/osn/cadangan/deploy-gurualur-20261105/`, salinan lokal
-  `mesin/cadangan/deploy-gurualur-20261105/` (gitignored). Lingkungan uji belum disamakan.
+  `mesin/cadangan/deploy-gurualur-20261105/` (gitignored). Uji (`uji.jagomat.id`) disamakan
+  ke digest yang sama pada 5 Nov (flag materi dasar + cetak ringkas tetap); `verifikasi_uji.py` lulus.
 
 ## Deploy laporan guru → orang tua (G3) — 5 November 2026
 
