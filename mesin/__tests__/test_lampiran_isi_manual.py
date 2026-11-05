@@ -52,8 +52,8 @@ def test_mode_manual_tidak_memakai_bahasa_ai(db):
 
 def test_mode_manual_tidak_menampilkan_kunci_sebelum_diisi(db):
     """Kunci tidak membiaskan transkripsi: hanya muncul di label centang "benar",
-    bukan di kolom jawaban, badge kunci, atau ringkasan bacaan. Ditambahkan blok A 5 Nov 2026;
-    menampilkan nilai kunci di label masih menunggu keputusan pemilik."""
+    bukan di kolom jawaban, badge kunci, atau ringkasan bacaan. Nilai kunci di label centang
+    diputuskan pemilik 5 Nov 2026 (butir salah tetap diketik persis)."""
     with database.buka(db) as kon:
         sesi_id, lid = _lampiran(kon)
         kunci = _kunci_pertama(kon, sesi_id)
