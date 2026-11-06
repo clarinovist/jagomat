@@ -6,6 +6,33 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy empat jenis soal kelas 1–2 (sakelar mati) — 6 November 2026
+
+Controlled `deploy-v2` memasang **58a52a4adff3697c1156c34c99c5bc914b45c68d**, healthy,
+menggantikan `b412b42`. Delta: `kurang_dasar`, `bilangan_hilang`, `nilai_tempat`,
+`bandingkan_bilangan` (PG simbol) di balik **`OSN_DASAR_LENGKAP` bawaan 0**; tanpa
+schema/migrasi; lembar produksi tetap 10 soal `tambah_dasar` (dibuktikan probe live).
+Kontrak kandidat = recovery = `7b3c7835…`; mode `migrasi`, `pair_verified=true`,
+`siap_pasang=false`; job `pasang` literal false.
+
+- Kandidat `sha256:bba684c1…7564a`; recovery `68a262c` digest `sha256:63cad3c3…186fd`.
+- Push [42140283488](https://github.com/clarinovist/jagomat/actions/runs/42140283488) dan
+  dispatch gate [42142023160](https://github.com/clarinovist/jagomat/actions/runs/42142023160)
+  sukses (delapan shard, pair 8/8/6, provider0).
+- Kit `deploy-dasar-lengkap-20261106` (salinan kit lembaga; `deploy.py` identik byte,
+  probe `PROBE_DASAR_LENGKAP` ditambah). Approval `b412b42` diarsipkan
+  (`approval-consumed-b412b42.json`), prepare, hold, backup empat DB + `sandi.json` + riset,
+  rehearsal C–B–C, hash backup lokal cocok, deploy exit0, reopen, postcheck.
+- Postcheck: revisi/digest exact, `OSN_DASAR_LENGKAP` tidak ada di env, writer
+  10× `tambah_dasar`, empat template ada di registry, galat0, smoke publik
+  `/`200 `/akun`401 `/murid/`303, `/laporan-ortu/<token>`404, config/hash histori terjaga.
+- Backup induk `/opt/osn/cadangan/deploy-dasar-lengkap-20261106/`, salinan lokal
+  `mesin/cadangan/deploy-dasar-lengkap-20261106/` (gitignored). Approval terkonsumsi rilis
+  ini masih di `/opt/osn/rollout-approval.json`; arsipkan sebelum `prepare` berikutnya.
+- **Batas:** recovery 68a262c belum mengenal empat jenis baru; karena sakelar mati,
+  tidak ada sesi jenis baru di produksi. Aktivasi menunggu pasangan recovery baru +
+  ulasan guru. K=0 (5+5, jumlah 10) tetap terbuka sebagai keputusan desain pengecoh/bank.
+
 ## Deploy pancingan per template, pemakaian guru, pemilik les — 6 November 2026
 
 Controlled `deploy-v2` memasang **b412b427099cfc25f13753447bd9407e5fd456ca**, healthy
