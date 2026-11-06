@@ -6,6 +6,28 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy label rentang kelas di pemilih topik Latihan — 6 November 2026
+
+Controlled `deploy-v2` memasang **4ce333a1add9d7d1b9282002d850b18975f61bb2**, healthy,
+menggantikan `d1d2f76`. Isi: nama topik di pemilih Latihan diberi rentang kelas dari
+komposisi (mis. Bilangan Dasar (Kelas 1–2), Aritmetika Dasar (Kelas 5–6)) dan Gabungan
+menjelaskan bahwa Bilangan Dasar dipilih lewat "Pilih satu topik" (masukan guru 6 Nov).
+Tanpa flag baru, schema, atau migrasi; `visual.conf` tidak ditulis (hash = prepare).
+
+- Push CI [42173284703](https://github.com/clarinovist/jagomat/actions/runs/42173284703);
+  gate dispatch [42174019941](https://github.com/clarinovist/jagomat/actions/runs/42174019941)
+  hijau: kandidat 4/4, recovery 4/4, build, pair 8/8/6, provider0. Recovery tetap
+  `c58390a` (digest build ulang `sha256:d1fc04a5…433a`); kandidat `sha256:95cc6971…3182`.
+- Kit `deploy-label-kelas-20261106`: prepare (mensyaratkan `OSN_DASAR_LENGKAP=1` sudah ada),
+  hold, backup empat DB + `sandi.json` + riset, rehearsal C–B–C, verify, fetch, deploy exit 0,
+  reopen `LIVE_ADMIN_HEALTHY`, postcheck: smoke `/`200 `/akun`401 `/murid/`303
+  `/laporan-ortu/<token>`404, galat0, config dan hash histori terjaga, probe label kelas dan
+  lima jenis kelas 1–2 aktif. Cleanup menghapus 4 direktori sementara.
+- Backup induk `/opt/osn/cadangan/deploy-label-kelas-20261106/`, salinan lokal
+  `mesin/cadangan/deploy-label-kelas-20261106/` (gitignored). Approval terkonsumsi rilis ini
+  masih di `/opt/osn/rollout-approval.json` (belum kedaluwarsa saat dicek); arsipkan sebelum
+  `prepare` berikutnya.
+
 ## Deploy aktivasi lima jenis Bilangan Dasar kelas 1–2 — 6 November 2026
 
 Controlled `deploy-v2` memasang **d1d2f76a57f28ea8bbc76007aa079c69cdf36236**, healthy,
