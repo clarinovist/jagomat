@@ -25,8 +25,8 @@ Tanpa flag baru, schema, atau migrasi; `visual.conf` tidak ditulis (hash = prepa
   lima jenis kelas 1–2 aktif. Cleanup menghapus 4 direktori sementara.
 - Backup induk `/opt/osn/cadangan/deploy-label-kelas-20261106/`, salinan lokal
   `mesin/cadangan/deploy-label-kelas-20261106/` (gitignored). Approval terkonsumsi rilis ini
-  masih di `/opt/osn/rollout-approval.json` (belum kedaluwarsa saat dicek); arsipkan sebelum
-  `prepare` berikutnya.
+  diarsipkan 6 Nov 13.46 WIB ke `approval-consumed-4ce333a.json` di folder backup induk;
+  `/opt/osn/rollout-approval.json` tidak ada.
 
 ## Deploy aktivasi lima jenis Bilangan Dasar kelas 1–2 — 6 November 2026
 
