@@ -3,7 +3,7 @@
 Inventaris pembaca (`Topik.komposisi`, REGISTRI, label, kartu) selalu memuat
 semua jenis supaya sesi/bank yang sudah ada tetap terbaca. Jenis baru hanya
 boleh DIBUAT bila `OSN_DASAR_LENGKAP=1`; bawaan 0 mempertahankan perilaku
-produksi (10 soal `tambah_dasar`). Recovery `39fcfa7` belum mengenal jenis baru,
+produksi (10 soal `tambah_dasar`). Recovery yang dipin saat batch ini dibuat belum mengenal jenis baru,
 jadi aktivasi menunggu ulasan guru, pasangan recovery baru, dan izin rilis.
 """
 from __future__ import annotations

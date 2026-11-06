@@ -149,7 +149,7 @@ mengerjakan latihan; **admin** = pengelola lintas keluarga dengan batas akun khu
   dan mode; Jagomat memilih satu konfigurasi internal yang didukung topik, sedangkan
   seed mengganti parameter dan susunan model di dalam konfigurasi itu. P3–P6 tetap
   disimpan sebagai konteks historis, bukan kelas atau ukuran kemampuan. Kode P1/P2
-  (Variasi Dasar 1/2) disiapkan untuk Latihan, belum berkonten; `siswa.tingkat`,
+  (Variasi Dasar 1/2) hanya untuk Latihan manual topik `bilangan-dasar`; `siswa.tingkat`,
   siklus dan pilot tetap P3–P6 (keputusan 30 Okt 2026). Anak baru
   belum berpartisipasi sampai pemetaan pertama disiapkan; saat itu sistem memakai
   konteks fondasi internal P3 secara atomik, tanpa menebak dari kelas sekolah. Ruang

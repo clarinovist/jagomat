@@ -169,9 +169,10 @@ P4/P5 memakai empat jenis tambahan, P6 tetap. Recovery harus mengenali ID baru.
 - `mesin/__tests__/test_parameter_variants.py`: 500 seed; template di luar 19 template
   asli wajib ≥200 kombinasi parameter unik. Pengecualian keputusan 30 Okt 2026:
   `bilangan-dasar` P1/P2 wajib ≥90% domain enumerator eksplisit dan semua sampel
-  tetap di domain (tambah_dasar: 45/145 pasangan). Tidak memperlebar angka/nama
-  demi hitungan. Sepuluh soal satu jenis dicatat di `UTANG_LEMBAR`: batch 1
-  bertahap; jenis lain menyusul. Malrule masih hipotesis untuk review guru.
+  tetap di domain; domain >200 cukup ≥200 unik (tambah 45/145, kurang 55/100, hilang
+  180/580, nilai tempat 20/237, bandingkan 218/695 untuk P1/P2). Tidak memperlebar
+  angka/nama demi hitungan. Writer bawaan (`OSN_DASAR_LENGKAP=0`) tetap sepuluh soal
+  satu jenis, dicatat di `UTANG_LEMBAR`; saat hidup dua soal per jenis. Malrule masih hipotesis untuk review guru.
 - `test_rumus.py::test_semua_template_punya_kartu` dan
   `test_pembahasan_semua.py::test_pembahasan_tidak_generik` menyapu semua template.
   Template baru harus dilengkapi kartu rumus/pembahasan, bukan melonggarkan guard.

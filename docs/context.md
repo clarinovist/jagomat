@@ -40,8 +40,13 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `skill_pilot.LEVEL_PILOT` membatasi konten pilot P3–P6. `context_migration.py`
   memperluas CHECK konteks lama saat startup lewat rebuild transaksional dengan
   verifikasi jumlah/SHA-256 baris; DDL baru menerima P1/P2. `topic_basic_numbers.py`
-  memuat `tambah_dasar` manual P1/P2 terpisah: domain eksplisit 45/145 pasangan,
-  cakupan ≥90% dalam 500 seed; PG tiga opsi, tanpa marker koreksi histori atau
+  memuat lima jenis manual P1/P2 (`tambah_dasar`, `kurang_dasar`, `bilangan_hilang`;
+  `nilai_tempat` dan `bandingkan_bilangan` di `basic_numbers_place_compare.py`) dengan
+  domain eksplisit, cakupan ≥ min(90% domain, 200) dalam 500 seed; `basic_numbers_versions`
+  memegang sakelar writer `OSN_DASAR_LENGKAP` (bawaan 0 = 10× `tambah_dasar`) lewat
+  `komposisi_writer`, palang pembuat di `generator.buat_lembar` dan saringan penawaran;
+  `komposisi` pembaca memuat kelima jenis. PG tiga opsi (simbol `<`/`>`/`=` lewat jenis
+  `simbol_perbandingan`), tanpa marker koreksi histori atau
   target mastery; grup katalog terdaftar untuk audit, bukan target siklus.
   Opt-in `Topik.unik_per_lembar` + enumerator domain menjaga soal
   tidak kembar; retry terbatas memilih sisa domain, pengulangan boleh setelah habis.
