@@ -161,9 +161,9 @@ def test_dropdown_menampilkan_nama_paket_bukan_id(db):
         database.tambah_siswa(kon, "Pilih Nama Paket", "P5")
         isi = _profil_anak(kon).decode()
     # label = nama paket, value = id paket
-    assert '<option value="geometri-datar">Geometri Datar</option>' in isi
-    assert '<option value="pola-bilangan" selected>Pola Bilangan</option>' in isi
-    assert '<option value="aritmetika-dasar">Aritmetika Dasar</option>' in isi
+    assert '<option value="geometri-datar">Geometri Datar (Kelas 3–6)</option>' in isi
+    assert '<option value="pola-bilangan" selected>Pola Bilangan (Kelas 3–6)</option>' in isi
+    assert '<option value="aritmetika-dasar">Aritmetika Dasar (Kelas 5–6)</option>' in isi
     # id mentah tidak boleh tampil sebagai label
     assert ">geometri-datar</option>" not in isi
     assert ">pola-bilangan</option>" not in isi

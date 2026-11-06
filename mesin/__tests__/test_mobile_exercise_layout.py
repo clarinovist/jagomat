@@ -50,7 +50,7 @@ def test_label_pendek_helper_terhubung_dan_nilai_default_tidak_berubah(db):
     assert '<label for="manual-jumlah">Jumlah soal</label>' in isi
     # Jangan menambahkan selected pada topik; default tetap urutan registry.
     assert '<option value="campuran" selected>' not in isi
-    assert '<option value="campuran">Campuran semua topik</option>' in isi
+    assert '<option value="campuran">Campuran semua topik (Kelas 3–6)</option>' in isi
     assert '<option value="" selected>Sesuai topik (disarankan)</option>' in isi
     dom = FormLatihan(isi)
     kontrol = next(a for t, a in dom.elemen if a.get('id') == 'manual-jumlah')
@@ -96,7 +96,7 @@ def test_draf_semua_field_tetap_sama_dan_tidak_nested(db):
     draf = DrafLatihan('campuran', '30', 'drill', True, '47', '1', 'pilihan_ganda')
     panel = panel_persetujuan(tujuan_anak(int(siswa['id']), 'latihan'), sumber={'label':'Latihan', 'level':'P3'}, dalam_form=True)
     isi = teacher_pages.halaman_anak(kon, siswa, pengguna='guru', draf_latihan=draf, bantuan_latihan=panel).decode()
-    assert '<option value="campuran" selected>Campuran semua topik</option>' in isi
+    assert '<option value="campuran" selected>Campuran semua topik (Kelas 3–6)</option>' in isi
     assert '<option value="30" selected>' in isi
     assert 'value="pilihan_ganda" selected' in isi
     assert 'name="mode" value="drill" checked' in isi

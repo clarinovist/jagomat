@@ -2,6 +2,7 @@
 import html
 
 from topics import TOPIK_BAWAAN, ambil
+from templates import LEVEL
 from template_labels import nama_tipe_soal
 from basic_numbers_versions import template_dibuka
 from question_context import daftar_topik_latihan, profil_otomatis, topik_dasar
@@ -14,6 +15,23 @@ MODES = (('manual','Pilih satu topik','Cocok untuk melatih topik tertentu.'),
 
 def _e(nilai):
     return html.escape(str(nilai), quote=True)
+
+
+def rentang_kelas(levels) -> str:
+    """'Kelas 1–2', 'Kelas 3, 5–6': ringkas level tanpa menyiratkan kelas yang tidak ada."""
+    angka = sorted(int(lv[1:]) for lv in set(levels) if lv in LEVEL)
+    potongan, awal = [], None
+    for i, n in enumerate(angka):
+        awal = n if awal is None else awal
+        if i + 1 == len(angka) or angka[i + 1] != n + 1:
+            potongan.append(str(n) if awal == n else f'{awal}–{n}')
+            awal = None
+    return 'Kelas ' + ', '.join(potongan)
+
+
+def _label_topik(topik_id):
+    nama = 'Campuran semua topik' if topik_id == 'campuran' else ambil(topik_id).nama
+    return f'{nama} ({rentang_kelas(ambil(topik_id).komposisi)})'
 
 
 def render(kon, siswa, *, mode='manual', draf_latihan=None, draf_gabungan=None,
@@ -40,7 +58,7 @@ def render(kon, siswa, *, mode='manual', draf_latihan=None, draf_gabungan=None,
     dasar_ids = [k for k in tersedia if topik_dasar(k)]
     options = ''.join(f'<option value="{_e(k)}"' + (' selected' if k == topik else '')
                       + (' data-topik-dasar' if k in dasar_ids else '')
-                      + f'>{_e("Campuran semua topik" if k == "campuran" else ambil(k).nama)}</option>' for k in tersedia)
+                      + f'>{_e(_label_topik(k))}</option>' for k in tersedia)
     variasi = ''
     if dasar_ids:
         dasar = topik if topik in dasar_ids else dasar_ids[0]
@@ -69,8 +87,10 @@ def render(kon, siswa, *, mode='manual', draf_latihan=None, draf_gabungan=None,
     dipilih = set(draf_gabungan.topik) if draf_gabungan else set()
     gabungan = ('<p>Pilih dua topik atau lebih. Soal akan dicampur bergantian.</p><div class="latihan-topik-grid">'
                 + ''.join(f'<label><input type="checkbox" data-pilih name="topik" value="{_e(k)}"'
-                          + (' checked' if k in dipilih else '') + f'> {_e(ambil(k).nama)}</label>'
+                          + (' checked' if k in dipilih else '') + f'> {_e(_label_topik(k))}</label>'
                           for k in tersedia if k != 'campuran' and not topik_dasar(k)) + '</div>'
+                + ''.join(f'<p><small>{_e(_label_topik(k))} tidak bisa digabung karena belum ada topik lain '
+                          'untuk kelas yang sama. Pilih lewat “Pilih satu topik”.</small></p>' for k in dasar_ids)
                 + jumlah('gabungan',draf_gabungan,'10',(10,15,20))
                 + '<details class="atur-latihan-st profil-lanjutan-st"><summary>Pengaturan lanjutan</summary>'
                 + '<small>Jagomat memilih satu cakupan yang tersedia pada semua topik pilihan.</small>'
