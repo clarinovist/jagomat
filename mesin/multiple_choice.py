@@ -16,7 +16,9 @@ import unicodedata
 from choice_contract import JUMLAH_OPSI, OpsiJawaban, PilihanButir
 
 JENIS_JAWABAN = frozenset({"angka", "daftar_bulat", "urutan_bilangan",
-                           "kategori", "jam", "durasi", "rasio"})
+                           "kategori", "jam", "durasi", "rasio",
+                           "simbol_perbandingan"})
+SIMBOL_PERBANDINGAN = ("<", ">", "=")
 
 
 def _angka(teks: str) -> Fraction:
@@ -36,6 +38,10 @@ def nilai_semantis(teks: str, jenis: str):
     t = unicodedata.normalize("NFKC", teks).strip().replace("−", "-")
     if jenis == "angka":
         return _angka(t)
+    if jenis == "simbol_perbandingan":
+        if t not in SIMBOL_PERBANDINGAN:
+            raise ValueError("Simbol perbandingan pilihan tidak sah.")
+        return t
     if jenis == "kategori":
         if not re.fullmatch(r"[^\W\d_]+(?:[ -][^\W\d_]+)*", t, re.UNICODE):
             raise ValueError("Kategori pilihan tidak sah.")

@@ -6,7 +6,8 @@ writer matematika v2, seed soal 0..299 dan lembar 0..99. Batch 1 menambah
 Bilangan-dasar (30 Okt 2026): tambah_dasar P1/P2 hitung murni; seed 0..299
 menghasilkan 45/133 tanda tangan, dari domain eksplisit 45/145 pasangan.
 Batch 2 (6 Nov 2026): kurang_dasar 55/96 (domain 55/100) dan bilangan_hilang
-155/231 dengan 4 bentuk (domain 180/580), diukur dari kode.
+155/231 dengan 4 bentuk (domain 180/580), nilai_tempat 20/176 (domain 20/237),
+bandingkan_bilangan 168/241 (domain 218/695), diukur dari kode.
 Angka batch diukur lewat ukur_batch_fase3.py (artefak lokal). Tidak membutuhkan
 artefak docs/plan yang di-ignore. Kebenaran kunci/malrule tetap solver domain.
 G1 numerik ada di test_question_position; registry di sini menolak kelompok
@@ -35,6 +36,8 @@ _DATA = """
 bilangan-dasar tambah_dasar P1:1:45:- P2:1:133:-
 bilangan-dasar kurang_dasar P1:1:55:- P2:1:96:-
 bilangan-dasar bilangan_hilang P1:4:155:- P2:4:231:-
+bilangan-dasar nilai_tempat P1:2:20:- P2:3:176:-
+bilangan-dasar bandingkan_bilangan P1:1:168:- P2:1:241:-
 aritmatika-lanjut debit P5:3:285:cari_debit,cari_volume,cari_waktu P6:3:285:cari_debit,cari_volume,cari_waktu
 aritmatika-lanjut kecepatan_jarak_waktu P5:3:280:cari_s,cari_t,cari_v P6:3:280:cari_s,cari_t,cari_v
 aritmatika-lanjut kerja_bersama P5:5:227:- P6:5:227:-
@@ -174,6 +177,7 @@ teori-bilangan P6 10 7
 HITUNG_MURNI = frozenset({
     "tambah_dasar",  # Penjumlahan teks saja, keputusan pengguna 30 Okt 2026.
     "kurang_dasar", "bilangan_hilang",  # Batch 2 (6 Nov 2026): hitung murni teks saja.
+    "nilai_tempat", "bandingkan_bilangan",  # Batch 2 tahap 2: teks saja.
     "fpb_dua_bilangan", "operasi_berkurung", "pecahan_kali_bagi",
     "pecahan_operasi_campuran", "urut_pecahan_desimal_persen", "urutan_operasi_1",
     "keterbagian", "sisa_pembagian", "paritas", "prima_faktorisasi",
@@ -186,6 +190,7 @@ HITUNG_MURNI = frozenset({
 ALASAN_RUANG = {
     "tambah_dasar": "Domain sah P1=45/P2=145; >=90% dalam 500 seed diuji enumerator, bukan variasi nama/benda.",
     "kurang_dasar": "Domain sah P1=55/P2=100; seed 0..299 mengukur 55/96; diuji enumerator, bukan variasi nama/benda.",
+    "nilai_tempat": "Domain sah P1=20/P2=237 (bilangan 11..99 menurut bentuk); seed 0..299 mengukur 20/176; diuji enumerator.",
     "titik_segitiga": "Batas gambar per level terdokumentasi; jangan perlebar demi hitungan.",
     "deret_geometri": "Rasio/awal dan plafon nilai membatasi support; README.",
     "deret_terbalik_geometri": "Posisi dan plafon 4000 membatasi awal; README.",

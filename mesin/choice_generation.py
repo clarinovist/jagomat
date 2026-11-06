@@ -4,7 +4,7 @@ import random
 import re
 
 from generator import Lembar, buat_lembar
-from multiple_choice import buat_pilihan, pilihan_tertanam, nilai_semantis
+from multiple_choice import SIMBOL_PERBANDINGAN, buat_pilihan, pilihan_tertanam, nilai_semantis
 from topics import paket_untuk_template
 
 TERTANAM = frozenset({'benar_salah_pengandaian', 'jaring_jaring'})
@@ -12,7 +12,7 @@ TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   'susun_bilangan_syarat', 'unsur_bangun', 'luas_permukaan',
                   'luas_arsiran', 'jam_selesai',
                   # Dua pengecoh selalu sah; collision tidak diisi angka rekaan.
-                  'tambah_dasar', 'kurang_dasar', 'bilangan_hilang'})
+                  'tambah_dasar', 'kurang_dasar', 'bilangan_hilang', 'nilai_tempat'})
 
 
 def kebijakan_soal(soal):
@@ -24,6 +24,8 @@ def kebijakan_soal(soal):
         return 'empat-v1', 'daftar_bulat'
     if tid == 'urut_pecahan_desimal_persen':
         return 'empat-v1', 'urutan_bilangan'
+    if tid == 'bandingkan_bilangan':
+        return 'tiga-v1', 'simbol_perbandingan'
     if tid == 'jam_selesai':
         return 'tiga-v1', 'durasi' if p['varian'] == 'cari_durasi' else 'jam'
     if tid == 'skala_peta' and p['varian'] == 'cari_skala':
@@ -68,6 +70,9 @@ def kandidat(soal):
     elif tid == 'siklus_hari':
         from templates import HARI
         nilai += HARI
+    elif tid == 'bandingkan_bilangan':
+        # Tiga opsi tetap <, >, = ; dua pengecoh = dua simbol lain, bukan dari malrule.
+        nilai += list(SIMBOL_PERBANDINGAN)
     elif tid == 'median_modus' and p['varian'] == 'modus':
         # PG boleh menawarkan nilai lain yang benar-benar ada di data.
         # Tidak menambah label miskonsepsi pada malrule isian.

@@ -51,6 +51,16 @@ KARTU: dict[str, Kartu] = {
         inti="Hitung mundur dari bilangan awal. Bila lewat 10, kurangi sampai 10 dulu, lalu kurangi sisanya.",
         contoh="13 − 5 = 13 − 3 − 2 = 8",
     ),
+    "nilai_tempat": Kartu(
+        judul="Puluhan dan satuan",
+        inti="Bilangan dua angka terdiri dari puluhan dan satuan. Angka kiri menyatakan banyak puluhan, angka kanan banyak satuan.",
+        contoh="47 = 4 puluhan dan 7 satuan, karena 40 + 7 = 47.",
+    ),
+    "bandingkan_bilangan": Kartu(
+        judul="Membandingkan bilangan",
+        inti="Bandingkan puluhannya dulu. Bila sama, bandingkan satuannya. Tanda < dan > membuka ke bilangan yang lebih besar.",
+        contoh="35 dan 53: puluhan 3 lebih kecil dari 5, jadi 35 < 53.",
+    ),
     "bilangan_hilang": Kartu(
         judul="Mencari bilangan yang hilang",
         inti="Pakai operasi kebalikan: tambah dicari dengan kurang, kurang dicari dengan tambah. Lalu isi kotak dan cek hasilnya.",
@@ -423,6 +433,8 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "tambah_dasar": "tambah_dasar",
     "kurang_dasar": "kurang_dasar",
     "bilangan_hilang": "bilangan_hilang",
+    "nilai_tempat": "nilai_tempat",
+    "bandingkan_bilangan": "bandingkan_bilangan",
     # statistika
     "rata_rata": "rata_rata",
     "rata_rata_gabungan": "rata_rata",

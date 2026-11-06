@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from functools import lru_cache
 
+from basic_numbers_place_compare import (_domain_bandingkan, _domain_tempat,
+                                         bandingkan_bilangan, nilai_tempat)
 from basic_numbers_versions import keterangan_level, pilih_komposisi_writer
 from templates import Malrule, Soal, saring_malrule
 from topics import Topik, daftarkan
@@ -71,6 +73,8 @@ _ENUMERATOR = {
     "tambah_dasar": _domain_tambah,
     "kurang_dasar": _domain_kurang,
     "bilangan_hilang": _domain_hilang,
+    "nilai_tempat": _domain_tempat,
+    "bandingkan_bilangan": _domain_bandingkan,
 }
 
 
@@ -89,7 +93,8 @@ def domain_parameter(template_id: str, level: str) -> tuple[dict, ...]:
     tidak sama dengan kunci). kurang_dasar: P1 55 (hasil 0 sah, a - a), P2 100.
     bilangan_hilang: empat bentuk x tripel x + y = z dengan x, y >= 1 (nol
     membuat soal sepele: bilangan yang dicari sama dengan yang tampak); P1
-    z 2..10 -> 180, P2 z 11..20 -> 580.
+    z 2..10 -> 180, P2 z 11..20 -> 580. nilai_tempat dan bandingkan_bilangan:
+    lihat `basic_numbers_place_compare`.
     """
     if template_id not in _ENUMERATOR:
         raise KeyError(template_id)
@@ -267,8 +272,9 @@ def _pembahasan_hilang(bentuk, tampak, hasil, dicari):
         return (f"Untuk mencari bilangan yang hilang, kurangkan: {hasil} {kurang} {tampak} = {dicari}. "
                 f"Cek: {dicari} + {tampak} = {hasil}.")
     if bentuk == "kurang_akhir":
-        return (f"Dari {tampak} yang diambil sampai tersisa {hasil}, bilangan yang diambil adalah "
-                f"{tampak} {kurang} {hasil} = {dicari}. Cek: {tampak} {kurang} {dicari} = {hasil}.")
+        return (f"{tampak} dikurangi berapa supaya tersisa {hasil}? "
+                f"Kurangkan: {tampak} {kurang} {hasil} = {dicari}. "
+                f"Cek: {tampak} {kurang} {dicari} = {hasil}.")
     return (f"Setelah dikurangi {tampak}, sisanya {hasil}. Bilangan awalnya dicari dengan menjumlahkan: "
             f"{hasil} + {tampak} = {dicari}. Cek: {dicari} {kurang} {tampak} = {hasil}.")
 
@@ -313,11 +319,14 @@ REGISTRI_TOPIK = {
     "tambah_dasar": tambah_dasar,
     "kurang_dasar": kurang_dasar,
     "bilangan_hilang": bilangan_hilang,
+    "nilai_tempat": nilai_tempat,
+    "bandingkan_bilangan": bandingkan_bilangan,
 }
 
 # Inventaris pembaca: semua jenis yang dikenal. Writer bawaan (sakelar mati)
 # dipilih `pilih_komposisi_writer`; tambah_dasar harus tetap pertama (kartu contoh).
-KOMPOSISI_PEMBACA = ("tambah_dasar", "kurang_dasar", "bilangan_hilang") * 3 + ("tambah_dasar",)
+KOMPOSISI_PEMBACA = ("tambah_dasar", "kurang_dasar", "bilangan_hilang",
+                     "nilai_tempat", "bandingkan_bilangan") * 2
 
 
 daftarkan(Topik(
@@ -329,7 +338,8 @@ daftarkan(Topik(
     komposisi={level: KOMPOSISI_PEMBACA for level in PROFIL_LEVEL},
     komposisi_writer=pilih_komposisi_writer(),
     profil=PROFIL_LEVEL,
-    judul_bagian={"A": "Penjumlahan", "B": "Pengurangan", "C": "Bilangan yang hilang"},
+    judul_bagian={"A": "Penjumlahan", "B": "Pengurangan", "C": "Bilangan yang hilang",
+                  "D": "Nilai tempat", "E": "Membandingkan bilangan"},
     parameter_untuk=_parameter,
     unik_per_lembar=True,
     domain_parameter=domain_parameter,

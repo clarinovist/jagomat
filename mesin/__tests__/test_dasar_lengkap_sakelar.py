@@ -27,7 +27,7 @@ from http_test_kit import SANDI_GURU, ServerUji
 TOPIK = "bilangan-dasar"
 NAMA = "OSN_DASAR_LENGKAP"
 LAMA = "tambah_dasar"
-BARU = ("kurang_dasar", "bilangan_hilang")
+BARU = ("kurang_dasar", "bilangan_hilang", "nilai_tempat", "bandingkan_bilangan")
 LEVEL = ("P1", "P2")
 AKAR_MESIN = Path(__file__).resolve().parents[1]
 FOLDER_TEST = Path(__file__).resolve().parent
@@ -256,11 +256,10 @@ def test_hidup_komposisi_campuran_dan_deterministik_lintas_proses():
     assert all("Campuran" in teks for teks in awal["keterangan"].values())
     for level in LEVEL:
         assert awal["jenis"][level] == sorted([LAMA, *BARU])
-    # Lembar bawaan 10 soal: empat penjumlahan, tiga pengurangan, tiga bilangan hilang.
-    tanda = awal["tanda"][0]
-    assert sum(t.split("|")[1].startswith(LAMA) for t in tanda) == 4
-    assert sum(t.split("|")[1].startswith("kurang_dasar") for t in tanda) == 3
-    assert sum(t.split("|")[1].startswith("bilangan_hilang") for t in tanda) == 3
+    # Lembar bawaan 10 soal: dua soal untuk tiap jenis dari lima.
+    for tanda in (awal["tanda"][0], awal["tanda"][21]):
+        for jenis in (LAMA, *BARU):
+            assert sum(t.split("|")[1].startswith(jenis) for t in tanda) == 2, jenis
 
 
 def test_mati_di_proses_terpisah_sama_dengan_bawaan():

@@ -14,8 +14,7 @@ NAMA_SAKELAR = "OSN_DASAR_LENGKAP"
 LEVEL_DASAR = ("P1", "P2")
 JUMLAH_SOAL_LEMBAR = 10
 TEMPLATE_AWAL = "tambah_dasar"
-# Jenis yang hanya dibuat saat sakelar hidup; nilai_tempat dan bandingkan_bilangan
-# menyusul pada tahap berikutnya dan sudah dijaga sejak sekarang.
+# Jenis yang hanya dibuat saat sakelar hidup.
 TEMPLATE_BARU = frozenset({
     "kurang_dasar", "bilangan_hilang", "nilai_tempat", "bandingkan_bilangan",
 })
@@ -26,8 +25,8 @@ KETERANGAN_MATI = {
     "P2": "Hasil penjumlahan 11–20, termasuk melewati 10",
 }
 KETERANGAN_HIDUP = {
-    "P1": "Campuran penjumlahan, pengurangan, dan bilangan yang hilang sampai 10",
-    "P2": "Campuran penjumlahan, pengurangan, dan bilangan yang hilang sampai 20, termasuk melewati 10",
+    "P1": "Campuran penjumlahan, pengurangan, bilangan yang hilang sampai 10, nilai tempat, dan membandingkan",
+    "P2": "Campuran penjumlahan, pengurangan, bilangan yang hilang sampai 20, nilai tempat, dan membandingkan sampai 100",
 }
 
 

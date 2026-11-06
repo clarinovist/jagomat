@@ -9,6 +9,8 @@ NAMA_TIPE_SOAL = {
     "tambah_dasar": "Penjumlahan sampai 20",
     "kurang_dasar": "Pengurangan sampai 20",
     "bilangan_hilang": "Bilangan yang hilang",
+    "nilai_tempat": "Nilai tempat puluhan dan satuan",
+    "bandingkan_bilangan": "Membandingkan bilangan",
     "banyak_kelipatan": "Banyak kelipatan dalam rentang",
     "sisa_operasi": "Sisa penjumlahan dan perkalian",
     "banyak_prima": "Banyak prima dalam rentang",

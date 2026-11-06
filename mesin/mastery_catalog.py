@@ -51,6 +51,8 @@ KELOMPOK = {
         ("penjumlahan_dasar", "Penjumlahan sampai 20", ("tambah_dasar",)),
         ("pengurangan_dasar", "Pengurangan sampai 20", ("kurang_dasar",)),
         ("bilangan_hilang", "Bilangan yang hilang", ("bilangan_hilang",)),
+        ("nilai_tempat", "Nilai tempat puluhan dan satuan", ("nilai_tempat",)),
+        ("membandingkan", "Membandingkan bilangan", ("bandingkan_bilangan",)),
     ),
     "geometri-datar": (
         ("sudut", "Hubungan sudut", ("sudut_pelurus_berpenyiku", "jumlah_sudut_segitiga", "sudut_luar_segitiga")),

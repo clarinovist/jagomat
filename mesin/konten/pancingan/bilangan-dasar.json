@@ -26,6 +26,22 @@
     "Minta anak mengisi kotaknya, lalu membaca ulang soal lengkap untuk memeriksa apakah sudah pas."
    ],
    "tindak_lanjut": "Siapkan benda sebanyak angka yang kelihatan, lalu tambah atau singkirkan sampai pas dengan hasilnya. Hitung bersama anak berapa yang ditambah atau disingkirkan."
+  },
+  "nilai_tempat": {
+   "pertanyaan": [
+    "Minta anak menunjuk angka di kiri dan angka di kanan, lalu menyebut mana yang puluhan dan mana yang satuan.",
+    "Tanya: kalau ada 4 puluhan, itu sama dengan berapa benda? Coba tunjukkan dengan ikatan sepuluh.",
+    "Tanya: yang ditanya banyaknya puluhan, banyaknya satuan, atau seluruh bilangannya?"
+   ],
+   "tindak_lanjut": "Siapkan ikatan berisi sepuluh benda dan beberapa benda lepas. Susun bilangan di soal bersama anak, lalu hitung berapa ikatan dan berapa benda lepas."
+  },
+  "bandingkan_bilangan": {
+   "pertanyaan": [
+    "Minta anak menyebut dulu berapa puluhan di kedua bilangan, lalu menunjuk yang puluhannya lebih banyak.",
+    "Tanya: kalau puluhannya sama, bagian mana yang kamu bandingkan? Kenapa?",
+    "Tanya: tanda ini membuka ke arah bilangan yang mana? Ceritakan dengan kata-katamu."
+   ],
+   "tindak_lanjut": "Siapkan benda untuk kedua bilangan, tata dalam ikatan sepuluh, lalu bandingkan ikatan dan benda lepasnya bersama anak sebelum memilih tandanya."
   }
  }
 }

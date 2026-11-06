@@ -324,7 +324,8 @@ def test_registrasi_semua_titik_dan_bukan_target_siklus():
     for tid in (KURANG, HILANG):
         assert baris[tid]["status"] == "sengaja_teks" and kartu_untuk(tid)
         assert _paket().judul_bagian
-    assert _paket().judul_bagian == {"A": "Penjumlahan", "B": "Pengurangan", "C": "Bilangan yang hilang"}
+    assert _paket().judul_bagian == {"A": "Penjumlahan", "B": "Pengurangan", "C": "Bilangan yang hilang",
+                                     "D": "Nilai tempat", "E": "Membandingkan bilangan"}
     for level in ("P3", "P4", "P5", "P6"):
         assert all(not {KURANG, HILANG} & set(t.pola) for t in katalog_target(level))
 
