@@ -66,9 +66,10 @@ JUMLAH_RECOVERY = {
     # Recovery G3 (39fcfa7 + schema laporan_ortu, writer1, 4 Nov 2026): collect-only arsip exact, 15.106 nodeid unik.
     "cb3c5f537dc8ce39638bf28d937095351ae3a341": 15106,
     # Recovery lembaga (cb3c5f5 + schema/store lembaga, writer1, 6 Nov 2026): collect-only exact, 15.132 nodeid unik.
-    # Recovery dasar-lengkap (58a52a4, pembaca empat jenis baru; kandidat aktivasi
-    # 57817a5, 6 Nov 2026): collect-only exact 15.705 di Python 3.9.
-    "58a52a4adff3697c1156c34c99c5bc914b45c68d": 15705,
+    # Recovery dasar-lengkap (c58390a = 57817a5 + writer katalog1/teori1, pembaca
+    # empat jenis baru; kandidat aktivasi 2f7136e, 6 Nov 2026):
+    # collect-only exact 15.708 di Python 3.9.
+    "c58390a691d12392d3f701e71c318dfd3156729f": 15708,
     "68a262c0a7391c8e95f409cf704703de4b90cea9": 15132,
 }
 
