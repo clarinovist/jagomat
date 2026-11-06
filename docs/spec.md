@@ -123,7 +123,8 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
 - Guru asing mendapat **404 identik**, tanpa efek samping; murid tidak menerima
   kunci, malrule, diagnosis atau laporan. Admin tidak mengubah akun sesama admin.
 - Data anak, credential, sesi, wawancara dan backup tidak masuk Git/log/fixture.
-  Tidak menyimpan email/telepon pengguna. Hapus keluarga memerlukan verifikasi,
+  Aplikasi belum menyimpan email/telepon; kontak hanya boleh untuk orang dewasa
+  pembayar demi penagihan (keputusan 6 Nov 2026), bukan kontak anak/orang tua murid. Hapus keluarga memerlukan verifikasi,
   preview/backup/cutover; bukan sekadar menghapus login atau bukti immutable.
 - [Backup operasional](operational-backup.md) manual mencakup core, riset dan foto;
   scheduler/off-site otomatis belum tersedia, bukan janji pemulihan seluruh VPS.

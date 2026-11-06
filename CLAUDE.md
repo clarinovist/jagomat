@@ -272,7 +272,11 @@ Preferensi pengguna: **selalu rapikan setelah selesai, tanpa menunggu permintaan
   tanpa menyalin isinya ke Git, berkas plan, atau fixture. Gerbang izin wali (G4) bukan
   blocker untuk kunjungan/uji coba lapangan yang memakai akun buatan tim; jangan diangkat
   sebagai isu kesiapan.
-- Tidak menyimpan email/telepon siapa pun; jangan usulkan fitur yang membutuhkan kontak.
+- Kontak (email/telepon) **hanya** untuk orang dewasa pembayar (pemilik les, guru les,
+  orang tua yang berlangganan) demi penagihan dan dukungan (keputusan pemilik 6 Nov 2026);
+  minimal, terpisah dari data belajar anak, tidak pernah tampil ke murid/tautan. Kontak
+  anak dan orang tua murid les tetap tidak disimpan. Fitur aplikasi yang menyimpan kontak
+  adalah jalur Kritis dan perlu plan; saat ini aplikasi belum menyimpan kontak.
 - **Palang murid:** sisi anak tidak boleh membaca kunci/malrule/diagnosis/laporan. Fixture
   `db` guru dan `db_terjaga` harus terpisah; stamp `pemilik="guru"` bila perlu, bukan kendurkan
   guard. Rute MURID sebelum `_lolos_sandi`; fungsi berkunci di permukaan terpisah (misalnya
