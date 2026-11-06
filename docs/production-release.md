@@ -28,7 +28,8 @@ schema/migrasi; kontrak kandidat = recovery = live `7b3c7835…`; job `pasang` l
   `/laporan-ortu/<token>`404, galat0, config dan hash histori terjaga.
 - Backup induk `/opt/osn/cadangan/deploy-dasar-aktif-20261106/`, salinan lokal
   `mesin/cadangan/deploy-dasar-aktif-20261106/` (gitignored). Approval terkonsumsi rilis ini
-  masih di `/opt/osn/rollout-approval.json`; arsipkan sebelum `prepare` berikutnya.
+  diarsipkan 6 Nov 11.06 WIB (`archive_approval.py`, dry-run lalu apply) ke
+  `approval-consumed-d1d2f76.json` di folder backup induk; `/opt/osn/rollout-approval.json` tidak ada.
 - **Dasar aktivasi:** self-review pemilik atas 2.275 butir (bukan ulasan guru independen).
   K=0 dipertahankan; bank dan versi katalog tidak diubah. Lembar ulasan guru
   `/terkunci/dasarlengkap` sudah tersedia tetapi tidak diisi; hasilnya bukan syarat aktivasi
