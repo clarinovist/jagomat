@@ -12,7 +12,7 @@ TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   'susun_bilangan_syarat', 'unsur_bangun', 'luas_permukaan',
                   'luas_arsiran', 'jam_selesai',
                   # Dua pengecoh selalu sah; collision tidak diisi angka rekaan.
-                  'tambah_dasar'})
+                  'tambah_dasar', 'kurang_dasar', 'bilangan_hilang'})
 
 
 def kebijakan_soal(soal):

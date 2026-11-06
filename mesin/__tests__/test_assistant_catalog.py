@@ -34,7 +34,11 @@ def test_katalog_mencakup_registry_dengan_satu_pemilik_asli(monkeypatch):
     katalog = assistant_catalog.buat_katalog()
     registry = topics.registri()
 
-    assert {item.id for item in katalog.template} == set(registry)
+    # Penawaran hanya jenis yang boleh dibuat; jenis bilangan-dasar yang belum
+    # dibuka (OSN_DASAR_LENGKAP=0) tetap ada di registry untuk pembaca histori.
+    from basic_numbers_versions import template_dibuka
+    assert {item.id for item in katalog.template} == {t for t in registry if template_dibuka(t)}
+    assert not template_dibuka("kurang_dasar") and {"kurang_dasar", "bilangan_hilang"} <= set(registry)
     assert {item.id for item in katalog.topik} == {item.id for item in _topik_asli()}
     assert all(item.topik_id != "campuran" for item in katalog.template)
 

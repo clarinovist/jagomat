@@ -54,10 +54,15 @@ def contoh_variasi(topik, profil):
             _badan_soal(soal, paket, namespace='contoh-' + topik + '-' + profil))
 
 
+def _komposisi_tampil(paket, profil):
+    """Jenis yang benar-benar dibuat writer (bukan inventaris pembaca)."""
+    return paket.komposisi_untuk(profil) if profil in paket.komposisi else ()
+
+
 def _pola_soal(topik, profil):
     paket = topics.ambil(topik)
     return tuple(dict.fromkeys(
-        nama_tipe_soal(tid) for tid in paket.komposisi.get(profil, ())
+        nama_tipe_soal(tid) for tid in _komposisi_tampil(paket, profil)
     ))
 
 
@@ -80,10 +85,10 @@ def _nama_isi(topik, profil):
 def _template_contoh(topik, profil):
     """Utamakan pola pembeda; jika komposisi sama, angka contoh tetap mengikuti profil."""
     paket = topics.ambil(topik)
-    kandidat = paket.komposisi[profil]
+    kandidat = _komposisi_tampil(paket, profil)
     komposisi_lain = [
-        set(komposisi)
-        for profil_lain, komposisi in paket.komposisi.items()
+        set(_komposisi_tampil(paket, profil_lain))
+        for profil_lain in paket.komposisi
         if profil_lain != profil
     ]
     urutan = {tid: indeks for indeks, tid in enumerate(kandidat)}
@@ -262,7 +267,7 @@ def panduan_variasi(*, ringkas=False, judul="Bandingkan isi dan contoh soal"):
         for profil in LEVEL:
             if profil not in paket.komposisi:
                 continue
-            pola = ', '.join(dict.fromkeys(nama_tipe_soal(tid) for tid in paket.komposisi[profil]))
+            pola = ', '.join(_pola_soal(topik, profil))
             nama, contoh = contoh_variasi(topik, profil)
             pilihan.append(
                 '<article class="variasi-contoh" data-contoh="%s:%s"><h4>%s</h4>'

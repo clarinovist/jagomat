@@ -360,8 +360,9 @@ def test_ringkasan_distribusi_sama_eksekusi_tanpa_generator(jumlah, monkeypatch)
         if topik_id == "campuran":
             continue
         topik = topics.ambil(topik_id)
-        for level, komposisi in topik.komposisi.items():
-            dasar = list(dict.fromkeys(komposisi))[:8]
+        for level in topik.komposisi:
+            # Yang ditawarkan adalah isi writer, bukan inventaris pembaca.
+            dasar = list(dict.fromkeys(topik.komposisi_untuk(level)))[:8]
             if not dasar:
                 continue
             data = {"topik_id": topik_id, "template_ids": dasar,

@@ -5,6 +5,8 @@ writer matematika v2, seed soal 0..299 dan lembar 0..99. Batch 1 menambah
 8 pasangan terpilih tanpa menurunkan lantai lama; komposisi P4/P5 diperketat.
 Bilangan-dasar (30 Okt 2026): tambah_dasar P1/P2 hitung murni; seed 0..299
 menghasilkan 45/133 tanda tangan, dari domain eksplisit 45/145 pasangan.
+Batch 2 (6 Nov 2026): kurang_dasar 55/96 (domain 55/100) dan bilangan_hilang
+155/231 dengan 4 bentuk (domain 180/580), diukur dari kode.
 Angka batch diukur lewat ukur_batch_fase3.py (artefak lokal). Tidak membutuhkan
 artefak docs/plan yang di-ignore. Kebenaran kunci/malrule tetap solver domain.
 G1 numerik ada di test_question_position; registry di sini menolak kelompok
@@ -31,6 +33,8 @@ from test_question_position import (
 # Lantai = observasi seed tetap, bukan target kualitas atau ukuran seluruh support.
 _DATA = """
 bilangan-dasar tambah_dasar P1:1:45:- P2:1:133:-
+bilangan-dasar kurang_dasar P1:1:55:- P2:1:96:-
+bilangan-dasar bilangan_hilang P1:4:155:- P2:4:231:-
 aritmatika-lanjut debit P5:3:285:cari_debit,cari_volume,cari_waktu P6:3:285:cari_debit,cari_volume,cari_waktu
 aritmatika-lanjut kecepatan_jarak_waktu P5:3:280:cari_s,cari_t,cari_v P6:3:280:cari_s,cari_t,cari_v
 aritmatika-lanjut kerja_bersama P5:5:227:- P6:5:227:-
@@ -169,6 +173,7 @@ teori-bilangan P6 10 7
 # untuk menyebut semua satu-bentuk sah. Lantai numerik tetap dijaga per level.
 HITUNG_MURNI = frozenset({
     "tambah_dasar",  # Penjumlahan teks saja, keputusan pengguna 30 Okt 2026.
+    "kurang_dasar", "bilangan_hilang",  # Batch 2 (6 Nov 2026): hitung murni teks saja.
     "fpb_dua_bilangan", "operasi_berkurung", "pecahan_kali_bagi",
     "pecahan_operasi_campuran", "urut_pecahan_desimal_persen", "urutan_operasi_1",
     "keterbagian", "sisa_pembagian", "paritas", "prima_faktorisasi",
@@ -180,6 +185,7 @@ HITUNG_MURNI = frozenset({
 # Keputusan pemilik untuk klasifikasi tambahan/target baru tetap diperlukan.
 ALASAN_RUANG = {
     "tambah_dasar": "Domain sah P1=45/P2=145; >=90% dalam 500 seed diuji enumerator, bukan variasi nama/benda.",
+    "kurang_dasar": "Domain sah P1=55/P2=100; seed 0..299 mengukur 55/96; diuji enumerator, bukan variasi nama/benda.",
     "titik_segitiga": "Batas gambar per level terdokumentasi; jangan perlebar demi hitungan.",
     "deret_geometri": "Rasio/awal dan plafon nilai membatasi support; README.",
     "deret_terbalik_geometri": "Posisi dan plafon 4000 membatasi awal; README.",
@@ -193,8 +199,8 @@ ALASAN_RUANG = {
 }
 # Utang lama P4 tetap lunas. Pengecualian baru hanya topik manual P1/P2.
 UTANG_LEMBAR = {
-    ("bilangan-dasar", "P1"): (10.0, "batch 1 bertahap; jenis lain menyusul"),
-    ("bilangan-dasar", "P2"): (10.0, "batch 1 bertahap; jenis lain menyusul"),
+    ("bilangan-dasar", "P1"): (10.0, "writer bawaan (OSN_DASAR_LENGKAP=0) hanya tambah_dasar; campuran menyusul"),
+    ("bilangan-dasar", "P2"): (10.0, "writer bawaan (OSN_DASAR_LENGKAP=0) hanya tambah_dasar; campuran menyusul"),
 }
 POLA_ANGKA = re.compile(r"\d+(?:[.,]\d+)?")
 

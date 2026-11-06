@@ -16,6 +16,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass, replace
 
+from basic_numbers_versions import pastikan_template_dibuka
 from templates import LEVEL, LEVEL_BAWAAN, Soal
 from topics import TOPIK_BAWAAN, Topik, ambil
 
@@ -109,6 +110,9 @@ def buat_lembar(
     rng = random.Random(seed)
     if urutan is None:
         urutan = paket.komposisi_untuk(level_efektif)
+    # Palang pembuat bilangan dasar: urutan eksplisit (remedial, Pendamping)
+    # tidak boleh melewati sakelar; pembaca histori tidak lewat sini.
+    pastikan_template_dibuka(urutan)
     if jumlah_soal is not None and jumlah_soal > 0:
         base = list(urutan)
         while len(base) < jumlah_soal:

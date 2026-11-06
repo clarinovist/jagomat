@@ -49,6 +49,8 @@ KELOMPOK = {
     # Grup audit untuk latihan manual P1/P2; bukan target siklus P3–P6.
     "bilangan-dasar": (
         ("penjumlahan_dasar", "Penjumlahan sampai 20", ("tambah_dasar",)),
+        ("pengurangan_dasar", "Pengurangan sampai 20", ("kurang_dasar",)),
+        ("bilangan_hilang", "Bilangan yang hilang", ("bilangan_hilang",)),
     ),
     "geometri-datar": (
         ("sudut", "Hubungan sudut", ("sudut_pelurus_berpenyiku", "jumlah_sudut_segitiga", "sudut_luar_segitiga")),

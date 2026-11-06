@@ -46,6 +46,16 @@ KARTU: dict[str, Kartu] = {
         inti="Hitung maju dari bilangan yang lebih besar. Bila lewat 10, lengkapi ke 10 dulu.",
         contoh="8 + 5 = 8 + 2 + 3 = 13",
     ),
+    "kurang_dasar": Kartu(
+        judul="Mengurang sampai 20",
+        inti="Hitung mundur dari bilangan awal. Bila lewat 10, kurangi sampai 10 dulu, lalu kurangi sisanya.",
+        contoh="13 − 5 = 13 − 3 − 2 = 8",
+    ),
+    "bilangan_hilang": Kartu(
+        judul="Mencari bilangan yang hilang",
+        inti="Pakai operasi kebalikan: tambah dicari dengan kurang, kurang dicari dengan tambah. Lalu isi kotak dan cek hasilnya.",
+        contoh="5 + ... = 8, maka 8 − 5 = 3. Cek: 5 + 3 = 8.",
+    ),
     "kelipatan_rentang": Kartu(
         judul="Menghitung kelipatan dalam rentang",
         inti="Hitung kelipatan sampai batas akhir, lalu kurangi kelipatan sebelum batas awal. Kedua batas ikut dihitung.",
@@ -411,6 +421,8 @@ KARTU: dict[str, Kartu] = {
 # di sini menunjuk konsep yang ADA di KARTU dan kunci yang ADA di REGISTRI.
 KONSEP_TEMPLATE: dict[str, str] = {
     "tambah_dasar": "tambah_dasar",
+    "kurang_dasar": "kurang_dasar",
+    "bilangan_hilang": "bilangan_hilang",
     # statistika
     "rata_rata": "rata_rata",
     "rata_rata_gabungan": "rata_rata",

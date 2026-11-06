@@ -23,6 +23,8 @@ INVARIAN_RENDERER_AKTIF = MappingProxyType({
 # Kunci eksplisit membuat setiap keputusan dapat diaudit tanpa fallback keluarga.
 _BUKTI_TEMPLATE = MappingProxyType({
     "tambah_dasar": ("penjumlahan", "Dua bilangan positif dan tanda tambah tertulis lengkap; tahap awal P1/P2 sengaja teks tanpa sumber nilai visual.", "bawaan"),
+    "kurang_dasar": ("pengurangan", "Dua bilangan dan tanda kurang tertulis lengkap; tahap awal P1/P2 sengaja teks tanpa sumber nilai visual.", "bawaan"),
+    "bilangan_hilang": ("bilangan_hilang", "Dua bilangan, tanda operasi, dan hasil tertulis lengkap dengan satu kotak kosong; tahap awal P1/P2 sengaja teks tanpa sumber nilai visual.", "Bentuk tambah_akhir, tambah_awal, kurang_akhir, dan kurang_awal hanya memindahkan posisi bilangan yang dicari."),
     "berpapasan": ("gerak", "Jarak awal dan dua kecepatan tertulis langsung; sketsa arah hanya membantu memodelkan waktu temu.", "bawaan"),
     "debit": ("laju", "Volume, waktu, dan debit membentuk satu relasi bagi-kali yang dapat dihitung dari angka tertulis.", "Cabang cari_debit, cari_volume, dan cari_waktu mengubah besaran yang ditanya."),
     "kecepatan_jarak_waktu": ("gerak", "Jarak, waktu, dan kecepatan diberikan numerik; diagram perjalanan tidak menjadi sumber nilai baru.", "Cabang cari_s, cari_t, dan cari_v hanya menukar besaran yang dicari."),
@@ -503,6 +505,8 @@ _ROWS = [('aritmatika-lanjut', 'berpapasan', 'visual_pendamping', ('P6',), (), (
  ('teori-bilangan', 'prima_faktorisasi', 'sengaja_teks', ('P5', 'P6'), (), ('bawaan',), {}),
  ('teori-bilangan', 'sisa_pembagian', 'sengaja_teks', ('P4', 'P5', 'P6'), (), ('bawaan',), {}),
  ('bilangan-dasar', 'tambah_dasar', 'sengaja_teks', ('P1', 'P2'), (), ('bawaan',), {}),
+ ('bilangan-dasar', 'kurang_dasar', 'sengaja_teks', ('P1', 'P2'), (), ('bawaan',), {}),
+ ('bilangan-dasar', 'bilangan_hilang', 'sengaja_teks', ('P1', 'P2'), ('bentuk',), ('bentuk=tambah_akhir', 'bentuk=tambah_awal', 'bentuk=kurang_akhir', 'bentuk=kurang_awal'), {}),
  ('teori-bilangan', 'banyak_kelipatan', 'sengaja_teks', ('P4', 'P5'), (), ('bawaan',), {}),
  ('teori-bilangan', 'sisa_operasi', 'sengaja_teks', ('P4', 'P5'), ('varian',), ('varian=jumlah', 'varian=kali'), {}),
  ('teori-bilangan', 'banyak_prima', 'sengaja_teks', ('P4', 'P5'), (), ('bawaan',), {}),

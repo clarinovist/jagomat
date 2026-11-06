@@ -115,9 +115,10 @@ def test_panduan_mencakup_registry_tanpa_klaim_jenjang(monkeypatch):
             continue
         paket = topics.ambil(topik)
         assert html.escape(paket.nama) in isi
-        for profil, komposisi in paket.komposisi.items():
+        for profil in paket.komposisi:
             assert 'data-contoh="%s:%s"' % (topik, profil) in isi
-            for tid in set(komposisi):
+            # Pola yang tampil adalah isi writer (jenis baru tertutup saat sakelar mati).
+            for tid in set(paket.komposisi_untuk(profil)):
                 assert html.escape(nama_tipe_soal(tid)) in isi
 
 

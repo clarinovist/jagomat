@@ -11,6 +11,7 @@ import sqlite3
 from typing import Any
 
 import database
+from basic_numbers_versions import template_dibuka
 from generator import buat_soal
 from topics import pemilik_template
 
@@ -46,6 +47,8 @@ def kandidat_sesi(
     per_template: dict[str, dict[str, Any]] = {}
     for item in baris:
         template_id = str(item["template_id"])
+        if not template_dibuka(template_id):
+            continue
         kandidat = per_template.setdefault(
             template_id,
             {
@@ -66,7 +69,7 @@ def _pilih_soal_baru(
 ):
     """Bangkitkan lima soal unik secara deterministik dari seed awal."""
     topik = pemilik_template(template_id)
-    if topik is None:
+    if topik is None or not template_dibuka(template_id):
         raise LatihanSerupaTidakTersedia("template sumber tidak tersedia")
     hasil = []
     tanda_tangan = set(tanda_tangan_terlarang)

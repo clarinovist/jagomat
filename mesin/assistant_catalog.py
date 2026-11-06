@@ -124,6 +124,10 @@ def buat_katalog(*, untuk_penawaran: bool = True) -> KatalogPendamping:
     tersedia = set(daftar_topik_latihan() if untuk_penawaran else topics.daftar_topik())
     topik_asli = tuple(t for t in topik_asli if t.id in tersedia)
     registry = {tid: t for tid, t in registry.items() if pemilik[tid].id in tersedia}
+    if untuk_penawaran:
+        # Jenis yang belum boleh dibuat tidak ditawarkan ke Pendamping.
+        from basic_numbers_versions import template_dibuka
+        registry = {tid: t for tid, t in registry.items() if template_dibuka(tid)}
 
     daftar_topik = tuple(
         TopikKatalog(id=topik.id, nama=topik.nama, level=_level_topik(topik))

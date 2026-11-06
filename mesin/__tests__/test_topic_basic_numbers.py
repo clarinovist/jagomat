@@ -225,7 +225,9 @@ def test_topik_manual_dan_campuran():
     assert paket.nama == "Bilangan Dasar"
     assert paket.judul_lembar == "Latihan Bilangan Dasar"
     assert paket.judul_penilaian == "Penilaian — Bilangan Dasar"
-    assert all(isi == (JENIS,) * 10 for isi in paket.komposisi.values())
+    # Sakelar mati (bawaan): yang dikunci adalah writer, bukan inventaris pembaca.
+    assert all(paket.komposisi_untuk(level) == (JENIS,) * 10 for level in paket.komposisi)
+    assert all(isi[0] == JENIS and len(isi) == 10 for isi in paket.komposisi.values())
     for level in ("P1", "P2"):
         validasi_pilihan([TOPIK], level)
     for level in ("P3", "P4", "P5", "P6"):

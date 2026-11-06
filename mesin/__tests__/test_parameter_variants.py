@@ -117,7 +117,11 @@ def test_template_baru_punya_cukup_kombinasi():
             domain = {_canonical(p) for p in domain_parameter(template_id, level)}
             assert domain, (topik_id, template_id, level)
             assert unik <= domain, ("sampler keluar domain", topik_id, level, unik - domain)
-            batas = ceil(0.9 * len(domain))
+            # Domain kecil: cakupan >=90% (keputusan 30 Okt 2026). Domain
+            # besar (bilangan_hilang P2 580): 500 seed tak mungkin menutup 90%,
+            # jadi batasnya dipangkas ke 200 unik, selaras guard lama >=200
+            # kombinasi untuk template baru. Hanya bilangan-dasar yang longgar.
+            batas = min(ceil(0.9 * len(domain)), BATAS_UNIK_BARU)
         else:
             batas = BATAS_UNIK_BARU if template_id not in _TEMPLATE_BAWAAN else BATAS_UNIK_LAMA
         assert len(unik) >= batas, (

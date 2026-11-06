@@ -7,6 +7,8 @@ umum yang dapat menyamarkan perbedaan variasi soal.
 
 NAMA_TIPE_SOAL = {
     "tambah_dasar": "Penjumlahan sampai 20",
+    "kurang_dasar": "Pengurangan sampai 20",
+    "bilangan_hilang": "Bilangan yang hilang",
     "banyak_kelipatan": "Banyak kelipatan dalam rentang",
     "sisa_operasi": "Sisa penjumlahan dan perkalian",
     "banyak_prima": "Banyak prima dalam rentang",

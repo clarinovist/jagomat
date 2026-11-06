@@ -3,6 +3,7 @@ import html
 
 from topics import TOPIK_BAWAAN, ambil
 from template_labels import nama_tipe_soal
+from basic_numbers_versions import template_dibuka
 from question_context import daftar_topik_latihan, profil_otomatis, topik_dasar
 from question_variants_ui import pemilih_dasar
 
@@ -80,7 +81,7 @@ def render(kon, siswa, *, mode='manual', draf_latihan=None, draf_gabungan=None,
                 + '</select></label></details>')
     sasaran = (database.sasaran_remedial_sesi(kon, sid, int(draf_remedial.sumber_sesi_id))
                if draf_remedial and draf_remedial.sumber_sesi_id else database.sasaran_remedial_anak(kon, sid))
-    sasaran = [s for s in sasaran if s['topik'] in tersedia]
+    sasaran = [s for s in sasaran if s['topik'] in tersedia and template_dibuka(s['template_id'])]
     saran = [str(s['template_id']) for s in sasaran if s['direkomendasikan']]
     dicentang = set(draf_remedial.template_id) if draf_remedial else set(saran[:3])
     remedial = ('<p>Yang sudah dicentang adalah saran dari hasil terbaru. Anda bisa mengubahnya. Pilih maksimal 3 tipe soal.</p>'

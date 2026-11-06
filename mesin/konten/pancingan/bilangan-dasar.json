@@ -10,6 +10,22 @@
     "Tanya: tanda di soal ini artinya apa? Tambah, kurang, atau yang lain?"
    ],
    "tindak_lanjut": "Ambil benda sebanyak angka pertama, tambahkan benda sebanyak angka kedua, lalu hitung semuanya bersama anak dan bandingkan dengan jawabannya di kertas."
+  },
+  "kurang_dasar": {
+   "pertanyaan": [
+    "Minta anak menunjukkan pengurangannya dengan benda: ambil sebanyak angka pertama, singkirkan sebanyak angka kedua.",
+    "Tanya: kamu menghitung mundur atau maju? Angka awal ikut dihitung atau tidak?",
+    "Tanya: tanda di soal ini artinya apa? Hasilnya jadi lebih banyak atau lebih sedikit dari angka pertama?"
+   ],
+   "tindak_lanjut": "Ambil benda sebanyak angka pertama, singkirkan benda sebanyak angka kedua, lalu hitung sisanya bersama anak dan bandingkan dengan jawabannya di kertas."
+  },
+  "bilangan_hilang": {
+   "pertanyaan": [
+    "Minta anak membaca soalnya keras-keras, lalu menunjuk tempat angka yang hilang.",
+    "Tanya: dari angka yang kelihatan, kamu harus naik atau turun untuk sampai ke hasilnya? Berapa langkah?",
+    "Minta anak mengisi kotaknya, lalu membaca ulang soal lengkap untuk memeriksa apakah sudah pas."
+   ],
+   "tindak_lanjut": "Siapkan benda sebanyak angka yang kelihatan, lalu tambah atau singkirkan sampai pas dengan hasilnya. Hitung bersama anak berapa yang ditambah atau disingkirkan."
   }
  }
 }

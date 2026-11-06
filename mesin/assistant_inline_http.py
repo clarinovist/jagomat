@@ -141,8 +141,10 @@ def _pisahkan_draf_inline(data, target):
                 kandidat = database.sasaran_remedial_sesi(kon_data, target.host_id, sumber_id)
             else:
                 kandidat = database.sasaran_remedial_anak(kon_data, target.host_id)
+            from basic_numbers_versions import template_dibuka
             remedial_sah = tuple(str(k["template_id"]) for k in kandidat
-                                 if k["topik"] in daftar_topik_latihan())
+                                 if k["topik"] in daftar_topik_latihan()
+                                 and template_dibuka(str(k["template_id"])))
         nama = {"template_id", "jumlah_soal", "sumber_sesi_id"}
         draf = assistant_inline.parse_draf_remedial(
             {k: data[k] for k in nama if k in data}, remedial_sah
