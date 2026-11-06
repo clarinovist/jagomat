@@ -72,11 +72,13 @@ def _malrule_tempat(bentuk, n):
                     "Salah menghitung banyak puluhan sehingga bilangan yang disusun lebih sepuluh."),
         ]
     tertukar = satuan if bentuk == "tanya_puluhan" else puluhan
+    ditanya = "puluhan" if bentuk == "tanya_puluhan" else "satuan"
     return [
         Malrule("nilai_tempat.puluhan_satuan_tertukar", str(tertukar), "K",
                 "Menjawab dengan angka di tempat yang lain, puluhan tertukar dengan satuan."),
         Malrule("nilai_tempat.nilai_bukan_banyak", str(10 * puluhan), "K",
-                "Menyebut nilai puluhannya (misalnya 40), bukan berapa banyak puluhan atau satuan yang ditanya."),
+                f"Menulis {10 * puluhan}, yaitu nilai dari {puluhan} puluhan, "
+                f"padahal yang ditanya banyak {ditanya}."),
         Malrule("nilai_tempat.bilangan_utuh", str(n), "K",
                 "Menulis seluruh bilangan di kotak, padahal yang ditanya hanya satu bagiannya."),
     ]
@@ -163,7 +165,9 @@ def _pembahasan_banding(a, b):
     akhir = f"{a} {_kata_banding(a, b)} {b}, jadi {a} {simbol} {b}."
     if min(a, b) < 10:
         if max(a, b) < 10:
-            return f"Bandingkan kedua bilangan: {akhir}"
+            kecil, besar = min(a, b), max(a, b)
+            return (f"Saat membilang 1, 2, 3, dan seterusnya, {kecil} disebut lebih dulu "
+                    f"daripada {besar}. {akhir}")
         return (f"{min(a, b)} belum sampai 10, sedangkan {max(a, b)} sudah 10 atau lebih. {akhir}")
     pa, pb = a // 10, b // 10
     if pa != pb:

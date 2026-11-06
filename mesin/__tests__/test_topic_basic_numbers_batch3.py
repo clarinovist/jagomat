@@ -489,3 +489,32 @@ def test_jawaban_isian_simbol_tersimpan_utuh_dan_tidak_di_escape(db, monkeypatch
         "SELECT sesi_soal_id, jawaban FROM jawaban WHERE sesi_soal_id IN (%s)" % ",".join(str(b["sesi_soal_id"]) for b in butir))}
     assert tersimpan[sid] == "<" and "&lt;" not in tersimpan.values()
     assert tersimpan[butir[1]["sesi_soal_id"]] == ">"
+
+
+# ── Self-review 6 Nov 2026 (pengganti ulasan guru atas keputusan pemilik) ──
+
+@pytest.mark.parametrize("level", LEVEL)
+def test_alasan_nilai_bukan_banyak_menyebut_angka_soal(level):
+    """Alasan untuk guru memakai angka soal itu sendiri, bukan contoh 40 yang lepas konteks."""
+    paket = topics.ambil(TOPIK)
+    for p in paket.domain_parameter(TEMPAT, level):
+        soal = paket.templates[TEMPAT](**p)
+        for m in soal.malrule:
+            if m.id == "nilai_tempat.nilai_bukan_banyak":
+                assert "misalnya 40" not in m.alasan
+                assert m.jawaban in m.alasan
+                ditanya = "satuan" if p["bentuk"] == "tanya_satuan" else "puluhan"
+                assert f"banyak {ditanya}" in m.alasan
+
+
+def test_pembahasan_satu_digit_memakai_urutan_membilang():
+    """Kelas 1: bilangan satu digit dibandingkan lewat urutan membilang, bukan sekadar disebut."""
+    paket = topics.ambil(TOPIK)
+    satu_digit = [p for p in paket.domain_parameter(BANDING, "P1")
+                  if max(p["a"], p["b"]) < 10 and p["a"] != p["b"]]
+    assert satu_digit
+    for p in satu_digit:
+        pembahasan = paket.templates[BANDING](**p).pembahasan
+        kecil, besar = sorted((p["a"], p["b"]))
+        assert "membilang" in pembahasan
+        assert f"{kecil} disebut lebih dulu daripada {besar}" in pembahasan
