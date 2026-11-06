@@ -43,7 +43,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   memuat lima jenis manual P1/P2 (`tambah_dasar`, `kurang_dasar`, `bilangan_hilang`;
   `nilai_tempat` dan `bandingkan_bilangan` di `basic_numbers_place_compare.py`) dengan
   domain eksplisit, cakupan ≥ min(90% domain, 200) dalam 500 seed; `basic_numbers_versions`
-  memegang sakelar writer `OSN_DASAR_LENGKAP` (bawaan 0 = 10× `tambah_dasar`) lewat
+  memegang sakelar writer `OSN_DASAR_LENGKAP` (bawaan kode 0 = 10× `tambah_dasar`;
+  produksi 1 sejak 6 Nov 2026 = dua soal per jenis) lewat
   `komposisi_writer`, palang pembuat di `generator.buat_lembar` dan saringan penawaran;
   `komposisi` pembaca memuat kelima jenis. PG tiga opsi (simbol `<`/`>`/`=` lewat jenis
   `simbol_perbandingan`), tanpa marker koreksi histori atau

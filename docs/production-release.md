@@ -6,6 +6,34 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy aktivasi lima jenis Bilangan Dasar kelas 1–2 — 6 November 2026
+
+Controlled `deploy-v2` memasang **d1d2f76a57f28ea8bbc76007aa079c69cdf36236**, healthy,
+menggantikan `58a52a4`, dan **mengaktifkan `OSN_DASAR_LENGKAP=1`** lewat
+`/opt/osn/visual.conf` (CAS dalam hold). Lembar P1/P2 kini berisi campuran lima jenis,
+dua soal per jenis. Kode aplikasi = `57817a5` (dua perbaikan teks jenis baru); tanpa
+schema/migrasi; kontrak kandidat = recovery = live `7b3c7835…`; job `pasang` literal false.
+
+- Kandidat `sha256:5223b324…568e`; recovery **c58390a** (57817a5 + writer katalog1/teori1,
+  pembaca lima jenis) digest `sha256:f5af13f8…9587`.
+- Gate [42156602321](https://github.com/clarinovist/jagomat/actions/runs/42156602321) hijau:
+  kandidat 4/4, recovery 4/4, build, pair 8/8/6, provider0. Gate pin `58a52a4`
+  [42154384619](https://github.com/clarinovist/jagomat/actions/runs/42154384619) merah karena
+  source itu writer katalog bawaan 2; pin diganti `c58390a` yang writer1.
+- Kit `deploy-dasar-aktif-20261106`; prepare memeriksa live `58a52a4`, flag belum ada, dan
+  probe sakelar mati/hidup pada kedua image. `deploy` menulis flag setelah backup, rehearsal
+  C–B–C, hash backup lokal, dan approval siap. Approval `58a52a4` sudah diarsipkan sebelumnya.
+- Postcheck: revisi/digest exact, env `OSN_DASAR_LENGKAP=1`, lembar 10 soal berisi lima jenis
+  dua soal per jenis, PG tepat tiga opsi, smoke `/`200 `/akun`401 `/murid/`303,
+  `/laporan-ortu/<token>`404, galat0, config dan hash histori terjaga.
+- Backup induk `/opt/osn/cadangan/deploy-dasar-aktif-20261106/`, salinan lokal
+  `mesin/cadangan/deploy-dasar-aktif-20261106/` (gitignored). Approval terkonsumsi rilis ini
+  masih di `/opt/osn/rollout-approval.json`; arsipkan sebelum `prepare` berikutnya.
+- **Dasar aktivasi:** self-review pemilik atas 2.275 butir (bukan ulasan guru independen).
+  K=0 dipertahankan; bank dan versi katalog tidak diubah. Lembar ulasan guru
+  `/terkunci/dasarlengkap` sudah tersedia tetapi tidak diisi; hasilnya bukan syarat aktivasi
+  ini. Untuk soal membandingkan, kelas 1–2 dianjurkan memakai PG daripada mengetik `<`/`>`.
+
 ## Deploy empat jenis soal kelas 1–2 (sakelar mati) — 6 November 2026
 
 Controlled `deploy-v2` memasang **58a52a4adff3697c1156c34c99c5bc914b45c68d**, healthy,

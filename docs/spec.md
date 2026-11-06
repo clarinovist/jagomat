@@ -13,8 +13,9 @@ berkonten P3–P6 dan profil anak menyimpan kelas sekolah 1–6. Topik `bilangan
 menambah penjumlahan teks untuk Latihan manual P1 (hasil ≤10) / P2 (11–20). Source juga
 memuat pengurangan, bilangan yang hilang, nilai tempat, dan membandingkan (tanda <, >, =)
 untuk P1 (bilangan ≤20, tambah-kurang ≤10) / P2 (≤100, tambah-kurang ≤20); jenis itu hanya
-dibuat bila `OSN_DASAR_LENGKAP=1` (bawaan 0, lembar tetap 10 soal penjumlahan), sedangkan
-pembaca selalu mengenalnya. Aktivasi perlu ulasan guru, recovery yang mengenali jenis baru, dan izin rilis.
+dibuat bila `OSN_DASAR_LENGKAP=1` (bawaan kode 0; **produksi 1 sejak 6 Nov 2026** atas
+keputusan pemilik setelah self-review, bukan ulasan guru independen), sedangkan pembaca
+selalu mengenalnya. Recovery `c58390a` (writer katalog1/teori1) mengenal kelima jenis.
 Soal dalam lembar tidak kembar hingga seluruh domain level terpakai; setelah itu
 pengulangan diizinkan. Latihan satu topik menawarkan kartu Variasi Dasar 1/2 dengan contoh
 hanya untuk materi dasar; bawaan tetap otomatis dan tingkat anak tidak berubah.
