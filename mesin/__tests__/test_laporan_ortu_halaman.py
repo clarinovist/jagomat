@@ -175,3 +175,41 @@ def test_rute_ortu_tidak_menulis_apa_pun_dan_post_tidak_berefek(server):
 def test_nama_anak_dan_id_tidak_ada_di_url(server):
     _, _, _, token = server
     assert re.fullmatch(r"[A-Za-z0-9_-]{43}", token)
+
+
+def test_catatan_guru_tampil_paling_awal_sebelum_bagian_baku():
+    """Nilai laporan ada di catatan guru: urutan catatan → langkah → tahap → topik."""
+    teks = _teks_tampil(halaman.render_laporan(**DATA).decode())
+    urutan = [teks.index(x) for x in ("Catatan guru", "Langkah berikutnya", "Tahap belajar sekarang", "Yang dilatih")]
+    assert urutan == sorted(urutan)
+
+
+def test_titik_tahap_dekoratif_enam_dan_jumlah_terisi_sama_dengan_nomor():
+    h = halaman.render_laporan(**DATA).decode()
+    titik = re.search(r'<p class="titik" aria-hidden="true">(.*?)</p>', h).group(1)
+    assert titik.count("<span") == 6 and titik.count('class="isi"') == 3
+    assert "Latihan (3 dari 6)" in _teks_tampil(h)
+
+
+@pytest.mark.parametrize("nomor", [0, 7, "3", None, True, 2.5])
+def test_titik_tahap_tak_sah_tidak_dirender_tetapi_teks_tetap(nomor):
+    data = dict(DATA, isi=dict(ISI, tahap=dict(ISI["tahap"], nomor=nomor)))
+    assert 'class="titik"' not in halaman.render_laporan(**data).decode()
+
+
+def test_tanpa_tahap_tidak_ada_titik():
+    data = dict(DATA, isi=dict(ISI, tahap=None))
+    assert 'class="titik"' not in halaman.render_laporan(**data).decode()
+
+
+def test_nama_guru_sekali_di_tanda_catatan_dan_di_baris_terbit_bila_tanpa_catatan():
+    dengan = _teks_tampil(halaman.render_laporan(**DATA).decode())
+    assert dengan.count("Bu Feby") == 1 and "Ditulis oleh Bu Feby" in dengan
+    tanpa = _teks_tampil(halaman.render_laporan(**dict(DATA, catatan="  ")).decode())
+    assert tanpa.count("Bu Feby") == 1 and "Diterbitkan 1 Desember 2026 oleh Bu Feby" in tanpa
+
+
+def test_topik_chip_tetap_daftar_semantik_dan_ter_escape():
+    data = dict(DATA, isi=dict(ISI, topik=["<b>x</b>", "Pecahan"]))
+    h = halaman.render_laporan(**data).decode()
+    assert '<ul class="chip"><li>&lt;b&gt;x&lt;/b&gt;</li><li>Pecahan</li></ul>' in h

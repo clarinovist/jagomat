@@ -53,7 +53,7 @@ GAYA_LO = f"""
 .lo *{{box-sizing:border-box}}
 .lo .merek{{font-weight:700;color:{T.TEKS_JUDUL};margin:0 0 {T.SP_4}}}
 .lo .judul{{font-size:{T.UKURAN_ANGKA_DEWASA};line-height:1.3;margin:0;color:{T.TEKS_JUDUL};font-weight:700}}
-.lo .anak{{font-size:{T.UKURAN_BAGIAN_STITCH};font-weight:700;margin:{T.SP_1} 0 0}}
+.lo .anak{{font-size:{T.UKURAN_JUDUL_STITCH};line-height:1.25;font-weight:800;color:{T.TEKS_JUDUL};margin:{T.SP_1} 0 0}}
 .lo .periode{{color:{T.TEKS_SUBTLE};margin:0 0 {T.SP_5}}}
 .lo section{{margin:0 0 {T.SP_5}}}
 .lo .sub{{font-size:{T.UKURAN_BAGIAN_DEWASA};margin:0 0 {T.SP_2};color:{T.TEKS_JUDUL};font-weight:700}}
@@ -61,7 +61,16 @@ GAYA_LO = f"""
 .lo p{{margin:0 0 {T.SP_2}}}
 .lo .tahap{{font-weight:700}}
 .lo .catatan{{white-space:pre-line;background:{T.LATAR_CATATAN};border:1px solid {T.BORDER_CATATAN};
-border-radius:{T.RADIUS_SEDANG};padding:{T.SP_3} {T.SP_4}}}
+border-radius:{T.RADIUS_KARTU};padding:{T.SP_4} {T.SP_4}}}
+.lo .ttd{{color:{T.TEKS_VARIAN};font-size:{T.UKURAN_TEKS_LABEL};margin:{T.SP_2} 0 0}}
+.lo .langkah{{background:{T.ANAK_AKSEN_LATAR};border:1px solid {T.AKSEN_MURID_UTAMA};
+border-radius:{T.RADIUS_KARTU};padding:{T.SP_3} {T.SP_4} {T.SP_1}}}
+.lo ul.chip{{display:flex;flex-wrap:wrap;gap:{T.SP_2};list-style:none;padding:0}}
+.lo ul.chip li{{background:{T.ANAK_AKSEN_LATAR};color:{T.AKSEN_TEAL_TUA};font-weight:700;
+border-radius:{T.RADIUS_PIL};padding:{T.SP_1} {T.SP_3}}}
+.lo .titik{{display:flex;gap:6px;margin:0 0 {T.SP_2}}}
+.lo .titik span{{width:14px;height:14px;border-radius:50%;border:2px solid {T.AKSEN_TEAL_TUA};background:{T.LATAR_KARTU}}}
+.lo .titik span.isi{{background:{T.AKSEN_TEAL_TUA}}}
 .lo .kecil{{color:{T.TEKS_SUBTLE};font-size:{T.UKURAN_TEKS_LABEL}}}
 .lo footer{{border-top:1px solid {T.BORDER_HALUS};padding-top:{T.SP_4}}}
 @media print{{.lo{{color:{T.CETAK_TINTA}}}.lo section,.lo footer{{break-inside:avoid;page-break-inside:avoid}}}}
@@ -89,13 +98,22 @@ def _dokumen(isi: str) -> bytes:
 def _bagian_topik(topik) -> str:
     if not topik:
         return "<p>Belum ada latihan yang sudah diperiksa guru pada periode ini.</p>"
-    return "<ul>" + "".join(f"<li>{_esc(t)}</li>" for t in topik) + "</ul>"
+    return '<ul class="chip">' + "".join(f"<li>{_esc(t)}</li>" for t in topik) + "</ul>"
+
+
+def _titik_tahap(nomor) -> str:
+    """Enam titik dekoratif; maknanya tetap ada di teks 'n dari 6'. Nomor tak sah: tanpa titik."""
+    if isinstance(nomor, bool) or not isinstance(nomor, int) or not 1 <= nomor <= 6:
+        return ""
+    titik = "".join('<span class="isi"></span>' if i < nomor else "<span></span>" for i in range(6))
+    return f'<p class="titik" aria-hidden="true">{titik}</p>'
 
 
 def _bagian_tahap(tahap) -> str:
     if not isinstance(tahap, dict):
         return "<p>Tahap belum bisa ditunjukkan saat ini.</p>"
-    return (f'<p class="tahap">{_esc(tahap.get("label", ""))} ({_esc(tahap.get("nomor", ""))} dari 6)</p>'
+    return (_titik_tahap(tahap.get("nomor"))
+            + f'<p class="tahap">{_esc(tahap.get("label", ""))} ({_esc(tahap.get("nomor", ""))} dari 6)</p>'
             f"<p>{_esc(tahap.get('uraian', ''))}</p>")
 
 
@@ -107,10 +125,13 @@ def isi_laporan(*, nama, isi, catatan, guru, periode, diterbitkan=None, kedaluar
     """
     topik = [str(t) for t in (isi.get("topik") or [])]
     bagian_catatan = ""
+    ada_guru = bool(str(guru).strip())
     if str(catatan).strip():
+        tanda = f'<p class="ttd">Ditulis oleh {_esc(guru)}</p>' if ada_guru else ""
         bagian_catatan = (f'<section><p class="sub">Catatan guru</p>'
-                          f'<div class="catatan">{_esc(catatan)}</div></section>')
-    oleh = f" oleh {_esc(guru)}" if str(guru).strip() else ""
+                          f'<div class="catatan">{_esc(catatan)}</div>{tanda}</section>')
+    # Nama guru cukup sekali: di tanda tangan catatan; tanpa catatan, di baris terbit.
+    oleh = f" oleh {_esc(guru)}" if ada_guru and not bagian_catatan else ""
     if diterbitkan is None or kedaluarsa is None:
         penutup = '<p class="kecil">Pratinjau: tanggal terbit dan batas berlaku terisi saat laporan diterbitkan.</p>'
     else:
@@ -123,10 +144,10 @@ def isi_laporan(*, nama, isi, catatan, guru, periode, diterbitkan=None, kedaluar
         f'<p class="merek">{_esc(T.NAMA_PRODUK)}</p>'
         f'<header><{judul} class="judul">{_esc(JUDUL)}</{judul}><p class="anak">{_esc(nama)}</p>'
         f'<p class="periode"><time datetime="{_esc(periode[0])}">{_esc(_rentang(*periode))}</time></p></header>'
-        f'<section><p class="sub">Yang dilatih</p>{_bagian_topik(topik)}</section>'
-        f'<section><p class="sub">Tahap belajar sekarang</p>{_bagian_tahap(isi.get("tahap"))}</section>'
-        f'<section><p class="sub">Langkah berikutnya</p><p>{_esc(isi.get("langkah", ""))}</p></section>'
         f"{bagian_catatan}"
+        f'<section class="langkah"><p class="sub">Langkah berikutnya</p><p>{_esc(isi.get("langkah", ""))}</p></section>'
+        f'<section><p class="sub">Tahap belajar sekarang</p>{_bagian_tahap(isi.get("tahap"))}</section>'
+        f'<section><p class="sub">Yang dilatih</p>{_bagian_topik(topik)}</section>'
         f'<footer>{penutup}'
         '<p class="kecil">Latihan bukan penilaian akhir. Halaman ini bukan rapor dan tidak memuat skor.</p></footer>'
         "</article>"
