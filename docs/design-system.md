@@ -448,7 +448,7 @@ Membuka kembali salah satunya memerlukan keputusan produk baru.
 | Lembar latihan ikut teal tunggal | Ditunda | Lembar dibekukan gate rilis question pair; perlu pembaruan pasangan recovery tersendiri |
 | Sisa literal `font-size` di luar skala | Bertahap | Dikunci ratchet `test_type_scale.py`; tiap penyamaan dirender per permukaan |
 | Ruang kosong dan ukuran minimum logo | Ditetapkan 1 Nov 2026 (rekomendasi agent diterima pengguna lewat delegasi) | Ruang kosong ≥ setengah tinggi lockup, lockup ≥ 120px, lambang ≥ 16px; dasar: favicon 16px tetap terbaca |
-| Arah komunikasi sosmed | Ditetapkan 1 Nov 2026 (rekomendasi agent diterima pengguna lewat delegasi) | Mengikuti `spec.md` (alat guru les in-house): konten edukasi metode untuk orang tua, tanpa menawarkan layanan atau klaim hasil sebelum pilot berjalan; tanpa ajakan yang mengumpulkan kontak |
+| Arah komunikasi sosmed | Diperbarui 7 Nov 2026 (keputusan pemilik; menggantikan arah 1 Nov) | Bimbel matematika SD–SMP online: enam pilar (kenapa anak salah, cara belajar, matematika sekolah sehari-hari, persiapan TKA, ajakan sesi percobaan, di balik layar; sumber: DRAF 5 di Nextcloud); boleh mengajak daftar sesi percobaan gratis lewat halaman pendaftaran; tanpa harga, tanpa klaim hasil, tanpa permintaan DM/nomor HP di komentar. Sumber: `COPY-DRAF.md` di kit merek |
 
 Tindak lanjut terbuka: tiga PDF riset publik di `mesin/publik/` dicetak ulang 1 Nov 2026
 dari `halaman()` dengan Chromium (origin `jagomat.id` diintersepsi, A4, latar dicetak), jadi
