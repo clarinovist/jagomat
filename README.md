@@ -9,8 +9,8 @@ Pure Python stdlib; dependensi pengembangan hanya pytest dan pytest-xdist.
 ## Identitas repo dan folder
 
 Brand publik **Jagomat**, domain kanonis **https://jagomat.id**. Folder lokal
-kanonis `~/Documents/jagomat/`; `~/Documents/osn/` menjadi alias kompatibilitas
-sementara, bukan salinan repo kedua. Struktur internal `mesin/` tetap.
+kanonis `~/Documents/jagomat/` (alias lama `~/Documents/osn/` sudah dihapus 7 Nov 2026).
+Struktur internal `mesin/` tetap.
 
 Repo kanonis: **[clarinovist/jagomat](https://github.com/clarinovist/jagomat)**;
 origin SSH `git@github.com:clarinovist/jagomat.git`. Nama GitHub lama mengalihkan ke

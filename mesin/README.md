@@ -82,7 +82,7 @@ hilang; kesehatan halaman publik tidak membuktikan provider bekerja.
 ## Pengembangan lokal
 
 Repo Git benar berada **satu tingkat di atas folder ini**. Semua Git memakai
-`git -C /Users/nugroho/Documents/jagomat …`, bukan repo basi `mesin/.git`.
+`git -C /Users/nugroho/Documents/jagomat …`, bukan dari dalam `mesin/` (tidak ada repo di sana).
 Interpreter existing: `mesin/.venv/bin/python` (lokal3.9.6); CI/container3.12.
 Runtime hanya stdlib; dev dependency pytest/pytest-xdist. Jangan membuat ulang
 venv atau menjalankan `setup_db.py` hanya untuk membaca/menguji kode.

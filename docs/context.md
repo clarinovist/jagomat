@@ -156,7 +156,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 ## Git, verifikasi dan produksi
 
 Repo luar `/Users/nugroho/Documents/jagomat`, branch `main`, origin
-`clarinovist/jagomat`; `mesin/.git` basi bukan repo kerja. Gunakan `git -C` ke repo
+`clarinovist/jagomat`; repo Git hanya satu di root (`mesin/.git` lama sudah dihapus). Gunakan `git -C` ke repo
 luar dan jaga WIP sesi lain. Lokal: scoped test/compile/review, bukan full suite default.
 Push memberi CI cepat; dispatch manual membuktikan kandidat/recovery exact empat
 shard, build/probe/pair. [CI hybrid](ci-selective.md).

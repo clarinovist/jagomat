@@ -6,7 +6,7 @@
 |---|---|
 | Produk / domain | Jagomat / `https://jagomat.id` |
 | Folder lokal kanonis | `/Users/nugroho/Documents/jagomat` |
-| Alias lokal sementara | `/Users/nugroho/Documents/osn` → `jagomat` |
+| Alias lokal lama | `/Users/nugroho/Documents/osn` — dihapus 7 Nov 2026 |
 | Repo GitHub kanonis | [`clarinovist/jagomat`](https://github.com/clarinovist/jagomat) |
 | Nama GitHub lama (redirect) | `clarinovist/osn-mesin-latihan` |
 | Image candidate **dan** recovery | `ghcr.io/clarinovist/osn-mesin-latihan` (tetap) |
@@ -30,11 +30,12 @@ Istilah OSN yang merujuk kompetisi/materi bukan sisa brand yang harus dihapus.
 ## Kompatibilitas lokal
 
 Folder utama dipindahkan utuh, bukan dibuat clone/salinan baru. Alias `osn`
-menjaga path yang sudah dipegang shell, agent, editor, scheduler, dan entry point
-venv. Data ignored tetap lokal; perpindahan folder bukan izin membaca atau
-mengunggahnya. Git selalu menunjuk **repo luar**, bukan `mesin/.git`.
+dulu menjaga path yang dipegang shell, agent, editor, scheduler, dan entry point
+venv; sudah dihapus 7 Nov 2026 setelah shebang venv dipindah ke path `jagomat`. Data ignored tetap lokal; perpindahan folder bukan izin membaca atau
+mengunggahnya. Git hanya satu, di **repo luar**; `mesin/.git` lama sudah diarsipkan di luar Git
+lalu dihapus.
 
-Gunakan path `jagomat` untuk sesi baru. Jangan hapus alias sampai:
+Gunakan path `jagomat` untuk semua sesi. Prasyarat penghapusan alias (sudah terpenuhi):
 
 1. Semua sesi/editor memakai path baru dan tidak ada writer aktif di path lama.
 2. Entry point/aktivasi venv yang menanam path absolut lama sudah dibuat ulang
@@ -51,8 +52,8 @@ Retensi, koneksi VPS, pemeriksaan integritas, dan penamaan cadangan tidak diubah
 
 Rename selesai 20 September dan build/probe/deploy sesudahnya telah berhasil;
 lihat [runbook](production-release.md). Urutan ini bukan pekerjaan rename yang
-masih terbuka. Izin push/SSH sekarang mengikuti workspace/CLAUDE; alias lokal
-dan namespace image tidak dihapus/diganti hanya untuk cleanup.
+masih terbuka. Izin push/SSH sekarang mengikuti workspace/CLAUDE; namespace image
+tidak diganti hanya untuk cleanup.
 
 1. Review patch pengaman, gate sesuai risiko (berat di CI), commit hanya scope sendiri. Perubahan
    staged milik sesi lain tidak boleh ikut commit.

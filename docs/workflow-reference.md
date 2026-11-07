@@ -32,9 +32,8 @@ Cek read-only tidak otomatis memerlukan plan implementasi. Untuk operasi data/to
 existing tanpa perubahan artifact, gunakan bukti gate identik sesuai ketentuan root;
 verifikasi target, backup/recovery, provenance dan hasil operasi tetap wajib.
 
-Semua contoh berikut dijalankan dari root Jagomat, bukan repo lama `mesin/.git`.
-Path `Documents/osn` masih menjadi alias sementara; lihat
-[panduan penamaan](repository-naming.md).
+Semua contoh berikut dijalankan dari root Jagomat (repo Git hanya satu).
+Alias `Documents/osn` sudah dihapus; lihat [panduan penamaan](repository-naming.md).
 
 ```bash
 cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python scripts/check_repo.py

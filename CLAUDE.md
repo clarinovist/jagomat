@@ -209,17 +209,17 @@ diperiksa apa adanya, serta aturan privasi anak berlaku pada seluruh tool dan mo
 
 ## 4. Git & shared workspace — selalu repo luar
 
-Repo benar `/Users/nugroho/Documents/jagomat` (`main`); `/Users/nugroho/Documents/osn`
-adalah alias kompatibilitas sementara ke folder yang sama, bukan repo kedua.
+Repo benar `/Users/nugroho/Documents/jagomat` (`main`). Alias lama `Documents/osn` dan
+repo basi `mesin/.git` sudah dihapus (7 Nov 2026); repo Git hanya satu, di root.
 Origin kanonis `git@github.com:clarinovist/jagomat.git` (repo `clarinovist/jagomat`).
 Nama GitHub lama `clarinovist/osn-mesin-latihan` mengalihkan ke repo yang sama;
 namespace image GHCR tetap lama. Detail kompatibilitas dan pemulihan ada di
 [`docs/repository-naming.md`](docs/repository-naming.md).
-`mesin/.git` adalah repo lama/basi; git di sana bisa menelan commit atau menampilkan diff palsu.
+Jangan `git init` di dalam `mesin/`: git di sana menelan commit atau menampilkan diff palsu.
+Arsip repo lama: `~/Documents/osn-resources/arsip-repo-lama/` (di luar Git).
 
 - **Setiap git pakai `git -C /Users/nugroho/Documents/jagomat ...`**, tidak dari dalam `mesin/`.
-  Path alias lama tetap sah untuk sesi yang sudah berjalan; jangan hapus alias sebelum
-  venv, scheduler, editor, dan sesi agent dipindahkan.
+  Sesi lama yang masih memegang path `Documents/osn` harus dimulai ulang di path `jagomat`.
 - Cek status sebelum mulai. Jangan menimpa/revert/stash perubahan sesi lain. Satu writer
   per file; overlap perlu workspace terisolasi/koordinasi, bukan overwrite.
 - Setelah edit massal 5+ file atau rewrite komponen, cek status + diff stat; review diff

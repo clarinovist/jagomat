@@ -269,8 +269,8 @@ cache dan cadangan tetap privat.
   3.9. Verifikasi sesuai risiko: Ringan/Normal/Kritis; tes scoped lokal, push CI cepat,
   full kandidat mingguan, dan gate rilis lengkap via dispatch pada SHA target. Palang
   index: `mesin/.venv/bin/python scripts/check_repo.py` setelah stage.
-- Git selalu `git -C /Users/nugroho/Documents/jagomat …`; hindari repo basi
-  `mesin/.git`, jaga WIP sesi lain. Repo `clarinovist/jagomat`; domain `jagomat.id`.
+- Git selalu `git -C /Users/nugroho/Documents/jagomat …`; tidak ada repo di
+  `mesin/`, jaga WIP sesi lain. Repo `clarinovist/jagomat`; domain `jagomat.id`.
 - Image tetap `ghcr.io/clarinovist/osn-mesin-latihan` demi kompatibilitas recovery.
   Rilis mengikuti **uji → bangun → pasang**, artifact/digest yang sama. Fingerprint
   recovery memproyeksikan AST operasi/guard persistensi sehingga ekstraksi murni
