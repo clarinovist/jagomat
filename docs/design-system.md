@@ -15,7 +15,7 @@ Catatan bertanggal dan alasan keputusan lama ada di
 | Aturan pakai, komponen, keputusan | Dokumen ini |
 | Bukti audit dan batas perangkat | [Audit UI lintas halaman](ui-consistency-audit.md), [audit admin](admin-ui-audit.md) |
 | Alasan lama | [Riwayat](design-system-history.md), [keputusan redesain admin](redesign-decisions.md) |
-| Mockup | `docs/mockup/` (canvas profil/ruang guru 19 Okt 2026), arsip lokal `../osn-resources/referensi/desain-ui/` (PNG Agustus, pilot Figma 25 Sep) |
+| Mockup | `docs/mockup/` (canvas profil/ruang guru 19 Okt 2026), arsip lokal `../riset/referensi/desain-ui/` (PNG Agustus, pilot Figma 25 Sep) |
 
 Urutan otoritas: **kode/DOM ter-render → dokumen ini → mockup**. Mockup adalah
 acuan desain, bukan runtime dan bukan bukti aksesibilitas. Perubahan UI tetap
@@ -324,7 +324,7 @@ Dijaga `test_web_worksheet.py`.
 ### Katalog hidup
 
 ```bash
-cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python scripts/design_catalog.py --output <folder-baru>
+cd /Users/nugroho/Documents/jagomat/aplikasi && mesin/.venv/bin/python scripts/design_catalog.py --output <folder-baru>
 ```
 
 Skrip menulis satu `index.html` statis ke folder baru (tidak menimpa): tabel peran
@@ -342,7 +342,7 @@ dan disajikan publik; katalog memuat contoh gaya kunci/kode diagnosis).
 ### Ekspor token
 
 ```bash
-cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python scripts/design_tokens_export.py --output <folder-baru>
+cd /Users/nugroho/Documents/jagomat/aplikasi && mesin/.venv/bin/python scripts/design_tokens_export.py --output <folder-baru>
 ```
 
 Menulis `tokens.json` (gaya DTCG: `$type`/`$value`, dikelompokkan per keluarga palet
@@ -367,7 +367,7 @@ diedit manual atau di-commit, ekspor ulang bila token berubah. Dijaga
   memakai crop HD 900px dari master yang sama (`maskot-<pose>-v3-900.png` di kit merek dan
   Design System, bukan aset runtime).
 - Aset baru di `mesin/aset/` wajib masuk allow-list `brand.ASET` (dijaga `test_brand.py`).
-- **Kit merek** di luar Git, `../osn-resources/referensi/desain-ui/brand-kit/`: panduan
+- **Kit merek** di luar Git, `../riset/referensi/desain-ui/brand-kit/`: panduan
   merek, template SVG feed 1080×1350 (tepi aman 64px) dan story 1080×1920 (aman
   250px atas/bawah), font, logo, maskot, dan hasil ekspor token. Versi daring untuk
   desain dengan Claude ada di Design System "Jagomat" di claude.ai (privat). Keduanya

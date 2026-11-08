@@ -75,7 +75,7 @@ Aturan print tersekop menyembunyikan topbar/tab/kembali; override layar tetap ut
   satu evaluasi ulang. Ini sinyal probabilistik terbatas, **bukan ukuran mutu seluruh UI**.
 
 Bukti24Oktober diarsipkan hash-identik ke
-`../osn-resources/referensi/ui-consistency-20261024/` (lokal, di luar Git); tidak berisi
+`../riset/referensi/ui-consistency-20261024/` (lokal, di luar Git); tidak berisi
 data pengguna nyata. Audit tidak mengubah auth/ownership, schema, reducer, penilaian,
 aktivasi paket atau izin data. [Spec](spec.md) tidak berubah cakupan; [context](context.md)
 dan [design system](design-system.md) diperbarui untuk komposisi shell.

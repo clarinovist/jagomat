@@ -9,7 +9,7 @@ Pure Python stdlib; dependensi pengembangan hanya pytest dan pytest-xdist.
 ## Identitas repo dan folder
 
 Brand publik **Jagomat**, domain kanonis **https://jagomat.id**. Folder lokal
-kanonis `~/Documents/jagomat/` (alias lama `~/Documents/osn/` sudah dihapus 7 Nov 2026).
+kanonis `~/Documents/jagomat/aplikasi/` (alias lama `~/Documents/osn/` sudah dihapus 7 Nov 2026).
 Struktur internal `mesin/` tetap.
 
 Repo kanonis: **[clarinovist/jagomat](https://github.com/clarinovist/jagomat)**;
@@ -33,7 +33,7 @@ Kompatibilitas dan pemulihan: [panduan penamaan](docs/repository-naming.md).
 Jalankan dari root repo, dengan venv aplikasi yang sudah disiapkan:
 
 ```bash
-cd /Users/nugroho/Documents/jagomat
+cd /Users/nugroho/Documents/jagomat/aplikasi
 # Contoh scoped test; pilih area yang diubah.
 mesin/.venv/bin/python -m pytest mesin/__tests__/test_generator.py -q -W error -p no:cacheprovider
 # Palang membaca index Git; jalankan setelah stage scope yang direview.
@@ -65,7 +65,7 @@ Spesifikasi siklus berada di
 [`docs/siklus-belajar-terpandu.md`](docs/siklus-belajar-terpandu.md).
 
 Riset pasar, mockup, kurikulum, lembar contoh, dokumen bisnis, dan eksperimen
-lama disimpan terpisah di folder lokal `../osn-resources/referensi/`. Folder itu bukan
+lama disimpan terpisah di folder lokal `../riset/referensi/`. Folder itu bukan
 dependensi aplikasi dan tidak diperlukan untuk menjalankan tes atau build.
 Jangan menyalinnya kembali ke repo; `.gitignore` dan palang CI mencegahnya.
 

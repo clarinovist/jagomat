@@ -82,13 +82,13 @@ hilang; kesehatan halaman publik tidak membuktikan provider bekerja.
 ## Pengembangan lokal
 
 Repo Git benar berada **satu tingkat di atas folder ini**. Semua Git memakai
-`git -C /Users/nugroho/Documents/jagomat …`, bukan dari dalam `mesin/` (tidak ada repo di sana).
+`git -C /Users/nugroho/Documents/jagomat/aplikasi …`, bukan dari dalam `mesin/` (tidak ada repo di sana).
 Interpreter existing: `mesin/.venv/bin/python` (lokal3.9.6); CI/container3.12.
 Runtime hanya stdlib; dev dependency pytest/pytest-xdist. Jangan membuat ulang
 venv atau menjalankan `setup_db.py` hanya untuk membaca/menguji kode.
 
 ```bash
-cd /Users/nugroho/Documents/jagomat
+cd /Users/nugroho/Documents/jagomat/aplikasi
 # Contoh scoped test; sesuaikan dengan perubahan.
 mesin/.venv/bin/python -m pytest mesin/__tests__/test_generator.py -q -W error -p no:cacheprovider
 # Sesudah stage scope yang direview; membaca index Git.

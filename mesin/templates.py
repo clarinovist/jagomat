@@ -10,7 +10,7 @@ Poin (3) yang membuat bank soal ini berbeda dari daftar soal biasa. Karena
 malrule ikut dihitung dari parameter, soal dengan angka baru tetap punya
 tabel diagnosis yang sahih — tidak perlu ditulis ulang tiap generate.
 
-Sumber malrule: arsip lokal ~/Documents/osn-resources/referensi/latihan/2026-08-20-p3-pola-bilangan-PENILAIAN.md, yang
+Sumber malrule: arsip lokal ~/Documents/jagomat/riset/referensi/latihan/2026-08-20-p3-pola-bilangan-PENILAIAN.md, yang
 disusun dari bentuk soalnya. Sebagian belum diuji ke anak nyata; lihat
 bagian "Perkiraan yang belum terverifikasi" di berkas itu.
 

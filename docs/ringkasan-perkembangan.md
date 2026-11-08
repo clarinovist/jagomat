@@ -206,7 +206,7 @@ terhapus dan request yang sudah terkirim tidak dapat ditarik kembali.
 ## 3. Spike sebelum kompleksitas — kriteria ditetapkan sebelum kode
 
 Eksperimen berada di arsip lokal
-`../../osn-resources/referensi/spike/report-summary-2026-09-13-r2nlFI/`.
+`../../riset/referensi/spike/report-summary-2026-09-13-r2nlFI/`.
 Berkas eksperimen, tests, HTML, dan evidence **bukan dependensi aplikasi/build/CI**,
 tidak dikirim ke Git, dan tidak wajib ada di clone lain.
 

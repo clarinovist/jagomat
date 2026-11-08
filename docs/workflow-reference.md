@@ -36,15 +36,15 @@ Semua contoh berikut dijalankan dari root Jagomat (repo Git hanya satu).
 Alias `Documents/osn` sudah dihapus; lihat [panduan penamaan](repository-naming.md).
 
 ```bash
-cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python scripts/check_repo.py
-cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python -m pytest mesin/__tests__/test_students.py -q -W error -p no:cacheprovider
+cd /Users/nugroho/Documents/jagomat/aplikasi && mesin/.venv/bin/python scripts/check_repo.py
+cd /Users/nugroho/Documents/jagomat/aplikasi && mesin/.venv/bin/python -m pytest mesin/__tests__/test_students.py -q -W error -p no:cacheprovider
 ```
 
 Pilih file test sesuai perubahan; contoh murid di atas bukan scope wajib untuk semua task.
 Untuk compile-only file Python terkait (ganti daftar sesuai patch):
 
 ```bash
-cd /Users/nugroho/Documents/jagomat && mesin/.venv/bin/python -W error -B -c 'from pathlib import Path; berkas = [Path("mesin/student_pages.py")]; [compile(p.read_text(), str(p), "exec") for p in berkas]; print("Kompilasi lulus:", len(berkas), "berkas")'
+cd /Users/nugroho/Documents/jagomat/aplikasi && mesin/.venv/bin/python -W error -B -c 'from pathlib import Path; berkas = [Path("mesin/student_pages.py")]; [compile(p.read_text(), str(p), "exec") for p in berkas]; print("Kompilasi lulus:", len(berkas), "berkas")'
 ```
 
 Ini tidak mengimpor aplikasi, membuka DB, atau menulis bytecode. Kompilasi bukan pengganti
@@ -241,7 +241,7 @@ hardcoded di modul lain. Halaman murid memakai `GAYA_STITCH`, bukan `CSS_SESI`.
 ## Konteks kurikulum & batas klaim produk
 
 Sumber: audit 1.237 soal OSN asli 2016–2026, arsip lokal
-`../../osn-resources/referensi/docs/riset-soal-osn-10-tahun.md`. Ini angka audit historis, bukan
+`../../riset/referensi/docs/riset-soal-osn-10-tahun.md`. Ini angka audit historis, bukan
 ukuran otomatis cakupan kode terbaru. Jika arsip tidak tersedia, jangan mengarang data baru.
 
 - 85 template menutup **74,7%** konsep soal nyata; NAS-eksplorasi **24,4%**.
@@ -267,7 +267,7 @@ ukuran otomatis cakupan kode terbaru. Jika arsip tidak tersedia, jangan mengaran
 
 | Insiden / risiko | Pengaman yang dipertahankan |
 | --- | --- |
-| Git dalam `mesin/` memakai repo basi | Semua git `-C /Users/nugroho/Documents/jagomat`; tidak reset otomatis |
+| Git dalam `mesin/` memakai repo basi | Semua git `-C /Users/nugroho/Documents/jagomat/aplikasi`; tidak reset otomatis |
 | Test hijau tetapi malrule K hilang | Uji seed/level, collision, baca output soal |
 | Modul/aset baru tidak masuk image | COPY wildcard Python + COPY aset, guard image/aset, build CI |
 | Mutasi tidak melalui jalur test | Buktikan kegagalan tepat, data sintetis, pulihkan lalu hijau |

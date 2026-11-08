@@ -54,7 +54,7 @@ sesi.json
 # Rencana dan preview kerja tetap lokal; dokumentasi teknis docs/ dilacak.
 /docs/plan/
 
-# Materi non-codebase disimpan di ../osn-resources/referensi, bukan repo ini.
+# Materi non-codebase disimpan di ../riset/referensi, bukan repo ini.
 # Blokir agar tidak terseret lagi oleh git add yang terlalu luas.
 /riset-pasar/
 /desain-ui/

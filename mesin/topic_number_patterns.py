@@ -10,7 +10,7 @@ Kode diagnosis (taksonomi B/K/H/E/T/N, Rencana Produk - Peta Jalan §02):
   B salah baca soal | K salah konsep | H salah hitung
   E salah tulis akhir | T tidak tahu | N menebak
 
-Sumber malrule: arsip lokal ~/Documents/osn-resources/referensi/latihan/2026-08-20-p3-pola-bilangan-PENILAIAN.md.
+Sumber malrule: arsip lokal ~/Documents/jagomat/riset/referensi/latihan/2026-08-20-p3-pola-bilangan-PENILAIAN.md.
 """
 
 from __future__ import annotations

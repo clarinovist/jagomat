@@ -189,7 +189,7 @@ selalu membahas masa lalu.
   interaksi JS lain memerlukan persetujuan tersendiri. Lihat
   [kontrak runtime](pendamping-runtime.md#panel-tanpa-reload--persetujuan-teknis-27-september-2026).
 
-Mockup lokal: `../../osn-resources/referensi/desain-ui/pendamping-2026-09-11/`.
+Mockup lokal: `../../riset/referensi/desain-ui/pendamping-2026-09-11/`.
 Folder tersebut opsional dan tidak diperlukan untuk clone, test, atau build.
 Mockup adalah kumpulan keadaan statis, bukan percakapan atau penyimpanan nyata.
 Tombol tulis dinonaktifkan; perpindahan halaman hanya memperlihatkan contoh.

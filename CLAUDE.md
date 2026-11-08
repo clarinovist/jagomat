@@ -61,7 +61,7 @@ mengikuti batas jenjang di referensi workflow.
   fallback chip tautan GET tetap utuh. Perlu approval untuk tambahan.
 - `mesin/`: aplikasi, `__tests__/`, aset, Dockerfile, cadangan. `scripts/`: otomasi/palang.
   `docs/`: spesifikasi teknis; `docs/plan/` lokal/gitignored. `.github/`: CI/deploy.
-- Riset/materi/kurikulum/mockup/bisnis/eksperimen berada di `../osn-resources/referensi/` lokal,
+- Riset/materi/kurikulum/mockup/bisnis/eksperimen berada di `../riset/referensi/` lokal,
   bukan dependensi aplikasi/test/build. Jangan masukkan kembali ke Git.
 - Alur: `topics` → `generator` → `templates` → `render`/`worksheets` → `database` →
   `diagnosis` → `reports`. Router/palang di `web.py`; data anak di `students.py`;
@@ -175,7 +175,7 @@ diperiksa apa adanya, serta aturan privasi anak berlaku pada seluruh tool dan mo
 - Pakai **`mesin/.venv/bin/python` (Python 3.9.6 lokal)**; `python3` polos bukan pengganti.
   CI/container memakai **3.12**, tetapi kode tetap kompatibel 3.9. Jangan pakai sintaks
   khusus 3.12 (contoh: kutip bersarang f-string); cek interpreter aktual bila environment berubah.
-- Cwd shell tidak boleh diasumsikan bertahan; awali `cd /Users/nugroho/Documents/jagomat && ...`.
+- Cwd shell tidak boleh diasumsikan bertahan; awali `cd /Users/nugroho/Documents/jagomat/aplikasi && ...`.
 - Palang repo: `mesin/.venv/bin/python scripts/check_repo.py` — membaca **index Git**,
   bukan data anak. Jalankan setelah stage scope yang sudah direview.
 - Scoped test: `mesin/.venv/bin/python -m pytest mesin/__tests__/test_<area>.py -q -W error -p no:cacheprovider`.
@@ -209,16 +209,16 @@ diperiksa apa adanya, serta aturan privasi anak berlaku pada seluruh tool dan mo
 
 ## 4. Git & shared workspace — selalu repo luar
 
-Repo benar `/Users/nugroho/Documents/jagomat` (`main`). Alias lama `Documents/osn` dan
+Repo benar `/Users/nugroho/Documents/jagomat/aplikasi` (`main`). Alias lama `Documents/osn` dan
 repo basi `mesin/.git` sudah dihapus (7 Nov 2026); repo Git hanya satu, di root.
 Origin kanonis `git@github.com:clarinovist/jagomat.git` (repo `clarinovist/jagomat`).
 Nama GitHub lama `clarinovist/osn-mesin-latihan` mengalihkan ke repo yang sama;
 namespace image GHCR tetap lama. Detail kompatibilitas dan pemulihan ada di
 [`docs/repository-naming.md`](docs/repository-naming.md).
 Jangan `git init` di dalam `mesin/`: git di sana menelan commit atau menampilkan diff palsu.
-Arsip repo lama: `~/Documents/osn-resources/arsip-repo-lama/` (di luar Git).
+Arsip repo lama: `~/Documents/jagomat/riset/arsip-repo-lama/` (di luar Git).
 
-- **Setiap git pakai `git -C /Users/nugroho/Documents/jagomat ...`**, tidak dari dalam `mesin/`.
+- **Setiap git pakai `git -C /Users/nugroho/Documents/jagomat/aplikasi ...`**, tidak dari dalam `mesin/`.
   Sesi lama yang masih memegang path `Documents/osn` harus dimulai ulang di path `jagomat`.
 - Cek status sebelum mulai. Jangan menimpa/revert/stash perubahan sesi lain. Satu writer
   per file; overlap perlu workspace terisolasi/koordinasi, bukan overwrite.

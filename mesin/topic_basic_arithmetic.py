@@ -1,7 +1,7 @@
 """Paket topik aritmetika dasar — Fase B, terbatas untuk P5/P6.
 
 Tiga template awal diambil dari malrule yang sudah diprototipekan di
-arsip lokal ~/Documents/osn-resources/referensi/spike/malrule.yaml. Python tetap menghitung parameter, kunci, dan malrule;
+arsip lokal ~/Documents/jagomat/riset/referensi/spike/malrule.yaml. Python tetap menghitung parameter, kunci, dan malrule;
 ini bukan soal yang ditulis LLM.
 """
 

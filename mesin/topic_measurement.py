@@ -232,7 +232,7 @@ def jam_menit_detik(varian: str, jam: int, menit: int, detik: int) -> Soal:
 #
 # Semuanya ada di silabus SD dan muncul di naskah OSN tingkat sekolah/
 # kabupaten. Konversi luas & volume juga menutup sebagian gap "Statistika
-# Data & Pengukuran" di riset 1.237 soal (arsip lokal ~/Documents/osn-resources/referensi/docs/riset-soal-osn-10-tahun.md).
+# Data & Pengukuran" di riset 1.237 soal (arsip lokal ~/Documents/jagomat/riset/referensi/docs/riset-soal-osn-10-tahun.md).
 
 # Satuan kuantitas dan isinya. Nilainya fakta, bukan pilihan desain:
 # 1 lusin 12, 1 gros 12 lusin = 144, 1 kodi 20, 1 rim 500 lembar.

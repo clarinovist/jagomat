@@ -30,7 +30,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   Sesi/transient bukan pengganti state durable; detail inventaris di runbook.
   `scripts/operational_backup.py` menambahkan envelope core+riset+lampiran saat
   quiescent dan transfer privat tervalidasi; `mesin/cadangkan.sh` fetch-only, tanpa prune.
-- Riset/materi historis di `../osn-resources/referensi/`; bukan dependency runtime.
+- Riset/materi historis di `../riset/referensi/`; bukan dependency runtime.
   DB, credential, `.venv`, cache, backup dan artefak privat tidak dilacak Git.
 
 ## Konvensi dan keputusan teknis
@@ -155,7 +155,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 
 ## Git, verifikasi dan produksi
 
-Repo luar `/Users/nugroho/Documents/jagomat`, branch `main`, origin
+Repo luar `/Users/nugroho/Documents/jagomat/aplikasi`, branch `main`, origin
 `clarinovist/jagomat`; repo Git hanya satu di root (`mesin/.git` lama sudah dihapus). Gunakan `git -C` ke repo
 luar dan jaga WIP sesi lain. Lokal: scoped test/compile/review, bukan full suite default.
 Push memberi CI cepat; dispatch manual membuktikan kandidat/recovery exact empat

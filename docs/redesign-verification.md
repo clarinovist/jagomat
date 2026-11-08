@@ -77,6 +77,6 @@ checkout utama tidak disentuh. Integrasi berikutnya dicatat pada pembaruan di at
 ## Artefak
 
 Bukti privat dan screenshot disimpan di luar Git pada
-`../osn-resources/referensi/jagomat-admin-redesign/evidence/`.
+`../riset/referensi/jagomat-admin-redesign/evidence/`.
 Script capture/DOM tersimpan bersama bukti untuk reproduksi. Referensi desain
 asli tetap di direktori saudara tersebut. Tidak ada DB/auth nyata pada artefak.

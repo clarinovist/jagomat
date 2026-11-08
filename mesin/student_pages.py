@@ -277,7 +277,7 @@ def halaman_kerja_baru(
     markup + kelas CSS (mengadopsi GAYA_STITCH). Palang mutlak: TIDAK memuat
     kata kunci/malrule/diagnosa.
 
-    Sumber visual (arsip lokal): ~/Documents/osn-resources/referensi/desain-ui/stitch/murid_kerjakan_soal_mobile/screen.png
+    Sumber visual (arsip lokal): ~/Documents/jagomat/riset/referensi/desain-ui/stitch/murid_kerjakan_soal_mobile/screen.png
     — topbar sticky teal+coral, timer strip teal, kartu soal putih dgn nomor
     badge bulat teal menggantung, Jawabanku input pusat, Caraku pil 2-kolom
     radio, save strip sticky bawah coral penuh.

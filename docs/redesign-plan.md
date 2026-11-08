@@ -8,7 +8,7 @@ main atau mengulang implementasi sekarang. Bukti lokal dan integrasi terbaru di
 ## Mandat dan batas
 
 Brief: `/Users/nugroho/Downloads/jagomat-admin-redesign.zip`, 19 Oktober 2026.
-Referensi privat diekstrak di luar Git: `../osn-resources/referensi/jagomat-admin-redesign/`.
+Referensi privat diekstrak di luar Git: `../riset/referensi/jagomat-admin-redesign/`.
 Pengguna menyetujui seluruh fase pada percakapan ini, termasuk delegasi bila perlu.
 Branch `feat/admin-redesign`, baseline `39f7530`. Tidak merge/push main atau deploy.
 Worktree terisolasi `../jagomat-admin-redesign` melindungi WIP latihan/laporan sesi lain.

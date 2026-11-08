@@ -5,7 +5,7 @@
 | Bagian | Nama |
 |---|---|
 | Produk / domain | Jagomat / `https://jagomat.id` |
-| Folder lokal kanonis | `/Users/nugroho/Documents/jagomat` |
+| Folder lokal kanonis | `/Users/nugroho/Documents/jagomat/aplikasi` |
 | Alias lokal lama | `/Users/nugroho/Documents/osn` — dihapus 7 Nov 2026 |
 | Repo GitHub kanonis | [`clarinovist/jagomat`](https://github.com/clarinovist/jagomat) |
 | Nama GitHub lama (redirect) | `clarinovist/osn-mesin-latihan` |
@@ -24,7 +24,7 @@ CI setiap commit harus tetap membuktikan akses package dan probe kedua image.
 
 Folder `mesin/`, `docs/`, `scripts/`, `.github/` tidak dirombak. Nama container
 `osn-mesin`, path VPS `/opt/osn`, variabel `OSN_*`, cookie, schema, `.git` lama
-terabaikan di dalam `mesin/`, serta arsip lokal `../osn-resources` tidak diubah.
+terabaikan di dalam `mesin/`, serta arsip lokal `../riset` tidak diubah.
 Istilah OSN yang merujuk kompetisi/materi bukan sisa brand yang harus dihapus.
 
 ## Kompatibilitas lokal
