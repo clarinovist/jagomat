@@ -157,7 +157,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 
 Repo luar `/Users/nugroho/Documents/jagomat/aplikasi`, branch `main`, origin
 `clarinovist/jagomat`; repo Git hanya satu di root (`mesin/.git` lama sudah dihapus). Gunakan `git -C` ke repo
-luar dan jaga WIP sesi lain. Lokal: scoped test/compile/review, bukan full suite default.
+luar dan jaga WIP sesi lain. Folder induk lokal `~/Documents/jagomat/` (disusun 8 Nov 2026)
+berisi `aplikasi` (repo ini), `berkas`, `cek`, `tim`, `web`, dan `riset` (dulu `osn-resources`);
+saudara-saudaranya bukan bagian Git repo ini. Lokal: scoped test/compile/review, bukan full suite default.
 Push memberi CI cepat; dispatch manual membuktikan kandidat/recovery exact empat
 shard, build/probe/pair. [CI hybrid](ci-selective.md).
 
