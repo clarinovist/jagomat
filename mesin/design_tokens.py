@@ -276,7 +276,6 @@ KODE_MENEBAK_TEKS = "#5b5b63"
 
 # Chart tren (mockup guru-laporan) — SVG. Axis digelapkan dari #8a91a3:
 # label 11px-nya teks kecil, butuh ~4.5:1 di atas putih.
-CHART_GRID = "#e2e6ef"
 CHART_AXIS = "#6f7690"
 
 # ─────────────────────────────────────────────────────────────────────

@@ -471,12 +471,6 @@ def memiliki_tinjauan(isi: bytes) -> bool:
     return bool(re.search(rb'<form\b[^>]*\bdata-tinjauan-ringkas(?:\s|=|>)', isi))
 
 
-def memiliki_enhancement(isi: bytes) -> bool:
-    """Halaman memerlukan salah satu skrip kecil berhash yang diizinkan."""
-    from practice_browser import memiliki_latihan
-    return memiliki_panel(isi) or memiliki_pilihan_isi(isi) or memiliki_bagikan(isi) or memiliki_tinjauan(isi) or memiliki_latihan(isi)
-
-
 def lengkapi_respons(isi: bytes):
     """Sisipkan hanya enhancement yang ditandai, dengan hash CSP masing-masing."""
     if b'</body>' not in isi:

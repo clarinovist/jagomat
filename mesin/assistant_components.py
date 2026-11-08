@@ -604,11 +604,6 @@ def panel_hasil(target, chat, sesi_id: int, *, sumber, dalam_form: bool = False)
     )
 
 
-def _jalur_chat(target, chat_id: str) -> str:
-    from dataclasses import replace
-    return replace(target, chat_id=chat_id).jalur
-
-
 def fragmen_tutup(target) -> str:
     """Placeholder terikat host untuk respons enhancement tutup panel."""
     return (

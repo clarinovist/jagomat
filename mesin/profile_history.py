@@ -220,16 +220,3 @@ def tinjauan_terlama(kon, siswa_id, *, kecuali=None):
     return _muat(kon, siswa_id, where, parameter, 3, terlama=True)
 
 
-def tugas_terbaru(kon, siswa_id, sorot=None, kecuali=None):
-    """Maksimal tiga tugas sekunder; sesi CTA reducer dikecualikan eksplisit."""
-    where = " AND (s.dibatalkan IS NULL AND (s.selesai IS NULL OR NOT COALESCE(" + _AKTIF + ",0)))"
-    parameter = ()
-    if kecuali is not None:
-        where += " AND s.id<>?"
-        parameter = (int(kecuali),)
-    baris = _muat(kon, siswa_id, where, parameter, 3)
-    if sorot and sorot != kecuali and all(r['id'] != sorot for r in baris):
-        terpilih = _muat(kon, siswa_id, ' AND s.id=?', (sorot,), 1)
-        if terpilih:
-            baris = terpilih + baris[:2]
-    return baris

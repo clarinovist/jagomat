@@ -51,13 +51,6 @@ def label_profil_parameter(profil: str) -> str:
     return nama[profil] if profil in LEVEL else 'Konfigurasi lama: ' + str(profil)
 
 
-def label_konteks(konteks: KonteksSoal) -> str:
-    """Label pola dan konfigurasi sumber tanpa urutan kesulitan."""
-    from template_labels import nama_tipe_soal
-    return '{} · {}'.format(nama_tipe_soal(konteks.template_id),
-                            label_profil_parameter(konteks.profil_parameter))
-
-
 def topik_dasar(topik_id: str) -> bool:
     """Topik nonkosong yang hanya memuat level di luar tingkat siswa/siklus."""
     if topik_id not in topics.daftar_topik():

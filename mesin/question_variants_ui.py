@@ -33,16 +33,6 @@ def kontrol_variasi(identitas, terpilih=None, *, ringkas=False):
     )
 
 
-def detail_kode(profil):
-    """Kode untuk penelusuran histori, bukan identitas atau jenjang anak."""
-    if profil == '':
-        return ''
-    return ('<details class="variasi-kode"><summary>Detail pengaturan latihan</summary>'
-            '<p>' + html.escape(label_profil_parameter(profil))
-            + ' · Kode konfigurasi: ' + html.escape(str(profil))
-            + '. Kode disimpan agar riwayat tetap dapat ditelusuri; bukan kelas atau ukuran kemampuan.</p></details>')
-
-
 @lru_cache(maxsize=64)
 def contoh_variasi(topik, profil):
     """Contoh deterministik dari pasangan aktual; tanpa DB, kunci atau sesi baru."""

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone, timedelta
-import secrets
 import sqlite3
 import urllib.parse
 
@@ -10,7 +9,6 @@ import admin_http as h
 import admin_research_pages as ui
 import admin_research_service as layanan
 import admin_security
-import auth
 import research_store as store
 
 
@@ -75,10 +73,6 @@ def _kirim(penangan, principal, isi, *, judul=JUDUL, subjudul=SUBJUDUL, skrip=Fa
 
 def _query(penangan, diizinkan):
     return h._query(penangan, diizinkan=diizinkan)
-
-
-def _op():
-    return "op_" + secrets.token_hex(16)
 
 
 def _meta_aksi(detail, aksi):

@@ -4,7 +4,7 @@ from __future__ import annotations
 import csv
 import io
 import json
-from typing import Iterable, Optional
+from typing import Optional
 
 import research_instrument as instrumen
 import research_store as store
@@ -40,15 +40,6 @@ def pertanyaan_berikutnya(detail_wawancara, kode: str) -> Optional[str]:
     except ValueError:
         raise LookupError("pertanyaan tidak tersedia") from None
     return daftar[indeks + 1] if indeks + 1 < len(daftar) else None
-
-
-def pertanyaan_sebelumnya(detail_wawancara, kode: str) -> Optional[str]:
-    daftar = [item["kode"] for item in detail_wawancara["instrumen"]["pertanyaan"]]
-    try:
-        indeks = daftar.index(kode)
-    except ValueError:
-        raise LookupError("pertanyaan tidak tersedia") from None
-    return daftar[indeks - 1] if indeks > 0 else None
 
 
 def matriks(path=None) -> dict:

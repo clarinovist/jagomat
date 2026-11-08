@@ -20,7 +20,6 @@ RENTANG_TEMPAT = {
     "P1": {"tanya_satuan": range(11, 20), "susun": range(10, 21)},
     "P2": {bentuk: range(21, 100) for bentuk in BENTUK_TEMPAT},
 }
-SIMBOL = ("<", ">", "=")
 # Domain bandingkan P1: bilangan 1..20, selisih paling jauh 6 (pasangan dekat
 # yang menguji pemahaman); "=" untuk setiap bilangan -> 20 dari 218 (9,2%).
 BATAS_P1 = 20

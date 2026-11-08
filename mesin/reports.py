@@ -9,16 +9,14 @@ from __future__ import annotations
 import html
 from datetime import date, datetime, timedelta
 
-import brand
 import database
 import profile_workspace
 from learning_journey import perjalanan_belajar
-from cycle_report import render_perjalanan
 from child_components import banner_tautan
 from report_dashboard import GAYA_LAPORAN, render_aktivitas, render_materi, render_tugas
 from report_navigation import halaman_daftar, navigasi_halaman, parameter_laporan, pilihan, url_laporan
 from report_metrics import hari_wib, statistik_laporan, tugas_belum_selesai
-from mastery_report import GAYA_PETA, peta_penguasaan, render_kriteria, render_peta
+from mastery_report import GAYA_PETA, peta_penguasaan, render_peta
 from mastery_evidence import lengkapi_bukti_materi
 import design_tokens as T
 from diagnosis import diagnosa
@@ -27,7 +25,6 @@ from template_labels import nama_tipe_soal as _nama_tipe_soal
 from question_context import label_profil_parameter as label_kelas
 from topics import TOPIK_BAWAAN
 from teacher_pages import _ambil, _halaman, _soal_dari_baris
-
 
 
 def diagnosa_murid(kon, sesi_id: int) -> int:
@@ -108,60 +105,6 @@ def diagnosa_murid(kon, sesi_id: int) -> int:
         jumlah += 1
     return jumlah
 
-def _chart_tren(ring) -> str:
-    """SVG line chart % benar per sesi (mockup guru-laporan).
-
-    ring diurutkan DESC oleh database.ringkasan; dibalik supaya sumbu x
-    berjalan kronologis (sesi terbaru di kanan). Kalau kurang dari 2 titik
-    tidak digambar — satu titik tidak bisa disebut tren.
-    """
-    if len(ring) < 2:
-        return ""
-    TEAL, GRID, AXIS = T.STATUS_KUAT, T.CHART_GRID, T.CHART_AXIS
-    urut = list(reversed(ring))
-    LEBAR, TINGGI = 540, 240
-    PAD_X, PAD_Y, PAD_B = 40, 16, 40
-    n = len(urut)
-    def x(i):  # posisi titik ke-i
-        return PAD_X + i * (LEBAR - PAD_X - 12) / max(1, n - 1)
-    def y(persen):  # 0..100 -> koordinat (SVG y ke bawah)
-        return PAD_Y + (100 - persen) * (TINGGI - PAD_Y - PAD_B) / 100
-    pts = []
-    for i, r in enumerate(urut):
-        jml = r["jumlah_soal"] or 0
-        psen = (r["benar"] or 0) / jml * 100 if jml else 0
-        pts.append(round(x(i), 1))
-        pts.append(round(y(psen), 1))
-    poly = " ".join(",".join(str(p) for p in pts[i:i+2]) for i in range(0, len(pts), 2))
-    titik = "".join(
-        f'<circle cx="{(pts[i])}" cy="{pts[i+1]}" r="4" fill="{TEAL}"/>'
-        for i in range(0, len(pts), 2)
-    )
-    grid = "".join(
-        f'<line x1="{PAD_X}" y1="{y(p)}" x2="{LEBAR-12}" y2="{y(p)}" '
-        f'stroke="{GRID}" stroke-width="1" stroke-dasharray="4 4"/>'
-        f'<text x="{PAD_X-6}" y="{y(p)+4}" text-anchor="end" '
-        f'font-size="11" fill="{AXIS}">{p}</text>'
-        for p in (25, 50, 75, 100)
-    )
-    xlab = "".join(
-        f'<text x="{x(i)}" y="{TINGGI-16}" text-anchor="middle" '
-        f'font-size="11" fill="{AXIS}">#{urut[i]["sesi_id"]}</text>'
-        for i in range(n)
-    )
-    return (
-        f'<svg viewBox="0 0 {LEBAR} {TINGGI}" role="img" '
-        f'aria-label="Tren persentase benar per sesi">'
-        f"{grid}{poly and ''}"
-        f'<polyline points="{poly}" fill="none" stroke="{TEAL}" '
-        f'stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
-        f"{titik}{xlab}"
-        f'<line x1="{PAD_X}" y1="{y(0)}" x2="{LEBAR-12}" y2="{y(0)}" '
-        f'stroke="{AXIS}" stroke-width="1"/>'
-        f'<text x="{LEBAR-12}" y="{PAD_Y-2}" text-anchor="end" font-size="11" '
-        f'fill="{AXIS}">% benar</text>'
-        f"</svg>"
-    )
 
 # Kamus kode diagnosis dalam bahasa sehari-hari (untuk orang tua).
 # Kunci = kode di basis data; nilai = (sebutan ramah, arti 1 kalimat).
