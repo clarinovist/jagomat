@@ -89,7 +89,7 @@ def panel_persetujuan(target, *, sumber, dalam_form: bool = False, galat: str = 
         _identitas_target(target)
         + _hidden("kebijakan", assistant_policy.VERSI_KEBIJAKAN)
         + (f'<p class="pendamping-galat" role="alert">{_esc(galat)}</p>' if galat else "")
-        + '<p>Pesan dikirim ke DeepSeek (AI, bisa keliru). Jangan tulis kontak, sandi, token, atau data pribadi anak. Izin ringkasan belajar diminta terpisah.</p>'
+        + '<p>Pesan dikirim ke DeepSeek (AI, bisa keliru). Jangan tulis email, sandi, token, atau data pribadi anak. Nomor telepon yang ditulis ikut terkirim ke DeepSeek. Izin ringkasan belajar diminta terpisah.</p>'
         + '<details class="pendamping-pengaturan"><summary>Privasi dan penyimpanan</summary>'
           '<p>Riwayat disimpan sampai 180 hari sejak aktivitas terakhir. Hapus chat menghilangkan akses aktif; penghapusan fisik mengikuti pemeliharaan berkala. Memori terkonfirmasi terpisah; salinan cadangan dapat bertahan maksimal 30 hari. '
           '<a href="/kebijakan-privasi">Baca penjelasan privasi lengkap</a>.</p></details>'

@@ -163,7 +163,7 @@ def halaman_persetujuan(galat: str = "", *, lanjut: str = "", sumber=None) -> by
         "Persetujuan Pendamping",
         '<h1 id="judul-pendamping">Sebelum mulai</h1>'
         '<section class="pendamping-panel"><p>Pesan chat akan dikirim ke DeepSeek untuk membuat jawaban. '
-        'Jangan menulis email, nomor telepon, sandi, token, atau data pribadi anak.</p>'
+        'Jangan menulis email, sandi, token, atau data pribadi anak. Nomor telepon yang kamu tulis ikut terkirim ke layanan AI tersebut.</p>'
         '<p>Riwayat chat disimpan sampai 180 hari sejak aktivitas terakhir. '
         'Hapus chat menghilangkan akses aktif; penghapusan fisik mengikuti pemeliharaan berkala. Memori terkonfirmasi terpisah; salinan cadangan dapat bertahan maksimal 30 hari.</p>'
         '<p>Jawaban AI dapat keliru. Izin sumber belajar akan diminta terpisah sebelum sumber digunakan.</p>'

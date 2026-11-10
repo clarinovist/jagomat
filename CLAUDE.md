@@ -275,8 +275,12 @@ Preferensi pengguna: **selalu rapikan setelah selesai, tanpa menunggu permintaan
 - Kontak (email/telepon) **hanya** untuk orang dewasa pembayar (pemilik les, guru les,
   orang tua yang berlangganan) demi penagihan dan dukungan (keputusan pemilik 6 Nov 2026);
   minimal, terpisah dari data belajar anak, tidak pernah tampil ke murid/tautan. Kontak
-  anak dan orang tua murid les tetap tidak disimpan. Fitur aplikasi yang menyimpan kontak
-  adalah jalur Kritis dan perlu plan; saat ini aplikasi belum menyimpan kontak.
+  anak tetap tidak disimpan. Pelonggaran pemilik (10 Nov 2026): persetujuan wali tertulis
+  tidak lagi diwajibkan untuk sesi percobaan/pilot tim, dan nomor HP/email orang tua boleh
+  dicatat di berkas tim (tracker lead); teks Pendamping tidak lagi ditolak karena memuat
+  nomor telepon (email dan credential tetap ditolak). Fitur aplikasi yang menyimpan kontak
+  terstruktur tetap jalur Kritis dan perlu plan; saat ini aplikasi belum menyimpan kontak
+  terstruktur. Centang persetujuan digital di aplikasi (`setuju`, `/persetujuan`) tidak berubah.
 - **Palang murid:** sisi anak tidak boleh membaca kunci/malrule/diagnosis/laporan. Fixture
   `db` guru dan `db_terjaga` harus terpisah; stamp `pemilik="guru"` bila perlu, bukan kendurkan
   guard. Rute MURID sebelum `_lolos_sandi`; fungsi berkunci di permukaan terpisah (misalnya

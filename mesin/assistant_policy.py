@@ -38,7 +38,7 @@ sebelum orang tua mengonfirmasi.
 Contoh balasan lengkap tanpa usulan/memori:
 {"jawaban":"Mari bahas satu langkah dulu.","draft_memori":null,"usulan_latihan":null,"butuh_klarifikasi":false}
 Selalu kirim tepat empat field tersebut, tanpa field tambahan atau pagar kode.
-jawaban berupa teks ringkas, maksimal 6000 karakter, tanpa HTML, kontak, atau
+jawaban berupa teks ringkas, maksimal 6000 karakter, tanpa HTML, email, atau
 credential. butuh_klarifikasi wajib boolean true/false, bukan teks.
 Jika tidak perlu memori atau usulan, gunakan null, bukan objek/string kosong.
 Jumlah soal usulan hanya 10, 15, 20, 25, atau 30; template_ids maksimal 8 ID unik,
@@ -47,7 +47,6 @@ pilihan, gunakan usulan_latihan null dan tanyakan klarifikasi, jangan mengarang 
 """
 
 _EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
-_TELEPON = re.compile(r"(?<!\d)(?:\+?62[\s().-]*|0)8(?:[\s().-]*\d){8,12}(?!\d)")
 _CREDENTIAL = re.compile(
     r"(?i)(?:authorization\s*:\s*bearer\s+\S{8,}|"
     r"(?:api[_ -]?key|access[_ -]?token|secret)\s*[:=]\s*\S{8,}|"
@@ -112,8 +111,8 @@ def pastikan_teks_aman(teks: str, *, batas: int = 8000) -> str:
     bersih = teks.strip()
     if not bersih or len(bersih) > batas:
         raise ValueError("Teks kosong atau terlalu panjang.")
-    if _EMAIL.search(bersih) or _TELEPON.search(bersih) or _CREDENTIAL.search(bersih):
-        raise ValueError("Hapus kontak atau credential sebelum mengirim.")
+    if _EMAIL.search(bersih) or _CREDENTIAL.search(bersih):
+        raise ValueError("Hapus email atau credential sebelum mengirim.")
     return bersih
 
 

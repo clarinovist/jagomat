@@ -271,8 +271,8 @@ sengaja mengunggah foto. Pastikan izin orang tua/wali sudah ada sebelum
 memakai fitur ini; aplikasi belum memiliki gerbang persetujuan khusus pada
 setiap upload. Hasil AI hanya berupa usulan dan harus diperiksa guru.</p>
 <p>Fitur <b>Pendamping</b>, bila diaktifkan dan setelah persetujuan terpisah,
-mengirim isi chat ke DeepSeek. Jangan menulis email, nomor telepon, sandi,
-token, atau data pribadi anak. Bantuan kontekstual hanya memakai sumber belajar
+mengirim isi chat ke DeepSeek. Jangan menulis email, sandi, token, atau data
+pribadi anak; nomor telepon yang ditulis ikut terkirim ke layanan AI. Bantuan kontekstual hanya memakai sumber belajar
 minimum yang dipilih dan disetujui; jawaban/cara anak tidak dikirim otomatis.
 Ringkasan profil mencakup tahap, konteks variasi latihan, jumlah target belajar,
 waktu latihan berikutnya, serta maksimal tiga sesi perlu ditinjau memakai alias,

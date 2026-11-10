@@ -88,21 +88,34 @@ def test_mode_chat_immutable_dan_urutan_pesan_unik(kon):
     assert [item.urut for item in pesan] == [1]
 
 
-def test_store_menolak_kontak_dan_credential_sebelum_tulis(kon):
+def test_store_menolak_email_dan_credential_sebelum_tulis(kon):
     chat = assistant_store.buat_chat(kon, AKUN_A, "aktif", sekarang=100)
     contoh = (
         "hubungi aku di orang@example.test",
-        "nomorku +62 812-3456-7890",
         "Authorization: Bearer token-rahasia-panjang",
         "api_key=sk-contoh-rahasia-panjang",
     )
     for indeks, teks in enumerate(contoh):
-        with pytest.raises(ValueError, match="kontak atau credential"):
+        with pytest.raises(ValueError, match="email atau credential"):
             assistant_store.tambah_pesan(
                 kon, AKUN_A, chat.id, "pengguna", teks,
                 request_id=f"req_{indeks}", sekarang=101 + indeks,
             )
     assert assistant_store.daftar_pesan(kon, AKUN_A, chat.id) == ()
+
+
+@pytest.mark.parametrize("teks", (
+    "nomorku +62 812-3456-7890",
+    "hubungi saya di 081234567890",
+))
+def test_store_menerima_nomor_telepon_orang_tua(kon, teks):
+    chat = assistant_store.buat_chat(kon, AKUN_A, "aktif", sekarang=100)
+    assistant_store.tambah_pesan(
+        kon, AKUN_A, chat.id, "pengguna", teks,
+        request_id="req_telepon", sekarang=101,
+    )
+    pesan = assistant_store.daftar_pesan(kon, AKUN_A, chat.id)
+    assert [item.teks for item in pesan] == [teks]
 
 
 def test_filter_tidak_menolak_angka_matematika_biasa(kon):
