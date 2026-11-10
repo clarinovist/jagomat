@@ -70,6 +70,9 @@ JUMLAH_RECOVERY = {
     # empat jenis baru; kandidat aktivasi 2f7136e, 6 Nov 2026):
     # collect-only exact 15.708 di Python 3.9.
     "c58390a691d12392d3f701e71c318dfd3156729f": 15708,
+    # Recovery store telepon (c58390a + assistant_store tanpa _TELEPON, 10 Nov 2026;
+    # kontrak store sama dengan kandidat 3184e0f): collect-only exact 15.708 di Python 3.9.
+    "f935c7a73c3bfe61369db362029043d8d61dba08": 15708,
     "68a262c0a7391c8e95f409cf704703de4b90cea9": 15132,
 }
 
