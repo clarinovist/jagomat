@@ -27,7 +27,7 @@ def test_dukungan_publik_landmark_statis_dan_satu_masuk(fungsi, kelas):
     assert kelas in isi
     assert isi.count('href="/masuk"') == 1
     assert '<form' not in isi
-    assert 'tidak menyimpan email' in isi or 'Tidak ada email' in isi
+    assert 'tidak menyimpan email' in isi or 'tidak meminta email' in isi
 
 
 def test_pesan_mempertahankan_markup_dan_tidak_menambah_aksi():

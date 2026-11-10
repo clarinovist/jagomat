@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import re
 from typing import Optional
 
-VERSI_KEBIJAKAN = "pendamping-privasi-v1"
+VERSI_KEBIJAKAN = "pendamping-privasi-v2"
 PROVIDER_ID = "deepseek"
 
 PROMPT_SISTEM = """Kamu Pendamping Jagomat untuk orang tua.

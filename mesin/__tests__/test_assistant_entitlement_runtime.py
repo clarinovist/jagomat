@@ -10,6 +10,7 @@ import assistant_components
 import assistant_entitlement_runtime as runtime
 import assistant_http
 import assistant_inline
+import assistant_policy
 import assistant_service
 import subscription as d
 import subscription_package_schema
@@ -103,7 +104,7 @@ def test_kirim_ditolak_tidak_meninggalkan_operasi(monkeypatch, tmp_path):
     assistant_schema.siapkan(path)
     with assistant_schema.buka(path) as kon:
         assistant_store.beri_persetujuan(
-            kon, AKUN, policy_version="pendamping-privasi-v1",
+            kon, AKUN, policy_version=assistant_policy.VERSI_KEBIJAKAN,
             provider_id="deepseek", kategori="chat_umum", sekarang=1,
         )
         chat = assistant_store.buat_chat(kon, AKUN, "tanpa_memori", sekarang=1)

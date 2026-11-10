@@ -302,7 +302,8 @@ pelacakan, atau analitik.</li>
 
 <h2>Data yang tidak dikumpulkan</h2>
 <ul>
-<li>Tidak ada email, nomor telepon, atau alamat.</li>
+<li>Aplikasi tidak meminta email atau alamat. Nomor telepon hanya tersimpan bila
+Anda menuliskannya sendiri di chat Pendamping.</li>
 <li>Tidak ada cookie pelacak atau analitik pihak ketiga.</li>
 <li>Cukup tulis nama panggilan anak — jangan nama lengkap atau data
 pribadi lainnya.</li>

@@ -54,7 +54,8 @@ def _disclosure(merchant):
 def _bantuan():
     return ('<section class="kartu-st"><h2>Bantuan</h2>'
             '<p>Butuh bantuan pembayaran? Hubungi pengelola layanan lewat kanal yang '
-            'biasa kamu pakai. Aplikasi ini tidak menyimpan email atau nomor telepon. '
+            'biasa kamu pakai. Aplikasi ini tidak menyimpan email. Nomor telepon hanya tersimpan bila '
+            'kamu menuliskannya sendiri di chat Pendamping. '
             'Rincian data ada di <a href="/kebijakan-privasi">Kebijakan Privasi</a>.</p>'
             '</section>')
 
