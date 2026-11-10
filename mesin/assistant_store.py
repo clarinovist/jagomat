@@ -32,7 +32,6 @@ from assistant_memory_store import _query_memori as _query_memori_impl
 
 _ID_AKUN = re.compile(r"akun_[0-9a-f]{32}\Z")
 _EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
-_TELEPON = re.compile(r"(?<!\d)(?:\+?62[\s().-]*|0)8(?:[\s().-]*\d){8,12}(?!\d)")
 _CREDENTIAL = re.compile(
     r"(?i)(?:authorization\s*:\s*bearer\s+\S{8,}|"
     r"(?:api[_ -]?key|access[_ -]?token|secret)\s*[:=]\s*\S{8,}|"
@@ -149,8 +148,8 @@ def _teks_aman(teks: str, *, batas: int) -> str:
     bersih = teks.strip()
     if not bersih or len(bersih) > batas:
         raise ValueError("panjang teks tidak sah")
-    if _EMAIL.search(bersih) or _TELEPON.search(bersih) or _CREDENTIAL.search(bersih):
-        raise ValueError("teks memuat kontak atau credential")
+    if _EMAIL.search(bersih) or _CREDENTIAL.search(bersih):
+        raise ValueError("teks memuat email atau credential")
     return bersih
 
 
