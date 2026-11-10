@@ -1724,6 +1724,18 @@ a.tombol-coral {{
   display: inline-flex; align-items: center; gap: {T.SP_2};
 }}
 a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
+/* Keyframes gerak beranda (dipakai blok "Gerak beranda" di bagian landing di bawah).
+   Sengaja di luar blok landing: test penjaga selector hanya mengenal selector biasa. */
+@keyframes landing-naik-st {{ from {{ opacity: 0; transform: translateY(14px); }} }}
+@keyframes landing-sorot-st {{ from {{ background-color: transparent; color: {T.TEKS_VARIAN}; }} }}
+@keyframes landing-sapa-st {{
+  0%   {{ opacity: 0; transform: translateY(14px) scale(.96) rotate(0); }}
+  45%  {{ opacity: 1; transform: none; }}
+  62%  {{ transform: rotate(-3.5deg); }}
+  80%  {{ transform: rotate(2.5deg); }}
+  100% {{ opacity: 1; transform: none; }}
+}}
+@keyframes landing-buka-st {{ from {{ opacity: 0; transform: translateY(-4px); }} }}
 /* ══ Landing editorial — buku latihan ══
    Semua selector dibatasi landing. Kanvas 75rem tidak mewarisi padding
    form publik; warna, font, dan ukuran dasar memakai token existing. */
@@ -2071,6 +2083,39 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   display: flex; flex-wrap: wrap; justify-content: space-between; gap: {T.SP_4};
 }}
 .landing-footer-isi-st a {{ display: inline-flex; min-height: {T.TARGET_SENTUH}; align-items: center; }}
+
+/* Gerak beranda: CSS saja (tanpa JS), hanya saat pengguna tidak meminta gerak dikurangi.
+   Tanpa dukungan browser halaman tetap statis dan utuh. */
+@media (prefers-reduced-motion: no-preference) {{
+  /* 1. Hero: teks masuk bertahap, lalu contoh latihan. */
+  .landing-hero-teks-st > * {{ animation: landing-naik-st 600ms ease-out both; }}
+  .landing-hero-teks-st > :nth-child(2) {{ animation-delay: 80ms; }}
+  .landing-hero-teks-st > :nth-child(3) {{ animation-delay: 160ms; }}
+  .landing-hero-teks-st > :nth-child(4) {{ animation-delay: 240ms; }}
+  .landing-hero-teks-st > :nth-child(5) {{ animation-delay: 320ms; }}
+  .landing-hero-teks-st > :nth-child(6) {{ animation-delay: 400ms; }}
+  .landing-demo-st {{ animation: landing-naik-st 700ms 250ms ease-out both; }}
+  /* 2. Chip diagnosis menyala setelah kartu contoh tampil. */
+  .landing-kode-st.aktif {{ animation: landing-sorot-st 600ms 1100ms ease-out both; }}
+  /* 3. Maskot naik pelan dan melambai satu kali. */
+  .landing-maskot-st {{ transform-origin: 50% 100%; animation: landing-sapa-st 1100ms 900ms ease-out both; }}
+  /* 4. Tombol: panah bergeser saat disorot. */
+  .landing-cta-baris-st a > span {{ display: inline-block; transition: transform 180ms ease-out; }}
+  .landing-cta-baris-st a:hover > span, .landing-cta-baris-st a:focus-visible > span {{ transform: translate(2px, -2px); }}
+  /* 5. FAQ: jawaban muncul halus, panah berputar. */
+  .landing-faq-st summary::after {{ transition: transform 200ms ease-out; }}
+  .landing-faq-st details[open] p {{ animation: landing-buka-st 260ms ease-out; }}
+}}
+/* Kartu muncul saat di-scroll, hanya di layar. Browser tanpa scroll-driven animation
+   mengabaikan animation-timeline: animasinya berdurasi 0 sehingga kartu tampil biasa.
+   animation-timeline harus setelah shorthand animation (shorthand meresetnya). */
+@media screen and (prefers-reduced-motion: no-preference) {{
+  .landing-kartu-st {{
+    animation: landing-naik-st linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 45%;
+  }}
+}}
 @media (min-width: {T.BATAS_TABLET}) {{
   .landing-grid-st {{ grid-template-columns: repeat(3, minmax(0, 1fr)); }}
   .landing-info-st {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
