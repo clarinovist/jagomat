@@ -262,6 +262,8 @@ ukuran otomatis cakupan kode terbaru. Jika arsip tidak tersedia, jangan mengaran
   menyebut rentang. Menyebut jenjang lain sebagai sudah tersedia tetap memerlukan bukti
   kode/test (profil, kurikulum, soal/diagnosis), dan perluasan itu mengikuti persetujuan
   kurikulum/jalur Kritis biasa.
+  **Keputusan pemilik 12 Nov 2026:** pilot bimbel hanya SD kelas 1–6, jadi beranda menyebut
+  "Kelas 1–6 SD" dan SMP hanya sebagai "menyusul" sampai soal kelas 7–9 ada.
 
 ## Pelajaran insiden, bukan ritual universal
 

@@ -442,17 +442,17 @@ def halaman_landing(dukungan=None) -> bytes:
 <main class="landing-bungkus-st" id="konten" tabindex="-1">
 <section class="landing-hero-st" aria-labelledby="judul-landing">
 <div class="landing-hero-teks-st">
-  <p class="landing-alis-st"><span aria-hidden="true">✳</span> <span>Pendampingan matematika · <span class="landing-jenjang-st">Kelas 1 SD–3 SMP</span></span></p>
+  <p class="landing-alis-st"><span aria-hidden="true">✳</span> <span>Pendampingan matematika · <span class="landing-jenjang-st">Kelas 1–6 SD</span></span></p>
   <h1 class="landing-judul-st" id="judul-landing">Pahami cara berpikir anak.
   <span>Dampingi langkah berikutnya.</span></h1>
   <p class="landing-tagline-st">{tag}</p>
-  <p class="landing-sub-st">Untuk orang tua yang ingin membantu anak kelas 1&nbsp;SD hingga
-  3&nbsp;SMP memahami matematika lewat latihan, <b>tinjauan cara berpikir</b>, dan rencana
+  <p class="landing-sub-st">Untuk orang tua yang ingin membantu anak kelas 1–6&nbsp;SD
+  memahami matematika lewat latihan, <b>tinjauan cara berpikir</b>, dan rencana
   belajar terpandu. Guru dan pendamping les juga dapat memakai alur yang sama.</p>
   <p class="landing-cta-baris-st"><a class="tombol-coral" href="/daftar">
   Buat akun pendamping. <span aria-hidden="true">↗</span></a></p>
-  <p class="landing-penawaran-st"><b>Akses awal nonkomersial</b> · latihan kelas 3–6 SD
-  dibuka lebih dulu, jenjang lain bertahap. Pendaftaran tidak mengaktifkan paket atau
+  <p class="landing-penawaran-st"><b>Akses awal nonkomersial</b> · rencana terpandu kelas 3–6 SD,
+  latihan manual kelas 1–2 SD; kelas 7–9 SMP menyusul. Pendaftaran tidak mengaktifkan paket atau
   pembayaran.</p>
 </div>
 
@@ -618,9 +618,9 @@ pengganti tinjauanmu; kamu tetap memilih dan memeriksa bantuannya.</p>
 </div>
 <div class="landing-faq-daftar-st">
 <details><summary>Siapa yang paling cocok memakai Jagomat?</summary>
-<p>{n} ditujukan untuk orang tua yang mendampingi anak kelas 1 SD hingga 3 SMP.
-Pada akses awal, latihan kelas 3–6 SD dibuka lebih dulu; jenjang lain menyusul
-bertahap. Guru atau pendamping les dapat menjadi pengguna tambahan. Kelas sekolah hanya
+<p>{n} ditujukan untuk orang tua yang mendampingi anak kelas 1–6 SD.
+Pada akses awal, rencana terpandu tersedia untuk kelas 3–6 SD dan latihan manual untuk
+kelas 1–2 SD; kelas 7–9 SMP menyusul. Guru atau pendamping les dapat menjadi pengguna tambahan. Kelas sekolah hanya
 informasi profil, bukan ukuran kemampuan anak.</p></details>
 <details><summary>Bagaimana memulai latihan pertama?</summary>
 <p>Buat akun pendamping dan profil anak. Setelah mendaftar, Jagomat membuka
