@@ -69,6 +69,8 @@ JUMLAH_RECOVERY = {
     "68a262c0a7391c8e95f409cf704703de4b90cea9": 15132,
     # Recovery store telepon f935c7a (c58390a + assistant_store tanpa _TELEPON): collect-only exact 15.708 di Python 3.9.
     "f935c7a73c3bfe61369db362029043d8d61dba08": 15708,
+    # Recovery diagnostik 6f02dbf (461c2bc + database.buat_sesi_diagnostik dari kandidat 15 Nov 2026): collect-only exact 15.708 di Python 3.9.
+    "6f02dbf9d7ab36a07481c254ebed0b2826a2fd5a": 15708,
 }
 
 
