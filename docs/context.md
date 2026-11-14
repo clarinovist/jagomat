@@ -103,8 +103,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   istilah internal tidak tampil; palang `test_bahasa_guru_tinjauan.py` memeriksa halaman tinjauan.
 - Stdlib runtime; dev dependency hanya pytest/pytest-xdist. Python lokal3.9.6 dan
   CI/container3.12. Nama modul Inggris; fungsi/docstring/UI/commit Bahasa Indonesia.
-- Zero-JS default. Enhancement yang disetujui berhash CSP dan fallback native;
-  validasi server tetap otoritatif. Tidak ada izin JS/dependency umum dari pola ini.
+- JS terbatas per kasus (revisi 10 Nov 2026; sebelumnya Zero-JS default). Enhancement
+  yang disetujui berhash CSP dan fallback native; validasi server tetap otoritatif.
+  Tidak ada izin JS/dependency umum dari pola ini.
   `offline_browser.py` hanya mendengar event `offline`/`online` dan mengganti teks
   banner di halaman terbuka; tanpa network/storage/autosave; hash diizinkan di
   respons privat.

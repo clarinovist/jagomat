@@ -67,7 +67,8 @@ cache dan cadangan tetap privat.
   pengelola belum diseragamkan; "pendampingan" tetap berarti kegiatan mendampingi.
 - **Stdlib saja**, tanpa framework/dependensi runtime pihak ketiga; dev dependency
   hanya `pytest` dan `pytest-xdist`. Dependency baru perlu persetujuan pengguna.
-- **Zero-JS default**: `<details>` dan navigasi query server-side; anchor lama
+- **JS terbatas per kasus** (revisi 10 Nov 2026; sebelumnya Zero-JS default):
+  `<details>` dan navigasi query server-side tetap utama; anchor lama
   memiliki tautan penerus. Pengecualian disetujui:
   mata sandi, `confirm()` destruktif, salin tautan satu sesi langsung, serta
   Kirim/Periksa Pendamping inline, serta accordion/penanda isian/konfirmasi lewati

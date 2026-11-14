@@ -43,7 +43,12 @@ mengikuti batas jenjang di referensi workflow.
 
 - **Pure Python stdlib**, tanpa framework/dependensi pihak ketiga. Dev dependency hanya
   `pytest` + `pytest-xdist`. Paket tambahan harus diajukan ke user dulu.
-- **Zero-JS default**: menu `<details>`, navigasi `?section=` server-side. Pengecualian
+- **JS terbatas per kasus** (revisi 10 Nov 2026, keputusan pemilik; sebelumnya "Zero-JS
+  default"): HTML native tetap pilihan pertama (menu `<details>`, navigasi `?section=`
+  server-side). JS boleh bila manfaat satu kasus jelas dan kecil, skrip berhash CSP,
+  fallback native utuh, validasi server tetap otoritatif, tanpa network/storage/autosave
+  kecuali disetujui. Tiap kasus baru dicatat di daftar di bawah dan perlu persetujuan
+  pemilik; framework/bundler/dependensi JS tetap perlu persetujuan. Kasus yang sudah
   disetujui: toggle mata sandi, banner status sinyal (`offline_browser.py`; hanya event
   `offline`/`online`, tanpa network/storage/autosave), `confirm()` aksi destruktif, refresh pilihan isi ketika
   topik manual berubah, serta Kirim/Periksa status Pendamping inline tanpa reload

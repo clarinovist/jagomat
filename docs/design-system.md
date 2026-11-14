@@ -23,8 +23,9 @@ dirender dengan data sintetis sebelum diterima.
 
 ## Prinsip
 
-1. **Zero-JS default.** Interaksi memakai HTML native (`<details>`, form, tautan
-   GET). Enhancement hanya yang disetujui di `CLAUDE.md`, berhash CSP, dengan
+1. **JS terbatas per kasus** (revisi 10 Nov 2026; sebelumnya Zero-JS default).
+   HTML native (`<details>`, form, tautan GET) tetap pilihan pertama. JS hanya
+   untuk kasus yang dicatat dan disetujui di `CLAUDE.md`, berhash CSP, dengan
    fallback native utuh.
 2. **Satu aksi, satu entry point.** CTA atau form ganda untuk aksi yang sama adalah bug.
 3. **Makna selalu berteks.** Ikon dan warna mendukung, tidak menggantikan label aksi
