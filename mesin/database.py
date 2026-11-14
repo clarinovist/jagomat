@@ -362,6 +362,39 @@ def buat_sesi_gabungan(
     )
 
 
+def buat_sesi_diagnostik(
+    kon: sqlite3.Connection,
+    siswa_id: int,
+    seed: int,
+    level: str | None = None,
+) -> int:
+    """Buat sesi Tes Diagnostik Baku (mode isian + probe berpasangan + triase)."""
+    import diagnostic_battery
+    from templates import LEVEL, LEVEL_BAWAAN
+
+    if level is None:
+        baris = kon.execute(
+            "SELECT tingkat FROM siswa WHERE id = ?", (siswa_id,)
+        ).fetchone()
+        kandidat = (baris["tingkat"] or "").strip() if baris else LEVEL_BAWAAN
+        level = kandidat if kandidat in LEVEL else LEVEL_BAWAAN
+    elif level not in LEVEL:
+        raise ValueError(f"jenjang diagnostik tidak dikenal: {level!r}")
+
+    paket, lembar, urutan = diagnostic_battery.bangun_lembar_diagnostik(seed, level)
+    return buat_sesi_dari_urutan(
+        kon,
+        siswa_id,
+        seed,
+        urutan,
+        topik=paket,
+        level=level,
+        mode="diagnostik",
+        jenis="biasa",
+        soal_terpilih=lembar.soal,
+    )
+
+
 def _baris_sasaran_remedial(
     kon: sqlite3.Connection, siswa_id: int, sesi_id: int | None = None,
 ) -> list[sqlite3.Row]:
