@@ -5,13 +5,13 @@ from typing import Tuple
 import html
 
 import design_tokens as T
-from learning_cycle import StatusTargetMateri, penguasaan_target
+from learning_cycle import StatusTargetMateri, penguasaan_konteks, penguasaan_target
 from mastery_catalog import TargetMateri, VERSI_KATALOG, katalog_target
 from report_dashboard import persen
 from child_components import chip_status
 from report_navigation import halaman_daftar, navigasi_halaman, pilihan, url_laporan
 from template_labels import nama_tipe_soal
-from question_context import label_profil_parameter as label_kelas
+from question_context import daftar_konteks, label_profil_parameter as label_kelas
 
 STATUS = (
     ("terbukti", "Menunjukkan pemahaman", T.ANAK_AKSEN),
@@ -235,7 +235,21 @@ def _pilih_materi(
     indeks = next((i for i, (k, _) in enumerate(daftar) if k[0] == materi), None)
     eksplisit = indeks is not None
     bagian, nomor, jumlah = daftar, 1, 1
-    aktif = materi if eksplisit else bagian[0][0][0] if bagian else ''
+    # Default materi: yang sudah punya bukti dinilai, bukan sekadar urutan alfabetis
+    # topik. Topik baru tidak boleh menyembunyikan bukti materi yang sudah ada.
+    if eksplisit:
+        aktif = materi
+    else:
+        berbukti = set()
+        if bukti_konteks is not None:
+            berbukti = {h.konteks.template_id
+                        for h in penguasaan_konteks(bukti_konteks, siswa_id, daftar_konteks())
+                        if h.hasil.status != 'belum_dinilai'}
+        aktif = (next((k[0] for k, pasangan in daftar
+                       if any(pola in berbukti for target, _ in pasangan for pola in target.pola)), '')
+                 or next((k[0] for k, pasangan in daftar
+                          if any(s.status != 'belum_dinilai' for _, s in pasangan)), '')
+                 or (bagian[0][0][0] if bagian else ''))
 
     def url(**opsi_url):
         return url_laporan(siswa_id, 'penguasaan', **opsi_url)
