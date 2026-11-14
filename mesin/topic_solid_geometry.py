@@ -231,6 +231,7 @@ def volume_kubus_balok(varian: str, s: int = 0, p: int = 0,
     )
 
 
+@soal_berrevisi
 @koreksi_soal(prisma)
 @soal_berversi
 def volume_prisma_tabung(varian: str, a: int = 0, t_segitiga: int = 0,
@@ -286,8 +287,13 @@ def volume_prisma_tabung(varian: str, a: int = 0, t_segitiga: int = 0,
     if k2 == kunci or k2 == h or k2 == k1:
         k2 = str(int(kunci) + 2)
 
+    alasan_k1 = (
+        "lupa membagi dua untuk luas alas segitiga"
+        if alas == "segitiga"
+        else "keliru memakai keliling lingkaran (2πr), bukan luas alas lingkaran pada tabung"
+    )
     mal = [
-        Malrule(f"volprisma.lupa_setengah_{alas}", k1, "K", "lupa membagi dua untuk luas alas segitiga"),
+        Malrule(f"volprisma.lupa_setengah_{alas}", k1, "K", alasan_k1),
         Malrule(f"volprisma.rumus_lain_{alas}", k2, "K", "memakai rumus yang salah"),
         Malrule(f"volprisma.kurang_satu", h, "H", "perhitungan benar, hasilnya meleset satu"),
     ]

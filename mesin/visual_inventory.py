@@ -124,6 +124,10 @@ _BUKTI_TEMPLATE = MappingProxyType({
     "sisa_operasi": ("modulo", "Dua sisa dan pembagi yang sama tertulis untuk operasi aritmetika modular.", "Cabang jumlah dan kali memakai operasi yang ditulis pada pertanyaan."),
     "banyak_prima": ("prima", "Batas rentang bilangan tertulis untuk memeriksa faktor dan menghitung prima.", "bawaan"),
     "jumlah_kelipatan": ("jumlah_bilangan", "Pembentuk kelipatan dan batas akhir tertulis untuk menjumlah kelipatan positif.", "bawaan"),
+    "perkalian_dasar": ("perkalian", "Dua bilangan dan operator kali atau wadah tertulis lengkap sebagai hitungan dasar sekolah.", "Cabang hitung dan cerita membedakan soal murni dan konteks."),
+    "pembagian_dasar": ("pembagian", "Jumlah total dan pembagi tertulis untuk pembagian merata tanpa nilai visual tersembunyi.", "Cabang bagi_rata dan operasi memakai konteks atau ekspresi simbolik."),
+    "pecahan_bagian_dasar": ("pecahan", "Penyebut dan pembilang pecahan berpenyebut sama atau sisa potong tertulis eksplisit.", "Cabang sisa_bagian, jumlah_sama_penyebut, dan selisih_sama_penyebut memilih arah operasi."),
+    "nilai_tempat_ribuan": ("nilai_tempat", "Bilangan tiga atau empat digit dan posisi ratusan atau ribuan tertulis langsung.", "Cabang nilai_angka dan selisih_nilai menanyakan satu posisi atau selisih dua posisi."),
 })
 
 # topik, template, status, level, diskriminator, nilai varian, override per level
@@ -514,7 +518,11 @@ _ROWS = [('aritmatika-lanjut', 'berpapasan', 'visual_pendamping', ('P6',), (), (
  ('teori-bilangan', 'banyak_kelipatan', 'sengaja_teks', ('P4', 'P5'), (), ('bawaan',), {}),
  ('teori-bilangan', 'sisa_operasi', 'sengaja_teks', ('P4', 'P5'), ('varian',), ('varian=jumlah', 'varian=kali'), {}),
  ('teori-bilangan', 'banyak_prima', 'sengaja_teks', ('P4', 'P5'), (), ('bawaan',), {}),
- ('teori-bilangan', 'jumlah_kelipatan', 'sengaja_teks', ('P4', 'P5'), (), ('bawaan',), {})]
+ ('teori-bilangan', 'jumlah_kelipatan', 'sengaja_teks', ('P4', 'P5'), (), ('bawaan',), {}),
+ ('berhitung-sekolah', 'perkalian_dasar', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=cerita', 'varian=hitung'), {}),
+ ('berhitung-sekolah', 'pembagian_dasar', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=bagi_rata', 'varian=operasi'), {}),
+ ('berhitung-sekolah', 'pecahan_bagian_dasar', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=jumlah_sama_penyebut', 'varian=selisih_sama_penyebut', 'varian=sisa_bagian'), {}),
+ ('berhitung-sekolah', 'nilai_tempat_ribuan', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=nilai_angka', 'varian=selisih_nilai'), {})]
 
 
 def _bekukan(nilai: Any) -> Any:

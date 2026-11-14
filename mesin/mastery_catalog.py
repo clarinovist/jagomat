@@ -54,6 +54,12 @@ KELOMPOK = {
         ("nilai_tempat", "Nilai tempat puluhan dan satuan", ("nilai_tempat",)),
         ("membandingkan", "Membandingkan bilangan", ("bandingkan_bilangan",)),
     ),
+    "berhitung-sekolah": (
+        ("perkalian_dasar", "Perkalian dasar kelas 3–4", ("perkalian_dasar",)),
+        ("pembagian_dasar", "Pembagian dasar kelas 3–4", ("pembagian_dasar",)),
+        ("pecahan_sederhana", "Pecahan sederhana kelas 3–4", ("pecahan_bagian_dasar",)),
+        ("nilai_tempat_besar", "Nilai tempat ratusan dan ribuan", ("nilai_tempat_ribuan",)),
+    ),
     "geometri-datar": (
         ("sudut", "Hubungan sudut", ("sudut_pelurus_berpenyiku", "jumlah_sudut_segitiga", "sudut_luar_segitiga")),
         ("keliling_luas", "Keliling dan luas persegi panjang", ("keliling_luas_datar",)),

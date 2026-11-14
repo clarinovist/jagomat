@@ -38,6 +38,10 @@ bilangan-dasar kurang_dasar P1:1:55:- P2:1:96:-
 bilangan-dasar bilangan_hilang P1:4:155:- P2:4:231:-
 bilangan-dasar nilai_tempat P1:2:20:- P2:3:176:-
 bilangan-dasar bandingkan_bilangan P1:1:168:- P2:1:241:-
+berhitung-sekolah nilai_tempat_ribuan P3:2:257:nilai_angka,selisih_nilai P4:4:298:nilai_angka,selisih_nilai
+berhitung-sekolah pecahan_bagian_dasar P3:6:162:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian P4:6:204:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian
+berhitung-sekolah pembagian_dasar P3:5:204:bagi_rata,operasi P4:5:254:bagi_rata,operasi
+berhitung-sekolah perkalian_dasar P3:5:233:cerita,hitung P4:5:272:cerita,hitung
 aritmatika-lanjut debit P5:3:285:cari_debit,cari_volume,cari_waktu P6:3:285:cari_debit,cari_volume,cari_waktu
 aritmatika-lanjut kecepatan_jarak_waktu P5:3:280:cari_s,cari_t,cari_v P6:3:280:cari_s,cari_t,cari_v
 aritmatika-lanjut kerja_bersama P5:5:227:- P6:5:227:-
@@ -141,6 +145,8 @@ teori-bilangan jumlah_kelipatan P4:1:279:- P5:1:294:-
 _LEMBAR = """
 bilangan-dasar P1 10 1
 bilangan-dasar P2 10 1
+berhitung-sekolah P3 8 4
+berhitung-sekolah P4 8 4
 aritmatika-lanjut P5 10 7
 aritmatika-lanjut P6 10 10
 aritmetika-dasar P5 10 7

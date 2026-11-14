@@ -123,8 +123,24 @@ def render(kon, siswa, *, mode='manual', draf_latihan=None, draf_gabungan=None,
             + '<div class="latihan-aksi-st"><button type="submit" data-buat-latihan class="st-tombol-coral">Buat latihan</button>'
             '<p>Latihan tambahan tercatat di Riwayat, tapi tidak mengubah tugas di Beranda.</p></div>'
             '<div class="profil-assistant-st">' + bantuan + '</div></form>')
+    tingkat_anak = siswa['tingkat'] if siswa['tingkat'] in LEVEL else 'P3'
+    opsi_diagnostik = ''.join(
+        f'<option value="{lv}"' + (' selected' if lv == tingkat_anak else '') + f'>{rentang_kelas([lv])}</option>'
+        for lv in LEVEL
+    )
+    kartu_diagnostik = (
+        f'<form class="eksplorasi-opsional-st" method="post" action="/sesi-diagnostik/{sid}">'
+        '<h3 class="st">Tes Diagnostik Baku (Isian + Berpasangan)</h3>'
+        '<p><small>2 butir berpasangan per konsep + triase prasyarat awal. Terkunci mode Isian untuk diagnosis tajam.</small></p>'
+        '<div class="latihan-field-grid"><div>'
+        f'<label for="diagnostik-level-{sid}">Jenjang tes</label>'
+        f'<select class="st-input" id="diagnostik-level-{sid}" name="level">{opsi_diagnostik}</select>'
+        '</div><div class="latihan-aksi-st">'
+        '<button type="submit" class="st-tombol-sekunder">Buat Tes Diagnostik Baku</button>'
+        '</div></div></form>'
+    )
     import skill_pilot_ui
     starter = skill_pilot_ui.starter(kon,sid)
     if starter:
         starter = '<section class="eksplorasi-opsional-st"><h2 class="st">Eksplorasi opsional</h2>' + starter + '</section>'
-    return '<section class="latihan-terpadu-st"><h2 class="st">Buat latihan baru</h2>' + selector + form + starter + '</section>', aktif
+    return '<section class="latihan-terpadu-st"><h2 class="st">Buat latihan baru</h2>' + selector + form + kartu_diagnostik + starter + '</section>', aktif

@@ -803,6 +803,13 @@ class Penangan(BaseHTTPRequestHandler):
         ):
             return
 
+        if session_http.tangani_pembuatan_diagnostik(
+            self,
+            jalur,
+            acak_seed=random.randint,
+        ):
+            return
+
         if session_http.tangani_pembuatan_gabungan(
             self,
             jalur,

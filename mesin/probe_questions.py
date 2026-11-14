@@ -55,6 +55,11 @@ PERTANYAAN_TOPIK = {
         "Tanya: berapa lagi supaya pas sepuluh? Tunjukkan.",
         "Minta anak mengulang soalnya dengan kata-katanya sendiri.",
     ),
+    "berhitung-sekolah": (
+        "Minta anak menunjukkan cara bersusunnya di kertas coretan.",
+        "Tanya: angka ini artinya puluhan, ratusan, atau satuan?",
+        "Tanya: kalau ada 8 potong, yang ditanya yang dimakan atau yang tersisa?",
+    ),
     "campuran": PERTANYAAN_UMUM,
     "geometri-datar": (
         "Minta anak menunjuk bagian bangun yang dimaksud soal: sisi, keliling, atau luas.",

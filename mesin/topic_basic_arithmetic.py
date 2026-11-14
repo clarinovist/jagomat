@@ -599,6 +599,7 @@ def pembulatan_taksiran(a: int, b: int, satuan: int, op: str) -> Soal:
     )
 
 
+@soal_berrevisi
 def operasi_berkurung(a: int, b: int, c: int, d: int, e: int) -> Soal:
     """(a + b) × c − d ÷ e — kurung mendahului kali dan bagi.
 

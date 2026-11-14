@@ -213,6 +213,73 @@ def tangani_pembuatan_biasa(
     return True
 
 
+def tangani_pembuatan_diagnostik(
+    penangan,
+    jalur: str,
+    *,
+    acak_seed,
+) -> bool:
+    """Tangani ``POST /sesi-diagnostik/<siswa_id>`` untuk Tes Diagnostik Baku isian."""
+    if not jalur.startswith("/sesi-diagnostik/"):
+        return False
+    try:
+        siswa_id = int(jalur.split("/")[2])
+    except (ValueError, IndexError):
+        penangan._kirim(_halaman("404", "<h1>Tidak ada</h1>"), 404)
+        return True
+
+    tubuh = penangan._baca_tubuh(16384)
+    if tubuh is None:
+        penangan._tolak_isian(413)
+        return True
+    try:
+        mentah = tubuh.decode("utf-8", "strict")
+    except UnicodeDecodeError:
+        penangan._tolak_isian(400)
+        return True
+    data = urllib.parse.parse_qs(mentah, keep_blank_values=True, max_num_fields=16)
+    level_dikirim = (data.get("level") or [""])[0].strip() or None
+
+    with database.buka() as kon:
+        if not penangan._bisa_lihat_siswa(kon, siswa_id):
+            penangan._kirim(_halaman("404", "<h1>Halaman tidak ada</h1>"), 404)
+            return True
+        baris = kon.execute(
+            "SELECT nama, tingkat FROM siswa WHERE id = ?", (siswa_id,)
+        ).fetchone()
+        nama_siswa = baris["nama"] if baris else ""
+        try:
+            sesi_id = database.buat_sesi_diagnostik(
+                kon,
+                siswa_id,
+                seed=acak_seed(1, 9_999_999),
+                level=level_dikirim,
+            )
+        except ValueError as galat:
+            penangan._kirim(
+                _halaman(
+                    "Tes diagnostik belum dibuat",
+                    "<p>" + html.escape(str(galat)) + "</p>",
+                ),
+                400,
+            )
+            return True
+
+    import sensor_http
+    ident = penangan._identitas()
+    sensor_http.sesi(sesi_id, "disiapkan", pengguna=ident[0], peran=ident[1])
+    qs = urllib.parse.urlencode({
+        "section": "latihan",
+        "pesan": f"Tes Diagnostik Baku (Isian) untuk {nama_siswa} dibuat — sesi #{sesi_id}.",
+        "sorot": sesi_id,
+    })
+    penangan.send_response(303)
+    penangan.send_header("Location", f"/anak/{siswa_id}?{qs}")
+    penangan.send_header("Content-Length", "0")
+    penangan.end_headers()
+    return True
+
+
 def tangani_pembuatan_gabungan(
     penangan,
     jalur: str,

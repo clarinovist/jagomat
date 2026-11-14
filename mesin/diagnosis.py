@@ -151,6 +151,9 @@ def setara(a: str, b: str, *, soal: Soal | None = None) -> bool:
                 and not (soal.template_id == "skala_peta" and soal.parameter.get("varian") == "cari_skala")):
             pa, pb = baca_angka(a), baca_angka(b)
             return pa is not None and pb is not None and pa == pb
+        if (soal.template_id == "pecahan_bagian_dasar"):
+            pa, pb = baca_angka(a), baca_angka(b)
+            return pa is not None and pb is not None and pa == pb
         if (soal.template_id == "deret_aritmetika"
                 and isinstance(soal.parameter.get("n_minta"), int)
                 and soal.parameter["n_minta"] > 1):
@@ -288,3 +291,112 @@ def diagnosa(
         "mungkin miskonsepsi baru yang belum terdaftar",
         False,
     )
+
+
+@dataclass(frozen=True)
+class RingkasanKonsep:
+    """Hasil gabungan 1 pasang soal diagnostik pada sub-konsep yang sama."""
+
+    template_id: str
+    judul_ramah: str
+    domain_ramah: str
+    triase: bool
+    status: str  # kuat | konsisten_k | konsep_awal | teliti | tebak | belum_diajari | belum_dinilai
+    pola_salah: str | None
+
+
+def _ambil_kolom(baris, nama: str, bawaan=None):
+    if isinstance(baris, dict):
+        return baris.get(nama, bawaan)
+    try:
+        return baris[nama]
+    except (IndexError, KeyError):
+        return bawaan
+
+
+def evaluasi_pasangan_diagnostik(
+    butir_sesi: list[sqlite3.Row] | list[dict],
+    level: str,
+) -> dict:
+    """Evaluasi ketajaman hasil sesi diagnostik berbasis pasangan probe & triase.
+
+    Mengelompokkan butir per sub-konsep sehingga 1 kesalahan tunggal (terpeleset/
+    kurang teliti) tidak langsung dicap salah konsep konsisten.
+    """
+    import diagnostic_battery
+    from collections import Counter
+
+    spesifikasi = diagnostic_battery.daftar_spesifikasi(level)
+    kelompok: dict[str, list] = {}
+    for b in butir_sesi:
+        tid = _ambil_kolom(b, "template_id", "")
+        if tid:
+            kelompok.setdefault(tid, []).append(b)
+
+    hasil: list[RingkasanKonsep] = []
+    triase_macet = False
+    for spec in spesifikasi:
+        daftar = kelompok.get(spec.template_id, [])
+        if not daftar:
+            hasil.append(RingkasanKonsep(
+                spec.template_id, spec.judul_ramah, spec.domain_ramah,
+                spec.triase, "belum_dinilai", None,
+            ))
+            continue
+
+        aktif = [b for b in daftar if not bool(_ambil_kolom(b, "dilewati", 0))]
+        if not aktif:
+            hasil.append(RingkasanKonsep(
+                spec.template_id, spec.judul_ramah, spec.domain_ramah,
+                spec.triase, "belum_dinilai", None,
+            ))
+            continue
+
+        kode_list: list[str] = []
+        alasan_k: list[str] = []
+        semua_benar = True
+        for b in aktif:
+            if bool(_ambil_kolom(b, "benar", 0)):
+                continue
+            semua_benar = False
+            kode = (_ambil_kolom(b, "kode_final") or _ambil_kolom(b, "kode_usulan") or "").strip()
+            if not kode and bool(_ambil_kolom(b, "belum_pernah", 0)):
+                kode = "T"
+            kode_list.append(kode)
+            alasan = (_ambil_kolom(b, "alasan") or "").strip()
+            if kode == "K" and alasan:
+                alasan_k.append(alasan)
+
+        if semua_benar:
+            status = "kuat"
+            pola = None
+        else:
+            hitung = Counter(kode_list)
+            pola = Counter(alasan_k).most_common(1)[0][0] if alasan_k else None
+            if hitung["K"] >= 2:
+                status = "konsisten_k"
+            elif hitung["K"] == 1:
+                # 1 salah konsep + 1 benar atau salah lain -> cek teliti / konsep awal
+                status = "konsep_awal"
+            elif hitung["T"] >= 1:
+                status = "belum_diajari"
+            elif hitung["N"] >= 1:
+                status = "tebak"
+            elif hitung["H"] >= 1 or hitung["B"] >= 1 or hitung["E"] >= 1:
+                status = "teliti"
+            else:
+                status = "belum_dinilai"
+
+        if spec.triase and status in ("konsisten_k", "konsep_awal", "tebak", "belum_diajari"):
+            triase_macet = True
+
+        hasil.append(RingkasanKonsep(
+            spec.template_id, spec.judul_ramah, spec.domain_ramah,
+            spec.triase, status, pola,
+        ))
+
+    return {
+        "level": level,
+        "triase_macet": triase_macet,
+        "ringkasan": hasil,
+    }

@@ -541,6 +541,8 @@ def halaman_sesi_stitch(
         if pemahaman_terpilih:
             sinyal.append(label_pemahaman[pemahaman_terpilih])
         cara_asli = cara_dari_form(cara_tampil.strip(), b['cara'] or '')
+        if cara_asli.startswith('[pilihan] hitung_kertas'):
+            sinyal.append('Anak menghitung di kertas coretan')
         if cara_asli.startswith('[pilihan] tebak'):
             sinyal.append('Anak menandai menebak')
         if cara_asli.startswith('[pilihan] bingung'):

@@ -59,12 +59,17 @@ def test_bentuk_snapshot_tepat_allowlist(db):
     kon, anak = db
     _sesi(kon, anak)
     hasil = snap.bangun(kon, anak, "2026-11-01", "2026-11-30")
-    assert set(hasil) == {"versi", "topik", "tahap", "langkah"}
-    assert hasil["versi"] == 1
+    assert set(hasil) == {
+        "versi", "topik", "tahap", "langkah",
+        "peta_topik", "alur_berpikir", "kuat", "fokus",
+        "langkah_rumah", "cakupan", "ringkasan_teruskan",
+    }
+    assert hasil["versi"] == 2
     assert set(hasil["tahap"]) == {"nomor", "label", "uraian"}
     assert 1 <= hasil["tahap"]["nomor"] <= 6
     assert hasil["tahap"]["label"] in snap.LABEL_TAHAP
     assert hasil["langkah"] == snap.LANGKAH[hasil["tahap"]["nomor"] - 1]
+    assert len(hasil["alur_berpikir"]) == 4
 
 
 def test_tabel_kalimat_enam_tahap_netral():

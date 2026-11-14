@@ -66,6 +66,21 @@ KARTU: dict[str, Kartu] = {
         inti="Pakai operasi kebalikan: tambah dicari dengan kurang, kurang dicari dengan tambah. Lalu isi kotak dan cek hasilnya.",
         contoh="5 + ... = 8, maka 8 − 5 = 3. Cek: 5 + 3 = 8.",
     ),
+    "perkalian_dasar": Kartu(
+        judul="Perkalian bilangan dasar",
+        inti="Perkalian berarti penjumlahan berulang dengan kelompok sama besar. Kalikan satuan dulu, lalu simpan puluhannya saat menjumlah hasil puluhan.",
+        contoh="24 × 3: 4×3 = 12 (tulis 2, simpan 1), 2×3 + 1 = 7, hasilnya 72.",
+    ),
+    "pembagian_dasar": Kartu(
+        judul="Pembagian sama rata",
+        inti="Pembagian membagi jumlah total ke beberapa kelompok sama banyak — kebalikan dari perkalian.",
+        contoh="72 ÷ 3 = 24, karena 24 × 3 = 72.",
+    ),
+    "nilai_tempat_ribuan": Kartu(
+        judul="Nilai tempat ratusan dan ribuan",
+        inti="Setiap posisi angka punya nilai pengali berbeda: satuan ×1, puluhan ×10, ratusan ×100, ribuan ×1.000.",
+        contoh="Pada 4.528, angka 5 berada di ratusan sehingga nilainya 500, bukan 5.",
+    ),
     "kelipatan_rentang": Kartu(
         judul="Menghitung kelipatan dalam rentang",
         inti="Hitung kelipatan sampai batas akhir, lalu kurangi kelipatan sebelum batas awal. Kedua batas ikut dihitung.",
@@ -435,6 +450,10 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "bilangan_hilang": "bilangan_hilang",
     "nilai_tempat": "nilai_tempat",
     "bandingkan_bilangan": "bandingkan_bilangan",
+    "perkalian_dasar": "perkalian_dasar",
+    "pembagian_dasar": "pembagian_dasar",
+    "pecahan_bagian_dasar": "pecahan",
+    "nilai_tempat_ribuan": "nilai_tempat_ribuan",
     # statistika
     "rata_rata": "rata_rata",
     "rata_rata_gabungan": "rata_rata",

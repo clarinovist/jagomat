@@ -426,6 +426,7 @@ def akun_murid_dari_siswa(kon, siswa_id: int) -> str | None:
     return warisan
 
 PILIHAN_CARA: tuple[tuple[str, str], ...] = (
+    ("hitung_kertas", "Aku hitung di kertas / di kepala"),
     ("hitung_satu_satu", "Aku hitung satu per satu"),
     ("lihat_pola", "Aku lihat polanya"),
     ("pakai_rumus", "Aku pakai cara cepat / rumus"),

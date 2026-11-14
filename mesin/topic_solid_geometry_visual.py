@@ -123,8 +123,21 @@ def proyeksi_geometri_ruang(template_id, parameter):
     if template_id not in _FIELD:
         return None
     if 'revisi_penilaian' in parameter:
-        if (template_id!='luas_permukaan' or type(parameter['revisi_penilaian']) is not int
-                or parameter['revisi_penilaian']!=1 or parameter.get('varian') not in ('tabung_LP','tabung_cari_t')):
+        revisi = parameter['revisi_penilaian']
+        from catalog_followup import didukung as didukung_lanjutan
+        sah_rev1 = (
+            template_id == 'luas_permukaan'
+            and type(revisi) is int
+            and revisi == 1
+            and parameter.get('varian') in ('tabung_LP', 'tabung_cari_t')
+        )
+        sah_rev2 = (
+            template_id == 'volume_prisma_tabung'
+            and type(revisi) is int
+            and revisi == 2
+            and didukung_lanjutan(template_id, parameter)
+        )
+        if not (sah_rev1 or sah_rev2):
             raise ValueError('revisi penilaian visual tidak didukung')
         parameter={k:v for k,v in parameter.items() if k!='revisi_penilaian'}
     from catalog_versions import parameter_visual
