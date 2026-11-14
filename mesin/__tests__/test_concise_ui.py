@@ -64,8 +64,10 @@ def test_petunjuk_ringkas_tanpa_menghilangkan_kontrak_anak(db):
         assert teks in dom.terlihat()
     assert len([a for _, a, _ in dom.kontrol if a.get('name', '').startswith('jwb_')]) == 3
     radio = [a for _, a, _ in dom.kontrol if a.get('name', '').startswith('pilih_')]
-    assert len(radio) == 18
-    assert len({a['value'] for a in radio}) == 6
+    assert len(radio) == 21
+    assert len({a['value'] for a in radio}) == 7
+    # Opsi jejak cara di kertas ikut tampil; jawaban tanpa kotak "Caraku" tetap dinilai.
+    assert 'hitung_kertas' in {a['value'] for a in radio}
     noms = [a.get('name', '') for _, a, _ in dom.kontrol]
     assert next(i for i, n in enumerate(noms) if n.startswith('jwb_')) < next(i for i, n in enumerate(noms) if n.startswith('pilih_'))
     aksi = [a['value'] for _, a, _ in dom.kontrol if a.get('name') == 'aksi']

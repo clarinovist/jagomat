@@ -1,0 +1,39 @@
+{
+ "versi_format": 1,
+ "topik": "berhitung-sekolah",
+ "status": "draf",
+ "template": {
+  "perkalian_dasar": {
+   "pertanyaan": [
+    "Minta anak menghitung 3 × 4 dengan menggambar tiga kelompok berisi empat benda.",
+    "Tanya: angka 3 dan 4 di soal itu banyak kelompok atau isi tiap kelompok?",
+    "Minta anak menunjukkan di mana simpanan puluhan ditulis saat mengalikan bersusun."
+   ],
+   "tindak_lanjut": "Susun benda menjadi beberapa kelompok sama banyak, hitung isi satu kelompok, lalu jumlahkan kelompoknya. Setelah itu kerjakan bersusun dan periksa apakah simpanan sudah ditambahkan."
+  },
+  "pembagian_dasar": {
+   "pertanyaan": [
+    "Minta anak membagi 12 kancing ke 3 piring sampai habis sama rata.",
+    "Tanya: yang dicari banyak benda tiap piring atau banyak piringnya?",
+    "Tanya: operasi apa yang membalik hasil bagi tadi supaya kembali ke 12?"
+   ],
+   "tindak_lanjut": "Bagikan benda satu per satu bergiliran ke setiap wadah sampai habis, hitung isi satu wadah, lalu periksa dengan mengalikan isi itu dengan banyak wadah."
+  },
+  "pecahan_bagian_dasar": {
+   "pertanyaan": [
+    "Minta anak melipat pita kertas menjadi bagian sama panjang dan mewarnai bagian yang dipakai.",
+    "Tanya: angka bawah menunjukkan banyak bagian keseluruhan atau bagian yang dipakai?",
+    "Tanya: setelah dipakai, sisa dihitung dari seluruh lipatan atau dari potongan yang tersisa?"
+   ],
+   "tindak_lanjut": "Lipat kertas menjadi bagian sama besar, warnai bagian yang dipakai, lalu hitung bagian yang belum diwarnai dan tulis sebagai pecahan dari keseluruhan."
+  },
+  "nilai_tempat_ribuan": {
+   "pertanyaan": [
+    "Minta anak menunjuk angka pada posisi yang ditanya, lalu menyebut nilainya, bukan nama angkanya.",
+    "Tanya: angka 7 di tempat ratusan bernilai 7 atau 700? Tunjukkan dengan kumpulan seratus.",
+    "Minta anak menulis bentuk panjang bilangan itu, lalu menjumlahkannya kembali."
+   ],
+   "tindak_lanjut": "Pakai kartu nilai tempat: tulis angka pada kolom ribuan, ratusan, puluhan, satuan, lalu ganti tiap angka dengan nilainya (misalnya 3 ratusan = 300) dan jumlahkan."
+  }
+ }
+}

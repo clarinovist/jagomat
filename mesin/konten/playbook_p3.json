@@ -506,40 +506,41 @@
       "sha256_review": null
     },
     {
-      "template_id": "soal_umur",
+      "template_id": "perkalian_dasar",
       "profil": "P3",
       "kode_intervensi": "K",
-      "malrule_id": "umur.selisih_umur_n_tahun",
+      "malrule_id": "perkalian.dijumlahkan",
       "versi": 1,
       "saksi_seed": 0,
-      "miskonsepsi": "Anak mungkin menjawab selisih umur yang tetap, bukan jumlah tahun sampai hubungan kali terpenuhi.",
-      "batas": "Draf agent, belum direview manusia. Konteks dua orang versi katalog2, bukan ayah-anak. Hanya varian n_tahun; belum direview untuk varian mencari umur seseorang.",
+      "miskonsepsi": "Anak mungkin menjumlahkan kedua bilangan pada soal perkalian, bukan mengalikan kelompok yang sama banyak.",
+      "batas": "Draf agent, belum direview manusia. Batas P3: perkalian satu–dua digit dengan satu digit; belum membahas pengali dua digit dan simpanan bertingkat.",
       "urutan": {
-        "benda": "Pakai dua baris keping untuk umur dua tokoh. Tambahkan satu keping pada keduanya untuk setiap tahun, bukan hanya pada tokoh lebih muda.",
-        "gambar": "Buat tabel sekarang, satu tahun lagi, dua tahun lagi; dua kolom umur bertambah bersamaan. Tandai hubungan kali yang ditanyakan.",
-        "simbol": "Uji umur pada tahun calon dan periksa hubungan kali. Selisih umur tetap, tetapi rasio berubah; jawaban adalah banyak tahun yang berlalu."
+        "benda": "Susun benda menjadi beberapa kelompok sama banyak. Minta anak menghitung isi satu kelompok dulu, lalu menjumlahkan kelompoknya satu per satu.",
+        "gambar": "Gambar kelompok berisi titik sama banyak; beri kotak per kelompok, lalu hubungkan banyak kelompok dengan isi tiap kelompok.",
+        "simbol": "Tulis penjumlahan berulang lebih dulu, lalu ganti dengan tanda kali. Periksa hasil dengan urutan terbalik."
       },
       "pertanyaan": [
-        "Siapa saja yang bertambah umur setiap tahun?",
-        "Apakah selisih umur sama dengan waktu yang ditanya?",
-        "Bagaimana memeriksa perbandingan pada tahun calon?"
+        "Berapa kelompok yang kamu lihat?",
+        "Berapa isi setiap kelompok?",
+        "Kenapa hasilnya bukan penjumlahan kedua angka pada soal?"
       ],
       "pendekatan": [
         {
-          "pendekatan_id": "konsep:soal_umur:umur.selisih_umur_n_tahun",
-          "contoh": "Ari 14 tahun, Bima 4 tahun. Dalam 1 tahun umur 15 dan 5, sehingga Ari 3 kali Bima. Selisih 10 tahun tetap, tetapi waktu yang dicari 1 tahun."
+          "pendekatan_id": "konsep:perkalian_dasar:perkalian.dijumlahkan",
+          "contoh": "Ada 3 dus berisi 4 pensil. Hitung 4 + 4 + 4 = 12, lalu tulis 3 × 4 = 12. Angka 3 menyatakan banyak dus, bukan pensil yang ditambahkan."
         },
         {
-          "pendekatan_id": "jelaskan-balik:soal_umur:umur.selisih_umur_n_tahun",
-          "contoh": "Tutup contoh. Raka 16 tahun, Sita 6 tahun. Dua tahun lagi 18 dan 8 belum dua kali; empat tahun lagi 20 dan 10 tepat dua kali. Jelaskan mengapa jawaban 4 tahun, bukan selisih umur 10."
+          "pendekatan_id": "jelaskan-balik:perkalian_dasar:perkalian.dijumlahkan",
+          "contoh": "Tutup contoh. Untuk 5 × 2, minta anak menjelaskan mengapa hasilnya 10 dan bukan 7, dengan menyebut banyak kelompok dan isi tiap kelompok."
         }
       ],
       "tanda_paham": [
-        "Menambah waktu yang sama pada kedua umur.",
-        "Memeriksa hubungan kali dan menjawab waktu, bukan umur atau selisih."
+        "Membedakan banyak kelompok dan isi tiap kelompok.",
+        "Menghitung hasil kali lewat penjumlahan berulang atau tabel perkalian.",
+        "Memeriksa hasil dengan urutan terbalik."
       ],
       "sumber": [
-        "Analisis generator existing pada accd998; template soal_umur, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+        "Analisis generator existing; template perkalian_dasar, P3, seed 0; contoh ajar disusun agent sebagai draf, bukan sumber manusia."
       ],
       "status": "draf",
       "reviewer": null,
@@ -548,40 +549,41 @@
       "sha256_review": null
     },
     {
-      "template_id": "deret_bertingkat",
+      "template_id": "pembagian_dasar",
       "profil": "P3",
       "kode_intervensi": "K",
-      "malrule_id": "bertingkat.selisih_terakhir_diulang",
+      "malrule_id": "pembagian.dikalikan",
       "versi": 1,
       "saksi_seed": 0,
-      "miskonsepsi": "Anak mungkin memakai selisih terakhir lagi tanpa melihat bahwa selisih-selisih itu bertambah teratur.",
-      "batas": "Draf agent, belum direview manusia. Hanya deret dengan kenaikan selisih tetap; contoh kedua menunjukkan kenaikan tidak selalu satu.",
+      "miskonsepsi": "Anak mungkin mengalikan kedua bilangan pada soal, bukan membagi rata ke banyak wadah.",
+      "batas": "Draf agent, belum direview manusia. Batas P3: pembagian habis tanpa sisa; belum membahas pembagian bersusun dengan sisa.",
       "urutan": {
-        "benda": "Susun tumpukan keping dan pisahkan tambahan setiap langkah; letakkan keping tambahan pada baris kedua agar pertumbuhannya terlihat.",
-        "gambar": "Gambar suku pada baris atas, selisih pada baris bawah. Hubungkan panah pertama dan kedua dengan warna atau label berbeda.",
-        "simbol": "Hitung selisih berurutan, cari kenaikan selisih, lalu tentukan selisih berikutnya sebelum suku berikutnya."
+        "benda": "Bagikan benda satu per satu bergiliran ke setiap wadah sampai habis. Minta anak menghitung isi satu wadah setelah selesai.",
+        "gambar": "Gambar wadah dan tarik garis pembagian; tandai isi tiap wadah sama banyak.",
+        "simbol": "Tulis pembagian, lalu periksa dengan perkalian: hasil bagi dikali pembagi harus kembali ke bilangan awal."
       },
       "pertanyaan": [
-        "Berapa tambahan pada setiap langkah?",
-        "Apa pola pada baris tambahan itu?",
-        "Mana yang harus dicari dulu: tambahan berikutnya atau suku berikutnya?"
+        "Ada berapa wadah yang harus kebagian?",
+        "Isi setiap wadah harus bagaimana?",
+        "Operasi apa yang memeriksa hasil bagi tadi?"
       ],
       "pendekatan": [
         {
-          "pendekatan_id": "konsep:deret_bertingkat:bertingkat.selisih_terakhir_diulang",
-          "contoh": "Suku 2, 5, 9, 14 memiliki tambahan 3, 4, 5. Tambahan berikutnya 6 sehingga suku berikutnya 20, bukan 19 dari mengulang 5."
+          "pendekatan_id": "konsep:pembagian_dasar:pembagian.dikalikan",
+          "contoh": "24 kelereng dibagi ke 4 kantong. Bagikan bergiliran sampai isi tiap kantong 6. Periksa 6 × 4 = 24, jadi jawabannya 6, bukan 96."
         },
         {
-          "pendekatan_id": "jelaskan-balik:deret_bertingkat:bertingkat.selisih_terakhir_diulang",
-          "contoh": "Tutup contoh. Suku 1, 5, 11, 19 memiliki tambahan 4, 6, 8. Jelaskan tambahan berikutnya 10 dan suku 29; jangan memaksakan kenaikan selisih satu."
+          "pendekatan_id": "jelaskan-balik:pembagian_dasar:pembagian.dikalikan",
+          "contoh": "Tanpa contoh, minta anak menjelaskan mengapa 18 ÷ 3 = 6 dan bukan 54, dengan menyebut banyak kantong dan isi tiap kantong."
         }
       ],
       "tanda_paham": [
-        "Membedakan suku dari selisih.",
-        "Memeriksa pola selisih pada lebih dari satu langkah sebelum melanjutkan."
+        "Membagi rata, bukan mengurangi atau mengalikan.",
+        "Memeriksa hasil bagi dengan perkalian.",
+        "Membedakan bilangan yang dibagi dan pembagi."
       ],
       "sumber": [
-        "Analisis generator existing pada accd998; template deret_bertingkat, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+        "Analisis generator existing; template pembagian_dasar, P3, seed 0; contoh ajar disusun agent sebagai draf, bukan sumber manusia."
       ],
       "status": "draf",
       "reviewer": null,
@@ -590,40 +592,41 @@
       "sha256_review": null
     },
     {
-      "template_id": "diagram_batang_garis",
+      "template_id": "pecahan_bagian_dasar",
       "profil": "P3",
       "kode_intervensi": "K",
-      "malrule_id": "batang.terbesar",
+      "malrule_id": "pecahan_dasar.jumlah_penyebut",
       "versi": 1,
       "saksi_seed": 0,
-      "miskonsepsi": "Anak mungkin memilih nilai batang tertinggi ketika yang diminta total seluruh nilai.",
-      "batas": "Draf agent, belum direview manusia. Hanya varian jumlah; tidak menerapkan penjumlahan semua batang pada varian baca atau selisih. Skala contoh satu satuan.",
+      "miskonsepsi": "Anak mungkin menjumlahkan penyebut juga, sehingga banyak bagian keseluruhan ikut berubah.",
+      "batas": "Draf agent, belum direview manusia. Batas P3: pecahan berpenyebut sama; belum membahas penyebut berbeda atau penyederhanaan.",
       "urutan": {
-        "benda": "Susun empat tumpukan keping berlabel. Gabungkan semua tumpukan untuk menunjukkan total, tanpa hanya mengambil yang tertinggi.",
-        "gambar": "Gambar empat batang dengan skala satuan yang jelas; tulis nilai setiap batang dan beri tanda setelah masuk penjumlahan.",
-        "simbol": "Jumlahkan semua nilai tepat sekali. Bedakan operasi total, selisih, dan membaca satu batang sesuai pertanyaan."
+        "benda": "Lipat pita kertas menjadi beberapa bagian sama panjang. Warnai bagian yang disebut soal, lalu hitung bagian berwarna dari seluruh lipatan.",
+        "gambar": "Gambar pita terbagi; arsir bagian sesuai pembilang dan pastikan banyak kotak keseluruhan tetap.",
+        "simbol": "Tulis pecahan berpenyebut sama, jumlahkan pembilang saja, lalu periksa bahwa penyebut tidak berubah."
       },
       "pertanyaan": [
-        "Diminta satu batang atau seluruhnya?",
-        "Bagaimana menandai batang yang sudah masuk hitungan?",
-        "Apakah total masuk akal dibanding batang paling tinggi?"
+        "Angka bawah menunjukkan apa?",
+        "Kalau penyebutnya sama, bagian mana yang dijumlahkan?",
+        "Apakah banyak bagian keseluruhan ikut berubah?"
       ],
       "pendekatan": [
         {
-          "pendekatan_id": "konsep:diagram_batang_garis:batang.terbesar",
-          "contoh": "Nilai empat batang 2, 4, 3, 5. Total 2 + 4 + 3 + 5 = 14, bukan 5. Tandai keempat batang setelah dijumlahkan."
+          "pendekatan_id": "konsep:pecahan_bagian_dasar:pecahan_dasar.jumlah_penyebut",
+          "contoh": "1/6 + 2/6: lipatan tetap 6 bagian; yang ditambah hanya bagian berwarna, jadi 3/6, bukan 3/12."
         },
         {
-          "pendekatan_id": "jelaskan-balik:diagram_batang_garis:batang.terbesar",
-          "contoh": "Tutup contoh. Nilai batang 6, 1, 4, 2. Jelaskan jumlah 13 dengan mengelompokkan 6 + 4 dan 1 + 2, sambil menunjukkan semua batang dihitung sekali."
+          "pendekatan_id": "jelaskan-balik:pecahan_bagian_dasar:pecahan_dasar.jumlah_penyebut",
+          "contoh": "Minta anak menjelaskan mengapa 2/8 + 3/8 = 5/8 dan bukan 5/16, dengan menyebut banyak bagian keseluruhan yang tetap."
         }
       ],
       "tanda_paham": [
-        "Menentukan operasi dari pertanyaan.",
-        "Memasukkan seluruh batang tepat sekali dan dapat menjelaskan pengelompokan."
+        "Penyebut menunjukkan banyak bagian keseluruhan yang tetap.",
+        "Menjumlahkan pembilang saat penyebut sama.",
+        "Memeriksa hasil dengan gambar atau lipatan."
       ],
       "sumber": [
-        "Analisis generator existing pada accd998; template diagram_batang_garis, P3, seed 0; contoh ajar baru disusun agent sebagai draf, bukan sumber manusia."
+        "Analisis generator existing; template pecahan_bagian_dasar, P3, seed 0; contoh ajar disusun agent sebagai draf, bukan sumber manusia."
       ],
       "status": "draf",
       "reviewer": null,

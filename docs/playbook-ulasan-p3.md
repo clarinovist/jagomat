@@ -11,6 +11,11 @@ peringatan permanen sebelum review. Ini pengecualian gerbang tampil, **bukan**
 pengesahan matematika; kolom keputusan manusia di bawah tetap belum diisi.
 
 Pemilihan 15 pola disetujui pemilik berdasarkan pemetaan awal tanpa fokus.
+Pada 15 November 2026 pemetaan P3 bergeser setelah topik `berhitung-sekolah` masuk
+(pemilik memilih menyelesaikan konten, opsi A): `perkalian_dasar`, `pembagian_dasar`,
+dan `pecahan_bagian_dasar` menggantikan `soal_umur`, `deret_bertingkat`, dan
+`diagram_batang_garis` pada antrean ini. Ketiga entri baru tetap **draf**, belum
+direview manusia, dan draf lama tetap tersedia di riwayat Git.
 Seed 0–24 menghasilkan 375 soal, masing-masing pola 25 kali; bukan statistik
 kesalahan atau bukti pola paling dibutuhkan guru. Satu entri tidak otomatis cocok
 seluruh variasi; reviewer harus memeriksa batas varian yang tertulis.
@@ -29,9 +34,9 @@ seluruh variasi; reviewer harus memeriksa batas varian yang tertulis.
 | soal_uang | uang.salah_bagi_uang_besar | k+1 bagian; uang contoh bukan harga nyata | Belum diisi |
 | deret_geometri | geometri.pola_tambah_dipaksakan | Perkalian tetap vs selisih terakhir | Belum diisi |
 | tabel_turus | turus.terkecil | Varian terbanyak; kategori vs frekuensi | Belum diisi |
-| soal_umur | umur.selisih_umur_n_tahun | Dua orang katalog2; waktu bersama, bukan ayah-anak | Belum diisi |
-| deret_bertingkat | bertingkat.selisih_terakhir_diulang | Selisih kedua tidak selalu satu | Belum diisi |
-| diagram_batang_garis | batang.terbesar | Varian jumlah; skala jelas, bukan hanya tertinggi | Belum diisi |
+| perkalian_dasar | perkalian.dijumlahkan | Banyak kelompok vs isi kelompok; simpanan ditambahkan | Belum diisi |
+| pembagian_dasar | pembagian.dikalikan | Bagi rata vs kali; periksa dengan perkalian | Belum diisi |
+| pecahan_bagian_dasar | pecahan_dasar.jumlah_penyebut | Penyebut tetap; hanya pembilang dijumlahkan | Belum diisi |
 
 ## Salin dan isi bagian ini untuk setiap entri
 
