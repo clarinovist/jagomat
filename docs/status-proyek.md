@@ -10,10 +10,12 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   sintetis. Peran `guru` tetap mencakup orang tua dan hanya mengakses data miliknya.
 - Akses awal **nonkomersial**. Keputusan paket Jago/Jago Pro tidak sama dengan
   pembukaan penjualan, trial otomatis, promo, atau paywall.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`7b57cc7`** (15 November 2026;
-  tes diagnostik tajam berpasangan P1–P6, topik `berhitung-sekolah` P3–P4, laporan orang tua
-  snapshot v2 + SVG sebaris, landing kelas 1–6 SD, pancingan/playbook draf; lihat catatan
-  rilis). Sebelumnya `d1d2f76` (6 November 2026;
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`2f546ef`** (15 November 2026;
+  ringkasan pasangan diagnostik read-only di halaman tinjauan guru, penyelarasan
+  spec/context, dan perbaikan dokumen status/kit; tanpa schema/migrasi/flag). Sebelumnya
+  `7b57cc7` (15 November 2026; tes diagnostik tajam berpasangan P1–P6, topik
+  `berhitung-sekolah` P3–P4, laporan orang tua snapshot v2 + SVG sebaris, landing kelas
+  1–6 SD, pancingan/playbook draf). Sebelumnya `d1d2f76` (6 November 2026;
   aktivasi `OSN_DASAR_LENGKAP=1`, lembar P1/P2 berisi lima jenis dua soal per jenis;
   lihat catatan rilis). Sebelumnya `58a52a4` (6 November) membawa empat jenis baru dengan
   sakelar mati; `b412b42` (6 November)

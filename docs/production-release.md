@@ -6,6 +6,37 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy ringkasan pasangan diagnostik di halaman guru — 15 November 2026
+
+Controlled `deploy-v2` memasang **2f546ef547b60763005b26462665c8f3e18e1f09** (digest
+`sha256:2d15f1fa…1ce2`), healthy, menggantikan `7b57cc7`. Isi: **ringkasan Analisis
+Pasangan Diagnostik read-only** di halaman tinjauan guru (`diagnostic_summary.py` →
+`teacher_session_pages.halaman_sesi_stitch`) untuk sesi Tes Diagnostik Baku yang sudah
+dikirim dan peran guru/admin, berlabel awam tanpa kode/malrule/skor; dokumen `spec.md`/
+`context.md` diselaraskan, status proyek dan kit 15 Nov diberi penanda akhir. Tanpa
+schema/migrasi/flag baru; `database.py` tidak berubah.
+
+- Kontrak persistensi kandidat = recovery = live `dd3e0fce…d79f`; recovery tetap
+  `6a5f0ec` tetapi image di-build ulang dengan digest `sha256:ad6d6ee4…f9f5` dan diuji
+  pair pada run yang sama. Live lama `7b57cc7` juga `dd3e0fce…`, jadi tidak ada migrasi
+  data. Recovery pin `scripts/release-metadata.json` tidak berubah.
+- Gate dispatch [43665922391](https://github.com/clarinovist/jagomat/actions/runs/43665922391)
+  hijau: kandidat 4/4, recovery 4/4, build & push, pair 8/8/6, `provider_calls` 0; push
+  [43662375033](https://github.com/clarinovist/jagomat/actions/runs/43662375033) sukses.
+- Kit `deploy-ringkasan-diagnostik-20261115`; approval `7b57cc7` yang kedaluwarsa &
+  terkonsumsi diarsipkan ke `approval-consumed-7b57cc7.json` sebelum prepare.
+  `prepare` `PERSIAPAN_OK`, hold 09.15.54–09.17.26 WIB (±1 mnt 32 dtk, Caddy 503),
+  backup empat DB + `sandi.json` + riset, rehearsal C–B–C, `deploy-v2` exit0, reopen
+  `LIVE_ADMIN_HEALTHY`, postcheck exit0.
+- Postcheck: revisi/digest exact, smoke publik `/`200 `/akun`401 `/murid/`303
+  `/laporan-ortu/<token>`404, probe sintetis diagnostik/snapshot v2/SVG/landing lulus,
+  galat Traceback/OperationalError/IntegrityError 0, config dan hash histori terjaga.
+  Cleanup menghapus 4 direktori rehearsal; backup dipertahankan.
+- Backup induk `/opt/osn/cadangan/deploy-ringkasan-diagnostik-20261115/`, salinan lokal
+  `mesin/cadangan/deploy-ringkasan-diagnostik-20261115/` (gitignored). Approval cutover
+  ini masih di `/opt/osn/rollout-approval.json` (kedaluwarsa, terkonsumsi); arsipkan
+  sebelum `prepare` berikutnya.
+
 ## Deploy tes diagnostik tajam, berhitung sekolah, dan laporan SVG — 15 November 2026
 
 Controlled `deploy-v2` memasang **7b57cc7240bad604dc27f9fd90d7e34433e29ed3** (digest
