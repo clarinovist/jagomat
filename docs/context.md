@@ -85,7 +85,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `SKRIP_BAGIKAN` tidak disisipkan (follow-up: buang). Cabang `fetch` JSON tetap: dipakai verifikasi lingkungan uji.
 - `probe_questions.py`: pertanyaan pancingan untuk halaman tinjauan guru saat `diagnosa` tidak
   punya dugaan. Urutan: entri per template di `konten/pancingan/<topik>.json` (3 pertanyaan +
-  tindak lanjut, status draf, 98 template; 6 Nov 2026) → topik pemilik template → topik sesi → umum.
+  tindak lanjut, status draf, 106 template termasuk `berhitung-sekolah`; 15 Nov 2026) → topik
+  pemilik template → topik sesi → umum.
   Berkas divalidasi gagal-tertutup (berkas rusak dilewati, uji CI memastikan berkas terkirim sah);
   `render()` kosong untuk peran selain guru.
 - `teacher_usage.py` (SELECT saja, dari kolom sesi/pengiriman/laporan yang ada; tanpa migrasi)
@@ -137,6 +138,24 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   dengan `csp` sempit; rute guru `/anak/<id>/laporan-ortu...` setelah `_lolos_sandi`, sebelum profil) dan
   `parent_report_guru_pages.py`. Hanya menulis dua tabel sendiri; dijaga M1 authorizer SQLite, M2 allowlist,
   M3 teks terlarang, M4 tanpa tulis bukti (`test_laporan_ortu_field_guard.py`).
+- Tes diagnostik tajam (live 15 Nov 2026, `7b57cc7`): `diagnostic_battery.py` komposer murni paket
+  berpasangan per jenjang (triase prasyarat + minimal dua probe per sub-konsep; P1/P2 10, P3 20,
+  P4–P6 24 butir). `database.buat_sesi_diagnostik` (berkas kontrak, memakai `buat_sesi_dari_urutan`
+  + `soal_terpilih`) dan `session_http.tangani_pembuatan_diagnostik` membuka `POST
+  /sesi-diagnostik/<siswa>` dengan `mode='diagnostik'`; UI-nya kartu di `practice_workspace.py`.
+  `topic_school_basics.py` mendaftarkan paket `berhitung-sekolah` P3–P4 (perkalian, pembagian,
+  pecahan sederhana, nilai tempat ratusan/ribuan) lewat `topics.py`; grup mastery-nya menggeser
+  pemetaan terpandu P3 (bukti `teaching_playbook`/pancingan diselaraskan, keduanya draf).
+  Diagnosis: `students.PILIHAN_CARA` menambah `hitung_kertas`; `diagnosis.diagnosa` memakai jejak
+  cara itu sebelum fallback `N`, sedangkan penanda `tebak` tetap `N`; `diagnosis.evaluasi_pasangan_diagnostik`
+  mengelompokkan hasil per sub-konsep (konsisten_k/parsial_teliti/prasyarat_macet/kuat). Karena
+  `database.py` berubah, recovery dipatok `6a5f0ec` (kontrak `dd3e0fce`, pengganti `461c2bc`).
+- Laporan orang tua snapshot v2 (15 Nov 2026): `parent_report_snapshot.VERSI=2` menambah
+  `peta_topik`, `alur_berpikir`, `kuat`, `fokus`, `langkah_rumah`, `cakupan`, `ringkasan_teruskan`
+  di dalam allowlist yang sama (tanpa skor/kode/level); `parent_report_page.py` merender **SVG
+  sebaris** murni-Python (tanpa skrip/gambar/tautan) dan snapshot v1 lama tetap dirender dengan
+  fallback. `mastery_report._pilih_materi` memilih materi default yang sudah punya bukti konteks,
+  bukan sekadar urutan alfabetis topik, agar topik baru tidak menyembunyikan bukti materi lain.
 - `teacher_home_priority.py` hanya memproyeksi reducer; `guru_beranda_pages.py` merender /guru
   (chip GET owner-scoped dengan filter instan berhash/fallback native, petunjuk langkah
   ringkas, panduan guru baru yang hilang setelah sesi pertama) tanpa menulis DB atau

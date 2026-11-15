@@ -46,6 +46,15 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   (manual, berpenanda), dan butir salah tetap diketik persis. Centang dengan teks yang
   berbeda dari kunci ditolak utuh. Bila anak mengubah jawaban tercentang sesudahnya,
   tanda benar dilepas dan Jagomat menilai ulang butir itu seperti jawaban biasa.
+- **Tes Diagnostik Baku (live 15 Nov 2026):** guru membuat sesi **isian berpasangan**
+  dari `POST /sesi-diagnostik/<siswa>` untuk jenjang P1–P6: 3–4 butir triase prasyarat
+  di awal, lalu minimal dua probe per sub-konsep (P1/P2 10, P3 20, P4–P6 24 butir).
+  Topik `berhitung-sekolah` (perkalian, pembagian, pecahan sederhana, nilai tempat
+  ratusan/ribuan) tersedia untuk Latihan manual P3–P4 dan ikut pemetaan terpandu P3.
+  Pilihan cara `hitung di kertas / di kepala` menjadi jejak cara: jawaban tanpa kotak
+  "Caraku" tidak otomatis dianggap tebakan, tetapi penanda `tebak` tetap `N` meski
+  benar. `evaluasi_pasangan_diagnostik` mengelompokkan konsisten_k, parsial_teliti,
+  prasyarat_macet, kuat, atau belum diajari.
 - Jawaban salah tanpa dugaan ("Belum yakin") di halaman tinjauan menampilkan tiga
   pertanyaan pancingan per jenis soal plus satu saran tindak lanjut untuk guru (cadangan:
   pertanyaan umum per topik), berlabel draf sampai ditinjau reviewer; bukan diagnosis,
@@ -70,7 +79,11 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   lalu menerbitkan tautan baca-saja `/laporan-ortu/<token>` (30 hari, bisa dicabut, satu tautan
   aktif per anak, tanpa login/JS/tautan keluar). Isi hanya nama anak, periode, topik dari sesi
   selesai+terkonfirmasi, tahap netral "n dari 6", satu kalimat langkah, catatan, nama guru;
-  tanpa skor, kode diagnosis, malrule, ID, level, atau kelas. Snapshot dibekukan saat terbit,
+  tanpa skor, kode diagnosis, malrule, ID, level, atau kelas. Sejak 15 Nov 2026 snapshot v2
+  menambah peta topik (maks. 6 status ramah), alur berpikir empat tahap, poin kuat/fokus,
+  satu langkah rumah 15 menit, dan ringkasan siap salin — dirender sebagai **SVG sebaris
+  sisi server (Zero-JS)**, tetap tanpa angka/skor/kode/level; snapshot v1 lama jatuh ke
+  tampilan lama. Snapshot dibekukan saat terbit,
   tidak ada edit sesudahnya, admin hanya melihat, dan semua tautan tidak sah satu 404 identik.
   Menulis laporan tidak menyentuh bukti belajar. Tidak menyimpan email/telepon.
   Satu alur sesi kertas: Terapkan di halaman isi dari lembar yang membuat semua soal terisi
@@ -134,7 +147,10 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
 Batch katalog aktif dan bank kalimat tidak mengesahkan seluruh katalog. Revisi
 penilaian1/pilot bank dan [draf koreksi lanjutan2](catalog-followup.md) tetap
 offline/default0; playbook masih draf; efektivitas
-pada guru/anak belum dibuktikan. Tidak menjanjikan siap juara atau penguasaan seluruh
+pada guru/anak belum dibuktikan. Pancingan dan tiga playbook `berhitung-sekolah` yang
+live 15 Nov 2026 masih **draf belum direview manusia**, dan pemetaan terpandu P3
+bergeser karena topik baru (tiga pola keluar, tiga masuk) atas pilihan pemilik —
+bukan hasil ulasan guru. Tidak menjanjikan siap juara atau penguasaan seluruh
 kurikulum. Pekerjaan [dibatalkan/ditunda](status-proyek.md) tidak dibuka otomatis.
 
 Acuan: [playbook](playbook-guru.md) · [Pendamping](pendamping-runtime.md) ·

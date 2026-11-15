@@ -6,6 +6,41 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy tes diagnostik tajam, berhitung sekolah, dan laporan SVG — 15 November 2026
+
+Controlled `deploy-v2` memasang **7b57cc7240bad604dc27f9fd90d7e34433e29ed3** (digest
+`sha256:2bc501d4…37b0`), healthy, menggantikan `22b52fe`. Isi sejak 22b52fe: **Tes Diagnostik
+Baku berpasangan** (P1–P6, isian, triase prasyarat + minimal dua probe per sub-konsep), topik
+**`berhitung-sekolah` P3–P4** (perkalian, pembagian, pecahan sederhana, nilai tempat
+ratusan/ribuan), pilihan cara `hitung_kertas` + `evaluasi_pasangan_diagnostik`, snapshot
+**laporan orang tua v2** dengan **SVG sebaris Zero-JS**, klaim jenjang landing **kelas 1–6 SD**,
+serta default materi laporan berbasis bukti. Tanpa schema/migrasi/flag baru; `visual.conf`
+tidak ditulis.
+
+- Kontrak persistensi kandidat = recovery = `dd3e0fce…d79f` (live lama `26aa83a7…36c3`):
+  `database.py` menambah `buat_sesi_diagnostik`. Recovery baru di branch
+  `recovery-store-telepon`: `6f02dbf` (461c2bc + `database.py`) + `6a5f0ec` (pin mandiri),
+  digest `sha256:26fa6c29…3fda8`. Job `pasang` tetap literal false.
+- Gate dispatch [43655231519](https://github.com/clarinovist/jagomat/actions/runs/43655231519)
+  hijau: kandidat 4/4, recovery 4/4, build & push, pair 8/8/6, `provider_calls` 0; push
+  [43655196083](https://github.com/clarinovist/jagomat/actions/runs/43655196083) sukses.
+- Kit `deploy-diagnostik-tajam-20261115`; prepare (PROBE_SKEMA + probe diagnostik/laporan)
+  lulus sebelum hold; hold 07.04.40–07.08.29 WIB (±3 mnt 49 dtk, Caddy 503), backup empat DB +
+  `sandi.json` + riset, rehearsal C–B–C, `deploy-v2` exit0, reopen `LIVE_ADMIN_HEALTHY`,
+  postcheck exit0. Reopen pertama berhenti di probe kit yang masih mengunci 11 berkas pancingan
+  (kini 12); probe diperbaiki lalu reopen diulang tanpa tulis data dan akses pulih 07.08.
+- Postcheck: revisi/digest exact, smoke publik `/`200 `/akun`401 `/murid/`303
+  `/laporan-ortu/<token>`404, probe sintetis diagnostik/snapshot v2/SVG/landing lulus, galat
+  Traceback/OperationalError/IntegrityError 0, config dan hash histori terjaga.
+- Konten: pancingan `berhitung-sekolah` dan tiga draf playbook P3 (perkalian, pembagian,
+  pecahan) menggantikan `soal_umur`/`deret_bertingkat`/`diagram_batang_garis` pada pemetaan
+  terpandu P3 — pilihan pemilik 15 Nov 2026 (opsi A). Semua konten tetap **draf belum direview
+  manusia**; ulasan guru masih terbuka dan lembar ulasan P3 diselaraskan.
+- Backup induk `/opt/osn/cadangan/deploy-diagnostik-tajam-20261115/`, salinan lokal
+  `mesin/cadangan/deploy-diagnostik-tajam-20261115/` (gitignored). Approval terkonsumsi masih di
+  `/opt/osn/rollout-approval.json`; arsipkan sebelum `prepare` berikutnya. Lingkungan uji
+  `uji.jagomat.id` belum disamakan.
+
 ## Deploy label rentang kelas di pemilih topik Latihan — 6 November 2026
 
 Controlled `deploy-v2` memasang **4ce333a1add9d7d1b9282002d850b18975f61bb2**, healthy,
