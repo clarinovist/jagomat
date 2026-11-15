@@ -148,7 +148,10 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   pemetaan terpandu P3 (bukti `teaching_playbook`/pancingan diselaraskan, keduanya draf).
   Diagnosis: `students.PILIHAN_CARA` menambah `hitung_kertas`; `diagnosis.diagnosa` memakai jejak
   cara itu sebelum fallback `N`, sedangkan penanda `tebak` tetap `N`; `diagnosis.evaluasi_pasangan_diagnostik`
-  mengelompokkan hasil per sub-konsep (konsisten_k/parsial_teliti/prasyarat_macet/kuat). Karena
+  mengelompokkan hasil per sub-konsep (`kuat`, `konsisten_k`, `konsep_awal`, `teliti`, `tebak`,
+  `belum_diajari`, `belum_dinilai`) dengan penanda sesi `triase_macet`. `diagnostic_summary.py`
+  memanggil agregator itu dari `teacher_session_pages.halaman_sesi_stitch`, hanya untuk sesi
+  berkomposisi baterai exact dan peran guru/admin (read-only, tanpa kode/malrule ke murid). Karena
   `database.py` berubah, recovery dipatok `6a5f0ec` (kontrak `dd3e0fce`, pengganti `461c2bc`).
 - Laporan orang tua snapshot v2 (15 Nov 2026): `parent_report_snapshot.VERSI=2` menambah
   `peta_topik`, `alur_berpikir`, `kuat`, `fokus`, `langkah_rumah`, `cakupan`, `ringkasan_teruskan`

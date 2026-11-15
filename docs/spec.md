@@ -53,8 +53,12 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   ratusan/ribuan) tersedia untuk Latihan manual P3–P4 dan ikut pemetaan terpandu P3.
   Pilihan cara `hitung di kertas / di kepala` menjadi jejak cara: jawaban tanpa kotak
   "Caraku" tidak otomatis dianggap tebakan, tetapi penanda `tebak` tetap `N` meski
-  benar. `evaluasi_pasangan_diagnostik` mengelompokkan konsisten_k, parsial_teliti,
-  prasyarat_macet, kuat, atau belum diajari.
+  benar. `evaluasi_pasangan_diagnostik` mengelompokkan hasil per sub-konsep menjadi
+  `kuat`, `konsisten_k`, `konsep_awal`, `teliti`, `tebak`, `belum_diajari`, atau
+  `belum_dinilai`, dengan penanda sesi `triase_macet`. Salah konsep dan sekadar
+  kurang teliti sengaja dipisah karena intervensinya berbeda; `triase_macet` adalah
+  keadaan sesi, bukan status per sub-konsep. Ringkasannya tampil di halaman tinjauan
+  guru hanya untuk sesi berkomposisi baterai exact, tanpa kode/malrule/skor mentah.
 - Jawaban salah tanpa dugaan ("Belum yakin") di halaman tinjauan menampilkan tiga
   pertanyaan pancingan per jenis soal plus satu saran tindak lanjut untuk guru (cadangan:
   pertanyaan umum per topik), berlabel draf sampai ditinjau reviewer; bukan diagnosis,

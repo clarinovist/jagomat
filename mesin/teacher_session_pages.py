@@ -237,6 +237,7 @@ def halaman_sesi_stitch(
     gaya_playbook = ''
     gaya_pancingan = ''
     butir_sesi = database.isi_sesi(kon, sesi_id)
+    butir_diagnostik = []
     ada_jawaban_di_sesi = any(b["jawaban_id"] is not None for b in butir_sesi)
     for b in butir_sesi:
         soal = soal_dari_baris(b)
@@ -481,6 +482,17 @@ def halaman_sesi_stitch(
             b["template_id"], benar_tampil, kode_efektif,
             dilewati=dilewati_terpilih,
         ))
+        # Nilai efektif yang dipakai kartu (termasuk draf koreksi) menjadi
+        # masukan agregator pasangan; bukan baris DB mentah sebelum tinjauan.
+        butir_diagnostik.append({
+            "template_id": b["template_id"],
+            "benar": int(bool(benar_tampil)),
+            "kode_final": kode_efektif,
+            "kode_usulan": getattr(rekomendasi, "kode", None),
+            "alasan": b["alasan"] or "",
+            "belum_pernah": int(bool(belum_terpilih)),
+            "dilewati": int(bool(dilewati_terpilih)),
+        })
         pilihan_pemahaman = "".join(
             '<div class="koreksi-pilihan-paham-st">'
             f'<input type="radio" id="paham-{b["sesi_soal_id"]}-{nilai or "kosong"}" '
@@ -659,6 +671,15 @@ def halaman_sesi_stitch(
             TINJAUAN_TERCATAT: kartu_tercatat,
         }.get(kategori_tinjauan, kartu_perlu_diperiksa)
         kelompok_kartu.append(kartu_html)
+
+    # Ringkasan pasangan diagnostik: hanya sesi baterai yang sudah ada jawaban,
+    # hanya permukaan guru/admin. Modul menjaga guard komposisi dan peran.
+    hasil_diagnostik = ""
+    if sudah_dikirim and ada_jawaban_di_sesi and not drill:
+        import diagnostic_summary
+        hasil_diagnostik = diagnostic_summary.ringkasan(
+            butir_diagnostik, _ambil(info, "level", LEVEL_BAWAAN), peran
+        )
 
     kabar = f'<div class="pesan-st" role="status">{html.escape(pesan)}</div>' if pesan else ""
     if masalah_konfirmasi:
@@ -1098,7 +1119,7 @@ def halaman_sesi_stitch(
         f"{kabar}"
         f"{palang_enter}{pil}{konteks_pendamping}"
         f'<section class="koreksi-misi-st" aria-label="Misi tinjauan">{status_sesi}{progres_tinjauan}</section>'
-        f"{hasil_pemetaan}{rencana_pemetaan}"
+        f"{hasil_pemetaan}{rencana_pemetaan}{hasil_diagnostik}"
         + (__import__('skill_pilot_ui').materi_sesi(kon,sesi_id,int(info['siswa_id'])) if sesi_pilot else '') +
         f"{aksi_rencana}"
         f"{blok_isi}"
