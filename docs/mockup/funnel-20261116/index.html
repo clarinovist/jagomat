@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup funnel Cek Kemampuan</title><style>
+.mockup-harga-st{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;margin:.25rem 0 .5rem}
+.mockup-harga-angka-st{font-size:2.6rem;font-weight:800;letter-spacing:-.02em;color:#16213e}
+.mockup-harga-satuan-st{font-size:1rem;color:#555}
+.mockup-pil-st{display:inline-block;padding:.3rem .7rem;border-radius:999px;font-size:.8rem;font-weight:600;
+  background:#fff7e6;border:1px solid #ecd9a8;color:#16213e}
+.mockup-pil-jujur-st{background:#eef3fb;border-color:#c4d3ea}
+.mockup-qris-st{width:11rem;height:11rem;border:1px solid #d5d8de;border-radius:.75rem;
+  display:grid;place-items:center;color:#555;font-size:.85rem;background:
+  repeating-conic-gradient(#d5d8de 0% 25%, #fff 0% 50%) 50%/1.1rem 1.1rem;margin:.75rem auto}
+.mockup-qris-st span{background:#fff;padding:.35rem .5rem;border-radius:.4rem;border:1px solid #d5d8de}
+.mockup-form-st label{display:block;font-weight:600;margin:.9rem 0 .3rem;color:#111}
+.mockup-form-st input,.mockup-form-st select{width:100%;min-height:48px;padding:.7rem .8rem;font-size:1rem;
+  border:1px solid #7b8786;border-radius:8px;background:#fff;color:#111}
+.mockup-form-st input:focus,.mockup-form-st select:focus{outline:3px solid #815600;outline-offset:2px}
+.mockup-form-st button{width:100%;justify-content:center}
+.mockup-wajib-st{font-size:.9rem;color:#555;margin:.25rem 0 1rem}
+.mockup-catatan-st{font-size:.9rem;color:#555;margin-top:.75rem}
+.mockup-dua-kolom-st{display:grid;gap:1.5rem;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);align-items:start}
+.mockup-dua-kolom-st>.landing-kartu-st{height:100%}
+.mockup-kartu-batas-st{background:#fff7e6;border-color:#ecd9a8}
+/* Galeri harus tetap utuh ketika screenshot full-page diambil. Scroll-driven animation
+   produksi dinonaktifkan hanya di mockup agar kartu di luar viewport tidak transparan. */
+.landing-kartu-st,.landing-demo-st,.landing-hero-teks-st>*{animation:none!important;opacity:1!important;transform:none!important}
+.mockup-ringkasan-st{margin:0 0 1.25rem;padding:.85rem 1rem;border-left:4px solid #0F6B64;
+  border-radius:0 8px 8px 0;background:#eef3fb}
+.mockup-ringkasan-st p{margin:.2rem 0}
+.mockup-status-st{display:flex;align-items:center;gap:.6rem;margin:1rem 0;padding:.75rem 1rem;
+  border-radius:8px;background:#fff7e6;color:#16213e;font-weight:700}
+.mockup-status-titik-st{width:.65rem;height:.65rem;border-radius:50%;background:#815600;flex:0 0 auto}
+.mockup-tombol-sekunder-st{display:inline-flex;align-items:center;justify-content:center;min-height:48px;
+  padding:0 1.5rem;border:2px solid #16213e;border-radius:10px;background:transparent;
+  color:#16213e;font:inherit;font-weight:700}
+.mockup-tombol-sekunder-st:disabled{opacity:.55;cursor:not-allowed;background:#f3f4f6}
+.mockup-catatan-utama-st{margin:.75rem 0 0;padding:.8rem 1rem;border-radius:8px;
+  background:#eef3fb;color:#16213e}
+@media (max-width:820px){.mockup-dua-kolom-st{grid-template-columns:1fr}}
+.mockup-galeri-st{max-width:1180px;margin:0 auto;padding:2rem 1rem 4rem;font-family:system-ui,sans-serif}
+.mockup-galeri-st h1{color:#16213e}
+.mockup-galeri-st figure{margin:0 0 2.5rem}
+.mockup-galeri-st figcaption{font-weight:700;margin:.75rem 0;color:#16213e}
+.mockup-bingkai-st{display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start}
+.mockup-bingkai-st iframe{border:1px solid #d5d8de;border-radius:.75rem;background:#fff}
+.mockup-daftar-st{font:inherit;white-space:pre-line;line-height:1.7;margin:0;color:#111}
+.mockup-tautan-st{display:inline-flex;align-items:center;min-height:44px;color:#16213e;text-decoration:underline;
+  text-underline-offset:3px;font-weight:600}
+.mockup-lebar-st{grid-column:1/-1}
+.mockup-cta-st{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:52px;
+  padding:.75rem 1.5rem;border-radius:10px;background:#cc3f2b;color:#ffffff;
+  font-weight:700;text-align:center;text-decoration:none}
+@media (min-width:821px){
+  .landing-hero-st{grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:2.25rem;padding-top:3.25rem}
+  .landing-judul-st{font-size:clamp(3rem,4.35vw,3.65rem);line-height:1.08}
+  .landing-panggung-st{padding-top:3rem}
+}
+@media (max-width:560px){
+  .mockup-cta-baris-st{flex-direction:column;align-items:flex-start;gap:.6rem}
+  .mockup-cta-st,.mockup-tombol-sekunder-st{width:100%}
+  .mockup-harga-angka-st{font-size:2.25rem}
+}
+</style></head>
+<body class="mockup-galeri-st">
+<h1>Mockup funnel Cek Kemampuan</h1>
+<p>Statis, tanpa server, tanpa data. Dirender dari kerangka dan token asli aplikasi.
+Diperiksa pada 390px (HP) dan 1180px (desktop).</p>
+<figure><figcaption>A · /cek-kemampuan</figcaption><div class="mockup-bingkai-st">
+<iframe src="A-cek-kemampuan.html" width="390" height="844" title="Cek kemampuan HP"></iframe>
+<iframe src="A-cek-kemampuan.html" width="1180" height="820" title="Cek kemampuan desktop"></iframe>
+</div></figure>
+<figure><figcaption>B · /paket-coba</figcaption><div class="mockup-bingkai-st">
+<iframe src="B-paket-coba.html" width="390" height="844" title="Paket coba HP"></iframe>
+<iframe src="B-paket-coba.html" width="1180" height="820" title="Paket coba desktop"></iframe>
+</div></figure>
+<figure><figcaption>C · /cek-kemampuan/hasil</figcaption><div class="mockup-bingkai-st">
+<iframe src="C-hasil.html" width="390" height="844" title="Hasil HP"></iframe>
+<iframe src="C-hasil.html" width="1180" height="820" title="Hasil desktop"></iframe>
+</div></figure>
+<figure><figcaption>D · /pesanan/&lt;id&gt;</figcaption><div class="mockup-bingkai-st">
+<iframe src="D-pesanan.html" width="390" height="844" title="Pesanan HP"></iframe>
+<iframe src="D-pesanan.html" width="1180" height="820" title="Pesanan desktop"></iframe>
+</div></figure>
+</body></html>
