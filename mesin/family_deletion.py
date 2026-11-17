@@ -26,6 +26,7 @@ import ai_store
 import assistant_schema
 import auth
 import database
+import kontak_akun
 
 
 MATRIS_RETENSI = (
@@ -209,6 +210,16 @@ def _ubah_lembaga(kon, pemilik: str, pseudonim: str) -> None:
                     (pseudonim, pemilik))
 
 
+def _hapus_kontak(kon, target_id: str) -> None:
+    """Hapus kontak WhatsApp milik keluarga target (kunci ``id_akun``).
+
+    Basis lama tanpa tabel kontak dilewati. Kontak keluarga lain tidak disentuh;
+    kontak yatim yang lolos tetap disapu ``kontak_akun.sapu_kontak``.
+    """
+    if _tabel(kon, "kontak_akun"):
+        kontak_akun.hapus(kon, target_id)
+
+
 def _ubah_belajar(path, pemilik: str, target_id: str, pseudonim: str):
     with database.buka(path) as kon:
         kon.execute("BEGIN IMMEDIATE")
@@ -238,6 +249,7 @@ def _ubah_belajar(path, pemilik: str, target_id: str, pseudonim: str):
                 kon.execute("UPDATE siswa SET nama=?,pemilik=? WHERE id=?",
                             ("Dihapus-%d" % urutan, pseudonim, siswa_id))
         _ubah_lembaga(kon, pemilik, pseudonim)
+        _hapus_kontak(kon, target_id)
         if kon.execute("PRAGMA foreign_key_check").fetchone() is not None:
             raise PenghapusanDitolak("integritas basis belajar gagal")
         return siswa_ids

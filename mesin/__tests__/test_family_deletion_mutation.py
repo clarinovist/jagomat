@@ -22,7 +22,9 @@ TEST = AKAR / "mesin" / "__tests__" / "test_family_deletion.py"
      "test_verifikasi_independen_dan_backup_exact_wajib"),
     ("arsip", 'if sesi_id not in terlindungi:', 'if True:',
      "test_bundle_hasil_memutus_data_aktif_menjaga_arsip_dan_isolasi"),
-), ids=("verifikasi", "snapshot", "arsip"))
+    ("kontak", 'kontak_akun.hapus(kon, target_id)', 'pass',
+     "test_bundle_hasil_menghapus_kontak_keluarga_target_dan_tidak_menyentuh_lain"),
+), ids=("verifikasi", "snapshot", "arsip", "kontak"))
 def test_guard_penghapusan_menangkap_mutasi(tmp_path, nama, lama, baru, test):
     del nama
     salinan = tmp_path / "repo"

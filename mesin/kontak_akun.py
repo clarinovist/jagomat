@@ -7,15 +7,23 @@ mencatat, mencetak, atau memasukkan nomor ke pesan galat.
 `simpan` dan `hapus` bekerja di dalam transaksi pemanggil dan tidak commit
 sendiri, supaya registrasi dapat menulis kontak bersama baris lain secara atomik.
 Waktu disuntik (string ISO) agar tes deterministik.
+
+Retensi: `aktivitas_terakhir` ditulis `sentuh_aktivitas` (maks satu tulis per
+hari per akun) dan baris dihapus `sapu_kontak` bila lebih tua dari
+`RETENSI_HARI` atau akunnya tidak lagi ada. Sapuan belum dijadwalkan otomatis.
 """
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from auth import id_akun_sah
 
 PANJANG_MASUKAN_MAKS = 32
+RETENSI_HARI = 365  # 12 bulan sejak aktivitas terakhir akun
+_FORMAT_WAKTU = "%Y-%m-%dT%H:%M:%S"
+_PANJANG_TANGGAL = 10  # "YYYY-MM-DD"
+_SAVEPOINT_SAPU = "sapu_kontak"
 _PEMISAH = " -.()"
 _POLA_WA = re.compile(r"628[0-9]{8,12}")
 _KOLOM = ("id_akun", "wa", "dibuat", "diperbarui", "aktivitas_terakhir")
@@ -90,3 +98,76 @@ def hapus(kon, id_akun) -> bool:
     """Hapus kontak akun di transaksi pemanggil; True bila ada baris terhapus."""
     _periksa_id_akun(id_akun)
     return kon.execute("DELETE FROM kontak_akun WHERE id_akun = ?", (id_akun,)).rowcount > 0
+
+
+def _waktu_baku(sekarang) -> datetime:
+    """Waktu ISO menjadi datetime naif UTC (zona dibuang setelah dikonversi)."""
+    _periksa_waktu(sekarang)
+    waktu = datetime.fromisoformat(sekarang)
+    if waktu.tzinfo is not None:
+        waktu = waktu.astimezone(timezone.utc).replace(tzinfo=None)
+    return waktu
+
+
+def sentuh_aktivitas(kon, id_akun, sekarang) -> bool:
+    """Majukan `aktivitas_terakhir` bila tanggalnya lebih tua dari hari `sekarang`.
+
+    Throttle: maksimal satu tulis per hari per akun. Tidak pernah membuat baris
+    baru (akun tanpa kontak tidak ditulis). Di transaksi pemanggil, tanpa commit.
+    True bila ada baris yang ditulis.
+    """
+    _periksa_id_akun(id_akun)
+    waktu = _waktu_baku(sekarang).strftime(_FORMAT_WAKTU)
+    return kon.execute(
+        """UPDATE kontak_akun SET aktivitas_terakhir = ?
+           WHERE id_akun = ?
+             AND substr(aktivitas_terakhir, 1, ?) < substr(?, 1, ?)""",
+        (waktu, id_akun, _PANJANG_TANGGAL, waktu, _PANJANG_TANGGAL),
+    ).rowcount > 0
+
+
+def _periksa_akun_hidup(id_akun_hidup) -> None:
+    """Guard: daftar akun gagal dibaca tidak boleh berubah menjadi 'semua yatim'."""
+    if type(id_akun_hidup) not in (set, frozenset) or not id_akun_hidup:
+        raise ValueError("daftar akun hidup harus himpunan tidak kosong")
+    if not all(id_akun_sah(i) for i in id_akun_hidup):
+        raise ValueError("daftar akun hidup memuat id_akun tidak sah")
+
+
+def _hapus_kedaluwarsa(kon, sekarang: datetime) -> int:
+    batas = (sekarang - timedelta(days=RETENSI_HARI)).strftime(_FORMAT_WAKTU)
+    return kon.execute(
+        "DELETE FROM kontak_akun WHERE aktivitas_terakhir < ?", (batas,)
+    ).rowcount
+
+
+def _hapus_yatim(kon, id_akun_hidup) -> int:
+    ada = [r[0] for r in kon.execute("SELECT id_akun FROM kontak_akun")]
+    yatim = [(i,) for i in ada if i not in id_akun_hidup]
+    kon.executemany("DELETE FROM kontak_akun WHERE id_akun = ?", yatim)
+    return len(yatim)
+
+
+def sapu_kontak(kon, id_akun_hidup, sekarang) -> dict:
+    """Hapus kontak kedaluwarsa (> `RETENSI_HARI`) dan yatim (akun tidak hidup).
+
+    `id_akun_hidup` wajib `set`/`frozenset` tidak kosong berisi id_akun sah; selain
+    itu ValueError dan tidak ada yang dihapus. Atomik lewat SAVEPOINT: gagal di
+    tengah berarti rollback utuh (bila tanpa transaksi pemanggil, RELEASE
+    meng-commit hasilnya). Baris yang kedaluwarsa sekaligus yatim dihitung sebagai
+    kedaluwarsa. Hasil hanya agregat, tanpa nomor atau id.
+    """
+    _periksa_akun_hidup(id_akun_hidup)
+    waktu = _waktu_baku(sekarang)
+    kon.execute("SAVEPOINT " + _SAVEPOINT_SAPU)
+    try:
+        hasil = {
+            "kedaluwarsa": _hapus_kedaluwarsa(kon, waktu),
+            "yatim": _hapus_yatim(kon, id_akun_hidup),
+        }
+    except Exception:
+        kon.execute("ROLLBACK TO " + _SAVEPOINT_SAPU)
+        kon.execute("RELEASE " + _SAVEPOINT_SAPU)
+        raise
+    kon.execute("RELEASE " + _SAVEPOINT_SAPU)
+    return hasil

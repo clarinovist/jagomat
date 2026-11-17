@@ -6,12 +6,18 @@ Façade ``web.Penangan`` tetap tersedia agar API pemanggil lama bertahan.
 from __future__ import annotations
 
 import html
+import logging
+import sqlite3
 import urllib.parse
+from datetime import datetime, timezone
+from pathlib import Path
 
 import auth
 import brand
+import database
 import design_tokens as T
 import ip_klien
+import kontak_akun
 import laju_masuk
 import sessions
 from assistant_navigation import tujuan_lanjut
@@ -114,6 +120,32 @@ def tangani_get(penangan, jalur: str) -> bool:
     return True
 
 
+_log = logging.getLogger(__name__)
+# Login tidak boleh tertahan oleh penulisan aktivitas (mis. DB sibuk saat registrasi).
+TIMEOUT_AKTIVITAS_DETIK = 0.5
+
+
+def _catat_aktivitas_masuk(principal) -> None:
+    """Majukan `aktivitas_terakhir` kontak akun yang baru login (fail-open).
+
+    Hanya akun yang sudah punya baris kontak yang ditulis, maksimal sekali per
+    hari. Kegagalan apa pun (DB sibuk, berkas hilang, galat lain) tidak boleh
+    menggagalkan login; hanya jenis galatnya yang dicatat, tanpa nomor atau
+    id_akun.
+    """
+    try:
+        uri = Path(database.BAWAAN).resolve().as_uri() + "?mode=rw"
+        waktu = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+        kon = sqlite3.connect(uri, uri=True, timeout=TIMEOUT_AKTIVITAS_DETIK)
+        try:
+            kontak_akun.sentuh_aktivitas(kon, principal.id_akun, waktu)
+            kon.commit()
+        finally:
+            kon.close()
+    except Exception as galat:  # noqa: BLE001 - fail-open disengaja
+        _log.warning("Catat aktivitas login gagal: %s", type(galat).__name__)
+
+
 def proses_masuk(penangan, data: dict) -> None:
     """Autentikasi dan buat sesi, dengan rate limit serta redirect per peran."""
     nama = (data.get("nama") or "").strip()
@@ -157,6 +189,7 @@ def proses_masuk(penangan, data: dict) -> None:
         )
         return
     laju_masuk.catat_berhasil(principal.pengguna, ip)
+    _catat_aktivitas_masuk(principal)
     tujuan = (
         "/murid" if principal.peran == "murid"
         else "/admin" if principal.peran == "admin"

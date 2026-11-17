@@ -18,6 +18,7 @@ import assistant_store
 import auth
 import database
 import family_deletion as hapus
+import kontak_akun
 import sessions
 
 
@@ -120,6 +121,37 @@ def test_verifikasi_independen_dan_backup_exact_wajib(penyimpanan):
         _jalankan(penyimpanan, _perintah(inv, sidik="f" * 64))
     assert not hasil.exists()
     assert auth.cari_akun("keluarga-target", paths["auth"]) is not None
+
+
+def test_bundle_hasil_menghapus_kontak_keluarga_target_dan_tidak_menyentuh_lain(penyimpanan):
+    paths, _bundle, hasil, *_ = penyimpanan
+    with database.buka(paths["belajar"]) as kon:
+        kontak_akun.simpan(kon, TARGET, "6281234567890", "2026-11-16T08:00:00")
+        kontak_akun.simpan(kon, LAIN, "6285551234567", "2026-11-16T08:00:00")
+    inv = hapus.preview(paths["belajar"], paths["auth"], paths["admin"],
+                        paths["ai"], paths["pendamping"], target_id=TARGET)
+
+    _jalankan(penyimpanan, _perintah(inv))
+
+    with database.buka(hasil / "bundle" / "latihan.db") as kon:
+        assert kontak_akun.ambil(kon, TARGET) is None
+        assert kontak_akun.ambil(kon, LAIN)["wa"] == "6285551234567"
+    # Live tidak tersentuh: bundle hasil hanya kandidat cutover.
+    with database.buka(paths["belajar"]) as kon:
+        assert kontak_akun.ambil(kon, TARGET)["wa"] == "6281234567890"
+
+
+def test_bundle_hasil_tanpa_tabel_kontak_tetap_berhasil(penyimpanan):
+    """Basis lama tanpa tabel kontak (belum migrasi aditif) tidak menggagalkan hapus."""
+    paths, _bundle, hasil, *_ = penyimpanan
+    with database.buka(paths["belajar"]) as kon:
+        kon.execute("DROP TABLE kontak_akun")
+    inv = hapus.preview(paths["belajar"], paths["auth"], paths["admin"],
+                        paths["ai"], paths["pendamping"], target_id=TARGET)
+
+    selesai = _jalankan(penyimpanan, _perintah(inv))
+
+    assert selesai.status == "succeeded"
 
 
 def test_bundle_hasil_memutus_data_aktif_menjaga_arsip_dan_isolasi(penyimpanan):
