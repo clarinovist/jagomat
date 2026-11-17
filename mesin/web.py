@@ -83,6 +83,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/lampiran/", "guru"),
     ("/lembar/", "guru"),
     ("/akun", "guru"),
+    ("/akun/kontak", "guru"),  # hanya peran guru; admin 404 identik rute tak dikenal
     ("/anak/", "guru"),
     ("/laporan/", "guru"),
 )
@@ -95,6 +96,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),
+    ("/akun/kontak", "guru"),  # guard asal dispatcher + token form; admin 404
 )
 
 _POLA_SKRIP_INLINE = re.compile(rb"<script>(.*?)</script>", re.S)
@@ -642,6 +644,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         if not self._lolos_sandi():
             return
+        import kontak_http
+        if kontak_http.tangani_get(self, jalur):
+            return
         import lembaga_http
         if lembaga_http.tangani_get(self, jalur):
             return
@@ -761,6 +766,9 @@ class Penangan(BaseHTTPRequestHandler):
         if not self._lolos_sandi():
             return
 
+        import kontak_http
+        if kontak_http.tangani_post(self, jalur):
+            return
         import lembaga_http
         if lembaga_http.tangani_post(self, jalur):
             return

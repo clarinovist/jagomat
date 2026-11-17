@@ -57,6 +57,7 @@ _PROBE_GET = {
     "/lampiran/": "/lampiran/1",
     "/lembar/": "/lembar/1",
     "/akun": "/akun",
+    "/akun/kontak": "/akun/kontak",
     "/anak/": "/anak/1",
     "/laporan/": "/laporan/1",
 }
@@ -69,6 +70,7 @@ _PROBE_POST = {
     "/lembaga": "/lembaga/pindah",
     "/sesi/": "/sesi/1",
     "/akun": "/akun",
+    "/akun/kontak": "/akun/kontak",
 }
 
 # Status anonim yang berlaku sekarang untuk tiap tingkat. "publik" POST boleh
@@ -87,7 +89,7 @@ _HARAPAN_ANONIM_POST = {
 }
 
 # Permukaan guru yang berisi data anak; akun murid tidak boleh menyentuhnya.
-RUTE_PERMUKAAN_GURU = ("/guru", "/akun", "/lembaga", "/sesi/1", "/lampiran/1", "/lembar/1")
+RUTE_PERMUKAAN_GURU = ("/guru", "/akun", "/akun/kontak", "/lembaga", "/sesi/1", "/lampiran/1", "/lembar/1")
 
 
 class _TanpaIkut(urllib.request.HTTPRedirectHandler):
