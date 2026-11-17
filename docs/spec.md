@@ -148,7 +148,13 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   terakhir akun (sapuan belum dijadwalkan). Hapus keluarga memerlukan verifikasi,
   preview/backup/cutover; bukan sekadar menghapus login atau bukti immutable.
 - Halaman publik funnel `/cek-kemampuan` dan `/paket-coba` (Fase 1) ada di balik `FUNNEL_AKTIF` (bawaan
-  mati: halaman "belum dibuka"); belum ada sesi cek, hasil, atau pembayaran.
+  mati: halaman "belum dibuka"). Fase 2: cek gratis per anak di `/cek-kemampuan/mulai` (centang persetujuan wajib,
+  tersimpan), `/hasil`, `/tautan` (peran guru; anak mengerjakan lewat `/mulai/<token>` yang ada); sesi biasa PG 15 soal
+  (`tujuan='bebas'`, bukan bukti siklus). Hasil gratis hanya skor (benar/15), kategori, ringkasan nama topik, berlabel "belum
+  ditinjau guru". **Pengecualian bercakupan sempit** atas larangan skor/persentase di laporan orang tua (Keputusan 17): skor cek
+  dihitung di `cek_gratis` dan tidak lewat `parent_report_snapshot`. Bahan mentah dihapus 30 hari setelah selesai (sapuan
+  `sapu_cek_gratis` belum dijadwalkan); turunan tetap selama akun aktif. Akun funnel tetap akun guru biasa, jadi halaman guru
+  yang ada (mis. `/sesi/<id>`) tetap terjangkau; bagian "terkunci" hanya berlaku di halaman hasil cek. Belum ada pembayaran.
 - [Backup operasional](operational-backup.md) manual mencakup core, riset dan foto;
   scheduler/off-site otomatis belum tersedia, bukan janji pemulihan seluruh VPS.
 

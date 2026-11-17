@@ -106,7 +106,16 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   sebelum `_lolos_sandi`, tanpa POST) + `funnel_pages.py` (markup, copy §7 plan) + `funnel_style.py`
   (`GAYA_FUNNEL`, hanya ikut `gaya_stitch()` saat `FUNNEL_AKTIF=1` agar byte halaman lain tak berubah).
   Sakelar mati = halaman "belum dibuka" 200 tanpa CTA; hidup = satu CTA ke `/daftar?jalur=cek`, tautan nav
-  di landing. Belum ada `/cek-kemampuan/mulai` (Fase 2): jangan aktifkan sakelar sebelum itu ada.
+  di landing.
+- Funnel Fase 2 (cek gratis): `schema_cek.py` (tabel aditif `cek_gratis`, UNIQUE per anak, kunci `id_akun`, FK ke siswa
+  ON DELETE CASCADE) + `cek_gratis.py` (`mulai` idempoten dengan persetujuan eksplisit, `selesaikan_jika_siap`,
+  `baca_hasil`, `hapus_cek_keluarga`), `cek_gratis_skor.py` (fungsi murni skor/kategori/ringkasan, kelas→`P{kelas}`),
+  `cek_gratis_sapu.py` (retensi 30/7 hari, guard daftar akun kosong, foreign_keys wajib aktif). `cek_http.py` +
+  `cek_pages.py`: rute guru di belakang `_lolos_sandi` dan `FUNNEL_AKTIF` (token HMAC per aksi, pembatas laju 10/IP/hari
+  in-memory, admin 404). Sesi cek = sesi gabungan 3 topik (kelas 3–6) atau `bilangan-dasar` (kelas 1–2, butuh flag materi
+  dasar), PG, tanpa bukti siklus. `family_deletion` ikut menghapus baris cek. Perubahan skema menggeser fingerprint kontrak
+  rilis: pin recovery diganti pada langkah rilis (tes `test_kontrak_candidate_identik_dengan_recovery_pinned` merah sampai itu).
+  Sakelar `FUNNEL_AKTIF` jangan dinyalakan sebelum Fase 3 dan keputusan copy/retensi otomatis.
 - Lembaga les: `schema_lembaga.py` (tabel aditif `lembaga`, `anggota_lembaga`, `pindah_siswa`
   append-only lewat trigger) + `lembaga_store.py` (semua SQL; `pindahkan` mengecek ulang semua
   predikat dalam `BEGIN IMMEDIATE`) → `lembaga_pages.py`/`lembaga_http.py` (`/lembaga`) dan

@@ -60,6 +60,8 @@ _PROBE_GET = {
     "/lembar/": "/lembar/1",
     "/akun": "/akun",
     "/akun/kontak": "/akun/kontak",
+    "/cek-kemampuan/mulai": "/cek-kemampuan/mulai",
+    "/cek-kemampuan/hasil": "/cek-kemampuan/hasil",
     "/anak/": "/anak/1",
     "/laporan/": "/laporan/1",
 }
@@ -73,6 +75,8 @@ _PROBE_POST = {
     "/sesi/": "/sesi/1",
     "/akun": "/akun",
     "/akun/kontak": "/akun/kontak",
+    "/cek-kemampuan/mulai": "/cek-kemampuan/mulai",
+    "/cek-kemampuan/tautan": "/cek-kemampuan/tautan",
 }
 
 # Status anonim yang berlaku sekarang untuk tiap tingkat. "publik" POST boleh
@@ -91,7 +95,10 @@ _HARAPAN_ANONIM_POST = {
 }
 
 # Permukaan guru yang berisi data anak; akun murid tidak boleh menyentuhnya.
-RUTE_PERMUKAAN_GURU = ("/guru", "/akun", "/akun/kontak", "/lembaga", "/sesi/1", "/lampiran/1", "/lembar/1")
+RUTE_PERMUKAAN_GURU = (
+    "/guru", "/akun", "/akun/kontak", "/lembaga", "/sesi/1", "/lampiran/1", "/lembar/1",
+    "/cek-kemampuan/mulai", "/cek-kemampuan/hasil",
+)
 
 
 class _TanpaIkut(urllib.request.HTTPRedirectHandler):
@@ -161,6 +168,12 @@ def test_tabel_akses_punya_probe():
     assert urutan.index("/admin") < urutan.index("/guru")
     assert urutan.index("/murid") < urutan.index("/sesi/")
     assert get["/murid"] == "murid" and get["/admin"] == "admin"
+    # `/cek-kemampuan` exact tetap publik; rute akun di bawahnya exact dan guru.
+    assert get["/cek-kemampuan"] == "publik"
+    assert get["/cek-kemampuan/mulai"] == get["/cek-kemampuan/hasil"] == "guru"
+    assert post["/cek-kemampuan/mulai"] == post["/cek-kemampuan/tautan"] == "guru"
+    assert "/cek-kemampuan/tautan" not in get
+    assert urutan.index("/cek-kemampuan") < urutan.index("/guru") < urutan.index("/cek-kemampuan/mulai")
 
 
 @pytest.mark.parametrize("prefix,tingkat", web.AKSES_RUTE_GET)

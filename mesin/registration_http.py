@@ -298,6 +298,8 @@ def tangani_post(penangan, jalur: str) -> bool:
         if type(akun_baru.siswa_id) is int and akun_baru.siswa_id > 0
         else "/guru"
     )
+    if jalur_cek:
+        tujuan_daftar = "/cek-kemampuan/mulai"
     if policy_http.perlu(akun_baru):
         tujuan_daftar = '/persetujuan'
     penangan.send_response(303)

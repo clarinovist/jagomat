@@ -86,6 +86,10 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/lembar/", "guru"),
     ("/akun", "guru"),
     ("/akun/kontak", "guru"),  # hanya peran guru; admin 404 identik rute tak dikenal
+    # Funnel Fase 2b (setelah palang sandi). `/cek-kemampuan` exact di atas tetap publik;
+    # dua rute ini exact, bukan prefix. Sakelar mati: 200 "belum dibuka" (GET).
+    ("/cek-kemampuan/mulai", "guru"),
+    ("/cek-kemampuan/hasil", "guru"),
     ("/anak/", "guru"),
     ("/laporan/", "guru"),
 )
@@ -99,6 +103,9 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),
     ("/akun/kontak", "guru"),  # guard asal dispatcher + token form; admin 404
+    # Funnel Fase 2b: sakelar mati = tak berefek, 404 rute tak dikenal.
+    ("/cek-kemampuan/mulai", "guru"),
+    ("/cek-kemampuan/tautan", "guru"),
 )
 
 _POLA_SKRIP_INLINE = re.compile(rb"<script>(.*?)</script>", re.S)
@@ -652,6 +659,9 @@ class Penangan(BaseHTTPRequestHandler):
         import kontak_http
         if kontak_http.tangani_get(self, jalur):
             return
+        import cek_http
+        if cek_http.tangani_get(self, jalur):
+            return
         import lembaga_http
         if lembaga_http.tangani_get(self, jalur):
             return
@@ -773,6 +783,9 @@ class Penangan(BaseHTTPRequestHandler):
 
         import kontak_http
         if kontak_http.tangani_post(self, jalur):
+            return
+        import cek_http
+        if cek_http.tangani_post(self, jalur):
             return
         import lembaga_http
         if lembaga_http.tangani_post(self, jalur):
