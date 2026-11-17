@@ -16,6 +16,7 @@ import ai_store
 import assistant_schema
 import assistant_store
 import auth
+import cek_gratis
 import database
 import family_deletion as hapus
 import kontak_akun
@@ -146,6 +147,48 @@ def test_bundle_hasil_tanpa_tabel_kontak_tetap_berhasil(penyimpanan):
     paths, _bundle, hasil, *_ = penyimpanan
     with database.buka(paths["belajar"]) as kon:
         kon.execute("DROP TABLE kontak_akun")
+    inv = hapus.preview(paths["belajar"], paths["auth"], paths["admin"],
+                        paths["ai"], paths["pendamping"], target_id=TARGET)
+
+    selesai = _jalankan(penyimpanan, _perintah(inv))
+
+    assert selesai.status == "succeeded"
+
+
+def _buat_cek(kon, id_akun, siswa_id, pemilik):
+    import learning_profile
+
+    learning_profile.simpan_kelas(kon, siswa_id, 4, revisi=0, pemilik=pemilik)
+    return cek_gratis.mulai(kon, id_akun, siswa_id, pemilik, True, "2026-11-18T10:00:00", seed=3)["sesi_id"]
+
+
+def test_bundle_hasil_menghapus_cek_gratis_keluarga_target_dan_tidak_menyentuh_lain(penyimpanan):
+    paths, _bundle, hasil, target_sid, lain_sid, *_ = penyimpanan
+    with database.buka(paths["belajar"]) as kon:
+        sesi_cek_target = _buat_cek(kon, TARGET, target_sid, "keluarga-target")
+        sesi_cek_lain = _buat_cek(kon, LAIN, lain_sid, "keluarga-lain")
+    inv = hapus.preview(paths["belajar"], paths["auth"], paths["admin"],
+                        paths["ai"], paths["pendamping"], target_id=TARGET)
+
+    _jalankan(penyimpanan, _perintah(inv))
+
+    with database.buka(hasil / "bundle" / "latihan.db") as kon:
+        assert kon.execute("SELECT COUNT(*) FROM cek_gratis WHERE id_akun=? OR siswa_id=?",
+                           (TARGET, target_sid)).fetchone()[0] == 0
+        assert kon.execute("SELECT COUNT(*) FROM sesi WHERE id=?", (sesi_cek_target,)).fetchone()[0] == 0
+        assert [tuple(r) for r in kon.execute("SELECT id_akun, siswa_id, sesi_id FROM cek_gratis")] == [
+            (LAIN, lain_sid, sesi_cek_lain)]
+        assert kon.execute("SELECT COUNT(*) FROM sesi WHERE id=?", (sesi_cek_lain,)).fetchone()[0] == 1
+    # Live tidak tersentuh: bundle hasil hanya kandidat cutover.
+    with database.buka(paths["belajar"]) as kon:
+        assert kon.execute("SELECT COUNT(*) FROM cek_gratis").fetchone()[0] == 2
+
+
+def test_bundle_hasil_tanpa_tabel_cek_gratis_tetap_berhasil(penyimpanan):
+    """Basis lama tanpa tabel cek (belum migrasi aditif) tidak menggagalkan hapus."""
+    paths, *_ = penyimpanan
+    with database.buka(paths["belajar"]) as kon:
+        kon.execute("DROP TABLE cek_gratis")
     inv = hapus.preview(paths["belajar"], paths["auth"], paths["admin"],
                         paths["ai"], paths["pendamping"], target_id=TARGET)
 

@@ -851,3 +851,8 @@ SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_LEMBAGA + '\
 from schema_contact import SKEMA_KONTAK_AKUN  # noqa: E402
 
 SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_KONTAK_AKUN + '\n-- Ringkasan per sesi supaya laporan', 1)
+
+# Cek kemampuan gratis (funnel Fase 2): aditif, idempoten, tanpa migrasi.
+from schema_cek import SKEMA_CEK_GRATIS  # noqa: E402
+
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_CEK_GRATIS + '\n-- Ringkasan per sesi supaya laporan', 1)

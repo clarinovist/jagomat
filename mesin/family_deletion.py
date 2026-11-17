@@ -25,6 +25,7 @@ import admin_store
 import ai_store
 import assistant_schema
 import auth
+import cek_gratis
 import database
 import kontak_akun
 
@@ -220,6 +221,16 @@ def _hapus_kontak(kon, target_id: str) -> None:
         kontak_akun.hapus(kon, target_id)
 
 
+def _hapus_cek(kon, target_id: str, siswa_ids) -> None:
+    """Hapus baris cek gratis keluarga target (kunci ``id_akun`` atau anaknya).
+
+    Sesi cek ikut terhapus bersama sesi lain keluarga; basis lama tanpa tabel cek
+    dilewati. Cek keluarga lain tidak disentuh.
+    """
+    if _tabel(kon, "cek_gratis"):
+        cek_gratis.hapus_cek_keluarga(kon, target_id, siswa_ids)
+
+
 def _ubah_belajar(path, pemilik: str, target_id: str, pseudonim: str):
     with database.buka(path) as kon:
         kon.execute("BEGIN IMMEDIATE")
@@ -250,6 +261,7 @@ def _ubah_belajar(path, pemilik: str, target_id: str, pseudonim: str):
                             ("Dihapus-%d" % urutan, pseudonim, siswa_id))
         _ubah_lembaga(kon, pemilik, pseudonim)
         _hapus_kontak(kon, target_id)
+        _hapus_cek(kon, target_id, siswa_ids)
         if kon.execute("PRAGMA foreign_key_check").fetchone() is not None:
             raise PenghapusanDitolak("integritas basis belajar gagal")
         return siswa_ids
