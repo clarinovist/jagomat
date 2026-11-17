@@ -146,7 +146,7 @@ A_ISI = f"""{topbar()}
       <span class="landing-kode-st aktif">Hitung dasar kuat</span>
       <span class="landing-kode-st">Soal cerita perlu diperkuat</span>
     </div>
-    <p class="landing-demo-catatan-st"><b>Detail per materi, peringkat, dan urutan belajar</b>
+    <p class="landing-demo-catatan-st"><b>Detail per materi, analisis kesalahan, dan urutan belajar</b>
     ada di laporan lengkap.</p>
   </div>
 </div>
@@ -201,8 +201,8 @@ A_ISI = f"""{topbar()}
       <span class="mockup-harga-satuan-st">sekali bayar · bukan langganan</span></p>
       <p>Yang termasuk:</p>
       <ul>
-        <li>laporan lengkap yang diperiksa guru: penguasaan per materi, peringkat, analisis kesalahan dengan persentase, dan urutan belajar prioritas 1, 2, 3;</li>
-        <li>konsultasi video 20 menit dengan guru tentang cara berpikir anak dan hal yang bisa dilatih;</li>
+        <li>laporan lengkap yang diperiksa guru: penguasaan per materi, analisis kesalahan, dan urutan belajar prioritas 1, 2, 3;</li>
+        <li>konsultasi 20 menit dengan guru tentang cara berpikir anak dan hal yang bisa dilatih;</li>
         <li>akses latihan 30 hari untuk satu anak;</li>
         <li>deposit Rp49.000 berupa voucher untuk program belajar jika nanti Anda ingin melanjutkan.</li>
       </ul>
@@ -249,8 +249,8 @@ B_ISI = f"""{topbar()}
          <span class="mockup-pil-st mockup-pil-jujur-st">Tidak diperpanjang otomatis</span></p>
       <p>Yang Anda dapat:</p>
       <ul>
-        <li><b>Laporan lengkap</b> yang diperiksa guru: penguasaan per materi, peringkat, analisis kesalahan dengan persentase, dan urutan belajar prioritas 1, 2, 3.</li>
-        <li><b>Konsultasi video 20 menit</b> untuk membahas cara berpikir anak dan hal yang bisa dilatih.</li>
+        <li><b>Laporan lengkap</b> yang diperiksa guru: penguasaan per materi, analisis kesalahan, dan urutan belajar prioritas 1, 2, 3.</li>
+        <li><b>Konsultasi 20 menit</b> untuk membahas cara berpikir anak dan hal yang bisa dilatih.</li>
         <li><b>Latihan 30 hari</b> untuk satu anak, diarahkan dari hasil cek.</li>
         <li><b>Deposit Rp49.000</b> berupa voucher untuk program belajar jika nanti Anda ingin melanjutkan.</li>
       </ul>
@@ -335,8 +335,8 @@ C_ISI = f"""{topbar()}
     <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">03</span>Masih terkunci</h3>
     <div class="landing-kartu-isi-st">
       <ul><li>penguasaan per materi, lengkap dengan detailnya</li>
-      <li>peringkat di antara peserta kelas 4</li>
-      <li>analisis kesalahan dengan persentase</li>
+      <li>peringkat (hanya bila data pembanding nyata tersedia)</li>
+      <li>analisis kesalahan</li>
       <li>urutan belajar prioritas 1, 2, 3</li></ul>
     </div>
   </section>

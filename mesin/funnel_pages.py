@@ -52,12 +52,12 @@ COPY_GRATIS_ISI = (
     "<b>Skor keseluruhan dan kategori kemampuan.</b> Jadi Anda tahu gambaran umumnya.",
     "<b>Ringkasan awal.</b> Satu paragraf tentang bagian yang sudah kuat dan yang perlu diperkuat.",
     "<b>Catatan penting:</b> hasil dibuat otomatis dan <b>belum diperiksa guru</b>. "
-    "Detail per materi, peringkat, dan urutan belajar ada di laporan lengkap.",
+    "Detail per materi, analisis kesalahan, dan urutan belajar ada di laporan lengkap.",
 )
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_LAPORAN_LENGKAP = (
-    "laporan lengkap yang diperiksa guru: penguasaan per materi, peringkat, "
-    "analisis kesalahan dengan persentase, dan urutan belajar prioritas 1, 2, 3"
+    "laporan lengkap yang diperiksa guru: penguasaan per materi, "
+    "analisis kesalahan, dan urutan belajar prioritas 1, 2, 3"
 )
 COPY_PAKET_ISI = (
     COPY_LAPORAN_LENGKAP,
@@ -185,7 +185,7 @@ def halaman_cek_kemampuan(dukungan=None) -> bytes:
   <div class="landing-demo-hasil-st">
     <p class="landing-demo-label-st">Ringkasan awal · contoh ilustrasi</p>
     <div class="landing-kode-grup-st">{kode}</div>
-    <p class="landing-demo-catatan-st"><b>Detail per materi, peringkat, dan urutan belajar</b>
+    <p class="landing-demo-catatan-st"><b>Detail per materi, analisis kesalahan, dan urutan belajar</b>
     ada di laporan lengkap.</p>
   </div>
 </div>
