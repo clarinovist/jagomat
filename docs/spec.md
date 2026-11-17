@@ -89,7 +89,7 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   sisi server (Zero-JS)**, tetap tanpa angka/skor/kode/level; snapshot v1 lama jatuh ke
   tampilan lama. Snapshot dibekukan saat terbit,
   tidak ada edit sesudahnya, admin hanya melihat, dan semua tautan tidak sah satu 404 identik.
-  Menulis laporan tidak menyentuh bukti belajar. Tidak menyimpan email/telepon.
+  Menulis laporan tidak menyentuh bukti belajar. Laporan tidak memuat kontak.
   Satu alur sesi kertas: Terapkan di halaman isi dari lembar yang membuat semua soal terisi
   membawa guru langsung ke tinjauan; ringkasan tinjauan memisahkan soal yang **wajib** diputuskan
   sebelum konfirmasi dari dugaan Jagomat dan tanya cara yang opsional (proyeksi UI, server tetap
@@ -140,8 +140,12 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
 - Guru asing mendapat **404 identik**, tanpa efek samping; murid tidak menerima
   kunci, malrule, diagnosis atau laporan. Admin tidak mengubah akun sesama admin.
 - Data anak, credential, sesi, wawancara dan backup tidak masuk Git/log/fixture.
-  Aplikasi belum menyimpan email/telepon; kontak hanya boleh untuk orang dewasa
-  pembayar demi penagihan (keputusan 6 Nov 2026), bukan kontak anak/orang tua murid. Hapus keluarga memerlukan verifikasi,
+  Kontak hanya untuk orang dewasa pembayar demi penagihan (keputusan 6 Nov 2026), bukan
+  kontak anak/orang tua murid. Satu-satunya kontak terstruktur: nomor WhatsApp per akun
+  (`kontak_akun`, kunci `id_akun`, tanpa kunci ke data anak), wajib hanya pada pendaftaran
+  jalur funnel (`/daftar?jalur=cek`, di balik `FUNNEL_AKTIF`, bawaan mati) dan dilengkapi akun lama
+  lewat `/akun/kontak` (guru). Tidak tampil ke murid/tautan; retensi 12 bulan sejak aktivitas
+  terakhir akun (sapuan belum dijadwalkan). Hapus keluarga memerlukan verifikasi,
   preview/backup/cutover; bukan sekadar menghapus login atau bukti immutable.
 - [Backup operasional](operational-backup.md) manual mencakup core, riset dan foto;
   scheduler/off-site otomatis belum tersedia, bukan janji pemulihan seluruh VPS.

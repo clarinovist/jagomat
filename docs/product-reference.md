@@ -232,10 +232,13 @@ evaluasi berjeda → checkpoint → maju atau eskalasi.**
 - Data anak, kredensial, sesi, data wawancara konsumen, dan cadangan tidak masuk
   Git/log/fixture. Tes memakai
   data sintetis; pengiriman ke AI hanya melalui alur dan izin produk yang disetujui.
-  Aplikasi belum menyimpan email/telepon pengguna. Sejak 6 Nov 2026 kontak orang dewasa
+  Aplikasi tidak menyimpan email. Sejak 6 Nov 2026 kontak orang dewasa
   pembayar (pemilik les, guru, orang tua berlangganan) boleh dicatat untuk penagihan dan
   dukungan, minimal dan terpisah dari data anak; kontak anak/orang tua murid les tidak.
-  Fitur aplikasi yang menyimpannya jalur Kritis. Nomor WhatsApp Business adalah konfigurasi
+  Fitur aplikasi yang menyimpannya jalur Kritis. Sejak 17 Nov 2026 satu-satunya yang disimpan
+  adalah nomor WhatsApp per akun (`kontak_akun`, kunci `id_akun`): wajib hanya di pendaftaran
+  jalur funnel (`FUNNEL_AKTIF`, bawaan mati), dilengkapi akun lama lewat `/akun/kontak`, retensi
+  12 bulan sejak aktivitas terakhir akun. Nomor WhatsApp Business adalah konfigurasi
   operasi Jagomat, bukan kontak keluarga; URL publik tidak membawa nama akun/anak.
 - Penghapusan seluruh keluarga memakai primitive domain teruji yang memerlukan
   verifikasi independen, preview exact, backup coherent empat DB + auth, dan cutover

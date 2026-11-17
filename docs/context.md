@@ -92,6 +92,16 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - `teacher_usage.py` (SELECT saja, dari kolom sesi/pengiriman/laporan yang ada; tanpa migrasi)
   → `admin_usage_pages.py` → `admin_usage_http.py` untuk `/admin/pemakaian`. SQL sengaja di modul
   bernama non-`*store*` karena hanya membaca; sidik kontrak persistensi tidak berubah.
+- Kontak WhatsApp per akun: `schema_contact.py` (tabel aditif `kontak_akun`, kunci `id_akun`, bukan
+  nama login, supaya nama yang dipakai ulang tidak mewarisi kontak) + `kontak_akun.py` (normalisasi
+  628…, simpan/ambil/hapus di transaksi pemanggil, `sentuh_aktivitas` maks 1 tulis/hari,
+  `sapu_kontak` 365 hari + yatim, menolak daftar akun kosong). SQL-nya di modul non-`*store*`;
+  periksa bila ada pemindai kontrak persistensi berbasis nama. Jalur funnel: `funnel_flag.py` (satu-satunya
+  pembaca `FUNNEL_AKTIF`, hanya "1" yang hidup) + `registration_contact.py` (field/validasi di
+  `/daftar?jalur=cek`, kontak ditulis di transaksi yang sama dengan baris anak di
+  `admin_registration`; WA ikut `sidik` hanya jalur ini). `kontak_http.py`/`kontak_pages.py` untuk
+  `/akun/kontak` (guru; admin 404). Login mencatat aktivitas fail-open di `auth_http`;
+  `family_deletion._ubah_belajar` menghapus kontak keluarga target.
 - Lembaga les: `schema_lembaga.py` (tabel aditif `lembaga`, `anggota_lembaga`, `pindah_siswa`
   append-only lewat trigger) + `lembaga_store.py` (semua SQL; `pindahkan` mengecek ulang semua
   predikat dalam `BEGIN IMMEDIATE`) → `lembaga_pages.py`/`lembaga_http.py` (`/lembaga`) dan

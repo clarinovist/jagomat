@@ -372,8 +372,8 @@ akan ditinjau setelah konfirmasi profesional.</p>
 def halaman_lupa_sandi(dukungan=None) -> bytes:
     """Panduan publik "Lupa sandi?" — murni teks, tanpa form apa pun.
 
-    Aplikasi ini SENGAJA tidak menyimpan email/telepon, jadi reset mandiri
-    via email mustahil: tidak ada jalur kirim-ulang sandi otomatis dan tidak
+    Aplikasi ini SENGAJA tidak menyimpan email (nomor WhatsApp hanya untuk jalur
+    funnel dan tidak dipakai reset), jadi reset mandiri via email mustahil: tidak ada jalur kirim-ulang sandi otomatis dan tidak
     boleh diarang seolah ada. Sandi hanya bisa disetel ulang oleh manusia
     yang tepat — guru/orang tua untuk murid, pengelola untuk orang tua.
     Halaman ini menunjukkan jalurnya supaya yang terkunci tidak buntu di
