@@ -120,15 +120,15 @@ A_ISI = f"""{topbar()}
   <p class="landing-alis-st"><span aria-hidden="true">✳</span> <span>Cek kemampuan gratis · <span class="landing-jenjang-st">Kelas 1–6 SD</span></span></p>
   <h1 class="landing-judul-st" id="judul-cek">Kelihatan di langkah mana
   <span>anak mulai bingung.</span></h1>
-  <p class="landing-tagline-st">Sekitar 25 menit. Satu halaman. Tanpa membuat akun.</p>
+  <p class="landing-tagline-st">Sekitar 25 menit. Akun gratis, dibuat di awal.</p>
   <p class="landing-sub-st">Anak mengerjakan soal sesuai kelasnya. Setelah selesai, Anda langsung
-  mendapat ringkasan: bagian yang sudah kuat, bagian yang perlu dipahami lagi, dan satu kegiatan
-  yang bisa dicoba di rumah.</p>
+  mendapat skor keseluruhan, kategori kemampuan, dan ringkasan awal. Detail per materi ada di
+  laporan lengkap.</p>
   <p class="landing-cta-baris-st">
     <a class="tombol-coral" href="#">Mulai cek gratis <span aria-hidden="true">↗</span></a>
   </p>
   <p class="landing-penawaran-st"><b>Gratis · tanpa kartu pembayaran.</b><br>
-  Cukup isi nama panggilan, kelas, dan persetujuan orang tua atau wali.</p>
+  Buat akun gratis, lalu isi nama panggilan anak, kelas, dan persetujuan orang tua atau wali.</p>
   <p><a class="mockup-tautan-st" href="#">Lihat contoh hasil</a></p>
 </div>
 
@@ -136,20 +136,18 @@ A_ISI = f"""{topbar()}
   <span class="landing-coret-st" aria-hidden="true">✳</span>
   <p class="landing-catatan-kertas-st">Bukan cuma nilai.<br><b>Ada langkahnya.</b></p>
 <div class="landing-demo-st">
-  <div class="landing-demo-kepala-st"><span>Ringkasan 1 halaman</span><span>Contoh</span></div>
+  <div class="landing-demo-kepala-st"><span>Hasil gratis</span><span>Contoh</span></div>
   <p class="landing-demo-soal-st">Aisyah · kelas 4</p>
-  <p class="mockup-daftar-st">Sudah kuat
-· penjumlahan bersusun
-· perkalian sampai 2 angka
-· membaca soal cerita</p>
+  <p class="mockup-daftar-st">Skor keseluruhan 72 dari 100
+· kategori: Cukup baik</p>
   <div class="landing-demo-hasil-st">
-    <p class="landing-demo-label-st">Perlu dipahami lagi · contoh ilustrasi</p>
+    <p class="landing-demo-label-st">Ringkasan awal · contoh ilustrasi</p>
     <div class="landing-kode-grup-st">
-      <span class="landing-kode-st aktif">Pecahan senilai</span>
-      <span class="landing-kode-st">Langkah hitung</span>
+      <span class="landing-kode-st aktif">Hitung dasar kuat</span>
+      <span class="landing-kode-st">Soal cerita perlu diperkuat</span>
     </div>
-    <p class="landing-demo-catatan-st"><b>Satu langkah minggu ini:</b> minta anak menjelaskan
-    kenapa 1/2 dan 2/4 dianggap sama, pakai satu kertas yang dilipat.</p>
+    <p class="landing-demo-catatan-st"><b>Detail per materi, peringkat, dan urutan belajar</b>
+    ada di laporan lengkap.</p>
   </div>
 </div>
   <p class="landing-demo-keterangan-st">Contoh ilustrasi · bukan hasil anak sungguhan</p>
@@ -164,9 +162,9 @@ A_ISI = f"""{topbar()}
 </div>
 <div class="landing-grid-st landing-info-st">
   <section class="landing-kartu-st">
-    <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">01</span>Isi data singkat</h3>
-    <div class="landing-kartu-isi-st"><p>Isi nama panggilan anak dan kelasnya, lalu berikan
-    persetujuan sebagai orang tua atau wali. Kurang dari satu menit.</p></div>
+    <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">01</span>Buat akun gratis</h3>
+    <div class="landing-kartu-isi-st"><p>Buat akun, isi nama panggilan anak dan kelasnya, lalu berikan
+    persetujuan sebagai orang tua atau wali. Kurang dari dua menit.</p></div>
   </section>
   <section class="landing-kartu-st">
     <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">02</span>Anak mengerjakan 25 menit</h3>
@@ -174,17 +172,17 @@ A_ISI = f"""{topbar()}
     Anda tidak perlu terus mendampingi.</p></div>
   </section>
   <section class="landing-kartu-st">
-    <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">03</span>Baca ringkasannya</h3>
-    <div class="landing-kartu-isi-st"><p>Satu halaman berisi hal yang sudah kuat,
-    bagian yang perlu dipahami lagi, dan satu kegiatan untuk minggu ini.</p></div>
+    <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">03</span>Baca hasilnya</h3>
+    <div class="landing-kartu-isi-st"><p>Anda langsung melihat skor keseluruhan, kategori kemampuan,
+    dan ringkasan awal.</p></div>
   </section>
   <section class="landing-kartu-st">
     <h3 class="landing-kartu-judul-st">Yang Anda dapat secara gratis</h3>
     <div class="landing-kartu-isi-st">
-      <p><b>Tiga hal yang sudah kuat.</b> Jadi Anda tahu bagian yang tidak perlu diulang.</p>
-      <p><b>Satu bagian yang perlu dipahami lagi.</b> Bukan daftar panjang yang membingungkan.</p>
-      <p><b>Catatan penting:</b> ringkasan dibuat otomatis dan <b>belum diperiksa guru</b>.
-      Paket Coba mencakup pemeriksaan guru dan konsultasi 20 menit.</p>
+      <p><b>Skor keseluruhan dan kategori kemampuan.</b> Jadi Anda tahu gambaran umumnya.</p>
+      <p><b>Ringkasan awal.</b> Satu paragraf tentang bagian yang sudah kuat dan yang perlu diperkuat.</p>
+      <p><b>Catatan penting:</b> hasil dibuat otomatis dan <b>belum diperiksa guru</b>.
+      Detail per materi, peringkat, analisis kesalahan, dan urutan belajar ada di laporan lengkap.</p>
     </div>
   </section>
 </div>
@@ -203,10 +201,10 @@ A_ISI = f"""{topbar()}
       <span class="mockup-harga-satuan-st">sekali bayar · bukan langganan</span></p>
       <p>Yang termasuk:</p>
       <ul>
-        <li>laporan lengkap 5–6 halaman yang diperiksa guru dan ditulis untuk orang tua;</li>
+        <li>laporan lengkap yang diperiksa guru: penguasaan per materi, peringkat, analisis kesalahan dengan persentase, dan urutan belajar prioritas 1, 2, 3;</li>
         <li>konsultasi video 20 menit dengan guru tentang cara berpikir anak dan hal yang bisa dilatih;</li>
         <li>akses latihan 30 hari untuk satu anak;</li>
-        <li>potongan Rp49.000 untuk kelas pertama jika nanti Anda ingin melanjutkan.</li>
+        <li>deposit Rp49.000 berupa voucher untuk program belajar jika nanti Anda ingin melanjutkan.</li>
       </ul>
       <p><a class="tombol-coral" href="#">Lihat rincian Paket Coba <span aria-hidden="true">↗</span></a></p>
       <p class="landing-harga-syarat-st">Mengambil kelas tidak wajib. Anda tetap dapat memakai laporan
@@ -251,10 +249,10 @@ B_ISI = f"""{topbar()}
          <span class="mockup-pil-st mockup-pil-jujur-st">Tidak diperpanjang otomatis</span></p>
       <p>Yang Anda dapat:</p>
       <ul>
-        <li><b>Laporan 5–6 halaman</b> yang diperiksa guru dan ditulis untuk orang tua.</li>
+        <li><b>Laporan lengkap</b> yang diperiksa guru: penguasaan per materi, peringkat, analisis kesalahan dengan persentase, dan urutan belajar prioritas 1, 2, 3.</li>
         <li><b>Konsultasi video 20 menit</b> untuk membahas cara berpikir anak dan hal yang bisa dilatih.</li>
         <li><b>Latihan 30 hari</b> untuk satu anak, diarahkan dari hasil cek.</li>
-        <li><b>Potongan Rp49.000</b> untuk kelas pertama jika nanti Anda ingin melanjutkan.</li>
+        <li><b>Deposit Rp49.000</b> berupa voucher untuk program belajar jika nanti Anda ingin melanjutkan.</li>
       </ul>
       <p class="mockup-catatan-st">Pembayaran melalui QRIS. Data anak hanya dipakai untuk pemeriksaan ini.</p>
     </div>
@@ -262,24 +260,17 @@ B_ISI = f"""{topbar()}
 
   <section class="landing-kartu-st">
     <div class="landing-kartu-isi-st">
-      <h2 class="landing-kartu-judul-st">Isi data untuk melanjutkan pembayaran</h2>
-      <p class="mockup-wajib-st">Semua kolom wajib diisi.</p>
+      <h2 class="landing-kartu-judul-st">Konfirmasi untuk melanjutkan pembayaran</h2>
+      <p class="mockup-wajib-st">Anda sudah masuk ke akun Anda. Data anak diambil dari cek kemampuan.</p>
       <form class="mockup-form-st" action="#" method="post">
-        <label for="m-nama">Nama Anda</label>
-        <input id="m-nama" name="nama" type="text" placeholder="Contoh: Rina" autocomplete="name" required>
+        <p class="mockup-ringkasan-st"><b>Untuk:</b> Aisyah · Kelas 4 (contoh)</p>
         <label for="m-wa">Nomor WhatsApp aktif</label>
         <input id="m-wa" name="whatsapp" type="tel" placeholder="Contoh: 0812 3456 7890"
           autocomplete="tel" inputmode="tel" aria-describedby="bantuan-wa" required>
-        <p class="mockup-catatan-st" id="bantuan-wa">Kami hanya memakai nomor ini untuk mengatur jadwal
-        bersama guru dan membantu pesanan Anda.</p>
-        <label for="m-anak">Nama panggilan atau inisial anak</label>
-        <input id="m-anak" name="nama_anak" type="text" placeholder="Contoh: Aya" autocomplete="off" required>
-        <label for="m-kelas">Kelas anak</label>
-        <select id="m-kelas" name="kelas" required><option value="">Pilih kelas</option><option>Kelas 1</option>
-        <option>Kelas 2</option><option>Kelas 3</option><option>Kelas 4</option><option>Kelas 5</option>
-        <option>Kelas 6</option></select>
+        <p class="mockup-catatan-st" id="bantuan-wa">Kami hanya memakai nomor ini untuk mengonfirmasi jadwal
+        konsultasi dan mengirim voucher.</p>
         <p style="margin-top:1.25rem"><button class="st-tombol-coral" type="submit">Lanjut ke pembayaran · Rp49.000</button></p>
-        <p class="mockup-catatan-st">Setelah pembayaran berhasil, Anda membuat sandi untuk membuka laporan dan latihan 30 hari.</p>
+        <p class="mockup-catatan-st">Setelah pembayaran berhasil, laporan lengkap terbuka di akun Anda dan latihan 30 hari mulai.</p>
       </form>
     </div>
   </section>
@@ -294,8 +285,8 @@ B_ISI = f"""{topbar()}
 <div class="landing-grid-st landing-info-st">
   <section class="landing-kartu-st">
     <h3 class="landing-kartu-judul-st">Kapan konsultasinya?</h3>
-    <div class="landing-kartu-isi-st"><p>Setelah pembayaran berhasil, kami menghubungi Anda lewat WhatsApp.
-    Kami akan membantu mencari jadwal konsultasi 20 menit yang cocok.</p></div>
+    <div class="landing-kartu-isi-st"><p>Setelah pembayaran berhasil, Anda memilih hari dan jam yang nyaman
+    lewat tombol Jadwalkan Konsultasi. Tim mengonfirmasi lewat WhatsApp.</p></div>
   </section>
   <section class="landing-kartu-st">
     <h3 class="landing-kartu-judul-st">Bagaimana jika berubah pikiran?</h3>
@@ -304,9 +295,9 @@ B_ISI = f"""{topbar()}
     penjadwalan ulang jika waktunya berubah.</p></div>
   </section>
   <section class="landing-kartu-st">
-    <h3 class="landing-kartu-judul-st">Bagaimana potongan kelasnya?</h3>
-    <div class="landing-kartu-isi-st"><p>Jika nanti Anda mengikuti kelas, kami memberikan potongan
-    Rp49.000 untuk pembayaran kelas pertama. Potongan tercatat atas nama Anda.</p></div>
+    <h3 class="landing-kartu-judul-st">Bagaimana deposit Rp49.000?</h3>
+    <div class="landing-kartu-isi-st"><p>Biaya ini menjadi deposit: Anda mendapat voucher Rp49.000
+    untuk program belajar bila melanjutkan. Voucher dikirim lewat WhatsApp dan tercatat atas nama Anda.</p></div>
   </section>
 </div>
 </section>
@@ -318,47 +309,48 @@ C_ISI = f"""{topbar()}
 <main class="landing-bungkus-st" id="konten" tabindex="-1">
 <section class="landing-kenali-st" aria-labelledby="judul-hasil">
 <div class="landing-bagian-kepala-st">
-  <p class="landing-alis-st">RINGKASAN HASIL · GRATIS</p>
-  <h1 id="judul-hasil">Ringkasan hasil Aisyah</h1>
+  <p class="landing-alis-st">HASIL · GRATIS</p>
+  <h1 id="judul-hasil">Hasil matematika Aisyah</h1>
   <p>Kelas 4 · 15 soal selesai</p>
-  <p><span class="mockup-pil-st mockup-pil-jujur-st">Ringkasan otomatis · belum diperiksa guru</span></p>
+  <p><span class="mockup-pil-st mockup-pil-jujur-st">Hasil otomatis · belum diperiksa guru</span></p>
 </div>
 
 <div class="landing-grid-st landing-info-st">
   <section class="landing-kartu-st">
-    <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">01</span>Sudah kuat</h3>
+    <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">01</span>Skor keseluruhan</h3>
     <div class="landing-kartu-isi-st">
-      <ul><li>penjumlahan dan pengurangan bersusun</li>
-      <li>perkalian sampai dua angka</li>
-      <li>membaca soal cerita sederhana</li></ul>
+      <p class="mockup-harga-st"><span class="mockup-harga-angka-st">72</span>
+      <span class="mockup-harga-satuan-st">dari 100 · kategori Cukup baik</span></p>
+      <p>Pemahaman dasar sudah baik, tetapi beberapa materi masih perlu diperkuat.</p>
     </div>
   </section>
   <section class="landing-kartu-st">
-    <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">02</span>Perlu dipahami lagi</h3>
+    <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">02</span>Ringkasan awal</h3>
     <div class="landing-kartu-isi-st">
-      <ul><li><b>Pecahan senilai.</b> Anak menulis 1/2 = 2/3; kemungkinan melihat angka atas dan
-      bawah terpisah, bukan sebagai satu nilai.</li>
-      <li><b>Langkah hitung.</b> Ada satu soal di mana anak melewati langkah penyimpanan puluhan.</li></ul>
+      <p>Aisyah sudah kuat di hitung dasar dan pecahan sederhana. Latihan lebih banyak dibutuhkan pada
+      geometri dan soal cerita.</p>
     </div>
   </section>
-  <section class="landing-kartu-st">
-    <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">03</span>Satu langkah minggu ini</h3>
+  <section class="landing-kartu-st mockup-kartu-batas-st">
+    <h3 class="landing-kartu-judul-st"><span class="landing-nomor-st" aria-hidden="true">03</span>Masih terkunci</h3>
     <div class="landing-kartu-isi-st">
-      <p>Lipat satu kertas jadi dua, lalu jadi empat. Minta anak menunjukkan kenapa bagian yang
-      dilipat dua kali tetap sama besar. Cukup 10 menit, dua kali minggu ini.</p>
+      <ul><li>penguasaan per materi, lengkap dengan detailnya</li>
+      <li>peringkat di antara peserta kelas 4</li>
+      <li>analisis kesalahan dengan persentase</li>
+      <li>urutan belajar prioritas 1, 2, 3</li></ul>
     </div>
   </section>
 </div>
 
-<div class="landing-grid-st">
-  <section class="landing-kartu-st">
+<div class="landing-grid-st" style="margin-top:1.5rem">
+  <section class="landing-kartu-st" style="grid-column:1 / -1">
     <div class="landing-kartu-isi-st">
-      <p><b>Batas ringkasan ini:</b> hasil dibuat dari 15 soal yang dikerjakan Aisyah.
-      Ringkasan ini bukan pemeriksaan menyeluruh dan tidak memperkirakan nilai. Materi di luar soal
+      <p><b>Batas hasil ini:</b> dibuat dari 15 soal yang dikerjakan Aisyah.
+      Hasil ini bukan pemeriksaan menyeluruh dan tidak memperkirakan nilai. Materi di luar soal
       yang dikerjakan belum diperiksa.</p>
-      <p><a class="mockup-cta-st" href="#">Dapatkan laporan lengkap · Rp49.000</a></p>
+      <p><a class="mockup-cta-st" href="#">Buka laporan lengkap · Rp49.000</a></p>
       <p class="mockup-lebar-st mockup-catatan-st">Termasuk pemeriksaan guru, konsultasi 20 menit,
-      latihan 30 hari, dan potongan Rp49.000 untuk kelas pertama. Sekali bayar, bukan langganan.</p>
+      latihan 30 hari, dan deposit Rp49.000 berupa voucher program belajar. Sekali bayar, bukan langganan.</p>
     </div>
   </section>
 </div>
@@ -395,8 +387,9 @@ D_ISI = f"""{topbar()}
       <h2 class="landing-kartu-judul-st">Setelah pembayaran berhasil</h2>
       <ol>
         <li>Status berubah menjadi <b>Pembayaran berhasil</b>.</li>
-        <li>Anda membuat sandi untuk membuka laporan dan latihan 30 hari.</li>
-        <li>Kami menghubungi Anda lewat WhatsApp untuk mengatur konsultasi 20 menit.</li>
+        <li>Laporan lengkap terbuka di akun Anda dan latihan 30 hari mulai.</li>
+        <li>Anda memilih hari dan jam konsultasi 20 menit; tim mengonfirmasi lewat WhatsApp.</li>
+        <li>Voucher deposit Rp49.000 dikirim lewat WhatsApp.</li>
       </ol>
       <p class="mockup-catatan-st">Pembayaran belum berubah setelah beberapa menit?
       <a class="mockup-tautan-st" href="#">Hubungi kami</a></p>
