@@ -845,3 +845,9 @@ SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_LAPORAN_ORTU
 from schema_lembaga import SKEMA_LEMBAGA  # noqa: E402
 
 SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_LEMBAGA + '\n-- Ringkasan per sesi supaya laporan', 1)
+
+# Kontak WhatsApp per akun (orang dewasa pembayar): aditif, idempoten, tanpa migrasi,
+# tanpa kunci ke siswa.
+from schema_contact import SKEMA_KONTAK_AKUN  # noqa: E402
+
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_KONTAK_AKUN + '\n-- Ringkasan per sesi supaya laporan', 1)
