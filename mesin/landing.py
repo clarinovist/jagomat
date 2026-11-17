@@ -74,14 +74,17 @@ def halaman_daftar(
     pesan: str = "", galat: bool = False, nama: str = "", *,
     pendaftaran_dibuka: bool = True, token_form: str = "", belum_tersedia: bool = False,
     analitik: str = "", kesepakatan: str = "", nama_anak: str = "", kelas_sekolah=None,
-    profil_parameter: str = "",
+    profil_parameter: str = "", jalur_cek: bool = False, wa: str = "",
 ) -> bytes:
     """Form pendaftaran mandiri pendamping (orang tua / guru / les).
 
     pesan = teks feedback; galat=True membuatnya dirender sebagai galat.
     nama = nama yang diketik pengguna (dikembalikan supaya tidak mengetik ulang).
+    jalur_cek = form funnel: menambah field WhatsApp wajib + penanda jalur dan
+    mengganti copy 'tanpa nomor telepon'. False (bawaan) = form lama persis.
     """
     import learning_profile_ui
+    import registration_contact
     from templates import tingkat_valid
     kotak = ""
     if pesan:
@@ -114,6 +117,14 @@ def halaman_daftar(
         f'<input type="hidden" name="profil_parameter" value="{html.escape(profil_parameter, quote=True)}">'
         if tingkat_valid(profil_parameter) else ''
     )
+    petunjuk_nama = (
+        "Pilih nama pengguna tanpa spasi (3–40 karakter): huruf, angka, titik, garis bawah, "
+        "atau tanda hubung. Tidak perlu email atau nomor telepon."
+    )
+    field_wa = ""
+    if jalur_cek:
+        petunjuk_nama = registration_contact.PETUNJUK_NAMA_FUNNEL
+        field_wa = registration_contact.field_form(wa)
     tombol_daftar = '' if kesepakatan else '<button class="masuk-tombol-st" type="submit">Buat akun <span aria-hidden="true">→</span></button>'
     isi = f"""
 <main class="daftar-editorial-st" aria-labelledby="judul-daftar">
@@ -147,7 +158,7 @@ Profil anak pertama dibuat bersama akunmu. Akun login anak bisa dibuat nanti.</p
     <label for="nama">Nama pengguna</label>
     <input type="text" id="nama" name="nama" autocomplete="username" required
      aria-describedby="petunjuk-nama-daftar" value="{html.escape(nama)}">
-    <p class="daftar-petunjuk-st" id="petunjuk-nama-daftar">Pilih nama pengguna tanpa spasi (3–40 karakter): huruf, angka, titik, garis bawah, atau tanda hubung. Tidak perlu email atau nomor telepon.</p>
+    <p class="daftar-petunjuk-st" id="petunjuk-nama-daftar">{petunjuk_nama}</p>
   </div>
   <div class="masuk-field-st">
     <label for="sandi">Kata sandi</label>
@@ -167,7 +178,7 @@ Profil anak pertama dibuat bersama akunmu. Akun login anak bisa dibuat nanti.</p
     {learning_profile_ui.opsi_kelas(kelas_sekolah)}</select>
     <p class="daftar-petunjuk-st" id="petunjuk-kelas-daftar">Kelas sekolah hanya informasi profil, bukan penentu kemampuan.</p>
   </div>
-  {profil_lama}
+  {field_wa}{profil_lama}
   <div class="daftar-persetujuan-st">
    <label class="koreksi-centang-st" for="setuju">
     <input type="checkbox" id="setuju" name="setuju" value="1" required>

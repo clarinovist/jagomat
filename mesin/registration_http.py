@@ -39,11 +39,13 @@ def tangani_get(penangan, jalur: str) -> bool:
     import product_analytics_http as analitik
     import policy_http
     import policy_pages
+    import registration_contact
     penangan._kirim(landing.halaman_daftar(
         pendaftaran_dibuka=status.dibuka,
         token_form=token_form,
         analitik=analitik.form_daftar(),
         kesepakatan=policy_pages.bidang() if policy_http.tersedia() else '',
+        jalur_cek=registration_contact.jalur_funnel_di_query(penangan.path),
     ))
     return True
 
@@ -69,7 +71,10 @@ def tangani_post(penangan, jalur: str) -> bool:
     profil_parameter = ""
     import policy_http
     import policy_pages
+    import registration_contact
     pilihan_policy = (False,False,False)
+    jalur_cek = False
+    wa_echo = ""
     kunci_ip = ip_klien.ip_klien(penangan.headers, penangan.client_address)
 
     def halaman_daftar(*args, **kwargs):
@@ -79,6 +84,8 @@ def tangani_post(penangan, jalur: str) -> bool:
             kelas_sekolah=kelas_sekolah,
             profil_parameter=profil_parameter,
             kesepakatan=policy_pages.bidang(pilihan=pilihan_policy) if policy_http.tersedia() else '',
+            jalur_cek=jalur_cek,
+            wa=wa_echo,
             **kwargs,
         )
 
@@ -89,8 +96,13 @@ def tangani_post(penangan, jalur: str) -> bool:
             "sumber_analitik", "nama_anak", "kelas_sekolah",
             "profil_parameter", "policy_versi", "policy_revisi", "policy_operasi",
             "policy_aksi", "policy_alur", "policy_hasil", "policy_chat", "policy_epoch",
-        } or not {"nama", "sandi"} <= set(data):
+        } - registration_contact.KUNCI_FORM or not {"nama", "sandi"} <= set(data):
             raise ValueError("Isian pendaftaran tidak sah.")
+        # `wa`/`jalur` hanya sah pada jalur=cek saat sakelar hidup; selain itu
+        # ditolak seperti field tak dikenal, tanpa menyimpan apa pun.
+        jalur_cek = registration_contact.baca_mode_form(data)
+        wa_echo = registration_contact.echo_wa(data) if jalur_cek else ""
+        wa_norm = registration_contact.normalisasi_dari_form(data) if jalur_cek else None
         if data.get("analitik", "0") not in ("0", "1"):
             raise ValueError("persetujuan analitik tidak sah")
         if data.get("sumber_analitik", "tidak_diketahui") not in analitik.d.SUMBER:
@@ -128,6 +140,12 @@ def tangani_post(penangan, jalur: str) -> bool:
                 token_form=token_baru,
             ))
             return True
+        if jalur_cek and wa_norm is None:
+            penangan._kirim(halaman_daftar(
+                registration_contact.PESAN_WA_WAJIB, galat=True, nama=nama,
+                token_form=token_baru,
+            ))
+            return True
         if laju_masuk.sedang_diblokir(nama, kunci_ip):
             penangan._kirim(
                 halaman_daftar(
@@ -154,6 +172,7 @@ def tangani_post(penangan, jalur: str) -> bool:
             profil_parameter=profil_parameter,
             token_form=admin_http.token_domain(data["token_form"]),
             sekarang=int(time.time()),
+            **({"wa": wa_norm} if jalur_cek else {}),
         ).akun
         policy_http.setelah_daftar(akun_baru, data)
         analitik.setelah_daftar(

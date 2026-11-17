@@ -367,7 +367,7 @@ def _gagal_registrasi(failpoint, titik):
 
 def daftar_dengan_profil(path_admin, path_auth, path_db, *, operasi_id, alias,
                         sandi, token_form, nama_anak, kelas_sekolah,
-                        profil_parameter=None, sekarang=None, failpoint=None):
+                        profil_parameter=None, sekarang=None, failpoint=None, wa=None):
     """Saga DB→auth: intent, profil commit, lalu publish akun+receipt atomik.
 
     Intent tidak menerbitkan akun/login. Crash sesudah DB commit dapat dipulihkan
@@ -375,12 +375,17 @@ def daftar_dengan_profil(path_admin, path_auth, path_db, *, operasi_id, alias,
     Receipt publik v1 tetap kompatibel; field saga terpisah tidak memuat anak.
     None berarti belum memilih variasi; disimpan kosong, bukan default dari kelas.
     Pilihan eksplisit lama tetap sah agar binding/retry saga tidak berubah.
+    `wa` (nomor ternormalisasi, hanya jalur funnel) disimpan sebagai kontak akun di
+    transaksi DB yang sama dengan baris siswa dan ikut `sidik`; None = jalur biasa
+    (tanpa kontak, `sidik` tidak berubah).
     """
     import sqlite3
     import time
     import learning_profile
+    import registration_contact
     from templates import tingkat_valid
     validasi_id(operasi_id, 'operasi_id')
+    registration_contact.periksa(wa)
     alias = admin_accounts.validasi_alias(alias)
     if type(nama_anak) is not str or not nama_anak.strip() or len(nama_anak.strip()) > 40:
         raise ValueError('Nama panggilan anak wajib diisi, maksimal 40 karakter.')
@@ -403,6 +408,10 @@ def daftar_dengan_profil(path_admin, path_auth, path_db, *, operasi_id, alias,
     target_id = _id_publik(operasi_id, alias, token_form)
     sidik = _sidik_registrasi((operasi_id, target_id, token_form, alias,
                              nama_anak, kelas_sekolah, profil_parameter))
+    if wa is not None:
+        # Hanya jalur funnel: WA ikut mengikat operasi. Jalur biasa: sidik di atas
+        # tidak berubah, jadi registrasi pending lama tetap bisa replay.
+        sidik = _sidik_registrasi((sidik, wa))
     alias_sidik = _sidik_registrasi(alias.casefold())
     hash_baru = auth.buat_hash(sandi)
     with kunci_registrasi(path_admin):
@@ -440,6 +449,7 @@ def daftar_dengan_profil(path_admin, path_auth, path_db, *, operasi_id, alias,
                                           (nama_anak, profil_parameter, alias))
                         siswa_id = cur.lastrowid
                         learning_profile.simpan_kelas(kon, siswa_id, kelas_sekolah, revisi=0, pemilik=alias)
+                        registration_contact.simpan_di_transaksi(kon, lama['akun_id'], wa, kini)
                         lama = {**lama, 'siswa_id': siswa_id, 'sequence_awal': seq[0] if seq else 0}
                         intent[operasi_id] = lama
                         hasil = auth._bungkus_akun(mentah, akun)
@@ -476,7 +486,9 @@ def daftar_dengan_profil(path_admin, path_auth, path_db, *, operasi_id, alias,
                                       (nama_anak, profil_parameter, alias))
                     siswa_id = cur.lastrowid
                     learning_profile.simpan_kelas(kon, siswa_id, kelas_sekolah, revisi=0, pemilik=alias)
-                    lama = dict(versi=1, target_id=target_id, akun_id=auth._buat_id_akun(),
+                    akun_id = auth._buat_id_akun()
+                    registration_contact.simpan_di_transaksi(kon, akun_id, wa, kini)
+                    lama = dict(versi=1, target_id=target_id, akun_id=akun_id,
                                 siswa_id=siswa_id, sequence_awal=sequence_awal,
                                 sidik_perintah=sidik, alias_sidik=alias_sidik,
                                 profil_sidik=_sidik_profil_registrasi(kon, siswa_id, token_form),

@@ -30,7 +30,7 @@ class HasilPendaftaran:
 
 def daftar(path_admin, path_auth, path_db, *, operasi_id, alias, sandi, token_form,
            cutoff, sekarang, sakelar=d.SAKELAR, failpoint=None,
-           nama_anak=None, kelas_sekolah=None, profil_parameter=None):
+           nama_anak=None, kelas_sekolah=None, profil_parameter=None, wa=None):
     """Default OFF sebelum membuat akun; tidak menangani login/session/consent."""
     sakelar.wajib("fondasi")
     d.waktu(cutoff)
@@ -40,6 +40,8 @@ def daftar(path_admin, path_auth, path_db, *, operasi_id, alias, sandi, token_fo
     fungsi = admin_registration.daftar_publik if nama_anak is None else admin_registration.daftar_dengan_profil
     profil = {} if nama_anak is None else dict(nama_anak=nama_anak, kelas_sekolah=kelas_sekolah,
                                               profil_parameter=profil_parameter)
+    if wa is not None:
+        profil = {**profil, "wa": wa}
     akun = fungsi(path_admin, path_auth, path_db, operasi_id=operasi_id, alias=alias,
                   sandi=sandi, token_form=token_form, sekarang=sekarang, **profil)
     if failpoint == "setelah_auth":
@@ -56,7 +58,8 @@ def daftar(path_admin, path_auth, path_db, *, operasi_id, alias, sandi, token_fo
 
 
 def daftar_web(path_admin, path_auth, path_db, *, operasi_id, alias, sandi, token_form,
-               sekarang, nama_anak, kelas_sekolah, profil_parameter=None, sakelar=None):
+               sekarang, nama_anak, kelas_sekolah, profil_parameter=None, sakelar=None,
+               wa=None):
     """Jalur /daftar: pendaftaran selalu berjalan; sinkron hanya saat aktif penuh.
 
     Sinkron enrollment menuntut DUA kondisi eksplisit: `CUTOFF_AKTIVASI` ditetapkan
@@ -64,11 +67,12 @@ def daftar_web(path_admin, path_auth, path_db, *, operasi_id, alias, sandi, toke
     (operator). Tanpa keduanya, akun+profil tetap dibuat tanpa enrollment
     (`belum_aktif`) — registrasi tidak pernah gagal karena billing. Kegagalan
     sinkron sendiri tidak menghapus akun (`belum_terverifikasi`, pulih dari
-    receipt yang sama).
+    receipt yang sama). `wa` hanya diisi jalur funnel; None = jalur biasa tanpa kontak.
     """
     if type(nama_anak) is not str or not nama_anak.strip():
         raise ValueError('Nama panggilan anak wajib diisi, maksimal 40 karakter.')
     aktif = CUTOFF_AKTIVASI is not None
+    kontak = {} if wa is None else {"wa": wa}
     if aktif:
         if sakelar is None:
             import admin_subscription
@@ -78,9 +82,9 @@ def daftar_web(path_admin, path_auth, path_db, *, operasi_id, alias, sandi, toke
                           alias=alias, sandi=sandi, token_form=token_form,
                           cutoff=CUTOFF_AKTIVASI, sekarang=sekarang, sakelar=sakelar,
                           nama_anak=nama_anak, kelas_sekolah=kelas_sekolah,
-                          profil_parameter=profil_parameter)
+                          profil_parameter=profil_parameter, **kontak)
     akun = admin_registration.daftar_dengan_profil(
         path_admin, path_auth, path_db, operasi_id=operasi_id, alias=alias,
         sandi=sandi, token_form=token_form, sekarang=sekarang, nama_anak=nama_anak,
-        kelas_sekolah=kelas_sekolah, profil_parameter=profil_parameter)
+        kelas_sekolah=kelas_sekolah, profil_parameter=profil_parameter, **kontak)
     return HasilPendaftaran(akun, "belum_aktif")
