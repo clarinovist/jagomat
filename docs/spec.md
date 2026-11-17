@@ -147,6 +147,8 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   lewat `/akun/kontak` (guru). Tidak tampil ke murid/tautan; retensi 12 bulan sejak aktivitas
   terakhir akun (sapuan belum dijadwalkan). Hapus keluarga memerlukan verifikasi,
   preview/backup/cutover; bukan sekadar menghapus login atau bukti immutable.
+- Halaman publik funnel `/cek-kemampuan` dan `/paket-coba` (Fase 1) ada di balik `FUNNEL_AKTIF` (bawaan
+  mati: halaman "belum dibuka"); belum ada sesi cek, hasil, atau pembayaran.
 - [Backup operasional](operational-backup.md) manual mencakup core, riset dan foto;
   scheduler/off-site otomatis belum tersedia, bukan janji pemulihan seluruh VPS.
 

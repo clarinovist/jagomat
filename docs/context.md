@@ -102,6 +102,11 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `admin_registration`; WA ikut `sidik` hanya jalur ini). `kontak_http.py`/`kontak_pages.py` untuk
   `/akun/kontak` (guru; admin 404). Login mencatat aktivitas fail-open di `auth_http`;
   `family_deletion._ubah_belajar` menghapus kontak keluarga target.
+- Funnel Cek Kemampuan Fase 1 (hanya permukaan publik): `funnel_http.py` (GET `/cek-kemampuan`, `/paket-coba`,
+  sebelum `_lolos_sandi`, tanpa POST) + `funnel_pages.py` (markup, copy §7 plan) + `funnel_style.py`
+  (`GAYA_FUNNEL`, hanya ikut `gaya_stitch()` saat `FUNNEL_AKTIF=1` agar byte halaman lain tak berubah).
+  Sakelar mati = halaman "belum dibuka" 200 tanpa CTA; hidup = satu CTA ke `/daftar?jalur=cek`, tautan nav
+  di landing. Belum ada `/cek-kemampuan/mulai` (Fase 2): jangan aktifkan sakelar sebelum itu ada.
 - Lembaga les: `schema_lembaga.py` (tabel aditif `lembaga`, `anggota_lembaga`, `pindah_siswa`
   append-only lewat trigger) + `lembaga_store.py` (semua SQL; `pindahkan` mengecek ulang semua
   predikat dalam `BEGIN IMMEDIATE`) → `lembaga_pages.py`/`lembaga_http.py` (`/lembaga`) dan

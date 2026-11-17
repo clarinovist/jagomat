@@ -74,6 +74,8 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/", "publik"),  # landing; guru/admin melihat berandanya sendiri
     ("/masuk", "publik"),
     ("/daftar", "publik"),
+    ("/cek-kemampuan", "publik"),  # funnel: 200 "belum dibuka" bila FUNNEL_AKTIF mati
+    ("/paket-coba", "publik"),  # idem; tidak ada handler POST
     ("/aset/", "publik"),
     ("/guru", "guru"),
     ("/ortu", "guru"),  # alias lama beranda guru
@@ -620,6 +622,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import parent_report_http
         if parent_report_http.tangani_get(self, jalur):
+            return
+        import funnel_http
+        if funnel_http.tangani_get(self, jalur):
             return
         import public_http
         if public_http.tangani_get(self, jalur):

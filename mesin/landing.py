@@ -16,6 +16,7 @@ import html
 
 import brand
 import design_tokens as T
+import funnel_flag
 from offline_browser import SKRIP_OFFLINE
 from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
 
@@ -440,6 +441,11 @@ def halaman_landing(dukungan=None) -> bytes:
     n = html.escape(T.NAMA_PRODUK)
     tag = html.escape(T.TAGLINE)
     mark_topbar = brand.mark("topbar")
+    # Tautan funnel hanya saat sakelar hidup; mati = markup landing tak berubah.
+    nav_cek = (
+        '<a class="landing-nav-st" href="/cek-kemampuan">Cek kemampuan</a>\n'
+        if funnel_flag.funnel_aktif() else ""
+    )
     isi = f"""
 <a class="landing-lewati-st" href="#konten">Lewati ke konten</a>
 <header class="landing-topbar-st"><div class="landing-topbar-isi-st">
@@ -447,7 +453,7 @@ def halaman_landing(dukungan=None) -> bytes:
 <nav class="topbar-navigasi" aria-label="Navigasi utama">
 <a class="landing-nav-st" href="#cara-kerja">Kenali {n}</a>
 <a class="landing-nav-st" href="#contoh">Contoh latihan</a>
-<a class="tombol-putih" href="/masuk">Masuk</a></nav>
+{nav_cek}<a class="tombol-putih" href="/masuk">Masuk</a></nav>
 </div></header>
 
 <main class="landing-bungkus-st" id="konten" tabindex="-1">

@@ -3704,6 +3704,14 @@ def gaya_stitch() -> str:
     Kembalikan string CSS lengkap untuk halaman yang difase-in ke Stitch.
     Dipakai oleh fungsi render halaman versi '_baru' di file-file yang ada.
     """
+    from funnel_flag import funnel_aktif
+
+    if funnel_aktif():
+        # CSS funnel hanya ikut saat sakelar hidup, jadi halaman lain tidak
+        # berubah byte-per-byte selama funnel mati.
+        from funnel_style import GAYA_FUNNEL
+
+        return GAYA_STITCH + GAYA_FUNNEL
     return GAYA_STITCH
 
 

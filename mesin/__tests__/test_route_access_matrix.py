@@ -48,6 +48,8 @@ _PROBE_GET = {
     "/": "/",
     "/masuk": "/masuk",
     "/daftar": "/daftar",
+    "/cek-kemampuan": "/cek-kemampuan",
+    "/paket-coba": "/paket-coba",
     "/aset/": "/aset/favicon.svg",
     "/guru": "/guru",
     "/ortu": "/ortu",
