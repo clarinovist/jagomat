@@ -184,6 +184,7 @@ lama itu merah lagi bila dikembalikan.
 | Judul halaman dewasa | `UKURAN_JUDUL_DEWASA` | clamp 22–26px | h1 ruang guru, akun, laporan, Pendamping |
 | Judul bagian dewasa | `UKURAN_BAGIAN_DEWASA` | 18px | h2 dan judul kartu |
 | Angka statistik | `UKURAN_ANGKA_DEWASA` | 24px | Statistik, peta laporan, nominal |
+| Angka funnel | `UKURAN_ANGKA_FUNNEL` / `UKURAN_ANGKA_FUNNEL_HP` | 41,6 / 36px | Harga dan skor besar di halaman funnel publik |
 | Badan | `UKURAN_BADAN_LAYAR` | 16px | Body dan semua input teks |
 | Bantuan | `UKURAN_TEKS_BANTUAN` | 14,4px | Petunjuk dan teks bantuan |
 | Label | `UKURAN_TEKS_LABEL` | 14px | Label, chip, metadata informatif; **batas bawah teks informatif** |
