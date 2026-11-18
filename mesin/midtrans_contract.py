@@ -72,8 +72,18 @@ def _referensi(nilai):
     return nilai
 
 
+def id_order(nilai):
+    """Id order yang dilalui klien: `inv_` (langganan) ATAU `ord_` (pesanan).
+
+    Sengaja bukan `d.identitas`: kode langganan tetap hanya menerima `inv_`.
+    """
+    if type(nilai) is str and re.fullmatch(r"ord_[0-9a-f]{32}", nilai) is not None:
+        return nilai
+    return d.identitas(nilai, "invoice")
+
+
 def payload_qris(order_id, rupiah):
-    d.identitas(order_id, "invoice")
+    id_order(order_id)
     d.bilangan(rupiah, 1)
     return {"payment_type": "qris", "transaction_details": {"order_id": order_id, "gross_amount": rupiah}}
 
@@ -87,7 +97,7 @@ def request_create(config, order_id, rupiah, idempotency_key):
 
 
 def request_status(config, order_id):
-    d.identitas(order_id, "invoice")
+    id_order(order_id)
     return Permintaan("GET", config.base_url + "/v2/" + order_id + "/status",
                       {"Authorization": config.authorization(), "Accept": "application/json"})
 

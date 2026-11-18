@@ -52,7 +52,7 @@ class TransportProduksi:
             # Kesetaraan byte menolak field kontak, JSON ambigu, header tambahan,
             # dan kredensial yang tidak berasal konfigurasi produksi yang dipilih.
         elif req.metode == "GET" and type(req.url) is str:
-            cocok = re.fullmatch(r"https://api\.midtrans\.com/v2/(inv_[0-9a-f]{32})/status", req.url)
+            cocok = re.fullmatch(r"https://api\.midtrans\.com/v2/((?:inv|ord)_[0-9a-f]{32})/status", req.url)
             if cocok is None:
                 raise m.KontrakTidakSah("tujuan produksi tidak sah")
             kanonis = m.request_status(self._config, cocok.group(1))
