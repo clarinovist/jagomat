@@ -115,7 +115,15 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   in-memory, admin 404). Sesi cek = sesi gabungan 3 topik (kelas 3–6) atau `bilangan-dasar` (kelas 1–2, butuh flag materi
   dasar), PG, tanpa bukti siklus. `family_deletion` ikut menghapus baris cek. Perubahan skema menggeser fingerprint kontrak
   rilis: pin recovery diganti pada langkah rilis (tes `test_kontrak_candidate_identik_dengan_recovery_pinned` merah sampai itu).
-  Sakelar `FUNNEL_AKTIF` jangan dinyalakan sebelum Fase 3 dan keputusan copy/retensi otomatis.
+  Sakelar `FUNNEL_AKTIF` jangan dinyalakan sebelum keputusan copy refund/retensi otomatis dan pin recovery.
+- Funnel Fase 3 (pesanan Paket Coba): `schema_pesanan.py` (tabel aditif `pesanan_order/jendela/pengamatan/receipt/yatim/refund`,
+  append-only, DB admin) + domain `pesanan.py` fasad atas `pesanan_dasar/order/status/jendela/provider/callback/admin`
+  (ledger, receipt dari hasil provider saja, jendela QR, yatim, refund manual). Transport: `pesanan_midtrans.py` (adapter tipis ke
+  kontrak Midtrans; order `ord_` dibedakan dari invoice langganan di callback). HTTP pelanggan: `pesanan_http.py` (+`pesanan_pages.py`,
+  `pesanan_alur.py`; guru saja, token HMAC `pesanan-form-v1`, laju per akun+IP, gerbang `pesanan.baca_gerbang` fail-closed,
+  hasil cek dibaca per anak lewat `cek_gratis.hasil_siswa`). Admin: `admin_pesanan_http.py`/`admin_pesanan_pages.py` di
+  `/admin/pesanan` (token final admin, aksi periksa dan catat refund; tidak menulis jurnal `operasi_admin`, jejak refund = baris
+  `pesanan_refund`). Panggilan jaringan tidak pernah di dalam transaksi tulis. Kontrak rilis bergeser seperti Fase 2.
 - Lembaga les: `schema_lembaga.py` (tabel aditif `lembaga`, `anggota_lembaga`, `pindah_siswa`
   append-only lewat trigger) + `lembaga_store.py` (semua SQL; `pindahkan` mengecek ulang semua
   predikat dalam `BEGIN IMMEDIATE`) → `lembaga_pages.py`/`lembaga_http.py` (`/lembaga`) dan

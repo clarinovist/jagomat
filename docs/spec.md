@@ -154,7 +154,14 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   ditinjau guru". **Pengecualian bercakupan sempit** atas larangan skor/persentase di laporan orang tua (Keputusan 17): skor cek
   dihitung di `cek_gratis` dan tidak lewat `parent_report_snapshot`. Bahan mentah dihapus 30 hari setelah selesai (sapuan
   `sapu_cek_gratis` belum dijadwalkan); turunan tetap selama akun aktif. Akun funnel tetap akun guru biasa, jadi halaman guru
-  yang ada (mis. `/sesi/<id>`) tetap terjangkau; bagian "terkunci" hanya berlaku di halaman hasil cek. Belum ada pembayaran.
+  yang ada (mis. `/sesi/<id>`) tetap terjangkau; bagian "terkunci" hanya berlaku di halaman hasil cek.
+- Fase 3 (Paket Coba sekali bayar Rp49.000, kode selesai, **belum aktif**): guru yang cek anaknya sudah selesai dan punya WhatsApp
+  bisa memesan lewat `/paket-coba/pesan` dan memantau di `/pesanan` (QR QRIS via Midtrans, jendela bayar bisa dibuka ulang
+  sampai batas). Nominal selalu konstanta server; status lunas hanya dari ledger yang diisi provider (callback atau periksa
+  server-ke-server), tidak dari URL/form. Pembayaran hanya hidup bila tiga syarat terpenuhi: `FUNNEL_AKTIF`, sakelar pembayaran
+  efektif, dan tahap `checkout`; selain itu halaman status jujur/404 dan POST tanpa efek. Admin memantau di `/admin/pesanan`
+  (daftar minimal, periksa status, catat refund manual; tanpa API refund). Belum ada worker rekonsiliasi; kebijakan refund dan
+  hapus keluarga vs catatan keuangan menunggu keputusan Pemilik.
 - [Backup operasional](operational-backup.md) manual mencakup core, riset dan foto;
   scheduler/off-site otomatis belum tersedia, bukan janji pemulihan seluruh VPS.
 
