@@ -4,9 +4,11 @@ from dataclasses import replace
 from functools import wraps
 
 
-# Konten hash6522bc48 telah ditinjau manusia; kandidat2, recovery39fcfa7 tetap1.
+# Konten hash6522bc48 telah ditinjau manusia; kandidat2, recovery tetap1.
 # Histori memilih versi dari parameter, bukan default writer ini.
-VERSI_KATALOG_BAWAAN = 2
+# Baseline recovery Fase 3 (18 Nov 2026): writer dikunci 1 agar rollback tidak
+# membuat versi katalog baru; pembaca tetap mengenal parameter versi 2.
+VERSI_KATALOG_BAWAAN = 1
 TEMPLATE_DIPERBAIKI = frozenset({"soal_umur", "perbandingan_senilai",
     "perbandingan_berbalik", "kerja_bersama", "lingkaran_keliling_luas", "juring", "paritas",
     "rata_rata_gabungan", "median_modus", "diagram_batang_garis", "tabel_turus", "piktogram",
