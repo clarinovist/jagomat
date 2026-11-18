@@ -14,12 +14,14 @@ from __future__ import annotations
 import html
 
 import share_links
+import funnel_pages
 from funnel_pages import COPY_BATAS_HASIL
 from teacher_shell import _halaman
 
 RUTE_MULAI = "/cek-kemampuan/mulai"
 RUTE_HASIL = "/cek-kemampuan/hasil"
 RUTE_TAUTAN = "/cek-kemampuan/tautan"
+RUTE_PESAN = "/paket-coba/pesan"
 ID_KERANGKA_TERKUNCI = "kerangka-terkunci"
 
 KELAS_BUNGKUS = "pendamping-editorial-st akun-editorial-st akun-sempit-st funnel-halaman-st"
@@ -67,6 +69,10 @@ COPY_KUNCI_CATATAN = (
 )
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_CTA_PAKET = "Lihat Paket Coba"
+# DRAF: teks final menunggu persetujuan Pemilik
+COPY_JUDUL_PESAN = "Paket Coba"
+# DRAF: teks final menunggu persetujuan Pemilik
+COPY_TOMBOL_PESAN = "Pesan Paket Coba"
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_TANPA_ANAK = (
     "Akun ini belum punya data anak, jadi cek belum bisa dimulai. "
@@ -195,7 +201,22 @@ def _blok_batas() -> str:
     )
 
 
-def _blok_selesai(hasil: dict) -> str:
+def _blok_pesan(token_pesan) -> str:
+    """CTA pesan Paket Coba; kosong (tanpa byte) bila gerbang pembayaran tertutup."""
+    if token_pesan is None:
+        return ""
+    return (
+        '<section class="kartu-st" aria-labelledby="judul-pesan">'
+        f'<h2 id="judul-pesan">{_e(COPY_JUDUL_PESAN)}</h2><p>{_e(funnel_pages.COPY_HARGA)}</p>'
+        f'<form method="post" action="{RUTE_PESAN}">'
+        f'<input type="hidden" name="token" value="{_a(token_pesan)}">'
+        '<p class="akun-aksi-sandi">'
+        f'<button type="submit" class="tombol-utama-akun">{_e(COPY_TOMBOL_PESAN)}</button></p>'
+        "</form></section>"
+    )
+
+
+def _blok_selesai(hasil: dict, token_pesan=None) -> str:
     return (
         '<section class="kartu-st" aria-labelledby="judul-skor">'
         f'<p class="funnel-pil-st funnel-pil-jujur-st">{_e(COPY_LABEL_GAMBARAN)}</p>'
@@ -206,17 +227,22 @@ def _blok_selesai(hasil: dict) -> str:
         f'<p>Kategori: <b>{_e(hasil["kategori"])}</b></p>'
         "<h2>Ringkasan awal</h2>"
         f'{_blok_ringkasan(hasil["ringkasan"])}</section>'
-        f"{_blok_batas()}{_blok_terkunci()}"
+        f"{_blok_batas()}{_blok_terkunci()}{_blok_pesan(token_pesan)}"
         '<p class="funnel-tautan-baris-st">'
         f'<a class="funnel-tautan-st" href="/paket-coba">{_e(COPY_CTA_PAKET)}</a></p>'
     )
 
 
-def halaman_hasil(ident, hasil: dict, nama_anak: str, token_tautan: str) -> bytes:
-    """Hasil milik akun sesi: status `selesai` atau `belum_selesai` (selain itu tidak dirender)."""
+def halaman_hasil(ident, hasil: dict, nama_anak: str, token_tautan: str,
+                  token_pesan=None) -> bytes:
+    """Hasil milik akun sesi: status `selesai` atau `belum_selesai` (selain itu tidak dirender).
+
+    `token_pesan` (hanya saat gerbang pembayaran terbuka) menambah CTA pesan di hasil
+    selesai; None = markup identik dengan Fase 2.
+    """
     isi = _kepala("CEK KEMAMPUAN GRATIS", "Hasil cek kemampuan", "judul-cek-hasil", nama_anak)
     if hasil["status"] == "selesai":
-        isi += _blok_selesai(hasil)
+        isi += _blok_selesai(hasil, token_pesan)
     else:
         isi += _blok_belum_selesai(token_tautan)
     return _bungkus(ident, "Hasil cek kemampuan", "judul-cek-hasil", isi)

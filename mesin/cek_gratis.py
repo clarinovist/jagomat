@@ -243,6 +243,17 @@ def _hasil_tanpa_skor(status: str, jumlah_soal: int) -> dict:
             "ringkasan": dict(_RINGKASAN_KOSONG), "jumlah_soal": jumlah_soal}
 
 
+def _hasil_dari_baris(baris) -> dict:
+    """Baris `cek_gratis` (atau None) menjadi dict hasil bertipe tetap."""
+    if baris is None:
+        return _hasil_tanpa_skor("belum_mulai", JUMLAH_SOAL)
+    if baris["skor"] is None:
+        return _hasil_tanpa_skor("belum_selesai", baris["jumlah_soal"])
+    return {"status": "selesai", "skor": baris["skor"], "kategori": baris["kategori"],
+            "ringkasan": _urai_ringkasan(baris["ringkasan"]),
+            "jumlah_soal": baris["jumlah_soal"]}
+
+
 def baca_hasil(kon, id_akun) -> dict:
     """Hasil cek terbaru MILIK akun ini (kunci `id_akun`, bukan id baris dari klien).
 
@@ -257,13 +268,26 @@ def baca_hasil(kon, id_akun) -> dict:
            WHERE id_akun = ? ORDER BY id DESC LIMIT 1""",
         (id_akun,),
     ).fetchone()
-    if baris is None:
+    return _hasil_dari_baris(baris)
+
+
+def hasil_siswa(kon, id_akun, siswa_id) -> dict:
+    """Hasil cek anak TERTENTU milik akun ini; kontrak sama dengan `baca_hasil`.
+
+    Kunci baris = `id_akun` DAN `siswa_id` (keduanya dari sisi server): cek anak
+    lain, atau cek akun lain untuk anak yang sama, tidak pernah terbaca. Dipakai
+    jalur uang, yang tidak boleh memakai "cek terbaru akun" (anak yang salah).
+    `siswa_id` bukan int positif -> `belum_mulai`. Hanya membaca.
+    """
+    periksa_id_akun(id_akun)
+    if type(siswa_id) is not int or siswa_id < 1:
         return _hasil_tanpa_skor("belum_mulai", JUMLAH_SOAL)
-    if baris["skor"] is None:
-        return _hasil_tanpa_skor("belum_selesai", baris["jumlah_soal"])
-    return {"status": "selesai", "skor": baris["skor"], "kategori": baris["kategori"],
-            "ringkasan": _urai_ringkasan(baris["ringkasan"]),
-            "jumlah_soal": baris["jumlah_soal"]}
+    baris = kon.execute(
+        """SELECT skor, kategori, ringkasan, jumlah_soal FROM cek_gratis
+           WHERE id_akun = ? AND siswa_id = ?""",
+        (id_akun, siswa_id),
+    ).fetchone()
+    return _hasil_dari_baris(baris)
 
 
 def hapus_cek_keluarga(kon, id_akun, siswa_ids) -> int:

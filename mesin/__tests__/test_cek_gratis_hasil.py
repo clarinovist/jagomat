@@ -222,6 +222,48 @@ def test_baca_hasil_dengan_dua_anak_mengembalikan_cek_terbaru(kon):
     assert cek_gratis.baca_hasil(kon, ID_A)["status"] == "belum_selesai"
 
 
+def test_hasil_siswa_membaca_cek_anak_itu_bukan_cek_terbaru_akun(kon):
+    anak_1 = tambah_anak(kon, "Anak Satu", "guru-a", 4)
+    anak_2 = tambah_anak(kon, "Anak Dua", "guru-a", 4)
+    sesi_1 = mulai_cek(kon, ID_A, anak_1, "guru-a")
+    sesi_2 = mulai_cek(kon, ID_A, anak_2, "guru-a")
+    jawab(kon, sesi_2, semua_benar=15)
+    tandai_selesai(kon, sesi_2)
+    cek_gratis.selesaikan_jika_siap(kon, ID_A, SEKARANG)
+
+    assert sesi_1 != sesi_2
+    assert cek_gratis.baca_hasil(kon, ID_A)["status"] == "selesai"  # cek terbaru = anak kedua
+    satu = cek_gratis.hasil_siswa(kon, ID_A, anak_1)
+    dua = cek_gratis.hasil_siswa(kon, ID_A, anak_2)
+    assert set(satu) == set(dua) == KUNCI_HASIL
+    assert (satu["status"], satu["skor"]) == ("belum_selesai", None)
+    assert (dua["status"], dua["skor"]) == ("selesai", 100)
+
+
+def test_hasil_siswa_kunci_akun_dan_anak_keduanya(kon):
+    anak_a = tambah_anak(kon, "Anak A", "guru-a", 4)
+    sesi_a = mulai_cek(kon, ID_A, anak_a, "guru-a")
+    jawab(kon, sesi_a, semua_benar=15)
+    tandai_selesai(kon, sesi_a)
+    cek_gratis.selesaikan_jika_siap(kon, ID_A, SEKARANG)
+
+    assert cek_gratis.hasil_siswa(kon, ID_A, anak_a)["skor"] == 100
+    asing = cek_gratis.hasil_siswa(kon, ID_B, anak_a)  # akun lain, anak yang sama
+    assert (asing["status"], asing["skor"]) == ("belum_mulai", None)
+
+
+@pytest.mark.parametrize("siswa_id", [None, 0, -1, "1", 999999, True])
+def test_hasil_siswa_anak_tidak_dikenal_atau_tipe_salah_belum_mulai(kon, siswa_id):
+    hasil = cek_gratis.hasil_siswa(kon, ID_A, siswa_id)
+    assert set(hasil) == KUNCI_HASIL and (hasil["status"], hasil["skor"]) == ("belum_mulai", None)
+
+
+@pytest.mark.parametrize("id_akun", [None, "", "akun_x", 7])
+def test_hasil_siswa_menolak_id_akun_tidak_sah(kon, id_akun):
+    with pytest.raises(ValueError):
+        cek_gratis.hasil_siswa(kon, id_akun, 1)
+
+
 @pytest.mark.parametrize("id_akun", [None, "", "akun_x", "akun_" + "G" * 32, 7])
 def test_baca_dan_selesaikan_menolak_id_akun_tidak_sah(kon, id_akun):
     with pytest.raises(ValueError):

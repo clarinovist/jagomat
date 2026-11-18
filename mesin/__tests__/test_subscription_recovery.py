@@ -108,7 +108,7 @@ def test_source_tidak_punya_hook_user_network_env_billing():
         teks = (akar / nama).read_text()
         assert "os.environ" not in teks and "getenv(" not in teks
         assert "import socket" not in teks and "urllib.request" not in teks
-    for nama in ("midtrans_secret.py", "midtrans_produksi.py", "subscription_produksi.py", "subscription_callback.py", "subscription_worker.py", "subscription_produksi_http.py", "subscription_produksi_pages.py", "pesanan_midtrans.py"):
+    for nama in ("midtrans_secret.py", "midtrans_produksi.py", "subscription_produksi.py", "subscription_callback.py", "subscription_worker.py", "subscription_produksi_http.py", "subscription_produksi_pages.py", "pesanan_midtrans.py", "pesanan_http.py", "pesanan_alur.py", "pesanan_pages.py"):
         teks = (akar / nama).read_text()
         assert "os.environ" not in teks and "getenv(" not in teks
         assert "import socket" not in teks and "urllib.request" not in teks

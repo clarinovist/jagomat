@@ -175,8 +175,20 @@ def _get_hasil(penangan, principal) -> None:
         _alihkan(penangan, RUTE_MULAI)
         return
     token = buat_token(principal, penangan._ambil_token(), AKSI_TAUTAN)
-    penangan._kirim_privat(
-        cek_pages.halaman_hasil((principal.pengguna, principal.peran), hasil, baris["nama"], token))
+    penangan._kirim_privat(cek_pages.halaman_hasil(
+        (principal.pengguna, principal.peran), hasil, baris["nama"], token,
+        _token_pesan(penangan, principal, hasil)))
+
+
+def _token_pesan(penangan, principal, hasil: dict):
+    """Token form pesan hanya bila cek selesai DAN gerbang pembayaran terbuka; selain itu None."""
+    if hasil["status"] != "selesai":
+        return None
+    import pesanan_http  # impor lambat: pesanan_http mengimpor modul ini
+
+    if not pesanan_http.gerbang_terbuka(penangan):
+        return None
+    return pesanan_http.buat_token(principal, penangan._ambil_token(), pesanan_http.AKSI_PESAN)
 
 
 def tangani_get(penangan, jalur: str) -> bool:

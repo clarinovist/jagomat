@@ -90,6 +90,13 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     # dua rute ini exact, bukan prefix. Sakelar mati: 200 "belum dibuka" (GET).
     ("/cek-kemampuan/mulai", "guru"),
     ("/cek-kemampuan/hasil", "guru"),
+    # Funnel Fase 3c-3: status pesanan Paket Coba (exact). Gerbang pembayaran tertutup:
+    # `/pesanan` = halaman status jujur, `/pesanan/qr` = 404. `/paket-coba` exact tetap publik.
+    ("/pesanan", "guru"),
+    ("/pesanan/qr", "guru"),
+    # GET `/paket-coba/pesan` (rute POST): gerbang tertutup = halaman status jujur, terbuka =
+    # 303 ke `/pesanan`; admin 404 identik. Bukan prefix dari `/paket-coba` publik.
+    ("/paket-coba/pesan", "guru"),
     ("/anak/", "guru"),
     ("/laporan/", "guru"),
 )
@@ -106,6 +113,12 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     # Funnel Fase 2b: sakelar mati = tak berefek, 404 rute tak dikenal.
     ("/cek-kemampuan/mulai", "guru"),
     ("/cek-kemampuan/tautan", "guru"),
+    # Funnel Fase 3c-3: gerbang pembayaran tertutup = tak berefek, 404 rute tak dikenal.
+    # `/paket-coba/pesan` juga dilayani GET (lihat AKSES_RUTE_GET); bukan prefix dari `/paket-coba`.
+    ("/paket-coba/pesan", "guru"),
+    ("/pesanan/periksa", "guru"),
+    ("/pesanan/ulang", "guru"),
+    ("/pesanan/buat", "guru"),
 )
 
 _POLA_SKRIP_INLINE = re.compile(rb"<script>(.*?)</script>", re.S)
@@ -662,6 +675,9 @@ class Penangan(BaseHTTPRequestHandler):
         import cek_http
         if cek_http.tangani_get(self, jalur):
             return
+        import pesanan_http
+        if pesanan_http.tangani_get(self, jalur):
+            return
         import lembaga_http
         if lembaga_http.tangani_get(self, jalur):
             return
@@ -786,6 +802,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import cek_http
         if cek_http.tangani_post(self, jalur):
+            return
+        import pesanan_http
+        if pesanan_http.tangani_post(self, jalur):
             return
         import lembaga_http
         if lembaga_http.tangani_post(self, jalur):

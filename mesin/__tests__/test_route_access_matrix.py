@@ -62,6 +62,9 @@ _PROBE_GET = {
     "/akun/kontak": "/akun/kontak",
     "/cek-kemampuan/mulai": "/cek-kemampuan/mulai",
     "/cek-kemampuan/hasil": "/cek-kemampuan/hasil",
+    "/pesanan": "/pesanan",
+    "/pesanan/qr": "/pesanan/qr",
+    "/paket-coba/pesan": "/paket-coba/pesan",
     "/anak/": "/anak/1",
     "/laporan/": "/laporan/1",
 }
@@ -77,6 +80,10 @@ _PROBE_POST = {
     "/akun/kontak": "/akun/kontak",
     "/cek-kemampuan/mulai": "/cek-kemampuan/mulai",
     "/cek-kemampuan/tautan": "/cek-kemampuan/tautan",
+    "/paket-coba/pesan": "/paket-coba/pesan",
+    "/pesanan/periksa": "/pesanan/periksa",
+    "/pesanan/ulang": "/pesanan/ulang",
+    "/pesanan/buat": "/pesanan/buat",
 }
 
 # Status anonim yang berlaku sekarang untuk tiap tingkat. "publik" POST boleh
@@ -97,7 +104,7 @@ _HARAPAN_ANONIM_POST = {
 # Permukaan guru yang berisi data anak; akun murid tidak boleh menyentuhnya.
 RUTE_PERMUKAAN_GURU = (
     "/guru", "/akun", "/akun/kontak", "/lembaga", "/sesi/1", "/lampiran/1", "/lembar/1",
-    "/cek-kemampuan/mulai", "/cek-kemampuan/hasil",
+    "/cek-kemampuan/mulai", "/cek-kemampuan/hasil", "/pesanan", "/pesanan/qr", "/paket-coba/pesan",
 )
 
 
@@ -174,6 +181,15 @@ def test_tabel_akses_punya_probe():
     assert post["/cek-kemampuan/mulai"] == post["/cek-kemampuan/tautan"] == "guru"
     assert "/cek-kemampuan/tautan" not in get
     assert urutan.index("/cek-kemampuan") < urutan.index("/guru") < urutan.index("/cek-kemampuan/mulai")
+    # Pesanan Paket Coba (Fase 3c-3): exact, guru. `/paket-coba` publik hanya GET exact dan
+    # tidak menelurkan prefix: `/paket-coba/pesan` adalah rute guru (GET: status/PRG; POST: pesan).
+    assert get["/pesanan"] == get["/pesanan/qr"] == get["/paket-coba/pesan"] == "guru"
+    for rute in ("/paket-coba/pesan", "/pesanan/periksa", "/pesanan/ulang", "/pesanan/buat"):
+        assert post[rute] == "guru"
+    for rute in ("/pesanan/periksa", "/pesanan/ulang", "/pesanan/buat"):
+        assert rute not in get
+    assert get["/paket-coba"] == "publik" and "/paket-coba" not in post
+    assert urutan.index("/pesanan") > urutan.index("/guru")
 
 
 @pytest.mark.parametrize("prefix,tingkat", web.AKSES_RUTE_GET)
