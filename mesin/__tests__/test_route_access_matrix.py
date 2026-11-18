@@ -45,6 +45,7 @@ _TINGKAT = frozenset(("publik", "murid", "guru", "admin"))
 # Probe per keluarga rute: jalur yang mewakili prefix di tabel akses.
 _PROBE_GET = {
     "/admin": "/admin/tidak-ada",
+    "/admin/pesanan": "/admin/pesanan",
     "/": "/",
     "/masuk": "/masuk",
     "/daftar": "/daftar",
@@ -71,6 +72,8 @@ _PROBE_GET = {
 
 _PROBE_POST = {
     "/admin": "/admin/tidak-ada",
+    "/admin/pesanan/periksa": "/admin/pesanan/periksa",
+    "/admin/pesanan/refund": "/admin/pesanan/refund",
     "/masuk": "/masuk",
     "/daftar": "/daftar",
     "/murid/": "/murid/kerjakan/1",

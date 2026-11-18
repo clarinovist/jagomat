@@ -35,6 +35,7 @@ SECTION = (
     ("lembaga", "Lembaga les", "/admin/lembaga"),
     ("pendaftaran", "Pendaftaran", "/admin?section=pendaftaran"),
     ("langganan", "Langganan & invoice", "/admin?section=langganan"),
+    ("pesanan", "Pesanan Paket Coba", "/admin/pesanan"),
     ("kpi", "KPI uji coba", "/admin?section=kpi"),
     ("riset", "Riset konsumen", "/admin/riset"),
     ("pemakaian", "Pemakaian guru", "/admin/pemakaian"),
@@ -45,7 +46,7 @@ SECTION = (
 GRUP_SECTION = (
     ("Pusat kendali", ("ringkasan",)),
     ("Pengguna", ("keluarga", "siswa", "lembaga")),
-    ("Layanan", ("pendaftaran", "langganan")),
+    ("Layanan", ("pendaftaran", "langganan", "pesanan")),
     ("Analitik", ("kpi", "riset", "pemakaian")),
     ("Sistem", ("operasional", "ai", "riwayat")),
 )

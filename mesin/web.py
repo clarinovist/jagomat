@@ -71,6 +71,7 @@ from topics import TOPIK_BAWAAN, daftar_topik
 # `/langganan`) sengaja tidak dicatat: statusnya bukan fungsi tingkat peran.
 AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin", "admin"),  # `/admin` dan `/admin/...`: 404 untuk anonim & guru
+    ("/admin/pesanan", "admin"),  # Fase 3c-4: daftar order admin; sudah tercakup prefix `/admin`
     ("/", "publik"),  # landing; guru/admin melihat berandanya sendiri
     ("/masuk", "publik"),
     ("/daftar", "publik"),
@@ -103,6 +104,8 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
 
 AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin", "admin"),
+    ("/admin/pesanan/periksa", "admin"),  # Fase 3c-4: periksa/refund order; tercakup prefix `/admin`
+    ("/admin/pesanan/refund", "admin"),
     ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
     ("/daftar", "publik"),
     ("/murid/", "murid"),

@@ -486,9 +486,12 @@ def _render_get(penangan, principal, query):
 
 def tangani_get(penangan, jalur):
     import admin_lembaga_http
+    import admin_pesanan_http
     import admin_research_http
     import admin_usage_http
     if admin_research_http.tangani_get(penangan, jalur):
+        return True
+    if admin_pesanan_http.tangani_get(penangan, jalur):
         return True
     if admin_usage_http.tangani_get(penangan, jalur):
         return True
@@ -1027,8 +1030,11 @@ def _post_bulk_proses(penangan, principal, data, mode="process"):
 
 def tangani_post(penangan, jalur):
     import admin_lembaga_http
+    import admin_pesanan_http
     import admin_research_http
     if admin_research_http.tangani_post(penangan, jalur):
+        return True
+    if admin_pesanan_http.tangani_post(penangan, jalur):
         return True
     if admin_lembaga_http.tangani_post(penangan, jalur):
         return True
