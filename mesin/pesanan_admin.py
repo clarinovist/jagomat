@@ -87,14 +87,14 @@ def _tulis_refund(kon, operasi_id, isi, kini):
 
 
 _SQL_DAFTAR = """
-SELECT o.order_id, o.akun_id, o.dibuat, o.kedaluwarsa, r.hasil AS receipt_hasil,
+SELECT o.order_id, o.akun_id, o.dibuat, %s AS kedaluwarsa, r.hasil AS receipt_hasil,
        r.alasan_kode,
        EXISTS(SELECT 1 FROM pesanan_refund f WHERE f.order_id=o.order_id) AS direfund,
        EXISTS(SELECT 1 FROM pesanan_pengamatan p WHERE p.order_id=o.order_id
               AND p.sumber='status' AND p.transaction_status IN (%s)) AS refund_teramati
 FROM pesanan_order o LEFT JOIN pesanan_receipt r ON r.order_id=o.order_id
 ORDER BY o.dibuat DESC, o.order_id DESC LIMIT ? OFFSET ?
-""" % ",".join("'%s'" % s for s in d.STATUS_REFUND_PROVIDER)
+""" % (st.SQL_KEDALUWARSA_TERBARU, ",".join("'%s'" % s for s in d.STATUS_REFUND_PROVIDER))
 
 
 def _item_admin(baris, kini):

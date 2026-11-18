@@ -4,7 +4,9 @@ Mengikuti pola `sensor_schema`/`policy_schema`: tanpa bump `user_version`, absen
 sah (belum dimigrasikan), parsial/berbeda ditolak (fail-closed), dan migrasi
 hanya lewat :func:`migrasikan` eksplisit (bukan startup/GET). Namespace
 `pesanan_*` sengaja terpisah dari `langganan_*`: tidak ada FK ke sana, ke DB
-belajar, maupun ke auth. Semua tabel append-only (trigger ABORT atas
+belajar, maupun ke auth. `pesanan_jendela` mencatat jendela bayar/QR per order (kedaluwarsa order sendiri
+immutable; order yang kedaluwarsa tanpa bayar dibuka ulang lewat jendela baru).
+Semua tabel append-only (trigger ABORT atas
 UPDATE/DELETE dan replace-guard untuk setiap kunci unik); koreksi hanya lewat
 baris baru, tidak pernah UPDATE/REPLACE.
 """
@@ -40,6 +42,18 @@ CREATE TABLE pesanan_order (
     dibuat TEXT NOT NULL CHECK(dibuat GLOB {waktu}),
     kedaluwarsa TEXT NOT NULL CHECK(kedaluwarsa GLOB {waktu} AND kedaluwarsa>dibuat),
     UNIQUE(siswa_id)
+);
+CREATE TABLE pesanan_jendela (
+    order_id TEXT NOT NULL REFERENCES pesanan_order(order_id) ON DELETE RESTRICT,
+    urutan INTEGER NOT NULL CHECK(urutan>=1),
+    idempotency_key TEXT NOT NULL UNIQUE CHECK(length(idempotency_key) BETWEEN 8 AND 46
+        AND idempotency_key {id}),
+    operasi_id TEXT UNIQUE CHECK(operasi_id IS NULL OR (length(operasi_id) BETWEEN 8 AND 64
+        AND operasi_id {id})),
+    dibuat TEXT NOT NULL CHECK(dibuat GLOB {waktu}),
+    kedaluwarsa TEXT NOT NULL CHECK(kedaluwarsa GLOB {waktu} AND kedaluwarsa>dibuat),
+    PRIMARY KEY(order_id,urutan),
+    CHECK((urutan=1)=(operasi_id IS NULL))
 );
 CREATE TABLE pesanan_pengamatan (
     operasi_id TEXT PRIMARY KEY CHECK(length(operasi_id) BETWEEN 8 AND 64 AND operasi_id {id}),
@@ -80,7 +94,7 @@ CREATE TABLE pesanan_refund (
 """.format(hex=_HEX, id=_ID, waktu=_WAKTU, alasan=_enum(ALASAN_KODE),
            catatan=_enum(CATATAN_REFUND))
 
-TABEL = ("pesanan_order", "pesanan_pengamatan", "pesanan_receipt",
+TABEL = ("pesanan_order", "pesanan_jendela", "pesanan_pengamatan", "pesanan_receipt",
          "pesanan_yatim", "pesanan_refund")
 
 # Kunci unik per tabel; dipakai replace-guard (BEFORE INSERT menggigit juga
@@ -89,6 +103,8 @@ TABEL = ("pesanan_order", "pesanan_pengamatan", "pesanan_receipt",
 _KUNCI = {
     "pesanan_order": ("order_id=NEW.order_id", "siswa_id=NEW.siswa_id",
                       "idempotency_key=NEW.idempotency_key"),
+    "pesanan_jendela": ("(order_id=NEW.order_id AND urutan=NEW.urutan)",
+                        "idempotency_key=NEW.idempotency_key", "operasi_id=NEW.operasi_id"),
     "pesanan_pengamatan": ("operasi_id=NEW.operasi_id",),
     "pesanan_receipt": ("(provider=NEW.provider AND transaksi_id=NEW.transaksi_id)",
                         "order_id=NEW.order_id"),
@@ -107,6 +123,15 @@ CREATE TRIGGER {tabel}_tolak_replace BEFORE INSERT ON {tabel}
 WHEN EXISTS(SELECT 1 FROM {tabel} WHERE {cocok})
 BEGIN SELECT RAISE(ABORT, 'ledger pesanan duplikat'); END;
 """.format(tabel=_tabel, cocok=" OR ".join(_KUNCI[_tabel]))
+
+# Jendela bayar berurutan tanpa celah per order: #1 dibuat bersama order, berikutnya
+# hanya urutan terakhir + 1 (batas jumlah jendela ditegakkan domain).
+DDL += """
+CREATE TRIGGER pesanan_jendela_berurutan BEFORE INSERT ON pesanan_jendela
+WHEN NEW.urutan IS NOT COALESCE(
+    (SELECT MAX(urutan) FROM pesanan_jendela WHERE order_id=NEW.order_id), 0)+1
+BEGIN SELECT RAISE(ABORT, 'urutan jendela pesanan tidak berurutan'); END;
+"""
 
 # Receipt lunas wajib bernominal sama dengan order (lapis kedua di luar domain).
 DDL += """

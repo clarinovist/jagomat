@@ -10,6 +10,7 @@ import secrets
 import sqlite3
 
 import pesanan_dasar as d
+import pesanan_jendela as jd
 import pesanan_status as st
 
 
@@ -28,14 +29,6 @@ def _kunci_idempotensi(order_id):
     return "ord-" + order_id[len(d.PREFIX_ORDER):]
 
 
-def _jumlah_aktif(kon, kini):
-    """Order aktif: ber-receipt (lunas/perlu_diperiksa) atau belum kedaluwarsa tanpa receipt."""
-    return kon.execute(
-        """SELECT COUNT(*) FROM pesanan_order o
-           WHERE EXISTS(SELECT 1 FROM pesanan_receipt r WHERE r.order_id=o.order_id)
-              OR o.kedaluwarsa>?""", (kini,)).fetchone()[0]
-
-
 def _validasi_masukan(akun_id, siswa_id, cek_id, merchant, order_id, sekarang):
     d.periksa_akun_id(akun_id)
     d.periksa_bilangan(siswa_id, "siswa_id")
@@ -48,12 +41,16 @@ def _validasi_masukan(akun_id, siswa_id, cek_id, merchant, order_id, sekarang):
 
 def _sisipkan(kon, *, order_id, akun_id, siswa_id, cek_id, merchant, kini):
     kedaluwarsa = d.tambah_jam(kini, d.KEDALUWARSA_JAM)
+    kunci = _kunci_idempotensi(order_id)
     kon.execute(
         """INSERT INTO pesanan_order(order_id,akun_id,siswa_id,cek_id,rupiah,currency,
                provider,channel,merchant,idempotency_key,dibuat,kedaluwarsa)
            VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
         (order_id, akun_id, siswa_id, cek_id, d.RUPIAH_PAKET, d.MATA_UANG, d.PROVIDER,
-         d.CHANNEL, merchant, _kunci_idempotensi(order_id), kini, kedaluwarsa))
+         d.CHANNEL, merchant, kunci, kini, kedaluwarsa))
+    # Jendela #1 satu transaksi dengan order; kuncinya = kunci order.
+    jd.sisipkan_jendela(kon, order_id=order_id, urutan=1, idempotency_key=kunci,
+                        operasi_id=None, dibuat=kini)
 
 
 def buat_order(kon, *, akun_id, siswa_id, cek_id, cek_selesai, punya_kontak,
@@ -63,7 +60,8 @@ def buat_order(kon, *, akun_id, siswa_id, cek_id, cek_selesai, punya_kontak,
     Urutan, semuanya dalam satu `BEGIN IMMEDIATE`: cek selesai (bukan True ->
     PesananTidakDitemukan, tanpa menyentuh DB) -> order yang sudah ada untuk anak
     ini (idempoten bila milik akun yang sama, selain itu PesananTidakDitemukan)
-    -> kontak (PesananButuhKontak) -> kuota (PesananKuotaHabis) -> tulis.
+    -> kontak (PesananButuhKontak) -> kuota (PesananKuotaHabis) -> tulis order
+    beserta jendela bayar #1 (`pesanan_jendela`).
     Mengembalikan dict order baru dengan kunci tambahan `baru`.
     """
     kini = _validasi_masukan(akun_id, siswa_id, cek_id, merchant, order_id, sekarang)
@@ -80,7 +78,7 @@ def buat_order(kon, *, akun_id, siswa_id, cek_id, cek_selesai, punya_kontak,
             return {**st.dict_order(st.baris_order(kon, ada["order_id"])), "baru": False}
         if punya_kontak is not True:
             raise d.PesananButuhKontak()
-        if _jumlah_aktif(kon, kini) >= d.KUOTA_ORDER:
+        if jd.jumlah_aktif(kon, kini) >= d.KUOTA_ORDER:
             raise d.PesananKuotaHabis()
         try:
             _sisipkan(kon, order_id=ident, akun_id=akun_id, siswa_id=siswa_id,

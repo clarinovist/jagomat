@@ -122,11 +122,12 @@ def test_insert_or_replace_ditolak_pada_semua_kunci_unik(db):
         sebelum = dump(db)
         kunci_ganda = [
             "INSERT OR REPLACE INTO pesanan_order SELECT * FROM pesanan_order",
+            "INSERT OR REPLACE INTO pesanan_jendela SELECT * FROM pesanan_jendela",
             "INSERT OR REPLACE INTO pesanan_pengamatan SELECT * FROM pesanan_pengamatan",
             "INSERT OR REPLACE INTO pesanan_receipt SELECT * FROM pesanan_receipt",
         ]
         for sql in kunci_ganda:
-            with pytest.raises(sqlite3.IntegrityError, match="duplikat"):
+            with pytest.raises(sqlite3.IntegrityError, match="duplikat|berurutan"):
                 kon.execute(sql)
         kon.rollback()
     assert dump(db) == sebelum
@@ -181,3 +182,20 @@ def test_check_format_order_dan_nominal_di_tingkat_db(db):
         kon.rollback()
         assert hitung(kon, "pesanan_order") == 0
 
+
+
+def test_jendela_pertama_ada_untuk_setiap_order_dan_tabel_jendela_dikenali_skema(db):
+    assert "pesanan_jendela" in schema_pesanan.TABEL
+    with pesanan.buka(db, tulis_data=True) as kon:
+        order = buat(kon, 1)
+        baris = kon.execute("SELECT order_id,urutan,idempotency_key,operasi_id FROM pesanan_jendela"
+                            ).fetchall()
+        assert [tuple(b) for b in baris] == [(order["order_id"], 1, order["idempotency_key"], None)]
+
+
+def test_trigger_jendela_dihapus_membuat_skema_ditolak(db):
+    with sqlite3.connect(db) as kon:
+        kon.execute("DROP TRIGGER pesanan_jendela_berurutan")
+    with pytest.raises(admin_store.StoreBelumSiap):
+        with pesanan.buka(db):
+            pass
