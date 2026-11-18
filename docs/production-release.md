@@ -6,6 +6,45 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy pesanan Paket Coba Fase 3 + pin recovery migrasi — 19 November 2026
+
+Controlled `deploy-v2` memasang **a1443b364646292f4909aa37cee7ae4912810bb2** (digest
+`sha256:484774a0…d213ca`), healthy, menggantikan `2f546ef`. Isi: **Fase 3 pesanan Paket
+Coba** (ledger aditif `pesanan_*` di admin-control, rute pelanggan di balik gerbang tiga
+syarat, callback Midtrans `ord_`, panel admin pesanan, copy refund Keputusan 17), token
+skala font funnel/beranda guru (`ac6fe2d`), dan pin recovery baru. **`FUNNEL_AKTIF`
+tetap mati**; tabel `pesanan_*` belum dimigrasikan (absent sah), jadi pembayaran tetap
+tertutup dan tidak ada order yang bisa dibuat.
+
+- Kontrak persistensi kandidat = recovery = live baru `dea0cff8…89f78` (live lama
+  `dd3e0fce…d79f`): perubahan schema ledger Fase 3 menggeser fingerprint. Recovery pin
+  baru **5b8e1d3** di branch `recovery-fase3` = `40ccd72` (kandidat Fase 3 + writer
+  katalog/teori 1) + self-pin; digest `sha256:40e69e40…13a7e0`. Mode source `migrasi`,
+  `pair_verified=true`, `siap_pasang=false`, `requires_controlled_migration=true`.
+- Deployer source gate **`cdd132c9…796d2f`** dipasang atomik (sebelumnya
+  `2479470f…68c810`); binary lama di `/opt/osn/osn-deploy.bak-20261119T0535`. Versi baru
+  menulis ulang `recovery-pair.json` sebelum rollback. Policy rutin masih
+  `enabled:false` dan masih memuat hash deployer lama; **jangan aktifkan rutin sebelum
+  policy di-review**.
+- Gate dispatch [44393850489](https://github.com/clarinovist/jagomat/actions/runs/44393850489)
+  hijau: kandidat 4/4, recovery 4/4, build & push, pair 6/8/8/4/4/8/8/8/8/8/8/6/8,
+  `provider_calls` 0; push `a1443b3` sukses.
+- Kit `deploy-fase3-pesanan-20261119`; approval `2f546ef` yang kedaluwarsa & terkonsumsi
+  diarsipkan ke `approval-consumed-2f546ef.json` sebelum prepare. `prepare`
+  `PERSIAPAN_OK`, hold 06.33.21–06.35.05 WIB (±1 mnt 44 dtk, Caddy 503), backup empat DB
+  + `sandi.json` + riset, rehearsal C–B–C, `deploy-v2` exit0, reopen
+  `LIVE_ADMIN_HEALTHY`, postcheck exit0.
+- Postcheck: revisi/digest exact, smoke publik `/`200 `/akun`401 `/murid/`303
+  `/cek-kemampuan`200 dengan teks "Halaman ini belum dibuka.", probe sintetis writer2/
+  konteks migrated/gerbang tiga syarat/funnel mati/pesanan schema absent/copy refund,
+  galat Traceback/OperationalError/IntegrityError 0, config dan hash histori terjaga.
+- Cleanup menghapus 4 direktori rehearsal/probe; backup 5,1 MB dipertahankan di
+  `/opt/osn/cadangan/deploy-fase3-pesanan-20261119/`. Approval cutover
+  `778d5e6b3a248a23f9ede122c7a1d284` terkonsumsi; arsipkan setelah kedaluwarsa.
+- Belum: migrasi schema pesanan dan aktivasi `FUNNEL_AKTIF`/gerbang pembayaran. Keduanya
+  langkah terkontrol terpisah setelah keputusan Pemilik (retensi bahan sementara, PIC
+  konsultasi, copy DRAF); jangan menyalakan sakelar hanya karena kode sudah live.
+
 ## Deploy ringkasan pasangan diagnostik di halaman guru — 15 November 2026
 
 Controlled `deploy-v2` memasang **2f546ef547b60763005b26462665c8f3e18e1f09** (digest

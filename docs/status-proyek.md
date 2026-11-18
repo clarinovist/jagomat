@@ -1,6 +1,6 @@
 # Status proyek dan pekerjaan tersisa
 
-**Diperbarui 15 November 2026.** Ini indeks status, bukan perubahan keputusan produk
+**Diperbarui 19 November 2026.** Ini indeks status, bukan perubahan keputusan produk
 atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
 [CLAUDE.md](../CLAUDE.md). Catatan lama harus dibaca menurut tanggal dan scope-nya.
 
@@ -11,10 +11,15 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
 - Akses awal **nonkomersial**. Keputusan paket Jago/Jago Pro tidak sama dengan
   pembukaan penjualan, trial otomatis, promo, atau paywall. **Pembaruan 16 November 2026:**
   Pemilik memutuskan **funnel berbayar Cek Kemampuan / Paket Coba Rp49.000 dibuka**
-  (Keputusan 16 di `../tim/founder/keputusan-pemilik.md`). Plan dan mockup UI sudah ada,
-  tetapi **belum ada kode aplikasi** dan belum ada rilis; status baris F1 di tabel bawah.
-  Sampai F1 selesai dan dirilis, perilaku live tetap nonkomersial seperti tertulis di landing.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`2f546ef`** (15 November 2026;
+  (Keputusan 16 di `../tim/founder/keputusan-pemilik.md`). Plan dan mockup UI sudah ada;
+  kandidat Fase 1–3 sudah ter-deploy 19 November 2026 dengan **`FUNNEL_AKTIF` mati**,
+  tetapi aktivasi pembayaran belum; status baris F1 di tabel bawah. Selama sakelar mati,
+  perilaku live tetap nonkomersial seperti tertulis di landing.
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`a1443b3`** (19 November 2026;
+  Fase 3 pesanan Paket Coba — ledger aditif, rute pelanggan, callback Midtrans `ord_`,
+  panel admin pesanan, copy refund Keputusan 17 — dengan **`FUNNEL_AKTIF` mati** dan
+  schema `pesanan_*` belum dimigrasikan; recovery pin `5b8e1d3`; tanpa aktivasi
+  pembayaran). Sebelumnya `2f546ef` (15 November 2026;
   ringkasan pasangan diagnostik read-only di halaman tinjauan guru, penyelarasan
   spec/context, dan perbaikan dokumen status/kit; tanpa schema/migrasi/flag). Sebelumnya
   `7b57cc7` (15 November 2026; tes diagnostik tajam berpasangan P1–P6, topik
@@ -86,7 +91,7 @@ seluruh kombinasi penggunaan nyata telah terbukti.
 | B1 | Launch komersial paket v2 | **Ditunda.** Katalog/ledger/service dan fondasi kuota ada; checkout/panel v2 lengkap, transisi, refund, eligibility/promo dan aktivasi perlu dituntaskan bila dipilih. [Paket](subscription-packages.md) |
 | J1 | Perluasan jenjang hingga kelas 9 | **Diputuskan pemilik 28 Okt 2026; kelas 1–2 live di produksi sejak 2 Nov (`a9977f8`), penawaran dibuka sejak 4 Nov (`7dee2ed`, `OSN_MATERI_DASAR=1` atas keputusan pemilik; ulasan ulang pembahasan belum).** Landing menyebut sasaran bersama ketersediaan saat ini. Level P1/P2 hanya untuk Latihan manual (tingkat anak, siklus, pilot tetap P3–P6), migrasi CHECK konteks sudah diterapkan di produksi, topik `bilangan-dasar` dengan `tambah_dasar` (P1 hasil ≤10, P2 11–20) dan kartu Variasi Dasar 1/2. `OSN_MATERI_DASAR` default0 mengunci penawaran/pembuatan, bukan pembaca histori; aktivasi perlu review guru, recovery yang mengenali topik dasar, dan izin rilis. Gate selector CI lokal 406 berkas lulus; full suite 3.12 lulus pada dispatch [41355603056](https://github.com/clarinovist/jagomat/actions/runs/41355603056). Ulasan Materi Dasar kelas 1–2 (4 Nov, cek.jagomat.id): rekomendasi **ubah dulu** (pembahasan berbelit, kode K=0 pada soal berhasil 10), jadi aktivasi tetap ditahan. Pembahasan P2 ditulis ulang dengan kalimat penuh pada 4 Nov (soal, kunci, malrule, PG identik; belum rilis, perlu ulasan ulang); recovery `39fcfa7` terbukti memuat topik `bilangan-dasar` P1/P2 dan template `tambah_dasar` (probe image), dan pasangan CI kandidat→recovery lulus. Batch 2 (6 Nov, source `77faa58`+`67b9518`, live `58a52a4`, **aktif 6 Nov `d1d2f76`**): `kurang_dasar`, `bilangan_hilang`, `nilai_tempat`, `bandingkan_bilangan` (tanda <, >, =; PG `simbol_perbandingan`) di balik sakelar writer `OSN_DASAR_LENGKAP`, keputusan materi mengikuti Jev atas instruksi pemilik; **`OSN_DASAR_LENGKAP=1` di produksi sejak 6 Nov**, lembar P1/P2 berisi lima jenis dua soal per jenis. Ulasan guru diganti self-review agent atas keputusan pemilik 6 Nov (bukan ulasan independen): seluruh 2.275 butir domain lima jenis diperiksa (kunci vs solver terpisah, hitungan setiap persamaan pembahasan, malrule≠kunci dan tidak kembar, PG tepat tiga opsi), lalu contoh per malrule×bentuk×level dibaca. K=0 **dipertahankan**: 0 sah sebagai salah tipikal (menulis satuan saja untuk 10, atau mengerjakan 5−5), jadi tanpa versi katalog. Pin recovery `58a52a4` ditolak gate karena writer katalog bawaan 2; recovery `c58390a` (57817a5 + writer katalog1/teori1) mengenal kelima jenis. Dua perbaikan teks jenis baru (alasan `nilai_bukan_banyak` memakai angka soal; pembahasan membandingkan satu digit lewat urutan membilang) masuk kandidat `57817a5`/`d1d2f76`. Pemilih topik Latihan memberi label rentang kelas (live `4ce333a` 6 Nov, masukan guru: Aritmetika Dasar = kelas 5–6, Bilangan Dasar tidak bisa masuk Gabungan). Belum ada: cerita/visual, integrasi siklus, kelas 7–9 dan SMP. [Batas klaim](workflow-reference.md#konteks-kurikulum--batas-klaim-produk) |
 | O1 | Backup operasional terjadwal end-to-end | **Jalur manual lengkap dipasang dan diuji25Oktober; otomatis belum.** Tool5c2e07b, capture manual, transfer Mac dan rehearsal terisolasi lulus; core4DB+auth, riset/lampiran mengganti jalur tiga DB parsial. Jadwal/downtime berulang, off-site independen laptop, alert dan retensi operasional masih perlu keputusan. [Runbook backup](operational-backup.md) |
-| F1 | Funnel berbayar Cek Kemampuan / Paket Coba Rp49.000 | **Diputuskan Pemilik 16 Nov 2026; belum ada kode.** Plan 5 fase (permukaan publik → cek gratis tanpa akun → pesanan sekali bayar QRIS → deliverable laporan/konsultasi/voucher → audit) dan mockup 4 layar tersedia lokal. Parameter yang dikunci: cek gratis tanpa akun, konsultasi dijadwalkan lewat WhatsApp (tanpa pemilih slot), kredit berupa kode voucher, pembatalan memakai kalimat awam. Pelaksanaan menunggu keputusan retensi bahan sementara, PIC konsultasi, dan batas pembatas laju. Plan: `docs/plan/2026-11-16-funnel-cek-kemampuan.md` (gitignored); mockup: `docs/mockup/funnel-20261116/`. |
+| F1 | Funnel berbayar Cek Kemampuan / Paket Coba Rp49.000 | **Diputuskan Pemilik 16 Nov 2026; kandidat Fase 1–3 ter-deploy 19 Nov (`a1443b3`) dengan `FUNNEL_AKTIF` mati; aktivasi belum.** Ledger pesanan masih absent (migrasi eksplisit belum dijalankan) dan gerbang tiga syarat tertutup, jadi tidak ada order yang bisa dibuat. Plan 5 fase (permukaan publik → cek gratis tanpa akun → pesanan sekali bayar QRIS → deliverable laporan/konsultasi/voucher → audit) dan mockup 4 layar tersedia lokal. Parameter yang dikunci: cek gratis tanpa akun, konsultasi dijadwalkan lewat WhatsApp (tanpa pemilih slot), kredit berupa kode voucher, pembatalan memakai kalimat awam. Migrasi schema + aktivasi menunggu keputusan retensi bahan sementara, PIC konsultasi, dan batas pembatas laju. Plan: `docs/plan/2026-11-16-funnel-cek-kemampuan.md` (gitignored); mockup: `docs/mockup/funnel-20261116/`. |
 
 G1–G4 berasal dari rencana lokal pivot/brief 21–22 Oktober; keputusan dan batasnya
 ringkas di sini agar tidak hanya tersimpan dalam `docs/plan/`. Angka target tetap
