@@ -20,12 +20,15 @@ COPY_HARGA = (
     "Paket Coba Rp49.000, sekali bayar. "
     "Bukan langganan, jadi bulan depan tidak ada tagihan lagi."
 )
+# DRAF: titik refund disesuaikan Keputusan 17 (cek gratis sebelum bayar) dan §10A poin 2; menunggu persetujuan Pemilik.
 COPY_PEMBATALAN = (
-    "Kalau kamu berubah pikiran sebelum jadwal cek dibuat, bilang saja lewat "
-    "WhatsApp. Uangmu kami kembalikan penuh, tanpa ditanya alasan. Setelah jadwal "
-    "cek dibuat dan anak mulai mengerjakan, uang tidak bisa dikembalikan karena "
-    "laporannya sudah mulai dikerjakan. Kalau ternyata kamu tidak bisa hadir di "
-    "jadwal yang sudah dibuat, kabari kami; kita cari waktu lain, tidak hangus."
+    "Kalau kamu berubah pikiran sebelum guru mulai meninjau laporan lengkap, "
+    "bilang saja lewat WhatsApp. Uangmu kami kembalikan penuh, tanpa ditanya alasan. "
+    "Setelah guru mulai meninjau, uang tidak bisa dikembalikan karena laporannya "
+    "sudah mulai dikerjakan. Kalau laporan terlambat lebih dari 3×24 jam dari jam "
+    "terbit yang kami kabari, kami tawarkan pengembalian penuh atau tetap menunggu. "
+    "Kalau kamu tidak bisa hadir di jadwal konsultasi yang sudah dibuat, kabari "
+    "kami; kita cari waktu lain, tidak hangus."
 )
 COPY_KONSULTASI = (
     "Setelah kamu bayar, kami hubungi kamu lewat WhatsApp untuk mencari waktu "

@@ -43,7 +43,11 @@ COPY_TUTUP_SUDAH_BAYAR = (
     "Hubungi tim lewat WhatsApp bila ada yang perlu dipastikan."
 )
 # DRAF: teks final menunggu persetujuan Pemilik
-COPY_REFUND = "Pengembalian dana ditangani tim lewat WhatsApp; syarat final menunggu keputusan."
+# DRAF: selaras COPY_PEMBATALAN (Keputusan 17, §10A poin 2); menunggu persetujuan Pemilik.
+COPY_REFUND = (
+    "Pengembalian dana ditangani tim lewat WhatsApp: bisa sebelum guru mulai meninjau "
+    "laporan, atau bila laporan terlambat lebih dari 3×24 jam."
+)
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_KUOTA_HABIS = (
     "Pendaftaran Paket Coba sedang dihentikan sementara; "
