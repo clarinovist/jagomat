@@ -274,7 +274,7 @@ def signature_cocok(mentah, config):
         for k in ("order_id", "status_code", "gross_amount"):
             if type(data.get(k)) is not str:
                 return False
-        d.identitas(data["order_id"], "invoice")
+        id_order(data["order_id"])
         nominal_provider(data["gross_amount"])
         aktual = data.get("signature_key")
         if type(aktual) is not str or re.fullmatch(r"[0-9a-fA-F]{128}", aktual) is None:

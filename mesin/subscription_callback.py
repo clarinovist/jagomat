@@ -17,6 +17,7 @@ import time
 import admin_store
 import admin_subscription
 import midtrans_contract as midtrans
+import pesanan_callback
 import subscription as d
 import subscription_produksi as prod
 import subscription_store as store
@@ -92,7 +93,9 @@ def _proses(penangan):
     try:
         data = midtrans._json(mentah)
         invoice_id = data["order_id"]
-        d.identitas(invoice_id, "invoice")
+        untuk_pesanan = pesanan_callback.milik_pesanan(invoice_id)
+        if not untuk_pesanan:
+            d.identitas(invoice_id, "invoice")
         if not _binding_cocok(data, config):
             return 403, b"ditolak"
         status = _status_hint(data)
@@ -101,6 +104,8 @@ def _proses(penangan):
         return 403, b"ditolak"
     if not sakelar.rekonsiliasi:
         return 503, b"belum siap"
+    if untuk_pesanan:
+        return pesanan_callback.proses(admin_store.BAWAAN, data, status, int(time.time()))
     try:
         _simpan(admin_store.BAWAAN, invoice_id, status, sidik, int(time.time()), sakelar)
     except d.FiturNonaktif:

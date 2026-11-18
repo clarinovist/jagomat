@@ -239,13 +239,14 @@ def test_identitas_langganan_menolak_ord_dan_tetap_menerima_inv():
         d.identitas(ORD.upper(), "invoice")
 
 
-def test_signature_callback_langganan_menolak_ord_dan_menerima_inv():
+def test_signature_callback_menerima_ord_dan_inv():
+    # 3c-2: kontrak berubah sengaja; signature `ord_` kini sah (cabang order callback).
     def mentah(order_id):
         sidik = hashlib.sha512((order_id + "200" + "49000.00" + KUNCI_SERVER).encode()).hexdigest()
         return json.dumps({"order_id": order_id, "status_code": "200",
                            "gross_amount": "49000.00", "signature_key": sidik}).encode()
     assert m.signature_cocok(mentah(INV), CFGP) is True
-    assert m.signature_cocok(mentah(ORD), CFGP) is False
+    assert m.signature_cocok(mentah(ORD), CFGP) is True
 
 
 def test_store_langganan_menolak_ord_dan_tidak_menulis_baris(tmp_path):
