@@ -262,6 +262,13 @@ def validasi_skema(kon: sqlite3.Connection) -> None:
         policy_schema.validasi(kon)
     except (ValueError, sqlite3.Error):
         raise StoreBelumSiap('struktur sensor tidak lengkap') from None
+    # Ledger pesanan Paket Coba: aditif opt-in tanpa bump user_version, absent
+    # sah, parsial/berbeda fail-closed (migrasi eksplisit di schema_pesanan).
+    import schema_pesanan
+    try:
+        schema_pesanan.validasi(kon)
+    except (ValueError, sqlite3.Error):
+        raise StoreBelumSiap("struktur ledger pesanan tidak lengkap") from None
     # Konfigurasi dukungan adalah schema aditif opt-in tanpa bump user_version:
     # absent masih sah sebelum migrasi, tetapi struktur parsial harus fail-closed.
     import support_settings
