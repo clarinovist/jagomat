@@ -23,12 +23,16 @@ yang tersimpan sebagai nama resmi dipetakan saat render), dan sapuan retensi cek
 - Cron retensi dipasang **setelah** deploy sehat; satu sapuan awal dijalankan di image live dan mencetak agregat
   (0 bahan dihapus karena tabel `cek_gratis` masih 0 baris). `cek_retensi.py` fail-closed bila daftar akun
   kosong/tidak terbaca dan hanya menghapus bahan mentah, bukan turunan skor/kategori/ringkasan.
+- Migrasi aditif `profil_guru_settings.py --database /data/admin-control.db` dijalankan setelah reopen:
+  tabel `profil_guru` + `profil_guru_audit` terpasang, `validasi_schema=true`, `user_version` tetap 9,
+  integrity/FK bersih. Tanpa langkah ini halaman admin hanya menampilkan "Penyimpanan belum siap".
 - Postcheck: revisi/digest exact, smoke `/`200 `/cek-kemampuan`200 aktif `/paket-coba`200
   `/contoh-peta-kemampuan`200 `/akun`401 `/murid/`303, `/admin/cek-topik` `/admin/sakelar` `/admin/profil-guru`
   404 anonim; probe sintetis funnel/gerbang/sakelar/profil/label awam lulus; galat 0; config dan hash histori terjaga.
 - Backup induk `/opt/osn/cadangan/deploy-sakelar-retensi-20261119/`, salinan lokal
   `mesin/cadangan/deploy-sakelar-retensi-20261119/` (gitignored). Approval cutover
-  `c3f842006c91bd02eaa0833f73a207f6` terkonsumsi; arsipkan setelah kedaluwarsa.
+  `c3f842006c91bd02eaa0833f73a207f6` terkonsumsi dan diarsipkan ke
+  `approval-consumed-ac93885.json` setelah kedaluwarsa.
 - **Catatan operasional:** `/admin/sakelar` baru mengubah perilaku setelah admin menyimpan sakelar (sebelum itu env
   tetap fallback). Profil guru tampil di funnel hanya bila admin menambahkan profil `tampil=1`. Cron retensi
   mengikuti daftar akun di `/data/sandi.json`; backup operasional kini harus ikut menahan tiga cron writer.
