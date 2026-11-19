@@ -6,6 +6,40 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Aktivasi funnel Cek Kemampuan dan pembayaran Paket Coba — 19 November 2026
+
+Aktivasi terkontrol di atas artifact yang sama, **a1443b3** (digest
+`sha256:484774a0…d213ca`), recovery `5b8e1d3` (digest `sha256:40e69e40…13a7e0`).
+Perubahan produksi: ledger `pesanan_*` dimigrasikan (6 tabel, 0 order; aditif, tanpa
+bump `user_version` 9) dan **`FUNNEL_AKTIF=1`** ditulis ke `/opt/osn/visual.conf`
+(CAS `99009c6d…` → `0ba411c8…`) di dalam hold, lalu container dimulai ulang lewat
+`deploy-v2` dengan env baru. Gerbang pembayaran tiga syarat kini terbuka: funnel aktif,
+sakelar efektif (secret + recovery pair + callback), dan tahap `checkout`.
+
+- Kit `deploy-funnel-aktif-20261119`; `prepare` `PERSIAPAN_OK` (live a1443b3, funnel
+  mati, tahap checkout, provider/callback/recovery/kebijakan siap, schema pesanan absent,
+  tabel `cek_gratis`/`kontak_akun` ada). Hold 09.47.24–09.49.31 WIB (±2 mnt 7 dtk,
+  Caddy 503), backup empat DB + `sandi.json` + riset, migrasi `schema_pesanan` pada
+  salinan lalu live, rehearsal C–B–C pada DB termigrasi, `deploy-v2` exit0, reopen
+  `LIVE_ADMIN_HEALTHY`, postcheck exit0, cleanup 5 direktori.
+- Postcheck: `/cek-kemampuan` 200 halaman funnel aktif (bukan "belum dibuka"),
+  `/paket-coba` 200, `/` 200 dengan tautan funnel, `/akun` 401, `/murid/` 303; probe
+  sintetis `funnel_aktif=true`, `gerbang_terbuka=true`, schema pesanan valid, 0 order;
+  galat Traceback/OperationalError/IntegrityError 0; config dan hash histori terjaga.
+- Approval cutover `1330cd7a928c04b6aee1164294616f90` terkonsumsi; arsipkan setelah
+  kedaluwarsa. Backup induk `/opt/osn/cadangan/deploy-funnel-aktif-20261119/`.
+- **Keputusan Pemilik 19 November 2026:** mengaktifkan funnel **penuh termasuk
+  pembayaran** sekarang, dengan kesadaran bahwa (a) deliverable Fase 4 — laporan
+  lengkap, latihan 30 hari, konsultasi terjadwal, voucher — **belum tersedia di
+  aplikasi** dan halaman pembeli masih berkata "Akses laporan lengkap menyusul"
+  (dilayani manual/ menyusul); (b) belum ada worker rekonsiliasi order, jadi pembeli
+  atau admin harus menekan **Periksa** agar receipt terbit; (c) sapuan retensi 30 hari
+  `cek_gratis_sapu` belum dijadwalkan; (d) copy refund Keputusan 17 masih berstatus DRAF.
+  Risiko operasional ini diterima Pemilik, bukan dinyatakan selesai.
+- **Wajib dipantau:** order dan pembayaran masuk lewat panel admin `pesanan`; jangan
+  mengandalkan callback sebagai bukti bayar. Refund tetap manual. Jangan menyalakan
+  penegakan (`penegakan`) atau mengubah tahap tanpa keputusan terpisah.
+
 ## Deploy pesanan Paket Coba Fase 3 + pin recovery migrasi — 19 November 2026
 
 Controlled `deploy-v2` memasang **a1443b364646292f4909aa37cee7ae4912810bb2** (digest
