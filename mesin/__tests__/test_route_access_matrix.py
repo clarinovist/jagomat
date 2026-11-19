@@ -51,6 +51,7 @@ _PROBE_GET = {
     "/daftar": "/daftar",
     "/cek-kemampuan": "/cek-kemampuan",
     "/paket-coba": "/paket-coba",
+    "/contoh-peta-kemampuan": "/contoh-peta-kemampuan",
     "/aset/": "/aset/favicon.svg",
     "/guru": "/guru",
     "/ortu": "/ortu",
@@ -195,6 +196,7 @@ def test_tabel_akses_punya_probe():
     assert urutan.index("/pesanan") > urutan.index("/guru")
 
 
+    assert get["/contoh-peta-kemampuan"] == "publik" and "/contoh-peta-kemampuan" not in post
 @pytest.mark.parametrize("prefix,tingkat", web.AKSES_RUTE_GET)
 def test_anonim_get_sesuai_tingkat(server, prefix, tingkat):
     jalur = _PROBE_GET[prefix]

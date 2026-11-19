@@ -77,6 +77,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/daftar", "publik"),
     ("/cek-kemampuan", "publik"),  # funnel: 200 "belum dibuka" bila FUNNEL_AKTIF mati
     ("/paket-coba", "publik"),  # idem; tidak ada handler POST
+    ("/contoh-peta-kemampuan", "publik"),  # idem; contoh laporan sintetis
     ("/aset/", "publik"),
     ("/guru", "guru"),
     ("/ortu", "guru"),  # alias lama beranda guru

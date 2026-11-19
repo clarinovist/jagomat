@@ -108,6 +108,16 @@ COPY_BATAS_HASIL = (
     "Materi di luar soal yang dikerjakan belum terbaca.",
 )
 
+# Kerangka kartu profil guru. KOSONG secara bawaan: Pemilik mengisi data NYATA
+# (nama, latar pendidikan, lama mengajar) setelah disetujui. Dilarang mengisi data
+# karangan; selama kosong, kartu tidak dirender sama sekali (tanpa penanda/placeholder).
+# Bentuk tiap butir: {"nama": ..., "latar": ..., "lama_mengajar": ...}.
+PROFIL_GURU: tuple = ()
+COPY_JUDUL_PROFIL_GURU = "Guru yang membaca laporan Anda"  # DRAF: teks final menunggu persetujuan Pemilik
+
+COPY_TAUTAN_CONTOH = "Lihat contoh Peta Kemampuan"  # DRAF: teks final menunggu persetujuan Pemilik
+JALUR_CONTOH = "/contoh-peta-kemampuan"
+
 _SVG = (
     '<svg width="{u}" height="{u}" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
     'stroke-width="{w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{d}</svg>'
@@ -159,6 +169,27 @@ def _footer(dukungan) -> str:
   {kontak}</div>
   <div>{n} — {tag}</div>
 </div></footer>"""
+
+
+def kartu_profil_guru(profil=None) -> str:
+    """Kartu profil guru; string kosong (nol byte) bila `PROFIL_GURU` kosong."""
+    profil = PROFIL_GURU if profil is None else profil
+    if not profil:
+        return ""
+    baris = "".join(
+        f'<li><b>{_e(str(g.get("nama", "")))}</b>'
+        f'<span>{_e(str(g.get("latar", "")))}</span>'
+        f'<span>{_e(str(g.get("lama_mengajar", "")))}</span></li>'
+        for g in profil
+    )
+    return (
+        '\n  <aside class="funnel-guru-st" aria-labelledby="judul-guru">'
+        f'<h2 id="judul-guru">{_e(COPY_JUDUL_PROFIL_GURU)}</h2><ul>{baris}</ul></aside>'
+    )
+
+
+def _tautan_contoh(kelas: str) -> str:
+    return f'<a class="{kelas}" href="{JALUR_CONTOH}">{_e(COPY_TAUTAN_CONTOH)}</a>'
 
 
 def _daftar_li(butir) -> str:
@@ -268,6 +299,7 @@ def _blok_paket() -> str:
     <div>
       <ul class="funnel-centang-st">{_centang(COPY_PAKET_RINGKAS)}</ul>
       <a class="funnel-tautan-terang-st" href="/paket-coba">Lihat isi {_e(NAMA_PAKET)}</a>
+      {_tautan_contoh("funnel-tautan-terang-st")}
     </div>
   </div>{_akordeon_batas()}
 </section>"""
@@ -305,6 +337,7 @@ def _kartu_harga() -> str:
       <p class="funnel-harga-baris-st"><strong>Rp49.000</strong><span>sekali bayar</span></p>
       <span class="funnel-pil-hijau-st">Sekali bayar, bukan langganan</span>
       <span class="funnel-pil-hijau-st funnel-pil-kuning-st">Jadi voucher program belajar</span>
+      <p class="funnel-contoh-tautan-st">{_tautan_contoh("funnel-tautan-sekunder-st")}</p>
       <p class="funnel-catatan-kelas-st">{_e(COPY_HARGA)}</p>
       <ul class="funnel-centang-st">{_centang(COPY_PAKET_ISI)}</ul>
       <p class="funnel-tegas-st">{_e(COPY_TIDAK_KEMBALI)}</p>
@@ -346,7 +379,7 @@ def halaman_paket_coba(dukungan=None) -> bytes:
   <h1 class="funnel-judul-halaman-st" id="judul-paket">{_e(COPY_JUDUL_PAKET_HALAMAN)}</h1>
   <p class="funnel-pengantar-st">{_e(COPY_PENGANTAR_PAKET)}</p>
   <div class="funnel-dua-st">{_kartu_harga()}{_kartu_batas()}
-  </div>
+  </div>{kartu_profil_guru()}
   <div class="funnel-aksi-st">
     <p>{_e(COPY_PAKET_DARI_HASIL)}</p>
     {_cta_utama("Mulai dari cek gratis")}

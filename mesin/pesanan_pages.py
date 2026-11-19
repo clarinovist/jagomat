@@ -31,10 +31,10 @@ ALIS = "PAKET COBA"
 ID_JUDUL = "judul-pesanan"
 
 # DRAF: teks final menunggu persetujuan Pemilik
-COPY_JUDUL = "Pesanan Paket Coba"
+COPY_JUDUL = "Pesanan Peta Kemampuan"
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_TUTUP = (
-    "Pembayaran Paket Coba belum dibuka. Belum ada tagihan yang dibuat, jadi tidak ada "
+    "Pembayaran Peta Kemampuan belum dibuka. Belum ada tagihan yang dibuat, jadi tidak ada "
     "yang perlu Anda bayar sekarang."
 )
 # DRAF: teks final menunggu persetujuan Pemilik
@@ -43,14 +43,16 @@ COPY_TUTUP_SUDAH_BAYAR = (
     "Hubungi tim lewat WhatsApp bila ada yang perlu dipastikan."
 )
 # DRAF: teks final menunggu persetujuan Pemilik
-# DRAF: selaras COPY_PEMBATALAN (Keputusan 17, §10A poin 2); menunggu persetujuan Pemilik.
+# DRAF: selaras COPY_PEMBATALAN (Keputusan 18: tanpa refund untuk Peta Kemampuan, kecuali laporan
+# terlambat); menunggu persetujuan Pemilik.
 COPY_REFUND = (
-    "Pengembalian dana ditangani tim lewat WhatsApp: bisa sebelum guru mulai meninjau "
-    "laporan, atau bila laporan terlambat lebih dari 3×24 jam."
+    "Peta Kemampuan tidak dapat dikembalikan; Rp49.000 menjadi voucher program belajar bila Anda "
+    "lanjut. Bila laporan terlambat lebih dari 3×24 jam dari jam terbit yang kami kabari, Anda boleh "
+    "memilih menunggu atau uang kembali. Hubungi tim lewat WhatsApp."
 )
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_KUOTA_HABIS = (
-    "Pendaftaran Paket Coba sedang dihentikan sementara; "
+    "Pendaftaran Peta Kemampuan sedang dihentikan sementara; "
     "akun dan hasil yang sudah ada tetap bisa dibuka."
 )
 # DRAF: teks final menunggu persetujuan Pemilik
@@ -60,7 +62,7 @@ COPY_BUTUH_KONTAK = (
 )
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_CEK_BELUM_SELESAI = (
-    "Paket Coba dibuka setelah cek gratis anak selesai. Cek belum selesai, jadi belum "
+    "Peta Kemampuan dibuka setelah cek gratis anak selesai. Cek belum selesai, jadi belum "
     "ada pesanan yang dibuat."
 )
 # DRAF: teks final menunggu persetujuan Pemilik
@@ -104,7 +106,7 @@ COPY_BELUM_TERPERIKSA = (
     "Tampilan ini belum tentu yang terbaru."
 )
 # DRAF: teks final menunggu persetujuan Pemilik
-COPY_ALT_QR = "Kode QRIS untuk membayar Paket Coba"
+COPY_ALT_QR = "Kode QRIS untuk membayar Peta Kemampuan"
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_TOMBOL = {
     "periksa": "Periksa status pembayaran",

@@ -1,4 +1,4 @@
-"""Rute GET publik funnel Cek Kemampuan: `/cek-kemampuan` dan `/paket-coba`.
+"""Rute GET publik funnel Cek Kemampuan: `/cek-kemampuan`, `/paket-coba`, `/contoh-peta-kemampuan`.
 
 Dipanggil sebelum `_lolos_sandi`: publik untuk anonim dan guru. Tidak ada
 handler POST. Sakelar `FUNNEL_AKTIF` mati (bawaan) -> halaman status "belum
@@ -7,7 +7,7 @@ Tidak membaca data keluarga atau anak.
 """
 from __future__ import annotations
 
-JALUR_FUNNEL = ("/cek-kemampuan", "/paket-coba")
+JALUR_FUNNEL = ("/cek-kemampuan", "/paket-coba", "/contoh-peta-kemampuan")
 
 
 def _dukungan():
@@ -33,6 +33,10 @@ def tangani_get(penangan, jalur: str) -> bool:
         return True
     if jalur == "/cek-kemampuan":
         penangan._kirim(funnel_pages.halaman_cek_kemampuan(dukungan))
+    elif jalur == "/contoh-peta-kemampuan":
+        import funnel_contoh
+
+        penangan._kirim(funnel_contoh.halaman_contoh_peta(dukungan))
     else:
         penangan._kirim(funnel_pages.halaman_paket_coba(dukungan))
     return True

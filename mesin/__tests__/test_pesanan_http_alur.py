@@ -554,3 +554,10 @@ def test_ledger_belum_dimigrasikan_halaman_jujur_503_tanpa_efek(keluarga, monkey
     kode, isi, _t = minta_mentah(keluarga, STATUS, AKUN_A)
     assert kode == 503 and pesanan_pages.COPY_BELUM_SIAP in isi
     assert keluarga.provider.panggilan == []
+
+
+def test_copy_refund_selaras_keputusan_18_tanpa_refund_kecuali_terlambat():
+    rp = pesanan_pages.COPY_REFUND
+    assert "tidak dapat dikembalikan" in rp and "voucher" in rp
+    assert "3×24 jam" in rp and "menunggu" in rp and "uang kembali" in rp
+    assert "sebelum guru mulai meninjau" not in rp

@@ -36,7 +36,8 @@ GAYA_FUNNEL = f"""
 }}
 /* Desain baru funnel (hero, kartu contoh, langkah, blok Peta Kemampuan, akordeon, FAQ). */
 .funnel-halaman-st {{ font-family: {T.FONT_BODY}; color: {T.TEKS_VARIAN}; }}
-.funnel-halaman-st :is(h1, h2, h3) {{ font-family: {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; margin: 0; text-wrap: balance; }}
+.funnel-halaman-st :is(h1, h2, h3) {{ font-family: {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; text-wrap: balance; }}
+:where(.funnel-halaman-st) :is(h1, h2, h3) {{ margin: 0; }}
 :where(.funnel-halaman-st) p {{ margin: 0; }}
 .funnel-bagian-st {{ padding: {T.SP_6} 0; }}
 .funnel-hero-st {{ display: grid; grid-template-columns: 1.05fr .95fr; gap: {T.SP_6}; align-items: center; padding: {T.SP_7} 0 {T.SP_6}; }}
@@ -143,5 +144,44 @@ GAYA_FUNNEL = f"""
   .funnel-ket-contoh-st {{ padding-right: 4.75rem; }}
   .funnel-kartu-contoh-st {{ padding: {T.SP_4}; }}
   .funnel-bagian-st {{ padding: 2rem 0; }}
+}}
+/* Contoh Peta Kemampuan, bar penguasaan, kartu profil guru. */
+.funnel-contoh-halaman-st {{ max-width: 760px; }}
+.funnel-contoh-label-st {{ margin-top: {T.SP_3}; padding: {T.SP_3} {T.SP_4}; border-left: 4px solid {T.AKSEN_MURID_AMBER}; background: {T.LATAR_REVIEW}; border-radius: {T.RADIUS_SEDANG}; font-weight: 600; color: {T.TEKS_JUDUL}; }}
+.funnel-contoh-kartu-st {{ background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius: {T.RADIUS_KARTU_BESAR}; padding: {T.SP_5}; margin-top: {T.SP_4}; }}
+.funnel-contoh-bagian-st {{ margin-top: {T.SP_6}; }}
+.funnel-halaman-st .funnel-contoh-bagian-st h2 {{ font-size: 1.4rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: {T.SP_3}; }}
+.funnel-bar-daftar-st {{ list-style: none; padding: 0; margin: 0; display: grid; gap: {T.SP_4}; }}
+.funnel-bar-kepala-st {{ display: flex; flex-wrap: wrap; align-items: center; gap: {T.SP_1} {T.SP_3}; }}
+.funnel-bar-nama-st {{ flex: 1 1 10rem; min-width: 0; font-weight: 700; color: {T.TEKS_JUDUL}; }}
+.funnel-bar-persen-st {{ font: 800 1rem/1 {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; }}
+.funnel-bar-chip-st {{ display: inline-flex; align-items: center; gap: {T.SP_1}; padding: {T.SP_1} {T.SP_3}; border-radius: {T.RADIUS_PIL}; font-size: .78rem; font-weight: 700; }}
+.funnel-bar-trek-st {{ margin-top: {T.SP_2}; height: .75rem; border-radius: {T.RADIUS_PIL}; background: {T.LATAR_ELEVASI}; overflow: hidden; }}
+.funnel-bar-isi-st {{ height: 100%; border-radius: {T.RADIUS_PIL}; }}
+.funnel-bar-trek-st .funnel-bar-kuat-st {{ background: {T.AKSEN_MURID_UTAMA}; }}
+.funnel-bar-trek-st .funnel-bar-lemah-st {{ background: {T.AKSEN_MURID_AMBER}; }}
+.funnel-bar-chip-st.funnel-bar-kuat-st {{ background: {T.ANAK_AKSEN_LATAR}; color: {T.AKSEN_TEAL_TUA}; }}
+.funnel-bar-chip-st.funnel-bar-lemah-st {{ background: {T.LATAR_REVIEW}; color: {T.AKSEN_AMBER_TUA}; }}
+.funnel-contoh-pola-st {{ list-style: none; padding: 0; margin: 0; display: grid; gap: {T.SP_3}; }}
+.funnel-contoh-pola-st li {{ display: flex; gap: {T.SP_3}; line-height: 1.45; }}
+.funnel-contoh-pola-st svg {{ flex: none; margin-top: 2px; color: {T.AKSEN_AMBER_TUA}; }}
+.funnel-contoh-urutan-st {{ margin: 0; padding-left: {T.SP_5}; display: grid; gap: {T.SP_2}; font-weight: 600; color: {T.TEKS_JUDUL}; }}
+.funnel-contoh-langkah-st {{ padding: {T.SP_4}; border-radius: {T.RADIUS_KARTU}; background: {T.ANAK_AKSEN_LATAR}; color: {T.AKSEN_TEAL_TUA}; font-weight: 700; }}
+.funnel-contoh-catatan-st {{ padding: {T.SP_4}; border-radius: {T.RADIUS_KARTU}; background: {T.LATAR_CATATAN}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; font-style: italic; }}
+.funnel-contoh-tautan-st {{ margin: {T.SP_3} 0 0; }}
+.funnel-tautan-sekunder-st {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; color: {T.AKSEN_TEAL_TUA}; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }}
+.funnel-guru-st {{ margin-top: {T.SP_6}; background: {T.LATAR_CATATAN}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius: {T.RADIUS_KARTU_BESAR}; padding: {T.SP_5}; }}
+.funnel-halaman-st .funnel-guru-st h2 {{ font-size: 1.25rem; font-weight: 800; }}
+.funnel-guru-st ul {{ list-style: none; padding: 0; margin: {T.SP_3} 0 0; display: grid; gap: {T.SP_3}; }}
+.funnel-guru-st li {{ display: grid; gap: {T.SP_1}; font-size: .94rem; }}
+.funnel-guru-st b {{ color: {T.TEKS_JUDUL}; }}
+@media (max-width: 820px) {{
+  .funnel-contoh-halaman-st {{ max-width: none; }}
+}}
+@media (max-width: 560px) {{
+  .funnel-contoh-kartu-st, .funnel-guru-st {{ padding: {T.SP_4}; }}
+  .funnel-bar-kepala-st {{ gap: {T.SP_1} {T.SP_2}; }}
+  .funnel-bar-nama-st {{ flex-basis: 100%; }}
+  .funnel-halaman-st .funnel-contoh-bagian-st h2 {{ font-size: 1.2rem; }}
 }}
 """
