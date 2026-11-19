@@ -116,7 +116,10 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - Funnel Fase 2 (cek gratis): `schema_cek.py` (tabel aditif `cek_gratis`, UNIQUE per anak, kunci `id_akun`, FK ke siswa
   ON DELETE CASCADE) + `cek_gratis.py` (`mulai` idempoten dengan persetujuan eksplisit, `selesaikan_jika_siap`,
   `baca_hasil`, `hapus_cek_keluarga`), `cek_gratis_skor.py` (fungsi murni skor/kategori/ringkasan, kelas→`P{kelas}`),
-  `cek_gratis_sapu.py` (retensi 30/7 hari, guard daftar akun kosong, foreign_keys wajib aktif). `cek_http.py` +
+  `topik_awam.py` (label topik pendek untuk anak/orang tua; nama resmi tetap di lembar/penilaian guru, nama lama
+  tersimpan dipetakan saat render),
+  `cek_gratis_sapu.py` (retensi 30/7 hari, guard daftar akun kosong, foreign_keys wajib aktif; dijalankan
+  harian oleh `cek_retensi.py` lewat cron host `osn-cek-retensi`). `cek_http.py` +
   `cek_pages.py`: rute guru di belakang `_lolos_sandi` dan `FUNNEL_AKTIF` (token HMAC per aksi, pembatas laju 10/IP/hari
   in-memory, admin 404). Sesi cek = sesi gabungan 3 topik yang mengikuti kelas (`cek_gratis_skor.TOPIK_PER_KELAS`, kelas 3–6; `TOPIK_LAMA`
   hanya untuk menilai sesi lama) atau `bilangan-dasar` (kelas 1–2, butuh flag materi dasar), PG, tanpa bukti siklus. `family_deletion` ikut menghapus baris cek. Perubahan skema menggeser fingerprint kontrak

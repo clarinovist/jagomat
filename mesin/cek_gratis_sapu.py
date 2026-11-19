@@ -1,4 +1,4 @@
-"""Sapuan retensi cek kemampuan gratis (belum dijadwalkan otomatis).
+"""Sapuan retensi cek kemampuan gratis (dijadwalkan lewat cron `cek_retensi.py`).
 
 Aturan (plan funnel Fase 2 §2.8):
 

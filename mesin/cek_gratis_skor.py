@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from fractions import Fraction
 
 from auth import id_akun_sah
+import topik_awam
 
 FORMAT_WAKTU = "%Y-%m-%dT%H:%M:%S"
 JUMLAH_SOAL = 15
@@ -119,9 +120,10 @@ def _nama_topik(topik_id: str) -> str:
     import topics
 
     try:
-        return topics.ambil(topik_id).nama
+        topics.ambil(topik_id)
     except KeyError:
         raise ValueError("topik tidak dikenal") from None
+    return topik_awam.nama(topik_id)
 
 
 def ringkas(per_topik) -> dict:

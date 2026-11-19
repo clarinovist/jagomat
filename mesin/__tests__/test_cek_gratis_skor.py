@@ -9,11 +9,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import cek_gratis_skor as skor  # noqa: E402
-import topics  # noqa: E402
+import topik_awam  # noqa: E402
 
 
 def _nama(topik_id):
-    return topics.ambil(topik_id).nama
+    return topik_awam.nama(topik_id)
 
 
 # --- hitung_skor ------------------------------------------------------------
@@ -91,7 +91,7 @@ def test_semua_topik_cek_gabungan_deterministik_tanpa_duplikat():
 
 # --- ringkas ----------------------------------------------------------------
 
-def test_ringkas_kuat_dan_perlu_dengan_nama_topik_resmi():
+def test_ringkas_kuat_dan_perlu_dengan_nama_topik_awam():
     hasil = skor.ringkas([("pola-bilangan", 5, 5), ("statistika", 3, 5), ("geometri-datar", 1, 5)])
     assert hasil == {"kuat": [_nama("pola-bilangan")], "perlu": [_nama("geometri-datar")]}
 

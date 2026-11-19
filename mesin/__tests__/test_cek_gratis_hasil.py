@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import cek_gratis  # noqa: E402
 import database  # noqa: E402
-import topics  # noqa: E402
+import topik_awam  # noqa: E402
 from cek_gratis_kit import (  # noqa: E402
     ID_A, ID_B, ID_C, SEKARANG, TABEL_BUKTI_SIKLUS, hitung, jawab, mulai_cek,
     tambah_anak, tandai_selesai,
@@ -38,7 +38,7 @@ def materi_dasar_mati(monkeypatch):
 
 
 def _nama(topik_id):
-    return topics.ambil(topik_id).nama
+    return topik_awam.nama(topik_id)
 
 
 def _keadaan(kon):
@@ -124,7 +124,7 @@ def test_selesaikan_idempoten_dan_selesai_pada_dari_waktu_sesi(kon):
     assert kon.execute("SELECT selesai_pada FROM cek_gratis").fetchone()[0] == "2026-11-18T09:00:00"
 
 
-def test_ringkasan_terstruktur_dengan_nama_topik_resmi(kon):
+def test_ringkasan_terstruktur_dengan_nama_topik_awam(kon):
     anak = tambah_anak(kon, NAMA_ANAK, "guru-a", 5)
     sesi_id = mulai_cek(kon, ID_A, anak, "guru-a")
     jawab(kon, sesi_id, {"aritmetika-dasar": 5, "aritmatika-lanjut": 3, "geometri-datar": 1})

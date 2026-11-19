@@ -16,6 +16,7 @@ import html
 
 import cek_gratis_skor
 import funnel_pages
+import topik_awam
 from funnel_pages import COPY_BATAS_HASIL
 from funnel_pages import _D_CENTANG, _D_SERU, _ikon
 
@@ -157,8 +158,10 @@ def _chip(kelas: str, ikon: str, teks: str) -> str:
 
 
 def _blok_ringkasan(ringkasan: dict) -> str:
-    kuat = ringkasan["kuat"][:cek_gratis_skor.MAKS_BUTIR_RINGKASAN]
-    perlu = ringkasan["perlu"][:cek_gratis_skor.MAKS_BUTIR_RINGKASAN]
+    kuat = [topik_awam.dari_nama_lama(b)
+            for b in ringkasan["kuat"][:cek_gratis_skor.MAKS_BUTIR_RINGKASAN]]
+    perlu = [topik_awam.dari_nama_lama(b)
+             for b in ringkasan["perlu"][:cek_gratis_skor.MAKS_BUTIR_RINGKASAN]]
     if not kuat and not perlu:
         return f'<p class="funnel-catatan-st">{_e(COPY_RINGKASAN_KOSONG)}</p>'
     bagian = ""

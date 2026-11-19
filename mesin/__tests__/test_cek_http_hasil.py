@@ -6,6 +6,7 @@ berbayar (diuji pada teks HTML), tautan hanya tampil di respons POST, anak tidak
 """
 from __future__ import annotations
 
+import json
 import re
 import sys
 import urllib.parse
@@ -20,6 +21,7 @@ import cek_http  # noqa: E402
 import cek_pages  # noqa: E402
 import funnel_style  # noqa: E402
 import topics  # noqa: E402
+import topik_awam  # noqa: E402
 from cek_gratis_skor import KATEGORI  # noqa: E402
 from cek_http_kit import (  # noqa: E402
     AKUN_A, AKUN_B, HASIL, MULAI, NAMA_A, POLA_TOKEN, TAUTAN, ambil_token, id_akun, jumlah,
@@ -27,7 +29,7 @@ from cek_http_kit import (  # noqa: E402
 )
 
 KATA_TERLARANG = ("diagnosis lengkap", "pasti akurat", "nilai pasti naik", "Rp200.000", "Rp151.000")
-NAMA_TOPIK = tuple(topics.ambil(t).nama for t in ("berhitung-sekolah", "pengukuran", "geometri-datar"))
+NAMA_TOPIK = tuple(topik_awam.nama(t) for t in ("berhitung-sekolah", "pengukuran", "geometri-datar"))
 KATA_SKOR_ANAK = ("Skor keseluruhan", "dari 100", "Gambaran awal", "Kategori")
 
 
@@ -81,7 +83,7 @@ def test_selesai_memuat_skor_kategori_ringkasan_label_dan_batas(keluarga):
     assert "67 dari 100" in teks and "Cukup baik" in teks
     assert cek_pages.COPY_LABEL_GAMBARAN in isi
     assert "Sudah kuat" in teks and "Perlu diperkuat" in teks
-    assert topics.ambil("berhitung-sekolah").nama in teks and topics.ambil("pengukuran").nama in teks
+    assert topik_awam.nama("berhitung-sekolah") in teks and topik_awam.nama("pengukuran") in teks
     for batas in cek_pages.COPY_BATAS_HASIL:
         assert batas in isi
     assert 'href="/paket-coba"' in isi
@@ -101,6 +103,23 @@ def test_selesai_tanpa_angka_per_materi_kunci_jawaban_atau_peringkat(keluarga):
     assert not re.search(r"\bkunci\b", teks)
     # Semua kunci/jawaban soal berupa angka atau teks pendek; tidak ada digit lain di teks (di atas).
     assert not any(k in isi.lower() for k in KATA_TERLARANG)
+
+
+def test_ringkasan_lama_tersimpan_tampil_dengan_nama_baru(keluarga):
+    """Baris lama menyimpan nama resmi; halaman hasil wajib menampilkan nama awam."""
+    _hasil_selesai(keluarga, benar_per_topik={"berhitung-sekolah": 5, "pengukuran": 0, "geometri-datar": 5})
+    lama = {
+        "kuat": [topics.ambil("berhitung-sekolah").nama],
+        "perlu": [topics.ambil("geometri-datar").nama],
+    }
+    with keluarga.buka() as kon:
+        kon.execute("UPDATE cek_gratis SET ringkasan = ?", (json.dumps(lama),))
+
+    teks = teks_tampak(minta_mentah(keluarga, HASIL, AKUN_A)[1])
+    assert topik_awam.nama("berhitung-sekolah") in teks
+    assert topik_awam.nama("geometri-datar") in teks
+    assert topics.ambil("berhitung-sekolah").nama not in teks
+    assert topics.ambil("geometri-datar").nama not in teks
 
 
 def test_selesai_tanpa_butir_ringkasan_pesan_netral(keluarga):

@@ -40,7 +40,7 @@ Operator memakai maintenance/drain existing dari [runbook rilis](production-rele
 setelah preflight current/image/schema sehat. Semua writer (HTTP, cron, worker,
 proses file lain) harus ditahan. Jangan memakai produksi sebagai test.
 
-Capture memverifikasi app `exited`, maintenance terpasang, dua cron writer
+Capture memverifikasi app `exited`, maintenance terpasang, tiga cron writer
 terkomentar, tidak ada container lain me-mount data/ancestor/subtree dan fuser
 hanya melihat collector sendiri. Lock deploy mencegah persaingan deployment;
 DB/auth diambil berurutan belajar→auth→admin→AI→Pendamping→riset. Caller wajib

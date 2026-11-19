@@ -14,6 +14,7 @@ from dataclasses import dataclass
 
 import brand
 import design_tokens as T
+import topik_awam
 import topics
 from cek_anak_style import GAYA_CEK_ANAK
 
@@ -28,14 +29,14 @@ NILAI_DI_HP_INI = "hp-ini"
 TUJUAN_LOGIN_HASIL = "/masuk?lanjut=/cek-kemampuan/hasil"
 DASAR_URL = "/mulai/"
 NAMA_PERAN_TOPIK = {
-    "pola-bilangan": ("teal", "Pola bilangan"),
-    "statistika": ("koral", "Statistika"),
-    "geometri-datar": ("amber", "Geometri datar"),
-    "bilangan-dasar": ("navy", "Bilangan dasar"),
-    "berhitung-sekolah": ("koral", "Berhitung"),
-    "pengukuran": ("teal", "Pengukuran"),
-    "aritmetika-dasar": ("amber", "Aritmetika dasar"),
-    "aritmatika-lanjut": ("navy", "Aritmetika lanjut"),
+    "pola-bilangan": ("teal", topik_awam.nama("pola-bilangan")),
+    "statistika": ("koral", topik_awam.nama("statistika")),
+    "geometri-datar": ("amber", topik_awam.nama("geometri-datar")),
+    "bilangan-dasar": ("navy", topik_awam.nama("bilangan-dasar")),
+    "berhitung-sekolah": ("koral", topik_awam.nama("berhitung-sekolah")),
+    "pengukuran": ("teal", topik_awam.nama("pengukuran")),
+    "aritmetika-dasar": ("amber", topik_awam.nama("aritmetika-dasar")),
+    "aritmatika-lanjut": ("navy", topik_awam.nama("aritmatika-lanjut")),
 }
 _STROKE = 'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"'
 IKON_TOPIK = {

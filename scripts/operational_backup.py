@@ -310,7 +310,7 @@ def host_quiescent():
     hold = 'respond "Jagomat sedang diperbarui. Silakan coba beberapa menit lagi." 503'
     if hold not in Path('/etc/caddy/Caddyfile').read_text():
         raise Ditolak('maintenance belum terpasang')
-    for name in ('osn-pendamping-retensi', 'osn-rekonsiliasi-langganan'):
+    for name in ('osn-pendamping-retensi', 'osn-rekonsiliasi-langganan', 'osn-cek-retensi'):
         lines = Path('/etc/cron.d', name).read_text().splitlines()
         if any(line.strip() and not line.lstrip().startswith('#') for line in lines):
             raise Ditolak('cron writer belum ditahan')
