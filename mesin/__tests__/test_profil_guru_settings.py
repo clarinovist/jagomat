@@ -1,5 +1,6 @@
 """Kontrak profil guru peninjau: migrasi opt-in, DDL persis, reader fail-closed, CRUD atomik."""
 from dataclasses import replace
+import re
 import sqlite3
 
 import pytest
@@ -209,6 +210,65 @@ def test_nama_batas_tepat_80_diterima_dan_dipangkas(tmp_path):
     path_auth, admin, _guru = _akun(tmp_path)
     profil = _tambah(path, path_auth, admin, nama="  " + "x" * 80 + "  ")
     assert profil.nama == "x" * 80
+
+
+@pytest.mark.parametrize("nilai", ["Guru <b>Contoh</b>", "Guru > Contoh", "a<b"])
+def test_tanda_sudut_ditolak_dengan_pesan_jelas(tmp_path, nilai):
+    path = _siap(tmp_path)
+    path_auth, admin, _guru = _akun(tmp_path)
+    with pytest.raises(pg.ProfilTidakSah, match=re.escape("tanda < atau >")):
+        _tambah(path, path_auth, admin, nama=nilai)
+
+
+@pytest.mark.parametrize("nilai", [
+    "Dra. Siti Aminah, M.Pd.", "Ahmad D'Souza-P\u00e9rez", "\u00d1and\u00fa \u00d3'Brien",
+    "S.Pd./M.Pd.", "S1 Pendidikan Matematika (UNY)", "5 tahun", "Jl. Merdeka No. 1/2",
+    "Guru & Mentor", "\u0928\u092e\u0938\u094d\u0924\u0947",
+])
+def test_teks_indonesia_wajar_lolos(tmp_path, nilai):
+    path = _siap(tmp_path)
+    path_auth, admin, _guru = _akun(tmp_path)
+    profil = _tambah(path, path_auth, admin, nama=nilai, latar=nilai, lama=nilai)
+    assert profil.nama == nilai and profil.latar == nilai and profil.lama_mengajar == nilai
+
+
+@pytest.mark.parametrize("nilai", [
+    "\u3164", "\u3164\u3164\u3164", "Siti\u3164Aminah", "\u115f", "\u1160", "\u2800", "\uffa0",
+    "Siti\u00a0Aminah", "Siti\u3000Aminah", "Siti\u2009Aminah", "Siti\u200bAminah",
+    "Siti\u200dAminah", "Siti\ufeffAminah", "Siti\ttab", "a = b", "US$ 5",
+])
+def test_karakter_tak_terlihat_mirip_atau_spasi_khusus_ditolak(tmp_path, nilai):
+    path = _siap(tmp_path)
+    path_auth, admin, _guru = _akun(tmp_path)
+    awal = path.read_bytes()
+    for kolom in ("nama", "latar", "lama"):
+        with pytest.raises(pg.ProfilTidakSah):
+            _tambah(path, path_auth, admin, **{kolom: nilai})
+    assert path.read_bytes() == awal
+
+
+@pytest.mark.parametrize("nilai", ["\u00a0", "\u3000\u00a0", "  "])
+def test_hanya_spasi_khusus_dianggap_kosong(tmp_path, nilai):
+    path = _siap(tmp_path)
+    path_auth, admin, _guru = _akun(tmp_path)
+    with pytest.raises(pg.ProfilTidakSah, match="wajib diisi"):
+        _tambah(path, path_auth, admin, nama=nilai)
+
+
+def test_spasi_khusus_di_tepi_dipangkas_dan_nilai_disimpan_dalam_bentuk_nfc(tmp_path):
+    path = _siap(tmp_path)
+    path_auth, admin, _guru = _akun(tmp_path)
+    profil = _tambah(path, path_auth, admin, nama="\u00a0Jos\u0065\u0301 Contoh\u3000")
+    assert profil.nama == "Jos\u00e9 Contoh"
+    with sqlite3.connect(path) as kon:
+        assert kon.execute("SELECT nama FROM profil_guru").fetchone()[0] == "Jos\u00e9 Contoh"
+
+
+def test_batas_panjang_dihitung_setelah_normalisasi_nfc(tmp_path):
+    path = _siap(tmp_path)
+    path_auth, admin, _guru = _akun(tmp_path)
+    profil = _tambah(path, path_auth, admin, nama="e\u0301" * 80)   # 160 titik kode, 80 setelah NFC
+    assert profil.nama == "\u00e9" * 80
 
 
 @pytest.mark.parametrize("kolom,nilai", [

@@ -15,6 +15,7 @@ import admin_security
 import admin_store
 import auth
 import profil_guru_settings as pg
+from funnel_http import TTL_PROFIL_DETIK
 
 RUTE = "/admin/profil-guru"
 JUDUL = "Profil guru peninjau"
@@ -25,8 +26,10 @@ AKSI_POST = {
     ui.AKSI_HAPUS: "hapus_profil_guru",
 }
 FEEDBACK = {
-    "tersimpan": "Profil guru tersimpan. Baris yang bertanda tampil langsung dipakai halaman publik.",
-    "dihapus": "Profil guru dihapus dari daftar dan dari halaman publik.",
+    "tersimpan": "Profil guru tersimpan. Baris yang bertanda tampil dipakai halaman publik "
+                 "paling lambat setelah %d detik." % TTL_PROFIL_DETIK,
+    "dihapus": "Profil guru dihapus dari daftar; kartu publik hilang paling lambat setelah %d detik."
+               % TTL_PROFIL_DETIK,
 }
 _ISIAN_WAJIB = frozenset(("nama", "latar", "lama_mengajar", "urutan"))
 _ISIAN_BOLEH = _ISIAN_WAJIB | {"tampil"}
@@ -128,8 +131,11 @@ def tangani_post(penangan, jalur) -> bool:
         data = admin_security.baca_form(penangan, maksimum_field=12)
         _akun, tinjauan, _token = h._token_final(penangan, principal, data, aksi)
         status = _jalankan(aksi, principal, tinjauan, data)
+    except (KeyError, IndexError):
+        # Subkelas LookupError ini adalah galat isian/internal, bukan "akun tidak ada".
+        h._galat(penangan, 400, "Isian profil guru tidak sah.")
     except LookupError:
-        h._tidak_ada(penangan)
+        h._tidak_ada(penangan)   # LookupError murni dari principal_hidup: 404 identik
     except PermissionError:
         h._galat(penangan, 403, "Form kedaluwarsa atau autentikasi ulang tidak sah.")
     except admin_store.KonflikOperasi:

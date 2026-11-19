@@ -8,12 +8,20 @@ import pytest
 import admin_store
 import auth
 import funnel_contoh
+import funnel_http
 import funnel_pages
 import profil_guru_settings as pg
 from http_test_kit import ServerUji
 
 RUTE = ("/paket-coba", "/contoh-peta-kemampuan")
 SANDI = "sandi-admin-publik-123"
+
+
+@pytest.fixture(autouse=True)
+def cache_bersih():
+    funnel_http._reset_cache_profil()
+    yield
+    funnel_http._reset_cache_profil()
 
 
 @pytest.fixture()
@@ -136,3 +144,95 @@ def test_pembaca_publik_hanya_membaca_tidak_menulis(server):
     server.minta("/paket-coba")
     server.minta("/contoh-peta-kemampuan")
     assert admin_store.BAWAAN.read_bytes() == awal
+
+
+# --- cache TTL pembacaan profil ------------------------------------------------------
+
+class _Jam:
+    def __init__(self):
+        self.kini = 1000.0
+
+    def __call__(self):
+        return self.kini
+
+
+def _hitung_baca(monkeypatch):
+    panggilan = []
+    asli = pg.baca_publik
+
+    def pembungkus(*a, **kw):
+        panggilan.append(a)
+        return asli(*a, **kw)
+    monkeypatch.setattr(pg, "baca_publik", pembungkus)
+    return panggilan
+
+
+def test_ttl_ditetapkan_sebagai_konstanta_bernama():
+    assert funnel_http.TTL_PROFIL_DETIK == 30
+
+
+@pytest.mark.parametrize("jalur", RUTE)
+def test_dua_get_dalam_ttl_hanya_membuka_store_sekali(server, monkeypatch, jalur):
+    jam = _Jam()
+    monkeypatch.setattr(funnel_http, "_sekarang", jam)
+    _isi_profil()
+    panggilan = _hitung_baca(monkeypatch)
+    pertama = server.minta(jalur)[1]
+    jam.kini += funnel_http.TTL_PROFIL_DETIK - 1
+    kedua = server.minta(jalur)[1]
+    assert len(panggilan) == 1
+    assert pertama == kedua and funnel_pages.COPY_JUDUL_PROFIL_GURU in kedua
+
+
+def test_setelah_ttl_habis_dibaca_ulang_dan_perubahan_tampil(server, monkeypatch):
+    jam = _Jam()
+    monkeypatch.setattr(funnel_http, "_sekarang", jam)
+    _isi_profil(nama="Guru Contoh Lama")
+    panggilan = _hitung_baca(monkeypatch)
+    assert "Guru Contoh Lama" in server.minta("/paket-coba")[1]
+    with sqlite3.connect(admin_store.BAWAAN) as kon:
+        kon.execute("UPDATE profil_guru SET tampil=0")
+    assert "Guru Contoh Lama" in server.minta("/paket-coba")[1]       # masih di dalam TTL
+    jam.kini += funnel_http.TTL_PROFIL_DETIK
+    assert "Guru Contoh Lama" not in server.minta("/paket-coba")[1]   # TTL habis: data baru
+    assert len(panggilan) == 2
+
+
+def test_hasil_galat_juga_di_cache_agar_kegagalan_tidak_membanjiri_db(server, monkeypatch):
+    jam = _Jam()
+    monkeypatch.setattr(funnel_http, "_sekarang", jam)
+    panggilan = []
+
+    def rusak(*a, **kw):
+        panggilan.append(a)
+        raise sqlite3.OperationalError("disk I/O error")
+    monkeypatch.setattr(pg, "baca_publik", rusak)
+    for _ in range(3):
+        assert server.minta("/paket-coba")[1] == _tanpa_fitur("/paket-coba")
+    assert len(panggilan) == 1
+    jam.kini += funnel_http.TTL_PROFIL_DETIK
+    server.minta("/paket-coba")
+    assert len(panggilan) == 2
+
+
+def test_cache_per_path_database_dan_dapat_direset(server, monkeypatch, tmp_path):
+    jam = _Jam()
+    monkeypatch.setattr(funnel_http, "_sekarang", jam)
+    _isi_profil()
+    panggilan = _hitung_baca(monkeypatch)
+    server.minta("/paket-coba")
+    funnel_http._reset_cache_profil()
+    server.minta("/paket-coba")
+    assert len(panggilan) == 2
+    monkeypatch.setattr(admin_store, "BAWAAN", tmp_path / "lain.db")
+    server.minta("/paket-coba")
+    assert len(panggilan) == 3
+
+
+@pytest.mark.parametrize("jalur", RUTE)
+def test_sakelar_mati_tidak_membaca_dan_tidak_mengisi_cache(server, monkeypatch, jalur):
+    _isi_profil()
+    monkeypatch.setenv("FUNNEL_AKTIF", "0")
+    panggilan = _hitung_baca(monkeypatch)
+    assert "belum dibuka" in server.minta(jalur)[1].lower()
+    assert panggilan == [] and funnel_http._cache_profil == {}

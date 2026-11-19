@@ -8,6 +8,7 @@ import pytest
 
 import admin_store
 import auth
+import funnel_http
 import profil_guru_settings as pg
 from http_test_kit import SANDI_GURU, SANDI_MURID
 from test_admin_http_c import SANDI_ADMIN, _login, _minta, server  # noqa: F401
@@ -85,6 +86,13 @@ def test_halaman_kosong_menampilkan_form_tambah_tanpa_centang_bawaan(server, adm
     assert header["Cache-Control"] == "no-store" and "noindex" in header["X-Robots-Tag"]
     for terlarang in ("email", "telepon", "foto", "kontak"):
         assert 'name="%s"' % terlarang not in body
+
+
+def test_feedback_menyebut_ttl_dari_konstanta_tunggal(server, admin):
+    _siap()
+    body = _minta(server, RUTE + "?status=tersimpan", cookie=admin)[1]
+    assert "paling lambat setelah %d detik" % funnel_http.TTL_PROFIL_DETIK in body
+    assert "langsung dipakai halaman publik" not in body
 
 
 def test_query_whitelist_dan_feedback_hanya_dari_kamus(server, admin):
@@ -235,6 +243,7 @@ def test_tambah_ubah_hapus_end_to_end_dan_dampak_publik(server, admin, monkeypat
     assert kode == 303 and "status=tersimpan" in header["Location"]
     publik = _minta(server, "/paket-coba")[1]
     assert "Guru Contoh Baru" in publik and "S1 Pendidikan Matematika (contoh)" in publik
+    funnel_http._reset_cache_profil()   # cache TTL: hapus di bawah harus terlihat segera
 
     body = _minta(server, RUTE, cookie=admin)[1]
     assert "Tampil di halaman publik" in body and "checked" in body
@@ -294,3 +303,29 @@ def test_konfirmasi_hapus_untuk_profil_tersembunyi_tidak_menyebut_hilang_dari_pu
     body = _minta(server, RUTE, cookie=admin)[1]
     konfirmasi = html.unescape(re.search(r'action="%s" data-konfirmasi="([^"]*)"' % re.escape(AKSI["hapus"]), body).group(1))
     assert "tidak sedang tampil" in konfirmasi and "hilang dari halaman publik" not in konfirmasi
+
+
+# --- pemetaan galat POST -----------------------------------------------------------------
+
+@pytest.mark.parametrize("galat", [KeyError("kunci"), IndexError("indeks")])
+def test_keyerror_dan_indexerror_internal_menjadi_400_bukan_404(server, admin, monkeypatch, galat):
+    _siap()
+    data = {**_isi(server, admin, "tambah"), **ISIAN}
+
+    def meledak(*a, **kw):
+        raise galat
+    monkeypatch.setattr(pg, "tambah", meledak)
+    kode, body, _ = _kirim(server, admin, "tambah", data)
+    assert kode == 400 and "Isian profil guru tidak sah." in body
+
+
+def test_lookuperror_murni_dari_principal_hidup_tetap_404_identik(server, admin, monkeypatch):
+    _siap()
+    anon = _minta(server, AKSI["tambah"], data={})
+    data = {**_isi(server, admin, "tambah"), **ISIAN}
+
+    def akun_hilang(*a, **kw):
+        raise LookupError("resource tidak ditemukan")
+    monkeypatch.setattr(pg, "tambah", akun_hilang)
+    kode, body, _ = _kirim(server, admin, "tambah", data)
+    assert kode == 404 and (kode, body) == anon[:2]

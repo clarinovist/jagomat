@@ -8,8 +8,11 @@ Tidak membaca data keluarga atau anak.
 from __future__ import annotations
 
 import sqlite3
+import time
 
 JALUR_FUNNEL = ("/cek-kemampuan", "/paket-coba", "/contoh-peta-kemampuan")
+TTL_PROFIL_DETIK = 30
+_cache_profil: dict = {}  # path DB -> (kedaluwarsa monotonik, hasil baca_publik)
 
 
 def _dukungan():
@@ -22,15 +25,43 @@ def _dukungan():
         return None
 
 
-def _profil_guru() -> tuple:
-    """Profil guru tampil=1 dari store admin; galat apa pun berarti tanpa kartu, bukan 500."""
-    import admin_store
+def _sekarang() -> float:
+    """Jam cache profil; fungsi terpisah agar tes dapat menyuntikkan waktu."""
+    return time.monotonic()
+
+
+def _reset_cache_profil() -> None:
+    """Kosongkan cache profil (untuk tes dan operator)."""
+    _cache_profil.clear()
+
+
+def _baca_profil(path) -> tuple:
     import profil_guru_settings
 
     try:
-        return profil_guru_settings.baca_publik(admin_store.BAWAAN)
+        return profil_guru_settings.baca_publik(path)
+    # Diketahui/diterima: galat ditelan tanpa log; halaman publik tampil tanpa kartu, bukan 500.
     except (OSError, RuntimeError, ValueError, sqlite3.Error):
         return ()
+
+
+def _profil_guru() -> tuple:
+    """Profil guru tampil=1 dari store admin, di-cache `TTL_PROFIL_DETIK` per path DB.
+
+    Perubahan admin tampil di halaman publik paling lambat setelah `TTL_PROFIL_DETIK`
+    detik. Hasil `()` akibat galat ikut di-cache agar kegagalan tidak membanjiri DB.
+    Satu-satunya state bersama adalah `_cache_profil` (isinya tuple tak berubah).
+    """
+    import admin_store
+
+    path = admin_store.BAWAAN
+    kini = _sekarang()
+    tersimpan = _cache_profil.get(path)
+    if tersimpan is not None and kini < tersimpan[0]:
+        return tersimpan[1]
+    hasil = _baca_profil(path)
+    _cache_profil[path] = (kini + TTL_PROFIL_DETIK, hasil)
+    return hasil
 
 
 def tangani_get(penangan, jalur: str) -> bool:

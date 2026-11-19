@@ -25,6 +25,9 @@ BATAS_BARIS = 6
 URUTAN_MIN = 1
 URUTAN_MAKS = 99
 PESAN_SIDIK_TIDAK_SAH = "snapshot profil guru tidak sah"
+KATEGORI_DIIZINKAN = frozenset("LMNP")
+# Karakter "kosong" yang tampak seperti spasi/isian tetapi lolos kategori huruf (Lo).
+KARAKTER_KOSONG_TAMPAK = frozenset("\u3164\u115f\u1160\u2800\uffa0")
 _GALAT_BACA = (OSError, RuntimeError, ValueError, TypeError, KeyError, sqlite3.Error)
 _POLA_SIDIK = re.compile(r"[0-9a-f]{64}")
 
@@ -92,18 +95,26 @@ class _Isian:
 
 # --- validasi -----------------------------------------------------------------
 
+def _karakter_sah(ch: str) -> bool:
+    """Allow-list: huruf, tanda gabung, angka, tanda baca, dan spasi ASCII U+0020 saja."""
+    if ch in KARAKTER_KOSONG_TAMPAK:
+        return False
+    return ch == " " or unicodedata.category(ch)[0] in KATEGORI_DIIZINKAN
+
+
 def _teks(nilai, label: str, batas: int) -> str:
     if type(nilai) is not str:
         raise ProfilTidakSah("%s harus berupa teks." % label)
-    bersih = nilai.strip()
+    bersih = unicodedata.normalize("NFC", nilai).strip()
     if not bersih:
         raise ProfilTidakSah("%s wajib diisi." % label)
     if len(bersih) > batas:
         raise ProfilTidakSah("%s maksimal %d karakter." % (label, batas))
-    if any(unicodedata.category(ch).startswith("C") or ch in "  " for ch in bersih):
-        raise ProfilTidakSah("%s tidak boleh memuat karakter kontrol." % label)
     if "<" in bersih or ">" in bersih:
         raise ProfilTidakSah("%s tidak boleh memuat tanda < atau >." % label)
+    if not all(_karakter_sah(ch) for ch in bersih):
+        raise ProfilTidakSah(
+            "%s hanya boleh berisi huruf, angka, tanda baca, dan spasi biasa." % label)
     return bersih
 
 
@@ -152,6 +163,8 @@ def _sidik_awal(nilai) -> str:
 
 
 def _hash(isi) -> str:
+    # Diketahui/diterima: sidik audit = hash data yang pada dasarnya publik bila tampil=1;
+    # audit tidak menyimpan nilai teks, hanya hash masukan dan nama kolom yang berubah.
     return hashlib.sha256(json.dumps(isi, separators=(",", ":")).encode()).hexdigest()
 
 
@@ -206,6 +219,8 @@ def migrasikan(path, *, sekarang: int) -> None:
         if not _struktur(kon):
             _jalankan_ddl(kon, DDL)
         validasi_schema(kon)
+        # Diketahui/diterima: integrity_check penuh berjalan hanya di migrator operator
+        # (sekali per rilis), tidak pernah per request.
         if (kon.execute("PRAGMA integrity_check").fetchone()[0] != "ok"
                 or kon.execute("PRAGMA foreign_key_check").fetchone()):
             raise admin_store.StoreBelumSiap("integritas migrasi profil guru gagal")
@@ -225,6 +240,8 @@ def _dari_row(row) -> ProfilGuru:
 
 def baca(path=None) -> Optional[Tuple[ProfilGuru, ...]]:
     """Semua baris untuk admin (urut tampilan). None bila penyimpanan belum siap/rusak."""
+    # Diketahui/diterima: satu baris rusak membuat seluruh baca() None, sehingga UI admin
+    # menampilkan "belum siap" (fail-closed); pemulihannya lewat operator, bukan UI.
     try:
         with admin_store.buka_baca(path) as kon:
             if not validasi_schema(kon):
@@ -237,6 +254,7 @@ def baca(path=None) -> Optional[Tuple[ProfilGuru, ...]]:
 
 def baca_publik(path=None) -> tuple:
     """Proyeksi publik read-only: hanya ``tampil=1``; ``()`` bila absen/parsial/error."""
+    # Diketahui/diterima: galat ditelan tanpa log demi halaman publik tetap tampil (fail-closed).
     try:
         with admin_store.buka_baca(path) as kon:
             if not validasi_schema(kon):
