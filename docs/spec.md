@@ -162,6 +162,13 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   efektif, dan tahap `checkout`; selain itu halaman status jujur/404 dan POST tanpa efek. Admin memantau di `/admin/pesanan`
   (daftar minimal, periksa status, catat refund manual; tanpa API refund). Belum ada worker rekonsiliasi; kebijakan refund dan
   hapus keluarga vs catatan keuangan menunggu keputusan Pemilik.
+  Jalur transfer rekening (verifikasi manual admin, **belum aktif**): bila `PESANAN_TRANSFER_AKTIF=1`, funnel aktif, runtime produksi ada,
+  dan admin sudah mengisi rekening, `/pesanan` menawarkan "Bayar lewat transfer" (nominal Rp49.000 + kode unik, harus persis) dan
+  unggah bukti (JPEG/PNG/PDF, maks 5 MB, maks 5 bukti); QRIS tampil sebagai pilihan kedua bila Midtrans juga terbuka. Status
+  `menunggu_verifikasi`/`ditolak`; lunas hanya setelah admin menyetujui. Admin memverifikasi di `/admin/pesanan` (tab Menunggu
+  verifikasi, pratinjau bukti, setujui atau tolak dengan alasan, sandi ulang) dan mengisi rekening di `/admin/pesanan/rekening`; guru dapat
+  membuka waktu pembayaran baru (maks 5 jendela) bila waktu habis tanpa bukti dan Midtrans tertutup. Bukti dihapus 30 hari sesudah
+  keputusan lewat CLI operator dan tidak ikut backup.
 - [Backup operasional](operational-backup.md) manual mencakup core, riset dan foto;
   scheduler/off-site otomatis belum tersedia, bukan janji pemulihan seluruh VPS.
 

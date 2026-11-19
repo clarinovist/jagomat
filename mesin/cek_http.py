@@ -181,12 +181,12 @@ def _get_hasil(penangan, principal) -> None:
 
 
 def _token_pesan(penangan, principal, hasil: dict):
-    """Token form pesan hanya bila cek selesai DAN gerbang pembayaran terbuka; selain itu None."""
+    """Token form pesan hanya bila cek selesai DAN salah satu gerbang (Midtrans/transfer) terbuka; selain itu None."""
     if hasil["status"] != "selesai":
         return None
     import pesanan_http  # impor lambat: pesanan_http mengimpor modul ini
 
-    if not pesanan_http.gerbang_terbuka(penangan):
+    if not pesanan_http.pesan_terbuka(penangan):
         return None
     return pesanan_http.buat_token(principal, penangan._ambil_token(), pesanan_http.AKSI_PESAN)
 

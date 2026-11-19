@@ -72,6 +72,9 @@ from topics import TOPIK_BAWAAN, daftar_topik
 AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin", "admin"),  # `/admin` dan `/admin/...`: 404 untuk anonim & guru
     ("/admin/pesanan", "admin"),  # Fase 3c-4: daftar order admin; sudah tercakup prefix `/admin`
+    ("/admin/pesanan/verifikasi", "admin"),  # transfer rekening (tahap 3): detail, pratinjau bukti, rekening
+    ("/admin/pesanan/bukti", "admin"),
+    ("/admin/pesanan/rekening", "admin"),
     ("/", "publik"),  # landing; guru/admin melihat berandanya sendiri
     ("/masuk", "publik"),
     ("/daftar", "publik"),
@@ -107,6 +110,9 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin", "admin"),
     ("/admin/pesanan/periksa", "admin"),  # Fase 3c-4: periksa/refund order; tercakup prefix `/admin`
     ("/admin/pesanan/refund", "admin"),
+    ("/admin/pesanan/setujui", "admin"),  # transfer rekening (tahap 3): keputusan verifikasi dan rekening
+    ("/admin/pesanan/tolak", "admin"),
+    ("/admin/pesanan/rekening", "admin"),
     ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
     ("/daftar", "publik"),
     ("/murid/", "murid"),
@@ -123,6 +129,10 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/pesanan/periksa", "guru"),
     ("/pesanan/ulang", "guru"),
     ("/pesanan/buat", "guru"),
+    # Jalur transfer rekening (tahap 2): gerbang transfer tertutup = tak berefek, 404 rute tak dikenal.
+    ("/pesanan/tagihan", "guru"),
+    ("/pesanan/bukti", "guru"),  # multipart; body berbatas 5 MiB + overhead
+    ("/pesanan/tagihan/ulang", "guru"),  # jendela bayar baru lewat transfer (hanya bila Midtrans tertutup)
 )
 
 _POLA_SKRIP_INLINE = re.compile(rb"<script>(.*?)</script>", re.S)
@@ -809,6 +819,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import pesanan_http
         if pesanan_http.tangani_post(self, jalur):
+            return
+        import pesanan_transfer_http
+        if pesanan_transfer_http.tangani_post(self, jalur):
             return
         import lembaga_http
         if lembaga_http.tangani_post(self, jalur):

@@ -581,6 +581,47 @@ finally:
 '''
 PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_POLICY_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
 
+# Pesanan v1 + transfer_* + rekening_* adalah migrasi opt-in yang eksplisit: probe image
+# (container synthetic tanpa data nyata) memastikan ketiganya idempoten. Impor diberi
+# penjaga agar image lama yang belum membawa modulnya tetap dapat diprobe.
+PROBE_IMAGE = PROBE_IMAGE.replace("print('OSN_IMAGE_ADMIN9_AI2_OK')", '''
+try:
+    import schema_pesanan
+except ImportError:
+    schema_pesanan = None
+if schema_pesanan is not None:
+    with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+        assert not schema_pesanan.validasi(kon)
+    for _ in range(2):
+        schema_pesanan.migrasikan(Path('/data/admin-control.db'))
+    with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+        assert schema_pesanan.validasi(kon)
+try:
+    import schema_transfer
+except ImportError:
+    schema_transfer = None
+if schema_transfer is not None:
+    with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+        assert not schema_transfer.validasi(kon)
+    for _ in range(2):
+        schema_transfer.migrasikan(Path('/data/admin-control.db'))
+    with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+        assert schema_transfer.validasi(kon)
+try:
+    import pesanan_rekening
+except ImportError:
+    pesanan_rekening = None
+if pesanan_rekening is not None:
+    with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+        assert not pesanan_rekening.validasi_schema(kon)
+    for _ in range(2):
+        pesanan_rekening.migrasikan(Path('/data/admin-control.db'), sekarang=1)
+    with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+        assert pesanan_rekening.validasi_schema(kon)
+    assert pesanan_rekening.baca(Path('/data/admin-control.db')) is None
+print('OSN_IMAGE_ADMIN9_AI2_OK')
+''')
+
 PROBE_KONTRAK = '''import ast
 from collections import Counter
 import copy

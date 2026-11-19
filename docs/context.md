@@ -124,6 +124,28 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   hasil cek dibaca per anak lewat `cek_gratis.hasil_siswa`). Admin: `admin_pesanan_http.py`/`admin_pesanan_pages.py` di
   `/admin/pesanan` (token final admin, aksi periksa dan catat refund; tidak menulis jurnal `operasi_admin`, jejak refund = baris
   `pesanan_refund`). Panggilan jaringan tidak pernah di dalam transaksi tulis. Kontrak rilis bergeser seperti Fase 2.
+- Transfer rekening (jalur utama pembayaran, verifikasi manual admin; tahap 1 = skema + logika inti; tahap 2 = alur guru di bawah; tahap 3 = admin, retensi, jendela ulang):
+  `schema_transfer.py` (namespace `transfer_*`, sengaja BUKAN `pesanan_*` agar `schema_pesanan.validasi` dan rollback image lama utuh;
+  tagihan per jendela bayar, bukti, penanda hapus, verifikasi, `transfer_lunas`, `transfer_refund`; append-only) + `pesanan_transfer.py`
+  (tagihan nominal unik 49.000+kode 1..999, bukti, setujui/tolak, retensi bukti 30 hari) + `pesanan_transfer_baca.py` (fakta untuk status
+  turunan, aman pada DB tanpa `transfer_*`). Status baru `menunggu_verifikasi` (tidak kedaluwarsa) dan `ditolak`. Rekening tujuan:
+  `pesanan_rekening.py` (`rekening_*`, pola `support_settings`, tanpa seed; admin wajib mengisi). Migrasi opt-in eksplisit
+  (`schema_pesanan.migrasikan`, `schema_transfer.migrasikan`, `pesanan_rekening.migrasikan`); QRIS Midtrans tetap ada, nonaktif.
+  Alur guru (tahap 2): gerbang SENDIRI `pesanan_transfer_gerbang.py` (env `PESANAN_TRANSFER_AKTIF` tepat "1" + `FUNNEL_AKTIF` + runtime
+  produksi terpasang + rekening terisi; tidak membaca sakelar/tahap Midtrans; bawaan tutup). `/pesanan` menampilkan kartu transfer
+  (`pesanan_transfer_pages.py`/`pesanan_transfer_tampil.py`) lalu QRIS sebagai pilihan kedua bila gerbang Midtrans juga terbuka; POST
+  `/pesanan/tagihan` dan `/pesanan/bukti` (+ `/paket-coba/pesan` saat hanya transfer terbuka, tanpa panggilan provider) di
+  `pesanan_transfer_http.py`. Unggah multipart sempit (`bukti_multipart.py`), tipe dari magic bytes, berkas di folder khusus
+  (`bukti_berkas.py`, env `OSN_DIREKTORI_BUKTI`, bawaan `bukti-transfer` di samping DB admin, 0700/0600, nama acak 32 hex, tidak
+  pernah disajikan rute publik/murid, sengaja TIDAK ikut backup admin: keputusan Pemilik, bukti sementara 30 hari).
+  Admin (tahap 3; di bawah gerbang admin `/admin/pesanan`, tidak bergantung gerbang transfer): kolom nominal persis + bukti dan tab
+  "Menunggu verifikasi" (`admin_pesanan_pages/http`, `pesanan_admin_transfer.py`); detail `/admin/pesanan/verifikasi`, pratinjau
+  `/admin/pesanan/bukti?id=` (tipe dari ledger, `nosniff`, `no-store`, CSP `default-src 'none'; sandbox`, nama unduhan generik) dan aksi
+  `setujui`/`tolak` (`admin_verifikasi_pages/http`; `_token_final`, `admin_id` dari sesi, keputusan hanya atas bukti terbaru yang dilihat
+  admin); `/admin/pesanan/rekening` (`admin_rekening_pages/http`; nomor ter-mask, revisi+sidik di tinjauan = optimistic concurrency);
+  pola bersama `admin_pesanan_aksi.py`. Guru: `POST /pesanan/tagihan/ulang` (`pesanan_transfer_ulang.py`) membuka jendela bayar baru
+  (maks 5, tagihan + kode unik baru) hanya bila waktu habis tanpa bukti dan Midtrans tertutup. Operator (tidak dijadwalkan aplikasi):
+  `pesanan_retensi.py` (hapus berkas lalu tandai, bukti 30 hari sesudah keputusan, sisa `.tmp-*` > 1 jam) dan `pesanan_transfer_migrasi.py`.
 - Lembaga les: `schema_lembaga.py` (tabel aditif `lembaga`, `anggota_lembaga`, `pindah_siswa`
   append-only lewat trigger) + `lembaga_store.py` (semua SQL; `pindahkan` mengecek ulang semua
   predikat dalam `BEGIN IMMEDIATE`) → `lembaga_pages.py`/`lembaga_http.py` (`/lembaga`) dan

@@ -25,8 +25,12 @@ STATUS_SUDAH_DIBAYAR = "sudah_dibayar"
 STATUS_PERLU_DIPERIKSA = "perlu_diperiksa"
 STATUS_KEDALUWARSA = "kedaluwarsa"
 STATUS_DIREFUND = "direfund"
+# Khusus jalur transfer rekening: ada bukti belum diputuskan admin / keputusan terakhir menolak.
+STATUS_MENUNGGU_VERIFIKASI = "menunggu_verifikasi"
+STATUS_DITOLAK = "ditolak"
 STATUS_TURUNAN = (STATUS_BELUM_BAYAR, STATUS_SUDAH_DIBAYAR, STATUS_PERLU_DIPERIKSA,
-                  STATUS_KEDALUWARSA, STATUS_DIREFUND)
+                  STATUS_KEDALUWARSA, STATUS_DIREFUND, STATUS_MENUNGGU_VERIFIKASI,
+                  STATUS_DITOLAK)
 
 # Status provider kelas refund/chargeback: tidak pernah menjadi lunas.
 STATUS_REFUND_PROVIDER = ("refund", "partial_refund", "chargeback")

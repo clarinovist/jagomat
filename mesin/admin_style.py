@@ -469,6 +469,7 @@ summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-weight: 600;
 .admin-stepper li {{ padding: {T.SP_3}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_KARTU}; }}
 .admin-stepper [aria-current="step"] {{ border: 2px solid {T.ADMIN_AKSEN}; background: {T.ADMIN_AKSEN_LATAR}; font-weight: 600; }}
 .admin-id {{ overflow-wrap: anywhere; user-select: all; }}
+.admin-bukti-gambar {{ display: block; max-width: 100%; height: auto; }}
 .riset-grid-form {{ display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: {T.SP_4}; }}
 .admin-dua-kolom .riset-grid-form {{ grid-template-columns: 1fr; }}
 .riset-aksi-atas form {{ margin: 0; }}

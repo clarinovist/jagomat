@@ -17,6 +17,9 @@ SEBELUM ledger dibaca. Aturan yang ditegakkan di sini:
 - Jejak: catatan refund itu sendiri (pelaku, kode, waktu; tabel append-only). Aksi periksa tidak
   menulis jurnal admin (kontrak jurnal `operasi_admin` tidak diubah); efeknya tercatat sebagai pengamatan ledger.
 - Tidak ada `str(galat)` di respons; PRG: pengalihan 303 ke daftar dengan kode hasil dari enum tetap.
+- Jalur transfer rekening: daftar menerima `?status=menunggu` (tab verifikasi) dan menampilkan ringkasan transfer
+  (`pesanan_admin_transfer`); rute detail/pratinjau/keputusan dan rekening didelegasikan ke
+  `admin_verifikasi_http` dan `admin_rekening_http` (tidak bergantung pada gerbang transfer maupun Midtrans).
 """
 from __future__ import annotations
 
@@ -26,9 +29,12 @@ import sqlite3
 
 import admin_http as h
 import admin_pesanan_pages as ui
+import admin_rekening_http
 import admin_security
 import admin_store
+import admin_verifikasi_http
 import pesanan
+import pesanan_admin_transfer
 import pesanan_alur as alur
 import pesanan_http
 import pesanan_midtrans
@@ -60,12 +66,14 @@ def _runtime_periksa(penangan):
 # --- GET -------------------------------------------------------------------
 
 def _halaman_query(penangan):
-    query = h._query(penangan, diizinkan={"halaman", "hasil"})
+    query = h._query(penangan, diizinkan={"halaman", "hasil", "status"})
     halaman = h._angka(query.get("halaman"), 1)
-    hasil = query.get("hasil")
+    hasil, saring = query.get("hasil"), query.get("status")
     if halaman > MAKS_HALAMAN or (hasil is not None and hasil not in ui.KODE_HASIL):
         raise ValueError("query tidak sah")
-    return halaman, hasil
+    if saring is not None and saring != ui.SARING_MENUNGGU:
+        raise ValueError("query tidak sah")
+    return halaman, hasil, saring
 
 
 def _token_baris(penangan, principal, daftar, gerbang_terbuka, halaman):
@@ -91,13 +99,18 @@ def _kirim(penangan, principal, isi, kode=200):
     ), kode, skrip=True)
 
 
-def _baca_daftar(halaman):
+def _baca_daftar(halaman, saring):
+    """(daftar, ringkasan transfer per order) dalam satu koneksi baca."""
     with pesanan.buka(h._path_admin()) as kon:
-        return pesanan.daftar_admin(
-            kon, halaman=halaman, per_halaman=ui.PER_HALAMAN, sekarang=alur._sekarang())
+        daftar = pesanan.daftar_admin(
+            kon, halaman=halaman, per_halaman=ui.PER_HALAMAN, sekarang=alur._sekarang(),
+            hanya_menunggu=saring == ui.SARING_MENUNGGU)
+        return daftar, pesanan_admin_transfer.ringkasan(kon, [i["order_id"] for i in daftar["items"]])
 
 
 def tangani_get(penangan, jalur) -> bool:
+    if admin_verifikasi_http.tangani_get(penangan, jalur) or admin_rekening_http.tangani_get(penangan, jalur):
+        return True
     if jalur != RUTE:
         return False
     principal = _admin(penangan)
@@ -105,12 +118,12 @@ def tangani_get(penangan, jalur) -> bool:
         h._tidak_ada(penangan)
         return True
     try:
-        halaman, hasil = _halaman_query(penangan)
+        halaman, hasil, saring = _halaman_query(penangan)
     except ValueError:
         h._tidak_ada(penangan)
         return True
     try:
-        daftar = _baca_daftar(halaman)
+        daftar, transfer = _baca_daftar(halaman, saring)
         gerbang = _runtime_periksa(penangan) is not None
         forms = _token_baris(penangan, principal, daftar, gerbang, halaman)
     except PermissionError:
@@ -121,7 +134,7 @@ def tangani_get(penangan, jalur) -> bool:
         return True
     _kirim(penangan, principal, ui.halaman(
         daftar, halaman=halaman, gerbang_terbuka=gerbang, forms=forms, hasil=hasil,
-        baca_saja=principal.metode != "cookie"))
+        baca_saja=principal.metode != "cookie", transfer=transfer, saring=saring))
     return True
 
 
@@ -193,6 +206,8 @@ def _jalankan(penangan, principal, jalur: str, data: dict) -> None:
 
 
 def tangani_post(penangan, jalur) -> bool:
+    if admin_verifikasi_http.tangani_post(penangan, jalur) or admin_rekening_http.tangani_post(penangan, jalur):
+        return True
     if jalur not in AKSI_RUTE:
         return False
     principal = _admin(penangan)

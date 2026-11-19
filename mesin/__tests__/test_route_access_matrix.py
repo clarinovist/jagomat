@@ -46,6 +46,9 @@ _TINGKAT = frozenset(("publik", "murid", "guru", "admin"))
 _PROBE_GET = {
     "/admin": "/admin/tidak-ada",
     "/admin/pesanan": "/admin/pesanan",
+    "/admin/pesanan/verifikasi": "/admin/pesanan/verifikasi?order=ord_" + "0" * 32,
+    "/admin/pesanan/bukti": "/admin/pesanan/bukti?id=1",
+    "/admin/pesanan/rekening": "/admin/pesanan/rekening",
     "/": "/",
     "/masuk": "/masuk",
     "/daftar": "/daftar",
@@ -75,6 +78,9 @@ _PROBE_POST = {
     "/admin": "/admin/tidak-ada",
     "/admin/pesanan/periksa": "/admin/pesanan/periksa",
     "/admin/pesanan/refund": "/admin/pesanan/refund",
+    "/admin/pesanan/setujui": "/admin/pesanan/setujui",
+    "/admin/pesanan/tolak": "/admin/pesanan/tolak",
+    "/admin/pesanan/rekening": "/admin/pesanan/rekening",
     "/masuk": "/masuk",
     "/daftar": "/daftar",
     "/murid/": "/murid/kerjakan/1",
@@ -88,6 +94,9 @@ _PROBE_POST = {
     "/pesanan/periksa": "/pesanan/periksa",
     "/pesanan/ulang": "/pesanan/ulang",
     "/pesanan/buat": "/pesanan/buat",
+    "/pesanan/tagihan": "/pesanan/tagihan",
+    "/pesanan/bukti": "/pesanan/bukti",
+    "/pesanan/tagihan/ulang": "/pesanan/tagihan/ulang",
 }
 
 # Status anonim yang berlaku sekarang untuk tiap tingkat. "publik" POST boleh
@@ -190,13 +199,20 @@ def test_tabel_akses_punya_probe():
     assert get["/pesanan"] == get["/pesanan/qr"] == get["/paket-coba/pesan"] == "guru"
     for rute in ("/paket-coba/pesan", "/pesanan/periksa", "/pesanan/ulang", "/pesanan/buat"):
         assert post[rute] == "guru"
-    for rute in ("/pesanan/periksa", "/pesanan/ulang", "/pesanan/buat"):
+    for rute in ("/pesanan/periksa", "/pesanan/ulang", "/pesanan/buat", "/pesanan/tagihan", "/pesanan/bukti"):
         assert rute not in get
+    assert post["/pesanan/tagihan"] == post["/pesanan/bukti"] == post["/pesanan/tagihan/ulang"] == "guru"
+    assert "/pesanan/tagihan/ulang" not in get
+    for rute in ("/admin/pesanan/verifikasi", "/admin/pesanan/bukti"):
+        assert get[rute] == "admin" and rute not in post
+    for rute in ("/admin/pesanan/setujui", "/admin/pesanan/tolak"):
+        assert post[rute] == "admin" and rute not in get
+    assert get["/admin/pesanan/rekening"] == post["/admin/pesanan/rekening"] == "admin"
     assert get["/paket-coba"] == "publik" and "/paket-coba" not in post
+    assert get["/contoh-peta-kemampuan"] == "publik" and "/contoh-peta-kemampuan" not in post
     assert urutan.index("/pesanan") > urutan.index("/guru")
 
 
-    assert get["/contoh-peta-kemampuan"] == "publik" and "/contoh-peta-kemampuan" not in post
 @pytest.mark.parametrize("prefix,tingkat", web.AKSES_RUTE_GET)
 def test_anonim_get_sesuai_tingkat(server, prefix, tingkat):
     jalur = _PROBE_GET[prefix]

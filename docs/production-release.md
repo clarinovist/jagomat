@@ -6,6 +6,34 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Kandidat transfer rekening Paket Coba — urutan operator (belum dirilis, bukan snapshot)
+
+Bagian ini bukan snapshot rilis: snapshot terbaru tetap bagian "Aktivasi funnel" di bawah. Kode transfer rekening
+(skema `transfer_*`, rekening `rekening_*`, panel admin, retensi) belum dipasang di produksi dan **tidak aktif**:
+gerbangnya fail-closed (`PESANAN_TRANSFER_AKTIF` tepat `1` + funnel + runtime produksi + rekening terisi). Perintah
+operator di bawah tidak dijalankan startup, GET, atau rilis otomatis dan selalu mensyaratkan `--database` eksplisit;
+jalankan lebih dulu terhadap **salinan** terverifikasi.
+
+Urutan: (1) hold dan write hold seperti rilis migrasi biasa; (2) backup coherent empat DB + `sandi.json`. Folder bukti
+tidak ikut backup (keputusan Pemilik: bukti sementara 30 hari; inventaris `admin_backup` dan bundle operasional hanya
+berkas bernama tetap, jadi folder itu tidak tersapu); (3) migrasi salinan, lalu live:
+`mesin/.venv/bin/python mesin/pesanan_transfer_migrasi.py --database <admin-control.db>` (idempoten; memasang
+`transfer_*` dan `rekening_*` tanpa seed dan tanpa bump `user_version`; bila `pesanan_*` belum terpasang perintah
+gagal keras, `--termasuk-pesanan` memasangnya lebih dulu sebagai langkah rilis tersendiri); (4) lepas hold, lalu
+admin mengisi rekening di `/admin/pesanan/rekening`; (5) baru operator menyetel `PESANAN_TRANSFER_AKTIF=1` lewat
+mekanisme flag produksi yang ada (`/opt/osn/visual.conf`, lihat bagian "Aktivasi funnel"; pastikan jalur `docker run`
+utama dan rollback `osn-deploy` sama-sama memuatnya, dan jangan mengubah `osn-deploy` tanpa persetujuan). Folder bukti bawaannya `bukti-transfer` di samping
+`admin-control.db` pada volume data persisten, sehingga selamat dari pergantian container; bila `OSN_DIREKTORI_BUKTI`
+diubah, arahkan ke folder 0700 di volume data yang sama, bukan ke dalam filesystem container.
+
+Retensi 30 hari (manual, belum dijadwalkan; jangan memasang cron/worker tanpa izin):
+`mesin/.venv/bin/python mesin/pesanan_retensi.py --database <admin-control.db> [--folder <folder-bukti>]`. `--folder`
+wajib sama dengan folder bukti aplikasi (nilai `OSN_DIREKTORI_BUKTI` di container, atau default di samping DB) atau
+perintah dijalankan di dalam container; folder yang tidak ada tidak menandai apa pun di ledger (dilaporkan `gagal`,
+exit 1) dan `berkas sudah hilang` yang tinggi adalah tanda folder salah. Urutannya hapus berkas lalu tandai di
+ledger (idempoten; berkas yang sudah hilang tidak membuat macet), dan sisa `.tmp-*` lebih tua dari satu jam dibuang.
+Ringkasannya hanya angka. Bukti yang belum diputuskan tidak pernah dihapus.
+
 ## Aktivasi funnel Cek Kemampuan dan pembayaran Paket Coba — 19 November 2026
 
 Aktivasi terkontrol di atas artifact yang sama, **a1443b3** (digest

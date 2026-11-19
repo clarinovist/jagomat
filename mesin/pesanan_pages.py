@@ -17,9 +17,10 @@ from __future__ import annotations
 from cek_pages import RUTE_HASIL, _a, _bungkus, _e, _kepala
 from funnel_pages import COPY_HARGA
 from pesanan_dasar import (
-    STATUS_BELUM_BAYAR, STATUS_DIREFUND, STATUS_KEDALUWARSA, STATUS_PERLU_DIPERIKSA,
-    STATUS_SUDAH_DIBAYAR,
+    STATUS_BELUM_BAYAR, STATUS_DIREFUND, STATUS_DITOLAK, STATUS_KEDALUWARSA,
+    STATUS_MENUNGGU_VERIFIKASI, STATUS_PERLU_DIPERIKSA, STATUS_SUDAH_DIBAYAR,
 )
+from pesanan_transfer_pages import COPY_JUDUL_QRIS, COPY_PETUNJUK_QRIS, COPY_STATUS_PILIH
 
 RUTE_STATUS = "/pesanan"
 RUTE_QR = "/pesanan/qr"
@@ -30,62 +31,48 @@ RUTE_KONTAK = "/akun/kontak"
 ALIS = "PAKET COBA"
 ID_JUDUL = "judul-pesanan"
 
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_JUDUL = "Pesanan Peta Kemampuan"
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_TUTUP = (
     "Pembayaran Peta Kemampuan belum dibuka. Belum ada tagihan yang dibuat, jadi tidak ada "
     "yang perlu Anda bayar sekarang."
 )
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_TUTUP_SUDAH_BAYAR = (
     "Jika Anda sudah pernah membayar, pembayaran itu tetap tercatat. "
     "Hubungi tim lewat WhatsApp bila ada yang perlu dipastikan."
 )
-# DRAF: teks final menunggu persetujuan Pemilik
-# DRAF: selaras COPY_PEMBATALAN (Keputusan 18: tanpa refund untuk Peta Kemampuan, kecuali laporan
-# terlambat); menunggu persetujuan Pemilik.
+# Selaras COPY_PEMBATALAN (Keputusan 18: tanpa refund untuk Peta Kemampuan, kecuali laporan terlambat).
 COPY_REFUND = (
     "Peta Kemampuan tidak dapat dikembalikan; Rp49.000 menjadi voucher program belajar bila Anda "
     "lanjut. Bila laporan terlambat lebih dari 3×24 jam dari jam terbit yang kami kabari, Anda boleh "
     "memilih menunggu atau uang kembali. Hubungi tim lewat WhatsApp."
 )
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_KUOTA_HABIS = (
     "Pendaftaran Peta Kemampuan sedang dihentikan sementara; "
     "akun dan hasil yang sudah ada tetap bisa dibuka."
 )
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_BUTUH_KONTAK = (
     "Nomor WhatsApp Anda belum tersimpan. Kami butuh nomor itu untuk menghubungi Anda "
     "setelah pembayaran. Lengkapi dulu nomornya, lalu kembali ke hasil cek."
 )
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_CEK_BELUM_SELESAI = (
     "Peta Kemampuan dibuka setelah cek gratis anak selesai. Cek belum selesai, jadi belum "
     "ada pesanan yang dibuat."
 )
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_BELUM_SIAP = (
     "Pesanan belum bisa diproses sekarang. Tidak ada yang berubah; coba lagi nanti "
     "atau hubungi tim lewat WhatsApp."
 )
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_BENTROK = (
     "Pesanan Anda perlu dicek tim sebelum bisa dilanjutkan. Tidak perlu membayar lagi; "
     "tim akan menghubungi lewat WhatsApp."
 )
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_BATAS_ULANG = (
     "Pembayaran ini tidak bisa dibuat ulang lagi dari halaman ini. "
     "Hubungi tim lewat WhatsApp."
 )
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_FORM_TIDAK_SAH = "Form tidak sah atau sudah kedaluwarsa. Muat ulang halaman, lalu coba lagi."
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_TERLALU_BANYAK = "Terlalu banyak permintaan. Coba lagi sebentar."
 
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_STATUS = {
     STATUS_BELUM_BAYAR: ("Menunggu pembayaran",
                          "Pindai kode QRIS dengan aplikasi pembayaran Anda. Status berubah "
@@ -97,17 +84,21 @@ COPY_STATUS = {
     STATUS_KEDALUWARSA: ("Waktu pembayaran habis",
                          "Waktu pembayaran habis dan belum ada pembayaran yang tercatat."),
     STATUS_DIREFUND: ("Pembayaran dikembalikan", "Pembayaran ini sudah dikembalikan oleh tim."),
+    STATUS_MENUNGGU_VERIFIKASI: ("Bukti diterima, menunggu pemeriksaan",
+                                 "Bukti transfer Anda sudah kami terima dan sedang diperiksa tim. "
+                                 "Tidak perlu membayar lagi."),
+    STATUS_DITOLAK: ("Bukti belum sesuai",
+                     "Bukti transfer Anda belum bisa diterima. Periksa alasannya, lalu unggah ulang "
+                     "atau hubungi tim lewat WhatsApp."),
 }
-# DRAF: teks final menunggu persetujuan Pemilik
+# Status belum bayar bila jalur transfer ikut ditawarkan (QRIS, bila ada, menjadi pilihan kedua).
+COPY_STATUS_PILIH_CARA = ("Menunggu pembayaran", COPY_STATUS_PILIH)
 COPY_QR_BELUM_ADA = "Kode QR belum tersedia saat ini."
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_BELUM_TERPERIKSA = (
     "Status terbaru belum bisa diperiksa ke penyedia pembayaran sekarang. "
     "Tampilan ini belum tentu yang terbaru."
 )
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_ALT_QR = "Kode QRIS untuk membayar Peta Kemampuan"
-# DRAF: teks final menunggu persetujuan Pemilik
 COPY_TOMBOL = {
     "periksa": "Periksa status pembayaran",
     "buat": "Coba lagi",
@@ -152,11 +143,14 @@ def halaman_info(ident, judul: str, teks: str, tautan=None) -> bytes:
     return _bungkus(ident, COPY_JUDUL, ID_JUDUL, isi)
 
 
-def _blok_qr() -> str:
-    return (
+def _blok_qr(pilihan_kedua: bool = False) -> str:
+    gambar = (
         f'<p><img src="{RUTE_QR}" alt="{_a(COPY_ALT_QR)}" width="{UKURAN_QR}" '
         f'height="{UKURAN_QR}"></p>'
     )
+    if not pilihan_kedua:
+        return gambar
+    return f"<h2>{_e(COPY_JUDUL_QRIS)}</h2><p>{_e(COPY_PETUNJUK_QRIS)}</p>" + gambar
 
 
 def _form(aksi: str, token: str) -> str:
@@ -171,7 +165,8 @@ def _form(aksi: str, token: str) -> str:
 
 def _catatan_status(tampilan: dict) -> str:
     teks = []
-    if tampilan["status"] == STATUS_BELUM_BAYAR and not tampilan["qr"] and not tampilan["boleh_ulang"]:
+    if (tampilan["status"] == STATUS_BELUM_BAYAR and not tampilan["qr"] and not tampilan["boleh_ulang"]
+            and tampilan.get("qris", True)):
         teks.append(COPY_QR_BELUM_ADA)
     if tampilan["belum_terperiksa"]:
         teks.append(COPY_BELUM_TERPERIKSA)
@@ -183,16 +178,21 @@ def halaman_status(ident, tampilan: dict, token) -> bytes:
 
     `tampilan`: status (salah satu status turunan), nama_anak, qr (bool), aksi (None,
     'periksa', 'buat', atau 'ulang'), boleh_ulang, belum_terperiksa. `token` hanya
-    dipakai bila `aksi` ada. Satu aksi satu tombol.
+    dipakai bila `aksi` ada. Satu aksi satu tombol. Opsional (jalur transfer):
+    `blok_transfer` (HTML kartu transfer dari `pesanan_transfer_pages`, tampil sebelum QRIS)
+    dan `qris` (False bila gerbang Midtrans tertutup: tanpa catatan QR).
     """
-    judul, kalimat = COPY_STATUS[tampilan["status"]]
+    transfer = tampilan.get("blok_transfer", "")
+    pilih_cara = bool(transfer) and tampilan["status"] == STATUS_BELUM_BAYAR
+    judul, kalimat = COPY_STATUS_PILIH_CARA if pilih_cara else COPY_STATUS[tampilan["status"]]
     isi = (
         _kepala(ALIS, COPY_JUDUL, ID_JUDUL, tampilan["nama_anak"])
         + _kartu(f"<h2>{_e(judul)}</h2><p>{_e(kalimat)}</p>"
                  f'<p class="funnel-catatan-st">{_e(COPY_HARGA)}</p>')
     )
+    isi += transfer
     if tampilan["qr"]:
-        isi += _kartu(_blok_qr())
+        isi += _kartu(_blok_qr(pilihan_kedua=bool(transfer)))
     isi += _catatan_status(tampilan)
     if tampilan["aksi"] is not None:
         isi += _kartu(_form(tampilan["aksi"], token))

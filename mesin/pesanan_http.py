@@ -22,9 +22,15 @@ ditegakkan di sini, bukan di halaman:
 - Efek uang hanya lewat ledger: "lunas" mustahil dari URL/redirect/POST klien; status
   provider diterapkan lewat domain (`pesanan_alur`). PRG: respons POST tidak memuat data.
 - Tidak ada log dan tidak ada `str(galat)` di respons: pesan tetap saja.
+- Jalur transfer rekening punya gerbang SENDIRI (`pesanan_transfer_gerbang`), tidak bergantung
+  sakelar/tahap Midtrans. GET `/pesanan` dan GET `/paket-coba/pesan` melayani halaman bila SALAH
+  SATU gerbang terbuka; transfer-only tidak pernah menghubungi provider dan `/pesanan/qr` tetap
+  404. POST transfer (pesan transfer-only, tagihan, bukti) ada di `pesanan_transfer_http`;
+  gerbang Midtrans/QRIS tidak berubah.
 """
 from __future__ import annotations
 
+from dataclasses import replace
 import hashlib
 import hmac
 import json
@@ -42,6 +48,10 @@ import pesanan
 import pesanan_alur as alur
 import pesanan_midtrans
 import pesanan_pages as halaman
+import pesanan_transfer
+import pesanan_transfer_gerbang as gerbang_transfer
+import pesanan_transfer_pages as halaman_transfer
+import pesanan_transfer_tampil
 from cek_http import _tidak_ada
 from kontak_http import _alihkan, _baca_form, _principal_guru
 from support_pages import halaman_pesan
@@ -62,6 +72,7 @@ UMUR_TOKEN_DETIK = 900
 BATAS_AKUN = 30
 BATAS_IP = 60
 BATAS_PERIKSA = 6
+EMBER_PERIKSA = "periksa"
 JENDELA_LAJU_DETIK = 60
 MAGIC_PNG = b"\x89PNG\r\n\x1a\n"
 _DOMAIN_TOKEN = b"pesanan-form-v1:"
@@ -94,8 +105,24 @@ def _runtime_bila_terbuka(penangan):
 
 
 def gerbang_terbuka(penangan) -> bool:
-    """True hanya bila gerbang pembayaran terbuka (dipakai halaman hasil cek untuk CTA)."""
+    """True hanya bila gerbang pembayaran (Midtrans/QRIS) terbuka."""
     return _runtime_bila_terbuka(penangan) is not None
+
+
+def rekening_transfer(penangan):
+    """Rekening publik bila gerbang transfer terbuka; selain itu None (fail-closed)."""
+    if not gerbang_transfer.transfer_aktif():
+        return None
+    try:
+        runtime = _runtime(penangan)
+    except Exception:
+        return None
+    return gerbang_transfer.rekening_bila_terbuka(runtime)
+
+
+def pesan_terbuka(penangan) -> bool:
+    """True bila SALAH SATU gerbang terbuka (dipakai halaman hasil cek untuk CTA pesan)."""
+    return gerbang_terbuka(penangan) or rekening_transfer(penangan) is not None
 
 
 # --- token form ------------------------------------------------------------
@@ -134,17 +161,18 @@ def token_sah(principal, sesi, aksi: str, token) -> bool:
 
 # --- pembatas laju ---------------------------------------------------------
 
-def _izinkan(penangan, principal, *, ketat: bool = False) -> bool:
+def _izinkan(penangan, principal, *, ketat: bool = False, ember: str = EMBER_PERIKSA) -> bool:
     """Hitung satu permintaan untuk akun DAN IP ini; False bila salah satu sudah di batas.
 
-    `ketat` (periksa manual) menambah ember per-akun terpisah yang lebih kecil.
+    `ketat` (periksa manual, unggah bukti) menambah ember per-akun bernama `ember` yang
+    lebih kecil.
     """
     global _laju
     kini = time.monotonic()
     ip = ip_klien.ip_klien(penangan.headers, penangan.client_address)
     batas = {("akun", principal.id_akun): BATAS_AKUN, ("ip", ip): BATAS_IP}
     if ketat:
-        batas[("periksa", principal.id_akun)] = BATAS_PERIKSA
+        batas[(ember, principal.id_akun)] = BATAS_PERIKSA
     with _kunci_laju:
         aktif = {k: tuple(t for t in waktu if kini - t < JENDELA_LAJU_DETIK)
                  for k, waktu in _laju.items()}
@@ -218,12 +246,36 @@ _GALAT_ALUR = (
 
 # --- GET -------------------------------------------------------------------
 
-def _get_status(penangan, principal, runtime) -> None:
+def _blok_transfer(penangan, principal, rekening, runtime) -> str:
+    """Kartu transfer dari ledger (HTML); '' bila akun belum punya order.
+
+    Tombol jendela bayar ulang transfer hanya bila gerbang Midtrans tertutup (`runtime` None).
+    """
+    order_id = alur.order_id_akun(admin_store.BAWAAN, principal)
+    if order_id is None:
+        return ""
+    with pesanan_transfer.buka(admin_store.BAWAAN) as kon:
+        tampil = pesanan_transfer_tampil.baca(kon, order_id, principal.id_akun, alur.waktu_sekarang())
+    tampil = replace(tampil, boleh_ulang=tampil.boleh_ulang and runtime is None)
+    sesi = penangan._ambil_token()
+    return halaman_transfer.blok_transfer(
+        tampil, rekening, lambda aksi: buat_token(principal, sesi, aksi))
+
+
+def _aksi_midtrans(tampil, runtime):
+    """Aksi tombol Midtrans; tanpa runtime terbuka (transfer-only) tidak ada tombol Midtrans."""
+    if runtime is None:
+        return None
+    return (alur.AKSI_ULANG if tampil.boleh_ulang else alur.AKSI_BUAT if tampil.boleh_buat
+            else alur.AKSI_PERIKSA if tampil.boleh_periksa else None)
+
+
+def _get_status(penangan, principal, runtime, rekening) -> None:
     anak = alur.ambil_anak(principal)
     if anak is None:
         _alihkan(penangan, cek_pages.RUTE_HASIL)
         return
-    klien = pesanan_midtrans.dari_runtime(runtime)
+    klien = None if runtime is None else pesanan_midtrans.dari_runtime(runtime)
     tampil = alur.tampilan(admin_store.BAWAAN, principal, anak, klien,
                            periksa_provider=_izinkan(penangan, principal))
     if not _masih_sah(penangan, principal):
@@ -232,13 +284,14 @@ def _get_status(penangan, principal, runtime) -> None:
     if tampil is None:
         _alihkan(penangan, cek_pages.RUTE_HASIL)
         return
-    aksi = (alur.AKSI_ULANG if tampil.boleh_ulang else alur.AKSI_BUAT if tampil.boleh_buat
-            else alur.AKSI_PERIKSA if tampil.boleh_periksa else None)
+    aksi = _aksi_midtrans(tampil, runtime)
     token = None if aksi is None else buat_token(principal, penangan._ambil_token(), aksi)
+    blok = "" if rekening is None else _blok_transfer(penangan, principal, rekening, runtime)
     penangan._kirim_privat(halaman.halaman_status(_ident(principal), {
         "status": tampil.status, "nama_anak": tampil.nama_anak, "qr": tampil.qr_url is not None,
         "aksi": aksi, "boleh_ulang": tampil.boleh_ulang,
-        "belum_terperiksa": tampil.belum_terperiksa}, token))
+        "belum_terperiksa": tampil.belum_terperiksa,
+        "blok_transfer": blok, "qris": runtime is not None}, token))
 
 
 def _get_qr(penangan, principal, runtime) -> None:
@@ -270,7 +323,8 @@ def tangani_get(penangan, jalur: str) -> bool:
         _tidak_ada(penangan, post=False)
         return True
     runtime = _runtime_bila_terbuka(penangan)
-    if runtime is None:
+    rekening = rekening_transfer(penangan)
+    if runtime is None and rekening is None:
         if jalur == RUTE_QR:
             _tidak_ada(penangan, post=False)
         else:
@@ -279,8 +333,14 @@ def tangani_get(penangan, jalur: str) -> bool:
     if jalur == RUTE_PESAN:  # tombol kembali setelah POST: PRG ke status, tanpa efek
         _alihkan(penangan, RUTE_STATUS)
         return True
+    if jalur == RUTE_QR and runtime is None:  # QRIS hanya bila gerbang Midtrans terbuka
+        _tidak_ada(penangan, post=False)
+        return True
     try:
-        (_get_status if jalur == RUTE_STATUS else _get_qr)(penangan, principal, runtime)
+        if jalur == RUTE_STATUS:
+            _get_status(penangan, principal, runtime, rekening)
+        else:
+            _get_qr(penangan, principal, runtime)
     except _GALAT_ALUR as galat:
         _galat_domain(penangan, principal, galat, post=False)
     return True

@@ -8,6 +8,7 @@ ada sebelum receipt lunas terverifikasi.
 from __future__ import annotations
 
 import pesanan_dasar as d
+import pesanan_transfer_baca as tb
 
 KOLOM_ORDER = ("order_id", "akun_id", "siswa_id", "cek_id", "rupiah", "currency",
                "provider", "channel", "merchant", "idempotency_key", "dibuat",
@@ -64,20 +65,33 @@ def jendela_terbaru(kon, order_id):
     return {k: baris[k] for k in _KOLOM_JENDELA}
 
 
-def turunkan_status(*, kedaluwarsa, sekarang, receipt_hasil, direfund, refund_teramati):
+def turunkan_status(*, kedaluwarsa, sekarang, receipt_hasil, direfund, refund_teramati,
+                    transfer_lunas=False, transfer_direfund=False, transfer_bukti=None):
     """Fungsi murni: status turunan dari fakta.
 
     Refund tercatat menang. Receipt lunas menjadi `perlu_diperiksa` bila status
     server-ke-server kemudian menyatakan refund/chargeback (fail-closed, bukan
     mundur ke belum_bayar). `kedaluwarsa` hanya untuk order tanpa receipt.
+
+    Jalur transfer rekening (argumen bernama berbawaan, pemanggil lama tak berubah):
+    `transfer_lunas` -> sudah_dibayar (receipt provider ikut ada = anomali ->
+    perlu_diperiksa); `transfer_bukti='menunggu'` -> menunggu_verifikasi dan TIDAK
+    kedaluwarsa (bukti diunggah di dalam jendela bayar, keputusan admin yang menentukan);
+    `'ditolak'` -> ditolak selama jendela masih terbuka, sesudahnya kedaluwarsa.
     """
-    if direfund:
+    if direfund or transfer_direfund:
         return d.STATUS_DIREFUND
+    if transfer_lunas:
+        return d.STATUS_PERLU_DIPERIKSA if receipt_hasil is not None else d.STATUS_SUDAH_DIBAYAR
     if receipt_hasil == "lunas":
         return d.STATUS_PERLU_DIPERIKSA if refund_teramati else d.STATUS_SUDAH_DIBAYAR
     if receipt_hasil == "perlu_diperiksa":
         return d.STATUS_PERLU_DIPERIKSA
-    return d.STATUS_KEDALUWARSA if sekarang >= kedaluwarsa else d.STATUS_BELUM_BAYAR
+    if transfer_bukti == tb.BUKTI_MENUNGGU:
+        return d.STATUS_MENUNGGU_VERIFIKASI
+    if sekarang >= kedaluwarsa:
+        return d.STATUS_KEDALUWARSA
+    return d.STATUS_DITOLAK if transfer_bukti == tb.BUKTI_DITOLAK else d.STATUS_BELUM_BAYAR
 
 
 def status_dari_db(kon, order, sekarang_baku):
@@ -86,10 +100,12 @@ def status_dari_db(kon, order, sekarang_baku):
     direfund = kon.execute("SELECT 1 FROM pesanan_refund WHERE order_id=?",
                            (order["order_id"],)).fetchone() is not None
     teramati = kon.execute(_SQL_REFUND_TERAMATI, (order["order_id"],)).fetchone() is not None
+    transfer = tb.fakta(kon, order["order_id"])
     return turunkan_status(
         kedaluwarsa=jendela_terbaru(kon, order["order_id"])["kedaluwarsa"],
         sekarang=sekarang_baku, receipt_hasil=None if receipt is None else receipt["hasil"],
-        direfund=direfund, refund_teramati=teramati)
+        direfund=direfund, refund_teramati=teramati, transfer_lunas=transfer["lunas"],
+        transfer_direfund=transfer["direfund"], transfer_bukti=transfer["bukti"])
 
 
 def ambil_order(kon, order_id, akun_id):

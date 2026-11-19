@@ -10,6 +10,8 @@ import re
 
 import pesanan_dasar as d
 import pesanan_status as st
+import pesanan_transfer as tf
+import pesanan_transfer_baca as tb
 from schema_pesanan import CATATAN_REFUND
 
 BATAS_ID_YATIM = 40
@@ -78,7 +80,8 @@ def _tulis_refund(kon, operasi_id, isi, kini):
     if st.baris_order(kon, order_id) is None:
         raise d.PesananTidakDitemukan()
     if st.receipt_order(kon, order_id) is None:
-        raise d.PesananKonflik("order belum punya receipt")
+        # Jalur transfer rekening: receipt-nya `transfer_lunas`, refund-nya `transfer_refund`.
+        return tf.tulis_refund_transfer(kon, operasi_id, isi, kini)
     if kon.execute("SELECT 1 FROM pesanan_refund WHERE order_id=?", (order_id,)).fetchone():
         raise d.PesananKonflik("order sudah punya catatan refund")
     kon.execute("INSERT INTO pesanan_refund(operasi_id,order_id,dicatat_oleh,catatan_kode,dibuat) "
@@ -91,10 +94,19 @@ SELECT o.order_id, o.akun_id, o.dibuat, %s AS kedaluwarsa, r.hasil AS receipt_ha
        r.alasan_kode,
        EXISTS(SELECT 1 FROM pesanan_refund f WHERE f.order_id=o.order_id) AS direfund,
        EXISTS(SELECT 1 FROM pesanan_pengamatan p WHERE p.order_id=o.order_id
-              AND p.sumber='status' AND p.transaction_status IN (%s)) AS refund_teramati
-FROM pesanan_order o LEFT JOIN pesanan_receipt r ON r.order_id=o.order_id
+              AND p.sumber='status' AND p.transaction_status IN (%s)) AS refund_teramati,
+       %s AS transfer_lunas, %s AS transfer_direfund, %s AS transfer_bukti
+FROM pesanan_order o LEFT JOIN pesanan_receipt r ON r.order_id=o.order_id%s
 ORDER BY o.dibuat DESC, o.order_id DESC LIMIT ? OFFSET ?
-""" % (st.SQL_KEDALUWARSA_TERBARU, ",".join("'%s'" % s for s in d.STATUS_REFUND_PROVIDER))
+"""
+
+
+def _sql_daftar(kon, hanya_menunggu=False):
+    fakta = tb.sql_fakta(kon)
+    saring = " WHERE " + fakta["menunggu"] if hanya_menunggu else ""
+    return _SQL_DAFTAR % (
+        st.SQL_KEDALUWARSA_TERBARU, ",".join("'%s'" % s for s in d.STATUS_REFUND_PROVIDER),
+        fakta["lunas"], fakta["direfund"], fakta["bukti"], saring)
 
 
 def _item_admin(baris, kini):
@@ -107,22 +119,42 @@ def _item_admin(baris, kini):
         "status": st.turunkan_status(
             kedaluwarsa=baris["kedaluwarsa"], sekarang=kini,
             receipt_hasil=baris["receipt_hasil"], direfund=bool(baris["direfund"]),
-            refund_teramati=bool(baris["refund_teramati"])),
+            refund_teramati=bool(baris["refund_teramati"]),
+            transfer_lunas=bool(baris["transfer_lunas"]),
+            transfer_direfund=bool(baris["transfer_direfund"]),
+            transfer_bukti=baris["transfer_bukti"]),
     }
 
 
-def daftar_admin(kon, *, halaman, per_halaman, sekarang):
+def _daftar_menunggu(kon, halaman, per_halaman, kini):
+    """Tab menunggu verifikasi: kandidat SQL (ada bukti belum diputuskan), lalu status turunan memutuskan.
+
+    Penyaring akhir memakai `turunkan_status` yang sama dengan daftar penuh, jadi tab tidak bisa
+    berbeda dari status yang ditampilkan; kandidat kecil (bukti belum diputuskan).
+    """
+    baris = kon.execute(_sql_daftar(kon, True), (-1, 0)).fetchall()
+    items = tuple(i for i in (_item_admin(b, kini) for b in baris)
+                  if i["status"] == d.STATUS_MENUNGGU_VERIFIKASI)
+    awal = (halaman - 1) * per_halaman
+    return {"items": items[awal:awal + per_halaman], "total": len(items),
+            "halaman": halaman, "per_halaman": per_halaman}
+
+
+def daftar_admin(kon, *, halaman, per_halaman, sekarang, hanya_menunggu=False):
     """Daftar order terbaru (SELECT saja) berdata minimal untuk admin.
 
     Tanpa kontak, nama anak, siswa_id, cek_id, merchant, atau payload; akun
     hanya awalan id. `sekarang` dibutuhkan untuk status `kedaluwarsa`.
+    `hanya_menunggu` = hanya order berstatus `menunggu_verifikasi` (tab verifikasi transfer).
     """
     d.periksa_koneksi(kon)
     d.periksa_bilangan(halaman, "halaman")
     if type(per_halaman) is not int or not 1 <= per_halaman <= BATAS_PER_HALAMAN:
         raise d.PesananDataTidakSah("per_halaman tidak sah")
     kini = d.waktu_baku(sekarang)
+    if hanya_menunggu:
+        return _daftar_menunggu(kon, halaman, per_halaman, kini)
     total = kon.execute("SELECT COUNT(*) FROM pesanan_order").fetchone()[0]
-    baris = kon.execute(_SQL_DAFTAR, (per_halaman, (halaman - 1) * per_halaman)).fetchall()
+    baris = kon.execute(_sql_daftar(kon), (per_halaman, (halaman - 1) * per_halaman)).fetchall()
     return {"items": tuple(_item_admin(b, kini) for b in baris), "total": total,
             "halaman": halaman, "per_halaman": per_halaman}

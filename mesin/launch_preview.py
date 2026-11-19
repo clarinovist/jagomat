@@ -17,7 +17,10 @@ import ai_store
 import assistant_schema
 import auth
 import database
+import pesanan_rekening
 import research_store
+import schema_pesanan
+import schema_transfer
 import sessions
 import support_settings
 
@@ -49,6 +52,9 @@ def siapkan(*, akar=None):
     admin_store.siapkan(paths["admin"], sekarang=kini)
     admin_bulk.siapkan_transient(Path(os.environ["ADMIN_TRANSIENT_DB"]))
     support_settings.migrasikan(paths["admin"], sekarang=kini)
+    schema_pesanan.migrasikan(paths["admin"])
+    schema_transfer.migrasikan(paths["admin"])
+    pesanan_rekening.migrasikan(paths["admin"], sekarang=kini)
     database.siapkan(paths["belajar"])
     admin_students.siapkan(paths["belajar"])
     admin_registration.migrasikan_profil_registrasi(paths["belajar"])

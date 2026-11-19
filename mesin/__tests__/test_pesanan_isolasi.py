@@ -17,7 +17,9 @@ from pesanan_kit import (AKUN_A, MERCHANT, SEKARANG, buat, hasil_status, jumlah_
 
 MESIN = Path(__file__).resolve().parent.parent
 BERKAS = ["schema_pesanan.py", "pesanan.py", "pesanan_dasar.py", "pesanan_status.py",
-          "pesanan_order.py", "pesanan_provider.py", "pesanan_admin.py"]
+          "pesanan_order.py", "pesanan_provider.py", "pesanan_admin.py", "schema_transfer.py",
+          "pesanan_transfer.py", "pesanan_transfer_baca.py", "pesanan_admin_transfer.py",
+          "pesanan_transfer_ulang.py", "pesanan_retensi.py", "pesanan_transfer_migrasi.py"]
 TERLARANG = {"subscription", "subscription_store", "subscription_schema", "subscription_callback",
              "subscription_package_store", "midtrans_contract", "midtrans_produksi", "midtrans_secret",
              "database", "cek_gratis", "kontak_akun", "auth", "web", "urllib", "http", "socket",

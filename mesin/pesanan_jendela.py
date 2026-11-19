@@ -21,6 +21,7 @@ import sqlite3
 
 import pesanan_dasar as d
 import pesanan_status as st
+import pesanan_transfer_baca as tb
 
 MAKS_JENDELA = 5
 KELAS_MATI = ("expire", "cancel", "deny")  # sama dengan midtrans_contract.KELAS_MATI (dijaga tes)
@@ -68,12 +69,17 @@ def jumlah_aktif(kon, kini, kecuali=None):
     """Order yang memakai slot kuota, tidak menghitung `kecuali` (order yang sedang dibuka ulang).
 
     Aktif = ber-receipt (lunas/perlu_diperiksa) ATAU jendela terbaru belum kedaluwarsa.
+    Jalur transfer: order lunas-transfer dan order dengan bukti menunggu verifikasi
+    tetap aktif walau jendelanya sudah lewat (fragmen mundur ke 0 bila belum ada `transfer_*`).
     """
+    fakta = tb.sql_fakta(kon)
     return kon.execute(
         """SELECT COUNT(*) FROM pesanan_order o
            WHERE o.order_id IS NOT ?
              AND (EXISTS(SELECT 1 FROM pesanan_receipt r WHERE r.order_id=o.order_id)
-                  OR %s>?)""" % st.SQL_KEDALUWARSA_TERBARU, (kecuali, kini)).fetchone()[0]
+                  OR %s OR %s OR %s>?)""" % (fakta["lunas"], fakta["menunggu"],
+                                             st.SQL_KEDALUWARSA_TERBARU),
+        (kecuali, kini)).fetchone()[0]
 
 
 def _hasil(baris, baru):
@@ -102,6 +108,9 @@ def _mati_teramati(kon, order_id, terbaru):
 
 def _wajib_dapat_dibuka(kon, order_id, terbaru, kini):
     if st.receipt_order(kon, order_id) is not None:
+        raise _tidak_dapat_dibuka()
+    transfer = tb.fakta(kon, order_id)
+    if transfer["lunas"] or transfer["bukti"] == tb.BUKTI_MENUNGGU:
         raise _tidak_dapat_dibuka()
     if kini < terbaru["kedaluwarsa"] and not _mati_teramati(kon, order_id, terbaru):
         raise _tidak_dapat_dibuka()

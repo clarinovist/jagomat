@@ -4,6 +4,7 @@ Domain murni di koneksi DB admin-control: tanpa HTTP, tanpa jaringan, tanpa env
 (kecuali lewat `baca_gerbang`), tanpa tabel `langganan_*`. Pecahan:
 `pesanan_dasar` (konstanta/galat/transaksi), `pesanan_order`, `pesanan_status`,
 `pesanan_provider`, `pesanan_jendela` (jendela bayar/QR, buka ulang), `pesanan_admin`; skema di `schema_pesanan`.
+Jalur transfer rekening (verifikasi manual): `pesanan_transfer` + `pesanan_transfer_baca`, skema `schema_transfer`.
 """
 from __future__ import annotations
 
@@ -11,6 +12,7 @@ from pesanan_admin import catat_refund, catat_yatim, daftar_admin  # noqa: F401
 from pesanan_dasar import (  # noqa: F401
     CHANNEL, KEDALUWARSA_JAM, KUOTA_ORDER, MATA_UANG, PREFIX_ORDER,
     PROVIDER, RUPIAH_PAKET, STATUS_BELUM_BAYAR, STATUS_DIREFUND, STATUS_KEDALUWARSA,
+    STATUS_DITOLAK, STATUS_MENUNGGU_VERIFIKASI,
     STATUS_PERLU_DIPERIKSA, STATUS_SUDAH_DIBAYAR, STATUS_TURUNAN, PesananButuhKontak,
     PesananDataTidakSah, PesananError, PesananKonflik, PesananKuotaHabis,
     PesananTidakDitemukan, buka,

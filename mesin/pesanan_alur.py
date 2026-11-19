@@ -86,6 +86,11 @@ def _sekarang() -> str:
     return datetime.now(timezone.utc).strftime(_FORMAT_WAKTU)
 
 
+def waktu_sekarang() -> str:
+    """Waktu baku UTC naif untuk modul lain (jalur transfer); diputuskan saat dipanggil."""
+    return _sekarang()
+
+
 def _hash(*bagian) -> str:
     return hashlib.sha256("|".join(str(b) for b in bagian).encode("utf-8")).hexdigest()[:_PANJANG_HASH]
 
@@ -198,6 +203,9 @@ def pastikan_transaksi(path, order_id, akun_id, klien) -> None:
 def pesan(path, principal, klien, merchant) -> None:
     """Prasyarat server -> order (idempoten per anak) -> create ke provider bila perlu.
 
+    `klien=None` (hanya gerbang transfer terbuka, Midtrans tertutup): order dibuat tanpa
+    menghubungi provider; `merchant` tetap dari runtime produksi terpasang.
+
     Raise: PesananTanpaAnak, PesananCekBelumSelesai, pesanan.PesananButuhKontak,
     pesanan.PesananKuotaHabis, pesanan.PesananTidakDitemukan, pesanan.PesananKonflik.
     """
@@ -208,13 +216,20 @@ def pesan(path, principal, klien, merchant) -> None:
         order = pesanan.buat_order(
             kon, akun_id=principal.id_akun, siswa_id=siswa_id, cek_id=cek_id,
             cek_selesai=True, punya_kontak=punya_kontak, sekarang=_sekarang(), merchant=merchant)
-    pastikan_transaksi(path, order["order_id"], principal.id_akun, klien)
+    if klien is not None:
+        pastikan_transaksi(path, order["order_id"], principal.id_akun, klien)
 
 
 def _order_id_anak(path, principal, anak):
     with pesanan.buka(path, tulis_data=True) as kon:
         order = _order_anak(kon, principal.id_akun, anak["id"])
     return None if order is None else order["order_id"]
+
+
+def order_id_akun(path, principal):
+    """`order_id` milik akun sesi untuk anaknya; None bila belum ada anak atau order."""
+    anak = ambil_anak(principal)
+    return None if anak is None else _order_id_anak(path, principal, anak)
 
 
 def buat(path, principal, klien) -> bool:
@@ -323,13 +338,14 @@ def tampilan(path, principal, anak, klien, *, periksa_provider: bool) -> Optiona
 
     `periksa_provider` (diputuskan pembatas laju pemanggil) mengizinkan SATU pemeriksaan
     status; tanpa itu tampilan murni dari ledger dan ditandai `belum_terperiksa`.
+    `klien=None` (Midtrans tertutup): tampilan murni ledger, tanpa pemeriksaan provider.
     """
     with pesanan.buka(path, tulis_data=True) as kon:
         order = _order_anak(kon, principal.id_akun, anak["id"])
     if order is None:
         return None
     hasil = HasilPeriksa()
-    if periksa_provider:
+    if periksa_provider and klien is not None:
         hasil = periksa_status(path, order["order_id"], principal.id_akun, klien)
     keadaan = _baca_keadaan(path, principal.id_akun, order["order_id"])
-    return _susun(keadaan, hasil, klien.config, anak["nama"])
+    return _susun(keadaan, hasil, None if klien is None else klien.config, anak["nama"])
