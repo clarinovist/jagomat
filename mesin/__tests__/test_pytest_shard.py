@@ -78,9 +78,9 @@ JUMLAH_RECOVERY = {
     # Recovery diagnostik 6a5f0ec (461c2bc + database.buat_sesi_diagnostik, pin 6f02dbf,
     # kontrak dd3e0fce sama dengan kandidat 15 Nov 2026): collect-only exact 15.708 di Python 3.9.
     "6a5f0ecb73fc1cade989393deea055308358f1cc": 15708,
-    # Recovery migrasi 40ccd72 (kandidat Fase 3 + writer katalog1/teori1, 18 Nov 2026;
-    # kontrak dea0cff8 sama dengan kandidat): collect-only exact 17.007 di Python 3.9.
-    "40ccd72c3b8a07bcfd410c2df4b946216606c913": 17007,
+    # Recovery transfer 74a18f2 (5b8e1d3 + schema_transfer, hook admin_store_core, pesanan_rekening,
+    # 19 Nov 2026; kontrak 699d79ff sama dengan kandidat): collect-only exact 17.007 di Python 3.9.
+    "74a18f27a6e83ccf5710e8da16767612c0536e9a": 17007,
     "68a262c0a7391c8e95f409cf704703de4b90cea9": 15132,
 }
 
