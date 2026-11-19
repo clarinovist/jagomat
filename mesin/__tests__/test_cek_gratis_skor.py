@@ -58,8 +58,35 @@ def test_kategori_menolak_skor_tidak_sah(nilai):
 def test_empat_label_kategori_dan_konstanta_plan():
     assert skor.KATEGORI == ("Sangat baik", "Cukup baik", "Perlu penguatan", "Perlu pendampingan")
     assert (skor.JUMLAH_SOAL, skor.RETENSI_SELESAI_HARI, skor.RETENSI_BELUM_SELESAI_HARI) == (15, 30, 7)
-    assert skor.TOPIK_GABUNGAN == ("pola-bilangan", "statistika", "geometri-datar")
+    assert skor.TOPIK_LAMA == ("pola-bilangan", "statistika", "geometri-datar")
+    assert skor.TOPIK_PER_KELAS == {
+        3: ("berhitung-sekolah", "geometri-datar", "statistika"),
+        4: ("berhitung-sekolah", "pengukuran", "geometri-datar"),
+        5: ("aritmetika-dasar", "aritmatika-lanjut", "geometri-datar"),
+        6: ("aritmetika-dasar", "aritmatika-lanjut", "geometri-datar"),
+    }
     assert (skor.TOPIK_DASAR, skor.VERSI_NOTICE) == ("bilangan-dasar", "v1")
+
+
+@pytest.mark.parametrize("kelas", [3, 4, 5, 6])
+def test_topik_untuk_kelas_sesuai_peta(kelas):
+    assert skor.topik_untuk_kelas(kelas) == skor.TOPIK_PER_KELAS[kelas]
+
+
+@pytest.mark.parametrize("kelas", [0, 1, 2, 7, True, 3.0, "3", None])
+def test_topik_untuk_kelas_menolak_kelas_di_luar_3_sampai_6(kelas):
+    with pytest.raises(ValueError):
+        skor.topik_untuk_kelas(kelas)
+
+
+def test_semua_topik_cek_gabungan_deterministik_tanpa_duplikat():
+    semua = skor.semua_topik_cek()
+    assert len(semua) == len(set(semua))
+    assert set(semua) == {
+        "berhitung-sekolah", "geometri-datar", "statistika", "pengukuran",
+        "aritmetika-dasar", "aritmatika-lanjut", "pola-bilangan", "bilangan-dasar",
+    }
+    assert semua == skor.semua_topik_cek()
 
 
 # --- ringkas ----------------------------------------------------------------

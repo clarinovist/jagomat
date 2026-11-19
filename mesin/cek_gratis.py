@@ -24,9 +24,9 @@ import database
 import question_context
 import topics
 from cek_gratis_skor import (
-    JUMLAH_SOAL, TOPIK_DASAR, TOPIK_GABUNGAN, VERSI_NOTICE, hitung_skor,
-    kategori_dari_skor, level_untuk_kelas, periksa_id_akun, ringkas, waktu_baku,
-    waktu_teks,
+    JUMLAH_SOAL, TOPIK_DASAR, VERSI_NOTICE, hitung_skor, kategori_dari_skor,
+    level_untuk_kelas, periksa_id_akun, ringkas, semua_topik_cek, topik_untuk_kelas,
+    waktu_baku, waktu_teks,
 )
 
 _SEED_MAKS = 9_999_999
@@ -72,7 +72,7 @@ def _periksa_tersedia(level: str, kelas: int) -> None:
             raise CekBelumTersedia("Cek belum tersedia untuk kelas ini.")
         return
     try:
-        question_context.validasi_pilihan(list(TOPIK_GABUNGAN), level)
+        question_context.validasi_pilihan(list(topik_untuk_kelas(kelas)), level)
     except ValueError:
         raise CekBelumTersedia("Cek belum tersedia untuk kelas ini.") from None
 
@@ -85,7 +85,7 @@ def _buat_sesi(kon, siswa_id: int, kelas: int, level: str, seed: int) -> int:
             jumlah_soal=JUMLAH_SOAL, format_jawaban="pilihan_ganda",
         )
     return database.buat_sesi_gabungan(
-        kon, siswa_id, seed=seed, topik_ids=list(TOPIK_GABUNGAN), level=level,
+        kon, siswa_id, seed=seed, topik_ids=list(topik_untuk_kelas(kelas)), level=level,
         mode="drill", jumlah_soal=JUMLAH_SOAL, format_jawaban="pilihan_ganda",
     )
 
@@ -163,10 +163,16 @@ def mulai(kon, id_akun, siswa_id, pemilik, setuju, sekarang, *, seed=None) -> di
 
 
 def _peta_template_ke_topik() -> dict:
-    """template_id -> topik_id hanya untuk topik yang dipakai cek (bukan seluruh PAKET)."""
+    """template_id -> topik_id untuk semua topik cek (lama dan baru), bukan seluruh PAKET.
+
+    Template yang dimiliki dua topik cek membuat hitungan per topik ambigu:
+    gagal keras (ValueError) daripada diam-diam salah hitung.
+    """
     peta = {}
-    for topik_id in TOPIK_GABUNGAN + (TOPIK_DASAR,):
+    for topik_id in semua_topik_cek():
         for template_id in topics.ambil(topik_id).templates:
+            if template_id in peta and peta[template_id] != topik_id:
+                raise ValueError("Template cek dimiliki dua topik; peta topik ambigu.")
             peta[template_id] = topik_id
     return peta
 

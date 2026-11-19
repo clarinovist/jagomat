@@ -27,7 +27,7 @@ from cek_http_kit import (  # noqa: E402
 )
 
 KATA_TERLARANG = ("diagnosis lengkap", "pasti akurat", "nilai pasti naik", "Rp200.000", "Rp151.000")
-NAMA_TOPIK = tuple(topics.ambil(t).nama for t in ("pola-bilangan", "statistika", "geometri-datar"))
+NAMA_TOPIK = tuple(topics.ambil(t).nama for t in ("berhitung-sekolah", "pengukuran", "geometri-datar"))
 KATA_SKOR_ANAK = ("Skor keseluruhan", "dari 100", "Gambaran awal", "Kategori")
 
 
@@ -75,13 +75,13 @@ def test_skor_tidak_disimpan_sebelum_sesi_selesai(keluarga):
 # --- hasil: selesai ---------------------------------------------------------
 
 def test_selesai_memuat_skor_kategori_ringkasan_label_dan_batas(keluarga):
-    isi = _hasil_selesai(keluarga, benar_per_topik={"pola-bilangan": 5, "statistika": 0, "geometri-datar": 5})
+    isi = _hasil_selesai(keluarga, benar_per_topik={"berhitung-sekolah": 5, "pengukuran": 0, "geometri-datar": 5})
     teks = teks_tampak(isi)
     assert "10 dari 100" not in teks  # skor 10/15 = 67
     assert "67 dari 100" in teks and "Cukup baik" in teks
     assert cek_pages.COPY_LABEL_GAMBARAN in isi
     assert "Sudah kuat" in teks and "Perlu diperkuat" in teks
-    assert topics.ambil("pola-bilangan").nama in teks and topics.ambil("statistika").nama in teks
+    assert topics.ambil("berhitung-sekolah").nama in teks and topics.ambil("pengukuran").nama in teks
     for batas in cek_pages.COPY_BATAS_HASIL:
         assert batas in isi
     assert 'href="/paket-coba"' in isi
@@ -90,7 +90,7 @@ def test_selesai_memuat_skor_kategori_ringkasan_label_dan_batas(keluarga):
 
 
 def test_selesai_tanpa_angka_per_materi_kunci_jawaban_atau_peringkat(keluarga):
-    isi = _hasil_selesai(keluarga, benar_per_topik={"pola-bilangan": 5, "statistika": 1, "geometri-datar": 3})
+    isi = _hasil_selesai(keluarga, benar_per_topik={"berhitung-sekolah": 5, "pengukuran": 1, "geometri-datar": 3})
     teks = teks_tampak(isi)
     # urutan render: cincin skor (60 dari 100), kelas anak, lalu "9 dari 15 soal benar"; tanpa angka per materi
     assert re.findall(r"\d+", teks) == ["60", "100", "4", "9", "15"]
@@ -104,15 +104,15 @@ def test_selesai_tanpa_angka_per_materi_kunci_jawaban_atau_peringkat(keluarga):
 
 
 def test_selesai_tanpa_butir_ringkasan_pesan_netral(keluarga):
-    isi = _hasil_selesai(keluarga, benar_per_topik={"pola-bilangan": 3, "statistika": 3, "geometri-datar": 3})
+    isi = _hasil_selesai(keluarga, benar_per_topik={"berhitung-sekolah": 3, "pengukuran": 3, "geometri-datar": 3})
     assert cek_pages.COPY_RINGKASAN_KOSONG in isi
 
 
 def test_kerangka_terkunci_identik_untuk_hasil_berbeda_dan_tanpa_data(server):
     kerangka = []
     for akun, pemilik, nama, per_topik in (
-        (AKUN_A, "guru", "Anak Sintetis Alfa", {"pola-bilangan": 5, "statistika": 5, "geometri-datar": 5}),
-        (AKUN_B, "guru-b", "Anak Sintetis Beta", {"pola-bilangan": 0, "statistika": 0, "geometri-datar": 1}),
+        (AKUN_A, "guru", "Anak Sintetis Alfa", {"berhitung-sekolah": 5, "pengukuran": 5, "geometri-datar": 5}),
+        (AKUN_B, "guru-b", "Anak Sintetis Beta", {"berhitung-sekolah": 0, "pengukuran": 0, "geometri-datar": 1}),
     ):
         tambah_anak(server, nama, pemilik, 4)
         sesi = mulai_cek(server, akun)

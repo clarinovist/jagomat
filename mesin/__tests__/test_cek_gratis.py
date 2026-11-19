@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import cek_gratis  # noqa: E402
 import database  # noqa: E402
 import topics  # noqa: E402
+from cek_gratis_skor import TOPIK_LAMA, topik_untuk_kelas  # noqa: E402
 from cek_gratis_kit import (  # noqa: E402
     ID_A, ID_B, ID_C, SEKARANG, TABEL_BUKTI_SIKLUS, hitung, jawab, mulai_cek,
     tambah_anak, tandai_selesai,
@@ -139,18 +140,75 @@ def test_mulai_kelas_3_sampai_6_membuat_sesi_pg_15_soal_tiga_topik(kon, kelas):
 
     assert hasil["baru"] is True
     sesi = kon.execute("SELECT * FROM sesi WHERE id = ?", (hasil["sesi_id"],)).fetchone()
-    assert sesi["topik"] == "gabungan:pola-bilangan,statistika,geometri-datar"
+    topik_kelas = topik_untuk_kelas(kelas)
+    assert sesi["topik"] == "gabungan:" + ",".join(topik_kelas)
     assert (sesi["level"], sesi["tujuan"], sesi["jenis"], sesi["mode"]) == ("P%d" % kelas, "bebas", "biasa", "drill")
     assert (sesi["format_jawaban"], sesi["timer_mode"], sesi["putaran_id"]) == ("pilihan_ganda", "tanpa", None)
     peta = cek_gratis._peta_template_ke_topik()
     per_topik = {}
     for baris in database.isi_sesi(kon, hasil["sesi_id"]):
         per_topik[peta[baris["template_id"]]] = per_topik.get(peta[baris["template_id"]], 0) + 1
-    assert per_topik == {"pola-bilangan": 5, "statistika": 5, "geometri-datar": 5}
+    assert per_topik == {t: 5 for t in topik_kelas}
     cek = kon.execute("SELECT * FROM cek_gratis").fetchone()
     assert (cek["siswa_id"], cek["id_akun"], cek["sesi_id"]) == (anak, ID_A, hasil["sesi_id"])
     assert (cek["versi_notice"], cek["jumlah_soal"], cek["setuju_pada"], cek["dibuat"]) == ("v1", 15, SEKARANG, SEKARANG)
     assert (cek["selesai_pada"], cek["skor"], cek["kategori"], cek["ringkasan"], cek["bahan_dihapus_pada"]) == (None,) * 5
+
+
+TABEL_TOPIK = {
+    3: ("berhitung-sekolah", "geometri-datar", "statistika"),
+    4: ("berhitung-sekolah", "pengukuran", "geometri-datar"),
+    5: ("aritmetika-dasar", "aritmatika-lanjut", "geometri-datar"),
+    6: ("aritmetika-dasar", "aritmatika-lanjut", "geometri-datar"),
+}
+
+
+@pytest.mark.parametrize("kelas", [3, 4, 5, 6])
+@pytest.mark.parametrize("seed", [1, 2, 3, 11, 29])
+def test_topik_sesi_mengikuti_tabel_kelas_dan_komposisi_5_5_5(kon, kelas, seed):
+    anak = tambah_anak(kon, NAMA_ANAK, "guru-a", kelas)
+
+    sesi_id = mulai_cek(kon, ID_A, anak, "guru-a", seed=seed)
+
+    sesi = kon.execute("SELECT topik FROM sesi WHERE id = ?", (sesi_id,)).fetchone()
+    assert sesi["topik"] == "gabungan:" + ",".join(TABEL_TOPIK[kelas])
+    peta = cek_gratis._peta_template_ke_topik()
+    per_topik = {}
+    for baris in database.isi_sesi(kon, sesi_id):
+        topik_id = peta[baris["template_id"]]
+        per_topik[topik_id] = per_topik.get(topik_id, 0) + 1
+    assert per_topik == {t: 5 for t in TABEL_TOPIK[kelas]}
+
+
+def test_sesi_gabungan_lama_tiga_topik_lama_tetap_dinilai(kon):
+    anak = tambah_anak(kon, NAMA_ANAK, "guru-a", 4)
+    sesi_id = database.buat_sesi_gabungan(
+        kon, anak, seed=5, topik_ids=list(TOPIK_LAMA), level="P4", mode="drill",
+        jumlah_soal=15, format_jawaban="pilihan_ganda")
+    cek_gratis._simpan_baris(kon, ID_A, anak, sesi_id, SEKARANG)
+    jawab(kon, sesi_id, semua_benar=15)
+
+    benar, per_topik = cek_gratis._hitung_dari_sesi(kon, sesi_id, 15)
+
+    assert benar == 15
+    assert [t for t, _b, _n in per_topik] == sorted(TOPIK_LAMA)
+    assert all(n == 5 for _t, _b, n in per_topik)
+
+
+def test_peta_template_gagal_keras_bila_template_dimiliki_dua_topik_cek(monkeypatch):
+    asli = topics.ambil
+    pinjam = next(iter(asli("statistika").templates))
+    digeser = asli("geometri-datar")
+
+    class _Tumpang:
+        templates = {**digeser.templates, pinjam: None}
+
+    monkeypatch.setattr(
+        cek_gratis.topics, "ambil",
+        lambda t: _Tumpang if t == "geometri-datar" else asli(t))
+
+    with pytest.raises(ValueError):
+        cek_gratis._peta_template_ke_topik()
 
 
 @pytest.mark.parametrize("kelas", [1, 2])

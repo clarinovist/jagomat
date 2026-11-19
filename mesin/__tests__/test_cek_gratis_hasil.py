@@ -127,27 +127,27 @@ def test_selesaikan_idempoten_dan_selesai_pada_dari_waktu_sesi(kon):
 def test_ringkasan_terstruktur_dengan_nama_topik_resmi(kon):
     anak = tambah_anak(kon, NAMA_ANAK, "guru-a", 5)
     sesi_id = mulai_cek(kon, ID_A, anak, "guru-a")
-    jawab(kon, sesi_id, {"pola-bilangan": 5, "statistika": 3, "geometri-datar": 1})
+    jawab(kon, sesi_id, {"aritmetika-dasar": 5, "aritmatika-lanjut": 3, "geometri-datar": 1})
     tandai_selesai(kon, sesi_id)
     cek_gratis.selesaikan_jika_siap(kon, ID_A, SEKARANG)
 
     hasil = cek_gratis.baca_hasil(kon, ID_A)
 
-    assert hasil["ringkasan"] == {"kuat": [_nama("pola-bilangan")], "perlu": [_nama("geometri-datar")]}
+    assert hasil["ringkasan"] == {"kuat": [_nama("aritmetika-dasar")], "perlu": [_nama("geometri-datar")]}
     assert hasil["skor"] == 60
 
 
 def test_ringkasan_maksimal_dua_butir_per_jenis(kon):
     anak = tambah_anak(kon, NAMA_ANAK, "guru-a", 5)
     sesi_id = mulai_cek(kon, ID_A, anak, "guru-a")
-    jawab(kon, sesi_id, {"pola-bilangan": 5, "statistika": 5, "geometri-datar": 5})
+    jawab(kon, sesi_id, {"aritmetika-dasar": 5, "aritmatika-lanjut": 5, "geometri-datar": 5})
     tandai_selesai(kon, sesi_id)
     cek_gratis.selesaikan_jika_siap(kon, ID_A, SEKARANG)
 
     hasil = cek_gratis.baca_hasil(kon, ID_A)
 
     assert hasil["ringkasan"] == {
-        "kuat": [_nama("geometri-datar"), _nama("pola-bilangan")], "perlu": []}  # seri: urut id topik
+        "kuat": [_nama("aritmatika-lanjut"), _nama("aritmetika-dasar")], "perlu": []}  # seri: urut id topik
 
 
 def test_ringkasan_kelas_1_hanya_satu_topik_dasar(kon, monkeypatch):
@@ -167,7 +167,7 @@ def test_ringkasan_kelas_1_hanya_satu_topik_dasar(kon, monkeypatch):
 def test_baca_hasil_hanya_kunci_tetap_tanpa_kunci_jawaban_atau_id(kon):
     anak = tambah_anak(kon, NAMA_ANAK, "guru-a", 4)
     sesi_id = mulai_cek(kon, ID_A, anak, "guru-a")
-    jawab(kon, sesi_id, {"pola-bilangan": 5, "statistika": 2, "geometri-datar": 0})
+    jawab(kon, sesi_id, {"berhitung-sekolah": 5, "pengukuran": 2, "geometri-datar": 0})
     tandai_selesai(kon, sesi_id)
     cek_gratis.selesaikan_jika_siap(kon, ID_A, SEKARANG)
 

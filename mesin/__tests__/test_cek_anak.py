@@ -45,7 +45,28 @@ def _simpan_semua(cek, lewati=()):
 # --- konstanta ------------------------------------------------------------
 
 def test_topik_cek_anak_sama_dengan_modul_skor():
-    assert cek_anak_komponen.TOPIK_CEK == tuple(cek_gratis_skor.TOPIK_GABUNGAN) + (cek_gratis_skor.TOPIK_DASAR,)
+    assert set(cek_anak_komponen.TOPIK_CEK) == set(cek_gratis_skor.semua_topik_cek())
+    assert len(cek_anak_komponen.TOPIK_CEK) == len(set(cek_anak_komponen.TOPIK_CEK))
+    for topik_id in cek_anak_komponen.TOPIK_CEK:
+        assert topik_id in cek_anak_komponen.NAMA_PERAN_TOPIK
+        assert topik_id in cek_anak_komponen.IKON_TOPIK
+
+
+@pytest.mark.parametrize("topik_id,nama", [
+    ("berhitung-sekolah", "Berhitung"), ("pengukuran", "Pengukuran"),
+    ("aritmetika-dasar", "Aritmetika dasar"), ("aritmatika-lanjut", "Aritmetika lanjut"),
+])
+def test_label_topik_baru_tampil_nama_materi_tanpa_kata_skor(topik_id, nama):
+    import topics
+
+    template_id = next(iter(topics.ambil(topik_id).templates))
+
+    html_label = cek_anak_komponen.label_topik(template_id)
+
+    assert ">" + nama + "</span>" in html_label
+    assert "<svg" in html_label and "#" not in html_label
+    for terlarang in ("kemampuan", "kelemahan", "skor", "kategori", "benar", "salah"):
+        assert terlarang not in html_label.lower()
 
 
 def test_tujuan_login_persis_sesuai_kontrak_orang_tua():

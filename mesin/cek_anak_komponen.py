@@ -17,9 +17,12 @@ import design_tokens as T
 import topics
 from cek_anak_style import GAYA_CEK_ANAK
 
-# Cermin `cek_gratis_skor.TOPIK_GABUNGAN + TOPIK_DASAR`; permukaan anak sengaja
-# tidak mengimpor modul skor. test_cek_anak menjaga keduanya tetap sama.
-TOPIK_CEK = ("pola-bilangan", "statistika", "geometri-datar", "bilangan-dasar")
+# Cermin `cek_gratis_skor.semua_topik_cek()`; permukaan anak sengaja tidak
+# mengimpor modul skor. test_cek_anak menjaga keduanya tetap sama.
+TOPIK_CEK = (
+    "berhitung-sekolah", "geometri-datar", "statistika", "pengukuran",
+    "aritmetika-dasar", "aritmatika-lanjut", "pola-bilangan", "bilangan-dasar",
+)
 JEDA_SETELAH = (5, 10)
 NILAI_DI_HP_INI = "hp-ini"
 TUJUAN_LOGIN_HASIL = "/masuk?lanjut=/cek-kemampuan/hasil"
@@ -29,6 +32,10 @@ NAMA_PERAN_TOPIK = {
     "statistika": ("koral", "Statistika"),
     "geometri-datar": ("amber", "Geometri datar"),
     "bilangan-dasar": ("navy", "Bilangan dasar"),
+    "berhitung-sekolah": ("koral", "Berhitung"),
+    "pengukuran": ("teal", "Pengukuran"),
+    "aritmetika-dasar": ("amber", "Aritmetika dasar"),
+    "aritmatika-lanjut": ("navy", "Aritmetika lanjut"),
 }
 _STROKE = 'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"'
 IKON_TOPIK = {
@@ -40,6 +47,16 @@ IKON_TOPIK = {
     "statistika": '<path d="M4 20h16"/><path d="M7 20v-7M12 20V5M17 20v-10"/>',
     "geometri-datar": '<path d="M3.5 20l5.5-9.5 5.5 9.5z"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1"/>',
     "bilangan-dasar": '<path d="M12 5v14M5 12h14"/>',
+    "berhitung-sekolah": (
+        '<path d="M5 5l6 6M11 5l-6 6"/><path d="M14 17h6"/>'
+        '<circle cx="17" cy="14" r=".6" fill="currentColor"/><circle cx="17" cy="20" r=".6" fill="currentColor"/>'
+    ),
+    "pengukuran": (
+        '<rect x="3" y="8" width="18" height="8" rx="1.5"/>'
+        '<path d="M7 8v3M11 8v4M15 8v3M19 8v4"/>'
+    ),
+    "aritmetika-dasar": '<path d="M8 4v4M6 6h4"/><path d="M5 20L19 4"/><path d="M14 17h5"/><path d="M14 20h5"/>',
+    "aritmatika-lanjut": '<path d="M5 19L19 5"/><circle cx="7" cy="7" r="2.2"/><circle cx="17" cy="17" r="2.2"/>',
 }
 IKON_JEDA = (
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'

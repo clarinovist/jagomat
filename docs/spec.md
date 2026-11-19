@@ -159,7 +159,10 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   "Kerjakan di HP ini" (`cara=hp_ini`: sesi login dihapus di server, lalu anak dibawa ke tautan) atau "Di HP/tablet anak"
   (QR); cek berjalan dilanjutkan lewat `/tautan` dengan status X/15. Untuk sesi cek (dan hanya saat `FUNNEL_AKTIF`),
   `/mulai/<token>` memakai tampilan anak khusus: satu soal per layar, jeda regang setelah soal 5 dan 10, peta soal,
-  Kumpulkan, layar Hore berbasis usaha (jumlah soal dijawab, tanpa benar/salah/skor); sesi biasa tak berubah. Orang tua
+  Kumpulkan, layar Hore berbasis usaha (jumlah soal dijawab, tanpa benar/salah/skor); sesi biasa tak berubah. Topik cek
+  mengikuti kelas (kelas 3: berhitung sekolah, geometri datar, statistika; 4: berhitung sekolah, pengukuran, geometri datar;
+  5–6: aritmetika dasar, aritmetika lanjut, geometri datar; 1–2: bilangan dasar), 5 soal per topik; nama materi boleh tampil
+  di layar anak (hanya nama, bukan label kemampuan). Orang tua
   kembali lewat `/masuk?lanjut=/cek-kemampuan/hasil` (allow-list persis dua rute cek, peran guru). Hasil gratis hanya skor (benar/15), kategori, ringkasan nama topik, berlabel "belum
   ditinjau guru". **Pengecualian bercakupan sempit** atas larangan skor/persentase di laporan orang tua (Keputusan 17): skor cek
   dihitung di `cek_gratis` dan tidak lewat `parent_report_snapshot`. Bahan mentah dihapus 30 hari setelah selesai (sapuan

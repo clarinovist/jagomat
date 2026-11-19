@@ -16,8 +16,17 @@ from auth import id_akun_sah
 
 FORMAT_WAKTU = "%Y-%m-%dT%H:%M:%S"
 JUMLAH_SOAL = 15
-TOPIK_GABUNGAN = ("pola-bilangan", "statistika", "geometri-datar")
 TOPIK_DASAR = "bilangan-dasar"
+# Topik cek kelas 3-6 mengikuti kelas (keputusan pemilik, 19 Nov 2026).
+TOPIK_PER_KELAS = {
+    3: ("berhitung-sekolah", "geometri-datar", "statistika"),
+    4: ("berhitung-sekolah", "pengukuran", "geometri-datar"),
+    5: ("aritmetika-dasar", "aritmatika-lanjut", "geometri-datar"),
+    6: ("aritmetika-dasar", "aritmatika-lanjut", "geometri-datar"),
+}
+# Hanya untuk memetakan template sesi cek yang dibuat sebelum topik mengikuti
+# kelas (sesi lama yang belum dinilai tetap harus bisa dinilai dan diringkas).
+TOPIK_LAMA = ("pola-bilangan", "statistika", "geometri-datar")
 VERSI_NOTICE = "v1"
 RETENSI_SELESAI_HARI = 30
 RETENSI_BELUM_SELESAI_HARI = 7
@@ -35,6 +44,25 @@ MAKS_BUTIR_RINGKASAN = 2
 
 def _bilangan_bulat(nilai) -> bool:
     return type(nilai) is int
+
+
+def topik_untuk_kelas(kelas) -> tuple:
+    """Tiga topik cek gratis untuk kelas 3-6; kelas lain -> ValueError."""
+    if not _bilangan_bulat(kelas) or kelas not in TOPIK_PER_KELAS:
+        raise ValueError("kelas cek gabungan harus 3..6")
+    return TOPIK_PER_KELAS[kelas]
+
+
+def semua_topik_cek() -> tuple:
+    """Semua topik yang pernah dipakai cek (urutan deterministik, tanpa duplikat)."""
+    hasil = []
+    for topik_id in (
+        *(t for kelas in sorted(TOPIK_PER_KELAS) for t in TOPIK_PER_KELAS[kelas]),
+        *TOPIK_LAMA, TOPIK_DASAR,
+    ):
+        if topik_id not in hasil:
+            hasil.append(topik_id)
+    return tuple(hasil)
 
 
 def hitung_skor(jawaban_benar: int, jumlah: int) -> int:
