@@ -17,7 +17,10 @@ import html
 import cek_gratis_skor
 import funnel_pages
 from funnel_pages import COPY_BATAS_HASIL
-from funnel_pages import _D_CENTANG, _D_GEMBOK, _D_SERU, _ikon
+from funnel_pages import _D_CENTANG, _D_SERU, _ikon
+
+# Ikon gembok daftar terkunci (dulu di funnel_pages; landing v4 tak memakainya lagi).
+_D_GEMBOK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>'
 from teacher_shell import _halaman
 
 RUTE_MULAI = "/cek-kemampuan/mulai"
