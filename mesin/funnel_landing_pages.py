@@ -123,12 +123,12 @@ COPY_FAQ_BAYAR = (
 COPY_FAQ = (
     ("hp", "teal", "Berapa lama, dan perlu ditemani?",
      "15 soal sesuai kelas, dikerjakan sendiri di HP. Anda tidak perlu duduk menemani. "
-     "Kalau sinyal putus, cek bisa dilanjutkan."),
+     "Jawaban tersimpan tiap soal, jadi kalau sinyal putus, cek bisa dilanjutkan."),
     ("kalender", "amber", "Untuk kelas berapa?",
      "Kelas 1–6 SD. Soal mengikuti kelas yang Anda pilih saat daftar."),
     ("kunci", "navy", "Bagaimana dengan data anak?",
-     "Kontak yang disimpan hanya nomor WhatsApp orang tua. Hasil anak hanya terlihat "
-     "di akun Anda dan oleh Guru peninjau."),
+     "Kami hanya menyimpan data yang Anda isi sendiri saat daftar, ditambah jawaban "
+     "cek anak. Hasil anak hanya terlihat di akun Anda dan oleh Guru peninjau."),
     ("uang", "koral", "Kapan saya harus membayar?", COPY_FAQ_BAYAR),
     ("target", "mint", "Biar harapannya pas: batas hasil", None),
 )
