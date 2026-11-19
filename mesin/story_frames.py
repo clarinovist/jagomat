@@ -16,6 +16,8 @@ from string import Formatter
 from types import MappingProxyType
 from typing import Mapping, Optional
 
+import feature_switch
+
 VERSI_BANK = "bingkai-2026-10-v1"
 
 
@@ -89,12 +91,17 @@ def validasi_bank(bank: Mapping[str, tuple[Bingkai, ...]]) -> None:
                 raise ValueError("placeholder hilang atau berulang")
 
 
-def aktif() -> bool:
-    """Rollout eksplisit; nilai asing bukan aktivasi atau fallback diam-diam."""
+def _dari_env() -> bool:
     nilai = os.environ.get("OSN_BANK_KALIMAT", "0")
     if nilai not in ("0", "1"):
         raise ValueError("OSN_BANK_KALIMAT hanya menerima 0 atau 1")
     return nilai == "1"
+
+
+def aktif() -> bool:
+    """Rollout eksplisit; DB sakelar (admin) menang, env lama hanya fallback
+    bila DB/baris belum ada."""
+    return feature_switch.aktif("OSN_BANK_KALIMAT", _dari_env)
 
 
 def untuk_snapshot_baru(soal) -> Optional[Kalimat]:

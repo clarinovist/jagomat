@@ -4,6 +4,7 @@ import os
 import re
 
 import brand
+import feature_switch
 import pecahan
 import visual_renderer
 import design_tokens as T
@@ -87,12 +88,17 @@ def gaya_pilihan():
 '''
 
 
-def cetak_ringkas_aktif():
-    """Tata letak cetak PG ringkas; default 0 agar keluaran cetak identik dengan recovery."""
+def _dari_env() -> bool:
     nilai = os.environ.get('OSN_CETAK_RINGKAS', '0').strip()
     if nilai not in ('0', '1'):
         raise ValueError('OSN_CETAK_RINGKAS hanya menerima 0 atau 1')
     return nilai == '1'
+
+
+def cetak_ringkas_aktif():
+    """Tata letak cetak PG ringkas; DB sakelar (admin) menang, env lama hanya
+    fallback bila DB/baris belum ada."""
+    return feature_switch.aktif('OSN_CETAK_RINGKAS', _dari_env)
 
 
 def gaya_cetak_pilihan():

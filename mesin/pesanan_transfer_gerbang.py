@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 from typing import Optional
 
+import feature_switch
 import funnel_flag
 import pesanan_rekening
 
@@ -24,9 +25,14 @@ NAMA_SAKELAR = "PESANAN_TRANSFER_AKTIF"
 _NILAI_AKTIF = "1"
 
 
-def transfer_aktif() -> bool:
-    """True hanya bila `PESANAN_TRANSFER_AKTIF` persis "1"."""
+def _dari_env() -> bool:
     return os.environ.get(NAMA_SAKELAR) == _NILAI_AKTIF
+
+
+def transfer_aktif() -> bool:
+    """DB sakelar (admin) menang; env `PESANAN_TRANSFER_AKTIF` persis "1"
+    hanya fallback bila DB/baris belum ada."""
+    return feature_switch.aktif(NAMA_SAKELAR, _dari_env)
 
 
 def rekening_bila_terbuka(runtime) -> Optional[pesanan_rekening.RekeningPublik]:
