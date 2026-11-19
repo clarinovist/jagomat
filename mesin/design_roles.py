@@ -235,6 +235,8 @@ AKSEN_TERANG_DIIZINKAN = MappingProxyType({
     ("competitive_research", "GAYA_RISET", ".riset-keputusan strong"): "amber di atas latar navy TEKS_JUDUL",
     ("style_stitch", "GAYA_STITCH", ".landing-cara-st .landing-nomor-st"): "amber di atas latar navy TEKS_JUDUL",
     ("style_stitch", "GAYA_STITCH", ".landing-cara-st li::before"): "amber di atas latar navy TEKS_JUDUL",
+    ("funnel_style", "GAYA_FUNNEL", ".funnel-paket-st .funnel-alis-st"): "amber di atas latar navy TEKS_JUDUL",
+    ("funnel_style", "GAYA_FUNNEL", ".funnel-paket-st .funnel-centang-st svg"): "ikon centang dekoratif amber di atas navy TEKS_JUDUL, makna di teks",
     ("style_stitch", "GAYA_STITCH", ".kerja-jawab-st .head-jawab .material-symbols-outlined"): "ikon dekoratif, makna di teks",
     ("style_stitch", "GAYA_STITCH", ".kerja-foto-kepala-st .material-symbols-outlined"): "ikon dekoratif, makna di teks",
     ("style_stitch", "GAYA_STITCH", ".hasil-langkah-st .material-symbols-outlined"): "ikon dekoratif, makna di teks",
