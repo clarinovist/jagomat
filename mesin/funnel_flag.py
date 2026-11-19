@@ -14,11 +14,11 @@ import feature_switch
 NAMA_SAKELAR = "FUNNEL_AKTIF"
 
 
-def _dari_env() -> bool:
+def dari_env() -> bool:
     return os.environ.get(NAMA_SAKELAR, "0").strip() == "1"
 
 
 def funnel_aktif() -> bool:
     """DB sakelar (admin) menang; env `FUNNEL_AKTIF=1` (spasi tepi diabaikan)
     hanya fallback bila DB/baris belum ada."""
-    return feature_switch.aktif(NAMA_SAKELAR, _dari_env)
+    return feature_switch.aktif(NAMA_SAKELAR, dari_env)

@@ -88,7 +88,7 @@ def gaya_pilihan():
 '''
 
 
-def _dari_env() -> bool:
+def dari_env() -> bool:
     nilai = os.environ.get('OSN_CETAK_RINGKAS', '0').strip()
     if nilai not in ('0', '1'):
         raise ValueError('OSN_CETAK_RINGKAS hanya menerima 0 atau 1')
@@ -98,7 +98,7 @@ def _dari_env() -> bool:
 def cetak_ringkas_aktif():
     """Tata letak cetak PG ringkas; DB sakelar (admin) menang, env lama hanya
     fallback bila DB/baris belum ada."""
-    return feature_switch.aktif('OSN_CETAK_RINGKAS', _dari_env)
+    return feature_switch.aktif('OSN_CETAK_RINGKAS', dari_env)
 
 
 def gaya_cetak_pilihan():

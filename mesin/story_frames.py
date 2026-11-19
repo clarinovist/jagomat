@@ -91,7 +91,7 @@ def validasi_bank(bank: Mapping[str, tuple[Bingkai, ...]]) -> None:
                 raise ValueError("placeholder hilang atau berulang")
 
 
-def _dari_env() -> bool:
+def dari_env() -> bool:
     nilai = os.environ.get("OSN_BANK_KALIMAT", "0")
     if nilai not in ("0", "1"):
         raise ValueError("OSN_BANK_KALIMAT hanya menerima 0 atau 1")
@@ -101,7 +101,7 @@ def _dari_env() -> bool:
 def aktif() -> bool:
     """Rollout eksplisit; DB sakelar (admin) menang, env lama hanya fallback
     bila DB/baris belum ada."""
-    return feature_switch.aktif("OSN_BANK_KALIMAT", _dari_env)
+    return feature_switch.aktif("OSN_BANK_KALIMAT", dari_env)
 
 
 def untuk_snapshot_baru(soal) -> Optional[Kalimat]:
