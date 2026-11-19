@@ -3711,8 +3711,9 @@ def gaya_stitch() -> str:
         # berubah byte-per-byte selama funnel mati.
         from funnel_landing_style import GAYA_LANDING_CEK
         from funnel_style import GAYA_FUNNEL
+        from peta_style import GAYA_PETA
 
-        return GAYA_STITCH + GAYA_FUNNEL + GAYA_LANDING_CEK
+        return GAYA_STITCH + GAYA_FUNNEL + GAYA_LANDING_CEK + GAYA_PETA
     return GAYA_STITCH
 
 

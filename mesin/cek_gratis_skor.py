@@ -130,3 +130,23 @@ def waktu_baku(waktu) -> datetime:
 def waktu_teks(waktu) -> str:
     """Waktu ISO menjadi teks baku `FORMAT_WAKTU` (urutan teks = urutan waktu)."""
     return waktu_baku(waktu).strftime(FORMAT_WAKTU)
+
+
+BATAS_KUAT_PERSEN = 80
+LABEL_KUAT = "Kuat"
+LABEL_PERLU_DIPERKUAT = "Perlu diperkuat"
+LABEL_BELUM_CUKUP = "Belum cukup soal"
+
+
+def label_materi(benar: int, total: int) -> str:
+    """Label per materi untuk laporan Peta Kemampuan (Keputusan 19, poin 13).
+
+    Kurang dari `MIN_SOAL_PER_TOPIK` soal: "Belum cukup soal". Selain itu
+    persen yang DITAMPILKAN (`hitung_skor`, setengah ke atas) >= `BATAS_KUAT_PERSEN`
+    -> "Kuat", di bawahnya "Perlu diperkuat". Memakai persen tampilan agar label
+    tidak bertentangan dengan angka di layar (mis. 35/44 tampil 80% dan Kuat).
+    """
+    persen = hitung_skor(benar, total)
+    if total < MIN_SOAL_PER_TOPIK:
+        return LABEL_BELUM_CUKUP
+    return LABEL_KUAT if persen >= BATAS_KUAT_PERSEN else LABEL_PERLU_DIPERKUAT

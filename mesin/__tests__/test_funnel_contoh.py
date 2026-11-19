@@ -1,4 +1,8 @@
-"""Halaman contoh Peta Kemampuan (`/contoh-peta-kemampuan`) dan kartu profil guru. Data sintetis."""
+"""Halaman contoh Peta Kemampuan (`/contoh-peta-kemampuan`) dan kartu profil guru. Data sintetis.
+
+Isi laporan playful v4 diuji di `test_peta_contoh.py`; berkas ini menjaga kerangka halaman,
+sakelar, CTA tunggal, dan profil guru.
+"""
 from __future__ import annotations
 
 import re
@@ -50,38 +54,39 @@ def test_sakelar_aktif_mengembalikan_contoh(server, monkeypatch):
 def test_label_data_sintetis_dan_bagian_berurutan():
     isi = _halaman()
     assert "data sintetis, bukan hasil anak sungguhan" in isi
-    urutan = ["Aisyah · kelas 4", "Penguasaan per materi", "Pola kesalahan",
-              "Urutan belajar prioritas", "Satu langkah minggu ini", "Catatan guru (contoh)",
-              funnel_contoh.COPY_CONTOH_PENUTUP]
+    urutan = [funnel_contoh.COPY_CONTOH_JUDUL, "Laporan Aisyah · Kelas 4", 'id="h-ringkasan"', 'id="h-materi"',
+              'id="h-pola"', 'id="h-langkah"']
     posisi = [isi.index(t) for t in urutan]
     assert posisi == sorted(posisi)
 
 
-def test_bar_materi_lebar_persen_dan_chip():
+def test_bar_materi_lebar_persen_dari_data():
+    import peta_contoh_data
+    from cek_gratis_skor import hitung_skor
+
     isi = _halaman()
-    for _nama, persen in funnel_contoh.CONTOH_MATERI:
-        assert f'style="width:{persen}%"' in isi
-    assert isi.count("Perlu diperkuat") == 4 and isi.count(">Kuat<") + isi.count("Kuat</span>") >= 1
+    for materi in peta_contoh_data.DATA_CONTOH.materi:
+        assert f'style="width:{hitung_skor(materi.benar, materi.soal)}%"' in isi
 
 
-def test_satu_cta_utama_dan_tanpa_script():
+def test_satu_cta_utama_dan_skrip_hanya_polos():
     isi = _halaman()
     assert isi.count('href="/daftar?jalur=cek"') == 1
     assert "Cek anak saya, gratis" in isi
-    # Kerangka bersama boleh membawa skrip bawaan; halaman contoh tidak menambah JS baru.
+    # Skrip di berkas renderer tidak ditulis langsung; semua skrip di respons polos (tanpa atribut).
     assert "<script" not in Path(funnel_contoh.__file__).read_text(encoding="utf-8")
-    assert isi.count("<script") == funnel_pages.halaman_paket_coba().decode().count("<script")
+    assert len(re.findall(r"<script\b", isi)) == len(re.findall(r"<script>", isi))
+    assert len(re.findall(r"<script>", isi)) == len(re.findall(r"<script>", funnel_pages.halaman_paket_coba().decode())) + 1
 
 
 def test_copy_tanpa_kata_terlarang():
     teks = " ".join(
-        v if isinstance(v, str) else " ".join(v)
-        for k, v in vars(funnel_contoh).items()
-        if k.startswith("COPY_CONTOH_") and isinstance(v, (str, tuple))
+        v for k, v in vars(funnel_contoh).items() if k.startswith("COPY_CONTOH_") and isinstance(v, str)
     ).lower()
+    badan = re.sub(r"<(style|script)\b.*?</\1>", "", _halaman(), flags=re.S).lower()
     for kata in KATA_TERLARANG:
         assert kata not in teks
-        assert kata not in _halaman().lower()
+        assert kata not in badan
 
 
 def test_tautan_contoh_di_cek_paket_dan_bukan_tombol_koral():

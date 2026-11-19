@@ -673,3 +673,32 @@ BAYANGAN_TIMBUL_HALUS = "0 3px 0 rgba(22,33,62,.06)"
 BAYANGAN_TIMBUL_GELAP = "0 3px 0 rgba(0,0,0,.15)"
 BAYANGAN_TIMBUL_KARTU = "0 8px 0 rgba(0,0,0,.14)"
 BAYANGAN_MASKOT = "drop-shadow(0 6px 0 rgba(0,0,0,.15))"
+
+# ─────────────────────────────────────────────────────────────────────
+# Laporan Peta Kemampuan playful (v4, 19 Nov 2026): /contoh-peta-kemampuan dan
+# lembar 1 halaman. Kit merek: tint per materi, bayangan timbul, lapisan putih
+# di atas hero teal. Nilai sama dengan mockup tim/founder; hanya dipakai
+# peta_style.py, peta_style_lembar.py, dan SVG peta_donat.py/peta_ikon.py.
+# ─────────────────────────────────────────────────────────────────────
+LAPORAN_TINT_KORAL = "#FFE7E2"
+LAPORAN_TINT_NAVY = "#E8ECF6"
+LAPORAN_TINT_MINT = "#DDF3F3"
+LAPORAN_BORDER_KORAL = "#f5c2b8"
+LAPORAN_BORDER_NAVY = "#cfd7ea"
+LAPORAN_BORDER_MINT = "#cfe7df"
+LAPORAN_KERTAS_GARIS = "#eef1f7"
+LAPORAN_GRID_BAR = "#e2e6ef"
+LAPORAN_TEKS_HERO = "#d9efea"
+LAPORAN_TEKS_KONSUL = "#e6e9f2"
+LAPORAN_MEJA_LEMBAR = "#d9d4cc"
+LAPORAN_PUTIH_10 = "rgba(255,255,255,.1)"
+LAPORAN_PUTIH_14 = "rgba(255,255,255,.14)"
+LAPORAN_PUTIH_16 = "rgba(255,255,255,.16)"
+LAPORAN_PUTIH_22 = "rgba(255,255,255,.22)"
+LAPORAN_PUTIH_25 = "rgba(255,255,255,.25)"
+LAPORAN_SIMBOL_TEAL = "rgba(15,107,100,.12)"
+LAPORAN_BAYANGAN_UBIN = "0 3px 0 rgba(22,33,62,.12)"
+LAPORAN_BAYANGAN_TOMBOL = "0 3px 0 rgba(22,33,62,.15)"
+LAPORAN_BAYANGAN_TIMBUL = "0 4px 0 rgba(0,0,0,.12)"
+LAPORAN_BAYANGAN_TIMBUL_KUAT = "0 5px 0 rgba(0,0,0,.14)"
+LAPORAN_BAYANGAN_LEMBAR = "0 6px 24px rgba(0,0,0,.18)"
