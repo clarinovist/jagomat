@@ -45,6 +45,11 @@ def tangani_get(penangan, jalur: str) -> bool:
         ident = penangan._identitas()
         if ident and ident[1] in ("guru", "admin"):
             return False
+        import funnel_http
+
+        # Funnel hidup -> landing Cek Kemampuan jadi beranda; mati -> landing lama.
+        if funnel_http.tangani_beranda(penangan):
+            return True
         import admin_store
         import support_settings
 

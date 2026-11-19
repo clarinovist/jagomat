@@ -96,6 +96,20 @@ def _halaman(jalur: str, dukungan) -> bytes:
     return funnel_pages.halaman_paket_coba(dukungan, _profil_guru())
 
 
+def tangani_beranda(penangan) -> bool:
+    """Beranda `/` anonim = landing Cek Kemampuan bila funnel hidup.
+
+    False saat sakelar mati, supaya pemanggil memakai landing lama sebagai cadangan
+    (beranda tidak pernah menampilkan status "belum dibuka").
+    """
+    import funnel_flag
+
+    if not funnel_flag.funnel_aktif():
+        return False
+    _kirim_funnel(penangan, _halaman("/cek-kemampuan", _dukungan()))
+    return True
+
+
 def tangani_get(penangan, jalur: str) -> bool:
     """Render halaman funnel atau status belum dibuka; False bila bukan rutenya."""
     if jalur not in JALUR_FUNNEL:

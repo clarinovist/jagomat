@@ -112,7 +112,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `/akun/kontak` (guru; admin 404). Login mencatat aktivitas fail-open di `auth_http`;
   `family_deletion._ubah_belajar` menghapus kontak keluarga target.
 - Funnel Cek Kemampuan Fase 1 (hanya permukaan publik): `funnel_http.py` (GET `/cek-kemampuan`, `/paket-coba`,
-  sebelum `_lolos_sandi`, tanpa POST) + `funnel_pages.py` (markup, copy §7 plan) + `funnel_style.py`
+  sebelum `_lolos_sandi`, tanpa POST; `tangani_beranda` dipanggil `public_http.py` untuk `/` anonim, False saat
+  sakelar mati agar landing lama jadi cadangan) + `funnel_pages.py` (markup, copy §7 plan) + `funnel_style.py`
   (`GAYA_FUNNEL`, hanya ikut `gaya_stitch()` saat `FUNNEL_AKTIF=1` agar byte halaman lain tak berubah).
   Sakelar mati = halaman "belum dibuka" 200 tanpa CTA; hidup = satu CTA ke `/daftar?jalur=cek`, tautan nav
   di landing. Landing playful: `funnel_landing_pages.py` + `funnel_landing_style.py` + `funnel_landing_browser.py`.
