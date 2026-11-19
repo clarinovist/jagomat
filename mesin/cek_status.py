@@ -49,6 +49,13 @@ def _terjawab(kon, sesi_id) -> int:
     ).fetchone()[0]
 
 
+def _sesi_dikumpulkan(kon, sesi_id) -> bool:
+    if sesi_id is None:
+        return False
+    baris = kon.execute("SELECT selesai FROM sesi WHERE id = ?", (sesi_id,)).fetchone()
+    return baris is not None and baris["selesai"] is not None
+
+
 def _cek_terbaru(kon, id_akun: str):
     return kon.execute(
         """SELECT c.siswa_id, c.sesi_id, c.jumlah_soal, w.nama FROM cek_gratis c
@@ -64,20 +71,21 @@ def _anak_pertama(kon, pengguna: str):
     ).fetchone()
 
 
-def baca_status(kon, id_akun: str, pengguna: str, sekarang: str) -> Optional[StatusCek]:
-    """Status cek akun ini, atau None bila akun belum punya anak.
+def baca_status(kon, id_akun: str, pengguna: str) -> Optional[StatusCek]:
+    """Status cek akun ini, atau None bila akun belum punya anak. Hanya membaca.
 
-    Menilai dulu cek yang sesinya sudah selesai (jalur sama dengan halaman hasil),
-    supaya cek selesai tidak tampil sebagai "berjalan 15 dari 15". Di transaksi
-    pemanggil (`BEGIN IMMEDIATE` dibuka di sini, seperti halaman hasil).
+    Cek yang sesinya sudah dikumpulkan anak tetapi belum dinilai dianggap
+    `selesai` (halaman hasil yang menilai), supaya tidak tampil sebagai
+    "berjalan 15 dari 15" dan GET halaman siap mulai tidak menulis DB.
     """
-    kon.execute("BEGIN IMMEDIATE")
-    cek_gratis.selesaikan_jika_siap(kon, id_akun, sekarang)
     hasil = cek_gratis.baca_hasil(kon, id_akun)
     baris = _cek_terbaru(kon, id_akun)
     if baris is not None:
         terjawab = _terjawab(kon, baris["sesi_id"])
-        return StatusCek(baris["nama"], kelas_anak(kon, baris["siswa_id"]), hasil["status"],
+        status = hasil["status"]
+        if status == STATUS_BERJALAN and _sesi_dikumpulkan(kon, baris["sesi_id"]):
+            status = STATUS_SELESAI
+        return StatusCek(baris["nama"], kelas_anak(kon, baris["siswa_id"]), status,
                          terjawab, baris["jumlah_soal"])
     anak = _anak_pertama(kon, pengguna)
     if anak is None:

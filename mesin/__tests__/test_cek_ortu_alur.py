@@ -252,6 +252,18 @@ def test_selesai_diarahkan_ke_hasil_dan_bukan_berjalan_15_dari_15(keluarga):
     assert (kode, isi, tajuk["Location"]) == (303, "", HASIL)
 
 
+def test_get_siap_mulai_tidak_menilai_cek_yang_sudah_dikumpulkan(keluarga):
+    """GET hanya membaca: penilaian terjadi di halaman hasil, bukan di siap mulai."""
+    selesaikan(keluarga, mulai_cek(keluarga), semua_benar=15)
+    kode, _isi, tajuk = minta_mentah(keluarga, MULAI, AKUN_A)
+    assert (kode, tajuk["Location"]) == (303, HASIL)
+    with keluarga.buka() as kon:
+        assert kon.execute("SELECT skor FROM cek_gratis").fetchone()[0] is None
+    assert minta_mentah(keluarga, HASIL, AKUN_A)[0] == 200
+    with keluarga.buka() as kon:
+        assert kon.execute("SELECT skor FROM cek_gratis").fetchone()[0] is not None
+
+
 def test_akun_tanpa_kelas_pesan_jujur_dan_tautan_isi_kelas_bukan_tombol_buntu(server):
     tambah_anak(server, NAMA_A, "guru", None)
     isi = _baca_mulai(server)

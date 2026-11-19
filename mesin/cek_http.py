@@ -168,7 +168,7 @@ def _belum_dibuka(penangan) -> None:
 
 def _baca_status(principal):
     with database.buka() as kon:
-        return cek_status.baca_status(kon, principal.id_akun, principal.pengguna, _sekarang())
+        return cek_status.baca_status(kon, principal.id_akun, principal.pengguna)
 
 
 def _kirim_mulai(penangan, principal, *, kode: int = 200, galat: str = "") -> None:
