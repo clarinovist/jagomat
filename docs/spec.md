@@ -119,6 +119,14 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
 - Admin melihat **Topik Cek Kemampuan** (`/admin/cek-topik`, baca-saja, tanpa DB): topik cek gratis
   per kelas, soal per topik, contoh jenis soal, dan status materi dasar kelas 1–2. Diturunkan dari kode;
   mengubahnya lewat kode dan rilis, bukan dari admin.
+- Admin mengubah **sakelar fitur** (`/admin/sakelar`): `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,
+  `OSN_CETAK_RINGKAS`, `OSN_BANK_KALIMAT`. Nilai disimpan di DB terpisah `/data/sakelar.db` (dibuat saat
+  perubahan pertama; env tetap fallback), dengan tinjauan bertanda tangan, sandi ulang, optimistic
+  concurrency, dan audit. DB sakelar rusak = halaman 503 jujur; menyalakan transfer ditolak bila funnel
+  mati atau rekening kosong.
+- Admin mengelola **profil guru peninjau** (`/admin/profil-guru`): nama, latar, lama mengajar, urutan,
+  tampil/tidak. Profil `tampil=1` dipakai kartu guru di halaman funnel dengan cache 30 detik; profil
+  kosong = tanpa kartu. Perubahan dan hapus memakai tinjauan bertanda tangan + sandi ulang.
 - Akses awal **nonkomersial**. Fondasi paket/pembayaran tidak berarti trial,
   kampanye, checkout v2, refund atau penegakan paket telah dibuka.
 

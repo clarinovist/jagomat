@@ -94,6 +94,13 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   bernama non-`*store*` karena hanya membaca; sidik kontrak persistensi tidak berubah.
 - `admin_cek_topik_pages.py` → `admin_cek_topik_http.py` untuk `/admin/cek-topik`: render murni dari
   `cek_gratis_skor.TOPIK_PER_KELAS` dan registri `topics`, tanpa DB.
+- `admin_sakelar_pages.py` → `admin_sakelar_http.py` untuk `/admin/sakelar`: empat sakelar di
+  `feature_switch.py` (DB terpisah, fail-closed, env fallback) + `sakelar_registry.py`; guard aksi sama
+  dengan panel rekening (tinjauan bertanda tangan, sandi ulang, konflik revisi, audit). Database sakelar
+  rusak = 503 jujur.
+- `admin_profil_guru_pages.py` → `admin_profil_guru_http.py` + `profil_guru_settings.py` untuk
+  `/admin/profil-guru`; `funnel_http._profil_guru` membaca `tampil=1` dengan cache 30 detik dan
+  mengoper kartu ke halaman contoh/paket coba.
 - Kontak WhatsApp per akun: `schema_contact.py` (tabel aditif `kontak_akun`, kunci `id_akun`, bukan
   nama login, supaya nama yang dipakai ulang tidak mewarisi kontak) + `kontak_akun.py` (normalisasi
   628…, simpan/ambil/hapus di transaksi pemanggil, `sentuh_aktivitas` maks 1 tulis/hari,

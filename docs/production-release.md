@@ -6,6 +6,33 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy sakelar admin, profil guru, label awam, dan retensi cek — 19 November 2026
+
+Controlled `deploy-v2` memasang **ac93885** (digest `sha256:0f49d9a7…c205`), healthy, menggantikan `efe9514`.
+Isi: `/admin/sakelar` (empat sakelar, DB terpisah `/data/sakelar.db` dengan env fallback), `/admin/profil-guru`
+(profil guru peninjau tampil di funnel, cache 30 detik), label topik awam di ringkasan cek orang tua (hasil lama
+yang tersimpan sebagai nama resmi dipetakan saat render), dan sapuan retensi cek harian lewat cron
+`/etc/cron.d/osn-cek-retensi` (20.43 UTC = 03.43 WIB).
+
+- Push `ac93885` CI cepat hijau (13.835 test). Gate dispatch [44553890532](https://github.com/clarinovist/jagomat/actions/runs/44553890532)
+  hijau: kandidat 4/4, recovery 4/4, pair terverifikasi, `provider_calls` 0. Kontrak kandidat = recovery = live
+  `699d79ff…5ddd2d`; recovery `7bab118` digest `sha256:f3331a1f…f103`. Job `pasang` tetap literal false.
+- Kit `deploy-sakelar-retensi-20261119`; `PERSIAPAN_OK`, hold 22.39.30–22.41.32 WIB (±2 mnt 2 dtk, Caddy 503,
+  dua cron lama ditahan), backup empat DB + `sandi.json` + riset, rehearsal C–B–C, `deploy-v2` exit0,
+  reopen `LIVE_ADMIN_HEALTHY`, postcheck exit0.
+- Cron retensi dipasang **setelah** deploy sehat; satu sapuan awal dijalankan di image live dan mencetak agregat
+  (0 bahan dihapus karena tabel `cek_gratis` masih 0 baris). `cek_retensi.py` fail-closed bila daftar akun
+  kosong/tidak terbaca dan hanya menghapus bahan mentah, bukan turunan skor/kategori/ringkasan.
+- Postcheck: revisi/digest exact, smoke `/`200 `/cek-kemampuan`200 aktif `/paket-coba`200
+  `/contoh-peta-kemampuan`200 `/akun`401 `/murid/`303, `/admin/cek-topik` `/admin/sakelar` `/admin/profil-guru`
+  404 anonim; probe sintetis funnel/gerbang/sakelar/profil/label awam lulus; galat 0; config dan hash histori terjaga.
+- Backup induk `/opt/osn/cadangan/deploy-sakelar-retensi-20261119/`, salinan lokal
+  `mesin/cadangan/deploy-sakelar-retensi-20261119/` (gitignored). Approval cutover
+  `c3f842006c91bd02eaa0833f73a207f6` terkonsumsi; arsipkan setelah kedaluwarsa.
+- **Catatan operasional:** `/admin/sakelar` baru mengubah perilaku setelah admin menyimpan sakelar (sebelum itu env
+  tetap fallback). Profil guru tampil di funnel hanya bila admin menambahkan profil `tampil=1`. Cron retensi
+  mengikuti daftar akun di `/data/sandi.json`; backup operasional kini harus ikut menahan tiga cron writer.
+
 ## Deploy funnel Peta Kemampuan, topik cek, dan kode transfer nonaktif — 19 November 2026
 
 Controlled `deploy-v2` memasang **efe9514** (digest `sha256:889343b5…1151a`), healthy, menggantikan
