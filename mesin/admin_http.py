@@ -490,12 +490,15 @@ def tangani_get(penangan, jalur):
     import admin_pesanan_http
     import admin_profil_guru_http
     import admin_research_http
+    import admin_sakelar_http
     import admin_usage_http
     if admin_research_http.tangani_get(penangan, jalur):
         return True
     if admin_profil_guru_http.tangani_get(penangan, jalur):
         return True
     if admin_pesanan_http.tangani_get(penangan, jalur):
+        return True
+    if admin_sakelar_http.tangani_get(penangan, jalur):
         return True
     if admin_usage_http.tangani_get(penangan, jalur):
         return True
@@ -1039,11 +1042,14 @@ def tangani_post(penangan, jalur):
     import admin_pesanan_http
     import admin_profil_guru_http
     import admin_research_http
+    import admin_sakelar_http
     if admin_research_http.tangani_post(penangan, jalur):
         return True
     if admin_profil_guru_http.tangani_post(penangan, jalur):
         return True
     if admin_pesanan_http.tangani_post(penangan, jalur):
+        return True
+    if admin_sakelar_http.tangani_post(penangan, jalur):
         return True
     if admin_lembaga_http.tangani_post(penangan, jalur):
         return True

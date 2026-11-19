@@ -75,6 +75,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/verifikasi", "admin"),  # transfer rekening (tahap 3): detail, pratinjau bukti, rekening
     ("/admin/pesanan/bukti", "admin"),
     ("/admin/pesanan/rekening", "admin"),
+    ("/admin/sakelar", "admin"),  # sakelar fitur: empat sakelar admin; sudah tercakup prefix `/admin`
     ("/", "publik"),  # landing; guru/admin melihat berandanya sendiri
     ("/masuk", "publik"),
     ("/daftar", "publik"),
@@ -114,6 +115,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/setujui", "admin"),  # transfer rekening (tahap 3): keputusan verifikasi dan rekening
     ("/admin/pesanan/tolak", "admin"),
     ("/admin/pesanan/rekening", "admin"),
+    ("/admin/sakelar", "admin"),  # ubah sakelar fitur; tinjauan bertanda tangan + sandi ulang
     ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
     ("/daftar", "publik"),
     ("/murid/", "murid"),

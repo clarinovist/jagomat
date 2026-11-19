@@ -43,6 +43,7 @@ SECTION = (
     ("pemakaian", "Pemakaian guru", "/admin/pemakaian"),
     ("operasional", "Operasional", "/admin?section=operasional"),
     ("ai", "AI", "/admin/ai"),
+    ("sakelar", "Sakelar", "/admin/sakelar"),
     ("riwayat", "Riwayat admin", "/admin?section=riwayat"),
 )
 GRUP_SECTION = (
@@ -50,7 +51,7 @@ GRUP_SECTION = (
     ("Pengguna", ("keluarga", "siswa", "lembaga")),
     ("Layanan", ("pendaftaran", "langganan", "pesanan", "cek-topik", "profil_guru")),
     ("Analitik", ("kpi", "riset", "pemakaian")),
-    ("Sistem", ("operasional", "ai", "riwayat")),
+    ("Sistem", ("operasional", "ai", "sakelar", "riwayat")),
 )
 SECTION_LOKAL = frozenset(item[0] for item in SECTION if item[0] != "ai")
 _PANAH_MENU = (
