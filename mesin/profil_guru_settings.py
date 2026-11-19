@@ -140,8 +140,11 @@ def _waktu(nilai) -> int:
 
 
 def _operasi(nilai) -> str:
-    from subscription import identitas
-    return identitas(nilai, "operasi")
+    # Format sama dengan `subscription.identitas(..., "operasi")`; sengaja tidak
+    # mengimpor modul billing agar modul pengaturan admin tetap di luar allow-list hook.
+    if type(nilai) is not str or re.fullmatch(r"[A-Za-z0-9_-]{8,46}", nilai) is None:
+        raise ValueError("operasi profil guru tidak sah")
+    return nilai
 
 
 def _id_profil(nilai) -> int:
