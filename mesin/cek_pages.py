@@ -68,11 +68,11 @@ COPY_KUNCI_CATATAN = (
     "Bagian ini terkunci dan baru terbuka di laporan lengkap yang diperiksa guru."
 )
 # DRAF: teks final menunggu persetujuan Pemilik
-COPY_CTA_PAKET = "Lihat Paket Coba"
+COPY_CTA_PAKET = "Lihat Peta Kemampuan"
 # DRAF: teks final menunggu persetujuan Pemilik
-COPY_JUDUL_PESAN = "Paket Coba"
+COPY_JUDUL_PESAN = "Peta Kemampuan"
 # DRAF: teks final menunggu persetujuan Pemilik
-COPY_TOMBOL_PESAN = "Pesan Paket Coba"
+COPY_TOMBOL_PESAN = "Pesan Peta Kemampuan"
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_TANPA_ANAK = (
     "Akun ini belum punya data anak, jadi cek belum bisa dimulai. "
@@ -202,7 +202,7 @@ def _blok_batas() -> str:
 
 
 def _blok_pesan(token_pesan) -> str:
-    """CTA pesan Paket Coba; kosong (tanpa byte) bila gerbang pembayaran tertutup."""
+    """CTA pesan Peta Kemampuan; kosong (tanpa byte) bila gerbang pembayaran tertutup."""
     if token_pesan is None:
         return ""
     return (

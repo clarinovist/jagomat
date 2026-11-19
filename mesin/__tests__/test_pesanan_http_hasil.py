@@ -26,7 +26,10 @@ HASIL_SELESAI = {"status": "selesai", "skor": 72, "kategori": "Cukup baik",
 HASIL_BELUM = {"status": "belum_selesai", "skor": None, "kategori": None,
                "ringkasan": {"kuat": [], "perlu": []}, "jumlah_soal": 15}
 # sha256 keluaran Fase 2 (halaman_hasil tanpa argumen pesan), diambil sebelum perubahan 3c-3.
-GOLDEN_SELESAI = "72330fa299cf8497b27e0d11d394e658bc69d6519fabeeb2945c311a0758b049"
+# Diperbarui 19 Nov 2026: dua perubahan copy yang disengaja (nama tampilan "Peta Kemampuan" pada tautan CTA dan tiga
+# butir "batas hasil" di funnel_pages.COPY_BATAS_HASIL). Dibuktikan lewat diff HTML: hanya empat baris itu yang
+# berubah, CSS dan struktur identik. Bukan perubahan perilaku.
+GOLDEN_SELESAI = "6b6efb26e5dbd394d8187e12a0e9ad7de8a79892709823e09932b7b8e2535efd"
 GOLDEN_BELUM = "dd0dbade640c366361af10b7a2ddb52539682a97dc1b5374d8ba3e21405b88bc"
 
 

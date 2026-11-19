@@ -77,21 +77,61 @@ def test_cek_kemampuan_punya_label_contoh_dan_anchor(server, monkeypatch):
     monkeypatch.setenv("FUNNEL_AKTIF", "1")
     _, isi, _ = server.minta("/cek-kemampuan")
     assert "contoh ilustrasi, bukan hasil anak sungguhan" in isi.lower()
-    assert 'href="#contoh-hasil"' in isi and 'id="contoh-hasil"' in isi
+    assert 'id="contoh-hasil"' in isi
 
 
 def test_paket_coba_memakai_kalimat_disetujui_dan_jujur(server, monkeypatch):
     monkeypatch.setenv("FUNNEL_AKTIF", "1")
     _, isi, _ = server.minta("/paket-coba")
+    assert funnel_pages.COPY_BUKAN_LANGGANAN == "Bukan langganan, jadi bulan depan tidak ada tagihan lagi."
     for kalimat in (
-        funnel_pages.COPY_HARGA,
-        funnel_pages.COPY_PEMBATALAN,
+        funnel_pages.COPY_TIDAK_KEMBALI,
         funnel_pages.COPY_KONSULTASI,
         funnel_pages.COPY_DEPOSIT,
+        funnel_pages.COPY_PAKET_DARI_HASIL,
+        *funnel_pages.COPY_BATAS_HASIL,
     ):
         assert kalimat in isi
-    assert funnel_pages.COPY_PAKET_DARI_HASIL in isi
-    assert "Batas hasil" in isi
+    for tebal, sisa in funnel_pages.COPY_PEMBATALAN_BUTIR:
+        assert f"<b>{tebal}</b>{sisa}" in isi
+    assert funnel_pages.COPY_PEMBATALAN.startswith("Peta Kemampuan tidak dapat dikembalikan")
+    assert "kamu" not in funnel_pages.COPY_PEMBATALAN.lower().split()
+    assert "Biar harapannya pas" in isi
+
+
+def _teks(isi: str) -> str:
+    badan = _badan(isi).split("<footer", 1)[0]
+    badan = re.sub(r"<svg.*?</svg>", " ", badan, flags=re.S)
+    return " ".join(re.sub(r"<[^>]+>", " ", badan).split())
+
+
+def test_landing_memakai_nama_peta_kemampuan_bukan_paket_coba(server, monkeypatch):
+    monkeypatch.setenv("FUNNEL_AKTIF", "1")
+    for jalur in RUTE:
+        _, isi, _ = server.minta(jalur)
+        assert "Peta Kemampuan" in isi
+        assert "Paket Coba" not in isi
+    assert "Paket Coba" not in landing.halaman_landing().decode()
+
+
+def test_paket_coba_menyatakan_tidak_dapat_dikembalikan(server, monkeypatch):
+    monkeypatch.setenv("FUNNEL_AKTIF", "1")
+    _, isi, _ = server.minta("/paket-coba")
+    assert "tidak dapat dikembalikan" in isi
+    assert "jadi voucher" in isi
+
+
+def test_landing_ringkas_dan_tanpa_penanda_mockup(server, monkeypatch):
+    monkeypatch.setenv("FUNNEL_AKTIF", "1")
+    _, isi, _ = server.minta("/cek-kemampuan")
+    jumlah = len(_teks(isi).split())
+    assert jumlah <= 340, jumlah
+    assert funnel_pages.COPY_KUOTA_AWAL in isi
+    for penanda in ("[nama, latar", "Draf:", "Kuota masih usulan"):
+        assert penanda not in isi
+    utama = isi.split('id="konten"', 1)[1].split("</main>", 1)[0]
+    assert "<script" not in utama
+    assert funnel_pages.MASKOT_MENYAPA in isi
 
 
 @pytest.mark.parametrize("aktif", [None, "1"])
