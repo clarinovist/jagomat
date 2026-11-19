@@ -7,6 +7,8 @@ Tidak membaca data keluarga atau anak.
 """
 from __future__ import annotations
 
+import sqlite3
+
 JALUR_FUNNEL = ("/cek-kemampuan", "/paket-coba", "/contoh-peta-kemampuan")
 
 
@@ -18,6 +20,17 @@ def _dukungan():
         return support_settings.baca_publik(admin_store.BAWAAN)
     except admin_store.StoreBelumSiap:
         return None
+
+
+def _profil_guru() -> tuple:
+    """Profil guru tampil=1 dari store admin; galat apa pun berarti tanpa kartu, bukan 500."""
+    import admin_store
+    import profil_guru_settings
+
+    try:
+        return profil_guru_settings.baca_publik(admin_store.BAWAAN)
+    except (OSError, RuntimeError, ValueError, sqlite3.Error):
+        return ()
 
 
 def tangani_get(penangan, jalur: str) -> bool:
@@ -36,7 +49,7 @@ def tangani_get(penangan, jalur: str) -> bool:
     elif jalur == "/contoh-peta-kemampuan":
         import funnel_contoh
 
-        penangan._kirim(funnel_contoh.halaman_contoh_peta(dukungan))
+        penangan._kirim(funnel_contoh.halaman_contoh_peta(dukungan, _profil_guru()))
     else:
-        penangan._kirim(funnel_pages.halaman_paket_coba(dukungan))
+        penangan._kirim(funnel_pages.halaman_paket_coba(dukungan, _profil_guru()))
     return True

@@ -119,8 +119,11 @@ def _langkah_catatan() -> str:
     return langkah + catatan
 
 
-def halaman_contoh_peta(dukungan=None) -> bytes:
-    """Contoh laporan Peta Kemampuan (sintetis) dengan satu CTA utama."""
+def halaman_contoh_peta(dukungan=None, profil=None) -> bytes:
+    """Contoh laporan Peta Kemampuan (sintetis) dengan satu CTA utama.
+
+    `profil` diteruskan ke `kartu_profil_guru` (None = konstanta, `()` = tanpa kartu).
+    """
     isi = f"""{P._topbar(tautan_funnel=True)}
 <main class="landing-bungkus-st funnel-halaman-st funnel-contoh-halaman-st" id="konten" tabindex="-1">
 <header class="funnel-bagian-st">
@@ -128,7 +131,7 @@ def halaman_contoh_peta(dukungan=None) -> bytes:
   <h1 class="funnel-judul-halaman-st">{_e(COPY_CONTOH_JUDUL)}</h1>
   <p class="funnel-contoh-label-st" role="note">{_e(COPY_CONTOH_LABEL)}</p>
 </header>
-{_ringkasan()}{_penguasaan()}{_pola()}{_urutan()}{_langkah_catatan()}{P.kartu_profil_guru()}
+{_ringkasan()}{_penguasaan()}{_pola()}{_urutan()}{_langkah_catatan()}{P.kartu_profil_guru(profil)}
 <div class="funnel-aksi-st">
   <p>{_e(COPY_CONTOH_PENUTUP)}</p>
   {P._cta_utama(COPY_CONTOH_CTA)}
