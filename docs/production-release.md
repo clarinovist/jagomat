@@ -6,10 +6,39 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy funnel Peta Kemampuan, topik cek, dan kode transfer nonaktif — 19 November 2026
+
+Controlled `deploy-v2` memasang **efe9514** (digest `sha256:889343b5…1151a`), healthy, menggantikan
+`a1443b3`. Isi sejak a1443b3: landing funnel playful v4 + `/contoh-peta-kemampuan`, topik cek gratis
+mengikuti kelas anak, halaman admin baca-saja `/admin/cek-topik`, serta **kode transfer rekening**
+(`schema_transfer`, panel admin, retensi) yang tetap **nonaktif**: tabel `transfer_*`/`rekening_*`
+belum dimigrasikan dan `PESANAN_TRANSFER_AKTIF` tidak diisi. Pin recovery `7bab118` (digest
+`sha256:a99a2ea0…dfac`), kontrak kandidat = recovery = `699d79ff…5ddd2d`; live lama a1443b3 =
+`dea0cff8…9f78`.
+
+- Push `efe9514` CI cepat hijau; gate dispatch [44533413993](https://github.com/clarinovist/jagomat/actions/runs/44533413993)
+  hijau: kandidat 4/4, recovery 4/4, build & push exact digest, pair verified, `provider_calls` 0.
+- Deployer source gate dipasang atomik `cdd132c9…796d2f` → **`8bb44ec2…7820`** (probe idempotensi
+  skema pesanan/transfer/rekening); binary lama `/opt/osn/osn-deploy.bak-20261119T204124`.
+- Kit `deploy-funnel-peta-20261119`; `PERSIAPAN_OK`, hold 20.42.29–20.47.34 WIB (±5 mnt 5 dtk, Caddy 503),
+  backup empat DB + `sandi.json` + riset terpisah, rehearsal C–B–C, `deploy-v2` exit0, reopen
+  `LIVE_ADMIN_HEALTHY`, postcheck exit0.
+- Postcheck exact: revisi/digest, `/`200 `/akun`401 `/murid/`303 `/cek-kemampuan`200 halaman aktif
+  `/paket-coba`200 `/contoh-peta-kemampuan`200 `/admin/cek-topik`404 anonim; probe sintetis writer2,
+  funnel aktif, gerbang bayar terbuka, schema pesanan valid, 0 order, transfer mati; galat 0; config
+  dan hash histori terjaga.
+- Approval cutover `1230456f884fddd391209f61c9ba65f7` terkonsumsi dan sudah diarsipkan ke
+  `approval-consumed-efe9514.json` setelah kedaluwarsa.
+- Backup induk `/opt/osn/cadangan/deploy-funnel-peta-20261119/`, salinan lokal
+  `mesin/cadangan/deploy-funnel-peta-20261119/` (gitignored).
+- **Belum:** migrasi `transfer_*`/`rekening_*` dan aktivasi `PESANAN_TRANSFER_AKTIF` (urutan operator di
+  bawah; keputusan terpisah); deliverable Fase 4 tetap menyusul/manual.
+
 ## Kandidat transfer rekening Paket Coba — urutan operator (belum dirilis, bukan snapshot)
 
-Bagian ini bukan snapshot rilis: snapshot terbaru tetap bagian "Aktivasi funnel" di bawah. Kode transfer rekening
-(skema `transfer_*`, rekening `rekening_*`, panel admin, retensi) belum dipasang di produksi dan **tidak aktif**:
+Bagian ini bukan snapshot rilis: snapshot terbaru bagian "Deploy funnel Peta Kemampuan" di atas. Kode transfer
+rekening (skema `transfer_*`, rekening `rekening_*`, panel admin, retensi) sudah ikut terpasang di produksi
+sejak `efe9514` (19 Nov 2026), tetapi tabelnya belum dimigrasikan dan fiturnya **tidak aktif**:
 gerbangnya fail-closed (`PESANAN_TRANSFER_AKTIF` tepat `1` + funnel + runtime produksi + rekening terisi). Perintah
 operator di bawah tidak dijalankan startup, GET, atau rilis otomatis dan selalu mensyaratkan `--database` eksplisit;
 jalankan lebih dulu terhadap **salinan** terverifikasi.

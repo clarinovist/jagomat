@@ -15,7 +15,11 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   kandidat Fase 1–3 ter-deploy dan **funnel diaktifkan 19 November 2026 termasuk
   pembayaran Paket Coba** (`FUNNEL_AKTIF=1`, ledger `pesanan_*` dimigrasikan);
   deliverable Fase 4 masih menyusul/manual. Status baris F1 di tabel bawah.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`a1443b3`** (19 November 2026;
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`efe9514`** (19 November 2026;
+  funnel Peta Kemampuan playful v4 + `/contoh-peta-kemampuan`, topik cek gratis per kelas,
+  admin `/admin/cek-topik` baca-saja, serta kode transfer rekening yang nonaktif — tabel
+  `transfer_*`/`rekening_*` belum dimigrasikan dan `PESANAN_TRANSFER_AKTIF` kosong; recovery
+  pin `7bab118`). Sebelumnya `a1443b3` (19 November 2026;
   Fase 3 pesanan Paket Coba — ledger aditif, rute pelanggan, callback Midtrans `ord_`,
   panel admin pesanan, copy refund Keputusan 17 — dengan **`FUNNEL_AKTIF=1` dan ledger
   `pesanan_*` dimigrasikan sejak 19 November 2026**; pembayaran terbuka, deliverable
