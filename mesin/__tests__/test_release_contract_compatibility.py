@@ -109,6 +109,11 @@ def test_kontrak_candidate_memasukkan_modul_dukungan():
     assert "support_settings.py" in deploy.PROBE_KONTRAK
 
 
+def test_kontrak_candidate_memasukkan_modul_rekening():
+    """DDL rekening_* tidak terlihat glob stem; harus didaftarkan manual seperti support_settings."""
+    assert "pesanan_rekening.py" in deploy.PROBE_KONTRAK
+
+
 def test_pin_soft_launch_migrasi_memerlukan_pair_exact_tanpa_auto_deploy():
     """Recovery soft launch menjadi anchor migrasi; pair exact tetap wajib."""
     config = metadata.baca_config(AKAR / 'scripts/release-metadata.json')

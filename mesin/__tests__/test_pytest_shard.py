@@ -78,9 +78,9 @@ JUMLAH_RECOVERY = {
     # Recovery diagnostik 6a5f0ec (461c2bc + database.buat_sesi_diagnostik, pin 6f02dbf,
     # kontrak dd3e0fce sama dengan kandidat 15 Nov 2026): collect-only exact 15.708 di Python 3.9.
     "6a5f0ecb73fc1cade989393deea055308358f1cc": 15708,
-    # Recovery migrasi 5b8e1d3 (baseline Fase 3 writer1, pin mandiri 40ccd72, 18 Nov 2026;
-    # kontrak dea0cff8 sama dengan kandidat): collect-only exact 17.007 di Python 3.9.
-    "5b8e1d3b9f47fa2768cbd6af3fd73e1dd456134b": 17007,
+    # Recovery transfer 7bab118 (baseline 74a18f2 = 5b8e1d3 + schema_transfer/hook/rekening, pin mandiri,
+    # 19 Nov 2026; kontrak sama dengan kandidat): collect-only exact 17.007 di Python 3.9.
+    "7bab1189e2edbe75c918d7e29d22523125dab925": 17007,
     "68a262c0a7391c8e95f409cf704703de4b90cea9": 15132,
 }
 

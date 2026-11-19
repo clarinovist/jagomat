@@ -639,6 +639,8 @@ nama.update(p.name for p in akar.glob('*.py')
             if any(k in p.stem for k in ('schema', 'migrat', 'database', 'store')))
 if (akar / 'support_settings.py').is_file():
     nama.add('support_settings.py')
+if (akar / 'pesanan_rekening.py').is_file():
+    nama.add('pesanan_rekening.py')
 
 class Normalisasi(ast.NodeTransformer):
     def __init__(self):
