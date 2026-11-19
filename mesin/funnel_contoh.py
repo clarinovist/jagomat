@@ -30,8 +30,11 @@ def halaman_lembar_contoh() -> bytes:
     return peta_lembar.halaman_lembar(peta_contoh_data.DATA_CONTOH, contoh=True)
 
 
-def halaman_contoh_peta(dukungan=None) -> bytes:
-    """Contoh laporan Peta Kemampuan (sintetis) dengan satu CTA utama."""
+def halaman_contoh_peta(dukungan=None, profil=None) -> bytes:
+    """Contoh laporan Peta Kemampuan (sintetis) dengan satu CTA utama.
+
+    `profil` diteruskan ke `kartu_profil_guru` (None = konstanta, `()` = tanpa kartu).
+    """
     laporan = peta_laporan.render_laporan(peta_contoh_data.DATA_CONTOH, contoh=True)
     isi = f"""{P._topbar(tautan_funnel=True)}
 <main class="landing-bungkus-st funnel-halaman-st peta-halaman-st" id="konten" tabindex="-1">
@@ -40,7 +43,7 @@ def halaman_contoh_peta(dukungan=None) -> bytes:
   <h1 class="funnel-judul-halaman-st">{_e(COPY_CONTOH_JUDUL)}</h1>
   <p class="funnel-contoh-label-st" role="note">{_e(COPY_CONTOH_LABEL)}</p>
 </header>
-{laporan}{P.kartu_profil_guru()}
+{laporan}{P.kartu_profil_guru(profil)}
 </main>
 {P._footer(dukungan)}"""
     return P._bungkus(JUDUL_HALAMAN, isi)

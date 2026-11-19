@@ -13,6 +13,7 @@ _BENTUK = {
     "langganan": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>',
     "pesanan": '<path d="M6 3h12l2 4v13a1 1 0 01-1 1H5a1 1 0 01-1-1V7z"/><path d="M4 7h16"/><path d="M9 11a3 3 0 006 0"/>',
     "cek-topik": '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',
+    "profil_guru": '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
     "kpi": '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',
     "riset": '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     "pemakaian": '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',

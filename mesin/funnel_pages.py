@@ -161,7 +161,10 @@ def _footer(dukungan) -> str:
 
 
 def kartu_profil_guru(profil=None) -> str:
-    """Kartu profil guru; string kosong (nol byte) bila `PROFIL_GURU` kosong."""
+    """Kartu profil guru; string kosong (nol byte) bila profil kosong.
+
+    `profil=None` memakai konstanta `PROFIL_GURU`; `()` berarti tanpa kartu.
+    """
     profil = PROFIL_GURU if profil is None else profil
     if not profil:
         return ""
@@ -284,8 +287,11 @@ def _faq() -> str:
 </section>"""
 
 
-def halaman_paket_coba(dukungan=None) -> bytes:
-    """Halaman harga Peta Kemampuan (rute tetap `/paket-coba`): tanpa form pesanan."""
+def halaman_paket_coba(dukungan=None, profil=None) -> bytes:
+    """Halaman harga Peta Kemampuan (rute tetap `/paket-coba`): tanpa form pesanan.
+
+    `profil`: None = konstanta `PROFIL_GURU`; `()` = tanpa kartu; selain itu butir kartu.
+    """
     isi = f"""{_topbar(tautan_funnel=True)}
 <main class="landing-bungkus-st funnel-halaman-st" id="konten" tabindex="-1">
 <section class="funnel-bagian-st" aria-labelledby="judul-paket">
@@ -293,7 +299,7 @@ def halaman_paket_coba(dukungan=None) -> bytes:
   <h1 class="funnel-judul-halaman-st" id="judul-paket">{_e(COPY_JUDUL_PAKET_HALAMAN)}</h1>
   <p class="funnel-pengantar-st">{_e(COPY_PENGANTAR_PAKET)}</p>
   <div class="funnel-dua-st">{_kartu_harga()}{_kartu_batas()}
-  </div>{kartu_profil_guru()}
+  </div>{kartu_profil_guru(profil)}
   <div class="funnel-aksi-st">
     <p>{_e(COPY_PAKET_DARI_HASIL)}</p>
     {_cta_utama("Mulai dari cek gratis")}
