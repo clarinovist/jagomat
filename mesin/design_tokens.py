@@ -639,3 +639,37 @@ ADMIN_AKSEN_PERHATIAN = "var(--admin-aksen-perhatian)"
 ADMIN_BAIK_TITIK = "var(--admin-baik-titik)"
 ADMIN_NETRAL_TITIK = "var(--admin-netral-titik)"
 ADMIN_SIDEBAR = "256px"
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Landing Cek Kemampuan gaya playful (v4, 19 Nov 2026)
+# ─────────────────────────────────────────────────────────────────────
+# Tint ubin ikon (latar lembut + ikon warna tua); teal dan amber memakai
+# ANAK_AKSEN_LATAR dan LATAR_REVIEW yang sudah ada.
+LATAR_UBIN_KORAL = "#FFE7E2"
+LATAR_UBIN_NAVY = "#E8ECF6"
+LATAR_UBIN_MINT = "#DDF3F3"
+# Glyph dekoratif (+ × ÷ ½) di hero; variasi ukuran lewat transform: scale().
+UKURAN_DOODLE = "3.6rem"
+# Tepi bawah tombol coral (efek timbul), lebih gelap dari AKSEN_KORAL_TUA.
+AKSEN_KORAL_TEPI = "#8f2a1d"
+# Teks di atas teal tua (AKSEN_TEAL_TUA): kontras 5,5:1 dan 4,85:1.
+TEKS_DI_TEAL = "#e3f2ee"
+TEKS_DI_TEAL_REDUP = "#cfe6e0"
+# Teks di atas navy (TEKS_JUDUL): kontras 14:1 dan 10,3:1.
+TEKS_DI_NAVY = "#eef1f7"
+TEKS_DI_NAVY_REDUP = "#c9d0e4"
+# Jalur bar/cincin yang belum terisi dan garis kisi buku latihan.
+LATAR_JALUR_BAR = "#e2e6ef"
+GARIS_KISI = "#eef1f7"
+# Putih bening di atas teal tua: chip fakta, doodle dan garis dekoratif.
+LATAR_BENING_PUTIH = "rgba(255,255,255,.14)"
+DOODLE_PUTIH = "rgba(255,255,255,.13)"
+GARIS_BENING_PUTIH = "rgba(255,255,255,.25)"
+# Bayangan timbul "tepi bawah" tanpa blur.
+BAYANGAN_TIMBUL_TIPIS = "0 3px 0 rgba(22,33,62,.12)"
+BAYANGAN_TIMBUL_SEDANG = "0 5px 0 rgba(22,33,62,.12)"
+BAYANGAN_TIMBUL_HALUS = "0 3px 0 rgba(22,33,62,.06)"
+BAYANGAN_TIMBUL_GELAP = "0 3px 0 rgba(0,0,0,.15)"
+BAYANGAN_TIMBUL_KARTU = "0 8px 0 rgba(0,0,0,.14)"
+BAYANGAN_MASKOT = "drop-shadow(0 6px 0 rgba(0,0,0,.15))"

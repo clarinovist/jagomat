@@ -79,28 +79,17 @@ GAYA_FUNNEL = f"""
 .funnel-langkah-st article:nth-child(3) .funnel-ikon-st {{ background: {T.LATAR_GALAT}; color: {T.AKSEN_KORAL_TUA}; }}
 .funnel-halaman-st .funnel-langkah-st h3 {{ font-size: {T.UKURAN_BAGIAN_DEWASA}; margin: {T.SP_4} 0 {T.SP_2}; font-weight: 800; }}
 .funnel-langkah-st p {{ font-size: {T.UKURAN_BADAN_LAYAR}; }}
-.funnel-paket-st {{ display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; align-items: center; background: {T.TEKS_JUDUL}; color: {T.LATAR_KARTU_SEKUNDER}; border-radius: 24px; padding: 2.25rem; }}
-.funnel-paket-st .funnel-alis-st {{ color: {T.AKSEN_MURID_AMBER}; }}
-.funnel-halaman-st .funnel-paket-st h2 {{ color: {T.TEKS_PUTIH}; font-size: {T.UKURAN_JUDUL_STITCH}; font-weight: 800; letter-spacing: -.02em; margin-top: {T.SP_3}; }}
-.funnel-paket-sub-st {{ margin-top: {T.SP_2}; max-width: 34ch; font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
 .funnel-harga-baris-st {{ display: flex; align-items: baseline; gap: {T.SP_3}; flex-wrap: wrap; margin: {T.SP_3} 0 {T.SP_1}; }}
 .funnel-harga-baris-st strong {{ font: 800 {T.UKURAN_ANGKA_FUNNEL}/1 {T.FONT_HEADLINE}; color: {T.TEKS_PUTIH}; letter-spacing: -.02em; }}
 .funnel-harga-baris-st span {{ font-size: {T.UKURAN_BADAN_LAYAR}; }}
-.funnel-paket-st .funnel-bukan-st {{ color: {T.BORDER_INTERAKTIF}; font-size: {T.UKURAN_TEKS_BANTUAN}; margin: 2px 0 {T.SP_2}; }}
-.funnel-pil-terang-st {{ display: inline-block; font-size: {T.UKURAN_TEKS_META}; font-weight: 700; padding: 5px {T.SP_3}; border-radius: {T.RADIUS_PIL}; border: {T.TEBAL_GARIS} solid {T.BORDER_INTERAKTIF}; color: {T.TEKS_PUTIH}; margin: {T.SP_1} {T.SP_2} 0 0; }}
-.funnel-pil-kuota-st {{ background: {T.AKSEN_MURID_AMBER}; border-color: {T.AKSEN_MURID_AMBER}; color: {T.TEKS_JUDUL}; }}
 .funnel-centang-st {{ list-style: none; padding: 0; margin: 0; display: grid; gap: {T.SP_3}; }}
 .funnel-centang-st li {{ display: flex; gap: {T.SP_3}; align-items: flex-start; font-size: {T.UKURAN_BADAN_LAYAR}; line-height: 1.4; }}
 .funnel-centang-st svg {{ flex: none; margin-top: 2px; }}
-.funnel-paket-st .funnel-centang-st svg {{ color: {T.AKSEN_MURID_AMBER}; }}
 .funnel-harga-kartu-st .funnel-centang-st svg {{ color: {T.AKSEN_TEAL_TUA}; }}
-.funnel-tautan-terang-st {{ color: {T.TEKS_PUTIH}; font-weight: 600; text-underline-offset: 4px; display: inline-flex; min-height: {T.TARGET_SENTUH}; align-items: center; margin-top: {T.SP_3}; margin-right: {T.SP_5}; }}
-.funnel-akordeon-st {{ margin-top: {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; background: {T.LATAR_CATATAN}; border-radius: 14px; padding: {T.SP_1} {T.SP_4}; }}
 .funnel-halaman-st summary {{ cursor: pointer; font: 700 {T.UKURAN_BADAN_LAYAR}/1.3 {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; padding: {T.SP_3} 0; min-height: {T.TARGET_SENTUH}; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: {T.SP_3}; }}
 .funnel-halaman-st summary::-webkit-details-marker {{ display: none; }}
 .funnel-halaman-st summary::after {{ content: "+"; font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 600; color: {T.AKSEN_TEAL_TUA}; line-height: 1; }}
 .funnel-halaman-st details[open] > summary::after {{ content: "\\2013"; }}
-.funnel-akordeon-st ul {{ margin: 0 0 {T.SP_3}; padding-left: {T.SP_5}; font-size: {T.UKURAN_TEKS_BANTUAN}; display: grid; gap: {T.SP_2}; }}
 .funnel-judul-halaman-st {{ font-size: {T.UKURAN_ANGKA_FUNNEL}; line-height: 1.06; letter-spacing: -.025em; font-weight: 800; margin-top: {T.SP_3}; }}
 .funnel-pengantar-st {{ margin-top: {T.SP_3}; font-size: {T.UKURAN_BAGIAN_DEWASA}; color: {T.TEKS_JUDUL}; max-width: 46ch; }}
 .funnel-harga-kartu-st {{ background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; border-radius: {T.RADIUS_KARTU_BESAR}; padding: 1.75rem; }}
@@ -126,7 +115,6 @@ GAYA_FUNNEL = f"""
   .funnel-hero-st {{ grid-template-columns: minmax(0, 1fr); padding: {T.SP_6} 0 {T.SP_5}; }}
   .funnel-halaman-st h1.funnel-judul-hero-st {{ font-size: {T.UKURAN_ANGKA_FUNNEL}; }}
   .funnel-langkah-st, .funnel-dua-st {{ grid-template-columns: minmax(0, 1fr); }}
-  .funnel-paket-st {{ grid-template-columns: minmax(0, 1fr); padding: 1.75rem; }}
   .funnel-judul-halaman-st {{ font-size: {T.UKURAN_ANGKA_FUNNEL_HP}; }}
 }}
 @media (max-width: 560px) {{
@@ -134,8 +122,6 @@ GAYA_FUNNEL = f"""
   .funnel-sub-st {{ font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
   .funnel-halaman-st .funnel-hero-st .landing-cta-baris-st a.tombol-coral, .funnel-aksi-st .landing-cta-baris-st a.tombol-coral {{ width: 100%; justify-content: center; }}
   .funnel-halaman-st h2.funnel-judul-bagian-st {{ font-size: {T.UKURAN_JUDUL_STITCH}; }}
-  .funnel-paket-st {{ padding: 1.4rem; border-radius: 20px; }}
-  .funnel-halaman-st .funnel-paket-st h2 {{ font-size: {T.UKURAN_ANGKA_DEWASA}; }}
   .funnel-harga-baris-st strong {{ font-size: {T.UKURAN_ANGKA_FUNNEL_HP}; }}
   .funnel-harga-kartu-st, .funnel-batas-kartu-st {{ padding: 1.4rem; }}
   .funnel-harga-kartu-st .funnel-harga-baris-st strong {{ font-size: {T.UKURAN_ANGKA_FUNNEL}; }}

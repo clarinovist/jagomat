@@ -3709,9 +3709,10 @@ def gaya_stitch() -> str:
     if funnel_aktif():
         # CSS funnel hanya ikut saat sakelar hidup, jadi halaman lain tidak
         # berubah byte-per-byte selama funnel mati.
+        from funnel_landing_style import GAYA_LANDING_CEK
         from funnel_style import GAYA_FUNNEL
 
-        return GAYA_STITCH + GAYA_FUNNEL
+        return GAYA_STITCH + GAYA_FUNNEL + GAYA_LANDING_CEK
     return GAYA_STITCH
 
 
