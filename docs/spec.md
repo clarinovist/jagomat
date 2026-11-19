@@ -148,7 +148,12 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   terakhir akun (sapuan belum dijadwalkan). Hapus keluarga memerlukan verifikasi,
   preview/backup/cutover; bukan sekadar menghapus login atau bukti immutable.
 - Halaman publik funnel `/cek-kemampuan` dan `/paket-coba` (Fase 1) ada di balik `FUNNEL_AKTIF` (bawaan
-  mati: halaman "belum dibuka"). Fase 2: cek gratis per anak di `/cek-kemampuan/mulai` (centang persetujuan wajib,
+  mati: halaman "belum dibuka"). Sejak 19 Nov 2026 (Keputusan 19) `/cek-kemampuan` bergaya playful (chip gejala,
+  demo tebak langkah, satu CTA) dan `/contoh-peta-kemampuan` menampilkan laporan Peta Kemampuan playful dengan data
+  sintetis konsisten (skor/kategori `cek_gratis_skor`, Kuat ≥80%, <3 soal "Belum cukup soal", pola = jumlah salah)
+  plus lembar A4 1 halaman `/contoh-peta-kemampuan/lembar`. Peringkat/persentil DITAMPILKAN (`peta_posisi`: pembanding
+  kelas sama, minimal 30 anak, selalu dengan penyebut); laporan nyata pesanan berbayar, isian Guru, dan agregat
+  skor per kelas belum dibangun. Fase 2: cek gratis per anak di `/cek-kemampuan/mulai` (centang persetujuan wajib,
   tersimpan), `/hasil`, `/tautan` (peran guru; anak mengerjakan lewat `/mulai/<token>` yang ada); sesi biasa PG 15 soal
   (`tujuan='bebas'`, bukan bukti siklus). Hasil gratis hanya skor (benar/15), kategori, ringkasan nama topik, berlabel "belum
   ditinjau guru". **Pengecualian bercakupan sempit** atas larangan skor/persentase di laporan orang tua (Keputusan 17): skor cek

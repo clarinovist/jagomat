@@ -106,7 +106,11 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   sebelum `_lolos_sandi`, tanpa POST) + `funnel_pages.py` (markup, copy §7 plan) + `funnel_style.py`
   (`GAYA_FUNNEL`, hanya ikut `gaya_stitch()` saat `FUNNEL_AKTIF=1` agar byte halaman lain tak berubah).
   Sakelar mati = halaman "belum dibuka" 200 tanpa CTA; hidup = satu CTA ke `/daftar?jalur=cek`, tautan nav
-  di landing.
+  di landing. Landing playful: `funnel_landing_pages.py` + `funnel_landing_style.py` + `funnel_landing_browser.py`.
+  Laporan Peta Kemampuan: kontrak data `peta_data.py` (`periksa_konsisten`), contoh `peta_contoh_data.py`, posisi
+  murni `peta_posisi.py`, renderer `peta_laporan.py` (+ `peta_ringkasan/materi/pola/misi/donat/ikon/komponen/teks`),
+  lembar `peta_lembar.py`, CSS `peta_style*.py`, skrip `peta_browser.py`. Semua respons funnel memakai
+  `funnel_http._kirim_funnel` dengan CSP berhash dari skrip inline aktual (`web.csp_tautan`).
 - Funnel Fase 2 (cek gratis): `schema_cek.py` (tabel aditif `cek_gratis`, UNIQUE per anak, kunci `id_akun`, FK ke siswa
   ON DELETE CASCADE) + `cek_gratis.py` (`mulai` idempoten dengan persetujuan eksplisit, `selesaikan_jika_siap`,
   `baca_hasil`, `hapus_cek_keluarga`), `cek_gratis_skor.py` (fungsi murni skor/kategori/ringkasan, kelas→`P{kelas}`),

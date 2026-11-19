@@ -63,7 +63,11 @@ mengikuti batas jenjang di referensi workflow.
   berlaku (disetujui pada penuntasan UI langkah 3–6). Beranda guru (`/guru`) memakai filter
   instan chip langkah berhash CSP (`guru_browser.py`; disetujui 22 Okt 2026): hanya
   menyembunyikan/menampilkan kartu yang sudah dirender server, tanpa network/storage;
-  fallback chip tautan GET tetap utuh. Perlu approval untuk tambahan.
+  fallback chip tautan GET tetap utuh. Funnel publik (disetujui pemilik 19 Nov 2026, Keputusan 19): landing
+  `/cek-kemampuan` (`funnel_landing_browser.py`: chip gejala, demo tebak langkah, kartu hero; tanpa network/storage)
+  dan laporan Peta Kemampuan (`peta_browser.py`: tab, pose maskot, donat, tantangan + konfeti, stiker hari di
+  localStorage tanpa network, tombol cetak), skrip polos berhash CSP, fallback `<details>`/panel utuh tanpa JS.
+  Perlu approval untuk tambahan.
 - `mesin/`: aplikasi, `__tests__/`, aset, Dockerfile, cadangan. `scripts/`: otomasi/palang.
   `docs/`: spesifikasi teknis; `docs/plan/` lokal/gitignored. `.github/`: CI/deploy.
 - Riset/materi/kurikulum/mockup/bisnis/eksperimen berada di `../riset/referensi/` lokal,
