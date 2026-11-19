@@ -269,6 +269,13 @@ def validasi_skema(kon: sqlite3.Connection) -> None:
         schema_pesanan.validasi(kon)
     except (ValueError, sqlite3.Error):
         raise StoreBelumSiap("struktur ledger pesanan tidak lengkap") from None
+    # Transfer rekening (verifikasi manual) memakai namespace `transfer_*` sendiri agar
+    # validasi pesanan v1 tetap utuh; sama: absent sah, parsial/berbeda fail-closed.
+    import schema_transfer
+    try:
+        schema_transfer.validasi(kon)
+    except (ValueError, sqlite3.Error):
+        raise StoreBelumSiap("struktur ledger transfer tidak lengkap") from None
     # Konfigurasi dukungan adalah schema aditif opt-in tanpa bump user_version:
     # absent masih sah sebelum migrasi, tetapi struktur parsial harus fail-closed.
     import support_settings
@@ -276,6 +283,12 @@ def validasi_skema(kon: sqlite3.Connection) -> None:
         support_settings.validasi_schema(kon)
     except (ValueError, sqlite3.Error):
         raise StoreBelumSiap("struktur dukungan tidak lengkap") from None
+    # Rekening transfer: schema aditif opt-in (namespace `rekening_*`), pola sama dengan dukungan.
+    import pesanan_rekening
+    try:
+        pesanan_rekening.validasi_schema(kon)
+    except (ValueError, sqlite3.Error):
+        raise StoreBelumSiap("struktur rekening tidak lengkap") from None
 
 def jalankan_ddl(kon: sqlite3.Connection, skrip: str) -> None:
     """Jalankan DDL utuh tanpa implicit commit dari ``executescript``."""
