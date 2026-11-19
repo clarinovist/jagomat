@@ -25,12 +25,14 @@ HASIL_SELESAI = {"status": "selesai", "skor": 72, "kategori": "Cukup baik",
                  "ringkasan": {"kuat": ["Pola bilangan"], "perlu": ["Statistika"]}, "jumlah_soal": 15}
 HASIL_BELUM = {"status": "belum_selesai", "skor": None, "kategori": None,
                "ringkasan": {"kuat": [], "perlu": []}, "jumlah_soal": 15}
-# sha256 keluaran Fase 2 (halaman_hasil tanpa argumen pesan), diambil sebelum perubahan 3c-3.
-# Diperbarui 19 Nov 2026: dua perubahan copy yang disengaja (nama tampilan "Peta Kemampuan" pada tautan CTA dan tiga
-# butir "batas hasil" di funnel_pages.COPY_BATAS_HASIL). Dibuktikan lewat diff HTML: hanya empat baris itu yang
-# berubah, CSS dan struktur identik. Bukan perubahan perilaku.
-GOLDEN_SELESAI = "6b6efb26e5dbd394d8187e12a0e9ad7de8a79892709823e09932b7b8e2535efd"
-GOLDEN_BELUM = "dd0dbade640c366361af10b7a2ddb52539682a97dc1b5374d8ba3e21405b88bc"
+# sha256 keluaran halaman_hasil tanpa argumen pesan (kontrak: tanpa token_pesan tidak ada byte CTA pesan).
+# Diperbarui 19 Nov 2026 dua kali, keduanya perubahan tampilan yang disengaja, bukan perilaku:
+# (1) nama tampilan "Peta Kemampuan" pada tautan CTA dan tiga butir "batas hasil" di COPY_BATAS_HASIL;
+# (2) desain ulang sisi orang tua sesuai prototipe (kepala skor dengan cincin, "X dari 15 soal benar", chip
+# ringkasan, daftar terkunci, kotak batas, tautan contoh, tautan ke halaman siap mulai di hasil belum selesai).
+# Kontrak "tanpa byte pesan" dijaga eksplisit oleh test_cta_pesan_tidak_meninggalkan_byte_saat_token_none.
+GOLDEN_SELESAI = "9f61b82c4f3b4fc1b3eee85ded3196eb575f7816d506cca36e4d132f6fd5cff1"
+GOLDEN_BELUM = "90763f2be114f5f38a85943dce4c683314e4f51ddf6a1a098ab250f10fa3f56d"
 
 
 def _render(hasil, **kw):
@@ -41,6 +43,14 @@ def test_renderer_tanpa_token_pesan_byte_identik_dengan_fase_2():
     assert hashlib.sha256(_render(HASIL_SELESAI)).hexdigest() == GOLDEN_SELESAI
     assert hashlib.sha256(_render(HASIL_BELUM)).hexdigest() == GOLDEN_BELUM
     assert _render(HASIL_SELESAI, token_pesan=None) == _render(HASIL_SELESAI)
+
+
+def test_cta_pesan_tidak_meninggalkan_byte_saat_token_none():
+    tanpa = _render(HASIL_SELESAI)
+    dengan = _render(HASIL_SELESAI, token_pesan="9.abc")
+    blok = cek_pages._blok_pesan("9.abc").encode()
+    assert cek_pages._blok_pesan(None) == "" and blok in dengan
+    assert dengan.replace(blok, b"") == tanpa
 
 
 def test_renderer_dengan_token_pesan_menambah_hanya_form_pesan():

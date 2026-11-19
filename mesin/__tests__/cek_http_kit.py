@@ -13,6 +13,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import auth  # noqa: E402
+import cek_gratis  # noqa: E402
 import cek_http  # noqa: E402
 import database  # noqa: E402
 import learning_profile  # noqa: E402
@@ -23,6 +24,8 @@ from http_test_kit import SANDI_GURU, SANDI_MURID, ServerUji, _basic  # noqa: E4
 MULAI = "/cek-kemampuan/mulai"
 HASIL = "/cek-kemampuan/hasil"
 TAUTAN = "/cek-kemampuan/tautan"
+CARA_HP_INI = "hp_ini"
+CARA_HP_ANAK = "hp_anak"
 SANDI_GURU_B = "sandi-guru-b-panjang-123"
 SANDI_ADMIN = "sandi-pengelola-cek-123"
 AKUN_A = ("guru", SANDI_GURU)
@@ -121,20 +124,26 @@ def token_form(akun, aksi) -> str:
     return cek_http.buat_token(principal, None, aksi)
 
 
-def kirim_mulai(server, akun, *, setuju="1", token=None, ekstra=None):
+def kirim_mulai(server, akun, *, setuju="1", token=None, cara=CARA_HP_ANAK, ekstra=None):
+    """POST mulai; `cara=None` menghilangkan field. Bawaan hp_anak: 200 + QR, tanpa efek ke sesi login."""
     data = {"token": token_form(akun, cek_http.AKSI_MULAI) if token is None else token}
     if setuju is not None:
         data["setuju"] = setuju
+    if cara is not None:
+        data["cara"] = cara
     data.update(ekstra or {})
     return minta_mentah(server, MULAI, akun, data)
 
 
 def mulai_cek(server, akun=AKUN_A):
-    kode, _i, _t = kirim_mulai(server, akun)
-    assert kode == 303
+    """Cek ada untuk akun ini lewat jalur domain (tanpa tautan anak, tanpa laju HTTP) -> sesi_id."""
+    principal = sessions.principal_basic(*akun)
     with server.buka() as kon:
+        anak = cek_http._anak_akun(kon, principal.pengguna)
+        cek_gratis.mulai(kon, principal.id_akun, anak["id"], principal.pengguna, True,
+                         "2026-11-19T10:00:00")
         return kon.execute(
-            "SELECT sesi_id FROM cek_gratis WHERE id_akun = ?", (id_akun(akun),)
+            "SELECT sesi_id FROM cek_gratis WHERE id_akun = ?", (principal.id_akun,)
         ).fetchone()[0]
 
 

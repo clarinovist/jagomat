@@ -46,6 +46,19 @@ def hitung_skor(jawaban_benar: int, jumlah: int) -> int:
     return (jawaban_benar * 200 + jumlah) // (2 * jumlah)
 
 
+def jumlah_benar(skor: int, jumlah: int):
+    """Kebalikan `hitung_skor`: jumlah benar yang menghasilkan `skor`, atau None.
+
+    Dipakai halaman hasil orang tua ("X dari N soal benar") tanpa membaca data
+    per soal. None bila tidak ada jumlah benar yang cocok atau tidak tunggal
+    (jumlah soal sangat besar), sehingga halaman cukup menghilangkan barisnya.
+    """
+    if not (_bilangan_bulat(skor) and _bilangan_bulat(jumlah)) or jumlah < 1:
+        return None
+    cocok = [b for b in range(jumlah + 1) if hitung_skor(b, jumlah) == skor]
+    return cocok[0] if len(cocok) == 1 else None
+
+
 def kategori_dari_skor(skor: int) -> str:
     """Empat label kategori; batas bawah tiap label termasuk labelnya."""
     if not _bilangan_bulat(skor) or not 0 <= skor <= 100:

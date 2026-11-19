@@ -18,7 +18,9 @@ import pytest
 AKAR = Path(__file__).resolve().parents[2]
 H = "mesin/__tests__/test_cek_http.py::"
 HH = "mesin/__tests__/test_cek_http_hasil.py::"
+OA = "mesin/__tests__/test_cek_ortu_alur.py::"
 HTTP, PAGES, REG = "mesin/cek_http.py", "mesin/cek_pages.py", "mesin/registration_http.py"
+AUTH = "mesin/auth_http.py"
 JEBOL = '    if not funnel_flag.funnel_aktif():\n        %s'
 IMPOR_PRINCIPAL = "from kontak_http import _alihkan, _baca_form, _principal_guru\n"
 
@@ -56,16 +58,16 @@ KASUS = (
      ((REG, "    if policy_http.perlu(akun_baru):", "    if False:"),),
      (HH + "test_daftar_jalur_cek_tetap_lewat_gerbang_persetujuan",)),
     ("H7a-hasil-selesai-dirender-saat-belum-selesai",
-     ((PAGES, '    if hasil["status"] == "selesai":\n        isi += _blok_selesai(hasil, token_pesan)',
-       '    if hasil["status"] in ("selesai", "belum_selesai"):\n        isi += _blok_selesai(hasil, token_pesan)'),),
+     ((PAGES, '    if selesai:\n        isi += _blok_selesai(hasil, token_pesan, nama_anak, kelas)',
+       '    if hasil["status"] in ("selesai", "belum_selesai"):\n        isi += _blok_selesai(hasil, token_pesan, nama_anak, kelas)'),),
      (HH + "test_belum_selesai_html_tanpa_angka_skor_atau_ringkasan",)),
     ("H7b-kerangka-terkunci-membocorkan-data",
      ((PAGES, '    "Penguasaan per materi",', '    "Penguasaan per materi: Pola Bilangan 4 dari 5",'),),
      (HH + "test_kerangka_terkunci_identik_untuk_hasil_berbeda_dan_tanpa_data",
       HH + "test_selesai_tanpa_angka_per_materi_kunci_jawaban_atau_peringkat")),
     ("H8-id-akun-diambil-dari-form",
-     ((HTTP, 'KUNCI_MULAI = frozenset({"token", "setuju"})',
-       'KUNCI_MULAI = frozenset({"token", "setuju", "id_akun"})'),
+     ((HTTP, 'KUNCI_MULAI = frozenset({"token", "setuju", "cara"})',
+       'KUNCI_MULAI = frozenset({"token", "setuju", "cara", "id_akun"})'),
       (HTTP, "        nama = _jalankan_mulai(principal, setuju)",
        '        nama = _jalankan_mulai(principal, setuju, data.get("id_akun"))'),
       (HTTP, "def _jalankan_mulai(principal, setuju: bool):",
@@ -83,6 +85,17 @@ KASUS = (
     ("H11-redirect-jalur-biasa-ikut-berubah",
      ((REG, '    if jalur_cek:\n        tujuan_daftar = "/cek-kemampuan/mulai"', '    if True:\n        tujuan_daftar = "/cek-kemampuan/mulai"'),),
      (HH + "test_daftar_jalur_biasa_tujuan_tidak_berubah",)),
+    ("H12-lanjut-cek-dilonggarkan-jadi-awalan",
+     ((AUTH, "    if type(nilai) is str and nilai in TUJUAN_LANJUT_CEK and funnel_flag.funnel_aktif():",
+       "    if type(nilai) is str and any(nilai.startswith(r) for r in TUJUAN_LANJUT_CEK) and funnel_flag.funnel_aktif():"),),
+     (OA + "test_lanjut_varian_ditolak_di_form_dan_login_tetap_ke_beranda",)),
+    ("H13-hp-ini-hanya-hapus-cookie-tanpa-sesi-server",
+     ((HTTP, "        sessions.hapus(token_login)\n", "        pass\n"),),
+     (OA + "test_hp_ini_menghapus_sesi_server_dan_cookie_lama_tidak_lagi_membuka_guru",
+      OA + "test_tautan_hp_ini_menghapus_sesi_server")),
+    ("H14-kelas-wajib-jalur-cek-dimatikan",
+     ((REG, "        if jalur_cek and kelas_sekolah is None:", "        if False:"),),
+     (OA + "test_jalur_cek_menolak_kelas_kosong_dan_mengisi_ulang_form",)),
 )
 
 

@@ -81,11 +81,10 @@ def halaman_daftar(
 
     pesan = teks feedback; galat=True membuatnya dirender sebagai galat.
     nama = nama yang diketik pengguna (dikembalikan supaya tidak mengetik ulang).
-    jalur_cek = form funnel: menambah field WhatsApp wajib + penanda jalur dan
-    mengganti copy 'tanpa nomor telepon'. False (bawaan) = form lama persis.
+    jalur_cek = form funnel: renderer terpisah (`daftar_cek_pages`) dengan WhatsApp wajib,
+    kelas wajib, dan tab "Sudah punya akun". False (bawaan) = form lama persis.
     """
     import learning_profile_ui
-    import registration_contact
     from templates import tingkat_valid
     kotak = ""
     if pesan:
@@ -118,14 +117,19 @@ def halaman_daftar(
         f'<input type="hidden" name="profil_parameter" value="{html.escape(profil_parameter, quote=True)}">'
         if tingkat_valid(profil_parameter) else ''
     )
+    if jalur_cek:
+        import daftar_cek_pages
+
+        return _halaman_publik_stitch(f"Daftar — {T.NAMA_PRODUK}", daftar_cek_pages.isi_daftar_cek(
+            kotak=kotak, deskripsi=deskripsi, token=token, profil_lama=profil_lama,
+            nama=nama, nama_anak=nama_anak, kelas_sekolah=kelas_sekolah, wa=wa,
+            analitik=analitik, kesepakatan=kesepakatan,
+        ))
     petunjuk_nama = (
         "Pilih nama pengguna tanpa spasi (3–40 karakter): huruf, angka, titik, garis bawah, "
         "atau tanda hubung. Tidak perlu email atau nomor telepon."
     )
     field_wa = ""
-    if jalur_cek:
-        petunjuk_nama = registration_contact.PETUNJUK_NAMA_FUNNEL
-        field_wa = registration_contact.field_form(wa)
     tombol_daftar = '' if kesepakatan else '<button class="masuk-tombol-st" type="submit">Buat akun <span aria-hidden="true">→</span></button>'
     isi = f"""
 <main class="daftar-editorial-st" aria-labelledby="judul-daftar">

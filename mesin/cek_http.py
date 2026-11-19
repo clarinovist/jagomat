@@ -12,10 +12,14 @@ Aturan yang ditegakkan di sini, bukan di halaman:
   data; POST = tidak ditangani (jatuh ke 404 rute tak dikenal), tanpa efek.
 - Token form HMAC (akun, revisi auth, sesi, aksi, waktu habis) dengan domain
   sendiri; token kontak atau token form lain tidak berlaku di sini.
-- Mulai: persetujuan `setuju=1` wajib, gerbang `/persetujuan` (policy), pembatas
-  laju 10 permulaan/IP/hari (in-memory, per proses), lalu `cek_gratis.mulai`.
-- Tautan anak dibuat lewat `share_links` yang sudah ada dan hanya tampil pada
-  respons POST pembuatnya (`_kirim_tautan`: no-store, tanpa referrer).
+- Mulai: persetujuan `setuju=1` dan pilihan perangkat `cara` (`hp_ini`/`hp_anak`)
+  wajib, gerbang `/persetujuan` (policy), pembatas laju 10 permulaan/IP/hari
+  (in-memory, per proses), lalu `cek_gratis.mulai` dan tautan anak.
+- Tautan anak dibuat lewat `share_links` yang sudah ada. `hp_anak` menampilkannya
+  hanya pada respons POST pembuatnya (`_kirim_tautan`: no-store, tanpa referrer).
+  `hp_ini` menghapus sesi login di server (bukan hanya cookie) lalu 303 ke
+  `/mulai/<token>?di=hp-ini`; sesi dihapus hanya bila tautan benar-benar terbit.
+- Melanjutkan cek yang sudah berjalan lewat `/tautan` (tanpa memakan laju mulai).
 - Nama anak, skor, dan jawaban tidak masuk URL, log, atau pesan galat.
 """
 from __future__ import annotations
@@ -30,9 +34,12 @@ from datetime import datetime, timezone
 import auth
 import cek_gratis
 import cek_pages
+import cek_pages_mulai
+import cek_status
 import database
 import funnel_flag
 import ip_klien
+import sessions
 import share_links
 from cek_gratis_skor import FORMAT_WAKTU
 from kontak_http import _alihkan, _baca_form, _principal_guru
@@ -43,8 +50,11 @@ RUTE_HASIL = cek_pages.RUTE_HASIL
 RUTE_TAUTAN = cek_pages.RUTE_TAUTAN
 RUTE_GET = frozenset({RUTE_MULAI, RUTE_HASIL})
 RUTE_POST = frozenset({RUTE_MULAI, RUTE_TAUTAN})
-KUNCI_MULAI = frozenset({"token", "setuju"})
-KUNCI_TAUTAN = frozenset({"token"})
+KUNCI_MULAI = frozenset({"token", "setuju", "cara"})
+KUNCI_TAUTAN = frozenset({"token", "cara"})
+CARA_HP_INI = cek_pages_mulai.CARA_HP_INI
+CARA_HP_ANAK = cek_pages_mulai.CARA_HP_ANAK
+CARA_SAH = frozenset({CARA_HP_INI, CARA_HP_ANAK})
 UMUR_TOKEN_DETIK = 900
 BATAS_PERMULAAN_PER_HARI = 10
 JENDELA_LAJU_DETIK = 24 * 60 * 60
@@ -128,16 +138,19 @@ def _anak_akun(kon, pengguna: str):
 def _cek_akun(kon, id_akun: str):
     """Cek terbaru MILIK akun ini (kunci id_akun dari sesi server) beserta nama anak."""
     return kon.execute(
-        """SELECT c.sesi_id, c.skor, w.nama FROM cek_gratis c
+        """SELECT c.sesi_id, c.skor, c.siswa_id, w.nama FROM cek_gratis c
            JOIN siswa w ON w.id = c.siswa_id
            WHERE c.id_akun = ? ORDER BY c.id DESC LIMIT 1""",
         (id_akun,),
     ).fetchone()
 
 
-def _kirim_mulai(penangan, principal, nama_anak: str, *, kode: int = 200, galat: str = "") -> None:
-    token = buat_token(principal, penangan._ambil_token(), AKSI_MULAI)
-    isi = cek_pages.halaman_mulai((principal.pengguna, principal.peran), token, nama_anak, galat=galat)
+def _kirim_status(penangan, principal, status, *, kode: int = 200, galat: str = "") -> None:
+    """Halaman siap mulai; token form menurut bentuknya (mulai, atau tautan bila cek berjalan)."""
+    aksi = AKSI_TAUTAN if status.status == cek_status.STATUS_BERJALAN else AKSI_MULAI
+    token = buat_token(principal, penangan._ambil_token(), aksi)
+    isi = cek_pages_mulai.halaman_mulai(
+        (principal.pengguna, principal.peran), status, token, galat=galat)
     penangan._kirim_privat(isi, kode)
 
 
@@ -153,16 +166,24 @@ def _belum_dibuka(penangan) -> None:
     penangan._kirim(funnel_pages.halaman_belum_dibuka(funnel_http._dukungan()))
 
 
-def _get_mulai(penangan, principal) -> None:
+def _baca_status(principal):
     with database.buka() as kon:
-        status = cek_gratis.baca_hasil(kon, principal.id_akun)["status"]
-        anak = None if status != "belum_mulai" else _anak_akun(kon, principal.pengguna)
-    if status != "belum_mulai":
-        _alihkan(penangan, RUTE_HASIL)
-    elif anak is None:
+        return cek_status.baca_status(kon, principal.id_akun, principal.pengguna, _sekarang())
+
+
+def _kirim_mulai(penangan, principal, *, kode: int = 200, galat: str = "") -> None:
+    """Muat ulang halaman siap mulai (status segar) dengan token baru dan, bila ada, pesan galat."""
+    status = _baca_status(principal)
+    if status is None:
         _kirim_info(penangan, principal, "Cek belum bisa dimulai", cek_pages.COPY_TANPA_ANAK, 200)
+    elif status.status == cek_status.STATUS_SELESAI:
+        _alihkan(penangan, RUTE_HASIL)
     else:
-        _kirim_mulai(penangan, principal, anak["nama"])
+        _kirim_status(penangan, principal, status, kode=kode, galat=galat)
+
+
+def _get_mulai(penangan, principal) -> None:
+    _kirim_mulai(penangan, principal)
 
 
 def _get_hasil(penangan, principal) -> None:
@@ -175,9 +196,11 @@ def _get_hasil(penangan, principal) -> None:
         _alihkan(penangan, RUTE_MULAI)
         return
     token = buat_token(principal, penangan._ambil_token(), AKSI_TAUTAN)
+    with database.buka() as kon:
+        kelas = cek_status.kelas_anak(kon, baris["siswa_id"])
     penangan._kirim_privat(cek_pages.halaman_hasil(
         (principal.pengguna, principal.peran), hasil, baris["nama"], token,
-        _token_pesan(penangan, principal, hasil)))
+        _token_pesan(penangan, principal, hasil), kelas=kelas))
 
 
 def _token_pesan(penangan, principal, hasil: dict):
@@ -220,17 +243,10 @@ def _jalankan_mulai(principal, setuju: bool):
         return anak["nama"]
 
 
-def _nama_anak(principal) -> str:
-    with database.buka() as kon:
-        anak = _anak_akun(kon, principal.pengguna)
-    return "" if anak is None else anak["nama"]
-
-
 def _galat_mulai(penangan, principal, galat: Exception) -> None:
     """Peta eksepsi domain ke pesan tetap; `str(galat)` tidak pernah dipantulkan."""
     if isinstance(galat, cek_gratis.CekPersetujuanDiperlukan):
-        _kirim_mulai(penangan, principal, _nama_anak(principal), kode=400,
-                     galat=cek_pages.COPY_WAJIB_CENTANG)
+        _kirim_mulai(penangan, principal, kode=400, galat=cek_pages.COPY_WAJIB_CENTANG)
     else:
         _kirim_info(penangan, principal, "Cek belum bisa dimulai", cek_pages.COPY_BELUM_TERSEDIA)
 
@@ -262,10 +278,13 @@ def _post_mulai(penangan, principal) -> None:
         return
     if _gerbang_persetujuan(penangan, principal):
         return
+    cara = data.get("cara")
+    if cara not in CARA_SAH:
+        _kirim_mulai(penangan, principal, kode=400, galat=cek_pages_mulai.COPY_CARA_WAJIB)
+        return
     setuju = data.get("setuju") == "1"
     if not setuju:
-        _kirim_mulai(penangan, principal, _nama_anak(principal), kode=400,
-                     galat=cek_pages.COPY_WAJIB_CENTANG)
+        _kirim_mulai(penangan, principal, kode=400, galat=cek_pages.COPY_WAJIB_CENTANG)
         return
     if not _izinkan_permulaan(penangan):
         _tolak_laju(penangan)
@@ -281,7 +300,7 @@ def _post_mulai(penangan, principal) -> None:
     if nama is None:
         _kirim_info(penangan, principal, "Cek belum bisa dimulai", cek_pages.COPY_TANPA_ANAK)
         return
-    _alihkan(penangan, RUTE_HASIL)
+    _lanjut_ke_perangkat(penangan, principal, cara)
 
 
 def _buat_tautan(principal):
@@ -303,24 +322,54 @@ def _buat_tautan(principal):
         return token, baris["nama"]
 
 
+def _keluar_dari_hp_ini(penangan, token_anak: str) -> None:
+    """Serah HP ke anak: hapus sesi login di SERVER (bukan hanya cookie), lalu 303 ke tautan anak.
+
+    Dipanggil hanya setelah tautan anak benar-benar terbit. `Location` memuat token bearer,
+    jadi respons no-store dan tanpa referrer.
+    """
+    token_login = penangan._ambil_token()
+    if token_login:
+        sessions.hapus(token_login)
+    penangan.send_response(303)
+    penangan.send_header("Location", f"/mulai/{token_anak}?di=hp-ini")
+    penangan.send_header("Set-Cookie", penangan._set_cookie(None))
+    penangan.send_header("Cache-Control", "no-store")
+    penangan.send_header("Referrer-Policy", "no-referrer")
+    penangan.send_header("Content-Length", "0")
+    penangan.end_headers()
+
+
+def _lanjut_ke_perangkat(penangan, principal, cara: str) -> None:
+    """Terbitkan tautan anak untuk cek akun ini, lalu arahkan sesuai perangkat yang dipilih."""
+    hasil = _buat_tautan(principal)
+    if isinstance(hasil, str):
+        _alihkan(penangan, hasil)
+        return
+    token, nama = hasil
+    if cara == CARA_HP_INI:
+        _keluar_dari_hp_ini(penangan, token)
+        return
+    import share_http
+
+    tautan = f"{share_http._situs_tautan(penangan)}/mulai/{token}"
+    penangan._kirim_tautan(
+        cek_pages_mulai.halaman_tautan((principal.pengguna, principal.peran), nama, tautan))
+
+
 def _post_tautan(penangan, principal) -> None:
     data = _baca_form(penangan)
-    if data is None or set(data) != KUNCI_TAUTAN:
+    if data is None or "token" not in data or not set(data) <= KUNCI_TAUTAN:
         penangan._tolak_isian()
         return
     if not token_sah(principal, penangan._ambil_token(), AKSI_TAUTAN, data["token"]):
         penangan._tolak_isian(403)
         return
-    hasil = _buat_tautan(principal)
-    if isinstance(hasil, str):
-        _alihkan(penangan, hasil)
+    cara = data.get("cara", CARA_HP_ANAK)
+    if cara not in CARA_SAH:
+        penangan._tolak_isian()
         return
-    import share_http
-
-    token, nama = hasil
-    tautan = f"{share_http._situs_tautan(penangan)}/mulai/{token}"
-    penangan._kirim_tautan(
-        cek_pages.halaman_tautan((principal.pengguna, principal.peran), nama, tautan))
+    _lanjut_ke_perangkat(penangan, principal, cara)
 
 
 def tangani_post(penangan, jalur: str) -> bool:

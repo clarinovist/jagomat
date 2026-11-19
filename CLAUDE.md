@@ -67,7 +67,9 @@ mengikuti batas jenjang di referensi workflow.
   `/cek-kemampuan` (`funnel_landing_browser.py`: chip gejala, demo tebak langkah, kartu hero; tanpa network/storage)
   dan laporan Peta Kemampuan (`peta_browser.py`: tab, pose maskot, donat, tantangan + konfeti, stiker hari di
   localStorage tanpa network, tombol cetak), skrip polos berhash CSP, fallback `<details>`/panel utuh tanpa JS.
-  Perlu approval untuk tambahan.
+  Papan coret halaman anak cek gratis (`cek_anak_pages.py`; disetujui pemilik 19 Nov 2026): kanvas
+  coretan lokal berhash CSP, tanpa network/storage/autosave, coretan hilang saat pindah soal; tanpa JS
+  panel tetap tersembunyi dan alur soal utuh. Perlu approval untuk tambahan.
 - `mesin/`: aplikasi, `__tests__/`, aset, Dockerfile, cadangan. `scripts/`: otomasi/palang.
   `docs/`: spesifikasi teknis; `docs/plan/` lokal/gitignored. `.github/`: CI/deploy.
 - Riset/materi/kurikulum/mockup/bisnis/eksperimen berada di `../riset/referensi/` lokal,

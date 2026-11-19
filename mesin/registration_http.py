@@ -146,6 +146,14 @@ def tangani_post(penangan, jalur: str) -> bool:
                 token_form=token_baru,
             ))
             return True
+        if jalur_cek and kelas_sekolah is None:
+            import daftar_cek_pages
+
+            penangan._kirim(halaman_daftar(
+                daftar_cek_pages.COPY_KELAS_WAJIB, galat=True, nama=nama,
+                token_form=token_baru,
+            ))
+            return True
         if laju_masuk.sedang_diblokir(nama, kunci_ip):
             penangan._kirim(
                 halaman_daftar(

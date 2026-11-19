@@ -1,7 +1,8 @@
-"""Halaman akun cek kemampuan gratis (funnel Fase 2b): mulai, hasil, tautan anak.
+"""Halaman akun cek kemampuan gratis (funnel Fase 2b/3): hasil, info, kerangka bersama.
 
-Hanya HTML native (tanpa JS). Renderer murni: tidak membuka basis data dan tidak
-membuat token; pemanggil (`cek_http`) memberi nilai yang sudah diputuskan.
+Halaman siap mulai dan halaman QR ada di `cek_pages_mulai`. Hanya HTML native
+(tanpa JS). Renderer murni: tidak membuka basis data dan tidak membuat token;
+pemanggil (`cek_http`) memberi nilai yang sudah diputuskan.
 
 Batas isi (plan Fase 2 §2.11, §3.5): hasil gratis hanya skor, kategori, ringkasan
 nama topik, label gambaran awal, batas klaim, dan kerangka terkunci. Kerangka
@@ -13,9 +14,10 @@ from __future__ import annotations
 
 import html
 
-import share_links
+import cek_gratis_skor
 import funnel_pages
 from funnel_pages import COPY_BATAS_HASIL
+from funnel_pages import _D_CENTANG, _D_GEMBOK, _D_SERU, _ikon
 from teacher_shell import _halaman
 
 RUTE_MULAI = "/cek-kemampuan/mulai"
@@ -53,6 +55,8 @@ COPY_BELUM_SELESAI = (
     "Anak belum menyelesaikan cek ini. Hasil muncul di halaman ini setelah anak "
     "menekan tombol selesai di HP-nya. Belum ada skor sebelum itu."
 )
+# DRAF: teks final menunggu persetujuan Pemilik
+COPY_LIHAT_STATUS = "Lihat status cek"
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_RINGKASAN_KOSONG = "Belum ada bagian yang cukup jelas dari soal yang dikerjakan."
 # DRAF: teks final menunggu persetujuan Pemilik
@@ -130,34 +134,8 @@ def halaman_info(ident, judul: str, teks: str) -> bytes:
     return _bungkus(ident, judul, "judul-cek-info", isi)
 
 
-def _form_mulai(token: str) -> str:
-    return (
-        f'<form method="post" action="{RUTE_MULAI}">'
-        f'<input type="hidden" name="token" value="{_a(token)}">'
-        '<label class="akun-label-persetujuan" for="setuju-cek">'
-        '<input type="checkbox" id="setuju-cek" name="setuju" value="1" required>'
-        f"<span>{_e(COPY_SETUJU)}</span></label>"
-        '<p class="akun-aksi-sandi">'
-        f'<button type="submit" class="tombol-utama-akun">{_e(COPY_TOMBOL_MULAI)}</button></p>'
-        "</form>"
-    )
-
-
-def halaman_mulai(ident, token: str, nama_anak: str, *, galat: str = "") -> bytes:
-    """Pemberitahuan data + centang persetujuan + tombol mulai (satu anak per akun)."""
-    isi = (
-        _kepala("CEK KEMAMPUAN GRATIS", "Mulai cek kemampuan", "judul-cek-mulai", nama_anak)
-        + _galat(galat)
-        + '<section class="kartu-st funnel-kartu-batas-st" aria-labelledby="judul-notice">'
-        f'<h2 id="judul-notice">{_e(COPY_NOTICE_JUDUL)}</h2><ul>{_daftar(COPY_NOTICE)}</ul>'
-        "</section>"
-        f'<div class="kartu-st">{_form_mulai(token)}</div>'
-    )
-    return _bungkus(ident, "Mulai cek kemampuan", "judul-cek-mulai", isi)
-
-
 def _blok_belum_selesai(token_tautan: str) -> str:
-    """Tanpa skor, kategori, atau ringkasan: hanya status dan tombol tautan anak."""
+    """Tanpa skor, kategori, ringkasan, atau angka: status, tautan anak, dan jalan ke siap mulai."""
     return (
         '<div class="kartu-st"><h2>Cek belum selesai</h2>'
         f"<p>{_e(COPY_BELUM_SELESAI)}</p>"
@@ -165,29 +143,42 @@ def _blok_belum_selesai(token_tautan: str) -> str:
         f'<input type="hidden" name="token" value="{_a(token_tautan)}">'
         '<p class="akun-aksi-sandi">'
         f'<button type="submit" class="tombol-utama-akun">{_e(COPY_TOMBOL_TAUTAN)}</button>'
-        f'<a href="{RUTE_HASIL}">Periksa lagi</a></p></form></div>'
+        f'<a href="{RUTE_HASIL}">Periksa lagi</a></p></form>'
+        f'<p class="funnel-tautan-baris-st"><a class="funnel-tautan-st" href="{RUTE_MULAI}">'
+        f"{_e(COPY_LIHAT_STATUS)}</a></p></div>"
     )
 
 
+def _chip(kelas: str, ikon: str, teks: str) -> str:
+    return f'<li class="funnel-chip-st {kelas}">{ikon}<span>{_e(teks)}</span></li>'
+
+
 def _blok_ringkasan(ringkasan: dict) -> str:
-    kuat, perlu = ringkasan["kuat"], ringkasan["perlu"]
+    kuat = ringkasan["kuat"][:cek_gratis_skor.MAKS_BUTIR_RINGKASAN]
+    perlu = ringkasan["perlu"][:cek_gratis_skor.MAKS_BUTIR_RINGKASAN]
     if not kuat and not perlu:
         return f'<p class="funnel-catatan-st">{_e(COPY_RINGKASAN_KOSONG)}</p>'
     bagian = ""
     if kuat:
-        bagian += f"<h3>Sudah kuat</h3><ul>{_daftar(kuat)}</ul>"
+        butir = "".join(_chip("funnel-chip-kuat-st", _ikon(_D_CENTANG, 20, "2.6"), b) for b in kuat)
+        bagian += f'<h3 class="funnel-sub-judul-st">Sudah kuat</h3><ul class="funnel-chip-baris-st">{butir}</ul>'
     if perlu:
-        bagian += f"<h3>Perlu diperkuat</h3><ul>{_daftar(perlu)}</ul>"
+        butir = "".join(_chip("funnel-chip-lemah-st", _ikon(_D_SERU), b) for b in perlu)
+        bagian += f'<h3 class="funnel-sub-judul-st">Perlu diperkuat</h3><ul class="funnel-chip-baris-st">{butir}</ul>'
     return bagian
 
 
 def _blok_terkunci() -> str:
     """Kerangka terkunci: teks tetap, tanpa argumen, jadi tanpa data apa pun."""
+    butir = "".join(
+        f'<li class="funnel-terkunci-butir-st">{_ikon(_D_GEMBOK, 20, "2.2")}<span>{_e(b)}</span></li>'
+        for b in COPY_KUNCI_BUTIR
+    )
     return (
         f'<section class="funnel-kunci-st" id="{ID_KERANGKA_TERKUNCI}" '
         'aria-labelledby="judul-kunci">'
-        f'<h2 id="judul-kunci">{_e(COPY_KUNCI_JUDUL)}</h2>'
-        f"<ul>{_daftar(COPY_KUNCI_BUTIR)}</ul>"
+        f'<h2 class="funnel-sub-judul-st" id="judul-kunci">{_e(COPY_KUNCI_JUDUL)}</h2>'
+        f'<ul class="funnel-terkunci-st">{butir}</ul>'
         f'<p class="funnel-catatan-st">{_e(COPY_KUNCI_CATATAN)}</p>'
         "</section>"
     )
@@ -195,8 +186,8 @@ def _blok_terkunci() -> str:
 
 def _blok_batas() -> str:
     return (
-        '<section class="kartu-st funnel-kartu-batas-st" aria-labelledby="judul-batas">'
-        '<h2 id="judul-batas">Batas hasil ini</h2>'
+        '<section class="funnel-batas-hasil-st" aria-labelledby="judul-batas">'
+        '<h2 class="funnel-sub-judul-st" id="judul-batas">Batas hasil ini</h2>'
         f"<ul>{_daftar(COPY_BATAS_HASIL)}</ul></section>"
     )
 
@@ -216,57 +207,69 @@ def _blok_pesan(token_pesan) -> str:
     )
 
 
-def _blok_selesai(hasil: dict, token_pesan=None) -> str:
+def _cincin(skor: int) -> str:
+    """Cincin skor SVG: busur dihitung server lewat atribut (tanpa gaya inline); warna dari kelas CSS."""
+    persen = max(0, min(100, int(skor)))
     return (
-        '<section class="kartu-st" aria-labelledby="judul-skor">'
-        f'<p class="funnel-pil-st funnel-pil-jujur-st">{_e(COPY_LABEL_GAMBARAN)}</p>'
-        '<h2 id="judul-skor">Skor keseluruhan</h2>'
-        '<p class="funnel-skor-st">'
-        f'<span class="funnel-skor-angka-st">{int(hasil["skor"])}</span>'
-        '<span class="funnel-skor-satuan-st">dari 100</span></p>'
-        f'<p>Kategori: <b>{_e(hasil["kategori"])}</b></p>'
-        "<h2>Ringkasan awal</h2>"
+        '<div class="funnel-cincin-wadah-st">'
+        '<svg class="funnel-cincin-svg-st" viewBox="0 0 104 104" aria-hidden="true">'
+        '<circle class="funnel-cincin-latar-st" cx="52" cy="52" r="42" pathLength="100"/>'
+        '<circle class="funnel-cincin-busur-st" cx="52" cy="52" r="42" pathLength="100" '
+        f'stroke-dasharray="{persen} 100"/></svg>'
+        f'<p class="funnel-cincin-angka-st"><b>{persen}</b><small>dari 100</small></p></div>'
+    )
+
+
+def _baris_benar(hasil: dict) -> str:
+    benar = cek_gratis_skor.jumlah_benar(int(hasil["skor"]), int(hasil["jumlah_soal"]))
+    if benar is None:
+        return ""
+    return f'<p class="funnel-benar-st">{benar} dari {int(hasil["jumlah_soal"])} soal benar</p>'
+
+
+def _blok_kepala_hasil(hasil: dict, nama_anak: str, kelas) -> str:
+    untuk = f"Hasil {nama_anak}" + (f" \u00b7 kelas {int(kelas)}" if type(kelas) is int else "")
+    return (
+        '<section class="funnel-hasil-kepala-st" aria-labelledby="judul-skor">'
+        '<h2 class="funnel-sr-st" id="judul-skor">Skor keseluruhan</h2>'
+        f'{_cincin(hasil["skor"])}'
+        '<div class="funnel-hasil-teks-st">'
+        f'<p class="funnel-hasil-untuk-st">{_e(untuk)}</p>'
+        f'<p class="funnel-kategori-judul-st">{_e(hasil["kategori"])}</p>'
+        f'<span class="funnel-pil-hasil-st">{_e(COPY_LABEL_GAMBARAN)}</span>'
+        "</div></section>"
+        f"{_baris_benar(hasil)}"
+    )
+
+
+def _blok_selesai(hasil: dict, token_pesan, nama_anak: str, kelas) -> str:
+    return (
+        f"{_blok_kepala_hasil(hasil, nama_anak, kelas)}"
+        '<section class="funnel-ringkasan-st" aria-labelledby="judul-ringkasan">'
+        '<h2 class="funnel-sub-judul-st" id="judul-ringkasan">Ringkasan awal</h2>'
         f'{_blok_ringkasan(hasil["ringkasan"])}</section>'
-        f"{_blok_batas()}{_blok_terkunci()}{_blok_pesan(token_pesan)}"
+        f"{_blok_terkunci()}{_blok_batas()}{_blok_pesan(token_pesan)}"
         '<p class="funnel-tautan-baris-st">'
-        f'<a class="funnel-tautan-st" href="/paket-coba">{_e(COPY_CTA_PAKET)}</a></p>'
+        f'<a class="funnel-tautan-st" href="/paket-coba">{_e(COPY_CTA_PAKET)}</a>'
+        f'<a class="funnel-tautan-sekunder-st" href="{funnel_pages.JALUR_CONTOH}">'
+        f"{_e(funnel_pages.COPY_TAUTAN_CONTOH)}</a></p>"
     )
 
 
 def halaman_hasil(ident, hasil: dict, nama_anak: str, token_tautan: str,
-                  token_pesan=None) -> bytes:
+                  token_pesan=None, kelas=None) -> bytes:
     """Hasil milik akun sesi: status `selesai` atau `belum_selesai` (selain itu tidak dirender).
 
     `token_pesan` (hanya saat gerbang pembayaran terbuka) menambah CTA pesan di hasil
-    selesai; None = markup identik dengan Fase 2.
+    selesai; None = tanpa byte CTA. `kelas` (int 1-6 atau None) hanya untuk judul kartu skor.
+    `token_tautan` (hasil belum selesai) memberi tombol tautan anak bawaan (QR, HP anak);
+    pilihan HP ini / HP anak lengkap ada di halaman siap mulai.
     """
-    isi = _kepala("CEK KEMAMPUAN GRATIS", "Hasil cek kemampuan", "judul-cek-hasil", nama_anak)
-    if hasil["status"] == "selesai":
-        isi += _blok_selesai(hasil, token_pesan)
+    selesai = hasil["status"] == "selesai"
+    isi = _kepala("CEK KEMAMPUAN GRATIS", "Hasil cek kemampuan", "judul-cek-hasil",
+                  "" if selesai else nama_anak)
+    if selesai:
+        isi += _blok_selesai(hasil, token_pesan, nama_anak, kelas)
     else:
         isi += _blok_belum_selesai(token_tautan)
-    return _bungkus(ident, "Hasil cek kemampuan", "judul-cek-hasil", isi)
-
-
-def halaman_tautan(ident, nama_anak: str, tautan: str) -> bytes:
-    """Kode QR + tautan teks untuk HP anak; hanya di respons POST pembuatnya."""
-    from teacher_print_pages import _blok_qr
-
-    isi = (
-        _kepala("MULAI DI HP ANAK", "Tautan untuk anak", "judul-cek-tautan", nama_anak)
-        + '<section class="kartu-st bagikan-kartu-st" aria-labelledby="label-tautan">'
-        f"{_blok_qr(tautan)}"
-        '<label id="label-tautan" for="tautan-sesi">Atau kirim tautan ini ke HP anak</label>'
-        f'<input id="tautan-sesi" type="text" readonly value="{_a(tautan)}" '
-        'aria-describedby="petunjuk-tautan" spellcheck="false">'
-        '<p id="petunjuk-tautan" class="sub">Pilih seluruh isi kotak, lalu salin. '
-        f"Tautan berlaku {_e(share_links.LABEL_MASA_BERLAKU)}, atau sampai cek selesai "
-        "maupun tautan baru dibuat.</p>"
-        '<p class="bagikan-perhatian-st">Siapa pun yang memegang tautan dapat mengerjakan '
-        "cek ini tanpa masuk. Berikan hanya kepada anak yang dituju. Tautan ini hanya "
-        "tampil di halaman ini; bila hilang, buat tautan baru dari halaman hasil. "
-        "Jangan masuk sebagai guru di HP anak.</p>"
-        "</section>"
-        f'<p class="akun-aksi-sandi"><a href="{RUTE_HASIL}">Kembali ke halaman hasil</a></p>'
-    )
-    return _bungkus(ident, "Tautan untuk anak", "judul-cek-tautan", isi, kelas=KELAS_BUNGKUS_TAUTAN)
+    return _bungkus(ident, "Hasil cek kemampuan", "judul-cek-hasil", f'<div class="funnel-alur-st">{isi}</div>')

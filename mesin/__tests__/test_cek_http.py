@@ -17,14 +17,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import cek_http  # noqa: E402
 import cek_pages  # noqa: E402
+import cek_pages_mulai  # noqa: E402
 import policy_http  # noqa: E402
 from cek_http_kit import (  # noqa: E402
     AKUN_A, AKUN_ADMIN, AKUN_B, AKUN_MURID, HASIL, MULAI, NAMA_A, NAMA_B, POLA_TOKEN, TAUTAN,
-    ambil_token, id_akun, jumlah, keadaan, keluarga, kirim_mulai, minta_mentah, server,
-    tambah_anak, token_form,
+    ambil_token, id_akun, jumlah, keadaan, keluarga, kirim_mulai, minta_mentah, mulai_cek,
+    selesaikan, server, tambah_anak, token_form,
 )
 
 KOSONG = (0, 0, 0, 0)
+SATU_CEK_SATU_TAUTAN = (1, 1, 15, 1)  # cek, sesi, soal sesi, tautan anak
 
 
 # --- sakelar ---------------------------------------------------------------
@@ -80,23 +82,55 @@ def test_get_mulai_tanpa_anak_pesan_jujur_tanpa_form(keluarga):
     assert kode == 200 and cek_pages.COPY_TANPA_ANAK in isi and "<form" not in isi
 
 
-def test_get_mulai_sesudah_punya_cek_dialihkan_ke_hasil(keluarga):
-    assert kirim_mulai(keluarga, AKUN_A)[0] == 303
+def test_get_mulai_sesudah_selesai_dialihkan_ke_hasil(keluarga):
+    selesaikan(keluarga, mulai_cek(keluarga), semua_benar=15)
     kode, isi, tajuk = minta_mentah(keluarga, MULAI, AKUN_A)
     assert (kode, tajuk["Location"], isi) == (303, HASIL, "")
 
 
+def test_get_mulai_cek_berjalan_tidak_lagi_dialihkan_tetapi_menawarkan_lanjut(keluarga):
+    mulai_cek(keluarga)
+    kode, isi, _t = minta_mentah(keluarga, MULAI, AKUN_A)
+    assert kode == 200 and NAMA_A in isi and f'action="{TAUTAN}"' in isi
+    assert f'action="{MULAI}"' not in isi
+
+
 # --- POST mulai: persetujuan -----------------------------------------------
 
-def test_post_sah_membuat_satu_cek_dan_satu_sesi_lalu_prg_tanpa_data_di_url(keluarga):
-    kode, isi, tajuk = kirim_mulai(keluarga, AKUN_A)
-    assert (kode, isi, tajuk["Location"]) == (303, "", HASIL)
+def test_post_sah_hp_ini_membuat_satu_cek_dan_satu_sesi_lalu_303_ke_tautan_anak_tanpa_data_di_url(keluarga):
+    kode, isi, tajuk = kirim_mulai(keluarga, AKUN_A, cara="hp_ini")
+    assert (kode, isi) == (303, "")
+    assert re.fullmatch(r"/mulai/[A-Za-z0-9_-]{43}\?di=hp-ini", tajuk["Location"])
     assert NAMA_A not in str(tajuk) and "Sintetis" not in tajuk["Location"]
-    assert keadaan(keluarga)[:2] == (1, 1)
+    assert "no-store" in tajuk["Cache-Control"] and tajuk["Referrer-Policy"] == "no-referrer"
+    assert keadaan(keluarga) == SATU_CEK_SATU_TAUTAN
     with keluarga.buka() as kon:
         baris = kon.execute("SELECT id_akun, siswa_id, setuju_pada FROM cek_gratis").fetchone()
     assert baris["id_akun"] == id_akun(AKUN_A) and baris["siswa_id"] == keluarga.anak_a
     assert baris["setuju_pada"]
+
+
+def test_post_sah_hp_anak_membuat_satu_cek_dan_menampilkan_qr_sekali(keluarga):
+    kode, isi, tajuk = kirim_mulai(keluarga, AKUN_A, cara="hp_anak")
+    assert kode == 200 and "<svg" in isi and "Location" not in tajuk
+    assert "no-store" in tajuk["Cache-Control"] and tajuk["Referrer-Policy"] == "no-referrer"
+    assert re.search(r"https?://[^/]+/mulai/[A-Za-z0-9_-]{43}", isi)
+    assert keadaan(keluarga) == SATU_CEK_SATU_TAUTAN
+    with keluarga.buka() as kon:
+        baris = kon.execute("SELECT id_akun, siswa_id, setuju_pada FROM cek_gratis").fetchone()
+    with keluarga.buka() as kon:
+        baris = kon.execute("SELECT id_akun, siswa_id, setuju_pada FROM cek_gratis").fetchone()
+    assert baris["id_akun"] == id_akun(AKUN_A) and baris["siswa_id"] == keluarga.anak_a
+    assert baris["setuju_pada"]
+
+
+@pytest.mark.parametrize("cara", [None, "", "hp-ini", "HP_INI", "hp_ini ", "tablet"])
+def test_cara_kosong_atau_asing_ditolak_400_tanpa_efek_dan_tanpa_memakan_laju(keluarga, cara):
+    kode, isi, _t = kirim_mulai(keluarga, AKUN_A, cara=cara)
+    assert kode == 400 and cek_pages_mulai.COPY_CARA_WAJIB in isi
+    assert keadaan(keluarga) == KOSONG
+    for _ in range(cek_http.BATAS_PERMULAAN_PER_HARI):  # laju utuh: sepuluh permulaan sah masih lolos
+        assert kirim_mulai(keluarga, AKUN_A)[0] == 200
 
 
 @pytest.mark.parametrize("setuju", [None, "", "0", "on", "true", "2"])
@@ -109,14 +143,14 @@ def test_tanpa_setuju_satu_tidak_ada_sesi_dan_baris(keluarga, setuju):
 def test_halaman_wajib_centang_membawa_token_segar_yang_bisa_dipakai(keluarga):
     _k, isi, _t = kirim_mulai(keluarga, AKUN_A, setuju=None)
     token = POLA_TOKEN.search(isi).group(1)
-    assert kirim_mulai(keluarga, AKUN_A, token=token)[0] == 303
+    assert kirim_mulai(keluarga, AKUN_A, token=token)[0] == 200
 
 
 def test_post_ganda_tidak_membuat_sesi_kedua(keluarga):
-    assert kirim_mulai(keluarga, AKUN_A)[0] == 303
+    assert kirim_mulai(keluarga, AKUN_A)[0] == 200
     awal = keadaan(keluarga)
-    assert kirim_mulai(keluarga, AKUN_A)[0] == 303
-    assert keadaan(keluarga) == awal and awal[:2] == (1, 1)
+    assert kirim_mulai(keluarga, AKUN_A)[0] == 200
+    assert keadaan(keluarga) == awal == SATU_CEK_SATU_TAUTAN
 
 
 # --- POST mulai: token & whitelist -----------------------------------------
@@ -223,7 +257,7 @@ def test_gerbang_persetujuan_mengarahkan_tanpa_efek(keluarga, monkeypatch):
 # --- kepemilikan -----------------------------------------------------------
 
 def test_dua_akun_cek_milik_sendiri_dan_tanpa_kebocoran(keluarga):
-    assert kirim_mulai(keluarga, AKUN_A)[0] == 303
+    assert kirim_mulai(keluarga, AKUN_A)[0] == 200
     with keluarga.buka() as kon:
         cek_a = tuple(kon.execute("SELECT * FROM cek_gratis").fetchone())
     isi_b = minta_mentah(keluarga, HASIL, AKUN_B)
@@ -231,8 +265,8 @@ def test_dua_akun_cek_milik_sendiri_dan_tanpa_kebocoran(keluarga):
     kode, isi, _t = minta_mentah(keluarga, MULAI, AKUN_B)
     assert kode == 200 and NAMA_B in isi and NAMA_A not in isi
     assert minta_mentah(keluarga, TAUTAN, AKUN_B, {"token": token_form(AKUN_B, cek_http.AKSI_TAUTAN)})[0] == 303
-    assert keadaan(keluarga) == (1, 1, 15, 0)
-    assert kirim_mulai(keluarga, AKUN_B)[0] == 303
+    assert keadaan(keluarga) == SATU_CEK_SATU_TAUTAN
+    assert kirim_mulai(keluarga, AKUN_B)[0] == 200
     with keluarga.buka() as kon:
         assert tuple(kon.execute("SELECT * FROM cek_gratis WHERE id_akun = ?",
                                  (id_akun(AKUN_A),)).fetchone()) == cek_a
@@ -244,16 +278,16 @@ def test_dua_akun_cek_milik_sendiri_dan_tanpa_kebocoran(keluarga):
 
 def test_permulaan_ke_sebelas_dari_ip_sama_ditolak_tanpa_efek(keluarga):
     for _ in range(cek_http.BATAS_PERMULAAN_PER_HARI):
-        assert kirim_mulai(keluarga, AKUN_A)[0] == 303
+        assert kirim_mulai(keluarga, AKUN_A)[0] == 200
     awal = keadaan(keluarga)
     kode, isi, _t = kirim_mulai(keluarga, AKUN_B)
     assert kode == 429 and "Terlalu banyak" in isi
-    assert keadaan(keluarga) == awal == (1, 1, 15, 0)
+    assert keadaan(keluarga) == awal == SATU_CEK_SATU_TAUTAN
 
 
 def test_di_bawah_batas_akun_lain_tetap_bisa(keluarga):
-    assert kirim_mulai(keluarga, AKUN_A)[0] == 303
-    assert kirim_mulai(keluarga, AKUN_B)[0] == 303
+    assert kirim_mulai(keluarga, AKUN_A)[0] == 200
+    assert kirim_mulai(keluarga, AKUN_B)[0] == 200
     assert keadaan(keluarga)[0] == 2
 
 
@@ -263,7 +297,7 @@ def test_jendela_laju_geser_lewat_sehari(keluarga, monkeypatch):
     asli = time.monotonic
     monkeypatch.setattr(cek_http.time, "monotonic",
                         lambda: asli() + cek_http.JENDELA_LAJU_DETIK + 1)
-    assert kirim_mulai(keluarga, AKUN_B)[0] == 303
+    assert kirim_mulai(keluarga, AKUN_B)[0] == 200
 
 
 # --- kelas ------------------------------------------------------------------
@@ -290,7 +324,7 @@ def test_pesan_galat_tidak_memuat_nama_atau_isi_eksepsi(server):
 
 def test_akun_tanpa_anak_post_pesan_jujur_tanpa_baris(server):
     token = token_form(AKUN_A, cek_http.AKSI_MULAI)
-    kode, isi, _t = minta_mentah(server, MULAI, AKUN_A, {"token": token, "setuju": "1"})
+    kode, isi, _t = minta_mentah(server, MULAI, AKUN_A, {"token": token, "setuju": "1", "cara": "hp_anak"})
     assert kode == 409 and cek_pages.COPY_TANPA_ANAK in isi and keadaan(server) == KOSONG
 
 

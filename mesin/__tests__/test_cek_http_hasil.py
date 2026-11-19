@@ -92,8 +92,10 @@ def test_selesai_memuat_skor_kategori_ringkasan_label_dan_batas(keluarga):
 def test_selesai_tanpa_angka_per_materi_kunci_jawaban_atau_peringkat(keluarga):
     isi = _hasil_selesai(keluarga, benar_per_topik={"pola-bilangan": 5, "statistika": 1, "geometri-datar": 3})
     teks = teks_tampak(isi)
-    assert re.findall(r"\d+", teks) == ["60", "100"]  # hanya skor keseluruhan (9 dari 15)
+    # urutan render: cincin skor (60 dari 100), kelas anak, lalu "9 dari 15 soal benar"; tanpa angka per materi
+    assert re.findall(r"\d+", teks) == ["60", "100", "4", "9", "15"]
     assert "%" not in teks
+    assert "9 dari 15 soal benar" in teks
     for kata in ("peringkat", "ranking", "Peringkat", "jawaban benar", "Rp"):
         assert kata not in teks
     assert not re.search(r"\bkunci\b", teks)
@@ -221,11 +223,18 @@ def test_murid_tidak_melihat_skor_atau_kategori_cek(keluarga):
 
 
 def test_pengiriman_dari_hp_anak_tidak_menampilkan_skor_atau_kategori(keluarga):
-    mulai_cek(keluarga)
+    sesi = mulai_cek(keluarga)
     token = re.search(r"/mulai/([A-Za-z0-9_-]{43})", _buat_tautan(keluarga)[1]).group(1)
-    data = {"aksi": "selesai", "revisi_pekerjaan": "0", "flow_kosong": "1"}
+    # Protokol anak lama ditolak di sesi cek (whitelist ketat) dan tidak menyelesaikan sesi.
+    lama = {"aksi": "selesai", "revisi_pekerjaan": "0", "flow_kosong": "1"}
+    assert minta_mentah(keluarga, f"/mulai/{token}", data=lama)[0] == 400
+    # Protokol anak cek: kumpulkan dari peta dengan revisi pekerjaan terkini.
+    import student_submissions
+    with keluarga.buka() as kon:
+        revisi = student_submissions.revisi(kon, sesi)
+    data = {"aksi": "kumpul", "revisi_pekerjaan": str(revisi)}
     kode, isi, _t = minta_mentah(keluarga, f"/mulai/{token}", data=data)
-    assert kode == 200
+    assert kode == 200 and "Hore" in isi
     assert not any(k in teks_tampak(isi) for k in KATA_SKOR_ANAK + KATEGORI)
 
 
@@ -290,9 +299,9 @@ def test_daftar_jalur_cek_diarahkan_ke_mulai_dan_alur_penuh_dengan_cookie(server
     _k, isi, _t = server_daftar.minta(MULAI, cookie=cookie)
     assert "Profil Sintetis" in isi and 'name="setuju"' in isi
     token = POLA_TOKEN.search(isi).group(1)
-    kode, _i, tajuk = minta_mentah(server_daftar, MULAI, data={"token": token, "setuju": "1"},
-                                   headers={"Cookie": cookie})
-    assert (kode, tajuk["Location"]) == (303, HASIL)
+    kode, isi, tajuk = minta_mentah(server_daftar, MULAI, data={"token": token, "setuju": "1", "cara": "hp_anak"},
+                                    headers={"Cookie": cookie})
+    assert kode == 200 and "<svg" in isi and "Location" not in tajuk
     assert jumlah(server_daftar, "cek_gratis") == 1
 
 

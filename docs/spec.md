@@ -155,7 +155,12 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   kelas sama, minimal 30 anak, selalu dengan penyebut); laporan nyata pesanan berbayar, isian Guru, dan agregat
   skor per kelas belum dibangun. Fase 2: cek gratis per anak di `/cek-kemampuan/mulai` (centang persetujuan wajib,
   tersimpan), `/hasil`, `/tautan` (peran guru; anak mengerjakan lewat `/mulai/<token>` yang ada); sesi biasa PG 15 soal
-  (`tujuan='bebas'`, bukan bukti siklus). Hasil gratis hanya skor (benar/15), kategori, ringkasan nama topik, berlabel "belum
+  (`tujuan='bebas'`, bukan bukti siklus). Pendaftaran jalur cek mewajibkan kelas. Halaman siap mulai menawarkan
+  "Kerjakan di HP ini" (`cara=hp_ini`: sesi login dihapus di server, lalu anak dibawa ke tautan) atau "Di HP/tablet anak"
+  (QR); cek berjalan dilanjutkan lewat `/tautan` dengan status X/15. Untuk sesi cek (dan hanya saat `FUNNEL_AKTIF`),
+  `/mulai/<token>` memakai tampilan anak khusus: satu soal per layar, jeda regang setelah soal 5 dan 10, peta soal,
+  Kumpulkan, layar Hore berbasis usaha (jumlah soal dijawab, tanpa benar/salah/skor); sesi biasa tak berubah. Orang tua
+  kembali lewat `/masuk?lanjut=/cek-kemampuan/hasil` (allow-list persis dua rute cek, peran guru). Hasil gratis hanya skor (benar/15), kategori, ringkasan nama topik, berlabel "belum
   ditinjau guru". **Pengecualian bercakupan sempit** atas larangan skor/persentase di laporan orang tua (Keputusan 17): skor cek
   dihitung di `cek_gratis` dan tidak lewat `parent_report_snapshot`. Bahan mentah dihapus 30 hari setelah selesai (sapuan
   `sapu_cek_gratis` belum dijadwalkan); turunan tetap selama akun aktif. Akun funnel tetap akun guru biasa, jadi halaman guru

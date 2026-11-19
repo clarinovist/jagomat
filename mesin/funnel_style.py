@@ -6,6 +6,7 @@ coral memakai kelas landing yang sudah ada di `style_stitch`.
 """
 
 import design_tokens as T
+from funnel_style_alur import GAYA_ALUR
 
 GAYA_FUNNEL = f"""
 /* Funnel Cek Kemampuan: harga, pil, kartu batas, tautan. */
@@ -171,3 +172,5 @@ GAYA_FUNNEL = f"""
   .funnel-halaman-st .funnel-contoh-bagian-st h2 {{ font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
 }}
 """
+
+GAYA_FUNNEL = GAYA_FUNNEL + GAYA_ALUR

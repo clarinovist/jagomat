@@ -13,7 +13,20 @@ import urllib.parse
 import brand
 import database
 import share_links
+from funnel_flag import funnel_aktif
+from share_finalisasi import catat_kiriman_tautan, finalkan_kiriman_tautan
 from support_pages import halaman_pesan as _halaman
+
+
+def _sesi_cek(kon, akses) -> bool:
+    """True bila tautan ini milik sesi cek gratis DAN sakelar funnel hidup.
+
+    Sakelar mati = jalur lama tanpa menyentuh tabel cek (output tak berubah).
+    """
+    if not funnel_aktif():
+        return False
+    import cek_anak_http
+    return cek_anak_http.adalah_sesi_cek(kon, int(akses["sesi_id"]))
 
 
 def tangani_tautan_get(penangan, jalur: str) -> bool:
@@ -29,6 +42,9 @@ def tangani_tautan_get(penangan, jalur: str) -> bool:
         if not akses:
             penangan._kirim_tautan(tidak_ada, 404)
             return True
+        if _sesi_cek(kon, akses):
+            import cek_anak_http
+            return cek_anak_http.tangani_get(penangan, kon, token, akses)
         isi = student_pages.halaman_kerja_baru(
             kon,
             int(akses["siswa_id"]),
@@ -81,6 +97,9 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
         if not akses:
             penangan._kirim_tautan(tidak_ada, 404)
             return True
+        if _sesi_cek(kon, akses):
+            import cek_anak_http
+            return cek_anak_http.tangani_post(penangan, kon, token, akses, data)
         siswa_id = int(akses["siswa_id"])
         sesi_id = int(akses["sesi_id"])
         if data.get("aksi") == "mulai":
@@ -135,15 +154,8 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
         if hasil:
             database.tandai_mulai(kon, sesi_id)
         selesai = aksi in ("selesai", "kirim_latihan")
-        kiriman_baru = not kon.execute(
-            "SELECT 1 FROM pengiriman_sesi WHERE sesi_id=?", (sesi_id,)
-        ).fetchone()
         if selesai:
-            from reports import diagnosa_murid
-            kiriman.arsipkan(kon, sesi_id, "tautan")
-            diagnosa_murid(kon, sesi_id)
-            database.tandai_mulai(kon, sesi_id)
-            database.tandai_selesai(kon, sesi_id)
+            kiriman_baru = finalkan_kiriman_tautan(kon, sesi_id)
             isi = _halaman(
                 "Jawaban tersimpan",
                 "<h1>Hebat, selesai!</h1>"
@@ -163,11 +175,7 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
     if hasil:
         sensor_http.sesi(sesi_id, 'pekerjaan_disimpan')
     if selesai:
-        sensor_http.sesi(sesi_id, 'dikirim')
-        import product_analytics_http as analitik
-        analitik.aktivitas_sesi(
-            sesi_id, "latihan_dikirim", baru=kiriman_baru
-        )
+        catat_kiriman_tautan(sesi_id, kiriman_baru)
     penangan._kirim_tautan(isi)
     return True
 

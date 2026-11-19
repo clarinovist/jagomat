@@ -249,6 +249,7 @@ def test_tag_kepala_dipakai_bukan_disalin():
         "teacher_shell.py",
         "teacher_session_pages.py",
         "student_pages.py",
+        "cek_anak_komponen.py",
         "attachments.py",
         "render.py",
     ):
@@ -265,6 +266,7 @@ MODUL_HALAMAN = (
     "teacher_shell.py",
     "teacher_session_pages.py",
     "student_pages.py",
+    "cek_anak_komponen.py",
     "attachments.py",
     "render.py",
 )

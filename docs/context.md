@@ -119,6 +119,12 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   in-memory, admin 404). Sesi cek = sesi gabungan 3 topik (kelas 3–6) atau `bilangan-dasar` (kelas 1–2, butuh flag materi
   dasar), PG, tanpa bukti siklus. `family_deletion` ikut menghapus baris cek. Perubahan skema menggeser fingerprint kontrak
   rilis: pin recovery diganti pada langkah rilis (tes `test_kontrak_candidate_identik_dengan_recovery_pinned` merah sampai itu).
+  Alur UI (19 Nov 2026): sisi anak `cek_anak_http.py` (dispatch dari `share_http` hanya bila funnel hidup dan sesi ada di
+  `cek_gratis`; GET berquery `soal/jeda/peta/keluar`, POST `mulai/simpan/keluar/kumpul` + PRG, daftar putih field, revisi
+  wajib) + `cek_anak_pages.py`/`cek_anak_komponen.py`/`cek_anak_style.py` (CSS hanya di halaman ini); finalisasi tautan
+  bersama di `share_finalisasi.py`. Sisi orang tua: `cek_pages_mulai.py` (siap mulai + QR), `cek_status.py` (status
+  belum/berjalan/selesai, hitung terjawab), `daftar_cek_pages.py` (form daftar jalur cek, kelas wajib),
+  `funnel_style_alur.py` (ikut `GAYA_FUNNEL`); allow-list `lanjut` cek di `auth_http.tujuan_lanjut`.
   Sakelar `FUNNEL_AKTIF` jangan dinyalakan sebelum keputusan copy refund/retensi otomatis dan pin recovery.
 - Funnel Fase 3 (pesanan Paket Coba): `schema_pesanan.py` (tabel aditif `pesanan_order/jendela/pengamatan/receipt/yatim/refund`,
   append-only, DB admin) + domain `pesanan.py` fasad atas `pesanan_dasar/order/status/jendela/provider/callback/admin`
