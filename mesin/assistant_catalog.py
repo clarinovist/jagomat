@@ -122,6 +122,9 @@ def buat_katalog(*, untuk_penawaran: bool = True) -> KatalogPendamping:
     # Audit registry utuh dahulu; hanya snapshot penawaran ke AI yang disaring.
     from question_context import daftar_topik_latihan
     tersedia = set(daftar_topik_latihan() if untuk_penawaran else topics.daftar_topik())
+    if untuk_penawaran:
+        # Topik manual-saja tidak ditawarkan Pendamping (palang `hanya_manual`).
+        tersedia &= set(topics.daftar_topik_siklus())
     topik_asli = tuple(t for t in topik_asli if t.id in tersedia)
     registry = {tid: t for tid, t in registry.items() if pemilik[tid].id in tersedia}
     if untuk_penawaran:

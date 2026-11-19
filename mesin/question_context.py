@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import os
 from typing import Tuple
 
+import school_numbers_versions
 import topics
 from templates import LEVEL, LEVEL_BAWAAN, LEVEL_TINGKAT, tingkat_valid
 
@@ -70,12 +71,15 @@ def materi_dasar_aktif() -> bool:
 def daftar_topik_latihan():
     """Topik yang boleh ditawarkan; registri pembaca histori tidak disaring."""
     aktif = materi_dasar_aktif()
-    return [t for t in topics.daftar_topik() if aktif or not topik_dasar(t)]
+    return [t for t in topics.daftar_topik()
+            if (aktif or not topik_dasar(t)) and school_numbers_versions.topik_dibuka(t)]
 
 
 def pastikan_materi_dibuka(topik_ids) -> None:
     """Palang pembuat sebelum generator/writer, bukan validasi pembaca konteks."""
     if not materi_dasar_aktif() and any(topik_dasar(t) for t in topik_ids):
+        raise ValueError('Materi ini belum dibuka.')
+    if not all(school_numbers_versions.topik_dibuka(t) for t in topik_ids):
         raise ValueError('Materi ini belum dibuka.')
 
 

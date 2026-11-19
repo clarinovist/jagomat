@@ -39,7 +39,8 @@ def test_rentang_kelas_meringkas_level_tanpa_menyiratkan_kelas_yang_tak_ada(leve
     assert rentang_kelas(level) == harapan
 
 
-def test_pilih_satu_topik_memberi_label_kelas_sesuai_komposisi(halaman):
+def test_pilih_satu_topik_memberi_label_kelas_sesuai_komposisi(halaman, monkeypatch):
+    monkeypatch.setenv('OSN_BILANGAN_SEKOLAH', '1')  # topik sakelar tampil dengan label kelas
     isi = halaman()
     assert re.search(r'<option value="bilangan-dasar"[^>]*>Bilangan Dasar \(Kelas 1–2\)</option>', isi)
     assert '<option value="aritmetika-dasar">Aritmetika Dasar (Kelas 5–6)</option>' in isi

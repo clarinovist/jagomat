@@ -60,6 +60,11 @@ class Topik:
     # Keterangan pilihan UI saat nama template sama tetapi cakupan level berbeda;
     # opsional agar paket lama tidak berubah, bukan input generator atau tingkat anak.
     keterangan_level: dict[str, str] | None = None
+    # Palang MANUAL-SAJA: topik hanya untuk Latihan manual guru dan lembar cetak.
+    # Tidak ikut Campuran, siklus terpandu (pemetaan/probe/pembanding/ubah fokus),
+    # mastery, dan penawaran Pendamping; pembaca histori tetap mengenalnya.
+    # Dipakai topik yang belum punya grup mastery, kartu intervensi, dan playbook.
+    hanya_manual: bool = False
 
     def komposisi_untuk(self, level: str) -> tuple[str, ...]:
         """Urutan template untuk satu lembar di level itu.
@@ -122,6 +127,7 @@ def _pastikan_dimuat() -> None:
     import topic_measurement  # noqa: F401  (mendaftarkan diri saat impor)
     import topic_basic_numbers  # noqa: F401  (mendaftarkan diri saat impor)
     import topic_school_basics  # noqa: F401  (mendaftarkan diri saat impor)
+    import topic_school_numbers  # noqa: F401  (mendaftarkan diri saat impor)
 
     if not PAKET:
         raise RuntimeError("paket topik dimuat tapi tidak mendaftarkan diri")
@@ -134,8 +140,10 @@ def _daftarkan_campuran() -> None:
     if "campuran" in PAKET:
         return
     # Topik manual P1/P2 bukan materi simulasi ujian, termasuk registrinya.
+    # Topik manual-saja P3+ juga bukan materi ujian (palang eksplisit).
     paket_ujian = [t for t in PAKET.values()
-                   if any(lv in t.komposisi for lv in LEVEL_TINGKAT)]
+                   if not t.hanya_manual
+                   and any(lv in t.komposisi for lv in LEVEL_TINGKAT)]
     gabungan_templates = {}
     pemilik_param = {}
     for t in paket_ujian:
@@ -348,6 +356,24 @@ def paket_untuk_template(template_ids) -> Topik:
 def daftar_topik() -> list[str]:
     _pastikan_dimuat()
     return sorted(PAKET)
+
+
+def daftar_topik_siklus() -> list[str]:
+    """Id topik yang boleh dipilih siklus terpandu, pemetaan, dan Pendamping.
+
+    Satu pintu bagi semua penyebut topik di jalur otomatis: tanpa paket sintetis
+    ("campuran") dan tanpa topik manual-saja. Pembaca histori tetap memakai
+    `daftar_topik()`.
+    """
+    _pastikan_dimuat()
+    return sorted(t.id for t in PAKET.values()
+                  if t.id != "campuran" and not t.hanya_manual)
+
+
+def template_hanya_manual(template_id: str) -> bool:
+    """True bila template dimiliki topik manual-saja; tak dikenal -> False."""
+    pemilik = pemilik_template(template_id)
+    return pemilik is not None and PAKET[pemilik].hanya_manual
 
 
 def dari_sesi(nilai: str | None) -> Topik:

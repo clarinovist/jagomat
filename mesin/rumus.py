@@ -81,6 +81,11 @@ KARTU: dict[str, Kartu] = {
         inti="Setiap posisi angka punya nilai pengali berbeda: satuan ×1, puluhan ×10, ratusan ×100, ribuan ×1.000.",
         contoh="Pada 4.528, angka 5 berada di ratusan sehingga nilainya 500, bukan 5.",
     ),
+    "nilai_tempat_besar": Kartu(
+        judul="Nilai tempat bilangan besar",
+        inti="Nilai angka = angka × nilai tempatnya: satuan ×1, puluhan ×10, ratusan ×100, ribuan ×1.000, dan seterusnya. Bentuk panjang menjumlahkan nilai semua angka.",
+        contoh="Pada 345.678, angka 4 di puluhan ribu bernilai 40.000. 345.678 = 300.000 + 40.000 + 5.000 + 600 + 70 + 8.",
+    ),
     "kelipatan_rentang": Kartu(
         judul="Menghitung kelipatan dalam rentang",
         inti="Hitung kelipatan sampai batas akhir, lalu kurangi kelipatan sebelum batas awal. Kedua batas ikut dihitung.",
@@ -454,6 +459,7 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "pembagian_dasar": "pembagian_dasar",
     "pecahan_bagian_dasar": "pecahan",
     "nilai_tempat_ribuan": "nilai_tempat_ribuan",
+    "nilai_tempat_besar": "nilai_tempat_besar",
     # statistika
     "rata_rata": "rata_rata",
     "rata_rata_gabungan": "rata_rata",

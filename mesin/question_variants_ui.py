@@ -227,7 +227,8 @@ def pemilih_isi(topik_ids, identitas, terpilih=None):
 
 def pemilih_pemetaan(identitas, terpilih=None):
     """Pilihan eksplisit untuk cakupan pemetaan lintas materi per profil warisan."""
-    semua_topik = tuple(t for t in topics.daftar_topik() if t != 'campuran')
+    # Pemetaan = jalur siklus: topik manual-saja tidak ikut dicakup.
+    semua_topik = tuple(topics.daftar_topik_siklus())
     identitas = html.escape(identitas, quote=True)
     kartu = ''.join(
         _kartu_isi(

@@ -128,6 +128,7 @@ _BUKTI_TEMPLATE = MappingProxyType({
     "pembagian_dasar": ("pembagian", "Jumlah total dan pembagi tertulis untuk pembagian merata tanpa nilai visual tersembunyi.", "Cabang bagi_rata dan operasi memakai konteks atau ekspresi simbolik."),
     "pecahan_bagian_dasar": ("pecahan", "Penyebut dan pembilang pecahan berpenyebut sama atau sisa potong tertulis eksplisit.", "Cabang sisa_bagian, jumlah_sama_penyebut, dan selisih_sama_penyebut memilih arah operasi."),
     "nilai_tempat_ribuan": ("nilai_tempat", "Bilangan tiga atau empat digit dan posisi ratusan atau ribuan tertulis langsung.", "Cabang nilai_angka dan selisih_nilai menanyakan satu posisi atau selisih dua posisi."),
+    "nilai_tempat_besar": ("nilai_tempat", "Bilangan tiga sampai enam angka dan tempat yang ditanya atau bagian bentuk panjangnya tertulis langsung; tahap A kelas 3 sampai 5 sengaja teks tanpa kartu nilai tempat visual.", "Cabang nilai_angka, lengkapi_panjang, dan susun_panjang menanyakan nilai satu angka, bagian yang hilang, atau bilangan hasil gabungan bagian."),
 })
 
 # topik, template, status, level, diskriminator, nilai varian, override per level
@@ -522,7 +523,8 @@ _ROWS = [('aritmatika-lanjut', 'berpapasan', 'visual_pendamping', ('P6',), (), (
  ('berhitung-sekolah', 'perkalian_dasar', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=cerita', 'varian=hitung'), {}),
  ('berhitung-sekolah', 'pembagian_dasar', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=bagi_rata', 'varian=operasi'), {}),
  ('berhitung-sekolah', 'pecahan_bagian_dasar', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=jumlah_sama_penyebut', 'varian=selisih_sama_penyebut', 'varian=sisa_bagian'), {}),
- ('berhitung-sekolah', 'nilai_tempat_ribuan', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=nilai_angka', 'varian=selisih_nilai'), {})]
+ ('berhitung-sekolah', 'nilai_tempat_ribuan', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=nilai_angka', 'varian=selisih_nilai'), {}),
+ ('bilangan-sekolah', 'nilai_tempat_besar', 'sengaja_teks', ('P3', 'P4', 'P5'), ('varian',), ('varian=nilai_angka', 'varian=lengkapi_panjang', 'varian=susun_panjang'), {})]
 
 
 def _bekukan(nilai: Any) -> Any:

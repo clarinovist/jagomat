@@ -124,7 +124,8 @@ def test_salah_tidak_otomatis_diagnosis_dan_manual_tetap(db):
 
 
 @pytest.mark.parametrize('topik', [n for n in topics.daftar_topik() if n!='campuran'])
-def test_sweep_pg_seluruh_level_seed_dan_kunci(topik):
+def test_sweep_pg_seluruh_level_seed_dan_kunci(topik, monkeypatch):
+    monkeypatch.setenv('OSN_BILANGAN_SEKOLAH', '1')  # sapu semua topik terdaftar
     for level in topics.ambil(topik).komposisi:
         for seed in range(200):
             lembar=buat_lembar_pilihan(seed,level=level,topik=topik)

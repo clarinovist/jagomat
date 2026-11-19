@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import os
 
+import school_numbers_versions
+
 NAMA_SAKELAR = "OSN_DASAR_LENGKAP"
 LEVEL_DASAR = ("P1", "P2")
 JUMLAH_SOAL_LEMBAR = 10
@@ -51,7 +53,13 @@ def keterangan_level():
 
 
 def template_dibuka(template_id: str) -> bool:
-    """Palang pembuat per template; pembaca histori tidak memakainya."""
+    """Palang pembuat per template; pembaca histori tidak memakainya.
+
+    Satu pintu bagi semua pemanggil (generator, Pendamping, remedial, latihan
+    serupa): jenis Bilangan Sekolah ikut dijaga sakelarnya sendiri.
+    """
+    if not school_numbers_versions.template_dibuka(template_id):
+        return False
     return template_id not in TEMPLATE_BARU or dasar_lengkap_aktif()
 
 

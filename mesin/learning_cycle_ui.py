@@ -444,8 +444,7 @@ def _override(rencana: RencanaBelajar, siswa_id: int) -> str:
         return ""
     template_ids = sorted({
         template_id
-        for topik_id in topics.daftar_topik()
-        if topik_id != "campuran"
+        for topik_id in topics.daftar_topik_siklus()
         for template_id in topics.ambil(topik_id).komposisi.get(rencana.putaran.level, ())
     })
     opsi_template = "".join(

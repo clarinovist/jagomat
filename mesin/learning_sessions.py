@@ -48,16 +48,18 @@ def _fokus_rencana(rencana: RencanaBelajar) -> Tuple[KunciFokus, ...]:
             raise ValueError("kode fokus tidak dikenal")
         if topics.pemilik_template(template_id) is None:
             raise ValueError("template fokus tidak dikenal")
+        if topics.template_hanya_manual(template_id):
+            raise ValueError("template fokus hanya untuk latihan manual")
     return hasil
 
 
 def _template_lintas_topik(level: str, jumlah: int, kecuali=()) -> list[str]:
     """Ambil template round-robin lintas paket pada level aktif."""
     terlarang = set(kecuali)
+    # Topik manual-saja (palang `hanya_manual`) tidak pernah masuk jalur siklus.
     paket = [
         topics.ambil(topik_id)
-        for topik_id in topics.daftar_topik()
-        if topik_id != "campuran"
+        for topik_id in topics.daftar_topik_siklus()
     ]
     per_topik = [
         _unik(t.komposisi_untuk(level))

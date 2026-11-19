@@ -93,7 +93,8 @@ def test_urutan_eksplisit_writer_dan_paket_tunggal(level):
         assert len(generator.buat_lembar(seed, level=level, topik=writer).soal) == 25
 
 
-def test_flag_mati_mempertahankan_pemakaian_rng_lama():
+def test_flag_mati_mempertahankan_pemakaian_rng_lama(monkeypatch):
+    monkeypatch.setenv('OSN_BILANGAN_SEKOLAH', '1')  # sapu semua topik terdaftar
     for nama in topics.daftar_topik():
         paket = topics.ambil(nama)
         assert paket.unik_per_lembar is (nama == TOPIK)

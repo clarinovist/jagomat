@@ -8,6 +8,8 @@ menghasilkan 45/133 tanda tangan, dari domain eksplisit 45/145 pasangan.
 Batch 2 (6 Nov 2026): kurang_dasar 55/96 (domain 55/100) dan bilangan_hilang
 155/231 dengan 4 bentuk (domain 180/580), nilai_tempat 20/176 (domain 20/237),
 bandingkan_bilangan 168/241 (domain 218/695), diukur dari kode.
+Bilangan-sekolah Tahap A (20 Nov 2026): nilai_tempat_besar P3 4/283, P4 5/299,
+P5 12/300 dengan tiga bentuk; domain terlalu besar untuk dienumerasi.
 Angka batch diukur lewat ukur_batch_fase3.py (artefak lokal). Tidak membutuhkan
 artefak docs/plan yang di-ignore. Kebenaran kunci/malrule tetap solver domain.
 G1 numerik ada di test_question_position; registry di sini menolak kelompok
@@ -38,6 +40,7 @@ bilangan-dasar kurang_dasar P1:1:55:- P2:1:96:-
 bilangan-dasar bilangan_hilang P1:4:155:- P2:4:231:-
 bilangan-dasar nilai_tempat P1:2:20:- P2:3:176:-
 bilangan-dasar bandingkan_bilangan P1:1:168:- P2:1:241:-
+bilangan-sekolah nilai_tempat_besar P3:4:283:lengkapi_panjang,nilai_angka,susun_panjang P4:5:299:lengkapi_panjang,nilai_angka,susun_panjang P5:12:300:lengkapi_panjang,nilai_angka,susun_panjang
 berhitung-sekolah nilai_tempat_ribuan P3:2:257:nilai_angka,selisih_nilai P4:4:298:nilai_angka,selisih_nilai
 berhitung-sekolah pecahan_bagian_dasar P3:6:162:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian P4:6:204:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian
 berhitung-sekolah pembagian_dasar P3:5:204:bagi_rata,operasi P4:5:254:bagi_rata,operasi
@@ -145,6 +148,9 @@ teori-bilangan jumlah_kelipatan P4:1:279:- P5:1:294:-
 _LEMBAR = """
 bilangan-dasar P1 10 1
 bilangan-dasar P2 10 1
+bilangan-sekolah P3 8 1
+bilangan-sekolah P4 8 1
+bilangan-sekolah P5 8 1
 berhitung-sekolah P3 8 4
 berhitung-sekolah P4 8 4
 aritmatika-lanjut P5 10 7
@@ -212,6 +218,11 @@ ALASAN_RUANG = {
 UTANG_LEMBAR = {
     ("bilangan-dasar", "P1"): (10.0, "writer bawaan (OSN_DASAR_LENGKAP=0) hanya tambah_dasar; campuran menyusul"),
     ("bilangan-dasar", "P2"): (10.0, "writer bawaan (OSN_DASAR_LENGKAP=0) hanya tambah_dasar; campuran menyusul"),
+    # Tahap A bilangan-sekolah (20 Nov 2026): satu jenis dengan tiga bentuk, jadi kerangka teks
+    # berulang (terukur 3,87/3,74/3,32); Tahap B menambah empat jenis lain dan melunasi utang ini.
+    ("bilangan-sekolah", "P3"): (4.0, "Tahap A satu jenis tiga bentuk; Tahap B menambah empat jenis"),
+    ("bilangan-sekolah", "P4"): (4.0, "Tahap A satu jenis tiga bentuk; Tahap B menambah empat jenis"),
+    ("bilangan-sekolah", "P5"): (3.5, "Tahap A satu jenis tiga bentuk; Tahap B menambah empat jenis"),
 }
 POLA_ANGKA = re.compile(r"\d+(?:[.,]\d+)?")
 
@@ -261,6 +272,12 @@ def _ukur(paket, level, tid):
 
 def _ukur_katalog():
     return {k: _ukur(paket, k[1], k[2]) for k, paket in _pasangan()}
+
+
+@pytest.fixture(autouse=True)
+def _sakelar_bilangan_sekolah_hidup(monkeypatch):
+    """Baseline menyapu semua topik terdaftar; pembuatan lembar bilangan-sekolah di balik sakelar."""
+    monkeypatch.setenv("OSN_BILANGAN_SEKOLAH", "1")
 
 
 @pytest.fixture(scope="module", params=("1", "2"))

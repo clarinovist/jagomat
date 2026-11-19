@@ -76,6 +76,9 @@ def test_katalog_memetakan_seluruh_pola_kelas_tepat_sekali(level):
     for topik_id in topics.daftar_topik():
         if topik_id=="campuran":continue
         paket=topics.ambil(topik_id)
+        if paket.hanya_manual:
+            assert not [t for t in target if t.topik_id==topik_id]  # palang manual-saja
+            continue
         harapan=set(paket.komposisi.get(level,()))
         aktual=[p for t in target if t.topik_id==topik_id for p in t.pola]
         assert set(aktual)==harapan

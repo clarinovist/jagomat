@@ -15,6 +15,7 @@ NAMA_TIPE_SOAL = {
     "pembagian_dasar": "Pembagian sama rata",
     "pecahan_bagian_dasar": "Pecahan sederhana",
     "nilai_tempat_ribuan": "Nilai tempat ratusan dan ribuan",
+    "nilai_tempat_besar": "Nilai tempat bilangan besar",
     "banyak_kelipatan": "Banyak kelipatan dalam rentang",
     "sisa_operasi": "Sisa penjumlahan dan perkalian",
     "banyak_prima": "Banyak prima dalam rentang",

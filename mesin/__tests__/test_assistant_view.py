@@ -360,6 +360,8 @@ def test_ringkasan_distribusi_sama_eksekusi_tanpa_generator(jumlah, monkeypatch)
         if topik_id == "campuran":
             continue
         topik = topics.ambil(topik_id)
+        if topik.hanya_manual:
+            continue  # palang manual-saja: Pendamping tidak menawarkan (test_hanya_manual_palang)
         for level in topik.komposisi:
             # Yang ditawarkan adalah isi writer, bukan inventaris pembaca.
             dasar = list(dict.fromkeys(topik.komposisi_untuk(level)))[:8]

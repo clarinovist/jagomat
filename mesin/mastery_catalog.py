@@ -54,6 +54,11 @@ KELOMPOK = {
         ("nilai_tempat", "Nilai tempat puluhan dan satuan", ("nilai_tempat",)),
         ("membandingkan", "Membandingkan bilangan", ("bandingkan_bilangan",)),
     ),
+    # Grup audit untuk latihan manual P3–P5 (palang `Topik.hanya_manual`); bukan target
+    # siklus. `katalog_target` melewati topik manual-saja walau grup ini ada.
+    "bilangan-sekolah": (
+        ("nilai_tempat_besar", "Nilai tempat bilangan besar", ("nilai_tempat_besar",)),
+    ),
     "berhitung-sekolah": (
         ("perkalian_dasar", "Perkalian dasar kelas 3–4", ("perkalian_dasar",)),
         ("pembagian_dasar", "Pembagian dasar kelas 3–4", ("pembagian_dasar",)),
@@ -150,9 +155,8 @@ def katalog_target(level: str) -> Tuple[TargetMateri, ...]:
     if level not in LEVEL_TINGKAT:
         return ()
     hasil = []
-    for topik_id in topics.daftar_topik():
-        if topik_id == "campuran":
-            continue
+    # Topik manual-saja tidak pernah menjadi target mastery, walau kelak ada di KELOMPOK.
+    for topik_id in topics.daftar_topik_siklus():
         paket = topics.ambil(topik_id)
         pola_kelas = set(paket.komposisi.get(level, ()))
         for kode, nama, pola in KELOMPOK.get(topik_id, ()):

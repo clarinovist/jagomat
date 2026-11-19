@@ -76,7 +76,8 @@ def test_pemilih_campuran_mengikuti_komposisi_campuran_bukan_irisan_semua_topik(
 
 
 @pytest.mark.parametrize('topik', [t for t in topics.daftar_topik() if t != 'campuran'])
-def test_contoh_tepat_paket_profil_deterministik_dan_hanya_soal(topik):
+def test_contoh_tepat_paket_profil_deterministik_dan_hanya_soal(topik, monkeypatch):
+    monkeypatch.setenv('OSN_BILANGAN_SEKOLAH', '1')  # sapu semua topik terdaftar
     from generator import buat_lembar
     from question_variants_ui import contoh_variasi
     from render import _badan_soal
@@ -101,6 +102,7 @@ def test_contoh_tepat_paket_profil_deterministik_dan_hanya_soal(topik):
 
 def test_panduan_mencakup_registry_tanpa_klaim_jenjang(monkeypatch):
     monkeypatch.setenv('OSN_MATERI_DASAR', '1')
+    monkeypatch.setenv('OSN_BILANGAN_SEKOLAH', '1')
     from question_variants_ui import panduan_variasi
     from template_labels import nama_tipe_soal
     import html

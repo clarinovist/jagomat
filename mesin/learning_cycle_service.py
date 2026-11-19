@@ -575,6 +575,8 @@ def _ubah_fokus(
         raise ValueError("siswa tidak dikenal")
     if fokus_baru[1] not in {"B", "K", "H", "E", "N", "T"} or topics.pemilik_template(fokus_baru[0]) is None:
         raise ValueError("fokus baru tidak dikenal")
+    if topics.template_hanya_manual(fokus_baru[0]):
+        raise ValueError("fokus baru hanya untuk latihan manual")
     putaran_id = _putaran_aktif(kon, siswa_id, siswa["tingkat"])
     if putaran_id is None:
         raise ValueError("putaran aktif tidak ditemukan")

@@ -32,6 +32,14 @@ import topics  # noqa: E402
 from generator import buat_lembar, buat_soal  # noqa: E402
 
 JUMLAH_SEED = 500
+
+
+@pytest.fixture(autouse=True)
+def _sakelar_bilangan_sekolah_hidup(monkeypatch):
+    """Kontrak variasi menyapu semua topik terdaftar, termasuk yang pembuatannya di balik sakelar."""
+    monkeypatch.setenv("OSN_BILANGAN_SEKOLAH", "1")
+
+
 BATAS_UNIK_BARU = 200
 BATAS_UNIK_LAMA = 3  # paket lama cukup tidak kambuh ke 2-combo
 MIN_LEMBAR_BEDA = 0.9

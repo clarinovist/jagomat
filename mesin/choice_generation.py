@@ -12,7 +12,9 @@ TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   'susun_bilangan_syarat', 'unsur_bangun', 'luas_permukaan',
                   'luas_arsiran', 'jam_selesai',
                   # Dua pengecoh selalu sah; collision tidak diisi angka rekaan.
-                  'tambah_dasar', 'kurang_dasar', 'bilangan_hilang', 'nilai_tempat'})
+                  'tambah_dasar', 'kurang_dasar', 'bilangan_hilang', 'nilai_tempat',
+                  # Dua jalur K selalu ada (angka saja, tempat sebelah); H hanya kadang ada.
+                  'nilai_tempat_besar'})
 
 
 def kebijakan_soal(soal):

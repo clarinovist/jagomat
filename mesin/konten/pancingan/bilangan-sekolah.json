@@ -1,0 +1,15 @@
+{
+ "versi_format": 1,
+ "topik": "bilangan-sekolah",
+ "status": "draf",
+ "template": {
+  "nilai_tempat_besar": {
+   "pertanyaan": [
+    "Minta anak menunjuk angka yang ditanya, lalu menyebut berapa nilainya, bukan nama angkanya.",
+    "Tanya: angka 7 di tempat ratusan bernilai 7 atau 700? Tunjukkan dengan tujuh kumpulan seratus.",
+    "Minta anak menulis bentuk panjang bilangan itu, lalu menjumlahkannya kembali untuk memeriksa."
+   ],
+   "tindak_lanjut": "Pakai kartu nilai tempat: tulis tiap angka pada kolomnya, ganti dengan nilainya (3 ratusan = 300), lalu jumlahkan semua nilainya dan bandingkan dengan bilangan awal."
+  }
+ }
+}
