@@ -485,6 +485,7 @@ def _render_get(penangan, principal, query):
 
 
 def tangani_get(penangan, jalur):
+    import admin_cek_topik_http
     import admin_lembaga_http
     import admin_pesanan_http
     import admin_research_http
@@ -494,6 +495,8 @@ def tangani_get(penangan, jalur):
     if admin_pesanan_http.tangani_get(penangan, jalur):
         return True
     if admin_usage_http.tangani_get(penangan, jalur):
+        return True
+    if admin_cek_topik_http.tangani_get(penangan, jalur):
         return True
     if admin_lembaga_http.tangani_get(penangan, jalur):
         return True

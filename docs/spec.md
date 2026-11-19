@@ -116,6 +116,9 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   WIB, 8 minggu terakhir: minggu aktif, sesi dibuat/selesai/dikonfirmasi, median lama anak,
   jeda selesai→konfirmasi, perkiraan waktu tinjau, sumber, laporan terbit. Tanpa nama anak;
   waktu persiapan belum terukur.
+- Admin melihat **Topik Cek Kemampuan** (`/admin/cek-topik`, baca-saja, tanpa DB): topik cek gratis
+  per kelas, soal per topik, contoh jenis soal, dan status materi dasar kelas 1–2. Diturunkan dari kode;
+  mengubahnya lewat kode dan rilis, bukan dari admin.
 - Akses awal **nonkomersial**. Fondasi paket/pembayaran tidak berarti trial,
   kampanye, checkout v2, refund atau penegakan paket telah dibuka.
 

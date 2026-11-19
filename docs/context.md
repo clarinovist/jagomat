@@ -92,6 +92,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - `teacher_usage.py` (SELECT saja, dari kolom sesi/pengiriman/laporan yang ada; tanpa migrasi)
   → `admin_usage_pages.py` → `admin_usage_http.py` untuk `/admin/pemakaian`. SQL sengaja di modul
   bernama non-`*store*` karena hanya membaca; sidik kontrak persistensi tidak berubah.
+- `admin_cek_topik_pages.py` → `admin_cek_topik_http.py` untuk `/admin/cek-topik`: render murni dari
+  `cek_gratis_skor.TOPIK_PER_KELAS` dan registri `topics`, tanpa DB.
 - Kontak WhatsApp per akun: `schema_contact.py` (tabel aditif `kontak_akun`, kunci `id_akun`, bukan
   nama login, supaya nama yang dipakai ulang tidak mewarisi kontak) + `kontak_akun.py` (normalisasi
   628…, simpan/ambil/hapus di transaksi pemanggil, `sentuh_aktivitas` maks 1 tulis/hari,
