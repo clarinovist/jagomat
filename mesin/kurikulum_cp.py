@@ -16,7 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, Tuple
 
-STATUS_PEMETAAN = "draf 2026-11-20: menunggu tinjauan Guru Mutia"
+STATUS_PEMETAAN = "disahkan pemilik 2026-11-20"
 KECOCOKAN = ("penuh", "sebagian", "prasyarat", "pengayaan")
 FASE = {"A": "Kelas 1-2", "B": "Kelas 3-4", "C": "Kelas 5-6", "D": "Kelas 7-9"}
 ELEMEN = {

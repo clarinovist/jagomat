@@ -8,8 +8,8 @@ dan penutupan impornya).
 
 `mesin/kurikulum_cp.py` memuat 85 butir CP Matematika Fase A–D (Kepka BSKAP 046/H/KR/2025)
 dan `CP_PER_GRUP`: tiap grup katalog → butir CP + kecocokan (penuh/sebagian/prasyarat/
-pengayaan; kosong = di luar CP, pengayaan olimpiade). Status pemetaan: **draf, menunggu
-tinjauan Guru Mutia** (`STATUS_PEMETAAN`). `butir_tanpa_grup()` = celah cakupan.
+pengayaan; kosong = di luar CP, pengayaan olimpiade). Status pemetaan: **disahkan pemilik
+20 Nov 2026** (`STATUS_PEMETAAN`); revisi Guru tetap lewat perubahan data ini. `butir_tanpa_grup()` = celah cakupan.
 
 Nama publik berikut diturunkan dari katalog (tipe dan urutan tidak berubah):
 `topik_awam.NAMA_AWAM`, `mastery_catalog.KELOMPOK`, `cek_gratis_skor.TOPIK_PER_KELAS`
