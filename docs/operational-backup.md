@@ -175,7 +175,8 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
 - **Batas**: off-site bergantung pada Mac menyala; bila Mac mati, backup lokal VPS tetap
   jalan tetapi tidak ada salinan keluar VPS hari itu. Kegagalan off-site mengirim alert
   Telegram lewat `notify-telegram.py` (token dari `~/.hermes/.env`); jalur gagal belum
-  diuji end-to-end, hanya dry-run.
+  diuji end-to-end, hanya dry-run. Backup memegang koneksi baca singkat; jangan jadwalkan
+  deploy/preflight `host_quiescent` tepat pada 21:45 karena `fuser` bisa menganggapnya writer.
 
 ### Restore dari backup harian
 
