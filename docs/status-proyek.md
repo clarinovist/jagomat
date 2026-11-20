@@ -52,9 +52,15 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   di sini adalah snapshot bertanggal, bukan monitor live atau klaim `main` selalu deployed.
 - Auto-deploy tetap nonaktif: push hanya feedback CI; dispatch manual menjalankan
   gate rilis lengkap, lalu pemasangan terkontrol sesuai [runbook](production-release.md).
-- **Lingkungan uji** `https://uji.jagomat.id` (1 November 2026; disamakan ke `a9977f8`
-  pada 2 November): image yang sama dengan produksi (digest `756e23d6…`), data sintetis,
-  di VPS non-produksi yang dipakai
+- **Lingkungan uji** `https://uji.jagomat.id` — **DINONAKTIFKAN 20 November 2026** atas
+  keputusan Pemilik: vhost 443 dibalas `410 Gone`, container `jagomat-uji` dihentikan
+  (tidak dihapus), data sintetis `/opt/jagomat-uji/data` tidak disentuh, DNS dan
+  sertifikat dipertahankan. Image terakhir `b412b42` (digest `0757224c…`), jadi tidak
+  pernah disamakan ke rilis 19–20 November. Container dicatat di
+  `/root/monitoring/container-dikecualikan.txt` agar tidak memicu alert CONTAINER DOWN;
+  langkah aktivasi ulang ada di `/opt/jagomat-uji/deaktivasi-20261120/README.md`.
+  Sebelumnya (1 November 2026; disamakan ke `a9977f8` pada 2 November): image yang sama
+  dengan produksi (digest `756e23d6…`), data sintetis, di VPS non-produksi yang dipakai
   bersama proyek lain. Dilindungi gerbang sandi tim di depan login app, `noindex`;
   Pendamping/LLM dan pembayaran nonaktif; tautan berbagi diarahkan ke host uji. Bukan
   deployment produksi, tidak ikut backup, hanya untuk data sintetis. Walkthrough
