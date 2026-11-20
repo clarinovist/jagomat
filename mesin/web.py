@@ -74,6 +74,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan", "admin"),  # Fase 3c-4: daftar order admin; sudah tercakup prefix `/admin`
     ("/admin/pesanan/verifikasi", "admin"),  # transfer rekening (tahap 3): detail, pratinjau bukti, rekening
     ("/admin/pesanan/bukti", "admin"),
+    ("/admin/pesanan/order", "admin"),  # Fase C: detail order (periksa/refund pindah ke sini; POST tetap di rute lama)
     ("/admin/pesanan/rekening", "admin"),
     ("/admin/sakelar", "admin"),  # sakelar fitur: empat sakelar admin; sudah tercakup prefix `/admin`
     ("/", "publik"),  # landing; guru/admin melihat berandanya sendiri

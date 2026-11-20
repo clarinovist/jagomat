@@ -24,12 +24,12 @@ from pesanan_http_kit import (  # noqa: E402
 )
 
 HALAMAN = "/admin/pesanan"
+DETAIL = HALAMAN + "/order"
 PERIKSA = HALAMAN + "/periksa"
 REFUND = HALAMAN + "/refund"
 RUTE_AKSI = (PERIKSA, REFUND)
 TAK_ADA = "/admin/tidak-ada"
 ORDER_ASING = "ord_" + "0" * 32
-POLA_BARIS = re.compile(r"<tr>.*?</tr>", re.S)
 POLA_FORM = re.compile(r'<form method="post" action="([^"]+)"[^>]*>(.*?)</form>', re.S)
 POLA_ISIAN = re.compile(r'<input type="hidden" name="(\w+)" value="([^"]*)"')
 
@@ -49,27 +49,42 @@ def lokasi(tajuk) -> str:
     return tajuk["Location"]
 
 
-def hasil_dari(tajuk) -> str:
-    """Kode `hasil` pada Location pengalihan (bukti PRG: tanpa data di URL selain kode)."""
-    cocok = re.fullmatch(r"/admin/pesanan\?halaman=\d+&hasil=([a-z_]+)", lokasi(tajuk))
+def alamat_detail(order_id: str, hasil: str = "") -> str:
+    """URL Detail order; `hasil` opsional (kode hasil aksi untuk banner)."""
+    return "%s?id=%s%s" % (DETAIL, order_id, "&hasil=" + hasil if hasil else "")
+
+
+def hasil_dari(tajuk, order_id: str = "") -> str:
+    """Kode `hasil` pada Location pengalihan ke Detail order (PRG: tanpa data di URL selain id order dan kode).
+
+    Bila `order_id` diberikan, pengalihan harus menuju order itu.
+    """
+    cocok = re.fullmatch(r"/admin/pesanan/order\?id=(ord_[0-9a-f]{32})&hasil=([a-z_]+)", lokasi(tajuk))
     assert cocok, lokasi(tajuk)
-    return cocok.group(1)
+    assert not order_id or cocok.group(1) == order_id, lokasi(tajuk)
+    return cocok.group(2)
 
 
-def form_halaman(isi: str, order_id: str) -> dict:
-    """{action: {nama: nilai}} semua form tersembunyi pada baris tabel milik order ini."""
-    baris = [b for b in POLA_BARIS.findall(isi) if order_id in b]
-    assert len(baris) == 1, "baris order harus tepat satu"
+POLA_GAYA_SKRIP = re.compile(r"<(style|script)\b.*?</\1>", re.S)
+
+
+def markup(isi: str) -> str:
+    """Isi halaman tanpa blok <style>/<script> bingkai admin (yang menyebut `reauth`/`password` sebagai teks)."""
+    return POLA_GAYA_SKRIP.sub("", isi)
+
+
+def form_order(isi: str) -> dict:
+    """{action: {nama: nilai}} form tindakan pesanan pada halaman (form bingkai admin seperti tema/keluar diabaikan)."""
     return {aksi: {k: html.unescape(v) for k, v in POLA_ISIAN.findall(badan)}
-            for aksi, badan in POLA_FORM.findall(baris[0])}
+            for aksi, badan in POLA_FORM.findall(isi) if aksi.startswith(HALAMAN + "/")}
 
 
-def token_langsung(cookie: str, aksi: str, order_id: str, halaman: int = 1) -> dict:
+def token_langsung(cookie: str, aksi: str, order_id: str) -> dict:
     """csrf + tinjauan sah untuk order tertentu tanpa lewat halaman (kasus order asing/aksi silang)."""
     akun = auth.cari_akun(AKUN_ADMIN[0])
     return {"csrf": admin_http._csrf(akun, cookie), "reauth": SANDI_ADMIN,
             "tinjauan": admin_security.buat_tinjauan(
-                akun, cookie, aksi, {"target_id": order_id, "halaman": halaman})}
+                akun, cookie, aksi, {"target_id": order_id})}
 
 
 def kirim_aksi(server, cookie, jalur, order_id, *, ekstra=None, ganti=None, hapus=()):
@@ -85,15 +100,18 @@ def kirim_aksi(server, cookie, jalur, order_id, *, ekstra=None, ganti=None, hapu
     return minta_admin(server, jalur, cookie, data)
 
 
-def kirim_dari_halaman(server, cookie, jalur, order_id, *, ekstra=None):
-    """POST dengan form persis seperti yang dirender halaman daftar (E2E)."""
-    kode, isi, _t = minta_admin(server, HALAMAN, cookie)
+def kirim_dari_detail(server, cookie, jalur, order_id, *, ekstra=None, ganti=None, hapus=()):
+    """POST dengan form persis seperti yang dirender halaman Detail order (E2E); `ganti`/`hapus` mengubah field."""
+    kode, isi, _t = minta_admin(server, alamat_detail(order_id), cookie)
     assert kode == 200
-    data = dict(form_halaman(isi, order_id)[jalur])
+    data = dict(form_order(isi)[jalur])
     data["reauth"] = SANDI_ADMIN
     if jalur == REFUND:
         data["catatan_kode"] = "permintaan_pembeli"
     data.update(ekstra or {})
+    data.update(ganti or {})
+    for kunci in hapus:
+        data.pop(kunci, None)
     return minta_admin(server, jalur, cookie, data)
 
 
@@ -109,8 +127,8 @@ def order_lunas(bayar, cookie):
     """Order lunas lewat jalur nyata: provider melaporkan settlement, admin memeriksa."""
     order, trx = order_bayar(bayar)
     bayar.provider.status_data = lambda oid: settlement(oid, trx)
-    kode, _i, tajuk = kirim_dari_halaman(bayar, cookie, PERIKSA, order["order_id"])
-    assert (kode, hasil_dari(tajuk)) == (303, "periksa_ok")
+    kode, _i, tajuk = kirim_dari_detail(bayar, cookie, PERIKSA, order["order_id"])
+    assert (kode, hasil_dari(tajuk, order["order_id"])) == (303, "periksa_ok")
     return order, trx
 
 

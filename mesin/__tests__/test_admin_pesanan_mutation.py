@@ -18,7 +18,11 @@ import pytest
 
 AKAR = Path(__file__).resolve().parents[2]
 G = "mesin/__tests__/test_admin_pesanan.py::"
+D = "mesin/__tests__/test_admin_pesanan_detail.py::"
 HTTP, ADMIN = "mesin/admin_pesanan_http.py", "mesin/admin_http.py"
+AKSI = "mesin/admin_pesanan_aksi.py"
+REAUTH = (ADMIN, '    if not _reauth(principal, data.pop("reauth", "")):\n        raise PermissionError("Autentikasi ulang gagal.")\n',
+          '    data.pop("reauth", "")\n')
 
 KASUS = (
     ("A-peran-admin-dilepas",
@@ -52,6 +56,32 @@ KASUS = (
      ((HTTP, '    return "rfd_" + hashlib.sha256(order_id.encode("utf-8")).hexdigest()[:_PANJANG_OPERASI]\n',
        '    return "rfd_" + __import__("secrets").token_hex(16)\n'),),
      (G + "test_refund_idempoten_replay_form_sama", G + "test_refund_ulang_dari_form_baru_dengan_catatan_sama_idempoten")),
+    # Fase C: aksi uang dari halaman Detail order. Reauth dimatikan (sama seperti F) harus merahkan tes negatif
+    # refund dan periksa yang memakai form persis seperti dirender halaman Detail.
+    ("I-reauth-dilepas-pada-refund-dari-detail", (REAUTH,),
+     (D + "test_refund_dari_detail_tanpa_syarat_guard_403_tanpa_catatan",)),
+    ("J-reauth-dilepas-pada-periksa-dari-detail", (REAUTH,),
+     (D + "test_periksa_dari_detail_tanpa_syarat_guard_403_tanpa_efek",)),
+    ("K-csrf-dilepas-pada-refund-dari-detail",
+     ((ADMIN, '    _cek_csrf(akun, token_sesi, data.pop("csrf", None))\n    token = data.pop("tinjauan", None)\n',
+       '    data.pop("csrf", None)\n    token = data.pop("tinjauan", None)\n'),),
+     (D + "test_refund_dari_detail_tanpa_syarat_guard_403_tanpa_catatan",)),
+    ("L-peran-admin-dilepas-pada-detail",
+     ((HTTP, "def _admin(penangan):\n    return h._principal_admin(penangan)\n",
+       "def _admin(penangan):\n    return penangan._principal()\n"),),
+     (D + "test_detail_nonadmin_404_byte_identik_dan_ledger_tak_dibaca",)),
+    ("M-id-detail-tak-divalidasi",
+     ((AKSI, '    if type(order_id) is not str or _POLA_ORDER.fullmatch(order_id) is None:\n        raise ValueError("order tidak sah")\n    return order_id\n',
+       "    return order_id\n"),),
+     (D + "test_detail_query_tak_sah_404_identik_rute_tak_dikenal",)),
+    ("N-allowlist-saringan-daftar-dilepas",
+     ((HTTP, '    if saring is not None and saring not in ui.KODE_SARING:\n        raise ValueError("query tidak sah")\n', ""),),
+     (D + "test_daftar_saringan_asing_404_identik",)),
+    ("O-form-detail-untuk-sesi-non-kuki",
+     ((HTTP, '    if principal.metode != "cookie":\n        return {}\n    tersedia = ui.aksi_tersedia(detail, gerbang_terbuka)\n',
+       "    tersedia = ui.aksi_tersedia(detail, gerbang_terbuka)\n"),),
+     (D + "test_detail_sesi_basic_baca_saja_tanpa_form_dan_tanpa_sandi",
+      D + "test_detail_sesi_basic_lunas_baca_saja_tanpa_form_refund")),
 )
 
 

@@ -1,4 +1,4 @@
-"""Rute admin `/admin/pesanan` (daftar) dan aksi periksa/refund (Fase 3c-4).
+"""Rute admin `/admin/pesanan` (daftar), `/admin/pesanan/order` (detail order), dan aksi periksa/refund (Fase C).
 
 Satu permukaan kecil di bawah `/admin/`: sudah dijawab `admin_http` sebelum palang guru, jadi
 anonim, murid, dan guru menerima 404 yang sama dengan rute admin tak dikenal (`h._tidak_ada`)
@@ -16,9 +16,12 @@ SEBELUM ledger dibaca. Aturan yang ditegakkan di sini:
   deterministik per order (idempoten, satu catatan per order); `dicatat_oleh` = id akun admin sesi.
 - Jejak: catatan refund itu sendiri (pelaku, kode, waktu; tabel append-only). Aksi periksa tidak
   menulis jurnal admin (kontrak jurnal `operasi_admin` tidak diubah); efeknya tercatat sebagai pengamatan ledger.
-- Tidak ada `str(galat)` di respons; PRG: pengalihan 303 ke daftar dengan kode hasil dari enum tetap.
-- Jalur transfer rekening: daftar menerima `?status=menunggu` (tab verifikasi) dan menampilkan ringkasan transfer
-  (`pesanan_admin_transfer`); rute detail/pratinjau/keputusan dan rekening didelegasikan ke
+- Tidak ada `str(galat)` di respons; PRG: pengalihan 303 ke Detail order (`/admin/pesanan/order?id=&hasil=`)
+  dengan kode hasil dari enum tetap. `order_id` di pengalihan berasal dari tinjauan bertanda tangan.
+- Daftar tanpa form tindakan: form periksa dan refund hanya ada di Detail order (token per aksi dibuat di sana,
+  hanya untuk sesi berkuki). Detail order: admin saja, id divalidasi persis, order tak ada = 404 identik rute tak dikenal.
+- Daftar menerima `?status=` dari allowlist `ui.KODE_SARING` (menunggu, belum_bayar, dibayar, ditolak) dan
+  menampilkan ringkasan transfer (`pesanan_admin_transfer`); rute detail/pratinjau/keputusan dan rekening didelegasikan ke
   `admin_verifikasi_http` dan `admin_rekening_http` (tidak bergantung pada gerbang transfer maupun Midtrans).
 """
 from __future__ import annotations
@@ -28,6 +31,7 @@ import re
 import sqlite3
 
 import admin_http as h
+import admin_pesanan_detail_pages as dui
 import admin_pesanan_pages as ui
 import admin_rekening_http
 import admin_security
@@ -38,12 +42,15 @@ import pesanan_admin_transfer
 import pesanan_alur as alur
 import pesanan_http
 import pesanan_midtrans
+import pesanan_rekening
 import pesanan_status as st
+from admin_pesanan_aksi import periksa_order
 from schema_pesanan import CATATAN_REFUND
 
 RUTE = ui.RUTE
 RUTE_PERIKSA = ui.RUTE_PERIKSA
 RUTE_REFUND = ui.RUTE_REFUND
+RUTE_ORDER = ui.RUTE_ORDER
 AKSI_PERIKSA = "periksa_pesanan"
 AKSI_REFUND = "catat_refund_pesanan"
 AKSI_RUTE = {RUTE_PERIKSA: AKSI_PERIKSA, RUTE_REFUND: AKSI_REFUND}
@@ -71,51 +78,92 @@ def _halaman_query(penangan):
     hasil, saring = query.get("hasil"), query.get("status")
     if halaman > MAKS_HALAMAN or (hasil is not None and hasil not in ui.KODE_HASIL):
         raise ValueError("query tidak sah")
-    if saring is not None and saring != ui.SARING_MENUNGGU:
+    if saring is not None and saring not in ui.KODE_SARING:
         raise ValueError("query tidak sah")
     return halaman, hasil, saring
 
 
-def _token_baris(penangan, principal, daftar, gerbang_terbuka, halaman):
-    """{order_id: {aksi: (csrf, tinjauan)}} hanya untuk aksi yang tampil; kosong bila bukan sesi berkuki."""
+def _detail_query(penangan):
+    """(order_id, hasil) dari query Detail order; id harus persis `ord_` + 32 hex, hasil dari allowlist detail."""
+    query = h._query(penangan, diizinkan={"id", "hasil"})
+    hasil = query.get("hasil")
+    if hasil is not None and hasil not in ui.KODE_HASIL_DETAIL:
+        raise ValueError("query tidak sah")
+    return periksa_order(query.get("id")), hasil
+
+
+def _token_detail(penangan, principal, detail, gerbang_terbuka):
+    """{aksi: (csrf, tinjauan)} hanya untuk aksi yang tampil di Detail order; kosong bila bukan sesi berkuki."""
     if principal.metode != "cookie":
+        return {}
+    tersedia = ui.aksi_tersedia(detail, gerbang_terbuka)
+    if not tersedia:
         return {}
     akun = h._akun_principal(principal)
     sesi = h._wajib_cookie(penangan, principal)
     csrf = h._csrf(akun, sesi)
     return {
-        item["order_id"]: {
-            aksi: (csrf, admin_security.buat_tinjauan(
-                akun, sesi, _AKSI_UI[aksi], {"target_id": item["order_id"], "halaman": halaman}))
-            for aksi in ui.aksi_tersedia(item, gerbang_terbuka)}
-        for item in daftar["items"]}
+        nama: (csrf, admin_security.buat_tinjauan(akun, sesi, _AKSI_UI[nama], {"target_id": detail["order_id"]}))
+        for nama in tersedia}
 
 
-def _kirim(penangan, principal, isi, kode=200):
+def _kirim(penangan, principal, isi, kode=200, *, judul=ui.JUDUL, subjudul=ui.SUBJUDUL):
     if _admin(penangan) != principal:
         return h._tidak_ada(penangan)
     h._kirim_privat(penangan, h._halaman_admin(
-        principal, "pesanan", isi, penangan=penangan, skrip=True, judul=ui.JUDUL, subjudul=ui.SUBJUDUL,
+        principal, "pesanan", isi, penangan=penangan, skrip=True, judul=judul, subjudul=subjudul,
     ), kode, skrip=True)
 
 
 def _baca_daftar(halaman, saring):
-    """(daftar, ringkasan transfer per order) dalam satu koneksi baca."""
+    """(daftar tersaring + hitungan, ringkasan transfer per order) dalam satu koneksi baca."""
     with pesanan.buka(h._path_admin()) as kon:
-        daftar = pesanan.daftar_admin(
-            kon, halaman=halaman, per_halaman=ui.PER_HALAMAN, sekarang=alur._sekarang(),
-            hanya_menunggu=saring == ui.SARING_MENUNGGU)
+        daftar = pesanan.daftar_tersaring(
+            kon, halaman=halaman, per_halaman=ui.PER_HALAMAN, sekarang=alur._sekarang(), kelompok=saring)
         return daftar, pesanan_admin_transfer.ringkasan(kon, [i["order_id"] for i in daftar["items"]])
+
+
+def _rekening_terisi() -> bool:
+    """True bila rekening transfer terisi; pembaca fail-closed (galat baca = False), tidak pernah memuat nomornya."""
+    return pesanan_rekening.baca(h._path_admin()) is not None
+
+
+def _baca_detail(order_id):
+    with pesanan.buka(h._path_admin()) as kon:
+        return pesanan.detail_order(kon, order_id, alur._sekarang())
+
+
+def _get_detail(penangan, principal) -> None:
+    try:
+        order_id, hasil = _detail_query(penangan)
+    except ValueError:
+        return h._tidak_ada(penangan)
+    try:
+        detail = _baca_detail(order_id)
+        gerbang = _runtime_periksa(penangan) is not None
+        forms = {} if detail is None else _token_detail(penangan, principal, detail, gerbang)
+    except PermissionError:
+        return h._galat(penangan, 403, ui.COPY_GALAT_FORM)
+    except _GALAT_BACA:
+        return _kirim(penangan, principal, ui.halaman_tidak_siap(), 503, judul=dui.JUDUL, subjudul=dui.SUBJUDUL)
+    if detail is None:
+        return h._tidak_ada(penangan)
+    _kirim(penangan, principal, dui.halaman(
+        detail, gerbang_terbuka=gerbang, forms=forms, hasil=hasil, baca_saja=principal.metode != "cookie"),
+        judul=dui.JUDUL, subjudul=dui.SUBJUDUL)
 
 
 def tangani_get(penangan, jalur) -> bool:
     if admin_verifikasi_http.tangani_get(penangan, jalur) or admin_rekening_http.tangani_get(penangan, jalur):
         return True
-    if jalur != RUTE:
+    if jalur not in (RUTE, RUTE_ORDER):
         return False
     principal = _admin(penangan)
     if principal is None:
         h._tidak_ada(penangan)
+        return True
+    if jalur == RUTE_ORDER:
+        _get_detail(penangan, principal)
         return True
     try:
         halaman, hasil, saring = _halaman_query(penangan)
@@ -125,16 +173,13 @@ def tangani_get(penangan, jalur) -> bool:
     try:
         daftar, transfer = _baca_daftar(halaman, saring)
         gerbang = _runtime_periksa(penangan) is not None
-        forms = _token_baris(penangan, principal, daftar, gerbang, halaman)
-    except PermissionError:
-        h._galat(penangan, 403, ui.COPY_GALAT_FORM)
-        return True
+        rekening = _rekening_terisi()
     except _GALAT_BACA:
         _kirim(penangan, principal, ui.halaman_tidak_siap(), 503)
         return True
     _kirim(penangan, principal, ui.halaman(
-        daftar, halaman=halaman, gerbang_terbuka=gerbang, forms=forms, hasil=hasil,
-        baca_saja=principal.metode != "cookie", transfer=transfer, saring=saring))
+        daftar, halaman=halaman, gerbang_terbuka=gerbang, hasil=hasil, transfer=transfer, saring=saring,
+        hitungan=daftar["hitungan"], rekening_terisi=rekening))
     return True
 
 
@@ -150,11 +195,6 @@ def _order_dari_tinjauan(tinjauan) -> str:
     if type(order_id) is not str or _POLA_ORDER.fullmatch(order_id) is None:
         raise ValueError("order tidak sah")
     return order_id
-
-
-def _halaman_dari_tinjauan(tinjauan) -> int:
-    halaman = tinjauan["data"].get("halaman", 1)
-    return halaman if type(halaman) is int and 1 <= halaman <= MAKS_HALAMAN else 1
 
 
 def _akun_ledger(order_id: str) -> str:
@@ -197,12 +237,11 @@ def _jalankan(penangan, principal, jalur: str, data: dict) -> None:
     aksi = AKSI_RUTE[jalur]
     _akun, tinjauan, _token = h._token_final(penangan, principal, data, aksi)
     order_id = _order_dari_tinjauan(tinjauan)
-    halaman = _halaman_dari_tinjauan(tinjauan)
     if jalur == RUTE_PERIKSA:
         kode = _periksa(penangan, principal, order_id, data)
     else:
         kode = _refund(principal, order_id, data)
-    h._redirect(penangan, "%s?halaman=%d&hasil=%s" % (RUTE, halaman, kode))
+    h._redirect(penangan, "%s?id=%s&hasil=%s" % (RUTE_ORDER, order_id, kode))
 
 
 def tangani_post(penangan, jalur) -> bool:

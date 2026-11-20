@@ -474,6 +474,21 @@ summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-weight: 600;
 .admin-digit-unik {{ background: {T.ADMIN_AKSEN_LATAR}; color: {T.ADMIN_AKSEN_TEKS}; border-radius: {T.RADIUS_KECIL}; padding: 0 {T.SP_1}; }}
 .admin-form-tolak {{ margin-top: {T.SP_5}; }}
 .admin-form-tolak summary {{ color: {T.ADMIN_BAHAYA_TEKS}; }}
+.admin-rincian {{ margin: 0; }}
+.admin-rincian > div {{ display: flex; flex-wrap: wrap; justify-content: space-between; gap: {T.SP_3}; padding: {T.SP_3} 0; border-bottom: 1px solid {T.ADMIN_PEMISAH}; }}
+.admin-rincian > div:last-child {{ border-bottom: 0; }}
+.admin-rincian dt {{ color: {T.ADMIN_REDUP}; }}
+.admin-rincian dd {{ margin: 0; text-align: right; }}
+.admin-perjalanan {{ list-style: none; margin: 0 0 {T.SP_4}; padding: 0; }}
+.admin-perjalanan li {{ display: flex; align-items: flex-start; gap: {T.SP_4}; padding: {T.SP_3} 0; }}
+.admin-perjalanan .admin-titik {{ margin-top: {T.SP_2}; }}
+.admin-kartu.admin-lipat {{ padding: 0 {T.SP_5}; }}
+.admin-lipat > summary {{ min-height: {T.TARGET_SENTUH}; display: flex; align-items: center; font-weight: 700; cursor: pointer; }}
+.admin-lipat-isi {{ display: flex; flex-direction: column; align-items: flex-start; gap: {T.SP_4}; padding-bottom: {T.SP_5}; max-width: {T.LEBAR_KONTEN}; }}
+.admin-lipat-isi p {{ margin: 0; }}
+.admin-lipat-isi form {{ width: 100%; }}
+.admin-tombol.admin-bahaya-garis {{ background: {T.ADMIN_PERMUKAAN}; border: 2px solid {T.ADMIN_BAHAYA_TOMBOL}; color: {T.ADMIN_BAHAYA_TEKS}; }}
+.admin-tombol.admin-bahaya-garis:hover {{ background: {T.ADMIN_BAHAYA_LATAR}; border-color: {T.ADMIN_BAHAYA_TOMBOL}; color: {T.ADMIN_BAHAYA_TEKS}; }}
 .admin-layanan {{ display: flex; flex-direction: column; gap: {T.SP_4}; }}
 .admin-layanan dl {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: {T.SP_4}; margin: 0; }}
 .admin-layanan-kartu {{ min-width: 0; display: flex; flex-direction: column; gap: {T.SP_2}; padding: {T.SP_4} {T.SP_5}; background: {T.ADMIN_PERMUKAAN}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_KARTU}; }}

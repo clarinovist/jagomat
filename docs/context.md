@@ -160,8 +160,12 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   kontrak Midtrans; order `ord_` dibedakan dari invoice langganan di callback). HTTP pelanggan: `pesanan_http.py` (+`pesanan_pages.py`,
   `pesanan_alur.py`; guru saja, token HMAC `pesanan-form-v1`, laju per akun+IP, gerbang `pesanan.baca_gerbang` fail-closed,
   hasil cek dibaca per anak lewat `cek_gratis.hasil_siswa`). Admin: `admin_pesanan_http.py`/`admin_pesanan_pages.py` di
-  `/admin/pesanan` (token final admin, aksi periksa dan catat refund; tidak menulis jurnal `operasi_admin`, jejak refund = baris
-  `pesanan_refund`). Panggilan jaringan tidak pernah di dalam transaksi tulis. Kontrak rilis bergeser seperti Fase 2.
+  `/admin/pesanan` (daftar tanpa form/kolom sandi, chip saringan `?status=menunggu|belum_bayar|dibayar|ditolak` dari
+  `pesanan_admin.daftar_tersaring`; satu tautan per baris: Periksa bukti atau Detail) dan Detail order `/admin/pesanan/order?id=`
+  (`admin_pesanan_detail_pages.py` + `pesanan_admin_order.py`, admin saja, 404 identik bila tak sah): periksa status dan catat uang
+  kembali (pengecualian) ada di sini sebagai `<details>`, token final admin (CSRF + tinjauan + sandi ulang), PRG ke detail; tidak
+  menulis jurnal `operasi_admin`, jejak refund = baris `pesanan_refund`/`transfer_refund`). Panggilan jaringan tidak pernah di dalam
+  transaksi tulis. Kontrak rilis bergeser seperti Fase 2.
 - Transfer rekening (jalur utama pembayaran, verifikasi manual admin; tahap 1 = skema + logika inti; tahap 2 = alur guru di bawah; tahap 3 = admin, retensi, jendela ulang):
   `schema_transfer.py` (namespace `transfer_*`, sengaja BUKAN `pesanan_*` agar `schema_pesanan.validasi` dan rollback image lama utuh;
   tagihan per jendela bayar, bukti, penanda hapus, verifikasi, `transfer_lunas`, `transfer_refund`; append-only) + `pesanan_transfer.py`

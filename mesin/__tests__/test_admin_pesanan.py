@@ -21,7 +21,7 @@ import pesanan  # noqa: E402
 import pesanan_kit  # noqa: E402
 from admin_pesanan_kit import (  # noqa: E402
     HALAMAN, ORDER_ASING, PERIKSA, REFUND, RUTE_AKSI, TAK_ADA, baris_refund, hasil_dari,
-    id_admin, jumlah_panggilan, kirim_aksi, kirim_dari_halaman, login_admin, minta_admin,
+    id_admin, jumlah_panggilan, kirim_aksi, kirim_dari_detail, login_admin, markup, minta_admin,
     order_bayar, order_lunas, token_langsung,
 )
 from cek_http_kit import AKUN_ADMIN, SANDI_ADMIN, id_akun, minta_mentah  # noqa: E402
@@ -69,8 +69,8 @@ def test_daftar_memuat_kolom_minimal_tanpa_pii(bayar, admin):
 def test_daftar_waktu_wib_bukan_utc_mentah(bayar, admin):
     order_bayar(bayar)
     isi = minta_admin(bayar, HALAMAN, admin)[1]
-    assert "18 Nov 2026, 17.00 WIB" in isi  # dibuat 10.00 UTC
-    assert "19 Nov 2026, 17.00 WIB" in isi  # kedaluwarsa +24 jam
+    assert "18 Nov 2026, 17.00 WIB" in isi  # dibuat 10.00 UTC (kolom kedaluwarsa pindah ke Detail order)
+    assert "19 Nov 2026, 17.00 WIB" not in isi
 
 
 def test_daftar_paginasi_25_per_halaman_terbaru_dulu(bayar, admin):
@@ -99,7 +99,7 @@ def test_daftar_gerbang_tertutup_tetap_tampil_tanpa_tombol_periksa(bayar, admin)
     kode, isi, _t = minta_admin(bayar, HALAMAN, admin)
     assert kode == 200 and order["order_id"] in isi
     assert "Gerbang pembayaran tertutup" in isi
-    assert PERIKSA not in isi
+    assert PERIKSA not in isi and 'type="password"' not in markup(isi)
 
 
 def test_daftar_tanpa_runtime_tetap_tampil(tertutup):
@@ -121,7 +121,7 @@ def test_periksa_gerbang_terbuka_menerapkan_status_provider_ke_ledger(bayar, adm
     from pesanan_http_kit import settlement
     bayar.provider.status_data = lambda oid: settlement(oid, trx)
     sebelum = bayar.provider.jumlah_status
-    kode, isi, tajuk = kirim_dari_halaman(bayar, admin, PERIKSA, order["order_id"])
+    kode, isi, tajuk = kirim_dari_detail(bayar, admin, PERIKSA, order["order_id"])
     assert (kode, isi, hasil_dari(tajuk)) == (303, "", "periksa_ok")
     assert bayar.provider.jumlah_status == sebelum + 1
     with ledger() as kon:
@@ -191,7 +191,7 @@ def test_periksa_order_tak_ada_404_tanpa_panggilan(bayar, admin):
 def test_refund_sukses_dicatat_oleh_admin_sesi_tanpa_panggilan_provider(bayar, admin):
     order, _trx = order_lunas(bayar, admin)
     panggilan = jumlah_panggilan(bayar)
-    kode, isi, tajuk = kirim_dari_halaman(bayar, admin, REFUND, order["order_id"])
+    kode, isi, tajuk = kirim_dari_detail(bayar, admin, REFUND, order["order_id"])
     assert (kode, isi, hasil_dari(tajuk)) == (303, "", "refund_dicatat")
     (baris,) = baris_refund()
     assert (baris["order_id"], baris["dicatat_oleh"], baris["catatan_kode"]) == (

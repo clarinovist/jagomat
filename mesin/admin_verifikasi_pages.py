@@ -98,7 +98,7 @@ def _form_tolak(token: Tuple[str, str]) -> str:
             % (e(COPY_RINGKAS_TOLAK), RUTE_TOLAK, e(COPY_KONFIRMASI_TOLAK), _hidden(*token), BATAS_ALASAN, _SANDI))
 
 
-def _nominal_sorot(nominal: int) -> str:
+def nominal_sorot(nominal: int) -> str:
     """`Rp49.007` dengan tiga digit terakhir (kode unik) disorot; teks tetap terbaca utuh tanpa jeda."""
     teks = rupiah(nominal)
     awal, kode = teks[:-JUMLAH_DIGIT_UNIK], teks[-JUMLAH_DIGIT_UNIK:]
@@ -140,7 +140,7 @@ def _riwayat(keputusan) -> str:
 def _ringkasan(detail: Mapping) -> str:
     status = detail["status"]
     badge = '<span class="admin-badge%s">%s</span>' % (KELAS_BADGE.get(status, ""), e(COPY_STATUS.get(status, status)))
-    nominal = _nominal_sorot(detail["nominal"]) if detail["nominal"] else "—"
+    nominal = nominal_sorot(detail["nominal"]) if detail["nominal"] else "—"
     return ('<section class="admin-kartu"><h2>%s</h2>'
             '<p>Order %s · Akun <code class="admin-id">%s</code> · %s</p>'
             '<p>Nominal yang harus masuk: <strong>%s</strong></p><p class="admin-meta">%s</p>'

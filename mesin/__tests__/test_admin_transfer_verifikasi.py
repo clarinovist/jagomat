@@ -108,7 +108,7 @@ def test_daftar_label_ditolak(transfer, admin):
     assert kirim_putusan(transfer, admin, TOLAK, order_id)[0] == 303
     isi = minta_admin(transfer, HALAMAN, admin)[1]
     baris = [b for b in re.findall(r"<tr>.*?</tr>", isi, re.S) if order_id in b][0]
-    assert "Ditolak" in baris and "Lihat bukti" in baris
+    assert "Ditolak" in baris and "Detail" in baris and "Periksa bukti" not in baris
 
 
 # --- detail ------------------------------------------------------------------------------
@@ -452,12 +452,12 @@ def _lunas_transfer(transfer, admin) -> str:
 
 
 def test_refund_order_lunas_transfer_tampil_dan_dicatat_ke_transfer_refund(transfer, admin):
-    from admin_pesanan_kit import REFUND, form_halaman, kirim_dari_halaman, hasil_dari
+    from admin_pesanan_kit import REFUND, alamat_detail, form_order, kirim_dari_detail, hasil_dari
     order_id = _lunas_transfer(transfer, admin)
-    isi = minta_admin(transfer, HALAMAN, admin)[1]
-    assert REFUND in form_halaman(isi, order_id)
-    kode, _i, tajuk = kirim_dari_halaman(transfer, admin, REFUND, order_id)
-    assert (kode, hasil_dari(tajuk)) == (303, "refund_dicatat")
+    isi = minta_admin(transfer, alamat_detail(order_id), admin)[1]
+    assert REFUND in form_order(isi)
+    kode, _i, tajuk = kirim_dari_detail(transfer, admin, REFUND, order_id)
+    assert (kode, hasil_dari(tajuk, order_id)) == (303, "refund_dicatat")
     (baris,) = tabel("transfer_refund")
     assert (baris["order_id"], baris["dicatat_oleh"]) == (order_id, id_admin())
     assert tabel("pesanan_refund") == []

@@ -39,36 +39,53 @@ def test_aksi_tersedia_menurut_status_dan_gerbang(status, gerbang, harap):
     assert pg.aksi_tersedia(_item(status=status), gerbang) == harap
 
 
+def _render(*items, **ganti):
+    argumen = {"halaman": 1, "gerbang_terbuka": False, "hasil": None, **ganti}
+    return pg.halaman(_daftar(*items), **argumen)
+
+
 def test_halaman_escape_semua_nilai_dinamis():
     item = _item(order_id="ord_<script>alert(1)</script>", akun='akun_"><b>', alasan_kode="<img src=x>")
-    isi = pg.halaman(_daftar(item), halaman=1, gerbang_terbuka=True, forms={}, hasil=None)
+    isi = _render(item, gerbang_terbuka=True)
     assert "<script>alert" not in isi and "<img src=x>" not in isi and "<b>" not in isi
     assert "&lt;script&gt;" in isi
 
 
-def test_halaman_tanpa_forms_tidak_menampilkan_form_aksi():
-    isi = pg.halaman(_daftar(_item()), halaman=1, gerbang_terbuka=True, forms={}, hasil=None)
-    assert "<form" not in isi
+def test_halaman_daftar_tanpa_form_dan_tanpa_kolom_sandi():
+    # Regresi Fase C: tidak ada form/kolom sandi per baris, apa pun statusnya.
+    semua = [_item(status=s) for s in pg.COPY_STATUS]
+    isi = _render(*semua, gerbang_terbuka=True)
+    assert "<form" not in isi and 'type="password"' not in isi and 'name="reauth"' not in isi
+    assert pg.RUTE_PERIKSA not in isi and pg.RUTE_REFUND not in isi
+
+
+def test_kolom_tabel_sesuai_rancangan_fase_c():
+    isi = _render(_item())
+    kepala = re.findall(r'<th scope="col">([^<]+)</th>', isi)
+    assert kepala == ["Order", "Akun", "Nominal", "Dibayar / diunggah", "Status", "Aksi"]
 
 
 def test_halaman_umpan_balik_hanya_dari_kode_dikenal():
-    isi = pg.halaman(_daftar(), halaman=1, gerbang_terbuka=False, forms={}, hasil="refund_dicatat")
+    isi = _render(hasil="refund_dicatat")
     assert pg.COPY_HASIL["refund_dicatat"] in isi
-    assert pg.halaman(_daftar(), halaman=1, gerbang_terbuka=False, forms={}, hasil=None).count("role=\"status\"") == 0
+    assert _render().count("role=\"status\"") == 0
+    assert _render(hasil="sembarang").count("role=\"status\"") == 0
 
 
 def test_tidak_ada_hex_warna_di_renderer():
-    sumber = (Path(__file__).resolve().parent.parent / "admin_pesanan_pages.py").read_text(encoding="utf-8")
-    assert not re.search(r"#[0-9a-fA-F]{3,8}\b", sumber)
+    for nama in ("admin_pesanan_pages.py", "admin_pesanan_detail_pages.py"):
+        sumber = (Path(__file__).resolve().parent.parent / nama).read_text(encoding="utf-8")
+        assert not re.search(r"#[0-9a-fA-F]{3,8}\b", sumber), nama
 
 
 def test_tidak_ada_penanda_draf_di_sumber_renderer():
-    sumber = (Path(__file__).resolve().parent.parent / "admin_pesanan_pages.py").read_text(encoding="utf-8")
-    assert not re.search(r"\bDRAF\b|menunggu persetujuan Pemilik", sumber)
+    for nama in ("admin_pesanan_pages.py", "admin_pesanan_detail_pages.py"):
+        sumber = (Path(__file__).resolve().parent.parent / nama).read_text(encoding="utf-8")
+        assert not re.search(r"\bDRAF\b|menunggu persetujuan Pemilik", sumber), nama
 
 
 def test_halaman_terender_tanpa_penanda_draf():
-    isi = pg.halaman(_daftar(_item()), halaman=1, gerbang_terbuka=True, forms={}, hasil="refund_dicatat")
+    isi = _render(_item(), gerbang_terbuka=True, hasil="refund_dicatat")
     assert "draf" not in isi.lower() and "draf" not in pg.halaman_tidak_siap().lower()
 
 
@@ -79,38 +96,112 @@ def _item_transfer(**ganti):
 RINGKAS = {ORDER: {"nominal": 49321, "jumlah_bukti": 2, "diunggah": "2026-11-18T12:30:00"}}
 
 
-def test_baris_transfer_memuat_nominal_persis_jumlah_bukti_waktu_dan_tautan_periksa():
-    isi = pg.halaman(_daftar(_item_transfer()), halaman=1, gerbang_terbuka=False, forms={}, hasil=None,
-                     transfer=RINGKAS)
-    assert "Rp49.321" in isi and "2 · 18 Nov 2026, 19.30 WIB" in isi
+def test_baris_transfer_memuat_nominal_persis_waktu_unggah_dan_tautan_periksa_bukti():
+    isi = _render(_item_transfer(), transfer=RINGKAS)
+    assert "Rp49.321" in isi and "18 Nov 2026, 19.30 WIB" in isi
     assert "Menunggu verifikasi" in isi
     assert 'href="/admin/pesanan/verifikasi?order=%s"' % ORDER in isi and pg.COPY_PERIKSA_BUKTI in isi
+    assert pg.RUTE_ORDER not in isi
 
 
-def test_tautan_bukti_berlabel_lihat_untuk_status_lain_dan_hilang_tanpa_bukti():
-    lunas = pg.halaman(_daftar(_item(status="sudah_dibayar")), halaman=1, gerbang_terbuka=False, forms={},
-                       hasil=None, transfer=RINGKAS)
-    assert pg.COPY_LIHAT_BUKTI in lunas and pg.COPY_PERIKSA_BUKTI not in lunas
-    tanpa = pg.halaman(_daftar(_item_transfer()), halaman=1, gerbang_terbuka=False, forms={}, hasil=None,
-                       transfer={ORDER: {"nominal": 49321, "jumlah_bukti": 0, "diunggah": None}})
-    assert "/verifikasi?" not in tanpa and "Rp49.321" in tanpa
+@pytest.mark.parametrize("status", [s for s in pg.COPY_STATUS if s != "menunggu_verifikasi"])
+def test_baris_selain_menunggu_hanya_punya_tautan_detail_ke_halaman_order(status):
+    isi = _render(_item(status=status), transfer=RINGKAS)
+    assert 'href="%s?id=%s"' % (pg.RUTE_ORDER, ORDER) in isi and ">%s<" % pg.COPY_DETAIL in isi
+    assert pg.COPY_PERIKSA_BUKTI not in isi and "/verifikasi?" not in isi
 
 
-def test_tab_menandai_aktif_dan_pager_mempertahankan_filter():
+def test_satu_aksi_per_baris():
+    isi = _render(_item_transfer(), _item(order_id="ord_" + "b" * 32, status="sudah_dibayar"))
+    baris = re.findall(r"<tr>.*?</tr>", isi, re.S)[1:]
+    assert len(baris) == 2 and all(len(re.findall(r"<a ", b)) == 1 for b in baris)
+
+
+def test_nominal_dan_unggah_kosong_tanpa_data_transfer():
+    isi = _render(_item(), transfer={ORDER: {"nominal": None, "jumlah_bukti": 0, "diunggah": None}})
+    assert "Rp" not in isi and "<td>—</td><td>—</td>" in isi
+
+
+@pytest.mark.parametrize("kode,harap", [
+    ("nominal", "Nominal tidak sesuai"), ("merchant", "Penjual tidak sesuai"),
+    ("mata_uang", "Mata uang tidak sesuai"), ("kanal", "Cara bayar tidak sesuai"),
+    ("refund", "Ada pengembalian dana di penyedia"), ("ok", "Pembayaran sesuai"), ("lainnya", "Lainnya"),
+    ("kode_baru_tak_dikenal", "Lainnya"),
+])
+def test_alasan_receipt_berlabel_manusiawi_dan_kode_mentah_tidak_tampil(kode, harap):
+    isi = _render(_item(status="perlu_diperiksa", alasan_kode=kode))
+    assert harap in isi
+    assert ">%s<" % kode not in isi
+
+
+def test_tanpa_alasan_tidak_ada_label_alasan():
+    isi = _render(_item(alasan_kode=None))
+    assert "Lainnya" not in isi
+
+
+def test_peta_alasan_menutup_semua_kode_skema():
+    from schema_pesanan import ALASAN_KODE
+    assert set(ALASAN_KODE) <= set(pg.COPY_ALASAN)
+
+
+def test_chip_saringan_lima_dengan_hitungan_dan_penanda_aktif():
+    hitungan = {"menunggu": 2, "belum_bayar": 3, "dibayar": 4, "ditolak": 5, "semua": 14}
+    isi = _render(_item_transfer(), saring="dibayar", hitungan=hitungan)
+    chips = re.findall(r'<a class="admin-chip"( aria-current="true")? href="([^"]*)">([^<]+)<span class="admin-cnt">(\d+)</span></a>', isi)
+    assert [(c[1], c[2], c[3]) for c in chips] == [
+        ("/admin/pesanan?status=menunggu", "Menunggu verifikasi", "2"),
+        ("/admin/pesanan?status=belum_bayar", "Belum bayar", "3"),
+        ("/admin/pesanan?status=dibayar", "Dibayar", "4"),
+        ("/admin/pesanan?status=ditolak", "Ditolak / kedaluwarsa", "5"),
+        ("/admin/pesanan", "Semua", "14")]
+    assert [c[2] for c in chips if c[0]] == ["Dibayar"]
+
+
+def test_chip_tanpa_hitungan_tidak_menampilkan_angka_dan_semua_aktif_secara_bawaan():
+    isi = _render(_item())
+    assert "admin-cnt" not in isi
+    assert re.search(r'<a class="admin-chip" aria-current="true" href="/admin/pesanan">Semua</a>', isi)
+
+
+def test_kode_saringan_diizinkan_sesuai_chip_dan_kelompok_domain():
+    import pesanan_admin
+    assert pg.KODE_SARING == frozenset(pesanan_admin.KELOMPOK_STATUS)
+    assert pg.SARING_MENUNGGU in pg.KODE_SARING
+
+
+def test_pager_mempertahankan_filter():
     daftar = _daftar(_item_transfer(), total=60)
-    isi = pg.halaman(daftar, halaman=2, gerbang_terbuka=False, forms={}, hasil=None, saring="menunggu")
-    assert 'href="/admin/pesanan?status=menunggu" aria-current="page"' in isi
+    isi = pg.halaman(daftar, halaman=2, gerbang_terbuka=False, hasil=None, saring="menunggu")
     pager = isi.split("admin-pager")[1]
     assert "status=menunggu&amp;halaman=1" in pager or "halaman=1&amp;status=menunggu" in pager
-    semua = pg.halaman(daftar, halaman=2, gerbang_terbuka=False, forms={}, hasil=None)
-    assert 'href="/admin/pesanan" aria-current="page"' in semua and "status=menunggu&amp;halaman" not in semua.split("admin-pager")[1]
+    semua = pg.halaman(daftar, halaman=2, gerbang_terbuka=False, hasil=None)
+    assert "status=" not in semua.split("admin-pager")[1]
 
 
-def test_kosong_tab_menunggu_memakai_pesan_sendiri():
-    isi = pg.halaman(_daftar(), halaman=1, gerbang_terbuka=False, forms={}, hasil=None, saring="menunggu")
-    assert pg.COPY_KOSONG_MENUNGGU in isi and pg.COPY_KOSONG not in isi
+@pytest.mark.parametrize("saring", sorted(pg.KODE_SARING))
+def test_kosong_tiap_saringan_memakai_pesan_sendiri(saring):
+    isi = _render(saring=saring)
+    assert pg.COPY_KOSONG_SARING[saring] in isi and pg.COPY_KOSONG not in isi
+
+
+def test_kosong_semua_memakai_pesan_umum():
+    assert pg.COPY_KOSONG in _render()
+
+
+def test_strip_layanan_satu_baris_dengan_tautan_pengaturan_dan_tanpa_form():
+    buka = _render(gerbang_terbuka=True, rekening_terisi=True)
+    assert pg.COPY_GERBANG_BUKA in buka and pg.COPY_REKENING_TERISI in buka
+    assert 'href="/admin/sakelar#rekening"' in buka and pg.COPY_ATUR_LAYANAN in buka
+    tutup = _render(gerbang_terbuka=False, rekening_terisi=False)
+    assert pg.COPY_GERBANG_TUTUP in tutup and pg.COPY_REKENING_KOSONG in tutup
+    assert pg.COPY_REKENING_TERISI not in _render(rekening_terisi=None)
 
 
 def test_kode_hasil_verifikasi_dikenal_dan_label_status_baru_ada():
     assert {"verifikasi_setuju", "verifikasi_tolak"} <= pg.KODE_HASIL
     assert pg.COPY_STATUS["menunggu_verifikasi"] and pg.COPY_STATUS["ditolak"]
+
+
+def test_kode_hasil_detail_hanya_periksa_dan_refund():
+    assert pg.KODE_HASIL_DETAIL == {"periksa_ok", "periksa_dilewati", "periksa_gagal", "gerbang_tertutup",
+                                    "refund_dicatat", "refund_sudah_ada"}

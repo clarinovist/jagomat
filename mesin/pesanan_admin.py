@@ -16,6 +16,16 @@ from schema_pesanan import CATATAN_REFUND
 
 BATAS_ID_YATIM = 40
 BATAS_PER_HALAMAN = 100
+# Kelompok saringan daftar admin. Sekat penuh: setiap status turunan masuk tepat satu kelompok.
+# `dibayar` memuat order yang pernah dibayar (termasuk perlu_diperiksa dan direfund); `ditolak`
+# memuat bukti ditolak dan jendela bayar yang habis.
+KELOMPOK_STATUS = {
+    "menunggu": (d.STATUS_MENUNGGU_VERIFIKASI,),
+    "belum_bayar": (d.STATUS_BELUM_BAYAR,),
+    "dibayar": (d.STATUS_SUDAH_DIBAYAR, d.STATUS_PERLU_DIPERIKSA, d.STATUS_DIREFUND),
+    "ditolak": (d.STATUS_DITOLAK, d.STATUS_KEDALUWARSA),
+}
+KUNCI_SEMUA = "semua"
 _ASING_ID = re.compile(r"[^A-Za-z0-9_-]")
 _PANJANG_AKUN_SINGKAT = 13  # 'akun_' + 8 hex
 
@@ -158,3 +168,27 @@ def daftar_admin(kon, *, halaman, per_halaman, sekarang, hanya_menunggu=False):
     baris = kon.execute(_sql_daftar(kon), (per_halaman, (halaman - 1) * per_halaman)).fetchall()
     return {"items": tuple(_item_admin(b, kini) for b in baris), "total": total,
             "halaman": halaman, "per_halaman": per_halaman}
+
+
+def daftar_tersaring(kon, *, halaman, per_halaman, sekarang, kelompok=None):
+    """Daftar admin per kelompok status (SELECT saja) beserta hitungan semua kelompok.
+
+    Status turunan dihitung dengan `turunkan_status` yang sama dengan daftar penuh lalu disaring di Python
+    (satu pemindaian ledger), jadi saringan dan hitungan tidak bisa berbeda dari lencana status yang
+    tampil. `kelompok` None = semua order; nilai di luar `KELOMPOK_STATUS` = PesananDataTidakSah.
+    Kunci hasil: items, total (sesudah saring), halaman, per_halaman, hitungan {kelompok|semua: n}.
+    """
+    d.periksa_koneksi(kon)
+    d.periksa_bilangan(halaman, "halaman")
+    if type(per_halaman) is not int or not 1 <= per_halaman <= BATAS_PER_HALAMAN:
+        raise d.PesananDataTidakSah("per_halaman tidak sah")
+    if kelompok is not None and kelompok not in KELOMPOK_STATUS:
+        raise d.PesananDataTidakSah("kelompok tidak sah")
+    kini = d.waktu_baku(sekarang)
+    semua = tuple(_item_admin(b, kini) for b in kon.execute(_sql_daftar(kon), (-1, 0)).fetchall())
+    hitungan = {k: sum(1 for i in semua if i["status"] in status) for k, status in KELOMPOK_STATUS.items()}
+    hitungan[KUNCI_SEMUA] = len(semua)
+    pilihan = semua if kelompok is None else tuple(i for i in semua if i["status"] in KELOMPOK_STATUS[kelompok])
+    awal = (halaman - 1) * per_halaman
+    return {"items": pilihan[awal:awal + per_halaman], "total": len(pilihan), "halaman": halaman,
+            "per_halaman": per_halaman, "hitungan": hitungan}
