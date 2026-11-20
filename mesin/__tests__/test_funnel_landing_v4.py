@@ -129,6 +129,7 @@ def test_kartu_guru_tidak_tampil_saat_profil_kosong(halaman):
     assert funnel_pages.PROFIL_GURU == ()
     assert "funnel-guru-st" not in _utama(halaman)
     assert funnel_pages.COPY_JUDUL_PROFIL_GURU not in _utama(halaman)
+    assert funnel_pages.COPY_JUDUL_PROFIL_GURU_LANDING not in _utama(halaman)
 
 
 def test_kartu_guru_tampil_bila_profil_terisi(monkeypatch):
@@ -136,6 +137,8 @@ def test_kartu_guru_tampil_bila_profil_terisi(monkeypatch):
     monkeypatch.setattr(funnel_pages, "PROFIL_GURU", ({"nama": "Guru Uji", "latar": "S1", "lama_mengajar": "3 tahun"},))
     isi = funnel_pages.halaman_cek_kemampuan().decode()
     assert "funnel-guru-st" in _utama(isi) and "Guru Uji" in isi
+    assert funnel_pages.COPY_JUDUL_PROFIL_GURU_LANDING in _utama(isi)
+    assert funnel_pages.COPY_JUDUL_PROFIL_GURU not in _utama(isi)
 
 
 def test_maskot_satu_per_section(halaman):

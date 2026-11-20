@@ -408,7 +408,7 @@ def _peta() -> str:
     {_kartu_gratis()}
   </div>
   <p class="cek-peta-lanjut-st">{P._e(COPY_PETA_LANJUT)}</p>
-  <p class="cek-tautan-st cek-tautan-tengah-st">{P._tautan_contoh("cek-tautan-contoh-st")}</p>{P.kartu_profil_guru()}
+  <p class="cek-tautan-st cek-tautan-tengah-st">{P._tautan_contoh("cek-tautan-contoh-st")}</p>{P.kartu_profil_guru(judul=P.COPY_JUDUL_PROFIL_GURU_LANDING)}
 </div></section>"""
 
 

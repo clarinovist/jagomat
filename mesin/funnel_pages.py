@@ -106,6 +106,7 @@ COPY_BATAS_HASIL = (
 # Bentuk tiap butir: {"nama": ..., "latar": ..., "lama_mengajar": ...}.
 PROFIL_GURU: tuple = ()
 COPY_JUDUL_PROFIL_GURU = "Guru yang membaca laporan Anda"  # DRAF: teks final menunggu persetujuan Pemilik
+COPY_JUDUL_PROFIL_GURU_LANDING = "Guru yang membaca laporan Bunda"  # landing menyapa Bunda (20 Nov 2026)
 
 COPY_TAUTAN_CONTOH = "Lihat contoh Peta Kemampuan"  # DRAF: teks final menunggu persetujuan Pemilik
 JALUR_CONTOH = "/contoh-peta-kemampuan"
@@ -159,10 +160,11 @@ def _footer(dukungan) -> str:
 </div></footer>"""
 
 
-def kartu_profil_guru(profil=None) -> str:
+def kartu_profil_guru(profil=None, judul: str = COPY_JUDUL_PROFIL_GURU) -> str:
     """Kartu profil guru; string kosong (nol byte) bila profil kosong.
 
     `profil=None` memakai konstanta `PROFIL_GURU`; `()` berarti tanpa kartu.
+    `judul` bawaan menyapa "Anda"; landing memberi versi "Bunda".
     """
     profil = PROFIL_GURU if profil is None else profil
     if not profil:
@@ -175,7 +177,7 @@ def kartu_profil_guru(profil=None) -> str:
     )
     return (
         '\n  <aside class="funnel-guru-st" aria-labelledby="judul-guru">'
-        f'<h2 id="judul-guru">{_e(COPY_JUDUL_PROFIL_GURU)}</h2><ul>{baris}</ul></aside>'
+        f'<h2 id="judul-guru">{_e(judul)}</h2><ul>{baris}</ul></aside>'
     )
 
 
