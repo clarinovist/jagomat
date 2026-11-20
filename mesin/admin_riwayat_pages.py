@@ -101,7 +101,7 @@ def _kalimat_entri(item) -> str:
 
 def _rincian_entri(item) -> str:
     return (
-        '<details class="admin-rincian"><summary>Rincian</summary><dl class="admin-rincian-daftar">'
+        '<details class="admin-lipat-kecil"><summary>Rincian</summary><dl class="admin-rincian-daftar">'
         '<dt>Waktu</dt><dd>%s</dd><dt>Pelaku</dt><dd>%s</dd><dt>Aksi</dt><dd>%s</dd><dt>Target</dt><dd>%s</dd>'
         '</dl></details>' % (
             e(L.tanggal(item.dibuat)), L.referensi(item.actor_id), L.referensi(item.aksi), L.referensi(item.target_id))

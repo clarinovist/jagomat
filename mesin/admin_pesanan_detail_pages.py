@@ -108,7 +108,7 @@ def _ringkasan(detail: Mapping) -> str:
         _baris_rincian("Dibuat", _waktu(detail["dibuat"])),
         _baris_rincian("Batas bayar", _waktu(detail["kedaluwarsa"]))))
     return ('<section class="admin-kartu"><div class="admin-kepala-aksi"><h2>Order %s</h2>%s</div>'
-            '<dl class="admin-rincian">%s</dl></section>' % (L.referensi(detail["order_id"]), badge, rincian))
+            '<dl class="admin-order-rincian">%s</dl></section>' % (L.referensi(detail["order_id"]), badge, rincian))
 
 
 def _langkah(langkah: Mapping) -> str:

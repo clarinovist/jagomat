@@ -457,7 +457,7 @@ def test_riwayat_dikelompokkan_per_hari_kalimat_dan_id_teknis_di_rincian():
     # ID mentah hanya di <details> "Rincian", tidak di kalimat; markup pelaku di-escape.
     kalimat = "".join(re.findall(r'<span class="admin-entri-kalimat">(.*?)</span>', isi))
     assert "akun_hari_ini" not in kalimat and "pelaku" not in kalimat
-    rincian = re.findall(r'<details class="admin-rincian"><summary>Rincian</summary>(.*?)</details>', isi)
+    rincian = re.findall(r'<details class="admin-lipat-kecil"><summary>Rincian</summary>(.*?)</details>', isi)
     assert len(rincian) == 4 and "akun_hari_ini" in rincian[0] and "account_password_reset" in rincian[0]
     assert "pelaku&lt;b&gt;" in rincian[0] and "pelaku<b>" not in isi
     assert isi.count('class="admin-badge bien">Berhasil') == 4

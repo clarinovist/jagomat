@@ -51,7 +51,7 @@ def test_daftar_kosong_200_privat_dan_nav_terdaftar(bayar, admin):
     kode, isi, tajuk = minta_admin(bayar, HALAMAN, admin)
     assert kode == 200
     assert tajuk["Cache-Control"] == "no-store"
-    assert "Pesanan Paket Coba" in isi and 'href="/admin/pesanan"' in isi
+    assert "Pesanan &amp; transfer" in isi and 'href="/admin/pesanan"' in isi
     assert "Belum ada pesanan" in isi
 
 

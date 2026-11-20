@@ -105,7 +105,7 @@ def _kartu_kelas(kelas: int, dasar_aktif: bool) -> str:
     return (
         '<section class="admin-kartu admin-topik-kelas"><div class="admin-topik-kepala">'
         '<h3>Kelas %d</h3>%s</div><ul class="admin-topik-daftar">%s</ul>'
-        '<details class="admin-rincian"><summary>Rincian teknis</summary><ul>%s</ul>'
+        '<details class="admin-lipat-kecil"><summary>Rincian teknis</summary><ul>%s</ul>'
         '<p class="admin-meta">%s</p></details></section>'
     ) % (
         kelas, _pil_status(kelas, dasar_aktif),

@@ -178,7 +178,7 @@ def tangani_post(penangan, jalur) -> bool:
     except PermissionError:
         h._galat(penangan, 403, "Form kedaluwarsa atau autentikasi ulang tidak sah.")
     except toko.PenolakanLembaga:
-        h._galat(penangan, 409, "Perubahan ditolak: guru sudah terikat pada lembaga, atau data berubah.")
+        h._galat(penangan, 409, "Perubahan ditolak: lembaga atau guru sudah berubah (mis. lembaga sudah dibubarkan atau guru sudah terikat di lembaga lain). Muat ulang halaman, lalu coba lagi.")
     except NamaTidakCocok:
         h._galat(penangan, 400, ui.COPY_NAMA_TIDAK_COCOK)
     except ValueError:

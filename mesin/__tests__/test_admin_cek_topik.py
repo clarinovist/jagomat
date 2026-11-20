@@ -30,11 +30,11 @@ def _kartu_kelas(isi: str, kelas: int) -> str:
 
 def _bagian_tampak(kartu: str) -> str:
     """Isi kartu di luar <details> 'Rincian teknis' (yang terlihat tanpa membuka rincian)."""
-    return kartu[:kartu.index('<details class="admin-rincian">')]
+    return kartu[:kartu.index('<details class="admin-lipat-kecil">')]
 
 
 def _rincian(kartu: str) -> str:
-    return kartu[kartu.index('<details class="admin-rincian">'):]
+    return kartu[kartu.index('<details class="admin-lipat-kecil">'):]
 
 
 def _ringkasan(isi: str, kelas: int) -> str:

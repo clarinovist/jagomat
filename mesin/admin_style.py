@@ -380,8 +380,8 @@ form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"]
 .admin-sel-sub {{ display: block; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 400; color: {T.ADMIN_REDUP}; }}
 .admin-tautan-kecil {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3}; font-weight: 500; }}
 .admin-banner-info {{ margin: 0 0 {T.SP_4}; padding: {T.SP_3} {T.SP_4}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_KARTU}; background: {T.ADMIN_NETRAL_LATAR}; color: {T.ADMIN_NETRAL_TEKS}; font-size: {T.UKURAN_TEKS_LABEL}; }}
-.admin-rincian {{ margin: 0 0 {T.SP_4}; }}
-.admin-rincian > summary {{ display: flex; align-items: center; min-height: {T.TARGET_SENTUH}; cursor: pointer; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; color: {T.ADMIN_REDUP}; }}
+.admin-lipat-kecil {{ margin: 0 0 {T.SP_4}; }}
+.admin-lipat-kecil > summary {{ display: flex; align-items: center; min-height: {T.TARGET_SENTUH}; cursor: pointer; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; color: {T.ADMIN_REDUP}; }}
 .admin-rincian-daftar {{ display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: {T.SP_1} {T.SP_4}; margin: 0 0 {T.SP_2}; font-size: {T.UKURAN_TEKS_LABEL}; }}
 .admin-rincian-daftar dt {{ color: {T.ADMIN_REDUP}; }}
 .admin-rincian-daftar dd {{ margin: 0; min-width: 0; overflow-wrap: anywhere; }}
@@ -474,11 +474,11 @@ summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-weight: 600;
 .admin-digit-unik {{ background: {T.ADMIN_AKSEN_LATAR}; color: {T.ADMIN_AKSEN_TEKS}; border-radius: {T.RADIUS_KECIL}; padding: 0 {T.SP_1}; }}
 .admin-form-tolak {{ margin-top: {T.SP_5}; }}
 .admin-form-tolak summary {{ color: {T.ADMIN_BAHAYA_TEKS}; }}
-.admin-rincian {{ margin: 0; }}
-.admin-rincian > div {{ display: flex; flex-wrap: wrap; justify-content: space-between; gap: {T.SP_3}; padding: {T.SP_3} 0; border-bottom: 1px solid {T.ADMIN_PEMISAH}; }}
-.admin-rincian > div:last-child {{ border-bottom: 0; }}
-.admin-rincian dt {{ color: {T.ADMIN_REDUP}; }}
-.admin-rincian dd {{ margin: 0; text-align: right; }}
+.admin-order-rincian {{ margin: 0; }}
+.admin-order-rincian > div {{ display: flex; flex-wrap: wrap; justify-content: space-between; gap: {T.SP_3}; padding: {T.SP_3} 0; border-bottom: 1px solid {T.ADMIN_PEMISAH}; }}
+.admin-order-rincian > div:last-child {{ border-bottom: 0; }}
+.admin-order-rincian dt {{ color: {T.ADMIN_REDUP}; }}
+.admin-order-rincian dd {{ margin: 0; text-align: right; }}
 .admin-perjalanan {{ list-style: none; margin: 0 0 {T.SP_4}; padding: 0; }}
 .admin-perjalanan li {{ display: flex; align-items: flex-start; gap: {T.SP_4}; padding: {T.SP_3} 0; }}
 .admin-perjalanan .admin-titik {{ margin-top: {T.SP_2}; }}

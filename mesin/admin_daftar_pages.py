@@ -298,7 +298,7 @@ def _akun_lama(data: Q.HalamanSiswa) -> str:
     )
     total = sum(facet.get(kode, 0) for kode in KONDISI_LAINNYA_SISWA)
     return (
-        '<details class="admin-rincian admin-akun-lama"%s><summary>Akun lama yang perlu dicocokkan (%d)</summary>'
+        '<details class="admin-lipat-kecil admin-akun-lama"%s><summary>Akun lama yang perlu dicocokkan (%d)</summary>'
         '<nav class="admin-chip-baris" aria-label="Kondisi akun lama">%s</nav></details>'
         % (" open" if data.status in KONDISI_LAINNYA_SISWA else "", total, tautan)
     )
@@ -339,7 +339,7 @@ def render_siswa(
         '<th scope="col">Tindakan</th>',
     )
     catatan = (
-        '<details class="admin-rincian admin-kartu-catatan"><summary>Tentang login tertaut dan kecocokan nama</summary>'
+        '<details class="admin-lipat-kecil admin-kartu-catatan"><summary>Tentang login tertaut dan kecocokan nama</summary>'
         '<p class="admin-meta">Login tertaut adalah akun yang dihubungkan langsung ke profil siswa. '
         'Akun lama yang belum tertaut mungkin masih bisa masuk melalui kecocokan nama; periksa sebelum membuat akun baru.</p>'
         '</details>'

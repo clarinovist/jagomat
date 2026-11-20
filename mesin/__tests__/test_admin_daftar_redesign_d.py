@@ -147,20 +147,20 @@ def test_siswa_chip_tanpa_login_netral_dengan_nilai_status_lama_dan_stabil_saat_
 def test_siswa_akun_lama_dikumpulkan_dalam_details_dengan_hitungan_dan_tautan_filter():
     facet = (("semua", 9), ("owner_empty", 2), ("legacy_login_unverified", 1), ("legacy_same_name_ambiguous", 4))
     isi = D.render_siswa(replace(_siswa(), jumlah_facet=facet, tingkat="P4"), (), csrf="x")
-    detail = re.search(r'<details class="admin-rincian admin-akun-lama">(.*?)</details>', isi, re.S).group(1)
+    detail = re.search(r'<details class="admin-lipat-kecil admin-akun-lama">(.*?)</details>', isi, re.S).group(1)
     assert "Akun lama yang perlu dicocokkan (7)" in detail
     for kode in D.KONDISI_LAINNYA_SISWA:
         assert "status=%s" % kode in detail and L.LABEL_STATUS[kode] in detail
     assert "owner_empty" not in _nav_chip(isi)  # tidak ada chip kondisi lama di baris chip utama
     assert "tingkat=P4" in detail  # filter lain dipertahankan
-    assert '<details class="admin-rincian admin-akun-lama"' in isi and " open" not in isi.split("admin-akun-lama")[1][:3]
+    assert '<details class="admin-lipat-kecil admin-akun-lama"' in isi and " open" not in isi.split("admin-akun-lama")[1][:3]
 
 
 def test_siswa_akun_lama_terbuka_bila_difilter_dan_catatan_kecocokan_nama_di_details():
     isi = D.render_siswa(replace(_siswa(), status="legacy_login_unverified"), (), csrf="x")
-    assert '<details class="admin-rincian admin-akun-lama" open>' in isi
+    assert '<details class="admin-lipat-kecil admin-akun-lama" open>' in isi
     assert 'aria-current="true" href="/admin?section=siswa&amp;status=legacy_login_unverified"' in isi
-    catatan = re.search(r'<details class="admin-rincian admin-kartu-catatan">(.*?)</details>', isi, re.S).group(1)
+    catatan = re.search(r'<details class="admin-lipat-kecil admin-kartu-catatan">(.*?)</details>', isi, re.S).group(1)
     assert "kecocokan nama" in catatan and "periksa sebelum membuat akun baru" in catatan
     assert "periksa sebelum membuat akun baru" not in isi.replace(catatan, "")
 

@@ -1,4 +1,4 @@
-"""Renderer murni halaman admin "Pesanan Paket Coba" (Fase C): daftar order tanpa form tindakan.
+"""Renderer murni halaman admin "Pesanan & transfer" (Fase C): daftar order tanpa form tindakan.
 
 Tabel hanya menampilkan ringkasan dan satu tautan per baris ("Periksa bukti" ke detail verifikasi untuk transfer
 yang menunggu, selain itu "Detail" ke `/admin/pesanan/order`). Tindakan berisiko (periksa status, catat refund)
@@ -26,7 +26,7 @@ RUTE_REKENING = RUTE + "/rekening"
 RUTE_ORDER = RUTE + "/order"
 RUTE_PENGATURAN_REKENING = "/admin/sakelar#rekening"
 SARING_MENUNGGU = "menunggu"
-JUDUL = "Pesanan Paket Coba"
+JUDUL = "Pesanan & transfer"
 SUBJUDUL = "Daftar order. Periksa bukti transfer atau buka detail order; tanpa kontak dan nama anak."
 PER_HALAMAN = 25
 AKSI_PERIKSA = "periksa"
