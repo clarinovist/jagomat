@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import os
+# Kandidat WAL: kontrak persistensi sama dengan recovery 4d9a102 (pin migrasi).
 import signal
 import socket
 import sys
