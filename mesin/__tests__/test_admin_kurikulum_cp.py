@@ -28,7 +28,7 @@ from http_test_kit import SANDI_GURU, SANDI_MURID  # noqa: E402
 from pesanan_transfer_http_kit import jam, keluarga, minta_mentah, server, tertutup  # noqa: E402,F401
 
 HALAMAN_EDIT = "/admin/kurikulum/cp"
-HALAMAN_PETA = "/admin/kurikulum"
+HALAMAN_PETA = "/admin/kurikulum/cp-detail"
 KEMBALIKAN = HALAMAN_EDIT + "/kembalikan"
 TAK_ADA = "/admin/tidak-ada"
 GRUP = ("bilangan-dasar", "nilai_tempat")

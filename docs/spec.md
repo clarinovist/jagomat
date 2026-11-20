@@ -130,7 +130,11 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   waktu persiapan belum terukur.
 - Admin melihat **Topik Cek Kemampuan** (`/admin/cek-topik`, baca-saja, tanpa DB): topik cek gratis
   per kelas, soal per topik, contoh jenis soal, dan status materi dasar kelas 1–2. Diturunkan dari kode;
-  mengubahnya lewat kode dan rilis, bukan dari admin. Tab "Peta kurikulum" (`/admin/kurikulum`):
+  mengubahnya lewat kode dan rilis, bukan dari admin. Tab "Kurikulum Merdeka" (`/admin/kurikulum`):
+  tabel 40 bab buku siswa 2022 per kelas 1–6 dengan jenis soal Jagomat, jenis, variasi, jumlah soal yang pernah
+  dipakai (agregat COUNT, tanpa data anak), dan status (dari level kelas); tautan "Buat soal" (`/admin/kurikulum/buat`)
+  membangkitkan 5/10/20/30 contoh soal bab itu dari seed, tanpa menyimpan. Jenis yang sakelar rilisnya mati ditandai
+  "belum dinyalakan". Tab "Detail CP" (`/admin/kurikulum/cp-detail`):
   butir CP Merdeka per fase, celah cakupan SD (dihitung dari pemetaan efektif), dan grup per topik. Admin bisa **mengubah
   pemetaan CP per grup** (`/admin/kurikulum/cp?grup=<topik>/<kode>`: sampai 12 butir + kecocokan): langsung berlaku tanpa
   draf, tercatat di audit (waktu, akun, lama→baru), tombol "Kembalikan ke bawaan" kode. Aksi memakai tinjauan bertanda

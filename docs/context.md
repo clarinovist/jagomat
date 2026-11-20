@@ -103,8 +103,13 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   bernama non-`*store*` karena hanya membaca; sidik kontrak persistensi tidak berubah.
 - `admin_cek_topik_pages.py` → `admin_cek_topik_http.py` untuk `/admin/cek-topik`: render murni dari
   `cek_gratis_skor.TOPIK_PER_KELAS` dan registri `topics`, tanpa DB.
-- `admin_kurikulum_pages.py` → `admin_kurikulum_http.py` untuk `/admin/kurikulum` (baca-saja; render murni):
-  `kurikulum_katalog` + `kurikulum_cp` + pemetaan efektif; bar tab `admin_kurikulum_tab.py` dibagi dengan halaman cek-topik.
+- `admin_kurikulum_pages.py` → `admin_kurikulum_http.py` untuk `/admin/kurikulum/cp-detail` (Detail CP; baca-saja; render murni):
+  `kurikulum_katalog` + `kurikulum_cp` + pemetaan efektif; bar tab tiga butir `admin_kurikulum_tab.py` dibagi dengan cek-topik.
+- `kurikulum_kelas.py` (data bab, stdlib) + `kurikulum_kelas_hitung.py` (status/jenis/variasi dari komposisi level,
+  variasi di-`lru_cache` per (topik, template, level), palang rilis `template_dibuka` dibaca di luar cache, COUNT `soal`
+  lewat `database.buka()` + `query_only`) + `kurikulum_buat_soal.py` → `admin_kurikulum_merdeka_pages.py` /
+  `admin_kurikulum_buat_pages.py` → `admin_kurikulum_merdeka_http.py` untuk `/admin/kurikulum` dan `/admin/kurikulum/buat`
+  (query ketat, 404 identik non-admin; badan soal memakai `render._badan_soal`, tidak menulis DB).
 - `admin_kurikulum_cp_pages.py` → `admin_kurikulum_cp_http.py` (3c): GET `/admin/kurikulum/cp?grup=<topik>/<kode>` (form 12 baris
   tetap `butir_N`/`cocok_N`, riwayat `kurikulum_override.riwayat_cp`), POST `/admin/kurikulum/cp` dan `/cp/kembalikan`. Guard = pola
   sakelar (`h._token_final`: csrf + tinjauan terikat aksi + sandi ulang; grup dan revisi hanya dari tinjauan; `wajib_field`).

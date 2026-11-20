@@ -77,6 +77,9 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/order", "admin"),  # Fase C: detail order (periksa/refund pindah ke sini; POST tetap di rute lama)
     ("/admin/pesanan/rekening", "admin"),
     ("/admin/sakelar", "admin"),  # sakelar fitur: empat sakelar admin; sudah tercakup prefix `/admin`
+    ("/admin/kurikulum", "admin"),  # Kurikulum Merdeka: tabel materi per kelas (exact; tanpa query)
+    ("/admin/kurikulum/cp-detail", "admin"),  # Detail CP: ringkasan CP, celah, per fase, per topik (exact)
+    ("/admin/kurikulum/buat", "admin"),  # Buat soal per bab (`?kelas=&bab=&jumlah=&seed=`); tidak menulis DB
     ("/admin/kurikulum/cp", "admin"),  # Peta kurikulum 3c: halaman ubah pemetaan CP per grup (`?grup=`)
     ("/", "publik"),  # landing; guru/admin melihat berandanya sendiri
     ("/masuk", "publik"),

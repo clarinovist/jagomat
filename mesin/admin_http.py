@@ -487,12 +487,15 @@ def tangani_get(penangan, jalur):
     import admin_cek_topik_http
     import admin_kurikulum_cp_http
     import admin_kurikulum_http
+    import admin_kurikulum_merdeka_http
     import admin_lembaga_http
     import admin_pesanan_http
     import admin_profil_guru_http
     import admin_research_http
     import admin_sakelar_http
     import admin_usage_http
+    if admin_kurikulum_merdeka_http.tangani_get(penangan, jalur):
+        return True
     if admin_kurikulum_http.tangani_get(penangan, jalur):
         return True
     if admin_kurikulum_cp_http.tangani_get(penangan, jalur):

@@ -346,6 +346,15 @@ form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"]
 .admin-kartu-kaki {{ padding: 0 {T.SP_5} {T.SP_5}; }}
 .admin-kartu-kaki .admin-meta {{ margin: {T.SP_4} 0 0; }}
 .admin-kartu-tabel .admin-tabel th, .admin-kartu-tabel .admin-tabel td {{ vertical-align: middle; }}
+.admin-kartu-tabel .kur-tabel {{ min-width: 66rem; }}
+.admin-kartu-tabel .kur-tabel td {{ vertical-align: top; }}
+.kur-soal-daftar {{ list-style: none; margin: 0 0 {T.SP_4}; padding: 0; }}
+.kur-soal-daftar > li {{ padding: {T.SP_4} 0; border-bottom: 1px solid {T.ADMIN_PEMISAH}; overflow-wrap: anywhere; }}
+.kur-soal .teks, .kur-soal .tanya {{ display: block; }}
+.kur-soal .tanya {{ margin-top: {T.SP_2}; font-weight: 600; }}
+.kur-soal svg {{ max-width: 100%; height: auto; }}
+.kur-kunci {{ margin: {T.SP_3} 0 0; }}
+.kur-aksi-baris {{ display: flex; flex-wrap: wrap; gap: {T.SP_4}; align-items: center; margin: {T.SP_3} 0; }}
 .admin-lembaga-anggota {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; list-style: none; margin: 0; padding: {T.SP_4} {T.SP_5} 0; }}
 .admin-lembaga-anggota .admin-badge {{ margin: 0; }}
 .admin-lembaga-kelola {{ margin: {T.SP_4} {T.SP_5} {T.SP_5}; }}
@@ -668,7 +677,7 @@ summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-weight: 600;
     --admin-baik-titik: {T.ADMIN_BAIK_TITIK_CERAH};
     --admin-netral-titik: {T.ADMIN_NETRAL_TITIK_CERAH};
   }}
-  .admin-sidebar, .admin-topbar, .admin-form-cari, .admin-pager {{ display: none; }}
+  .admin-sidebar, .admin-topbar, .admin-form-cari, .admin-pager, .admin-tab-baris, .kur-layar {{ display: none; }}
   .admin-layout {{ display: block; }}
 }}
 """

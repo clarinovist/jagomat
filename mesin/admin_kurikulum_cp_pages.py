@@ -11,7 +11,7 @@ from typing import Optional, Sequence, Tuple
 
 import admin_kurikulum_pages as peta_ui
 from admin_komponen import e
-from admin_kurikulum_tab import TAB_KURIKULUM, tab_kurikulum
+from admin_kurikulum_tab import TAB_DETAIL_CP, tab_kurikulum
 import kurikulum_cp as cp
 from kurikulum_override import MAKS_PASANGAN_CP, SUMBER_ADMIN, ItemCP, RiwayatCP
 
@@ -175,8 +175,8 @@ def halaman_edit(item: ItemCP, *, nama_topik: str, nama_grup: str, pola: Sequenc
                  token_kembalikan: Optional[Token], hasil: Optional[str] = None) -> str:
     """Isi halaman ubah satu grup. Token `(csrf, tinjauan)` None = sesi tanpa kuki (baca-saja, tanpa form)."""
     return (
-        tab_kurikulum(TAB_KURIKULUM) + _umpan_balik(hasil)
-        + '<p><a href="/admin/kurikulum">&larr; Kembali ke Peta kurikulum</a></p>'
+        tab_kurikulum(TAB_DETAIL_CP) + _umpan_balik(hasil)
+        + '<p><a href="/admin/kurikulum/cp-detail">&larr; Kembali ke Detail CP</a></p>'
         + _kepala(item, nama_topik, nama_grup, pola)
         + _tindakan(item, token_ubah, token_kembalikan) + _riwayat(riwayat)
     )

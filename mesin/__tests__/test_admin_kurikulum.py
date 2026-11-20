@@ -1,4 +1,4 @@
-"""Halaman admin baca-saja `/admin/kurikulum` (peta kurikulum). Data sintetis."""
+"""Halaman admin baca-saja Detail CP `/admin/kurikulum/cp-detail` (dulunya `/admin/kurikulum`). Data sintetis."""
 from __future__ import annotations
 
 import re
@@ -15,7 +15,8 @@ from test_admin_http_c import (  # noqa: E402
     SANDI_ADMIN, SANDI_ORANG_TUA, _login, _minta, server,  # noqa: F401
 )
 
-RUTE = "/admin/kurikulum"
+RUTE = "/admin/kurikulum/cp-detail"
+RUTE_UTAMA = "/admin/kurikulum"
 POLA_NAV = re.compile(r'<nav class="admin-nav admin-menu"[^>]*>(.*?)</nav>', re.S)
 
 
@@ -42,7 +43,8 @@ def test_admin_melihat_ringkasan_celah_dan_tab_aktif(server):
             assert "<code>%s</code>" % b.id in isi
     for entri in kat.KATALOG:
         assert e(ui._nama_topik(entri.topik_id)) in isi
-    assert '<a class="admin-tab" href="%s" aria-current="page">Peta kurikulum</a>' % RUTE in isi
+    assert '<a class="admin-tab" href="%s" aria-current="page">Detail CP</a>' % RUTE in isi
+    assert '<a class="admin-tab" href="%s">Kurikulum Merdeka</a>' % RUTE_UTAMA in isi
 
 
 def test_query_apa_pun_404(server):
@@ -54,7 +56,8 @@ def test_cek_topik_memuat_bar_tab_dengan_topik_cek_aktif(server):
     token = _login(server, "Admin-C", SANDI_ADMIN)
     isi = _minta(server, "/admin/cek-topik", cookie=token)[1]
     assert '<a class="admin-tab" href="/admin/cek-topik" aria-current="page">Topik cek</a>' in isi
-    assert '<a class="admin-tab" href="%s">Peta kurikulum</a>' % RUTE in isi
+    assert '<a class="admin-tab" href="%s">Kurikulum Merdeka</a>' % RUTE_UTAMA in isi
+    assert '<a class="admin-tab" href="%s">Detail CP</a>' % RUTE in isi
 
 
 def test_menu_menyorot_topik_cek_dan_jumlah_butir_tetap(server):

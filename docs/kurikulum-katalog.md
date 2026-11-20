@@ -47,3 +47,11 @@ dan `TOPIK_DASAR`. `TOPIK_LAMA` (riwayat sesi) dan `VERSI_KATALOG` (versi) tetap
 3. Jadi topik cek? Tambahkan ke `TOPIK_CEK_PER_KELAS` (wajib punya label awam dan
    bukan `hanya_manual`). Topik baru yang belum siap mastery: pakai `hanya_manual=True`.
 4. Jalankan `test_kurikulum_keselarasan.py` dan tes topik/mastery terkait.
+
+## Materi per kelas (`kurikulum_kelas.py`)
+
+`kurikulum_kelas.py` memuat 40 bab Kurikulum Merdeka kelas 1–6 (sumber: daftar isi buku siswa Matematika SD/MI
+2022, satu jilid per kelas) beserta sub-materi dan grup `KATALOG` yang melatihnya (kecocokan "ada"/"sebagian").
+Data beku, hanya stdlib. Ketersediaan grup TIDAK ditulis di sana: status bab ("Sudah ada soal", "Perlu disempurnakan",
+"Belum ada soal") dihitung halaman admin dari `Topik.komposisi["P<kelas>"]`, jadi grup yang baru ada di kelas lain
+tidak dihitung. Mengubah bab atau rujukan grup = mengubah data ini dan menjalankan `test_kurikulum_kelas.py`.

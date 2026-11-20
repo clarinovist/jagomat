@@ -51,6 +51,9 @@ _PROBE_GET = {
     "/admin/pesanan/order": "/admin/pesanan/order?id=ord_" + "0" * 32,
     "/admin/pesanan/rekening": "/admin/pesanan/rekening",
     "/admin/sakelar": "/admin/sakelar",
+    "/admin/kurikulum": "/admin/kurikulum",
+    "/admin/kurikulum/cp-detail": "/admin/kurikulum/cp-detail",
+    "/admin/kurikulum/buat": "/admin/kurikulum/buat?kelas=3&bab=1",
     "/admin/kurikulum/cp": "/admin/kurikulum/cp?grup=aritmatika-lanjut%2Fkonversi",
     "/": "/",
     "/masuk": "/masuk",
@@ -217,6 +220,8 @@ def test_tabel_akses_punya_probe():
     assert get["/admin/pesanan/rekening"] == post["/admin/pesanan/rekening"] == "admin"
     assert get["/admin/sakelar"] == post["/admin/sakelar"] == "admin"
     assert get["/admin/kurikulum/cp"] == post["/admin/kurikulum/cp"] == "admin"
+    assert get["/admin/kurikulum"] == get["/admin/kurikulum/cp-detail"] == get["/admin/kurikulum/buat"] == "admin"
+    assert not {"/admin/kurikulum", "/admin/kurikulum/cp-detail", "/admin/kurikulum/buat"} & set(post)
     assert post["/admin/kurikulum/cp/kembalikan"] == "admin" and "/admin/kurikulum/cp/kembalikan" not in get
     assert get["/paket-coba"] == "publik" and "/paket-coba" not in post
     assert get["/contoh-peta-kemampuan"] == "publik" and "/contoh-peta-kemampuan" not in post

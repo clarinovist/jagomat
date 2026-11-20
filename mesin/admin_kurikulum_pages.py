@@ -1,4 +1,4 @@
-"""Renderer HTML murni halaman admin "Peta kurikulum" (tanpa JS, tanpa DB).
+"""Renderer HTML murni halaman admin "Detail CP" (tanpa JS, tanpa DB): ringkasan CP, celah, per fase, per topik.
 
 Topik, grup, dan butir CP diturunkan dari `kurikulum_katalog` dan `kurikulum_cp`; pemetaan CP per grup
 yang ditampilkan adalah nilai EFEKTIF (`kurikulum_override.ItemCP`, bawaan kode atau diubah admin) yang
@@ -14,7 +14,7 @@ import kurikulum_katalog as kat
 from kurikulum_override import SUMBER_ADMIN, SUMBER_BAWAAN, ItemCP
 import topics
 from admin_komponen import e
-from admin_kurikulum_tab import TAB_KURIKULUM, tab_kurikulum
+from admin_kurikulum_tab import TAB_DETAIL_CP, tab_kurikulum
 
 FASE_SD = ("A", "B", "C")
 TANPA_SOAL = "belum ada soal"
@@ -213,7 +213,7 @@ def halaman(daftar: Optional[Sequence[ItemCP]] = None) -> str:
     celah_sd = tuple(b for b in butir_tanpa_grup_efektif(daftar) if b.fase in FASE_SD)
     peta = pelatih_per_butir(daftar)
     return (
-        tab_kurikulum(TAB_KURIKULUM)
+        tab_kurikulum(TAB_DETAIL_CP)
         + _ringkasan(celah_sd, daftar) + _celah(celah_sd, daftar) + _per_fase(peta)
         + "<h2>Topik dan grup soal</h2>" + "".join(_topik(t, per_grup) for t in kat.KATALOG)
         + '<section class="admin-kartu admin-catatan"><p class="admin-meta">%s</p></section>' % e(CATATAN)
