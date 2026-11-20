@@ -5,6 +5,7 @@ from typing import Optional, Sequence
 
 from admin_guru_tab import TAB_PEMAKAIAN, tab_guru
 from admin_komponen import e
+from admin_usage_heatmap import heatmap, ringkasan_utama
 from teacher_usage import BATAS_WAJAR_MENIT, JUMLAH_MINGGU, PemakaianGuru
 
 LABEL_SUMBER = {
@@ -48,27 +49,7 @@ def _baris(guru: PemakaianGuru) -> str:
     )
 
 
-def _tabel_mingguan(daftar: Sequence[PemakaianGuru]) -> str:
-    if not daftar:
-        return ""
-    kepala = "".join(
-        '<th scope="col">%s</th>' % e(m.senin.strftime("%d/%m")) for m in daftar[0].minggu
-    )
-    baris = "".join(
-        '<tr><th scope="row">%s</th>%s</tr>' % (
-            e(g.pengguna), "".join("<td>%d</td>" % m.sesi_dibuat for m in g.minggu))
-        for g in daftar
-    )
-    return (
-        '<section class="admin-kartu admin-kartu-tabel"><div class="admin-kartu-kepala">'
-        '<h2>Sesi dibuat per minggu</h2><span class="admin-meta">Kolom = hari Senin awal minggu</span></div>'
-        '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Sesi dibuat per minggu">'
-        '<table class="admin-tabel"><thead><tr><th scope="col">Guru</th>%s</tr></thead>'
-        "<tbody>%s</tbody></table></div></section>" % (kepala, baris)
-    )
-
-
-def halaman(daftar: Sequence[PemakaianGuru]) -> str:
+def _tabel_rincian(daftar: Sequence[PemakaianGuru]) -> str:
     isi_baris = "".join(_baris(g) for g in daftar) or (
         '<tr><td colspan="10" class="admin-kosong">Belum ada guru yang memiliki sesi.</td></tr>'
     )
@@ -80,12 +61,17 @@ def halaman(daftar: Sequence[PemakaianGuru]) -> str:
             "Laporan orang tua terbit",
         )
     )
-    return tab_guru(TAB_PEMAKAIAN) + (
-        '<section class="admin-kartu admin-kartu-tabel"><div class="admin-kartu-kepala">'
-        '<h2>Pemakaian per guru</h2><span class="admin-meta">%d minggu terakhir, hanya agregat</span></div>'
+    return (
         '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Pemakaian per guru">'
-        '<table class="admin-tabel"><thead><tr>%s</tr></thead><tbody>%s</tbody></table></div></section>'
-        "%s"
-        '<section class="admin-kartu admin-catatan"><p><strong>Waktu persiapan belum bisa diukur.</strong></p>'
-        '<p class="admin-meta">%s</p></section>'
-    ) % (JUMLAH_MINGGU, kepala, isi_baris, _tabel_mingguan(daftar), e(CATATAN_KAKI))
+        '<table class="admin-tabel"><thead><tr>%s</tr></thead><tbody>%s</tbody></table></div>'
+    ) % (kepala, isi_baris)
+
+
+def halaman(daftar: Sequence[PemakaianGuru]) -> str:
+    """Tab, empat angka utama, heatmap mingguan, lalu rincian per guru dan catatan cara hitung (tertutup)."""
+    return tab_guru(TAB_PEMAKAIAN) + ringkasan_utama(daftar) + heatmap(daftar) + (
+        '<details class="admin-kartu admin-pakai-rincian"><summary>Rincian per guru</summary>'
+        '<p class="admin-meta">%d minggu terakhir, hanya agregat.</p>%s'
+        '<p><strong>Waktu persiapan belum bisa diukur.</strong></p>'
+        '<p class="admin-meta">%s</p></details>'
+    ) % (JUMLAH_MINGGU, _tabel_rincian(daftar), e(CATATAN_KAKI))

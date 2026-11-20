@@ -345,14 +345,29 @@ form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"]
 .admin-kartu-tabel .admin-tabel th, .admin-kartu-tabel .admin-tabel td {{ vertical-align: middle; }}
 .admin-lembaga-anggota {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; list-style: none; margin: 0; padding: {T.SP_4} {T.SP_5} 0; }}
 .admin-lembaga-anggota .admin-badge {{ margin: 0; }}
-.admin-lembaga-kelola, .admin-lembaga-bahaya {{ margin: {T.SP_4} {T.SP_5} {T.SP_5}; }}
+.admin-lembaga-kelola {{ margin: {T.SP_4} {T.SP_5} {T.SP_5}; }}
 .admin-lembaga-kelola > .admin-bagian {{ margin-top: {T.SP_4}; }}
-.admin-lembaga-bahaya {{ padding: 0 {T.SP_4} {T.SP_4}; border: 1px solid {T.ADMIN_BAHAYA_BORDER}; border-radius: {T.RADIUS_KARTU}; background: {T.ADMIN_BAHAYA_LATAR}; }}
+.admin-lembaga-bahaya {{ margin: {T.SP_5} 0 0; padding: 0 {T.SP_4} {T.SP_4}; border: 1px solid {T.ADMIN_BAHAYA_BORDER}; border-radius: {T.RADIUS_KARTU}; background: {T.ADMIN_BAHAYA_LATAR}; }}
 .admin-lembaga-bahaya > summary {{ color: {T.ADMIN_BAHAYA_TEKS}; }}
 .admin-lembaga-lepas {{ padding-bottom: {T.SP_4}; border-bottom: 1px solid {T.ADMIN_PEMISAH}; }}
 .admin-lembaga-nama {{ flex: 1 1 10rem; align-self: center; font-weight: 600; overflow-wrap: anywhere; }}
 .admin-lembaga-buat > summary {{ padding: 0; }}
 .admin-lembaga-buat[open] > summary {{ margin-bottom: {T.SP_4}; }}
+.admin-ringkas {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,12.5rem),1fr)); gap: {T.SP_3}; margin-bottom: {T.SP_4}; }}
+.admin-ringkas-kartu {{ display: flex; flex-direction: column; gap: 2px; padding: {T.SP_4} {T.SP_5}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_KARTU}; background: {T.ADMIN_PERMUKAAN}; }}
+.admin-ringkas-kartu strong {{ font-size: {T.UKURAN_ANGKA_DEWASA}; line-height: 1.1; }}
+.admin-ringkas-kartu span {{ color: {T.ADMIN_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; }}
+.admin-heat {{ text-align: center; min-width: 3.25rem; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; font-variant-numeric: tabular-nums; }}
+.admin-heat-0 {{ color: {T.ADMIN_REDUP}; background: {T.ADMIN_NETRAL_LATAR}; }}
+.admin-heat-1 {{ color: {T.ADMIN_AKSEN_TEKS}; background: {T.ADMIN_AKSEN_LATAR}; }}
+.admin-heat-2 {{ color: {T.ADMIN_TEKS}; background: color-mix(in srgb, {T.ADMIN_AKSEN} 40%, {T.ADMIN_PERMUKAAN}); }}
+.admin-heat-3 {{ color: {T.ADMIN_PERMUKAAN}; background: {T.ADMIN_AKSEN}; }}
+.admin-heat-kepala, .admin-heat-total {{ text-align: center; font-variant-numeric: tabular-nums; }}
+.admin-heat-tabel td.admin-heat {{ border-left: 2px solid {T.ADMIN_PERMUKAAN}; border-right: 2px solid {T.ADMIN_PERMUKAAN}; }}
+.admin-heat-legenda {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; margin: 0; padding: 0; list-style: none; }}
+.admin-heat-legenda .admin-heat {{ display: inline-block; padding: 2px {T.SP_3}; border-radius: {T.RADIUS_SEDANG}; }}
+.admin-pakai-rincian {{ margin-top: {T.SP_4}; }}
+.admin-pakai-rincian .admin-tabel-wrap {{ margin: {T.SP_3} 0 {T.SP_4}; }}
 .admin-sel-nama {{ display: flex; align-items: center; gap: {T.SP_3}; font-weight: 600; }}
 .admin-avatar {{ display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: {T.RADIUS_BULAT}; background: {T.ADMIN_NAV_HOVER}; color: {T.ADMIN_NETRAL_TEKS}; font-weight: 700; font-size: {T.UKURAN_TEKS_LABEL}; }}
 .admin-redup {{ color: {T.ADMIN_REDUP}; }}

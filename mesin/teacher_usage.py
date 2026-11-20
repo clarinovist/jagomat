@@ -142,8 +142,13 @@ def _hitung_guru(pengguna, baris, laporan, jendela) -> PemakaianGuru:
 
 
 def ambil_pemakaian(kon, *, sekarang: Optional[datetime] = None,
-                    jumlah_minggu: int = JUMLAH_MINGGU) -> List[PemakaianGuru]:
-    """Pemakaian per guru pemilik anak, urut nama; hanya membaca."""
+                    jumlah_minggu: int = JUMLAH_MINGGU,
+                    guru_terdaftar: Sequence[str] = ()) -> List[PemakaianGuru]:
+    """Pemakaian per guru pemilik anak, urut nama; hanya membaca.
+
+    ``guru_terdaftar`` (nama akun guru aktif) ikut dihitung dengan nilai nol bila belum punya sesi,
+    supaya guru yang belum mulai terlihat; tidak ada query tambahan di database.
+    """
     sekarang = sekarang or datetime.now(ZONA_WIB).replace(tzinfo=None)
     jendela = _jendela(sekarang, jumlah_minggu)
     sesi: Dict[str, list] = {}
@@ -152,7 +157,7 @@ def ambil_pemakaian(kon, *, sekarang: Optional[datetime] = None,
     laporan: Dict[str, list] = {}
     for baris in kon.execute(_SQL_LAPORAN):
         laporan.setdefault(baris["pemilik"], []).append(baris["diterbitkan"])
-    pemilik = sorted(set(sesi) | set(laporan), key=str.casefold)
+    pemilik = sorted(set(sesi) | set(laporan) | set(guru_terdaftar), key=str.casefold)
     return [
         _hitung_guru(p, sesi.get(p, []), laporan.get(p, []), jendela)
         for p in pemilik

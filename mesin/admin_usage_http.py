@@ -5,6 +5,7 @@ import sqlite3
 
 import admin_http as h
 import admin_usage_pages as ui
+from admin_lembaga_http import nama_guru_aktif
 import database
 import teacher_usage
 
@@ -23,7 +24,7 @@ def tangani_get(penangan, jalur) -> bool:
     try:
         h._query(penangan, diizinkan=set())
         with database.buka() as kon:
-            daftar = teacher_usage.ambil_pemakaian(kon)
+            daftar = teacher_usage.ambil_pemakaian(kon, guru_terdaftar=nama_guru_aktif())
     except ValueError:
         h._tidak_ada(penangan)
         return True
