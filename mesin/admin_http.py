@@ -27,6 +27,7 @@ import admin_store
 import admin_students
 import auth
 import database
+import laju_masuk
 import sessions
 from admin_contracts import (
     AKSI_BUAT_GURU,
@@ -661,13 +662,30 @@ def _render_tinjauan(penangan, principal, query):
     _tidak_ada(penangan)
 
 
-def _reauth(principal, sandi):
+# Pembatas sandi ulang aksi berisiko: pembatas laju login yang sama (`laju_masuk`: 5 gagal / 15 menit),
+# kunci per AKUN admin pada ruang IP tersendiri supaya tidak bertabrakan dengan kunci login (nama, IP).
+RUANG_REAUTH = "reauth"
+
+
+def _reauth(principal, sandi, sekarang=None):
+    """Sandi ulang admin; `sekarang` (detik epoch) disuntik oleh tes, bawaan jam sistem.
+
+    Selama diblokir (5 gagal dalam 15 menit) langsung False tanpa menjalankan PBKDF2, jadi sandi benar pun
+    ditolak sampai jendela lewat. Sukses mengosongkan hitungan; kegagalan akun lain tidak berpengaruh.
+    """
+    if laju_masuk.sedang_diblokir(principal.id_akun, RUANG_REAUTH, sekarang):
+        return False
     akun = auth.autentikasi(principal.pengguna, sandi)
-    return akun is not None and (
+    sah = akun is not None and (
         akun.id_akun == principal.id_akun
         and akun.revisi_auth == principal.revisi_auth
         and akun.peran == "admin"
     )
+    if sah:
+        laju_masuk.catat_berhasil(principal.id_akun, RUANG_REAUTH)
+    else:
+        laju_masuk.catat_gagal(principal.id_akun, RUANG_REAUTH, sekarang)
+    return sah
 
 
 def _token_final(penangan, principal, data, aksi):

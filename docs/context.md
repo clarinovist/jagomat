@@ -175,7 +175,10 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `pesanan_admin.daftar_tersaring`; satu tautan per baris: Periksa bukti atau Detail) dan Detail order `/admin/pesanan/order?id=`
   (`admin_pesanan_detail_pages.py` + `pesanan_admin_order.py`, admin saja, 404 identik bila tak sah): periksa status dan catat uang
   kembali (pengecualian) ada di sini sebagai `<details>`, token final admin (CSRF + tinjauan + sandi ulang), PRG ke detail; tidak
-  menulis jurnal `operasi_admin`, jejak refund = baris `pesanan_refund`/`transfer_refund`). Panggilan jaringan tidak pernah di dalam
+  menulis jurnal `operasi_admin`, jejak refund = baris `pesanan_refund`/`transfer_refund`). Server menegakkan sendiri: refund hanya untuk status
+  `pesanan_dasar.STATUS_BISA_REFUND` (satu sumber dengan tombol UI) dan satu catatan per order di KEDUA tabel refund
+  (`pesanan_refund_aturan.py`); sandi ulang aksi berisiko dibatasi 5 gagal/15 menit per akun admin (`admin_http._reauth` memakai
+  `laju_masuk` pada ruang kunci `reauth`). Panggilan jaringan tidak pernah di dalam
   transaksi tulis. Kontrak rilis bergeser seperti Fase 2.
 - Transfer rekening (jalur utama pembayaran, verifikasi manual admin; tahap 1 = skema + logika inti; tahap 2 = alur guru di bawah; tahap 3 = admin, retensi, jendela ulang):
   `schema_transfer.py` (namespace `transfer_*`, sengaja BUKAN `pesanan_*` agar `schema_pesanan.validasi` dan rollback image lama utuh;
