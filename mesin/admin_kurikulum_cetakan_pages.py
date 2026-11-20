@@ -11,6 +11,7 @@ from typing import Dict, Optional, Sequence, Tuple
 from urllib.parse import urlencode
 
 import admin_kurikulum_cetakan_form as form
+import admin_labels
 import cetakan_pola as pola
 import cetakan_store as store
 import kurikulum_kelas as kk
@@ -179,7 +180,7 @@ def _baris_daftar(item: store.ItemCetakan) -> str:
         '<li><p class="kurikulum-kepala"><a href="%s">%s</a></p>'
         '<p class="admin-meta">%s · %s · revisi %d · diperbarui %s · <a href="%s">Periksa</a></p></li>'
         % (e(url_periksa(item.id)), e(item.cetakan.judul), e(LABEL_STATUS[item.status]),
-           e(LABEL_SUMBER[item.sumber]), item.revisi, e(item.diperbarui), e(url_periksa(item.id))))
+           e(LABEL_SUMBER[item.sumber]), item.revisi, e(admin_labels.tanggal(item.diperbarui)), e(url_periksa(item.id))))
 
 
 def halaman_daftar(kelas: int, bab: kk.Bab, items: Sequence[store.ItemCetakan]) -> str:
@@ -226,7 +227,7 @@ def _kepala_item(item: store.ItemCetakan) -> str:
         '<section class="admin-kartu"><h2>%s</h2><p class="admin-meta">Kelas %d · Bab %d · %s · %s · revisi %d · '
         'diperbarui %s</p>%s</section>' % (
             e(item.cetakan.judul), item.kelas, item.bab, e(LABEL_STATUS[item.status]), e(LABEL_SUMBER[item.sumber]),
-            item.revisi, e(item.diperbarui), _daftar_pola(item.cetakan)))
+            item.revisi, e(admin_labels.tanggal(item.diperbarui)), _daftar_pola(item.cetakan)))
 
 
 def _tampil_angka(teks: str) -> str:
@@ -263,7 +264,7 @@ def _entri_riwayat(r: store.RiwayatCetakan) -> str:
     if r.aksi not in ("buat", "ubah") and r.lama and r.baru:
         perubahan = " · %s → %s" % (r.lama, r.baru)
     return '<li><p class="kurikulum-kepala">Revisi %d · %s</p><p class="admin-meta">%s · <code>%s</code>%s</p></li>' % (
-        r.revisi, e(LABEL_AKSI.get(r.aksi, r.aksi)), e(r.dibuat), e(r.actor_id), e(perubahan))
+        r.revisi, e(LABEL_AKSI.get(r.aksi, r.aksi)), e(admin_labels.tanggal(r.dibuat)), e(r.actor_id), e(perubahan))
 
 
 def _riwayat(daftar: Sequence[store.RiwayatCetakan]) -> str:
