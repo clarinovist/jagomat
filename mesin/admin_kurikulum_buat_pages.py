@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 import kurikulum_buat_soal as buat
 import kurikulum_kelas as kk
 from admin_komponen import e, opsi
+from admin_kurikulum_cetakan_pages import baris_soal
 from admin_kurikulum_tab import TAB_KURIKULUM, tab_kurikulum
 from render import _badan_soal
 from template_labels import nama_tipe_soal
@@ -42,7 +43,14 @@ def _form(kelas: int, bab: int, jumlah: int, seed: int) -> str:
     ) % (RUTE, kelas, bab, seed, pilihan)
 
 
-def _baris_item(item: buat.ItemSoal) -> str:
+def _baris_cetakan(item: buat.ItemSoalCetakan) -> str:
+    return '<li><p class="admin-meta">Soal %d · %s</p>%s</li>' % (
+        item.nomor, e("Cetakan: %s" % item.judul), baris_soal(item.soal))
+
+
+def _baris_item(item: buat.Item) -> str:
+    if isinstance(item, buat.ItemSoalCetakan):
+        return _baris_cetakan(item)
     s = item.soal
     jenis = [item.nama_grup, nama_tipe_soal(s.template_id)]
     return (

@@ -6,6 +6,11 @@ grup di kelas K dihitung dari `Topik.komposisi["P<K>"]` (inventaris pembaca), la
 dibangkitkan dari generator dan deterministik, jadi hasil murni per (topik, template, level) di-cache per proses;
 palang rilis dibaca di luar cache supaya perubahan env langsung terlihat. Pemakaian dibaca dari tabel `soal`
 sebagai agregat COUNT saja (tanpa `parameter`, `kunci`, atau data anak).
+
+Cetakan berpola AKTIF (`cetakan_store.aktif_untuk_bab`, C2) ikut dihitung sebagai jenis soal bab: variasinya dianggap
+"banyak" tanpa dijalankan (tidak ada uji kelayakan/sampel saat render tabel), dan bab tanpa soal kode tetapi
+punya >= 1 cetakan aktif berstatus "sebagian" (Perlu disempurnakan). Draf dan nonaktif tidak pernah dibaca di sini.
+Kolom "Dipakai" tidak berubah: cetakan belum masuk sesi anak (C4).
 """
 from __future__ import annotations
 
@@ -15,6 +20,7 @@ from functools import lru_cache
 from typing import Dict, Mapping, Optional, Tuple
 
 import basic_numbers_versions
+import cetakan_store
 import database
 import generator
 import kurikulum_katalog as kat
@@ -76,10 +82,12 @@ class RingkasanBab:
     template: Tuple[RefTemplate, ...]  # unik, urut pelatih
     variasi: VariasiBab
     terpakai: Optional[int]  # None = DB tak terbaca
+    cetakan: Tuple[cetakan_store.ItemCetakan, ...] = ()  # cetakan berpola AKTIF bab ini
 
     @property
     def jenis(self) -> int:
-        return len(self.template)
+        """Jumlah jenis soal: template kode unik + cetakan aktif."""
+        return len(self.template) + len(self.cetakan)
 
 
 def level_kelas(kelas: int) -> str:
@@ -210,12 +218,25 @@ def _terpakai(template: Tuple[RefTemplate, ...], level: str,
     return sum(pemakaian.get((tid, level), 0) for _topik, tid in template)
 
 
+def _status_dengan_cetakan(status: str, cetakan: Tuple[cetakan_store.ItemCetakan, ...]) -> str:
+    """Bab tanpa soal kode (belum) tetapi punya cetakan aktif = sebagian; selain itu status kode tetap."""
+    return STATUS_SEBAGIAN if status == STATUS_BELUM and cetakan else status
+
+
+def _variasi_dengan_cetakan(variasi: VariasiBab, cetakan: Tuple[cetakan_store.ItemCetakan, ...]) -> VariasiBab:
+    """Cetakan dianggap "banyak" (tanpa dijalankan); jumlah total soal kode tidak berubah."""
+    return replace(variasi, ada_banyak=True) if cetakan else variasi
+
+
 def ringkasan_bab(bab: kk.Bab, kelas: int, pemakaian: Optional[Mapping[Tuple[str, str], int]]) -> RingkasanBab:
     pelatih = tuple(pelatih_kelas(t, g, c, kelas) for t, g, c in bab.pelatih)
     template = template_unik(pelatih)
     level = level_kelas(kelas)
-    return RingkasanBab(bab.nomor, bab.judul, bab.sub_materi, pelatih, status_bab(pelatih), template,
-                        variasi_bab(template, level), _terpakai(template, level, pemakaian))
+    cetakan = cetakan_store.aktif_untuk_bab(kelas, bab.nomor)
+    return RingkasanBab(bab.nomor, bab.judul, bab.sub_materi, pelatih,
+                        _status_dengan_cetakan(status_bab(pelatih), cetakan), template,
+                        _variasi_dengan_cetakan(variasi_bab(template, level), cetakan),
+                        _terpakai(template, level, pemakaian), cetakan)
 
 
 def ringkasan_kelas(kelas: kk.Kelas, pemakaian: Optional[Mapping[Tuple[str, str], int]]) -> Tuple[RingkasanBab, ...]:

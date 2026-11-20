@@ -16,18 +16,19 @@ from template_labels import nama_tipe_soal
 
 RUTE = "/admin/kurikulum"
 RUTE_BUAT = "/admin/kurikulum/buat"
+RUTE_CETAKAN = "/admin/kurikulum/cetakan"
 TANPA_DATA = "–"
 # Lima kolom agar Status dan tombol Buat soal tetap terlihat di layar 1280 px tanpa gulir samping.
 KOLOM = ("No", "Materi dan sub-materi", "Soal Jagomat", "Jumlah soal", "Status")
 KETERANGAN_KOLOM = (
     ("Materi dan sub-materi", "Judul bab di buku siswa kelas itu, lalu pokok bahasan di dalamnya."),
-    ("Soal Jagomat", "Jenis soal Jagomat yang melatih bab itu."),
+    ("Soal Jagomat", "Jenis soal Jagomat yang melatih bab itu; baris \"Cetakan\" = cetakan berpola aktif buatan admin."),
     ("Jumlah soal: jenis", "Berapa macam soal yang tersedia untuk bab itu di kelas tersebut."),
     ("Jumlah soal: variasi", "Perkiraan banyaknya soal berbeda yang bisa dibuat: angka tanpa tanda itu tepat, \"±\" perkiraan "
                 "dari %d contoh, \"banyak\" berarti lebih dari itu." % hitung.JUMLAH_SAMPEL),
     ("Jumlah soal: dipakai", "Berapa soal bab ini yang pernah dibuat untuk latihan di aplikasi (jumlahnya saja)."),
     ("Status", "Sudah ada soal, perlu disempurnakan (soal ada tetapi belum pas), atau belum ada soal. "
-               "Tautan Buat soal membuat contoh soal dari bab itu, hanya untuk dilihat."),
+               "Tautan Buat soal membuat contoh soal dari bab itu, hanya untuk dilihat; Kelola cetakan membuka cetakan berpola bab itu."),
 )
 CATATAN_TUTUP = (
     "Jenis soal bertanda \"belum dinyalakan\" sudah ada di kode tetapi sakelar rilisnya masih mati di server ini, "
@@ -50,8 +51,14 @@ def _nama_pelatih(p: hitung.PelatihKelas) -> str:
     return isi
 
 
+def url_cetakan(kelas: int, bab: int) -> str:
+    return "%s?%s" % (RUTE_CETAKAN, urlencode({"kelas": kelas, "bab": bab}))
+
+
 def _sel_soal(b: hitung.RingkasanBab) -> str:
-    return "<br>".join(_nama_pelatih(p) for p in b.pelatih) or '<span class="admin-meta">-</span>'
+    baris = [_nama_pelatih(p) for p in b.pelatih]
+    baris += ["Cetakan: %s" % e(c.cetakan.judul) for c in b.cetakan]
+    return "<br>".join(baris) or '<span class="admin-meta">-</span>'
 
 
 def teks_variasi(v: hitung.VariasiBab) -> str:
@@ -71,9 +78,10 @@ def _sel_variasi(b: hitung.RingkasanBab) -> str:
 
 
 def _sel_aksi(kelas: int, b: hitung.RingkasanBab) -> str:
+    kelola = '<br><a href="%s">Kelola cetakan</a>' % e(url_cetakan(kelas, b.nomor))
     if b.jenis - len(b.variasi.tertutup) <= 0:
-        return ""
-    return '<br><a href="%s">Buat soal</a>' % e(url_buat(kelas, b.nomor))
+        return kelola
+    return '<br><a href="%s">Buat soal</a>' % e(url_buat(kelas, b.nomor)) + kelola
 
 
 def _baris(kelas: int, b: hitung.RingkasanBab) -> str:
