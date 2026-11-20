@@ -21,6 +21,12 @@ RUTE_BUAT = "/admin/kurikulum/buat"
 RUTE_EDIT_CP = "/admin/kurikulum/cp?grup=aritmatika-lanjut%2Fkonversi"
 DIR_RENDER = Path("/private/tmp/claude-501")
 POLA_SEL = re.compile(r"<td[^>]*>(.*?)</td>", re.S)
+POLA_DIPAKAI = re.compile(r"Dipakai: ([^<]*)")
+
+
+def _dipakai(sel) -> str:
+    """Nilai "Dipakai" dari sel Jumlah soal (indeks 3)."""
+    return POLA_DIPAKAI.search(sel[3]).group(1)
 BATAS_RENDER_DETIK = 2.0
 
 
@@ -81,8 +87,7 @@ def test_tabel_memuat_enam_kelas_empat_puluh_bab_dan_kolom_lengkap(server):
     isi = _minta(server, RUTE, cookie=_admin(server))[1]
     assert len(re.findall(r'<h2 id="kelas-\d">Kelas \d</h2>', isi)) == 6
     assert len(re.findall(r"<tr><td>\d+</td>", isi)) == 40
-    for kolom in ("No", "Materi (bab)", "Sub-materi", "Soal Jagomat", "Jenis soal", "Variasi",
-                  "Sudah dipakai", "Status", "Aksi"):
+    for kolom in ("No", "Materi dan sub-materi", "Soal Jagomat", "Jumlah soal", "Status"):
         assert isi.count('<th scope="col">%s</th>' % kolom) == 6
     assert kk.SUMBER_BAB in isi and "Total 40 bab" in isi
     assert "Pengayaan di luar buku" in isi and '<div class="admin-tabel-wrap"' in isi
@@ -90,48 +95,48 @@ def test_tabel_memuat_enam_kelas_empat_puluh_bab_dan_kolom_lengkap(server):
 
 def test_status_dihitung_dari_level_kelas(server):
     isi = _minta(server, RUTE, cookie=_admin(server))[1]
-    assert "<strong>Belum ada soal</strong>" in _baris(isi, 1, 4)[7]
-    assert "<strong>Sudah ada soal</strong>" in _baris(isi, 1, 2)[7]
-    assert "<strong>Perlu disempurnakan</strong>" in _baris(isi, 1, 6)[7]
+    assert "<strong>Belum ada soal</strong>" in _baris(isi, 1, 4)[4]
+    assert "<strong>Sudah ada soal</strong>" in _baris(isi, 1, 2)[4]
+    assert "<strong>Perlu disempurnakan</strong>" in _baris(isi, 1, 6)[4]
 
 
 def test_pelatih_yang_belum_ada_di_kelas_itu_diberi_catatan(server):
     sel = _baris(_minta(server, RUTE, cookie=_admin(server))[1], 2, 4)
-    assert "baru ada di kelas 3, 4, 5, 6" in sel[3] and "Belum ada soal" in sel[7]
-    assert 'Buat soal' not in sel[8]
+    assert "baru ada di kelas 3, 4, 5, 6" in sel[2] and "Belum ada soal" in sel[4]
+    assert 'Buat soal' not in sel[4]
 
 
 def test_aksi_buat_soal_hanya_bila_ada_jenis_yang_bisa_dibuat(server):
     isi = _minta(server, RUTE, cookie=_admin(server))[1]
-    assert 'href="/admin/kurikulum/buat?kelas=3&amp;bab=1"' in _baris(isi, 3, 1)[8]
-    assert "Buat soal" not in _baris(isi, 1, 4)[8]
+    assert 'href="/admin/kurikulum/buat?kelas=3&amp;bab=1"' in _baris(isi, 3, 1)[4]
+    assert "Buat soal" not in _baris(isi, 1, 4)[4]
     # K1 bab 1 hanya punya jenis yang sakelarnya mati: tidak ada tautan, variasi jujur 0 + catatan.
     sel = _baris(isi, 1, 1)
-    assert "Buat soal" not in sel[8] and "belum dinyalakan" in sel[5]
+    assert "Buat soal" not in sel[4] and "belum dinyalakan" in sel[3]
 
 
 def test_sakelar_menyala_membuka_variasi_dan_tautan(server, monkeypatch):
     monkeypatch.setenv("OSN_DASAR_LENGKAP", "1")
     sel = _baris(_minta(server, RUTE, cookie=_admin(server))[1], 1, 1)
-    assert "Buat soal" in sel[8] and "belum dinyalakan" not in sel[5]
+    assert "Buat soal" in sel[4] and "belum dinyalakan" not in sel[3]
 
 
 def test_sudah_dipakai_menghitung_template_dan_level_yang_tepat(server):
     admin = _admin(server)
-    awal = int(_baris(_minta(server, RUTE, cookie=admin)[1], 1, 2)[6])
-    awal_k2 = int(_baris(_minta(server, RUTE, cookie=admin)[1], 2, 2)[6])
+    awal = int(_dipakai(_baris(_minta(server, RUTE, cookie=admin)[1], 1, 2)))
+    awal_k2 = int(_dipakai(_baris(_minta(server, RUTE, cookie=admin)[1], 2, 2)))
     _sisip_soal(server, "tambah_dasar", "P1", 3)
     _sisip_soal(server, "tambah_dasar", "P2", 2)
     isi = _minta(server, RUTE, cookie=admin)[1]
-    assert int(_baris(isi, 1, 2)[6]) == awal + 3  # level P2 tidak ikut
-    assert int(_baris(isi, 2, 2)[6]) == awal_k2 + 2  # level P1 tidak ikut
+    assert int(_dipakai(_baris(isi, 1, 2))) == awal + 3  # level P2 tidak ikut
+    assert int(_dipakai(_baris(isi, 2, 2))) == awal_k2 + 2  # level P1 tidak ikut
 
 
 def test_db_rusak_sudah_dipakai_strip_dan_halaman_tetap_200(server):
     admin = _admin(server)
     server.db.write_bytes(b"bukan sqlite sama sekali")
     kode, isi, _t = _minta(server, RUTE, cookie=admin)
-    assert kode == 200 and _baris(isi, 1, 2)[6] == "–"
+    assert kode == 200 and _dipakai(_baris(isi, 1, 2)) == "–"
     assert "belum bisa dibaca" in isi
     assert str(server.db) not in isi
 

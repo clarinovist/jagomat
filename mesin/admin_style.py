@@ -346,7 +346,7 @@ form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"]
 .admin-kartu-kaki {{ padding: 0 {T.SP_5} {T.SP_5}; }}
 .admin-kartu-kaki .admin-meta {{ margin: {T.SP_4} 0 0; }}
 .admin-kartu-tabel .admin-tabel th, .admin-kartu-tabel .admin-tabel td {{ vertical-align: middle; }}
-.admin-kartu-tabel .kur-tabel {{ min-width: 66rem; }}
+.admin-kartu-tabel .kur-tabel {{ min-width: 46rem; }}
 .admin-kartu-tabel .kur-tabel td {{ vertical-align: top; }}
 .kur-soal-daftar {{ list-style: none; margin: 0 0 {T.SP_4}; padding: 0; }}
 .kur-soal-daftar > li {{ padding: {T.SP_4} 0; border-bottom: 1px solid {T.ADMIN_PEMISAH}; overflow-wrap: anywhere; }}

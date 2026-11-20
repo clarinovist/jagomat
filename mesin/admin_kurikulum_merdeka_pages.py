@@ -17,17 +17,17 @@ from template_labels import nama_tipe_soal
 RUTE = "/admin/kurikulum"
 RUTE_BUAT = "/admin/kurikulum/buat"
 TANPA_DATA = "–"
-KOLOM = ("No", "Materi (bab)", "Sub-materi", "Soal Jagomat", "Jenis soal", "Variasi", "Sudah dipakai", "Status", "Aksi")
+# Lima kolom agar Status dan tombol Buat soal tetap terlihat di layar 1280 px tanpa gulir samping.
+KOLOM = ("No", "Materi dan sub-materi", "Soal Jagomat", "Jumlah soal", "Status")
 KETERANGAN_KOLOM = (
-    ("Materi (bab)", "Judul bab di buku siswa kelas itu."),
-    ("Sub-materi", "Pokok bahasan di dalam bab."),
+    ("Materi dan sub-materi", "Judul bab di buku siswa kelas itu, lalu pokok bahasan di dalamnya."),
     ("Soal Jagomat", "Jenis soal Jagomat yang melatih bab itu."),
-    ("Jenis soal", "Berapa macam soal yang tersedia untuk bab itu di kelas tersebut."),
-    ("Variasi", "Perkiraan banyaknya soal berbeda yang bisa dibuat: angka tanpa tanda itu tepat, \"±\" perkiraan "
+    ("Jumlah soal: jenis", "Berapa macam soal yang tersedia untuk bab itu di kelas tersebut."),
+    ("Jumlah soal: variasi", "Perkiraan banyaknya soal berbeda yang bisa dibuat: angka tanpa tanda itu tepat, \"±\" perkiraan "
                 "dari %d contoh, \"banyak\" berarti lebih dari itu." % hitung.JUMLAH_SAMPEL),
-    ("Sudah dipakai", "Berapa soal bab ini yang pernah dibuat untuk latihan di aplikasi (jumlahnya saja)."),
-    ("Status", "Sudah ada soal, perlu disempurnakan (soal ada tetapi belum pas), atau belum ada soal."),
-    ("Aksi", "Buat contoh soal dari bab itu, hanya untuk dilihat."),
+    ("Jumlah soal: dipakai", "Berapa soal bab ini yang pernah dibuat untuk latihan di aplikasi (jumlahnya saja)."),
+    ("Status", "Sudah ada soal, perlu disempurnakan (soal ada tetapi belum pas), atau belum ada soal. "
+               "Tautan Buat soal membuat contoh soal dari bab itu, hanya untuk dilihat."),
 )
 CATATAN_TUTUP = (
     "Jenis soal bertanda \"belum dinyalakan\" sudah ada di kode tetapi sakelar rilisnya masih mati di server ini, "
@@ -72,18 +72,17 @@ def _sel_variasi(b: hitung.RingkasanBab) -> str:
 
 def _sel_aksi(kelas: int, b: hitung.RingkasanBab) -> str:
     if b.jenis - len(b.variasi.tertutup) <= 0:
-        return '<span class="admin-meta">%s</span>' % TANPA_DATA
-    return '<a href="%s">Buat soal</a>' % e(url_buat(kelas, b.nomor))
+        return ""
+    return '<br><a href="%s">Buat soal</a>' % e(url_buat(kelas, b.nomor))
 
 
 def _baris(kelas: int, b: hitung.RingkasanBab) -> str:
     sub = "<br>".join("• " + e(x) for x in b.sub_materi)
     pakai = TANPA_DATA if b.terpakai is None else str(b.terpakai)
+    jumlah = "Jenis: %d<br>Variasi: %s<br>Dipakai: %s" % (b.jenis, _sel_variasi(b), e(pakai))
     return (
-        "<tr><td>%d</td><td><strong>%s</strong></td><td>%s</td><td>%s</td>"
-        '<td data-angka>%d</td><td>%s</td><td data-angka>%s</td><td><strong>%s</strong></td><td>%s</td></tr>'
-    ) % (b.nomor, e(b.judul), sub, _sel_soal(b), b.jenis, _sel_variasi(b), e(pakai),
-         e(hitung.LABEL_STATUS[b.status]), _sel_aksi(kelas, b))
+        "<tr><td>%d</td><td><strong>%s</strong><br>%s</td><td>%s</td><td>%s</td><td><strong>%s</strong>%s</td></tr>"
+    ) % (b.nomor, e(b.judul), sub, _sel_soal(b), jumlah, e(hitung.LABEL_STATUS[b.status]), _sel_aksi(kelas, b))
 
 
 def _kartu_kelas(kelas: int, bab: Sequence[hitung.RingkasanBab]) -> str:
