@@ -19,7 +19,8 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   halaman admin cetakan soal berpola C2 + draf cetakan dari AI C3, kuota 20/hari, recovery pin
   `4cef3ab`, kontrak `660fe23`; deploy terkontrol 06.29–06.31 WIB). **Draf AI belum berguna**:
   uji kunci asli menemukan `deepseek-flash` menghabiskan seluruh `max_tokens` pada reasoning
-  (`finish_reason=length`, konten kosong); perbaikan menunggu keputusan. Sebelumnya
+  (`finish_reason=length`, konten kosong); perbaikan **ditunda** (keputusan Pemilik 21 November 2026).
+  Sebelumnya
   **`55aaa49`** (20 November 2026; WAL SQLite lima DB, recovery pin `bf5de20`) dan
   **`fa037344`** (20 November 2026 pagi;
   beranda funnel) dan **`efe9514`** (19 November 2026;

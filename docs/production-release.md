@@ -35,8 +35,9 @@ Guru. Tanpa migrasi data: `cetakan.db` sudah ada sejak C1 dan `cetakan_ai.db` di
   (muatan hanya kelas/bab/aturan, tanpa data anak/akun) selesai 5.272 byte (di bawah 8 KB) tetapi
   `finish_reason=length` dan `message.content` kosong: `deepseek-flash` menghabiskan 1.500 token pada
   `reasoning_content` (`reasoning_tokens=1500`). Jalur HTTP karena itu menampilkan "Jawaban AI bukan JSON yang
-  bisa dibaca." **Draf AI belum berguna dengan model/`MAKS_TOKEN` saat ini**; penyesuaian model, `max_tokens`,
-  atau batas byte perlu keputusan dan rilis berikutnya. Jalur manual C2 tidak terpengaruh.
+  bisa dibaca." **Draf AI belum berguna dengan model/`MAKS_TOKEN` saat ini**; Pemilik memutuskan
+  **menunda perbaikan** (21 November 2026). Jalur manual C2 tidak terpengaruh, tetapi setiap percobaan
+  tetap memakai satu slot kuota harian dan berakhir dengan galat.
 - **Backup host diperbarui sebelum rilis:** `/opt/osn/backup-tool/mesin` disalin dari source C3 (termasuk
   `cetakan_ai_store.py` dan `jurnal_wal.py`); `operational_backup.py` dan `backup_harian.py` diganti versi HEAD
   (`3512b408…`, `1df662d0…`), salinan lama `.bak-20261121`. Validasi bundle lama lulus; backup harian
