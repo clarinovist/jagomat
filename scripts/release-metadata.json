@@ -1,6 +1,6 @@
 {
   "versi": 1,
   "mode": "migrasi",
-  "recovery_revision": "4d9a102d3bf325db329024142a39594e98277c62",
+  "recovery_revision": "9c924d97be4e2d1dc252195f10e54e6e08aa1c9e",
   "recovery_contract": "85c34051537ba07cba39236b1b7b4ffcbd26432a232fa87d8b9ef33c18c56c52"
 }
