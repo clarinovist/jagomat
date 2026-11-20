@@ -53,12 +53,13 @@ def _kartu(judul: str, isi: str, meta: str = "") -> str:
     return '<section class="admin-kartu">%s%s</section>' % (kepala, isi)
 
 
-def _tabel(kepala: Tuple[str, ...], baris: str, label: str) -> str:
-    th = "".join('<th scope="col">%s</th>' % e(k) for k in kepala)
-    return (
-        '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="%s">'
-        '<table class="admin-tabel"><thead><tr>%s</tr></thead><tbody>%s</tbody></table></div>'
-    ) % (e(label), th, baris)
+def _daftar(butir: str, label: str) -> str:
+    """Daftar blok bertumpuk, bukan tabel: teks CP panjang tetap terbaca utuh di HP 390 px."""
+    return '<ul class="kurikulum-daftar" aria-label="%s">%s</ul>' % (e(label), butir)
+
+
+def _blok(kepala: str, isi: str) -> str:
+    return '<li><p class="kurikulum-kepala">%s</p><div>%s</div></li>' % (kepala, isi)
 
 
 def _ringkasan(celah_sd: Tuple[cp.ButirCP, ...]) -> str:
@@ -72,8 +73,9 @@ def _ringkasan(celah_sd: Tuple[cp.ButirCP, ...]) -> str:
         ("Butir CP SD tanpa soal", str(len(celah_sd))),
         ("Grup di luar CP (pengayaan)", str(di_luar)),
     )
-    baris = "".join("<tr><th scope=\"row\">%s</th><td>%s</td></tr>" % (e(k), e(v)) for k, v in angka)
-    return _kartu("Ringkasan", _tabel(("Hal", "Nilai"), baris, "Ringkasan peta kurikulum"))
+    # Daftar rincian, bukan tabel: di HP `admin-rincian` menjadi satu kolom tanpa gulir samping.
+    isi = "".join("<dt>%s</dt><dd>%s</dd>" % (e(k), e(v)) for k, v in angka)
+    return _kartu("Ringkasan", '<dl class="admin-rincian">%s</dl>' % isi)
 
 
 def _celah(celah_sd: Tuple[cp.ButirCP, ...]) -> str:
@@ -81,12 +83,12 @@ def _celah(celah_sd: Tuple[cp.ButirCP, ...]) -> str:
     if not celah_sd:
         isi = '<p class="admin-meta">Semua butir CP fase A–C sudah dilatih minimal satu grup.</p>'
     else:
-        baris = "".join(
-            "<tr><td><code>%s</code></td><td>%s</td><td>%s</td><td>%s</td></tr>" % (
+        # Teks CP panjang: daftar rincian agar terbaca utuh di HP (tabel 4 kolom menyembunyikannya).
+        isi = '<dl class="admin-rincian">%s</dl>' % "".join(
+            '<dt><code>%s</code><br><span class="admin-meta">%s · %s</span></dt><dd>%s</dd>' % (
                 e(b.id), e(cp.FASE[b.fase]), e(cp.ELEMEN[b.elemen]), e(b.teks))
             for b in celah_sd
         )
-        isi = _tabel(("Butir", "Kelas", "Elemen", "Teks CP"), baris, "Celah cakupan SD")
     catatan = '<p class="admin-meta">Fase D (%s) belum dilatih: %d butir, di luar pilot SD.</p>' % (
         e(cp.FASE["D"]), di_d)
     return _kartu("Celah cakupan SD", isi + catatan, "%d butir" % len(celah_sd))
@@ -104,8 +106,8 @@ def _sel_pelatih(daftar: Tuple[_Pelatih, ...]) -> str:
 def _baris_elemen(fase: str, elemen: str, peta: Dict[str, Tuple[_Pelatih, ...]]) -> str:
     butir = [b for b in cp.CAPAIAN if b.fase == fase and b.elemen == elemen]
     return "".join(
-        "<tr><td><code>%s</code><br>%s</td><td>%s</td></tr>" % (
-            e(b.id), e(b.teks), _sel_pelatih(peta.get(b.id, ())))
+        _blok("<code>%s</code> %s" % (e(b.id), e(b.teks)),
+              '<span class="admin-meta">Dilatih oleh:</span> ' + _sel_pelatih(peta.get(b.id, ())))
         for b in butir
     )
 
@@ -115,8 +117,7 @@ def _fase(fase: str, peta: Dict[str, Tuple[_Pelatih, ...]]) -> str:
     for elemen, nama in cp.ELEMEN.items():
         baris = _baris_elemen(fase, elemen, peta)
         if baris:
-            bagian.append("<h3>%s</h3>%s" % (e(nama), _tabel(
-                ("Butir CP", "Dilatih oleh"), baris, "%s, %s" % (cp.FASE[fase], nama))))
+            bagian.append("<h3>%s</h3>%s" % (e(nama), _daftar(baris, "%s, %s" % (cp.FASE[fase], nama))))
     jumlah = sum(1 for b in cp.CAPAIAN if b.fase == fase)
     return '<details class="admin-kartu"><summary>Fase %s · %s <span class="admin-meta">%d butir</span></summary>%s</details>' % (
         e(fase), e(cp.FASE[fase]), jumlah, "".join(bagian))
@@ -151,7 +152,7 @@ def _baris_grup(topik_id: str, kode: str, nama: str) -> str:
             for cid, cocok in isi)
     else:
         sel = '<span class="admin-meta">%s</span>' % e(DI_LUAR_CP)
-    return "<tr><td>%s<br><code>%s</code></td><td>%s</td></tr>" % (e(nama), e(kode), sel)
+    return _blok('%s <code>%s</code>' % (e(nama), e(kode)), sel)
 
 
 def _topik(entri: kat.EntriTopik) -> str:
@@ -159,7 +160,7 @@ def _topik(entri: kat.EntriTopik) -> str:
     return (
         '<details class="admin-kartu"><summary>%s <span class="admin-meta">%d grup</span></summary>%s%s</details>'
     ) % (e(_nama_topik(entri.topik_id)), len(entri.grup), _info_topik(entri.topik_id, entri.label_awam or ""),
-         _tabel(("Grup", "Butir CP dan kecocokan"), baris, "Grup topik " + _nama_topik(entri.topik_id)))
+         _daftar(baris, "Grup topik " + _nama_topik(entri.topik_id)))
 
 
 def halaman() -> str:

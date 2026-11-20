@@ -301,6 +301,9 @@ button:disabled, button:disabled:hover {{ background: {T.ADMIN_NETRAL_LATAR}; bo
 .admin-kartu.admin-filter-riwayat > label:first-of-type {{ flex-basis: 11rem; }}
 .admin-kartu.admin-cepat-aksi {{ padding: 0 {T.SP_5}; margin-bottom: {T.SP_5}; }}
 .admin-daftar-status {{ list-style: none; margin: 0; padding: 0; }}
+.kurikulum-daftar {{ list-style: none; margin: 0 0 {T.SP_4}; padding: 0; }}
+.kurikulum-daftar li {{ padding: {T.SP_3} 0; border-bottom: 1px solid {T.ADMIN_PEMISAH}; overflow-wrap: anywhere; }}
+.kurikulum-kepala {{ margin: 0 0 {T.SP_2}; font-weight: 600; }}
 .admin-baris-status {{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: {T.SP_2} {T.SP_4}; padding: {T.SP_4} {T.SP_5}; border-bottom: 1px solid {T.ADMIN_PEMISAH}; font-weight: 600; }}
 .admin-baris-status.perhatian {{ background: {T.ADMIN_BANNER_LATAR}; color: {T.ADMIN_BANNER_TEKS}; }}
 .admin-kaki-garis {{ padding-top: {T.SP_4}; border-top: 1px solid {T.ADMIN_BORDER}; }}

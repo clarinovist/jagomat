@@ -67,11 +67,12 @@ def test_menu_menyorot_topik_cek_dan_jumlah_butir_tetap(server):
 def test_setiap_grup_katalog_tepat_sekali_di_bagian_topik():
     bagian = ui.halaman().split("<h2>Topik dan grup soal</h2>")[1]
     for entri in kat.KATALOG:
-        for kode, nama, _pola in entri.grup:
-            assert bagian.count("<td>%s<br><code>%s</code></td>" % (e(nama), e(kode))) >= 1
         blok = bagian[bagian.index("<summary>%s " % e(ui._nama_topik(entri.topik_id))):]
         blok = blok[:blok.index("</details>")]
-        assert blok.count("<tr><td>") == len(entri.grup)
+        for kode, nama, _pola in entri.grup:
+            kepala = '<p class="kurikulum-kepala">%s <code>%s</code></p>' % (e(nama), e(kode))
+            assert blok.count(kepala) == 1, (entri.topik_id, kode)
+        assert blok.count("<li>") == len(entri.grup)
 
 
 def test_setiap_butir_capaian_ada_di_bagian_fase():
