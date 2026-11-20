@@ -130,6 +130,17 @@ class RiwayatCP:
 
 
 @dataclass(frozen=True)
+class RiwayatLabel:
+    """Satu entri audit perubahan label awam sebuah topik: label lama dan baru."""
+
+    revisi: int
+    dibuat: str
+    actor_id: str
+    lama: str
+    baru: str
+
+
+@dataclass(frozen=True)
 class ItemLabel:
     """Label awam satu topik: nilai efektif, bawaan, sumber, dan revisi barisnya."""
 
@@ -409,6 +420,31 @@ def _entri_riwayat(baris) -> Optional[RiwayatCP]:
         return None
 
 
+def _periksa_batas_riwayat(batas) -> None:
+    if (not isinstance(batas, int) or isinstance(batas, bool)
+            or not 1 <= batas <= BATAS_RIWAYAT_MAKS):
+        raise ValueError(f"Batas riwayat harus 1-{BATAS_RIWAYAT_MAKS}.")
+
+
+def _baca_baris_audit(jenis: str, kunci: str, batas: int, path) -> list:
+    """Baris audit terbaru (terbaru dulu) satu kunci; berkas hilang, rusak, atau berskema asing = []."""
+    tujuan = _path_db(path)
+    try:
+        if not tujuan.exists():
+            return []
+        with closing(sqlite3.connect(f"file:{tujuan}?mode=ro", uri=True, timeout=2.0)) as kon:
+            kon.row_factory = sqlite3.Row
+            if kon.execute("PRAGMA user_version").fetchone()[0] != VERSI_SKEMA:
+                raise GalatKurikulum("Skema DB kurikulum tidak dikenali.")
+            return kon.execute(
+                "SELECT revisi, dibuat, actor_id, lama, baru FROM audit_kurikulum"
+                " WHERE jenis = ? AND kunci = ? ORDER BY id DESC LIMIT ?",
+                (jenis, kunci, batas)).fetchall()
+    except (sqlite3.Error, GalatKurikulum, OSError) as err:
+        _log.warning("Riwayat %s tak terbaca (%s).", jenis, type(err).__name__)
+        return []
+
+
 def riwayat_cp(topik_id, grup_kode, batas=BATAS_RIWAYAT_BAWAAN, *, path=None) -> Tuple[RiwayatCP, ...]:
     """Entri audit CP terbaru untuk satu grup (terbaru dulu), baca-saja dan aman.
 
@@ -417,25 +453,46 @@ def riwayat_cp(topik_id, grup_kode, batas=BATAS_RIWAYAT_BAWAAN, *, path=None) ->
     grup tak dikenal atau `batas` di luar 1..BATAS_RIWAYAT_MAKS.
     """
     kunci = _periksa_kunci_cp(topik_id, grup_kode)
-    if (not isinstance(batas, int) or isinstance(batas, bool)
-            or not 1 <= batas <= BATAS_RIWAYAT_MAKS):
-        raise ValueError(f"Batas riwayat harus 1-{BATAS_RIWAYAT_MAKS}.")
-    tujuan = _path_db(path)
-    try:
-        if not tujuan.exists():
-            return ()
-        with closing(sqlite3.connect(f"file:{tujuan}?mode=ro", uri=True, timeout=2.0)) as kon:
-            kon.row_factory = sqlite3.Row
-            if kon.execute("PRAGMA user_version").fetchone()[0] != VERSI_SKEMA:
-                raise GalatKurikulum("Skema DB kurikulum tidak dikenali.")
-            baris = kon.execute(
-                "SELECT revisi, dibuat, actor_id, lama, baru FROM audit_kurikulum"
-                " WHERE jenis = 'cp' AND kunci = ? ORDER BY id DESC LIMIT ?",
-                ("%s/%s" % kunci, batas)).fetchall()
-    except (sqlite3.Error, GalatKurikulum, OSError) as err:
-        _log.warning("Riwayat CP tak terbaca (%s).", type(err).__name__)
-        return ()
+    _periksa_batas_riwayat(batas)
+    baris = _baca_baris_audit("cp", "%s/%s" % kunci, batas, path)
     return tuple(item for item in map(_entri_riwayat, baris) if item is not None)
+
+
+def _label_dari_json(teks) -> str:
+    """Urai kolom lama/baru audit label (JSON string); ValueError bila bukan label sah."""
+    if not isinstance(teks, str):
+        raise ValueError("label audit bukan teks.")
+    try:
+        nilai = json.loads(teks)
+    except ValueError as err:
+        raise ValueError("label audit bukan JSON sah.") from err
+    return _normalkan_format_label(nilai)
+
+
+def _entri_riwayat_label(baris) -> Optional[RiwayatLabel]:
+    """Satu baris audit label menjadi RiwayatLabel; baris tak terurai atau tak sah dilewati (None)."""
+    revisi = _ke_revisi(baris["revisi"])
+    dibuat, actor_id = baris["dibuat"], baris["actor_id"]
+    if revisi is None or not isinstance(dibuat, str) or not isinstance(actor_id, str):
+        return None
+    try:
+        return RiwayatLabel(revisi, dibuat, actor_id, _label_dari_json(baris["lama"]),
+                            _label_dari_json(baris["baru"]))
+    except ValueError:
+        _log.warning("Entri audit label tak terbaca diabaikan.")
+        return None
+
+
+def riwayat_label(topik_id, batas=BATAS_RIWAYAT_BAWAAN, *, path=None) -> Tuple[RiwayatLabel, ...]:
+    """Entri audit label awam terbaru untuk satu topik (terbaru dulu), baca-saja dan aman.
+
+    Sama seperti `riwayat_cp`: berkas hilang/rusak/berskema asing = tuple kosong, tanpa membuat
+    berkas dan tanpa cache. ValueError untuk topik tanpa label bawaan atau `batas` tak sah.
+    """
+    _periksa_topik_berlabel(topik_id)
+    _periksa_batas_riwayat(batas)
+    baris = _baca_baris_audit("label", topik_id, batas, path)
+    return tuple(item for item in map(_entri_riwayat_label, baris) if item is not None)
 
 
 def daftar_label(*, path=None) -> Tuple[ItemLabel, ...]:

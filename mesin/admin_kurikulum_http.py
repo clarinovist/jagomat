@@ -28,7 +28,7 @@ def tangani_get(penangan, jalur) -> bool:
         h._tidak_ada(penangan)
         return True
     h._kirim_privat(penangan, h._halaman_admin(
-        principal, "kurikulum", ui.halaman(override.daftar_cp()), penangan=penangan,
+        principal, "kurikulum", ui.halaman(override.daftar_cp(), override.daftar_label()), penangan=penangan,
         judul=JUDUL, subjudul=SUBJUDUL,
     ))
     return True

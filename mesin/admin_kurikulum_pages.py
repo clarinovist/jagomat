@@ -11,8 +11,9 @@ from urllib.parse import urlencode
 
 import kurikulum_cp as cp
 import kurikulum_katalog as kat
-from kurikulum_override import SUMBER_ADMIN, SUMBER_BAWAAN, ItemCP
+from kurikulum_override import SUMBER_ADMIN, SUMBER_BAWAAN, ItemCP, ItemLabel
 import topics
+import admin_kurikulum_label_pages as label_ui
 from admin_komponen import e
 from admin_kurikulum_tab import TAB_DETAIL_CP, tab_kurikulum
 
@@ -159,11 +160,13 @@ def _per_fase(peta: Dict[str, Tuple[_Pelatih, ...]]) -> str:
     return '<h2>Butir CP per fase</h2>' + "".join(_fase(f, peta) for f in cp.FASE)
 
 
-def _info_topik(topik_id: str, label: str) -> str:
+def _info_topik(topik_id: str, label: str, item_label: Optional[ItemLabel] = None) -> str:
     kelas_cek = [k for k, daftar in kat.TOPIK_CEK_PER_KELAS.items() if topik_id in daftar]
     if topik_id == kat.TOPIK_CEK_DASAR:
         kelas_cek = [1, 2] + kelas_cek
     cek = "dipakai cek gratis kelas %s" % ", ".join(str(k) for k in kelas_cek) if kelas_cek else "tidak dipakai cek gratis"
+    if item_label is not None:
+        label = item_label.efektif
     bagian = [("Label awam", label or "-"), ("Cek gratis", cek)]
     try:
         paket = topics.ambil(topik_id)
@@ -172,7 +175,10 @@ def _info_topik(topik_id: str, label: str) -> str:
             bagian.append(("Penanda", "manual-saja"))
     except KeyError:
         bagian.append(("Penanda", "tidak terdaftar di registri topik"))
-    return '<p class="admin-meta">%s</p>' % " · ".join("%s: %s" % (e(k), e(v)) for k, v in bagian)
+    teks = " · ".join("%s: %s" % (e(k), e(v)) for k, v in bagian)
+    if label:
+        teks += ' · <a href="%s">Ubah label</a>' % e(label_ui.url_ubah(topik_id))
+    return '<p class="admin-meta">%s</p>' % teks
 
 
 def _sumber_grup(item: Optional[ItemCP]) -> str:
@@ -196,25 +202,31 @@ def _baris_grup(topik_id: str, kode: str, nama: str, item: Optional[ItemCP]) -> 
     return _blok('%s <code>%s</code>' % (e(nama), e(kode)), sel)
 
 
-def _topik(entri: kat.EntriTopik, per_grup: Mapping[Tuple[str, str], ItemCP]) -> str:
+def _topik(entri: kat.EntriTopik, per_grup: Mapping[Tuple[str, str], ItemCP],
+           per_label: Mapping[str, ItemLabel]) -> str:
     baris = "".join(
         _baris_grup(entri.topik_id, kode, nama, per_grup.get((entri.topik_id, kode)))
         for kode, nama, _p in entri.grup)
     return (
         '<details class="admin-kartu"><summary>%s <span class="admin-meta">%d grup</span></summary>%s%s</details>'
-    ) % (e(_nama_topik(entri.topik_id)), len(entri.grup), _info_topik(entri.topik_id, entri.label_awam or ""),
+    ) % (e(_nama_topik(entri.topik_id)), len(entri.grup),
+         _info_topik(entri.topik_id, entri.label_awam or "", per_label.get(entri.topik_id)),
          _daftar(baris, "Grup topik " + _nama_topik(entri.topik_id)))
 
 
-def halaman(daftar: Optional[Sequence[ItemCP]] = None) -> str:
-    """Isi halaman. `daftar` = ItemCP efektif per grup (dari `kurikulum_override.daftar_cp()`); None = bawaan kode."""
+def halaman(daftar: Optional[Sequence[ItemCP]] = None, label: Optional[Sequence[ItemLabel]] = None) -> str:
+    """Isi halaman. `daftar` = ItemCP efektif per grup (dari `kurikulum_override.daftar_cp()`); None = bawaan kode.
+
+    `label` = ItemLabel efektif per topik (dari `daftar_label()`); None = label bawaan kode.
+    """
     daftar = _item_bawaan() if daftar is None else tuple(daftar)
     per_grup = {(i.topik_id, i.grup_kode): i for i in daftar}
+    per_label = {i.topik_id: i for i in (label or ())}
     celah_sd = tuple(b for b in butir_tanpa_grup_efektif(daftar) if b.fase in FASE_SD)
     peta = pelatih_per_butir(daftar)
     return (
         tab_kurikulum(TAB_DETAIL_CP)
         + _ringkasan(celah_sd, daftar) + _celah(celah_sd, daftar) + _per_fase(peta)
-        + "<h2>Topik dan grup soal</h2>" + "".join(_topik(t, per_grup) for t in kat.KATALOG)
+        + "<h2>Topik dan grup soal</h2>" + "".join(_topik(t, per_grup, per_label) for t in kat.KATALOG)
         + '<section class="admin-kartu admin-catatan"><p class="admin-meta">%s</p></section>' % e(CATATAN)
     )

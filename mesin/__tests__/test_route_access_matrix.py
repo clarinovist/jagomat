@@ -55,6 +55,7 @@ _PROBE_GET = {
     "/admin/kurikulum/cp-detail": "/admin/kurikulum/cp-detail",
     "/admin/kurikulum/buat": "/admin/kurikulum/buat?kelas=3&bab=1",
     "/admin/kurikulum/cp": "/admin/kurikulum/cp?grup=aritmatika-lanjut%2Fkonversi",
+    "/admin/kurikulum/label": "/admin/kurikulum/label?topik=pengukuran",
     "/": "/",
     "/masuk": "/masuk",
     "/daftar": "/daftar",
@@ -91,6 +92,8 @@ _PROBE_POST = {
     "/admin/sakelar": "/admin/sakelar",
     "/admin/kurikulum/cp": "/admin/kurikulum/cp",
     "/admin/kurikulum/cp/kembalikan": "/admin/kurikulum/cp/kembalikan",
+    "/admin/kurikulum/label": "/admin/kurikulum/label",
+    "/admin/kurikulum/label/kembalikan": "/admin/kurikulum/label/kembalikan",
     "/masuk": "/masuk",
     "/daftar": "/daftar",
     "/murid/": "/murid/kerjakan/1",
@@ -223,6 +226,8 @@ def test_tabel_akses_punya_probe():
     assert get["/admin/kurikulum"] == get["/admin/kurikulum/cp-detail"] == get["/admin/kurikulum/buat"] == "admin"
     assert not {"/admin/kurikulum", "/admin/kurikulum/cp-detail", "/admin/kurikulum/buat"} & set(post)
     assert post["/admin/kurikulum/cp/kembalikan"] == "admin" and "/admin/kurikulum/cp/kembalikan" not in get
+    assert get["/admin/kurikulum/label"] == post["/admin/kurikulum/label"] == "admin"
+    assert post["/admin/kurikulum/label/kembalikan"] == "admin" and "/admin/kurikulum/label/kembalikan" not in get
     assert get["/paket-coba"] == "publik" and "/paket-coba" not in post
     assert get["/contoh-peta-kemampuan"] == "publik" and "/contoh-peta-kemampuan" not in post
     assert get["/contoh-peta-kemampuan/lembar"] == "publik" and "/contoh-peta-kemampuan/lembar" not in post

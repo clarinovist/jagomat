@@ -138,7 +138,10 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   butir CP Merdeka per fase, celah cakupan SD (dihitung dari pemetaan efektif), dan grup per topik. Admin bisa **mengubah
   pemetaan CP per grup** (`/admin/kurikulum/cp?grup=<topik>/<kode>`: sampai 12 butir + kecocokan): langsung berlaku tanpa
   draf, tercatat di audit (waktu, akun, lama→baru), tombol "Kembalikan ke bawaan" kode. Aksi memakai tinjauan bertanda
-  tangan + sandi ulang + revisi (konflik 409). Topik, grup, dan butir CP tetap di kode.
+  tangan + sandi ulang + revisi (konflik 409). Admin juga bisa **mengubah label awam topik** (`/admin/kurikulum/label?topik=<id>`, 1-40
+  karakter, unik tanpa beda huruf besar-kecil, tidak sama dengan nama resmi topik): langsung berlaku untuk layar anak dan
+  hasil cek yang dinilai sesudahnya; hasil cek yang sudah dinilai tetap memakai label lama (ringkasan tersimpan sebagai teks).
+  Audit, kembalikan ke bawaan, dan guard sama seperti pemetaan CP. Topik, grup, dan butir CP tetap di kode.
 - **Pengaturan layanan** (`/admin/sakelar`, satu halaman; `/admin?section=operasional` mengalihkan 303 ke
   sini): sakelar fitur + tahap pembayaran, pendaftaran mandiri (form lama, POST tetap ke `/admin/pendaftaran`), kartu rekening transfer (ubah di `/admin/pesanan/rekening`),
   kesiapan/dukungan, satu baris status AI. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,

@@ -77,3 +77,52 @@ def test_baris_audit_rusak_dilewati_baris_lain_tetap_tampil(db):
             " VALUES ('cp', ?, 'bukan json', '[]', 9, 'adm-x', 'sekarang')", ("%s/%s" % KUNCI,))
     riwayat = ko.riwayat_cp(*KUNCI, path=db)
     assert [r.revisi for r in riwayat] == [1]
+
+
+# --- riwayat_label ----------------------------------------------------------------------------
+
+TOPIK = "pengukuran"
+TOPIK_LAIN = "statistika"
+
+
+def _ubah_label(db, label, revisi, *, topik=TOPIK, actor="adm-1"):
+    return ko.ubah_label(topik, label, actor_id=actor, revisi_diharapkan=revisi, path=db)
+
+
+def test_riwayat_label_berkas_tidak_ada_kosong_dan_tidak_membuat_berkas(db):
+    assert ko.riwayat_label(TOPIK, path=db) == ()
+    assert not db.exists()
+
+
+def test_riwayat_label_terbaru_dulu_hanya_topik_itu_dan_batas_berlaku(db):
+    _ubah_label(db, "Ukur-ukur", 0, actor="adm-1")
+    _ubah_label(db, "Ukuran", 1, actor="adm-2")
+    _ubah_label(db, "Data", 0, topik=TOPIK_LAIN, actor="adm-3")
+    riwayat = ko.riwayat_label(TOPIK, path=db)
+    assert [r.revisi for r in riwayat] == [2, 1] and [r.actor_id for r in riwayat] == ["adm-2", "adm-1"]
+    assert (riwayat[1].lama, riwayat[1].baru) == ("Pengukuran", "Ukur-ukur")
+    assert (riwayat[0].lama, riwayat[0].baru) == ("Ukur-ukur", "Ukuran")
+    assert len(ko.riwayat_label(TOPIK, 1, path=db)) == 1
+
+
+def test_riwayat_label_argumen_tak_sah_ditolak(db):
+    for batas in (0, ko.BATAS_RIWAYAT_MAKS + 1, True, "10", None):
+        with pytest.raises(ValueError):
+            ko.riwayat_label(TOPIK, batas, path=db)
+    with pytest.raises(ValueError):
+        ko.riwayat_label("kombinatorik", path=db)
+
+
+def test_riwayat_label_berkas_rusak_skema_asing_dan_baris_rusak_aman(db):
+    db.write_bytes(b"bukan sqlite")
+    assert ko.riwayat_label(TOPIK, path=db) == ()
+    db.unlink()
+    _ubah_label(db, "Ukur-ukur", 0)
+    with sqlite3.connect(db) as kon:
+        kon.execute(
+            "INSERT INTO audit_kurikulum(jenis, kunci, lama, baru, revisi, actor_id, dibuat)"
+            " VALUES ('label', ?, 'bukan json', '\"X\"', 9, 'adm-x', 'sekarang')", (TOPIK,))
+    assert [r.revisi for r in ko.riwayat_label(TOPIK, path=db)] == [1]
+    with sqlite3.connect(db) as kon:
+        kon.execute("PRAGMA user_version = 99")
+    assert ko.riwayat_label(TOPIK, path=db) == ()

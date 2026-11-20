@@ -1,6 +1,7 @@
 """Komponen bersama permukaan anak untuk sesi Cek Kemampuan gratis.
 
-Murni presentasi: tanpa akses basis data, tanpa kunci/skor/kategori. Palang
+Murni presentasi: tanpa akses basis data belajar, tanpa kunci/skor/kategori. Satu-satunya
+bacaan luar adalah label awam topik (`topik_awam.nama`, bisa diubah admin di DB kurikulum). Palang
 murid berlaku (tidak ada benar/salah di layar anak mana pun): jejak soal hanya
 membedakan "sudah dijawab" (bintang) dan "masih kosong", bukan benar atau salah.
 Semua nilai visual berasal dari ``design_tokens`` (lihat ``cek_anak_style``).
@@ -28,15 +29,16 @@ JEDA_SETELAH = (5, 10)
 NILAI_DI_HP_INI = "hp-ini"
 TUJUAN_LOGIN_HASIL = "/masuk?lanjut=/cek-kemampuan/hasil"
 DASAR_URL = "/mulai/"
-NAMA_PERAN_TOPIK = {
-    "pola-bilangan": ("teal", topik_awam.nama("pola-bilangan")),
-    "statistika": ("koral", topik_awam.nama("statistika")),
-    "geometri-datar": ("amber", topik_awam.nama("geometri-datar")),
-    "bilangan-dasar": ("navy", topik_awam.nama("bilangan-dasar")),
-    "berhitung-sekolah": ("koral", topik_awam.nama("berhitung-sekolah")),
-    "pengukuran": ("teal", topik_awam.nama("pengukuran")),
-    "aritmetika-dasar": ("amber", topik_awam.nama("aritmetika-dasar")),
-    "aritmatika-lanjut": ("navy", topik_awam.nama("aritmatika-lanjut")),
+# Warna ubin per topik: konstanta. Label teksnya BUKAN konstanta: lihat `nama_topik`.
+WARNA_TOPIK = {
+    "pola-bilangan": "teal",
+    "statistika": "koral",
+    "geometri-datar": "amber",
+    "bilangan-dasar": "navy",
+    "berhitung-sekolah": "koral",
+    "pengukuran": "teal",
+    "aritmetika-dasar": "amber",
+    "aritmatika-lanjut": "navy",
 }
 _STROKE = 'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"'
 IKON_TOPIK = {
@@ -129,9 +131,17 @@ def topik_dari_template(template_id: str):
     return _peta_template().get(template_id)
 
 
+def nama_topik(topik_id: str) -> str:
+    """Label awam topik, dibaca saat request (bawaan kode atau hasil ubah admin).
+
+    Satu-satunya teks topik di layar anak. Hanya label; tidak ada kunci, skor, atau diagnosis.
+    """
+    return topik_awam.nama(topik_id)
+
+
 def ubin_topik(topik_id: str, ukuran: str = "") -> str:
     """Ubin ikon topik (hiasan; nama topik ada sebagai teks di sebelahnya)."""
-    warna = NAMA_PERAN_TOPIK[topik_id][0]
+    warna = WARNA_TOPIK[topik_id]
     gaya = f' style="--u:{ukuran}"' if ukuran else ""
     return (
         f'<span class="ubin {warna}"{gaya}><svg width="16" height="16" viewBox="0 0 24 24" '
@@ -143,7 +153,7 @@ def label_topik(template_id: str) -> str:
     topik_id = topik_dari_template(template_id)
     if topik_id is None:
         return ""
-    return f'<span class="label-materi">{ubin_topik(topik_id)}{esc(NAMA_PERAN_TOPIK[topik_id][1])}</span>'
+    return f'<span class="label-materi">{ubin_topik(topik_id)}{esc(nama_topik(topik_id))}</span>'
 
 
 def konfeti() -> str:

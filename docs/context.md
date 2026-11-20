@@ -115,7 +115,13 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   sakelar (`h._token_final`: csrf + tinjauan terikat aksi + sandi ulang; grup dan revisi hanya dari tinjauan; `wajib_field`).
   Batas field eksplisit `MAKS_FIELD_CP` (27) lewat `admin_pesanan_aksi.terima_form(maksimum_field=)`; `MAKS_FIELD` global tetap 8.
   `/admin/kurikulum` kini membaca `kurikulum_override.daftar_cp()` (efektif), `ui.halaman()` tanpa argumen = bawaan kode.
-- `kurikulum_override.py` (3b peta kurikulum; dipakai admin CP 3c, label awam 3d belum disambung): override CP per grup dan label awam di DB terpisah
+- `admin_kurikulum_label_pages.py` → `admin_kurikulum_label_http.py` (3d): GET `/admin/kurikulum/label?topik=<id>` (field tunggal `label`,
+  riwayat `riwayat_label`), POST `/admin/kurikulum/label` dan `/label/kembalikan`; guard sama dengan 3c (topik dan revisi hanya dari tinjauan,
+  `wajib_field`). Label yang sama persis dengan nama resmi yang dipetakan `topik_awam.dari_nama_lama` ditolak (`topik_awam.bentrok_nama_resmi`).
+  Pembaca label dibaca saat request: `topik_awam.nama` (label efektif; `NAMA_AWAM` tetap bawaan kode), `cek_anak_komponen.nama_topik`
+  (warna ubin tetap konstanta `WARNA_TOPIK`). `dari_nama_lama` memetakan nama resmi ke label efektif, tetapi label tersimpan (bawaan atau hasil
+  ubah) tidak dipetakan ulang, supaya ringkasan cek yang sudah dinilai tidak berubah. Tautan "Ubah label" ada di Detail CP per topik.
+- `kurikulum_override.py` (3b peta kurikulum; dipakai admin CP 3c dan label awam 3d): override CP per grup dan label awam di DB terpisah
   `/data/kurikulum.db` (env `KURIKULUM_BERKAS_DB`, skema v1, revisi per kunci + audit). Beda dari `feature_switch`: DB/baris rusak
   **fail ke bawaan kode** (bawaan sah) + log; tulis ke skema asing ditolak. Ikut backup opsional (cek skema di `operational_backup`).
 - `admin_sakelar_pages.py` → `admin_sakelar_http.py` untuk `/admin/sakelar`: empat sakelar di

@@ -81,6 +81,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin/kurikulum/cp-detail", "admin"),  # Detail CP: ringkasan CP, celah, per fase, per topik (exact)
     ("/admin/kurikulum/buat", "admin"),  # Buat soal per bab (`?kelas=&bab=&jumlah=&seed=`); tidak menulis DB
     ("/admin/kurikulum/cp", "admin"),  # Peta kurikulum 3c: halaman ubah pemetaan CP per grup (`?grup=`)
+    ("/admin/kurikulum/label", "admin"),  # Peta kurikulum 3d: halaman ubah label awam per topik (`?topik=`)
     ("/", "publik"),  # landing; guru/admin melihat berandanya sendiri
     ("/masuk", "publik"),
     ("/daftar", "publik"),
@@ -123,6 +124,8 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/sakelar", "admin"),  # ubah sakelar fitur; tinjauan bertanda tangan + sandi ulang
     ("/admin/kurikulum/cp", "admin"),  # ubah pemetaan CP per grup; tinjauan bertanda tangan + sandi ulang
     ("/admin/kurikulum/cp/kembalikan", "admin"),  # kembalikan pemetaan CP ke bawaan kode (aksi dan tinjauan sendiri)
+    ("/admin/kurikulum/label", "admin"),  # ubah label awam topik; tinjauan bertanda tangan + sandi ulang
+    ("/admin/kurikulum/label/kembalikan", "admin"),  # kembalikan label awam ke bawaan kode (aksi dan tinjauan sendiri)
     ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
     ("/daftar", "publik"),
     ("/murid/", "murid"),

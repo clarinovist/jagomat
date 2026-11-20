@@ -48,7 +48,7 @@ def test_topik_cek_anak_sama_dengan_modul_skor():
     assert set(cek_anak_komponen.TOPIK_CEK) == set(cek_gratis_skor.semua_topik_cek())
     assert len(cek_anak_komponen.TOPIK_CEK) == len(set(cek_anak_komponen.TOPIK_CEK))
     for topik_id in cek_anak_komponen.TOPIK_CEK:
-        assert topik_id in cek_anak_komponen.NAMA_PERAN_TOPIK
+        assert topik_id in cek_anak_komponen.WARNA_TOPIK
         assert topik_id in cek_anak_komponen.IKON_TOPIK
 
 
