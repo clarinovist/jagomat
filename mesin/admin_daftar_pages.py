@@ -10,21 +10,26 @@ from urllib.parse import urlencode
 
 import admin_queries as Q
 from admin_komponen import badge_status, e, hidden_filter, kepala_cari, opsi, pager, waktu
-from admin_labels import LABEL_STATUS, label_status
+from admin_labels import LABEL_STATUS, label_status, relatif
 from learning_profile import label_kelas_sekolah
 from templates import LEVEL_TINGKAT
 
 LABEL_KATEGORI = {
-    "orang_tua": "Orang Tua",
-    "pengelola": "Pengelola",
-    "pemilik_tanpa_akun": "Pemilik tanpa akun",
-    "pemilik_kosong": "Pemilik kosong",
+    "orang_tua": "Orang tua",
+    "pengelola": "Akun pengelola",
+    "pemilik_tanpa_akun": "Belum punya akun",
+    "pemilik_kosong": "Belum punya pemilik",
 }
+# Kondisi yang bukan peringatan: ditampilkan netral dengan label pendek.
+LABEL_KONDISI_NETRAL = {"student_without_login": "Tanpa login"}
+CATATAN_TANPA_LOGIN = "Siswa tanpa login itu normal: anak masuk lewat QR atau tautan dari guru."
+LABEL_CARA_QR = "QR / tautan HP"
+LABEL_CARA_LOGIN = "Punya login"
 URUTAN_NAMA = "Diurutkan menurut nama."
 STATUS_DARI_CHIP_SISWA = ("perlu_perhatian", "normal", "student_without_login", "owner_without_account")
-KONDISI_LAINNYA_SISWA = ("owner_empty", "legacy_login_unverified", "legacy_same_name_ambiguous")
+KONDISI_LAINNYA_SISWA = Q.KONDISI_AKUN_LAMA
 OPSI_KATEGORI = (
-    ("semua", "Semua"), ("orang_tua", "Orang Tua"), ("pemilik_tanpa_akun", "Pemilik tanpa akun"),
+    ("semua", "Semua"), ("orang_tua", "Orang tua"), ("pemilik_tanpa_akun", "Belum punya akun"),
 )
 OPSI_AKTIVITAS = (
     ("kapan_saja", "Kapan saja"), ("7_hari", "7 hari terakhir"),
@@ -45,11 +50,10 @@ def chip_daftar(section, data, daftar_chip) -> str:
     """Chip hanya mengarah ke filter publik; pencarian nama tetap di form POST.
 
     ``daftar_chip`` berisi (label, filter, kunci_facet). Hitungan berasal dari
-    ``data.jumlah_facet`` (populasi yang sama dengan tabel); bila kosong, hanya
-    chip aktif yang menampilkan total.
+    ``data.jumlah_facet`` (populasi yang sama dengan tabel, termasuk saat
+    mencari); bila kosong, hanya chip aktif yang menampilkan total. Set chip
+    sama di mode cari; tautannya tidak membawa kata kunci (tetap privat).
     """
-    if data.cari:
-        return '<p class="admin-meta">%d hasil pencarian. Filter aktif dapat diubah atau dilepas di Filter lanjutan tanpa menghapus pencarian privat.</p>' % data.total
     dasar = {"section": section}
     for nama in ("memiliki_anak", "status", "tingkat", "keluarga_id"):
         if hasattr(data, nama):
@@ -72,7 +76,11 @@ def chip_daftar(section, data, daftar_chip) -> str:
                 e(urlencode(query)), e(label), jumlah,
             )
         )
-    return '<nav class="admin-chip-baris" aria-label="Filter cepat">%s</nav>' % "".join(chips)
+    catatan = (
+        '<p class="admin-meta">%d hasil pencarian. Filter lanjutan mempertahankan pencarian; '
+        'filter cepat menampilkan daftar tanpa kata kunci.</p>' % data.total
+    ) if data.cari else ""
+    return catatan + '<nav class="admin-chip-baris" aria-label="Filter cepat">%s</nav>' % "".join(chips)
 
 
 def avatar(nama: str, *, kapital: bool = False) -> str:
@@ -80,17 +88,37 @@ def avatar(nama: str, *, kapital: bool = False) -> str:
     return '<span class="admin-avatar" aria-hidden="true">%s</span>' % e(inisial.upper() if kapital else inisial)
 
 
-def pill_kondisi(status: Sequence[str]) -> str:
+def pill_kondisi(status: Sequence[str], netral: Sequence[str] = ()) -> str:
+    """Pil kondisi; kode di ``netral`` tampil netral (bukan peringatan) dengan label pendek."""
     if not status:
         return badge_status(())
     return "".join(
-        '<span class="admin-badge perhatian">%s</span>' % e(label_status(kode)) for kode in status
+        '<span class="admin-badge">%s</span>' % e(LABEL_KONDISI_NETRAL.get(kode, label_status(kode)))
+        if kode in netral else
+        '<span class="admin-badge perhatian">%s</span>' % e(label_status(kode))
+        for kode in status
     )
 
 
-def sel_nama(nama: str, href: Optional[str], *, kapital: bool = False) -> str:
+def sel_nama(nama: str, href: Optional[str], *, kapital: bool = False, sub: str = "") -> str:
     isi = '<a href="%s">%s</a>' % (e(href), e(nama)) if href else e(nama)
+    if sub:
+        isi = '<span class="admin-sel-teks"><span>%s</span><span class="admin-sel-sub">%s</span></span>' % (isi, e(sub))
     return '<div class="admin-sel-nama">%s%s</div>' % (avatar(nama, kapital=kapital), isi)
+
+
+def sel_aktivitas(nilai: Optional[str], sekarang=None) -> str:
+    """Aktivitas terakhir relatif; tanggal lengkap tetap tersedia di tooltip."""
+    teks = relatif(nilai, sekarang)
+    if nilai in (None, ""):
+        return '<span class="admin-redup">%s</span>' % e(teks)
+    return '<span title="%s">%s</span>' % (waktu(nilai), e(teks))
+
+
+def tombol_buka(href: Optional[str], label: str) -> str:
+    if not href:
+        return "—"
+    return '<a class="admin-tautan" href="%s" aria-label="%s">Buka</a>' % (e(href), e(label))
 
 
 def kartu_tabel(
@@ -137,49 +165,59 @@ def _bar_cari(
     return kepala_cari(pencarian) + panel
 
 
-def render_keluarga(
-    data: Q.HalamanKeluarga, *, csrf: str = "", tampilkan_aksi: bool = True
-) -> str:
-    baris_semua = []
-    for item in data.item:
-        href = "/admin?section=keluarga&id=%s" % item.id_akun if item.id_akun is not None else None
-        label_aksi = "Kelola akun" if tampilkan_aksi and item.kategori == "orang_tua" else "Lihat detail"
-        kelola = '<a href="%s">%s</a>' % (e(href), label_aksi) if href else "—"
-        baris_semua.append(
-            '<tr><td>%s</td><td>%s</td><td data-angka>%d</td><td data-angka>%d</td><td>%s</td><td>%s</td><td>%s</td></tr>'
-            % (
-                sel_nama(item.pengguna or "Pemilik kosong", None),
-                e(LABEL_KATEGORI[item.kategori]),
-                item.jumlah_siswa,
-                item.jumlah_sesi,
-                waktu(item.aktivitas_terakhir),
-                pill_kondisi(item.status),
-                kelola,
-            )
+
+
+def _opsi_semua(pilihan, kini) -> str:
+    return "".join(opsi(nilai, label, kini) for nilai, label in pilihan)
+
+
+def _baris_keluarga(item, tampilkan_aksi: bool, sekarang) -> str:
+    href = "/admin?section=keluarga&id=%s" % item.id_akun if item.id_akun is not None else None
+    nama = item.pengguna or "Pemilik kosong"
+    sub = "%s · %d sesi" % (LABEL_KATEGORI[item.kategori], item.jumlah_sesi)
+    return (
+        '<tr><td>%s</td><td data-angka>%d</td><td>%s</td><td>%s</td><td>%s</td></tr>'
+        % (
+            sel_nama(nama, None, sub=sub),
+            item.jumlah_siswa,
+            sel_aktivitas(item.aktivitas_terakhir, sekarang),
+            pill_kondisi(item.status),
+            tombol_buka(href, "Buka keluarga %s" % nama),
         )
-    baris = "".join(baris_semua) or '<tr><td colspan="7" class="admin-kosong">Tidak ada keluarga yang cocok.</td></tr>'
+    )
+
+
+OPSI_KONDISI_KELUARGA = (
+    ("semua", "Semua"), ("perlu_perhatian", "Perlu perhatian"), ("normal", "Normal"),
+)
+OPSI_MEMILIKI_SISWA = (
+    ("semua", "Semua"), ("ya", "Memiliki siswa"), ("tidak", "Belum ada siswa"),
+)
+
+
+def render_keluarga(
+    data: Q.HalamanKeluarga, *, csrf: str = "", tampilkan_aksi: bool = True, sekarang=None
+) -> str:
+    baris = "".join(_baris_keluarga(item, tampilkan_aksi, sekarang) for item in data.item) or (
+        '<tr><td colspan="5" class="admin-kosong">Tidak ada keluarga yang cocok.</td></tr>'
+    )
+    # Kontrak form POST tidak berubah: saat tidak mencari, kondisi dan "memiliki siswa"
+    # ikut sebagai hidden dari chip; saat mencari keduanya menjadi select agar bisa dilepas
+    # tanpa memasukkan kata kunci ke URL. Chip tetap tampil di kedua mode.
     lanjutan = (
         '<label>Kategori akun<select name="kategori">%s</select></label>'
         '<label>Aktivitas terakhir<select name="aktivitas">%s</select></label>'
-        % (
-            "".join(opsi(nilai, label, data.kategori) for nilai, label in OPSI_KATEGORI),
-            "".join(opsi(nilai, label, data.aktivitas) for nilai, label in OPSI_AKTIVITAS),
-        )
+        % (_opsi_semua(OPSI_KATEGORI, data.kategori), _opsi_semua(OPSI_AKTIVITAS, data.aktivitas))
     )
-    # Saat pencarian menyembunyikan chip GET, filter tetap terlihat dan dapat dilepas
-    # lewat form POST yang sama; nama pencarian tidak pernah dimasukkan ke URL.
     if data.cari:
         lanjutan += (
             '<label>Kondisi<select name="status">%s</select></label>'
             '<label>Memiliki siswa<select name="memiliki_anak">%s</select></label>'
-            % (''.join(opsi(v, label, data.status) for v, label in (
-                ('semua', 'Semua'), ('perlu_perhatian', 'Perlu perhatian'), ('normal', 'Normal'))),
-               ''.join(opsi(v, label, data.memiliki_anak) for v, label in (
-                ('semua', 'Semua'), ('ya', 'Memiliki siswa'), ('tidak', 'Belum memiliki siswa'))))
+            % (_opsi_semua(OPSI_KONDISI_KELUARGA, data.status), _opsi_semua(OPSI_MEMILIKI_SISWA, data.memiliki_anak))
         )
-    tersembunyi = '' if data.cari else hidden_filter({"status": data.status, "memiliki_anak": data.memiliki_anak})
+    tersembunyi = "" if data.cari else hidden_filter({"status": data.status, "memiliki_anak": data.memiliki_anak})
     buat = (
-        '<a class="admin-tombol" href="/admin/tinjau?aksi=account_teacher_create">Buat akun orang tua</a>'
+        '<a class="admin-tautan admin-tautan-kecil" href="/admin/tinjau?aksi=account_teacher_create">Buat akun orang tua</a>'
         if tampilkan_aksi else ""
     )
     filter_data = {
@@ -187,8 +225,7 @@ def render_keluarga(
         **_filter_aktif(data, ("kategori", "aktivitas")),
     }
     kepala = (
-        '<th scope="col">Akun/pemilik</th>', '<th scope="col">Kategori</th>',
-        '<th scope="col" data-angka>Siswa</th>', '<th scope="col" data-angka>Sesi</th>',
+        '<th scope="col">Keluarga</th>', '<th scope="col" data-angka>Siswa</th>',
         '<th scope="col">Aktivitas terakhir</th>', '<th scope="col">Kondisi</th>',
         '<th scope="col">Tindakan</th>',
     )
@@ -201,7 +238,7 @@ def render_keluarga(
         + chip_daftar("keluarga", data, (
             ("Semua", {"status": "semua", "memiliki_anak": "semua"}, "semua"),
             ("Perlu perhatian", {"status": "perlu_perhatian", "memiliki_anak": "semua"}, "perlu_perhatian"),
-            ("Belum memiliki siswa", {"status": "semua", "memiliki_anak": "tidak"}, "tanpa_siswa"),
+            ("Belum ada siswa", {"status": "semua", "memiliki_anak": "tidak"}, "tanpa_siswa"),
             ("Normal", {"status": "normal", "memiliki_anak": "semua"}, "normal"),
         ))
         + kartu_tabel(
@@ -215,39 +252,16 @@ def render_keluarga(
     )
 
 
-def render_siswa(
-    data: Q.HalamanSiswa, keluarga: Sequence[Q.KeluargaRingkas], *, csrf: str = ""
-) -> str:
-    opsi_keluarga = opsi("", "Semua keluarga", data.keluarga_id) + "".join(
-        opsi(item.id_akun or "", item.pengguna, data.keluarga_id)
-        for item in keluarga if item.id_akun is not None
+def _cara_masuk(item) -> str:
+    if not item.login_pengguna:
+        return '<span class="admin-badge">%s</span>' % LABEL_CARA_QR
+    return '<span class="admin-badge">%s</span><span class="admin-sel-sub">%s</span>' % (
+        LABEL_CARA_LOGIN, e(item.login_pengguna),
     )
-    # Chip dan select memakai satu parameter ``status``: nilai dari chip harus
-    # tetap terkirim agar Terapkan tidak menimpanya menjadi "Semua".
-    if data.cari:
-        pilihan_pertama = ''.join(opsi(kode, label, data.status) for kode, label in (
-            ('semua', 'Semua'), ('perlu_perhatian', 'Perlu perhatian'),
-            ('normal', 'Normal'), ('student_without_login', 'Belum ada login tertaut'),
-            ('owner_without_account', 'Pemilik tanpa akun'),
-        ))
-    else:
-        pilihan_pertama = (
-            opsi(data.status, "Sesuai chip di atas", data.status)
-            if data.status in STATUS_DARI_CHIP_SISWA else opsi("semua", "Semua", data.status)
-        )
-    lanjutan = (
-        '<label>Profil parameter<select name="tingkat">%s%s</select></label>'
-        '<label>Keluarga<select name="keluarga_id">%s</select></label>'
-        '<label>Kondisi lainnya<select name="status">%s%s</select></label>'
-        % (
-            opsi("", "Semua profil", data.tingkat),
-            "".join(opsi(level, level, data.tingkat) for level in LEVEL_TINGKAT),
-            opsi_keluarga,
-            pilihan_pertama,
-            "".join(opsi(kode, LABEL_STATUS[kode], data.status) for kode in KONDISI_LAINNYA_SISWA),
-        )
-    )
-    baris = "".join(
+
+
+def _baris_siswa(item) -> str:
+    return (
         '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td data-angka>%d</td><td>%s</td><td>%s</td></tr>'
         % (
             sel_nama(item.nama, "/admin?section=siswa&id=%d" % item.id, kapital=True),
@@ -256,26 +270,79 @@ def render_siswa(
                 else e(label_kelas_sekolah(item.kelas_sekolah))
             ),
             e(item.pemilik or "Pemilik kosong"),
-            e(item.login_pengguna) if item.login_pengguna else '<span class="admin-redup">Belum ada login tertaut</span>',
+            _cara_masuk(item),
             item.jumlah_sesi,
-            pill_kondisi(item.status),
-            '<a href="/admin?section=siswa&amp;id=%d">%s</a>' % (item.id, "Tinjau" if item.status else "Buka"),
+            pill_kondisi(item.status, netral=tuple(LABEL_KONDISI_NETRAL)),
+            tombol_buka("/admin?section=siswa&id=%d" % item.id, "Buka siswa %s" % item.nama),
         )
-        for item in data.item
-    ) or '<tr><td colspan="7" class="admin-kosong">Tidak ada siswa yang cocok.</td></tr>'
+    )
+
+
+OPSI_STATUS_SISWA = (
+    ("semua", "Semua"), ("perlu_perhatian", "Perlu perhatian"), ("normal", "Normal"),
+    ("student_without_login", "Tanpa login"), ("owner_without_account", "Pemilik tanpa akun"),
+)
+
+
+def _akun_lama(data: Q.HalamanSiswa) -> str:
+    """Kondisi akun lama dikumpulkan di satu <details>; tiap kondisi tetap bisa difilter."""
+    facet = dict(data.jumlah_facet)
+    dasar = {"section": "siswa"}
+    dasar.update({k: getattr(data, k) for k in ("tingkat", "keluarga_id") if getattr(data, k)})
+    tautan = "".join(
+        '<a class="admin-chip"%s href="/admin?%s">%s<span class="admin-cnt">%d</span></a>' % (
+            ' aria-current="true"' if data.status == kode else "",
+            e(urlencode(dict(dasar, status=kode))), e(LABEL_STATUS[kode]), facet.get(kode, 0),
+        )
+        for kode in KONDISI_LAINNYA_SISWA
+    )
+    total = sum(facet.get(kode, 0) for kode in KONDISI_LAINNYA_SISWA)
+    return (
+        '<details class="admin-rincian admin-akun-lama"%s><summary>Akun lama yang perlu dicocokkan (%d)</summary>'
+        '<nav class="admin-chip-baris" aria-label="Kondisi akun lama">%s</nav></details>'
+        % (" open" if data.status in KONDISI_LAINNYA_SISWA else "", total, tautan)
+    )
+
+
+def render_siswa(
+    data: Q.HalamanSiswa, keluarga: Sequence[Q.KeluargaRingkas], *, csrf: str = ""
+) -> str:
+    opsi_keluarga = opsi("", "Semua keluarga", data.keluarga_id) + "".join(
+        opsi(item.id_akun or "", item.pengguna, data.keluarga_id)
+        for item in keluarga if item.id_akun is not None
+    )
+    # Set filter sama di mode cari dan non-cari; ``status`` selalu memuat semua pilihan
+    # agar Terapkan tidak menimpa nilai yang datang dari chip.
+    lanjutan = (
+        '<label>Level soal<select name="tingkat">%s%s</select></label>'
+        '<label>Keluarga<select name="keluarga_id">%s</select></label>'
+        '<label>Kondisi<select name="status">%s%s</select></label>'
+        % (
+            opsi("", "Semua level", data.tingkat),
+            "".join(opsi(level, level, data.tingkat) for level in LEVEL_TINGKAT),
+            opsi_keluarga,
+            _opsi_semua(OPSI_STATUS_SISWA, data.status),
+            "".join(opsi(kode, LABEL_STATUS[kode], data.status) for kode in KONDISI_LAINNYA_SISWA),
+        )
+    )
+    baris = "".join(_baris_siswa(item) for item in data.item) or (
+        '<tr><td colspan="7" class="admin-kosong">Tidak ada siswa yang cocok.</td></tr>'
+    )
     filter_data = {
         "cari": data.cari, "tingkat": data.tingkat,
         "keluarga_id": data.keluarga_id, "status": data.status,
     }
     kepala = (
         '<th scope="col">Siswa</th>', '<th scope="col">Kelas sekolah</th>',
-        '<th scope="col">Keluarga</th>', '<th scope="col">Login</th>',
+        '<th scope="col">Keluarga</th>', '<th scope="col">Cara masuk</th>',
         '<th scope="col" data-angka>Sesi</th>', '<th scope="col">Kondisi</th>',
         '<th scope="col">Tindakan</th>',
     )
     catatan = (
-        '<p class="admin-meta admin-kartu-catatan">Login tertaut adalah akun yang dihubungkan langsung ke profil siswa. '
+        '<details class="admin-rincian admin-kartu-catatan"><summary>Tentang login tertaut dan kecocokan nama</summary>'
+        '<p class="admin-meta">Login tertaut adalah akun yang dihubungkan langsung ke profil siswa. '
         'Akun lama yang belum tertaut mungkin masih bisa masuk melalui kecocokan nama; periksa sebelum membuat akun baru.</p>'
+        '</details>'
     )
     return (
         _bar_cari("siswa", csrf, data.cari, "Cari nama, login, atau keluarga", lanjutan, kelas=" admin-form-siswa",
@@ -284,10 +351,12 @@ def render_siswa(
         + chip_daftar("siswa", data, (
             ("Semua", {"status": "semua"}, "semua"),
             ("Perlu perhatian", {"status": "perlu_perhatian"}, "perlu_perhatian"),
-            ("Belum ada login tertaut", {"status": "student_without_login"}, "student_without_login"),
+            ("Tanpa login", {"status": "student_without_login"}, "student_without_login"),
             ("Pemilik tanpa akun", {"status": "owner_without_account"}, "owner_without_account"),
             ("Normal", {"status": "normal"}, "normal"),
         ))
+        + '<p class="admin-banner-info">%s</p>' % e(CATATAN_TANPA_LOGIN)
+        + _akun_lama(data)
         + kartu_tabel(
             "Daftar siswa", kepala, baris,
             pager(

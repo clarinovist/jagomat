@@ -587,6 +587,9 @@ def _keluarga_semua(kon, konteks: KonteksAdmin) -> Tuple[KeluargaRingkas, ...]:
     ))
 
 
+KONDISI_AKUN_LAMA = ("owner_empty", "legacy_login_unverified", "legacy_same_name_ambiguous")
+
+
 def _facet_keluarga(data) -> Tuple[Tuple[str, int], ...]:
     """Hitungan chip dari populasi yang sama dengan tabel, sebelum filter kondisi."""
     return (
@@ -604,6 +607,8 @@ def _facet_siswa(data) -> Tuple[Tuple[str, int], ...]:
         ("student_without_login", sum(1 for item in data if "student_without_login" in item.status)),
         ("owner_without_account", sum(1 for item in data if "owner_without_account" in item.status)),
         ("normal", sum(1 for item in data if not item.status)),
+    ) + tuple(
+        (kode, sum(1 for item in data if kode in item.status)) for kode in KONDISI_AKUN_LAMA
     )
 
 

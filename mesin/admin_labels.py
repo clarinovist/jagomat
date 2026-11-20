@@ -48,6 +48,48 @@ def tanggal(nilai):
     return '%d %s %d, %s WIB' % (dt.day, BULAN[dt.month-1], dt.year, dt.strftime('%H.%M')) if dt else '—'
 
 
+HARI_PER_MINGGU = 7
+HARI_PER_BULAN = 30
+HARI_PER_TAHUN = 365
+
+
+def _selisih_hari(dt, sekarang):
+    acuan = (sekarang or datetime.now(WIB)).astimezone(WIB)
+    return (acuan.date() - dt.date()).days
+
+
+def relatif(nilai, sekarang=None, *, kosong='Belum pernah'):
+    """Selisih hari kalender WIB sebagai teks awam: "Hari ini", "2 hari lalu", "3 minggu lalu"."""
+    dt = waktu(nilai)
+    if dt is None:
+        return kosong
+    selisih = _selisih_hari(dt, sekarang)
+    if selisih <= 0:
+        return 'Hari ini'
+    if selisih == 1:
+        return 'Kemarin'
+    if selisih < HARI_PER_MINGGU:
+        return '%d hari lalu' % selisih
+    if selisih < HARI_PER_BULAN:
+        return '%d minggu lalu' % (selisih // HARI_PER_MINGGU)
+    if selisih < HARI_PER_TAHUN:
+        return '%d bulan lalu' % (selisih // HARI_PER_BULAN)
+    return '%d tahun lalu' % (selisih // HARI_PER_TAHUN)
+
+
+def judul_hari(nilai, sekarang=None):
+    """Judul kelompok per hari: "Hari ini", "Kemarin", atau tanggal WIB ("20 Nov 2026")."""
+    dt = waktu(nilai)
+    if dt is None:
+        return 'Waktu tidak tercatat'
+    selisih = _selisih_hari(dt, sekarang)
+    if selisih == 0:
+        return 'Hari ini'
+    if selisih == 1:
+        return 'Kemarin'
+    return '%d %s %d' % (dt.day, BULAN[dt.month - 1], dt.year)
+
+
 def hari_ini(sekarang=None):
     dt = sekarang or datetime.now(WIB)
     return '%s, %d %s %d' % (HARI[dt.weekday()], dt.day, BULAN_PENUH[dt.month-1], dt.year)

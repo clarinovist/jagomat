@@ -73,7 +73,7 @@ def test_login_warisan_tidak_dinyatakan_tanpa_akses():
     data = _siswa()
     item = replace(data.item[0], status=('student_without_login', 'legacy_login_unverified'))
     isi = P.render_siswa(replace(data, item=(item,)), (), csrf='sintetis')
-    assert 'Belum ada login tertaut' in isi
+    assert '<span class="admin-badge">Tanpa login</span>' in isi  # netral, bukan peringatan
     assert 'Akun lama yang belum tertaut mungkin masih bisa masuk' in isi
     assert 'Login lama belum terverifikasi' in isi
     assert 'Belum punya login<' not in isi

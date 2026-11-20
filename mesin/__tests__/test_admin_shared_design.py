@@ -80,5 +80,7 @@ def test_toolbar_membedakan_pencarian_dan_aksi_utama():
     isi = P.render_keluarga(_keluarga(), csrf='sintetis')
     assert '<button class="admin-tombol admin-tombol-sekunder" type="submit">Cari</button>' in isi
     assert '<button class="admin-tombol admin-tombol-sekunder" type="submit" form="form-cari-keluarga">Terapkan</button>' in isi
-    assert '<a class="admin-tombol" href="/admin/tinjau?aksi=account_teacher_create">' in isi
+    # Fitur orang tua dibekukan: tautan sekunder kecil, bukan tombol utama (D1).
+    assert '<a class="admin-tautan admin-tautan-kecil" href="/admin/tinjau?aksi=account_teacher_create">' in isi
+    assert '<a class="admin-tombol" href="/admin/tinjau' not in isi
     assert 'method="post" action="/admin"' in isi

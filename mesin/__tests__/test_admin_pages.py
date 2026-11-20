@@ -1,8 +1,11 @@
 """Kontrak renderer murni pusat kendali admin readonly."""
 
 from dataclasses import asdict, replace
+from datetime import datetime
+import re
 from pathlib import Path
 
+import admin_labels as L
 import admin_pages as pages
 import admin_queries as q
 import admin_style
@@ -271,7 +274,7 @@ def test_daftar_siswa_escape_label_filter_dan_tanpa_tombol_mutasi():
     assert "Ari &amp; &lt;B&gt;" in isi
     assert "keluarga&lt;script&gt;" in isi
     assert 'href="/admin?section=siswa&amp;id=7"' in isi
-    assert "Belum ada login tertaut" in isi
+    assert "QR / tautan HP" in isi  # label lama 'Belum ada login tertaut' diganti pil netral (D2)
     for terlarang in (
         "Hapus", "Reset sandi", "Buat akun", "Simpan", "Ubah kelas",
         'type="password"', "confirm(", "onsubmit=",
@@ -315,7 +318,8 @@ def test_tindakan_tanpa_target_tidak_menyediakan_form_reset():
 
 def test_kelola_akun_satu_pintu_dan_konfirmasi_login_eksplisit():
     daftar = pages.render_keluarga(_keluarga(), csrf='sintetis')
-    assert daftar.count('Kelola akun') == 1
+    assert 'Kelola akun' not in daftar  # tombol per baris kini satu "Buka" (D1)
+    assert daftar.count('>Buka</a>') == 1
     assert daftar.count('href="/admin?section=keluarga&amp;id=akun_guru_demo"') == 1
     detail = pages.render_detail_keluarga(q.DetailKeluarga(_keluarga().item[0], _siswa()))
     assert 'Tinjau penghapusan login' in detail
@@ -375,24 +379,96 @@ def _riwayat_contoh():
     return HalamanRiwayat((entri,), 1, 1, 25, 1)
 
 
-def test_riwayat_chip_aksi_cepat_tombol_sekunder_dan_lolos_xss():
+SEKARANG_RIWAYAT = datetime(2025, 10, 3, 20, 0, tzinfo=L.WIB)  # 1759488000 = 3 Okt 2025 17.40 WIB
+
+
+def _entri(aksi, dibuat, actor="admin-demo", target="akun_1", jenis="account"):
+    from admin_history_store import EntriRiwayat
+    return EntriRiwayat(
+        "op_" + str(dibuat), actor, aksi, jenis, target, None, "ok", None, None, None, "ok", dibuat, (),
+    )
+
+
+def test_riwayat_tanpa_chip_duplikat_aksi_tetap_bisa_dipilih_lewat_select_dan_lolos_xss():
     isi = pages.render_riwayat(
         _riwayat_contoh(),
         filter_data={"aksi": "account_password_reset", "actor_id": 'jahat"><script>'},
+        sekarang=SEKARANG_RIWAYAT,
     )
-    assert isi.count('class="admin-chip"') == 10
-    assert isi.count('aria-current="true"') == 1
-    assert 'aria-current="true" href="/admin?section=riwayat' in isi
-    assert 'Reset sandi</a>' in isi
+    assert "Filter cepat aksi" not in isi and "admin-cepat-aksi" not in isi
+    # Chip yang tersisa hanya tiga rentang cepat; nilai aksi hanya lewat select.
+    assert isi.count('class="admin-chip"') == 3
+    for kode in rw_label_aksi():
+        assert 'value="%s"' % kode in isi
+    assert '<option value="account_password_reset" selected>Reset sandi</option>' in isi
     assert '<script>' not in isi
-    assert '%3Cscript%3E' in isi
+    assert '%3Cscript%3E' in isi  # actor_id lolos urlencode di tautan rentang
     assert 'class="admin-tombol admin-tombol-sekunder">Saring riwayat<' in isi
 
 
-def test_riwayat_chip_semua_aksi_aktif_tanpa_filter():
-    isi = pages.render_riwayat(_riwayat_contoh(), filter_data={})
-    assert isi.count('aria-current="true"') == 1
-    assert '>Semua aksi</a>' in isi
+def rw_label_aksi():
+    import admin_riwayat_pages as rw
+    return tuple(rw.LABEL_AKSI)
+
+
+def test_riwayat_satu_baris_filter_get_tanpa_aksi_aktif_saat_kosong():
+    isi = pages.render_riwayat(_riwayat_contoh(), filter_data={}, sekarang=SEKARANG_RIWAYAT)
+    assert isi.count('<form method="get"') == 1
+    for nama in ("aksi", "actor_id", "mulai", "selesai"):
+        assert 'name="%s"' % nama in isi
+    assert '<option value="" selected>Semua aksi</option>' in isi
+    assert 'aria-current="true"' not in isi
+
+
+def test_riwayat_rentang_cepat_mengisi_mulai_selesai_dan_mempertahankan_filter_lain():
+    import re
+    from urllib.parse import parse_qs, urlsplit
+    isi = pages.render_riwayat(
+        _riwayat_contoh(), filter_data={"aksi": "account_session_revoke", "actor_id": "admin-demo", "halaman": "3"},
+        sekarang=SEKARANG_RIWAYAT,
+    )
+    tautan = re.findall(r'<a class="admin-chip"[^>]*href="([^"]+)">([^<]+)</a>', isi)
+    hasil = {nama: parse_qs(urlsplit(h.replace("&amp;", "&")).query) for h, nama in tautan}
+    assert set(hasil) == {"Hari ini", "7 hari", "30 hari"}
+    assert hasil["Hari ini"]["mulai"] == hasil["Hari ini"]["selesai"] == ["2025-10-03"]
+    assert hasil["7 hari"]["mulai"] == ["2025-09-27"] and hasil["30 hari"]["mulai"] == ["2025-09-04"]
+    for query in hasil.values():
+        assert query["section"] == ["riwayat"] and query["aksi"] == ["account_session_revoke"]
+        assert query["actor_id"] == ["admin-demo"] and "halaman" not in query
+
+
+def test_riwayat_dikelompokkan_per_hari_kalimat_dan_id_teknis_di_rincian():
+    from admin_history_store import HalamanRiwayat
+    hari = 86400
+    sekarang_ts = int(SEKARANG_RIWAYAT.timestamp())
+    entri = (
+        _entri("account_password_reset", sekarang_ts - 60, actor='pelaku<b>', target="akun_hari_ini"),
+        _entri("student_delete", sekarang_ts - 120, target="siswa_hari_ini", jenis="student"),
+        _entri("account_session_revoke", sekarang_ts - hari, target="akun_kemarin"),
+        _entri("registration_config_update", sekarang_ts - 3 * hari, target="reg", jenis="registration_config"),
+    )
+    isi = pages.render_riwayat(HalamanRiwayat(entri, 4, 1, 25, 1), filter_data={}, sekarang=SEKARANG_RIWAYAT)
+    judul = re.findall(r"<h3>([^<]+)</h3>", isi)
+    assert judul == ["Hari ini", "Kemarin", "30 Sep 2025"]
+    assert isi.count('<li class="admin-entri">') == 4
+    assert "Pengelola melakukan <strong>reset sandi</strong> pada akun." in isi
+    assert "Pengelola melakukan <strong>hapus siswa kosong</strong> pada siswa." in isi
+    assert "pada pengaturan pendaftaran." in isi
+    # ID mentah hanya di <details> "Rincian", tidak di kalimat; markup pelaku di-escape.
+    kalimat = "".join(re.findall(r'<span class="admin-entri-kalimat">(.*?)</span>', isi))
+    assert "akun_hari_ini" not in kalimat and "pelaku" not in kalimat
+    rincian = re.findall(r'<details class="admin-rincian"><summary>Rincian</summary>(.*?)</details>', isi)
+    assert len(rincian) == 4 and "akun_hari_ini" in rincian[0] and "account_password_reset" in rincian[0]
+    assert "pelaku&lt;b&gt;" in rincian[0] and "pelaku<b>" not in isi
+    assert isi.count('class="admin-badge bien">Berhasil') == 4
+    assert "<table" not in isi
+
+
+def test_riwayat_kosong_tetap_menampilkan_pesan_dan_catatan():
+    from admin_history_store import HalamanRiwayat
+    isi = pages.render_riwayat(HalamanRiwayat((), 0, 1, 25, 1), filter_data={}, sekarang=SEKARANG_RIWAYAT)
+    assert "Belum ada tindakan admin." in isi and "0 hasil" in isi
+    assert "Riwayat dimulai saat fitur aktif" in isi
 
 
 def test_chip_daftar_menampilkan_hitungan_facet_dan_chip_normal():
@@ -404,7 +480,7 @@ def test_chip_daftar_menampilkan_hitungan_facet_dan_chip_normal():
     isi = pages.render_siswa(replace(_siswa(), cari="", jumlah_facet=facet), (), csrf="x")
 
     for label, jumlah in (
-        ("Semua", 8), ("Perlu perhatian", 3), ("Belum ada login tertaut", 1),
+        ("Semua", 8), ("Perlu perhatian", 3), ("Tanpa login", 1),
         ("Pemilik tanpa akun", 2), ("Normal", 5),
     ):
         assert '%s<span class="admin-cnt">%d</span></a>' % (label, jumlah) in isi
@@ -416,7 +492,7 @@ def test_chip_keluarga_membawa_hitungan_dan_normal():
     facet = (("semua", 7), ("perlu_perhatian", 2), ("tanpa_siswa", 1), ("normal", 4))
     isi = pages.render_keluarga(replace(_keluarga(), cari="", jumlah_facet=facet), csrf="x")
 
-    for label, jumlah in (("Semua", 7), ("Perlu perhatian", 2), ("Belum memiliki siswa", 1), ("Normal", 4)):
+    for label, jumlah in (("Semua", 7), ("Perlu perhatian", 2), ("Belum ada siswa", 1), ("Normal", 4)):
         assert '%s<span class="admin-cnt">%d</span></a>' % (label, jumlah) in isi
 
 
@@ -425,7 +501,7 @@ def test_tabel_siswa_avatar_tindakan_dan_scope_kolom():
 
     assert isi.count('<th scope="col"') == 7
     assert '<span class="admin-avatar" aria-hidden="true">A</span>' in isi
-    assert '>Tinjau</a>' in isi  # siswa berstatus perhatian
+    assert '>Buka</a>' in isi and '>Tinjau</a>' not in isi  # satu label tombol, tujuan sama
     assert 'class="admin-redup">Belum diisi</span>' in isi
     assert "Diurutkan menurut nama." in isi
     normal = q.SiswaRingkas(8, "Budi", "P3", "p", "a", "orang_tua", None, "budi", 0, None, (), 4)
@@ -440,7 +516,9 @@ def test_keluarga_nama_bukan_tautan_kedua_dan_tanpa_id_tetap_strip():
     from dataclasses import replace
     isi = pages.render_keluarga(replace(_keluarga(), item=(kosong,)), csrf="x")
     assert "<td>—</td>" in isi
-    assert 'admin-sel-nama"><span class="admin-avatar" aria-hidden="true">p</span>pemilik-x' in isi
+    assert ('admin-sel-nama"><span class="admin-avatar" aria-hidden="true">p</span>'
+            '<span class="admin-sel-teks"><span>pemilik-x</span>'
+            '<span class="admin-sel-sub">Belum punya akun · 0 sesi</span>') in isi
 
 
 def _status_pendaftaran(dibuka=True, kode="closed_maintenance"):
@@ -492,7 +570,10 @@ def test_riwayat_tab_jenis_dan_kartu_tabel_di_tiga_tampilan():
         assert 'role="group" aria-label="Jenis riwayat"' in isi
         assert isi.count('aria-current="page"') == 1
         assert 'aria-current="page">%s</a>' % aktif in isi
-        assert '<th scope="col"' in isi and "ID ditampilkan lengkap" in isi
+        # Tab Tindakan kini berupa daftar per hari (bukan tabel); AI dan batch tetap tabel.
+        if isi is not tindakan:
+            assert '<th scope="col"' in isi
+        assert "ID ditampilkan lengkap" in isi
         assert 'method="get" action="/admin"' in isi
     assert "1 hasil" in tindakan and "0 hasil" in ai
     assert 'name="sumber" value="ai"' in ai and 'name="sumber" value="batch"' in batch

@@ -14,6 +14,7 @@ import auth  # noqa: E402
 import cek_gratis_skor as skor  # noqa: E402
 import question_context  # noqa: E402
 import topics  # noqa: E402
+import topik_awam  # noqa: E402
 from test_admin_http_c import (  # noqa: E402
     SANDI_ADMIN, SANDI_ORANG_TUA, _login, _minta, server,  # noqa: F401
 )
@@ -22,25 +23,61 @@ from http_test_kit import SANDI_MURID  # noqa: E402
 RUTE = "/admin/cek-topik"
 
 
-def _baris_kelas(isi: str, kelas: int) -> str:
-    awal = isi.index('<th scope="row">Kelas %d' % kelas)
-    return isi[awal:isi.index("</tr>", awal)]
+def _kartu_kelas(isi: str, kelas: int) -> str:
+    awal = isi.index('<section class="admin-kartu admin-topik-kelas"><div class="admin-topik-kepala"><h3>Kelas %d</h3>' % kelas)
+    return isi[awal:isi.index("</section>", awal)]
 
 
-def test_admin_melihat_topik_tiap_kelas_dari_konstanta(server):
+def _bagian_tampak(kartu: str) -> str:
+    """Isi kartu di luar <details> 'Rincian teknis' (yang terlihat tanpa membuka rincian)."""
+    return kartu[:kartu.index('<details class="admin-rincian">')]
+
+
+def _rincian(kartu: str) -> str:
+    return kartu[kartu.index('<details class="admin-rincian">'):]
+
+
+def _ringkasan(isi: str, kelas: int) -> str:
+    awal = isi.index('<li class="admin-topik-ringkas"><strong>Kelas %d</strong>' % kelas)
+    return isi[awal:isi.index("</li>", awal)]
+
+
+def test_admin_melihat_topik_tiap_kelas_dengan_nama_ramah_dan_id_di_rincian(server):
     token = _login(server, "Admin-C", SANDI_ADMIN)
     kode, isi, header = _minta(server, RUTE, cookie=token)
     assert kode == 200 and "<script" not in isi
     assert header["Cache-Control"] == "no-store"
     for kelas, daftar in skor.TOPIK_PER_KELAS.items():
-        baris = _baris_kelas(isi, kelas)
+        kartu = _kartu_kelas(isi, kelas)
         for topik_id in daftar:
-            assert topics.ambil(topik_id).nama in baris
-        assert "<td>%s</td>" % ui.soal_per_topik(kelas) in baris
+            assert topik_awam.nama(topik_id) in _bagian_tampak(kartu)  # nama ramah dari sumber yang ada
+            assert "<code>%s</code>" % topik_id not in _bagian_tampak(kartu)
+            assert "<code>%s</code>" % topik_id in _rincian(kartu)
+            assert topics.ambil(topik_id).nama in _rincian(kartu)  # nama resmi tetap tersedia
+        assert '<span class="admin-badge">%s soal</span>' % ui.soal_per_topik(kelas) in _bagian_tampak(kartu)
     for kelas in (1, 2):
-        assert topics.ambil(skor.TOPIK_DASAR).nama in _baris_kelas(isi, kelas)
-    assert "<td>5</td>" in _baris_kelas(isi, 4)
-    assert "<td>15</td>" in _baris_kelas(isi, 1)
+        assert topik_awam.nama(skor.TOPIK_DASAR) in _bagian_tampak(_kartu_kelas(isi, kelas))
+    assert "5 soal</span>" in _bagian_tampak(_kartu_kelas(isi, 4))
+    assert "15 soal</span>" in _bagian_tampak(_kartu_kelas(isi, 1))
+    assert "Topik diubah lewat rilis, bukan dari sini." in isi
+
+
+def test_ringkasan_per_kelas_memuat_jumlah_topik_dan_pil_status(server):
+    token = _login(server, "Admin-C", SANDI_ADMIN)
+    isi = _minta(server, RUTE, cookie=token)[1]
+    for kelas in ui.KELAS_CEK:
+        ringkas = _ringkasan(isi, kelas)
+        assert "%d topik" % len(ui.topik_kelas(kelas)) in ringkas
+        assert 'class="admin-badge' in ringkas
+
+
+def test_nama_topik_tidak_dikarang_dan_jatuh_ke_nama_resmi_lalu_id(monkeypatch):
+    for kelas in ui.KELAS_CEK:
+        for topik_id in ui.topik_kelas(kelas):
+            assert ui.nama_ramah(topik_id) == topik_awam.NAMA_AWAM[topik_id]
+    monkeypatch.delitem(topik_awam.NAMA_AWAM, "statistika")
+    assert ui.nama_ramah("statistika") == topics.ambil("statistika").nama
+    assert ui.nama_ramah("topik-tak-dikenal") == "topik-tak-dikenal"
 
 
 def test_mengubah_konstanta_mengubah_halaman(server, monkeypatch):
@@ -49,10 +86,11 @@ def test_mengubah_konstanta_mengubah_halaman(server, monkeypatch):
     monkeypatch.setattr(skor, "TOPIK_PER_KELAS", baru)
     token = _login(server, "Admin-C", SANDI_ADMIN)
     isi = _minta(server, RUTE, cookie=token)[1]
-    baris = _baris_kelas(isi, 4)
-    assert topics.ambil("statistika").nama in baris
-    assert topics.ambil("pengukuran").nama not in baris
-    assert "<td>15</td>" in baris
+    kartu = _kartu_kelas(isi, 4)
+    assert topik_awam.nama("statistika") in _bagian_tampak(kartu)
+    assert topik_awam.nama("pengukuran") not in kartu
+    assert "15 soal</span>" in _bagian_tampak(kartu)
+    assert "1 topik" in _ringkasan(isi, 4)
 
 
 def test_contoh_jenis_soal_milik_topik_di_level_kelas():
@@ -91,10 +129,12 @@ def test_status_flag_materi_dasar_mengikuti(server, monkeypatch, aktif):
     token = _login(server, "Admin-C", SANDI_ADMIN)
     isi = _minta(server, RUTE, cookie=token)[1]
     for kelas in (1, 2):
-        baris = _baris_kelas(isi, kelas)
-        assert (ui.STATUS_AKTIF in baris) is aktif
-        assert ("belum tersedia" in baris) is (not aktif)
-    assert "Materi dasar" not in _baris_kelas(isi, 3)
+        for bagian in (_ringkasan(isi, kelas), _kartu_kelas(isi, kelas)):
+            assert (ui.LABEL_AKTIF in bagian) is aktif
+            assert (ui.LABEL_BELUM_TERSEDIA in bagian) is (not aktif)
+        assert ('admin-badge bien">Aktif' in _ringkasan(isi, kelas)) is aktif
+    # Kelas 3-6 tidak bergantung pada sakelar materi dasar.
+    assert ui.LABEL_AKTIF in _ringkasan(isi, 3) and ui.LABEL_BELUM_TERSEDIA not in _kartu_kelas(isi, 3)
 
 
 def test_menu_memuat_entri_di_grup_layanan(server):

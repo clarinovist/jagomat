@@ -68,21 +68,26 @@ def test_panel_keluarga_tanpa_select_lama_dan_chip_membawa_filter():
     assert PANEL_TUTUP in D.render_keluarga(_keluarga(), csrf="sintetis")
 
 
-def test_panel_siswa_kondisi_lainnya_hanya_tiga_pilihan():
-    isi = D.render_siswa(_siswa(), (), csrf="sintetis")
-    pilihan = re.search(r'Kondisi lainnya<select form="form-cari-siswa" name="status">(.*?)</select>', isi).group(1)
-    assert re.findall(r'value="([^"]*)"', pilihan) == [
-        "semua", "owner_empty", "legacy_login_unverified", "legacy_same_name_ambiguous",
+def test_panel_siswa_kondisi_sama_di_mode_cari_dan_akun_lama_tetap_bisa_dipilih():
+    # Set pilihan Kondisi tetap (tidak lagi "Sesuai chip"): lima kondisi umum + tiga akun lama.
+    semua = [
+        "semua", "perlu_perhatian", "normal", "student_without_login", "owner_without_account",
+        "owner_empty", "legacy_login_unverified", "legacy_same_name_ambiguous",
     ]
-    assert PANEL_TUTUP in isi
+    for cari in ("", "Ari"):
+        isi = D.render_siswa(replace(_siswa(), cari=cari), (), csrf="sintetis")
+        pilihan = re.search(r'Kondisi<select form="form-cari-siswa" name="status">(.*?)</select>', isi).group(1)
+        assert re.findall(r'value="([^"]*)"', pilihan) == semua
+        assert "Level soal<select" in isi and "Profil parameter" not in isi
+    assert PANEL_TUTUP in D.render_siswa(_siswa(), (), csrf="sintetis")
 
 
 @pytest.mark.parametrize("chip", D.STATUS_DARI_CHIP_SISWA)
 def test_siswa_nilai_chip_tidak_tertimpa_saat_terapkan(chip):
     isi = D.render_siswa(replace(_siswa(), status=chip), (), csrf="sintetis")
-    pilihan = re.search(r'Kondisi lainnya<select form="form-cari-siswa" name="status">(.*?)</select>', isi).group(1)
-    assert '<option value="%s" selected>Sesuai chip di atas</option>' % chip in pilihan
-    assert '>Semua<' not in pilihan
+    pilihan = re.search(r'Kondisi<select form="form-cari-siswa" name="status">(.*?)</select>', isi).group(1)
+    assert pilihan.count(' selected>') == 1 and 'value="%s" selected>' % chip in pilihan
+    assert "Sesuai chip" not in pilihan
 
 
 def test_siswa_kondisi_lainnya_aktif_membuka_panel():
