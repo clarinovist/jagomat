@@ -7,6 +7,7 @@ tetap byte-value utuh. Identitas aktif diputus lewat pseudonim operasi.
 """
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 import hashlib
 import json
@@ -161,6 +162,12 @@ def _copy_live(paths, tujuan: Path) -> dict:
             out = sqlite3.connect(str(dst))
             try:
                 src.backup(out)
+                # Snapshot harus portabel: DELETE + tanpa sidecar. Tanpa ini
+                # salinan ber-header WAL tidak bisa dibaca mode=ro.
+                mode = str(out.execute("PRAGMA journal_mode=DELETE").fetchone()[0]).lower()
+                if mode != "delete":
+                    raise PenghapusanDitolak("salinan state bukan mode DELETE")
+                out.commit()
             finally:
                 out.close(); src.close()
             for akhiran in ("-wal", "-shm"):
@@ -438,6 +445,11 @@ def jalankan(path_belajar, path_auth, path_admin, path_ai, path_pendamping,
             _ubah_admin(paths["admin"], perintah.target_id)
             _ubah_auth(paths["auth"], perintah, pseudonim, siswa_ids)
             for path in paths.values():
+                if path.suffix == ".db":
+                    with contextlib.closing(sqlite3.connect(path)) as kon:
+                        mode = str(kon.execute("PRAGMA journal_mode=DELETE").fetchone()[0]).lower()
+                        if mode != "delete":
+                            raise PenghapusanDitolak("state hasil bukan mode DELETE")
                 for akhiran in ("-wal", "-shm"):
                     samping = path.with_name(path.name + akhiran)
                     if samping.exists():
