@@ -130,8 +130,11 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   waktu persiapan belum terukur.
 - Admin melihat **Topik Cek Kemampuan** (`/admin/cek-topik`, baca-saja, tanpa DB): topik cek gratis
   per kelas, soal per topik, contoh jenis soal, dan status materi dasar kelas 1–2. Diturunkan dari kode;
-  mengubahnya lewat kode dan rilis, bukan dari admin. Tab "Peta kurikulum" (`/admin/kurikulum`,
-  baca-saja): butir CP Merdeka per fase, celah cakupan SD, dan grup per topik.
+  mengubahnya lewat kode dan rilis, bukan dari admin. Tab "Peta kurikulum" (`/admin/kurikulum`):
+  butir CP Merdeka per fase, celah cakupan SD (dihitung dari pemetaan efektif), dan grup per topik. Admin bisa **mengubah
+  pemetaan CP per grup** (`/admin/kurikulum/cp?grup=<topik>/<kode>`: sampai 12 butir + kecocokan): langsung berlaku tanpa
+  draf, tercatat di audit (waktu, akun, lama→baru), tombol "Kembalikan ke bawaan" kode. Aksi memakai tinjauan bertanda
+  tangan + sandi ulang + revisi (konflik 409). Topik, grup, dan butir CP tetap di kode.
 - **Pengaturan layanan** (`/admin/sakelar`, satu halaman; `/admin?section=operasional` mengalihkan 303 ke
   sini): sakelar fitur + tahap pembayaran, pendaftaran mandiri (form lama, POST tetap ke `/admin/pendaftaran`), kartu rekening transfer (ubah di `/admin/pesanan/rekening`),
   kesiapan/dukungan, satu baris status AI. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,

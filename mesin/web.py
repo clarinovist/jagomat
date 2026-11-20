@@ -77,6 +77,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/order", "admin"),  # Fase C: detail order (periksa/refund pindah ke sini; POST tetap di rute lama)
     ("/admin/pesanan/rekening", "admin"),
     ("/admin/sakelar", "admin"),  # sakelar fitur: empat sakelar admin; sudah tercakup prefix `/admin`
+    ("/admin/kurikulum/cp", "admin"),  # Peta kurikulum 3c: halaman ubah pemetaan CP per grup (`?grup=`)
     ("/", "publik"),  # landing; guru/admin melihat berandanya sendiri
     ("/masuk", "publik"),
     ("/daftar", "publik"),
@@ -117,6 +118,8 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/tolak", "admin"),
     ("/admin/pesanan/rekening", "admin"),
     ("/admin/sakelar", "admin"),  # ubah sakelar fitur; tinjauan bertanda tangan + sandi ulang
+    ("/admin/kurikulum/cp", "admin"),  # ubah pemetaan CP per grup; tinjauan bertanda tangan + sandi ulang
+    ("/admin/kurikulum/cp/kembalikan", "admin"),  # kembalikan pemetaan CP ke bawaan kode (aksi dan tinjauan sendiri)
     ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
     ("/daftar", "publik"),
     ("/murid/", "murid"),

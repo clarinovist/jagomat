@@ -22,12 +22,13 @@ MAKS_FIELD = 8
 _POLA_ORDER = re.compile(r"ord_[0-9a-f]{32}")
 
 
-def terima_form(penangan, principal, aksi: str):
+def terima_form(penangan, principal, aksi: str, *, maksimum_field: int = MAKS_FIELD):
     """(tinjauan, data) bila form sah; selain itu PermissionError/ValueError (dipetakan `jalankan_aman`).
 
-    `data` sudah tanpa csrf/tinjauan/reauth, jadi hanya berisi isian aksi itu sendiri.
+    `data` sudah tanpa csrf/tinjauan/reauth, jadi hanya berisi isian aksi itu sendiri. `maksimum_field`
+    (termasuk csrf, tinjauan, reauth) hanya dinaikkan eksplisit oleh aksi yang memang berisian banyak.
     """
-    data = admin_security.baca_form(penangan, maksimum_field=MAKS_FIELD)
+    data = admin_security.baca_form(penangan, maksimum_field=maksimum_field)
     _akun, tinjauan, _token = h._token_final(penangan, principal, data, aksi)
     return tinjauan, data
 

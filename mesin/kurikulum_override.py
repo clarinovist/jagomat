@@ -93,6 +93,10 @@ IsiCP = Tuple[Tuple[str, str], ...]
 KunciCP = Tuple[str, str]
 
 
+BATAS_RIWAYAT_BAWAAN = 10
+BATAS_RIWAYAT_MAKS = 50
+
+
 class KonflikRevisi(Exception):
     """revisi_diharapkan tidak cocok dengan revisi baris sekarang."""
 
@@ -112,6 +116,17 @@ class ItemCP:
     sumber: str
     revisi: int
     diperbarui: Optional[str]
+
+
+@dataclass(frozen=True)
+class RiwayatCP:
+    """Satu entri audit perubahan CP sebuah grup: isi lama dan baru (id butir + kecocokan)."""
+
+    revisi: int
+    dibuat: str
+    actor_id: str
+    lama: IsiCP
+    baru: IsiCP
 
 
 @dataclass(frozen=True)
@@ -379,6 +394,48 @@ def _muat(path) -> _Keadaan:
 def daftar_cp(*, path=None) -> Tuple[ItemCP, ...]:
     """Satu ItemCP per grup katalog, urut bawaan."""
     return _muat(path).cp
+
+
+def _entri_riwayat(baris) -> Optional[RiwayatCP]:
+    """Satu baris audit menjadi RiwayatCP; baris yang tak terurai atau tak sah dilewati (None)."""
+    revisi = _ke_revisi(baris["revisi"])
+    dibuat, actor_id = baris["dibuat"], baris["actor_id"]
+    if revisi is None or not isinstance(dibuat, str) or not isinstance(actor_id, str):
+        return None
+    try:
+        return RiwayatCP(revisi, dibuat, actor_id, _cp_dari_json(baris["lama"]), _cp_dari_json(baris["baru"]))
+    except ValueError:
+        _log.warning("Entri audit CP tak terbaca diabaikan.")
+        return None
+
+
+def riwayat_cp(topik_id, grup_kode, batas=BATAS_RIWAYAT_BAWAAN, *, path=None) -> Tuple[RiwayatCP, ...]:
+    """Entri audit CP terbaru untuk satu grup (terbaru dulu), baca-saja dan aman.
+
+    Berkas tidak ada, rusak, atau berskema asing = tuple kosong (dicatat tanpa isi). Tidak pernah
+    membuat berkas dan tidak melewati cache: riwayat selalu dibaca segar. ValueError untuk kunci
+    grup tak dikenal atau `batas` di luar 1..BATAS_RIWAYAT_MAKS.
+    """
+    kunci = _periksa_kunci_cp(topik_id, grup_kode)
+    if (not isinstance(batas, int) or isinstance(batas, bool)
+            or not 1 <= batas <= BATAS_RIWAYAT_MAKS):
+        raise ValueError(f"Batas riwayat harus 1-{BATAS_RIWAYAT_MAKS}.")
+    tujuan = _path_db(path)
+    try:
+        if not tujuan.exists():
+            return ()
+        with closing(sqlite3.connect(f"file:{tujuan}?mode=ro", uri=True, timeout=2.0)) as kon:
+            kon.row_factory = sqlite3.Row
+            if kon.execute("PRAGMA user_version").fetchone()[0] != VERSI_SKEMA:
+                raise GalatKurikulum("Skema DB kurikulum tidak dikenali.")
+            baris = kon.execute(
+                "SELECT revisi, dibuat, actor_id, lama, baru FROM audit_kurikulum"
+                " WHERE jenis = 'cp' AND kunci = ? ORDER BY id DESC LIMIT ?",
+                ("%s/%s" % kunci, batas)).fetchall()
+    except (sqlite3.Error, GalatKurikulum, OSError) as err:
+        _log.warning("Riwayat CP tak terbaca (%s).", type(err).__name__)
+        return ()
+    return tuple(item for item in map(_entri_riwayat, baris) if item is not None)
 
 
 def daftar_label(*, path=None) -> Tuple[ItemLabel, ...]:

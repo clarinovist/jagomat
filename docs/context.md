@@ -103,9 +103,14 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   bernama non-`*store*` karena hanya membaca; sidik kontrak persistensi tidak berubah.
 - `admin_cek_topik_pages.py` → `admin_cek_topik_http.py` untuk `/admin/cek-topik`: render murni dari
   `cek_gratis_skor.TOPIK_PER_KELAS` dan registri `topics`, tanpa DB.
-- `admin_kurikulum_pages.py` → `admin_kurikulum_http.py` untuk `/admin/kurikulum` (baca-saja, tanpa DB): render
-  `kurikulum_katalog` + `kurikulum_cp`; bar tab `admin_kurikulum_tab.py` dibagi dengan halaman cek-topik.
-- `kurikulum_override.py` (3b peta kurikulum; belum disambung ke konsumen/admin): override CP per grup dan label awam di DB terpisah
+- `admin_kurikulum_pages.py` → `admin_kurikulum_http.py` untuk `/admin/kurikulum` (baca-saja; render murni):
+  `kurikulum_katalog` + `kurikulum_cp` + pemetaan efektif; bar tab `admin_kurikulum_tab.py` dibagi dengan halaman cek-topik.
+- `admin_kurikulum_cp_pages.py` → `admin_kurikulum_cp_http.py` (3c): GET `/admin/kurikulum/cp?grup=<topik>/<kode>` (form 12 baris
+  tetap `butir_N`/`cocok_N`, riwayat `kurikulum_override.riwayat_cp`), POST `/admin/kurikulum/cp` dan `/cp/kembalikan`. Guard = pola
+  sakelar (`h._token_final`: csrf + tinjauan terikat aksi + sandi ulang; grup dan revisi hanya dari tinjauan; `wajib_field`).
+  Batas field eksplisit `MAKS_FIELD_CP` (27) lewat `admin_pesanan_aksi.terima_form(maksimum_field=)`; `MAKS_FIELD` global tetap 8.
+  `/admin/kurikulum` kini membaca `kurikulum_override.daftar_cp()` (efektif), `ui.halaman()` tanpa argumen = bawaan kode.
+- `kurikulum_override.py` (3b peta kurikulum; dipakai admin CP 3c, label awam 3d belum disambung): override CP per grup dan label awam di DB terpisah
   `/data/kurikulum.db` (env `KURIKULUM_BERKAS_DB`, skema v1, revisi per kunci + audit). Beda dari `feature_switch`: DB/baris rusak
   **fail ke bawaan kode** (bawaan sah) + log; tulis ke skema asing ditolak. Ikut backup opsional (cek skema di `operational_backup`).
 - `admin_sakelar_pages.py` → `admin_sakelar_http.py` untuk `/admin/sakelar`: empat sakelar di

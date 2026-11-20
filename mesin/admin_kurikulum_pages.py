@@ -1,14 +1,17 @@
 """Renderer HTML murni halaman admin "Peta kurikulum" (tanpa JS, tanpa DB).
 
-Semua isi diturunkan dari `kurikulum_katalog` (topik, grup, topik cek) dan `kurikulum_cp`
-(butir CP Merdeka dan pemetaannya) serta registri `topics` untuk nama resmi topik.
+Topik, grup, dan butir CP diturunkan dari `kurikulum_katalog` dan `kurikulum_cp`; pemetaan CP per grup
+yang ditampilkan adalah nilai EFEKTIF (`kurikulum_override.ItemCP`, bawaan kode atau diubah admin) yang
+disuntikkan pemanggil lewat `daftar`. Tanpa `daftar`, nilai bawaan kode dipakai (tanpa menyentuh DB).
 """
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple
+from urllib.parse import urlencode
 
 import kurikulum_cp as cp
 import kurikulum_katalog as kat
+from kurikulum_override import SUMBER_ADMIN, SUMBER_BAWAAN, ItemCP
 import topics
 from admin_komponen import e
 from admin_kurikulum_tab import TAB_KURIKULUM, tab_kurikulum
@@ -17,9 +20,11 @@ FASE_SD = ("A", "B", "C")
 TANPA_SOAL = "belum ada soal"
 DI_LUAR_CP = "di luar CP (pengayaan)"
 CATATAN = (
-    "Peta ini data di kode (kurikulum_katalog dan kurikulum_cp). Mengubahnya berarti mengubah "
-    "kode dan merilis ulang, sampai halaman ubah di admin tersedia."
+    "Topik, grup soal, dan butir CP adalah data di kode (kurikulum_katalog dan kurikulum_cp); mengubahnya "
+    "berarti mengubah kode dan merilis ulang. Pemetaan CP per grup bisa diubah admin lewat tautan Ubah: "
+    "langsung berlaku, tercatat di riwayat, dan bisa dikembalikan ke bawaan kode."
 )
+RUTE_UBAH = "/admin/kurikulum/cp"
 
 # butir id -> ((topik_id, kode grup, nama grup, kecocokan), ...)
 _Pelatih = Tuple[str, str, str, str]
@@ -36,13 +41,38 @@ def _nama_grup() -> Dict[Tuple[str, str], str]:
     return {(t.topik_id, kode): nama for t in kat.KATALOG for kode, nama, _pola in t.grup}
 
 
-def pelatih_per_butir() -> Dict[str, Tuple[_Pelatih, ...]]:
-    """Peta id butir CP -> grup yang melatihnya, urut KATALOG."""
+def _item_bawaan() -> Tuple[ItemCP, ...]:
+    """ItemCP bawaan kode (tanpa DB), urut KATALOG; dipakai saat pemanggil tidak menyuntik `daftar`."""
+    return tuple(
+        ItemCP(t, k, tuple(isi), tuple(isi), SUMBER_BAWAAN, 0, None) for (t, k), isi in cp.CP_PER_GRUP.items())
+
+
+def url_ubah(topik_id: str, grup_kode: str, hasil: Optional[str] = None) -> str:
+    """URL halaman ubah satu grup (`grup` di-encode; `hasil` opsional kode banner)."""
+    kueri = {"grup": "%s/%s" % (topik_id, grup_kode)}
+    if hasil:
+        kueri["hasil"] = hasil
+    return "%s?%s" % (RUTE_UBAH, urlencode(kueri))
+
+
+def peta_efektif(daftar: Sequence[ItemCP]) -> Dict[Tuple[str, str], Tuple[Tuple[str, str], ...]]:
+    return {(i.topik_id, i.grup_kode): i.efektif for i in daftar}
+
+
+def butir_tanpa_grup_efektif(daftar: Sequence[ItemCP]) -> Tuple[cp.ButirCP, ...]:
+    """Celah cakupan dari pemetaan EFEKTIF (butir CP yang tak dilatih grup mana pun), urut CAPAIAN."""
+    terpakai = {cid for isi in peta_efektif(daftar).values() for cid, _ in isi}
+    return tuple(b for b in cp.CAPAIAN if b.id not in terpakai)
+
+
+def pelatih_per_butir(daftar: Optional[Sequence[ItemCP]] = None) -> Dict[str, Tuple[_Pelatih, ...]]:
+    """Peta id butir CP -> grup yang melatihnya (pemetaan efektif), urut KATALOG."""
+    peta = peta_efektif(_item_bawaan() if daftar is None else daftar)
     nama = _nama_grup()
     hasil: Dict[str, List[_Pelatih]] = {}
     for entri in kat.KATALOG:
         for kode, _n, _pola in entri.grup:
-            for capaian_id, cocok in cp.CP_PER_GRUP.get((entri.topik_id, kode), ()):
+            for capaian_id, cocok in peta.get((entri.topik_id, kode), ()):
                 hasil.setdefault(capaian_id, []).append((entri.topik_id, kode, nama[(entri.topik_id, kode)], cocok))
     return {k: tuple(v) for k, v in hasil.items()}
 
@@ -62,8 +92,9 @@ def _blok(kepala: str, isi: str) -> str:
     return '<li><p class="kurikulum-kepala">%s</p><div>%s</div></li>' % (kepala, isi)
 
 
-def _ringkasan(celah_sd: Tuple[cp.ButirCP, ...]) -> str:
-    di_luar = sum(1 for isi in cp.CP_PER_GRUP.values() if not isi)
+def _ringkasan(celah_sd: Tuple[cp.ButirCP, ...], daftar: Sequence[ItemCP]) -> str:
+    di_luar = sum(1 for item in daftar if not item.efektif)
+    diubah = sum(1 for item in daftar if item.sumber == SUMBER_ADMIN)
     jumlah_grup = sum(len(t.grup) for t in kat.KATALOG)
     angka = (
         ("Status pemetaan", cp.STATUS_PEMETAAN),
@@ -72,14 +103,15 @@ def _ringkasan(celah_sd: Tuple[cp.ButirCP, ...]) -> str:
         ("Butir CP", str(len(cp.CAPAIAN))),
         ("Butir CP SD tanpa soal", str(len(celah_sd))),
         ("Grup di luar CP (pengayaan)", str(di_luar)),
+        ("Grup dengan pemetaan diubah admin", str(diubah)),
     )
     # Daftar rincian, bukan tabel: di HP `admin-rincian` menjadi satu kolom tanpa gulir samping.
     isi = "".join("<dt>%s</dt><dd>%s</dd>" % (e(k), e(v)) for k, v in angka)
     return _kartu("Ringkasan", '<dl class="admin-rincian">%s</dl>' % isi)
 
 
-def _celah(celah_sd: Tuple[cp.ButirCP, ...]) -> str:
-    di_d = sum(1 for b in cp.butir_tanpa_grup() if b.fase not in FASE_SD)
+def _celah(celah_sd: Tuple[cp.ButirCP, ...], daftar: Sequence[ItemCP]) -> str:
+    di_d = sum(1 for b in butir_tanpa_grup_efektif(daftar) if b.fase not in FASE_SD)
     if not celah_sd:
         isi = '<p class="admin-meta">Semua butir CP fase A–C sudah dilatih minimal satu grup.</p>'
     else:
@@ -143,8 +175,15 @@ def _info_topik(topik_id: str, label: str) -> str:
     return '<p class="admin-meta">%s</p>' % " · ".join("%s: %s" % (e(k), e(v)) for k, v in bagian)
 
 
-def _baris_grup(topik_id: str, kode: str, nama: str) -> str:
-    isi = cp.CP_PER_GRUP.get((topik_id, kode), ())
+def _sumber_grup(item: Optional[ItemCP]) -> str:
+    """Keterangan sumber pemetaan sebuah grup: bawaan kode, atau diubah admin (revisi dan waktu)."""
+    if item is None or item.sumber != SUMBER_ADMIN:
+        return "bawaan kode"
+    return "diubah admin, revisi %d, %s" % (item.revisi, item.diperbarui or "waktu tak tercatat")
+
+
+def _baris_grup(topik_id: str, kode: str, nama: str, item: Optional[ItemCP]) -> str:
+    isi = () if item is None else item.efektif
     if isi:
         sel = "<br>".join(
             "<code>%s</code> %s <span class=\"admin-meta\">(%s)</span>" % (
@@ -152,23 +191,30 @@ def _baris_grup(topik_id: str, kode: str, nama: str) -> str:
             for cid, cocok in isi)
     else:
         sel = '<span class="admin-meta">%s</span>' % e(DI_LUAR_CP)
+    sel += '<br><span class="admin-meta">Sumber: %s.</span> <a href="%s">Ubah</a>' % (
+        e(_sumber_grup(item)), e(url_ubah(topik_id, kode)))
     return _blok('%s <code>%s</code>' % (e(nama), e(kode)), sel)
 
 
-def _topik(entri: kat.EntriTopik) -> str:
-    baris = "".join(_baris_grup(entri.topik_id, kode, nama) for kode, nama, _p in entri.grup)
+def _topik(entri: kat.EntriTopik, per_grup: Mapping[Tuple[str, str], ItemCP]) -> str:
+    baris = "".join(
+        _baris_grup(entri.topik_id, kode, nama, per_grup.get((entri.topik_id, kode)))
+        for kode, nama, _p in entri.grup)
     return (
         '<details class="admin-kartu"><summary>%s <span class="admin-meta">%d grup</span></summary>%s%s</details>'
     ) % (e(_nama_topik(entri.topik_id)), len(entri.grup), _info_topik(entri.topik_id, entri.label_awam or ""),
          _daftar(baris, "Grup topik " + _nama_topik(entri.topik_id)))
 
 
-def halaman() -> str:
-    celah_sd = tuple(b for b in cp.butir_tanpa_grup() if b.fase in FASE_SD)
-    peta = pelatih_per_butir()
+def halaman(daftar: Optional[Sequence[ItemCP]] = None) -> str:
+    """Isi halaman. `daftar` = ItemCP efektif per grup (dari `kurikulum_override.daftar_cp()`); None = bawaan kode."""
+    daftar = _item_bawaan() if daftar is None else tuple(daftar)
+    per_grup = {(i.topik_id, i.grup_kode): i for i in daftar}
+    celah_sd = tuple(b for b in butir_tanpa_grup_efektif(daftar) if b.fase in FASE_SD)
+    peta = pelatih_per_butir(daftar)
     return (
         tab_kurikulum(TAB_KURIKULUM)
-        + _ringkasan(celah_sd) + _celah(celah_sd) + _per_fase(peta)
-        + "<h2>Topik dan grup soal</h2>" + "".join(_topik(t) for t in kat.KATALOG)
+        + _ringkasan(celah_sd, daftar) + _celah(celah_sd, daftar) + _per_fase(peta)
+        + "<h2>Topik dan grup soal</h2>" + "".join(_topik(t, per_grup) for t in kat.KATALOG)
         + '<section class="admin-kartu admin-catatan"><p class="admin-meta">%s</p></section>' % e(CATATAN)
     )
