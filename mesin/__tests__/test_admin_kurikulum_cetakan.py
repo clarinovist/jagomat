@@ -350,11 +350,14 @@ def test_field_asing_pengganti_satu_field_ditolak_walau_jumlah_field_sah(tertutu
 
 def test_batas_field_cetakan_eksplisit_26_field_ditolak_sebelum_token_diperiksa(tertutup, admin):
     """Di bawah batas token buruk = 403; melampaui batas = 400 (format) sebelum token disentuh."""
-    assert http_cetakan.MAKS_FIELD_CETAKAN == 25
-    sebelum = {"csrf": "rusak"}
-    assert kirim_buat(tertutup, admin, ganti=sebelum)[0] == 403
-    assert kirim_buat(tertutup, admin, ganti=sebelum, ekstra={"tambahan": "x"})[0] == 400
+    rusak = {"csrf": "rusak"}
+    assert kirim_buat(tertutup, admin, ganti=rusak)[0] == 403
+    assert kirim_buat(tertutup, admin, ganti=rusak, ekstra={"tambahan": "x"})[0] == 400
     assert not _db().exists()
+
+
+def test_konstanta_batas_field_cetakan_dua_puluh_dua_isian_ditambah_tiga_token():
+    assert http_cetakan.MAKS_FIELD_CETAKAN == 25
 
 
 def test_batas_field_global_tidak_naik_untuk_aksi_lain():

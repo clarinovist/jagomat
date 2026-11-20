@@ -41,6 +41,12 @@ MUTASI = (
      "    kelas, bab = _bab_dari_tinjauan(tinjauan)\n    kelas, bab = _bab_dari_query({'kelas': data.pop('kelas', "
      "str(kelas)), 'bab': data.pop('bab', str(bab.nomor))})\n",
      TES_ADMIN, 'test_field_asing_ditolak_400_dan_id_kelas_bab_di_form_diabaikan'),
+    # Sendirian (batas field tetap) dimatikan pun terbunuh, tetapi secara tak langsung: field kurang menjadi KeyError,
+    # yang `jalankan_aman` petakan ke 404 (LookupError dahulu) alih-alih 400.
+    ('buat-tanpa-wajib-field', HTTP, "    aksi.wajib_field(data, ui.FIELD_BUAT)\n", "",
+     TES_ADMIN, 'test_field_kurang_ditolak_400'),
+    ('ubah-tanpa-wajib-field', HTTP, "    aksi.wajib_field(data, ui.FIELD_UBAH)\n", "",
+     TES_ADMIN, 'test_field_kurang_ditolak_400'),
     ('pindah-tanpa-wajib-field', HTTP,
      "    aksi.wajib_field(data, frozenset())\n", "",
      TES_ADMIN, 'test_field_asing_ditolak_400_dan_id_kelas_bab_di_form_diabaikan'),
