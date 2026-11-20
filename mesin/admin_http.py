@@ -1087,6 +1087,7 @@ def tangani_post(penangan, jalur):
 
 
 def _tangani_post_admin(penangan, jalur):
+    import admin_kurikulum_cetakan_ai_http
     import admin_kurikulum_cetakan_http
     import admin_kurikulum_cp_http
     import admin_kurikulum_label_http
@@ -1100,6 +1101,8 @@ def _tangani_post_admin(penangan, jalur):
     if admin_kurikulum_label_http.tangani_post(penangan, jalur):
         return True
     if admin_kurikulum_cetakan_http.tangani_post(penangan, jalur):
+        return True
+    if admin_kurikulum_cetakan_ai_http.tangani_post(penangan, jalur):
         return True
     if admin_research_http.tangani_post(penangan, jalur):
         return True

@@ -150,6 +150,12 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   tampil di tabel (jenis soal bab; bab tanpa soal kode tetapi punya cetakan aktif = "Perlu disempurnakan", variasi "banyak") dan
   Buat soal (bergiliran dengan soal kode, label "Cetakan: judul"); belum masuk sesi anak (C4 ditunda). `cetakan.db` rusak = tabel
   dan Buat soal tetap jalan dengan soal kode saja; aksi POST = 503.
+  **Draf dari AI** (C3): di halaman cetakan bab ada tombol "Buatkan draf cetakan dengan AI" (sandi ulang; sisa kuota ditampilkan; di tabel Kurikulum
+  Merdeka bab belum/sebagian juga bertaut "Buatkan draf cetakan"). AI (DeepSeek, kunci server) hanya diberi kelas, judul bab, dan sub-materi, lalu menulis
+  1-3 draf; mesin memeriksa tiap draf (kelas/bab dari halaman, bukan dari AI) dan menghitung kuncinya sendiri. Yang lolos tersimpan sebagai **draf** (label
+  "Draf AI", tak pernah aktif sendiri; Setujui tetap oleh admin), yang gagal ditampilkan dengan alasannya. Maks 20 permintaan per hari WIB untuk semua admin
+  (slot terpakai walau AI gagal), balasan > 8 KB atau > 30 detik ditolak. Tanpa kunci atau kuota habis/tak terbaca, tombol hilang dan cetakan manual
+  tetap jalan. Fitur ini berdiri sendiri: menghentikan fitur AI lama di /admin/ai tidak mematikannya dan pemakaiannya tidak muncul di ledger /admin/ai.
 - **Pengaturan layanan** (`/admin/sakelar`, satu halaman; `/admin?section=operasional` mengalihkan 303 ke
   sini): sakelar fitur + tahap pembayaran, pendaftaran mandiri (form lama, POST tetap ke `/admin/pendaftaran`), kartu rekening transfer (ubah di `/admin/pesanan/rekening`),
   kesiapan/dukungan, satu baris status AI. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,

@@ -59,3 +59,5 @@ tidak dihitung. Mengubah bab atau rujukan grup = mengubah data ini dan menjalank
 Cetakan soal berpola AKTIF (`cetakan_store.aktif_untuk_bab`, C2) menambah jenis soal bab itu dan variasi "banyak" (tanpa dijalankan
 saat render tabel). Aturan status: bab "belum" (tanpa soal kode) yang punya >= 1 cetakan aktif menjadi "sebagian" (Perlu
 disempurnakan); status "ada"/"sebagian" dari kode tidak berubah. Kolom Dipakai tidak berubah (cetakan belum masuk sesi anak).
+Tautan "Buatkan draf cetakan" (C3) tampil di bab berstatus belum/sebagian hanya bila kunci AI ada dan kuota draf harian tersisa; tautannya ke halaman
+cetakan bab (tombol POST ada di sana). Draf AI tersimpan sebagai draf, jadi tidak mengubah status/jenis/variasi sampai disetujui.

@@ -20,18 +20,22 @@ from __future__ import annotations
 from typing import Callable, Dict, Optional, Tuple
 
 import admin_http as h
+import admin_kurikulum_cetakan_ai_pages as ui_ai
 import admin_kurikulum_cetakan_form as form
 import admin_kurikulum_cetakan_pages as ui
 import admin_kurikulum_merdeka_http as peta_http
 import admin_pesanan_aksi as aksi
 import admin_security
 import admin_store
+import cetakan_ai
+import cetakan_ai_store as kuota_ai
 import cetakan_pola as pola
 import cetakan_store as store
 import kurikulum_kelas as kk
 import kurikulum_kelas_hitung as hitung
 
-KUNCI_QUERY_DAFTAR = frozenset({"kelas", "bab"})
+KUNCI_QUERY_BAB = frozenset({"kelas", "bab"})
+KUNCI_QUERY_DAFTAR = KUNCI_QUERY_BAB | {"permintaan"}  # permintaan = ringkasan draf AI (C3) setelah PRG
 KUNCI_QUERY_PERIKSA = frozenset({"id", "hasil"})
 MAKS_FIELD_CETAKAN = len(form.FIELD_ISI) + 3  # isian + csrf + tinjauan + reauth
 SUMBER_MANUAL = "manual"
@@ -87,12 +91,17 @@ def _sesi_berkuki(penangan, principal):
     return akun, sesi, h._csrf(akun, sesi)
 
 
-def _token_buat(penangan, principal, kelas: int, bab: int) -> Optional[Token]:
+def _token_bab(penangan, principal, nama_aksi: str, kelas: int, bab: int) -> Optional[Token]:
+    """(csrf, tinjauan) untuk aksi yang menarget satu bab (target_id "kelas/bab", revisi 0)."""
     sesi = _sesi_berkuki(penangan, principal)
     if sesi is None:
         return None
     akun, token_sesi, csrf = sesi
-    return csrf, _tinjauan(akun, token_sesi, ui.AKSI_BUAT, "%d/%d" % (kelas, bab), REVISI_BUAT)
+    return csrf, _tinjauan(akun, token_sesi, nama_aksi, "%d/%d" % (kelas, bab), REVISI_BUAT)
+
+
+def _token_buat(penangan, principal, kelas: int, bab: int) -> Optional[Token]:
+    return _token_bab(penangan, principal, ui.AKSI_BUAT, kelas, bab)
 
 
 def _tokens_item(penangan, principal, item: store.ItemCetakan, revisi: int) -> Optional[Dict[str, Token]]:
@@ -107,14 +116,38 @@ def _tokens_item(penangan, principal, item: store.ItemCetakan, revisi: int) -> O
 
 # --- GET ---------------------------------------------------------------------
 
+def _ringkasan_ai(query: Dict[str, str], kelas: int, bab: kk.Bab, items) -> str:
+    """Ringkasan permintaan draf AI bila `?permintaan=` ada dan cocok dengan bab halaman; selain itu kosong."""
+    if "permintaan" not in query:
+        return ""
+    id_permintaan = peta_http._angka_ketat(query["permintaan"])
+    if id_permintaan < 1:
+        raise ValueError("permintaan tidak sah")
+    permintaan = kuota_ai.ambil(id_permintaan)
+    if permintaan is None or (permintaan.kelas, permintaan.bab) != (kelas, bab.nomor):
+        return ""
+    return ui_ai.ringkasan(permintaan, items)
+
+
+def _bagian_ai(penangan, principal, kelas: int, bab: kk.Bab) -> str:
+    """Kartu tombol draf AI: hanya bila kunci ada DAN kuota terbaca dan tersisa (fail-closed)."""
+    kunci_ada = cetakan_ai.aktif()
+    sisa = kuota_ai.sisa_hari_ini() if kunci_ada else None
+    token = _token_bab(penangan, principal, ui_ai.AKSI_DRAF_AI, kelas, bab.nomor) if sisa else None
+    return ui_ai.bagian_ai(token, sisa, kunci_ada)
+
+
 def _isi_daftar(penangan, principal):
-    kelas, bab = _bab_dari_query(h._query(penangan, diizinkan=KUNCI_QUERY_DAFTAR))
-    isi = ui.halaman_daftar(kelas, bab, store.daftar(kelas=kelas, bab=bab.nomor))
+    query = h._query(penangan, diizinkan=KUNCI_QUERY_DAFTAR)
+    kelas, bab = _bab_dari_query(query)
+    items = store.daftar(kelas=kelas, bab=bab.nomor)
+    isi = ui.halaman_daftar(kelas, bab, items, atas=_ringkasan_ai(query, kelas, bab, items),
+                            ai=_bagian_ai(penangan, principal, kelas, bab))
     return isi, ui.JUDUL_DAFTAR, ui.SUBJUDUL_DAFTAR
 
 
 def _isi_baru(penangan, principal):
-    kelas, bab = _bab_dari_query(h._query(penangan, diizinkan=KUNCI_QUERY_DAFTAR))
+    kelas, bab = _bab_dari_query(h._query(penangan, diizinkan=KUNCI_QUERY_BAB))
     isi = ui.halaman_baru(kelas, bab, _token_buat(penangan, principal, kelas, bab.nomor))
     return isi, ui.JUDUL_BARU, ui.SUBJUDUL_DAFTAR
 

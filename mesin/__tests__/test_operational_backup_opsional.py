@@ -7,6 +7,7 @@ import pytest
 from test_operational_backup import backup, sumber, buat, REV, IMAGE
 
 import feature_switch
+import cetakan_ai_store
 import cetakan_store
 import kurikulum_override
 
@@ -34,6 +35,11 @@ ISI_CETAKAN = {
 def buat_cetakan(data):
     cetakan_store.buat_draf(ISI_CETAKAN, sumber='manual', actor_id='uji', path=data / 'cetakan.db')
     return data / 'cetakan.db'
+
+
+def buat_kuota_ai(data):
+    cetakan_ai_store.reservasi(2, 2, 'uji', path=data / 'cetakan_ai.db')
+    return data / 'cetakan_ai.db'
 
 
 def sahkan_ulang(target, **manifest):
@@ -107,14 +113,51 @@ def test_capture_cetakan_v2_tercatat_dan_skema_lolos(sumber, tmp_path):
     c.close()
 
 
-def test_capture_ketiga_opsional_terurut(sumber, tmp_path):
+def test_capture_keempat_opsional_terurut(sumber, tmp_path):
     buat_sakelar(sumber)
     buat_kurikulum(sumber)
     buat_cetakan(sumber)
+    buat_kuota_ai(sumber)
     target = buat(sumber, tmp_path)
-    assert backup.OPSIONAL == ('sakelar.db', 'kurikulum.db', 'cetakan.db')
-    assert backup.read_json(target / backup.MANIFEST)['optional'] == ['cetakan.db', 'kurikulum.db', 'sakelar.db']
-    assert backup.validate(target)['optional'] == ('cetakan.db', 'kurikulum.db', 'sakelar.db')
+    assert backup.OPSIONAL == ('sakelar.db', 'kurikulum.db', 'cetakan.db', 'cetakan_ai.db')
+    assert backup.read_json(target / backup.MANIFEST)['optional'] == [
+        'cetakan.db', 'cetakan_ai.db', 'kurikulum.db', 'sakelar.db']
+    assert backup.validate(target)['optional'] == ('cetakan.db', 'cetakan_ai.db', 'kurikulum.db', 'sakelar.db')
+
+
+def test_capture_kuota_cetakan_ai_tercatat_dan_skema_lolos(sumber, tmp_path):
+    buat_kuota_ai(sumber)
+    target = buat(sumber, tmp_path)
+    assert backup.validate(target)['optional'] == ('cetakan_ai.db',)
+    with sqlite3.connect(target / 'opsional/cetakan_ai.db') as c:
+        assert c.execute('SELECT status, kelas, bab FROM permintaan').fetchone() == ('berjalan', 2, 2)
+    c.close()
+
+
+def test_capture_tolak_kuota_cetakan_ai_skema_asing_dan_tidak_meninggalkan_bundle(sumber, tmp_path):
+    ubah_sqlite(sumber / 'cetakan_ai.db', 'CREATE TABLE sementara(id INTEGER)')
+    with pytest.raises(backup.Ditolak, match='schema kuota cetakan ai'):
+        buat(sumber, tmp_path)
+    assert not (tmp_path / 'backup-uji').exists()
+
+
+def test_kuota_cetakan_ai_user_version_salah_ditolak(sumber, tmp_path):
+    buat_kuota_ai(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/cetakan_ai.db', 'PRAGMA user_version = 2')
+    sahkan_ulang(target)
+    with pytest.raises(backup.Ditolak, match='schema kuota cetakan ai'):
+        backup.validate(target)
+
+
+def test_kuota_cetakan_ai_tabel_hilang_ditolak(sumber, tmp_path):
+    assert 'permintaan' in cetakan_ai_store.TABEL_SKEMA
+    buat_kuota_ai(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/cetakan_ai.db', 'DROP TABLE permintaan')
+    sahkan_ulang(target)
+    with pytest.raises(backup.Ditolak, match='schema kuota cetakan ai'):
+        backup.validate(target)
 
 
 def test_capture_tolak_cetakan_skema_asing_dan_tidak_meninggalkan_bundle(sumber, tmp_path):

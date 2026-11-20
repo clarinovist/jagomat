@@ -102,6 +102,7 @@ _PROBE_POST = {
     "/admin/kurikulum/cetakan/setujui": "/admin/kurikulum/cetakan/setujui",
     "/admin/kurikulum/cetakan/nonaktifkan": "/admin/kurikulum/cetakan/nonaktifkan",
     "/admin/kurikulum/cetakan/aktifkan": "/admin/kurikulum/cetakan/aktifkan",
+    "/admin/kurikulum/cetakan/draf-ai": "/admin/kurikulum/cetakan/draf-ai",
     "/masuk": "/masuk",
     "/daftar": "/daftar",
     "/murid/": "/murid/kerjakan/1",
@@ -245,6 +246,7 @@ def test_tabel_akses_punya_probe():
     for rute in ("/admin/kurikulum/cetakan/ubah", "/admin/kurikulum/cetakan/setujui",
                  "/admin/kurikulum/cetakan/nonaktifkan", "/admin/kurikulum/cetakan/aktifkan"):
         assert rute not in get
+    assert post["/admin/kurikulum/cetakan/draf-ai"] == "admin" and "/admin/kurikulum/cetakan/draf-ai" not in get
     assert get["/paket-coba"] == "publik" and "/paket-coba" not in post
     assert get["/contoh-peta-kemampuan"] == "publik" and "/contoh-peta-kemampuan" not in post
     assert get["/contoh-peta-kemampuan/lembar"] == "publik" and "/contoh-peta-kemampuan/lembar" not in post

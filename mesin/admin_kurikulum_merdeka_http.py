@@ -12,6 +12,8 @@ from typing import Dict, Optional, Tuple
 import admin_http as h
 import admin_kurikulum_buat_pages as buat_ui
 import admin_kurikulum_merdeka_pages as ui
+import cetakan_ai
+import cetakan_ai_store as kuota_ai
 import kurikulum_buat_soal as buat
 import kurikulum_kelas as kk
 import kurikulum_kelas_hitung as hitung
@@ -51,11 +53,16 @@ def _parameter_buat(query: Dict[str, str]) -> Tuple[kk.Kelas, kk.Bab, int, Optio
     return ditemukan[0], ditemukan[1], jumlah, seed
 
 
+def _draf_ai_tersedia() -> bool:
+    """Tautan draf AI hanya bila kunci ada DAN kuota terbaca dan tersisa; dihitung sekali per render."""
+    return cetakan_ai.aktif() and (kuota_ai.sisa_hari_ini() or 0) > 0
+
+
 def _tabel(penangan, principal) -> None:
     pemakaian = hitung.pemakaian_per_template_level()
     per_kelas = tuple((k.kelas, hitung.ringkasan_kelas(k, pemakaian)) for k in kk.KELAS)
     h._kirim_privat(penangan, h._halaman_admin(
-        principal, "kurikulum", ui.halaman(per_kelas, pemakaian is not None), penangan=penangan,
+        principal, "kurikulum", ui.halaman(per_kelas, pemakaian is not None, _draf_ai_tersedia()), penangan=penangan,
         judul=JUDUL, subjudul=SUBJUDUL))
 
 

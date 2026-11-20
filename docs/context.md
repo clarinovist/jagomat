@@ -131,6 +131,20 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `var_N_*`, `syarat_N`), `sumber="manual"`. Isi tak sah = render ulang 400 (nilai ketikan di-escape, sandi kosong, tanpa PRG), KonflikRevisi 409,
   DB rusak/baris tak terbaca 503. `kurikulum_kelas_hitung.RingkasanBab.cetakan` dan `kurikulum_buat_soal` membaca HANYA
   `cetakan_store.aktif_untuk_bab` (invarian: draf/nonaktif tak tampil di luar halaman cetakan); variasi cetakan = "banyak" tanpa dijalankan.
+- `cetakan_ai.py` + `cetakan_ai_store.py` + `admin_kurikulum_cetakan_ai_{pages,http}.py` (C3 draf AI cetakan): POST `/admin/kurikulum/cetakan/draf-ai`
+  (`AKSI_DRAF_AI`; guard sama dengan buat: `terima_form(maksimum_field=3)`, `wajib_field` kosong, target (kelas, bab) HANYA dari tinjauan
+  "kelas/bab" revisi 0, sandi ulang). Urutan: kunci `DEEPSEEK_API_KEY` ada (kosong = 503) -> `cetakan_ai_store.reservasi` (kuota 20/hari WIB
+  global, `BEGIN IMMEDIATE`; penuh 429, DB kuota rusak 503, keduanya tanpa panggilan AI) -> satu `cetakan_ai.minta_kandidat` -> tiap kandidat:
+  kelas/bab DIPAKSA dari tinjauan, `cetakan_pola.validasi` + `uji_kelayakan`, lolos = `buat_draf(sumber="ai")` (selalu draf, tak pernah aktif
+  otomatis) -> PRG ke `/cetakan?kelas=&bab=&permintaan=<id>` yang merender ringkasan (N draf + tautan, alasan penolakan, di-escape; hanya bila
+  kelas/bab permintaan cocok). Tombol di halaman cetakan bab (dan tautan "Buatkan draf cetakan" di tabel Kurikulum Merdeka untuk bab belum/sebagian)
+  hanya bila kunci ada DAN `sisa_hari_ini()` > 0 (DB kuota tak terbaca = `None` = sembunyi, fail-closed); kuota dibaca sekali per render.
+  `cetakan_ai` = klien urllib langsung (timeout 30 dtk, balasan maks 8192 byte dibaca `read(BATAS+1)`, 1-3 kandidat, `GalatAI` ramah tanpa kunci/URL/badan);
+  `muatan(kelas, bab)` murni hanya kelas, judul bab, sub-materi, aturan cetakan (dari konstanta `cetakan_pola`), dan satu contoh format.
+  **Sengaja TIDAK lewat `llm.py`/`ai_service`/`ai_store` dan tak mengecek `AI_NONAKTIF`**: "Hentikan"/batas fitur di /admin/ai tak mematikan draf cetakan,
+  dan panggilannya TIDAK tercatat di ledger /admin/ai (audit-nya `permintaan` di DB kuota). DB kuota terpisah `/data/cetakan_ai.db` (env
+  `CETAKAN_AI_BERKAS_DB`, skema v1, tabel `permintaan`: id, kelas, bab, actor_id, dibuat UTC, hari_wib, status berjalan/selesai/gagal, jumlah_draf,
+  hasil_json ringkas); ikut backup opsional (cek skema di `operational_backup`). Slot terpakai walau AI gagal.
 - `cetakan_pola.py` + `cetakan_store.py` (C1 plan cetakan-ai; stdlib; dipakai halaman admin C2, belum sesi anak): cetakan soal berpola = data JSON; validator AST
   bertipe + evaluator sendiri (tanpa `eval`), bangkitan deterministik, `uji_kelayakan`. DB terpisah `/data/cetakan.db` (env `CETAKAN_BERKAS_DB`; draf/aktif/
   nonaktif, revisi + audit, `setujui` wajib lolos kelayakan dalam transaksi); baca rusak = kosong. Di luar penutupan impor `generator`; ikut backup opsional.

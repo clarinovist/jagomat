@@ -28,7 +28,7 @@ import sys
 
 VERSI = 1
 WAJIB = ("latihan.db", "admin-control.db", "ai-control.db", "pendamping.db", "riset-konsumen.db")
-OPSIONAL = ("sakelar.db", "kurikulum.db", "cetakan.db")
+OPSIONAL = ("sakelar.db", "kurikulum.db", "cetakan.db", "cetakan_ai.db")
 SANDI = "sandi.json"
 RETENSI = 14
 DIKECUALIKAN = (

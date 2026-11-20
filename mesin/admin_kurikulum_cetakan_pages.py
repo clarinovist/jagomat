@@ -157,6 +157,9 @@ def _form_pindah(aksi_url: str, token: Token, catatan: str, tombol: str) -> str:
         % (aksi_url, _hidden(*token), e(catatan), _sandi(), e(tombol)))
 
 
+form_pindah = _form_pindah  # dipakai juga form draf AI (C3): csrf + tinjauan + sandi ulang, tanpa isian lain
+
+
 def _umpan_balik(hasil: Optional[str], galat: Optional[str]) -> str:
     teks = ""
     if galat:
@@ -183,14 +186,18 @@ def _baris_daftar(item: store.ItemCetakan) -> str:
            e(LABEL_SUMBER[item.sumber]), item.revisi, e(admin_labels.tanggal(item.diperbarui)), e(url_periksa(item.id))))
 
 
-def halaman_daftar(kelas: int, bab: kk.Bab, items: Sequence[store.ItemCetakan]) -> str:
-    """Daftar semua cetakan (semua status) satu bab, plus tautan buat baru."""
+def halaman_daftar(kelas: int, bab: kk.Bab, items: Sequence[store.ItemCetakan], *, atas: str = "",
+                   ai: str = "") -> str:
+    """Daftar semua cetakan (semua status) satu bab, plus tautan buat baru.
+
+    `atas` = ringkasan permintaan draf AI (C3) dan `ai` = kartu tombol draf AI; keduanya HTML jadi dari
+    renderer sendiri (sudah di-escape), kosong bila tak berlaku."""
     daftar = ('<ul class="kurikulum-daftar" aria-label="Cetakan bab ini">%s</ul>' % "".join(
         _baris_daftar(i) for i in items)) if items else '<p class="admin-meta">Belum ada cetakan untuk bab ini.</p>'
     return (
-        tab_kurikulum(TAB_KURIKULUM) + _balik("Kembali ke Kurikulum Merdeka", RUTE_KURIKULUM)
+        tab_kurikulum(TAB_KURIKULUM) + _balik("Kembali ke Kurikulum Merdeka", RUTE_KURIKULUM) + atas
         + '<section class="admin-kartu">%s<p><a class="admin-tombol" href="%s">Buat cetakan baru</a></p></section>'
-        % (_kepala_bab(kelas, bab), e(url_baru(kelas, bab.nomor)))
+        % (_kepala_bab(kelas, bab), e(url_baru(kelas, bab.nomor))) + ai
         + '<section class="admin-kartu"><h2>Cetakan bab ini</h2>%s</section>' % daftar)
 
 

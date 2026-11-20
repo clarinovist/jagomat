@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Sequence, Tuple
 from urllib.parse import urlencode
 
+import admin_kurikulum_cetakan_ai_pages as ui_ai
 import kurikulum_kelas as kk
 import kurikulum_kelas_hitung as hitung
 from admin_komponen import e
@@ -77,23 +78,26 @@ def _sel_variasi(b: hitung.RingkasanBab) -> str:
     return isi
 
 
-def _sel_aksi(kelas: int, b: hitung.RingkasanBab) -> str:
+def _sel_aksi(kelas: int, b: hitung.RingkasanBab, draf_ai: bool) -> str:
     kelola = '<br><a href="%s">Kelola cetakan</a>' % e(url_cetakan(kelas, b.nomor))
+    if draf_ai and b.status in (hitung.STATUS_BELUM, hitung.STATUS_SEBAGIAN):
+        # Tautan GET ke halaman cetakan bab itu; tombol POST (dengan sandi ulang) hanya ada di sana.
+        kelola = '<br><a href="%s">%s</a>' % (e(url_cetakan(kelas, b.nomor)), e(ui_ai.LABEL_TAUTAN_TABEL)) + kelola
     if b.jenis - len(b.variasi.tertutup) <= 0:
         return kelola
     return '<br><a href="%s">Buat soal</a>' % e(url_buat(kelas, b.nomor)) + kelola
 
 
-def _baris(kelas: int, b: hitung.RingkasanBab) -> str:
+def _baris(kelas: int, b: hitung.RingkasanBab, draf_ai: bool) -> str:
     sub = "<br>".join("• " + e(x) for x in b.sub_materi)
     pakai = TANPA_DATA if b.terpakai is None else str(b.terpakai)
     jumlah = "Jenis: %d<br>Variasi: %s<br>Dipakai: %s" % (b.jenis, _sel_variasi(b), e(pakai))
     return (
         "<tr><td>%d</td><td><strong>%s</strong><br>%s</td><td>%s</td><td>%s</td><td><strong>%s</strong>%s</td></tr>"
-    ) % (b.nomor, e(b.judul), sub, _sel_soal(b), jumlah, e(hitung.LABEL_STATUS[b.status]), _sel_aksi(kelas, b))
+    ) % (b.nomor, e(b.judul), sub, _sel_soal(b), jumlah, e(hitung.LABEL_STATUS[b.status]), _sel_aksi(kelas, b, draf_ai))
 
 
-def _kartu_kelas(kelas: int, bab: Sequence[hitung.RingkasanBab]) -> str:
+def _kartu_kelas(kelas: int, bab: Sequence[hitung.RingkasanBab], draf_ai: bool) -> str:
     st = [b.status for b in bab]
     kepala = "".join('<th scope="col">%s</th>' % e(k) for k in KOLOM)
     return (
@@ -103,7 +107,7 @@ def _kartu_kelas(kelas: int, bab: Sequence[hitung.RingkasanBab]) -> str:
         '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-labelledby="kelas-%d">'
         '<table class="admin-tabel kur-tabel"><thead><tr>%s</tr></thead><tbody>%s</tbody></table></div></section>'
     ) % (kelas, kelas, kelas, len(st), st.count(hitung.STATUS_ADA), st.count(hitung.STATUS_SEBAGIAN),
-         st.count(hitung.STATUS_BELUM), kelas, kepala, "".join(_baris(kelas, b) for b in bab))
+         st.count(hitung.STATUS_BELUM), kelas, kepala, "".join(_baris(kelas, b, draf_ai) for b in bab))
 
 
 def _kepala(semua: Sequence[hitung.RingkasanBab], pemakaian_terbaca: bool) -> str:
@@ -133,10 +137,14 @@ def _pengayaan() -> str:
     ) % (sum(len(n) for _t, n in daftar), isi)
 
 
-def halaman(per_kelas: Sequence[Tuple[int, Sequence[hitung.RingkasanBab]]], pemakaian_terbaca: bool) -> str:
-    """Isi halaman; `per_kelas` = ((kelas, ringkasan bab), ...) urut kelas."""
+def halaman(per_kelas: Sequence[Tuple[int, Sequence[hitung.RingkasanBab]]], pemakaian_terbaca: bool,
+            draf_ai: bool = False) -> str:
+    """Isi halaman; `per_kelas` = ((kelas, ringkasan bab), ...) urut kelas.
+
+    `draf_ai` (diputuskan pemanggil sekali per render: kunci ada dan kuota tersisa) menambah tautan "Buatkan
+    draf cetakan" di bab berstatus belum/sebagian."""
     semua = [b for _k, bab in per_kelas for b in bab]
     return (
         tab_kurikulum(TAB_KURIKULUM) + _kepala(semua, pemakaian_terbaca)
-        + "".join(_kartu_kelas(k, bab) for k, bab in per_kelas) + _pengayaan()
+        + "".join(_kartu_kelas(k, bab, draf_ai) for k, bab in per_kelas) + _pengayaan()
     )

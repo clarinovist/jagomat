@@ -134,6 +134,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/kurikulum/cetakan/setujui", "admin"),  # draf -> aktif; uji kelayakan + sandi ulang
     ("/admin/kurikulum/cetakan/nonaktifkan", "admin"),  # aktif -> nonaktif; sandi ulang
     ("/admin/kurikulum/cetakan/aktifkan", "admin"),  # nonaktif -> aktif; uji kelayakan + sandi ulang
+    ("/admin/kurikulum/cetakan/draf-ai", "admin"),  # Cetakan C3: minta draf ke AI; tinjauan (kelas, bab) + sandi ulang + kuota
     ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
     ("/daftar", "publik"),
     ("/murid/", "murid"),

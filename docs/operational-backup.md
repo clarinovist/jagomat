@@ -25,17 +25,19 @@
   aman yang ada. Direktori sumber belum terbentuk sah hanya bila tanpa referensi;
 - `opsional/` (manifest **v2**): DB SQLite di `/data` yang boleh tidak ada,
   yaitu `sakelar.db` (sakelar fitur admin), `kurikulum.db` (override kurikulum),
-  dan `cetakan.db` (cetakan soal berpola, `cetakan_store`). Yang ada saat capture dikunci `BEGIN IMMEDIATE` bersama core dan
+  `cetakan.db` (cetakan soal berpola, `cetakan_store`), dan `cetakan_ai.db` (kuota + audit permintaan draf AI cetakan,
+  `cetakan_ai_store`). Yang ada saat capture dikunci `BEGIN IMMEDIATE` bersama core dan
   disalin dengan SQLite backup API; yang tidak ada dilewati; symlink/non-regular
   ditolak. Manifest mencatat daftar terurut di key `optional`; isi `opsional/` harus
   persis sama, tiap DB lulus integrity+FK, dan `sakelar.db` wajib `user_version`
   sesuai `feature_switch.VERSI_SKEMA` serta tabel `sakelar`+`audit_sakelar`;
-  `kurikulum.db` dan `cetakan.db` wajib `user_version` + `TABEL_SKEMA` modulnya
-  (`kurikulum_override`, `cetakan_store`).
+  `kurikulum.db`, `cetakan.db`, dan `cetakan_ai.db` wajib `user_version` + `TABEL_SKEMA` modulnya
+  (`kurikulum_override`, `cetakan_store`, `cetakan_ai_store`).
   Folder `opsional/` selalu ada, boleh kosong. Bundle **v1 lama tetap valid** (tanpa
   `opsional/`). `admin_backup.BERKAS_WAJIB` dan bundle core tidak berubah. Tool host
   di `/opt/osn/backup-tool` perlu `mesin/feature_switch.py`, `kurikulum_override.py`, dan
-  `cetakan_store.py` (+ `cetakan_pola.py`, `kurikulum_kelas.py`) agar validasi skema berjalan;
+  `cetakan_store.py` (+ `cetakan_pola.py`, `kurikulum_kelas.py`), dan `cetakan_ai_store.py` (+ `jurnal_wal.py`) agar validasi skema berjalan
+  (tool host yang belum diperbarui menolak capture bila `cetakan_ai.db` ada: perbarui tool host SEBELUM rilis C3 diaktifkan);
 - `operational-manifest.json`: revision/digest aplikasi, cutoff, daftar/hash/ukuran
   file dan direktori. Tidak berisi isi jawaban, nama anak, atau credential.
   Path lampiran tetap privat, bukan untuk log/prompt.
@@ -160,8 +162,8 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
   `/opt/osn/backup-harian/<YYYYMMDD-HHMMSS>/`, retensi 14 salinan. Log di
   `/opt/osn/log/backup-harian.log`.
 - **Isi**: lima DB wajib (`latihan`, `admin-control`, `ai-control`, `pendamping`,
-  `riset-konsumen`) + `sandi.json`, ditambah `sakelar.db`, `kurikulum.db`, `cetakan.db`
-  bila ada. Salinan memakai SQLite backup API, dinormalkan `journal_mode=DELETE`,
+  `riset-konsumen`) + `sandi.json`, ditambah `sakelar.db`, `kurikulum.db`, `cetakan.db`,
+  `cetakan_ai.db` bila ada. Salinan memakai SQLite backup API, dinormalkan `journal_mode=DELETE`,
   lolos `integrity_check`, dan hash-nya dicatat di `manifest.json` dengan
   `needs_reconciliation=true`. Lampiran tidak disalin (ikut bundle rilis); bukti
   transfer tidak disalin (keputusan Pemilik: bukti sementara 30 hari).
