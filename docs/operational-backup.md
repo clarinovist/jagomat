@@ -37,7 +37,10 @@
   `opsional/`). `admin_backup.BERKAS_WAJIB` dan bundle core tidak berubah. Tool host
   di `/opt/osn/backup-tool` perlu `mesin/feature_switch.py`, `kurikulum_override.py`, dan
   `cetakan_store.py` (+ `cetakan_pola.py`, `kurikulum_kelas.py`), dan `cetakan_ai_store.py` (+ `jurnal_wal.py`) agar validasi skema berjalan
-  (tool host yang belum diperbarui menolak capture bila `cetakan_ai.db` ada: perbarui tool host SEBELUM rilis C3 diaktifkan);
+  (tool host lama TIDAK menolak: `OPSIONAL`-nya tak memuat `cetakan_ai.db`, jadi berkas itu diam-diam tak ikut bundle; sebaliknya
+  `operational_backup.py` baru tanpa `cetakan_ai_store.py` + `jurnal_wal.py` di host gagal `ImportError` saat cek skema. Perbarui tool host
+  `/opt/osn/backup-tool` DAN salinan `/opt/osn/backup-harian/backup_harian.py` (daftar `OPSIONAL` sendiri) sebelum mengandalkan backup kuota;
+  cetakan.db tetap aman, `cetakan_ai.db` hanya kuota + audit permintaan, bukan isi cetakan);
 - `operational-manifest.json`: revision/digest aplikasi, cutoff, daftar/hash/ukuran
   file dan direktori. Tidak berisi isi jawaban, nama anak, atau credential.
   Path lampiran tetap privat, bukan untuk log/prompt.

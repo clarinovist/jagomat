@@ -283,7 +283,13 @@ def test_kandidat_tak_layak_ditolak_dengan_alasan_kelayakan(tertutup, admin, mon
 
 @pytest.mark.parametrize("aneh", ["teks saja", 5, None, [1], {"judul": 1}, {"variabel": []}, {"kunci": 5},
                                   kandidat_sah(variabel={"a": "x"}), kandidat_sah(nama="ya"),
-                                  kandidat_sah(syarat="a < 1"), kandidat_sah(judul=["x"])])
+                                  kandidat_sah(syarat="a < 1"), kandidat_sah(judul=["x"]),
+                                  kandidat_sah(kunci=5), kandidat_sah(kunci=None), kandidat_sah(kunci=["a"]),
+                                  kandidat_sah(syarat=[5]), kandidat_sah(syarat=[{}]), kandidat_sah(syarat=None),
+                                  kandidat_sah(pembahasan=5), kandidat_sah(pembahasan=None), kandidat_sah(teks=None),
+                                  kandidat_sah(teks=5), kandidat_sah(judul=5), kandidat_sah(variabel=None),
+                                  kandidat_sah(variabel={"a": None}), kandidat_sah(variabel={"a": [1.5, 2]}),
+                                  kandidat_sah(variabel={"a": [[1], 2]}), kandidat_sah(nama=[])])
 def test_kandidat_berbentuk_aneh_tidak_membuat_500_dan_tidak_tersimpan(tertutup, admin, monkeypatch, aneh):
     pasang_api(monkeypatch, respons=isi_balasan([aneh]))
     kode, _i, tajuk = _kirim_ai(tertutup, admin)

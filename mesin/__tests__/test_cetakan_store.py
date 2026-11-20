@@ -540,7 +540,8 @@ def test_store_hanya_menarik_pola_dan_kurikulum_kelas_dari_mesin():
 
 
 def test_generator_tidak_menarik_cetakan_store():
-    assert "cetakan_store" not in _modul_mesin_terimpor("import generator")
+    tertarik = _modul_mesin_terimpor("import generator")
+    assert not tertarik & {"cetakan_store", "cetakan_ai", "cetakan_ai_store"}
 
 
 def test_store_hanya_mengimpor_stdlib_dan_cetakan_pola():
