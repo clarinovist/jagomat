@@ -29,10 +29,18 @@ def _python(sumber, cwd, source=None):
 
 
 def _hash_db(akar):
-    # -shm adalah memori bersama untuk koordinasi WAL; pembaca read-only boleh
-    # mengubahnya tanpa menulis state durable. -wal tetap dihash.
+    # -shm adalah memori bersama WAL; -wal kosong hanyalah placeholder yang
+    # dibuat saat membuka DB WAL. Keduanya bukan state durable. WAL berisi data
+    # tetap dihash supaya tulisan probe yang sebenarnya tetap tertangkap.
+    def relevan(p):
+        if p.name.endswith('-shm'):
+            return False
+        if p.name.endswith('-wal') and p.stat().st_size == 0:
+            return False
+        return True
+
     return {str(p.relative_to(akar)): hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in akar.rglob('*') if p.is_file() and not p.name.endswith('-shm')}
+            for p in akar.rglob('*') if p.is_file() and relevan(p)}
 
 
 @pytest.fixture
