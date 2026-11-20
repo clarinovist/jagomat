@@ -336,6 +336,16 @@ form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"]
 .admin-kartu-kaki {{ padding: 0 {T.SP_5} {T.SP_5}; }}
 .admin-kartu-kaki .admin-meta {{ margin: {T.SP_4} 0 0; }}
 .admin-kartu-tabel .admin-tabel th, .admin-kartu-tabel .admin-tabel td {{ vertical-align: middle; }}
+.admin-lembaga-anggota {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; list-style: none; margin: 0; padding: {T.SP_4} {T.SP_5} 0; }}
+.admin-lembaga-anggota .admin-badge {{ margin: 0; }}
+.admin-lembaga-kelola, .admin-lembaga-bahaya {{ margin: {T.SP_4} {T.SP_5} {T.SP_5}; }}
+.admin-lembaga-kelola > .admin-bagian {{ margin-top: {T.SP_4}; }}
+.admin-lembaga-bahaya {{ padding: 0 {T.SP_4} {T.SP_4}; border: 1px solid {T.ADMIN_BAHAYA_BORDER}; border-radius: {T.RADIUS_KARTU}; background: {T.ADMIN_BAHAYA_LATAR}; }}
+.admin-lembaga-bahaya > summary {{ color: {T.ADMIN_BAHAYA_TEKS}; }}
+.admin-lembaga-lepas {{ padding-bottom: {T.SP_4}; border-bottom: 1px solid {T.ADMIN_PEMISAH}; }}
+.admin-lembaga-nama {{ flex: 1 1 10rem; align-self: center; font-weight: 600; overflow-wrap: anywhere; }}
+.admin-lembaga-buat > summary {{ padding: 0; }}
+.admin-lembaga-buat[open] > summary {{ margin-bottom: {T.SP_4}; }}
 .admin-sel-nama {{ display: flex; align-items: center; gap: {T.SP_3}; font-weight: 600; }}
 .admin-avatar {{ display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: {T.RADIUS_BULAT}; background: {T.ADMIN_NAV_HOVER}; color: {T.ADMIN_NETRAL_TEKS}; font-weight: 700; font-size: {T.UKURAN_TEKS_LABEL}; }}
 .admin-redup {{ color: {T.ADMIN_REDUP}; }}

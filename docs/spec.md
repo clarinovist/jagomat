@@ -35,7 +35,8 @@ miliknya; `murid` mengerjakan latihan; `admin` mengelola lintas keluarga dengan
 batas khusus. Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** nama AI.
 **Pemilik les** adalah akun guru yang oleh admin dijadikan pemilik sebuah lembaga
 (tersimpan di DB, bukan peran baru di berkas akun). Admin mengatur lembaga, anggota,
-dan pembubaran di `/admin/lembaga`; satu guru maksimal satu lembaga; login guru yang
+dan pembubaran di `/admin/lembaga` (setiap aksi tulis meminta sandi admin; pembubaran juga meminta nama
+lembaga diketik persis, divalidasi di server); satu guru maksimal satu lembaga; login guru yang
 masih terikat lembaga tidak bisa dihapus. Pemilik les hanya melihat ringkasan per guru
 anggota di `/lembaga` (anak, jumlah sesi, sesi terakhir, menunggu konfirmasi) dan bisa
 memindahkan anak antar guru lembaganya; ia **tidak** membuka sesi/jawaban anak guru lain.

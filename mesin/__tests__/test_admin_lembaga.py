@@ -1,10 +1,12 @@
-"""Admin `/admin/lembaga`: buat lembaga, tambah/lepas anggota, CSRF, 404 non-admin.
+"""Admin `/admin/lembaga`: buat lembaga, tambah/lepas anggota, bubarkan; CSRF, tinjauan, sandi admin.
 
-Data sintetis. Semua POST memakai cookie admin + token CSRF; aksi gagal tidak
-boleh menulis apa pun ke DB lembaga maupun berkas akun.
+Data sintetis. Semua POST memakai cookie admin + CSRF + tinjauan per aksi + sandi admin (jalur Kritis,
+keputusan Pemilik 20 Nov 2026). Aksi gagal tidak boleh mengubah DB lembaga maupun berkas akun.
+Token form selalu diambil dari <form> yang tepat (aksi + lembaga + guru), bukan token pertama di halaman.
 """
 from __future__ import annotations
 
+import re
 import sys
 import urllib.parse
 from pathlib import Path
@@ -22,6 +24,9 @@ from test_admin_http_c import (  # noqa: E402
 )
 
 LINTAS = {"Sec-Fetch-Site": "cross-site", "Origin": "http://situs-lain.invalid"}
+BUAT, ANGGOTA, LEPAS, BUBARKAN = (
+    "/admin/lembaga/buat", "/admin/lembaga/anggota", "/admin/lembaga/lepas", "/admin/lembaga/bubarkan")
+JALUR_TULIS = (BUAT, ANGGOTA, LEPAS, BUBARKAN)
 
 
 @pytest.fixture()
@@ -33,9 +38,46 @@ def data(server):
     return server
 
 
-def _csrf(server):
-    _, isi, _ = _minta(server, "/admin/lembaga", cookie=server.token)
-    return _hidden(isi, "csrf")
+def _halaman(server, token=None):
+    kode, isi, _ = _minta(server, "/admin/lembaga", cookie=token or server.token)
+    assert kode == 200
+    return isi
+
+
+def _blok(isi, jalur, *penanda):
+    """<form> pertama dengan action `jalur` yang memuat semua `penanda`."""
+    for blok in re.findall(r"<form\b.*?</form>", isi, re.S):
+        if 'action="%s"' % jalur in blok and all(p in blok for p in penanda):
+            return blok
+    raise AssertionError("form %s %r tidak ada" % (jalur, penanda))
+
+
+def _tersembunyi(blok):
+    return dict(re.findall(r'<input type="hidden" name="([a-z_]+)" value="([^"]*)"', blok))
+
+
+def _sah(server, jalur, *, lid=None, guru=None, nama="Les Admin", pemilik="guru-bebas",
+         nama_konfirmasi=None, token=None):
+    """Isian POST lengkap dan sah, dengan token dari form yang sesuai di halaman."""
+    isi = _halaman(server, token)
+    penanda = ()
+    if lid is not None:
+        penanda += ('name="lembaga_id" value="%d"' % lid,)
+    if jalur == LEPAS:
+        penanda += ('name="guru" value="%s"' % guru,)
+    form = {**_tersembunyi(_blok(isi, jalur, *penanda)), "reauth": SANDI_ADMIN}
+    if jalur == BUAT:
+        form.update(nama=nama, pemilik=pemilik)
+    elif jalur == ANGGOTA:
+        form["guru"] = guru
+    elif jalur == BUBARKAN:
+        form["konfirmasi_nama"] = nama_konfirmasi if nama_konfirmasi is not None else _nama(server, lid)
+    return form
+
+
+def _nama(server, lid):
+    with server.buka() as kon:
+        return next(b["nama"] for b, _ in L.daftar_lembaga(kon) if b["id"] == lid)
 
 
 def _post(server, jalur, form, *, token=None, headers=None):
@@ -55,13 +97,38 @@ def _keadaan(server):
 
 
 def _buat(server, nama="Les Admin", pemilik="pemilik-x", **kw):
-    return _post(server, "/admin/lembaga/buat",
-                 {"csrf": _csrf(server), "nama": nama, "pemilik": pemilik}, **kw)
+    return _post(server, BUAT, _sah(server, BUAT, nama=nama, pemilik=pemilik), **kw)
 
 
 def _id_lembaga(server):
+    return _id_lembaga_milik(server, "pemilik-x")
+
+
+def _id_lembaga_milik(server, pemilik):
     with server.buka() as kon:
-        return L.lembaga_milik(kon, "pemilik-x")["id"]
+        return L.lembaga_milik(kon, pemilik)["id"]
+
+
+@pytest.fixture()
+def siap(data):
+    """Dua lembaga: Les Satu (pemilik-x, anggota guru-x1) dan Les Dua (guru-x2); guru-bebas calon."""
+    with data.buka() as kon:
+        satu = L.buat_lembaga(kon, nama="Les Satu", pemilik="pemilik-x")
+        L.tambah_anggota(kon, lembaga_id=satu, guru="guru-x1")
+        dua = L.buat_lembaga(kon, nama="Les Dua", pemilik="guru-x2")
+    data.satu, data.dua = satu, dua
+    return data
+
+
+def _form_aksi(server, jalur, *, token=None):
+    """Isian sah untuk `jalur` terhadap Les Satu."""
+    if jalur == BUAT:
+        return _sah(server, BUAT, token=token)
+    if jalur == LEPAS:
+        return _sah(server, LEPAS, lid=server.satu, guru="guru-x1", token=token)
+    if jalur == ANGGOTA:
+        return _sah(server, ANGGOTA, lid=server.satu, guru="guru-bebas", token=token)
+    return _sah(server, BUBARKAN, lid=server.satu, token=token)
 
 
 def test_halaman_admin_memuat_form_dan_tautan_nav(data):
@@ -69,6 +136,7 @@ def test_halaman_admin_memuat_form_dan_tautan_nav(data):
     assert kode == 200 and tajuk["Cache-Control"] == "no-store"
     assert 'href="/admin/lembaga"' in isi
     assert 'action="/admin/lembaga/buat"' in isi
+    assert '<details class="admin-kartu admin-lembaga-buat"' in isi
     # Satu-satunya skrip: konfirmasi() tombol destruktif admin yang sudah disetujui.
     import admin_pages
     assert admin_pages.SKRIP_KONFIRMASI_LOGIN in isi
@@ -78,6 +146,31 @@ def test_halaman_admin_memuat_form_dan_tautan_nav(data):
         assert 'value="%s"' % nama in isi
     for nama in ("Admin-C", "admin-kedua", "feby"):
         assert 'value="%s"' % nama not in isi
+
+
+def test_setiap_form_tulis_membawa_csrf_tinjauan_dan_sandi(siap):
+    isi = _halaman(siap)
+    forms = [b for b in re.findall(r"<form\b.*?</form>", isi, re.S) if 'action="/admin/lembaga/' in b]
+    assert {re.search(r'action="([^"]+)"', b).group(1) for b in forms} == set(JALUR_TULIS)
+    for blok in forms:
+        assert 'name="csrf"' in blok and 'name="tinjauan"' in blok
+        assert 'type="password" name="reauth"' in blok and "required" in blok
+
+
+def test_kartu_ringkas_dengan_panel_kelola_tertutup_dan_satu_select_guru(siap):
+    isi = _halaman(siap)
+    kartu = [k for k in isi.split('<section class="admin-kartu admin-lembaga">')[1:]]
+    assert len(kartu) == 2
+    satu = next(k for k in kartu if "Les Satu" in k)
+    assert "Pemilik les: pemilik-x · 1 guru" in satu
+    assert '<li class="admin-badge">guru-x1</li>' in satu
+    # Panel kelola dan zona bahaya tertutup bawaan (tanpa atribut open).
+    assert '<details class="admin-lembaga-kelola">' in satu
+    assert '<details class="admin-lembaga-bahaya">' in satu
+    assert " open" not in satu.split("<summary>Kelola</summary>")[0].rsplit("<details", 1)[-1]
+    # Satu select guru (Tambah) per kartu; Lepas memakai input tersembunyi, bukan select.
+    assert satu.count('<select name="guru"') == 1
+    assert 'name="konfirmasi_nama"' in satu
 
 
 def test_nav_admin_lembaga_ada_di_semua_halaman_admin(data):
@@ -91,7 +184,7 @@ def test_non_admin_404_identik_dengan_rute_admin_lain(data):
     guru = _minta(data, "/admin/lembaga", auth_basic=("Ortu-C", SANDI_ORANG_TUA))[:2]
     murid = _minta(data, "/admin/lembaga", auth_basic=("feby", SANDI_MURID))[:2]
     assert anonim == guru == murid == acuan
-    for jalur in ("/admin/lembaga/buat", "/admin/lembaga/anggota", "/admin/lembaga/lepas"):
+    for jalur in JALUR_TULIS:
         anonim = _minta(data, jalur, raw=b"a=b")[:2]
         guru = _minta(data, jalur, raw=b"a=b", auth_basic=("Ortu-C", SANDI_ORANG_TUA))[:2]
         assert anonim == guru == acuan
@@ -104,21 +197,210 @@ def test_get_tanpa_efek_samping(data):
     assert _keadaan(data) == sebelum
 
 
+# --- jalur sukses -----------------------------------------------------------------------
+
 def test_buat_lembaga_sukses_lalu_pemilik_tidak_lagi_ditawarkan(data):
     kode, _, tajuk = _buat(data)
     assert kode == 303 and tajuk["Location"] == "/admin/lembaga"
     assert _keadaan(data)[0][0] == ((1, "Les Admin", "pemilik-x"),)
-    _, isi, _ = _minta(data, "/admin/lembaga", cookie=data.token)
+    isi = _halaman(data)
     assert "Les Admin" in isi
     pilihan = isi.split('action="/admin/lembaga/buat"', 1)[1].split("</form>", 1)[0]
     assert 'value="pemilik-x"' not in pilihan and 'value="guru-x1"' in pilihan
 
 
+def test_tambah_dan_lepas_anggota(data):
+    _buat(data)
+    lid = _id_lembaga(data)
+    kode, _, tajuk = _post(data, ANGGOTA, _sah(data, ANGGOTA, lid=lid, guru="guru-x1"))
+    assert kode == 303 and tajuk["Location"] == "/admin/lembaga"
+    assert _keadaan(data)[0][1] == ((lid, "guru-x1"),)
+    assert 'action="/admin/lembaga/lepas"' in _halaman(data)
+    kode, _, _ = _post(data, LEPAS, _sah(data, LEPAS, lid=lid, guru="guru-x1"))
+    assert kode == 303 and _keadaan(data)[0][1] == ()
+
+
+def test_bubarkan_dengan_nama_persis_dan_sandi_berhasil(siap):
+    kode, _, tajuk = _post(siap, BUBARKAN, _sah(siap, BUBARKAN, lid=siap.satu))
+    assert kode == 303 and tajuk["Location"] == "/admin/lembaga"
+    assert _keadaan(siap)[0] == (((siap.dua, "Les Dua", "guru-x2"),), ())
+
+
+# --- sandi admin, tinjauan, CSRF: tolak tanpa efek samping --------------------------------
+
+@pytest.mark.parametrize("jalur", JALUR_TULIS)
+def test_tanpa_sandi_admin_ditolak_403_tanpa_efek(siap, jalur):
+    form = _form_aksi(siap, jalur)
+    sebelum = _keadaan(siap)
+    form.pop("reauth")
+    assert _post(siap, jalur, form)[0] == 403
+    form["reauth"] = ""
+    assert _post(siap, jalur, form)[0] == 403
+    assert _keadaan(siap) == sebelum
+
+
+@pytest.mark.parametrize("jalur", JALUR_TULIS)
+def test_sandi_salah_ditolak_403_tanpa_efek(siap, jalur):
+    form = _form_aksi(siap, jalur)
+    sebelum = _keadaan(siap)
+    for salah in ("sandi-salah", SANDI_ADMIN + "x", SANDI_ADMIN + "2", SANDI_ORANG_TUA + "pemilik-x"):
+        assert _post(siap, jalur, {**form, "reauth": salah})[0] == 403
+    assert _keadaan(siap) == sebelum
+
+
+@pytest.mark.parametrize("jalur", JALUR_TULIS)
+def test_csrf_hilang_atau_palsu_ditolak_tanpa_efek(siap, jalur):
+    form = _form_aksi(siap, jalur)
+    sebelum = _keadaan(siap)
+    tanpa = {k: v for k, v in form.items() if k != "csrf"}
+    assert _post(siap, jalur, tanpa)[0] == 403
+    assert _post(siap, jalur, {**form, "csrf": "palsu"})[0] == 403
+    assert _post(siap, jalur, {**form, "csrf": form["tinjauan"]})[0] == 403
+    assert _keadaan(siap) == sebelum
+
+
+@pytest.mark.parametrize("jalur", JALUR_TULIS)
+def test_tinjauan_hilang_palsu_atau_rusak_ditolak_tanpa_efek(siap, jalur):
+    form = _form_aksi(siap, jalur)
+    sebelum = _keadaan(siap)
+    tanpa = {k: v for k, v in form.items() if k != "tinjauan"}
+    assert _post(siap, jalur, tanpa)[0] == 403
+    assert _post(siap, jalur, {**form, "tinjauan": "palsu"})[0] == 403
+    badan, _, tanda = form["tinjauan"].partition(".")
+    assert _post(siap, jalur, {**form, "tinjauan": badan + "." + tanda[::-1]})[0] == 403
+    assert _keadaan(siap) == sebelum
+
+
+@pytest.mark.parametrize("jalur", JALUR_TULIS)
+def test_tinjauan_aksi_lain_ditolak_tanpa_efek(siap, jalur):
+    """Tinjauan aksi A tidak boleh dipakai di rute aksi B (terikat aksi)."""
+    sebelum = _keadaan(siap)
+    for lain in JALUR_TULIS:
+        if lain == jalur:
+            continue
+        form = {**_form_aksi(siap, jalur), "tinjauan": _form_aksi(siap, lain)["tinjauan"]}
+        assert _post(siap, jalur, form)[0] == 403
+    assert _keadaan(siap) == sebelum
+
+
+def test_tinjauan_lembaga_lain_atau_guru_lain_ditolak_tanpa_efek(siap):
+    """Token terikat target: lembaga 1 tidak boleh dipakai untuk lembaga 2, lepas guru A tidak untuk guru B."""
+    with siap.buka() as kon:
+        L.tambah_anggota(kon, lembaga_id=siap.dua, guru="guru-bebas")
+    sebelum = _keadaan(siap)
+    token_satu = _sah(siap, BUBARKAN, lid=siap.satu)["tinjauan"]
+    assert _post(siap, BUBARKAN, {**_sah(siap, BUBARKAN, lid=siap.dua), "tinjauan": token_satu})[0] == 403
+    assert _post(siap, BUBARKAN, {**_sah(siap, BUBARKAN, lid=siap.dua), "lembaga_id": str(siap.satu)})[0] == 403
+    lepas_satu = _sah(siap, LEPAS, lid=siap.satu, guru="guru-x1")
+    assert _post(siap, LEPAS, {**lepas_satu, "lembaga_id": str(siap.dua), "guru": "guru-bebas"})[0] == 403
+    assert _post(siap, LEPAS, {**lepas_satu, "guru": "guru-bebas"})[0] == 403
+    assert _keadaan(siap) == sebelum
+
+
+@pytest.mark.parametrize("jalur", JALUR_TULIS)
+def test_tinjauan_dan_csrf_dari_sesi_lain_ditolak(siap, jalur):
+    token_lain = _login(siap, "admin-kedua", SANDI_ADMIN + "2")
+    form_lain = _form_aksi(siap, jalur, token=token_lain)
+    sebelum = _keadaan(siap)
+    # Sandi admin pertama benar, tetapi token milik sesi admin lain.
+    assert _post(siap, jalur, {**form_lain, "reauth": SANDI_ADMIN})[0] == 403
+    assert _keadaan(siap) == sebelum
+
+
+@pytest.mark.parametrize("jalur", JALUR_TULIS)
+def test_post_lintas_situs_ditolak_tanpa_efek(siap, jalur):
+    form = _form_aksi(siap, jalur)
+    sebelum = _keadaan(siap)
+    assert _post(siap, jalur, form, headers=LINTAS)[0] == 403
+    assert _keadaan(siap) == sebelum
+
+
+@pytest.mark.parametrize("jalur", JALUR_TULIS)
+def test_post_dengan_field_asing_atau_ganda_ditolak_tanpa_efek(siap, jalur):
+    form = _form_aksi(siap, jalur)
+    sebelum = _keadaan(siap)
+    assert _post(siap, jalur, {**form, "asing": "1"})[0] == 400
+    ganda = urllib.parse.urlencode(form) + "&reauth=" + urllib.parse.quote(SANDI_ADMIN)
+    kode, _, _ = _minta(siap, jalur, cookie=siap.token, raw=ganda.encode(),
+                        headers={"Origin": siap.alamat, "Sec-Fetch-Site": "same-origin"})
+    assert kode == 400
+    assert _keadaan(siap) == sebelum
+
+
+def test_basic_admin_tidak_mendapat_form_dan_post_ditolak(siap):
+    kode, isi, _ = _minta(siap, "/admin/lembaga", auth_basic=("Admin-C", SANDI_ADMIN))
+    assert kode == 200 and 'action="/admin/lembaga/' not in isi and "Les Satu" in isi
+    sebelum = _keadaan(siap)
+    form = _form_aksi(siap, BUAT)
+    for jalur in JALUR_TULIS:
+        kode, _, _ = _minta(
+            siap, jalur, auth_basic=("Admin-C", SANDI_ADMIN),
+            raw=urllib.parse.urlencode(form).encode(),
+            headers={"Origin": siap.alamat, "Sec-Fetch-Site": "same-origin"})
+        assert kode == 403
+    assert _keadaan(siap) == sebelum
+
+
+# --- bubarkan: konfirmasi nama divalidasi di server ---------------------------------------
+
+@pytest.mark.parametrize("ketikan", ["", "Les", "les satu", "LES SATU", "Les Satu ", " Les Satu", "Les Dua", "Les  Satu"])
+def test_bubarkan_nama_salah_ditolak_400_tanpa_efek(siap, ketikan):
+    form = _sah(siap, BUBARKAN, lid=siap.satu, nama_konfirmasi=ketikan)
+    sebelum = _keadaan(siap)
+    kode, isi, _ = _post(siap, BUBARKAN, form)
+    assert kode == 400 and "tidak cocok" in isi
+    assert _keadaan(siap) == sebelum
+
+
+def test_bubarkan_tanpa_field_nama_ditolak_tanpa_efek(siap):
+    form = _sah(siap, BUBARKAN, lid=siap.satu)
+    form.pop("konfirmasi_nama")
+    sebelum = _keadaan(siap)
+    assert _post(siap, BUBARKAN, form)[0] == 400
+    assert _keadaan(siap) == sebelum
+
+
+def test_bubarkan_menghapus_lembaga_anggota_anak_dan_jejak_tetap(data):
+    _buat(data)
+    lid = _id_lembaga(data)
+    _post(data, ANGGOTA, _sah(data, ANGGOTA, lid=lid, guru="guru-x1"))
+    with data.buka() as kon:
+        anak = database.tambah_siswa(kon, "Anak Bubar", "P3", pemilik="guru-x1")
+        kon.execute("INSERT INTO pindah_siswa(siswa_id,lembaga_id,dari,ke,oleh)"
+                    " VALUES (?,?,?,?,?)", (anak, lid, "pemilik-x", "guru-x1", "pemilik-x"))
+    isi = _halaman(data)
+    assert 'action="/admin/lembaga/bubarkan"' in isi and "data-konfirmasi=" in isi
+    kode, _, tajuk = _post(data, BUBARKAN, _sah(data, BUBARKAN, lid=lid))
+    assert kode == 303 and tajuk["Location"] == "/admin/lembaga"
+    assert _keadaan(data)[0] == ((), ())
+    with data.buka() as kon:
+        assert kon.execute("SELECT pemilik FROM siswa WHERE id=?", (anak,)).fetchone()[0] == "guru-x1"
+        assert kon.execute("SELECT lembaga_id FROM pindah_siswa").fetchone()[0] == lid
+        assert kon.execute("PRAGMA foreign_key_check").fetchall() == []
+
+
+def test_bubarkan_lembaga_yang_sudah_hilang_409_tanpa_efek(siap):
+    form = _sah(siap, BUBARKAN, lid=siap.satu)
+    assert _post(siap, BUBARKAN, form)[0] == 303
+    sebelum = _keadaan(siap)
+    assert _post(siap, BUBARKAN, form)[0] == 409
+    assert _keadaan(siap) == sebelum
+
+
+@pytest.mark.parametrize("lid", ["999", "0", "abc", ""])
+def test_bubarkan_id_tidak_sah_atau_tidak_cocok_tinjauan_tanpa_efek(siap, lid):
+    form = {**_sah(siap, BUBARKAN, lid=siap.satu), "lembaga_id": lid}
+    sebelum = _keadaan(siap)
+    assert _post(siap, BUBARKAN, form)[0] in (400, 403)
+    assert _keadaan(siap) == sebelum
+
+
+# --- aturan domain tetap berlaku di belakang reauth ---------------------------------------
+
 @pytest.mark.parametrize("pemilik", ["Admin-C", "admin-kedua", "feby", "tidak-ada", ""])
 def test_pemilik_harus_akun_guru_yang_ada(data, pemilik):
     sebelum = _keadaan(data)
-    kode, _, _ = _buat(data, pemilik=pemilik)
-    assert kode == 400
+    assert _buat(data, pemilik=pemilik)[0] == 400
     assert _keadaan(data) == sebelum
 
 
@@ -129,123 +411,35 @@ def test_nama_lembaga_tidak_sah_ditolak(data, nama):
     assert _keadaan(data) == sebelum
 
 
-def test_pemilik_ganda_dan_anggota_jadi_pemilik_ditolak_409(data):
-    assert _buat(data)[0] == 303
-    lid = _id_lembaga(data)
-    assert _post(data, "/admin/lembaga/anggota",
-                 {"csrf": _csrf(data), "lembaga_id": str(lid), "guru": "guru-x1"})[0] == 303
-    sebelum = _keadaan(data)
-    assert _buat(data, nama="Dua", pemilik="pemilik-x")[0] == 409
-    assert _buat(data, nama="Dua", pemilik="guru-x1")[0] == 409
-    assert _keadaan(data) == sebelum
-
-
-def test_tambah_dan_lepas_anggota(data):
-    _buat(data)
-    lid = _id_lembaga(data)
-    kode, _, tajuk = _post(data, "/admin/lembaga/anggota",
-                           {"csrf": _csrf(data), "lembaga_id": str(lid), "guru": "guru-x1"})
-    assert kode == 303 and tajuk["Location"] == "/admin/lembaga"
-    assert _keadaan(data)[0][1] == ((lid, "guru-x1"),)
-    _, isi, _ = _minta(data, "/admin/lembaga", cookie=data.token)
-    assert 'action="/admin/lembaga/lepas"' in isi
-    kode, _, _ = _post(data, "/admin/lembaga/lepas",
-                       {"csrf": _csrf(data), "lembaga_id": str(lid), "guru": "guru-x1"})
-    assert kode == 303 and _keadaan(data)[0][1] == ()
+def test_pemilik_ganda_dan_anggota_jadi_pemilik_ditolak_409(siap):
+    form_buat = _sah(siap, BUAT)
+    sebelum = _keadaan(siap)
+    assert _post(siap, BUAT, {**form_buat, "pemilik": "pemilik-x"})[0] == 409
+    assert _post(siap, BUAT, {**form_buat, "pemilik": "guru-x1"})[0] == 409
+    assert _keadaan(siap) == sebelum
 
 
 @pytest.mark.parametrize("guru", ["Admin-C", "admin-kedua", "feby", "tidak-ada", "pemilik-x", ""])
-def test_anggota_harus_guru_yang_ada_dan_bukan_pemilik(data, guru):
-    _buat(data)
-    lid = _id_lembaga(data)
-    sebelum = _keadaan(data)
-    kode, _, _ = _post(data, "/admin/lembaga/anggota",
-                       {"csrf": _csrf(data), "lembaga_id": str(lid), "guru": guru})
-    assert kode in (400, 409)
-    assert _keadaan(data) == sebelum
+def test_anggota_harus_guru_yang_ada_dan_bukan_pemilik(siap, guru):
+    form = {**_sah(siap, ANGGOTA, lid=siap.satu, guru="guru-bebas"), "guru": guru}
+    sebelum = _keadaan(siap)
+    assert _post(siap, ANGGOTA, form)[0] in (400, 409)
+    assert _keadaan(siap) == sebelum
 
 
-def test_anggota_tidak_boleh_masuk_dua_lembaga(data):
-    _buat(data)
-    lid = _id_lembaga(data)
-    assert _buat(data, nama="Les Dua", pemilik="guru-x2")[0] == 303
-    _post(data, "/admin/lembaga/anggota",
-          {"csrf": _csrf(data), "lembaga_id": str(lid), "guru": "guru-x1"})
-    sebelum = _keadaan(data)
-    with data.buka() as kon:
-        lid2 = L.lembaga_milik(kon, "guru-x2")["id"]
-    assert _post(data, "/admin/lembaga/anggota",
-                 {"csrf": _csrf(data), "lembaga_id": str(lid2), "guru": "guru-x1"})[0] == 409
-    assert _keadaan(data) == sebelum
+def test_anggota_tidak_boleh_masuk_dua_lembaga(siap):
+    form = _sah(siap, ANGGOTA, lid=siap.dua, guru="guru-bebas")
+    sebelum = _keadaan(siap)
+    assert _post(siap, ANGGOTA, {**form, "guru": "guru-x1"})[0] == 409
+    assert _keadaan(siap) == sebelum
 
 
-def test_lepas_anggota_bukan_anggota_409_tanpa_efek(data):
-    _buat(data)
-    lid = _id_lembaga(data)
-    sebelum = _keadaan(data)
-    kode, _, _ = _post(data, "/admin/lembaga/lepas",
-                       {"csrf": _csrf(data), "lembaga_id": str(lid), "guru": "guru-x1"})
-    assert kode == 409
-    assert _keadaan(data) == sebelum
-
-
-@pytest.mark.parametrize("jalur,form", [
-    ("/admin/lembaga/buat", {"nama": "Les", "pemilik": "pemilik-x"}),
-    ("/admin/lembaga/anggota", {"lembaga_id": "1", "guru": "guru-x1"}),
-    ("/admin/lembaga/lepas", {"lembaga_id": "1", "guru": "guru-x1"}),
-])
-def test_csrf_hilang_atau_palsu_ditolak_tanpa_efek(data, jalur, form):
-    _buat(data)
-    sebelum = _keadaan(data)
-    assert _post(data, jalur, form)[0] == 403
-    assert _post(data, jalur, {"csrf": "palsu", **form})[0] == 403
-    assert _keadaan(data) == sebelum
-
-
-def test_csrf_dari_sesi_lain_ditolak(data):
-    token_lain = _login(data, "admin-kedua", SANDI_ADMIN + "2")
-    _, isi, _ = _minta(data, "/admin/lembaga", cookie=token_lain)
-    csrf_lain = _hidden(isi, "csrf")
-    sebelum = _keadaan(data)
-    kode, _, _ = _post(data, "/admin/lembaga/buat",
-                       {"csrf": csrf_lain, "nama": "Les", "pemilik": "pemilik-x"})
-    assert kode == 403
-    assert _keadaan(data) == sebelum
-
-
-def test_post_lintas_situs_ditolak_tanpa_efek(data):
-    csrf = _csrf(data)
-    sebelum = _keadaan(data)
-    kode, _, _ = _post(data, "/admin/lembaga/buat",
-                       {"csrf": csrf, "nama": "Les", "pemilik": "pemilik-x"},
-                       headers=LINTAS)
-    assert kode == 403
-    assert _keadaan(data) == sebelum
-
-
-def test_post_dengan_field_asing_atau_ganda_ditolak(data):
-    csrf = _csrf(data)
-    sebelum = _keadaan(data)
-    dasar = {"csrf": csrf, "nama": "Les", "pemilik": "pemilik-x"}
-    assert _post(data, "/admin/lembaga/buat", {**dasar, "asing": "1"})[0] == 400
-    kode, _, _ = _minta(
-        data, "/admin/lembaga/buat", cookie=data.token,
-        raw=(urllib.parse.urlencode(dasar) + "&nama=lain").encode(),
-        headers={"Origin": data.alamat, "Sec-Fetch-Site": "same-origin"})
-    assert kode == 400
-    assert _keadaan(data) == sebelum
-
-
-def test_basic_admin_tidak_mendapat_form_dan_post_ditolak(data):
-    kode, isi, _ = _minta(data, "/admin/lembaga", auth_basic=("Admin-C", SANDI_ADMIN))
-    assert kode == 200 and 'action="/admin/lembaga/buat"' not in isi
-    sebelum = _keadaan(data)
-    kode, _, _ = _minta(
-        data, "/admin/lembaga/buat", auth_basic=("Admin-C", SANDI_ADMIN),
-        raw=b"nama=Les&pemilik=pemilik-x&csrf=x",
-        headers={"Origin": data.alamat, "Sec-Fetch-Site": "same-origin"})
-    assert kode == 403
-    assert _keadaan(data) == sebelum
+def test_lepas_anggota_yang_sudah_lepas_409_tanpa_efek(siap):
+    form = _sah(siap, LEPAS, lid=siap.satu, guru="guru-x1")
+    assert _post(siap, LEPAS, form)[0] == 303
+    sebelum = _keadaan(siap)
+    assert _post(siap, LEPAS, form)[0] == 409
+    assert _keadaan(siap) == sebelum
 
 
 def test_halaman_admin_tanpa_data_anak(data):
@@ -253,9 +447,8 @@ def test_halaman_admin_tanpa_data_anak(data):
         database.tambah_siswa(kon, "Anak Rahasia Admin", "P3", pemilik="guru-x1")
     _buat(data)
     lid = _id_lembaga(data)
-    _post(data, "/admin/lembaga/anggota",
-          {"csrf": _csrf(data), "lembaga_id": str(lid), "guru": "guru-x1"})
-    _, isi, _ = _minta(data, "/admin/lembaga", cookie=data.token)
+    _post(data, ANGGOTA, _sah(data, ANGGOTA, lid=lid, guru="guru-x1"))
+    isi = _halaman(data)
     assert "guru-x1" in isi and "Anak Rahasia Admin" not in isi
 
 
@@ -299,58 +492,6 @@ def test_hapus_login_guru_ditahan_selama_terikat_lembaga(data, peran_di_lembaga)
 def test_hapus_login_guru_diizinkan_setelah_dilepas(data):
     _buat(data, pemilik="guru-x1")
     lid = _id_lembaga_milik(data, "guru-x1")
-    assert _post(data, "/admin/lembaga/bubarkan",
-                 {"csrf": _csrf(data), "lembaga_id": str(lid)})[0] == 303
+    assert _post(data, BUBARKAN, _sah(data, BUBARKAN, lid=lid))[0] == 303
     assert _hapus_login(data, "guru-x1")[0] == 303
     assert auth.cari_akun("guru-x1") is None
-
-
-def _id_lembaga_milik(server, pemilik):
-    with server.buka() as kon:
-        return L.lembaga_milik(kon, pemilik)["id"]
-
-
-# --- bubarkan lembaga ------------------------------------------------------------------
-
-def test_bubarkan_menghapus_lembaga_dan_anggota_anak_dan_jejak_tetap(data):
-    _buat(data)
-    lid = _id_lembaga(data)
-    _post(data, "/admin/lembaga/anggota",
-          {"csrf": _csrf(data), "lembaga_id": str(lid), "guru": "guru-x1"})
-    with data.buka() as kon:
-        anak = database.tambah_siswa(kon, "Anak Bubar", "P3", pemilik="guru-x1")
-        kon.execute("INSERT INTO pindah_siswa(siswa_id,lembaga_id,dari,ke,oleh)"
-                    " VALUES (?,?,?,?,?)", (anak, lid, "pemilik-x", "guru-x1", "pemilik-x"))
-    _, isi, _ = _minta(data, "/admin/lembaga", cookie=data.token)
-    assert 'action="/admin/lembaga/bubarkan"' in isi and "data-konfirmasi=" in isi
-    kode, _, tajuk = _post(data, "/admin/lembaga/bubarkan",
-                           {"csrf": _csrf(data), "lembaga_id": str(lid)})
-    assert kode == 303 and tajuk["Location"] == "/admin/lembaga"
-    assert _keadaan(data)[0] == ((), ())
-    with data.buka() as kon:
-        assert kon.execute("SELECT pemilik FROM siswa WHERE id=?", (anak,)).fetchone()[0] == "guru-x1"
-        assert kon.execute("SELECT lembaga_id FROM pindah_siswa").fetchone()[0] == lid
-        assert kon.execute("PRAGMA foreign_key_check").fetchall() == []
-
-
-@pytest.mark.parametrize("lid", ["999", "0", "abc", ""])
-def test_bubarkan_lembaga_tak_ada_atau_id_salah_tanpa_efek(data, lid):
-    _buat(data)
-    sebelum = _keadaan(data)
-    assert _post(data, "/admin/lembaga/bubarkan",
-                 {"csrf": _csrf(data), "lembaga_id": lid})[0] in (400, 409)
-    assert _keadaan(data) == sebelum
-
-
-def test_bubarkan_csrf_lintas_situs_dan_non_admin(data):
-    _buat(data)
-    lid = _id_lembaga(data)
-    sebelum = _keadaan(data)
-    assert _post(data, "/admin/lembaga/bubarkan", {"lembaga_id": str(lid)})[0] == 403
-    assert _post(data, "/admin/lembaga/bubarkan",
-                 {"csrf": _csrf(data), "lembaga_id": str(lid)}, headers=LINTAS)[0] == 403
-    acuan = _minta(data, "/admin/tidak-ada")[:2]
-    assert _minta(data, "/admin/lembaga/bubarkan", raw=b"a=b")[:2] == acuan
-    assert _minta(data, "/admin/lembaga/bubarkan", raw=b"a=b",
-                  auth_basic=("Ortu-C", SANDI_ORANG_TUA))[:2] == acuan
-    assert _keadaan(data) == sebelum
