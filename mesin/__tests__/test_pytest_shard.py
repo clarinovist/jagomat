@@ -55,6 +55,8 @@ JUMLAH_RECOVERY = {
     "c71038bb3b8ceedf10e469eb94766aed7c4c8472": 13126,
     # Koleksi WAL: collect-only arsip 9c924d9 (sebelum pin recovery WAL).
     "9c924d97be4e2d1dc252195f10e54e6e08aa1c9e": 20037,
+    # Koleksi recovery WAL dengan pin 9c924d9 (bf5de20); ukur ulang saat pin.
+    "bf5de20bf247abd5fddf9a6c8b9f077c57b8ba33": 20042,
     "ff6acb158985f78ef0287ec18fb045d273921bdc": 13507,
     "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
     # Arsip exact reader katalog; nodeid identik empat manifest CI39596225447
