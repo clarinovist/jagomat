@@ -45,7 +45,8 @@ def _riwayat(awal: int, akhir: int):
     (4, 6, H.SINYAL_NAIK),     # +2, 50% persis
     (6, 8, H.SINYAL_STABIL),   # +2 tetapi 33%
     (5, 5, H.SINYAL_STABIL),
-    (0, 0, H.SINYAL_STABIL),   # pernah aktif lalu diam >= 4 minggu: aturan 2-vs-2 membacanya Stabil
+    # Dulu Stabil (0 vs 0). Keputusan pemilik: pernah aktif lalu diam 4 minggu = "Turun — hubungi".
+    (0, 0, H.SINYAL_TURUN),
 ])
 def test_sinyal_batas_selisih_dan_relatif(awal, akhir, harap):
     assert H.sinyal(_riwayat(awal, akhir)) == harap
@@ -61,6 +62,23 @@ def test_belum_mulai_hanya_bila_delapan_minggu_kosong():
 ])
 def test_baru_mulai_bila_semua_sesi_ada_di_dua_minggu_terakhir(minggu):
     assert H.sinyal(minggu) == H.SINYAL_BARU_MULAI
+
+
+@pytest.mark.parametrize("minggu,harap", [
+    ((3, 0, 0, 0, 0, 0, 0, 0), H.SINYAL_TURUN),   # aktif di minggu ke-1, lalu 7 minggu diam
+    ((0, 0, 0, 5, 0, 0, 0, 0), H.SINYAL_TURUN),   # sesi terakhir tepat sebelum jendela diam 4 minggu
+    ((4, 0, 0, 0, 0, 1, 0, 0), H.SINYAL_STABIL),  # sesi 3 minggu lalu: 4 minggu terakhir tidak semuanya 0
+    ((0, 0, 0, 0, 0, 0, 0, 1), H.SINYAL_BARU_MULAI),  # aktif minggu ini: bukan diam
+    ((0, 0, 0, 0, 0, 0, 0, 0), H.SINYAL_BELUM_MULAI),  # tidak pernah aktif: Belum mulai menang
+])
+def test_diam_empat_minggu_setelah_pernah_aktif_turun_hubungi(minggu, harap):
+    assert len(minggu) == 8 and H.MINGGU_DIAM == 4
+    assert H.sinyal(minggu) == harap
+
+
+def test_baru_mulai_tidak_terganggu_aturan_diam():
+    # Semua sesi di 2 minggu terakhir: 4 minggu terakhir tidak kosong, jadi Baru mulai tetap berlaku.
+    assert H.sinyal((0, 0, 0, 0, 0, 0, 2, 0)) == H.SINYAL_BARU_MULAI
 
 
 def test_sesi_pertama_di_minggu_ke_enam_bukan_baru_mulai():
@@ -224,6 +242,7 @@ def test_halaman_pemakaian_heatmap_sinyal_rincian_dan_tanpa_nama_anak(guru):
                          ("Guru-Baru", "Baru mulai"), ("Guru-Nol", "Belum mulai")):
         assert ">%s<" % sinyal in _baris(heat, nama), nama
     assert 'admin-heat-2">3<' in _baris(heat, "Guru-Naik")
+    assert "4 minggu terakhir semuanya 0 padahal sebelumnya ada sesi" in isi  # catatan menyebut aturan Diam
     # Empat angka utama di atas heatmap, rincian lama tertutup di <details>.
     assert isi.index("Guru aktif minggu ini") < isi.index("Sesi dibuat per minggu")
     detail = isi.split('<details class="admin-kartu admin-pakai-rincian">', 1)[1]

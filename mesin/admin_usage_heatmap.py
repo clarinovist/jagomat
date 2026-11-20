@@ -17,6 +17,7 @@ SINYAL_NAIK = "Naik"
 SINYAL_STABIL = "Stabil"
 SINYAL_TURUN = "Turun — hubungi"
 
+MINGGU_DIAM = 4  # minggu terakhir yang semuanya 0 (padahal pernah aktif sebelumnya) dibaca "Turun"
 MINGGU_BANDING = 2  # jumlah minggu di tiap sisi perbandingan: 2 terakhir vs 2 sebelumnya
 SELISIH_MINIMAL = 2  # selisih sesi minimal agar dianggap berubah (mencegah 1 sesi = "Turun")
 PEMBAGI_RELATIF = 2  # selisih >= pembanding / 2, yaitu >= 50% dari 2 minggu sebelumnya
@@ -28,8 +29,9 @@ _CATATAN_SINYAL = (
     "Sinyal membandingkan 2 minggu terakhir dengan 2 minggu sebelumnya: Naik atau Turun bila "
     "selisihnya sedikitnya %d sesi dan sedikitnya 50%% dari 2 minggu sebelumnya, selain itu Stabil. "
     "Baru mulai = sesi pertama dalam %d minggu jatuh di 2 minggu terakhir. "
-    "Belum mulai = tidak ada sesi dalam %d minggu."
-) % (SELISIH_MINIMAL, JUMLAH_MINGGU, JUMLAH_MINGGU)
+    "Belum mulai = tidak ada sesi dalam %d minggu. "
+    "Turun juga bila %d minggu terakhir semuanya 0 padahal sebelumnya ada sesi."
+) % (SELISIH_MINIMAL, JUMLAH_MINGGU, JUMLAH_MINGGU, MINGGU_DIAM)
 
 
 def tingkat(jumlah: int) -> int:
@@ -43,17 +45,21 @@ def sinyal(minggu: Sequence[int]) -> str:
     Urutan aturan (yang pertama cocok menang):
     1. Belum mulai: total semua minggu = 0.
     2. Baru mulai: semua sesi jatuh di 2 minggu terakhir (minggu sebelumnya kosong).
-    3. Bandingkan ``akhir`` (jumlah 2 minggu terakhir) dengan ``awal`` (2 minggu sebelumnya),
+    3. Diam: ``MINGGU_DIAM`` minggu terakhir semuanya 0 tetapi minggu-minggu sebelumnya (dalam jendela)
+       ada sesi -> Turun (pernah aktif lalu diam; tanpa aturan ini 0 vs 0 terbaca Stabil).
+    4. Bandingkan ``akhir`` (jumlah 2 minggu terakhir) dengan ``awal`` (2 minggu sebelumnya),
        ``selisih = akhir - awal``. Berubah hanya bila ``|selisih| >= 2`` dan
        ``|selisih| >= 50% x awal`` (dihitung bilangan bulat: ``2 x |selisih| >= awal``).
        Naik bila selisih positif, Turun bila negatif; awal = 0 otomatis lolos syarat relatif.
-    4. Selain itu Stabil.
+    5. Selain itu Stabil.
     """
     jumlah = list(minggu)
     if not any(jumlah):
         return SINYAL_BELUM_MULAI
     if not any(jumlah[:-MINGGU_BANDING]):
         return SINYAL_BARU_MULAI
+    if not any(jumlah[-MINGGU_DIAM:]):
+        return SINYAL_TURUN
     akhir = sum(jumlah[-MINGGU_BANDING:])
     awal = sum(jumlah[-2 * MINGGU_BANDING:-MINGGU_BANDING])
     selisih = akhir - awal
