@@ -17,6 +17,10 @@ MUTASI = (
      'test_validator_tolak_referensi_hilang_meski_manifest_diperbarui'),
     ('riset', "        with research_store.buka_baca(root / 'riset-separate.db'):\n            pass", '        pass',
      'test_riset_schema_parsial_ditolak'),
+    ('opsional-isi', "    if {p.name for p in folder.iterdir()} != set(names):", '    if False:',
+     'test_berkas_di_opsional_tidak_tercantum_ditolak'),
+    ('opsional-skema', "if version != feature_switch.VERSI_SKEMA or not {'sakelar', 'audit_sakelar'} <= tables:",
+     'if False:', 'test_sakelar_user_version_salah_ditolak'),
     ('writer', "if info['State']['Running'] or info['State']['Status'] != 'exited':", 'if False:',
      'test_host_tolak_state_tidak_pasti'),
     ('traversal', "any(x in ('', '.', '..') for x in parts)", 'False',
@@ -34,7 +38,8 @@ def test_mutation_backup(tmp_path, name, old, new, test):
     shutil.copytree(ROOT / 'mesin/konten', mesin / 'konten')
     tests = mesin / '__tests__'
     tests.mkdir()
-    for n in ('conftest.py', 'test_admin_backup.py', 'test_operational_backup.py', 'test_operational_backup_host.py'):
+    for n in ('conftest.py', 'test_admin_backup.py', 'test_operational_backup.py', 'test_operational_backup_host.py',
+              'test_operational_backup_opsional.py'):
         shutil.copy2(ROOT / 'mesin/__tests__' / n, tests / n)
     scripts = tmp_path / 'scripts'
     scripts.mkdir()
@@ -42,7 +47,8 @@ def test_mutation_backup(tmp_path, name, old, new, test):
     assert source.count(old) == 1
     (scripts / 'operational_backup.py').write_text(source.replace(old, new))
     r = subprocess.run([sys.executable, '-B', '-m', 'pytest', str(tests / 'test_operational_backup.py'),
-                        str(tests / 'test_operational_backup_host.py'), '-k', test, '-q', '-W', 'error', '-p', 'no:cacheprovider'],
+                        str(tests / 'test_operational_backup_host.py'),
+                        str(tests / 'test_operational_backup_opsional.py'), '-k', test, '-q', '-W', 'error', '-p', 'no:cacheprovider'],
                        cwd=tmp_path, env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'),
                        capture_output=True, text=True, timeout=60)
     assert r.returncode == 1, r.stdout + r.stderr

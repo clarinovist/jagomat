@@ -112,3 +112,19 @@ def test_sync_directory_sebelum_publish(sumber, tmp_path, monkeypatch):
     monkeypatch.setattr(backup.os, 'rename', rename)
     buat(sumber, tmp_path)
     assert calls[-2][0] == 'rename' and calls[-1][0] == 'sync'
+
+
+def test_host_fuser_ikut_memeriksa_opsional_yang_ada(tmp_path, monkeypatch):
+    dipanggil = []
+    def run(args, allowed=(0,)):
+        dipanggil.append(args)
+        return SimpleNamespace(returncode=1, stdout='', stderr='')
+    monkeypatch.setattr(backup, 'run', run)
+    data = tmp_path / 'data'
+    data.mkdir()
+    (data / 'sakelar.db').write_bytes(b'')
+    backup.check_file_writers(data)
+    args = dipanggil[0]
+    assert args[0] == 'fuser'
+    assert str(data / 'sakelar.db') in args and str(data / 'kurikulum.db') not in args
+    assert str(data / 'latihan.db') in args

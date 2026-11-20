@@ -2,6 +2,7 @@
 
 Tidak menghentikan layanan, memasang jadwal, memangkas retensi atau restore live.
 Core memakai validator admin_backup existing; riset/lampiran terpisah di envelope.
+Manifest v2 menambah DB opsional (OPSIONAL) di opsional/; bundle v1 tetap valid.
 """
 from contextlib import ExitStack, closing
 import argparse
@@ -29,6 +30,12 @@ SHA = re.compile(r'^[0-9a-f]{40}$')
 DIGEST = re.compile(r'^sha256:[0-9a-f]{64}$')
 MANIFEST = 'operational-manifest.json'
 CORE = tuple(admin_backup.BERKAS_WAJIB.values())
+# DB SQLite di /data yang boleh tidak ada; ditangkap bila ada, bukan bagian CORE.
+OPSIONAL = ('sakelar.db', 'kurikulum.db')
+DIR_OPSIONAL = 'opsional'
+KEYS_V1 = {'version', 'id', 'cutoff', 'revision', 'image', 'coherence', 'files', 'directories', 'excluded'}
+ROOT_V1 = {'bundle', 'riset-separate.db', 'lampiran', MANIFEST}
+VERSI_MANIFEST = 2
 
 
 class Ditolak(RuntimeError):
@@ -196,14 +203,54 @@ def sqlite_check(path):
             raise Ditolak('integrity/FK gagal')
 
 
+def optional_names(names):
+    """Daftar `optional` manifest v2: list nama terurut, unik, subset OPSIONAL."""
+    if (not isinstance(names, list) or any(not isinstance(n, str) for n in names)
+            or names != sorted(set(names)) or not set(names) <= set(OPSIONAL)):
+        raise Ditolak('daftar opsional invalid')
+    return tuple(names)
+
+
+def check_optional_schema(name, path):
+    """Skema minimal per DB opsional (sesudah sqlite_check)."""
+    if name == 'sakelar.db':
+        import feature_switch
+        with closing(sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)) as db:
+            db.execute('PRAGMA query_only=ON')
+            version = db.execute('PRAGMA user_version').fetchone()[0]
+            tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if version != feature_switch.VERSI_SKEMA or not {'sakelar', 'audit_sakelar'} <= tables:
+            raise Ditolak('schema sakelar tidak lengkap')
+    # TODO(3b peta-kurikulum): kurikulum.db belum punya skema/kode; sementara hanya
+    # sqlite_check. Tambahkan cek user_version + tabel di sini saat 3b mendefinisikannya.
+
+
+def validate_optional(folder, names):
+    """Isi opsional/ harus sama persis dengan `optional`; tiap DB lolos cek integritas+skema."""
+    regular(folder, directory=True, private=True)
+    if {p.name for p in folder.iterdir()} != set(names):
+        raise Ditolak('isi opsional tidak cocok dengan manifest')
+    for name in names:
+        sqlite_check(folder / name)
+        check_optional_schema(name, folder / name)
+
+
+def optional_paths(data):
+    """Path DB opsional yang ada, terurut (termasuk symlink, agar ditolak, bukan dilewati diam-diam)."""
+    return [Path(data) / n for n in sorted(OPSIONAL) if os.path.lexists(str(Path(data) / n))]
+
+
 def validate(root):
     """Hanya membaca; tidak memperbaiki bundle rusak atau mengesahkan quiesce."""
     root = Path(root)
     trusted_path(root)
     regular(root, directory=True, private=True)
     m = read_json(root / MANIFEST)
-    keys = {'version', 'id', 'cutoff', 'revision', 'image', 'coherence', 'files', 'directories', 'excluded'}
-    if not isinstance(m, dict) or set(m) != keys or type(m['version']) is not int or m['version'] != 1:
+    version = m.get('version') if isinstance(m, dict) else None
+    if type(version) is not int or version not in (1, VERSI_MANIFEST):
+        raise Ditolak('manifest operasional invalid')
+    is_v2 = version == VERSI_MANIFEST
+    if set(m) != (KEYS_V1 | {'optional'} if is_v2 else KEYS_V1):
         raise Ditolak('manifest operasional invalid')
     if (not isinstance(m['id'], str) or not ID.fullmatch(m['id'])
             or type(m['cutoff']) is not int or m['cutoff'] < 0
@@ -212,7 +259,8 @@ def validate(root):
             or m['coherence'] != 'stopped-writers-checked'
             or m['excluded'] != ['sessions', 'transient', 'generated', 'provider_credentials']):
         raise Ditolak('metadata operasional invalid')
-    if {p.name for p in root.iterdir()} != {'bundle', 'riset-separate.db', 'lampiran', MANIFEST}:
+    optional = optional_names(m['optional']) if is_v2 else ()
+    if {p.name for p in root.iterdir()} != (ROOT_V1 | {DIR_OPSIONAL} if is_v2 else ROOT_V1):
         raise Ditolak('inventaris root invalid')
     actual, dirs = inventory(root)
     if m['files'] != actual or m['directories'] != dirs:
@@ -229,9 +277,12 @@ def validate(root):
     except RuntimeError:
         raise Ditolak('schema riset tidak lengkap') from None
     attachment_links(root / 'bundle' / 'latihan.db', root / 'lampiran')
+    if is_v2:
+        validate_optional(root / DIR_OPSIONAL, optional)
     return {'ok': True, 'id': m['id'], 'files': len(actual),
             'attachments': sum(k.startswith('lampiran/') for k in actual),
             'core_files': len(core.berkas), 'research_separate': True,
+            'optional': optional,
             'needs_reconciliation': core.perlu_rekonsiliasi}
 
 
@@ -251,6 +302,7 @@ def capture(data, output, revision, image, check_quiescent):
     stage.mkdir(mode=0o700)
     core = stage / 'bundle'
     core.mkdir(mode=0o700)
+    (stage / DIR_OPSIONAL).mkdir(mode=0o700)
     try:
         with ExitStack() as stack:
             for name in ('latihan.db', 'sandi.json', 'admin-control.db', 'ai-control.db', 'pendamping.db', 'riset-konsumen.db'):
@@ -265,6 +317,12 @@ def capture(data, output, revision, image, check_quiescent):
                 else:
                     c = stack.enter_context(closing(sqlite3.connect((data / name).resolve().as_uri() + '?mode=rw', uri=True, timeout=1)))
                     c.execute('BEGIN IMMEDIATE')
+            optional = []
+            for path in optional_paths(data):
+                regular(path)
+                c = stack.enter_context(closing(sqlite3.connect(path.resolve().as_uri() + '?mode=rw', uri=True, timeout=1)))
+                c.execute('BEGIN IMMEDIATE')
+                optional.append(path.name)
             cutoff = int(time.time())
             for name in CORE:
                 if name.endswith('.db'):
@@ -272,6 +330,8 @@ def capture(data, output, revision, image, check_quiescent):
                 else:
                     copy_file(data / name, core / name)
             sqlite_copy(data / 'riset-konsumen.db', stage / 'riset-separate.db')
+            for name in optional:
+                sqlite_copy(data / name, stage / DIR_OPSIONAL / name)
             if (data / 'lampiran').exists() or (data / 'lampiran').is_symlink():
                 copy_tree(data / 'lampiran', stage / 'lampiran')
             else:
@@ -280,9 +340,9 @@ def capture(data, output, revision, image, check_quiescent):
             check_quiescent()
             admin_backup.buat_manifest(core, bundle_id=output.name, cutoff=cutoff)
             files, dirs = inventory(stage)
-            write_json(stage / MANIFEST, dict(version=1, id=output.name, cutoff=cutoff,
+            write_json(stage / MANIFEST, dict(version=VERSI_MANIFEST, id=output.name, cutoff=cutoff,
                 revision=revision, image=image, coherence='stopped-writers-checked', files=files,
-                directories=dirs, excluded=['sessions', 'transient', 'generated', 'provider_credentials']))
+                directories=dirs, optional=optional, excluded=['sessions', 'transient', 'generated', 'provider_credentials']))
             validate(stage)
             sync_tree(stage)
             if output.exists() or output.is_symlink():
@@ -302,7 +362,7 @@ def run(args, allowed=(0,)):
     return r
 
 
-def host_quiescent():
+def host_quiescent(data=Path('/opt/osn/data')):
     """Target fixed: maintenance+cron tertahan, app stopped, tidak ada writer mount."""
     info = json.loads(run(['docker', 'inspect', 'osn-mesin']).stdout)[0]
     if info['State']['Running'] or info['State']['Status'] != 'exited':
@@ -321,7 +381,13 @@ def host_quiescent():
                or '/opt/osn/data'.startswith(m['Source'].rstrip('/') + '/')
                for c in all_info for m in c['Mounts']):
             raise Ditolak('writer container lain aktif')
-    paths = [str(Path('/opt/osn/data') / n) for n in (*CORE, 'riset-konsumen.db')]
+    check_file_writers(data)
+
+
+def check_file_writers(data):
+    """fuser pada DB core, riset dan DB opsional yang ada; hanya collector sendiri boleh membuka."""
+    paths = [str(data / n) for n in (*CORE, 'riset-konsumen.db')]
+    paths += [str(p) for p in optional_paths(data)]
     r = run(['fuser', *paths], allowed=(0, 1))
     pids = r.stdout.split()
     if r.returncode == 0 and (not pids or any(not p.isdigit() or int(p) != os.getpid() for p in pids)):

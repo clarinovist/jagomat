@@ -23,6 +23,18 @@
   `research_store.buka_baca`; retensi riset tetap terpisah;
 - `lampiran/`: seluruh berkas foto; setiap referensi metadata harus menunjuk file
   aman yang ada. Direktori sumber belum terbentuk sah hanya bila tanpa referensi;
+- `opsional/` (manifest **v2**): DB SQLite di `/data` yang boleh tidak ada,
+  yaitu `sakelar.db` (sakelar fitur admin) dan `kurikulum.db` (override kurikulum,
+  kode menyusul). Yang ada saat capture dikunci `BEGIN IMMEDIATE` bersama core dan
+  disalin dengan SQLite backup API; yang tidak ada dilewati; symlink/non-regular
+  ditolak. Manifest mencatat daftar terurut di key `optional`; isi `opsional/` harus
+  persis sama, tiap DB lulus integrity+FK, dan `sakelar.db` wajib `user_version`
+  sesuai `feature_switch.VERSI_SKEMA` serta tabel `sakelar`+`audit_sakelar`
+  (`kurikulum.db`: baru cek integritas, skema menyusul di plan peta-kurikulum 3b).
+  Folder `opsional/` selalu ada, boleh kosong. Bundle **v1 lama tetap valid** (tanpa
+  `opsional/`). `admin_backup.BERKAS_WAJIB` dan bundle core tidak berubah. Tool host
+  di `/opt/osn/backup-tool` perlu `mesin/feature_switch.py` agar validasi `sakelar.db`
+  berjalan;
 - `operational-manifest.json`: revision/digest aplikasi, cutoff, daftar/hash/ukuran
   file dan direktori. Tidak berisi isi jawaban, nama anak, atau credential.
   Path lampiran tetap privat, bukan untuk log/prompt.
@@ -42,7 +54,7 @@ proses file lain) harus ditahan. Jangan memakai produksi sebagai test.
 
 Capture memverifikasi app `exited`, maintenance terpasang, tiga cron writer
 terkomentar, tidak ada container lain me-mount data/ancestor/subtree dan fuser
-hanya melihat collector sendiri. Lock deploy mencegah persaingan deployment;
+(termasuk DB opsional yang ada) hanya melihat collector sendiri. Lock deploy mencegah persaingan deployment;
 DB/auth diambil berurutan belajar→auth→admin→AI→Pendamping→riset. Caller wajib
 mempertahankan hold selama capture; pemeriksaan sesaat bukan penghalang proses
 root nakal. Tidak menjalankan callback DB/provider atau migrasi saat capture.
@@ -93,7 +105,12 @@ mengklaim off-site otomatis24/7.
 Uji hanya pada turunan privat/sintetis, tidak restore live. Validator memastikan
 core/hash/schema/FK/auth/linkage foto/riset. Rehearsal startup memakai artifact exact
 teruji dan salinan terisolasi, tanpa network; periksa idempotensi, preservasi dan
-kebutuhan rekonsiliasi. Restore live merupakan operasi terpisah: sesi diinvalidasi,
+kebutuhan rekonsiliasi. Pemulihan manual `opsional/*` ke `/data` (hanya saat semua writer ditahan, mode
+600, owner sama dengan DB lain di `/data`; jangan menimpa tanpa backup berkas yang
+ada): salin `opsional/<nama>` ke `/data/<nama>`, hapus sidecar `-wal`/`-shm` lama
+bila ada, lalu verifikasi `PRAGMA integrity_check` = `ok`. Tanpa berkas ini aplikasi
+memakai bawaan kode/env (sakelar) sehingga pemulihan opsional tidak memblokir startup.
+Restore live merupakan operasi terpisah: sesi diinvalidasi,
 izin/sensor dan billing direkonsiliasi sesuai kontrak, backup sebelum cutover,
 operator memverifikasi target dan recovery. Jangan menimpa seluruh data dengan
 `cp` atau menghapus histori untuk membuat startup hijau.
