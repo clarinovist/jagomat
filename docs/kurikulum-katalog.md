@@ -11,6 +11,12 @@ dan `CP_PER_GRUP`: tiap grup katalog → butir CP + kecocokan (penuh/sebagian/pr
 pengayaan; kosong = di luar CP, pengayaan olimpiade). Status pemetaan: **disahkan pemilik
 20 Nov 2026** (`STATUS_PEMETAAN`); revisi Guru tetap lewat perubahan data ini. `butir_tanpa_grup()` = celah cakupan.
 
+`mesin/kurikulum_override.py` menyimpan override admin untuk pemetaan CP per grup dan label awam per topik
+di `/data/kurikulum.db` (DB terpisah; env `KURIKULUM_BERKAS_DB`). Katalog di kode tetap nilai bawaan: tanpa berkas, DB rusak,
+atau baris tak sah berarti bawaan (dicatat di log). Tulis memakai revisi per kunci (konflik ditolak, "kembalikan ke bawaan" tetap
+menaikkan revisi) dan audit; label harus 1-40 karakter, tanpa karakter kontrol, dan unik antar-topik. Grup/pola, urutan `KATALOG`,
+`VERSI_KATALOG`, dan `hanya_manual` tidak bisa diubah. Penyambungan ke admin dan konsumen menyusul (3c/3d).
+
 Nama publik berikut diturunkan dari katalog (tipe dan urutan tidak berubah):
 `topik_awam.NAMA_AWAM`, `mastery_catalog.KELOMPOK`, `cek_gratis_skor.TOPIK_PER_KELAS`
 dan `TOPIK_DASAR`. `TOPIK_LAMA` (riwayat sesi) dan `VERSI_KATALOG` (versi) tetap di tempat lama.

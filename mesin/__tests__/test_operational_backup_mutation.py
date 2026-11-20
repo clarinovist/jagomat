@@ -21,6 +21,8 @@ MUTASI = (
      'test_berkas_di_opsional_tidak_tercantum_ditolak'),
     ('opsional-skema', "if version != feature_switch.VERSI_SKEMA or not {'sakelar', 'audit_sakelar'} <= tables:",
      'if False:', 'test_sakelar_user_version_salah_ditolak'),
+    ('opsional-skema-kurikulum', "if version != kurikulum_override.VERSI_SKEMA or not set(kurikulum_override.TABEL_SKEMA) <= tables:",
+     'if False:', 'test_kurikulum_user_version_salah_ditolak'),
     ('writer', "if info['State']['Running'] or info['State']['Status'] != 'exited':", 'if False:',
      'test_host_tolak_state_tidak_pasti'),
     ('traversal', "any(x in ('', '.', '..') for x in parts)", 'False',

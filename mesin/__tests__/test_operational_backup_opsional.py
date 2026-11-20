@@ -7,6 +7,7 @@ import pytest
 from test_operational_backup import backup, sumber, buat, REV, IMAGE
 
 import feature_switch
+import kurikulum_override
 
 SEED = {nama: False for nama in feature_switch.NAMA_SAKELAR}
 
@@ -15,6 +16,12 @@ def buat_sakelar(data):
     feature_switch.ubah('FUNNEL_AKTIF', True, actor_id='uji', revisi_diharapkan=1,
                         seed=SEED, path=data / 'sakelar.db')
     return data / 'sakelar.db'
+
+
+def buat_kurikulum(data):
+    kurikulum_override.ubah_label('pengukuran', 'Ukur-ukur', actor_id='uji', revisi_diharapkan=0,
+                                  path=data / 'kurikulum.db')
+    return data / 'kurikulum.db'
 
 
 def sahkan_ulang(target, **manifest):
@@ -63,19 +70,46 @@ def test_capture_dengan_sakelar_v2_tercatat_dan_roundtrip(sumber, tmp_path):
     assert (restored / 'opsional/sakelar.db').read_bytes() == (target / 'opsional/sakelar.db').read_bytes()
 
 
-def test_capture_kurikulum_opsional_hanya_sqlite_check(sumber, tmp_path):
-    with sqlite3.connect(sumber / 'kurikulum.db') as c:
-        c.execute('CREATE TABLE sementara(id INTEGER)')
-    c.close()
+def test_capture_kurikulum_v2_tercatat_dan_skema_lolos(sumber, tmp_path):
+    buat_kurikulum(sumber)
     target = buat(sumber, tmp_path)
     assert backup.validate(target)['optional'] == ('kurikulum.db',)
+    with sqlite3.connect(target / 'opsional/kurikulum.db') as c:
+        assert c.execute("SELECT label FROM label_awam WHERE topik_id='pengukuran'").fetchone() == ('Ukur-ukur',)
+    c.close()
 
 
 def test_capture_kedua_opsional_terurut(sumber, tmp_path):
     buat_sakelar(sumber)
-    ubah_sqlite(sumber / 'kurikulum.db', 'CREATE TABLE sementara(id INTEGER)')
+    buat_kurikulum(sumber)
     target = buat(sumber, tmp_path)
     assert backup.read_json(target / backup.MANIFEST)['optional'] == ['kurikulum.db', 'sakelar.db']
+
+
+def test_capture_tolak_kurikulum_skema_asing_dan_tidak_meninggalkan_bundle(sumber, tmp_path):
+    ubah_sqlite(sumber / 'kurikulum.db', 'CREATE TABLE sementara(id INTEGER)')
+    with pytest.raises(backup.Ditolak, match='schema kurikulum'):
+        buat(sumber, tmp_path)
+    assert not (tmp_path / 'backup-uji').exists()
+
+
+def test_kurikulum_user_version_salah_ditolak(sumber, tmp_path):
+    buat_kurikulum(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/kurikulum.db', 'PRAGMA user_version = 2')
+    sahkan_ulang(target)
+    with pytest.raises(backup.Ditolak, match='schema kurikulum'):
+        backup.validate(target)
+
+
+@pytest.mark.parametrize('tabel', kurikulum_override.TABEL_SKEMA)
+def test_kurikulum_tabel_hilang_ditolak(sumber, tmp_path, tabel):
+    buat_kurikulum(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/kurikulum.db', f'DROP TABLE {tabel}')
+    sahkan_ulang(target)
+    with pytest.raises(backup.Ditolak, match='schema kurikulum'):
+        backup.validate(target)
 
 
 def test_capture_tanpa_opsional_v2_kosong(sumber, tmp_path):

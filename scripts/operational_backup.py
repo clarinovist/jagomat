@@ -211,18 +211,27 @@ def optional_names(names):
     return tuple(names)
 
 
+def _version_and_tables(path):
+    """(user_version, nama tabel) dari DB read-only."""
+    with closing(sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)) as db:
+        db.execute('PRAGMA query_only=ON')
+        version = db.execute('PRAGMA user_version').fetchone()[0]
+        tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    return version, tables
+
+
 def check_optional_schema(name, path):
     """Skema minimal per DB opsional (sesudah sqlite_check)."""
     if name == 'sakelar.db':
         import feature_switch
-        with closing(sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)) as db:
-            db.execute('PRAGMA query_only=ON')
-            version = db.execute('PRAGMA user_version').fetchone()[0]
-            tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        version, tables = _version_and_tables(path)
         if version != feature_switch.VERSI_SKEMA or not {'sakelar', 'audit_sakelar'} <= tables:
             raise Ditolak('schema sakelar tidak lengkap')
-    # TODO(3b peta-kurikulum): kurikulum.db belum punya skema/kode; sementara hanya
-    # sqlite_check. Tambahkan cek user_version + tabel di sini saat 3b mendefinisikannya.
+    if name == 'kurikulum.db':
+        import kurikulum_override
+        version, tables = _version_and_tables(path)
+        if version != kurikulum_override.VERSI_SKEMA or not set(kurikulum_override.TABEL_SKEMA) <= tables:
+            raise Ditolak('schema kurikulum tidak lengkap')
 
 
 def validate_optional(folder, names):

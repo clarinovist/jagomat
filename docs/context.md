@@ -105,6 +105,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `cek_gratis_skor.TOPIK_PER_KELAS` dan registri `topics`, tanpa DB.
 - `admin_kurikulum_pages.py` → `admin_kurikulum_http.py` untuk `/admin/kurikulum` (baca-saja, tanpa DB): render
   `kurikulum_katalog` + `kurikulum_cp`; bar tab `admin_kurikulum_tab.py` dibagi dengan halaman cek-topik.
+- `kurikulum_override.py` (3b peta kurikulum; belum disambung ke konsumen/admin): override CP per grup dan label awam di DB terpisah
+  `/data/kurikulum.db` (env `KURIKULUM_BERKAS_DB`, skema v1, revisi per kunci + audit). Beda dari `feature_switch`: DB/baris rusak
+  **fail ke bawaan kode** (bawaan sah) + log; tulis ke skema asing ditolak. Ikut backup opsional (cek skema di `operational_backup`).
 - `admin_sakelar_pages.py` → `admin_sakelar_http.py` untuk `/admin/sakelar`: empat sakelar di
   `feature_switch.py` (DB terpisah, fail-closed, env fallback) + `sakelar_registry.py`; guard aksi sama
   dengan panel rekening (tinjauan bertanda tangan, sandi ulang, konflik revisi, audit). Database sakelar
