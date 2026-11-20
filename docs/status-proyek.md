@@ -1,6 +1,6 @@
 # Status proyek dan pekerjaan tersisa
 
-**Diperbarui 19 November 2026.** Ini indeks status, bukan perubahan keputusan produk
+**Diperbarui 20 November 2026.** Ini indeks status, bukan perubahan keputusan produk
 atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
 [CLAUDE.md](../CLAUDE.md). Catatan lama harus dibaca menurut tanggal dan scope-nya.
 
@@ -15,7 +15,10 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   kandidat Fase 1–3 ter-deploy dan **funnel diaktifkan 19 November 2026 termasuk
   pembayaran Paket Coba** (`FUNNEL_AKTIF=1`, ledger `pesanan_*` dimigrasikan);
   deliverable Fase 4 masih menyusul/manual. Status baris F1 di tabel bawah.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`efe9514`** (19 November 2026;
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`55aaa49`** (20 November 2026;
+  WAL SQLite untuk lima DB durable, snapshot hapus-keluarga portabel, recovery pin `bf5de20`;
+  deploy terkontrol 20.38–20.41 WIB). Sebelumnya **`fa037344`** (20 November 2026 pagi;
+  beranda funnel) dan **`efe9514`** (19 November 2026;
   funnel Peta Kemampuan playful v4 + `/contoh-peta-kemampuan`, topik cek gratis per kelas,
   admin `/admin/cek-topik` baca-saja, serta kode transfer rekening yang nonaktif — tabel
   `transfer_*`/`rekening_*` belum dimigrasikan dan `PESANAN_TRANSFER_AKTIF` kosong; recovery
