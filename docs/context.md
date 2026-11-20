@@ -29,7 +29,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `sandi.json` ikut bundle backup. Riset konsumen mempunyai DB/retensi/backup terpisah.
   Sesi/transient bukan pengganti state durable; detail inventaris di runbook.
   `scripts/operational_backup.py` menambahkan envelope core+riset+lampiran
-  (+ `sakelar.db`/`kurikulum.db` opsional, manifest v2) saat quiescent dan transfer privat tervalidasi; `mesin/cadangkan.sh` fetch-only, tanpa prune.
+  (+ `sakelar.db`/`kurikulum.db`/`cetakan.db` opsional, manifest v2) saat quiescent dan transfer privat tervalidasi; `mesin/cadangkan.sh` fetch-only, tanpa prune.
 - Riset/materi historis di `../riset/referensi/`; bukan dependency runtime.
   DB, credential, `.venv`, cache, backup dan artefak privat tidak dilacak Git.
 
@@ -124,6 +124,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - `kurikulum_override.py` (3b peta kurikulum; dipakai admin CP 3c dan label awam 3d): override CP per grup dan label awam di DB terpisah
   `/data/kurikulum.db` (env `KURIKULUM_BERKAS_DB`, skema v1, revisi per kunci + audit). Beda dari `feature_switch`: DB/baris rusak
   **fail ke bawaan kode** (bawaan sah) + log; tulis ke skema asing ditolak. Ikut backup opsional (cek skema di `operational_backup`).
+- `cetakan_pola.py` + `cetakan_store.py` (C1 plan cetakan-ai; stdlib, belum dipakai halaman/sesi anak): cetakan soal berpola = data JSON; validator AST
+  bertipe + evaluator sendiri (tanpa `eval`), bangkitan deterministik, `uji_kelayakan`. DB terpisah `/data/cetakan.db` (env `CETAKAN_BERKAS_DB`; draf/aktif/
+  nonaktif, revisi + audit, `setujui` wajib lolos kelayakan dalam transaksi); baca rusak = kosong. Di luar penutupan impor `generator`; ikut backup opsional.
 - `admin_sakelar_pages.py` → `admin_sakelar_http.py` untuk `/admin/sakelar`: empat sakelar di
   `feature_switch.py` (DB terpisah, fail-closed, env fallback) + `sakelar_registry.py`; guard aksi sama
   dengan panel rekening (tinjauan bertanda tangan, sandi ulang, konflik revisi, audit). Database sakelar

@@ -23,6 +23,8 @@ MUTASI = (
      'if False:', 'test_sakelar_user_version_salah_ditolak'),
     ('opsional-skema-kurikulum', "if version != kurikulum_override.VERSI_SKEMA or not set(kurikulum_override.TABEL_SKEMA) <= tables:",
      'if False:', 'test_kurikulum_user_version_salah_ditolak'),
+    ('opsional-skema-cetakan', "if version != cetakan_store.VERSI_SKEMA or not set(cetakan_store.TABEL_SKEMA) <= tables:",
+     'if False:', 'test_cetakan_user_version_salah_ditolak'),
     ('writer', "if info['State']['Running'] or info['State']['Status'] != 'exited':", 'if False:',
      'test_host_tolak_state_tidak_pasti'),
     ('traversal', "any(x in ('', '.', '..') for x in parts)", 'False',

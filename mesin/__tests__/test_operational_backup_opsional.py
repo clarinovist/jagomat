@@ -7,6 +7,7 @@ import pytest
 from test_operational_backup import backup, sumber, buat, REV, IMAGE
 
 import feature_switch
+import cetakan_store
 import kurikulum_override
 
 SEED = {nama: False for nama in feature_switch.NAMA_SAKELAR}
@@ -22,6 +23,17 @@ def buat_kurikulum(data):
     kurikulum_override.ubah_label('pengukuran', 'Ukur-ukur', actor_id='uji', revisi_diharapkan=0,
                                   path=data / 'kurikulum.db')
     return data / 'kurikulum.db'
+
+
+ISI_CETAKAN = {
+    'kelas': 2, 'bab': 2, 'judul': 'Penjumlahan sintetis', 'teks': '{a} ditambah {b}',
+    'variabel': {'a': [10, 50], 'b': [1, 40]}, 'syarat': ['a + b <= 99'], 'kunci': 'a + b',
+}
+
+
+def buat_cetakan(data):
+    cetakan_store.buat_draf(ISI_CETAKAN, sumber='manual', actor_id='uji', path=data / 'cetakan.db')
+    return data / 'cetakan.db'
 
 
 def sahkan_ulang(target, **manifest):
@@ -84,6 +96,53 @@ def test_capture_kedua_opsional_terurut(sumber, tmp_path):
     buat_kurikulum(sumber)
     target = buat(sumber, tmp_path)
     assert backup.read_json(target / backup.MANIFEST)['optional'] == ['kurikulum.db', 'sakelar.db']
+
+
+def test_capture_cetakan_v2_tercatat_dan_skema_lolos(sumber, tmp_path):
+    buat_cetakan(sumber)
+    target = buat(sumber, tmp_path)
+    assert backup.validate(target)['optional'] == ('cetakan.db',)
+    with sqlite3.connect(target / 'opsional/cetakan.db') as c:
+        assert c.execute('SELECT status, revisi FROM cetakan').fetchone() == ('draf', 1)
+    c.close()
+
+
+def test_capture_ketiga_opsional_terurut(sumber, tmp_path):
+    buat_sakelar(sumber)
+    buat_kurikulum(sumber)
+    buat_cetakan(sumber)
+    target = buat(sumber, tmp_path)
+    assert backup.OPSIONAL == ('sakelar.db', 'kurikulum.db', 'cetakan.db')
+    assert backup.read_json(target / backup.MANIFEST)['optional'] == ['cetakan.db', 'kurikulum.db', 'sakelar.db']
+    assert backup.validate(target)['optional'] == ('cetakan.db', 'kurikulum.db', 'sakelar.db')
+
+
+def test_capture_tolak_cetakan_skema_asing_dan_tidak_meninggalkan_bundle(sumber, tmp_path):
+    ubah_sqlite(sumber / 'cetakan.db', 'CREATE TABLE sementara(id INTEGER)')
+    with pytest.raises(backup.Ditolak, match='schema cetakan'):
+        buat(sumber, tmp_path)
+    assert not (tmp_path / 'backup-uji').exists()
+
+
+def test_cetakan_user_version_salah_ditolak(sumber, tmp_path):
+    buat_cetakan(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/cetakan.db', 'PRAGMA user_version = 2')
+    sahkan_ulang(target)
+    with pytest.raises(backup.Ditolak, match='schema cetakan'):
+        backup.validate(target)
+
+
+@pytest.mark.parametrize('tabel', ['audit_cetakan', 'cetakan'])
+def test_cetakan_tabel_hilang_ditolak(sumber, tmp_path, tabel):
+    assert tabel in cetakan_store.TABEL_SKEMA
+    buat_cetakan(sumber)
+    target = buat(sumber, tmp_path)
+    ubah_sqlite(target / 'opsional/cetakan.db', 'PRAGMA foreign_keys = OFF', f'DROP TABLE {tabel}')
+    sahkan_ulang(target)
+    # Tabel induk yang hilang tertangkap lebih dulu oleh cek FK (audit_cetakan merujuknya).
+    with pytest.raises(backup.Ditolak, match='schema cetakan|integrity/FK'):
+        backup.validate(target)
 
 
 def test_capture_tolak_kurikulum_skema_asing_dan_tidak_meninggalkan_bundle(sumber, tmp_path):

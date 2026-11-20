@@ -24,17 +24,18 @@
 - `lampiran/`: seluruh berkas foto; setiap referensi metadata harus menunjuk file
   aman yang ada. Direktori sumber belum terbentuk sah hanya bila tanpa referensi;
 - `opsional/` (manifest **v2**): DB SQLite di `/data` yang boleh tidak ada,
-  yaitu `sakelar.db` (sakelar fitur admin) dan `kurikulum.db` (override kurikulum,
-  kode menyusul). Yang ada saat capture dikunci `BEGIN IMMEDIATE` bersama core dan
+  yaitu `sakelar.db` (sakelar fitur admin), `kurikulum.db` (override kurikulum),
+  dan `cetakan.db` (cetakan soal berpola, `cetakan_store`). Yang ada saat capture dikunci `BEGIN IMMEDIATE` bersama core dan
   disalin dengan SQLite backup API; yang tidak ada dilewati; symlink/non-regular
   ditolak. Manifest mencatat daftar terurut di key `optional`; isi `opsional/` harus
   persis sama, tiap DB lulus integrity+FK, dan `sakelar.db` wajib `user_version`
-  sesuai `feature_switch.VERSI_SKEMA` serta tabel `sakelar`+`audit_sakelar`
-  (`kurikulum.db`: baru cek integritas, skema menyusul di plan peta-kurikulum 3b).
+  sesuai `feature_switch.VERSI_SKEMA` serta tabel `sakelar`+`audit_sakelar`;
+  `kurikulum.db` dan `cetakan.db` wajib `user_version` + `TABEL_SKEMA` modulnya
+  (`kurikulum_override`, `cetakan_store`).
   Folder `opsional/` selalu ada, boleh kosong. Bundle **v1 lama tetap valid** (tanpa
   `opsional/`). `admin_backup.BERKAS_WAJIB` dan bundle core tidak berubah. Tool host
-  di `/opt/osn/backup-tool` perlu `mesin/feature_switch.py` agar validasi `sakelar.db`
-  berjalan;
+  di `/opt/osn/backup-tool` perlu `mesin/feature_switch.py`, `kurikulum_override.py`, dan
+  `cetakan_store.py` (+ `cetakan_pola.py`, `kurikulum_kelas.py`) agar validasi skema berjalan;
 - `operational-manifest.json`: revision/digest aplikasi, cutoff, daftar/hash/ukuran
   file dan direktori. Tidak berisi isi jawaban, nama anak, atau credential.
   Path lampiran tetap privat, bukan untuk log/prompt.
