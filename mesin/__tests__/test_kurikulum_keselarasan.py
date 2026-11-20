@@ -79,7 +79,9 @@ import kurikulum_katalog  # noqa: E402
 
 
 def test_nama_awam_diturunkan_dari_katalog():
-    assert list(topik_awam.NAMA_AWAM.items()) == list(kurikulum_katalog.label_awam().items())
+    # Isi, bukan urutan: urutan NAMA_AWAM tidak dipakai tampilan, dan monkeypatch.delitem di
+    # tes lain memulihkan kunci di akhir dict. Urutan dijaga snapshot identitas Fase 1.
+    assert topik_awam.NAMA_AWAM == kurikulum_katalog.label_awam()
 
 
 def test_kelompok_mastery_diturunkan_dari_katalog():
