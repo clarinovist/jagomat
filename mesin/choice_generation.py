@@ -14,7 +14,9 @@ TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   # Dua pengecoh selalu sah; collision tidak diisi angka rekaan.
                   'tambah_dasar', 'kurang_dasar', 'bilangan_hilang', 'nilai_tempat',
                   # Dua jalur K selalu ada (angka saja, tempat sebelah); H hanya kadang ada.
-                  'nilai_tempat_besar'})
+                  'nilai_tempat_besar',
+                  # Tahap B: jalur K selalu ada dan H hanya kadang; 2 pengecoh cukup.
+                  'tambah_kurang_bersusun', 'kali_bagi_sekolah', 'kalimat_matematika'})
 
 
 def kebijakan_soal(soal):
@@ -72,6 +74,9 @@ def kandidat(soal):
     elif tid == 'siklus_hari':
         from templates import HARI
         nilai += HARI
+    elif tid == 'urutkan_bilangan':
+        # Pengecoh sah: bilangan lain yang memang tertulis di soal (kunci dibuang oleh saringan).
+        nilai += [str(x) for x in p['bilangan']]
     elif tid == 'bandingkan_bilangan':
         # Tiga opsi tetap <, >, = ; dua pengecoh = dua simbol lain, bukan dari malrule.
         nilai += list(SIMBOL_PERBANDINGAN)

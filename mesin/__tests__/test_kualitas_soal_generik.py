@@ -8,8 +8,12 @@ menghasilkan 45/133 tanda tangan, dari domain eksplisit 45/145 pasangan.
 Batch 2 (6 Nov 2026): kurang_dasar 55/96 (domain 55/100) dan bilangan_hilang
 155/231 dengan 4 bentuk (domain 180/580), nilai_tempat 20/176 (domain 20/237),
 bandingkan_bilangan 168/241 (domain 218/695), diukur dari kode.
-Bilangan-sekolah Tahap A (20 Nov 2026): nilai_tempat_besar P3 4/283, P4 5/299,
-P5 12/300 dengan tiga bentuk; domain terlalu besar untuk dienumerasi.
+Bilangan-sekolah (20 Nov 2026): lima jenis, 10 soal per lembar (dua per jenis).
+Tahap A nilai_tempat_besar P3 4/283, P4 5/299, P5 12/300 dengan tiga bentuk;
+Tahap B urutkan_bilangan, tambah_kurang_bersusun, kali_bagi_sekolah (P3 fakta
+domain sah 161 -> 144 teramati), dan kalimat_matematika (empat bentuk per level).
+Konsentrasi kerangka lembar terukur 1,90/1,90/1,93 (di bawah 2,1), jadi
+UTANG_LEMBAR Tahap A dilunasi dan dihapus.
 Angka batch diukur lewat ukur_batch_fase3.py (artefak lokal). Tidak membutuhkan
 artefak docs/plan yang di-ignore. Kebenaran kunci/malrule tetap solver domain.
 G1 numerik ada di test_question_position; registry di sini menolak kelompok
@@ -41,6 +45,10 @@ bilangan-dasar bilangan_hilang P1:4:155:- P2:4:231:-
 bilangan-dasar nilai_tempat P1:2:20:- P2:3:176:-
 bilangan-dasar bandingkan_bilangan P1:1:168:- P2:1:241:-
 bilangan-sekolah nilai_tempat_besar P3:4:283:lengkapi_panjang,nilai_angka,susun_panjang P4:5:299:lengkapi_panjang,nilai_angka,susun_panjang P5:12:300:lengkapi_panjang,nilai_angka,susun_panjang
+bilangan-sekolah urutkan_bilangan P3:2:300:terbesar,terkecil P4:2:300:terbesar,terkecil P5:2:300:terbesar,terkecil
+bilangan-sekolah tambah_kurang_bersusun P3:2:300:kurang,tambah P4:2:300:kurang,tambah P5:2:300:kurang,tambah
+bilangan-sekolah kali_bagi_sekolah P3:2:144:bagi,kali P4:2:262:bagi,kali P5:2:300:bagi,kali
+bilangan-sekolah kalimat_matematika P3:4:292:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P4:4:300:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P5:4:267:bagi_akhir,bagi_awal,kali_akhir,kali_awal
 berhitung-sekolah nilai_tempat_ribuan P3:2:257:nilai_angka,selisih_nilai P4:4:298:nilai_angka,selisih_nilai
 berhitung-sekolah pecahan_bagian_dasar P3:6:162:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian P4:6:204:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian
 berhitung-sekolah pembagian_dasar P3:5:204:bagi_rata,operasi P4:5:254:bagi_rata,operasi
@@ -148,9 +156,9 @@ teori-bilangan jumlah_kelipatan P4:1:279:- P5:1:294:-
 _LEMBAR = """
 bilangan-dasar P1 10 1
 bilangan-dasar P2 10 1
-bilangan-sekolah P3 8 1
-bilangan-sekolah P4 8 1
-bilangan-sekolah P5 8 1
+bilangan-sekolah P3 10 5
+bilangan-sekolah P4 10 5
+bilangan-sekolah P5 10 5
 berhitung-sekolah P3 8 4
 berhitung-sekolah P4 8 4
 aritmatika-lanjut P5 10 7
@@ -213,16 +221,12 @@ ALASAN_RUANG = {
     "deret_terbalik_aritmetika": "Awal/beda/posisi terbatas; 147 sampel bukan batas matematis.",
     "siklus_hari": "Tujuh hari dikali pool 6/7 jarak hari; support 42/49.",
     "jumlah_deret": "P6 awal 1..9 x empat beda x empat panjang; 119 sampel dari support 144.",
+    "kali_bagi_sekolah": "Fakta P3 kali 2..10 x 2..10 dan bagi padanannya: domain sah 161; seed 0..299 mengukur 144; diuji enumerator.",
 }
 # Utang lama P4 tetap lunas. Pengecualian baru hanya topik manual P1/P2.
 UTANG_LEMBAR = {
     ("bilangan-dasar", "P1"): (10.0, "writer bawaan (OSN_DASAR_LENGKAP=0) hanya tambah_dasar; campuran menyusul"),
     ("bilangan-dasar", "P2"): (10.0, "writer bawaan (OSN_DASAR_LENGKAP=0) hanya tambah_dasar; campuran menyusul"),
-    # Tahap A bilangan-sekolah (20 Nov 2026): satu jenis dengan tiga bentuk, jadi kerangka teks
-    # berulang (terukur 3,87/3,74/3,32); Tahap B menambah empat jenis lain dan melunasi utang ini.
-    ("bilangan-sekolah", "P3"): (4.0, "Tahap A satu jenis tiga bentuk; Tahap B menambah empat jenis"),
-    ("bilangan-sekolah", "P4"): (4.0, "Tahap A satu jenis tiga bentuk; Tahap B menambah empat jenis"),
-    ("bilangan-sekolah", "P5"): (3.5, "Tahap A satu jenis tiga bentuk; Tahap B menambah empat jenis"),
 }
 POLA_ANGKA = re.compile(r"\d+(?:[.,]\d+)?")
 

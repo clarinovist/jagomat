@@ -58,6 +58,10 @@ KELOMPOK = {
     # siklus. `katalog_target` melewati topik manual-saja walau grup ini ada.
     "bilangan-sekolah": (
         ("nilai_tempat_besar", "Nilai tempat bilangan besar", ("nilai_tempat_besar",)),
+        ("urutkan_bilangan", "Bilangan terbesar dan terkecil", ("urutkan_bilangan",)),
+        ("tambah_kurang_bersusun", "Penjumlahan dan pengurangan bersusun", ("tambah_kurang_bersusun",)),
+        ("kali_bagi_sekolah", "Perkalian dan pembagian habis", ("kali_bagi_sekolah",)),
+        ("kalimat_matematika", "Kalimat matematika", ("kalimat_matematika",)),
     ),
     "berhitung-sekolah": (
         ("perkalian_dasar", "Perkalian dasar kelas 3–4", ("perkalian_dasar",)),

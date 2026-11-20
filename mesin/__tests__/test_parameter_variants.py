@@ -9,7 +9,8 @@ Pengecualian sempit: keputusan pengguna 30 Okt 2026 untuk bilangan-dasar
 P1/P2 membatasi hasil sampai 20. Domain sah memang kecil (45/145 pasangan),
 bukan sampler hardcoded; jangan memperlebar angka atau variasi nama/benda.
 Tiap (template, level) wajib >=ceil(90% domain enumerator) dalam 500 seed,
-dan seluruh sampel wajib anggota domain. Topik lain tetap >=200.
+dan seluruh sampel wajib anggota domain. Pengecualian kedua: fakta kali/bagi P3
+bilangan-sekolah (domain sah 161). Topik lain tetap >=200.
 
 Kontrak yang diuji:
   - tiap (template, level) di paket BARU (di luar 19 template asli)
@@ -32,6 +33,7 @@ import topics  # noqa: E402
 from generator import buat_lembar, buat_soal  # noqa: E402
 
 JUMLAH_SEED = 500
+FAKTA_P3 = ("bilangan-sekolah", "kali_bagi_sekolah", "P3")
 
 
 @pytest.fixture(autouse=True)
@@ -129,6 +131,13 @@ def test_template_baru_punya_cukup_kombinasi():
             # besar (bilangan_hilang P2 580): 500 seed tak mungkin menutup 90%,
             # jadi batasnya dipangkas ke 200 unik, selaras guard lama >=200
             # kombinasi untuk template baru. Hanya bilangan-dasar yang longgar.
+            batas = min(ceil(0.9 * len(domain)), BATAS_UNIK_BARU)
+        elif (topik_id, template_id, level) == FAKTA_P3:
+            # Pengecualian sempit kedua: fakta kali/bagi P3 dibatasi 2..10 x 2..10
+            # (keputusan koordinator, Tahap B bilangan-sekolah); domain sah hanya 161.
+            domain = {_canonical(p) for p in topics.ambil(topik_id).domain_parameter(template_id, level)}
+            assert len(domain) == 161 and unik <= domain, (
+                "sampler keluar domain", unik - domain)
             batas = min(ceil(0.9 * len(domain)), BATAS_UNIK_BARU)
         else:
             batas = BATAS_UNIK_BARU if template_id not in _TEMPLATE_BAWAAN else BATAS_UNIK_LAMA

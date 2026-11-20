@@ -18,8 +18,11 @@ import os
 
 NAMA_SAKELAR = "OSN_BILANGAN_SEKOLAH"
 TOPIK_ID = "bilangan-sekolah"
-# Jenis yang hanya boleh DIBUAT saat sakelar hidup (Tahap A: satu jenis).
-TEMPLATE_BARU = frozenset({"nilai_tempat_besar"})
+# Jenis yang hanya boleh DIBUAT saat sakelar hidup (Tahap A + B: lima jenis).
+TEMPLATE_BARU = frozenset({
+    "nilai_tempat_besar", "urutkan_bilangan", "tambah_kurang_bersusun",
+    "kali_bagi_sekolah", "kalimat_matematika",
+})
 PESAN_BELUM_DIBUKA = "Materi ini belum dibuka."
 
 

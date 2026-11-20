@@ -27,6 +27,8 @@ from choice_generation import buat_lembar_pilihan
 
 TOPIK = "bilangan-sekolah"
 TID = "nilai_tempat_besar"
+SEMUA = (TID, "urutkan_bilangan", "tambah_kurang_bersusun", "kali_bagi_sekolah",
+         "kalimat_matematika")  # Tahap A + B
 NAMA = "OSN_BILANGAN_SEKOLAH"
 AKAR_MESIN = Path(__file__).resolve().parents[1]
 FOLDER_TEST = Path(__file__).resolve().parent
@@ -73,11 +75,13 @@ def test_mati_pembaca_tetap_mengenal_topik_dan_id():
     from templates import REGISTRI
     from visual_inventory import inventaris_template
     assert TOPIK in topics.daftar_topik()
-    assert TID in REGISTRI and TID in topics.registri()
-    assert topics.pemilik_template(TID) == TOPIK
-    assert TID in {r["template_id"] for r in inventaris_template()}
-    assert kartu_untuk(TID) is not None
-    assert nama_tipe_soal(TID) != TID
+    inventaris = {r["template_id"] for r in inventaris_template()}
+    for tid in SEMUA:
+        assert tid in REGISTRI and tid in topics.registri()
+        assert topics.pemilik_template(tid) == TOPIK
+        assert tid in inventaris
+        assert kartu_untuk(tid) is not None
+        assert nama_tipe_soal(tid) != tid
 
 
 def _harus_ditolak(fungsi, *args, **kwargs):
@@ -94,9 +98,11 @@ def periksa_pembuatan_ditolak():
     gabungan = topics.gabungan([TOPIK, "pola-bilangan"])
     for level in ("P3", "P4", "P5"):
         _harus_ditolak(generator.buat_lembar, 0, level=level, topik=TOPIK)
-        _harus_ditolak(generator.buat_lembar, 0, urutan=(TID,) * 3, level=level, topik=TOPIK)
+        for tid in SEMUA:
+            _harus_ditolak(generator.buat_lembar, 0, urutan=(tid,) * 3, level=level, topik=TOPIK)
         _harus_ditolak(buat_lembar_pilihan, 0, level=level, topik=TOPIK)
-    _harus_ditolak(generator.buat_lembar, 0, urutan=(TID,), level="P3", topik=gabungan)
+    for tid in SEMUA:
+        _harus_ditolak(generator.buat_lembar, 0, urutan=(tid,), level="P3", topik=gabungan)
 
 
 def periksa_topik_tidak_ditawarkan():
@@ -123,12 +129,14 @@ def test_mati_palang_materi_dan_template():
     with pytest.raises(ValueError, match="belum dibuka"):
         question_context.pastikan_materi_dibuka(["pola-bilangan", TOPIK])
     question_context.pastikan_materi_dibuka(["pola-bilangan"])
-    assert versi.template_dibuka(TID) is False
-    assert basic.template_dibuka(TID) is False
-    with pytest.raises(ValueError, match="belum dibuka"):
-        basic.pastikan_template_dibuka([TID])
-    with pytest.raises(ValueError, match="belum dibuka"):
-        versi.pastikan_template_dibuka(["pola-bilangan", TID])
+    for tid in SEMUA:
+        assert versi.template_dibuka(tid) is False
+        assert basic.template_dibuka(tid) is False
+        with pytest.raises(ValueError, match="belum dibuka"):
+            basic.pastikan_template_dibuka([tid])
+        with pytest.raises(ValueError, match="belum dibuka"):
+            versi.pastikan_template_dibuka(["pola-bilangan", tid])
+    assert versi.TEMPLATE_BARU == frozenset(SEMUA)
     assert versi.template_dibuka("tambah_dasar") is True
     assert versi.topik_dibuka("pola-bilangan") is True
     assert versi.topik_dibuka(TOPIK) is False
@@ -144,13 +152,13 @@ def test_mati_identitas_registri_campuran_dan_siklus_sama_dengan_sebelumnya():
     assert sidik_terukur() == SIDIK_BASELINE
 
 
-def test_mati_registri_hanya_bertambah_satu_template_pembaca():
+def test_mati_registri_hanya_bertambah_lima_template_pembaca():
     import json as _json
     from baseline_bilangan_sekolah import sidik as _sidik
-    # Registri lama (sebelum topik) = registri sekarang tanpa satu template baru.
+    # Registri lama (sebelum topik) = registri sekarang tanpa lima template Bilangan Sekolah.
     sekarang = sorted(topics.registri())
-    lama = [t for t in sekarang if t != TID]
-    assert len(sekarang) == len(lama) + 1
+    lama = [t for t in sekarang if t not in SEMUA]
+    assert len(sekarang) == len(lama) + len(SEMUA)
     assert _sidik(lama) == "84403c14c5da72645600"
     assert [t for t in topics.daftar_topik() if t != TOPIK] == [
         "aritmatika-lanjut", "aritmetika-dasar", "berhitung-sekolah", "bilangan-dasar",
@@ -162,7 +170,7 @@ def test_mati_registri_hanya_bertambah_satu_template_pembaca():
 def test_mati_penawaran_dan_pendamping_tidak_memuat_topik():
     periksa_topik_tidak_ditawarkan()
     ids = {t.id for t in assistant_catalog.buat_katalog(untuk_penawaran=True).template}
-    assert TID not in ids
+    assert not ids & set(SEMUA)
     topik = {t.id for t in assistant_catalog.buat_katalog(untuk_penawaran=True).topik}
     assert TOPIK not in topik
 
@@ -196,7 +204,7 @@ def test_hidup_topik_ditawarkan_hanya_di_latihan_manual(hidup):
 def test_hidup_lembar_dan_pilihan_ganda_dibuat(hidup):
     for level in ("P3", "P4", "P5"):
         lembar = generator.buat_lembar(11, level=level, topik=TOPIK)
-        assert {s.template_id for s in lembar.soal} == {TID}
+        assert {s.template_id for s in lembar.soal} == set(SEMUA)
         pg = buat_lembar_pilihan(11, level=level, topik=TOPIK)
         assert len(pg.soal) == len(lembar.soal)
     assert generator.buat_soal(TID, 5, "P3", TOPIK).template_id == TID
@@ -219,9 +227,9 @@ def test_hidup_identitas_registri_campuran_dan_siklus_tetap(hidup):
 
 def test_hidup_penawaran_pendamping_tetap_tidak_memuat_topik(hidup):
     ids = {t.id for t in assistant_catalog.buat_katalog(untuk_penawaran=True).template}
-    assert TID not in ids
+    assert not ids & set(SEMUA)
     audit = {t.id for t in assistant_catalog.buat_katalog(untuk_penawaran=False).template}
-    assert TID in audit, "audit registri utuh tetap mengenal ID"
+    assert set(SEMUA) <= audit, "audit registri utuh tetap mengenal ID"
 
 
 # ── proses terpisah (tidak ada ketergantungan saat impor) ────────────────

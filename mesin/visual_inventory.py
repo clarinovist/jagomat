@@ -129,6 +129,10 @@ _BUKTI_TEMPLATE = MappingProxyType({
     "pecahan_bagian_dasar": ("pecahan", "Penyebut dan pembilang pecahan berpenyebut sama atau sisa potong tertulis eksplisit.", "Cabang sisa_bagian, jumlah_sama_penyebut, dan selisih_sama_penyebut memilih arah operasi."),
     "nilai_tempat_ribuan": ("nilai_tempat", "Bilangan tiga atau empat digit dan posisi ratusan atau ribuan tertulis langsung.", "Cabang nilai_angka dan selisih_nilai menanyakan satu posisi atau selisih dua posisi."),
     "nilai_tempat_besar": ("nilai_tempat", "Bilangan tiga sampai enam angka dan tempat yang ditanya atau bagian bentuk panjangnya tertulis langsung; tahap A kelas 3 sampai 5 sengaja teks tanpa kartu nilai tempat visual.", "Cabang nilai_angka, lengkapi_panjang, dan susun_panjang menanyakan nilai satu angka, bagian yang hilang, atau bilangan hasil gabungan bagian."),
+    "urutkan_bilangan": ("urutan", "Empat bilangan beserta pertanyaan terbesar atau terkecil tertulis langsung dengan titik ribuan; kelas 3 sampai 5 sengaja teks tanpa garis bilangan visual.", "Cabang terbesar dan terkecil hanya membalik ujung urutan yang dicari."),
+    "tambah_kurang_bersusun": ("penjumlahan_pengurangan_bersusun", "Dua bilangan dan tanda tambah atau kurang tertulis lengkap sebagai hitungan bersusun; kelas 3 sampai 5 sengaja teks tanpa kolom visual berwarna.", "Cabang tambah dan kurang memilih operasi yang dikerjakan bersusun."),
+    "kali_bagi_sekolah": ("perkalian_pembagian", "Dua bilangan dan tanda kali atau bagi tertulis lengkap sebagai hitungan sekolah; kelas 3 sampai 5 sengaja teks tanpa gambar kelompok benda.", "Cabang kali dan bagi memilih perkalian atau pembagian habis."),
+    "kalimat_matematika": ("kalimat_matematika", "Dua bilangan, tanda operasi, dan hasil tertulis dalam satu kalimat dengan tempat kosong bertanda titik; kelas 3 sampai 5 sengaja teks tanpa timbangan atau pita visual.", "Bentuk tambah_akhir, tambah_awal, kurang_akhir, kurang_awal, kali_akhir, kali_awal, bagi_akhir, dan bagi_awal hanya memindahkan posisi bilangan yang dicari."),
 })
 
 # topik, template, status, level, diskriminator, nilai varian, override per level
@@ -524,7 +528,11 @@ _ROWS = [('aritmatika-lanjut', 'berpapasan', 'visual_pendamping', ('P6',), (), (
  ('berhitung-sekolah', 'pembagian_dasar', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=bagi_rata', 'varian=operasi'), {}),
  ('berhitung-sekolah', 'pecahan_bagian_dasar', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=jumlah_sama_penyebut', 'varian=selisih_sama_penyebut', 'varian=sisa_bagian'), {}),
  ('berhitung-sekolah', 'nilai_tempat_ribuan', 'sengaja_teks', ('P3', 'P4'), ('varian',), ('varian=nilai_angka', 'varian=selisih_nilai'), {}),
- ('bilangan-sekolah', 'nilai_tempat_besar', 'sengaja_teks', ('P3', 'P4', 'P5'), ('varian',), ('varian=nilai_angka', 'varian=lengkapi_panjang', 'varian=susun_panjang'), {})]
+ ('bilangan-sekolah', 'nilai_tempat_besar', 'sengaja_teks', ('P3', 'P4', 'P5'), ('varian',), ('varian=nilai_angka', 'varian=lengkapi_panjang', 'varian=susun_panjang'), {}),
+ ('bilangan-sekolah', 'urutkan_bilangan', 'sengaja_teks', ('P3', 'P4', 'P5'), ('varian',), ('varian=terbesar', 'varian=terkecil'), {}),
+ ('bilangan-sekolah', 'tambah_kurang_bersusun', 'sengaja_teks', ('P3', 'P4', 'P5'), ('varian',), ('varian=tambah', 'varian=kurang'), {}),
+ ('bilangan-sekolah', 'kali_bagi_sekolah', 'sengaja_teks', ('P3', 'P4', 'P5'), ('varian',), ('varian=kali', 'varian=bagi'), {}),
+ ('bilangan-sekolah', 'kalimat_matematika', 'sengaja_teks', ('P3', 'P4', 'P5'), ('varian',), ('varian=tambah_akhir', 'varian=tambah_awal', 'varian=kurang_akhir', 'varian=kurang_awal', 'varian=kali_akhir', 'varian=kali_awal', 'varian=bagi_akhir', 'varian=bagi_awal'), {'P3': ('varian=tambah_akhir', 'varian=tambah_awal', 'varian=kurang_akhir', 'varian=kurang_awal'), 'P4': ('varian=tambah_akhir', 'varian=tambah_awal', 'varian=kurang_akhir', 'varian=kurang_awal'), 'P5': ('varian=kali_akhir', 'varian=kali_awal', 'varian=bagi_akhir', 'varian=bagi_awal')})]
 
 
 def _bekukan(nilai: Any) -> Any:

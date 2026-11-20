@@ -10,6 +10,38 @@
     "Minta anak menulis bentuk panjang bilangan itu, lalu menjumlahkannya kembali untuk memeriksa."
    ],
    "tindak_lanjut": "Pakai kartu nilai tempat: tulis tiap angka pada kolomnya, ganti dengan nilainya (3 ratusan = 300), lalu jumlahkan semua nilainya dan bandingkan dengan bilangan awal."
+  },
+  "urutkan_bilangan": {
+   "pertanyaan": [
+    "Minta anak menghitung banyak angka tiap bilangan sebelum membandingkan apa pun.",
+    "Tanya: 87 atau 4.372 yang lebih besar? Angka depan 8 lebih besar dari 4, tapi kenapa 87 tetap kecil?",
+    "Minta anak membaca soalnya lagi: yang dicari terbesar atau terkecil? Tunjuk katanya."
+   ],
+   "tindak_lanjut": "Tulis bilangan-bilangan itu berderet dengan kolom ribuan, ratusan, puluhan, satuan. Mulai dari kolom paling kiri yang terisi, banyak kolom yang terisi menentukan bilangan mana yang lebih besar."
+  },
+  "tambah_kurang_bersusun": {
+   "pertanyaan": [
+    "Minta anak menulis soalnya bersusun dengan angka sejajar menurut tempatnya, lalu mengerjakan dari kolom satuan.",
+    "Tanya: kolom ini jumlahnya 10 atau lebih? Angka berapa yang ditulis dan berapa yang disimpan?",
+    "Tanya: angka atas lebih kecil dari angka bawah? Dari kolom mana kamu meminjam, dan kolom itu jadi berapa?"
+   ],
+   "tindak_lanjut": "Pakai kepingan satuan dan puluhan: tukar 10 satuan dengan 1 puluhan saat menyimpan, bongkar 1 puluhan jadi 10 satuan saat meminjam. Lalu kerjakan lagi bersusun, tulis simpanan dan pinjamannya."
+  },
+  "kali_bagi_sekolah": {
+   "pertanyaan": [
+    "Tanya: soal ini kali atau bagi? Minta anak menceritakan artinya dengan kelompok benda.",
+    "Minta anak memecah bilangan menurut nilai tempat, lalu mengalikan tiap bagian dan menjumlahkannya.",
+    "Tanya: kalau kamu kalikan hasil bagi dengan pembagi, kembali ke bilangan awal atau tidak?"
+   ],
+   "tindak_lanjut": "Untuk kali, susun benda dalam kelompok sama banyak lalu hitung semuanya. Untuk bagi, bagikan satu per satu, lalu periksa dengan mengalikan hasil bagi dan pembagi sampai sama dengan bilangan awal."
+  },
+  "kalimat_matematika": {
+   "pertanyaan": [
+    "Minta anak membaca kalimatnya keras-keras dan menyebut apa yang dicari: bilangan yang mana?",
+    "Tanya: kalau jawabanmu dimasukkan ke tempat kosong, kalimatnya jadi benar atau tidak?",
+    "Tanya: bilangan awalnya bertambah atau berkurang untuk sampai ke hasil? Operasi apa yang membalikkannya?"
+   ],
+   "tindak_lanjut": "Gambar kalimat sebagai kotak yang tertutup: tutup bilangan yang dicari, tunjukkan operasi kebalikannya (tambah dengan kurang, kali dengan bagi), lalu masukkan jawaban dan periksa hasilnya."
   }
  }
 }

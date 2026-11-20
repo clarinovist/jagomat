@@ -1,9 +1,11 @@
 """Bilangan Sekolah kelas 3–5 (P3–P5), khusus Latihan manual guru dan lembar cetak.
 
-Tahap A: satu jenis soal, `nilai_tempat_besar` (nilai angka menurut tempatnya,
-dan bentuk panjang: menyusun dan membongkar bilangan). Semua soal teks angka,
-tanpa gambar. Malrule hanya HIPOTESIS kesalahan umum untuk ditinjau guru, bukan
-diagnosis pasti dari satu jawaban.
+Lima jenis soal: `nilai_tempat_besar` (modul ini; Tahap A), `urutkan_bilangan`
+(`school_numbers_order`), `tambah_kurang_bersusun` (`school_numbers_column`),
+`kali_bagi_sekolah` (`school_numbers_muldiv`), dan `kalimat_matematika`
+(`school_numbers_equation`; Tahap B). Semua soal teks angka, tanpa gambar.
+Malrule hanya HIPOTESIS kesalahan umum untuk ditinjau guru, bukan diagnosis
+pasti dari satu jawaban. Rentang tiap jenis ada di modulnya masing-masing.
 
 Palang: topik ini `hanya_manual`, jadi tidak ikut Campuran, siklus terpandu,
 mastery, atau Pendamping karena belum punya grup mastery, kartu intervensi, dan
@@ -20,6 +22,13 @@ from __future__ import annotations
 
 import random
 
+import school_numbers_column as susun
+import school_numbers_equation as kalimat
+import school_numbers_muldiv as kalibagi
+import school_numbers_order as urutkan
+from school_numbers_common import KALI, NAMA_TEMPAT
+from school_numbers_common import digit as _digit
+from school_numbers_common import ribuan as _ribuan
 from templates import Malrule, Soal, saring_malrule
 from topics import Topik, daftarkan
 
@@ -28,9 +37,6 @@ VARIAN = ("nilai_angka", "lengkapi_panjang", "susun_panjang")
 BATAS_BAWAH, BATAS_ATAS = 100, 999_999
 JUMLAH_ANGKA_PER_LEVEL = {"P3": (3,), "P4": (4,), "P5": (5, 6)}
 PROFIL_LEVEL = {level: {} for level in JUMLAH_ANGKA_PER_LEVEL}
-JUMLAH_SOAL_LEMBAR = 8
-NAMA_TEMPAT = ("satuan", "puluhan", "ratusan", "ribuan", "puluhan ribu", "ratusan ribu")
-KALI = "×"
 
 ID_ANGKA_SAJA = TEMPLATE_ID + ".angka_saja"
 ID_TEMPAT_TETANGGA = TEMPLATE_ID + ".tempat_tetangga"
@@ -38,15 +44,6 @@ ID_NOL_KURANG = TEMPLATE_ID + ".nol_kurang_satu"
 ID_ANGKA_DIJUMLAH = TEMPLATE_ID + ".angka_dijumlah"
 ID_TERATAS_TERTUKAR = TEMPLATE_ID + ".angka_teratas_tertukar"
 ID_SATUAN_TERLEWAT = TEMPLATE_ID + ".satuan_terlewat"
-
-
-def _ribuan(n: int) -> str:
-    """Titik ribuan gaya Indonesia untuk teks; kunci dan malrule tetap angka polos."""
-    return f"{n:,}".replace(",", ".")
-
-
-def _digit(bilangan: int, posisi: int) -> int:
-    return bilangan // 10 ** posisi % 10
 
 
 def _sah(varian, bilangan, posisi) -> bool:
@@ -186,11 +183,7 @@ def _acak_bilangan(rng: random.Random, panjang: int, boleh_nol: bool) -> int:
     return int("".join(str(a) for a in [awal] + rng.sample(sisa, panjang - 1)))
 
 
-def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
-    if template_id != TEMPLATE_ID:
-        raise KeyError(template_id)
-    if level not in JUMLAH_ANGKA_PER_LEVEL:
-        raise ValueError("level bilangan sekolah harus P3, P4, atau P5")
+def _parameter_nilai_tempat(rng: random.Random, level: str) -> dict:
     panjang = rng.choice(JUMLAH_ANGKA_PER_LEVEL[level])
     varian = rng.choice(VARIAN)
     bilangan = _acak_bilangan(rng, panjang, boleh_nol=(varian == "nilai_angka"))
@@ -200,8 +193,35 @@ def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
     return {"varian": varian, "bilangan": bilangan, "posisi": rng.choice(layak)}
 
 
-REGISTRI_TOPIK = {TEMPLATE_ID: nilai_tempat_besar}
-KOMPOSISI = {level: (TEMPLATE_ID,) * JUMLAH_SOAL_LEMBAR for level in PROFIL_LEVEL}
+# template_id -> sampler (rng, level) -> parameter; satu pemilik aturan batas angka per jenis.
+SAMPLER = {
+    TEMPLATE_ID: _parameter_nilai_tempat,
+    urutkan.TEMPLATE_ID: urutkan.parameter,
+    susun.TEMPLATE_ID: susun.parameter,
+    kalibagi.TEMPLATE_ID: kalibagi.parameter,
+    kalimat.TEMPLATE_ID: kalimat.parameter,
+}
+
+
+def _parameter(template_id: str, rng: random.Random, level: str) -> dict:
+    if template_id not in SAMPLER:
+        raise KeyError(template_id)
+    if level not in PROFIL_LEVEL:
+        raise ValueError("level bilangan sekolah harus P3, P4, atau P5")
+    return SAMPLER[template_id](rng, level)
+
+
+REGISTRI_TOPIK = {
+    TEMPLATE_ID: nilai_tempat_besar,
+    urutkan.TEMPLATE_ID: urutkan.urutkan_bilangan,
+    susun.TEMPLATE_ID: susun.tambah_kurang_bersusun,
+    kalibagi.TEMPLATE_ID: kalibagi.kali_bagi_sekolah,
+    kalimat.TEMPLATE_ID: kalimat.kalimat_matematika,
+}
+# Urutan bagian A..E; tiap jenis dua soal per lembar (lembar dikocok `_acak_urutan`).
+URUTAN_JENIS = tuple(REGISTRI_TOPIK)
+JUMLAH_PER_JENIS = 2
+KOMPOSISI = {level: URUTAN_JENIS * JUMLAH_PER_JENIS for level in PROFIL_LEVEL}
 
 
 daftarkan(Topik(
@@ -212,8 +232,21 @@ daftarkan(Topik(
     templates=REGISTRI_TOPIK,
     komposisi=KOMPOSISI,
     profil=PROFIL_LEVEL,
-    judul_bagian={"A": "Bagian A — Nilai tempat bilangan besar"},
-    catatan_bagian={"A": "Perhatikan beda antara angka dan nilainya menurut tempat."},
+    judul_bagian={
+        "A": "Bagian A — Nilai tempat bilangan besar",
+        "B": "Bagian B — Terbesar dan terkecil",
+        "C": "Bagian C — Penjumlahan dan pengurangan bersusun",
+        "D": "Bagian D — Perkalian dan pembagian",
+        "E": "Bagian E — Kalimat matematika",
+    },
+    catatan_bagian={
+        "A": "Perhatikan beda antara angka dan nilainya menurut tempat.",
+        "B": "Lihat dulu banyak angka tiap bilangan, baru bandingkan angkanya.",
+        "C": "Tulis bilangan bersusun dan perhatikan simpanan atau pinjaman tiap kolom.",
+        "D": "Gunakan kertas coretan untuk perkalian dan pembagian bersusun.",
+        "E": "Tanda ... adalah bilangan yang harus kamu cari.",
+    },
     parameter_untuk=_parameter,
+    domain_parameter=kalibagi.domain_parameter,
     hanya_manual=True,
 ))

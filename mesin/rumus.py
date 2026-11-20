@@ -86,6 +86,26 @@ KARTU: dict[str, Kartu] = {
         inti="Nilai angka = angka × nilai tempatnya: satuan ×1, puluhan ×10, ratusan ×100, ribuan ×1.000, dan seterusnya. Bentuk panjang menjumlahkan nilai semua angka.",
         contoh="Pada 345.678, angka 4 di puluhan ribu bernilai 40.000. 345.678 = 300.000 + 40.000 + 5.000 + 600 + 70 + 8.",
     ),
+    "urutkan_bilangan": Kartu(
+        judul="Terbesar dan terkecil",
+        inti="Lihat banyak angka dulu: bilangan yang angkanya lebih banyak lebih besar. Kalau banyak angkanya sama, bandingkan dari angka paling depan, lalu angka berikutnya.",
+        contoh="Dari 4.372, 87, dan 5.210: 87 hanya 2 angka, jadi terkecil. Terbesar 5.210, sebab 5 lebih besar dari 4.",
+    ),
+    "tambah_kurang_bersusun": Kartu(
+        judul="Penjumlahan dan pengurangan bersusun",
+        inti="Mulai dari kolom satuan. Jumlah 10 atau lebih: tulis satuannya dan simpan 1 ke kolom berikutnya. Angka atas lebih kecil: pinjam 1 dari kolom berikutnya (jadi 10 lebih banyak), kolom itu berkurang 1.",
+        contoh="468 + 357: 8 + 7 = 15, tulis 5 simpan 1; 6 + 5 + 1 = 12, tulis 2 simpan 1; 4 + 3 + 1 = 8. Hasilnya 825.",
+    ),
+    "kali_bagi_sekolah": Kartu(
+        judul="Perkalian dan pembagian habis",
+        inti="Pecah bilangan menurut nilai tempat lalu kalikan tiap bagian, jumlahkan hasilnya. Pembagian dicek dengan perkalian: hasil bagi dikali pembagi harus sama dengan bilangan yang dibagi.",
+        contoh="348 × 25 = (348 × 20) + (348 × 5) = 6.960 + 1.740 = 8.700. 7.200 ÷ 36 = 200, karena 36 × 200 = 7.200.",
+    ),
+    "kalimat_matematika": Kartu(
+        judul="Kalimat matematika",
+        inti="Bilangan yang hilang dicari dengan operasi kebalikan: tambah dengan kurang, kali dengan bagi. Cek dengan memasukkan jawaban ke kalimatnya.",
+        contoh="45 + ... = 120, maka 120 − 45 = 75. Cek: 45 + 75 = 120.",
+    ),
     "kelipatan_rentang": Kartu(
         judul="Menghitung kelipatan dalam rentang",
         inti="Hitung kelipatan sampai batas akhir, lalu kurangi kelipatan sebelum batas awal. Kedua batas ikut dihitung.",
@@ -460,6 +480,10 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "pecahan_bagian_dasar": "pecahan",
     "nilai_tempat_ribuan": "nilai_tempat_ribuan",
     "nilai_tempat_besar": "nilai_tempat_besar",
+    "urutkan_bilangan": "urutkan_bilangan",
+    "tambah_kurang_bersusun": "tambah_kurang_bersusun",
+    "kali_bagi_sekolah": "kali_bagi_sekolah",
+    "kalimat_matematika": "kalimat_matematika",
     # statistika
     "rata_rata": "rata_rata",
     "rata_rata_gabungan": "rata_rata",

@@ -33,6 +33,8 @@ from templates import LEVEL, LEVEL_TINGKAT
 
 TOPIK = "bilangan-sekolah"
 TID = "nilai_tempat_besar"
+SEMUA = (TID, "urutkan_bilangan", "tambah_kurang_bersusun", "kali_bagi_sekolah",
+         "kalimat_matematika")  # Tahap A + B: semua jenis topik ini manual-saja
 NAMA_TOPIK = "Bilangan Sekolah"
 
 
@@ -67,15 +69,15 @@ def mutasi(monkeypatch):
 
 def situs_campuran():
     campuran = topics.ambil("campuran")
-    assert TID not in campuran.templates, "Campuran memuat template manual-saja"
+    assert not set(SEMUA) & set(campuran.templates), "Campuran memuat template manual-saja"
     for level in LEVEL:
-        assert TID not in campuran.komposisi.get(level, ()), ("komposisi Campuran bocor", level)
-        assert TID not in campuran.komposisi_untuk(level), ("writer Campuran bocor", level)
+        assert not set(SEMUA) & set(campuran.komposisi.get(level, ())), ("komposisi Campuran bocor", level)
+        assert not set(SEMUA) & set(campuran.komposisi_untuk(level)), ("writer Campuran bocor", level)
 
 
 def situs_siklus_lintas_topik():
     for level in LEVEL_TINGKAT:
-        assert TID not in learning_sessions._template_lintas_topik(level, 400), (
+        assert not set(SEMUA) & set(learning_sessions._template_lintas_topik(level, 400)), (
             "pemetaan/probe/pembanding siklus bocor", level)
 
 
@@ -83,7 +85,8 @@ def situs_ubah_fokus_ui():
     for level in LEVEL_TINGKAT:
         html_ubah = learning_cycle_ui._override(
             SimpleNamespace(tindakan="intervensi", putaran=SimpleNamespace(level=level)), 7)
-        assert f'value="{TID}"' not in html_ubah, ("pilihan ubah fokus bocor", level)
+        assert not any(f'value="{tid}"' in html_ubah for tid in SEMUA), (
+            "pilihan ubah fokus bocor", level)
 
 
 def situs_pemilih_pemetaan():
@@ -95,14 +98,15 @@ def situs_pemilih_pemetaan():
 
 def situs_pendamping():
     katalog = assistant_catalog.buat_katalog(untuk_penawaran=True)
-    assert TID not in {t.id for t in katalog.template}, "Pendamping menawarkan template"
+    assert not set(SEMUA) & {t.id for t in katalog.template}, "Pendamping menawarkan template"
     assert TOPIK not in {t.id for t in katalog.topik}, "Pendamping menawarkan topik"
-    try:
-        assistant_actions.validasi_usulan({
-            "topik_id": TOPIK, "template_ids": [TID], "level": "P4", "jumlah_soal": 10})
-    except assistant_actions.GalatTindakan:
-        return
-    raise AssertionError("Pendamping menawarkan usulan manual-saja yang seharusnya ditolak")
+    for tid in SEMUA:
+        try:
+            assistant_actions.validasi_usulan({
+                "topik_id": TOPIK, "template_ids": [tid], "level": "P4", "jumlah_soal": 10})
+        except assistant_actions.GalatTindakan:
+            continue
+        raise AssertionError("Pendamping menawarkan usulan manual-saja yang seharusnya ditolak")
 
 
 def situs_katalog_mastery():
@@ -110,17 +114,18 @@ def situs_katalog_mastery():
     assert TOPIK in mastery_catalog.KELOMPOK, "grup audit bilangan-sekolah wajib ada"
     for level in LEVEL:
         for target in mastery_catalog.katalog_target(level):
-            assert TID not in target.pola and target.topik_id != TOPIK, ("mastery bocor", level)
+            assert not set(SEMUA) & set(target.pola) and target.topik_id != TOPIK, ("mastery bocor", level)
 
 
 def situs_fokus_rencana():
-    rencana = SimpleNamespace(kandidat=((TID, "K", None),), putaran=None, tindakan="intervensi")
-    try:
-        learning_sessions._fokus_rencana(rencana)
-    except ValueError as galat:
-        assert "latihan manual" in str(galat), galat
-        return
-    raise AssertionError("fokus siklus dengan template manual-saja seharusnya ditolak")
+    for tid in SEMUA:
+        rencana = SimpleNamespace(kandidat=((tid, "K", None),), putaran=None, tindakan="intervensi")
+        try:
+            learning_sessions._fokus_rencana(rencana)
+        except ValueError as galat:
+            assert "latihan manual" in str(galat), galat
+            continue
+        raise AssertionError("fokus siklus dengan template manual-saja seharusnya ditolak")
 
 
 def situs_override_service(tmp_path):
@@ -128,12 +133,13 @@ def situs_override_service(tmp_path):
     database.siapkan(lokasi)
     with database.buka(lokasi) as kon:
         siswa = database.tambah_siswa(kon, "Anak Sintetis", tingkat="P4", pemilik="guru")
-        try:
-            learning_cycle_service._ubah_fokus(kon, siswa, (TID, "K", None))
-        except ValueError as galat:
-            assert "latihan manual" in str(galat), galat
-            return
-    raise AssertionError("override fokus ke template manual-saja seharusnya ditolak")
+        for tid in SEMUA:
+            try:
+                learning_cycle_service._ubah_fokus(kon, siswa, (tid, "K", None))
+            except ValueError as galat:
+                assert "latihan manual" in str(galat), galat
+                continue
+            raise AssertionError("override fokus ke template manual-saja seharusnya ditolak")
 
 
 SITUS_TANPA_BERKAS = {
@@ -163,7 +169,7 @@ def test_hanya_topik_ini_yang_manual_saja_dan_atribut_default_salah():
     assert punya == {TOPIK}
     assert topics.daftar_topik_siklus() == [
         t for t in topics.daftar_topik() if t not in ("campuran", TOPIK)]
-    assert topics.template_hanya_manual(TID) is True
+    assert all(topics.template_hanya_manual(tid) is True for tid in SEMUA)
     assert topics.template_hanya_manual("tambah_dasar") is False
     assert topics.template_hanya_manual("tidak_ada") is False
 
@@ -182,21 +188,22 @@ def test_guru_tetap_bisa_memilih_di_latihan_manual_dan_cetak():
     question_context.validasi_pilihan([TOPIK], "P4")
     assert question_context.profil_otomatis([TOPIK], "P6") == "P5"
     lembar = generator.buat_lembar(9, level="P4", topik=TOPIK)
-    assert {s.template_id for s in lembar.soal} == {TID}
+    assert {s.template_id for s in lembar.soal} == set(SEMUA)
     paket = topics.gabungan([TOPIK, "pola-bilangan"])
-    assert TID in paket.templates and TID in paket.komposisi["P4"]
+    assert set(SEMUA) <= set(paket.templates) and set(SEMUA) <= set(paket.komposisi["P4"])
     # Pemilih isi Latihan manual (kartu variasi) mengenal topik ini.
     assert NAMA_TOPIK in question_variants_ui.pemilih_isi([TOPIK], "manual")
 
 
 def test_pembaca_histori_dan_inventaris_tetap_mengenal():
     assert topics.dari_sesi(TOPIK).id == TOPIK
-    assert topics.pemilik_template(TID) == TOPIK
-    assert topics.paket_untuk_template([TID]).id == TOPIK
-    assert TID in topics.registri()
+    for tid in SEMUA:
+        assert topics.pemilik_template(tid) == TOPIK
+        assert topics.paket_untuk_template([tid]).id == TOPIK
+        assert tid in topics.registri()
+        question_context.konteks_warisan(tid, "P4")
     konteks = {(k.template_id, k.profil_parameter) for k in question_context.daftar_konteks()}
-    assert {(TID, "P3"), (TID, "P4"), (TID, "P5")} <= konteks
-    question_context.konteks_warisan(TID, "P4")
+    assert {(tid, lv) for tid in SEMUA for lv in ("P3", "P4", "P5")} <= konteks
 
 
 def test_topik_manual_saja_tetap_menyaring_remedial_dasar_tidak_berubah():

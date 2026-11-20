@@ -64,12 +64,12 @@ def solver_dari_teks(teks: str) -> str:
 
 # ── domain ───────────────────────────────────────────────────────────────
 
-def test_topik_terdaftar_tiga_level_satu_jenis():
+def test_topik_terdaftar_tiga_level_memuat_nilai_tempat_besar():
     paket = topics.ambil(TOPIK)
     assert tuple(paket.komposisi) == LEVEL
     for level in LEVEL:
-        assert set(paket.komposisi[level]) == {TID}
-    assert set(paket.templates) == {TID}
+        assert TID in paket.komposisi[level]
+    assert TID in paket.templates
     assert TID in topics.registri() and TID in REGISTRI
     assert paket.hanya_manual is True
     assert not paket.unik_per_lembar
@@ -345,7 +345,9 @@ def test_lembar_identik_lintas_pythonhashseed():
 
 
 def test_sumber_tidak_memakai_hash_bawaan():
-    for nama in ("topic_school_numbers.py", "school_numbers_versions.py"):
+    for nama in ("topic_school_numbers.py", "school_numbers_versions.py", "school_numbers_common.py",
+                 "school_numbers_order.py", "school_numbers_column.py", "school_numbers_muldiv.py",
+                 "school_numbers_equation.py"):
         sumber = (AKAR_MESIN / nama).read_text(encoding="utf-8")
         assert not re.search(r"(?<![\w.])hash\(", sumber), nama
 
@@ -358,8 +360,10 @@ def test_sapu_seed_0_24_lembar_dan_render(level):
     for seed in SEED:
         lembar = generator.buat_lembar(seed, level=level, topik=TOPIK)
         assert len(lembar.soal) == len(paket.komposisi_untuk(level))
-        for soal in lembar.soal:
-            assert soal.template_id == TID and soal.level == level
+        milik_tahap_a = [s for s in lembar.soal if s.template_id == TID]
+        assert len(milik_tahap_a) == 2
+        for soal in milik_tahap_a:
+            assert soal.level == level
             assert soal.malrule, (level, seed)
             assert soal.kunci == solver_dari_teks(soal.teks)
             ulang = replace(REGISTRI[TID](**soal.parameter), level=level)
