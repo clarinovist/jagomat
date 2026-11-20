@@ -6,6 +6,45 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy cetakan soal berpola dan draf cetakan AI — 21 November 2026
+
+Controlled `deploy-v2` memasang **b512df0** (digest `sha256:2b04eb27…8415`), healthy/restart0, menggantikan
+**55aaa499** (WAL lima DB). Isi: halaman admin cetakan soal berpola (C2: daftar, buat, ubah, periksa, setujui,
+nonaktifkan; tabel Kurikulum Merdeka dan "Buat soal" ikut menghitung cetakan aktif) dan draf cetakan dari AI
+(C3: tombol di halaman cetakan bab, kuota 20 permintaan/hari WIB, klien `cetakan_ai` terpisah dari `llm.py`,
+`cetakan_ai.db` opsional). Setiap kandidat divalidasi mesin; yang lolos tetap berstatus draf dan harus disetujui
+Guru. Tanpa migrasi data: `cetakan.db` sudah ada sejak C1 dan `cetakan_ai.db` dibuat saat permintaan pertama.
+
+- Gate dispatch [44834991277](https://github.com/clarinovist/jagomat/actions/runs/44834991277) hijau: kandidat
+  4/4, recovery 4/4, pair terverifikasi, `provider_calls` 0. Kontrak kandidat = recovery = live
+  **`660fe235…7231`**; recovery **4cef3ab** (kode C3 + anchor koleksi 20.512 nodeid, writer2), digest
+  `sha256:b51080b9…6af2`. Dua gate sebelumnya ditahan: kontrak bergeser karena `cetakan_ai_store.py` ikut
+  probe kontrak (diperbaiki dengan pin recovery baru), lalu anchor koleksi shard belum diukur.
+- Kit `deploy-cetakan-ai-20261121`; `PERSIAPAN_OK`, hold 06.29.13–06.30.59 WIB (±1 mnt 46 dtk, Caddy 503, dua
+  cron ditahan), backup empat DB + `sandi.json` + riset, rehearsal C–B–C, `deploy-v2` exit0, reopen
+  `LIVE_ADMIN_HEALTHY`, postcheck exit0.
+- Postcheck: revision/digest exact, `/`200 `/akun`401 `/murid/`303 `/cek-kemampuan`200 `/paket-coba`200
+  `/contoh-peta-kemampuan`200, `/admin/kurikulum` dan `/admin/kurikulum/cetakan` 404 anonim; probe sintetis
+  (writer2, funnel, gerbang bayar, `cetakan_ai`, WAL, level) lulus; galat
+  Traceback/OperationalError/IntegrityError 0; config dan hash histori terjaga. Cleanup 4 direktori, backup
+  dipertahankan.
+- Backup induk `/opt/osn/cadangan/deploy-cetakan-ai-20261121/`, salinan lokal
+  `mesin/cadangan/deploy-cetakan-ai-20261121/` (gitignored). Approval `55aaa499` terkonsumsi diarsipkan ke
+  `approval-consumed-55aaa499.json`.
+- **Uji kunci asli (pasca-deploy):** satu panggilan `cetakan_ai._kirim` dari container untuk kelas 2 bab 2
+  (muatan hanya kelas/bab/aturan, tanpa data anak/akun) selesai 5.272 byte (di bawah 8 KB) tetapi
+  `finish_reason=length` dan `message.content` kosong: `deepseek-flash` menghabiskan 1.500 token pada
+  `reasoning_content` (`reasoning_tokens=1500`). Jalur HTTP karena itu menampilkan "Jawaban AI bukan JSON yang
+  bisa dibaca." **Draf AI belum berguna dengan model/`MAKS_TOKEN` saat ini**; penyesuaian model, `max_tokens`,
+  atau batas byte perlu keputusan dan rilis berikutnya. Jalur manual C2 tidak terpengaruh.
+- **Backup host diperbarui sebelum rilis:** `/opt/osn/backup-tool/mesin` disalin dari source C3 (termasuk
+  `cetakan_ai_store.py` dan `jurnal_wal.py`); `operational_backup.py` dan `backup_harian.py` diganti versi HEAD
+  (`3512b408…`, `1df662d0…`), salinan lama `.bak-20261121`. Validasi bundle lama lulus; backup harian
+  `20261121-053531` dibuat dan diperiksa (lima DB wajib + `sandi.json`; `opsional/` kosong karena berkas
+  opsional belum ada).
+- Sisa: uji UI end-to-end oleh Pemilik (butuh sandi admin) dan keputusan perbaikan draf AI; C4 (cetakan masuk
+  latihan anak) tetap ditunda.
+
 ## Deploy WAL SQLite semua store — 20 November 2026
 
 Controlled `deploy-v2` memasang **55aaa499** (digest `sha256:15436d66…1219`), healthy/restart0, menggantikan
