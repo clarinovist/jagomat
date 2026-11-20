@@ -69,7 +69,7 @@ def test_ai_tes_sintetis_replay_satu_provider_dan_sukses_terlihat(server, monkey
     data = dict(_form_ai(server, token, "uji"), konfirmasi="1")
     kode, _, header = _minta(server, "/admin/ai/uji", cookie=token, data=data)
     assert kode == 303
-    assert "Koneksi sintetis berhasil." in _minta(server, header["Location"], cookie=token)[1]
+    assert "Tes koneksi berhasil." in _minta(server, header["Location"], cookie=token)[1]
     kode, _, _ = _minta(server, "/admin/ai/uji", cookie=token, data=data)
     assert kode == 409 and panggilan == [1]
     with ai_store.buka(ai_service.path_store()) as kon:
@@ -78,7 +78,7 @@ def test_ai_tes_sintetis_replay_satu_provider_dan_sukses_terlihat(server, monkey
         assert row['actor_id'] == auth.cari_akun('Admin-C')['id_akun']
         assert row['status'] == 'selesai'
     kode, audit, _ = _minta(server, '/admin?section=riwayat&sumber=ai', cookie=token)
-    assert kode == 200 and 'Tes sintetis AI' in audit
+    assert kode == 200 and 'Tes koneksi AI' in audit
     assert 'sintetis-bukan-key-asli' not in audit and 'Balas JSON' not in audit
 
 
@@ -486,7 +486,7 @@ def test_ai_reset_saat_network_tidak_terblokir_dan_hasil_dibuang(server, monkeyp
         return {'status': 'ok'}
     monkeypatch.setattr(assistant_client, 'kirim', provider)
     kode, body, header = _minta(server, '/admin/ai/uji', cookie=token, data=data)
-    assert kode == 403 and 'Koneksi sintetis berhasil.' not in body
+    assert kode == 403 and 'Tes koneksi berhasil.' not in body
     assert header['Cache-Control'] == 'no-store'
     with ai_store.buka(ai_service.path_store()) as kon:
         assert kon.execute('SELECT status FROM ledger').fetchone()[0] == 'selesai'
@@ -519,7 +519,8 @@ def test_ai_pengaturan_replay_konflik_dan_audit_grouped(server):
 def test_pendaftaran_actor_reset_setelah_reauth_sebelum_commit_nol_efek(server, monkeypatch):
     import admin_registration
     token = _login(server, 'Admin-C', SANDI_ADMIN)
-    _, body, _ = _minta(server, '/admin?section=pendaftaran', cookie=token)
+    _, body, _ = _minta(server, '/admin/sakelar', cookie=token)
+    body = body.split('id="pendaftaran"', 1)[1]
     data = {'aksi': 'registration_config_update', 'csrf': _hidden(body, 'csrf'),
             'tinjauan': _hidden(body, 'tinjauan'), 'reauth': SANDI_ADMIN, 'pesan_kode': 'closed_standard'}
     asli = admin_registration.ubah

@@ -46,7 +46,7 @@ from admin_contracts import (
 )
 from teacher_style import SKRIP_MATA_SANDI
 
-_SECTION = frozenset(("ringkasan", "keluarga", "siswa", "pendaftaran", "riwayat"))
+_SECTION = frozenset(("ringkasan", "keluarga", "siswa", "riwayat"))
 _AKSI_AKUN = frozenset((
     AKSI_BUAT_GURU, AKSI_BUAT_LOGIN_MURID, AKSI_RESET_SANDI,
     AKSI_CABUT_SESI, AKSI_HAPUS_LOGIN,
@@ -318,6 +318,9 @@ def _render_get(penangan, principal, query):
     import admin_launch_http
     if section in admin_launch_http.SECTION:
         return admin_launch_http.get(penangan, principal, query)
+    if section == "pendaftaran":
+        # Pendaftaran mandiri pindah ke Pengaturan layanan (sakelar ke-6); bookmark lama tetap sampai.
+        return _redirect(penangan, "/admin/sakelar#pendaftaran")
     if section not in _SECTION:
         section = "ringkasan"
     halaman = _angka(query.get("halaman"), 1)
@@ -334,7 +337,7 @@ def _render_get(penangan, principal, query):
             antrean = admin_antrean.kumpulkan(konteks, _path_admin(), sekarang=time.time())
             ringkas_layanan = {
                 "Pendaftaran": (teks_registrasi, "baik" if teks_registrasi == "dibuka" else "netral"),
-                "Konfigurasi AI": (status_ai, "baik" if status_ai == "siap" else "netral"),
+                "AI": (status_ai + " · akan dimatikan", "baik" if status_ai == "siap" else "netral"),
                 "Pembayaran": ("belum tersedia", "netral"),
                 "Backup": (
                     ("terverifikasi", "baik") if antrean.backup_terverifikasi else
@@ -426,22 +429,6 @@ def _render_get(penangan, principal, query):
                 )
                 if principal.metode == "cookie":
                     isi += '<p><a class="admin-tautan" href="/admin/bulk/pilih?peran=murid">Kelola akun murid terpilih</a></p>'
-        elif section == "pendaftaran":
-            if principal.metode != "cookie":
-                return _galat(
-                    penangan, 403,
-                    "Masuk melalui formulir untuk membuka pengaturan.",
-                )
-            status = admin_registration.status(_path_admin())
-            akun = _akun_principal(principal)
-            token_sesi = _wajib_cookie(penangan, principal)
-            token = admin_security.buat_tinjauan(
-                akun, token_sesi, "registration_config_update",
-                {"revisi": status.revisi, "section": "pendaftaran"},
-            )
-            isi = admin_pages.render_pendaftaran(
-                status, csrf=_csrf(akun, token_sesi), token=token
-            )
         else:
             if query.get("sumber", "panel") == "ai":
                 import ai_service
@@ -476,7 +463,7 @@ def _render_get(penangan, principal, query):
                 isi = admin_pages.render_riwayat(riwayat, filter_data=query)
             else:
                 raise ValueError("Sumber tidak dikenal.")
-    skrip = principal.metode == "cookie" and section in ("keluarga", "pendaftaran")
+    skrip = principal.metode == "cookie" and section == "keluarga"
     _kirim_privat(
         penangan,
         _halaman_admin(principal, section, isi, penangan=penangan, skrip=skrip, subjudul=subjudul, sinyal=sinyal),
@@ -885,7 +872,7 @@ def _post_pendaftaran(penangan, principal, data):
     )
     if hasil.status != "succeeded":
         raise admin_store.KonflikOperasi("pengaturan tidak tersimpan")
-    _redirect(penangan, "/admin?section=pendaftaran")
+    _redirect(penangan, "/admin/sakelar?hasil=pendaftaran_tersimpan#pendaftaran")
 
 
 def _post_tema(penangan, principal, data):

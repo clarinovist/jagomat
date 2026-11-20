@@ -93,7 +93,7 @@ def _umpan_balik(hasil: Optional[str]) -> str:
 
 
 def _sakelar(aktif: bool) -> str:
-    teks = ("Sakelar transfer: aktif (PESANAN_TRANSFER_AKTIF=1). Gerbang tetap menunggu funnel, runtime "
+    teks = ("Sakelar transfer: aktif (PESANAN_TRANSFER_AKTIF=1). Pembayaran baru dibuka hanya setelah funnel, runtime "
             "produksi, dan rekening terisi." if aktif else
             "Sakelar transfer: mati (PESANAN_TRANSFER_AKTIF bukan 1). Guru tidak melihat jalur transfer.")
     return '<p class="admin-meta">%s</p>' % e(teks)

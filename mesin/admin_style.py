@@ -262,6 +262,9 @@ button:disabled, button:disabled:hover {{ background: {T.ADMIN_NETRAL_LATAR}; bo
 .admin-kartu label:has(input[name="reauth"]) {{ max-width: {T.LEBAR_KONTEN}; }}
 .admin-form-pendek {{ max-width: {T.LEBAR_KONTEN}; }}
 .admin-pratinjau {{ padding: {T.SP_5}; border: 1px dashed {T.ADMIN_BORDER_KUAT}; border-radius: {T.RADIUS_KARTU}; background: {T.ADMIN_HOVER}; font-size: {T.UKURAN_BADAN_LAYAR}; }}
+.admin-pendaftaran .admin-seksi-kepala h2 {{ display: inline-flex; align-items: center; gap: {T.SP_3}; }}
+.admin-pendaftaran details {{ margin-top: {T.SP_4}; }}
+.admin-pendaftaran summary {{ cursor: pointer; font-weight: 600; min-height: {T.TARGET_SENTUH}; }}
 .admin-kepala-aksi .admin-form-cari {{ flex: 0 1 360px; min-width: 240px; flex-wrap: nowrap; gap: {T.SP_3}; align-items: center; }}
 .admin-kepala-aksi .admin-form-cari > label.admin-cari {{ display: block; flex: 1 1 auto; min-width: 0; margin: 0; }}
 .admin-kepala-aksi > .admin-grup-cari {{ flex: 0 1 auto; flex-wrap: nowrap; max-width: 100%; }}

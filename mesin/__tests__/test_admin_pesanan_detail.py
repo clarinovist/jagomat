@@ -412,7 +412,7 @@ def test_daftar_hitungan_chip_dari_data_yang_sama(bayar, admin):
 def test_daftar_strip_rekening_dan_gerbang_satu_baris_dengan_tautan_pengaturan(transfer):
     admin = login_admin(transfer)
     isi = minta_admin(transfer, HALAMAN, admin)[1]
-    assert "Rekening transfer terisi" in isi and "Gerbang pembayaran tertutup" in isi
+    assert "Rekening transfer terisi" in isi and "Pembayaran ditutup" in isi
     assert 'href="/admin/sakelar#rekening"' in isi
 
 

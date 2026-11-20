@@ -105,7 +105,7 @@ def test_frame_enam_menu_privasi_dan_fallback_section():
     assert '<a href="/admin" aria-current="page"><svg' in navigasi
     assert '<span class="admin-nav-label-menu">Ringkasan</span></a>' in navigasi
     for label in (
-        "Ringkasan", "Keluarga", "Siswa", "Pendaftaran mandiri", "AI", "Riwayat admin"
+        "Ringkasan", "Keluarga", "Siswa", "AI", "Riwayat admin"
     ):
         assert label in html
     for label_grup in ("Penjualan", "Pengguna", "Sistem", "Lainnya"):
@@ -218,7 +218,7 @@ def test_nav_badge_titik_dan_label_persis_mockup():
                               sinyal=SinyalNav(total=4, mendesak=1, operasional_perhatian=True)).decode()
     for label in ('Ringkasan', 'Pesanan &amp; transfer', 'Rekening transfer', 'Topik Cek Kemampuan',
                   'Keluarga', 'Siswa', 'Lembaga les', 'Guru &amp; pemakaian', 'Riset konsumen',
-                  'Pengaturan layanan', 'Riwayat admin', 'Pendaftaran mandiri', 'Langganan lama',
+                  'Pengaturan layanan', 'Riwayat admin', 'Langganan lama',
                   'KPI uji coba', 'AI'):
         assert '<span class="admin-nav-label-menu">%s</span>' % label in isi
     assert isi.count('<svg') >= 20  # ikon per menu, desktop + seluler
@@ -527,7 +527,7 @@ def _status_pendaftaran(dibuka=True, kode="closed_maintenance"):
 
 
 def test_pendaftaran_kontrak_form_tidak_berubah():
-    isi = pages.render_pendaftaran(_status_pendaftaran(), csrf="csrf<x>", token="tok")
+    isi = pages.render_bagian_pendaftaran(_status_pendaftaran(), csrf="csrf<x>", token="tok")
 
     assert '<form class="admin-form-bagian" method="post" action="/admin/pendaftaran">' in isi
     assert isi.count('<form') == 1
@@ -544,14 +544,24 @@ def test_pendaftaran_kontrak_form_tidak_berubah():
     assert 'Diminta untuk setiap perubahan pengaturan.' in isi
 
 
-def test_pendaftaran_status_teks_dan_pratinjau_mengikuti_keadaan():
-    buka = pages.render_pendaftaran(_status_pendaftaran(True, "closed_standard"), csrf="c", token="t")
-    tutup = pages.render_pendaftaran(_status_pendaftaran(False, "closed_maintenance"), csrf="c", token="t")
+def test_bagian_pendaftaran_di_pengaturan_layanan_punya_id_dan_pratinjau_dalam_details():
+    isi = pages.render_bagian_pendaftaran(_status_pendaftaran(False), csrf="c", token="t")
 
-    assert "Pendaftaran dibuka</h2>" in buka and "admin-titik-netral" not in buka
+    assert '<section class="admin-kartu admin-pendaftaran" id="pendaftaran"' in isi
+    assert '<details><summary>Pratinjau saat ditutup</summary>' in isi
+    assert isi.index('<form') < isi.index('<details>')  # form selalu terlihat, pratinjau terlipat
+    assert "pendaftaran" not in [sid for _g, daftar in pages.GRUP_SECTION for sid in daftar]
+    assert pages.MENU_INDUK["pendaftaran"] == "operasional"
+
+
+def test_pendaftaran_status_teks_dan_pratinjau_mengikuti_keadaan():
+    buka = pages.render_bagian_pendaftaran(_status_pendaftaran(True, "closed_standard"), csrf="c", token="t")
+    tutup = pages.render_bagian_pendaftaran(_status_pendaftaran(False, "closed_maintenance"), csrf="c", token="t")
+
+    assert "Pendaftaran mandiri: dibuka</h2>" in buka and "admin-titik-netral" not in buka
     assert "pesan ini belum tampil" in buka
     assert '<div class="admin-pratinjau"><strong>Pendaftaran baru sedang ditutup</strong>' in buka
-    assert "Pendaftaran ditutup</h2>" in tutup and "admin-titik-netral" in tutup
+    assert "Pendaftaran mandiri: ditutup</h2>" in tutup and "admin-titik-netral" in tutup
     assert 'name="dibuka" value="1" checked' not in tutup
     assert '<div class="admin-pratinjau"><strong>Pendaftaran sementara ditutup untuk pemeliharaan</strong>' in tutup
     assert "Pesan tersimpan. Pratinjau diperbarui setelah pengaturan disimpan." in tutup

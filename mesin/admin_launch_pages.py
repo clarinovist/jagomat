@@ -7,7 +7,7 @@ import product_analytics as d
 import support_settings as dukungan
 import admin_labels as L
 from admin_daftar_pages import kartu_tabel, sel_nama
-from admin_komponen import kepala_cari
+from admin_komponen import kartu_akan_dimatikan, kepala_cari  # noqa: F401 (dipakai admin_launch_http)
 
 
 def e(nilai):
@@ -190,22 +190,23 @@ def _baris_ai():
             '<a class="admin-tautan" href="/admin/ai">Buka pengaturan AI</a></section>')
 
 
-def _navigasi_bagian(sakelar,rekening):
+def _navigasi_bagian(sakelar,rekening,pendaftaran=''):
     tautan=[('sakelar','Sakelar fitur')] if sakelar else []
+    tautan+=[('pendaftaran','Pendaftaran mandiri')] if pendaftaran else []
     tautan+=[('rekening','Rekening transfer')] if rekening else []
     tautan+=[('kesiapan','Kesiapan'),('dukungan','Dukungan pengguna'),('ai','AI')]
     return '<nav class="admin-navigasi-bagian" aria-label="Bagian pengaturan layanan"><span>Lompat ke</span>'+''.join('<a href="#%s">%s</a>'%(sid,label) for sid,label in tautan)+'</nav>'
 
 
-def operasional(r,form_pembayaran='',form_dukungan='',feedback='',*,sakelar='',rekening=''):
-    """Halaman Pengaturan layanan. Urutan: sakelar fitur (termasuk tahap pembayaran), rekening, kesiapan, AI.
+def operasional(r,form_pembayaran='',form_dukungan='',feedback='',*,sakelar='',rekening='',pendaftaran=''):
+    """Halaman Pengaturan layanan. Urutan: sakelar fitur (termasuk tahap pembayaran), pendaftaran mandiri, rekening, kesiapan, AI.
 
-    ``sakelar`` dan ``rekening`` sudah dirender modul pemiliknya (kartu ringkas; form ubah tetap di rutenya)."""
+    ``sakelar``, ``pendaftaran``, dan ``rekening`` sudah dirender modul pemiliknya (kartu ringkas; form ubah tetap di rutenya)."""
     status='<p class="admin-kartu admin-catatan" role="status" aria-atomic="true">%s</p>'%e(feedback) if feedback else ''
     pembayaran=_kartu_pembayaran(r,form_pembayaran)
     bagian_sakelar='<div id="sakelar">%s%s</div>'%(sakelar,pembayaran) if sakelar else pembayaran
-    return (status+_navigasi_bagian(sakelar,rekening)+bagian_sakelar
-            +rekening+_kartu_kesiapan(r)+_kartu_dukungan(r,form_dukungan)+_baris_ai())
+    return (status+_navigasi_bagian(sakelar,rekening,pendaftaran)+bagian_sakelar
+            +pendaftaran+rekening+_kartu_kesiapan(r)+_kartu_dukungan(r,form_dukungan)+_baris_ai())
 
 
 def _hero_manfaat(m,judul,bantuan,angka,persen):

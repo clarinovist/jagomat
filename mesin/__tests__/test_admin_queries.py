@@ -311,8 +311,8 @@ def test_facet_siswa_dihitung_dari_populasi_sebelum_filter_status(db):
 
     semua = q.daftar_siswa(db, konteks, per_halaman=100)
     facet = dict(semua.jumlah_facet)
-    perhatian = [item for item in semua.item if item.status]
-    normal = [item for item in semua.item if not item.status]
+    perhatian = [item for item in semua.item if q.butuh_perhatian(item.status)]
+    normal = [item for item in semua.item if not q.butuh_perhatian(item.status)]
 
     assert facet["semua"] == semua.total == len(semua.item)
     assert facet["perlu_perhatian"] == len(perhatian)
@@ -328,17 +328,45 @@ def test_facet_siswa_dihitung_dari_populasi_sebelum_filter_status(db):
     terfilter = q.daftar_siswa(db, konteks, status="perlu_perhatian", per_halaman=100)
     assert terfilter.jumlah_facet == semua.jumlah_facet
     assert terfilter.total == facet["perlu_perhatian"]
-    assert all(item.status for item in terfilter.item)
+    assert all(q.butuh_perhatian(item.status) for item in terfilter.item)
 
 
-def test_filter_siswa_normal_hanya_tanpa_status(db):
+def test_filter_siswa_normal_hanya_tanpa_masalah(db):
     _isi_anomali(db)
     konteks = q.buat_konteks(db, _akun())
 
     hasil = q.daftar_siswa(db, konteks, status="normal", per_halaman=100)
 
     assert hasil.total == dict(hasil.jumlah_facet)["normal"]
-    assert all(item.status == () for item in hasil.item)
+    assert not any(q.butuh_perhatian(item.status) for item in hasil.item)
+
+
+def test_siswa_hanya_tanpa_login_tidak_masuk_perlu_perhatian(db):
+    _isi_anomali(db)
+    konteks = q.buat_konteks(db, _akun())
+
+    perhatian = q.daftar_siswa(db, konteks, status="perlu_perhatian", per_halaman=100)
+    normal = q.daftar_siswa(db, konteks, status="normal", per_halaman=100)
+    tanpa_login = q.daftar_siswa(db, konteks, status="student_without_login", per_halaman=100)
+    facet = dict(perhatian.jumlah_facet)
+
+    nama_perhatian = {item.nama for item in perhatian.item}
+    assert "Belum Login" not in nama_perhatian  # hanya tanpa login
+    assert "Belum Login" in {item.nama for item in normal.item}
+    assert "Belum Login" in {item.nama for item in tanpa_login.item}  # filter "Tanpa login" tetap ada
+    assert facet["student_without_login"] >= 1
+    assert facet["perlu_perhatian"] == perhatian.total
+    # Siswa dengan masalah lain tetap masuk, juga bila sekaligus tanpa login.
+    assert {"Tunggal", "Tanpa Pemilik", "Punya Admin", "Kembar"} <= nama_perhatian
+
+
+def test_ringkasan_tidak_menghitung_tanpa_login_sebagai_perhatian(db):
+    _isi_anomali(db)
+    konteks = q.buat_konteks(db, _akun())
+
+    hasil = q.ringkasan_admin(db, konteks)
+
+    assert "student_without_login" not in {item.kode for item in hasil.perhatian}
 
 
 def test_facet_dan_filter_keluarga_normal_serta_perlu_perhatian(db):

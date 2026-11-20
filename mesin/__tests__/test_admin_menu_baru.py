@@ -33,7 +33,7 @@ RUTE_ADMIN = (
     ("/admin?section=perhatian", 200),
     ("/admin?section=keluarga", 200),
     ("/admin?section=siswa", 200),
-    ("/admin?section=pendaftaran", 200),
+    ("/admin?section=pendaftaran", 303),
     ("/admin?section=langganan", 200),
     ("/admin?section=kpi", 200),
     ("/admin?section=riwayat", 200),
@@ -81,7 +81,7 @@ def test_rute_admin_lama_dan_baru_tidak_404_dan_redirect_berakhir_200(transfer, 
     kode, _isi, tajuk = minta_admin(transfer, jalur, admin)
     assert kode == status, jalur
     if kode == 303:
-        assert minta_admin(transfer, tajuk["Location"], admin)[0] == 200
+        assert minta_admin(transfer, tajuk["Location"].split("#")[0], admin)[0] == 200  # peramban tak mengirim fragmen
 
 
 @pytest.mark.parametrize("jalur,_status", RUTE_ADMIN)
@@ -120,17 +120,17 @@ def test_menu_inti_tidak_lebih_dari_dua_belas_butir_di_luar_lainnya():
     assert di_luar_lainnya.count("<a href=") == len(inti)
 
 
-def test_grup_lainnya_berisi_empat_butir_dan_dua_bertanda_akan_dimatikan():
-    assert dict(admin_pages.GRUP_SECTION)[admin_pages.GRUP_LAINNYA] == ("pendaftaran", "langganan", "kpi", "ai")
+def test_grup_lainnya_berisi_tiga_butir_dan_dua_bertanda_akan_dimatikan():
+    assert dict(admin_pages.GRUP_SECTION)[admin_pages.GRUP_LAINNYA] == ("langganan", "kpi", "ai")
     html = admin_pages.halaman_admin("ringkasan", "", pengguna="Pengelola").decode()
     lainnya = _menu(html).split('<li class="admin-nav-grup admin-nav-lainnya">', 1)[1]
     assert lainnya.count('<span class="admin-nav-tanda">akan dimatikan</span>') == 2
-    assert "<summary" in lainnya and "Lainnya (4)" in lainnya
+    assert "<summary" in lainnya and "Lainnya (3)" in lainnya
 
 
 @pytest.mark.parametrize("section,terbuka", [
     ("ringkasan", False), ("keluarga", False), ("operasional", False), ("pemakaian", False),
-    ("pendaftaran", True), ("langganan", True), ("kpi", True), ("ai", True),
+    ("pendaftaran", False), ("langganan", True), ("kpi", True), ("ai", True),
 ])
 def test_lainnya_terlipat_dan_terbuka_otomatis_bila_section_aktif_di_dalamnya(section, terbuka):
     html = admin_pages.halaman_admin(section, "", pengguna="Pengelola").decode()

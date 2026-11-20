@@ -10,7 +10,7 @@ LABEL_FITUR = {
     "pendamping": "Pendamping",
     "cerita": "Cerita soal",
     "lampiran": "Lampiran",
-    "uji_sintetis": "Tes sintetis",
+    "uji_sintetis": "Tes koneksi",
 }
 
 # Nilai uang selalu micro-USD. Ini nilai awal yang disetujui, bukan tagihan provider.

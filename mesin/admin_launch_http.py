@@ -36,8 +36,8 @@ def _kirim(penangan,p,section,isi,kode=200):
     h._kirim_privat(penangan,h._halaman_admin(p,section,isi,penangan=penangan,skrip=True,judul=JUDUL[section],subjudul=None),kode,skrip=True)
 
 
-def halaman_pengaturan(penangan,p,*,kode_dukungan='',sakelar='',rekening=''):
-    """Isi halaman Pengaturan layanan; ``sakelar``/``rekening`` dirender pemiliknya (admin_sakelar_http/admin_rekening_http)."""
+def halaman_pengaturan(penangan,p,*,kode_dukungan='',sakelar='',rekening='',pendaftaran=''):
+    """Isi halaman Pengaturan layanan; ``sakelar``/``rekening``/``pendaftaran`` dirender pemiliknya (admin_sakelar_http/admin_rekening_http)."""
     kini=int(time.time())
     runtime=billing.runtime_penangan(penangan)
     kesiapan=billing.kesiapan_penangan(penangan)
@@ -63,7 +63,7 @@ def halaman_pengaturan(penangan,p,*,kode_dukungan='',sakelar='',rekening=''):
         form_dukungan=ui.formulir_dukungan(c,t,config_dukungan)
     return ui.operasional(ringkas,form,form_dukungan,
                           feedback=FEEDBACK_DUKUNGAN.get(kode_dukungan,''),
-                          sakelar=sakelar,rekening=rekening)
+                          sakelar=sakelar,rekening=rekening,pendaftaran=pendaftaran)
 
 
 def get(penangan,p,q):
@@ -123,7 +123,7 @@ def get(penangan,p,q):
         import sensor_report
         import sensor_pages
         laporan_sensor=sensor_report.laporan(h._path_admin(),siap=sensor_http.SIAP,sekarang=kini)
-        isi=sensor_pages.dashboard(laporan_sensor)+isi
+        isi=ui.kartu_akan_dimatikan()+sensor_pages.dashboard(laporan_sensor)+isi
     return _kirim(penangan,p,section,isi)
 
 

@@ -153,13 +153,17 @@ def test_get_admin_tidak_membuat_store_yang_hilang(server):
     kode, isi, _ = _minta(server, "/admin?section=ringkasan", cookie=token)
     assert kode == 200 and "belum tersedia" in isi
     assert not admin_store.BAWAAN.exists()
-    kode, _, _ = _minta(server, "/admin?section=pendaftaran", cookie=token)
-    assert kode == 503 and not admin_store.BAWAAN.exists()
+    kode, _, kepala = _minta(server, "/admin?section=pendaftaran", cookie=token)
+    assert kode == 303 and kepala["Location"] == "/admin/sakelar#pendaftaran"
+    kode, isi, _ = _minta(server, "/admin/sakelar", cookie=token)
+    # Halaman Pengaturan layanan tetap tampil; bagian pendaftaran jujur "belum siap" tanpa form dan tanpa membuat store.
+    assert kode == 200 and "Pendaftaran mandiri: belum siap" in isi and 'action="/admin/pendaftaran"' not in isi
+    assert not admin_store.BAWAAN.exists()
 
 
 def test_admin_sections_privat_dan_nonadmin_404_identik(server):
     token = _login(server, "Admin-C", SANDI_ADMIN)
-    for section in ("ringkasan", "keluarga", "siswa", "pendaftaran", "riwayat"):
+    for section in ("ringkasan", "keluarga", "siswa", "riwayat"):
         kode, isi, header = _minta(
             server, "/admin?section=" + section, cookie=token
         )
@@ -202,7 +206,8 @@ def test_ringkasan_hierarki_baca_total_antrean_dan_tanpa_mutasi(server, monkeypa
     ringan = int(re.search(r'Tinjauan ringan \((\d+)\)', isi).group(1))
     # "dan N lainnya" menghitung semua item tersisa, termasuk tinjauan ringan yang tampil dalam <details>.
     assert 'dan %d lainnya' % (total + ringan - isi.count('<li class="admin-antrean-item">')) in isi
-    assert 'Konfigurasi AI</dt><dd><span class="admin-titik" aria-hidden="true"></span>Belum siap' in isi
+    assert 'AI</dt><dd><span class="admin-titik" aria-hidden="true"></span>Belum siap · akan dimatikan' in isi
+    assert 'Konfigurasi AI' not in isi
     assert 'Pembayaran</dt><dd><span class="admin-titik" aria-hidden="true"></span>Tahap nonaktif' in isi
     assert 'Backup</dt><dd><span class="admin-titik" aria-hidden="true"></span>Belum terverifikasi' in isi
     assert 'Semua normal' not in isi
@@ -700,8 +705,9 @@ def test_pendaftaran_open_closed_missing_dan_login_existing(server):
     assert kode == 303 and "Set-Cookie" in header
 
     token_admin = _login(server, "Admin-C", SANDI_ADMIN)
-    _, panel, _ = _minta(server, "/admin?section=pendaftaran", cookie=token_admin)
-    kode, _, _ = _minta(
+    _, panel, _ = _minta(server, "/admin/sakelar", cookie=token_admin)
+    panel = panel.split('id="pendaftaran"', 1)[1]  # token tinjauan milik form pendaftaran, bukan form sakelar lain
+    kode, _, kepala = _minta(
         server, "/admin/pendaftaran", cookie=token_admin,
         data={
             "aksi": "registration_config_update", "csrf": _hidden(panel, "csrf"),
@@ -711,6 +717,7 @@ def test_pendaftaran_open_closed_missing_dan_login_existing(server):
         headers={"Origin": server.alamat, "Sec-Fetch-Site": "same-origin"},
     )
     assert kode == 303
+    assert kepala["Location"] == "/admin/sakelar?hasil=pendaftaran_tersimpan#pendaftaran"
     kode, tutup, _ = _minta(server, "/daftar")
     assert kode == 200 and 'name="sandi"' not in tutup
     kode, _, _ = _minta(

@@ -13,6 +13,17 @@ def e(nilai) -> str:
     return html.escape(str(nilai), quote=True)
 
 
+COPY_AKAN_DIMATIKAN = (
+    "Akan dimatikan (keputusan Pemilik 20 Nov 2026). Layanan ini tidak dipakai di alur yang berjalan sekarang. "
+    "Langkah pematian ada di rencana; jangan membuat pengaturan baru di sini."
+)
+
+
+def kartu_akan_dimatikan() -> str:
+    """Kartu pemberitahuan di atas halaman layanan yang dijadwalkan mati (plan matikan-kpi-dan-ai, Fase 1)."""
+    return '<p class="admin-kartu admin-catatan" role="note">%s</p>' % e(COPY_AKAN_DIMATIKAN)
+
+
 def opsi(nilai: str, label: str, kini: str) -> str:
     return '<option value="%s"%s>%s</option>' % (
         e(nilai), ' selected' if nilai == kini else "", e(label)

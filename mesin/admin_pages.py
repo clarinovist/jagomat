@@ -43,7 +43,7 @@ SECTION = (
     ("operasional", "Pengaturan layanan", "/admin/sakelar"),
     ("sakelar", "Sakelar fitur", "/admin/sakelar"),
     ("riwayat", "Riwayat admin", "/admin?section=riwayat"),
-    ("pendaftaran", "Pendaftaran mandiri", "/admin?section=pendaftaran"),
+    ("pendaftaran", "Pendaftaran mandiri", "/admin/sakelar#pendaftaran"),
     ("langganan", "Langganan lama", "/admin?section=langganan"),
     ("kpi", "KPI uji coba", "/admin?section=kpi"),
     ("ai", "AI", "/admin/ai"),
@@ -56,11 +56,12 @@ GRUP_SECTION = (
     ("Penjualan", ("pesanan", "rekening", "cek-topik")),
     ("Pengguna", ("keluarga", "siswa", "lembaga", "pemakaian", "riset")),
     ("Sistem", ("operasional", "riwayat")),
-    (GRUP_LAINNYA, ("pendaftaran", "langganan", "kpi", "ai")),
+    (GRUP_LAINNYA, ("langganan", "kpi", "ai")),
 )
 # Id section yang valid tetapi tidak punya butir menu sendiri: menyorot butir menu induknya.
 MENU_INDUK = {
     "perhatian": "ringkasan", "profil_guru": "pemakaian", "sakelar": "operasional", "kurikulum": "cek-topik",
+    "pendaftaran": "operasional",
 }
 # Fitur yang dijadwalkan mati (docs/plan/2026-11-20-matikan-kpi-dan-ai.md): diberi tanda kecil di menu.
 SECTION_AKAN_DIMATIKAN = frozenset(("kpi", "ai"))
@@ -94,7 +95,7 @@ def _judul_section(section: str) -> Tuple[str, str]:
     judul, subjudul = {
         'ringkasan': ('Ringkasan', L.hari_ini()),
         'perhatian': ('Perlu ditangani', 'Periksa hasil operasi yang memerlukan keputusan.'),
-        'langganan': ('Langganan lama', 'Catatan langganan dan akses keluarga.'),
+        'langganan': ('Langganan lama', 'Model berlangganan lama. Akan jadi baca-saja lalu pensiun setelah langganan aktif terakhir habis.'),
         'operasional': ('Pengaturan layanan', 'Sakelar fitur, rekening transfer, dan kesiapan layanan di satu tempat.'),
         'kpi': ('KPI uji coba', 'Angka agregat untuk memahami penggunaan, bukan menilai anak.'),
         'ai': ('Pengaturan AI', 'Kesiapan, batas biaya, dan pemakaian panggilan Jagomat.'),
@@ -449,7 +450,7 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
         'Data P3–P6 lama tidak dipakai untuk menebak kelas. '
         'Riwayat administratif saja; bukan status belajar atau kelulusan.</p>'
         '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Aktivitas sesi terbaru"><table class="admin-tabel">'
-        '<thead><tr><th scope="col">Sesi</th><th scope="col">Profil parameter sesi</th><th scope="col">Waktu</th><th scope="col">Status</th></tr></thead>'
+        '<thead><tr><th scope="col">Sesi</th><th scope="col">Level soal sesi</th><th scope="col">Waktu</th><th scope="col">Status</th></tr></thead>'
         '<tbody>%s</tbody></table></div></section>' % sesi
     )
 
@@ -557,9 +558,9 @@ def form_tindakan_siswa(data: Q.DetailSiswa, csrf: str, token_level: str, token_
         '<form method="post" action="/admin/siswa">'
         '<input type="hidden" name="aksi" value="student_level_update">'
         '<input type="hidden" name="csrf" value="%s"><input type="hidden" name="tinjauan" value="%s">'
-        '<label>Profil parameter baru<select name="tingkat_baru">%s</select></label>'
+        '<label>Level soal baru<select name="tingkat_baru">%s</select></label>'
         '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
-        '<button class="admin-tombol" type="submit">Ubah profil parameter warisan</button></form>'
+        '<button class="admin-tombol" type="submit">Ubah level soal (akun lama)</button></form>'
         % (_e(csrf), _e(token_level), level)
     )
     if not token_level:
@@ -590,22 +591,9 @@ def form_hapus_siswa(csrf, token):
         % (_e(csrf), _e(token)))
 
 
-def render_pendaftaran(status, *, csrf: str, token: str) -> str:
-    """Form dan field tidak berubah: pesan tetap pilihan baku ``pesan_kode``."""
-    dibuka = bool(status.dibuka)
-    pesan = (
-        'Pendaftaran sementara ditutup untuk pemeliharaan'
-        if status.pesan_kode == 'closed_maintenance' else 'Pendaftaran baru sedang ditutup'
-    )
-    keadaan = (
-        "Saat ini pendaftaran dibuka, jadi pesan ini belum tampil."
-        if dibuka else "Saat ini pendaftaran ditutup, jadi pesan ini yang tampil."
-    )
+def _form_pendaftaran(status, csrf: str, token: str) -> str:
+    """Form pengaturan pendaftaran; field dan aksi tidak berubah (kontrak ``admin_form_contract.json``)."""
     return (
-        '<section class="admin-kartu admin-status-baris" aria-labelledby="status-pendaftaran">'
-        '<h2 id="status-pendaftaran"><span class="admin-titik-status%s" aria-hidden="true"></span>Pendaftaran %s</h2>'
-        '<span class="admin-meta">Perubahan tidak memengaruhi login yang sudah ada.</span></section>'
-        '<div class="admin-dua-kolom admin-kolom-2-1"><section class="admin-kartu"><h2>Pengaturan pendaftaran</h2>'
         '<form class="admin-form-bagian" method="post" action="/admin/pendaftaran">'
         '<input type="hidden" name="aksi" value="registration_config_update">'
         '<input type="hidden" name="csrf" value="%s"><input type="hidden" name="tinjauan" value="%s">'
@@ -620,15 +608,42 @@ def render_pendaftaran(status, *, csrf: str, token: str) -> str:
         '<input type="password" name="reauth" required autocomplete="current-password"></label>'
         '<span class="admin-meta">Diminta untuk setiap perubahan pengaturan.</span>'
         '<div><button class="admin-tombol" type="submit">Simpan pengaturan</button></div></div>'
-        '</form></section><aside class="admin-kartu" aria-label="Pratinjau"><h2>Pratinjau saat ditutup</h2>'
-        '<p class="admin-meta">Yang dilihat calon pengguna jika pendaftaran ditutup. %s</p>'
-        '<div class="admin-pratinjau"><strong>%s</strong></div>'
-        '<p class="admin-meta">Pesan tersimpan. Pratinjau diperbarui setelah pengaturan disimpan.</p></aside></div>' % (
-            "" if dibuka else " admin-titik-netral", "dibuka" if dibuka else "ditutup",
-            _e(csrf), _e(token), ' checked' if dibuka else '',
+        '</form>' % (
+            _e(csrf), _e(token), ' checked' if status.dibuka else '',
             ' selected' if status.pesan_kode == 'closed_standard' else '',
             ' selected' if status.pesan_kode == 'closed_maintenance' else '',
-            keadaan, _e(pesan),
+        )
+    )
+
+
+def _pratinjau_pendaftaran(status) -> str:
+    pesan = (
+        'Pendaftaran sementara ditutup untuk pemeliharaan'
+        if status.pesan_kode == 'closed_maintenance' else 'Pendaftaran baru sedang ditutup'
+    )
+    keadaan = (
+        "Saat ini pendaftaran dibuka, jadi pesan ini belum tampil."
+        if status.dibuka else "Saat ini pendaftaran ditutup, jadi pesan ini yang tampil."
+    )
+    return (
+        '<p class="admin-meta">Yang dilihat calon pengguna jika pendaftaran ditutup. %s</p>'
+        '<div class="admin-pratinjau"><strong>%s</strong></div>'
+        '<p class="admin-meta">Pesan tersimpan. Pratinjau diperbarui setelah pengaturan disimpan.</p>'
+        % (keadaan, _e(pesan))
+    )
+
+
+def render_bagian_pendaftaran(status, *, csrf: str, token: str) -> str:
+    """Bagian "Pendaftaran mandiri" di halaman Pengaturan layanan (sakelar ke-6); POST tetap ke /admin/pendaftaran."""
+    dibuka = bool(status.dibuka)
+    return (
+        '<section class="admin-kartu admin-pendaftaran" id="pendaftaran" aria-labelledby="judul-pendaftaran">'
+        '<div class="admin-seksi-kepala"><h2 id="judul-pendaftaran">'
+        '<span class="admin-titik-status%s" aria-hidden="true"></span>Pendaftaran mandiri: %s</h2>'
+        '<span class="admin-meta">Perubahan tidak memengaruhi login yang sudah ada.</span></div>%s'
+        '<details><summary>Pratinjau saat ditutup</summary>%s</details></section>' % (
+            "" if dibuka else " admin-titik-netral", "dibuka" if dibuka else "ditutup",
+            _form_pendaftaran(status, csrf, token), _pratinjau_pendaftaran(status),
         )
     )
 

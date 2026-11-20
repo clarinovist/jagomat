@@ -61,6 +61,11 @@ def test_kontrak_form_http_sama_dengan_sebelum_redesain(server, nama):
         code, _body, kepala = _minta(server, jalur, cookie=token)
         assert code == 303 and kepala['Location'] == '/admin/sakelar'
         jalur = kepala['Location']
+    if nama == 'pendaftaran':
+        # Pendaftaran mandiri pindah ke Pengaturan layanan (sakelar ke-6); rute lama hanya 303.
+        code, _body, kepala = _minta(server, jalur, cookie=token)
+        assert code == 303 and kepala['Location'] == '/admin/sakelar#pendaftaran'
+        jalur = '/admin/sakelar'
     code, body, _ = _minta(server, jalur, cookie=token)
     assert code == 200
     parser = KontrakForm(); parser.feed(body)
@@ -71,7 +76,14 @@ def test_kontrak_form_http_sama_dengan_sebelum_redesain(server, nama):
     assert len(form_tema) == 1
     assert {field['name'] for field in form_tema[0]['fields']} == {'tema', 'token_tema'}
     form_domain = [form for form in parser.forms if form['action'] != '/admin/tema']
+    form_pendaftaran = [form for form in form_domain if form['action'] == '/admin/pendaftaran']
+    if nama == 'pendaftaran':
+        # Halaman Pengaturan layanan memuat form lain; form pendaftaran harus identik dengan baseline lama.
+        form_domain = form_pendaftaran + [form for form in form_domain if form['action'] == '/keluar']
     if nama == 'operasional':
+        # Bagian Pendaftaran mandiri ikut di halaman ini; kontraknya dijaga oleh kasus 'pendaftaran'.
+        assert len(form_pendaftaran) == 1
+        form_domain = [form for form in form_domain if form['action'] != '/admin/pendaftaran']
         # Form pembayaran dan dukungan harus identik dengan baseline; satu-satunya tambahan adalah form sakelar
         # fitur (rute POST /admin/sakelar tidak berubah) dan tidak ada form rekening (ubah rekening di rutenya).
         tambahan = [form for form in form_domain if form['action'] == '/admin/sakelar']

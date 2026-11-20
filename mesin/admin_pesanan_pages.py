@@ -79,7 +79,7 @@ COPY_HASIL = {
     "periksa_ok": "Pemeriksaan selesai. Status pesanan sudah mengikuti jawaban penyedia pembayaran.",
     "periksa_dilewati": "Tidak ada yang perlu diperiksa untuk pesanan ini (sudah lunas, atau belum ada transaksi).",
     "periksa_gagal": "Penyedia pembayaran belum bisa dihubungi atau jawabannya tidak bisa dipakai. Tidak ada yang berubah; coba lagi nanti.",
-    "gerbang_tertutup": "Gerbang pembayaran sedang tertutup, jadi pemeriksaan tidak dijalankan. Tidak ada yang berubah.",
+    "gerbang_tertutup": "Pembayaran sedang ditutup, jadi pemeriksaan tidak dijalankan. Tidak ada yang berubah.",
     "refund_dicatat": "Catatan refund tersimpan. Ini hanya catatan; dana dikembalikan lewat jalur manual di luar aplikasi.",
     "refund_sudah_ada": "Catatan refund yang sama sudah tersimpan sebelumnya. Tidak ada yang berubah.",
     "verifikasi_setuju": "Transfer disetujui. Pesanan ini sekarang tercatat lunas.",
@@ -89,8 +89,8 @@ COPY_HASIL = {
 KODE_HASIL = frozenset(COPY_HASIL)
 # Hasil yang boleh tampil di halaman Detail order (hasil aksi periksa/refund; keputusan verifikasi tidak).
 KODE_HASIL_DETAIL = frozenset(k for k in COPY_HASIL if not k.startswith("verifikasi_"))
-COPY_GERBANG_BUKA = "Gerbang pembayaran terbuka"
-COPY_GERBANG_TUTUP = "Gerbang pembayaran tertutup (pemeriksaan ke penyedia tidak tersedia)"
+COPY_GERBANG_BUKA = "Pembayaran dibuka"
+COPY_GERBANG_TUTUP = "Pembayaran ditutup (pemeriksaan ke penyedia tidak tersedia)"
 COPY_REKENING_TERISI = "Rekening transfer terisi"
 COPY_REKENING_KOSONG = "Rekening transfer belum diisi"
 COPY_ATUR_LAYANAN = "Atur di Pengaturan layanan"
@@ -186,7 +186,7 @@ def _chips(saring: Optional[str], hitungan: Mapping) -> str:
 
 
 def _strip_layanan(gerbang_terbuka: bool, rekening_terisi: Optional[bool]) -> str:
-    """Satu baris ringkas: status gerbang pembayaran, rekening transfer, dan tautan ke Pengaturan layanan."""
+    """Satu baris ringkas: status pembayaran dibuka/ditutup, rekening transfer, dan tautan ke Pengaturan layanan."""
     bagian = [COPY_GERBANG_BUKA if gerbang_terbuka else COPY_GERBANG_TUTUP]
     if rekening_terisi is not None:
         bagian.append(COPY_REKENING_TERISI if rekening_terisi else COPY_REKENING_KOSONG)

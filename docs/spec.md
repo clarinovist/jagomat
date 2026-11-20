@@ -120,8 +120,9 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   riset publik dan wawancara privat tersedia. Sensor bukan bukti efektivitas belajar.
 - Menu admin (Fase B redesign): Ringkasan; Penjualan (Pesanan & transfer, Rekening transfer, Topik Cek
   Kemampuan); Pengguna (Keluarga, Siswa, Lembaga les, Guru & pemakaian, Riset konsumen sementara); Sistem
-  (Pengaturan layanan, Riwayat admin); Lainnya terlipat (Pendaftaran mandiri, Langganan lama, KPI uji
-  coba dan AI yang akan dimatikan).
+  (Pengaturan layanan, Riwayat admin); Lainnya terlipat (Langganan lama, KPI uji
+  coba dan AI yang akan dimatikan; halaman KPI dan AI memuat kartu pemberitahuan). Pendaftaran mandiri
+  menjadi bagian `#pendaftaran` di Pengaturan layanan (`/admin?section=pendaftaran` mengalihkan 303).
 - Admin melihat **Pemakaian guru** (`/admin/pemakaian`, baca-saja; tab "Pemakaian" | "Profil guru
   peninjau" satu butir menu "Guru & pemakaian"): per akun guru per minggu
   WIB, 8 minggu terakhir: minggu aktif, sesi dibuat/selesai/dikonfirmasi, median lama anak,
@@ -132,7 +133,7 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   mengubahnya lewat kode dan rilis, bukan dari admin. Tab "Peta kurikulum" (`/admin/kurikulum`,
   baca-saja): butir CP Merdeka per fase, celah cakupan SD, dan grup per topik.
 - **Pengaturan layanan** (`/admin/sakelar`, satu halaman; `/admin?section=operasional` mengalihkan 303 ke
-  sini): sakelar fitur + tahap pembayaran, kartu rekening transfer (ubah di `/admin/pesanan/rekening`),
+  sini): sakelar fitur + tahap pembayaran, pendaftaran mandiri (form lama, POST tetap ke `/admin/pendaftaran`), kartu rekening transfer (ubah di `/admin/pesanan/rekening`),
   kesiapan/dukungan, satu baris status AI. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,
   `OSN_CETAK_RINGKAS`, `OSN_BANK_KALIMAT`. Nilai disimpan di DB terpisah `/data/sakelar.db` (dibuat saat
   perubahan pertama; env tetap fallback), dengan tinjauan bertanda tangan, sandi ulang, optimistic

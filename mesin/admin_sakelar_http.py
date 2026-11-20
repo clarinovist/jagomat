@@ -22,8 +22,10 @@ from typing import Dict, Optional, Tuple
 
 import admin_http as h
 import admin_launch_http as launch
+import admin_pages
 import admin_pesanan_aksi as aksi
 import admin_sakelar_pages as ui
+import admin_registration
 import admin_rekening_http
 import admin_security
 import admin_store
@@ -114,13 +116,30 @@ def bagian_sakelar(penangan, principal, hasil: Optional[str]) -> Tuple[str, int]
     return ui.halaman(daftar, tokens, prasyarat=prasyarat, hasil=hasil), 200
 
 
+def bagian_pendaftaran(penangan, principal) -> str:
+    """Bagian "Pendaftaran mandiri" (sakelar ke-6): form yang sama dengan kontrak lama, POST tetap ke /admin/pendaftaran.
+    Store admin belum siap = kartu galat tanpa form; sesi non-cookie = hanya status baca-saja."""
+    try:
+        status = admin_registration.status(h._path_admin())
+    except _GALAT_REKENING:
+        return ui.halaman_pendaftaran_galat()
+    if principal.metode != "cookie":
+        return ui.halaman_pendaftaran_baca(status.dibuka)
+    akun = h._akun_principal(principal)
+    sesi = h._wajib_cookie(penangan, principal)
+    token = admin_security.buat_tinjauan(
+        akun, sesi, "registration_config_update", {"revisi": status.revisi, "section": "pendaftaran"})
+    return admin_pages.render_bagian_pendaftaran(status, csrf=h._csrf(akun, sesi), token=token)
+
+
 def _get(penangan, principal) -> None:
     try:
         hasil, dukungan = _query_halaman(penangan)
         sakelar, kode = bagian_sakelar(penangan, principal, hasil)
         isi = launch.halaman_pengaturan(
             penangan, principal, kode_dukungan=dukungan, sakelar=sakelar,
-            rekening=admin_rekening_http.bagian_pengaturan())
+            rekening=admin_rekening_http.bagian_pengaturan(),
+            pendaftaran=bagian_pendaftaran(penangan, principal))
     except PermissionError:
         return h._galat(penangan, 403, ui.COPY_TANPA_SESI)
     except (admin_store.StoreBelumSiap, sqlite3.Error, OSError):

@@ -16,7 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import math
-from typing import Iterable, Mapping, Optional, Tuple
+from typing import Iterable, Mapping, Optional, Sequence, Tuple
 
 from templates import LEVEL_TINGKAT
 
@@ -37,6 +37,13 @@ STATUS_SISWA = frozenset((
 
 
 STATUS_FILTER_SISWA = frozenset(("semua", "perlu_perhatian", "normal"))
+# Kondisi yang tetap tampil sebagai filter/pil tetapi bukan masalah: anak masuk lewat QR itu normal (spec §sesi HP).
+STATUS_NETRAL = frozenset(("student_without_login",))
+
+
+def butuh_perhatian(status: Sequence[str]) -> bool:
+    """True bila ada kondisi selain yang netral; dasar chip, filter, dan hitungan "Perlu perhatian"."""
+    return any(kode not in STATUS_NETRAL for kode in status)
 
 
 class InputQueryTidakSah(ValueError):
@@ -475,7 +482,6 @@ def ringkasan_admin(
         status_semua.extend(_status_siswa(identitas, indeks)[0])
     hitung = []
     for kode in (
-        "student_without_login",
         "owner_without_account",
         "owner_empty",
         "legacy_same_name_ambiguous",
@@ -594,19 +600,19 @@ def _facet_keluarga(data) -> Tuple[Tuple[str, int], ...]:
     """Hitungan chip dari populasi yang sama dengan tabel, sebelum filter kondisi."""
     return (
         ("semua", len(data)),
-        ("perlu_perhatian", sum(1 for item in data if item.status)),
+        ("perlu_perhatian", sum(1 for item in data if butuh_perhatian(item.status))),
         ("tanpa_siswa", sum(1 for item in data if item.jumlah_siswa == 0)),
-        ("normal", sum(1 for item in data if not item.status)),
+        ("normal", sum(1 for item in data if not butuh_perhatian(item.status))),
     )
 
 
 def _facet_siswa(data) -> Tuple[Tuple[str, int], ...]:
     return (
         ("semua", len(data)),
-        ("perlu_perhatian", sum(1 for item in data if item.status)),
+        ("perlu_perhatian", sum(1 for item in data if butuh_perhatian(item.status))),
         ("student_without_login", sum(1 for item in data if "student_without_login" in item.status)),
         ("owner_without_account", sum(1 for item in data if "owner_without_account" in item.status)),
-        ("normal", sum(1 for item in data if not item.status)),
+        ("normal", sum(1 for item in data if not butuh_perhatian(item.status))),
     ) + tuple(
         (kode, sum(1 for item in data if kode in item.status)) for kode in KONDISI_AKUN_LAMA
     )
@@ -666,9 +672,9 @@ def daftar_keluarga(
         data = [item for item in data if needle in item.pengguna.casefold()]
     jumlah_facet = _facet_keluarga(data)
     if status == "perlu_perhatian":
-        data = [item for item in data if item.status]
+        data = [item for item in data if butuh_perhatian(item.status)]
     elif status == "normal":
-        data = [item for item in data if not item.status]
+        data = [item for item in data if not butuh_perhatian(item.status)]
     if memiliki_anak == "ya":
         data = [item for item in data if item.jumlah_siswa > 0]
     elif memiliki_anak == "tidak":
@@ -767,9 +773,9 @@ def daftar_siswa(
         )]
     jumlah_facet = _facet_siswa(data)
     if status == "perlu_perhatian":
-        data = [item for item in data if item.status]
+        data = [item for item in data if butuh_perhatian(item.status)]
     elif status == "normal":
-        data = [item for item in data if not item.status]
+        data = [item for item in data if not butuh_perhatian(item.status)]
     elif status != "semua":
         data = [item for item in data if status in item.status]
     total = len(data)

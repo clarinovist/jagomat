@@ -39,7 +39,7 @@ COPY_PERIKSA_JELAS = (
     "Tanyakan status order ini ke penyedia pembayaran; status pesanan mengikuti jawabannya. "
     "Hanya berguna untuk pembayaran QRIS."
 )
-COPY_PERIKSA_GERBANG = "Gerbang pembayaran sedang tertutup, jadi pemeriksaan ke penyedia pembayaran tidak tersedia."
+COPY_PERIKSA_GERBANG = "Pembayaran sedang ditutup, jadi pemeriksaan ke penyedia pembayaran tidak tersedia."
 COPY_PERIKSA_TIDAK_PERLU = (
     "Pemeriksaan hanya untuk order yang belum dibayar atau sudah kedaluwarsa. Status order ini tidak perlu diperiksa."
 )

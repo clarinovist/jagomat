@@ -18,11 +18,11 @@ LABEL_AKSI = {
     "account_login_delete": "Hapus login",
     "account_teacher_create": "Buat orang tua",
     "student_login_create": "Buat login murid",
-    "student_level_update": "Ubah profil parameter warisan",
+    "student_level_update": "Ubah level soal (akun lama)",
     "student_school_grade_update": "Ubah kelas sekolah", "student_delete": "Hapus siswa kosong",
     "registration_config_update": "Ubah pendaftaran",
 }
-LABEL_AKSI_AI = {"ai_settings_update": "Ubah pengaturan AI", "ai_synthetic_test": "Tes sintetis AI"}
+LABEL_AKSI_AI = {"ai_settings_update": "Ubah pengaturan AI", "ai_synthetic_test": "Tes koneksi AI"}
 LABEL_AKSI_BATCH = {
     "account_teacher_create": "Buat orang tua", "account_password_reset": "Reset sandi",
     "account_session_revoke": "Cabut sesi",

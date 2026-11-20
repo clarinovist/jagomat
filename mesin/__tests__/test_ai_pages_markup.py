@@ -107,7 +107,7 @@ def test_pagu_dikelompokkan_per_fitur_dengan_grid_dua_kolom(render):
     form = FORM_PENGATURAN.search(render()).group(1)
     assert form.count('class="admin-ai-pagu"') == 5
     assert form.count('class="admin-ai-grup"') == 6  # global + 4 fitur + batas lain
-    assert "Pagu 0 berarti tidak diizinkan" in render()
+    assert "Batas 0 berarti tidak diizinkan" in render()
 
 
 def test_status_fitur_berbentuk_badge_dengan_teks_alasan_penuh(render):
@@ -116,12 +116,12 @@ def test_status_fitur_berbentuk_badge_dengan_teks_alasan_penuh(render):
     henti = render("UPDATE konfigurasi SET dihentikan=1")
     assert 'class="admin-badge perhatian">Tertahan: dihentikan</span>' in henti
     nol = render("UPDATE batas_fitur SET batas_harian=0 WHERE fitur='cerita'")
-    assert "Tertahan: dihentikan, pagu nol" in nol
+    assert "Tertahan: dihentikan, batas nol" in nol
 
 
 def test_tabel_pemakaian_dua_kolom_dengan_th_scope(render):
     isi = render()
-    for judul in ("Fitur", "Status", "Model", "Pagu/hari", "Pagu/bulan", "Terpakai hari ini", "Terpakai bulan ini"):
+    for judul in ("Fitur", "Status", "Model", "Batas/hari", "Batas/bulan", "Terpakai hari ini", "Terpakai bulan ini"):
         assert '<th scope="col"' in isi and ">%s</th>" % judul in isi
     assert isi.count("USD 0,0000") >= 8
     assert 'class="admin-tabel-wrap"' in isi

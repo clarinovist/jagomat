@@ -18,7 +18,10 @@ JUDUL = "Sakelar fitur"
 SUBJUDUL = "Empat sakelar fitur yang dapat diubah admin tanpa deploy. Nilai admin menang atas env."
 AKSI_UBAH = "ubah_sakelar"
 
-COPY_HASIL = {"tersimpan": "Sakelar tersimpan. Perubahan berlaku dalam beberapa detik."}
+COPY_HASIL = {
+    "tersimpan": "Sakelar tersimpan. Perubahan berlaku dalam beberapa detik.",
+    "pendaftaran_tersimpan": "Pengaturan pendaftaran mandiri tersimpan.",
+}
 KODE_HASIL = frozenset(COPY_HASIL)
 COPY_TANPA_SESI = "Tampilan baca-saja. Masuk melalui formulir untuk mengubah sakelar."
 COPY_CATATAN = (
@@ -101,3 +104,20 @@ def halaman(daftar: Sequence[Sakelar], tokens: Optional[Mapping[str, Token]], *,
 def halaman_galat() -> str:
     return ('<section class="admin-kartu admin-galat" role="alert"><h2>Belum siap</h2><p>%s</p></section>'
             % e(COPY_TIDAK_SIAP))
+
+
+COPY_PENDAFTARAN_GALAT = (
+    "Pengaturan pendaftaran mandiri belum bisa dibaca di server ini. Tidak ada yang diubah. "
+    "Operator perlu memeriksa penyimpanan admin."
+)
+
+
+def halaman_pendaftaran_galat() -> str:
+    return ('<section class="admin-kartu admin-galat" id="pendaftaran" role="alert"><h2>Pendaftaran mandiri: belum siap</h2>'
+            '<p>%s</p></section>' % e(COPY_PENDAFTARAN_GALAT))
+
+
+def halaman_pendaftaran_baca(dibuka: bool) -> str:
+    """Sesi tanpa kuki (baca-saja): status saja, tanpa form."""
+    return ('<section class="admin-kartu" id="pendaftaran"><h2>Pendaftaran mandiri: %s</h2>'
+            '<p class="admin-meta">%s</p></section>' % ("dibuka" if dibuka else "ditutup", e(COPY_TANPA_SESI)))

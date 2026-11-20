@@ -98,14 +98,14 @@ def test_daftar_gerbang_tertutup_tetap_tampil_tanpa_tombol_periksa(bayar, admin)
     atur_tahap("rekonsiliasi")
     kode, isi, _t = minta_admin(bayar, HALAMAN, admin)
     assert kode == 200 and order["order_id"] in isi
-    assert "Gerbang pembayaran tertutup" in isi
+    assert "Pembayaran ditutup" in isi
     assert PERIKSA not in isi and 'type="password"' not in markup(isi)
 
 
 def test_daftar_tanpa_runtime_tetap_tampil(tertutup):
     tertutup.server.pembayaran_runtime = None
     kode, isi, _t = minta_admin(tertutup, HALAMAN, login_admin(tertutup))
-    assert kode == 200 and "Gerbang pembayaran tertutup" in isi
+    assert kode == 200 and "Pembayaran ditutup" in isi
 
 
 def test_daftar_skema_pesanan_belum_dipasang_kartu_jujur_503(keluarga):

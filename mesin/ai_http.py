@@ -82,7 +82,7 @@ def _query_pesan(penangan):
         return ""
     return {
         "Pengaturan AI tersimpan.": "Pengaturan AI tersimpan.",
-        "Koneksi sintetis berhasil.": "Koneksi sintetis berhasil.",
+        "Tes koneksi berhasil.": "Tes koneksi berhasil.",
     }.get(data.get("pesan", [""])[0], "")
 
 
@@ -177,7 +177,7 @@ def tangani_post(penangan, jalur):
             )
             if hasil.get("status") != "ok":
                 raise ValueError("Respons tes tidak sesuai kontrak.")
-            lokasi = "/admin/ai?pesan=" + urllib.parse.quote("Koneksi sintetis berhasil.")
+            lokasi = "/admin/ai?pesan=" + urllib.parse.quote("Tes koneksi berhasil.")
     except ai_store.Ditolak:
         _galat(penangan, 409, "Pengaturan berubah atau operasi sudah diproses. Buka ulang panel.")
         return True
