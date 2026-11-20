@@ -182,20 +182,30 @@ def _kartu_pembayaran(r,form_pembayaran):
                 e(L.label_status(tahap)),' · revisi %d'%cfg['revisi'] if cfg else '',e(dampak),_stepper(tahap),prasyarat,form_pembayaran)
 
 
-def _kartu_ai(r):
-    nama_fitur={'pendamping':'Pendamping','cerita':'Cerita soal','lampiran':'Lampiran'}
-    tile=''.join('<div class="admin-ai-tile"><span class="admin-meta">%s</span><span class="admin-badge%s">%s</span></div>'%(e(nama_fitur.get(k,k)),'' if v.startswith('Diizinkan') else ' perhatian',e(v)) for k,v in r['ai'])
-    gagal='—' if r['ai_gagal'] is None else r['ai_gagal']
-    tile+='<div class="admin-ai-tile"><span class="admin-meta">Gagal / tak pasti, 24 jam</span><strong>%s</strong></div>'%e(gagal)
-    return ('<section class="admin-kartu" id="ai"><div class="admin-seksi-kepala"><h2>AI</h2><a class="admin-tautan" href="/admin/ai">Batas pemakaian dan tes sintetis</a></div>'
-            '<div class="admin-ai-grid">%s</div>'
-            '<p class="admin-meta">Konfigurasi bukan jaminan provider sedang online. Tidak ada panggilan berbayar saat halaman dibuka.</p></section>')%tile
+def _baris_ai():
+    """AI hanya satu baris status; rincian dan pengaturannya tetap di halaman /admin/ai."""
+    return ('<section class="admin-kartu admin-status-baris" id="ai" aria-label="AI">'
+            '<h2><span class="admin-titik-status admin-titik-netral" aria-hidden="true"></span>'
+            'AI: tidak dipakai · akan dimatikan</h2>'
+            '<a class="admin-tautan" href="/admin/ai">Buka pengaturan AI</a></section>')
 
 
-def operasional(r,form_pembayaran='',form_dukungan='',feedback=''):
+def _navigasi_bagian(sakelar,rekening):
+    tautan=[('sakelar','Sakelar fitur')] if sakelar else []
+    tautan+=[('rekening','Rekening transfer')] if rekening else []
+    tautan+=[('kesiapan','Kesiapan'),('dukungan','Dukungan pengguna'),('ai','AI')]
+    return '<nav class="admin-navigasi-bagian" aria-label="Bagian pengaturan layanan"><span>Lompat ke</span>'+''.join('<a href="#%s">%s</a>'%(sid,label) for sid,label in tautan)+'</nav>'
+
+
+def operasional(r,form_pembayaran='',form_dukungan='',feedback='',*,sakelar='',rekening=''):
+    """Halaman Pengaturan layanan. Urutan: sakelar fitur (termasuk tahap pembayaran), rekening, kesiapan, AI.
+
+    ``sakelar`` dan ``rekening`` sudah dirender modul pemiliknya (kartu ringkas; form ubah tetap di rutenya)."""
     status='<p class="admin-kartu admin-catatan" role="status" aria-atomic="true">%s</p>'%e(feedback) if feedback else ''
-    navigasi='<nav class="admin-navigasi-bagian" aria-label="Bagian operasional"><span>Lompat ke</span>'+''.join('<a href="#%s">%s</a>'%(sid,label) for sid,label in (('kesiapan','Kesiapan'),('dukungan','Dukungan pengguna'),('pembayaran','Sakelar pembayaran'),('ai','AI')))+'</nav>'
-    return status+navigasi+_kartu_kesiapan(r)+_kartu_dukungan(r,form_dukungan)+_kartu_pembayaran(r,form_pembayaran)+_kartu_ai(r)
+    pembayaran=_kartu_pembayaran(r,form_pembayaran)
+    bagian_sakelar='<div id="sakelar">%s%s</div>'%(sakelar,pembayaran) if sakelar else pembayaran
+    return (status+_navigasi_bagian(sakelar,rekening)+bagian_sakelar
+            +rekening+_kartu_kesiapan(r)+_kartu_dukungan(r,form_dukungan)+_baris_ai())
 
 
 def _hero_manfaat(m,judul,bantuan,angka,persen):

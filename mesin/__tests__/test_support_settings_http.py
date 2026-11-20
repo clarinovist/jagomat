@@ -20,7 +20,7 @@ def schema_dukungan(server):
 
 
 def _form(server, token):
-    kode, body, _ = _minta(server, "/admin?section=operasional", cookie=token)
+    kode, body, _ = _minta(server, "/admin/sakelar", cookie=token)
     assert kode == 200
     return body, dict(
         csrf_dukungan=_hidden(body, "csrf_dukungan"),
@@ -124,7 +124,7 @@ def test_anon_guru_murid_404_identik_tanpa_read_write(server, monkeypatch):
     monkeypatch.setattr(dukungan, "baca", tolak)
     monkeypatch.setattr(dukungan, "ubah", tolak)
     awal = admin_store.BAWAAN.read_bytes()
-    for path, data in (("/admin?section=operasional", None), ("/admin/layanan/dukungan", {})):
+    for path, data in (("/admin?section=operasional", None), ("/admin/sakelar", None), ("/admin/layanan/dukungan", {})):
         respons = [
             _minta(server, path, data=data)[:2],
             _minta(server, path, data=data, auth_basic=("guru", SANDI_GURU))[:2],
@@ -139,13 +139,13 @@ def test_feedback_sukses_diumumkan_dan_config_hilang_fail_closed(server):
     token = _login(server, "Admin-C", SANDI_ADMIN)
     _body, form = _form(server, token)
     assert _minta(server, "/admin/layanan/dukungan", cookie=token, data=form)[0] == 303
-    body = _minta(server, "/admin?section=operasional&dukungan=tersimpan", cookie=token)[1]
+    body = _minta(server, "/admin/sakelar?dukungan=tersimpan", cookie=token)[1]
     assert 'role="status"' in body and "Pengaturan dukungan tersimpan" in body
 
     import sqlite3
     with sqlite3.connect(admin_store.BAWAAN) as kon:
         kon.execute("DROP TRIGGER dukungan_config_tolak_delete")
         kon.execute("DELETE FROM dukungan_konfigurasi")
-    body = _minta(server, "/admin?section=operasional", cookie=token)[1]
+    body = _minta(server, "/admin/sakelar", cookie=token)[1]
     assert "Dukungan pengguna" in body and "Belum siap" in body
     assert "08xx" not in body and "wa.me" not in body

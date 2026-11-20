@@ -58,9 +58,16 @@ def admin(server):  # noqa: F811
 
 # --- navigasi, status penyimpanan ----------------------------------------------
 
-def test_nav_admin_memuat_entri_profil_guru(server, admin):
+def test_nav_admin_profil_guru_satu_butir_dengan_pemakaian_dan_tab(server, admin):
     body = _minta(server, "/admin", cookie=admin)[1]
-    assert 'href="/admin/profil-guru"' in body and "Profil guru peninjau" in body
+    nav = body.split('<nav class="admin-nav admin-menu"', 1)[1].split("</nav>", 1)[0]
+    assert 'href="/admin/pemakaian"' in nav and "Guru &amp; pemakaian" in nav
+    assert 'href="/admin/profil-guru"' not in nav  # tidak lagi butir menu sendiri
+    halaman = _minta(server, RUTE, cookie=admin)[1]
+    menu = halaman.split('<nav class="admin-nav admin-menu"', 1)[1].split("</nav>", 1)[0]
+    assert '<a href="/admin/pemakaian" aria-current="page">' in menu  # butir menu aktif di halaman profil
+    assert '<a class="admin-tab" href="/admin/profil-guru" aria-current="page">Profil guru peninjau</a>' in halaman
+    assert '<a class="admin-tab" href="/admin/pemakaian">Pemakaian</a>' in halaman
 
 
 def test_penyimpanan_belum_siap_tampil_pesan_dan_post_ditolak_tanpa_tulis(server, admin):

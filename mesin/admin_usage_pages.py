@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Optional, Sequence
 
+from admin_guru_tab import TAB_PEMAKAIAN, tab_guru
 from admin_komponen import e
 from teacher_usage import BATAS_WAJAR_MENIT, JUMLAH_MINGGU, PemakaianGuru
 
@@ -79,7 +80,7 @@ def halaman(daftar: Sequence[PemakaianGuru]) -> str:
             "Laporan orang tua terbit",
         )
     )
-    return (
+    return tab_guru(TAB_PEMAKAIAN) + (
         '<section class="admin-kartu admin-kartu-tabel"><div class="admin-kartu-kepala">'
         '<h2>Pemakaian per guru</h2><span class="admin-meta">%d minggu terakhir, hanya agregat</span></div>'
         '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Pemakaian per guru">'

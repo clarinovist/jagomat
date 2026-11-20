@@ -1,4 +1,8 @@
-"""Rute admin sakelar fitur: GET/POST `/admin/sakelar` (empat sakelar, DB sakelar terpisah).
+"""Rute admin Pengaturan layanan: GET/POST `/admin/sakelar` (empat sakelar, DB sakelar terpisah).
+
+GET menampilkan halaman Pengaturan layanan lengkap (sakelar fitur, tahap pembayaran, rekening, kesiapan,
+dukungan, baris AI); bagian sakelar dirender di sini, bagian lain oleh pemiliknya masing-masing. POST di
+rute ini tetap hanya mengubah sakelar fitur dan tidak berubah.
 
 Dijawab `admin_http` sebelum palang guru: anonim/murid/guru = 404 identik rute admin tak dikenal sebelum DB
 sakelar dibaca. Aturan:
@@ -14,11 +18,13 @@ sakelar dibaca. Aturan:
 from __future__ import annotations
 
 import sqlite3
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import admin_http as h
+import admin_launch_http as launch
 import admin_pesanan_aksi as aksi
 import admin_sakelar_pages as ui
+import admin_rekening_http
 import admin_security
 import admin_store
 import feature_switch
@@ -64,14 +70,6 @@ def _prasyarat_belum(nama: str) -> Tuple[str, ...]:
     return tuple(belum)
 
 
-def _kirim(penangan, principal, isi: str, kode: int = 200) -> None:
-    if h._principal_admin(penangan) != principal:
-        return h._tidak_ada(penangan)
-    h._kirim_privat(penangan, h._halaman_admin(
-        principal, "sakelar", isi, penangan=penangan, skrip=True, judul=ui.JUDUL, subjudul=ui.SUBJUDUL,
-    ), kode, skrip=True)
-
-
 def _revisi_harapan(sakelar: feature_switch.Sakelar) -> int:
     return sakelar.revisi if sakelar.sumber == "db" else REVISI_SEED
 
@@ -89,27 +87,47 @@ def _tokens(penangan, principal, daftar, prasyarat) -> Dict[str, Tuple[str, str]
     return {s.nama: (csrf, _tinjauan(akun, sesi, s)) for s in daftar if s.aktif or not prasyarat.get(s.nama)}
 
 
-def _hasil_query(penangan):
-    hasil = h._query(penangan, diizinkan={"hasil"}).get("hasil")
-    if hasil is not None and hasil not in ui.KODE_HASIL:
+KUNCI_QUERY = frozenset({"hasil", "dukungan"})
+KODE_DUKUNGAN = frozenset(launch.FEEDBACK_DUKUNGAN)
+
+
+def _query_halaman(penangan) -> Tuple[Optional[str], str]:
+    """(kode hasil sakelar, kode hasil dukungan) dari query; kunci/nilai di luar daftar = ValueError (404)."""
+    query = h._query(penangan, diizinkan=KUNCI_QUERY)
+    hasil, dukungan = query.get("hasil"), query.get("dukungan")
+    if "hasil" in query and hasil not in ui.KODE_HASIL:
         raise ValueError("hasil tidak sah")
-    return hasil
+    if "dukungan" in query and dukungan not in KODE_DUKUNGAN:
+        raise ValueError("dukungan tidak sah")
+    return hasil, dukungan or ""
 
 
-def _get(penangan, principal) -> None:
-    try:
-        hasil = _hasil_query(penangan)
-    except ValueError:
-        return h._tidak_ada(penangan)
+def bagian_sakelar(penangan, principal, hasil: Optional[str]) -> Tuple[str, int]:
+    """(HTML bagian sakelar, kode HTTP). DB sakelar tak terbaca = kartu galat + 503, tanpa membuang bagian
+    halaman lain; PermissionError (sesi berkuki tak sah) diteruskan ke pemanggil."""
     try:
         daftar = feature_switch.daftar(seed=sakelar_registry.seed_env())
         prasyarat = {s.nama: _prasyarat_belum(s.nama) for s in daftar if not s.aktif}
         tokens = _tokens(penangan, principal, daftar, prasyarat) if principal.metode == "cookie" else None
+    except _GALAT_BACA:
+        return ui.halaman_galat(), 503
+    return ui.halaman(daftar, tokens, prasyarat=prasyarat, hasil=hasil), 200
+
+
+def _get(penangan, principal) -> None:
+    try:
+        hasil, dukungan = _query_halaman(penangan)
+        sakelar, kode = bagian_sakelar(penangan, principal, hasil)
+        isi = launch.halaman_pengaturan(
+            penangan, principal, kode_dukungan=dukungan, sakelar=sakelar,
+            rekening=admin_rekening_http.bagian_pengaturan())
     except PermissionError:
         return h._galat(penangan, 403, ui.COPY_TANPA_SESI)
-    except _GALAT_BACA:
-        return _kirim(penangan, principal, ui.halaman_galat(), 503)
-    _kirim(penangan, principal, ui.halaman(daftar, tokens, prasyarat=prasyarat, hasil=hasil))
+    except (admin_store.StoreBelumSiap, sqlite3.Error, OSError):
+        return h._galat(penangan, 503, "Layanan admin belum siap.")
+    except (ValueError, LookupError):
+        return h._tidak_ada(penangan)
+    launch._kirim(penangan, principal, "operasional", isi, kode)
 
 
 def tangani_get(penangan, jalur) -> bool:

@@ -35,7 +35,7 @@ def _kirim(penangan, principal, isi: str, kode: int = 200) -> None:
     if h._principal_admin(penangan) != principal:
         return h._tidak_ada(penangan)
     h._kirim_privat(penangan, h._halaman_admin(
-        principal, "pesanan", isi, penangan=penangan, skrip=True, judul=ui.JUDUL, subjudul=ui.SUBJUDUL,
+        principal, "rekening", isi, penangan=penangan, skrip=True, judul=ui.JUDUL, subjudul=ui.SUBJUDUL,
     ), kode, skrip=True)
 
 
@@ -72,6 +72,18 @@ def _token(penangan, principal, keadaan: dict):
     revisi, sidik = _snapshot(keadaan)
     return (h._csrf(akun, sesi),
             admin_security.buat_tinjauan(akun, sesi, ui.AKSI_UBAH, {"revisi": revisi, "sidik": sidik}))
+
+
+def bagian_pengaturan() -> str:
+    """Kartu rekening untuk Pengaturan layanan. Hanya-baca: tanpa token dan tanpa form; kegagalan baca
+    menjadi kartu "belum siap" supaya bagian halaman lain tetap tampil."""
+    try:
+        keadaan = _keadaan(h._path_admin())
+    except _GALAT_BACA:
+        return ui.kartu_tidak_siap()
+    if keadaan["status"] == ui.KEADAAN_BELUM_DIPASANG:
+        return ui.kartu_tidak_siap()
+    return ui.kartu_ringkas(keadaan)
 
 
 def _hasil_query(penangan):

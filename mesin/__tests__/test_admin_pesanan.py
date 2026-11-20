@@ -340,8 +340,8 @@ def test_nonadmin_404_byte_identik_rute_tak_dikenal_tanpa_efek(bayar, admin, aku
     assert _stempel(bayar) == sebelum
 
 
-def test_section_pesanan_terdaftar_di_nav_grup_layanan():
-    assert ("pesanan", "Pesanan Paket Coba", "/admin/pesanan") in admin_pages.SECTION
+def test_section_pesanan_terdaftar_di_nav_grup_penjualan():
+    assert ("pesanan", "Pesanan & transfer", "/admin/pesanan") in admin_pages.SECTION
     grup = dict(admin_pages.GRUP_SECTION)
-    assert "pesanan" in grup["Layanan"]
+    assert grup["Penjualan"][0] == "pesanan"
     assert "pesanan" in admin_pages.SECTION_LOKAL

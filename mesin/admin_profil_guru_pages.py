@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Mapping, Optional, Sequence
 
+from admin_guru_tab import TAB_PROFIL, tab_guru
 from admin_komponen import e
 import profil_guru_settings as pg
 
@@ -107,11 +108,12 @@ def _daftar(profil: Sequence[pg.ProfilGuru], token: Optional[TokenForm]) -> str:
 def halaman(profil: Optional[Sequence[pg.ProfilGuru]], token: Optional[TokenForm] = None,
             feedback: str = "") -> str:
     """``profil`` None = penyimpanan belum siap; ``token`` None = hanya baca (tanpa form)."""
+    tab = tab_guru(TAB_PROFIL)
     if profil is None:
-        return ('<section class="admin-kartu admin-catatan" role="status" aria-atomic="true">'
-                '<h2>Penyimpanan belum siap</h2><p>%s</p></section>' % e(PESAN_BELUM_SIAP))
+        return tab + ('<section class="admin-kartu admin-catatan" role="status" aria-atomic="true">'
+                      '<h2>Penyimpanan belum siap</h2><p>%s</p></section>' % e(PESAN_BELUM_SIAP))
     status = ('<p class="admin-kartu admin-catatan" role="status" aria-atomic="true">%s</p>' % e(feedback)
               if feedback else "")
     catatan = '<section class="admin-kartu admin-catatan"><p class="admin-meta">%s</p></section>' % e(CATATAN)
     tambah = _form_tambah(token, len(profil)) if token is not None else ""
-    return status + catatan + _daftar(profil, token) + tambah
+    return tab + status + catatan + _daftar(profil, token) + tambah

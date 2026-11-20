@@ -182,6 +182,11 @@ button, summary {{ cursor: pointer; }}
 .admin-nav-label-menu {{ flex: 1; min-width: 0; }}
 .admin-nav-badge {{ background: {T.ADMIN_AKSEN_PERHATIAN}; color: {T.ADMIN_PERMUKAAN}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; line-height: 1.25; border-radius: {T.RADIUS_PIL}; padding: 2px {T.SP_2}; }}
 .admin-nav-titik {{ width: 8px; height: 8px; border-radius: {T.RADIUS_BULAT}; background: {T.ADMIN_AKSEN_PERHATIAN}; flex: none; }}
+.admin-nav-tanda {{ flex: none; color: {T.ADMIN_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 500; }}
+.admin-menu a[aria-current="page"] .admin-nav-tanda {{ color: inherit; }}
+.admin-nav-lainnya > details > summary {{ display: flex; align-items: center; gap: {T.SP_2}; min-height: {T.TARGET_SENTUH}; padding-bottom: 0; list-style: none; }}
+.admin-nav-lainnya > details > summary::-webkit-details-marker {{ display: none; }}
+.admin-nav-lainnya > details[open] > summary .admin-panah {{ transform: rotate(180deg); }}
 .admin-sr {{ position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }}
 .admin-menu a:hover {{ background: {T.ADMIN_NAV_HOVER}; }}
 .admin-menu a[aria-current="page"] {{ color: {T.ADMIN_AKSEN_TEKS}; background: {T.ADMIN_AKSEN_LATAR}; font-weight: 600; }}
@@ -531,7 +536,7 @@ summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-weight: 600;
   .menu-pengguna > summary {{ max-width: 100%; }}
   .admin-nav-mobile > summary {{ flex-wrap: wrap; }}
   .admin-nav-mobile .admin-nav-daftar {{ grid-template-columns: 1fr 1fr; }}
-  .admin-nav-utama {{ grid-column: 1 / -1; }}
+  .admin-nav-utama, .admin-nav-lainnya {{ grid-column: 1 / -1; }}
 }}
 @media (max-width: 32rem) {{
   .admin-utama {{ padding: {T.SP_4}; }}

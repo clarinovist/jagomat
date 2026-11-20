@@ -117,17 +117,24 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   hasil latihan, backup dan provider mempunyai batas retensi berbeda.
 - Akun, persetujuan awal, sensor internal opt-in, panel admin/tema, dukungan akun,
   riset publik dan wawancara privat tersedia. Sensor bukan bukti efektivitas belajar.
-- Admin melihat **Pemakaian guru** (`/admin/pemakaian`, baca-saja): per akun guru per minggu
+- Menu admin (Fase B redesign): Ringkasan; Penjualan (Pesanan & transfer, Rekening transfer, Topik Cek
+  Kemampuan); Pengguna (Keluarga, Siswa, Lembaga les, Guru & pemakaian, Riset konsumen sementara); Sistem
+  (Pengaturan layanan, Riwayat admin); Lainnya terlipat (Pendaftaran mandiri, Langganan lama, KPI uji
+  coba dan AI yang akan dimatikan).
+- Admin melihat **Pemakaian guru** (`/admin/pemakaian`, baca-saja; tab "Pemakaian" | "Profil guru
+  peninjau" satu butir menu "Guru & pemakaian"): per akun guru per minggu
   WIB, 8 minggu terakhir: minggu aktif, sesi dibuat/selesai/dikonfirmasi, median lama anak,
   jeda selesai→konfirmasi, perkiraan waktu tinjau, sumber, laporan terbit. Tanpa nama anak;
   waktu persiapan belum terukur.
 - Admin melihat **Topik Cek Kemampuan** (`/admin/cek-topik`, baca-saja, tanpa DB): topik cek gratis
   per kelas, soal per topik, contoh jenis soal, dan status materi dasar kelas 1–2. Diturunkan dari kode;
   mengubahnya lewat kode dan rilis, bukan dari admin.
-- Admin mengubah **sakelar fitur** (`/admin/sakelar`): `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,
+- **Pengaturan layanan** (`/admin/sakelar`, satu halaman; `/admin?section=operasional` mengalihkan 303 ke
+  sini): sakelar fitur + tahap pembayaran, kartu rekening transfer (ubah di `/admin/pesanan/rekening`),
+  kesiapan/dukungan, satu baris status AI. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,
   `OSN_CETAK_RINGKAS`, `OSN_BANK_KALIMAT`. Nilai disimpan di DB terpisah `/data/sakelar.db` (dibuat saat
   perubahan pertama; env tetap fallback), dengan tinjauan bertanda tangan, sandi ulang, optimistic
-  concurrency, dan audit. DB sakelar rusak = halaman 503 jujur; menyalakan transfer ditolak bila funnel
+  concurrency, dan audit. DB sakelar rusak = kartu galat + status 503, bagian lain halaman tetap tampil; menyalakan transfer ditolak bila funnel
   mati atau rekening kosong.
 - Admin mengelola **profil guru peninjau** (`/admin/profil-guru`): nama, latar, lama mengajar, urutan,
   tampil/tidak. Profil `tampil=1` dipakai kartu guru di halaman funnel dengan cache 30 detik; profil

@@ -12,6 +12,7 @@ _BENTUK = {
     "pendaftaran": '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 12h6M9 16h4"/>',
     "langganan": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>',
     "pesanan": '<path d="M6 3h12l2 4v13a1 1 0 01-1 1H5a1 1 0 01-1-1V7z"/><path d="M4 7h16"/><path d="M9 11a3 3 0 006 0"/>',
+    "rekening": '<path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 21h18"/>',
     "cek-topik": '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',
     "profil_guru": '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
     "kpi": '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',

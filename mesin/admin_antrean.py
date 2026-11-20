@@ -17,6 +17,7 @@ JALUR_KELUARGA = "/admin?section=keluarga&status=perlu_perhatian"
 STATUS_LOGIN_ANTREAN = ("legacy_same_name_ambiguous", "orphan_login", "legacy_orphan_login")
 PERINGATAN_LUNAS = "Periksa hasil operasinya; jangan mengulang atau memaksa status lunas."
 CATATAN_BACKUP = "Bukti ini tidak menyatakan jadwal atau salinan di luar server."
+JALUR_KESIAPAN = "/admin/sakelar#kesiapan"  # Pengaturan layanan, bagian Kesiapan layanan
 JALUR_SISWA_TANPA_LOGIN = "/admin?section=siswa&status=student_without_login"
 CATATAN_TANPA_LOGIN = ("Normal: anak masuk lewat QR atau tautan HP dari guru. "
                        "Buka daftar hanya bila perlu membuat login.")
@@ -115,13 +116,13 @@ def _item_backup(sekarang: float):
         item = ItemAntrean(
             "penting", "Bukti backup tidak valid",
             "Bundle backup tidak lolos validasi. " + CATATAN_BACKUP,
-            "/admin?section=operasional#kesiapan", "Periksa backup",
+            JALUR_KESIAPAN, "Periksa backup",
         )
     else:
         item = ItemAntrean(
             "penting", "Backup belum terverifikasi",
             "Belum ada cutoff backup yang tercatat. " + CATATAN_BACKUP,
-            "/admin?section=operasional#kesiapan", "Periksa backup",
+            JALUR_KESIAPAN, "Periksa backup",
         )
     return (item,), label, False
 

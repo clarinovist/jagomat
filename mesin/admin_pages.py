@@ -30,29 +30,37 @@ from templates import LEVEL_TINGKAT
 SECTION = (
     ("ringkasan", "Ringkasan", "/admin"),
     ("perhatian", "Perlu ditangani", "/admin?section=perhatian"),
+    ("pesanan", "Pesanan & transfer", "/admin/pesanan"),
+    ("rekening", "Rekening transfer", "/admin/sakelar#rekening"),
+    ("cek-topik", "Topik Cek Kemampuan", "/admin/cek-topik"),
     ("keluarga", "Keluarga", "/admin?section=keluarga"),
     ("siswa", "Siswa", "/admin?section=siswa"),
     ("lembaga", "Lembaga les", "/admin/lembaga"),
-    ("pendaftaran", "Pendaftaran", "/admin?section=pendaftaran"),
-    ("langganan", "Langganan & invoice", "/admin?section=langganan"),
-    ("pesanan", "Pesanan Paket Coba", "/admin/pesanan"),
-    ("cek-topik", "Topik Cek Kemampuan", "/admin/cek-topik"),
+    ("pemakaian", "Guru & pemakaian", "/admin/pemakaian"),
     ("profil_guru", "Profil guru peninjau", "/admin/profil-guru"),
-    ("kpi", "KPI uji coba", "/admin?section=kpi"),
     ("riset", "Riset konsumen", "/admin/riset"),
-    ("pemakaian", "Pemakaian guru", "/admin/pemakaian"),
-    ("operasional", "Operasional", "/admin?section=operasional"),
-    ("ai", "AI", "/admin/ai"),
-    ("sakelar", "Sakelar", "/admin/sakelar"),
+    ("operasional", "Pengaturan layanan", "/admin/sakelar"),
+    ("sakelar", "Sakelar fitur", "/admin/sakelar"),
     ("riwayat", "Riwayat admin", "/admin?section=riwayat"),
+    ("pendaftaran", "Pendaftaran mandiri", "/admin?section=pendaftaran"),
+    ("langganan", "Langganan lama", "/admin?section=langganan"),
+    ("kpi", "KPI uji coba", "/admin?section=kpi"),
+    ("ai", "AI", "/admin/ai"),
 )
+GRUP_LAINNYA = "Lainnya"
+# "Riset konsumen" SEMENTARA di grup Pengguna selama masa wawancara mulai 23 Nov 2026
+# (plan redesign-admin E4); setelah masa itu pindahkan ke GRUP_LAINNYA.
 GRUP_SECTION = (
     ("Pusat kendali", ("ringkasan",)),
-    ("Pengguna", ("keluarga", "siswa", "lembaga")),
-    ("Layanan", ("pendaftaran", "langganan", "pesanan", "cek-topik", "profil_guru")),
-    ("Analitik", ("kpi", "riset", "pemakaian")),
-    ("Sistem", ("operasional", "ai", "sakelar", "riwayat")),
+    ("Penjualan", ("pesanan", "rekening", "cek-topik")),
+    ("Pengguna", ("keluarga", "siswa", "lembaga", "pemakaian", "riset")),
+    ("Sistem", ("operasional", "riwayat")),
+    (GRUP_LAINNYA, ("pendaftaran", "langganan", "kpi", "ai")),
 )
+# Id section yang valid tetapi tidak punya butir menu sendiri: menyorot butir menu induknya.
+MENU_INDUK = {"perhatian": "ringkasan", "profil_guru": "pemakaian", "sakelar": "operasional"}
+# Fitur yang dijadwalkan mati (docs/plan/2026-11-20-matikan-kpi-dan-ai.md): diberi tanda kecil di menu.
+SECTION_AKAN_DIMATIKAN = frozenset(("kpi", "ai"))
 SECTION_LOKAL = frozenset(item[0] for item in SECTION if item[0] != "ai")
 _PANAH_MENU = (
     '<svg class="admin-panah" aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 12 12" '
@@ -83,8 +91,8 @@ def _judul_section(section: str) -> Tuple[str, str]:
     judul, subjudul = {
         'ringkasan': ('Ringkasan', L.hari_ini()),
         'perhatian': ('Perlu ditangani', 'Periksa hasil operasi yang memerlukan keputusan.'),
-        'langganan': ('Langganan', 'Catatan langganan dan akses keluarga.'),
-        'operasional': ('Operasional', 'Kesiapan layanan dan pengaturan operasional.'),
+        'langganan': ('Langganan lama', 'Catatan langganan dan akses keluarga.'),
+        'operasional': ('Pengaturan layanan', 'Sakelar fitur, rekening transfer, dan kesiapan layanan di satu tempat.'),
         'kpi': ('KPI uji coba', 'Angka agregat untuk memahami penggunaan, bukan menilai anak.'),
         'ai': ('Pengaturan AI', 'Kesiapan, batas biaya, dan pemakaian panggilan Jagomat.'),
     }.get(section, ('Ringkasan', L.hari_ini()))
@@ -106,26 +114,41 @@ def _badge_nav(sinyal: Optional[SinyalNav], sid: str) -> str:
 
 
 def _tautan_nav(sid: str, label: str, jalur: str, aktif: bool, sinyal: Optional[SinyalNav]) -> str:
-    return '<li><a href="%s"%s>%s<span class="admin-nav-label-menu">%s</span>%s</a></li>' % (
-        _e(jalur), ' aria-current="page"' if aktif else "", ikon(sid), _e(label), _badge_nav(sinyal, sid))
+    tanda = ('<span class="admin-nav-tanda">akan dimatikan</span>'
+             if sid in SECTION_AKAN_DIMATIKAN else "")
+    return '<li><a href="%s"%s>%s<span class="admin-nav-label-menu">%s</span>%s%s</a></li>' % (
+        _e(jalur), ' aria-current="page"' if aktif else "", ikon(sid), _e(label), tanda,
+        _badge_nav(sinyal, sid))
+
+
+def _grup_nav(label_grup: str, tautan: str, jumlah: int, terbuka: bool) -> str:
+    """Satu grup menu: butir utama tanpa judul, grup biasa berjudul, Lainnya terlipat (native)."""
+    if label_grup == "Pusat kendali":
+        return ('<li class="admin-nav-utama"><ul class="admin-nav-pilihan" '
+                'aria-label="Menu utama">%s</ul></li>' % tautan)
+    if label_grup == GRUP_LAINNYA:
+        return ('<li class="admin-nav-grup admin-nav-lainnya"><details%s>'
+                '<summary class="admin-nav-label"><span>%s (%d)</span>%s</summary>'
+                '<ul class="admin-nav-anak" aria-label="%s">%s</ul></details></li>'
+                % (' open' if terbuka else '', _e(label_grup), jumlah, _PANAH_MENU, _e(label_grup), tautan))
+    return ('<li class="admin-nav-grup"><p class="admin-nav-label">%s</p>'
+            '<ul class="admin-nav-anak" aria-label="%s">%s</ul></li>' % (_e(label_grup), _e(label_grup), tautan))
+
+
+def _menu_aktif(section: str) -> str:
+    return MENU_INDUK.get(section, section)
 
 
 def _nav(section: str, sinyal: Optional[SinyalNav] = None) -> str:
-    section = 'ringkasan' if section == 'perhatian' else section
+    aktif = _menu_aktif(section)
     section_data = {sid: (label, jalur) for sid, label, jalur in SECTION}
     grup = []
     for label_grup, daftar_section in GRUP_SECTION:
         tautan = "".join(
-            _tautan_nav(sid, section_data[sid][0], section_data[sid][1], sid == section, sinyal)
+            _tautan_nav(sid, section_data[sid][0], section_data[sid][1], sid == aktif, sinyal)
             for sid in daftar_section
         )
-        if label_grup == "Pusat kendali":
-            grup.append('<li class="admin-nav-utama"><ul class="admin-nav-pilihan" '
-                        'aria-label="Menu utama">%s</ul></li>' % tautan)
-        else:
-            grup.append('<li class="admin-nav-grup"><p class="admin-nav-label">%s</p>'
-                        '<ul class="admin-nav-anak" aria-label="%s">%s</ul></li>'
-                        % (_e(label_grup), _e(label_grup), tautan))
+        grup.append(_grup_nav(label_grup, tautan, len(daftar_section), aktif in daftar_section))
     return '<ul class="admin-nav-daftar">%s</ul>' % "".join(grup)
 
 
@@ -137,7 +160,8 @@ def _badge_mendesak(sinyal: Optional[SinyalNav]) -> str:
 
 
 def _label_section(section: str) -> str:
-    return next(label for sid, label, _jalur in SECTION if sid == section)
+    aktif = _menu_aktif(section)
+    return next(label for sid, label, _jalur in SECTION if sid == aktif)
 
 
 def halaman_admin(
@@ -303,7 +327,7 @@ def render_ringkasan(
         '<span class="admin-meta">Konfigurasi bukan jaminan provider sedang online. '
         'Bukti backup tidak menyatakan jadwal atau salinan luar server.</span></header>'
         '<dl>%s</dl>' % _kartu_layanan(status_layanan)
-        + '<a class="admin-layanan-cta" href="/admin?section=operasional">Buka operasional <span aria-hidden="true">→</span></a></section>'
+        + '<a class="admin-layanan-cta" href="/admin/sakelar">Buka pengaturan layanan <span aria-hidden="true">→</span></a></section>'
         '<div class="admin-pendukung"><section class="admin-kartu admin-angka-kartu" aria-labelledby="judul-angka">'
         '<h2 id="judul-angka">Jumlah administratif</h2>'
         '<dl class="admin-angka-daftar" aria-label="Jumlah administratif">%s</dl>' % stat

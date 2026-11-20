@@ -12,17 +12,28 @@ def _aturan(selector):
     return cocok.group(1)
 
 
+BUTIR_MENU = [sid for _grup, daftar in P.GRUP_SECTION for sid in daftar]
+LAINNYA = dict(P.GRUP_SECTION)[P.GRUP_LAINNYA]
+
+
 @pytest.mark.parametrize('section', [item[0] for item in P.SECTION])
-def test_menu_datar_dua_permukaan_satu_aktif(section):
+def test_menu_dua_permukaan_satu_aktif_dan_lainnya_terlipat_kecuali_aktif(section):
+    """Menu kini punya satu <details> native (grup Lainnya); sebelumnya menu sepenuhnya datar tanpa disclosure.
+
+    Setiap id section yang sah (termasuk yang tidak punya butir sendiri) menyorot tepat satu butir di kedua permukaan."""
     html = P.halaman_admin(section, '', pengguna='Pengelola Contoh').decode()
     navs = re.findall(r'<nav\b[^>]*>(.*?)</nav>', html, re.S)
     assert len(navs) == 2
+    aktif = P.MENU_INDUK.get(section, section)
+    assert aktif in BUTIR_MENU
+    jalur = {sid: href for sid, _, href in P.SECTION}
     for nav in navs:
-        assert '<details' not in nav
+        assert nav.count('<details') == 1
         assert nav.count('aria-current="page"') == 1
-        assert {href for href in re.findall(r'href="([^"]+)"', nav)} == {href for sid, _, href in P.SECTION if sid != 'perhatian'}
-        for label in ('Pengguna', 'Layanan', 'Analitik', 'Sistem'):
+        assert {href for href in re.findall(r'href="([^"]+)"', nav)} == {jalur[sid] for sid in BUTIR_MENU}
+        for label in ('Penjualan', 'Pengguna', 'Sistem'):
             assert '<p class="admin-nav-label">%s</p>' % label in nav
+        assert ('<details open>' in nav) == (aktif in LAINNYA)
     assert html.count('Tampilan privat · Data operasional') == 1
     assert '<script' not in html
     assert 'Lewati navigasi' in html

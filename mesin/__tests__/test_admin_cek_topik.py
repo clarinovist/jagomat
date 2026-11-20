@@ -99,6 +99,6 @@ def test_status_flag_materi_dasar_mengikuti(server, monkeypatch, aktif):
 
 def test_menu_memuat_entri_di_grup_layanan(server):
     assert ("cek-topik", "Topik Cek Kemampuan", "/admin/cek-topik") in admin_pages.SECTION
-    assert "cek-topik" in dict(admin_pages.GRUP_SECTION)["Layanan"]
+    assert "cek-topik" in dict(admin_pages.GRUP_SECTION)["Penjualan"]
     token = _login(server, "Admin-C", SANDI_ADMIN)
     assert 'href="/admin/cek-topik"' in _minta(server, "/admin", cookie=token)[1]

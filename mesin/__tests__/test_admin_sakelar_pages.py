@@ -94,12 +94,17 @@ def test_registry_seed_env_memetakan_empat_nama_ke_bool_dan_env_tak_sah_jadi_fal
                     "OSN_CETAK_RINGKAS": True, "OSN_BANK_KALIMAT": False}
 
 
-def test_navigasi_admin_memuat_sakelar_di_grup_sistem():
+def test_navigasi_admin_memuat_pengaturan_layanan_di_grup_sistem():
     import admin_pages
-    assert ("sakelar", "Sakelar", "/admin/sakelar") in admin_pages.SECTION
-    assert "sakelar" in dict(admin_pages.GRUP_SECTION)["Sistem"] and "sakelar" in admin_pages.SECTION_LOKAL
-    isi = admin_pages.halaman_admin("sakelar", "", pengguna="Pengelola").decode()
-    assert '<a href="/admin/sakelar" aria-current="page">' in isi
+    assert ("operasional", "Pengaturan layanan", "/admin/sakelar") in admin_pages.SECTION
+    assert ("sakelar", "Sakelar fitur", "/admin/sakelar") in admin_pages.SECTION
+    assert "operasional" in dict(admin_pages.GRUP_SECTION)["Sistem"]
+    assert "sakelar" in admin_pages.SECTION_LOKAL
+    # Id lama "sakelar" tetap sah dan menyorot butir Pengaturan layanan (satu butir untuk dua halaman lama).
+    for section in ("sakelar", "operasional"):
+        isi = admin_pages.halaman_admin(section, "", pengguna="Pengelola").decode()
+        assert isi.count('<a href="/admin/sakelar" aria-current="page">') == 2  # desktop + seluler
+        assert '<strong>Pengaturan layanan</strong>' in isi
 
 
 def test_registry_info_lengkap_dan_nama_asing_ditolak():

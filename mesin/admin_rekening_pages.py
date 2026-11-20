@@ -109,6 +109,23 @@ def halaman(keadaan: Mapping, token: Optional[Tuple[str, str]], *, hasil: Option
             + '<p class="admin-meta"><a class="admin-tautan" href="%s">Kembali ke pesanan</a></p>' % RUTE)
 
 
+def kartu_ringkas(keadaan: Mapping) -> str:
+    """Kartu #rekening di Pengaturan layanan: ringkasan ter-mask dan tautan ke halaman ubah.
+
+    Sengaja tanpa form: perubahan rekening (dengan sandi) hanya lewat `RUTE_REKENING`."""
+    return (
+        '<section class="admin-kartu" id="rekening"><div class="admin-seksi-kepala"><h2>%s</h2>'
+        '<a class="admin-tautan" href="%s">Ubah rekening</a></div>%s</section>'
+        % (e(JUDUL), RUTE_REKENING, _ringkasan(keadaan))
+    )
+
+
+def kartu_tidak_siap() -> str:
+    """Pengganti kartu #rekening saat skema/DB rekening belum siap; halaman lain tetap tampil."""
+    return ('<section class="admin-kartu admin-galat" id="rekening" role="alert"><h2>%s</h2><p>%s</p></section>'
+            % (e(JUDUL), e(COPY_TIDAK_SIAP)))
+
+
 def halaman_tidak_siap() -> str:
     return ('<section class="admin-kartu admin-galat" role="alert"><h2>Belum siap</h2><p>%s</p></section>'
             % e(COPY_TIDAK_SIAP))

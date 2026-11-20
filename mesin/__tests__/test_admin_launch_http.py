@@ -14,7 +14,7 @@ from test_admin_http_c import server, _login, _minta, _hidden, SANDI_ADMIN, SAND
 from test_subscription_store import dump
 
 
-@pytest.mark.parametrize('section',['langganan','perhatian','operasional','kpi'])
+@pytest.mark.parametrize('section',['langganan','perhatian','kpi'])
 def test_admin_panel_terbuka_dan_privat(server,section):
     token=_login(server,'Admin-C',SANDI_ADMIN)
     code,body,headers=_minta(server,'/admin?section='+section,cookie=token)
@@ -57,11 +57,13 @@ def test_biaya_http_csrf_reauth_replay(server):
 
 def test_sakelar_pembayaran_http_gate_reauth_csrf_dan_tahap(server,monkeypatch):
     token=_login(server,'Admin-C',SANDI_ADMIN)
-    body=_minta(server,'/admin?section=operasional',cookie=token)[1]
+    body=_minta(server,'/admin/sakelar',cookie=token)[1]
     assert 'Tahap saat ini: <strong>Nonaktif</strong>' in body
     assert 'Tidak membuat atau memeriksa pembayaran.' in body
     assert 'Tahap tujuan' in body and 'Terapkan perubahan tahap' in body
-    form=dict(csrf=_hidden(body,'csrf'),tinjauan=_hidden(body,'tinjauan'),
+    # Halaman Pengaturan layanan memuat banyak form; ambil token dari kartu pembayaran saja.
+    kartu=body.split('id="pembayaran"',1)[1].split('</section>',1)[0]
+    form=dict(csrf=_hidden(kartu,'csrf'),tinjauan=_hidden(kartu,'tinjauan'),
               reauth=SANDI_ADMIN,tahap='rekonsiliasi',konfirmasi='1')
     awal=dump(admin_store.BAWAAN)
     assert _minta(server,'/admin/layanan/pembayaran',cookie=token,data={**form,'csrf':'rusak'})[0]==403
@@ -82,7 +84,7 @@ def test_sakelar_pembayaran_http_gate_reauth_csrf_dan_tahap(server,monkeypatch):
         cfg=admin_launch_service.konfigurasi_pembayaran(c)
         assert cfg['tahap']=='rekonsiliasi' and cfg['revisi']==2
         assert c.execute('SELECT COUNT(*) FROM pembayaran_audit').fetchone()[0]==1
-    body=_minta(server,'/admin?section=operasional',cookie=token)[1]
+    body=_minta(server,'/admin/sakelar',cookie=token)[1]
     assert 'Tahap saat ini: <strong>Rekonsiliasi</strong>' in body
     assert 'Key/provider produksi: <strong>Siap</strong>' in body
     assert 'kunci-sintetis' not in body and 'Server Key' not in body

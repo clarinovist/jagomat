@@ -148,7 +148,8 @@ def test_halaman_basic_auth_baca_saja_tanpa_form(tertutup):
         assert html.escape(sakelar_registry.info(nama).label) in isi
 
 
-@pytest.mark.parametrize("query", ["?hasil=sembarang", "?x=1", "?hasil=tersimpan&hasil=tersimpan"])
+@pytest.mark.parametrize("query", ["?hasil=sembarang", "?x=1", "?hasil=tersimpan&hasil=tersimpan",
+                                   "?dukungan=sembarang", "?dukungan=", "?dukungan=tersimpan&dukungan=tersimpan"])
 def test_query_tak_sah_404_identik(tertutup, admin, query):
     acuan = minta_admin(tertutup, TAK_ADA, admin)
     kode, isi, _t = minta_admin(tertutup, SAKELAR + query, admin)
@@ -322,8 +323,11 @@ def _rusakkan(isi=b"bukan sqlite"):
 def test_db_rusak_halaman_503_jujur_tanpa_path_dan_tanpa_form(tertutup, admin, tmp_path):
     _rusakkan()
     kode, isi, _t = minta_admin(tertutup, SAKELAR, admin)
-    assert kode == 503 and 'name="tinjauan"' not in isi
+    assert kode == 503 and 'action="/admin/sakelar"' not in isi  # tanpa form sakelar
     assert str(tmp_path) not in isi and "sakelar.db" not in isi and "Traceback" not in isi
+    # Halaman Pengaturan layanan lain tetap tampil: galat sakelar tidak membuang kesiapan/rekening.
+    assert "Database sakelar tidak dapat dibaca" in isi
+    assert 'id="kesiapan"' in isi and 'id="rekening"' in isi
 
 
 def test_db_rusak_post_503_tanpa_path_dan_tanpa_efek(tertutup, admin, tmp_path):

@@ -192,27 +192,42 @@ def test_operasional_teks_keamanan_dan_konfirmasi_dipertahankan_kata_per_kata():
         "Tahap harus dinaikkan satu per satu. Penurunan boleh langsung saat insiden.",
         "WhatsApp adalah kanal komunikasi, bukan bukti kepemilikan akun.",
         "Validitas bundle bukan bukti backup terjadwal, salinan luar server, atau rehearsal terbaru.",
-        "Konfigurasi bukan jaminan provider sedang online. Tidak ada panggilan berbayar saat halaman dibuka.",
         "Tahap saat ini: <strong>Checkout</strong> · revisi 3",
     ):
         assert teks in isi, teks
 
 
-def test_operasional_tab_stepper_prasyarat_dan_tile_ai():
+def test_operasional_tab_stepper_prasyarat_dan_baris_ai():
     isi = ui.operasional(_ringkas(), "", "")
 
-    assert '<nav class="admin-navigasi-bagian" aria-label="Bagian operasional">' in isi
-    for sid in ("kesiapan", "dukungan", "pembayaran", "ai"):
+    assert '<nav class="admin-navigasi-bagian" aria-label="Bagian pengaturan layanan">' in isi
+    for sid in ("kesiapan", "dukungan", "ai"):
         assert 'href="#%s"' % sid in isi and 'id="%s"' % sid in isi
+    assert 'id="pembayaran"' in isi
+    assert 'href="#sakelar"' not in isi and 'href="#rekening"' not in isi  # bagian tanpa isi tidak ditautkan
     assert isi.count('aria-current="step"') == 1
     assert '<li aria-current="step"' in isi and "Tahap 3 · saat ini" in isi
     for tahap in ("Nonaktif", "Rekonsiliasi", "Checkout", "Penegakan"):
         assert tahap in isi
     assert isi.count('class="admin-tahap-hint"') == 4
     assert "Key/provider produksi" in isi and "Kebijakan D8/D9" in isi
-    assert isi.count('class="admin-ai-tile"') == 3  # dua fitur + gagal 24 jam
-    assert "Gagal / tak pasti, 24 jam" in isi and "<strong>2</strong>" in isi
-    assert 'href="/admin/ai"' in isi
+    # AI hanya satu baris status (rencana pematian); rincian dan pengaturan tetap di /admin/ai.
+    assert 'admin-ai-tile' not in isi and "Gagal / tak pasti" not in isi
+    assert "AI: tidak dipakai · akan dimatikan" in isi
+    assert isi.count('href="/admin/ai"') == 1
+
+
+def test_operasional_urutan_sakelar_rekening_kesiapan_dukungan_ai():
+    isi = ui.operasional(_ringkas(), _form_pembayaran(), "", sakelar="<section>SAKELAR</section>",
+                         rekening='<section id="rekening">REKENING</section>')
+
+    urutan = [isi.index(t) for t in ('id="sakelar"', 'id="pembayaran"', 'id="rekening"', 'id="kesiapan"',
+                                     'id="dukungan"', 'id="ai"')]
+    assert urutan == sorted(urutan)
+    sakelar = isi.split('<div id="sakelar">', 1)[1].split('id="rekening"', 1)[0]
+    assert "SAKELAR" in sakelar and 'id="pembayaran"' in sakelar  # tahap pembayaran satu grup dengan sakelar fitur
+    for sid in ("sakelar", "rekening"):
+        assert 'href="#%s"' % sid in isi
 
 
 def test_operasional_backup_belum_tercatat_dan_prasyarat_belum_siap_tetap_teks():

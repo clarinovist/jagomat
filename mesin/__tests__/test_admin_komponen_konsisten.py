@@ -100,7 +100,7 @@ def test_tab_admin_bergaris_bawah_dan_navigasi_bagian_bukan_tab():
     assert 'border-bottom-color: ' + T.ADMIN_AKSEN in aktif and 'color: ' + T.ADMIN_AKSEN in aktif
     assert 'border-bottom: 1px solid ' + T.ADMIN_BORDER in _aturan('.admin-tab-baris')
     operasional = LP.operasional(_ringkas(), _form_pembayaran(), LP.formulir_dukungan('c', 't', _config()))
-    assert '<nav class="admin-navigasi-bagian" aria-label="Bagian operasional">' in operasional
+    assert '<nav class="admin-navigasi-bagian" aria-label="Bagian pengaturan layanan">' in operasional
     assert 'admin-tab' not in operasional
 
 
@@ -137,15 +137,15 @@ def test_umur_antrean_tak_tercatat_tanpa_tanda_visual_yatim():
     assert AP._umur(item) == '<span class="admin-sr">Umur tidak tersedia</span>'
 
 
-def test_cta_backup_spesifik_dan_ringkasan_tanpa_duplikat_buka_operasional(monkeypatch):
+def test_cta_backup_spesifik_dan_ringkasan_tanpa_duplikat_buka_pengaturan_layanan(monkeypatch):
     for label in ('Belum terverifikasi', 'Bukti backup tidak valid'):
         monkeypatch.setattr(admin_operations, 'bukti_backup', lambda s, label=label: (label, None))
         (item,), _, _ = admin_antrean._item_backup(0.0)
         assert item.cta == 'Periksa backup'
-        assert item.jalur == '/admin?section=operasional#kesiapan'
+        assert item.jalur == '/admin/sakelar#kesiapan'
     antrean = AP.AntreanAdmin(item=(item,), total=1)
     isi = P.render_ringkasan(_ringkasan(), antrean=antrean)
-    assert isi.count('>Buka operasional') == 1
+    assert isi.count('>Buka pengaturan layanan') == 1
     assert '>Periksa backup<' in isi
 
 

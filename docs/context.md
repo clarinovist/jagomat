@@ -106,7 +106,10 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - `admin_sakelar_pages.py` → `admin_sakelar_http.py` untuk `/admin/sakelar`: empat sakelar di
   `feature_switch.py` (DB terpisah, fail-closed, env fallback) + `sakelar_registry.py`; guard aksi sama
   dengan panel rekening (tinjauan bertanda tangan, sandi ulang, konflik revisi, audit). Database sakelar
-  rusak = 503 jujur.
+  rusak = 503 jujur. GET `/admin/sakelar` kini halaman Pengaturan layanan (menggabungkan Operasional:
+  `admin_launch_http.halaman_pengaturan` + kartu rekening `admin_rekening_http.bagian_pengaturan`);
+  `/admin?section=operasional` hanya 303 ke sana. Menu: `admin_pages.GRUP_SECTION`/`MENU_INDUK`; tab
+  guru di `admin_guru_tab.py`.
 - `admin_profil_guru_pages.py` → `admin_profil_guru_http.py` + `profil_guru_settings.py` untuk
   `/admin/profil-guru`; `funnel_http._profil_guru` membaca `tampil=1` dengan cache 30 detik dan
   mengoper kartu ke halaman contoh/paket coba.

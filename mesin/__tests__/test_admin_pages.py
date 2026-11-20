@@ -102,11 +102,13 @@ def test_frame_enam_menu_privasi_dan_fallback_section():
     assert '<a href="/admin" aria-current="page"><svg' in navigasi
     assert '<span class="admin-nav-label-menu">Ringkasan</span></a>' in navigasi
     for label in (
-        "Ringkasan", "Keluarga", "Siswa", "Pendaftaran", "AI", "Riwayat admin"
+        "Ringkasan", "Keluarga", "Siswa", "Pendaftaran mandiri", "AI", "Riwayat admin"
     ):
         assert label in html
-    for label_grup in ("Pengguna", "Layanan", "Analitik", "Sistem"):
+    for label_grup in ("Penjualan", "Pengguna", "Sistem", "Lainnya"):
         assert label_grup in navigasi
+    for label_lama in ("Layanan", "Analitik"):  # grup lama sudah dibubarkan
+        assert '<p class="admin-nav-label">%s</p>' % label_lama not in navigasi
     assert 'href="/admin/ai"' in html
     assert '<meta name="robots" content="noindex,nofollow,noarchive">' in html
     assert '<meta name="referrer" content="no-referrer">' in html
@@ -203,15 +205,18 @@ def test_ringkasan_bagian_lama_tetap_ada_sampai_diputuskan():
     isi = pages.render_ringkasan(_ringkasan(), antrean=ANTREAN_DEMO)
     assert 'id="login-perlu-perhatian"' in isi
     assert '<details class="admin-kartu admin-catatan admin-definisi">' in isi
-    assert 'href="/admin?section=operasional">Buka operasional' in isi
+    assert 'href="/admin?section=operasional">Buka operasional' in isi  # item antrean sintetis (jalur adalah data)
+    assert 'href="/admin/sakelar">Buka pengaturan layanan' in isi  # CTA kondisi layanan ke halaman kanonis
     assert 'Maksimal 10 catatan' in isi
 
 
 def test_nav_badge_titik_dan_label_persis_mockup():
     isi = pages.halaman_admin('ringkasan', '', pengguna='Pengelola',
                               sinyal=SinyalNav(total=4, mendesak=1, operasional_perhatian=True)).decode()
-    for label in ('Ringkasan', 'Keluarga', 'Siswa', 'Pendaftaran', 'Langganan &amp; invoice',
-                  'KPI uji coba', 'Riset konsumen', 'Operasional', 'AI', 'Riwayat admin'):
+    for label in ('Ringkasan', 'Pesanan &amp; transfer', 'Rekening transfer', 'Topik Cek Kemampuan',
+                  'Keluarga', 'Siswa', 'Lembaga les', 'Guru &amp; pemakaian', 'Riset konsumen',
+                  'Pengaturan layanan', 'Riwayat admin', 'Pendaftaran mandiri', 'Langganan lama',
+                  'KPI uji coba', 'AI'):
         assert '<span class="admin-nav-label-menu">%s</span>' % label in isi
     assert isi.count('<svg') >= 20  # ikon per menu, desktop + seluler
     assert 'admin-nav-badge">4<span class="admin-sr"> hal menunggu keputusan' in isi

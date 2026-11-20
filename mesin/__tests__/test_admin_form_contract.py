@@ -56,6 +56,11 @@ def test_kontrak_form_http_sama_dengan_sebelum_redesain(server, nama):
     baseline = json.loads(Path(__file__).with_name('admin_form_contract.json').read_text())
     token = _login(server, 'Admin-C', SANDI_ADMIN)
     jalur = '/admin/'+nama if nama in ('ai','riset') else '/admin?section='+nama
+    if nama == 'operasional':
+        # Halaman Operasional sudah digabung ke Pengaturan layanan (/admin/sakelar); rute lama hanya 303.
+        code, _body, kepala = _minta(server, jalur, cookie=token)
+        assert code == 303 and kepala['Location'] == '/admin/sakelar'
+        jalur = kepala['Location']
     code, body, _ = _minta(server, jalur, cookie=token)
     assert code == 200
     parser = KontrakForm(); parser.feed(body)
@@ -66,4 +71,11 @@ def test_kontrak_form_http_sama_dengan_sebelum_redesain(server, nama):
     assert len(form_tema) == 1
     assert {field['name'] for field in form_tema[0]['fields']} == {'tema', 'token_tema'}
     form_domain = [form for form in parser.forms if form['action'] != '/admin/tema']
+    if nama == 'operasional':
+        # Form pembayaran dan dukungan harus identik dengan baseline; satu-satunya tambahan adalah form sakelar
+        # fitur (rute POST /admin/sakelar tidak berubah) dan tidak ada form rekening (ubah rekening di rutenya).
+        tambahan = [form for form in form_domain if form['action'] == '/admin/sakelar']
+        form_domain = [form for form in form_domain if form['action'] != '/admin/sakelar']
+        assert tambahan and all(
+            {f['name'] for f in form['fields']} == {'csrf', 'tinjauan', 'reauth'} for form in tambahan)
     assert _kanonis(form_domain) == _kanonis(baseline[nama])

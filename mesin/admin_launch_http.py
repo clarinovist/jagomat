@@ -19,7 +19,8 @@ import product_analytics as d
 import product_analytics_store as kpi
 
 SECTION = {'langganan','perhatian','operasional','kpi'}
-JUDUL = {'langganan':'Langganan','perhatian':'Perlu ditangani','operasional':'Operasional','kpi':'KPI uji coba'}
+JUDUL = {'langganan':'Langganan lama','perhatian':'Perlu ditangani','operasional':'Pengaturan layanan','kpi':'KPI uji coba'}
+RUTE_PENGATURAN = '/admin/sakelar'  # halaman kanonis Pengaturan layanan (dulu ?section=operasional)
 FEEDBACK_DUKUNGAN = {'tersimpan': 'Pengaturan dukungan tersimpan dan siap dipakai halaman publik.'}
 
 
@@ -29,10 +30,40 @@ def _form(penangan,p,aksi,meta):
     return h._csrf(akun,token_sesi),admin_security.buat_tinjauan(akun,token_sesi,aksi,meta)
 
 
-def _kirim(penangan,p,section,isi):
+def _kirim(penangan,p,section,isi,kode=200):
     if h._principal_admin(penangan) != p:
         return h._tidak_ada(penangan)
-    h._kirim_privat(penangan,h._halaman_admin(p,section,isi,penangan=penangan,skrip=True,judul=JUDUL[section],subjudul=None),skrip=True)
+    h._kirim_privat(penangan,h._halaman_admin(p,section,isi,penangan=penangan,skrip=True,judul=JUDUL[section],subjudul=None),kode,skrip=True)
+
+
+def halaman_pengaturan(penangan,p,*,kode_dukungan='',sakelar='',rekening=''):
+    """Isi halaman Pengaturan layanan; ``sakelar``/``rekening`` dirender pemiliknya (admin_sakelar_http/admin_rekening_http)."""
+    kini=int(time.time())
+    runtime=billing.runtime_penangan(penangan)
+    kesiapan=billing.kesiapan_penangan(penangan)
+    ringkas=admin_operations.ringkasan(h._path_admin(),sekarang=kini,runtime=runtime,
+                                       kesiapan=kesiapan)
+    form=''
+    form_dukungan=''
+    config=ringkas['pembayaran_config']
+    if p.metode=='cookie' and config:
+        c,t=_form(penangan,p,'atur_pembayaran',{'revisi':config['revisi'],'tahap':config['tahap']})
+        opsi=''.join('<option value="%s"%s>%s</option>'%(nilai,' selected' if nilai==config['tahap'] else '',label) for nilai,label in (
+            ('nonaktif','Nonaktif'),('rekonsiliasi','Rekonsiliasi'),('checkout','Checkout'),('penegakan','Penegakan')))
+        fields='<p><strong>Aturan perubahan:</strong> kenaikan hanya satu tahap. Penurunan dapat langsung dipakai saat insiden; pilih Rekonsiliasi agar transaksi berjalan tetap bisa diperiksa.</p><label>Tahap tujuan<select name="tahap">%s</select></label><label><input type="checkbox" name="konfirmasi" value="1" required> Saya sudah meninjau tahap saat ini, tahap tujuan, prasyarat, dan dampaknya pada pembayaran baru serta transaksi berjalan.</label>'%opsi
+        form=ui.formulir('pembayaran',c,t,fields,'Terapkan perubahan tahap')
+    config_dukungan=ringkas['dukungan_config']
+    if p.metode=='cookie' and config_dukungan:
+        akun=h._akun_principal(p);token_sesi=h._wajib_cookie(penangan,p)
+        c=h._csrf(akun,token_sesi)
+        t=admin_security.buat_tinjauan(akun,token_sesi,'atur_dukungan',{
+            'revisi':config_dukungan.revisi,
+            'sidik':dukungan.sidik_konfigurasi(config_dukungan),
+        })
+        form_dukungan=ui.formulir_dukungan(c,t,config_dukungan)
+    return ui.operasional(ringkas,form,form_dukungan,
+                          feedback=FEEDBACK_DUKUNGAN.get(kode_dukungan,''),
+                          sakelar=sakelar,rekening=rekening)
 
 
 def get(penangan,p,q):
@@ -68,29 +99,10 @@ def get(penangan,p,q):
         rows,total=admin_operations.antrean(h._path_admin(),halaman=h._angka(q.get('halaman'),1))
         isi=ui.antrean(rows,total,halaman=h._angka(q.get('halaman'),1))
     elif section=='operasional':
-        kesiapan=billing.kesiapan_penangan(penangan)
-        ringkas=admin_operations.ringkasan(h._path_admin(),sekarang=kini,runtime=runtime,
-                                           kesiapan=kesiapan)
-        form=''
-        form_dukungan=''
-        config=ringkas['pembayaran_config']
-        if p.metode=='cookie' and config:
-            c,t=_form(penangan,p,'atur_pembayaran',{'revisi':config['revisi'],'tahap':config['tahap']})
-            opsi=''.join('<option value="%s"%s>%s</option>'%(nilai,' selected' if nilai==config['tahap'] else '',label) for nilai,label in (
-                ('nonaktif','Nonaktif'),('rekonsiliasi','Rekonsiliasi'),('checkout','Checkout'),('penegakan','Penegakan')))
-            fields='<p><strong>Aturan perubahan:</strong> kenaikan hanya satu tahap. Penurunan dapat langsung dipakai saat insiden; pilih Rekonsiliasi agar transaksi berjalan tetap bisa diperiksa.</p><label>Tahap tujuan<select name="tahap">%s</select></label><label><input type="checkbox" name="konfirmasi" value="1" required> Saya sudah meninjau tahap saat ini, tahap tujuan, prasyarat, dan dampaknya pada pembayaran baru serta transaksi berjalan.</label>'%opsi
-            form=ui.formulir('pembayaran',c,t,fields,'Terapkan perubahan tahap')
-        config_dukungan=ringkas['dukungan_config']
-        if p.metode=='cookie' and config_dukungan:
-            akun=h._akun_principal(p);token_sesi=h._wajib_cookie(penangan,p)
-            c=h._csrf(akun,token_sesi)
-            t=admin_security.buat_tinjauan(akun,token_sesi,'atur_dukungan',{
-                'revisi':config_dukungan.revisi,
-                'sidik':dukungan.sidik_konfigurasi(config_dukungan),
-            })
-            form_dukungan=ui.formulir_dukungan(c,t,config_dukungan)
-        isi=ui.operasional(ringkas,form,form_dukungan,
-                           feedback=FEEDBACK_DUKUNGAN.get(q.get('dukungan',''),''))
+        # Halaman kanonis pindah ke RUTE_PENGATURAN; bookmark lama tetap sampai (GET saja, handler POST tidak berubah).
+        # Fragmen (#kesiapan dst.) sengaja tidak ditulis ulang: peramban membawanya dari URL asal.
+        lokasi=RUTE_PENGATURAN+('?dukungan='+q['dukungan'] if q.get('dukungan') in FEEDBACK_DUKUNGAN else '')
+        return h._redirect(penangan,lokasi)
     else:
         bulan=q.get('bulan',d.hari_wib(kini)[:7])
         import re
