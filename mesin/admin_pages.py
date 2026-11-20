@@ -33,6 +33,7 @@ SECTION = (
     ("pesanan", "Pesanan & transfer", "/admin/pesanan"),
     ("rekening", "Rekening transfer", "/admin/sakelar#rekening"),
     ("cek-topik", "Topik Cek Kemampuan", "/admin/cek-topik"),
+    ("kurikulum", "Peta kurikulum", "/admin/kurikulum"),
     ("keluarga", "Keluarga", "/admin?section=keluarga"),
     ("siswa", "Siswa", "/admin?section=siswa"),
     ("lembaga", "Lembaga les", "/admin/lembaga"),
@@ -58,7 +59,9 @@ GRUP_SECTION = (
     (GRUP_LAINNYA, ("pendaftaran", "langganan", "kpi", "ai")),
 )
 # Id section yang valid tetapi tidak punya butir menu sendiri: menyorot butir menu induknya.
-MENU_INDUK = {"perhatian": "ringkasan", "profil_guru": "pemakaian", "sakelar": "operasional"}
+MENU_INDUK = {
+    "perhatian": "ringkasan", "profil_guru": "pemakaian", "sakelar": "operasional", "kurikulum": "cek-topik",
+}
 # Fitur yang dijadwalkan mati (docs/plan/2026-11-20-matikan-kpi-dan-ai.md): diberi tanda kecil di menu.
 SECTION_AKAN_DIMATIKAN = frozenset(("kpi", "ai"))
 SECTION_LOKAL = frozenset(item[0] for item in SECTION if item[0] != "ai")

@@ -10,6 +10,7 @@ from typing import Callable, Optional
 import cek_gratis_skor as skor
 import topics
 from admin_komponen import e
+from admin_kurikulum_tab import TAB_CEK_TOPIK, tab_kurikulum
 
 KELAS_CEK = (1, 2, 3, 4, 5, 6)
 KELAS_DASAR = (1, 2)
@@ -77,7 +78,7 @@ def halaman(dasar_aktif: bool, *, kelas: Optional[tuple] = None) -> str:
         for label in ("Kelas", "Topik dan contoh jenis soal", "Soal per topik")
     )
     isi = "".join(_baris(k, dasar_aktif) for k in (kelas or KELAS_CEK))
-    return (
+    return tab_kurikulum(TAB_CEK_TOPIK) + (
         '<section class="admin-kartu admin-kartu-tabel"><div class="admin-kartu-kepala">'
         '<h2>Topik per kelas</h2><span class="admin-meta">%d soal per cek, pilihan ganda</span></div>'
         '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="Topik cek per kelas">'

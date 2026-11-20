@@ -128,7 +128,8 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   waktu persiapan belum terukur.
 - Admin melihat **Topik Cek Kemampuan** (`/admin/cek-topik`, baca-saja, tanpa DB): topik cek gratis
   per kelas, soal per topik, contoh jenis soal, dan status materi dasar kelas 1–2. Diturunkan dari kode;
-  mengubahnya lewat kode dan rilis, bukan dari admin.
+  mengubahnya lewat kode dan rilis, bukan dari admin. Tab "Peta kurikulum" (`/admin/kurikulum`,
+  baca-saja): butir CP Merdeka per fase, celah cakupan SD, dan grup per topik.
 - **Pengaturan layanan** (`/admin/sakelar`, satu halaman; `/admin?section=operasional` mengalihkan 303 ke
   sini): sakelar fitur + tahap pembayaran, kartu rekening transfer (ubah di `/admin/pesanan/rekening`),
   kesiapan/dukungan, satu baris status AI. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,

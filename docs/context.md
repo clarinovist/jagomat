@@ -103,6 +103,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   bernama non-`*store*` karena hanya membaca; sidik kontrak persistensi tidak berubah.
 - `admin_cek_topik_pages.py` → `admin_cek_topik_http.py` untuk `/admin/cek-topik`: render murni dari
   `cek_gratis_skor.TOPIK_PER_KELAS` dan registri `topics`, tanpa DB.
+- `admin_kurikulum_pages.py` → `admin_kurikulum_http.py` untuk `/admin/kurikulum` (baca-saja, tanpa DB): render
+  `kurikulum_katalog` + `kurikulum_cp`; bar tab `admin_kurikulum_tab.py` dibagi dengan halaman cek-topik.
 - `admin_sakelar_pages.py` → `admin_sakelar_http.py` untuk `/admin/sakelar`: empat sakelar di
   `feature_switch.py` (DB terpisah, fail-closed, env fallback) + `sakelar_registry.py`; guard aksi sama
   dengan panel rekening (tinjauan bertanda tangan, sandi ulang, konflik revisi, audit). Database sakelar
