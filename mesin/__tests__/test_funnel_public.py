@@ -125,8 +125,7 @@ def test_landing_ringkas_dan_tanpa_penanda_mockup(server, monkeypatch):
     monkeypatch.setenv("FUNNEL_AKTIF", "1")
     _, isi, _ = server.minta("/cek-kemampuan")
     jumlah = len(_teks(isi).split())
-    assert jumlah <= 900, jumlah  # landing playful v4: gejala, demo, tiket, FAQ ikut terhitung
-    assert funnel_pages.COPY_KUOTA_AWAL in isi
+    assert jumlah <= 900, jumlah  # landing playful v4: cerita, demo, hasil gratis, FAQ ikut terhitung
     for penanda in ("[nama, latar", "Draf:", "Kuota masih usulan"):
         assert penanda not in isi
     utama = isi.split('id="konten"', 1)[1].split("</main>", 1)[0]

@@ -243,8 +243,8 @@ AKSEN_TERANG_DIIZINKAN = MappingProxyType({
     ("style_stitch", "CSS_SESI", ".status-sesi-st .material-symbols-outlined, .status-sesi-st .ikon-status-sesi-st"):
         "ikon status dekoratif, status berteks",
     ("funnel_landing_style", "GAYA_LANDING_CEK", ".cek-hero-st h1 em"): "judul besar tebal (>=24px) amber di teal tua: 3,47:1 memenuhi 3:1 teks besar",
-    ("funnel_landing_style", "GAYA_LANDING_CEK", ".cek-tiket-st .cek-alis-st"): "amber di atas latar navy TEKS_JUDUL",
-    ("funnel_landing_style", "GAYA_LANDING_CEK", ".cek-tiket-st a"): "amber di atas latar navy TEKS_JUDUL",
+    ("funnel_landing_style", "GAYA_LANDING_CEK", ".cek-solusi-st .cek-alis-st"): "amber di atas latar navy TEKS_JUDUL",
+    ("funnel_landing_style", "GAYA_LANDING_CEK", ".cek-solusi-st a"): "amber di atas latar navy TEKS_JUDUL",
     ("teacher_style", "GAYA_GURU", ".ikon-kartu"):"glyph ikon putih di teal terang: grafis 3,1:1",
     ("screen_style", "GAYA_LAYAR", ".nomor"): "lembar dibekukan gate rilis; tertimpa .lembar-editorial .nomor",
     ("screen_style", "GAYA_LAYAR", ".bintang"): "lembar dibekukan gate rilis",

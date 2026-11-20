@@ -176,8 +176,8 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
 - Halaman publik funnel `/cek-kemampuan` dan `/paket-coba` (Fase 1) ada di balik `FUNNEL_AKTIF` (bawaan
   mati: halaman "belum dibuka"). Sejak 20 Nov 2026 beranda `/` untuk pengunjung anonim memakai landing
   `/cek-kemampuan` yang sama saat `FUNNEL_AKTIF` hidup; saat mati `/` kembali ke landing lama (guru/admin login
-  tetap ke berandanya). Sejak 19 Nov 2026 (Keputusan 19) `/cek-kemampuan` bergaya playful (chip gejala,
-  demo tebak langkah, satu CTA) dan `/contoh-peta-kemampuan` menampilkan laporan Peta Kemampuan playful dengan data
+  tetap ke berandanya). Sejak 19 Nov 2026 (Keputusan 19) `/cek-kemampuan` bergaya playful (bagian cerita statis,
+  demo tebak langkah, satu CTA; bagian harga hanya hasil gratis, tawaran Rp49.000 ada di halaman hasil dan FAQ) dan `/contoh-peta-kemampuan` menampilkan laporan Peta Kemampuan playful dengan data
   sintetis konsisten (skor/kategori `cek_gratis_skor`, Kuat ≥80%, <3 soal "Belum cukup soal", pola = jumlah salah)
   plus lembar A4 1 halaman `/contoh-peta-kemampuan/lembar`. Peringkat/persentil DITAMPILKAN (`peta_posisi`: pembanding
   kelas sama, minimal 30 anak, selalu dengan penyebut); laporan nyata pesanan berbayar, isian Guru, dan agregat

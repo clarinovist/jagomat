@@ -5,9 +5,9 @@ keluarga/anak, tanpa form, tanpa atribut `style`; semua tampilan lewat kelas
 `cek-...-st` (CSS di `funnel_landing_style`). Satu tombol utama (CTA koral di
 hero); bagian lain memakai tautan ke `#mulai`.
 
-Interaksi (chip gejala, tebak langkah, kartu hero) adalah enhancement: skrip
-`funnel_landing_browser.SKRIP_LANDING_CEK`. Tanpa JS, semua jawaban gejala
-tampil sebagai `<details>` dan penjelasan demo ada di `<details>` juga.
+Interaksi (tebak langkah, kartu hero) adalah enhancement: skrip
+`funnel_landing_browser.SKRIP_LANDING_CEK`. Bagian cerita (situasi, akar masalah,
+solusi) statis tanpa JS; tanpa JS penjelasan demo ada di `<details>`.
 Semua contoh bersifat ilustrasi dan berlabel contoh (nama sintetis).
 """
 from __future__ import annotations
@@ -18,6 +18,8 @@ from funnel_landing_browser import SKRIP_LANDING_CEK
 MASKOT_MERAYAKAN = "/aset/maskot-merayakan-v3-240.png"
 JALUR_MULAI = "#mulai"
 
+COPY_H1 = ("Sudah les matematika, tapi nilainya ", "masih begitu-begitu saja?")
+COPY_CTA_LANDING = "Mulai tes gratis"
 COPY_GELEMBUNG = "Halo! Aku bantu cari salahnya di langkah mana."
 COPY_FAKTA = ("Kelas 1–6 SD", "Soal sesuai kelas", "Laporan lengkap dibaca Guru")
 COPY_ARIA_PANGGUNG = "Contoh hasil, data sintetis"
@@ -32,29 +34,44 @@ COPY_CONTOH_MATERI = (
     ("cerita", "mint", "Soal cerita", 35, "perlu dibantu"),
 )
 
-COPY_GEJALA_ALIS = "Kedengarannya akrab?"
-COPY_GEJALA_JUDUL = "Pilih yang paling sering Anda alami."
-COPY_GEJALA_SUB = "Salah yang berulang biasanya punya pola. Ketuk salah satu."
-# (ikon, warna, label chip, kutipan, penjelasan, langkah malam ini)
-COPY_GEJALA = (
-    ("rumah", "teal", "Di rumah bisa, pas ujian salah lagi",
-     "Di rumah sudah bisa, pas ujian kok salah lagi?",
-     "Bisa jadi yang kurang bukan latihan, tapi bagian mana yang belum benar-benar nempel.",
-     "minta anak mengerjakan soal serupa dengan angka berbeda, lalu lihat langkah mana yang berubah."),
-    ("layar", "koral", "Sudah dileskan, tapi tetap kesulitan",
-     "Sudah dileskan, tapi anak tetap kesulitan?",
-     "Sebelum menambah les, lihat dulu salahnya di mana. Kadang yang tertinggal hanya satu langkah kecil.",
-     "minta anak menjelaskan caranya dengan kata-katanya sendiri, bukan hanya jawabannya."),
-    ("jam", "amber", "Pas les bisa, seminggu kemudian lupa",
-     "Pas les bisa, seminggu kemudian lupa?",
-     "Anak mungkin mengikuti caranya, tapi belum paham kenapa caranya begitu.",
-     'tanya "kenapa langkahnya begini?" di satu soal saja. Dua menit cukup.'),
-    ("pensil", "navy", "Sering dibilang ceroboh",
-     "Sering salah dan dibilang ceroboh?",
-     '"Ceroboh" belum tentu ceroboh. Salah yang berulang bisa jadi satu langkah konsep yang tertinggal.',
-     "lingkari langkah pertama yang salah di tiga soal terakhir. Apakah langkahnya sama?"),
+COPY_CERITA_ALIS = "Kedengarannya akrab?"
+COPY_CERITA_JUDUL = "Pernah mengalami hal seperti ini, Bunda?"
+COPY_CERITA_SUB = (
+    "Anak sebenarnya sudah belajar, bahkan sudah ikut les. "
+    "Tapi kenapa hasilnya masih belum sesuai harapan?"
 )
-COPY_COBA_MALAM = "Coba malam ini:"
+# (ikon, warna, judul, penjelasan)
+COPY_SITUASI = (
+    ("pensil", "koral", "Sudah diajari, tapi masih sering salah menjawab.",
+     "Soalnya sebenarnya bisa dikerjakan, tapi masih sering salah hitung atau kurang teliti."),
+    ("rumah", "teal", "Di rumah bisa, giliran ujian malah lupa.",
+     "Saat belajar bareng Bunda jawabannya benar, tapi begitu mengerjakan sendiri justru bingung."),
+    ("layar", "amber", "Sudah ikut les, tapi masih kesulitan memahami materi.",
+     "Sudah belajar berkali-kali, tapi materi kemarin sering masih harus diulang lagi."),
+)
+COPY_AKAR_JUDUL = "Mungkin masalahnya bukan karena anak kurang belajar."
+COPY_AKAR_ISI = (
+    "Bisa jadi ada konsep dasar yang belum benar-benar dipahami. "
+    "Akibatnya, anak kesulitan mengikuti materi berikutnya."
+)
+COPY_JEMBATAN = (
+    "Jangan buru-buru menambah jam belajar sebelum Bunda tahu bagian mana "
+    "yang sebenarnya belum dikuasai anak."
+)
+COPY_JEMBATAN_ISI = (
+    "Setiap anak punya kemampuan dan kecepatan belajar yang berbeda. Karena itu, "
+    "penting untuk tahu sejauh mana pemahaman matematika anak sebelum menentukan "
+    "cara belajar yang tepat."
+)
+COPY_SOLUSI_ALIS = "Solusi Jagomat"
+COPY_SOLUSI_JUDUL = "Yuk, kenali level kemampuan matematika anak!"
+COPY_SOLUSI_PENGANTAR = "Ikuti Tes Matematika Gratis dari Jagomat untuk mengetahui:"
+COPY_SOLUSI_ISI = (
+    "Materi yang sudah dikuasai anak",
+    "Materi yang masih perlu diperkuat",
+    "Skor dan kategori kemampuan anak",
+    "Langkah belajar berikutnya (lengkap di Peta Kemampuan)",
+)
 
 COPY_DEMO_ALIS = "Coba sebentar"
 COPY_DEMO_JUDUL = "Tebak: di langkah mana salahnya?"
@@ -67,7 +84,7 @@ COPY_DEMO_LANGKAH = (
     ("4 × 6 = 24, langsung ditulis 24", True),
     ("Hasil ditulis 242", False),
 )
-COPY_DEMO_AWAL = "Ketuk langkah yang menurut Anda salah."
+COPY_DEMO_AWAL = "Ketuk langkah yang menurut Bunda salah."
 COPY_DEMO_SALAH = "Langkah ini sudah benar. Coba yang lain."
 COPY_DEMO_TEPAT = (
     "Tepat! Simpanan 4 belum ditambahkan: 24 + 4 = 28. Perkaliannya sudah benar, "
@@ -78,13 +95,17 @@ COPY_DEMO_BAWAH = (
     "Di Peta Kemampuan, setiap materi yang perlu diperkuat dibahas seperti ini, "
     "lengkap dengan latihan 10 menit."
 )
-COPY_TAUTAN_MULAI = "Mulai cek gratis ↑"
+COPY_TAUTAN_MULAI = "Mulai tes gratis ↑"
 
 COPY_CARA_ALIS = "Cara kerjanya"
 COPY_CARA_JUDUL = "Tiga langkah, tanpa ribet."
 
-COPY_PETA_ALIS = "Mulai gratis, lanjut kalau perlu"
-COPY_PETA_JUDUL = "Dari skor ke satu langkah berikutnya."
+COPY_PETA_ALIS = "Yang Bunda dapat"
+COPY_PETA_JUDUL = "Hasil gratis, langsung keluar."
+COPY_PETA_LANJUT = (
+    "Mau tahu lebih dalam? Setelah hasil keluar, Bunda bisa membuka laporan "
+    "lengkap yang dibaca Guru. Tidak wajib."
+)
 COPY_GRATIS_NAMA = "Cek Kemampuan"
 COPY_GRATIS_HARGA = ("Gratis", "dengan akun")
 COPY_GRATIS_ISI = (
@@ -93,48 +114,31 @@ COPY_GRATIS_ISI = (
     "Hasil otomatis, keluar begitu anak selesai",
 )
 COPY_GRATIS_CATATAN = 'Hasil gratis berlabel "belum ditinjau Guru".'
-COPY_TIKET_ALIS = "Langkah setelah cek gratis"
-COPY_TIKET_HARGA = ("Rp49.000", "sekali bayar")
-# (ikon, warna, teks)
-COPY_PETA_ISI = (
-    ("peta", "teal",
-     "Laporan lengkap dibaca Guru: per materi, pola salah dengan contoh langkah, dan misi belajar"),
-    ("lembar", "amber", "Lembar ringkasan 1 halaman, siap dicetak atau dikirim"),
-    ("posisi", "koral", "Posisi anak di antara teman sekelas yang sudah ikut Cek Jagomat"),
-    ("obrol", "mint", "Ngobrol 20 menit dengan Guru soal cara berpikir anak"),
-    ("kalender", "navy", "Latihan 30 hari, langsung bisa dipakai di rumah"),
-)
-COPY_TIKET_CATATAN = (
-    "Bukan langganan. "
-    f"{P.COPY_TIDAK_KEMBALI} Tidak wajib ikut kelas. {P.COPY_PAKET_DARI_HASIL}"
-)
-COPY_TAUTAN_ISI = "Lihat isi Peta Kemampuan"
-
 COPY_FAQ_ALIS = "Tanya jawab"
-COPY_FAQ_JUDUL = "Biar Anda tenang sebelum mulai."
+COPY_FAQ_JUDUL = "Biar Bunda tenang sebelum mulai."
 COPY_FAQ_BAYAR = (
-    "Cek Kemampuan gratis. Pembayaran hanya bila Anda membuka Peta Kemampuan "
+    "Cek Kemampuan gratis. Pembayaran hanya bila Bunda membuka Peta Kemampuan "
     "(Rp49.000 sekali bayar) dari halaman hasil. Peta Kemampuan tidak dapat "
-    "dikembalikan dan menjadi voucher program belajar bila Anda lanjut. Bila laporan "
-    "terlambat lebih dari 3×24 jam dari jam yang dikabarkan, Anda memilih menunggu "
+    "dikembalikan dan menjadi voucher program belajar bila Bunda lanjut. Bila laporan "
+    "terlambat lebih dari 3×24 jam dari jam yang dikabarkan, Bunda memilih menunggu "
     "atau uang kembali penuh."
 )
 # (ikon, warna, pertanyaan, jawaban teks, atau None bila jawabannya daftar batas hasil)
 COPY_FAQ = (
     ("hp", "teal", "Berapa lama, dan perlu ditemani?",
-     "15 soal sesuai kelas, dikerjakan sendiri di HP. Anda tidak perlu duduk menemani. "
+     "15 soal sesuai kelas, dikerjakan sendiri di HP. Bunda tidak perlu duduk menemani. "
      "Jawaban tersimpan tiap soal, jadi kalau sinyal putus, cek bisa dilanjutkan."),
     ("kalender", "amber", "Untuk kelas berapa?",
-     "Kelas 1–6 SD. Soal mengikuti kelas yang Anda pilih saat daftar."),
+     "Kelas 1–6 SD. Soal mengikuti kelas yang Bunda pilih saat daftar."),
     ("kunci", "navy", "Bagaimana dengan data anak?",
-     "Kami hanya menyimpan data yang Anda isi sendiri saat daftar, ditambah jawaban "
-     "cek anak. Hasil anak hanya terlihat di akun Anda dan oleh Guru peninjau."),
+     "Kami hanya menyimpan data yang Bunda isi sendiri saat daftar, ditambah jawaban "
+     "cek anak. Hasil anak hanya terlihat di akun Bunda dan oleh Guru peninjau."),
     ("uang", "koral", "Kapan saya harus membayar?", COPY_FAQ_BAYAR),
     ("target", "mint", "Biar harapannya pas: batas hasil", None),
 )
 
-COPY_TUTUP_JUDUL = "Satu cek kecil, satu langkah yang jelas."
-COPY_TUTUP_SUB = "Gratis, sekitar sekali duduk, dan Anda langsung tahu harus mulai dari mana."
+COPY_TUTUP_JUDUL = "Satu tes kecil, satu langkah yang jelas."
+COPY_TUTUP_SUB = "Gratis, sekitar sekali duduk, dan Bunda langsung tahu harus mulai dari mana."
 
 _D = {
     "topi": '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5"/>',
@@ -147,7 +151,6 @@ _D = {
     ),
     "rumah": '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
     "layar": '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
-    "jam": '<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',
     "pensil": '<path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/><path d="M14.5 6.5l3 3"/>',
     "wa": (
         '<path d="M4 20l1.3-4A8 8 0 1 1 8 18.7z"/>'
@@ -155,10 +158,6 @@ _D = {
     ),
     "hp": '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/>',
     "grafik": '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
-    "peta": '<path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/>',
-    "lembar": '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
-    "posisi": '<path d="M4 20h4v-6H4zM10 20h4V8h-4zM16 20h4v-9h-4z"/>',
-    "obrol": '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
     "kalender": '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
     "kunci": '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
     "uang": '<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
@@ -222,7 +221,7 @@ def _kartu_skor() -> str:
     a, b, c = COPY_CONTOH_POSISI
     return (
         '<div class="cek-kt-st cek-kt-skor-st" tabindex="0">'
-        '<div class="cek-lbl-st">Hasil gratis<span>Contoh hasil</span></div>'
+        '<div class="cek-lbl-st">Peta Kemampuan<span>Contoh hasil</span></div>'
         f'<p class="cek-nama-contoh-st">{P._e(COPY_CONTOH_NAMA)}</p>'
         '<div class="cek-skor-baris-st">'
         '<div class="cek-cincin-st" role="img" aria-label="Skor 72 dari 100">'
@@ -254,9 +253,9 @@ def _hero() -> str:
   <div class="cek-w-st cek-hero-isi-st">
     <div class="cek-hero-kiri-st">
       <p class="cek-tanya-st">{P._e(P.COPY_PERTANYAAN)}</p>
-      <h1 id="judul-cek">Kelihatan di langkah mana <em>anak mulai bingung.</em></h1>
+      <h1 id="judul-cek">{P._e(COPY_H1[0])}<em>{P._e(COPY_H1[1])}</em></h1>
       <p class="cek-sub-st">{P._e(P.COPY_SUB_HERO)}</p>
-      {P._cta_utama(P.COPY_CTA)}
+      {P._cta_utama(COPY_CTA_LANDING)}
       <p class="cek-kecil-st">{P._e(P.COPY_CATATAN_HERO)}</p>
       {_fakta()}
     </div>
@@ -265,43 +264,49 @@ def _hero() -> str:
 </section>"""
 
 
-def _isi_gejala(kutip: str, isi: str, coba: str) -> str:
+def _situasi() -> str:
+    kartu = "".join(
+        f'\n    <li>{_ubin(i, w, 44)}<div><b class="cek-situasi-judul-st">{P._e(j)}</b>'
+        f'<p class="cek-situasi-isi-st">{P._e(t)}</p></div></li>'
+        for i, w, j, t in COPY_SITUASI
+    )
+    return f'<ol class="cek-situasi-st">{kartu}\n  </ol>'
+
+
+def _akar() -> str:
     return (
-        f'<p class="cek-kutip-st">{P._e(kutip)}</p>'
-        f'<p class="cek-isi-st">{P._e(isi)}</p>'
-        f'<p class="cek-coba-st"><b>{P._e(COPY_COBA_MALAM)}</b> {P._e(coba)}</p>'
+        '<div class="cek-akar-st">'
+        f'<b class="cek-akar-judul-st">{P._e(COPY_AKAR_JUDUL)}</b>'
+        f'<p>{P._e(COPY_AKAR_ISI)}</p></div>'
     )
 
 
-def _chip_gejala() -> str:
-    tombol = "".join(
-        f'<button type="button" class="cek-chip-tombol-st" aria-pressed="{"true" if n == 0 else "false"}">'
-        f'{_ubin(i, w, 44)}<span>{P._e(label)}</span><span class="cek-panah-st" aria-hidden="true">→</span></button>'
-        for n, (i, w, label, _k, _s, _c) in enumerate(COPY_GEJALA)
-    )
+def _jembatan() -> str:
     return (
-        '<div class="cek-chip-st" role="group" aria-label="Pilih gejala" hidden data-cek-chip>'
-        f"{tombol}</div>"
+        '<div class="cek-jembatan-st">'
+        f'<p class="cek-jembatan-kutip-st"><q>{P._e(COPY_JEMBATAN)}</q></p>'
+        f'<p>{P._e(COPY_JEMBATAN_ISI)}</p></div>'
     )
 
 
-def _daftar_gejala() -> str:
-    panel = "".join(
-        f'\n      <details class="cek-jawab-st" data-cek-panel{" open" if n == 0 else ""}>'
-        f"<summary>{_ubin(i, w, 44)}<span>{P._e(label)}</span></summary>"
-        f'<div class="cek-jawab-isi-st">{_isi_gejala(k, s, c)}</div></details>'
-        for n, (i, w, label, k, s, c) in enumerate(COPY_GEJALA)
-    )
-    return f'<div class="cek-daftar-st" data-cek-daftar>{panel}\n    </div>'
+def _solusi() -> str:
+    butir = "".join(f"<li>{_ikon('centang', 20, '2.8')}<span>{P._e(t)}</span></li>" for t in COPY_SOLUSI_ISI)
+    return f"""<div class="cek-solusi-st">
+    <span class="cek-alis-st">{P._e(COPY_SOLUSI_ALIS)}</span>
+    <h3>{P._e(COPY_SOLUSI_JUDUL)}</h3>
+    <p>{P._e(COPY_SOLUSI_PENGANTAR)}</p>
+    <ul class="cek-solusi-daftar-st">{butir}</ul>
+    <a class="cek-solusi-tautan-st" href="{JALUR_MULAI}">{P._e(COPY_TAUTAN_MULAI)}</a>
+  </div>"""
 
 
-def _gejala() -> str:
-    return f"""<section class="cek-blok-st" aria-labelledby="judul-gejala"><div class="cek-w-st">
-  {_kepala(COPY_GEJALA_ALIS, COPY_GEJALA_JUDUL, "judul-gejala", COPY_GEJALA_SUB)}
-  <div class="cek-gejala-st" data-cek-gejala>
-    {_chip_gejala()}
-    {_daftar_gejala()}
-  </div>
+def _cerita() -> str:
+    return f"""<section class="cek-blok-st" aria-labelledby="judul-cerita"><div class="cek-w-st">
+  {_kepala(COPY_CERITA_ALIS, COPY_CERITA_JUDUL, "judul-cerita", COPY_CERITA_SUB, tengah=True)}
+  {_situasi()}
+  {_akar()}
+  {_jembatan()}
+  {_solusi()}
 </div></section>"""
 
 
@@ -396,38 +401,14 @@ def _kartu_gratis() -> str:
     </div>"""
 
 
-_CAP = (
-    '<svg class="cek-cap-st" viewBox="0 0 100 100" aria-hidden="true"><defs>'
-    '<path id="cek-cap-lingkar" d="M50 50 m-36 0 a36 36 0 1 1 72 0 a36 36 0 1 1 -72 0"/></defs>'
-    '<circle class="cek-cap-garis-st" cx="50" cy="50" r="46" fill="none" stroke-width="3"/>'
-    '<circle class="cek-cap-garis-st" cx="50" cy="50" r="28" fill="none" stroke-width="1.5"/>'
-    '<text class="cek-cap-teks-st" font-size="8.8"><textPath href="#cek-cap-lingkar">KEPALA SEKOLAH ★ JAGOMAT ★</textPath></text>'
-    '<text class="cek-cap-jago-st" font-size="15" x="50" y="55" text-anchor="middle">JAGO</text></svg>'
-)
-
-
-def _tiket() -> str:
-    harga, satuan = COPY_TIKET_HARGA
-    return f"""<div class="cek-tiket-st">
-      {_CAP}
-      <span class="cek-alis-st">{P._e(COPY_TIKET_ALIS)}</span>
-      <h3>{P._e(P.NAMA_PAKET)}</h3>
-      <p class="cek-tiket-sub-st">{P._e(P.COPY_PAKET_SUB)}</p>
-      <p class="cek-harga-st">{P._e(harga)}<small>{P._e(satuan)}</small></p>
-      <div class="cek-pil-baris-st"><span class="cek-pil-st cek-pil-amber-st">{P._e(P.COPY_KUOTA_AWAL)}</span><span class="cek-pil-st cek-pil-garis-st">{P._e(P.COPY_PIL_VOUCHER)}</span></div>
-      <ul class="cek-cek-st">{_centang_li(COPY_PETA_ISI)}</ul>
-      <p class="cek-tiket-catat-st">{P._e(COPY_TIKET_CATATAN)}</p>
-      <p class="cek-tautan-st"><a href="/paket-coba">{P._e(COPY_TAUTAN_ISI)}</a>{P._tautan_contoh("cek-tautan-contoh-st")}</p>
-    </div>"""
-
-
 def _peta() -> str:
     return f"""<section class="cek-blok-st cek-rapat-st" id="peta" aria-labelledby="judul-peta"><div class="cek-w-st">
-  {_kepala(COPY_PETA_ALIS, COPY_PETA_JUDUL, "judul-peta")}
-  <div class="cek-dua-st">
+  {_kepala(COPY_PETA_ALIS, COPY_PETA_JUDUL, "judul-peta", tengah=True)}
+  <div class="cek-gratis-w-st">
     {_kartu_gratis()}
-    {_tiket()}
-  </div>{P.kartu_profil_guru()}
+  </div>
+  <p class="cek-peta-lanjut-st">{P._e(COPY_PETA_LANJUT)}</p>
+  <p class="cek-tautan-st cek-tautan-tengah-st">{P._tautan_contoh("cek-tautan-contoh-st")}</p>{P.kartu_profil_guru()}
 </div></section>"""
 
 
@@ -469,7 +450,7 @@ def isi_cek_kemampuan(dukungan=None) -> str:
     return f"""{P._topbar(tautan_funnel=True)}
 <main class="funnel-halaman-st cek-halaman-st" id="konten" tabindex="-1">
 {_hero()}
-{_gejala()}
+{_cerita()}
 {_demo()}
 {_cara()}
 {_peta()}

@@ -59,18 +59,17 @@ COPY_PAKET_DARI_HASIL = (
 )
 
 # DRAF: teks final menunggu persetujuan Pemilik (copy landing dan halaman Peta Kemampuan).
-COPY_PERTANYAAN = "Latihan sudah ditambah, tapi salahnya itu-itu lagi?"
+COPY_PERTANYAAN = "Tes matematika gratis · SD kelas 1–6"
 COPY_SUB_HERO = (
-    "Anak mengerjakan sendiri di HP. Anda melihat bagian mana yang sudah "
-    "kuat dan mana yang perlu dibantu, supaya latihan di rumah tepat sasaran dan "
-    "nilai matematikanya bisa naik. Gratis."
+    "Yuk, cari tahu dulu di mana level kemampuan matematika anak Bunda sebenarnya: "
+    "materi yang sudah dikuasai, dan bagian yang masih perlu diperkuat."
 )
 COPY_CTA = "Cek anak saya, gratis"
-COPY_CATATAN_HERO = "Tanpa kartu pembayaran. Daftar dengan nomor WhatsApp Anda."
+COPY_CATATAN_HERO = "Dikerjakan anak di HP, hasil langsung keluar. Daftar cukup pakai nomor WhatsApp."
 COPY_LANGKAH = (
     ("Daftar dengan WhatsApp",
      "Cukup nomor WhatsApp dan kelas anak, lalu setujui sebagai orang tua atau wali."),
-    ("Anak mengerjakan", "15 soal di HP, sendiri. Anda tidak perlu duduk menemani."),
+    ("Anak mengerjakan", "15 soal di HP, sendiri. Bunda tidak perlu duduk menemani."),
     ("Langsung tahu",
      "Skor, kategori, dan bagian yang perlu dibantu muncul begitu anak selesai."),
 )

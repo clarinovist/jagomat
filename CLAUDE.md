@@ -64,7 +64,7 @@ mengikuti batas jenjang di referensi workflow.
   instan chip langkah berhash CSP (`guru_browser.py`; disetujui 22 Okt 2026): hanya
   menyembunyikan/menampilkan kartu yang sudah dirender server, tanpa network/storage;
   fallback chip tautan GET tetap utuh. Funnel publik (disetujui pemilik 19 Nov 2026, Keputusan 19): landing
-  `/cek-kemampuan` (`funnel_landing_browser.py`: chip gejala, demo tebak langkah, kartu hero; tanpa network/storage)
+  `/cek-kemampuan` (`funnel_landing_browser.py`: demo tebak langkah, kartu hero; tanpa network/storage)
   dan laporan Peta Kemampuan (`peta_browser.py`: tab, pose maskot, donat, tantangan + konfeti, stiker hari di
   localStorage tanpa network, tombol cetak), skrip polos berhash CSP, fallback `<details>`/panel utuh tanpa JS.
   Papan coret halaman anak cek gratis (`cek_anak_pages.py`; disetujui pemilik 19 Nov 2026): kanvas

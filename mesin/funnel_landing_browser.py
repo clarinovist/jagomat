@@ -1,17 +1,14 @@
 """Skrip peningkatan landing `/cek-kemampuan` (disetujui Pemilik 19 Nov 2026).
 
-Tiga kasus: chip gejala mengganti panel jawaban, demo "tebak di langkah mana
-salahnya", dan kartu hero yang terangkat. Konstanta string statis tanpa
+Dua kasus: demo "tebak di langkah mana salahnya" dan kartu hero yang terangkat. Konstanta string statis tanpa
 interpolasi (hash CSP dihitung dari isi `<script>` di respons), tanpa network,
 storage, `eval`, `innerHTML`, maupun event handler inline. Fallback tanpa JS:
-semua jawaban gejala tampil sebagai `<details>` dan penjelasan demo ada di
-`<details>`; markup tidak bergantung pada skrip ini.
+penjelasan demo ada di `<details>`; markup tidak bergantung pada skrip ini.
 """
 
 SKRIP_LANDING_CEK = """
 (function () {
   "use strict";
-  var KELAS_JS = "cek-js-st";
 
   function semua(selektor, akar) {
     return Array.prototype.slice.call((akar || document).querySelectorAll(selektor));
@@ -19,34 +16,6 @@ SKRIP_LANDING_CEK = """
 
   function satu(selektor, akar) {
     return (akar || document).querySelector(selektor);
-  }
-
-  function aktifkanGejala() {
-    var akar = satu("[data-cek-gejala]");
-    if (!akar) { return; }
-    var chip = satu("[data-cek-chip]", akar);
-    var daftar = satu("[data-cek-daftar]", akar);
-    var panel = semua("[data-cek-panel]", akar);
-    var tombol = chip ? semua("button", chip) : [];
-    if (!chip || !daftar || tombol.length === 0 || tombol.length !== panel.length) { return; }
-
-    function pilih(n) {
-      tombol.forEach(function (t, i) {
-        t.setAttribute("aria-pressed", i === n ? "true" : "false");
-      });
-      panel.forEach(function (p, i) {
-        p.hidden = i !== n;
-        p.open = i === n;
-      });
-    }
-
-    tombol.forEach(function (t, i) {
-      t.addEventListener("click", function () { pilih(i); });
-    });
-    chip.hidden = false;
-    daftar.setAttribute("aria-live", "polite");
-    akar.classList.add(KELAS_JS);
-    pilih(0);
   }
 
   function aktifkanDemo() {
@@ -115,7 +84,6 @@ SKRIP_LANDING_CEK = """
     });
   }
 
-  aktifkanGejala();
   aktifkanDemo();
   aktifkanKartuHero();
 })();

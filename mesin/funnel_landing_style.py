@@ -107,29 +107,26 @@ GAYA_LANDING_CEK = f"""
 .cek-kt-lencana-st small {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.TEKS_VARIAN}; }}
 .cek-ket-contoh-st {{ position: absolute; right: 0; bottom: -28px; margin: 0; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.TEKS_DI_TEAL_REDUP}; }}
 
-/* Gejala: tanpa JS semua jawaban tampil sebagai details; dengan JS chip + satu panel. */
-.cek-gejala-st {{ max-width: 48rem; }}
-.cek-gejala-st.cek-js-st {{ max-width: none; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: {T.SP_5}; align-items: start; }}
-.cek-chip-st {{ display: flex; flex-direction: column; gap: 10px; }}
-.cek-chip-tombol-st {{ width: 100%; text-align: left; display: grid; grid-template-columns: 44px 1fr 24px; gap: {T.SP_3}; align-items: center; min-height: 64px; padding: 10px 14px; border: 2px solid {T.ANAK_BORDER}; border-radius: 16px; background: {T.LATAR_KARTU}; font: inherit; font-weight: 700; color: {T.TEKS_JUDUL}; cursor: pointer; box-shadow: {T.BAYANGAN_TIMBUL_HALUS}; }}
-.cek-chip-tombol-st:hover {{ border-color: {T.AKSEN_TEAL_TUA}; }}
-.cek-chip-tombol-st[aria-pressed="true"] {{ border-color: {T.AKSEN_KORAL_TUA}; background: {T.LATAR_UBIN_KORAL}; }}
-.cek-panah-st {{ color: {T.TEKS_VARIAN}; }}
-.cek-daftar-st {{ display: flex; flex-direction: column; gap: 10px; }}
-.cek-jawab-st {{ background: {T.LATAR_KARTU}; border: 2px solid {T.ANAK_BORDER}; border-radius: 16px; }}
-.cek-jawab-st[open] {{ border-color: {T.AKSEN_TEAL_TUA}; }}
-.cek-jawab-st summary {{ display: grid; grid-template-columns: 44px 1fr 24px; gap: {T.SP_3}; align-items: center; min-height: 64px; padding: 10px 14px; font-weight: 700; cursor: pointer; }}
-.cek-halaman-st :is(.cek-jawab-st, .cek-kunci-d-st) summary::after {{ content: "+"; font-size: {T.UKURAN_ANGKA_DEWASA}; color: {T.AKSEN_TEAL_TUA}; line-height: 1; }}
-.cek-halaman-st :is(.cek-jawab-st, .cek-kunci-d-st)[open] > summary::after {{ content: "\\2013"; }}
-.cek-jawab-isi-st {{ display: flex; flex-direction: column; gap: 14px; padding: 0 {T.SP_4} {T.SP_4}; }}
-.cek-js-st .cek-jawab-st {{ border-radius: {T.RADIUS_KARTU_BESAR}; min-height: 260px; position: sticky; top: {T.SP_5}; }}
-.cek-js-st .cek-jawab-st summary {{ display: none; }}
-.cek-js-st .cek-jawab-isi-st {{ padding: {T.SP_5}; }}
-.cek-kutip-st {{ margin: 0; font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; line-height: 1.25; }}
-.cek-kutip-st::before {{ content: "\\201C"; color: {T.AKSEN_KORAL_TUA}; font-size: {T.UKURAN_ANGKA_FUNNEL}; line-height: 0; vertical-align: -.35em; margin-right: 4px; }}
-.cek-isi-st {{ margin: 0; color: {T.TEKS_VARIAN}; }}
-.cek-coba-st {{ margin: 0; background: {T.LATAR_REVIEW}; border-radius: {T.RADIUS_KARTU}; padding: {T.SP_3} 14px; font-size: {T.UKURAN_TEKS_BANTUAN}; }}
-.cek-coba-st b {{ color: {T.AKSEN_AMBER_TUA}; }}
+/* Cerita: situasi, akar masalah, jembatan, solusi (statis, tanpa JS). */
+.cek-situasi-st {{ list-style: none; margin: 0 0 {T.SP_5}; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }}
+.cek-situasi-st li {{ display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; align-items: start; background: {T.LATAR_KARTU}; border: 2px solid {T.ANAK_BORDER}; border-radius: 20px; padding: {T.SP_4}; box-shadow: {T.BAYANGAN_TIMBUL_HALUS}; }}
+.cek-situasi-judul-st {{ display: block; font-family: {T.FONT_HEADLINE}; font-weight: 800; font-size: {T.UKURAN_BAGIAN_DEWASA}; line-height: 1.25; }}
+.cek-situasi-isi-st {{ margin: {T.SP_2} 0 0; color: {T.TEKS_VARIAN}; }}
+.cek-akar-st {{ background: {T.LATAR_REVIEW}; border-radius: {T.RADIUS_KARTU_BESAR}; padding: {T.SP_5}; display: flex; flex-direction: column; gap: {T.SP_2}; }}
+.cek-akar-st p {{ margin: 0; }}
+.cek-akar-judul-st {{ font-family: {T.FONT_HEADLINE}; font-weight: 800; font-size: {T.UKURAN_BAGIAN_STITCH}; line-height: 1.25; }}
+.cek-jembatan-st {{ text-align: center; max-width: 44rem; margin: {T.SP_7} auto; display: flex; flex-direction: column; gap: {T.SP_3}; }}
+.cek-jembatan-st p {{ margin: 0; color: {T.TEKS_VARIAN}; }}
+.cek-halaman-st .cek-jembatan-st p.cek-jembatan-kutip-st {{ font-family: {T.FONT_HEADLINE}; font-weight: 800; font-size: clamp(1.4rem, 3vw, 2rem); line-height: 1.25; letter-spacing: -.02em; color: {T.TEKS_JUDUL}; }}
+.cek-solusi-st {{ background: {T.TEKS_JUDUL}; color: {T.TEKS_PUTIH}; border-radius: {T.RADIUS_KARTU_BESAR}; padding: 26px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }}
+.cek-solusi-st .cek-alis-st {{ color: {T.AKSEN_MURID_AMBER}; }}
+.cek-halaman-st .cek-solusi-st h3 {{ font-size: {T.UKURAN_JUDUL_STITCH}; color: {T.TEKS_PUTIH}; margin: 0; }}
+.cek-solusi-st p {{ margin: 0; color: {T.TEKS_DI_NAVY}; }}
+.cek-solusi-daftar-st {{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; color: {T.TEKS_DI_NAVY}; }}
+.cek-solusi-daftar-st li {{ display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; }}
+.cek-solusi-st a {{ color: {T.AKSEN_MURID_AMBER}; font-weight: 700; }}
+.cek-solusi-st a:focus-visible {{ outline-color: {T.AKSEN_MURID_AMBER}; }}
+.cek-solusi-tautan-st {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; font-family: {T.FONT_HEADLINE}; text-underline-offset: 3px; }}
 
 /* Demo tebak langkah. */
 .cek-demo-w-st {{ background-color: {T.LATAR_KARTU}; border: 2px solid {T.ANAK_BORDER}; border-radius: 28px; padding: 28px; overflow: hidden; background-image: linear-gradient({T.GARIS_KISI} 1px, transparent 1px), linear-gradient(90deg, {T.GARIS_KISI} 1px, transparent 1px); background-size: 24px 24px; }}
@@ -170,39 +167,20 @@ GAYA_LANDING_CEK = f"""
 .cek-halaman-st .cek-jalur-st h3 {{ font-size: {T.UKURAN_BAGIAN_STITCH}; margin: 0; }}
 .cek-jalur-st p {{ margin: 0; font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; max-width: 18rem; }}
 
-/* Gratis vs Peta Kemampuan. */
-.cek-dua-st {{ display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 20px; align-items: stretch; }}
+/* Hasil gratis. */
+.cek-gratis-w-st {{ max-width: 640px; margin: 0 auto; }}
+.cek-peta-lanjut-st {{ margin: {T.SP_5} auto 0; max-width: 40rem; text-align: center; color: {T.TEKS_VARIAN}; }}
 .cek-kartu-g-st {{ background: {T.LATAR_KARTU}; border: 2px solid {T.ANAK_BORDER}; border-radius: {T.RADIUS_KARTU_BESAR}; padding: {T.SP_5}; display: flex; flex-direction: column; gap: 14px; }}
 .cek-harga-st {{ margin: 0; font-family: {T.FONT_HEADLINE}; font-size: 2.5rem; font-weight: 800; line-height: 1; }}
 .cek-harga-st small {{ font-family: {T.FONT_BODY}; font-size: 1rem; color: {T.TEKS_VARIAN}; font-weight: 600; margin-left: 6px; }}
 .cek-cek-st {{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }}
 .cek-cek-st li {{ display: grid; grid-template-columns: 32px 1fr; gap: 10px; align-items: start; }}
 .cek-kartu-catatan-st {{ margin: auto 0 0; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.TEKS_VARIAN}; }}
-.cek-tiket-st {{ position: relative; background: {T.TEKS_JUDUL}; color: {T.TEKS_PUTIH}; border-radius: {T.RADIUS_KARTU_BESAR}; padding: 26px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }}
-.cek-tiket-st::before, .cek-tiket-st::after {{ content: ""; position: absolute; left: 62%; width: 28px; height: 28px; border-radius: {T.RADIUS_BULAT}; background: {T.LATAR_MURID}; }}
-.cek-tiket-st::before {{ top: -14px; }}
-.cek-tiket-st::after {{ bottom: -14px; }}
-.cek-tiket-st .cek-alis-st {{ color: {T.AKSEN_MURID_AMBER}; }}
-.cek-halaman-st .cek-tiket-st h3 {{ font-size: {T.UKURAN_JUDUL_STITCH}; color: {T.TEKS_PUTIH}; margin: 0; }}
-.cek-tiket-sub-st {{ margin: 0; color: {T.TEKS_DI_NAVY}; }}
-.cek-tiket-st .cek-harga-st {{ font-size: 2.5rem; }}
-.cek-tiket-st .cek-harga-st small {{ color: {T.TEKS_DI_NAVY_REDUP}; }}
-.cek-tiket-st .cek-cek-st li {{ color: {T.TEKS_DI_NAVY}; }}
-.cek-pil-baris-st {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; }}
-.cek-pil-st {{ display: inline-flex; align-items: center; border-radius: {T.RADIUS_PIL}; padding: 4px {T.SP_3}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; }}
-.cek-pil-amber-st {{ background: {T.AKSEN_MURID_AMBER}; color: {T.TEKS_JUDUL}; }}
-.cek-pil-garis-st {{ border: 1.5px solid {T.TEKS_DI_NAVY_REDUP}; color: {T.TEKS_PUTIH}; }}
-.cek-tiket-catat-st {{ margin: 0; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.TEKS_DI_NAVY_REDUP}; }}
-.cek-tiket-st a {{ color: {T.AKSEN_MURID_AMBER}; font-weight: 700; }}
 .cek-tautan-st {{ margin: 0; display: flex; flex-wrap: wrap; gap: 0 20px; }}
 .cek-tautan-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
 .cek-tautan-st a {{ text-underline-offset: 3px; }}
+.cek-tautan-tengah-st {{ justify-content: center; }}
 .cek-tautan-st a.cek-tautan-contoh-st {{ text-decoration-thickness: 2px; }}
-.cek-cap-st {{ position: absolute; right: 18px; top: 18px; width: 74px; height: 74px; transform: rotate(-14deg); opacity: .9; }}
-.cek-cap-garis-st {{ stroke: {T.AKSEN_MURID_AMBER}; }}
-.cek-cap-teks-st {{ font-family: {T.FONT_HEADLINE}; font-weight: 800; fill: {T.AKSEN_MURID_AMBER}; letter-spacing: .5px; }}
-.cek-cap-jago-st {{ font-family: {T.FONT_HEADLINE}; font-weight: 800; fill: {T.AKSEN_MURID_AMBER}; }}
-
 /* FAQ. */
 .cek-faq-st {{ display: flex; flex-direction: column; gap: 10px; max-width: 48rem; margin: 0 auto; }}
 .cek-faq-st details {{ background: {T.LATAR_KARTU}; border: 2px solid {T.ANAK_BORDER}; border-radius: 16px; }}
@@ -226,14 +204,17 @@ GAYA_LANDING_CEK = f"""
   .cek-panggung-st {{ min-height: 420px; max-width: 440px; width: 100%; margin: 0 auto; }}
 }}
 @media (max-width: 48rem) {{
-  .cek-gejala-st.cek-js-st, .cek-demo-st, .cek-dua-st {{ grid-template-columns: minmax(0, 1fr); }}
-  .cek-js-st .cek-jawab-st {{ position: relative; top: 0; }}
+  .cek-demo-st {{ grid-template-columns: minmax(0, 1fr); }}
   .cek-jalur-st {{ grid-template-columns: minmax(0, 1fr); gap: 28px; }}
   .cek-jalur-st::before {{ top: 44px; bottom: 44px; left: 50%; right: auto; border-top: 0; border-left: 4px dashed {T.BORDER_VARIAN}; }}
   .cek-jalur-st li {{ background: {T.LATAR_MURID}; padding: 6px; }}
   .cek-penutup-st {{ grid-template-columns: minmax(0, 1fr); text-align: center; justify-items: center; }}
   .cek-blok-st {{ padding: {T.SP_7} 0; }}
   .cek-rapat-st {{ padding-top: 0; }}
+}}
+@media (min-width: 48rem) {{
+  .cek-situasi-st {{ grid-template-columns: repeat(3, minmax(0, 1fr)); }}
+  .cek-situasi-st li {{ grid-template-columns: minmax(0, 1fr); }}
 }}
 @media (max-width: 30rem) {{
   .cek-hero-st {{ padding: {T.SP_6} 0 56px; }}
@@ -248,8 +229,7 @@ GAYA_LANDING_CEK = f"""
   .cek-susun-st {{ font-size: {T.UKURAN_JUDUL_STITCH}; }}
   .cek-isi-f-st {{ padding-left: {T.SP_4}; }}
   .cek-demo-w-st {{ padding: 18px; }}
-  .cek-tiket-st {{ padding: {T.SP_5} 20px; }}
-  .cek-cap-st {{ width: 56px; height: 56px; right: 12px; top: 12px; }}
+  .cek-solusi-st {{ padding: {T.SP_5} 20px; }}
 }}
 @media (prefers-reduced-motion: no-preference) {{
   html:has(.cek-halaman-st) {{ scroll-behavior: smooth; }}
@@ -257,8 +237,6 @@ GAYA_LANDING_CEK = f"""
   .cek-hero-st .landing-cta-baris-st a.tombol-coral {{ transition: transform .15s, box-shadow .15s; }}
   .cek-hero-st .landing-cta-baris-st a.tombol-coral:hover {{ transform: translateY(-2px); box-shadow: 0 7px 0 {T.AKSEN_KORAL_TEPI}; }}
   .cek-hero-st .landing-cta-baris-st a.tombol-coral:active {{ transform: translateY(3px); box-shadow: 0 2px 0 {T.AKSEN_KORAL_TEPI}; }}
-  .cek-chip-tombol-st {{ transition: border-color .15s, transform .15s; }}
-  .cek-chip-tombol-st:hover {{ transform: translateX(3px); }}
   .cek-langkah-d-st li {{ transition: border-color .15s, transform .15s; }}
   .cek-langkah-d-st li:has(button):hover {{ transform: translateY(-2px); }}
   .cek-langkah-d-st button.cek-keliru-st {{ animation: cek-geleng-st .35s; }}

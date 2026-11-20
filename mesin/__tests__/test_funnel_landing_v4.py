@@ -56,13 +56,14 @@ def test_satu_cta_utama_dan_satu_h1(halaman):
     assert utama.count('class="tombol-coral"') == 1
     assert halaman.count(CTA_HREF) == 1
     assert len(re.findall(r"<h1[ >]", utama)) == 1
-    assert "Kelihatan di langkah mana <em>anak mulai bingung.</em>" in utama
-    assert f"{funnel_pages.COPY_CTA} " in utama
+    h1, em = funnel_landing_pages.COPY_H1
+    assert f"{h1}<em>{em}</em>" in utama
+    assert f"{funnel_landing_pages.COPY_CTA_LANDING} " in utama
 
 
 def test_tautan_mulai_bukan_tombol_cta(halaman):
     utama = _utama(halaman)
-    assert utama.count('href="#mulai"') == 2
+    assert utama.count('href="#mulai"') == 3  # tautan solusi, demo, penutup
     assert 'id="mulai"' in utama
     assert funnel_landing_pages.COPY_TAUTAN_MULAI in utama
 
@@ -76,28 +77,50 @@ def test_tanpa_kata_terlarang_di_teks_terlihat_dan_skrip(halaman):
     assert "25 menit" not in teks
 
 
-def test_harga_pembatalan_dan_15_soal(halaman):
+def test_harga_hanya_di_faq_dan_pembatalan_15_soal(halaman):
     utama = _utama(halaman)
-    assert "Rp49.000" in utama
-    assert "tidak dapat dikembalikan" in utama
-    assert funnel_pages.COPY_TIDAK_KEMBALI in utama
-    assert "15 soal" in utama
+    faq = utama.split('id="judul-faq"', 1)[1]
+    assert utama.count("Rp49.000") == 1 and "Rp49.000" in faq
+    assert "tidak dapat dikembalikan" in faq
+    assert "3×24 jam" in faq and "uang kembali penuh" in faq
+    assert "15 soal" in faq
     assert "25 menit" not in halaman
-    assert "tidak ada tagihan" not in utama or funnel_pages.COPY_BUKAN_LANGGANAN in utama
+    assert "cek-tiket-st" not in utama
+    assert funnel_pages.COPY_KUOTA_AWAL not in utama
 
 
-def test_tautan_ke_contoh_dan_isi_peta(halaman):
+def test_tautan_ke_contoh_tanpa_tiket_peta(halaman):
     assert f'href="{funnel_pages.JALUR_CONTOH}"' in halaman
-    assert 'href="/paket-coba"' in halaman
-    assert funnel_pages.COPY_KUOTA_AWAL in halaman
+    assert 'href="/paket-coba"' not in _utama(halaman)
+    assert funnel_landing_pages.COPY_PETA_LANJUT in halaman
     assert funnel_pages.COPY_LABEL_CONTOH in halaman
     assert 'id="contoh-hasil"' in halaman
+
+
+def test_bagian_cerita_statis_tiga_situasi_dan_solusi(halaman):
+    utama = _utama(halaman)
+    cerita = utama.split('aria-labelledby="judul-cerita"', 1)[1].split("</section>", 1)[0]
+    assert cerita.count('<li><span class="cek-ubin-st') == len(funnel_landing_pages.COPY_SITUASI) == 3
+    for _i, _w, judul, isi in funnel_landing_pages.COPY_SITUASI:
+        assert judul in cerita and isi in cerita
+    assert "<q>" in cerita and funnel_landing_pages.COPY_JEMBATAN in cerita
+    assert funnel_landing_pages.COPY_AKAR_JUDUL in cerita
+    for butir in funnel_landing_pages.COPY_SOLUSI_ISI:
+        assert butir in cerita
+    assert "<button" not in cerita and "data-cek" not in cerita
+    assert "cek-chip-st" not in utama and "Coba malam ini" not in utama
+
+
+def test_sapaan_bunda_tanpa_anda_di_landing(halaman):
+    teks = _teks_terlihat("<style></style>" + halaman.split('id="konten"', 1)[1].split("</main>", 1)[0])
+    assert "Anda" not in teks and "anda" not in teks.split()
+    assert "Bunda" in teks
 
 
 def test_contoh_berlabel_dan_hanya_nama_sintetis_aisyah(halaman):
     utama = _utama(halaman)
     assert "Aisyah · kelas 4" in utama
-    assert "Contoh hasil" in utama
+    assert "Contoh hasil" in utama and "Peta Kemampuan" in utama
     assert "Bu Contoh" not in utama
     assert "(sintetis)" not in utama.replace("Contoh sintetis", "")
 
@@ -150,17 +173,6 @@ def test_skrip_polos_tanpa_atribut_dan_tanpa_api_terlarang(halaman):
     assert skrip.count("{") == skrip.count("}")
 
 
-def test_fallback_tanpa_js_semua_jawaban_gejala_terbaca(halaman):
-    utama = _utama(halaman)
-    assert utama.count("data-cek-panel") == len(funnel_landing_pages.COPY_GEJALA) == 4
-    for _i, _w, _label, kutip, isi, coba in funnel_landing_pages.COPY_GEJALA:
-        for teks in (kutip, isi, coba):
-            assert teks.replace('"', "&quot;") in utama or teks in utama
-    chip = re.search(r"<div class=\"cek-chip-st\"[^>]*>", utama).group(0)
-    assert " hidden" in chip
-    assert utama.count("<details") >= 4 + 1 + 5  # gejala + kunci demo + FAQ
-
-
 def test_fallback_tanpa_js_penjelasan_demo_dan_faq(halaman):
     utama = _utama(halaman)
     assert funnel_landing_pages.COPY_DEMO_TEPAT in utama
@@ -180,13 +192,13 @@ def test_demo_hanya_menandai_satu_langkah_salah(halaman):
     assert utama.count("data-cek-digit") == 1
 
 
-def test_skrip_memakai_kait_data_yang_ada_di_markup(halaman):
+def test_skrip_tanpa_sisa_chip_gejala_dan_memakai_kait_di_markup(halaman):
     utama = _utama(halaman)
     skrip = funnel_landing_browser.SKRIP_LANDING_CEK
-    for kait in ("data-cek-gejala", "data-cek-chip", "data-cek-daftar", "data-cek-panel", "data-cek-demo",
-                 "data-cek-langkah", "data-cek-tepat", "data-cek-umpan", "data-cek-digit", "data-cek-kunci"):
+    for kait in ("data-cek-demo", "data-cek-langkah", "data-cek-tepat", "data-cek-umpan", "data-cek-digit", "data-cek-kunci"):
         assert kait in skrip, kait
         assert kait in utama, kait
+    assert "aktifkanGejala" not in skrip and "data-cek-gejala" not in skrip
     assert "data-umpan-salah" in utama and "data-umpan-tepat" in utama
 
 
