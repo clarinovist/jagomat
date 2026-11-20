@@ -124,7 +124,14 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - `kurikulum_override.py` (3b peta kurikulum; dipakai admin CP 3c dan label awam 3d): override CP per grup dan label awam di DB terpisah
   `/data/kurikulum.db` (env `KURIKULUM_BERKAS_DB`, skema v1, revisi per kunci + audit). Beda dari `feature_switch`: DB/baris rusak
   **fail ke bawaan kode** (bawaan sah) + log; tulis ke skema asing ditolak. Ikut backup opsional (cek skema di `operational_backup`).
-- `cetakan_pola.py` + `cetakan_store.py` (C1 plan cetakan-ai; stdlib, belum dipakai halaman/sesi anak): cetakan soal berpola = data JSON; validator AST
+- `admin_kurikulum_cetakan_form.py` + `_pages.py` + `_http.py` (C2): GET `/admin/kurikulum/cetakan` (daftar per bab), `/cetakan/baru`,
+  `/cetakan/periksa?id=` (10 contoh dari `cetakan_pola.contoh`, `uji_kelayakan`, `riwayat`); POST `/cetakan/baru|ubah|setujui|nonaktifkan|aktifkan`.
+  Guard = pola CP (`h._token_final`; target HANYA dari tinjauan: buat = `target_id` "kelas/bab", lainnya = id + revisi; `wajib_field`; sandi ulang
+  di semua aksi), batas field eksplisit `MAKS_FIELD_CETAKAN` (25: 22 isian + csrf/tinjauan/reauth); form field tetap (`nama` = select ya/tidak,
+  `var_N_*`, `syarat_N`), `sumber="manual"`. Isi tak sah = render ulang 400 (nilai ketikan di-escape, sandi kosong, tanpa PRG), KonflikRevisi 409,
+  DB rusak/baris tak terbaca 503. `kurikulum_kelas_hitung.RingkasanBab.cetakan` dan `kurikulum_buat_soal` membaca HANYA
+  `cetakan_store.aktif_untuk_bab` (invarian: draf/nonaktif tak tampil di luar halaman cetakan); variasi cetakan = "banyak" tanpa dijalankan.
+- `cetakan_pola.py` + `cetakan_store.py` (C1 plan cetakan-ai; stdlib; dipakai halaman admin C2, belum sesi anak): cetakan soal berpola = data JSON; validator AST
   bertipe + evaluator sendiri (tanpa `eval`), bangkitan deterministik, `uji_kelayakan`. DB terpisah `/data/cetakan.db` (env `CETAKAN_BERKAS_DB`; draf/aktif/
   nonaktif, revisi + audit, `setujui` wajib lolos kelayakan dalam transaksi); baca rusak = kosong. Di luar penutupan impor `generator`; ikut backup opsional.
 - `admin_sakelar_pages.py` → `admin_sakelar_http.py` untuk `/admin/sakelar`: empat sakelar di

@@ -55,3 +55,7 @@ dan `TOPIK_DASAR`. `TOPIK_LAMA` (riwayat sesi) dan `VERSI_KATALOG` (versi) tetap
 Data beku, hanya stdlib. Ketersediaan grup TIDAK ditulis di sana: status bab ("Sudah ada soal", "Perlu disempurnakan",
 "Belum ada soal") dihitung halaman admin dari `Topik.komposisi["P<kelas>"]`, jadi grup yang baru ada di kelas lain
 tidak dihitung. Mengubah bab atau rujukan grup = mengubah data ini dan menjalankan `test_kurikulum_kelas.py`.
+
+Cetakan soal berpola AKTIF (`cetakan_store.aktif_untuk_bab`, C2) menambah jenis soal bab itu dan variasi "banyak" (tanpa dijalankan
+saat render tabel). Aturan status: bab "belum" (tanpa soal kode) yang punya >= 1 cetakan aktif menjadi "sebagian" (Perlu
+disempurnakan); status "ada"/"sebagian" dari kode tidak berubah. Kolom Dipakai tidak berubah (cetakan belum masuk sesi anak).

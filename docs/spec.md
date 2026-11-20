@@ -142,6 +142,14 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   karakter, unik tanpa beda huruf besar-kecil, tidak sama dengan nama resmi topik): langsung berlaku untuk layar anak dan
   hasil cek yang dinilai sesudahnya; hasil cek yang sudah dinilai tetap memakai label lama (ringkasan tersimpan sebagai teks).
   Audit, kembalikan ke bawaan, dan guard sama seperti pemetaan CP. Topik, grup, dan butir CP tetap di kode.
+  Admin juga menulis **cetakan soal berpola** per bab (C2, manual, tanpa AI; `/admin/kurikulum/cetakan?kelas=&bab=`, tautan
+  "Kelola cetakan" di tiap baris tabel): cetakan = data (teks dengan `{a}`, rentang variabel, syarat, rumus kunci), kunci selalu
+  dihitung mesin. Draf diperiksa di `/cetakan/periksa?id=` (10 contoh soal + kunci, uji kelayakan, riwayat), lalu **Setujui**
+  (draf -> aktif, wajib lolos uji kelayakan), **Nonaktifkan**, atau **Aktifkan kembali**; semua aksi memakai tinjauan bertanda tangan
+  + sandi ulang, semua admin boleh menyetujui. Isi tak sah = halaman dirender ulang 400 tanpa tulis. Hanya cetakan AKTIF
+  tampil di tabel (jenis soal bab; bab tanpa soal kode tetapi punya cetakan aktif = "Perlu disempurnakan", variasi "banyak") dan
+  Buat soal (bergiliran dengan soal kode, label "Cetakan: judul"); belum masuk sesi anak (C4 ditunda). `cetakan.db` rusak = tabel
+  dan Buat soal tetap jalan dengan soal kode saja; aksi POST = 503.
 - **Pengaturan layanan** (`/admin/sakelar`, satu halaman; `/admin?section=operasional` mengalihkan 303 ke
   sini): sakelar fitur + tahap pembayaran, pendaftaran mandiri (form lama, POST tetap ke `/admin/pendaftaran`), kartu rekening transfer (ubah di `/admin/pesanan/rekening`),
   kesiapan/dukungan, satu baris status AI. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,
