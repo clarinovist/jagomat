@@ -26,7 +26,8 @@ normalisasi salinan backup ke `DELETE`, dan perbaikan snapshot hapus-keluarga.
   schema pesanan, transfer mati) lulus; lima DB `journal_mode=wal`, `integrity_check=ok`, FK bersih; galat
   Traceback/OperationalError/IntegrityError 0; config dan hash histori terjaga.
 - Backup induk `/opt/osn/cadangan/deploy-wal-20261120/`, salinan lokal tidak diambil (bundle tetap di VPS;
-  backup harian 21.45 + off-site R2 tetap berjalan).
+  backup harian 21.45 + off-site R2 tetap berjalan). Backup pasca-deploy `20261120-204359` sudah diuji:
+  5 DB `journal_mode=delete` (salinan portabel), `integrity_check=ok`, dan drill dari objek R2 terenkripsi lulus.
 - **Catatan operator:** `pendamping.db` diaktifkan ke WAL lewat `assistant_schema.siapkan()` setelah candidate
   sehat karena startup `serve.py` belum memanggil fungsi itu; DB baru akan menjadi WAL saat `siapkan()` pertama.
   Ini bukan kegagalan deploy, tetapi kandidat berikutnya perlu memanggil `assistant_schema.siapkan()` di startup
