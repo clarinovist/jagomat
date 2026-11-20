@@ -14,17 +14,10 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Dict
 
-# Urutan mengikuti `cek_gratis_skor.semua_topik_cek()`; nilai adalah label awam.
-NAMA_AWAM: Dict[str, str] = {
-    "pola-bilangan": "Pola bilangan",
-    "statistika": "Statistika",
-    "geometri-datar": "Geometri datar",
-    "bilangan-dasar": "Bilangan dasar",
-    "berhitung-sekolah": "Berhitung",
-    "pengukuran": "Pengukuran",
-    "aritmetika-dasar": "Aritmetika dasar",
-    "aritmatika-lanjut": "Aritmetika lanjut",
-}
+import kurikulum_katalog
+
+# Urutan dan label dari `kurikulum_katalog` (satu sumber peta kurikulum).
+NAMA_AWAM: Dict[str, str] = kurikulum_katalog.label_awam()
 
 
 def nama(topik_id: str) -> str:

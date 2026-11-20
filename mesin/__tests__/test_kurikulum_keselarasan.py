@@ -69,3 +69,37 @@ def test_topik_cek_per_kelas_dan_dasar_punya_label_awam():
     topik_cek = {t for _kelas, t in _topik_cek_per_kelas()}
     topik_cek.add(cek_gratis_skor.TOPIK_DASAR)
     assert topik_cek <= set(topik_awam.NAMA_AWAM)
+
+
+# --- Fase 1: modul-modul membaca dari katalog tunggal ---
+
+import subprocess  # noqa: E402
+
+import kurikulum_katalog  # noqa: E402
+
+
+def test_nama_awam_diturunkan_dari_katalog():
+    assert list(topik_awam.NAMA_AWAM.items()) == list(kurikulum_katalog.label_awam().items())
+
+
+def test_kelompok_mastery_diturunkan_dari_katalog():
+    assert list(mastery_catalog.KELOMPOK.items()) == list(kurikulum_katalog.kelompok_mastery().items())
+
+
+def test_topik_cek_diturunkan_dari_katalog():
+    assert cek_gratis_skor.TOPIK_PER_KELAS == kurikulum_katalog.TOPIK_CEK_PER_KELAS
+    assert cek_gratis_skor.TOPIK_DASAR == kurikulum_katalog.TOPIK_CEK_DASAR
+
+
+def test_katalog_tidak_masuk_penutupan_impor_generator():
+    kode = ("import sys; sys.path.insert(0, %r); import generator; "
+            "sys.exit(1 if 'kurikulum_katalog' in sys.modules else 0)"
+            % str(Path(__file__).resolve().parent.parent))
+    assert subprocess.run([sys.executable, "-c", kode]).returncode == 0
+
+
+def test_katalog_hanya_mengimpor_stdlib():
+    sumber = (Path(__file__).resolve().parent.parent / "kurikulum_katalog.py").read_text(encoding="utf-8")
+    impor = [b for b in sumber.splitlines() if b.startswith(("import ", "from "))]
+    assert impor == ["from __future__ import annotations", "from dataclasses import dataclass",
+                     "from typing import Dict, Optional, Tuple"]

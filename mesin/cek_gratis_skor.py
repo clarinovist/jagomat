@@ -13,18 +13,14 @@ from datetime import datetime, timezone
 from fractions import Fraction
 
 from auth import id_akun_sah
+import kurikulum_katalog
 import topik_awam
 
 FORMAT_WAKTU = "%Y-%m-%dT%H:%M:%S"
 JUMLAH_SOAL = 15
-TOPIK_DASAR = "bilangan-dasar"
-# Topik cek kelas 3-6 mengikuti kelas (keputusan pemilik, 19 Nov 2026).
-TOPIK_PER_KELAS = {
-    3: ("berhitung-sekolah", "geometri-datar", "statistika"),
-    4: ("berhitung-sekolah", "pengukuran", "geometri-datar"),
-    5: ("aritmetika-dasar", "aritmatika-lanjut", "geometri-datar"),
-    6: ("aritmetika-dasar", "aritmatika-lanjut", "geometri-datar"),
-}
+# Topik cek dari `kurikulum_katalog`; kelas 3-6 mengikuti kelas (keputusan pemilik, 19 Nov 2026).
+TOPIK_DASAR = kurikulum_katalog.TOPIK_CEK_DASAR
+TOPIK_PER_KELAS = dict(kurikulum_katalog.TOPIK_CEK_PER_KELAS)
 # Hanya untuk memetakan template sesi cek yang dibuat sebelum topik mengikuti
 # kelas (sesi lama yang belum dinilai tetap harus bisa dinilai dan diringkas).
 TOPIK_LAMA = ("pola-bilangan", "statistika", "geometri-datar")

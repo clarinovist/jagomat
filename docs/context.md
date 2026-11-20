@@ -134,7 +134,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   ON DELETE CASCADE) + `cek_gratis.py` (`mulai` idempoten dengan persetujuan eksplisit, `selesaikan_jika_siap`,
   `baca_hasil`, `hapus_cek_keluarga`), `cek_gratis_skor.py` (fungsi murni skor/kategori/ringkasan, kelas→`P{kelas}`),
   `topik_awam.py` (label topik pendek untuk anak/orang tua; nama resmi tetap di lembar/penilaian guru, nama lama
-  tersimpan dipetakan saat render),
+  tersimpan dipetakan saat render; diturunkan dari `kurikulum_katalog.py`, katalog data beku peta kurikulum yang juga
+  menjadi sumber `mastery_catalog.KELOMPOK` dan topik cek per kelas, lihat `docs/kurikulum-katalog.md`),
   `cek_gratis_sapu.py` (retensi 30/7 hari, guard daftar akun kosong, foreign_keys wajib aktif; dijalankan
   harian oleh `cek_retensi.py` lewat cron host `osn-cek-retensi`). `cek_http.py` +
   `cek_pages.py`: rute guru di belakang `_lolos_sandi` dan `FUNNEL_AKTIF` (token HMAC per aksi, pembatas laju 10/IP/hari
