@@ -82,6 +82,9 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin/kurikulum/buat", "admin"),  # Buat soal per bab (`?kelas=&bab=&jumlah=&seed=`); tidak menulis DB
     ("/admin/kurikulum/cp", "admin"),  # Peta kurikulum 3c: halaman ubah pemetaan CP per grup (`?grup=`)
     ("/admin/kurikulum/label", "admin"),  # Peta kurikulum 3d: halaman ubah label awam per topik (`?topik=`)
+    ("/admin/kurikulum/cetakan", "admin"),  # Cetakan C2: daftar cetakan per bab (`?kelas=&bab=`); tidak menulis DB
+    ("/admin/kurikulum/cetakan/baru", "admin"),  # Cetakan C2: form cetakan baru (`?kelas=&bab=`)
+    ("/admin/kurikulum/cetakan/periksa", "admin"),  # Cetakan C2: pola, 10 contoh, kelayakan, riwayat (`?id=`)
     ("/", "publik"),  # landing; guru/admin melihat berandanya sendiri
     ("/masuk", "publik"),
     ("/daftar", "publik"),
@@ -126,6 +129,11 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/kurikulum/cp/kembalikan", "admin"),  # kembalikan pemetaan CP ke bawaan kode (aksi dan tinjauan sendiri)
     ("/admin/kurikulum/label", "admin"),  # ubah label awam topik; tinjauan bertanda tangan + sandi ulang
     ("/admin/kurikulum/label/kembalikan", "admin"),  # kembalikan label awam ke bawaan kode (aksi dan tinjauan sendiri)
+    ("/admin/kurikulum/cetakan/baru", "admin"),  # Cetakan C2: simpan draf baru; tinjauan (kelas, bab) + sandi ulang
+    ("/admin/kurikulum/cetakan/ubah", "admin"),  # ubah draf; tinjauan (id, revisi) + sandi ulang
+    ("/admin/kurikulum/cetakan/setujui", "admin"),  # draf -> aktif; uji kelayakan + sandi ulang
+    ("/admin/kurikulum/cetakan/nonaktifkan", "admin"),  # aktif -> nonaktif; sandi ulang
+    ("/admin/kurikulum/cetakan/aktifkan", "admin"),  # nonaktif -> aktif; uji kelayakan + sandi ulang
     ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
     ("/daftar", "publik"),
     ("/murid/", "murid"),

@@ -56,6 +56,9 @@ _PROBE_GET = {
     "/admin/kurikulum/buat": "/admin/kurikulum/buat?kelas=3&bab=1",
     "/admin/kurikulum/cp": "/admin/kurikulum/cp?grup=aritmatika-lanjut%2Fkonversi",
     "/admin/kurikulum/label": "/admin/kurikulum/label?topik=pengukuran",
+    "/admin/kurikulum/cetakan": "/admin/kurikulum/cetakan?kelas=3&bab=1",
+    "/admin/kurikulum/cetakan/baru": "/admin/kurikulum/cetakan/baru?kelas=3&bab=1",
+    "/admin/kurikulum/cetakan/periksa": "/admin/kurikulum/cetakan/periksa?id=1",
     "/": "/",
     "/masuk": "/masuk",
     "/daftar": "/daftar",
@@ -94,6 +97,11 @@ _PROBE_POST = {
     "/admin/kurikulum/cp/kembalikan": "/admin/kurikulum/cp/kembalikan",
     "/admin/kurikulum/label": "/admin/kurikulum/label",
     "/admin/kurikulum/label/kembalikan": "/admin/kurikulum/label/kembalikan",
+    "/admin/kurikulum/cetakan/baru": "/admin/kurikulum/cetakan/baru",
+    "/admin/kurikulum/cetakan/ubah": "/admin/kurikulum/cetakan/ubah",
+    "/admin/kurikulum/cetakan/setujui": "/admin/kurikulum/cetakan/setujui",
+    "/admin/kurikulum/cetakan/nonaktifkan": "/admin/kurikulum/cetakan/nonaktifkan",
+    "/admin/kurikulum/cetakan/aktifkan": "/admin/kurikulum/cetakan/aktifkan",
     "/masuk": "/masuk",
     "/daftar": "/daftar",
     "/murid/": "/murid/kerjakan/1",
@@ -228,6 +236,15 @@ def test_tabel_akses_punya_probe():
     assert post["/admin/kurikulum/cp/kembalikan"] == "admin" and "/admin/kurikulum/cp/kembalikan" not in get
     assert get["/admin/kurikulum/label"] == post["/admin/kurikulum/label"] == "admin"
     assert post["/admin/kurikulum/label/kembalikan"] == "admin" and "/admin/kurikulum/label/kembalikan" not in get
+    for rute in ("/admin/kurikulum/cetakan", "/admin/kurikulum/cetakan/baru", "/admin/kurikulum/cetakan/periksa"):
+        assert get[rute] == "admin"
+    assert "/admin/kurikulum/cetakan" not in post and "/admin/kurikulum/cetakan/periksa" not in post
+    for rute in ("/admin/kurikulum/cetakan/baru", "/admin/kurikulum/cetakan/ubah", "/admin/kurikulum/cetakan/setujui",
+                 "/admin/kurikulum/cetakan/nonaktifkan", "/admin/kurikulum/cetakan/aktifkan"):
+        assert post[rute] == "admin"
+    for rute in ("/admin/kurikulum/cetakan/ubah", "/admin/kurikulum/cetakan/setujui",
+                 "/admin/kurikulum/cetakan/nonaktifkan", "/admin/kurikulum/cetakan/aktifkan"):
+        assert rute not in get
     assert get["/paket-coba"] == "publik" and "/paket-coba" not in post
     assert get["/contoh-peta-kemampuan"] == "publik" and "/contoh-peta-kemampuan" not in post
     assert get["/contoh-peta-kemampuan/lembar"] == "publik" and "/contoh-peta-kemampuan/lembar" not in post
