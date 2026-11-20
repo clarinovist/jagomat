@@ -73,6 +73,13 @@ def _buat_bundle(tmp_path, *, ai_v2=False):
     ]}), encoding="utf-8")
     for path in (belajar, admin, ai, pendamping, akun):
         path.chmod(0o600)
+    # Bundle memuat snapshot portabel, bukan DB live: normalkan ke DELETE dan
+    # buang sidecar. Produksi menyalin lewat backup API yang melakukan hal sama.
+    for path in (belajar, admin, ai, pendamping):
+        with sqlite3.connect(path) as kon:
+            kon.execute("PRAGMA journal_mode=DELETE")
+        for akhiran in ("-wal", "-shm"):
+            path.with_name(path.name + akhiran).unlink(missing_ok=True)
     admin_backup.buat_manifest(bundle, bundle_id="backup-sintetis-001", cutoff=100)
     return bundle
 

@@ -59,6 +59,11 @@ def salin(sumber, tujuan) -> Path:
     keluaran = sqlite3.connect(str(sasaran))
     try:
         asal.backup(keluaran)
+        # Salinan harus DELETE: berkas backup bisa dibaca di lokasi read-only,
+        # dan -wal yang tertinggal membuat pembaca melihat data lama.
+        mode = str(keluaran.execute("PRAGMA journal_mode = DELETE").fetchone()[0]).lower()
+        if mode != "delete":
+            raise BackupRisetTidakSah("salinan backup riset bukan mode DELETE")
         keluaran.commit()
     except sqlite3.Error as galat:
         sasaran.unlink(missing_ok=True)

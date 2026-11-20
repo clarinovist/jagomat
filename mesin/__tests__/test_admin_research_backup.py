@@ -36,6 +36,20 @@ def test_salin_manifest_validasi_dan_replay(tmp_path):
     assert sumber.read_bytes() != asli
 
 
+def test_salin_menormalkan_jurnal_delete(tmp_path):
+    """Salinan riset harus DELETE, bukan WAL, agar aman dibaca di lokasi read-only."""
+    sumber = _db(tmp_path)
+    bundle = tmp_path / "bundle"
+    bundle.mkdir(mode=0o700)
+
+    backup.salin(sumber, bundle)
+
+    salinan = bundle / backup.NAMA_DB
+    with sqlite3.connect(salinan) as kon:
+        assert kon.execute("PRAGMA journal_mode").fetchone()[0] == "delete"
+    assert not (bundle / (backup.NAMA_DB + "-wal")).exists()
+
+
 def test_backup_rusak_ditolak_tanpa_memperbaiki(tmp_path):
     sumber = _db(tmp_path)
     bundle = tmp_path / "bundle"

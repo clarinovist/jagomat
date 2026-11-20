@@ -39,6 +39,7 @@ import unicodedata
 
 import kurikulum_cp
 import kurikulum_katalog
+import jurnal_wal
 
 BERKAS_BAWAAN = "/data/kurikulum.db"
 ENV_BERKAS_DB = "KURIKULUM_BERKAS_DB"
@@ -530,6 +531,18 @@ def _periksa_skema_tulis(kon) -> None:
         kon.execute(f"PRAGMA user_version = {VERSI_SKEMA}")
 
 
+def _periksa_skema_baca(tujuan: Path) -> None:
+    """Tolak DB asing/versi tak dikenal SEBELUM WAL menyentuh header berkas."""
+    with closing(sqlite3.connect(
+            f"file:{tujuan}?mode=ro", uri=True, timeout=2.0)) as kon:
+        versi = kon.execute("PRAGMA user_version").fetchone()[0]
+        if versi not in (0, VERSI_SKEMA):
+            raise GalatKurikulum("Skema DB kurikulum tidak dikenali.")
+        if versi == 0 and kon.execute(
+                "SELECT 1 FROM sqlite_master LIMIT 1").fetchone() is not None:
+            raise GalatKurikulum("DB kurikulum bukan milik aplikasi ini.")
+
+
 def _buat_berkas_privat(tujuan: Path) -> None:
     descriptor = os.open(str(tujuan), os.O_CREAT | os.O_RDWR, 0o600)
     os.close(descriptor)
@@ -541,8 +554,10 @@ def _jalankan_tulis(path, aksi):
     try:
         if not tujuan.exists():
             _buat_berkas_privat(tujuan)
+        _periksa_skema_baca(tujuan)
         with closing(sqlite3.connect(str(tujuan), timeout=5.0)) as kon, kon:
             kon.row_factory = sqlite3.Row
+            jurnal_wal.aktifkan(kon)
             kon.execute("BEGIN IMMEDIATE")
             _periksa_skema_tulis(kon)
             hasil = aksi(kon)

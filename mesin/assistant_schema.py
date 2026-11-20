@@ -10,6 +10,8 @@ import os
 import sqlite3
 from pathlib import Path
 
+import jurnal_wal
+
 BAWAAN = Path(os.environ.get("PENDAMPING_BERKAS_DB", "/data/pendamping.db"))
 VERSI_SKEMA = 4
 
@@ -167,6 +169,7 @@ def siapkan(path: Path | str | None = None) -> None:
     tujuan = Path(path) if path is not None else BAWAAN
     tujuan.parent.mkdir(parents=True, exist_ok=True)
     with buka(tujuan) as kon:
+        jurnal_wal.aktifkan(kon)
         versi = kon.execute("PRAGMA user_version").fetchone()[0]
         if versi > VERSI_SKEMA:
             raise RuntimeError("skema Pendamping lebih baru dari aplikasi")

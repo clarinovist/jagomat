@@ -23,6 +23,8 @@ import threading
 import time
 from typing import Callable
 
+import jurnal_wal
+
 NAMA_SAKELAR = (
     "FUNNEL_AKTIF",
     "PESANAN_TRANSFER_AKTIF",
@@ -228,6 +230,7 @@ def ubah(nama: str, aktif: bool, *, actor_id: str, revisi_diharapkan: int,
     try:
         with closing(sqlite3.connect(str(tujuan), timeout=5.0)) as kon, kon:
             kon.row_factory = sqlite3.Row
+            jurnal_wal.aktifkan(kon)
             kon.execute("BEGIN IMMEDIATE")
             versi = kon.execute("PRAGMA user_version").fetchone()[0]
             if versi not in (0, VERSI_SKEMA):

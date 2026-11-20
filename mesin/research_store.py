@@ -16,6 +16,8 @@ from typing import Callable, Optional, Sequence
 import research_instrument as instrumen
 import research_schema as schema
 
+import jurnal_wal
+
 
 BAWAAN = Path(os.environ.get("RISET_BERKAS_DB", "/data/riset-konsumen.db"))
 SUMBER = frozenset(("meta_ads", "referensi", "komunitas", "internal", "lainnya"))
@@ -112,6 +114,7 @@ def siapkan(path=None, *, sekarang: Optional[int] = None) -> None:
     try:
         kon.row_factory = sqlite3.Row
         kon.execute("PRAGMA foreign_keys=ON")
+        jurnal_wal.aktifkan(kon)
         kon.execute("BEGIN IMMEDIATE")
         versi = int(kon.execute("PRAGMA user_version").fetchone()[0])
         if versi == 0:

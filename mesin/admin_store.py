@@ -14,6 +14,8 @@ import sqlite3
 import time
 from typing import Mapping, Optional, Tuple
 
+import jurnal_wal
+
 from admin_batch_store import (
     BatchDurable, HalamanBatchDurable, ItemBatchDurable, KelompokBatchDurable,
     PenyerahanBatchDurable, RingkasanBatchDurable, SnapshotBatchDurable,
@@ -172,6 +174,7 @@ def siapkan(path=None, *, sekarang: Optional[int] = None, paket_v2: bool = False
     kon = sqlite3.connect(str(tujuan), timeout=5.0)
     try:
         kon.row_factory = sqlite3.Row
+        jurnal_wal.aktifkan(kon)
         versi = int(kon.execute("PRAGMA user_version").fetchone()[0])
         if versi > kuota_schema.VERSI_SKEMA:
             raise StoreBelumSiap("skema admin lebih baru dari aplikasi")

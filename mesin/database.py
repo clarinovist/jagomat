@@ -24,6 +24,7 @@ from attachment_store import (
     tandai_lampiran,
 )
 import outcome_presentations
+import jurnal_wal
 from context_migration import rebuild_konteks_butir
 from question_bank_store import simpan_soal, statistik_bank
 from report_store import miskonsepsi_berulang, peta_materi_baru, ringkasan
@@ -169,6 +170,7 @@ def siapkan(path: Path | str = BAWAAN) -> None:
     """
     with buka(path) as kon:
         kon.execute("PRAGMA foreign_keys = OFF")
+        jurnal_wal.aktifkan(kon)
         kon.execute("BEGIN IMMEDIATE")
         for nama in VIEW_USANG:
             kon.execute(f"DROP VIEW IF EXISTS {nama}")

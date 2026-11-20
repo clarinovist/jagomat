@@ -13,6 +13,7 @@ import hashlib
 import json
 
 import ai_policy
+import jurnal_wal
 
 BAWAAN = Path(os.environ.get("AI_BERKAS_DB", "/data/ai-control.db"))
 VERSI_SKEMA = 2
@@ -108,6 +109,7 @@ def siapkan(path=None, *, sekarang=None):
     tujuan.parent.mkdir(parents=True, exist_ok=True)
     kini = int(time.time()) if sekarang is None else int(sekarang)
     with buka(tujuan) as kon:
+        jurnal_wal.aktifkan(kon)
         versi = kon.execute("PRAGMA user_version").fetchone()[0]
         if versi > VERSI_SKEMA:
             raise RuntimeError("skema pengaturan AI lebih baru dari aplikasi")
