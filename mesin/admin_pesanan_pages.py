@@ -14,6 +14,7 @@ from typing import Mapping, Optional, Tuple
 from urllib.parse import urlencode
 
 import admin_labels as L
+import pesanan_dasar as d
 from admin_daftar_pages import kartu_tabel
 from admin_komponen import e
 from pesanan_transfer_pages import rupiah
@@ -32,7 +33,7 @@ PER_HALAMAN = 25
 AKSI_PERIKSA = "periksa"
 AKSI_REFUND = "refund"
 STATUS_PERIKSA = ("belum_bayar", "kedaluwarsa")
-STATUS_REFUND = ("sudah_dibayar", "perlu_diperiksa")
+STATUS_REFUND = d.STATUS_BISA_REFUND  # satu sumber dengan penegakan server (`pesanan_refund_aturan`)
 KELAS_BADGE = {"sudah_dibayar": " bien", "perlu_diperiksa": " perhatian", "menunggu_verifikasi": " perhatian"}
 _KOLOM = ("Order", "Akun", "Nominal", "Dibayar / diunggah", "Status", "Aksi")
 

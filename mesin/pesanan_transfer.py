@@ -27,6 +27,7 @@ import sqlite3
 import unicodedata
 
 import pesanan_dasar as d
+import pesanan_refund_aturan as ra
 import pesanan_status as st
 import pesanan_transfer_baca as tb
 from schema_pesanan import CATATAN_REFUND
@@ -295,22 +296,18 @@ def tulis_refund_transfer(kon, operasi_id, isi, kini):
     """Tulis refund untuk order lunas-transfer di dalam transaksi pemanggil.
 
     `isi` = (order_id, dicatat_oleh, catatan_kode). Idempoten per `operasi_id`
-    (replay identik False, isi beda PesananKonflik); satu refund per order.
+    (replay identik False, isi beda PesananKonflik); satu refund per order di KEDUA tabel refund;
+    hanya status turunan `STATUS_BISA_REFUND`.
     Mengembalikan True bila baris baru.
     """
     if not tb.terpasang(kon):
         raise d.PesananKonflik("order belum punya receipt")
-    lama = kon.execute("SELECT order_id,dicatat_oleh,catatan_kode FROM transfer_refund "
-                       "WHERE operasi_id=?", (operasi_id,)).fetchone()
-    if lama is not None:
-        if tuple(lama) != isi:
-            raise d.PesananKonflik("operasi refund sama dengan isi berbeda")
+    if ra.refund_sudah_ada(kon, operasi_id, isi):
         return False
     order_id = isi[0]
     if kon.execute("SELECT 1 FROM transfer_lunas WHERE order_id=?", (order_id,)).fetchone() is None:
         raise d.PesananKonflik("order belum punya receipt")
-    if kon.execute("SELECT 1 FROM transfer_refund WHERE order_id=?", (order_id,)).fetchone():
-        raise d.PesananKonflik("order sudah punya catatan refund")
+    ra.periksa_layak_refund(kon, order_id, kini)
     kon.execute("INSERT INTO transfer_refund(operasi_id,order_id,dicatat_oleh,catatan_kode,dibuat) "
                 "VALUES(?,?,?,?,?)", (operasi_id,) + isi + (kini,))
     return True

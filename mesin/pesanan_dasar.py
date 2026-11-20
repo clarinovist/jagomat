@@ -32,6 +32,10 @@ STATUS_TURUNAN = (STATUS_BELUM_BAYAR, STATUS_SUDAH_DIBAYAR, STATUS_PERLU_DIPERIK
                   STATUS_KEDALUWARSA, STATUS_DIREFUND, STATUS_MENUNGGU_VERIFIKASI,
                   STATUS_DITOLAK)
 
+# Status turunan yang boleh dicatat refund manualnya. SATU sumber: dipakai server (`pesanan_refund_aturan`)
+# dan UI (`admin_pesanan_pages.STATUS_REFUND`), jadi tombol dan penegakan tidak bisa berbeda.
+STATUS_BISA_REFUND = (STATUS_SUDAH_DIBAYAR, STATUS_PERLU_DIPERIKSA)
+
 # Status provider kelas refund/chargeback: tidak pernah menjadi lunas.
 STATUS_REFUND_PROVIDER = ("refund", "partial_refund", "chargeback")
 

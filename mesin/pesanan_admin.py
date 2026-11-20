@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 
 import pesanan_dasar as d
+import pesanan_refund_aturan as ra
 import pesanan_status as st
 import pesanan_transfer as tf
 import pesanan_transfer_baca as tb
@@ -62,7 +63,8 @@ def catat_yatim(kon, order_id_teks, status_hint, hash_payload, sekarang, operasi
 def catat_refund(kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang):
     """Catat refund manual untuk order ber-receipt; idempoten per `operasi_id`.
 
-    Satu catatan refund per order. Order tanpa receipt ditolak (PesananKonflik).
+    Satu catatan refund per order (dicek di `pesanan_refund` DAN `transfer_refund`). Hanya status turunan
+    `STATUS_BISA_REFUND`; selain itu (termasuk tanpa receipt) PesananKonflik.
     Status turunan menjadi `direfund`. Mengembalikan {status, baru}.
     """
     d.periksa_koneksi(kon)
@@ -80,20 +82,15 @@ def catat_refund(kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang
 
 
 def _tulis_refund(kon, operasi_id, isi, kini):
-    lama = kon.execute("SELECT order_id,dicatat_oleh,catatan_kode FROM pesanan_refund "
-                       "WHERE operasi_id=?", (operasi_id,)).fetchone()
-    if lama is not None:
-        if tuple(lama) != isi:
-            raise d.PesananKonflik("operasi refund sama dengan isi berbeda")
-        return False
+    """Tulis satu catatan refund; replay/konflik dan status layak diperiksa di KEDUA tabel (lihat aturan)."""
     order_id = isi[0]
     if st.baris_order(kon, order_id) is None:
         raise d.PesananTidakDitemukan()
     if st.receipt_order(kon, order_id) is None:
         # Jalur transfer rekening: receipt-nya `transfer_lunas`, refund-nya `transfer_refund`.
         return tf.tulis_refund_transfer(kon, operasi_id, isi, kini)
-    if kon.execute("SELECT 1 FROM pesanan_refund WHERE order_id=?", (order_id,)).fetchone():
-        raise d.PesananKonflik("order sudah punya catatan refund")
+    if ra.siapkan_refund(kon, operasi_id, isi, kini):
+        return False
     kon.execute("INSERT INTO pesanan_refund(operasi_id,order_id,dicatat_oleh,catatan_kode,dibuat) "
                 "VALUES(?,?,?,?,?)", (operasi_id,) + isi + (kini,))
     return True
