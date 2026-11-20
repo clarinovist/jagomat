@@ -8,6 +8,7 @@ import html
 import re
 import sqlite3
 import sys
+import tempfile
 from pathlib import Path
 from urllib.parse import quote
 
@@ -39,7 +40,7 @@ AKUN_MURID = ("feby", SANDI_MURID)
 POLA_SELECT = re.compile(r'<select name="((?:butir|cocok)_\d+)">(.*?)</select>', re.S)
 POLA_HIDDEN = re.compile(r'<input type="hidden" name="(\w+)" value="([^"]*)"')
 POLA_FORM = re.compile(r'<form[^>]*action="(/admin/kurikulum/cp[^"]*)"[^>]*>(.*?)</form>', re.S)
-DIR_RENDER = Path("/private/tmp/claude-501")
+DIR_RENDER = Path(tempfile.gettempdir()) / "jagomat-render"
 
 
 @pytest.fixture(autouse=True)

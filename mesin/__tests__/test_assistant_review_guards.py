@@ -28,6 +28,7 @@ import auth
 from test_assistant_actions import (
     USULAN_SAH, _buat_usulan_http, _origin, server,
 )
+from test_admin_backup import _portable
 
 
 @pytest.fixture()
@@ -361,7 +362,7 @@ def test_race_koneksi_terpisah_maksimum_satu_sesi(kasus, privat_terpisah):
     path_kedua = kasus["privat"]
     if privat_terpisah:
         path_kedua = kasus["privat"].with_name("pendamping-kedua.db")
-        shutil.copy2(kasus["privat"], path_kedua)
+        _portable(kasus["privat"], path_kedua)
     mulai = threading.Barrier(2)
 
     def jalankan(path):
@@ -386,7 +387,7 @@ def test_race_koneksi_terpisah_maksimum_satu_sesi(kasus, privat_terpisah):
 def test_dua_snapshot_privat_token_berbeda_tidak_mengklaim_hasil_pemenang(kasus):
     token = _tinjau(kasus)
     salinan = kasus["privat"].with_name("snapshot-privat.db")
-    shutil.copy2(kasus["privat"], salinan)
+    _portable(kasus["privat"], salinan)
     with assistant_schema.buka(salinan) as kon:
         token_lain = assistant_actions.tinjau_usulan(
             kon, kasus["akun"], "guru", kasus["usulan"].id, sekarang=101

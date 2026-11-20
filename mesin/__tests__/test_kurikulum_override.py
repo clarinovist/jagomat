@@ -476,4 +476,4 @@ def test_modul_hanya_mengimpor_stdlib_dan_dua_modul_kurikulum():
             diimpor.add(simpul.module.split(".")[0])
     lokal = {n for n in diimpor if n not in sys.stdlib_module_names} if hasattr(
         sys, "stdlib_module_names") else diimpor & {"web", "database", "topics", "generator"}
-    assert lokal <= {"kurikulum_cp", "kurikulum_katalog"}
+    assert lokal <= {"kurikulum_cp", "kurikulum_katalog", "jurnal_wal"}

@@ -45,7 +45,10 @@ def test_mutation_kurikulum_override(tmp_path, name, old, new, test):
     for n in ('conftest.py', 'test_kurikulum_override.py'):
         shutil.copy2(ROOT / 'mesin/__tests__' / n, tests / n)
     source = (ROOT / 'mesin' / BERKAS).read_text()
-    assert source.count(old) == 1
+    # Guard versi ada di dua lapis (baca pra-WAL + tulis dalam transaksi);
+    # mutasi harus mematikan keduanya agar perbedaannya terdeteksi.
+    jumlah = 2 if name == 'skema-asing-tulis' else 1
+    assert source.count(old) == jumlah
     (mesin / BERKAS).write_text(source.replace(old, new))
     r = subprocess.run([sys.executable, '-B', '-m', 'pytest', str(tests / 'test_kurikulum_override.py'),
                         '-k', test, '-q', '-W', 'error', '-p', 'no:cacheprovider'],

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import re
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -19,7 +20,7 @@ RUTE = "/admin/kurikulum"
 RUTE_DETAIL = "/admin/kurikulum/cp-detail"
 RUTE_BUAT = "/admin/kurikulum/buat"
 RUTE_EDIT_CP = "/admin/kurikulum/cp?grup=aritmatika-lanjut%2Fkonversi"
-DIR_RENDER = Path("/private/tmp/claude-501")
+DIR_RENDER = Path(tempfile.gettempdir()) / "jagomat-render"
 POLA_SEL = re.compile(r"<td[^>]*>(.*?)</td>", re.S)
 POLA_DIPAKAI = re.compile(r"Dipakai: ([^<]*)")
 
