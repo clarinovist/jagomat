@@ -173,7 +173,9 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
 - **Drill 20 Nov 2026 18:43**: unduh dari R2 → dekripsi → validasi manifest/hash →
   lima DB `integrity_check=ok`, `journal_mode=delete`. Ini drill baca, bukan restore live.
 - **Batas**: off-site bergantung pada Mac menyala; bila Mac mati, backup lokal VPS tetap
-  jalan tetapi tidak ada salinan keluar VPS hari itu. Alert kegagalan belum dipasang.
+  jalan tetapi tidak ada salinan keluar VPS hari itu. Kegagalan off-site mengirim alert
+  Telegram lewat `notify-telegram.py` (token dari `~/.hermes/.env`); jalur gagal belum
+  diuji end-to-end, hanya dry-run.
 
 ### Restore dari backup harian
 
@@ -192,6 +194,6 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
 
 1. ~~Frekuensi/jam backup~~ → harian 21:45 WIB di host, off-site 22:00 dari Mac.
 2. ~~Off-site otomatis independen laptop~~ → R2 terenkripsi; masih bergantung Mac menyala.
-3. Retensi sudah jalan (14 lokal, 30 R2). **Alert kegagalan belum ada** dan **restore live
-   belum diuji**; drill baca sudah lulus. Retensi per domain dan bukti penghapusan tetap
-   perlu dioperasionalkan.
+3. Retensi sudah jalan (14 lokal, 30 R2). Alert kegagalan off-site sudah dikirim ke
+   Telegram (jalur gagal belum diuji end-to-end). **Restore live belum diuji**; drill baca
+   sudah lulus. Retensi per domain dan bukti penghapusan tetap perlu dioperasionalkan.
