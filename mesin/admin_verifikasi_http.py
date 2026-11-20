@@ -14,7 +14,8 @@ admin tetap dapat memutuskan bukti yang menunggu setelah sakelar dimatikan. Atur
   `bukti_berkas.buka_berkas` (nama divalidasi, symlink ditolak), tipe harus cocok dengan magic bytes dan tipe
   tersimpan. Respons: tipe dari ledger, `nosniff`, `no-store`, CSP `default-src 'none'; sandbox`, nama unduhan
   generik. Bukti terhapus/hilang = 404 ramah; berkas rusak = 503 tanpa isi.
-- Tidak ada `str(galat)` di respons; PRG 303 ke daftar dengan kode hasil dari enum tetap.
+- Tidak ada `str(galat)` di respons; PRG 303 dengan kode hasil dari enum tetap: ke detail transfer menunggu tertua
+  berikutnya (`?order=&hasil=`), ke daftar menunggu bila habis, atau ke daftar lama bila pencarian berikutnya gagal.
 """
 from __future__ import annotations
 
@@ -25,6 +26,7 @@ import admin_pesanan_aksi as aksi
 import admin_pesanan_pages as daftar_ui
 import admin_security
 import admin_store
+import admin_transfer_menunggu as menunggu
 import admin_verifikasi_pages as ui
 import bukti_berkas
 import pesanan
@@ -42,6 +44,7 @@ HASIL_SETUJU = "verifikasi_setuju"
 HASIL_TOLAK = "verifikasi_tolak"
 MAKS_DIGIT_ID = 12
 CSP_BUKTI = "default-src 'none'; sandbox"
+_HASIL_DETAIL = frozenset({HASIL_SETUJU, HASIL_TOLAK})
 _GALAT_BACA = (admin_store.StoreBelumSiap, pesanan.PesananError, sqlite3.Error, OSError)
 
 
@@ -55,9 +58,13 @@ def _kirim(penangan, principal, isi: str, kode: int = 200) -> None:
 
 # --- detail ------------------------------------------------------------------
 
-def _order_query(penangan) -> str:
-    query = h._query(penangan, diizinkan={"order"})
-    return aksi.periksa_order(query.get("order"))
+def _order_query(penangan):
+    """(order_id, hasil) dari query; `hasil` hanya kode keputusan sah (banner lanjut) atau None."""
+    query = h._query(penangan, diizinkan={"order", "hasil"})
+    hasil = query.get("hasil")
+    if hasil is not None and hasil not in _HASIL_DETAIL:
+        raise ValueError("hasil tidak sah")
+    return aksi.periksa_order(query.get("order")), hasil
 
 
 def _forms(penangan, principal, detail):
@@ -79,7 +86,7 @@ def _baca_detail(order_id: str):
 
 def _get_detail(penangan, principal) -> None:
     try:
-        order_id = _order_query(penangan)
+        order_id, hasil = _order_query(penangan)
     except ValueError:
         return h._tidak_ada(penangan)
     try:
@@ -91,7 +98,8 @@ def _get_detail(penangan, principal) -> None:
         return _kirim(penangan, principal, daftar_ui.halaman_tidak_siap(), 503)
     if detail is None:
         return h._tidak_ada(penangan)
-    _kirim(penangan, principal, ui.halaman(detail, forms, baca_saja=principal.metode != "cookie"))
+    _kirim(penangan, principal, ui.halaman(
+        detail, forms, baca_saja=principal.metode != "cookie", lanjut=hasil))
 
 
 # --- pratinjau bukti ---------------------------------------------------------
@@ -179,6 +187,17 @@ def _bukti_dilihat(tinjauan) -> int:
     return nilai
 
 
+def _tujuan_setelah_putusan(order_id: str, hasil: str) -> str:
+    """Transfer menunggu tertua berikutnya; habis = daftar menunggu; galat baca = daftar lama (keputusan sudah tersimpan)."""
+    try:
+        berikut = menunggu.berikutnya(h._path_admin(), alur.waktu_sekarang(), kecuali=order_id)
+    except menunggu.GALAT_BACA:
+        return "%s?halaman=1&hasil=%s" % (daftar_ui.RUTE, hasil)
+    if berikut is None:
+        return "%s?status=%s&halaman=1&hasil=%s" % (daftar_ui.RUTE, daftar_ui.SARING_MENUNGGU, hasil)
+    return "%s?order=%s&hasil=%s" % (RUTE_VERIFIKASI, berikut, hasil)
+
+
 def _putuskan(penangan, principal, jalur: str) -> None:
     tinjauan, data = aksi.terima_form(penangan, principal, _AKSI_POST[jalur])
     setuju = jalur == RUTE_SETUJUI
@@ -191,7 +210,7 @@ def _putuskan(penangan, principal, jalur: str) -> None:
         else:
             pesanan_transfer.tolak(kon, order_id, principal.id_akun, data["alasan"], alur.waktu_sekarang(),
                                    bukti_terakhir_id=dilihat)
-    h._redirect(penangan, "%s?halaman=1&hasil=%s" % (daftar_ui.RUTE, HASIL_SETUJU if setuju else HASIL_TOLAK))
+    h._redirect(penangan, _tujuan_setelah_putusan(order_id, HASIL_SETUJU if setuju else HASIL_TOLAK))
 
 
 def tangani_post(penangan, jalur) -> bool:

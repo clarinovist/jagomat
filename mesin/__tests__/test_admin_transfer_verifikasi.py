@@ -30,7 +30,8 @@ from pesanan_transfer_http_kit import (  # noqa: E402
 )
 
 ORDER_ASING = "ord_" + "0" * 32
-POLA_HASIL = re.compile(r"/admin/pesanan\?halaman=\d+&hasil=([a-z_]+)")
+# Satu-satunya order menunggu diputuskan -> tidak ada berikutnya -> daftar menunggu (kosong) dengan kode hasil.
+POLA_HASIL = re.compile(r"/admin/pesanan\?status=menunggu&halaman=1&hasil=([a-z_]+)")
 
 
 @pytest.fixture()
@@ -115,8 +116,7 @@ def test_daftar_label_ditolak(transfer, admin):
 def test_detail_memuat_nominal_bukti_pratinjau_dan_dua_form_dengan_token(transfer, admin):
     order_id = order_menunggu(transfer)
     isi = _detail(transfer, admin, order_id)
-    teks = teks_halaman(isi)
-    assert "Rp49.%03d" % (_nominal(order_id) - 49000) in teks
+    assert 'Rp49.<mark class="admin-digit-unik">%03d</mark>' % (_nominal(order_id) - 49000) in isi
     bukti_id = id_bukti_terakhir(order_id)
     assert 'src="%s?id=%d"' % (BUKTI, bukti_id) in isi
     assert 'href="%s?id=%d&amp;unduh=1"' % (BUKTI, bukti_id) in isi

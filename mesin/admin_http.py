@@ -353,7 +353,7 @@ def _render_get(penangan, principal, query):
             sinyal = admin_antrean_pages.sinyal_dari(antrean)
             subjudul = "%s · %s" % (
                 admin_labels.hari_ini(),
-                "%d hal menunggu keputusan" % antrean.total if antrean.total
+                "%d hal menunggu keputusan" % antrean.perlu_keputusan if antrean.perlu_keputusan
                 else "tidak ada hal yang menunggu keputusan",
             )
             isi = admin_pages.render_ringkasan(

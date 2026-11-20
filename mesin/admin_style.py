@@ -413,6 +413,11 @@ summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-weight: 600;
 .admin-umur-mendesak {{ color: {T.ADMIN_URGEN_TEKS}; font-weight: 600; }}
 .admin-antrean-sisa {{ padding: {T.SP_4} {T.SP_5}; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ADMIN_REDUP}; }}
 .admin-antrean-catatan, .admin-antrean-kosong {{ margin: 0; padding: {T.SP_4} {T.SP_5}; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ADMIN_REDUP}; }}
+.admin-antrean-tinjau {{ border-top: 1px solid {T.ADMIN_PEMISAH}; }}
+.admin-antrean-tinjau > summary {{ padding: {T.SP_3} {T.SP_5}; color: {T.ADMIN_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; }}
+.admin-digit-unik {{ background: {T.ADMIN_AKSEN_LATAR}; color: {T.ADMIN_AKSEN_TEKS}; border-radius: {T.RADIUS_KECIL}; padding: 0 {T.SP_1}; }}
+.admin-form-tolak {{ margin-top: {T.SP_5}; }}
+.admin-form-tolak summary {{ color: {T.ADMIN_BAHAYA_TEKS}; }}
 .admin-layanan {{ display: flex; flex-direction: column; gap: {T.SP_4}; }}
 .admin-layanan dl {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: {T.SP_4}; margin: 0; }}
 .admin-layanan-kartu {{ min-width: 0; display: flex; flex-direction: column; gap: {T.SP_2}; padding: {T.SP_4} {T.SP_5}; background: {T.ADMIN_PERMUKAAN}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_KARTU}; }}

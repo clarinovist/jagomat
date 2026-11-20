@@ -103,7 +103,9 @@ cache dan cadangan tetap privat.
   memakai form native server-side dan cookie preferensi browser `HttpOnly` scoped
   `/admin`; tidak menambah JavaScript atau state akun/database. Antrean Ringkasan dirakit
   `admin_antrean.py` (read-only, tanpa skema baru), dirender `admin_antrean_pages.py`;
-  sinyal sidebar memakai antrean yang sama. Markup bersama panel ada di `admin_komponen.py`;
+  transfer menunggu verifikasi (`admin_transfer_menunggu.py`) jadi item mendesak teratas, siswa tanpa
+  login diringkas satu baris "tinjau" dalam `<details>`; badge Ringkasan hanya mendesak + penting
+  dan badge menu Pesanan menghitung transfer menunggu (sinyal sidebar dari antrean yang sama). Markup bersama panel ada di `admin_komponen.py`;
   daftar Keluarga/Siswa (chip berhitungan dari `jumlah_facet` query, avatar, pill kondisi)
   dirender `admin_daftar_pages.py`; tiga tampilan riwayat (tindakan, batch, AI) dirender
   `admin_riwayat_pages.py`. Satu aksi, satu entry point.

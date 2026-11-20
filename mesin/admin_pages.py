@@ -97,6 +97,9 @@ def _badge_nav(sinyal: Optional[SinyalNav], sid: str) -> str:
     if sid == "ringkasan" and sinyal.total:
         return ('<span class="admin-nav-badge">%d<span class="admin-sr"> hal menunggu keputusan</span></span>'
                 % sinyal.total)
+    if sid == "pesanan" and sinyal.transfer_menunggu:
+        return ('<span class="admin-nav-badge">%d<span class="admin-sr"> transfer menunggu verifikasi</span></span>'
+                % sinyal.transfer_menunggu)
     if sid == "operasional" and sinyal.operasional_perhatian:
         return '<span class="admin-nav-titik" role="img" aria-label="Perlu perhatian"></span>'
     return ""

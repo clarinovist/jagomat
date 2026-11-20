@@ -7,13 +7,19 @@ import admin_labels as L
 import admin_operations
 import admin_queries as Q
 import admin_store
+import admin_transfer_menunggu
+import admin_verifikasi_pages
 from admin_antrean_pages import AntreanAdmin, BATAS_BARIS, ItemAntrean
+from pesanan_transfer_pages import rupiah
 
 JALUR_PERHATIAN = "/admin?section=perhatian"
 JALUR_KELUARGA = "/admin?section=keluarga&status=perlu_perhatian"
 STATUS_LOGIN_ANTREAN = ("legacy_same_name_ambiguous", "orphan_login", "legacy_orphan_login")
 PERINGATAN_LUNAS = "Periksa hasil operasinya; jangan mengulang atau memaksa status lunas."
 CATATAN_BACKUP = "Bukti ini tidak menyatakan jadwal atau salinan di luar server."
+JALUR_SISWA_TANPA_LOGIN = "/admin?section=siswa&status=student_without_login"
+CATATAN_TANPA_LOGIN = ("Normal: anak masuk lewat QR atau tautan HP dari guru. "
+                       "Buka daftar hanya bila perlu membuat login.")
 
 
 def _umur_hari(waktu, sekarang: float) -> Optional[int]:
@@ -29,6 +35,28 @@ def _sejak(waktu) -> str:
 def _ringkas_ref(ref) -> str:
     teks = str(ref)
     return teks if len(teks) <= 16 else "%s…%s" % (teks[:8], teks[-6:])
+
+
+def _item_transfer_satu(transfer, sekarang: float) -> ItemAntrean:
+    waktu_unggah = transfer.diunggah + "Z" if transfer.diunggah else None  # ledger UTC naif; L.waktu menganggap WIB
+    nominal = rupiah(transfer.nominal) if transfer.nominal else "nominal belum tercatat"
+    unggah = ("bukti diunggah %s" % L.tanggal(waktu_unggah) if L.waktu(waktu_unggah)
+              else "waktu unggah bukti tidak tercatat")
+    return ItemAntrean(
+        "mendesak", "Transfer menunggu verifikasi",
+        "%s · %s. Cocokkan dengan mutasi rekening sebelum menyetujui." % (nominal, unggah),
+        "%s?order=%s" % (admin_verifikasi_pages.RUTE_VERIFIKASI, transfer.order_id),
+        "Periksa bukti", "Order", _ringkas_ref(transfer.order_id), _umur_hari(waktu_unggah, sekarang),
+    )
+
+
+def _item_transfer(path_admin, sekarang: float) -> Tuple[ItemAntrean, ...]:
+    """Satu item mendesak per transfer menunggu, terlama dulu. Transfer belum terpasang/galat baca = ()."""
+    try:
+        menunggu = admin_transfer_menunggu.baca(path_admin, admin_transfer_menunggu.waktu_iso(sekarang))
+    except admin_transfer_menunggu.GALAT_BACA:
+        return ()
+    return tuple(_item_transfer_satu(t, sekarang) for t in menunggu)
 
 
 def _item_operasi(baris, sekarang: float) -> ItemAntrean:
@@ -99,7 +127,7 @@ def _item_backup(sekarang: float):
 
 
 def item_pengguna(konteks: Q.KonteksAdmin) -> Tuple[ItemAntrean, ...]:
-    """Satu baris per keluarga/siswa/login bermasalah dari snapshot; tanpa I/O."""
+    """Satu baris per keluarga/login bermasalah; siswa tanpa login diringkas jadi satu baris. Tanpa I/O."""
     pasangan = sorted(Q.status_per_siswa(konteks), key=lambda p: (p[0].nama.casefold(), p[0].id))
     pemilik_tanpa_akun = {}
     jumlah_tanpa_pemilik = 0
@@ -121,15 +149,11 @@ def item_pengguna(konteks: Q.KonteksAdmin) -> Tuple[ItemAntrean, ...]:
             "penting", "%d siswa belum punya pemilik" % jumlah_tanpa_pemilik,
             "Konfirmasi kaitan keluarga sebelum akun digunakan.", JALUR_KELUARGA, "Tinjau keluarga",
         ))
-    siswa_tanpa_login = [
-        ItemAntrean(
-            "tinjau", "%s belum punya login" % siswa.nama,
-            "%s. Periksa kaitan siswa dan keluarga sebelum membuat akses."
-            % ("Keluarga %s" % siswa.pemilik if siswa.pemilik else "Siswa belum punya pemilik"),
-            "/admin?section=siswa&id=%d" % siswa.id, "Tinjau siswa",
-        )
-        for siswa, status in pasangan if "student_without_login" in status
-    ]
+    jumlah_tanpa_login = sum(1 for _siswa, status in pasangan if "student_without_login" in status)
+    ringkasan_tanpa_login = [] if not jumlah_tanpa_login else [ItemAntrean(
+        "tinjau", "%d siswa belum punya login" % jumlah_tanpa_login, CATATAN_TANPA_LOGIN,
+        JALUR_SISWA_TANPA_LOGIN, "Lihat daftar",
+    )]
     login = [
         ItemAntrean(
             "tinjau", "Login %s perlu ditinjau" % masalah.pengguna,
@@ -139,23 +163,28 @@ def item_pengguna(konteks: Q.KonteksAdmin) -> Tuple[ItemAntrean, ...]:
         )
         for masalah in konteks.login_bermasalah if masalah.status in STATUS_LOGIN_ANTREAN
     ]
-    return tuple(keluarga + siswa_tanpa_login + login)
+    return tuple(keluarga + ringkasan_tanpa_login + login)
 
 
 def kumpulkan(konteks: Q.KonteksAdmin, path_admin, *, sekarang: float) -> AntreanAdmin:
-    """Antrean terurut mendesak → penting → tinjau, dipotong ``BATAS_BARIS`` baris."""
+    """Antrean terurut transfer → operasi → backup → pengguna, dipotong ``BATAS_BARIS`` baris."""
+    transfer = _item_transfer(path_admin, sekarang)
     operasi, total_operasi, tersedia = _item_operasi_semua(path_admin, sekarang)
     if not tersedia:
         operasi = _fallback_operasi(path_admin)
         total_operasi = len(operasi)
     backup, bukti, terverifikasi = _item_backup(sekarang)
     lain = item_pengguna(konteks)
-    semua = operasi + backup + lain
+    semua = transfer + operasi + backup + lain
+    mendesak = total_operasi + len(transfer)
+    penting = len(backup) + sum(1 for i in lain if i.tingkat == "penting")
     return AntreanAdmin(
         item=semua[:BATAS_BARIS],
-        total=total_operasi + len(backup) + len(lain),
-        mendesak=total_operasi,
+        total=len(transfer) + total_operasi + len(backup) + len(lain),
+        mendesak=mendesak,
         layanan_tersedia=tersedia,
         bukti_backup=bukti,
         backup_terverifikasi=terverifikasi,
+        transfer_menunggu=len(transfer),
+        perlu_keputusan=mendesak + penting,
     )

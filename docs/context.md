@@ -174,7 +174,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   "Menunggu verifikasi" (`admin_pesanan_pages/http`, `pesanan_admin_transfer.py`); detail `/admin/pesanan/verifikasi`, pratinjau
   `/admin/pesanan/bukti?id=` (tipe dari ledger, `nosniff`, `no-store`, CSP `default-src 'none'; sandbox`, nama unduhan generik) dan aksi
   `setujui`/`tolak` (`admin_verifikasi_pages/http`; `_token_final`, `admin_id` dari sesi, keputusan hanya atas bukti terbaru yang dilihat
-  admin); `/admin/pesanan/rekening` (`admin_rekening_pages/http`; nomor ter-mask, revisi+sidik di tinjauan = optimistic concurrency);
+  admin; setelah keputusan, admin dialihkan ke transfer menunggu tertua berikutnya, atau ke daftar menunggu bila habis); `/admin/pesanan/rekening` (`admin_rekening_pages/http`; nomor ter-mask, revisi+sidik di tinjauan = optimistic concurrency);
   pola bersama `admin_pesanan_aksi.py`. Guru: `POST /pesanan/tagihan/ulang` (`pesanan_transfer_ulang.py`) membuka jendela bayar baru
   (maks 5, tagihan + kode unik baru) hanya bila waktu habis tanpa bukti dan Midtrans tertutup. Operator (tidak dijadwalkan aplikasi):
   `pesanan_retensi.py` (hapus berkas lalu tandai, bukti 30 hari sesudah keputusan, sisa `.tmp-*` > 1 jam) dan `pesanan_transfer_migrasi.py`.

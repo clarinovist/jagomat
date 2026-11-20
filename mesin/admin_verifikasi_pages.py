@@ -2,7 +2,7 @@
 
 Isi: nominal yang harus masuk (49.000 + kode unik, persis), daftar bukti dengan pratinjau lewat rute
 admin-saja (`/admin/pesanan/bukti?id=`), riwayat keputusan, dan dua form (Setujui, Tolak) hanya bila
-status `menunggu_verifikasi` dan sesi berkuki. Tidak menampilkan nama berkas tersimpan, nama berkas klien,
+status `menunggu_verifikasi` dan sesi berkuki (form Tolak dilipat dalam `<details>`; token tinjauan tetap per aksi). Tidak menampilkan nama berkas tersimpan, nama berkas klien,
 sha256, kontak, atau nama anak. Semua nilai dinamis di-escape; waktu ledger (UTC naif) ditampilkan dalam WIB.
 """
 from __future__ import annotations
@@ -42,6 +42,12 @@ COPY_CATATAN_NOMINAL = (
     "Cocokkan nominal di mutasi rekening dengan angka di atas sampai tiga digit terakhir. Hanya bukti yang "
     "Anda lihat di halaman ini yang akan diputuskan; bila guru mengunggah bukti baru, buka ulang halaman ini."
 )
+COPY_LANJUT = {
+    "verifikasi_setuju": "Transfer sebelumnya disetujui. Ini transfer berikutnya.",
+    "verifikasi_tolak": "Transfer sebelumnya ditolak. Ini transfer berikutnya.",
+}
+COPY_RINGKAS_TOLAK = "Tolak bukti…"
+JUMLAH_DIGIT_UNIK = 3
 COPY_BUKTI_DIHAPUS = "Berkas sudah dihapus sesuai retensi."
 COPY_TANPA_SESI = "Tampilan baca-saja. Masuk melalui formulir untuk menyetujui atau menolak."
 COPY_TIDAK_ADA_BUKTI = "Belum ada bukti."
@@ -83,11 +89,20 @@ def _form_setujui(token: Tuple[str, str]) -> str:
 
 
 def _form_tolak(token: Tuple[str, str]) -> str:
-    return ('<form method="post" action="%s" data-konfirmasi="%s">%s'
+    """Form Tolak dilipat; normalnya hanya satu kolom sandi (form Setujui) yang terlihat."""
+    return ('<details class="admin-form-tolak"><summary>%s</summary>'
+            '<form method="post" action="%s" data-konfirmasi="%s">%s'
             '<label>Alasan penolakan<input type="text" name="alasan" required maxlength="%d" '
             'autocomplete="off"></label>%s'
-            '<button class="admin-tombol admin-bahaya" type="submit">Tolak bukti</button></form>'
-            % (RUTE_TOLAK, e(COPY_KONFIRMASI_TOLAK), _hidden(*token), BATAS_ALASAN, _SANDI))
+            '<button class="admin-tombol admin-bahaya" type="submit">Tolak bukti</button></form></details>'
+            % (e(COPY_RINGKAS_TOLAK), RUTE_TOLAK, e(COPY_KONFIRMASI_TOLAK), _hidden(*token), BATAS_ALASAN, _SANDI))
+
+
+def _nominal_sorot(nominal: int) -> str:
+    """`Rp49.007` dengan tiga digit terakhir (kode unik) disorot; teks tetap terbaca utuh tanpa jeda."""
+    teks = rupiah(nominal)
+    awal, kode = teks[:-JUMLAH_DIGIT_UNIK], teks[-JUMLAH_DIGIT_UNIK:]
+    return '%s<mark class="admin-digit-unik">%s</mark>' % (e(awal), e(kode))
 
 
 def _pratinjau(bukti: Mapping) -> str:
@@ -125,7 +140,7 @@ def _riwayat(keputusan) -> str:
 def _ringkasan(detail: Mapping) -> str:
     status = detail["status"]
     badge = '<span class="admin-badge%s">%s</span>' % (KELAS_BADGE.get(status, ""), e(COPY_STATUS.get(status, status)))
-    nominal = e(rupiah(detail["nominal"])) if detail["nominal"] else "—"
+    nominal = _nominal_sorot(detail["nominal"]) if detail["nominal"] else "—"
     return ('<section class="admin-kartu"><h2>%s</h2>'
             '<p>Order %s · Akun <code class="admin-id">%s</code> · %s</p>'
             '<p>Nominal yang harus masuk: <strong>%s</strong></p><p class="admin-meta">%s</p>'
@@ -141,11 +156,21 @@ def _form_keputusan(detail: Mapping, forms: Optional[Mapping]) -> str:
             % (_form_setujui(forms["setujui"]), _form_tolak(forms["tolak"])))
 
 
-def halaman(detail: Mapping, forms: Optional[Mapping], *, baca_saja: bool = False) -> str:
-    """Isi section detail. `forms` = {'setujui': (csrf, tinjauan), 'tolak': (csrf, tinjauan)} atau None."""
+def _banner_lanjut(lanjut: Optional[str]) -> str:
+    if lanjut not in COPY_LANJUT:
+        return ""
+    return '<p class="admin-kartu admin-catatan" role="status" aria-atomic="true">%s</p>' % e(COPY_LANJUT[lanjut])
+
+
+def halaman(detail: Mapping, forms: Optional[Mapping], *, baca_saja: bool = False,
+            lanjut: Optional[str] = None) -> str:
+    """Isi section detail. `forms` = {'setujui': (csrf, tinjauan), 'tolak': (csrf, tinjauan)} atau None.
+
+    `lanjut` = kode hasil keputusan sebelumnya (tampil sebagai banner "transfer berikutnya") atau None.
+    """
     sesi = '<p class="admin-meta">%s</p>' % e(COPY_TANPA_SESI) if baca_saja else ""
     bukti = "".join(_baris_bukti(b) for b in detail["bukti"])
-    return (_ringkasan(detail) + sesi
+    return (_banner_lanjut(lanjut) + _ringkasan(detail) + sesi
             + _tabel("Bukti transfer", ("No.", "Diunggah", "Jenis", "Ukuran", "Keadaan", "Pratinjau"), bukti,
                      COPY_TIDAK_ADA_BUKTI)
             + _riwayat(detail["keputusan"]) + _form_keputusan(detail, forms))

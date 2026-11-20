@@ -31,21 +31,26 @@ class AntreanAdmin:
     layanan_tersedia: bool = True
     bukti_backup: str = "Belum terverifikasi"
     backup_terverifikasi: bool = False
+    transfer_menunggu: int = 0
+    perlu_keputusan: int = 0  # mendesak + penting penuh (tidak terpotong, tanpa tinjau ringan)
 
 
 @dataclass(frozen=True)
 class SinyalNav:
     """Penanda sidebar; dihitung dari antrean yang sama dengan Ringkasan."""
 
-    total: int = 0
+    total: int = 0  # badge Ringkasan: hanya mendesak + penting
     mendesak: int = 0
     operasional_perhatian: bool = False
+    transfer_menunggu: int = 0  # badge menu Pesanan
 
 
 def sinyal_dari(antrean: AntreanAdmin) -> SinyalNav:
     return SinyalNav(
-        antrean.total, antrean.mendesak,
-        antrean.mendesak > 0 or not antrean.backup_terverifikasi,
+        total=antrean.perlu_keputusan,
+        mendesak=antrean.mendesak,
+        operasional_perhatian=antrean.mendesak > 0 or not antrean.backup_terverifikasi,
+        transfer_menunggu=antrean.transfer_menunggu,
     )
 
 
@@ -75,24 +80,41 @@ def _baris(item: ItemAntrean, *, solid: bool) -> str:
     )
 
 
+def _daftar(item: Tuple[ItemAntrean, ...], *, solid_pertama: bool, sisa: int = 0) -> str:
+    baris = "".join(_baris(i, solid=solid_pertama and indeks == 0) for indeks, i in enumerate(item))
+    if sisa > 0:
+        baris += '<li class="admin-antrean-sisa">dan %d lainnya</li>' % sisa
+    return '<ol class="admin-antrean">%s</ol>' % baris
+
+
+def _tinjau(item: Tuple[ItemAntrean, ...], sisa: int) -> str:
+    return ('<details class="admin-antrean-tinjau"><summary>Tinjauan ringan (%d)</summary>%s</details>'
+            % (len(item), _daftar(item, solid_pertama=False, sisa=sisa)))
+
+
 def render_antrean(antrean: AntreanAdmin) -> str:
-    sisa = antrean.total - len(antrean.item)
-    if antrean.item:
-        baris = "".join(_baris(item, solid=indeks == 0) for indeks, item in enumerate(antrean.item))
-        if sisa > 0:
-            baris += '<li class="admin-antrean-sisa">dan %d lainnya</li>' % sisa
-        isi = '<ol class="admin-antrean">%s</ol>' % baris
+    sisa = max(0, antrean.total - len(antrean.item))
+    utama = tuple(i for i in antrean.item if i.tingkat != "tinjau")
+    ringan = tuple(i for i in antrean.item if i.tingkat == "tinjau")
+    bagian = []
+    if utama:
+        bagian.append(_daftar(utama, solid_pertama=True, sisa=0 if ringan else sisa))
     else:
-        isi = ('<p class="admin-antrean-kosong">Tidak ada kondisi administratif yang perlu '
-               'perhatian pada sumber yang tersedia.</p>')
+        bagian.append('<p class="admin-antrean-kosong">Tidak ada kondisi administratif yang perlu '
+                      'perhatian pada sumber yang tersedia.</p>')
+    if ringan:
+        bagian.append(_tinjau(ringan, sisa))
+    elif sisa and not utama:
+        bagian.append('<p class="admin-antrean-sisa">dan %d lainnya</p>' % sisa)
     catatan = (
-        "Satu baris per item. Satu keluarga atau siswa dapat muncul di lebih dari satu baris bila "
-        "punya lebih dari satu masalah. Umur hanya tampil untuk item yang waktu awal masalahnya tercatat."
+        "Satu baris per item. Tinjauan ringan dilipat dan tidak dihitung pada penanda menu. Satu keluarga "
+        "dapat muncul di lebih dari satu baris bila punya lebih dari satu masalah. Umur hanya tampil untuk "
+        "item yang waktu awal masalahnya tercatat."
         + ("" if antrean.layanan_tersedia else " Jumlah antrean layanan belum tersedia.")
     )
     return (
         '<section class="admin-kartu admin-prioritas" aria-labelledby="judul-antrean">'
         '<header class="admin-prioritas-kepala"><h2 id="judul-antrean">Perlu ditangani</h2>'
         '<p class="admin-prioritas-ket">Diurutkan dari yang paling berisiko · tiap item dihitung sekali</p></header>'
-        '%s<p class="admin-antrean-catatan">%s</p></section>' % (isi, _e(catatan))
+        '%s<p class="admin-antrean-catatan">%s</p></section>' % ("".join(bagian), _e(catatan))
     )

@@ -193,12 +193,15 @@ def test_ringkasan_hierarki_baca_total_antrean_dan_tanpa_mutasi(server, monkeypa
         sebelum_db = tuple(kon.iterdump())
     kode, isi, header = _minta(server, '/admin', cookie=token)
     assert kode == 200
-    # Total 31 dari proyeksi (bukan panjang halaman 25) + backup + siswa/keluarga bermasalah.
+    # Total 31 dari proyeksi (bukan panjang halaman 25) + backup + keluarga bermasalah (mendesak + penting saja;
+    # tinjauan ringan tidak masuk subjudul maupun badge).
     import re
     total = int(re.search(r'· (\d+) hal menunggu keputusan', isi).group(1))
     assert total >= 32
     assert 'admin-nav-badge">%d<' % total in isi
-    assert 'dan %d lainnya' % (total - isi.count('<li class="admin-antrean-item">')) in isi
+    ringan = int(re.search(r'Tinjauan ringan \((\d+)\)', isi).group(1))
+    # "dan N lainnya" menghitung semua item tersisa, termasuk tinjauan ringan yang tampil dalam <details>.
+    assert 'dan %d lainnya' % (total + ringan - isi.count('<li class="admin-antrean-item">')) in isi
     assert 'Konfigurasi AI</dt><dd><span class="admin-titik" aria-hidden="true"></span>Belum siap' in isi
     assert 'Pembayaran</dt><dd><span class="admin-titik" aria-hidden="true"></span>Tahap nonaktif' in isi
     assert 'Backup</dt><dd><span class="admin-titik" aria-hidden="true"></span>Belum terverifikasi' in isi
