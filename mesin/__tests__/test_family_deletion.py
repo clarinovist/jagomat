@@ -21,6 +21,7 @@ import database
 import family_deletion as hapus
 import kontak_akun
 import sessions
+from test_admin_backup import _portable
 
 
 ADMIN = "akun_" + "a" * 32
@@ -74,7 +75,10 @@ def penyimpanan(tmp_path):
     bundle = tmp_path / "backup"
     bundle.mkdir(mode=0o700)
     for jenis, nama in admin_backup.BERKAS_WAJIB.items():
-        shutil.copy2(paths[jenis], bundle / nama)
+        if jenis == "auth":
+            shutil.copy2(paths[jenis], bundle / nama)
+        else:
+            _portable(paths[jenis], bundle / nama)
         (bundle / nama).chmod(0o600)
     admin_backup.buat_manifest(bundle, bundle_id="backup-recourse-001", cutoff=20)
     return paths, bundle, tmp_path / "hasil", target, lain, sesi_target, sesi_lain

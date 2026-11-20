@@ -10,7 +10,7 @@ import pytest
 import admin_backup
 import ai_store
 import database
-from test_admin_backup import _buat_bundle
+from test_admin_backup import _buat_bundle, _normalisasi_bundle
 from test_quota_release_pair import siapkan, recovery9
 from test_package_release_pair import jalankan
 
@@ -41,6 +41,7 @@ def seed(path):
 
 def manifest(bundle):
     (bundle/'manifest.json').unlink()
+    _normalisasi_bundle(bundle)
     admin_backup.buat_manifest(bundle,bundle_id='foto-sintetis',cutoff=100)
 
 

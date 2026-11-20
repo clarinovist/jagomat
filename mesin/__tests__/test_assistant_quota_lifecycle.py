@@ -12,7 +12,7 @@ import assistant_quota_store as q
 import subscription as d
 import subscription_store as v1
 import subscription_package_store as v2
-from test_admin_backup import _buat_bundle, OWNER
+from test_admin_backup import _buat_bundle, _normalisasi_bundle, OWNER
 
 ON = d.Sakelar(True, True, True, False)
 T0 = 1800000000
@@ -188,6 +188,7 @@ def test_backup9_unknown_pending_wajib_rekonsiliasi(tmp_path, status):
         q.finalisasi(path, r.ikatan, sekarang=T0+3, hasil_valid_tersimpan=True)
     elif status == 'released':
         q.lepaskan(path, r.ikatan, sekarang=T0+3, tanpa_output_terbukti=True)
+    _normalisasi_bundle(bundle)
     admin_backup.buat_manifest(bundle, bundle_id='kuota-sintetis', cutoff=T0+5)
     sebelum = {p.name:p.read_bytes() for p in bundle.iterdir()}
     hasil = admin_backup.validasi_bundle(bundle)

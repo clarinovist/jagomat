@@ -65,6 +65,15 @@ def _portable(sumber, tujuan):
     tujuan.chmod(0o600)
 
 
+def _normalisasi_bundle(bundle):
+    """Bawa DB bundle kembali ke DELETE dan buang sidecar (capture portabel)."""
+    for path in Path(bundle).glob("*.db"):
+        with sqlite3.connect(path) as kon:
+            kon.execute("PRAGMA journal_mode=DELETE")
+        for akhiran in ("-wal", "-shm"):
+            path.with_name(path.name + akhiran).unlink(missing_ok=True)
+
+
 def _buat_bundle(tmp_path, *, ai_v2=False):
     bundle = tmp_path / "bundle"
     bundle.mkdir(mode=0o700)

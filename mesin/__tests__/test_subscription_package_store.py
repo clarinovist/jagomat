@@ -167,7 +167,7 @@ def test_service_provider_worker_callback_dan_recheck(keluarga):
 
 def test_backup_admin8_dengan_hanya_invoice_v2_perlu_rekonsiliasi(tmp_path):
     import admin_backup
-    from test_admin_backup import _buat_bundle, _buat_ai_v2, OWNER
+    from test_admin_backup import _buat_bundle, _buat_ai_v2, _normalisasi_bundle, OWNER
     b = _buat_bundle(tmp_path)
     path = b/'admin-control.db'
     admin_store.siapkan(path,paket_v2=True)
@@ -177,6 +177,7 @@ def test_backup_admin8_dengan_hanya_invoice_v2_perlu_rekonsiliasi(tmp_path):
                            idempotency_key='idem_sintetis',provider='midtrans',merchant=CFG.merchant,
                            sekarang=3,kedaluwarsa=999,pemilik_profil=lambda _:OWNER,sakelar=ON)
     (b/'manifest.json').unlink()  # Fixture baru setelah isi bundle sintetis berubah.
+    _normalisasi_bundle(b)
     admin_backup.buat_manifest(b,bundle_id='paket_sintetis',cutoff=100)
     assert admin_backup.validasi_bundle(b).perlu_rekonsiliasi
     awal=isi(path)
