@@ -6,6 +6,32 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy WAL SQLite semua store — 20 November 2026
+
+Controlled `deploy-v2` memasang **55aaa499** (digest `sha256:15436d66…1219`), healthy/restart0, menggantikan
+**fa037344** (deploy beranda funnel pagi 20 Nov; belum ada bagian khusus di dokumen ini, revision live sebelumnya
+tercatat `ac93885`). Isi: `PRAGMA journal_mode=WAL` di `siapkan()` semua store durable — `latihan.db`,
+`admin-control.db`, `ai-control.db`, `pendamping.db`, dan `riset-konsumen.db` — plus helper `jurnal_wal.py`,
+normalisasi salinan backup ke `DELETE`, dan perbaikan snapshot hapus-keluarga.
+
+- Gate dispatch [44743114010](https://github.com/clarinovist/jagomat/actions/runs/44743114010) hijau: kandidat 4/4,
+  recovery 4/4, pair terverifikasi, `provider_calls` 0. Kandidat dan recovery sama-sama kontrak
+  `85c34051…6c52`; recovery dipin ke `bf5de20` (kode WAL, koleksi 20.042 nodeid), mode `migrasi`,
+  `siap_pasang=false`, job `pasang` literal false.
+- Kit `deploy-wal-20261120`; `PERSIAPAN_OK`, hold 20.38.40–20.41.40 WIB (±3 mnt, Caddy 503, dua cron ditahan),
+  backup 4 DB + `sandi.json` + riset terpisah, rehearsal C–B–C dengan cek `journal_mode=wal`, `deploy-v2` exit0,
+  reopen `LIVE_ADMIN_HEALTHY`, postcheck exit0.
+- Postcheck: revision/digest exact, `/`200 `/akun`401 `/murid/`303 `/cek-kemampuan`200 `/paket-coba`200
+  `/contoh-peta-kemampuan`200 `/admin/*`404 anonim; probe sintetis (writer2, funnel aktif, gerbang bayar,
+  schema pesanan, transfer mati) lulus; lima DB `journal_mode=wal`, `integrity_check=ok`, FK bersih; galat
+  Traceback/OperationalError/IntegrityError 0; config dan hash histori terjaga.
+- Backup induk `/opt/osn/cadangan/deploy-wal-20261120/`, salinan lokal tidak diambil (bundle tetap di VPS;
+  backup harian 21.45 + off-site R2 tetap berjalan).
+- **Catatan operator:** `pendamping.db` diaktifkan ke WAL lewat `assistant_schema.siapkan()` setelah candidate
+  sehat karena startup `serve.py` belum memanggil fungsi itu; DB baru akan menjadi WAL saat `siapkan()` pertama.
+  Ini bukan kegagalan deploy, tetapi kandidat berikutnya perlu memanggil `assistant_schema.siapkan()` di startup
+  agar semua store konsisten sejak boot.
+
 ## Deploy sakelar admin, profil guru, label awam, dan retensi cek — 19 November 2026
 
 Controlled `deploy-v2` memasang **ac93885** (digest `sha256:0f49d9a7…c205`), healthy, menggantikan `efe9514`.
