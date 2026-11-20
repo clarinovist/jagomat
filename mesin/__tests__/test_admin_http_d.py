@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 import re
+import sqlite3
 import sys
 
 import pytest
@@ -13,6 +14,15 @@ import assistant_client
 import auth
 import admin_store
 from test_admin_http_c import server, _minta, _login, _hidden, _unggah, SANDI_ADMIN
+
+
+def _checkpoint(path):
+    """Bekukan isi WAL ke berkas utama sebelum membandingkan byte."""
+    kon = sqlite3.connect(path, timeout=5)
+    try:
+        kon.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+    finally:
+        kon.close()
 
 
 def test_akun_admin_forged_post_tidak_mengubah_siswa_login_atau_audit(server):
@@ -40,6 +50,7 @@ def test_ai_reauth_csrf_origin_dan_duplicate_tidak_admission(server, monkeypatch
     data = dict(_form_ai(server, token, "uji"), konfirmasi="1")
     path = ai_service.path_store()
     ai_store.siapkan(path)
+    _checkpoint(path)
     awal = path.read_bytes()
     monkeypatch.setenv('DEEPSEEK_API_KEY', 'sintetis-bukan-key-asli')
     monkeypatch.setattr(__import__('ai_policy'), 'deployment_mengizinkan', lambda _f: True)
@@ -432,6 +443,7 @@ def test_ai_csrf_signature_tamper_dan_duplicate_tanpa_write(server, monkeypatch)
     data = dict(_form_ai(server, token, 'uji'), konfirmasi='1')
     path = ai_service.path_store()
     ai_store.siapkan(path)
+    _checkpoint(path)
     awal = path.read_bytes()
     badan, signature = data['csrf'].split('.')
     data_palsu = dict(data, csrf=badan + '.' + ('A' if signature[0] != 'A' else 'B') + signature[1:])
@@ -473,6 +485,7 @@ def test_ai_actor_reset_setelah_reauth_sebelum_admission_nol_efek(server, monkey
     monkeypatch.setattr(ai_service, nama_helper, reset_lalu_admission)
     path = ai_service.path_store()
     ai_store.siapkan(path)
+    _checkpoint(path)
     before = path.read_bytes()
     kode, _, _ = _minta(server, '/admin/ai/' + jenis, cookie=token, data=data)
     assert kode == 403 and provider == []
