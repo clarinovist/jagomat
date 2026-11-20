@@ -57,6 +57,9 @@ JUMLAH_RECOVERY = {
     "9c924d97be4e2d1dc252195f10e54e6e08aa1c9e": 20037,
     # Koleksi recovery WAL dengan pin 9c924d9 (bf5de20); ukur ulang saat pin.
     "bf5de20bf247abd5fddf9a6c8b9f077c57b8ba33": 20042,
+    # Koleksi recovery cetakan AI 4cef3ab (kode C2+C3, kontrak 660fe23);
+    # collect-only arsip exact 20.512 nodeid di Python 3.9, 21 Nov 2026.
+    "4cef3abcc545764ddb8b60b545cb8a4900322837": 20512,
     "ff6acb158985f78ef0287ec18fb045d273921bdc": 13507,
     "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
     # Arsip exact reader katalog; nodeid identik empat manifest CI39596225447
