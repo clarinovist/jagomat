@@ -12,6 +12,7 @@ import pytest
 import admin_store
 import ai_store
 import assistant_schema
+import cetakan_store
 import database
 import feature_switch
 import kurikulum_override
@@ -79,3 +80,32 @@ def test_ubah_label_kurikulum_membuat_db_wal(tmp_path):
     )
 
     assert _mode(path) == "wal"
+
+
+def test_buat_draf_cetakan_membuat_db_wal(tmp_path):
+    path = tmp_path / "cetakan.db"
+    isi = {
+        "kelas": 2, "bab": 2, "judul": "Penjumlahan uji WAL",
+        "teks": "Ada {a} kelereng dan {b} kelereng. Berapa semuanya?",
+        "variabel": {"a": [10, 50], "b": [1, 40]}, "kunci": "a + b",
+    }
+
+    cetakan_store.buat_draf(isi, sumber="manual", actor_id="uji-wal", path=path)
+
+    assert _mode(path) == "wal"
+
+
+def test_cetakan_tolak_db_asing_sebelum_wal(tmp_path):
+    path = tmp_path / "cetakan.db"
+    with sqlite3.connect(str(path)) as kon:
+        kon.execute("CREATE TABLE asing (x INTEGER)")
+    isi = {
+        "kelas": 2, "bab": 2, "judul": "Penjumlahan uji WAL",
+        "teks": "Ada {a} kelereng dan {b} kelereng. Berapa semuanya?",
+        "variabel": {"a": [10, 50], "b": [1, 40]}, "kunci": "a + b",
+    }
+
+    with pytest.raises(cetakan_store.GalatCetakan):
+        cetakan_store.buat_draf(isi, sumber="manual", actor_id="uji-wal", path=path)
+
+    assert _mode(path) != "wal"

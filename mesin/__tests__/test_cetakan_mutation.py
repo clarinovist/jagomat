@@ -89,7 +89,7 @@ MUTASI = (
      'test_transisi_terlarang_ditolak_tanpa_efek'),
     # skema dan baca
     ('skema-asing-tulis', 'cetakan_store.py', TES_STORE,
-     '    if versi not in (0, VERSI_SKEMA):', '    if False:',
+     '        if versi_ro not in (0, VERSI_SKEMA):', '        if False:',
      'test_tulis_ke_user_version_asing_galat_dan_berkas_tak_berubah'),
     ('transisi-tidak-membuat-berkas', 'cetakan_store.py', TES_STORE,
      '            if not boleh_membuat:', '            if False:',

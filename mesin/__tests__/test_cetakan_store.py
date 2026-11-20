@@ -536,7 +536,7 @@ def _modul_mesin_terimpor(impor: str) -> set:
 
 
 def test_store_hanya_menarik_pola_dan_kurikulum_kelas_dari_mesin():
-    assert _modul_mesin_terimpor("import cetakan_store") == {"cetakan_store", "cetakan_pola", "kurikulum_kelas"}
+    assert _modul_mesin_terimpor("import cetakan_store") == {"cetakan_store", "cetakan_pola", "jurnal_wal", "kurikulum_kelas"}
 
 
 def test_generator_tidak_menarik_cetakan_store():
@@ -552,7 +552,7 @@ def test_store_hanya_mengimpor_stdlib_dan_cetakan_pola():
         elif isinstance(node, ast.ImportFrom):
             modul.add(node.module)
     assert modul == {"__future__", "contextlib", "dataclasses", "datetime", "logging", "os", "pathlib",
-                     "sqlite3", "threading", "time", "typing", "cetakan_pola"}
+                     "sqlite3", "threading", "time", "typing", "cetakan_pola", "jurnal_wal"}
 
 
 def test_isi_tersimpan_kanonik_pulang_pergi(db):
