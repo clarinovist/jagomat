@@ -74,3 +74,13 @@ def isolasi_pembatas_laju():
     yield
     laju_masuk._reset()
     sessions._reset_rate_limit()
+
+
+@pytest.fixture(autouse=True)
+def cache_sinyal_nav_bersih():
+    """Cache badge sidebar admin (admin_sinyal_cache) berstatus global proses; kosongkan antar-test."""
+    import admin_sinyal_cache
+
+    admin_sinyal_cache.kosongkan()
+    yield
+    admin_sinyal_cache.kosongkan()

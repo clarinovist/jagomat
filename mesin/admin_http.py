@@ -22,6 +22,7 @@ import admin_pages
 import admin_queries
 import admin_registration
 import admin_security
+import admin_sinyal_cache
 import admin_service
 import admin_store
 import admin_students
@@ -293,7 +294,15 @@ def _konteks(kon):
 
 
 def sinyal_nav():
-    """Penanda sidebar dari antrean yang sama dengan Ringkasan; gagal berarti tanpa penanda."""
+    """Penanda sidebar dari antrean yang sama dengan Ringkasan; gagal berarti tanpa penanda.
+
+    Di-cache singkat (admin_sinyal_cache): dipanggil di setiap halaman admin dan antrean penuh
+    terukur ~7 ms. Dikosongkan tiap POST admin diproses.
+    """
+    return admin_sinyal_cache.ambil(_hitung_sinyal_nav)
+
+
+def _hitung_sinyal_nav():
     try:
         with database.buka() as kon:
             antrean = admin_antrean.kumpulkan(_konteks(kon), _path_admin(), sekarang=time.time())
@@ -335,6 +344,7 @@ def _render_get(penangan, principal, query):
             except admin_store.StoreBelumSiap:
                 teks_registrasi = "belum tersedia"
             status_ai = "siap" if __import__("ai_service").siap() else "belum siap"
+            generasi_cache = admin_sinyal_cache.generasi()
             antrean = admin_antrean.kumpulkan(konteks, _path_admin(), sekarang=time.time())
             ringkas_layanan = {
                 "Pendaftaran": (teks_registrasi, "baik" if teks_registrasi == "dibuka" else "netral"),
@@ -355,6 +365,7 @@ def _render_get(penangan, principal, query):
             except admin_store.StoreBelumSiap:
                 pass  # Sumber hilang tetap dibedakan dari konfigurasi kosong.
             sinyal = admin_antrean_pages.sinyal_dari(antrean)
+            admin_sinyal_cache.simpan(sinyal, generasi_cache)  # Ringkasan selalu segar; badge ikut segar.
             subjudul = "%s · %s" % (
                 admin_labels.hari_ini(),
                 "%d hal menunggu keputusan" % antrean.perlu_keputusan if antrean.perlu_keputusan
@@ -1049,6 +1060,24 @@ def _post_bulk_proses(penangan, principal, data, mode="process"):
 
 
 def tangani_post(penangan, jalur):
+    """Dispatcher POST admin; setiap POST admin yang diproses mengosongkan cache badge sidebar.
+
+    Dikosongkan juga SEBELUM penanganan (bukan hanya sesudah): redirect pasca-POST bisa tiba di thread
+    lain sebelum fungsi ini kembali, dan harus menghitung badge dari data yang sudah tertulis.
+    """
+    if jalur == "/admin" or jalur.startswith("/admin/"):
+        admin_sinyal_cache.kosongkan()
+    try:
+        ditangani = _tangani_post_admin(penangan, jalur)
+    except BaseException:
+        admin_sinyal_cache.kosongkan()  # Tindakan bisa sudah menulis sebelum galat.
+        raise
+    if ditangani:
+        admin_sinyal_cache.kosongkan()
+    return ditangani
+
+
+def _tangani_post_admin(penangan, jalur):
     import admin_kurikulum_cp_http
     import admin_lembaga_http
     import admin_pesanan_http

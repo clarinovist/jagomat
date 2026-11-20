@@ -787,3 +787,27 @@ def test_filter_lanjutan_keluarga_post_dan_get_menerima_kategori_aktivitas(serve
     kode_status, _, _ = _minta(server, "/admin?section=keluarga&status=asing", cookie=token)
     kode, _, _ = _minta(server, "/admin?section=keluarga&kategori=asing", cookie=token)
     assert kode == kode_status != 200
+
+
+def test_badge_sidebar_di_cache_antar_halaman_dan_segar_setelah_post_admin(server, monkeypatch):
+    import admin_operations
+    import ai_service
+    token = _login(server, "Admin-C", SANDI_ADMIN)
+    panggilan = []
+
+    def antrean(path, **kwargs):
+        panggilan.append(1)
+        return (), len(panggilan)  # total operasi naik tiap hitung ulang
+
+    monkeypatch.setattr(admin_operations, "antrean", antrean)
+    monkeypatch.setattr(ai_service, "siap", lambda: False)
+    kode, isi, _ = _minta(server, "/admin", cookie=token)  # Ringkasan: hitung penuh sekali, isi cache
+    assert kode == 200 and len(panggilan) == 1
+    for section in ("siswa", "keluarga", "riwayat"):
+        assert _minta(server, "/admin?section=" + section, cookie=token)[0] == 200
+    assert len(panggilan) == 1  # badge dari cache, tanpa antrean penuh
+    _minta(server, "/admin/akun", data={"x": "1"}, cookie=token)  # POST admin (walau ditolak) -> kosong
+    _minta(server, "/admin?section=siswa", cookie=token)
+    assert len(panggilan) == 2
+    _minta(server, "/admin", cookie=token)  # Ringkasan selalu menghitung penuh
+    assert len(panggilan) == 3
