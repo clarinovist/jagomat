@@ -157,6 +157,17 @@ materi. Review AI atas contoh sintetis bukan bukti kebenaran atau pengganti
 pemeriksaan manusia. Batch teori-bilangan ada di `number_theory_expansion.py`;
 P4/P5 memakai empat jenis tambahan, P6 tetap. Recovery harus mengenali ID baru.
 
+**Topik manual-saja (`Topik.hanya_manual`).** Topik P3+ yang belum punya grup mastery, kartu
+intervensi, dan playbook wajib bertanda `hanya_manual=True`; tanpa tanda itu ia otomatis ikut
+Campuran dan siklus. Penyebut topik di jalur otomatis (pemetaan, probe, pembanding, ubah fokus,
+katalog mastery, Pendamping) memakai `topics.daftar_topik_siklus()` dan
+`topics.template_hanya_manual()`, bukan `daftar_topik()`. Tiap penyebut baru wajib punya tes
+kebocoran dan mutation (lepas tanda → tes merah). Contoh: `bilangan-sekolah`
+(`test_hanya_manual_palang.py`). Remedial/latihan serupa guru tetap boleh menyebutnya karena
+berbasis sesi yang guru buat sendiri.
+Pengecualian sempit `test_parameter_variants`: `bilangan-sekolah/kali_bagi_sekolah/P3` wajib
+≥90% domain enumerator (161); pasangan lain tetap ≥200 kombinasi unik.
+
 **Scope verifikasi wajib bila modul topik berubah:**
 
 - Jalankan generator/template lintas topik terkait × level × seed, bukan membaca kode

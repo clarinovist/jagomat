@@ -49,6 +49,15 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `komposisi` pembaca memuat kelima jenis. PG tiga opsi (simbol `<`/`>`/`=` lewat jenis
   `simbol_perbandingan`), tanpa marker koreksi histori atau
   target mastery; grup katalog terdaftar untuk audit, bukan target siklus.
+  `topic_school_numbers.py` (topik `bilangan-sekolah`, lima jenis P3–P5; pembangun per jenis di
+  `school_numbers_order/column/muldiv/equation/common.py`) dijaga sakelar
+  `school_numbers_versions` (`OSN_BILANGAN_SEKOLAH`, env-only, "0"/"1", bawaan 0; palang lewat
+  `basic_numbers_versions.template_dibuka` dan `question_context`). Palang **manual-saja**:
+  `Topik.hanya_manual` mengecualikan topik dari Campuran (`_daftarkan_campuran`) dan, lewat
+  `topics.daftar_topik_siklus()`/`template_hanya_manual()`, dari pemetaan, probe, ubah fokus,
+  katalog mastery, penawaran Pendamping, dan remedial inline. Alasan: topik P3+ otomatis ikut siklus
+  bila hanya bergantung pada `LEVEL_TINGKAT`, padahal belum punya grup mastery, kartu intervensi,
+  dan playbook. Pembaca histori tetap mengenal ID-nya.
   Opt-in `Topik.unik_per_lembar` + enumerator domain menjaga soal
   tidak kembar; retry terbatas memilih sisa domain, pengulangan boleh setelah habis.
   Flag mati mempertahankan RNG lama. Campuran tetap P3–P6; lembar 10 soal satu jenis

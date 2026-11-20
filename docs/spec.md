@@ -16,6 +16,11 @@ untuk P1 (bilangan ≤20, tambah-kurang ≤10) / P2 (≤100, tambah-kurang ≤20
 dibuat bila `OSN_DASAR_LENGKAP=1` (bawaan kode 0; **produksi 1 sejak 6 Nov 2026** atas
 keputusan pemilik setelah self-review, bukan ulasan guru independen), sedangkan pembaca
 selalu mengenalnya. Recovery `c58390a` (writer katalog1/teori1) mengenal kelima jenis.
+Topik `bilangan-sekolah` (P3–P5, mode sekolah: nilai tempat, mengurutkan, penjumlahan/pengurangan
+bersusun, perkalian/pembagian, kalimat matematika; semua teks angka) hanya dibuat bila
+`OSN_BILANGAN_SEKOLAH=1` (bawaan 0, belum aktif di produksi) dan **hanya untuk Latihan manual
+guru dan lembar cetak**: tidak masuk Campuran, siklus terpandu, Pendamping, atau sisi murid.
+Rentang bilangan dan malrule belum diulas guru; flag tidak boleh menyala sebelum itu.
 Soal dalam lembar tidak kembar hingga seluruh domain level terpakai; setelah itu
 pengulangan diizinkan. Latihan satu topik menawarkan kartu Variasi Dasar 1/2 dengan contoh
 hanya untuk materi dasar; bawaan tetap otomatis dan tingkat anak tidak berubah.

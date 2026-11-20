@@ -2289,6 +2289,16 @@ Urutan minimum:
 Restore DB memerlukan izin pemulihan data khusus dengan pasangan/cutoff/RPO
 serta potensi kehilangan data dan rekonsiliasi. Izin push tidak mencakupnya.
 
+## Syarat sebelum `OSN_BILANGAN_SEKOLAH=1`
+
+Source topik `bilangan-sekolah` (lima jenis P3–P5, manual-saja) boleh dirilis dengan flag 0:
+perilaku identik dengan sebelumnya (dibuktikan baseline beku di `baseline_bilangan_sekolah.py`).
+Flag 1 di produksi baru boleh setelah: (1) rentang bilangan dan malrule diulas Guru; (2) pin
+recovery baru yang mengenali kelima template dan `Topik.hanya_manual` (tanpa itu `question_views`
+melempar `KeyError` dan `topics.dari_sesi` jatuh diam-diam ke topik bawaan untuk sesi
+`bilangan-sekolah`), dibuktikan pair exact-image yang membaca sesi dan bank topik ini;
+(3) izin rilis; flag dipasang lewat `visual.conf`/`jalankan-rilis.py`, bukan registri `/admin/sakelar`.
+
 ## Pelaporan jujur
 
 Source teruji, image terverifikasi, pemasangan live, dan auto-deploy aktif adalah
