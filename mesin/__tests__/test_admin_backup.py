@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import shutil
 import sqlite3
 import stat
 
@@ -48,14 +49,32 @@ def _buat_ai_v2(path):
         kon.execute("PRAGMA user_version=2")
 
 
+def _portable(sumber, tujuan):
+    """Salin DB ke snapshot DELETE tanpa sidecar, seperti backup API produksi."""
+    asal = sqlite3.connect(sumber)
+    keluar = sqlite3.connect(tujuan)
+    try:
+        asal.backup(keluar)
+        keluar.execute("PRAGMA journal_mode=DELETE")
+        keluar.commit()
+    finally:
+        keluar.close()
+        asal.close()
+    for akhiran in ("-wal", "-shm"):
+        tujuan.with_name(tujuan.name + akhiran).unlink(missing_ok=True)
+    tujuan.chmod(0o600)
+
+
 def _buat_bundle(tmp_path, *, ai_v2=False):
     bundle = tmp_path / "bundle"
     bundle.mkdir(mode=0o700)
-    belajar = bundle / "latihan.db"
-    admin = bundle / "admin-control.db"
-    ai = bundle / "ai-control.db"
-    pendamping = bundle / "pendamping.db"
-    akun = bundle / "sandi.json"
+    live = tmp_path / "live"
+    live.mkdir(mode=0o700)
+    belajar = live / "latihan.db"
+    admin = live / "admin-control.db"
+    ai = live / "ai-control.db"
+    pendamping = live / "pendamping.db"
+    akun = live / "sandi.json"
     database.siapkan(belajar)
     admin_students.siapkan(belajar)
     admin_store.siapkan(admin, sekarang=1)
@@ -73,13 +92,13 @@ def _buat_bundle(tmp_path, *, ai_v2=False):
     ]}), encoding="utf-8")
     for path in (belajar, admin, ai, pendamping, akun):
         path.chmod(0o600)
-    # Bundle memuat snapshot portabel, bukan DB live: normalkan ke DELETE dan
-    # buang sidecar. Produksi menyalin lewat backup API yang melakukan hal sama.
-    for path in (belajar, admin, ai, pendamping):
-        with sqlite3.connect(path) as kon:
-            kon.execute("PRAGMA journal_mode=DELETE")
-        for akhiran in ("-wal", "-shm"):
-            path.with_name(path.name + akhiran).unlink(missing_ok=True)
+    # Bundle memuat snapshot portabel, bukan DB live: salin lewat backup API
+    # dan normalkan ke DELETE. Produksi melakukan hal yang sama.
+    for sumber, nama in ((belajar, "latihan.db"), (admin, "admin-control.db"),
+                         (ai, "ai-control.db"), (pendamping, "pendamping.db")):
+        _portable(sumber, bundle / nama)
+    shutil.copy2(akun, bundle / "sandi.json")
+    (bundle / "sandi.json").chmod(0o600)
     admin_backup.buat_manifest(bundle, bundle_id="backup-sintetis-001", cutoff=100)
     return bundle
 

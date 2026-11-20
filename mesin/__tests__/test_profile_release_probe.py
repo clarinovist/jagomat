@@ -29,8 +29,10 @@ def _python(sumber, cwd, source=None):
 
 
 def _hash_db(akar):
+    # -shm adalah memori bersama untuk koordinasi WAL; pembaca read-only boleh
+    # mengubahnya tanpa menulis state durable. -wal tetap dihash.
     return {str(p.relative_to(akar)): hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in akar.rglob('*') if p.is_file()}
+            for p in akar.rglob('*') if p.is_file() and not p.name.endswith('-shm')}
 
 
 @pytest.fixture
