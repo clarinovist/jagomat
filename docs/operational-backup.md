@@ -153,10 +153,45 @@ kembali identik, smoke publik `/`200 `/akun`401 `/murid/`303. Backup pengaman/pa
 privat dipertahankan; tidak ada cron baru, prune, perubahan retensi atau provider.
 Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
 
+## Backup harian otomatis (Tahap 0, mulai 20 Nov 2026)
+
+- **Host `biznet-sekolahdesain`**, cron `/etc/cron.d/osn-backup-harian` pukul 21:45 WIB:
+  `/usr/bin/python3 /opt/osn/backup-harian/backup_harian.py` menulis
+  `/opt/osn/backup-harian/<YYYYMMDD-HHMMSS>/`, retensi 14 salinan. Log di
+  `/opt/osn/log/backup-harian.log`.
+- **Isi**: lima DB wajib (`latihan`, `admin-control`, `ai-control`, `pendamping`,
+  `riset-konsumen`) + `sandi.json`, ditambah `sakelar.db`, `kurikulum.db`, `cetakan.db`
+  bila ada. Salinan memakai SQLite backup API, dinormalkan `journal_mode=DELETE`,
+  lolos `integrity_check`, dan hash-nya dicatat di `manifest.json` dengan
+  `needs_reconciliation=true`. Lampiran tidak disalin (ikut bundle rilis); bukti
+  transfer tidak disalin (keputusan Pemilik: bukti sementara 30 hari).
+- **Off-site**: Hermes cron `osn-cadangan-harian` pukul 22:00 menjalankan
+  `~/.hermes/scripts/jagomat-backup-offsite.sh`: validasi di VPS → tarik tar →
+  enkripsi AES-256-CBC/PBKDF2 (kunci `~/.config/jagomat-backup/offsite.key`, 0600,
+  tidak pernah masuk VPS/repo) → unggah ke `r2:jagomat-app-cadangan/harian/<id>.tar.gz.enc`,
+  retensi 30 hari. Tidak ada salinan plaintext yang disimpan di Mac.
+- **Drill 20 Nov 2026 18:43**: unduh dari R2 → dekripsi → validasi manifest/hash →
+  lima DB `integrity_check=ok`, `journal_mode=delete`. Ini drill baca, bukan restore live.
+- **Batas**: off-site bergantung pada Mac menyala; bila Mac mati, backup lokal VPS tetap
+  jalan tetapi tidak ada salinan keluar VPS hari itu. Alert kegagalan belum dipasang.
+
+### Restore dari backup harian
+
+1. Hentikan app lewat runbook rilis (maintenance + container berhenti). Jangan restore
+   saat masih ada writer.
+2. **Pindahkan** (jangan hapus dulu) `*.db-wal` dan `*.db-shm` dari `/opt/osn/data` ke
+   folder `sampingan-<id>`. Sidecar basi membuat SQLite membuka WAL lama dan menyajikan
+   data yang salah tanpa error — `integrity_check` tetap `ok`.
+3. Salin DB dari bundle ke `/opt/osn/data/`; samakan pemilik/mode dengan berkas asli
+   (biasanya `osn:osn`, 0600). `sandi.json` hanya bila akun ikut dipulihkan.
+4. `PRAGMA integrity_check` + hitung baris tabel kunci; bandingkan dengan `manifest.json`.
+5. Start app, smoke publik, cek login admin. `needs_reconciliation=true` berarti state
+   lintas DB (langganan/pesanan/refund) harus dicek sebelum menerima transaksi.
+
 ## Yang tetap terbuka
 
-1. Frekuensi/jam backup dan toleransi downtime berulang belum diputuskan.
-2. Off-site otomatis independen dari laptop belum dipilih/diotorisasi.
-3. Retensi per domain, bukti penghapusan, alert kegagalan dan restore berkala perlu
-   dioperasionalkan bersama keputusan scheduler; tidak dianggap selesai oleh satu
-   backup manual yang lulus.
+1. ~~Frekuensi/jam backup~~ → harian 21:45 WIB di host, off-site 22:00 dari Mac.
+2. ~~Off-site otomatis independen laptop~~ → R2 terenkripsi; masih bergantung Mac menyala.
+3. Retensi sudah jalan (14 lokal, 30 R2). **Alert kegagalan belum ada** dan **restore live
+   belum diuji**; drill baca sudah lulus. Retensi per domain dan bukti penghapusan tetap
+   perlu dioperasionalkan.
