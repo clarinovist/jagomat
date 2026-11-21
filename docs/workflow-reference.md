@@ -167,12 +167,15 @@ kebocoran dan mutation (lepas tanda → tes merah). Contoh: `bilangan-sekolah`
 berbasis sesi yang guru buat sendiri.
 Pengecualian sempit `test_parameter_variants`: `bilangan-sekolah/kali_bagi_sekolah/P3` wajib
 ≥90% domain enumerator (161); pasangan lain tetap ≥200 kombinasi unik. Topik manual-saja kedua,
-`matematika-awal` (sepuluh jenis P1–P3, P5, P6; `test_matematika_awal_*`), memakai aturan
-≥ min(90% domain, 200) dan semua sampel di domain; satu pasang lebih sempit
-(`ukur_konversi_awal`/P3, domain 198 dengan varian berukuran tak sama) cukup ≥50% karena sampler
-memilih varian seragam. Domain kecil dicatat di `ALASAN_RUANG`, dan lembar satu-jenis-per-level yang
-berkerangka teks sejenis (P3, P6) di `UTANG_LEMBAR` dengan alasan; ambang global tidak dilonggarkan dan
-angka tidak diperlebar demi hitungan. Topik `hanya_manual` dengan level P3+ juga bukan "topik dasar"
+`matematika-awal` (19 jenis P1–P6; `test_matematika_awal_*`), memakai aturan
+≥ min(90% domain, 200) dan semua sampel di domain; tiga pasang lebih sempit karena sampler memilih
+varian seragam sedangkan domainnya condong ke varian besar: `ukur_konversi_awal`/P3 (domain 198) ≥50%,
+`bilang_benda_awal`/P1 (166) ≥70%, `ciri_komposisi_bangun`/P4 (234) ≥60%. Domain kecil dicatat di
+`ALASAN_RUANG` (juga `bilang_benda_awal`, `unsur_bangun_datar`, `ciri_komposisi_bangun`), dan lembar yang
+berkerangka teks sejenis (kini hanya P6, 2,25) di `UTANG_LEMBAR` dengan alasan; ambang global tidak
+dilonggarkan dan angka tidak diperlebar demi hitungan. Status bab dihitung `kurikulum_kelas_hitung` dari
+kecocokan pelatih dan komposisi level; tes `test_matematika_awal_integrasi` mengunci 21 ada, 19 sebagian, 0
+belum (K3 B5 dan K4 B6 tetap sebagian: gambar statistika bergantung `OSN_VISUAL_KELUARGA`). Topik `hanya_manual` dengan level P3+ juga bukan "topik dasar"
 (`question_context.topik_dasar`), jadi gerbang `OSN_MATERI_DASAR` tidak lagi menyembunyikannya.
 
 **Scope verifikasi wajib bila modul topik berubah:**

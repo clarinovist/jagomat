@@ -5,6 +5,7 @@ import re
 
 from awal_pola_posisi import pengecoh_tambahan as pengecoh_pola_posisi
 from awal_ukur_satuan_tak_baku import pengecoh_tambahan as pengecoh_ukur_satuan_tak_baku
+from awal_unsur_bangun_datar import pengecoh_tambahan as pengecoh_unsur_bangun_datar
 from generator import Lembar, buat_lembar
 from multiple_choice import SIMBOL_PERBANDINGAN, buat_pilihan, pilihan_tertanam, nilai_semantis
 from topics import paket_untuk_template
@@ -24,13 +25,18 @@ TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   # Matematika Awal lanjutan: jalur K/H dari malrule (atau benda lain di soal) selalu >= 2 per
                   # parameter domain; 'empat-v1' tidak terjamin. ukur_konversi_awal tetap 'empat-v1' (>= 3).
                   'ukur_satuan_tak_baku', 'baca_diagram_gambar', 'pola_posisi', 'pecahan_setengah',
-                  'waktu_berat_awal', 'turus_gambar_awal', 'bandingkan_ciri_bangun'})
+                  'waktu_berat_awal', 'turus_gambar_awal', 'bandingkan_ciri_bangun',
+                  # Matematika Awal gelombang 1: 2 pengecoh dari malrule selalu ada; 'empat-v1' tidak terjamin
+                  # (bilang_benda_awal: `empat-v1` kurang di sebagian parameter; pecahan_senilai_desimal: 23 dari
+                  # 275 parameter hanya punya 2 pengecoh berbeda nilai).
+                  'bilang_benda_awal', 'pecahan_senilai_desimal'})
 # Kunci kategori (nama/kata/benda) per jenis Matematika Awal; sisanya jatuh ke 'angka'.
 KATEGORI_AWAL = {
     'ukur_satuan_tak_baku': frozenset({'banding'}),
     'baca_diagram_gambar': frozenset({'terbanyak'}),
     'turus_gambar_awal': frozenset({'terbanyak'}),
     'peluang_dasar': frozenset({'lebih_mungkin', 'kepastian'}),
+    'bilang_benda_awal': frozenset({'angka_ke_kata'}),  # kunci kata bilangan huruf kecil
 }
 
 
@@ -49,6 +55,11 @@ def kebijakan_soal(soal):
         return 'tiga-v1', 'kategori'  # kunci nama bangun; banyak_sisi jatuh ke 'angka'
     if tid == 'pola_posisi':
         return 'tiga-v1', 'kategori'  # semua varian: kunci satu kata huruf kecil
+    if tid == 'unsur_bangun_datar' and p['varian'] == 'istilah':
+        return 'tiga-v1', 'kategori'  # kunci "sejajar"/"tegak lurus"; pengecoh malrule + "miring"
+    if tid == 'ciri_komposisi_bangun' and (
+            p['varian'] == 'uraikan_nama' or (p['varian'] == 'dua_persegi' and p['tanya'] == 'nama')):
+        return 'tiga-v1', 'kategori'  # kunci nama bangun; varian berkunci angka jatuh ke 'empat-v1'
     if p.get('varian') in KATEGORI_AWAL.get(tid, ()):
         return 'tiga-v1', 'kategori'  # kunci nama benda/kategori/kata
     if tid == 'peluang_dasar':
@@ -108,6 +119,9 @@ def kandidat(soal):
         # Varian banding hanya punya satu malrule (benda lebih pendek); tambahan "sama panjang"
         # bukan hipotesis kesalahan, jadi tidak masuk malrule.
         nilai += list(pengecoh_ukur_satuan_tak_baku(p))
+    elif tid == 'unsur_bangun_datar':
+        # istilah: "miring" bukan hipotesis kesalahan, jadi tidak masuk malrule.
+        nilai += list(pengecoh_unsur_bangun_datar(p))
     elif tid == 'bandingkan_bilangan':
         # Tiga opsi tetap <, >, = ; dua pengecoh = dua simbol lain, bukan dari malrule.
         nilai += list(SIMBOL_PERBANDINGAN)

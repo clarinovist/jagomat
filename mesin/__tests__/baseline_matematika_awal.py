@@ -25,17 +25,26 @@ LEVEL_JENIS = {
     "kenali_bentuk": ("P1", "P2"),
     "ukur_satuan_tak_baku": ("P1",),
     "baca_diagram_gambar": ("P1",),
+    "bilang_benda_awal": ("P1",),
+    "tambah_kurang_20": ("P1",),
     "pola_posisi": ("P2",),
     "pecahan_setengah": ("P2",),
     "waktu_berat_awal": ("P2",),
     "turus_gambar_awal": ("P2",),
+    "tambah_kurang_100": ("P2",),
     "ukur_konversi_awal": ("P3",),
+    "unsur_bangun_datar": ("P3",),
+    "pecahan_senilai_desimal": ("P4",),
+    "luas_petak_volume_kubus": ("P4",),
+    "ciri_komposisi_bangun": ("P4",),
     "bandingkan_ciri_bangun": ("P5",),
+    "keliling_gabungan": ("P5",),
     "peluang_dasar": ("P6",),
+    "pecahan_bilangan_asli_desimal": ("P6",),
 }
 TEMPLATE_AWAL = tuple(LEVEL_JENIS)
-# Level yang punya jenis (P4 sengaja kosong, jadi lembar P4 ditolak seperti level di luar komposisi).
-LEVEL_AWAL = ("P1", "P2", "P3", "P5", "P6")
+# Level yang punya jenis: P1 sampai P6 (semua level topik).
+LEVEL_AWAL = ("P1", "P2", "P3", "P4", "P5", "P6")
 JENIS_PER_LEVEL = {lv: frozenset(t for t, ls in LEVEL_JENIS.items() if lv in ls) for lv in LEVEL_AWAL}
 
 # kunci -> sidik per keadaan OSN_MATERI_DASAR ("0" / "1").

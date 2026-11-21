@@ -1,4 +1,4 @@
-"""Matematika Awal: integrasi sepuluh jenis di satu topik (lembar, render, PG, determinisme, palang).
+"""Matematika Awal: integrasi sembilan belas jenis di satu topik (P1-P6) (lembar, render, PG, determinisme, palang).
 
 Tes per jenis (domain, solver teks, malrule) ada di `test_matematika_awal_<jenis>.py`; berkas ini
 memeriksa sambungannya: pendaftaran di registri bersama, sapuan seed x level x jenis lewat
@@ -46,13 +46,29 @@ SEED_SAPUAN = range(25)
 SEED_LEMBAR = range(12)
 LEMBAR_PANJANG = 10
 ISTILAH_GURU = re.compile(r"malrule|diagnosis|kode intervensi|template_id|hipotesis", re.I)
-# (kelas, nomor bab, jenis) bab yang dulu "Belum ada soal" dan kini diisi topik ini.
+# (kelas, nomor bab, jenis) bab yang dulu "Belum ada soal" dan kini diisi topik ini (semua soal teks).
 BAB_TERISI = (
     (1, 4, "kenali_bentuk"), (1, 7, "ukur_satuan_tak_baku"), (1, 8, "baca_diagram_gambar"),
     (2, 3, "kenali_bentuk"), (2, 4, "pola_posisi"), (2, 5, "pecahan_setengah"),
     (2, 6, "waktu_berat_awal"), (2, 8, "turus_gambar_awal"), (3, 3, "ukur_konversi_awal"),
     (5, 7, "bandingkan_ciri_bangun"), (6, 4, "peluang_dasar"),
 )
+# Gelombang 1 (21 Nov 2026): (kelas, nomor bab, jenis, kecocokan pelatih, status bab). Bab dengan jenis
+# berkecocokan "ada" menjadi "ada"; tiga bab tetap "sebagian" karena sub-materinya belum tertutup
+# (K4 B5 tangram/lebih dari satu cara, K5 B4 keliling bangun lain, K6 B1 hasil bilangan campur).
+BAB_GELOMBANG_1 = (
+    (1, 1, "bilang_benda_awal", "ada", "ada"), (1, 6, "tambah_kurang_20", "ada", "ada"),
+    (2, 2, "tambah_kurang_100", "ada", "ada"), (3, 4, "unsur_bangun_datar", "ada", "ada"),
+    (4, 2, "pecahan_senilai_desimal", "ada", "ada"), (4, 4, "luas_petak_volume_kubus", "ada", "ada"),
+    (4, 5, "ciri_komposisi_bangun", "sebagian", "sebagian"),
+    (5, 4, "keliling_gabungan", "sebagian", "sebagian"),
+    (6, 1, "pecahan_bilangan_asli_desimal", "sebagian", "sebagian"),
+)
+# Bab data tanpa jenis baru: pelatih statistika punya jenis untuk semua sub-materi di level kelasnya,
+# tetapi gambarnya (SVG) hanya muncul bila OSN_VISUAL_KELUARGA=statistika (bawaan kosong, belum aktif di
+# produksi), dan mode teks membocorkan jawaban ("Apel = 5 turus"). Jadi tetap "sebagian" sampai flag aktif.
+BAB_TANPA_JENIS_BARU = {(3, 5): ("turus", "piktogram", "diagram"), (4, 6): ("piktogram", "diagram")}
+BAB_ADA_SEMUA = {(1, 1), (1, 6), (2, 2), (3, 4), (4, 2), (4, 4)}
 PASANGAN = tuple((tid, level) for tid in TEMPLATE_AWAL for level in LEVEL_JENIS[tid])
 
 
@@ -71,12 +87,12 @@ def _soal_domain(tid: str, parameter: dict, level: str):
 
 # ── pendaftaran bersama ──────────────────────────────────────────────────
 
-def test_sepuluh_jenis_terdaftar_dengan_level_eksplisit():
+def test_sembilan_belas_jenis_terdaftar_dengan_level_eksplisit():
     paket = _paket()
-    assert set(paket.templates) == set(TEMPLATE_AWAL) and len(TEMPLATE_AWAL) == 10
+    assert set(paket.templates) == set(TEMPLATE_AWAL) and len(TEMPLATE_AWAL) == 19
     assert matematika_awal_versions.TEMPLATE_BARU == frozenset(TEMPLATE_AWAL)
     assert tuple(paket.komposisi) == LEVEL_AWAL
-    assert "P4" not in paket.komposisi
+    assert set(paket.komposisi) == {"P1", "P2", "P3", "P4", "P5", "P6"}
     for tid in TEMPLATE_AWAL:
         assert tid in REGISTRI and tid in topics.registri()
         assert topics.pemilik_template(tid) == TOPIK
@@ -149,11 +165,13 @@ def test_lembar_sepuluh_soal_sah_deterministik_dan_tanpa_kembar(level):
         assert html.count('class="bagian"') == 1
 
 
-def test_lembar_p4_ditolak_seperti_level_di_luar_komposisi():
-    with pytest.raises(ValueError, match="tidak tersedia untuk level"):
-        generator.buat_lembar(0, level="P4", topik=TOPIK)
+def test_lembar_p4_sah_sejak_gelombang_1_dan_profil_p4_diterima():
+    lembar = generator.buat_lembar(0, level="P4", topik=TOPIK)
+    assert {s.template_id for s in lembar.soal} == JENIS_PER_LEVEL["P4"] and len(lembar.soal) == 10
+    question_context.validasi_pilihan([TOPIK], "P4")
+    # Level di luar LEVEL tetap ditolak sebagai profil.
     with pytest.raises(ValueError):
-        question_context.validasi_pilihan([TOPIK], "P4")
+        question_context.validasi_pilihan([TOPIK], "P9")
 
 
 # ── pilihan ganda ────────────────────────────────────────────────────────
@@ -269,6 +287,40 @@ def test_bab_yang_dulu_belum_ada_soal_kini_terisi_di_level_kelasnya(kelas, nomor
     assert ringkasan.variasi.total > 0 and not ringkasan.variasi.galat and not ringkasan.variasi.tertutup
     pelatih = [p for p in ringkasan.pelatih if p.topik_id == TOPIK and tid in p.template]
     assert pelatih and pelatih[0].tersedia and pelatih[0].kecocokan == "sebagian"
+
+
+@pytest.mark.parametrize("kelas,nomor,tid,kecocokan,status", BAB_GELOMBANG_1)
+def test_bab_gelombang_1_status_mengikuti_kecocokan_jenis_baru(kelas, nomor, tid, kecocokan, status):
+    _, bab = hitung.cari_bab(kelas, nomor)
+    ringkasan = hitung.ringkasan_bab(bab, kelas, {})
+    assert (TOPIK, tid) in ringkasan.template, (kelas, nomor)
+    assert ringkasan.status == status, (kelas, nomor, [(p.kode, p.kecocokan) for p in ringkasan.pelatih])
+    pelatih = [p for p in ringkasan.pelatih if p.topik_id == TOPIK and tid in p.template]
+    assert pelatih and pelatih[0].tersedia and pelatih[0].kecocokan == kecocokan
+    # Pelatih lama bab itu boleh tertutup sakelarnya (bilangan-dasar); jenis baru ini tidak.
+    assert ringkasan.variasi.total > 0 and not ringkasan.variasi.galat and tid not in ringkasan.variasi.tertutup
+
+
+@pytest.mark.parametrize("kelas,nomor", sorted(BAB_TANPA_JENIS_BARU))
+def test_bab_data_tetap_sebagian_walau_semua_pelatihnya_tersedia_di_level_kelas(kelas, nomor):
+    _, bab = hitung.cari_bab(kelas, nomor)
+    ringkasan = hitung.ringkasan_bab(bab, kelas, {})
+    # Jenis tersedia untuk tiap sub-materi, tetapi kecocokan tetap "sebagian" (gambar bergantung flag visual).
+    assert {p.kode for p in ringkasan.pelatih if p.tersedia} == set(BAB_TANPA_JENIS_BARU[(kelas, nomor)])
+    assert all(p.tersedia for p in ringkasan.pelatih)
+    assert all(p.kecocokan == "sebagian" for p in ringkasan.pelatih)
+    assert ringkasan.status == hitung.STATUS_SEBAGIAN
+
+
+def test_hitungan_status_bab_dua_puluh_satu_ada_sembilan_belas_sebagian_nol_belum():
+    status = [hitung.ringkasan_bab(b, k.kelas, {}).status for k in kurikulum_kelas.KELAS for b in k.bab]
+    assert len(status) == 40
+    assert status.count(hitung.STATUS_ADA) == 21
+    assert status.count(hitung.STATUS_SEBAGIAN) == 19
+    assert status.count(hitung.STATUS_BELUM) == 0
+    ada_baru = {(k.kelas, b.nomor) for k in kurikulum_kelas.KELAS for b in k.bab
+                if hitung.ringkasan_bab(b, k.kelas, {}).status == hitung.STATUS_ADA} & BAB_ADA_SEMUA
+    assert ada_baru == BAB_ADA_SEMUA
 
 
 def test_tidak_ada_bab_belum_ada_soal_dan_pelatih_lama_bab_k2_b4_tetap():

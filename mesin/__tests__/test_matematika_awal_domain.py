@@ -139,9 +139,9 @@ def _norm(teks: str) -> str:
 
 # ── pendaftaran dan palang struktur ──────────────────────────────────────
 
-def test_topik_terdaftar_memuat_sepuluh_jenis_dan_komposisi_level():
+def test_topik_terdaftar_memuat_sembilan_belas_jenis_dan_komposisi_level():
     paket = topics.ambil(TOPIK)
-    assert tuple(paket.komposisi) == LEVEL_AWAL == ("P1", "P2", "P3", "P5", "P6")
+    assert tuple(paket.komposisi) == LEVEL_AWAL == ("P1", "P2", "P3", "P4", "P5", "P6")
     for level in LEVEL_AWAL:
         assert set(paket.komposisi[level]) == JENIS_PER_LEVEL[level]
         assert len(paket.komposisi_untuk(level)) == LEMBAR_PANJANG
@@ -149,15 +149,17 @@ def test_topik_terdaftar_memuat_sepuluh_jenis_dan_komposisi_level():
         assert TID in paket.komposisi[level]
     # komposisi persis sesuai keputusan pemilik (daftar eksplisit, bukan dibaca dari topik)
     assert JENIS_PER_LEVEL == {
-        "P1": {"kenali_bentuk", "ukur_satuan_tak_baku", "baca_diagram_gambar"},
+        "P1": {"kenali_bentuk", "ukur_satuan_tak_baku", "baca_diagram_gambar",
+               "bilang_benda_awal", "tambah_kurang_20"},
         "P2": {"kenali_bentuk", "pola_posisi", "pecahan_setengah", "waktu_berat_awal",
-               "turus_gambar_awal"},
-        "P3": {"ukur_konversi_awal"},
-        "P5": {"bandingkan_ciri_bangun"},
-        "P6": {"peluang_dasar"},
+               "turus_gambar_awal", "tambah_kurang_100"},
+        "P3": {"ukur_konversi_awal", "unsur_bangun_datar"},
+        "P4": {"pecahan_senilai_desimal", "luas_petak_volume_kubus", "ciri_komposisi_bangun"},
+        "P5": {"bandingkan_ciri_bangun", "keliling_gabungan"},
+        "P6": {"peluang_dasar", "pecahan_bilangan_asli_desimal"},
     }
     assert set(paket.templates) == set(TEMPLATE_AWAL)
-    assert len(paket.templates) == 10
+    assert len(paket.templates) == 19
     assert paket.hanya_manual is True
     assert paket.unik_per_lembar is True
     assert paket.nama == "Matematika Awal"
@@ -173,13 +175,12 @@ def test_template_id_unik_global_dan_dimiliki_satu_topik():
 
 def test_level_di_luar_komposisi_berperilaku_seperti_preseden():
     paket = topics.ambil(TOPIK)
-    # P4 sengaja tanpa jenis: lembar ditolak; level yang ada tapi tanpa kenali_bentuk menolak jenis ini.
-    with pytest.raises(ValueError, match="tidak tersedia untuk level"):
-        generator.buat_lembar(0, level="P4", topik=TOPIK)
+    # Semua level P1-P6 punya jenis (P4 sejak gelombang 1); level yang ada tapi tanpa kenali_bentuk
+    # menolak jenis ini.
     for level in ("P3", "P4", "P5", "P6"):
         with pytest.raises(ValueError, match="tidak tersedia untuk level"):
             generator.buat_soal(TID, 0, level, TOPIK)
-    assert paket.komposisi_untuk("P4") == paket.komposisi_untuk("P3")  # level tak dikenal -> bawaan P3
+    assert paket.komposisi_untuk("P4") == paket.komposisi["P4"]
     # Label level liar dari kolom teks bebas jatuh ke level pertama topik, bukan error.
     assert generator.buat_lembar(0, level="kelas 4", topik=TOPIK).level == "P1"
     with pytest.raises(ValueError):

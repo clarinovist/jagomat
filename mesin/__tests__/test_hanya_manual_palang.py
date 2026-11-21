@@ -261,14 +261,13 @@ def test_guru_tetap_bisa_memilih_matematika_awal_di_latihan_manual_dan_cetak():
         question_context.validasi_pilihan([TOPIK_AWAL], level)
         lembar = generator.buat_lembar(9, level=level, topik=TOPIK_AWAL)
         assert {s.template_id for s in lembar.soal} == JENIS_PER_LEVEL[level]
-    # P4 sengaja tanpa jenis: ditolak sebagai pilihan, dan profil otomatis memilih level terdekat.
+    # Level di luar LEVEL ditolak sebagai pilihan. P4 kini sah (gelombang 1), jadi profil otomatis
+    # mengikuti acuan tingkat siswa P3-P6 apa adanya; P1/P2 bukan tingkat siswa -> P3.
     with pytest.raises(ValueError):
-        question_context.validasi_pilihan([TOPIK_AWAL], "P4")
-    # Profil otomatis hanya mengikuti acuan tingkat siswa (P3-P6); P1/P2 bukan tingkat siswa -> P3.
-    # Tingkat P4 jatuh ke P3 (seri diputus ke bawah), jadi tidak pernah meledak.
+        question_context.validasi_pilihan([TOPIK_AWAL], "P9")
     assert {a: question_context.profil_otomatis([TOPIK_AWAL], a)
             for a in ("P1", "P2", "P3", "P4", "P5", "P6")} == {
-        "P1": "P3", "P2": "P3", "P3": "P3", "P4": "P3", "P5": "P5", "P6": "P6"}
+        "P1": "P3", "P2": "P3", "P3": "P3", "P4": "P4", "P5": "P5", "P6": "P6"}
     paket = topics.gabungan([TOPIK_AWAL, "bilangan-dasar"])
     assert set(SEMUA_AWAL) <= set(paket.templates) and set(JENIS_PER_LEVEL["P1"]) <= set(paket.komposisi["P1"])
     assert NAMA_AWAL in question_variants_ui.pemilih_isi([TOPIK_AWAL], "manual")

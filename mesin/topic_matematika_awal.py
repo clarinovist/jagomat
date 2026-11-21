@@ -1,4 +1,4 @@
-"""Matematika Awal (P1, P2, P3, P5, P6; P4 sengaja kosong), khusus Latihan manual dan lembar cetak.
+"""Matematika Awal (P1 sampai P6, khusus Latihan manual dan lembar cetak).
 
 Topik lintas bab Kurikulum Merdeka SD yang belum punya soal (bentuk, ukuran,
 diagram, pola, pecahan sederhana, waktu, peluang). Semua soal teks, tanpa gambar.
@@ -27,13 +27,22 @@ from typing import Callable, NamedTuple
 
 import awal_baca_diagram_gambar as baca_diagram_gambar
 import awal_bandingkan_ciri_bangun as bandingkan_ciri_bangun
+import awal_bilang_benda_awal as bilang_benda_awal
+import awal_ciri_komposisi_bangun as ciri_komposisi_bangun
+import awal_keliling_gabungan as keliling_gabungan
 import awal_kenali_bentuk as kenali_bentuk
+import awal_luas_petak_volume_kubus as luas_petak_volume_kubus
+import awal_pecahan_bilangan_asli_desimal as pecahan_bilangan_asli_desimal
+import awal_pecahan_senilai_desimal as pecahan_senilai_desimal
 import awal_pecahan_setengah as pecahan_setengah
 import awal_peluang_dasar as peluang_dasar
 import awal_pola_posisi as pola_posisi
+import awal_tambah_kurang_100 as tambah_kurang_100
+import awal_tambah_kurang_20 as tambah_kurang_20
 import awal_turus_gambar_awal as turus_gambar_awal
 import awal_ukur_konversi_awal as ukur_konversi_awal
 import awal_ukur_satuan_tak_baku as ukur_satuan_tak_baku
+import awal_unsur_bangun_datar as unsur_bangun_datar
 import awal_waktu_berat_awal as waktu_berat_awal
 from templates import Soal
 from topics import Topik, daftarkan
@@ -80,6 +89,33 @@ JENIS = (
           bandingkan_ciri_bangun.domain_parameter),
     Jenis(peluang_dasar.TEMPLATE_ID, peluang_dasar.peluang_dasar, peluang_dasar.parameter,
           peluang_dasar.LEVEL, peluang_dasar.domain_parameter),
+    Jenis(bilang_benda_awal.TEMPLATE_ID, bilang_benda_awal.bilang_benda_awal,
+          bilang_benda_awal.parameter, bilang_benda_awal.LEVEL,
+          bilang_benda_awal.domain_parameter),
+    Jenis(tambah_kurang_20.TEMPLATE_ID, tambah_kurang_20.tambah_kurang_20,
+          tambah_kurang_20.parameter, tambah_kurang_20.LEVEL,
+          tambah_kurang_20.domain_parameter),
+    Jenis(tambah_kurang_100.TEMPLATE_ID, tambah_kurang_100.tambah_kurang_100,
+          tambah_kurang_100.parameter, tambah_kurang_100.LEVEL,
+          tambah_kurang_100.domain_parameter),
+    Jenis(unsur_bangun_datar.TEMPLATE_ID, unsur_bangun_datar.unsur_bangun_datar,
+          unsur_bangun_datar.parameter, unsur_bangun_datar.LEVEL,
+          unsur_bangun_datar.domain_parameter),
+    Jenis(pecahan_senilai_desimal.TEMPLATE_ID, pecahan_senilai_desimal.pecahan_senilai_desimal,
+          pecahan_senilai_desimal.parameter, pecahan_senilai_desimal.LEVEL,
+          pecahan_senilai_desimal.domain_parameter),
+    Jenis(luas_petak_volume_kubus.TEMPLATE_ID, luas_petak_volume_kubus.luas_petak_volume_kubus,
+          luas_petak_volume_kubus.parameter, luas_petak_volume_kubus.LEVEL,
+          luas_petak_volume_kubus.domain_parameter),
+    Jenis(ciri_komposisi_bangun.TEMPLATE_ID, ciri_komposisi_bangun.ciri_komposisi_bangun,
+          ciri_komposisi_bangun.parameter, ciri_komposisi_bangun.LEVEL,
+          ciri_komposisi_bangun.domain_parameter),
+    Jenis(keliling_gabungan.TEMPLATE_ID, keliling_gabungan.keliling_gabungan,
+          keliling_gabungan.parameter, keliling_gabungan.LEVEL,
+          keliling_gabungan.domain_parameter),
+    Jenis(pecahan_bilangan_asli_desimal.TEMPLATE_ID, pecahan_bilangan_asli_desimal.pecahan_bilangan_asli_desimal,
+          pecahan_bilangan_asli_desimal.parameter, pecahan_bilangan_asli_desimal.LEVEL,
+          pecahan_bilangan_asli_desimal.domain_parameter),
 )
 _PER_ID = {j.template_id: j for j in JENIS}
 if len(_PER_ID) != len(JENIS):

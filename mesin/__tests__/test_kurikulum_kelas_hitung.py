@@ -37,7 +37,8 @@ BAB_GRUP_KELAS_LAIN = kk.Bab(2, "Uji grup kelas lain", ("x",), (("pola-bilangan"
 def test_status_mengikuti_level_kelas_bukan_data_mentah():
     assert hitung.ringkasan_bab(BAB_TANPA_PELATIH, 1, {}).status == hitung.STATUS_BELUM
     assert _ringkas(1, 2).status == hitung.STATUS_ADA
-    assert _ringkas(1, 6).status == hitung.STATUS_SEBAGIAN
+    assert _ringkas(1, 6).status == hitung.STATUS_ADA  # naik lewat tambah_kurang_20
+    assert _ringkas(1, 7).status == hitung.STATUS_SEBAGIAN
     # Bab menunjuk grup yang baru ada di kelas 3+: tidak dihitung tersedia di kelas 2.
     r = hitung.ringkasan_bab(BAB_GRUP_KELAS_LAIN, 2, {})
     assert r.status == hitung.STATUS_BELUM and not r.pelatih[0].tersedia and r.pelatih[0].kelas_lain[0] == 3
@@ -133,8 +134,13 @@ def test_buat_soal_template_tertutup_dikeluarkan_dan_dilaporkan():
     hasil = buat.buat_soal_bab(1, _bab(1, 2), 10, 2)
     assert {i.soal.template_id for i in hasil.item} == {"tambah_dasar"}
     assert hasil.template_tertutup == ("bilangan_hilang",)
-    tertutup_semua = buat.buat_soal_bab(1, _bab(1, 1), 10, 2)
+    # Bab sintetis dengan satu pelatih yang tertutup: tidak bisa dibuat walau ada pelatih.
+    bab_tertutup = kk.Bab(1, "Uji tertutup", ("x",), (("bilangan-dasar", "membandingkan", "sebagian"),))
+    tertutup_semua = buat.buat_soal_bab(1, bab_tertutup, 10, 2)
     assert not tertutup_semua.bisa_dibuat and tertutup_semua.ada_pelatih
+    # K1 B1 kini punya jenis matematika-awal yang terbuka (sakelar bawaan 1): bisa dibuat, jenis lama dikeluarkan.
+    k1b1 = buat.buat_soal_bab(1, _bab(1, 1), 10, 2)
+    assert k1b1.bisa_dibuat and {i.soal.template_id for i in k1b1.item} == {"bilang_benda_awal"}
 
 
 def test_buat_soal_bab_tanpa_pelatih():

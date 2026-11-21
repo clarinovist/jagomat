@@ -58,17 +58,19 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   katalog mastery, penawaran Pendamping, dan remedial inline. Alasan: topik P3+ otomatis ikut siklus
   bila hanya bergantung pada `LEVEL_TINGKAT`, padahal belum punya grup mastery, kartu intervensi,
   dan playbook. Pembaca histori tetap mengenal ID-nya.
-  `topic_matematika_awal.py` (topik `matematika-awal`, manual-saja, P1/P2/P3/P5/P6, sepuluh jenis di
+  `topic_matematika_awal.py` (topik `matematika-awal`, manual-saja, P1 sampai P6, 19 jenis di
   `awal_<jenis>.py`; sakelar `matematika_awal_versions` `OSN_MATEMATIKA_AWAL`, env-only, "0"/"1", bawaan 1,
   kunci jenis di `TEMPLATE_BARU`; palang lewat `basic_numbers_versions.template_dibuka` dan `question_context`).
-  Komposisi level dibangun dari tuple `JENIS` (jenis level itu diulang bergiliran sampai 10 soal; P4 tanpa
-  jenis, jadi lembar P4 ditolak). **Menambah satu jenis**: modul `awal_<jenis>.py` (fungsi soal, `LEVEL`,
+  Komposisi level dibangun dari tuple `JENIS` (jenis level itu diulang bergiliran sampai 10 soal; P4 punya
+  tiga jenis sejak gelombang 1). **Menambah satu jenis**: modul `awal_<jenis>.py` (fungsi soal, `LEVEL`,
   `domain_parameter`, `parameter`, solver terpisah di tesnya), satu entri `Jenis(...)`, lalu titik sentuh
   bersama: `TEMPLATE_BARU`, `template_labels`, `rumus.KARTU`+`KONSEP_TEMPLATE`, `visual_inventory`
   (`_BUKTI_TEMPLATE`+`_ROWS`), `choice_generation` (`TIGA`, `kebijakan_soal`/`KATEGORI_AWAL`, `kandidat`;
   pengecoh di luar malrule lewat `pengecoh_tambahan` modul), `konten/pancingan/matematika-awal.json`,
   `kurikulum_katalog` (grup), `kurikulum_cp` (peta CP), `kurikulum_kelas` (pelatih bab), dan tes bersama
-  (`baseline_matematika_awal.LEVEL_JENIS`, baseline `test_kualitas_soal_generik`).
+  (`baseline_matematika_awal.LEVEL_JENIS`, baseline `test_kualitas_soal_generik`). Kecocokan pelatih bab
+  "ada" hanya bila SETIAP sub-materi bab punya jenis di level kelas itu; bab bergambar yang hanya
+  bersoal teks tetap "sebagian". Status bab sekarang 21 ada, 19 sebagian, 0 belum (`cek_bab` lokal).
   Opt-in `Topik.unik_per_lembar` + enumerator domain menjaga soal
   tidak kembar; retry terbatas memilih sisa domain, pengulangan boleh setelah habis.
   Flag mati mempertahankan RNG lama. Campuran tetap P3–P6; lembar 10 soal satu jenis

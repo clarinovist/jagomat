@@ -82,6 +82,78 @@
     "Minta anak menulis peluang sebagai pecahan: banyak bola yang diinginkan di atas, banyak semua bola di bawah."
    ],
    "tindak_lanjut": "Siapkan kantong berisi beberapa bola berwarna. Ambil satu bola, catat warnanya, kembalikan; ulangi 20 kali. Bandingkan hasilnya dengan jumlah bola tiap warna."
+  },
+  "bilang_benda_awal": {
+   "pertanyaan": [
+    "Minta anak menunjuk tiap benda satu per satu sambil menyebut bilangan, mulai dari satu.",
+    "Tanya: bilangan terakhir yang disebut itu artinya apa? Lalu minta anak menulis angkanya.",
+    "Minta anak menyebut bilangan sebelum dan sesudahnya, atau meletakkan satu benda lebih banyak."
+   ],
+   "tindak_lanjut": "Siapkan sepuluh kancing. Minta anak membilang, menulis angkanya, lalu menambah atau mengambil satu kancing dan menyebut bilangan yang baru."
+  },
+  "tambah_kurang_20": {
+   "pertanyaan": [
+    "Minta anak membuat bilangan pertama jadi 10 dulu, lalu menyebut sisa yang masih harus ditambahkan.",
+    "Tanya: kalau satuannya tidak cukup untuk dikurangi, dari mana kita meminjam? Minta anak menunjuk 10 yang dipinjam.",
+    "Minta anak membacakan soalnya, lalu menjawab: bertambah atau berkurang? Jadi dijumlah atau dikurang?"
+   ],
+   "tindak_lanjut": "Pakai dua baris sepuluh kancing. Peragakan 8 + 5 dengan mengisi sepuluh kancing dulu, lalu 15 − 7 dengan mengambil dari sepuluh kancing yang dibuka."
+  },
+  "tambah_kurang_100": {
+   "pertanyaan": [
+    "Minta anak menyebut dulu: satuannya ditambah jadi berapa, dan apakah hasilnya sudah lebih dari 9?",
+    "Tanya: kalau satuannya tidak cukup dikurangi, bagian mana yang bisa dipinjam?",
+    "Minta anak mengecek jawabannya: hasil dikurang bilangan kedua kembali ke bilangan pertama?"
+   ],
+   "tindak_lanjut": "Siapkan 9 batang puluhan dan 9 kancing satuan. Peragakan soal sambil menukar 10 kancing dengan 1 batang (menyimpan) dan 1 batang dengan 10 kancing (meminjam)."
+  },
+  "unsur_bangun_datar": {
+   "pertanyaan": [
+    "Minta anak menunjuk dan menghitung sisi lalu sudutnya satu per satu pada gambar bangun di buku.",
+    "Tanya: pojok mana yang seperti pojok kertas (sudut siku-siku)? Berapa banyak pojok seperti itu?",
+    "Minta anak menunjuk dua sisi yang tidak akan bertemu walau diperpanjang, lalu dua sisi yang membentuk pojok kertas."
+   ],
+   "tindak_lanjut": "Gambar persegi panjang di kertas. Lipat satu pojok kertas lain untuk mengecek tiap pojok. Warnai sisi yang berhadapan dengan warna sama (sejajar) dan sisi bersebelahan dengan warna beda."
+  },
+  "pecahan_senilai_desimal": {
+   "pertanyaan": [
+    "Minta anak menyebut dulu: pada pecahan 3/4, angka mana pembilang dan angka mana penyebut?",
+    "Tanya: kalau penyebutnya dikali 5, pembilangnya harus diapakan supaya nilai pecahannya tidak berubah?",
+    "Tanya: persen artinya per berapa? Jadi penyebut pecahan diubah dulu menjadi angka berapa?"
+   ],
+   "tindak_lanjut": "Lipat selembar kertas jadi 4 bagian sama besar, warnai 3 bagian, lalu tulis 3/4 = 75/100 = 0,75 = 75%. Ulangi dengan kertas yang dilipat jadi 2 dan 5 bagian."
+  },
+  "luas_petak_volume_kubus": {
+   "pertanyaan": [
+    "Minta anak menunjuk satu baris petak, lalu menghitung berapa petak di dalamnya dan berapa baris semuanya.",
+    "Tanya: luas persegi panjang petak itu dijumlah atau dikali? Minta anak menjelaskan sambil menghitung satu per satu.",
+    "Tanya: dalam satu lapis ada berapa kubus, lalu ada berapa lapis? Jadi volumenya didapat dengan cara apa?"
+   ],
+   "tindak_lanjut": "Susun penghapus atau dadu kecil menjadi persegi panjang 3 × 4 dan balok 2 lapis. Hitung satu per satu, lalu cocokkan dengan hasil kali baris, kolom, dan lapis."
+  },
+  "ciri_komposisi_bangun": {
+   "pertanyaan": [
+    "Minta anak menunjuk dan menghitung sisi serta sudut sebuah bangun, lalu menunjuk dua sisi yang tidak akan bertemu.",
+    "Minta anak merapatkan dua kertas persegi sama besar, lalu tanya: sekarang bangunnya apa?",
+    "Minta anak menggunting persegi panjang menurut diagonalnya, lalu tanya: berapa bagian dan bentuknya apa?"
+   ],
+   "tindak_lanjut": "Siapkan kertas persegi dan persegi panjang, lalu gunting atau rapatkan bersama anak. Tulis banyak sisi, sudut, dan bagian yang terbentuk di bawah tiap bangun."
+  },
+  "keliling_gabungan": {
+   "pertanyaan": [
+    "Minta anak menunjuk garis tepi bangun dengan jari dan menyebut panjang tiap ruas yang dilalui.",
+    "Tanya: kalau dua bangun ditempel, sisi yang menempel masih terhitung keliling atau tidak? Kenapa?",
+    "Tanya: yang dihitung keliling atau luas? Minta anak menunjuk bagian bangun yang dihitung."
+   ],
+   "tindak_lanjut": "Gambar bangunnya bersama anak di kertas berpetak, lalu tebalkan garis luarnya dan jumlahkan panjang tiap ruas. Bandingkan dengan jumlah semua sisi sebelum ditempel."
+  },
+  "pecahan_bilangan_asli_desimal": {
+   "pertanyaan": [
+    "Minta anak mengalikan pembilang saja dengan bilangan asli. Tanya: kenapa penyebut tidak ikut dikali?",
+    "Tanya: pecahan dibagi bilangan asli, hasilnya jadi lebih besar atau lebih kecil? Minta anak menjelaskan dengan gambar.",
+    "Minta anak mengubah pecahan ke desimal dengan membuat penyebutnya 10 atau 100, lalu membaca desimalnya."
+   ],
+   "tindak_lanjut": "Minta anak melipat selembar kertas jadi empat bagian sama besar. Arsir tiga bagian, tulis pecahannya, lalu tulis desimalnya (0,75) dan bandingkan dengan 3/4."
   }
  }
 }

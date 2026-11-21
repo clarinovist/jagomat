@@ -35,7 +35,7 @@ from baseline_matematika_awal import (DAFTAR_LATIHAN_BASELINE, JENIS_PER_LEVEL,
 from choice_generation import buat_lembar_pilihan
 
 TOPIK = "matematika-awal"
-SEMUA = TEMPLATE_AWAL  # sembilan jenis, daftar eksplisit di baseline_matematika_awal
+SEMUA = TEMPLATE_AWAL  # sembilan belas jenis, daftar eksplisit di baseline_matematika_awal
 NAMA = "OSN_MATEMATIKA_AWAL"
 AKAR_MESIN = Path(__file__).resolve().parents[1]
 FOLDER_TEST = Path(__file__).resolve().parent
@@ -92,7 +92,7 @@ def test_sakelar_bukan_bagian_registri_admin_dan_dibaca_tiap_panggilan(monkeypat
 def test_template_baru_sama_persis_dengan_template_topik():
     """Jenis yang lupa didaftarkan di sakelar akan lolos palang: dikunci dua arah di sini."""
     assert versi.TEMPLATE_BARU == frozenset(topics.ambil(TOPIK).templates) == frozenset(SEMUA)
-    assert len(SEMUA) == 10 and len(versi.TEMPLATE_BARU) == 10
+    assert len(SEMUA) == 19 and len(versi.TEMPLATE_BARU) == 19
     for tid in topics.ambil(TOPIK).templates:
         assert topics.pemilik_template(tid) == TOPIK
 

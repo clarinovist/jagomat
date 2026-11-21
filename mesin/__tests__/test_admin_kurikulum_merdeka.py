@@ -112,7 +112,9 @@ def test_status_dihitung_dari_level_kelas(server):
     assert "<strong>Perlu disempurnakan</strong>" in _baris(isi, 1, 4)[4]  # kenali_bentuk (sebagian)
     assert "Belum ada soal" not in isi  # tak ada bab "belum" di data nyata
     assert "<strong>Sudah ada soal</strong>" in _baris(isi, 1, 2)[4]
-    assert "<strong>Perlu disempurnakan</strong>" in _baris(isi, 1, 6)[4]
+    # K1 B6 naik ke "ada" lewat tambah_kurang_20; K1 B7 (satuan tak baku, teks) tetap sebagian.
+    assert "<strong>Sudah ada soal</strong>" in _baris(isi, 1, 6)[4]
+    assert "<strong>Perlu disempurnakan</strong>" in _baris(isi, 1, 7)[4]
 
 
 def test_status_belum_ada_soal_untuk_bab_tanpa_pelatih(server, bab_tanpa_pelatih):
@@ -128,13 +130,20 @@ def test_pelatih_yang_belum_ada_di_kelas_itu_diberi_catatan(server):
     assert "Perlu disempurnakan" in sel[4] and "Belum ada soal" not in sel[4]
 
 
-def test_aksi_buat_soal_hanya_bila_ada_jenis_yang_bisa_dibuat(server, bab_tanpa_pelatih):
+def test_aksi_buat_soal_hanya_bila_ada_jenis_yang_bisa_dibuat(server, bab_tanpa_pelatih, monkeypatch):
+    monkeypatch.setenv("OSN_MATEMATIKA_AWAL", "0")  # K1 bab 1: jenis lama dan baru sama-sama tertutup
     isi = _minta(server, RUTE, cookie=_admin(server))[1]
     assert 'href="/admin/kurikulum/buat?kelas=3&amp;bab=1"' in _baris(isi, 3, 1)[4]
     assert "Buat soal" not in _baris(isi, 1, 4)[4]
     # K1 bab 1 hanya punya jenis yang sakelarnya mati: tidak ada tautan, variasi jujur 0 + catatan.
     sel = _baris(isi, 1, 1)
     assert "Buat soal" not in sel[4] and "belum dinyalakan" in sel[3]
+
+
+def test_bab_k1_b1_bisa_dibuat_lewat_jenis_baru_walau_pelatih_lama_tertutup(server):
+    # Sakelar matematika-awal bawaan 1: bilang_benda_awal terbuka walau bilangan-dasar masih tertutup.
+    sel = _baris(_minta(server, RUTE, cookie=_admin(server))[1], 1, 1)
+    assert "Buat soal" in sel[4] and "<strong>Sudah ada soal</strong>" in sel[4]
 
 
 def test_sakelar_menyala_membuka_variasi_dan_tautan(server, monkeypatch):
@@ -262,7 +271,8 @@ def test_bab_tanpa_pelatih_pesan_jujur(server, bab_tanpa_pelatih):
     assert kode == 200 and "Bab ini belum punya jenis soal di kelas 1." in isi and "Kunci jawaban" not in isi
 
 
-def test_bab_dengan_jenis_belum_dinyalakan_pesan_jujur(server):
+def test_bab_dengan_jenis_belum_dinyalakan_pesan_jujur(server, monkeypatch):
+    monkeypatch.setenv("OSN_MATEMATIKA_AWAL", "0")
     isi = _minta(server, RUTE_BUAT + "?kelas=1&bab=1", cookie=_admin(server))[1]
     assert "belum dinyalakan" in isi and "Kunci jawaban" not in isi
 

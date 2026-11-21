@@ -21,12 +21,20 @@ bersusun, perkalian/pembagian, kalimat matematika; semua teks angka) hanya dibua
 `OSN_BILANGAN_SEKOLAH=1` (bawaan 0, belum aktif di produksi) dan **hanya untuk Latihan manual
 guru dan lembar cetak**: tidak masuk Campuran, siklus terpandu, Pendamping, atau sisi murid.
 Rentang bilangan dan malrule belum diulas guru; flag tidak boleh menyala sebelum itu.
-Topik `matematika-awal` ("Matematika Awal"; level P1, P2, P3, P5, P6, P4 sengaja kosong) mengisi
-11 bab Kurikulum Merdeka SD yang dulu "Belum ada soal" dengan sepuluh jenis soal teks tanpa gambar:
-P1 `kenali_bentuk`, `ukur_satuan_tak_baku`, `baca_diagram_gambar`; P2 `kenali_bentuk`,
-`pola_posisi`, `pecahan_setengah`, `waktu_berat_awal`, `turus_gambar_awal`; P3 `ukur_konversi_awal`;
-P5 `bandingkan_ciri_bangun`; P6 `peluang_dasar`. Semua kecocokan bab "sebagian" (teks tanpa gambar), jadi
-`/admin/kurikulum` kini tanpa status "Belum ada soal" dan bab itu tetap berstatus "Perlu disempurnakan".
+Topik `matematika-awal` ("Matematika Awal"; level P1 sampai P6) mengisi bab Kurikulum Merdeka SD yang
+belum cukup soal dengan 19 jenis soal teks tanpa gambar: P1 `kenali_bentuk`, `ukur_satuan_tak_baku`,
+`baca_diagram_gambar`, `bilang_benda_awal`, `tambah_kurang_20`; P2 `kenali_bentuk`, `pola_posisi`,
+`pecahan_setengah`, `waktu_berat_awal`, `turus_gambar_awal`, `tambah_kurang_100`; P3 `ukur_konversi_awal`,
+`unsur_bangun_datar`; P4 `pecahan_senilai_desimal`, `luas_petak_volume_kubus`, `ciri_komposisi_bangun`;
+P5 `bandingkan_ciri_bangun`, `keliling_gabungan`; P6 `peluang_dasar`, `pecahan_bilangan_asli_desimal`.
+Status bab di `/admin/kurikulum` (40 bab): 21 "Sudah ada soal", 19 "Perlu disempurnakan", 0 "Belum ada
+soal". Jenis berkecocokan "ada" menaikkan enam bab: K1 B1, K1 B6, K2 B2, K3 B4, K4 B2, dan K4 B4 (soal
+teks tersusun baris, kolom, lapis; menunggu ulasan Mutia). Tetap "sebagian": K3 B5 dan K4 B6 (pelatih `statistika` sudah punya
+jenis untuk tiap sub-materi, tetapi gambarnya hanya muncul bila `OSN_VISUAL_KELUARGA=statistika` menyala;
+bawaan kosong, belum aktif di produksi, dan mode teks membocorkan jawaban, jadi naik ke "ada" setelah flag
+itu aktif), K4 B5 (tangram, lebih dari satu cara, soal bergambar belum ada), K5 B4 (keliling segitiga,
+jajar genjang, trapesium, lingkaran, dan bentuk T/U belum ada), K6 B1 (hasil bilangan campur belum ada),
+dan 14 bab lain yang butuh gambar atau jenis baru.
 Sama seperti `bilangan-sekolah`, topik ini **hanya untuk Latihan manual guru dan lembar cetak** (bukan
 Campuran, siklus, Pendamping, sisi murid). Karena memuat P3+ ia bukan "materi dasar": `OSN_MATERI_DASAR`
 tidak menyembunyikannya. Pembuatan di balik `OSN_MATEMATIKA_AWAL` (env-only, "0"/"1", **bawaan 1** atas

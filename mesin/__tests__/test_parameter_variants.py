@@ -19,6 +19,14 @@ Satu pengecualian lebih sempit: ukur_konversi_awal P3 (domain 198, enam varian b
 memuat semua varian; 500 seed menutup 107 dari 198 kombinasi (seluruh varian kecil, sebagian
 jumlah_campur). Sampler diganti proporsional ukuran domain justru membuat lembar didominasi
 satu varian, jadi batas tes yang disesuaikan, bukan sampler. Semua sampel tetap di domain.
+Dua pengecualian sempit lagi (21 Nov 2026, gelombang 1), sebab yang sama: sampler memilih varian
+SERAGAM, sedangkan domainnya condong ke satu-dua varian besar, jadi 500 seed (seed 1..500) tak menutup
+90%. bilang_benda_awal P1 (domain 166; varian hitung 40 dan sama_banyak 80, lima varian lain 8..10):
+terukur 127 unik (76%), cukup >=70% (117). Perkiraan analitis 500/7 undian per varian menutup sekitar
+126, cocok dengan ukuran. ciri_komposisi_bangun P4 (domain 234; susun_gabung 144 dari enam varian,
+sisanya 8..26): terukur 150 unik (64%), cukup >=60% (141); perkiraan analitis sekitar 153, cocok.
+Sampler proporsional ukuran domain ditolak karena lembar didominasi satu varian (alasan yang sama
+dengan ukur_konversi_awal). Semua sampel tetap di domain; angka tidak dilebarkan demi hitungan.
 Topik lain tetap >=200.
 
 Kontrak yang diuji:
@@ -44,7 +52,11 @@ from generator import buat_lembar, buat_soal  # noqa: E402
 JUMLAH_SEED = 500
 FAKTA_P3 = ("bilangan-sekolah", "kali_bagi_sekolah", "P3")
 # Pengecualian awal tersempit: pecahan domain yang wajib tercakup, menggantikan 90% (lihat docstring).
-FRAKSI_AWAL_KHUSUS = {("matematika-awal", "ukur_konversi_awal", "P3"): 0.5}
+FRAKSI_AWAL_KHUSUS = {
+    ("matematika-awal", "ukur_konversi_awal", "P3"): 0.5,
+    ("matematika-awal", "bilang_benda_awal", "P1"): 0.7,
+    ("matematika-awal", "ciri_komposisi_bangun", "P4"): 0.6,
+}
 
 
 @pytest.fixture(autouse=True)

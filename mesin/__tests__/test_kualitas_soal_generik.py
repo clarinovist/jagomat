@@ -17,6 +17,10 @@ UTANG_LEMBAR Tahap A dilunasi dan dihapus.
 Matematika-awal, sepuluh jenis (21 Nov 2026): baris `matematika-awal` di _DATA/_LEMBAR/ALASAN_RUANG
 diukur lewat jalur asli (_ukur seed 0..299, lembar 0..99) pada kedua versi katalog dan sama.
 Konsentrasi lembar P3 2,90 dan P6 2,49 (satu jenis per level) di atas 2,1: UTANG_LEMBAR bertulis alasan.
+Gelombang 1 (21 Nov 2026, sembilan jenis lagi, 19 jenis, P1-P6): baris baru diukur lewat jalur yang sama
+pada kedua versi katalog (hasil sama). Konsentrasi lembar terukur P1 1,22, P2 1,10, P3 1,90, P4 2,01,
+P5 1,80 (di bawah 2,1) dan P6 2,25: UTANG_LEMBAR P3 dihapus, P6 tersisa. Tanda tangan di bawah 150 hanya
+bilang_benda_awal (107), unsur_bangun_datar (57), ciri_komposisi_bangun (122): masing-masing ALASAN_RUANG.
 Awalnya (kerangka): kenali_bentuk P1 18/19 dan P2 26/26 tanda tangan dengan
 tiga bentuk, sama dengan domain enumerator eksplisit 19/26 (P1 18 kerangka karena dua
 kalimat ciri, "punya 3 sisi dan 3 sudut" dan "punya 4 sisi dan 4 sudut", hanya beda angka). Lembar 10 soal satu jenis; konsentrasi kerangka
@@ -66,6 +70,15 @@ matematika-awal turus_gambar_awal P2:288:288:baca,jumlah,selisih,terbanyak
 matematika-awal ukur_konversi_awal P3:10:92:cm_ke_m,g_ke_kg,jumlah_campur,kg_ke_g,m_ke_cm,sisa_potong
 matematika-awal bandingkan_ciri_bangun P5:38:38:banyak_sudut_siku,pasang_sejajar,selisih_ciri,sumbu_simetri
 matematika-awal peluang_dasar P6:22:103:banyak_hasil,kepastian,lebih_mungkin,peluang_pecahan
+matematika-awal bilang_benda_awal P1:75:107:angka_ke_kata,antara,hitung,kata_ke_angka,sama_banyak,satu_kurang,satu_lebih
+matematika-awal tambah_kurang_20 P1:10:250:cerita_kurang,cerita_tambah,kurang,lengkapi,tambah
+matematika-awal tambah_kurang_100 P2:12:296:cerita,kurang,lengkapi,tambah
+matematika-awal unsur_bangun_datar P3:57:57:banyak_sisi,banyak_sudut,istilah,pasang_sejajar,pasang_tegak_lurus,sudut_siku
+matematika-awal pecahan_senilai_desimal P4:8:172:bagian_dari,desimal_ke_pecahan,ke_desimal,ke_persen,senilai_isi,senilai_sederhana
+matematika-awal luas_petak_volume_kubus P4:4:214:luas_bandingkan,luas_petak,tambah_kubus,volume_kubus_satuan
+matematika-awal ciri_komposisi_bangun P4:38:122:ciri,dua_persegi,susun_gabung,susun_persegi,uraikan_banyak,uraikan_nama
+matematika-awal keliling_gabungan P5:14:241:bentuk_L,dua_persegipanjang,persegi_persegipanjang,segitiga_sama_sisi_di_persegi
+matematika-awal pecahan_bilangan_asli_desimal P6:9:237:asli_kali,bagi_asli,cerita,desimal_ke_pecahan,kali_asli,ke_desimal
 berhitung-sekolah nilai_tempat_ribuan P3:2:257:nilai_angka,selisih_nilai P4:4:298:nilai_angka,selisih_nilai
 berhitung-sekolah pecahan_bagian_dasar P3:6:162:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian P4:6:204:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian
 berhitung-sekolah pembagian_dasar P3:5:204:bagi_rata,operasi P4:5:254:bagi_rata,operasi
@@ -176,11 +189,12 @@ bilangan-dasar P2 10 1
 bilangan-sekolah P3 10 5
 bilangan-sekolah P4 10 5
 bilangan-sekolah P5 10 5
-matematika-awal P1 10 3
-matematika-awal P2 10 5
-matematika-awal P3 10 1
-matematika-awal P5 10 1
-matematika-awal P6 10 1
+matematika-awal P1 10 5
+matematika-awal P2 10 6
+matematika-awal P3 10 2
+matematika-awal P4 10 3
+matematika-awal P5 10 2
+matematika-awal P6 10 2
 berhitung-sekolah P3 8 4
 berhitung-sekolah P4 8 4
 aritmatika-lanjut P5 10 7
@@ -249,17 +263,20 @@ ALASAN_RUANG = {
     "ukur_konversi_awal": "Domain sah P3=198 (m/cm/kg/g kecil, 9 nilai per varian; sisa_potong 9x3 benda; jumlah_campur 5x9x3 benda); sampler memilih varian seragam, seed 0..299 mengukur 92; angka tidak dilebarkan demi hitungan; diuji enumerator.",
     "bandingkan_ciri_bangun": "Domain sah P5=38 (fakta bangun datar baku: sumbu 5, sisi sejajar 6, sudut siku 4, selisih 23 pasang); sampler memilih varian seragam, seed 0..299 menutup seluruh domain; fakta terbatas jumlah bangun yang tak diperdebatkan; diuji enumerator.",
     "peluang_dasar": "Domain sah P6=109 (36 urutan jumlah bola x arah, 24 kepastian, 21 syarat dadu/kartu, 28 pasangan jumlah bola berpecahan sederhana); seed 0..299 mengukur 103; diuji enumerator, bukan variasi nama/benda.",
+    "bilang_benda_awal": "Domain sah P1=166 (bilangan 1..10 saja; hitung 10x4, sama_banyak 10x2x4, tujuh varian); sampler memilih varian seragam, seed 0..299 mengukur 107 tanda tangan; angka tidak dilebarkan demi hitungan (bab K1 B1 hanya sampai 10); diuji enumerator.",
+    "unsur_bangun_datar": "Domain sah P3=57 (sisi 5x3, sudut 5x3, sudut siku 3x3, pasang sejajar 2x3, pasang tegak lurus 2x3, istilah 2x3 gaya kalimat); sampler memilih varian seragam, seed 0..299 menutup seluruh domain; fakta bangun datar baku terbatas dan tak diperdebatkan; diuji enumerator.",
+    "ciri_komposisi_bangun": "Domain sah P4=234 (ciri bangun baku 25, dua persegi 16, susunan persegi kecil 26+144, potongan diagonal 8+15); sampler memilih varian seragam sehingga susun_gabung (144) tidak mendominasi; seed 0..299 mengukur 122 tanda tangan; diuji enumerator, angka tidak dilebarkan demi hitungan.",
     "kali_bagi_sekolah": "Fakta P3 kali 2..10 x 2..10 dan bagi padanannya: domain sah 161; seed 0..299 mengukur 144; diuji enumerator.",
 }
-# Utang lama P4 tetap lunas. Pengecualian baru hanya topik manual P1/P2.
+# Utang lama P4 tetap lunas. Pengecualian baru hanya topik manual (matematika-awal P6).
 UTANG_LEMBAR = {
     ("bilangan-dasar", "P1"): (10.0, "writer bawaan (OSN_DASAR_LENGKAP=0) hanya tambah_dasar; campuran menyusul"),
     ("bilangan-dasar", "P2"): (10.0, "writer bawaan (OSN_DASAR_LENGKAP=0) hanya tambah_dasar; campuran menyusul"),
-    # Matematika-awal P3/P6 hanya satu jenis (keputusan pemilik: satu jenis per bab di level itu), jadi
-    # sepuluh soal satu lembar semuanya berkerangka teks sejenis. Terukur 2,90 (P3) dan 2,49 (P6)
-    # rata-rata kerangka terbanyak per lembar (seed 0..99); domain/teks tidak dilebarkan demi hitungan.
-    ("matematika-awal", "P3"): (3.0, "satu jenis (ukur_konversi_awal) per level: rata-rata 2,9 dari sepuluh soal berkerangka teks sama (hanya angka beda; hanya 10 kerangka teks); domain 198 tidak dilebarkan demi hitungan"),
-    ("matematika-awal", "P6"): (2.6, "satu jenis (peluang_dasar) per level: kerangka teks per varian sedikit (22 total) sehingga rata-rata 2,5 dari sepuluh soal berkerangka sama; domain 109 tidak dilebarkan demi hitungan"),
+    # Matematika-awal P6: dua jenis (peluang_dasar + pecahan_bilangan_asli_desimal), tetapi kerangka teks
+    # per varian sedikit sehingga rata-rata kerangka terbanyak per lembar terukur 2,25 (seed 0..99), di atas
+    # 2,1; domain tidak dilebarkan demi hitungan. P3 (1,90), P4 (2,01), dan P5 (1,80) kini di bawah 2,1,
+    # jadi utang P3 lama (2,90 dengan satu jenis) dilunasi dan dihapus.
+    ("matematika-awal", "P6"): (2.4, "dua jenis per level, kerangka teks per varian sedikit (peluang_dasar 22 + pecahan_bilangan_asli_desimal 9): rata-rata 2,25 dari sepuluh soal berkerangka sama; domain tidak dilebarkan demi hitungan"),
 }
 POLA_ANGKA = re.compile(r"\d+(?:[.,]\d+)?")
 

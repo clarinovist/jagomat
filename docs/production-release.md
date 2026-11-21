@@ -2404,12 +2404,20 @@ Beda dari `bilangan-sekolah` (bawaan 0), sakelar `OSN_MATEMATIKA_AWAL` bawaan **
 tanpa flag tambahan; mematikan perlu `OSN_MATEMATIKA_AWAL=0` lewat `visual.conf`/`jalankan-rilis.py`
 (bukan registri `/admin/sakelar`). Karena itu, SEBELUM izin deploy: (1) Mutia mengulas rentang angka, malrule,
 dan fakta bangun datar (`bandingkan_ciri_bangun` memakai definisi inklusif dengan nama berkualifikasi);
-(2) pin recovery baru yang mengenali sepuluh template (`kenali_bentuk`, `ukur_satuan_tak_baku`,
-`baca_diagram_gambar`, `pola_posisi`, `pecahan_setengah`, `waktu_berat_awal`, `turus_gambar_awal`,
-`ukur_konversi_awal`, `bandingkan_ciri_bangun`, `peluang_dasar`) dan `Topik.hanya_manual`, dibuktikan pair
+(2) pin recovery baru yang mengenali 19 template (`kenali_bentuk`, `ukur_satuan_tak_baku`,
+`baca_diagram_gambar`, `bilang_benda_awal`, `tambah_kurang_20`, `pola_posisi`, `pecahan_setengah`,
+`waktu_berat_awal`, `turus_gambar_awal`, `tambah_kurang_100`, `ukur_konversi_awal`, `unsur_bangun_datar`,
+`pecahan_senilai_desimal`, `luas_petak_volume_kubus`, `ciri_komposisi_bangun`, `bandingkan_ciri_bangun`,
+`keliling_gabungan`, `peluang_dasar`, `pecahan_bilangan_asli_desimal`) dan `Topik.hanya_manual`, dibuktikan pair
 exact-image yang membaca sesi dan bank topik ini (tanpa itu rollback gagal membaca bank baru dan
 `topics.dari_sesi` jatuh diam-diam ke topik bawaan); (3) izin rilis terpisah. Halaman live
-`jagomat.id/admin/kurikulum` baru berubah setelah push, deploy, dan pemasangan.
+`jagomat.id/admin/kurikulum` baru berubah setelah push, deploy, dan pemasangan (21 ada, 19 sebagian,
+0 belum di kode lokal). Ulasan Mutia juga mencakup fakta jenis gelombang 1 (`unsur_bangun_datar`,
+`ciri_komposisi_bangun`: pilihan nama bangun berkualifikasi; `keliling_gabungan`: bangun L dan gabungan;
+`luas_petak_volume_kubus`: soal teks tersusun baris, kolom, lapis). K3 B5 dan K4 B6 tetap "sebagian":
+pelatih `statistika` bergambar hanya bila `OSN_VISUAL_KELUARGA=statistika` menyala, flag itu belum aktif di
+produksi dan punya blocker aktivasi sendiri (`verifikasi-statistika-visual.md`), dan tanpa flag soalnya
+berupa teks yang membocorkan jawaban.
 
 ## Pelaporan jujur
 
