@@ -59,16 +59,23 @@ BAB_TERISI = (
 # Gelombang 1 (21 Nov 2026): (kelas, nomor bab, jenis, kecocokan pelatih, status bab). Bab dengan jenis
 # berkecocokan "ada" menjadi "ada". Setelah perluasan v2 (21 Nov 2026) K4 B5 (segitiga, trapesium, segiempat
 # lain, susunan dua cara, segi-n) dan K5 B4 (segitiga, jajar genjang, trapesium, lingkaran, bentuk T/U/tangga)
-# juga "ada". K6 B1 tetap "sebagian": hasil kali/bagi hanya ditulis pecahan biasa (tak wajar), format
-# bilangan campur belum diputuskan pemilik (menyentuh nilai_semantis/diagnosis).
+# juga "ada". K6 B1 naik "ada" setelah `pecahan_campur_awal` (22 Nov 2026): kunci bilangan campur "1 1/5"
+# dibandingkan sebagai teks persis oleh diagnosis.setara, jadi diagnosis.py tidak berubah.
 BAB_GELOMBANG_1 = (
     (1, 1, "bilang_benda_awal", "ada", "ada"), (1, 6, "tambah_kurang_20", "ada", "ada"),
     (2, 2, "tambah_kurang_100", "ada", "ada"), (3, 4, "unsur_bangun_datar", "ada", "ada"),
     (4, 2, "pecahan_senilai_desimal", "ada", "ada"), (4, 4, "luas_petak_volume_kubus", "ada", "ada"),
     (4, 5, "ciri_komposisi_bangun", "ada", "ada"),
     (5, 4, "keliling_gabungan", "ada", "ada"),
-    (6, 1, "pecahan_bilangan_asli_desimal", "sebagian", "sebagian"),
+    (6, 1, "pecahan_bilangan_asli_desimal", "sebagian", "ada"),
+    (6, 1, "pecahan_campur_awal", "ada", "ada"),
 )
+# Enam bab bergambar lewat sub-adegan `adegan_awal` baru (22 Nov 2026): jenis baru berkecocokan "ada",
+# pelatih lamanya tetap "sebagian". Flag keluarga `matematika-awal` BELUM menyala; label "ada" mengandaikannya.
+BAB_VISUAL_BARU = {(1, 4): "kenali_bangun_awal", (2, 3): "kenali_bangun_awal", (2, 6): "baca_jam_awal",
+                   (5, 6): "ukur_sudut_awal", (5, 8): "piktogram_lima_awal", (6, 3): "tampak_kubus_awal"}
+PASANGAN_BERGAMBAR_BARU = (("kenali_bangun_awal", "P1"), ("kenali_bangun_awal", "P2"), ("baca_jam_awal", "P2"),
+                           ("ukur_sudut_awal", "P5"), ("tampak_kubus_awal", "P6"), ("piktogram_lima_awal", "P5"))
 # Bab data tanpa jenis baru: pelatih statistika punya jenis untuk semua sub-materi di level kelasnya dan
 # bergambar (SVG) saat OSN_VISUAL_KELUARGA memuat statistika. Flag itu menyala di produksi per
 # /opt/osn/visual.conf (dibaca read-only 21 Nov 2026, berkas 19 Nov). Maka dua bab ini "ada", dengan syarat
@@ -84,7 +91,7 @@ BAB_PELATIH_LAIN_TAK_TERSEDIA = {(2, 8)}  # statistika turus/piktogram belum ada
 BAB_ADA_SOAL_TEKS = {(2, 4), (2, 5), (3, 3), (5, 7), (6, 4)}
 BAB_ADA_PERLUASAN = {(4, 5), (5, 4)}
 BAB_ADA_SEMUA = ({(1, 1), (1, 6), (2, 2), (3, 4), (4, 2), (4, 4)} | BAB_ADA_SOAL_TEKS
-                 | BAB_ADA_PERLUASAN | set(BAB_DATA_BERGAMBAR))
+                 | BAB_ADA_PERLUASAN | set(BAB_DATA_BERGAMBAR) | set(BAB_VISUAL_BARU) | {(6, 1)})
 PASANGAN = tuple((tid, level) for tid in TEMPLATE_AWAL for level in LEVEL_JENIS[tid])
 
 
@@ -302,10 +309,12 @@ def test_bab_yang_dulu_belum_ada_soal_kini_terisi_di_level_kelasnya(kelas, nomor
     # Semua soal teks tanpa gambar: "sebagian", kecuali lima bab yang sub-materinya tertutup soal teks
     # (keputusan pemilik 21 Nov 2026) dan dinilai "ada".
     harapan = "ada" if (kelas, nomor) in (BAB_ADA_SOAL_TEKS | BAB_ADA_PERLUASAN | BAB_ADEGAN_AWAL) else "sebagian"
-    assert ringkasan.status == harapan, (kelas, nomor)
+    # Bab bergambar baru: status bab "ada" berkat jenis baru; pelatih lama di baris ini tetap "sebagian".
+    assert ringkasan.status == ("ada" if (kelas, nomor) in BAB_VISUAL_BARU else harapan), (kelas, nomor)
     assert ringkasan.variasi.total > 0 and not ringkasan.variasi.galat and not ringkasan.variasi.tertutup
     pelatih = [p for p in ringkasan.pelatih if p.topik_id == TOPIK and tid in p.template]
-    assert pelatih and pelatih[0].tersedia and pelatih[0].kecocokan == harapan
+    harapan_pelatih = "sebagian" if (kelas, nomor) in BAB_VISUAL_BARU else harapan
+    assert pelatih and pelatih[0].tersedia and pelatih[0].kecocokan == harapan_pelatih
 
 
 @pytest.mark.parametrize("kelas,nomor,tid,kecocokan,status", BAB_GELOMBANG_1)
@@ -354,20 +363,39 @@ def test_bab_data_ada_bergantung_pada_flag_visual_soal_tanpa_flag_berupa_teks(mo
 
 
 @pytest.mark.parametrize("tid,level", [("baca_diagram_gambar", "P1"), ("ukur_satuan_tak_baku", "P1"),
-                                       ("baca_diagram_gambar", "P2"), ("turus_gambar_awal", "P2")])
+                                       ("baca_diagram_gambar", "P2"), ("turus_gambar_awal", "P2")]
+                         + list(PASANGAN_BERGAMBAR_BARU))
 def test_bab_bergambar_matematika_awal_ada_bergantung_pada_flag_tanpa_flag_berupa_teks(monkeypatch, tid, level):
-    soal = generator.buat_soal(tid, 1, level, TOPIK)
+    # Beberapa jenis punya varian teks murni (mis. benda_ruang); cari soal yang diproyeksikan bila flag menyala.
+    monkeypatch.setenv("OSN_VISUAL_KELUARGA", "matematika-awal")
+    soal = next(s for s in (generator.buat_soal(tid, seed, level, TOPIK) for seed in range(1, 60))
+                if question_views.penyajian_dari_soal(s).status_visual == "siap")
     monkeypatch.delenv("OSN_VISUAL_KELUARGA", raising=False)
     assert question_views.penyajian_dari_soal(soal).status_visual == "tanpa_visual"
     monkeypatch.setenv("OSN_VISUAL_KELUARGA", "matematika-awal")
     assert question_views.penyajian_dari_soal(soal).status_visual == "siap"
 
 
-def test_hitungan_status_bab_tiga_puluh_tiga_ada_tujuh_sebagian_nol_belum():
+@pytest.mark.parametrize("kelas,nomor", sorted(BAB_VISUAL_BARU))
+def test_bab_bergambar_baru_ada_hanya_bila_jenis_baru_wajib_visual_dan_terproyeksi(kelas, nomor):
+    tid = BAB_VISUAL_BARU[(kelas, nomor)]
+    _, bab = hitung.cari_bab(kelas, nomor)
+    ringkasan = hitung.ringkasan_bab(bab, kelas, {})
+    assert ringkasan.status == hitung.STATUS_ADA
+    pelatih = [p for p in ringkasan.pelatih if p.topik_id == TOPIK and tid in p.template]
+    assert pelatih and pelatih[0].tersedia and pelatih[0].kecocokan == "ada"
+    item = {i["template_id"]: i for i in visual_inventory.inventaris_template()}[tid]
+    assert item["status"] == "wajib_visual" and f"P{kelas}" in item["varian_generator"], (tid, kelas)
+    proyeksi = [proyeksi_matematika_awal(tid, generator.buat_soal(tid, seed, f"P{kelas}", TOPIK).parameter)
+                for seed in range(1, 40)]
+    assert any(p is not None for p in proyeksi), tid
+
+
+def test_hitungan_status_bab_empat_puluh_ada_nol_sebagian_nol_belum():
     status = [hitung.ringkasan_bab(b, k.kelas, {}).status for k in kurikulum_kelas.KELAS for b in k.bab]
     assert len(status) == 40
-    assert status.count(hitung.STATUS_ADA) == 33
-    assert status.count(hitung.STATUS_SEBAGIAN) == 7
+    assert status.count(hitung.STATUS_ADA) == 40
+    assert status.count(hitung.STATUS_SEBAGIAN) == 0
     assert status.count(hitung.STATUS_BELUM) == 0
     ada_baru = {(k.kelas, b.nomor) for k in kurikulum_kelas.KELAS for b in k.bab
                 if hitung.ringkasan_bab(b, k.kelas, {}).status == hitung.STATUS_ADA} & BAB_ADA_SEMUA

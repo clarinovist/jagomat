@@ -2408,12 +2408,12 @@ dan fakta bangun datar (`bandingkan_ciri_bangun` memakai definisi inklusif denga
 `baca_diagram_gambar`, `bilang_benda_awal`, `tambah_kurang_20`, `pola_posisi`, `pecahan_setengah`,
 `waktu_berat_awal`, `turus_gambar_awal`, `tambah_kurang_100`, `ukur_konversi_awal`, `unsur_bangun_datar`,
 `pecahan_senilai_desimal`, `luas_petak_volume_kubus`, `ciri_komposisi_bangun`, `bandingkan_ciri_bangun`,
-`keliling_gabungan`, `peluang_dasar`, `pecahan_bilangan_asli_desimal`) dan `Topik.hanya_manual`, dibuktikan pair
+`keliling_gabungan`, `peluang_dasar`, `pecahan_bilangan_asli_desimal`, `pecahan_campur_awal`, `kenali_bangun_awal`, `baca_jam_awal`, `ukur_sudut_awal`, `tampak_kubus_awal`, `piktogram_lima_awal`) dan `Topik.hanya_manual`, dibuktikan pair
 exact-image yang membaca sesi dan bank topik ini (tanpa itu rollback gagal membaca bank baru dan
 `topics.dari_sesi` jatuh diam-diam ke topik bawaan); (3) izin rilis terpisah. Halaman live
-`jagomat.id/admin/kurikulum` baru berubah setelah push, deploy, dan pemasangan (33 ada, 7 sebagian,
+`jagomat.id/admin/kurikulum` baru berubah setelah push, deploy, dan pemasangan (40 ada, 0 sebagian,
 0 belum di kode lokal).
-K1 B7, K1 B8, dan K2 B8 "ada" mengandaikan flag `OSN_VISUAL_KELUARGA` memuat `matematika-awal` (descriptor `adegan_awal` v1 = skema
+K1 B4, K1 B7, K1 B8, K2 B3, K2 B6, K2 B8, K5 B6, K5 B8, dan K6 B3 "ada" mengandaikan flag `OSN_VISUAL_KELUARGA` memuat `matematika-awal` (descriptor `adegan_awal` v1 = skema
 baru; reader/recovery lama menolaknya, jadi flag itu menunggu pin recovery yang membaca skema + matriks rollback,
 dan 29 ikon `aset/ikon-*-v1.webp` ikut image). Tanpa flag soalnya tetap teks. `/opt/osn/visual.conf` tidak diubah. Ulasan Mutia juga mencakup fakta jenis gelombang 1 (`unsur_bangun_datar`,
 `ciri_komposisi_bangun`: pilihan nama bangun berkualifikasi; `keliling_gabungan`: bangun L dan gabungan;

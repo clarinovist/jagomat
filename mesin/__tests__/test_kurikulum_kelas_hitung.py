@@ -39,18 +39,18 @@ def test_status_mengikuti_level_kelas_bukan_data_mentah():
     assert _ringkas(1, 2).status == hitung.STATUS_ADA
     assert _ringkas(1, 6).status == hitung.STATUS_ADA  # naik lewat tambah_kurang_20
     assert _ringkas(1, 7).status == hitung.STATUS_ADA  # naik lewat ukur_satuan_tak_baku bergambar (adegan_awal)
-    assert _ringkas(1, 4).status == hitung.STATUS_SEBAGIAN  # kenali_bentuk belum bergambar
+    assert _ringkas(1, 4).status == hitung.STATUS_ADA  # kenali_bangun_awal bergambar (adegan_awal bentuk)
     # Bab menunjuk grup yang baru ada di kelas 3+: tidak dihitung tersedia di kelas 2.
     r = hitung.ringkasan_bab(BAB_GRUP_KELAS_LAIN, 2, {})
     assert r.status == hitung.STATUS_BELUM and not r.pelatih[0].tersedia and r.pelatih[0].kelas_lain[0] == 3
     # Bab nyata yang dulu "belum": grup matematika-awal tersedia di levelnya sendiri. K2 B4 "ada" lewat
     # pola_posisi (soal teks menutup sub-materi; keputusan pemilik 21 Nov 2026) walau pelatih lama
-    # pola-bilangan/siklus tetap tak tersedia di kelas 2; K2 B6 tetap sebagian (waktu_berat_awal "sebagian").
+    # pola-bilangan/siklus tetap tak tersedia di kelas 2; K2 B6 "ada" (22 Nov 2026) lewat baca_jam_awal.
     r24 = _ringkas(2, 4)
     assert r24.status == hitung.STATUS_ADA
     assert [p.tersedia for p in r24.pelatih] == [False, True]
-    assert _ringkas(2, 6).status == hitung.STATUS_SEBAGIAN
-    assert _ringkas(1, 4).status == hitung.STATUS_SEBAGIAN
+    assert _ringkas(2, 6).status == hitung.STATUS_ADA
+    assert _ringkas(1, 4).status == hitung.STATUS_ADA
 
 
 def test_tidak_ada_bab_belum_ada_soal_di_data_nyata():
@@ -60,7 +60,7 @@ def test_tidak_ada_bab_belum_ada_soal_di_data_nyata():
 
 def test_jenis_soal_adalah_template_unik_di_level_kelas():
     assert _ringkas(1, 2).jenis == 2 and hitung.ringkasan_bab(BAB_TANPA_PELATIH, 1, {}).jenis == 0
-    assert _ringkas(1, 4).jenis == 1  # kenali_bentuk
+    assert _ringkas(1, 4).jenis == 2  # kenali_bentuk dan kenali_bangun_awal
     ref = _ringkas(5, 6).template
     assert len(ref) == len(set(ref))
 

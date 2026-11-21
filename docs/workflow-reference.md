@@ -167,14 +167,14 @@ kebocoran dan mutation (lepas tanda → tes merah). Contoh: `bilangan-sekolah`
 berbasis sesi yang guru buat sendiri.
 Pengecualian sempit `test_parameter_variants`: `bilangan-sekolah/kali_bagi_sekolah/P3` wajib
 ≥90% domain enumerator (161); pasangan lain tetap ≥200 kombinasi unik. Topik manual-saja kedua,
-`matematika-awal` (19 jenis P1–P6; `test_matematika_awal_*`), memakai aturan
-≥ min(90% domain, 200) dan semua sampel di domain; tiga pasang lebih sempit karena sampler memilih
+`matematika-awal` (25 jenis P1–P6; `test_matematika_awal_*`), memakai aturan
+≥ min(90% domain, 200) dan semua sampel di domain; empat pasang lebih sempit karena sampler memilih
 varian seragam sedangkan domainnya condong ke varian besar: `ukur_konversi_awal`/P3 (domain 198) ≥50%,
-`bilang_benda_awal`/P1 (166) ≥70%, `ciri_komposisi_bangun`/P4 (234) ≥60%. Domain kecil dicatat di
+`bilang_benda_awal`/P1 (166) ≥70%, `ciri_komposisi_bangun`/P4 (234) ≥60%, `baca_jam_awal`/P2 (244) ≥60%. Domain kecil dicatat di
 `ALASAN_RUANG` (juga `bilang_benda_awal`, `unsur_bangun_datar`, `ciri_komposisi_bangun`), dan lembar yang
 berkerangka teks sejenis (kini hanya P6, 2,25) di `UTANG_LEMBAR` dengan alasan; ambang global tidak
 dilonggarkan dan angka tidak diperlebar demi hitungan. Status bab dihitung `kurikulum_kelas_hitung` dari
-kecocokan pelatih dan komposisi level; tes `test_matematika_awal_integrasi` mengunci 33 ada, 7 sebagian, 0
+kecocokan pelatih dan komposisi level; tes `test_matematika_awal_integrasi` mengunci 40 ada, 0 sebagian, 0
 belum (K3 B5 dan K4 B6 "ada" selama tiap template pelatihnya `wajib_visual` dan terproyeksi statistika; tes juga
 mengunci bahwa tanpa `OSN_VISUAL_KELUARGA` soalnya teks). Flag visual menyala di produksi per `/opt/osn/visual.conf` (dibaca read-only 21 Nov 2026, berkas bertanggal 19 Nov): `OSN_VISUAL_KELUARGA=statistika,geometri-datar,geometri-ruang,pengukuran,kombinatorik,pola-bilangan`. Topik `hanya_manual` dengan level P3+ juga bukan "topik dasar"
 (`question_context.topik_dasar`), jadi gerbang `OSN_MATERI_DASAR` tidak lagi menyembunyikannya.

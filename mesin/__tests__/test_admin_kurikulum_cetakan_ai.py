@@ -132,7 +132,7 @@ def test_tombol_tampil_di_halaman_bab_mana_pun_yang_valid(tertutup, admin, bab):
 
 
 @pytest.mark.parametrize("kunci", ["", "   "])
-def test_tanpa_kunci_tombol_tak_tampil_dan_tabel_tanpa_tautan(tertutup, admin, monkeypatch, kunci):
+def test_tanpa_kunci_tombol_tak_tampil_dan_tabel_tanpa_tautan(tertutup, admin, monkeypatch, kunci, bab_sebagian_simulasi):
     siapkan_env(monkeypatch, kunci=kunci)
     isi = minta_admin(tertutup, _alamat_daftar(), admin)[1]
     assert ui_ai.RUTE_DRAF_AI not in isi and ui_ai.TOMBOL_DRAF_AI not in isi and "Sisa kuota" not in isi
@@ -147,7 +147,7 @@ def test_tanpa_kunci_post_ditolak_503_tanpa_urlopen_reservasi_dan_cetakan(tertut
     assert api.panggilan == [] and not _db_kuota().exists() and _semua_draf() == ()
 
 
-def test_kuota_habis_tombol_hilang_dengan_catatan_dan_tabel_tanpa_tautan(tertutup, admin):
+def test_kuota_habis_tombol_hilang_dengan_catatan_dan_tabel_tanpa_tautan(tertutup, admin, bab_sebagian_simulasi):
     for _ in range(kuota.BATAS_HARIAN):
         kuota.reservasi(3, 1, "akun-sintetis")
     isi = minta_admin(tertutup, _alamat_daftar(), admin)[1]
@@ -371,7 +371,7 @@ def test_kuota_global_dipakai_bersama_walau_bab_berbeda(tertutup, admin, api):
 
 
 @pytest.mark.parametrize("rusak", ["sampah", "versi", "asing"])
-def test_db_kuota_rusak_fail_closed_tombol_hilang_post_503_tanpa_urlopen(tertutup, admin, api, rusak):
+def test_db_kuota_rusak_fail_closed_tombol_hilang_post_503_tanpa_urlopen(tertutup, admin, api, rusak, bab_sebagian_simulasi):
     if rusak == "sampah":
         _db_kuota().write_bytes(SAMPAH)
     else:
@@ -395,7 +395,8 @@ def _dump_ai() -> bytes:
         return "\n".join(kon.iterdump()).encode()
 
 
-def test_tombol_dan_post_tetap_hidup_saat_ai_lama_dihentikan_dan_semua_fitur_mati(tertutup, admin, api, monkeypatch):
+def test_tombol_dan_post_tetap_hidup_saat_ai_lama_dihentikan_dan_semua_fitur_mati(tertutup, admin, api, monkeypatch,
+                                                                                    bab_sebagian_simulasi):
     _isi_pengaturan_ai(dihentikan=1, **{"aktif_%s" % f: 0 for f in ai_policy.FITUR},
                        **{"harian_%s" % f: 0 for f in ("global", *ai_policy.FITUR)})
     monkeypatch.setenv("AI_NONAKTIF", "1")
@@ -529,12 +530,27 @@ def test_tautan_draf_hanya_untuk_draf_yang_ada_di_bab_itu(tertutup, admin):
 
 # --- tabel Kurikulum Merdeka -----------------------------------------------------------------
 
+BAB_DULU_SEBAGIAN = {(1, 4), (2, 3), (2, 6), (5, 6), (5, 8), (6, 1), (6, 3)}
+
+
+@pytest.fixture
+def bab_sebagian_simulasi(monkeypatch):
+    """Data nyata kini 40 bab "ada" (22 Nov 2026), jadi tautan draf AI di bab "sebagian" diuji dengan keadaan
+    yang disimulasikan: tujuh bab terakhir hanya dengan pelatih lamanya yang berkecocokan "sebagian"."""
+    from dataclasses import replace
+    kelas = tuple(
+        replace(k, bab=tuple(
+            replace(b, pelatih=tuple(p for p in b.pelatih if p[2] != "ada")) if (k.kelas, b.nomor) in BAB_DULU_SEBAGIAN
+            else b for b in k.bab))
+        for k in kk.KELAS)
+    monkeypatch.setattr(kk, "KELAS", kelas)
+
 def _bab_belum_atau_sebagian() -> int:
     return sum(1 for k in kk.KELAS for b in hitung.ringkasan_kelas(k, None)
                if b.status in (hitung.STATUS_BELUM, hitung.STATUS_SEBAGIAN))
 
 
-def test_tabel_menautkan_draf_ai_hanya_di_bab_belum_atau_sebagian(tertutup, admin):
+def test_tabel_menautkan_draf_ai_hanya_di_bab_belum_atau_sebagian(tertutup, admin, bab_sebagian_simulasi):
     isi = minta_admin(tertutup, "/admin/kurikulum", admin)[1]
     jumlah = _bab_belum_atau_sebagian()
     assert 0 < jumlah < sum(len(k.bab) for k in kk.KELAS)

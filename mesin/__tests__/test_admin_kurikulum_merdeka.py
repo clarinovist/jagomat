@@ -109,7 +109,9 @@ def test_tabel_memuat_enam_kelas_empat_puluh_bab_dan_kolom_lengkap(server):
 
 def test_status_dihitung_dari_level_kelas(server):
     isi = _minta(server, RUTE, cookie=_admin(server))[1]
-    assert "<strong>Perlu disempurnakan</strong>" in _baris(isi, 1, 4)[4]  # kenali_bentuk (sebagian)
+    # K1 B4 naik "ada" (22 Nov 2026) lewat kenali_bangun_awal (bentuk bergambar, adegan_awal `bentuk`).
+    assert "<strong>Sudah ada soal</strong>" in _baris(isi, 1, 4)[4]
+    assert "Perlu disempurnakan" not in isi  # data nyata 40 bab "ada"
     assert "Belum ada soal" not in isi  # tak ada bab "belum" di data nyata
     assert "<strong>Sudah ada soal</strong>" in _baris(isi, 1, 2)[4]
     # K1 B6 naik ke "ada" lewat tambah_kurang_20; K1 B7 naik lewat satuan tak baku bergambar (adegan_awal).
