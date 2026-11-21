@@ -183,6 +183,16 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
   retensi 30 hari. Tidak ada salinan plaintext yang disimpan di Mac.
 - **Drill 20 Nov 2026 18:43**: unduh dari R2 → dekripsi → validasi manifest/hash →
   lima DB `integrity_check=ok`, `journal_mode=delete`. Ini drill baca, bukan restore live.
+- **Drill restore 21 Nov 2026 (kontainer sementara di VPS)**: bundle cron `20261120-214501`
+  divalidasi (`backup_harian.py --validasi`), disalin ke folder sementara `/var/tmp`
+  (root, dihapus sesudahnya), `chown 10001:10001`, lalu image produksi yang sama dijalankan
+  tanpa jaringan (`--network none`, `--cap-drop ALL`, `no-new-privileges`, memori 256 MB;
+  hanya env jalur DB yang diteruskan, kunci API tidak). Hasil: lima DB `integrity_check=ok`,
+  status `healthy`, smoke di loopback `/` 200, `/akun` 401, `/murid/` 303, tanpa galat di log,
+  `osn-mesin` produksi tidak berubah. Setelah app start, empat DB kembali `wal`; **`pendamping.db`
+  tetap `delete`** sampai `assistant_schema.siapkan()` dijalankan (startup `serve.py` belum
+  memanggilnya), jadi setelah restore sungguhan periksa mode jurnalnya. Ini bukan restore ke
+  produksi sungguhan.
 - **Batas**: off-site bergantung pada Mac menyala; bila Mac mati, backup lokal VPS tetap
   jalan tetapi tidak ada salinan keluar VPS hari itu. Kegagalan off-site mengirim alert
   Telegram lewat `notify-telegram.py` (token dari `~/.hermes/.env`) untuk setiap keluar
@@ -208,6 +218,6 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
 1. ~~Frekuensi/jam backup~~ → harian 21:45 WIB di host, off-site 22:00 dari Mac.
 2. ~~Off-site otomatis independen laptop~~ → R2 terenkripsi; masih bergantung Mac menyala.
 3. Retensi sudah jalan (14 lokal, 30 R2). Alert kegagalan off-site sudah dikirim ke
-   Telegram dan jalur gagalnya sudah diuji end-to-end. **Restore live belum diuji**; drill
-   baca sudah lulus. Kunci enkripsi `offsite.key` hanya ada di Mac: tanpa salinan aman
+   Telegram dan jalur gagalnya sudah diuji end-to-end. Drill restore ke kontainer sementara lulus (21 Nov); restore
+   ke produksi sungguhan belum pernah dilakukan. Kunci enkripsi `offsite.key` hanya ada di Mac: tanpa salinan aman
    terpisah, kehilangan Mac berarti seluruh backup R2 tidak bisa dibuka. Retensi per domain dan bukti penghapusan tetap perlu dioperasionalkan.
