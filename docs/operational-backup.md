@@ -338,6 +338,32 @@ berjalan sebagai cadangan kedua.
   media offline), lalu buat token R2 **baca-saja** untuk bucket yang sama agar Mac
   tidak perlu memegang token tulis saat memulihkan.
 
+### Monitor off-site VPS (21 Nov 2026)
+
+Cron VPS yang gagal hanya meninggalkan satu baris di `/opt/osn/log/offsite-vps.log`, jadi
+ada monitor terpisah di Mac: `scripts/pantau_offsite_vps.py` (salinan identik
+`~/.hermes/scripts/jagomat-pantau-offsite-vps.py`, job Hermes `osn-pantau-offsite-vps`,
+08:30 WIB, `--catch-up on`, `--failure-deliver telegram`). Satu panggilan SSH tanpa sudo
+membaca `last-ok` dan `retention-ok` (0644) beserta jam VPS; semua perbandingan memakai
+jam VPS. Alert Telegram (tanpa mac/sha256) bila:
+
+- stempel `last-ok` lebih tua dari 26 jam;
+- **id bundle** di `last-ok` lebih tua dari 26 jam. Run ulang `sudah_ada` menyegarkan
+  stempel meski bundle-nya kemarin, jadi hanya umur id yang membuktikan backup harian
+  jalan;
+- sidik jari kunci publik di `last-ok` beda dari kunci publik lokal;
+- `retention-ok` hilang, basi, atau berhenti di id yang berbeda dari `last-ok`;
+- SSH gagal atau keluarannya terpotong (VPS tak terjangkau), penanda hilang atau rusak,
+  jam VPS tak wajar. Kode keluar 1 = cadangan bermasalah, 2 = pemeriksaan sendiri gagal.
+
+**Jadwal dan ambang saling bergantung.** Normal pada 08:30: ~10,5 jam (tenang); satu
+malam gagal: ~34,5 jam (alert). Monitor 22:30 dengan ambang 26 jam akan buta (sisa
+~24,5 jam). Ubah jadwal hanya bersama ambang (`OSN_PANTAU_UMUR_MAKS_JAM`). Batasan:
+monitor hanya jalan saat Mac menyala; `--catch-up on` menjalankannya begitu Mac menyala
+lagi. Bukti 21 Nov: run nyata sehat (exit 0), run dengan ambang dipaksa 0,5 jam
+mengirim alert Telegram (exit 1), 27 tes, lima mutasi guard (umur id, kunci, id
+retensi, batas umur, alert SSH gagal) semuanya tertangkap.
+
 ## Yang tetap terbuka
 
 1. ~~Frekuensi/jam backup~~ → harian 21:45 WIB di host, off-site 22:00 dari Mac.
