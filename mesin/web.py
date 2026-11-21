@@ -721,6 +721,9 @@ class Penangan(BaseHTTPRequestHandler):
         ):
             return
         if jalur == "/murid" or jalur.startswith("/murid/"):
+            import contest_http  # Latihan Lomba: harus sebelum student_http (yang menjawab 404 sisanya)
+            if contest_http.tangani_get(self, jalur, self.path):
+                return
             import student_http
             student_http.tangani_get(self, jalur, self.path)
             return
@@ -841,6 +844,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import parent_report_http
         if parent_report_http.tangani_post(self, jalur):
+            return
+        import contest_http  # setelah _asal_sama_post; sebelum student_http
+        if contest_http.tangani_post(self, jalur):
             return
         import student_http
         if student_http.tangani_post(self, jalur):
