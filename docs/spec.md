@@ -27,14 +27,15 @@ belum cukup soal dengan 19 jenis soal teks tanpa gambar: P1 `kenali_bentuk`, `uk
 `pecahan_setengah`, `waktu_berat_awal`, `turus_gambar_awal`, `tambah_kurang_100`; P3 `ukur_konversi_awal`,
 `unsur_bangun_datar`; P4 `pecahan_senilai_desimal`, `luas_petak_volume_kubus`, `ciri_komposisi_bangun`;
 P5 `bandingkan_ciri_bangun`, `keliling_gabungan`; P6 `peluang_dasar`, `pecahan_bilangan_asli_desimal`.
-Status bab di `/admin/kurikulum` (40 bab): 21 "Sudah ada soal", 19 "Perlu disempurnakan", 0 "Belum ada
-soal". Jenis berkecocokan "ada" menaikkan enam bab: K1 B1, K1 B6, K2 B2, K3 B4, K4 B2, dan K4 B4 (soal
-teks tersusun baris, kolom, lapis; menunggu ulasan Mutia). Tetap "sebagian": K3 B5 dan K4 B6 (pelatih `statistika` sudah punya
+Status bab di `/admin/kurikulum` (40 bab): 26 "Sudah ada soal", 14 "Perlu disempurnakan", 0 "Belum ada
+soal". Jenis berkecocokan "ada" menaikkan sebelas bab: K1 B1, K1 B6, K2 B2, K3 B4, K4 B2, dan K4 B4 (soal
+teks tersusun baris, kolom, lapis; menunggu ulasan Mutia), plus lima bab yang sub-materinya tertutup soal
+teks (keputusan pemilik 21 Nov 2026): K2 B4, K2 B5, K3 B3, K5 B7, K6 B4. Tetap "sebagian": K3 B5 dan K4 B6 (pelatih `statistika` sudah punya
 jenis untuk tiap sub-materi, tetapi gambarnya hanya muncul bila `OSN_VISUAL_KELUARGA=statistika` menyala;
 bawaan kosong, belum aktif di produksi, dan mode teks membocorkan jawaban, jadi naik ke "ada" setelah flag
 itu aktif), K4 B5 (tangram, lebih dari satu cara, soal bergambar belum ada), K5 B4 (keliling segitiga,
 jajar genjang, trapesium, lingkaran, dan bentuk T/U belum ada), K6 B1 (hasil bilangan campur belum ada),
-dan 14 bab lain yang butuh gambar atau jenis baru.
+dan 9 bab lain yang butuh gambar atau jenis baru.
 Sama seperti `bilangan-sekolah`, topik ini **hanya untuk Latihan manual guru dan lembar cetak** (bukan
 Campuran, siklus, Pendamping, sisi murid). Karena memuat P3+ ia bukan "materi dasar": `OSN_MATERI_DASAR`
 tidak menyembunyikannya. Pembuatan di balik `OSN_MATEMATIKA_AWAL` (env-only, "0"/"1", **bawaan 1** atas

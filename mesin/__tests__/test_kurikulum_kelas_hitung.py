@@ -42,11 +42,13 @@ def test_status_mengikuti_level_kelas_bukan_data_mentah():
     # Bab menunjuk grup yang baru ada di kelas 3+: tidak dihitung tersedia di kelas 2.
     r = hitung.ringkasan_bab(BAB_GRUP_KELAS_LAIN, 2, {})
     assert r.status == hitung.STATUS_BELUM and not r.pelatih[0].tersedia and r.pelatih[0].kelas_lain[0] == 3
-    # Bab nyata yang dulu "belum" kini sebagian: grup matematika-awal tersedia di levelnya sendiri
-    # (K2 B4 menambah pola_posisi ke pelatih lama pola-bilangan/siklus, yang tetap tak tersedia di kelas 2).
+    # Bab nyata yang dulu "belum": grup matematika-awal tersedia di levelnya sendiri. K2 B4 "ada" lewat
+    # pola_posisi (soal teks menutup sub-materi; keputusan pemilik 21 Nov 2026) walau pelatih lama
+    # pola-bilangan/siklus tetap tak tersedia di kelas 2; K2 B6 tetap sebagian (waktu_berat_awal "sebagian").
     r24 = _ringkas(2, 4)
-    assert r24.status == hitung.STATUS_SEBAGIAN
+    assert r24.status == hitung.STATUS_ADA
     assert [p.tersedia for p in r24.pelatih] == [False, True]
+    assert _ringkas(2, 6).status == hitung.STATUS_SEBAGIAN
     assert _ringkas(1, 4).status == hitung.STATUS_SEBAGIAN
 
 

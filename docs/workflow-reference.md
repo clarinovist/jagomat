@@ -174,7 +174,7 @@ varian seragam sedangkan domainnya condong ke varian besar: `ukur_konversi_awal`
 `ALASAN_RUANG` (juga `bilang_benda_awal`, `unsur_bangun_datar`, `ciri_komposisi_bangun`), dan lembar yang
 berkerangka teks sejenis (kini hanya P6, 2,25) di `UTANG_LEMBAR` dengan alasan; ambang global tidak
 dilonggarkan dan angka tidak diperlebar demi hitungan. Status bab dihitung `kurikulum_kelas_hitung` dari
-kecocokan pelatih dan komposisi level; tes `test_matematika_awal_integrasi` mengunci 21 ada, 19 sebagian, 0
+kecocokan pelatih dan komposisi level; tes `test_matematika_awal_integrasi` mengunci 26 ada, 14 sebagian, 0
 belum (K3 B5 dan K4 B6 tetap sebagian: gambar statistika bergantung `OSN_VISUAL_KELUARGA`). Topik `hanya_manual` dengan level P3+ juga bukan "topik dasar"
 (`question_context.topik_dasar`), jadi gerbang `OSN_MATERI_DASAR` tidak lagi menyembunyikannya.
 

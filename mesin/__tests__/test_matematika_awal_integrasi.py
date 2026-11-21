@@ -68,7 +68,9 @@ BAB_GELOMBANG_1 = (
 # tetapi gambarnya (SVG) hanya muncul bila OSN_VISUAL_KELUARGA=statistika (bawaan kosong, belum aktif di
 # produksi), dan mode teks membocorkan jawaban ("Apel = 5 turus"). Jadi tetap "sebagian" sampai flag aktif.
 BAB_TANPA_JENIS_BARU = {(3, 5): ("turus", "piktogram", "diagram"), (4, 6): ("piktogram", "diagram")}
-BAB_ADA_SEMUA = {(1, 1), (1, 6), (2, 2), (3, 4), (4, 2), (4, 4)}
+# Lima bab yang sub-materinya tertutup soal teks dinilai "ada" (keputusan pemilik 21 Nov 2026).
+BAB_ADA_SOAL_TEKS = {(2, 4), (2, 5), (3, 3), (5, 7), (6, 4)}
+BAB_ADA_SEMUA = {(1, 1), (1, 6), (2, 2), (3, 4), (4, 2), (4, 4)} | BAB_ADA_SOAL_TEKS
 PASANGAN = tuple((tid, level) for tid in TEMPLATE_AWAL for level in LEVEL_JENIS[tid])
 
 
@@ -283,10 +285,13 @@ def test_bab_yang_dulu_belum_ada_soal_kini_terisi_di_level_kelasnya(kelas, nomor
     _, bab = hitung.cari_bab(kelas, nomor)
     ringkasan = hitung.ringkasan_bab(bab, kelas, {})
     assert (TOPIK, tid) in ringkasan.template, (kelas, nomor)
-    assert ringkasan.status == hitung.STATUS_SEBAGIAN  # semua soal teks tanpa gambar
+    # Semua soal teks tanpa gambar: "sebagian", kecuali lima bab yang sub-materinya tertutup soal teks
+    # (keputusan pemilik 21 Nov 2026) dan dinilai "ada".
+    harapan = "ada" if (kelas, nomor) in BAB_ADA_SOAL_TEKS else "sebagian"
+    assert ringkasan.status == harapan, (kelas, nomor)
     assert ringkasan.variasi.total > 0 and not ringkasan.variasi.galat and not ringkasan.variasi.tertutup
     pelatih = [p for p in ringkasan.pelatih if p.topik_id == TOPIK and tid in p.template]
-    assert pelatih and pelatih[0].tersedia and pelatih[0].kecocokan == "sebagian"
+    assert pelatih and pelatih[0].tersedia and pelatih[0].kecocokan == harapan
 
 
 @pytest.mark.parametrize("kelas,nomor,tid,kecocokan,status", BAB_GELOMBANG_1)
@@ -312,11 +317,11 @@ def test_bab_data_tetap_sebagian_walau_semua_pelatihnya_tersedia_di_level_kelas(
     assert ringkasan.status == hitung.STATUS_SEBAGIAN
 
 
-def test_hitungan_status_bab_dua_puluh_satu_ada_sembilan_belas_sebagian_nol_belum():
+def test_hitungan_status_bab_dua_puluh_enam_ada_empat_belas_sebagian_nol_belum():
     status = [hitung.ringkasan_bab(b, k.kelas, {}).status for k in kurikulum_kelas.KELAS for b in k.bab]
     assert len(status) == 40
-    assert status.count(hitung.STATUS_ADA) == 21
-    assert status.count(hitung.STATUS_SEBAGIAN) == 19
+    assert status.count(hitung.STATUS_ADA) == 26
+    assert status.count(hitung.STATUS_SEBAGIAN) == 14
     assert status.count(hitung.STATUS_BELUM) == 0
     ada_baru = {(k.kelas, b.nomor) for k in kurikulum_kelas.KELAS for b in k.bab
                 if hitung.ringkasan_bab(b, k.kelas, {}).status == hitung.STATUS_ADA} & BAB_ADA_SEMUA

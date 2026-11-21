@@ -2411,7 +2411,7 @@ dan fakta bangun datar (`bandingkan_ciri_bangun` memakai definisi inklusif denga
 `keliling_gabungan`, `peluang_dasar`, `pecahan_bilangan_asli_desimal`) dan `Topik.hanya_manual`, dibuktikan pair
 exact-image yang membaca sesi dan bank topik ini (tanpa itu rollback gagal membaca bank baru dan
 `topics.dari_sesi` jatuh diam-diam ke topik bawaan); (3) izin rilis terpisah. Halaman live
-`jagomat.id/admin/kurikulum` baru berubah setelah push, deploy, dan pemasangan (21 ada, 19 sebagian,
+`jagomat.id/admin/kurikulum` baru berubah setelah push, deploy, dan pemasangan (26 ada, 14 sebagian,
 0 belum di kode lokal). Ulasan Mutia juga mencakup fakta jenis gelombang 1 (`unsur_bangun_datar`,
 `ciri_komposisi_bangun`: pilihan nama bangun berkualifikasi; `keliling_gabungan`: bangun L dan gabungan;
 `luas_petak_volume_kubus`: soal teks tersusun baris, kolom, lapis). K3 B5 dan K4 B6 tetap "sebagian":

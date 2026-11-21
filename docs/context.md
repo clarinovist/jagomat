@@ -72,7 +72,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `kurikulum_katalog` (grup), `kurikulum_cp` (peta CP), `kurikulum_kelas` (pelatih bab), dan tes bersama
   (`baseline_matematika_awal.LEVEL_JENIS`, baseline `test_kualitas_soal_generik`). Kecocokan pelatih bab
   "ada" hanya bila SETIAP sub-materi bab punya jenis di level kelas itu; bab bergambar yang hanya
-  bersoal teks tetap "sebagian". Status bab sekarang 21 ada, 19 sebagian, 0 belum (`cek_bab` lokal).
+  bersoal teks tetap "sebagian" (kecuali lima bab yang sub-materinya tertutup soal teks, keputusan pemilik 21 Nov 2026). Status bab sekarang 26 ada, 14 sebagian, 0 belum (`cek_bab` lokal).
   Opt-in `Topik.unik_per_lembar` + enumerator domain menjaga soal
   tidak kembar; retry terbatas memilih sisa domain, pengulangan boleh setelah habis.
   Flag mati mempertahankan RNG lama. Campuran tetap P3–P6; lembar 10 soal satu jenis

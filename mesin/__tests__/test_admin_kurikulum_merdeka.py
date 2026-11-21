@@ -124,10 +124,10 @@ def test_status_belum_ada_soal_untuk_bab_tanpa_pelatih(server, bab_tanpa_pelatih
 
 def test_pelatih_yang_belum_ada_di_kelas_itu_diberi_catatan(server):
     # K2 B4: pelatih lama (pola-bilangan/siklus) baru ada di kelas 3+, pelatih baru (pola_posisi) ada di
-    # kelas 2, jadi bab berstatus "Perlu disempurnakan" dan catatan kelas lain tetap tampil.
+    # kelas 2 dan menaikkan bab ke "Sudah ada soal" (keputusan pemilik 21 Nov 2026); catatan kelas lain tetap tampil.
     sel = _baris(_minta(server, RUTE, cookie=_admin(server))[1], 2, 4)
     assert "baru ada di kelas 3, 4, 5, 6" in sel[2] and "Matematika Awal" in sel[2]
-    assert "Perlu disempurnakan" in sel[4] and "Belum ada soal" not in sel[4]
+    assert "Sudah ada soal" in sel[4] and "Perlu disempurnakan" not in sel[4] and "Belum ada soal" not in sel[4]
 
 
 def test_aksi_buat_soal_hanya_bila_ada_jenis_yang_bisa_dibuat(server, bab_tanpa_pelatih, monkeypatch):
