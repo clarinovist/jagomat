@@ -174,7 +174,7 @@ varian seragam sedangkan domainnya condong ke varian besar: `ukur_konversi_awal`
 `ALASAN_RUANG` (juga `bilang_benda_awal`, `unsur_bangun_datar`, `ciri_komposisi_bangun`), dan lembar yang
 berkerangka teks sejenis (kini hanya P6, 2,25) di `UTANG_LEMBAR` dengan alasan; ambang global tidak
 dilonggarkan dan angka tidak diperlebar demi hitungan. Status bab dihitung `kurikulum_kelas_hitung` dari
-kecocokan pelatih dan komposisi level; tes `test_matematika_awal_integrasi` mengunci 30 ada, 10 sebagian, 0
+kecocokan pelatih dan komposisi level; tes `test_matematika_awal_integrasi` mengunci 31 ada, 9 sebagian, 0
 belum (K3 B5 dan K4 B6 "ada" selama tiap template pelatihnya `wajib_visual` dan terproyeksi statistika; tes juga
 mengunci bahwa tanpa `OSN_VISUAL_KELUARGA` soalnya teks). Flag visual menyala di produksi per `/opt/osn/visual.conf` (dibaca read-only 21 Nov 2026, berkas bertanggal 19 Nov): `OSN_VISUAL_KELUARGA=statistika,geometri-datar,geometri-ruang,pengukuran,kombinatorik,pola-bilangan`. Topik `hanya_manual` dengan level P3+ juga bukan "topik dasar"
 (`question_context.topik_dasar`), jadi gerbang `OSN_MATERI_DASAR` tidak lagi menyembunyikannya.

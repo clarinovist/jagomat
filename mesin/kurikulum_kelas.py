@@ -69,7 +69,7 @@ KELAS: Tuple[Kelas, ...] = (
             (("matematika-awal", "ukur_satuan_tak_baku", "sebagian"),)),
         Bab(8, "Mengenal diagram",
             ("Diagram gambar sederhana",),
-            (("matematika-awal", "baca_diagram_gambar", "sebagian"),)),
+            (("matematika-awal", "baca_diagram_gambar", "ada"),)),
     )),
     Kelas(2, (
         Bab(1, "Membilang sampai 50 dan nilai tempat",

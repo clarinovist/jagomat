@@ -32,7 +32,7 @@ soal". Jenis berkecocokan "ada" menaikkan sebelas bab: K1 B1, K1 B6, K2 B2, K3 B
 teks tersusun baris, kolom, lapis; menunggu ulasan Mutia), plus lima bab yang sub-materinya tertutup soal
 teks (keputusan pemilik 21 Nov 2026): K2 B4, K2 B5, K3 B3, K5 B7, K6 B4. K3 B5 dan K4 B6 juga "ada" (pelatih `statistika` punya
 jenis `wajib_visual` untuk tiap sub-materi dan bergambar lewat `OSN_VISUAL_KELUARGA`). Flag visual menyala di produksi per `/opt/osn/visual.conf` (dibaca read-only 21 Nov 2026, berkas bertanggal 19 Nov): `OSN_VISUAL_KELUARGA=statistika,geometri-datar,geometri-ruang,pengukuran,kombinatorik,pola-bilangan`. Keterbatasan: status "ada" kedua bab ini bergantung pada flag visual menyala; tanpa flag soalnya berupa teks. K4 B5 dan K5 B4 juga "ada" (soal teks menutup semua sub-materi setelah perluasan v2). Tetap "sebagian":
-K6 B1 (hasil kali/bagi hanya ditulis pecahan biasa; format bilangan campur menunggu keputusan pemilik) dan 9 bab
+K1 B8 "ada" lewat keluarga visual baru `matematika-awal` (gambar benda diulang tepat sebanyak jumlahnya; flag keluarga itu BELUM menyala di produksi dan tak boleh sebelum recovery/reader membaca skema `adegan_awal`; tanpa flag soal tetap teks lama). Tetap "sebagian": K6 B1 (hasil kali/bagi hanya ditulis pecahan biasa; format bilangan campur menunggu keputusan pemilik) dan 8 bab
 lain yang butuh gambar atau jenis baru.
 Sama seperti `bilangan-sekolah`, topik ini **hanya untuk Latihan manual guru dan lembar cetak** (bukan
 Campuran, siklus, Pendamping, sisi murid). Karena memuat P3+ ia bukan "materi dasar": `OSN_MATERI_DASAR`
