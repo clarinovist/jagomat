@@ -12,7 +12,7 @@ import json
 import random
 import re
 from dataclasses import dataclass
-from typing import Callable, Dict, Mapping, Optional, Tuple
+from typing import Callable, Dict, Mapping, Optional, Sequence, Tuple
 
 TOPIK = ("bilangan", "operasi", "pengukuran", "bangun")
 LABEL_TOPIK = {
@@ -39,6 +39,9 @@ NAMA_ANAK = (
     "Nina", "Bima", "Lala", "Putra", "Wati", "Joko", "Ratna", "Eko", "Maya", "Agus",
 )
 
+# Awalan id per topik: tiap pekerja punya ruang namanya sendiri, id tidak bisa bertabrakan.
+AWALAN_ID = {"bilangan": "bil_", "operasi": "ops_", "pengukuran": "ukur_", "bangun": "bgn_"}
+
 _POLA_ID = re.compile(r"^[a-z][a-z0-9_]{2,40}$")
 _POLA_BILANGAN_POSITIF = re.compile(r"^[1-9][0-9]{0,5}$")
 _POLA_ISIAN = re.compile(r"^[0-9]{1,6}$")
@@ -61,6 +64,7 @@ class Pengecoh:
 
     nilai: str
     kesalahan: str
+    svg: str = ""      # gambar pilihan (bila pilihan berupa gambar); semua pilihan atau tidak sama sekali
 
 
 @dataclass(frozen=True)
@@ -77,6 +81,7 @@ class SoalLomba:
     parameter: str
     nilai: Optional[int] = None
     inggris: bool = False
+    kunci_svg: str = ""   # gambar pilihan yang benar; pasangan `Pengecoh.svg`
 
 
 @dataclass(frozen=True)
@@ -131,10 +136,29 @@ def validasi_svg(svg: str) -> None:
         raise ValueError("aria-label tidak boleh memuat angka (bisa membocorkan jawaban)")
 
 
+def _validasi_gambar_pilihan(soal: SoalLomba) -> None:
+    gambar = [soal.kunci_svg] + [pengecoh.svg for pengecoh in soal.pengecoh]
+    if not any(gambar):
+        return
+    if not all(gambar):
+        raise ValueError("pilihan bergambar: semua pilihan wajib bergambar atau tidak sama sekali")
+    if len(set(gambar)) != len(gambar):
+        raise ValueError("gambar pilihan harus berbeda semua")
+    for svg in gambar:
+        validasi_svg(svg)
+
+
+def _validasi_pengecoh_angka(soal: SoalLomba) -> None:
+    """Soal berkunci angka: pengecoh juga wajib bilangan bulat positif dalam batas wajar."""
+    for pengecoh in soal.pengecoh:
+        if not _POLA_BILANGAN_POSITIF.match(pengecoh.nilai) or int(pengecoh.nilai) > BATAS_NILAI:
+            raise ValueError(f"pengecoh angka tidak wajar: {pengecoh.nilai!r}")
+
+
 def _validasi_pengecoh(soal: SoalLomba) -> None:
     if soal.jenis == JENIS_ISIAN:
-        if soal.pengecoh != ():
-            raise ValueError("isian tidak punya pengecoh")
+        if soal.pengecoh != () or soal.kunci_svg:
+            raise ValueError("isian tidak punya pengecoh atau gambar pilihan")
         return
     if len(soal.pengecoh) != JUMLAH_PENGECOH:
         raise ValueError(f"pilihan ganda wajib {JUMLAH_PENGECOH} pengecoh")
@@ -145,6 +169,9 @@ def _validasi_pengecoh(soal: SoalLomba) -> None:
         if not isinstance(pengecoh, Pengecoh) or not pengecoh.nilai.strip() \
                 or not pengecoh.kesalahan.strip():
             raise ValueError("pengecoh wajib bernilai dan berlabel kesalahan")
+    if soal.nilai is not None:
+        _validasi_pengecoh_angka(soal)
+    _validasi_gambar_pilihan(soal)
 
 
 def _validasi_kunci(soal: SoalLomba) -> None:
@@ -155,8 +182,12 @@ def _validasi_kunci(soal: SoalLomba) -> None:
             raise ValueError("kunci isian wajib bilangan bulat positif")
         if soal.nilai != int(soal.kunci):
             raise ValueError("nilai isian wajib sama dengan kunci")
+    elif soal.kunci.isdigit() and soal.nilai is None:
+        raise ValueError("kunci angka wajib membawa nilai agar pengecoh ikut diperiksa")
     if soal.nilai is not None and not 1 <= soal.nilai <= BATAS_NILAI:
         raise ValueError("nilai di luar batas wajar")
+    if soal.nilai is not None and soal.kunci != str(soal.nilai):
+        raise ValueError("nilai wajib sama dengan kunci")
 
 
 def _validasi_parameter(parameter: str) -> None:
@@ -196,6 +227,9 @@ def _validasi_template(template: Template) -> None:
         raise ValueError(f"id template tidak sah: {template.id!r}")
     if template.topik not in TOPIK:
         raise ValueError(f"topik template tidak dikenal: {template.topik!r}")
+    if not template.id.startswith(AWALAN_ID[template.topik]):
+        raise ValueError(f"id template topik {template.topik!r} wajib berawalan "
+                         f"{AWALAN_ID[template.topik]!r}: {template.id!r}")
     if template.jenis not in JENIS:
         raise ValueError(f"jenis template tidak dikenal: {template.jenis!r}")
     if template.tingkat not in TINGKAT:
@@ -253,6 +287,39 @@ def susun_pilihan(soal: SoalLomba, posisi_kunci: int, rng: random.Random) -> Tup
     lain = [pengecoh.nilai for pengecoh in soal.pengecoh]
     rng.shuffle(lain)
     return tuple(lain[:posisi_kunci] + [soal.kunci] + lain[posisi_kunci:])
+
+
+def ambil_pengecoh(kunci: str, kandidat: Sequence[Pengecoh]) -> Tuple[Pengecoh, ...]:
+    """Tiga pengecoh pertama yang sah dari `kandidat` (urut prioritas kesalahan paling khas).
+
+    Membuang kandidat yang sama dengan kunci atau kembar (setelah normalisasi); bila kunci berupa
+    angka, kandidat bukan bilangan bulat positif wajar juga dibuang. Kurang dari tiga ->
+    ParameterTidakSah, supaya parameter diulang dan pengecoh tidak pernah diisi angka sembarang.
+    """
+    terpakai = {_normal(kunci)}
+    hasil = []
+    for pengecoh in kandidat:
+        nilai = _normal(pengecoh.nilai)
+        if nilai in terpakai:
+            continue
+        if kunci.isdigit() and not (_POLA_BILANGAN_POSITIF.match(pengecoh.nilai)
+                                    and int(pengecoh.nilai) <= BATAS_NILAI):
+            continue
+        terpakai.add(nilai)
+        hasil.append(pengecoh)
+        if len(hasil) == JUMLAH_PENGECOH:
+            return tuple(hasil)
+    raise ParameterTidakSah(f"pengecoh sah kurang dari {JUMLAH_PENGECOH} untuk kunci {kunci!r}")
+
+
+def gambar_pilihan(soal: SoalLomba, pilihan: Tuple[str, ...]) -> Tuple[str, ...]:
+    """SVG tiap pilihan menurut urutan `pilihan` (hasil susun_pilihan); "" bila pilihan teks."""
+    peta = {pengecoh.nilai: pengecoh.svg for pengecoh in soal.pengecoh}
+    peta[soal.kunci] = soal.kunci_svg
+    try:
+        return tuple(peta[nilai] for nilai in pilihan)
+    except KeyError as galat:
+        raise ValueError(f"pilihan bukan milik soal: {galat.args[0]!r}") from galat
 
 
 def posisi_seimbang(jumlah: int, rng: random.Random) -> Tuple[int, ...]:

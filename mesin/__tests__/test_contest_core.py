@@ -13,7 +13,7 @@ SVG_SAH = (
 
 def _pg(**ubah):
     dasar = dict(
-        template_id="uji_pg", topik="operasi", jenis=C.JENIS_PG, tingkat=1,
+        template_id="ops_uji_pg", topik="operasi", jenis=C.JENIS_PG, tingkat=1,
         teks="Berapa hasilnya?", svg="", kunci="8",
         pengecoh=(C.Pengecoh("7", "salah hitung"), C.Pengecoh("9", "lupa kurang"),
                   C.Pengecoh("10", "salah tambah")),
@@ -26,7 +26,7 @@ def _pg(**ubah):
 
 def _isian(**ubah):
     dasar = dict(
-        template_id="uji_isian", topik="bilangan", jenis=C.JENIS_ISIAN, tingkat=2,
+        template_id="bil_uji_isian", topik="bilangan", jenis=C.JENIS_ISIAN, tingkat=2,
         teks="Ada berapa?", svg="", kunci="5", pengecoh=(),
         pembahasan=("Hitung satu per satu.",), parameter=C.kanonik({"k": 5}), nilai=5,
     )
@@ -218,7 +218,7 @@ def _template(**ubah):
     def verifikator(parameter):
         return "8"
 
-    dasar = dict(id="uji_pg", topik="operasi", jenis=C.JENIS_PG, tingkat=1,
+    dasar = dict(id="ops_uji_pg", topik="operasi", jenis=C.JENIS_PG, tingkat=1,
                  sampler=sampler, bangun=bangun, verifikator=verifikator)
     dasar.update(ubah)
     return C.Template(**dasar)
@@ -231,7 +231,7 @@ def registri_kosong(monkeypatch):
 
 def test_daftarkan_lalu_ambil_dan_semua(registri_kosong):
     template = C.daftarkan(_template())
-    assert C.ambil("uji_pg") is template
+    assert C.ambil("ops_uji_pg") is template
     assert C.semua() == (template,)
 
 
@@ -265,7 +265,7 @@ def test_buat_soal_mengulang_parameter_saat_tidak_sah():
         return {"a": 1}
 
     soal = C.buat_soal(_template(sampler=sampler), random.Random(1))
-    assert panggilan["n"] == 3 and soal.template_id == "uji_pg"
+    assert panggilan["n"] == 3 and soal.template_id == "ops_uji_pg"
 
 
 def test_buat_soal_gagal_setelah_batas_percobaan():
@@ -298,3 +298,124 @@ def test_buat_soal_menolak_parameter_soal_yang_bukan_hasil_sampler():
 
     with pytest.raises(ValueError):
         C.buat_soal(_template(bangun=bangun), random.Random(1))
+
+
+# --- pilihan bergambar, pengecoh angka, dan awalan id --------------------------------
+
+def _svg(label):
+    return SVG_SAH.replace("Gambar benda", label)
+
+
+def _pg_gambar(**ubah):
+    dasar = dict(
+        kunci="lingkaran", nilai=None, kunci_svg=_svg("Bentuk bulat"),
+        pengecoh=(C.Pengecoh("persegi", "x", _svg("Bentuk kotak")),
+                  C.Pengecoh("segitiga", "y", _svg("Bentuk runcing")),
+                  C.Pengecoh("belah ketupat", "z", _svg("Bentuk miring"))),
+    )
+    dasar.update(ubah)
+    return _pg(**dasar)
+
+
+def test_pg_dengan_pilihan_gambar_lolos_validasi():
+    C.validasi_soal(_pg_gambar())
+
+
+def test_pilihan_gambar_sebagian_ditolak():
+    with pytest.raises(ValueError):
+        C.validasi_soal(_pg_gambar(kunci_svg=""))
+    with pytest.raises(ValueError):
+        C.validasi_soal(_pg_gambar(pengecoh=(
+            C.Pengecoh("persegi", "x", _svg("Bentuk kotak")),
+            C.Pengecoh("segitiga", "y", ""),
+            C.Pengecoh("belah ketupat", "z", _svg("Bentuk miring")))))
+
+
+def test_svg_pilihan_berbahaya_ditolak():
+    jahat = _svg("Bentuk bulat").replace("<rect", "<script>x()</script><rect")
+    with pytest.raises(ValueError):
+        C.validasi_soal(_pg_gambar(kunci_svg=jahat))
+
+
+def test_svg_pilihan_kembar_ditolak():
+    with pytest.raises(ValueError):
+        C.validasi_soal(_pg_gambar(kunci_svg=_svg("Bentuk kotak")))
+
+
+def test_isian_tidak_boleh_punya_gambar_pilihan():
+    with pytest.raises(ValueError):
+        C.validasi_soal(_isian(kunci_svg=_svg("Bentuk bulat")))
+
+
+@pytest.mark.parametrize("posisi", range(4))
+def test_gambar_pilihan_mengikuti_urutan_pilihan_yang_diacak(posisi):
+    soal = _pg_gambar()
+    pilihan = C.susun_pilihan(soal, posisi, random.Random(4))
+    gambar = C.gambar_pilihan(soal, pilihan)
+    assert gambar[posisi] == soal.kunci_svg
+    peta = {p.nilai: p.svg for p in soal.pengecoh}
+    peta[soal.kunci] = soal.kunci_svg
+    assert gambar == tuple(peta[nilai] for nilai in pilihan)
+
+
+def test_gambar_pilihan_untuk_pilihan_teks_semuanya_kosong():
+    soal = _pg()
+    assert C.gambar_pilihan(soal, C.susun_pilihan(soal, 1, random.Random(1))) == ("",) * 4
+
+
+def test_gambar_pilihan_menolak_pilihan_yang_bukan_milik_soal():
+    with pytest.raises(ValueError):
+        C.gambar_pilihan(_pg(), ("8", "7", "9", "99"))
+
+
+@pytest.mark.parametrize("buruk", ["0", "-2", "3,5", "abc", "07", str(C.BATAS_NILAI + 1)])
+def test_pengecoh_angka_wajib_bilangan_bulat_positif_wajar(buruk):
+    with pytest.raises(ValueError):
+        C.validasi_soal(_pg(pengecoh=(C.Pengecoh("7", "x"), C.Pengecoh("9", "y"),
+                                      C.Pengecoh(buruk, "z"))))
+
+
+def test_pg_berkunci_angka_wajib_membawa_nilai():
+    with pytest.raises(ValueError):
+        C.validasi_soal(_pg(kunci="8", nilai=None))
+
+
+def test_pg_nilai_wajib_sama_dengan_kunci():
+    with pytest.raises(ValueError):
+        C.validasi_soal(_pg(kunci="8", nilai=9))
+
+
+@pytest.mark.parametrize("ubah", [
+    dict(id="uji_pg"),                  # tanpa awalan topik
+    dict(id="bil_uji_pg"),              # awalan topik lain (topik operasi)
+    dict(id="ukur_uji_pg"),
+])
+def test_daftarkan_menolak_id_tanpa_awalan_topik_yang_benar(registri_kosong, ubah):
+    with pytest.raises(ValueError):
+        C.daftarkan(_template(**ubah))
+
+
+# --- ambil_pengecoh: satu cara menyaring kandidat untuk semua template ----------------
+
+def _kandidat(*nilai):
+    return [C.Pengecoh(n, f"salah {n}") for n in nilai]
+
+
+def test_ambil_pengecoh_mengambil_tiga_pertama_yang_sah_menurut_urutan_prioritas():
+    hasil = C.ambil_pengecoh("8", _kandidat("7", "9", "10", "11"))
+    assert [p.nilai for p in hasil] == ["7", "9", "10"]
+
+
+def test_ambil_pengecoh_membuang_kunci_kembar_dan_angka_tidak_wajar():
+    hasil = C.ambil_pengecoh("8", _kandidat("8", "7", "7", "0", "-1", "9", "x", "10"))
+    assert [p.nilai for p in hasil] == ["7", "9", "10"]
+
+
+def test_ambil_pengecoh_non_angka_membuang_kembar_setelah_normalisasi():
+    hasil = C.ambil_pengecoh("Rabu", _kandidat("rabu", "Selasa", " selasa", "Kamis", "Jumat"))
+    assert [p.nilai for p in hasil] == ["Selasa", "Kamis", "Jumat"]
+
+
+def test_ambil_pengecoh_kurang_dari_tiga_memicu_ulang_parameter():
+    with pytest.raises(C.ParameterTidakSah):
+        C.ambil_pengecoh("8", _kandidat("8", "7", "9"))
