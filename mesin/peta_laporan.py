@@ -46,6 +46,8 @@ COPY_KAKI = (
     "Laporan ini membantu memilih latihan yang tepat sasaran. Hasil latihan bisa berbeda pada tiap anak. "
     "Peringkat dihitung dari anak kelas %d yang sudah ikut Cek Jagomat, bukan seluruh anak kelas %d di Indonesia."
 )
+COPY_CHIP_TINJAU = "Ditinjau Guru"
+COPY_CHIP_BELUM_TINJAU = "Belum ditinjau Guru"
 COPY_KAKI_CONTOH = "Contoh dengan data sintetis, bukan hasil anak sungguhan. Laporan sungguhan berbeda untuk tiap anak."
 
 
@@ -85,10 +87,11 @@ def _hero(data, posisi, contoh: bool) -> str:
         '<div class="peta-maskot-st"><img id="peta-maskot" src="%s" alt="" width="%d" height="%d"></div>'
         '<div class="peta-hero-tengah-st"><p class="peta-gelembung-st" id="peta-gelembung" aria-live="polite">%s</p>'
         '<span class="peta-alis-st">Peta Kemampuan</span><%s id="peta-judul">Laporan %s · Kelas %d</%s>'
-        '<div class="peta-chips-st"><span class="peta-chip-st">%s Ditinjau Guru</span>'
+        '<div class="peta-chips-st"><span class="peta-chip-st">%s %s</span>'
         '<span class="peta-chip-st peta-chip-netral-st">%d soal · %s</span>%s</div></div>%s</section>'
     ) % (_doodle(), _aset("menyapa"), UKURAN_MASKOT, UKURAN_MASKOT, e(_TAB[0][4] % data.nama_anak), judul,
-         e(data.nama_anak), data.kelas, judul, ikon("cek", 16, "2.6"), data.jumlah_soal, e(tanggal_pendek(data.tanggal_cek)),
+         e(data.nama_anak), data.kelas, judul, ikon("cek", 16, "2.6"), COPY_CHIP_TINJAU if data.ditinjau else COPY_CHIP_BELUM_TINJAU,
+         data.jumlah_soal, e(tanggal_pendek(data.tanggal_cek)),
          chip_contoh, _kartu_skor(data, posisi))
 
 

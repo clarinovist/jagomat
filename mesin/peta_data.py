@@ -169,6 +169,8 @@ class LaporanPeta:
     lencana: Tuple[Lencana, ...]
     tantangan: Tantangan
     skor_pembanding: Tuple[int, ...]
+    # Tanpa nilai bawaan: pembuat laporan nyata harus menyatakan sendiri bahwa Guru sudah meninjau.
+    ditinjau: bool
 
     @property
     def jumlah_salah(self) -> int:
@@ -239,6 +241,8 @@ def periksa_konsisten(data: LaporanPeta) -> None:
     """ValueError bila angka atau rujukan di `data` tidak saling cocok; None bila sah."""
     if not 0 <= data.jumlah_benar <= data.jumlah_soal or data.jumlah_soal < 1:
         raise ValueError("jumlah soal/benar tidak sah")
+    if not data.ditinjau and data.catatan_guru.strip():
+        raise ValueError("catatan Guru tanpa tinjauan Guru")
     per_materi = _periksa_materi(data)
     per_pola = _periksa_pola(data, per_materi)
     _periksa_rujukan(data, per_materi, per_pola)

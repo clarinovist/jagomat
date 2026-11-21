@@ -87,7 +87,6 @@ COPY_PENGANTAR_PAKET = (
 COPY_PAKET_ISI = (
     "Laporan lengkap yang dibaca guru: penguasaan per materi, pola kesalahan, dan urutan belajar yang paling perlu dulu",
     "Ngobrol 20 menit dengan guru tentang cara berpikir anak dan apa yang bisa dilatih",
-    "Latihan 30 hari untuk satu anak, siap dipakai di rumah",
     "Rp49.000 jadi voucher program belajar bila Anda lanjut",
 )
 COPY_TIDAK_WAJIB_KELAS = (

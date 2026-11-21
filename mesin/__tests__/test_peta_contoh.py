@@ -208,6 +208,30 @@ def test_cek_ulang_bagian_kelas_dan_tidak_wajib_dengan_bingkai_baru():
     assert "Minggu 1–3 bisa Anda mulai sendiri" in isi
 
 
+def test_chip_ditinjau_guru_mengikuti_data_bukan_statis():
+    # Audit 21 Nov 2026: chip "Ditinjau Guru" tidak boleh tampil bila tinjauan belum ada di data.
+    belum = dataclasses.replace(DATA_CONTOH, ditinjau=False, catatan_guru="")
+    ada = _laporan(DATA_CONTOH)
+    tidak = _laporan(belum)
+    assert "Ditinjau Guru</span>" in ada and "Belum ditinjau Guru</span>" not in ada
+    assert "Ditinjau Guru</span>" not in tidak and "Belum ditinjau Guru</span>" in tidak
+
+
+def test_lembar_tidak_mengklaim_tinjauan_bila_belum_ditinjau():
+    belum = dataclasses.replace(DATA_CONTOH, ditinjau=False, catatan_guru="")
+    ada = peta_lembar.render_lembar(DATA_CONTOH, contoh=True)
+    tidak = peta_lembar.render_lembar(belum, contoh=True)
+    assert "yang ditinjau Guru" in ada and "Ditinjau oleh" in ada
+    assert "yang ditinjau Guru" not in tidak and "Ditinjau oleh" not in tidak
+    assert "Belum ditinjau Guru" in tidak
+
+
+def test_periksa_konsisten_menolak_catatan_guru_tanpa_tinjauan():
+    with pytest.raises(ValueError, match="tinjauan"):
+        periksa_konsisten(dataclasses.replace(DATA_CONTOH, ditinjau=False))
+    periksa_konsisten(dataclasses.replace(DATA_CONTOH, ditinjau=False, catatan_guru=""))
+
+
 def test_laporan_nyata_tanpa_cta_contoh_dan_tautan_lembar():
     isi = _laporan(contoh=False)
     assert 'href="/daftar?jalur=cek"' not in isi and "/contoh-peta-kemampuan/lembar" not in isi

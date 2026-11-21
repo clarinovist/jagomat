@@ -35,6 +35,8 @@ COPY_BATAS = (
 )
 COPY_SINTETIS = "Contoh dengan data sintetis, bukan hasil anak sungguhan."
 JUDUL_DOKUMEN = "Lembar Hasil Peta Kemampuan"
+COPY_RINGKASAN_TINJAU = "Ringkasan satu halaman dari cek matematika yang ditinjau Guru."
+COPY_RINGKASAN_BELUM = "Ringkasan satu halaman dari cek matematika. Belum ditinjau Guru."
 _DOODLE = ((1, 2, 30, -10, "+"), (60, 8, 28, 12, "×"), (82, 1, 26, 0, "÷"), (44, 58, 26, -8, "½"))
 
 
@@ -45,18 +47,19 @@ def _doodle() -> str:
     return '<div class="peta-l-doodle-st" aria-hidden="true">%s</div>' % span
 
 
-def _kop() -> str:
+def _kop(ditinjau: bool) -> str:
     return (
         '<header class="peta-l-kop-st">%s<div><span class="peta-l-logo-kotak-st"><img src="%s" alt="Jagomat" width="249" height="48"></span>'
-        '<h1>%s</h1><p>Ringkasan satu halaman dari cek matematika yang ditinjau Guru.</p></div>'
+        '<h1>%s</h1><p>%s</p></div>'
         '<img src="%s" alt="" width="78" height="78"></header>'
-    ) % (_doodle(), JALUR_LOGO, e(JUDUL_DOKUMEN), JALUR_MASKOT)
+    ) % (_doodle(), JALUR_LOGO, e(JUDUL_DOKUMEN), e(COPY_RINGKASAN_TINJAU if ditinjau else COPY_RINGKASAN_BELUM), JALUR_MASKOT)
 
 
 def _kotak_data(data) -> str:
     kolom = (
         ("Nama anak", data.nama_anak), ("Kelas", "%d SD" % data.kelas), ("Tanggal cek", tanggal_pendek(data.tanggal_cek)),
-        ("Soal", "%d soal" % data.jumlah_soal), ("Ditinjau oleh", data.guru.nama),
+        ("Soal", "%d soal" % data.jumlah_soal),
+        ("Ditinjau oleh", data.guru.nama) if data.ditinjau else ("Peninjauan", "Belum ditinjau Guru"),
     )
     isi = "".join("<div><small>%s</small><b>%s</b></div>" % (e(k), e(v)) for k, v in kolom)
     return '<section class="peta-l-data-st" aria-label="Data cek">%s</section>' % isi
@@ -171,7 +174,7 @@ def render_lembar(data, *, contoh: bool) -> str:
     posisi = hitung_posisi(data.skor, data.skor_pembanding)
     return (
         '<main class="peta-l-hal-st">%s%s<div class="peta-l-dua-st">%s%s</div>%s%s%s%s%s</main>'
-    ) % (_kop(), _kotak_data(data), _kartu_hasil(data, posisi), _kartu_materi(data), _temuan(data), _resep(data),
+    ) % (_kop(data.ditinjau), _kotak_data(data), _kartu_hasil(data, posisi), _kartu_materi(data), _temuan(data), _resep(data),
          _misi(data), _catatan(data), _kaki(data, contoh))
 
 

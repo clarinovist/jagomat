@@ -202,6 +202,7 @@ DATA_CONTOH = LaporanPeta(
         kata_maskot="Hebat! Itu dia caranya: pilih operasinya dulu, baru menghitung.",
     ),
     skor_pembanding=bangun_pembanding_contoh(),
+    ditinjau=True,
 )
 
 periksa_konsisten(DATA_CONTOH)

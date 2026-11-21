@@ -201,3 +201,12 @@ def test_markup_halaman_tanpa_hex_literal_dan_kelas_funnel_terdefinisi():
         assert not re.findall(r"#[0-9a-fA-F]{3,8}\b(?![\w-])", re.sub(r'href="#[\w-]+"', "", badan))
         for kelas in set(re.findall(r"funnel-[a-z-]+-st", badan)):
             assert f".{kelas}" in funnel_style.GAYA_FUNNEL, kelas
+
+
+def test_isi_paket_tidak_menjanjikan_latihan_30_hari_yang_belum_ada():
+    # Audit 21 Nov 2026: tidak ada akses/kode latihan 30 hari; janji yang belum bisa dipenuhi tidak dipajang.
+    for butir in funnel_pages.COPY_PAKET_ISI:
+        assert "30 hari" not in butir
+    halaman = funnel_pages.halaman_paket_coba().decode("utf-8")
+    assert "Latihan 30 hari" not in halaman
+
