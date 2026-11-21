@@ -7,6 +7,12 @@ adalah SATU elemen `<image>` dengan `href` ke aset terdaftar
 dengan jumlah benda pada kategori itu. Judul dan uraian aksesibel menyebut nama
 baris, tidak pernah banyak ikon atau jawaban. Informasi hanya dibawa jumlah elemen
 dan label teks, bukan warna.
+
+Bila `satuan_ikon` > 1 (satu gambar mewakili beberapa benda, P2) legenda teks
+"Satu gambar mewakili N benda." tampil di atas semua baris, DI LUAR `<g class="baris-adegan">`
+sehingga tidak ikut terhitung sebagai ikon atau label baris; jumlah `<image>` per baris
+tetap sama dengan banyak gambar, dan nilai benda = banyak gambar x `satuan_ikon`.
+Dengan `satuan_ikon` 1 keluaran sama persis dengan sebelum ada legenda.
 """
 from __future__ import annotations
 
@@ -16,7 +22,7 @@ from typing import Any
 
 import design_tokens as T
 from adegan_awal_dasar_svg import (
-    bungkus_svg, daftar_nama, garis_pemisah, jalur_ikon, label_sejajar, potong_label,
+    bungkus_svg, daftar_nama, garis_pemisah, jalur_ikon, label_sejajar, potong_label, teks_label,
 )
 from adegan_awal_data import validasi_adegan_awal
 from adegan_awal_turus_svg import render_turus, ringkasan_turus
@@ -56,8 +62,23 @@ def _baris(isi: Mapping[str, Any], atas: int) -> tuple:
     return markup, tinggi
 
 
-def _semua_baris(baris) -> tuple:
-    atas, bagian = T.ADEGAN_MARGIN, []
+def _teks_satuan(satuan: int) -> str:
+    return f"Satu gambar mewakili {satuan} benda."
+
+
+def _legenda(satuan: int) -> tuple:
+    """Legenda skala (markup, tinggi); kosong bila satu gambar = satu benda."""
+    if satuan == 1:
+        return "", 0
+    tinggi = T.ADEGAN_FONT + 2 * T.ADEGAN_JEDA_BARIS  # ruang untuk turun-huruf sebelum garis
+    teks = teks_label(_teks_satuan(satuan), T.ADEGAN_MARGIN, T.ADEGAN_MARGIN + T.ADEGAN_FONT,
+                      satu_baris=True)
+    garis = garis_pemisah(T.ADEGAN_MARGIN + tinggi - T.ADEGAN_JEDA_BARIS // 2)
+    return '<g class="legenda-adegan">' + teks + garis + "</g>", tinggi
+
+
+def _semua_baris(baris, atas_awal: int = T.ADEGAN_MARGIN) -> tuple:
+    atas, bagian = atas_awal, []
     for isi in baris:
         markup, tinggi = _baris(isi, atas)
         bagian.append(markup)
@@ -65,16 +86,19 @@ def _semua_baris(baris) -> tuple:
     return "".join(bagian), atas
 
 
-def _uraian(baris) -> str:
-    return (
+def _uraian(baris, satuan: int = 1) -> str:
+    dasar = (
         f"Satu baris gambar untuk tiap kategori: {daftar_nama([isi['nama'] for isi in baris])}. "
         "Hitung gambar pada baris yang ditanyakan."
     )
+    return dasar if satuan == 1 else f"{dasar} {_teks_satuan(satuan)}"
 
 
 def _render_deret_ikon(data: Mapping[str, Any], namespace: str) -> str:
-    isi, tinggi = _semua_baris(data["baris"])
-    return bungkus_svg(namespace, tinggi, _JUDUL, _uraian(data["baris"]), isi)
+    satuan = data["satuan_ikon"]
+    legenda, tinggi_legenda = _legenda(satuan)
+    isi, tinggi = _semua_baris(data["baris"], T.ADEGAN_MARGIN + tinggi_legenda)
+    return bungkus_svg(namespace, tinggi, _JUDUL, _uraian(data["baris"], satuan), legenda + isi)
 
 
 def _ringkasan_deret_ikon(data: Mapping[str, Any]) -> str:

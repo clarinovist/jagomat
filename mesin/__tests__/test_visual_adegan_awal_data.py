@@ -110,7 +110,8 @@ def test_banyak_baris_dua_sampai_empat_diterima(banyak):
 
 
 @pytest.mark.parametrize("ubah", (
-    {"adegan": "deret_titik"}, {"adegan": None}, {"satuan_ikon": 2},
+    {"adegan": "deret_titik"}, {"adegan": None}, {"satuan_ikon": 0}, {"satuan_ikon": 3},
+    {"satuan_ikon": -1}, {"satuan_ikon": 2.0}, {"satuan_ikon": "2"}, {"satuan_ikon": None},
     {"satuan_ikon": True}, {"satuan_ikon": 1.0}, {"baris": "Bola"},
     {"baris": None}, {"tanya": None}, {"tanya": "baca"},
 ))

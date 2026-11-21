@@ -24,7 +24,7 @@ TOPIK = "matematika-awal"
 LEVEL_JENIS = {
     "kenali_bentuk": ("P1", "P2"),
     "ukur_satuan_tak_baku": ("P1",),
-    "baca_diagram_gambar": ("P1",),
+    "baca_diagram_gambar": ("P1", "P2"),
     "bilang_benda_awal": ("P1",),
     "tambah_kurang_20": ("P1",),
     "pola_posisi": ("P2",),

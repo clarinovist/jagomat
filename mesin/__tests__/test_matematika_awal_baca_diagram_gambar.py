@@ -128,13 +128,14 @@ def test_sapuan_sampler_seed_semua_anggota_domain():
     assert dilihat == set(VARIAN)
 
 
-def test_level_di_luar_p1_ditolak():
-    for level in ("P2", "P3", "", "p1", None):
-        with pytest.raises(ValueError, match="harus P1"):
+def test_level_di_luar_p1_dan_p2_ditolak():
+    # Disesuaikan saat P2 ditambah (P2 kini sah; uji P2 ada di test_matematika_awal_baca_diagram_gambar_p2).
+    for level in ("P3", "P4", "", "p1", None):
+        with pytest.raises(ValueError, match="harus P1 atau P2"):
             modul.domain_parameter(level)
-        with pytest.raises(ValueError, match="harus P1"):
+        with pytest.raises(ValueError, match="harus P1 atau P2"):
             modul.parameter(random.Random(0), level)
-    assert modul.LEVEL == ("P1",)
+    assert modul.LEVEL == ("P1", "P2")
 
 
 # ── kunci dan solver ─────────────────────────────────────────────────────

@@ -25,7 +25,7 @@ ADEGAN_DIDUKUNG = ("deret_ikon", "turus", "pita_ukur")
 BARIS_MIN, BARIS_MAKS = 2, 4
 JUMLAH_MIN, JUMLAH_MAKS = 0, 12
 PANJANG_NAMA_MAKS = 24
-SATUAN_IKON_V1 = 1
+SATUAN_IKON_DIDUKUNG = (1, 2)  # benda per ikon; 2 hanya untuk soal skala 2 (P2)
 VARIAN_TANYA = ("baca", "terbanyak", "selisih", "jumlah")
 TURUS_MIN, TURUS_MAKS = 1, 12
 SATUAN_UKUR = ("klip", "ubin", "balok")
@@ -133,8 +133,9 @@ def _validasi_tanya(tanya: Any, banyak: int) -> None:
 def _validasi_deret_ikon(data: Mapping[str, Any]) -> None:
     _field_tepat(data, _FIELD_ADEGAN, "adegan_awal")
     banyak = _daftar_baris(data["baris"])
-    if type(data["satuan_ikon"]) is not int or data["satuan_ikon"] != SATUAN_IKON_V1:
-        raise ValueError(f"satuan_ikon v1 wajib {SATUAN_IKON_V1}")
+    satuan = data["satuan_ikon"]
+    if type(satuan) is not int or satuan not in SATUAN_IKON_DIDUKUNG:
+        raise ValueError(f"satuan_ikon wajib salah satu dari {SATUAN_IKON_DIDUKUNG}")
     _validasi_tanya(data["tanya"], banyak)
 
 
