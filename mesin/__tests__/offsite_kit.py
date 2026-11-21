@@ -22,8 +22,8 @@ ENV_RAHASIA = "rahasiaUnikSintetis/Zy9+Xw8vUt7sRq6pOn5mLk4j"
 UMUR_JAM = 3600
 
 
-def buat_pasangan_kunci(direktori: Path, bit: int = 2048):
-    """Kunci RSA sementara via openssl; kembalikan (privat, publik)."""
+def buat_pasangan_kunci(direktori: Path, bit: int = 3072):
+    """Kunci RSA sementara via openssl (bawaan 3072 bit: batas minimum skrip); (privat, publik)."""
     privat, publik = direktori / "privat.pem", direktori / "publik.pem"
     subprocess.run(["openssl", "genpkey", "-algorithm", "RSA", "-pkeyopt",
                     f"rsa_keygen_bits:{bit}", "-out", str(privat)],

@@ -170,3 +170,32 @@ def test_nama_tambahan_tidak_boleh_menimpa_berkas_wajib(tmp_path):
 
 def test_bawaan_menyertakan_daftar_pendaftaran_kelas():
     assert ("kelas-daftar.db", "/var/lib/kelas-daftar/daftar.db") in backup.TAMBAHAN
+
+
+def _manifest_dengan_nama(tmp_path, nama):
+    """Bundle sah + satu entri tambahan bernama `nama` yang hash/ukurannya cocok dengan berkas nyata."""
+    data = _data(tmp_path)
+    hasil = backup.cadangkan(data, tmp_path / "backup", wajib=("latihan.db",), sekarang=100)
+    luar = hasil.parent / "luar.txt"
+    luar.write_bytes(b"isi-di-luar-bundle")
+    (hasil / "sub").mkdir()
+    (hasil / "sub" / "x.txt").write_bytes(b"isi-di-luar-bundle")
+    entri = {"nama": nama, "sha256": hashlib.sha256(b"isi-di-luar-bundle").hexdigest(),
+             "ukuran": len(b"isi-di-luar-bundle"), "user_version": None}
+    manifest = json.loads((hasil / "manifest.json").read_text(encoding="utf-8"))
+    manifest["berkas"].append(entri)
+    (hasil / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    return hasil, luar
+
+
+@pytest.mark.parametrize("nama", ["../luar.txt", "ABSOLUT", "sub/x.txt", "", ".", "..", 5, None],
+                         ids=["naik", "absolut", "subdir", "kosong", "titik", "titik2", "int", "none"])
+def test_validasi_menolak_nama_berkas_manifest_yang_bukan_nama_polos(tmp_path, nama):
+    hasil, luar = _manifest_dengan_nama(tmp_path, nama)
+    if nama == "ABSOLUT":
+        manifest = json.loads((hasil / "manifest.json").read_text(encoding="utf-8"))
+        manifest["berkas"][-1]["nama"] = str(luar)
+        (hasil / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        backup.validasi(hasil)

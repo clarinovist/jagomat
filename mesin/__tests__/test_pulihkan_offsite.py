@@ -10,7 +10,8 @@ import pytest
 
 from offsite_kit import (ENV_AKSES, ENV_RAHASIA, buat_bundle, buat_pasangan_kunci,
                          hash_pohon, tulis_env)
-from s3_tiruan_kit import S3Tiruan
+from offsite_lingkungan import (_lingkungan_uji, kunci, kunci_lain, paket, pulihkan,  # noqa: F401
+                                s3, simpan_objek, unggah)
 
 import backup_offsite_vps as vps  # noqa: E402
 import offsite_kripto  # noqa: E402
@@ -18,58 +19,12 @@ import pulihkan_offsite as pulih  # noqa: E402
 
 CANDIDATE_OPENSSL = ("/usr/bin/openssl", "/opt/homebrew/bin/openssl")
 
-
-@pytest.fixture(autouse=True)
-def _tanpa_jeda_ulang(monkeypatch):
-    monkeypatch.setattr(vps.r2_s3, "JEDA_ULANG_DETIK", (0.0, 0.0))
-
-
-@pytest.fixture(scope="module")
-def kunci(tmp_path_factory):
-    return buat_pasangan_kunci(tmp_path_factory.mktemp("kunci"))
-
-
-@pytest.fixture(scope="module")
-def kunci_lain(tmp_path_factory):
-    return buat_pasangan_kunci(tmp_path_factory.mktemp("kunci-lain"))
-
-
-@pytest.fixture()
-def s3():
-    with S3Tiruan(akses=ENV_AKSES, rahasia=ENV_RAHASIA) as server:
-        yield server
+_pulihkan = pulihkan
+_simpan_objek = simpan_objek
 
 
 def _unggah(tmp_path, s3, publik, capsys, *tambahan, bundle=None):
-    bundle = bundle or buat_bundle(tmp_path)
-    argv = ["--env", str(tulis_env(tmp_path / "r2.env")), "--kunci-publik", str(publik),
-            "--bundle-dir", str(bundle.parent), "--penanda", str(tmp_path / "ok"),
-            "--endpoint", s3.url, "--uji-lewati-pemilik-env", *tambahan]
-    assert vps.main(argv) == 0, capsys.readouterr().err
-    capsys.readouterr()
-    return bundle
-
-
-def _simpan_objek(s3, id_bundle, tujuan: Path) -> Path:
-    tujuan.mkdir(parents=True, exist_ok=True)
-    for nama in offsite_kripto.NAMA_OBJEK:
-        (tujuan / nama).write_bytes(s3.objek[f"vps/{id_bundle}/{nama}"][0])
-    return tujuan
-
-
-@pytest.fixture()
-def paket(tmp_path, s3, kunci, capsys):
-    bundle = _unggah(tmp_path, s3, kunci[1], capsys)
-    return {"bundle": bundle, "id": bundle.name, "dir": _simpan_objek(s3, bundle.name, tmp_path / "unduhan"),
-            "tujuan": tmp_path / "pulih", "privat": kunci[0], "tmp": tmp_path, "s3": s3}
-
-
-def _pulihkan(p, capsys, *tambahan, privat=None, tujuan=None):
-    argv = ["--id", p["id"], "--dari-direktori", str(p["dir"]),
-            "--kunci-privat", str(privat or p["privat"]), "--tujuan", str(tujuan or p["tujuan"]), *tambahan]
-    kode = pulih.main(argv)
-    keluar = capsys.readouterr()
-    return kode, keluar.out, keluar.err
+    return unggah(tmp_path, s3, publik, capsys, *tambahan, bundle=bundle)[0]
 
 
 def test_roundtrip_dari_direktori_bundle_identik_byte_per_byte(paket, capsys):
@@ -130,7 +85,7 @@ def test_penyerang_menulis_ulang_meta_ditolak_oleh_mac_sebelum_dekripsi(paket, c
     meta["sha256"] = offsite_kripto.sha256_berkas(data)  # sha & ukuran dibuat cocok lagi
     (paket["dir"] / "meta.json").write_text(json.dumps(meta))
 
-    kode, _, err = _pulihkan(paket, capsys)
+    kode, _, err = _pulihkan(paket, capsys, harapan=False)  # jalur MAC internal
 
     assert kode == 1 and "MAC" in err
     assert not dipanggil and not paket["tujuan"].exists()
@@ -142,7 +97,7 @@ def test_mac_dirusak_satu_bit_ditolak(paket, capsys, monkeypatch):
     meta["mac"] = ("0" if meta["mac"][0] != "0" else "1") + meta["mac"][1:]
     (paket["dir"] / "meta.json").write_text(json.dumps(meta))
 
-    kode, _, err = _pulihkan(paket, capsys)
+    kode, _, err = _pulihkan(paket, capsys, harapan=False)  # jalur MAC internal
 
     assert kode == 1 and "MAC" in err and not dipanggil and not paket["tujuan"].exists()
 

@@ -229,51 +229,95 @@ ada sampai jalur ini terbukti di produksi.
 
 - **Arsitektur**: `scripts/backup_offsite_vps.py` (root, cron terpisah setelah
   backup 21:45) memilih bundle terbaru, menolaknya bila lebih tua dari 26 jam atau
-  tak lolos `backup_harian.validasi`, lalu tar.gz, enkripsi AES-256-CBC
-  (PBKDF2 200.000, sandi sesi acak 256 bit), membungkus sandi sesi dengan
-  **RSA-OAEP SHA-256 memakai kunci publik**, HMAC-SHA256, dan unggah ke R2.
-  Pasang berdampingan di `/opt/osn/backup-harian/`: `backup_offsite_vps.py`,
-  `offsite_kripto.py`, `r2_s3.py`, `backup_harian.py` (klien S3 SigV4 stdlib, tanpa
-  dependency; hanya butuh biner `openssl`).
+  tak lolos `backup_harian.validasi`, lalu tar.gz (hanya berkas yang tercantum di
+  manifest, dibuka `O_NOFOLLOW`), enkripsi AES-256-CBC (PBKDF2 200.000, sandi sesi
+  acak 256 bit), membungkus sandi sesi dengan **RSA-OAEP SHA-256 memakai kunci
+  publik** (wajib RSA >= 3072 bit; kunci non-RSA, lebih kecil, atau kunci privat
+  ditolak), HMAC-SHA256, dan unggah ke R2. Pasang berdampingan di
+  `/opt/osn/backup-harian/`: `backup_offsite_vps.py`, `offsite_kripto.py`,
+  `offsite_kerja.py`, `offsite_retensi.py`, `offsite_penanda.py`, `r2_s3.py`,
+  `backup_harian.py` (klien S3 SigV4 stdlib, tanpa dependency; hanya butuh biner
+  `openssl`).
 - **Objek** di `vps/<id>/`: `data.enc`, `kunci.enc`, `meta.json` (id, ukuran, sha256,
-  mac, parameter algoritma; tanpa nama berkas isi bundle). Urutan unggah: data,
-  kunci, meta terakhir. Penanda `/opt/osn/log/offsite-vps.last-ok` (stempel WIB + id)
-  ditulis hanya setelah semua objek terunggah dan terverifikasi lewat List (ukuran
-  sama). Retensi `--retensi-hari` (30) hanya menghapus set `vps/<id>/` yang seluruh
-  objeknya lebih tua dari batas, berdasarkan LastModified; prefix lain (mis.
-  `harian/` milik jalur Mac) tidak disentuh. Keluar 0 sukses, 1 gagal, 3 set
-  baru terunggah dan terverifikasi tetapi retensi gagal; pada kode non-nol penanda
-  lama tidak diubah (urutan: unggah, verifikasi, retensi, penanda).
+  mac, sidik jari SHA-256 kunci publik, parameter algoritma; tanpa nama berkas isi
+  bundle). Sebelum unggah skrip melakukan List `vps/<id>/`: bila ketiga objek sudah
+  ada, unggahan DILEWATI (ringkasan `sudah_ada: true`); bila hanya sebagian (sisa
+  unggahan terputus), diunggah ulang dengan urutan data, kunci, **meta terakhir**
+  (`meta.json` lama dihapus lebih dulu agar set tak tampak lengkap selama ditimpa).
+  Set tanpa `meta.json` dianggap tidak lengkap dan ditolak pemulihan.
+- **Penanda ganda** (urutan: unggah + verifikasi List -> tulis `last-ok` -> retensi ->
+  tulis `retention-ok` hanya bila retensi sukses). Keduanya ditulis lewat berkas
+  sementara acak (`mkstemp`, fsync, 0644, `os.replace`) sehingga symlink yang
+  ditanam tidak diikuti. `/opt/osn/log/offsite-vps.last-ok`: `<stempel WIB> <id>
+  mac=<hex> sha256=<hex> kunci=<hex>`, ditulis setelah semua objek terunggah dan
+  terverifikasi (ukuran sama), TIDAK diubah mundur bila retensi gagal.
+  `/opt/osn/log/offsite-vps.retention-ok` (`--penanda-retensi`): `<stempel> <id>
+  terhapus=<n>`; penanda lama dibiarkan bila retensi gagal. Untuk set yang
+  dilewati (`sudah_ada`), mac/sha256 hanya dipertahankan bila `last-ok` lama
+  bernomor id yang sama; selain itu ditulis `-` (tidak pernah disalin dari
+  `meta.json` di R2 yang tidak tepercaya).
+- **Retensi** (`--retensi-hari`, 30): hanya set `vps/<id>/` yang seluruh objeknya
+  lebih tua dari batas menurut LastModified; prefix lain (mis. `harian/` milik jalur
+  Mac) tidak disentuh. Pagar terhadap jam VPS yang salah: (1) `--simpan-minimal`
+  (7) set lengkap terbaru selalu dijaga apa pun umurnya; (2) `--hapus-maks` (5):
+  bila kandidat hapus lebih dari itu, **tidak ada yang dihapus** dan skrip keluar
+  kode 3 dengan pesan jelas (periksa jam VPS). Set yang baru diunggah tidak pernah
+  dihapus. Keluar 0 sukses; 1 gagal sebelum/selama unggah (penanda tidak diubah);
+  3 set baru terunggah dan terverifikasi tetapi retensi gagal atau dibatalkan.
+  Retry 429 dan 5xx (3 percobaan, jeda 1 dan 2 detik); galat jaringan/TLS di log
+  hanya menyebut nama kelas galat.
 - **Keamanan**: VPS hanya memegang kunci PUBLIK (skrip tidak punya kode/argumen
   untuk kunci privat); data anak tidak pernah plaintext di luar VPS. Sandi sesi
-  hanya lewat berkas 0600 di direktori 0700 yang dihapus saat keluar, tidak lewat
-  argv/env. Kredensial R2 dari `/etc/osn/offsite-r2.env` (milik root, mode maksimal
-  0600; kunci `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
-  `R2_BUCKET`), tidak pernah dicetak. HMAC memberi integritas, **bukan bukti asal**:
-  siapa pun yang memegang kunci publik dan akses tulis bucket bisa membuat paket
-  yang lolos. Token R2 tidak bisa dibatasi per prefix: token VPS juga bisa menimpa
-  `harian/`; pakai bucket terpisah bila itu tak dapat diterima.
+  hanya lewat berkas 0600 di direktori 0700 yang dihapus saat keluar (kegagalan
+  hapus dicatat ke stderr; di awal run, sisa direktori `offsite-*` milik root, mode
+  0700, berumur > 1 hari di direktori sementara disapu), tidak lewat argv/env.
+  Kredensial R2 dari `/etc/osn/offsite-r2.env` (milik root, mode maksimal 0600; kunci
+  `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`), tidak
+  pernah dicetak. Respons XML R2 yang memuat `<!DOCTYPE`/`<!ENTITY` ditolak.
+- **Keterbatasan keaslian (penting)**: HMAC memberi integritas, **bukan bukti asal**.
+  Kunci publik memang publik; siapa pun yang memegang token R2 dengan akses tulis
+  dapat membuat set `vps/<id-baru>/` yang sah secara internal. Token R2 **tidak bisa
+  dibatasi per prefix**, jadi token VPS juga bisa menimpa/menghapus `harian/`.
+  Mitigasi: (a) pakai **bucket terpisah khusus VPS** dengan token yang hanya dipakai
+  VPS (token baca-saja untuk Mac di bucket yang sama), agar kebocoran token jalur
+  lain tidak mencapai set ini; (b) saat memulihkan, berikan `--mac-harapan` dan
+  `--sha256-harapan` yang dibaca dari sumber tepercaya di VPS: baris JSON terakhir
+  di `/opt/osn/log/offsite-vps.log` (bidang `mac`, `sha256`, `id`) atau
+  `/opt/osn/log/offsite-vps.last-ok` (untuk set terbaru). Tanpa keduanya pemulihan
+  tetap jalan tetapi mencetak peringatan bahwa keaslian TIDAK diverifikasi.
+  Sisa celah: pada set yang dilewati karena sudah ada tanpa riwayat penanda,
+  mac/sha256 tidak diketahui (`-`), jadi set itu tidak bisa diverifikasi; dan
+  penyerang yang bisa menanam set pada id yang BELUM dipakai VPS (id mengikuti
+  jam) hanya terdeteksi lewat perbandingan di atas.
 - **Pemulihan (Mac)**: `scripts/pulihkan_offsite.py --id <id> --env <env baca-saja>
-  --kunci-privat <pem> --tujuan <direktori baru>` (atau `--dari-direktori` untuk
-  berkas yang sudah diunduh). Urutan: cek ukuran+sha256 -> buka sandi sesi dengan
-  kunci privat -> **verifikasi HMAC sebelum dekripsi** -> dekripsi -> ekstraksi tar
-  aman -> `validasi` bundle -> rename atomik ke tujuan. Tujuan tak kosong ditolak.
+  --kunci-privat <pem> --tujuan <direktori baru> --mac-harapan <hex> --sha256-harapan
+  <hex>` (atau `--dari-direktori` untuk berkas yang sudah diunduh). Urutan: unduh
+  `meta.json` dulu dan validasi (tipe ketat), unduh `data.enc` dibatasi sebesar
+  `meta.ukuran` -> cocokkan mac/sha256 dengan nilai harapan -> cek ukuran+sha256 ->
+  buka sandi sesi dengan kunci privat -> **verifikasi HMAC sebelum dekripsi** ->
+  dekripsi -> ekstraksi tar aman (batas byte terdekompresi) -> `validasi` bundle ->
+  rename atomik ke tujuan. Hasil JSON memuat `kunci_publik_sha256` (cocokkan dengan
+  kunci yang Anda pegang) dan `keaslian_terverifikasi`. Tujuan tak kosong ditolak.
   Pakai openssl Homebrew bila `/usr/bin/openssl` (LibreSSL) bermasalah; keduanya lolos
   tes interop. Setelah itu lanjut ke "Restore dari backup harian".
 - **Kunci RSA** (contoh perintah, jalankan di Mac; JANGAN di VPS):
   `openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -aes-256-cbc -out jagomat-offsite-privat.pem`
   lalu `openssl pkey -in jagomat-offsite-privat.pem -pubout -out jagomat-offsite-publik.pem`.
-  Salin hanya `publik.pem` ke `/etc/osn/offsite-publik.pem` (0644).
+  Salin hanya `publik.pem` ke `/etc/osn/offsite-publik.pem` (0644). Skrip menolak
+  kunci publik RSA di bawah 3072 bit.
 - **Cron yang DIUSULKAN** (belum dipasang; `/etc/cron.d/osn-offsite-vps`):
-  `0 22 * * * root /usr/bin/python3 /opt/osn/backup-harian/backup_offsite_vps.py >> /opt/osn/log/offsite-vps.log 2>&1`
+  `0 22 * * * root /usr/bin/python3 -I /opt/osn/backup-harian/backup_offsite_vps.py >> /opt/osn/log/offsite-vps.log 2>&1`
+  (`-I` = mode terisolasi: abaikan env `PYTHON*` dan direktori kerja.)
   Hentikan job Hermes 22:00 hanya setelah drill pulihkan dari objek `vps/` lulus.
 - **PERINGATAN**: tanpa kunci privat, semua backup `vps/` tidak bisa dibuka. Simpan
   kunci privat (dan passphrase) dengan **salinan aman terpisah** (mis. pengelola
   sandi + media offline di tempat lain); jangan hanya di satu Mac. Uji pulihkan
   dengan kunci yang sama sebelum mengandalkan jalur ini.
-- **Belum terbukti tanpa R2 sungguhan**: perilaku ListObjectsV2 dan header yang
-  diterima/ditolak R2, token R2 yang dipakai, serta jalur passphrase interaktif.
-  Tes memakai server S3 tiruan lokal dan vektor resmi AWS SigV4.
+- **Belum terbukti tanpa R2/VPS sungguhan**: perilaku ListObjectsV2 dan header yang
+  diterima/ditolak R2 (termasuk 429 dan galat TLS nyata), token R2 yang dipakai,
+  jalur passphrase interaktif, pemilik/mode `/etc/osn/offsite-r2.env` dan sapuan
+  `offsite-*` sebagai root di `/tmp` VPS, serta cron `python3 -I` di Python 3.12 /
+  OpenSSL 3.0 VPS. Tes memakai server S3 tiruan lokal dan vektor resmi AWS SigV4.
 
 ## Yang tetap terbuka
 

@@ -31,7 +31,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   Sesi/transient bukan pengganti state durable; detail inventaris di runbook.
   `scripts/operational_backup.py` menambahkan envelope core+riset+lampiran
   (+ `sakelar.db`/`kurikulum.db`/`cetakan.db` opsional, manifest v2) saat quiescent dan transfer privat tervalidasi; `mesin/cadangkan.sh` fetch-only, tanpa prune.
-  Off-site dari VPS (kode, belum dipasang): `scripts/backup_offsite_vps.py` (enkripsi hibrida kunci publik, klien SigV4 `r2_s3.py`, format `offsite_kripto.py`) dan `scripts/pulihkan_offsite.py` (Mac, kunci privat); kunci dekripsi tidak pernah di VPS.
+  Off-site dari VPS (kode, belum dipasang): `scripts/backup_offsite_vps.py` (enkripsi hibrida kunci publik, klien SigV4 `r2_s3.py`, format `offsite_kripto.py`, retensi/penanda/tar `offsite_retensi.py`, `offsite_penanda.py`, `offsite_kerja.py`) dan `scripts/pulihkan_offsite.py` (Mac, kunci privat); kunci dekripsi tidak pernah di VPS.
 - Riset/materi historis di `../riset/referensi/`; bukan dependency runtime.
   DB, credential, `.venv`, cache, backup dan artefak privat tidak dilacak Git.
 

@@ -3,23 +3,30 @@
 
 Urutan (gagal di langkah mana pun = berhenti, tidak ada yang didekripsi):
 1. tujuan harus belum ada atau direktori kosong;
-2. ambil `data.enc`, `kunci.enc`, `meta.json` (unduh dari R2, atau
-   `--dari-direktori`); validasi ketat `meta.json`; cek ukuran + sha256;
+2. ambil `meta.json` DULU (unduh dari R2, atau `--dari-direktori`) dan validasi
+   ketat; lalu `data.enc` (dibatasi sebesar `meta.ukuran`) dan `kunci.enc`; set
+   tanpa meta dianggap tidak lengkap dan ditolak;
+2b. bandingkan `mac`/`sha256` meta dengan `--mac-harapan`/`--sha256-harapan` (nilai
+   dari log/penanda `offsite-vps.last-ok` di VPS, sumber TEPERCAYA; token R2 yang
+   bocor bisa menanam set palsu yang sah secara internal). Tanpa keduanya, keaslian
+   TIDAK diverifikasi dan peringatan dicetak ke stderr; cek ukuran + sha256;
 3. buka sandi sesi dengan kunci privat (`openssl pkeyutl -decrypt`, RSA-OAEP
    SHA-256); kunci privat hanya sebagai PATH, tidak pernah isinya di argv. Bila
    kunci privat berpassphrase, openssl akan menanyakannya di terminal;
 4. VERIFIKASI HMAC (`hmac.compare_digest`) SEBELUM dekripsi data;
-5. dekripsi, ekstraksi tar aman (hanya berkas/direktori biasa, tanpa
-   traversal/link/duplikat, tanpa `extractall`) ke direktori staging, validasi
+5. dekripsi, ekstraksi tar aman (batas byte terdekompresi; hanya berkas/direktori
+   biasa, tanpa traversal/link/duplikat, tanpa `extractall`) ke staging, validasi
    bundle dengan `backup_harian.validasi`, lalu rename atomik ke tujuan.
 
 Contoh:
     pulihkan_offsite.py --id 20261121-214501 --env ~/.config/jagomat-offsite/r2-baca.env \
-        --kunci-privat ~/jagomat-offsite-privat.pem --tujuan ~/pulih-20261121
+        --kunci-privat ~/jagomat-offsite-privat.pem --tujuan ~/pulih-20261121 \
+        --mac-harapan <mac dari penanda/log VPS> --sha256-harapan <sha256 dari penanda/log VPS>
 """
 from __future__ import annotations
 
 import argparse
+import gzip
 import hmac
 import json
 import os
@@ -29,7 +36,8 @@ import sqlite3
 import sys
 import tarfile
 import tempfile
-from typing import List, Optional
+from typing import List, Optional, Tuple
+import zlib
 
 _DIR = str(Path(__file__).resolve().parent)
 if _DIR not in sys.path:
@@ -37,17 +45,41 @@ if _DIR not in sys.path:
 
 import backup_harian  # noqa: E402
 import backup_offsite_vps as sisi_vps  # noqa: E402  (hanya muat_env/_buat_klien)
+import offsite_kerja  # noqa: E402
 import offsite_kripto as kripto  # noqa: E402
 import r2_s3  # noqa: E402
 
 BATAS_ENTRI = 10_000
 BATAS_BYTE = 8 * 1024 * 1024 * 1024
 BLOK = 1024 * 1024
+PESAN_TANPA_META = "set tidak lengkap: meta.json tidak ada (unggahan terputus atau dihapus)"
+BATAS_META = 64 * 1024
+BATAS_KUNCI_ENC = 16 * 1024  # RSA-OAEP: sebesar modulus (<= 8192 bit = 1 KiB)
+PERINGATAN_KEASLIAN = ("peringatan: keaslian paket TIDAK diverifikasi terhadap sumber tepercaya; "
+                       "beri --mac-harapan/--sha256-harapan dari penanda/log VPS "
+                       "(offsite-vps.last-ok)")
+
+
+def _id_sah(nilai: str) -> str:
+    if not kripto.POLA_ID.fullmatch(nilai):
+        raise argparse.ArgumentTypeError("id harus berformat YYYYMMDD-HHMMSS")
+    return nilai
+
+
+def _hex_sah(nilai: str) -> str:
+    if not kripto.POLA_HEX.fullmatch(nilai):
+        raise argparse.ArgumentTypeError("harus 64 karakter hex huruf kecil")
+    return nilai
 
 
 def buat_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    p.add_argument("--id", required=True, help="id bundle, format YYYYMMDD-HHMMSS (WIB)")
+    p.add_argument("--id", required=True, type=_id_sah,
+                   help="id bundle, format YYYYMMDD-HHMMSS (WIB)")
+    p.add_argument("--mac-harapan", type=_hex_sah,
+                   help="mac paket dari penanda/log VPS (sumber tepercaya); dicocokkan sebelum dekripsi")
+    p.add_argument("--sha256-harapan", type=_hex_sah,
+                   help="sha256 data.enc dari penanda/log VPS (sumber tepercaya)")
     p.add_argument("--kunci-privat", required=True, help="path PEM kunci privat (hanya path)")
     p.add_argument("--tujuan", required=True, help="direktori baru/kosong")
     p.add_argument("--dari-direktori", help="direktori berisi tiga objek (tanpa unduh)")
@@ -66,29 +98,59 @@ def periksa_tujuan(tujuan: Path) -> None:
         raise kripto.GalatKripto("tujuan harus belum ada atau direktori kosong")
 
 
-def sediakan_objek(a, kerja: Path) -> Path:
-    if a.dari_direktori:
-        return Path(a.dari_direktori)
-    if not a.env:
-        raise kripto.GalatKripto("beri --dari-direktori atau --env untuk mengunduh")
+def unduh_objek(a, kerja: Path) -> Tuple[Path, dict]:
+    """Unduh meta.json DULU; data.enc dibatasi sebesar meta.ukuran (server tak dipercaya)."""
     kredensial = sisi_vps.muat_env(a.env, lewati_pemilik=True)
     klien = sisi_vps._buat_klien(a, kredensial)
     unduhan = kerja / "unduhan"
     unduhan.mkdir(mode=0o700)
-    for nama in kripto.NAMA_OBJEK:
-        klien.ambil_objek(f"{kripto.PREFIKS}{a.id}/{nama}", unduhan / nama)
-    return unduhan
-
-
-def baca_objek(direktori: Path, id_bundle: str) -> dict:
-    for nama in kripto.NAMA_OBJEK:
-        if not (direktori / nama).is_file():
-            raise kripto.GalatKripto(f"objek tidak ada: {nama}")
+    awalan = f"{kripto.PREFIKS}{a.id}/"
     try:
-        meta = json.loads((direktori / "meta.json").read_text(encoding="utf-8"))
+        klien.ambil_objek(awalan + "meta.json", unduhan / "meta.json", maks_byte=BATAS_META)
+    except r2_s3.GalatS3 as galat:
+        if galat.status == 404:
+            raise kripto.GalatKripto(PESAN_TANPA_META) from galat
+        raise
+    meta = baca_meta(unduhan / "meta.json", a.id)
+    klien.ambil_objek(awalan + "data.enc", unduhan / "data.enc", maks_byte=meta["ukuran"])
+    klien.ambil_objek(awalan + "kunci.enc", unduhan / "kunci.enc", maks_byte=BATAS_KUNCI_ENC)
+    return unduhan, meta
+
+
+def sediakan_objek(a, kerja: Path) -> Tuple[Path, dict]:
+    if a.dari_direktori:
+        return Path(a.dari_direktori), baca_objek(Path(a.dari_direktori), a.id)
+    if not a.env:
+        raise kripto.GalatKripto("beri --dari-direktori atau --env untuk mengunduh")
+    return unduh_objek(a, kerja)
+
+
+def baca_meta(path: Path, id_bundle: str) -> dict:
+    try:
+        meta = json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError) as galat:
         raise kripto.GalatKripto("meta.json tidak terbaca") from galat
     return kripto.periksa_meta(meta, id_bundle)
+
+
+def baca_objek(direktori: Path, id_bundle: str) -> dict:
+    if not (direktori / "meta.json").is_file():
+        raise kripto.GalatKripto(PESAN_TANPA_META)
+    meta = baca_meta(direktori / "meta.json", id_bundle)
+    for nama in ("data.enc", "kunci.enc"):
+        if not (direktori / nama).is_file():
+            raise kripto.GalatKripto(f"objek tidak ada: {nama}")
+    return meta
+
+
+def periksa_harapan(meta: dict, mac_harapan: Optional[str], sha256_harapan: Optional[str]) -> bool:
+    """Cocokkan mac/sha256 dengan sumber tepercaya SEBELUM dekripsi; True bila ada yang diperiksa."""
+    for nama, harapan in (("mac", mac_harapan), ("sha256", sha256_harapan)):
+        if harapan is not None and not hmac.compare_digest(meta[nama], harapan):
+            raise kripto.GalatKripto(
+                f"{nama} paket tidak cocok dengan sumber tepercaya (--{nama}-harapan): "
+                "paket mungkin palsu atau bukan set yang dicatat VPS; tidak didekripsi")
+    return mac_harapan is not None or sha256_harapan is not None
 
 
 def periksa_ciphertext(data: Path, meta: dict) -> None:
@@ -114,7 +176,7 @@ def buka_sandi(openssl: str, kunci_privat: Path, kunci_enc: Path) -> str:
 
 
 def verifikasi_mac(sandi: str, meta: dict, data: Path) -> None:
-    hitung = kripto.hitung_mac(sandi, meta["id"], data)
+    hitung = kripto.hitung_mac(sandi, meta["id"], data, meta["kunci_publik_sha256"])
     if not hmac.compare_digest(hitung, meta["mac"]):
         raise kripto.GalatKripto("MAC tidak cocok: data/kunci dirusak atau dipalsukan; tidak didekripsi")
 
@@ -147,7 +209,22 @@ def periksa_anggota(anggota, id_bundle: str) -> None:
         raise kripto.GalatKripto("tar tidak aman: ukuran total melebihi batas")
 
 
+def periksa_ukuran_terdekompresi(tar_path: Path, batas: Optional[int] = None) -> None:
+    """Hitung byte hasil dekompresi (tanpa menyimpan) dan hentikan di `batas`: anti gzip-bomb."""
+    batas = BATAS_BYTE if batas is None else batas
+    total = 0
+    try:
+        with gzip.open(str(tar_path), "rb") as sumber:
+            for blok in iter(lambda: sumber.read(BLOK), b""):
+                total += len(blok)
+                if total > batas:
+                    raise kripto.GalatKripto("tar tidak aman: ukuran terdekompresi melebihi batas")
+    except (OSError, EOFError, zlib.error) as galat:
+        raise kripto.GalatKripto(f"tar tidak bisa dibaca: {type(galat).__name__}") from galat
+
+
 def ekstrak_aman(tar_path: Path, tujuan: Path, id_bundle: str) -> None:
+    periksa_ukuran_terdekompresi(tar_path)
     try:
         with tarfile.open(str(tar_path), "r:gz") as tar:
             anggota = tar.getmembers()
@@ -181,8 +258,10 @@ def pulihkan(a) -> dict:
     kerja = Path(tempfile.mkdtemp(prefix="pulihkan-", dir=a.tmp_dir))
     staging = Path(tempfile.mkdtemp(prefix=".pulihkan-", dir=str(tujuan.parent)))
     try:
-        objek = sediakan_objek(a, kerja)
-        meta = baca_objek(objek, a.id)
+        objek, meta = sediakan_objek(a, kerja)
+        terverifikasi = periksa_harapan(meta, a.mac_harapan, a.sha256_harapan)
+        if not terverifikasi:
+            print(PERINGATAN_KEASLIAN, file=sys.stderr)
         periksa_ciphertext(objek / "data.enc", meta)
         sandi = buka_sandi(a.openssl, Path(a.kunci_privat), objek / "kunci.enc")
         verifikasi_mac(sandi, meta, objek / "data.enc")
@@ -193,10 +272,12 @@ def pulihkan(a) -> dict:
         _validasi_hasil(staging, a.id)
         os.replace(staging, tujuan)
     finally:
-        shutil.rmtree(kerja, ignore_errors=True)
-        shutil.rmtree(staging, ignore_errors=True)
+        offsite_kerja.hapus_kerja(kerja)  # kegagalan dicatat ke stderr, tidak ditelan
+        offsite_kerja.hapus_kerja(staging)
     jumlah = sum(1 for p in (tujuan / a.id).rglob("*") if p.is_file())
-    return {"id": a.id, "tujuan": str(tujuan), "berkas": jumlah, "ok": True}
+    return {"id": a.id, "tujuan": str(tujuan), "berkas": jumlah, "ok": True,
+            "kunci_publik_sha256": meta["kunci_publik_sha256"],
+            "keaslian_terverifikasi": terverifikasi}
 
 
 def main(argv: Optional[List[str]] = None) -> int:

@@ -2,23 +2,29 @@
 """Off-site backup dari VPS ke Cloudflare R2, dienkripsi hibrida dengan kunci PUBLIK.
 
 Dijalankan root di VPS oleh cron terpisah setelah backup harian, contoh baris
-yang DIUSULKAN (belum dipasang):
+yang DIUSULKAN (belum dipasang; `-I` = mode terisolasi, abaikan env PYTHON* dan
+direktori kerja):
 
-    0 22 * * * root /usr/bin/python3 /opt/osn/backup-harian/backup_offsite_vps.py \
+    0 22 * * * root /usr/bin/python3 -I /opt/osn/backup-harian/backup_offsite_vps.py \
         >> /opt/osn/log/offsite-vps.log 2>&1
 
-Berkas `backup_offsite_vps.py`, `offsite_kripto.py`, `r2_s3.py`, dan
-`backup_harian.py` harus dipasang berdampingan di /opt/osn/backup-harian/.
+Berkas `backup_offsite_vps.py`, `offsite_kripto.py`, `offsite_kerja.py`,
+`offsite_retensi.py`, `offsite_penanda.py`, `r2_s3.py`, dan `backup_harian.py`
+harus dipasang berdampingan di /opt/osn/backup-harian/.
 
-Alur: pilih bundle terbaru -> tolak bila basi atau tak lolos `validasi` ->
-tar.gz -> enkripsi AES-256 dengan sandi sesi acak -> sandi sesi dibungkus
-RSA-OAEP memakai kunci publik -> HMAC -> unggah ke `vps/<id>/` -> verifikasi
-(List, ukuran sama) -> retensi `vps/` -> tulis penanda -> satu baris JSON. Skrip ini TIDAK
-punya kode atau argumen untuk kunci privat, dan tidak pernah menaruh rahasia
-di argv/env. Detail format: lihat `offsite_kripto.py`.
+Alur: pilih bundle terbaru -> tolak bila basi atau tak lolos `validasi` -> List
+`vps/<id>/`: bila ketiga objek sudah ada, LEWATI unggahan; bila hanya sebagian,
+unggah ulang (meta.json terakhir) -> tar.gz dari manifest -> enkripsi AES-256 dengan
+sandi sesi acak -> sandi sesi dibungkus RSA-OAEP dengan kunci publik (RSA >= 3072
+bit) -> HMAC -> unggah -> verifikasi (List, ukuran sama) -> tulis penanda
+`last-ok` (memuat mac, sha256, sidik kunci: sumber tepercaya untuk pemulihan) ->
+retensi `vps/` -> tulis penanda `retention-ok` HANYA bila retensi sukses -> satu
+baris JSON. Skrip ini TIDAK punya kode atau argumen untuk kunci privat, dan tidak
+pernah menaruh rahasia di argv/env. Detail format: lihat `offsite_kripto.py`.
 
-Keluar: 0 sukses; 1 gagal; 3 set baru terunggah dan terverifikasi tetapi
-retensi gagal. Pada kode non-nol penanda lama tidak diubah.
+Keluar: 0 sukses; 1 gagal sebelum/selama unggah; 3 set baru terunggah dan
+terverifikasi (penanda `last-ok` sudah ditulis) tetapi retensi gagal atau
+dibatalkan karena melebihi `--hapus-maks`; `retention-ok` lama dibiarkan.
 """
 from __future__ import annotations
 
@@ -28,11 +34,9 @@ import json
 import os
 from pathlib import Path
 import re
-import shutil
 import sqlite3
 import stat
 import sys
-import tarfile
 import tempfile
 import time
 from typing import Dict, List, Optional
@@ -42,21 +46,24 @@ if _DIR not in sys.path:
     sys.path.append(_DIR)
 
 import backup_harian  # noqa: E402
+import offsite_kerja  # noqa: E402
 import offsite_kripto as kripto  # noqa: E402
+import offsite_penanda  # noqa: E402
+import offsite_retensi  # noqa: E402
 import r2_s3  # noqa: E402
+from offsite_kerja import buat_tar  # noqa: E402,F401  (dipanggil lewat nama modul ini)
+from offsite_kripto import GalatOffsite  # noqa: E402,F401
+from offsite_retensi import POLA_KUNCI_OBJEK  # noqa: E402,F401
 
 WIB = dt.timezone(dt.timedelta(hours=7))
 UMUR_MAKS_JAM = 26.0
 RETENSI_HARI = 30
 KUNCI_ENV = ("R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET")
 MODE_LONGGAR = 0o177  # bit selain rw pemilik (maks 0600)
-POLA_KUNCI_OBJEK = re.compile(r"^vps/(\d{8}-\d{6})/(data\.enc|kunci\.enc|meta\.json)$")
-POLA_AKUN = re.compile(r"^[A-Za-z0-9]{1,64}$")
+POLA_AKUN = re.compile(r"[A-Za-z0-9]{1,64}")
 KODE_RETENSI_GAGAL = 3
-
-
-class GalatOffsite(Exception):
-    """Galat alur off-site; pesan tanpa rahasia."""
+ENV_UJI = "OSN_OFFSITE_UJI"
+NAMA_RETENSI_OK = "offsite-vps.retention-ok"
 
 
 class GalatKonfigurasi(GalatOffsite):
@@ -69,13 +76,18 @@ def buat_parser() -> argparse.ArgumentParser:
     p.add_argument("--env", default="/etc/osn/offsite-r2.env")
     p.add_argument("--kunci-publik", default="/etc/osn/offsite-publik.pem")
     p.add_argument("--penanda", default="/opt/osn/log/offsite-vps.last-ok")
+    p.add_argument("--penanda-retensi", help=f"bawaan: {NAMA_RETENSI_OK} di samping --penanda")
     p.add_argument("--umur-maks-jam", type=float, default=UMUR_MAKS_JAM)
     p.add_argument("--retensi-hari", type=int, default=RETENSI_HARI)
+    p.add_argument("--simpan-minimal", type=int, default=offsite_retensi.SIMPAN_MINIMAL,
+                   help="set lengkap terbaru yang selalu dijaga apa pun umurnya")
+    p.add_argument("--hapus-maks", type=int, default=offsite_retensi.HAPUS_MAKS,
+                   help="batas set dihapus per run; lebih dari itu: kode 3, tanpa hapus")
     p.add_argument("--endpoint", help="timpa endpoint R2 (untuk tes)")
     p.add_argument("--tmp-dir", help="induk direktori kerja sementara (bawaan: tmp sistem)")
     p.add_argument("--openssl", default="openssl")
     p.add_argument("--uji-lewati-pemilik-env", action="store_true",
-                   help="HANYA untuk tes: lewati cek pemilik root (cek mode tetap berlaku)")
+                   help=f"HANYA untuk tes (wajib env {ENV_UJI}=1): lewati cek pemilik root")
     return p
 
 
@@ -107,12 +119,13 @@ def muat_env(path, *, lewati_pemilik: bool = False) -> Dict[str, str]:
     kosong = [k for k in KUNCI_ENV if not nilai.get(k)]
     if kosong:
         raise GalatKonfigurasi("kunci env kosong atau tidak ada: " + ", ".join(kosong))
-    if not POLA_AKUN.match(nilai["R2_ACCOUNT_ID"]):
+    if not POLA_AKUN.fullmatch(nilai["R2_ACCOUNT_ID"]):
         raise GalatKonfigurasi("R2_ACCOUNT_ID tidak sah")
     return {k: nilai[k] for k in KUNCI_ENV}
 
 
-def periksa_kunci_publik(path) -> None:
+def periksa_kunci_publik(path, openssl: str = "openssl") -> str:
+    """Tolak kunci privat/non-RSA/<3072 bit; kembalikan sidik jari SHA-256 (DER)."""
     try:
         teks = Path(path).read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as galat:
@@ -121,6 +134,10 @@ def periksa_kunci_publik(path) -> None:
         raise GalatKonfigurasi("berkas kunci publik ternyata kunci privat; ditolak")
     if "-----BEGIN PUBLIC KEY-----" not in teks:
         raise GalatKonfigurasi("berkas bukan PEM kunci publik")
+    try:
+        return kripto.validasi_kunci_publik(openssl, path)
+    except kripto.GalatKripto as galat:
+        raise GalatKonfigurasi(f"kunci publik tidak memenuhi syarat: {galat}") from galat
 
 
 def epoch_id(id_bundle: str) -> float:
@@ -148,30 +165,14 @@ def periksa_umur(id_bundle: str, sekarang: float, umur_maks_jam: float) -> None:
 def validasi_bundle(bundle: Path) -> None:
     try:
         manifest = backup_harian.validasi(bundle)
-    except (OSError, ValueError, KeyError, sqlite3.Error) as galat:
+    except (OSError, ValueError, KeyError, TypeError, sqlite3.Error) as galat:
         raise GalatOffsite(f"validasi bundle gagal: {type(galat).__name__}") from galat
     if manifest["id"] != bundle.name:
         raise GalatOffsite("validasi bundle gagal: id manifest berbeda dari nama direktori")
 
 
-def buat_tar(bundle: Path, tujuan: Path) -> None:
-    """Tar.gz hanya berkas/direktori biasa; symlink atau perangkat ditolak."""
-    with tarfile.open(str(tujuan), "w:gz") as tar:
-        for path in [bundle, *sorted(bundle.rglob("*"))]:
-            if path.is_symlink() or not (path.is_file() or path.is_dir()):
-                raise GalatOffsite("bundle memuat entri bukan berkas biasa")
-            info = tar.gettarinfo(str(path), arcname=f"{bundle.name}/{path.relative_to(bundle)}"
-                                  if path != bundle else bundle.name)
-            info.uid = info.gid = 0
-            info.uname = info.gname = ""
-            if path.is_file():
-                with path.open("rb") as isi:
-                    tar.addfile(info, isi)
-            else:
-                tar.addfile(info)
-
-
-def enkripsi_paket(openssl: str, publik: Path, bundle: Path, kerja: Path) -> Dict[str, Path]:
+def enkripsi_paket(openssl: str, publik: Path, bundle: Path, kerja: Path, sidik_kunci: str):
+    """Kembalikan ({nama objek: path}, meta)."""
     tar, data, kunci = kerja / "bundle.tar.gz", kerja / "data.enc", kerja / "kunci.enc"
     buat_tar(bundle, tar)
     sandi = kripto.bangkitkan_sandi()
@@ -185,49 +186,29 @@ def enkripsi_paket(openssl: str, publik: Path, bundle: Path, kerja: Path) -> Dic
         "-pkeyopt", "rsa_padding_mode:oaep", "-pkeyopt", "rsa_oaep_md:sha256",
         "-pkeyopt", "rsa_mgf1_md:sha256", "-in", str(berkas_sandi), "-out", str(kunci)])
     meta = kripto.bangun_meta(bundle.name, data.stat().st_size, kripto.sha256_berkas(data),
-                              kripto.hitung_mac(sandi, bundle.name, data))
+                              kripto.hitung_mac(sandi, bundle.name, data, sidik_kunci), sidik_kunci)
     berkas_meta = kripto.tulis_privat(kerja, "meta.json",
                                       (json.dumps(meta, sort_keys=True) + "\n").encode("utf-8"))
     berkas_sandi.unlink()
-    return {"data.enc": data, "kunci.enc": kunci, "meta.json": berkas_meta}
+    return {"data.enc": data, "kunci.enc": kunci, "meta.json": berkas_meta}, meta
 
 
-def unggah_dan_verifikasi(klien, id_bundle: str, berkas: Dict[str, Path]) -> None:
+def objek_yang_ada(klien, id_bundle: str) -> frozenset:
+    awalan = f"{kripto.PREFIKS}{id_bundle}/"
+    return frozenset(o.kunci[len(awalan):] for o in klien.daftar_objek(awalan))
+
+
+def unggah_dan_verifikasi(klien, id_bundle: str, berkas: Dict[str, Path],
+                          ada: frozenset = frozenset()) -> None:
+    awalan = f"{kripto.PREFIKS}{id_bundle}/"
+    if "meta.json" in ada:  # set sebagian: buat tampak tak lengkap selama ditimpa
+        klien.hapus_objek(awalan + "meta.json")
     for nama in kripto.NAMA_OBJEK:  # meta.json terakhir: penanda set lengkap
-        klien.put_objek(f"{kripto.PREFIKS}{id_bundle}/{nama}", berkas[nama])
-    ada = {o.kunci: o.ukuran for o in klien.daftar_objek(f"{kripto.PREFIKS}{id_bundle}/")}
+        klien.put_objek(awalan + nama, berkas[nama])
+    terlihat = {o.kunci: o.ukuran for o in klien.daftar_objek(awalan)}
     for nama in kripto.NAMA_OBJEK:
-        if ada.get(f"{kripto.PREFIKS}{id_bundle}/{nama}") != berkas[nama].stat().st_size:
+        if terlihat.get(awalan + nama) != berkas[nama].stat().st_size:
             raise GalatOffsite(f"verifikasi unggahan gagal: {nama}")
-
-
-def kunci_kedaluwarsa(objek, batas: float, id_baru: str) -> List[str]:
-    """Kunci milik set `vps/<id>/` yang seluruh objeknya lebih tua dari `batas`."""
-    kelompok: Dict[str, list] = {}
-    for item in objek:
-        cocok = POLA_KUNCI_OBJEK.match(item.kunci)
-        if cocok and item.kunci.startswith(kripto.PREFIKS):
-            kelompok.setdefault(cocok.group(1), []).append(item)
-    hapus = []
-    for id_set, isi in kelompok.items():
-        if id_set != id_baru and max(o.diubah for o in isi) < batas:
-            hapus.extend(o.kunci for o in isi)
-    return sorted(hapus)
-
-
-def terapkan_retensi(klien, id_baru: str, sekarang: float, hari: int) -> int:
-    objek = klien.daftar_objek(kripto.PREFIKS)
-    hapus = kunci_kedaluwarsa(objek, sekarang - hari * 86400, id_baru)
-    for kunci in hapus:
-        klien.hapus_objek(kunci)
-    return len(hapus)
-
-
-def tulis_penanda(path: Path, id_bundle: str, sekarang: float) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    sementara = path.with_name(f".{path.name}.tmp-{os.getpid()}")
-    sementara.write_text(f"{backup_harian._stempel(int(sekarang))} {id_bundle}\n", encoding="utf-8")
-    os.replace(sementara, path)
 
 
 def _buat_klien(a, kredensial) -> r2_s3.KlienR2:
@@ -236,33 +217,94 @@ def _buat_klien(a, kredensial) -> r2_s3.KlienR2:
                          kredensial["R2_SECRET_ACCESS_KEY"])
 
 
+def _periksa_argumen(a) -> None:
+    for nama, nilai in (("retensi-hari", a.retensi_hari), ("simpan-minimal", a.simpan_minimal),
+                        ("hapus-maks", a.hapus_maks)):
+        if nilai < 1:
+            raise GalatOffsite(f"{nama} minimal 1")
+    if a.uji_lewati_pemilik_env and os.environ.get(ENV_UJI) != "1":
+        raise GalatOffsite(f"--uji-lewati-pemilik-env hanya untuk tes (butuh env {ENV_UJI}=1)")
+
+
+def _pastikan_terunggah(a, klien, bundle: Path, sidik_kunci: str) -> Dict:
+    """Unggah set baru; set yang sudah lengkap dilewati. Kembalikan nilai tepercaya set ini."""
+    ada = objek_yang_ada(klien, bundle.name)
+    if set(kripto.NAMA_OBJEK) <= ada:
+        return {"sudah_ada": True}
+    kerja = Path(tempfile.mkdtemp(prefix="offsite-", dir=a.tmp_dir))
+    try:
+        berkas, meta = enkripsi_paket(a.openssl, Path(a.kunci_publik), bundle, kerja, sidik_kunci)
+        unggah_dan_verifikasi(klien, bundle.name, berkas, ada)
+    finally:
+        offsite_kerja.hapus_kerja(kerja)
+    return {"sudah_ada": False, "ukuran": meta["ukuran"], "mac": meta["mac"],
+            "sha256": meta["sha256"], "kunci_publik_sha256": meta["kunci_publik_sha256"]}
+
+
+def _nilai_tepercaya(hasil: Dict, id_bundle: str, penanda: Path) -> Dict:
+    """Nilai mac/sha256/sidik kunci set ini; untuk set yang dilewati hanya dari penanda lama
+    BERID SAMA (tidak pernah dari meta.json di R2, yang tidak tepercaya)."""
+    if not hasil["sudah_ada"]:
+        return hasil
+    lama = offsite_penanda.baca_penanda(penanda)
+    if lama is None or lama["id"] != id_bundle:
+        lama = {}
+
+    def ambil(kunci: str) -> Optional[str]:
+        nilai = lama.get(kunci)
+        return None if nilai in (None, offsite_penanda.TANPA_NILAI) else nilai
+
+    return {**hasil, "ukuran": None, "mac": ambil("mac"), "sha256": ambil("sha256"),
+            "kunci_publik_sha256": ambil("kunci")}
+
+
+def _tulis_last_ok(path: Path, id_bundle: str, sekarang: float, nilai: Dict) -> None:
+    tanda = offsite_penanda.TANPA_NILAI
+    bidang = {"mac": nilai["mac"] or tanda, "sha256": nilai["sha256"] or tanda,
+              "kunci": nilai["kunci_publik_sha256"] or tanda}
+    offsite_penanda.tulis_penanda(path, offsite_penanda.baris_penanda(
+        backup_harian._stempel(int(sekarang)), id_bundle, bidang))
+
+
+def _jalankan_retensi(a, klien, id_bundle: str, sekarang: float):
+    """Kembalikan (jumlah terhapus, None) atau (None, alasan gagal)."""
+    try:
+        return offsite_retensi.terapkan_retensi(klien, id_bundle, sekarang, a.retensi_hari,
+                                                a.simpan_minimal, a.hapus_maks), None
+    except (r2_s3.GalatS3, offsite_retensi.GalatRetensi) as galat:
+        return None, str(galat)
+
+
 def _proses(a, rahasia: List[str]) -> int:
-    if a.retensi_hari < 1:
-        raise GalatOffsite("retensi-hari minimal 1")
+    _periksa_argumen(a)
     kredensial = muat_env(a.env, lewati_pemilik=a.uji_lewati_pemilik_env)
     rahasia.extend(kredensial.values())
-    periksa_kunci_publik(a.kunci_publik)
+    sidik_kunci = periksa_kunci_publik(a.kunci_publik, a.openssl)
     sekarang = time.time()
+    sisa = offsite_kerja.sapu_sisa(a.tmp_dir or tempfile.gettempdir(), sekarang)
+    if sisa:
+        print(f"peringatan: {sisa} direktori sisa run sebelumnya dibersihkan", file=sys.stderr)
     bundle = pilih_bundle(Path(a.bundle_dir))
     periksa_umur(bundle.name, sekarang, a.umur_maks_jam)
     validasi_bundle(bundle)
     klien = _buat_klien(a, kredensial)
-    kerja = Path(tempfile.mkdtemp(prefix="offsite-", dir=a.tmp_dir))
-    try:
-        berkas = enkripsi_paket(a.openssl, Path(a.kunci_publik), bundle, kerja)
-        unggah_dan_verifikasi(klien, bundle.name, berkas)
-        ukuran = berkas["data.enc"].stat().st_size
-    finally:
-        shutil.rmtree(kerja, ignore_errors=True)
-    try:
-        terhapus = terapkan_retensi(klien, bundle.name, sekarang, a.retensi_hari)
-    except r2_s3.GalatS3 as galat:
-        print("galat: set baru terunggah dan terverifikasi, tetapi retensi gagal "
-              "(penanda tidak diubah): " + _samarkan(str(galat), rahasia), file=sys.stderr)
+    penanda = Path(a.penanda)
+    nilai = _nilai_tepercaya(_pastikan_terunggah(a, klien, bundle, sidik_kunci),
+                             bundle.name, penanda)
+    _tulis_last_ok(penanda, bundle.name, sekarang, nilai)
+    terhapus, alasan = _jalankan_retensi(a, klien, bundle.name, sekarang)
+    ringkasan = {"id": bundle.name, "ok": alasan is None, "terhapus": terhapus or 0,
+                 "sudah_ada": nilai["sudah_ada"], "ukuran": nilai["ukuran"], "mac": nilai["mac"],
+                 "sha256": nilai["sha256"], "kunci_publik_sha256": nilai["kunci_publik_sha256"]}
+    if alasan is not None:
+        print("galat: set baru terunggah dan terverifikasi (penanda last-ok sudah diperbarui), "
+              "tetapi retensi gagal: " + _samarkan(alasan, rahasia), file=sys.stderr)
+        print(json.dumps({**ringkasan, "retensi": "gagal"}, sort_keys=True))
         return KODE_RETENSI_GAGAL
-    tulis_penanda(Path(a.penanda), bundle.name, sekarang)
-    print(json.dumps({"id": bundle.name, "ukuran": ukuran, "terhapus": terhapus, "ok": True},
-                     sort_keys=True))
+    retensi_ok = Path(a.penanda_retensi) if a.penanda_retensi else penanda.with_name(NAMA_RETENSI_OK)
+    offsite_penanda.tulis_penanda(retensi_ok, offsite_penanda.baris_penanda(
+        backup_harian._stempel(int(sekarang)), bundle.name, {"terhapus": str(terhapus)}))
+    print(json.dumps(ringkasan, sort_keys=True))
     return 0
 
 

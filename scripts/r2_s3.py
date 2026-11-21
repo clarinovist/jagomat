@@ -1,14 +1,17 @@
 """Klien S3 minimal untuk Cloudflare R2 (AWS Signature V4), stdlib saja.
 
-Operasi: PutObject (streaming dari berkas), GetObject (streaming ke berkas),
-ListObjectsV2 (paginasi) dan DeleteObject. Path-style
+Operasi: PutObject (streaming dari berkas), GetObject (streaming ke berkas,
+dengan batas byte opsional), ListObjectsV2 (paginasi) dan DeleteObject. Path-style
 `<endpoint>/<bucket>/<kunci>`, region `auto`, service `s3`. Payload selalu
 ditandatangani dengan sha256 sebenarnya (`UNSIGNED-PAYLOAD` tidak dipakai).
 
 Keamanan: pesan galat hanya memuat operasi, status HTTP, dan kode galat S3
 yang sudah disanitasi. Header, URL penuh, dan isi respons tidak pernah masuk
-pesan, jadi kredensial yang di-echo server tidak bocor ke log. Endpoint
-non-loopback wajib https.
+pesan, jadi kredensial yang di-echo server tidak bocor ke log. Galat
+jaringan/TLS hanya menyebut NAMA kelas galat (mis. `SSLCertVerificationError`),
+tidak pernah detailnya. Respons XML yang memuat `<!DOCTYPE`/`<!ENTITY` (atau NUL,
+tanda UTF-16/32) ditolak sebelum diurai agar tak ada amplifikasi entity.
+Endpoint non-loopback wajib https.
 """
 from __future__ import annotations
 
@@ -34,12 +37,17 @@ TIMEOUT_DETIK = 120
 BATAS_XML = 16 * 1024 * 1024
 BATAS_HALAMAN = 1000
 BLOK = 1024 * 1024
-_POLA_BUCKET = re.compile(r"^[a-z0-9][a-z0-9.\-]{1,61}[a-z0-9]$")
-_POLA_KODE = re.compile(r"^[A-Za-z0-9]{1,64}$")
+STATUS_ULANG = frozenset((429,))  # selain semua 5xx
+_POLA_BUCKET = re.compile(r"[a-z0-9][a-z0-9.\-]{1,61}[a-z0-9]")
+_POLA_KODE = re.compile(r"[A-Za-z0-9]{1,64}")
 
 
 class GalatS3(Exception):
-    """Galat operasi S3; pesan sudah bersih dari rahasia."""
+    """Galat operasi S3; pesan sudah bersih dari rahasia. `status` = status HTTP bila ada."""
+
+    def __init__(self, pesan: str, status: Optional[int] = None):
+        super().__init__(pesan)
+        self.status = status
 
 
 class ObjekS3(NamedTuple):
@@ -103,10 +111,18 @@ def _tanpa_ns(tag: str) -> str:
     return tag.rsplit("}", 1)[-1]
 
 
+def _aman_diurai(isi: bytes) -> bool:
+    """Tolak DTD/entity (amplifikasi) dan NUL (UTF-16/32 menyamarkan penanda DTD)."""
+    kecil = isi.lower()
+    return not (b"\x00" in isi or b"<!doctype" in kecil or b"<!entity" in kecil)
+
+
 def _kode_galat(isi: bytes) -> str:
+    if not _aman_diurai(isi):
+        return "-"
     try:
         for simpul in ET.fromstring(isi).iter():
-            if _tanpa_ns(simpul.tag) == "Code" and _POLA_KODE.match(simpul.text or ""):
+            if _tanpa_ns(simpul.tag) == "Code" and _POLA_KODE.fullmatch(simpul.text or ""):
                 return simpul.text
     except ET.ParseError:
         pass
@@ -119,6 +135,8 @@ def _epoch(teks: str) -> float:
 
 
 def _urai_halaman(isi: bytes):
+    if not _aman_diurai(isi):
+        raise ValueError("respons memuat DTD/entity")
     objek: List[ObjekS3] = []
     terpotong, token = False, None
     for simpul in ET.fromstring(isi):
@@ -133,6 +151,17 @@ def _urai_halaman(isi: bytes):
     return objek, (token if terpotong else None)
 
 
+def _perlu_ulang(status: int) -> bool:
+    return status >= 500 or status in STATUS_ULANG
+
+
+def _pesan_gagal(operasi: str, status: int, isi: bytes, nama_galat: str) -> str:
+    """Pesan tanpa rahasia: nama kelas galat jaringan, atau status HTTP + kode galat S3."""
+    if nama_galat:
+        return f"{operasi} gagal: galat jaringan/TLS {nama_galat}"
+    return f"{operasi} gagal: HTTP {status} {_kode_galat(isi)}"
+
+
 class KlienR2:
     def __init__(self, endpoint, bucket, akses, rahasia, *, region=REGION,
                  jam=time.time, tidur=time.sleep):
@@ -142,7 +171,7 @@ class KlienR2:
             raise ValueError("endpoint tidak sah")
         if bagian.scheme == "http" and host not in HOST_LOOPBACK:
             raise ValueError("endpoint non-loopback wajib https")
-        if not _POLA_BUCKET.match(bucket):
+        if not _POLA_BUCKET.fullmatch(bucket):
             raise ValueError("nama bucket tidak sah")
         self._https = bagian.scheme == "https"
         self._host, self._port = host, bagian.port
@@ -167,7 +196,7 @@ class KlienR2:
         kueri = _query_kanonik(query)
         return path + ("?" + kueri if kueri else ""), header
 
-    def _sekali(self, metode, kunci, query, berkas, hash_payload, simpan_ke):
+    def _sekali(self, metode, kunci, query, berkas, hash_payload, simpan_ke, maks_byte=None):
         ukuran = 0 if berkas is None else berkas.stat().st_size
         target, header = self._siapkan(metode, kunci, query, hash_payload, ukuran)
         koneksi = self._sambungan()
@@ -180,33 +209,44 @@ class KlienR2:
             resp = koneksi.getresponse()
             if resp.status >= 300 or simpan_ke is None:
                 return resp.status, resp.read(BATAS_XML)
-            with open(simpan_ke, "wb") as keluar:
-                for blok in iter(lambda: resp.read(BLOK), b""):
-                    keluar.write(blok)
-            return resp.status, b""
+            return resp.status, self._simpan(resp, simpan_ke, maks_byte)
         finally:
             koneksi.close()
 
-    def _kirim(self, operasi, metode, kunci="", query=(), berkas=None, simpan_ke=None):
+    @staticmethod
+    def _simpan(resp, simpan_ke, maks_byte) -> bytes:
+        """Alirkan badan ke berkas; berhenti bila melebihi `maks_byte` (server tak dipercaya)."""
+        total = 0
+        with open(simpan_ke, "wb") as keluar:
+            for blok in iter(lambda: resp.read(BLOK), b""):
+                total += len(blok)
+                if maks_byte is not None and total > maks_byte:
+                    raise GalatS3("GetObject gagal: respons melebihi batas ukuran")
+                keluar.write(blok)
+        return b""
+
+    def _kirim(self, operasi, metode, kunci="", query=(), berkas=None, simpan_ke=None,
+               maks_byte=None):
         hash_payload = HASH_KOSONG if berkas is None else sha256_berkas(berkas)
         for percobaan in range(PERCOBAAN):
+            nama_galat = ""
             try:
-                status, isi = self._sekali(metode, kunci, query, berkas, hash_payload, simpan_ke)
-            except (OSError, http.client.HTTPException):
-                status, isi = 599, b""
+                status, isi = self._sekali(metode, kunci, query, berkas, hash_payload,
+                                           simpan_ke, maks_byte)
+            except (OSError, http.client.HTTPException) as galat:
+                status, isi, nama_galat = 599, b"", type(galat).__name__
             if status < 300:
                 return isi
-            if status < 500 or percobaan == PERCOBAAN - 1:
-                kode = "-" if status == 599 else _kode_galat(isi)
-                raise GalatS3(f"{operasi} gagal: HTTP {status} {kode}")
+            if not _perlu_ulang(status) or percobaan == PERCOBAAN - 1:
+                raise GalatS3(_pesan_gagal(operasi, status, isi, nama_galat), status)
             self._tidur(JEDA_ULANG_DETIK[min(percobaan, len(JEDA_ULANG_DETIK) - 1)])
         raise GalatS3(f"{operasi} gagal")  # tidak tercapai
 
     def put_objek(self, kunci: str, berkas) -> None:
         self._kirim("PutObject", "PUT", kunci, berkas=Path(berkas))
 
-    def ambil_objek(self, kunci: str, simpan_ke) -> None:
-        self._kirim("GetObject", "GET", kunci, simpan_ke=simpan_ke)
+    def ambil_objek(self, kunci: str, simpan_ke, *, maks_byte: Optional[int] = None) -> None:
+        self._kirim("GetObject", "GET", kunci, simpan_ke=simpan_ke, maks_byte=maks_byte)
 
     def hapus_objek(self, kunci: str) -> None:
         self._kirim("DeleteObject", "DELETE", kunci)

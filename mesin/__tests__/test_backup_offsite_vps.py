@@ -13,48 +13,15 @@ import pytest
 
 from offsite_kit import (ENV_AKSES, ENV_RAHASIA, PENANDA, SCRIPTS, buat_bundle,
                          buat_pasangan_kunci, tulis_env)
+from offsite_lingkungan import (_lingkungan_uji, baca_penanda, jalankan, kunci,  # noqa: F401
+                                lingkungan, s3)
 from s3_tiruan_kit import BUCKET_UJI, S3Tiruan
 
 import backup_offsite_vps as vps  # noqa: E402
 import offsite_kripto  # noqa: E402
 
 HARI = 86400
-
-
-@pytest.fixture(autouse=True)
-def _tanpa_jeda_ulang(monkeypatch):
-    monkeypatch.setattr(vps.r2_s3, "JEDA_ULANG_DETIK", (0.0, 0.0))
-
-
-@pytest.fixture(scope="module")
-def kunci(tmp_path_factory):
-    return buat_pasangan_kunci(tmp_path_factory.mktemp("kunci"))
-
-
-@pytest.fixture()
-def s3():
-    with S3Tiruan(akses=ENV_AKSES, rahasia=ENV_RAHASIA) as server:
-        yield server
-
-
-@pytest.fixture()
-def lingkungan(tmp_path, s3, kunci):
-    bundle = buat_bundle(tmp_path)
-    penanda = tmp_path / "log" / "offsite.last-ok"
-    penanda.parent.mkdir()
-    penanda.write_text("lama 00000000-000000\n")
-    return {"tmp": tmp_path, "s3": s3, "bundle": bundle, "penanda": penanda,
-            "env": tulis_env(tmp_path / "r2.env"), "publik": kunci[1], "privat": kunci[0]}
-
-
-def _jalankan(env, capsys, *tambahan, bundle_dir=None):
-    argv = ["--env", str(env["env"]), "--kunci-publik", str(env["publik"]),
-            "--bundle-dir", str(bundle_dir or env["bundle"].parent),
-            "--penanda", str(env["penanda"]), "--endpoint", env["s3"].url,
-            "--uji-lewati-pemilik-env", *tambahan]
-    kode = vps.main(argv)
-    keluar = capsys.readouterr()
-    return kode, keluar.out, keluar.err
+_jalankan = jalankan
 
 
 def _puts(s3):
@@ -76,8 +43,8 @@ def test_unggah_membuat_tiga_objek_meta_bersih_dan_penanda(lingkungan, capsys):
     ringkas = json.loads(out)
     assert ringkas["ok"] is True and ringkas["id"] == id_bundle and ringkas["terhapus"] == 0
     assert ringkas["ukuran"] == meta["ukuran"]
-    stempel, ident = lingkungan["penanda"].read_text().split()
-    assert ident == id_bundle and re.fullmatch(r"\d{8}-\d{6}", stempel)
+    penanda = baca_penanda(lingkungan["penanda"])
+    assert penanda["id"] == id_bundle and re.fullmatch(r"\d{8}-\d{6}", penanda["stempel"])
 
 
 def _mengandung_plaintext(payload: bytes) -> bool:
@@ -139,8 +106,9 @@ def test_hanya_kunci_publik_dipakai_dan_sandi_sesi_tidak_di_argv_atau_env(lingku
 
 
 def test_skrip_vps_tidak_punya_kode_atau_argumen_dekripsi():
-    sumber = "\n".join((SCRIPTS / n).read_text() for n in
-                       ("backup_offsite_vps.py", "r2_s3.py", "offsite_kripto.py"))
+    sumber = "\n".join((SCRIPTS / n).read_text() for n in (
+        "backup_offsite_vps.py", "r2_s3.py", "offsite_kripto.py", "offsite_kerja.py",
+        "offsite_retensi.py", "offsite_penanda.py"))
     parser = vps.buat_parser()
     opsi = [o for a in parser._actions for o in a.option_strings]
 
@@ -239,7 +207,7 @@ def test_retensi_hanya_menghapus_vps_lebih_tua_dari_batas(lingkungan, capsys):
     s3.taruh("harian/baru.tar.gz.enc", b"x", diubah=baru)
     s3.taruh("vps/catatan-asing.txt", b"x", diubah=lama)
 
-    kode, out, _ = _jalankan(lingkungan, capsys)
+    kode, out, _ = _jalankan(lingkungan, capsys, "--simpan-minimal", "1")
 
     assert kode == 0 and json.loads(out)["terhapus"] == 3
     ada = s3.kunci_ada()
@@ -262,15 +230,22 @@ def test_retensi_hari_dapat_diatur_dan_minimal_satu(lingkungan, capsys):
     assert kode == 1 and "retensi" in err
 
 
-def test_retensi_gagal_keluar_kode_3_dan_penanda_lama_tidak_berubah(lingkungan, capsys):
+def test_retensi_gagal_keluar_kode_3_last_ok_baru_retention_ok_lama_tetap(lingkungan, capsys):
     s3 = lingkungan["s3"]
     s3.taruh("vps/20200101-000000/data.enc", b"x", diubah=time.time() - 90 * HARI)
     s3.gagal[("DELETE", "vps/20200101-000000/data.enc")] = 500
+    retensi_ok = lingkungan["penanda"].with_name("offsite-vps.retention-ok")
+    retensi_ok.write_text("lama 00000000-000000\n")
 
-    kode, out, err = _jalankan(lingkungan, capsys)
+    kode, out, err = _jalankan(lingkungan, capsys, "--simpan-minimal", "1")
 
-    assert kode == 3 and out == "" and "retensi gagal" in err and "terunggah" in err
-    assert lingkungan["penanda"].read_text() == "lama 00000000-000000\n"
+    # Kontrak baru: last-ok ditulis SEBELUM retensi (unggahan sudah sukses); yang tak boleh
+    # berubah adalah retention-ok lama, dan ringkasan tetap dicetak untuk log tepercaya.
+    assert kode == 3 and "retensi gagal" in err and "terunggah" in err
+    ringkas = json.loads(out)
+    assert ringkas["ok"] is False and ringkas["retensi"] == "gagal" and ringkas["mac"]
+    assert baca_penanda(lingkungan["penanda"])["id"] == lingkungan["bundle"].name
+    assert retensi_ok.read_text() == "lama 00000000-000000\n"
 
 
 def test_penanda_dibuat_beserta_direktori_induknya(lingkungan, capsys, tmp_path):

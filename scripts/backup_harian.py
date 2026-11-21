@@ -188,6 +188,13 @@ def cadangkan(
         kunci.close()
 
 
+def periksa_nama_berkas(nama) -> None:
+    """Tolak nama entri manifest yang bukan nama berkas polos (anti path traversal)."""
+    if (not isinstance(nama, str) or nama in ("", ".", "..") or "\\" in nama
+            or "\x00" in nama or Path(nama).name != nama):
+        raise ValueError("nama berkas manifest tidak sah")
+
+
 def validasi(path) -> dict:
     akar = Path(path)
     manifest_path = akar / "manifest.json"
@@ -199,6 +206,7 @@ def validasi(path) -> dict:
     for item in data["berkas"]:
         if set(item) != {"nama", "sha256", "ukuran", "user_version"}:
             raise ValueError("entri manifest tidak sah")
+        periksa_nama_berkas(item["nama"])
         berkas = akar / item["nama"]
         if not berkas.is_file() or berkas.stat().st_size != item["ukuran"]:
             raise ValueError(f"berkas backup tidak cocok: {item['nama']}")
