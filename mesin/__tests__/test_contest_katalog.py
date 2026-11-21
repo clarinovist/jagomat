@@ -67,3 +67,20 @@ def test_template_sejenis_dikelompokkan_dalam_keluarga():
             ditemukan.setdefault(template.keluarga, set()).add(template.id)
     for nama, anggota in KELUARGA_DIHARAPKAN.items():
         assert ditemukan.get(nama) == anggota, (nama, ditemukan.get(nama))
+
+
+TUMPANG_TINDIH_MAKS_RATA2 = 0.5
+
+
+def test_rotasi_membuat_sesi_berurutan_jarang_memakai_jenis_soal_yang_sama():
+    riwayat_tanda, riwayat_template, tumpang = [], [], []
+    for seed in range(40):
+        terlarang = frozenset().union(*riwayat_tanda[-S.RIWAYAT_SESI:]) if riwayat_tanda else frozenset()
+        hindari = frozenset().union(*riwayat_template[-S.ROTASI_SESI:]) if riwayat_template else frozenset()
+        sesi = S.rakit_sesi(seed, KATALOG, terlarang, template_dihindari=hindari)
+        template = frozenset(b.soal.template_id for b in sesi.butir)
+        if riwayat_template:
+            tumpang.append(len(template & riwayat_template[-1]))
+        riwayat_tanda.append(frozenset(C.tanda_tangan(b.soal) for b in sesi.butir))
+        riwayat_template.append(template)
+    assert sum(tumpang) / len(tumpang) <= TUMPANG_TINDIH_MAKS_RATA2, tumpang

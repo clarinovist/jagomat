@@ -21,6 +21,7 @@ SOAL_PER_TOPIK_DASAR = 2          # tiap topik minimal dua; sisanya dibagi ke to
 MAKS_INGGRIS = 1
 MIN_SOAL_UJUNG_TINGKAT = 2        # minimal dua soal tingkat 1 dan dua soal tingkat 3
 RIWAYAT_SESI = 5                  # soal dari sesi sejauh ini yang tidak boleh diulang
+ROTASI_SESI = 2                   # jenis soal (template) dari sesi sejauh ini dihindari selama bisa
 MAKS_PERCOBAAN_RAKIT = 200
 MAKS_PERCOBAAN_VARIAN = 30
 
@@ -109,8 +110,7 @@ def _susun(seed: int, rng: random.Random, soal_semua: Sequence[C.SoalLomba]) -> 
     return Sesi(seed=seed, butir=tuple(butir))
 
 
-def rakit_sesi(seed: int, pool: Sequence[C.Template], tanda_terlarang: AbstractSet[str]) -> Sesi:
-    """Rakit satu sesi; `tanda_terlarang` = tanda tangan soal dari `RIWAYAT_SESI` sesi terakhir."""
+def _rakit(seed: int, pool: Sequence[C.Template], tanda_terlarang: AbstractSet[str]) -> Sesi:
     rng = random.Random(seed)
     kelompok = _kelompokkan(pool)
     for _ in range(MAKS_PERCOBAAN_RAKIT):
@@ -123,3 +123,20 @@ def rakit_sesi(seed: int, pool: Sequence[C.Template], tanda_terlarang: AbstractS
         return _susun(seed, rng, soal_semua)
     raise GagalMerakitSesi(
         f"tidak bisa merakit sesi dari {len(pool)} template setelah {MAKS_PERCOBAAN_RAKIT} percobaan")
+
+
+def rakit_sesi(seed: int, pool: Sequence[C.Template], tanda_terlarang: AbstractSet[str],
+               template_dihindari: AbstractSet[str] = frozenset()) -> Sesi:
+    """Rakit satu sesi.
+
+    `tanda_terlarang`: tanda tangan soal dari `RIWAYAT_SESI` sesi terakhir (wajib tidak dipakai ulang).
+    `template_dihindari`: id template dari `ROTASI_SESI` sesi terakhir; dihindari agar jenis soal
+    berganti-ganti, tetapi dilepas bila tanpa mereka sesi tidak bisa dirakit (tidak pernah gagal karenanya).
+    """
+    if template_dihindari:
+        segar = [template for template in pool if template.id not in template_dihindari]
+        try:
+            return _rakit(seed, segar, tanda_terlarang)
+        except GagalMerakitSesi:
+            pass
+    return _rakit(seed, pool, tanda_terlarang)

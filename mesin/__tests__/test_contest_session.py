@@ -178,3 +178,42 @@ def test_gagal_bila_topik_hanya_punya_satu_keluarga_template():
         for i, t in enumerate(POOL))
     with pytest.raises(S.GagalMerakitSesi):
         S.rakit_sesi(1, satu_keluarga, frozenset())
+
+
+# --- rotasi jenis soal: hindari template dari sesi terakhir selama masih memungkinkan -------
+
+def _ids(sesi):
+    return {b.soal.template_id for b in sesi.butir}
+
+
+def test_template_yang_dihindari_tidak_dipakai_bila_masih_memungkinkan():
+    for seed in range(30):
+        sebelumnya = S.rakit_sesi(seed, POOL, frozenset())
+        berikut = S.rakit_sesi(seed + 1000, POOL, frozenset(),
+                               template_dihindari=_ids(sebelumnya))
+        assert not _ids(sebelumnya) & _ids(berikut)
+
+
+def test_rotasi_dilepas_bila_tidak_memungkinkan_sehingga_sesi_tetap_terbentuk():
+    semua_isian = frozenset(t.id for t in POOL if t.jenis == C.JENIS_ISIAN)
+    sesi = S.rakit_sesi(1, POOL, frozenset(), template_dihindari=semua_isian)
+    assert len(sesi.butir) == 10                       # isian tetap ada walau semuanya "dihindari"
+    assert sum(1 for b in sesi.butir if b.soal.jenis == C.JENIS_ISIAN) == 2
+
+
+def test_rotasi_tidak_mengubah_hasil_bila_tidak_ada_yang_dihindari():
+    assert (S.rakit_sesi(4, POOL, frozenset(), template_dihindari=frozenset())
+            == S.rakit_sesi(4, POOL, frozenset()))
+
+
+def test_rotasi_deterministik_untuk_seed_dan_daftar_hindar_yang_sama():
+    hindar = _ids(S.rakit_sesi(2, POOL, frozenset()))
+    assert (S.rakit_sesi(9, POOL, frozenset(), template_dihindari=hindar)
+            == S.rakit_sesi(9, POOL, frozenset(), template_dihindari=hindar))
+
+
+def test_rotasi_tetap_menghormati_tanda_tangan_terlarang():
+    pertama = S.rakit_sesi(5, POOL, frozenset())
+    terlarang = frozenset(C.tanda_tangan(b.soal) for b in pertama.butir)
+    kedua = S.rakit_sesi(5, POOL, terlarang, template_dihindari=_ids(pertama))
+    assert not terlarang & {C.tanda_tangan(b.soal) for b in kedua.butir}
