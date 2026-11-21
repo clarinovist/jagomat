@@ -26,23 +26,28 @@ import random
 from typing import Callable, NamedTuple
 
 import awal_baca_diagram_gambar as baca_diagram_gambar
+import awal_baca_jam_awal as baca_jam_awal
 import awal_bandingkan_ciri_bangun as bandingkan_ciri_bangun
 import awal_bilang_benda_awal as bilang_benda_awal
 import awal_ciri_komposisi_bangun as ciri_komposisi_bangun
 import awal_keliling_gabungan as keliling_gabungan
+import awal_kenali_bangun_awal as kenali_bangun_awal
 import awal_kenali_bentuk as kenali_bentuk
 import awal_luas_petak_volume_kubus as luas_petak_volume_kubus
 import awal_pecahan_bilangan_asli_desimal as pecahan_bilangan_asli_desimal
 import awal_pecahan_campur_awal as pecahan_campur_awal
 import awal_pecahan_senilai_desimal as pecahan_senilai_desimal
 import awal_pecahan_setengah as pecahan_setengah
+import awal_piktogram_lima_awal as piktogram_lima_awal
 import awal_peluang_dasar as peluang_dasar
 import awal_pola_posisi as pola_posisi
 import awal_tambah_kurang_100 as tambah_kurang_100
+import awal_tampak_kubus_awal as tampak_kubus_awal
 import awal_tambah_kurang_20 as tambah_kurang_20
 import awal_turus_gambar_awal as turus_gambar_awal
 import awal_ukur_konversi_awal as ukur_konversi_awal
 import awal_ukur_satuan_tak_baku as ukur_satuan_tak_baku
+import awal_ukur_sudut_awal as ukur_sudut_awal
 import awal_unsur_bangun_datar as unsur_bangun_datar
 import awal_waktu_berat_awal as waktu_berat_awal
 from templates import Soal
@@ -120,6 +125,21 @@ JENIS = (
     Jenis(pecahan_campur_awal.TEMPLATE_ID, pecahan_campur_awal.pecahan_campur_awal,
           pecahan_campur_awal.parameter, pecahan_campur_awal.LEVEL,
           pecahan_campur_awal.domain_parameter),
+    Jenis(kenali_bangun_awal.TEMPLATE_ID, kenali_bangun_awal.kenali_bangun_awal,
+          kenali_bangun_awal.parameter, kenali_bangun_awal.LEVEL,
+          kenali_bangun_awal.domain_parameter),
+    Jenis(baca_jam_awal.TEMPLATE_ID, baca_jam_awal.baca_jam_awal,
+          baca_jam_awal.parameter, baca_jam_awal.LEVEL,
+          baca_jam_awal.domain_parameter),
+    Jenis(ukur_sudut_awal.TEMPLATE_ID, ukur_sudut_awal.ukur_sudut_awal,
+          ukur_sudut_awal.parameter, ukur_sudut_awal.LEVEL,
+          ukur_sudut_awal.domain_parameter),
+    Jenis(tampak_kubus_awal.TEMPLATE_ID, tampak_kubus_awal.tampak_kubus_awal,
+          tampak_kubus_awal.parameter, tampak_kubus_awal.LEVEL,
+          tampak_kubus_awal.domain_parameter),
+    Jenis(piktogram_lima_awal.TEMPLATE_ID, piktogram_lima_awal.piktogram_lima_awal,
+          piktogram_lima_awal.parameter, piktogram_lima_awal.LEVEL,
+          piktogram_lima_awal.domain_parameter),
 )
 _PER_ID = {j.template_id: j for j in JENIS}
 if len(_PER_ID) != len(JENIS):

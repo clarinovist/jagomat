@@ -11,6 +11,14 @@
    ],
    "tindak_lanjut": "Gambar tiap bangun bersama anak, lalu tulis di bawahnya berapa sisi dan sudutnya. Cocokkan dengan benda di sekitar yang bentuknya sama."
   },
+  "kenali_bangun_awal": {
+   "pertanyaan": [
+    "Minta anak menyebut ciri bangun itu: berapa sisinya, berapa sudutnya, ada yang bulat atau tidak, ada bagian yang datar atau tidak.",
+    "Minta anak menunjuk benda di sekitar yang bentuknya sama dengan bangun itu, lalu menyebut namanya.",
+    "Tanya: apa bedanya kubus dan balok, atau tabung dan kerucut? Minta anak menunjuk sisi yang bentuknya berbeda."
+   ],
+   "tindak_lanjut": "Cari benda di rumah yang berbentuk kubus, balok, bola, tabung, dan kerucut, lalu minta anak menyebut ciri tiap benda. Gambar bangun datar bersama anak dan hitung sisinya."
+  },
   "ukur_satuan_tak_baku": {
    "pertanyaan": [
     "Minta anak menunjuk ujung awal dan ujung akhir benda, lalu menghitung satuan yang muat tanpa celah.",
@@ -42,6 +50,38 @@
     "Minta anak menghitung semua benda, lalu yang sudah diberikan, lalu yang masih tersisa, sambil menunjuk tumpukannya."
    ],
    "tindak_lanjut": "Lipat kertas jadi dua, lalu jadi empat bagian sama besar. Bagi 12 kancing jadi dua dan empat tumpukan bersama anak, lalu hitung tiap tumpukan dan sisanya."
+  },
+  "ukur_sudut_awal": {
+   "pertanyaan": [
+    "Minta anak menunjuk titik pusat dan garis alas busur derajat, lalu menyebut angka 0 yang dipakai untuk sudut itu.",
+    "Tanya: kalau satu kaki sudut di angka 0 pada skala luar, skala mana yang harus dibaca untuk kaki yang lain? Minta anak menjelaskan alasannya.",
+    "Minta anak membandingkan dua sudut buatan dari batang es krim, lalu menebak mana yang lebih besar sebelum mengukurnya."
+   ],
+   "tindak_lanjut": "Gambar beberapa sudut di kertas bersama anak, lalu ukur dengan busur derajat sungguhan dan tulis besarnya. Minta anak menggolongkan tiap sudut sebagai lancip, siku, atau tumpul."
+  },
+  "piktogram_lima_awal": {
+   "pertanyaan": [
+    "Minta anak membaca tulisan \"Satu gambar mewakili ...\" lebih dulu, lalu menyebut berapa benda yang diwakili satu gambar.",
+    "Tanya: kalau satu baris punya 4 gambar dan satu gambar mewakili 5, berapa bendanya? Minta anak menjelaskan mengapa 4 saja tidak cukup.",
+    "Minta anak mencari baris dengan gambar paling banyak dan paling sedikit, lalu menghitung selisih bendanya, bukan selisih gambarnya."
+   ],
+   "tindak_lanjut": "Buat piktogram dari benda di rumah, misalnya jumlah sendok, gelas, dan piring, dengan satu gambar mewakili 5 benda. Minta anak menghitung jumlah semua dan rata-rata tiap jenis."
+  },
+  "tampak_kubus_awal": {
+   "pertanyaan": [
+    "Minta anak menyusun beberapa kubus mainan menjadi tangga, lalu menunjuk dari arah mana ia melihat tampak depan, tampak atas, dan tampak samping.",
+    "Tanya: kalau kubus-kubus itu dilihat dari atas, berapa persegi yang tampak? Minta anak menjelaskan mengapa kubus yang bertumpuk hanya tampak satu persegi.",
+    "Minta anak menebak banyak kubus seluruhnya sebelum membongkar tangga, lalu menghitungnya kubus demi kubus dan menjelaskan kubus mana yang tertutup."
+   ],
+   "tindak_lanjut": "Susun tangga dari 6 sampai 9 kubus mainan atau balok, lalu minta anak menggambar tampak depan, tampak atas, dan tampak samping di kertas berpetak dan menghitung persegi pada tiap gambar."
+  },
+  "baca_jam_awal": {
+   "pertanyaan": [
+    "Minta anak menunjuk jarum pendek dan jarum panjang di jam dinding, lalu menyebut mana yang menunjukkan jam.",
+    "Tanya: kalau jarum panjang di angka 6, sudah lewat berapa menit? Minta anak menyebut jam yang dilewati jarum pendek.",
+    "Minta anak memajukan jarum jam satu jam demi satu jam, dan menyebut apa yang terjadi setelah jarum pendek lewat angka 12."
+   ],
+   "tindak_lanjut": "Pasang jam dinding atau buat jam dari piring kertas dengan dua jarum. Latihan menyetel jam penuh dan setengah jam, lalu minta anak menulis waktunya, misalnya pukul 4.30."
   },
   "waktu_berat_awal": {
    "pertanyaan": [

@@ -97,15 +97,16 @@ def test_nama_baris_duplikat_ditolak_termasuk_beda_huruf_besar():
     _tolak(_sah(baris=baris))
 
 
-@pytest.mark.parametrize("banyak", (0, 1, 5))
-def test_banyak_baris_di_luar_dua_sampai_empat_ditolak(banyak):
-    contoh = [{"nama": f"K{i}", "ikon": IKON_DIDUKUNG[i], "jumlah": 1} for i in range(5)]
+@pytest.mark.parametrize("banyak", (0, 1, 6))
+def test_banyak_baris_di_luar_dua_sampai_lima_ditolak(banyak):
+    # Batas atas naik 4 -> 5 (21 Nov 2026, piktogram P5); turus tetap 2..4 (test_visual_adegan_awal_turus).
+    contoh = [{"nama": f"K{i}", "ikon": IKON_DIDUKUNG[i], "jumlah": 1} for i in range(6)]
     _tolak(_sah(baris=contoh[:banyak], tanya={"varian": "terbanyak"}))
 
 
-@pytest.mark.parametrize("banyak", (2, 3, 4))
-def test_banyak_baris_dua_sampai_empat_diterima(banyak):
-    contoh = [{"nama": f"K{i}", "ikon": IKON_DIDUKUNG[i], "jumlah": 1} for i in range(4)]
+@pytest.mark.parametrize("banyak", (2, 3, 4, 5))
+def test_banyak_baris_dua_sampai_lima_diterima(banyak):
+    contoh = [{"nama": f"K{i}", "ikon": IKON_DIDUKUNG[i], "jumlah": 1} for i in range(5)]
     validasi_adegan_awal(_sah(baris=contoh[:banyak], tanya={"varian": "terbanyak"}))
 
 

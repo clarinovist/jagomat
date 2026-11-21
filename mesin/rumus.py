@@ -111,6 +111,31 @@ KARTU: dict[str, Kartu] = {
         inti="Segitiga punya 3 sisi dan 3 sudut. Persegi punya 4 sisi yang semuanya sama panjang. Persegi panjang punya 4 sisi: sisi yang berhadapan sama panjang, tetapi sisi panjang dan sisi pendeknya berbeda. Lingkaran itu bulat, tanpa sisi lurus dan tanpa sudut.",
         contoh="Uang logam itu bulat dan tidak punya sudut, jadi bentuknya lingkaran.",
     ),
+    "kenali_bangun_awal": Kartu(
+        judul="Mengenal bangun datar dan bangun ruang",
+        inti="Bangun datar: segitiga punya 3 sisi lurus dan 3 sudut; persegi punya 4 sisi yang semuanya sama panjang; persegi panjang punya 4 sisi, sisi yang berhadapan sama panjang tetapi tidak semuanya sama; lingkaran bulat, tanpa sisi lurus dan tanpa sudut. Bangun ruang: kubus punya 6 sisi persegi yang sama besar; balok punya 6 sisi persegi panjang; bola bulat tanpa sisi datar; tabung punya 2 sisi datar berbentuk lingkaran dan 1 sisi lengkung; kerucut punya 1 sisi datar berbentuk lingkaran dan 1 titik puncak. Untuk menghitung bangun, tunjuk satu per satu sambil memberi tanda.",
+        contoh="Dadu punya 6 sisi persegi yang sama besar, jadi bentuknya kubus. Kaleng susu punya alas dan tutup yang bulat, jadi bentuknya tabung.",
+    ),
+    "baca_jam_awal": Kartu(
+        judul="Membaca jam jarum",
+        inti="Jam jarum punya dua jarum. Jarum pendek menunjuk jam dan jarum panjang menunjuk menit. Kalau jarum panjang tepat di angka 12, jamnya pas: jarum pendek di angka 3 berarti pukul 3. Kalau jarum panjang di angka 6, sudah lewat setengah jam (30 menit): jarum pendek ada di antara dua angka, dan jamnya adalah angka yang sudah dilewati. Setelah angka 12, jam kembali ke angka 1, jadi untuk jam sesudahnya hitung maju satu angka tiap jam.",
+        contoh="Jarum pendek di antara angka 4 dan 5 dan jarum panjang di angka 6: pukul 4.30. Tiga jam setelah pukul 11: 12, 1, 2, jadi pukul 2.",
+    ),
+    "ukur_sudut_awal": Kartu(
+        judul="Mengukur dan membandingkan sudut dengan busur derajat",
+        inti="Busur derajat punya dua skala. Letakkan titik pusatnya di titik sudut dan garis alasnya tepat di sepanjang satu kaki sudut. Mulai membaca dari angka 0 pada kaki itu, lalu ikuti skala yang sama sampai ke kaki yang lain; jangan membaca skala yang satunya, karena angkanya 180 dikurangi besar sudut. Kalau kedua kaki sama-sama bukan di angka 0, baca keduanya pada skala yang sama lalu kurangkan angka yang kecil dari yang besar. Sudut yang bukaannya lebih lebar lebih besar. Sudut lancip kurang dari 90 derajat, sudut siku tepat 90 derajat, sudut tumpul lebih dari 90 derajat dan kurang dari 180 derajat.",
+        contoh="Kaki pertama di angka 0 dan kaki kedua di angka 70 pada skala yang sama: sudutnya 70 derajat, jadi sudut lancip. Dua kaki di angka 30 dan 110 pada skala yang sama: sudutnya 110 dikurangi 30, yaitu 80 derajat.",
+    ),
+    "tampak_kubus_awal": Kartu(
+        judul="Menghitung kubus satuan dan tampak depan, atas, dan samping",
+        inti="Kubus satuan ditumpuk dari lantai, jadi kubus yang tertutup tetap ada dan harus ikut dihitung: jumlahkan tinggi semua tumpukan. Tampak atas adalah yang terlihat kalau dilihat dari atas: tiap tumpukan yang tidak kosong tampak sebagai satu persegi, jadi hitung banyak tumpukannya. Tampak depan dilihat dari depan: tiap kolom tampak setinggi tumpukan tertinggi di kolom itu, lalu jumlahkan semua kolom. Tampak samping dilihat dari sisi kanan: tiap baris tampak setinggi tumpukan tertinggi di baris itu, lalu jumlahkan semua baris. Soal tampak menanyakan persegi yang terlihat, bukan semua kubus.",
+        contoh="Baris depan: 1, 0; baris belakang: 3, 2. Tampak depan: kolom kiri tertinggi 3 dan kolom kanan tertinggi 2, jadi 3 + 2 = 5 persegi. Tampak atas: ada 3 tumpukan, jadi 3 persegi. Semua kubus: 1 + 3 + 2 = 6.",
+    ),
+    "piktogram_lima_awal": Kartu(
+        judul="Membaca piktogram berskala besar",
+        inti="Piktogram memakai gambar untuk mewakili beberapa benda. Baca dulu tulisan \"Satu gambar mewakili N ...\", lalu hitung gambar pada tiap baris. Nilai satu baris = banyak gambar dikali N (sama dengan menambah N berulang). Selisih dua baris dicari dengan mengurangi kedua nilainya. Jumlah semua dicari dengan menjumlah banyak gambar semua baris lalu mengalikan N. Rata-rata = jumlah semua dibagi banyak jenis. Kalau nilai bendanya sudah diketahui dan yang ditanya banyak gambar, bagi nilai itu dengan N.",
+        contoh="Satu gambar mewakili 5 mainan. Bola 3 gambar, Mobil 6 gambar, Boneka 9 gambar. Nilai Mobil = 6 × 5 = 30. Selisih Boneka dan Bola = 9 × 5 - 3 × 5 = 45 - 15 = 30. Jumlah semua = (3 + 6 + 9) × 5 = 90. Rata-rata = 18 gambar ÷ 3 jenis = 6 gambar, jadi 6 × 5 = 30. Barang bernilai 45 digambar dengan 45 ÷ 5 = 9 gambar.",
+    ),
     "ukur_satuan_tak_baku": Kartu(
         judul="Mengukur panjang dengan satuan buatan sendiri",
         inti="Ukur benda dengan satuan yang sama, lalu bandingkan angkanya: makin banyak satuan yang muat, makin panjang bendanya. Lebihnya dicari dengan mengurangi. Dua benda yang disambung panjangnya ditambah.",
@@ -581,6 +606,11 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "nilai_tempat_ribuan": "nilai_tempat_ribuan",
     "nilai_tempat_besar": "nilai_tempat_besar",
     "kenali_bentuk": "kenali_bentuk",
+    "kenali_bangun_awal": "kenali_bangun_awal",
+    "baca_jam_awal": "baca_jam_awal",
+    "ukur_sudut_awal": "ukur_sudut_awal",
+    "tampak_kubus_awal": "tampak_kubus_awal",
+    "piktogram_lima_awal": "piktogram_lima_awal",
     "ukur_satuan_tak_baku": "ukur_satuan_tak_baku",
     "baca_diagram_gambar": "baca_diagram_gambar",
     "pola_posisi": "pola_posisi",

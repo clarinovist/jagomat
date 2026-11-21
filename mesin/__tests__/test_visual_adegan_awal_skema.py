@@ -67,9 +67,28 @@ def _tolak(data):
 
 # ── dispatcher ───────────────────────────────────────────────────────────
 
-def test_tiga_adegan_terdaftar_dan_masing_masing_sah():
-    assert data_modul.ADEGAN_DIDUKUNG == ("deret_ikon", "turus", "pita_ukur")
-    for data in (_turus(), _ukur(), _sambung()):
+def _bentuk():
+    bangun = {"nama": "kubus", "ragam": "biasa", "putar": 0, "ukuran": "besar", "warna": "biru"}
+    return {"adegan": "bentuk", "tampil": "satu", "bangun": [bangun]}
+
+
+def _jam():
+    return {"adegan": "jam_analog", "jam": 12, "menit": 30}
+
+
+def _busur():
+    return {"adegan": "busur", "pusat": "B",
+            "sinar": [{"huruf": "A", "sudut": 0}, {"huruf": "C", "sudut": 70}]}
+
+
+def _tumpukan():
+    return {"adegan": "tumpukan_kubus", "tinggi": [[1, 0], [3, 2]]}
+
+
+def test_tujuh_adegan_terdaftar_dan_masing_masing_sah():
+    assert data_modul.ADEGAN_DIDUKUNG == ("deret_ikon", "turus", "pita_ukur", "bentuk", "jam_analog", "busur",
+                                          "tumpukan_kubus")
+    for data in (_turus(), _ukur(), _sambung(), _bentuk(), _jam(), _busur(), _tumpukan()):
         validasi_adegan_awal(data)
         DescriptorVisual("adegan_awal", 1, data)
 
@@ -84,6 +103,15 @@ def test_field_antar_adegan_tidak_boleh_tercampur():
     _tolak({**_turus(), "satuan": "klip"})
     _tolak({**_ukur(), "baris": []})
     _tolak({**_ukur(), "satuan_ikon": 1})
+    _tolak({**_bentuk(), "baris": []})
+    _tolak({**_turus(), "tampil": "satu"})
+    _tolak({**_jam(), "tampil": "satu"})
+    _tolak({**_bentuk(), "jam": 3, "menit": 0})
+    _tolak({**_busur(), "tampil": "satu"})
+    _tolak({**_jam(), "pusat": "B"})
+    _tolak({**_tumpukan(), "tampil": "satu"})
+    _tolak({**_busur(), "tinggi": [[1, 0], [3, 2]]})
+    _tolak({**_jam(), "tinggi": [[1, 0], [3, 2]]})
 
 
 def test_bentuk_beku_juga_lolos_jalur_renderer():

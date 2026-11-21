@@ -1,7 +1,11 @@
 """Validator ketat descriptor `adegan_awal` v1 (Matematika Awal).
 
-Tiga sub-adegan, dipilih lewat field `adegan`: `deret_ikon` (baris ikon benda),
-`turus` (garis turus per kategori), dan `pita_ukur` (batang ukur dari ikon satuan).
+Tujuh sub-adegan, dipilih lewat field `adegan`: `deret_ikon` (baris ikon benda),
+`turus` (garis turus per kategori), `pita_ukur` (batang ukur dari ikon satuan), `bentuk`
+(bangun datar/ruang buatan kode; validatornya di `adegan_awal_bentuk_data`), `jam_analog`
+(muka jam berjarum; validatornya di `adegan_awal_jam_data`), `busur` (busur derajat dengan
+sinar sudut; validatornya di `adegan_awal_busur_data`), dan `tumpukan_kubus` (susunan kubus satuan
+isometrik; validatornya di `adegan_awal_tumpukan_data`).
 Descriptor hanya memuat data aman untuk menggambar: nama baris/batang, nama ikon
 dari allow-list, banyak elemen, dan jenis pertanyaan. Kunci atau jawaban TIDAK
 PERNAH masuk descriptor; banyak elemen adalah fakta gambar, bukan jawaban.
@@ -21,12 +25,16 @@ IKON_DIDUKUNG = (
     "mobil", "payung", "pensil", "permen", "pisang", "pizza", "roti", "sapu",
     "sendok", "stiker", "tongkat", "ubin",
 )
-ADEGAN_DIDUKUNG = ("deret_ikon", "turus", "pita_ukur")
+ADEGAN_DIDUKUNG = ("deret_ikon", "turus", "pita_ukur", "bentuk", "jam_analog", "busur", "tumpukan_kubus")
 BARIS_MIN, BARIS_MAKS = 2, 4
+BARIS_MAKS_DERET = 5  # hanya deret_ikon: piktogram P5 sampai lima kategori; turus tetap BARIS_MAKS
 JUMLAH_MIN, JUMLAH_MAKS = 0, 12
 PANJANG_NAMA_MAKS = 24
-SATUAN_IKON_DIDUKUNG = (1, 2)  # benda per ikon; 2 hanya untuk soal skala 2 (P2)
+SATUAN_IKON_DIDUKUNG = (1, 2, 5, 10, 20)  # benda per ikon; 2 untuk P2, 5/10/20 untuk piktogram P5
 VARIAN_TANYA = ("baca", "terbanyak", "selisih", "jumlah")
+# Hanya deret_ikon (piktogram P5): jenis pertanyaan tanpa indeks. `berapa_ikon` berarti baris kategori
+# yang ditanya sengaja tidak digambar (bukan salah satu baris di descriptor).
+VARIAN_TANYA_RINGKAS = ("terbanyak_selisih", "total", "rata_rata", "berapa_ikon")
 TURUS_MIN, TURUS_MAKS = 1, 12
 SATUAN_UKUR = ("klip", "ubin", "balok")
 WARNA_BATANG = ("netral", "merah", "biru")
@@ -96,12 +104,12 @@ def _nama_unik(nama: tuple) -> None:
         raise ValueError("nama baris adegan tidak boleh duplikat")
 
 
-def _daftar_baris(nilai: Any, baris_fn=_baris_tunggal) -> int:
+def _daftar_baris(nilai: Any, baris_fn=_baris_tunggal, maksimum: int = BARIS_MAKS) -> int:
     """Validasi daftar baris; kembalikan banyaknya."""
     if not isinstance(nilai, (list, tuple)):
         raise ValueError("baris adegan wajib berupa daftar")
-    if not BARIS_MIN <= len(nilai) <= BARIS_MAKS:
-        raise ValueError(f"adegan wajib memiliki {BARIS_MIN}..{BARIS_MAKS} baris")
+    if not BARIS_MIN <= len(nilai) <= maksimum:
+        raise ValueError(f"adegan wajib memiliki {BARIS_MIN}..{maksimum} baris")
     nama = tuple(baris_fn(isi, i) for i, isi in enumerate(nilai))
     _nama_unik(nama)
     return len(nama)
@@ -130,13 +138,22 @@ def _validasi_tanya(tanya: Any, banyak: int) -> None:
             raise ValueError("tanya.x dan tanya.y wajib berbeda")
 
 
+def _validasi_tanya_deret(tanya: Any, banyak: int) -> None:
+    """Varian piktogram P5 tanpa indeks; sisanya aturan lama (turus tidak memakai ini)."""
+    if isinstance(tanya, Mapping) and isinstance(tanya.get("varian"), str) \
+            and tanya["varian"] in VARIAN_TANYA_RINGKAS:
+        _field_tepat(tanya, {"varian"}, "tanya")
+        return
+    _validasi_tanya(tanya, banyak)
+
+
 def _validasi_deret_ikon(data: Mapping[str, Any]) -> None:
     _field_tepat(data, _FIELD_ADEGAN, "adegan_awal")
-    banyak = _daftar_baris(data["baris"])
+    banyak = _daftar_baris(data["baris"], maksimum=BARIS_MAKS_DERET)
     satuan = data["satuan_ikon"]
     if type(satuan) is not int or satuan not in SATUAN_IKON_DIDUKUNG:
         raise ValueError(f"satuan_ikon wajib salah satu dari {SATUAN_IKON_DIDUKUNG}")
-    _validasi_tanya(data["tanya"], banyak)
+    _validasi_tanya_deret(data["tanya"], banyak)
 
 
 # ── sub-adegan `turus` ───────────────────────────────────────────────────
@@ -226,10 +243,38 @@ def _validasi_pita_ukur(data: Mapping[str, Any]) -> None:
     _validasi_tanya_ukur(data["tanya"], susun)
 
 
+def _validasi_bentuk(data: Mapping[str, Any]) -> None:
+    """Impor malas: modul bentuk memakai pembantu modul ini, jadi tidak boleh diimpor di puncak."""
+    from adegan_awal_bentuk_data import validasi_bentuk
+    validasi_bentuk(data)
+
+
+def _validasi_jam_analog(data: Mapping[str, Any]) -> None:
+    """Impor malas karena alasan yang sama dengan `_validasi_bentuk`."""
+    from adegan_awal_jam_data import validasi_jam_analog
+    validasi_jam_analog(data)
+
+
+def _validasi_busur(data: Mapping[str, Any]) -> None:
+    """Impor malas karena alasan yang sama dengan `_validasi_bentuk`."""
+    from adegan_awal_busur_data import validasi_busur
+    validasi_busur(data)
+
+
+def _validasi_tumpukan_kubus(data: Mapping[str, Any]) -> None:
+    """Impor malas karena alasan yang sama dengan `_validasi_bentuk`."""
+    from adegan_awal_tumpukan_data import validasi_tumpukan
+    validasi_tumpukan(data)
+
+
 _VALIDATOR = {
     "deret_ikon": _validasi_deret_ikon,
     "turus": _validasi_turus,
     "pita_ukur": _validasi_pita_ukur,
+    "bentuk": _validasi_bentuk,
+    "jam_analog": _validasi_jam_analog,
+    "busur": _validasi_busur,
+    "tumpukan_kubus": _validasi_tumpukan_kubus,
 }
 
 

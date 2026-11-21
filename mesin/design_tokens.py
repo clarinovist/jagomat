@@ -138,6 +138,78 @@ ADEGAN_PITA_GARIS_NETRAL = "#555"
 ADEGAN_PITA_GARIS_MERAH = "#c2352b"
 ADEGAN_PITA_GARIS_BIRU = "#2c60ad"
 
+# Adegan awal sub-adegan `bentuk`: bangun datar dan ruang buatan kode (bukan raster); satuan viewBox.
+ADEGAN_BANGUN_TINGGI_SATU = 160  # tinggi viewBox satu bangun
+ADEGAN_BANGUN_KOTAK_SATU = 140  # sisi kotak tempat satu bangun digambar (ukuran besar)
+ADEGAN_BANGUN_SEL = 64  # sisi sel satu bangun pada baris
+ADEGAN_BANGUN_KOTAK_SEL = 52  # sisi kotak bangun di dalam sel (ukuran besar)
+ADEGAN_BANGUN_KOLOM = 5  # bangun per baris sebelum pindah ke baris berikutnya
+ADEGAN_BANGUN_TEBAL = 3  # garis tepi bangun; gelap, jadi warna bukan satu-satunya pembeda
+ADEGAN_BANGUN_SKALA_KECIL = 0.7
+# Tiga nada per warna: (terang, sedang, gelap) untuk sisi atas, depan, dan samping bangun ruang.
+ADEGAN_BANGUN_BIRU = ("#e6f0fc", "#b9d4f4", "#8cb4e6")
+ADEGAN_BANGUN_KUNING = ("#fdf4d6", "#f8e08d", "#e8c24c")
+ADEGAN_BANGUN_HIJAU = ("#e4f4e6", "#b6e0bc", "#86c791")
+
+# Adegan awal sub-adegan `jam_analog`: muka jam buatan kode; satuan viewBox.
+ADEGAN_JAM_TINGGI = 210  # tinggi viewBox
+ADEGAN_JAM_RADIUS = 96  # jari-jari muka jam
+ADEGAN_JAM_MUKA = "#fffbea"  # isi muka jam; terang agar angka dan jarum (#111) berkontras tinggi
+ADEGAN_JAM_TEBAL_MUKA = 4  # garis tepi muka jam
+ADEGAN_JAM_TICK_LUAR = 93  # jarak ujung luar tanda jam dan tanda menit dari pusat
+ADEGAN_JAM_TICK_JAM = 84  # jarak ujung dalam tanda jam (12 buah, tebal)
+ADEGAN_JAM_TICK_MENIT = 88  # jarak ujung dalam tanda menit (48 buah, tipis)
+ADEGAN_JAM_TEBAL_TICK_JAM = 3
+ADEGAN_JAM_TEBAL_TICK_MENIT = 1.5
+ADEGAN_JAM_ANGKA_JARI = 67  # jarak pusat angka 1..12 dari pusat muka
+ADEGAN_JAM_ANGKA_FONT = 19
+ADEGAN_JAM_PANJANG_PENDEK = 36  # jarum jam
+ADEGAN_JAM_PANJANG_PANJANG = 54  # jarum menit; selalu >= 1,3 kali jarum jam
+ADEGAN_JAM_TEBAL_PENDEK = 8  # jarum jam lebih tebal, digambar di atas jarum menit
+ADEGAN_JAM_TEBAL_PANJANG = 4
+ADEGAN_JAM_PUSAT = 5  # jari-jari titik pusat jarum
+
+# Adegan awal sub-adegan `busur`: busur derajat setengah lingkaran dengan dua skala; satuan viewBox.
+ADEGAN_BUSUR_TINGGI = 224  # tinggi viewBox
+ADEGAN_BUSUR_PUSAT_Y = 192  # y titik sudut (pusat busur, di garis alas)
+ADEGAN_BUSUR_RADIUS = 144  # jari-jari busur
+ADEGAN_BUSUR_ISI = "#eef5fc"  # isi busur; terang agar angka dan sinar berkontras tinggi
+ADEGAN_BUSUR_TEBAL_TEPI = 2.5
+ADEGAN_BUSUR_TEBAL_ALAS = 2
+ADEGAN_BUSUR_ALAS_LEBIH = 6  # garis alas menjorok keluar dari busur di kedua sisi
+ADEGAN_BUSUR_TANDA = (4, 7, 11)  # panjang tanda 1, 5, dan 10 derajat dari tepi busur ke dalam
+ADEGAN_BUSUR_TEBAL_TANDA = (0.7, 1, 1.4)
+ADEGAN_BUSUR_ANGKA_LUAR_JARI = 124  # jarak pusat angka skala luar dari pusat busur
+ADEGAN_BUSUR_ANGKA_DALAM_JARI = 104  # jarak pusat angka skala dalam dari pusat busur
+ADEGAN_BUSUR_ANGKA_FONT = 11
+ADEGAN_BUSUR_ANGKA_DALAM = "#1d4e96"  # skala dalam berwarna biru agar tidak tertukar dengan skala luar
+ADEGAN_BUSUR_SINAR = "#b3261e"  # sinar sudut merah tua
+ADEGAN_BUSUR_TEBAL_SINAR = 2.5
+ADEGAN_BUSUR_PANJANG_SINAR = 154  # sinar melewati kedua skala sampai di luar busur
+ADEGAN_BUSUR_HURUF_JARI = 169  # jarak pusat huruf ujung sinar dari titik sudut
+ADEGAN_BUSUR_HURUF_FONT = 16
+ADEGAN_BUSUR_PUSAT = 4  # jari-jari titik pusat
+ADEGAN_BUSUR_ANGKA_NAIK = 7  # angka di garis alas (0 dan 180) digeser ke atas agar tidak tertimpa garis
+ADEGAN_BUSUR_LEBAR_HURUF = 0.6  # lebar satu angka skala, kali ukuran huruf (untuk latar angka)
+ADEGAN_BUSUR_LATAR_ANGKA_LEBIH = 2  # latar angka melebihi teks di sisi kiri dan kanan
+ADEGAN_BUSUR_HURUF_TITIK_TURUN = 20  # huruf titik sudut di bawah garis alas
+
+# Adegan awal sub-adegan `tumpukan_kubus`: kubus satuan isometrik di lantai berpetak; satuan viewBox.
+ADEGAN_TUMPUKAN_TINGGI = 288  # tinggi viewBox
+ADEGAN_TUMPUKAN_LEBAR_MUKA = 34  # selisih x satu petak pada sumbu kolom atau baris (tiap rusuk datar)
+ADEGAN_TUMPUKAN_MIRING = 20  # selisih y satu petak pada sumbu kolom atau baris (rusuk datar miring)
+ADEGAN_TUMPUKAN_RUSUK = 40  # panjang rusuk tegak satu kubus (dua kali miring)
+ADEGAN_TUMPUKAN_MUKA = ADEGAN_BANGUN_KUNING  # muka atas, muka kiri (depan), muka kanan: terang ke gelap
+ADEGAN_TUMPUKAN_TEBAL = 2  # garis tepi tiap muka kubus
+ADEGAN_TUMPUKAN_LANTAI_ISI = ADEGAN_PITA_ISI_NETRAL
+ADEGAN_TUMPUKAN_LANTAI_GARIS = ADEGAN_PITA_GARIS_NETRAL
+ADEGAN_TUMPUKAN_TEBAL_LANTAI = 1.5
+ADEGAN_TUMPUKAN_TINGGI_MAKS = 3  # kubus tertinggi yang boleh digambar; menentukan ruang atas viewBox
+ADEGAN_TUMPUKAN_LABEL_FONT = 16
+ADEGAN_TUMPUKAN_LABEL_RUANG = 28  # ruang di bawah tepi lantai untuk label arah
+ADEGAN_TUMPUKAN_LABEL_TURUN = 22  # label arah di bawah titik tengah tepi lantai
+ADEGAN_TUMPUKAN_LABEL_GESER = 16  # label "depan" bergeser ke kiri dan "kanan" ke kanan agar tidak berdekatan
+
 # Sketsa ruang dan proyeksi isometrik kisi kubus.
 RUANG_ASAL = (165, 200)
 RUANG_SUMBU = ((90, -25), (-60, -40), (0, -90))

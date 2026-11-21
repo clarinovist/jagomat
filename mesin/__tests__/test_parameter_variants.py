@@ -56,6 +56,9 @@ FRAKSI_AWAL_KHUSUS = {
     ("matematika-awal", "ukur_konversi_awal", "P3"): 0.5,
     ("matematika-awal", "bilang_benda_awal", "P1"): 0.7,
     ("matematika-awal", "ciri_komposisi_bangun", "P4"): 0.6,
+    # baca_jam_awal: domain 244 anggota; sampler seragam atas varian dulu, jadi dua varian kecil (12 anggota)
+    # jenuh lebih cepat (153 kombinasi unik pada 500 seed).
+    ("matematika-awal", "baca_jam_awal", "P2"): 0.6,
 }
 
 
