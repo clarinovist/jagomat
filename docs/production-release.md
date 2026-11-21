@@ -6,6 +6,30 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+## Deploy perbaikan draf cetakan AI (thinking dimatikan) — 21 November 2026
+
+Controlled `deploy-v2` memasang **63f8756** (digest `sha256:b504a774…2884`), healthy/restart0, menggantikan
+**b512df0**. Isi: klien `cetakan_ai` mengirim `"thinking": {"type": "disabled"}` agar DeepSeek tidak menghabiskan
+`max_tokens` 1500 untuk reasoning. Model, temperature, `max_tokens`, batas 8192 byte, timeout, dan kuota tidak berubah;
+tanpa migrasi data. Pemilik memilih opsi ini (bukan menaikkan limit) setelah penundaan pagi ini.
+
+- Gate dispatch [44859376175](https://github.com/clarinovist/jagomat/actions/runs/44859376175) hijau: kandidat 4/4,
+  recovery 4/4, pair `ok`, `provider_calls` 0. Kontrak kandidat = recovery = live **`660fe235…7231`** (tidak bergeser);
+  recovery tetap **4cef3ab**, digest dibangun ulang `sha256:43c4c50c…abfe`.
+- Kit `deploy-cetakan-ai-fix-20261121` (salinan kit sebelumnya; probe kandidat dan live menambah asersi
+  `thinking: disabled`; deployer tidak berubah, hash `8bb44ec2…`). `PERSIAPAN_OK`, hold mulai 10.25.08 WIB, kandidat
+  mulai 10.27.01 WIB, backup empat DB + `sandi.json` + riset, rehearsal C–B–C, `deploy-v2` exit0, reopen
+  `LIVE_ADMIN_HEALTHY`, postcheck exit0 (smoke publik sama dengan rilis b512df0, probe sintetis termasuk
+  `cetakan_ai` lulus, galat Traceback/OperationalError/IntegrityError 0, config dan hash histori terjaga).
+  Cleanup 4 direktori sementara, backup dipertahankan.
+- Backup induk `/opt/osn/cadangan/deploy-cetakan-ai-fix-20261121/`, salinan lokal
+  `mesin/cadangan/deploy-cetakan-ai-fix-20261121/` (gitignored).
+- **Uji kunci asli (pasca-deploy, satu panggilan, kelas 2 bab 2, muatan hanya kelas/bab/aturan):** 1.745 byte,
+  `finish_reason=stop`, `content` 1.187 karakter, `reasoning_content` kosong, **3 kandidat** terurai;
+  usage 617 prompt + 481 completion = 1.098 token. Draf AI kini berfungsi di level klien.
+- Sisa: uji UI end-to-end oleh Pemilik (butuh sandi admin; validasi mesin dan simpan draf belum dilihat lewat
+  halaman); C4 tetap ditunda.
+
 ## Deploy cetakan soal berpola dan draf cetakan AI — 21 November 2026
 
 Controlled `deploy-v2` memasang **b512df0** (digest `sha256:2b04eb27…8415`), healthy/restart0, menggantikan

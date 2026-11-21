@@ -15,12 +15,11 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   kandidat Fase 1–3 ter-deploy dan **funnel diaktifkan 19 November 2026 termasuk
   pembayaran Paket Coba** (`FUNNEL_AKTIF=1`, ledger `pesanan_*` dimigrasikan);
   deliverable Fase 4 masih menyusul/manual. Status baris F1 di tabel bawah.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`b512df0`** (21 November 2026;
-  halaman admin cetakan soal berpola C2 + draf cetakan dari AI C3, kuota 20/hari, recovery pin
-  `4cef3ab`, kontrak `660fe23`; deploy terkontrol 06.29–06.31 WIB). **Draf AI belum berguna**:
-  uji kunci asli menemukan `deepseek-flash` menghabiskan seluruh `max_tokens` pada reasoning
-  (`finish_reason=length`, konten kosong); perbaikan **ditunda** (keputusan Pemilik 21 November 2026).
-  Sebelumnya
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`63f8756`** (21 November 2026;
+  draf cetakan AI C3 mematikan thinking DeepSeek, recovery pin `4cef3ab`, kontrak `660fe23`;
+  deploy terkontrol mulai 10.25 WIB). Uji kunci asli: `finish_reason=stop`, 3 kandidat, 1.745 byte.
+  Uji UI end-to-end oleh Pemilik belum. Sebelumnya **`b512df0`** (21 November 2026; halaman admin
+  cetakan soal berpola C2 + draf AI C3, kuota 20/hari; draf AI kosong karena reasoning) dan
   **`55aaa49`** (20 November 2026; WAL SQLite lima DB, recovery pin `bf5de20`) dan
   **`fa037344`** (20 November 2026 pagi;
   beranda funnel) dan **`efe9514`** (19 November 2026;
