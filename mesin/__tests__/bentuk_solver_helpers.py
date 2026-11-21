@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 
-DATAR_TES = {"P1": ("segitiga", "persegi", "lingkaran"),
+DATAR_TES = {"P1": ("segitiga", "persegi", "persegi panjang", "lingkaran"),
              "P2": ("segitiga", "persegi", "persegi panjang", "lingkaran")}
 RUANG_TES = {"P1": ("kubus", "balok", "bola", "tabung"),
              "P2": ("kubus", "balok", "bola", "tabung", "kerucut")}

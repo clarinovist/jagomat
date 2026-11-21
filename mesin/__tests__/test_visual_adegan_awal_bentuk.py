@@ -227,6 +227,26 @@ def test_hitung_kontrak_satu_bangun_satu_elemen_dan_jumlah_sama_parameter(level)
         assert not [e for e in kelas(svg, "baris-bangun")[0] if "bangun-gambar" not in e.get("class", "")]
 
 
+def test_p1_persegi_dan_persegi_panjang_dibedakan_dari_geometri_pada_gambar_dan_hitung():
+    """P1 memuat persegi panjang (kelas 1): solver geometri membedakannya dari persegi di seluruh sapuan P1."""
+    terlihat = set()
+    for p in _domain("P1", "datar_gambar"):
+        if p["bangun"] not in ("persegi", "persegi panjang"):
+            continue
+        soal = _soal(p, "P1")
+        penyajian = penyajian_dari_soal(soal)
+        svg = periksa_xml(render_pertanyaan(penyajian, namespace="p1-segiempat"))
+        assert jawab_visual(penyajian, svg, "P1") == soal.kunci == p["bangun"], p
+        terlihat.add(p["bangun"])
+    assert terlihat == {"persegi", "persegi panjang"}
+    hitung = [p for p in _domain("P1", "hitung_bentuk") if p["banyak"][2] and p["banyak"][1]]
+    assert hitung, "P1 harus punya deretan yang memuat persegi dan persegi panjang sekaligus"
+    for p in hitung[::97]:
+        svg = _svg(p, namespace="p1-hitung")
+        jenis = Counter(klasifikasi_datar(b) for b in _bangun_gambar(svg))
+        assert jenis["persegi"] == p["banyak"][1] and jenis["persegi panjang"] == p["banyak"][2], p
+
+
 # ── varian benda_ruang dan tanpa flag tetap teks ─────────────────────────
 
 @pytest.mark.parametrize("level", LEVEL)

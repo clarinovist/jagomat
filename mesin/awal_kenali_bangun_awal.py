@@ -7,8 +7,10 @@ Empat bentuk soal (`varian`):
   - `benda_ruang`: "Dadu berbentuk seperti bangun ruang apa?" (teks SAJA, tanpa gambar);
   - `hitung_bentuk`: "Berapa banyak segitiga?" pada deretan bangun datar campur (kunci: angka).
 
-Himpunan bangun (`himpunan`, mengikuti level): "dasar" (P1) datar {segitiga, persegi, lingkaran}
-dan ruang {kubus, balok, bola, tabung}; "lengkap" (P2) menambah persegi panjang dan kerucut.
+Himpunan bangun (`himpunan`, mengikuti level): "dasar" (P1) datar {segitiga, persegi, persegi
+panjang, lingkaran} dan ruang {kubus, balok, bola, tabung}; "lengkap" (P2) datar sama dan ruang
+menambah kerucut. Persegi dan persegi panjang dibedakan lewat sisi yang semuanya sama panjang
+atau yang berhadapan saja yang sama panjang.
 Pilihan jawaban TIDAK tertulis di soal; jawaban dibaca dalam himpunan itu. Kunci berupa nama
 huruf kecil ("persegi panjang"; dibandingkan lewat `diagnosis.normalisasi`) atau angka.
 
@@ -53,8 +55,9 @@ VARIAN = ("datar_gambar", "ruang_gambar", "benda_ruang", "hitung_bentuk")
 VARIAN_GAMBAR = ("datar_gambar", "ruang_gambar")
 PESAN_LUAR_DOMAIN = "parameter kenali bangun awal di luar domain"
 PESAN_LEVEL = "level kenali bangun awal harus P1 atau P2"
-# Jumlah paling banyak per jenis bangun pada hitung_bentuk (P2 punya empat jenis, jadi lebih kecil).
-BANYAK_JENIS_MAKS = {"dasar": 6, "lengkap": 4}
+# Jumlah paling banyak per jenis bangun pada hitung_bentuk (kedua level kini punya empat jenis datar,
+# jadi sama; total tetap <= TOTAL_MAKS).
+BANYAK_JENIS_MAKS = {"dasar": 4, "lengkap": 4}
 TOTAL_MIN, TOTAL_MAKS = 4, 10
 JENIS_MIN = 2
 # Tata (indeks = indeks warna): susunan urutan bangun dan kalimat pembuka versi teks.

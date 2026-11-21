@@ -21,9 +21,11 @@ DATAR = ("segitiga", "persegi", "persegi panjang", "lingkaran")
 RUANG = ("kubus", "balok", "bola", "tabung", "kerucut")
 SEMUA_NAMA = DATAR + RUANG
 
+# Himpunan bangun DATAR sama di P1 dan P2 (persegi panjang dikenalkan sejak kelas 1); P2 hanya
+# menambah kerucut pada bangun ruang. Nama himpunan tetap "dasar" dan "lengkap" (ikut domain).
 HIMPUNAN_LEVEL = MappingProxyType({"P1": "dasar", "P2": "lengkap"})
 DATAR_HIMPUNAN = MappingProxyType({
-    "dasar": ("segitiga", "persegi", "lingkaran"),
+    "dasar": ("segitiga", "persegi", "persegi panjang", "lingkaran"),
     "lengkap": ("segitiga", "persegi", "persegi panjang", "lingkaran"),
 })
 RUANG_HIMPUNAN = MappingProxyType({
@@ -115,7 +117,7 @@ BENDA = MappingProxyType({
 
 # Bangun datar yang sering disebut untuk bangun ruang (hipotesis K): hanya satu sisinya yang dilihat.
 DATAR_KELIRU = MappingProxyType({
-    "dasar": MappingProxyType({"kubus": "persegi", "balok": "persegi",
+    "dasar": MappingProxyType({"kubus": "persegi", "balok": "persegi panjang",
                                "bola": "lingkaran", "tabung": "lingkaran"}),
     "lengkap": MappingProxyType({"kubus": "persegi", "balok": "persegi panjang",
                                  "bola": "lingkaran", "tabung": "lingkaran",

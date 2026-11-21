@@ -28,6 +28,7 @@ ALASAN_RUANG-nya dihapus. Konsentrasi lembar P4 2,00, P5 1,24, P6 1,86 (semua di
 UTANG_LEMBAR P6 dilunasi dan dihapus.
 kenali_bangun_awal P1/P2 (21 Nov 2026, jenis ke-20, empat varian: datar_gambar, ruang_gambar, benda_ruang, hitung_bentuk): diukur lewat _ukur
 pada kedua versi katalog (sama): P1 102 kerangka/159 tanda tangan, P2 113/172 (>= 150, tanpa ALASAN_RUANG); lembar P1 kini 6 jenis dan P2 8 jenis.
+Diukur ulang 22 Nov 2026 setelah persegi panjang masuk himpunan datar P1 (K1 B4 segiempat): P1 106 kerangka/165 tanda tangan (kedua versi katalog sama), P2 tetap 113/172.
 baca_jam_awal P2 (21 Nov 2026, jenis ke-21, empat varian: baca_penuh, baca_setengah, jam_kemudian, kegiatan_selesai): diukur lewat _ukur
 pada kedua versi katalog (sama): 7 kerangka/123 tanda tangan (< 150, jadi ALASAN_RUANG); lembar P2 kini 9 jenis.
 ukur_sudut_awal P5 (21 Nov 2026, jenis ke-22, lima varian: baca_dari_nol, baca_geser, jenis_sudut, banding, selisih_dua): diukur lewat _ukur
@@ -80,7 +81,7 @@ bilangan-sekolah tambah_kurang_bersusun P3:2:300:kurang,tambah P4:2:300:kurang,t
 bilangan-sekolah kali_bagi_sekolah P3:2:144:bagi,kali P4:2:262:bagi,kali P5:2:300:bagi,kali
 bilangan-sekolah kalimat_matematika P3:4:292:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P4:4:300:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P5:4:267:bagi_akhir,bagi_awal,kali_akhir,kali_awal
 matematika-awal kenali_bentuk P1:18:19:banyak_sisi,benda,dari_ciri P2:26:26:banyak_sisi,benda,dari_ciri
-matematika-awal kenali_bangun_awal P1:102:159:benda_ruang,datar_gambar,hitung_bentuk,ruang_gambar P2:113:172:benda_ruang,datar_gambar,hitung_bentuk,ruang_gambar
+matematika-awal kenali_bangun_awal P1:106:165:benda_ruang,datar_gambar,hitung_bentuk,ruang_gambar P2:113:172:benda_ruang,datar_gambar,hitung_bentuk,ruang_gambar
 matematika-awal baca_jam_awal P2:7:123:baca_penuh,baca_setengah,jam_kemudian,kegiatan_selesai
 matematika-awal ukur_sudut_awal P5:9:248:baca_dari_nol,baca_geser,banding,jenis_sudut,selisih_dua
 matematika-awal tampak_kubus_awal P6:15:290:banyak_kubus,banyak_persegi_atas,banyak_persegi_depan,banyak_persegi_samping

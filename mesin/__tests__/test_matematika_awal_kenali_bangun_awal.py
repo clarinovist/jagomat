@@ -42,7 +42,7 @@ VARIAN = ("datar_gambar", "ruang_gambar", "benda_ruang", "hitung_bentuk")
 SEED = range(200)
 AKAR_MESIN = Path(__file__).resolve().parents[1]
 UKURAN_DOMAIN = {
-    "P1": {"datar_gambar": 84, "ruang_gambar": 30, "benda_ruang": 12, "hitung_bentuk": 1143},
+    "P1": {"datar_gambar": 96, "ruang_gambar": 30, "benda_ruang": 12, "hitung_bentuk": 2424},
     "P2": {"datar_gambar": 96, "ruang_gambar": 36, "benda_ruang": 15, "hitung_bentuk": 2424},
 }
 TERLARANG = re.compile(r"malrule|diagnosis|kode|guru|kunci|template|hipotesis", re.I)
@@ -135,8 +135,36 @@ def test_domain_himpunan_level_dan_bangun_lengkap():
         ruang = {p["bangun"] for p in domain if p["varian"] == "ruang_gambar"}
         benda = {p["bangun"] for p in domain if p["varian"] == "benda_ruang"}
         assert datar == set(DATAR_TES[level]) and ruang == benda == set(RUANG_TES[level])
-    assert {"persegi panjang", "kerucut"}.isdisjoint(
-        {p.get("bangun") for p in _domain("P1")})
+    assert "kerucut" not in {p.get("bangun") for p in _domain("P1")}
+    assert "kerucut" in {p.get("bangun") for p in _domain("P2")}
+
+
+def test_himpunan_datar_p1_sama_dengan_p2_dan_memuat_persegi_panjang():
+    """Persegi panjang dikenalkan sejak kelas 1: himpunan datar P1 persis empat bangun, sama dengan P2."""
+    assert DATAR_TES["P1"] == DATAR_TES["P2"] == ("segitiga", "persegi", "persegi panjang", "lingkaran")
+    assert tuple(katalog.DATAR_HIMPUNAN["dasar"]) == DATAR_TES["P1"]
+    assert tuple(katalog.RUANG_HIMPUNAN["dasar"]) == ("kubus", "balok", "bola", "tabung")
+    datar = [p for p in _domain("P1") if p["varian"] == "datar_gambar"]
+    assert {(p["bangun"], p["ragam"]) for p in datar if p["bangun"] == "persegi panjang"} == {
+        ("persegi panjang", "mendatar"), ("persegi panjang", "tegak")}
+    hitung = [p for p in _domain("P1") if p["varian"] == "hitung_bentuk"]
+    assert {i for p in hitung for i, n in enumerate(p["banyak"]) if n} == {0, 1, 2, 3}
+    assert max(n for p in hitung for n in p["banyak"]) == 4 and max(sum(p["banyak"]) for p in hitung) == 10
+
+
+def test_p1_membedakan_persegi_dan_persegi_panjang_lewat_teks_saja():
+    """Ciri persegi dan persegi panjang pada P1 masing-masing menunjuk tepat satu bangun, tak pernah dua."""
+    f = jenis.kenali_bangun_awal
+    for warna in katalog.WARNA:
+        persegi = f("datar_gambar", "dasar", bangun="persegi", ragam="biasa", putar=0,
+                    ukuran="kecil", warna=warna)
+        panjang = f("datar_gambar", "dasar", bangun="persegi panjang", ragam="mendatar", putar=0,
+                    ukuran="kecil", warna=warna)
+        assert solver_dari_teks(persegi.teks, "P1") == "persegi"
+        assert solver_dari_teks(panjang.teks, "P1") == "persegi panjang"
+        assert persegi.teks != panjang.teks
+        assert "persegi panjang" in {m.jawaban for m in persegi.malrule}
+        assert "persegi" in {m.jawaban for m in panjang.malrule}
 
 
 @pytest.mark.parametrize("level", LEVEL)
@@ -212,6 +240,10 @@ def test_solver_tidak_meloloskan_ciri_yang_ambigu():
     with pytest.raises(AssertionError):
         solver_dari_teks("Bangun ini punya 4 sisi lurus.\nBangun datar apa ini?", "P2")
     with pytest.raises(AssertionError):
+        solver_dari_teks("Bangun ini punya 4 sisi lurus.\nBangun datar apa ini?", "P1")
+    with pytest.raises(AssertionError):
+        solver_dari_teks("Bangun ini punya 4 sisi lurus dan 4 sudut.\nBangun datar apa ini?", "P1")
+    with pytest.raises(AssertionError):
         solver_dari_teks("Bangun ruang ini punya 6 sisi.\nBangun ruang apa ini?", "P2")
     with pytest.raises(AssertionError):
         solver_dari_teks("Bu Rina menggambar: segitiga, segitiga, persegi, persegi.\n"
@@ -248,11 +280,15 @@ def test_teks_contoh_tangan():
         "\nBangun ruang apa ini?")
     assert f("benda_ruang", "dasar", bangun="bola", benda=0).teks == (
         "Bola sepak berbentuk seperti bangun ruang apa?")
-    hitung = f("hitung_bentuk", "dasar", banyak=[2, 1, 1], tanya=0, tata=0)
+    hitung = f("hitung_bentuk", "dasar", banyak=[2, 1, 0, 1], tanya=0, tata=0)
     assert hitung.teks == ("Bu Rina menggambar: segitiga, segitiga, persegi, lingkaran.\n"
                            "Berapa banyak segitiga?")
     assert hitung.kunci == "2"
-    campur = f("hitung_bentuk", "dasar", banyak=[3, 1, 2], tanya=0, tata=1)
+    campur = f("hitung_bentuk", "dasar", banyak=[3, 1, 0, 2], tanya=0, tata=1)
+    panjang = f("hitung_bentuk", "dasar", banyak=[1, 2, 3, 0], tanya=2, tata=0)
+    assert panjang.teks == ("Bu Rina menggambar: segitiga, persegi, persegi, persegi panjang, "
+                            "persegi panjang, persegi panjang.\nBerapa banyak persegi panjang?")
+    assert panjang.kunci == "3"
     assert campur.teks.startswith("Pak Dedi menggambar: segitiga, persegi, lingkaran, segitiga, lingkaran, segitiga.")
 
 
@@ -330,7 +366,7 @@ def test_bangun_datar_untuk_ruang_adalah_hipotesis_k_per_himpunan():
     f = jenis.kenali_bangun_awal
     p1 = {m.id.split(".", 1)[1]: m for m in f("benda_ruang", "dasar", bangun="balok", benda=1).malrule}
     p2 = {m.id.split(".", 1)[1]: m for m in f("benda_ruang", "lengkap", bangun="balok", benda=1).malrule}
-    assert p1["datar_untuk_ruang"].jawaban == "persegi" and p1["datar_untuk_ruang"].kode == "K"
+    assert p1["datar_untuk_ruang"].jawaban == "persegi panjang" and p1["datar_untuk_ruang"].kode == "K"
     assert p2["datar_untuk_ruang"].jawaban == "persegi panjang"
     for himpunan, bangun, datar in (("dasar", "kubus", "persegi"), ("lengkap", "kubus", "persegi"),
                                     ("dasar", "tabung", "lingkaran"), ("lengkap", "tabung", "lingkaran"),
@@ -358,22 +394,25 @@ def test_alasan_tertukar_khusus_menyebut_ciri_pembeda():
 
 
 def test_hitung_malrule_jenis_lain_semua_dan_lebih_kurang_satu():
-    m = _malrule(dict(varian="hitung_bentuk", himpunan="dasar", banyak=[3, 1, 4], tanya=0, tata=0))
+    m = _malrule(dict(varian="hitung_bentuk", himpunan="dasar", banyak=[3, 1, 0, 4], tanya=0, tata=0))
     assert m["hitung_persegi"].jawaban == "1" and m["hitung_persegi"].kode == "K"
     assert m["hitung_lingkaran"].jawaban == "4" and m["hitung_lingkaran"].kode == "K"
     assert m["hitung_semua"].jawaban == "8" and m["hitung_semua"].kode == "K"
     assert "hitung_dobel" not in m, "lebih satu (4) kembar jawaban jenis lain, dibuang saringan"
     assert m["hitung_terlewat"].jawaban == "2" and m["hitung_terlewat"].kode == "H"
-    satu = _malrule(dict(varian="hitung_bentuk", himpunan="dasar", banyak=[1, 2, 3], tanya=0, tata=1))
+    satu = _malrule(dict(varian="hitung_bentuk", himpunan="dasar", banyak=[1, 2, 0, 3], tanya=0, tata=1))
     assert "hitung_terlewat" not in satu, "kurang satu tidak boleh menjadi pengecoh 0"
     assert "hitung_dobel" not in satu and {x.jawaban for x in satu.values()} == {"2", "3", "6"}
-    dobel = _malrule(dict(varian="hitung_bentuk", himpunan="dasar", banyak=[2, 1, 5], tanya=0, tata=0))
+    dobel = _malrule(dict(varian="hitung_bentuk", himpunan="dasar", banyak=[2, 1, 0, 4], tanya=0, tata=0))
     assert dobel["hitung_dobel"].jawaban == "3" and dobel["hitung_dobel"].kode == "H"
 
 
 def test_hitung_malrule_jenis_yang_tak_ada_tidak_jadi_pengecoh():
-    m = _malrule(dict(varian="hitung_bentuk", himpunan="dasar", banyak=[3, 0, 2], tanya=0, tata=0))
-    assert "hitung_persegi" not in m and m["hitung_lingkaran"].jawaban == "2"
+    m = _malrule(dict(varian="hitung_bentuk", himpunan="dasar", banyak=[3, 0, 0, 2], tanya=0, tata=0))
+    assert "hitung_persegi" not in m and "hitung_persegi_panjang" not in m
+    assert m["hitung_lingkaran"].jawaban == "2"
+    ada = _malrule(dict(varian="hitung_bentuk", himpunan="dasar", banyak=[3, 1, 2, 0], tanya=0, tata=0))
+    assert ada["hitung_persegi_panjang"].jawaban == "2" and ada["hitung_persegi_panjang"].kode == "K"
 
 
 # ── pembahasan ───────────────────────────────────────────────────────────
@@ -472,14 +511,17 @@ def test_lembar_cetak_memakai_teks_lengkap_walau_flag_visual_menyala(level, monk
 
 DATAR_OK = dict(himpunan="dasar", bangun="segitiga", ragam="siku", putar=90, ukuran="besar", warna="biru")
 RUANG_OK = dict(himpunan="lengkap", bangun="kerucut", ragam="tegak", putar=0, ukuran="kecil", warna="hijau")
-HITUNG_OK = dict(himpunan="dasar", banyak=[3, 1, 2], tanya=0, tata=2)
+HITUNG_OK = dict(himpunan="dasar", banyak=[3, 1, 2, 1], tanya=0, tata=2)
 
 
 @pytest.mark.parametrize("varian, isi", [
     ("tidak_ada", DATAR_OK), (None, DATAR_OK), (["datar_gambar"], DATAR_OK),
     ("datar_gambar", {**DATAR_OK, "himpunan": "luas"}),
     ("datar_gambar", {**DATAR_OK, "bangun": "kubus"}),          # ruang pada varian datar
-    ("datar_gambar", {**DATAR_OK, "bangun": "persegi panjang"}),  # belum ada di himpunan dasar
+    ("datar_gambar", {**DATAR_OK, "bangun": "persegi panjang"}),  # ragam segitiga pada persegi panjang
+    ("datar_gambar", {**DATAR_OK, "bangun": "persegi panjang", "ragam": "biasa"}),
+    ("datar_gambar", {**DATAR_OK, "bangun": "persegi panjang", "ragam": "mendatar", "putar": 90}),
+    ("datar_gambar", {**DATAR_OK, "bangun": "kerucut"}),
     ("datar_gambar", {**DATAR_OK, "ragam": "tegak"}),
     ("datar_gambar", {**DATAR_OK, "putar": 45}),
     ("datar_gambar", {**DATAR_OK, "putar": True}),
@@ -487,7 +529,7 @@ HITUNG_OK = dict(himpunan="dasar", banyak=[3, 1, 2], tanya=0, tata=2)
     ("datar_gambar", {**DATAR_OK, "ukuran": "sedang"}),
     ("datar_gambar", {**DATAR_OK, "warna": "merah"}),
     ("datar_gambar", {**DATAR_OK, "benda": 0}),
-    ("datar_gambar", {**DATAR_OK, "banyak": [3, 1, 2]}),
+    ("datar_gambar", {**DATAR_OK, "banyak": [3, 1, 2, 1]}),
     ("datar_gambar", {k: v for k, v in DATAR_OK.items() if k != "warna"}),
     ("datar_gambar", {**DATAR_OK, "bangun": "persegi", "putar": 90}),  # persegi miring dilarang
     ("ruang_gambar", {**DATAR_OK}),                              # datar pada varian ruang
@@ -501,26 +543,27 @@ HITUNG_OK = dict(himpunan="dasar", banyak=[3, 1, 2], tanya=0, tata=2)
     ("benda_ruang", dict(himpunan="dasar", bangun="bola")),
     ("benda_ruang", dict(himpunan="dasar", bangun="bola", benda=0, warna="biru")),
     ("benda_ruang", dict(himpunan="dasar", bangun="persegi", benda=0)),
-    ("hitung_bentuk", {**HITUNG_OK, "banyak": [3, 3, 2]}),       # ditanya kembar jenis lain
+    ("hitung_bentuk", {**HITUNG_OK, "banyak": [3, 3, 2, 1]}),    # ditanya kembar jenis lain
     ("hitung_bentuk", {**HITUNG_OK, "banyak": [3, 1]}),
-    ("hitung_bentuk", {**HITUNG_OK, "banyak": [3, 1, 2, 1]}),    # empat jenis pada himpunan dasar
-    ("hitung_bentuk", {**HITUNG_OK, "banyak": [7, 1, 2]}),       # di atas batas per jenis
-    ("hitung_bentuk", {**HITUNG_OK, "banyak": [1, 1, 1]}),       # total di bawah 4
-    ("hitung_bentuk", {**HITUNG_OK, "banyak": [6, 3, 2]}),       # total di atas 10
-    ("hitung_bentuk", {**HITUNG_OK, "banyak": [4, 0, 0]}),       # kurang dari dua jenis
-    ("hitung_bentuk", {**HITUNG_OK, "banyak": [3.0, 1, 2]}),
-    ("hitung_bentuk", {**HITUNG_OK, "banyak": [True, 1, 2]}),
+    ("hitung_bentuk", {**HITUNG_OK, "banyak": [3, 1, 2]}),       # tiga jenis: himpunan dasar kini empat
+    ("hitung_bentuk", {**HITUNG_OK, "banyak": [3, 1, 2, 1, 1]}),  # lima jenis
+    ("hitung_bentuk", {**HITUNG_OK, "banyak": [5, 1, 2, 0]}),    # di atas batas per jenis
+    ("hitung_bentuk", {**HITUNG_OK, "banyak": [1, 2, 0, 0]}),    # total di bawah 4
+    ("hitung_bentuk", {**HITUNG_OK, "banyak": [4, 3, 3, 2]}),    # total di atas 10
+    ("hitung_bentuk", {**HITUNG_OK, "banyak": [4, 0, 0, 0]}),    # kurang dari dua jenis
+    ("hitung_bentuk", {**HITUNG_OK, "banyak": [3.0, 1, 2, 1]}),
+    ("hitung_bentuk", {**HITUNG_OK, "banyak": [True, 1, 2, 1]}),
     ("hitung_bentuk", {**HITUNG_OK, "banyak": "312"}),
-    ("hitung_bentuk", {**HITUNG_OK, "banyak": [-1, 3, 4]}),
-    ("hitung_bentuk", {**HITUNG_OK, "tanya": 3}),
+    ("hitung_bentuk", {**HITUNG_OK, "banyak": [-1, 3, 4, 2]}),
+    ("hitung_bentuk", {**HITUNG_OK, "tanya": 4}),
     ("hitung_bentuk", {**HITUNG_OK, "tanya": -1}),
     ("hitung_bentuk", {**HITUNG_OK, "tanya": "0"}),
-    ("hitung_bentuk", {**HITUNG_OK, "banyak": [0, 3, 2], "tanya": 0}),   # yang ditanya tak ada
+    ("hitung_bentuk", {**HITUNG_OK, "banyak": [0, 3, 2, 1], "tanya": 0}),   # yang ditanya tak ada
     ("hitung_bentuk", {**HITUNG_OK, "tata": 3}),
     ("hitung_bentuk", {**HITUNG_OK, "tata": None}),
     ("hitung_bentuk", {**HITUNG_OK, "warna": "biru"}),
     ("hitung_bentuk", {**HITUNG_OK, "bangun": "segitiga"}),
-    ("hitung_bentuk", {**HITUNG_OK, "himpunan": "lengkap"}),     # empat jenis wajib pada himpunan lengkap
+    ("hitung_bentuk", {**HITUNG_OK, "himpunan": "luas"}),
 ])
 def test_parameter_tidak_sah_ditolak(varian, isi):
     with pytest.raises(ValueError, match="di luar domain"):
@@ -531,7 +574,10 @@ def test_contoh_sah_dari_tabel_penolakan_memang_diterima():
     assert _soal({"varian": "datar_gambar", **DATAR_OK}).kunci == "segitiga"
     assert _soal({"varian": "ruang_gambar", **RUANG_OK}).kunci == "kerucut"
     assert _soal({"varian": "hitung_bentuk", **HITUNG_OK}).kunci == "3"
-    assert _soal({"varian": "hitung_bentuk", **{**HITUNG_OK, "banyak": (3, 1, 2)}}).parameter["banyak"] == [3, 1, 2]
+    assert _soal({"varian": "hitung_bentuk", **{**HITUNG_OK, "banyak": (3, 1, 2, 1)}}).parameter["banyak"] == [3, 1, 2, 1]
+    assert _soal({"varian": "datar_gambar", **{**DATAR_OK, "bangun": "persegi panjang",
+                                               "ragam": "tegak", "putar": 0}}).kunci == "persegi panjang"
+    assert _soal({"varian": "hitung_bentuk", **{**HITUNG_OK, "himpunan": "lengkap"}}).kunci == "3"
 
 
 # ── determinisme lintas proses ───────────────────────────────────────────
