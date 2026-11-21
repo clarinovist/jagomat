@@ -228,6 +228,22 @@ def _hapus_kontak(kon, target_id: str) -> None:
         kontak_akun.hapus(kon, target_id)
 
 
+def _hapus_lomba(kon, siswa_ids) -> None:
+    """Hapus seluruh data Latihan Lomba anak-anak target (sesi, soal beku, jawaban).
+
+    Siswa hanya dianonimkan (barisnya tidak dihapus), jadi cascade FK tidak berlaku; anak anonim
+    tidak boleh menyisakan jawaban dan nilainya. Dihapus eksplisit dari anak ke induk; basis lama
+    tanpa tabel lomba dilewati. Anak keluarga lain tidak disentuh.
+    """
+    if not siswa_ids or not _tabel(kon, "lomba_sesi"):
+        return
+    q = ",".join("?" for _ in siswa_ids)
+    sesi = "(SELECT id FROM lomba_sesi WHERE siswa_id IN (%s))" % q
+    kon.execute("DELETE FROM lomba_jawaban WHERE sesi_id IN " + sesi, siswa_ids)
+    kon.execute("DELETE FROM lomba_soal WHERE sesi_id IN " + sesi, siswa_ids)
+    kon.execute("DELETE FROM lomba_sesi WHERE siswa_id IN (%s)" % q, siswa_ids)
+
+
 def _hapus_cek(kon, target_id: str, siswa_ids) -> None:
     """Hapus baris cek gratis keluarga target (kunci ``id_akun`` atau anaknya).
 
@@ -269,6 +285,7 @@ def _ubah_belajar(path, pemilik: str, target_id: str, pseudonim: str):
         _ubah_lembaga(kon, pemilik, pseudonim)
         _hapus_kontak(kon, target_id)
         _hapus_cek(kon, target_id, siswa_ids)
+        _hapus_lomba(kon, siswa_ids)
         if kon.execute("PRAGMA foreign_key_check").fetchone() is not None:
             raise PenghapusanDitolak("integritas basis belajar gagal")
         return siswa_ids

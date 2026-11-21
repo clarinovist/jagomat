@@ -275,3 +275,52 @@ def test_state_berubah_setelah_preview_ditolak_tanpa_bundle(penyimpanan):
     with pytest.raises(hapus.PenghapusanDitolak, match="inventaris berubah"):
         _jalankan(penyimpanan, _perintah(inv))
     assert not hasil.exists()
+
+
+def _buat_lomba(kon, siswa_id, seed):
+    import contest_store
+
+    sesi = contest_store.mulai_atau_lanjut(kon, siswa_id, 1_800_000_000, seed=seed)
+    contest_store.simpan_jawaban(kon, siswa_id, sesi.id, 1, "A", 1_800_000_010)
+    return sesi.id
+
+
+def _hitung_lomba(kon, siswa_ids):
+    penampung = ",".join("?" * len(siswa_ids))
+    return tuple(kon.execute(sql % penampung, tuple(siswa_ids)).fetchone()[0] for sql in (
+        "SELECT COUNT(*) FROM lomba_sesi WHERE siswa_id IN (%s)",
+        "SELECT COUNT(*) FROM lomba_soal WHERE sesi_id IN (SELECT id FROM lomba_sesi WHERE siswa_id IN (%s))",
+        "SELECT COUNT(*) FROM lomba_jawaban WHERE sesi_id IN (SELECT id FROM lomba_sesi WHERE siswa_id IN (%s))"))
+
+
+def test_bundle_hasil_menghapus_data_latihan_lomba_anak_target_dan_tidak_menyentuh_lain(penyimpanan):
+    paths, _bundle, hasil, target_sid, lain_sid, *_ = penyimpanan
+    with database.buka(paths["belajar"]) as kon:
+        _buat_lomba(kon, target_sid, seed=1)
+        _buat_lomba(kon, lain_sid, seed=2)
+        sebelum_lain = _hitung_lomba(kon, [lain_sid])
+    inv = hapus.preview(paths["belajar"], paths["auth"], paths["admin"],
+                        paths["ai"], paths["pendamping"], target_id=TARGET)
+
+    _jalankan(penyimpanan, _perintah(inv))
+
+    with database.buka(hasil / "bundle" / "latihan.db") as kon:
+        assert _hitung_lomba(kon, [target_sid]) == (0, 0, 0)
+        assert _hitung_lomba(kon, [lain_sid]) == sebelum_lain and sebelum_lain == (1, 10, 1)
+    # Live tidak tersentuh: bundle hasil hanya kandidat cutover.
+    with database.buka(paths["belajar"]) as kon:
+        assert _hitung_lomba(kon, [target_sid]) == (1, 10, 1)
+
+
+def test_bundle_hasil_tanpa_tabel_latihan_lomba_tetap_berhasil(penyimpanan):
+    """Basis lama tanpa tabel lomba (belum migrasi aditif) tidak menggagalkan hapus."""
+    paths, *_ = penyimpanan
+    with database.buka(paths["belajar"]) as kon:
+        for tabel in ("lomba_jawaban", "lomba_soal", "lomba_sesi"):
+            kon.execute(f"DROP TABLE {tabel}")
+    inv = hapus.preview(paths["belajar"], paths["auth"], paths["admin"],
+                        paths["ai"], paths["pendamping"], target_id=TARGET)
+
+    selesai = _jalankan(penyimpanan, _perintah(inv))
+
+    assert selesai.status == "succeeded"

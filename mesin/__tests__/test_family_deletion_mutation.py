@@ -26,7 +26,9 @@ TEST = AKAR / "mesin" / "__tests__" / "test_family_deletion.py"
      "test_bundle_hasil_menghapus_kontak_keluarga_target_dan_tidak_menyentuh_lain"),
     ("cek", 'cek_gratis.hapus_cek_keluarga(kon, target_id, siswa_ids)', 'pass',
      "test_bundle_hasil_menghapus_cek_gratis_keluarga_target_dan_tidak_menyentuh_lain"),
-), ids=("verifikasi", "snapshot", "arsip", "kontak", "cek"))
+    ("lomba", '        _hapus_lomba(kon, siswa_ids)', '        pass',
+     "test_bundle_hasil_menghapus_data_latihan_lomba_anak_target_dan_tidak_menyentuh_lain"),
+), ids=("verifikasi", "snapshot", "arsip", "kontak", "cek", "lomba"))
 def test_guard_penghapusan_menangkap_mutasi(tmp_path, nama, lama, baru, test):
     del nama
     salinan = tmp_path / "repo"
