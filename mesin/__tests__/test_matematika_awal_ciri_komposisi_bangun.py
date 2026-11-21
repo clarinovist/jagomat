@@ -8,6 +8,8 @@ bernama menutup jawaban lain yang kebetulan benar di bawah definisi inklusif.
 """
 from __future__ import annotations
 
+from collections import Counter
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -25,10 +27,28 @@ from multiple_choice import nilai_semantis
 TID = "ciri_komposisi_bangun"
 LEVEL = "P4"
 SEED = range(200)
-VARIAN = ("ciri", "dua_persegi", "susun_persegi", "susun_gabung", "uraikan_banyak",
-          "uraikan_nama")
+VARIAN_LAMA = ("ciri", "dua_persegi", "susun_persegi", "susun_gabung", "uraikan_banyak",
+               "uraikan_nama")
+VARIAN_BARU = ("ciri_segitiga", "ciri_trapesium", "ciri_empat_sisi_lain", "susun_dua_cara",
+               "uraikan_segi_banyak")
+VARIAN = VARIAN_LAMA + VARIAN_BARU
+UKURAN_LAMA = 234
 UKURAN_PER_VARIAN = {"ciri": 25, "dua_persegi": 16, "susun_persegi": 26,
-                     "susun_gabung": 144, "uraikan_banyak": 8, "uraikan_nama": 15}
+                     "susun_gabung": 144, "uraikan_banyak": 8, "uraikan_nama": 15,
+                     "ciri_segitiga": 91, "ciri_trapesium": 48, "ciri_empat_sisi_lain": 73,
+                     "susun_dua_cara": 121, "uraikan_segi_banyak": 6}
+# Dihitung tangan dari rentang di docstring modul (bukan dari modul).
+UKURAN_TANYA_BARU = {
+    "jenis_tiga_sama": 7, "jenis_dua_sama": 31, "jenis_siku": 15, "banyak_sama_kaki": 31,
+    "banyak_sama_sisi": 7, "trapesium_sejajar": 1, "trapesium_sisi": 1,
+    "trapesium_sudut": 1, "trapesium_kaki": 45, "layang_pasang": 1, "jajar_pasang": 1,
+    "jajar_siku": 1, "belah_siku": 1, "belah_sisi": 7, "layang_sisi": 30, "jajar_sisi": 32,
+    "tutup_persegi": 36, "tutup_panjang": 33, "luas_persegi": 28, "luas_keping": 24,
+    "segitiga": 3, "garis": 3}
+# Hash isi 234 soal LAMA (parameter, teks, kunci, pembahasan, malrule) dari modul v1 (HEAD 2f3e0b4):
+# varian lama harus tetap persis (append-only).
+HASH_PARAMETER_LAMA = "9c8c5a3de65d3287dcd3b09c4815cf32fd9cc924da4411b9509f547bee83c4cc"
+HASH_ISI_LAMA = "987041b7626e75951ff5d7c4369d0ce33b9c773aeacddab4fe0f229bf88d5204"
 UKURAN_DOMAIN = sum(UKURAN_PER_VARIAN.values())
 CIRI = ("banyak_sisi", "banyak_sudut", "pasang_sejajar", "sudut_siku", "sisi_sama")
 UKURAN_CIRI = {"banyak_sisi": 6, "banyak_sudut": 6, "pasang_sejajar": 6, "sudut_siku": 4,
@@ -55,8 +75,231 @@ def _anak(nama: str) -> None:
     assert nama in NAMA_ANAK, nama
 
 
+# ── solver varian baru (v2): hanya membaca TEKS, geometri ditulis ulang di sini ──
+
+SEMBARANG = r"sembarang \(ketiga sisinya berbeda panjang\)"
+LANCIP = r"lancip \(ketiga sudutnya lebih kecil dari sudut siku-siku\)"
+NAMA_SEGI_TES = {"segiempat": 4, "segilima": 5, "segienam": 6}
+
+
+def _segitiga_ada(sisi) -> None:
+    a, b, c = sorted(sisi)
+    assert a > 0 and a + b > c, ("bukan segitiga", sisi)
+
+
+def _siku_mungkin(sisi) -> bool:
+    a, b, c = sorted(sisi)
+    return a * a + b * b == c * c
+
+
+def _jenis_dari_sisi(sisi) -> str:
+    banyak_beda = len(set(sisi))
+    return {1: "sama sisi", 2: "sama kaki", 3: "sembarang"}[banyak_beda]
+
+
+def _sisi_sama_terbanyak(sisi) -> int:
+    return max(Counter(sisi).values())
+
+
+def _layang_layang(sisi) -> bool:
+    """Empat sisi berurutan: dua pasang sisi berdekatan sama panjang, bukan belah ketupat."""
+    s0, s1, s2, s3 = sisi
+    dua_pasang = (s0 == s1 and s2 == s3) or (s1 == s2 and s3 == s0)
+    return dua_pasang and len(set(sisi)) > 1
+
+
+def _pasang_berdekatan_sama(sisi) -> int:
+    """Banyak pasangan sisi berdekatan (terpisah) yang sama panjang pada empat sisi berurutan."""
+    for mulai in (0, 1):
+        pasangan = [(sisi[(mulai + i) % 4], sisi[(mulai + i + 1) % 4]) for i in (0, 2)]
+        if all(x == y for x, y in pasangan):
+            return len(pasangan)
+    return 0
+
+
+def _solver_segitiga(teks: str):
+    cocok = re.fullmatch(
+        r"Sebuah segitiga mempunyai tiga sisi yang sama panjang, yaitu (\d+) cm tiap sisinya\. "
+        r"Segitiga itu disebut segitiga apa\? Pilih: sama sisi, siku-siku, atau "
+        + SEMBARANG + r"\.", teks)
+    if cocok:
+        s = int(cocok.group(1))
+        sisi = (s, s, s)
+        _segitiga_ada(sisi)
+        assert not _siku_mungkin(sisi)  # "siku-siku" pasti salah
+        return _jenis_dari_sisi(sisi)
+    cocok = re.fullmatch(
+        r"Sebuah segitiga mempunyai tepat dua sisi yang sama panjang, masing-masing (\d+) cm, "
+        r"dan sisi ketiganya (\d+) cm\. Segitiga itu disebut segitiga apa\? "
+        r"Pilih: sama kaki, sama sisi, atau " + SEMBARANG + r"\.", teks)
+    if cocok:
+        a, b = int(cocok.group(1)), int(cocok.group(2))
+        assert a != b, teks  # "tepat dua"
+        _segitiga_ada((a, a, b))
+        return _jenis_dari_sisi((a, a, b))
+    cocok = re.fullmatch(
+        r"Sebuah segitiga mempunyai satu sudut siku-siku, dan dua sisi yang mengapit sudut itu "
+        r"panjangnya (\d+) cm dan (\d+) cm\. Segitiga itu disebut segitiga apa\? "
+        r"Pilih: siku-siku, sama sisi, atau " + LANCIP + r"\.", teks)
+    if cocok:
+        assert int(cocok.group(1)) > 0 and int(cocok.group(2)) > 0
+        return "siku-siku"  # ada sudut siku-siku: bukan lancip, bukan sama sisi
+    cocok = re.fullmatch(
+        r"Sebuah segitiga sama kaki yang bukan segitiga sama sisi mempunyai sisi (\d+) cm, "
+        r"(\d+) cm, dan (\d+) cm\. Berapa banyak sisinya yang sama panjang\?", teks)
+    if cocok:
+        sisi = tuple(int(x) for x in cocok.groups())
+        _segitiga_ada(sisi)
+        assert len(set(sisi)) == 2, teks  # sama kaki yang bukan sama sisi
+        return str(_sisi_sama_terbanyak(sisi))
+    cocok = re.fullmatch(
+        r"Sebuah segitiga sama sisi mempunyai sisi (\d+) cm tiap sisinya\. Berapa banyak "
+        r"sisinya yang sama panjang\?", teks)
+    if cocok:
+        s = int(cocok.group(1))
+        return str(_sisi_sama_terbanyak((s, s, s)))
+    return None
+
+
+def _solver_trapesium(teks: str):
+    if teks == "Berapa pasang sisi sejajar yang dimiliki trapesium yang bukan jajar genjang?":
+        return "1"  # eksklusif maupun inklusif: tepat satu pasang
+    if teks in ("Berapa banyak sisi trapesium?", "Berapa banyak sudut trapesium?"):
+        return "4"
+    cocok = re.fullmatch(
+        r"Sebuah trapesium sama kaki mempunyai sisi sejajar (\d+) cm dan (\d+) cm, dan salah "
+        r"satu kakinya \(sisi miring yang tidak sejajar\) (\d+) cm\. Berapa cm panjang kaki "
+        r"yang satunya\?", teks)
+    if cocok:
+        a, b, k = (int(x) for x in cocok.groups())
+        assert a < b, teks  # bukan jajar genjang
+        assert 2 * k > b - a, ("trapesium tak mungkin", teks)  # kaki lebih panjang dari setengah selisih
+        return str(k)  # kedua kaki sama panjang
+    return None
+
+
+def _solver_empat_sisi_lain(teks: str):
+    if teks == ("Dua sisi berdekatan adalah dua sisi yang bertemu di satu sudut. Berapa pasang "
+                "sisi berdekatan yang sama panjang pada layang-layang yang bukan belah "
+                "ketupat?"):
+        contoh = (3, 3, 5, 5)
+        assert _layang_layang(contoh)
+        return str(_pasang_berdekatan_sama(contoh))
+    if teks == "Berapa pasang sisi berhadapan yang sama panjang pada jajar genjang?":
+        contoh = (4, 6, 4, 6)
+        return str(sum(1 for i in range(2) if contoh[i] == contoh[i + 2]))
+    if teks == "Berapa banyak sudut siku-siku pada jajar genjang yang bukan persegi panjang?":
+        return "0"
+    if teks == "Berapa banyak sudut siku-siku pada belah ketupat yang bukan persegi?":
+        return "0"
+    cocok = re.fullmatch(
+        r"Sebuah belah ketupat ABCD mempunyai sisi AB = (\d+) cm\. Berapa cm panjang sisi "
+        r"BC\?", teks)
+    if cocok:
+        return cocok.group(1)  # keempat sisi sama panjang
+    cocok = re.fullmatch(
+        r"Pada layang-layang ABCD yang bukan belah ketupat, AB = AD = (\d+) cm dan "
+        r"BC = (\d+) cm\. Berapa cm panjang CD\?", teks)
+    if cocok:
+        a, b = int(cocok.group(1)), int(cocok.group(2))
+        assert a != b, teks
+        cocok_cd = [x for x in range(1, 40) if _layang_layang((a, b, x, a))]
+        assert cocok_cd == [b], (cocok_cd, teks)
+        return str(cocok_cd[0])
+    cocok = re.fullmatch(
+        r"Pada jajar genjang ABCD, sisi AB = (\d+) cm dan sisi BC = (\d+) cm\. Berapa cm "
+        r"panjang sisi CD\?", teks)
+    if cocok:
+        a, b = int(cocok.group(1)), int(cocok.group(2))
+        cd = [x for x in range(1, 40) if x == a]  # sisi berhadapan AB dan CD sama panjang
+        return str(cd[0])
+    return None
+
+
+def _banyak_keping_grid(panjang: int, lebar: int, kp: int, kq: int) -> int:
+    """Banyak keping kp x kq pada grid dalam salah satu dari dua arah yang muat habis."""
+    for a, b in ((kp, kq), (kq, kp)):
+        if panjang % a == 0 and lebar % b == 0:
+            return sum(1 for _ in range(0, panjang, a) for _ in range(0, lebar, b))
+    raise AssertionError(("tidak habis dibagi", panjang, lebar, kp, kq))
+
+
+def _solver_susun(teks: str):
+    cocok = re.fullmatch(
+        r"(\w+) akan menutup penuh sebuah persegi panjang berukuran (\d+) cm × (\d+) cm dengan "
+        r"keping persegi berukuran (\d+) cm × (\d+) cm, tanpa celah dan tidak saling "
+        r"menumpuk\. Berapa banyak keping persegi yang diperlukan\?", teks)
+    if cocok:
+        _anak(cocok.group(1))
+        pj, lb, s1, s2 = (int(x) for x in cocok.groups()[1:])
+        assert s1 == s2 and pj != lb, teks
+        return str(_banyak_keping_grid(pj, lb, s1, s2))
+    cocok = re.fullmatch(
+        r"(\w+) akan menutup penuh sebuah persegi panjang berukuran (\d+) cm × (\d+) cm dengan "
+        r"keping persegi panjang berukuran (\d+) cm × (\d+) cm, tanpa celah dan tidak saling "
+        r"menumpuk\. Berapa banyak keping yang diperlukan\?", teks)
+    if cocok:
+        _anak(cocok.group(1))
+        pj, lb, kp, kq = (int(x) for x in cocok.groups()[1:])
+        assert pj != lb and kp != kq, teks
+        banyak = _banyak_keping_grid(pj, lb, kp, kq)
+        assert banyak * kp * kq == pj * lb  # sama dengan luas : luas
+        return str(banyak)
+    cocok = re.fullmatch(
+        r"(\w+) menyusun (\d+) keping persegi yang sama besar, tiap keping bersisi (\d+) cm\. "
+        r"Keping-keping itu dirapatkan tanpa celah dan tidak saling menumpuk menjadi satu "
+        r"bangun\. Berapa cm² luas bangun itu\?", teks)
+    if cocok:
+        _anak(cocok.group(1))
+        n, s = int(cocok.group(2)), int(cocok.group(3))
+        return str(sum(s * s for _ in range(n)))
+    cocok = re.fullmatch(
+        r"(\w+) menyusun (\d+) keping persegi panjang yang sama besar, tiap keping berukuran "
+        r"(\d+) cm × (\d+) cm\. Keping-keping itu dirapatkan tanpa celah dan tidak saling "
+        r"menumpuk menjadi satu bangun\. Berapa cm² luas bangun itu\?", teks)
+    if cocok:
+        _anak(cocok.group(1))
+        n, kp, kq = (int(x) for x in cocok.groups()[1:])
+        assert kp != kq, teks
+        return str(sum(kp * kq for _ in range(n)))
+    return None
+
+
+def _garis_potong_kipas(n: int) -> list:
+    """Titik sudut 0 dihubungkan ke titik sudut yang BUKAN dirinya dan bukan tetangganya."""
+    return [v for v in range(n) if v not in (0, 1, n - 1)]
+
+
+def _solver_segi(teks: str):
+    cocok = re.fullmatch(
+        r"Sebuah (segi\w+) \(bangun datar dengan (\d+) sisi, tidak ada sudutnya yang menjorok "
+        r"ke dalam\) dipotong dengan garis lurus dari satu titik sudut ke semua titik sudut "
+        r"lain yang tidak bersebelahan dengan titik sudut itu\. Semua garis potong keluar dari "
+        r"titik sudut yang sama, jadi tidak saling berpotongan di dalam bangun\. "
+        r"Berapa banyak (segitiga yang terbentuk|garis potong yang dibuat)\?", teks)
+    if not cocok:
+        return None
+    n = NAMA_SEGI_TES[cocok.group(1)]
+    assert int(cocok.group(2)) == n, teks
+    garis = len(_garis_potong_kipas(n))
+    return str(garis + 1) if cocok.group(3).startswith("segitiga") else str(garis)
+
+
+def solver_varian_baru(teks: str):
+    """Kunci varian v2 dari teks saja; None bila teks bukan milik varian v2."""
+    for solver in (_solver_segitiga, _solver_trapesium, _solver_empat_sisi_lain,
+                   _solver_susun, _solver_segi):
+        hasil = solver(teks)
+        if hasil is not None:
+            return hasil
+    return None
+
+
 def solver_dari_teks(teks: str) -> str:
     """Kunci dari teks saja; nama di luar tabel (termasuk tanpa kualifikasi) ditolak."""
+    baru = solver_varian_baru(teks)
+    if baru is not None:
+        return baru
     cocok = re.fullmatch(r"Berapa banyak sisi yang sama panjang pada (.+)\?", teks)
     if cocok:
         return str(SAMA[cocok.group(1)])
@@ -190,8 +433,8 @@ def test_sampler_memilih_varian_seragam_bukan_menurut_ukuran_domain():
     hitung = {v: 0 for v in VARIAN}
     for seed in range(1200):
         hitung[modul.parameter(random.Random(seed), LEVEL)["varian"]] += 1
-    # susun_gabung = 144 dari 234 parameter; undian seragam menjaganya ~1/6, bukan ~62%.
-    assert max(hitung.values()) < 330 and min(hitung.values()) > 110, hitung
+    # susun_gabung = 144 dari 573 parameter; undian seragam menjaganya ~1/11 (109), bukan ~25%.
+    assert max(hitung.values()) < 180 and min(hitung.values()) > 60, hitung
 
 
 def test_level_selain_p4_ditolak():
@@ -290,7 +533,11 @@ def test_tiap_parameter_punya_cukup_pengecoh_berbeda_nilai_untuk_pilihan_ganda()
 def test_pengecoh_kunci_nama_tidak_pernah_jawaban_yang_juga_benar():
     """Kunci nama: pengecoh hanya nama yang pasti salah (inklusif maupun eksklusif)."""
     aman = {"persegi panjang": {"persegi", "belah ketupat"},
-            "segitiga siku-siku": {"segitiga sama sisi", "persegi"}}
+            "segitiga siku-siku": {"segitiga sama sisi", "persegi"},
+            # varian baru: "sama kaki" tak pernah pengecoh "sama sisi" (inklusif: juga benar)
+            "sama sisi": {"siku-siku", "sembarang"},
+            "sama kaki": {"sama sisi", "sembarang"},
+            "siku-siku": {"sama sisi", "lancip"}}
     for p in _domain():
         soal = _soal(p)
         if _jenis(soal.kunci) == "angka":
@@ -439,3 +686,215 @@ def test_deterministik_lintas_proses_dengan_hashseed_berbeda():
     a, b, c = _proses("1"), _proses("2"), _proses("random")
     assert a == b == c
     assert len(a) == 150
+
+
+# ── varian baru v2 (segitiga, trapesium, empat sisi lain, susun dua cara, segi banyak) ──
+
+def _baru() -> list:
+    return [p for p in _domain() if p["varian"] in VARIAN_BARU]
+
+
+def test_domain_lama_tetap_persis_append_only():
+    domain = _domain()
+    lama = [p for p in domain if p["varian"] in VARIAN_LAMA]
+    assert len(lama) == UKURAN_LAMA and list(domain[:UKURAN_LAMA]) == lama
+    assert hashlib.sha256(json.dumps(lama, sort_keys=True).encode()).hexdigest() == (
+        HASH_PARAMETER_LAMA)
+    isi = []
+    for p in lama:
+        s = _soal(p)
+        isi.append([p, s.teks, s.kunci, s.pembahasan,
+                    [[m.id, m.jawaban, m.kode, m.alasan] for m in s.malrule]])
+    assert hashlib.sha256(json.dumps(isi, sort_keys=True).encode()).hexdigest() == HASH_ISI_LAMA
+
+
+def test_domain_baru_ukuran_per_kelompok_tanya():
+    hitung = Counter(p["tanya"] for p in _baru())
+    assert dict(hitung) == UKURAN_TANYA_BARU
+    assert sum(UKURAN_TANYA_BARU.values()) == len(_baru())
+    assert "ciri" not in {k for p in _baru() for k in p}  # kunci "ciri" milik varian lama
+
+
+def test_sampler_menyentuh_semua_kelompok_baru():
+    tanya = {modul.parameter(random.Random(s), LEVEL).get("tanya") for s in range(4000)}
+    assert set(UKURAN_TANYA_BARU) <= tanya
+
+
+def test_varian_baru_kalimat_berkualifikasi_dan_tanpa_gambar():
+    for p in _baru():
+        teks = _soal(p).teks
+        assert "\n" not in teks and "[gambar" not in teks.lower()
+        if p["tanya"] == "trapesium_sejajar":
+            assert "trapesium yang bukan jajar genjang" in teks
+        if p["tanya"] in ("layang_pasang", "layang_sisi"):
+            assert re.search(r"layang-layang( ABCD)? yang bukan belah ketupat", teks)
+        if p["tanya"] == "jajar_siku":
+            assert "jajar genjang yang bukan persegi panjang" in teks
+        if p["tanya"] == "belah_siku":
+            assert "belah ketupat yang bukan persegi" in teks
+        if p["tanya"] == "banyak_sama_kaki":
+            assert "sama kaki yang bukan segitiga sama sisi" in teks
+        if p["tanya"] == "jenis_dua_sama":
+            assert "tepat dua sisi yang sama panjang" in teks
+        if p["tanya"].startswith("jenis_"):
+            assert "Pilih: " in teks
+
+
+def test_kunci_baru_contoh_tangan_dan_teks_persis():
+    f = modul.ciri_komposisi_bangun
+    s = f(varian="ciri_segitiga", tanya="jenis_tiga_sama", sisi=5)
+    assert s.kunci == "sama sisi" and s.teks.endswith(
+        "Pilih: sama sisi, siku-siku, atau sembarang (ketiga sisinya berbeda panjang).")
+    s = f(varian="ciri_segitiga", tanya="jenis_dua_sama", kaki=5, alas=8)
+    assert s.kunci == "sama kaki"
+    s = f(varian="ciri_segitiga", tanya="jenis_siku", tegak_a=3, tegak_b=4)
+    assert s.kunci == "siku-siku"
+    s = f(varian="ciri_segitiga", tanya="banyak_sama_kaki", kaki=5, alas=8)
+    assert s.kunci == "2" and "5 cm, 5 cm, dan 8 cm" in s.teks
+    s = f(varian="ciri_segitiga", tanya="banyak_sama_sisi", sisi=6)
+    assert s.kunci == "3"
+    s = f(varian="ciri_trapesium", tanya="trapesium_sejajar")
+    assert (s.teks, s.kunci) == (
+        "Berapa pasang sisi sejajar yang dimiliki trapesium yang bukan jajar genjang?", "1")
+    s = f(varian="ciri_trapesium", tanya="trapesium_kaki", atas=4, bawah=8, kaki=5)
+    assert s.kunci == "5"
+    s = f(varian="ciri_empat_sisi_lain", tanya="layang_pasang")
+    assert s.kunci == "2"
+    s = f(varian="ciri_empat_sisi_lain", tanya="layang_sisi", ab=3, bc=7)
+    assert s.kunci == "7" and "AB = AD = 3 cm dan BC = 7 cm" in s.teks
+    s = f(varian="ciri_empat_sisi_lain", tanya="jajar_sisi", ab=8, bc=5)
+    assert s.kunci == "8"
+    s = f(varian="ciri_empat_sisi_lain", tanya="belah_sisi", sisi=6)
+    assert s.kunci == "6"
+    s = f(varian="ciri_empat_sisi_lain", tanya="jajar_siku")
+    assert s.kunci == "0"
+    s = f(varian="susun_dua_cara", tanya="tutup_persegi", panjang=6, lebar=4, sisi=2)
+    assert s.kunci == "6" and "6 cm × 4 cm" in s.teks and "2 cm × 2 cm" in s.teks
+    s = f(varian="susun_dua_cara", tanya="tutup_panjang", panjang=6, lebar=4, keping_p=3,
+          keping_q=2)
+    assert s.kunci == "4"
+    s = f(varian="susun_dua_cara", tanya="luas_persegi", banyak=5, sisi=3)
+    assert s.kunci == "45"
+    s = f(varian="susun_dua_cara", tanya="luas_keping", banyak=4, keping_p=4, keping_q=3)
+    assert s.kunci == "48"
+    assert f(varian="uraikan_segi_banyak", tanya="segitiga", n=4).kunci == "2"
+    assert f(varian="uraikan_segi_banyak", tanya="segitiga", n=5).kunci == "3"
+    assert f(varian="uraikan_segi_banyak", tanya="segitiga", n=6).kunci == "4"
+    assert f(varian="uraikan_segi_banyak", tanya="garis", n=6).kunci == "3"
+
+
+def test_baru_nama_pilihan_tertutup_pengecoh_pasti_salah_di_semua_definisi():
+    """Kunci nama: pengecoh tepat sama dengan pilihan lain di kalimat soal."""
+    dibaca = 0
+    for p in _baru():
+        soal = _soal(p)
+        if _jenis(soal.kunci) == "angka":
+            continue
+        dibaca += 1
+        pilihan = re.search(r"Pilih: (.+)\.$", soal.teks).group(1)
+        pilihan = re.sub(r" \(.*?\)", "", pilihan)
+        nama = {x.strip().removeprefix("atau ") for x in pilihan.split(",")}
+        assert soal.kunci in nama and len(nama) == 3, (p, nama)
+        assert {m.jawaban for m in soal.malrule} == nama - {soal.kunci}, (p, soal.malrule)
+    assert dibaca == 7 + 31 + 15
+
+
+def test_baru_kunci_angka_punya_minimal_tiga_pengecoh_berbeda_nilai():
+    for p in _baru():
+        soal = _soal(p)
+        if _jenis(soal.kunci) == "angka":
+            assert len(_pengecoh(soal)) >= 3, (p, [m.jawaban for m in soal.malrule])
+
+
+def test_baru_malrule_nilai_jalur_k_dan_h_sesuai_hipotesis():
+    f = modul.ciri_komposisi_bangun
+
+    def peta(**p):
+        return {m.jawaban: m.kode for m in f(**p).malrule}
+
+    # n bukan n-2 (K), kurang/lebih satu (H)
+    per = peta(varian="uraikan_segi_banyak", tanya="segitiga", n=5)
+    assert per == {"5": "K", "2": "K", "4": "H"}
+    per = peta(varian="uraikan_segi_banyak", tanya="garis", n=5)
+    assert per == {"3": "K", "5": "K", "4": "K", "1": "H"}
+    # tertukar dengan bangun sebelah (K)
+    per = peta(varian="ciri_segitiga", tanya="banyak_sama_kaki", kaki=5, alas=8)
+    assert per["3"] == "K" and per["4"] == "K" and per["6"] == "K"
+    per = peta(varian="ciri_trapesium", tanya="trapesium_sejajar")
+    assert per == {"2": "K", "0": "K", "4": "K"}
+    # menghitung sisi vs sudut (K)
+    per = peta(varian="ciri_trapesium", tanya="trapesium_sudut")
+    assert per["8"] == "K" and per["2"] == "K" and per["5"] == "H"
+    per = peta(varian="ciri_trapesium", tanya="trapesium_kaki", atas=3, bawah=9, kaki=5)
+    assert per["3"] == "K" and per["9"] == "K" and per["12"] == "K" and per["6"] == "K"
+    assert per["6"] == "K" and per["4"] == "H"
+    per = peta(varian="susun_dua_cara", tanya="tutup_persegi", panjang=6, lebar=4, sisi=2)
+    assert per["5"] == "K" and per["24"] == "K" and per["12"] == "K"
+    assert per["3"] == "H" and per["9"] == "H"
+    per = peta(varian="susun_dua_cara", tanya="luas_persegi", banyak=5, sisi=3)
+    assert per["9"] == "K" and per["15"] == "K" and per["60"] == "K"
+    assert per["36"] == "H" and per["54"] == "H"
+    per = peta(varian="ciri_empat_sisi_lain", tanya="jajar_sisi", ab=8, bc=5)
+    assert per["5"] == "K" and per["13"] == "K" and per["26"] == "K"
+
+
+def test_baru_pembahasan_menunjukkan_hitungan_dan_dua_cara():
+    f = modul.ciri_komposisi_bangun
+    t = f(varian="susun_dua_cara", tanya="tutup_persegi", panjang=6, lebar=4,
+          sisi=2).pembahasan
+    assert "3 × 2 = 6" in t and "6 × 4 = 24 cm²" in t and "2 × 2 = 4 cm²" in t
+    t = f(varian="susun_dua_cara", tanya="tutup_panjang", panjang=6, lebar=4, keping_p=3,
+          keping_q=2).pembahasan
+    assert "6 × 4 = 24 cm²" in t and "3 × 2 = 6 cm²" in t and "2 × 2 = 4" in t
+    t = f(varian="susun_dua_cara", tanya="luas_persegi", banyak=5, sisi=3).pembahasan
+    assert "3 × 3 = 9 cm²" in t and "5 × 9 = 45 cm²" in t
+    t = f(varian="uraikan_segi_banyak", tanya="segitiga", n=6).pembahasan
+    assert "6 − 3 = 3" in t and "3 + 1 = 4" in t
+    assert "90 derajat" in f(varian="ciri_empat_sisi_lain", tanya="jajar_siku").pembahasan
+    assert "tidak akan bertemu" in f(varian="ciri_trapesium",
+                                     tanya="trapesium_sejajar").pembahasan
+
+
+@pytest.mark.parametrize("parameter", [
+    dict(varian="ciri_segitiga", tanya="jenis_tiga_sama", sisi=2),
+    dict(varian="ciri_segitiga", tanya="jenis_tiga_sama", sisi=10),
+    dict(varian="ciri_segitiga", tanya="jenis_tiga_sama", sisi=4.0),
+    dict(varian="ciri_segitiga", tanya="jenis_tiga_sama", sisi=True),
+    dict(varian="ciri_segitiga", tanya="jenis_dua_sama", kaki=5, alas=5),
+    dict(varian="ciri_segitiga", tanya="jenis_dua_sama", kaki=3, alas=6),
+    dict(varian="ciri_segitiga", tanya="jenis_dua_sama", kaki=3, alas=7),
+    dict(varian="ciri_segitiga", tanya="banyak_sama_kaki", kaki=5, alas=5),
+    dict(varian="ciri_segitiga", tanya="jenis_siku", tegak_a=4, tegak_b=3),
+    dict(varian="ciri_segitiga", tanya="jenis_siku", tegak_a=3, tegak_b=3),
+    dict(varian="ciri_segitiga", tanya="jenis_sembarang", sisi=4),
+    dict(varian="ciri_segitiga", tanya="banyak_sama_sisi"),
+    dict(varian="ciri_trapesium", tanya="trapesium_sejajar", atas=3),
+    dict(varian="ciri_trapesium", tanya="trapesium_kaki", atas=8, bawah=4, kaki=5),
+    dict(varian="ciri_trapesium", tanya="trapesium_kaki", atas=4, bawah=8, kaki=3),
+    dict(varian="ciri_trapesium", tanya="trapesium_kaki", atas=4, bawah=8, kaki=9),
+    dict(varian="ciri_trapesium", tanya="trapesium_kaki", atas=4, bawah=8),
+    dict(varian="ciri_empat_sisi_lain", tanya="layang_sisi", ab=5, bc=5),
+    dict(varian="ciri_empat_sisi_lain", tanya="jajar_sisi", ab=2, bc=5),
+    dict(varian="ciri_empat_sisi_lain", tanya="belah_sisi", sisi=2),
+    dict(varian="ciri_empat_sisi_lain", tanya="layang_siku"),
+    dict(varian="susun_dua_cara", tanya="tutup_persegi", panjang=6, lebar=6, sisi=2),
+    dict(varian="susun_dua_cara", tanya="tutup_persegi", panjang=7, lebar=4, sisi=2),
+    dict(varian="susun_dua_cara", tanya="tutup_persegi", panjang=6, lebar=4, sisi=1),
+    dict(varian="susun_dua_cara", tanya="tutup_panjang", panjang=6, lebar=6, keping_p=3,
+         keping_q=2),
+    dict(varian="susun_dua_cara", tanya="tutup_panjang", panjang=7, lebar=4, keping_p=3,
+         keping_q=2),
+    dict(varian="susun_dua_cara", tanya="tutup_panjang", panjang=6, lebar=4, keping_p=2,
+         keping_q=3),
+    dict(varian="susun_dua_cara", tanya="luas_persegi", banyak=2, sisi=3),
+    dict(varian="susun_dua_cara", tanya="luas_persegi", banyak=5, sisi=6),
+    dict(varian="susun_dua_cara", tanya="luas_keping", banyak=4, keping_p=2, keping_q=3),
+    dict(varian="uraikan_segi_banyak", tanya="segitiga", n=3),
+    dict(varian="uraikan_segi_banyak", tanya="segitiga", n=7),
+    dict(varian="uraikan_segi_banyak", tanya="garis", n="5"),
+    dict(varian="uraikan_segi_banyak", tanya="cabang", n=5),
+    dict(varian="uraikan_segi_banyak", n=5),
+])
+def test_baru_parameter_di_luar_domain_ditolak(parameter):
+    with pytest.raises(ValueError, match="di luar domain"):
+        modul.ciri_komposisi_bangun(**parameter)

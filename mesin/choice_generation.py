@@ -58,7 +58,9 @@ def kebijakan_soal(soal):
     if tid == 'unsur_bangun_datar' and p['varian'] == 'istilah':
         return 'tiga-v1', 'kategori'  # kunci "sejajar"/"tegak lurus"; pengecoh malrule + "miring"
     if tid == 'ciri_komposisi_bangun' and (
-            p['varian'] == 'uraikan_nama' or (p['varian'] == 'dua_persegi' and p['tanya'] == 'nama')):
+            p['varian'] == 'uraikan_nama'
+            or (p['varian'] == 'dua_persegi' and p['tanya'] == 'nama')
+            or p.get('tanya') in ('jenis_tiga_sama', 'jenis_dua_sama', 'jenis_siku')):
         return 'tiga-v1', 'kategori'  # kunci nama bangun; varian berkunci angka jatuh ke 'empat-v1'
     if p.get('varian') in KATEGORI_AWAL.get(tid, ()):
         return 'tiga-v1', 'kategori'  # kunci nama benda/kategori/kata

@@ -188,17 +188,17 @@ KARTU: dict[str, Kartu] = {
     ),
     "ciri_komposisi_bangun": Kartu(
         judul="Ciri, susunan, dan uraian bangun datar",
-        inti="Sisi adalah garis lurus yang membatasi bangun, sudut adalah pojok tempat dua sisi bertemu. Persegi, persegi panjang, jajar genjang, belah ketupat, dan layang-layang punya 4 sisi dan 4 sudut; segitiga punya 3. Sisi sejajar tidak akan bertemu walau diperpanjang: persegi, persegi panjang, jajar genjang, dan belah ketupat punya 2 pasang. Dua persegi sama besar yang dirapatkan pada satu sisi penuh membentuk persegi panjang. Satu diagonal membagi segiempat menjadi 2 segitiga, kedua diagonal menjadi 4. Banyak persegi kecil pada susunan = banyak baris × banyak persegi tiap baris.",
+        inti="Sisi adalah garis lurus yang membatasi bangun, sudut adalah pojok tempat dua sisi bertemu. Persegi, persegi panjang, jajar genjang, belah ketupat, dan layang-layang punya 4 sisi dan 4 sudut; segitiga punya 3. Sisi sejajar tidak akan bertemu walau diperpanjang: persegi, persegi panjang, jajar genjang, dan belah ketupat punya 2 pasang. Dua persegi sama besar yang dirapatkan pada satu sisi penuh membentuk persegi panjang. Satu diagonal membagi segiempat menjadi 2 segitiga, kedua diagonal menjadi 4. Banyak persegi kecil pada susunan = banyak baris × banyak persegi tiap baris. Segitiga sama sisi: tiga sisi sama panjang; sama kaki: tepat dua sisi sama panjang; siku-siku: satu sudut siku-siku. Trapesium: tepat satu pasang sisi sejajar. Jajar genjang: sisi berhadapan sama panjang. Banyak keping penutup = luas bangun : luas satu keping. Segi-n dipotong dari satu titik sudut: n - 3 garis potong, n - 2 segitiga.",
         contoh="Susunan 3 baris, tiap baris 5 persegi kecil: 3 × 5 = 15 persegi kecil.",
     ),
     "keliling_gabungan": Kartu(
         judul="Keliling bangun datar dan bangun gabungan",
-        inti="Keliling adalah panjang garis di sekeliling bangun. Persegi: 4 × sisi. Persegi panjang: 2 × (panjang + lebar). Pada bangun gabungan, sisi yang saling menempel tidak ikut keliling, jadi jumlahkan hanya sisi di bagian luar. Bangun L yang terbentuk dari persegi panjang dengan satu pojok persegi kecil dipotong punya keliling yang sama dengan persegi panjang asalnya.",
-        contoh="Dua persegi panjang 8 cm × 3 cm dan 5 cm × 3 cm disambung pada sisi 3 cm: panjang 8 + 5 = 13 cm, lebar 3 cm, keliling 2 × (13 + 3) = 32 cm.",
+        inti="Keliling adalah panjang garis di sekeliling bangun: jumlahkan semua sisi di bagian luar. Persegi: 4 × sisi. Persegi panjang dan jajar genjang: 2 × (dua sisi yang berbeda). Belah ketupat: 4 × sisi. Layang-layang: 2 × (sisi pendek + sisi panjang). Segitiga dan trapesium: jumlah semua sisinya (tinggi bukan sisi). Lingkaran: π × diameter atau 2 × π × jari-jari, dengan π = 22/7 atau 3,14. Pada bangun gabungan, sisi yang saling menempel tidak ikut keliling. Bangun L, bangun T, dan bangun tangga berkeliling sama dengan persegi panjang yang membatasinya; pada bentuk U, dua dinding celah ikut menambah keliling.",
+        contoh="Setengah lingkaran berjari-jari 7 cm (π = 22/7): lengkungan 22/7 × 7 = 22 cm, ditambah diameter 14 cm, jadi 36 cm.",
     ),
     "pecahan_bilangan_asli_desimal": Kartu(
         judul="Pecahan dengan bilangan asli, dan pecahan ke desimal",
-        inti="Pecahan dikali bilangan asli: kalikan pembilangnya, penyebut tetap. Pecahan dibagi bilangan asli: kalikan penyebutnya. Sederhanakan hasilnya. Pecahan jadi desimal: buat penyebutnya 10, 100, atau 1000, lalu tulis dengan koma.",
+        inti="Pecahan dikali bilangan asli: kalikan pembilangnya, penyebut tetap. Pecahan dibagi bilangan asli: kalikan penyebutnya. Sederhanakan hasilnya. Pecahan jadi desimal: buat penyebutnya 10, 100, atau 1000, lalu tulis dengan koma. Pecahan campuran jadi pecahan biasa: bulat × penyebut + pembilang, penyebut tetap. Hasil kali bisa lebih dari 1 dan ditulis 15/4. Dibulatkan satu angka: lihat angka kedua di belakang koma. Persen = per seratus.",
         contoh="3/8 x 2 = 6/8 = 3/4. 2/3 : 4 = 2/12 = 1/6. 3/4 = 75/100 = 0,75.",
     ),
     "kelipatan_rentang": Kartu(

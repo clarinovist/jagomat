@@ -41,6 +41,27 @@ menyisakan >= 3 jawaban salah berbeda nilai (cukup untuk pilihan ganda `empat-v1
 Domain eksplisit (`domain_parameter`); validasi = menjadi anggota domain itu. Sampler memilih
 varian seragam dulu lalu satu parameter dalam varian itu memakai `rng` saja (tanpa `hash()`).
 `CERITA` bersifat APPEND-ONLY: indeksnya ikut identitas soal di bank.
+
+Perluasan v2 (varian BARU, ditambahkan di belakang; enam varian lama, parameter, dan domainnya
+tidak berubah sedikit pun, urutan `domain_parameter` lama tetap di depan): bab K6 B1 "Pecahan dan
+desimal" juga menuntut hasil tak wajar dan pembulatan, jadi ada enam varian tambahan (level P6):
+  - `kali_asli_tak_wajar`: pecahan x bilangan asli dengan hasil LEBIH dari 1 (urutan "3/4 × 5"
+    atau "5 × 3/4"); kunci pecahan biasa paling sederhana "15/4", atau bilangan bulat "6";
+  - `bagi_asli_tak_wajar`: pecahan tak wajar ("5/3 ÷ 2") atau pecahan campuran ("1 2/3 ÷ 2")
+    dibagi bilangan asli; hasilnya selalu pecahan kurang dari 1 ("5/6"), tidak pernah campuran;
+  - `campur_ke_biasa`: "2 1/4 ditulis sebagai pecahan biasa" = "9/4";
+  - `ke_desimal_berulang_dibulatkan`: pecahan berpenyebut 3, 6, 7, 9, 11, 12 menjadi desimal
+    yang dibulatkan sampai SATU angka di belakang koma (kalimat soal menyatakannya tegas);
+    tidak ada kasus yang tepat di tengah (x,x5), jadi aturan pembulatan tidak berperan;
+  - `desimal_ke_persen_pecahan`: "0,25 = ... persen" (kunci 25) atau "75% = ... pecahan
+    paling sederhana" (kunci "3/4");
+  - `cerita_kali_bagi_pecahan`: satu langkah kali (hasil lebih dari 1) atau bagi, cerita baru
+    (`CERITA_TAK_WAJAR`, juga APPEND-ONLY).
+Konvensi kunci pecahan tak wajar: "a/b" paling sederhana (bukan campuran), dan kalimat soal
+menyatakan "tulis hasilnya sebagai pecahan biasa" dengan contoh bentuknya, supaya kunci tunggal;
+bila hasil kali bulat, kuncinya bilangan bulat ("6"). Contoh bentuk dipilih dari kunci agar tidak
+pernah sama dengan jawabannya. Pecahan campuran TIDAK dipakai sebagai kunci: `nilai_semantis`
+(pilihan ganda) tidak membaca "2 1/4", jadi varian "pecahan biasa ke campuran" sengaja belum ada.
 """
 from __future__ import annotations
 
@@ -53,7 +74,11 @@ from templates import Malrule, Soal, saring_malrule
 
 TEMPLATE_ID = "pecahan_bilangan_asli_desimal"
 LEVEL = ("P6",)
-VARIAN = ("kali_asli", "bagi_asli", "asli_kali", "ke_desimal", "desimal_ke_pecahan", "cerita")
+VARIAN_LAMA = ("kali_asli", "bagi_asli", "asli_kali", "ke_desimal", "desimal_ke_pecahan", "cerita")
+VARIAN_BARU = ("kali_asli_tak_wajar", "bagi_asli_tak_wajar", "campur_ke_biasa",
+               "ke_desimal_berulang_dibulatkan", "desimal_ke_persen_pecahan",
+               "cerita_kali_bagi_pecahan")
+VARIAN = VARIAN_LAMA + VARIAN_BARU
 PESAN_LUAR_DOMAIN = "parameter pecahan dan bilangan asli di luar domain"
 
 PENYEBUT_OPERAN = range(2, 13)
@@ -62,6 +87,12 @@ PENYEBUT_BAGI_MAKS = 24
 PENYEBUT_KE_DESIMAL = (2, 4, 5, 8, 10, 20, 25)
 PENYEBUT_DARI_DESIMAL = (2, 4, 5, 10, 20, 25)
 AKHIRAN = "(tulis hasilnya dalam bentuk paling sederhana)"
+BULAT_CAMPUR = range(1, 6)
+PENYEBUT_BERULANG = (3, 6, 7, 9, 11, 12)
+ARAH_PERSEN = ("ke_persen", "ke_pecahan")
+BENTUK_BAGI = ("biasa", "campur")
+CONTOH_PECAHAN_BIASA = "7/3"
+CONTOH_PECAHAN_BIASA_LAIN = "5/2"
 # (operasi, kalimat); {f} = pecahan, {n} = bilangan asli. Append-only menurut indeks.
 CERITA = (
     ("bagi", "Sebuah tali panjangnya {f} m dipotong menjadi {n} bagian sama panjang. "
@@ -71,6 +102,20 @@ CERITA = (
     ("kali", "Setiap hari Budi minum {f} liter air putih. "
              "Berapa liter air putih yang ia minum dalam {n} hari?"),
     ("kali", "Satu bungkus kue beratnya {f} kg. Berapa kilogram berat {n} bungkus kue yang sama?"),
+)
+# Cerita varian `cerita_kali_bagi_pecahan`. Append-only menurut indeks.
+CERITA_TAK_WAJAR = (
+    ("kali", "Satu kantong beras beratnya {f} kg. Berapa kilogram berat {n} kantong beras yang sama?"),
+    ("kali", "Setiap hari Dita membaca buku selama {f} jam. Berapa jam Dita membaca dalam {n} hari?"),
+    ("kali", "Satu botol sirup berisi {f} liter. Berapa liter sirup dalam {n} botol yang sama?"),
+    ("kali", "Eko membuat sebuah gelang dari tali sepanjang {f} m. "
+             "Berapa meter tali yang ia perlukan untuk {n} gelang yang sama?"),
+    ("bagi", "Sebuah botol berisi {f} liter air. Air itu dituang sama banyak ke dalam {n} gelas kecil. "
+             "Berapa liter air di tiap gelas?"),
+    ("bagi", "Rina mempunyai pita sepanjang {f} m. Pita itu dipotong sama panjang menjadi {n} potong. "
+             "Berapa meter panjang tiap potongan?"),
+    ("bagi", "Budi membagi {f} kg tepung sama banyak ke dalam {n} plastik. "
+             "Berapa kilogram tepung di tiap plastik?"),
 )
 # ── hitungan dan penulisan murni ─────────────────────────────────────────
 
@@ -285,6 +330,223 @@ def _bangun_desimal_ke_pecahan(p: dict) -> tuple:
     return teks, kunci, kandidat, cara
 
 
+# ── perluasan v2: hasil tak wajar, campuran, pembulatan, persen ──────────
+
+def _contoh_bentuk(kunci: str) -> str:
+    """Contoh penulisan pecahan biasa di kalimat soal; tidak pernah sama dengan jawabannya."""
+    return CONTOH_PECAHAN_BIASA_LAIN if kunci == CONTOH_PECAHAN_BIASA else CONTOH_PECAHAN_BIASA
+
+
+def _akhiran_tak_wajar(kunci: str) -> str:
+    return (f"(tulis hasilnya sebagai pecahan biasa paling sederhana, contoh {_contoh_bentuk(kunci)}; "
+            "bila hasilnya bilangan bulat, tulis bilangannya saja)")
+
+
+def _hasil_kali_tak_wajar_sah(a: int, b: int, n: int) -> bool:
+    return Fraction(a * n, b) > 1
+
+
+def _hasil_bagi_tak_wajar_sah(a: int, b: int, n: int) -> bool:
+    """Operan lebih dari 1 dan kurang dari 3; hasil bagi pecahan kurang dari 1 berpenyebut <= 24."""
+    hasil = Fraction(a, b * n)
+    return hasil < 1 and hasil.denominator <= PENYEBUT_BAGI_MAKS
+
+
+def _kandidat_kali_tak_wajar(a: int, b: int, n: int) -> list:
+    return _kandidat_kali(a, b, n) + [
+        _mal("pecahan_dibalik_lalu_dikali", Fraction(b * n, a),
+             f"Menjawab {_teks_pecahan(Fraction(b * n, a))}: kemungkinan pecahan {a}/{b} dibalik "
+             f"dulu menjadi {b}/{a}, baru dikalikan {n}."),
+    ]
+
+
+def _keterangan_tak_wajar(kunci: str) -> str:
+    if "/" not in kunci:
+        return ""
+    return " Pembilang lebih besar dari penyebut tidak apa-apa: itu pecahan biasa yang nilainya lebih dari 1."
+
+
+def _bangun_kali_tak_wajar(p: dict) -> tuple:
+    a, b, n = p["a"], p["b"], p["n"]
+    kunci = _teks_pecahan(Fraction(a * n, b))
+    ekspresi = f"{a}/{b} × {n}" if p["urut"] == 0 else f"{n} × {a}/{b}"
+    teks = f"Hitung: {ekspresi} = ... {_akhiran_tak_wajar(kunci)}"
+    tukar = (f"Bilangan asli boleh ditukar tempatnya: {n} × {a}/{b} = {a}/{b} × {n}. "
+             if p["urut"] == 1 else "")
+    cara = (f"{tukar}{_cara_kali(a, b, n, kunci)}{_keterangan_tak_wajar(kunci)} "
+            f"Jadi {ekspresi} = {kunci}.")
+    return teks, kunci, _kandidat_kali_tak_wajar(a, b, n), cara
+
+
+def _teks_operan_bagi(p: dict) -> str:
+    a, b = p["a"], p["b"]
+    if p["bentuk"] == "biasa":
+        return f"{a}/{b}"
+    return f"{a // b} {a % b}/{b}"
+
+
+def _kandidat_bagi_tak_wajar(p: dict) -> list:
+    a, b, n = p["a"], p["b"], p["n"]
+    kandidat = _kandidat_bagi(a, b, n)
+    if p["bentuk"] == "campur":
+        sisa = a % b
+        kandidat.append(
+            _mal("bulat_terlupa", Fraction(sisa, b * n),
+                 f"Menjawab {_teks_pecahan(Fraction(sisa, b * n))}: kemungkinan hanya bagian pecahan "
+                 f"{sisa}/{b} yang dibagi {n}, sedangkan bilangan bulatnya terlupa."))
+    return kandidat
+
+
+def _bangun_bagi_tak_wajar(p: dict) -> tuple:
+    a, b, n = p["a"], p["b"], p["n"]
+    kunci = _teks_pecahan(Fraction(a, b * n))
+    operan = _teks_operan_bagi(p)
+    teks = f"Hitung: {operan} ÷ {n} = ... {AKHIRAN}"
+    ubah = (f"Ubah dulu {operan} menjadi pecahan biasa: {a // b} × {b} + {a % b} = {a}, jadi {a}/{b}. "
+            if p["bentuk"] == "campur" else "")
+    cara = f"{ubah}{_cara_bagi(a, b, n, kunci)} Jadi {operan} ÷ {n} = {kunci}."
+    return teks, kunci, _kandidat_bagi_tak_wajar(p), cara
+
+
+def _bangun_campur_ke_biasa(p: dict) -> tuple:
+    w, a, b = p["w"], p["a"], p["b"]
+    x = Fraction(w * b + a, b)
+    kunci = _teks_pecahan(x)
+    teks = (f"Pecahan campuran {w} {a}/{b} ditulis sebagai pecahan biasa menjadi ... "
+            f"(tulis dengan garis miring, contoh {_contoh_bentuk(kunci)})")
+    kandidat = [
+        _mal("bulat_ditambah_pembilang", f"{w + a}/{b}",
+             f"Menjawab {w + a}/{b}: kemungkinan bilangan bulat {w} dijumlahkan dengan "
+             f"pembilang {a}, bukan dikalikan dengan penyebut {b}."),
+        _mal("bulat_dikali_pembilang", f"{w * a}/{b}",
+             f"Menjawab {w * a}/{b}: kemungkinan bilangan bulat {w} dikalikan dengan "
+             f"pembilang {a}."),
+        _mal("angka_berdampingan", f"{w}{a}/{b}",
+             f"Menjawab {w}{a}/{b}: kemungkinan bilangan bulat dan pembilang ditulis berdampingan "
+             "sebagai pembilang."),
+        _mal("pembilang_tidak_ditambah", f"{w * b}/{b}",
+             f"Menjawab {w * b}/{b}: kemungkinan bilangan bulat dikalikan penyebut, tetapi "
+             f"pembilang {a} lupa ditambahkan."),
+        _mal("pembilang_penyebut_tertukar", Fraction(b, w * b + a),
+             f"Menjawab {_teks_pecahan(Fraction(b, w * b + a))}: kemungkinan pembilang dan penyebut "
+             "hasilnya tertukar."),
+    ]
+    cara = (f"Kalikan bilangan bulat dengan penyebut, lalu tambahkan pembilangnya: "
+            f"{w} × {b} + {a} = {w * b + a}. Penyebutnya tetap {b}. "
+            f"Jadi {w} {a}/{b} = {kunci}.")
+    return teks, kunci, kandidat, cara
+
+
+def _bulatkan_satu_angka(x: Fraction) -> Fraction:
+    """Bulatkan ke satu angka di belakang koma (setengah ke atas; kasus tengah tidak ada di domain)."""
+    return Fraction((x * 20 + 1) // 2, 10)
+
+
+def _bangun_berulang_dibulatkan(p: dict) -> tuple:
+    a, b = p["a"], p["b"]
+    x = Fraction(a, b)
+    bulat = _bulatkan_satu_angka(x)
+    kunci = _teks_desimal(bulat)
+    teks = (f"Ubah pecahan {a}/{b} menjadi bilangan desimal, dibulatkan sampai satu angka "
+            "di belakang koma. Jawabannya ... (tulis dengan tanda koma)")
+    potong = Fraction((x * 10).numerator // (x * 10).denominator, 10)
+    dua_angka = Fraction((x * 200 + 1) // 2, 100)
+    kandidat = [
+        _mal("dibulatkan_ke_atas", Fraction((-(-x.numerator * 10 // x.denominator)), 10),
+             f"Menjawab {_teks_desimal(Fraction(-(-x.numerator * 10 // x.denominator), 10))}: "
+             "kemungkinan angka terakhir selalu dinaikkan satu, padahal angka berikutnya "
+             "kurang dari 5.", _teks_desimal),
+        _mal("dipotong_tanpa_dibulatkan", potong,
+             f"Menjawab {_teks_desimal(potong)}: kemungkinan angka setelahnya dibuang saja, "
+             "padahal angka berikutnya 5 atau lebih sehingga harus dinaikkan.", _teks_desimal),
+        _mal("dua_angka_belakang_koma", dua_angka,
+             f"Menjawab {_teks_desimal(dua_angka)}: kemungkinan dibulatkan sampai dua angka di "
+             "belakang koma, bukan satu.", _teks_desimal),
+        _mal("koma_geser_kiri", bulat / 10,
+             f"Menjawab {_teks_desimal(bulat / 10)}: kemungkinan titik desimalnya bergeser satu "
+             "tempat ke kiri.", _teks_desimal),
+        _mal("koma_geser_kanan", bulat * 10,
+             f"Menjawab {_teks_desimal(bulat * 10)}: kemungkinan titik desimalnya bergeser satu "
+             "tempat ke kanan.", _teks_desimal),
+        _mal("pisah_koma", f"{a},{b}",
+             f"Menjawab {a},{b}: kemungkinan pembilang dan penyebut hanya dipisah dengan koma."),
+    ]
+    tiga = _teks_desimal(Fraction((1000 * a) // b, 1000))
+    angka_dua = (100 * a // b) % 10
+    aturan = ("Karena 5 atau lebih, angka pertama di belakang koma naik satu."
+              if angka_dua >= 5 else "Karena kurang dari 5, angka pertama di belakang koma tetap.")
+    cara = (f"Bagi {a} dengan {b}: {a} ÷ {b} = {tiga}... Angka kedua di belakang koma adalah "
+            f"{angka_dua}. {aturan} Jadi {a}/{b} dibulatkan sampai satu angka di belakang koma "
+            f"menjadi {kunci}.")
+    return teks, kunci, kandidat, cara
+
+
+def _bangun_persen_ke_persen(perseratus: int) -> tuple:
+    x = Fraction(perseratus, 100)
+    kunci = str(perseratus)
+    tulis = _teks_desimal(x)
+    teks = f"Nyatakan {tulis} sebagai persen. Jawabannya ... persen (tulis angkanya saja)"
+    kandidat = [
+        _mal("koma_geser_satu_tempat", Fraction(perseratus, 10),
+             f"Menjawab {_teks_desimal(Fraction(perseratus, 10))}: kemungkinan titik desimalnya "
+             "hanya bergeser satu tempat.", _teks_desimal),
+        _mal("tidak_dikali_seratus", x,
+             f"Menjawab {tulis}: kemungkinan bilangan desimalnya hanya ditulis ulang tanpa "
+             "dikalikan 100.", _teks_desimal),
+        _mal("dikali_seribu", perseratus * 10,
+             f"Menjawab {perseratus * 10}: kemungkinan desimalnya dikalikan 1000, bukan 100."),
+    ]
+    cara = (f"Persen berarti per seratus. {tulis} = {perseratus}/100 = {perseratus} persen. "
+            "Cara cepatnya: kalikan dengan 100, yaitu geser koma dua tempat ke kanan.")
+    return teks, kunci, kandidat, cara
+
+
+def _bangun_persen_ke_pecahan(perseratus: int) -> tuple:
+    x = Fraction(perseratus, 100)
+    kunci = _teks_pecahan(x)
+    teks = (f"Nyatakan {perseratus}% sebagai pecahan paling sederhana. "
+            "Jawabannya ... (tulis dengan garis miring, contoh 2/3)")
+    kandidat = [
+        _mal("pecahan_tertukar", 1 / x,
+             f"Menjawab {_teks_pecahan(1 / x)}: kemungkinan pembilang dan penyebut tertukar."),
+        _mal("penyebut_sepuluh", Fraction(perseratus, 10),
+             f"Menjawab {_teks_pecahan(Fraction(perseratus, 10))}: kemungkinan penyebutnya "
+             "ditulis 10, bukan 100."),
+        _mal("penyebut_seribu", Fraction(perseratus, 1000),
+             f"Menjawab {_teks_pecahan(Fraction(perseratus, 1000))}: kemungkinan penyebutnya "
+             "ditulis 1000, bukan 100."),
+        _mal("satu_per_angka", Fraction(1, perseratus),
+             f"Menjawab {_teks_pecahan(Fraction(1, perseratus))}: kemungkinan angka persennya "
+             "langsung dijadikan penyebut dengan pembilang 1."),
+    ]
+    g = gcd(perseratus, 100)
+    cara = (f"Persen berarti per seratus. {perseratus}% = {perseratus}/100. "
+            f"Sederhanakan dengan membagi pembilang dan penyebut dengan {g}: {kunci}.")
+    return teks, kunci, kandidat, cara
+
+
+def _bangun_persen_pecahan(p: dict) -> tuple:
+    if p["arah"] == "ke_persen":
+        return _bangun_persen_ke_persen(p["perseratus"])
+    return _bangun_persen_ke_pecahan(p["perseratus"])
+
+
+def _bangun_cerita_tak_wajar(p: dict) -> tuple:
+    a, b, n = p["a"], p["b"], p["n"]
+    operasi, kalimat = CERITA_TAK_WAJAR[p["cerita"]]
+    cerita = kalimat.format(f=f"{a}/{b}", n=n)
+    if operasi == "kali":
+        kunci = _teks_pecahan(Fraction(a * n, b))
+        cara = (f"Banyaknya sama dan diulang {n} kali, jadi dikalikan: {a}/{b} × {n}. "
+                f"{_cara_kali(a, b, n, kunci)}{_keterangan_tak_wajar(kunci)} "
+                f"Jadi jawabannya {kunci}.")
+        return f"{cerita} {_akhiran_tak_wajar(kunci)}", kunci, _kandidat_kali_tak_wajar(a, b, n), cara
+    kunci = _teks_pecahan(Fraction(a, b * n))
+    cara = (f"Dibagi sama banyak menjadi {n} bagian, jadi dibagi: {a}/{b} ÷ {n}. "
+            f"{_cara_bagi(a, b, n, kunci)} Jadi jawabannya {kunci}.")
+    return f"{cerita} {AKHIRAN}", kunci, _kandidat_bagi(a, b, n), cara
+
+
 _BANGUN = {
     "kali_asli": _bangun_kali_asli,
     "bagi_asli": _bangun_bagi_asli,
@@ -292,6 +554,12 @@ _BANGUN = {
     "ke_desimal": _bangun_ke_desimal,
     "desimal_ke_pecahan": _bangun_desimal_ke_pecahan,
     "cerita": _bangun_cerita,
+    "kali_asli_tak_wajar": _bangun_kali_tak_wajar,
+    "bagi_asli_tak_wajar": _bangun_bagi_tak_wajar,
+    "campur_ke_biasa": _bangun_campur_ke_biasa,
+    "ke_desimal_berulang_dibulatkan": _bangun_berulang_dibulatkan,
+    "desimal_ke_persen_pecahan": _bangun_persen_pecahan,
+    "cerita_kali_bagi_pecahan": _bangun_cerita_tak_wajar,
 }
 
 
@@ -330,6 +598,52 @@ def _enumerasi_cerita() -> list:
     return hasil
 
 
+def _enumerasi_kali_tak_wajar() -> list:
+    return [{"varian": "kali_asli_tak_wajar", "a": a, "b": b, "n": n, "urut": urut}
+            for a, b in _operan() for n in BILANGAN_ASLI if _hasil_kali_tak_wajar_sah(a, b, n)
+            for urut in (0, 1)]
+
+
+def _enumerasi_bagi_tak_wajar() -> list:
+    hasil = []
+    for b in PENYEBUT_OPERAN:
+        for a in range(b + 1, 3 * b):
+            if gcd(a, b) != 1:
+                continue
+            hasil.extend({"varian": "bagi_asli_tak_wajar", "a": a, "b": b, "n": n, "bentuk": bentuk}
+                         for n in BILANGAN_ASLI if _hasil_bagi_tak_wajar_sah(a, b, n)
+                         for bentuk in BENTUK_BAGI)
+    return hasil
+
+
+def _enumerasi_campur_ke_biasa() -> list:
+    return [{"varian": "campur_ke_biasa", "w": w, "a": a, "b": b}
+            for w in BULAT_CAMPUR for a, b in _operan()]
+
+
+def _enumerasi_berulang_dibulatkan() -> list:
+    return [{"varian": "ke_desimal_berulang_dibulatkan", "a": a, "b": b}
+            for b in PENYEBUT_BERULANG for a in range(1, b) if gcd(a, b) == 1]
+
+
+def _enumerasi_persen_pecahan() -> list:
+    ke_persen = [{"varian": "desimal_ke_persen_pecahan", "arah": "ke_persen", "perseratus": m}
+                 for m in range(1, 100)]
+    ke_pecahan = [{"varian": "desimal_ke_persen_pecahan", "arah": "ke_pecahan", "perseratus": m}
+                  for m in range(1, 100)
+                  if Fraction(m, 100).denominator in PENYEBUT_DARI_DESIMAL]
+    return ke_persen + ke_pecahan
+
+
+def _enumerasi_cerita_tak_wajar() -> list:
+    hasil = []
+    for i, (operasi, _) in enumerate(CERITA_TAK_WAJAR):
+        sah = _hasil_kali_tak_wajar_sah if operasi == "kali" else _hasil_bagi_sah
+        hasil.extend({"varian": "cerita_kali_bagi_pecahan", "cerita": i, "a": a, "b": b, "n": n}
+                     for a, b in _operan() for n in BILANGAN_ASLI if sah(a, b, n))
+    return hasil
+
+
 _ENUMERATOR = {
     "kali_asli": lambda: _enumerasi_kali("kali_asli"),
     "bagi_asli": _enumerasi_bagi,
@@ -337,6 +651,12 @@ _ENUMERATOR = {
     "ke_desimal": _enumerasi_ke_desimal,
     "desimal_ke_pecahan": _enumerasi_desimal_ke_pecahan,
     "cerita": _enumerasi_cerita,
+    "kali_asli_tak_wajar": _enumerasi_kali_tak_wajar,
+    "bagi_asli_tak_wajar": _enumerasi_bagi_tak_wajar,
+    "campur_ke_biasa": _enumerasi_campur_ke_biasa,
+    "ke_desimal_berulang_dibulatkan": _enumerasi_berulang_dibulatkan,
+    "desimal_ke_persen_pecahan": _enumerasi_persen_pecahan,
+    "cerita_kali_bagi_pecahan": _enumerasi_cerita_tak_wajar,
 }
 
 
@@ -386,9 +706,12 @@ def _sah(parameter_: dict) -> bool:
 
 def pecahan_bilangan_asli_desimal(varian: str, a: int | None = None, b: int | None = None,
                                   n: int | None = None, perseratus: int | None = None,
-                                  cerita: int | None = None) -> Soal:
+                                  cerita: int | None = None, w: int | None = None,
+                                  urut: int | None = None, bentuk: str | None = None,
+                                  arah: str | None = None) -> Soal:
     """Pecahan dengan bilangan asli dan pecahan-desimal; kunci dihitung dari parameter sah."""
-    diberi = {"varian": varian, "a": a, "b": b, "n": n, "perseratus": perseratus, "cerita": cerita}
+    diberi = {"varian": varian, "a": a, "b": b, "n": n, "perseratus": perseratus, "cerita": cerita,
+              "w": w, "urut": urut, "bentuk": bentuk, "arah": arah}
     p = {nama: nilai for nama, nilai in diberi.items() if nilai is not None}
     if not _sah(p):
         raise ValueError(PESAN_LUAR_DOMAIN)
