@@ -193,7 +193,9 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
   status `healthy`, smoke di loopback `/` 200, `/akun` 401, `/murid/` 303, tanpa galat di log,
   `osn-mesin` produksi tidak berubah. Setelah app start, empat DB kembali `wal`; **`pendamping.db`
   tetap `delete`** sampai `assistant_schema.siapkan()` dijalankan (startup `serve.py` belum
-  memanggilnya), jadi setelah restore sungguhan periksa mode jurnalnya. Ini bukan restore ke
+  memanggilnya), jadi setelah restore sungguhan periksa mode jurnalnya. Perbaikannya
+  (`berkas_data.kencangkan_saat_start()`: WAL dipulihkan dan semua DB durable beserta sidecar
+  dikunci 0600 saat start, tanpa DDL) ada di `main` lokal dan belum dirilis. Ini bukan restore ke
   produksi sungguhan.
 - **Batas**: off-site bergantung pada Mac menyala; bila Mac mati, backup lokal VPS tetap
   jalan tetapi tidak ada salinan keluar VPS hari itu. Kegagalan off-site mengirim alert

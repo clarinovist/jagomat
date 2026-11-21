@@ -23,6 +23,7 @@ import ai_store
 import admin_bulk
 import admin_store
 import admin_students
+import berkas_data
 import database
 import research_store
 import auth
@@ -142,6 +143,8 @@ def main() -> int:
     # server dinyalakan (tanda lapangan: belasan token dari masuk-ulang).
     sessions.bersihkan()
     admin = siapkan_admin_dan_pemilik()
+    # Sesudah semua siapkan(): mode 0600 + WAL untuk DB yang tak lewat siapkan().
+    berkas_data.kencangkan_saat_start()
     inang = "0.0.0.0" if arg.jaringan else "127.0.0.1"
 
     # Palang kedua. Palang pertama ada di web.py (memeriksa tiap permintaan);
