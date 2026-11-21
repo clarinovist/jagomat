@@ -102,6 +102,11 @@ def _berjalan(kon, siswa_id: int) -> Optional[SesiRingkas]:
     return _ringkas(baris) if baris else None
 
 
+def tutup_yang_habis(kon, siswa_id: int, sekarang: int) -> None:
+    """Tutup sesi berjalan milik anak yang batasnya sudah lewat (untuk pembaca riwayat)."""
+    _finalkan_habis(kon, siswa_id, sekarang)
+
+
 def sesi_berjalan(kon, siswa_id: int, sekarang: int) -> Optional[SesiRingkas]:
     _finalkan_habis(kon, siswa_id, sekarang)
     return _berjalan(kon, siswa_id)
@@ -270,7 +275,7 @@ def kumpulkan(kon, siswa_id: int, sesi_id: int, sekarang: int) -> SesiRingkas:
     return ambil_sesi(kon, siswa_id, sesi_id, sekarang)
 
 
-def _benar(jenis: str, kunci: str, pilihan: Sequence[str], jawaban: Optional[str]) -> bool:
+def benar(jenis: str, kunci: str, pilihan: Sequence[str], jawaban: Optional[str]) -> bool:
     if jawaban is None:
         return False
     if jenis == C.JENIS_ISIAN:
@@ -287,6 +292,6 @@ def hasil_ringkas(kon, siswa_id: int, sesi_id: int, sekarang: int) -> HasilRingk
         "SELECT s.jenis, s.kunci, s.pilihan_json, j.jawaban FROM lomba_soal s "
         "LEFT JOIN lomba_jawaban j ON j.sesi_id = s.sesi_id AND j.nomor = s.nomor "
         "WHERE s.sesi_id = ? ORDER BY s.nomor", (sesi_id,)).fetchall()
-    nilai = sum(1 for r in baris if _benar(r["jenis"], r["kunci"], json.loads(r["pilihan_json"]), r["jawaban"]))
+    nilai = sum(1 for r in baris if benar(r["jenis"], r["kunci"], json.loads(r["pilihan_json"]), r["jawaban"]))
     return HasilRingkas(nilai=nilai, jumlah_soal=len(baris),
                         waktu_terpakai_detik=sesi.selesai_epoch - sesi.mulai_epoch, status=sesi.status)
