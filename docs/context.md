@@ -13,6 +13,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 | Lapisan | Sumber utama |
 | --- | --- |
 | HTTP | `serve.py`, `web.py`, router `*_http.py`; murid/share dipisahkan dari guru/admin |
+| Metrik runtime | `metrik_runtime.py` (di memori, label rute daftar putih tanpa path mentah; p95 per rute, `locked`, CPU); dipasang di `do_GET`/`do_POST`, dilihat admin di `/admin/metrik` (JSON) dan satu baris stdout per 600 detik bila ada request |
 | Identitas | `auth.py`, `sessions.py`, `students.py`; guard principal/kepemilikan server-side |
 | Soal | `topics.py`, `topic_*.py`, `templates.py`, `generator.py`; parameter dan versi deterministik |
 | Penyajian | `question_views.py`, `render.py`, `worksheets.py`, `*_pages.py`, `*_ui.py` |

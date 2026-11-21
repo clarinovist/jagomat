@@ -27,6 +27,7 @@ import attachments as lampiran_mod
 import auth
 import brand
 import database
+import metrik_runtime
 import sessions
 from account_pages import (
     PETA_SECTION_AKUN,
@@ -622,19 +623,39 @@ class Penangan(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(isi)
 
+    def send_response(self, code, message=None) -> None:
+        """Satu titik untuk menangkap kode status bagi metrik runtime."""
+        self._status_metrik = code
+        super().send_response(code, message)
+
     def do_GET(self) -> None:  # noqa: N802
         """Pembungkus jaring pengaman — rutenya di _rute_get."""
+        awal = self._mulai_metrik()
         try:
-            self._rute_get()
-        except Exception:
-            self._galat_500()
+            try:
+                self._rute_get()
+            except Exception as exc:
+                metrik_runtime.catat_galat_sqlite(exc)
+                self._galat_500()
+        finally:
+            metrik_runtime.selesai_ukur(awal, "GET", self.path, self._status_metrik)
 
     def do_POST(self) -> None:  # noqa: N802
         """Pembungkus jaring pengaman — rutenya di _rute_post."""
+        awal = self._mulai_metrik()
         try:
-            self._rute_post()
-        except Exception:
-            self._galat_500()
+            try:
+                self._rute_post()
+            except Exception as exc:
+                metrik_runtime.catat_galat_sqlite(exc)
+                self._galat_500()
+        finally:
+            metrik_runtime.selesai_ukur(awal, "POST", self.path, self._status_metrik)
+
+    def _mulai_metrik(self) -> float:
+        """Reset status (handler dipakai ulang oleh keep-alive) lalu mulai stopwatch."""
+        self._status_metrik = 0
+        return metrik_runtime.mulai_ukur()
 
     def do_HEAD(self) -> None:  # noqa: N802
         """HEAD dijawab eksplisit: monitor tidak perlu 501, isi tetap tidak dikirim."""

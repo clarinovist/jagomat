@@ -25,6 +25,7 @@ import admin_store
 import admin_students
 import berkas_data
 import database
+import metrik_runtime
 import research_store
 import auth
 import sessions
@@ -68,8 +69,10 @@ class PemeliharaanAdmin:
         self._putaran()
         self.ulir = Thread(target=self._berkala, name="pemeliharaan-admin", daemon=False)
         self.ulir.start()
+        metrik_runtime.mulai_pencetak()
 
     def tutup(self):
+        metrik_runtime.hentikan_pencetak()
         self.berhenti.set()
         if self.ulir is not None:
             self.ulir.join()
