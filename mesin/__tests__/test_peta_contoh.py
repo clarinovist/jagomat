@@ -190,11 +190,22 @@ def test_jalur_empat_minggu_urutan_kegiatan_bukan_janji():
     assert isi.count("<b>Minggu ") == 4
 
 
-def test_satu_tombol_utama_dan_kelas_tanpa_harga():
+def test_satu_tombol_utama_dan_harga_kelas_tampil_di_akhir_laporan():
+    # Keputusan 20 poin 7 (21 Nov 2026): harga kelas tampil di laporan; halaman publik tetap tanpa harga kelas.
     isi = _laporan()
     assert isi.count('class="tombol-coral"') == 1 and isi.count('href="/daftar?jalur=cek"') == 1
     assert "Kelas kecil Jagomat" in isi and "Rp49.000" in isi
-    assert not re.search(r"Rp\s?(?!49\.000)\d", isi)
+    assert "Rp200.000 per bulan" in _teks_tampak(isi)
+    assert set(re.findall(r"Rp\s?[\d.]+", _teks_tampak(isi))) == {"Rp49.000", "Rp200.000"}
+
+
+def test_cek_ulang_bagian_kelas_dan_tidak_wajib_dengan_bingkai_baru():
+    # Keputusan 20 (R1): cek ulang minggu ke-4 ada di kelas; "tidak wajib" tetap jujur (Keputusan 15).
+    isi = _teks_tampak(_laporan())
+    assert "Cek ulang bersama Guru" in isi and "di kelas" in isi
+    assert "Tidak wajib ikut kelas" in isi and "tetap milik Anda" in isi
+    assert "berlatih sendiri" not in isi
+    assert "Minggu 1–3 bisa Anda mulai sendiri" in isi
 
 
 def test_laporan_nyata_tanpa_cta_contoh_dan_tautan_lembar():

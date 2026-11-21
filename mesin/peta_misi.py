@@ -13,7 +13,14 @@ from peta_teks import e
 HARI = ("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
 KUNCI_STIKER_CONTOH = "jagomat-contoh-peta-hari"
 KUNCI_STIKER = "jagomat-peta-hari"
-MINGGU_CEK_ULANG = "Cek ulang singkat bersama Guru"
+MINGGU_CEK_ULANG = "Cek ulang bersama Guru di kelas, lalu peta baru"
+# Keputusan 20 poin 7 (21 Nov 2026): harga kelas tampil di akhir laporan. Hanya tampilan; belum ada tagihan kelas di aplikasi.
+RUPIAH_KELAS_BULAN = 200_000
+PERTEMUAN_KELAS_BULAN = 8
+
+
+def _rupiah(nilai: int) -> str:
+    return "Rp" + f"{nilai:,}".replace(",", ".")
 
 
 def _misi(data, indeks: int, misi) -> str:
@@ -75,7 +82,8 @@ def _jalur(data) -> str:
         butir.append('<li><span class="peta-batu-st">%s</span><b>Minggu %d</b>%s</li>' % (batu, i, e(teks)))
     return (
         '<div class="peta-kartu-st"><div class="peta-kepala-kartu-st"><span class="peta-alis-st">Jalur latihan %d minggu</span>'
-        '<p class="peta-bantuan-st">Ini urutan kegiatan, bukan janji hasil. Di minggu terakhir Guru mengecek ulang dengan soal baru.</p></div>'
+        '<p class="peta-bantuan-st">Ini urutan kegiatan, bukan janji hasil. Minggu 1–3 bisa Anda mulai sendiri; '
+        'cek ulang dengan soal baru di minggu ke-4 dikerjakan bersama Guru di kelas.</p></div>'
         '<ol class="peta-jalur-st">%s</ol></div>'
     ) % (len(langkah), "".join(butir))
 
@@ -90,16 +98,19 @@ def _program(cta_html: str) -> str:
     kelas = (
         "Mulai dari fokus di laporan ini.",
         "Dua pertemuan seminggu, 45 menit, dipandu Guru.",
+        "Cek ulang bersama Guru tiap 4 minggu, lalu peta baru.",
         "Laporan perkembangan pada fokus yang dilatih.",
     )
+    harga = "%s per bulan, %d pertemuan." % (_rupiah(RUPIAH_KELAS_BULAN), PERTEMUAN_KELAS_BULAN)
     return (
         '<div class="peta-program-st"><div class="peta-kartu-st peta-konsul-st"><span class="peta-alis-st">Termasuk dalam Peta Kemampuan</span>'
         '<h3 class="peta-judul-bagian-st">Konsultasi 20 menit dengan Guru</h3><p>%s</p>%s</div>'
         '<div class="peta-kartu-st peta-kelas-st"><span class="peta-alis-st">Kalau ingin didampingi</span>'
         '<h3 class="peta-judul-bagian-st">Kelas kecil Jagomat</h3><ul class="peta-cek-st">%s</ul>'
+        '<p class="peta-bantuan-st"><b>%s</b></p>'
         '<div class="peta-voucher-st">%s<span>%s %s</span></div>'
-        '<p class="peta-bantuan-st">Tanyakan detail kelas saat konsultasi.</p></div></div>'
-    ) % (e(COPY_KONSULTASI), cta_html, "".join(_centang(k) for k in kelas), ikon("voucher", 22, "2"),
+        '<p class="peta-bantuan-st">Jadwal dan rincian lain kita bahas saat konsultasi.</p></div></div>'
+    ) % (e(COPY_KONSULTASI), cta_html, "".join(_centang(k) for k in kelas), e(harga), ikon("voucher", 22, "2"),
          e(COPY_DEPOSIT), e(COPY_TIDAK_WAJIB_KELAS))
 
 

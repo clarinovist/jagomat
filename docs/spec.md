@@ -214,7 +214,7 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   tetap ke berandanya). Sejak 19 Nov 2026 (Keputusan 19) `/cek-kemampuan` bergaya playful (bagian cerita statis,
   demo tebak langkah, satu CTA; bagian harga hanya hasil gratis, tawaran Rp49.000 ada di halaman hasil dan FAQ) dan `/contoh-peta-kemampuan` menampilkan laporan Peta Kemampuan playful dengan data
   sintetis konsisten (skor/kategori `cek_gratis_skor`, Kuat ≥80%, <3 soal "Belum cukup soal", pola = jumlah salah)
-  plus lembar A4 1 halaman `/contoh-peta-kemampuan/lembar`. Peringkat/persentil DITAMPILKAN (`peta_posisi`: pembanding
+  plus lembar A4 1 halaman `/contoh-peta-kemampuan/lembar`. Sejak 21 Nov 2026 (Keputusan 20) tab "Misi berikutnya" menampilkan harga kelas (Rp200.000 per bulan, 8 pertemuan; hanya tampilan, belum ada tagihan kelas) dan menaruh cek ulang minggu ke-4 sebagai bagian kelas; halaman publik tetap tanpa harga kelas. Peringkat/persentil DITAMPILKAN (`peta_posisi`: pembanding
   kelas sama, minimal 30 anak, selalu dengan penyebut); laporan nyata pesanan berbayar, isian Guru, dan agregat
   skor per kelas belum dibangun. Fase 2: cek gratis per anak di `/cek-kemampuan/mulai` (centang persetujuan wajib,
   tersimpan), `/hasil`, `/tautan` (peran guru; anak mengerjakan lewat `/mulai/<token>` yang ada); sesi biasa PG 15 soal

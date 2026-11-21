@@ -91,7 +91,7 @@ COPY_PAKET_ISI = (
     "Rp49.000 jadi voucher program belajar bila Anda lanjut",
 )
 COPY_TIDAK_WAJIB_KELAS = (
-    "Tidak wajib ikut kelas. Laporan tetap bisa Anda pakai untuk berlatih sendiri di rumah."
+    "Tidak wajib ikut kelas. Laporan ini tetap milik Anda. Cek ulang dan laporan kemajuan tiap 4 minggu ada di kelas."
 )
 COPY_BATAS_JUDUL = "Biar harapannya pas"
 COPY_BATAS_HASIL = (
