@@ -48,6 +48,7 @@ _POLA_ISIAN = re.compile(r"^[0-9]{1,6}$")
 _POLA_ARIA = re.compile(r'aria-label="([^"]*)"')
 _POLA_HANDLER = re.compile(r"\son[a-z]+\s*=", re.IGNORECASE)
 _NAMESPACE_SVG = 'xmlns="http://www.w3.org/2000/svg"'
+_POLA_ATRIBUT_DATA = re.compile(r'\sdata-[A-Za-z0-9_-]+="[^"]*"')
 
 
 class ParameterTidakSah(ValueError):
@@ -106,6 +107,15 @@ def kanonik(parameter: Mapping) -> str:
                           ensure_ascii=False, allow_nan=False)
     except (TypeError, ValueError) as galat:
         raise ValueError(f"parameter tidak bisa diserialkan: {galat}") from galat
+
+
+def tanpa_atribut_data(svg: str) -> str:
+    """SVG tanpa atribut `data-*`.
+
+    Atribut itu hanya alat bantu tes (menghitung ulang apa yang tergambar) dan bisa membuka jawaban lewat
+    view-source (mis. `data-bangun="kubus"` pada pilihan bergambar). Dibuang sebelum SVG disimpan untuk halaman.
+    """
+    return _POLA_ATRIBUT_DATA.sub("", svg) if svg else svg
 
 
 def tanda_tangan(soal: SoalLomba) -> str:

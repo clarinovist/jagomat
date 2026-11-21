@@ -144,11 +144,13 @@ def _riwayat(kon, siswa_id: int) -> Tuple[FrozenSet[str], FrozenSet[str]]:
 
 def _baris_soal(sesi_id: int, butir: S.ButirSesi) -> tuple:
     soal = butir.soal
-    pengecoh = [{"nilai": p.nilai, "kesalahan": p.kesalahan, "svg": p.svg} for p in soal.pengecoh]
+    pengecoh = [{"nilai": p.nilai, "kesalahan": p.kesalahan, "svg": C.tanpa_atribut_data(p.svg)}
+                for p in soal.pengecoh]
     return (sesi_id, butir.nomor, soal.template_id, soal.topik, soal.jenis, soal.tingkat,
-            C.tanda_tangan(soal), soal.parameter, int(soal.inggris), soal.teks, soal.svg, soal.kunci,
-            json.dumps(list(butir.pilihan), ensure_ascii=False),
-            json.dumps(list(butir.gambar_pilihan), ensure_ascii=False), butir.posisi_kunci,
+            C.tanda_tangan(soal), soal.parameter, int(soal.inggris), soal.teks, C.tanpa_atribut_data(soal.svg),
+            soal.kunci, json.dumps(list(butir.pilihan), ensure_ascii=False),
+            json.dumps([C.tanpa_atribut_data(g) for g in butir.gambar_pilihan], ensure_ascii=False),
+            butir.posisi_kunci,
             json.dumps(pengecoh, ensure_ascii=False), json.dumps(list(soal.pembahasan), ensure_ascii=False))
 
 

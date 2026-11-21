@@ -428,3 +428,27 @@ def test_daftarkan_menolak_keluarga_tidak_sah(registri_kosong):
 
 def test_daftarkan_menerima_keluarga_sah(registri_kosong):
     assert C.daftarkan(_template(keluarga="ops_kembar_a")).keluarga == "ops_kembar_a"
+
+
+# --- atribut data-* hanya untuk tes: dibuang sebelum SVG sampai ke halaman ---------------------
+
+def test_tanpa_atribut_data_membuang_semua_data_dan_menjaga_atribut_lain():
+    svg = ('<svg role="img" aria-label="Gambar" viewBox="0 0 10 10"><g data-bangun="kubus" class="a">'
+           '<rect data-benda="es batu" data-sel="1" x="0" y="0"/></g></svg>')
+    bersih = C.tanpa_atribut_data(svg)
+    assert "data-" not in bersih
+    assert 'role="img"' in bersih and 'aria-label="Gambar"' in bersih and 'class="a"' in bersih
+    assert '<rect x="0" y="0"/>' in bersih
+
+
+def test_tanpa_atribut_data_tidak_mengubah_svg_tanpa_data_dan_idempoten():
+    svg = '<svg role="img" aria-label="Gambar"><rect x="0"/></svg>'
+    assert C.tanpa_atribut_data(svg) == svg
+    kotor = svg.replace("<rect", '<rect data-a="1"')
+    assert C.tanpa_atribut_data(C.tanpa_atribut_data(kotor)) == C.tanpa_atribut_data(kotor)
+    assert C.tanpa_atribut_data("") == ""
+
+
+def test_tanpa_atribut_data_tidak_menyentuh_teks_di_dalam_elemen():
+    svg = '<svg role="img" aria-label="G"><text x="1">data-set</text></svg>'
+    assert C.tanpa_atribut_data(svg) == svg

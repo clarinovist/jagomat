@@ -473,3 +473,24 @@ def test_riwayat_lima_sesi_untuk_tanda_tangan_dan_dua_sesi_untuk_rotasi_diterusk
     assert tercatat["terlarang"] == kolom("tanda_tangan", id_sesi[-5:])        # tepat lima sesi terakhir
     assert tercatat["hindari"] == kolom("template_id", id_sesi[-2:])           # tepat dua sesi terakhir
     assert kolom("tanda_tangan", id_sesi[:2]) - tercatat["terlarang"]          # sesi lama sudah tidak dilarang
+
+
+# --- kunci tidak bocor lewat atribut data-* pada SVG ---------------------------------------------
+
+def test_svg_tersimpan_tidak_memuat_atribut_data_pada_seluruh_katalog(kon, anak):
+    """Atribut data-* (mis. data-bangun="kubus" pada gambar pilihan) membuka jawaban lewat view-source."""
+    ditemui_bergambar = set()
+    for seed in range(1, 41):
+        sesi = T.mulai_atau_lanjut(kon, anak, SEKARANG + seed * 5000, seed=seed)
+        for baris in _baris_semua(kon, sesi.id):
+            assert "data-" not in baris["svg"], (baris["template_id"], "svg")
+            assert "data-" not in baris["gambar_pilihan_json"], (baris["template_id"], "gambar_pilihan")
+            assert "data-" not in baris["pengecoh_json"], (baris["template_id"], "pengecoh")
+            if json.loads(baris["gambar_pilihan_json"]) and any(json.loads(baris["gambar_pilihan_json"])):
+                ditemui_bergambar.add(baris["template_id"])
+        T.kumpulkan(kon, anak, sesi.id, SEKARANG + seed * 5000 + 10)
+    assert ditemui_bergambar, "tes tidak menemui satu pun soal berpilihan gambar"
+
+
+def _baris_semua(kon, sesi_id):
+    return kon.execute("SELECT * FROM lomba_soal WHERE sesi_id=? ORDER BY nomor", (sesi_id,)).fetchall()
