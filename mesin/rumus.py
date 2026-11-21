@@ -111,6 +111,11 @@ KARTU: dict[str, Kartu] = {
         inti="Segitiga punya 3 sisi dan 3 sudut. Persegi punya 4 sisi yang semuanya sama panjang. Persegi panjang punya 4 sisi: sisi yang berhadapan sama panjang, tetapi sisi panjang dan sisi pendeknya berbeda. Lingkaran itu bulat, tanpa sisi lurus dan tanpa sudut.",
         contoh="Uang logam itu bulat dan tidak punya sudut, jadi bentuknya lingkaran.",
     ),
+    "kenali_bangun_awal": Kartu(
+        judul="Mengenal bangun datar dan bangun ruang",
+        inti="Bangun datar: segitiga punya 3 sisi lurus dan 3 sudut; persegi punya 4 sisi yang semuanya sama panjang; persegi panjang punya 4 sisi, sisi yang berhadapan sama panjang tetapi tidak semuanya sama; lingkaran bulat, tanpa sisi lurus dan tanpa sudut. Bangun ruang: kubus punya 6 sisi persegi yang sama besar; balok punya 6 sisi persegi panjang; bola bulat tanpa sisi datar; tabung punya 2 sisi datar berbentuk lingkaran dan 1 sisi lengkung; kerucut punya 1 sisi datar berbentuk lingkaran dan 1 titik puncak. Untuk menghitung bangun, tunjuk satu per satu sambil memberi tanda.",
+        contoh="Dadu punya 6 sisi persegi yang sama besar, jadi bentuknya kubus. Kaleng susu punya alas dan tutup yang bulat, jadi bentuknya tabung.",
+    ),
     "ukur_satuan_tak_baku": Kartu(
         judul="Mengukur panjang dengan satuan buatan sendiri",
         inti="Ukur benda dengan satuan yang sama, lalu bandingkan angkanya: makin banyak satuan yang muat, makin panjang bendanya. Lebihnya dicari dengan mengurangi. Dua benda yang disambung panjangnya ditambah.",
@@ -576,6 +581,7 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "nilai_tempat_ribuan": "nilai_tempat_ribuan",
     "nilai_tempat_besar": "nilai_tempat_besar",
     "kenali_bentuk": "kenali_bentuk",
+    "kenali_bangun_awal": "kenali_bangun_awal",
     "ukur_satuan_tak_baku": "ukur_satuan_tak_baku",
     "baca_diagram_gambar": "baca_diagram_gambar",
     "pola_posisi": "pola_posisi",

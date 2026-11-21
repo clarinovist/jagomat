@@ -30,6 +30,7 @@ import awal_bandingkan_ciri_bangun as bandingkan_ciri_bangun
 import awal_bilang_benda_awal as bilang_benda_awal
 import awal_ciri_komposisi_bangun as ciri_komposisi_bangun
 import awal_keliling_gabungan as keliling_gabungan
+import awal_kenali_bangun_awal as kenali_bangun_awal
 import awal_kenali_bentuk as kenali_bentuk
 import awal_luas_petak_volume_kubus as luas_petak_volume_kubus
 import awal_pecahan_bilangan_asli_desimal as pecahan_bilangan_asli_desimal
@@ -116,6 +117,9 @@ JENIS = (
     Jenis(pecahan_bilangan_asli_desimal.TEMPLATE_ID, pecahan_bilangan_asli_desimal.pecahan_bilangan_asli_desimal,
           pecahan_bilangan_asli_desimal.parameter, pecahan_bilangan_asli_desimal.LEVEL,
           pecahan_bilangan_asli_desimal.domain_parameter),
+    Jenis(kenali_bangun_awal.TEMPLATE_ID, kenali_bangun_awal.kenali_bangun_awal,
+          kenali_bangun_awal.parameter, kenali_bangun_awal.LEVEL,
+          kenali_bangun_awal.domain_parameter),
 )
 _PER_ID = {j.template_id: j for j in JENIS}
 if len(_PER_ID) != len(JENIS):

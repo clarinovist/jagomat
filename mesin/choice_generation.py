@@ -29,7 +29,11 @@ TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   # Matematika Awal gelombang 1: 2 pengecoh dari malrule selalu ada; 'empat-v1' tidak terjamin
                   # (bilang_benda_awal: `empat-v1` kurang di sebagian parameter; pecahan_senilai_desimal: 23 dari
                   # 275 parameter hanya punya 2 pengecoh berbeda nilai).
-                  'bilang_benda_awal', 'pecahan_senilai_desimal'})
+                  'bilang_benda_awal', 'pecahan_senilai_desimal',
+                  # kenali_bangun_awal: hitung_bentuk (kunci angka) selalu punya >= 2 pengecoh dari malrule
+                  # (jenis lain, semua bangun, lebih satu); 'empat-v1' tidak terjamin (hanya dua pengecoh pada
+                  # 9 dari 1143 parameter P1 dan 48 dari 2424 parameter P2).
+                  'kenali_bangun_awal'})
 # Kunci kategori (nama/kata/benda) per jenis Matematika Awal; sisanya jatuh ke 'angka'.
 KATEGORI_AWAL = {
     'ukur_satuan_tak_baku': frozenset({'banding'}),
@@ -37,6 +41,8 @@ KATEGORI_AWAL = {
     'turus_gambar_awal': frozenset({'terbanyak'}),
     'peluang_dasar': frozenset({'lebih_mungkin', 'kepastian'}),
     'bilang_benda_awal': frozenset({'angka_ke_kata'}),  # kunci kata bilangan huruf kecil
+    # kenali_bangun_awal: tiga varian berkunci nama bangun; hitung_bentuk berkunci angka (tiga opsi).
+    'kenali_bangun_awal': frozenset({'datar_gambar', 'ruang_gambar', 'benda_ruang'}),
 }
 
 

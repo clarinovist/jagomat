@@ -67,9 +67,14 @@ def _tolak(data):
 
 # ── dispatcher ───────────────────────────────────────────────────────────
 
-def test_tiga_adegan_terdaftar_dan_masing_masing_sah():
-    assert data_modul.ADEGAN_DIDUKUNG == ("deret_ikon", "turus", "pita_ukur")
-    for data in (_turus(), _ukur(), _sambung()):
+def _bentuk():
+    bangun = {"nama": "kubus", "ragam": "biasa", "putar": 0, "ukuran": "besar", "warna": "biru"}
+    return {"adegan": "bentuk", "tampil": "satu", "bangun": [bangun]}
+
+
+def test_empat_adegan_terdaftar_dan_masing_masing_sah():
+    assert data_modul.ADEGAN_DIDUKUNG == ("deret_ikon", "turus", "pita_ukur", "bentuk")
+    for data in (_turus(), _ukur(), _sambung(), _bentuk()):
         validasi_adegan_awal(data)
         DescriptorVisual("adegan_awal", 1, data)
 
@@ -84,6 +89,8 @@ def test_field_antar_adegan_tidak_boleh_tercampur():
     _tolak({**_turus(), "satuan": "klip"})
     _tolak({**_ukur(), "baris": []})
     _tolak({**_ukur(), "satuan_ikon": 1})
+    _tolak({**_bentuk(), "baris": []})
+    _tolak({**_turus(), "tampil": "satu"})
 
 
 def test_bentuk_beku_juga_lolos_jalur_renderer():

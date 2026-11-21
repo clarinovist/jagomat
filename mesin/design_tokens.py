@@ -138,6 +138,19 @@ ADEGAN_PITA_GARIS_NETRAL = "#555"
 ADEGAN_PITA_GARIS_MERAH = "#c2352b"
 ADEGAN_PITA_GARIS_BIRU = "#2c60ad"
 
+# Adegan awal sub-adegan `bentuk`: bangun datar dan ruang buatan kode (bukan raster); satuan viewBox.
+ADEGAN_BANGUN_TINGGI_SATU = 160  # tinggi viewBox satu bangun
+ADEGAN_BANGUN_KOTAK_SATU = 140  # sisi kotak tempat satu bangun digambar (ukuran besar)
+ADEGAN_BANGUN_SEL = 64  # sisi sel satu bangun pada baris
+ADEGAN_BANGUN_KOTAK_SEL = 52  # sisi kotak bangun di dalam sel (ukuran besar)
+ADEGAN_BANGUN_KOLOM = 5  # bangun per baris sebelum pindah ke baris berikutnya
+ADEGAN_BANGUN_TEBAL = 3  # garis tepi bangun; gelap, jadi warna bukan satu-satunya pembeda
+ADEGAN_BANGUN_SKALA_KECIL = 0.7
+# Tiga nada per warna: (terang, sedang, gelap) untuk sisi atas, depan, dan samping bangun ruang.
+ADEGAN_BANGUN_BIRU = ("#e6f0fc", "#b9d4f4", "#8cb4e6")
+ADEGAN_BANGUN_KUNING = ("#fdf4d6", "#f8e08d", "#e8c24c")
+ADEGAN_BANGUN_HIJAU = ("#e4f4e6", "#b6e0bc", "#86c791")
+
 # Sketsa ruang dan proyeksi isometrik kisi kubus.
 RUANG_ASAL = (165, 200)
 RUANG_SUMBU = ((90, -25), (-60, -40), (0, -90))

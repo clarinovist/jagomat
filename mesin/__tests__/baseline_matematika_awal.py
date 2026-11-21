@@ -23,6 +23,7 @@ TOPIK = "matematika-awal"
 # tes bersama mengunci isi topik dengan `==`. Registri global tetap superset.
 LEVEL_JENIS = {
     "kenali_bentuk": ("P1", "P2"),
+    "kenali_bangun_awal": ("P1", "P2"),
     "ukur_satuan_tak_baku": ("P1",),
     "baca_diagram_gambar": ("P1", "P2"),
     "bilang_benda_awal": ("P1",),

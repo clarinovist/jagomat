@@ -209,6 +209,7 @@ KATALOG: Tuple[EntriTopik, ...] = (
         None,
         (
             ('kenali_bentuk', 'Mengenal bentuk bangun datar', ('kenali_bentuk',)),
+            ('kenali_bangun_awal', 'Mengenal bangun datar dan bangun ruang', ('kenali_bangun_awal',)),
             ('ukur_satuan_tak_baku', 'Mengukur panjang dengan satuan tak baku', ('ukur_satuan_tak_baku',)),
             ('baca_diagram_gambar', 'Membaca diagram gambar', ('baca_diagram_gambar',)),
             ('pola_posisi', 'Pola dan posisi benda', ('pola_posisi',)),

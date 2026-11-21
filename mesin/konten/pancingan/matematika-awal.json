@@ -11,6 +11,14 @@
    ],
    "tindak_lanjut": "Gambar tiap bangun bersama anak, lalu tulis di bawahnya berapa sisi dan sudutnya. Cocokkan dengan benda di sekitar yang bentuknya sama."
   },
+  "kenali_bangun_awal": {
+   "pertanyaan": [
+    "Minta anak menyebut ciri bangun itu: berapa sisinya, berapa sudutnya, ada yang bulat atau tidak, ada bagian yang datar atau tidak.",
+    "Minta anak menunjuk benda di sekitar yang bentuknya sama dengan bangun itu, lalu menyebut namanya.",
+    "Tanya: apa bedanya kubus dan balok, atau tabung dan kerucut? Minta anak menunjuk sisi yang bentuknya berbeda."
+   ],
+   "tindak_lanjut": "Cari benda di rumah yang berbentuk kubus, balok, bola, tabung, dan kerucut, lalu minta anak menyebut ciri tiap benda. Gambar bangun datar bersama anak dan hitung sisinya."
+  },
   "ukur_satuan_tak_baku": {
    "pertanyaan": [
     "Minta anak menunjuk ujung awal dan ujung akhir benda, lalu menghitung satuan yang muat tanpa celah.",

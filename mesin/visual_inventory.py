@@ -11,6 +11,12 @@ from types import MappingProxyType
 from typing import Any, Mapping
 
 STATUS_VISUAL = frozenset({"wajib_visual", "visual_pendamping", "sengaja_teks"})
+# Status inventaris per TEMPLATE, bukan per varian. Template wajib_visual yang sebagian variannya sengaja
+# tetap teks (tanpa descriptor pada semua keadaan) mendaftarkan varian itu di sini; sapuan visual
+# hanya menuntut status "siap" untuk varian di luar daftar ini.
+VARIAN_SENGAJA_TEKS = MappingProxyType({
+    "kenali_bangun_awal": ("varian=benda_ruang",),
+})
 INVARIAN_RENDERER_AKTIF = MappingProxyType({
     "korek_api": (
         "jumlah_ruas", "ruas_unik", "topologi_tersambung",
@@ -129,6 +135,7 @@ _BUKTI_TEMPLATE = MappingProxyType({
     "pecahan_bagian_dasar": ("pecahan", "Penyebut dan pembilang pecahan berpenyebut sama atau sisa potong tertulis eksplisit.", "Cabang sisa_bagian, jumlah_sama_penyebut, dan selisih_sama_penyebut memilih arah operasi."),
     "nilai_tempat_ribuan": ("nilai_tempat", "Bilangan tiga atau empat digit dan posisi ratusan atau ribuan tertulis langsung.", "Cabang nilai_angka dan selisih_nilai menanyakan satu posisi atau selisih dua posisi."),
     "kenali_bentuk": ("bangun_datar", "Ciri sisi dan sudut atau benda sehari-hari serta bangun yang ditanya tertulis langsung dalam kalimat; tahap awal P1/P2 sengaja teks tanpa gambar bangun.", "Cabang dari_ciri menanyakan nama bangun dari ciri, benda dari benda sehari-hari, dan banyak_sisi menghitung sisi suatu bangun."),
+    "kenali_bangun_awal": ("bangun_gambar", "Dengan keluarga visual aktif, bentuk bangun datar atau bangun ruang yang digambar (dan, pada deretan bangun datar campur, tiap bangun satu per satu) menjadi satu-satunya sumber informasi dan menggantikan kalimat ciri atau daftar bangun; tanpa flag soal tetap teks lama dengan ciri atau daftar tertulis. Varian benda_ruang sengaja tetap teks pada semua keadaan.", "Cabang datar_gambar dan ruang_gambar menggambar satu bangun yang ditanya namanya, hitung_bentuk menggambar deretan bangun datar untuk dihitung satu jenis, dan benda_ruang menanyakan bangun ruang dari benda sehari-hari tanpa gambar."),
     "ukur_satuan_tak_baku": ("pengukuran_tak_baku", "Dengan keluarga visual aktif, banyak ikon satuan (klip, ubin, atau balok) yang memenuhi tiap batang ukur menjadi satu-satunya sumber panjang dan menggantikan angka panjang dalam kalimat; tanpa flag soal tetap teks lama.", "Cabang banding, selisih, dan sambung hanya mengubah pertanyaan atas dua batang ukur yang sama."),
     "baca_diagram_gambar": ("diagram_data", "Dengan keluarga visual aktif, banyak gambar benda pada tiap baris kategori menjadi satu-satunya sumber nilai dan menggantikan deret simbol teks; pada P2 satu gambar bisa mewakili 2 benda (skala), yang tertulis di legenda gambar dan kalimat pengantar; tanpa flag soal tetap teks lama.", "Cabang baca, terbanyak, selisih, dan jumlah hanya mengubah pertanyaan atas tiga baris gambar yang sama; skala (1 atau 2, hanya P2) mengalikan banyak gambar menjadi nilai benda tanpa mengubah cabang."),
     "pola_posisi": ("pola_posisi", "Barisan kata, nama anak, atau benda ditulis langsung dalam kalimat; tahap awal P2 sengaja teks tanpa gambar barisan atau penataan benda.", "Cabang pola menanyakan kelanjutan barisan, urutan menanyakan anak di barisan, kiri_kanan dan atas_bawah menanyakan benda menurut dua kalimat letak."),
@@ -553,6 +560,7 @@ _ROWS = [('aritmatika-lanjut', 'berpapasan', 'visual_pendamping', ('P6',), (), (
  ('bilangan-sekolah', 'kali_bagi_sekolah', 'sengaja_teks', ('P3', 'P4', 'P5'), ('varian',), ('varian=kali', 'varian=bagi'), {}),
  ('bilangan-sekolah', 'kalimat_matematika', 'sengaja_teks', ('P3', 'P4', 'P5'), ('varian',), ('varian=tambah_akhir', 'varian=tambah_awal', 'varian=kurang_akhir', 'varian=kurang_awal', 'varian=kali_akhir', 'varian=kali_awal', 'varian=bagi_akhir', 'varian=bagi_awal'), {'P3': ('varian=tambah_akhir', 'varian=tambah_awal', 'varian=kurang_akhir', 'varian=kurang_awal'), 'P4': ('varian=tambah_akhir', 'varian=tambah_awal', 'varian=kurang_akhir', 'varian=kurang_awal'), 'P5': ('varian=kali_akhir', 'varian=kali_awal', 'varian=bagi_akhir', 'varian=bagi_awal')}),
  ('matematika-awal', 'kenali_bentuk', 'sengaja_teks', ('P1', 'P2'), ('varian',), ('varian=dari_ciri', 'varian=benda', 'varian=banyak_sisi'), {}),
+ ('matematika-awal', 'kenali_bangun_awal', 'wajib_visual', ('P1', 'P2'), ('varian',), ('varian=datar_gambar', 'varian=ruang_gambar', 'varian=benda_ruang', 'varian=hitung_bentuk'), {}),
  ('matematika-awal', 'ukur_satuan_tak_baku', 'wajib_visual', ('P1',), ('varian',), ('varian=banding', 'varian=selisih', 'varian=sambung'), {}),
  ('matematika-awal', 'baca_diagram_gambar', 'wajib_visual', ('P1', 'P2'), ('varian',), ('varian=baca', 'varian=terbanyak', 'varian=selisih', 'varian=jumlah'), {}),
  ('matematika-awal', 'pola_posisi', 'sengaja_teks', ('P2',), ('varian',), ('varian=pola', 'varian=urutan', 'varian=kiri_kanan', 'varian=atas_bawah'), {}),

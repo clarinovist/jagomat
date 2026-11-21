@@ -1,7 +1,8 @@
 """Validator ketat descriptor `adegan_awal` v1 (Matematika Awal).
 
-Tiga sub-adegan, dipilih lewat field `adegan`: `deret_ikon` (baris ikon benda),
-`turus` (garis turus per kategori), dan `pita_ukur` (batang ukur dari ikon satuan).
+Empat sub-adegan, dipilih lewat field `adegan`: `deret_ikon` (baris ikon benda),
+`turus` (garis turus per kategori), `pita_ukur` (batang ukur dari ikon satuan), dan `bentuk`
+(bangun datar/ruang buatan kode; validatornya di `adegan_awal_bentuk_data`).
 Descriptor hanya memuat data aman untuk menggambar: nama baris/batang, nama ikon
 dari allow-list, banyak elemen, dan jenis pertanyaan. Kunci atau jawaban TIDAK
 PERNAH masuk descriptor; banyak elemen adalah fakta gambar, bukan jawaban.
@@ -21,7 +22,7 @@ IKON_DIDUKUNG = (
     "mobil", "payung", "pensil", "permen", "pisang", "pizza", "roti", "sapu",
     "sendok", "stiker", "tongkat", "ubin",
 )
-ADEGAN_DIDUKUNG = ("deret_ikon", "turus", "pita_ukur")
+ADEGAN_DIDUKUNG = ("deret_ikon", "turus", "pita_ukur", "bentuk")
 BARIS_MIN, BARIS_MAKS = 2, 4
 JUMLAH_MIN, JUMLAH_MAKS = 0, 12
 PANJANG_NAMA_MAKS = 24
@@ -226,10 +227,17 @@ def _validasi_pita_ukur(data: Mapping[str, Any]) -> None:
     _validasi_tanya_ukur(data["tanya"], susun)
 
 
+def _validasi_bentuk(data: Mapping[str, Any]) -> None:
+    """Impor malas: modul bentuk memakai pembantu modul ini, jadi tidak boleh diimpor di puncak."""
+    from adegan_awal_bentuk_data import validasi_bentuk
+    validasi_bentuk(data)
+
+
 _VALIDATOR = {
     "deret_ikon": _validasi_deret_ikon,
     "turus": _validasi_turus,
     "pita_ukur": _validasi_pita_ukur,
+    "bentuk": _validasi_bentuk,
 }
 
 

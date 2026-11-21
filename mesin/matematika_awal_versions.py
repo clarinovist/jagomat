@@ -48,6 +48,7 @@ TEMPLATE_BARU = frozenset({
     "ciri_komposisi_bangun",
     "keliling_gabungan",
     "pecahan_bilangan_asli_desimal",
+    "kenali_bangun_awal",
 })
 PESAN_BELUM_DIBUKA = "Materi ini belum dibuka."
 

@@ -12,7 +12,7 @@ import topics
 from question_views import penyajian_dari_soal
 from visual_bounds_helpers import periksa_batas_koordinat
 from visual_contract import deserialisasi_penyajian, serialisasi_penyajian
-from visual_inventory import DENOMINATOR_KANONIS, identitas_varian
+from visual_inventory import DENOMINATOR_KANONIS, VARIAN_SENGAJA_TEKS, identitas_varian
 from visual_renderer import render_pertanyaan
 from visual_test_support import (SEMUA_KELUARGA, buat_soal, gambar,
                                  id_dan_referensi, pasangan_aktif)
@@ -142,8 +142,9 @@ def test_seluruh_bank_minimal_100_seed(topik, monkeypatch, tmp_path):
             penyajian = penyajian_dari_soal(soal)
             varian = identitas_varian(tid, soal.parameter)
             cakupan = cakupan | {(nama, level, tid, varian)}
-            wajib = any(d["template_id"] == tid and d["status"] == "wajib_visual"
-                        for d in DENOMINATOR_KANONIS)
+            wajib = (varian not in VARIAN_SENGAJA_TEKS.get(tid, ())
+                     and any(d["template_id"] == tid and d["status"] == "wajib_visual"
+                             for d in DENOMINATOR_KANONIS))
             assert not wajib or penyajian.status_visual == "siap", (nama, level, tid, seed)
             serial = serialisasi_penyajian(penyajian)
             assert deserialisasi_penyajian(serial) == penyajian
