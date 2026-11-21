@@ -18,6 +18,7 @@ NAMA_TIPE_SOAL = {
     "nilai_tempat_besar": "Nilai tempat bilangan besar",
     "kenali_bentuk": "Mengenal bentuk bangun datar",
     "kenali_bangun_awal": "Mengenal bangun datar dan bangun ruang",
+    "baca_jam_awal": "Membaca jam jarum",
     "ukur_satuan_tak_baku": "Mengukur panjang dengan satuan tak baku",
     "baca_diagram_gambar": "Membaca diagram gambar",
     "pola_posisi": "Pola dan posisi benda",

@@ -151,6 +151,24 @@ ADEGAN_BANGUN_BIRU = ("#e6f0fc", "#b9d4f4", "#8cb4e6")
 ADEGAN_BANGUN_KUNING = ("#fdf4d6", "#f8e08d", "#e8c24c")
 ADEGAN_BANGUN_HIJAU = ("#e4f4e6", "#b6e0bc", "#86c791")
 
+# Adegan awal sub-adegan `jam_analog`: muka jam buatan kode; satuan viewBox.
+ADEGAN_JAM_TINGGI = 210  # tinggi viewBox
+ADEGAN_JAM_RADIUS = 96  # jari-jari muka jam
+ADEGAN_JAM_MUKA = "#fffbea"  # isi muka jam; terang agar angka dan jarum (#111) berkontras tinggi
+ADEGAN_JAM_TEBAL_MUKA = 4  # garis tepi muka jam
+ADEGAN_JAM_TICK_LUAR = 93  # jarak ujung luar tanda jam dan tanda menit dari pusat
+ADEGAN_JAM_TICK_JAM = 84  # jarak ujung dalam tanda jam (12 buah, tebal)
+ADEGAN_JAM_TICK_MENIT = 88  # jarak ujung dalam tanda menit (48 buah, tipis)
+ADEGAN_JAM_TEBAL_TICK_JAM = 3
+ADEGAN_JAM_TEBAL_TICK_MENIT = 1.5
+ADEGAN_JAM_ANGKA_JARI = 67  # jarak pusat angka 1..12 dari pusat muka
+ADEGAN_JAM_ANGKA_FONT = 19
+ADEGAN_JAM_PANJANG_PENDEK = 36  # jarum jam
+ADEGAN_JAM_PANJANG_PANJANG = 54  # jarum menit; selalu >= 1,3 kali jarum jam
+ADEGAN_JAM_TEBAL_PENDEK = 8  # jarum jam lebih tebal, digambar di atas jarum menit
+ADEGAN_JAM_TEBAL_PANJANG = 4
+ADEGAN_JAM_PUSAT = 5  # jari-jari titik pusat jarum
+
 # Sketsa ruang dan proyeksi isometrik kisi kubus.
 RUANG_ASAL = (165, 200)
 RUANG_SUMBU = ((90, -25), (-60, -40), (0, -90))

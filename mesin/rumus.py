@@ -116,6 +116,11 @@ KARTU: dict[str, Kartu] = {
         inti="Bangun datar: segitiga punya 3 sisi lurus dan 3 sudut; persegi punya 4 sisi yang semuanya sama panjang; persegi panjang punya 4 sisi, sisi yang berhadapan sama panjang tetapi tidak semuanya sama; lingkaran bulat, tanpa sisi lurus dan tanpa sudut. Bangun ruang: kubus punya 6 sisi persegi yang sama besar; balok punya 6 sisi persegi panjang; bola bulat tanpa sisi datar; tabung punya 2 sisi datar berbentuk lingkaran dan 1 sisi lengkung; kerucut punya 1 sisi datar berbentuk lingkaran dan 1 titik puncak. Untuk menghitung bangun, tunjuk satu per satu sambil memberi tanda.",
         contoh="Dadu punya 6 sisi persegi yang sama besar, jadi bentuknya kubus. Kaleng susu punya alas dan tutup yang bulat, jadi bentuknya tabung.",
     ),
+    "baca_jam_awal": Kartu(
+        judul="Membaca jam jarum",
+        inti="Jam jarum punya dua jarum. Jarum pendek menunjuk jam dan jarum panjang menunjuk menit. Kalau jarum panjang tepat di angka 12, jamnya pas: jarum pendek di angka 3 berarti pukul 3. Kalau jarum panjang di angka 6, sudah lewat setengah jam (30 menit): jarum pendek ada di antara dua angka, dan jamnya adalah angka yang sudah dilewati. Setelah angka 12, jam kembali ke angka 1, jadi untuk jam sesudahnya hitung maju satu angka tiap jam.",
+        contoh="Jarum pendek di antara angka 4 dan 5 dan jarum panjang di angka 6: pukul 4.30. Tiga jam setelah pukul 11: 12, 1, 2, jadi pukul 2.",
+    ),
     "ukur_satuan_tak_baku": Kartu(
         judul="Mengukur panjang dengan satuan buatan sendiri",
         inti="Ukur benda dengan satuan yang sama, lalu bandingkan angkanya: makin banyak satuan yang muat, makin panjang bendanya. Lebihnya dicari dengan mengurangi. Dua benda yang disambung panjangnya ditambah.",
@@ -582,6 +587,7 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "nilai_tempat_besar": "nilai_tempat_besar",
     "kenali_bentuk": "kenali_bentuk",
     "kenali_bangun_awal": "kenali_bangun_awal",
+    "baca_jam_awal": "baca_jam_awal",
     "ukur_satuan_tak_baku": "ukur_satuan_tak_baku",
     "baca_diagram_gambar": "baca_diagram_gambar",
     "pola_posisi": "pola_posisi",

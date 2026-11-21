@@ -215,6 +215,7 @@ KATALOG: Tuple[EntriTopik, ...] = (
             ('pola_posisi', 'Pola dan posisi benda', ('pola_posisi',)),
             ('pecahan_setengah', 'Pecahan setengah dan seperempat', ('pecahan_setengah',)),
             ('waktu_berat_awal', 'Jam penuh dan berat kg', ('waktu_berat_awal',)),
+            ('baca_jam_awal', 'Membaca jam jarum', ('baca_jam_awal',)),
             ('turus_gambar_awal', 'Membaca diagram turus', ('turus_gambar_awal',)),
             ('ukur_konversi_awal', 'Mengubah satuan panjang dan berat', ('ukur_konversi_awal',)),
             ('bandingkan_ciri_bangun', 'Membandingkan ciri bangun datar', ('bandingkan_ciri_bangun',)),

@@ -28,6 +28,8 @@ ALASAN_RUANG-nya dihapus. Konsentrasi lembar P4 2,00, P5 1,24, P6 1,86 (semua di
 UTANG_LEMBAR P6 dilunasi dan dihapus.
 kenali_bangun_awal P1/P2 (21 Nov 2026, jenis ke-20, empat varian: datar_gambar, ruang_gambar, benda_ruang, hitung_bentuk): diukur lewat _ukur
 pada kedua versi katalog (sama): P1 102 kerangka/159 tanda tangan, P2 113/172 (>= 150, tanpa ALASAN_RUANG); lembar P1 kini 6 jenis dan P2 8 jenis.
+baca_jam_awal P2 (21 Nov 2026, jenis ke-21, empat varian: baca_penuh, baca_setengah, jam_kemudian, kegiatan_selesai): diukur lewat _ukur
+pada kedua versi katalog (sama): 7 kerangka/123 tanda tangan (< 150, jadi ALASAN_RUANG); lembar P2 kini 9 jenis.
 baca_diagram_gambar P2 (21 Nov 2026, skala 1 atau 2): diukur lewat _ukur pada kedua versi katalog (sama): P2 299/299
 tanda tangan (domain P2 20160, skala 1 jumlah 5..12, skala 2 jumlah 1..8) dengan empat varian; lembar P2 kini 7 jenis, konsentrasi lembar P2 terukur 1,00 (di bawah 2,1).
 Awalnya (kerangka): kenali_bentuk P1 18/19 dan P2 26/26 tanda tangan dengan
@@ -71,6 +73,7 @@ bilangan-sekolah kali_bagi_sekolah P3:2:144:bagi,kali P4:2:262:bagi,kali P5:2:30
 bilangan-sekolah kalimat_matematika P3:4:292:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P4:4:300:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P5:4:267:bagi_akhir,bagi_awal,kali_akhir,kali_awal
 matematika-awal kenali_bentuk P1:18:19:banyak_sisi,benda,dari_ciri P2:26:26:banyak_sisi,benda,dari_ciri
 matematika-awal kenali_bangun_awal P1:102:159:benda_ruang,datar_gambar,hitung_bentuk,ruang_gambar P2:113:172:benda_ruang,datar_gambar,hitung_bentuk,ruang_gambar
+matematika-awal baca_jam_awal P2:7:123:baca_penuh,baca_setengah,jam_kemudian,kegiatan_selesai
 matematika-awal ukur_satuan_tak_baku P1:36:277:banding,sambung,selisih
 matematika-awal baca_diagram_gambar P1:295:295:baca,jumlah,selisih,terbanyak P2:299:299:baca,jumlah,selisih,terbanyak
 matematika-awal pola_posisi P2:108:116:atas_bawah,kiri_kanan,pola,urutan
@@ -200,7 +203,7 @@ bilangan-sekolah P3 10 5
 bilangan-sekolah P4 10 5
 bilangan-sekolah P5 10 5
 matematika-awal P1 10 6
-matematika-awal P2 10 8
+matematika-awal P2 10 9
 matematika-awal P3 10 2
 matematika-awal P4 10 3
 matematika-awal P5 10 2
@@ -275,6 +278,7 @@ ALASAN_RUANG = {
     "peluang_dasar": "Domain sah P6=109 (36 urutan jumlah bola x arah, 24 kepastian, 21 syarat dadu/kartu, 28 pasangan jumlah bola berpecahan sederhana); seed 0..299 mengukur 103; diuji enumerator, bukan variasi nama/benda.",
     "bilang_benda_awal": "Domain sah P1=166 (bilangan 1..10 saja; hitung 10x4, sama_banyak 10x2x4, tujuh varian); sampler memilih varian seragam, seed 0..299 mengukur 107 tanda tangan; angka tidak dilebarkan demi hitungan (bab K1 B1 hanya sampai 10); diuji enumerator.",
     "unsur_bangun_datar": "Domain sah P3=57 (sisi 5x3, sudut 5x3, sudut siku 3x3, pasang sejajar 2x3, pasang tegak lurus 2x3, istilah 2x3 gaya kalimat); sampler memilih varian seragam, seed 0..299 menutup seluruh domain; fakta bangun datar baku terbatas dan tak diperdebatkan; diuji enumerator.",
+    "baca_jam_awal": "Domain sah P2=244 (jam penuh 12, setengah jam 12, jam kemudian 11 jam mulai x 4 lama, kegiatan selesai 4 kegiatan x 11 x 4; jam mulai 12 dikeluarkan dari dua varian hitung karena kunci akan sama dengan lama yang tertulis); sampler memilih varian seragam, seed 0..299 mengukur 123 tanda tangan; jam hanya 1..12 dan jam penuh/setengah (CP K2); diuji enumerator.",
     "kali_bagi_sekolah": "Fakta P3 kali 2..10 x 2..10 dan bagi padanannya: domain sah 161; seed 0..299 mengukur 144; diuji enumerator.",
 }
 # Utang lama P4 tetap lunas. Matematika-awal P6 (2,25 -> 1,86 setelah perluasan v2) dilunasi dan dihapus.

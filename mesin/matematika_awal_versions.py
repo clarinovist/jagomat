@@ -49,6 +49,7 @@ TEMPLATE_BARU = frozenset({
     "keliling_gabungan",
     "pecahan_bilangan_asli_desimal",
     "kenali_bangun_awal",
+    "baca_jam_awal",
 })
 PESAN_BELUM_DIBUKA = "Materi ini belum dibuka."
 

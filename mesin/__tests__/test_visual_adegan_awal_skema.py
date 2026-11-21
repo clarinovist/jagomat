@@ -72,9 +72,13 @@ def _bentuk():
     return {"adegan": "bentuk", "tampil": "satu", "bangun": [bangun]}
 
 
-def test_empat_adegan_terdaftar_dan_masing_masing_sah():
-    assert data_modul.ADEGAN_DIDUKUNG == ("deret_ikon", "turus", "pita_ukur", "bentuk")
-    for data in (_turus(), _ukur(), _sambung(), _bentuk()):
+def _jam():
+    return {"adegan": "jam_analog", "jam": 12, "menit": 30}
+
+
+def test_lima_adegan_terdaftar_dan_masing_masing_sah():
+    assert data_modul.ADEGAN_DIDUKUNG == ("deret_ikon", "turus", "pita_ukur", "bentuk", "jam_analog")
+    for data in (_turus(), _ukur(), _sambung(), _bentuk(), _jam()):
         validasi_adegan_awal(data)
         DescriptorVisual("adegan_awal", 1, data)
 
@@ -91,6 +95,8 @@ def test_field_antar_adegan_tidak_boleh_tercampur():
     _tolak({**_ukur(), "satuan_ikon": 1})
     _tolak({**_bentuk(), "baris": []})
     _tolak({**_turus(), "tampil": "satu"})
+    _tolak({**_jam(), "tampil": "satu"})
+    _tolak({**_bentuk(), "jam": 3, "menit": 0})
 
 
 def test_bentuk_beku_juga_lolos_jalur_renderer():

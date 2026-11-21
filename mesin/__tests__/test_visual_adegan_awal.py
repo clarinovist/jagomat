@@ -34,7 +34,8 @@ from visual_test_support import buat_soal, pasangan_aktif
 
 TID = sumber.TEMPLATE_ID
 # Jenis keluarga ini yang bergambar; sisanya tetap teks walau flag aktif (turus dan ukur: test_visual_adegan_awal_*).
-TEMPLATE_BERGAMBAR = frozenset({TID, "turus_gambar_awal", "ukur_satuan_tak_baku", "kenali_bangun_awal"})
+TEMPLATE_BERGAMBAR = frozenset({TID, "turus_gambar_awal", "ukur_satuan_tak_baku", "kenali_bangun_awal",
+                                   "baca_jam_awal"})
 GAYA = ("cetak", "murid", "stitch", "guru")
 SIMBOL = sumber.SIMBOL
 AKAR = Path(__file__).resolve().parent.parent

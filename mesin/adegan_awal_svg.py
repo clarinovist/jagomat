@@ -1,4 +1,4 @@
-"""SVG adegan awal v1: `deret_ikon` di sini, `turus`, `pita_ukur`, dan `bentuk` di modul sendiri.
+"""SVG adegan awal v1: `deret_ikon` di sini, `turus`, `pita_ukur`, `bentuk`, dan `jam_analog` di modul sendiri.
 
 Deterministik (tanpa acak/waktu). `render_adegan_awal` memvalidasi ulang data pada
 batas renderer lalu memilih sub-adegan dari field `adegan`. `deret_ikon`: tiap ikon
@@ -26,6 +26,7 @@ from adegan_awal_dasar_svg import (
 )
 from adegan_awal_bentuk_svg import render_bentuk, ringkasan_bentuk
 from adegan_awal_data import validasi_adegan_awal
+from adegan_awal_jam_svg import render_jam_analog, ringkasan_jam_analog
 from adegan_awal_turus_svg import render_turus, ringkasan_turus
 from adegan_awal_ukur_svg import render_pita_ukur, ringkasan_pita_ukur
 
@@ -114,12 +115,14 @@ _RENDERER = {
     "turus": render_turus,
     "pita_ukur": render_pita_ukur,
     "bentuk": render_bentuk,
+    "jam_analog": render_jam_analog,
 }
 _RINGKASAN = {
     "deret_ikon": _ringkasan_deret_ikon,
     "turus": ringkasan_turus,
     "pita_ukur": ringkasan_pita_ukur,
     "bentuk": ringkasan_bentuk,
+    "jam_analog": ringkasan_jam_analog,
 }
 
 

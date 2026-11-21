@@ -33,7 +33,10 @@ TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   # kenali_bangun_awal: hitung_bentuk (kunci angka) selalu punya >= 2 pengecoh dari malrule
                   # (jenis lain, semua bangun, lebih satu); 'empat-v1' tidak terjamin (hanya dua pengecoh pada
                   # 9 dari 1143 parameter P1 dan 48 dari 2424 parameter P2).
-                  'kenali_bangun_awal'})
+                  'kenali_bangun_awal',
+                  # baca_jam_awal: kunci "N" atau "N.30" (jenis 'angka'); jalur K/H dari malrule selalu >= 3 per
+                  # parameter domain (jam penuh/setengah/kemudian/selesai), jadi tiga opsi aman.
+                  'baca_jam_awal'})
 # Kunci kategori (nama/kata/benda) per jenis Matematika Awal; sisanya jatuh ke 'angka'.
 KATEGORI_AWAL = {
     'ukur_satuan_tak_baku': frozenset({'banding'}),

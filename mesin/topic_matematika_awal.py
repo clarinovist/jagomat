@@ -26,6 +26,7 @@ import random
 from typing import Callable, NamedTuple
 
 import awal_baca_diagram_gambar as baca_diagram_gambar
+import awal_baca_jam_awal as baca_jam_awal
 import awal_bandingkan_ciri_bangun as bandingkan_ciri_bangun
 import awal_bilang_benda_awal as bilang_benda_awal
 import awal_ciri_komposisi_bangun as ciri_komposisi_bangun
@@ -120,6 +121,9 @@ JENIS = (
     Jenis(kenali_bangun_awal.TEMPLATE_ID, kenali_bangun_awal.kenali_bangun_awal,
           kenali_bangun_awal.parameter, kenali_bangun_awal.LEVEL,
           kenali_bangun_awal.domain_parameter),
+    Jenis(baca_jam_awal.TEMPLATE_ID, baca_jam_awal.baca_jam_awal,
+          baca_jam_awal.parameter, baca_jam_awal.LEVEL,
+          baca_jam_awal.domain_parameter),
 )
 _PER_ID = {j.template_id: j for j in JENIS}
 if len(_PER_ID) != len(JENIS):
