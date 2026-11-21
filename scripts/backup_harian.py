@@ -196,6 +196,20 @@ def validasi(path) -> dict:
     return data
 
 
+def _ringkasan(akhir: Path, manifest: dict) -> dict:
+    """Satu baris untuk log cron: tanpa nama berkas, isi, atau data anak."""
+    berkas = manifest["berkas"]
+    return {
+        "id": manifest["id"],
+        "status": "ok",
+        "db": sum(1 for item in berkas if item["nama"].endswith(".db")),
+        "berkas": len(berkas),
+        "ukuran_total": sum(item["ukuran"] for item in berkas),
+        "salinan_tersisa": sum(
+            1 for p in akhir.parent.iterdir() if p.is_dir() and _POLA_ID.fullmatch(p.name)),
+    }
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--data-dir", default="/opt/osn/data")
@@ -207,7 +221,8 @@ def main(argv=None) -> int:
         print(json.dumps(validasi(a.validasi), sort_keys=True))
         return 0
     hasil = cadangkan(a.data_dir, a.output_dir, retensi=a.retensi)
-    print(hasil)
+    manifest = validasi(hasil)
+    print(json.dumps(_ringkasan(hasil, manifest), sort_keys=True))
     return 0
 
 

@@ -163,7 +163,10 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
 - **Host `biznet-sekolahdesain`**, cron `/etc/cron.d/osn-backup-harian` pukul 21:45 WIB:
   `/usr/bin/python3 /opt/osn/backup-harian/backup_harian.py` menulis
   `/opt/osn/backup-harian/<YYYYMMDD-HHMMSS>/`, retensi 14 salinan. Log di
-  `/opt/osn/log/backup-harian.log`.
+  `/opt/osn/log/backup-harian.log`: tiap run mencetak satu baris JSON
+  (`id`, `status`, jumlah `db`/`berkas`, `ukuran_total`, `salinan_tersisa`) setelah
+  bundle divalidasi ulang (hash + `integrity_check`); validasi gagal membuat skrip keluar
+  dengan galat sehingga jejaknya masuk log.
 - **Isi**: lima DB wajib (`latihan`, `admin-control`, `ai-control`, `pendamping`,
   `riset-konsumen`) + `sandi.json`, ditambah `sakelar.db`, `kurikulum.db`, `cetakan.db`,
   `cetakan_ai.db` bila ada. Salinan memakai SQLite backup API, dinormalkan `journal_mode=DELETE`,
@@ -171,7 +174,10 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
   `needs_reconciliation=true`. Lampiran tidak disalin (ikut bundle rilis); bukti
   transfer tidak disalin (keputusan Pemilik: bukti sementara 30 hari).
 - **Off-site**: Hermes cron `osn-cadangan-harian` pukul 22:00 menjalankan
-  `~/.hermes/scripts/jagomat-backup-offsite.sh`: validasi di VPS → tarik tar →
+  `~/.hermes/scripts/jagomat-backup-offsite.sh` (sumber terlacak:
+  `scripts/backup_offsite_mac.sh`; salinan Hermes harus identik, sinkron manual): periksa
+  umur bundle terbaru (maks 26 jam, `OSN_OFFSITE_UMUR_MAKS_JAM`) supaya bundle kemarin tidak
+  diunggah ulang bila backup 21:45 gagal → validasi di VPS → tarik tar →
   enkripsi AES-256-CBC/PBKDF2 (kunci `~/.config/jagomat-backup/offsite.key`, 0600,
   tidak pernah masuk VPS/repo) → unggah ke `r2:jagomat-app-cadangan/harian/<id>.tar.gz.enc`,
   retensi 30 hari. Tidak ada salinan plaintext yang disimpan di Mac.
@@ -179,8 +185,9 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
   lima DB `integrity_check=ok`, `journal_mode=delete`. Ini drill baca, bukan restore live.
 - **Batas**: off-site bergantung pada Mac menyala; bila Mac mati, backup lokal VPS tetap
   jalan tetapi tidak ada salinan keluar VPS hari itu. Kegagalan off-site mengirim alert
-  Telegram lewat `notify-telegram.py` (token dari `~/.hermes/.env`); jalur gagal belum
-  diuji end-to-end, hanya dry-run. Backup memegang koneksi baca singkat; jangan jadwalkan
+  Telegram lewat `notify-telegram.py` (token dari `~/.hermes/.env`) untuk setiap keluar
+  non-nol, termasuk `exit 1` eksplisit (kunci hilang, ID tidak sah, bundle basi). Jalur gagal
+  diuji end-to-end 21 Nov 2026 12:30 WIB dengan host palsu (Telegram membalas `ok`). Backup memegang koneksi baca singkat; jangan jadwalkan
   deploy/preflight `host_quiescent` tepat pada 21:45 karena `fuser` bisa menganggapnya writer.
 
 ### Restore dari backup harian
@@ -201,5 +208,6 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
 1. ~~Frekuensi/jam backup~~ → harian 21:45 WIB di host, off-site 22:00 dari Mac.
 2. ~~Off-site otomatis independen laptop~~ → R2 terenkripsi; masih bergantung Mac menyala.
 3. Retensi sudah jalan (14 lokal, 30 R2). Alert kegagalan off-site sudah dikirim ke
-   Telegram (jalur gagal belum diuji end-to-end). **Restore live belum diuji**; drill baca
-   sudah lulus. Retensi per domain dan bukti penghapusan tetap perlu dioperasionalkan.
+   Telegram dan jalur gagalnya sudah diuji end-to-end. **Restore live belum diuji**; drill
+   baca sudah lulus. Kunci enkripsi `offsite.key` hanya ada di Mac: tanpa salinan aman
+   terpisah, kehilangan Mac berarti seluruh backup R2 tidak bisa dibuka. Retensi per domain dan bukti penghapusan tetap perlu dioperasionalkan.

@@ -85,3 +85,43 @@ def test_db_wajib_hilang_ditolak(tmp_path):
     data = _data(tmp_path)
     with pytest.raises(FileNotFoundError):
         backup.cadangkan(data, tmp_path / "b", wajib=("hilang.db",), sekarang=100)
+
+
+def _data_lengkap(tmp_path):
+    data = tmp_path / "data"
+    data.mkdir(mode=0o700)
+    for nama in backup.WAJIB:
+        _db(data / nama, 2)
+    (data / "sandi.json").write_text('{"akun": []}', encoding="utf-8")
+    (data / "sandi.json").chmod(0o600)
+    return data
+
+
+def test_main_mencetak_satu_baris_ringkasan_hasil(tmp_path, capsys):
+    data = _data_lengkap(tmp_path)
+    out = tmp_path / "backup"
+
+    kode = backup.main(["--data-dir", str(data), "--output-dir", str(out)])
+
+    baris = capsys.readouterr().out.strip().splitlines()
+    assert kode == 0
+    assert len(baris) == 1
+    ringkasan = json.loads(baris[0])
+    assert ringkasan["status"] == "ok"
+    assert ringkasan["db"] == len(backup.WAJIB)
+    assert ringkasan["berkas"] == len(backup.WAJIB) + 1  # + sandi.json
+    assert ringkasan["ukuran_total"] > 0
+    assert ringkasan["salinan_tersisa"] == 1
+    assert (out / ringkasan["id"] / "manifest.json").is_file()
+
+
+def test_main_gagal_keras_bila_validasi_pasca_backup_gagal(tmp_path, monkeypatch):
+    data = _data_lengkap(tmp_path)
+
+    def _gagal(_path):
+        raise ValueError("hash backup tidak cocok: latihan.db")
+
+    monkeypatch.setattr(backup, "validasi", _gagal)
+
+    with pytest.raises(ValueError, match="hash backup tidak cocok"):
+        backup.main(["--data-dir", str(data), "--output-dir", str(tmp_path / "backup")])
