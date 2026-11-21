@@ -5,6 +5,10 @@ Menyalin setiap DB SQLite memakai backup API (konsisten per berkas), lalu
 menormalkan salinan ke `journal_mode=DELETE` dan membuang sidecar `-wal/-shm`.
 Salinan tidak koheren lintas DB, jadi manifest menandai `needs_reconciliation`.
 
+Selain DB aplikasi di direktori data, sumber tambahan di luar direktori data ikut disalin bila
+ada (kini: `daftar.db` pendaftaran kelas.jagomat.id milik service `kelas-daftar`); dibaca root
+lewat backup API baca-saja, jadi pemilik aslinya tidak terganggu.
+
 Lampiran/foto dan bukti transfer sengaja tidak disalin:
 - lampiran ikut bundle rilis (operational_backup);
 - bukti transfer keputusan Pemilik: sementara 30 hari, tidak di-backup.
@@ -30,6 +34,8 @@ VERSI = 1
 WAJIB = ("latihan.db", "admin-control.db", "ai-control.db", "pendamping.db", "riset-konsumen.db")
 OPSIONAL = ("sakelar.db", "kurikulum.db", "cetakan.db", "cetakan_ai.db")
 SANDI = "sandi.json"
+# (nama di bundle, jalur sumber); dilewati bila berkasnya tidak ada.
+TAMBAHAN = (("kelas-daftar.db", "/var/lib/kelas-daftar/daftar.db"),)
 RETENSI = 14
 DIKECUALIKAN = (
     "lampiran/ (ikut bundle rilis)",
@@ -98,9 +104,14 @@ def cadangkan(
     wajib=WAJIB,
     opsional=OPSIONAL,
     retensi=RETENSI,
+    tambahan=None,
     sekarang: int | None = None,
     host: str | None = None,
 ) -> Path:
+    tambahan = TAMBAHAN if tambahan is None else tambahan
+    bentrok = {nama for nama, _ in tambahan} & {*wajib, *opsional, SANDI, "manifest.json"}
+    if bentrok:
+        raise ValueError(f"nama sumber tambahan bentrok dengan berkas bundle: {sorted(bentrok)}")
     data = Path(data_dir)
     out = Path(output_dir)
     if not data.is_dir():
@@ -135,6 +146,10 @@ def cadangkan(
         try:
             for nama in (*wajib, *opsional):
                 sumber = data / nama
+                if sumber.is_file():
+                    berkas.append(_salin_db(sumber, sementara / nama))
+            for nama, jalur in tambahan:
+                sumber = Path(jalur)
                 if sumber.is_file():
                     berkas.append(_salin_db(sumber, sementara / nama))
             sandi = (data / SANDI).read_bytes()

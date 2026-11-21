@@ -6,6 +6,12 @@ SHA/pin/status lama bukan target deploy saat ini. Pin/mode otoritatif source ada
 Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migrasi)
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
+Deployer di host: `/usr/local/bin/osn-deploy` **identik byte-per-byte dengan `scripts/deploy.py`**
+(sha256 `8bb44ec2bb968e53…`, diverifikasi 21 Nov 2026), jadi sumbernya terlacak di Git; hanya satu
+jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang sama dengan
+konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
+deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
+
 ## Deploy perbaikan draf cetakan AI (thinking dimatikan) — 21 November 2026
 
 Controlled `deploy-v2` memasang **63f8756** (digest `sha256:b504a774…2884`), healthy/restart0, menggantikan

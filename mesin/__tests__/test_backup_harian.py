@@ -97,7 +97,8 @@ def _data_lengkap(tmp_path):
     return data
 
 
-def test_main_mencetak_satu_baris_ringkasan_hasil(tmp_path, capsys):
+def test_main_mencetak_satu_baris_ringkasan_hasil(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(backup, "TAMBAHAN", ())
     data = _data_lengkap(tmp_path)
     out = tmp_path / "backup"
 
@@ -118,6 +119,7 @@ def test_main_mencetak_satu_baris_ringkasan_hasil(tmp_path, capsys):
 def test_main_gagal_keras_bila_validasi_pasca_backup_gagal(tmp_path, monkeypatch):
     data = _data_lengkap(tmp_path)
 
+    monkeypatch.setattr(backup, "TAMBAHAN", ())
     def _gagal(_path):
         raise ValueError("hash backup tidak cocok: latihan.db")
 
@@ -125,3 +127,46 @@ def test_main_gagal_keras_bila_validasi_pasca_backup_gagal(tmp_path, monkeypatch
 
     with pytest.raises(ValueError, match="hash backup tidak cocok"):
         backup.main(["--data-dir", str(data), "--output-dir", str(tmp_path / "backup")])
+
+
+def test_sumber_tambahan_di_luar_data_ikut_bundle_dan_sah(tmp_path):
+    data = _data(tmp_path)
+    luar = tmp_path / "kelas-daftar"
+    luar.mkdir()
+    _db(luar / "daftar.db", 4)
+
+    hasil = backup.cadangkan(
+        data, tmp_path / "backup", wajib=("latihan.db",),
+        tambahan=(("kelas-daftar.db", luar / "daftar.db"),), sekarang=100)
+
+    manifest = backup.validasi(hasil)
+    assert "kelas-daftar.db" in {item["nama"] for item in manifest["berkas"]}
+    with sqlite3.connect(hasil / "kelas-daftar.db") as kon:
+        assert kon.execute("SELECT COUNT(*) FROM t").fetchone()[0] == 4
+        assert kon.execute("PRAGMA journal_mode").fetchone()[0] == "delete"
+
+
+def test_sumber_tambahan_yang_tidak_ada_dilewati(tmp_path):
+    data = _data(tmp_path)
+
+    hasil = backup.cadangkan(
+        data, tmp_path / "backup", wajib=("latihan.db",),
+        tambahan=(("kelas-daftar.db", tmp_path / "tidak-ada.db"),), sekarang=100)
+
+    assert not (hasil / "kelas-daftar.db").exists()
+    assert "kelas-daftar.db" not in {i["nama"] for i in backup.validasi(hasil)["berkas"]}
+
+
+def test_nama_tambahan_tidak_boleh_menimpa_berkas_wajib(tmp_path):
+    data = _data(tmp_path)
+    luar = tmp_path / "lain.db"
+    _db(luar, 1)
+
+    with pytest.raises(ValueError, match="bentrok"):
+        backup.cadangkan(
+            data, tmp_path / "backup", wajib=("latihan.db",),
+            tambahan=(("latihan.db", luar),), sekarang=100)
+
+
+def test_bawaan_menyertakan_daftar_pendaftaran_kelas():
+    assert ("kelas-daftar.db", "/var/lib/kelas-daftar/daftar.db") in backup.TAMBAHAN

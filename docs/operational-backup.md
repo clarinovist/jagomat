@@ -169,7 +169,9 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
   dengan galat sehingga jejaknya masuk log.
 - **Isi**: lima DB wajib (`latihan`, `admin-control`, `ai-control`, `pendamping`,
   `riset-konsumen`) + `sandi.json`, ditambah `sakelar.db`, `kurikulum.db`, `cetakan.db`,
-  `cetakan_ai.db` bila ada. Salinan memakai SQLite backup API, dinormalkan `journal_mode=DELETE`,
+  `cetakan_ai.db` bila ada (dibuat saat fiturnya pertama dipakai), serta `kelas-daftar.db`
+  (sumber `/var/lib/kelas-daftar/daftar.db`, pendaftaran `kelas.jagomat.id` milik service
+  `kelas-daftar` di port 8731) yang disalin lewat backup API baca-saja. Salinan memakai SQLite backup API, dinormalkan `journal_mode=DELETE`,
   lolos `integrity_check`, dan hash-nya dicatat di `manifest.json` dengan
   `needs_reconciliation=true`. Lampiran tidak disalin (ikut bundle rilis); bukti
   transfer tidak disalin (keputusan Pemilik: bukti sementara 30 hari).
@@ -199,6 +201,11 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
   non-nol, termasuk `exit 1` eksplisit (kunci hilang, ID tidak sah, bundle basi). Jalur gagal
   diuji end-to-end 21 Nov 2026 12:30 WIB dengan host palsu (Telegram membalas `ok`). Backup memegang koneksi baca singkat; jangan jadwalkan
   deploy/preflight `host_quiescent` tepat pada 21:45 karena `fuser` bisa menganggapnya writer.
+
+- **Rotasi log**: `/etc/logrotate.d/osn-log` (21 Nov 2026) merotasi `/opt/osn/log/*.log` mingguan
+  atau saat melewati 5 MB, 8 salinan, terkompresi, `copytruncate` (cron menulis dengan `>>`).
+  Log Docker `osn-mesin` belum dibatasi (`json-file` tanpa `max-size`); menambah
+  `--log-opt max-size=10m --log-opt max-file=5` pada `docker run` deployer menunggu rilis berikutnya.
 
 ### Restore dari backup harian
 
