@@ -170,6 +170,8 @@ def kartu_lembar_ajak() -> str:
 
 
 def kartu_catatan_guru(data) -> str:
+    if not data.ditinjau:
+        return ""  # tanpa tinjauan tidak ada catatan, nama, atau latar Guru yang dipajang
     guru = data.guru
     return (
         '<div class="peta-kartu-st peta-catatan-st"><h3 class="peta-judul-bagian-st">Catatan Guru</h3>'

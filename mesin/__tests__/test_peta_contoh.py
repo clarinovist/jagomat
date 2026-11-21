@@ -389,3 +389,16 @@ def test_perkalian_bersusun_digit_salah_dicoret():
     assert isi.count('<span class="peta-x-st">4</span>') == 1  # 242 vs 282: hanya digit puluhan
     assert '<span class="peta-bawa-st">4</span>' in isi
 
+
+
+def test_kartu_catatan_dan_identitas_guru_tidak_tampil_bila_belum_ditinjau():
+    # Sisa kebocoran 2 (review 21 Nov 2026): tanpa tinjauan, laporan dan lembar tidak boleh memajang kartu Catatan Guru,
+    # nama/latar Guru, atau tanda tangan seolah sudah disahkan.
+    belum = dataclasses.replace(DATA_CONTOH, ditinjau=False, catatan_guru="")
+    nama = DATA_CONTOH.guru.nama
+    ada_laporan, ada_lembar = _laporan(DATA_CONTOH), peta_lembar.render_lembar(DATA_CONTOH, contoh=True)
+    assert "Catatan Guru" in ada_laporan and nama in ada_laporan
+    assert "Catatan Guru" in ada_lembar and "Kepala Sekolah Jagomat" in ada_lembar
+    laporan, lembar = _laporan(belum), peta_lembar.render_lembar(belum, contoh=True)
+    assert "Catatan Guru" not in laporan and nama not in laporan
+    assert "Catatan Guru" not in lembar and nama not in lembar and "Kepala Sekolah Jagomat" not in lembar

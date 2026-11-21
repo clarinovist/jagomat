@@ -153,6 +153,8 @@ def _paraf() -> str:
 
 
 def _catatan(data) -> str:
+    if not data.ditinjau:
+        return ""  # tanpa tinjauan tidak ada catatan, paraf, atau cap yang menyiratkan pengesahan
     return (
         '<section class="peta-l-kartu-st peta-l-guru-st"><div><p class="peta-l-ttl-st"><span class="peta-l-nomor-st">5</span>Catatan Guru</p>'
         '<blockquote>%s</blockquote></div><div class="peta-l-ttd-st"><div class="peta-l-garis-st">%s%s</div>'
