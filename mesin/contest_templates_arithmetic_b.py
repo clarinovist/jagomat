@@ -120,7 +120,8 @@ def _bangun_jumlah_selisih(p):
 C.daftarkan(C.Template(
     id="ops_jumlah_selisih", topik=TOPIK, jenis=C.JENIS_PG, tingkat=3,
     sampler=_sampler_jumlah_selisih, bangun=_bangun_jumlah_selisih,
-    verifikator=lambda p: _verifikator_pasangan(p, p["tanya"])))
+    verifikator=lambda p: _verifikator_pasangan(p, p["tanya"]),
+    keluarga="ops_fam_jumlah_selisih"))
 
 # ---------------------------------------------------------------- ops_inggris_jumlah_selisih (tingkat 3, pg)
 
@@ -150,7 +151,8 @@ def _bangun_inggris_js(p):
 C.daftarkan(C.Template(
     id="ops_inggris_jumlah_selisih", topik=TOPIK, jenis=C.JENIS_PG, tingkat=3,
     sampler=_sampler_inggris_js, bangun=_bangun_inggris_js,
-    verifikator=lambda p: _verifikator_pasangan(p, p["tanya"])))
+    verifikator=lambda p: _verifikator_pasangan(p, p["tanya"]),
+    keluarga="ops_fam_jumlah_selisih"))
 
 # ---------------------------------------------------------------- ops_umur (tingkat 3, pg)
 UMUR_A_MIN, UMUR_A_MAKS = 5, 14
@@ -320,7 +322,7 @@ def _verifikator_cerita(p):
 
 C.daftarkan(C.Template(id="ops_cerita_dua_langkah", topik=TOPIK, jenis=C.JENIS_PG, tingkat=2,
                        sampler=_sampler_cerita, bangun=_bangun_cerita,
-                       verifikator=_verifikator_cerita))
+                       verifikator=_verifikator_cerita, keluarga="ops_fam_dua_langkah"))
 
 # ---------------------------------------------------------------- ops_inggris_dua_langkah (tingkat 2, pg)
 BENDA_INGGRIS = ("marbles", "stickers", "apples", "pencils", "cookies", "books")
@@ -367,4 +369,4 @@ def _verifikator_inggris(p):
 
 C.daftarkan(C.Template(id="ops_inggris_dua_langkah", topik=TOPIK, jenis=C.JENIS_PG, tingkat=2,
                        sampler=_sampler_inggris, bangun=_bangun_inggris,
-                       verifikator=_verifikator_inggris))
+                       verifikator=_verifikator_inggris, keluarga="ops_fam_dua_langkah"))

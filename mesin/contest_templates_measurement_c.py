@@ -132,7 +132,8 @@ def _verifikator_kalender_hari(p):
 
 C.daftarkan(C.Template(id="ukur_kalender_hari", topik="pengukuran", jenis=C.JENIS_PG, tingkat=2,
                        sampler=_sampler_kalender_hari, bangun=_bangun_kalender_hari,
-                       verifikator=_verifikator_kalender_hari))
+                       verifikator=_verifikator_kalender_hari,
+                       keluarga="ukur_fam_kalender"))
 
 
 # --- ukur_kalender_n_hari_lagi -----------------------------------------------------------------
@@ -245,4 +246,5 @@ def _verifikator_n_hari_lagi(p):
 
 C.daftarkan(C.Template(id="ukur_kalender_n_hari_lagi", topik="pengukuran", jenis=C.JENIS_PG, tingkat=3,
                        sampler=_sampler_n_hari_lagi, bangun=_bangun_n_hari_lagi,
-                       verifikator=_verifikator_n_hari_lagi))
+                       verifikator=_verifikator_n_hari_lagi,
+                       keluarga="ukur_fam_kalender"))

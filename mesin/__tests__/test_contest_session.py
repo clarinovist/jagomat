@@ -10,9 +10,10 @@ import contest_session as S
 JUMLAH_SEED = 60
 BESAR_DOMAIN = 5000
 SESI_BERURUTAN = 6
+KELUARGA_KEMBAR = {("operasi", 2, 0): "ops_kembar_0", ("operasi", 2, 1): "ops_kembar_1"}
 
 
-def _fake(topik, jenis, tingkat, indeks, inggris=False, domain=BESAR_DOMAIN):
+def _fake(topik, jenis, tingkat, indeks, inggris=False, domain=BESAR_DOMAIN, keluarga=""):
     id_ = f"{C.AWALAN_ID[topik]}{jenis}_{tingkat}_{indeks}{'_en' if inggris else ''}"
 
     def sampler(rng):
@@ -28,18 +29,21 @@ def _fake(topik, jenis, tingkat, indeks, inggris=False, domain=BESAR_DOMAIN):
             parameter=C.kanonik(p), nilai=n, inggris=inggris)
 
     return C.Template(id=id_, topik=topik, jenis=jenis, tingkat=tingkat, sampler=sampler,
-                      bangun=bangun, verifikator=lambda p: str(p["n"]))
+                      bangun=bangun, verifikator=lambda p: str(p["n"]), keluarga=keluarga)
 
 
 def _pool(domain=BESAR_DOMAIN, dengan_isian=True, dengan_inggris=True):
     pool = []
     for topik in C.TOPIK:
         for tingkat, jumlah in ((1, 2), (2, 3), (3, 2)):
-            pool += [_fake(topik, C.JENIS_PG, tingkat, i, domain=domain) for i in range(jumlah)]
+            pool += [_fake(topik, C.JENIS_PG, tingkat, i, domain=domain,
+                           keluarga=KELUARGA_KEMBAR.get((topik, tingkat, i), ""))
+                     for i in range(jumlah)]
         if dengan_isian:
             pool.append(_fake(topik, C.JENIS_ISIAN, 3, 0, domain=domain))
     if dengan_inggris:
-        pool += [_fake("operasi", C.JENIS_PG, 2, 90 + i, inggris=True, domain=domain)
+        pool += [_fake("operasi", C.JENIS_PG, 2, 90 + i, inggris=True, domain=domain,
+                       keluarga=f"ops_kembar_{i}")
                  for i in range(2)]
     return tuple(pool)
 
@@ -159,3 +163,18 @@ def test_gagal_bila_semua_varian_template_terlarang():
 def test_sesi_tetap_terbentuk_tanpa_template_inggris():
     sesi = S.rakit_sesi(3, _pool(dengan_inggris=False), frozenset())
     assert len(sesi.butir) == 10
+
+
+def test_template_sekeluarga_tidak_pernah_muncul_bersama_dalam_satu_sesi(sesi_banyak):
+    keluarga = {t.id: (t.keluarga or t.id) for t in POOL}
+    for sesi in sesi_banyak:
+        ids = [keluarga[b.soal.template_id] for b in sesi.butir]
+        assert len(set(ids)) == len(ids), ids
+
+
+def test_gagal_bila_topik_hanya_punya_satu_keluarga_template():
+    satu_keluarga = tuple(
+        _fake(t.topik, t.jenis, t.tingkat, i, keluarga="sama") if t.topik == "operasi" else t
+        for i, t in enumerate(POOL))
+    with pytest.raises(S.GagalMerakitSesi):
+        S.rakit_sesi(1, satu_keluarga, frozenset())

@@ -69,7 +69,8 @@ def _pilih_template(rng: random.Random,
         terpilih += rng.sample(calon_pg, jumlah[topik] - isian)
         if isian:
             terpilih += rng.sample(kelompok[(topik, C.JENIS_ISIAN)], 1)
-    return terpilih
+    keluarga = [template.keluarga or template.id for template in terpilih]
+    return terpilih if len(set(keluarga)) == len(keluarga) else None
 
 
 def _tingkat_cukup_beragam(templates: Sequence[C.Template]) -> bool:

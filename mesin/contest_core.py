@@ -93,6 +93,7 @@ class Template:
     sampler: Callable[[random.Random], Mapping]
     bangun: Callable[[Mapping], SoalLomba]
     verifikator: Callable[[Mapping], str]
+    keluarga: str = ""   # template sekeluarga (mis. padanan Inggris) tidak muncul bersama dalam satu sesi
 
 
 REGISTRY: Dict[str, Template] = {}
@@ -237,6 +238,8 @@ def _validasi_template(template: Template) -> None:
     for nama in ("sampler", "bangun", "verifikator"):
         if not callable(getattr(template, nama)):
             raise ValueError(f"{nama} template wajib fungsi")
+    if template.keluarga and not _POLA_ID.match(template.keluarga):
+        raise ValueError(f"keluarga template tidak sah: {template.keluarga!r}")
 
 
 def daftarkan(template: Template) -> Template:

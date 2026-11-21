@@ -224,7 +224,8 @@ def _verifikator_lama_kegiatan(p):
 
 C.daftarkan(C.Template(id="ukur_lama_kegiatan", topik="pengukuran", jenis=C.JENIS_PG, tingkat=2,
                        sampler=_sampler_lama_kegiatan, bangun=_bangun_lama_kegiatan,
-                       verifikator=_verifikator_lama_kegiatan))
+                       verifikator=_verifikator_lama_kegiatan,
+                       keluarga="ukur_fam_selisih_jam"))
 
 
 # --- ukur_lama_menit (isian) -------------------------------------------------------------------
@@ -261,7 +262,8 @@ def _verifikator_lama_menit(p):
 
 C.daftarkan(C.Template(id="ukur_lama_menit", topik="pengukuran", jenis=C.JENIS_ISIAN, tingkat=3,
                        sampler=_sampler_lama_menit, bangun=_bangun_lama_menit,
-                       verifikator=_verifikator_lama_menit))
+                       verifikator=_verifikator_lama_menit,
+                       keluarga="ukur_fam_selisih_jam"))
 
 import contest_templates_measurement_b  # noqa: E402,F401
 import contest_templates_measurement_c  # noqa: E402,F401

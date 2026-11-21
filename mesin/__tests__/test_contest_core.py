@@ -419,3 +419,12 @@ def test_ambil_pengecoh_non_angka_membuang_kembar_setelah_normalisasi():
 def test_ambil_pengecoh_kurang_dari_tiga_memicu_ulang_parameter():
     with pytest.raises(C.ParameterTidakSah):
         C.ambil_pengecoh("8", _kandidat("8", "7", "9"))
+
+
+def test_daftarkan_menolak_keluarga_tidak_sah(registri_kosong):
+    with pytest.raises(ValueError):
+        C.daftarkan(_template(keluarga="Keluarga Besar"))
+
+
+def test_daftarkan_menerima_keluarga_sah(registri_kosong):
+    assert C.daftarkan(_template(keluarga="ops_kembar_a")).keluarga == "ops_kembar_a"
