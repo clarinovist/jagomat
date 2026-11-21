@@ -12,6 +12,36 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Kandidat Matematika Awal 25 jenis + Latihan Lomba (BELUM dirilis, bukan snapshot) — 22 November 2026
+
+Status: commit lokal, belum push, belum deploy. Live saat ini **63f8756** (kontrak `660fe235…7231`).
+Kandidat = `main` lokal (59 commit di atas `origin/main`, antara lain topik `matematika-awal` 25 jenis,
+keluarga visual `matematika-awal`, Latihan Lomba, metrik runtime, kencang-saat-start, Peta/retensi R1).
+
+**Pin recovery (22 Nov, lokal):** recovery **`e94244d`** di branch `recovery-matematika-awal`
+(`68c68d9` kontrak -> `82aae88` pin -> `e94244d` anchor koleksi 26.123 nodeid), dibuat dari `40d57aa`.
+Kontrak kandidat = recovery = **`4b20d8ce…0aa3`** (bergeser dari `660fe235…7231`). Penyebab pergeseran:
+`schema.py` + `schema_lomba.py` + `contest_store.py` (tiga tabel aditif), `serve.py` (`metrik_runtime`,
+`berkas_data.kencangkan_saat_start`), `visual_contract.py` + `question_views.py` (descriptor
+`adegan_awal` dan proyektor `matematika-awal`). `test_kontrak_candidate_identik_dengan_recovery_pinned`
+kembali hijau (sebelumnya merah karena pin masih `4cef3ab`/`660fe235`). **Branch
+`recovery-matematika-awal` wajib dipush ke origin sebelum `main`** (CI memeriksa `e94244d`).
+
+### Matriks rollback (kandidat -> live lama 63f8756 atau recovery)
+
+| Perubahan | Setelah deploy | Rollback kode | Catatan |
+| --- | --- | --- | --- |
+| Tabel `lomba_sesi/soal/jawaban` | dibuat `IF NOT EXISTS` saat start | aman: kode lama mengabaikan tabel; `ON DELETE CASCADE` tetap jalan di SQLite | tanpa migrasi data |
+| `sakelar.db` (`OSN_LOMBA`) | CHECK diperlebar hanya saat `ubah()` pertama; `VERSI_SKEMA` tetap 1 | aman: nama lama tetap sah | selama sakelar tidak diubah, DB tak disentuh |
+| `kencangkan_saat_start` | mode 0600 + WAL pada DB yang sudah ada | aman: tanpa DDL, tanpa `user_version` | cadangan harian tetap menormalkan salinan |
+| Metrik runtime | memori saja, `GET /admin/metrik` | aman | tanpa tabel |
+| Descriptor `adegan_awal` v1 | hanya dihasilkan bila `matematika-awal` ada di `OSN_VISUAL_KELUARGA` | reader lama menolak skema ini | **flag TIDAK dinyalakan**; `/opt/osn/visual.conf` tidak diubah |
+| 25 template `matematika-awal` | topik dibuka bila `OSN_MATEMATIKA_AWAL=1` (BAWAAN 1) | **tidak aman bila sudah ada sesi/bank `awal_*`**: kode lama memanggil `REGISTRI[template_id]` -> `KeyError` | mitigasi: deploy dengan `OSN_MATEMATIKA_AWAL=0` sampai ulasan Mutia selesai, lalu nyalakan; rollback sesudah ada sesi `awal_*` butuh recovery yang mengenali ID baru (kandidat/recovery ini) |
+
+Gerbang yang masih terbuka sebelum deploy: ulasan Mutia atas rentang dan malrule (hipotesis K/H),
+izin push dan izin deploy dari pemilik, keputusan nilai `OSN_MATEMATIKA_AWAL` di host. Dispatch gate
+CI (kandidat 4/4, recovery 4/4, pair) belum dijalankan.
+
 ## Deploy perbaikan draf cetakan AI (thinking dimatikan) — 21 November 2026
 
 Controlled `deploy-v2` memasang **63f8756** (digest `sha256:b504a774…2884`), healthy/restart0, menggantikan
