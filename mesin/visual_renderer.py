@@ -92,6 +92,9 @@ def _render_visual(
     if pasangan == ("susunan_objek", 1):
         from combinatorics_arrangements_svg import render_susunan
         return render_susunan(data, namespace)
+    if pasangan == ("adegan_awal", 1):
+        from adegan_awal_svg import render_adegan_awal
+        return render_adegan_awal(data, namespace)
     if pasangan == ("jalur_petak", 1):
         from combinatorics_svg import render_petak
         return render_petak(data, namespace)
@@ -181,6 +184,9 @@ def _ringkasan_descriptor(descriptor: DescriptorVisual) -> str:
     if (descriptor.jenis, descriptor.versi) == ("susunan_objek", 1):
         from combinatorics_arrangements_svg import ringkasan_susunan
         return ringkasan_susunan(data)
+    if (descriptor.jenis, descriptor.versi) == ("adegan_awal", 1):
+        from adegan_awal_svg import ringkasan_adegan_awal
+        return ringkasan_adegan_awal(data)
     if (descriptor.jenis, descriptor.versi) == ("jalur_petak", 1):
         from combinatorics_svg import ringkasan_petak
         return ringkasan_petak(data)

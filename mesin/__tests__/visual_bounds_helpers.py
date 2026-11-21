@@ -72,7 +72,7 @@ def _titik_lokal(elemen, tag):
         ry = rx if tag == "circle" else _nilai(elemen, "ry")
         assert rx >= 0 and ry >= 0, (tag, rx, ry)
         return ((cx-rx, cy-ry), (cx+rx, cy+ry))
-    if tag == "rect":
+    if tag in ("rect", "image"):
         x, y = _nilai(elemen, "x"), _nilai(elemen, "y")
         w, h = _nilai(elemen, "width"), _nilai(elemen, "height")
         assert w >= 0 and h >= 0, (tag, w, h)

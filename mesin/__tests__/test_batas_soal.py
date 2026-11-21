@@ -24,6 +24,7 @@ ALLOWLIST = frozenset({"design_tokens"})
 
 # Inti soal: penutupan transitif impor `generator` (di luar ALLOWLIST).
 INTI_SOAL = frozenset({
+    "adegan_awal_data",
     "assessment_revision",
     "awal_baca_diagram_gambar",
     "awal_bandingkan_ciri_bangun",

@@ -106,6 +106,19 @@ GEO_LABEL_UTAMA_Y = 218
 GEO_LABEL_JALAN_Y = 222
 JARAK_VISUAL_SOAL = "0.75rem"
 
+# Adegan awal (Matematika Awal): deret ikon benda per kategori; satuan viewBox.
+ADEGAN_LEBAR = 360
+ADEGAN_MARGIN = 8
+ADEGAN_FONT = 15
+ADEGAN_LEADING = 17
+ADEGAN_LABEL_PER_BARIS = 8
+ADEGAN_IKON = 30
+ADEGAN_IKON_JARAK = 2
+ADEGAN_IKON_X = 92
+ADEGAN_KOLOM = 8
+ADEGAN_JEDA_BARIS = 8
+ADEGAN_GARIS = 1
+
 # Sketsa ruang dan proyeksi isometrik kisi kubus.
 RUANG_ASAL = (165, 200)
 RUANG_SUMBU = ((90, -25), (-60, -40), (0, -90))

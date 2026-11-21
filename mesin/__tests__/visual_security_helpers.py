@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Callable
 from xml.etree import ElementTree as ET
 
+import brand
 import topic_combinatorics as kombinatorik
 import topic_measurement as pengukuran
 import topic_number_patterns as pola
@@ -101,6 +102,7 @@ _ATRIBUT = {
     "circle": "cx cy r fill stroke stroke-width",
     "ellipse": "cx cy rx ry fill stroke stroke-width",
     "rect": "x y width height fill stroke stroke-width",
+    "image": "href x y width height",
     "path": "d fill stroke stroke-width stroke-dasharray",
     "polygon": "points fill stroke stroke-width",
     "polyline": "points fill stroke stroke-width stroke-dasharray",
@@ -108,6 +110,7 @@ _ATRIBUT = {
 }
 _ID = re.compile(r"[A-Za-z][A-Za-z0-9_.-]{0,127}")
 _WARNA = re.compile(r"#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?")
+_HREF_IKON = re.compile(r"/aset/ikon-[a-z]+-v1\.png")
 _URL_LOKAL = re.compile(r"url\(#([A-Za-z][A-Za-z0-9_.-]{0,127})\)")
 _CSS = {
     "display": r"block", "width": r"100%", "height": r"auto",
@@ -133,6 +136,10 @@ def _periksa_atribut(e, ids):
             assert _ID.fullmatch(isi), isi
         elif nama == "style":
             _periksa_style(isi)
+        elif nama == "href":
+            assert lokal(e) == "image", lokal(e)
+            assert _HREF_IKON.fullmatch(isi), isi
+            assert isi.rsplit("/", 1)[1] in brand.ASET, isi
         elif nama in {"fill", "stroke"}:
             tautan = _URL_LOKAL.fullmatch(isi)
             assert isi == "none" or _WARNA.fullmatch(isi) or tautan, isi

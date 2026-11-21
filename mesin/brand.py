@@ -26,6 +26,7 @@ import json
 from pathlib import Path
 
 import design_tokens as T
+from adegan_awal_data import IKON_DIDUKUNG
 
 # Domain kanonis produksi. og:image, og:url, dan tautan sesi butuh URL
 # absolut agar crawler serta fallback berbagi tanpa JS memakai domain resmi.
@@ -70,6 +71,11 @@ ASET.update({
     f"maskot-{pose}-{versi}-{px}.png": "image/png"
     for pose in POSE_MASKOT for versi in ("v2", "v3") for px in (240, 96)
 })
+
+# Ikon benda untuk adegan visual Matematika Awal; daftar namanya satu-satunya
+# di `adegan_awal_data.IKON_DIDUKUNG`. PNG RGBA 192x192, URL immutable bernama
+# versi; isi berkas tidak diganti.
+ASET.update({f"ikon-{nama}-v1.png": "image/png" for nama in IKON_DIDUKUNG})
 
 NAMA_MANIFEST = "manifest.json"
 

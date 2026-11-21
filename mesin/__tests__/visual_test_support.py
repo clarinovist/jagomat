@@ -9,7 +9,9 @@ from templates import REGISTRI
 
 KELUARGA = ("statistika", "geometri-datar", "geometri-ruang", "pengukuran",
             "kombinatorik", "pola-bilangan")
-SEMUA_KELUARGA = ",".join(KELUARGA)
+# Keluarga tanpa kontrak urutan CONTOH test_visual_e2e (indeks KELUARGA).
+KELUARGA_AWAL = ("matematika-awal",)
+SEMUA_KELUARGA = ",".join((*KELUARGA, *KELUARGA_AWAL))
 NS = {"s": "http://www.w3.org/2000/svg"}
 
 

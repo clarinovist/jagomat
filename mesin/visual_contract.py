@@ -16,6 +16,7 @@ from measurement_scale_data import validasi_skala
 from combinatorics_visual_data import validasi_venn, validasi_susunan
 from measurement_combinatorics_visual_data import validasi_petak, validasi_waktu
 from statistics_visual_data import VALIDATOR_STATISTIKA
+from adegan_awal_data import validasi_adegan_awal
 from number_patterns_visual_data import validasi_korek, validasi_titik
 from plane_geometry_visual_data import validasi_data as validasi_geometri_datar
 from solid_geometry_visual_data import validasi_data as validasi_geometri_ruang
@@ -211,6 +212,7 @@ _SKEMA_DESCRIPTOR = {
     ("skala_peta", 1): validasi_skala,
     ("venn_dua", 1): validasi_venn,
     ("susunan_objek", 1): validasi_susunan,
+    ("adegan_awal", 1): validasi_adegan_awal,
     **{(jenis, 1): validator for jenis, validator in VALIDATOR_STATISTIKA.items()},
 }
 
