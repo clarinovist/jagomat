@@ -743,6 +743,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         if parent_report_http.tangani_guru_get(self, jalur):
             return
+        import contest_guru_http  # Latihan Lomba (riwayat anak untuk guru/admin): sebelum penangkap /anak/
+        if contest_guru_http.tangani_get(self, jalur):
+            return
         import session_prep
         if teacher_http.tangani_persiapan_get(
             self, jalur, halaman_persiapan=session_prep.halaman_persiapan
