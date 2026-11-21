@@ -26,6 +26,8 @@ pecahan_bilangan_asli_desimal P6 (12 varian) diukur lewat _ukur pada kedua versi
 P5 59/270, P4 68/172, P6 22/272. ciri_komposisi_bangun kini 172 tanda tangan (>= 150), jadi
 ALASAN_RUANG-nya dihapus. Konsentrasi lembar P4 2,00, P5 1,24, P6 1,86 (semua di bawah 2,1), jadi
 UTANG_LEMBAR P6 dilunasi dan dihapus.
+baca_diagram_gambar P2 (21 Nov 2026, skala 1 atau 2): diukur lewat _ukur pada kedua versi katalog (sama): P2 299/299
+tanda tangan (domain P2 20160, skala 1 jumlah 5..12, skala 2 jumlah 1..8) dengan empat varian; lembar P2 kini 7 jenis, konsentrasi lembar P2 terukur 1,00 (di bawah 2,1).
 Awalnya (kerangka): kenali_bentuk P1 18/19 dan P2 26/26 tanda tangan dengan
 tiga bentuk, sama dengan domain enumerator eksplisit 19/26 (P1 18 kerangka karena dua
 kalimat ciri, "punya 3 sisi dan 3 sudut" dan "punya 4 sisi dan 4 sudut", hanya beda angka). Lembar 10 soal satu jenis; konsentrasi kerangka
@@ -67,7 +69,7 @@ bilangan-sekolah kali_bagi_sekolah P3:2:144:bagi,kali P4:2:262:bagi,kali P5:2:30
 bilangan-sekolah kalimat_matematika P3:4:292:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P4:4:300:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P5:4:267:bagi_akhir,bagi_awal,kali_akhir,kali_awal
 matematika-awal kenali_bentuk P1:18:19:banyak_sisi,benda,dari_ciri P2:26:26:banyak_sisi,benda,dari_ciri
 matematika-awal ukur_satuan_tak_baku P1:36:277:banding,sambung,selisih
-matematika-awal baca_diagram_gambar P1:295:295:baca,jumlah,selisih,terbanyak
+matematika-awal baca_diagram_gambar P1:295:295:baca,jumlah,selisih,terbanyak P2:299:299:baca,jumlah,selisih,terbanyak
 matematika-awal pola_posisi P2:108:116:atas_bawah,kiri_kanan,pola,urutan
 matematika-awal pecahan_setengah P2:18:83:potong_sama,separuh,seperempat,sisa
 matematika-awal waktu_berat_awal P2:16:240:banding_berat,jam_penuh_setelah,jumlah_berat,lama_kegiatan
@@ -195,7 +197,7 @@ bilangan-sekolah P3 10 5
 bilangan-sekolah P4 10 5
 bilangan-sekolah P5 10 5
 matematika-awal P1 10 5
-matematika-awal P2 10 6
+matematika-awal P2 10 7
 matematika-awal P3 10 2
 matematika-awal P4 10 3
 matematika-awal P5 10 2

@@ -118,8 +118,8 @@ KARTU: dict[str, Kartu] = {
     ),
     "baca_diagram_gambar": Kartu(
         judul="Membaca diagram gambar",
-        inti="Satu titik mewakili satu benda. Hitung titik pada tiap baris satu per satu. Baris yang titiknya paling banyak adalah yang terbanyak. Lebihnya dicari dengan mengurangi, jumlahnya dengan menambah.",
-        contoh="Bola 3 titik dan mobil 5 titik. Mobil yang terbanyak. Lebihnya 5 - 3 = 2, jumlahnya 3 + 5 = 8.",
+        inti="Satu titik mewakili satu benda, kecuali kalau tertulis lain. Hitung titik pada tiap baris satu per satu. Kalau satu titik mewakili 2 benda, banyak benda = banyak titik × 2 (atau tambah 2 berulang). Baris yang titiknya paling banyak adalah yang terbanyak. Lebihnya dicari dengan mengurangi, jumlahnya dengan menambah.",
+        contoh="Bola 3 titik dan mobil 5 titik. Mobil yang terbanyak. Lebihnya 5 - 3 = 2, jumlahnya 3 + 5 = 8. Kalau satu titik mewakili 2 mobil, 5 titik berarti 5 × 2 = 10 mobil.",
     ),
     "pola_posisi": Kartu(
         judul="Pola dan posisi benda",

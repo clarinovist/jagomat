@@ -30,13 +30,17 @@ _FIELD_DASAR = {"varian", "tema", *sumber.KUNCI_JUMLAH}
 _FIELD_TAMBAHAN = {
     "baca": {"tanya"}, "terbanyak": set(), "selisih": {"x", "y"}, "jumlah": {"x", "y"},
 }
+FIELD_SKALA = "skala"  # hanya soal P2; soal P1 tidak punya field ini sama sekali
 
 
 def _field_parameter(parameter: Mapping[str, Any]) -> str:
+    """Himpunan field persis: P1 tanpa `skala`, P2 dengan `skala` (nilainya diperiksa soal sumber)."""
     varian = parameter.get("varian")
     if not isinstance(varian, str) or varian not in _FIELD_TAMBAHAN:
         raise ValueError(f"varian baca diagram gambar tidak didukung: {varian!r}")
     field = _FIELD_DASAR | _FIELD_TAMBAHAN[varian]
+    if FIELD_SKALA in parameter:
+        field = field | {FIELD_SKALA}
     if set(parameter) != field:
         hilang = sorted(field - set(parameter))
         tambahan = sorted(set(parameter) - field)
@@ -47,10 +51,18 @@ def _field_parameter(parameter: Mapping[str, Any]) -> str:
     return varian
 
 
+def _benda_per_gambar(parameter: Mapping[str, Any]) -> int:
+    """Skala soal (benda per gambar); 1 untuk soal P1 yang tanpa field skala."""
+    return parameter.get(FIELD_SKALA, 1)
+
+
 def _soal_sumber(parameter: Mapping[str, Any]):
-    """Validasi domain lewat soal sumber (tipe int murni, tema, jumlah berbeda)."""
+    """Validasi domain lewat soal sumber (tipe int murni, tema, skala, jumlah berbeda)."""
     soal = sumber.baca_diagram_gambar(**dict(parameter))
-    if len(soal.teks.split("\n")) != BARIS_TEKS_SUMBER:
+    baris = soal.teks.split("\n")
+    kata = sumber.TEMA[parameter["tema"]][1]
+    kepala_harapan = f"Satu titik hitam mewakili {_benda_per_gambar(parameter)} {kata}."
+    if len(baris) != BARIS_TEKS_SUMBER or not baris[0].endswith(kepala_harapan):
         raise ValueError("bentuk teks soal sumber berubah; proyeksi perlu disesuaikan")
     return soal
 
@@ -78,7 +90,7 @@ def _data(parameter: Mapping[str, Any], varian: str) -> dict:
             {"nama": kategori, "ikon": _ikon(kategori), "jumlah": parameter[kunci]}
             for kategori, kunci in zip(nama, sumber.KUNCI_JUMLAH)
         ],
-        "satuan_ikon": 1,
+        "satuan_ikon": _benda_per_gambar(parameter),
         "tanya": _tanya(parameter, varian),
     }
 
@@ -86,7 +98,8 @@ def _data(parameter: Mapping[str, Any], varian: str) -> dict:
 def _teks(parameter: Mapping[str, Any], soal) -> str:
     kata = sumber.TEMA[parameter["tema"]][1]
     pertanyaan = soal.teks.split("\n")[-1]
-    return f"Perhatikan gambar. Satu gambar mewakili 1 {kata}.\n{pertanyaan}"
+    return (f"Perhatikan gambar. Satu gambar mewakili {_benda_per_gambar(parameter)} {kata}."
+            f"\n{pertanyaan}")
 
 
 # ── turus_gambar_awal ────────────────────────────────────────────────────

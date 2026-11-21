@@ -151,8 +151,8 @@ def test_topik_terdaftar_memuat_sembilan_belas_jenis_dan_komposisi_level():
     assert JENIS_PER_LEVEL == {
         "P1": {"kenali_bentuk", "ukur_satuan_tak_baku", "baca_diagram_gambar",
                "bilang_benda_awal", "tambah_kurang_20"},
-        "P2": {"kenali_bentuk", "pola_posisi", "pecahan_setengah", "waktu_berat_awal",
-               "turus_gambar_awal", "tambah_kurang_100"},
+        "P2": {"kenali_bentuk", "baca_diagram_gambar", "pola_posisi", "pecahan_setengah",
+               "waktu_berat_awal", "turus_gambar_awal", "tambah_kurang_100"},
         "P3": {"ukur_konversi_awal", "unsur_bangun_datar"},
         "P4": {"pecahan_senilai_desimal", "luas_petak_volume_kubus", "ciri_komposisi_bangun"},
         "P5": {"bandingkan_ciri_bangun", "keliling_gabungan"},

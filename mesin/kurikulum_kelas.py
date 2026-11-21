@@ -105,7 +105,8 @@ KELAS: Tuple[Kelas, ...] = (
             ("Mencatat data dengan turus", "Membaca diagram gambar"),
             (("statistika", "turus", "sebagian"),
              ("statistika", "piktogram", "sebagian"),
-             ("matematika-awal", "turus_gambar_awal", "sebagian"))),
+             ("matematika-awal", "turus_gambar_awal", "ada"),
+             ("matematika-awal", "baca_diagram_gambar", "ada"))),
     )),
     Kelas(3, (
         Bab(1, "Bilangan cacah sampai 1.000 dan operasi hitung",
