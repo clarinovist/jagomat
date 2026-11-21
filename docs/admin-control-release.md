@@ -25,8 +25,10 @@ izin restore data atau perubahan destruktif di luar scope.
 > kemudian berhasil di-pull ulang dengan approval pada 21 September 09.05 UTC.
 > Digest/revision cocok; rehearsal lengkap tetap belum dilakukan. Ketersediaan
 > image tidak membuktikan fallback runtime atau perlindungan terhadap cleanup.
-> Backup pramigrasi yang ada hanya empat DB tanpa `sandi.json`, bukan bundle
-> kanonis. Backup CURRENT lengkap belum diambil pada penutupan read-only.
+> Per 21 September 2026, backup pramigrasi yang ada hanya empat DB tanpa `sandi.json`, bukan
+> bundle kanonis, dan backup CURRENT lengkap belum diambil saat penutupan read-only. Itu catatan
+> historis; kondisi backup terkini (harian otomatis, lima DB + `sandi.json`, off-site R2) ada di
+> [operational-backup.md](operational-backup.md).
 > `sesi.json`/transient memang dikecualikan, tetapi auth durable wajib tercakup.
 > Helper `rehearsal_bundle` memanggil migrator dua kali dan memeriksa schema/FK;
 > itu sendiri belum membandingkan seluruh isi/ID/hash sebelum-sesudah atau
