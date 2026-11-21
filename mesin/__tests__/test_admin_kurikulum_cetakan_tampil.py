@@ -4,6 +4,7 @@ Data SINTETIS. Hanya `aktif_untuk_bab` yang dibaca di luar halaman cetakan admin
 """
 from __future__ import annotations
 
+from dataclasses import replace
 import re
 import sys
 from pathlib import Path
@@ -17,6 +18,7 @@ import admin_kurikulum_cetakan_pages as ui  # noqa: E402
 import cetakan_pola as pola  # noqa: E402
 import cetakan_store as store  # noqa: E402
 import kurikulum_buat_soal as buat  # noqa: E402
+import kurikulum_kelas as kk  # noqa: E402
 import kurikulum_kelas_hitung as hitung  # noqa: E402
 from admin_transfer_kit import login_admin, minta_admin  # noqa: E402
 from cetakan_admin_kit import (  # noqa: E402
@@ -40,6 +42,18 @@ def _lingkungan(tmp_path, monkeypatch):
     store.bersihkan_cache()
     yield
     store.bersihkan_cache()
+
+
+@pytest.fixture(autouse=True)
+def _bab_belum_disimulasikan(monkeypatch):
+    """BAB_BELUM (K2 B3) tanpa pelatih kode. Sejak topik matematika-awal mengisi bab itu (21 Nov 2026)
+    data nyata tak lagi punya bab "belum"; kontrak yang diuji di sini (cetakan aktif mengubah bab
+    tanpa soal kode menjadi "sebagian") butuh bab tanpa pelatih, jadi datanya disimulasikan."""
+    kelas = tuple(
+        replace(k, bab=tuple(replace(b, pelatih=()) if (k.kelas, b.nomor) == BAB_BELUM else b
+                             for b in k.bab))
+        for k in kk.KELAS)
+    monkeypatch.setattr(kk, "KELAS", kelas)
 
 
 @pytest.fixture()

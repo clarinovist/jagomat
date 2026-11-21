@@ -1,6 +1,7 @@
 """Halaman admin `/admin/kurikulum` (tabel Kurikulum Merdeka) dan `/admin/kurikulum/buat` (Buat soal). Data sintetis."""
 from __future__ import annotations
 
+from dataclasses import replace
 import re
 import sys
 import tempfile
@@ -36,6 +37,18 @@ def _sakelar_mati(monkeypatch):
     """Hasil tak bergantung env mesin: sakelar jenis baru mati kecuali tes yang menyalakannya."""
     monkeypatch.setenv("OSN_DASAR_LENGKAP", "0")
     monkeypatch.setenv("OSN_BILANGAN_SEKOLAH", "0")
+    monkeypatch.delenv("OSN_MATEMATIKA_AWAL", raising=False)  # bawaan 1 (menyala)
+
+
+@pytest.fixture
+def bab_tanpa_pelatih(monkeypatch):
+    """K1 B4 tanpa pelatih. Data nyata tak lagi punya bab "belum" (21 Nov 2026), jadi kontrak
+    tampilan bab tanpa jenis soal diuji dengan data yang disimulasikan, bukan dengan bab nyata."""
+    kelas = tuple(
+        replace(k, bab=tuple(replace(b, pelatih=()) if (k.kelas, b.nomor) == (1, 4) else b
+                             for b in k.bab))
+        for k in kk.KELAS)
+    monkeypatch.setattr(kk, "KELAS", kelas)
 
 
 def _admin(server):
@@ -96,18 +109,26 @@ def test_tabel_memuat_enam_kelas_empat_puluh_bab_dan_kolom_lengkap(server):
 
 def test_status_dihitung_dari_level_kelas(server):
     isi = _minta(server, RUTE, cookie=_admin(server))[1]
-    assert "<strong>Belum ada soal</strong>" in _baris(isi, 1, 4)[4]
+    assert "<strong>Perlu disempurnakan</strong>" in _baris(isi, 1, 4)[4]  # kenali_bentuk (sebagian)
+    assert "Belum ada soal" not in isi  # tak ada bab "belum" di data nyata
     assert "<strong>Sudah ada soal</strong>" in _baris(isi, 1, 2)[4]
     assert "<strong>Perlu disempurnakan</strong>" in _baris(isi, 1, 6)[4]
 
 
+def test_status_belum_ada_soal_untuk_bab_tanpa_pelatih(server, bab_tanpa_pelatih):
+    sel = _baris(_minta(server, RUTE, cookie=_admin(server))[1], 1, 4)
+    assert "<strong>Belum ada soal</strong>" in sel[4] and "Buat soal" not in sel[4]
+
+
 def test_pelatih_yang_belum_ada_di_kelas_itu_diberi_catatan(server):
+    # K2 B4: pelatih lama (pola-bilangan/siklus) baru ada di kelas 3+, pelatih baru (pola_posisi) ada di
+    # kelas 2, jadi bab berstatus "Perlu disempurnakan" dan catatan kelas lain tetap tampil.
     sel = _baris(_minta(server, RUTE, cookie=_admin(server))[1], 2, 4)
-    assert "baru ada di kelas 3, 4, 5, 6" in sel[2] and "Belum ada soal" in sel[4]
-    assert 'Buat soal' not in sel[4]
+    assert "baru ada di kelas 3, 4, 5, 6" in sel[2] and "Matematika Awal" in sel[2]
+    assert "Perlu disempurnakan" in sel[4] and "Belum ada soal" not in sel[4]
 
 
-def test_aksi_buat_soal_hanya_bila_ada_jenis_yang_bisa_dibuat(server):
+def test_aksi_buat_soal_hanya_bila_ada_jenis_yang_bisa_dibuat(server, bab_tanpa_pelatih):
     isi = _minta(server, RUTE, cookie=_admin(server))[1]
     assert 'href="/admin/kurikulum/buat?kelas=3&amp;bab=1"' in _baris(isi, 3, 1)[4]
     assert "Buat soal" not in _baris(isi, 1, 4)[4]
@@ -236,7 +257,7 @@ def test_buat_soal_seed_batas_atas_sah(server):
     assert _minta(server, RUTE_BUAT + "?kelas=3&bab=1&seed=2147483648", cookie=_admin(server))[0] == 200
 
 
-def test_bab_tanpa_pelatih_pesan_jujur(server):
+def test_bab_tanpa_pelatih_pesan_jujur(server, bab_tanpa_pelatih):
     kode, isi, _t = _minta(server, RUTE_BUAT + "?kelas=1&bab=4", cookie=_admin(server))
     assert kode == 200 and "Bab ini belum punya jenis soal di kelas 1." in isi and "Kunci jawaban" not in isi
 

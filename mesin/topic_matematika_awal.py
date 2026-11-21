@@ -1,4 +1,4 @@
-"""Matematika Awal (P1/P2 dan kelak P3–P6 jarang), khusus Latihan manual dan lembar cetak.
+"""Matematika Awal (P1, P2, P3, P5, P6; P4 sengaja kosong), khusus Latihan manual dan lembar cetak.
 
 Topik lintas bab Kurikulum Merdeka SD yang belum punya soal (bentuk, ukuran,
 diagram, pola, pecahan sederhana, waktu, peluang). Semua soal teks, tanpa gambar.
@@ -25,7 +25,16 @@ from __future__ import annotations
 import random
 from typing import Callable, NamedTuple
 
+import awal_baca_diagram_gambar as baca_diagram_gambar
+import awal_bandingkan_ciri_bangun as bandingkan_ciri_bangun
 import awal_kenali_bentuk as kenali_bentuk
+import awal_pecahan_setengah as pecahan_setengah
+import awal_peluang_dasar as peluang_dasar
+import awal_pola_posisi as pola_posisi
+import awal_turus_gambar_awal as turus_gambar_awal
+import awal_ukur_konversi_awal as ukur_konversi_awal
+import awal_ukur_satuan_tak_baku as ukur_satuan_tak_baku
+import awal_waktu_berat_awal as waktu_berat_awal
 from templates import Soal
 from topics import Topik, daftarkan
 
@@ -49,6 +58,28 @@ class Jenis(NamedTuple):
 JENIS = (
     Jenis(kenali_bentuk.TEMPLATE_ID, kenali_bentuk.kenali_bentuk, kenali_bentuk.parameter,
           kenali_bentuk.LEVEL, kenali_bentuk.domain_parameter),
+    Jenis(ukur_satuan_tak_baku.TEMPLATE_ID, ukur_satuan_tak_baku.ukur_satuan_tak_baku,
+          ukur_satuan_tak_baku.parameter, ukur_satuan_tak_baku.LEVEL,
+          ukur_satuan_tak_baku.domain_parameter),
+    Jenis(baca_diagram_gambar.TEMPLATE_ID, baca_diagram_gambar.baca_diagram_gambar,
+          baca_diagram_gambar.parameter, baca_diagram_gambar.LEVEL,
+          baca_diagram_gambar.domain_parameter),
+    Jenis(pola_posisi.TEMPLATE_ID, pola_posisi.pola_posisi, pola_posisi.parameter,
+          pola_posisi.LEVEL, pola_posisi.domain_parameter),
+    Jenis(pecahan_setengah.TEMPLATE_ID, pecahan_setengah.pecahan_setengah,
+          pecahan_setengah.parameter, pecahan_setengah.LEVEL, pecahan_setengah.domain_parameter),
+    Jenis(waktu_berat_awal.TEMPLATE_ID, waktu_berat_awal.waktu_berat_awal,
+          waktu_berat_awal.parameter, waktu_berat_awal.LEVEL, waktu_berat_awal.domain_parameter),
+    Jenis(turus_gambar_awal.TEMPLATE_ID, turus_gambar_awal.turus_gambar_awal,
+          turus_gambar_awal.parameter, turus_gambar_awal.LEVEL, turus_gambar_awal.domain_parameter),
+    Jenis(ukur_konversi_awal.TEMPLATE_ID, ukur_konversi_awal.ukur_konversi_awal,
+          ukur_konversi_awal.parameter, ukur_konversi_awal.LEVEL,
+          ukur_konversi_awal.domain_parameter),
+    Jenis(bandingkan_ciri_bangun.TEMPLATE_ID, bandingkan_ciri_bangun.bandingkan_ciri_bangun,
+          bandingkan_ciri_bangun.parameter, bandingkan_ciri_bangun.LEVEL,
+          bandingkan_ciri_bangun.domain_parameter),
+    Jenis(peluang_dasar.TEMPLATE_ID, peluang_dasar.peluang_dasar, peluang_dasar.parameter,
+          peluang_dasar.LEVEL, peluang_dasar.domain_parameter),
 )
 _PER_ID = {j.template_id: j for j in JENIS}
 if len(_PER_ID) != len(JENIS):

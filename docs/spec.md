@@ -21,6 +21,17 @@ bersusun, perkalian/pembagian, kalimat matematika; semua teks angka) hanya dibua
 `OSN_BILANGAN_SEKOLAH=1` (bawaan 0, belum aktif di produksi) dan **hanya untuk Latihan manual
 guru dan lembar cetak**: tidak masuk Campuran, siklus terpandu, Pendamping, atau sisi murid.
 Rentang bilangan dan malrule belum diulas guru; flag tidak boleh menyala sebelum itu.
+Topik `matematika-awal` ("Matematika Awal"; level P1, P2, P3, P5, P6, P4 sengaja kosong) mengisi
+11 bab Kurikulum Merdeka SD yang dulu "Belum ada soal" dengan sepuluh jenis soal teks tanpa gambar:
+P1 `kenali_bentuk`, `ukur_satuan_tak_baku`, `baca_diagram_gambar`; P2 `kenali_bentuk`,
+`pola_posisi`, `pecahan_setengah`, `waktu_berat_awal`, `turus_gambar_awal`; P3 `ukur_konversi_awal`;
+P5 `bandingkan_ciri_bangun`; P6 `peluang_dasar`. Semua kecocokan bab "sebagian" (teks tanpa gambar), jadi
+`/admin/kurikulum` kini tanpa status "Belum ada soal" dan bab itu tetap berstatus "Perlu disempurnakan".
+Sama seperti `bilangan-sekolah`, topik ini **hanya untuk Latihan manual guru dan lembar cetak** (bukan
+Campuran, siklus, Pendamping, sisi murid). Karena memuat P3+ ia bukan "materi dasar": `OSN_MATERI_DASAR`
+tidak menyembunyikannya. Pembuatan di balik `OSN_MATEMATIKA_AWAL` (env-only, "0"/"1", **bawaan 1** atas
+keputusan pemilik 21 Nov 2026, jadi menyala otomatis di image yang memuat kode ini). Rentang angka,
+malrule, dan fakta bangun datar belum diulas Mutia/guru.
 Soal dalam lembar tidak kembar hingga seluruh domain level terpakai; setelah itu
 pengulangan diizinkan. Latihan satu topik menawarkan kartu Variasi Dasar 1/2 dengan contoh
 hanya untuk materi dasar; bawaan tetap otomatis dan tingkat anak tidak berubah.

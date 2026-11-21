@@ -12,8 +12,8 @@ yang bawaan 0: topik menyala sendiri kecuali dimatikan dengan "0". Nilai selain
 
 Ini hanya SAKELAR pembuatan. Larangan masuk Campuran, siklus terpandu,
 Pendamping, dan sisi murid adalah palang terpisah (`Topik.hanya_manual`), yang
-berlaku saat sakelar hidup maupun mati. Selama topik hanya memuat P1/P2,
-gerbang `OSN_MATERI_DASAR` (`question_context.topik_dasar`) juga menutupnya.
+berlaku saat sakelar hidup maupun mati. Karena topik memuat level P3 ke atas,
+gerbang `OSN_MATERI_DASAR` (`question_context.topik_dasar`) tidak lagi menutupnya.
 Sebelum deploy: ulasan Mutia atas rentang dan malrule, pin recovery yang
 mengenali ID baru, dan izin rilis.
 
@@ -30,6 +30,15 @@ TOPIK_ID = "matematika-awal"
 BAWAAN = "1"
 TEMPLATE_BARU = frozenset({
     "kenali_bentuk",
+    "ukur_satuan_tak_baku",
+    "baca_diagram_gambar",
+    "pola_posisi",
+    "pecahan_setengah",
+    "waktu_berat_awal",
+    "turus_gambar_awal",
+    "ukur_konversi_awal",
+    "bandingkan_ciri_bangun",
+    "peluang_dasar",
 })
 PESAN_BELUM_DIBUKA = "Materi ini belum dibuka."
 

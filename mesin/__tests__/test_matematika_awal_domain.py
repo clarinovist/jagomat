@@ -1,4 +1,4 @@
-"""Matematika Awal, jenis kenali_bentuk (P1/P2): domain, solver teks, malrule, PG.
+"""Matematika Awal, jenis kenali_bentuk (P1/P2): domain, solver teks, malrule, PG; komposisi topik.
 
 Kunci dicek oleh solver TERPISAH yang hanya membaca TEKS soal: fakta bangun datar
 ditulis ulang di tes ini (bukan diimpor dari modul topik) dan teks ciri dibaca
@@ -22,6 +22,7 @@ import diagnosis
 import generator
 import topics
 from choice_generation import buat_lembar_pilihan, kandidat, kebijakan_soal
+from baseline_matematika_awal import JENIS_PER_LEVEL, LEVEL_AWAL, TEMPLATE_AWAL
 from templates import REGISTRI
 
 TOPIK = "matematika-awal"
@@ -138,13 +139,25 @@ def _norm(teks: str) -> str:
 
 # ── pendaftaran dan palang struktur ──────────────────────────────────────
 
-def test_topik_terdaftar_p1_p2_memuat_kenali_bentuk():
+def test_topik_terdaftar_memuat_sepuluh_jenis_dan_komposisi_level():
     paket = topics.ambil(TOPIK)
-    assert tuple(paket.komposisi) == LEVEL
+    assert tuple(paket.komposisi) == LEVEL_AWAL == ("P1", "P2", "P3", "P5", "P6")
+    for level in LEVEL_AWAL:
+        assert set(paket.komposisi[level]) == JENIS_PER_LEVEL[level]
+        assert len(paket.komposisi_untuk(level)) == LEMBAR_PANJANG
     for level in LEVEL:
         assert TID in paket.komposisi[level]
-        assert len(paket.komposisi_untuk(level)) == LEMBAR_PANJANG
-    assert set(paket.templates) == {TID}
+    # komposisi persis sesuai keputusan pemilik (daftar eksplisit, bukan dibaca dari topik)
+    assert JENIS_PER_LEVEL == {
+        "P1": {"kenali_bentuk", "ukur_satuan_tak_baku", "baca_diagram_gambar"},
+        "P2": {"kenali_bentuk", "pola_posisi", "pecahan_setengah", "waktu_berat_awal",
+               "turus_gambar_awal"},
+        "P3": {"ukur_konversi_awal"},
+        "P5": {"bandingkan_ciri_bangun"},
+        "P6": {"peluang_dasar"},
+    }
+    assert set(paket.templates) == set(TEMPLATE_AWAL)
+    assert len(paket.templates) == 10
     assert paket.hanya_manual is True
     assert paket.unik_per_lembar is True
     assert paket.nama == "Matematika Awal"
@@ -160,12 +173,13 @@ def test_template_id_unik_global_dan_dimiliki_satu_topik():
 
 def test_level_di_luar_komposisi_berperilaku_seperti_preseden():
     paket = topics.ambil(TOPIK)
+    # P4 sengaja tanpa jenis: lembar ditolak; level yang ada tapi tanpa kenali_bentuk menolak jenis ini.
+    with pytest.raises(ValueError, match="tidak tersedia untuk level"):
+        generator.buat_lembar(0, level="P4", topik=TOPIK)
     for level in ("P3", "P4", "P5", "P6"):
         with pytest.raises(ValueError, match="tidak tersedia untuk level"):
-            generator.buat_lembar(0, level=level, topik=TOPIK)
-        with pytest.raises(ValueError, match="tidak tersedia untuk level"):
             generator.buat_soal(TID, 0, level, TOPIK)
-        assert paket.komposisi_untuk(level) == paket.komposisi_untuk("P1")
+    assert paket.komposisi_untuk("P4") == paket.komposisi_untuk("P3")  # level tak dikenal -> bawaan P3
     # Label level liar dari kolom teks bebas jatuh ke level pertama topik, bukan error.
     assert generator.buat_lembar(0, level="kelas 4", topik=TOPIK).level == "P1"
     with pytest.raises(ValueError):
@@ -345,10 +359,11 @@ def test_lembar_sepuluh_soal_tanpa_duplikat_dan_memuat_semua_varian(level):
         assert len(lembar.soal) == LEMBAR_PANJANG and lembar.level == level
         tanda = [s.tanda_tangan for s in lembar.soal]
         assert len(set(tanda)) == LEMBAR_PANJANG, (level, seed, "soal kembar dalam lembar")
-        assert {s.template_id for s in lembar.soal} == {TID}
+        assert {s.template_id for s in lembar.soal} == JENIS_PER_LEVEL[level]
         assert {s.bagian for s in lembar.soal} == {"A"}
     varian = {s.parameter["varian"] for seed in range(30)
-              for s in generator.buat_lembar(seed, level=level, topik=TOPIK).soal}
+              for s in generator.buat_lembar(seed, level=level, topik=TOPIK).soal
+              if s.template_id == TID}
     assert varian == set(VARIAN)
 
 

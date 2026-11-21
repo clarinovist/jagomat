@@ -51,6 +51,30 @@ def _db_kurikulum_tmp(tmp_path, monkeypatch):
     ko.bersihkan_cache()
 
 
+BUTIR_CELAH = ("A.geometri.1", "A.pengukuran.1")
+
+
+def _celah_sd_bawaan() -> list:
+    """Butir SD (fase A-C) yang tak dilatih grup mana pun menurut peta bawaan SAAT INI."""
+    return [b.id for b in cp.butir_tanpa_grup() if b.fase in ("A", "B", "C")]
+
+
+@pytest.fixture()
+def celah_terjamin(monkeypatch):
+    """Peta bawaan tanpa dua butir uji, supaya keduanya PASTI celah SD walau data nyata terisi.
+
+    Sejak topik matematika-awal memetakan A.geometri.1 dan A.pengukuran.1, data nyata tak lagi
+    menyisakan keduanya sebagai celah. Yang diuji di sini kontrak halaman (celah ikut berubah
+    setelah edit admin, hitungan benar), bukan isi peta nyata, jadi butir uji dilepas dari peta
+    salinan lewat monkeypatch; kuncinya tetap ada supaya validasi grup tidak berubah.
+    """
+    saring = {kunci: tuple(p for p in isi if p[0] not in BUTIR_CELAH)
+              for kunci, isi in cp.CP_PER_GRUP.items()}
+    monkeypatch.setattr(cp, "CP_PER_GRUP", saring)
+    assert set(BUTIR_CELAH) <= set(_celah_sd_bawaan())
+    ko.bersihkan_cache()
+
+
 @pytest.fixture()
 def admin(tertutup):
     return login_admin(tertutup)
@@ -215,9 +239,11 @@ def test_banner_hasil_hanya_dari_kode_dikenal(tertutup, admin):
 
 # --- ubah -----------------------------------------------------------------------------------
 
-def test_ubah_sah_menyimpan_audit_satu_redirect_banner_dan_peta_ikut_berubah(tertutup, admin):
+def test_ubah_sah_menyimpan_audit_satu_redirect_banner_dan_peta_ikut_berubah(
+        tertutup, admin, celah_terjamin):
+    jumlah_celah = len(_celah_sd_bawaan())
     peta_sebelum = minta_admin(tertutup, HALAMAN_PETA, admin)[1]
-    assert "<code>A.geometri.1</code>" in peta_sebelum.split("<h2>Butir CP per fase</h2>")[0]  # masih celah SD
+    assert "<code>A.geometri.1</code>" in peta_sebelum.split("<h2>Butir CP per fase</h2>")[0]  # celah SD
     assert "Grup dengan pemetaan diubah admin</dt><dd>0" in peta_sebelum
     kode, isi, tajuk = _ubah_geometri(tertutup, admin)
     assert (kode, isi) == (303, "")
@@ -234,7 +260,9 @@ def test_ubah_sah_menyimpan_audit_satu_redirect_banner_dan_peta_ikut_berubah(ter
     assert "diubah admin, revisi 1" in peta and "Grup dengan pemetaan diubah admin</dt><dd>1" in peta
     celah = peta.split("<h2>Butir CP per fase</h2>")[0]
     assert "<code>A.geometri.1</code>" not in celah and "<code>A.pengukuran.1</code>" in celah
-    assert "5 butir" in celah and "6 butir" in peta_sebelum.split("<h2>Butir CP per fase</h2>")[0]
+    # Hitungan celah turun tepat satu, dihitung dari peta (bukan angka tetap yang ikut data nyata).
+    assert "%d butir" % (jumlah_celah - 1) in celah
+    assert "%d butir" % jumlah_celah in peta_sebelum.split("<h2>Butir CP per fase</h2>")[0]
 
 
 def test_form_dari_halaman_dapat_dikirim_apa_adanya_dua_puluh_tujuh_field(tertutup, admin):

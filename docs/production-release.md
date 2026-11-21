@@ -2391,6 +2391,20 @@ melempar `KeyError` dan `topics.dari_sesi` jatuh diam-diam ke topik bawaan untuk
 `bilangan-sekolah`), dibuktikan pair exact-image yang membaca sesi dan bank topik ini;
 (3) izin rilis; flag dipasang lewat `visual.conf`/`jalankan-rilis.py`, bukan registri `/admin/sakelar`.
 
+## Syarat sebelum deploy kode `matematika-awal`
+
+Beda dari `bilangan-sekolah` (bawaan 0), sakelar `OSN_MATEMATIKA_AWAL` bawaan **1** (keputusan pemilik
+21 Nov 2026): image yang memuat kode ini langsung menawarkan topik di Latihan manual dan membuat soalnya,
+tanpa flag tambahan; mematikan perlu `OSN_MATEMATIKA_AWAL=0` lewat `visual.conf`/`jalankan-rilis.py`
+(bukan registri `/admin/sakelar`). Karena itu, SEBELUM izin deploy: (1) Mutia mengulas rentang angka, malrule,
+dan fakta bangun datar (`bandingkan_ciri_bangun` memakai definisi inklusif dengan nama berkualifikasi);
+(2) pin recovery baru yang mengenali sepuluh template (`kenali_bentuk`, `ukur_satuan_tak_baku`,
+`baca_diagram_gambar`, `pola_posisi`, `pecahan_setengah`, `waktu_berat_awal`, `turus_gambar_awal`,
+`ukur_konversi_awal`, `bandingkan_ciri_bangun`, `peluang_dasar`) dan `Topik.hanya_manual`, dibuktikan pair
+exact-image yang membaca sesi dan bank topik ini (tanpa itu rollback gagal membaca bank baru dan
+`topics.dari_sesi` jatuh diam-diam ke topik bawaan); (3) izin rilis terpisah. Halaman live
+`jagomat.id/admin/kurikulum` baru berubah setelah push, deploy, dan pemasangan.
+
 ## Pelaporan jujur
 
 Source teruji, image terverifikasi, pemasangan live, dan auto-deploy aktif adalah

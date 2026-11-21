@@ -10,12 +10,11 @@ Mutation (wajib): tiap situs diuji MERAH saat atribut dimatikan lewat jalur
 yang dipanggil tes (entri PAKET diganti `replace(hanya_manual=False)` dan
 Campuran dibangun ulang), lalu hijau setelah monkeypatch memulihkan.
 
-Topik manual-saja kedua, `matematika-awal` (P1/P2, 21 Nov 2026), diuji dengan situs
-yang sama (parametrisasi per topik). Sebagian situs hanya melihat P3–P6 (Campuran,
-pemilih pemetaan, katalog mastery, siklus lintas topik), jadi untuk topik P1/P2 ia
-HAMPA saat ini dan tidak dihitung sebagai bukti gigitan; situs yang menggigit pada
-level mana pun ada di `SITUS_MENGGIGIT_P1_P2`. Begitu jenis P3+ ditambahkan, situs
-hampa itu mulai menggigit tanpa perubahan tes.
+Topik manual-saja kedua, `matematika-awal` (P1, P2, P3, P5, P6; 21 Nov 2026), diuji dengan
+situs yang sama (parametrisasi per topik). Sebagian situs hanya melihat P3–P6 (Campuran,
+pemilih pemetaan, katalog mastery, siklus lintas topik). Selama topik hanya P1/P2 situs
+itu hampa; sejak jenis P3/P5/P6 ada, situs yang terbukti menggigit lewat mutasi dicatat di
+`SITUS_MENGGIGIT_AWAL`, dan sisanya (bila ada) tetap dilewati dengan alasan tertulis.
 """
 from __future__ import annotations
 
@@ -36,6 +35,7 @@ import question_context
 import question_variants_ui
 import topics
 from baseline_bilangan_sekolah import SIDIK_BASELINE, sidik
+from baseline_matematika_awal import JENIS_PER_LEVEL, LEVEL_AWAL, LEVEL_JENIS, TEMPLATE_AWAL
 from templates import LEVEL, LEVEL_TINGKAT
 
 TOPIK = "bilangan-sekolah"
@@ -45,17 +45,16 @@ SEMUA = (TID, "urutkan_bilangan", "tambah_kurang_bersusun", "kali_bagi_sekolah",
 NAMA_TOPIK = "Bilangan Sekolah"
 
 TOPIK_AWAL = "matematika-awal"
-SEMUA_AWAL = ("kenali_bentuk",)  # tambahkan tiap jenis baru topik ini di sini
+SEMUA_AWAL = TEMPLATE_AWAL  # daftar eksplisit di baseline_matematika_awal; tambah jenis baru di sana
 NAMA_AWAL = "Matematika Awal"
 # topik -> (template milik topik, nama tampil, level uji usulan Pendamping, level warisan)
 DATA_TOPIK = {
     TOPIK: (SEMUA, NAMA_TOPIK, "P4", ("P3", "P4", "P5")),
-    TOPIK_AWAL: (SEMUA_AWAL, NAMA_AWAL, "P2", ("P1", "P2")),
+    TOPIK_AWAL: (SEMUA_AWAL, NAMA_AWAL, "P2", LEVEL_AWAL),
 }
 SEMUA_TOPIK_MANUAL = tuple(DATA_TOPIK)
-# Topik yang grup auditnya WAJIB ada di `mastery_catalog.KELOMPOK`. `matematika-awal` belum:
-# KELOMPOK dibaca dari `kurikulum_katalog.KATALOG` (integrasi tahap 4, di luar tahap 2);
-# tambahkan topik itu ke himpunan ini begitu entrinya masuk KATALOG.
+# Topik yang grup auditnya WAJIB ada di `mastery_catalog.KELOMPOK` (dibaca dari
+# `kurikulum_katalog.KATALOG`); kedua topik manual-saja sudah terdaftar di katalog.
 GRUP_AUDIT_WAJIB = frozenset({TOPIK, TOPIK_AWAL})
 # Gabungan template manual-saja dari semua topik: tak satu pun boleh bocor ke jalur otomatis.
 SEMUA_GABUNGAN = SEMUA + SEMUA_AWAL
@@ -65,8 +64,8 @@ SEMUA_GABUNGAN = SEMUA + SEMUA_AWAL
 def sakelar_hidup(monkeypatch):
     """Kasus terkuat: sakelar HIDUP, topik terbuka, palang manual-saja yang menahan.
 
-    OSN_MATERI_DASAR=1 juga dipasang: topik P1/P2 selain digerbang sakelarnya
-    disembunyikan gerbang dasar bila 0, dan itu bukan palang yang diuji di sini.
+    OSN_MATERI_DASAR=1 juga dipasang (kasus lebih terbuka); `matematika-awal` memuat P3+ sehingga
+    gerbang dasar tidak lagi menyembunyikannya, dan itu diuji di `test_matematika_awal_sakelar`.
     """
     monkeypatch.setenv("OSN_BILANGAN_SEKOLAH", "1")
     monkeypatch.setenv("OSN_MATEMATIKA_AWAL", "1")
@@ -101,6 +100,11 @@ def mutasi(monkeypatch, topik):
 
 def _semua(topik):
     return DATA_TOPIK[topik][0]
+
+
+def _level_template(topik, tid):
+    """Level pemakai satu template: per jenis untuk topik awal, tetap P3-P5 untuk bilangan-sekolah."""
+    return LEVEL_JENIS[tid] if topik == TOPIK_AWAL else DATA_TOPIK[topik][3]
 
 
 def _nama(topik):
@@ -140,11 +144,12 @@ def situs_pemilih_pemetaan(topik):
 
 
 def situs_pendamping(topik):
-    semua, level = _semua(topik), DATA_TOPIK[topik][2]
+    semua = _semua(topik)
     katalog = assistant_catalog.buat_katalog(untuk_penawaran=True)
     assert not set(semua) & {t.id for t in katalog.template}, "Pendamping menawarkan template"
     assert topik not in {t.id for t in katalog.topik}, "Pendamping menawarkan topik"
     for tid in semua:
+        level = _level_template(topik, tid)[-1] if topik == TOPIK_AWAL else DATA_TOPIK[topik][2]
         try:
             assistant_actions.validasi_usulan({
                 "topik_id": topik, "template_ids": [tid], "level": level, "jumlah_soal": 10})
@@ -200,8 +205,8 @@ SITUS_TANPA_BERKAS = {
     "katalog_mastery": situs_katalog_mastery,
     "fokus_rencana": situs_fokus_rencana,
 }
-# Situs yang menggigit untuk topik yang hanya punya level P1/P2 (di luar LEVEL_TINGKAT).
-SITUS_MENGGIGIT_P1_P2 = frozenset({"fokus_rencana", "pendamping"})
+# Situs yang terbukti menggigit untuk matematika-awal lewat mutasi (lihat test_mutation_...).
+SITUS_MENGGIGIT_AWAL = frozenset(SITUS_TANPA_BERKAS)
 
 
 # ── kondisi sehat: tidak ada kebocoran ───────────────────────────────────
@@ -252,28 +257,34 @@ def test_guru_tetap_bisa_memilih_di_latihan_manual_dan_cetak():
 def test_guru_tetap_bisa_memilih_matematika_awal_di_latihan_manual_dan_cetak():
     assert TOPIK_AWAL in question_context.daftar_topik_latihan()
     question_context.pastikan_materi_dibuka([TOPIK_AWAL])
-    question_context.validasi_pilihan([TOPIK_AWAL], "P2")
-    assert question_context.profil_otomatis([TOPIK_AWAL], "P6") == "P2"
-    assert question_context.profil_otomatis([TOPIK_AWAL], "P3") == "P2"
-    for level in ("P1", "P2"):
+    for level in LEVEL_AWAL:
+        question_context.validasi_pilihan([TOPIK_AWAL], level)
         lembar = generator.buat_lembar(9, level=level, topik=TOPIK_AWAL)
-        assert {s.template_id for s in lembar.soal} == set(SEMUA_AWAL)
+        assert {s.template_id for s in lembar.soal} == JENIS_PER_LEVEL[level]
+    # P4 sengaja tanpa jenis: ditolak sebagai pilihan, dan profil otomatis memilih level terdekat.
+    with pytest.raises(ValueError):
+        question_context.validasi_pilihan([TOPIK_AWAL], "P4")
+    # Profil otomatis hanya mengikuti acuan tingkat siswa (P3-P6); P1/P2 bukan tingkat siswa -> P3.
+    # Tingkat P4 jatuh ke P3 (seri diputus ke bawah), jadi tidak pernah meledak.
+    assert {a: question_context.profil_otomatis([TOPIK_AWAL], a)
+            for a in ("P1", "P2", "P3", "P4", "P5", "P6")} == {
+        "P1": "P3", "P2": "P3", "P3": "P3", "P4": "P3", "P5": "P5", "P6": "P6"}
     paket = topics.gabungan([TOPIK_AWAL, "bilangan-dasar"])
-    assert set(SEMUA_AWAL) <= set(paket.templates) and set(SEMUA_AWAL) <= set(paket.komposisi["P1"])
+    assert set(SEMUA_AWAL) <= set(paket.templates) and set(JENIS_PER_LEVEL["P1"]) <= set(paket.komposisi["P1"])
     assert NAMA_AWAL in question_variants_ui.pemilih_isi([TOPIK_AWAL], "manual")
 
 
 @pytest.mark.parametrize("topik_manual", SEMUA_TOPIK_MANUAL)
 def test_pembaca_histori_dan_inventaris_tetap_mengenal(topik_manual):
-    semua, _, _, level_warisan = DATA_TOPIK[topik_manual]
+    semua = DATA_TOPIK[topik_manual][0]
     assert topics.dari_sesi(topik_manual).id == topik_manual
     for tid in semua:
         assert topics.pemilik_template(tid) == topik_manual
         assert topics.paket_untuk_template([tid]).id == topik_manual
         assert tid in topics.registri()
-        question_context.konteks_warisan(tid, level_warisan[0])
+        question_context.konteks_warisan(tid, _level_template(topik_manual, tid)[0])
     konteks = {(k.template_id, k.profil_parameter) for k in question_context.daftar_konteks()}
-    assert {(tid, lv) for tid in semua for lv in level_warisan} <= konteks
+    assert {(tid, lv) for tid in semua for lv in _level_template(topik_manual, tid)} <= konteks
 
 
 def test_topik_manual_saja_tetap_menyaring_remedial_dasar_tidak_berubah():
@@ -299,12 +310,12 @@ PESAN_BOCOR = {
 
 def test_pesan_bocor_lengkap():
     assert set(PESAN_BOCOR) == set(SITUS_TANPA_BERKAS)
-    assert SITUS_MENGGIGIT_P1_P2 <= set(SITUS_TANPA_BERKAS)
+    assert SITUS_MENGGIGIT_AWAL <= set(SITUS_TANPA_BERKAS)
 
 
 def _menggigit(nama, topik):
-    """Bagi topik P3+ semua situs menggigit; topik P1/P2 hanya yang bukan hampa."""
-    return topik != TOPIK_AWAL or nama in SITUS_MENGGIGIT_P1_P2
+    """Bagi bilangan-sekolah semua situs menggigit; bagi matematika-awal yang terbukti saja."""
+    return topik != TOPIK_AWAL or nama in SITUS_MENGGIGIT_AWAL
 
 
 @pytest.mark.parametrize("nama", sorted(SITUS_TANPA_BERKAS))
@@ -312,7 +323,7 @@ def test_mutation_atribut_dimatikan_membocorkan_situs(nama, topik, mutasi):
     if not _menggigit(nama, topik):
         # Situs hampa untuk topik ini: hanya buktikan ia tidak menolak diam-diam secara salah.
         SITUS_TANPA_BERKAS[nama](topik)
-        pytest.skip("situs hanya memeriksa P3-P6; hampa untuk topik P1/P2 (lihat docstring)")
+        pytest.skip("situs ini tidak menggigit untuk matematika-awal (lihat docstring)")
     with pytest.raises(AssertionError, match=PESAN_BOCOR[nama]):
         SITUS_TANPA_BERKAS[nama](topik)
 
@@ -331,9 +342,9 @@ def test_mutation_dipulihkan_hijau_lagi(monkeypatch, tmp_path, topik_manual):
         topics._daftarkan_campuran()
         with pytest.raises(AssertionError, match="seharusnya ditolak"):
             situs_fokus_rencana(topik_manual)
-        if topik_manual == TOPIK:  # topik P3+: Campuran juga ikut bocor
-            with pytest.raises(AssertionError, match="Campuran"):
-                situs_campuran(topik_manual)
+        # Kedua topik memuat P3+, jadi Campuran juga ikut bocor.
+        with pytest.raises(AssertionError, match="Campuran"):
+            situs_campuran(topik_manual)
     # keluar dari konteks: entri asli dan Campuran asli kembali
     assert topics.ambil(topik_manual) is asli
     for periksa in SITUS_TANPA_BERKAS.values():

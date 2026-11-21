@@ -23,6 +23,7 @@ import school_numbers_versions as versi
 import topics
 from baseline_bilangan_sekolah import (DAFTAR_LATIHAN_BASELINE, SIDIK_BASELINE,
                                        sidik, sidik_terukur, ukur)
+from baseline_matematika_awal import TEMPLATE_AWAL
 from choice_generation import buat_lembar_pilihan
 
 TOPIK = "bilangan-sekolah"
@@ -34,7 +35,7 @@ NAMA = "OSN_BILANGAN_SEKOLAH"
 # hanya berlaku dengan sakelarnya dimatikan, dan isinya dikeluarkan dari hitungan pembaca.
 NAMA_AWAL = "OSN_MATEMATIKA_AWAL"
 TOPIK_AWAL = "matematika-awal"
-SEMUA_AWAL = ("kenali_bentuk",)
+SEMUA_AWAL = TEMPLATE_AWAL  # daftar eksplisit di baseline_matematika_awal
 AKAR_MESIN = Path(__file__).resolve().parents[1]
 FOLDER_TEST = Path(__file__).resolve().parent
 

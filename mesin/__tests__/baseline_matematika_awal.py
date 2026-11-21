@@ -19,7 +19,24 @@ from __future__ import annotations
 from baseline_bilangan_sekolah import sidik, sidik_terukur  # noqa: F401  (dipakai tes)
 
 TOPIK = "matematika-awal"
-TEMPLATE_AWAL = ("kenali_bentuk",)
+# Jenis milik topik ini dan level pemakainya: daftar eksplisit (bukan dibaca dari topik) supaya
+# tes bersama mengunci isi topik dengan `==`. Registri global tetap superset.
+LEVEL_JENIS = {
+    "kenali_bentuk": ("P1", "P2"),
+    "ukur_satuan_tak_baku": ("P1",),
+    "baca_diagram_gambar": ("P1",),
+    "pola_posisi": ("P2",),
+    "pecahan_setengah": ("P2",),
+    "waktu_berat_awal": ("P2",),
+    "turus_gambar_awal": ("P2",),
+    "ukur_konversi_awal": ("P3",),
+    "bandingkan_ciri_bangun": ("P5",),
+    "peluang_dasar": ("P6",),
+}
+TEMPLATE_AWAL = tuple(LEVEL_JENIS)
+# Level yang punya jenis (P4 sengaja kosong, jadi lembar P4 ditolak seperti level di luar komposisi).
+LEVEL_AWAL = ("P1", "P2", "P3", "P5", "P6")
+JENIS_PER_LEVEL = {lv: frozenset(t for t, ls in LEVEL_JENIS.items() if lv in ls) for lv in LEVEL_AWAL}
 
 # kunci -> sidik per keadaan OSN_MATERI_DASAR ("0" / "1").
 SIDIK_BASELINE = {

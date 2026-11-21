@@ -209,6 +209,15 @@ KATALOG: Tuple[EntriTopik, ...] = (
         None,
         (
             ('kenali_bentuk', 'Mengenal bentuk bangun datar', ('kenali_bentuk',)),
+            ('ukur_satuan_tak_baku', 'Mengukur panjang dengan satuan tak baku', ('ukur_satuan_tak_baku',)),
+            ('baca_diagram_gambar', 'Membaca diagram gambar', ('baca_diagram_gambar',)),
+            ('pola_posisi', 'Pola dan posisi benda', ('pola_posisi',)),
+            ('pecahan_setengah', 'Pecahan setengah dan seperempat', ('pecahan_setengah',)),
+            ('waktu_berat_awal', 'Jam penuh dan berat kg', ('waktu_berat_awal',)),
+            ('turus_gambar_awal', 'Membaca diagram turus', ('turus_gambar_awal',)),
+            ('ukur_konversi_awal', 'Mengubah satuan panjang dan berat', ('ukur_konversi_awal',)),
+            ('bandingkan_ciri_bangun', 'Membandingkan ciri bangun datar', ('bandingkan_ciri_bangun',)),
+            ('peluang_dasar', 'Peluang dan kemungkinan kejadian', ('peluang_dasar',)),
         ),
     ),
 )

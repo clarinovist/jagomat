@@ -6,9 +6,10 @@ yang dipasang tes. Pembaca histori (registri, label, kartu, inventaris) selalu
 mengenal topik; yang ditolak saat mati adalah PEMBUATAN soal dan penawaran topik.
 Sakelar dibaca tiap panggilan (env-only), jadi kasus proses-baru lewat subprocess.
 
-Topik ini hanya memuat P1/P2, jadi `question_context.topik_dasar` JUGA menyembunyikannya
-selama OSN_MATERI_DASAR=0. Tes di sini memasang OSN_MATERI_DASAR=1 (kasus yang lebih
-kuat); tanpa itu "sakelar mati menolak" lulus hampa karena gerbang dasar yang menolak.
+Topik ini memuat P3 ke atas, jadi `question_context.topik_dasar` TIDAK lagi menyembunyikannya
+(bedanya dengan saat ia hanya P1/P2): sakelar ini satu-satunya palang pembuatan. Tes di sini
+memasang OSN_MATERI_DASAR=1 untuk baseline lama dan menguji kedua nilai gerbang itu eksplisit,
+supaya "sakelar mati menolak" tidak lulus hampa karena gerbang lain.
 """
 from __future__ import annotations
 
@@ -26,18 +27,19 @@ import generator
 import matematika_awal_versions as versi
 import question_context
 import topics
-from baseline_matematika_awal import (DAFTAR_LATIHAN_BASELINE, JUMLAH_REGISTRI_LAMA,
+from baseline_matematika_awal import (DAFTAR_LATIHAN_BASELINE, JENIS_PER_LEVEL,
+                                      JUMLAH_REGISTRI_LAMA, LEVEL_AWAL, LEVEL_JENIS,
                                       SIDIK_BASELINE, SIDIK_KONTEKS_LAMA,
-                                      SIDIK_REGISTRI_LAMA, TOPIK_LAMA, konteks_lama,
-                                      sidik, sidik_terukur)
+                                      SIDIK_REGISTRI_LAMA, TEMPLATE_AWAL, TOPIK_LAMA,
+                                      konteks_lama, sidik, sidik_terukur)
 from choice_generation import buat_lembar_pilihan
 
 TOPIK = "matematika-awal"
-SEMUA = ("kenali_bentuk",)
+SEMUA = TEMPLATE_AWAL  # sembilan jenis, daftar eksplisit di baseline_matematika_awal
 NAMA = "OSN_MATEMATIKA_AWAL"
 AKAR_MESIN = Path(__file__).resolve().parents[1]
 FOLDER_TEST = Path(__file__).resolve().parent
-LEVEL = ("P1", "P2")
+LEVEL = LEVEL_AWAL
 
 
 @pytest.fixture(autouse=True)
@@ -90,6 +92,7 @@ def test_sakelar_bukan_bagian_registri_admin_dan_dibaca_tiap_panggilan(monkeypat
 def test_template_baru_sama_persis_dengan_template_topik():
     """Jenis yang lupa didaftarkan di sakelar akan lolos palang: dikunci dua arah di sini."""
     assert versi.TEMPLATE_BARU == frozenset(topics.ambil(TOPIK).templates) == frozenset(SEMUA)
+    assert len(SEMUA) == 10 and len(versi.TEMPLATE_BARU) == 10
     for tid in topics.ambil(TOPIK).templates:
         assert topics.pemilik_template(tid) == TOPIK
 
@@ -110,7 +113,7 @@ def test_mati_pembaca_tetap_mengenal_topik_dan_id(mati):
         assert kartu_untuk(tid) is not None
         assert nama_tipe_soal(tid) != tid
     assert {(k.template_id, k.profil_parameter) for k in question_context.daftar_konteks()
-            } >= {(tid, lv) for tid in SEMUA for lv in LEVEL}
+            } >= {(tid, lv) for tid in SEMUA for lv in LEVEL_JENIS[tid]}
 
 
 def _harus_ditolak(fungsi, *args, **kwargs):
@@ -127,11 +130,12 @@ def periksa_pembuatan_ditolak():
     gabungan = topics.gabungan([TOPIK, "pola-bilangan"])
     for level in LEVEL:
         _harus_ditolak(generator.buat_lembar, 0, level=level, topik=TOPIK)
-        for tid in SEMUA:
+        for tid in sorted(JENIS_PER_LEVEL[level]):
             _harus_ditolak(generator.buat_lembar, 0, urutan=(tid,) * 3, level=level, topik=TOPIK)
         _harus_ditolak(buat_lembar_pilihan, 0, level=level, topik=TOPIK)
     for tid in SEMUA:
-        _harus_ditolak(generator.buat_lembar, 0, urutan=(tid,), level="P1", topik=gabungan)
+        level = LEVEL_JENIS[tid][0]
+        _harus_ditolak(generator.buat_lembar, 0, urutan=(tid,), level=level, topik=gabungan)
         _harus_ditolak(generator.buat_lembar, 0, urutan=(tid,), level="P3", topik="pola-bilangan")
 
 
@@ -150,7 +154,9 @@ def test_mati_lembar_ditolak_semua_jalur(mati):
 
 def test_mati_buat_soal_satu_soal_tidak_digate_seperti_preseden(mati):
     """Audit dan sapu kontrak memakai buat_soal; pembuat sesi lewat buat_lembar (digate)."""
-    assert generator.buat_soal("kenali_bentuk", 1, "P1", TOPIK).template_id == "kenali_bentuk"
+    for tid in SEMUA:
+        level = LEVEL_JENIS[tid][0]
+        assert generator.buat_soal(tid, 1, level, TOPIK).template_id == tid
 
 
 def test_mati_palang_materi_dan_template(mati):
@@ -214,16 +220,19 @@ def test_bawaan_hidup_topik_ditawarkan_hanya_di_latihan_manual():
     assert TOPIK in daftar
     assert [t for t in daftar if t != TOPIK] == DAFTAR_LATIHAN_BASELINE["1"]
     question_context.pastikan_materi_dibuka([TOPIK])
-    question_context.validasi_pilihan([TOPIK], "P2")
+    for level in LEVEL:
+        question_context.validasi_pilihan([TOPIK], level)
 
 
 def test_bawaan_hidup_lembar_dan_pilihan_ganda_dibuat():
     for level in LEVEL:
         lembar = generator.buat_lembar(11, level=level, topik=TOPIK)
-        assert {s.template_id for s in lembar.soal} == set(SEMUA)
+        assert {s.template_id for s in lembar.soal} == JENIS_PER_LEVEL[level]
         pg = buat_lembar_pilihan(11, level=level, topik=TOPIK)
         assert len(pg.soal) == len(lembar.soal)
-    assert generator.buat_soal("kenali_bentuk", 5, "P2", TOPIK).template_id == "kenali_bentuk"
+    for tid in SEMUA:
+        level = LEVEL_JENIS[tid][-1]
+        assert generator.buat_soal(tid, 5, level, TOPIK).template_id == tid
 
 
 def test_bawaan_hidup_guru_boleh_menggabungkan_manual():
@@ -243,11 +252,21 @@ def test_bawaan_hidup_identitas_campuran_dan_siklus_tetap():
     assert ukuran["katalog_penawaran"] == SIDIK_BASELINE["1"]["katalog_penawaran"]
 
 
-def test_bawaan_hidup_gerbang_dasar_tetap_menutup_saat_materi_dasar_mati(monkeypatch):
+def test_bawaan_hidup_gerbang_dasar_tidak_lagi_menutup_topik(monkeypatch):
+    """Topik memuat P3+, jadi bukan "topik dasar": OSN_MATERI_DASAR=0 tidak menyembunyikannya."""
     monkeypatch.setenv("OSN_MATERI_DASAR", "0")
-    assert TOPIK not in question_context.daftar_topik_latihan()
-    with pytest.raises(ValueError, match="belum dibuka"):
-        question_context.pastikan_materi_dibuka([TOPIK])
+    assert question_context.topik_dasar(TOPIK) is False
+    assert TOPIK in question_context.daftar_topik_latihan()
+    question_context.pastikan_materi_dibuka([TOPIK])
+    assert len(generator.buat_lembar(2, level="P3", topik=TOPIK).soal) == 10
+
+
+@pytest.mark.parametrize("materi_dasar", ["0", "1"])
+def test_mati_menolak_dengan_gerbang_dasar_terbuka_maupun_tertutup(mati, monkeypatch, materi_dasar):
+    """Sakelar mati menolak lewat palangnya sendiri, bukan karena gerbang lain (tidak hampa)."""
+    monkeypatch.setenv("OSN_MATERI_DASAR", materi_dasar)
+    periksa_pembuatan_ditolak()
+    periksa_topik_tidak_ditawarkan()
 
 
 # ── proses terpisah (tidak ada ketergantungan saat impor) ────────────────

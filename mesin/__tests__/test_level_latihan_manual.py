@@ -40,8 +40,11 @@ def test_guard_tingkat_semantik_tuple(nilai):
     assert templates.tingkat_valid(nilai) is (nilai in TINGKAT)
 
 
-# Topik yang hanya memuat P1/P2; keluarkan dari himpunan ini bila jenis P3+ ditambahkan.
-TOPIK_DASAR_SAJA = frozenset({'bilangan-dasar', 'matematika-awal'})
+# Topik yang hanya memuat P1/P2; keluarkan dari himpunan ini bila jenis P3+ ditambahkan
+# (matematika-awal dikeluarkan 21 Nov 2026: kini memuat P1, P2, P3, P5, P6).
+TOPIK_DASAR_SAJA = frozenset({'bilangan-dasar'})
+# Topik yang komposisinya memuat P1/P2 (dasar saja ATAU bersama P3+): satu-satunya yang menerima profil dasar.
+TOPIK_DENGAN_DASAR = TOPIK_DASAR_SAJA | {'matematika-awal'}
 
 
 @pytest.mark.parametrize('profil', DASAR)
@@ -49,7 +52,7 @@ def test_bentuk_latihan_dasar_hanya_untuk_konten_yang_disetujui(profil):
     assert templates.level_valid(profil)
     assert konteks.profil_dari_form({'profil_parameter': [profil]}) == profil
     for topik in topics.daftar_topik():
-        if topik in TOPIK_DASAR_SAJA:
+        if topik in TOPIK_DENGAN_DASAR:
             assert profil in topics.ambil(topik).komposisi
             konteks.validasi_pilihan([topik], profil)
         else:

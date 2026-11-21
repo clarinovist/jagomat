@@ -17,6 +17,7 @@ import kurikulum_kelas_hitung as hitung  # noqa: E402
 def _sakelar_mati(monkeypatch):
     monkeypatch.setenv("OSN_DASAR_LENGKAP", "0")
     monkeypatch.setenv("OSN_BILANGAN_SEKOLAH", "0")
+    monkeypatch.delenv("OSN_MATEMATIKA_AWAL", raising=False)  # bawaan 1 (menyala)
 
 
 def _bab(kelas: int, nomor: int) -> kk.Bab:
@@ -27,17 +28,35 @@ def _ringkas(kelas: int, nomor: int) -> hitung.RingkasanBab:
     return hitung.ringkasan_bab(_bab(kelas, nomor), kelas, {})
 
 
+# Bab sintetis: data nyata tidak lagi punya bab "belum" sejak topik matematika-awal mengisi 11 bab
+# (21 Nov 2026), jadi kasus "belum" diuji dengan bab buatan, bukan dengan bab kurikulum yang bisa terisi.
+BAB_TANPA_PELATIH = kk.Bab(1, "Uji tanpa pelatih", ("x",), ())
+BAB_GRUP_KELAS_LAIN = kk.Bab(2, "Uji grup kelas lain", ("x",), (("pola-bilangan", "siklus", "sebagian"),))
+
+
 def test_status_mengikuti_level_kelas_bukan_data_mentah():
-    assert _ringkas(1, 4).status == hitung.STATUS_BELUM
+    assert hitung.ringkasan_bab(BAB_TANPA_PELATIH, 1, {}).status == hitung.STATUS_BELUM
     assert _ringkas(1, 2).status == hitung.STATUS_ADA
     assert _ringkas(1, 6).status == hitung.STATUS_SEBAGIAN
-    # Bab kelas 2 menunjuk grup yang baru ada di kelas 3+: tidak dihitung tersedia di kelas 2.
-    r = _ringkas(2, 4)
+    # Bab menunjuk grup yang baru ada di kelas 3+: tidak dihitung tersedia di kelas 2.
+    r = hitung.ringkasan_bab(BAB_GRUP_KELAS_LAIN, 2, {})
     assert r.status == hitung.STATUS_BELUM and not r.pelatih[0].tersedia and r.pelatih[0].kelas_lain[0] == 3
+    # Bab nyata yang dulu "belum" kini sebagian: grup matematika-awal tersedia di levelnya sendiri
+    # (K2 B4 menambah pola_posisi ke pelatih lama pola-bilangan/siklus, yang tetap tak tersedia di kelas 2).
+    r24 = _ringkas(2, 4)
+    assert r24.status == hitung.STATUS_SEBAGIAN
+    assert [p.tersedia for p in r24.pelatih] == [False, True]
+    assert _ringkas(1, 4).status == hitung.STATUS_SEBAGIAN
+
+
+def test_tidak_ada_bab_belum_ada_soal_di_data_nyata():
+    status = [hitung.ringkasan_bab(b, k.kelas, {}).status for k in kk.KELAS for b in k.bab]
+    assert hitung.STATUS_BELUM not in status
 
 
 def test_jenis_soal_adalah_template_unik_di_level_kelas():
-    assert _ringkas(1, 2).jenis == 2 and _ringkas(1, 4).jenis == 0
+    assert _ringkas(1, 2).jenis == 2 and hitung.ringkasan_bab(BAB_TANPA_PELATIH, 1, {}).jenis == 0
+    assert _ringkas(1, 4).jenis == 1  # kenali_bentuk
     ref = _ringkas(5, 6).template
     assert len(ref) == len(set(ref))
 
@@ -119,5 +138,5 @@ def test_buat_soal_template_tertutup_dikeluarkan_dan_dilaporkan():
 
 
 def test_buat_soal_bab_tanpa_pelatih():
-    hasil = buat.buat_soal_bab(1, _bab(1, 4), 10, 2)
+    hasil = buat.buat_soal_bab(1, BAB_TANPA_PELATIH, 10, 2)
     assert not hasil.bisa_dibuat and not hasil.ada_pelatih

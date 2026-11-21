@@ -3,6 +3,8 @@ from dataclasses import replace
 import random
 import re
 
+from awal_pola_posisi import pengecoh_tambahan as pengecoh_pola_posisi
+from awal_ukur_satuan_tak_baku import pengecoh_tambahan as pengecoh_ukur_satuan_tak_baku
 from generator import Lembar, buat_lembar
 from multiple_choice import SIMBOL_PERBANDINGAN, buat_pilihan, pilihan_tertanam, nilai_semantis
 from topics import paket_untuk_template
@@ -18,7 +20,18 @@ TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   # Tahap B: jalur K selalu ada dan H hanya kadang; 2 pengecoh cukup.
                   'tambah_kurang_bersusun', 'kali_bagi_sekolah', 'kalimat_matematika',
                   # Matematika Awal: pengecoh = bangun lain di himpunan level (K) atau salah hitung sisi.
-                  'kenali_bentuk'})
+                  'kenali_bentuk',
+                  # Matematika Awal lanjutan: jalur K/H dari malrule (atau benda lain di soal) selalu >= 2 per
+                  # parameter domain; 'empat-v1' tidak terjamin. ukur_konversi_awal tetap 'empat-v1' (>= 3).
+                  'ukur_satuan_tak_baku', 'baca_diagram_gambar', 'pola_posisi', 'pecahan_setengah',
+                  'waktu_berat_awal', 'turus_gambar_awal', 'bandingkan_ciri_bangun'})
+# Kunci kategori (nama/kata/benda) per jenis Matematika Awal; sisanya jatuh ke 'angka'.
+KATEGORI_AWAL = {
+    'ukur_satuan_tak_baku': frozenset({'banding'}),
+    'baca_diagram_gambar': frozenset({'terbanyak'}),
+    'turus_gambar_awal': frozenset({'terbanyak'}),
+    'peluang_dasar': frozenset({'lebih_mungkin', 'kepastian'}),
+}
 
 
 def kebijakan_soal(soal):
@@ -34,6 +47,13 @@ def kebijakan_soal(soal):
         return 'tiga-v1', 'simbol_perbandingan'
     if tid == 'kenali_bentuk' and p['varian'] != 'banyak_sisi':
         return 'tiga-v1', 'kategori'  # kunci nama bangun; banyak_sisi jatuh ke 'angka'
+    if tid == 'pola_posisi':
+        return 'tiga-v1', 'kategori'  # semua varian: kunci satu kata huruf kecil
+    if p.get('varian') in KATEGORI_AWAL.get(tid, ()):
+        return 'tiga-v1', 'kategori'  # kunci nama benda/kategori/kata
+    if tid == 'peluang_dasar':
+        # banyak_hasil: kunci angka, 2 pengecoh; peluang_pecahan: kunci "3/5", 4 pengecoh murni malrule.
+        return ('tiga-v1' if p['varian'] == 'banyak_hasil' else 'empat-v1'), 'angka'
     if tid == 'jam_selesai':
         return 'tiga-v1', 'durasi' if p['varian'] == 'cari_durasi' else 'jam'
     if tid == 'skala_peta' and p['varian'] == 'cari_skala':
@@ -81,6 +101,13 @@ def kandidat(soal):
     elif tid == 'urutkan_bilangan':
         # Pengecoh sah: bilangan lain yang memang tertulis di soal (kunci dibuang oleh saringan).
         nilai += [str(x) for x in p['bilangan']]
+    elif tid == 'pola_posisi':
+        # Pengecoh sah: benda lain yang ada di soal/himpunan soal (periode 2 hanya punya 1 malrule).
+        nilai += list(pengecoh_pola_posisi(p))
+    elif tid == 'ukur_satuan_tak_baku':
+        # Varian banding hanya punya satu malrule (benda lebih pendek); tambahan "sama panjang"
+        # bukan hipotesis kesalahan, jadi tidak masuk malrule.
+        nilai += list(pengecoh_ukur_satuan_tak_baku(p))
     elif tid == 'bandingkan_bilangan':
         # Tiga opsi tetap <, >, = ; dua pengecoh = dua simbol lain, bukan dari malrule.
         nilai += list(SIMBOL_PERBANDINGAN)

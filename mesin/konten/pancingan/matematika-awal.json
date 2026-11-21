@@ -10,6 +10,78 @@
     "Tanya: apa bedanya persegi dan persegi panjang? Minta anak menunjuk sisi yang sama panjang."
    ],
    "tindak_lanjut": "Gambar tiap bangun bersama anak, lalu tulis di bawahnya berapa sisi dan sudutnya. Cocokkan dengan benda di sekitar yang bentuknya sama."
+  },
+  "ukur_satuan_tak_baku": {
+   "pertanyaan": [
+    "Minta anak menunjuk ujung awal dan ujung akhir benda, lalu menghitung satuan yang muat tanpa celah.",
+    "Tanya: dua benda diukur pakai satuan yang sama, bagaimana tahu mana yang lebih panjang?",
+    "Tanya: dua pita disambung, panjangnya ditambah atau dikurangi? Minta anak memberi alasannya."
+   ],
+   "tindak_lanjut": "Ukur dua benda di rumah memakai klip kertas atau ubin yang sama, tulis angkanya, lalu minta anak membandingkan panjangnya dan menyambung dua tali."
+  },
+  "baca_diagram_gambar": {
+   "pertanyaan": [
+    "Minta anak menunjuk satu titik sambil menyebut benda yang diwakilinya, lalu menghitung titik pada satu baris.",
+    "Tanya: baris mana yang paling panjang, dan apa artinya untuk banyak bendanya?",
+    "Tanya: untuk tahu lebihnya, titiknya dijumlah atau dikurangi? Minta anak menunjukkannya di baris."
+   ],
+   "tindak_lanjut": "Buat diagram bersama anak: gambar titik untuk mainan atau buah di rumah, satu titik satu benda, lalu ajukan pertanyaan terbanyak, lebih berapa, dan jumlahnya."
+  },
+  "pola_posisi": {
+   "pertanyaan": [
+    "Minta anak menunjuk bagian yang terus berulang pada barisan itu, lalu menyebutkannya dengan suara keras.",
+    "Minta anak menyusun benda sungguhan (pensil warna atau kancing) mengikuti pola itu, lalu menunjuk benda berikutnya.",
+    "Minta anak mengangkat tangan kiri dan tangan kanan, lalu menyebut benda yang ada di sisi kiri dan sisi kanannya."
+   ],
+   "tindak_lanjut": "Susun benda nyata (kancing, pensil warna) mengikuti pola bersama anak. Lalu ajak anak berbaris dengan teman dan tanya siapa di depan, di belakang, di kiri, dan di kanannya."
+  },
+  "pecahan_setengah": {
+   "pertanyaan": [
+    "Minta anak membagi sekumpulan benda (kancing atau kelereng) jadi dua tumpukan sama banyak, lalu menyebut tiap tumpukan.",
+    "Minta anak melipat kertas jadi empat bagian sama besar, lalu menyebut nama satu bagian dan menunjuk satu bagian itu.",
+    "Minta anak menghitung semua benda, lalu yang sudah diberikan, lalu yang masih tersisa, sambil menunjuk tumpukannya."
+   ],
+   "tindak_lanjut": "Lipat kertas jadi dua, lalu jadi empat bagian sama besar. Bagi 12 kancing jadi dua dan empat tumpukan bersama anak, lalu hitung tiap tumpukan dan sisanya."
+  },
+  "waktu_berat_awal": {
+   "pertanyaan": [
+    "Minta anak menunjuk jam mulai dan jam selesai di jam dinding, lalu menghitung loncatan jamnya satu per satu.",
+    "Tanya: kalau sekarang pukul 4, tiga jam lagi jarum pendek ada di angka berapa? Minta anak menghitung maju.",
+    "Minta anak membayangkan dua kantong beras: kalau digabung jadi berapa kg, dan mana yang lebih berat?"
+   ],
+   "tindak_lanjut": "Pasang jam dinding atau jam mainan, lalu latihan memajukan jarum jam per jam. Timbang dua kantong belanjaan, tulis beratnya, lalu tanyakan jumlah dan selisihnya."
+  },
+  "turus_gambar_awal": {
+   "pertanyaan": [
+    "Minta anak menunjuk satu kelompok garis dan menyebut isinya, lalu menghitung kelompok berikutnya.",
+    "Tanya: kalau satu kelompok isinya lima garis, berapa garis untuk dua kelompok dan tiga garis sisa?",
+    "Minta anak membandingkan dua baris: baris mana yang lebih panjang, dan berapa garis selisihnya?"
+   ],
+   "tindak_lanjut": "Ajak anak menghitung benda di rumah, misalnya sendok, piring, dan gelas. Catat dengan turus kelompok lima, lalu tanyakan mana yang terbanyak dan berapa jumlah semuanya."
+  },
+  "ukur_konversi_awal": {
+   "pertanyaan": [
+    "Minta anak menyebut dulu: satu meter sama dengan berapa sentimeter, dan satu kilogram sama dengan berapa gram?",
+    "Tanya: dari satuan besar ke satuan kecil, angkanya jadi makin banyak atau makin sedikit? Jadi dikali atau dibagi?",
+    "Minta anak menunjuk bagian soal yang sudah gram dan bagian yang masih kilogram."
+   ],
+   "tindak_lanjut": "Ambil pita 1 meter atau penggaris 30 cm. Tunjukkan bahwa 1 meter muat 100 sentimeter, lalu ubah angka soal sambil menyebut satuannya."
+  },
+  "bandingkan_ciri_bangun": {
+   "pertanyaan": [
+    "Minta anak menunjuk garis lipat tempat bangun bisa dilipat dan kedua bagiannya saling menutupi tepat.",
+    "Tanya: sisi mana saja yang berhadapan dan tidak akan bertemu walau diperpanjang?",
+    "Minta anak menunjuk pojok yang seperti pojok kertas, lalu menghitung berapa banyak."
+   ],
+   "tindak_lanjut": "Gambar tiap bangun di kertas bersama anak, lipat atau gunting untuk mencari sumbu simetri, lalu tulis banyak sumbu, sisi sejajar, dan sudut siku-siku di bawahnya."
+  },
+  "peluang_dasar": {
+   "pertanyaan": [
+    "Minta anak membandingkan jumlah bola tiap warna, lalu menebak warna mana yang paling mungkin terambil.",
+    "Tanya: kantong hanya berisi bola merah, terambil bola biru itu pasti, mungkin, atau mustahil? Minta anak menjelaskan.",
+    "Minta anak menulis peluang sebagai pecahan: banyak bola yang diinginkan di atas, banyak semua bola di bawah."
+   ],
+   "tindak_lanjut": "Siapkan kantong berisi beberapa bola berwarna. Ambil satu bola, catat warnanya, kembalikan; ulangi 20 kali. Bandingkan hasilnya dengan jumlah bola tiap warna."
   }
  }
 }

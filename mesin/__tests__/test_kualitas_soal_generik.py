@@ -14,7 +14,10 @@ Tahap B urutkan_bilangan, tambah_kurang_bersusun, kali_bagi_sekolah (P3 fakta
 domain sah 161 -> 144 teramati), dan kalimat_matematika (empat bentuk per level).
 Konsentrasi kerangka lembar terukur 1,90/1,90/1,93 (di bawah 2,1), jadi
 UTANG_LEMBAR Tahap A dilunasi dan dihapus.
-Matematika-awal (21 Nov 2026): kenali_bentuk P1 18/19 dan P2 26/26 tanda tangan dengan
+Matematika-awal, sepuluh jenis (21 Nov 2026): baris `matematika-awal` di _DATA/_LEMBAR/ALASAN_RUANG
+diukur lewat jalur asli (_ukur seed 0..299, lembar 0..99) pada kedua versi katalog dan sama.
+Konsentrasi lembar P3 2,90 dan P6 2,49 (satu jenis per level) di atas 2,1: UTANG_LEMBAR bertulis alasan.
+Awalnya (kerangka): kenali_bentuk P1 18/19 dan P2 26/26 tanda tangan dengan
 tiga bentuk, sama dengan domain enumerator eksplisit 19/26 (P1 18 kerangka karena dua
 kalimat ciri, "punya 3 sisi dan 3 sudut" dan "punya 4 sisi dan 4 sudut", hanya beda angka). Lembar 10 soal satu jenis; konsentrasi kerangka
 terukur 1,34/1,00 (di bawah 2,1), jadi tanpa UTANG_LEMBAR.
@@ -54,6 +57,15 @@ bilangan-sekolah tambah_kurang_bersusun P3:2:300:kurang,tambah P4:2:300:kurang,t
 bilangan-sekolah kali_bagi_sekolah P3:2:144:bagi,kali P4:2:262:bagi,kali P5:2:300:bagi,kali
 bilangan-sekolah kalimat_matematika P3:4:292:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P4:4:300:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P5:4:267:bagi_akhir,bagi_awal,kali_akhir,kali_awal
 matematika-awal kenali_bentuk P1:18:19:banyak_sisi,benda,dari_ciri P2:26:26:banyak_sisi,benda,dari_ciri
+matematika-awal ukur_satuan_tak_baku P1:36:277:banding,sambung,selisih
+matematika-awal baca_diagram_gambar P1:295:295:baca,jumlah,selisih,terbanyak
+matematika-awal pola_posisi P2:108:116:atas_bawah,kiri_kanan,pola,urutan
+matematika-awal pecahan_setengah P2:18:83:potong_sama,separuh,seperempat,sisa
+matematika-awal waktu_berat_awal P2:16:240:banding_berat,jam_penuh_setelah,jumlah_berat,lama_kegiatan
+matematika-awal turus_gambar_awal P2:288:288:baca,jumlah,selisih,terbanyak
+matematika-awal ukur_konversi_awal P3:10:92:cm_ke_m,g_ke_kg,jumlah_campur,kg_ke_g,m_ke_cm,sisa_potong
+matematika-awal bandingkan_ciri_bangun P5:38:38:banyak_sudut_siku,pasang_sejajar,selisih_ciri,sumbu_simetri
+matematika-awal peluang_dasar P6:22:103:banyak_hasil,kepastian,lebih_mungkin,peluang_pecahan
 berhitung-sekolah nilai_tempat_ribuan P3:2:257:nilai_angka,selisih_nilai P4:4:298:nilai_angka,selisih_nilai
 berhitung-sekolah pecahan_bagian_dasar P3:6:162:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian P4:6:204:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian
 berhitung-sekolah pembagian_dasar P3:5:204:bagi_rata,operasi P4:5:254:bagi_rata,operasi
@@ -164,8 +176,11 @@ bilangan-dasar P2 10 1
 bilangan-sekolah P3 10 5
 bilangan-sekolah P4 10 5
 bilangan-sekolah P5 10 5
-matematika-awal P1 10 1
-matematika-awal P2 10 1
+matematika-awal P1 10 3
+matematika-awal P2 10 5
+matematika-awal P3 10 1
+matematika-awal P5 10 1
+matematika-awal P6 10 1
 berhitung-sekolah P3 8 4
 berhitung-sekolah P4 8 4
 aritmatika-lanjut P5 10 7
@@ -229,12 +244,22 @@ ALASAN_RUANG = {
     "siklus_hari": "Tujuh hari dikali pool 6/7 jarak hari; support 42/49.",
     "jumlah_deret": "P6 awal 1..9 x empat beda x empat panjang; 119 sampel dari support 144.",
     "kenali_bentuk": "Domain sah P1=19/P2=26 (ciri, benda, banyak sisi per himpunan bangun); seed 0..299 menutup seluruh domain; diuji enumerator, bukan variasi nama/benda.",
+    "pola_posisi": "Domain sah P2=124 (pola 40, urutan 24, kiri_kanan 36, atas_bawah 24: himpunan kata, antrean, dan benda per varian); seed 0..299 menutup sebagian besar domain; diuji enumerator, bukan variasi nama/benda.",
+    "pecahan_setengah": "Domain sah P2=84 (jumlah benda genap 6..20 untuk separuh, kelipatan 4 sampai 40 untuk seperempat, tiga cerita, dua pecahan x tiga benda untuk potong_sama); seed 0..299 mengukur 83; diuji enumerator, angka tidak diperlebar demi hitungan.",
+    "ukur_konversi_awal": "Domain sah P3=198 (m/cm/kg/g kecil, 9 nilai per varian; sisa_potong 9x3 benda; jumlah_campur 5x9x3 benda); sampler memilih varian seragam, seed 0..299 mengukur 92; angka tidak dilebarkan demi hitungan; diuji enumerator.",
+    "bandingkan_ciri_bangun": "Domain sah P5=38 (fakta bangun datar baku: sumbu 5, sisi sejajar 6, sudut siku 4, selisih 23 pasang); sampler memilih varian seragam, seed 0..299 menutup seluruh domain; fakta terbatas jumlah bangun yang tak diperdebatkan; diuji enumerator.",
+    "peluang_dasar": "Domain sah P6=109 (36 urutan jumlah bola x arah, 24 kepastian, 21 syarat dadu/kartu, 28 pasangan jumlah bola berpecahan sederhana); seed 0..299 mengukur 103; diuji enumerator, bukan variasi nama/benda.",
     "kali_bagi_sekolah": "Fakta P3 kali 2..10 x 2..10 dan bagi padanannya: domain sah 161; seed 0..299 mengukur 144; diuji enumerator.",
 }
 # Utang lama P4 tetap lunas. Pengecualian baru hanya topik manual P1/P2.
 UTANG_LEMBAR = {
     ("bilangan-dasar", "P1"): (10.0, "writer bawaan (OSN_DASAR_LENGKAP=0) hanya tambah_dasar; campuran menyusul"),
     ("bilangan-dasar", "P2"): (10.0, "writer bawaan (OSN_DASAR_LENGKAP=0) hanya tambah_dasar; campuran menyusul"),
+    # Matematika-awal P3/P6 hanya satu jenis (keputusan pemilik: satu jenis per bab di level itu), jadi
+    # sepuluh soal satu lembar semuanya berkerangka teks sejenis. Terukur 2,90 (P3) dan 2,49 (P6)
+    # rata-rata kerangka terbanyak per lembar (seed 0..99); domain/teks tidak dilebarkan demi hitungan.
+    ("matematika-awal", "P3"): (3.0, "satu jenis (ukur_konversi_awal) per level: rata-rata 2,9 dari sepuluh soal berkerangka teks sama (hanya angka beda; hanya 10 kerangka teks); domain 198 tidak dilebarkan demi hitungan"),
+    ("matematika-awal", "P6"): (2.6, "satu jenis (peluang_dasar) per level: kerangka teks per varian sedikit (22 total) sehingga rata-rata 2,5 dari sepuluh soal berkerangka sama; domain 109 tidak dilebarkan demi hitungan"),
 }
 POLA_ANGKA = re.compile(r"\d+(?:[.,]\d+)?")
 
