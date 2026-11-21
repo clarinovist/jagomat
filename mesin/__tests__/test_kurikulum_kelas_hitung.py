@@ -38,7 +38,8 @@ def test_status_mengikuti_level_kelas_bukan_data_mentah():
     assert hitung.ringkasan_bab(BAB_TANPA_PELATIH, 1, {}).status == hitung.STATUS_BELUM
     assert _ringkas(1, 2).status == hitung.STATUS_ADA
     assert _ringkas(1, 6).status == hitung.STATUS_ADA  # naik lewat tambah_kurang_20
-    assert _ringkas(1, 7).status == hitung.STATUS_SEBAGIAN
+    assert _ringkas(1, 7).status == hitung.STATUS_ADA  # naik lewat ukur_satuan_tak_baku bergambar (adegan_awal)
+    assert _ringkas(1, 4).status == hitung.STATUS_SEBAGIAN  # kenali_bentuk belum bergambar
     # Bab menunjuk grup yang baru ada di kelas 3+: tidak dihitung tersedia di kelas 2.
     r = hitung.ringkasan_bab(BAB_GRUP_KELAS_LAIN, 2, {})
     assert r.status == hitung.STATUS_BELUM and not r.pelatih[0].tersedia and r.pelatih[0].kelas_lain[0] == 3

@@ -112,9 +112,9 @@ def test_status_dihitung_dari_level_kelas(server):
     assert "<strong>Perlu disempurnakan</strong>" in _baris(isi, 1, 4)[4]  # kenali_bentuk (sebagian)
     assert "Belum ada soal" not in isi  # tak ada bab "belum" di data nyata
     assert "<strong>Sudah ada soal</strong>" in _baris(isi, 1, 2)[4]
-    # K1 B6 naik ke "ada" lewat tambah_kurang_20; K1 B7 (satuan tak baku, teks) tetap sebagian.
+    # K1 B6 naik ke "ada" lewat tambah_kurang_20; K1 B7 naik lewat satuan tak baku bergambar (adegan_awal).
     assert "<strong>Sudah ada soal</strong>" in _baris(isi, 1, 6)[4]
-    assert "<strong>Perlu disempurnakan</strong>" in _baris(isi, 1, 7)[4]
+    assert "<strong>Sudah ada soal</strong>" in _baris(isi, 1, 7)[4]
 
 
 def test_status_belum_ada_soal_untuk_bab_tanpa_pelatih(server, bab_tanpa_pelatih):

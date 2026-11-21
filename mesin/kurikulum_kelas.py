@@ -66,7 +66,7 @@ KELAS: Tuple[Kelas, ...] = (
              ("matematika-awal", "tambah_kurang_20", "ada"))),
         Bab(7, "Mengukur panjang benda",
             ("Membandingkan panjang secara langsung", "Mengukur dengan satuan tidak baku"),
-            (("matematika-awal", "ukur_satuan_tak_baku", "sebagian"),)),
+            (("matematika-awal", "ukur_satuan_tak_baku", "ada"),)),
         Bab(8, "Mengenal diagram",
             ("Diagram gambar sederhana",),
             (("matematika-awal", "baca_diagram_gambar", "ada"),)),
