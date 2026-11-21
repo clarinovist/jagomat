@@ -81,9 +81,14 @@ def _busur():
             "sinar": [{"huruf": "A", "sudut": 0}, {"huruf": "C", "sudut": 70}]}
 
 
-def test_enam_adegan_terdaftar_dan_masing_masing_sah():
-    assert data_modul.ADEGAN_DIDUKUNG == ("deret_ikon", "turus", "pita_ukur", "bentuk", "jam_analog", "busur")
-    for data in (_turus(), _ukur(), _sambung(), _bentuk(), _jam(), _busur()):
+def _tumpukan():
+    return {"adegan": "tumpukan_kubus", "tinggi": [[1, 0], [3, 2]]}
+
+
+def test_tujuh_adegan_terdaftar_dan_masing_masing_sah():
+    assert data_modul.ADEGAN_DIDUKUNG == ("deret_ikon", "turus", "pita_ukur", "bentuk", "jam_analog", "busur",
+                                          "tumpukan_kubus")
+    for data in (_turus(), _ukur(), _sambung(), _bentuk(), _jam(), _busur(), _tumpukan()):
         validasi_adegan_awal(data)
         DescriptorVisual("adegan_awal", 1, data)
 
@@ -104,6 +109,9 @@ def test_field_antar_adegan_tidak_boleh_tercampur():
     _tolak({**_bentuk(), "jam": 3, "menit": 0})
     _tolak({**_busur(), "tampil": "satu"})
     _tolak({**_jam(), "pusat": "B"})
+    _tolak({**_tumpukan(), "tampil": "satu"})
+    _tolak({**_busur(), "tinggi": [[1, 0], [3, 2]]})
+    _tolak({**_jam(), "tinggi": [[1, 0], [3, 2]]})
 
 
 def test_bentuk_beku_juga_lolos_jalur_renderer():

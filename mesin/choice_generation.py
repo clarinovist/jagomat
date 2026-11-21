@@ -40,7 +40,10 @@ TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   'baca_jam_awal',
                   # ukur_sudut_awal: kunci angka (tiga varian, malrule >= 2 jawaban berbeda per parameter domain)
                   # atau kata/huruf (jenis_sudut, banding; pengecoh = malrule + pengecoh_tambahan, tepat 3 opsi).
-                  'ukur_sudut_awal'})
+                  'ukur_sudut_awal',
+                  # tampak_kubus_awal: kunci angka; dua pengecoh dari malrule (hitungan tampak lain, semua kubus,
+                  # lebih atau kurang satu) selalu ada, tetapi hanya 2 nilai berbeda pada sebagian parameter domain.
+                  'tampak_kubus_awal'})
 # Kunci kategori (nama/kata/benda) per jenis Matematika Awal; sisanya jatuh ke 'angka'.
 KATEGORI_AWAL = {
     'ukur_satuan_tak_baku': frozenset({'banding'}),

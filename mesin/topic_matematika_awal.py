@@ -40,6 +40,7 @@ import awal_pecahan_setengah as pecahan_setengah
 import awal_peluang_dasar as peluang_dasar
 import awal_pola_posisi as pola_posisi
 import awal_tambah_kurang_100 as tambah_kurang_100
+import awal_tampak_kubus_awal as tampak_kubus_awal
 import awal_tambah_kurang_20 as tambah_kurang_20
 import awal_turus_gambar_awal as turus_gambar_awal
 import awal_ukur_konversi_awal as ukur_konversi_awal
@@ -128,6 +129,9 @@ JENIS = (
     Jenis(ukur_sudut_awal.TEMPLATE_ID, ukur_sudut_awal.ukur_sudut_awal,
           ukur_sudut_awal.parameter, ukur_sudut_awal.LEVEL,
           ukur_sudut_awal.domain_parameter),
+    Jenis(tampak_kubus_awal.TEMPLATE_ID, tampak_kubus_awal.tampak_kubus_awal,
+          tampak_kubus_awal.parameter, tampak_kubus_awal.LEVEL,
+          tampak_kubus_awal.domain_parameter),
 )
 _PER_ID = {j.template_id: j for j in JENIS}
 if len(_PER_ID) != len(JENIS):

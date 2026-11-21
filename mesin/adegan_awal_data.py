@@ -1,10 +1,11 @@
 """Validator ketat descriptor `adegan_awal` v1 (Matematika Awal).
 
-Enam sub-adegan, dipilih lewat field `adegan`: `deret_ikon` (baris ikon benda),
+Tujuh sub-adegan, dipilih lewat field `adegan`: `deret_ikon` (baris ikon benda),
 `turus` (garis turus per kategori), `pita_ukur` (batang ukur dari ikon satuan), `bentuk`
 (bangun datar/ruang buatan kode; validatornya di `adegan_awal_bentuk_data`), `jam_analog`
-(muka jam berjarum; validatornya di `adegan_awal_jam_data`), dan `busur` (busur derajat dengan
-sinar sudut; validatornya di `adegan_awal_busur_data`).
+(muka jam berjarum; validatornya di `adegan_awal_jam_data`), `busur` (busur derajat dengan
+sinar sudut; validatornya di `adegan_awal_busur_data`), dan `tumpukan_kubus` (susunan kubus satuan
+isometrik; validatornya di `adegan_awal_tumpukan_data`).
 Descriptor hanya memuat data aman untuk menggambar: nama baris/batang, nama ikon
 dari allow-list, banyak elemen, dan jenis pertanyaan. Kunci atau jawaban TIDAK
 PERNAH masuk descriptor; banyak elemen adalah fakta gambar, bukan jawaban.
@@ -24,7 +25,7 @@ IKON_DIDUKUNG = (
     "mobil", "payung", "pensil", "permen", "pisang", "pizza", "roti", "sapu",
     "sendok", "stiker", "tongkat", "ubin",
 )
-ADEGAN_DIDUKUNG = ("deret_ikon", "turus", "pita_ukur", "bentuk", "jam_analog", "busur")
+ADEGAN_DIDUKUNG = ("deret_ikon", "turus", "pita_ukur", "bentuk", "jam_analog", "busur", "tumpukan_kubus")
 BARIS_MIN, BARIS_MAKS = 2, 4
 JUMLAH_MIN, JUMLAH_MAKS = 0, 12
 PANJANG_NAMA_MAKS = 24
@@ -247,6 +248,12 @@ def _validasi_busur(data: Mapping[str, Any]) -> None:
     validasi_busur(data)
 
 
+def _validasi_tumpukan_kubus(data: Mapping[str, Any]) -> None:
+    """Impor malas karena alasan yang sama dengan `_validasi_bentuk`."""
+    from adegan_awal_tumpukan_data import validasi_tumpukan
+    validasi_tumpukan(data)
+
+
 _VALIDATOR = {
     "deret_ikon": _validasi_deret_ikon,
     "turus": _validasi_turus,
@@ -254,6 +261,7 @@ _VALIDATOR = {
     "bentuk": _validasi_bentuk,
     "jam_analog": _validasi_jam_analog,
     "busur": _validasi_busur,
+    "tumpukan_kubus": _validasi_tumpukan_kubus,
 }
 
 

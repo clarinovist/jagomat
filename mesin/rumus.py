@@ -126,6 +126,11 @@ KARTU: dict[str, Kartu] = {
         inti="Busur derajat punya dua skala. Letakkan titik pusatnya di titik sudut dan garis alasnya tepat di sepanjang satu kaki sudut. Mulai membaca dari angka 0 pada kaki itu, lalu ikuti skala yang sama sampai ke kaki yang lain; jangan membaca skala yang satunya, karena angkanya 180 dikurangi besar sudut. Kalau kedua kaki sama-sama bukan di angka 0, baca keduanya pada skala yang sama lalu kurangkan angka yang kecil dari yang besar. Sudut yang bukaannya lebih lebar lebih besar. Sudut lancip kurang dari 90 derajat, sudut siku tepat 90 derajat, sudut tumpul lebih dari 90 derajat dan kurang dari 180 derajat.",
         contoh="Kaki pertama di angka 0 dan kaki kedua di angka 70 pada skala yang sama: sudutnya 70 derajat, jadi sudut lancip. Dua kaki di angka 30 dan 110 pada skala yang sama: sudutnya 110 dikurangi 30, yaitu 80 derajat.",
     ),
+    "tampak_kubus_awal": Kartu(
+        judul="Menghitung kubus satuan dan tampak depan, atas, dan samping",
+        inti="Kubus satuan ditumpuk dari lantai, jadi kubus yang tertutup tetap ada dan harus ikut dihitung: jumlahkan tinggi semua tumpukan. Tampak atas adalah yang terlihat kalau dilihat dari atas: tiap tumpukan yang tidak kosong tampak sebagai satu persegi, jadi hitung banyak tumpukannya. Tampak depan dilihat dari depan: tiap kolom tampak setinggi tumpukan tertinggi di kolom itu, lalu jumlahkan semua kolom. Tampak samping dilihat dari sisi kanan: tiap baris tampak setinggi tumpukan tertinggi di baris itu, lalu jumlahkan semua baris. Soal tampak menanyakan persegi yang terlihat, bukan semua kubus.",
+        contoh="Baris depan: 1, 0; baris belakang: 3, 2. Tampak depan: kolom kiri tertinggi 3 dan kolom kanan tertinggi 2, jadi 3 + 2 = 5 persegi. Tampak atas: ada 3 tumpukan, jadi 3 persegi. Semua kubus: 1 + 3 + 2 = 6.",
+    ),
     "ukur_satuan_tak_baku": Kartu(
         judul="Mengukur panjang dengan satuan buatan sendiri",
         inti="Ukur benda dengan satuan yang sama, lalu bandingkan angkanya: makin banyak satuan yang muat, makin panjang bendanya. Lebihnya dicari dengan mengurangi. Dua benda yang disambung panjangnya ditambah.",
@@ -594,6 +599,7 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "kenali_bangun_awal": "kenali_bangun_awal",
     "baca_jam_awal": "baca_jam_awal",
     "ukur_sudut_awal": "ukur_sudut_awal",
+    "tampak_kubus_awal": "tampak_kubus_awal",
     "ukur_satuan_tak_baku": "ukur_satuan_tak_baku",
     "baca_diagram_gambar": "baca_diagram_gambar",
     "pola_posisi": "pola_posisi",

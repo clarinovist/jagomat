@@ -230,6 +230,7 @@ KATALOG: Tuple[EntriTopik, ...] = (
             ('keliling_gabungan', 'Keliling bangun datar dan gabungan', ('keliling_gabungan',)),
             ('ukur_sudut_awal', 'Mengukur dan membandingkan sudut', ('ukur_sudut_awal',)),
             ('pecahan_bilangan_asli_desimal', 'Pecahan dengan bilangan asli dan desimal', ('pecahan_bilangan_asli_desimal',)),
+            ('tampak_kubus_awal', 'Kubus satuan dan tampak depan, atas, samping', ('tampak_kubus_awal',)),
         ),
     ),
 )

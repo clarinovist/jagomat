@@ -194,6 +194,22 @@ ADEGAN_BUSUR_LEBAR_HURUF = 0.6  # lebar satu angka skala, kali ukuran huruf (unt
 ADEGAN_BUSUR_LATAR_ANGKA_LEBIH = 2  # latar angka melebihi teks di sisi kiri dan kanan
 ADEGAN_BUSUR_HURUF_TITIK_TURUN = 20  # huruf titik sudut di bawah garis alas
 
+# Adegan awal sub-adegan `tumpukan_kubus`: kubus satuan isometrik di lantai berpetak; satuan viewBox.
+ADEGAN_TUMPUKAN_TINGGI = 288  # tinggi viewBox
+ADEGAN_TUMPUKAN_LEBAR_MUKA = 34  # selisih x satu petak pada sumbu kolom atau baris (tiap rusuk datar)
+ADEGAN_TUMPUKAN_MIRING = 20  # selisih y satu petak pada sumbu kolom atau baris (rusuk datar miring)
+ADEGAN_TUMPUKAN_RUSUK = 40  # panjang rusuk tegak satu kubus (dua kali miring)
+ADEGAN_TUMPUKAN_MUKA = ADEGAN_BANGUN_KUNING  # muka atas, muka kiri (depan), muka kanan: terang ke gelap
+ADEGAN_TUMPUKAN_TEBAL = 2  # garis tepi tiap muka kubus
+ADEGAN_TUMPUKAN_LANTAI_ISI = ADEGAN_PITA_ISI_NETRAL
+ADEGAN_TUMPUKAN_LANTAI_GARIS = ADEGAN_PITA_GARIS_NETRAL
+ADEGAN_TUMPUKAN_TEBAL_LANTAI = 1.5
+ADEGAN_TUMPUKAN_TINGGI_MAKS = 3  # kubus tertinggi yang boleh digambar; menentukan ruang atas viewBox
+ADEGAN_TUMPUKAN_LABEL_FONT = 16
+ADEGAN_TUMPUKAN_LABEL_RUANG = 28  # ruang di bawah tepi lantai untuk label arah
+ADEGAN_TUMPUKAN_LABEL_TURUN = 22  # label arah di bawah titik tengah tepi lantai
+ADEGAN_TUMPUKAN_LABEL_GESER = 16  # label "depan" bergeser ke kiri dan "kanan" ke kanan agar tidak berdekatan
+
 # Sketsa ruang dan proyeksi isometrik kisi kubus.
 RUANG_ASAL = (165, 200)
 RUANG_SUMBU = ((90, -25), (-60, -40), (0, -90))

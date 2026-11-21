@@ -59,6 +59,14 @@
    ],
    "tindak_lanjut": "Gambar beberapa sudut di kertas bersama anak, lalu ukur dengan busur derajat sungguhan dan tulis besarnya. Minta anak menggolongkan tiap sudut sebagai lancip, siku, atau tumpul."
   },
+  "tampak_kubus_awal": {
+   "pertanyaan": [
+    "Minta anak menyusun beberapa kubus mainan menjadi tangga, lalu menunjuk dari arah mana ia melihat tampak depan, tampak atas, dan tampak samping.",
+    "Tanya: kalau kubus-kubus itu dilihat dari atas, berapa persegi yang tampak? Minta anak menjelaskan mengapa kubus yang bertumpuk hanya tampak satu persegi.",
+    "Minta anak menebak banyak kubus seluruhnya sebelum membongkar tangga, lalu menghitungnya kubus demi kubus dan menjelaskan kubus mana yang tertutup."
+   ],
+   "tindak_lanjut": "Susun tangga dari 6 sampai 9 kubus mainan atau balok, lalu minta anak menggambar tampak depan, tampak atas, dan tampak samping di kertas berpetak dan menghitung persegi pada tiap gambar."
+  },
   "baca_jam_awal": {
    "pertanyaan": [
     "Minta anak menunjuk jarum pendek dan jarum panjang di jam dinding, lalu menyebut mana yang menunjukkan jam.",

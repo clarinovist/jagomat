@@ -1,10 +1,11 @@
 """Proyeksi keluarga visual `matematika-awal`: teks soal + descriptor `adegan_awal`.
 
-Enam jenis: `baca_diagram_gambar` (deret_ikon), `turus_gambar_awal` (turus),
+Tujuh jenis: `baca_diagram_gambar` (deret_ikon), `turus_gambar_awal` (turus),
 `ukur_satuan_tak_baku` (pita_ukur), `kenali_bangun_awal` (bentuk; proyektornya di
 `topic_matematika_awal_bentuk_visual`, `benda_ruang` sengaja tetap teks), `baca_jam_awal` (jam_analog;
-proyektornya di `topic_matematika_awal_jam_visual`), dan `ukur_sudut_awal` (busur; proyektornya di
-`topic_matematika_awal_busur_visual`). Kunci, pilihan ganda, dan malrule tetap milik
+proyektornya di `topic_matematika_awal_jam_visual`), `ukur_sudut_awal` (busur; proyektornya di
+`topic_matematika_awal_busur_visual`), dan `tampak_kubus_awal` (tumpukan_kubus; proyektornya di
+`topic_matematika_awal_tumpukan_visual`). Kunci, pilihan ganda, dan malrule tetap milik
 soal sumber; gambar menjadi satu-satunya sumber nilai, jadi teks proyeksi membuang
 semua angka dan baris data. Kalimat pertanyaan DIAMBIL dari teks soal sumber,
 tidak disalin; bila bentuk teks sumber berubah proyeksi gagal keras (ValueError).
@@ -18,6 +19,7 @@ from typing import Any, Callable, Optional, Tuple
 import awal_baca_diagram_gambar as sumber
 import awal_baca_jam_awal as sumber_jam
 import awal_turus_gambar_awal as sumber_turus
+import awal_tampak_kubus_awal as sumber_tampak
 import awal_ukur_sudut_awal as sumber_sudut
 import awal_kenali_bangun_awal as sumber_bangun
 import awal_ukur_satuan_tak_baku as sumber_ukur
@@ -25,6 +27,7 @@ from adegan_awal_data import IKON_DIDUKUNG
 from topic_matematika_awal_bentuk_visual import proyeksi_kenali_bangun
 from topic_matematika_awal_busur_visual import proyeksi_ukur_sudut
 from topic_matematika_awal_jam_visual import proyeksi_baca_jam
+from topic_matematika_awal_tumpukan_visual import proyeksi_tampak_kubus
 from visual_contract import DescriptorVisual
 
 TEMPLATE_DIDUKUNG = sumber.TEMPLATE_ID
@@ -294,6 +297,7 @@ _PROYEKTOR: dict = {
     sumber_bangun.TEMPLATE_ID: proyeksi_kenali_bangun,
     sumber_jam.TEMPLATE_ID: proyeksi_baca_jam,
     sumber_sudut.TEMPLATE_ID: proyeksi_ukur_sudut,
+    sumber_tampak.TEMPLATE_ID: proyeksi_tampak_kubus,
 }
 
 
