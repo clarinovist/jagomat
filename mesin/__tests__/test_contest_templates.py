@@ -4,6 +4,7 @@ import json
 import random
 import re
 from pathlib import Path
+from xml.etree import ElementTree
 
 import pytest
 
@@ -68,6 +69,21 @@ def test_kapasitas_varian_cukup_untuk_banyak_sesi(template, sapuan):
 def test_kunci_tidak_konstan(template, sapuan):
     kunci = {s.kunci for s in sapuan[template.id]}
     assert len(kunci) >= KUNCI_BERBEDA_MIN, f"kunci hanya {sorted(kunci)}"
+
+
+@pytest.mark.parametrize("template", TEMPLATE, ids=lambda t: t.id)
+def test_semua_svg_soal_dan_pilihan_adalah_xml_well_formed(template, sapuan):
+    for soal in sapuan[template.id][:100]:
+        for svg in [soal.svg, soal.kunci_svg] + [p.svg for p in soal.pengecoh]:
+            if svg:
+                ElementTree.fromstring(svg)
+
+
+@pytest.mark.parametrize("template", TEMPLATE, ids=lambda t: t.id)
+def test_pembahasan_soal_angka_memuat_jawaban_akhir_di_langkah_terakhir(template, sapuan):
+    for soal in sapuan[template.id][:200]:
+        if soal.nilai is not None:
+            assert str(soal.nilai) in soal.pembahasan[-1], (soal.kunci, soal.pembahasan)
 
 
 @pytest.mark.parametrize("template", TEMPLATE, ids=lambda t: t.id)
