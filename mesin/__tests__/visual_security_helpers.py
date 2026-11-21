@@ -110,7 +110,7 @@ _ATRIBUT = {
 }
 _ID = re.compile(r"[A-Za-z][A-Za-z0-9_.-]{0,127}")
 _WARNA = re.compile(r"#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?")
-_HREF_IKON = re.compile(r"/aset/ikon-[a-z]+-v1\.png")
+_HREF_IKON = re.compile(r"/aset/ikon-[a-z]+-v1\.webp")
 # Satu-satunya transform yang diizinkan pada <image>: putar kelipatan 90 derajat pada pusat ikon.
 _TRANSFORM_IKON = re.compile(r"rotate\((?:90|180|270|-90) [0-9]+(?:\.5)? [0-9]+(?:\.5)?\)")
 _URL_LOKAL = re.compile(r"url\(#([A-Za-z][A-Za-z0-9_.-]{0,127})\)")

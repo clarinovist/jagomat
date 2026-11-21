@@ -1,4 +1,4 @@
-"""Descriptor `adegan_awal` v1: validator ketat, allow-list ikon, dan aset PNG."""
+"""Descriptor `adegan_awal` v1: validator ketat, allow-list ikon, dan aset WebP."""
 from __future__ import annotations
 
 import struct
@@ -16,8 +16,6 @@ from adegan_awal_data import IKON_DIDUKUNG, validasi_adegan_awal
 from visual_contract import DescriptorVisual
 
 ASET = Path(brand.FOLDER_ASET)
-TANDA_PNG = b"\x89PNG\r\n\x1a\n"
-RGBA_8BIT = (8, 6)
 
 
 def _sah(**ubah):
@@ -74,7 +72,7 @@ def test_jumlah_di_luar_rentang_atau_bukan_int_murni_ditolak(jumlah):
 
 
 @pytest.mark.parametrize("ikon", (
-    "../bola", "bola.png", "ikon-bola-v1.png", "/aset/ikon-bola-v1.png",
+    "../bola", "bola.png", "ikon-bola-v1.webp", "/aset/ikon-bola-v1.webp",
     "BOLA", "bola ", "", "maskot", "http://contoh.invalid/a", None, 3, ["bola"],
     "bo\x00la",
 ))
@@ -168,26 +166,29 @@ def test_dua_puluh_sembilan_ikon_terdaftar_tanpa_duplikat():
 
 
 @pytest.mark.parametrize("nama", IKON_DIDUKUNG)
-def test_setiap_ikon_ada_di_aset_dan_png_rgba_192(nama):
-    berkas = f"ikon-{nama}-v1.png"
-    assert brand.ASET[berkas] == "image/png"
+def test_setiap_ikon_ada_di_aset_dan_webp_alfa_192(nama):
+    berkas = f"ikon-{nama}-v1.webp"
+    assert brand.ASET[berkas] == "image/webp"
     isi = (ASET / berkas).read_bytes()
-    assert isi[:8] == TANDA_PNG
-    assert isi[12:16] == b"IHDR"
-    lebar, tinggi = struct.unpack(">II", isi[16:24])
+    assert isi[:4] == b"RIFF" and isi[8:12] == b"WEBP"
+    assert struct.unpack("<I", isi[4:8])[0] == len(isi) - 8
+    assert isi[12:16] == b"VP8X"  # kanvas diperluas: wajib untuk kanal alfa
+    assert isi[20] & 0x10, "bendera alfa VP8X mati"
+    lebar = int.from_bytes(isi[24:27], "little") + 1
+    tinggi = int.from_bytes(isi[27:30], "little") + 1
     assert (lebar, tinggi) == (192, 192)
-    assert (isi[24], isi[25]) == RGBA_8BIT
+    assert len(isi) < 20_000, "ikon terlalu berat"
 
 
 def test_semua_aset_ikon_di_allow_list_adalah_ikon_terdaftar():
     ikon_aset = {n for n in brand.ASET if n.startswith("ikon-")}
-    assert ikon_aset == {f"ikon-{n}-v1.png" for n in IKON_DIDUKUNG}
+    assert ikon_aset == {f"ikon-{n}-v1.webp" for n in IKON_DIDUKUNG}
 
 
 @pytest.mark.parametrize("nama", IKON_DIDUKUNG)
 def test_href_renderer_menunjuk_aset_terdaftar(nama):
     href = adegan_awal_svg.jalur_ikon(nama)
-    assert href == f"/aset/ikon-{nama}-v1.png"
+    assert href == f"/aset/ikon-{nama}-v1.webp"
     assert href.rsplit("/", 1)[1] in brand.ASET
 
 

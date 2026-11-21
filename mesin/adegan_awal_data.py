@@ -13,7 +13,7 @@ import unicodedata
 from collections.abc import Mapping
 from typing import Any
 
-# Nama ikon = berkas `mesin/aset/ikon-<nama>-v1.png`; APPEND-ONLY.
+# Nama ikon = berkas `mesin/aset/ikon-<nama>-v1.webp`; APPEND-ONLY.
 # Tambahan 21 Nov 2026 (buku, karpet, lemari, meja, payung, sapu, sendok, tongkat) dibuat dengan model gambar lain.
 IKON_DIDUKUNG = (
     "apel", "ayam", "balok", "bebek", "bola", "boneka", "buku", "bunga", "jeruk",

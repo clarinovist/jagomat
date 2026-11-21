@@ -226,7 +226,7 @@ def test_unit_adalah_ikon_satuan_dan_menutup_pita_tanpa_celah(satuan):
         pita, = [e for e in elemen(batang, "rect") if "pita" in e.get("class", "").split()]
         unit = _unit_dalam(batang)
         assert len(unit) == n
-        assert all(u.get("href") == f"/aset/ikon-{satuan}-v1.png" for u in unit)
+        assert all(u.get("href") == f"/aset/ikon-{satuan}-v1.webp" for u in unit)
         sel = float(pita.get("height"))
         assert float(pita.get("width")) == n * sel
         xs = [float(u.get("x")) for u in unit]
@@ -364,7 +364,7 @@ def test_xml_allowlist_dan_satu_satunya_href_adalah_ikon_terdaftar(parameter, ga
     tanpa_xmlns = hasil.replace('xmlns="http://www.w3.org/2000/svg"', "")
     assert not re.search(r"<script|foreignObject|javascript:|https?:|//|\son[a-z]+=", tanpa_xmlns, re.I)
     href = [e.get("href") for e in svg.iter() if "href" in e.attrib]
-    assert href and all(re.fullmatch(r"/aset/ikon-[a-z]+-v1\.png", h) for h in href)
+    assert href and all(re.fullmatch(r"/aset/ikon-[a-z]+-v1\.webp", h) for h in href)
     assert {h.rsplit("/", 1)[1] for h in href} <= set(brand.ASET)
     assert all("href" not in e.attrib for e in svg.iter() if lokal(e) != "image")
     assert all(("transform" not in e.attrib) or lokal(e) == "image" for e in svg.iter())
@@ -373,7 +373,7 @@ def test_xml_allowlist_dan_satu_satunya_href_adalah_ikon_terdaftar(parameter, ga
 def test_semua_href_domain_adalah_ikon_di_allow_list():
     for parameter in sumber.domain_parameter("P1")[::29]:
         svg = _svg(parameter)
-        nama = {e.get("href")[len("/aset/ikon-"):-len("-v1.png")] for e in elemen(svg, "image")}
+        nama = {e.get("href")[len("/aset/ikon-"):-len("-v1.webp")] for e in elemen(svg, "image")}
         assert nama <= set(IKON_DIDUKUNG)
 
 
@@ -404,7 +404,7 @@ def test_namespace_kosong_atau_bukan_teks_ditolak(namespace):
 
 
 @pytest.mark.parametrize("ikon", (
-    "../pensil", "pensil.png", "/aset/ikon-pensil-v1.png", "https://contoh.invalid/x.png",
+    "../pensil", "pensil.png", "/aset/ikon-pensil-v1.webp", "https://contoh.invalid/x.png",
     'pensil" onload="x',
 ))
 def test_ikon_liar_atau_traversal_ditolak_validator_dan_renderer(ikon):

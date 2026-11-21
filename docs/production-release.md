@@ -2415,7 +2415,7 @@ exact-image yang membaca sesi dan bank topik ini (tanpa itu rollback gagal memba
 0 belum di kode lokal).
 K1 B7 dan B8 "ada" mengandaikan flag `OSN_VISUAL_KELUARGA` memuat `matematika-awal` (descriptor `adegan_awal` v1 = skema
 baru; reader/recovery lama menolaknya, jadi flag itu menunggu pin recovery yang membaca skema + matriks rollback,
-dan 29 ikon `aset/ikon-*-v1.png` ikut image). Tanpa flag soalnya tetap teks. `/opt/osn/visual.conf` tidak diubah. Ulasan Mutia juga mencakup fakta jenis gelombang 1 (`unsur_bangun_datar`,
+dan 29 ikon `aset/ikon-*-v1.webp` ikut image). Tanpa flag soalnya tetap teks. `/opt/osn/visual.conf` tidak diubah. Ulasan Mutia juga mencakup fakta jenis gelombang 1 (`unsur_bangun_datar`,
 `ciri_komposisi_bangun`: pilihan nama bangun berkualifikasi; `keliling_gabungan`: bangun L dan gabungan;
 `luas_petak_volume_kubus`: soal teks tersusun baris, kolom, lapis). K3 B5 dan K4 B6 kini "ada":
 tiap template pelatih `statistika` (`tabel_turus`, `piktogram`, `diagram_batang_garis`) `wajib_visual` di

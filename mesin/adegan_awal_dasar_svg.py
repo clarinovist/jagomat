@@ -14,7 +14,7 @@ import design_tokens as T
 
 def jalur_ikon(nama: str) -> str:
     """URL aset ikon; `nama` sudah lolos allow-list validator."""
-    return f"/aset/ikon-{nama}-v1.png"
+    return f"/aset/ikon-{nama}-v1.webp"
 
 
 def ident(namespace: Any) -> str:

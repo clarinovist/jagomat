@@ -3,7 +3,7 @@
 Deterministik (tanpa acak/waktu). `render_adegan_awal` memvalidasi ulang data pada
 batas renderer lalu memilih sub-adegan dari field `adegan`. `deret_ikon`: tiap ikon
 adalah SATU elemen `<image>` dengan `href` ke aset terdaftar
-`/aset/ikon-<nama>-v1.png`, sehingga banyak elemen `<image>` dalam satu baris sama
+`/aset/ikon-<nama>-v1.webp`, sehingga banyak elemen `<image>` dalam satu baris sama
 dengan jumlah benda pada kategori itu. Judul dan uraian aksesibel menyebut nama
 baris, tidak pernah banyak ikon atau jawaban. Informasi hanya dibawa jumlah elemen
 dan label teks, bukan warna.

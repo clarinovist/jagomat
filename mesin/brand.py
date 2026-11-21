@@ -73,9 +73,9 @@ ASET.update({
 })
 
 # Ikon benda untuk adegan visual Matematika Awal; daftar namanya satu-satunya
-# di `adegan_awal_data.IKON_DIDUKUNG`. PNG RGBA 192x192, URL immutable bernama
+# di `adegan_awal_data.IKON_DIDUKUNG`. WebP RGBA 192x192, URL immutable bernama
 # versi; isi berkas tidak diganti.
-ASET.update({f"ikon-{nama}-v1.png": "image/png" for nama in IKON_DIDUKUNG})
+ASET.update({f"ikon-{nama}-v1.webp": "image/webp" for nama in IKON_DIDUKUNG})
 
 NAMA_MANIFEST = "manifest.json"
 

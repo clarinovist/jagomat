@@ -95,6 +95,7 @@ def test_semua_aset_terlayani_dan_mime_benar(server):
     harapan = {
         ".svg": "image/svg+xml",
         ".png": "image/png",
+        ".webp": "image/webp",
         ".ico": "image/x-icon",
         ".json": "application/json",
     }

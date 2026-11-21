@@ -222,7 +222,7 @@ def test_ukur_jumlah_di_luar_satu_sampai_dua_belas_ditolak(jumlah):
 
 
 @pytest.mark.parametrize("ikon", (
-    "../pensil", "pensil.png", "/aset/ikon-pensil-v1.png", "PENSIL", "pensil ", "",
+    "../pensil", "pensil.png", "/aset/ikon-pensil-v1.webp", "PENSIL", "pensil ", "",
     "maskot", "http://contoh.invalid/a", 3, ["pensil"], "pe\x00nsil",
 ))
 def test_ukur_ikon_benda_di_luar_allow_list_ditolak_tetapi_none_boleh(ikon):
@@ -290,7 +290,7 @@ def _svg_mentah(isi, kotak="0 0 100 100"):
     return ET.fromstring(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{kotak}">{isi}</svg>')
 
 
-def _image(transform="", x=10, y=10, lebar=20, tinggi=20, href="/aset/ikon-klip-v1.png"):
+def _image(transform="", x=10, y=10, lebar=20, tinggi=20, href="/aset/ikon-klip-v1.webp"):
     putar = f' transform="{transform}"' if transform else ""
     return (f'<image href="{href}" x="{x}" y="{y}" width="{lebar}" height="{tinggi}"{putar}/>')
 
@@ -349,4 +349,4 @@ def test_oracle_keamanan_image_tetap_hanya_href_ikon_terdaftar():
     with pytest.raises(AssertionError):
         _svg_ikon(_image(href="https://contoh.invalid/a.png"))
     with pytest.raises(AssertionError):
-        _svg_ikon(_image(href="/aset/ikon-hantu-v1.png"))
+        _svg_ikon(_image(href="/aset/ikon-hantu-v1.webp"))

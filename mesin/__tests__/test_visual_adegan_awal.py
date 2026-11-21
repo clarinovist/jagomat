@@ -273,7 +273,7 @@ def test_xml_allowlist_dan_satu_satunya_href_adalah_ikon_terdaftar(tema, gaya):
     assert not re.search(r"<script|foreignObject|javascript:|https?:|//|\son[a-z]+=", tanpa_xmlns, re.I)
     href = [e.get("href") for e in svg.iter() if "href" in e.attrib]
     assert len(href) == 8 + 1 + 4
-    assert all(re.fullmatch(r"/aset/ikon-[a-z]+-v1\.png", h) for h in href)
+    assert all(re.fullmatch(r"/aset/ikon-[a-z]+-v1\.webp", h) for h in href)
     assert {h.rsplit("/", 1)[1] for h in href} <= set(brand.ASET)
     assert all("href" not in e.attrib for e in svg.iter() if lokal(e) != "image")
 
@@ -305,7 +305,7 @@ def test_namespace_kosong_atau_bukan_teks_ditolak(namespace):
 
 
 @pytest.mark.parametrize("nama", (
-    "../bola", "bola.png", "/aset/ikon-bola-v1.png", "https://contoh.invalid/x.png",
+    "../bola", "bola.png", "/aset/ikon-bola-v1.webp", "https://contoh.invalid/x.png",
     "bola\" onload=\"x",
 ))
 def test_ikon_liar_atau_traversal_ditolak_validator_dan_renderer(nama):
