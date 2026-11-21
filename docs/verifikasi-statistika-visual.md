@@ -4,6 +4,8 @@ Catatan lanjutan: pemisahan provenance/bukti dan gate lintas keluarga dikerjakan
 pada Fase 8. Status rilis terkini ada di `verifikasi-soal-visual.md`; daftar
 blocker di bawah adalah catatan historis Fase 3, bukan status implementasi terbaru.
 
+Catatan 21 Nov 2026: Flag visual menyala di produksi per `/opt/osn/visual.conf` (dibaca read-only 21 Nov 2026, berkas bertanggal 19 Nov): `OSN_VISUAL_KELUARGA=statistika,geometri-datar,geometri-ruang,pengukuran,kombinatorik,pola-bilangan`. Kalimat "fixture/internal pada fase ini" di bawah adalah catatan historis Fase 3, bukan status produksi.
+
 ## Cakupan
 
 Empat renderer SVG deterministik: batang (baca/jumlah/selisih), turus

@@ -132,9 +132,9 @@ KELAS: Tuple[Kelas, ...] = (
              ("matematika-awal", "unsur_bangun_datar", "ada"))),
         Bab(5, "Penyajian data dalam tabel",
             ("Tabel turus", "Piktogram", "Diagram batang sederhana"),
-            (("statistika", "turus", "sebagian"),
-             ("statistika", "piktogram", "sebagian"),
-             ("statistika", "diagram", "sebagian"))),
+            (("statistika", "turus", "ada"),
+             ("statistika", "piktogram", "ada"),
+             ("statistika", "diagram", "ada"))),
     )),
     Kelas(4, (
         Bab(1, "Bilangan sampai 10.000, operasi hitung, faktor dan kelipatan",
@@ -170,8 +170,8 @@ KELAS: Tuple[Kelas, ...] = (
              ("matematika-awal", "ciri_komposisi_bangun", "sebagian"))),
         Bab(6, "Piktogram dan diagram batang",
             ("Membaca piktogram", "Membaca diagram batang"),
-            (("statistika", "piktogram", "sebagian"),
-             ("statistika", "diagram", "sebagian"))),
+            (("statistika", "piktogram", "ada"),
+             ("statistika", "diagram", "ada"))),
     )),
     Kelas(5, (
         Bab(1, "Bilangan cacah sampai 100.000 dan operasi hitung",

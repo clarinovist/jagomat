@@ -30,6 +30,7 @@ import kurikulum_kelas_hitung as hitung
 import matematika_awal_versions
 import multiple_choice
 import question_context
+import question_views
 import render
 import rumus
 import template_labels
@@ -39,6 +40,7 @@ from baseline_matematika_awal import (JENIS_PER_LEVEL, LEVEL_AWAL, LEVEL_JENIS,
                                       TEMPLATE_AWAL)
 from choice_generation import buat_lembar_pilihan, kandidat, kebijakan_soal
 from templates import REGISTRI
+from topic_statistics_visual import proyeksi_statistika
 
 TOPIK = "matematika-awal"
 AKAR_MESIN = Path(__file__).resolve().parents[1]
@@ -64,13 +66,15 @@ BAB_GELOMBANG_1 = (
     (5, 4, "keliling_gabungan", "sebagian", "sebagian"),
     (6, 1, "pecahan_bilangan_asli_desimal", "sebagian", "sebagian"),
 )
-# Bab data tanpa jenis baru: pelatih statistika punya jenis untuk semua sub-materi di level kelasnya,
-# tetapi gambarnya (SVG) hanya muncul bila OSN_VISUAL_KELUARGA=statistika (bawaan kosong, belum aktif di
-# produksi), dan mode teks membocorkan jawaban ("Apel = 5 turus"). Jadi tetap "sebagian" sampai flag aktif.
-BAB_TANPA_JENIS_BARU = {(3, 5): ("turus", "piktogram", "diagram"), (4, 6): ("piktogram", "diagram")}
+# Bab data tanpa jenis baru: pelatih statistika punya jenis untuk semua sub-materi di level kelasnya dan
+# bergambar (SVG) saat OSN_VISUAL_KELUARGA memuat statistika. Flag itu menyala di produksi per
+# /opt/osn/visual.conf (dibaca read-only 21 Nov 2026, berkas 19 Nov). Maka dua bab ini "ada", dengan syarat
+# yang dikunci tes: tiap template pelatihnya wajib_visual di inventaris dan dipetakan proyektor statistika.
+BAB_DATA_BERGAMBAR = {(3, 5): ("turus", "piktogram", "diagram"), (4, 6): ("piktogram", "diagram")}
 # Lima bab yang sub-materinya tertutup soal teks dinilai "ada" (keputusan pemilik 21 Nov 2026).
 BAB_ADA_SOAL_TEKS = {(2, 4), (2, 5), (3, 3), (5, 7), (6, 4)}
-BAB_ADA_SEMUA = {(1, 1), (1, 6), (2, 2), (3, 4), (4, 2), (4, 4)} | BAB_ADA_SOAL_TEKS
+BAB_ADA_SEMUA = ({(1, 1), (1, 6), (2, 2), (3, 4), (4, 2), (4, 4)} | BAB_ADA_SOAL_TEKS
+                 | set(BAB_DATA_BERGAMBAR))
 PASANGAN = tuple((tid, level) for tid in TEMPLATE_AWAL for level in LEVEL_JENIS[tid])
 
 
@@ -306,22 +310,40 @@ def test_bab_gelombang_1_status_mengikuti_kecocokan_jenis_baru(kelas, nomor, tid
     assert ringkasan.variasi.total > 0 and not ringkasan.variasi.galat and tid not in ringkasan.variasi.tertutup
 
 
-@pytest.mark.parametrize("kelas,nomor", sorted(BAB_TANPA_JENIS_BARU))
-def test_bab_data_tetap_sebagian_walau_semua_pelatihnya_tersedia_di_level_kelas(kelas, nomor):
+@pytest.mark.parametrize("kelas,nomor", sorted(BAB_DATA_BERGAMBAR))
+def test_bab_data_ada_hanya_bila_tiap_template_pelatih_wajib_visual_dan_terproyeksi(kelas, nomor):
     _, bab = hitung.cari_bab(kelas, nomor)
     ringkasan = hitung.ringkasan_bab(bab, kelas, {})
-    # Jenis tersedia untuk tiap sub-materi, tetapi kecocokan tetap "sebagian" (gambar bergantung flag visual).
-    assert {p.kode for p in ringkasan.pelatih if p.tersedia} == set(BAB_TANPA_JENIS_BARU[(kelas, nomor)])
-    assert all(p.tersedia for p in ringkasan.pelatih)
-    assert all(p.kecocokan == "sebagian" for p in ringkasan.pelatih)
-    assert ringkasan.status == hitung.STATUS_SEBAGIAN
+    assert {p.kode for p in ringkasan.pelatih if p.tersedia} == set(BAB_DATA_BERGAMBAR[(kelas, nomor)])
+    assert all(p.tersedia and p.kecocokan == "ada" for p in ringkasan.pelatih)
+    assert ringkasan.status == hitung.STATUS_ADA
+    inventaris = {item["template_id"]: item for item in visual_inventory.inventaris_template()}
+    level = f"P{kelas}"
+    template = [t for p in ringkasan.pelatih for t in p.template]
+    assert template
+    for tid in template:
+        item = inventaris[tid]
+        assert item["status"] == "wajib_visual", tid
+        assert level in item["varian_generator"], (tid, level)
+        for seed in range(3):
+            soal = generator.buat_soal(tid, seed, level, "statistika")
+            assert proyeksi_statistika(tid, soal.parameter) is not None, (tid, seed)
 
 
-def test_hitungan_status_bab_dua_puluh_enam_ada_empat_belas_sebagian_nol_belum():
+def test_bab_data_ada_bergantung_pada_flag_visual_soal_tanpa_flag_berupa_teks(monkeypatch):
+    # Keterbatasan jujur: status "ada" dua bab ini mengandaikan OSN_VISUAL_KELUARGA memuat statistika.
+    soal = generator.buat_soal("piktogram", 1, "P3", "statistika")
+    monkeypatch.delenv("OSN_VISUAL_KELUARGA", raising=False)
+    assert question_views.penyajian_dari_soal(soal).status_visual == "tanpa_visual"
+    monkeypatch.setenv("OSN_VISUAL_KELUARGA", "statistika")
+    assert question_views.penyajian_dari_soal(soal).status_visual == "siap"
+
+
+def test_hitungan_status_bab_dua_puluh_delapan_ada_dua_belas_sebagian_nol_belum():
     status = [hitung.ringkasan_bab(b, k.kelas, {}).status for k in kurikulum_kelas.KELAS for b in k.bab]
     assert len(status) == 40
-    assert status.count(hitung.STATUS_ADA) == 26
-    assert status.count(hitung.STATUS_SEBAGIAN) == 14
+    assert status.count(hitung.STATUS_ADA) == 28
+    assert status.count(hitung.STATUS_SEBAGIAN) == 12
     assert status.count(hitung.STATUS_BELUM) == 0
     ada_baru = {(k.kelas, b.nomor) for k in kurikulum_kelas.KELAS for b in k.bab
                 if hitung.ringkasan_bab(b, k.kelas, {}).status == hitung.STATUS_ADA} & BAB_ADA_SEMUA

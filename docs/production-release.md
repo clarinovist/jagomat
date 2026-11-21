@@ -2411,13 +2411,13 @@ dan fakta bangun datar (`bandingkan_ciri_bangun` memakai definisi inklusif denga
 `keliling_gabungan`, `peluang_dasar`, `pecahan_bilangan_asli_desimal`) dan `Topik.hanya_manual`, dibuktikan pair
 exact-image yang membaca sesi dan bank topik ini (tanpa itu rollback gagal membaca bank baru dan
 `topics.dari_sesi` jatuh diam-diam ke topik bawaan); (3) izin rilis terpisah. Halaman live
-`jagomat.id/admin/kurikulum` baru berubah setelah push, deploy, dan pemasangan (26 ada, 14 sebagian,
+`jagomat.id/admin/kurikulum` baru berubah setelah push, deploy, dan pemasangan (28 ada, 12 sebagian,
 0 belum di kode lokal). Ulasan Mutia juga mencakup fakta jenis gelombang 1 (`unsur_bangun_datar`,
 `ciri_komposisi_bangun`: pilihan nama bangun berkualifikasi; `keliling_gabungan`: bangun L dan gabungan;
-`luas_petak_volume_kubus`: soal teks tersusun baris, kolom, lapis). K3 B5 dan K4 B6 tetap "sebagian":
-pelatih `statistika` bergambar hanya bila `OSN_VISUAL_KELUARGA=statistika` menyala, flag itu belum aktif di
-produksi dan punya blocker aktivasi sendiri (`verifikasi-statistika-visual.md`), dan tanpa flag soalnya
-berupa teks yang membocorkan jawaban.
+`luas_petak_volume_kubus`: soal teks tersusun baris, kolom, lapis). K3 B5 dan K4 B6 kini "ada":
+tiap template pelatih `statistika` (`tabel_turus`, `piktogram`, `diagram_batang_garis`) `wajib_visual` di
+inventaris dan dipetakan proyektor statistika, dan render dengan flag memberi satu `<svg>` dan
+`status_visual=siap`. Flag visual menyala di produksi per `/opt/osn/visual.conf` (dibaca read-only 21 Nov 2026, berkas bertanggal 19 Nov): `OSN_VISUAL_KELUARGA=statistika,geometri-datar,geometri-ruang,pengukuran,kombinatorik,pola-bilangan`. Keterbatasan: status "ada" kedua bab ini bergantung pada flag visual menyala; tanpa flag soalnya berupa teks (tes `test_bab_data_ada_bergantung_pada_flag_visual_soal_tanpa_flag_berupa_teks`).
 
 ## Pelaporan jujur
 

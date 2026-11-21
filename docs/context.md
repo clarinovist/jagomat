@@ -72,7 +72,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `kurikulum_katalog` (grup), `kurikulum_cp` (peta CP), `kurikulum_kelas` (pelatih bab), dan tes bersama
   (`baseline_matematika_awal.LEVEL_JENIS`, baseline `test_kualitas_soal_generik`). Kecocokan pelatih bab
   "ada" hanya bila SETIAP sub-materi bab punya jenis di level kelas itu; bab bergambar yang hanya
-  bersoal teks tetap "sebagian" (kecuali lima bab yang sub-materinya tertutup soal teks, keputusan pemilik 21 Nov 2026). Status bab sekarang 26 ada, 14 sebagian, 0 belum (`cek_bab` lokal).
+  bersoal teks tetap "sebagian" (kecuali lima bab yang sub-materinya tertutup soal teks, keputusan pemilik 21 Nov 2026).
+  K3 B5 dan K4 B6 (statistika) "ada" karena tiap template pelatihnya `wajib_visual` di inventaris dan dipetakan
+  `proyeksi_statistika`. Flag visual menyala di produksi per `/opt/osn/visual.conf` (dibaca read-only 21 Nov 2026, berkas bertanggal 19 Nov): `OSN_VISUAL_KELUARGA=statistika,geometri-datar,geometri-ruang,pengukuran,kombinatorik,pola-bilangan`. Keterbatasan: status "ada" kedua bab ini bergantung pada flag visual menyala; tanpa flag soalnya berupa teks (tes `test_bab_data_ada_bergantung_pada_flag_visual_soal_tanpa_flag_berupa_teks`). Status bab sekarang 28 ada, 12 sebagian, 0 belum (`cek_bab` lokal).
   Opt-in `Topik.unik_per_lembar` + enumerator domain menjaga soal
   tidak kembar; retry terbatas memilih sisa domain, pengulangan boleh setelah habis.
   Flag mati mempertahankan RNG lama. Campuran tetap P3–P6; lembar 10 soal satu jenis
