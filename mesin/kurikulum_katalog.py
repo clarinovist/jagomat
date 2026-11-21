@@ -228,6 +228,7 @@ KATALOG: Tuple[EntriTopik, ...] = (
             ('luas_petak_volume_kubus', 'Luas petak dan volume kubus satuan', ('luas_petak_volume_kubus',)),
             ('ciri_komposisi_bangun', 'Ciri, susunan, dan uraian bangun datar', ('ciri_komposisi_bangun',)),
             ('keliling_gabungan', 'Keliling bangun datar dan gabungan', ('keliling_gabungan',)),
+            ('ukur_sudut_awal', 'Mengukur dan membandingkan sudut', ('ukur_sudut_awal',)),
             ('pecahan_bilangan_asli_desimal', 'Pecahan dengan bilangan asli dan desimal', ('pecahan_bilangan_asli_desimal',)),
         ),
     ),

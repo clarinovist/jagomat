@@ -30,6 +30,8 @@ kenali_bangun_awal P1/P2 (21 Nov 2026, jenis ke-20, empat varian: datar_gambar, 
 pada kedua versi katalog (sama): P1 102 kerangka/159 tanda tangan, P2 113/172 (>= 150, tanpa ALASAN_RUANG); lembar P1 kini 6 jenis dan P2 8 jenis.
 baca_jam_awal P2 (21 Nov 2026, jenis ke-21, empat varian: baca_penuh, baca_setengah, jam_kemudian, kegiatan_selesai): diukur lewat _ukur
 pada kedua versi katalog (sama): 7 kerangka/123 tanda tangan (< 150, jadi ALASAN_RUANG); lembar P2 kini 9 jenis.
+ukur_sudut_awal P5 (21 Nov 2026, jenis ke-22, lima varian: baca_dari_nol, baca_geser, jenis_sudut, banding, selisih_dua): diukur lewat _ukur
+pada kedua versi katalog (sama): 9 kerangka/248 tanda tangan (>= 150, tanpa ALASAN_RUANG); lembar P5 kini 3 jenis, konsentrasi lembar P5 terukur 1,37 (di bawah 2,1).
 baca_diagram_gambar P2 (21 Nov 2026, skala 1 atau 2): diukur lewat _ukur pada kedua versi katalog (sama): P2 299/299
 tanda tangan (domain P2 20160, skala 1 jumlah 5..12, skala 2 jumlah 1..8) dengan empat varian; lembar P2 kini 7 jenis, konsentrasi lembar P2 terukur 1,00 (di bawah 2,1).
 Awalnya (kerangka): kenali_bentuk P1 18/19 dan P2 26/26 tanda tangan dengan
@@ -74,6 +76,7 @@ bilangan-sekolah kalimat_matematika P3:4:292:kurang_akhir,kurang_awal,tambah_akh
 matematika-awal kenali_bentuk P1:18:19:banyak_sisi,benda,dari_ciri P2:26:26:banyak_sisi,benda,dari_ciri
 matematika-awal kenali_bangun_awal P1:102:159:benda_ruang,datar_gambar,hitung_bentuk,ruang_gambar P2:113:172:benda_ruang,datar_gambar,hitung_bentuk,ruang_gambar
 matematika-awal baca_jam_awal P2:7:123:baca_penuh,baca_setengah,jam_kemudian,kegiatan_selesai
+matematika-awal ukur_sudut_awal P5:9:248:baca_dari_nol,baca_geser,banding,jenis_sudut,selisih_dua
 matematika-awal ukur_satuan_tak_baku P1:36:277:banding,sambung,selisih
 matematika-awal baca_diagram_gambar P1:295:295:baca,jumlah,selisih,terbanyak P2:299:299:baca,jumlah,selisih,terbanyak
 matematika-awal pola_posisi P2:108:116:atas_bawah,kiri_kanan,pola,urutan
@@ -206,7 +209,7 @@ matematika-awal P1 10 6
 matematika-awal P2 10 9
 matematika-awal P3 10 2
 matematika-awal P4 10 3
-matematika-awal P5 10 2
+matematika-awal P5 10 3
 matematika-awal P6 10 2
 berhitung-sekolah P3 8 4
 berhitung-sekolah P4 8 4

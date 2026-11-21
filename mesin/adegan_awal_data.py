@@ -1,9 +1,10 @@
 """Validator ketat descriptor `adegan_awal` v1 (Matematika Awal).
 
-Lima sub-adegan, dipilih lewat field `adegan`: `deret_ikon` (baris ikon benda),
+Enam sub-adegan, dipilih lewat field `adegan`: `deret_ikon` (baris ikon benda),
 `turus` (garis turus per kategori), `pita_ukur` (batang ukur dari ikon satuan), `bentuk`
-(bangun datar/ruang buatan kode; validatornya di `adegan_awal_bentuk_data`), dan `jam_analog`
-(muka jam berjarum; validatornya di `adegan_awal_jam_data`).
+(bangun datar/ruang buatan kode; validatornya di `adegan_awal_bentuk_data`), `jam_analog`
+(muka jam berjarum; validatornya di `adegan_awal_jam_data`), dan `busur` (busur derajat dengan
+sinar sudut; validatornya di `adegan_awal_busur_data`).
 Descriptor hanya memuat data aman untuk menggambar: nama baris/batang, nama ikon
 dari allow-list, banyak elemen, dan jenis pertanyaan. Kunci atau jawaban TIDAK
 PERNAH masuk descriptor; banyak elemen adalah fakta gambar, bukan jawaban.
@@ -23,7 +24,7 @@ IKON_DIDUKUNG = (
     "mobil", "payung", "pensil", "permen", "pisang", "pizza", "roti", "sapu",
     "sendok", "stiker", "tongkat", "ubin",
 )
-ADEGAN_DIDUKUNG = ("deret_ikon", "turus", "pita_ukur", "bentuk", "jam_analog")
+ADEGAN_DIDUKUNG = ("deret_ikon", "turus", "pita_ukur", "bentuk", "jam_analog", "busur")
 BARIS_MIN, BARIS_MAKS = 2, 4
 JUMLAH_MIN, JUMLAH_MAKS = 0, 12
 PANJANG_NAMA_MAKS = 24
@@ -240,12 +241,19 @@ def _validasi_jam_analog(data: Mapping[str, Any]) -> None:
     validasi_jam_analog(data)
 
 
+def _validasi_busur(data: Mapping[str, Any]) -> None:
+    """Impor malas karena alasan yang sama dengan `_validasi_bentuk`."""
+    from adegan_awal_busur_data import validasi_busur
+    validasi_busur(data)
+
+
 _VALIDATOR = {
     "deret_ikon": _validasi_deret_ikon,
     "turus": _validasi_turus,
     "pita_ukur": _validasi_pita_ukur,
     "bentuk": _validasi_bentuk,
     "jam_analog": _validasi_jam_analog,
+    "busur": _validasi_busur,
 }
 
 

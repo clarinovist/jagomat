@@ -44,6 +44,7 @@ import awal_tambah_kurang_20 as tambah_kurang_20
 import awal_turus_gambar_awal as turus_gambar_awal
 import awal_ukur_konversi_awal as ukur_konversi_awal
 import awal_ukur_satuan_tak_baku as ukur_satuan_tak_baku
+import awal_ukur_sudut_awal as ukur_sudut_awal
 import awal_unsur_bangun_datar as unsur_bangun_datar
 import awal_waktu_berat_awal as waktu_berat_awal
 from templates import Soal
@@ -124,6 +125,9 @@ JENIS = (
     Jenis(baca_jam_awal.TEMPLATE_ID, baca_jam_awal.baca_jam_awal,
           baca_jam_awal.parameter, baca_jam_awal.LEVEL,
           baca_jam_awal.domain_parameter),
+    Jenis(ukur_sudut_awal.TEMPLATE_ID, ukur_sudut_awal.ukur_sudut_awal,
+          ukur_sudut_awal.parameter, ukur_sudut_awal.LEVEL,
+          ukur_sudut_awal.domain_parameter),
 )
 _PER_ID = {j.template_id: j for j in JENIS}
 if len(_PER_ID) != len(JENIS):

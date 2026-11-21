@@ -121,6 +121,11 @@ KARTU: dict[str, Kartu] = {
         inti="Jam jarum punya dua jarum. Jarum pendek menunjuk jam dan jarum panjang menunjuk menit. Kalau jarum panjang tepat di angka 12, jamnya pas: jarum pendek di angka 3 berarti pukul 3. Kalau jarum panjang di angka 6, sudah lewat setengah jam (30 menit): jarum pendek ada di antara dua angka, dan jamnya adalah angka yang sudah dilewati. Setelah angka 12, jam kembali ke angka 1, jadi untuk jam sesudahnya hitung maju satu angka tiap jam.",
         contoh="Jarum pendek di antara angka 4 dan 5 dan jarum panjang di angka 6: pukul 4.30. Tiga jam setelah pukul 11: 12, 1, 2, jadi pukul 2.",
     ),
+    "ukur_sudut_awal": Kartu(
+        judul="Mengukur dan membandingkan sudut dengan busur derajat",
+        inti="Busur derajat punya dua skala. Letakkan titik pusatnya di titik sudut dan garis alasnya tepat di sepanjang satu kaki sudut. Mulai membaca dari angka 0 pada kaki itu, lalu ikuti skala yang sama sampai ke kaki yang lain; jangan membaca skala yang satunya, karena angkanya 180 dikurangi besar sudut. Kalau kedua kaki sama-sama bukan di angka 0, baca keduanya pada skala yang sama lalu kurangkan angka yang kecil dari yang besar. Sudut yang bukaannya lebih lebar lebih besar. Sudut lancip kurang dari 90 derajat, sudut siku tepat 90 derajat, sudut tumpul lebih dari 90 derajat dan kurang dari 180 derajat.",
+        contoh="Kaki pertama di angka 0 dan kaki kedua di angka 70 pada skala yang sama: sudutnya 70 derajat, jadi sudut lancip. Dua kaki di angka 30 dan 110 pada skala yang sama: sudutnya 110 dikurangi 30, yaitu 80 derajat.",
+    ),
     "ukur_satuan_tak_baku": Kartu(
         judul="Mengukur panjang dengan satuan buatan sendiri",
         inti="Ukur benda dengan satuan yang sama, lalu bandingkan angkanya: makin banyak satuan yang muat, makin panjang bendanya. Lebihnya dicari dengan mengurangi. Dua benda yang disambung panjangnya ditambah.",
@@ -588,6 +593,7 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "kenali_bentuk": "kenali_bentuk",
     "kenali_bangun_awal": "kenali_bangun_awal",
     "baca_jam_awal": "baca_jam_awal",
+    "ukur_sudut_awal": "ukur_sudut_awal",
     "ukur_satuan_tak_baku": "ukur_satuan_tak_baku",
     "baca_diagram_gambar": "baca_diagram_gambar",
     "pola_posisi": "pola_posisi",

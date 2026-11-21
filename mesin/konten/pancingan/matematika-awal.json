@@ -51,6 +51,14 @@
    ],
    "tindak_lanjut": "Lipat kertas jadi dua, lalu jadi empat bagian sama besar. Bagi 12 kancing jadi dua dan empat tumpukan bersama anak, lalu hitung tiap tumpukan dan sisanya."
   },
+  "ukur_sudut_awal": {
+   "pertanyaan": [
+    "Minta anak menunjuk titik pusat dan garis alas busur derajat, lalu menyebut angka 0 yang dipakai untuk sudut itu.",
+    "Tanya: kalau satu kaki sudut di angka 0 pada skala luar, skala mana yang harus dibaca untuk kaki yang lain? Minta anak menjelaskan alasannya.",
+    "Minta anak membandingkan dua sudut buatan dari batang es krim, lalu menebak mana yang lebih besar sebelum mengukurnya."
+   ],
+   "tindak_lanjut": "Gambar beberapa sudut di kertas bersama anak, lalu ukur dengan busur derajat sungguhan dan tulis besarnya. Minta anak menggolongkan tiap sudut sebagai lancip, siku, atau tumpul."
+  },
   "baca_jam_awal": {
    "pertanyaan": [
     "Minta anak menunjuk jarum pendek dan jarum panjang di jam dinding, lalu menyebut mana yang menunjukkan jam.",

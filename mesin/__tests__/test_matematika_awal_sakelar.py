@@ -92,7 +92,7 @@ def test_sakelar_bukan_bagian_registri_admin_dan_dibaca_tiap_panggilan(monkeypat
 def test_template_baru_sama_persis_dengan_template_topik():
     """Jenis yang lupa didaftarkan di sakelar akan lolos palang: dikunci dua arah di sini."""
     assert versi.TEMPLATE_BARU == frozenset(topics.ambil(TOPIK).templates) == frozenset(SEMUA)
-    assert len(SEMUA) == 21 and len(versi.TEMPLATE_BARU) == 21
+    assert len(SEMUA) == 22 and len(versi.TEMPLATE_BARU) == 22
     for tid in topics.ambil(TOPIK).templates:
         assert topics.pemilik_template(tid) == TOPIK
 

@@ -103,9 +103,9 @@ def _soal_domain(tid: str, parameter: dict, level: str):
 
 # ── pendaftaran bersama ──────────────────────────────────────────────────
 
-def test_dua_puluh_satu_jenis_terdaftar_dengan_level_eksplisit():
+def test_dua_puluh_dua_jenis_terdaftar_dengan_level_eksplisit():
     paket = _paket()
-    assert set(paket.templates) == set(TEMPLATE_AWAL) and len(TEMPLATE_AWAL) == 21
+    assert set(paket.templates) == set(TEMPLATE_AWAL) and len(TEMPLATE_AWAL) == 22
     assert matematika_awal_versions.TEMPLATE_BARU == frozenset(TEMPLATE_AWAL)
     assert tuple(paket.komposisi) == LEVEL_AWAL
     assert set(paket.komposisi) == {"P1", "P2", "P3", "P4", "P5", "P6"}

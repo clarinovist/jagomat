@@ -19,6 +19,7 @@ NAMA_TIPE_SOAL = {
     "kenali_bentuk": "Mengenal bentuk bangun datar",
     "kenali_bangun_awal": "Mengenal bangun datar dan bangun ruang",
     "baca_jam_awal": "Membaca jam jarum",
+    "ukur_sudut_awal": "Mengukur dan membandingkan sudut dengan busur derajat",
     "ukur_satuan_tak_baku": "Mengukur panjang dengan satuan tak baku",
     "baca_diagram_gambar": "Membaca diagram gambar",
     "pola_posisi": "Pola dan posisi benda",

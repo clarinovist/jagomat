@@ -5,6 +5,7 @@ import re
 
 from awal_pola_posisi import pengecoh_tambahan as pengecoh_pola_posisi
 from awal_ukur_satuan_tak_baku import pengecoh_tambahan as pengecoh_ukur_satuan_tak_baku
+from awal_ukur_sudut_awal import pengecoh_tambahan as pengecoh_ukur_sudut_awal
 from awal_unsur_bangun_datar import pengecoh_tambahan as pengecoh_unsur_bangun_datar
 from generator import Lembar, buat_lembar
 from multiple_choice import SIMBOL_PERBANDINGAN, buat_pilihan, pilihan_tertanam, nilai_semantis
@@ -36,7 +37,10 @@ TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   'kenali_bangun_awal',
                   # baca_jam_awal: kunci "N" atau "N.30" (jenis 'angka'); jalur K/H dari malrule selalu >= 3 per
                   # parameter domain (jam penuh/setengah/kemudian/selesai), jadi tiga opsi aman.
-                  'baca_jam_awal'})
+                  'baca_jam_awal',
+                  # ukur_sudut_awal: kunci angka (tiga varian, malrule >= 2 jawaban berbeda per parameter domain)
+                  # atau kata/huruf (jenis_sudut, banding; pengecoh = malrule + pengecoh_tambahan, tepat 3 opsi).
+                  'ukur_sudut_awal'})
 # Kunci kategori (nama/kata/benda) per jenis Matematika Awal; sisanya jatuh ke 'angka'.
 KATEGORI_AWAL = {
     'ukur_satuan_tak_baku': frozenset({'banding'}),
@@ -46,6 +50,8 @@ KATEGORI_AWAL = {
     'bilang_benda_awal': frozenset({'angka_ke_kata'}),  # kunci kata bilangan huruf kecil
     # kenali_bangun_awal: tiga varian berkunci nama bangun; hitung_bentuk berkunci angka (tiga opsi).
     'kenali_bangun_awal': frozenset({'datar_gambar', 'ruang_gambar', 'benda_ruang'}),
+    # ukur_sudut_awal: jenis_sudut berkunci kata jenis, banding berkunci huruf B/C; sisanya angka derajat.
+    'ukur_sudut_awal': frozenset({'jenis_sudut', 'banding'}),
 }
 
 
@@ -130,6 +136,9 @@ def kandidat(soal):
         # Varian banding hanya punya satu malrule (benda lebih pendek); tambahan "sama panjang"
         # bukan hipotesis kesalahan, jadi tidak masuk malrule.
         nilai += list(pengecoh_ukur_satuan_tak_baku(p))
+    elif tid == 'ukur_sudut_awal':
+        # jenis_sudut: tiga kata jenis; banding: "sama besar" (bukan hipotesis kesalahan, jadi di luar malrule).
+        nilai += list(pengecoh_ukur_sudut_awal(p))
     elif tid == 'unsur_bangun_datar':
         # istilah: "miring" bukan hipotesis kesalahan, jadi tidak masuk malrule.
         nilai += list(pengecoh_unsur_bangun_datar(p))
