@@ -1,7 +1,8 @@
 name: CI Hybrid
 
-# Push mendapat feedback cepat, jadwal mingguan mengaudit kandidat lengkap, dan
-# dispatch manual menjadi satu-satunya gate rilis kandidat + recovery + image.
+# Push mendapat feedback cepat. Dispatch manual langsung membangun image setelah
+# palang privasi (tanpa suite penuh; keputusan pemilik 22 Nov 2026). Suite penuh
+# kandidat + recovery berjalan mingguan atau lewat dispatch dengan input audit.
 # Migrasi/cutover tetap controlled deploy-v2; job pasang literal false.
 on:
   push:
@@ -10,6 +11,11 @@ on:
     # Senin 03.00 WIB (Minggu 20.00 UTC).
     - cron: "0 20 * * 0"
   workflow_dispatch:
+    inputs:
+      audit:
+        description: "Jalankan audit suite penuh kandidat + recovery (tanpa build image)"
+        type: boolean
+        default: false
 
 concurrency:
   # Push baru membatalkan push lama pada ref yang sama. Audit mingguan dan gate
@@ -80,12 +86,12 @@ jobs:
       - name: Jalankan smoke dan test langsung terdampak
         run: python -u scripts/ci_fast_tests.py
 
-  # Audit kandidat lengkap: schedule mingguan dan dispatch manual. Tiap runner
+  # Audit kandidat lengkap: schedule mingguan dan dispatch audit. Tiap runner
   # serial; jangan xdist karena test HTTP berbagi socket.
   uji_kandidat:
     name: Test kandidat ${{ matrix.shard }}/4
     needs: periksa
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.audit) }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -147,12 +153,12 @@ jobs:
           python scripts/verify_pytest_shards.py
           --directory shard-manifests --total 4 --revision "$GITHUB_SHA"
 
-  # Recovery pinned hanya diuji sebagai bagian gate rilis manual. Audit mingguan
-  # tidak menerbitkan image atau bukti pasangan recovery.
+  # Recovery pinned tidak berubah antar-rilis, jadi cukup diuji bersama audit
+  # mingguan/dispatch audit. Audit tidak menerbitkan image atau bukti pasangan.
   uji_recovery:
     name: Test recovery ${{ matrix.shard }}/4
     needs: periksa
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.audit) }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -193,7 +199,10 @@ jobs:
 
   bangun:
     name: Build & Push
-    needs: [uji, uji_recovery]
+    # Gate rilis cepat: palang privasi/kompilasi (periksa) lalu build. Suite penuh
+    # dibuktikan oleh audit mingguan, bukan setiap dispatch.
+    needs: periksa
+    if: ${{ github.event_name == 'workflow_dispatch' && !inputs.audit && needs.periksa.outputs.lengkap == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -358,11 +367,15 @@ jobs:
       - name: Pastikan jalur yang dipilih selesai tanpa bypass
         env:
           HASIL_JOB: ${{ toJSON(needs) }}
+          AUDIT_MANUAL: ${{ inputs.audit }}
         run: |
           python - <<'PY'
           import json, os
           hasil = json.loads(os.environ['HASIL_JOB'])
           event = os.environ['GITHUB_EVENT_NAME']
+          audit = os.environ.get('AUDIT_MANUAL', '')
+          if audit not in ('', 'true', 'false'):
+              raise SystemExit('Input audit tidak sah.')
           periksa = hasil['periksa']
           lengkap = periksa.get('outputs', {}).get('lengkap')
           if periksa['result'] != 'success' or lengkap not in ('true', 'false'):
@@ -374,18 +387,20 @@ jobs:
                   'uji_recovery': 'skipped', 'bangun': 'skipped',
               }
               jalur = 'push cepat' if lengkap == 'true' else 'dokumen aman'
-          elif event == 'schedule' and lengkap == 'true':
+          elif lengkap == 'true' and (
+                  (event == 'schedule' and audit == '')
+                  or (event == 'workflow_dispatch' and audit == 'true')):
               harapan = {
                   'uji_cepat': 'skipped', 'uji_kandidat': 'success',
-                  'uji': 'success', 'uji_recovery': 'skipped', 'bangun': 'skipped',
+                  'uji': 'success', 'uji_recovery': 'success', 'bangun': 'skipped',
               }
-              jalur = 'audit kandidat mingguan'
-          elif event == 'workflow_dispatch' and lengkap == 'true':
+              jalur = 'audit penuh kandidat + recovery'
+          elif event == 'workflow_dispatch' and audit == 'false' and lengkap == 'true':
               harapan = {
-                  'uji_cepat': 'skipped', 'uji_kandidat': 'success',
-                  'uji': 'success', 'uji_recovery': 'success', 'bangun': 'success',
+                  'uji_cepat': 'skipped', 'uji_kandidat': 'skipped',
+                  'uji': 'skipped', 'uji_recovery': 'skipped', 'bangun': 'success',
               }
-              jalur = 'gate rilis manual'
+              jalur = 'gate rilis cepat (build tanpa suite)'
           else:
               raise SystemExit('Event atau hasil klasifikasi tidak sah.')
           for nama, harap in harapan.items():

@@ -193,10 +193,11 @@ diperiksa apa adanya, serta aturan privasi anak berlaku pada seluruh tool dan mo
   Test aplikasi berada di `mesin/__tests__/`, bukan plan/spike/salinan repo lama. Mulai dari
   test regression dan caller yang terdampak; jangan menjalankan seluruh `mesin/__tests__/`
   secara lokal sebagai default, termasuk dari salinan kerja `/tmp`.
-- Full suite tetap wajib sebelum rilis, tetapi jalur defaultnya **CI empat shard** dengan
-  interpreter workflow. Setelah izin push/deploy yang diperlukan ada dan gate lokal
-  scoped lulus, push boleh dilakukan agar CI menjadi
-  gate lengkap pada SHA yang sama; jangan menunggu full suite serial lokal sebelum push.
+- Full suite berjalan di **CI empat shard**: audit mingguan (Senin 03.00 WIB) atau dispatch
+  dengan input `audit: true`. Dispatch rilis biasa **tidak** menjalankan suite penuh (keputusan
+  pemilik 22 Nov 2026): palang privasi + kompilasi lalu build. Kegagalan audit mingguan
+  diperbaiki sekali per minggu; rilis Kritis (migrasi, auth/sesi, kunci/diagnosis) sebaiknya
+  menjalankan dispatch audit pada SHA yang sama dulu. Jangan menunggu full suite serial lokal.
   Full suite lokal hanya untuk reproduksi kegagalan CI yang belum dapat diisolasi, instruksi
   eksplisit pengguna/harness, atau ketika CI benar-benar tidak tersedia. Sebelum memulainya,
   beri tahu alasan dan perkiraan durasi; `timeout` adalah batas, bukan perkiraan selesai.
@@ -337,8 +338,9 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
 - Image tetap **`ghcr.io/clarinovist/osn-mesin-latihan`**, independen dari nama repo.
   Jangan menggantinya ke `github.repository` atau namespace baru tanpa migrasi artefak/
   verifier/deployer/recovery tersendiri. Pin ini tidak mengaktifkan job `pasang`.
-- Perubahan aplikasi tetap mengikuti **`uji` → `bangun` → `pasang`** di workflow:
-  palang privasi + seluruh test sebelum build GHCR, deploy **digest output build yang sama**,
+- Perubahan aplikasi mengikuti **`periksa` → `bangun` → `pasang`** di workflow:
+  palang privasi + kompilasi sebelum build GHCR (suite penuh = audit mingguan/dispatch audit,
+  [CI hybrid](docs/ci-selective.md)), deploy **digest output build yang sama**,
   forced-command SSH, swap container, auto-rollback jika healthcheck gagal. Push dokumen
   allow-list memakai [CI ringan](docs/ci-selective.md), bukan bukti kelayakan rilis.
 - Izin tetap tidak menggantikan gate teknis: mode/pin mengikuti

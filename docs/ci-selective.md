@@ -1,8 +1,9 @@
 # GitHub Actions hybrid
 
-Workflow **CI Hybrid** memisahkan feedback pengembangan dari bukti rilis. Palang
-awal tetap berjalan pada setiap event; full suite, recovery, dan build tidak lagi
-dijalankan pada setiap push kode.
+Workflow **CI Hybrid** memisahkan feedback pengembangan, audit test, dan build rilis.
+Palang awal tetap berjalan pada setiap event. Sejak 22 Nov 2026 (keputusan pemilik)
+full suite kandidat + recovery hanya berjalan mingguan atau lewat dispatch audit;
+dispatch rilis langsung membangun image setelah palang.
 
 ## Tiga jalur
 
@@ -10,8 +11,9 @@ dijalankan pada setiap push kode.
 | --- | --- | --- |
 | Push `main`, hanya dokumen allow-list | Palang nama berkas/index, validasi dokumen, test helper CI, dan kompilasi Python | Tidak ada |
 | Push `main`, ada berkas lain | Pemeriksaan awal di atas + satu job test cepat: smoke inti dan test yang langsung terdampak | Tidak ada |
-| Schedule Senin 03.00 WIB | Pemeriksaan awal + full suite kandidat empat shard dan verifikasi exact-once | Tidak ada |
-| `workflow_dispatch` | Pemeriksaan awal + full suite kandidat dan recovery, build/probe dua image, verifikasi pasangan, dan manifest | Candidate/recovery exact; deploy tetap nonaktif |
+| Schedule Senin 03.00 WIB | Pemeriksaan awal + full suite kandidat (exact-once) dan recovery, masing-masing empat shard | Tidak ada |
+| `workflow_dispatch` dengan `audit: true` | Sama dengan schedule, pada SHA pilihan (cek ulang setelah perbaikan) | Tidak ada |
+| `workflow_dispatch` (default) | Pemeriksaan awal, lalu build/probe dua image, verifikasi pasangan, dan manifest; **tanpa** suite penuh | Candidate/recovery exact; deploy tetap nonaktif |
 
 Push baru pada ref yang sama membatalkan run push lama. Schedule dan dispatch
 berbagi antrean release, tidak dibatalkan oleh push, dan tidak berjalan bersamaan.
@@ -69,10 +71,17 @@ schedule:
   - cron: "0 20 * * 0" # Senin 03.00 WIB
 ```
 
-Audit menjalankan seluruh test kandidat pada empat runner terisolasi. Tiap runner
-tetap serial karena test HTTP berbagi socket. Manifest shard membuktikan setiap
-nodeid kandidat berjalan tepat sekali. Audit tidak mengetes recovery, membangun
+Audit menjalankan seluruh test kandidat dan recovery pinned, masing-masing pada empat
+runner terisolasi. Tiap runner tetap serial karena test HTTP berbagi socket. Manifest
+shard membuktikan setiap nodeid kandidat berjalan tepat sekali. Audit tidak membangun
 image, menerbitkan manifest pasangan, atau memasang aplikasi.
+
+Pengingat: GitHub mengirim email bila run terjadwal gagal (ke akun yang terakhir
+mengubah cron). Perbaiki kegagalan dalam minggu yang sama, lalu jalankan dispatch audit:
+
+```bash
+gh workflow run deploy.yml --repo clarinovist/jagomat --ref main -f audit=true
+```
 
 ## Gate rilis manual
 
@@ -81,7 +90,7 @@ jangan memperluas allow-list untuk meloloskan harmonisasi. Commit dokumentasi
 tanpa perubahan artifact aplikasi tidak memerlukan rebuild/restart produksi.
 Catat revision image terakhir terpisah dari HEAD dokumentasi.
 
-Sebelum release/cutover, jalankan workflow manual pada SHA `main` yang akan dirilis:
+Sebelum release, jalankan workflow manual pada SHA `main` yang akan dirilis (±3–5 menit):
 
 ```bash
 gh workflow run deploy.yml --repo clarinovist/jagomat --ref main
@@ -90,13 +99,15 @@ gh run watch <id-run> --repo clarinovist/jagomat --exit-status
 ```
 
 Di GitHub: **Actions → CI Hybrid → Run workflow → main → Run workflow**. Dispatch
-tidak punya input untuk melewati gate. Ia menjalankan full suite kandidat dan
-recovery pinned, build/probe kedua image, uji pasangan exact, dan manifest pada SHA
+rilis menjalankan palang privasi/kompilasi, build/probe kedua image, uji pasangan
+exact, dan manifest pada SHA yang sama, tanpa full suite. Untuk rilis Kritis
+(migrasi, auth/sesi, kunci/diagnosis) jalankan dulu dispatch `audit: true` pada SHA
 yang sama. Job `pasang` tetap literal false selama mode migrasi. Aktivasi rutin
 kelak harus mereview gate workflow, metadata, policy host, dan runbook bersama.
 
-Full suite mingguan pada SHA lama tidak menggantikan dispatch rilis pada SHA target.
-CI push maupun audit hijau bukan bukti artefak tersedia atau produksi sudah berubah.
+Image hasil dispatch rilis belum tentu lulus full suite pada SHA itu; bukti suite
+adalah audit terakhir. CI push maupun audit hijau bukan bukti artefak tersedia atau
+produksi sudah berubah.
 
 ## Status akhir
 
@@ -104,14 +115,14 @@ Check **Status CI** memvalidasi kombinasi job berdasarkan event:
 
 - push dokumen: job test cepat/full/build harus skipped;
 - push kode: test cepat harus sukses; full candidate/recovery/build harus skipped;
-- schedule: full kandidat+agregat harus sukses; recovery/build harus skipped;
-- dispatch: kandidat, recovery, agregat, dan build harus sukses;
+- schedule / dispatch `audit: true`: kandidat, agregat, dan recovery harus sukses; build harus skipped;
+- dispatch rilis: build harus sukses; kandidat, agregat, dan recovery harus skipped;
 - deploy harus tetap skipped pada mode saat ini.
 
 Kegagalan, pembatalan, output klasifikasi invalid, event tak dikenal, atau skip yang
 tidak sesuai membuat Status CI gagal. Jika memakai required check/branch protection,
 gunakan **Status CI** sebagai check lintas jalur.
 
-Penghematan berasal dari tidak menjalankan delapan runner suite dan dua build image
-pada setiap push. Besarnya tetap dipantau dari runner-minute aktual; paralelisme
+Penghematan berasal dari tidak menjalankan delapan runner suite pada setiap push
+maupun dispatch rilis. Besarnya tetap dipantau dari runner-minute aktual; paralelisme
 mengurangi waktu tunggu, bukan jumlah menit komputasi.

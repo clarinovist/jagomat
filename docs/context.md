@@ -352,8 +352,8 @@ Repo luar `/Users/nugroho/Documents/jagomat/aplikasi`, branch `main`, origin
 luar dan jaga WIP sesi lain. Folder induk lokal `~/Documents/jagomat/` (disusun 8 Nov 2026)
 berisi `aplikasi` (repo ini), `berkas`, `cek`, `tim`, `web`, dan `riset` (dulu `osn-resources`);
 saudara-saudaranya bukan bagian Git repo ini. Lokal: scoped test/compile/review, bukan full suite default.
-Push memberi CI cepat; dispatch manual membuktikan kandidat/recovery exact empat
-shard, build/probe/pair. [CI hybrid](ci-selective.md).
+Push memberi CI cepat; dispatch rilis = palang lalu build/probe/pair (tanpa suite);
+full suite kandidat/recovery empat shard mingguan atau dispatch `audit: true`. [CI hybrid](ci-selective.md).
 
 Image tetap `ghcr.io/clarinovist/osn-mesin-latihan`; domain `https://jagomat.id`;
 SSH alias `biznet-sekolahdesain`. Tidak build di VPS. Auto-pasang tetap nonaktif;

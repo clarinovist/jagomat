@@ -50,7 +50,7 @@ def test_pin_soft_launch_migrasi_pasang_literal_false():
 def test_build_candidate_dan_recovery_pakai_digest_yang_sama_untuk_verifikasi():
     teks=WORKFLOW.read_text()
     uji=_job(teks,'uji');recovery=_job(teks,'uji_recovery');bangun=_job(teks,'bangun')
-    assert 'needs: [uji, uji_recovery]' in bangun
+    assert '    needs: periksa\n' in bangun  # Dispatch: palang lalu build, suite mingguan.
     # Checkout yang diuji/dibangun dan revision manifest wajib snapshot sama.
     assert re.findall(r'^          ref: ([0-9a-f]{40})$', teks, re.M) == [RECOVERY_SHA] * 2
     assert re.findall(r'^  RECOVERY_SHA: ([0-9a-f]{40})$', teks, re.M) == [RECOVERY_SHA]
@@ -113,10 +113,12 @@ def test_dependencies_gagal_tidak_dibypass_ke_build_atau_deploy():
     bangun = _job(teks, 'bangun')
     assert re.findall(r'^        if: (.+)$', bangun, re.M) == [
         "${{ steps.mode.outputs.mode == 'migrasi' || steps.mode.outputs.mode == 'rutin' }}"]
-    assert not re.search(r'^    if:', bangun, re.M)  # Job build/per-image tidak dilewati.
+    # Job build hanya dilewati di luar dispatch rilis; Status CI menolak skip di dispatch.
+    assert re.findall(r'^    if: (.+)$', bangun, re.M) == [
+        "${{ github.event_name == 'workflow_dispatch' && !inputs.audit && needs.periksa.outputs.lengkap == 'true' }}"]
     assert 'working-directory: recovery' in _job(teks,'uji_recovery')
     assert 'shard: [1, 2, 3, 4]' in _job(teks,'uji_recovery')
-    assert 'needs: [uji, uji_recovery]' in _job(teks,'bangun')
+    assert '    needs: periksa\n' in _job(teks,'bangun')
 
 
 def test_manifest_setelah_pair_dan_kegagalan_pair_menahan_upload():
