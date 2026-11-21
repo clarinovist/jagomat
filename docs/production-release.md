@@ -18,14 +18,15 @@ Status: commit lokal, belum push, belum deploy. Live saat ini **63f8756** (kontr
 Kandidat = `main` lokal (59 commit di atas `origin/main`, antara lain topik `matematika-awal` 25 jenis,
 keluarga visual `matematika-awal`, Latihan Lomba, metrik runtime, kencang-saat-start, Peta/retensi R1).
 
-**Pin recovery (22 Nov, lokal):** recovery **`e94244d`** di branch `recovery-matematika-awal`
-(`68c68d9` kontrak -> `82aae88` pin -> `e94244d` anchor koleksi 26.123 nodeid), dibuat dari `40d57aa`.
+**Pin recovery (22 Nov, lokal):** recovery **`a8c587e`** di branch `recovery-matematika-awal`
+(`68c68d9` kontrak -> `82aae88` pin -> `e94244d` anchor koleksi 26.123 nodeid -> `a8c587e` perbaikan tes
+lembar P6 dan pancingan; gate `9ccf420` merah di dua tes itu), dibuat dari `40d57aa`.
 Kontrak kandidat = recovery = **`4b20d8ce…0aa3`** (bergeser dari `660fe235…7231`). Penyebab pergeseran:
 `schema.py` + `schema_lomba.py` + `contest_store.py` (tiga tabel aditif), `serve.py` (`metrik_runtime`,
 `berkas_data.kencangkan_saat_start`), `visual_contract.py` + `question_views.py` (descriptor
 `adegan_awal` dan proyektor `matematika-awal`). `test_kontrak_candidate_identik_dengan_recovery_pinned`
 kembali hijau (sebelumnya merah karena pin masih `4cef3ab`/`660fe235`). **Branch
-`recovery-matematika-awal` wajib dipush ke origin sebelum `main`** (CI memeriksa `e94244d`).
+`recovery-matematika-awal` wajib dipush ke origin sebelum `main`** (CI memeriksa `a8c587e`).
 
 ### Matriks rollback (kandidat -> live lama 63f8756 atau recovery)
 

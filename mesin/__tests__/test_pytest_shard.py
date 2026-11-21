@@ -63,6 +63,9 @@ JUMLAH_RECOVERY = {
     # Koleksi recovery matematika-awal e94244d (kode 40d57aa, kontrak 4b20d8c);
     # collect-only arsip exact 26.123 nodeid di Python 3.9, 22 Nov 2026.
     "e94244d43a016b263e081f96efaabd2c713015e5": 26123,
+    # Koleksi recovery matematika-awal a8c587e (68c68d9 + perbaikan lembar P6/pancingan);
+    # collect-only arsip exact 26.123 nodeid di Python 3.9, 22 Nov 2026.
+    "a8c587e1d3c209a113c0e4a9546ba73c1d235dc4": 26123,
     "ff6acb158985f78ef0287ec18fb045d273921bdc": 13507,
     "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
     # Arsip exact reader katalog; nodeid identik empat manifest CI39596225447
