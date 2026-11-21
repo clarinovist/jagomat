@@ -139,7 +139,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   otomatis) -> PRG ke `/cetakan?kelas=&bab=&permintaan=<id>` yang merender ringkasan (N draf + tautan, alasan penolakan, di-escape; hanya bila
   kelas/bab permintaan cocok). Tombol di halaman cetakan bab (dan tautan "Buatkan draf cetakan" di tabel Kurikulum Merdeka untuk bab belum/sebagian)
   hanya bila kunci ada DAN `sisa_hari_ini()` > 0 (DB kuota tak terbaca = `None` = sembunyi, fail-closed); kuota dibaca sekali per render.
-  `cetakan_ai` = klien urllib langsung (timeout 30 dtk, balasan maks 8192 byte dibaca `read(BATAS+1)`, 1-3 kandidat, `GalatAI` ramah tanpa kunci/URL/badan);
+  `cetakan_ai` = klien urllib langsung (timeout 30 dtk, balasan maks 8192 byte dibaca `read(BATAS+1)`, 1-3 kandidat, `GalatAI` ramah tanpa kunci/URL/badan;
+  badan mengirim `thinking: disabled` karena thinking bawaan DeepSeek menghabiskan `max_tokens` 1500 untuk reasoning sehingga `content` kosong);
   `muatan(kelas, bab)` murni hanya kelas, judul bab, sub-materi, aturan cetakan (dari konstanta `cetakan_pola`), dan satu contoh format.
   **Sengaja TIDAK lewat `llm.py`/`ai_service`/`ai_store` dan tak mengecek `AI_NONAKTIF`**: "Hentikan"/batas fitur di /admin/ai tak mematikan draf cetakan,
   dan panggilannya TIDAK tercatat di ledger /admin/ai (audit-nya `permintaan` di DB kuota). DB kuota terpisah `/data/cetakan_ai.db` (env

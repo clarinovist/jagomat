@@ -136,6 +136,8 @@ def _badan_permintaan(model: str, kelas: int, bab: kk.Bab) -> bytes:
     return json.dumps({
         "model": model, "messages": muatan(kelas, bab), "temperature": TEMPERATUR, "max_tokens": MAKS_TOKEN,
         "response_format": {"type": "json_object"},
+        # Thinking DeepSeek menyala bawaan dan bisa menghabiskan seluruh MAKS_TOKEN untuk reasoning_content.
+        "thinking": {"type": "disabled"},
     }, ensure_ascii=False).encode("utf-8")
 
 

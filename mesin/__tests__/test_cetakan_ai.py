@@ -129,7 +129,8 @@ def test_permintaan_post_ke_chat_completions_dengan_header_badan_dan_timeout(mon
     assert req.get_header("Authorization") == "Bearer " + KUNCI_SINTETIS
     assert req.get_header("Content-type") == "application/json"
     badan = api.badan()
-    assert set(badan) == {"model", "messages", "temperature", "max_tokens", "response_format"}
+    assert set(badan) == {"model", "messages", "temperature", "max_tokens", "response_format", "thinking"}
+    assert badan["thinking"] == {"type": "disabled"}
     assert badan["model"] == cetakan_ai.MODEL_BAWAAN and badan["response_format"] == {"type": "json_object"}
     assert badan["messages"] == cetakan_ai.muatan(KELAS, BAB_UJI)
     assert 0 <= badan["temperature"] <= 0.5 and 0 < badan["max_tokens"] <= 2000

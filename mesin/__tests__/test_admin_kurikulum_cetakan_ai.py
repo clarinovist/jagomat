@@ -205,7 +205,8 @@ def test_muatan_terkirim_persis_muatan_bab_dan_tanpa_data_akun_atau_anak(tertutu
     badan = api.badan()
     bab = hitung.cari_bab(*BAB_ADA)[1]
     assert badan["messages"] == cetakan_ai.muatan(BAB_ADA[0], bab)
-    assert set(badan) == {"model", "messages", "temperature", "max_tokens", "response_format"} and timeout == 30
+    assert set(badan) == {"model", "messages", "temperature", "max_tokens", "response_format", "thinking"} and timeout == 30
+    assert badan["thinking"] == {"type": "disabled"}
     mentah = req.data.decode("utf-8").lower()
     penting = [id_admin().lower(), AKUN_ADMIN[0].lower(), SANDI_ADMIN.lower(), "osn_sesi", "csrf", "tinjauan",
                "reauth", "cookie", "akun_", "sesi", KUNCI_SINTETIS]
