@@ -715,3 +715,14 @@ LAPORAN_BAYANGAN_TOMBOL = "0 3px 0 rgba(22,33,62,.15)"
 LAPORAN_BAYANGAN_TIMBUL = "0 4px 0 rgba(0,0,0,.12)"
 LAPORAN_BAYANGAN_TIMBUL_KUAT = "0 5px 0 rgba(0,0,0,.14)"
 LAPORAN_BAYANGAN_LEMBAR = "0 6px 24px rgba(0,0,0,.18)"
+
+# Latihan Lomba: warna gambar SVG soal (kontras jelas untuk anak, bukan warna merek).
+GEO_LOMBA_MERAH = "#d94a3d"
+GEO_LOMBA_BIRU = "#3b82c4"
+GEO_LOMBA_KUNING = "#f2c94c"
+GEO_LOMBA_HIJAU = "#6aa84f"
+GEO_LOMBA_HIJAU_MUDA = "#c8e0c0"   # sel kisi satuan
+GEO_LOMBA_KREM = "#f5e6a8"         # papan kisi, kartu
+GEO_LOMBA_BIRU_MUDA = "#c8dcec"    # persegi ditempel
+GEO_LOMBA_GARIS = TEKS_UTAMA
+GEO_LOMBA_LATAR = LATAR_KARTU
