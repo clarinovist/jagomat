@@ -319,7 +319,8 @@ berjalan sebagai cadangan kedua.
   `last-ok`/`retention-ok`, dan run ulang id yang sama (`sudah_ada: true`, mac/sha256
   dipertahankan). **Belum terbukti**: retry 429/5xx dan galat TLS nyata, retensi yang
   benar-benar menghapus (belum ada set > 30 hari), sapuan sisa `/tmp` sebagai root, dan
-  cron 22:00 yang benar-benar terpicu (dipasang 21 Nov, run pertama jatuh 22 Nov).
+  cron 22:00 yang benar-benar terpicu (dipasang 21 Nov 15:08 WIB, run pertama jatuh
+  21 Nov 22:00 WIB).
   Tes memakai server S3 tiruan lokal dan vektor resmi AWS SigV4.
 - **Instalasi 21 Nov 2026**: bucket terpisah `jagomat-app-cadangan-vps` dengan token
   Object Read & Write yang dibatasi ke bucket itu (dibuktikan: List ke
