@@ -16,6 +16,7 @@ NAMA_TIPE_SOAL = {
     "pecahan_bagian_dasar": "Pecahan sederhana",
     "nilai_tempat_ribuan": "Nilai tempat ratusan dan ribuan",
     "nilai_tempat_besar": "Nilai tempat bilangan besar",
+    "kenali_bentuk": "Mengenal bentuk bangun datar",
     "urutkan_bilangan": "Bilangan terbesar dan terkecil",
     "tambah_kurang_bersusun": "Penjumlahan dan pengurangan bersusun",
     "kali_bagi_sekolah": "Perkalian dan pembagian habis",

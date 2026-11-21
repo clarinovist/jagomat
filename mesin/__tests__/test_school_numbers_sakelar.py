@@ -30,6 +30,11 @@ TID = "nilai_tempat_besar"
 SEMUA = (TID, "urutkan_bilangan", "tambah_kurang_bersusun", "kali_bagi_sekolah",
          "kalimat_matematika")  # Tahap A + B
 NAMA = "OSN_BILANGAN_SEKOLAH"
+# Topik Matematika Awal (bawaan menyala) ikut terdaftar; baseline "sebelum topik" di berkas ini
+# hanya berlaku dengan sakelarnya dimatikan, dan isinya dikeluarkan dari hitungan pembaca.
+NAMA_AWAL = "OSN_MATEMATIKA_AWAL"
+TOPIK_AWAL = "matematika-awal"
+SEMUA_AWAL = ("kenali_bentuk",)
 AKAR_MESIN = Path(__file__).resolve().parents[1]
 FOLDER_TEST = Path(__file__).resolve().parent
 
@@ -37,6 +42,7 @@ FOLDER_TEST = Path(__file__).resolve().parent
 @pytest.fixture(autouse=True)
 def sakelar_mati(monkeypatch):
     monkeypatch.delenv(NAMA, raising=False)
+    monkeypatch.setenv(NAMA_AWAL, "0")
     monkeypatch.delenv("OSN_MATERI_DASAR", raising=False)
     monkeypatch.delenv("OSN_DASAR_LENGKAP", raising=False)
 
@@ -157,10 +163,10 @@ def test_mati_registri_hanya_bertambah_lima_template_pembaca():
     from baseline_bilangan_sekolah import sidik as _sidik
     # Registri lama (sebelum topik) = registri sekarang tanpa lima template Bilangan Sekolah.
     sekarang = sorted(topics.registri())
-    lama = [t for t in sekarang if t not in SEMUA]
-    assert len(sekarang) == len(lama) + len(SEMUA)
+    lama = [t for t in sekarang if t not in SEMUA + SEMUA_AWAL]
+    assert len(sekarang) == len(lama) + len(SEMUA) + len(SEMUA_AWAL)
     assert _sidik(lama) == "84403c14c5da72645600"
-    assert [t for t in topics.daftar_topik() if t != TOPIK] == [
+    assert [t for t in topics.daftar_topik() if t not in (TOPIK, TOPIK_AWAL)] == [
         "aritmatika-lanjut", "aritmetika-dasar", "berhitung-sekolah", "bilangan-dasar",
         "campuran", "geometri-datar", "geometri-ruang", "kombinatorik", "logika",
         "pengukuran", "pola-bilangan", "statistika", "teori-bilangan"]
@@ -255,6 +261,7 @@ print(json.dumps(hasil, sort_keys=True))
 
 def _proses(nilai):
     env = {k: v for k, v in os.environ.items() if not k.startswith("OSN_BILANGAN")}
+    env[NAMA_AWAL] = "0"
     if nilai is not None:
         env[NAMA] = nilai
     kode = _KODE % {"akar": str(AKAR_MESIN), "uji": str(FOLDER_TEST)}

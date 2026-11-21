@@ -40,12 +40,16 @@ def test_guard_tingkat_semantik_tuple(nilai):
     assert templates.tingkat_valid(nilai) is (nilai in TINGKAT)
 
 
+# Topik yang hanya memuat P1/P2; keluarkan dari himpunan ini bila jenis P3+ ditambahkan.
+TOPIK_DASAR_SAJA = frozenset({'bilangan-dasar', 'matematika-awal'})
+
+
 @pytest.mark.parametrize('profil', DASAR)
 def test_bentuk_latihan_dasar_hanya_untuk_konten_yang_disetujui(profil):
     assert templates.level_valid(profil)
     assert konteks.profil_dari_form({'profil_parameter': [profil]}) == profil
     for topik in topics.daftar_topik():
-        if topik == 'bilangan-dasar':
+        if topik in TOPIK_DASAR_SAJA:
             assert profil in topics.ambil(topik).komposisi
             konteks.validasi_pilihan([topik], profil)
         else:
@@ -120,7 +124,7 @@ def test_level_terdekat_topik_dasar_memilih_level_sesi(topik_dasar_sintetis, acu
 @pytest.mark.parametrize('topik', topics.daftar_topik())
 def test_pemilih_level_sesi_topik_nyata_tetap_seperti_d0(topik, acuan):
     import session_store
-    if topik == 'bilangan-dasar':
+    if topik in TOPIK_DASAR_SAJA:
         assert set(topics.ambil(topik).komposisi) == set(DASAR)
         assert konteks.profil_otomatis([topik], acuan) == 'P2'
         assert session_store._level_terdekat(acuan, DASAR) == 'P2'

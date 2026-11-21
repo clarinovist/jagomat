@@ -69,8 +69,10 @@ def test_level_terdekat_topik_nyata_tetap_seperti_lama(topik_id):
     paket = topics.ambil(topik_id)
     urut = [level for level in templates.LEVEL if level in paket.komposisi]
     assert urut, topik_id
-    # Topik baru hanya P1/P2: acuan lama P3 paling dekat ke P2.
-    harapan = "P2" if topik_id == "bilangan-dasar" else urut[0]
+    # Acuan lama P3: level topik yang paling dekat, seri ke level bawah. Topik hanya P1/P2
+    # (bilangan-dasar, matematika-awal) mendarat di P2; yang lain di level pertamanya.
+    harapan = min(urut, key=lambda lv: (abs(templates.LEVEL.index(lv) - templates.LEVEL.index("P3")),
+                                        templates.LEVEL.index(lv)))
     assert session_store._level_terdekat("teks-lama", paket.komposisi) == harapan
 
 

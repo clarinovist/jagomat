@@ -1,0 +1,15 @@
+{
+ "versi_format": 1,
+ "topik": "matematika-awal",
+ "status": "draf",
+ "template": {
+  "kenali_bentuk": {
+   "pertanyaan": [
+    "Minta anak menyebut ciri bangun itu: berapa sisinya, berapa sudutnya, ada yang bulat atau tidak.",
+    "Minta anak menunjuk benda di sekitar yang bentuknya sama, lalu menyebut namanya.",
+    "Tanya: apa bedanya persegi dan persegi panjang? Minta anak menunjuk sisi yang sama panjang."
+   ],
+   "tindak_lanjut": "Gambar tiap bangun bersama anak, lalu tulis di bawahnya berapa sisi dan sudutnya. Cocokkan dengan benda di sekitar yang bentuknya sama."
+  }
+ }
+}

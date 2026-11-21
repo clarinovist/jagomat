@@ -128,6 +128,7 @@ def _pastikan_dimuat() -> None:
     import topic_basic_numbers  # noqa: F401  (mendaftarkan diri saat impor)
     import topic_school_basics  # noqa: F401  (mendaftarkan diri saat impor)
     import topic_school_numbers  # noqa: F401  (mendaftarkan diri saat impor)
+    import topic_matematika_awal  # noqa: F401  (mendaftarkan diri saat impor)
 
     if not PAKET:
         raise RuntimeError("paket topik dimuat tapi tidak mendaftarkan diri")

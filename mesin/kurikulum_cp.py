@@ -151,6 +151,7 @@ CP_PER_GRUP: Dict[Tuple[str, str], Tuple[Tuple[str, str], ...]] = {
     ('bilangan-sekolah', 'tambah_kurang_bersusun'): (('B.bilangan.5', 'sebagian'), ('C.bilangan.5', 'sebagian')),
     ('bilangan-sekolah', 'kali_bagi_sekolah'): (('B.bilangan.6', 'sebagian'), ('C.bilangan.5', 'sebagian')),
     ('bilangan-sekolah', 'kalimat_matematika'): (('B.aljabar.1', 'sebagian'), ('C.aljabar.1', 'sebagian')),
+    ('matematika-awal', 'kenali_bentuk'): (('B.geometri.1', 'sebagian'),),
     ('berhitung-sekolah', 'perkalian_dasar'): (('B.bilangan.6', 'sebagian'),),
     ('berhitung-sekolah', 'pembagian_dasar'): (('B.bilangan.6', 'sebagian'),),
     ('berhitung-sekolah', 'pecahan_sederhana'): (('A.bilangan.6', 'sebagian'), ('C.bilangan.8', 'sebagian')),

@@ -204,6 +204,13 @@ KATALOG: Tuple[EntriTopik, ...] = (
             ('gauss', 'Penjumlahan berpasangan', ('gauss_deret',)),
         ),
     ),
+    EntriTopik(
+        'matematika-awal',
+        None,
+        (
+            ('kenali_bentuk', 'Mengenal bentuk bangun datar', ('kenali_bentuk',)),
+        ),
+    ),
 )
 
 # Urutan tampil label awam (berbeda dari urutan KATALOG; dipertahankan persis).

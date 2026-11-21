@@ -16,7 +16,9 @@ TIGA = frozenset({'deret_geometri', 'simetri_bangun', 'prima_faktorisasi',
                   # Dua jalur K selalu ada (angka saja, tempat sebelah); H hanya kadang ada.
                   'nilai_tempat_besar',
                   # Tahap B: jalur K selalu ada dan H hanya kadang; 2 pengecoh cukup.
-                  'tambah_kurang_bersusun', 'kali_bagi_sekolah', 'kalimat_matematika'})
+                  'tambah_kurang_bersusun', 'kali_bagi_sekolah', 'kalimat_matematika',
+                  # Matematika Awal: pengecoh = bangun lain di himpunan level (K) atau salah hitung sisi.
+                  'kenali_bentuk'})
 
 
 def kebijakan_soal(soal):
@@ -30,6 +32,8 @@ def kebijakan_soal(soal):
         return 'empat-v1', 'urutan_bilangan'
     if tid == 'bandingkan_bilangan':
         return 'tiga-v1', 'simbol_perbandingan'
+    if tid == 'kenali_bentuk' and p['varian'] != 'banyak_sisi':
+        return 'tiga-v1', 'kategori'  # kunci nama bangun; banyak_sisi jatuh ke 'angka'
     if tid == 'jam_selesai':
         return 'tiga-v1', 'durasi' if p['varian'] == 'cari_durasi' else 'jam'
     if tid == 'skala_peta' and p['varian'] == 'cari_skala':

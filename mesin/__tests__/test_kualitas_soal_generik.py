@@ -14,6 +14,10 @@ Tahap B urutkan_bilangan, tambah_kurang_bersusun, kali_bagi_sekolah (P3 fakta
 domain sah 161 -> 144 teramati), dan kalimat_matematika (empat bentuk per level).
 Konsentrasi kerangka lembar terukur 1,90/1,90/1,93 (di bawah 2,1), jadi
 UTANG_LEMBAR Tahap A dilunasi dan dihapus.
+Matematika-awal (21 Nov 2026): kenali_bentuk P1 18/19 dan P2 26/26 tanda tangan dengan
+tiga bentuk, sama dengan domain enumerator eksplisit 19/26 (P1 18 kerangka karena dua
+kalimat ciri, "punya 3 sisi dan 3 sudut" dan "punya 4 sisi dan 4 sudut", hanya beda angka). Lembar 10 soal satu jenis; konsentrasi kerangka
+terukur 1,34/1,00 (di bawah 2,1), jadi tanpa UTANG_LEMBAR.
 Angka batch diukur lewat ukur_batch_fase3.py (artefak lokal). Tidak membutuhkan
 artefak docs/plan yang di-ignore. Kebenaran kunci/malrule tetap solver domain.
 G1 numerik ada di test_question_position; registry di sini menolak kelompok
@@ -49,6 +53,7 @@ bilangan-sekolah urutkan_bilangan P3:2:300:terbesar,terkecil P4:2:300:terbesar,t
 bilangan-sekolah tambah_kurang_bersusun P3:2:300:kurang,tambah P4:2:300:kurang,tambah P5:2:300:kurang,tambah
 bilangan-sekolah kali_bagi_sekolah P3:2:144:bagi,kali P4:2:262:bagi,kali P5:2:300:bagi,kali
 bilangan-sekolah kalimat_matematika P3:4:292:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P4:4:300:kurang_akhir,kurang_awal,tambah_akhir,tambah_awal P5:4:267:bagi_akhir,bagi_awal,kali_akhir,kali_awal
+matematika-awal kenali_bentuk P1:18:19:banyak_sisi,benda,dari_ciri P2:26:26:banyak_sisi,benda,dari_ciri
 berhitung-sekolah nilai_tempat_ribuan P3:2:257:nilai_angka,selisih_nilai P4:4:298:nilai_angka,selisih_nilai
 berhitung-sekolah pecahan_bagian_dasar P3:6:162:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian P4:6:204:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian
 berhitung-sekolah pembagian_dasar P3:5:204:bagi_rata,operasi P4:5:254:bagi_rata,operasi
@@ -159,6 +164,8 @@ bilangan-dasar P2 10 1
 bilangan-sekolah P3 10 5
 bilangan-sekolah P4 10 5
 bilangan-sekolah P5 10 5
+matematika-awal P1 10 1
+matematika-awal P2 10 1
 berhitung-sekolah P3 8 4
 berhitung-sekolah P4 8 4
 aritmatika-lanjut P5 10 7
@@ -221,6 +228,7 @@ ALASAN_RUANG = {
     "deret_terbalik_aritmetika": "Awal/beda/posisi terbatas; 147 sampel bukan batas matematis.",
     "siklus_hari": "Tujuh hari dikali pool 6/7 jarak hari; support 42/49.",
     "jumlah_deret": "P6 awal 1..9 x empat beda x empat panjang; 119 sampel dari support 144.",
+    "kenali_bentuk": "Domain sah P1=19/P2=26 (ciri, benda, banyak sisi per himpunan bangun); seed 0..299 menutup seluruh domain; diuji enumerator, bukan variasi nama/benda.",
     "kali_bagi_sekolah": "Fakta P3 kali 2..10 x 2..10 dan bagi padanannya: domain sah 161; seed 0..299 mengukur 144; diuji enumerator.",
 }
 # Utang lama P4 tetap lunas. Pengecualian baru hanya topik manual P1/P2.

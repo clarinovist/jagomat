@@ -10,7 +10,10 @@ P1/P2 membatasi hasil sampai 20. Domain sah memang kecil (45/145 pasangan),
 bukan sampler hardcoded; jangan memperlebar angka atau variasi nama/benda.
 Tiap (template, level) wajib >=ceil(90% domain enumerator) dalam 500 seed,
 dan seluruh sampel wajib anggota domain. Pengecualian kedua: fakta kali/bagi P3
-bilangan-sekolah (domain sah 161). Topik lain tetap >=200.
+bilangan-sekolah (domain sah 161). Pengecualian ketiga (21 Nov 2026): topik
+matematika-awal (kenali_bentuk P1=19/P2=26 parameter sah) wajib >=90% domain
+enumerator dan semua sampel di domain; domain tidak diperlebar demi hitungan.
+Topik lain tetap >=200.
 
 Kontrak yang diuji:
   - tiap (template, level) di paket BARU (di luar 19 template asli)
@@ -131,6 +134,13 @@ def test_template_baru_punya_cukup_kombinasi():
             # besar (bilangan_hilang P2 580): 500 seed tak mungkin menutup 90%,
             # jadi batasnya dipangkas ke 200 unik, selaras guard lama >=200
             # kombinasi untuk template baru. Hanya bilangan-dasar yang longgar.
+            batas = min(ceil(0.9 * len(domain)), BATAS_UNIK_BARU)
+        elif topik_id == "matematika-awal":
+            # Pengecualian sempit ketiga: domain kecil dan eksplisit (ciri, benda, banyak sisi);
+            # jangan memperlebar bangun/benda demi hitungan.
+            domain = {_canonical(p) for p in topics.ambil(topik_id).domain_parameter(template_id, level)}
+            assert domain, (topik_id, template_id, level)
+            assert unik <= domain, ("sampler keluar domain", topik_id, level, unik - domain)
             batas = min(ceil(0.9 * len(domain)), BATAS_UNIK_BARU)
         elif (topik_id, template_id, level) == FAKTA_P3:
             # Pengecualian sempit kedua: fakta kali/bagi P3 dibatasi 2..10 x 2..10

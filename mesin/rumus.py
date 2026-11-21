@@ -106,6 +106,11 @@ KARTU: dict[str, Kartu] = {
         inti="Bilangan yang hilang dicari dengan operasi kebalikan: tambah dengan kurang, kali dengan bagi. Cek dengan memasukkan jawaban ke kalimatnya.",
         contoh="45 + ... = 120, maka 120 − 45 = 75. Cek: 45 + 75 = 120.",
     ),
+    "kenali_bentuk": Kartu(
+        judul="Mengenal bentuk bangun datar",
+        inti="Segitiga punya 3 sisi dan 3 sudut. Persegi punya 4 sisi yang semuanya sama panjang. Persegi panjang punya 4 sisi: sisi yang berhadapan sama panjang, tetapi sisi panjang dan sisi pendeknya berbeda. Lingkaran itu bulat, tanpa sisi lurus dan tanpa sudut.",
+        contoh="Uang logam itu bulat dan tidak punya sudut, jadi bentuknya lingkaran.",
+    ),
     "kelipatan_rentang": Kartu(
         judul="Menghitung kelipatan dalam rentang",
         inti="Hitung kelipatan sampai batas akhir, lalu kurangi kelipatan sebelum batas awal. Kedua batas ikut dihitung.",
@@ -480,6 +485,7 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "pecahan_bagian_dasar": "pecahan",
     "nilai_tempat_ribuan": "nilai_tempat_ribuan",
     "nilai_tempat_besar": "nilai_tempat_besar",
+    "kenali_bentuk": "kenali_bentuk",
     "urutkan_bilangan": "urutkan_bilangan",
     "tambah_kurang_bersusun": "tambah_kurang_bersusun",
     "kali_bagi_sekolah": "kali_bagi_sekolah",
