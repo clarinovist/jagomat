@@ -1,6 +1,6 @@
 """Sakelar fitur terpusat: DB SQLite terpisah, env hanya fallback.
 
-Empat sakelar (NAMA_SAKELAR) disimpan di DB terpisah (skema v1) yang hanya
+Sakelar (NAMA_SAKELAR) disimpan di DB terpisah (skema v1) yang hanya
 dibuat saat ubah(): membaca tidak pernah membuat berkas. Nama di luar
 daftar adalah kesalahan programmer (ValueError), bukan konfigurasi. Baca
 mengikuti urutan fail-closed: berkas DB tidak ada atau baris belum di-seed
@@ -30,6 +30,7 @@ NAMA_SAKELAR = (
     "PESANAN_TRANSFER_AKTIF",
     "OSN_CETAK_RINGKAS",
     "OSN_BANK_KALIMAT",
+    "OSN_LOMBA",
 )
 
 BERKAS_BAWAAN = "/data/sakelar.db"
@@ -38,14 +39,22 @@ VERSI_SKEMA = 1
 TTL_DETIK = 5
 
 _DAFTAR_NAMA_SQL = ",".join("'" + nama + "'" for nama in NAMA_SAKELAR)
-_DDL_SAKELAR = (
-    "CREATE TABLE IF NOT EXISTS sakelar (\n"
-    f"    nama TEXT PRIMARY KEY CHECK (nama IN ({_DAFTAR_NAMA_SQL})),\n"
-    "    aktif INTEGER NOT NULL CHECK (aktif IN (0, 1)),\n"
-    "    revisi INTEGER NOT NULL CHECK (revisi >= 1),\n"
-    "    diperbarui TEXT NOT NULL\n"
-    ")"
-)
+
+
+def _ddl_sakelar(nama_tabel: str, *, jika_belum_ada: bool) -> str:
+    """DDL tabel sakelar dengan daftar nama sekarang (CHECK); dipakai membuat dan memperlebar tabel."""
+    awalan = "CREATE TABLE IF NOT EXISTS" if jika_belum_ada else "CREATE TABLE"
+    return (
+        f"{awalan} {nama_tabel} (\n"
+        f"    nama TEXT PRIMARY KEY CHECK (nama IN ({_DAFTAR_NAMA_SQL})),\n"
+        "    aktif INTEGER NOT NULL CHECK (aktif IN (0, 1)),\n"
+        "    revisi INTEGER NOT NULL CHECK (revisi >= 1),\n"
+        "    diperbarui TEXT NOT NULL\n"
+        ")"
+    )
+
+
+_DDL_SAKELAR = _ddl_sakelar("sakelar", jika_belum_ada=True)
 _DDL_AUDIT = (
     "CREATE TABLE IF NOT EXISTS audit_sakelar (\n"
     "    id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
@@ -97,13 +106,13 @@ def _path_db(path):
 
 
 def _validasi_seed(seed):
-    """Pastikan seed memetakan tepat keempat nama sakelar ke bool."""
+    """Pastikan seed memetakan tepat semua nama sakelar ke bool."""
     if not isinstance(seed, Mapping):
         raise ValueError("Seed sakelar harus berupa pemetaan nama ke bool.")
     nilai = dict(seed)
     if set(nilai) != set(NAMA_SAKELAR):
         raise ValueError(
-            "Seed sakelar harus memuat tepat keempat nama: "
+            "Seed sakelar harus memuat tepat semua nama: "
             + ", ".join(NAMA_SAKELAR)
         )
     for nama in NAMA_SAKELAR:
@@ -121,6 +130,39 @@ def _buat_skema(kon):
     """Buat kedua tabel bila belum ada; bagian dari transaksi ubah()."""
     kon.execute(_DDL_SAKELAR)
     kon.execute(_DDL_AUDIT)
+
+
+def _perlu_perluasan(kon) -> bool:
+    """True bila tabel sakelar punya CHECK nama yang belum memuat semua NAMA_SAKELAR (DB lama).
+
+    Tabel tanpa CHECK nama (buatan tangan) tidak disentuh: tidak ada yang perlu diperlebar.
+    """
+    baris = kon.execute(
+        "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'sakelar'").fetchone()
+    if baris is None or "nama IN (" not in baris[0]:
+        return False
+    return any(f"'{nama}'" not in baris[0] for nama in NAMA_SAKELAR)
+
+
+def _perluas_nama(kon):
+    """Bangun ulang tabel sakelar dengan CHECK nama terbaru, menyalin semua baris apa adanya.
+
+    SQLite tidak bisa mengubah CHECK di tempat. Versi skema TIDAK dinaikkan: daftar nama hanya
+    diperlebar (nama lama tetap sah), sehingga kode lama masih membaca dan menulis DB ini.
+    Dipanggil di dalam transaksi ubah(): gagal di mana pun, semuanya digulung balik.
+    """
+    kon.execute(_ddl_sakelar("sakelar_baru", jika_belum_ada=False))
+    # Salin apa adanya, termasuk baris rusak yang sengaja dipulihkan lewat ubah(); penegakan CHECK
+    # dikembalikan segera setelah menyalin.
+    kon.execute("PRAGMA ignore_check_constraints = ON")
+    try:
+        kon.execute(
+            "INSERT INTO sakelar_baru(nama, aktif, revisi, diperbarui) "
+            "SELECT nama, aktif, revisi, diperbarui FROM sakelar")
+    finally:
+        kon.execute("PRAGMA ignore_check_constraints = OFF")
+    kon.execute("DROP TABLE sakelar")
+    kon.execute("ALTER TABLE sakelar_baru RENAME TO sakelar")
 
 
 def _baca_baris(tujuan, nama):
@@ -173,7 +215,7 @@ def aktif(nama: str, env_fallback: Callable[[], bool], *, path=None) -> bool:
 
 
 def daftar(*, seed, path=None) -> "tuple[Sakelar, ...]":
-    """Empat sakelar urut NAMA_SAKELAR untuk halaman admin.
+    """Semua sakelar urut NAMA_SAKELAR untuk halaman admin.
 
     DB/baris belum ada -> nilai seed, revisi 0, sumber "env"; baris ada ->
     dari DB, sumber "db". Kegagalan baca tidak ditelan: GalatSakelar agar
@@ -236,6 +278,8 @@ def ubah(nama: str, aktif: bool, *, actor_id: str, revisi_diharapkan: int,
             if versi not in (0, VERSI_SKEMA):
                 raise GalatSakelar("Skema DB sakelar tidak dikenali.")
             _buat_skema(kon)
+            if _perlu_perluasan(kon):
+                _perluas_nama(kon)
             if versi == 0:
                 kon.execute(f"PRAGMA user_version = {VERSI_SKEMA}")
             for nama_seed in NAMA_SAKELAR:

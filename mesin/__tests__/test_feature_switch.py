@@ -21,6 +21,7 @@ SEED = {
     "PESANAN_TRANSFER_AKTIF": False,
     "OSN_CETAK_RINGKAS": True,
     "OSN_BANK_KALIMAT": False,
+    "OSN_LOMBA": False,
 }
 URUTAN = list(fs.NAMA_SAKELAR)
 
@@ -76,9 +77,9 @@ def _jumlah_baris_sakelar(path):
 
 # --- konstanta dan validasi nama ---
 
-def test_nama_sakelar_tepat_empat_tanpa_pendamping():
+def test_nama_sakelar_tepat_lima_tanpa_pendamping():
     assert fs.NAMA_SAKELAR == ("FUNNEL_AKTIF", "PESANAN_TRANSFER_AKTIF",
-                              "OSN_CETAK_RINGKAS", "OSN_BANK_KALIMAT")
+                              "OSN_CETAK_RINGKAS", "OSN_BANK_KALIMAT", "OSN_LOMBA")
     assert "PENDAMPING_AKTIF" not in fs.NAMA_SAKELAR
 
 
@@ -189,12 +190,13 @@ def test_daftar_dengan_db_sumber_db(tmp_path):
 
     hasil = fs.daftar(seed=SEED, path=path)
 
-    assert [s.sumber for s in hasil] == ["db"] * 4
+    assert [s.sumber for s in hasil] == ["db"] * 5
     assert [(s.nama, s.aktif, s.revisi) for s in hasil] == [
         ("FUNNEL_AKTIF", SEED["FUNNEL_AKTIF"], 1),
         ("PESANAN_TRANSFER_AKTIF", True, 2),
         ("OSN_CETAK_RINGKAS", SEED["OSN_CETAK_RINGKAS"], 1),
         ("OSN_BANK_KALIMAT", SEED["OSN_BANK_KALIMAT"], 1),
+        ("OSN_LOMBA", SEED["OSN_LOMBA"], 1),
     ]
 
 
@@ -208,7 +210,7 @@ def test_daftar_db_rusak_galatsakelar(tmp_path):
 
 # --- ubah(): seed, revisi, audit ---
 
-def test_ubah_menyeed_keempat_lalu_menerapkan(tmp_path):
+def test_ubah_menyeed_semua_nama_lalu_menerapkan(tmp_path):
     path = tmp_path / "sakelar.db"
 
     hasil = _ubah(path, "FUNNEL_AKTIF", True, actor="admin-satu")
@@ -223,6 +225,7 @@ def test_ubah_menyeed_keempat_lalu_menerapkan(tmp_path):
             "PESANAN_TRANSFER_AKTIF": (0, 1),
             "OSN_CETAK_RINGKAS": (1, 1),
             "OSN_BANK_KALIMAT": (0, 1),
+            "OSN_LOMBA": (0, 1),
         }
         assert kon.execute("SELECT nama, lama, baru, revisi, actor_id"
                            " FROM audit_sakelar").fetchall() == [

@@ -31,8 +31,8 @@ def test_setiap_sakelar_punya_label_status_sumber_revisi_dan_dampak():
     isi = ui.halaman(daftar, None)
     for nama in fs.NAMA_SAKELAR:
         assert reg.info(nama).label in isi and reg.info(nama).dampak in isi
-    assert isi.count("Aktif") >= 1 and isi.count("Mati") == 3
-    assert "Admin (DB)" in isi and isi.count("Env (belum diatur admin)") == 3
+    assert isi.count("Aktif") >= 1 and isi.count("Mati") == 4
+    assert "Admin (DB)" in isi and isi.count("Env (belum diatur admin)") == 4
     assert "Revisi 3" in isi and "Revisi 0" in isi
 
 
@@ -45,11 +45,11 @@ def test_form_per_baris_membawa_tepat_csrf_tinjauan_reauth_dan_tombol_target():
     daftar = _daftar(OSN_BANK_KALIMAT=fs.Sakelar("OSN_BANK_KALIMAT", True, 2, "db"))
     isi = ui.halaman(daftar, _tokens(*fs.NAMA_SAKELAR))
     formulir = re.findall(r"<form.*?</form>", isi, re.S)
-    assert len(formulir) == 4
+    assert len(formulir) == 5
     for f in formulir:
         assert sorted(re.findall(r'name="(\w+)"', f)) == ["csrf", "reauth", "tinjauan"]
         assert 'action="/admin/sakelar"' in f and 'method="post"' in f
-    assert sum("Nyalakan" in f for f in formulir) == 3 and sum("Matikan" in f for f in formulir) == 1
+    assert sum("Nyalakan" in f for f in formulir) == 4 and sum("Matikan" in f for f in formulir) == 1
 
 
 def test_nama_dan_target_tidak_pernah_menjadi_field_form():
@@ -64,7 +64,7 @@ def test_prasyarat_belum_terpenuhi_tanpa_form_dan_tombol_nyalakan_nonaktif():
     baris = isi.split(reg.info("PESANAN_TRANSFER_AKTIF").label, 1)[1].split("</section>", 1)[0]
     assert "Funnel harus aktif." in baris and "Rekening harus terisi." in baris
     assert "disabled" in baris and "<form" not in baris
-    assert len(re.findall(r"<form", isi)) == 3
+    assert len(re.findall(r"<form", isi)) == 4
 
 
 def test_nilai_dinamis_di_escape():
@@ -83,15 +83,16 @@ def test_halaman_galat_jujur_tanpa_form_dan_tanpa_path():
     assert 'role="alert"' in isi and "<form" not in isi and "/data/" not in isi and ".db" not in isi
 
 
-def test_registry_seed_env_memetakan_empat_nama_ke_bool_dan_env_tak_sah_jadi_false(monkeypatch):
+def test_registry_seed_env_memetakan_semua_nama_ke_bool_dan_env_tak_sah_jadi_false(monkeypatch):
     monkeypatch.setenv("OSN_CETAK_RINGKAS", "1")
     monkeypatch.setenv("OSN_BANK_KALIMAT", "bukan-nol-satu")
     monkeypatch.setenv("FUNNEL_AKTIF", " 1 ")
     monkeypatch.delenv("PESANAN_TRANSFER_AKTIF", raising=False)
+    monkeypatch.delenv("OSN_LOMBA", raising=False)
     seed = reg.seed_env()
     assert set(seed) == set(fs.NAMA_SAKELAR) and all(type(v) is bool for v in seed.values())
     assert seed == {"FUNNEL_AKTIF": True, "PESANAN_TRANSFER_AKTIF": False,
-                    "OSN_CETAK_RINGKAS": True, "OSN_BANK_KALIMAT": False}
+                    "OSN_CETAK_RINGKAS": True, "OSN_BANK_KALIMAT": False, "OSN_LOMBA": False}
 
 
 def test_navigasi_admin_memuat_pengaturan_layanan_di_grup_sistem():

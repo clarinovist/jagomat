@@ -1,4 +1,4 @@
-"""Registri empat sakelar fitur untuk halaman admin: label, dampak, dan pembaca env lama.
+"""Registri sakelar fitur untuk halaman admin: label, dampak, dan pembaca env lama.
 
 Murni data dan fungsi kecil. Env hanya dipakai sebagai nilai awal (seed) saat admin pertama kali mengubah
 sakelar; env yang tidak sah dibaca sebagai mati (fail-closed) dan tidak merambat ke halaman admin.
@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Callable, Dict
 
 import choice_pages
+import contest_gate
 import feature_switch
 import funnel_flag
 import pesanan_transfer_gerbang
@@ -42,6 +43,11 @@ _INFO = {
         "Bank kalimat soal",
         "Memakai bank kalimat soal terkurasi untuk snapshot soal yang baru dibuat.",
         story_frames.dari_env),
+    "OSN_LOMBA": InfoSakelar(
+        "Latihan Lomba (Grand Final)",
+        "Membuka latihan lomba bertimer untuk murid (/murid/lomba) beserta riwayatnya untuk guru; "
+        "saat mati semua alamat itu tidak dikenal (404).",
+        contest_gate.dari_env),
 }
 
 if tuple(_INFO) != feature_switch.NAMA_SAKELAR:
