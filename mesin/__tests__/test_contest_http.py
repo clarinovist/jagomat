@@ -260,10 +260,18 @@ def test_awal_menawarkan_mulai_lalu_lanjutkan_setelah_sesi_ada(server, jam):
     assert sesudah.header["cache-control"] == "no-store"
 
 
-def test_beranda_murid_tidak_menautkan_ke_lomba(server):
+def test_beranda_murid_menautkan_ke_lomba_saat_gerbang_hidup(server):
     isi = _get(server, "/murid").isi
 
-    assert b"/murid/lomba" not in isi
+    assert isi.count(b'href="/murid/lomba"') == 1 and b"Latihan Lomba" in isi
+
+
+def test_beranda_murid_tidak_menautkan_ke_lomba_saat_gerbang_mati(server, monkeypatch):
+    monkeypatch.setenv("OSN_LOMBA", "0")
+
+    isi = _get(server, "/murid").isi
+
+    assert b"/murid/lomba" not in isi and b"Latihan Lomba" not in isi
 
 
 # 5 --- muat ulang tidak mengembalikan timer ------------------------------------------
@@ -398,6 +406,125 @@ def test_hasil_saat_berjalan_dialihkan_ke_soal_dengan_tubuh_kosong(server):
 
     assert hasil.kode == 303 and hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no=1"
     assert hasil.isi == b""
+
+
+# 9b --- hasil rinci setelah sesi tidak berjalan ---------------------------------------
+
+def _soal_db(uji, sesi_id):
+    """Baris soal dengan kunci dibaca langsung dari DB (hanya di sisi uji)."""
+    with uji.buka() as kon:
+        return [dict(b) for b in kon.execute(
+            "SELECT nomor, jenis, kunci, teks, pilihan_json, pengecoh_json, pembahasan_json "
+            "FROM lomba_soal WHERE sesi_id=? ORDER BY nomor", (sesi_id,))]
+
+
+def _huruf_kunci(soal):
+    return "ABCD"[json.loads(soal["pilihan_json"]).index(soal["kunci"])]
+
+
+def _isi_semua(uji, sesi_id, benar):
+    """Jawab sepuluh soal: semua benar, atau semua salah (huruf lain / angka 1 yang bukan kunci)."""
+    for soal in _soal_db(uji, sesi_id):
+        if soal["jenis"] == "pg":
+            huruf = _huruf_kunci(soal)
+            jawaban = huruf if benar else next(h for h in "ABCD" if h != huruf)
+        else:
+            jawaban = soal["kunci"] if benar else ("1" if soal["kunci"] != "1" else "2")
+        assert _jawab(uji, sesi_id, no=soal["nomor"], jawaban=jawaban).kode == 303
+
+
+def test_hasil_rinci_memuat_jawaban_anak_kunci_dan_pembahasan_sepuluh_soal(server):
+    sesi_id = _mulai(server)
+    _isi_semua(server, sesi_id, benar=False)
+    _post(server, f"/murid/lomba/sesi/{sesi_id}/kumpul")
+
+    hasil = _get(server, f"/murid/lomba/hasil/{sesi_id}")
+    isi = hasil.isi.decode()
+
+    assert hasil.kode == 200 and "Sesi selesai!" in isi and "Nilai: 0 dari 10" in isi
+    assert isi.count('class="hl-soal"') == 10 and isi.count("Jawabanmu: <strong>") == 10
+    assert isi.count("Jawaban yang benar: <strong>") == 10
+    for soal in _soal_db(server, sesi_id):
+        kunci = _huruf_kunci(soal) if soal["jenis"] == "pg" else html.escape(soal["kunci"])
+        assert f"Jawaban yang benar: <strong>{kunci}" in isi, soal["nomor"]
+        assert all(html.escape(baris) in isi for baris in json.loads(soal["pembahasan_json"])), soal["nomor"]
+    assert hasil.header["cache-control"] == "no-store" and "<script" not in isi
+    assert "script-src 'none'" in hasil.header["content-security-policy"]
+
+
+def test_hasil_rinci_semua_benar_tidak_menampilkan_jawaban_yang_benar_terpisah(server):
+    sesi_id = _mulai(server)
+    _isi_semua(server, sesi_id, benar=True)
+    _post(server, f"/murid/lomba/sesi/{sesi_id}/kumpul")
+
+    isi = _get(server, f"/murid/lomba/hasil/{sesi_id}").isi.decode()
+
+    assert "Nilai: 10 dari 10" in isi and "Jawaban yang benar" not in isi and isi.count('class="hl-status hl-benar"') == 10
+
+
+def test_hasil_rinci_tidak_memuat_label_kesalahan_pengecoh_mana_pun(server):
+    sesi_id = _mulai(server)
+    _isi_semua(server, sesi_id, benar=False)
+    _post(server, f"/murid/lomba/sesi/{sesi_id}/kumpul")
+    isi = _get(server, f"/murid/lomba/hasil/{sesi_id}").isi.decode()
+
+    label = []
+    for soal in _soal_db(server, sesi_id):
+        sah = [p["kesalahan"] for p in json.loads(soal["pengecoh_json"]) if p["kesalahan"]]
+        dipakai = " ".join(json.loads(soal["pembahasan_json"]) + [soal["teks"]] + json.loads(soal["pilihan_json"]))
+        label += [k for k in sah if k not in dipakai]
+
+    assert len(label) >= 5
+    for teks in label:
+        assert teks not in isi and html.escape(teks) not in isi, teks
+    assert "Kemungkinan kesalahan" not in isi
+
+
+def test_hasil_waktu_habis_menandai_soal_kosong_tidak_dijawab_dan_tetap_menampilkan_pembahasan(server, jam):
+    sesi_id = _mulai(server)
+    nomor = _nomor_berjenis(server, sesi_id, "pg")
+    soal = next(s for s in _soal_db(server, sesi_id) if s["nomor"] == nomor)
+    _jawab(server, sesi_id, no=nomor, jawaban=_huruf_kunci(soal))
+    jam.t = T0 + 900
+
+    isi = _get(server, f"/murid/lomba/hasil/{sesi_id}").isi.decode()
+
+    assert "Waktu habis!" in isi and "Nilai: 1 dari 10" in isi and "Waktu: 15:00" in isi
+    assert isi.count("tidak dijawab") == 9 and isi.count("Jawabanmu: <strong>belum diisi</strong>") == 9
+    assert html.escape(json.loads(soal["pembahasan_json"])[0]) in isi
+
+
+def test_halaman_awal_tanpa_sesi_selesai_tidak_menampilkan_latihan_terakhir(server):
+    assert b"Latihan terakhir" not in _get(server, "/murid/lomba").isi
+
+
+def test_halaman_awal_menampilkan_latihan_terakhir_maksimal_lima_terbaru_dulu_dengan_tanggal_wib_dan_nilai(server, jam):
+    ids = []
+    for i in range(6):
+        jam.t = T0 + i * 1000
+        sesi_id = _mulai(server)
+        _isi_semua(server, sesi_id, benar=(i == 5))
+        _post(server, f"/murid/lomba/sesi/{sesi_id}/kumpul")
+        ids.append(sesi_id)
+
+    isi = _get(server, "/murid/lomba").isi.decode()
+
+    tautan = re.findall(r'<a class="tautan-latihan" href="(/murid/lomba/hasil/\d+)"><span>([^<]+)</span><strong>([^<]+)</strong>', isi)
+    assert [t[0] for t in tautan] == [f"/murid/lomba/hasil/{i}" for i in reversed(ids[1:])]
+    assert [t[1] for t in tautan] == ["15 Jan 2027, 16:23", "15 Jan 2027, 16:06", "15 Jan 2027, 15:50",
+                                       "15 Jan 2027, 15:33", "15 Jan 2027, 15:16"]
+    assert [t[2] for t in tautan] == ["10/10", "0/10", "0/10", "0/10", "0/10"]
+    assert f"/murid/lomba/hasil/{ids[0]}" not in isi
+
+
+def test_latihan_terakhir_tidak_menampilkan_sesi_berjalan_atau_milik_anak_lain(server):
+    selesai = _mulai(server, MURID_DUA)
+    _post(server, f"/murid/lomba/sesi/{selesai}/kumpul", pengguna=MURID_DUA)
+    _mulai(server)
+
+    isi = _get(server, "/murid/lomba").isi
+
+    assert b"Latihan terakhir" not in isi and f"/murid/lomba/hasil/{selesai}".encode() not in isi
 
 
 # 10 --- tanpa kebocoran --------------------------------------------------------------

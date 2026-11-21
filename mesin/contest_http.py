@@ -19,6 +19,8 @@ from typing import Dict, Optional
 
 import contest_gate
 import contest_pages as P
+import contest_results
+import contest_results_pages as RP
 import contest_session
 import contest_store as K
 import database
@@ -180,7 +182,8 @@ def _layani_get(kon, siswa_id: int, rute: tuple, jalur_penuh: str) -> _Respons:
     sekarang = _sekarang()
     if nama == _GET_AWAL:
         berjalan = K.sesi_berjalan(kon, siswa_id, sekarang)
-        return _halaman_tautan(P.halaman_awal(berjalan, berjalan.sisa_detik(sekarang) if berjalan else 0))
+        return _halaman_tautan(P.halaman_awal(
+            berjalan, berjalan.sisa_detik(sekarang) if berjalan else 0, _latihan_terakhir(kon, siswa_id, sekarang)))
     pasangan = _query(jalur_penuh)
     nomor = K.NOMOR_PERTAMA
     if nama == _GET_SESI and "no" in pasangan:
@@ -199,10 +202,16 @@ def _layani_get(kon, siswa_id: int, rute: tuple, jalur_penuh: str) -> _Respons:
     return _halaman_tautan(P.halaman_soal(sesi.id, soal, terjawab, sisa, galat))
 
 
+def _latihan_terakhir(kon, siswa_id: int, sekarang: int) -> tuple:
+    """Sesi selesai terbaru milik anak (terbaru dulu, maksimal BATAS_LATIHAN_TERAKHIR)."""
+    riwayat = contest_results.riwayat_sesi(kon, siswa_id, sekarang)
+    return tuple(reversed(riwayat[-P.BATAS_LATIHAN_TERAKHIR:]))
+
+
 def _layani_hasil(kon, siswa_id: int, sesi: K.SesiRingkas, sekarang: int) -> _Respons:
     if sesi.status == K.BERJALAN:
         return _alihkan(P.alamat_sesi(sesi.id))
-    return _halaman_tautan(P.halaman_hasil(K.hasil_ringkas(kon, siswa_id, sesi.id, sekarang)))
+    return _halaman_tautan(RP.halaman_hasil_anak(contest_results.hasil_rinci(kon, siswa_id, sesi.id, sekarang)))
 
 
 def _baca_isian(penangan) -> Optional[Dict[str, str]]:

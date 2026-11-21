@@ -177,10 +177,18 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
 - **Pengaturan layanan** (`/admin/sakelar`, satu halaman; `/admin?section=operasional` mengalihkan 303 ke
   sini): sakelar fitur + tahap pembayaran, pendaftaran mandiri (form lama, POST tetap ke `/admin/pendaftaran`), kartu rekening transfer (ubah di `/admin/pesanan/rekening`),
   kesiapan/dukungan, satu baris status AI. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,
-  `OSN_CETAK_RINGKAS`, `OSN_BANK_KALIMAT`. Nilai disimpan di DB terpisah `/data/sakelar.db` (dibuat saat
-  perubahan pertama; env tetap fallback), dengan tinjauan bertanda tangan, sandi ulang, optimistic
+  `OSN_CETAK_RINGKAS`, `OSN_BANK_KALIMAT`, `OSN_LOMBA`. Nilai disimpan di DB terpisah `/data/sakelar.db` (dibuat saat
+  perubahan pertama; env tetap fallback; DB lama dengan empat nama diperlebar saat perubahan pertama tanpa menaikkan versi skema), dengan tinjauan bertanda tangan, sandi ulang, optimistic
   concurrency, dan audit. DB sakelar rusak = kartu galat + status 503, bagian lain halaman tetap tampil; menyalakan transfer ditolak bila funnel
   mati atau rekening kosong.
+- **Latihan Lomba** (Grand Final Corexis, Matematika Level 1; segmen khusus untuk anak pemilik, di balik sakelar admin `OSN_LOMBA`, bawaan mati;
+  mati = semua alamatnya 404). Murid yang terhubung ke data siswa membuka `/murid/lomba` (tautan di beranda murid hanya saat sakelar hidup): sesi 10 soal
+  (8 pilihan ganda + 2 isian) dari 38 template buatan sendiri (Bilangan, Operasi Hitung, Pengukuran, Bangun Datar/Ruang; maks satu soal Inggris), waktu 15 menit yang
+  dihitung dan ditegakkan server (jawaban setelah batas ditolak, layar soal tertutup, hasil langsung tampil). Soal baru tiap sesi: tidak mengulang soal lima sesi terakhir,
+  jenis soal dua sesi terakhir dihindari. Jawaban tersimpan lewat form biasa (tanpa autosave JS; satu-satunya JS adalah hitung mundur). Setelah selesai atau waktu habis anak
+  melihat nilai, nilai per topik, jawabannya, kunci, dan pembahasan; selama sesi berjalan kunci/pembahasan tidak pernah dikirim (keputusan Pemilik 21 Nov 2026, pengecualian
+  terbatas dari palang murid). Guru/admin melihat progress dan riwayat per anak di `/anak/<id>/lomba` (grafik nilai, nilai per topik, jenis soal paling sering salah, detail
+  sesi dengan dugaan kesalahan). Data di tabel `lomba_*` terpisah dari sesi guru; ikut terhapus saat penghapusan keluarga; tidak menulis ke Peta Kemampuan, diagnosis, laporan, atau bukti.
 - Admin mengelola **profil guru peninjau** (`/admin/profil-guru`): nama, latar, lama mengajar, urutan,
   tampil/tidak. Profil `tampil=1` dipakai kartu guru di halaman funnel dengan cache 30 detik; profil
   kosong = tanpa kartu. Perubahan dan hapus memakai tinjauan bertanda tangan + sandi ulang.

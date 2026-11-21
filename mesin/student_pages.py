@@ -170,7 +170,9 @@ def _kartu_beranda(sesi: dict, utama: bool = False) -> str:
     )
 
 
-def halaman_daftar_sesi_baru(kon, siswa_id: int, nama: str, sesi_selesai: int | None = None) -> bytes:
+def halaman_daftar_sesi_baru(
+    kon, siswa_id: int, nama: str, sesi_selesai: int | None = None, lomba_aktif: bool = False,
+) -> bytes:
     """Beranda buku belajar: satu sesi utama, tugas lain, kabar, dan riwayat."""
     from style_stitch import gaya_stitch
     from students import beranda_murid
@@ -218,6 +220,9 @@ def halaman_daftar_sesi_baru(kon, siswa_id: int, nama: str, sesi_selesai: int | 
             f'<span>{len(tugas)} latihan</span></div>'
             + ''.join(_kartu_beranda(s) for s in tugas) + '</section>'
         )
+    if lomba_aktif:
+        from contest_pages import tautan_beranda_murid
+        kolom += tautan_beranda_murid()
     pendamping = ""
     if menunggu:
         pendamping += (

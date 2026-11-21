@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import contest_browser as B  # noqa: E402
 import contest_pages as P  # noqa: E402
+import contest_results as R  # noqa: E402
 import contest_store as K  # noqa: E402
 
 MESIN = Path(__file__).resolve().parent.parent
@@ -196,16 +197,20 @@ def test_skrip_timer_memuat_bagian_yang_dibutuhkan(wajib):
     assert wajib in B.SKRIP_TIMER
 
 
+def _ringkas_sesi(nilai, mulai, sesi_id=5):
+    return R.RingkasSesi(sesi_id=sesi_id, mulai_epoch=mulai, selesai_epoch=mulai + 330, status="dikumpul", nilai=nilai,
+                         jumlah_soal=10, waktu_terpakai_detik=330, per_topik=())
+
+
 def _semua_halaman():
     sesi = K.SesiRingkas(id=SESI_ID, siswa_id=1, status="berjalan", mulai_epoch=0, batas_epoch=900, selesai_epoch=None)
-    hasil = K.HasilRingkas(nilai=7, jumlah_soal=10, waktu_terpakai_detik=330, status="dikumpul")
     return {
         "soal-pg": P.halaman_soal(SESI_ID, _soal(), frozenset({1}), 600),
         "soal-isian": P.halaman_soal(SESI_ID, _isian(), frozenset(), 100, True),
         "awal-baru": P.halaman_awal(None),
         "awal-lanjut": P.halaman_awal(sesi, 300),
         "selesai": P.halaman_selesai(SESI_ID, 3, 200),
-        "hasil": P.halaman_hasil(hasil),
+        "awal-riwayat": P.halaman_awal(None, 0, (_ringkas_sesi(7, 1_800_000_000),)),
         "gagal": P.halaman_gagal_siapkan(),
     }
 
@@ -219,7 +224,7 @@ def test_skrip_di_halaman_berwaktu_polos_tanpa_atribut(nama):
     assert SKRIP_TIMER_DIBUNGKUS in isi
 
 
-@pytest.mark.parametrize("nama", ["awal-baru", "awal-lanjut", "hasil", "gagal"])
+@pytest.mark.parametrize("nama", ["awal-baru", "awal-lanjut", "awal-riwayat", "gagal"])
 def test_halaman_tanpa_timer_tidak_memuat_skrip(nama):
     assert b"<script" not in _semua_halaman()[nama]
 
@@ -255,15 +260,6 @@ def test_halaman_selesai_semua_terjawab():
     assert "Semua soal sudah dijawab" in isi and "Masih ada" not in isi
 
 
-@pytest.mark.parametrize("status,judul", [("dikumpul", "Sesi selesai!"), ("waktu_habis", "Waktu habis!")])
-def test_halaman_hasil_memuat_judul_nilai_waktu_dan_ajakan(status, judul):
-    isi = P.halaman_hasil(K.HasilRingkas(nilai=7, jumlah_soal=10, waktu_terpakai_detik=330, status=status)).decode()
-
-    assert judul in isi and "Nilai: 7 dari 10" in isi and "Waktu: 05:30" in isi
-    assert 'action="/murid/lomba/mulai"' in isi and "Latihan lagi" in isi
-    assert not any(kata in isi.lower() for kata in KATA_TERLARANG)
-
-
 def test_halaman_awal_baru_menawarkan_mulai_dan_lanjut_menampilkan_sisa():
     baru = P.halaman_awal(None).decode()
     sesi = K.SesiRingkas(id=9, siswa_id=1, status="berjalan", mulai_epoch=0, batas_epoch=900, selesai_epoch=None)
@@ -276,8 +272,43 @@ def test_halaman_awal_baru_menawarkan_mulai_dan_lanjut_menampilkan_sisa():
 
 # --- tanpa hex literal ----------------------------------------------------------------
 
-@pytest.mark.parametrize("berkas", ["contest_style.py", "contest_pages.py", "contest_browser.py"])
+@pytest.mark.parametrize("berkas", ["contest_style.py", "contest_pages.py", "contest_browser.py", "contest_format.py",
+                                    "contest_chart_svg.py", "contest_results_pages.py", "contest_guru_pages.py",
+                                    "contest_guru_http.py"])
 def test_tanpa_warna_literal_di_berkas_halaman(berkas):
     sumber = (MESIN / berkas).read_text(encoding="utf-8")
 
     assert not re.findall(r"#[0-9a-fA-F]{3,8}\b|rgba?\(|%23[0-9a-fA-F]{3,8}\b", sumber)
+
+
+# --- Latihan terakhir di halaman awal ------------------------------------------------------
+
+def test_halaman_awal_tanpa_riwayat_tidak_memuat_bagian_latihan_terakhir_dan_sama_dengan_default():
+    assert P.halaman_awal(None, 0, ()) == P.halaman_awal(None)
+    assert "Latihan terakhir" not in P.halaman_awal(None).decode()
+
+
+def test_latihan_terakhir_menampilkan_tanggal_wib_nilai_dan_tautan_hasil_sesuai_urutan_masuk():
+    riwayat = (_ringkas_sesi(8, 1_800_000_000, sesi_id=12), _ringkas_sesi(3, 1_799_900_000, sesi_id=9))
+
+    isi = P.halaman_awal(None, 0, riwayat).decode()
+
+    assert "Latihan terakhir" in isi
+    assert isi.index('href="/murid/lomba/hasil/12"') < isi.index('href="/murid/lomba/hasil/9"')
+    assert "<span>15 Jan 2027, 15:00</span><strong>8/10</strong>" in isi
+    assert "<strong>3/10</strong>" in isi
+
+
+def test_latihan_terakhir_dipotong_di_lima_sesi():
+    riwayat = tuple(_ringkas_sesi(5, 1_800_000_000 - i, sesi_id=100 + i) for i in range(8))
+
+    isi = P.halaman_awal(None, 0, riwayat).decode()
+
+    assert isi.count('href="/murid/lomba/hasil/') == 5 and 'hasil/104"' in isi and 'hasil/105"' not in isi
+
+
+def test_tautan_beranda_murid_menunjuk_ke_halaman_awal_lomba_tanpa_skrip():
+    isi = P.tautan_beranda_murid()
+
+    assert 'href="/murid/lomba"' in isi and "Latihan Lomba" in isi and "<script" not in isi
+    assert not re.search(r"\son[a-z]+\s*=", isi, re.I)

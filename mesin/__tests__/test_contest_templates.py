@@ -17,8 +17,8 @@ KUNCI_BERBEDA_MIN = 3
 MESIN = Path(__file__).resolve().parent.parent
 BERKAS_LOMBA = sorted(MESIN.glob("contest_*.py"))
 BERKAS_TEMPLATE = sorted(list(MESIN.glob("contest_templates_*.py")) + list(MESIN.glob("contest_svg_*.py")))
-IMPOR_TERLARANG = {"urllib", "http", "socket", "requests", "subprocess", "sqlite3", "database",
-                   "llm", "os"}
+IMPOR_JARINGAN_TERLARANG = ("socket", "requests", "urllib3", "urllib.request", "http.client", "subprocess", "llm")
+IMPOR_DB_TERLARANG_DI_TEMPLATE = ("sqlite3", "database", "os")     # template dan SVG harus murni (tanpa DB/berkas)
 TEMPLATE = contest_templates.katalog()
 
 
@@ -103,16 +103,39 @@ def test_modul_template_tidak_memakai_hash_atau_acak_global(berkas):
     assert not re.search(r"\brandom\.(?!Random\b)\w+\(", sumber)
 
 
-@pytest.mark.parametrize("berkas", BERKAS_LOMBA, ids=lambda p: p.name)
-def test_modul_lomba_tanpa_impor_jaringan_db_atau_llm(berkas):
+def _modul_diimpor(berkas):
+    """Nama modul lengkap yang diimpor berkas (mis. "urllib.parse")."""
+    nama = set()
     for node in ast.walk(ast.parse(berkas.read_text())):
         if isinstance(node, ast.Import):
-            akar = {alias.name.split(".")[0] for alias in node.names}
-        elif isinstance(node, ast.ImportFrom):
-            akar = {(node.module or "").split(".")[0]}
-        else:
-            continue
-        assert not (akar & IMPOR_TERLARANG), (berkas.name, akar & IMPOR_TERLARANG)
+            nama |= {alias.name for alias in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            nama.add(node.module)
+    return nama
+
+
+def _terlarang(diimpor, daftar):
+    return {n for n in diimpor if any(n == b or n.startswith(b + ".") for b in daftar)}
+
+
+@pytest.mark.parametrize("berkas", BERKAS_LOMBA, ids=lambda p: p.name)
+def test_modul_lomba_tanpa_impor_jaringan_proses_atau_llm(berkas):
+    assert not _terlarang(_modul_diimpor(berkas), IMPOR_JARINGAN_TERLARANG), berkas.name
+
+
+@pytest.mark.parametrize("berkas", BERKAS_TEMPLATE, ids=lambda p: p.name)
+def test_modul_template_dan_svg_murni_tanpa_db_atau_berkas(berkas):
+    assert not _terlarang(_modul_diimpor(berkas), IMPOR_DB_TERLARANG_DI_TEMPLATE), berkas.name
+
+
+def test_penyaring_impor_menangkap_pelanggaran_dan_tidak_salah_menuduh(tmp_path):
+    kotor = tmp_path / "kotor.py"
+    kotor.write_text("import urllib.request\nimport socket\nfrom http.client import HTTPSConnection\n")
+    bersih = tmp_path / "bersih.py"
+    bersih.write_text("import urllib.parse\nimport json\nfrom contest_core import ambil\n")
+    assert _terlarang(_modul_diimpor(kotor), IMPOR_JARINGAN_TERLARANG) == {
+        "urllib.request", "socket", "http.client"}
+    assert _terlarang(_modul_diimpor(bersih), IMPOR_JARINGAN_TERLARANG) == set()
 
 
 @pytest.mark.parametrize("berkas", BERKAS_LOMBA, ids=lambda p: p.name)

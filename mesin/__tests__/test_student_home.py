@@ -379,3 +379,36 @@ def test_css_beranda_scoped_dan_kontras_tombol():
     assert T.AKSEN_KORAL_TUA in tombol
     assert f"min-height: {T.TINGGI_CTA}" in tombol  # 52px dari token, bukan angka lepas
     assert 'outline: 3px solid ' + T.AKSEN_TEAL_TUA in css
+
+
+# --- tautan Latihan Lomba (hanya saat gerbang hidup) ---------------------------------------------
+
+def _html_lomba(kon, siswa, **kw):
+    return student_pages.halaman_daftar_sesi_baru(kon, siswa, "Anak Demo", None, **kw).decode()
+
+
+def test_beranda_tanpa_lomba_aktif_tidak_memuat_tautan_dan_sama_dengan_pemanggilan_lama(db):
+    with database.buka(db) as kon:
+        siswa = _siswa(kon)
+        _sesi(kon, siswa)
+
+        lama = _html(kon, siswa)
+        mati = _html_lomba(kon, siswa, lomba_aktif=False)
+
+    assert lama == mati and "/murid/lomba" not in lama and "Latihan Lomba" not in lama
+
+
+@pytest.mark.parametrize("ada_sesi", [True, False], ids=["ada-sesi", "tanpa-sesi"])
+def test_beranda_lomba_aktif_menambah_satu_tautan_besar_dan_tidak_mengubah_sisanya(db, ada_sesi):
+    from contest_pages import tautan_beranda_murid
+    with database.buka(db) as kon:
+        siswa = _siswa(kon)
+        if ada_sesi:
+            _sesi(kon, siswa)
+
+        mati = _html_lomba(kon, siswa)
+        hidup = _html_lomba(kon, siswa, lomba_aktif=True)
+
+    assert hidup.count('href="/murid/lomba"') == 1 and "Latihan Lomba" in hidup
+    assert hidup.replace(tautan_beranda_murid(), "") == mati
+    assert hidup.index("/murid/lomba") < hidup.index("</main>")

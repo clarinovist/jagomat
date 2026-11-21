@@ -166,8 +166,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - `cetakan_pola.py` + `cetakan_store.py` (C1 plan cetakan-ai; stdlib; dipakai halaman admin C2, belum sesi anak): cetakan soal berpola = data JSON; validator AST
   bertipe + evaluator sendiri (tanpa `eval`), bangkitan deterministik, `uji_kelayakan`. DB terpisah `/data/cetakan.db` (env `CETAKAN_BERKAS_DB`; draf/aktif/
   nonaktif, revisi + audit, `setujui` wajib lolos kelayakan dalam transaksi); baca rusak = kosong. Di luar penutupan impor `generator`; ikut backup opsional.
-- `admin_sakelar_pages.py` → `admin_sakelar_http.py` untuk `/admin/sakelar`: empat sakelar di
-  `feature_switch.py` (DB terpisah, fail-closed, env fallback) + `sakelar_registry.py`; guard aksi sama
+- `admin_sakelar_pages.py` → `admin_sakelar_http.py` untuk `/admin/sakelar`: lima sakelar di
+  `feature_switch.py` (DB terpisah, fail-closed, env fallback; `VERSI_SKEMA` tetap 1, `ubah()` memperlebar CHECK nama DB lama dalam satu transaksi sehingga kode lama tetap bisa membaca) + `sakelar_registry.py`; guard aksi sama
   dengan panel rekening (tinjauan bertanda tangan, sandi ulang, konflik revisi, audit). Database sakelar
   rusak = 503 jujur. GET `/admin/sakelar` kini halaman Pengaturan layanan (menggabungkan Operasional:
   `admin_launch_http.halaman_pengaturan` + kartu rekening `admin_rekening_http.bagian_pengaturan`);
@@ -334,6 +334,12 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   revisi1 default0; `catalog_followup.py` menyediakan draf revisi2 terpisah
   (`OSN_KATALOG_LANJUTAN=0`), reader berdasarkan marker dan tanpa backfill.
   Codec sesi campuran v2 belum terhubung writer.
+- **Latihan Lomba** (`contest_*.py`, `schema_lomba.py`; plan lokal `docs/plan/2026-11-21-latihan-lomba-corexis.md`): `contest_core` kontrak soal (`SoalLomba`, `Template`, validasi soal/SVG,
+  `ambil_pengecoh`, `susun_pilihan`); 38 template di `contest_templates_{number,arithmetic,measurement,geometry}*.py` (id berawalan `bil_/ops_/ukur_/bgn_`, verifikator independen, SVG di `contest_svg_*`);
+  `contest_session.rakit_sesi` (komposisi, tingkat, rotasi, dedup lintas sesi); `contest_store` (timer epoch dari jam server, finalisasi malas, simpan jawaban atomik; halaman anak hanya membaca kolom
+  aman); `contest_results` (satu-satunya pembaca kunci; hanya sesi tidak berjalan; hasil rinci, riwayat, progress); HTTP `contest_http` (murid, di bawah `/murid`, sebelum `student_http`) dan
+  `contest_guru_http` (`/anak/<id>/lomba`, sebelum penangkap `/anak/`); satu-satunya JS `contest_browser.SKRIP_TIMER`; gerbang `contest_gate` = sakelar `OSN_LOMBA`. Tabel `lomba_sesi/soal/jawaban` di
+  latihan.db: indeks unik parsial satu sesi berjalan per anak, soal disimpan beku, CASCADE ke siswa, dihapus eksplisit di `family_deletion._hapus_lomba`. Waktu selalu parameter `sekarang` (epoch detik).
 - `family_deletion.py` menghasilkan bundle privat tervalidasi, bukan mutasi live
   langsung. Sensor/policy, billing dan riset tetap mempunyai consent/retensi berbeda.
 - Façade/adapter legacy dan reducer besar sengaja dipertahankan ketika pemisahan

@@ -141,3 +141,120 @@ form {{ margin: 0; }}
 }}
 .pilihan.bergambar {{ grid-template-columns: 1fr 1fr; }}
 """
+
+
+# ===== hasil rinci (anak), riwayat dan detail (guru): dipakai halaman anak dan halaman guru =====
+_LEBAR_NOMOR_HASIL = "2.25rem"
+_LEBAR_GAMBAR_PILIHAN = "9rem"
+_TINGGI_GAMBAR_PILIHAN = "7rem"
+_TINGGI_BAR = ".75rem"
+_LEBAR_GRAFIK = "34rem"
+_LEBAR_LABEL_TOPIK = "11rem"
+
+GAYA_HASIL = f"""
+.hasil-lomba {{ display: flex; flex-direction: column; gap: {T.SP_5}; color: {T.TEKS_JUDUL}; }}
+.hasil-lomba h1, .hasil-lomba h2, .hasil-lomba h3, .hasil-lomba h4, .hasil-lomba p, .hasil-lomba ol, .hasil-lomba ul {{ margin: 0; }}
+.hl-sr {{
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}}
+.hasil-lomba h2 {{ font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; }}
+.hl-kartu {{
+  display: flex; flex-direction: column; gap: {T.SP_4}; padding: {T.SP_5};
+  background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.ANAK_BORDER}; border-radius: {T.RADIUS_KARTU_BESAR};
+}}
+.hl-sub {{ color: {T.ANAK_TEKS_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; }}
+.hl-semangat {{ font-weight: 600; }}
+.hl-catatan {{
+  padding: {T.SP_3} {T.SP_4}; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ANAK_PERHATIAN_TEKS};
+  background: {T.ANAK_PERHATIAN_LATAR}; border: {T.TEBAL_GARIS} solid {T.ANAK_PERHATIAN_BORDER}; border-radius: {T.RADIUS_SEDANG};
+}}
+.hl-kosong {{ padding: {T.SP_4}; color: {T.ANAK_TEKS_REDUP}; background: {T.ANAK_ABU_HANGAT}; border-radius: {T.RADIUS_SEDANG}; }}
+
+/* ringkasan angka */
+.hl-ringkas {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: {T.SP_3}; }}
+.hl-stat {{ display: flex; flex-direction: column; gap: {T.SP_1}; padding: {T.SP_3} {T.SP_4}; background: {T.ANAK_ABU_HANGAT}; border-radius: {T.RADIUS_SEDANG}; }}
+.hl-stat-nilai {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; }}
+.hl-stat-label {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ANAK_TEKS_REDUP}; }}
+
+/* bar per topik */
+.hl-topik-daftar {{ list-style: none; padding: 0; display: flex; flex-direction: column; gap: {T.SP_3}; }}
+.hl-topik-baris {{ display: grid; grid-template-columns: {_LEBAR_LABEL_TOPIK} 1fr auto; align-items: center; gap: {T.SP_3}; }}
+.hl-topik-nama {{ font-weight: 700; }}
+.hl-topik-angka {{ text-align: right; white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; }}
+.hl-bar {{ display: block; width: 100%; height: {_TINGGI_BAR}; border-radius: {T.RADIUS_PIL}; overflow: hidden; }}
+.hl-grafik {{ display: block; width: 100%; max-width: {_LEBAR_GRAFIK}; height: auto; }}
+
+/* kartu soal */
+.hl-daftar-soal {{ display: flex; flex-direction: column; gap: {T.SP_4}; margin-top: {T.SP_3}; }}
+.hl-soal {{
+  display: flex; flex-direction: column; gap: {T.SP_3}; padding: {T.SP_5};
+  background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.ANAK_BORDER}; border-radius: {T.RADIUS_KARTU_BESAR};
+}}
+.hl-judul {{ display: flex; flex-wrap: wrap; align-items: center; gap: {T.SP_2}; font-size: 1rem; }}
+.hl-nomor {{
+  display: inline-flex; align-items: center; justify-content: center; width: {_LEBAR_NOMOR_HASIL}; height: {_LEBAR_NOMOR_HASIL};
+  font-family: {T.FONT_HEADLINE}; font-weight: 800; background: {T.ANAK_ABU_HANGAT}; border-radius: {T.RADIUS_BULAT};
+}}
+.hl-topik {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; color: {T.TEKS_VARIAN}; }}
+.hl-status {{ padding: 0 {T.SP_3}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; border-radius: {T.RADIUS_PIL}; border: 2px solid transparent; }}
+.hl-status.hl-benar {{ color: {T.ANAK_BAIK_TEKS}; background: {T.ANAK_BAIK_LATAR}; border-color: {T.ANAK_BAIK_TEKS}; }}
+.hl-status.hl-salah {{ color: {T.TEKS_GALAT}; background: {T.LATAR_GALAT}; border-color: {T.BORDER_GALAT}; }}
+.hl-status.hl-kosong-jawab {{ color: {T.ANAK_NETRAL_TEKS}; background: {T.ANAK_NETRAL_LATAR}; border: 2px dashed {T.BORDER_KONTROL}; }}
+.hl-teks {{ font-size: 1.25rem; font-weight: 700; line-height: 1.4; white-space: pre-line; }}
+.hl-gambar {{ display: flex; justify-content: center; }}
+.hl-gambar svg {{ width: 100%; max-width: {T.LEBAR_VISUAL_SOAL}; height: auto; }}
+.hl-pilihan {{ list-style: none; padding: 0; display: grid; grid-template-columns: 1fr; gap: {T.SP_2}; }}
+.hl-pilih {{
+  display: flex; align-items: center; gap: {T.SP_3}; padding: {T.SP_2} {T.SP_3};
+  border: 2px solid {T.ANAK_BORDER_PIL}; border-radius: {T.RADIUS_KARTU};
+}}
+.hl-huruf {{
+  flex: none; display: inline-flex; align-items: center; justify-content: center; width: {_LEBAR_NOMOR_HASIL}; height: {_LEBAR_NOMOR_HASIL};
+  font-family: {T.FONT_HEADLINE}; font-weight: 800; background: {T.ANAK_ABU_HANGAT}; border-radius: {T.RADIUS_BULAT};
+}}
+.hl-isi {{ flex: 1; min-width: 0; font-weight: 600; }}
+.hl-isi svg {{ display: block; width: 100%; max-width: {_LEBAR_GAMBAR_PILIHAN}; height: auto; max-height: {_TINGGI_GAMBAR_PILIHAN}; }}
+.hl-tanda {{ flex: none; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; }}
+.hl-pilih.hl-dipilih {{ background: {T.ANAK_AKSEN_LATAR}; border: 3px solid {T.ANAK_AKSEN}; }}
+.hl-pilih.hl-kunci {{ background: {T.ANAK_BAIK_LATAR}; border: 2px solid {T.ANAK_BAIK_TEKS}; }}
+.hl-pilih.hl-dipilih.hl-kunci {{ border: 3px solid {T.ANAK_BAIK_TEKS}; }}
+.hl-jawaban {{ display: flex; flex-direction: column; gap: {T.SP_1}; }}
+.hl-jawaban strong {{ font-weight: 800; }}
+.hl-bahas-judul {{ font-size: 1rem; font-weight: 800; }}
+.hl-bahas {{ padding-left: {T.SP_5}; display: flex; flex-direction: column; gap: {T.SP_1}; }}
+.hl-kesalahan {{
+  padding: {T.SP_2} {T.SP_3}; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ANAK_PERHATIAN_TEKS};
+  background: {T.ANAK_PERHATIAN_LATAR}; border: {T.TEBAL_GARIS} solid {T.ANAK_PERHATIAN_BORDER}; border-radius: {T.RADIUS_SEDANG};
+}}
+
+/* tabel riwayat (guru) */
+.hl-gulir {{ overflow-x: auto; }}
+.hl-tabel {{ width: 100%; border-collapse: collapse; font-size: {T.UKURAN_TEKS_LABEL}; }}
+.hl-tabel th {{ white-space: nowrap; }}
+.hl-tabel th, .hl-tabel td {{ text-align: left; padding: {T.SP_2}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; vertical-align: top; }}
+.hl-tabel td.hl-angka {{ font-variant-numeric: tabular-nums; white-space: nowrap; }}
+.hl-daftar-sering {{ padding-left: {T.SP_5}; display: flex; flex-direction: column; gap: {T.SP_1}; }}
+
+@media (max-width: {T.ANAK_BATAS_HP}) {{
+  .hl-kartu, .hl-soal {{ padding: {T.SP_4}; }}
+  .hl-topik-baris {{ grid-template-columns: 1fr auto; }}
+  .hl-topik-baris .hl-bar {{ grid-column: 1 / -1; order: 3; }}
+}}
+@media (min-width: {T.ANAK_BATAS_HP}) {{
+  .hl-pilihan {{ grid-template-columns: 1fr 1fr; }}
+}}
+"""
+
+GAYA_AWAL_RIWAYAT = f"""
+.latihan-terakhir {{ display: flex; flex-direction: column; gap: {T.SP_3}; }}
+.latihan-terakhir h2 {{ font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; }}
+.latihan-terakhir ul {{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: {T.SP_2}; }}
+.tautan-latihan {{
+  display: flex; align-items: center; justify-content: space-between; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH};
+  padding: {T.SP_2} {T.SP_4}; color: {T.TEKS_JUDUL}; text-decoration: none; font-weight: 600;
+  background: {T.LATAR_KARTU}; border: 2px solid {T.ANAK_BORDER_PIL}; border-radius: {T.RADIUS_KARTU};
+}}
+.tautan-latihan strong {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; }}
+.tautan-latihan:hover {{ border-color: {T.ANAK_AKSEN}; }}
+"""

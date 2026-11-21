@@ -2422,6 +2422,16 @@ tiap template pelatih `statistika` (`tabel_turus`, `piktogram`, `diagram_batang_
 inventaris dan dipetakan proyektor statistika, dan render dengan flag memberi satu `<svg>` dan
 `status_visual=siap`. Flag visual menyala di produksi per `/opt/osn/visual.conf` (dibaca read-only 21 Nov 2026, berkas bertanggal 19 Nov): `OSN_VISUAL_KELUARGA=statistika,geometri-datar,geometri-ruang,pengukuran,kombinatorik,pola-bilangan`. Keterbatasan: status "ada" kedua bab ini bergantung pada flag visual menyala; tanpa flag soalnya berupa teks (tes `test_bab_data_ada_bergantung_pada_flag_visual_soal_tanpa_flag_berupa_teks`).
 
+## Latihan Lomba (sakelar `OSN_LOMBA`)
+
+Fitur segmen khusus; mati secara bawaan dan dinyalakan Pemilik dari `/admin/sakelar` (tidak perlu mengubah env atau restart).
+- **Migrasi `sakelar.db`**: tabel `sakelar` punya `CHECK` daftar nama. Perubahan sakelar pertama sesudah rilis ini membangun ulang tabel dengan daftar lima nama dalam SATU transaksi
+  (baris, revisi, dan audit disalin apa adanya; baris rusak ikut disalin). `VERSI_SKEMA` tetap 1, jadi **rollback kode aman**: kode lama masih membaca dan menulis DB yang sudah diperlebar. Membaca tidak pernah memigrasi.
+- **Sebelum rilis**: salin `/data/sakelar.db` (tabelnya ikut cadangan opsional operasional; salinan manual tetap dianjurkan sebelum perubahan sakelar pertama).
+- **Tabel baru** `lomba_sesi`, `lomba_soal`, `lomba_jawaban` ditambahkan aditif ke `latihan.db` saat `siapkan` (tanpa kenaikan versi, ikut cadangan, ikut terhapus saat penghapusan keluarga).
+- **Menyalakan**: setelah rilis, pastikan akun murid anak terhubung ke data siswa, lalu nyalakan sakelar di admin. Menyalakan/mematikan tidak mengubah data; mati = semua alamat `/murid/lomba`, `/anak/<id>/lomba` kembali 404.
+- Tanpa uji.jagomat.id (keputusan Pemilik); izin push dan deploy tetap diminta terpisah, dan CI hijau bukan bukti deployment.
+
 ## Pelaporan jujur
 
 Source teruji, image terverifikasi, pemasangan live, dan auto-deploy aktif adalah

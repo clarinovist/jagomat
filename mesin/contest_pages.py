@@ -9,18 +9,23 @@ tanpa JS, semua halaman tetap berfungsi dan timer ditegakkan server.
 from __future__ import annotations
 
 import html
-from typing import AbstractSet, Optional
+from typing import TYPE_CHECKING, AbstractSet, Optional, Sequence
 
 import brand
 import contest_core as C
 import contest_store as K
 from contest_browser import SKRIP_TIMER
-from contest_style import GAYA_LOMBA
+from contest_format import tanggal_wib
+from contest_style import GAYA_AWAL_RIWAYAT, GAYA_LOMBA
+
+if TYPE_CHECKING:  # hanya tipe RingkasSesi (tanpa kunci); modul hasil tidak diimpor saat dijalankan
+    from contest_results import RingkasSesi
 
 DASAR = "/murid/lomba"
 ALAMAT_AWAL = DASAR
 ALAMAT_MULAI = DASAR + "/mulai"
 BATAS_MERAH_DETIK = 180
+BATAS_LATIHAN_TERAKHIR = 5
 JUMLAH_SOAL = K.NOMOR_TERAKHIR
 PESAN_GALAT_ANGKA = "Tulis angka saja ya"
 _DETIK_PER_MENIT = 60
@@ -57,7 +62,7 @@ def mmss(detik: int) -> str:
     return f"{detik // _DETIK_PER_MENIT:02d}:{detik % _DETIK_PER_MENIT:02d}"
 
 
-def _dokumen(judul: str, isi: str, skrip: str = "") -> bytes:
+def dokumen(judul: str, isi: str, skrip: str = "", gaya_tambahan: str = "") -> bytes:
     """Dokumen lengkap; CSS hanya dimuat di sini, skrip (bila ada) polos tanpa atribut."""
     return f"""<!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8">
@@ -65,7 +70,7 @@ def _dokumen(judul: str, isi: str, skrip: str = "") -> bytes:
 <title>{html.escape(brand.judul(judul))}</title>
 {brand.tag_kepala()}
 {_FONT}
-<style>{GAYA_LOMBA}</style></head>
+<style>{GAYA_LOMBA}{gaya_tambahan}</style></head>
 <body class="lomba"><div class="bingkai">
 {isi}
 </div>{skrip}</body></html>""".encode()
@@ -149,11 +154,24 @@ def halaman_soal(sesi_id: int, soal: K.SoalAnak, terjawab: AbstractSet[int], sis
 <button type="submit" name="aksi" value="selesai" class="tombol besar">Selesai</button>
 </form>
 </main>"""
-    return _dokumen(f"Soal {soal.nomor}", isi, _skrip_timer())
+    return dokumen(f"Soal {soal.nomor}", isi, _skrip_timer())
 
 
-def halaman_awal(sesi: Optional[K.SesiRingkas], sisa: int = 0) -> bytes:
-    """Penjelasan singkat + Mulai, atau Lanjutkan bila ada sesi berjalan."""
+def _latihan_terakhir(riwayat: Sequence["RingkasSesi"]) -> str:
+    """Daftar sesi selesai terbaru (maks BATAS_LATIHAN_TERAKHIR, terbaru dulu); kosong -> tidak tampil."""
+    if not riwayat:
+        return ""
+    butir = "".join(
+        f'<li><a class="tautan-latihan" href="{alamat_hasil(sesi.sesi_id)}">'
+        f'<span>{html.escape(tanggal_wib(sesi.mulai_epoch))}</span>'
+        f'<strong>{int(sesi.nilai)}/{int(sesi.jumlah_soal)}</strong></a></li>'
+        for sesi in riwayat[:BATAS_LATIHAN_TERAKHIR])
+    return (f'<section class="latihan-terakhir" aria-labelledby="judul-terakhir"><h2 id="judul-terakhir">'
+            f'Latihan terakhir</h2><ul>{butir}</ul></section>')
+
+
+def halaman_awal(sesi: Optional[K.SesiRingkas], sisa: int = 0, riwayat: Sequence["RingkasSesi"] = ()) -> bytes:
+    """Penjelasan singkat + Mulai, atau Lanjutkan bila ada sesi berjalan; `riwayat` = sesi selesai, terbaru dulu."""
     if sesi is None:
         aksi = (f'<form method="post" action="{ALAMAT_MULAI}">'
                 '<button type="submit" class="tombol besar">Mulai</button></form>')
@@ -166,8 +184,25 @@ def halaman_awal(sesi: Optional[K.SesiRingkas], sisa: int = 0) -> bytes:
 <ul class="daftar-aturan"><li>{JUMLAH_SOAL} soal</li><li>Waktumu {K.DURASI_DETIK // _DETIK_PER_MENIT} menit</li>
 <li>Boleh pindah-pindah soal, jawabanmu tersimpan</li></ul>
 {status}{aksi}
-</section></main>"""
-    return _dokumen("Latihan Lomba", isi)
+</section>{_latihan_terakhir(riwayat)}</main>"""
+    return dokumen("Latihan Lomba", isi, gaya_tambahan=GAYA_AWAL_RIWAYAT if riwayat else "")
+
+
+_IKON_LOMBA = ('<svg class="murid-ikon-st" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '
+               'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+               '<path d="M8 21h8m-4-4v4M7 4h10v5a5 5 0 0 1-10 0V4Zm0 2H4v1a3 3 0 0 0 3 3m10-4h3v1a3 3 0 0 1-3 3"/></svg>')
+
+
+def tautan_beranda_murid() -> str:
+    """Kartu tautan besar "Latihan Lomba" di beranda murid (hanya dipanggil bila gerbang hidup)."""
+    return (
+        '<section class="murid-latihan-lain-st" aria-labelledby="judul-lomba">'
+        '<div class="murid-kepala-bagian-st"><h2 id="judul-lomba">Latihan Lomba</h2></div>'
+        f'<a class="st-kartu-baris" href="{ALAMAT_AWAL}">'
+        f'<span class="murid-ikon-topik-st">{_IKON_LOMBA}</span>'
+        '<span class="st-kartu-teks"><span class="murid-judul-kartu-st">Latihan Lomba</span>'
+        f'<span class="murid-meta-st">{JUMLAH_SOAL} soal, {K.DURASI_DETIK // _DETIK_PER_MENIT} menit</span></span>'
+        '<span class="murid-ujung-st st-jumlah-soal"><span class="murid-aksi-st">Coba</span></span></a></section>')
 
 
 def halaman_selesai(sesi_id: int, belum: int, sisa: int) -> bytes:
@@ -180,19 +215,7 @@ def halaman_selesai(sesi_id: int, belum: int, sisa: int) -> bytes:
 <form method="post" action="{alamat_kumpul(sesi_id)}"><button type="submit" class="tombol besar">Ya, kumpulkan</button></form>
 <a class="tombol sekunder" href="{alamat_sesi(sesi_id)}">Kembali ke soal</a>
 </section></main>"""
-    return _dokumen("Kumpulkan", isi, _skrip_timer())
-
-
-def halaman_hasil(hasil: K.HasilRingkas) -> bytes:
-    """Hasil Tahap 2: nilai dan waktu saja (tanpa jawaban benar atau pembahasan)."""
-    judul = "Waktu habis!" if hasil.status == K.WAKTU_HABIS else "Sesi selesai!"
-    isi = f"""<main class="isi"><section class="kartu">
-<h1 class="judul">{judul}</h1>
-<p class="angka-besar">Nilai: {int(hasil.nilai)} dari {int(hasil.jumlah_soal)}</p>
-<p>Waktu: {mmss(hasil.waktu_terpakai_detik)}</p>
-<form method="post" action="{ALAMAT_MULAI}"><button type="submit" class="tombol besar">Latihan lagi</button></form>
-</section></main>"""
-    return _dokumen("Hasil latihan", isi)
+    return dokumen("Kumpulkan", isi, _skrip_timer())
 
 
 def halaman_gagal_siapkan() -> bytes:
@@ -201,4 +224,4 @@ def halaman_gagal_siapkan() -> bytes:
 <h1 class="judul">Soal belum bisa disiapkan</h1><p>Coba lagi nanti, ya.</p>
 <a class="tombol besar" href="{ALAMAT_AWAL}">Kembali</a>
 </section></main>"""
-    return _dokumen("Soal belum siap", isi)
+    return dokumen("Soal belum siap", isi)
