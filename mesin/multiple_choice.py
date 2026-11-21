@@ -17,7 +17,7 @@ from choice_contract import JUMLAH_OPSI, OpsiJawaban, PilihanButir
 
 JENIS_JAWABAN = frozenset({"angka", "daftar_bulat", "urutan_bilangan",
                            "kategori", "jam", "durasi", "rasio",
-                           "simbol_perbandingan"})
+                           "simbol_perbandingan", "pecahan_campur"})
 SIMBOL_PERBANDINGAN = ("<", ">", "=")
 
 
@@ -31,6 +31,25 @@ def _angka(teks: str) -> Fraction:
     return hasil / 100 if teks.endswith("%") else hasil
 
 
+def _pecahan_campur(teks: str) -> Fraction:
+    """"w n/d" (n < d), "n/d", atau bilangan bulat; nilainya Fraction.
+
+    Jenis ini hanya untuk template berkunci bilangan campur (pecahan_campur_awal). Pembaca
+    `_angka` sengaja tidak dilonggarkan: template lain tidak boleh berubah perilakunya.
+    """
+    cocok = re.fullmatch(r"(?:([0-9]+) )?([0-9]+)(?:/([0-9]+))?", teks)
+    if cocok is None:
+        raise ValueError("Format bilangan campur pilihan tidak dikenal.")
+    bulat, atas, bawah = cocok.groups()
+    if bawah is None:
+        if bulat is not None:
+            raise ValueError("Format bilangan campur pilihan tidak dikenal.")
+        return Fraction(int(atas))
+    if int(bawah) == 0 or (bulat is not None and int(atas) >= int(bawah)):
+        raise ValueError("Bilangan campur pilihan tidak sah.")
+    return Fraction(int(bulat or 0)) + Fraction(int(atas), int(bawah))
+
+
 def nilai_semantis(teks: str, jenis: str):
     """Kesetaraan bertipe; koma daftar tidak ditebak dari tampilan skalar."""
     if jenis not in JENIS_JAWABAN or not isinstance(teks, str) or not teks.strip():
@@ -38,6 +57,8 @@ def nilai_semantis(teks: str, jenis: str):
     t = unicodedata.normalize("NFKC", teks).strip().replace("−", "-")
     if jenis == "angka":
         return _angka(t)
+    if jenis == "pecahan_campur":
+        return _pecahan_campur(t)
     if jenis == "simbol_perbandingan":
         if t not in SIMBOL_PERBANDINGAN:
             raise ValueError("Simbol perbandingan pilihan tidak sah.")

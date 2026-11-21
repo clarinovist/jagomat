@@ -170,6 +170,7 @@ CP_PER_GRUP: Dict[Tuple[str, str], Tuple[Tuple[str, str], ...]] = {
     ('matematika-awal', 'ciri_komposisi_bangun'): (('B.geometri.1', 'sebagian'), ('B.geometri.2', 'sebagian')),
     ('matematika-awal', 'keliling_gabungan'): (('C.pengukuran.1', 'sebagian'),),
     ('matematika-awal', 'pecahan_bilangan_asli_desimal'): (('C.bilangan.9', 'sebagian'), ('C.bilangan.10', 'sebagian'), ('B.bilangan.11', 'sebagian')),
+    ('matematika-awal', 'pecahan_campur_awal'): (('C.bilangan.9', 'sebagian'), ('C.bilangan.10', 'sebagian')),
     ('berhitung-sekolah', 'perkalian_dasar'): (('B.bilangan.6', 'sebagian'),),
     ('berhitung-sekolah', 'pembagian_dasar'): (('B.bilangan.6', 'sebagian'),),
     ('berhitung-sekolah', 'pecahan_sederhana'): (('A.bilangan.6', 'sebagian'), ('C.bilangan.8', 'sebagian')),

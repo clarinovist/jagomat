@@ -227,6 +227,7 @@ KATALOG: Tuple[EntriTopik, ...] = (
             ('ciri_komposisi_bangun', 'Ciri, susunan, dan uraian bangun datar', ('ciri_komposisi_bangun',)),
             ('keliling_gabungan', 'Keliling bangun datar dan gabungan', ('keliling_gabungan',)),
             ('pecahan_bilangan_asli_desimal', 'Pecahan dengan bilangan asli dan desimal', ('pecahan_bilangan_asli_desimal',)),
+            ('pecahan_campur_awal', 'Bilangan campur: ubah bentuk, kali, dan bagi', ('pecahan_campur_awal',)),
         ),
     ),
 )

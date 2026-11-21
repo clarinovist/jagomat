@@ -55,6 +55,10 @@ def kebijakan_soal(soal):
         return 'tiga-v1', 'kategori'  # kunci nama bangun; banyak_sisi jatuh ke 'angka'
     if tid == 'pola_posisi':
         return 'tiga-v1', 'kategori'  # semua varian: kunci satu kata huruf kecil
+    if tid == 'pecahan_campur_awal':
+        # Kunci "w n/d" atau "a/b": nilai_semantis membacanya lewat jenis sendiri; "6/5" untuk kunci
+        # "1 1/5" bernilai sama jadi gugur sebagai pengecoh (dua opsi setara tidak boleh).
+        return 'empat-v1', 'pecahan_campur'
     if tid == 'unsur_bangun_datar' and p['varian'] == 'istilah':
         return 'tiga-v1', 'kategori'  # kunci "sejajar"/"tegak lurus"; pengecoh malrule + "miring"
     if tid == 'ciri_komposisi_bangun' and (

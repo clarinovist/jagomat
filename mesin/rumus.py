@@ -201,6 +201,11 @@ KARTU: dict[str, Kartu] = {
         inti="Pecahan dikali bilangan asli: kalikan pembilangnya, penyebut tetap. Pecahan dibagi bilangan asli: kalikan penyebutnya. Sederhanakan hasilnya. Pecahan jadi desimal: buat penyebutnya 10, 100, atau 1000, lalu tulis dengan koma. Pecahan campuran jadi pecahan biasa: bulat × penyebut + pembilang, penyebut tetap. Hasil kali bisa lebih dari 1 dan ditulis 15/4. Dibulatkan satu angka: lihat angka kedua di belakang koma. Persen = per seratus.",
         contoh="3/8 x 2 = 6/8 = 3/4. 2/3 : 4 = 2/12 = 1/6. 3/4 = 75/100 = 0,75.",
     ),
+    "pecahan_campur_awal": Kartu(
+        judul="Bilangan campur dan pecahan tak wajar",
+        inti="Pecahan tak wajar (pembilang lebih besar dari penyebut) menjadi bilangan campur: bagi pembilang dengan penyebut. Hasil bagi menjadi bilangan bulat, sisanya menjadi pembilang, penyebut tetap. Bilangan campur menjadi pecahan tak wajar: bulat × penyebut + pembilang, penyebut tetap. Pecahan dikali bilangan asli: kalikan pembilangnya, lalu ubah hasilnya ke bilangan campur dan sederhanakan sisanya. Bilangan campur dikali atau dibagi bilangan asli: ubah dulu ke pecahan tak wajar. Hasil yang diminta bilangan campur ditulis dengan bentuk itu, bukan pecahan tak wajar.",
+        contoh="17/5: 17 ÷ 5 = 3 sisa 2, jadi 3 2/5. 3 × 2/5 = 6/5 = 1 1/5. 2 1/4 × 3 = 9/4 × 3 = 27/4 = 6 3/4.",
+    ),
     "kelipatan_rentang": Kartu(
         judul="Menghitung kelipatan dalam rentang",
         inti="Hitung kelipatan sampai batas akhir, lalu kurangi kelipatan sebelum batas awal. Kedua batas ikut dihitung.",
@@ -594,6 +599,7 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "ciri_komposisi_bangun": "ciri_komposisi_bangun",
     "keliling_gabungan": "keliling_gabungan",
     "pecahan_bilangan_asli_desimal": "pecahan_bilangan_asli_desimal",
+    "pecahan_campur_awal": "pecahan_campur_awal",
     "urutkan_bilangan": "urutkan_bilangan",
     "tambah_kurang_bersusun": "tambah_kurang_bersusun",
     "kali_bagi_sekolah": "kali_bagi_sekolah",

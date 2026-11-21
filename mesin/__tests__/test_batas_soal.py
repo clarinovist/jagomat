@@ -34,6 +34,7 @@ INTI_SOAL = frozenset({
     "awal_kenali_bentuk",
     "awal_luas_petak_volume_kubus",
     "awal_pecahan_bilangan_asli_desimal",
+    "awal_pecahan_campur_awal",
     "awal_pecahan_senilai_desimal",
     "awal_pecahan_setengah",
     "awal_peluang_dasar",

@@ -41,6 +41,7 @@ LEVEL_JENIS = {
     "keliling_gabungan": ("P5",),
     "peluang_dasar": ("P6",),
     "pecahan_bilangan_asli_desimal": ("P6",),
+    "pecahan_campur_awal": ("P6",),
 }
 TEMPLATE_AWAL = tuple(LEVEL_JENIS)
 # Level yang punya jenis: P1 sampai P6 (semua level topik).

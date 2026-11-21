@@ -154,6 +154,14 @@
     "Minta anak mengubah pecahan ke desimal dengan membuat penyebutnya 10 atau 100, lalu membaca desimalnya."
    ],
    "tindak_lanjut": "Minta anak melipat selembar kertas jadi empat bagian sama besar. Arsir tiga bagian, tulis pecahannya, lalu tulis desimalnya (0,75) dan bandingkan dengan 3/4."
+  },
+  "pecahan_campur_awal": {
+   "pertanyaan": [
+    "Tanya: pecahan yang pembilangnya lebih besar dari penyebut, apakah itu sudah bilangan campur? Sebutkan bagian bulatnya.",
+    "Minta anak membagi pembilang dengan penyebut. Tanya: hasil bagi dan sisanya ditaruh di bagian mana?",
+    "Tanya: pada bilangan campur yang dikali bilangan asli, bagian bulat dan pecahannya ikut dikali atau salah satu saja?"
+   ],
+   "tindak_lanjut": "Minta anak menggambar dua lingkaran, masing-masing dibagi lima bagian sama besar. Arsir enam bagian, lalu tulis sebagai bilangan campur dan pecahan tak wajar."
   }
  }
 }

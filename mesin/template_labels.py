@@ -35,6 +35,7 @@ NAMA_TIPE_SOAL = {
     "ciri_komposisi_bangun": "Ciri, susunan, dan uraian bangun datar",
     "keliling_gabungan": "Keliling bangun datar dan bangun gabungan",
     "pecahan_bilangan_asli_desimal": "Pecahan dengan bilangan asli dan desimal",
+    "pecahan_campur_awal": "Bilangan campur: ubah bentuk, kali, dan bagi dengan bilangan asli",
     "urutkan_bilangan": "Bilangan terbesar dan terkecil",
     "tambah_kurang_bersusun": "Penjumlahan dan pengurangan bersusun",
     "kali_bagi_sekolah": "Perkalian dan pembagian habis",

@@ -33,6 +33,7 @@ import awal_keliling_gabungan as keliling_gabungan
 import awal_kenali_bentuk as kenali_bentuk
 import awal_luas_petak_volume_kubus as luas_petak_volume_kubus
 import awal_pecahan_bilangan_asli_desimal as pecahan_bilangan_asli_desimal
+import awal_pecahan_campur_awal as pecahan_campur_awal
 import awal_pecahan_senilai_desimal as pecahan_senilai_desimal
 import awal_pecahan_setengah as pecahan_setengah
 import awal_peluang_dasar as peluang_dasar
@@ -116,6 +117,9 @@ JENIS = (
     Jenis(pecahan_bilangan_asli_desimal.TEMPLATE_ID, pecahan_bilangan_asli_desimal.pecahan_bilangan_asli_desimal,
           pecahan_bilangan_asli_desimal.parameter, pecahan_bilangan_asli_desimal.LEVEL,
           pecahan_bilangan_asli_desimal.domain_parameter),
+    Jenis(pecahan_campur_awal.TEMPLATE_ID, pecahan_campur_awal.pecahan_campur_awal,
+          pecahan_campur_awal.parameter, pecahan_campur_awal.LEVEL,
+          pecahan_campur_awal.domain_parameter),
 )
 _PER_ID = {j.template_id: j for j in JENIS}
 if len(_PER_ID) != len(JENIS):

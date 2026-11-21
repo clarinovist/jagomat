@@ -26,6 +26,8 @@ pecahan_bilangan_asli_desimal P6 (12 varian) diukur lewat _ukur pada kedua versi
 P5 59/270, P4 68/172, P6 22/272. ciri_komposisi_bangun kini 172 tanda tangan (>= 150), jadi
 ALASAN_RUANG-nya dihapus. Konsentrasi lembar P4 2,00, P5 1,24, P6 1,86 (semua di bawah 2,1), jadi
 UTANG_LEMBAR P6 dilunasi dan dihapus.
+pecahan_campur_awal P6 (21 Nov 2026, lima varian bilangan campur): diukur lewat _ukur pada kedua versi katalog (sama): P6 8/294 (domain 3762);
+konsentrasi lembar P6 kini 3 jenis dan terukur 1,64 (di bawah 2,1), jenis minimum lembar P6 naik 2 -> 3.
 baca_diagram_gambar P2 (21 Nov 2026, skala 1 atau 2): diukur lewat _ukur pada kedua versi katalog (sama): P2 299/299
 tanda tangan (domain P2 20160, skala 1 jumlah 5..12, skala 2 jumlah 1..8) dengan empat varian; lembar P2 kini 7 jenis, konsentrasi lembar P2 terukur 1,00 (di bawah 2,1).
 Awalnya (kerangka): kenali_bentuk P1 18/19 dan P2 26/26 tanda tangan dengan
@@ -86,6 +88,7 @@ matematika-awal luas_petak_volume_kubus P4:4:214:luas_bandingkan,luas_petak,tamb
 matematika-awal ciri_komposisi_bangun P4:68:172:ciri,ciri_empat_sisi_lain,ciri_segitiga,ciri_trapesium,dua_persegi,susun_dua_cara,susun_gabung,susun_persegi,uraikan_banyak,uraikan_nama,uraikan_segi_banyak
 matematika-awal keliling_gabungan P5:59:270:bentuk_L,bentuk_T_U_tangga,dua_persegipanjang,jajar_genjang_belah_ketupat,lingkaran,persegi_persegipanjang,segitiga,segitiga_sama_sisi_di_persegi,trapesium
 matematika-awal pecahan_bilangan_asli_desimal P6:22:272:asli_kali,bagi_asli,bagi_asli_tak_wajar,campur_ke_biasa,cerita,cerita_kali_bagi_pecahan,desimal_ke_pecahan,desimal_ke_persen_pecahan,kali_asli,kali_asli_tak_wajar,ke_desimal,ke_desimal_berulang_dibulatkan
+matematika-awal pecahan_campur_awal P6:8:294:bagi_campur_asli,campur_kali_asli,campur_ke_tak_wajar,kali_asli_campur,tak_wajar_ke_campur
 berhitung-sekolah nilai_tempat_ribuan P3:2:257:nilai_angka,selisih_nilai P4:4:298:nilai_angka,selisih_nilai
 berhitung-sekolah pecahan_bagian_dasar P3:6:162:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian P4:6:204:jumlah_sama_penyebut,selisih_sama_penyebut,sisa_bagian
 berhitung-sekolah pembagian_dasar P3:5:204:bagi_rata,operasi P4:5:254:bagi_rata,operasi
@@ -201,7 +204,7 @@ matematika-awal P2 10 7
 matematika-awal P3 10 2
 matematika-awal P4 10 3
 matematika-awal P5 10 2
-matematika-awal P6 10 2
+matematika-awal P6 10 3
 berhitung-sekolah P3 8 4
 berhitung-sekolah P4 8 4
 aritmatika-lanjut P5 10 7
