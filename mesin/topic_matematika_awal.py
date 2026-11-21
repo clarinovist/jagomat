@@ -37,6 +37,7 @@ import awal_luas_petak_volume_kubus as luas_petak_volume_kubus
 import awal_pecahan_bilangan_asli_desimal as pecahan_bilangan_asli_desimal
 import awal_pecahan_senilai_desimal as pecahan_senilai_desimal
 import awal_pecahan_setengah as pecahan_setengah
+import awal_piktogram_lima_awal as piktogram_lima_awal
 import awal_peluang_dasar as peluang_dasar
 import awal_pola_posisi as pola_posisi
 import awal_tambah_kurang_100 as tambah_kurang_100
@@ -132,6 +133,9 @@ JENIS = (
     Jenis(tampak_kubus_awal.TEMPLATE_ID, tampak_kubus_awal.tampak_kubus_awal,
           tampak_kubus_awal.parameter, tampak_kubus_awal.LEVEL,
           tampak_kubus_awal.domain_parameter),
+    Jenis(piktogram_lima_awal.TEMPLATE_ID, piktogram_lima_awal.piktogram_lima_awal,
+          piktogram_lima_awal.parameter, piktogram_lima_awal.LEVEL,
+          piktogram_lima_awal.domain_parameter),
 )
 _PER_ID = {j.template_id: j for j in JENIS}
 if len(_PER_ID) != len(JENIS):

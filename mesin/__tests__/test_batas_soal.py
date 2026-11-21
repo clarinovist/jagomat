@@ -43,6 +43,7 @@ INTI_SOAL = frozenset({
     "awal_pecahan_senilai_desimal",
     "awal_pecahan_setengah",
     "awal_peluang_dasar",
+    "awal_piktogram_lima_awal",
     "awal_pola_posisi",
     "awal_tambah_kurang_100",
     "awal_tambah_kurang_20",

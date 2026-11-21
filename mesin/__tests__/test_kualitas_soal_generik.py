@@ -34,6 +34,8 @@ ukur_sudut_awal P5 (21 Nov 2026, jenis ke-22, lima varian: baca_dari_nol, baca_g
 pada kedua versi katalog (sama): 9 kerangka/248 tanda tangan (>= 150, tanpa ALASAN_RUANG); lembar P5 kini 3 jenis, konsentrasi lembar P5 terukur 1,37 (di bawah 2,1).
 tampak_kubus_awal P6 (21 Nov 2026, jenis ke-23, empat varian: banyak_kubus, banyak_persegi_atas, banyak_persegi_depan, banyak_persegi_samping): diukur
 lewat _ukur pada kedua versi katalog (sama): 15 kerangka/290 tanda tangan (>= 150, tanpa ALASAN_RUANG); lembar P6 kini 3 jenis, konsentrasi lembar P6 terukur 1,67 (di bawah 2,1).
+piktogram_lima_awal P5 (22 Nov 2026, jenis ke-24, lima varian: baca_nilai, terbanyak_selisih, total, rata_rata, berapa_ikon): diukur lewat _ukur pada
+kedua versi katalog (sama): 292 kerangka/292 tanda tangan (>= 150, tanpa ALASAN_RUANG; domain 5712); lembar P5 kini 4 jenis, konsentrasi lembar P5 terukur 1,16 (di bawah 2,1).
 baca_diagram_gambar P2 (21 Nov 2026, skala 1 atau 2): diukur lewat _ukur pada kedua versi katalog (sama): P2 299/299
 tanda tangan (domain P2 20160, skala 1 jumlah 5..12, skala 2 jumlah 1..8) dengan empat varian; lembar P2 kini 7 jenis, konsentrasi lembar P2 terukur 1,00 (di bawah 2,1).
 Awalnya (kerangka): kenali_bentuk P1 18/19 dan P2 26/26 tanda tangan dengan
@@ -80,6 +82,7 @@ matematika-awal kenali_bangun_awal P1:102:159:benda_ruang,datar_gambar,hitung_be
 matematika-awal baca_jam_awal P2:7:123:baca_penuh,baca_setengah,jam_kemudian,kegiatan_selesai
 matematika-awal ukur_sudut_awal P5:9:248:baca_dari_nol,baca_geser,banding,jenis_sudut,selisih_dua
 matematika-awal tampak_kubus_awal P6:15:290:banyak_kubus,banyak_persegi_atas,banyak_persegi_depan,banyak_persegi_samping
+matematika-awal piktogram_lima_awal P5:292:292:baca_nilai,berapa_ikon,rata_rata,terbanyak_selisih,total
 matematika-awal ukur_satuan_tak_baku P1:36:277:banding,sambung,selisih
 matematika-awal baca_diagram_gambar P1:295:295:baca,jumlah,selisih,terbanyak P2:299:299:baca,jumlah,selisih,terbanyak
 matematika-awal pola_posisi P2:108:116:atas_bawah,kiri_kanan,pola,urutan
@@ -212,7 +215,7 @@ matematika-awal P1 10 6
 matematika-awal P2 10 9
 matematika-awal P3 10 2
 matematika-awal P4 10 3
-matematika-awal P5 10 3
+matematika-awal P5 10 4
 matematika-awal P6 10 3
 berhitung-sekolah P3 8 4
 berhitung-sekolah P4 8 4

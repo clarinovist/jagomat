@@ -27,6 +27,7 @@ LEVEL_JENIS = {
     "baca_jam_awal": ("P2",),
     "ukur_sudut_awal": ("P5",),
     "tampak_kubus_awal": ("P6",),
+    "piktogram_lima_awal": ("P5",),
     "ukur_satuan_tak_baku": ("P1",),
     "baca_diagram_gambar": ("P1", "P2"),
     "bilang_benda_awal": ("P1",),

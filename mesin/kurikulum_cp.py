@@ -160,6 +160,7 @@ CP_PER_GRUP: Dict[Tuple[str, str], Tuple[Tuple[str, str], ...]] = {
     ('matematika-awal', 'baca_jam_awal'): (('A.pengukuran.1', 'sebagian'), ('C.pengukuran.2', 'prasyarat')),
     ('matematika-awal', 'ukur_sudut_awal'): (('C.pengukuran.3', 'sebagian'),),
     ('matematika-awal', 'tampak_kubus_awal'): (('C.geometri.2', 'sebagian'),),
+    ('matematika-awal', 'piktogram_lima_awal'): (('C.data.1', 'sebagian'),),
     ('matematika-awal', 'waktu_berat_awal'): (('A.pengukuran.1', 'sebagian'), ('B.pengukuran.1', 'sebagian'), ('C.pengukuran.2', 'prasyarat')),
     ('matematika-awal', 'turus_gambar_awal'): (('A.data.2', 'sebagian'), ('B.data.1', 'prasyarat')),
     ('matematika-awal', 'ukur_konversi_awal'): (('B.pengukuran.2', 'sebagian'),),

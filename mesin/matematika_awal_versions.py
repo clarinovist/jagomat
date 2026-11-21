@@ -52,6 +52,7 @@ TEMPLATE_BARU = frozenset({
     "baca_jam_awal",
     "ukur_sudut_awal",
     "tampak_kubus_awal",
+    "piktogram_lima_awal",
 })
 PESAN_BELUM_DIBUKA = "Materi ini belum dibuka."
 

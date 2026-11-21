@@ -479,7 +479,9 @@ def test_lembar_cetak_memakai_teks_lengkap_walau_flag_visual_menyala(monkeypatch
 def test_lembar_p5_memuat_semua_jenis_tanpa_kembar():
     for seed in range(40):
         lembar = generator.buat_lembar(seed, level="P5", topik=TOPIK)
-        assert {s.template_id for s in lembar.soal} == {"bandingkan_ciri_bangun", "keliling_gabungan", TID}
+        # piktogram_lima_awal (jenis ke-24, 22 Nov 2026) menjadi jenis ke-4 di P5
+        assert {s.template_id for s in lembar.soal} == {"bandingkan_ciri_bangun", "keliling_gabungan", TID,
+                                                        "piktogram_lima_awal"}
         tanda = [s.tanda_tangan for s in lembar.soal]
         assert len(set(tanda)) == len(tanda), (seed, "soal kembar dalam lembar")
 

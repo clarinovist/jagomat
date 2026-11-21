@@ -131,6 +131,11 @@ KARTU: dict[str, Kartu] = {
         inti="Kubus satuan ditumpuk dari lantai, jadi kubus yang tertutup tetap ada dan harus ikut dihitung: jumlahkan tinggi semua tumpukan. Tampak atas adalah yang terlihat kalau dilihat dari atas: tiap tumpukan yang tidak kosong tampak sebagai satu persegi, jadi hitung banyak tumpukannya. Tampak depan dilihat dari depan: tiap kolom tampak setinggi tumpukan tertinggi di kolom itu, lalu jumlahkan semua kolom. Tampak samping dilihat dari sisi kanan: tiap baris tampak setinggi tumpukan tertinggi di baris itu, lalu jumlahkan semua baris. Soal tampak menanyakan persegi yang terlihat, bukan semua kubus.",
         contoh="Baris depan: 1, 0; baris belakang: 3, 2. Tampak depan: kolom kiri tertinggi 3 dan kolom kanan tertinggi 2, jadi 3 + 2 = 5 persegi. Tampak atas: ada 3 tumpukan, jadi 3 persegi. Semua kubus: 1 + 3 + 2 = 6.",
     ),
+    "piktogram_lima_awal": Kartu(
+        judul="Membaca piktogram berskala besar",
+        inti="Piktogram memakai gambar untuk mewakili beberapa benda. Baca dulu tulisan \"Satu gambar mewakili N ...\", lalu hitung gambar pada tiap baris. Nilai satu baris = banyak gambar dikali N (sama dengan menambah N berulang). Selisih dua baris dicari dengan mengurangi kedua nilainya. Jumlah semua dicari dengan menjumlah banyak gambar semua baris lalu mengalikan N. Rata-rata = jumlah semua dibagi banyak jenis. Kalau nilai bendanya sudah diketahui dan yang ditanya banyak gambar, bagi nilai itu dengan N.",
+        contoh="Satu gambar mewakili 5 mainan. Bola 3 gambar, Mobil 6 gambar, Boneka 9 gambar. Nilai Mobil = 6 × 5 = 30. Selisih Boneka dan Bola = 9 × 5 - 3 × 5 = 45 - 15 = 30. Jumlah semua = (3 + 6 + 9) × 5 = 90. Rata-rata = 18 gambar ÷ 3 jenis = 6 gambar, jadi 6 × 5 = 30. Barang bernilai 45 digambar dengan 45 ÷ 5 = 9 gambar.",
+    ),
     "ukur_satuan_tak_baku": Kartu(
         judul="Mengukur panjang dengan satuan buatan sendiri",
         inti="Ukur benda dengan satuan yang sama, lalu bandingkan angkanya: makin banyak satuan yang muat, makin panjang bendanya. Lebihnya dicari dengan mengurangi. Dua benda yang disambung panjangnya ditambah.",
@@ -600,6 +605,7 @@ KONSEP_TEMPLATE: dict[str, str] = {
     "baca_jam_awal": "baca_jam_awal",
     "ukur_sudut_awal": "ukur_sudut_awal",
     "tampak_kubus_awal": "tampak_kubus_awal",
+    "piktogram_lima_awal": "piktogram_lima_awal",
     "ukur_satuan_tak_baku": "ukur_satuan_tak_baku",
     "baca_diagram_gambar": "baca_diagram_gambar",
     "pola_posisi": "pola_posisi",

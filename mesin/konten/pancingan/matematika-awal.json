@@ -59,6 +59,14 @@
    ],
    "tindak_lanjut": "Gambar beberapa sudut di kertas bersama anak, lalu ukur dengan busur derajat sungguhan dan tulis besarnya. Minta anak menggolongkan tiap sudut sebagai lancip, siku, atau tumpul."
   },
+  "piktogram_lima_awal": {
+   "pertanyaan": [
+    "Minta anak membaca tulisan \"Satu gambar mewakili ...\" lebih dulu, lalu menyebut berapa benda yang diwakili satu gambar.",
+    "Tanya: kalau satu baris punya 4 gambar dan satu gambar mewakili 5, berapa bendanya? Minta anak menjelaskan mengapa 4 saja tidak cukup.",
+    "Minta anak mencari baris dengan gambar paling banyak dan paling sedikit, lalu menghitung selisih bendanya, bukan selisih gambarnya."
+   ],
+   "tindak_lanjut": "Buat piktogram dari benda di rumah, misalnya jumlah sendok, gelas, dan piring, dengan satu gambar mewakili 5 benda. Minta anak menghitung jumlah semua dan rata-rata tiap jenis."
+  },
   "tampak_kubus_awal": {
    "pertanyaan": [
     "Minta anak menyusun beberapa kubus mainan menjadi tangga, lalu menunjuk dari arah mana ia melihat tampak depan, tampak atas, dan tampak samping.",

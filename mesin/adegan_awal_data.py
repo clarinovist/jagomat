@@ -27,10 +27,14 @@ IKON_DIDUKUNG = (
 )
 ADEGAN_DIDUKUNG = ("deret_ikon", "turus", "pita_ukur", "bentuk", "jam_analog", "busur", "tumpukan_kubus")
 BARIS_MIN, BARIS_MAKS = 2, 4
+BARIS_MAKS_DERET = 5  # hanya deret_ikon: piktogram P5 sampai lima kategori; turus tetap BARIS_MAKS
 JUMLAH_MIN, JUMLAH_MAKS = 0, 12
 PANJANG_NAMA_MAKS = 24
-SATUAN_IKON_DIDUKUNG = (1, 2)  # benda per ikon; 2 hanya untuk soal skala 2 (P2)
+SATUAN_IKON_DIDUKUNG = (1, 2, 5, 10, 20)  # benda per ikon; 2 untuk P2, 5/10/20 untuk piktogram P5
 VARIAN_TANYA = ("baca", "terbanyak", "selisih", "jumlah")
+# Hanya deret_ikon (piktogram P5): jenis pertanyaan tanpa indeks. `berapa_ikon` berarti baris kategori
+# yang ditanya sengaja tidak digambar (bukan salah satu baris di descriptor).
+VARIAN_TANYA_RINGKAS = ("terbanyak_selisih", "total", "rata_rata", "berapa_ikon")
 TURUS_MIN, TURUS_MAKS = 1, 12
 SATUAN_UKUR = ("klip", "ubin", "balok")
 WARNA_BATANG = ("netral", "merah", "biru")
@@ -100,12 +104,12 @@ def _nama_unik(nama: tuple) -> None:
         raise ValueError("nama baris adegan tidak boleh duplikat")
 
 
-def _daftar_baris(nilai: Any, baris_fn=_baris_tunggal) -> int:
+def _daftar_baris(nilai: Any, baris_fn=_baris_tunggal, maksimum: int = BARIS_MAKS) -> int:
     """Validasi daftar baris; kembalikan banyaknya."""
     if not isinstance(nilai, (list, tuple)):
         raise ValueError("baris adegan wajib berupa daftar")
-    if not BARIS_MIN <= len(nilai) <= BARIS_MAKS:
-        raise ValueError(f"adegan wajib memiliki {BARIS_MIN}..{BARIS_MAKS} baris")
+    if not BARIS_MIN <= len(nilai) <= maksimum:
+        raise ValueError(f"adegan wajib memiliki {BARIS_MIN}..{maksimum} baris")
     nama = tuple(baris_fn(isi, i) for i, isi in enumerate(nilai))
     _nama_unik(nama)
     return len(nama)
@@ -134,13 +138,22 @@ def _validasi_tanya(tanya: Any, banyak: int) -> None:
             raise ValueError("tanya.x dan tanya.y wajib berbeda")
 
 
+def _validasi_tanya_deret(tanya: Any, banyak: int) -> None:
+    """Varian piktogram P5 tanpa indeks; sisanya aturan lama (turus tidak memakai ini)."""
+    if isinstance(tanya, Mapping) and isinstance(tanya.get("varian"), str) \
+            and tanya["varian"] in VARIAN_TANYA_RINGKAS:
+        _field_tepat(tanya, {"varian"}, "tanya")
+        return
+    _validasi_tanya(tanya, banyak)
+
+
 def _validasi_deret_ikon(data: Mapping[str, Any]) -> None:
     _field_tepat(data, _FIELD_ADEGAN, "adegan_awal")
-    banyak = _daftar_baris(data["baris"])
+    banyak = _daftar_baris(data["baris"], maksimum=BARIS_MAKS_DERET)
     satuan = data["satuan_ikon"]
     if type(satuan) is not int or satuan not in SATUAN_IKON_DIDUKUNG:
         raise ValueError(f"satuan_ikon wajib salah satu dari {SATUAN_IKON_DIDUKUNG}")
-    _validasi_tanya(data["tanya"], banyak)
+    _validasi_tanya_deret(data["tanya"], banyak)
 
 
 # ── sub-adegan `turus` ───────────────────────────────────────────────────
