@@ -119,6 +119,25 @@ ADEGAN_KOLOM = 8
 ADEGAN_JEDA_BARIS = 8
 ADEGAN_GARIS = 1
 
+# Adegan awal sub-adegan `turus`: garis tegak per unit, unit kelima = satu coretan miring.
+ADEGAN_TURUS_TINGGI = 34
+ADEGAN_TURUS_JARAK = 12  # antar garis tegak dalam satu kelompok
+ADEGAN_TURUS_LEBIH = 5  # coretan miring menjorok melewati garis tegak pertama dan keempat
+ADEGAN_TURUS_JEDA = 18  # ruang kosong antar kelompok lima
+ADEGAN_TURUS_TEBAL = 3
+ADEGAN_TURUS_MIRING_INSET = 3  # ujung coretan miring dari tepi atas/bawah garis tegak
+
+# Adegan awal sub-adegan `pita_ukur`: satu sel persegi per satuan, ujung ke ujung.
+ADEGAN_UKUR_SEL_MAKS = 26
+ADEGAN_UKUR_BENDA = 30  # sisi ikon benda di kolom label (susunan bertumpuk)
+ADEGAN_UKUR_JARAK = 6  # label ke pita (susunan sambung) dan ikon benda ke label
+ADEGAN_PITA_ISI_NETRAL = "#f0edec"
+ADEGAN_PITA_ISI_MERAH = "#fdecea"
+ADEGAN_PITA_ISI_BIRU = "#e8f0fc"
+ADEGAN_PITA_GARIS_NETRAL = "#555"
+ADEGAN_PITA_GARIS_MERAH = "#c2352b"
+ADEGAN_PITA_GARIS_BIRU = "#2c60ad"
+
 # Sketsa ruang dan proyeksi isometrik kisi kubus.
 RUANG_ASAL = (165, 200)
 RUANG_SUMBU = ((90, -25), (-60, -40), (0, -90))

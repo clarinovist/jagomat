@@ -81,11 +81,35 @@ def _titik_lokal(elemen, tag):
     return ()  # Path hanya diperiksa finite oleh gate pemanggil, bukan bbox.
 
 
+def _tanpa_putar_ikon(elemen, teks):
+    """Buang `rotate(<kelipatan 90> cx cy)` dari <image> persegi yang berputar di pusatnya sendiri.
+
+    Hanya kasus itu yang kotaknya tidak berubah, jadi aman tanpa matriks rotasi umum; putaran
+    lain (sudut lain, pusat lain, bukan persegi, atau elemen selain <image>) tetap gagal.
+    """
+    cocok = re.fullmatch(r"\s*rotate\(\s*(-?\d+)\s+([-\d.]+)\s+([-\d.]+)\s*\)\s*", teks)
+    assert cocok is not None, f"Transform belum didukung oracle: {teks!r}"
+    sudut, cx, cy = int(cocok[1]), float(cocok[2]), float(cocok[3])
+    x, y = _nilai(elemen, "x"), _nilai(elemen, "y")
+    lebar, tinggi = _nilai(elemen, "width"), _nilai(elemen, "height")
+    persegi_di_pusat = (lebar == tinggi and abs(cx - (x + lebar / 2)) <= TOLERANSI
+                        and abs(cy - (y + tinggi / 2)) <= TOLERANSI)
+    assert sudut % 90 == 0 and persegi_di_pusat, f"Putaran ikon tak didukung oracle: {teks!r}"
+    return ""
+
+
+def _transform_elemen(elemen, tag):
+    teks = elemen.get("transform", "")
+    if tag == "image" and "rotate" in teks:
+        teks = _tanpa_putar_ikon(elemen, teks)
+    return _transform(teks)
+
+
 def _periksa_elemen(elemen, induk, kotak):
     tag = elemen.tag.rsplit("}", 1)[-1]
     if tag in DEFINISI:
         return
-    transform = _gabung(induk, _transform(elemen.get("transform", "")))
+    transform = _gabung(induk, _transform_elemen(elemen, tag))
     sx, sy, dx, dy = transform
     kiri, atas, lebar, tinggi = kotak
     for x, y in _titik_lokal(elemen, tag):

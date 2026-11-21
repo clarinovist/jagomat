@@ -102,7 +102,7 @@ _ATRIBUT = {
     "circle": "cx cy r fill stroke stroke-width",
     "ellipse": "cx cy rx ry fill stroke stroke-width",
     "rect": "x y width height fill stroke stroke-width",
-    "image": "href x y width height",
+    "image": "href x y width height transform",
     "path": "d fill stroke stroke-width stroke-dasharray",
     "polygon": "points fill stroke stroke-width",
     "polyline": "points fill stroke stroke-width stroke-dasharray",
@@ -111,6 +111,8 @@ _ATRIBUT = {
 _ID = re.compile(r"[A-Za-z][A-Za-z0-9_.-]{0,127}")
 _WARNA = re.compile(r"#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?")
 _HREF_IKON = re.compile(r"/aset/ikon-[a-z]+-v1\.png")
+# Satu-satunya transform yang diizinkan pada <image>: putar kelipatan 90 derajat pada pusat ikon.
+_TRANSFORM_IKON = re.compile(r"rotate\((?:90|180|270|-90) [0-9]+(?:\.5)? [0-9]+(?:\.5)?\)")
 _URL_LOKAL = re.compile(r"url\(#([A-Za-z][A-Za-z0-9_.-]{0,127})\)")
 _CSS = {
     "display": r"block", "width": r"100%", "height": r"auto",
@@ -136,6 +138,8 @@ def _periksa_atribut(e, ids):
             assert _ID.fullmatch(isi), isi
         elif nama == "style":
             _periksa_style(isi)
+        elif nama == "transform" and lokal(e) == "image":
+            assert _TRANSFORM_IKON.fullmatch(isi), isi
         elif nama == "href":
             assert lokal(e) == "image", lokal(e)
             assert _HREF_IKON.fullmatch(isi), isi

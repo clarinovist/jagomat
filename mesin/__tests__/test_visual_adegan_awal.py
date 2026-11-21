@@ -33,6 +33,8 @@ from visual_security_helpers import elemen, kelas, lokal, periksa_xml, teks_svg
 from visual_test_support import buat_soal, pasangan_aktif
 
 TID = sumber.TEMPLATE_ID
+# Jenis keluarga ini yang bergambar; sisanya tetap teks walau flag aktif (turus dan ukur: test_visual_adegan_awal_*).
+TEMPLATE_BERGAMBAR = frozenset({TID, "turus_gambar_awal", "ukur_satuan_tak_baku"})
 GAYA = ("cetak", "murid", "stitch", "guru")
 SIMBOL = sumber.SIMBOL
 AKAR = Path(__file__).resolve().parent.parent
@@ -128,7 +130,8 @@ def test_nama_keluarga_tak_dikenal_tetap_value_error(monkeypatch):
 
 
 def test_jenis_lain_matematika_awal_tetap_teks_saat_keluarga_aktif(monkeypatch):
-    lain = [(n, lv, t) for n, lv, t in pasangan_aktif() if n == "matematika-awal" and t != TID]
+    lain = [(n, lv, t) for n, lv, t in pasangan_aktif()
+            if n == "matematika-awal" and t not in TEMPLATE_BERGAMBAR]
     assert len(lain) >= 15
     for nama, level, tid in lain:
         soal = buat_soal(nama, level, tid, 7)
