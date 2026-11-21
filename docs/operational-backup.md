@@ -222,10 +222,10 @@ Bukti lokal ignored: `docs/plan/backup-operation-retry-20261025/`.
 5. Start app, smoke publik, cek login admin. `needs_reconciliation=true` berarti state
    lintas DB (langganan/pesanan/refund) harus dicek sebelum menerima transaksi.
 
-## Off-site dari VPS (kode siap, BELUM dipasang)
+## Off-site dari VPS (terpasang dan diuji 21 Nov 2026)
 
 Tujuan: salinan di luar VPS tidak bergantung Mac menyala. Jalur Mac di atas tetap
-ada sampai jalur ini terbukti di produksi.
+berjalan sebagai cadangan kedua.
 
 - **Arsitektur**: `scripts/backup_offsite_vps.py` (root, cron terpisah setelah
   backup 21:45) memilih bundle terbaru, menolaknya bila lebih tua dari 26 jam atau
@@ -305,25 +305,45 @@ ada sampai jalur ini terbukti di produksi.
   lalu `openssl pkey -in jagomat-offsite-privat.pem -pubout -out jagomat-offsite-publik.pem`.
   Salin hanya `publik.pem` ke `/etc/osn/offsite-publik.pem` (0644). Skrip menolak
   kunci publik RSA di bawah 3072 bit.
-- **Cron yang DIUSULKAN** (belum dipasang; `/etc/cron.d/osn-offsite-vps`):
+- **Cron terpasang 21 Nov 2026** (`/etc/cron.d/osn-offsite-vps`, 0644 root):
   `0 22 * * * root /usr/bin/python3 -I /opt/osn/backup-harian/backup_offsite_vps.py >> /opt/osn/log/offsite-vps.log 2>&1`
   (`-I` = mode terisolasi: abaikan env `PYTHON*` dan direktori kerja.)
-  Hentikan job Hermes 22:00 hanya setelah drill pulihkan dari objek `vps/` lulus.
+  Drill pulihkan dari objek `vps/` sudah lulus 21 Nov; job Hermes 22:00 baru boleh
+  dihentikan setelah pemilik memutuskan, sampai itu jalur Mac tetap cadangan kedua.
 - **PERINGATAN**: tanpa kunci privat, semua backup `vps/` tidak bisa dibuka. Simpan
   kunci privat (dan passphrase) dengan **salinan aman terpisah** (mis. pengelola
   sandi + media offline di tempat lain); jangan hanya di satu Mac. Uji pulihkan
   dengan kunci yang sama sebelum mengandalkan jalur ini.
-- **Belum terbukti tanpa R2/VPS sungguhan**: perilaku ListObjectsV2 dan header yang
-  diterima/ditolak R2 (termasuk 429 dan galat TLS nyata), token R2 yang dipakai,
-  jalur passphrase interaktif, pemilik/mode `/etc/osn/offsite-r2.env` dan sapuan
-  `offsite-*` sebagai root di `/tmp` VPS, serta cron `python3 -I` di Python 3.12 /
-  OpenSSL 3.0 VPS. Tes memakai server S3 tiruan lokal dan vektor resmi AWS SigV4.
+- **Terbukti 21 Nov 2026**: ListObjectsV2 dan PUT di R2 sungguhan dengan token khusus
+  bucket, enkripsi OpenSSL 3.0.13 (VPS) → dekripsi LibreSSL 3.3.6 (Mac), penanda
+  `last-ok`/`retention-ok`, dan run ulang id yang sama (`sudah_ada: true`, mac/sha256
+  dipertahankan). **Belum terbukti**: retry 429/5xx dan galat TLS nyata, retensi yang
+  benar-benar menghapus (belum ada set > 30 hari), sapuan sisa `/tmp` sebagai root, dan
+  cron 22:00 yang benar-benar terpicu (dipasang 21 Nov, run pertama jatuh 22 Nov).
+  Tes memakai server S3 tiruan lokal dan vektor resmi AWS SigV4.
+- **Instalasi 21 Nov 2026**: bucket terpisah `jagomat-app-cadangan-vps` dengan token
+  Object Read & Write yang dibatasi ke bucket itu (dibuktikan: List ke
+  `jagomat-app-cadangan` dan bucket lain ditolak `403 AccessDenied`), jadi kebocoran
+  token VPS tidak mencapai jalur Mac. Kunci publik RSA-3072 di
+  `/etc/osn/offsite-publik.pem` (sidik jari SHA-256 DER
+  `451fa1660651725e9cb3b3a66e788ef44f24bb2cf461e7fbd4bd83d3d5ad00df`), env
+  `/etc/osn/offsite-r2.env` milik root 0600, tujuh skrip di `/opt/osn/backup-harian/`.
+  Run manual 15:06 WIB atas bundle `20261121-140623`: tiga objek terunggah
+  (`data.enc` 990.688 B), penanda `last-ok` + `retention-ok` tertulis, keluar 0.
+  Drill pulihkan dari R2 sungguhan di Mac lulus dengan `--mac-harapan/--sha256-harapan`
+  dari `last-ok`: MAC + sha256 cocok, `keaslian_terverifikasi=true`, 8 berkas
+  (7 + `manifest.json`), `integrity_check` ok.
+- **Sisa langkah pemilik**: salin kunci privat + passphrase ke pengelola sandi (dan
+  media offline), lalu buat token R2 **baca-saja** untuk bucket yang sama agar Mac
+  tidak perlu memegang token tulis saat memulihkan.
 
 ## Yang tetap terbuka
 
 1. ~~Frekuensi/jam backup~~ → harian 21:45 WIB di host, off-site 22:00 dari Mac.
-2. ~~Off-site otomatis independen laptop~~ → R2 terenkripsi; masih bergantung Mac menyala.
-   Jalur dari VPS (tanpa Mac) sudah ada di kode + tes, belum dipasang/diuji di produksi.
+2. ~~Off-site otomatis independen laptop~~ → R2 terenkripsi. Jalur VPS→R2 terpasang dan
+   diuji 21 Nov 2026 (bucket `jagomat-app-cadangan-vps`, cron 22:00, drill pulihkan dari
+   R2 lulus), jadi salinan keluar VPS tidak lagi bergantung Mac menyala. Job Mac tetap
+   berjalan sebagai cadangan kedua sampai pemilik memutuskan menghentikannya.
 3. Retensi sudah jalan (14 lokal, 30 R2). Alert kegagalan off-site sudah dikirim ke
    Telegram dan jalur gagalnya sudah diuji end-to-end. Drill restore ke kontainer sementara lulus (21 Nov); restore
    ke produksi sungguhan belum pernah dilakukan. Kunci enkripsi `offsite.key` hanya ada di Mac: tanpa salinan aman
