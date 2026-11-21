@@ -58,7 +58,8 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
 - Auto-deploy tetap nonaktif: push hanya feedback CI; dispatch manual menjalankan
   gate rilis lengkap, lalu pemasangan terkontrol sesuai [runbook](production-release.md).
 - **Lingkungan uji** `https://uji.jagomat.id` — **DINONAKTIFKAN 20 November 2026** atas
-  keputusan Pemilik: vhost 443 dibalas `410 Gone`, container `jagomat-uji` dihentikan
+  keputusan Pemilik: vhost 443 membalas `410 Gone` dengan halaman berdesain dari
+  token merek (halaman dan aset di `/var/www/uji-nonaktif`), container `jagomat-uji` dihentikan
   (tidak dihapus), data sintetis `/opt/jagomat-uji/data` tidak disentuh, DNS dan
   sertifikat dipertahankan. Image terakhir `b412b42` (digest `0757224c…`), jadi tidak
   pernah disamakan ke rilis 19–20 November. Container dicatat di
