@@ -526,13 +526,16 @@ def test_lembar_cetak_memakai_teks_lengkap_walau_flag_visual_menyala(monkeypatch
     assert lihat == set(VARIAN)
 
 
-def test_lembar_p6_memuat_tiga_jenis_tanpa_kembar_dan_tampak_muncul_beberapa_kali():
+def test_lembar_p6_memuat_empat_jenis_tanpa_kembar_dan_tampak_muncul_beberapa_kali():
+    # P6 kini empat jenis (peluang, pecahan-desimal, pecahan campur, tampak kubus):
+    # komposisi 3 + 3 + 2 + 2 (dikunci supaya perubahan komposisi tidak lolos diam-diam).
     for seed in range(40):
         lembar = generator.buat_lembar(seed, level="P6", topik=TOPIK)
-        assert {s.template_id for s in lembar.soal} == {"peluang_dasar", "pecahan_bilangan_asli_desimal", TID}
+        hitung = Counter(s.template_id for s in lembar.soal)
+        assert hitung == {"peluang_dasar": 3, "pecahan_bilangan_asli_desimal": 3,
+                          "pecahan_campur_awal": 2, TID: 2}, (seed, hitung)
         tanda = [s.tanda_tangan for s in lembar.soal]
         assert len(set(tanda)) == len(tanda), (seed, "soal kembar dalam lembar")
-        assert Counter(s.template_id for s in lembar.soal)[TID] == 3
 
 
 # ── penolakan parameter di luar domain ───────────────────────────────────

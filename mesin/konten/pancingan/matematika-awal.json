@@ -13,7 +13,7 @@
   },
   "kenali_bangun_awal": {
    "pertanyaan": [
-    "Minta anak menyebut ciri bangun itu: berapa sisinya, berapa sudutnya, ada yang bulat atau tidak, ada bagian yang datar atau tidak.",
+    "Minta anak menyebut ciri bangun itu: berapa sisi dan sudutnya, ada yang bulat atau tidak, ada bagian datar atau tidak.",
     "Minta anak menunjuk benda di sekitar yang bentuknya sama dengan bangun itu, lalu menyebut namanya.",
     "Tanya: apa bedanya kubus dan balok, atau tabung dan kerucut? Minta anak menunjuk sisi yang bentuknya berbeda."
    ],
@@ -54,7 +54,7 @@
   "ukur_sudut_awal": {
    "pertanyaan": [
     "Minta anak menunjuk titik pusat dan garis alas busur derajat, lalu menyebut angka 0 yang dipakai untuk sudut itu.",
-    "Tanya: kalau satu kaki sudut di angka 0 pada skala luar, skala mana yang harus dibaca untuk kaki yang lain? Minta anak menjelaskan alasannya.",
+    "Tanya: kalau satu kaki sudut di angka 0 skala luar, skala mana yang dibaca untuk kaki lainnya? Minta alasannya.",
     "Minta anak membandingkan dua sudut buatan dari batang es krim, lalu menebak mana yang lebih besar sebelum mengukurnya."
    ],
    "tindak_lanjut": "Gambar beberapa sudut di kertas bersama anak, lalu ukur dengan busur derajat sungguhan dan tulis besarnya. Minta anak menggolongkan tiap sudut sebagai lancip, siku, atau tumpul."
@@ -62,16 +62,16 @@
   "piktogram_lima_awal": {
    "pertanyaan": [
     "Minta anak membaca tulisan \"Satu gambar mewakili ...\" lebih dulu, lalu menyebut berapa benda yang diwakili satu gambar.",
-    "Tanya: kalau satu baris punya 4 gambar dan satu gambar mewakili 5, berapa bendanya? Minta anak menjelaskan mengapa 4 saja tidak cukup.",
-    "Minta anak mencari baris dengan gambar paling banyak dan paling sedikit, lalu menghitung selisih bendanya, bukan selisih gambarnya."
+    "Tanya: satu baris punya 4 gambar, satu gambar mewakili 5, berapa bendanya? Minta anak menjelaskan mengapa 4 tidak cukup.",
+    "Minta anak mencari baris terbanyak dan tersedikit, lalu menghitung selisih bendanya, bukan selisih gambarnya."
    ],
    "tindak_lanjut": "Buat piktogram dari benda di rumah, misalnya jumlah sendok, gelas, dan piring, dengan satu gambar mewakili 5 benda. Minta anak menghitung jumlah semua dan rata-rata tiap jenis."
   },
   "tampak_kubus_awal": {
    "pertanyaan": [
-    "Minta anak menyusun beberapa kubus mainan menjadi tangga, lalu menunjuk dari arah mana ia melihat tampak depan, tampak atas, dan tampak samping.",
-    "Tanya: kalau kubus-kubus itu dilihat dari atas, berapa persegi yang tampak? Minta anak menjelaskan mengapa kubus yang bertumpuk hanya tampak satu persegi.",
-    "Minta anak menebak banyak kubus seluruhnya sebelum membongkar tangga, lalu menghitungnya kubus demi kubus dan menjelaskan kubus mana yang tertutup."
+    "Minta anak menyusun kubus mainan jadi tangga, lalu menunjuk arah pandang tampak depan, tampak atas, dan tampak samping.",
+    "Tanya: dilihat dari atas, berapa persegi yang tampak? Minta anak menjelaskan mengapa kubus bertumpuk hanya satu persegi.",
+    "Minta anak menebak banyak kubus sebelum membongkar tangga, lalu menghitungnya dan menyebut kubus yang tertutup."
    ],
    "tindak_lanjut": "Susun tangga dari 6 sampai 9 kubus mainan atau balok, lalu minta anak menggambar tampak depan, tampak atas, dan tampak samping di kertas berpetak dan menghitung persegi pada tiap gambar."
   },
@@ -79,7 +79,7 @@
    "pertanyaan": [
     "Minta anak menunjuk jarum pendek dan jarum panjang di jam dinding, lalu menyebut mana yang menunjukkan jam.",
     "Tanya: kalau jarum panjang di angka 6, sudah lewat berapa menit? Minta anak menyebut jam yang dilewati jarum pendek.",
-    "Minta anak memajukan jarum jam satu jam demi satu jam, dan menyebut apa yang terjadi setelah jarum pendek lewat angka 12."
+    "Minta anak memajukan jarum jam satu jam demi satu jam, lalu menyebut apa yang terjadi setelah jarum pendek lewat 12."
    ],
    "tindak_lanjut": "Pasang jam dinding atau buat jam dari piring kertas dengan dua jarum. Latihan menyetel jam penuh dan setengah jam, lalu minta anak menulis waktunya, misalnya pukul 4.30."
   },
