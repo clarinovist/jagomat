@@ -10,6 +10,7 @@ import contest_session as S
 JUMLAH_SEED = 60
 BESAR_DOMAIN = 5000
 SESI_BERURUTAN = 6
+BATAS_TINGKAT_DIHARAPKAN = {1: (2, 4), 2: (2, 5), 3: (2, 4)}   # literal, bukan dari modul
 KELUARGA_KEMBAR = {("operasi", 2, 0): "ops_kembar_0", ("operasi", 2, 1): "ops_kembar_1"}
 
 
@@ -86,10 +87,11 @@ def test_urutan_dari_mudah_ke_sulit_tidak_pernah_menurun(sesi_banyak):
         assert tingkat == sorted(tingkat)
 
 
-def test_sesi_memuat_soal_mudah_dan_soal_sulit(sesi_banyak):
+def test_banyak_soal_tiap_tingkat_berada_dalam_batas(sesi_banyak):
     for sesi in sesi_banyak:
         hitung = Counter(b.soal.tingkat for b in sesi.butir)
-        assert hitung[1] >= 2 and hitung[3] >= 2, hitung
+        for tingkat, (minimal, maksimal) in BATAS_TINGKAT_DIHARAPKAN.items():
+            assert minimal <= hitung[tingkat] <= maksimal, (tingkat, dict(hitung))
 
 
 def test_paling_banyak_satu_soal_berbahasa_inggris_per_sesi(sesi_banyak):

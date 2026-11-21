@@ -70,6 +70,7 @@ def test_template_sejenis_dikelompokkan_dalam_keluarga():
 
 
 TUMPANG_TINDIH_MAKS_RATA2 = 0.5
+BATAS_TINGKAT_DIHARAPKAN = {1: (2, 4), 2: (2, 5), 3: (2, 4)}   # literal, bukan dari modul
 
 
 def test_rotasi_membuat_sesi_berurutan_jarang_memakai_jenis_soal_yang_sama():
@@ -84,3 +85,14 @@ def test_rotasi_membuat_sesi_berurutan_jarang_memakai_jenis_soal_yang_sama():
         riwayat_tanda.append(frozenset(C.tanda_tangan(b.soal) for b in sesi.butir))
         riwayat_template.append(template)
     assert sum(tumpang) / len(tumpang) <= TUMPANG_TINDIH_MAKS_RATA2, tumpang
+
+
+def test_empat_puluh_sesi_dari_katalog_asli_menjaga_batas_tingkat():
+    riwayat = []
+    for seed in range(40):
+        terlarang = frozenset().union(*riwayat[-S.RIWAYAT_SESI:]) if riwayat else frozenset()
+        sesi = S.rakit_sesi(seed, KATALOG, terlarang)
+        hitung = Counter(b.soal.tingkat for b in sesi.butir)
+        for tingkat, (minimal, maksimal) in BATAS_TINGKAT_DIHARAPKAN.items():
+            assert minimal <= hitung[tingkat] <= maksimal, (seed, tingkat, dict(hitung))
+        riwayat.append(frozenset(C.tanda_tangan(b.soal) for b in sesi.butir))

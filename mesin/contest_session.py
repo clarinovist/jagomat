@@ -1,9 +1,10 @@
 """Perakit sesi Latihan Lomba: 10 soal (8 PG + 2 isian) dari kumpulan template.
 
 Aturan rakitan: tiap topik 2-3 soal; dua isian dari topik berbeda; satu template paling
-banyak sekali; paling banyak satu soal berbahasa Inggris; sedikitnya dua soal tingkat 1 dan dua
-soal tingkat 3; urut kasar mudah ke sulit; posisi kunci A-D seimbang (dua per huruf); tidak
-memakai ulang soal yang `tanda_tangan`-nya dilarang (soal dari beberapa sesi terakhir).
+banyak sekali; paling banyak satu soal berbahasa Inggris; banyak soal tiap tingkat dalam batas
+(mudah 2-4, sedang 2-5, sulit 2-4); urut kasar mudah ke sulit; posisi kunci A-D seimbang (dua per
+huruf); tidak memakai ulang soal yang `tanda_tangan`-nya dilarang (soal dari beberapa sesi terakhir);
+jenis soal dari dua sesi terakhir dihindari selama masih memungkinkan (rotasi).
 Murni dan deterministik untuk `seed` yang sama; tidak menyentuh DB.
 """
 from __future__ import annotations
@@ -19,7 +20,7 @@ JUMLAH_ISIAN = 2
 JUMLAH_PG = JUMLAH_SOAL - JUMLAH_ISIAN
 SOAL_PER_TOPIK_DASAR = 2          # tiap topik minimal dua; sisanya dibagi ke topik berbeda
 MAKS_INGGRIS = 1
-MIN_SOAL_UJUNG_TINGKAT = 2        # minimal dua soal tingkat 1 dan dua soal tingkat 3
+BATAS_PER_TINGKAT = {1: (2, 4), 2: (2, 5), 3: (2, 4)}   # (minimal, maksimal) soal per tingkat
 RIWAYAT_SESI = 5                  # soal dari sesi sejauh ini yang tidak boleh diulang
 ROTASI_SESI = 2                   # jenis soal (template) dari sesi sejauh ini dihindari selama bisa
 MAKS_PERCOBAAN_RAKIT = 200
@@ -74,9 +75,10 @@ def _pilih_template(rng: random.Random,
     return terpilih if len(set(keluarga)) == len(keluarga) else None
 
 
-def _tingkat_cukup_beragam(templates: Sequence[C.Template]) -> bool:
+def _tingkat_seimbang(templates: Sequence[C.Template]) -> bool:
     tingkat = [t.tingkat for t in templates]
-    return tingkat.count(1) >= MIN_SOAL_UJUNG_TINGKAT and tingkat.count(3) >= MIN_SOAL_UJUNG_TINGKAT
+    return all(minimal <= tingkat.count(level) <= maksimal
+               for level, (minimal, maksimal) in BATAS_PER_TINGKAT.items())
 
 
 def _bangun_semua(rng: random.Random, templates: Sequence[C.Template],
@@ -115,7 +117,7 @@ def _rakit(seed: int, pool: Sequence[C.Template], tanda_terlarang: AbstractSet[s
     kelompok = _kelompokkan(pool)
     for _ in range(MAKS_PERCOBAAN_RAKIT):
         templates = _pilih_template(rng, kelompok)
-        if templates is None or not _tingkat_cukup_beragam(templates):
+        if templates is None or not _tingkat_seimbang(templates):
             continue
         soal_semua = _bangun_semua(rng, templates, tanda_terlarang)
         if soal_semua is None or sum(1 for s in soal_semua if s.inggris) > MAKS_INGGRIS:
