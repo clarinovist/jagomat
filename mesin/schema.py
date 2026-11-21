@@ -856,3 +856,8 @@ SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_KONTAK_AKUN 
 from schema_cek import SKEMA_CEK_GRATIS  # noqa: E402
 
 SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_CEK_GRATIS + '\n-- Ringkasan per sesi supaya laporan', 1)
+
+# Latihan Lomba (Grand Final Corexis): aditif, idempoten, tanpa migrasi; milik siswa (CASCADE).
+from schema_lomba import SKEMA_LOMBA  # noqa: E402
+
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_LOMBA + '\n-- Ringkasan per sesi supaya laporan', 1)
