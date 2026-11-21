@@ -56,14 +56,16 @@ BAB_TERISI = (
     (5, 7, "bandingkan_ciri_bangun"), (6, 4, "peluang_dasar"),
 )
 # Gelombang 1 (21 Nov 2026): (kelas, nomor bab, jenis, kecocokan pelatih, status bab). Bab dengan jenis
-# berkecocokan "ada" menjadi "ada"; tiga bab tetap "sebagian" karena sub-materinya belum tertutup
-# (K4 B5 tangram/lebih dari satu cara, K5 B4 keliling bangun lain, K6 B1 hasil bilangan campur).
+# berkecocokan "ada" menjadi "ada". Setelah perluasan v2 (21 Nov 2026) K4 B5 (segitiga, trapesium, segiempat
+# lain, susunan dua cara, segi-n) dan K5 B4 (segitiga, jajar genjang, trapesium, lingkaran, bentuk T/U/tangga)
+# juga "ada". K6 B1 tetap "sebagian": hasil kali/bagi hanya ditulis pecahan biasa (tak wajar), format
+# bilangan campur belum diputuskan pemilik (menyentuh nilai_semantis/diagnosis).
 BAB_GELOMBANG_1 = (
     (1, 1, "bilang_benda_awal", "ada", "ada"), (1, 6, "tambah_kurang_20", "ada", "ada"),
     (2, 2, "tambah_kurang_100", "ada", "ada"), (3, 4, "unsur_bangun_datar", "ada", "ada"),
     (4, 2, "pecahan_senilai_desimal", "ada", "ada"), (4, 4, "luas_petak_volume_kubus", "ada", "ada"),
-    (4, 5, "ciri_komposisi_bangun", "sebagian", "sebagian"),
-    (5, 4, "keliling_gabungan", "sebagian", "sebagian"),
+    (4, 5, "ciri_komposisi_bangun", "ada", "ada"),
+    (5, 4, "keliling_gabungan", "ada", "ada"),
     (6, 1, "pecahan_bilangan_asli_desimal", "sebagian", "sebagian"),
 )
 # Bab data tanpa jenis baru: pelatih statistika punya jenis untuk semua sub-materi di level kelasnya dan
@@ -73,8 +75,9 @@ BAB_GELOMBANG_1 = (
 BAB_DATA_BERGAMBAR = {(3, 5): ("turus", "piktogram", "diagram"), (4, 6): ("piktogram", "diagram")}
 # Lima bab yang sub-materinya tertutup soal teks dinilai "ada" (keputusan pemilik 21 Nov 2026).
 BAB_ADA_SOAL_TEKS = {(2, 4), (2, 5), (3, 3), (5, 7), (6, 4)}
+BAB_ADA_PERLUASAN = {(4, 5), (5, 4)}
 BAB_ADA_SEMUA = ({(1, 1), (1, 6), (2, 2), (3, 4), (4, 2), (4, 4)} | BAB_ADA_SOAL_TEKS
-                 | set(BAB_DATA_BERGAMBAR))
+                 | BAB_ADA_PERLUASAN | set(BAB_DATA_BERGAMBAR))
 PASANGAN = tuple((tid, level) for tid in TEMPLATE_AWAL for level in LEVEL_JENIS[tid])
 
 
@@ -291,7 +294,7 @@ def test_bab_yang_dulu_belum_ada_soal_kini_terisi_di_level_kelasnya(kelas, nomor
     assert (TOPIK, tid) in ringkasan.template, (kelas, nomor)
     # Semua soal teks tanpa gambar: "sebagian", kecuali lima bab yang sub-materinya tertutup soal teks
     # (keputusan pemilik 21 Nov 2026) dan dinilai "ada".
-    harapan = "ada" if (kelas, nomor) in BAB_ADA_SOAL_TEKS else "sebagian"
+    harapan = "ada" if (kelas, nomor) in (BAB_ADA_SOAL_TEKS | BAB_ADA_PERLUASAN) else "sebagian"
     assert ringkasan.status == harapan, (kelas, nomor)
     assert ringkasan.variasi.total > 0 and not ringkasan.variasi.galat and not ringkasan.variasi.tertutup
     pelatih = [p for p in ringkasan.pelatih if p.topik_id == TOPIK and tid in p.template]
@@ -339,11 +342,11 @@ def test_bab_data_ada_bergantung_pada_flag_visual_soal_tanpa_flag_berupa_teks(mo
     assert question_views.penyajian_dari_soal(soal).status_visual == "siap"
 
 
-def test_hitungan_status_bab_dua_puluh_delapan_ada_dua_belas_sebagian_nol_belum():
+def test_hitungan_status_bab_tiga_puluh_ada_sepuluh_sebagian_nol_belum():
     status = [hitung.ringkasan_bab(b, k.kelas, {}).status for k in kurikulum_kelas.KELAS for b in k.bab]
     assert len(status) == 40
-    assert status.count(hitung.STATUS_ADA) == 28
-    assert status.count(hitung.STATUS_SEBAGIAN) == 12
+    assert status.count(hitung.STATUS_ADA) == 30
+    assert status.count(hitung.STATUS_SEBAGIAN) == 10
     assert status.count(hitung.STATUS_BELUM) == 0
     ada_baru = {(k.kelas, b.nomor) for k in kurikulum_kelas.KELAS for b in k.bab
                 if hitung.ringkasan_bab(b, k.kelas, {}).status == hitung.STATUS_ADA} & BAB_ADA_SEMUA
