@@ -91,6 +91,7 @@ def test_shell_nonprivat_font_lokal_dan_cdn_hanya_ikon(bingkai):
 
 @pytest.fixture
 def server(tmp_path, monkeypatch):
+    monkeypatch.setenv("OSN_LOMBA", "1")
     uji = ServerUji(tmp_path, monkeypatch)
     try:
         with uji.buka() as kon:
@@ -101,8 +102,14 @@ def server(tmp_path, monkeypatch):
         uji.berhenti()
 
 
+# Halaman guru yang dikirim lewat `_kirim_tautan` memakai `csp_tautan` (bersama dengan halaman
+# publik): CSP-nya memang memuat host font, tetapi isi halaman privat tetap tanpa host itu.
+RUTE_CSP_TAUTAN = ("/anak/{anak}/laporan-ortu", "/anak/{anak}/lomba")
+
+
 @pytest.mark.parametrize("jalur", [
     "/akun", "/akun?section=siswa", "/anak/{anak}", "/anak/{anak}?section=perkembangan", "/sesi/{sesi}",
+    *RUTE_CSP_TAUTAN,
 ])
 def test_halaman_privat_guru_font_lokal_dan_csp_tanpa_host_luar(server, jalur):
     kode, isi, tajuk = server.minta(
@@ -116,7 +123,8 @@ def test_halaman_privat_guru_font_lokal_dan_csp_tanpa_host_luar(server, jalur):
         return  # tanpa CSP tidak ada pembatasan font; invarian isi sudah ditegakkan di atas
     direktif = _direktif(csp)
     assert "'self'" in direktif.get("font-src", []), csp
-    assert not any("//" in v for d in ("font-src", "style-src") for v in direktif.get(d, [])), csp
+    if jalur not in RUTE_CSP_TAUTAN:
+        assert not any("//" in v for d in ("font-src", "style-src") for v in direktif.get(d, [])), csp
     assert direktif["default-src"] == ["'none'"] and direktif["frame-ancestors"] == ["'none'"]
 
 
