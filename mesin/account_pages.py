@@ -29,6 +29,7 @@ PETA_SECTION_AKUN = {
     "akun_murid_tambah": "siswa",
     "akun_murid_hapus": "siswa",
     "akun_murid_sandi": "siswa",
+    "mode_lomba": "siswa",
 }
 
 def _kartu_akun_murid(kon, pengguna: str | None = None, peran: str = "guru") -> str:
@@ -195,6 +196,8 @@ def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
     bagian_sandi = (
         f'<div class="akun-kelola-bagian"><h4>Kata sandi anak</h4>{sandi}</div>' if sandi else ''
     )
+    import contest_account  # Mode Lomba per anak; kosong bila sakelar induk mati
+    lomba = contest_account.bagian_kartu(kon, s["id"], s["nama"]) if pengguna else ""
     inisial = html.escape((s["nama"].strip()[:1] or "?").upper())
     return (
         f'<article class="akun-anak-kartu" aria-labelledby="anak-nama-{s["id"]}">'
@@ -205,6 +208,7 @@ def _baris_siswa(kon, s: dict, pengguna: str | None, peran: str) -> str:
         f'<p class="akun-anak-meta"><span class="akun-chip-st">{html.escape(kelas_label)}</span>'
         f'<span class="akun-chip-st">{sesi} sesi latihan</span></p>'
         f'<p class="akun-anak-login">{status}</p></div></div>'
+        f'{lomba}'
         '<details class="akun-kelola"><summary>'
         '<span class="akun-kelola-buka">Kelola</span><span class="akun-kelola-tutup">Tutup</span></summary>'
         f'<div class="akun-kelola-isi">{bagian_kelas}{bagian_sandi}'
@@ -781,5 +785,9 @@ def proses_akun(
         if not ok:
             return "", f"Akun {nama} tidak ditemukan."
         return f"Sandi {nama} diperbarui.", ""
+
+    if aksi == "mode_lomba":
+        import contest_account
+        return contest_account.proses(kon, data, pengguna_kini, peran)
 
     return "", "Aksi tidak dikenal."
