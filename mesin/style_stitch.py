@@ -2726,7 +2726,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .koreksi-editorial-st .koreksi-centang-st label {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding-block: {T.SP_2}; }}
 .koreksi-editorial-st .koreksi-catatan-st a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; }}
 .pendamping-editorial-st .koreksi-simpan-st {{ background: {T.LATAR_MURID}; border-top: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
-.pendamping-editorial-st .koreksi-simpan-st button {{ background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH}; box-shadow: none; }}
+.pendamping-editorial-st .koreksi-simpan-st button {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; box-shadow: none; }}
 .pendamping-editorial-st .koreksi-simpan-st button.sekunder {{ background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
 .koreksi-editorial-st .koreksi-simpan-st:has(button[formaction]) button:not([formaction]) {{ background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; }}
 .koreksi-editorial-st .danger-zone-st {{ margin-top: {T.SP_6}; }}
