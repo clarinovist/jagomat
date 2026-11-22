@@ -264,7 +264,7 @@ def test_awal_menawarkan_mulai_lalu_lanjutkan_setelah_sesi_ada(server, jam):
 def test_beranda_murid_tanpa_sesi_guru_menampilkan_kartu_lomba_besar_pengganti_pesan_kosong(server):
     isi = _get(server, "/murid").isi.decode()
 
-    assert isi.count('href="/murid/lomba"') == 1 and "Grand Final Corexis" in isi and "Mulai latihan" in isi
+    assert isi.count('href="/murid/lomba"') == 1 and "Mode Lomba" in isi and "Corexis" not in isi and "Mulai latihan" in isi
     assert "lomba-beranda besar" in isi and "Belum ada latihan dari gurumu." in isi
     assert "Siap untuk latihan pertama?" not in isi and "Latihan Lomba" not in isi
 
@@ -1039,7 +1039,7 @@ def test_awal_sebelum_tanggal_lomba_menampilkan_hitung_mundur(server, jam):
 
     isi = _get(server, "/murid/lomba").isi.decode()
 
-    assert "Grand Final Corexis tinggal 24 hari lagi" in isi and "Latihan hari ini: 0 dari 2" in isi
+    assert "Lomba tinggal 24 hari lagi" in isi and "Latihan hari ini: 0 dari 2" in isi
     assert "Nilai terbaikmu" not in isi
 
 

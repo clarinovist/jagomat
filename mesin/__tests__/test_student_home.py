@@ -423,7 +423,7 @@ def test_beranda_lomba_aktif_dengan_sesi_guru_menambah_satu_kartu_kecil_dan_css_
         hidup = _html_lomba(kon, siswa, lomba_aktif=True, sekarang=SEKARANG_LOMBA)
         kartu = kartu_untuk_siswa(kon, siswa, SEKARANG_LOMBA, besar=False)
 
-    assert hidup.count('href="/murid/lomba"') == 1 and "Grand Final Corexis" in hidup
+    assert hidup.count('href="/murid/lomba"') == 1 and "Mode Lomba" in hidup and "Corexis" not in hidup
     assert 'class="lomba-beranda"' in kartu and "lomba-beranda besar" not in hidup
     assert hidup.replace(GAYA_BERANDA, "").replace(kartu, "") == mati
     assert hidup.index("/murid/lomba") < hidup.index("</main>")
@@ -440,7 +440,7 @@ def test_beranda_lomba_aktif_tanpa_sesi_guru_memakai_kartu_besar_sebagai_penggan
     assert "Siap untuk latihan pertama?" in mati and "Siap untuk latihan pertama?" not in hidup
     assert 'class="lomba-beranda besar"' in hidup and "Belum ada latihan dari gurumu." in hidup
     assert hidup.count('href="/murid/lomba"') == 1 and "Mulai latihan" in hidup
-    assert "Grand Final Corexis tinggal 24 hari lagi" in hidup
+    assert "Lomba tinggal 24 hari lagi" in hidup
 
 
 def test_beranda_lomba_aktif_menampilkan_target_hari_ini_dengan_bar(db):

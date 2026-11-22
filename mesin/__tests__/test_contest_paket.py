@@ -98,8 +98,8 @@ def test_hari_menuju_lomba_memakai_tanggal_wib_bukan_utc():
 
 
 @pytest.mark.parametrize("sekarang,teks", [
-    (EPOCH_HARI_H_00_WIB - 10 * 86_400, "Grand Final Corexis tinggal 10 hari lagi"),
-    (EPOCH_HARI_H_00_WIB - 86_400, "Grand Final Corexis tinggal 1 hari lagi"),
+    (EPOCH_HARI_H_00_WIB - 10 * 86_400, "Lomba tinggal 10 hari lagi"),
+    (EPOCH_HARI_H_00_WIB - 86_400, "Lomba tinggal 1 hari lagi"),
     (EPOCH_HARI_H_00_WIB + 3600, "Hari ini lombanya. Semangat!"),
     (EPOCH_HARI_H_00_WIB + 86_400, ""),
     (EPOCH_HARI_H_00_WIB + 30 * 86_400, ""),

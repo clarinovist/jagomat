@@ -83,6 +83,9 @@ def hari_menuju_lomba(paket: PaketLomba, sekarang_epoch: int) -> int:
     return (paket.tanggal_lomba - _tanggal_wib(sekarang_epoch)).days
 
 
+JUDUL_ANAK = "Mode Lomba"   # judul di sisi anak: umum, nama acara (nama_pendek) tidak ditampilkan ke anak
+
+
 def teks_hitung_mundur(paket: PaketLomba, sekarang: int) -> str:
     """Kalimat hitung mundur; kosong bila dimatikan atau tanggal lomba sudah lewat."""
     if not paket.tampil_hitung_mundur:
@@ -92,7 +95,7 @@ def teks_hitung_mundur(paket: PaketLomba, sekarang: int) -> str:
         return ""
     if hari == 0:
         return _TEKS_HARI_H
-    return f"{paket.nama_pendek} tinggal {hari} hari lagi"
+    return f"Lomba tinggal {hari} hari lagi"
 
 
 def asal_kumpul(waktu_terpakai_detik: int, terisi: int) -> bool:

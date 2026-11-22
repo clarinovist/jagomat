@@ -9,6 +9,7 @@ import html
 from typing import TYPE_CHECKING
 
 import contest_komponen as KP
+import contest_paket as PK
 import contest_pages as P
 from contest_format import label_tanggal_relatif
 from contest_style import GAYA_AWAL
@@ -68,7 +69,7 @@ def halaman_awal(ringkas: "RingkasAnak") -> bytes:
     isi = f"""{KP.bilah_beranda()}
 <main class="isi"><section class="kartu kartu-awal">
 {KP.maskot_kartu("menunjuk")}
-<h1 class="judul">{html.escape(paket.nama_pendek)}</h1>
+<h1 class="judul">{PK.JUDUL_ANAK}</h1>
 {_chip_aturan(paket)}
 <p class="catatan">{CATATAN_WAKTU}</p>
 {_aksi(ringkas)}

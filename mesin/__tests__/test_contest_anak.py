@@ -103,7 +103,7 @@ def test_anak_baru_tanpa_sesi_punya_ringkasan_kosong(kon, anak):
 
     assert r.berjalan is None and r.sisa_detik == 0 and r.terisi == frozenset() and r.nomor_lanjut == 1
     assert r.riwayat == () and r.nilai_terbaik is None and r.nilai_terakhir is None and r.selesai_hari_ini == 0
-    assert r.hitung_mundur == "Grand Final Corexis tinggal 24 hari lagi" and r.paket is PK.PAKET_AKTIF
+    assert r.hitung_mundur == "Lomba tinggal 24 hari lagi" and r.paket is PK.PAKET_AKTIF
     assert r.sekarang == SEKARANG
 
 

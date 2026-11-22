@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 import contest_anak
 import contest_komponen as KP
+import contest_paket as PK
 import contest_pages as P
 
 if TYPE_CHECKING:
@@ -43,7 +44,7 @@ def kartu_beranda(ringkas: "RingkasAnak", besar: bool = False) -> str:
         ringkas.selesai_hari_ini, ringkas.paket.target_harian)
     catatan = f'<p class="lb-catatan">{CATATAN_TANPA_GURU}</p>' if besar else ""
     return (f'<section class="{kelas}" aria-labelledby="judul-lomba">{maskot}'
-            f'<h2 id="judul-lomba">{html.escape(ringkas.paket.nama_pendek)}</h2>{aksi}{kemajuan}</section>{catatan}')
+            f'<h2 id="judul-lomba">{PK.JUDUL_ANAK}</h2>{aksi}{kemajuan}</section>{catatan}')
 
 
 def kartu_untuk_siswa(kon, siswa_id: int, sekarang: int, besar: bool = False) -> str:

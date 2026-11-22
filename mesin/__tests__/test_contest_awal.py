@@ -27,7 +27,7 @@ def _sesi_selesai(sesi_id, nilai, mulai, lama=330):
 def _ringkas(**ubah):
     dasar = dict(paket=PK.PAKET_AKTIF, berjalan=None, sisa_detik=0, terisi=frozenset(), nomor_lanjut=1, riwayat=(),
                  nilai_terbaik=None, nilai_terakhir=None, selesai_hari_ini=0,
-                 hitung_mundur="Grand Final Corexis tinggal 24 hari lagi", sekarang=SEKARANG)
+                 hitung_mundur="Lomba tinggal 24 hari lagi", sekarang=SEKARANG)
     return A.RingkasAnak(**{**dasar, **ubah})
 
 
@@ -51,7 +51,7 @@ def test_awal_memuat_tautan_beranda_maskot_judul_paket_dan_tiga_chip():
 
     assert '<a class="tautan-beranda" href="/murid">' in isi and "Beranda</a>" in isi
     assert re.search(r'<img src="/aset/maskot-menunjuk-v3-96\.png" alt="" class="maskot-kartu"', isi)
-    assert '<h1 class="judul">Grand Final Corexis</h1>' in isi
+    assert '<h1 class="judul">Mode Lomba</h1>' in isi
     assert '<li>10 soal</li><li>15 menit</li><li>8 pilihan ganda + 2 isian</li>' in isi
 
 
@@ -60,7 +60,7 @@ def test_chip_mengikuti_nilai_paket_bukan_angka_tetap():
 
     isi = _badan(W.halaman_awal(_ringkas(paket=paket)).decode())
 
-    assert "<li>20 menit</li>" in isi and "<li>7 pilihan ganda + 3 isian</li>" in isi and ">Uji Paket</h1>" in isi
+    assert "<li>20 menit</li>" in isi and "<li>7 pilihan ganda + 3 isian</li>" in isi and ">Mode Lomba</h1>" in isi
 
 
 def test_catatan_waktu_tetap_berjalan_dan_jawaban_tersimpan():
@@ -69,12 +69,12 @@ def test_catatan_waktu_tetap_berjalan_dan_jawaban_tersimpan():
     assert "Waktu terus berjalan walaupun kamu keluar dari halaman ini. Jawabanmu tetap tersimpan." in isi
 
 
-def test_nama_paket_di_escape():
-    paket = dataclasses.replace(PK.PAKET_AKTIF, nama_pendek='<b>"x"</b>')
+def test_nama_acara_paket_tidak_tampil_ke_anak():
+    paket = dataclasses.replace(PK.PAKET_AKTIF, nama_pendek="Nama Acara Uji", nama="Nama Acara Uji Lengkap")
 
     isi = W.halaman_awal(_ringkas(paket=paket)).decode()
 
-    assert "&lt;b&gt;&quot;x&quot;&lt;/b&gt;" in isi and "<b>" not in _badan(isi)
+    assert "Nama Acara Uji" not in isi and '<h1 class="judul">Mode Lomba</h1>' in isi
 
 
 # --- Mulai / Lanjutkan -----------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ def test_lanjutkan_ke_soal_satu_bila_semua_terisi():
 def test_awal_menampilkan_hitung_mundur_dan_target_hari_ini_dengan_bar():
     isi = _awal(selesai_hari_ini=1)
 
-    assert '<p class="hitung-mundur">Grand Final Corexis tinggal 24 hari lagi</p>' in isi
+    assert '<p class="hitung-mundur">Lomba tinggal 24 hari lagi</p>' in isi
     assert "Latihan hari ini: 1 dari 2" in isi and 'style="width:50%"' in isi
     assert 'role="progressbar"' in isi and 'aria-valuenow="1"' in isi and 'aria-valuemax="2"' in isi
     assert "Target hari ini tercapai!" not in isi
@@ -192,7 +192,7 @@ def test_awal_tanpa_skrip_dan_tanpa_penangan_kejadian():
 def test_kartu_kecil_tanpa_sesi_berjalan_menawarkan_mulai_latihan_dan_nilai_terakhir():
     kartu = H.kartu_beranda(_ringkas(nilai_terakhir=7))
 
-    assert '<section class="lomba-beranda"' in kartu and ">Grand Final Corexis</h2>" in kartu
+    assert '<section class="lomba-beranda"' in kartu and ">Mode Lomba</h2>" in kartu
     assert '<a class="lb-tombol" href="/murid/lomba">Mulai latihan</a>' in kartu and "Nilai terakhir: 7/10" in kartu
     assert "Latihan Lomba" not in kartu and "Lanjutkan" not in kartu and "maskot" not in kartu
 
@@ -211,7 +211,7 @@ def test_kartu_dengan_sesi_berjalan_menampilkan_status_sisa_terisi_dan_lanjutkan
 def test_kartu_memuat_hitung_mundur_dan_target_hari_ini():
     kartu = H.kartu_beranda(_ringkas(selesai_hari_ini=2))
 
-    assert "Grand Final Corexis tinggal 24 hari lagi" in kartu
+    assert "Lomba tinggal 24 hari lagi" in kartu
     assert "Latihan hari ini: 2 dari 2" in kartu and "Target hari ini tercapai!" in kartu
 
 
@@ -223,9 +223,9 @@ def test_kartu_besar_memuat_maskot_dan_catatan_belum_ada_latihan_guru():
     assert "Belum ada latihan dari gurumu." not in H.kartu_beranda(_ringkas(), besar=False)
 
 
-def test_kartu_beranda_tanpa_skrip_dan_nama_paket_di_escape():
-    paket = dataclasses.replace(PK.PAKET_AKTIF, nama_pendek="<i>x</i>")
+def test_kartu_beranda_tanpa_skrip_dan_tanpa_nama_acara():
+    paket = dataclasses.replace(PK.PAKET_AKTIF, nama_pendek="Nama Acara Uji")
 
     kartu = H.kartu_beranda(_ringkas(paket=paket))
 
-    assert "<script" not in kartu and "&lt;i&gt;x&lt;/i&gt;" in kartu and "<i>x</i>" not in kartu
+    assert "<script" not in kartu and "Nama Acara Uji" not in kartu and ">Mode Lomba</h2>" in kartu
