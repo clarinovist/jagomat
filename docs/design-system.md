@@ -45,14 +45,21 @@ dirender dengan data sintetis sebelum diterima.
 | Permukaan | Rute contoh | Stylesheet utama | Token warna | Wadah isi |
 | --- | --- | --- | --- | --- |
 | Publik | `/`, `/masuk`, `/daftar`, legal, riset publik | `style_stitch.GAYA_STITCH`, `landing.py`, `competitive_research.py` | Dasar hangat | `LEBAR_LANDING` 75rem (landing), `LEBAR_KONTEN` 46rem |
-| Ruang guru | `/guru` | `GAYA_STITCH` (`.guru-beranda-st`) | `ANAK_*` + dasar | 46rem, kartu satu kolom |
+| Ruang guru | `/guru` | `GAYA_STITCH` (`.guru-beranda-st`) | `ANAK_*` + dasar | Isi 46rem di tengah wadah topbar 60rem, kartu satu kolom |
 | Profil anak | `/anak/<id>` empat tab, laporan lama | `GAYA_STITCH` + `GAYA_PROFIL` + `child_style.GAYA_ANAK` | `ANAK_*` | `ANAK_LEBAR` 60rem isi, gutter 32/16px |
-| Akun | `/akun`, `/persetujuan` (tinjau), Data Pendamping | `account_style.GAYA_AKUN` (`.akun-editorial-st`) | Dasar hangat | 72rem dua kolom; 46rem (`.akun-sempit-st`) |
-| Tinjauan, cetak, lampiran | sesi guru, lampiran foto | `CSS_SESI`, `teacher_style.GAYA_GURU` | Dasar + `KODE_*` | Editorial 60rem termasuk padding |
+| Akun | `/akun`, `/persetujuan` (tinjau), Data Pendamping | `account_style.GAYA_AKUN` (`.akun-editorial-st`) | Dasar hangat | 60rem dua kolom (turun dari 72rem, 22 Nov 2026); 46rem (`.akun-sempit-st`) |
+| Tinjauan, cetak, lampiran | sesi guru, lampiran foto | `CSS_SESI`, `teacher_style.GAYA_GURU` | Dasar + `KODE_*` | Isi 60rem (= wadah topbar; gutter di luar 60rem) |
+| Laporan orang tua, Mode Lomba | `/anak/<id>/laporan-ortu`, `/anak/<id>/lomba` | `GAYA_STITCH` (`.bagikan-editorial-st`) | Dasar hangat | Isi 46rem di tengah wadah topbar 60rem |
 | Pendamping | panel inline, kelola | `assistant_style.GAYA_PENDAMPING` | Dasar hangat | Panel penuh di HP |
 | Murid | `/murid`, pengerjaan | `GAYA_STITCH` | Dasar hangat | Mobile-first, kolom 46rem di desktop |
 | Lembar | `/lembar/<id>`, penilaian | `screen_style.GAYA_LAYAR`, `print_style.GAYA_CETAK` | Dasar + `LEMBAR_AKSEN` beku (layar), `CETAK_*` (kertas) | A4 |
 | Admin | `/admin/...` | `admin_style.GAYA_ADMIN` | Dasar hangat + alias profil lewat `ADMIN_*` (adapter tema) | Sidebar 256px, kanvas fluida; form pendek maks. 46rem |
+
+Topbar semua permukaan guru (ruang guru, profil anak, akun, tinjauan, laporan, lomba) satu wadah:
+`LEBAR_SHELL_GURU` 60rem ditambah gutter `ANAK_GUTTER` 32px (16px di bawah `ANAK_BATAS_HP`),
+diatur `shell_guru_style.GAYA_SHELL_GURU` lewat kelas `shell-guru-st` yang dipasang
+`teacher_shell.kelas_shell()`. Posisi logo dan kontrol akun identik di semua rute; kolom isi yang
+lebih sempit diletakkan di tengah (`> :not(.st-topbar)`). Guard: `test_shell_guru_selaras.py`.
 
 Font: `FONT_HEADLINE` (Plus Jakarta Sans) dan `FONT_BODY` (Be Vietnam Pro). Diputuskan
 pemilik 22 Nov 2026: semua halaman guru, termasuk yang privat (`privat=True` pada
@@ -321,7 +328,8 @@ Ikon Info ⓘ berdiameter 18px dengan area sentuh 44px.
 | Tab profil | `.profil-tabs-st`, `profile_workspace.navigasi_profil()` | `child_header.py` | Beranda, Latihan, Riwayat, Perkembangan; 48px; satu baris di 320px |
 | Tab | `.profil-tabs-st a`, `.admin-tab`, Akun `.nav-samping a`, Alat sesi `.pil-sesi-st a` | `child_header.py`, `admin_style.py`, `style_stitch.py` | Ganti tampilan; aktif = `aria-current="page"`, teks + garis bawah 3px teal, 48px, bukan pil. Lompat dalam halaman memakai tautan teks (`.admin-navigasi-bagian`) |
 | Tautan kembali | `.sesi-jejak-st`, `.jejak` editorial, `.admin-jejak` | `style_stitch.py`, `admin_style.py` | Teks "← tujuan" teal, target 44px, bukan tombol (`.jejak` abu di `teacher_style.py` adalah gaya lama) |
-| Header | `.st-topbar`, `.menu-pengguna` | `style_stitch.py`, `child_header.py`, `admin_style.py` | Peran + nama dalam satu menu native dengan chevron, tanpa marker bawaan; satu form Keluar |
+| Header | `.st-topbar`, `.menu-pengguna` | `shell_guru_style.py` (guru), `admin_style.py` | Satu `teacher_shell._topbar_stitch` untuk semua halaman guru: lockup kiri, peran + nama dalam satu menu native dengan chevron; isi menu Ruang guru, Akun & Siswa, pemisah, Keluar (tautan bahaya, bukan tombol solid); satu form Keluar |
+| Pemicu Pendamping | `.pendamping-pemicu` | `style_stitch.py` | Pil "Tanya" mengambang kanan bawah di semua halaman guru; tidak di dalam topbar |
 | Bar simpan | `.kerja-simpan-strip-st`, `.koreksi-simpan-st` | `style_stitch.py` | Mengikuti aliran form, tidak menutupi kontrol, tidak menggandakan CTA |
 | Banner peringatan cetak | `.mesin-banner` | `screen_style.py`, `print_style.py` | Radius 12px |
 | Admin | `.admin-kartu`, `.admin-tombol`, `.admin-bahaya`, `.admin-form-pendek`, badge `admin_komponen.badge_status()` | `admin_style.py` | Fondasi bersama; tombol sekunder, pil, tab, tautan kembali dan header memakai baris komponen di atas; badge "Normal" netral |
@@ -449,6 +457,7 @@ Membuka kembali salah satunya memerlukan keputusan produk baru.
 | --- | --- | --- |
 | Header Akun abu rata khusus (canvas "Jagomat Akun Redesign") | Tidak diadopsi | Akun memakai `teacher_shell._topbar_stitch` yang sama dengan ruang guru dan profil; varian header per halaman memecah shell bersama |
 | Isi kartu anak terbuka dengan satu tombol Simpan | Tidak diadopsi | Kelola berisi tiga aksi independen (kelas sekolah, sandi anak, hapus anak) dengan form/handler sendiri; satu Simpan mencampur aksi destruktif dengan edit dan mengubah kontrak handler data anak (jalur Kritis) demi kosmetik |
+| Varian header profil anak (pil nama tanpa label "Guru", menu berbeda, Keluar tombol hijau solid) dan pemicu Tanya ikon di header tinjauan | Disatukan 22 Nov 2026 (keputusan pemilik: "selaras semua dengan design system") | Header Akun sudah ditolak sebagai varian (25 Okt); varian profil anak dan tinjauan juga memecah shell; kini satu topbar, satu menu, satu pil Tanya, satu wadah 60rem. Keluar pindah dari kepala Akun ke menu topbar (tetap satu form) |
 | Tombol Keluar kedua di dasar halaman HP | Ditolak | Melanggar satu aksi satu entry point; audit 24 Okt sengaja menyisakan satu form Keluar di header |
 | Ikon, jumlah pesan, dan rentang tanggal di daftar chat Pendamping | Tidak diadopsi | Daftar sengaja hanya metadata minimal; jumlah/rentang butuh query turunan isi percakapan, ikon tidak menambah makna. Pengelompokan per tanggal tetap |
 | Meter "0/12 karakter" dan chip paket di header | Tetap tidak diadopsi | Butuh JavaScript baru dan data langganan di header (keputusan 22 Okt) |

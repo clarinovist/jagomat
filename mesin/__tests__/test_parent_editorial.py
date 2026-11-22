@@ -130,7 +130,9 @@ def test_rencana_tetap_satu_di_tab_terpisah_dari_alat_manual(db):
 def test_navigasi_section_dan_sesi_menandai_halaman_aktif(db):
     for nama in ("akun", "siswa", "akun-murid", "koreksi", "lampiran"):
         markup = Markup(_halaman(db)[nama].decode())
-        aktif = [a for a in markup.pilih("a") if a.get("aria-current") == "page"]
+        # Menu akun topbar boleh menandai halaman induknya (22 Nov 2026); yang dihitung navigasi isi.
+        isi = Markup(_halaman(db)[nama].decode().split('class="sesi-badan-st"', 1)[-1])
+        aktif = [a for a in isi.pilih("a") if a.get("aria-current") == "page"]
         assert len(aktif) == 1, nama
         assert any("aria-label" in a for a in markup.pilih("nav")), nama
     # Cetak dikembalikan (2026-11-02): pil sesi Koreksi + Cetak + Lampiran,
@@ -235,7 +237,7 @@ def test_bingkai_opsional_tidak_mengubah_landmark_pemanggil_lama():
     assert '<div class="sesi-badan-st"><h1>Judul</h1></div>' in lama
     assert "<main" not in lama
     beranda = teacher_pages._halaman_stitch("Judul", "<h1>Judul</h1>").decode()
-    assert '<div class="bungkus-st"><h1>Judul</h1></div>' in beranda
+    assert '<div class="bungkus-st shell-guru-st"><h1>Judul</h1></div>' in beranda
 
 
 def test_css_hanya_scoped_dan_tidak_menambah_hex_atau_font():
@@ -246,7 +248,10 @@ def test_css_hanya_scoped_dan_tidak_menambah_hex_atau_font():
     for baris in blok.splitlines():
         if baris and not baris.startswith((" ", "@", "}")) and "{{" in baris:
             assert "editorial-st" in baris, baris
-    assert "height: auto; min-height: {T.TARGET_SENTUH}; position: relative" in blok
+    # Ukuran topbar kini diatur satu tempat di shell bersama, bukan blok editorial ini.
+    from shell_guru_style import GAYA_SHELL_GURU
+    assert f"height: auto; min-height: {T.TARGET_SENTUH};" in GAYA_SHELL_GURU
+    assert "position: relative" in GAYA_SHELL_GURU
     assert "opacity: 1" in blok
     assert ":focus-visible" in blok
     assert "min-height: {T.TARGET_SENTUH}" in blok

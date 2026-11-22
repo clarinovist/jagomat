@@ -156,6 +156,7 @@ def selesaikan(server, sesi_id, **jawaban):
 
 def teks_tampak(isi: str) -> str:
     """Teks yang terlihat: badan tanpa <style>/<script> dan tanpa tag (atribut ikut hilang)."""
-    badan = isi.split("</style>", 1)[1]
+    # Semua <style> dibuang (termasuk @font-face lokal di <head>, bukan hanya yang pertama).
+    badan = re.sub(r"<style.*?</style>", " ", isi, flags=re.S).split("<body", 1)[-1]
     badan = re.sub(r"<script.*?</script>", " ", badan, flags=re.S)
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", badan))

@@ -11,11 +11,6 @@ GAYA_AKUN = f"""
 {_A} .akun-kepala-st {{ display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: {T.SP_4}; }}
 {_A} .akun-kepala-st > div:first-child {{ flex: 1 1 18rem; min-width: 0; }}
 {_A} .akun-aksi-kepala-st {{ display: flex; align-items: center; flex-wrap: wrap; gap: {T.SP_2}; }}
-{_A} .akun-aksi-kepala-st .akun-form-keluar button {{
-  min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA};
-  border-radius: {T.RADIUS_SEDANG}; background: transparent; color: {T.AKSEN_TEAL_TUA}; font-weight: 700;
-}}
-{_A} .akun-aksi-kepala-st .akun-form-keluar button:hover {{ background: {T.ANAK_AKSEN_LATAR}; filter: none; }}
 {_A} .akun-chip-st {{
   display: inline-flex; align-items: center; width: fit-content; padding: {T.SP_1} {T.SP_3};
   border-radius: {T.RADIUS_PIL}; background: {T.LATAR_SEKUNDER_NETRAL}; color: {T.TEKS_VARIAN};

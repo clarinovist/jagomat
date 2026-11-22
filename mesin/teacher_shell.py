@@ -52,17 +52,47 @@ def _topbar(pengguna: str, peran: str) -> str:
     )
 
 
-def _topbar_stitch(pengguna: str, peran: str, *, ringkas: bool = False, bantuan: str = "", keluar: bool = True) -> str:
-    """Topbar Stitch dengan menu akun CSS-only dan satu pintu keluar."""
+KELAS_SHELL_GURU = "shell-guru-st"
+
+
+def kelas_shell(kelas_bungkus: str = "") -> str:
+    """Kelas wadah halaman guru: `bungkus-st`, penanda shell bersama, lalu kelas halaman."""
+    return f"bungkus-st {KELAS_SHELL_GURU} {kelas_bungkus}".strip()
+
+
+def _tautan_aktif(kelas_bungkus: str) -> str:
+    """Tujuan menu akun yang sedang dibuka (hanya halaman induknya, bukan turunan)."""
+    kelas = set(kelas_bungkus.split())
+    if "guru-beranda-st" in kelas:
+        return "/guru"
+    if "akun-editorial-st" in kelas and "akun-sempit-st" not in kelas:
+        return "/akun"
+    return ""
+
+
+def _item_menu(href: str, label: str, aktif: str) -> str:
+    atribut = ' aria-current="page"' if href == aktif else ""
+    return f'<a href="{href}"{atribut}>{label}</a>'
+
+
+def _topbar_stitch(
+    pengguna: str, peran: str, *, bantuan: str = "", keluar: bool = True, aktif: str = "",
+) -> str:
+    """Topbar tunggal halaman guru: lockup kiri, menu akun CSS-only, satu pintu keluar.
+
+    Markup dan menu sama di semua halaman; `aktif` hanya menandai item halaman ini.
+    """
+    from child_header import nama_akun
     if peran == "admin":
-        brand_href, item = "/admin", (
-            '<a href="/admin">Dashboard admin</a>'
-            '<a href="/admin/ai">Pengaturan AI</a>'
-            '<a href="/akun?section=akun">Ganti sandi</a>'
+        brand_href = "/admin"
+        item = (
+            _item_menu("/admin", "Dashboard admin", aktif)
+            + _item_menu("/admin/ai", "Pengaturan AI", aktif)
+            + _item_menu("/akun?section=akun", "Ganti sandi", aktif)
         )
     else:
-        brand_href, item = "/guru", '<a href="/akun">Akun &amp; Siswa</a>'
-    from child_header import nama_akun
+        brand_href = "/guru"
+        item = _item_menu("/guru", "Ruang guru", aktif) + _item_menu("/akun", "Akun &amp; Siswa", aktif)
     siapa = html.escape(nama_akun(pengguna)) if pengguna and pengguna.strip() else ""
     ringkasan_akun = (
         '<summary><span class="identitas-akun-st">'
@@ -70,21 +100,10 @@ def _topbar_stitch(pengguna: str, peran: str, *, ringkas: bool = False, bantuan:
         '<span class="panah-akun-st" aria-hidden="true">⌄</span></summary>'
         if siapa else '<summary aria-label="Menu akun">Menu</summary>'
     )
-    if ringkas:
-        siapa = html.escape(nama_akun(pengguna))
-        ringkasan_akun = (
-            f'<summary aria-label="Menu akun: {siapa}">'
-            f'<span class="nama-akun-st">{siapa}</span>'
-            '<svg class="panah-akun-st" aria-hidden="true" focusable="false" '
-            'width="12" height="12" viewBox="0 0 12 12" fill="none" '
-            'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
-            '<path d="M2.5 4.5 6 8l3.5-3.5"/></svg></summary>'
-        )
-        item = f'<p class="anak-peran-st">{_badge_peran(peran)}</p>' + item
     aksi_keluar = (
         '<div class="menu-pisah"></div>'
-        '<form method="post" action="/keluar" style="margin:0">'
-        '<button type="submit" class="cta">Keluar</button></form>'
+        '<form method="post" action="/keluar">'
+        '<button type="submit" class="menu-keluar-st">Keluar</button></form>'
         if keluar else ''
     )
     return (
@@ -108,8 +127,11 @@ def _halaman(
     """Bingkai pengelola; skrip privat statis harus diizinkan hash di respons HTTP."""
     if stitch:
         from style_stitch import gaya_stitch, CSS_SESI
-        batang = _topbar_stitch(*ident, keluar=keluar_topbar) if ident else ""
-        kelas = f"bungkus-st {kelas_bungkus}".strip()
+        batang = (
+            _topbar_stitch(*ident, keluar=keluar_topbar, aktif=_tautan_aktif(kelas_bungkus))
+            if ident else ""
+        )
+        kelas = kelas_shell(kelas_bungkus)
         buka_isi = (
             f'<main class="sesi-badan-st" aria-labelledby="{html.escape(id_utama)}">'
             if id_utama else '<div class="sesi-badan-st">'
@@ -150,9 +172,12 @@ def _halaman_stitch(
     kelas_bungkus: str = "", privat: bool = False, bantuan_topbar: str = "",
 ) -> bytes:
     """Bingkai halaman Stitch untuk dashboard dan workspace anak."""
-    ringkas = "anak-header-st" in kelas_bungkus.split()
-    batang = _topbar_stitch(*ident, ringkas=ringkas, bantuan=bantuan_topbar) if ident else ""
-    kelas = f"bungkus-st {kelas_bungkus}".strip()
+    anak_header = "anak-header-st" in kelas_bungkus.split()
+    batang = (
+        _topbar_stitch(*ident, bantuan=bantuan_topbar, aktif=_tautan_aktif(kelas_bungkus))
+        if ident else ""
+    )
+    kelas = kelas_shell(kelas_bungkus)
     font = tag_font_lokal() + ("" if privat else """<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">""")
@@ -167,7 +192,7 @@ def _halaman_stitch(
         from question_variants_ui import GAYA_VARIASI
         from parent_help import GAYA as GAYA_BANTUAN
         gaya += profile_workspace.GAYA_PROFIL + GAYA_ANAK + GAYA_VARIASI + GAYA_BANTUAN
-    if ringkas:
+    if anak_header:
         from child_header import GAYA_HEADER_ANAK
         gaya += GAYA_HEADER_ANAK
     skrip = f"<script>{SKRIP_OFFLINE}</script>"

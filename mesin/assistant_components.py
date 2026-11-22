@@ -630,6 +630,9 @@ def tombol_buka(
         "belum_ditransisikan": "Pendamping — status paket perlu ditinjau",
         "storage_tidak_terverifikasi": "Pendamping — status paket belum terverifikasi",
     }.get(kode_akses, "Pendamping")
+    if label != "Pendamping":
+        # Nama aksesibel memuat teks yang terlihat (label-in-name), mis. "Tanya Pendamping".
+        label_akses = f"{label} {label_akses}"
     terkunci = kode_akses in {"jago_tanpa_ai", "akses_berakhir", "belum_ditransisikan", "storage_tidak_terverifikasi"}
     lencana = (
         '<span class="pendamping-lencana-akses" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>'

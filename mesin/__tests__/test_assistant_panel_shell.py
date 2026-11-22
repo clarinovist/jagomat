@@ -159,7 +159,8 @@ def test_pemicu_tidak_tertutup_stacking_topbar_dan_hp_di_atas_keduanya():
     panel = re.search(r'\.pendamping-panel-kanan \{([^}]*)\}', mobile).group(1)
     lapis = lambda aturan: int(re.search(r'z-index:\s*(\d+)', aturan).group(1))
     assert lapis(topbar) < lapis(pemicu) < lapis(panel)
-    assert 'position: absolute' in pemicu and 'position: fixed' not in pemicu
+    # 22 Nov 2026: pemicu = pil "Tanya" mengambang kanan bawah di semua halaman guru.
+    assert 'position: fixed' in pemicu and 'position: absolute' not in pemicu
 
 
 def test_native_panel_latihan_di_samping_workspace_tanpa_melepas_form(tmp_path):

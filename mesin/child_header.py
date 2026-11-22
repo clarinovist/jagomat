@@ -40,61 +40,18 @@ def tombol_pendamping(target, *, status_akses, form_id=''):
     """Pindahkan pemicu existing; form latihan dan draf native tetap terhubung."""
     from assistant_components import hubungkan_form, tombol_buka
     tombol = tombol_buka(target, dalam_form=bool(form_id), label='Tanya', status_akses=status_akses)
-    # Label keadaan akses tetap terbaca; bukan meniadakan pembatasan paket.
-    tombol = tombol.replace('aria-label="Pendamping', 'aria-label="Tanya Pendamping', 1)
+    # Label keadaan akses tetap terbaca (tombol_buka menambahkan "Tanya" ke nama aksesibel).
     if form_id:
         tombol = hubungkan_form(tombol, form_id)
     return tombol
 
 
-# Spesifisitas dibatasi ke varian ini; .st-topbar halaman lain tetap utuh.
+# Hanya identitas anak dan tab profil; topbar & pemicu Tanya milik shell bersama (shell_guru_style).
 _H = '.bungkus-st.pendamping-editorial-st.profil-workspace-st.anak-header-st'
 GAYA_HEADER_ANAK = f"""
-{_H} {{ padding-top: 0; overflow: visible; }}
+{_H} {{ overflow: visible; }}
 {_H} > main {{ min-width: 0; overflow: visible; timeline-scope: --anak-identitas; }}
 {_H}:has(> .pendamping-panel-kanan:not([hidden])) {{ row-gap: 0; }}
-{_H} > .st-topbar {{
-  height: 56px; min-height: 56px; margin: 0; padding: 0; border: 0;
-  background: {T.LATAR_MURID}; position: relative; top: auto; z-index: 51;
-  flex-wrap: nowrap; gap: {T.SP_3}; font-family: {T.FONT_BODY};
-}}
-{_H} .st-topbar .brand {{ min-height: {T.TARGET_SENTUH}; flex: none; gap: {T.SP_2}; }}
-{_H} .st-topbar .brand .nama {{ font: 700 18px/1.4 {T.FONT_BODY}; letter-spacing: normal; }}
-{_H} .topbar-navigasi {{
-  flex: 0 1 auto; min-width: 0; margin-left: auto; flex-wrap: nowrap;
-  justify-content: flex-end; gap: {T.SP_3};
-}}
-{_H} .menu-pengguna {{ min-width: 0; }}
-{_H} .menu-pengguna summary {{
-  height: {T.TARGET_SENTUH}; max-width: none; min-width: 0; padding: 0 14px;
-  gap: {T.SP_2}; border: 1px solid {T.ANAK_HEADER_BORDER_AKUN};
-  border-radius: {T.RADIUS_KARTU}; background: {T.LATAR_KARTU};
-  font: 600 14px/1.4 {T.FONT_BODY}; color: {T.TEKS_JUDUL};
-}}
-{_H} .nama-akun-st {{
-  font: inherit; white-space: nowrap; overflow-x: auto; overflow-wrap: normal;
-}}
-{_H} .panah-akun-st {{ flex: none; margin: 0; color: {T.TEKS_VARIAN}; }}
-{_H} .menu-isi {{ left: auto; right: 0; font: 14px/1.5 {T.FONT_BODY}; }}
-{_H} .anak-peran-st {{ margin: 0; padding: {T.SP_2} {T.SP_3}; }}
-{_H} .anak-peran-st .badge-peran {{
-  padding: 0; background: transparent; font: inherit; color: {T.TEKS_VARIAN};
-}}
-{_H} .topbar-navigasi > form {{ margin: 0; flex: none; }}
-{_H} {{ padding-bottom: calc({T.TARGET_SENTUH} + {T.SP_4} * 2 + env(safe-area-inset-bottom, 0px)); }}
-{_H} .pendamping-pemicu {{
-  position: fixed; top: auto; right: {T.SP_4}; bottom: {T.SP_4}; z-index: 60; flex: none;
-  width: auto; min-width: {T.TARGET_SENTUH}; height: {T.TARGET_SENTUH};
-  min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_4}; gap: {T.SP_2};
-  border: 1.5px solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_BULAT};
-  background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA};
-  font: 600 14px/1.4 {T.FONT_BODY}; white-space: nowrap;
-}}
-{_H} .pendamping-pemicu > svg {{ width: 18px; height: 18px; flex: none; }}
-{_H} .pendamping-pemicu-label {{
-  display: inline; position: static; padding: 0; border-radius: 0;
-  background: transparent; color: inherit; font: inherit;
-}}
 {_H} .kepala-anak-st {{ margin: 0; padding: 0; border: 0; view-timeline: --anak-identitas block; }}
 {_H} .profil-identitas-st {{
   display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-start;
@@ -137,15 +94,10 @@ GAYA_HEADER_ANAK = f"""
 {_H} .profil-tabs-st a[aria-current="page"] {{
   font-weight: 700; color: {T.AKSEN_TEAL_TUA}; border-bottom-color: {T.AKSEN_TEAL_TUA};
 }}
-{_H} :is(.st-topbar, .kepala-anak-st, .profil-tabs-st) :is(a, button, summary):focus-visible {{
+{_H} :is(.kepala-anak-st, .profil-tabs-st) :is(a, button, summary):focus-visible {{
   outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: -3px; border-radius: 4px;
 }}
 @media (max-width: 36rem) {{
-  {_H} > .st-topbar {{ gap: {T.SP_2}; }}
-  {_H} .topbar-navigasi {{ gap: {T.SP_2}; }}
-  {_H} .menu-pengguna summary {{ padding-inline: {T.SP_3}; gap: 6px; }}
-  {_H} .pendamping-pemicu {{ width: auto; padding-inline: {T.SP_4}; bottom: max({T.SP_4}, env(safe-area-inset-bottom)); }}
-  {_H} .pendamping-pemicu > svg {{ width: 20px; height: 20px; }}
   {_H} .profil-identitas-st {{ gap: 10px; }}
   {_H} .profil-kembali-st {{ padding-left: {T.SP_2}; }}
   {_H} .profil-tabs-st {{

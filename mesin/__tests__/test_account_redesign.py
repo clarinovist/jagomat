@@ -46,9 +46,11 @@ def _badan(isi):
     return isi.split("<body", 1)[1]
 
 
-def test_wadah_akun_lebar_agar_dua_kolom_muat(siap):
+def test_wadah_akun_satu_wadah_shell_guru_dua_kolom_tetap_muat(siap):
+    # Topbar semua halaman guru satu wadah 60rem (22 Nov 2026); Akun tidak lagi melebar ke 72rem.
     isi = _halaman(siap)
-    assert re.search(r'<div class="bungkus-st [^"]*\bakun-editorial-st\b[^"]*\blebar\b', isi)
+    assert re.search(r'<div class="bungkus-st shell-guru-st [^"]*\bakun-editorial-st\b', isi)
+    assert not re.search(r'<div class="bungkus-st [^"]*\blebar\b', isi)
 
 
 def test_akun_saya_dua_kolom_sandi_di_kiri_pendamping_di_kanan(siap):
@@ -59,11 +61,13 @@ def test_akun_saya_dua_kolom_sandi_di_kiri_pendamping_di_kanan(siap):
     assert "<h2>Data Pendamping AI</h2>" in kanan and "Analitik uji" in kanan
 
 
-def test_tombol_keluar_ada_di_header_bukan_di_kartu_sandi(siap):
+def test_tombol_keluar_ada_di_menu_topbar_bukan_di_kepala_atau_kartu_sandi(siap):
     badan = _badan(_halaman(siap))
-    kepala, _, sisa = badan.partition('<div class="layout-samping">')
-    assert 'class="akun-form-keluar" method="post" action="/keluar"' in kepala
-    assert "/keluar" not in sisa
+    topbar, _, utama = badan.partition('<main')
+    kepala, _, sisa = utama.partition('<div class="layout-samping">')
+    # Keluar kini satu-satunya di menu topbar, bukan di kepala atau kartu sandi.
+    assert topbar.count('action="/keluar"') == 1
+    assert "/keluar" not in kepala and "/keluar" not in sisa
 
 
 def test_header_menampilkan_jumlah_profil_anak_untuk_guru(siap):

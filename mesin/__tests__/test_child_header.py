@@ -33,15 +33,14 @@ def test_identitas_sibling_inisial_dan_escape():
 
 def test_shell_shared_dan_admin_tidak_memakai_varian_baru():
     biasa = S._topbar_stitch('keluarga-a', 'guru')
-    ringkas = S._topbar_stitch('keluarga-a', 'guru', ringkas=True)
+    # Satu topbar di semua halaman (22 Nov 2026): varian `ringkas` profil anak dihapus.
+    with pytest.raises(TypeError):
+        S._topbar_stitch('keluarga-a', 'guru', ringkas=True)
     # Satu label akun di semua halaman: format tampilan sama, nama login tidak berubah.
     assert 'class="identitas-akun-st"' in biasa and '>Keluarga A</span>' in biasa
     assert '>keluarga-a</span>' not in biasa
-    assert 'class="identitas-akun-st"' not in ringkas and '>Keluarga A</span>' in ringkas
-    assert 'Pendamping' not in ringkas.split('</summary>')[0]
-    assert 'Guru' in ringkas.split('class="menu-isi"')[1]
-    assert 'keluarga-&lt;uji&gt;' not in S._topbar_stitch('keluarga-<uji>', 'guru', ringkas=True)
-    assert 'Keluarga &lt;Uji&gt;' in S._topbar_stitch('keluarga-<uji>', 'guru', ringkas=True)
+    assert 'keluarga-&lt;uji&gt;' not in S._topbar_stitch('keluarga-<uji>', 'guru')
+    assert 'Keluarga &lt;Uji&gt;' in S._topbar_stitch('keluarga-<uji>', 'guru')
     admin = P.bingkai(dict(id=1,nama='Contoh',pemilik='keluarga-a'), 'rencana', 0, '', peran='admin')
     assert 'anak-avatar-st' not in admin and 'href="/admin"' in admin
     assert 'anak-header-st' not in S._halaman_stitch('Uji', '', kelas_bungkus='guru-beranda-st').decode()
@@ -88,12 +87,11 @@ def test_status_akses_pendamping_tetap_terbaca():
 def test_css_header_scoped_sticky_dan_target_sentuh():
     css = H.GAYA_HEADER_ANAK
     assert 'position: sticky; top: 0' in css
-    assert 'padding-top: 0; overflow: visible' in css
+    assert 'overflow: visible' in css
     assert 'height: 56px' in css and 'height: 48px' in css
     assert 'height: 44px' in css and 'font-weight: 700' in css
     assert '@media (max-width: 36rem)' in css and '@media (max-width: 24rem)' in css
     assert 'clip-path: inset(50%)' not in css
-    assert 'position: fixed; top: auto' in css
     layar, cetak = css.split('@media print', 1)
     assert 'display: none' not in layar and 'display:none' not in layar
     assert '.st-topbar' in cetak and '.profil-tabs-st' in cetak and 'display: none' in cetak
@@ -104,8 +102,11 @@ def test_css_header_scoped_sticky_dan_target_sentuh():
 
 def test_tombol_tanya_tidak_menutupi_dasar_halaman():
     # Pemicu melayang setinggi TARGET_SENTUH; halaman perlu ruang bawah sebesar itu plus jarak.
-    css = H.GAYA_HEADER_ANAK
-    blok = [b.split('}', 1)[0] for b in css.split(H._H + ' {')[1:] if 'padding-bottom' in b.split('}', 1)[0]]
-    assert blok, 'tidak ada ruang bawah halaman untuk pemicu melayang'
-    assert 'padding-bottom: calc(' in blok[0] and 'safe-area-inset-bottom' in blok[0]
-    assert H.T.TARGET_SENTUH in blok[0]
+    # Pil Tanya dipakai bersama semua halaman guru (22 Nov 2026): aturannya di style_stitch.
+    import style_stitch
+    css = style_stitch.GAYA_STITCH
+    blok = re.search(r'\.pendamping-editorial-st:has\(\.pendamping-pemicu\) \{([^}]*)\}', css).group(1)
+    assert 'padding-bottom: calc(' in blok and 'safe-area-inset-bottom' in blok
+    assert H.T.TARGET_SENTUH in blok
+    pemicu = re.search(r'\.pendamping-editorial-st \.pendamping-pemicu \{([^}]*)\}', css).group(1)
+    assert 'position: fixed; top: auto' in pemicu

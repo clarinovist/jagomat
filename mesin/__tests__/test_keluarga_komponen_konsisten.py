@@ -31,7 +31,6 @@ TOMBOL = {
     )),
     'sesi': (style_stitch.CSS_SESI, ('.btn-st',)),
     'akun': (account_style.GAYA_AKUN, (
-        '.akun-editorial-st .akun-aksi-kepala-st .akun-form-keluar button',
         '.akun-editorial-st .akun-tombol-garis-st',
         '.akun-editorial-st .akun-kelola > summary',
         '.akun-editorial-st a.tombol',
@@ -89,7 +88,6 @@ def test_tombol_keluarga_beradius_kontrol_bersama():
 def test_hover_tombol_garis_keluarga_berlatar_aksen_seperti_admin():
     assert T.ADMIN_AKSEN_LATAR_CERAH == T.ANAK_AKSEN_LATAR
     for css, selector in ((style_stitch.GAYA_STITCH, '.guru-tambah-st:hover'),
-                          (account_style.GAYA_AKUN, '.akun-editorial-st .akun-aksi-kepala-st .akun-form-keluar button:hover'),
                           (account_style.GAYA_AKUN, '.akun-editorial-st .akun-tombol-garis-st:hover'),
                           (account_style.GAYA_AKUN, '.akun-editorial-st .akun-kelola > summary:hover')):
         assert 'background: ' + T.ANAK_AKSEN_LATAR in _aturan(css, selector), selector

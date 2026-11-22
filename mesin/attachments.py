@@ -870,6 +870,7 @@ def halaman_konfirmasi(
     """
     from style_stitch import gaya_stitch, CSS_SESI
     from teacher_pages import _topbar_stitch
+    from teacher_shell import kelas_shell
 
     lampiran = database.ambil_lampiran(kon, lampiran_id)
     if not lampiran:
@@ -1035,7 +1036,7 @@ def halaman_konfirmasi(
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">
 <style>{GAYA_KONFIRMASI}{gaya_stitch()}{CSS_SESI}</style></head>
-<body class="st"><div class="bungkus-st pendamping-editorial-st foto-editorial-st">
+<body class="st"><div class="{kelas_shell("pendamping-editorial-st foto-editorial-st")}">
 {_topbar_stitch("", "guru")}
 <main class="sesi-badan-st" aria-labelledby="judul-foto">
 <div class="jejak"><a href="/sesi/{sesi_id}">&larr; Kembali ke sesi</a></div>

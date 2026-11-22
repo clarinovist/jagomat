@@ -135,7 +135,7 @@ def test_ringkasan_merayakan_tanpa_kata_teknis(db):
         _sesi_dinilai(kon, sid, benar=10, jumlah=10)
         h = reports.halaman_laporan(kon, sid).decode()
     assert "Aktivitas latihan" in h
-    isi = h.split("</style>", 1)[1]
+    isi = h.rsplit("</style>", 1)[1]  # @font-face lokal (F1) juga <style>, jadi potong di <style> terakhir
     assert "miskonsepsi" not in isi.lower()
     assert "malrule" not in isi.lower()
 

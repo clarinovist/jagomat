@@ -55,10 +55,9 @@ def _tanpa_larangan(isi):
 
 
 def test_topbar_guru_memakai_label_pendamping():
-    for ringkas in (False, True):
-        topbar = teacher_pages._topbar_stitch("keluarga-a", "guru", ringkas=ringkas)
-        assert "Orang Tua / Guru" not in topbar
-        assert ">Guru</span>" in topbar
+    topbar = teacher_pages._topbar_stitch("keluarga-a", "guru")
+    assert "Orang Tua / Guru" not in topbar
+    assert ">Guru</span>" in topbar
 
 
 def test_label_penilaian_kosong_memakai_pendamping():

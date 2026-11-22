@@ -75,13 +75,13 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 /* Lambang brand: satu ukuran dari token, bukan angka lepas per stylesheet. */
 .st-topbar .brand img {{ width: {T.LOGO_TOPBAR}; height: {T.LOGO_TOPBAR}; flex: none; }}
 .st-topbar .brand .nama {{ color: {T.WARNA_WORDMARK}; font-size: 1.1rem; }}
-.st-topbar .cta {{
+.st-topbar .menu-keluar-st {{
   font: inherit; color: {T.AKSEN_KORAL_TUA};
   background: none; border: 0;
   padding: {T.SP_2} {T.SP_4}; font-weight: 700;
   min-height: {T.TARGET_SENTUH};
 }}
-.st-topbar .cta:hover {{ opacity: .9; }}
+.st-topbar .menu-keluar-st:hover {{ opacity: .9; }}
 .st-topbar .identitas-akun-st {{ display: grid; gap: 0; min-width: 0; text-align: left; }}
 .st-topbar .identitas-akun-st .badge-peran {{ padding: 0; background: transparent; font-size: {T.UKURAN_TEKS_META}; font-weight: 400; letter-spacing: 0; justify-content: flex-start; color: {T.TEKS_VARIAN}; }}
 .st-topbar .nama-akun-st {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; overflow-wrap: anywhere; }}
@@ -282,19 +282,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .guru-beranda-st :is(a, button, summary):focus-visible {{
   outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: 4px;
 }}
-.guru-beranda-st .st-topbar {{
-  position: relative; height: auto; min-height: {T.TARGET_SENTUH};
-  background: transparent; padding: 0 0 {T.SP_4}; gap: {T.SP_3};
-}}
-.guru-beranda-st .brand {{ text-decoration: none; }}
-.guru-beranda-st .brand .nama {{ color: {T.AKSEN_TEAL_TUA}; font-size: 1.5rem; letter-spacing: -.04em; }}
-.guru-beranda-st .topbar-navigasi {{ gap: {T.SP_2}; min-width: 0; }}
-.guru-beranda-st .menu-pengguna {{ min-width: 0; }}
-.guru-beranda-st .menu-pengguna summary {{
-  font-size: .82rem; overflow-wrap: anywhere; gap: {T.SP_2};
-}}
-.guru-beranda-st .badge-peran-guru {{ background: transparent; color: {T.TEKS_VARIAN}; font-weight: 500; }}
-.guru-sapaan-st {{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: {T.SP_5}; padding: {T.SP_5} 0 {T.SP_4}; }}
+.guru-sapaan-st {{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: {T.SP_5}; padding: 0 0 {T.SP_4}; }}
 .guru-sapaan-st > div:first-child {{ flex: 1 1 26rem; min-width: 0; }}
 .guru-alis-st {{ color: {T.ANAK_AKSEN}; font: 700 .7rem/1.5 {T.FONT_HEADLINE}; letter-spacing: .1em; margin: 0 0 {T.SP_2}; }}
 .guru-sapaan-st h1 {{ color: {T.ANAK_TEKS}; font: 700 {T.UKURAN_JUDUL_DEWASA}/1.3 {T.FONT_HEADLINE}; letter-spacing: -.045em; margin: 0 0 {T.SP_3}; }}
@@ -371,10 +359,7 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .banner-offline-st {{ box-sizing: border-box; margin: 0; padding: {T.SP_3} {T.SP_4}; background: {T.ANAK_PERHATIAN_LATAR}; color: {T.ANAK_PERHATIAN_TEKS}; border-bottom: 1px solid {T.ANAK_PERHATIAN_BORDER}; font: 600 {T.UKURAN_TEKS_LABEL}/1.5 {T.FONT_BODY}; text-align: center; }}
 .banner-offline-st[hidden] {{ display: none; }}
 @media (max-width: 36rem) {{
-  .guru-beranda-st .st-topbar {{ flex-wrap: wrap; }}
-  .guru-beranda-st .topbar-navigasi {{ flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }}
-  .guru-beranda-st .badge-peran-guru {{ font-size: .65rem; padding: 0; }}
-  .guru-sapaan-st {{ padding: {T.SP_4} 0; }}
+  .guru-sapaan-st {{ padding: 0 0 {T.SP_4}; }}
   .guru-catatan-st {{ display: none; }}
   .guru-kartu-st {{ padding: {T.SP_4}; gap: {T.SP_3}; }}
   .guru-kartu-perhatian-st {{ padding: calc({T.SP_4} - 1px); }}
@@ -2474,21 +2459,6 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 }}
 .pendamping-editorial-st *, .pendamping-editorial-st *::before {{ box-sizing: border-box; }}
 .pendamping-editorial-st .sesi-badan-st {{ max-width: none; padding: 0; margin: 0; background: transparent; }}
-.pendamping-editorial-st .st-topbar {{
-  border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; padding: 0 0 {T.SP_4};
-  margin-bottom: {T.SP_5}; gap: {T.SP_3}; background: transparent;
-  height: auto; min-height: {T.TARGET_SENTUH}; position: relative; max-width: none;
-}}
-.pendamping-editorial-st .brand {{ text-decoration: none; }}
-.pendamping-editorial-st .brand .nama {{ color: {T.AKSEN_TEAL_TUA}; font-size: 1.25rem; letter-spacing: -.025em; }}
-.pendamping-editorial-st .topbar-navigasi {{ gap: {T.SP_2}; min-width: 0; }}
-.pendamping-editorial-st .menu-pengguna {{ min-width: 0; }}
-.pendamping-editorial-st .menu-pengguna summary {{
-  min-height: {T.TARGET_SENTUH}; display: flex; align-items: center; gap: {T.SP_2};
-  max-width: 18rem; overflow-wrap: anywhere; padding: {T.SP_2};
-}}
-.pendamping-editorial-st .menu-pengguna summary::after {{ content: none; }}
-.pendamping-editorial-st .badge-peran-guru {{ background: transparent; color: {T.TEKS_VARIAN}; }}
 .pendamping-editorial-st :is(h1, h2, h3) {{ color: {T.TEKS_JUDUL}; }}
 .pendamping-editorial-st h1 {{
   font: 700 {T.UKURAN_JUDUL_DEWASA}/1.3 {T.FONT_HEADLINE};
@@ -2863,10 +2833,6 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 @media (max-width: 40rem) {{
   .pendamping-editorial-st {{ width: 100%; max-width: 100%; padding: {T.SP_4} {T.SP_4} {T.SP_7}; overflow-x: clip; }}
   .pendamping-editorial-st.profil-editorial-st {{ width: 100%; max-width: 100%; margin-inline: 0; }}
-  .pendamping-editorial-st .st-topbar {{ flex-wrap: wrap; }}
-  .pendamping-editorial-st .topbar-navigasi {{ flex-wrap: wrap; margin-left: auto; justify-content: flex-end; }}
-  .pendamping-editorial-st .badge-peran-guru {{ padding: 0; font-size: .7rem; }}
-  .pendamping-editorial-st .menu-pengguna summary {{ max-width: 12rem; }}
   .pendamping-editorial-st :is(.kartu, .koreksi-kartu-st, .kartu-rencana-st) {{ padding: {T.SP_4}; }}
   .pendamping-editorial-st .baris {{ flex-direction: column; }}
   .pendamping-editorial-st .baris > div {{ width: 100%; }}
@@ -2895,29 +2861,25 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 /* Panel tab nonaktif sudah display:none; jangan menebak dari urutan jenis tag. */
 .pendamping-editorial-st .pendamping-buka-inline[hidden],
 .pendamping-editorial-st:has(> .pendamping-panel-kanan:not([hidden])) .pendamping-buka-inline {{ display: none !important; }}
-.pendamping-editorial-st:has(.pendamping-pemicu):not(:has(> .pendamping-panel-kanan:not([hidden]))) > .st-topbar {{ padding-right: 4.5rem; }}
-.pendamping-editorial-st:has(.pendamping-pemicu) {{ position: relative; }}
+/* Pemicu "Tanya": satu pola di semua halaman guru (22 Nov 2026), pil mengambang
+   kanan bawah. Tidak masuk ke topbar sehingga header identik di semua halaman. */
+.pendamping-editorial-st:has(.pendamping-pemicu) {{
+  padding-bottom: calc({T.TARGET_SENTUH} + {T.SP_4} * 2 + env(safe-area-inset-bottom, 0px));
+}}
 .pendamping-editorial-st .pendamping-pemicu {{
-  position: absolute; top: {T.SP_5}; right: {T.SP_5}; z-index: 60;
+  position: fixed; top: auto; right: {T.SP_4}; bottom: {T.SP_4}; z-index: 60;
   display: inline-flex; align-items: center; justify-content: center; gap: {T.SP_2};
-  width: {T.TINGGI_KONTROL}; min-width: {T.TINGGI_KONTROL}; height: {T.TINGGI_KONTROL};
-  padding: {T.SP_2}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
-  border-radius: {T.RADIUS_KARTU}; background: {T.LATAR_KARTU};
-  color: {T.AKSEN_TEAL_TUA}; cursor: pointer;
+  width: auto; min-width: {T.TARGET_SENTUH}; height: {T.TARGET_SENTUH}; min-height: {T.TARGET_SENTUH};
+  padding: 0 {T.SP_4}; border: 1.5px solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_PIL};
+  background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA};
+  font: 600 {T.UKURAN_TEKS_LABEL}/1.4 {T.FONT_BODY}; white-space: nowrap; cursor: pointer;
 }}
 .pendamping-editorial-st .pendamping-pemicu:hover {{ background: {T.LATAR_SEKUNDER_LEMBUT}; }}
 .pendamping-editorial-st .pendamping-pemicu:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
-.pendamping-pemicu svg {{ width: {T.UKURAN_IKON}; height: {T.UKURAN_IKON}; }}
+.pendamping-pemicu svg {{ width: 18px; height: 18px; flex: none; }}
 .pendamping-lencana-akses {{ position: absolute; right: -.2rem; bottom: -.2rem; display: grid; place-items: center; width: 1.1rem; height: 1.1rem; border-radius: {T.RADIUS_BULAT}; background: {T.LATAR_KARTU}; color: {T.TEKS_VARIAN}; line-height: 1; }}
 .pendamping-lencana-akses svg {{ width: .8rem; height: .8rem; stroke-width: 2; }}
-.pendamping-pemicu-label {{
-  position: absolute; top: calc(100% + {T.SP_2}); right: 0; display: none;
-  padding: {T.SP_2} {T.SP_3}; border-radius: {T.RADIUS_KECIL};
-  background: {T.LATAR_TOOLTIP}; color: {T.TEKS_TOOLTIP};
-  font-size: {T.UKURAN_TEKS_CATATAN}; white-space: nowrap;
-}}
-.pendamping-pemicu:hover .pendamping-pemicu-label,
-.pendamping-pemicu:focus-visible .pendamping-pemicu-label {{ display: block; }}
+.pendamping-pemicu-label {{ display: inline; position: static; padding: 0; background: transparent; color: inherit; font: inherit; }}
 .pendamping-editorial-st:has(> .pendamping-panel-kanan:not([hidden])) {{ display: block; }}
 .pendamping-panel-kanan[hidden] {{ display: none; }}
 .pendamping-panel-kanan {{
@@ -3038,20 +3000,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-inline .pendamping-memori > summary:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
 .profil-editorial-st .atur-latihan-st .pendamping-inline .pendamping-memori > summary {{ display: list-item; min-height: {T.TARGET_SENTUH}; }}
 .profil-editorial-st .atur-latihan-st .pendamping-inline .pendamping-memori > summary::before {{ content: none; }}
-@media (hover: none), (pointer: coarse), (max-width: 59.9375rem) {{
-  .pendamping-editorial-st .pendamping-pemicu {{ width: auto; padding-inline: {T.SP_3}; }}
-  .pendamping-pemicu-label {{ display: inline; position: static; padding: 0; background: transparent; color: inherit; font-size: {T.UKURAN_TEKS_CATATAN}; }}
-  .pendamping-editorial-st:has(.pendamping-pemicu):not(:has(> .pendamping-panel-kanan:not([hidden]))) > .st-topbar {{ padding-right: 9.5rem; }}
-}}
 @media (max-width: 59.9375rem) {{
-  .pendamping-editorial-st .pendamping-pemicu {{ top: {T.SP_4}; right: {T.SP_4}; }}
-  .pendamping-editorial-st:has(.pendamping-pemicu):not(:has(> .pendamping-panel-kanan:not([hidden]))) > .st-topbar {{ padding-right: 0; }}
-  .pendamping-editorial-st:has(.pendamping-pemicu) .topbar-navigasi {{ flex-basis: 100%; justify-content: flex-start; }}
-  .pendamping-editorial-st:has(.pendamping-pemicu) .menu-pengguna summary {{ padding-inline: 0; }}
-  .pendamping-editorial-st:has(.pendamping-pemicu) .identitas-akun-st {{ display: flex; align-items: center; gap: {T.SP_2}; flex-wrap: wrap; }}
-  .pendamping-editorial-st:has(.pendamping-pemicu) .menu-isi {{ left: 0; right: auto; }}
-  .pendamping-editorial-st:has(.pendamping-pemicu) > .st-topbar {{ flex-wrap: wrap; }}
-
   .pendamping-panel-kanan[data-tampilan="percakapan"], .pendamping-panel-kanan {{
     position: fixed; inset: auto 0 0; z-index: 70; width: 100%; max-height: 85dvh; height: 85dvh;
     border-radius: {T.RADIUS_KARTU_BESAR} {T.RADIUS_KARTU_BESAR} 0 0; background: {T.LATAR_KARTU};
@@ -3716,7 +3665,8 @@ GAYA_TEKS_MIN = "\n/* Teks informatif dewasa >= 14px */\n" + "".join(
     # Eyebrow dekoratif: sedikit lebih besar dan jarak huruf lebih rapat agar rapi, tetap kapital.
     f"body.st :is(.guru-alis-st, .editorial-alis-st, .kerja-alis-st) {{ font-size: {T.UKURAN_TEKS_CATATAN}; letter-spacing: .08em; line-height: 1.4; }}\n"
 )
-GAYA_STITCH = GAYA_STITCH + GAYA_TEKS_MIN
+from shell_guru_style import GAYA_SHELL_GURU
+GAYA_STITCH = GAYA_STITCH + GAYA_TEKS_MIN + GAYA_SHELL_GURU
 
 
 def gaya_stitch() -> str:

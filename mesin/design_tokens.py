@@ -458,6 +458,7 @@ RADIUS_BULAT = "50%"       # nomor badge
 
 TARGET_SENTUH = "44px"     # pedoman aksesibilitas WCAG 2.5.5
 LEBAR_KONTEN = "46rem"     # maksimum lebar konten layar (kolom baca & form)
+LEBAR_SHELL_GURU = "60rem"  # wadah topbar semua halaman guru (22 Nov 2026); isi boleh lebih sempit
 
 # Landing publik = permukaan marketing, bukan kolom baca. 46rem di sana
 # menyisakan ~776px kosong di laptop 1512px (terukur 4 Sep: konten 736px,

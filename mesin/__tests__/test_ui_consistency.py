@@ -76,8 +76,9 @@ def _aturan(css, selector):
 def test_akun_satu_keluar_seluruh_body(db, section, peran):
     body = account_pages.halaman_akun(db, pengguna='guru-demo', peran=peran, section=section).decode()
     forms = [a for t, a in Markup(body).tags if t == 'form' and a.get('action') == '/keluar']
+    # 22 Nov 2026: satu-satunya form Keluar kini di menu topbar bersama (bukan tombol di kepala Akun).
     assert len(forms) == 1
-    assert forms[0].get('class') == 'akun-form-keluar'
+    assert 'class="menu-keluar-st"' in body and 'akun-form-keluar' not in body
     assert 'action="/keluar"' in teacher_shell._topbar_stitch('guru-demo', peran)
 
 
@@ -205,7 +206,7 @@ def test_kontrol_teks_tidak_mewarisi_label_kecil():
     selector = '.pendamping-editorial-st :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select, textarea)'
     assert f'font-size: {T.UKURAN_BADAN_LAYAR}' in _aturan(style_stitch.GAYA_STITCH, selector)
     assert f'font-size: {T.UKURAN_BADAN_LAYAR}' in _aturan(admin_style.GAYA_ADMIN, 'input, select, textarea')
-    assert T.AKSEN_KORAL_TUA in _aturan(style_stitch.GAYA_STITCH, '.st-topbar .cta')
+    assert T.AKSEN_KORAL_TUA in _aturan(style_stitch.GAYA_STITCH, '.st-topbar .menu-keluar-st')
 
 
 def test_grid_dan_select_latihan_tidak_kalah_aturan_lama():

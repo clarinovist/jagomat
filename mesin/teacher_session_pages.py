@@ -18,7 +18,7 @@ from teacher_corrections import (
     KODE_PILIHAN, pilihan_tersimpan, cara_untuk_form, cara_dari_form,
     label_penilaian,
 )
-from teacher_shell import _halaman, _topbar_stitch
+from teacher_shell import _halaman, _topbar_stitch, kelas_shell
 from offline_browser import SKRIP_OFFLINE
 from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
 from teacher_workspace import _ambil, _form_remedial, _tanggal_ringkas
@@ -711,12 +711,12 @@ def halaman_sesi_stitch(
             # Satu entry konsisten; pilihan soal tetap dilakukan di dalam panel,
             # bukan lewat sederet tombol yang bersaing dengan koreksi.
             konteks_pendamping = assistant_components.tombol_buka(
-                target_sesi, form_id=f"form-koreksi-{sesi_id}", label="Pendamping",
+                target_sesi, form_id=f"form-koreksi-{sesi_id}", label="Tanya",
                 status_akses=status_akses,
             )
         else:
             konteks_pendamping = assistant_components.tombol_buka(
-                target_sesi, status_akses=status_akses,
+                target_sesi, label="Tanya", status_akses=status_akses,
             )
     # Satu nama di semua tab dan semua state: tab yang sama tidak boleh
     # berganti nama tergantung sudah/belum dikirim (2026-10-04).
@@ -1148,5 +1148,5 @@ def halaman_sesi_stitch(
 {brand.tag_kepala(cetak=bool(bantuan or privat))}
 {tag_font_lokal()}{'' if (bantuan or privat) else '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" rel="stylesheet">'}
 <style>{gaya_sesi}{CSS_SESI}{gaya_playbook}{gaya_pancingan}{parent_help.GAYA}{mapping_results.GAYA_HASIL if hasil_pemetaan else ''}</style></head>
-<body class="st"><div class="bungkus-st pendamping-editorial-st koreksi-editorial-st">{batang}{isi}</div>{skrip_extra}</body></html>"""
+<body class="st"><div class="{kelas_shell("pendamping-editorial-st koreksi-editorial-st")}">{batang}{isi}</div>{skrip_extra}</body></html>"""
     ).encode()

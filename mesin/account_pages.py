@@ -467,17 +467,15 @@ def halaman_akun(
         '<p class="editorial-alis-st">AKUN KELUARGA</p>'
         '<h1 id="judul-akun">Akun &amp; pengaturan</h1>'
         '<p class="sub">Kelola akses dan ruang belajar keluarga.</p></div>'
-        f'<div class="akun-aksi-kepala-st">{chip_anak}'
-        '<form class="akun-form-keluar" method="post" action="/keluar">'
-        '<button type="submit" class="tombol-sekunder">Keluar</button></form></div></header>'
+        f'<div class="akun-aksi-kepala-st">{chip_anak}</div></header>'
         f"{kabar}"
         f'<div class="layout-samping">'
         f'<nav class="nav-samping" aria-label="Pengaturan akun">{nav}</nav>'
         f"<div>{isi_section}</div>"
         f"</div>",
         ident=(pengguna or "guru", peran),
-        stitch=True, kelas_bungkus="pendamping-editorial-st akun-editorial-st lebar",
-        id_utama="judul-akun", privat=True, keluar_topbar=False,
+        stitch=True, kelas_bungkus="pendamping-editorial-st akun-editorial-st",
+        id_utama="judul-akun", privat=True,
         skrip_privat='' if section == 'arsip-pendamping' else SKRIP_AKUN,
     )
 

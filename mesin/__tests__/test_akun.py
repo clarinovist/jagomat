@@ -887,8 +887,10 @@ def test_akun_saya_punya_tombol_keluar_terlihat_tanpa_petunjuk_menu(siap):
     with database.buka(siap) as kon:
         h = account_pages.halaman_akun(kon, pengguna="guru", section="akun").decode()
     badan = h.split('<main', 1)[-1] if '<main' in h else h.split('class="sesi-badan-st"', 1)[1]
-    assert 'class="akun-form-keluar" method="post" action="/keluar"' in badan
-    assert 'type="submit" class="tombol-sekunder">Keluar</button>' in badan
+    # 22 Nov 2026: Keluar pindah ke menu topbar bersama (tautan bahaya), bukan tombol di kepala halaman.
+    assert 'akun-form-keluar' not in h
+    assert h.count('action="/keluar"') == 1
+    assert 'type="submit" class="menu-keluar-st">Keluar</button>' in h
     assert "buka menu nama akun" not in h
 
 
