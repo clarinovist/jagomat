@@ -16,6 +16,7 @@ import brand
 import contest_core as C
 import contest_komponen as KP
 import contest_store as K
+import murid_shell as MS
 from contest_browser import SKRIP_TIMER
 from contest_style import GAYA_LOMBA
 
@@ -23,16 +24,10 @@ DASAR = "/murid/lomba"
 ALAMAT_AWAL = DASAR
 ALAMAT_MULAI = DASAR + "/mulai"
 BATAS_MERAH_DETIK = 180
-JUMLAH_SOAL = K.NOMOR_TERAKHIR
+JUMLAH_SOAL = K.NOMOR_TERAKHIR    # banyak soal Latihan; sesi lebih panjang (Simulasi) memindahkan grid nomor ke bawah kartu
 MAKS_ISI_GALAT = 12               # maxlength input isian = panjang ketikan galat yang dipertahankan; beri ruang untuk spasi ("1 2 3 4"), server tetap memvalidasi
 PESAN_GALAT_ANGKA = "Tulis angkanya saja, tanpa huruf atau tanda baca. Contoh: 120"
 _DETIK_PER_MENIT = 60
-_FONT = (
-    '<link rel="preconnect" href="https://fonts.googleapis.com">'
-    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-    '<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700'
-    '&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">'
-)
 
 
 def alamat_sesi(sesi_id: int, nomor: int = 1, galat: bool = False, isi: str = "") -> str:
@@ -72,9 +67,8 @@ def dokumen(judul: str, isi: str, skrip: str = "", gaya_tambahan: str = "") -> b
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(judul))}</title>
 {brand.tag_kepala()}
-{_FONT}
-<style>{GAYA_LOMBA}{gaya_tambahan}</style></head>
-<body class="lomba"><div class="bingkai">
+{MS.kepala_murid(GAYA_LOMBA + gaya_tambahan, cetak=False)}</head>
+<body class="lomba"><div class="bingkai murid-wadah-st">
 {isi}
 </div>{skrip}</body></html>""".encode()
 
@@ -90,7 +84,8 @@ def _timer(sesi_id: int, sisa: int) -> str:
 
 
 def _bilah(sesi_id: int, sisa: int, kiri: str) -> str:
-    return f'<header class="bilah"><span class="bilah-nomor">{kiri}</span>{_timer(sesi_id, sisa)}</header>'
+    """Topbar murid dengan timer di slot kanan, lalu label posisi ("Soal 1 dari 35") di bawahnya."""
+    return MS.topbar_murid(_timer(sesi_id, sisa)) + f'<p class="bilah-nomor">{kiri}</p>'
 
 
 def _tombol_nomor(nomor: int, aktif: bool, terjawab: bool) -> str:
@@ -104,6 +99,16 @@ def _tombol_nomor(nomor: int, aktif: bool, terjawab: bool) -> str:
 def _strip_nomor(nomor_aktif: int, terjawab: AbstractSet[int], jumlah: int) -> str:
     butir = "".join(_tombol_nomor(n, n == nomor_aktif, n in terjawab) for n in range(1, jumlah + 1))
     return f'<nav aria-label="Nomor soal"><ol class="strip">{butir}</ol></nav>'
+
+
+def _daftar_nomor(nomor_aktif: int, terjawab: AbstractSet[int], jumlah: int) -> str:
+    """Grid nomor sesi panjang: dilipat di bawah kartu supaya teks soal terlihat di layar pertama HP.
+
+    Tetap anak form yang sama: tombol nomor = submit `pindah` yang ikut menyimpan isian.
+    """
+    ringkas = f"Semua nomor · {len(terjawab)} dari {int(jumlah)} terjawab"
+    return (f'<details class="daftar-nomor"><summary>{ringkas}</summary>'
+            f'{_strip_nomor(nomor_aktif, terjawab, jumlah)}</details>')
 
 
 def _tombol_pilihan(huruf: str, teks: str, gambar: str, dipilih: bool) -> str:
@@ -146,21 +151,26 @@ def halaman_soal(sesi_id: int, soal: K.SoalAnak, terjawab: AbstractSet[int], sis
                  galat: bool = False, isi_galat: str = "", jumlah: int = JUMLAH_SOAL) -> bytes:
     """Satu soal per layar (`jumlah` = banyak soal sesi: 10 Latihan, 35 Simulasi).
 
-    Urutan DOM: tombol Simpan bawaan (tersembunyi-visual) paling awal di form.
+    Urutan DOM: tombol Simpan bawaan (tersembunyi-visual) paling awal di form. Latihan: strip nomor di atas
+    kartu; sesi lebih dari `JUMLAH_SOAL` soal: grid nomor dilipat di bawah kartu dan tombol geser.
     """
     isian = soal.jenis != C.JENIS_PG
     jawaban = _blok_isian(soal, galat, isi_galat) if isian else _blok_pilihan(soal)
     gambar = f'<div class="gambar">{soal.svg}</div>' if soal.svg else ""
     topik = html.escape(C.LABEL_TOPIK.get(soal.topik, ""))
+    panjang = int(jumlah) > JUMLAH_SOAL
+    strip_atas = "" if panjang else _strip_nomor(soal.nomor, terjawab, jumlah)
+    daftar_bawah = _daftar_nomor(soal.nomor, terjawab, jumlah) if panjang else ""
     isi = f"""{_bilah(sesi_id, sisa, f"Soal {soal.nomor} dari {int(jumlah)}")}
 <main class="isi"><h1 class="sr-saja">Latihan Lomba</h1>
 <form method="post" action="{alamat_jawab(sesi_id)}" novalidate>
 <button type="submit" name="aksi" value="simpan" class="sr-saja">Simpan</button>
 <input type="hidden" name="no" value="{soal.nomor}">
-{_strip_nomor(soal.nomor, terjawab, jumlah)}
+{strip_atas}
 <section class="kartu"><p class="topik">{topik}</p>
 <p class="teks-soal">{html.escape(soal.teks)}</p>{gambar}{jawaban}</section>
 {_tombol_geser(soal.nomor, jumlah)}
+{daftar_bawah}
 <button type="submit" name="aksi" value="selesai" class="tautan-selesai">Selesai &amp; kumpulkan</button>
 </form>
 </main>"""
@@ -219,7 +229,8 @@ def halaman_selesai(sesi_id: int, kosong: Sequence[int], sisa: int, jumlah: int 
 
 def halaman_gagal_siapkan() -> bytes:
     """Ramah anak saat soal gagal dirakit; tanpa detail teknis."""
-    isi = f"""<main class="isi"><section class="kartu">
+    isi = f"""{MS.topbar_murid()}
+<main class="isi"><section class="kartu">
 <h1 class="judul">Soal belum bisa disiapkan</h1><p>Coba lagi nanti, ya.</p>
 <a class="tombol besar" href="{ALAMAT_AWAL}">Kembali</a>
 </section></main>"""

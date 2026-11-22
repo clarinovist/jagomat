@@ -43,7 +43,7 @@ def _pilih_mode(paket) -> str:
     catatan = CATATAN_SIMULASI.format(pg=simulasi.jumlah_pg, isian=simulasi.jumlah_isian)
     return ('<div class="pilih-mode">' + _tombol_mode(paket, PK.MODE_LATIHAN, "tombol besar")
             + _tombol_mode(paket, PK.MODE_SIMULASI, "tombol besar sekunder") + "</div>"
-            + f'<p class="catatan">{html.escape(catatan)}</p>')
+            + f'<p class="catatan-kecil">{html.escape(catatan)}</p>')
 
 
 def _aksi(ringkas: "RingkasAnak") -> str:
@@ -101,7 +101,7 @@ def halaman_awal(ringkas: "RingkasAnak") -> bytes:
 <main class="isi"><section class="kartu kartu-awal">
 {KP.maskot_kartu("menunjuk")}
 <h1 class="judul">{PK.JUDUL_ANAK}</h1>
-<p class="catatan">{CATATAN_WAKTU}</p>
+<p class="catatan-kecil">{CATATAN_WAKTU}</p>
 {_aksi(ringkas)}
 </section>{_kartu_kemajuan(ringkas)}{_nilai_terbaik(ringkas)}{_latihan_terakhir(ringkas)}</main>"""
     return P.dokumen("Latihan Lomba", isi, gaya_tambahan=GAYA_AWAL)

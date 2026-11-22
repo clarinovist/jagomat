@@ -32,15 +32,15 @@ body.lomba {{
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
   clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }}
-.bingkai {{ max-width: {T.LEBAR_KONTEN}; margin: 0 auto; min-height: 100vh; min-height: 100dvh; }}
+/* Lebar kolom dan gutter dari shell murid (.murid-wadah-st); di sini hanya tinggi layar. */
+.bingkai {{ min-height: 100vh; min-height: 100dvh; }}
 
-/* ===== bilah atas menempel: nomor soal + timer ===== */
-.bilah {{
-  position: sticky; top: 0; z-index: 10; display: flex; align-items: center;
-  justify-content: space-between; gap: {T.SP_3}; padding: {T.SP_3} {T.SP_4};
-  background: {T.LATAR_KARTU}; border-bottom: {T.TEBAL_GARIS} solid {T.ANAK_BORDER};
+/* ===== topbar murid menempel di soal supaya timer (slot kanan) selalu terlihat ===== */
+body.lomba .murid-topbar-st {{
+  position: sticky; top: 0; z-index: 10; margin-bottom: {T.SP_3}; padding-top: {T.SP_2};
+  background: {T.LATAR_MURID};
 }}
-.bilah-nomor {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; }}
+.lomba .bilah-nomor {{ margin: 0 0 {T.SP_3}; font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; }}
 .timer {{
   min-width: 5.5rem; padding: {T.SP_1} {T.SP_3}; text-align: center; font-family: {T.FONT_HEADLINE};
   font-size: {_HURUF_TIMER}; font-weight: 800; font-variant-numeric: tabular-nums;
@@ -57,7 +57,7 @@ body.lomba {{
   background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.ANAK_BORDER}; border-radius: {T.RADIUS_KARTU_BESAR};
 }}
 .topik {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; color: {T.TEKS_VARIAN}; }}
-.teks-soal {{ font-size: {_HURUF_SOAL}; font-weight: 700; line-height: 1.4; white-space: pre-line; }}
+.teks-soal {{ font-size: {T.UKURAN_SOAL}; font-weight: {T.BOBOT_SOAL}; line-height: {T.LINE_HEIGHT_SOAL}; white-space: pre-line; }}
 .gambar {{ display: flex; justify-content: center; }}
 .gambar svg {{ width: 100%; max-width: {T.LEBAR_VISUAL_SOAL}; height: auto; }}
 
@@ -118,9 +118,9 @@ span.nomor {{ cursor: default; }}
   display: inline-flex; align-items: center; justify-content: center;
   min-height: {T.TINGGI_CTA}; padding: 0 {T.SP_5}; font-family: inherit; font-size: {_HURUF_JAWABAN}; font-weight: 700;
   text-decoration: none; text-align: center; cursor: pointer;
-  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; border: 0; border-radius: {T.RADIUS_KARTU};
+  background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH}; border: 0; border-radius: {T.RADIUS_KARTU};
 }}
-.tombol:hover {{ background: {T.AKSEN_TEAL_HOVER}; }}
+.tombol:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .tombol.sekunder {{ background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; border: 2px solid {T.BORDER_KONTROL}; }}
 .tombol.sekunder:hover {{ border-color: {T.ANAK_AKSEN}; }}
 .tombol.besar {{ width: 100%; min-height: 4.5rem; font-size: {_HURUF_SOAL}; }}
@@ -131,13 +131,19 @@ span.nomor {{ cursor: default; }}
 }}
 .tautan-selesai:hover {{ color: {T.TEKS_JUDUL}; }}
 
-/* ===== bilah atas halaman awal dan hasil (tautan ke beranda) ===== */
-.bilah-atas {{ padding: {T.SP_2} {T.SP_4}; background: {T.LATAR_KARTU}; border-bottom: {T.TEBAL_GARIS} solid {T.ANAK_BORDER}; }}
-.tautan-beranda {{
-  display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; font-weight: 700;
-  color: {T.TEKS_JUDUL}; text-decoration: none;
+/* Sesi panjang (Simulasi): grid nomor dilipat di bawah kartu soal dan tombol geser. */
+.daftar-nomor {{ background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.ANAK_BORDER}; border-radius: {T.RADIUS_KARTU}; }}
+.daftar-nomor > summary {{
+  display: flex; align-items: center; justify-content: space-between; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH};
+  padding: {T.SP_2} {T.SP_4}; font-weight: 700; cursor: pointer; list-style: none;
 }}
-.tautan-beranda:hover {{ text-decoration: underline; }}
+.daftar-nomor > summary::after {{ content: "\\25BE"; flex: none; }}
+.daftar-nomor[open] > summary::after {{ content: "\\25B4"; }}
+.daftar-nomor > nav {{ padding: 0 {T.SP_3} {T.SP_3}; }}
+
+
+
+/* ===== halaman awal dan hasil: tautan Beranda ada di slot kanan topbar murid ===== */
 .maskot-kartu {{ display: block; width: {_LEBAR_MASKOT}; height: auto; }}
 
 /* ===== halaman awal, konfirmasi, hasil ===== */
@@ -287,11 +293,14 @@ GAYA_HASIL = f"""
 GAYA_AWAL = f"""
 .kartu-awal {{ align-items: flex-start; }}
 .pilih-mode {{ display: flex; flex-direction: column; gap: {T.SP_3}; align-self: stretch; }}
+/* Label mode panjang ("Simulasi Lomba (35 soal · 60 menit)"): ukuran tombol biasa supaya satu baris di HP. */
+.pilih-mode .tombol.besar {{ min-height: {T.TINGGI_CTA}; padding-inline: {T.SP_3}; font-size: {_HURUF_JAWABAN}; }}
 .label-mode {{
   padding: {T.SP_1} {T.SP_2}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; color: {T.TEKS_JUDUL};
   background: {T.ANAK_ABU_HANGAT}; border-radius: {T.RADIUS_PIL};
 }}
 .kartu-awal .tombol, .kartu-awal form {{ align-self: stretch; }}
+.catatan-kecil {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ANAK_TEKS_REDUP}; }}
 .hitung-mundur {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; }}
 .target {{ display: flex; flex-direction: column; gap: {T.SP_2}; }}
 .target-teks {{ font-weight: 700; }}
@@ -335,6 +344,9 @@ GAYA_HASIL_ANAK = f"""
 }}
 .hl-lipat > .hl-daftar-soal {{ margin: 0; padding: 0 {T.SP_3} {T.SP_3}; }}
 .hl-lipat .hl-soal {{ border: 0; padding: {T.SP_3}; }}
+/* "Tidak dijawab" = badge netral polos (tanpa garis putus), sama untuk lencana kartu dan peta nomor. */
+.hl-status.hl-kosong-jawab {{ border-color: transparent; }}
+.peta-nomor.hl-kosong-jawab {{ border: 2px solid transparent; }}
 .hasil-lomba .aksi {{ margin-top: {T.SP_2}; }}
 @media (max-width: {T.ANAK_BATAS_HP}) {{
   .peta {{ grid-template-columns: repeat(5, 1fr); }}
@@ -377,18 +389,24 @@ GAYA_BERANDA = f"""
   background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.ANAK_BORDER}; border-radius: {T.RADIUS_KARTU_BESAR};
 }}
 .lomba-beranda.besar {{ margin-top: 0; }}
-.lomba-beranda h2 {{ margin: 0; font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; }}
+.lomba-beranda h2 {{ margin: 0; font: 800 {T.UKURAN_BAGIAN_DEWASA}/1.4 {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; }}
+.lb-kepala {{ display: flex; align-items: center; gap: {T.SP_3}; }}
+.lb-kepala > div {{ display: flex; flex-direction: column; min-width: 0; }}
 .lomba-beranda.besar h2 {{ font-size: {T.UKURAN_JUDUL_STITCH}; }}
 .lomba-beranda p {{ margin: 0; }}
 .lomba-beranda .maskot-kartu {{ display: block; width: {_LEBAR_MASKOT}; height: auto; }}
 .lb-status {{ font-weight: 800; color: {T.ANAK_PERHATIAN_TEKS}; }}
 .lb-meta {{ color: {T.ANAK_TEKS_REDUP}; font-size: {T.UKURAN_TEKS_LABEL}; }}
+/* Beranda punya satu tombol utama koral: kartu kecil = tombol sekunder (garis); kartu besar menggantikan hero
+   saat anak belum punya sesi dari Guru, jadi tombolnya menjadi yang utama. */
 .lb-tombol {{
   display: inline-flex; align-items: center; justify-content: center; align-self: stretch; min-height: {T.TINGGI_CTA};
   padding: 0 {T.SP_5}; font-weight: 700; text-decoration: none; text-align: center;
-  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; border-radius: {T.RADIUS_KARTU};
+  background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; border: 2px solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KARTU};
 }}
-.lb-tombol:hover {{ background: {T.AKSEN_TEAL_HOVER}; }}
+.lb-tombol:hover {{ background: {T.LATAR_ELEVASI}; }}
+.lomba-beranda.besar .lb-tombol {{ background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH}; border-color: transparent; }}
+.lomba-beranda.besar .lb-tombol:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .lomba-beranda .hitung-mundur {{ font-size: 1rem; }}
 .lomba-beranda .target {{ align-self: stretch; }}
 .lomba-beranda .target-teks {{ font-size: {T.UKURAN_TEKS_LABEL}; }}

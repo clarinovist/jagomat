@@ -8,6 +8,7 @@ from __future__ import annotations
 import html
 
 import brand
+import murid_shell as MS
 
 ALAMAT_BERANDA = "/murid"
 UKURAN_MASKOT = 96
@@ -15,9 +16,9 @@ _PERSEN_PENUH = 100
 
 
 def bilah_beranda() -> str:
-    """Bilah atas dengan satu tautan kembali ke beranda murid."""
-    return (f'<header class="bilah-atas"><a class="tautan-beranda" href="{ALAMAT_BERANDA}">'
-            '<span aria-hidden="true">←</span>&nbsp;Beranda</a></header>')
+    """Topbar murid dengan satu tautan kembali ke beranda di slot kanan."""
+    return MS.topbar_murid(f'<a class="tautan-beranda" href="{ALAMAT_BERANDA}">'
+                           '<span aria-hidden="true">←</span>&nbsp;Beranda</a>')
 
 
 def maskot_kartu(pose: str) -> str:

@@ -88,6 +88,7 @@ def _lipat_serah(lanjut: str) -> str:
 
 def halaman_masuk(galat: str = "", *, lanjut: str = "") -> bytes:
     """Render form masuk editorial; façade lama tetap berada di ``web``."""
+    from font_lokal import tag_font_lokal, tanpa_impor_font_cdn
     from style_stitch import gaya_stitch
     from offline_browser import SKRIP_OFFLINE
     from teacher_style import SKRIP_MATA_SANDI
@@ -107,18 +108,13 @@ def halaman_masuk(galat: str = "", *, lanjut: str = "") -> bytes:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul("Masuk"))}</title>
 {brand.tag_kepala()}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">
-<style>{gaya_stitch()}</style></head>
+{tag_font_lokal()}<style>{tanpa_impor_font_cdn(gaya_stitch())}</style></head>
 <body class="st">
 <main class="masuk-badan-st" aria-labelledby="judul-masuk">
   <div class="masuk-kepala-st">
     <a class="masuk-brand-st" href="/" aria-label="{html.escape(T.NAMA_PRODUK)} — kembali ke beranda">
       {brand.mark("topbar", kelas="ik-owl")}
-      <span class="nama-brand">{html.escape(T.NAMA_PRODUK)}</span>
-      <span class="masuk-beranda-st" aria-hidden="true">/ beranda</span>
-    </a>
+      <span class="nama-brand">{html.escape(T.NAMA_PRODUK)}</span>    </a>
   </div>
   <div class="masuk-panel-st">
     <div class="masuk-catatan-st" aria-hidden="true">

@@ -236,10 +236,6 @@ AKSEN_TERANG_DIIZINKAN = MappingProxyType({
     ("style_stitch", "GAYA_STITCH", ".landing-cara-st .landing-nomor-st"): "amber di atas latar navy TEKS_JUDUL",
     ("style_stitch", "GAYA_STITCH", ".landing-cara-st li::before"): "amber di atas latar navy TEKS_JUDUL",
     ("cek_anak_style", "GAYA_CEK_ANAK", ".kabar .bintang"): "glif bintang dekoratif aria-hidden amber di atas navy TEKS_JUDUL, makna di teks",
-    ("style_stitch", "GAYA_STITCH", ".kerja-jawab-st .head-jawab .material-symbols-outlined"): "ikon dekoratif, makna di teks",
-    ("style_stitch", "GAYA_STITCH", ".kerja-foto-kepala-st .material-symbols-outlined"): "ikon dekoratif, makna di teks",
-    ("style_stitch", "GAYA_STITCH", ".hasil-langkah-st .material-symbols-outlined"): "ikon dekoratif, makna di teks",
-    ("style_stitch", "GAYA_STITCH", ".rumus-kepala-st .material-symbols-outlined"): "ikon dekoratif, makna di teks",
     ("style_stitch", "CSS_SESI", ".status-sesi-st .material-symbols-outlined, .status-sesi-st .ikon-status-sesi-st"):
         "ikon status dekoratif, status berteks",
     ("funnel_landing_style", "GAYA_LANDING_CEK", ".cek-hero-st h1 em"): "judul besar tebal (>=24px) amber di teal tua: 3,47:1 memenuhi 3:1 teks besar",

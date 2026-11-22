@@ -9,6 +9,7 @@ import child_latihan_style
 import child_ringkasan_style
 import child_style
 import database
+import murid_shell
 import design_tokens as T
 import profile_workspace
 import question_variants_ui
@@ -45,7 +46,8 @@ TOMBOL = {
     'beranda': (child_beranda_style.GAYA_BERANDA, (
         '.bungkus-st.profil-workspace-st.beranda-profil-st .beranda-aksi-st .rencana-cta-utama-st',)),
     'latihan': (child_latihan_style.GAYA_LATIHAN, ('.bungkus-st.profil-workspace-st .latihan-aksi-st button',)),
-    'murid': (style_stitch.GAYA_STITCH, ('.murid-tombol-utama-st', '.kerja-topbar-st .cta-keluar')),
+    'murid': (style_stitch.GAYA_STITCH, ('.murid-tombol-utama-st',)),
+    'murid-shell': (murid_shell.GAYA_SHELL_MURID, (murid_shell.AKSI_TOPBAR,)),
     # Sisa 1 Nov 2026: tombol dasar GAYA_GURU (9px/8px/6px), Langganan (8px), lampiran (9px).
     'guru-dasar': (teacher_style.GAYA_GURU, ('button', '.btn', 'button.tombol-kecil')),
     'langganan': (subscription_style.GAYA_LANGGANAN, ('.langganan-panel button,.langganan-panel .tombol',)),

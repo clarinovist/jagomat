@@ -234,3 +234,28 @@ def test_kartu_beranda_tanpa_skrip_dan_tanpa_nama_acara():
     kartu = H.kartu_beranda(_ringkas(paket=paket))
 
     assert "<script" not in kartu and "Nama Acara Uji" not in kartu and ">Mode Lomba</h2>" in kartu
+
+
+# --- audit area anak Fase 2 (#13): satu kotak catatan, kartu beranda selaras kartu lain ----------------
+
+def test_awal_catatan_waktu_dan_simulasi_teks_kecil_tanpa_kotak_kuning_saat_idle():
+    isi = _badan(_awal())
+
+    assert f'<p class="catatan-kecil">{W.CATATAN_WAKTU}</p>' in isi
+    assert 'class="catatan-kecil">Simulasi Lomba mirip' in isi
+    assert 'class="catatan"' not in isi
+
+
+def test_awal_sesi_berjalan_hanya_satu_kotak_catatan():
+    isi = _badan(_awal(berjalan=_berjalan(), sisa_detik=700, terisi=frozenset({1})))
+
+    assert isi.count('class="catatan"') == 1 and "masih berjalan" in isi
+    assert f'<p class="catatan-kecil">{W.CATATAN_WAKTU}</p>' in isi
+
+
+def test_kartu_beranda_punya_ikon_eyebrow_dan_judul_seperti_kartu_lain():
+    kartu = H.kartu_beranda(_ringkas())
+
+    assert '<span class="murid-ikon-topik-st"><svg class="murid-ikon-st"' in kartu
+    assert f'<span class="murid-tahap-st">{H.EYEBROW}</span><h2 id="judul-lomba">Mode Lomba</h2>' in kartu
+    assert 'class="target-teks">Latihan hari ini: 0 dari' in kartu

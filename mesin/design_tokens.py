@@ -431,6 +431,12 @@ UKURAN_ANGKA_FUNNEL_HP = "2.25rem"  # 36px, <=560px
 UKURAN_JUDUL_STITCH = "1.75rem"   # 28px, h1.st
 UKURAN_BAGIAN_STITCH = "1.25rem"  # 20px, h2.st
 
+# Teks soal untuk anak (lembar kerja dan Latihan Lomba): satu skala supaya kalimat tanya tidak
+# berganti ukuran/bobot antar permukaan (audit area anak #7, 22 Nov 2026).
+UKURAN_SOAL = "1.125rem"  # 18px
+BOBOT_SOAL = "600"
+LINE_HEIGHT_SOAL = "1.5"
+
 # ─────────────────────────────────────────────────────────────────────
 # Spacing — skala 4px base (lihat docs/design-system.md)
 # ─────────────────────────────────────────────────────────────────────

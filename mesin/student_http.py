@@ -11,7 +11,22 @@ import urllib.parse
 
 import attachments as lampiran_mod
 import database
-from support_pages import halaman_pesan as _halaman
+from support_pages import halaman_pesan_murid as _halaman
+
+PESAN_SESI_HABIS = ("Sesi kamu sudah habis atau akun lain masuk di perangkat ini. "
+                    "Masuk lagi dengan nama & sandimu, ya.")
+
+
+def alamat_masuk_murid(penangan) -> str:
+    """Tujuan 303 saat murid belum sah: pesan sesi habis hanya bila ada kuki sesi.
+
+    Anak yang belum pernah masuk (tanpa kuki/Basic) cukup melihat form /masuk polos;
+    kredensial yang ada tetapi tidak sah untuk murid (kedaluwarsa, akun lain, peran
+    bukan murid) tetap diberi tahu alasannya. Status dan palang tidak berubah.
+    """
+    if not penangan._ambil_token() and not penangan.headers.get("Authorization"):
+        return "/masuk"
+    return "/masuk?" + urllib.parse.urlencode({"galat": PESAN_SESI_HABIS})
 
 
 def tangani_get(penangan, jalur: str, jalur_penuh: str = "") -> bool:
@@ -33,12 +48,8 @@ def _get(penangan, kon, jalur: str, jalur_penuh: str) -> None:
 
     kredensial = penangan._sesi_atau_basic(peran_wajib="murid")
     if not kredensial:
-        qs = urllib.parse.urlencode({
-            "galat": "Sesi kamu sudah habis atau akun lain masuk di "
-                     "perangkat ini. Masuk lagi dengan nama & sandimu, ya.",
-        })
         penangan.send_response(303)
-        penangan.send_header("Location", f"/masuk?{qs}")
+        penangan.send_header("Location", alamat_masuk_murid(penangan))
         penangan.send_header("Content-Length", "0")
         penangan.end_headers()
         return

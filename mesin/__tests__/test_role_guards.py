@@ -113,7 +113,9 @@ def test_murid_get_tanpa_sesi_diarahkan_ke_halaman_masuk(server):
     """Muat-ulang dengan kuki hilang/kedaluwarsa dulu menjatuhkan anak ke
     halaman 401 polos; kini GET dibawa ke /masuk dengan pesan yang jelas."""
     s, _, _ = server
-    kode, isi, _ = s.minta("/murid")
+    # Kuki kedaluwarsa (sintetis): pesan alasan tetap muncul. Tanpa kuki sama
+    # sekali, /masuk polos — dikunci di test_murid_pesan_masuk.py.
+    kode, isi, _ = s.minta("/murid", cookie="token-kedaluwarsa-sintetis")
     # urllib mengikuti 303: ujungnya halaman masuk + pesan, bukan halaman murid.
     assert kode == 200
     assert "Pilih sesi" not in isi
@@ -133,7 +135,8 @@ def test_murid_get_tanpa_sesi_303_ke_masuk(server):
             return None
 
     opener = urllib.request.build_opener(TanpaIkut)
-    req = urllib.request.Request(s.alamat + "/murid")
+    req = urllib.request.Request(s.alamat + "/murid",
+                                 headers={"Cookie": "osn_sesi=token-kedaluwarsa-sintetis"})
     try:
         opener.open(req)
         raise AssertionError("GET /murid tanpa sesi harusnya 303")

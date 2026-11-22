@@ -196,7 +196,8 @@ def test_anonim_get_dialihkan_ke_masuk_seperti_halaman_murid_lain(server, jalur)
     lomba = _get(server, jalur, None)
     murid = _get(server, "/murid", None)
 
-    assert lomba.kode == 303 and lomba.lokasi.startswith("/masuk?galat=")
+    # Anonim tanpa kuki: /masuk polos, tanpa pesan "sesi habis" (audit area anak #15).
+    assert lomba.kode == 303 and lomba.lokasi == "/masuk"
     assert lomba.lokasi == murid.lokasi
 
 

@@ -88,7 +88,7 @@ def test_halaman_murid_menampilkan_profil_netral_bukan_kelas_sekolah(db):
     kerja = _badan(halaman_kerja.decode())
 
     for isi in (daftar, kerja):
-        assert "Variasi C" in isi
+        assert "Variasi" not in isi  # keputusan pemilik 22 Nov 2026 (audit area anak #10)
         assert "level P5" not in isi
 
 

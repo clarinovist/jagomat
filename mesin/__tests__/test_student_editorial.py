@@ -85,7 +85,8 @@ def test_kerja_editorial_landmark_label_dan_form(db_terjaga, mode, timer, token)
         assert not dom.ambil('a')
         assert not any(i.get('type') == 'file' for i in dom.ambil('input'))
     else:
-        assert len(form) == 3
+        assert len(form) == 2  # form kerja + form foto; tidak ada form Keluar (topbar punya Tutup)
+        assert not any(f.get('action') == '/keluar' for f in form)
         assert sum(a.get('href') == '/murid' for a in dom.ambil('a')) == 1
 
 

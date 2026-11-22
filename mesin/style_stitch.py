@@ -523,23 +523,15 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 }}
 .murid-lewati-st {{ position: absolute; left: {T.SP_4}; top: -8rem; padding: {T.SP_3}; background: {T.LATAR_KARTU}; z-index: 100; }}
 .murid-lewati-st:focus {{ top: {T.SP_3}; }}
-.murid-kepala-st {{ border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN}; }}
-.murid-kepala-st > div {{ max-width: 70rem; margin: auto; padding: 0 2.5rem; min-height: 5.5rem; display: flex; justify-content: space-between; align-items: center; gap: {T.SP_4}; }}
-.murid-brand-st {{ display: flex; gap: {T.SP_2}; align-items: center; font: 800 1.7rem/1 {T.FONT_HEADLINE}; color: {T.AKSEN_TEAL_TUA}; letter-spacing: -.04em; }}
-.murid-kepala-st form {{ margin: 0; }}
-.murid-kepala-st button {{ font: 600 .85rem {T.FONT_HEADLINE}; color: {T.TEKS_VARIAN}; background: none; border: 0; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3}; cursor: pointer; }}
-.murid-kepala-st button:hover {{ color: {T.AKSEN_KORAL_TUA}; }}
-.murid-kanvas-st {{ max-width: 70rem; margin: auto; padding: 2.5rem 2.5rem 0; }}
+.murid-kanvas-st {{ padding: 0; }}
 .murid-sapaan-st {{ margin-bottom: 1.9rem; }}
 .murid-alis-st {{ font: 700 .75rem/1.5 {T.FONT_HEADLINE}; letter-spacing: .09em; color: {T.AKSEN_TEAL_TUA}; margin: 0 0 {T.SP_2}; }}
 .murid-sapaan-st h1 {{ font: 800 2.4rem/1.25 {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL}; letter-spacing: -.04em; margin: 0 0 {T.SP_2}; overflow-wrap: anywhere; }}
 .murid-sapaan-st > p:not(.murid-alis-st) {{ font-size: .95rem; margin: 0; }}
 .murid-akun-hint-st {{ display: block; margin-top: {T.SP_1}; font-size: {T.UKURAN_TEKS_META}; color: {T.TEKS_SUBTLE}; }}
-.murid-grid-st {{ display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 1.75rem; align-items: start; }}
-.murid-grid-st.satu-kolom {{ grid-template-columns: minmax(0, 1fr); max-width: 46rem; }}
+.murid-grid-st {{ display: flex; flex-direction: column; gap: 1.75rem; }}
 .murid-kolom-utama-st, .murid-pendamping-st {{ min-width: 0; }}
 .murid-pendamping-st {{ display: grid; gap: {T.SP_5}; }}
-.murid-ikon-st {{ display: block; width: 1.35rem; height: 1.35rem; flex: none; }}
 .murid-beranda-st .st-kartu-baris {{
   display: grid; grid-template-columns: 2.8rem minmax(0, 1fr) auto; gap: {T.SP_3};
   align-items: center; padding: {T.SP_4}; border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS};
@@ -626,20 +618,14 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
 .murid-kaki-st {{ display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: {T.SP_3}; margin: {T.SP_6} {T.SP_4}; font-size: {T.UKURAN_TEKS_META}; color: {T.TEKS_SUBTLE}; }}
 .murid-kaki-st > span {{ color: {T.AKSEN_KORAL_TUA}; }}
 @media (max-width: 60rem) {{
-  .murid-grid-st {{ grid-template-columns: minmax(0, 1fr) 17rem; gap: {T.SP_5}; }}
   .murid-ilustrasi-st {{ width: 9rem; right: .6rem; }}
   .murid-lingkaran-st {{ width: 8rem; height: 8rem; }}
   .murid-judul-sampul-st {{ font-size: 2.2rem; }}
 }}
 @media (max-width: {T.BATAS_TABLET}) {{
-  .murid-kepala-st > div {{ min-height: 4.5rem; padding: 0 1.35rem; }}
-  .murid-brand-st {{ font-size: 1.5rem; }}
-  .murid-kanvas-st {{ padding: 1.7rem 1.35rem 0; max-width: 36rem; }}
   .murid-sapaan-st {{ margin-bottom: {T.SP_5}; }}
   .murid-sapaan-st h1 {{ font-size: 1.95rem; }}
   .murid-sapaan-st > p:not(.murid-alis-st) {{ font-size: {T.UKURAN_TEKS_BANTUAN}; }}
-  .murid-grid-st {{ display: flex; flex-direction: column; gap: 1.75rem; }}
-  .murid-kolom-utama-st, .murid-pendamping-st {{ width: 100%; }}
   .murid-beranda-st [data-utama] > .st-kartu-teks {{ min-height: 17rem; padding: 1.3rem; padding-right: 40%; }}
   .murid-ilustrasi-st {{ width: 8.5rem; top: 3.5rem; height: 12rem; right: .3rem; }}
   .murid-lingkaran-st {{ width: 7.5rem; height: 7.5rem; right: 0; }}
@@ -657,7 +643,6 @@ h3.st {{ font-size: 1.05rem; margin: 0.4rem 0; font-weight: 700; }}
   .murid-riwayat-isi-st .murid-ujung-st {{ margin-top: {T.SP_2}; }}
 }}
 @media (max-width: 23.5rem) {{
-  .murid-kanvas-st {{ padding-left: {T.SP_4}; padding-right: {T.SP_4}; }}
   .murid-sapaan-st h1 {{ font-size: {T.UKURAN_JUDUL_STITCH}; }}
   .murid-beranda-st [data-utama] > .st-kartu-teks {{ padding: {T.SP_4}; padding-right: 39%; }}
   .murid-judul-sampul-st {{ font-size: 1.85rem; }}
@@ -924,27 +909,6 @@ tr.sorot-baru, div.sorot-baru {{
 
 /* Badan kerja: sticky topbar + timer, lalu konten utama, lalu save strip.  */
 .kerja-badan-st {{ max-width: {T.LEBAR_KONTEN}; margin: 0 auto; padding: {T.SP_4} 0.9rem 5rem; min-height: 60vh; }}
-.kerja-topbar-st {{
-  background: {T.LATAR_SEKUNDER_LEMBUT};
-  border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
-  height: {T.TARGET_SENTUH};
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 {T.SP_4};
-  width: 100%; max-width: {T.LEBAR_KONTEN};
-  margin: 0 auto; position: sticky; top: 0; z-index: 50;
-  font-family: {T.FONT_HEADLINE};
-}}
-.kerja-topbar-st .brand {{ display: flex; align-items: center; gap: {T.SP_2}; }}
-.kerja-topbar-st .brand .ik-owl {{
-  width: {T.LOGO_TOPBAR}; height: {T.LOGO_TOPBAR}; flex: none;
-  display: inline-flex; align-items: center;
-}}
-.kerja-topbar-st .brand .nama-osn {{ color: {T.WARNA_WORDMARK}; font-size: 1.1rem; font-weight: 800; }}
-.kerja-topbar-st .cta-keluar {{
-  font: inherit; color: {T.AKSEN_KORAL_TUA};
-  background: none; border: 0; border-radius: {T.RADIUS_SEDANG}; padding: {T.SP_2} {T.SP_4};
-  font-weight: 700; min-height: {T.TARGET_SENTUH};
-}}
 
 .kerja-meta-st {{ font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; margin: 0 0 {T.SP_4}; }}
 .kerja-meta-st b {{ color: {T.TEKS_JUDUL}; font-family: {T.FONT_HEADLINE}; }}
@@ -962,12 +926,13 @@ tr.sorot-baru, div.sorot-baru {{
 
 /* Timer strip per-sesi (Latihan Cepat). Sticky di bawah topbar, teal penuh.  */
 .kerja-timer-st {{
-  position: sticky; top: {T.TARGET_SENTUH}; z-index: 40;
+  position: sticky; top: 0; z-index: 40;
   background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_INVERS};
   padding: {T.SP_2} {T.SP_4}; border-radius: {T.RADIUS_SEDANG};
   margin-bottom: {T.SP_5}; font-size: .98rem; font-weight: 600;
   text-align: center; display: flex; justify-content: center; align-items: center; gap: {T.SP_2};
 }}
+.kerja-timer-st .murid-ikon-st {{ width: 1.1rem; height: 1.1rem; }}
 .kerja-timer-st b {{ font-size: 1.15rem; font-family: {T.FONT_HEADLINE}; }}
 .kerja-timer-st.habis {{
   background: {T.LATAR_GALAT}; color: {T.TEKS_GALAT};
@@ -1094,7 +1059,6 @@ tr.sorot-baru, div.sorot-baru {{
   font-family: {T.FONT_HEADLINE}; font-weight: 700; color: {T.TEKS_JUDUL};
   font-size: 1rem;
 }}
-.kerja-jawab-st .head-jawab .material-symbols-outlined {{ color: {T.AKSEN_MURID_UTAMA}; font-size: 1.15rem; }}
 .kerja-jawab-st input[type=text] {{
   width: 100%; min-height: {T.TINGGI_KONTROL};
   font-size: 1.15rem; font-family: inherit;
@@ -1174,8 +1138,8 @@ tr.sorot-baru, div.sorot-baru {{
   display: flex; align-items: center; gap: {T.SP_2};
   font-family: {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL};
 }}
-.kerja-foto-kepala-st .material-symbols-outlined {{
-  color: {T.AKSEN_MURID_UTAMA};
+.kerja-foto-kepala-st .murid-ikon-st {{
+  color: {T.AKSEN_TEAL_TUA};
 }}
 .kerja-foto-sub-st {{
   color: {T.TEKS_SUBTLE}; font-size: {T.UKURAN_TEKS_BANTUAN}; margin: {T.SP_2} 0 {T.SP_3};
@@ -1218,7 +1182,7 @@ tr.sorot-baru, div.sorot-baru {{
 @media print {{
   body.st {{ background: {T.LATAR_KARTU}; font-size: {T.UKURAN_BADAN_CETAK}; }}
   .kerja-badan-st {{ max-width: none; padding: 0; }}
-  .kerja-topbar-st, .kerja-simpan-strip-st, .hanya-layar {{ display: none; }}
+  .kerja-simpan-strip-st, .hanya-layar {{ display: none; }}
   .kerja-soal-st {{ break-inside: avoid; box-shadow: none; border-color: {T.CETAK_TINTA}; }}
   .kerja-bagian-st {{ break-after: avoid; }}
 }}
@@ -1486,8 +1450,6 @@ tr.sorot-baru, div.sorot-baru {{
 .masuk-brand-st .nama-brand {{
   font-weight: 800; font-size: 1.5rem; color: {T.AKSEN_TEAL_TUA}; letter-spacing: -.04em;
 }}
-.masuk-beranda-st {{ color: {T.TEKS_VARIAN}; font-size: {T.UKURAN_TEKS_META}; margin-left: {T.SP_2}; }}
-.masuk-brand-st:hover .masuk-beranda-st {{ text-decoration: underline; }}
 .masuk-panel-st {{
   display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
   background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN};
@@ -2190,8 +2152,8 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   background: {T.LATAR_CATATAN}; border: {T.TEBAL_GARIS} solid {T.BORDER_CATATAN};
   border-radius: {T.RADIUS_SEDANG}; padding: {T.SP_3}; font-size: .93rem;
 }}
-.hasil-langkah-st .material-symbols-outlined {{
-  color: {T.AKSEN_MURID_AMBER}; flex: none; font-size: 1.15rem;
+.hasil-langkah-st .murid-ikon-st {{
+  color: {T.TEKS_VARIAN}; flex: none; width: 1.15rem; height: 1.15rem;
 }}
 
 /* Kartu rumus (poin c) — muncul di halaman hasil untuk konsep yang salah. */
@@ -2203,8 +2165,8 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   display: flex; align-items: center; gap: {T.SP_2}; margin-bottom: {T.SP_3};
   font-family: {T.FONT_HEADLINE}; color: {T.TEKS_JUDUL};
 }}
-.rumus-kepala-st .material-symbols-outlined {{
-  color: {T.AKSEN_MURID_AMBER}; flex: none;
+.rumus-kepala-st .murid-ikon-st {{
+  color: {T.TEKS_VARIAN}; flex: none;
 }}
 .rumus-kartu-st {{
   border-left: 3px solid {T.AKSEN_MURID_AMBER};
@@ -2238,15 +2200,6 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .tombol-ikon-st:disabled {{ opacity: .55; cursor: wait; }}
 
 /* WORKER B editorial scoped — murid, dukungan publik, dan pesan khusus. */
-:is(.kerja-editorial-st, .hasil-editorial-st) .kerja-topbar-st {{
-  background: {T.LATAR_MURID}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
-  height: auto; min-height: 3.5rem; padding: {T.SP_1} {T.SP_4};
-}}
-:is(.kerja-editorial-st, .hasil-editorial-st) .kerja-topbar-st .nama-osn {{ color: {T.AKSEN_TEAL_TUA}; }}
-:is(.kerja-editorial-st, .hasil-editorial-st) .cta-keluar {{
-  display: inline-flex; align-items: center; gap: {T.SP_2};
-  color: {T.AKSEN_TEAL_TUA}; text-decoration: none; padding: {T.SP_2};
-}}
 :is(.kerja-editorial-st, .hasil-editorial-st) .kerja-badan-st {{ padding-top: {T.SP_5}; overflow-wrap: anywhere; }}
 :is(.kerja-editorial-st, .hasil-editorial-st) .kerja-pembuka-st {{ margin-bottom: {T.SP_4}; }}
 :is(.kerja-editorial-st, .hasil-editorial-st) .kerja-alis-st {{
@@ -2263,7 +2216,6 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   border-radius: 0 {T.RADIUS_KECIL} {T.RADIUS_KECIL} 0; font-size: .85rem;
   padding: {T.SP_3}; margin-bottom: {T.SP_4};
 }}
-.kerja-editorial-st .kerja-petunjuk-st .baris-petunjuk > .material-symbols-outlined {{ display: none; }}
 .kerja-editorial-st .kerja-bagian-st {{
   color: {T.AKSEN_TEAL_TUA}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
   margin: {T.SP_5} 0 {T.SP_4}; font-size: .94rem;
@@ -2300,7 +2252,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .kerja-editorial-st .kerja-simpan-strip-st button:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .kerja-editorial-st .kerja-simpan-strip-st button.sekunder:hover {{ background: {T.LATAR_ELEVASI}; }}
 .kerja-editorial-st .kerja-timer-st {{
-  top: 3.5rem; background: {T.AKSEN_TEAL_TUA}; flex-wrap: wrap;
+  top: 0; background: {T.AKSEN_TEAL_TUA}; flex-wrap: wrap;
   border-radius: {T.RADIUS_KECIL}; margin-bottom: {T.SP_4};
 }}
 .kerja-editorial-st .kerja-timer-st.habis {{ background: {T.LATAR_GALAT}; color: {T.TEKS_GALAT}; }}
@@ -2312,8 +2264,9 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .kerja-editorial-st .kerja-foto-form-st {{ display: grid; grid-template-columns: minmax(0, 1fr); gap: {T.SP_2}; }}
 .kerja-editorial-st .kerja-foto-form-st input[type=file] {{ min-height: {T.TINGGI_KONTROL}; font: inherit; font-size: {T.UKURAN_BADAN_LAYAR}; }}
 .kerja-editorial-st input[type=file]::file-selector-button {{
-  font: inherit; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
-  border-radius: {T.RADIUS_SEDANG}; background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL}; margin-right: {T.SP_2};
+  font: 700 {T.UKURAN_TEKS_LABEL}/1.4 {T.FONT_HEADLINE}; min-height: {T.TINGGI_KONTROL}; padding: {T.SP_2} {T.SP_4};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_SEDANG}; background: transparent;
+  color: {T.AKSEN_TEAL_TUA}; margin-right: {T.SP_3};
 }}
 :is(.kerja-editorial-st, .hasil-editorial-st) .kerja-btn-sekunder-st {{
   background: transparent; color: {T.AKSEN_TEAL_TUA}; border-color: {T.BORDER_VARIAN};
@@ -2335,11 +2288,9 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .hasil-editorial-st .hasil-soal-st {{ border-radius: {T.RADIUS_SEDANG}; margin-bottom: {T.SP_4}; }}
 .hasil-editorial-st .hasil-langkah-st {{ border: 0; border-left: 2px solid {T.BORDER_CATATAN}; border-radius: 0; }}
 .hasil-editorial-st .hasil-langkah-st > div {{ min-width: 0; }}
-.hasil-editorial-st .hasil-langkah-st .material-symbols-outlined {{ color: {T.TEKS_VARIAN}; }}
 .hasil-editorial-st .st-badge.diagnostik {{ background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; }}
 .hasil-editorial-st .st-badge.baru {{ background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH}; }}
 .hasil-editorial-st .rumus-blok-st {{ background: {T.LATAR_CATATAN}; border: 0; border-top: 2px solid {T.BORDER_CATATAN}; border-radius: 0; }}
-.hasil-editorial-st .rumus-kepala-st .material-symbols-outlined {{ color: {T.TEKS_VARIAN}; }}
 .dukungan-editorial-st {{ max-width: 64rem; margin: 0 auto; overflow-wrap: anywhere; }}
 .dukungan-editorial-st :is(.publik-topbar-st, .dukungan-topbar-st) {{
   display: flex; justify-content: space-between; align-items: center; gap: {T.SP_3};
@@ -2403,7 +2354,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 @media print {{
   @page murid-editorial {{ size: A4; margin: 13mm 12mm 11mm; }}
   :is(.kerja-editorial-st, .hasil-editorial-st) {{ page: murid-editorial; }}
-  :is(.kerja-editorial-st, .hasil-editorial-st) :is(.kerja-topbar-st, .hanya-layar) {{ display: none; }}
+  :is(.kerja-editorial-st, .hasil-editorial-st) .hanya-layar {{ display: none; }}
   :is(.kerja-editorial-st, .hasil-editorial-st) .kerja-badan-st {{ padding: 0; }}
   :is(.kerja-editorial-st, .hasil-editorial-st) details::details-content {{ display: block; content-visibility: visible; }}
   :is(.kerja-editorial-st, .hasil-editorial-st) details > :not(summary) {{ display: block; }}
@@ -3621,10 +3572,10 @@ SELEKTOR_TEKS_INFORMATIF = (
     ".landing-demo-label-st", ".landing-kode-st", ".landing-demo-catatan-st",
     ".landing-demo-keterangan-st", ".landing-nomor-st",
     ".landing-contoh-kode-st", ".landing-resep-st", ".landing-footer-isi-st",
-    ".masuk-beranda-st", ".masuk-alis-st", ".masuk-catatan-kecil-st",
+    ".masuk-alis-st", ".masuk-catatan-kecil-st",
     ".masuk-badan-st .masuk-field-st label", ".masuk-badan-st .masuk-petunjuk-st",
     ".masuk-badan-st .masuk-link-st a", ".masuk-badan-st .masuk-galat-st",
-    ".murid-kepala-st button", ".murid-alis-st", ".murid-akun-hint-st",
+    ".murid-alis-st", ".murid-akun-hint-st",
     ".murid-label-utama-st", ".murid-tahap-st", ".murid-sub-sampul-st",
     ".murid-meta-st", ".murid-jumlah-st", "body.st.murid-beranda-st .st-badge",
     "body.st.murid-beranda-st .st-progres-label", ".murid-aksi-st", ".murid-aman-st",
@@ -3666,7 +3617,8 @@ GAYA_TEKS_MIN = "\n/* Teks informatif dewasa >= 14px */\n" + "".join(
     f"body.st :is(.guru-alis-st, .editorial-alis-st, .kerja-alis-st) {{ font-size: {T.UKURAN_TEKS_CATATAN}; letter-spacing: .08em; line-height: 1.4; }}\n"
 )
 from shell_guru_style import GAYA_SHELL_GURU
-GAYA_STITCH = GAYA_STITCH + GAYA_TEKS_MIN + GAYA_SHELL_GURU
+from murid_lembar_style import GAYA_MURID_LEMBAR
+GAYA_STITCH = GAYA_STITCH + GAYA_TEKS_MIN + GAYA_SHELL_GURU + GAYA_MURID_LEMBAR
 
 
 def gaya_stitch() -> str:

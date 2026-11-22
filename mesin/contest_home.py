@@ -13,11 +13,13 @@ import contest_anak
 import contest_komponen as KP
 import contest_paket as PK
 import contest_pages as P
+from murid_shell import ikon_murid
 
 if TYPE_CHECKING:
     from contest_anak import RingkasAnak
 
 CATATAN_TANPA_GURU = "Belum ada latihan dari gurumu."
+EYEBROW = "Latihan tambahan"
 
 
 def _isi_berjalan(ringkas: "RingkasAnak") -> str:
@@ -45,8 +47,11 @@ def kartu_beranda(ringkas: "RingkasAnak", besar: bool = False) -> str:
     kemajuan = KP.blok_hitung_mundur(ringkas.hitung_mundur) + KP.blok_target(
         ringkas.selesai_hari_ini, ringkas.paket.target_harian)
     catatan = f'<p class="lb-catatan">{CATATAN_TANPA_GURU}</p>' if besar else ""
-    return (f'<section class="{kelas}" aria-labelledby="judul-lomba">{maskot}'
-            f'<h2 id="judul-lomba">{PK.JUDUL_ANAK}</h2>{aksi}{kemajuan}</section>{catatan}')
+    kepala = (f'<div class="lb-kepala"><span class="murid-ikon-topik-st">{ikon_murid("piala")}</span>'
+              f'<div><span class="murid-tahap-st">{EYEBROW}</span>'
+              f'<h2 id="judul-lomba">{PK.JUDUL_ANAK}</h2></div></div>')
+    return (f'<section class="{kelas}" aria-labelledby="judul-lomba">{maskot}{kepala}'
+            f'{aksi}{kemajuan}</section>{catatan}')
 
 
 def kartu_untuk_siswa(kon, siswa_id: int, sekarang: int, besar: bool = False) -> str:

@@ -13,8 +13,10 @@ import json
 import brand
 import visual_renderer
 import design_tokens as T
-from question_context import label_profil_parameter as label_kelas
 from learning_stage_labels import penanda_tahap
+from murid_shell import (
+    PANAH_KEMBALI, aksi_topbar, bungkus_murid, ikon_murid, kepala_murid, tombol_keluar, topbar_murid,
+)
 from topics import Topik, dari_sesi
 from students import (
     AWALAN_PILIHAN,
@@ -24,23 +26,6 @@ from students import (
     sesi_murid,
     soal_murid,
 )
-
-
-def _ikon_beranda(nama: str) -> str:
-    """Ikon dekoratif lokal; setiap kontrol tetap punya nama berupa teks."""
-    bentuk = {
-        "panah": '<path d="M4 12h15m-6-6 6 6-6 6"/>',
-        "buku": '<path d="M12 6c-3-2-7-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-2-1-6-1-9 1Zm0 0v14"/>',
-        "grafik": '<path d="M4 20h17M7 16v-5m5 5V5m5 11V8"/>',
-        "bilangan": '<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 7h8M8 12h1m6 0h1m-8 5h1m6 0h1"/>',
-        "jam": '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-        "lipat": '<path d="m9 5 7 7-7 7"/>',
-    }
-    return (
-        '<svg class="murid-ikon-st" viewBox="0 0 24 24" fill="none" '
-        'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" '
-        f'stroke-linejoin="round" aria-hidden="true">{bentuk[nama]}</svg>'
-    )
 
 
 def _tanggal_beranda(nilai: str) -> str:
@@ -113,7 +98,7 @@ def _kartu_beranda(sesi: dict, utama: bool = False) -> str:
         label, kelas = "Sedang dikerjakan", "selesai"
         aksi, jalur = "Lanjutkan", f"/murid/kerjakan/{sesi['id']}"
     else:
-        label, kelas = "Belum dimulai", "baru"
+        label, kelas = "Belum dimulai", "netral"
         aksi, jalur = "Mulai", f"/murid/kerjakan/{sesi['id']}"
     badge = f'<span class="st-badge {kelas}">{label}</span>'
     penanda = _penanda_beranda(sesi)
@@ -123,7 +108,7 @@ def _kartu_beranda(sesi: dict, utama: bool = False) -> str:
         else "st-jumlah-soal"
     )
     tanggal = _escape(_tanggal_beranda(sesi["tanggal"]))
-    meta = f'{_escape(label_kelas(sesi["level"]))} · {tanggal}'
+    meta = tanggal  # label variasi tidak ditampilkan ke anak (audit area anak #10)
     # Marker tiga anak kartu dipertahankan: ikon, kolom teks, penanda.
     if utama:
         label_utama = "Lanjutkan latihanmu" if sesi["terisi"] else "Latihan untukmu"
@@ -143,7 +128,7 @@ def _kartu_beranda(sesi: dict, utama: bool = False) -> str:
         )
         ujung = (
             f'<span class="murid-lanjut-bawah-st {kelas_penanda}">' + penanda
-            + f'<span class="murid-tombol-utama-st">{aksi}{_ikon_beranda("panah")}</span>'
+            + f'<span class="murid-tombol-utama-st">{aksi}{ikon_murid("panah")}</span>'
             + ('<span class="murid-aman-st">Jawaban tersimpan aman</span>' if sesi["terisi"] else '')
             + '</span>'
         )
@@ -159,13 +144,13 @@ def _kartu_beranda(sesi: dict, utama: bool = False) -> str:
     )
     ujung = f'<span class="murid-ujung-st {kelas_penanda}">' + penanda
     if aksi:
-        ujung += f'<span class="murid-aksi-st">{aksi}{_ikon_beranda("panah")}</span>'
+        ujung += f'<span class="murid-aksi-st">{aksi}{ikon_murid("panah")}</span>'
     ujung += '</span>'
     tag = "a" if jalur else "div"
     href = f' href="{jalur}"' if jalur else ''
     return (
         f'<{tag} class="st-kartu-baris"{href}>'
-        f'<span class="murid-ikon-topik-st">{_ikon_beranda(ikon)}</span>'
+        f'<span class="murid-ikon-topik-st">{ikon_murid(ikon)}</span>'
         f'{teks}{ujung}</{tag}>'
     )
 
@@ -243,7 +228,7 @@ def halaman_daftar_sesi_baru(
     if menunggu:
         pendamping += (
             '<section class="murid-menunggu-st" aria-labelledby="judul-menunggu">'
-            f'<h2 id="judul-menunggu">{_ikon_beranda("jam")}Menunggu diperiksa</h2>'
+            f'<h2 id="judul-menunggu">{ikon_murid("jam")}Menunggu diperiksa</h2>'
             '<h3>Jawabanmu sudah masuk.</h3>'
             '<p>Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</p>'
             + ''.join(_kartu_beranda(s) for s in menunggu) + '</section>'
@@ -251,33 +236,29 @@ def halaman_daftar_sesi_baru(
     if riwayat:
         pendamping += (
             '<details class="murid-riwayat-st"><summary>'
-            f'{_ikon_beranda("buku")}<span><b>Latihan selesai</b>'
-            f'<span>{len(riwayat)} latihan sudah diperiksa</span></span>{_ikon_beranda("lipat")}'
+            f'{ikon_murid("buku")}<span><b>Latihan selesai</b>'
+            f'<span>{len(riwayat)} latihan sudah diperiksa</span></span>{ikon_murid("lipat")}'
             '</summary><div class="murid-riwayat-isi-st">'
             + ''.join(_kartu_beranda(s) for s in riwayat) + '</div></details>'
         )
-    grid = "murid-grid-st" + (" satu-kolom" if not pendamping else "")
+    topbar = topbar_murid(tombol_keluar())
     isi = f'''<!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{brand.judul("Ruang belajarku")}</title>{brand.tag_kepala()}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>{gaya_stitch()}{GAYA_BERANDA if lomba_aktif else ""}</style></head><body class="st murid-beranda-st">
+{kepala_murid(gaya_stitch() + (GAYA_BERANDA if lomba_aktif else ""))}</head><body class="st murid-beranda-st">
 <a class="murid-lewati-st" href="#utama">Lewati ke latihan</a>
-<header class="murid-kepala-st"><div>
-<span class="murid-brand-st">{brand.mark("topbar")}<span>{T.NAMA_PRODUK}</span></span>
-<form method="post" action="/keluar"><button type="submit">Keluar</button></form>
-</div></header>
+<div class="murid-wadah-st">
+{topbar}
 <main id="utama" class="murid-kanvas-st">
 <section class="murid-sapaan-st" aria-labelledby="judul-sapaan">
-<p class="murid-alis-st">RUANG BELAJARKU · {_escape(label_kelas(data["level"]))}</p>
+<p class="murid-alis-st">RUANG BELAJARKU</p>
 <h1 id="judul-sapaan">Halo, {_escape(nama)}!</h1><p>Sedikit demi sedikit, makin mengerti.</p>
 <span class="murid-akun-hint-st">Bukan kamu? Tekan Keluar dulu.</span></section>
-{banner}<div class="{grid}"><div class="murid-kolom-utama-st">{kolom}</div>
+{banner}<div class="murid-grid-st"><div class="murid-kolom-utama-st">{kolom}</div>
 {'<aside class="murid-pendamping-st" aria-label="Kabar latihanmu">' + pendamping + '</aside>' if pendamping else ''}
 </div></main><footer class="murid-kaki-st">{T.TAGLINE} <span aria-hidden="true">✦</span> Satu langkah setiap kali.</footer>
+</div>
 </body></html>'''
     return isi.encode()
 
@@ -325,7 +306,9 @@ def halaman_kerja_baru(
         isi = f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{brand.judul("Jawaban sudah dikirim")}</title>{brand.tag_kepala()}
-<style>{gaya_stitch()}</style></head><body class="st kerja-editorial-st">
+{kepala_murid(gaya_stitch())}</head><body class="st kerja-editorial-st">
+<div class="murid-wadah-st">
+{topbar_murid(aksi_topbar("/murid", "Beranda", PANAH_KEMBALI))}
 <main class="kerja-badan-st kerja-selesai-st" aria-labelledby="judul-kerja">
 <p class="kerja-alis-st">CATATAN LATIHAN</p>
 <h1 id="judul-kerja">Selesai untuk sekarang.</h1>
@@ -333,7 +316,7 @@ def halaman_kerja_baru(
 <span class="ikon">✓</span><span><b>Jawabanmu sudah dikirim.</b><br>
 Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
 <p><a class="kerja-btn-sekunder-st" href="/murid">Kembali ke sesi lain</a></p>
-</main></body></html>"""
+</main></div></body></html>"""
         return isi.encode()
 
     kartu: list[str] = []
@@ -497,8 +480,8 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
     if drill and timer_mode == "sesi":
         strip = (
             '<div class="kerja-timer-st hanya-layar" id="timer-strip">'
-            '<span class="material-symbols-outlined" style="font-size:1.1rem">schedule</span>'
-            "Sisa waktu: <b id=\"timer-tampil\">"
+            + ikon_murid("jam")
+            + "Sisa waktu: <b id=\"timer-tampil\">"
             f"{durasi_menit:02d}:00</b>"
             '<span id="timer-pesan" style="display:none">'
             " — waktu habis, kerjakan sebisanya dan simpan</span></div>"
@@ -635,7 +618,7 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
         blok_foto = f"""
 <div id="foto-cara-anak" class="kerja-foto-st hanya-layar">
   <div class="kerja-foto-kepala-st">
-    <span class="material-symbols-outlined">photo_camera</span>
+    {ikon_murid("kamera")}
     <b>Kerjakan di kertas? Kirim fotonya</b>
   </div>
   <p class="kerja-foto-sub-st">Foto lembar yang sudah kamu isi (boleh
@@ -652,10 +635,7 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
 </div>"""
 
     aksi = _escape(jalur_aksi or f"/murid/kerjakan/{sesi_id}")
-    tautan_tutup = "" if akses_tautan else (
-        '<a class="cta-keluar hanya-layar" href="/murid">'
-        '<span class="material-symbols-outlined" style="font-size:1.1rem">close</span> Tutup</a>'
-    )
+    tautan_tutup = "" if akses_tautan else aksi_topbar("/murid", "Tutup", ikon_murid("tutup"))
     script_mulai = ""
     if akses_tautan:
         script_mulai = (
@@ -663,41 +643,27 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
             + ", {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},"
             "body:'aksi=mulai',keepalive:true}).catch(function(){});</script>"
         )
-    # Cetak disembunyikan (2026-10-04, Opsi 1): tanpa tombol window.print, hanya Keluar.
-    navigasi_bawah = "" if akses_tautan else (
-        '<form method="post" action="/keluar" class="hanya-layar" style="margin-top:0.7rem">'
-        '<button class="kerja-btn-sekunder-st" type="submit">Keluar</button></form>'
-    )
 
     isi = f"""<!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{brand.judul(f"Kerjakan — {_escape(topik_paket.judul_lembar)}")}</title>
 {brand.tag_kepala()}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">
-<style>{gaya_stitch()}</style></head><body class="st kerja-editorial-st">
-<header class="kerja-topbar-st">
-  <div class="brand">
-    {brand.mark("topbar", kelas="ik-owl")}
-    <span class="nama-osn">{T.NAMA_PRODUK}</span>
-  </div>
-  {tautan_tutup}
-</header>
+{kepala_murid(gaya_stitch())}</head><body class="st kerja-editorial-st">
+<div class="murid-wadah-st">
+{topbar_murid(tautan_tutup)}
 <main class="kerja-badan-st" aria-labelledby="judul-kerja">
 <header class="kerja-pembuka-st">
 <p class="kerja-alis-st">LEMBAR LATIHAN</p>
 <h1 id="judul-kerja">{'Latihan cepat' if drill else 'Tunjukkan caramu.'}</h1>
-<p class="kerja-meta-st"><b>Halo, {_escape(info['nama'])}</b> &middot; {_escape(info['tanggal'])}
- &middot; {_escape(label_kelas(info['level']))} &middot; {len(daftar)} soal {penanda_tahap(info.get('tujuan', 'bebas'))}
+<p class="kerja-meta-st"><b>Halo, {_escape(info['nama'])}</b> &middot; {_escape(_tanggal_beranda(info['tanggal']))}
+ &middot; {len(daftar)} soal {penanda_tahap(info.get('tujuan', 'bebas'))}
  {'&middot; Latihan Cepat' if drill else ''}</p>
 </header>
 {strip}
 {kabar}
 <div class="kerja-petunjuk-st">
   <div class="baris-petunjuk">
-    <span class="material-symbols-outlined" style="color:{T.AKSEN_MURID_UTAMA};flex:none">lightbulb</span>
     <div>
       {petunjuk}
     </div>
@@ -710,13 +676,12 @@ Gurumu akan memeriksanya. Kamu tidak perlu mengirim ulang.</span></div>
 <div class="kerja-simpan-strip-st hanya-layar">
   <button type="submit" name="aksi" value="simpan" class="sekunder">Simpan sementara</button>
   <button type="submit" name="aksi" value="selesai">Selesai &amp; kirim
-    <span class="material-symbols-outlined">arrow_forward</span></button>
+    {ikon_murid("panah")}</button>
 </div>
 </form>
-{navigasi_bawah}
 {blok_foto}
 {jaga}{skrip}{script_mulai}
-</main></body></html>"""
+</main></div></body></html>"""
     return isi.encode()
 
 
@@ -769,7 +734,7 @@ def halaman_hasil_murid(kon, siswa_id: int, sesi_id: int) -> bytes | None:
         if b["pembahasan"]:
             langkah = (
                 '<div class="hasil-langkah-st">'
-                '<span class="material-symbols-outlined">lightbulb</span>'
+                + ikon_murid("lampu") +
                 f'<div><b>Caranya:</b> {_escape(b["pembahasan"])}</div></div>'
             )
 
@@ -830,8 +795,8 @@ def halaman_hasil_murid(kon, siswa_id: int, sesi_id: int) -> bytes | None:
         blok_rumus = (
             '<details class="rumus-blok-st">'
             '<summary class="rumus-kepala-st">'
-            '<span class="material-symbols-outlined">menu_book</span>'
-            "<b>Ingat rumusnya dulu</b></summary>"
+            + ikon_murid("buku") +
+            "<b>Ingat rumusnya dulu</b>" + ikon_murid("lipat") + "</summary>"
             f"{isi_kartu}</details>"
         )
 
@@ -846,23 +811,15 @@ def halaman_hasil_murid(kon, siswa_id: int, sesi_id: int) -> bytes | None:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{brand.judul("Hasil &amp; cara")}</title>
 {brand.tag_kepala()}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">
-<style>{gaya_stitch()}</style></head><body class="st hasil-editorial-st">
-<header class="kerja-topbar-st">
-  <div class="brand">
-    {brand.mark("topbar", kelas="ik-owl")}
-    <span class="nama-osn">{T.NAMA_PRODUK}</span>
-  </div>
-  <a class="cta-keluar hanya-layar" href="/murid"><span aria-hidden="true">←</span> Sesi lain</a>
-</header>
+{kepala_murid(gaya_stitch())}</head><body class="st hasil-editorial-st">
+<div class="murid-wadah-st">
+{topbar_murid(aksi_topbar("/murid", "Sesi lain", PANAH_KEMBALI))}
 <main class="kerja-badan-st" aria-labelledby="judul-hasil">
 <header class="kerja-pembuka-st">
 <p class="kerja-alis-st">CATATAN LATIHAN</p>
 <h1 id="judul-hasil">Lihat hasil &amp; caranya.</h1>
 <p class="kerja-meta-st"><b>Halo, {_escape(hasil['nama'])}</b> &middot;
- {_escape(hasil['tanggal'])} &middot; {_escape(label_kelas(hasil['level']))}</p>
+ {_escape(_tanggal_beranda(hasil['tanggal']))}</p>
 </header>
 <div class="hasil-ringkas-st">
   <div class="hasil-skor-st">{n_benar}<span>/{n_soal}</span><small>jawaban benar</small></div>
@@ -873,5 +830,5 @@ def halaman_hasil_murid(kon, siswa_id: int, sesi_id: int) -> bytes | None:
 <div class="kerja-navigasi-st hanya-layar">
   <a class="kerja-btn-sekunder-st" href="/murid/kerjakan/{sesi_id}">Lihat lembarku</a>
 </div>
-</main></body></html>"""
+</main></div></body></html>"""
     return isi.encode()

@@ -291,6 +291,11 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   profil dan laporan lama berbagi shell/lebar `ANAK_*`. CSS rincian legacy hanya dimuat
   pada laporan, sebelum override profil; [audit UI](ui-consistency-audit.md) dan
   [audit admin](admin-ui-audit.md) (fokus, kontrol, state dan tema/cetak).
+- Font merek same-origin (`font_lokal`, `/aset/font-*-v1.ttf`) di halaman guru dan semua halaman
+  anak, termasuk `/masuk` dan Latihan Lomba; halaman anak tidak memanggil host pihak ketiga
+  (ikon SVG lokal, bukan Material Symbols). Shell anak `murid_shell` (satu topbar, kolom
+  `LEBAR_KONTEN`, keputusan 22 Nov 2026); CSS lembar/hasil murid tambahan di
+  `murid_lembar_style`. Aksi utama anak (termasuk Lomba `body.lomba`) koral, guru teal.
 - `session_prep.py` membungkus `learning_cycle_ui.kartu_rencana` menjadi lembar cetak
   persiapan (form dibuang, playbook `open`), dirutekan `teacher_http.tangani_persiapan_get`
   setelah `_lolos_sandi` dan sebelum rute profil; tanpa logika rencana sendiri atau tulis DB.

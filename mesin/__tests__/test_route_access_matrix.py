@@ -287,8 +287,8 @@ def test_anonim_di_murid_diarahkan_ke_masuk(server):
     kode, isi, tajuk = _minta_mentah(server, "/murid")
     assert kode == 303
     lokasi = urllib.parse.unquote_plus(tajuk.get("Location", ""))
-    assert lokasi.startswith("/masuk?")
-    assert "galat=" in lokasi
+    # Anonim tanpa kuki: /masuk polos tanpa pesan "sesi habis" (audit area anak #15).
+    assert lokasi == "/masuk"
     assert isi == ""
 
 

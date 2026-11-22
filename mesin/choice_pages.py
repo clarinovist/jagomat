@@ -39,10 +39,14 @@ def radio_pilihan(pilihan, jawaban='', template_id=''):
     isi = []
     for o in pilihan.opsi:
         # Jaring sudah berlabel pada diagram, kontrol memakai label asal persis.
-        teks = f'Pilihan {o.label}' if template_id == 'jaring_jaring' else f'{o.label}. {o.teks}'
+        # Huruf pilihan dipisah dari isi supaya lembar kerja murid bisa menampilkannya sebagai lingkaran.
+        jaring = template_id == 'jaring_jaring'
+        teks = f'Pilihan {o.label}' if jaring else o.teks
+        kelas_teks = 'pg-teks pg-teks-sr' if jaring else 'pg-teks'
         isi.append(f'<label class="pg-opsi"><input type="radio" name="opsi_{sid}" '
                    f'value="{o.id}"{" checked" if jawaban == o.nilai else ""}>'
-                   f'<span>{pecahan.render(teks)}</span></label>')
+                   f'<span class="pg-huruf">{html.escape(o.label)}</span>'
+                   f'<span class="{kelas_teks}">{pecahan.render(teks)}</span></label>')
     isi.append(f'<label class="pg-kosong"><input type="radio" name="opsi_{sid}" value=""'
                f'{" checked" if not jawaban else ""}> Belum menjawab</label>')
     return f'<fieldset class="pg-pilihan"><legend>Jawabanku — pilih satu</legend>{"".join(isi)}</fieldset>'

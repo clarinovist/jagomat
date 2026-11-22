@@ -32,7 +32,7 @@ import contest_paket as PK
 import contest_session
 import contest_store as K
 import database
-from support_pages import halaman_pesan as _halaman
+from support_pages import halaman_pesan_murid as _halaman
 
 BATAS_TUBUH = 2048
 MAKS_DIGIT_ID = 12
@@ -40,8 +40,6 @@ _POLA_ID = re.compile(rf"[0-9]{{1,{MAKS_DIGIT_ID}}}")
 _POLA_NOMOR = re.compile(r"[0-9]{1,2}")
 _GET_AWAL, _GET_SESI, _GET_SELESAI, _GET_HASIL = "awal", "sesi", "selesai", "hasil"
 _POST_MULAI, _POST_JAWAB, _POST_KUMPUL = "mulai", "jawab", "kumpul"
-_PESAN_SESI_HABIS = ("Sesi kamu sudah habis atau akun lain masuk di perangkat ini. "
-                     "Masuk lagi dengan nama & sandimu, ya.")
 
 
 class _TidakAda(Exception):
@@ -145,8 +143,9 @@ def _tunggal(pasangan: Dict[str, list], nama: str) -> Optional[str]:
 
 def _tolak_masuk(penangan) -> None:
     """Murid belum masuk: 303 ke /masuk, pesan sama dengan student_http."""
+    from student_http import alamat_masuk_murid
     penangan.send_response(303)
-    penangan.send_header("Location", "/masuk?" + urllib.parse.urlencode({"galat": _PESAN_SESI_HABIS}))
+    penangan.send_header("Location", alamat_masuk_murid(penangan))
     penangan.send_header("Content-Length", "0")
     penangan.end_headers()
 

@@ -188,7 +188,7 @@ def test_link_membuka_hanya_satu_sesi_tanpa_login(server):
         assert kon.execute(
             "SELECT mulai FROM sesi WHERE id = ?", (sesi_id,)
         ).fetchone()["mulai"] is None, "preview GET tidak boleh memulai timer"
-    badan = isi.split("</style>", 1)[-1]
+    badan = isi.rsplit("</style>", 1)[-1]
     assert "Sesi lain" not in badan
     assert 'action="/keluar"' not in badan
     assert 'action="/murid/foto/' not in badan

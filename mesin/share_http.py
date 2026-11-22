@@ -16,6 +16,7 @@ import share_links
 from funnel_flag import funnel_aktif
 from share_finalisasi import catat_kiriman_tautan, finalkan_kiriman_tautan
 from support_pages import halaman_pesan as _halaman
+from support_pages import halaman_pesan_murid as _halaman_murid
 
 
 def _sesi_cek(kon, akses) -> bool:
@@ -36,7 +37,7 @@ def tangani_tautan_get(penangan, jalur: str) -> bool:
     import student_pages
 
     token = jalur[len("/mulai/"):]
-    tidak_ada = _halaman("404", "<h1>Halaman tidak ada</h1>")
+    tidak_ada = _halaman_murid("404", "<h1>Halaman tidak ada</h1>")
     with database.buka() as kon:
         akses = share_links.ambil(kon, token)
         if not akses:
@@ -66,10 +67,10 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
     import students
 
     token = jalur[len("/mulai/"):]
-    tidak_ada = _halaman("404", "<h1>Halaman tidak ada</h1>")
+    tidak_ada = _halaman_murid("404", "<h1>Halaman tidak ada</h1>")
     tubuh = penangan._baca_tubuh(1_000_000)
     if tubuh is None:
-        penangan._kirim_tautan(_halaman(
+        penangan._kirim_tautan(_halaman_murid(
             "Terlalu besar",
             "<h1>Isian terlalu besar</h1><p>Coba muat ulang halaman.</p>",
         ), 413)
@@ -78,7 +79,7 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
         mentah = tubuh.decode("utf-8", "strict")
     except UnicodeDecodeError:
         penangan._kirim_tautan(
-            _halaman("Isian tidak sah", "<h1>Isian tidak sah</h1>"), 400
+            _halaman_murid("Isian tidak sah", "<h1>Isian tidak sah</h1>"), 400
         )
         return True
     pasangan = urllib.parse.parse_qs(
@@ -86,7 +87,7 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
     )
     if any(len(nilai) != 1 for nilai in pasangan.values()):
         penangan._kirim_tautan(
-            _halaman("Isian tidak sah", "<h1>Isian ganda tidak diizinkan</h1>"),
+            _halaman_murid("Isian tidak sah", "<h1>Isian ganda tidak diizinkan</h1>"),
             400,
         )
         return True
@@ -126,7 +127,7 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
         except ValueError as galat:
             kon.rollback()
             penangan._kirim_tautan(
-                _halaman(
+                _halaman_murid(
                     "Belum tersimpan",
                     f"<h1>Belum tersimpan</h1><p>{html.escape(str(galat))}</p>"
                     f'<p><a href="/mulai/{html.escape(token, quote=True)}">Buka kembali latihan</a></p>',
@@ -156,7 +157,7 @@ def tangani_tautan_post(penangan, jalur: str) -> bool:
         selesai = aksi in ("selesai", "kirim_latihan")
         if selesai:
             kiriman_baru = finalkan_kiriman_tautan(kon, sesi_id)
-            isi = _halaman(
+            isi = _halaman_murid(
                 "Jawaban tersimpan",
                 "<h1>Hebat, selesai!</h1>"
                 "<p>Semua jawabanmu sudah masuk. Gurumu akan memeriksanya.</p>",

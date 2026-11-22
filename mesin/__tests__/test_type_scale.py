@@ -32,8 +32,7 @@ BATAS = {
     "profile_workspace.py": 2,
     "report_dashboard.py": 3,
     "screen_style.py": 14,
-    "student_pages.py": 2,
-    "style_stitch.py": 191,
+    "style_stitch.py": 186,
     "teacher_style.py": 29,
 }
 
