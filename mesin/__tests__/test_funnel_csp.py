@@ -65,7 +65,7 @@ def test_direktif_lain_membatasi_halaman(server, monkeypatch, jalur):
     direktif = _direktif(tajuk["Content-Security-Policy"])
     assert direktif["default-src"] == ["'none'"]
     assert direktif["img-src"] == ["'self'", "data:"]
-    assert "https://fonts.googleapis.com" in direktif["style-src"] and direktif["font-src"] == ["'self'", "https://fonts.gstatic.com"]
+    assert direktif["style-src"] == ["'unsafe-inline'"] and direktif["font-src"] == ["'self'"]
     assert direktif["frame-ancestors"] == ["'none'"] and direktif["base-uri"] == ["'none'"]
     assert direktif["form-action"] == ["'self'"] and direktif["connect-src"] == ["'self'"]
 

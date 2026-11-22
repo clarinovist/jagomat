@@ -5,6 +5,7 @@ import brand
 import student_submissions as kiriman
 import students
 import visual_renderer
+from murid_shell import bungkus_murid, kepala_murid, topbar_murid
 from style_stitch import gaya_stitch
 
 
@@ -43,8 +44,8 @@ def halaman_refleksi(kon, siswa_id, sesi_id, jalur_aksi):
                      'Tidak perlu mengetik ulang jawaban dari foto.</p>' if foto else '')
     return (f'<!doctype html><html lang="id"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1"><title>{brand.judul("Sebelum dikirim")}</title>'
-            f'<style>{gaya_stitch()}</style></head><body class="st kerja-editorial-st">'
-            '<main class="kerja-badan-st"><h1>Ada jawaban yang masih kosong. Tidak apa-apa.</h1>'
+            f'{brand.tag_kepala()}{kepala_murid(gaya_stitch())}</head><body class="st kerja-editorial-st">'
+            '<div class="murid-wadah-st">' + topbar_murid() + '<main class="kerja-badan-st"><h1>Ada jawaban yang masih kosong. Tidak apa-apa.</h1>'
             '<p>Jawaban tersimpan sementara. Latihan belum dikirim.</p>'
             '<p>Boleh tanpa mengisi alasan. Ceritakan jika kamu mau.</p>'
             + petunjuk_foto + f'<form method="post" action="{escape(jalur_aksi, quote=True)}">'
@@ -53,4 +54,4 @@ def halaman_refleksi(kon, siswa_id, sesi_id, jalur_aksi):
             + '<div class="kerja-simpan-strip-st">'
             '<button class="sekunder" name="aksi" value="kembali" type="submit">Kembali mengerjakan</button>'
             '<button name="aksi" value="kirim_latihan" type="submit">Kirim latihan</button>'
-            '</div></form></main></body></html>').encode()
+            '</div></form></main></div></body></html>').encode()

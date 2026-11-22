@@ -868,6 +868,7 @@ def halaman_konfirmasi(
     lembar dari foto, tanpa bahasa AI, tombol baca ulang, atau kunci jawaban
     yang dapat membiaskan transkripsi.
     """
+    from font_lokal import tag_font_lokal, tanpa_impor_font_cdn
     from style_stitch import gaya_stitch, CSS_SESI
     from teacher_pages import _topbar_stitch
     from teacher_shell import kelas_shell
@@ -1032,10 +1033,8 @@ def halaman_konfirmasi(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{brand.judul("Konfirmasi lembar foto")}</title>
 {brand.tag_kepala()}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">
-<style>{GAYA_KONFIRMASI}{gaya_stitch()}{CSS_SESI}</style></head>
+{tag_font_lokal()}
+<style>{GAYA_KONFIRMASI}{tanpa_impor_font_cdn(gaya_stitch())}{CSS_SESI}</style></head>
 <body class="st"><div class="{kelas_shell("pendamping-editorial-st foto-editorial-st")}">
 {_topbar_stitch("", "guru")}
 <main class="sesi-badan-st" aria-labelledby="judul-foto">

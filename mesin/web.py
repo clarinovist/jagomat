@@ -168,9 +168,9 @@ _GAYA_FONT_GOOGLE = ("style-src 'unsafe-inline' https://fonts.googleapis.com; "
 def izin_gaya_font(isi: bytes) -> str:
     """`style-src`/`font-src` dari isi respons: host Google hanya bila halaman memuatnya.
 
-    Halaman anak, /masuk, dan Lomba memakai font same-origin (`font_lokal`), jadi CSP-nya
-    tidak perlu membuka host pihak ketiga. Halaman publik lama (landing, Pusat Cek anak)
-    masih menautkan Google Fonts; untuk mereka izin lama tetap dipasang.
+    Semua halaman memakai font merek same-origin (`font_lokal`); host Google tinggal untuk
+    Material Symbols di halaman guru nonprivat. Halaman yang tidak memuatnya mendapat
+    `style-src`/`font-src` tanpa host pihak ketiga.
     """
     return _GAYA_FONT_GOOGLE if b"fonts.googleapis.com" in isi else _GAYA_FONT_LOKAL
 

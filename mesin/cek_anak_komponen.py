@@ -18,6 +18,7 @@ import design_tokens as T
 import topik_awam
 import topics
 from cek_anak_style import GAYA_CEK_ANAK
+from font_lokal import tag_font_lokal
 
 # Cermin `cek_gratis_skor.semua_topik_cek()`; permukaan anak sengaja tidak
 # mengimpor modul skor. test_cek_anak menjaga keduanya tetap sama.
@@ -201,9 +202,7 @@ def kerangka(judul: str, isi: str, *, skrip: str = "") -> bytes:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(judul))}</title>
 {brand.tag_kepala()}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+{tag_font_lokal()}
 <style>{GAYA_CEK_ANAK}</style></head>
 <body class="cek-anak"><div class="bingkai">
 {isi}

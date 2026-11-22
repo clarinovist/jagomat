@@ -2336,11 +2336,6 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .dukungan-editorial-st .tombol-putih:hover {{ color: {T.AKSEN_TEAL_TUA}; border-color: {T.AKSEN_TEAL_TUA}; }}
 .dukungan-editorial-st a:focus-visible {{ outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: 3px; }}
 .pesan-editorial-st {{ max-width: 46rem; margin: 0 auto; padding: {T.SP_4}; overflow-wrap: anywhere; }}
-.pesan-editorial-st .pesan-brand-st {{
-  display: flex; align-items: center; gap: {T.SP_2}; min-height: 3.5rem;
-  color: {T.AKSEN_TEAL_TUA}; font-family: {T.FONT_HEADLINE}; font-weight: 800; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN};
-}}
-.pesan-editorial-st .pesan-brand-st img {{ width: {T.LOGO_TOPBAR}; height: {T.LOGO_TOPBAR}; }}
 .pesan-editorial-st .pesan-catatan-st {{ margin: clamp({T.SP_6}, 8vh, 5rem) 0; border-left: 3px solid {T.BORDER_CATATAN}; padding-left: {T.SP_5}; }}
 .pesan-editorial-st .pesan-alis-st {{ font-size: .72rem; font-weight: 700; color: {T.AKSEN_TEAL_TUA}; letter-spacing: .12em; }}
 .pesan-editorial-st h1 {{ font: 800 clamp(1.8rem, 5vw, 2.6rem)/1.2 {T.FONT_HEADLINE}; letter-spacing: -.04em; color: {T.TEKS_JUDUL}; }}

@@ -148,3 +148,20 @@ def test_csp_masuk_font_self_tanpa_host_google(server):
     assert kode == 200 and "fonts.googleapis.com" not in isi
     direktif = _direktif(tajuk["Content-Security-Policy"])
     assert direktif["font-src"] == ["'self'"] and direktif["style-src"] == ["'unsafe-inline'"]
+
+
+@pytest.mark.parametrize("jalur", ["/", "/daftar", "/kebijakan", "/lupa-sandi"])
+def test_halaman_publik_font_lokal_tanpa_host_google(server, jalur):
+    _kode, isi, tajuk = server.minta(jalur)
+    _wajib_font_lokal(isi)
+    _tanpa_pihak_ketiga(isi)
+    csp = tajuk.get("Content-Security-Policy")
+    if csp is not None:
+        assert "fonts.googleapis.com" not in csp and "fonts.gstatic.com" not in csp
+
+
+def test_kerangka_cek_anak_dan_lembar_peta_font_lokal():
+    import cek_anak_komponen
+    isi = cek_anak_komponen.kerangka("Cek", "<p>x</p>").decode()
+    _wajib_font_lokal(isi)
+    _tanpa_pihak_ketiga(isi)

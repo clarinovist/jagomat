@@ -106,7 +106,8 @@ def test_lomba_bilah_lama_dan_header_tanpa_logo_hilang():
 
 def test_pesan_umum_tetap_tanpa_shell_murid_agar_guru_tidak_berubah():
     isi = halaman_pesan("404", "<h1>x</h1>").decode()
-    assert "pesan-brand-st" in isi and "murid-topbar-st" not in isi
+    assert 'class="st-topbar"' in isi and "pesan-brand-st" not in isi and "murid-topbar-st" not in isi
+    assert "fonts.googleapis" not in isi and "<a " not in isi  # lockup tanpa tautan: halaman pesan bisa anonim
 
 
 def test_ikon_murid_dekoratif_dan_menolak_nama_tak_dikenal():

@@ -4,6 +4,7 @@ import html
 
 import brand
 import design_tokens as T
+from font_lokal import tag_font_lokal, tanpa_impor_font_cdn
 from murid_shell import bungkus_murid, kepala_murid, topbar_murid
 from style_stitch import gaya_stitch
 
@@ -13,6 +14,12 @@ def _catatan(isi: str) -> str:
 <p class="pesan-alis-st">CATATAN DARI {html.escape(T.NAMA_PRODUK.upper())}</p>
 {isi}
 </section>"""
+
+
+def _topbar_pesan() -> str:
+    """Lockup topbar guru (`st-topbar`) tanpa menu dan tanpa tautan: halaman pesan bisa anonim."""
+    return (f'<header class="st-topbar"><span class="brand">{brand.mark("topbar")}'
+            f'<span class="nama">{html.escape(T.NAMA_PRODUK)}</span></span></header>')
 
 
 def halaman_pesan(judul: str, isi: str) -> bytes:
@@ -25,11 +32,9 @@ def halaman_pesan(judul: str, isi: str) -> bytes:
     return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(judul))}</title>
-{brand.tag_kepala()}<style>{gaya_stitch()}</style></head>
-<body class="st"><main class="pesan-editorial-st">
-<header class="pesan-brand-st">{brand.mark("topbar")}<span>{html.escape(T.NAMA_PRODUK)}</span></header>
-{_catatan(isi)}
-</main></body></html>""".encode()
+{brand.tag_kepala()}{tag_font_lokal()}<style>{tanpa_impor_font_cdn(gaya_stitch())}</style></head>
+<body class="st"><div class="bungkus-st shell-guru-st">{_topbar_pesan()}
+<main class="pesan-editorial-st">{_catatan(isi)}</main></div></body></html>""".encode()
 
 
 def halaman_pesan_murid(judul: str, isi: str) -> bytes:

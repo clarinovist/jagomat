@@ -24,12 +24,9 @@ RINGKASAN_META = (
 
 
 def _font_link() -> str:
-    return (
-        '<link rel="preconnect" href="https://fonts.googleapis.com">'
-        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-        '<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700'
-        '&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">'
-    )
+    """Font merek same-origin; tanpa host Google."""
+    from font_lokal import tag_font_lokal
+    return tag_font_lokal()
 
 
 GAYA_RISET = f"""

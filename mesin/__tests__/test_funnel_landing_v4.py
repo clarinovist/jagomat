@@ -46,7 +46,7 @@ def _pisah_selektor(daftar: str) -> list:
 
 
 def _teks_terlihat(isi: str) -> str:
-    badan = isi.split("</style>", 1)[1]
+    badan = isi.rsplit("</style>", 1)[1]
     badan = re.sub(r"<script>.*?</script>|<svg.*?</svg>", " ", badan, flags=re.S)
     return " ".join(re.sub(r"<[^>]+>", " ", badan).split())
 
@@ -253,7 +253,7 @@ def test_paket_coba_dan_contoh_tidak_memuat_skrip_landing(monkeypatch):
     monkeypatch.setenv("FUNNEL_AKTIF", "1")
     isi = funnel_pages.halaman_paket_coba().decode()
     assert funnel_landing_browser.SKRIP_LANDING_CEK not in isi
-    assert "cek-halaman-st" not in isi.split("</style>", 1)[1]
+    assert "cek-halaman-st" not in isi.rsplit("</style>", 1)[1]
 
 
 def test_jumlah_kata_landing_wajar(halaman):

@@ -17,19 +17,14 @@ import html
 import brand
 import design_tokens as T
 import funnel_flag
+from font_lokal import tag_font_lokal, tanpa_impor_font_cdn
 from offline_browser import SKRIP_OFFLINE
 from teacher_style import SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA
 
 
 def _font_link() -> str:
-    """<link> Google Fonts CDN — dipakai semua halaman publik Stitch."""
-    return (
-        '<link rel="preconnect" href="https://fonts.googleapis.com">'
-        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-        '<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700'
-        '&family=Plus+Jakarta+Sans:wght@400;600;700;800'
-        '&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">'
-    )
+    """Font merek same-origin (`font_lokal`) untuk semua halaman publik Stitch; tanpa host Google."""
+    return tag_font_lokal()
 
 
 def _halaman_publik_stitch(
@@ -53,7 +48,7 @@ def _halaman_publik_stitch(
 <title>{html.escape(brand.judul(judul))}</title>
 {brand.tag_kepala(og)}
 {_font_link()}
-<style>{gaya_stitch()}</style></head>
+<style>{tanpa_impor_font_cdn(gaya_stitch())}</style></head>
 <body class="st"><div class="{html.escape(kelas_badan, quote=True)}">{isi}</div>
 <script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script><script>{SKRIP_OFFLINE}</script></body></html>""".encode()
 

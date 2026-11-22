@@ -36,7 +36,7 @@ def server(tmp_path, monkeypatch):
 
 def _badan(isi: str) -> str:
     """Badan halaman tanpa blok <style>, dan tanpa lambang brand (style bawaan <img>)."""
-    badan = isi.split("</style>", 1)[1]
+    badan = isi.rsplit("</style>", 1)[1]
     return badan.replace(brand.mark("topbar"), "")
 
 
@@ -177,8 +177,8 @@ def test_landing_hidup_hanya_beda_satu_baris_nav(monkeypatch):
     mati = landing.halaman_landing().decode()
     monkeypatch.setenv("FUNNEL_AKTIF", "1")
     hidup = landing.halaman_landing().decode()
-    baris_mati = mati.split("</style>", 1)[1].splitlines()
-    baris_hidup = hidup.split("</style>", 1)[1].splitlines()
+    baris_mati = mati.rsplit("</style>", 1)[1].splitlines()
+    baris_hidup = hidup.rsplit("</style>", 1)[1].splitlines()
     tambahan = [b for b in baris_hidup if b not in baris_mati]
     assert tambahan == ['<a class="landing-nav-st" href="/cek-kemampuan">Cek kemampuan</a>']
 
