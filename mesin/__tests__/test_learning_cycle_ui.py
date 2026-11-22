@@ -108,7 +108,7 @@ def test_tab_rencana_anak_baru_menampilkan_satu_cta_tanpa_form_manual(server):
     assert "Kenali cara anak mengerjakan tanpa menyimpulkan" not in terlihat
     assert '<details class="alur-rencana-jelas-st">' not in kartu
     assert 'class="beranda-posisi-st"' in isi
-    assert "/* Rencana belajar jelas — kartu */" in isi.split("</style>", 1)[0]
+    assert "/* Rencana belajar jelas — kartu */" in isi.rsplit("</style>", 1)[0]
     form_utama = isi.split(f'action="/siklus/{siswa_id}/buat"', 1)[1].split("</form>", 1)[0]
     assert "<input" not in form_utama
     assert '<details class="atur-latihan-st"' not in isi

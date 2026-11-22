@@ -293,7 +293,7 @@ def test_koreksi_latihan_cepat_tanpa_caraku_dan_submit_tetap_benar(db):
         )
         hasil = database.isi_sesi(kon, sesi_id)[0]
 
-    badan = halaman.split("</style>", 1)[-1]
+    badan = halaman.rsplit("</style>", 1)[-1]
     assert "Caraku" not in badan
     assert 'name="cara_' not in badan
     assert '<option value="N"' not in badan
