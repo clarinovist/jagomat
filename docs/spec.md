@@ -184,8 +184,8 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   perubahan pertama; env tetap fallback; DB lama dengan empat nama diperlebar saat perubahan pertama tanpa menaikkan versi skema), dengan tinjauan bertanda tangan, sandi ulang, optimistic
   concurrency, dan audit. DB sakelar rusak = kartu galat + status 503, bagian lain halaman tetap tampil; menyalakan transfer ditolak bila funnel
   mati atau rekening kosong.
-- **Latihan Lomba** (Grand Final Corexis, Matematika Level 1; segmen khusus untuk anak pemilik, di balik sakelar admin `OSN_LOMBA`, bawaan mati;
-  mati = semua alamatnya 404). Murid yang terhubung ke data siswa membuka `/murid/lomba` (tautan di beranda murid hanya saat sakelar hidup): sesi 10 soal
+- **Latihan Lomba** (Grand Final Corexis, Matematika Level 1; segmen khusus untuk anak pemilik, di balik sakelar admin `OSN_LOMBA` = saklar induk, bawaan mati;
+  mati = semua alamatnya 404). Aktivasi per anak oleh Guru (Mode Lomba, 22 Nov 2026): murid hanya melihat Lomba bila sakelar induk hidup DAN Guru/admin mengaktifkannya untuk anak itu di `/anak/<id>/lomba` (kartu "Mode Lomba": aktif/belum, target harian 0-3 atau ikut paket, hitung mundur tampil/tidak; tanpa penugasan = tidak aktif; anak tanpa penugasan aktif mendapat 404 yang sama dengan jalur murid tak dikenal; riwayat Guru tetap terbuka walau mati). Murid yang terhubung ke data siswa dan sudah ditugaskan membuka `/murid/lomba` (tautan di beranda murid hanya saat itu): sesi 10 soal
   (8 pilihan ganda + 2 isian) dari 38 template buatan sendiri (Bilangan, Operasi Hitung, Pengukuran, Bangun Datar/Ruang; maks satu soal Inggris), waktu 15 menit yang
   dihitung dan ditegakkan server (jawaban setelah batas ditolak, layar soal tertutup, hasil langsung tampil). Soal baru tiap sesi: tidak mengulang soal lima sesi terakhir,
   jenis soal dua sesi terakhir dihindari. Jawaban tersimpan lewat form biasa (tanpa autosave JS; satu-satunya JS adalah hitung mundur). Setelah selesai atau waktu habis anak
@@ -195,7 +195,7 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   isian membuang semua spasi ("5 9 4" = 594; titik/koma/huruf ditolak, ketikan galat dipertahankan); konfirmasi kumpul menunjukkan soal kosong; hasil berisi nilai, banding dengan latihan sah
   sebelumnya, peta nomor, soal salah/kosong terbuka dan yang benar dilipat; halaman awal dan kartu beranda menampilkan hitung mundur ke tanggal lomba dan target latihan harian. Sesi "asal kumpul"
   (< 120 detik atau < 3 soal terisi) tetap di riwayat tetapi tidak ikut nilai terbaik, banding, target, maupun rata-rata/tren/topik/jenis sering salah di halaman Guru (ditandai "Dikumpulkan cepat", titik grafik abu-abu). Paket lomba (nama, tanggal, durasi, target) adalah konfigurasi kode `contest_paket`.
-  Data di tabel `lomba_*` terpisah dari sesi guru; ikut terhapus saat penghapusan keluarga; tidak menulis ke Peta Kemampuan, diagnosis, laporan, atau bukti.
+  Data di tabel `lomba_*` (termasuk `lomba_penugasan`) terpisah dari sesi guru; ikut terhapus saat penghapusan keluarga; tidak menulis ke Peta Kemampuan, diagnosis, laporan, atau bukti.
 - Admin mengelola **profil guru peninjau** (`/admin/profil-guru`): nama, latar, lama mengajar, urutan,
   tampil/tidak. Profil `tampil=1` dipakai kartu guru di halaman funnel dengan cache 30 detik; profil
   kosong = tanpa kartu. Perubahan dan hapus memakai tinjauan bertanda tangan + sandi ulang.
