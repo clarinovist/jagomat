@@ -12,6 +12,16 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy tombol Mode Lomba di halaman akun — 22 November 2026
+
+Controlled `deploy-v2` memasang **deb96ef** (digest `sha256:6430fc3c…b076`), healthy/restart0, menggantikan **7982f2c**.
+Isi: kartu anak di `/akun?section=siswa` menampilkan status Mode Lomba + tombol Aktifkan/Matikan (`contest_account`,
+aksi `mode_lomba`, hanya `aktif`, kepemilikan `siswa_milik`/admin). Tanpa skema/store: kontrak tetap `47a7cd9d…`,
+recovery tetap **1206bc9** (digest dibangun ulang). Dispatch `audit=false`
+[45009539396](https://github.com/clarinovist/jagomat/actions/runs/45009539396); tes akun+Lomba terarah 196 lolos, mutation
+kepemilikan merah→hijau. Kit `deploy-lomba-akun-20261122`: approval diarsipkan, `PERSIAPAN_OK`, backup lima file + riset,
+rehearsal C–B–C, `deploy-v2` exit0, `LIVE_ADMIN_HEALTHY`, postcheck exit0, smoke publik sama, cleanup.
+
 ## Deploy Mode Lomba per anak (pin recovery baru) — 22 November 2026
 
 Controlled `deploy-v2` memasang **7982f2c** (digest `sha256:31cc1c59…986b`), healthy/restart0, menggantikan **4a6b93e**.
