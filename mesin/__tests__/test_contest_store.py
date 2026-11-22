@@ -458,9 +458,9 @@ def test_riwayat_lima_sesi_untuk_tanda_tangan_dan_dua_sesi_untuk_rotasi_diterusk
     tercatat = {}
     asli = S.rakit_sesi
 
-    def mata(seed, pool, terlarang, template_dihindari=frozenset()):
+    def mata(seed, pool, terlarang, template_dihindari=frozenset(), mode="latihan"):
         tercatat["terlarang"], tercatat["hindari"] = terlarang, template_dihindari
-        return asli(seed, pool, terlarang, template_dihindari)
+        return asli(seed, pool, terlarang, template_dihindari, mode=mode)
 
     monkeypatch.setattr(S, "rakit_sesi", mata)
     _mulai(kon, anak, sekarang=SEKARANG + 20000, seed=99)

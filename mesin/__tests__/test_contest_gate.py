@@ -105,7 +105,7 @@ def anak_lain(kon):
 
 
 def _tugaskan(kon, siswa_id, aktif=True):
-    AS.atur(kon, siswa_id, aktif=aktif, target_harian=None, tampil_hitung_mundur=None,
+    AS.atur(kon, siswa_id, aktif=aktif, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None,
             sekarang=SEKARANG, oleh="guru-uji")
 
 

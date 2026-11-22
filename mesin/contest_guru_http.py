@@ -166,8 +166,11 @@ def _simpan(penangan, kon, siswa_id: int) -> bool:
         return False
     kon.execute("BEGIN IMMEDIATE")
     _pastikan_boleh(penangan, kon, siswa_id)
+    lama = AS.ambil(kon, siswa_id)
     AS.atur(kon, siswa_id, aktif=pengaturan.aktif, target_harian=pengaturan.target_harian,
-            tampil_hitung_mundur=pengaturan.tampil_hitung_mundur, sekarang=_sekarang(),
+            tampil_hitung_mundur=pengaturan.tampil_hitung_mundur,
+            durasi_latihan_detik=lama.durasi_latihan_detik if lama else None,
+            durasi_simulasi_detik=lama.durasi_simulasi_detik if lama else None, sekarang=_sekarang(),
             oleh=penangan._identitas()[0][:AS.MAKS_PANJANG_OLEH])
     return True
 

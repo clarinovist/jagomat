@@ -109,7 +109,7 @@ def test_anak_baru_tanpa_sesi_punya_ringkasan_kosong(kon, anak):
 
 
 def _tugaskan(kon, siswa, **nilai):
-    dasar = dict(aktif=True, target_harian=None, tampil_hitung_mundur=None, sekarang=SEKARANG, oleh="guru-uji")
+    dasar = dict(aktif=True, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None, sekarang=SEKARANG, oleh="guru-uji")
     dasar.update(nilai)
     AS.atur(kon, siswa, **dasar)
 

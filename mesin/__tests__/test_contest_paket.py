@@ -135,3 +135,32 @@ def test_konstanta_store_sama_dengan_paket_aktif():
     assert contest_store.DURASI_DETIK == PK.PAKET_AKTIF.durasi_detik
     assert contest_store.PAKET_ID == PK.PAKET_AKTIF.id
     assert contest_store.NOMOR_TERAKHIR == PK.PAKET_AKTIF.jumlah_soal
+
+
+# --- dua mode sesi ----------------------------------------------------------------------------------------
+
+def test_format_mode_latihan_dan_simulasi():
+    latihan, simulasi = PAKET.format_mode(PK.MODE_LATIHAN), PAKET.format_mode(PK.MODE_SIMULASI)
+    assert (latihan.jumlah_soal, latihan.jumlah_isian, latihan.durasi_menit, latihan.label) == (10, 2, 15, "Latihan")
+    assert (simulasi.jumlah_soal, simulasi.jumlah_isian, simulasi.durasi_menit, simulasi.jumlah_pg) == (35, 5, 60, 30)
+    assert simulasi.label == "Simulasi Lomba"
+    with pytest.raises(ValueError):
+        PAKET.format_mode("ujian")
+
+
+def test_konstanta_durasi_store_sama_dengan_paket():
+    assert K.DURASI_SIMULASI_DETIK == PAKET.durasi_simulasi_detik
+    assert K.MAKS_NOMOR == PK.MAKS_NOMOR_SOAL == PAKET.jumlah_soal_simulasi
+    assert K.DURASI_MAKS_DETIK == PK.DURASI_MAKS_MENIT * PK.DETIK_PER_MENIT
+
+
+@pytest.mark.parametrize("perubahan", [{"jumlah_soal_simulasi": 34}, {"jumlah_isian_simulasi": 35},
+                                       {"durasi_simulasi_detik": 0}])
+def test_paket_simulasi_tidak_sah_ditolak(perubahan):
+    with pytest.raises(ValueError):
+        _ubah(**perubahan)
+
+
+@pytest.mark.parametrize("menit,sah", [(5, True), (180, True), (4, False), (181, False), (True, False), (15.0, False)])
+def test_menit_sah_5_sampai_180_bulat(menit, sah):
+    assert PK.menit_sah(menit) is sah

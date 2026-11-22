@@ -8,6 +8,10 @@ bila sesi bukan milik anak itu, sudah tidak berjalan, atau sudah melewati batas.
 
 Halaman anak hanya boleh memakai `soal_untuk_anak` (kolom aman); kunci dan pembahasan hanya dibaca
 `hasil_ringkas` setelah sesi tidak lagi berjalan.
+
+Dua mode (`lomba_sesi.mode`): Latihan (10 soal) dan Simulasi (35 soal). Batas waktu disalin ke `batas_epoch` saat
+sesi dimulai, jadi mengubah durasi anak tidak memengaruhi sesi yang sedang berjalan. Satu sesi berjalan per anak,
+apa pun modenya. Nomor soal sah di batas HTTP: 1..MAKS_NOMOR; nomor di luar jumlah soal sesi itu -> tidak ditemukan.
 """
 from __future__ import annotations
 
@@ -23,13 +27,19 @@ import contest_session as S
 import contest_templates
 
 DURASI_DETIK = 15 * 60
+DURASI_SIMULASI_DETIK = 60 * 60
+DURASI_MAKS_DETIK = 180 * 60      # sama dengan CHECK durasi di lomba_penugasan
 PAKET_ID = "corexis_l1_matematika"
 BERJALAN, DIKUMPUL, WAKTU_HABIS = "berjalan", "dikumpul", "waktu_habis"
+LATIHAN, SIMULASI = "latihan", "simulasi"
 SEED_BIT = 63
-NOMOR_PERTAMA, NOMOR_TERAKHIR = 1, S.JUMLAH_SOAL
+NOMOR_PERTAMA, NOMOR_TERAKHIR = 1, S.JUMLAH_SOAL    # NOMOR_TERAKHIR = jumlah soal Latihan
+MAKS_NOMOR = 35                                     # sama dengan CHECK nomor di lomba_soal
+_DURASI_BAWAAN = {LATIHAN: DURASI_DETIK, SIMULASI: DURASI_SIMULASI_DETIK}
 _POLA_ISIAN = re.compile(r"^[0-9]{1,6}$")
 _SAVEPOINT = "lomba_mulai"
-_KOLOM_SESI = "id, siswa_id, status, mulai_epoch, batas_epoch, selesai_epoch"
+_KOLOM_SESI = ("id, siswa_id, status, mulai_epoch, batas_epoch, selesai_epoch, mode, "
+               "(SELECT COUNT(*) FROM lomba_soal WHERE sesi_id = lomba_sesi.id) AS jumlah_soal")
 _SYARAT_BERJALAN = ("EXISTS (SELECT 1 FROM lomba_sesi WHERE id = ? AND siswa_id = ? "
                     "AND status = 'berjalan' AND batas_epoch > ?)")
 
@@ -58,6 +68,8 @@ class SesiRingkas:
     mulai_epoch: int
     batas_epoch: int
     selesai_epoch: Optional[int]
+    mode: str = LATIHAN
+    jumlah_soal: int = NOMOR_TERAKHIR
 
     def sisa_detik(self, sekarang: int) -> int:
         return max(0, self.batas_epoch - sekarang) if self.status == BERJALAN else 0
@@ -86,7 +98,7 @@ class HasilRingkas:
 def _ringkas(baris) -> SesiRingkas:
     return SesiRingkas(id=baris["id"], siswa_id=baris["siswa_id"], status=baris["status"],
                        mulai_epoch=baris["mulai_epoch"], batas_epoch=baris["batas_epoch"],
-                       selesai_epoch=baris["selesai_epoch"])
+                       selesai_epoch=baris["selesai_epoch"], mode=baris["mode"], jumlah_soal=baris["jumlah_soal"])
 
 
 def _finalkan_habis(kon, siswa_id: int, sekarang: int) -> None:
@@ -127,19 +139,25 @@ def _pastikan_milik(kon, siswa_id: int, sesi_id: int) -> None:
         raise SesiTidakDitemukan(sesi_id)
 
 
-def _riwayat(kon, siswa_id: int) -> Tuple[FrozenSet[str], FrozenSet[str]]:
-    """(tanda tangan soal 5 sesi terakhir, id template 2 sesi terakhir) milik anak ini."""
+def _riwayat(kon, siswa_id: int) -> Tuple[Tuple[FrozenSet[str], ...], FrozenSet[str]]:
+    """(tanda tangan soal per sesi untuk 5 sesi terakhir apa pun modenya, terbaru dulu;
+    id template 2 sesi LATIHAN terakhir) milik anak ini.
+
+    Rotasi jenis hanya membaca sesi Latihan: satu simulasi memakai hampir semua jenis, jadi bila ikut dihitung
+    rotasi Latihan berikutnya hampir pasti gagal lalu dilepas juga, hanya lebih lambat.
+    """
     ids = [baris[0] for baris in kon.execute(
         "SELECT id FROM lomba_sesi WHERE siswa_id = ? ORDER BY id DESC LIMIT ?", (siswa_id, S.RIWAYAT_SESI))]
+    latihan = [baris[0] for baris in kon.execute(
+        "SELECT id FROM lomba_sesi WHERE siswa_id = ? AND mode = 'latihan' ORDER BY id DESC LIMIT ?",
+        (siswa_id, S.ROTASI_SESI))]
 
-    def kolom(nama: str, sesi_ids: Sequence[int]) -> FrozenSet[str]:
-        if not sesi_ids:
-            return frozenset()
-        penampung = ",".join("?" * len(sesi_ids))
+    def kolom(nama: str, sesi_id: int) -> FrozenSet[str]:
         return frozenset(baris[0] for baris in kon.execute(
-            f"SELECT {nama} FROM lomba_soal WHERE sesi_id IN ({penampung})", tuple(sesi_ids)))
+            f"SELECT {nama} FROM lomba_soal WHERE sesi_id = ?", (sesi_id,)))
 
-    return kolom("tanda_tangan", ids), kolom("template_id", ids[:S.ROTASI_SESI])
+    dihindari = frozenset().union(*(kolom("template_id", i) for i in latihan))
+    return tuple(kolom("tanda_tangan", i) for i in ids), dihindari
 
 
 def _baris_soal(sesi_id: int, butir: S.ButirSesi) -> tuple:
@@ -162,14 +180,15 @@ def _simpan_soal(kon, sesi_id: int, sesi: S.Sesi) -> None:
         [_baris_soal(sesi_id, butir) for butir in sesi.butir])
 
 
-def _simpan_sesi_baru(kon, siswa_id: int, sekarang: int, seed: int, sesi: S.Sesi) -> SesiRingkas:
-    """Sesi dan sepuluh soalnya masuk atau batal bersama; yang kalah balapan melanjutkan pemenang."""
+def _simpan_sesi_baru(kon, siswa_id: int, sekarang: int, seed: int, sesi: S.Sesi, mode: str,
+                      durasi_detik: int) -> SesiRingkas:
+    """Sesi dan semua soalnya masuk atau batal bersama; yang kalah balapan melanjutkan pemenang."""
     kon.execute(f"SAVEPOINT {_SAVEPOINT}")
     try:
         kursor = kon.execute(
-            "INSERT INTO lomba_sesi(siswa_id, paket_id, seed, mulai_epoch, batas_epoch, status) "
-            "VALUES (?, ?, ?, ?, ?, 'berjalan')",
-            (siswa_id, PAKET_ID, seed, sekarang, sekarang + DURASI_DETIK))
+            "INSERT INTO lomba_sesi(siswa_id, paket_id, seed, mulai_epoch, batas_epoch, status, mode) "
+            "VALUES (?, ?, ?, ?, ?, 'berjalan', ?)",
+            (siswa_id, PAKET_ID, seed, sekarang, sekarang + durasi_detik, mode))
     except sqlite3.IntegrityError:
         kon.execute(f"ROLLBACK TO {_SAVEPOINT}")
         kon.execute(f"RELEASE {_SAVEPOINT}")
@@ -185,21 +204,37 @@ def _simpan_sesi_baru(kon, siswa_id: int, sekarang: int, seed: int, sesi: S.Sesi
         raise
     kon.execute(f"RELEASE {_SAVEPOINT}")
     return SesiRingkas(id=kursor.lastrowid, siswa_id=siswa_id, status=BERJALAN, mulai_epoch=sekarang,
-                       batas_epoch=sekarang + DURASI_DETIK, selesai_epoch=None)
+                       batas_epoch=sekarang + durasi_detik, selesai_epoch=None, mode=mode,
+                       jumlah_soal=len(sesi.butir))
+
+
+def _periksa_mulai(mode: str, durasi_detik: int) -> None:
+    if mode not in _DURASI_BAWAAN:
+        raise ValueError(f"mode sesi tidak dikenal: {mode!r}")
+    if (isinstance(durasi_detik, bool) or not isinstance(durasi_detik, int)
+            or not 0 < durasi_detik <= DURASI_MAKS_DETIK):
+        raise ValueError(f"durasi harus 1 sampai {DURASI_MAKS_DETIK} detik")
 
 
 def mulai_atau_lanjut(kon, siswa_id: int, sekarang: int, *, seed: Optional[int] = None,
-                      pool: Optional[Sequence[C.Template]] = None) -> SesiRingkas:
-    """Lanjutkan sesi yang masih berjalan, atau rakit sesi baru (soal baru, rotasi jenis, tanpa ulang)."""
+                      pool: Optional[Sequence[C.Template]] = None, mode: str = LATIHAN,
+                      durasi_detik: Optional[int] = None) -> SesiRingkas:
+    """Lanjutkan sesi yang masih berjalan (apa pun modenya), atau rakit sesi baru mode `mode`.
+
+    `durasi_detik` None = durasi bawaan mode. Soal baru: tanpa ulang soal 5 sesi terakhir (dilonggarkan dari sesi
+    tertua bila perlu, lihat `contest_session.rakit_dengan_pelonggaran`), rotasi jenis untuk Latihan.
+    """
+    durasi = _DURASI_BAWAAN.get(mode, 0) if durasi_detik is None else durasi_detik
+    _periksa_mulai(mode, durasi)
     _finalkan_habis(kon, siswa_id, sekarang)
     ada = _berjalan(kon, siswa_id)
     if ada is not None:
         return ada
     seed = secrets.randbits(SEED_BIT) if seed is None else seed
     katalog = contest_templates.katalog() if pool is None else pool
-    terlarang, dihindari = _riwayat(kon, siswa_id)
-    sesi = S.rakit_sesi(seed, katalog, terlarang, template_dihindari=dihindari)
-    return _simpan_sesi_baru(kon, siswa_id, sekarang, seed, sesi)
+    larangan, dihindari = _riwayat(kon, siswa_id)
+    sesi = S.rakit_dengan_pelonggaran(seed, katalog, larangan, template_dihindari=dihindari, mode=mode)
+    return _simpan_sesi_baru(kon, siswa_id, sekarang, seed, sesi, mode, durasi)
 
 
 def soal_untuk_anak(kon, siswa_id: int, sesi_id: int, nomor: int) -> SoalAnak:

@@ -772,6 +772,11 @@ MIGRASI: list[tuple[str, str, str]] = [
     ("sesi_soal", "mode_representasi", "ALTER TABLE sesi_soal ADD COLUMN mode_representasi TEXT"),
     ("sesi_soal", "fingerprint_matematis", "ALTER TABLE sesi_soal ADD COLUMN fingerprint_matematis TEXT"),
     ("sesi_soal", "fingerprint_penyajian", "ALTER TABLE sesi_soal ADD COLUMN fingerprint_penyajian TEXT"),
+    # Simulasi Lomba (22 Nov 2026): mode sesi lomba + durasi per anak (NULL = ikut paket). Batas nomor
+    # lomba_soal 10 -> 35 lewat schema_lomba.perlebar_nomor_soal (rebuild di database.siapkan).
+    ("lomba_sesi", "mode", "ALTER TABLE lomba_sesi ADD COLUMN mode TEXT NOT NULL DEFAULT 'latihan' CHECK (mode IN ('latihan', 'simulasi'))"),
+    ("lomba_penugasan", "durasi_latihan_detik", "ALTER TABLE lomba_penugasan ADD COLUMN durasi_latihan_detik INTEGER CHECK (durasi_latihan_detik IS NULL OR durasi_latihan_detik BETWEEN 300 AND 10800)"),
+    ("lomba_penugasan", "durasi_simulasi_detik", "ALTER TABLE lomba_penugasan ADD COLUMN durasi_simulasi_detik INTEGER CHECK (durasi_simulasi_detik IS NULL OR durasi_simulasi_detik BETWEEN 300 AND 10800)"),
 ]
 
 # View yang definisinya berubah dan karena itu harus dibangun ulang.

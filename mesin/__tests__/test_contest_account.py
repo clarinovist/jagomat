@@ -84,24 +84,28 @@ def test_kartu_kosong_saat_sakelar_induk_mati(s, monkeypatch):
 
     kode, isi = _minta(s, "/akun?section=siswa")
 
-    assert kode == 200 and "Mode Lomba" not in isi and 'value="mode_lomba"' not in isi
+    badan = isi.rsplit("</style>", 1)[-1]      # komentar CSS bersama boleh menyebut "Mode Lomba"
+    assert kode == 200 and "Mode Lomba" not in badan and 'value="mode_lomba"' not in isi
 
 
 def test_guru_mengaktifkan_lalu_mematikan_anaknya_dan_target_dipertahankan(s):
     with s.buka() as kon:
-        AS.atur(kon, s.anak, aktif=False, target_harian=1, tampil_hitung_mundur=False, sekarang=1, oleh="guru")
+        AS.atur(kon, s.anak, aktif=False, target_harian=1, tampil_hitung_mundur=False, durasi_latihan_detik=20 * 60,
+                durasi_simulasi_detik=90 * 60, sekarang=1, oleh="guru")
 
     kode, isi = _minta(s, "/akun", _aksi(s.anak, "1"))
     aktif = _tunggu_penugasan(s, s.anak, True)
 
     assert kode == 200 and "Mode Lomba untuk Anak &lt;b&gt;Sintetis&lt;/b&gt; diaktifkan." in isi
     assert aktif.aktif is True and aktif.target_harian == 1 and aktif.tampil_hitung_mundur is False
+    assert (aktif.durasi_latihan_detik, aktif.durasi_simulasi_detik) == (1200, 5400)
     assert aktif.diubah_oleh == "guru" and "Mode Lomba: Aktif" in isi and ">Matikan</button>" in isi
 
     _minta(s, "/akun", _aksi(s.anak, "0"))
     mati = _tunggu_penugasan(s, s.anak, False)
 
     assert mati.aktif is False and mati.target_harian == 1 and mati.tampil_hitung_mundur is False
+    assert (mati.durasi_latihan_detik, mati.durasi_simulasi_detik) == (1200, 5400)
 
 
 def test_anak_tanpa_pengaturan_lama_memakai_nilai_paket(s):

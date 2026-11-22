@@ -30,7 +30,7 @@ def anak_lain(kon):
 
 
 def _atur(kon, siswa_id, **ubah):
-    nilai = dict(aktif=True, target_harian=None, tampil_hitung_mundur=None, sekarang=SEKARANG, oleh="guru1")
+    nilai = dict(aktif=True, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None, sekarang=SEKARANG, oleh="guru1")
     nilai.update(ubah)
     return A.atur(kon, siswa_id, **nilai)
 
@@ -58,7 +58,7 @@ def test_nilai_none_berarti_ikut_paket_dan_tersimpan_sebagai_null(kon, anak):
 
 def test_atur_kedua_mengubah_baris_yang_sama_tanpa_menggandakan(kon, anak):
     _atur(kon, anak, target_harian=1)
-    hasil = _atur(kon, anak, aktif=False, target_harian=0, tampil_hitung_mundur=True,
+    hasil = _atur(kon, anak, aktif=False, target_harian=0, tampil_hitung_mundur=True, durasi_latihan_detik=None, durasi_simulasi_detik=None,
                   sekarang=SEKARANG + 60, oleh="admin")
 
     assert kon.execute("SELECT COUNT(*) FROM lomba_penugasan").fetchone()[0] == 1
@@ -118,15 +118,18 @@ def test_oleh_kosong_diterima(kon, anak):
 @pytest.mark.parametrize("kolom,nilai", (
     ("aktif", 2), ("target_harian", 6), ("target_harian", -1), ("tampil_hitung_mundur", 2),
     ("paket_id", ""), ("paket_id", "p" * 65), ("diubah_oleh", "x" * 65),
+    ("durasi_latihan_detik", 299), ("durasi_latihan_detik", 10801), ("durasi_simulasi_detik", 0),
+    ("durasi_simulasi_detik", 10801),
 ))
 def test_check_db_menolak_nilai_liar_walau_lewat_sql_langsung(kon, anak, kolom, nilai):
     dasar = {"siswa_id": anak, "paket_id": "p", "aktif": 1, "target_harian": None,
-             "tampil_hitung_mundur": None, "diubah_epoch": SEKARANG, "diubah_oleh": ""}
+             "tampil_hitung_mundur": None, "diubah_epoch": SEKARANG, "diubah_oleh": "",
+             "durasi_latihan_detik": None, "durasi_simulasi_detik": None}
     dasar[kolom] = nilai
 
     with pytest.raises(sqlite3.IntegrityError):
-        kon.execute("INSERT INTO lomba_penugasan VALUES (:siswa_id, :paket_id, :aktif, :target_harian, "
-                    ":tampil_hitung_mundur, :diubah_epoch, :diubah_oleh)", dasar)
+        kon.execute("INSERT INTO lomba_penugasan(" + ", ".join(dasar) + ") VALUES ("
+                    + ", ".join(":" + k for k in dasar) + ")", dasar)
 
 
 def test_penugasan_untuk_siswa_yang_tidak_ada_ditolak_fk(kon):
@@ -143,3 +146,39 @@ def test_hapus_siswa_ikut_menghapus_penugasannya_saja(kon, anak, anak_lain):
 
     assert A.ambil(kon, anak_lain) == lain
     assert A.ambil(kon, anak) is None
+
+
+# --- durasi per mode (Simulasi Lomba, 22 Nov 2026) -------------------------------------------------------
+
+def test_durasi_tersimpan_dan_terbaca_lagi(kon, anak):
+    hasil = _atur(kon, anak, durasi_latihan_detik=20 * 60, durasi_simulasi_detik=90 * 60)
+    assert (hasil.durasi_latihan_detik, hasil.durasi_simulasi_detik) == (1200, 5400)
+    assert A.ambil(kon, anak) == hasil
+
+
+def test_atur_ulang_tanpa_durasi_mengosongkannya_jadi_pemanggil_wajib_meneruskan_nilai_lama(kon, anak):
+    _atur(kon, anak, durasi_latihan_detik=20 * 60, durasi_simulasi_detik=90 * 60)
+    assert _atur(kon, anak).durasi_simulasi_detik is None
+
+
+def test_durasi_wajib_disebut_saat_atur(kon, anak):
+    with pytest.raises(TypeError):
+        A.atur(kon, anak, aktif=True, target_harian=None, tampil_hitung_mundur=None, sekarang=SEKARANG, oleh="g")
+
+
+@pytest.mark.parametrize("ubah", [
+    {"durasi_latihan_detik": 299}, {"durasi_latihan_detik": 4 * 60}, {"durasi_simulasi_detik": 181 * 60},
+    {"durasi_simulasi_detik": 301}, {"durasi_latihan_detik": True}, {"durasi_simulasi_detik": "3600"},
+    {"durasi_simulasi_detik": 3600.0},
+])
+def test_durasi_tidak_sah_ditolak_tanpa_menulis(kon, anak, ubah):
+    awal = _atur(kon, anak, durasi_latihan_detik=600)
+    with pytest.raises(ValueError):
+        _atur(kon, anak, **ubah)
+    assert A.ambil(kon, anak) == awal
+
+
+@pytest.mark.parametrize("menit", [5, 180])
+def test_durasi_pada_batas_diterima(kon, anak, menit):
+    hasil = _atur(kon, anak, durasi_latihan_detik=menit * 60, durasi_simulasi_detik=menit * 60)
+    assert hasil.durasi_latihan_detik == menit * 60

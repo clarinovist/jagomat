@@ -26,6 +26,7 @@ from attachment_store import (
 import outcome_presentations
 import jurnal_wal
 from context_migration import rebuild_konteks_butir
+import schema_lomba
 from question_bank_store import simpan_soal, statistik_bank
 from report_store import miskonsepsi_berulang, peta_materi_baru, ringkasan
 from session_read_store import (
@@ -177,6 +178,7 @@ def siapkan(path: Path | str = BAWAAN) -> None:
         migrasi(kon)
         rebuild_siswa_unik(kon)
         rebuild_konteks_butir(kon)
+        schema_lomba.perlebar_nomor_soal(kon)
         _segarkan_trigger_snapshot(kon)
         _jalankan_skema(kon, SKEMA)
         # Migrasi bentuk parameter (A4): pola string per-template → list

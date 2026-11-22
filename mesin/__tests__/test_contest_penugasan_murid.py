@@ -52,7 +52,7 @@ def server(tmp_path, monkeypatch, jam):
 
 def _tugaskan(uji, siswa_id, *, aktif=True, target=None, hitung_mundur=None):
     with uji.buka() as kon:
-        AS.atur(kon, siswa_id, aktif=aktif, target_harian=target, tampil_hitung_mundur=hitung_mundur,
+        AS.atur(kon, siswa_id, aktif=aktif, target_harian=target, tampil_hitung_mundur=hitung_mundur, durasi_latihan_detik=None, durasi_simulasi_detik=None,
                 sekarang=T0, oleh="guru-uji")
 
 

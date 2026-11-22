@@ -1,7 +1,7 @@
 """Mode Lomba di halaman akun Guru (`/akun?section=siswa`): status + tombol Aktifkan/Matikan per anak.
 
-Hanya tampil saat sakelar induk `OSN_LOMBA` hidup. Aksi `mode_lomba` hanya mengubah `aktif`; target harian dan
-hitung mundur yang sudah diatur di `/anak/<id>/lomba` dipertahankan. Kepemilikan: Guru hanya anaknya sendiri,
+Hanya tampil saat sakelar induk `OSN_LOMBA` hidup. Aksi `mode_lomba` hanya mengubah `aktif`; target harian,
+hitung mundur, dan durasi Latihan/Simulasi yang sudah diatur di `/anak/<id>/lomba` dipertahankan. Kepemilikan: Guru hanya anaknya sendiri,
 admin semua (pola aksi ber-id lain di `account_pages.proses_akun`); bukan milik -> pesan generik tanpa tulis.
 SQL penugasan tetap milik `contest_assignment_store`.
 """
@@ -74,6 +74,8 @@ def proses(kon, data: Mapping[str, str], pengguna: str, peran: str) -> Tuple[str
     AS.atur(kon, siswa_id, aktif=aktif,
             target_harian=lama.target_harian if lama else None,
             tampil_hitung_mundur=lama.tampil_hitung_mundur if lama else None,
+            durasi_latihan_detik=lama.durasi_latihan_detik if lama else None,
+            durasi_simulasi_detik=lama.durasi_simulasi_detik if lama else None,
             sekarang=int(time.time()), oleh=pengguna[:AS.MAKS_PANJANG_OLEH])
     nama = baris["nama"]
     return (f"Mode Lomba untuk {nama} diaktifkan." if aktif else f"Mode Lomba untuk {nama} dimatikan."), ""
