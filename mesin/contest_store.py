@@ -16,7 +16,7 @@ import re
 import secrets
 import sqlite3
 from dataclasses import dataclass
-from typing import AbstractSet, Dict, FrozenSet, Optional, Sequence, Tuple
+from typing import AbstractSet, FrozenSet, Optional, Sequence, Tuple
 
 import contest_core as C
 import contest_session as S
@@ -223,12 +223,6 @@ def nomor_terjawab(kon, siswa_id: int, sesi_id: int) -> FrozenSet[int]:
     return frozenset(baris[0] for baris in kon.execute(
         "SELECT nomor FROM lomba_jawaban WHERE sesi_id = ?", (sesi_id,)))
 
-
-def terisi_per_sesi(kon, siswa_id: int) -> Dict[int, int]:
-    """Jumlah soal yang terisi di tiap sesi milik anak (untuk menilai sesi asal kumpul); tanpa kunci."""
-    return {baris[0]: baris[1] for baris in kon.execute(
-        "SELECT x.id, COUNT(j.nomor) FROM lomba_sesi x LEFT JOIN lomba_jawaban j ON j.sesi_id = x.id "
-        "WHERE x.siswa_id = ? GROUP BY x.id", (siswa_id,))}
 
 
 def _jenis_soal(kon, siswa_id: int, sesi_id: int, nomor: int) -> str:

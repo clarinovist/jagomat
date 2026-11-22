@@ -92,6 +92,8 @@ span.nomor {{ cursor: default; }}
 .pilih.dipilih {{ background: {T.ANAK_AKSEN_LATAR}; border: {_TEBAL_TANDA} solid {T.ANAK_AKSEN}; }}
 .pilih.dipilih .huruf {{ background: {T.ANAK_AKSEN}; color: {T.TEKS_PUTIH}; }}
 .pilih .tersimpan {{ flex: none; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; color: {T.ANAK_BAIK_TEKS}; }}
+.pilihan.bergambar .pilih {{ position: relative; }}
+.pilihan.bergambar .pilih .tersimpan {{ position: absolute; top: {T.SP_1}; right: {T.SP_2}; }}
 
 /* ===== isian angka ===== */
 .isian {{ display: flex; flex-direction: column; gap: {T.SP_3}; }}

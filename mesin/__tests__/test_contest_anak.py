@@ -207,12 +207,3 @@ def test_nilai_sebelumnya_tidak_menyentuh_sesi_anak_lain(kon, anak, anak_lain):
 
     assert A.nilai_sebelumnya(kon, anak, milik, SEKARANG) is None
 
-
-def test_terisi_per_sesi_menghitung_jawaban_tiap_sesi_milik_anak(kon, anak, anak_lain):
-    satu = _sesi_selesai(kon, anak, SEKARANG - 5000, LAMA_WAJAR, terisi=4)
-    dua = _sesi_selesai(kon, anak, SEKARANG - 4000, LAMA_WAJAR, terisi=0)
-    lain = _sesi_selesai(kon, anak_lain, SEKARANG - 3000, LAMA_WAJAR, terisi=7)
-
-    hasil = K.terisi_per_sesi(kon, anak)
-
-    assert hasil == {satu: 4, dua: 0} and lain not in hasil

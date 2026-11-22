@@ -48,8 +48,8 @@ def nomor_kosong_berikutnya(terisi: AbstractSet[int], nomor: int) -> Optional[in
 
 
 def _saring_sah(kon, siswa_id: int, semua: Sequence[R.RingkasSesi]) -> Tuple[R.RingkasSesi, ...]:
-    terisi = K.terisi_per_sesi(kon, siswa_id)
-    return tuple(s for s in semua if not PK.asal_kumpul(s.waktu_terpakai_detik, terisi.get(s.sesi_id, 0)))
+    """Sesi sah (bukan asal kumpul); penanda dihitung `contest_results` dengan aturan `contest_paket`."""
+    return tuple(s for s in semua if not s.asal_kumpul)
 
 
 def sesi_sah(kon, siswa_id: int, sekarang: int) -> Tuple[R.RingkasSesi, ...]:

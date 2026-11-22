@@ -15,12 +15,12 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import contest_core as C
 import contest_store as K
 from contest_label_jenis import LABEL_JENIS
+from contest_paket import BATAS_DETIK_ASAL_KUMPUL, BATAS_TERISI_ASAL_KUMPUL  # noqa: F401 (diekspor ulang)
+from contest_paket import asal_kumpul as _aturan_asal_kumpul
 
 MIN_SESI_TREN = 4              # tren baru dihitung bila ada sedikitnya empat sesi selesai
 BANYAK_SESI_TREN = 3           # bandingkan rata-rata tiga sesi terakhir dengan tiga pertama
 BATAS_JENIS_BAWAAN = 5
-BATAS_DETIK_ASAL_KUMPUL = 120  # sesi selesai lebih cepat dari ini dianggap dikumpulkan asal
-BATAS_TERISI_ASAL_KUMPUL = 3   # atau soal terjawab kurang dari ini
 _AWALAN_TOPIK = re.compile(r"^(?:bil|ops|ukur|bgn)_")
 
 
@@ -104,8 +104,8 @@ def label_jenis(template_id: str) -> str:
 
 
 def _asal_kumpul(waktu_terpakai_detik: int, terisi: int) -> bool:
-    """Sesi dikumpulkan asal: waktu terpakai kurang dari 120 detik ATAU soal terjawab kurang dari 3."""
-    return waktu_terpakai_detik < BATAS_DETIK_ASAL_KUMPUL or terisi < BATAS_TERISI_ASAL_KUMPUL
+    """Sesi dikumpulkan asal; aturan tunggal di `contest_paket.asal_kumpul` (< 120 detik ATAU terisi < 3)."""
+    return _aturan_asal_kumpul(waktu_terpakai_detik, terisi)
 
 
 def _per_topik(pasangan: Sequence[Tuple[str, bool]]) -> Tuple[NilaiTopik, ...]:

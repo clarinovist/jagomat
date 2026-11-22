@@ -102,7 +102,7 @@ def test_isian_memakai_teks_numerik_bukan_type_number():
     isi = _html(_isian(jawaban="7"))
 
     assert 'type="text"' in isi and 'inputmode="numeric"' in isi and 'pattern="[0-9]*"' in isi
-    assert 'maxlength="6"' in isi and 'autocomplete="off"' in isi and 'value="7"' in isi
+    assert 'maxlength="12"' in isi and 'autocomplete="off"' in isi and 'value="7"' in isi
     assert 'type="number"' not in isi
 
 
@@ -136,11 +136,11 @@ def test_pesan_galat_memberi_contoh_dan_tanpa_istilah_teknis():
     assert P.PESAN_GALAT_ANGKA == "Tulis angkanya saja, tanpa huruf atau tanda baca. Contoh: 120"
 
 
-def test_alamat_sesi_galat_membawa_ketikan_dipotong_enam_karakter_dan_di_url_encode():
+def test_alamat_sesi_galat_membawa_ketikan_dipotong_dua_belas_karakter_dan_di_url_encode():
     assert P.alamat_sesi(5, 3) == "/murid/lomba/sesi/5?no=3"
     assert P.alamat_sesi(5, 3, galat=True) == "/murid/lomba/sesi/5?no=3&galat=angka"
     assert P.alamat_sesi(5, 3, galat=True, isi="5,94") == "/murid/lomba/sesi/5?no=3&galat=angka&isi=5%2C94"
-    assert P.alamat_sesi(5, 3, galat=True, isi="1234567890").endswith("&isi=123456")
+    assert P.alamat_sesi(5, 3, galat=True, isi="12345678901234").endswith("&isi=123456789012")
     assert "isi=" not in P.alamat_sesi(5, 3, isi="abc")
 
 
@@ -199,12 +199,12 @@ def test_tombol_maju_utama_dan_mundur_sekunder_dengan_nomor_tujuan_menyesuaikan_
     assert "Sebelumnya" not in tengah and "Berikutnya" not in tengah
 
 
-def test_tombol_maju_soal_isian_berlabel_simpan_ke_soal_berikutnya_dan_pindah_tetap_menyimpan():
+def test_tombol_maju_soal_isian_pendek_dan_bantuan_menyebut_pindah_ikut_menyimpan():
     isi = _html(_isian(nomor=4, jawaban="12"))
 
-    assert 'name="pindah" value="5" class="tombol">Simpan, ke soal 5 \u2192<' in isi
+    assert 'name="pindah" value="5" class="tombol">Soal 5 \u2192<' in isi
     assert 'name="pindah" value="3" class="tombol sekunder">\u2190 Soal 3<' in isi
-    assert "Simpan, ke soal" not in _html(_soal(nomor=4))
+    assert "jawabanmu ikut tersimpan" in isi
 
 
 def test_selesai_adalah_tombol_kirim_bergaya_tautan_di_dalam_form_agar_isian_terketik_ikut_tersimpan():

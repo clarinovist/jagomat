@@ -769,7 +769,7 @@ def test_isian_enter_dengan_semua_terisi_tetap_di_soal_itu(server):
     assert hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no={nomor}"
 
 
-@pytest.mark.parametrize("kueri", ["&isi=1234567", "&isi=1&isi=2", "&isi=%00", "&isi=%0a1"])
+@pytest.mark.parametrize("kueri", ["&isi=1234567890123", "&isi=1&isi=2", "&isi=%00", "&isi=%0a1"])
 def test_ketikan_galat_tidak_sah_di_url_diabaikan_tanpa_404(server, kueri):
     sesi_id = _mulai(server)
     nomor = _nomor_berjenis(server, sesi_id, "isian")

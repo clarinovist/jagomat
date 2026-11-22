@@ -24,7 +24,7 @@ ALAMAT_AWAL = DASAR
 ALAMAT_MULAI = DASAR + "/mulai"
 BATAS_MERAH_DETIK = 180
 JUMLAH_SOAL = K.NOMOR_TERAKHIR
-MAKS_ISI_GALAT = 6                # panjang ketikan yang dipertahankan saat galat (sama dengan maxlength input)
+MAKS_ISI_GALAT = 12               # maxlength input isian = panjang ketikan galat yang dipertahankan; beri ruang untuk spasi ("1 2 3 4"), server tetap memvalidasi
 PESAN_GALAT_ANGKA = "Tulis angkanya saja, tanpa huruf atau tanda baca. Contoh: 120"
 _DETIK_PER_MENIT = 60
 _FONT = (
@@ -133,13 +133,12 @@ def _blok_isian(soal: K.SoalAnak, galat: bool, isi_galat: str) -> str:
             '<p class="bantuan">Tekan Enter atau pindah soal, jawabanmu ikut tersimpan.</p></div>')
 
 
-def _tombol_geser(nomor: int, isian: bool) -> str:
-    """Maju = tombol utama ("Simpan, ke soal N" untuk isian); mundur = sekunder. Pindah selalu menyimpan isian."""
+def _tombol_geser(nomor: int) -> str:
+    """Maju = tombol utama; mundur = sekunder. Pindah selalu menyimpan isian (teks bantuan isian menyebutnya)."""
     sebelumnya = (f'<button type="submit" name="pindah" value="{nomor - 1}" class="tombol sekunder">'
                   f'\u2190 Soal {nomor - 1}</button>') if nomor > K.NOMOR_PERTAMA else ""
-    label = f"Simpan, ke soal {nomor + 1}" if isian else f"Soal {nomor + 1}"
     berikutnya = (f'<button type="submit" name="pindah" value="{nomor + 1}" class="tombol">'
-                  f'{label} \u2192</button>') if nomor < JUMLAH_SOAL else ""
+                  f'Soal {nomor + 1} \u2192</button>') if nomor < JUMLAH_SOAL else ""
     return f'<div class="aksi">{sebelumnya}{berikutnya}</div>'
 
 
@@ -158,7 +157,7 @@ def halaman_soal(sesi_id: int, soal: K.SoalAnak, terjawab: AbstractSet[int], sis
 {_strip_nomor(soal.nomor, terjawab)}
 <section class="kartu"><p class="topik">{topik}</p>
 <p class="teks-soal">{html.escape(soal.teks)}</p>{gambar}{jawaban}</section>
-{_tombol_geser(soal.nomor, isian)}
+{_tombol_geser(soal.nomor)}
 <button type="submit" name="aksi" value="selesai" class="tautan-selesai">Selesai &amp; kumpulkan</button>
 </form>
 </main>"""
