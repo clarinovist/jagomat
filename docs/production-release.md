@@ -12,6 +12,17 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy selaras area guru (font same-origin, satu shell) — 22 November 2026
+
+Controlled `deploy-v2` memasang **3667919** (digest `sha256:dd695a2c…22ed4`), healthy/restart0, menggantikan **deb96ef**.
+Isi: font merek same-origin `/aset/font-*-v1.ttf` di semua halaman guru termasuk privat (CSP `font-src 'self'`),
+satu topbar `_topbar_stitch` + `LEBAR_SHELL_GURU` 60rem, menu akun identik, aksi utama guru teal, perbaikan
+Perkembangan/Latihan/laporan-ortu/lomba/tinjau sesi. Tanpa skema/store: kontrak tetap `47a7cd9d…`, recovery tetap
+**1206bc9**. Dispatch `audit=false` [45018240454](https://github.com/clarinovist/jagomat/actions/runs/45018240454).
+Kit `deploy-selaras-guru-20261122`: approval diarsipkan, `PERSIAPAN_OK`, backup lima file + riset, rehearsal C–B–C,
+`deploy-v2` exit0, `LIVE_ADMIN_HEALTHY`, postcheck exit0 (smoke `/` 200, `/akun` 401, `/murid/` 303; aset font 200
+`font/ttf`), cleanup 4 direktori.
+
 ## Deploy tombol Mode Lomba di halaman akun — 22 November 2026
 
 Controlled `deploy-v2` memasang **deb96ef** (digest `sha256:6430fc3c…b076`), healthy/restart0, menggantikan **7982f2c**.
