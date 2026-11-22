@@ -207,7 +207,7 @@ def test_belum_mulai_menampilkan_kartu_info_tips_centang_lipatan_dan_dua_tombol(
     assert isi.count('class="funnel-tips-st"') == 1 and isi.count("<li><span class=\"funnel-ubin-st") == 3
     assert "<details" in isi and "30 hari" in isi and "7 hari" not in isi
     assert cek_pages.COPY_SETUJU in isi and 'name="setuju"' in isi
-    assert isi.count('<form') == 1 and f'action="{MULAI}"' in isi
+    assert isi.split('<main', 1)[-1].count('<form') == 1 and f'action="{MULAI}"' in isi  # di luar form Keluar topbar
     assert re.findall(r'<button type="submit" name="cara" value="(\w+)"', isi) == ["hp_ini", "hp_anak"]
     assert cek_pages_mulai.COPY_HP_INI in isi and cek_pages_mulai.COPY_HP_ANAK in isi
     assert "<progress" not in isi
@@ -269,7 +269,7 @@ def test_akun_tanpa_kelas_pesan_jujur_dan_tautan_isi_kelas_bukan_tombol_buntu(se
     isi = _baca_mulai(server)
     assert cek_pages_mulai.COPY_TANPA_KELAS in isi and "Kelas anak belum diisi" in isi
     assert f'href="{cek_pages_mulai.RUTE_KELAS}"' in isi
-    assert "<form" not in isi and 'name="cara"' not in isi and 'name="setuju"' not in isi
+    assert "<form" not in isi.split("<main", 1)[-1] and 'name="cara"' not in isi and 'name="setuju"' not in isi
     kode, halaman, _t = minta_mentah(server, cek_pages_mulai.RUTE_KELAS, AKUN_A)
     assert kode == 200 and "kelas_sekolah" in halaman  # rute tujuan memang memuat form kelas
     assert keadaan(server) == (0, 0, 0, 0)

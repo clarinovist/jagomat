@@ -31,8 +31,8 @@ HASIL_BELUM = {"status": "belum_selesai", "skor": None, "kategori": None,
 # (2) desain ulang sisi orang tua sesuai prototipe (kepala skor dengan cincin, "X dari 15 soal benar", chip
 # ringkasan, daftar terkunci, kotak batas, tautan contoh, tautan ke halaman siap mulai di hasil belum selesai).
 # Kontrak "tanpa byte pesan" dijaga eksplisit oleh test_cta_pesan_tidak_meninggalkan_byte_saat_token_none.
-GOLDEN_SELESAI = "9f61b82c4f3b4fc1b3eee85ded3196eb575f7816d506cca36e4d132f6fd5cff1"
-GOLDEN_BELUM = "90763f2be114f5f38a85943dce4c683314e4f51ddf6a1a098ab250f10fa3f56d"
+GOLDEN_SELESAI = "a225a9018cfa6ca3b6433553fb1683c5ee12b75f4a6584692765f03320fa3fae"  # 22 Nov: shell guru (font lokal, topbar); isi <main> identik
+GOLDEN_BELUM = "2b0e131f6f1ed45fd6712e224b7012c6b0c9185f13114d8917f0566e69a955b7"
 
 
 def _render(hasil, **kw):

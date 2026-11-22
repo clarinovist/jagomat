@@ -121,7 +121,7 @@ def _galat(pesan: str) -> str:
 def _bungkus(ident, judul: str, id_judul: str, isi: str, *, kelas: str = KELAS_BUNGKUS) -> bytes:
     return _halaman(
         judul, isi, ident=ident, stitch=True, kelas_bungkus=kelas,
-        id_utama=id_judul, privat=True, keluar_topbar=False,
+        id_utama=id_judul, privat=True,
     )
 
 

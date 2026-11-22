@@ -65,5 +65,4 @@ def halaman_kontak(
         kelas_bungkus=KELAS_BUNGKUS,
         id_utama="judul-kontak",
         privat=True,
-        keluar_topbar=False,
     )

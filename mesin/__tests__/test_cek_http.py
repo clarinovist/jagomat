@@ -79,7 +79,7 @@ def test_get_mulai_tanpa_anak_pesan_jujur_tanpa_form(keluarga):
     import auth
     auth.tambah_akun("guru-c", "sandi-guru-c-panjang-1", "guru")
     kode, isi, _t = minta_mentah(keluarga, MULAI, ("guru-c", "sandi-guru-c-panjang-1"))
-    assert kode == 200 and cek_pages.COPY_TANPA_ANAK in isi and "<form" not in isi
+    assert kode == 200 and cek_pages.COPY_TANPA_ANAK in isi and "<form" not in isi.split("<main", 1)[-1]  # topbar punya form Keluar
 
 
 def test_get_mulai_sesudah_selesai_dialihkan_ke_hasil(keluarga):
