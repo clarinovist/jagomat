@@ -121,13 +121,13 @@ def test_css_rincian_laporan_tetap_ada_pada_kedua_url(db, query):
         assert 'fonts.googleapis.com' not in h
 
 
-def test_laporan_admin_import_font_tetap_di_awal_stylesheet(db):
+def test_laporan_admin_font_lokal_di_awal_stylesheet_tanpa_import(db):
     sid = database.tambah_siswa(db, 'Anak Admin', pemilik='guru')
     h = reports.halaman_laporan(db, sid, pengguna='admin-demo', peran='admin').decode()
     blok = re.findall(r'<style>(.*?)</style>', h, re.S)
-    font = next(css for css in blok if '@import' in css)
-    tanpa_komentar = re.sub(r'/\*.*?\*/', '', font, flags=re.S).lstrip()
-    assert tanpa_komentar.startswith('@import')
+    assert blok[0].lstrip().startswith('@font-face')
+    assert '/aset/font-plus-jakarta-sans-800-v1.ttf' in blok[0]
+    assert '@import url(' not in h and 'Be+Vietnam' not in h
     assert '.laporan-editorial-st .st-topbar' in h
 
 

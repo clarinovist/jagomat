@@ -27,6 +27,7 @@ from pathlib import Path
 
 import design_tokens as T
 from adegan_awal_data import IKON_DIDUKUNG
+from font_lokal import ASET_FONT
 
 # Domain kanonis produksi. og:image, og:url, dan tautan sesi butuh URL
 # absolut agar crawler serta fallback berbagi tanpa JS memakai domain resmi.
@@ -76,6 +77,9 @@ ASET.update({
 # di `adegan_awal_data.IKON_DIDUKUNG`. WebP RGBA 192x192, URL immutable bernama
 # versi; isi berkas tidak diganti.
 ASET.update({f"ikon-{nama}-v1.webp": "image/webp" for nama in IKON_DIDUKUNG})
+
+# Webfont merek same-origin (daftar tunggal di `font_lokal.BERKAS_FONT`).
+ASET.update(ASET_FONT)
 
 NAMA_MANIFEST = "manifest.json"
 

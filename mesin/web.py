@@ -184,7 +184,7 @@ def csp_tautan(isi: bytes) -> str:
     return (
         "default-src 'none'; img-src 'self' data:; manifest-src 'self'; "
         "style-src 'unsafe-inline' https://fonts.googleapis.com; "
-        "font-src https://fonts.gstatic.com; " + izin_skrip + "; "
+        "font-src 'self' https://fonts.gstatic.com; " + izin_skrip + "; "
         "connect-src 'self'; form-action 'self'; base-uri 'none'; "
         "frame-ancestors 'none'"
     )
@@ -252,7 +252,8 @@ class Penangan(BaseHTTPRequestHandler):
                 "script-src ", "script-src " + izin_offline + " ", 1)
         else:
             izin_skrip = "script-src " + izin_offline + "; " + izin_skrip
-        izin_gaya = "style-src 'unsafe-inline'; "
+        # Halaman privat: tanpa host pihak ketiga; font merek same-origin dari /aset/.
+        izin_gaya = "style-src 'unsafe-inline'; font-src 'self'; "
         if beranda_guru:
             # Dua skrip shell existing + filter instan chip (disetujui 22 Okt 2026), semuanya
             # berhash; tanpa connect-src karena skrip filter tidak memakai jaringan.
@@ -279,7 +280,7 @@ class Penangan(BaseHTTPRequestHandler):
             else:
                 izin_skrip = "script-src " + hash_guru + "; "
             izin_gaya = ("style-src 'unsafe-inline' https://fonts.googleapis.com; "
-                         "font-src https://fonts.gstatic.com; manifest-src 'self'; ")
+                         "font-src 'self' https://fonts.gstatic.com; manifest-src 'self'; ")
         self.send_response(kode)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(isi)))
@@ -440,7 +441,7 @@ class Penangan(BaseHTTPRequestHandler):
             "Content-Security-Policy",
             "default-src 'none'; img-src 'self' data:; manifest-src 'self'; "
             "style-src 'unsafe-inline' https://fonts.googleapis.com; "
-            "font-src https://fonts.gstatic.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
             "script-src " + " ".join("'sha256-" + h + "'" for h in hash_skrip)
             + "; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
         )

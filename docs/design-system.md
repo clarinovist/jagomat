@@ -54,14 +54,17 @@ dirender dengan data sintetis sebelum diterima.
 | Lembar | `/lembar/<id>`, penilaian | `screen_style.GAYA_LAYAR`, `print_style.GAYA_CETAK` | Dasar + `LEMBAR_AKSEN` beku (layar), `CETAK_*` (kertas) | A4 |
 | Admin | `/admin/...` | `admin_style.GAYA_ADMIN` | Dasar hangat + alias profil lewat `ADMIN_*` (adapter tema) | Sidebar 256px, kanvas fluida; form pendek maks. 46rem |
 
-Font: `FONT_HEADLINE` (Plus Jakarta Sans) dan `FONT_BODY` (Be Vietnam Pro) hanya
-tampil di halaman yang memasang webfont: publik, murid, lampiran, dan halaman guru
-yang tidak privat. Halaman privat (`privat=True` pada `teacher_shell._halaman` atau
-`_halaman_stitch`: Akun, profil anak dan laporan untuk guru yang masuk, kelola
-Pendamping, persetujuan, langganan, sebagian sesi) membuang `@import` webfont, dan
-Admin tidak memuatnya; semuanya jatuh ke font sistem lewat stack fallback.
-`FONT_CETAK` khusus A4. Jangan menambah atau menghapus sumber font tanpa memeriksa CSP
-halaman yang bersangkutan.
+Font: `FONT_HEADLINE` (Plus Jakarta Sans) dan `FONT_BODY` (Be Vietnam Pro). Diputuskan
+pemilik 22 Nov 2026: semua halaman guru, termasuk yang privat (`privat=True` pada
+`teacher_shell._halaman` atau `_halaman_stitch`), memakai font merek yang disajikan
+same-origin dari `/aset/` (TTF berversi, daftar tunggal di `font_lokal.BERKAS_FONT`,
+terdaftar di `brand.ASET`, `@font-face` disisipkan shell guru). Halaman privat tidak
+memuat aset pihak ketiga sama sekali; Material Symbols tetap dari Google Fonts hanya di
+halaman guru nonprivat. Publik, murid, dan lampiran masih memakai Google Fonts; Admin
+tidak memuat webfont. `FONT_CETAK` khusus A4. CSP halaman guru privat memberi `font-src
+'self'` (beranda guru: `'self' https://fonts.gstatic.com` untuk ikon). Mengganti isi
+berkas font berarti menaikkan versi nama berkas (rute `/aset/` immutable). Jangan
+menambah atau menghapus sumber font tanpa memeriksa CSP halaman yang bersangkutan.
 
 ## Warna
 
@@ -445,7 +448,7 @@ Membuka kembali salah satunya memerlukan keputusan produk baru.
 | Tombol Keluar kedua di dasar halaman HP | Ditolak | Melanggar satu aksi satu entry point; audit 24 Okt sengaja menyisakan satu form Keluar di header |
 | Ikon, jumlah pesan, dan rentang tanggal di daftar chat Pendamping | Tidak diadopsi | Daftar sengaja hanya metadata minimal; jumlah/rentang butuh query turunan isi percakapan, ikon tidak menambah makna. Pengelompokan per tanggal tetap |
 | Meter "0/12 karakter" dan chip paket di header | Tetap tidak diadopsi | Butuh JavaScript baru dan data langganan di header (keputusan 22 Okt) |
-| Satu konfigurasi pemuatan font | Tetap per halaman (dikonfirmasi pengguna 26 Okt 2026) | Halaman privat dan admin tetap font sistem tanpa aset jaringan; webfont merek hanya di halaman yang memasangnya; sumber font mengikuti CSP masing-masing |
+| Satu konfigurasi pemuatan font | Diputuskan pemilik 22 Nov 2026 (menggantikan keputusan per halaman 26 Okt) | Font merek same-origin dari `/aset/` di semua halaman guru termasuk privat; tanpa aset pihak ketiga di halaman privat; Material Symbols tetap hanya di halaman nonprivat; admin tetap tanpa webfont |
 | Admin satu design system | Disetujui pengguna setelah audit lanjutan | Menggantikan pengecualian palet/skala admin25 Okt: token terang, logo, tipe, radius, spacing dan kontrol48px bersama; sidebar/tabel serta adapter gelap tetap |
 | Lembar latihan ikut teal tunggal | Ditunda | Lembar dibekukan gate rilis question pair; perlu pembaruan pasangan recovery tersendiri |
 | Sisa literal `font-size` di luar skala | Bertahap | Dikunci ratchet `test_type_scale.py`; tiap penyamaan dirender per permukaan |

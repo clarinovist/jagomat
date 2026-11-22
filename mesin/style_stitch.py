@@ -10,14 +10,16 @@ masih bertugas.
 """
 
 import design_tokens as T
+from font_lokal import IMPOR_FONT_CDN
 from form_style import GAYA_SELECT
 from pecahan_style import GAYA_PECAHAN
 from presentation_style import GAYA_PENYAJIAN
 
 GAYA_STITCH = f"""
-/* ── Font CDN (diizinkan 2026-09-01) — satu baris utuh; @import multi-baris
-   memutus URL dan membuat font gagal dimuat tanpa jejak di konsol. ── */
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* ── Font CDN (diizinkan 2026-09-01) — satu baris utuh; multi-baris memutus
+   URL dan membuat font gagal dimuat tanpa jejak di konsol. Shell guru membuangnya
+   (`font_lokal.tanpa_impor_font_cdn`): font merek same-origin sejak 22 Nov 2026. ── */
+{IMPOR_FONT_CDN}
 
 {GAYA_PENYAJIAN}
 {GAYA_PECAHAN}

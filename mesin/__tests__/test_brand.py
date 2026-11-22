@@ -98,6 +98,7 @@ def test_semua_aset_terlayani_dan_mime_benar(server):
         ".webp": "image/webp",
         ".ico": "image/x-icon",
         ".json": "application/json",
+        ".ttf": "font/ttf",
     }
     for nama in brand.ASET:
         kode, isi, hdr = server.minta(f"/aset/{nama}", biner=True)

@@ -41,7 +41,7 @@ def _kirim_privat(penangan, isi: bytes, kode: int = 200) -> None:
     penangan.send_header(
         "Content-Security-Policy",
         "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; "
-        "form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+        "font-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
     )
     penangan.end_headers()
     penangan.wfile.write(isi)
@@ -58,7 +58,7 @@ def _kirim_host_privat(penangan, isi: bytes, kode: int = 200) -> None:
     penangan.send_header(
         "Content-Security-Policy",
         "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; "
-        "form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+        "font-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
     )
     penangan.end_headers()
     penangan.wfile.write(isi)

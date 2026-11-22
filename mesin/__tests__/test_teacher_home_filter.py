@@ -134,16 +134,18 @@ def test_csp_beranda_mengizinkan_tiga_skrip_berhash_dan_font_existing_saja(serve
     assert skrip_terpasang[:4] == [
         SKRIP_FILTER_GURU, SKRIP_OFFLINE, SKRIP_MATA_SANDI, SKRIP_CEGAH_KIRIM_GANDA]
     assert 'https://fonts.googleapis.com' in direktif['style-src']
-    assert direktif['font-src'] == ['https://fonts.gstatic.com']
+    # Font merek same-origin ('self'); gstatic hanya untuk Material Symbols di beranda nonprivat.
+    assert direktif['font-src'] == ["'self'", 'https://fonts.gstatic.com']
     assert direktif['manifest-src'] == ["'self'"]
     assert "'unsafe-inline'" not in direktif['script-src']
     assert tajuk['Cache-Control'] == 'no-store' and tajuk['Referrer-Policy'] == 'no-referrer'
     # Enhancement pilihan isi tidak memakai jaringan: tanpa connect-src.
     assert 'connect-src' not in direktif
-    # Halaman akun privat lain tidak memperoleh izin font/CDN beranda.
+    # Halaman akun privat lain tidak memperoleh izin CDN beranda; font merek hanya 'self'.
     _, _, akun = server.minta('/akun', auth=('guru', SANDI_GURU))
     assert 'fonts.googleapis.com' not in akun['Content-Security-Policy']
     assert 'fonts.gstatic.com' not in akun['Content-Security-Policy']
+    assert "font-src 'self'" in akun['Content-Security-Policy']
 
 
 def test_nama_siswa_bermarkup_tetap_teks(server):

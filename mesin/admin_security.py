@@ -150,12 +150,16 @@ def periksa_tinjauan(akun, token_sesi, token, *, sekarang=None):
 
 
 def header_privat(*, skrip_sandi=''):
-    """CSP tanpa aset eksternal; hanya script mata-sandi yang diberikan source."""
+    """CSP tanpa aset eksternal; hanya script mata-sandi yang diberikan source.
+
+    `font-src 'self'` untuk font merek same-origin dari /aset/ (halaman guru privat);
+    host font pihak ketiga tetap tidak diizinkan.
+    """
     script = "'none'"
     if skrip_sandi:
         script = "'sha256-%s'" % base64.b64encode(hashlib.sha256(skrip_sandi.encode()).digest()).decode()
     return {
         'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer',
         'X-Robots-Tag': 'noindex, nofollow', 'X-Frame-Options': 'DENY',
-        'Content-Security-Policy': "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; script-src %s; form-action 'self'; base-uri 'none'; frame-ancestors 'none'" % script,
+        'Content-Security-Policy': "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; font-src 'self'; script-src %s; form-action 'self'; base-uri 'none'; frame-ancestors 'none'" % script,
     }

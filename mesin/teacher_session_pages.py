@@ -9,6 +9,7 @@ import design_tokens as T
 import question_views
 import parent_help
 import share_links
+from font_lokal import tag_font_lokal, tanpa_impor_font_cdn
 from diagnosis import diagnosa, Usulan
 from generator import LEVEL_BAWAAN
 from question_context import label_profil_parameter as label_kelas
@@ -1139,18 +1140,13 @@ def halaman_sesi_stitch(
             f"<script>{SKRIP_MATA_SANDI}</script>"
             f"<script>{SKRIP_CEGAH_KIRIM_GANDA}</script>"
         )
-    gaya_sesi = gaya_stitch()
-    if bantuan or privat:
-        gaya_sesi = gaya_sesi.replace(
-            "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",
-            "",
-        )
+    gaya_sesi = tanpa_impor_font_cdn(gaya_stitch())
     return (
         f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(f"Sesi #{sesi_id}"))}</title>
 {brand.tag_kepala(cetak=bool(bantuan or privat))}
-{'' if (bantuan or privat) else '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">'}
+{tag_font_lokal()}{'' if (bantuan or privat) else '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" rel="stylesheet">'}
 <style>{gaya_sesi}{CSS_SESI}{gaya_playbook}{gaya_pancingan}{parent_help.GAYA}{mapping_results.GAYA_HASIL if hasil_pemetaan else ''}</style></head>
 <body class="st"><div class="bungkus-st pendamping-editorial-st koreksi-editorial-st">{batang}{isi}</div>{skrip_extra}</body></html>"""
     ).encode()

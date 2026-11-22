@@ -7,6 +7,7 @@ import brand
 import design_tokens as T
 import profile_workspace
 from child_style import GAYA_ANAK
+from font_lokal import tag_font_lokal, tanpa_impor_font_cdn
 from offline_browser import SKRIP_OFFLINE
 from style_stitch import GAYA_STITCH
 from teacher_style import (
@@ -114,19 +115,14 @@ def _halaman(
             if id_utama else '<div class="sesi-badan-st">'
         )
         tutup_isi = "</main>" if id_utama else "</div>"
-        font = "" if privat else """<link rel="preconnect" href="https://fonts.googleapis.com">
+        font = tag_font_lokal() + ("" if privat else """<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Material+Symbols+Outlined&display=swap" rel="stylesheet">"""
-        gaya = gaya_stitch()
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" rel="stylesheet">""")
+        gaya = tanpa_impor_font_cdn(gaya_stitch())
         if 'akun-editorial-st' in kelas_bungkus.split():
             from question_variants_ui import GAYA_VARIASI
             from account_style import GAYA_AKUN
             gaya += GAYA_VARIASI + GAYA_AKUN
-        if privat:
-            gaya = gaya.replace(
-                "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",
-                "",
-            )
         skrip = '' if (privat and not skrip_privat) else f'<script>{SKRIP_OFFLINE}</script>'
         if skrip_privat:
             if SKRIP_OFFLINE in skrip_privat:
@@ -145,7 +141,7 @@ def _halaman(
     return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(judul))}</title>
-{brand.tag_kepala()}<style>{GAYA}</style></head>
+{brand.tag_kepala()}{tag_font_lokal()}<style>{GAYA}</style></head>
 <body><div class="bungkus">{batang}{isi}</div><script>{SKRIP_OFFLINE}</script><script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script></body></html>""".encode()
 
 
@@ -157,10 +153,10 @@ def _halaman_stitch(
     ringkas = "anak-header-st" in kelas_bungkus.split()
     batang = _topbar_stitch(*ident, ringkas=ringkas, bantuan=bantuan_topbar) if ident else ""
     kelas = f"bungkus-st {kelas_bungkus}".strip()
-    font = "" if privat else """<link rel="preconnect" href="https://fonts.googleapis.com">
+    font = tag_font_lokal() + ("" if privat else """<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">"""
-    gaya = GAYA_STITCH
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">""")
+    gaya = tanpa_impor_font_cdn(GAYA_STITCH)
     gaya_dasar = ''
     if "laporan-editorial-st" in kelas_bungkus.split():
         # Rincian kedua URL masih memakai kelas legacy. Stylesheet terpisah menjaga
@@ -174,11 +170,6 @@ def _halaman_stitch(
     if ringkas:
         from child_header import GAYA_HEADER_ANAK
         gaya += GAYA_HEADER_ANAK
-    if privat:
-        gaya = gaya.replace(
-            "@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');",
-            "",
-        )
     skrip = f"<script>{SKRIP_OFFLINE}</script>"
     if not privat:
         skrip += f"<script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script>"
