@@ -12,6 +12,25 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy Simulasi Lomba 35 soal + durasi per anak (pin recovery baru) — 22 November 2026
+
+Controlled `deploy-v2` memasang **2b56f45** (digest `sha256:2ca8c057…cbb5b`), healthy, menggantikan **3667919**.
+Isi: mode Simulasi Lomba 35 soal/60 menit di `/murid/lomba`, durasi Latihan/Simulasi per anak oleh Guru (5-180 menit),
+target/riwayat/nilai per mode; migrasi saat start: `lomba_soal` dibangun ulang (CHECK nomor 1..35), kolom
+`lomba_sesi.mode` dan `lomba_penugasan.durasi_*`. Dispatch [45025484071](https://github.com/clarinovist/jagomat/actions/runs/45025484071)
+(validator workflow diperbaiki di 8c86ce3; sejak 7b299cc `release_metadata.py --check` selalu gagal).
+
+- **Kontrak bergeser** `47a7cd9d…` → **`bf0b1398…04b3`**. Recovery baru **3bd368e** di branch `recovery-lomba-simulasi`
+  = 43935bd (skema + store + perakit, UI masih Latihan) + commit kontrak; digest `sha256:6360dc40…e61d`; pair `ok`,
+  `provider_calls` 0. Pin di `main` 2b56f45 (metadata, `deploy.yml`, anchor koleksi 26.509 nodeid).
+- Kit `deploy-lomba-simulasi-20261122`: approval lama diarsipkan, `PERSIAPAN_OK`, backup lima file + riset, rehearsal
+  C–B–C (harness `rehearsal.py` diperbaiki: kolom baru di belakang boleh, kolom lama wajib identik baris demi baris),
+  `deploy-v2` exit0, `LIVE_ADMIN_HEALTHY` (probe live: `lomba_soal` lebar, kolom mode/durasi ada, FK jawaban bersih),
+  postcheck exit0 (smoke `/` 200, `/akun` 401, `/murid/` 303; `history_hash_preserved`), cleanup 4 direktori.
+  Backup `/opt/osn/cadangan/deploy-lomba-simulasi-20261122/` + salinan lokal `mesin/cadangan/...` (gitignored).
+- Rollback ke 3bd368e/3667919: DB lebar tetap terbaca; Simulasi yang sedang berjalan tidak bisa dibuka di nomor 11-35
+  (UI lama) — kumpulkan dulu sebelum rollback.
+
 ## Deploy selaras area guru (font same-origin, satu shell) — 22 November 2026
 
 Controlled `deploy-v2` memasang **3667919** (digest `sha256:dd695a2c…22ed4`), healthy/restart0, menggantikan **deb96ef**.
