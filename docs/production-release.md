@@ -12,13 +12,25 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
-## Kandidat Matematika Awal 25 jenis + Latihan Lomba (BELUM dirilis, bukan snapshot) — 22 November 2026
+## Deploy Matematika Awal 25 jenis + Latihan Lomba (mati) — 22 November 2026
 
-Status: commit lokal, belum push, belum deploy. Live saat ini **63f8756** (kontrak `660fe235…7231`).
-Kandidat = `main` lokal (59 commit di atas `origin/main`, antara lain topik `matematika-awal` 25 jenis,
-keluarga visual `matematika-awal`, Latihan Lomba, metrik runtime, kencang-saat-start, Peta/retensi R1).
+Controlled `deploy-v2` memasang **179733f** (digest `sha256:06b39be0…9c3c`), healthy/restart0, menggantikan
+**63f8756**. Isi: 63 commit (topik `matematika-awal` 25 jenis, keluarga visual dan descriptor `adegan_awal`,
+Latihan Lomba, metrik runtime, kencang-saat-start, Peta/retensi R1, backup off-site). Dispatch `audit=false`
+(`44964143052`): build + verifikasi pasangan tanpa suite penuh (keputusan pemilik 22 Nov); suite penuh
+terakhir yang selesai pada `9ccf420`/`67b7fcd` hijau selain dua tes yang sudah diperbaiki dan satu flake lama.
 
-**Pin recovery (22 Nov, lokal):** recovery **`a8c587e`** di branch `recovery-matematika-awal`
+- Kontrak kandidat = recovery = `4b20d8ce…` (live lama `660fe235…`); recovery **a8c587e** digest
+  `sha256:65130244…98bb`; pair terverifikasi, `provider_calls` 0. Kit `deploy-matematika-awal-20261122`.
+- `PERSIAPAN_OK`, backup lima file + riset, rehearsal C–B–C, `deploy-v2` exit0, reopen `LIVE_ADMIN_HEALTHY`,
+  postcheck exit0 (smoke `/` 200, `/akun` 401, `/murid/` 303, `/cek-kemampuan` 200, admin 404 anonim).
+- **Config tidak diubah:** `/opt/osn/visual.conf` (hash `0ba411c8…`), `OSN_VISUAL_KELUARGA` tanpa
+  `matematika-awal`, `OSN_LOMBA` tidak ada (mati). `OSN_MATEMATIKA_AWAL` tidak diset: bawaan kode 1, topik
+  terbuka untuk guru (keputusan pemilik 22 Nov: buka langsung, sebelum ulasan Mutia).
+- Sisa: ulasan Mutia (rentang, malrule hipotesis K/H); flag visual `matematika-awal` dan `OSN_LOMBA` tetap
+  mati; rollback sesudah ada sesi `awal_*` butuh recovery yang mengenali ID baru (matriks di bawah).
+
+**Pin recovery (22 Nov):** recovery **`a8c587e`** di branch `recovery-matematika-awal`
 (`68c68d9` kontrak -> `82aae88` pin -> `e94244d` anchor koleksi 26.123 nodeid -> `a8c587e` perbaikan tes
 lembar P6 dan pancingan; gate `9ccf420` merah di dua tes itu), dibuat dari `40d57aa`.
 Kontrak kandidat = recovery = **`4b20d8ce…0aa3`** (bergeser dari `660fe235…7231`). Penyebab pergeseran:
@@ -39,9 +51,8 @@ kembali hijau (sebelumnya merah karena pin masih `4cef3ab`/`660fe235`). **Branch
 | Descriptor `adegan_awal` v1 | hanya dihasilkan bila `matematika-awal` ada di `OSN_VISUAL_KELUARGA` | reader lama menolak skema ini | **flag TIDAK dinyalakan**; `/opt/osn/visual.conf` tidak diubah |
 | 25 template `matematika-awal` | topik dibuka bila `OSN_MATEMATIKA_AWAL=1` (BAWAAN 1) | **tidak aman bila sudah ada sesi/bank `awal_*`**: kode lama memanggil `REGISTRI[template_id]` -> `KeyError` | mitigasi: deploy dengan `OSN_MATEMATIKA_AWAL=0` sampai ulasan Mutia selesai, lalu nyalakan; rollback sesudah ada sesi `awal_*` butuh recovery yang mengenali ID baru (kandidat/recovery ini) |
 
-Gerbang yang masih terbuka sebelum deploy: ulasan Mutia atas rentang dan malrule (hipotesis K/H),
-izin push dan izin deploy dari pemilik, keputusan nilai `OSN_MATEMATIKA_AWAL` di host. Dispatch gate
-CI (kandidat 4/4, recovery 4/4, pair) belum dijalankan.
+Gerbang yang tersisa setelah deploy: ulasan Mutia, keputusan menyalakan flag visual `matematika-awal` dan
+`OSN_LOMBA`.
 
 ## Deploy perbaikan draf cetakan AI (thinking dimatikan) — 21 November 2026
 

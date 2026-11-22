@@ -15,7 +15,10 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   kandidat Fase 1–3 ter-deploy dan **funnel diaktifkan 19 November 2026 termasuk
   pembayaran Paket Coba** (`FUNNEL_AKTIF=1`, ledger `pesanan_*` dimigrasikan);
   deliverable Fase 4 masih menyusul/manual. Status baris F1 di tabel bawah.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`63f8756`** (21 November 2026;
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`179733f`** (22 November 2026;
+  topik Matematika Awal 25 jenis (40/40 bab "ada", `OSN_MATEMATIKA_AWAL` bawaan 1, dibuka sebelum ulasan Mutia),
+  Latihan Lomba dan flag visual `matematika-awal` tetap mati, recovery pin `a8c587e`, kontrak `4b20d8ce`;
+  rincian di production-release.md). Sebelumnya **`63f8756`** (21 November 2026;
   draf cetakan AI C3 mematikan thinking DeepSeek, recovery pin `4cef3ab`, kontrak `660fe23`;
   deploy terkontrol mulai 10.25 WIB). Uji kunci asli: `finish_reason=stop`, 3 kandidat, 1.745 byte.
   Uji UI end-to-end oleh Pemilik belum. Sebelumnya **`b512df0`** (21 November 2026; halaman admin
