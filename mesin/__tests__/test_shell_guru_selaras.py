@@ -142,3 +142,11 @@ def test_css_area_guru_tanpa_font_sistem_layar():
     from child_ringkasan_style import GAYA_RINGKASAN
     for css in (GAYA_STITCH, GAYA_LATIHAN, GAYA_RINGKASAN):
         assert T.FONT_LAYAR not in css
+
+
+def test_tombol_koral_warisan_menjadi_teal_di_shell_guru():
+    """Kelas koral warisan di halaman guru (mis. remedial sesi) tampil teal."""
+    import design_tokens as T
+    from shell_guru_style import GAYA_SHELL_GURU
+    aturan = GAYA_SHELL_GURU.split(".bungkus-st.shell-guru-st :is(.st-tombol-coral", 1)[1].split("}", 1)[0]
+    assert T.AKSEN_TEAL_TUA in aturan and T.AKSEN_KORAL_TUA not in aturan

@@ -90,4 +90,12 @@ GAYA_SHELL_GURU = f"""
 @media print {{
   {_TOPBAR} {{ display: none; }}
 }}
+/* Aksi utama permukaan guru selalu teal (keputusan 22 Nov 2026); kelas koral warisan
+   (`st-tombol-coral`, `tombol-coral`, CTA rencana) tetap koral di publik/murid. */
+.bungkus-st.shell-guru-st :is(.st-tombol-coral, a.tombol-coral, button.tombol-coral, .rencana-cta-utama-st) {{
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH};
+}}
+.bungkus-st.shell-guru-st :is(.st-tombol-coral, a.tombol-coral, button.tombol-coral, .rencana-cta-utama-st):hover {{
+  background: {T.AKSEN_TEAL_HOVER};
+}}
 """
