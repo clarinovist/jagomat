@@ -1,4 +1,4 @@
-"""CI hybrid: push cepat, audit penuh mingguan/manual, dispatch build tanpa suite."""
+"""CI: push hanya palang, dispatch build tanpa suite test (22 Nov 2026)."""
 from pathlib import Path
 import os
 import json
@@ -10,9 +10,8 @@ import textwrap
 
 import pytest
 
-UJI_SHARD = "3"
-JALUR_AUDIT = "${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.audit) }}"
-JALUR_BANGUN = "${{ github.event_name == 'workflow_dispatch' && !inputs.audit && needs.periksa.outputs.lengkap == 'true' }}"
+JALUR_BANGUN = "${{ github.event_name == 'workflow_dispatch' && needs.periksa.outputs.lengkap == 'true' }}"
+JOB_SAH = ["periksa", "bangun", "pasang", "status"]
 
 ALUR = Path(__file__).resolve().parents[2] / ".github/workflows/deploy.yml"
 
@@ -23,26 +22,13 @@ def _job(teks, nama):
     return cocok.group(1)
 
 
-def _skrip_recovery(teks):
-    job = _job(teks, "uji_recovery")
-    assert "      - name: Palang dan shard recovery terisolasi\n" in job
-    assert "        working-directory: recovery\n" in job
-    assert "        shell: bash\n" in job
-    skrip = job.split("        run: |\n", 1)[1]
-    return textwrap.dedent(skrip).strip()
-
-
-def test_ci_menjalankan_seluruh_test_secara_stabil():
-    teks = _job(ALUR.read_text(), "uji_kandidat")
-    bagian = teks.split("- name: Jalankan shard kandidat dan catat manifest\n", 1)[1]
-    blok = bagian.split("        run: |\n", 1)[1].split("      - name:", 1)[0]
-    perintah = " ".join(baris.strip().rstrip("\\").strip() for baris in blok.splitlines())
-    assert shlex.split(perintah) == [
-        "python", "scripts/pytest_shard.py", "--shard", "${{ matrix.shard }}",
-        "--total", "4", "--manifest", "shard-manifests/kandidat-${{ matrix.shard }}.json",
-        "--revision", "$GITHUB_SHA", "--", "--rootdir", ".", "mesin/__tests__/",
-        "-q", "-W", "error", "-p", "no:cacheprovider", "--durations=20",
-    ]
+def test_ci_tidak_lagi_menjalankan_suite_test():
+    # Keputusan pemilik 22 Nov 2026: test cepat, kandidat, dan recovery dihapus dari CI.
+    teks = ALUR.read_text()
+    assert re.findall(r"^  ([a-z_]+):\n", teks.split("\njobs:\n", 1)[1], re.M) == JOB_SAH
+    for jejak in ("uji_cepat", "uji_kandidat", "uji_recovery", "scripts/ci_fast_tests.py",
+                  "pytest_shard.py", "verify_pytest_shards.py", "inputs.audit", "schedule"):
+        assert jejak not in teks
 
 
 def test_preset_lengkap_tetap_serial_dengan_palang_dan_kompilasi():
@@ -66,36 +52,14 @@ def test_preset_lengkap_tetap_serial_dengan_palang_dan_kompilasi():
     assert "compile(p.read_text(),str(p),'exec')" in kompilasi
 
 
-def test_checkout_candidate_menyediakan_history_untuk_probe_recovery_pinned():
-    teks = ALUR.read_text()
-    bagian_uji = _job(teks, "uji_kandidat")
-    checkout = bagian_uji.split("- uses: actions/checkout@v7", 1)[1].split(
-        "- uses: actions/setup-python@v7", 1
-    )[0]
-    assert "fetch-depth: 0" in checkout
-
-
 def test_build_dispatch_hanya_setelah_palang_dan_memasang_digest_yang_sama():
     teks = ALUR.read_text()
-    assert teks.index("run: python scripts/check_repo.py") < teks.index(
-        "- name: Jalankan shard kandidat dan catat manifest"
-    )
-    # Keputusan pemilik 22 Nov 2026: dispatch rilis tidak menunggu suite penuh,
+    assert teks.index("run: python scripts/check_repo.py") < teks.index("  bangun:\n")
+    # Keputusan pemilik 22 Nov 2026: dispatch rilis tidak menunggu suite test,
     # tetapi palang privasi/kompilasi (periksa) tetap wajib sukses lebih dulu.
     bangun = _job(teks, "bangun")
     assert bangun.startswith("    name: Build & Push\n")
     assert "\n    needs: periksa\n    if: " + JALUR_BANGUN + "\n" in bangun
-    agregat = _job(teks, "uji")
-    assert "    needs: uji_kandidat\n" in agregat
-    assert not re.search(r"^\s+(if|continue-on-error):", agregat, re.M)
-    assert "always()" not in agregat
-    assert 'python scripts/verify_pytest_shards.py' in agregat
-    assert '--directory shard-manifests --total 4 --revision "$GITHUB_SHA"' in agregat
-    assert "actions/download-artifact" not in agregat
-    assert "GH_TOKEN: ${{ github.token }}" in agregat
-    assert "GH_REPO: ${{ github.repository }}" in agregat
-    assert "    permissions:\n      contents: read\n      actions: read\n" in agregat
-    assert "NODE_OPTIONS" not in agregat and "NODE_NO_WARNINGS" not in agregat
     assert "  pasang:\n    name: Deploy ke VPS\n    needs: bangun\n" in teks
     assert "digest: ${{ steps.dorong.outputs.digest }}" in teks
     assert '"deploy-rutin-v1 ${{ needs.bangun.outputs.digest }} ${{ needs.bangun.outputs.recovery_digest }}"' in teks
@@ -104,171 +68,12 @@ def test_build_dispatch_hanya_setelah_palang_dan_memasang_digest_yang_sama():
     assert "- name: Pastikan situs hidup dari luar" in teks
 
 
-@pytest.mark.parametrize("nama", ["uji_kandidat", "uji_recovery"])
-def test_suite_independen_dengan_runtime_sendiri(nama):
-    job = _job(ALUR.read_text(), nama)
-    assert "    runs-on: ubuntu-latest\n" in job
-    assert '          python-version: "3.12"\n' in job
-    assert "        run: pip install --quiet pytest pytest-xdist\n" in job
-    assert job.index("actions/checkout@v7") < job.index("actions/setup-python@v7")
-    assert job.index("actions/setup-python@v7") < job.index("pip install")
-    assert "    needs: periksa\n" in job
-    assert not re.search(r"^\s+continue-on-error:", job, re.M)
-    assert "secrets." not in job
-    assert "PYTEST_ADDOPTS" not in job
-    assert "-n " not in job  # Paralel antar-runner, bukan antarsocket satu runner.
-    assert "      fail-fast: false\n" in job
-    assert "        shard: [1, 2, 3, 4]\n" in job
-    assert "    if: " + JALUR_AUDIT + "\n" in job
-    if nama == "uji_kandidat":
-        assert "    name: Test kandidat ${{ matrix.shard }}/4\n" in job
-        assert job.count("uses: actions/checkout@v7") == 1
-        assert "          ref:" not in job
-        assert "          path: shard-manifests/kandidat-${{ matrix.shard }}.json" in job
-        assert "working-directory:" not in job
-        assert "name: kandidat-shard-${{ matrix.shard }}" in job
-        assert "if-no-files-found: error" in job
-        assert "retention-days: 7" in job
-        assert job.index("pip install") < job.index("python scripts/check_repo.py")
-        assert job.index("scripts/check_repo.py") < job.index("scripts/pytest_shard.py")
-        assert job.index("scripts/pytest_shard.py") < job.index("actions/upload-artifact@v7")
-    else:
-        assert "    name: Test recovery ${{ matrix.shard }}/4\n" in job
-        assert "      fail-fast: false\n" in job
-        assert "        shard: [1, 2, 3, 4]\n" in job
-        assert job.count("uses: actions/checkout@v7") == 2
-        assert job.index("pip install") < job.index("python scripts/check_repo.py")
-
-
-def test_recovery_tetap_full_suite_dan_canary_isolasi():
-    skrip = _skrip_recovery(ALUR.read_text())
-    assert skrip.splitlines()[0] == "python scripts/check_repo.py"
-    assert "assert pathlib.Path.cwd().name == 'recovery'" in skrip
-    assert "sys.path.insert(0, str(pathlib.Path('mesin').resolve()))" in skrip
-    assert "assert pathlib.Path(assistant_schema.__file__).resolve().parent == pathlib.Path('mesin').resolve()" in skrip
-    assert "assert assistant_schema.VERSI_SKEMA == 4" in skrip
-    assert skrip.index("python scripts/check_repo.py") < skrip.index("import assistant_schema")
-    assert skrip.index("assert assistant_schema.VERSI_SKEMA == 4") < skrip.index("pytest_shard.py")
-    perintah = " ".join(
-        baris.strip().rstrip("\\").strip() for baris in skrip.splitlines()[-3:]
-    )
-    assert shlex.split(perintah) == [
-        "python", "../scripts/pytest_shard.py", "--shard", "${{ matrix.shard }}",
-        "--total", "4", "--", "--rootdir", ".", "mesin/__tests__/",
-        "-q", "-W", "error", "-p", "no:cacheprovider", "--durations=20",
-    ]
-    assert "-n" not in shlex.split(perintah)
-
-
-@pytest.mark.parametrize("gagal,urutan", [
-    ("palang", ["palang"]),
-    ("canary", ["palang", "canary"]),
-    ("suite", ["palang", "canary", "suite"]),
-    ("", ["palang", "canary", "suite"]),
-])
-def test_shell_recovery_berhenti_pada_kegagalan(tmp_path, gagal, urutan):
-    """Jalankan blok shell aktual dengan Python palsu, tanpa DB atau provider."""
-    skrip = _skrip_recovery(ALUR.read_text())
-    binari = tmp_path / "bin"
-    binari.mkdir()
-    python = binari / "python"
-    python.write_text("#!" + sys.executable + "\n" + textwrap.dedent('''\
-        import os
-        import sys
-        from pathlib import Path
-        argumen = sys.argv[1:]
-        if argumen == ["scripts/check_repo.py"]:
-            tahap = "palang"
-        elif argumen == ["-"]:
-            sys.stdin.read()
-            tahap = "canary"
-        elif argumen[:1] == ["../scripts/pytest_shard.py"]:
-            tahap = "suite"
-        else:
-            raise SystemExit(99)
-        with Path(os.environ["JEJAK_UJI"]).open("a") as jejak:
-            jejak.write(tahap + "\\n")
-        raise SystemExit(7 if os.environ["GAGAL_UJI"] == tahap else 0)
-    '''))
-    python.chmod(0o700)
-    jejak = tmp_path / "jejak.txt"
-    # Tiru substitusi GitHub Actions: blok run menerima shard konkret, bukan ekspresi.
-    skrip_siap = skrip.replace("${{ matrix.shard }}", UJI_SHARD)
-    assert "${{" not in skrip_siap
-    hasil = subprocess.run(
-        ["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", skrip_siap],
-        cwd=tmp_path, capture_output=True, text=True,
-        env={**os.environ, "PATH": str(binari) + os.pathsep + os.environ["PATH"],
-             "GAGAL_UJI": gagal, "JEJAK_UJI": str(jejak)},
-        timeout=10,
-    )
-    assert hasil.returncode == (7 if gagal else 0), hasil.stdout + hasil.stderr
-    assert jejak.read_text().splitlines() == urutan
-
-
-def _skrip_unduh_manifest():
-    job = _job(ALUR.read_text(), "uji")
-    nama = "      - name: Unduh manifest kandidat dari run yang sama\n"
-    assert nama in job
-    langkah = job.split(nama, 1)[1].split("      - name:", 1)[0]
-    assert "        shell: bash\n" in langkah
-    return textwrap.dedent(langkah.split("        run: |\n", 1)[1]).strip()
-
-
-def _cli_unduh_palsu(path):
-    """Stub CLI lokal; tidak mengakses GitHub atau token asli."""
-    path.write_text("#!" + sys.executable + "\n" + textwrap.dedent('''\
-        import json, os, sys
-        from pathlib import Path
-        args = sys.argv[1:]
-        assert args[:3] == ['run', 'download', os.environ['GITHUB_RUN_ID']]
-        assert args[3] == '--name' and args[5:] == ['--dir', 'shard-manifests']
-        nama = args[4]
-        assert os.environ['GH_REPO'] == 'contoh/repo'
-        with Path(os.environ['JEJAK_UJI']).open('a') as f:
-            f.write(nama + '\\n')
-        if nama == os.environ['GAGAL_UJI']:
-            raise SystemExit(7)
-        nomor = int(nama.removeprefix('kandidat-shard-'))
-        folder = Path('shard-manifests')
-        folder.mkdir(exist_ok=True)
-        (folder / ('kandidat-%s.json' % nomor)).write_text(json.dumps({'shard': nomor}))
-    '''))
-    path.chmod(0o700)
-
-
-@pytest.mark.parametrize("gagal", [0, 1, 2, 3, 4])
-def test_unduh_empat_manifest_exact_dan_berhenti_saat_gagal(tmp_path, gagal):
-    skrip = _skrip_unduh_manifest()
-    binari = tmp_path / "bin"
-    binari.mkdir()
-    _cli_unduh_palsu(binari / "gh")
-    berkas = tmp_path / "unduh.sh"
-    berkas.write_text(skrip)
-    jejak = tmp_path / "jejak.txt"
-    hasil = subprocess.run(
-        ["bash", str(berkas)], cwd=tmp_path, capture_output=True, text=True, timeout=10,
-        env={"PATH": str(binari) + os.pathsep + os.environ["PATH"],
-             "GH_TOKEN": "token-sintetis-jangan-dicetak", "GH_REPO": "contoh/repo",
-             "GITHUB_RUN_ID": "12345", "JEJAK_UJI": str(jejak),
-             "GAGAL_UJI": "kandidat-shard-%s" % gagal},
-    )
-    assert hasil.returncode == (7 if gagal else 0), hasil.stdout + hasil.stderr
-    terakhir = gagal or 4
-    assert jejak.read_text().splitlines() == ["kandidat-shard-%s" % n for n in range(1, terakhir + 1)]
-    unduhan = [json.loads(p.read_text())["shard"] for p in sorted((tmp_path / "shard-manifests").glob("*.json"))]
-    assert unduhan == list(range(1, gagal if gagal else 5))
-    assert "token-sintetis" not in hasil.stdout + hasil.stderr
-
-
 def test_periksa_selalu_aktif_dan_gagal_tidak_boleh_diabaikan():
     teks = ALUR.read_text()
     pemicu = teks.split("concurrency:", 1)[0]
     assert "  push:\n    branches: [main]\n" in pemicu
-    assert '  schedule:\n' in pemicu and '- cron: "0 20 * * 0"' in pemicu
-    assert ("  workflow_dispatch:\n    inputs:\n      audit:\n" in pemicu
-            and "        type: boolean\n        default: false\n" in pemicu)
-    assert pemicu.count("description:") == 1  # Hanya input audit, tanpa input bypass.
+    assert pemicu.rstrip().endswith("\n  workflow_dispatch:")
+    assert "inputs:" not in pemicu and "schedule:" not in pemicu  # Tanpa input bypass.
     assert not re.search(r"^\s+(paths|paths-ignore):", pemicu, re.M)
     job = _job(teks, "periksa")
     assert not re.search(r"^\s+(needs|if|continue-on-error):", job, re.M)
@@ -288,103 +93,60 @@ def test_periksa_selalu_aktif_dan_gagal_tidak_boleh_diabaikan():
     assert "always()" not in bangun
 
 
-def test_push_kode_memakai_satu_job_cepat_tanpa_build():
-    job = _job(ALUR.read_text(), "uji_cepat")
-    assert "    needs: periksa\n" in job
-    assert "    if: ${{ github.event_name == 'push' && needs.periksa.outputs.lengkap == 'true' }}\n" in job
-    assert "fetch-depth: 0" in job
-    assert 'python-version: "3.12"' in job
-    assert "run: python -u scripts/ci_fast_tests.py" in job
-    assert "strategy:" not in job and "matrix:" not in job
-    assert "secrets." not in job and "continue-on-error:" not in job
-
-
 def _skrip_status():
     job = _job(ALUR.read_text(), "status")
     assert "    name: Status CI\n" in job
     assert "    if: ${{ always() }}\n" in job
-    assert "    needs: [periksa, uji_cepat, uji_kandidat, uji, uji_recovery, bangun, pasang]\n" in job
+    assert "    needs: [periksa, bangun, pasang]\n" in job
     assert "          HASIL_JOB: ${{ toJSON(needs) }}\n" in job
-    assert "          AUDIT_MANUAL: ${{ inputs.audit }}\n" in job
     assert 'python-version: "3.12"' in job
     return textwrap.dedent(job.split("        run: |\n", 1)[1]).strip()
 
 
-# (event, input audit) seperti dirender Actions: schedule tanpa input = "".
-JALUR_SAH = [
-    ("push", "", "true"), ("push", "", "false"),
-    ("schedule", "", "true"),
-    ("workflow_dispatch", "false", "true"), ("workflow_dispatch", "true", "true"),
-]
+JALUR_SAH = [("push", "true"), ("push", "false"), ("workflow_dispatch", "true")]
 
 
-def _hasil_job(event, lengkap="true", audit=""):
-    audit_penuh = {
-        "uji_cepat": "skipped", "uji_kandidat": "success", "uji": "success",
-        "uji_recovery": "success", "bangun": "skipped",
+def _hasil_job(event, lengkap="true"):
+    bangun = "success" if event == "workflow_dispatch" else "skipped"
+    return {
+        "periksa": {"result": "success", "outputs": {"lengkap": lengkap}},
+        "bangun": {"result": bangun},
+        "pasang": {"result": "skipped"},
     }
-    pola = {
-        ("push", "true"): {
-            "uji_cepat": "success", "uji_kandidat": "skipped", "uji": "skipped",
-            "uji_recovery": "skipped", "bangun": "skipped",
-        },
-        ("push", "false"): {
-            "uji_cepat": "skipped", "uji_kandidat": "skipped", "uji": "skipped",
-            "uji_recovery": "skipped", "bangun": "skipped",
-        },
-        ("schedule", "true"): audit_penuh,
-        ("workflow_dispatch", "true"): audit_penuh if audit == "true" else {
-            "uji_cepat": "skipped", "uji_kandidat": "skipped", "uji": "skipped",
-            "uji_recovery": "skipped", "bangun": "success",
-        },
-    }
-    hasil = {nama: {"result": nilai} for nama, nilai in pola[(event, lengkap)].items()}
-    hasil["periksa"] = {"result": "success", "outputs": {"lengkap": lengkap}}
-    hasil["pasang"] = {"result": "skipped"}
-    return hasil
 
 
-def _jalankan_status(hasil, event, audit=""):
+def _jalankan_status(hasil, event):
     # Python runner berasal dari interpreter test, bukan Python lokal lain.
     skrip = _skrip_status().replace("python -", shlex.quote(sys.executable) + " -", 1)
     return subprocess.run(
         ["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", skrip],
         capture_output=True, text=True, timeout=10,
-        env={**os.environ, "HASIL_JOB": json.dumps(hasil), "GITHUB_EVENT_NAME": event,
-             "AUDIT_MANUAL": audit},
+        env={**os.environ, "HASIL_JOB": json.dumps(hasil), "GITHUB_EVENT_NAME": event},
     )
 
 
-@pytest.mark.parametrize("event,audit,lengkap", JALUR_SAH)
-def test_status_menerima_hanya_jalur_sah(event, audit, lengkap):
-    hasil = _jalankan_status(_hasil_job(event, lengkap, audit), event, audit)
+@pytest.mark.parametrize("event,lengkap", JALUR_SAH)
+def test_status_menerima_hanya_jalur_sah(event, lengkap):
+    hasil = _jalankan_status(_hasil_job(event, lengkap), event)
     assert hasil.returncode == 0, hasil.stdout + hasil.stderr
     assert "Status CI lulus" in hasil.stdout
 
 
-@pytest.mark.parametrize("event,audit,lengkap", JALUR_SAH)
-@pytest.mark.parametrize("nama", [
-    "periksa", "uji_cepat", "uji_kandidat", "uji", "uji_recovery", "bangun", "pasang",
-])
+@pytest.mark.parametrize("event,lengkap", JALUR_SAH)
+@pytest.mark.parametrize("nama", ["periksa", "bangun", "pasang"])
 @pytest.mark.parametrize("status", ["failure", "cancelled", "skipped", "success"])
-def test_status_menolak_kegagalan_dan_skip_tak_sah(event, audit, lengkap, nama, status):
-    hasil = _hasil_job(event, lengkap, audit)
+def test_status_menolak_kegagalan_dan_skip_tak_sah(event, lengkap, nama, status):
+    hasil = _hasil_job(event, lengkap)
     sah = hasil[nama]["result"] == status
     hasil[nama]["result"] = status
-    keluaran = _jalankan_status(hasil, event, audit)
+    keluaran = _jalankan_status(hasil, event)
     assert (keluaran.returncode == 0) is sah, keluaran.stdout + keluaran.stderr
 
 
-def test_status_dispatch_rilis_tidak_boleh_menyamar_sebagai_audit():
-    # Hasil jalur build-cepat dengan input audit=true (atau sebaliknya) harus ditolak.
-    assert _jalankan_status(_hasil_job("workflow_dispatch", "true", "false"),
-                            "workflow_dispatch", "true").returncode != 0
-    assert _jalankan_status(_hasil_job("workflow_dispatch", "true", "true"),
-                            "workflow_dispatch", "false").returncode != 0
-    assert _jalankan_status(_hasil_job("schedule", "true"),
-                            "schedule", "true").returncode != 0
-    assert _jalankan_status(_hasil_job("workflow_dispatch", "true", "false"),
-                            "workflow_dispatch", "ya").returncode != 0
+def test_status_dispatch_dengan_klasifikasi_dokumen_ditolak():
+    hasil = _hasil_job("workflow_dispatch", "false")
+    hasil["bangun"]["result"] = "skipped"
+    assert _jalankan_status(hasil, "workflow_dispatch").returncode != 0
 
 
 @pytest.mark.parametrize("lengkap", ["", None, "True", "FALSE", True, False])
@@ -394,10 +156,7 @@ def test_status_output_hilang_atau_invalid_bukan_jalur_ringan(lengkap):
     assert _jalankan_status(hasil, "push").returncode != 0
 
 
-@pytest.mark.parametrize("event,audit", [
-    ("schedule", ""), ("workflow_dispatch", "false"), ("workflow_dispatch", "true"),
-    ("pull_request", ""), ("", ""),
-])
-def test_status_event_nonpush_tidak_menerima_klasifikasi_dokumen(event, audit):
+@pytest.mark.parametrize("event", ["schedule", "workflow_dispatch", "pull_request", ""])
+def test_status_event_nonpush_tidak_menerima_klasifikasi_dokumen(event):
     hasil = _hasil_job("push", "false")
-    assert _jalankan_status(hasil, event, audit).returncode != 0
+    assert _jalankan_status(hasil, event).returncode != 0

@@ -193,13 +193,12 @@ diperiksa apa adanya, serta aturan privasi anak berlaku pada seluruh tool dan mo
   Test aplikasi berada di `mesin/__tests__/`, bukan plan/spike/salinan repo lama. Mulai dari
   test regression dan caller yang terdampak; jangan menjalankan seluruh `mesin/__tests__/`
   secara lokal sebagai default, termasuk dari salinan kerja `/tmp`.
-- Full suite berjalan di **CI empat shard**: audit mingguan (Senin 03.00 WIB) atau dispatch
-  dengan input `audit: true`. Dispatch rilis biasa **tidak** menjalankan suite penuh (keputusan
-  pemilik 22 Nov 2026): palang privasi + kompilasi lalu build. Kegagalan audit mingguan
-  diperbaiki sekali per minggu; rilis Kritis (migrasi, auth/sesi, kunci/diagnosis) sebaiknya
-  menjalankan dispatch audit pada SHA yang sama dulu. Jangan menunggu full suite serial lokal.
-  Full suite lokal hanya untuk reproduksi kegagalan CI yang belum dapat diisolasi, instruksi
-  eksplisit pengguna/harness, atau ketika CI benar-benar tidak tersedia. Sebelum memulainya,
+- CI **tidak menjalankan suite test** (keputusan pemilik 22 Nov 2026): test cepat push, full
+  suite kandidat, suite recovery, dan audit mingguan sudah dihapus dari workflow. Push hanya
+  palang + kompilasi; dispatch rilis = palang + kompilasi lalu build. Bukti test = test terarah
+  lokal sesuai scope. Jangan menunggu full suite serial lokal. Full suite lokal hanya atas
+  instruksi eksplisit pengguna/harness atau untuk reproduksi kegagalan yang belum dapat
+  diisolasi. Sebelum memulainya,
   beri tahu alasan dan perkiraan durasi; `timeout` adalah batas, bukan perkiraan selesai.
   Jika pengecualian berlaku, gunakan `mesin/.venv/bin/python -m pytest mesin/__tests__/ -q -W error -p no:cacheprovider`.
 - Jangan otomatis memakai `-n auto` untuk full suite lokal: test HTTP berbagi socket. Untuk
@@ -339,8 +338,8 @@ alur/bukti/rekomendasi. Jangan ringkas menjadi diagnosis → lebih banyak soal. 
   Jangan menggantinya ke `github.repository` atau namespace baru tanpa migrasi artefak/
   verifier/deployer/recovery tersendiri. Pin ini tidak mengaktifkan job `pasang`.
 - Perubahan aplikasi mengikuti **`periksa` → `bangun` → `pasang`** di workflow:
-  palang privasi + kompilasi sebelum build GHCR (suite penuh = audit mingguan/dispatch audit,
-  [CI hybrid](docs/ci-selective.md)), deploy **digest output build yang sama**,
+  palang privasi + kompilasi sebelum build GHCR (tanpa suite test,
+  [CI](docs/ci-selective.md)), deploy **digest output build yang sama**,
   forced-command SSH, swap container, auto-rollback jika healthcheck gagal. Push dokumen
   allow-list memakai [CI ringan](docs/ci-selective.md), bukan bukti kelayakan rilis.
 - Izin tetap tidak menggantikan gate teknis: mode/pin mengikuti

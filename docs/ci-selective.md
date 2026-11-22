@@ -1,50 +1,23 @@
-# GitHub Actions hybrid
+# GitHub Actions
 
-Workflow **CI Hybrid** memisahkan feedback pengembangan, audit test, dan build rilis.
-Palang awal tetap berjalan pada setiap event. Sejak 22 Nov 2026 (keputusan pemilik)
-full suite kandidat + recovery hanya berjalan mingguan atau lewat dispatch audit;
-dispatch rilis langsung membangun image setelah palang.
+Workflow **CI Hybrid** memisahkan palang pengembangan dan build rilis. Sejak 22 Nov 2026
+(keputusan pemilik) CI **tidak lagi menjalankan suite test**: job test cepat push, full
+suite kandidat (empat shard + agregat), suite recovery, jadwal audit mingguan, dan input
+`audit` sudah dihapus. Test dijalankan lokal secara terarah sesuai scope perubahan.
 
-## Tiga jalur
+## Dua jalur
 
 | Pemicu | Pemeriksaan | Artefak rilis |
 | --- | --- | --- |
-| Push `main`, hanya dokumen allow-list | Palang nama berkas/index, validasi dokumen, test helper CI, dan kompilasi Python | Tidak ada |
-| Push `main`, ada berkas lain | Pemeriksaan awal di atas + satu job test cepat: smoke inti dan test yang langsung terdampak | Tidak ada |
-| Schedule Senin 03.00 WIB | Pemeriksaan awal + full suite kandidat (exact-once) dan recovery, masing-masing empat shard | Tidak ada |
-| `workflow_dispatch` dengan `audit: true` | Sama dengan schedule, pada SHA pilihan (cek ulang setelah perbaikan) | Tidak ada |
-| `workflow_dispatch` (default) | Pemeriksaan awal, lalu build/probe dua image, verifikasi pasangan, dan manifest; **tanpa** suite penuh | Candidate/recovery exact; deploy tetap nonaktif |
+| Push `main` | Palang nama berkas/index, klasifikasi (validasi dokumen allow-list), test helper/kontrak CI, dan kompilasi Python | Tidak ada |
+| `workflow_dispatch` | Pemeriksaan awal, lalu build/probe dua image, verifikasi pasangan, dan manifest; **tanpa** suite test | Candidate/recovery exact; deploy tetap nonaktif |
 
-Push baru pada ref yang sama membatalkan run push lama. Schedule dan dispatch
-berbagi antrean release, tidak dibatalkan oleh push, dan tidak berjalan bersamaan.
+Push baru pada ref yang sama membatalkan run push lama. Dispatch memakai antrean
+release, tidak dibatalkan oleh push, dan tidak berjalan bersamaan.
 
-Job agregat mengunduh tepat empat artefak `kandidat-shard-1` sampai `-4` dari
-`GITHUB_RUN_ID` yang sama lewat GitHub CLI bawaan runner. Token job hanya mendapat
-`contents: read` dan `actions: read`, diberikan lewat environment, bukan argumen.
-Unduhan gagal menghentikan job; verifier revision/koleksi/exact-once tetap wajib.
-Jalur ini menggantikan `actions/download-artifact` yang mengeluarkan peringatan
-Node `Buffer()`; warning tidak disembunyikan dengan filter atau environment.
-
-## Test cepat pada push
-
-`scripts/ci_fast_tests.py` selalu menjalankan smoke test tetap untuk auth, database,
-diagnosis, generator, reducer siklus belajar, palang murid, dan dispatch web. Ia
-menambahkan:
-
-- berkas test yang diubah;
-- semua `test_<nama-modul>*` untuk modul Python aplikasi atau helper script yang
-  berubah;
-- test yang mengimpor modul terdampak, termasuk reverse-import transitif antarmodul
-  aplikasi;
-- pemetaan khusus untuk workflow, palang repo, Dockerfile/aset runtime, sharding,
-  metadata rilis, deployer, dan verifier image. Berkas non-Python yang tidak punya
-  modul test senama (`mesin/cadangkan.sh`, `mesin/healthcheck.py`, skrip pair,
-  `conftest.py`) dipetakan eksplisit ke guard-nya, bukan jatuh ke smoke tetap saja.
-
-Helper membaca seluruh rentang `before..after`, bukan hanya commit terakhir.
-Metadata event/Git yang meragukan jatuh ke smoke tetap, bukan daftar kosong. Daftar
-path tidak dicetak ke log atau summary. Seleksi ini memberi feedback awal; ia **bukan
-bukti full regression** dan tidak boleh dipakai sebagai izin rilis.
+`scripts/ci_fast_tests.py`, `scripts/pytest_shard.py`, dan
+`scripts/verify_pytest_shards.py` tidak lagi dipanggil workflow; ketiganya masih ada
+di repo bila suatu saat jalur test CI dihidupkan kembali.
 
 ## Dokumen aman
 
@@ -61,27 +34,6 @@ kode tetap masuk jalur push kode. Rename diperiksa sebagai delete+add. Pemeriksa
 dokumen menolak non-UTF-8, konflik merge, symlink, dan tautan inline lokal yang
 hilang. Palang repo memeriksa nama berkas, bukan pemindai secret isi berkas; review
 manusia dan larangan data anak/kredensial tetap berlaku.
-
-## Audit mingguan
-
-Cron workflow adalah:
-
-```yaml
-schedule:
-  - cron: "0 20 * * 0" # Senin 03.00 WIB
-```
-
-Audit menjalankan seluruh test kandidat dan recovery pinned, masing-masing pada empat
-runner terisolasi. Tiap runner tetap serial karena test HTTP berbagi socket. Manifest
-shard membuktikan setiap nodeid kandidat berjalan tepat sekali. Audit tidak membangun
-image, menerbitkan manifest pasangan, atau memasang aplikasi.
-
-Pengingat: GitHub mengirim email bila run terjadwal gagal (ke akun yang terakhir
-mengubah cron). Perbaiki kegagalan dalam minggu yang sama, lalu jalankan dispatch audit:
-
-```bash
-gh workflow run deploy.yml --repo clarinovist/jagomat --ref main -f audit=true
-```
 
 ## Gate rilis manual
 
@@ -100,29 +52,22 @@ gh run watch <id-run> --repo clarinovist/jagomat --exit-status
 
 Di GitHub: **Actions → CI Hybrid → Run workflow → main → Run workflow**. Dispatch
 rilis menjalankan palang privasi/kompilasi, build/probe kedua image, uji pasangan
-exact, dan manifest pada SHA yang sama, tanpa full suite. Untuk rilis Kritis
-(migrasi, auth/sesi, kunci/diagnosis) jalankan dulu dispatch `audit: true` pada SHA
-yang sama. Job `pasang` tetap literal false selama mode migrasi. Aktivasi rutin
+exact, dan manifest pada SHA yang sama, tanpa suite test. Job `pasang` tetap
+literal false selama mode migrasi. Aktivasi rutin
 kelak harus mereview gate workflow, metadata, policy host, dan runbook bersama.
 
-Image hasil dispatch rilis belum tentu lulus full suite pada SHA itu; bukti suite
-adalah audit terakhir. CI push maupun audit hijau bukan bukti artefak tersedia atau
-produksi sudah berubah.
+Image hasil dispatch rilis tidak dibuktikan oleh suite test di CI; bukti test adalah
+test terarah lokal pada scope yang berubah. CI push hijau bukan bukti artefak tersedia
+atau produksi sudah berubah.
 
 ## Status akhir
 
 Check **Status CI** memvalidasi kombinasi job berdasarkan event:
 
-- push dokumen: job test cepat/full/build harus skipped;
-- push kode: test cepat harus sukses; full candidate/recovery/build harus skipped;
-- schedule / dispatch `audit: true`: kandidat, agregat, dan recovery harus sukses; build harus skipped;
-- dispatch rilis: build harus sukses; kandidat, agregat, dan recovery harus skipped;
+- push (dokumen maupun kode): palang harus sukses; build harus skipped;
+- dispatch rilis: palang dan build harus sukses;
 - deploy harus tetap skipped pada mode saat ini.
 
 Kegagalan, pembatalan, output klasifikasi invalid, event tak dikenal, atau skip yang
 tidak sesuai membuat Status CI gagal. Jika memakai required check/branch protection,
 gunakan **Status CI** sebagai check lintas jalur.
-
-Penghematan berasal dari tidak menjalankan delapan runner suite pada setiap push
-maupun dispatch rilis. Besarnya tetap dipantau dari runner-minute aktual; paralelisme
-mengurangi waktu tunggu, bukan jumlah menit komputasi.

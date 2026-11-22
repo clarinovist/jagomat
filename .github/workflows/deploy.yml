@@ -1,25 +1,17 @@
 name: CI Hybrid
 
-# Push mendapat feedback cepat. Dispatch manual langsung membangun image setelah
-# palang privasi (tanpa suite penuh; keputusan pemilik 22 Nov 2026). Suite penuh
-# kandidat + recovery berjalan mingguan atau lewat dispatch dengan input audit.
+# Push hanya menjalankan palang privasi/kompilasi. Dispatch manual membangun image
+# setelah palang yang sama. Test cepat, suite kandidat, dan suite recovery tidak
+# lagi berjalan di CI (keputusan pemilik 22 Nov 2026); tes dijalankan lokal.
 # Migrasi/cutover tetap controlled deploy-v2; job pasang literal false.
 on:
   push:
     branches: [main]
-  schedule:
-    # Senin 03.00 WIB (Minggu 20.00 UTC).
-    - cron: "0 20 * * 0"
   workflow_dispatch:
-    inputs:
-      audit:
-        description: "Jalankan audit suite penuh kandidat + recovery (tanpa build image)"
-        type: boolean
-        default: false
 
 concurrency:
-  # Push baru membatalkan push lama pada ref yang sama. Audit mingguan dan gate
-  # manual berbagi antrean release; keduanya tidak dibatalkan oleh push biasa.
+  # Push baru membatalkan push lama pada ref yang sama. Gate rilis manual memakai
+  # antrean release yang tidak dibatalkan oleh push biasa.
   group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.ref || 'release' }}
   cancel-in-progress: ${{ github.event_name == 'push' }}
 
@@ -31,7 +23,7 @@ env:
   # Identitas artefak tetap meski repo berganti nama menjadi jagomat.
   # Harus sama dengan verifier dan deployer; recovery VPS memakai namespace ini.
   IMAGE: clarinovist/osn-mesin-latihan
-  # Baseline soft launch diuji penuh bersama kandidat (pin migrasi 18 Nov 2026); pasang tetap tidak otomatis.
+  # Baseline recovery soft launch (pin migrasi 18 Nov 2026); pasang tetap tidak otomatis.
   RECOVERY_SHA: 1206bc95f0aa1f074393e01e0955e0f6d364fe90
 
 jobs:
@@ -69,140 +61,11 @@ jobs:
           print('Kompilasi lulus:', len(berkas), 'berkas')
           PY
 
-  uji_cepat:
-    name: Test cepat push
-    needs: periksa
-    if: ${{ github.event_name == 'push' && needs.periksa.outputs.lengkap == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Pasang pytest
-        run: pip install --quiet pytest
-      - name: Jalankan smoke dan test langsung terdampak
-        run: python -u scripts/ci_fast_tests.py
-
-  # Audit kandidat lengkap: schedule mingguan dan dispatch audit. Tiap runner
-  # serial; jangan xdist karena test HTTP berbagi socket.
-  uji_kandidat:
-    name: Test kandidat ${{ matrix.shard }}/4
-    needs: periksa
-    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.audit) }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          # Test candidate mengekstrak source recovery pinned lewat git archive.
-          fetch-depth: 0
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Pasang pytest
-        run: pip install --quiet pytest pytest-xdist
-      - name: Pastikan tidak ada data siswa ter-commit
-        run: python scripts/check_repo.py
-      - name: Jalankan shard kandidat dan catat manifest
-        run: |
-          python scripts/pytest_shard.py \
-            --shard "${{ matrix.shard }}" --total 4 \
-            --manifest "shard-manifests/kandidat-${{ matrix.shard }}.json" \
-            --revision "$GITHUB_SHA" -- \
-            --rootdir . mesin/__tests__/ -q -W error -p no:cacheprovider --durations=20
-      - name: Simpan bukti shard kandidat
-        uses: actions/upload-artifact@v7
-        with:
-          name: kandidat-shard-${{ matrix.shard }}
-          path: shard-manifests/kandidat-${{ matrix.shard }}.json
-          if-no-files-found: error
-          retention-days: 7
-
-  uji:
-    name: Test kandidat
-    needs: uji_kandidat
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: read
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Pasang pytest untuk helper verifikasi
-        run: pip install --quiet pytest
-      - name: Unduh manifest kandidat dari run yang sama
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          for shard in 1 2 3 4; do
-            gh run download "$GITHUB_RUN_ID" --name "kandidat-shard-$shard" --dir shard-manifests
-          done
-      - name: Buktikan semua test kandidat lulus tepat sekali
-        run: >-
-          python scripts/verify_pytest_shards.py
-          --directory shard-manifests --total 4 --revision "$GITHUB_SHA"
-
-  # Recovery pinned tidak berubah antar-rilis, jadi cukup diuji bersama audit
-  # mingguan/dispatch audit. Audit tidak menerbitkan image atau bukti pasangan.
-  uji_recovery:
-    name: Test recovery ${{ matrix.shard }}/4
-    needs: periksa
-    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.audit) }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    steps:
-      # Helper shard berasal dari candidate yang juga melewati full suite.
-      - uses: actions/checkout@v7
-      - name: Checkout baseline recovery soft launch
-        uses: actions/checkout@v7
-        with:
-          ref: 1206bc95f0aa1f074393e01e0955e0f6d364fe90
-          path: recovery
-          # Suite recovery mempertahankan mode dan pin historis source-nya sendiri.
-          fetch-depth: 0
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Pasang pytest
-        run: pip install --quiet pytest pytest-xdist
-      - name: Palang dan shard recovery terisolasi
-        working-directory: recovery
-        shell: bash
-        run: |
-          python scripts/check_repo.py
-          python - <<'PY'
-          import os, pathlib, sys
-          assert pathlib.Path.cwd().name == 'recovery'
-          sys.path.insert(0, str(pathlib.Path('mesin').resolve()))
-          import assistant_schema
-          assert pathlib.Path(assistant_schema.__file__).resolve().parent == pathlib.Path('mesin').resolve()
-          assert assistant_schema.VERSI_SKEMA == 4
-          print('Canary: import recovery terisolasi, schema v4')
-          PY
-          python ../scripts/pytest_shard.py \
-            --shard "${{ matrix.shard }}" --total 4 -- \
-            --rootdir . mesin/__tests__/ -q -W error -p no:cacheprovider --durations=20
-
   bangun:
     name: Build & Push
-    # Gate rilis cepat: palang privasi/kompilasi (periksa) lalu build. Suite penuh
-    # dibuktikan oleh audit mingguan, bukan setiap dispatch.
+    # Gate rilis: palang privasi/kompilasi (periksa) lalu build, tanpa suite test.
     needs: periksa
-    if: ${{ github.event_name == 'workflow_dispatch' && !inputs.audit && needs.periksa.outputs.lengkap == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && needs.periksa.outputs.lengkap == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -358,7 +221,7 @@ jobs:
   status:
     name: Status CI
     if: ${{ always() }}
-    needs: [periksa, uji_cepat, uji_kandidat, uji, uji_recovery, bangun, pasang]
+    needs: [periksa, bangun, pasang]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v7
@@ -367,40 +230,21 @@ jobs:
       - name: Pastikan jalur yang dipilih selesai tanpa bypass
         env:
           HASIL_JOB: ${{ toJSON(needs) }}
-          AUDIT_MANUAL: ${{ inputs.audit }}
         run: |
           python - <<'PY'
           import json, os
           hasil = json.loads(os.environ['HASIL_JOB'])
           event = os.environ['GITHUB_EVENT_NAME']
-          audit = os.environ.get('AUDIT_MANUAL', '')
-          if audit not in ('', 'true', 'false'):
-              raise SystemExit('Input audit tidak sah.')
           periksa = hasil['periksa']
           lengkap = periksa.get('outputs', {}).get('lengkap')
           if periksa['result'] != 'success' or lengkap not in ('true', 'false'):
               raise SystemExit('Palang atau klasifikasi gagal/tidak lengkap.')
           if event == 'push':
-              harapan = {
-                  'uji_cepat': 'success' if lengkap == 'true' else 'skipped',
-                  'uji_kandidat': 'skipped', 'uji': 'skipped',
-                  'uji_recovery': 'skipped', 'bangun': 'skipped',
-              }
-              jalur = 'push cepat' if lengkap == 'true' else 'dokumen aman'
-          elif lengkap == 'true' and (
-                  (event == 'schedule' and audit == '')
-                  or (event == 'workflow_dispatch' and audit == 'true')):
-              harapan = {
-                  'uji_cepat': 'skipped', 'uji_kandidat': 'success',
-                  'uji': 'success', 'uji_recovery': 'success', 'bangun': 'skipped',
-              }
-              jalur = 'audit penuh kandidat + recovery'
-          elif event == 'workflow_dispatch' and audit == 'false' and lengkap == 'true':
-              harapan = {
-                  'uji_cepat': 'skipped', 'uji_kandidat': 'skipped',
-                  'uji': 'skipped', 'uji_recovery': 'skipped', 'bangun': 'success',
-              }
-              jalur = 'gate rilis cepat (build tanpa suite)'
+              harapan = {'bangun': 'skipped'}
+              jalur = 'push (palang saja)' if lengkap == 'true' else 'dokumen aman'
+          elif event == 'workflow_dispatch' and lengkap == 'true':
+              harapan = {'bangun': 'success'}
+              jalur = 'gate rilis (build tanpa suite)'
           else:
               raise SystemExit('Event atau hasil klasifikasi tidak sah.')
           for nama, harap in harapan.items():

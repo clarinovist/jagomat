@@ -29,7 +29,7 @@ def test_pasang_tertahan_sampai_deployer_dan_policy_rutin_siap():
     assert 'rollout-approval.json' not in pasang and 'routine-policy.json' not in pasang
     assert '${{ needs.bangun.outputs.digest }}' in pasang
     assert '${{ needs.bangun.outputs.recovery_digest }}' in pasang
-    # Push lama boleh dibatalkan; audit/dispatch berbagi antrean dan tidak dibatalkan.
+    # Push lama boleh dibatalkan; dispatch rilis memakai antrean yang tidak dibatalkan.
     assert "cancel-in-progress: ${{ github.event_name == 'push' }}" in teks
     assert "github.event_name == 'push' && github.ref || 'release'" in teks
 
@@ -44,17 +44,17 @@ def test_pin_soft_launch_migrasi_pasang_literal_false():
     assert re.findall(r'^  RECOVERY_SHA: ([0-9a-f]{40})$', teks, re.M)==[RECOVERY_SHA]
     assert re.findall(r'^    if: (.+)$',_job(teks,'pasang'),re.M)==['${{ false }}']
     assert "steps.mode.outputs.mode == 'migrasi'" in _job(teks,'bangun')
-    assert 'Baseline soft launch diuji penuh' in teks
+    assert 'Baseline recovery soft launch' in teks
 
 
 def test_build_candidate_dan_recovery_pakai_digest_yang_sama_untuk_verifikasi():
     teks=WORKFLOW.read_text()
-    uji=_job(teks,'uji');recovery=_job(teks,'uji_recovery');bangun=_job(teks,'bangun')
-    assert '    needs: periksa\n' in bangun  # Dispatch: palang lalu build, suite mingguan.
-    # Checkout yang diuji/dibangun dan revision manifest wajib snapshot sama.
-    assert re.findall(r'^          ref: ([0-9a-f]{40})$', teks, re.M) == [RECOVERY_SHA] * 2
+    bangun=_job(teks,'bangun')
+    assert '    needs: periksa\n' in bangun  # Dispatch: palang lalu build, tanpa suite.
+    # Checkout yang dibangun dan revision manifest wajib snapshot sama.
+    assert re.findall(r'^          ref: ([0-9a-f]{40})$', teks, re.M) == [RECOVERY_SHA]
     assert re.findall(r'^  RECOVERY_SHA: ([0-9a-f]{40})$', teks, re.M) == [RECOVERY_SHA]
-    assert RECOVERY_SHA in recovery and RECOVERY_SHA in bangun
+    assert RECOVERY_SHA in bangun
     assert 'recovery_digest: ${{ steps.recovery.outputs.digest }}' in bangun
     assert 'digest: ${{ steps.dorong.outputs.digest }}' in bangun
     assert 'scripts/verify_release_image.py' in bangun
@@ -62,18 +62,7 @@ def test_build_candidate_dan_recovery_pakai_digest_yang_sama_untuk_verifikasi():
     assert '${{ steps.recovery.outputs.digest }}' in bangun
     assert '--revision "$GITHUB_SHA"' in bangun
     assert '--revision "$RECOVERY_SHA"' in bangun
-    kandidat=_job(teks,'uji_kandidat')
-    assert 'needs: uji_kandidat' in uji
-    assert 'python scripts/verify_pytest_shards.py' in uji
-    assert 'python scripts/pytest_shard.py' in kandidat
-    assert '--rootdir . mesin/__tests__/ -q -W error' in kandidat
-    assert 'VPS_DEPLOY_KEY' not in kandidat
-    assert 'working-directory: recovery' in recovery
-    assert '          path: recovery\n' in recovery
-    assert 'python ../scripts/pytest_shard.py' in recovery
-    assert '--shard "${{ matrix.shard }}" --total 4 --' in recovery
-    assert 'Canary: import recovery terisolasi, schema v4' in recovery
-    assert 'VPS_DEPLOY_KEY' not in uji+recovery+bangun
+    assert 'VPS_DEPLOY_KEY' not in bangun
 
 
 def test_persiapan_tidak_memutakhirkan_latest_atau_memakai_tag_berubah():
@@ -105,7 +94,7 @@ def test_gate_job_hanya_menerima_izin_exact_dan_main(flag, ref):
 
 def test_dependencies_gagal_tidak_dibypass_ke_build_atau_deploy():
     teks=WORKFLOW.read_text()
-    for nama in ('uji_kandidat','uji','uji_recovery','bangun','pasang'):
+    for nama in ('periksa','bangun','pasang'):
         job=_job(teks,nama)
         assert 'continue-on-error:' not in job
         assert 'always()' not in job and '|| true' not in job
@@ -115,9 +104,7 @@ def test_dependencies_gagal_tidak_dibypass_ke_build_atau_deploy():
         "${{ steps.mode.outputs.mode == 'migrasi' || steps.mode.outputs.mode == 'rutin' }}"]
     # Job build hanya dilewati di luar dispatch rilis; Status CI menolak skip di dispatch.
     assert re.findall(r'^    if: (.+)$', bangun, re.M) == [
-        "${{ github.event_name == 'workflow_dispatch' && !inputs.audit && needs.periksa.outputs.lengkap == 'true' }}"]
-    assert 'working-directory: recovery' in _job(teks,'uji_recovery')
-    assert 'shard: [1, 2, 3, 4]' in _job(teks,'uji_recovery')
+        "${{ github.event_name == 'workflow_dispatch' && needs.periksa.outputs.lengkap == 'true' }}"]
     assert '    needs: periksa\n' in _job(teks,'bangun')
 
 
