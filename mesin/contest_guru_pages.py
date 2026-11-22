@@ -21,6 +21,7 @@ from contest_style import GAYA_HASIL, GAYA_PENGATURAN
 from teacher_shell import _halaman as _bingkai
 
 BATAS_TITIK_GRAFIK = 30
+SKALA_PERSEN = 100
 BATAS_BARIS_RIWAYAT = 50
 MIN_TOPIK_BANDING = 2
 _LABEL_STATUS = {K.DIKUMPUL: "Selesai", K.WAKTU_HABIS: "Waktu habis"}
@@ -28,6 +29,11 @@ LABEL_CEPAT = "Dikumpulkan cepat"
 CATATAN_GRAFIK_REDUP = "Titik abu-abu = dikumpulkan cepat, tidak dihitung di rata-rata."
 _LABEL_TOPIK_PENDEK = {"bilangan": "Bil", "operasi": "Operasi", "pengukuran": "Ukur", "bangun": "Bangun"}
 PESAN_TERSIMPAN = "Pengaturan Mode Lomba tersimpan."
+GALAT_DURASI = (f"Waktu harus angka bulat {PK.DURASI_MIN_MENIT} sampai {PK.DURASI_MAKS_MENIT} menit, atau dikosongkan "
+                "untuk memakai waktu bawaan. Pengaturan belum disimpan.")
+CATATAN_DURASI = (f"Kosongkan untuk memakai waktu bawaan. Boleh {PK.DURASI_MIN_MENIT} sampai {PK.DURASI_MAKS_MENIT} "
+                  "menit. Perubahan berlaku untuk sesi berikutnya, bukan sesi yang sedang berjalan.")
+NAMA_ISIAN_DURASI = {PK.MODE_LATIHAN: "durasi_latihan", PK.MODE_SIMULASI: "durasi_simulasi"}
 PILIHAN_TARGET = (0, 1, 2, 3)       # target harian yang boleh dipilih Guru; "ikut paket" disimpan sebagai NULL
 NILAI_IKUT_PAKET = "paket"
 CATATAN_DUGAAN = ("Label kesalahan adalah dugaan dari pilihan jawaban yang dipilih anak, bukan diagnosis; "
@@ -79,20 +85,46 @@ def _hitung_mundur_tampil(penugasan: Optional[AS.Penugasan]) -> bool:
     return penugasan.tampil_hitung_mundur
 
 
-def kartu_pengaturan(siswa, penugasan: Optional[AS.Penugasan], tersimpan: bool = False) -> str:
-    """Kartu "Mode Lomba": status, form aktifkan/matikan, target harian, dan hitung mundur (POST biasa, tanpa JS)."""
+def _durasi_tersimpan(penugasan: Optional[AS.Penugasan], mode: str) -> Optional[int]:
+    if penugasan is None:
+        return None
+    return penugasan.durasi_latihan_detik if mode == PK.MODE_LATIHAN else penugasan.durasi_simulasi_detik
+
+
+def _isian_durasi(penugasan: Optional[AS.Penugasan], mode: str) -> str:
+    """Isian menit satu mode; kosong = bawaan paket (placeholder menunjukkan angka bawaan)."""
+    bawaan = PK.PAKET_AKTIF.format_mode(mode)
+    detik = _durasi_tersimpan(penugasan, mode)
+    nilai = "" if detik is None else str(detik // PK.DETIK_PER_MENIT)
+    return (f'<label class="hl-isian">Waktu {_e(bawaan.label)} ({bawaan.jumlah_soal} soal), menit'
+            f'<input type="number" name="{NAMA_ISIAN_DURASI[mode]}" min="{PK.DURASI_MIN_MENIT}" '
+            f'max="{PK.DURASI_MAKS_MENIT}" step="1" inputmode="numeric" value="{nilai}" '
+            f'placeholder="{bawaan.durasi_menit}"></label>')
+
+
+def menit_anak(penugasan: Optional[AS.Penugasan], mode: str) -> int:
+    """Menit yang berlaku untuk anak: durasi Guru bila diisi, selain itu bawaan paket."""
+    detik = _durasi_tersimpan(penugasan, mode)
+    return (PK.PAKET_AKTIF.format_mode(mode).durasi_detik if detik is None else detik) // PK.DETIK_PER_MENIT
+
+
+def kartu_pengaturan(siswa, penugasan: Optional[AS.Penugasan], tersimpan: bool = False, galat: str = "") -> str:
+    """Kartu "Mode Lomba": status, form aktifkan/matikan, target harian, hitung mundur, dan waktu per mode."""
     sid = int(siswa["id"])
     nama = _e(siswa["nama"])
     aktif = penugasan is not None and penugasan.aktif
     pesan = f'<p class="hl-pesan-simpan" role="status">{PESAN_TERSIMPAN}</p>' if tersimpan else ""
+    if galat:
+        pesan = f'<p class="hl-galat" role="alert">{_e(galat)}</p>'
     status = (f'<p><span class="hl-lencana-st hl-lencana-aktif-st">Aktif untuk {nama}</span></p>' if aktif
               else '<p><span class="hl-lencana-st hl-lencana-netral-st">Belum aktif</span></p>')
     centang = " checked" if _hitung_mundur_tampil(penugasan) else ""
     return (
         '<section class="hl-kartu" aria-labelledby="judul-mode-lomba"><h2 id="judul-mode-lomba">Mode Lomba</h2>'
         f"{pesan}{status}"
-        f'<p class="hl-sub">Setelah aktif, {nama} melihat Mode Lomba di berandanya dan bisa berlatih '
-        f"{PK.PAKET_AKTIF.jumlah_soal} soal dalam {PK.PAKET_AKTIF.durasi_menit} menit.</p>"
+        f'<p class="hl-sub">Setelah aktif, {nama} melihat Mode Lomba di berandanya dan bisa memilih Latihan '
+        f"({PK.PAKET_AKTIF.jumlah_soal} soal, {menit_anak(penugasan, PK.MODE_LATIHAN)} menit) atau Simulasi Lomba "
+        f"({PK.PAKET_AKTIF.jumlah_soal_simulasi} soal, {menit_anak(penugasan, PK.MODE_SIMULASI)} menit).</p>"
         f'<form class="hl-form" method="post" action="{alamat_pengaturan(sid)}">'
         '<fieldset class="pilihan-kartu-st"><legend>Mode Lomba</legend>'
         f'<label class="pilihan-kartu-opsi-st"><input type="radio" name="aktif" value="1"{" checked" if aktif else ""}> Aktif</label>'
@@ -101,6 +133,8 @@ def kartu_pengaturan(siswa, penugasan: Optional[AS.Penugasan], tersimpan: bool =
         f'<select name="target">{_pilihan_target(penugasan)}</select></label>'
         f'<label><input type="checkbox" name="hitung_mundur" value="1"{centang}> '
         "Tampilkan hitung mundur ke hari lomba</label>"
+        + _isian_durasi(penugasan, PK.MODE_LATIHAN) + _isian_durasi(penugasan, PK.MODE_SIMULASI)
+        + f'<p class="hl-sub">{CATATAN_DURASI}</p>'
         '<button class="btn-st" type="submit">Simpan</button></form></section>')
 
 
@@ -136,23 +170,35 @@ def _label_sesi_selesai(progres: R.Progres) -> str:
 
 
 def _kartu_ringkas(progres: R.Progres) -> str:
+    """Terbaik/tren dari Latihan (dari 10); Simulasi punya stat terbaik sendiri (dari 35)."""
     total = P.JUMLAH_SOAL
+    ada_simulasi = progres.terbaik_simulasi is not None
     terbaik = "&ndash;" if progres.terbaik is None else f"{progres.terbaik}/{total}"
+    stat_simulasi = (_stat(f"{progres.terbaik_simulasi}/{PK.PAKET_AKTIF.jumlah_soal_simulasi}", "Simulasi terbaik")
+                     if ada_simulasi else "")
     return ('<div class="hl-ringkas">'
             + _stat(str(progres.jumlah), _label_sesi_selesai(progres))
-            + _stat(terbaik, "Nilai terbaik")
-            + _stat(f"{progres.terakhir}/{total}", "Nilai terakhir")
+            + _stat(terbaik, "Latihan terbaik" if ada_simulasi else "Nilai terbaik")
+            + stat_simulasi
+            + _stat(f"{progres.terakhir}/{progres.terakhir_jumlah or total}", "Nilai terakhir")
             + _stat_tren(progres)
             + "</div>")
 
 
 def _grafik(progres: R.Progres) -> str:
+    """Nilai per sesi; bila ada sesi selain 10 soal (Simulasi), skala persen benar supaya bisa dibandingkan."""
     sesi = progres.sesi[-BATAS_TITIK_GRAFIK:]
-    nilai = [s.nilai for s in sesi]
     redup = [s.asal_kumpul for s in sesi]
-    awal = progres.jumlah - len(nilai) + 1
-    maks = max(P.JUMLAH_SOAL, *nilai)
-    judul = "Nilai per sesi" + (f" ({BATAS_TITIK_GRAFIK} sesi terakhir)" if progres.jumlah > BATAS_TITIK_GRAFIK else "")
+    awal = progres.jumlah - len(sesi) + 1
+    persen_mode = any(s.jumlah_soal != P.JUMLAH_SOAL for s in sesi)
+    if persen_mode:
+        nilai = [persen(s.nilai, s.jumlah_soal) for s in sesi]
+        maks = SKALA_PERSEN
+    else:
+        nilai = [s.nilai for s in sesi]
+        maks = max(P.JUMLAH_SOAL, *nilai)
+    judul = ("Persen benar per sesi" if persen_mode else "Nilai per sesi") + (
+        f" ({BATAS_TITIK_GRAFIK} sesi terakhir)" if progres.jumlah > BATAS_TITIK_GRAFIK else "")
     catatan = f'<p class="hl-sub">{CATATAN_GRAFIK_REDUP}</p>' if any(redup) else ""
     return (f'<section class="hl-kartu"><h2>{judul}</h2>'
             f'{G.grafik_nilai(nilai, maks, nomor_awal=awal, redup=redup)}{catatan}</section>')
@@ -190,8 +236,12 @@ def _chip(teks: str, kelas: str = "") -> str:
     return f'<li class="{kelas_penuh}">{_e(teks)}</li>'
 
 
+def label_mode(sesi) -> str:
+    return PK.LABEL_MODE_PENDEK.get(sesi.mode, PK.LABEL_MODE_PENDEK[PK.MODE_LATIHAN])
+
+
 def _chip_sesi(sesi: R.RingkasSesi) -> str:
-    chip = [_chip(durasi_menit_detik(sesi.waktu_terpakai_detik))]
+    chip = [_chip(label_mode(sesi)), _chip(durasi_menit_detik(sesi.waktu_terpakai_detik))]
     if sesi.status == K.WAKTU_HABIS:
         chip.append(_chip(_LABEL_STATUS[K.WAKTU_HABIS]))
     chip.extend(_chip(f"{_LABEL_TOPIK_PENDEK.get(n.topik, RP.label_topik(n.topik))} {n.benar}/{n.total}")
@@ -220,7 +270,7 @@ def _status_tabel(sesi: R.RingkasSesi) -> str:
 
 def _baris_riwayat(siswa_id: int, sesi: R.RingkasSesi) -> str:
     return (
-        f'<tr><td class="hl-angka">{_e(tanggal_wib(sesi.mulai_epoch))}</td>'
+        f'<tr><td class="hl-angka">{_e(tanggal_wib(sesi.mulai_epoch))}</td><td>{_e(label_mode(sesi))}</td>'
         f'<td class="hl-angka">{sesi.nilai}/{sesi.jumlah_soal}</td>'
         f'<td class="hl-angka">{durasi_menit_detik(sesi.waktu_terpakai_detik)}</td>'
         f'<td>{_status_tabel(sesi)}</td><td>{_e(_teks_topik_sesi(sesi))}</td>'
@@ -236,16 +286,16 @@ def _kartu_riwayat(siswa_id: int, progres: R.Progres) -> str:
     kartu = "".join(_kartu_sesi_hp(siswa_id, s) for s in terbaru)
     return ('<section class="hl-kartu"><h2>Riwayat sesi</h2>'
             '<div class="hl-gulir hl-riwayat-lebar"><table class="hl-tabel"><thead><tr>'
-            "<th>Tanggal (WIB)</th><th>Nilai</th><th>Waktu</th><th>Status</th><th>Nilai per topik</th><th></th>"
+            "<th>Tanggal (WIB)</th><th>Jenis</th><th>Nilai</th><th>Waktu</th><th>Status</th><th>Nilai per topik</th><th></th>"
             f"</tr></thead><tbody>{baris}</tbody></table></div>"
             f'<ol class="hl-riwayat-hp">{kartu}</ol>{catatan}</section>')
 
 
 def halaman_progres(siswa, progres: R.Progres, sering: Sequence[R.JenisSering], ident, *,
-                    penugasan: Optional[AS.Penugasan] = None, tersimpan: bool = False) -> bytes:
+                    penugasan: Optional[AS.Penugasan] = None, tersimpan: bool = False, galat: str = "") -> bytes:
     """Kartu Mode Lomba (pengaturan), lalu progress satu anak: ringkasan, grafik, bar per topik, sering salah, riwayat."""
     kepala = (_kepala(siswa, "Latihan lomba", f"/anak/{int(siswa['id'])}?section=perkembangan", "Perkembangan")
-              + kartu_pengaturan(siswa, penugasan, tersimpan))
+              + kartu_pengaturan(siswa, penugasan, tersimpan, galat))
     catatan = f'<p class="hl-catatan">{CATATAN_DUGAAN}</p>'
     if progres.jumlah == 0:
         kosong = ('<section class="hl-kartu"><h2>Belum ada sesi latihan yang selesai</h2>'
@@ -262,6 +312,7 @@ def halaman_detail(siswa, hasil: R.HasilRinci, ident) -> bytes:
     status = _LABEL_STATUS.get(hasil.sesi.status, hasil.sesi.status)
     ringkas = ('<div class="hl-ringkas">'
                + _stat(f"{hasil.nilai}/{hasil.jumlah_soal}", "Nilai")
+               + _stat(_e(label_mode(hasil.sesi)), "Jenis")
                + _stat(durasi_menit_detik(hasil.waktu_terpakai_detik), "Waktu")
                + _stat(_e(status), "Status")
                + _stat(_e(tanggal_wib(hasil.sesi.mulai_epoch)), "Mulai (WIB)")

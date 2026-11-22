@@ -4,6 +4,9 @@ Menggabungkan `contest_store` (sesi berjalan, jawaban terisi) dan `contest_resul
 selesai) menjadi data siap tampil untuk halaman awal, hasil, dan kartu beranda. Semua dibatasi ke satu
 `siswa_id`. Sesi "asal kumpul" (`contest_paket.asal_kumpul`) tetap tampil di riwayat, tetapi tidak ikut nilai
 terbaik, nilai terakhir, banding "naik/turun", maupun hitungan target harian.
+
+Dua mode: nilai terbaik dan banding dipisah per mode (Latihan dari 10, Simulasi dari 35); satu Simulasi sah dihitung
+satu sesi untuk target harian. Penyebut nilai selalu dari sesi itu sendiri, bukan dari paket.
 """
 from __future__ import annotations
 
@@ -27,21 +30,23 @@ class RingkasAnak:
     terisi: FrozenSet[int]               # nomor terisi pada sesi berjalan (kosong bila tak ada sesi)
     nomor_lanjut: int                    # soal kosong pertama (atau 1 bila semua terisi / tanpa sesi)
     riwayat: Tuple[R.RingkasSesi, ...]   # sesi selesai terbaru dulu, termasuk asal kumpul
-    nilai_terbaik: Optional[int]
-    nilai_terakhir: Optional[int]
+    nilai_terbaik: Optional[int]         # Latihan sah terbaik (dari 10)
+    nilai_terakhir: Optional[int]        # sesi sah terakhir, mode apa pun
     selesai_hari_ini: int
     hitung_mundur: str
     sekarang: int
+    terbaik_simulasi: Optional[int] = None       # Simulasi sah terbaik (dari 35)
+    jumlah_terakhir: Optional[int] = None        # banyak soal sesi sah terakhir (penyebut nilai_terakhir)
 
 
-def nomor_kosong_pertama(terisi: AbstractSet[int]) -> int:
-    """Soal kosong dengan nomor terkecil; 1 bila semua terisi."""
-    return next((n for n in range(K.NOMOR_PERTAMA, K.NOMOR_TERAKHIR + 1) if n not in terisi), K.NOMOR_PERTAMA)
+def nomor_kosong_pertama(terisi: AbstractSet[int], jumlah: int = K.NOMOR_TERAKHIR) -> int:
+    """Soal kosong dengan nomor terkecil di antara `jumlah` soal sesi; 1 bila semua terisi."""
+    return next((n for n in range(K.NOMOR_PERTAMA, jumlah + 1) if n not in terisi), K.NOMOR_PERTAMA)
 
 
-def nomor_kosong_berikutnya(terisi: AbstractSet[int], nomor: int) -> Optional[int]:
+def nomor_kosong_berikutnya(terisi: AbstractSet[int], nomor: int, jumlah: int = K.NOMOR_TERAKHIR) -> Optional[int]:
     """Soal kosong berikutnya setelah `nomor` secara siklis (n+1..akhir lalu awal..n-1); None bila tak ada."""
-    total = K.NOMOR_TERAKHIR
+    total = jumlah
     for langkah in range(1, total):
         calon = (nomor - 1 + langkah) % total + 1
         if calon not in terisi:
@@ -77,6 +82,10 @@ def paket_untuk_anak(kon, siswa_id: int, paket: PK.PaketLomba) -> PK.PaketLomba:
         ubah["target_harian"] = penugasan.target_harian
     if penugasan.tampil_hitung_mundur is not None:
         ubah["tampil_hitung_mundur"] = penugasan.tampil_hitung_mundur
+    if penugasan.durasi_latihan_detik is not None:
+        ubah["durasi_detik"] = penugasan.durasi_latihan_detik
+    if penugasan.durasi_simulasi_detik is not None:
+        ubah["durasi_simulasi_detik"] = penugasan.durasi_simulasi_detik
     return dataclasses.replace(paket, **ubah) if ubah else paket
 
 
@@ -89,31 +98,42 @@ def muat_ringkas(kon, siswa_id: int, sekarang: int, paket: PK.PaketLomba = PK.PA
     sah = _saring_sah(kon, siswa_id, semua)
     return RingkasAnak(
         paket=paket, berjalan=berjalan, sisa_detik=berjalan.sisa_detik(sekarang) if berjalan else 0,
-        terisi=terisi, nomor_lanjut=nomor_kosong_pertama(terisi),
+        terisi=terisi, nomor_lanjut=nomor_kosong_pertama(terisi, berjalan.jumlah_soal if berjalan else 1),
         riwayat=tuple(reversed(semua[-BATAS_RIWAYAT_TAMPIL:])),
-        nilai_terbaik=max((s.nilai for s in sah), default=None),
+        nilai_terbaik=_terbaik(sah, PK.MODE_LATIHAN),
         nilai_terakhir=sah[-1].nilai if sah else None,
         selesai_hari_ini=_selesai_hari_ini(sah, sekarang),
-        hitung_mundur=PK.teks_hitung_mundur(paket, sekarang), sekarang=sekarang)
+        hitung_mundur=PK.teks_hitung_mundur(paket, sekarang), sekarang=sekarang,
+        terbaik_simulasi=_terbaik(sah, PK.MODE_SIMULASI),
+        jumlah_terakhir=sah[-1].jumlah_soal if sah else None)
+
+
+def _terbaik(sah: Sequence[R.RingkasSesi], mode: str) -> Optional[int]:
+    return max((s.nilai for s in sah if s.mode == mode), default=None)
 
 
 def nilai_sebelumnya(kon, siswa_id: int, sesi_id: int, sekarang: int) -> Optional[int]:
-    """Nilai sesi sah SEBELUMNYA untuk dibandingkan; None bila sesi ini asal kumpul atau tak ada pendahulu."""
+    """Nilai sesi sah SEBELUMNYA dengan mode yang sama; None bila sesi ini asal kumpul atau tak ada pendahulu."""
     sah = sesi_sah(kon, siswa_id, sekarang)
-    if not any(s.sesi_id == sesi_id for s in sah):
+    ini = next((s for s in sah if s.sesi_id == sesi_id), None)
+    if ini is None:
         return None
-    sebelum = [s for s in sah if s.sesi_id < sesi_id]
+    sebelum = [s for s in sah if s.sesi_id < sesi_id and s.mode == ini.mode]
     return sebelum[-1].nilai if sebelum else None
 
 
-def kalimat_banding(nilai: int, sebelumnya: Optional[int]) -> str:
-    """"Naik 2 dari latihan sebelumnya" dst.; kosong bila tak ada pembanding."""
+_KATA_BANDING = {PK.MODE_LATIHAN: "latihan", PK.MODE_SIMULASI: "simulasi"}
+
+
+def kalimat_banding(nilai: int, sebelumnya: Optional[int], mode: str = PK.MODE_LATIHAN) -> str:
+    """"Naik 2 dari latihan sebelumnya" ("... simulasi sebelumnya" untuk Simulasi); kosong bila tak ada pembanding."""
     if sebelumnya is None:
         return ""
+    kata = _KATA_BANDING.get(mode, "latihan")
     selisih = nilai - sebelumnya
     if selisih > 0:
-        return f"Naik {selisih} dari latihan sebelumnya"
+        return f"Naik {selisih} dari {kata} sebelumnya"
     if selisih < 0:
-        return f"Turun {-selisih} dari latihan sebelumnya"
-    return "Sama dengan latihan sebelumnya"
+        return f"Turun {-selisih} dari {kata} sebelumnya"
+    return f"Sama dengan {kata} sebelumnya"
 

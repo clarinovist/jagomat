@@ -101,8 +101,8 @@ def _tombol_nomor(nomor: int, aktif: bool, terjawab: bool) -> str:
             f'{nomor}<span class="sr-saja"> {status}</span></button></li>')
 
 
-def _strip_nomor(nomor_aktif: int, terjawab: AbstractSet[int]) -> str:
-    butir = "".join(_tombol_nomor(n, n == nomor_aktif, n in terjawab) for n in range(1, JUMLAH_SOAL + 1))
+def _strip_nomor(nomor_aktif: int, terjawab: AbstractSet[int], jumlah: int) -> str:
+    butir = "".join(_tombol_nomor(n, n == nomor_aktif, n in terjawab) for n in range(1, jumlah + 1))
     return f'<nav aria-label="Nomor soal"><ol class="strip">{butir}</ol></nav>'
 
 
@@ -133,31 +133,34 @@ def _blok_isian(soal: K.SoalAnak, galat: bool, isi_galat: str) -> str:
             '<p class="bantuan">Tekan Enter atau pindah soal, jawabanmu ikut tersimpan.</p></div>')
 
 
-def _tombol_geser(nomor: int) -> str:
+def _tombol_geser(nomor: int, jumlah: int) -> str:
     """Maju = tombol utama; mundur = sekunder. Pindah selalu menyimpan isian (teks bantuan isian menyebutnya)."""
     sebelumnya = (f'<button type="submit" name="pindah" value="{nomor - 1}" class="tombol sekunder">'
                   f'\u2190 Soal {nomor - 1}</button>') if nomor > K.NOMOR_PERTAMA else ""
     berikutnya = (f'<button type="submit" name="pindah" value="{nomor + 1}" class="tombol">'
-                  f'Soal {nomor + 1} \u2192</button>') if nomor < JUMLAH_SOAL else ""
+                  f'Soal {nomor + 1} \u2192</button>') if nomor < jumlah else ""
     return f'<div class="aksi">{sebelumnya}{berikutnya}</div>'
 
 
 def halaman_soal(sesi_id: int, soal: K.SoalAnak, terjawab: AbstractSet[int], sisa: int,
-                 galat: bool = False, isi_galat: str = "") -> bytes:
-    """Satu soal per layar. Urutan DOM: tombol Simpan bawaan (tersembunyi-visual) paling awal di form."""
+                 galat: bool = False, isi_galat: str = "", jumlah: int = JUMLAH_SOAL) -> bytes:
+    """Satu soal per layar (`jumlah` = banyak soal sesi: 10 Latihan, 35 Simulasi).
+
+    Urutan DOM: tombol Simpan bawaan (tersembunyi-visual) paling awal di form.
+    """
     isian = soal.jenis != C.JENIS_PG
     jawaban = _blok_isian(soal, galat, isi_galat) if isian else _blok_pilihan(soal)
     gambar = f'<div class="gambar">{soal.svg}</div>' if soal.svg else ""
     topik = html.escape(C.LABEL_TOPIK.get(soal.topik, ""))
-    isi = f"""{_bilah(sesi_id, sisa, f"Soal {soal.nomor} dari {JUMLAH_SOAL}")}
+    isi = f"""{_bilah(sesi_id, sisa, f"Soal {soal.nomor} dari {int(jumlah)}")}
 <main class="isi"><h1 class="sr-saja">Latihan Lomba</h1>
 <form method="post" action="{alamat_jawab(sesi_id)}" novalidate>
 <button type="submit" name="aksi" value="simpan" class="sr-saja">Simpan</button>
 <input type="hidden" name="no" value="{soal.nomor}">
-{_strip_nomor(soal.nomor, terjawab)}
+{_strip_nomor(soal.nomor, terjawab, jumlah)}
 <section class="kartu"><p class="topik">{topik}</p>
 <p class="teks-soal">{html.escape(soal.teks)}</p>{gambar}{jawaban}</section>
-{_tombol_geser(soal.nomor)}
+{_tombol_geser(soal.nomor, jumlah)}
 <button type="submit" name="aksi" value="selesai" class="tautan-selesai">Selesai &amp; kumpulkan</button>
 </form>
 </main>"""
@@ -171,8 +174,8 @@ def _nomor_ringkas(nomor: int, kosong: bool, sesi_id: int) -> str:
     return f'<li><span class="nomor sudah">{nomor}<span class="sr-saja"> sudah dijawab</span></span></li>'
 
 
-def _strip_konfirmasi(sesi_id: int, kosong: AbstractSet[int]) -> str:
-    butir = "".join(_nomor_ringkas(n, n in kosong, sesi_id) for n in range(1, JUMLAH_SOAL + 1))
+def _strip_konfirmasi(sesi_id: int, kosong: AbstractSet[int], jumlah: int) -> str:
+    butir = "".join(_nomor_ringkas(n, n in kosong, sesi_id) for n in range(1, jumlah + 1))
     return f'<nav aria-label="Nomor soal"><ol class="strip">{butir}</ol></nav>'
 
 
@@ -187,26 +190,26 @@ def _form_kumpul(sesi_id: int, label: str, kelas: str) -> str:
             f'<button type="submit" class="{kelas}">{label}</button></form>')
 
 
-def _isi_masih_kosong(sesi_id: int, kosong: Sequence[int], sisa: int) -> str:
+def _isi_masih_kosong(sesi_id: int, kosong: Sequence[int], sisa: int, jumlah: int) -> str:
     pertama = min(kosong)
     return f"""<h1 class="judul">Masih ada {len(kosong)} soal kosong</h1>
 <p>{teks_sisa_waktu(sisa)}. Coba isi dulu, ya.</p>
-{_strip_konfirmasi(sesi_id, frozenset(kosong))}
+{_strip_konfirmasi(sesi_id, frozenset(kosong), jumlah)}
 <a class="tombol besar" href="{alamat_sesi(sesi_id, pertama)}">Kerjakan soal {pertama}</a>
 {_form_kumpul(sesi_id, "Kumpulkan sekarang", "tombol sekunder")}"""
 
 
-def _isi_semua_terisi(sesi_id: int) -> str:
+def _isi_semua_terisi(sesi_id: int, jumlah: int) -> str:
     return f"""{KP.maskot_kartu("merayakan")}
 <h1 class="judul">Semua soal sudah kamu jawab!</h1>
-{_strip_konfirmasi(sesi_id, frozenset())}
+{_strip_konfirmasi(sesi_id, frozenset(), jumlah)}
 {_form_kumpul(sesi_id, "Kumpulkan", "tombol besar")}
 <a class="tombol sekunder" href="{alamat_sesi(sesi_id, K.NOMOR_PERTAMA)}">Periksa lagi</a>"""
 
 
-def halaman_selesai(sesi_id: int, kosong: Sequence[int], sisa: int) -> bytes:
-    """Konfirmasi native sebelum mengumpulkan; `kosong` = nomor soal yang belum dijawab."""
-    bagian = _isi_masih_kosong(sesi_id, kosong, sisa) if kosong else _isi_semua_terisi(sesi_id)
+def halaman_selesai(sesi_id: int, kosong: Sequence[int], sisa: int, jumlah: int = JUMLAH_SOAL) -> bytes:
+    """Konfirmasi native sebelum mengumpulkan; `kosong` = nomor soal yang belum dijawab dari `jumlah` soal."""
+    bagian = _isi_masih_kosong(sesi_id, kosong, sisa, jumlah) if kosong else _isi_semua_terisi(sesi_id, jumlah)
     isi = f"""{_bilah(sesi_id, sisa, "Selesai?")}
 <main class="isi"><section class="kartu">
 {bagian}

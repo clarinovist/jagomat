@@ -286,9 +286,9 @@ GAYA_HASIL = f"""
 
 GAYA_AWAL = f"""
 .kartu-awal {{ align-items: flex-start; }}
-.chip-aturan {{ display: flex; flex-wrap: wrap; gap: {T.SP_2}; margin: 0; padding: 0; list-style: none; }}
-.chip-aturan li {{
-  padding: {T.SP_1} {T.SP_3}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; color: {T.TEKS_JUDUL};
+.pilih-mode {{ display: flex; flex-direction: column; gap: {T.SP_3}; align-self: stretch; }}
+.label-mode {{
+  padding: {T.SP_1} {T.SP_2}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; color: {T.TEKS_JUDUL};
   background: {T.ANAK_ABU_HANGAT}; border-radius: {T.RADIUS_PIL};
 }}
 .kartu-awal .tombol, .kartu-awal form {{ align-self: stretch; }}
@@ -298,7 +298,8 @@ GAYA_AWAL = f"""
 .bar-target {{ height: {_TINGGI_BAR_TARGET}; background: {T.ANAK_NETRAL_LATAR}; border-radius: {T.RADIUS_PIL}; overflow: hidden; }}
 .bar-target-isi {{ height: 100%; background: {T.ANAK_AKSEN}; border-radius: {T.RADIUS_PIL}; }}
 .target-capai {{ font-weight: 800; color: {T.ANAK_BAIK_TEKS}; }}
-.nilai-terbaik {{ display: flex; align-items: baseline; justify-content: space-between; gap: {T.SP_3}; }}
+.nilai-terbaik {{ display: flex; flex-direction: column; gap: {T.SP_2}; }}
+.nilai-terbaik-baris {{ display: flex; align-items: baseline; justify-content: space-between; gap: {T.SP_3}; margin: 0; }}
 .nilai-terbaik strong {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_JUDUL_STITCH}; font-weight: 800; }}
 .latihan-terakhir {{ display: flex; flex-direction: column; gap: {T.SP_3}; }}
 .latihan-terakhir h2 {{ font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; }}
@@ -317,6 +318,7 @@ GAYA_HASIL_ANAK = f"""
 .hl-ringkas-anak {{ display: flex; flex-direction: column; align-items: flex-start; gap: {T.SP_2}; }}
 .hl-ringkas-anak .angka-besar {{ line-height: 1; }}
 .hl-banding {{ font-weight: 700; color: {T.ANAK_BAIK_TEKS}; }}
+.hl-mode {{ margin: 0; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; color: {T.ANAK_TEKS_REDUP}; }}
 .peta {{ display: grid; grid-template-columns: repeat(10, 1fr); gap: {T.SP_2}; margin: 0; padding: 0; list-style: none; }}
 .peta-nomor {{
   display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: {T.TARGET_SENTUH};
@@ -345,12 +347,16 @@ GAYA_PENGATURAN = f"""
   padding: {T.SP_3} {T.SP_4}; font-weight: 700; color: {T.ANAK_BAIK_TEKS}; background: {T.ANAK_BAIK_LATAR};
   border: {T.TEBAL_GARIS} solid {T.ANAK_BAIK_TEKS}; border-radius: {T.RADIUS_SEDANG};
 }}
+.hl-galat {{
+  padding: {T.SP_3} {T.SP_4}; font-weight: 700; color: {T.TEKS_GALAT}; background: {T.LATAR_GALAT};
+  border: {T.TEBAL_GARIS} solid {T.BORDER_GALAT}; border-radius: {T.RADIUS_SEDANG};
+}}
 .hl-form {{ display: flex; flex-direction: column; gap: {T.SP_4}; }}
 .hl-form fieldset {{ display: flex; flex-direction: column; gap: {T.SP_2}; margin: 0; padding: 0; border: 0; }}
 .hl-form legend {{ padding: 0; font-weight: 700; }}
 .hl-form label {{ display: flex; align-items: center; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH}; }}
 .hl-form .hl-isian {{ flex-direction: column; align-items: flex-start; gap: {T.SP_2}; font-weight: 700; }}
-.hl-form select {{
+.hl-form select, .hl-form input[type="number"] {{
   min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_3}; font: inherit; color: {T.TEKS_JUDUL};
   background: {T.LATAR_KARTU}; border: 2px solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_SEDANG};
 }}

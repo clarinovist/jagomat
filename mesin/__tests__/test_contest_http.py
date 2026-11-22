@@ -536,7 +536,7 @@ def test_halaman_awal_menampilkan_latihan_terakhir_maksimal_lima_terbaru_dulu_de
 
     isi = _get(server, "/murid/lomba").isi.decode()
 
-    tautan = re.findall(r'<a class="tautan-latihan" href="(/murid/lomba/hasil/\d+)"><span>([^<]+)</span><strong>([^<]+)</strong>', isi)
+    tautan = re.findall(r'<a class="tautan-latihan" href="(/murid/lomba/hasil/\d+)"><span>([^<]+) <span class="label-mode">Latihan</span></span><strong>([^<]+)</strong>', isi)
     assert [t[0] for t in tautan] == [f"/murid/lomba/hasil/{i}" for i in reversed(ids[1:])]
     assert [t[1] for t in tautan] == ["Hari ini, 16.23", "Hari ini, 16.06", "Hari ini, 15.50",
                                        "Hari ini, 15.33", "Hari ini, 15.16"]

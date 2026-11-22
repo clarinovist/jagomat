@@ -5,7 +5,7 @@ mengembalikan True bila jalur milik modul ini dan sudah dijawab, False bila buka
 sehingga `student_http` yang menjawab seperti biasa (404 yang sama dengan jalur murid tak dikenal).
 
 Palang: hanya murid yang masuk; sesi/hasil milik anak lain, id tak ada, id bukan angka, dan nomor soal
-di luar 1-10 semuanya dijawab 404 yang byte-identik dengan jalur tak dikenal. Waktu selalu dari jam
+di luar soal sesi itu (1-10 Latihan, 1-35 Simulasi) semuanya dijawab 404 yang byte-identik dengan jalur tak dikenal. Waktu selalu dari jam
 server lewat `_sekarang()`; jam klien tidak pernah dipercaya (lihat `contest_store`).
 
 Gerbang per anak: sakelar induk mati -> bukan milik modul (False). Sakelar hidup tetapi Guru belum mengaktifkan
@@ -28,6 +28,7 @@ import contest_gate
 import contest_pages as P
 import contest_results
 import contest_results_pages as RP
+import contest_paket as PK
 import contest_session
 import contest_store as K
 import database
@@ -84,7 +85,7 @@ def _nomor_soal(mentah: Optional[str]) -> int:
     if mentah is None or _POLA_NOMOR.fullmatch(mentah) is None:
         raise _TidakAda(mentah)
     nomor = int(mentah)
-    if not K.NOMOR_PERTAMA <= nomor <= K.NOMOR_TERAKHIR:
+    if not K.NOMOR_PERTAMA <= nomor <= K.MAKS_NOMOR:
         raise _TidakAda(mentah)
     return nomor
 
@@ -203,11 +204,12 @@ def _layani_get(kon, siswa_id: int, rute: tuple, jalur_penuh: str) -> _Respons:
     sisa = sesi.sisa_detik(sekarang)
     terjawab = K.nomor_terjawab(kon, siswa_id, sesi.id)
     if nama == _GET_SELESAI:
-        kosong = [n for n in range(K.NOMOR_PERTAMA, K.NOMOR_TERAKHIR + 1) if n not in terjawab]
-        return _halaman_tautan(P.halaman_selesai(sesi.id, kosong, sisa))
+        kosong = [n for n in range(K.NOMOR_PERTAMA, sesi.jumlah_soal + 1) if n not in terjawab]
+        return _halaman_tautan(P.halaman_selesai(sesi.id, kosong, sisa, sesi.jumlah_soal))
     soal = K.soal_untuk_anak(kon, siswa_id, sesi.id, nomor)
     galat = _tunggal(pasangan, "galat") == "angka"
-    return _halaman_tautan(P.halaman_soal(sesi.id, soal, terjawab, sisa, galat, _isi_galat(pasangan)))
+    return _halaman_tautan(P.halaman_soal(sesi.id, soal, terjawab, sisa, galat, _isi_galat(pasangan),
+                                          sesi.jumlah_soal))
 
 
 def _isi_galat(pasangan: Dict[str, list]) -> str:
@@ -224,7 +226,8 @@ def _layani_hasil(kon, siswa_id: int, sesi: K.SesiRingkas, sekarang: int) -> _Re
         return _alihkan(P.alamat_sesi(sesi.id))
     hasil = contest_results.hasil_rinci(kon, siswa_id, sesi.id, sekarang)
     sebelumnya = contest_anak.nilai_sebelumnya(kon, siswa_id, sesi.id, sekarang)
-    return _halaman_tautan(RP.halaman_hasil_anak(hasil, contest_anak.kalimat_banding(hasil.nilai, sebelumnya)))
+    banding = contest_anak.kalimat_banding(hasil.nilai, sebelumnya, sesi.mode)
+    return _halaman_tautan(RP.halaman_hasil_anak(hasil, banding))
 
 
 def _baca_isian(penangan) -> Optional[Dict[str, str]]:
@@ -288,7 +291,7 @@ def _layani_post(kon, siswa_id: int, rute: tuple, isian: Dict[str, str]) -> _Res
     nama, id_mentah = rute
     sekarang = _sekarang()
     if nama == _POST_MULAI:
-        return _mulai(kon, siswa_id, sekarang)
+        return _mulai(kon, siswa_id, sekarang, isian)
     sesi_id = _angka_id(id_mentah)
     if nama == _POST_KUMPUL:
         K.kumpulkan(kon, siswa_id, sesi_id, sekarang)
@@ -296,9 +299,14 @@ def _layani_post(kon, siswa_id: int, rute: tuple, isian: Dict[str, str]) -> _Res
     return _jawab(kon, siswa_id, sesi_id, isian, sekarang)
 
 
-def _mulai(kon, siswa_id: int, sekarang: int) -> _Respons:
+def _mulai(kon, siswa_id: int, sekarang: int, isian: Dict[str, str]) -> _Respons:
+    """Mulai sesi mode `mode` (tanpa isian = Latihan) dengan durasi anak itu; sesi yang masih berjalan dilanjutkan."""
+    mode = isian.get("mode", PK.MODE_LATIHAN)
+    if mode not in PK.MODE_SAH:
+        raise _TidakAda(mode)
+    durasi = contest_anak.paket_untuk_anak(kon, siswa_id, PK.PAKET_AKTIF).format_mode(mode).durasi_detik
     try:
-        sesi = K.mulai_atau_lanjut(kon, siswa_id, sekarang)
+        sesi = K.mulai_atau_lanjut(kon, siswa_id, sekarang, mode=mode, durasi_detik=durasi)
     except contest_session.GagalMerakitSesi:
         return _halaman_biasa(P.halaman_gagal_siapkan(), 503)
     return _alihkan(P.alamat_sesi(sesi.id))
@@ -310,19 +318,21 @@ def _jawab(kon, siswa_id: int, sesi_id: int, isian: Dict[str, str], sekarang: in
     sesi = K.ambil_sesi(kon, siswa_id, sesi_id, sekarang)
     if sesi.status != K.BERJALAN:
         return _alihkan(P.alamat_hasil(sesi_id))
+    if nomor > sesi.jumlah_soal or (pindah is not None and pindah > sesi.jumlah_soal):
+        raise _TidakAda(nomor)
     pengganti, tersimpan = _simpan_bila_perlu(kon, siswa_id, sesi_id, nomor, pindah, isian, sekarang)
     selesai = isian.get("aksi") == "selesai"
     if pengganti is None and selesai:
         pengganti = P.alamat_selesai(sesi_id)       # isian terketik sudah tersimpan di atas
     if pengganti is None and tersimpan and pindah is None:
-        pengganti = _alamat_setelah_simpan(kon, siswa_id, sesi_id, nomor)
+        pengganti = _alamat_setelah_simpan(kon, siswa_id, sesi_id, nomor, sesi.jumlah_soal)
     return _alihkan(pengganti or P.alamat_sesi(sesi_id, pindah or nomor))
 
 
-def _alamat_setelah_simpan(kon, siswa_id: int, sesi_id: int, nomor: int) -> Optional[str]:
+def _alamat_setelah_simpan(kon, siswa_id: int, sesi_id: int, nomor: int, jumlah: int) -> Optional[str]:
     """Auto-pindah: soal kosong berikutnya setelah `nomor` (siklis); None (tetap di soal itu) bila semua terisi."""
     terisi = K.nomor_terjawab(kon, siswa_id, sesi_id)
-    berikutnya = contest_anak.nomor_kosong_berikutnya(terisi, nomor)
+    berikutnya = contest_anak.nomor_kosong_berikutnya(terisi, nomor, jumlah)
     return None if berikutnya is None else P.alamat_sesi(sesi_id, berikutnya)
 
 

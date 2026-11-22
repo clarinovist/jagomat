@@ -22,16 +22,18 @@ CATATAN_TANPA_GURU = "Belum ada latihan dari gurumu."
 
 def _isi_berjalan(ringkas: "RingkasAnak") -> str:
     sesi = ringkas.berjalan
-    return (f'<p class="lb-status">Latihanmu masih berjalan</p>'
+    siapa = PK.LABEL_BERJALAN.get(sesi.mode, PK.LABEL_BERJALAN[PK.MODE_LATIHAN])
+    return (f'<p class="lb-status">{siapa} masih berjalan</p>'
             f'<p class="lb-meta">Sisa waktu {P.mmss(ringkas.sisa_detik)} &middot; '
-            f'{len(ringkas.terisi)} dari {ringkas.paket.jumlah_soal} soal terisi</p>'
+            f'{len(ringkas.terisi)} dari {int(sesi.jumlah_soal)} soal terisi</p>'
             f'<a class="lb-tombol" href="{P.alamat_sesi(sesi.id, ringkas.nomor_lanjut)}">Lanjutkan</a>')
 
 
 def _isi_belum_jalan(ringkas: "RingkasAnak") -> str:
     terakhir = ""
     if ringkas.nilai_terakhir is not None:
-        terakhir = f'<p class="lb-meta">Nilai terakhir: {int(ringkas.nilai_terakhir)}/{ringkas.paket.jumlah_soal}</p>'
+        jumlah = ringkas.jumlah_terakhir or ringkas.paket.jumlah_soal
+        terakhir = f'<p class="lb-meta">Nilai terakhir: {int(ringkas.nilai_terakhir)}/{int(jumlah)}</p>'
     return terakhir + f'<a class="lb-tombol" href="{P.ALAMAT_AWAL}">Mulai latihan</a>'
 
 

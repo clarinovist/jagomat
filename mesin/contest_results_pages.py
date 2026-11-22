@@ -16,6 +16,7 @@ import contest_chart_svg as G
 import contest_core as C
 import contest_komponen as KP
 import contest_pages as P
+import contest_paket as PK
 import contest_results as R
 import contest_store as K
 from contest_format import durasi_menit_detik, persen
@@ -150,7 +151,7 @@ def _pose_maskot(nilai: int, jumlah: int) -> str:
 
 
 def _peta_nomor(butir: Sequence[R.ButirRinci]) -> str:
-    """Sepuluh nomor ber-tautan ke kartu soalnya: benar hijau, salah merah, kosong putus-putus (teks sr-saja)."""
+    """Semua nomor (10 atau 35) ber-tautan ke kartu soalnya: benar hijau, salah merah, kosong putus-putus (teks sr-saja)."""
     sel = []
     for item in butir:
         kelas, tanda, kata = _STATUS_PETA[_jenis_hasil(item)]
@@ -191,9 +192,12 @@ def halaman_hasil_anak(hasil: R.HasilRinci, banding: str = "") -> bytes:
     """
     judul = "Waktu habis!" if hasil.sesi.status == K.WAKTU_HABIS else "Sesi selesai!"
     kalimat = f'<p class="hl-banding">{_e(banding)}</p>' if banding else ""
+    mode = hasil.sesi.mode if hasil.sesi.mode in PK.MODE_SAH else PK.MODE_LATIHAN
+    label_ulang = "Simulasi lagi" if mode == PK.MODE_SIMULASI else "Latihan lagi"
     isi = f"""{KP.bilah_beranda()}
 <main class="isi hasil-lomba"><section class="hl-kartu hl-ringkas-anak">
 {KP.maskot_kartu(_pose_maskot(hasil.nilai, hasil.jumlah_soal))}
+<p class="hl-mode">{PK.LABEL_MODE[mode]}</p>
 <h1 class="judul">{judul}</h1>
 <p class="angka-besar"><span class="sr-saja">Nilai: </span>{int(hasil.nilai)}/{int(hasil.jumlah_soal)}</p>
 <p>Waktu: {durasi_menit_detik(hasil.waktu_terpakai_detik)}</p>{kalimat}
@@ -202,6 +206,7 @@ def halaman_hasil_anak(hasil: R.HasilRinci, banding: str = "") -> bytes:
 <section aria-labelledby="judul-peta"><h2 id="judul-peta" class="sr-saja">Peta soal</h2>{_peta_nomor(hasil.butir)}</section>
 <section class="hl-kartu"><h2>Nilai tiap topik</h2>{daftar_topik(hasil.per_topik)}</section>
 {_kelompok_soal(hasil.butir)}
-<div class="aksi"><form method="post" action="{P.ALAMAT_MULAI}"><button type="submit" class="tombol">Latihan lagi</button></form>
+<div class="aksi"><form method="post" action="{P.ALAMAT_MULAI}"><input type="hidden" name="mode" value="{mode}">
+<button type="submit" class="tombol">{label_ulang}</button></form>
 <a class="tombol sekunder" href="{KP.ALAMAT_BERANDA}">Beranda</a></div></main>"""
     return P.dokumen("Hasil latihan", isi, gaya_tambahan=GAYA_HASIL + GAYA_HASIL_ANAK)

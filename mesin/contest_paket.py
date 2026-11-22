@@ -28,6 +28,7 @@ MODE_LATIHAN, MODE_SIMULASI = "latihan", "simulasi"
 MODE_SAH = (MODE_LATIHAN, MODE_SIMULASI)
 LABEL_MODE = {MODE_LATIHAN: "Latihan", MODE_SIMULASI: "Simulasi Lomba"}
 LABEL_MODE_PENDEK = {MODE_LATIHAN: "Latihan", MODE_SIMULASI: "Simulasi"}
+LABEL_BERJALAN = {MODE_LATIHAN: "Latihanmu", MODE_SIMULASI: "Simulasi lombamu"}   # "... masih berjalan" (anak)
 _NOL_UTC = datetime.datetime(1970, 1, 1)
 _TEKS_HARI_H = "Hari ini lombanya. Semangat!"
 

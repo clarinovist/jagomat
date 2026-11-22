@@ -1,4 +1,7 @@
-"""Halaman awal Latihan Lomba untuk anak (``/murid/lomba``): aturan, Mulai/Lanjutkan, hitung mundur, target, riwayat.
+"""Halaman awal Latihan Lomba untuk anak (``/murid/lomba``): dua tombol mode, Lanjutkan, hitung mundur, target, riwayat.
+
+Dua tombol mulai: "Latihan (10 soal · 15 menit)" dan "Simulasi Lomba (35 soal · 60 menit)"; angka menit dari paket
+yang sudah ditimpa durasi Guru untuk anak itu (`contest_anak.paket_untuk_anak`). Riwayat diberi label mode.
 
 Murni render dari `contest_anak.RingkasAnak` (tanpa DB, tanpa kunci jawaban). Tanpa skrip: sisa waktu sesi
 berjalan hanya angka statis dari server.
@@ -21,19 +24,35 @@ BATAS_LATIHAN_TERAKHIR = 5
 CATATAN_WAKTU = "Waktu terus berjalan walaupun kamu keluar dari halaman ini. Jawabanmu tetap tersimpan."
 
 
-def _chip_aturan(paket) -> str:
-    chip = (f"{paket.jumlah_soal} soal", f"{paket.durasi_menit} menit",
-            f"{paket.jumlah_pg} pilihan ganda + {paket.jumlah_isian} isian")
-    return '<ul class="chip-aturan">' + "".join(f"<li>{html.escape(teks)}</li>" for teks in chip) + "</ul>"
+CATATAN_SIMULASI = "Simulasi Lomba mirip lomba sungguhan: {pg} pilihan ganda + {isian} isian."
+
+
+def label_tombol_mode(format_mode) -> str:
+    """"Latihan (10 soal · 15 menit)" / "Simulasi Lomba (35 soal · 60 menit)"."""
+    return f"{format_mode.label} ({format_mode.jumlah_soal} soal \u00b7 {format_mode.durasi_menit} menit)"
+
+
+def _tombol_mode(paket, mode: str, kelas: str) -> str:
+    format_mode = paket.format_mode(mode)
+    return (f'<form method="post" action="{P.ALAMAT_MULAI}"><input type="hidden" name="mode" value="{mode}">'
+            f'<button type="submit" class="{kelas}">{html.escape(label_tombol_mode(format_mode))}</button></form>')
+
+
+def _pilih_mode(paket) -> str:
+    simulasi = paket.format_mode(PK.MODE_SIMULASI)
+    catatan = CATATAN_SIMULASI.format(pg=simulasi.jumlah_pg, isian=simulasi.jumlah_isian)
+    return ('<div class="pilih-mode">' + _tombol_mode(paket, PK.MODE_LATIHAN, "tombol besar")
+            + _tombol_mode(paket, PK.MODE_SIMULASI, "tombol besar sekunder") + "</div>"
+            + f'<p class="catatan">{html.escape(catatan)}</p>')
 
 
 def _aksi(ringkas: "RingkasAnak") -> str:
     if ringkas.berjalan is None:
-        return (f'<form method="post" action="{P.ALAMAT_MULAI}">'
-                '<button type="submit" class="tombol besar">Mulai</button></form>')
+        return _pilih_mode(ringkas.paket)
     sesi = ringkas.berjalan
-    status = (f'<p class="catatan">Latihanmu masih berjalan. Sisa waktu: <strong>{P.mmss(ringkas.sisa_detik)}</strong>'
-              f' &middot; {len(ringkas.terisi)} dari {ringkas.paket.jumlah_soal} soal terisi</p>')
+    siapa = PK.LABEL_BERJALAN.get(sesi.mode, PK.LABEL_BERJALAN[PK.MODE_LATIHAN])
+    status = (f'<p class="catatan">{siapa} masih berjalan. Sisa waktu: <strong>{P.mmss(ringkas.sisa_detik)}</strong>'
+              f' &middot; {len(ringkas.terisi)} dari {int(sesi.jumlah_soal)} soal terisi</p>')
     return status + f'<a class="tombol besar" href="{P.alamat_sesi(sesi.id, ringkas.nomor_lanjut)}">Lanjutkan</a>'
 
 
@@ -43,11 +62,22 @@ def _kartu_kemajuan(ringkas: "RingkasAnak") -> str:
     return f'<section class="kartu" aria-label="Kemajuanmu">{isi}</section>' if isi else ""
 
 
+def _baris_terbaik(label: str, nilai, jumlah: int) -> str:
+    return f'<p class="nilai-terbaik-baris"><span>{label}</span><strong>{int(nilai)}/{int(jumlah)}</strong></p>'
+
+
 def _nilai_terbaik(ringkas: "RingkasAnak") -> str:
-    if ringkas.nilai_terbaik is None:
+    """Nilai terbaik per mode (Latihan dari 10, Simulasi dari 35); kosong bila belum ada sesi sah."""
+    paket = ringkas.paket
+    baris = []
+    if ringkas.nilai_terbaik is not None:
+        baris.append(_baris_terbaik("Nilai terbaikmu" if ringkas.terbaik_simulasi is None else "Latihan terbaik",
+                                    ringkas.nilai_terbaik, paket.jumlah_soal))
+    if ringkas.terbaik_simulasi is not None:
+        baris.append(_baris_terbaik("Simulasi terbaik", ringkas.terbaik_simulasi, paket.jumlah_soal_simulasi))
+    if not baris:
         return ""
-    return (f'<section class="kartu nilai-terbaik" aria-label="Nilai terbaikmu"><span>Nilai terbaikmu</span>'
-            f'<strong>{int(ringkas.nilai_terbaik)}/{ringkas.paket.jumlah_soal}</strong></section>')
+    return f'<section class="kartu nilai-terbaik" aria-label="Nilai terbaikmu">{"".join(baris)}</section>'
 
 
 def _latihan_terakhir(ringkas: "RingkasAnak") -> str:
@@ -56,7 +86,8 @@ def _latihan_terakhir(ringkas: "RingkasAnak") -> str:
         return ""
     butir = "".join(
         f'<li><a class="tautan-latihan" href="{P.alamat_hasil(sesi.sesi_id)}">'
-        f'<span>{html.escape(label_tanggal_relatif(sesi.mulai_epoch, ringkas.sekarang))}</span>'
+        f'<span>{html.escape(label_tanggal_relatif(sesi.mulai_epoch, ringkas.sekarang))}'
+        f' <span class="label-mode">{PK.LABEL_MODE_PENDEK.get(sesi.mode, "")}</span></span>'
         f'<strong>{int(sesi.nilai)}/{int(sesi.jumlah_soal)}</strong></a></li>'
         for sesi in ringkas.riwayat[:BATAS_LATIHAN_TERAKHIR])
     return (f'<section class="latihan-terakhir" aria-labelledby="judul-terakhir"><h2 id="judul-terakhir">'
@@ -70,7 +101,6 @@ def halaman_awal(ringkas: "RingkasAnak") -> bytes:
 <main class="isi"><section class="kartu kartu-awal">
 {KP.maskot_kartu("menunjuk")}
 <h1 class="judul">{PK.JUDUL_ANAK}</h1>
-{_chip_aturan(paket)}
 <p class="catatan">{CATATAN_WAKTU}</p>
 {_aksi(ringkas)}
 </section>{_kartu_kemajuan(ringkas)}{_nilai_terbaik(ringkas)}{_latihan_terakhir(ringkas)}</main>"""

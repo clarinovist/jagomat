@@ -338,5 +338,5 @@ def test_nama_akun_pengubah_dipotong_enam_puluh_empat_karakter(s, monkeypatch):
     penangan = _Penangan(panjang)
     penangan._identitas = lambda: (penangan.nama, "guru")
     with s.buka() as kon:
-        assert contest_guru_http._simpan(penangan, kon, s.anak) is True
+        assert contest_guru_http._simpan(penangan, kon, s.anak) == "tersimpan"
         assert len(AS.ambil(kon, s.anak).diubah_oleh) == AS.MAKS_PANJANG_OLEH

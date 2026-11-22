@@ -46,21 +46,24 @@ def _badan(isi):
 
 # --- halaman awal: kepala dan aturan ---------------------------------------------------------------------
 
-def test_awal_memuat_tautan_beranda_maskot_judul_paket_dan_tiga_chip():
+def test_awal_memuat_tautan_beranda_maskot_judul_paket_dan_dua_tombol_mode():
     isi = _badan(_awal())
 
     assert '<a class="tautan-beranda" href="/murid">' in isi and "Beranda</a>" in isi
     assert re.search(r'<img src="/aset/maskot-menunjuk-v3-96\.png" alt="" class="maskot-kartu"', isi)
     assert '<h1 class="judul">Mode Lomba</h1>' in isi
-    assert '<li>10 soal</li><li>15 menit</li><li>8 pilihan ganda + 2 isian</li>' in isi
+    assert '>Latihan (10 soal · 15 menit)</button>' in isi
+    assert '>Simulasi Lomba (35 soal · 60 menit)</button>' in isi
+    assert "Simulasi Lomba mirip lomba sungguhan: 30 pilihan ganda + 5 isian." in isi
 
 
-def test_chip_mengikuti_nilai_paket_bukan_angka_tetap():
-    paket = dataclasses.replace(PK.PAKET_AKTIF, durasi_detik=1200, jumlah_isian=3, nama_pendek="Uji Paket")
+def test_tombol_mode_mengikuti_durasi_paket_anak_bukan_angka_tetap():
+    paket = dataclasses.replace(PK.PAKET_AKTIF, durasi_detik=1200, durasi_simulasi_detik=45 * 60, nama_pendek="Uji")
 
     isi = _badan(W.halaman_awal(_ringkas(paket=paket)).decode())
 
-    assert "<li>20 menit</li>" in isi and "<li>7 pilihan ganda + 3 isian</li>" in isi and ">Mode Lomba</h1>" in isi
+    assert ">Latihan (10 soal · 20 menit)</button>" in isi and ">Mode Lomba</h1>" in isi
+    assert ">Simulasi Lomba (35 soal · 45 menit)</button>" in isi
 
 
 def test_catatan_waktu_tetap_berjalan_dan_jawaban_tersimpan():
@@ -79,10 +82,12 @@ def test_nama_acara_paket_tidak_tampil_ke_anak():
 
 # --- Mulai / Lanjutkan -----------------------------------------------------------------------------------
 
-def test_tanpa_sesi_berjalan_menawarkan_mulai_lewat_form_post():
+def test_tanpa_sesi_berjalan_menawarkan_dua_mode_lewat_form_post():
     isi = _awal()
 
-    assert 'action="/murid/lomba/mulai"' in isi and ">Mulai</button>" in isi and "Lanjutkan" not in isi
+    assert isi.count('action="/murid/lomba/mulai"') == 2 and "Lanjutkan" not in isi
+    assert '<input type="hidden" name="mode" value="latihan">' in isi
+    assert '<input type="hidden" name="mode" value="simulasi">' in isi
 
 
 def test_sesi_berjalan_menawarkan_lanjutkan_ke_soal_kosong_pertama_dengan_sisa_waktu_dan_terisi():
@@ -164,7 +169,7 @@ def test_riwayat_memakai_label_tanggal_relatif_dan_tautan_hasil():
     lama = SEKARANG - 5 * 24 * 3600
     isi = _awal(riwayat=(_sesi_selesai(12, 8, hari_ini), _sesi_selesai(11, 6, kemarin), _sesi_selesai(10, 3, lama)))
 
-    tautan = re.findall(r'<a class="tautan-latihan" href="(/murid/lomba/hasil/\d+)"><span>([^<]+)</span><strong>([^<]+)</strong>', isi)
+    tautan = re.findall(r'<a class="tautan-latihan" href="(/murid/lomba/hasil/\d+)"><span>([^<]+) <span class="label-mode">Latihan</span></span><strong>([^<]+)</strong>', isi)
     assert tautan == [("/murid/lomba/hasil/12", "Hari ini, 13.06", "8/10"), ("/murid/lomba/hasil/11", "Kemarin, 13.06", "6/10"),
                       ("/murid/lomba/hasil/10", "Jumat, 13 Nov", "3/10")]
 

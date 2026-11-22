@@ -192,7 +192,8 @@ def test_bar_per_topik_total_memakai_angka_dan_persen_dihitung_dari_db(s, empat_
 def test_riwayat_terbaru_dulu_dengan_tanggal_wib_nilai_waktu_status_dan_tautan_detail(s, empat_sesi):
     isi = _halaman(s, f"/anak/{s.anak}/lomba")
 
-    baris = re.findall(r"<tr><td[^>]*>([^<]*)</td><td[^>]*>([^<]*)</td><td[^>]*>([^<]*)</td><td[^>]*>([^<]*)</td>"
+    baris = re.findall(r"<tr><td[^>]*>([^<]*)</td><td>Latihan</td><td[^>]*>([^<]*)</td><td[^>]*>([^<]*)</td>"
+                       r"<td[^>]*>([^<]*)</td>"
                        r'<td>([^<]*)</td><td[^>]*><a href="([^"]+)">Lihat</a></td></tr>', isi)
     assert [b[5] for b in baris] == [f"/anak/{s.anak}/lomba/{empat_sesi[u]}" for u in (4, 3, 2, 1)]
     assert [b[0] for b in baris] == ["15 Jan 2027, 20:33", "15 Jan 2027, 19:10", "15 Jan 2027, 17:46", "15 Jan 2027, 16:23"]
