@@ -127,3 +127,11 @@ def test_asal_kumpul_bila_kurang_dari_120_detik_atau_terisi_kurang_dari_3(detik,
 
 def test_batas_asal_kumpul_adalah_konstanta_bernama():
     assert (PK.BATAS_DETIK_ASAL_KUMPUL, PK.BATAS_TERISI_ASAL_KUMPUL) == (120, 3)
+
+
+def test_konstanta_store_sama_dengan_paket_aktif():
+    """`contest_store` sengaja memakai literal (kontrak persistensi rilis tidak boleh bergeser); nilainya dikunci sama."""
+    import contest_store
+    assert contest_store.DURASI_DETIK == PK.PAKET_AKTIF.durasi_detik
+    assert contest_store.PAKET_ID == PK.PAKET_AKTIF.id
+    assert contest_store.NOMOR_TERAKHIR == PK.PAKET_AKTIF.jumlah_soal

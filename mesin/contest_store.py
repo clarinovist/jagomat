@@ -21,10 +21,9 @@ from typing import AbstractSet, FrozenSet, Optional, Sequence, Tuple
 import contest_core as C
 import contest_session as S
 import contest_templates
-from contest_paket import PAKET_AKTIF
 
-DURASI_DETIK = PAKET_AKTIF.durasi_detik
-PAKET_ID = PAKET_AKTIF.id
+DURASI_DETIK = 15 * 60
+PAKET_ID = "corexis_l1_matematika"
 BERJALAN, DIKUMPUL, WAKTU_HABIS = "berjalan", "dikumpul", "waktu_habis"
 SEED_BIT = 63
 NOMOR_PERTAMA, NOMOR_TERAKHIR = 1, S.JUMLAH_SOAL
@@ -224,7 +223,6 @@ def nomor_terjawab(kon, siswa_id: int, sesi_id: int) -> FrozenSet[int]:
         "SELECT nomor FROM lomba_jawaban WHERE sesi_id = ?", (sesi_id,)))
 
 
-
 def _jenis_soal(kon, siswa_id: int, sesi_id: int, nomor: int) -> str:
     baris = kon.execute(
         "SELECT s.jenis FROM lomba_soal s JOIN lomba_sesi x ON x.id = s.sesi_id "
@@ -234,16 +232,11 @@ def _jenis_soal(kon, siswa_id: int, sesi_id: int, nomor: int) -> str:
     return baris["jenis"]
 
 
-def _buang_spasi(teks: str) -> str:
-    """Buang SEMUA spasi putih (spasi, tab, NBSP, dst.), bukan hanya di tepi: "5 9 4" -> "594"."""
-    return "".join(teks.split())
-
-
 def _normalkan_jawaban(jenis: str, jawaban: str) -> Optional[str]:
-    """Jawaban baku untuk disimpan; None berarti "hapus jawaban". Isian: semua spasi dibuang dulu."""
+    """Jawaban baku untuk disimpan; None berarti "hapus jawaban"."""
     if not isinstance(jawaban, str):
         raise JawabanTidakSah("jawaban wajib teks")
-    bersih = _buang_spasi(jawaban) if jenis == C.JENIS_ISIAN else jawaban.strip()
+    bersih = jawaban.strip()
     if not bersih:
         return None
     if jenis == C.JENIS_PG:

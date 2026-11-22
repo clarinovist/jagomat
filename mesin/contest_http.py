@@ -317,6 +317,15 @@ def _alamat_setelah_simpan(kon, siswa_id: int, sesi_id: int, nomor: int) -> Opti
     return None if berikutnya is None else P.alamat_sesi(sesi_id, berikutnya)
 
 
+def buang_spasi(teks: str) -> str:
+    """Bersihkan ketikan di batas HTTP: buang SEMUA spasi putih (spasi, tab, NBSP), "5 9 4" -> "594".
+
+    Sengaja di sini, bukan di `contest_store`: store tetap satu-satunya validator (1-6 digit / huruf A-D)
+    dan bentuk data tersimpan tidak berubah, jadi kontrak persistensi rilis (fingerprint recovery) tetap sama.
+    """
+    return "".join(teks.split())
+
+
 def _simpan_bila_perlu(kon, siswa_id: int, sesi_id: int, nomor: int, pindah: Optional[int],
                        isian: Dict[str, str], sekarang: int) -> Tuple[Optional[str], bool]:
     """Simpan `jawaban` bila ada; kembalikan (alamat pengganti atau None, apakah jawaban sah benar-benar tersimpan).
@@ -327,12 +336,13 @@ def _simpan_bila_perlu(kon, siswa_id: int, sesi_id: int, nomor: int, pindah: Opt
     if "jawaban" not in isian:
         return None, False
     nilai = isian["jawaban"]
-    ada_isi = bool(nilai.strip())
+    bersih = buang_spasi(nilai)
+    ada_isi = bool(bersih)
     menghapus = isian.get("aksi") == "simpan" and pindah is None
     if not ada_isi and not menghapus:
         return None, False
     try:
-        K.simpan_jawaban(kon, siswa_id, sesi_id, nomor, nilai, sekarang)
+        K.simpan_jawaban(kon, siswa_id, sesi_id, nomor, bersih, sekarang)
     except K.SesiSelesai:
         return P.alamat_hasil(sesi_id), False
     except K.JawabanTidakSah:

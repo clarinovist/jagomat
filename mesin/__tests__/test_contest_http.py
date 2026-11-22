@@ -594,7 +594,7 @@ def test_isian_tanpa_pindah_seperti_enter_menyimpan_lalu_pindah_ke_soal_kosong_b
     assert _jawaban(server, sesi_id) == {nomor: "12"}
 
 
-@pytest.mark.parametrize("ketikan", ["594", " 594 ", "5 9 4", "5 94"])
+@pytest.mark.parametrize("ketikan", ["594", " 594 ", "5 9 4", "5 94", "5\u00a09\u00a04", "5\t94"])
 def test_isian_dengan_spasi_lewat_http_tersimpan_sebagai_angka_tanpa_spasi(server, ketikan):
     sesi_id = _mulai(server)
     nomor = _nomor_berjenis(server, sesi_id, "isian")
@@ -1121,3 +1121,11 @@ def test_csp_halaman_hasil_dan_soal(server, jam):
     for halaman in (hasil, soal):
         assert "img-src 'self'" in _csp(halaman) and not re.search(r"style-src[^;]*('sha256-|'nonce-)", _csp(halaman))
     assert "script-src 'none'" in _csp(hasil) and "script-src 'sha256-" in _csp(soal)
+
+
+@pytest.mark.parametrize("ketikan,bersih", [
+    ("594", "594"), (" 594 ", "594"), ("5 9 4", "594"), ("5 94", "594"), ("594\t", "594"),
+    ("5\u00a09\u00a04", "594"), ("\u3000594\u3000", "594"), ("   ", ""), ("5,94", "5,94"), ("B", "B"),
+])
+def test_buang_spasi_di_batas_http_membuang_semua_spasi_putih(ketikan, bersih):
+    assert contest_http.buang_spasi(ketikan) == bersih
