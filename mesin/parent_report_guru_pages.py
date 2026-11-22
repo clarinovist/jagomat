@@ -13,6 +13,8 @@ import parent_report_page as halaman
 from teacher_shell import _halaman as _bingkai
 
 _GAYA = f"""<style>
+.lap-guru .kartu-st{{padding:{T.SP_5}}}
+.lap-guru .kartu-st > h2{{margin-top:0}}
 .lap-guru label{{display:block;font-weight:700;margin:{T.SP_3} 0 {T.SP_1}}}
 .lap-guru textarea{{width:100%;min-height:8rem;font:inherit;padding:{T.SP_3}}}
 .lap-guru .baris-aksi{{display:flex;flex-wrap:wrap;gap:{T.SP_3};margin-top:{T.SP_4}}}

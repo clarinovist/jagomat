@@ -57,7 +57,7 @@ def test_belum_selesai_html_tanpa_angka_skor_atau_ringkasan(keluarga):
     assert "belum menyelesaikan" in teks and NAMA_A in teks
     assert not re.search(r"\d", teks)
     assert not any(k in teks for k in KATA_SKOR_ANAK + KATEGORI + NAMA_TOPIK)
-    badan = isi.split("</style>", 1)[1]
+    badan = isi.rsplit("</style>", 1)[1]
     assert "funnel-skor" not in badan and "kerangka-terkunci" not in badan
     assert cek_pages.COPY_TOMBOL_TAUTAN in isi and f'action="{TAUTAN}"' in isi
 
@@ -265,7 +265,7 @@ def test_markup_tanpa_hex_script_style_inline_dan_kelas_funnel_terdefinisi(kelua
     selesaikan(keluarga, sesi, semua_benar=15)
     halaman.append(minta_mentah(keluarga, HASIL, AKUN_A)[1])
     for isi in halaman:
-        badan = isi.split("</style>", 1)[1]
+        badan = isi.rsplit("</style>", 1)[1]
         utama = badan.split("<main", 1)[1]  # topbar bersama bukan milik halaman cek
         assert "<script" not in badan and ' style="' not in utama
         tanpa_svg = re.sub(r"<svg.*?</svg>", "", utama, flags=re.S)  # QR memakai token warna bersama

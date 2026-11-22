@@ -59,11 +59,11 @@ GAYA_LATIHAN = f"""
 }}
 {_R} .latihan-aksi-st button:hover:not(:disabled) {{ background: {T.ANAK_AKSEN_HOVER}; }}
 {_R} .latihan-aksi-st p {{ margin: 0; color: {T.ANAK_TEKS_BANTUAN}; }}
-{_R} .diagnostik-baku-st {{ margin-top: {T.SP_5}; padding-top: {T.SP_5}; border-top: 1px solid {T.ANAK_BORDER}; }}
+{_R} .latihan-terpadu-st form.diagnostik-baku-st {{ gap: 0; margin-top: 0; padding-top: {T.SP_5}; border-top: 1px solid {T.ANAK_BORDER}; }}
 {_R} .diagnostik-baku-st h3 {{ margin: 0 0 {T.SP_1}; }}
 {_R} .diagnostik-baku-st > p {{ margin: 0 0 {T.SP_3}; }}
 {_R} .diagnostik-baku-st .latihan-field-grid {{ align-items: end; }}
-{_R} .diagnostik-baku-st select {{ margin-bottom: 0; }}
+{_R}.pendamping-editorial-st .latihan-terpadu-st .diagnostik-baku-st select {{ margin-bottom: 0; }}
 {_R} .diagnostik-baku-st .latihan-aksi-st {{ align-items: flex-end; }}
 {_R} .diagnostik-baku-st .latihan-aksi-st button,
 {_R} .diagnostik-baku-st .latihan-aksi-st button:hover:not(:disabled) {{

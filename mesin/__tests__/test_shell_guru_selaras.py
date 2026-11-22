@@ -132,3 +132,13 @@ def test_paling_banyak_satu_pemicu_tanya_per_halaman(halaman):
         assert ">Tanya</span>" in halaman[nama], nama
     for nama in ("guru", "akun-akun", "laporan-ortu", "lomba"):
         assert "pendamping-pemicu" not in halaman[nama].split("</style>")[-1], nama
+
+
+def test_css_area_guru_tanpa_font_sistem_layar():
+    """Font merek kini same-origin di semua halaman guru; `FONT_LAYAR` hanya untuk admin."""
+    import design_tokens as T
+    from style_stitch import GAYA_STITCH
+    from child_latihan_style import GAYA_LATIHAN
+    from child_ringkasan_style import GAYA_RINGKASAN
+    for css in (GAYA_STITCH, GAYA_LATIHAN, GAYA_RINGKASAN):
+        assert T.FONT_LAYAR not in css

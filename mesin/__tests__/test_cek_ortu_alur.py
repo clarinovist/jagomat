@@ -224,7 +224,7 @@ def test_status_berjalan_menghitung_soal_terjawab_tanpa_benar_salah(keluarga, be
             salah = next(o.nilai for o in pilihan[b["sesi_soal_id"]].opsi if o.nilai != b["kunci"])
             database.simpan_jawaban(kon, b["sesi_soal_id"], jawaban=salah)
     isi = _baca_mulai(keluarga)
-    teks = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", isi.split("</style>", 1)[1]))
+    teks = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", isi.rsplit("</style>", 1)[1]))
     if harap == 0:
         assert "Belum mulai" in teks and "<progress" not in isi
     else:
@@ -320,7 +320,7 @@ def test_belum_selesai_tanpa_skor_dengan_tautan_ke_halaman_siap_mulai(keluarga):
     with keluarga.buka() as kon:
         jawab(kon, sesi, semua_benar=5)
     _k, isi, _t = minta_mentah(keluarga, HASIL, AKUN_A)
-    badan = isi.split("</style>", 1)[1]
+    badan = isi.rsplit("</style>", 1)[1]
     assert f'href="{MULAI}"' in badan and "funnel-cincin" not in badan and "dari 15" not in badan
     assert "stroke-dasharray" not in badan and "Cukup" not in badan
 
@@ -389,8 +389,8 @@ def test_form_daftar_cek_satu_form_enam_radio_wajib_tab_dan_isi_ulang(server):
     assert re.findall(r'<input type="radio" name="kelas_sekolah" value="(\d)" required', isi) == list("123456")
     assert 'href="/masuk?lanjut=/cek-kemampuan/mulai"' in isi and 'aria-current="page"' in isi
     assert 'name="jalur" value="cek"' in isi and 'name="nama_anak"' in isi and 'name="wa"' in isi
-    assert isi.split("</style>", 1)[1].count("funnel-sapa-maskot-st") == 1 and 'alt=""' in isi
-    assert "<select" not in isi.split("</style>", 1)[1]
+    assert isi.rsplit("</style>", 1)[1].count("funnel-sapa-maskot-st") == 1 and 'alt=""' in isi
+    assert "<select" not in isi.rsplit("</style>", 1)[1]
 
 
 def test_form_daftar_cek_menandai_kelas_terpilih():
@@ -409,7 +409,7 @@ def test_halaman_orang_tua_tanpa_js_baru_hex_dan_gaya_inline_serta_kelas_terdefi
     selesaikan(keluarga, sesi, semua_benar=9)
     halaman.append(minta_mentah(keluarga, HASIL, AKUN_A)[1])
     for isi in halaman:
-        badan = isi.split("</style>", 1)[1]
+        badan = isi.rsplit("</style>", 1)[1]
         utama = badan.split("<main", 1)[1]
         assert "<script" not in badan and ' style="' not in utama
         tanpa_svg = re.sub(r"<svg.*?</svg>", "", utama, flags=re.S)
@@ -422,7 +422,7 @@ def test_markup_daftar_cek_dan_serah_login_memakai_kelas_terdefinisi(server):
     _k, daftar, _t = server.minta("/daftar?jalur=cek")
     _k, serah, _t = minta_mentah(server, "/masuk?lanjut=/cek-kemampuan/hasil")
     for isi in (daftar, serah):
-        for kelas in set(re.findall(r"funnel-[a-z-]+-st", isi.split("</style>", 1)[1])):
+        for kelas in set(re.findall(r"funnel-[a-z-]+-st", isi.rsplit("</style>", 1)[1])):
             assert f".{kelas}" in funnel_style.GAYA_FUNNEL, kelas
 
 

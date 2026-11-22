@@ -263,6 +263,6 @@ def tabel_langganan():
 
 def teks_tampak(isi: str) -> str:
     import re
-    badan = isi.split("</style>", 1)[1] if "</style>" in isi else isi
+    badan = isi.rsplit("</style>", 1)[1] if "</style>" in isi else isi
     badan = re.sub(r"<script.*?</script>", " ", badan, flags=re.S)
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", badan))

@@ -2467,7 +2467,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-editorial-st h2 {{ font: 700 {T.UKURAN_BAGIAN_DEWASA}/1.4 {T.FONT_HEADLINE}; letter-spacing: -.025em; }}
 .pendamping-editorial-st .editorial-kepala-st {{ display: block; margin: 0 0 {T.SP_5}; }}
 .pendamping-editorial-st .editorial-alis-st {{
-  color: {T.AKSEN_TEAL_TUA}; font: 700 .72rem/1.5 {T.FONT_LAYAR};
+  color: {T.AKSEN_TEAL_TUA}; font: 700 .72rem/1.5 {T.FONT_BODY};
   letter-spacing: .14em; margin: 0 0 {T.SP_2};
 }}
 .pendamping-editorial-st :is(.sub, .sesi-sub-st) {{ color: {T.TEKS_VARIAN}; line-height: 1.65; }}
@@ -2492,7 +2492,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .pendamping-editorial-st :is(button, .btn, .st-tombol-coral, .rencana-cta-utama-st) {{
   min-height: {T.TINGGI_KONTROL}; border-radius: {T.RADIUS_SEDANG};
   background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; box-shadow: none;
-  font: 600 .92rem/1.4 {T.FONT_LAYAR}; white-space: normal;
+  font: 600 .92rem/1.4 {T.FONT_BODY}; white-space: normal;
 }}
 .pendamping-editorial-st :is(.st-tombol-coral, .tombol-coral, .rencana-cta-utama-st) {{ background: {T.AKSEN_KORAL_TUA}; }}
 .pendamping-editorial-st :is(.st-tombol-coral, .tombol-coral, .rencana-cta-utama-st):hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
@@ -2572,7 +2572,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .profil-editorial-st .progres-rencana-st {{ margin: 0; padding: 0 0 {T.SP_4}; background: transparent; }}
 .profil-editorial-st .progres-rencana-st::before {{
   content: "Posisi sekarang"; display: block; color: {T.TEKS_VARIAN};
-  font: 500 .78rem/1.5 {T.FONT_LAYAR}; margin-bottom: {T.SP_1};
+  font: 500 .78rem/1.5 {T.FONT_BODY}; margin-bottom: {T.SP_1};
 }}
 .profil-editorial-st .tindakan-rencana-st {{
   margin: 0; padding: {T.SP_2} 0; border: 0;
@@ -2745,7 +2745,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .akun-editorial-st .nav-samping a {{ display: inline-flex; align-items: center; min-height: {T.TINGGI_KONTROL}; padding: 0; border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; color: {T.TEKS_VARIAN}; font-weight: 600; text-decoration: none; }}
 .akun-editorial-st .nav-samping a:hover {{ color: {T.AKSEN_TEAL_TUA}; }}
 .akun-editorial-st .nav-samping a[aria-current="page"] {{ color: {T.AKSEN_TEAL_TUA}; border-bottom-color: {T.AKSEN_TEAL_TUA}; background: transparent; font-weight: 700; }}
-.akun-editorial-st {{ font-family: {T.FONT_LAYAR}; }}
+.akun-editorial-st {{ font-family: {T.FONT_BODY}; }}
 .akun-editorial-st :is(h1,h2,h3,button,input,select,label,summary) {{ font-family: inherit; }}
 .akun-editorial-st :is(button,input,select) {{ font-size: 1rem; }}
 .akun-editorial-st .sub, .akun-editorial-st input::placeholder {{ color: {T.TEKS_VARIAN}; opacity: 1; }}
