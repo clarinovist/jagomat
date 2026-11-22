@@ -1098,3 +1098,26 @@ def test_hasil_memuat_peta_nomor_beranda_dan_kelompok_soal(server, jam):
     assert isi.count('class="peta-nomor hl-salah"') == 10 and "Yang perlu dilihat lagi (10)" in isi
     assert '<a class="tautan-beranda" href="/murid">' in isi and '<a class="tombol sekunder" href="/murid">Beranda</a>' in isi
     assert re.findall(r'<h3 class="hl-judul" id="(soal-\d+)"', isi) == [f"soal-{n}" for n in range(1, 11)]
+
+
+def _csp(hasil):
+    return hasil.header["content-security-policy"]
+
+
+def test_csp_halaman_awal_dengan_maskot_mengizinkan_gambar_sendiri_dan_gaya_inline_tanpa_hash(server):
+    csp = _csp(_get(server, "/murid/lomba"))
+
+    assert "img-src 'self'" in csp and "style-src 'unsafe-inline'" in csp
+    assert "style-src" in csp and not re.search(r"style-src[^;]*('sha256-|'nonce-)", csp)
+
+
+def test_csp_halaman_hasil_dan_soal(server, jam):
+    sesi_id = _sesi_sah(server, jam, T0, benar=True)
+    hasil = _get(server, f"/murid/lomba/hasil/{sesi_id}")
+    jam.t = T0 + 5000
+    baru = _mulai(server)
+    soal = _get(server, f"/murid/lomba/sesi/{baru}?no=1")
+
+    for halaman in (hasil, soal):
+        assert "img-src 'self'" in _csp(halaman) and not re.search(r"style-src[^;]*('sha256-|'nonce-)", _csp(halaman))
+    assert "script-src 'none'" in _csp(hasil) and "script-src 'sha256-" in _csp(soal)

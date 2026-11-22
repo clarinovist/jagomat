@@ -106,6 +106,13 @@ def test_isian_memakai_teks_numerik_bukan_type_number():
     assert 'type="number"' not in isi
 
 
+@pytest.mark.parametrize("soal", [_soal(), _isian(jawaban="12")], ids=["pg", "isian"])
+def test_form_soal_novalidate_agar_peramban_tidak_memblokir_ketikan_bersepasi_atau_galat(soal):
+    isi = _html(soal)
+
+    assert '<form method="post" action="/murid/lomba/sesi/42/jawab" novalidate>' in isi
+
+
 def test_isian_tidak_punya_tombol_simpan_terlihat_hanya_yang_tersembunyi_untuk_enter():
     isi = _html(_isian(jawaban="7"))
 

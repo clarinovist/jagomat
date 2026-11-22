@@ -152,7 +152,7 @@ def halaman_soal(sesi_id: int, soal: K.SoalAnak, terjawab: AbstractSet[int], sis
     topik = html.escape(C.LABEL_TOPIK.get(soal.topik, ""))
     isi = f"""{_bilah(sesi_id, sisa, f"Soal {soal.nomor} dari {JUMLAH_SOAL}")}
 <main class="isi"><h1 class="sr-saja">Latihan Lomba</h1>
-<form method="post" action="{alamat_jawab(sesi_id)}">
+<form method="post" action="{alamat_jawab(sesi_id)}" novalidate>
 <button type="submit" name="aksi" value="simpan" class="sr-saja">Simpan</button>
 <input type="hidden" name="no" value="{soal.nomor}">
 {_strip_nomor(soal.nomor, terjawab)}
