@@ -14,10 +14,13 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import contest_core as C
 import contest_store as K
+from contest_label_jenis import LABEL_JENIS
 
 MIN_SESI_TREN = 4              # tren baru dihitung bila ada sedikitnya empat sesi selesai
 BANYAK_SESI_TREN = 3           # bandingkan rata-rata tiga sesi terakhir dengan tiga pertama
 BATAS_JENIS_BAWAAN = 5
+BATAS_DETIK_ASAL_KUMPUL = 120  # sesi selesai lebih cepat dari ini dianggap dikumpulkan asal
+BATAS_TERISI_ASAL_KUMPUL = 3   # atau soal terjawab kurang dari ini
 _AWALAN_TOPIK = re.compile(r"^(?:bil|ops|ukur|bgn)_")
 
 
@@ -69,17 +72,22 @@ class RingkasSesi:
     jumlah_soal: int
     waktu_terpakai_detik: int
     per_topik: Tuple[NilaiTopik, ...]
+    terisi: int = 0                  # banyak soal yang dijawab anak
+    asal_kumpul: bool = False        # selesai < 120 detik ATAU terisi < 3: tak dihitung di agregat
 
 
 @dataclass(frozen=True)
 class Progres:
-    sesi: Tuple[RingkasSesi, ...]                 # urut dari yang terlama
-    jumlah: int
-    terbaik: Optional[int]
+    sesi: Tuple[RingkasSesi, ...]                 # semua sesi selesai, urut dari yang terlama
+    jumlah: int                                   # semua sesi selesai, termasuk asal kumpul
+    terbaik: Optional[int]                        # agregat hanya dari sesi sah (bukan asal kumpul)
     rata_rata: Optional[float]
-    terakhir: Optional[int]
+    terakhir: Optional[int]                       # nilai sesi terakhir (semua sesi)
     selisih_tren: Optional[float]
     per_topik_total: Tuple[NilaiTopik, ...]
+    jumlah_asal_kumpul: int = 0
+    rata_awal: Optional[float] = None             # rata-rata 3 sesi sah pertama
+    rata_akhir: Optional[float] = None            # rata-rata 3 sesi sah terakhir
 
 
 @dataclass(frozen=True)
@@ -91,8 +99,13 @@ class JenisSering:
 
 
 def label_jenis(template_id: str) -> str:
-    """Label ramah untuk id template: buang awalan topik, garis bawah jadi spasi."""
-    return _AWALAN_TOPIK.sub("", template_id).replace("_", " ")
+    """Label jenis soal untuk Guru (`LABEL_JENIS`); id tak dikenal: buang awalan topik, garis bawah jadi spasi."""
+    return LABEL_JENIS.get(template_id) or _AWALAN_TOPIK.sub("", template_id).replace("_", " ")
+
+
+def _asal_kumpul(waktu_terpakai_detik: int, terisi: int) -> bool:
+    """Sesi dikumpulkan asal: waktu terpakai kurang dari 120 detik ATAU soal terjawab kurang dari 3."""
+    return waktu_terpakai_detik < BATAS_DETIK_ASAL_KUMPUL or terisi < BATAS_TERISI_ASAL_KUMPUL
 
 
 def _per_topik(pasangan: Sequence[Tuple[str, bool]]) -> Tuple[NilaiTopik, ...]:
@@ -158,47 +171,64 @@ def riwayat_sesi(kon, siswa_id: int, sekarang: int) -> Tuple[RingkasSesi, ...]:
     if not sesi_baris:
         return ()
     per_sesi: Dict[int, List[Tuple[str, bool]]] = {}
+    terisi: Dict[int, int] = {}
     for baris in _ambil_baris(kon, [s["id"] for s in sesi_baris]):
         per_sesi.setdefault(baris["sesi_id"], []).append((baris["topik"], _benar(baris)))
-    return tuple(
-        RingkasSesi(
-            sesi_id=s["id"], mulai_epoch=s["mulai_epoch"], selesai_epoch=s["selesai_epoch"], status=s["status"],
-            nilai=sum(1 for _, benar in per_sesi.get(s["id"], []) if benar),
-            jumlah_soal=len(per_sesi.get(s["id"], [])),
-            waktu_terpakai_detik=s["selesai_epoch"] - s["mulai_epoch"],
-            per_topik=_per_topik(per_sesi.get(s["id"], [])))
-        for s in sesi_baris)
+        terisi[baris["sesi_id"]] = terisi.get(baris["sesi_id"], 0) + int(baris["jawaban"] is not None)
+    return tuple(_ringkas(s, per_sesi.get(s["id"], []), terisi.get(s["id"], 0)) for s in sesi_baris)
+
+
+def _ringkas(sesi, pasangan: Sequence[Tuple[str, bool]], terisi: int) -> RingkasSesi:
+    waktu = sesi["selesai_epoch"] - sesi["mulai_epoch"]
+    return RingkasSesi(
+        sesi_id=sesi["id"], mulai_epoch=sesi["mulai_epoch"], selesai_epoch=sesi["selesai_epoch"],
+        status=sesi["status"], nilai=sum(1 for _, benar in pasangan if benar), jumlah_soal=len(pasangan),
+        waktu_terpakai_detik=waktu, per_topik=_per_topik(pasangan), terisi=terisi,
+        asal_kumpul=_asal_kumpul(waktu, terisi))
 
 
 def _rata(nilai: Sequence[int]) -> float:
     return sum(nilai) / len(nilai)
 
 
-def progres(kon, siswa_id: int, sekarang: int) -> Progres:
-    sesi = riwayat_sesi(kon, siswa_id, sekarang)
-    if not sesi:
-        return Progres(sesi=(), jumlah=0, terbaik=None, rata_rata=None, terakhir=None,
-                       selisih_tren=None, per_topik_total=())
-    nilai = [s.nilai for s in sesi]
-    tren = None
-    if len(sesi) >= MIN_SESI_TREN:
-        tren = round(_rata(nilai[-BANYAK_SESI_TREN:]) - _rata(nilai[:BANYAK_SESI_TREN]), 2)
+def _gabung_topik(sesi: Sequence[RingkasSesi]) -> Tuple[NilaiTopik, ...]:
     gabungan: Dict[str, List[int]] = {}
     for s in sesi:
         for n in s.per_topik:
             akun = gabungan.setdefault(n.topik, [0, 0])
             akun[0] += n.benar
             akun[1] += n.total
-    total = tuple(NilaiTopik(t, gabungan[t][0], gabungan[t][1]) for t in C.TOPIK if t in gabungan)
-    return Progres(sesi=sesi, jumlah=len(sesi), terbaik=max(nilai), rata_rata=round(_rata(nilai), 1),
-                   terakhir=nilai[-1], selisih_tren=tren, per_topik_total=total)
+    return tuple(NilaiTopik(t, gabungan[t][0], gabungan[t][1]) for t in C.TOPIK if t in gabungan)
+
+
+def _tren(nilai: Sequence[int]) -> Tuple[Optional[float], Optional[float]]:
+    """(rata 3 sesi sah pertama, rata 3 sesi sah terakhir); None bila sesi sah belum cukup."""
+    if len(nilai) < MIN_SESI_TREN:
+        return None, None
+    return round(_rata(nilai[:BANYAK_SESI_TREN]), 2), round(_rata(nilai[-BANYAK_SESI_TREN:]), 2)
+
+
+def progres(kon, siswa_id: int, sekarang: int) -> Progres:
+    """Ringkasan anak. Terbaik, rata-rata, tren, dan per topik hanya dari sesi sah (bukan asal kumpul)."""
+    sesi = riwayat_sesi(kon, siswa_id, sekarang)
+    if not sesi:
+        return Progres(sesi=(), jumlah=0, terbaik=None, rata_rata=None, terakhir=None,
+                       selisih_tren=None, per_topik_total=())
+    sah = [s for s in sesi if not s.asal_kumpul]
+    nilai = [s.nilai for s in sah]
+    awal, akhir = _tren(nilai)
+    selisih = None if awal is None else round(_rata(nilai[-BANYAK_SESI_TREN:]) - _rata(nilai[:BANYAK_SESI_TREN]), 2)
+    return Progres(
+        sesi=sesi, jumlah=len(sesi), terbaik=max(nilai) if nilai else None,
+        rata_rata=round(_rata(nilai), 1) if nilai else None, terakhir=sesi[-1].nilai,
+        selisih_tren=selisih, per_topik_total=_gabung_topik(sah),
+        jumlah_asal_kumpul=len(sesi) - len(sah), rata_awal=awal, rata_akhir=akhir)
 
 
 def jenis_sering_salah(kon, siswa_id: int, sekarang: int, batas: int = BATAS_JENIS_BAWAAN) -> Tuple[JenisSering, ...]:
-    """Jenis soal yang paling sering salah (salah terbanyak, lalu rasio salah); yang selalu benar tidak muncul."""
+    """Jenis soal yang paling sering salah (salah terbanyak, lalu rasio salah); sesi asal kumpul dan jenis yang selalu benar tidak ikut."""
     K.tutup_yang_habis(kon, siswa_id, sekarang)
-    ids = [b["id"] for b in kon.execute(
-        "SELECT id FROM lomba_sesi WHERE siswa_id = ? AND status != 'berjalan'", (siswa_id,))]
+    ids = [s.sesi_id for s in riwayat_sesi(kon, siswa_id, sekarang) if not s.asal_kumpul]
     if not ids:
         return ()
     hitung: Dict[str, List[int]] = {}

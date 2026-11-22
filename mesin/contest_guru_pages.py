@@ -22,6 +22,9 @@ BATAS_TITIK_GRAFIK = 30
 BATAS_BARIS_RIWAYAT = 50
 MIN_TOPIK_BANDING = 2
 _LABEL_STATUS = {K.DIKUMPUL: "Selesai", K.WAKTU_HABIS: "Waktu habis"}
+LABEL_CEPAT = "Dikumpulkan cepat"
+CATATAN_GRAFIK_REDUP = "Titik abu-abu = dikumpulkan cepat, tidak dihitung di rata-rata."
+_LABEL_TOPIK_PENDEK = {"bilangan": "Bil", "operasi": "Operasi", "pengukuran": "Ukur", "bangun": "Bangun"}
 CATATAN_DUGAAN = ("Label kesalahan adalah dugaan dari pilihan jawaban yang dipilih anak, bukan diagnosis; "
                   "pakai sebagai bahan bertanya, bukan kesimpulan.")
 
@@ -64,31 +67,40 @@ def _stat(nilai: str, label: str) -> str:
     return f'<div class="hl-stat"><span class="hl-stat-nilai">{nilai}</span><span class="hl-stat-label">{_e(label)}</span></div>'
 
 
-def _teks_tren(selisih: Optional[float]) -> str:
-    if selisih is None:
-        return "belum cukup sesi"
-    if selisih > 0:
-        return f"naik {desimal(selisih)}"
-    return f"turun {desimal(-selisih)}" if selisih < 0 else "tetap"
+def _stat_tren(progres: R.Progres) -> str:
+    if progres.rata_awal is None or progres.rata_akhir is None:
+        return _stat("&ndash;", "Belum cukup sesi untuk melihat tren")
+    return (_stat(desimal(progres.rata_akhir), "Rata-rata 3 sesi terakhir")
+            + _stat(desimal(progres.rata_awal), "Rata-rata 3 sesi pertama"))
+
+
+def _label_sesi_selesai(progres: R.Progres) -> str:
+    if not progres.jumlah_asal_kumpul:
+        return "Sesi selesai"
+    return f"Sesi selesai ({progres.jumlah_asal_kumpul} dikumpulkan cepat)"
 
 
 def _kartu_ringkas(progres: R.Progres) -> str:
     total = P.JUMLAH_SOAL
+    terbaik = "&ndash;" if progres.terbaik is None else f"{progres.terbaik}/{total}"
     return ('<div class="hl-ringkas">'
-            + _stat(str(progres.jumlah), "Sesi selesai")
-            + _stat(f"{progres.terbaik}/{total}", "Nilai terbaik")
-            + _stat(desimal(progres.rata_rata), "Rata-rata nilai")
+            + _stat(str(progres.jumlah), _label_sesi_selesai(progres))
+            + _stat(terbaik, "Nilai terbaik")
             + _stat(f"{progres.terakhir}/{total}", "Nilai terakhir")
-            + _stat(_e(_teks_tren(progres.selisih_tren)), "Tren (3 sesi terakhir vs 3 pertama)")
+            + _stat_tren(progres)
             + "</div>")
 
 
 def _grafik(progres: R.Progres) -> str:
-    nilai = [s.nilai for s in progres.sesi][-BATAS_TITIK_GRAFIK:]
+    sesi = progres.sesi[-BATAS_TITIK_GRAFIK:]
+    nilai = [s.nilai for s in sesi]
+    redup = [s.asal_kumpul for s in sesi]
     awal = progres.jumlah - len(nilai) + 1
     maks = max(P.JUMLAH_SOAL, *nilai)
     judul = "Nilai per sesi" + (f" ({BATAS_TITIK_GRAFIK} sesi terakhir)" if progres.jumlah > BATAS_TITIK_GRAFIK else "")
-    return f'<section class="hl-kartu"><h2>{judul}</h2>{G.grafik_nilai(nilai, maks, nomor_awal=awal)}</section>'
+    catatan = f'<p class="hl-sub">{CATATAN_GRAFIK_REDUP}</p>' if any(redup) else ""
+    return (f'<section class="hl-kartu"><h2>{judul}</h2>'
+            f'{G.grafik_nilai(nilai, maks, nomor_awal=awal, redup=redup)}{catatan}</section>')
 
 
 def _topik_terendah(per_topik: Sequence[R.NilaiTopik]) -> str:
@@ -118,12 +130,45 @@ def _teks_topik_sesi(sesi: R.RingkasSesi) -> str:
     return ", ".join(f"{RP.label_topik(n.topik)} {n.benar}/{n.total}" for n in sesi.per_topik)
 
 
+def _chip(teks: str, kelas: str = "") -> str:
+    kelas_penuh = f"hl-chip {kelas}".strip()
+    return f'<li class="{kelas_penuh}">{_e(teks)}</li>'
+
+
+def _chip_sesi(sesi: R.RingkasSesi) -> str:
+    chip = [_chip(durasi_menit_detik(sesi.waktu_terpakai_detik))]
+    if sesi.status == K.WAKTU_HABIS:
+        chip.append(_chip(_LABEL_STATUS[K.WAKTU_HABIS]))
+    chip.extend(_chip(f"{_LABEL_TOPIK_PENDEK.get(n.topik, RP.label_topik(n.topik))} {n.benar}/{n.total}")
+                for n in sesi.per_topik)
+    if sesi.asal_kumpul:
+        chip.append(_chip(LABEL_CEPAT, "hl-chip-cepat"))
+    chip.append(_chip(f"{sesi.terisi} dari {sesi.jumlah_soal} diisi"))
+    return "".join(chip)
+
+
+def _kartu_sesi_hp(siswa_id: int, sesi: R.RingkasSesi) -> str:
+    return (
+        '<li class="hl-sesi-hp"><div class="hl-sesi-atas">'
+        f'<span class="hl-sesi-tanggal">{_e(tanggal_wib(sesi.mulai_epoch))}</span>'
+        f'<strong class="hl-sesi-nilai">{sesi.nilai}/{sesi.jumlah_soal}</strong></div>'
+        f'<ul class="hl-chip-baris">{_chip_sesi(sesi)}</ul>'
+        f'<a class="hl-sesi-lihat" href="{alamat_detail(siswa_id, sesi.sesi_id)}">Lihat</a></li>')
+
+
+def _status_tabel(sesi: R.RingkasSesi) -> str:
+    teks = _e(_LABEL_STATUS.get(sesi.status, sesi.status))
+    if sesi.asal_kumpul:
+        teks += f' <span class="hl-chip hl-chip-cepat">{LABEL_CEPAT}</span>'
+    return teks
+
+
 def _baris_riwayat(siswa_id: int, sesi: R.RingkasSesi) -> str:
     return (
         f'<tr><td class="hl-angka">{_e(tanggal_wib(sesi.mulai_epoch))}</td>'
         f'<td class="hl-angka">{sesi.nilai}/{sesi.jumlah_soal}</td>'
         f'<td class="hl-angka">{durasi_menit_detik(sesi.waktu_terpakai_detik)}</td>'
-        f'<td class="hl-angka">{_e(_LABEL_STATUS.get(sesi.status, sesi.status))}</td><td>{_e(_teks_topik_sesi(sesi))}</td>'
+        f'<td>{_status_tabel(sesi)}</td><td>{_e(_teks_topik_sesi(sesi))}</td>'
         f'<td class="hl-angka"><a href="{alamat_detail(siswa_id, sesi.sesi_id)}">Lihat</a></td></tr>')
 
 
@@ -133,9 +178,12 @@ def _kartu_riwayat(siswa_id: int, progres: R.Progres) -> str:
     if progres.jumlah > BATAS_BARIS_RIWAYAT:
         catatan = f'<p class="hl-sub">Menampilkan {BATAS_BARIS_RIWAYAT} sesi terbaru dari {progres.jumlah}.</p>'
     baris = "".join(_baris_riwayat(siswa_id, s) for s in terbaru)
-    return ('<section class="hl-kartu"><h2>Riwayat sesi</h2><div class="hl-gulir"><table class="hl-tabel"><thead><tr>'
+    kartu = "".join(_kartu_sesi_hp(siswa_id, s) for s in terbaru)
+    return ('<section class="hl-kartu"><h2>Riwayat sesi</h2>'
+            '<div class="hl-gulir hl-riwayat-lebar"><table class="hl-tabel"><thead><tr>'
             "<th>Tanggal (WIB)</th><th>Nilai</th><th>Waktu</th><th>Status</th><th>Nilai per topik</th><th></th>"
-            f"</tr></thead><tbody>{baris}</tbody></table></div>{catatan}</section>")
+            f"</tr></thead><tbody>{baris}</tbody></table></div>"
+            f'<ol class="hl-riwayat-hp">{kartu}</ol>{catatan}</section>')
 
 
 def halaman_progres(siswa, progres: R.Progres, sering: Sequence[R.JenisSering], ident) -> bytes:

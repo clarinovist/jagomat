@@ -337,7 +337,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - **Latihan Lomba** (`contest_*.py`, `schema_lomba.py`; plan lokal `docs/plan/2026-11-21-latihan-lomba-corexis.md`): `contest_core` kontrak soal (`SoalLomba`, `Template`, validasi soal/SVG,
   `ambil_pengecoh`, `susun_pilihan`); 38 template di `contest_templates_{number,arithmetic,measurement,geometry}*.py` (id berawalan `bil_/ops_/ukur_/bgn_`, verifikator independen, SVG di `contest_svg_*`);
   `contest_session.rakit_sesi` (komposisi, tingkat, rotasi, dedup lintas sesi); `contest_store` (timer epoch dari jam server, finalisasi malas, simpan jawaban atomik; halaman anak hanya membaca kolom
-  aman); `contest_results` (satu-satunya pembaca kunci; hanya sesi tidak berjalan; hasil rinci, riwayat, progress); HTTP `contest_http` (murid, di bawah `/murid`, sebelum `student_http`) dan
+  aman); `contest_results` (satu-satunya pembaca kunci; hanya sesi tidak berjalan; hasil rinci, riwayat, progress; `RingkasSesi.asal_kumpul` mengecualikan sesi dikumpulkan asal dari agregat; label jenis Guru di `contest_label_jenis`); HTTP `contest_http` (murid, di bawah `/murid`, sebelum `student_http`) dan
   `contest_guru_http` (`/anak/<id>/lomba`, sebelum penangkap `/anak/`); satu-satunya JS `contest_browser.SKRIP_TIMER`; gerbang `contest_gate` = sakelar `OSN_LOMBA`. Tabel `lomba_sesi/soal/jawaban` di
   latihan.db: indeks unik parsial satu sesi berjalan per anak, soal disimpan beku, CASCADE ke siswa, dihapus eksplisit di `family_deletion._hapus_lomba`. Waktu selalu parameter `sekarang` (epoch detik).
 - `family_deletion.py` menghasilkan bundle privat tervalidasi, bukan mutasi live

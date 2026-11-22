@@ -72,27 +72,40 @@ def _garis(nilai: Sequence[int], maks: int) -> str:
             'stroke-linejoin="round" stroke-linecap="round"/>')
 
 
-def _titik(nilai: Sequence[int], maks: int, nomor_awal: int) -> str:
+def _titik(nilai: Sequence[int], maks: int, nomor_awal: int, redup: Sequence[bool] = ()) -> str:
     jari = _JARI_TITIK if len(nilai) <= _BATAS_TITIK_BESAR else _JARI_TITIK_KECIL
     return "".join(
-        f'<circle cx="{_f(_posisi_x(i, len(nilai)))}" cy="{_f(_y(v, maks))}" r="{jari}" data-nilai="{v}" '
-        f'fill="{T.ANAK_AKSEN}" stroke="{T.LATAR_KARTU}" stroke-width="1.5">'
-        f'<title>Sesi {nomor_awal + i}: nilai {v}</title></circle>'
+        _satu_titik(_posisi_x(i, len(nilai)), v, maks, f"Sesi {nomor_awal + i}: nilai {v}", jari,
+                    bool(redup[i]) if redup else False)
         for i, v in enumerate(nilai))
 
 
-def grafik_nilai(nilai: Sequence[int], maks: int = NILAI_MAKS_BAWAAN, nomor_awal: int = 1) -> str:
+def _satu_titik(x: float, v: int, maks: int, keterangan: str, jari: int, redup: bool) -> str:
+    warna = T.BORDER_KONTROL if redup else T.ANAK_AKSEN
+    tanda = ' data-redup="1"' if redup else ""
+    if redup:
+        keterangan += " (dikumpulkan cepat)"
+    return (f'<circle cx="{_f(x)}" cy="{_f(_y(v, maks))}" r="{jari}" data-nilai="{v}"{tanda} '
+            f'fill="{warna}" stroke="{T.LATAR_KARTU}" stroke-width="1.5">'
+            f'<title>{keterangan}</title></circle>')
+
+
+def grafik_nilai(nilai: Sequence[int], maks: int = NILAI_MAKS_BAWAAN, nomor_awal: int = 1,
+                 redup: Sequence[bool] = ()) -> str:
     """Grafik garis nilai per sesi (urut dari yang terlama); `nomor_awal` = nomor sesi pertama yang digambar.
 
+    `redup` (sepanjang `nilai`, opsional): titik bernilai True digambar abu-abu dan bertitle "dikumpulkan cepat".
     Nol titik menghasilkan paragraf pesan kosong (bukan SVG); nilai di luar 0..maks memicu ValueError.
     """
     _periksa(nilai, maks)
+    if redup and len(redup) != len(nilai):
+        raise ValueError(f"redup harus sepanjang nilai: {len(redup)} != {len(nilai)}")
     if not nilai:
         return f'<p class="hl-kosong">{PESAN_KOSONG}</p>'
     label = (f"Grafik garis nilai {len(nilai)} sesi latihan, skala 0 sampai {maks}, "
              f"dari sesi {nomor_awal} sampai sesi {nomor_awal + len(nilai) - 1}")
     return (f'<svg class="hl-grafik" viewBox="0 0 {LEBAR} {TINGGI}" role="img" aria-label="{html.escape(label)}">'
-            f'{_sumbu(maks)}{_garis(nilai, maks)}{_titik(nilai, maks, nomor_awal)}'
+            f'{_sumbu(maks)}{_garis(nilai, maks)}{_titik(nilai, maks, nomor_awal, redup)}'
             f'{_label_sesi(len(nilai), nomor_awal)}</svg>')
 
 

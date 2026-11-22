@@ -190,7 +190,7 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   dihitung dan ditegakkan server (jawaban setelah batas ditolak, layar soal tertutup, hasil langsung tampil). Soal baru tiap sesi: tidak mengulang soal lima sesi terakhir,
   jenis soal dua sesi terakhir dihindari. Jawaban tersimpan lewat form biasa (tanpa autosave JS; satu-satunya JS adalah hitung mundur). Setelah selesai atau waktu habis anak
   melihat nilai, nilai per topik, jawabannya, kunci, dan pembahasan; selama sesi berjalan kunci/pembahasan tidak pernah dikirim (keputusan Pemilik 21 Nov 2026, pengecualian
-  terbatas dari palang murid). Guru/admin melihat progress dan riwayat per anak di `/anak/<id>/lomba` (grafik nilai, nilai per topik, jenis soal paling sering salah, detail
+  terbatas dari palang murid). Guru/admin melihat progress dan riwayat per anak di `/anak/<id>/lomba` (grafik nilai, nilai per topik; sesi selesai <120 detik atau terisi <3 soal ditandai "Dikumpulkan cepat" dan tidak masuk nilai terbaik, rata-rata, tren, topik, maupun jenis sering salah; jenis soal paling sering salah, detail
   sesi dengan dugaan kesalahan). Data di tabel `lomba_*` terpisah dari sesi guru; ikut terhapus saat penghapusan keluarga; tidak menulis ke Peta Kemampuan, diagnosis, laporan, atau bukti.
 - Admin mengelola **profil guru peninjau** (`/admin/profil-guru`): nama, latar, lama mengajar, urutan,
   tampil/tidak. Profil `tampil=1` dipakai kartu guru di halaman funnel dengan cache 30 detik; profil

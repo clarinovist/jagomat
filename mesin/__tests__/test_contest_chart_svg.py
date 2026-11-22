@@ -159,3 +159,38 @@ def test_sumber_grafik_tanpa_hex_literal():
     sumber = (MESIN / "contest_chart_svg.py").read_text(encoding="utf-8")
 
     assert not re.findall(r"#[0-9a-fA-F]{3,8}\b|rgba?\(", sumber)
+
+
+# --- titik redup (sesi dikumpulkan cepat) -------------------------------------------------------
+
+HASH_ASLI_SEPULUH_NILAI = "fcb18f16351c4a4653e3ccaf3123fbc3207b2e4d1bcc8c0c012b7f48e0a76498"
+HASH_ASLI_NOMOR_AWAL = "d92fc35183a9de92eaba1db859c9ff031c9203302d9df39a3a6e09ff7dc90239"
+
+
+def _sidik(isi):
+    import hashlib
+    return hashlib.sha256(isi.encode()).hexdigest()
+
+
+def test_tanpa_parameter_redup_keluaran_byte_identik_dengan_versi_sebelumnya():
+    assert _sidik(G.grafik_nilai([3, 5, 7, 6, 8, 9, 4, 10, 0, 5])) == HASH_ASLI_SEPULUH_NILAI
+    assert _sidik(G.grafik_nilai([4, 6], nomor_awal=41)) == HASH_ASLI_NOMOR_AWAL
+
+
+def test_redup_semua_false_sama_dengan_tanpa_parameter():
+    assert G.grafik_nilai([3, 5, 7], redup=[False, False, False]) == G.grafik_nilai([3, 5, 7])
+
+
+def test_titik_redup_abu_abu_bertitle_dikumpulkan_cepat_dan_titik_lain_tetap_aksen():
+    akar = _akar(G.grafik_nilai([3, 10, 7], redup=[False, True, False]))
+
+    titik = [e for e in akar.iter() if e.tag.endswith("circle")]
+    assert [t.get("fill") for t in titik] == [T.ANAK_AKSEN, T.BORDER_KONTROL, T.ANAK_AKSEN]
+    assert [t.get("data-redup") for t in titik] == [None, "1", None]
+    assert ["".join(t.itertext()) for t in titik] == [
+        "Sesi 1: nilai 3", "Sesi 2: nilai 10 (dikumpulkan cepat)", "Sesi 3: nilai 7"]
+
+
+def test_redup_dengan_panjang_berbeda_dari_nilai_ditolak():
+    with pytest.raises(ValueError):
+        G.grafik_nilai([3, 5], redup=[True])
