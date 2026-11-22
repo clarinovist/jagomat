@@ -66,6 +66,9 @@ JUMLAH_RECOVERY = {
     # Koleksi recovery matematika-awal a8c587e (68c68d9 + perbaikan lembar P6/pancingan);
     # collect-only arsip exact 26.123 nodeid di Python 3.9, 22 Nov 2026.
     "a8c587e1d3c209a113c0e4a9546ba73c1d235dc4": 26123,
+    # Koleksi recovery lomba-penugasan 1206bc9 (47bfc46 tabel lomba_penugasan + kontrak 47a7cd9): collect-only
+    # arsip exact 26.438 nodeid di Python 3.9, 22 Nov 2026.
+    "1206bc95f0aa1f074393e01e0955e0f6d364fe90": 26438,
     "ff6acb158985f78ef0287ec18fb045d273921bdc": 13507,
     "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
     # Arsip exact reader katalog; nodeid identik empat manifest CI39596225447
