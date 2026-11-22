@@ -1,4 +1,4 @@
-"""Skema Latihan Lomba (Grand Final Corexis): tiga tabel aditif, terpisah dari tabel sesi guru.
+"""Skema Latihan Lomba (Grand Final Corexis): empat tabel aditif, terpisah dari tabel sesi guru.
 
 `lomba_sesi` menyimpan batas waktu sebagai epoch detik dari jam server; indeks unik parsial
 menjamin satu sesi berjalan per anak walau dua permintaan "Mulai" datang bersamaan.
@@ -6,6 +6,8 @@ menjamin satu sesi berjalan per anak walau dua permintaan "Mulai" datang bersama
 mengubah template kelak tidak mengubah riwayat; halaman anak hanya boleh membaca kolom aman.
 `lomba_jawaban` menyimpan jawaban terakhir per nomor. Semua milik siswa dan ikut terhapus
 bersama siswa (ON DELETE CASCADE), seperti `laporan_ortu`.
+`lomba_penugasan` mencatat Mode Lomba per anak yang diaktifkan Guru (satu baris per anak, tanpa baris =
+tidak aktif); `target_harian` dan `tampil_hitung_mundur` NULL berarti ikut nilai paket.
 """
 
 SKEMA_LOMBA = """
@@ -54,5 +56,15 @@ CREATE TABLE IF NOT EXISTS lomba_jawaban (
     diubah_epoch INTEGER NOT NULL,
     PRIMARY KEY (sesi_id, nomor),
     FOREIGN KEY (sesi_id, nomor) REFERENCES lomba_soal(sesi_id, nomor) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS lomba_penugasan (
+    siswa_id             INTEGER PRIMARY KEY REFERENCES siswa(id) ON DELETE CASCADE,
+    paket_id             TEXT    NOT NULL CHECK (length(paket_id) BETWEEN 1 AND 64),
+    aktif                INTEGER NOT NULL CHECK (aktif IN (0, 1)),
+    target_harian        INTEGER CHECK (target_harian IS NULL OR target_harian BETWEEN 0 AND 5),
+    tampil_hitung_mundur INTEGER CHECK (tampil_hitung_mundur IS NULL OR tampil_hitung_mundur IN (0, 1)),
+    diubah_epoch         INTEGER NOT NULL,
+    diubah_oleh          TEXT    NOT NULL DEFAULT '' CHECK (length(diubah_oleh) <= 64)
 );
 """

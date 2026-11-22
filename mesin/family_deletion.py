@@ -229,19 +229,22 @@ def _hapus_kontak(kon, target_id: str) -> None:
 
 
 def _hapus_lomba(kon, siswa_ids) -> None:
-    """Hapus seluruh data Latihan Lomba anak-anak target (sesi, soal beku, jawaban).
+    """Hapus seluruh data Latihan Lomba anak-anak target (sesi, soal beku, jawaban, penugasan).
 
     Siswa hanya dianonimkan (barisnya tidak dihapus), jadi cascade FK tidak berlaku; anak anonim
-    tidak boleh menyisakan jawaban dan nilainya. Dihapus eksplisit dari anak ke induk; basis lama
-    tanpa tabel lomba dilewati. Anak keluarga lain tidak disentuh.
+    tidak boleh menyisakan jawaban, nilainya, atau penugasan Mode Lomba. Dihapus eksplisit dari anak ke
+    induk; basis lama tanpa tabel lomba dilewati per tabel. Anak keluarga lain tidak disentuh.
     """
-    if not siswa_ids or not _tabel(kon, "lomba_sesi"):
+    if not siswa_ids:
         return
     q = ",".join("?" for _ in siswa_ids)
-    sesi = "(SELECT id FROM lomba_sesi WHERE siswa_id IN (%s))" % q
-    kon.execute("DELETE FROM lomba_jawaban WHERE sesi_id IN " + sesi, siswa_ids)
-    kon.execute("DELETE FROM lomba_soal WHERE sesi_id IN " + sesi, siswa_ids)
-    kon.execute("DELETE FROM lomba_sesi WHERE siswa_id IN (%s)" % q, siswa_ids)
+    if _tabel(kon, "lomba_sesi"):
+        sesi = "(SELECT id FROM lomba_sesi WHERE siswa_id IN (%s))" % q
+        kon.execute("DELETE FROM lomba_jawaban WHERE sesi_id IN " + sesi, siswa_ids)
+        kon.execute("DELETE FROM lomba_soal WHERE sesi_id IN " + sesi, siswa_ids)
+        kon.execute("DELETE FROM lomba_sesi WHERE siswa_id IN (%s)" % q, siswa_ids)
+    if _tabel(kon, "lomba_penugasan"):
+        kon.execute("DELETE FROM lomba_penugasan WHERE siswa_id IN (%s)" % q, siswa_ids)
 
 
 def _hapus_cek(kon, target_id: str, siswa_ids) -> None:
