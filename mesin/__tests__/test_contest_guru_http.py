@@ -506,28 +506,20 @@ def _tab(s, section, auth=GURU):
     return isi
 
 
-def test_tautan_latihan_lomba_ada_sekali_di_tab_perkembangan_saat_gerbang_hidup(s):
+def test_tab_perkembangan_tanpa_kartu_mode_lomba_walau_gerbang_hidup(s):
+    """Mode Lomba diatur dari kartu anak di /akun?section=siswa, bukan dari tab Perkembangan (22 Nov 2026)."""
     isi = _tab(s, "perkembangan")
 
-    assert isi.count(f'href="/anak/{s.anak}/lomba"') == 1 and "Mode Lomba" in isi and "Atur Mode Lomba" in isi
+    assert f'href="/anak/{s.anak}/lomba"' not in isi and "Atur Mode Lomba" not in isi and "lomba-masuk" not in isi
 
 
-def test_tautan_latihan_lomba_tidak_ada_saat_gerbang_mati(s, monkeypatch):
-    monkeypatch.setenv("OSN_LOMBA", "0")
-
-    assert "/lomba" not in _tab(s, "perkembangan")
-
-
-def test_hanya_kartu_lomba_yang_berbeda_antara_gerbang_hidup_dan_mati_dan_tab_lain_identik(s, monkeypatch):
-    import contest_guru_pages
-
+def test_semua_tab_anak_identik_antara_gerbang_hidup_dan_mati(s, monkeypatch):
     hidup = {sec: _tab(s, sec) for sec in ("rencana", "latihan", "riwayat", "perkembangan")}
     monkeypatch.setenv("OSN_LOMBA", "0")
     mati = {sec: _tab(s, sec) for sec in hidup}
 
-    for sec in ("rencana", "latihan", "riwayat"):
+    for sec in hidup:
         assert hidup[sec] == mati[sec], sec
-    assert hidup["perkembangan"].replace(contest_guru_pages.kartu_masuk(s.anak, False), "") == mati["perkembangan"]
 
 
 # --- sesi dikumpulkan cepat (asal kumpul) --------------------------------------------------------

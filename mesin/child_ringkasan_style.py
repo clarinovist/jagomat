@@ -11,10 +11,10 @@ GAYA_RINGKASAN = f"""
 {_R} .peta-materi-st.kartu-st {{{_KARTU} padding: {T.SP_6};
 }}
 {_R} .peta-materi-st.kartu-st > * {{ margin: 0; }}
-{_R} :is(.laporan-ortu-masuk-st, .lomba-masuk-st).kartu-st {{{_KARTU} padding: {T.SP_6}; gap: {T.SP_3}; margin: 0 0 {T.SP_4}; }}
-{_R} :is(.laporan-ortu-masuk-st, .lomba-masuk-st).kartu-st > * {{ margin: 0; }}
-{_R} :is(.laporan-ortu-masuk-st, .lomba-masuk-st) h2 {{ font-size: 1.25rem; font-weight: 800; color: {T.ANAK_TEKS}; }}
-{_R} :is(.laporan-ortu-masuk-st, .lomba-masuk-st) p {{ font-size: {T.UKURAN_BADAN_LAYAR}; color: {T.ANAK_TEKS_REDUP}; }}
+{_R} .laporan-ortu-masuk-st.kartu-st {{{_KARTU} padding: {T.SP_6}; gap: {T.SP_3}; margin: 0 0 {T.SP_4}; }}
+{_R} .laporan-ortu-masuk-st.kartu-st > * {{ margin: 0; }}
+{_R} .laporan-ortu-masuk-st h2 {{ font-size: 1.25rem; font-weight: 800; color: {T.ANAK_TEKS}; }}
+{_R} .laporan-ortu-masuk-st p {{ font-size: {T.UKURAN_BADAN_LAYAR}; color: {T.ANAK_TEKS_REDUP}; }}
 {_R} .kartu-masuk-aksi-st {{
   display: inline-flex; align-items: center; justify-content: center; align-self: flex-start;
   min-height: {T.TINGGI_KONTROL}; box-sizing: border-box; padding: {T.SP_2} {T.SP_4};

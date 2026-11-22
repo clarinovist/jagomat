@@ -137,23 +137,6 @@ def test_riwayat_guru_tetap_terbuka_walau_penugasan_mati(s):
     assert "Belum ada sesi latihan yang selesai" in _halaman(s)
 
 
-def test_kartu_di_halaman_anak_menyebut_status_dan_tautan_pengaturan(s):
-    def tab():
-        kode, _, isi = raw(s, f"/anak/{s.anak}?section=perkembangan")
-        assert kode == 200
-        return isi.decode()
-
-    belum = tab()
-    with s.buka() as kon:
-        AS.atur(kon, s.anak, aktif=True, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None,
-                sekarang=SEKARANG_UJI, oleh="guru")
-    aktif = tab()
-
-    assert "Belum aktif — aktifkan untuk anak ini" in belum and "Atur Mode Lomba" in belum
-    assert 'class="lomba-masuk-status">Aktif<' in aktif and f'href="/anak/{s.anak}/lomba"' in aktif
-    assert belum.replace(H.kartu_masuk(s.anak, False), "") == aktif.replace(H.kartu_masuk(s.anak, True), "")
-
-
 # --- POST sukses -------------------------------------------------------------------------------------
 
 def test_post_sukses_menyimpan_dan_mengalihkan_303_dengan_pesan(s):

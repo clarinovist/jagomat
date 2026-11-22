@@ -56,16 +56,6 @@ def alamat_pengaturan(siswa_id: int) -> str:
     return f"{alamat_progres(siswa_id)}/pengaturan"
 
 
-def kartu_masuk(siswa_id: int, aktif: bool) -> str:
-    """Kartu "Mode Lomba" di halaman satu anak: status aktif/belum dan tautan ke pengaturan (hanya saat gerbang hidup)."""
-    status = "Aktif" if aktif else "Belum aktif — aktifkan untuk anak ini"
-    return (
-        '<section class="kartu-st lomba-masuk-st"><h2>Mode Lomba</h2>'
-        f'<p class="lomba-masuk-status">{_e(status)}</p>'
-        "<p>Atur Mode Lomba anak ini, lihat nilai, perkembangan, dan jenis soal yang paling sering salah.</p>"
-        f'<a class="kartu-masuk-aksi-st" href="{alamat_progres(siswa_id)}">Atur Mode Lomba</a></section>')
-
-
 def _opsi(nilai: str, label: str, terpilih: bool) -> str:
     pilih = " selected" if terpilih else ""
     return f'<option value="{_e(nilai)}"{pilih}>{_e(label)}</option>'
