@@ -102,8 +102,8 @@ def server(tmp_path, monkeypatch):
         uji.berhenti()
 
 
-# Halaman guru yang dikirim lewat `_kirim_tautan` memakai `csp_tautan` (bersama dengan halaman
-# publik): CSP-nya memang memuat host font, tetapi isi halaman privat tetap tanpa host itu.
+# Halaman guru yang dikirim lewat `_kirim_tautan` memakai `csp_tautan`; host Google hanya
+# diizinkan bila isi halaman memuatnya, jadi halaman privat ini juga tanpa host luar.
 RUTE_CSP_TAUTAN = ("/anak/{anak}/laporan-ortu", "/anak/{anak}/lomba")
 
 
@@ -123,8 +123,7 @@ def test_halaman_privat_guru_font_lokal_dan_csp_tanpa_host_luar(server, jalur):
         return  # tanpa CSP tidak ada pembatasan font; invarian isi sudah ditegakkan di atas
     direktif = _direktif(csp)
     assert "'self'" in direktif.get("font-src", []), csp
-    if jalur not in RUTE_CSP_TAUTAN:
-        assert not any("//" in v for d in ("font-src", "style-src") for v in direktif.get(d, [])), csp
+    assert not any("//" in v for d in ("font-src", "style-src") for v in direktif.get(d, [])), csp
     assert direktif["default-src"] == ["'none'"] and direktif["frame-ancestors"] == ["'none'"]
 
 
@@ -142,3 +141,10 @@ def test_csp_beranda_guru_font_self_plus_gstatic_untuk_ikon(server):
     assert _direktif(tajuk["Content-Security-Policy"])["font-src"] == [
         "'self'", "https://fonts.gstatic.com"
     ]
+
+
+def test_csp_masuk_font_self_tanpa_host_google(server):
+    kode, isi, tajuk = server.minta("/masuk")
+    assert kode == 200 and "fonts.googleapis.com" not in isi
+    direktif = _direktif(tajuk["Content-Security-Policy"])
+    assert direktif["font-src"] == ["'self'"] and direktif["style-src"] == ["'unsafe-inline'"]

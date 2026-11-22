@@ -228,7 +228,7 @@ GAYA_HASIL = f"""
 .hl-status.hl-benar {{ color: {T.ANAK_BAIK_TEKS}; background: {T.ANAK_BAIK_LATAR}; border-color: {T.ANAK_BAIK_TEKS}; }}
 .hl-status.hl-salah {{ color: {T.TEKS_GALAT}; background: {T.LATAR_GALAT}; border-color: {T.BORDER_GALAT}; }}
 .hl-status.hl-kosong-jawab {{ color: {T.ANAK_NETRAL_TEKS}; background: {T.ANAK_NETRAL_LATAR}; border: 2px dashed {T.BORDER_KONTROL}; }}
-.hl-teks {{ font-size: 1.25rem; font-weight: 700; line-height: 1.4; white-space: pre-line; }}
+.hl-teks {{ font-size: {T.UKURAN_SOAL}; font-weight: {T.BOBOT_SOAL}; line-height: {T.LINE_HEIGHT_SOAL}; white-space: pre-line; }}
 .hl-gambar {{ display: flex; justify-content: center; }}
 .hl-gambar svg {{ width: 100%; max-width: {T.LEBAR_VISUAL_SOAL}; height: auto; }}
 .hl-pilihan {{ list-style: none; padding: 0; display: grid; grid-template-columns: 1fr; gap: {T.SP_2}; }}
@@ -293,8 +293,12 @@ GAYA_HASIL = f"""
 GAYA_AWAL = f"""
 .kartu-awal {{ align-items: flex-start; }}
 .pilih-mode {{ display: flex; flex-direction: column; gap: {T.SP_3}; align-self: stretch; }}
-/* Label mode panjang ("Simulasi Lomba (35 soal · 60 menit)"): ukuran tombol biasa supaya satu baris di HP. */
-.pilih-mode .tombol.besar {{ min-height: {T.TINGGI_CTA}; padding-inline: {T.SP_3}; font-size: {_HURUF_JAWABAN}; }}
+/* Tombol mode dua baris yang disengaja: nama mode di atas, "35 soal · 60 menit" di bawah (tidak patah acak di HP). */
+.pilih-mode .tombol.besar {{
+  flex-direction: column; gap: 0; min-height: {T.TINGGI_CTA}; padding: {T.SP_2} {T.SP_3};
+  font-size: {_HURUF_JAWABAN}; line-height: 1.25;
+}}
+.pilih-mode .mode-detail {{ font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; }}
 .label-mode {{
   padding: {T.SP_1} {T.SP_2}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; color: {T.TEKS_JUDUL};
   background: {T.ANAK_ABU_HANGAT}; border-radius: {T.RADIUS_PIL};

@@ -1,6 +1,6 @@
 """Halaman awal Latihan Lomba untuk anak (``/murid/lomba``): dua tombol mode, Lanjutkan, hitung mundur, target, riwayat.
 
-Dua tombol mulai: "Latihan (10 soal · 15 menit)" dan "Simulasi Lomba (35 soal · 60 menit)"; angka menit dari paket
+Dua tombol mulai: "Latihan" / "10 soal · 15 menit" dan "Simulasi Lomba" / "35 soal · 60 menit"; angka menit dari paket
 yang sudah ditimpa durasi Guru untuk anak itu (`contest_anak.paket_untuk_anak`). Riwayat diberi label mode.
 
 Murni render dari `contest_anak.RingkasAnak` (tanpa DB, tanpa kunci jawaban). Tanpa skrip: sisa waktu sesi
@@ -27,15 +27,17 @@ CATATAN_WAKTU = "Waktu terus berjalan walaupun kamu keluar dari halaman ini. Jaw
 CATATAN_SIMULASI = "Simulasi Lomba mirip lomba sungguhan: {pg} pilihan ganda + {isian} isian."
 
 
-def label_tombol_mode(format_mode) -> str:
-    """"Latihan (10 soal · 15 menit)" / "Simulasi Lomba (35 soal · 60 menit)"."""
-    return f"{format_mode.label} ({format_mode.jumlah_soal} soal \u00b7 {format_mode.durasi_menit} menit)"
+def isi_tombol_mode(format_mode) -> str:
+    """Dua baris yang disengaja: nama mode, lalu "35 soal · 60 menit" (tidak patah acak di HP)."""
+    detail = f"{format_mode.jumlah_soal} soal \u00b7 {format_mode.durasi_menit} menit"
+    return (f'<span class="mode-nama">{html.escape(format_mode.label)}</span>'
+            f'<span class="mode-detail">{html.escape(detail)}</span>')
 
 
 def _tombol_mode(paket, mode: str, kelas: str) -> str:
     format_mode = paket.format_mode(mode)
     return (f'<form method="post" action="{P.ALAMAT_MULAI}"><input type="hidden" name="mode" value="{mode}">'
-            f'<button type="submit" class="{kelas}">{html.escape(label_tombol_mode(format_mode))}</button></form>')
+            f'<button type="submit" class="{kelas}">{isi_tombol_mode(format_mode)}</button></form>')
 
 
 def _pilih_mode(paket) -> str:

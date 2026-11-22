@@ -136,7 +136,7 @@ def test_halaman_awal_menawarkan_latihan_dan_simulasi_dengan_menit_anak(s):
 
     teks = isi.decode()
     assert kode == 200
-    assert ">Latihan (10 soal · 20 menit)</button>" in teks and ">Simulasi Lomba (35 soal · 75 menit)</button>" in teks
+    assert '<span class="mode-nama">Latihan</span><span class="mode-detail">10 soal · 20 menit</span></button>' in teks and '<span class="mode-nama">Simulasi Lomba</span><span class="mode-detail">35 soal · 75 menit</span></button>' in teks
 
 
 def test_simulasi_35_soal_60_menit_dan_soal_35_bisa_dibuka(s):

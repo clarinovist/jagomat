@@ -88,3 +88,12 @@ def test_halaman_mulai_memakai_csp_berhash(server):
     assert direktif["connect-src"] == ["'self'"]
     assert tajuk["Referrer-Policy"] == "no-referrer"
     assert tajuk["X-Frame-Options"] == "DENY"
+
+
+def test_csp_tautan_host_google_hanya_bila_halaman_memuatnya():
+    """Halaman anak/Lomba memakai font same-origin: CSP tanpa host pihak ketiga."""
+    lokal = _direktif(web.csp_tautan(b"<html><head><style>a{}</style></head></html>"))
+    assert lokal["style-src"] == ["'unsafe-inline'"] and lokal["font-src"] == ["'self'"]
+    google = _direktif(web.csp_tautan(b'<link href="https://fonts.googleapis.com/css2?x" rel="stylesheet">'))
+    assert google["style-src"] == ["'unsafe-inline'", "https://fonts.googleapis.com"]
+    assert google["font-src"] == ["'self'", "https://fonts.gstatic.com"]

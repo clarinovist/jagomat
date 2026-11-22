@@ -160,6 +160,20 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
 
 _POLA_SKRIP_INLINE = re.compile(rb"<script>(.*?)</script>", re.S)
 
+_GAYA_FONT_LOKAL = "style-src 'unsafe-inline'; font-src 'self'; "
+_GAYA_FONT_GOOGLE = ("style-src 'unsafe-inline' https://fonts.googleapis.com; "
+                     "font-src 'self' https://fonts.gstatic.com; ")
+
+
+def izin_gaya_font(isi: bytes) -> str:
+    """`style-src`/`font-src` dari isi respons: host Google hanya bila halaman memuatnya.
+
+    Halaman anak, /masuk, dan Lomba memakai font same-origin (`font_lokal`), jadi CSP-nya
+    tidak perlu membuka host pihak ketiga. Halaman publik lama (landing, Pusat Cek anak)
+    masih menautkan Google Fonts; untuk mereka izin lama tetap dipasang.
+    """
+    return _GAYA_FONT_GOOGLE if b"fonts.googleapis.com" in isi else _GAYA_FONT_LOKAL
+
 
 def csp_tautan(isi: bytes) -> str:
     """CSP untuk halaman bearer `/mulai/<token>` (anak tanpa login).
@@ -183,8 +197,7 @@ def csp_tautan(isi: bytes) -> str:
     )
     return (
         "default-src 'none'; img-src 'self' data:; manifest-src 'self'; "
-        "style-src 'unsafe-inline' https://fonts.googleapis.com; "
-        "font-src 'self' https://fonts.gstatic.com; " + izin_skrip + "; "
+        + izin_gaya_font(isi) + izin_skrip + "; "
         "connect-src 'self'; form-action 'self'; base-uri 'none'; "
         "frame-ancestors 'none'"
     )
@@ -237,7 +250,7 @@ class Penangan(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(isi)))
         if self._jalur_kredensial():
-            self._header_csp_kredensial()
+            self._header_csp_kredensial(isi)
         self.end_headers()
         self.wfile.write(isi)
 
@@ -425,7 +438,7 @@ class Penangan(BaseHTTPRequestHandler):
         """Halaman yang memuat isian sandi: CSP ketat wajib, termasuk anti-frame."""
         return urllib.parse.urlparse(self.path).path.rstrip("/") in ("/masuk", "/daftar")
 
-    def _header_csp_kredensial(self) -> None:
+    def _header_csp_kredensial(self, isi: bytes) -> None:
         """CSP halaman kredensial; hash dihitung dari skrip yang dipakai halaman."""
         import base64
         import hashlib
@@ -440,9 +453,8 @@ class Penangan(BaseHTTPRequestHandler):
         self.send_header(
             "Content-Security-Policy",
             "default-src 'none'; img-src 'self' data:; manifest-src 'self'; "
-            "style-src 'unsafe-inline' https://fonts.googleapis.com; "
-            "font-src 'self' https://fonts.gstatic.com; "
-            "script-src " + " ".join("'sha256-" + h + "'" for h in hash_skrip)
+            + izin_gaya_font(isi)
+            + "script-src " + " ".join("'sha256-" + h + "'" for h in hash_skrip)
             + "; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
         )
 

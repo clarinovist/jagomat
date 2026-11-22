@@ -293,7 +293,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   [audit admin](admin-ui-audit.md) (fokus, kontrol, state dan tema/cetak).
 - Font merek same-origin (`font_lokal`, `/aset/font-*-v1.ttf`) di halaman guru dan semua halaman
   anak, termasuk `/masuk` dan Latihan Lomba; halaman anak tidak memanggil host pihak ketiga
-  (ikon SVG lokal, bukan Material Symbols). Shell anak `murid_shell` (satu topbar, kolom
+  (ikon SVG lokal, bukan Material Symbols); CSP `csp_tautan`/kredensial hanya membuka host Google
+  bila isi halaman memuatnya (`web.izin_gaya_font`). Shell anak `murid_shell` (satu topbar, kolom
   `LEBAR_KONTEN`, keputusan 22 Nov 2026); CSS lembar/hasil murid tambahan di
   `murid_lembar_style`. Aksi utama anak (termasuk Lomba `body.lomba`) koral, guru teal.
 - `session_prep.py` membungkus `learning_cycle_ui.kartu_rencana` menjadi lembar cetak

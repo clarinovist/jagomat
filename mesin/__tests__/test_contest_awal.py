@@ -52,8 +52,8 @@ def test_awal_memuat_tautan_beranda_maskot_judul_paket_dan_dua_tombol_mode():
     assert '<a class="tautan-beranda" href="/murid">' in isi and "Beranda</a>" in isi
     assert re.search(r'<img src="/aset/maskot-menunjuk-v3-96\.png" alt="" class="maskot-kartu"', isi)
     assert '<h1 class="judul">Mode Lomba</h1>' in isi
-    assert '>Latihan (10 soal · 15 menit)</button>' in isi
-    assert '>Simulasi Lomba (35 soal · 60 menit)</button>' in isi
+    assert '<span class="mode-nama">Latihan</span><span class="mode-detail">10 soal · 15 menit</span></button>' in isi
+    assert '<span class="mode-nama">Simulasi Lomba</span><span class="mode-detail">35 soal · 60 menit</span></button>' in isi
     assert "Simulasi Lomba mirip lomba sungguhan: 30 pilihan ganda + 5 isian." in isi
 
 
@@ -62,8 +62,8 @@ def test_tombol_mode_mengikuti_durasi_paket_anak_bukan_angka_tetap():
 
     isi = _badan(W.halaman_awal(_ringkas(paket=paket)).decode())
 
-    assert ">Latihan (10 soal · 20 menit)</button>" in isi and ">Mode Lomba</h1>" in isi
-    assert ">Simulasi Lomba (35 soal · 45 menit)</button>" in isi
+    assert '<span class="mode-nama">Latihan</span><span class="mode-detail">10 soal · 20 menit</span></button>' in isi and ">Mode Lomba</h1>" in isi
+    assert '<span class="mode-nama">Simulasi Lomba</span><span class="mode-detail">35 soal · 45 menit</span></button>' in isi
 
 
 def test_catatan_waktu_tetap_berjalan_dan_jawaban_tersimpan():
