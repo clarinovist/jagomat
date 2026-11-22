@@ -12,6 +12,29 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy UI Latihan Lomba + paket konfigurasi — 22 November 2026
+
+Controlled `deploy-v2` memasang **4a6b93e** (digest `sha256:1dd730e1…67f1`), healthy/restart0, menggantikan
+**179733f**. Isi: UI anak Latihan Lomba (tautan Beranda, Selesai sekunder, pindah otomatis ke soal kosong, konfirmasi
+dengan nomor kosong, hasil ringkas + lipat, hitung mundur dan target harian dari `contest_paket`), isian bersepasi
+diterima (`contest_http.buang_spasi`), halaman Guru (sesi asal kumpul dikecualikan dari agregat, riwayat kartu di HP,
+label jenis). Tanpa migrasi. Dispatch `audit=false` [44996957973](https://github.com/clarinovist/jagomat/actions/runs/44996957973):
+build + verifikasi pasangan tanpa suite penuh (keputusan pemilik 22 Nov); tes lomba/beranda/kontrak lokal 2.273 lolos.
+
+- Kontrak kandidat = recovery = live = `4b20d8ce…0aa3`; recovery tetap **a8c587e**, digest dibangun ulang
+  `sha256:eb69ef21…bdf7`; pair `ok`, `provider_calls` 0. `contest_store.py` sengaja identik dengan 179733f agar
+  fingerprint `PROBE_KONTRAK` tidak bergeser. Kit `deploy-lomba-ui-20261122` (salinan kit matematika-awal; deployer
+  `8bb44ec2…` sama; probe kandidat/live menambah asersi `contest_paket`/`buang_spasi`).
+- Approval consumed pagi diarsipkan (`archive_approval.py`, dry-run lalu apply). `PERSIAPAN_OK`, backup lima file +
+  riset, rehearsal C–B–C, `deploy-v2` exit0, reopen `LIVE_ADMIN_HEALTHY`, postcheck exit0 (smoke publik `/` 200,
+  `/akun` 401, `/murid/` 303, `/cek-kemampuan` 200; galat 0; config dan hash histori terjaga), cleanup 4 direktori.
+  Backup `/opt/osn/cadangan/deploy-lomba-ui-20261122/`, salinan lokal `mesin/cadangan/deploy-lomba-ui-20261122/`.
+- **Sakelar `OSN_LOMBA` sudah HIDUP** di `sakelar.db` sejak 22 Nov 01:49 UTC (dinyalakan Pemilik setelah deploy 179733f;
+  baris versi 2). Prepare pertama berhenti di probe `lomba_harus_mati` tanpa perubahan produksi; kit disesuaikan
+  menjadi "sakelar tetap hidup" (0 sesi berjalan saat swap). Kunci JSON postcheck `lomba_mati` adalah nama lama;
+  asersinya kini `contest_gate.aktif() is True`.
+- Sisa: uji di HP anak; pengaturan paket/penugasan di DB setelah 12 Des (plan lokal `2026-11-22-lomba-paket-pengaturan.md`).
+
 ## Deploy Matematika Awal 25 jenis + Latihan Lomba (mati) — 22 November 2026
 
 Controlled `deploy-v2` memasang **179733f** (digest `sha256:06b39be0…9c3c`), healthy/restart0, menggantikan

@@ -15,7 +15,9 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   kandidat Fase 1–3 ter-deploy dan **funnel diaktifkan 19 November 2026 termasuk
   pembayaran Paket Coba** (`FUNNEL_AKTIF=1`, ledger `pesanan_*` dimigrasikan);
   deliverable Fase 4 masih menyusul/manual. Status baris F1 di tabel bawah.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`179733f`** (22 November 2026;
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`4a6b93e`** (22 November 2026 siang;
+  UI Latihan Lomba + paket konfigurasi, tanpa migrasi; sakelar `OSN_LOMBA` hidup sejak pagi oleh Pemilik;
+  rincian di production-release.md). Sebelumnya **`179733f`** (22 November 2026;
   topik Matematika Awal 25 jenis (40/40 bab "ada", `OSN_MATEMATIKA_AWAL` bawaan 1, dibuka sebelum ulasan Mutia),
   Latihan Lomba dan flag visual `matematika-awal` tetap mati, recovery pin `a8c587e`, kontrak `4b20d8ce`;
   rincian di production-release.md). Sebelumnya **`63f8756`** (21 November 2026;
