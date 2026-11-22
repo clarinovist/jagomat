@@ -12,6 +12,16 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy area anak selaras design system — 22 November 2026
+
+Controlled `deploy-v2` memasang **bcfe8e2** (digest `sha256:bfbfae09…d3e8`), healthy, menggantikan **6770f5b**.
+Isi: shell murid (satu topbar, kolom 46rem), font same-origin tanpa Google di halaman anak, Simulasi grid nomor
+lipat, tombol Lomba anak koral, anak tanpa kuki ke `/masuk` polos. Tanpa skema: kontrak tetap `bf0b1398…`, recovery
+tetap **3bd368e** (digest build ini `sha256:ed07aae6…c93a`). Dispatch
+[45033902184](https://github.com/clarinovist/jagomat/actions/runs/45033902184). Kit `deploy-selaras-anak-20261122`:
+approval diarsipkan, `PERSIAPAN_OK`, backup lima file + riset, rehearsal C–B–C, `deploy-v2` exit0, `LIVE_ADMIN_HEALTHY`,
+postcheck exit0 (smoke `/` 200, `/akun` 401, `/murid/` 303; `history_hash_preserved`).
+
 ## Deploy kartu Mode Lomba dihapus dari tab Perkembangan — 22 November 2026
 
 Controlled `deploy-v2` memasang **6770f5b** (digest `sha256:9836d415…3615`), healthy, menggantikan **2b56f45**.
