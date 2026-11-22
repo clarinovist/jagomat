@@ -12,6 +12,27 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy Mode Lomba per anak (pin recovery baru) — 22 November 2026
+
+Controlled `deploy-v2` memasang **7982f2c** (digest `sha256:31cc1c59…986b`), healthy/restart0, menggantikan **4a6b93e**.
+Isi: judul anak "Mode Lomba" (tanpa nama acara), tabel aditif `lomba_penugasan` + `contest_assignment_store`, gerbang
+`contest_gate.aktif_untuk` (sakelar admin = induk; anak tanpa penugasan aktif tidak melihat Lomba, rute 404 identik),
+pengaturan Guru di `/anak/<id>/lomba` (POST `/anak/<id>/lomba/pengaturan`). Dispatch `audit=false`
+[45005381348](https://github.com/clarinovist/jagomat/actions/runs/45005381348); tes terarah lokal 416 + metadata/kontrak 256
+lolos, mutation gerbang per anak dan kepemilikan POST merah→hijau.
+
+- **Kontrak bergeser** `4b20d8ce…` → **`47a7cd9d…c674`** (tabel baru). Recovery baru **1206bc9** di branch
+  `recovery-lomba-penugasan` = 47bfc46 (skema + store saja, gerbang masih global seperti 4a6b93e) + commit kontrak;
+  digest `sha256:dfff9465…cd55`; pair `ok`, `provider_calls` 0. Pin di `main` 7982f2c: metadata, `deploy.yml`
+  (RECOVERY_SHA + dua checkout), anchor koleksi 26.438 nodeid.
+- Kit `deploy-lomba-penugasan-20261122` (REV_OLD 4a6b93e kontrak 4b20d8ce; probe kandidat menguji `aktif_untuk`
+  fail-closed pada DB sintetis /tmp). Approval consumed diarsipkan, `PERSIAPAN_OK`, backup lima file + riset, rehearsal
+  C–B–C, `deploy-v2` exit0, `LIVE_ADMIN_HEALTHY`, postcheck exit0, smoke publik sama, cleanup 4 direktori. Backup
+  `/opt/osn/cadangan/deploy-lomba-penugasan-20261122/` + salinan lokal `mesin/cadangan/...` (gitignored).
+- Pasca-deploy: sakelar induk `OSN_LOMBA` hidup, `lomba_penugasan` 0 baris → **Mode Lomba belum tampil untuk anak mana
+  pun** sampai Guru mengaktifkan. 0 sesi lomba berjalan saat swap.
+- Rollback ke recovery 1206bc9 aman (tabel dikenali; gerbang kembali global). Rollback ke 4a6b93e/a8c587e: tabel diabaikan.
+
 ## Deploy UI Latihan Lomba + paket konfigurasi — 22 November 2026
 
 Controlled `deploy-v2` memasang **4a6b93e** (digest `sha256:1dd730e1…67f1`), healthy/restart0, menggantikan
