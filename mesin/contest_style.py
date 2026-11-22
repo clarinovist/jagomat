@@ -254,11 +254,28 @@ GAYA_HASIL = f"""
 .hl-tabel th, .hl-tabel td {{ text-align: left; padding: {T.SP_2}; border-bottom: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; vertical-align: top; }}
 .hl-tabel td.hl-angka {{ font-variant-numeric: tabular-nums; white-space: nowrap; }}
 .hl-daftar-sering {{ padding-left: {T.SP_5}; display: flex; flex-direction: column; gap: {T.SP_1}; }}
+.hl-chip {{
+  display: inline-block; max-width: 100%; padding: 0 {T.SP_3}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600;
+  overflow-wrap: anywhere; color: {T.ANAK_NETRAL_TEKS}; background: {T.ANAK_NETRAL_LATAR}; border-radius: {T.RADIUS_PIL};
+}}
+.hl-chip-cepat {{ color: {T.ANAK_PERHATIAN_TEKS}; background: {T.ANAK_PERHATIAN_LATAR}; border: {T.TEBAL_GARIS} solid {T.ANAK_PERHATIAN_BORDER}; }}
+.hl-riwayat-hp {{ display: none; list-style: none; padding: 0; flex-direction: column; gap: {T.SP_3}; }}
+.hl-sesi-hp {{
+  display: flex; flex-direction: column; gap: {T.SP_2}; min-width: 0; padding: {T.SP_3} {T.SP_4};
+  background: {T.ANAK_ABU_HANGAT}; border-radius: {T.RADIUS_SEDANG};
+}}
+.hl-sesi-atas {{ display: flex; align-items: baseline; justify-content: space-between; gap: {T.SP_3}; min-width: 0; }}
+.hl-sesi-tanggal {{ min-width: 0; overflow-wrap: anywhere; font-weight: 600; }}
+.hl-sesi-nilai {{ flex: none; font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; }}
+.hl-chip-baris {{ list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: {T.SP_2}; min-width: 0; }}
+.hl-sesi-lihat {{ display: inline-flex; align-items: center; align-self: flex-start; min-height: {T.TARGET_SENTUH}; font-weight: 700; }}
 
 @media (max-width: {T.ANAK_BATAS_HP}) {{
   .hl-kartu, .hl-soal {{ padding: {T.SP_4}; }}
   .hl-topik-baris {{ grid-template-columns: 1fr auto; }}
   .hl-topik-baris .hl-bar {{ grid-column: 1 / -1; order: 3; }}
+  .hl-riwayat-lebar {{ display: none; }}
+  .hl-riwayat-hp {{ display: flex; }}
 }}
 @media (min-width: {T.ANAK_BATAS_HP}) {{
   .hl-pilihan {{ grid-template-columns: 1fr 1fr; }}

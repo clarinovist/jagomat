@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import auth  # noqa: E402
 import contest_core as C  # noqa: E402
 import contest_guru_http  # noqa: E402
+import contest_results as R  # noqa: E402
 import contest_store as K  # noqa: E402
 import database  # noqa: E402
 from http_test_kit import SANDI_GURU, SANDI_MURID, ServerUji  # noqa: E402
@@ -94,7 +95,7 @@ def _jawaban(baris, benar):
     return huruf if benar else next(h for h in C.HURUF if h != huruf)
 
 
-def buat_sesi(s, siswa_id, urut, benar_sampai, jawab_sampai=10):
+def buat_sesi(s, siswa_id, urut, benar_sampai, jawab_sampai=10, lama=300):
     """Sesi selesai: soal <= benar_sampai benar, sampai jawab_sampai salah, sisanya kosong. Mulai T0 + urut*5000."""
     mulai = T0 + urut * JARAK_SESI
     with s.buka() as kon:
@@ -103,7 +104,7 @@ def buat_sesi(s, siswa_id, urut, benar_sampai, jawab_sampai=10):
             if baris["nomor"] <= jawab_sampai:
                 K.simpan_jawaban(kon, siswa_id, sesi.id, baris["nomor"], _jawaban(baris, baris["nomor"] <= benar_sampai),
                                  mulai + 10)
-        K.kumpulkan(kon, siswa_id, sesi.id, mulai + 300)
+        K.kumpulkan(kon, siswa_id, sesi.id, mulai + lama)
     return sesi.id
 
 
@@ -131,21 +132,26 @@ def test_progress_menampilkan_ringkasan_dengan_angka_yang_benar(s, empat_sesi):
 
     assert '<span class="hl-stat-nilai">4</span><span class="hl-stat-label">Sesi selesai</span>' in isi
     assert '<span class="hl-stat-nilai">9/10</span><span class="hl-stat-label">Nilai terbaik</span>' in isi
-    assert '<span class="hl-stat-nilai">6,0</span><span class="hl-stat-label">Rata-rata nilai</span>' in isi
     assert '<span class="hl-stat-nilai">9/10</span><span class="hl-stat-label">Nilai terakhir</span>' in isi
-    assert '<span class="hl-stat-nilai">naik 2,0</span>' in isi
+    assert '<span class="hl-stat-nilai">7,0</span><span class="hl-stat-label">Rata-rata 3 sesi terakhir</span>' in isi
+    assert '<span class="hl-stat-nilai">5,0</span><span class="hl-stat-label">Rata-rata 3 sesi pertama</span>' in isi
+    assert "naik 2,0" not in isi and "Tren (3 sesi" not in isi and "Rata-rata nilai" not in isi
 
 
 def test_progress_tren_belum_cukup_sesi_dan_turun(s):
     buat_sesi(s, s.anak, 1, 5)
     buat_sesi(s, s.anak, 2, 6)
-    assert "belum cukup sesi" in _halaman(s, f"/anak/{s.anak}/lomba")
+    isi_awal = _halaman(s, f"/anak/{s.anak}/lomba")
+    assert "Belum cukup sesi untuk melihat tren" in isi_awal and "Rata-rata 3 sesi" not in isi_awal
     buat_sesi(s, s.anak, 3, 4)
     buat_sesi(s, s.anak, 4, 2)
 
     isi = _halaman(s, f"/anak/{s.anak}/lomba")
 
-    assert '<span class="hl-stat-nilai">turun 1,0</span>' in isi    # nilai 5,6,4,2: rata-rata (6+4+2)/3 - (5+6+4)/3
+    # nilai 5,6,4,2: tiga terakhir (6+4+2)/3 = 4,0; tiga pertama (5+6+4)/3 = 5,0
+    assert '<span class="hl-stat-nilai">4,0</span><span class="hl-stat-label">Rata-rata 3 sesi terakhir</span>' in isi
+    assert '<span class="hl-stat-nilai">5,0</span><span class="hl-stat-label">Rata-rata 3 sesi pertama</span>' in isi
+    assert "Belum cukup sesi untuk melihat tren" not in isi
 
 
 def test_grafik_memuat_titik_per_sesi_dengan_nilai_dan_label_netral(s, empat_sesi):
@@ -202,7 +208,7 @@ def test_sesi_waktu_habis_tampil_sebagai_waktu_habis_di_riwayat(s):
 
     isi = _halaman(s, f"/anak/{s.anak}/lomba")
 
-    assert '<td class="hl-angka">Waktu habis</td>' in isi and f"/anak/{s.anak}/lomba/{sesi_id}" in isi and "15:00" in isi
+    assert '<td>Waktu habis' in isi and f"/anak/{s.anak}/lomba/{sesi_id}" in isi and "15:00" in isi
 
 
 def test_paling_sering_salah_urut_salah_terbanyak_dengan_label_dan_hitungan_dari_db(s, empat_sesi):
@@ -219,7 +225,7 @@ def test_paling_sering_salah_urut_salah_terbanyak_dengan_label_dan_hitungan_dari
     isi = _halaman(s, f"/anak/{s.anak}/lomba")
 
     daftar = re.findall(r"<li>([^<]*): salah (\d+) dari (\d+)</li>", isi)
-    assert daftar == [(re.sub(r"^(?:bil|ops|ukur|bgn)_", "", t).replace("_", " "), str(a[0]), str(a[1])) for t, a in urut]
+    assert daftar == [(R.label_jenis(t), str(a[0]), str(a[1])) for t, a in urut]
 
 
 def test_topik_dengan_persentase_benar_terendah_disebut(s, empat_sesi):
@@ -256,7 +262,8 @@ def test_sesi_berjalan_tidak_ikut_riwayat_progress(s, empat_sesi):
     isi = _halaman(s, f"/anak/{s.anak}/lomba")
 
     assert '<span class="hl-stat-nilai">4</span><span class="hl-stat-label">Sesi selesai</span>' in isi
-    assert len(re.findall(r">Lihat</a>", isi)) == 4
+    assert len(re.findall(r"<tr><td", isi)) == 4          # tabel layar lebar
+    assert len(re.findall(r'<li class="hl-sesi-hp">', isi)) == 4   # daftar kartu HP
 
 
 # --- halaman detail ------------------------------------------------------------------------------
@@ -520,3 +527,84 @@ def test_hanya_kartu_lomba_yang_berbeda_antara_gerbang_hidup_dan_mati_dan_tab_la
     for sec in ("rencana", "latihan", "riwayat"):
         assert hidup[sec] == mati[sec], sec
     assert hidup["perkembangan"].replace(contest_guru_pages.kartu_masuk(s.anak), "") == mati["perkembangan"]
+
+
+# --- sesi dikumpulkan cepat (asal kumpul) --------------------------------------------------------
+
+@pytest.fixture()
+def lima_sesi_satu_cepat(s):
+    """Nilai sah 3, 5, 7, 9 lalu satu sesi 10/10 yang dikumpulkan dalam 13 detik."""
+    ids = [buat_sesi(s, s.anak, urut, nilai) for urut, nilai in ((1, 3), (2, 5), (3, 7), (4, 9))]
+    ids.append(buat_sesi(s, s.anak, 5, 10, lama=13))
+    return ids
+
+
+def test_sesi_cepat_tidak_masuk_nilai_terbaik_tetapi_tetap_nilai_terakhir_dan_dihitung_di_label(s, lima_sesi_satu_cepat):
+    isi = _halaman(s, f"/anak/{s.anak}/lomba")
+
+    assert ('<span class="hl-stat-nilai">5</span><span class="hl-stat-label">'
+            'Sesi selesai (1 dikumpulkan cepat)</span>') in isi
+    assert '<span class="hl-stat-nilai">9/10</span><span class="hl-stat-label">Nilai terbaik</span>' in isi
+    assert '<span class="hl-stat-nilai">10/10</span><span class="hl-stat-label">Nilai terakhir</span>' in isi
+
+
+def test_grafik_menggambar_titik_sesi_cepat_abu_abu_dengan_keterangan(s, lima_sesi_satu_cepat):
+    isi = _halaman(s, f"/anak/{s.anak}/lomba")
+
+    assert len(re.findall(r'<circle [^>]*data-redup="1"', isi)) == 1
+    assert "Sesi 5: nilai 10 (dikumpulkan cepat)" in isi
+    assert "Titik abu-abu = dikumpulkan cepat, tidak dihitung di rata-rata." in isi
+
+
+def test_tanpa_sesi_cepat_grafik_tidak_punya_titik_abu_atau_keterangan(s, empat_sesi):
+    isi = _halaman(s, f"/anak/{s.anak}/lomba")
+
+    assert "data-redup" not in isi and "Titik abu-abu" not in isi and "Dikumpulkan cepat" not in isi
+
+
+def test_riwayat_menandai_sesi_cepat_di_tabel_dan_di_kartu_hp(s, lima_sesi_satu_cepat):
+    isi = _halaman(s, f"/anak/{s.anak}/lomba")
+
+    assert isi.count("Dikumpulkan cepat") == 2     # satu di tabel, satu di kartu HP (sesi sah tidak ditandai)
+    assert '<td>Selesai <span class="hl-chip hl-chip-cepat">Dikumpulkan cepat</span></td>' in isi
+
+
+def test_kartu_hp_memuat_nilai_waktu_chip_topik_pendek_isi_dan_tautan_lihat(s, lima_sesi_satu_cepat):
+    isi = _halaman(s, f"/anak/{s.anak}/lomba")
+    tautan = re.findall(r'<a class="hl-sesi-lihat" href="([^"]+)">Lihat</a>', isi)
+    pertama = re.search(r'<li class="hl-sesi-hp">(.*?)<a class="hl-sesi-lihat"', isi).group(1)   # terbaru = cepat
+
+    assert len(tautan) == 5 and tautan[0].endswith(f"/lomba/{lima_sesi_satu_cepat[4]}")
+    assert '<strong class="hl-sesi-nilai">10/10</strong>' in pertama
+    assert '<li class="hl-chip">00:13</li>' in pertama
+    assert '<li class="hl-chip hl-chip-cepat">Dikumpulkan cepat</li>' in pertama
+    assert "10 dari 10 diisi" in pertama
+    assert re.search(r'<li class="hl-chip">(Bil|Operasi|Ukur|Bangun) \d+/\d+</li>', pertama)
+    assert "Bangun Datar/Ruang" not in pertama and "Operasi Hitung" not in pertama
+
+
+def test_kartu_hp_sesi_waktu_habis_memberi_chip_status_dan_jumlah_terisi(s):
+    buat_sesi_berjalan(s, s.anak, T0)
+    with s.buka() as kon:
+        K.tutup_yang_habis(kon, s.anak, T0 + 900)
+
+    isi = _halaman(s, f"/anak/{s.anak}/lomba")
+
+    assert '<li class="hl-chip">Waktu habis</li>' in isi and "0 dari 10 diisi" in isi
+    assert '<li class="hl-chip hl-chip-cepat">Dikumpulkan cepat</li>' in isi    # terisi 0 < 3
+
+
+def test_css_menyembunyikan_salah_satu_riwayat_menurut_lebar_layar(s, empat_sesi):
+    isi = _halaman(s, f"/anak/{s.anak}/lomba")
+
+    assert ".hl-riwayat-hp { display: none;" in isi
+    assert re.search(r"@media \(max-width: [^)]+\) \{[^@]*\.hl-riwayat-lebar \{ display: none; \}", isi)
+
+
+def test_semua_sesi_cepat_menampilkan_tanda_strip_dan_belum_cukup_tren(s):
+    buat_sesi(s, s.anak, 1, 10, lama=13)
+
+    isi = _halaman(s, f"/anak/{s.anak}/lomba")
+
+    assert '<span class="hl-stat-nilai">&ndash;</span><span class="hl-stat-label">Nilai terbaik</span>' in isi
+    assert "Belum cukup sesi untuk melihat tren" in isi

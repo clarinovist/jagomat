@@ -225,11 +225,147 @@ def test_jenis_sering_salah_hanya_menghitung_soal_anak_itu(kon, anak, anak_lain)
     assert R.jenis_sering_salah(kon, anak, SEKARANG + 99999) == ()
 
 
+
+
+# --- sesi dikumpulkan asal (asal_kumpul) ------------------------------------------------------
+
+def _riwayat(kon, anak):
+    return R.riwayat_sesi(kon, anak, SEKARANG + 999999)
+
+
+@pytest.mark.parametrize("detik,diharap", [(119, True), (120, False), (13, True), (300, False)])
+def test_batas_waktu_sesi_di_bawah_120_detik_asal_kumpul(kon, anak, detik, diharap):
+    _sesi(kon, anak, 1, benar_sampai=5, selesai_setelah=detik)
+    sesi = _riwayat(kon, anak)[0]
+    assert (sesi.waktu_terpakai_detik, sesi.terisi, sesi.asal_kumpul) == (detik, 10, diharap)
+
+
+@pytest.mark.parametrize("terisi,diharap", [(2, True), (3, False), (0, True), (10, False)])
+def test_batas_terisi_kurang_dari_tiga_soal_asal_kumpul(kon, anak, terisi, diharap):
+    _sesi(kon, anak, 1, benar_sampai=5, jawab_sampai=terisi, selesai_setelah=300)
+    sesi = _riwayat(kon, anak)[0]
+    assert (sesi.terisi, sesi.asal_kumpul) == (terisi, diharap)
+
+
+def test_riwayat_tetap_memuat_semua_sesi_selesai_termasuk_asal_kumpul_berurutan(kon, anak):
+    ids = [_sesi(kon, anak, 1, 5), _sesi(kon, anak, 2, 10, selesai_setelah=13), _sesi(kon, anak, 3, 4)]
+    riwayat = _riwayat(kon, anak)
+    assert [s.sesi_id for s in riwayat] == ids
+    assert [s.asal_kumpul for s in riwayat] == [False, True, False]
+
+
+def test_nilai_ringkas_sesi_asal_kumpul_tetap_apa_adanya(kon, anak):
+    _sesi(kon, anak, 1, benar_sampai=7, selesai_setelah=13)
+    sesi = _riwayat(kon, anak)[0]
+    assert sesi.nilai == 7 and sesi.jumlah_soal == 10
+
+
+def test_progres_campuran_agregat_hanya_dari_sesi_sah_tetapi_jumlah_dan_terakhir_semua(kon, anak):
+    _sesi(kon, anak, 1, benar_sampai=4)
+    _sesi(kon, anak, 2, benar_sampai=6)
+    _sesi(kon, anak, 3, benar_sampai=10, selesai_setelah=119)     # asal kumpul, nilai tertinggi
+    p = R.progres(kon, anak, SEKARANG + 999999)
+    assert (p.jumlah, p.jumlah_asal_kumpul) == (3, 1)
+    assert p.terbaik == 6 and p.rata_rata == 5.0
+    assert p.terakhir == 10                                       # nilai sesi terakhir, semua sesi
+    assert sum(n.total for n in p.per_topik_total) == 20          # hanya dua sesi sah
+    assert sum(n.benar for n in p.per_topik_total) == 10
+
+
+def test_progres_sesi_asal_kumpul_karena_terisi_sedikit_juga_dikecualikan(kon, anak):
+    _sesi(kon, anak, 1, benar_sampai=6)
+    _sesi(kon, anak, 2, benar_sampai=2, jawab_sampai=2)           # terisi 2 -> asal kumpul
+    p = R.progres(kon, anak, SEKARANG + 999999)
+    assert (p.jumlah, p.jumlah_asal_kumpul, p.terbaik, p.rata_rata) == (2, 1, 6, 6.0)
+
+
+def test_progres_semua_sesi_asal_kumpul_tanpa_terbaik_rata_tren_dan_topik(kon, anak):
+    _sesi(kon, anak, 1, benar_sampai=9, selesai_setelah=10)
+    _sesi(kon, anak, 2, benar_sampai=3, selesai_setelah=50)
+    p = R.progres(kon, anak, SEKARANG + 999999)
+    assert (p.jumlah, p.jumlah_asal_kumpul) == (2, 2)
+    assert (p.terbaik, p.rata_rata, p.rata_awal, p.rata_akhir, p.selisih_tren) == (None, None, None, None, None)
+    assert p.terakhir == 3 and p.per_topik_total == ()
+
+
+def test_progres_hanya_sesi_asal_kumpul_dengan_banyak_sesi_tetap_tanpa_tren(kon, anak):
+    for urut in range(1, 6):
+        _sesi(kon, anak, urut, benar_sampai=urut, selesai_setelah=30)
+    p = R.progres(kon, anak, SEKARANG + 999999)
+    assert p.jumlah == 5 and p.rata_awal is None and p.rata_akhir is None
+
+
+def test_tren_rata_tiga_sesi_sah_pertama_dan_terakhir_mengabaikan_sesi_cepat(kon, anak):
+    for urut, benar in enumerate([2, 4, 6, 8, 10], start=1):
+        _sesi(kon, anak, urut, benar_sampai=benar)
+    _sesi(kon, anak, 6, benar_sampai=0, selesai_setelah=5)        # cepat, nilai 0: tak boleh menurunkan rata-rata
+    p = R.progres(kon, anak, SEKARANG + 999999)
+    assert p.rata_awal == pytest.approx(4.0) and p.rata_akhir == pytest.approx(8.0)
+    assert p.selisih_tren == pytest.approx(4.0)
+
+
+def test_tren_none_bila_sesi_sah_kurang_dari_empat_walau_total_sesi_cukup(kon, anak):
+    for urut, benar in enumerate([2, 4, 6], start=1):
+        _sesi(kon, anak, urut, benar_sampai=benar)
+    _sesi(kon, anak, 4, benar_sampai=10, selesai_setelah=5)
+    p = R.progres(kon, anak, SEKARANG + 999999)
+    assert p.jumlah == 4 and p.rata_awal is None and p.rata_akhir is None and p.selisih_tren is None
+
+
+def test_tren_muncul_tepat_pada_empat_sesi_sah(kon, anak):
+    for urut, benar in enumerate([2, 3, 4, 8], start=1):
+        _sesi(kon, anak, urut, benar_sampai=benar)
+    p = R.progres(kon, anak, SEKARANG + 999999)
+    assert p.rata_awal == pytest.approx(3.0) and p.rata_akhir == pytest.approx(5.0)
+
+
+def test_jenis_sering_salah_tidak_menghitung_sesi_asal_kumpul(kon, anak):
+    _sesi(kon, anak, 1, benar_sampai=10)
+    _sesi(kon, anak, 2, benar_sampai=0, selesai_setelah=13)       # semua salah tetapi asal kumpul
+    assert R.jenis_sering_salah(kon, anak, SEKARANG + 999999) == ()
+
+
+def test_jenis_sering_salah_tetap_menghitung_sesi_sah_di_samping_yang_asal_kumpul(kon, anak):
+    _sesi(kon, anak, 1, benar_sampai=0)
+    _sesi(kon, anak, 2, benar_sampai=0, selesai_setelah=13)
+    hasil = R.jenis_sering_salah(kon, anak, SEKARANG + 999999)
+    assert hasil and all(j.total == 1 and j.salah == 1 for j in hasil)    # hanya sesi pertama
+
+
+# --- label jenis untuk Guru --------------------------------------------------------------------
+
+def _semua_id_template():
+    import contest_templates  # noqa: F401  (mendaftarkan semua modul template)
+    return [t.id for t in C.semua()]
+
+
+def test_setiap_template_terdaftar_punya_label_jenis_unik_tidak_kosong_dan_pendek():
+    ids = _semua_id_template()
+    labels = [R.label_jenis(i) for i in ids]
+    assert len(ids) >= 30                                         # registry terisi penuh, bukan kosong
+    assert all(i in R.LABEL_JENIS for i in ids)
+    assert all(label.strip() and len(label) <= 60 for label in labels)
+    assert len(set(labels)) == len(labels)
+    assert all("_" not in label for label in labels)
+
+
+def test_tabel_label_jenis_tidak_memuat_id_yang_tak_terdaftar():
+    assert set(R.LABEL_JENIS) <= set(_semua_id_template())
+
+
 @pytest.mark.parametrize("id_template,label", [
-    ("bil_pola_berulang", "pola berulang"),
-    ("ops_inggris_dua_langkah", "inggris dua langkah"),
-    ("ukur_kalender_n_hari_lagi", "kalender n hari lagi"),
-    ("bgn_persegi_kisi", "persegi kisi"),
+    ("bgn_persegi_kisi", "Menghitung persegi di papan kotak"),
+    ("bil_pola_berulang", "Pola berulang"),
+    ("ops_ayam_kambing", "Kaki ayam dan kambing (jumlah kepala dan kaki)"),
+    ("ops_umur", "Selisih umur"),
 ])
-def test_label_jenis_membuang_awalan_topik_dan_garis_bawah(id_template, label):
+def test_label_jenis_memakai_tabel_label_ramah_guru(id_template, label):
+    assert R.label_jenis(id_template) == label
+
+
+@pytest.mark.parametrize("id_template,label", [
+    ("bil_pola_tak_dikenal", "pola tak dikenal"),
+    ("ops_inggris_baru_sekali", "inggris baru sekali"),
+])
+def test_label_jenis_id_tak_dikenal_jatuh_ke_perilaku_lama(id_template, label):
     assert R.label_jenis(id_template) == label
