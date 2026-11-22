@@ -1328,6 +1328,20 @@ tr.sorot-baru, div.sorot-baru {{
   box-shadow: {T.BAYANGAN_FOKUS_RINGAN};
 }}
 
+/* Pilihan keluarga (radio-kartu) untuk form guru di luar tab Latihan: laporan orang tua, Mode Lomba. */
+.pilihan-kartu-st {{ display: grid; gap: {T.SP_2}; margin: 0; padding: 0; border: 0; min-width: 0; }}
+.pilihan-kartu-st legend {{ padding: 0; margin-bottom: {T.SP_2}; font-weight: 700; color: {T.TEKS_JUDUL}; }}
+.pilihan-kartu-st .pilihan-kartu-opsi-st {{
+  display: flex; align-items: center; gap: {T.SP_3}; margin: 0; min-height: {T.TARGET_SENTUH}; box-sizing: border-box;
+  padding: {T.SP_3} {T.SP_4}; background: {T.LATAR_KARTU}; border: 1px solid {T.ANAK_BORDER_PIL};
+  border-radius: {T.RADIUS_KARTU}; font-weight: 600; color: {T.TEKS_JUDUL}; cursor: pointer;
+}}
+.pilihan-kartu-st .pilihan-kartu-opsi-st:has(:checked) {{
+  padding: calc({T.SP_3} - 1px) calc({T.SP_4} - 1px); background: {T.ANAK_AKSEN_LATAR}; border: 2px solid {T.ANAK_AKSEN};
+}}
+.pilihan-kartu-st .pilihan-kartu-opsi-st:has(:focus-visible) {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
+.pilihan-kartu-st input[type=radio] {{ flex: none; width: 1.25rem; height: 1.25rem; margin: 0; accent-color: {T.ANAK_AKSEN}; }}
+
 /* Batas waktu adalah opsi Latihan Cepat, bukan mode latihan ketiga.
    Fallback browser tanpa :has(): tampilkan panel agar kontrol tidak hilang. */
 .pengaturan-timer {{
@@ -3283,16 +3297,20 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
   padding: 0; margin: {T.SP_3} 0; list-style: none;
 }}
 .koreksi-editorial-st .antrean-tinjauan-st a {{
-  display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_3};
-  color: {T.AKSEN_TEAL_TUA}; border: {T.TEBAL_GARIS} solid {T.BORDER_VARIAN}; border-radius: {T.RADIUS_KECIL};
+  display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; box-sizing: border-box; padding: 0 {T.SP_4};
+  color: {T.ANAK_TEKS_REDUP}; border: 1px solid {T.ANAK_BORDER_PIL}; border-radius: {T.RADIUS_PIL};
+  background: {T.LATAR_KARTU}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 600; text-decoration: none;
 }}
+.koreksi-editorial-st .antrean-tinjauan-st a:hover {{ border-color: {T.ANAK_AKSEN}; }}
 .koreksi-editorial-st .antrean-tinjauan-st a:focus-visible,
 .koreksi-editorial-st .koreksi-kartu-st[tabindex]:focus {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
 .koreksi-editorial-st .koreksi-kartu-st[tabindex] {{ scroll-margin-top: 11rem; }}
 .koreksi-editorial-st form[id^="form-koreksi-"] {{ scroll-padding-top: 11rem; }}
 
 /* Tinjauan progresif: kontrol di details tetap dikirim oleh form native. */
-.koreksi-editorial-st .koreksi-pengantar-st {{ background: none; border: 0; padding: {T.SP_2} 0; margin-bottom: {T.SP_3}; }}
+.koreksi-editorial-st .koreksi-pengantar-st {{ background: none; border: 0; padding: {T.SP_2} 0; margin-bottom: {T.SP_3}; animation: none; opacity: 1; }}
+.koreksi-pengantar-st b {{ font-size: {T.UKURAN_BAGIAN_DEWASA}; line-height: 1.4; color: {T.TEKS_JUDUL}; }}
+.koreksi-pengantar-st p {{ color: {T.TEKS_VARIAN}; opacity: 1; }}
 .koreksi-editorial-st .koreksi-lipat-st {{ display: block; padding: 0; box-shadow: none; }}
 .koreksi-editorial-st .koreksi-lipat-st > summary {{
   cursor: pointer; min-height: {T.TARGET_SENTUH}; padding: {T.SP_4};
@@ -3438,14 +3456,14 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 }}
 .koreksi-simpan-st button {{
   width: 100%; font-size: 1.05rem; padding: .9rem;
-  background: {T.AKSEN_KORAL_TUA}; color: {T.TEKS_PUTIH};
+  background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH};
   border: 0; border-radius: {T.RADIUS_SEDANG};
   font-family: {T.FONT_HEADLINE}; font-weight: 700; cursor: pointer;
   min-height: {T.TINGGI_KONTROL};
   display: flex; align-items: center; justify-content: center; gap: {T.SP_2};
-  box-shadow: {T.BAYANGAN_SIMPAN};
+  box-shadow: none;
 }}
-.koreksi-simpan-st button:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
+.koreksi-simpan-st button:hover {{ background: {T.AKSEN_TEAL_HOVER}; }}
 .koreksi-simpan-st:has(button[formaction]) button:not([formaction]) {{
   background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA};
   border: {T.TEBAL_GARIS} solid {T.BORDER_HALUS}; box-shadow: none;
@@ -3553,8 +3571,8 @@ details[open] > *:not(summary) {{ animation: masuk-st {T.DURASI_STANDAR} ease-ou
 }}
 .pendamping-editorial-st .panduan-sesi-st .panduan-aksi-utama-st button,
 .panduan-rencana-st {{
-  color: {T.TEKS_PUTIH}; background: {T.AKSEN_KORAL_TUA};
-  border: {T.TEBAL_GARIS} solid {T.AKSEN_KORAL_TUA};
+  color: {T.TEKS_PUTIH}; background: {T.AKSEN_TEAL_TUA};
+  border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA};
 }}
 .pendamping-editorial-st .panduan-sesi-st .panduan-aksi-sekunder-st button {{
   color: {T.TEKS_JUDUL}; background: {T.LATAR_KARTU};

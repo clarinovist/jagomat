@@ -59,6 +59,19 @@ GAYA_LATIHAN = f"""
 }}
 {_R} .latihan-aksi-st button:hover:not(:disabled) {{ background: {T.ANAK_AKSEN_HOVER}; }}
 {_R} .latihan-aksi-st p {{ margin: 0; color: {T.ANAK_TEKS_BANTUAN}; }}
+{_R} .diagnostik-baku-st {{ margin-top: {T.SP_5}; padding-top: {T.SP_5}; border-top: 1px solid {T.ANAK_BORDER}; }}
+{_R} .diagnostik-baku-st h3 {{ margin: 0 0 {T.SP_1}; }}
+{_R} .diagnostik-baku-st > p {{ margin: 0 0 {T.SP_3}; }}
+{_R} .diagnostik-baku-st .latihan-field-grid {{ align-items: end; }}
+{_R} .diagnostik-baku-st select {{ margin-bottom: 0; }}
+{_R} .diagnostik-baku-st .latihan-aksi-st {{ align-items: flex-end; }}
+{_R} .diagnostik-baku-st .latihan-aksi-st button,
+{_R} .diagnostik-baku-st .latihan-aksi-st button:hover:not(:disabled) {{
+  min-height: {T.TINGGI_KONTROL}; padding: 0 {T.SP_4}; background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA};
+  border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_SEDANG};
+  font: 700 {T.UKURAN_TEKS_LABEL}/1.4 {T.FONT_HEADLINE};
+}}
+{_R} .diagnostik-baku-st .latihan-aksi-st button:hover:not(:disabled) {{ background: {T.ANAK_AKSEN_LATAR}; }}
 @media (max-width: {T.ANAK_BATAS_HP}) {{
   {_R} .latihan-terpadu-st {{ padding: {T.SP_4}; }}
 }}

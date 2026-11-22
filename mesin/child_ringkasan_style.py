@@ -11,6 +11,18 @@ GAYA_RINGKASAN = f"""
 {_R} .peta-materi-st.kartu-st {{{_KARTU} padding: {T.SP_6};
 }}
 {_R} .peta-materi-st.kartu-st > * {{ margin: 0; }}
+{_R} :is(.laporan-ortu-masuk-st, .lomba-masuk-st).kartu-st {{{_KARTU} padding: {T.SP_6}; gap: {T.SP_3}; }}
+{_R} :is(.laporan-ortu-masuk-st, .lomba-masuk-st).kartu-st > * {{ margin: 0; }}
+{_R} :is(.laporan-ortu-masuk-st, .lomba-masuk-st) h2 {{ font-size: 1.25rem; font-weight: 800; color: {T.ANAK_TEKS}; }}
+{_R} :is(.laporan-ortu-masuk-st, .lomba-masuk-st) p {{ font-size: {T.UKURAN_BADAN_LAYAR}; color: {T.ANAK_TEKS_REDUP}; }}
+{_R} .kartu-masuk-aksi-st {{
+  display: inline-flex; align-items: center; justify-content: center; align-self: flex-start;
+  min-height: {T.TINGGI_KONTROL}; box-sizing: border-box; padding: {T.SP_2} {T.SP_4};
+  color: {T.AKSEN_TEAL_TUA}; background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA};
+  border-radius: {T.RADIUS_SEDANG}; text-decoration: none; font: 700 {T.UKURAN_TEKS_LABEL}/1.4 {T.FONT_HEADLINE};
+}}
+{_R} .kartu-masuk-aksi-st:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}
+{_R} .kartu-masuk-aksi-st:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 {_R} .peta-materi-st.kartu-st .peta-angka {{
   font-size: {T.UKURAN_JUDUL_STITCH}; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; color: {T.ANAK_TEKS};
 }}

@@ -57,7 +57,7 @@ def kartu_masuk(siswa_id: int, aktif: bool) -> str:
         '<section class="kartu-st lomba-masuk-st"><h2>Mode Lomba</h2>'
         f'<p class="lomba-masuk-status">{_e(status)}</p>'
         "<p>Atur Mode Lomba anak ini, lihat nilai, perkembangan, dan jenis soal yang paling sering salah.</p>"
-        f'<p><a class="btn-st" href="{alamat_progres(siswa_id)}">Atur Mode Lomba</a></p></section>')
+        f'<a class="kartu-masuk-aksi-st" href="{alamat_progres(siswa_id)}">Atur Mode Lomba</a></section>')
 
 
 def _opsi(nilai: str, label: str, terpilih: bool) -> str:
@@ -85,8 +85,8 @@ def kartu_pengaturan(siswa, penugasan: Optional[AS.Penugasan], tersimpan: bool =
     nama = _e(siswa["nama"])
     aktif = penugasan is not None and penugasan.aktif
     pesan = f'<p class="hl-pesan-simpan" role="status">{PESAN_TERSIMPAN}</p>' if tersimpan else ""
-    status = (f'<p><span class="hl-status hl-benar">Aktif untuk {nama}</span></p>' if aktif
-              else '<p><span class="hl-status hl-kosong-jawab">Belum aktif</span></p>')
+    status = (f'<p><span class="hl-lencana-st hl-lencana-aktif-st">Aktif untuk {nama}</span></p>' if aktif
+              else '<p><span class="hl-lencana-st hl-lencana-netral-st">Belum aktif</span></p>')
     centang = " checked" if _hitung_mundur_tampil(penugasan) else ""
     return (
         '<section class="hl-kartu" aria-labelledby="judul-mode-lomba"><h2 id="judul-mode-lomba">Mode Lomba</h2>'
@@ -94,9 +94,9 @@ def kartu_pengaturan(siswa, penugasan: Optional[AS.Penugasan], tersimpan: bool =
         f'<p class="hl-sub">Setelah aktif, {nama} melihat Mode Lomba di berandanya dan bisa berlatih '
         f"{PK.PAKET_AKTIF.jumlah_soal} soal dalam {PK.PAKET_AKTIF.durasi_menit} menit.</p>"
         f'<form class="hl-form" method="post" action="{alamat_pengaturan(sid)}">'
-        "<fieldset><legend>Mode Lomba</legend>"
-        f'<label><input type="radio" name="aktif" value="1"{" checked" if aktif else ""}> Aktif</label>'
-        f'<label><input type="radio" name="aktif" value="0"{"" if aktif else " checked"}> Belum aktif</label></fieldset>'
+        '<fieldset class="pilihan-kartu-st"><legend>Mode Lomba</legend>'
+        f'<label class="pilihan-kartu-opsi-st"><input type="radio" name="aktif" value="1"{" checked" if aktif else ""}> Aktif</label>'
+        f'<label class="pilihan-kartu-opsi-st"><input type="radio" name="aktif" value="0"{"" if aktif else " checked"}> Belum aktif</label></fieldset>'
         '<label class="hl-isian">Target latihan harian'
         f'<select name="target">{_pilihan_target(penugasan)}</select></label>'
         f'<label><input type="checkbox" name="hitung_mundur" value="1"{centang}> '

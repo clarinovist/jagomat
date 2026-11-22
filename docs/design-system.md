@@ -169,6 +169,10 @@ dependensi runtime.
 | `batas_kontrol` | `BORDER_KONTROL` | `BORDER_KONTROL` | `ADMIN_BORDER_KUAT_CERAH` |
 | `fokus` | `FOKUS_AKSEN` (= `AKSEN_TEAL_TUA`) | `AKSEN_TEAL_TUA` | `ADMIN_AKSEN_CERAH` (= `AKSEN_TEAL_TUA`) |
 
+Keputusan pemilik 22 Nov 2026: semua permukaan **guru** (ruang guru, profil anak, akun, tinjauan
+sesi `/sesi/<id>`, laporan, lomba) memakai `aksi_utama` teal; koral hanya untuk publik dan murid.
+Tombol simpan/konfirmasi tinjauan sesi (`.koreksi-simpan-st`) dan `.panduan-rencana-st` mengikuti ini.
+
 Peta lengkap (badge, chip, pill kode, galat/sukses) dibaca lewat
 `design_roles.peta_peran("<permukaan>")`. Komponen baru yang memperkenalkan pasangan
 warna teks/latar atau batas kontrol menambahkan pasangannya ke `design_roles.py`.

@@ -23,6 +23,9 @@ _GAYA = f"""<style>
 .lap-guru table{{width:100%;border-collapse:collapse}}
 .lap-guru th,.lap-guru td{{text-align:left;padding:{T.SP_2};border-bottom:1px solid {T.BORDER_HALUS}}}
 .lap-guru input[type=text]{{width:100%}}
+.lap-guru .lap-tanggal-st{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:{T.SP_4};margin-top:{T.SP_4}}}
+.lap-guru .lap-tanggal-st label{{margin-top:0}}
+@media (max-width:{T.ANAK_BATAS_HP}){{.lap-guru .lap-tanggal-st{{grid-template-columns:minmax(0,1fr)}}}}
 {halaman.GAYA_LO}
 </style>"""
 
@@ -54,7 +57,7 @@ def kartu_masuk(siswa_id: int) -> str:
     return (
         '<section class="kartu-st laporan-ortu-masuk-st"><h2>Laporan untuk orang tua</h2>'
         "<p>Bagikan ringkasan sederhana tanpa skor lewat tautan baca-saja yang bisa dicabut.</p>"
-        f'<p><a class="btn-st" href="/anak/{siswa_id}/laporan-ortu">Laporan untuk orang tua</a></p></section>'
+        f'<a class="kartu-masuk-aksi-st" href="/anak/{siswa_id}/laporan-ortu">Laporan untuk orang tua</a></section>'
     )
 
 
@@ -66,13 +69,15 @@ def halaman_daftar(siswa, daftar, tautan, ident, *, hanya_lihat=False, galat="")
         form = (
             f'<form method="post" action="/anak/{sid}/laporan-ortu" class="kartu-st">'
             "<h2>Buat laporan baru</h2>"
-            '<fieldset><legend>Periode</legend>'
-            '<p><label><input type="radio" name="periode" value="30hari" checked> 30 hari terakhir</label></p>'
-            '<p><label><input type="radio" name="periode" value="bulan"> Bulan ini</label></p>'
-            '<p><label><input type="radio" name="periode" value="rentang"> Dari – sampai</label></p>'
-            '<label for="dari">Dari</label><input id="dari" type="date" name="dari">'
-            '<label for="sampai">Sampai</label><input id="sampai" type="date" name="sampai"></fieldset>'
-            '<p class="sub">Laporan memuat topik latihan yang sudah kamu periksa, tahap belajar, dan langkah '
+            '<fieldset class="pilihan-kartu-st"><legend>Periode</legend>'
+            '<label class="pilihan-kartu-opsi-st"><input type="radio" name="periode" value="30hari" checked> 30 hari terakhir</label>'
+            '<label class="pilihan-kartu-opsi-st"><input type="radio" name="periode" value="bulan"> Bulan ini</label>'
+            '<label class="pilihan-kartu-opsi-st"><input type="radio" name="periode" value="rentang"> Dari – sampai</label></fieldset>'
+            '<div class="lap-tanggal-st"><div><label for="dari">Dari</label>'
+            '<input class="st-input" id="dari" type="date" name="dari"></div>'
+            '<div><label for="sampai">Sampai</label>'
+            '<input class="st-input" id="sampai" type="date" name="sampai"></div></div>'
+            '<p class="sub">Laporan memuat topik latihan yang sudah Anda periksa, tahap belajar, dan langkah '
             "berikutnya. Tanpa skor, tanpa kode, tanpa nama pola soal.</p>"
             '<div class="baris-aksi"><button class="btn-st" type="submit">Buat draf laporan</button></div></form>'
         )

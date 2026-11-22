@@ -355,6 +355,13 @@ GAYA_PENGATURAN = f"""
   background: {T.LATAR_KARTU}; border: 2px solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_SEDANG};
 }}
 .hl-form .btn-st {{ align-self: flex-start; }}
+.hl-form select {{ min-height: {T.TINGGI_KONTROL}; }}
+.hl-lencana-st {{
+  display: inline-flex; align-items: center; border-radius: {T.RADIUS_PIL}; padding: {T.SP_1} {T.SP_3};
+  font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; line-height: 1.4;
+}}
+.hl-lencana-aktif-st {{ background: {T.ANAK_BAIK_LATAR}; color: {T.ANAK_BAIK_TEKS}; }}
+.hl-lencana-netral-st {{ background: {T.ANAK_NETRAL_LATAR}; color: {T.ANAK_NETRAL_TEKS}; }}
 """
 
 # ===== kartu Lomba di beranda murid (dimuat HANYA saat sakelar Lomba hidup; beranda lain tidak berubah) =====

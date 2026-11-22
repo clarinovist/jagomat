@@ -129,14 +129,14 @@ def render(kon, siswa, *, mode='manual', draf_latihan=None, draf_gabungan=None,
         for lv in LEVEL
     )
     kartu_diagnostik = (
-        f'<form class="eksplorasi-opsional-st" method="post" action="/sesi-diagnostik/{sid}">'
+        f'<form class="eksplorasi-opsional-st diagnostik-baku-st" method="post" action="/sesi-diagnostik/{sid}">'
         '<h3 class="st">Tes Diagnostik Baku (Isian + Berpasangan)</h3>'
         '<p><small>2 butir berpasangan per konsep + triase prasyarat awal. Terkunci mode Isian untuk diagnosis tajam.</small></p>'
         '<div class="latihan-field-grid"><div>'
         f'<label for="diagnostik-level-{sid}">Jenjang tes</label>'
         f'<select class="st-input" id="diagnostik-level-{sid}" name="level">{opsi_diagnostik}</select>'
         '</div><div class="latihan-aksi-st">'
-        '<button type="submit" class="st-tombol-sekunder">Buat Tes Diagnostik Baku</button>'
+        '<button type="submit">Buat Tes Diagnostik Baku</button>'
         '</div></div></form>'
     )
     import skill_pilot_ui
