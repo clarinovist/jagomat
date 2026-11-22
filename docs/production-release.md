@@ -12,6 +12,18 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy font lokal & CSP tanpa Google — 23 November 2026
+
+Controlled `deploy-v2` memasang **7eaaf9d** (digest `sha256:4ddac0b4…d1ad`), healthy, menggantikan **bcfe8e2**.
+Isi (9439dfa + 7eaaf9d): CSP membuka host Google hanya bila halaman memuatnya, font lokal di halaman publik/pesan/
+Pusat Cek anak/riset/foto lembar, halaman pesan memakai lockup topbar guru, teks soal hasil Lomba pakai token,
+tombol mode Lomba dua baris. Tanpa skema: kontrak tetap `bf0b1398…`, recovery tetap **3bd368e** (digest build ini
+`sha256:dbe70b9a…bbf8`). Dispatch [45075498916](https://github.com/clarinovist/jagomat/actions/runs/45075498916).
+Kit `deploy-font-lokal-20261123`: approval diarsipkan, `PERSIAPAN_OK`, backup lima file + riset, rehearsal C–B–C,
+`deploy-v2` exit0, `LIVE_ADMIN_HEALTHY`, postcheck exit0 (`history_hash_preserved`). Smoke publik: `/` 200,
+`/akun` 401, `/murid/` 303, CSP `/masuk` `font-src 'self'` tanpa host Google. Cleanup rehearsal kit ini dan kit
+`selaras-anak-20261122` dijalankan (backup tetap).
+
 ## Deploy area anak selaras design system — 22 November 2026
 
 Controlled `deploy-v2` memasang **bcfe8e2** (digest `sha256:bfbfae09…d3e8`), healthy, menggantikan **6770f5b**.
