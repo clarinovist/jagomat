@@ -97,7 +97,7 @@ def validasi_workflow(teks, config):
         raise ValueError("Gate pemasangan tidak cocok dengan mode rilis.")
     revision = config["recovery_revision"]
     if (re.findall(r"^  RECOVERY_SHA: ([0-9a-f]{40})$", teks, re.M) != [revision]
-            or re.findall(r"^          ref: ([0-9a-f]{40})$", teks, re.M) != [revision, revision]):
+            or re.findall(r"^          ref: ([0-9a-f]{40})$", teks, re.M) != [revision]):
         raise ValueError("Checkout recovery tidak cocok dengan konfigurasi.")
     # Secret SSH tetap hanya dalam job yang dipagari; bukan build/test/summary.
     sebelum = teks.split("  pasang:\n", 1)[0]

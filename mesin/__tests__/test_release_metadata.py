@@ -114,7 +114,8 @@ def test_image_workflow_tetap_cocok_saat_repo_github_diganti_nama():
     # Pemakaian lain (termasuk tags atau override IMAGE) tetap ditolak.
     pemakai = [baris.strip() for baris in teks.splitlines()
                if "${{ github.repository }}" in baris]
-    assert pemakai == ["GH_REPO: ${{ github.repository }}"]
+    # Sejak job recovery dihapus dari CI (7b299cc) tidak ada lagi pemakai GH_REPO; yang lain tetap ditolak.
+    assert all(p == "GH_REPO: ${{ github.repository }}" for p in pemakai)
 
 
 @pytest.mark.parametrize("tambahan", [
