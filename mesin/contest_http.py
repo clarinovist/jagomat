@@ -7,6 +7,11 @@ sehingga `student_http` yang menjawab seperti biasa (404 yang sama dengan jalur 
 Palang: hanya murid yang masuk; sesi/hasil milik anak lain, id tak ada, id bukan angka, dan nomor soal
 di luar 1-10 semuanya dijawab 404 yang byte-identik dengan jalur tak dikenal. Waktu selalu dari jam
 server lewat `_sekarang()`; jam klien tidak pernah dipercaya (lihat `contest_store`).
+
+Gerbang per anak: sakelar induk mati -> bukan milik modul (False). Sakelar hidup tetapi Guru belum mengaktifkan
+Mode Lomba untuk anak itu (`contest_gate.aktif_untuk`) -> 404 yang sama dengan jalur murid tak dikenal, dicek
+setelah siswa dikenali dan sebelum menyentuh apa pun (POST dalam transaksi yang sama: tanpa sesi baru, tanpa
+jawaban tertulis).
 """
 from __future__ import annotations
 
@@ -176,6 +181,8 @@ def _jalankan_get(pengguna: str, rute: tuple, jalur_penuh: str) -> _Respons:
         siswa_id = students.siswa_dari_akun(kon, pengguna)
         if siswa_id is None:
             return _belum_terhubung(pengguna)
+        if not contest_gate.aktif_untuk(kon, siswa_id):
+            return _respons_tidak_ada()
         return _layani_get(kon, siswa_id, rute, jalur_penuh)
 
 
@@ -272,6 +279,8 @@ def _jalankan_post(pengguna: str, rute: tuple, isian: Dict[str, str]) -> _Respon
         siswa_id = students.siswa_dari_akun(kon, pengguna)
         if siswa_id is None:
             raise _TidakAda(pengguna)
+        if not contest_gate.aktif_untuk(kon, siswa_id):
+            raise _TidakAda(siswa_id)
         return _layani_post(kon, siswa_id, rute, isian)
 
 

@@ -339,6 +339,24 @@ GAYA_HASIL_ANAK = f"""
 }}
 """
 
+# ===== kartu pengaturan Mode Lomba di halaman Guru (/anak/<id>/lomba); tanpa JS =====
+GAYA_PENGATURAN = f"""
+.hl-pesan-simpan {{
+  padding: {T.SP_3} {T.SP_4}; font-weight: 700; color: {T.ANAK_BAIK_TEKS}; background: {T.ANAK_BAIK_LATAR};
+  border: {T.TEBAL_GARIS} solid {T.ANAK_BAIK_TEKS}; border-radius: {T.RADIUS_SEDANG};
+}}
+.hl-form {{ display: flex; flex-direction: column; gap: {T.SP_4}; }}
+.hl-form fieldset {{ display: flex; flex-direction: column; gap: {T.SP_2}; margin: 0; padding: 0; border: 0; }}
+.hl-form legend {{ padding: 0; font-weight: 700; }}
+.hl-form label {{ display: flex; align-items: center; gap: {T.SP_3}; min-height: {T.TARGET_SENTUH}; }}
+.hl-form .hl-isian {{ flex-direction: column; align-items: flex-start; gap: {T.SP_2}; font-weight: 700; }}
+.hl-form select {{
+  min-height: {T.TARGET_SENTUH}; padding: 0 {T.SP_3}; font: inherit; color: {T.TEKS_JUDUL};
+  background: {T.LATAR_KARTU}; border: 2px solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_SEDANG};
+}}
+.hl-form .btn-st {{ align-self: flex-start; }}
+"""
+
 # ===== kartu Lomba di beranda murid (dimuat HANYA saat sakelar Lomba hidup; beranda lain tidak berubah) =====
 GAYA_BERANDA = f"""
 .lomba-beranda {{

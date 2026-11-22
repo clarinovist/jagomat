@@ -76,3 +76,87 @@ def test_perubahan_sakelar_berlaku_setelah_cache_dibersihkan(berkas_sakelar, mon
     assert G.aktif() is True
     feature_switch.ubah("OSN_LOMBA", False, actor_id="uji", revisi_diharapkan=2, seed=SEED, path=berkas_sakelar)
     assert G.aktif() is False        # ubah() membersihkan cache sendiri
+
+
+# --- gerbang per anak: sakelar induk DAN penugasan Guru ----------------------------------------
+
+import contest_assignment_store as AS
+import database
+
+SEKARANG = 1_800_000_000
+
+
+@pytest.fixture
+def kon(tmp_path):
+    path = tmp_path / "lomba.db"
+    database.siapkan(path)
+    with database.buka(path) as k:
+        yield k
+
+
+@pytest.fixture
+def anak(kon):
+    return database.tambah_siswa(kon, "Anak Sintetis Satu", pemilik="guru")
+
+
+@pytest.fixture
+def anak_lain(kon):
+    return database.tambah_siswa(kon, "Anak Sintetis Dua", pemilik="guru")
+
+
+def _tugaskan(kon, siswa_id, aktif=True):
+    AS.atur(kon, siswa_id, aktif=aktif, target_harian=None, tampil_hitung_mundur=None,
+            sekarang=SEKARANG, oleh="guru-uji")
+
+
+def test_aktif_untuk_hidup_bila_induk_hidup_dan_penugasan_aktif(kon, anak, monkeypatch):
+    monkeypatch.setenv("OSN_LOMBA", "1")
+    _tugaskan(kon, anak)
+
+    assert G.aktif_untuk(kon, anak) is True
+
+
+def test_aktif_untuk_mati_tanpa_baris_penugasan_walau_induk_hidup(kon, anak, monkeypatch):
+    monkeypatch.setenv("OSN_LOMBA", "1")
+
+    assert G.aktif_untuk(kon, anak) is False
+
+
+def test_aktif_untuk_mati_bila_penugasan_dimatikan_walau_induk_hidup(kon, anak, monkeypatch):
+    monkeypatch.setenv("OSN_LOMBA", "1")
+    _tugaskan(kon, anak, aktif=False)
+
+    assert G.aktif_untuk(kon, anak) is False
+
+
+def test_aktif_untuk_mati_bila_induk_mati_walau_penugasan_aktif(kon, anak, monkeypatch):
+    monkeypatch.setenv("OSN_LOMBA", "0")
+    _tugaskan(kon, anak)
+
+    assert G.aktif_untuk(kon, anak) is False
+
+
+def test_aktif_untuk_hanya_untuk_anak_yang_ditugaskan(kon, anak, anak_lain, monkeypatch):
+    monkeypatch.setenv("OSN_LOMBA", "1")
+    _tugaskan(kon, anak)
+
+    assert (G.aktif_untuk(kon, anak), G.aktif_untuk(kon, anak_lain)) == (True, False)
+
+
+def test_aktif_untuk_fail_closed_bila_tabel_penugasan_tidak_ada(kon, anak, monkeypatch):
+    monkeypatch.setenv("OSN_LOMBA", "1")
+    kon.execute("DROP TABLE lomba_penugasan")
+
+    assert G.aktif_untuk(kon, anak) is False
+
+
+def test_aktif_untuk_tidak_menelan_galat_basis_lain(monkeypatch):
+    import sqlite3
+
+    monkeypatch.setenv("OSN_LOMBA", "1")
+    salah = sqlite3.connect(":memory:")
+    salah.row_factory = sqlite3.Row
+    salah.execute("CREATE TABLE lomba_penugasan (x INTEGER)")   # tabel ada, kolom salah -> galat lain
+
+    with pytest.raises(sqlite3.OperationalError):
+        G.aktif_untuk(salah, 1)

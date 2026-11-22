@@ -508,7 +508,7 @@ def _tab(s, section, auth=GURU):
 def test_tautan_latihan_lomba_ada_sekali_di_tab_perkembangan_saat_gerbang_hidup(s):
     isi = _tab(s, "perkembangan")
 
-    assert isi.count(f'href="/anak/{s.anak}/lomba"') == 1 and "Latihan lomba" in isi
+    assert isi.count(f'href="/anak/{s.anak}/lomba"') == 1 and "Mode Lomba" in isi and "Atur Mode Lomba" in isi
 
 
 def test_tautan_latihan_lomba_tidak_ada_saat_gerbang_mati(s, monkeypatch):
@@ -526,7 +526,7 @@ def test_hanya_kartu_lomba_yang_berbeda_antara_gerbang_hidup_dan_mati_dan_tab_la
 
     for sec in ("rencana", "latihan", "riwayat"):
         assert hidup[sec] == mati[sec], sec
-    assert hidup["perkembangan"].replace(contest_guru_pages.kartu_masuk(s.anak), "") == mati["perkembangan"]
+    assert hidup["perkembangan"].replace(contest_guru_pages.kartu_masuk(s.anak, False), "") == mati["perkembangan"]
 
 
 # --- sesi dikumpulkan cepat (asal kumpul) --------------------------------------------------------

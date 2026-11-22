@@ -20,6 +20,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import auth  # noqa: E402
+import contest_assignment_store  # noqa: E402
 import contest_http  # noqa: E402
 import contest_session  # noqa: E402
 import contest_store  # noqa: E402
@@ -99,6 +100,9 @@ def server(tmp_path, monkeypatch, jam):
         with uji.buka() as kon:
             uji.anak_satu = database.tambah_siswa(kon, "feby", pemilik="guru")
             uji.anak_dua = database.tambah_siswa(kon, "Budi Sintetis", pemilik="guru")
+            for anak in (uji.anak_satu, uji.anak_dua):      # Mode Lomba per anak: Guru sudah mengaktifkan
+                contest_assignment_store.atur(kon, anak, aktif=True, target_harian=None,
+                                              tampil_hitung_mundur=None, sekarang=T0, oleh="guru-uji")
         auth.tambah_akun("budi-uji", SANDI_DUA, "murid", siswa_id=uji.anak_dua)
         yield uji
     finally:

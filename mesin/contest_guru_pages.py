@@ -9,13 +9,15 @@ from __future__ import annotations
 import html
 from typing import Optional, Sequence
 
+import contest_assignment_store as AS
 import contest_chart_svg as G
 import contest_pages as P
+import contest_paket as PK
 import contest_results as R
 import contest_results_pages as RP
 import contest_store as K
 from contest_format import desimal, durasi_menit_detik, persen, tanggal_wib
-from contest_style import GAYA_HASIL
+from contest_style import GAYA_HASIL, GAYA_PENGATURAN
 from teacher_shell import _halaman as _bingkai
 
 BATAS_TITIK_GRAFIK = 30
@@ -25,6 +27,9 @@ _LABEL_STATUS = {K.DIKUMPUL: "Selesai", K.WAKTU_HABIS: "Waktu habis"}
 LABEL_CEPAT = "Dikumpulkan cepat"
 CATATAN_GRAFIK_REDUP = "Titik abu-abu = dikumpulkan cepat, tidak dihitung di rata-rata."
 _LABEL_TOPIK_PENDEK = {"bilangan": "Bil", "operasi": "Operasi", "pengukuran": "Ukur", "bangun": "Bangun"}
+PESAN_TERSIMPAN = "Pengaturan Mode Lomba tersimpan."
+PILIHAN_TARGET = (0, 1, 2, 3)       # target harian yang boleh dipilih Guru; "ikut paket" disimpan sebagai NULL
+NILAI_IKUT_PAKET = "paket"
 CATATAN_DUGAAN = ("Label kesalahan adalah dugaan dari pilihan jawaban yang dipilih anak, bukan diagnosis; "
                   "pakai sebagai bahan bertanya, bukan kesimpulan.")
 
@@ -41,17 +46,67 @@ def alamat_detail(siswa_id: int, sesi_id: int) -> str:
     return f"{alamat_progres(siswa_id)}/{int(sesi_id)}"
 
 
-def kartu_masuk(siswa_id: int) -> str:
-    """Tautan "Latihan lomba" di halaman satu anak (hanya dipasang saat gerbang hidup)."""
+def alamat_pengaturan(siswa_id: int) -> str:
+    return f"{alamat_progres(siswa_id)}/pengaturan"
+
+
+def kartu_masuk(siswa_id: int, aktif: bool) -> str:
+    """Kartu "Mode Lomba" di halaman satu anak: status aktif/belum dan tautan ke pengaturan (hanya saat gerbang hidup)."""
+    status = "Aktif" if aktif else "Belum aktif — aktifkan untuk anak ini"
     return (
-        '<section class="kartu-st lomba-masuk-st"><h2>Latihan lomba</h2>'
-        "<p>Lihat nilai, perkembangan, dan jenis soal yang paling sering salah dari sesi Latihan Lomba anak.</p>"
-        f'<p><a class="btn-st" href="{alamat_progres(siswa_id)}">Latihan lomba</a></p></section>')
+        '<section class="kartu-st lomba-masuk-st"><h2>Mode Lomba</h2>'
+        f'<p class="lomba-masuk-status">{_e(status)}</p>'
+        "<p>Atur Mode Lomba anak ini, lihat nilai, perkembangan, dan jenis soal yang paling sering salah.</p>"
+        f'<p><a class="btn-st" href="{alamat_progres(siswa_id)}">Atur Mode Lomba</a></p></section>')
+
+
+def _opsi(nilai: str, label: str, terpilih: bool) -> str:
+    pilih = " selected" if terpilih else ""
+    return f'<option value="{_e(nilai)}"{pilih}>{_e(label)}</option>'
+
+
+def _pilihan_target(penugasan: Optional[AS.Penugasan]) -> str:
+    dipilih = None if penugasan is None else penugasan.target_harian
+    angka = PILIHAN_TARGET if dipilih is None or dipilih in PILIHAN_TARGET else PILIHAN_TARGET + (dipilih,)
+    opsi = [_opsi(NILAI_IKUT_PAKET, f"Ikut paket ({PK.PAKET_AKTIF.target_harian})", dipilih is None)]
+    opsi.extend(_opsi(str(n), "Tanpa target" if n == 0 else f"{n} latihan per hari", n == dipilih) for n in angka)
+    return "".join(opsi)
+
+
+def _hitung_mundur_tampil(penugasan: Optional[AS.Penugasan]) -> bool:
+    if penugasan is None or penugasan.tampil_hitung_mundur is None:
+        return PK.PAKET_AKTIF.tampil_hitung_mundur
+    return penugasan.tampil_hitung_mundur
+
+
+def kartu_pengaturan(siswa, penugasan: Optional[AS.Penugasan], tersimpan: bool = False) -> str:
+    """Kartu "Mode Lomba": status, form aktifkan/matikan, target harian, dan hitung mundur (POST biasa, tanpa JS)."""
+    sid = int(siswa["id"])
+    nama = _e(siswa["nama"])
+    aktif = penugasan is not None and penugasan.aktif
+    pesan = f'<p class="hl-pesan-simpan" role="status">{PESAN_TERSIMPAN}</p>' if tersimpan else ""
+    status = (f'<p><span class="hl-status hl-benar">Aktif untuk {nama}</span></p>' if aktif
+              else '<p><span class="hl-status hl-kosong-jawab">Belum aktif</span></p>')
+    centang = " checked" if _hitung_mundur_tampil(penugasan) else ""
+    return (
+        '<section class="hl-kartu" aria-labelledby="judul-mode-lomba"><h2 id="judul-mode-lomba">Mode Lomba</h2>'
+        f"{pesan}{status}"
+        f'<p class="hl-sub">Setelah aktif, {nama} melihat Mode Lomba di berandanya dan bisa berlatih '
+        f"{PK.PAKET_AKTIF.jumlah_soal} soal dalam {PK.PAKET_AKTIF.durasi_menit} menit.</p>"
+        f'<form class="hl-form" method="post" action="{alamat_pengaturan(sid)}">'
+        "<fieldset><legend>Mode Lomba</legend>"
+        f'<label><input type="radio" name="aktif" value="1"{" checked" if aktif else ""}> Aktif</label>'
+        f'<label><input type="radio" name="aktif" value="0"{"" if aktif else " checked"}> Belum aktif</label></fieldset>'
+        '<label class="hl-isian">Target latihan harian'
+        f'<select name="target">{_pilihan_target(penugasan)}</select></label>'
+        f'<label><input type="checkbox" name="hitung_mundur" value="1"{centang}> '
+        "Tampilkan hitung mundur ke hari lomba</label>"
+        '<button class="btn-st" type="submit">Simpan</button></form></section>')
 
 
 def _bungkus(judul: str, isi: str, ident) -> bytes:
     return _bingkai(
-        judul, f"<style>{GAYA_HASIL}</style>" + '<div class="hasil-lomba">' + isi + "</div>",
+        judul, f"<style>{GAYA_HASIL}{GAYA_PENGATURAN}</style>" + '<div class="hasil-lomba">' + isi + "</div>",
         ident=ident, stitch=True, kelas_bungkus="pendamping-editorial-st bagikan-editorial-st",
         id_utama="judul-lomba", privat=True)
 
@@ -186,9 +241,11 @@ def _kartu_riwayat(siswa_id: int, progres: R.Progres) -> str:
             f'<ol class="hl-riwayat-hp">{kartu}</ol>{catatan}</section>')
 
 
-def halaman_progres(siswa, progres: R.Progres, sering: Sequence[R.JenisSering], ident) -> bytes:
-    """Progress satu anak: ringkasan, grafik, bar per topik, sering salah, dan riwayat (terbaru dulu)."""
-    kepala = _kepala(siswa, "Latihan lomba", f"/anak/{int(siswa['id'])}?section=perkembangan", "Perkembangan")
+def halaman_progres(siswa, progres: R.Progres, sering: Sequence[R.JenisSering], ident, *,
+                    penugasan: Optional[AS.Penugasan] = None, tersimpan: bool = False) -> bytes:
+    """Kartu Mode Lomba (pengaturan), lalu progress satu anak: ringkasan, grafik, bar per topik, sering salah, riwayat."""
+    kepala = (_kepala(siswa, "Latihan lomba", f"/anak/{int(siswa['id'])}?section=perkembangan", "Perkembangan")
+              + kartu_pengaturan(siswa, penugasan, tersimpan))
     catatan = f'<p class="hl-catatan">{CATATAN_DUGAAN}</p>'
     if progres.jumlah == 0:
         kosong = ('<section class="hl-kartu"><h2>Belum ada sesi latihan yang selesai</h2>'

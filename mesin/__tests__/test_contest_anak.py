@@ -8,6 +8,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import contest_anak as A  # noqa: E402
+import contest_assignment_store as AS  # noqa: E402
 import contest_core as C  # noqa: E402
 import contest_paket as PK  # noqa: E402
 import contest_store as K  # noqa: E402
@@ -105,6 +106,48 @@ def test_anak_baru_tanpa_sesi_punya_ringkasan_kosong(kon, anak):
     assert r.riwayat == () and r.nilai_terbaik is None and r.nilai_terakhir is None and r.selesai_hari_ini == 0
     assert r.hitung_mundur == "Lomba tinggal 24 hari lagi" and r.paket is PK.PAKET_AKTIF
     assert r.sekarang == SEKARANG
+
+
+def _tugaskan(kon, siswa, **nilai):
+    dasar = dict(aktif=True, target_harian=None, tampil_hitung_mundur=None, sekarang=SEKARANG, oleh="guru-uji")
+    dasar.update(nilai)
+    AS.atur(kon, siswa, **dasar)
+
+
+def test_penugasan_tanpa_nilai_khusus_mengikuti_paket_persis(kon, anak):
+    _tugaskan(kon, anak)
+
+    r = A.muat_ringkas(kon, anak, SEKARANG)
+
+    assert r.paket is PK.PAKET_AKTIF and r.hitung_mundur == "Lomba tinggal 24 hari lagi"
+
+
+def test_penugasan_menimpa_target_harian_paket_termasuk_nol(kon, anak):
+    _tugaskan(kon, anak, target_harian=3)
+    assert A.muat_ringkas(kon, anak, SEKARANG).paket.target_harian == 3
+
+    _tugaskan(kon, anak, target_harian=0)
+    r = A.muat_ringkas(kon, anak, SEKARANG)
+
+    assert r.paket.target_harian == 0
+    assert PK.PAKET_AKTIF.target_harian == 2      # paket asli tidak dimutasi
+
+
+def test_penugasan_mematikan_hitung_mundur_tanpa_mengubah_paket(kon, anak):
+    _tugaskan(kon, anak, tampil_hitung_mundur=False)
+
+    r = A.muat_ringkas(kon, anak, SEKARANG)
+
+    assert r.hitung_mundur == "" and r.paket.tampil_hitung_mundur is False
+    assert PK.PAKET_AKTIF.tampil_hitung_mundur is True
+
+
+def test_penugasan_satu_anak_tidak_memengaruhi_ringkasan_anak_lain(kon, anak, anak_lain):
+    _tugaskan(kon, anak, target_harian=5, tampil_hitung_mundur=False)
+
+    r = A.muat_ringkas(kon, anak_lain, SEKARANG)
+
+    assert r.paket is PK.PAKET_AKTIF and r.hitung_mundur == "Lomba tinggal 24 hari lagi"
 
 
 def test_sesi_berjalan_membawa_sisa_waktu_terisi_dan_soal_kosong_pertama(kon, anak):

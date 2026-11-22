@@ -365,7 +365,8 @@ def halaman_anak(
         isi_profil = (
             f'<style>{GAYA_LAPORAN}{GAYA_PETA}</style>'
             + kartu_masuk(int(siswa["id"]))
-            + (kartu_lomba(int(siswa["id"])) if contest_gate.aktif() else "")
+            + (kartu_lomba(int(siswa["id"]), contest_gate.penugasan_aktif(kon, int(siswa["id"])))
+               if contest_gate.aktif() else "")
             + konten_laporan(kon, int(siswa["id"]), query=query)
         )
     elif section == "riwayat":

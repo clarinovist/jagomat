@@ -7,9 +7,11 @@ terbaik, nilai terakhir, banding "naik/turun", maupun hitungan target harian.
 """
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass
 from typing import AbstractSet, FrozenSet, Optional, Sequence, Tuple
 
+import contest_assignment_store as AS
 import contest_paket as PK
 import contest_results as R
 import contest_store as K
@@ -62,8 +64,25 @@ def _selesai_hari_ini(sah: Sequence[R.RingkasSesi], sekarang: int) -> int:
     return sum(1 for s in sah if s.mulai_epoch >= awal)
 
 
+def paket_untuk_anak(kon, siswa_id: int, paket: PK.PaketLomba) -> PK.PaketLomba:
+    """Paket dengan target harian dan hitung mundur dari penugasan Guru bila diisi (None = ikut paket).
+
+    Salinan baru lewat `dataclasses.replace` (paket tidak dimutasi); tanpa nilai khusus mengembalikan `paket` itu.
+    """
+    penugasan = AS.ambil(kon, siswa_id)
+    if penugasan is None:
+        return paket
+    ubah = {}
+    if penugasan.target_harian is not None:
+        ubah["target_harian"] = penugasan.target_harian
+    if penugasan.tampil_hitung_mundur is not None:
+        ubah["tampil_hitung_mundur"] = penugasan.tampil_hitung_mundur
+    return dataclasses.replace(paket, **ubah) if ubah else paket
+
+
 def muat_ringkas(kon, siswa_id: int, sekarang: int, paket: PK.PaketLomba = PK.PAKET_AKTIF) -> RingkasAnak:
     """Data awal anak; menutup sesi yang batasnya lewat (lewat `sesi_berjalan`) sebelum membaca riwayat."""
+    paket = paket_untuk_anak(kon, siswa_id, paket)
     berjalan = K.sesi_berjalan(kon, siswa_id, sekarang)
     terisi = K.nomor_terjawab(kon, siswa_id, berjalan.id) if berjalan else frozenset()
     semua = R.riwayat_sesi(kon, siswa_id, sekarang)
