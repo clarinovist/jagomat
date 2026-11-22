@@ -170,10 +170,44 @@ def _kartu_beranda(sesi: dict, utama: bool = False) -> str:
     )
 
 
+def _keadaan_beranda(daftar: list, tugas: list, menunggu: list) -> str:
+    """Blok maskot + pesan saat tidak ada sesi utama."""
+    if not daftar:
+        judul, pesan = "Siap untuk latihan pertama?", (
+            "Belum ada sesi latihan yang disiapkan. Minta orang tua atau gurumu membuatkan, ya."
+        )
+    elif tugas:
+        judul, pesan = "Belajar selangkah lagi", (
+            "Gurumu akan menyiapkan langkah berikutnya. Latihan lain yang tersedia tetap bisa kamu buka di bawah."
+        )
+    elif menunggu:
+        judul, pesan = "Terima kasih sudah mencoba!", (
+            "Latihanmu sudah dikirim. Sekarang boleh istirahat dulu."
+        )
+    else:
+        judul, pesan = "Latihanmu sudah diperiksa", (
+            "Kamu bisa membuka hasil latihan sebelumnya di bawah."
+        )
+    return (
+        '<section class="murid-keadaan-st">'
+        f'{brand.maskot("berpikir", 240)}'
+        f'<div><h2>{judul}</h2><p>{pesan}</p></div></section>'
+    )
+
+
+def _kartu_lomba(kon, siswa_id: int, sekarang: int | None, besar: bool) -> str:
+    """Kartu Latihan Lomba beranda (hanya dipanggil saat sakelar hidup); jam server bila `sekarang` tak diberikan."""
+    import time
+    from contest_home import kartu_untuk_siswa
+    return kartu_untuk_siswa(kon, siswa_id, int(time.time()) if sekarang is None else sekarang, besar)
+
+
 def halaman_daftar_sesi_baru(
     kon, siswa_id: int, nama: str, sesi_selesai: int | None = None, lomba_aktif: bool = False,
+    sekarang: int | None = None,
 ) -> bytes:
     """Beranda buku belajar: satu sesi utama, tugas lain, kabar, dan riwayat."""
+    from contest_style import GAYA_BERANDA
     from style_stitch import gaya_stitch
     from students import beranda_murid
 
@@ -191,28 +225,12 @@ def halaman_daftar_sesi_baru(
             '<span>Selesai! Latihanmu sudah dikirim.</span></div>'
         )
     kolom = _kartu_beranda(utama, True) if utama else ""
+    kartu_lomba = _kartu_lomba(kon, siswa_id, sekarang, besar=not daftar) if lomba_aktif else ""
     if not utama:
-        if not daftar:
-            judul, pesan = "Siap untuk latihan pertama?", (
-                "Belum ada sesi latihan yang disiapkan. Minta orang tua atau gurumu membuatkan, ya."
-            )
-        elif tugas:
-            judul, pesan = "Belajar selangkah lagi", (
-                "Gurumu akan menyiapkan langkah berikutnya. Latihan lain yang tersedia tetap bisa kamu buka di bawah."
-            )
-        elif menunggu:
-            judul, pesan = "Terima kasih sudah mencoba!", (
-                "Latihanmu sudah dikirim. Sekarang boleh istirahat dulu."
-            )
+        if not daftar and lomba_aktif:
+            kolom, kartu_lomba = kartu_lomba, ""  # kartu besar menggantikan "Siap untuk latihan pertama?"
         else:
-            judul, pesan = "Latihanmu sudah diperiksa", (
-                "Kamu bisa membuka hasil latihan sebelumnya di bawah."
-            )
-        kolom = (
-            '<section class="murid-keadaan-st">'
-            f'{brand.maskot("berpikir", 240)}'
-            f'<div><h2>{judul}</h2><p>{pesan}</p></div></section>'
-        )
+            kolom = _keadaan_beranda(daftar, tugas, menunggu)
     if tugas:
         kolom += (
             '<section class="murid-latihan-lain-st" aria-labelledby="judul-lain">'
@@ -220,9 +238,7 @@ def halaman_daftar_sesi_baru(
             f'<span>{len(tugas)} latihan</span></div>'
             + ''.join(_kartu_beranda(s) for s in tugas) + '</section>'
         )
-    if lomba_aktif:
-        from contest_pages import tautan_beranda_murid
-        kolom += tautan_beranda_murid()
+    kolom += kartu_lomba
     pendamping = ""
     if menunggu:
         pendamping += (
@@ -248,7 +264,7 @@ def halaman_daftar_sesi_baru(
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>{gaya_stitch()}</style></head><body class="st murid-beranda-st">
+<style>{gaya_stitch()}{GAYA_BERANDA if lomba_aktif else ""}</style></head><body class="st murid-beranda-st">
 <a class="murid-lewati-st" href="#utama">Lewati ke latihan</a>
 <header class="murid-kepala-st"><div>
 <span class="murid-brand-st">{brand.mark("topbar")}<span>{T.NAMA_PRODUK}</span></span>

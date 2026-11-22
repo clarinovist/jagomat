@@ -65,8 +65,10 @@ def _get(penangan, kon, jalur: str, jalur_penuh: str) -> None:
             except (ValueError, TypeError):
                 sesi_selesai = None
         import contest_gate
+        import contest_http
         penangan._kirim(student_pages.halaman_daftar_sesi_baru(
-            kon, siswa_id, kredensial[0], sesi_selesai, lomba_aktif=contest_gate.aktif()
+            kon, siswa_id, kredensial[0], sesi_selesai, lomba_aktif=contest_gate.aktif(),
+            sekarang=contest_http._sekarang(),
         ))
         return
 

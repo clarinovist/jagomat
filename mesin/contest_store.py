@@ -16,14 +16,15 @@ import re
 import secrets
 import sqlite3
 from dataclasses import dataclass
-from typing import AbstractSet, FrozenSet, Optional, Sequence, Tuple
+from typing import AbstractSet, Dict, FrozenSet, Optional, Sequence, Tuple
 
 import contest_core as C
 import contest_session as S
 import contest_templates
+from contest_paket import PAKET_AKTIF
 
-DURASI_DETIK = 15 * 60
-PAKET_ID = "corexis_l1_matematika"
+DURASI_DETIK = PAKET_AKTIF.durasi_detik
+PAKET_ID = PAKET_AKTIF.id
 BERJALAN, DIKUMPUL, WAKTU_HABIS = "berjalan", "dikumpul", "waktu_habis"
 SEED_BIT = 63
 NOMOR_PERTAMA, NOMOR_TERAKHIR = 1, S.JUMLAH_SOAL
@@ -223,6 +224,13 @@ def nomor_terjawab(kon, siswa_id: int, sesi_id: int) -> FrozenSet[int]:
         "SELECT nomor FROM lomba_jawaban WHERE sesi_id = ?", (sesi_id,)))
 
 
+def terisi_per_sesi(kon, siswa_id: int) -> Dict[int, int]:
+    """Jumlah soal yang terisi di tiap sesi milik anak (untuk menilai sesi asal kumpul); tanpa kunci."""
+    return {baris[0]: baris[1] for baris in kon.execute(
+        "SELECT x.id, COUNT(j.nomor) FROM lomba_sesi x LEFT JOIN lomba_jawaban j ON j.sesi_id = x.id "
+        "WHERE x.siswa_id = ? GROUP BY x.id", (siswa_id,))}
+
+
 def _jenis_soal(kon, siswa_id: int, sesi_id: int, nomor: int) -> str:
     baris = kon.execute(
         "SELECT s.jenis FROM lomba_soal s JOIN lomba_sesi x ON x.id = s.sesi_id "
@@ -232,11 +240,16 @@ def _jenis_soal(kon, siswa_id: int, sesi_id: int, nomor: int) -> str:
     return baris["jenis"]
 
 
+def _buang_spasi(teks: str) -> str:
+    """Buang SEMUA spasi putih (spasi, tab, NBSP, dst.), bukan hanya di tepi: "5 9 4" -> "594"."""
+    return "".join(teks.split())
+
+
 def _normalkan_jawaban(jenis: str, jawaban: str) -> Optional[str]:
-    """Jawaban baku untuk disimpan; None berarti "hapus jawaban"."""
+    """Jawaban baku untuk disimpan; None berarti "hapus jawaban". Isian: semua spasi dibuang dulu."""
     if not isinstance(jawaban, str):
         raise JawabanTidakSah("jawaban wajib teks")
-    bersih = jawaban.strip()
+    bersih = _buang_spasi(jawaban) if jenis == C.JENIS_ISIAN else jawaban.strip()
     if not bersih:
         return None
     if jenis == C.JENIS_PG:

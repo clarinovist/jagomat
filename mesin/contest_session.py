@@ -14,9 +14,10 @@ from dataclasses import dataclass
 from typing import AbstractSet, Dict, List, Optional, Sequence, Tuple
 
 import contest_core as C
+from contest_paket import PAKET_AKTIF
 
-JUMLAH_SOAL = 10
-JUMLAH_ISIAN = 2
+JUMLAH_SOAL = PAKET_AKTIF.jumlah_soal
+JUMLAH_ISIAN = PAKET_AKTIF.jumlah_isian
 JUMLAH_PG = JUMLAH_SOAL - JUMLAH_ISIAN
 SOAL_PER_TOPIK_DASAR = 2          # tiap topik minimal dua; sisanya dibagi ke topik berbeda
 MAKS_INGGRIS = 1

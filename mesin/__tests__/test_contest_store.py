@@ -304,6 +304,26 @@ def test_simpan_jawaban_isian_menormalkan_angka(kon, anak):
     assert T.soal_untuk_anak(kon, anak, sesi.id, nomor).jawaban == "7"
 
 
+@pytest.mark.parametrize("ketikan,tersimpan", [
+    ("594", "594"), (" 594 ", "594"), ("5 9 4", "594"), ("5 94", "594"), ("594\t", "594"),
+    ("5\u00a09\u00a04", "594"), ("\u3000594\u3000", "594"), ("0 07", "7"),
+])
+def test_isian_membuang_semua_spasi_sebelum_validasi(kon, anak, ketikan, tersimpan):
+    sesi = _mulai(kon, anak)
+    nomor = next(n for n in range(1, 11) if _jenis(kon, sesi.id, n) == ISIAN)
+    T.simpan_jawaban(kon, anak, sesi.id, nomor, ketikan, SEKARANG + 5)
+    assert T.soal_untuk_anak(kon, anak, sesi.id, nomor).jawaban == tersimpan
+
+
+@pytest.mark.parametrize("ketikan", ["", "   ", "\t \u00a0"])
+def test_isian_hanya_spasi_dianggap_kosong_dan_menghapus_jawaban(kon, anak, ketikan):
+    sesi = _mulai(kon, anak)
+    nomor = next(n for n in range(1, 11) if _jenis(kon, sesi.id, n) == ISIAN)
+    T.simpan_jawaban(kon, anak, sesi.id, nomor, "12", SEKARANG + 5)
+    T.simpan_jawaban(kon, anak, sesi.id, nomor, ketikan, SEKARANG + 6)
+    assert nomor not in T.nomor_terjawab(kon, anak, sesi.id)
+
+
 def test_jawaban_kosong_menghapus_jawaban_tersimpan(kon, anak):
     sesi = _mulai(kon, anak)
     nomor = next(n for n in range(1, 11) if _jenis(kon, sesi.id, n) == PG)
@@ -321,7 +341,7 @@ def test_jawaban_pg_tidak_sah_ditolak(kon, anak, jawaban):
         T.simpan_jawaban(kon, anak, sesi.id, nomor, jawaban, SEKARANG + 5)
 
 
-@pytest.mark.parametrize("jawaban", ["abc", "1.5", "-1", "1234567", "A", "1e3", "12 3"])
+@pytest.mark.parametrize("jawaban", ["abc", "1.5", "5,94", "5.94", "-1", "1234567", "A", "1e3", "1 234 567"])
 def test_jawaban_isian_tidak_sah_ditolak(kon, anak, jawaban):
     sesi = _mulai(kon, anak)
     nomor = next(n for n in range(1, 11) if _jenis(kon, sesi.id, n) == ISIAN)

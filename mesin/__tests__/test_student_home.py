@@ -398,17 +398,55 @@ def test_beranda_tanpa_lomba_aktif_tidak_memuat_tautan_dan_sama_dengan_pemanggil
     assert lama == mati and "/murid/lomba" not in lama and "Latihan Lomba" not in lama
 
 
-@pytest.mark.parametrize("ada_sesi", [True, False], ids=["ada-sesi", "tanpa-sesi"])
-def test_beranda_lomba_aktif_menambah_satu_tautan_besar_dan_tidak_mengubah_sisanya(db, ada_sesi):
-    from contest_pages import tautan_beranda_murid
+SEKARANG_LOMBA = 1_795_000_000  # 18 Nov 2026, 18.06 WIB
+
+
+def test_beranda_lomba_mati_tidak_memuat_markup_atau_css_lomba(db):
     with database.buka(db) as kon:
         siswa = _siswa(kon)
-        if ada_sesi:
-            _sesi(kon, siswa)
+        for ada in (False, True):
+            if ada:
+                _sesi(kon, siswa)
+            isi = _html_lomba(kon, siswa, lomba_aktif=False, sekarang=SEKARANG_LOMBA)
+
+            assert "lomba-beranda" not in isi and "/murid/lomba" not in isi and "Grand Final" not in isi
+
+
+def test_beranda_lomba_aktif_dengan_sesi_guru_menambah_satu_kartu_kecil_dan_css_tanpa_mengubah_sisanya(db):
+    from contest_home import kartu_untuk_siswa
+    from contest_style import GAYA_BERANDA
+    with database.buka(db) as kon:
+        siswa = _siswa(kon)
+        _sesi(kon, siswa)
 
         mati = _html_lomba(kon, siswa)
-        hidup = _html_lomba(kon, siswa, lomba_aktif=True)
+        hidup = _html_lomba(kon, siswa, lomba_aktif=True, sekarang=SEKARANG_LOMBA)
+        kartu = kartu_untuk_siswa(kon, siswa, SEKARANG_LOMBA, besar=False)
 
-    assert hidup.count('href="/murid/lomba"') == 1 and "Latihan Lomba" in hidup
-    assert hidup.replace(tautan_beranda_murid(), "") == mati
+    assert hidup.count('href="/murid/lomba"') == 1 and "Grand Final Corexis" in hidup
+    assert 'class="lomba-beranda"' in kartu and "lomba-beranda besar" not in hidup
+    assert hidup.replace(GAYA_BERANDA, "").replace(kartu, "") == mati
     assert hidup.index("/murid/lomba") < hidup.index("</main>")
+    assert hidup.count("Latihan Lomba") == 0 and "Siap untuk latihan pertama?" not in hidup
+
+
+def test_beranda_lomba_aktif_tanpa_sesi_guru_memakai_kartu_besar_sebagai_pengganti_pesan_kosong(db):
+    with database.buka(db) as kon:
+        siswa = _siswa(kon)
+
+        mati = _html_lomba(kon, siswa)
+        hidup = _html_lomba(kon, siswa, lomba_aktif=True, sekarang=SEKARANG_LOMBA)
+
+    assert "Siap untuk latihan pertama?" in mati and "Siap untuk latihan pertama?" not in hidup
+    assert 'class="lomba-beranda besar"' in hidup and "Belum ada latihan dari gurumu." in hidup
+    assert hidup.count('href="/murid/lomba"') == 1 and "Mulai latihan" in hidup
+    assert "Grand Final Corexis tinggal 24 hari lagi" in hidup
+
+
+def test_beranda_lomba_aktif_menampilkan_target_hari_ini_dengan_bar(db):
+    with database.buka(db) as kon:
+        siswa = _siswa(kon)
+
+        hidup = _html_lomba(kon, siswa, lomba_aktif=True, sekarang=SEKARANG_LOMBA)
+
+    assert "Latihan hari ini: 0 dari 2" in hidup and 'style="width:0%"' in hidup
