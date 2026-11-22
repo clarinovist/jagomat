@@ -14,11 +14,12 @@ from typing import Sequence
 
 import contest_chart_svg as G
 import contest_core as C
+import contest_komponen as KP
 import contest_pages as P
 import contest_results as R
 import contest_store as K
 from contest_format import durasi_menit_detik, persen
-from contest_style import GAYA_HASIL
+from contest_style import GAYA_HASIL, GAYA_HASIL_ANAK
 
 BATAS_SEMANGAT_TINGGI = 80
 BATAS_SEMANGAT_SEDANG = 50
@@ -128,18 +129,79 @@ def kartu_soal(butir: R.ButirRinci, *, untuk_guru: bool = False) -> str:
         f'<div class="hl-jawaban">{baris}</div>{kesalahan}{_blok_pembahasan(butir)}</article>')
 
 
-def halaman_hasil_anak(hasil: R.HasilRinci) -> bytes:
-    """Hasil setelah sesi selesai: nilai, waktu, bar per topik, lalu sepuluh kartu soal dengan pembahasan."""
+_STATUS_PETA = {
+    "benar": ("hl-benar", "\u2713", "benar"),
+    "salah": ("hl-salah", "\u2717", "salah"),
+    "kosong": ("hl-kosong-jawab", "\u2013", "belum diisi"),
+}
+
+
+def _jenis_hasil(butir: R.ButirRinci) -> str:
+    if butir.jawaban is None:
+        return "kosong"
+    return "benar" if butir.benar else "salah"
+
+
+def _pose_maskot(nilai: int, jumlah: int) -> str:
+    persen_benar = persen(nilai, jumlah)
+    if persen_benar >= BATAS_SEMANGAT_TINGGI:
+        return "merayakan"
+    return "menyapa" if persen_benar >= BATAS_SEMANGAT_SEDANG else "berpikir"
+
+
+def _peta_nomor(butir: Sequence[R.ButirRinci]) -> str:
+    """Sepuluh nomor ber-tautan ke kartu soalnya: benar hijau, salah merah, kosong putus-putus (teks sr-saja)."""
+    sel = []
+    for item in butir:
+        kelas, tanda, kata = _STATUS_PETA[_jenis_hasil(item)]
+        sel.append(f'<li><a class="peta-nomor {kelas}" href="#soal-{item.nomor}"><span>{item.nomor}</span>'
+                   f'<span aria-hidden="true">{tanda}</span><span class="sr-saja"> {kata}</span></a></li>')
+    return f'<nav aria-label="Peta soal"><ol class="peta">{"".join(sel)}</ol></nav>'
+
+
+def _daftar_kartu(butir: Sequence[R.ButirRinci]) -> str:
+    return f'<div class="hl-daftar-soal">{"".join(kartu_soal(item) for item in butir)}</div>'
+
+
+def _soal_lipat(butir: R.ButirRinci) -> str:
+    kata = _STATUS_PETA[_jenis_hasil(butir)][2]
+    ringkas = f"Soal {butir.nomor} \u00b7 {_e(label_topik(butir.topik))} \u00b7 {kata}"
+    return f'<details class="hl-lipat" open><summary>{ringkas}</summary>{_daftar_kartu([butir])}</details>'
+
+
+def _kelompok_soal(butir: Sequence[R.ButirRinci]) -> str:
+    """Salah/kosong terbuka satu per satu; yang benar dilipat jadi satu (terbuka bila semuanya benar)."""
+    perlu = [item for item in butir if _jenis_hasil(item) != "benar"]
+    benar = [item for item in butir if _jenis_hasil(item) == "benar"]
+    bagian = ""
+    if perlu:
+        bagian += (f'<section class="hl-kelompok" aria-labelledby="judul-perlu"><h2 id="judul-perlu">'
+                   f'Yang perlu dilihat lagi ({len(perlu)})</h2>{"".join(_soal_lipat(item) for item in perlu)}</section>')
+    if benar:
+        terbuka = "" if perlu else " open"
+        bagian += (f'<details class="hl-lipat"{terbuka}><summary>Soal yang benar ({len(benar)})</summary>'
+                   f'{_daftar_kartu(benar)}</details>')
+    return bagian
+
+
+def halaman_hasil_anak(hasil: R.HasilRinci, banding: str = "") -> bytes:
+    """Hasil setelah sesi selesai: ringkasan, peta nomor, bar topik, soal yang perlu dilihat lagi, lalu yang benar.
+
+    `banding` = kalimat pembanding dengan latihan sebelumnya (kosong bila tidak ada pembanding yang sah).
+    """
     judul = "Waktu habis!" if hasil.sesi.status == K.WAKTU_HABIS else "Sesi selesai!"
-    kartu = "".join(kartu_soal(butir) for butir in hasil.butir)
-    isi = f"""<main class="isi hasil-lomba"><section class="hl-kartu">
+    kalimat = f'<p class="hl-banding">{_e(banding)}</p>' if banding else ""
+    isi = f"""{KP.bilah_beranda()}
+<main class="isi hasil-lomba"><section class="hl-kartu hl-ringkas-anak">
+{KP.maskot_kartu(_pose_maskot(hasil.nilai, hasil.jumlah_soal))}
 <h1 class="judul">{judul}</h1>
-<p class="angka-besar">Nilai: {int(hasil.nilai)} dari {int(hasil.jumlah_soal)}</p>
-<p>Waktu: {durasi_menit_detik(hasil.waktu_terpakai_detik)}</p>
+<p class="angka-besar"><span class="sr-saja">Nilai: </span>{int(hasil.nilai)}/{int(hasil.jumlah_soal)}</p>
+<p>Waktu: {durasi_menit_detik(hasil.waktu_terpakai_detik)}</p>{kalimat}
 <p class="hl-semangat">{pesan_semangat(hasil.nilai, hasil.jumlah_soal)}</p>
-<h2>Nilai tiap topik</h2>{daftar_topik(hasil.per_topik)}
-<form method="post" action="{P.ALAMAT_MULAI}"><button type="submit" class="tombol besar">Latihan lagi</button></form>
 </section>
-<section aria-labelledby="judul-soal-hasil"><h2 id="judul-soal-hasil">Lihat lagi soal-soalmu</h2><div class="hl-daftar-soal">{kartu}</div></section>
-<a class="tombol sekunder" href="{P.ALAMAT_AWAL}">Kembali</a></main>"""
-    return P.dokumen("Hasil latihan", isi, gaya_tambahan=GAYA_HASIL)
+<section aria-labelledby="judul-peta"><h2 id="judul-peta" class="sr-saja">Peta soal</h2>{_peta_nomor(hasil.butir)}</section>
+<section class="hl-kartu"><h2>Nilai tiap topik</h2>{daftar_topik(hasil.per_topik)}</section>
+{_kelompok_soal(hasil.butir)}
+<div class="aksi"><form method="post" action="{P.ALAMAT_MULAI}"><button type="submit" class="tombol">Latihan lagi</button></form>
+<a class="tombol sekunder" href="{KP.ALAMAT_BERANDA}">Beranda</a></div></main>"""
+    return P.dokumen("Hasil latihan", isi, gaya_tambahan=GAYA_HASIL + GAYA_HASIL_ANAK)

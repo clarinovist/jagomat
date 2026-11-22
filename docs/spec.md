@@ -191,7 +191,11 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   jenis soal dua sesi terakhir dihindari. Jawaban tersimpan lewat form biasa (tanpa autosave JS; satu-satunya JS adalah hitung mundur). Setelah selesai atau waktu habis anak
   melihat nilai, nilai per topik, jawabannya, kunci, dan pembahasan; selama sesi berjalan kunci/pembahasan tidak pernah dikirim (keputusan Pemilik 21 Nov 2026, pengecualian
   terbatas dari palang murid). Guru/admin melihat progress dan riwayat per anak di `/anak/<id>/lomba` (grafik nilai, nilai per topik, jenis soal paling sering salah, detail
-  sesi dengan dugaan kesalahan). Data di tabel `lomba_*` terpisah dari sesi guru; ikut terhapus saat penghapusan keluarga; tidak menulis ke Peta Kemampuan, diagnosis, laporan, atau bukti.
+  sesi dengan dugaan kesalahan). Perilaku sisi anak (keputusan Pemilik 22 Nov 2026): jawaban PG atau isian yang sah langsung pindah ke soal kosong berikutnya (siklis; klik nomor/tombol soal tetap ke tujuannya);
+  isian membuang semua spasi ("5 9 4" = 594; titik/koma/huruf ditolak, ketikan galat dipertahankan); konfirmasi kumpul menunjukkan soal kosong; hasil berisi nilai, banding dengan latihan sah
+  sebelumnya, peta nomor, soal salah/kosong terbuka dan yang benar dilipat; halaman awal dan kartu beranda menampilkan hitung mundur ke tanggal lomba dan target latihan harian. Sesi "asal kumpul"
+  (< 120 detik atau < 3 soal terisi) tetap di riwayat tetapi tidak ikut nilai terbaik, banding, dan target. Paket lomba (nama, tanggal, durasi, target) adalah konfigurasi kode `contest_paket`.
+  Data di tabel `lomba_*` terpisah dari sesi guru; ikut terhapus saat penghapusan keluarga; tidak menulis ke Peta Kemampuan, diagnosis, laporan, atau bukti.
 - Admin mengelola **profil guru peninjau** (`/admin/profil-guru`): nama, latar, lama mengajar, urutan,
   tampil/tidak. Profil `tampil=1` dipakai kartu guru di halaman funnel dengan cache 30 detik; profil
   kosong = tanpa kartu. Perubahan dan hapus memakai tinjauan bertanda tangan + sandi ulang.

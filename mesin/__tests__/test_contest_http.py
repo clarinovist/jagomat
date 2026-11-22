@@ -35,6 +35,7 @@ HEADER_PENTING = ("location", "cache-control", "content-security-policy", "conte
 RUTE_GET = ("/murid/lomba", "/murid/lomba/sesi/1?no=1", "/murid/lomba/sesi/1/selesai", "/murid/lomba/hasil/1")
 RUTE_POST = ("/murid/lomba/mulai", "/murid/lomba/sesi/1/jawab", "/murid/lomba/sesi/1/kumpul")
 PESAN_404 = "Halaman tidak ada"
+P_GALAT = "Tulis angkanya saja, tanpa huruf atau tanda baca. Contoh: 120"
 
 
 class _Jam:
@@ -260,10 +261,26 @@ def test_awal_menawarkan_mulai_lalu_lanjutkan_setelah_sesi_ada(server, jam):
     assert sesudah.header["cache-control"] == "no-store"
 
 
-def test_beranda_murid_menautkan_ke_lomba_saat_gerbang_hidup(server):
-    isi = _get(server, "/murid").isi
+def test_beranda_murid_tanpa_sesi_guru_menampilkan_kartu_lomba_besar_pengganti_pesan_kosong(server):
+    isi = _get(server, "/murid").isi.decode()
 
-    assert isi.count(b'href="/murid/lomba"') == 1 and b"Latihan Lomba" in isi
+    assert isi.count('href="/murid/lomba"') == 1 and "Grand Final Corexis" in isi and "Mulai latihan" in isi
+    assert "lomba-beranda besar" in isi and "Belum ada latihan dari gurumu." in isi
+    assert "Siap untuk latihan pertama?" not in isi and "Latihan Lomba" not in isi
+
+
+def test_beranda_murid_dengan_sesi_berjalan_menawarkan_lanjutkan_ke_soal_kosong_pertama_dan_sisa_waktu(server, jam):
+    sesi_id = _mulai(server)
+    nomor = _nomor_berjenis(server, sesi_id, "pg")
+    for n in range(1, nomor):
+        _jawab_valid(server, sesi_id, n)
+    jam.t = T0 + 125
+
+    isi = _get(server, "/murid").isi.decode()
+
+    assert f'href="/murid/lomba/sesi/{sesi_id}?no={nomor}">Lanjutkan</a>' in isi
+    assert "Latihanmu masih berjalan" in isi and "Sisa waktu 12:55" in isi
+    assert f"{nomor - 1} dari 10 soal terisi" in isi and "Mulai latihan" not in isi
 
 
 def test_beranda_murid_tidak_menautkan_ke_lomba_saat_gerbang_mati(server, monkeypatch):
@@ -351,7 +368,9 @@ def test_konfirmasi_selesai_menyebut_jumlah_belum_dijawab_yang_benar(server):
 
     halaman = _get(server, f"/murid/lomba/sesi/{sesi_id}/selesai")
 
-    assert halaman.kode == 200 and b"Masih ada <strong>7</strong> soal belum dijawab" in halaman.isi
+    isi = halaman.isi.decode()
+    assert halaman.kode == 200 and "Masih ada 7 soal kosong" in isi and "Kerjakan soal 4" in isi
+    assert "Waktumu masih 15 menit" in isi and 'href="/murid/lomba/sesi/%d?no=4"' % sesi_id in isi
     assert halaman.header["cache-control"] == "no-store"
 
 
@@ -369,7 +388,7 @@ def test_kumpul_menampilkan_sesi_selesai_dan_kumpul_kedua_tidak_mengubah_apa_pun
 
     assert kumpul.kode == 303 and kumpul.lokasi == f"/murid/lomba/hasil/{sesi_id}"
     assert hasil.kode == 200 and b"Sesi selesai!" in hasil.isi and b"Waktu: 05:30" in hasil.isi
-    assert re.search(rb"Nilai: \d+ dari 10", hasil.isi)
+    assert re.search(rb'<span class="sr-saja">Nilai: </span>\d+/10', hasil.isi)
     assert _status(server, sesi_id) == ("dikumpul", T0 + 330)
     assert kumpul_lagi.kode == 303 and _keadaan(server) == sebelum
 
@@ -422,6 +441,10 @@ def _huruf_kunci(soal):
     return "ABCD"[json.loads(soal["pilihan_json"]).index(soal["kunci"])]
 
 
+def _nilai(isi):
+    return re.search(r'<span class="sr-saja">Nilai: </span>(\d+/\d+)</p>', isi).group(1)
+
+
 def _isi_semua(uji, sesi_id, benar):
     """Jawab sepuluh soal: semua benar, atau semua salah (huruf lain / angka 1 yang bukan kunci)."""
     for soal in _soal_db(uji, sesi_id):
@@ -441,7 +464,7 @@ def test_hasil_rinci_memuat_jawaban_anak_kunci_dan_pembahasan_sepuluh_soal(serve
     hasil = _get(server, f"/murid/lomba/hasil/{sesi_id}")
     isi = hasil.isi.decode()
 
-    assert hasil.kode == 200 and "Sesi selesai!" in isi and "Nilai: 0 dari 10" in isi
+    assert hasil.kode == 200 and "Sesi selesai!" in isi and _nilai(isi) == "0/10"
     assert isi.count('class="hl-soal"') == 10 and isi.count("Jawabanmu: <strong>") == 10
     assert isi.count("Jawaban yang benar: <strong>") == 10
     for soal in _soal_db(server, sesi_id):
@@ -459,7 +482,7 @@ def test_hasil_rinci_semua_benar_tidak_menampilkan_jawaban_yang_benar_terpisah(s
 
     isi = _get(server, f"/murid/lomba/hasil/{sesi_id}").isi.decode()
 
-    assert "Nilai: 10 dari 10" in isi and "Jawaban yang benar" not in isi and isi.count('class="hl-status hl-benar"') == 10
+    assert _nilai(isi) == "10/10" and "Jawaban yang benar" not in isi and isi.count('class="hl-status hl-benar"') == 10
 
 
 def test_hasil_rinci_tidak_memuat_label_kesalahan_pengecoh_mana_pun(server):
@@ -489,7 +512,7 @@ def test_hasil_waktu_habis_menandai_soal_kosong_tidak_dijawab_dan_tetap_menampil
 
     isi = _get(server, f"/murid/lomba/hasil/{sesi_id}").isi.decode()
 
-    assert "Waktu habis!" in isi and "Nilai: 1 dari 10" in isi and "Waktu: 15:00" in isi
+    assert "Waktu habis!" in isi and _nilai(isi) == "1/10" and "Waktu: 15:00" in isi
     assert isi.count("tidak dijawab") == 9 and isi.count("Jawabanmu: <strong>belum diisi</strong>") == 9
     assert html.escape(json.loads(soal["pembahasan_json"])[0]) in isi
 
@@ -511,8 +534,8 @@ def test_halaman_awal_menampilkan_latihan_terakhir_maksimal_lima_terbaru_dulu_de
 
     tautan = re.findall(r'<a class="tautan-latihan" href="(/murid/lomba/hasil/\d+)"><span>([^<]+)</span><strong>([^<]+)</strong>', isi)
     assert [t[0] for t in tautan] == [f"/murid/lomba/hasil/{i}" for i in reversed(ids[1:])]
-    assert [t[1] for t in tautan] == ["15 Jan 2027, 16:23", "15 Jan 2027, 16:06", "15 Jan 2027, 15:50",
-                                       "15 Jan 2027, 15:33", "15 Jan 2027, 15:16"]
+    assert [t[1] for t in tautan] == ["Hari ini, 16.23", "Hari ini, 16.06", "Hari ini, 15.50",
+                                       "Hari ini, 15.33", "Hari ini, 15.16"]
     assert [t[2] for t in tautan] == ["10/10", "0/10", "0/10", "0/10", "0/10"]
     assert f"/murid/lomba/hasil/{ids[0]}" not in isi
 
@@ -561,14 +584,35 @@ def _jawab(uji, sesi_id, **isian):
     return _post(uji, f"/murid/lomba/sesi/{sesi_id}/jawab", isian)
 
 
-def test_isian_tanpa_pindah_seperti_enter_menyimpan_dan_tetap_di_soal_yang_sama(server):
+def test_isian_tanpa_pindah_seperti_enter_menyimpan_lalu_pindah_ke_soal_kosong_berikutnya(server):
     sesi_id = _mulai(server)
     nomor = _nomor_berjenis(server, sesi_id, "isian")
 
     hasil = _jawab(server, sesi_id, no=nomor, jawaban="12", aksi="simpan")
 
-    assert hasil.kode == 303 and hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no={nomor}"
+    assert hasil.kode == 303 and hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no={nomor % 10 + 1}"
     assert _jawaban(server, sesi_id) == {nomor: "12"}
+
+
+@pytest.mark.parametrize("ketikan", ["594", " 594 ", "5 9 4", "5 94"])
+def test_isian_dengan_spasi_lewat_http_tersimpan_sebagai_angka_tanpa_spasi(server, ketikan):
+    sesi_id = _mulai(server)
+    nomor = _nomor_berjenis(server, sesi_id, "isian")
+
+    hasil = _jawab(server, sesi_id, no=nomor, jawaban=ketikan, aksi="simpan")
+
+    assert hasil.kode == 303 and "galat" not in hasil.lokasi
+    assert _jawaban(server, sesi_id) == {nomor: "594"}
+
+
+@pytest.mark.parametrize("ketikan", ["5.94", "5,94", "abc", "1234567"])
+def test_isian_berpisah_titik_koma_atau_huruf_tetap_ditolak_lewat_http(server, ketikan):
+    sesi_id = _mulai(server)
+    nomor = _nomor_berjenis(server, sesi_id, "isian")
+
+    hasil = _jawab(server, sesi_id, no=nomor, jawaban=ketikan, aksi="simpan")
+
+    assert "galat=angka" in hasil.lokasi and _jawaban(server, sesi_id) == {}
 
 
 def test_klik_nomor_menyimpan_isian_terketik_lalu_pindah(server):
@@ -612,9 +656,10 @@ def test_isian_bukan_angka_dialihkan_ke_soal_itu_dengan_galat_dan_tidak_tersimpa
     hasil = _jawab(server, sesi_id, no=nomor, jawaban="abc", aksi="simpan", pindah="9")
     halaman = _get(server, hasil.lokasi)
 
-    assert hasil.kode == 303 and hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no={nomor}&galat=angka"
+    assert hasil.kode == 303 and hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no={nomor}&galat=angka&isi=abc"
     assert _jawaban(server, sesi_id) == {nomor: "7"}
-    assert "Tulis angka saja ya" in halaman.isi.decode()
+    isi = halaman.isi.decode()
+    assert halaman.kode == 200 and P_GALAT in isi and 'name="jawaban" value="abc"' in isi
 
 
 def test_pilihan_ganda_huruf_tidak_sah_tidak_tersimpan_dan_huruf_kecil_dibakukan(server):
@@ -631,13 +676,117 @@ def test_pilihan_ganda_huruf_tidak_sah_tidak_tersimpan_dan_huruf_kecil_dibakukan
     assert re.search(r'class="pilih dipilih" aria-pressed="true"><span class="huruf">B<', halaman)
 
 
-def test_klik_pilihan_tanpa_pindah_tetap_di_soal_yang_sama(server):
+def _jawab_valid(uji, sesi_id, nomor):
+    jawaban = "A" if _jenis(uji, sesi_id, nomor) == "pg" else "1"
+    assert _jawab(uji, sesi_id, no=nomor, jawaban=jawaban, pindah=str(nomor)).kode == 303
+
+
+def _isi_kecuali(uji, sesi_id, kosong):
+    for nomor in range(1, 11):
+        if nomor not in kosong:
+            _jawab_valid(uji, sesi_id, nomor)
+
+
+def _nomor_pg(uji, sesi_id):
+    return [n for n in range(1, 11) if _jenis(uji, sesi_id, n) == "pg"]
+
+
+def test_klik_pilihan_tanpa_pindah_langsung_ke_soal_kosong_berikutnya(server):
     sesi_id = _mulai(server)
-    nomor = _nomor_berjenis(server, sesi_id, "pg")
+    nomor = _nomor_pg(server, sesi_id)[0]
 
     hasil = _jawab(server, sesi_id, no=nomor, jawaban="C")
 
+    assert hasil.kode == 303 and hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no={nomor % 10 + 1}"
+    assert _jawaban(server, sesi_id) == {nomor: "C"}
+
+
+def test_auto_pindah_melewati_soal_yang_sudah_terisi_dan_memutar_ke_awal(server):
+    sesi_id = _mulai(server)
+    nomor = _nomor_pg(server, sesi_id)[-1]
+    _isi_kecuali(server, sesi_id, {nomor, 1})
+
+    hasil = _jawab(server, sesi_id, no=nomor, jawaban="B")
+
+    assert nomor > 1 and hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no=1"
+
+
+def test_auto_pindah_ke_kosong_di_depan_mendahului_kosong_di_belakang(server):
+    sesi_id = _mulai(server)
+    nomor = _nomor_pg(server, sesi_id)[2]
+    _isi_kecuali(server, sesi_id, {nomor, nomor - 1, 10 if nomor < 9 else 9})
+    depan = 10 if nomor < 9 else 9
+
+    hasil = _jawab(server, sesi_id, no=nomor, jawaban="B")
+
+    assert hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no={depan}"
+
+
+def test_semua_soal_terisi_setelah_jawaban_ini_tetap_di_soal_itu(server):
+    sesi_id = _mulai(server)
+    nomor = _nomor_pg(server, sesi_id)[0]
+    _isi_kecuali(server, sesi_id, {nomor})
+
+    hasil = _jawab(server, sesi_id, no=nomor, jawaban="D")
+
+    assert hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no={nomor}" and _jawaban(server, sesi_id)[nomor] == "D"
+
+
+def test_klik_nomor_atau_berikutnya_tetap_ke_tujuan_pindah_walau_ada_jawaban(server):
+    sesi_id = _mulai(server)
+    nomor = _nomor_pg(server, sesi_id)[0]
+
+    hasil = _jawab(server, sesi_id, no=nomor, jawaban="C", pindah="9")
+
+    assert hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no=9" and _jawaban(server, sesi_id) == {nomor: "C"}
+
+
+def test_selesai_tidak_memicu_auto_pindah(server):
+    sesi_id = _mulai(server)
+    nomor = _nomor_pg(server, sesi_id)[0]
+
+    hasil = _jawab(server, sesi_id, no=nomor, jawaban="C", aksi="selesai")
+
+    assert hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}/selesai"
+
+
+def test_isian_galat_tetap_di_soal_itu_bukan_auto_pindah(server):
+    sesi_id = _mulai(server)
+    nomor = _nomor_berjenis(server, sesi_id, "isian")
+
+    hasil = _jawab(server, sesi_id, no=nomor, jawaban="1.5", aksi="simpan")
+
+    assert hasil.lokasi.startswith(f"/murid/lomba/sesi/{sesi_id}?no={nomor}&galat=angka")
+
+
+def test_isian_enter_dengan_semua_terisi_tetap_di_soal_itu(server):
+    sesi_id = _mulai(server)
+    nomor = _nomor_berjenis(server, sesi_id, "isian")
+    _isi_kecuali(server, sesi_id, {nomor})
+
+    hasil = _jawab(server, sesi_id, no=nomor, jawaban="77", aksi="simpan")
+
     assert hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no={nomor}"
+
+
+@pytest.mark.parametrize("kueri", ["&isi=1234567", "&isi=1&isi=2", "&isi=%00", "&isi=%0a1"])
+def test_ketikan_galat_tidak_sah_di_url_diabaikan_tanpa_404(server, kueri):
+    sesi_id = _mulai(server)
+    nomor = _nomor_berjenis(server, sesi_id, "isian")
+
+    halaman = _get(server, f"/murid/lomba/sesi/{sesi_id}?no={nomor}&galat=angka{kueri}")
+
+    assert halaman.kode == 200 and P_GALAT in halaman.isi.decode()
+    assert 'name="jawaban" value=""' in halaman.isi.decode()
+
+
+def test_ketikan_galat_di_url_dipertahankan_dan_di_escape(server):
+    sesi_id = _mulai(server)
+    nomor = _nomor_berjenis(server, sesi_id, "isian")
+
+    halaman = _get(server, f"/murid/lomba/sesi/{sesi_id}?no={nomor}&galat=angka&isi=%22%3Cb%3E")
+
+    assert 'name="jawaban" value="&quot;&lt;b&gt;"' in halaman.isi.decode()
 
 
 def test_pindah_tanpa_jawaban_hanya_berpindah_halaman(server):
@@ -658,6 +807,7 @@ def test_strip_membedakan_soal_terjawab_dari_yang_belum(server):
 
     assert isi.count('class="nomor sudah"') == 3 and isi.count("sudah dijawab") == 3
     assert isi.count("belum dijawab") == 7 and 'value="4" class="nomor belum aktif" aria-current="step"' in isi
+    assert "\u2713" not in isi.split("<form", 1)[1].split("</nav>", 1)[0]
 
 
 # 13 --- kepemilikan ------------------------------------------------------------------
@@ -820,7 +970,7 @@ def test_selesai_dengan_isian_tidak_sah_kembali_ke_soal_dengan_pesan_galat(serve
 
     hasil = _jawab(server, sesi_id, no=nomor, jawaban="abc", aksi="selesai")
 
-    assert hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no={nomor}&galat=angka"
+    assert hasil.lokasi == f"/murid/lomba/sesi/{sesi_id}?no={nomor}&galat=angka&isi=abc"
     assert _jawaban(server, sesi_id) == {}
 
 
@@ -843,3 +993,108 @@ def test_selesai_setelah_batas_dialihkan_ke_hasil_dan_isian_tidak_tersimpan(serv
 
     assert hasil.lokasi == f"/murid/lomba/hasil/{sesi_id}"
     assert _jawaban(server, sesi_id) == {}
+
+
+# 14 --- halaman awal: lanjutkan, target, nilai terbaik; hasil: banding --------------------------------------
+
+def _sesi_sah(uji, jam, mulai, benar, lama=300):
+    """Satu sesi lengkap dari `mulai`: sepuluh jawaban semua benar/salah, dikumpulkan `lama` detik kemudian."""
+    jam.t = mulai
+    sesi_id = _mulai(uji)
+    _isi_semua(uji, sesi_id, benar=benar)
+    jam.t = mulai + lama
+    _post(uji, f"/murid/lomba/sesi/{sesi_id}/kumpul")
+    return sesi_id
+
+
+def _hasil_isi(uji, sesi_id):
+    return _get(uji, f"/murid/lomba/hasil/{sesi_id}").isi.decode()
+
+
+def test_awal_menawarkan_lanjutkan_ke_soal_kosong_pertama_bukan_soal_satu(server):
+    sesi_id = _mulai(server)
+    for nomor in (1, 2, 3):
+        _jawab_valid(server, sesi_id, nomor)
+
+    isi = _get(server, "/murid/lomba").isi.decode()
+
+    assert f'href="/murid/lomba/sesi/{sesi_id}?no=4">Lanjutkan</a>' in isi and "3 dari 10 soal terisi" in isi
+    assert "Waktu terus berjalan walaupun kamu keluar dari halaman ini" in isi
+    assert '<a class="tautan-beranda" href="/murid">' in isi
+
+
+def test_awal_menampilkan_hitung_mundur_target_nilai_terbaik_dan_riwayat_relatif(server, jam):
+    _sesi_sah(server, jam, T0, benar=True)
+    jam.t = T0 + 1000
+
+    isi = _get(server, "/murid/lomba").isi.decode()
+
+    assert "Latihan hari ini: 1 dari 2" in isi and 'style="width:50%"' in isi
+    assert "Nilai terbaikmu" in isi and "<strong>10/10</strong>" in isi
+    assert "Hari ini, 15.00" in isi and "hitung-mundur" not in re.sub(r"<style>.*?</style>", "", isi, flags=re.S)
+
+
+def test_awal_sebelum_tanggal_lomba_menampilkan_hitung_mundur(server, jam):
+    jam.t = 1_795_000_000
+
+    isi = _get(server, "/murid/lomba").isi.decode()
+
+    assert "Grand Final Corexis tinggal 24 hari lagi" in isi and "Latihan hari ini: 0 dari 2" in isi
+    assert "Nilai terbaikmu" not in isi
+
+
+def test_sesi_asal_kumpul_tidak_masuk_nilai_terbaik_target_atau_banding(server, jam):
+    sah = _sesi_sah(server, jam, T0, benar=False)
+    cepat = _sesi_sah(server, jam, T0 + 1000, benar=True, lama=30)
+    jam.t = T0 + 2000
+
+    awal = _get(server, "/murid/lomba").isi.decode()
+    hasil_cepat = _hasil_isi(server, cepat)
+
+    assert "Latihan hari ini: 1 dari 2" in awal and "<strong>0/10</strong>" in awal    # terbaik = 0 (sah), bukan 10
+    assert "dari latihan sebelumnya" not in hasil_cepat
+    assert f"/murid/lomba/hasil/{cepat}" in awal and f"/murid/lomba/hasil/{sah}" in awal  # tetap tampil di riwayat
+
+
+def test_hasil_pertama_tanpa_pembanding_tidak_menampilkan_kalimat_banding(server, jam):
+    sesi_id = _sesi_sah(server, jam, T0, benar=True)
+
+    assert "dari latihan sebelumnya" not in _hasil_isi(server, sesi_id)
+
+
+@pytest.mark.parametrize("pertama,kedua,kalimat", [
+    (False, True, "Naik 10 dari latihan sebelumnya"), (True, False, "Turun 10 dari latihan sebelumnya"),
+    (True, True, "Sama dengan latihan sebelumnya"),
+])
+def test_hasil_membandingkan_dengan_sesi_sah_sebelumnya(server, jam, pertama, kedua, kalimat):
+    _sesi_sah(server, jam, T0, benar=pertama)
+    sesi_dua = _sesi_sah(server, jam, T0 + 1000, benar=kedua)
+
+    assert f'<p class="hl-banding">{kalimat}</p>' in _hasil_isi(server, sesi_dua)
+
+
+def test_banding_melewati_sesi_asal_kumpul_di_antaranya(server, jam):
+    _sesi_sah(server, jam, T0, benar=False)
+    _sesi_sah(server, jam, T0 + 1000, benar=True, lama=30)
+    ketiga = _sesi_sah(server, jam, T0 + 2000, benar=True)
+
+    assert '<p class="hl-banding">Naik 10 dari latihan sebelumnya</p>' in _hasil_isi(server, ketiga)
+
+
+def test_hasil_anak_tidak_membandingkan_dengan_sesi_anak_lain(server, jam):
+    jam.t = T0
+    lain = _mulai(server, MURID_DUA)
+    _post(server, f"/murid/lomba/sesi/{lain}/kumpul", pengguna=MURID_DUA)
+    sesi_id = _sesi_sah(server, jam, T0 + 1000, benar=True)
+
+    assert "dari latihan sebelumnya" not in _hasil_isi(server, sesi_id)
+
+
+def test_hasil_memuat_peta_nomor_beranda_dan_kelompok_soal(server, jam):
+    sesi_id = _sesi_sah(server, jam, T0, benar=False)
+
+    isi = _hasil_isi(server, sesi_id)
+
+    assert isi.count('class="peta-nomor hl-salah"') == 10 and "Yang perlu dilihat lagi (10)" in isi
+    assert '<a class="tautan-beranda" href="/murid">' in isi and '<a class="tombol sekunder" href="/murid">Beranda</a>' in isi
+    assert re.findall(r'<h3 class="hl-judul" id="(soal-\d+)"', isi) == [f"soal-{n}" for n in range(1, 11)]

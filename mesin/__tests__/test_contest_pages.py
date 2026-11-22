@@ -8,8 +8,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import contest_browser as B  # noqa: E402
+import design_tokens as T  # noqa: E402
 import contest_pages as P  # noqa: E402
-import contest_results as R  # noqa: E402
 import contest_store as K  # noqa: E402
 
 MESIN = Path(__file__).resolve().parent.parent
@@ -30,8 +30,8 @@ def _isian(**ubah):
     return _soal(jenis="isian", pilihan=(), gambar_pilihan=(), **ubah)
 
 
-def _html(soal=None, terjawab=frozenset(), sisa=600, galat=False):
-    return P.halaman_soal(SESI_ID, soal or _soal(), terjawab, sisa, galat).decode()
+def _html(soal=None, terjawab=frozenset(), sisa=600, galat=False, isi_galat=""):
+    return P.halaman_soal(SESI_ID, soal or _soal(), terjawab, sisa, galat, isi_galat).decode()
 
 
 def _kontrol_pertama_di_form(isi):
@@ -104,7 +104,37 @@ def test_isian_memakai_teks_numerik_bukan_type_number():
     assert 'type="text"' in isi and 'inputmode="numeric"' in isi and 'pattern="[0-9]*"' in isi
     assert 'maxlength="6"' in isi and 'autocomplete="off"' in isi and 'value="7"' in isi
     assert 'type="number"' not in isi
-    assert 'name="aksi" value="simpan" class="tombol"' in isi
+
+
+def test_isian_tidak_punya_tombol_simpan_terlihat_hanya_yang_tersembunyi_untuk_enter():
+    isi = _html(_isian(jawaban="7"))
+
+    assert isi.count('value="simpan"') == 1 and 'value="simpan" class="sr-saja"' in isi
+    assert 'class="tombol">Simpan<' not in isi and 'class="tombol sekunder">Simpan<' not in isi
+
+
+def test_galat_mempertahankan_ketikan_anak_dan_meng_escape_nilainya():
+    isi = _html(_isian(jawaban="9"), galat=True, isi_galat='5,"<9')
+
+    assert 'name="jawaban" value="5,&quot;&lt;9"' in isi and 'name="jawaban" value="9"' not in isi
+    assert P.PESAN_GALAT_ANGKA in isi
+
+
+def test_ketikan_galat_diabaikan_bila_tidak_galat_dan_jawaban_tersimpan_tetap_tampil():
+    assert 'name="jawaban" value="9"' in _html(_isian(jawaban="9"), galat=False, isi_galat="abc")
+    assert 'name="jawaban" value="9"' in _html(_isian(jawaban="9"), galat=True, isi_galat="")
+
+
+def test_pesan_galat_memberi_contoh_dan_tanpa_istilah_teknis():
+    assert P.PESAN_GALAT_ANGKA == "Tulis angkanya saja, tanpa huruf atau tanda baca. Contoh: 120"
+
+
+def test_alamat_sesi_galat_membawa_ketikan_dipotong_enam_karakter_dan_di_url_encode():
+    assert P.alamat_sesi(5, 3) == "/murid/lomba/sesi/5?no=3"
+    assert P.alamat_sesi(5, 3, galat=True) == "/murid/lomba/sesi/5?no=3&galat=angka"
+    assert P.alamat_sesi(5, 3, galat=True, isi="5,94") == "/murid/lomba/sesi/5?no=3&galat=angka&isi=5%2C94"
+    assert P.alamat_sesi(5, 3, galat=True, isi="1234567890").endswith("&isi=123456")
+    assert "isi=" not in P.alamat_sesi(5, 3, isi="abc")
 
 
 def test_pesan_galat_angka_hanya_untuk_soal_isian():
@@ -118,6 +148,11 @@ def test_pilihan_tersimpan_ditandai_dipilih_dan_lainnya_tidak():
 
     assert isi.count("pilih dipilih") == 1
     assert re.search(r'class="pilih dipilih" aria-pressed="true"><span class="huruf">B<', isi)
+
+
+def test_hanya_pilihan_terpilih_berlabel_tersimpan():
+    assert _html(_soal(jawaban="B")).count('<span class="tersimpan">') == 1
+    assert '<span class="tersimpan">' not in _html(_soal(jawaban=None))
 
 
 def test_empat_tombol_pilihan_punya_markup_sama_selain_nilai():
@@ -145,22 +180,42 @@ def test_strip_nomor_menandai_satu_soal_aktif():
     assert re.search(r'value="4" class="nomor belum aktif" aria-current="step"', isi)
 
 
-def test_tombol_sebelumnya_dan_berikutnya_menyesuaikan_ujung():
+def test_tombol_maju_utama_dan_mundur_sekunder_dengan_nomor_tujuan_menyesuaikan_ujung():
     awal = _html(_soal(nomor=1))
     akhir = _html(_soal(nomor=10))
     tengah = _html(_soal(nomor=5))
 
-    assert "Sebelumnya" not in awal and "Berikutnya" in awal
-    assert "Berikutnya" not in akhir and "Sebelumnya" in akhir
-    assert 'value="4" class="tombol sekunder"' in tengah and 'value="6" class="tombol"' in tengah
+    assert "\u2190 Soal" not in awal and "Soal 2 \u2192" in awal
+    assert "Soal 11" not in akhir and "\u2190 Soal 9" in akhir
+    assert 'value="4" class="tombol sekunder">\u2190 Soal 4<' in tengah
+    assert 'value="6" class="tombol">Soal 6 \u2192<' in tengah
+    assert "Sebelumnya" not in tengah and "Berikutnya" not in tengah
 
 
-def test_selesai_adalah_tombol_kirim_di_dalam_form_agar_isian_terketik_ikut_tersimpan():
+def test_tombol_maju_soal_isian_berlabel_simpan_ke_soal_berikutnya_dan_pindah_tetap_menyimpan():
+    isi = _html(_isian(nomor=4, jawaban="12"))
+
+    assert 'name="pindah" value="5" class="tombol">Simpan, ke soal 5 \u2192<' in isi
+    assert 'name="pindah" value="3" class="tombol sekunder">\u2190 Soal 3<' in isi
+    assert "Simpan, ke soal" not in _html(_soal(nomor=4))
+
+
+def test_selesai_adalah_tombol_kirim_bergaya_tautan_di_dalam_form_agar_isian_terketik_ikut_tersimpan():
     isi = _html()
     form_akhir = isi.index("</form>")
 
-    assert 'name="aksi" value="selesai"' in isi[:form_akhir]
+    assert 'name="aksi" value="selesai" class="tautan-selesai">Selesai &amp; kumpulkan<' in isi[:form_akhir]
+    assert 'value="selesai" class="tombol' not in isi
     assert 'href="/murid/lomba/sesi/42/selesai"' not in isi
+
+
+def test_strip_nomor_tanpa_titik_atau_garis_putus_dan_nomor_terisi_berkelas_sudah():
+    from contest_style import GAYA_LOMBA
+
+    nomor = GAYA_LOMBA[GAYA_LOMBA.index("/* ===== strip nomor"):GAYA_LOMBA.index("/* ===== pilihan jawaban")]
+    assert "dashed" not in nomor and "::after" not in nomor
+    assert re.search(r"\.nomor\.sudah \{ background: " + re.escape(T.ANAK_AKSEN) + "; color: " + re.escape(T.TEKS_PUTIH), nomor)
+    assert re.search(r"\.nomor\.aktif \{ box-shadow: [^;]*" + re.escape(T.TEKS_JUDUL), nomor)
 
 
 # --- timer ----------------------------------------------------------------------------
@@ -197,25 +252,17 @@ def test_skrip_timer_memuat_bagian_yang_dibutuhkan(wajib):
     assert wajib in B.SKRIP_TIMER
 
 
-def _ringkas_sesi(nilai, mulai, sesi_id=5):
-    return R.RingkasSesi(sesi_id=sesi_id, mulai_epoch=mulai, selesai_epoch=mulai + 330, status="dikumpul", nilai=nilai,
-                         jumlah_soal=10, waktu_terpakai_detik=330, per_topik=())
-
-
 def _semua_halaman():
-    sesi = K.SesiRingkas(id=SESI_ID, siswa_id=1, status="berjalan", mulai_epoch=0, batas_epoch=900, selesai_epoch=None)
     return {
         "soal-pg": P.halaman_soal(SESI_ID, _soal(), frozenset({1}), 600),
-        "soal-isian": P.halaman_soal(SESI_ID, _isian(), frozenset(), 100, True),
-        "awal-baru": P.halaman_awal(None),
-        "awal-lanjut": P.halaman_awal(sesi, 300),
-        "selesai": P.halaman_selesai(SESI_ID, 3, 200),
-        "awal-riwayat": P.halaman_awal(None, 0, (_ringkas_sesi(7, 1_800_000_000),)),
+        "soal-isian": P.halaman_soal(SESI_ID, _isian(), frozenset(), 100, True, "5,9"),
+        "selesai": P.halaman_selesai(SESI_ID, [3, 4], 200),
+        "selesai-penuh": P.halaman_selesai(SESI_ID, [], 200),
         "gagal": P.halaman_gagal_siapkan(),
     }
 
 
-@pytest.mark.parametrize("nama", ["soal-pg", "soal-isian", "selesai"])
+@pytest.mark.parametrize("nama", ["soal-pg", "soal-isian", "selesai", "selesai-penuh"])
 def test_skrip_di_halaman_berwaktu_polos_tanpa_atribut(nama):
     isi = _semua_halaman()[nama].decode()
 
@@ -224,7 +271,7 @@ def test_skrip_di_halaman_berwaktu_polos_tanpa_atribut(nama):
     assert SKRIP_TIMER_DIBUNGKUS in isi
 
 
-@pytest.mark.parametrize("nama", ["awal-baru", "awal-lanjut", "awal-riwayat", "gagal"])
+@pytest.mark.parametrize("nama", ["gagal"])
 def test_halaman_tanpa_timer_tidak_memuat_skrip(nama):
     assert b"<script" not in _semua_halaman()[nama]
 
@@ -244,71 +291,59 @@ def test_halaman_soal_tidak_memuat_kata_kunci_atau_pembahasan(nama):
     assert not any(kata in isi for kata in KATA_TERLARANG)
 
 
-# --- halaman lain ---------------------------------------------------------------------
+# --- konfirmasi kumpul ----------------------------------------------------------------
 
-def test_halaman_selesai_menyebut_jumlah_belum_dijawab():
-    isi = P.halaman_selesai(SESI_ID, 7, 200).decode()
-
-    assert "Masih ada <strong>7</strong> soal belum dijawab" in isi
-    assert 'action="/murid/lomba/sesi/42/kumpul"' in isi and "Ya, kumpulkan" in isi
-    assert 'href="/murid/lomba/sesi/42?no=1"' in isi and "Kembali ke soal" in isi
+def _selesai(kosong, sisa=200):
+    return P.halaman_selesai(SESI_ID, kosong, sisa).decode()
 
 
-def test_halaman_selesai_semua_terjawab():
-    isi = P.halaman_selesai(SESI_ID, 0, 200).decode()
+def test_konfirmasi_dengan_kosong_menyebut_jumlah_sisa_menit_dan_dua_aksi():
+    isi = _selesai([2, 5, 9], sisa=420)
 
-    assert "Semua soal sudah dijawab" in isi and "Masih ada" not in isi
+    assert "Masih ada 3 soal kosong" in isi and "Waktumu masih 7 menit. Coba isi dulu, ya." in isi
+    assert 'href="/murid/lomba/sesi/42?no=2">Kerjakan soal 2</a>' in isi and 'class="tombol besar"' in isi
+    assert 'action="/murid/lomba/sesi/42/kumpul"' in isi
+    assert 'class="tombol sekunder">Kumpulkan sekarang</button>' in isi
+    assert "Kumpulkan</button>" not in isi.replace("Kumpulkan sekarang</button>", "")
 
 
-def test_halaman_awal_baru_menawarkan_mulai_dan_lanjut_menampilkan_sisa():
-    baru = P.halaman_awal(None).decode()
-    sesi = K.SesiRingkas(id=9, siswa_id=1, status="berjalan", mulai_epoch=0, batas_epoch=900, selesai_epoch=None)
-    lanjut = P.halaman_awal(sesi, 754).decode()
+def test_konfirmasi_strip_memuat_sepuluh_nomor_kosong_berupa_tautan_terisi_bukan_tautan():
+    isi = _selesai([2, 5])
 
-    assert 'action="/murid/lomba/mulai"' in baru and "Mulai" in baru and "Lanjutkan" not in baru
-    assert 'href="/murid/lomba/sesi/9?no=1"' in lanjut and "12:34" in lanjut and 'action="/murid/lomba/mulai"' not in lanjut
-    assert "10 soal" in baru and "15 menit" in baru
+    assert len(re.findall(r'class="nomor ', isi)) == 10
+    assert isi.count('<a class="nomor belum"') == 2 and isi.count('<span class="nomor sudah">') == 8
+    assert 'href="/murid/lomba/sesi/42?no=2"' in isi and 'href="/murid/lomba/sesi/42?no=5"' in isi
+    assert 'href="/murid/lomba/sesi/42?no=1"' not in isi
+
+
+@pytest.mark.parametrize("sisa,teks", [(900, "15 menit"), (119, "1 menit"), (60, "1 menit"), (59, "kurang dari 1 menit"),
+                                       (0, "kurang dari 1 menit"), (-5, "kurang dari 1 menit")])
+def test_sisa_waktu_dibulatkan_ke_bawah_dengan_minimal_kurang_dari_semenit(sisa, teks):
+    assert P.teks_sisa_waktu(sisa) == f"Waktumu masih {teks}"
+
+
+def test_konfirmasi_kerjakan_soal_menunjuk_kosong_pertama_bukan_urutan_masukan():
+    isi = _selesai([7, 3, 9])
+
+    assert "Kerjakan soal 3</a>" in isi and 'class="tombol besar" href="/murid/lomba/sesi/42?no=3"' in isi
+
+
+def test_konfirmasi_semua_terisi_merayakan_dengan_kumpulkan_utama_dan_periksa_lagi():
+    isi = _selesai([])
+
+    assert "Semua soal sudah kamu jawab!" in isi and "maskot-merayakan" in isi
+    assert 'action="/murid/lomba/sesi/42/kumpul"' in isi and 'class="tombol besar">Kumpulkan</button>' in isi
+    assert 'href="/murid/lomba/sesi/42?no=1">Periksa lagi</a>' in isi
+    assert "Masih ada" not in isi and "Kumpulkan sekarang" not in isi and isi.count('<span class="nomor sudah">') == 10
 
 
 # --- tanpa hex literal ----------------------------------------------------------------
 
 @pytest.mark.parametrize("berkas", ["contest_style.py", "contest_pages.py", "contest_browser.py", "contest_format.py",
                                     "contest_chart_svg.py", "contest_results_pages.py", "contest_guru_pages.py",
-                                    "contest_guru_http.py"])
+                                    "contest_guru_http.py", "contest_awal.py", "contest_home.py",
+                                    "contest_komponen.py", "contest_anak.py", "contest_paket.py"])
 def test_tanpa_warna_literal_di_berkas_halaman(berkas):
     sumber = (MESIN / berkas).read_text(encoding="utf-8")
 
     assert not re.findall(r"#[0-9a-fA-F]{3,8}\b|rgba?\(|%23[0-9a-fA-F]{3,8}\b", sumber)
-
-
-# --- Latihan terakhir di halaman awal ------------------------------------------------------
-
-def test_halaman_awal_tanpa_riwayat_tidak_memuat_bagian_latihan_terakhir_dan_sama_dengan_default():
-    assert P.halaman_awal(None, 0, ()) == P.halaman_awal(None)
-    assert "Latihan terakhir" not in P.halaman_awal(None).decode()
-
-
-def test_latihan_terakhir_menampilkan_tanggal_wib_nilai_dan_tautan_hasil_sesuai_urutan_masuk():
-    riwayat = (_ringkas_sesi(8, 1_800_000_000, sesi_id=12), _ringkas_sesi(3, 1_799_900_000, sesi_id=9))
-
-    isi = P.halaman_awal(None, 0, riwayat).decode()
-
-    assert "Latihan terakhir" in isi
-    assert isi.index('href="/murid/lomba/hasil/12"') < isi.index('href="/murid/lomba/hasil/9"')
-    assert "<span>15 Jan 2027, 15:00</span><strong>8/10</strong>" in isi
-    assert "<strong>3/10</strong>" in isi
-
-
-def test_latihan_terakhir_dipotong_di_lima_sesi():
-    riwayat = tuple(_ringkas_sesi(5, 1_800_000_000 - i, sesi_id=100 + i) for i in range(8))
-
-    isi = P.halaman_awal(None, 0, riwayat).decode()
-
-    assert isi.count('href="/murid/lomba/hasil/') == 5 and 'hasil/104"' in isi and 'hasil/105"' not in isi
-
-
-def test_tautan_beranda_murid_menunjuk_ke_halaman_awal_lomba_tanpa_skrip():
-    isi = P.tautan_beranda_murid()
-
-    assert 'href="/murid/lomba"' in isi and "Latihan Lomba" in isi and "<script" not in isi
-    assert not re.search(r"\son[a-z]+\s*=", isi, re.I)

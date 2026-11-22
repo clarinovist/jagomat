@@ -15,8 +15,10 @@ import re
 import time
 import urllib.parse
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
+import contest_anak
+import contest_awal
 import contest_gate
 import contest_pages as P
 import contest_results
@@ -181,9 +183,7 @@ def _layani_get(kon, siswa_id: int, rute: tuple, jalur_penuh: str) -> _Respons:
     nama, id_mentah = rute
     sekarang = _sekarang()
     if nama == _GET_AWAL:
-        berjalan = K.sesi_berjalan(kon, siswa_id, sekarang)
-        return _halaman_tautan(P.halaman_awal(
-            berjalan, berjalan.sisa_detik(sekarang) if berjalan else 0, _latihan_terakhir(kon, siswa_id, sekarang)))
+        return _halaman_tautan(contest_awal.halaman_awal(contest_anak.muat_ringkas(kon, siswa_id, sekarang)))
     pasangan = _query(jalur_penuh)
     nomor = K.NOMOR_PERTAMA
     if nama == _GET_SESI and "no" in pasangan:
@@ -196,22 +196,28 @@ def _layani_get(kon, siswa_id: int, rute: tuple, jalur_penuh: str) -> _Respons:
     sisa = sesi.sisa_detik(sekarang)
     terjawab = K.nomor_terjawab(kon, siswa_id, sesi.id)
     if nama == _GET_SELESAI:
-        return _halaman_tautan(P.halaman_selesai(sesi.id, K.NOMOR_TERAKHIR - len(terjawab), sisa))
+        kosong = [n for n in range(K.NOMOR_PERTAMA, K.NOMOR_TERAKHIR + 1) if n not in terjawab]
+        return _halaman_tautan(P.halaman_selesai(sesi.id, kosong, sisa))
     soal = K.soal_untuk_anak(kon, siswa_id, sesi.id, nomor)
     galat = _tunggal(pasangan, "galat") == "angka"
-    return _halaman_tautan(P.halaman_soal(sesi.id, soal, terjawab, sisa, galat))
+    return _halaman_tautan(P.halaman_soal(sesi.id, soal, terjawab, sisa, galat, _isi_galat(pasangan)))
 
 
-def _latihan_terakhir(kon, siswa_id: int, sekarang: int) -> tuple:
-    """Sesi selesai terbaru milik anak (terbaru dulu, maksimal BATAS_LATIHAN_TERAKHIR)."""
-    riwayat = contest_results.riwayat_sesi(kon, siswa_id, sekarang)
-    return tuple(reversed(riwayat[-P.BATAS_LATIHAN_TERAKHIR:]))
+def _isi_galat(pasangan: Dict[str, list]) -> str:
+    """Ketikan yang dipertahankan saat galat; nilai ganda, terlalu panjang, atau bukan teks tercetak diabaikan (bukan 404)."""
+    nilai = pasangan.get("isi")
+    if nilai is None or len(nilai) != 1:
+        return ""
+    mentah = nilai[0]
+    return mentah if len(mentah) <= P.MAKS_ISI_GALAT and mentah.isprintable() else ""
 
 
 def _layani_hasil(kon, siswa_id: int, sesi: K.SesiRingkas, sekarang: int) -> _Respons:
     if sesi.status == K.BERJALAN:
         return _alihkan(P.alamat_sesi(sesi.id))
-    return _halaman_tautan(RP.halaman_hasil_anak(contest_results.hasil_rinci(kon, siswa_id, sesi.id, sekarang)))
+    hasil = contest_results.hasil_rinci(kon, siswa_id, sesi.id, sekarang)
+    sebelumnya = contest_anak.nilai_sebelumnya(kon, siswa_id, sesi.id, sekarang)
+    return _halaman_tautan(RP.halaman_hasil_anak(hasil, contest_anak.kalimat_banding(hasil.nilai, sebelumnya)))
 
 
 def _baca_isian(penangan) -> Optional[Dict[str, str]]:
@@ -295,29 +301,40 @@ def _jawab(kon, siswa_id: int, sesi_id: int, isian: Dict[str, str], sekarang: in
     sesi = K.ambil_sesi(kon, siswa_id, sesi_id, sekarang)
     if sesi.status != K.BERJALAN:
         return _alihkan(P.alamat_hasil(sesi_id))
-    pengganti = _simpan_bila_perlu(kon, siswa_id, sesi_id, nomor, pindah, isian, sekarang)
-    if pengganti is None and isian.get("aksi") == "selesai":
+    pengganti, tersimpan = _simpan_bila_perlu(kon, siswa_id, sesi_id, nomor, pindah, isian, sekarang)
+    selesai = isian.get("aksi") == "selesai"
+    if pengganti is None and selesai:
         pengganti = P.alamat_selesai(sesi_id)       # isian terketik sudah tersimpan di atas
+    if pengganti is None and tersimpan and pindah is None:
+        pengganti = _alamat_setelah_simpan(kon, siswa_id, sesi_id, nomor)
     return _alihkan(pengganti or P.alamat_sesi(sesi_id, pindah or nomor))
 
 
+def _alamat_setelah_simpan(kon, siswa_id: int, sesi_id: int, nomor: int) -> Optional[str]:
+    """Auto-pindah: soal kosong berikutnya setelah `nomor` (siklis); None (tetap di soal itu) bila semua terisi."""
+    terisi = K.nomor_terjawab(kon, siswa_id, sesi_id)
+    berikutnya = contest_anak.nomor_kosong_berikutnya(terisi, nomor)
+    return None if berikutnya is None else P.alamat_sesi(sesi_id, berikutnya)
+
+
 def _simpan_bila_perlu(kon, siswa_id: int, sesi_id: int, nomor: int, pindah: Optional[int],
-                       isian: Dict[str, str], sekarang: int) -> Optional[str]:
-    """Simpan `jawaban` bila ada; kembalikan alamat pengganti bila perlu mengalihkan, selain itu None.
+                       isian: Dict[str, str], sekarang: int) -> Tuple[Optional[str], bool]:
+    """Simpan `jawaban` bila ada; kembalikan (alamat pengganti atau None, apakah jawaban sah benar-benar tersimpan).
 
     Isian kosong hanya menghapus jawaban lewat tombol Simpan (`aksi=simpan`) tanpa `pindah`; kosong
     yang ikut klik nomor/Sebelumnya/Berikutnya diabaikan supaya pindah soal tidak menghapus apa pun.
     """
     if "jawaban" not in isian:
-        return None
+        return None, False
     nilai = isian["jawaban"]
+    ada_isi = bool(nilai.strip())
     menghapus = isian.get("aksi") == "simpan" and pindah is None
-    if not nilai.strip() and not menghapus:
-        return None
+    if not ada_isi and not menghapus:
+        return None, False
     try:
         K.simpan_jawaban(kon, siswa_id, sesi_id, nomor, nilai, sekarang)
     except K.SesiSelesai:
-        return P.alamat_hasil(sesi_id)
+        return P.alamat_hasil(sesi_id), False
     except K.JawabanTidakSah:
-        return P.alamat_sesi(sesi_id, nomor, galat=True)
-    return None
+        return P.alamat_sesi(sesi_id, nomor, galat=True, isi=nilai), False
+    return None, ada_isi

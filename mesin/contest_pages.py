@@ -9,25 +9,23 @@ tanpa JS, semua halaman tetap berfungsi dan timer ditegakkan server.
 from __future__ import annotations
 
 import html
-from typing import TYPE_CHECKING, AbstractSet, Optional, Sequence
+import urllib.parse
+from typing import AbstractSet, Sequence
 
 import brand
 import contest_core as C
+import contest_komponen as KP
 import contest_store as K
 from contest_browser import SKRIP_TIMER
-from contest_format import tanggal_wib
-from contest_style import GAYA_AWAL_RIWAYAT, GAYA_LOMBA
-
-if TYPE_CHECKING:  # hanya tipe RingkasSesi (tanpa kunci); modul hasil tidak diimpor saat dijalankan
-    from contest_results import RingkasSesi
+from contest_style import GAYA_LOMBA
 
 DASAR = "/murid/lomba"
 ALAMAT_AWAL = DASAR
 ALAMAT_MULAI = DASAR + "/mulai"
 BATAS_MERAH_DETIK = 180
-BATAS_LATIHAN_TERAKHIR = 5
 JUMLAH_SOAL = K.NOMOR_TERAKHIR
-PESAN_GALAT_ANGKA = "Tulis angka saja ya"
+MAKS_ISI_GALAT = 6                # panjang ketikan yang dipertahankan saat galat (sama dengan maxlength input)
+PESAN_GALAT_ANGKA = "Tulis angkanya saja, tanpa huruf atau tanda baca. Contoh: 120"
 _DETIK_PER_MENIT = 60
 _FONT = (
     '<link rel="preconnect" href="https://fonts.googleapis.com">'
@@ -37,8 +35,13 @@ _FONT = (
 )
 
 
-def alamat_sesi(sesi_id: int, nomor: int = 1, galat: bool = False) -> str:
-    return f"{DASAR}/sesi/{int(sesi_id)}?no={int(nomor)}" + ("&galat=angka" if galat else "")
+def alamat_sesi(sesi_id: int, nomor: int = 1, galat: bool = False, isi: str = "") -> str:
+    """Alamat satu soal; `isi` (ketikan galat, dipotong MAKS_ISI_GALAT) ikut agar anak tak mengetik ulang."""
+    alamat = f"{DASAR}/sesi/{int(sesi_id)}?no={int(nomor)}"
+    if not galat:
+        return alamat
+    tambahan = "&isi=" + urllib.parse.quote(isi[:MAKS_ISI_GALAT], safe="") if isi else ""
+    return alamat + "&galat=angka" + tambahan
 
 
 def alamat_jawab(sesi_id: int) -> str:
@@ -106,9 +109,10 @@ def _strip_nomor(nomor_aktif: int, terjawab: AbstractSet[int]) -> str:
 def _tombol_pilihan(huruf: str, teks: str, gambar: str, dipilih: bool) -> str:
     kelas = "pilih dipilih" if dipilih else "pilih"
     isi = gambar if gambar else html.escape(teks)
+    tersimpan = '<span class="tersimpan"><span aria-hidden="true">\u2713</span> tersimpan</span>' if dipilih else ""
     return (f'<button type="submit" name="jawaban" value="{huruf}" class="{kelas}" '
             f'aria-pressed="{"true" if dipilih else "false"}">'
-            f'<span class="huruf">{huruf}</span><span class="isi-pilihan">{isi}</span></button>')
+            f'<span class="huruf">{huruf}</span><span class="isi-pilihan">{isi}</span>{tersimpan}</button>')
 
 
 def _blok_pilihan(soal: K.SoalAnak) -> str:
@@ -119,27 +123,31 @@ def _blok_pilihan(soal: K.SoalAnak) -> str:
     return f'<div class="{kelas}" role="group" aria-label="Pilihan jawaban">{tombol}</div>'
 
 
-def _blok_isian(soal: K.SoalAnak, galat: bool) -> str:
-    nilai = html.escape(soal.jawaban or "", quote=True)
+def _blok_isian(soal: K.SoalAnak, galat: bool, isi_galat: str) -> str:
+    """Kolom angka tanpa tombol Simpan terlihat: Enter memakai tombol bawaan tersembunyi, pindah soal ikut menyimpan."""
+    nilai = html.escape(isi_galat if galat and isi_galat else (soal.jawaban or ""), quote=True)
     pesan = f'<p class="galat" role="alert">{PESAN_GALAT_ANGKA}</p>' if galat else ""
     return (f'<div class="isian"><label for="isi-jawaban">Tulis jawabanmu (angka saja)</label>'
-            f'<input type="text" id="isi-jawaban" inputmode="numeric" pattern="[0-9]*" maxlength="6" '
+            f'<input type="text" id="isi-jawaban" inputmode="numeric" pattern="[0-9]*" maxlength="{MAKS_ISI_GALAT}" '
             f'autocomplete="off" name="jawaban" value="{nilai}">{pesan}'
-            f'<button type="submit" name="aksi" value="simpan" class="tombol">Simpan</button></div>')
+            '<p class="bantuan">Tekan Enter atau pindah soal, jawabanmu ikut tersimpan.</p></div>')
 
 
-def _tombol_geser(nomor: int) -> str:
+def _tombol_geser(nomor: int, isian: bool) -> str:
+    """Maju = tombol utama ("Simpan, ke soal N" untuk isian); mundur = sekunder. Pindah selalu menyimpan isian."""
     sebelumnya = (f'<button type="submit" name="pindah" value="{nomor - 1}" class="tombol sekunder">'
-                  'Sebelumnya</button>') if nomor > K.NOMOR_PERTAMA else ""
+                  f'\u2190 Soal {nomor - 1}</button>') if nomor > K.NOMOR_PERTAMA else ""
+    label = f"Simpan, ke soal {nomor + 1}" if isian else f"Soal {nomor + 1}"
     berikutnya = (f'<button type="submit" name="pindah" value="{nomor + 1}" class="tombol">'
-                  'Berikutnya</button>') if nomor < JUMLAH_SOAL else ""
+                  f'{label} \u2192</button>') if nomor < JUMLAH_SOAL else ""
     return f'<div class="aksi">{sebelumnya}{berikutnya}</div>'
 
 
 def halaman_soal(sesi_id: int, soal: K.SoalAnak, terjawab: AbstractSet[int], sisa: int,
-                 galat: bool = False) -> bytes:
+                 galat: bool = False, isi_galat: str = "") -> bytes:
     """Satu soal per layar. Urutan DOM: tombol Simpan bawaan (tersembunyi-visual) paling awal di form."""
-    jawaban = _blok_pilihan(soal) if soal.jenis == C.JENIS_PG else _blok_isian(soal, galat)
+    isian = soal.jenis != C.JENIS_PG
+    jawaban = _blok_isian(soal, galat, isi_galat) if isian else _blok_pilihan(soal)
     gambar = f'<div class="gambar">{soal.svg}</div>' if soal.svg else ""
     topik = html.escape(C.LABEL_TOPIK.get(soal.topik, ""))
     isi = f"""{_bilah(sesi_id, sisa, f"Soal {soal.nomor} dari {JUMLAH_SOAL}")}
@@ -150,70 +158,59 @@ def halaman_soal(sesi_id: int, soal: K.SoalAnak, terjawab: AbstractSet[int], sis
 {_strip_nomor(soal.nomor, terjawab)}
 <section class="kartu"><p class="topik">{topik}</p>
 <p class="teks-soal">{html.escape(soal.teks)}</p>{gambar}{jawaban}</section>
-{_tombol_geser(soal.nomor)}
-<button type="submit" name="aksi" value="selesai" class="tombol besar">Selesai</button>
+{_tombol_geser(soal.nomor, isian)}
+<button type="submit" name="aksi" value="selesai" class="tautan-selesai">Selesai &amp; kumpulkan</button>
 </form>
 </main>"""
     return dokumen(f"Soal {soal.nomor}", isi, _skrip_timer())
 
 
-def _latihan_terakhir(riwayat: Sequence["RingkasSesi"]) -> str:
-    """Daftar sesi selesai terbaru (maks BATAS_LATIHAN_TERAKHIR, terbaru dulu); kosong -> tidak tampil."""
-    if not riwayat:
-        return ""
-    butir = "".join(
-        f'<li><a class="tautan-latihan" href="{alamat_hasil(sesi.sesi_id)}">'
-        f'<span>{html.escape(tanggal_wib(sesi.mulai_epoch))}</span>'
-        f'<strong>{int(sesi.nilai)}/{int(sesi.jumlah_soal)}</strong></a></li>'
-        for sesi in riwayat[:BATAS_LATIHAN_TERAKHIR])
-    return (f'<section class="latihan-terakhir" aria-labelledby="judul-terakhir"><h2 id="judul-terakhir">'
-            f'Latihan terakhir</h2><ul>{butir}</ul></section>')
+def _nomor_ringkas(nomor: int, kosong: bool, sesi_id: int) -> str:
+    if kosong:
+        return (f'<li><a class="nomor belum" href="{alamat_sesi(sesi_id, nomor)}">{nomor}'
+                '<span class="sr-saja"> belum dijawab, buka soal</span></a></li>')
+    return f'<li><span class="nomor sudah">{nomor}<span class="sr-saja"> sudah dijawab</span></span></li>'
 
 
-def halaman_awal(sesi: Optional[K.SesiRingkas], sisa: int = 0, riwayat: Sequence["RingkasSesi"] = ()) -> bytes:
-    """Penjelasan singkat + Mulai, atau Lanjutkan bila ada sesi berjalan; `riwayat` = sesi selesai, terbaru dulu."""
-    if sesi is None:
-        aksi = (f'<form method="post" action="{ALAMAT_MULAI}">'
-                '<button type="submit" class="tombol besar">Mulai</button></form>')
-        status = ""
-    else:
-        aksi = f'<a class="tombol besar" href="{alamat_sesi(sesi.id)}">Lanjutkan</a>'
-        status = f'<p class="catatan">Latihanmu masih berjalan. Sisa waktu: <strong>{mmss(sisa)}</strong></p>'
-    isi = f"""<main class="isi"><section class="kartu">
-<h1 class="judul">Latihan Lomba</h1>
-<ul class="daftar-aturan"><li>{JUMLAH_SOAL} soal</li><li>Waktumu {K.DURASI_DETIK // _DETIK_PER_MENIT} menit</li>
-<li>Boleh pindah-pindah soal, jawabanmu tersimpan</li></ul>
-{status}{aksi}
-</section>{_latihan_terakhir(riwayat)}</main>"""
-    return dokumen("Latihan Lomba", isi, gaya_tambahan=GAYA_AWAL_RIWAYAT if riwayat else "")
+def _strip_konfirmasi(sesi_id: int, kosong: AbstractSet[int]) -> str:
+    butir = "".join(_nomor_ringkas(n, n in kosong, sesi_id) for n in range(1, JUMLAH_SOAL + 1))
+    return f'<nav aria-label="Nomor soal"><ol class="strip">{butir}</ol></nav>'
 
 
-_IKON_LOMBA = ('<svg class="murid-ikon-st" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '
-               'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-               '<path d="M8 21h8m-4-4v4M7 4h10v5a5 5 0 0 1-10 0V4Zm0 2H4v1a3 3 0 0 0 3 3m10-4h3v1a3 3 0 0 1-3 3"/></svg>')
+def teks_sisa_waktu(sisa: int) -> str:
+    """"Waktumu masih 7 menit" (dibulatkan ke bawah); "kurang dari 1 menit" bila belum genap semenit."""
+    menit = max(0, int(sisa)) // _DETIK_PER_MENIT
+    return f"Waktumu masih {menit} menit" if menit >= 1 else "Waktumu masih kurang dari 1 menit"
 
 
-def tautan_beranda_murid() -> str:
-    """Kartu tautan besar "Latihan Lomba" di beranda murid (hanya dipanggil bila gerbang hidup)."""
-    return (
-        '<section class="murid-latihan-lain-st" aria-labelledby="judul-lomba">'
-        '<div class="murid-kepala-bagian-st"><h2 id="judul-lomba">Latihan Lomba</h2></div>'
-        f'<a class="st-kartu-baris" href="{ALAMAT_AWAL}">'
-        f'<span class="murid-ikon-topik-st">{_IKON_LOMBA}</span>'
-        '<span class="st-kartu-teks"><span class="murid-judul-kartu-st">Latihan Lomba</span>'
-        f'<span class="murid-meta-st">{JUMLAH_SOAL} soal, {K.DURASI_DETIK // _DETIK_PER_MENIT} menit</span></span>'
-        '<span class="murid-ujung-st st-jumlah-soal"><span class="murid-aksi-st">Coba</span></span></a></section>')
+def _form_kumpul(sesi_id: int, label: str, kelas: str) -> str:
+    return (f'<form method="post" action="{alamat_kumpul(sesi_id)}">'
+            f'<button type="submit" class="{kelas}">{label}</button></form>')
 
 
-def halaman_selesai(sesi_id: int, belum: int, sisa: int) -> bytes:
-    """Konfirmasi native sebelum mengumpulkan."""
-    pesan = (f"Masih ada <strong>{int(belum)}</strong> soal belum dijawab" if belum > 0
-             else "Semua soal sudah dijawab")
+def _isi_masih_kosong(sesi_id: int, kosong: Sequence[int], sisa: int) -> str:
+    pertama = min(kosong)
+    return f"""<h1 class="judul">Masih ada {len(kosong)} soal kosong</h1>
+<p>{teks_sisa_waktu(sisa)}. Coba isi dulu, ya.</p>
+{_strip_konfirmasi(sesi_id, frozenset(kosong))}
+<a class="tombol besar" href="{alamat_sesi(sesi_id, pertama)}">Kerjakan soal {pertama}</a>
+{_form_kumpul(sesi_id, "Kumpulkan sekarang", "tombol sekunder")}"""
+
+
+def _isi_semua_terisi(sesi_id: int) -> str:
+    return f"""{KP.maskot_kartu("merayakan")}
+<h1 class="judul">Semua soal sudah kamu jawab!</h1>
+{_strip_konfirmasi(sesi_id, frozenset())}
+{_form_kumpul(sesi_id, "Kumpulkan", "tombol besar")}
+<a class="tombol sekunder" href="{alamat_sesi(sesi_id, K.NOMOR_PERTAMA)}">Periksa lagi</a>"""
+
+
+def halaman_selesai(sesi_id: int, kosong: Sequence[int], sisa: int) -> bytes:
+    """Konfirmasi native sebelum mengumpulkan; `kosong` = nomor soal yang belum dijawab."""
+    bagian = _isi_masih_kosong(sesi_id, kosong, sisa) if kosong else _isi_semua_terisi(sesi_id)
     isi = f"""{_bilah(sesi_id, sisa, "Selesai?")}
 <main class="isi"><section class="kartu">
-<h1 class="judul">Kumpulkan sekarang?</h1><p>{pesan}</p>
-<form method="post" action="{alamat_kumpul(sesi_id)}"><button type="submit" class="tombol besar">Ya, kumpulkan</button></form>
-<a class="tombol sekunder" href="{alamat_sesi(sesi_id)}">Kembali ke soal</a>
+{bagian}
 </section></main>"""
     return dokumen("Kumpulkan", isi, _skrip_timer())
 

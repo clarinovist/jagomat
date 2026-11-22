@@ -39,3 +39,24 @@ def persen(benar: int, total: int) -> int:
 def desimal(nilai: float) -> str:
     """Satu angka di belakang koma dengan koma Indonesia: 6.5 -> "6,5", 7 -> "7,0"."""
     return f"{nilai:.1f}".replace(".", ",")
+
+
+NAMA_HARI = ("Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu")
+_DETIK_PER_HARI = 24 * 3600
+
+
+def _hari_wib(epoch: int) -> int:
+    """Nomor hari kalender WIB sejak 1 Jan 1970."""
+    return (int(epoch) + OFFSET_WIB_DETIK) // _DETIK_PER_HARI
+
+
+def label_tanggal_relatif(epoch: int, sekarang: int) -> str:
+    """Epoch -> "Hari ini, 13.14" / "Kemarin, 13.13" / "Jumat, 20 Nov" (WIB, tanpa tahun)."""
+    waktu = _NOL_UTC + datetime.timedelta(seconds=int(epoch) + OFFSET_WIB_DETIK)
+    selisih = _hari_wib(sekarang) - _hari_wib(epoch)
+    jam = f"{waktu.hour:02d}.{waktu.minute:02d}"
+    if selisih == 0:
+        return f"Hari ini, {jam}"
+    if selisih == 1:
+        return f"Kemarin, {jam}"
+    return f"{NAMA_HARI[waktu.weekday()]}, {waktu.day} {BULAN_SINGKAT[waktu.month - 1]}"

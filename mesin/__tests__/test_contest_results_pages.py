@@ -57,7 +57,7 @@ def test_judul_nilai_dan_waktu_memakai_teks_tahap_dua(status, judul):
     isi = _halaman(status=status)
 
     assert f'<h1 class="judul">{judul}</h1>' in isi
-    assert "Nilai: 1 dari 2" in isi and "Waktu: 05:30" in isi
+    assert '<p class="angka-besar"><span class="sr-saja">Nilai: </span>1/2</p>' in isi and "Waktu: 05:30" in isi
     assert 'action="/murid/lomba/mulai"' in isi and "Latihan lagi" in isi
 
 
@@ -203,7 +203,7 @@ def test_halaman_tanpa_skrip_penangan_kejadian_atau_tautan_luar():
 def test_halaman_memuat_gaya_hasil_dan_tidak_memakai_gaya_inline_atribut():
     isi = _halaman()
 
-    assert ".hl-soal" in isi and ' style="' not in isi
+    assert ".hl-soal" in isi and ' style="' not in re.sub(r"<img[^>]*>", "", isi)  # hanya <img> maskot memakai style
 
 
 def test_sepuluh_kartu_memakai_id_judul_unik_untuk_aksesibilitas():
@@ -218,3 +218,111 @@ def test_halaman_anak_tidak_membuka_id_templat_atau_tingkat_soal():
     isi = re.sub(r"<style>.*?</style>", "", _halaman(butir=[_butir(template_id="bil_rahasia_uji", tingkat=3)]), flags=re.S)
 
     assert "bil_rahasia_uji" not in isi and "rahasia uji" not in isi and "tingkat" not in isi.lower()
+
+
+# --- ringkasan, peta nomor, kelompok soal (hasil anak) ---------------------------------------
+
+def _sepuluh(salah=(), kosong=()):
+    butir = []
+    for n in range(1, 11):
+        if n in kosong:
+            butir.append(_butir(nomor=n, jawaban=None, jawaban_teks=None, benar=False))
+        elif n in salah:
+            butir.append(_salah(nomor=n))
+        else:
+            butir.append(_butir(nomor=n))
+    return butir
+
+
+def _tanpa_gaya(isi):
+    return re.sub(r"<style>.*?</style>", "", isi, flags=re.S)
+
+
+@pytest.mark.parametrize("benar,pose", [(10, "merayakan"), (8, "merayakan"), (7, "menyapa"), (5, "menyapa"),
+                                         (4, "berpikir"), (0, "berpikir")])
+def test_pose_maskot_menurut_persen_benar(benar, pose):
+    butir = _sepuluh(salah=range(benar + 1, 11))
+
+    isi = _halaman(butir=butir)
+
+    assert f"maskot-{pose}-v3-96.png" in isi and isi.count("/aset/maskot-") == 1
+
+
+def test_bilah_atas_dan_tombol_bawah_menautkan_ke_beranda_murid():
+    isi = _halaman()
+
+    assert '<a class="tautan-beranda" href="/murid">' in isi and "Beranda</a></header>" in isi
+    assert '<a class="tombol sekunder" href="/murid">Beranda</a>' in isi
+    assert isi.index("Latihan lagi") > isi.index("Soal yang benar")
+
+
+def test_kalimat_banding_tampil_hanya_bila_diberikan():
+    tanpa = _halaman()
+    dengan = RP.halaman_hasil_anak(_hasil(), "Naik 2 dari latihan sebelumnya").decode()
+
+    assert "hl-banding" not in _tanpa_gaya(tanpa) and "latihan sebelumnya" not in tanpa
+    assert '<p class="hl-banding">Naik 2 dari latihan sebelumnya</p>' in dengan
+
+
+def test_kalimat_banding_di_escape():
+    isi = RP.halaman_hasil_anak(_hasil(), '<b>x</b> & "y"').decode()
+
+    assert "&lt;b&gt;x&lt;/b&gt; &amp; &quot;y&quot;" in isi and "<b>x</b>" not in isi
+
+
+def test_peta_memuat_sepuluh_nomor_bertaut_ke_kartu_dengan_status_benar_salah_kosong():
+    isi = _tanpa_gaya(_halaman(butir=_sepuluh(salah={2}, kosong={5})))
+
+    peta = isi[isi.index('<ol class="peta">'):isi.index("</ol>", isi.index('<ol class="peta">'))]
+    assert len(re.findall(r'<a class="peta-nomor ', peta)) == 10
+    assert re.findall(r'href="#soal-(\d+)"', peta) == [str(n) for n in range(1, 11)]
+    assert 'class="peta-nomor hl-salah" href="#soal-2"' in peta and 'class="peta-nomor hl-kosong-jawab" href="#soal-5"' in peta
+    assert peta.count("hl-benar") == 8
+    assert "salah</span>" in peta and "belum diisi</span>" in peta and peta.count("benar</span>") == 8
+
+
+def test_soal_salah_dan_kosong_masing_masing_dalam_details_terbuka_dengan_ringkasan_nomor_topik_status():
+    isi = _tanpa_gaya(_halaman(butir=_sepuluh(salah={2}, kosong={5})))
+
+    assert "Yang perlu dilihat lagi (2)" in isi
+    assert "<details class=\"hl-lipat\" open><summary>Soal 2 \u00b7 Bilangan \u00b7 salah</summary>" in isi
+    assert "<details class=\"hl-lipat\" open><summary>Soal 5 \u00b7 Bilangan \u00b7 belum diisi</summary>" in isi
+    assert isi.count('class="hl-lipat" open') == 2
+
+
+def test_soal_benar_dalam_satu_details_tertutup_bila_ada_yang_salah():
+    isi = _tanpa_gaya(_halaman(butir=_sepuluh(salah={2})))
+
+    assert '<details class="hl-lipat"><summary>Soal yang benar (9)</summary>' in isi
+    benar = isi[isi.index("Soal yang benar (9)"):]
+    assert benar.count('class="hl-soal"') == 9 and 'id="soal-2"' not in benar
+
+
+def test_semua_benar_hanya_details_benar_dan_terbuka_tanpa_bagian_perlu_dilihat():
+    isi = _tanpa_gaya(_halaman(butir=_sepuluh()))
+
+    assert "Yang perlu dilihat lagi" not in isi
+    assert '<details class="hl-lipat" open><summary>Soal yang benar (10)</summary>' in isi
+
+
+def test_semua_sepuluh_id_soal_tetap_ada_tepat_satu_kali_untuk_anchor_peta():
+    for butir in (_sepuluh(), _sepuluh(salah={1, 2, 3}, kosong={10}), _sepuluh(kosong=range(1, 11))):
+        isi = _halaman(butir=butir)
+
+        assert re.findall(r'<h3 class="hl-judul" id="(soal-\d+)"', isi) == [f"soal-{n}" for n in range(1, 11)] or \
+            sorted(re.findall(r'<h3 class="hl-judul" id="(soal-\d+)"', isi)) == sorted(f"soal-{n}" for n in range(1, 11))
+
+
+def test_kartu_soal_tidak_berubah_dibungkus_di_luar():
+    butir = _salah(nomor=4)
+
+    isi = _halaman(butir=[butir])
+
+    assert _kartu(butir) in isi
+
+
+def test_hasil_anak_tanpa_skrip_dan_tanpa_label_kesalahan_walau_ada_banyak_salah():
+    isi = _halaman(butir=[_salah(nomor=n) for n in range(1, 11)])
+
+    assert "<script" not in isi and KESALAHAN not in isi and "Kemungkinan kesalahan" not in isi
+    assert not re.search(r"\son[a-z]+\s*=", isi, re.I)
