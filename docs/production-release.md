@@ -12,6 +12,24 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy tanggal + nama lomba per anak, perbaikan langganan dan pindah massal — 24 November 2026
+
+Controlled `deploy-v2` memasang **cc5c363** (digest `sha256:530f3cfc…2fe6`), healthy, menggantikan **cf43373**, ±05.10 WIB. Isi: kolom
+aditif `lomba_penugasan.tanggal_lomba`/`nama_lomba` (baris lama tetap 12 Des 2026 / Grand Final Corexis, anak baru tanpa hitung
+mundur, nama hanya tampil ke Guru), jangkar tanggal perpanjangan langganan bulanan, bukti transfer yang sudah dihapus retensi
+berstatus "dihapus", pindah banyak `/lembaga` per seksi guru. Tanpa flag baru; `visual.conf` tidak disentuh.
+
+- **Kontrak bergeser** `3cf10624…` → **`464074bf…`**. Recovery baru **3cf536c** (branch `recovery-lomba-tanggal` = c1bf719 + berkas
+  kontrak schema/schema_lomba/contest_assignment_store + commit kontrak); digest `sha256:cc4e0811…0921`; pair ok, `provider_calls` 0.
+  Pin di `main` cc5c363 (anchor 27.556 nodeid). Dispatch 45270300918 hijau.
+- Kit `deploy-lomba-tanggal-20261123` (izin Pemilik): approval kedaluwarsa diarsipkan, `PERSIAPAN_OK`, backup lima file + riset,
+  rehearsal C–B–C (baris lama `lomba_penugasan` tetap 12 Des), deploy exit0, `reopen` selesai di server (`LIVE_ADMIN_HEALTHY`,
+  Caddy dan cron pulih), postcheck hijau (smoke publik normal, 0 Traceback/OperationalError/IntegrityError), cleanup 4 direktori.
+- Catatan: koneksi SSH lokal `reopen` tersangkut setelah operasi server selesai (`completed.json` sudah ada); proses lokal dihentikan
+  dan `pasang-pascacek` + `postcheck` dijalankan manual. Pelajaran: bila `reopen` tak kembali, cek `completed.json` dan Caddy di server dulu.
+- Rollback: recovery membaca kolom baru dan mempertahankan nilai per anak, tetapi UI recovery memakai 12 Des untuk semua anak.
+- Backup induk `/opt/osn/cadangan/deploy-lomba-tanggal-20261123/` + salinan lokal `mesin/cadangan/...`.
+
 ## Deploy Latihan Harian + langganan (F4/F5/F6) + aktivasi `LATIHAN_HARIAN` — 23 November 2026
 
 Controlled `deploy-v2` memasang **cf43373** (digest `sha256:3c5df63f…504a`), healthy, menggantikan **7a4d388**. Isi: Latihan
