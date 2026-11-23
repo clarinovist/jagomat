@@ -202,7 +202,15 @@ Riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   akun anak, persetujuan (`versi_notice` sama dengan cek gratis) dan hash PIN (bila diisi) di transaksi yang sama,
   lalu sesi murid dan redirect ke `/murid`. Sakelar hidup tetapi antrean belum siap = "Pendaftaran sementara belum
   dibuka." tanpa menulis apa pun (tidak jatuh ke alur guru). Sakelar mati = alur akun guru seperti sebelumnya.
-  Akun guru lama tidak dimigrasi; halaman orang tua, cek di sesi anak, dan pesanan dari akun anak menyusul (F2b/F2c/F3).
+  Akun guru lama tidak dimigrasi; halaman orang tua dan cek di sesi anak menyusul (F2b/F3).
+- **Pesanan Peta Kemampuan dari akun anak (F2c, 23 Nov 2026)**: di balik sakelar `DAFTAR_AKUN_ANAK` (mati = jawaban
+  sama dengan jalur `/murid` tak dikenal), orang tua yang memakai akun anak memesan dan membayar Rp49.000 untuk anak itu
+  sendiri lewat mesin pesanan/transfer yang sama dengan guru. Titik masuk GET `/murid/pesanan` (belum ada pesanan =
+  kartu "Pesan Peta Kemampuan"; sudah ada = status, tagihan transfer, unggah bukti maks 5 MB, QRIS bila jalur itu aktif);
+  aksi POST di bawah `/murid/pesanan/{pesan,tagihan,bukti,tagihan/ulang,periksa,ulang,buat}`, `/murid/pesanan/qr` untuk
+  gambar QRIS. Pembeli = akun murid dari sesi, anak = siswa tertaut akun itu (bukan dari URL/form), kontak = WA yang ditulis
+  saat daftar; nomor WA tidak pernah tampil. Prasyarat (cek anak selesai, kontak ada) dan pesan penolakan sama dengan guru
+  (tanpa tautan lengkapi kontak: nomor diubah lewat admin). Pesanan milik akun/anak lain = 404 yang sama dengan jalur tak dikenal.
 - **Latihan Lomba** (Grand Final Corexis, Matematika Level 1; segmen khusus untuk anak pemilik, di balik sakelar admin `OSN_LOMBA` = saklar induk, bawaan mati;
   mati = semua alamatnya 404). Aktivasi per anak oleh Guru (Mode Lomba, 22 Nov 2026): murid hanya melihat Lomba bila sakelar induk hidup DAN Guru/admin mengaktifkannya untuk anak itu: tombol Aktifkan/Matikan di kartu anak `/akun?section=siswa` (hanya mengubah aktif; target dan durasi tetap), atau rinci di `/anak/<id>/lomba` (kartu "Mode Lomba": aktif/belum, target harian 0-3 atau ikut paket, hitung mundur tampil/tidak, waktu Latihan dan waktu Simulasi dalam menit bulat 5-180, kosong = bawaan 15/60, di luar itu ditolak dengan pesan ramah tanpa menyimpan, berlaku untuk sesi berikutnya; tanpa penugasan = tidak aktif; anak tanpa penugasan aktif mendapat 404 yang sama dengan jalur murid tak dikenal; riwayat Guru tetap terbuka walau mati). Murid yang terhubung ke data siswa dan sudah ditugaskan membuka `/murid/lomba` (tautan di beranda murid hanya saat itu) dan memilih dua mode (22 Nov 2026): **Latihan** 10 soal
   (8 pilihan ganda + 2 isian; maks satu soal Inggris) atau **Simulasi Lomba** 35 soal (30 PG + 5 isian, format PDF lomba: Bilangan 9, Operasi 9, Pengukuran 8, Bangun 9; isian di ≥3 topik;

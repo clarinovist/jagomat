@@ -48,6 +48,7 @@ import pesanan
 import pesanan_alur as alur
 import pesanan_midtrans
 import pesanan_pages as halaman
+import pesanan_permukaan as permukaan
 import pesanan_transfer
 import pesanan_transfer_gerbang as gerbang_transfer
 import pesanan_transfer_pages as halaman_transfer
@@ -211,27 +212,50 @@ def _kirim_png(penangan, isi: bytes) -> None:
     penangan.wfile.write(isi)
 
 
+def principal_murid(penangan):
+    """Principal murid dari sesi server; None untuk guru/admin/anonim (peran dari server, bukan input)."""
+    principal = penangan._principal()
+    if principal is None or principal.peran != permukaan.PERAN_MURID:
+        return None
+    return principal
+
+
 def _masih_sah(penangan, principal) -> bool:
     """Sesi/akun tidak berubah selama panggilan provider (revisi auth, peran, pemilik)."""
+    if principal.peran == permukaan.PERAN_MURID:
+        return principal_murid(penangan) == principal
     return _principal_guru(penangan) == principal
+
+
+def _tidak_ada_pembeli(penangan, principal, *, post: bool) -> None:
+    """404 permukaan pembeli: murid = 404 murid (sama dengan jalur /murid tak dikenal), guru = lama."""
+    if principal.peran == permukaan.PERAN_MURID:
+        from support_pages import halaman_pesan_murid
+        penangan._kirim(halaman_pesan_murid("404", "<h1>Halaman tidak ada</h1>"), 404)
+        return
+    _tidak_ada(penangan, post=post)
 
 
 def _galat_domain(penangan, principal, galat: Exception, *, post: bool) -> None:
     """Peta eksepsi ke pesan tetap; `str(galat)` tidak pernah dipantulkan."""
+    rute = permukaan.rute_untuk(principal)
     if isinstance(galat, alur.PesananTanpaAnak):
-        _info(penangan, principal, "Belum ada anak", cek_pages.COPY_TANPA_ANAK, 409)
+        if principal.peran == permukaan.PERAN_MURID:  # anak murid dari sesi; tanpa anak = tak ada halaman
+            _tidak_ada_pembeli(penangan, principal, post=post)
+        else:
+            _info(penangan, principal, "Belum ada anak", cek_pages.COPY_TANPA_ANAK, 409)
     elif isinstance(galat, alur.PesananCekBelumSelesai):
         _info(penangan, principal, "Cek belum selesai", halaman.COPY_CEK_BELUM_SELESAI, 409,
-              halaman.tautan_hasil())
+              halaman.tautan_hasil(rute))
     elif isinstance(galat, pesanan.PesananButuhKontak):
         _info(penangan, principal, "Lengkapi kontak", halaman.COPY_BUTUH_KONTAK, 409,
-              halaman.tautan_kontak())
+              halaman.tautan_kontak(rute))
     elif isinstance(galat, pesanan.PesananKuotaHabis):
         _info(penangan, principal, "Pendaftaran dihentikan sementara", halaman.COPY_KUOTA_HABIS, 409)
     elif isinstance(galat, pesanan.PesananBatasJendela):
         _info(penangan, principal, "Tidak bisa dibuat ulang", halaman.COPY_BATAS_ULANG, 409)
     elif isinstance(galat, pesanan.PesananTidakDitemukan):
-        _tidak_ada(penangan, post=post)
+        _tidak_ada_pembeli(penangan, principal, post=post)
     elif isinstance(galat, pesanan.PesananKonflik):
         _info(penangan, principal, "Pesanan perlu dicek", halaman.COPY_BENTROK, 409)
     else:
@@ -259,7 +283,7 @@ def _blok_transfer(penangan, principal, rekening, runtime) -> str:
     tampil = replace(tampil, boleh_ulang=tampil.boleh_ulang and runtime is None)
     sesi = penangan._ambil_token()
     return halaman_transfer.blok_transfer(
-        tampil, rekening, lambda aksi: buat_token(principal, sesi, aksi))
+        tampil, rekening, lambda aksi: buat_token(principal, sesi, aksi), permukaan.rute_untuk(principal))
 
 
 def _aksi_midtrans(tampil, runtime):
@@ -270,19 +294,34 @@ def _aksi_midtrans(tampil, runtime):
             else alur.AKSI_PERIKSA if tampil.boleh_periksa else None)
 
 
+def _belum_ada_pesanan(penangan, principal, anak) -> None:
+    """Guru: kembali ke hasil cek (tombol pesan ada di sana). Murid: kartu "Pesan" atau pesan prasyarat."""
+    if principal.peran != permukaan.PERAN_MURID:
+        _alihkan(penangan, cek_pages.RUTE_HASIL)
+        return
+    kendala = None if anak is None else alur.kendala_pesan(principal)
+    if anak is None:
+        _tidak_ada_pembeli(penangan, principal, post=False)
+    elif kendala is not None:
+        _galat_domain(penangan, principal, kendala, post=False)
+    else:
+        token = buat_token(principal, penangan._ambil_token(), AKSI_PESAN)
+        penangan._kirim_privat(halaman.halaman_belum_memesan(_ident(principal), token))
+
+
 def _get_status(penangan, principal, runtime, rekening) -> None:
     anak = alur.ambil_anak(principal)
     if anak is None:
-        _alihkan(penangan, cek_pages.RUTE_HASIL)
+        _belum_ada_pesanan(penangan, principal, anak)
         return
     klien = None if runtime is None else pesanan_midtrans.dari_runtime(runtime)
     tampil = alur.tampilan(admin_store.BAWAAN, principal, anak, klien,
                            periksa_provider=_izinkan(penangan, principal))
     if not _masih_sah(penangan, principal):
-        _tidak_ada(penangan, post=False)
+        _tidak_ada_pembeli(penangan, principal, post=False)
         return
     if tampil is None:
-        _alihkan(penangan, cek_pages.RUTE_HASIL)
+        _belum_ada_pesanan(penangan, principal, anak)
         return
     aksi = _aksi_midtrans(tampil, runtime)
     token = None if aksi is None else buat_token(principal, penangan._ambil_token(), aksi)
@@ -303,11 +342,11 @@ def _get_qr(penangan, principal, runtime) -> None:
     tampil = None if anak is None else alur.tampilan(
         admin_store.BAWAAN, principal, anak, klien, periksa_provider=True)
     if tampil is None or tampil.qr_url is None:
-        _tidak_ada(penangan, post=False)
+        _tidak_ada_pembeli(penangan, principal, post=False)
         return
     gambar = klien.gambar(tampil.qr_url)
     if not _masih_sah(penangan, principal):
-        _tidak_ada(penangan, post=False)
+        _tidak_ada_pembeli(penangan, principal, post=False)
     elif type(gambar) is not bytes or not gambar.startswith(MAGIC_PNG):
         _info(penangan, principal, "Belum bisa diproses", halaman.COPY_BELUM_SIAP, 503)
     else:
@@ -322,19 +361,29 @@ def tangani_get(penangan, jalur: str) -> bool:
     if principal is None:
         _tidak_ada(penangan, post=False)
         return True
+    return layani_get(penangan, jalur, principal)
+
+
+def layani_get(penangan, jalur: str, principal) -> bool:
+    """GET untuk principal pembeli yang SUDAH tervalidasi; `jalur` = alamat kanonik (guru).
+
+    Dipakai langsung oleh penangan guru dan oleh `pesanan_murid_http` (alamat murid dipetakan ke
+    alamat kanonik dulu). Rute pengalihan/halaman mengikuti peran principal.
+    """
+    rute = permukaan.rute_untuk(principal)
     runtime = _runtime_bila_terbuka(penangan)
     rekening = rekening_transfer(penangan)
     if runtime is None and rekening is None:
         if jalur == RUTE_QR:
-            _tidak_ada(penangan, post=False)
+            _tidak_ada_pembeli(penangan, principal, post=False)
         else:
             penangan._kirim_privat(halaman.halaman_tertutup(_ident(principal)))
         return True
     if jalur == RUTE_PESAN:  # tombol kembali setelah POST: PRG ke status, tanpa efek
-        _alihkan(penangan, RUTE_STATUS)
+        _alihkan(penangan, rute.status)
         return True
     if jalur == RUTE_QR and runtime is None:  # QRIS hanya bila gerbang Midtrans terbuka
-        _tidak_ada(penangan, post=False)
+        _tidak_ada_pembeli(penangan, principal, post=False)
         return True
     try:
         if jalur == RUTE_STATUS:
@@ -364,9 +413,9 @@ def _post_aksi(penangan, principal, runtime, aksi: str) -> None:
     klien = pesanan_midtrans.dari_runtime(runtime)
     _jalankan(principal, klien, aksi, runtime.config.merchant)
     if not _masih_sah(penangan, principal):
-        _tidak_ada(penangan, post=True)
+        _tidak_ada_pembeli(penangan, principal, post=True)
         return
-    _alihkan(penangan, RUTE_STATUS)
+    _alihkan(penangan, permukaan.rute_untuk(principal).status)
 
 
 def tangani_post(penangan, jalur: str) -> bool:
@@ -377,6 +426,16 @@ def tangani_post(penangan, jalur: str) -> bool:
     if principal is None:
         _tidak_ada(penangan, post=True)
         return True
+    return layani_post(penangan, jalur, principal)
+
+
+def layani_post(penangan, jalur: str, principal) -> bool:
+    """POST aksi untuk principal pembeli yang SUDAH tervalidasi; `jalur` = alamat kanonik (guru).
+
+    False bila gerbang Midtrans tertutup (pemanggil memutuskan: guru = 404 rute tak dikenal).
+    """
+    if jalur not in RUTE_POST:
+        return False
     runtime = _runtime_bila_terbuka(penangan)
     if runtime is None:
         return False

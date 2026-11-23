@@ -201,7 +201,13 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `_insert_siswa_baru` + `lembaga_store.nama_bebas`, bukan `tambah_siswa`). Pembaca receipt lain (`admin_backup`,
   `product_analytics_store`, `subscription_service`) menerima kedua kode. Tabel aditif `schema_daftar_anak.py`:
   `persetujuan_daftar_anak` (`daftar_anak_store`) dan `pin_orang_tua` (`pin_orang_tua_store`: simpan/periksa
-  waktu-tetap/hapus; dipakai F3). Hook akun guru (kebijakan, analitik KPI, sinkron langganan) tidak dipanggil untuk murid.
+  waktu-tetap/hapus; dipakai F3). Pesanan dari akun anak (F2c): `pesanan_murid_http.py` (GET/POST `/murid/pesanan...`,
+  dipanggil di `web.py` setelah `contest_http` sebelum `student_http`; sakelar mati/bukan murid tertaut = `False`) hanya penentu
+  pembeli + alamat; mesin SAMA lewat `pesanan_http.layani_get/layani_post` dan `pesanan_transfer_http.layani_post` (alamat murid
+  dipetakan ke alamat kanonik guru via `pesanan_permukaan.MURID_KE_KANONIK`). `pesanan_permukaan.py` = peta rute beku per peran
+  (`rute_untuk(principal)`; renderer `pesanan_pages`/`pesanan_transfer_pages` memakainya, default guru byte-identik),
+  `pesanan_murid_pages.py` = shell murid + kartu "Pesan"; `pesanan_alur._anak_pembeli` memilih anak dari peran principal (murid:
+  `students.siswa_dari_akun`). Hook akun guru (kebijakan, analitik KPI, sinkron langganan) tidak dipanggil untuk murid.
 - Funnel Cek Kemampuan Fase 1 (hanya permukaan publik): `funnel_http.py` (GET `/cek-kemampuan`, `/paket-coba`,
   sebelum `_lolos_sandi`, tanpa POST; `tangani_beranda` dipanggil `public_http.py` untuk `/` anonim, False saat
   sakelar mati agar landing lama jadi cadangan) + `funnel_pages.py` (markup, copy §7 plan) + `funnel_style.py`

@@ -103,11 +103,14 @@ def _a(teks: str) -> str:
     return html.escape(str(teks), quote=True)
 
 
-def _kepala(alis: str, judul: str, id_judul: str, nama_anak: str = "") -> str:
+def _kepala(alis: str, judul: str, id_judul: str, nama_anak: str = "", *,
+            beranda: str = "/guru", label_beranda: str = "Beranda") -> str:
+    """Kepala halaman; `beranda=""` menghilangkan jejak (murid: tautan kembali ada di topbar)."""
     untuk = f'<p class="sub">Untuk {_e(nama_anak)}</p>' if nama_anak else ""
+    jejak = f'<div class="jejak"><a href="{_a(beranda)}">&larr; {_e(label_beranda)}</a></div>' if beranda else ""
     return (
-        '<div class="jejak"><a href="/guru">&larr; Beranda</a></div>'
-        '<header class="editorial-kepala-st"><div>'
+        jejak
+        + '<header class="editorial-kepala-st"><div>'
         f'<p class="editorial-alis-st">{_e(alis)}</p>'
         f'<h1 id="{id_judul}">{_e(judul)}</h1>{untuk}'
         "</div></header>"

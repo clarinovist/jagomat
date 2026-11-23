@@ -70,6 +70,7 @@ _PROBE_GET = {
     "/guru": "/guru",
     "/ortu": "/ortu",
     "/murid": "/murid",
+    "/murid/pesanan": "/murid/pesanan",
     "/lembaga": "/lembaga",
     "/sesi/": "/sesi/1",
     "/lampiran/": "/lampiran/1",
@@ -106,6 +107,7 @@ _PROBE_POST = {
     "/masuk": "/masuk",
     "/daftar": "/daftar",
     "/murid/": "/murid/kerjakan/1",
+    "/murid/pesanan": "/murid/pesanan/pesan",
     "/lembaga": "/lembaga/pindah",
     "/sesi/": "/sesi/1",
     "/akun": "/akun",
@@ -210,6 +212,9 @@ def test_tabel_akses_punya_probe():
     assert urutan.index("/admin") < urutan.index("/guru")
     assert urutan.index("/murid") < urutan.index("/sesi/")
     assert get["/murid"] == "murid" and get["/admin"] == "admin"
+    # F2c: pesanan dari akun anak; tepat setelah /murid (sebelum palang sandi), POST di bawah prefix /murid/.
+    assert get["/murid/pesanan"] == post["/murid/pesanan"] == "murid"
+    assert urutan.index("/murid/pesanan") == urutan.index("/murid") + 1
     # `/cek-kemampuan` exact tetap publik; rute akun di bawahnya exact dan guru.
     assert get["/cek-kemampuan"] == "publik"
     assert get["/cek-kemampuan/mulai"] == get["/cek-kemampuan/hasil"] == "guru"

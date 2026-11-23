@@ -97,6 +97,9 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/guru", "guru"),
     ("/ortu", "guru"),  # alias lama beranda guru
     ("/murid", "murid"),  # sebelum palang sandi: 303 ke /masuk tanpa sesi murid
+    # F2c: pesanan Peta Kemampuan dari akun anak (prefix; GET /murid/pesanan, /qr, /pesan). Sakelar
+    # DAFTAR_AKUN_ANAK mati = jatuh ke penangan murid biasa (anonim 303 /masuk).
+    ("/murid/pesanan", "murid"),
     ("/lembaga", "guru"),  # hanya pemilik les; selain itu 404 identik rute tak dikenal
     ("/sesi/", "guru"),
     ("/lampiran/", "guru"),
@@ -139,6 +142,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
     ("/daftar", "publik"),
     ("/murid/", "murid"),
+    ("/murid/pesanan", "murid"),  # F2c: POST pesan/periksa/ulang/buat/tagihan/bukti; anonim 401 (palang sandi)
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),
@@ -737,6 +741,9 @@ class Penangan(BaseHTTPRequestHandler):
             import contest_http  # Latihan Lomba: harus sebelum student_http (yang menjawab 404 sisanya)
             if contest_http.tangani_get(self, jalur, self.path):
                 return
+            import pesanan_murid_http  # F2c: pesanan Peta Kemampuan dari akun anak (di balik sakelar)
+            if pesanan_murid_http.tangani_get(self, jalur, self.path):
+                return
             import student_http
             student_http.tangani_get(self, jalur, self.path)
             return
@@ -863,6 +870,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import contest_http  # setelah _asal_sama_post; sebelum student_http
         if contest_http.tangani_post(self, jalur):
+            return
+        import pesanan_murid_http  # F2c: POST pesanan dari akun anak; setelah _asal_sama_post
+        if pesanan_murid_http.tangani_post(self, jalur):
             return
         import student_http
         if student_http.tangani_post(self, jalur):

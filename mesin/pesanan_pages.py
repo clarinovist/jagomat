@@ -20,6 +20,7 @@ from pesanan_dasar import (
     STATUS_BELUM_BAYAR, STATUS_DIREFUND, STATUS_DITOLAK, STATUS_KEDALUWARSA,
     STATUS_MENUNGGU_VERIFIKASI, STATUS_PERLU_DIPERIKSA, STATUS_SUDAH_DIBAYAR,
 )
+from pesanan_permukaan import RUTE_GURU, Rute, rute_untuk_peran
 from pesanan_transfer_pages import COPY_JUDUL_QRIS, COPY_PETUNJUK_QRIS, COPY_STATUS_PILIH
 
 RUTE_STATUS = "/pesanan"
@@ -108,6 +109,32 @@ AKSI_RUTE = {"periksa": RUTE_PERIKSA, "buat": RUTE_BUAT, "ulang": RUTE_ULANG}
 UKURAN_QR = 240
 
 
+def _rute(ident) -> Rute:
+    """Peta rute menurut peran identitas halaman (guru bila tidak ada)."""
+    return rute_untuk_peran(ident[1] if ident else None)
+
+
+def _murid(ident) -> bool:
+    return _rute(ident) is not RUTE_GURU
+
+
+def _kepala_ident(ident, nama_anak: str = "") -> str:
+    rute = _rute(ident)
+    # Murid: tautan kembali sudah ada di topbar shell murid, jadi jejak dalam isi dikosongkan.
+    return _kepala(ALIS, COPY_JUDUL, ID_JUDUL, nama_anak,
+                   beranda="" if _murid(ident) else rute.beranda, label_beranda=rute.label_beranda)
+
+
+def _bungkus_ident(ident, isi: str) -> bytes:
+    """Guru: bingkai pengelola lama; murid: shell murid (isi kartu sama)."""
+    if not _murid(ident):
+        return _bungkus(ident, COPY_JUDUL, ID_JUDUL, isi)
+    import pesanan_murid_pages
+    rute = _rute(ident)
+    return pesanan_murid_pages.halaman_murid(
+        COPY_JUDUL, ID_JUDUL, isi, rute.beranda, rute.label_beranda)
+
+
 def _kartu(isi: str) -> str:
     return f'<div class="kartu-st">{isi}</div>'
 
@@ -126,26 +153,26 @@ def _catatan_refund() -> str:
 def halaman_tertutup(ident) -> bytes:
     """Gerbang pembayaran tertutup: status jujur, tanpa form, tanpa nama atau data order."""
     isi = (
-        _kepala(ALIS, COPY_JUDUL, ID_JUDUL)
+        _kepala_ident(ident)
         + _kartu(f"<h2>Belum dibuka</h2><p>{_e(COPY_TUTUP)}</p><p>{_e(COPY_TUTUP_SUDAH_BAYAR)}</p>")
         + _catatan_refund()
     )
-    return _bungkus(ident, COPY_JUDUL, ID_JUDUL, isi)
+    return _bungkus_ident(ident, isi)
 
 
 def halaman_info(ident, judul: str, teks: str, tautan=None) -> bytes:
     """Pesan tetap tanpa form (kontak kosong, kuota habis, cek belum selesai, galat)."""
     isi = (
-        _kepala(ALIS, COPY_JUDUL, ID_JUDUL)
+        _kepala_ident(ident)
         + _kartu(f"<h2>{_e(judul)}</h2><p>{_e(teks)}</p>")
         + _tautan(tautan)
     )
-    return _bungkus(ident, COPY_JUDUL, ID_JUDUL, isi)
+    return _bungkus_ident(ident, isi)
 
 
-def _blok_qr(pilihan_kedua: bool = False) -> str:
+def _blok_qr(rute: Rute, pilihan_kedua: bool = False) -> str:
     gambar = (
-        f'<p><img src="{RUTE_QR}" alt="{_a(COPY_ALT_QR)}" width="{UKURAN_QR}" '
+        f'<p><img src="{rute.qr}" alt="{_a(COPY_ALT_QR)}" width="{UKURAN_QR}" '
         f'height="{UKURAN_QR}"></p>'
     )
     if not pilihan_kedua:
@@ -153,9 +180,10 @@ def _blok_qr(pilihan_kedua: bool = False) -> str:
     return f"<h2>{_e(COPY_JUDUL_QRIS)}</h2><p>{_e(COPY_PETUNJUK_QRIS)}</p>" + gambar
 
 
-def _form(aksi: str, token: str) -> str:
+def _form(rute: Rute, aksi: str, token: str) -> str:
+    alamat = {"periksa": rute.periksa, "buat": rute.buat, "ulang": rute.ulang}[aksi]
     return (
-        f'<form method="post" action="{AKSI_RUTE[aksi]}">'
+        f'<form method="post" action="{alamat}">'
         f'<input type="hidden" name="token" value="{_a(token)}">'
         '<p class="akun-aksi-sandi">'
         f'<button type="submit" class="tombol-utama-akun">{_e(COPY_TOMBOL[aksi])}</button></p>'
@@ -186,23 +214,36 @@ def halaman_status(ident, tampilan: dict, token) -> bytes:
     pilih_cara = bool(transfer) and tampilan["status"] == STATUS_BELUM_BAYAR
     judul, kalimat = COPY_STATUS_PILIH_CARA if pilih_cara else COPY_STATUS[tampilan["status"]]
     isi = (
-        _kepala(ALIS, COPY_JUDUL, ID_JUDUL, tampilan["nama_anak"])
+        _kepala_ident(ident, tampilan["nama_anak"])
         + _kartu(f"<h2>{_e(judul)}</h2><p>{_e(kalimat)}</p>"
                  f'<p class="funnel-catatan-st">{_e(COPY_HARGA)}</p>')
     )
     isi += transfer
     if tampilan["qr"]:
-        isi += _kartu(_blok_qr(pilihan_kedua=bool(transfer)))
+        isi += _kartu(_blok_qr(_rute(ident), pilihan_kedua=bool(transfer)))
     isi += _catatan_status(tampilan)
     if tampilan["aksi"] is not None:
-        isi += _kartu(_form(tampilan["aksi"], token))
+        isi += _kartu(_form(_rute(ident), tampilan["aksi"], token))
     isi += _catatan_refund()
-    return _bungkus(ident, COPY_JUDUL, ID_JUDUL, isi)
+    return _bungkus_ident(ident, isi)
 
 
-def tautan_hasil():
-    return (RUTE_HASIL, "Kembali ke hasil cek")
+def halaman_belum_memesan(ident, token: str) -> bytes:
+    """Murid tanpa pesanan: kartu harga + tombol pesan (GET tanpa efek; pesanan dibuat lewat POST)."""
+    import pesanan_murid_pages
+    rute = _rute(ident)
+    isi = (
+        _kepala_ident(ident)
+        + pesanan_murid_pages.kartu_pesan(rute.pesan, token, COPY_HARGA)
+        + _catatan_refund()
+    )
+    return _bungkus_ident(ident, isi)
 
 
-def tautan_kontak():
-    return (RUTE_KONTAK, "Lengkapi nomor WhatsApp")
+def tautan_hasil(rute: Rute = RUTE_GURU):
+    return (rute.hasil, rute.label_hasil)
+
+
+def tautan_kontak(rute: Rute = RUTE_GURU):
+    """Tautan lengkapi kontak; None bila permukaan ini tidak punya halaman kontak (murid)."""
+    return None if rute.kontak is None else (rute.kontak, rute.label_kontak)

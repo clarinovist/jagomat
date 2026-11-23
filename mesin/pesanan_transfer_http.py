@@ -28,6 +28,7 @@ import pesanan
 import pesanan_alur as alur
 import pesanan_http as dasar
 import pesanan_pages as halaman
+import pesanan_permukaan as permukaan
 import pesanan_transfer
 import pesanan_transfer_pages as teks
 import pesanan_transfer_tampil as tampil
@@ -59,12 +60,12 @@ _HAMBATAN = {
 _GALAT_UNGGAH = dasar._GALAT_ALUR + (bukti_berkas.BuktiBerkasError,)
 
 
-def _kembali():
-    return (dasar.RUTE_STATUS, "Kembali ke pesanan")
+def _kembali(principal):
+    return (permukaan.rute_untuk(principal).status, "Kembali ke pesanan")
 
 
 def _tolak(penangan, principal, judul: str, pesan: str, kode: int) -> None:
-    dasar._info(penangan, principal, judul, pesan, kode, _kembali())
+    dasar._info(penangan, principal, judul, pesan, kode, _kembali(principal))
 
 
 def _galat_transfer(penangan, principal, galat: Exception, konflik: str) -> None:
@@ -95,9 +96,9 @@ def _form_token_sah(penangan, principal, aksi: str) -> bool:
 
 def _selesai(penangan, principal) -> None:
     if not dasar._masih_sah(penangan, principal):
-        _tidak_ada(penangan, post=True)
+        dasar._tidak_ada_pembeli(penangan, principal, post=True)
         return
-    _alihkan(penangan, dasar.RUTE_STATUS)
+    _alihkan(penangan, permukaan.rute_untuk(principal).status)
 
 
 # --- pesan (Midtrans tertutup) dan tagihan -----------------------------------------
@@ -235,7 +236,7 @@ def _unggah_sah(penangan, principal, form) -> None:
         return
     order_id = alur.order_id_akun(admin_store.BAWAAN, principal)
     if order_id is None:
-        _tidak_ada(penangan, post=True)
+        dasar._tidak_ada_pembeli(penangan, principal, post=True)
         return
     hambatan = _hambatan(order_id, principal)
     if hambatan is not None:
@@ -267,6 +268,17 @@ def tangani_post(penangan, jalur: str) -> bool:
     if principal is None:
         _tidak_ada(penangan, post=True)
         return True
+    return layani_post(penangan, jalur, principal)
+
+
+def layani_post(penangan, jalur: str, principal) -> bool:
+    """POST transfer untuk principal pembeli yang SUDAH tervalidasi; `jalur` = alamat kanonik (guru).
+
+    Dipakai penangan guru dan `pesanan_murid_http`. False bila bukan rute transfer atau gerbang
+    transfer tertutup (pemanggil memutuskan jawabannya).
+    """
+    if jalur not in _RUTE:
+        return False
     if dasar.rekening_transfer(penangan) is None:
         return False
     if jalur == dasar.RUTE_PESAN:
