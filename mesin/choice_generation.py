@@ -117,8 +117,12 @@ def opsi_asal(teks):
     return tuple(hasil)
 
 
-def kandidat(soal):
-    """Pengecoh dari kesalahan terdaftar atau kategori yang benar-benar ada."""
+def kandidat(soal, jumlah_pengecoh=None):
+    """Pengecoh dari kesalahan terdaftar atau kategori yang benar-benar ada.
+
+    `jumlah_pengecoh` (bawaan None = menurut kebijakan: 2 untuk tiga-v1, 3 selainnya) dipakai Latihan Harian
+    untuk meminta tiga pengecoh (empat opsi) dari template berkebijakan tiga-v1; pemanggil lain tidak berubah.
+    """
     kebijakan, jenis = kebijakan_soal(soal)
     if kebijakan == 'tertanam-lima-v1':
         return kebijakan, jenis, opsi_asal(soal.teks)
@@ -174,7 +178,7 @@ def kandidat(soal):
         if n not in terpakai:
             bersih.append(teks)
             terpakai.add(n)
-    jumlah = 2 if kebijakan == 'tiga-v1' else 3
+    jumlah = jumlah_pengecoh or (2 if kebijakan == 'tiga-v1' else 3)
     if len(bersih) < jumlah:
         raise ValueError('Pengecoh yang layak belum cukup untuk pola ini.')
     return kebijakan, jenis, tuple(bersih[:jumlah])
