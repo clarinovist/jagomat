@@ -192,6 +192,16 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `admin_registration`; WA ikut `sidik` hanya jalur ini). `kontak_http.py`/`kontak_pages.py` untuk
   `/akun/kontak` (guru; admin 404). Login mencatat aktivitas fail-open di `auth_http`;
   `family_deletion._ubah_belajar` menghapus kontak keluarga target.
+- Pendaftaran akun anak (F2a, di balik sakelar `DAFTAR_AKUN_ANAK`): `daftar_anak_gate.py` (sakelar + env
+  `OSN_LEMBAGA_ANTREAN` dibaca tiap panggilan; `keadaan()` = LAMA/ANAK/BELUM_SIAP fail-closed; env dipilih karena
+  `admin_store` bukan key-value dan perlu migrasi), `registration_anak_http.py` + `daftar_anak_pages.py`
+  (`registration_http`/`landing.halaman_daftar` hanya bercabang; form lama byte-identik), saga SAMA
+  `admin_registration.daftar_dengan_profil(mode_anak=ModeAnak)` (peran murid + `siswa_id`, receipt `child_created`
+  = `KODE_HASIL_SAH` bersama `teacher_created`, intent bertanda `pemilik_sidik`, siswa baru milik koordinator via
+  `_insert_siswa_baru` + `lembaga_store.nama_bebas`, bukan `tambah_siswa`). Pembaca receipt lain (`admin_backup`,
+  `product_analytics_store`, `subscription_service`) menerima kedua kode. Tabel aditif `schema_daftar_anak.py`:
+  `persetujuan_daftar_anak` (`daftar_anak_store`) dan `pin_orang_tua` (`pin_orang_tua_store`: simpan/periksa
+  waktu-tetap/hapus; dipakai F3). Hook akun guru (kebijakan, analitik KPI, sinkron langganan) tidak dipanggil untuk murid.
 - Funnel Cek Kemampuan Fase 1 (hanya permukaan publik): `funnel_http.py` (GET `/cek-kemampuan`, `/paket-coba`,
   sebelum `_lolos_sandi`, tanpa POST; `tangani_beranda` dipanggil `public_http.py` untuk `/` anonim, False saat
   sakelar mati agar landing lama jadi cadangan) + `funnel_pages.py` (markup, copy §7 plan) + `funnel_style.py`

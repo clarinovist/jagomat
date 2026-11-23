@@ -500,16 +500,22 @@ def _validasi_registrasi_profil(path_belajar, path_auth):
                 ):
                     raise ValueError('receipt registrasi berbeda')
                 profil = kon.execute('SELECT pemilik FROM siswa WHERE id=?', (item['siswa_id'],)).fetchone() if row else None
+                # Mode anak (intent bertanda pemilik_sidik): siswa milik koordinator, akun berperan murid
+                # terikat siswa_id, receipt child_created. Mode guru: siswa milik alias, akun guru.
+                anak = 'pemilik_sidik' in item
                 if row is not None:
-                    if profil is None or admin_registration._sidik_registrasi(profil[0].casefold()) != item['alias_sidik']:
+                    sidik_pemilik = item['pemilik_sidik'] if anak else item['alias_sidik']
+                    if profil is None or admin_registration._sidik_registrasi(profil[0].casefold()) != sidik_pemilik:
                         raise ValueError('pemilik profil registrasi berbeda')
                 if item['status'] == 'selesai':
+                    peran, kode = admin_registration._peran_dan_kode(anak)
                     harapan = dict(versi=1, operasi_id=operasi, target_id=item['target_id'],
-                        hasil_id=item['akun_id'], hasil_kode='teacher_created', revisi_hasil=1,
+                        hasil_id=item['akun_id'], hasil_kode=kode, revisi_hasil=1,
                         dibuat=item['dibuat'], sidik_perintah=item['sidik_perintah'])
                     if (row is None or public != harapan or account is None
-                            or account.get('peran') != 'guru' or auth.revisi_auth(account) < 1
-                            or profil[0] != account['pengguna']):
+                            or account.get('peran') != peran or auth.revisi_auth(account) < 1
+                            or (anak and account.get('siswa_id') != item['siswa_id'])
+                            or (not anak and profil[0] != account['pengguna'])):
                         raise ValueError('pasangan registrasi selesai tidak cocok')
                     if sum(r['hasil_id'] == item['akun_id'] for r in receipt_publik.values()) != 1:
                         raise ValueError('receipt publik registrasi ambigu')

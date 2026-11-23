@@ -127,14 +127,14 @@ def test_nonadmin_404_identik_rute_tak_dikenal_tanpa_menyentuh_db_sakelar(tertut
 
 # --- tampilan -------------------------------------------------------------------------
 
-def test_halaman_admin_memuat_lima_sakelar_dengan_form_dan_tanpa_rahasia(tertutup, admin, tmp_path):
+def test_halaman_admin_memuat_semua_sakelar_dengan_form_dan_tanpa_rahasia(tertutup, admin, tmp_path):
     kode, isi, tajuk = minta_admin(tertutup, SAKELAR, admin)
     assert kode == 200 and tajuk["Cache-Control"] == "no-store"
     for nama in fs.NAMA_SAKELAR:
         assert html.escape(sakelar_registry.info(nama).label) in isi
     for nama_field in ("csrf", "tinjauan", "reauth"):
         assert 'name="%s"' % nama_field in isi
-    assert len(POLA_FORM.findall(isi)) == 5 - 1  # transfer terkunci: funnel mati
+    assert len(POLA_FORM.findall(isi)) == 6 - 1  # transfer terkunci: funnel mati
     assert "nilai bawaan server, belum pernah diubah di sini" in isi
     assert SANDI_ADMIN not in isi and str(tmp_path) not in isi and "sakelar.db" not in isi
     assert 'href="/admin/sakelar" aria-current="page"' in isi
@@ -173,7 +173,7 @@ def test_baris_transfer_dapat_dinyalakan_saat_prasyarat_terpenuhi(tertutup, admi
     _funnel(monkeypatch, True)
     _rekening(True)
     isi = minta_admin(tertutup, SAKELAR, admin)[1]
-    assert len(POLA_FORM.findall(isi)) == 5 and "disabled" not in _badan(isi)
+    assert len(POLA_FORM.findall(isi)) == 6 and "disabled" not in _badan(isi)
 
 
 # --- ubah -----------------------------------------------------------------------------
@@ -184,7 +184,7 @@ def test_nyalakan_sah_redirect_tersimpan_db_menang_dan_audit_satu_baris(tertutup
     kondisi = _kondisi(CETAK)
     assert (kondisi.aktif, kondisi.sumber, kondisi.revisi) == (True, "db", 2)
     baris, audit = _stempel()
-    assert len(baris) == 5 and len(audit) == 1
+    assert len(baris) == 6 and len(audit) == 1
     assert (audit[0]["nama"], audit[0]["lama"], audit[0]["baru"]) == (CETAK, 0, 1)
     assert audit[0]["actor_id"] == id_admin()
 

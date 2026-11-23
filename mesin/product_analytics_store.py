@@ -54,7 +54,7 @@ def pendaftaran_total(path_auth, mulai, akhir):
     akun = set()
     for operasi, r in daftar.items():
         if (type(r) is not dict or set(r) != admin_registration._RECEIPT_PUBLIC_FIELDS
-                or r['operasi_id'] != operasi or r['hasil_kode'] != 'teacher_created'
+                or r['operasi_id'] != operasi or r['hasil_kode'] not in admin_registration.KODE_HASIL_SAH
                 or type(r['dibuat']) is not int):
             raise ValueError('receipt tidak sah')
         if mulai <= r['dibuat'] < akhir:

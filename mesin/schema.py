@@ -866,3 +866,8 @@ SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_CEK_GRATIS +
 from schema_lomba import SKEMA_LOMBA  # noqa: E402
 
 SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_LOMBA + '\n-- Ringkasan per sesi supaya laporan', 1)
+
+# Pendaftaran akun anak (persetujuan + PIN tirai orang tua): aditif, idempoten, tanpa migrasi; milik siswa (CASCADE).
+from schema_daftar_anak import SKEMA_DAFTAR_ANAK  # noqa: E402
+
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_DAFTAR_ANAK + '\n-- Ringkasan per sesi supaya laporan', 1)

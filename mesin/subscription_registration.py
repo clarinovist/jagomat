@@ -59,7 +59,7 @@ def daftar(path_admin, path_auth, path_db, *, operasi_id, alias, sandi, token_fo
 
 def daftar_web(path_admin, path_auth, path_db, *, operasi_id, alias, sandi, token_form,
                sekarang, nama_anak, kelas_sekolah, profil_parameter=None, sakelar=None,
-               wa=None):
+               wa=None, mode_anak=None):
     """Jalur /daftar: pendaftaran selalu berjalan; sinkron hanya saat aktif penuh.
 
     Sinkron enrollment menuntut DUA kondisi eksplisit: `CUTOFF_AKTIVASI` ditetapkan
@@ -68,11 +68,16 @@ def daftar_web(path_admin, path_auth, path_db, *, operasi_id, alias, sandi, toke
     (`belum_aktif`) — registrasi tidak pernah gagal karena billing. Kegagalan
     sinkron sendiri tidak menghapus akun (`belum_terverifikasi`, pulih dari
     receipt yang sama). `wa` hanya diisi jalur funnel; None = jalur biasa tanpa kontak.
+    `mode_anak` (akun anak, sakelar DAFTAR_AKUN_ANAK): akun murid tidak ikut sinkron enrollment (tagihan
+    orang tua lewat akun anak adalah fase terpisah), jadi saga dipanggil langsung apa adanya.
     """
     if type(nama_anak) is not str or not nama_anak.strip():
         raise ValueError('Nama panggilan anak wajib diisi, maksimal 40 karakter.')
     aktif = CUTOFF_AKTIVASI is not None
     kontak = {} if wa is None else {"wa": wa}
+    if mode_anak is not None:
+        kontak = {**kontak, "mode_anak": mode_anak}
+        aktif = False
     if aktif:
         if sakelar is None:
             import admin_subscription

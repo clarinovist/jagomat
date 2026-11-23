@@ -71,6 +71,7 @@ def halaman_daftar(
     pendaftaran_dibuka: bool = True, token_form: str = "", belum_tersedia: bool = False,
     analitik: str = "", kesepakatan: str = "", nama_anak: str = "", kelas_sekolah=None,
     profil_parameter: str = "", jalur_cek: bool = False, wa: str = "",
+    mode_anak: bool = False, nama_lengkap: str = "",
 ) -> bytes:
     """Form pendaftaran mandiri pendamping (orang tua / guru / les).
 
@@ -78,6 +79,9 @@ def halaman_daftar(
     nama = nama yang diketik pengguna (dikembalikan supaya tidak mengetik ulang).
     jalur_cek = form funnel: renderer terpisah (`daftar_cek_pages`) dengan WhatsApp wajib,
     kelas wajib, dan tab "Sudah punya akun". False (bawaan) = form lama persis.
+    mode_anak = form akun anak (`daftar_anak_pages`; sakelar DAFTAR_AKUN_ANAK + lembaga antrean siap): nama
+    login anak, sandi, nama lengkap, kelas, WA orang tua, persetujuan, PIN tirai. Tidak memakai analitik atau
+    kesepakatan lama.
     """
     import learning_profile_ui
     from templates import tingkat_valid
@@ -112,6 +116,13 @@ def halaman_daftar(
         f'<input type="hidden" name="profil_parameter" value="{html.escape(profil_parameter, quote=True)}">'
         if tingkat_valid(profil_parameter) else ''
     )
+    if mode_anak:
+        import daftar_anak_pages
+
+        return _halaman_publik_stitch(f"Daftar — {T.NAMA_PRODUK}", daftar_anak_pages.isi_daftar_anak(
+            kotak=kotak, deskripsi=deskripsi, token=token, nama=nama, nama_lengkap=nama_lengkap,
+            kelas_sekolah=kelas_sekolah, wa=wa, jalur_cek=jalur_cek,
+        ))
     if jalur_cek:
         import daftar_cek_pages
 

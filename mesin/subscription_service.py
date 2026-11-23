@@ -50,7 +50,7 @@ def _receipt(mentah, sumber_id, akun_id, *, cutoff, sekarang):
     for key, r in daftar.items():
         if (type(r) is not dict or set(r) != admin_registration._RECEIPT_PUBLIC_FIELDS
                 or r.get("operasi_id") != key or type(r.get("versi")) is not int or r["versi"] != 1
-                or r.get("hasil_kode") != "teacher_created" or type(r.get("revisi_hasil")) is not int or r["revisi_hasil"] != 1
+                or r.get("hasil_kode") not in admin_registration.KODE_HASIL_SAH or type(r.get("revisi_hasil")) is not int or r["revisi_hasil"] != 1
                 or not auth.id_akun_sah(r.get("hasil_id"))
                 or type(r.get("dibuat")) is not int or not 0 <= r["dibuat"] <= sekarang
                 or type(r.get("target_id")) is not str or re.fullmatch(r"candidate_[0-9a-f]{32}", r["target_id"]) is None

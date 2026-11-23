@@ -11,6 +11,7 @@ from typing import Callable, Dict
 
 import choice_pages
 import contest_gate
+import daftar_anak_gate
 import feature_switch
 import funnel_flag
 import pesanan_transfer_gerbang
@@ -69,6 +70,15 @@ _INFO = {
         akibat_mati="Murid dan guru tidak bisa membuka halaman Latihan Lomba; halamannya tampil seperti tidak ada.",
         kelompok=KELOMPOK_BELAJAR,
         dari_env=contest_gate.dari_env),
+    "DAFTAR_AKUN_ANAK": InfoSakelar(
+        label="Pendaftaran akun anak",
+        dampak="Saat aktif dan lembaga antrean sudah diatur di server, pendaftaran publik membuat akun anak "
+               "yang dipegang koordinator lembaga, bukan akun guru untuk orang tua. "
+               "Saat aktif tetapi lembaga antrean belum siap, pendaftaran ditolak dengan pesan belum dibuka. "
+               "Saat mati, pendaftaran membuat akun guru seperti biasa.",
+        akibat_mati="Pendaftar baru kembali membuat akun guru untuk orang tua. Akun anak yang sudah dibuat tetap bisa masuk.",
+        kelompok=KELOMPOK_PENJUALAN,
+        dari_env=daftar_anak_gate.dari_env),
 }
 
 if tuple(_INFO) != feature_switch.NAMA_SAKELAR:

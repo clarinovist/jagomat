@@ -14,6 +14,12 @@ def tangani_get(penangan, jalur: str) -> bool:
     """Render formulir pendaftaran sesuai status layanan."""
     if jalur != "/daftar":
         return False
+    import daftar_anak_gate
+    keadaan = daftar_anak_gate.keadaan()
+    if keadaan.mode != daftar_anak_gate.LAMA:
+        import registration_anak_http
+        registration_anak_http.tangani_get(penangan, keadaan)
+        return True
     import admin_http
     import admin_registration
     import admin_store
@@ -55,6 +61,12 @@ def tangani_post(penangan, jalur: str) -> bool:
     if jalur != "/daftar":
         return False
 
+    import daftar_anak_gate
+    keadaan = daftar_anak_gate.keadaan()
+    if keadaan.mode != daftar_anak_gate.LAMA:
+        import registration_anak_http
+        registration_anak_http.tangani_post(penangan, keadaan)
+        return True
     import admin_http
     import admin_registration
     import admin_security

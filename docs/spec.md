@@ -53,7 +53,8 @@ siklus dan pilot tetap P3–P6 (keputusan 30 Okt 2026). Batas klaim publik di
 pivot memakai data sintetis; pilot dengan data nyata perlu keputusan dan gerbang
 privasi tersendiri. Peran teknis `guru` mencakup orang tua dan hanya mengelola data
 miliknya; `murid` mengerjakan latihan; `admin` mengelola lintas keluarga dengan
-batas khusus. **Arah yang diputuskan 23 Nov 2026 (belum diimplementasikan):** pendaftaran publik
+batas khusus. **Arah yang diputuskan 23 Nov 2026 (F2a: pendaftaran akun anak sudah ada di balik sakelar
+`DAFTAR_AKUN_ANAK`, bawaan mati; halaman orang tua belum):** pendaftaran publik
 membuat akun anak; orang tua melihat hasil lewat halaman orang tua di akun anak (anak boleh ikut
 melihat, kecuali orang tua memasang PIN tirai); `guru` khusus guru les; anak pendaftar dipegang
 lembaga Jagomat lalu dipindah ke guru anggota; Latihan Harian per tingkat (Rp39.000/bulan,
@@ -189,10 +190,19 @@ Riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   (Cek Kemampuan, pembayaran QRIS Midtrans dengan label tahap awam Tutup/Buka, transfer rekening + checklist tiga langkah membukanya, kartu rekening; ubah di `/admin/pesanan/rekening`),
   Fitur belajar, pendaftaran mandiri (form lama, POST tetap ke `/admin/pendaftaran`), dan Kesehatan sistem terlipat (kesiapan, dukungan). Kolom sandi tiap form baru tampil
   setelah `<details>` tindakan dibuka; mematikan fitur aktif memakai konfirmasi yang menyebut akibatnya (`akibat_mati` di registri). Baris status AI sudah dihapus dari halaman ini. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,
-  `OSN_CETAK_RINGKAS`, `OSN_BANK_KALIMAT`, `OSN_LOMBA`. Nilai disimpan di DB terpisah `/data/sakelar.db` (dibuat saat
+  `OSN_CETAK_RINGKAS`, `OSN_BANK_KALIMAT`, `OSN_LOMBA`, `DAFTAR_AKUN_ANAK`. Nilai disimpan di DB terpisah `/data/sakelar.db` (dibuat saat
   perubahan pertama; env tetap fallback; DB lama dengan empat nama diperlebar saat perubahan pertama tanpa menaikkan versi skema), dengan tinjauan bertanda tangan, sandi ulang, optimistic
   concurrency, dan audit. DB sakelar rusak = kartu galat + status 503, bagian lain halaman tetap tampil; menyalakan transfer ditolak bila funnel
   mati atau rekening kosong.
+- **Pendaftaran akun anak (F2a, 23 Nov 2026)**: saat sakelar `DAFTAR_AKUN_ANAK` hidup DAN lembaga antrean
+  terkonfigurasi (env server `OSN_LEMBAGA_ANTREAN` = id lembaga; pemilik lembaga = akun koordinator), `/daftar`
+  dan `/daftar?jalur=cek` memakai satu form orang tua: nama login anak, sandi anak, nama lengkap anak (1–80),
+  kelas 1–6, WA orang tua, centang persetujuan, PIN tirai opsional 4 digit. Hasilnya akun **murid** terikat satu
+  anak (baris `siswa` BARU milik koordinator, nama kembar diberi pembeda "(2)", tidak pernah digabung), kontak di
+  akun anak, persetujuan (`versi_notice` sama dengan cek gratis) dan hash PIN (bila diisi) di transaksi yang sama,
+  lalu sesi murid dan redirect ke `/murid`. Sakelar hidup tetapi antrean belum siap = "Pendaftaran sementara belum
+  dibuka." tanpa menulis apa pun (tidak jatuh ke alur guru). Sakelar mati = alur akun guru seperti sebelumnya.
+  Akun guru lama tidak dimigrasi; halaman orang tua, cek di sesi anak, dan pesanan dari akun anak menyusul (F2b/F2c/F3).
 - **Latihan Lomba** (Grand Final Corexis, Matematika Level 1; segmen khusus untuk anak pemilik, di balik sakelar admin `OSN_LOMBA` = saklar induk, bawaan mati;
   mati = semua alamatnya 404). Aktivasi per anak oleh Guru (Mode Lomba, 22 Nov 2026): murid hanya melihat Lomba bila sakelar induk hidup DAN Guru/admin mengaktifkannya untuk anak itu: tombol Aktifkan/Matikan di kartu anak `/akun?section=siswa` (hanya mengubah aktif; target dan durasi tetap), atau rinci di `/anak/<id>/lomba` (kartu "Mode Lomba": aktif/belum, target harian 0-3 atau ikut paket, hitung mundur tampil/tidak, waktu Latihan dan waktu Simulasi dalam menit bulat 5-180, kosong = bawaan 15/60, di luar itu ditolak dengan pesan ramah tanpa menyimpan, berlaku untuk sesi berikutnya; tanpa penugasan = tidak aktif; anak tanpa penugasan aktif mendapat 404 yang sama dengan jalur murid tak dikenal; riwayat Guru tetap terbuka walau mati). Murid yang terhubung ke data siswa dan sudah ditugaskan membuka `/murid/lomba` (tautan di beranda murid hanya saat itu) dan memilih dua mode (22 Nov 2026): **Latihan** 10 soal
   (8 pilihan ganda + 2 isian; maks satu soal Inggris) atau **Simulasi Lomba** 35 soal (30 PG + 5 isian, format PDF lomba: Bilangan 9, Operasi 9, Pengukuran 8, Bangun 9; isian di ≥3 topik;

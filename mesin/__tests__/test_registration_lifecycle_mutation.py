@@ -11,7 +11,7 @@ AKAR=Path(__file__).resolve().parents[2]
 KASUS=(
  ('public_binding','row is None or public != harapan or account is None','row is None or account is None',
   'test_backup_tolak_pasangan_registrasi_rusak[public_hash]'),
- ('owner',"or profil[0] != account['pengguna']","or False",
+ ('owner',"or (not anak and profil[0] != account['pengguna'])","or False",
   'test_backup_tolak_pasangan_registrasi_rusak[owner]'),
  ('pending_flag','or bool(registrasi_pending)','or False',
   'test_backup_registrasi_terkait_dan_pending[setelah_intent]'),
@@ -29,7 +29,7 @@ def test_backup_registrasi_mutasi_merah_pulih(tmp_path,nama,lama,baru,tes):
     target=source/'admin_backup.py';asli=target.read_text();assert asli.count(lama)==1
     mutasi=asli.replace(lama,baru)
     if nama=='owner':
-        guard="if profil is None or admin_registration._sidik_registrasi(profil[0].casefold()) != item['alias_sidik']:"
+        guard="if profil is None or admin_registration._sidik_registrasi(profil[0].casefold()) != sidik_pemilik:"
         assert mutasi.count(guard)==1
         mutasi=mutasi.replace(guard,'if profil is None:')
     target.write_text(mutasi)

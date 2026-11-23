@@ -45,18 +45,18 @@ def test_setiap_sakelar_punya_label_status_sumber_revisi_dan_dampak():
     for nama in fs.NAMA_SAKELAR:
         assert reg.info(nama).label in isi and reg.info(nama).dampak in isi
     assert isi.count('admin-badge admin-status-besar bien">Aktif<') == 1
-    assert isi.count('admin-badge admin-status-besar">Mati<') == 4
+    assert isi.count('admin-badge admin-status-besar">Mati<') == 5
     # Sumber dan revisi hanya di detail teknis kecil, bukan di baris status.
     assert "diatur admin di halaman ini. Revisi 3." in _kartu(isi, "OSN_CETAK_RINGKAS")
-    assert isi.count("nilai bawaan server, belum pernah diubah di sini. Revisi 0.") == 4
-    assert isi.count('<details class="admin-detail-teknis"><summary>Detail teknis</summary>') == 5
+    assert isi.count("nilai bawaan server, belum pernah diubah di sini. Revisi 0.") == 5
+    assert isi.count('<details class="admin-detail-teknis"><summary>Detail teknis</summary>') == 6
     for jargon in ("Admin (DB)", "Env (belum diatur admin)", "Sumber:"):
         assert jargon not in isi
 
 
 def test_kelompok_penjualan_dan_belajar_mengikuti_registri():
     b = ui.bagian(_daftar(), None)
-    assert tuple(b.penjualan) == (ui.FUNNEL, ui.TRANSFER)
+    assert tuple(b.penjualan) == (ui.FUNNEL, ui.TRANSFER, "DAFTAR_AKUN_ANAK")
     assert tuple(b.belajar) == ("OSN_CETAK_RINGKAS", "OSN_BANK_KALIMAT", "OSN_LOMBA") or set(b.belajar) == {
         "OSN_CETAK_RINGKAS", "OSN_BANK_KALIMAT", "OSN_LOMBA"}
     assert set(b.penjualan) | set(b.belajar) == set(fs.NAMA_SAKELAR)
@@ -73,11 +73,11 @@ def test_form_per_baris_membawa_tepat_csrf_tinjauan_reauth_dan_tombol_target():
     daftar = _daftar(OSN_BANK_KALIMAT=fs.Sakelar("OSN_BANK_KALIMAT", True, 2, "db"))
     isi = _semua(daftar, _tokens(*fs.NAMA_SAKELAR))
     formulir = re.findall(r"<form.*?</form>", isi, re.S)
-    assert len(formulir) == 5
+    assert len(formulir) == 6
     for f in formulir:
         assert sorted(re.findall(r'name="(\w+)"', f)) == ["csrf", "reauth", "tinjauan"]
         assert 'action="/admin/sakelar"' in f and 'method="post"' in f
-    assert sum("Nyalakan</button>" in f for f in formulir) == 4 and sum("Matikan</button>" in f for f in formulir) == 1
+    assert sum("Nyalakan</button>" in f for f in formulir) == 5 and sum("Matikan</button>" in f for f in formulir) == 1
 
 
 def test_sandi_hanya_di_dalam_details_yang_terlipat():
@@ -112,7 +112,7 @@ def test_setiap_sakelar_punya_akibat_mati_dan_kelompok_di_registri():
     for nama in fs.NAMA_SAKELAR:
         info = reg.info(nama)
         assert info.akibat_mati.strip().endswith(".") and info.kelompok in reg.KELOMPOK
-    assert set(reg.nama_kelompok(reg.KELOMPOK_PENJUALAN)) == {ui.FUNNEL, ui.TRANSFER}
+    assert set(reg.nama_kelompok(reg.KELOMPOK_PENJUALAN)) == {ui.FUNNEL, ui.TRANSFER, "DAFTAR_AKUN_ANAK"}
 
 
 def test_status_aktif_mati_menonjol_dan_istilah_teknis_hilang():
@@ -135,7 +135,7 @@ def test_prasyarat_belum_terpenuhi_tanpa_form_dan_tombol_nyalakan_nonaktif():
     assert "Funnel harus aktif." in baris and ui.COPY_BELUM_REKENING in baris
     assert 'href="/admin/pesanan/rekening"' in baris  # prasyarat rekening memberi tautan
     assert "disabled" in baris and "<form" not in baris
-    assert len(re.findall(r"<form", isi)) == 4
+    assert len(re.findall(r"<form", isi)) == 5
 
 
 def test_nilai_dinamis_di_escape():
@@ -204,10 +204,12 @@ def test_registry_seed_env_memetakan_semua_nama_ke_bool_dan_env_tak_sah_jadi_fal
     monkeypatch.setenv("FUNNEL_AKTIF", " 1 ")
     monkeypatch.delenv("PESANAN_TRANSFER_AKTIF", raising=False)
     monkeypatch.delenv("OSN_LOMBA", raising=False)
+    monkeypatch.delenv("DAFTAR_AKUN_ANAK", raising=False)
     seed = reg.seed_env()
     assert set(seed) == set(fs.NAMA_SAKELAR) and all(type(v) is bool for v in seed.values())
     assert seed == {"FUNNEL_AKTIF": True, "PESANAN_TRANSFER_AKTIF": False,
-                    "OSN_CETAK_RINGKAS": True, "OSN_BANK_KALIMAT": False, "OSN_LOMBA": False}
+                    "OSN_CETAK_RINGKAS": True, "OSN_BANK_KALIMAT": False, "OSN_LOMBA": False,
+                    "DAFTAR_AKUN_ANAK": False}
 
 
 def test_navigasi_admin_memuat_pengaturan_layanan_di_grup_sistem():
