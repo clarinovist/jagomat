@@ -29,6 +29,14 @@ def alamat_masuk_murid(penangan) -> str:
     return "/masuk?" + urllib.parse.urlencode({"galat": PESAN_SESI_HABIS})
 
 
+def _id_akun(pengguna: str):
+    """`id_akun` akun murid ini (None bila akun warisan tanpa id)."""
+    import auth
+
+    akun = auth.cari_akun(pengguna)
+    return None if akun is None else akun.get("id_akun")
+
+
 def tangani_get(penangan, jalur: str, jalur_penuh: str = "") -> bool:
     """Tangani seluruh GET ``/murid``; False bila jalur bukan milik modul."""
     if jalur != "/murid" and not jalur.startswith("/murid/"):
@@ -79,11 +87,14 @@ def _get(penangan, kon, jalur: str, jalur_penuh: str) -> None:
                 sesi_selesai = int(q.get("selesai", ["0"])[0]) or None
             except (ValueError, TypeError):
                 sesi_selesai = None
+        import cek_murid
         import contest_gate
         import contest_http
+        kartu_cek, sembunyikan_sesi = cek_murid.untuk_beranda(kon, _id_akun(kredensial[0]), siswa_id)
         penangan._kirim(student_pages.halaman_daftar_sesi_baru(
             kon, siswa_id, kredensial[0], sesi_selesai, lomba_aktif=contest_gate.aktif_untuk(kon, siswa_id),
             sekarang=contest_http._sekarang(), orang_tua=orang_tua_http.tersedia(),
+            kartu_cek=kartu_cek, sembunyikan_sesi=sembunyikan_sesi,
         ))
         return
 

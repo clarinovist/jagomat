@@ -211,6 +211,12 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   30 menit, dibersihkan di `/keluar`; bukan cookie dan bukan `sessions.py` (berkas kontrak rilis). Restart menutup semua tirai (fail-closed).
   Laju PIN: `laju_masuk` ruang `pin-orang-tua` per (anak, IP), dicek sebelum PBKDF2. Basic auth tidak pernah membuka tirai. Nama modul
   sengaja tanpa `store`/`schema` (sidik jari kontrak), kecuali `parent_report_store` yang bertambah `terbit_terbaru` (ikut pin recovery).
+- Cek di sesi anak (F2b): `cek_murid.py` (domain: `gerbang_aktif` = sakelar anak DAN funnel karena `share_http._sesi_cek` hanya
+  melayani layar cek anak saat funnel hidup; `mulai` = id_akun murid + persetujuan sah sebelum `cek_gratis.mulai`; `status`/
+  `kartu_html`/`untuk_beranda`) dan `cek_murid_http.py` (pola `contest_http`: gerbang mati = False; satu `BEGIN IMMEDIATE`
+  `siswa_dari_akun` -> `mulai` -> `share_links.buat` -> 303 `/mulai/<token>`, sesi login tidak dihapus, tanpa `?di=hp-ini`).
+  Memakai ulang `cek_anak_http`; satu-satunya sentuhan berkas bersama: cabang di rantai POST `web.py`, entri `AKSES_RUTE_POST`,
+  dua kwarg `halaman_daftar_sesi_baru` (kartu + sesi cek disembunyikan) dari `student_http`.
 - Funnel Cek Kemampuan Fase 1 (hanya permukaan publik): `funnel_http.py` (GET `/cek-kemampuan`, `/paket-coba`,
   sebelum `_lolos_sandi`, tanpa POST; `tangani_beranda` dipanggil `public_http.py` untuk `/` anonim, False saat
   sakelar mati agar landing lama jadi cadangan) + `funnel_pages.py` (markup, copy §7 plan) + `funnel_style.py`

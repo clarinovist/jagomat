@@ -110,6 +110,7 @@ _PROBE_POST = {
     "/murid/orang-tua/pin": "/murid/orang-tua/pin",
     "/murid/orang-tua/pin/atur": "/murid/orang-tua/pin/atur",
     "/murid/orang-tua/pin/hapus": "/murid/orang-tua/pin/hapus",
+    "/murid/cek/mulai": "/murid/cek/mulai",
     "/lembaga": "/lembaga/pindah",
     "/sesi/": "/sesi/1",
     "/akun": "/akun",

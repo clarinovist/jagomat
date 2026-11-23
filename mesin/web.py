@@ -143,6 +143,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/murid/orang-tua/pin", "murid"),  # F3: buka tirai dengan PIN; sakelar mati = identik rute tak dikenal
     ("/murid/orang-tua/pin/atur", "murid"),  # F3: pasang/ganti PIN (hanya tirai terbuka atau tanpa PIN)
     ("/murid/orang-tua/pin/hapus", "murid"),  # F3: hapus PIN (tirai terbuka + konfirmasi)
+    ("/murid/cek/mulai", "murid"),  # F2b: mulai cek dari sesi anak (exact); DAFTAR_AKUN_ANAK + funnel mati = jalur murid asing
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),
@@ -878,6 +879,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import contest_http  # setelah _asal_sama_post; sebelum student_http
         if contest_http.tangani_post(self, jalur):
+            return
+        import cek_murid_http  # F2b: cek kemampuan dari sesi anak; sebelum _lolos_sandi, gerbang mati = False
+        if cek_murid_http.tangani_post(self, jalur):
             return
         import student_http
         if student_http.tangani_post(self, jalur):
