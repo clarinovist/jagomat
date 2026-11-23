@@ -7,7 +7,9 @@ dipasang setelah `_lolos_sandi` dan `_asal_sama_post`, di samping `parent_report
 
 Rute: ``/anak/<siswa_id>/lomba`` (kartu Mode Lomba + progress), ``/anak/<siswa_id>/lomba/<sesi_id>`` (detail sesi
 selesai), dan POST ``/anak/<siswa_id>/lomba/pengaturan`` (aktifkan/matikan Mode Lomba, target harian, hitung mundur,
-waktu Latihan/Simulasi dalam menit 5-180; kosong = bawaan; menit tidak sah -> 303 ke `?galat=durasi` tanpa tulis).
+waktu Latihan/Simulasi dalam menit 5-180; kosong = bawaan; tanggal_lomba YYYY-MM-DD kosong = tanpa tanggal; nama_lomba
+<= 60 karakter, kosong = tanpa nama; kolom yang tidak dikirim = nilai tersimpan tetap; durasi/tanggal/nama tidak sah ->
+303 ke `?galat=durasi|tanggal|nama` tanpa tulis).
 Id hanya angka ASCII 1-12 digit. Anak tidak ada, bukan milik pemanggil (`_bisa_lihat_siswa`), sesi bukan
 milik anak itu, sesi masih berjalan, id tidak sah, dan sakelar induk mati semuanya dijawab 404 yang sama dengan
 `parent_report_http` (tubuh dan header identik); POST dengan 404 tidak menulis apa pun. Isian POST dibaca SETELAH
@@ -16,6 +18,7 @@ penutupan malas sesi yang batas waktunya sudah lewat (lewat `contest_results`).
 """
 from __future__ import annotations
 
+import datetime
 import re
 import time
 import urllib.parse
@@ -36,16 +39,25 @@ BATAS_FORM = 2048
 _POLA_RUTE = re.compile(r"/anak/([^/]+)/lomba(?:/([^/]+))?")
 _POLA_PENGATURAN = re.compile(r"/anak/([^/]+)/lomba/pengaturan")
 _POLA_ID = re.compile(rf"[0-9]{{1,{MAKS_DIGIT_ID}}}")
-_KOLOM_PENGATURAN = frozenset({"aktif", "target", "hitung_mundur", "durasi_latihan", "durasi_simulasi"})
+_KOLOM_PENGATURAN = frozenset({"aktif", "target", "hitung_mundur", "durasi_latihan", "durasi_simulasi",
+                               "tanggal_lomba", "nama_lomba"})
 _NILAI_AKTIF = {"1": True, "0": False}
 _NILAI_CENTANG = "1"
 _POLA_MENIT = re.compile(r"[0-9]{1,3}")     # ASCII saja: int()/isdigit() menerima digit non-ASCII
-_TETAP = object()                            # isian durasi tidak dikirim (form lama): nilai tersimpan dipertahankan
-GALAT_DURASI = "durasi"
+_POLA_TANGGAL = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")    # ASCII saja, sebelum date.fromisoformat
+_TETAP = object()                            # isian tidak dikirim (form lama): nilai tersimpan dipertahankan
+_AWALAN_GALAT = "galat_"
+GALAT_DURASI = H.KODE_GALAT_DURASI
+GALAT_TANGGAL = H.KODE_GALAT_TANGGAL
+GALAT_NAMA = H.KODE_GALAT_NAMA
 
 
-class _DurasiTidakSah(Exception):
-    """Isian menit di luar 5-180 atau bukan angka bulat: tidak menulis apa pun, Guru diarahkan ke pesan ramah."""
+class _IsianTidakSah(Exception):
+    """Durasi di luar 5-180 menit, tanggal tak sah, atau nama tak sah: tidak menulis apa pun, Guru dapat pesan ramah."""
+
+    def __init__(self, kode: str):
+        super().__init__(kode)
+        self.kode = kode
 
 
 class _TidakAda(Exception):
@@ -59,6 +71,8 @@ class _Pengaturan:
     tampil_hitung_mundur: Optional[bool]
     durasi_latihan: object = _TETAP          # _TETAP, None (bawaan paket), atau detik
     durasi_simulasi: object = _TETAP
+    tanggal_lomba: object = _TETAP           # _TETAP, None (tanpa tanggal), atau datetime.date
+    nama_lomba: object = _TETAP              # _TETAP, None (tanpa nama), atau teks tervalidasi
 
 
 def _sekarang() -> int:
@@ -88,8 +102,10 @@ def _tersimpan(jalur_penuh: str) -> bool:
     return _query(jalur_penuh).get("tersimpan") == ["1"]
 
 
-def _galat_durasi(jalur_penuh: str) -> bool:
-    return _query(jalur_penuh).get("galat") == [GALAT_DURASI]
+def _kode_galat(jalur_penuh: str) -> str:
+    """Kode galat dari kueri hanya bila termasuk daftar putih; selain itu kosong."""
+    nilai = _query(jalur_penuh).get("galat")
+    return nilai[0] if nilai is not None and len(nilai) == 1 and nilai[0] in H.PESAN_GALAT else ""
 
 
 def tangani_get(penangan, jalur: str, jalur_penuh: str = "") -> bool:
@@ -98,7 +114,7 @@ def tangani_get(penangan, jalur: str, jalur_penuh: str = "") -> bool:
     if rute is None or not contest_gate.aktif():
         return False
     try:
-        isi = _bangun(penangan, *rute, tersimpan=_tersimpan(jalur_penuh), galat=_galat_durasi(jalur_penuh))
+        isi = _bangun(penangan, *rute, tersimpan=_tersimpan(jalur_penuh), galat=_kode_galat(jalur_penuh))
     except (_TidakAda, K.SesiTidakDitemukan, K.SesiBerjalan):
         _kirim_tidak_ada(penangan)
         return True
@@ -107,7 +123,7 @@ def tangani_get(penangan, jalur: str, jalur_penuh: str = "") -> bool:
 
 
 def _bangun(penangan, siswa_mentah: str, sesi_mentah: Optional[str], tersimpan: bool = False,
-            galat: bool = False) -> bytes:
+            galat: str = "") -> bytes:
     siswa_id = _angka_id(siswa_mentah)
     sesi_id = None if sesi_mentah is None else _angka_id(sesi_mentah)
     ident = penangan._identitas()
@@ -120,13 +136,13 @@ def _bangun(penangan, siswa_mentah: str, sesi_mentah: Optional[str], tersimpan: 
         return H.halaman_detail(siswa, R.hasil_rinci(kon, siswa_id, sesi_id, _sekarang()), ident)
 
 
-def _progres(kon, siswa, ident, tersimpan: bool, galat: bool = False) -> bytes:
+def _progres(kon, siswa, ident, tersimpan: bool, galat: str = "") -> bytes:
     sekarang = _sekarang()
     siswa_id = int(siswa["id"])
     return H.halaman_progres(
         siswa, R.progres(kon, siswa_id, sekarang), R.jenis_sering_salah(kon, siswa_id, sekarang), ident,
         penugasan=AS.ambil(kon, siswa_id), tersimpan=tersimpan and not galat,
-        galat=H.GALAT_DURASI if galat else "")
+        galat=H.PESAN_GALAT.get(galat, ""))
 
 
 # --- POST pengaturan Mode Lomba -------------------------------------------------------------------
@@ -163,14 +179,41 @@ def _durasi_dari_isian(mentah: Optional[str]):
     if not bersih:
         return None
     if _POLA_MENIT.fullmatch(bersih) is None or not PK.menit_sah(int(bersih)):
-        raise _DurasiTidakSah(mentah)
+        raise _IsianTidakSah(GALAT_DURASI)
     return int(bersih) * PK.DETIK_PER_MENIT
+
+
+def _tanggal_dari_isian(mentah: Optional[str]):
+    """None (tidak dikirim) -> _TETAP; "" -> None (tanpa tanggal); "2026-12-20" -> date; selain itu galat."""
+    if mentah is None:
+        return _TETAP
+    bersih = mentah.strip()
+    if not bersih:
+        return None
+    if _POLA_TANGGAL.fullmatch(bersih) is None:
+        raise _IsianTidakSah(GALAT_TANGGAL)
+    try:
+        return datetime.date.fromisoformat(bersih)
+    except ValueError:
+        raise _IsianTidakSah(GALAT_TANGGAL) from None
+
+
+def _nama_dari_isian(mentah: Optional[str]):
+    """None (tidak dikirim) -> _TETAP; "" -> None (tanpa nama); selain itu nama tervalidasi store penugasan."""
+    if mentah is None:
+        return _TETAP
+    if not mentah.strip():
+        return None
+    try:
+        return AS.bersihkan_nama_lomba(mentah)
+    except ValueError:
+        raise _IsianTidakSah(GALAT_NAMA) from None
 
 
 def _baca_pengaturan(penangan) -> Optional[_Pengaturan]:
     """Pengaturan tervalidasi dari isian; None bila isian tidak sah. Hitung mundur sama dengan paket -> None.
 
-    Bentuk form rusak -> None (400). Menit di luar 5-180 -> `_DurasiTidakSah` (pesan ramah, tanpa tulis).
+    Bentuk form rusak -> None (400). Durasi, tanggal, atau nama tak sah -> _IsianTidakSah (pesan ramah, tanpa tulis).
     """
     isian = _baca_isian(penangan)
     if isian is None or isian.get("aktif") not in _NILAI_AKTIF:
@@ -184,10 +227,12 @@ def _baca_pengaturan(penangan) -> Optional[_Pengaturan]:
         aktif=_NILAI_AKTIF[isian["aktif"]], target_harian=target,
         tampil_hitung_mundur=None if tampil == PK.PAKET_AKTIF.tampil_hitung_mundur else tampil,
         durasi_latihan=_durasi_dari_isian(isian.get("durasi_latihan")),
-        durasi_simulasi=_durasi_dari_isian(isian.get("durasi_simulasi")))
+        durasi_simulasi=_durasi_dari_isian(isian.get("durasi_simulasi")),
+        tanggal_lomba=_tanggal_dari_isian(isian.get("tanggal_lomba")),
+        nama_lomba=_nama_dari_isian(isian.get("nama_lomba")))
 
 
-def _pilih_durasi(baru, lama: Optional[int]) -> Optional[int]:
+def _pilih(baru, lama):
     return lama if baru is _TETAP else baru
 
 
@@ -200,14 +245,14 @@ def _pastikan_boleh(penangan, kon, siswa_id: int) -> None:
 def _simpan(penangan, kon, siswa_id: int) -> str:
     """Validasi lalu tulis dalam satu transaksi.
 
-    Hasil: "tersimpan"; "galat_durasi" (menit tidak sah, tanpa tulis); "ditolak" (isian rusak, 400 sudah dikirim).
+    Hasil: "tersimpan"; "galat_<kode>" (durasi/tanggal/nama tidak sah, tanpa tulis); "ditolak" (isian rusak, 400 sudah dikirim).
     Isian dibaca SETELAH kepemilikan terbukti (bukan pemilik selalu 404 identik, tanpa membaca isian).
     """
     _pastikan_boleh(penangan, kon, siswa_id)
     try:
         pengaturan = _baca_pengaturan(penangan)
-    except _DurasiTidakSah:
-        return "galat_durasi"
+    except _IsianTidakSah as galat:
+        return _AWALAN_GALAT + galat.kode
     if pengaturan is None:
         penangan._tolak_isian()
         return "ditolak"
@@ -216,16 +261,17 @@ def _simpan(penangan, kon, siswa_id: int) -> str:
     lama = AS.ambil(kon, siswa_id)
     AS.atur(kon, siswa_id, aktif=pengaturan.aktif, target_harian=pengaturan.target_harian,
             tampil_hitung_mundur=pengaturan.tampil_hitung_mundur,
-            durasi_latihan_detik=_pilih_durasi(pengaturan.durasi_latihan, lama.durasi_latihan_detik if lama else None),
-            durasi_simulasi_detik=_pilih_durasi(pengaturan.durasi_simulasi,
-                                                lama.durasi_simulasi_detik if lama else None),
+            durasi_latihan_detik=_pilih(pengaturan.durasi_latihan, lama.durasi_latihan_detik if lama else None),
+            durasi_simulasi_detik=_pilih(pengaturan.durasi_simulasi, lama.durasi_simulasi_detik if lama else None),
+            tanggal_lomba=_pilih(pengaturan.tanggal_lomba, lama.tanggal_lomba if lama else None),
+            nama_lomba=_pilih(pengaturan.nama_lomba, lama.nama_lomba if lama else None),
             sekarang=_sekarang(), oleh=penangan._identitas()[0][:AS.MAKS_PANJANG_OLEH])
     return "tersimpan"
 
 
-def _alihkan_tersimpan(penangan, siswa_id: int, galat: bool = False) -> None:
+def _alihkan_tersimpan(penangan, siswa_id: int, galat: str = "") -> None:
     penangan.send_response(303)
-    tujuan = f"galat={GALAT_DURASI}" if galat else "tersimpan=1"
+    tujuan = f"galat={galat}" if galat else "tersimpan=1"
     penangan.send_header("Location", f"{H.alamat_progres(siswa_id)}?{tujuan}")
     penangan.send_header("Content-Length", "0")
     penangan.send_header("Cache-Control", "no-store")
@@ -247,5 +293,6 @@ def tangani_post(penangan, jalur: str) -> bool:
         _kirim_tidak_ada(penangan)
         return True
     if hasil != "ditolak":
-        _alihkan_tersimpan(penangan, siswa_id, galat=hasil == "galat_durasi")
+        galat = hasil[len(_AWALAN_GALAT):] if hasil.startswith(_AWALAN_GALAT) else ""
+        _alihkan_tersimpan(penangan, siswa_id, galat=galat)
     return True

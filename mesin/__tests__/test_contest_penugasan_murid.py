@@ -4,6 +4,7 @@ Sakelar induk (`OSN_LOMBA`) hidup di semua tes ini; yang diuji adalah gerbang pe
 404 harus byte-identik (tubuh dan header) dengan jalur murid tak dikenal dan tanpa efek samping (tidak ada sesi
 baru, tidak ada jawaban tertulis). Data sintetis di tmp_path; jam server dipalsukan.
 """
+import datetime
 import itertools
 import re
 import sys
@@ -53,7 +54,7 @@ def server(tmp_path, monkeypatch, jam):
 def _tugaskan(uji, siswa_id, *, aktif=True, target=None, hitung_mundur=None):
     with uji.buka() as kon:
         AS.atur(kon, siswa_id, aktif=aktif, target_harian=target, tampil_hitung_mundur=hitung_mundur, durasi_latihan_detik=None, durasi_simulasi_detik=None,
-                sekarang=T0, oleh="guru-uji")
+                tanggal_lomba=datetime.date(2026, 12, 12), nama_lomba=None, sekarang=T0, oleh="guru-uji")
 
 
 def _tak_dikenal(uji, pengguna=MURID_SATU):
@@ -211,3 +212,31 @@ def test_hitung_mundur_dimatikan_oleh_penugasan(server, jam):
     teks = _teks(server)
 
     assert "Lomba tinggal" not in teks and "Latihan hari ini: 0 dari 2" in teks
+
+
+# --- tanggal lomba per anak (23 Nov 2026) --------------------------------------------------------------------
+
+def _tugaskan_tanggal(uji, siswa_id, tanggal, nama=None):
+    with uji.buka() as kon:
+        AS.atur(kon, siswa_id, aktif=True, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None,
+                durasi_simulasi_detik=None, tanggal_lomba=tanggal, nama_lomba=nama, sekarang=T0, oleh="guru-uji")
+
+
+def test_dua_anak_melihat_hitung_mundur_ke_tanggal_masing_masing_dan_tidak_melihat_nama(server, jam):
+    jam.t = SEBELUM_LOMBA          # 18 Nov 2026 WIB
+    _tugaskan_tanggal(server, server.anak_satu, datetime.date(2026, 11, 28), nama="NamaRahasiaGuruSintetis")
+    _tugaskan_tanggal(server, server.anak_dua, datetime.date(2026, 12, 30))
+
+    satu = _get(server, "/murid/lomba").isi.decode()
+    dua = _get(server, "/murid/lomba", MURID_DUA).isi.decode()
+
+    assert "Lomba tinggal 10 hari lagi" in re.sub(r"<[^>]+>", " ", satu)
+    assert "Lomba tinggal 42 hari lagi" in re.sub(r"<[^>]+>", " ", dua)
+    assert "NamaRahasiaGuruSintetis" not in satu and "Mode Lomba" in satu
+
+
+def test_anak_tanpa_tanggal_tidak_melihat_hitung_mundur_walau_paket_punya_tanggal(server, jam):
+    jam.t = SEBELUM_LOMBA
+    _tugaskan_tanggal(server, server.anak_satu, None)
+
+    assert "Lomba tinggal" not in _teks(server)

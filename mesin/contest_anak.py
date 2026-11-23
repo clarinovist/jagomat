@@ -72,12 +72,17 @@ def _selesai_hari_ini(sah: Sequence[R.RingkasSesi], sekarang: int) -> int:
 def paket_untuk_anak(kon, siswa_id: int, paket: PK.PaketLomba) -> PK.PaketLomba:
     """Paket dengan target harian dan hitung mundur dari penugasan Guru bila diisi (None = ikut paket).
 
+    Tanggal lomba berbeda: bila anak punya baris penugasan, tanggalnya berasal dari baris itu saja (None = tanpa
+    tanggal, tanpa hitung mundur). Tanpa baris penugasan, tanggal paket tetap (perilaku lama).
+
     Salinan baru lewat `dataclasses.replace` (paket tidak dimutasi); tanpa nilai khusus mengembalikan `paket` itu.
     """
     penugasan = AS.ambil(kon, siswa_id)
     if penugasan is None:
         return paket
     ubah = {}
+    if penugasan.tanggal_lomba != paket.tanggal_lomba:
+        ubah["tanggal_lomba"] = penugasan.tanggal_lomba
     if penugasan.target_harian is not None:
         ubah["target_harian"] = penugasan.target_harian
     if penugasan.tampil_hitung_mundur is not None:

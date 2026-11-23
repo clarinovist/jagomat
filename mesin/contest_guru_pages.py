@@ -6,6 +6,7 @@ sudah menegakkan kepemilikan (`contest_guru_http`). Kartu soal dibagi dengan hal
 """
 from __future__ import annotations
 
+import datetime
 import html
 from typing import Optional, Sequence
 
@@ -16,7 +17,7 @@ import contest_paket as PK
 import contest_results as R
 import contest_results_pages as RP
 import contest_store as K
-from contest_format import desimal, durasi_menit_detik, persen, tanggal_wib
+from contest_format import BULAN_SINGKAT, desimal, durasi_menit_detik, persen, tanggal_wib
 from contest_style import GAYA_HASIL, GAYA_PENGATURAN
 from teacher_shell import _halaman as _bingkai
 
@@ -34,6 +35,13 @@ GALAT_DURASI = (f"Waktu harus angka bulat {PK.DURASI_MIN_MENIT} sampai {PK.DURAS
 CATATAN_DURASI = (f"Kosongkan untuk memakai waktu bawaan. Boleh {PK.DURASI_MIN_MENIT} sampai {PK.DURASI_MAKS_MENIT} "
                   "menit. Perubahan berlaku untuk sesi berikutnya, bukan sesi yang sedang berjalan.")
 NAMA_ISIAN_DURASI = {PK.MODE_LATIHAN: "durasi_latihan", PK.MODE_SIMULASI: "durasi_simulasi"}
+GALAT_TANGGAL = "Tanggal lomba harus tanggal kalender yang sah (tahun-bulan-hari), atau dikosongkan. Pengaturan belum disimpan."
+GALAT_NAMA = (f"Nama lomba harus 1 sampai {AS.MAKS_PANJANG_NAMA_LOMBA} karakter tanpa karakter kontrol, atau dikosongkan. "
+              "Pengaturan belum disimpan.")
+KODE_GALAT_DURASI, KODE_GALAT_TANGGAL, KODE_GALAT_NAMA = "durasi", "tanggal", "nama"
+PESAN_GALAT = {KODE_GALAT_DURASI: GALAT_DURASI, KODE_GALAT_TANGGAL: GALAT_TANGGAL, KODE_GALAT_NAMA: GALAT_NAMA}
+CATATAN_TANGGAL = ("Tanggal dan nama lomba milik anak ini saja. Kosongkan tanggal bila belum ada jadwal lomba: "
+                   "hitung mundur tidak tampil. Nama lomba hanya terlihat oleh Guru, anak tetap melihat \"Mode Lomba\".")
 PILIHAN_TARGET = (0, 1, 2, 3)       # target harian yang boleh dipilih Guru; "ikut paket" disimpan sebagai NULL
 NILAI_IKUT_PAKET = "paket"
 CATATAN_DUGAAN = ("Label kesalahan adalah dugaan dari pilihan jawaban yang dipilih anak, bukan diagnosis; "
@@ -73,6 +81,30 @@ def _hitung_mundur_tampil(penugasan: Optional[AS.Penugasan]) -> bool:
     if penugasan is None or penugasan.tampil_hitung_mundur is None:
         return PK.PAKET_AKTIF.tampil_hitung_mundur
     return penugasan.tampil_hitung_mundur
+
+
+def _tanggal_tersimpan(penugasan: Optional[AS.Penugasan]) -> Optional[datetime.date]:
+    return None if penugasan is None else penugasan.tanggal_lomba
+
+
+def _label_hitung_mundur(penugasan: Optional[AS.Penugasan]) -> str:
+    """Label kotak hitung mundur; menyebut tanggal lomba anak bila ada."""
+    tanggal = _tanggal_tersimpan(penugasan)
+    dasar = "Tampilkan hitung mundur ke hari lomba"
+    if tanggal is None:
+        return dasar
+    return f"{dasar} ({tanggal.day} {BULAN_SINGKAT[tanggal.month - 1]} {tanggal.year})"
+
+
+def _isian_tanggal_dan_nama(penugasan: Optional[AS.Penugasan]) -> str:
+    tanggal = _tanggal_tersimpan(penugasan)
+    nama = None if penugasan is None else penugasan.nama_lomba
+    return ('<label class="hl-isian">Tanggal lomba'
+            f'<input type="date" name="tanggal_lomba" value="{"" if tanggal is None else tanggal.isoformat()}"></label>'
+            '<label class="hl-isian">Nama lomba (hanya terlihat oleh Guru)'
+            f'<input type="text" name="nama_lomba" maxlength="{AS.MAKS_PANJANG_NAMA_LOMBA}" '
+            f'value="{_e(nama or "")}"></label>'
+            f'<p class="hl-sub">{CATATAN_TANGGAL}</p>')
 
 
 def _durasi_tersimpan(penugasan: Optional[AS.Penugasan], mode: str) -> Optional[int]:
@@ -121,8 +153,9 @@ def kartu_pengaturan(siswa, penugasan: Optional[AS.Penugasan], tersimpan: bool =
         f'<label class="pilihan-kartu-opsi-st"><input type="radio" name="aktif" value="0"{"" if aktif else " checked"}> Belum aktif</label></fieldset>'
         '<label class="hl-isian">Target latihan harian'
         f'<select name="target">{_pilihan_target(penugasan)}</select></label>'
-        f'<label><input type="checkbox" name="hitung_mundur" value="1"{centang}> '
-        "Tampilkan hitung mundur ke hari lomba</label>"
+        + _isian_tanggal_dan_nama(penugasan)
+        + f'<label><input type="checkbox" name="hitung_mundur" value="1"{centang}> '
+        f"{_e(_label_hitung_mundur(penugasan))}</label>"
         + _isian_durasi(penugasan, PK.MODE_LATIHAN) + _isian_durasi(penugasan, PK.MODE_SIMULASI)
         + f'<p class="hl-sub">{CATATAN_DURASI}</p>'
         '<button class="btn-st" type="submit">Simpan</button></form></section>')

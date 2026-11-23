@@ -3,6 +3,7 @@
 Data sintetis di tmp_path. Aksi hanya mengubah `aktif`; target harian dan hitung mundur dari halaman Lomba tetap.
 """
 import base64
+import datetime
 import http.client
 import sys
 import time
@@ -91,7 +92,8 @@ def test_kartu_kosong_saat_sakelar_induk_mati(s, monkeypatch):
 def test_guru_mengaktifkan_lalu_mematikan_anaknya_dan_target_dipertahankan(s):
     with s.buka() as kon:
         AS.atur(kon, s.anak, aktif=False, target_harian=1, tampil_hitung_mundur=False, durasi_latihan_detik=20 * 60,
-                durasi_simulasi_detik=90 * 60, sekarang=1, oleh="guru")
+                durasi_simulasi_detik=90 * 60, tanggal_lomba=datetime.date(2027, 1, 15), nama_lomba="Lomba Sintetis",
+                sekarang=1, oleh="guru")
 
     kode, isi = _minta(s, "/akun", _aksi(s.anak, "1"))
     aktif = _tunggu_penugasan(s, s.anak, True)
@@ -99,6 +101,7 @@ def test_guru_mengaktifkan_lalu_mematikan_anaknya_dan_target_dipertahankan(s):
     assert kode == 200 and "Mode Lomba untuk Anak &lt;b&gt;Sintetis&lt;/b&gt; diaktifkan." in isi
     assert aktif.aktif is True and aktif.target_harian == 1 and aktif.tampil_hitung_mundur is False
     assert (aktif.durasi_latihan_detik, aktif.durasi_simulasi_detik) == (1200, 5400)
+    assert (aktif.tanggal_lomba, aktif.nama_lomba) == (datetime.date(2027, 1, 15), "Lomba Sintetis")
     assert aktif.diubah_oleh == "guru" and "Mode Lomba: Aktif" in isi and ">Matikan</button>" in isi
 
     _minta(s, "/akun", _aksi(s.anak, "0"))
@@ -106,6 +109,7 @@ def test_guru_mengaktifkan_lalu_mematikan_anaknya_dan_target_dipertahankan(s):
 
     assert mati.aktif is False and mati.target_harian == 1 and mati.tampil_hitung_mundur is False
     assert (mati.durasi_latihan_detik, mati.durasi_simulasi_detik) == (1200, 5400)
+    assert (mati.tanggal_lomba, mati.nama_lomba) == (datetime.date(2027, 1, 15), "Lomba Sintetis")
 
 
 def test_anak_tanpa_pengaturan_lama_memakai_nilai_paket(s):
@@ -114,6 +118,7 @@ def test_anak_tanpa_pengaturan_lama_memakai_nilai_paket(s):
     p = _tunggu_penugasan(s, s.anak, True)
 
     assert p.aktif is True and p.target_harian is None and p.tampil_hitung_mundur is None
+    assert p.tanggal_lomba is None and p.nama_lomba is None       # anak baru tidak mewarisi tanggal paket
 
 
 @pytest.mark.parametrize("siswa", ["asing", "tidak_ada", "bukan_angka"])

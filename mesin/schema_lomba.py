@@ -12,6 +12,11 @@ tidak aktif); `target_harian`, `tampil_hitung_mundur`, dan durasi per mode NULL 
 Simulasi Lomba (22 Nov 2026): `lomba_sesi.mode` ('latihan'/'simulasi') dan dua kolom durasi di `lomba_penugasan`
 ditambahkan lewat `schema.MIGRASI`; batas nomor soal diperlebar 10 -> 35 lewat `perlebar_nomor_soal` (SQLite tidak bisa
 mengubah CHECK di tempat, jadi tabel dibangun ulang dengan isi yang sama).
+
+Tanggal dan nama lomba per anak (23 Nov 2026): `lomba_penugasan.tanggal_lomba` (YYYY-MM-DD, NULL = tanpa hitung mundur)
+dan `nama_lomba` (<= 60 karakter, hanya tampil ke Guru). Di DDL migrasi (`schema.MIGRASI`) kedua kolom ber-DEFAULT
+'2026-12-12' / 'Grand Final Corexis' supaya baris lama mempertahankan perilaku lama; di DDL di bawah ini TANPA DEFAULT
+(DB baru: NULL). `contest_assignment_store.atur` selalu menulis keduanya secara eksplisit.
 """
 import sqlite3
 
@@ -77,7 +82,9 @@ CREATE TABLE IF NOT EXISTS lomba_penugasan (
     diubah_epoch         INTEGER NOT NULL,
     diubah_oleh          TEXT    NOT NULL DEFAULT '' CHECK (length(diubah_oleh) <= 64),
     durasi_latihan_detik  INTEGER CHECK (durasi_latihan_detik IS NULL OR durasi_latihan_detik BETWEEN 300 AND 10800),
-    durasi_simulasi_detik INTEGER CHECK (durasi_simulasi_detik IS NULL OR durasi_simulasi_detik BETWEEN 300 AND 10800)
+    durasi_simulasi_detik INTEGER CHECK (durasi_simulasi_detik IS NULL OR durasi_simulasi_detik BETWEEN 300 AND 10800),
+    tanggal_lomba         TEXT    CHECK (tanggal_lomba IS NULL OR (length(tanggal_lomba) = 10 AND tanggal_lomba GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' AND date(tanggal_lomba) IS tanggal_lomba)),
+    nama_lomba            TEXT    CHECK (nama_lomba IS NULL OR length(nama_lomba) BETWEEN 1 AND 60)
 );
 """
 

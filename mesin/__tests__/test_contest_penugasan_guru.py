@@ -3,6 +3,7 @@
 Data sintetis di tmp_path. 404 (bukan pemilik, anak tidak ada, id tidak sah, sakelar induk mati) harus byte-identik
 dengan 404 GET yang sudah ada dan tidak boleh mengubah baris penugasan sama sekali.
 """
+import datetime
 import base64
 import http.client
 import re
@@ -113,7 +114,7 @@ def test_kartu_belum_aktif_tampil_di_atas_dengan_form_dan_pilihan_target(s):
 def test_kartu_menampilkan_status_aktif_dengan_nama_anak_di_escape(s):
     with s.buka() as kon:
         AS.atur(kon, s.anak, aktif=True, target_harian=3, tampil_hitung_mundur=False, durasi_latihan_detik=None, durasi_simulasi_detik=None,
-                sekarang=SEKARANG_UJI, oleh="guru")
+                tanggal_lomba=datetime.date(2026, 12, 12), nama_lomba=None, sekarang=SEKARANG_UJI, oleh="guru")
 
     isi = _halaman(s)
 
@@ -132,7 +133,7 @@ def test_pesan_tersimpan_hanya_muncul_dengan_tersimpan_satu(s):
 def test_riwayat_guru_tetap_terbuka_walau_penugasan_mati(s):
     with s.buka() as kon:
         AS.atur(kon, s.anak, aktif=False, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None,
-                sekarang=SEKARANG_UJI, oleh="guru")
+                tanggal_lomba=datetime.date(2026, 12, 12), nama_lomba=None, sekarang=SEKARANG_UJI, oleh="guru")
 
     assert "Belum ada sesi latihan yang selesai" in _halaman(s)
 
@@ -203,7 +204,7 @@ def test_guru_pemilik_anak_keluarga_sendiri_lain_dapat_mengatur(s):
 def test_bukan_pemilik_dijawab_404_identik_dan_baris_tidak_berubah(s):
     with s.buka() as kon:
         AS.atur(kon, s.anak, aktif=False, target_harian=1, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None,
-                sekarang=SEKARANG_UJI, oleh="semula")
+                tanggal_lomba=datetime.date(2026, 12, 12), nama_lomba=None, sekarang=SEKARANG_UJI, oleh="semula")
     sebelum = _tabel(s)
 
     hasil = _post(s, s.anak, {"aktif": "1", "target": "3"}, auth=GURU_LAIN)
@@ -323,3 +324,141 @@ def test_nama_akun_pengubah_dipotong_enam_puluh_empat_karakter(s, monkeypatch):
     with s.buka() as kon:
         assert contest_guru_http._simpan(penangan, kon, s.anak) == "tersimpan"
         assert len(AS.ambil(kon, s.anak).diubah_oleh) == AS.MAKS_PANJANG_OLEH
+
+
+# --- tanggal dan nama lomba per anak (23 Nov 2026) ---------------------------------------------------------
+
+XSS_NAMA = '<script>alert(1)</script>"&'
+
+
+def _tabel_lama_dengan(s, **ubah):
+    nilai = dict(aktif=True, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None,
+                 durasi_simulasi_detik=None, tanggal_lomba=datetime.date(2026, 12, 20), nama_lomba="Lomba Lama",
+                 sekarang=SEKARANG_UJI, oleh="semula")
+    nilai.update(ubah)
+    with s.buka() as kon:
+        AS.atur(kon, s.anak, **nilai)
+
+
+def test_kartu_memuat_isian_tanggal_dan_nama_kosong_untuk_anak_tanpa_penugasan(s):
+    isi = _halaman(s)
+
+    assert '<input type="date" name="tanggal_lomba" value="">' in isi
+    assert 'name="nama_lomba" maxlength="60" value=""' in isi and 'type="text"' in isi
+    assert "Tampilkan hitung mundur ke hari lomba</label>" in isi
+
+
+def test_kartu_menampilkan_tanggal_nama_dan_tanggal_di_label_hitung_mundur(s):
+    _tabel_lama_dengan(s)
+
+    isi = _halaman(s)
+
+    assert 'name="tanggal_lomba" value="2026-12-20"' in isi and 'value="Lomba Lama"' in isi
+    assert "Tampilkan hitung mundur ke hari lomba (20 Des 2026)" in isi
+
+
+def test_nama_lomba_di_halaman_guru_di_escape(s):
+    _tabel_lama_dengan(s, nama_lomba=XSS_NAMA.replace("<", "&lt;")[:60])
+    with s.buka() as kon:        # nama sintetis dengan kurung sudut ditulis langsung lewat SQL (lolos validasi atur)
+        kon.execute("UPDATE lomba_penugasan SET nama_lomba = ? WHERE siswa_id = ?", (XSS_NAMA, s.anak))
+
+    isi = _halaman(s)
+
+    assert XSS_NAMA not in isi and "<script>alert(1)</script>" not in isi
+    assert 'value="&lt;script&gt;alert(1)&lt;/script&gt;&quot;&amp;"' in isi
+
+
+def test_post_menyimpan_tanggal_dan_nama_milik_anak_itu_saja(s):
+    kode, header, _ = _post(s, s.anak, {**FORM_SAH, "tanggal_lomba": "2026-12-20", "nama_lomba": "  Lomba Kota  "})
+
+    assert kode == 303 and header["location"].endswith("?tersimpan=1")
+    tersimpan = _pengaturan(s, s.anak)
+    assert (tersimpan.tanggal_lomba, tersimpan.nama_lomba) == (datetime.date(2026, 12, 20), "Lomba Kota")
+    assert _pengaturan(s, s.lain) is None
+
+
+def test_dua_anak_menyimpan_tanggal_berbeda_dan_tidak_saling_menimpa(s):
+    _post(s, s.anak, {**FORM_SAH, "tanggal_lomba": "2026-12-20", "nama_lomba": ""})
+    _post(s, s.lain, {**FORM_SAH, "tanggal_lomba": "2027-01-15", "nama_lomba": ""})
+
+    assert _pengaturan(s, s.anak).tanggal_lomba == datetime.date(2026, 12, 20)
+    assert _pengaturan(s, s.lain).tanggal_lomba == datetime.date(2027, 1, 15)
+
+
+def test_isian_kosong_mengosongkan_tanggal_dan_nama(s):
+    _tabel_lama_dengan(s)
+
+    kode, _, _ = _post(s, s.anak, {**FORM_SAH, "tanggal_lomba": "", "nama_lomba": ""})
+
+    tersimpan = _pengaturan(s, s.anak)
+    assert kode == 303 and (tersimpan.tanggal_lomba, tersimpan.nama_lomba) == (None, None)
+
+
+def test_kolom_tidak_dikirim_mempertahankan_tanggal_dan_nama_lama(s):
+    _tabel_lama_dengan(s)
+
+    kode, _, _ = _post(s, s.anak, FORM_SAH)
+
+    tersimpan = _pengaturan(s, s.anak)
+    assert kode == 303 and (tersimpan.tanggal_lomba, tersimpan.nama_lomba) == (datetime.date(2026, 12, 20), "Lomba Lama")
+
+
+@pytest.mark.parametrize("tanggal", ("2026-13-45", "2026-02-30", "besok", "2026-1-5", "20261220", "2026-12-20x",
+                                     "٢٠٢٦-١٢-٢٠", "2026/12/20"))
+def test_tanggal_tidak_sah_dialihkan_dengan_galat_tanpa_menulis(s, tanggal):
+    _tabel_lama_dengan(s)
+    sebelum = _tabel(s)
+
+    kode, header, _ = _post(s, s.anak, {**FORM_SAH, "tanggal_lomba": tanggal, "nama_lomba": "Baru"})
+
+    assert kode == 303 and header["location"] == f"/anak/{s.anak}/lomba?galat=tanggal"
+    assert _tabel(s) == sebelum
+    assert H.GALAT_TANGGAL in _halaman(s, "?galat=tanggal") and PESAN_TERSIMPAN not in _halaman(s, "?galat=tanggal")
+
+
+@pytest.mark.parametrize("nama", ("x" * 61, "a\x00b", "baris\nbaru", "tab\tdi sini"))
+def test_nama_tidak_sah_dialihkan_dengan_galat_tanpa_menulis(s, nama):
+    _tabel_lama_dengan(s)
+    sebelum = _tabel(s)
+
+    kode, header, _ = _post(s, s.anak, {**FORM_SAH, "tanggal_lomba": "2026-12-25", "nama_lomba": nama})
+
+    assert kode == 303 and header["location"] == f"/anak/{s.anak}/lomba?galat=nama"
+    assert _tabel(s) == sebelum
+    assert H.GALAT_NAMA in _halaman(s, "?galat=nama")
+
+
+def test_galat_durasi_lama_tetap_berfungsi_dan_kode_galat_liar_diabaikan(s):
+    assert H.GALAT_DURASI in _halaman(s, "?galat=durasi")
+    for kueri in ("?galat=", "?galat=lain", "?galat=tanggal&galat=nama", "?galat=<script>"):
+        isi = _halaman(s, kueri)
+        assert H.GALAT_DURASI not in isi and H.GALAT_TANGGAL not in isi and H.GALAT_NAMA not in isi, kueri
+
+
+def test_bukan_pemilik_dengan_tanggal_baru_dijawab_404_identik_tanpa_efek(s):
+    _tabel_lama_dengan(s)
+    sebelum = _tabel(s)
+
+    hasil = _post(s, s.anak, {**FORM_SAH, "tanggal_lomba": "2026-12-25", "nama_lomba": "Retas"}, auth=GURU_LAIN)
+    rusak = _post(s, s.anak, {**FORM_SAH, "tanggal_lomba": "ngawur"}, auth=GURU_LAIN)
+
+    assert sidik(hasil) == _404_get(s) and sidik(rusak) == _404_get(s) and hasil[0] == 404
+    assert _tabel(s) == sebelum
+
+
+def test_sakelar_induk_mati_menolak_tanggal_baru_tanpa_tulis(s, monkeypatch):
+    _tabel_lama_dengan(s)
+    sebelum = _tabel(s)
+    monkeypatch.setenv("OSN_LOMBA", "0")
+
+    hasil = _post(s, s.anak, {**FORM_SAH, "tanggal_lomba": "2026-12-25"})
+
+    assert hasil[0] == 404 and _tabel(s) == sebelum
+
+
+def test_nama_lomba_tidak_pernah_tampil_di_sisi_anak(s):
+    _post(s, s.anak, {**FORM_SAH, "tanggal_lomba": "2099-01-01", "nama_lomba": "NamaRahasiaGuruSintetis"})
+
+    kode, _, isi = raw(s, "/murid/lomba", auth=MURID)
+
+    assert kode == 200 and b"NamaRahasiaGuruSintetis" not in isi and b"Mode Lomba" in isi

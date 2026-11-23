@@ -38,7 +38,7 @@ class PaketLomba:
     id: str
     nama: str
     nama_pendek: str
-    tanggal_lomba: datetime.date
+    tanggal_lomba: Optional[datetime.date]   # None = tanpa tanggal (tanpa hitung mundur)
     durasi_detik: int
     jumlah_soal: int
     jumlah_isian: int
@@ -126,8 +126,10 @@ def _tanggal_wib(epoch: int) -> datetime.date:
     return (_NOL_UTC + datetime.timedelta(seconds=int(epoch) + OFFSET_WIB_DETIK)).date()
 
 
-def hari_menuju_lomba(paket: PaketLomba, sekarang_epoch: int) -> int:
-    """Selisih hari kalender WIB sampai tanggal lomba; negatif bila sudah lewat."""
+def hari_menuju_lomba(paket: PaketLomba, sekarang_epoch: int) -> Optional[int]:
+    """Selisih hari kalender WIB sampai tanggal lomba; negatif bila sudah lewat; None bila paket tanpa tanggal."""
+    if paket.tanggal_lomba is None:
+        return None
     return (paket.tanggal_lomba - _tanggal_wib(sekarang_epoch)).days
 
 
@@ -135,11 +137,11 @@ JUDUL_ANAK = "Mode Lomba"   # judul di sisi anak: umum, nama acara (nama_pendek)
 
 
 def teks_hitung_mundur(paket: PaketLomba, sekarang: int) -> str:
-    """Kalimat hitung mundur; kosong bila dimatikan atau tanggal lomba sudah lewat."""
+    """Kalimat hitung mundur; kosong bila dimatikan, tanpa tanggal, atau tanggal lomba sudah lewat."""
     if not paket.tampil_hitung_mundur:
         return ""
     hari = hari_menuju_lomba(paket, sekarang)
-    if hari < 0:
+    if hari is None or hari < 0:
         return ""
     if hari == 0:
         return _TEKS_HARI_H

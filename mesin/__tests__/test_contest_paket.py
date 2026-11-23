@@ -164,3 +164,12 @@ def test_paket_simulasi_tidak_sah_ditolak(perubahan):
 @pytest.mark.parametrize("menit,sah", [(5, True), (180, True), (4, False), (181, False), (True, False), (15.0, False)])
 def test_menit_sah_5_sampai_180_bulat(menit, sah):
     assert PK.menit_sah(menit) is sah
+
+
+# --- paket tanpa tanggal (Mode Lomba per anak, 23 Nov 2026) ---------------------------------------------------
+
+def test_paket_tanpa_tanggal_tidak_punya_hari_menuju_lomba_dan_teks_kosong():
+    paket = _ubah(tanggal_lomba=None)
+
+    assert PK.hari_menuju_lomba(paket, EPOCH_HARI_H_00_WIB) is None
+    assert PK.teks_hitung_mundur(paket, EPOCH_HARI_H_00_WIB - 86_400) == ""

@@ -1,4 +1,5 @@
 """Gerbang fitur Latihan Lomba: bawaan mati; hanya nilai persis "1" yang menyalakan."""
+import datetime
 import pytest
 
 import contest_gate as G
@@ -106,7 +107,7 @@ def anak_lain(kon):
 
 def _tugaskan(kon, siswa_id, aktif=True):
     AS.atur(kon, siswa_id, aktif=aktif, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None,
-            sekarang=SEKARANG, oleh="guru-uji")
+            tanggal_lomba=datetime.date(2026, 12, 12), nama_lomba=None, sekarang=SEKARANG, oleh="guru-uji")
 
 
 def test_aktif_untuk_hidup_bila_induk_hidup_dan_penugasan_aktif(kon, anak, monkeypatch):

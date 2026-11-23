@@ -2,6 +2,7 @@
 
 Data sintetis di tmp_path; jam server dipalsukan lewat `contest_http._sekarang` / `contest_guru_http._sekarang`.
 """
+import datetime
 import base64
 import http.client
 import itertools
@@ -58,7 +59,7 @@ def s(tmp_path, monkeypatch):
         server.anak = database.tambah_siswa(kon, "feby", pemilik="guru")
         server.asing = database.tambah_siswa(kon, "Anak Guru Lain", pemilik="guru-lain")
         AS.atur(kon, server.anak, aktif=True, target_harian=1, tampil_hitung_mundur=None, durasi_latihan_detik=None,
-                durasi_simulasi_detik=None, sekarang=T0, oleh="guru")
+                durasi_simulasi_detik=None, tanggal_lomba=datetime.date(2026, 12, 12), nama_lomba=None, sekarang=T0, oleh="guru")
     yield server
     server.berhenti()
 
@@ -124,7 +125,7 @@ def _penugasan(s, siswa_id):
 def _atur_durasi(s, latihan, simulasi):
     with s.buka() as kon:
         AS.atur(kon, s.anak, aktif=True, target_harian=1, tampil_hitung_mundur=None, durasi_latihan_detik=latihan,
-                durasi_simulasi_detik=simulasi, sekarang=T0, oleh="guru")
+                durasi_simulasi_detik=simulasi, tanggal_lomba=datetime.date(2026, 12, 12), nama_lomba=None, sekarang=T0, oleh="guru")
 
 
 # --- murid: mulai per mode -------------------------------------------------------------------------------

@@ -1,4 +1,5 @@
 """Ringkasan anak Latihan Lomba: soal kosong siklis, banding, target harian, nilai terbaik, dan sesi asal kumpul."""
+import datetime
 import json
 import sys
 from pathlib import Path
@@ -109,7 +110,8 @@ def test_anak_baru_tanpa_sesi_punya_ringkasan_kosong(kon, anak):
 
 
 def _tugaskan(kon, siswa, **nilai):
-    dasar = dict(aktif=True, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None, sekarang=SEKARANG, oleh="guru-uji")
+    dasar = dict(aktif=True, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None,
+                 tanggal_lomba=PK.PAKET_AKTIF.tanggal_lomba, nama_lomba=None, sekarang=SEKARANG, oleh="guru-uji")
     dasar.update(nilai)
     AS.atur(kon, siswa, **dasar)
 
@@ -250,3 +252,33 @@ def test_nilai_sebelumnya_tidak_menyentuh_sesi_anak_lain(kon, anak, anak_lain):
 
     assert A.nilai_sebelumnya(kon, anak, milik, SEKARANG) is None
 
+
+# --- tanggal lomba per anak (23 Nov 2026) --------------------------------------------------------------------
+
+def test_dua_anak_dengan_tanggal_berbeda_mendapat_hitung_mundur_berbeda(kon, anak, anak_lain):
+    _tugaskan(kon, anak, tanggal_lomba=datetime.date(2026, 11, 28))      # SEKARANG = 18 Nov -> 10 hari
+    _tugaskan(kon, anak_lain, tanggal_lomba=datetime.date(2026, 12, 30))  # -> 42 hari
+
+    satu = A.muat_ringkas(kon, anak, SEKARANG)
+    dua = A.muat_ringkas(kon, anak_lain, SEKARANG)
+
+    assert satu.hitung_mundur == "Lomba tinggal 10 hari lagi" and dua.hitung_mundur == "Lomba tinggal 42 hari lagi"
+    assert satu.paket.tanggal_lomba == datetime.date(2026, 11, 28) and PK.PAKET_AKTIF.tanggal_lomba == datetime.date(2026, 12, 12)
+
+
+def test_penugasan_tanpa_tanggal_tidak_menampilkan_hitung_mundur_walau_paket_punya(kon, anak):
+    _tugaskan(kon, anak, tanggal_lomba=None)
+
+    r = A.muat_ringkas(kon, anak, SEKARANG)
+
+    assert r.hitung_mundur == "" and r.paket.tanggal_lomba is None
+
+
+def test_anak_tanpa_baris_penugasan_tetap_memakai_tanggal_paket(kon, anak):
+    assert A.paket_untuk_anak(kon, anak, PK.PAKET_AKTIF) is PK.PAKET_AKTIF
+
+
+def test_tanggal_sama_dengan_paket_mengembalikan_paket_yang_sama(kon, anak):
+    _tugaskan(kon, anak)
+
+    assert A.paket_untuk_anak(kon, anak, PK.PAKET_AKTIF) is PK.PAKET_AKTIF
