@@ -334,7 +334,7 @@ Controlled `deploy-v2` memasang **ac93885** (digest `sha256:0f49d9a7…c205`), h
 Isi: `/admin/sakelar` (empat sakelar, DB terpisah `/data/sakelar.db` dengan env fallback), `/admin/profil-guru`
 (profil guru peninjau tampil di funnel, cache 30 detik), label topik awam di ringkasan cek orang tua (hasil lama
 yang tersimpan sebagai nama resmi dipetakan saat render), dan sapuan retensi cek harian lewat cron
-`/etc/cron.d/osn-cek-retensi` (20.43 UTC = 03.43 WIB).
+`/etc/cron.d/osn-cek-retensi` (20.43 WIB: zona server `Asia/Jakarta`, jam cron = WIB, bukan UTC; dikoreksi 23 Nov 2026 dari log yang ditulis 20.43).
 
 - Push `ac93885` CI cepat hijau (13.835 test). Gate dispatch [44553890532](https://github.com/clarinovist/jagomat/actions/runs/44553890532)
   hijau: kandidat 4/4, recovery 4/4, pair terverifikasi, `provider_calls` 0. Kontrak kandidat = recovery = live

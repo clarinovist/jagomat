@@ -69,7 +69,7 @@ memindahkan anak antar guru lembaganya; ia **tidak** membuka sesi/jawaban anak g
 Pindah ditolak bila anak sedang punya sesi berjalan; nama kembar di guru tujuan tidak menolak,
 tetapi nama anak diberi pembeda "(2)", "(3)", dst. (ditolak hanya bila pembeda habis di "(99)").
 Pemilik les juga bisa **memindahkan banyak anak sekaligus** ke satu guru tujuan: centang anak di `/lembaga`
-(HTML native, maksimal 50 per permintaan; `POST /lembaga/pindah-banyak`), satu transaksi semua-atau-tidak-sama-sekali
+(HTML native, satu form per seksi guru asal: daftar centang hanya berisi anak guru itu dan pilihan tujuan tidak memuat guru asal; maksimal 50 per permintaan; `POST /lembaga/pindah-banyak`), satu transaksi semua-atau-tidak-sama-sekali
 dengan kewenangan yang sama seperti pindah satu anak (anak dan tujuan penghuni lembaga yang sama, selain itu 404 identik).
 Seluruh permintaan ditolak tanpa mengubah apa pun, dengan jumlah anak bermasalah di pesan, bila ada anak yang
 sudah di guru tujuan, bersesi berjalan, atau pembeda nama habis; nama kembar (juga antar anak dalam batch) diberi
