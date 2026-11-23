@@ -12,6 +12,15 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy perbaikan tampilan (peringatan pindah massal, geser tabel admin, input berkas bukti) — 24 November 2026
+
+Controlled `deploy-v2` memasang **293e2ab** (digest `sha256:5c750979…8f4d`), healthy, menggantikan **cc5c363**, ±05.28 WIB. Hanya tampilan:
+pesan penolakan `/lembaga` jadi peringatan merah, petunjuk geser tabel admin di layar sempit, gaya input berkas `/murid/langganan`.
+Kontrak TIDAK bergeser (`464074bf…`); recovery tetap **3cf536c** (digest dibangun ulang `sha256:b7cf4791…a50f`); tanpa migrasi skema baru
+dan tanpa flag baru. Dispatch 45279041397 hijau, kit `deploy-ui-langganan-20261124`: approval diarsipkan, `PERSIAPAN_OK`, backup lima file + riset,
+rehearsal C–B–C, deploy exit0, `reopen` `LIVE_ADMIN_HEALTHY` (kali ini kembali normal), postcheck hijau (0 Traceback/OperationalError/IntegrityError),
+cleanup 4 direktori. Rollback: recovery 3cf536c (UI lama, tanpa perubahan data).
+
 ## Deploy tanggal + nama lomba per anak, perbaikan langganan dan pindah massal — 24 November 2026
 
 Controlled `deploy-v2` memasang **cc5c363** (digest `sha256:530f3cfc…2fe6`), healthy, menggantikan **cf43373**, ±05.10 WIB. Isi: kolom
