@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Dict, Optional, Tuple
+from typing import Optional, Tuple
 
 import harian_pg
 import kurikulum_katalog as kat

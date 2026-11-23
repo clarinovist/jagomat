@@ -20,7 +20,6 @@ import auth  # noqa: E402
 import database  # noqa: E402
 import harian_http  # noqa: E402
 import harian_latihan_store as hs  # noqa: E402
-import harian_waktu  # noqa: E402
 from http_test_kit import SANDI_MURID, ServerUji, _basic  # noqa: E402
 
 T0 = 1_800_000_000  # 2027-01-15 15:00 WIB

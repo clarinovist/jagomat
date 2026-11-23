@@ -16,7 +16,6 @@ import brand
 import harian_latihan_store as hs
 import harian_style
 import harian_tingkat as ht
-import harian_waktu
 import murid_shell as MS
 import pecahan
 import visual_renderer
