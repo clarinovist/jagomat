@@ -1,4 +1,4 @@
-"""Skema langganan Latihan Harian (F5): lima tabel aditif dan idempoten di DB belajar, tanpa migrasi.
+"""Skema langganan Latihan Harian (F5): enam tabel aditif dan idempoten di DB belajar, tanpa migrasi.
 
 Namespace `harian_` (di luar `lomba_`, `langganan_`, `paket_`, `pesanan_`, `transfer_`; F4 memakai
 `harian_sesi/soal/jawaban`). Dijalankan tiap `database.siapkan`, jadi semuanya `IF NOT EXISTS`.
@@ -10,7 +10,9 @@ Status TIDAK disimpan, diturunkan dari fakta:
 * `harian_tagihan`    kode unik + nominal transfer order (1:1);
 * `harian_bukti`      metadata berkas bukti (isi berkas di folder khusus, di luar DB);
 * `harian_verifikasi` keputusan admin setuju/tolak atas bukti terbaru;
-* `harian_akses`      masa aktif langganan; baris hanya sah bila ada verifikasi setuju untuk order yang sama.
+* `harian_akses`      masa aktif langganan; baris hanya sah bila ada verifikasi setuju untuk order yang sama;
+* `harian_bukti_hapus` penanda berkas bukti sudah dihapus retensi 30 hari (`harian_bukti_retensi`); tabel
+  terpisah supaya `harian_bukti` tetap tak berubah, dan hanya bukti yang sudah diputuskan yang bisa ditandai.
 
 Ledger keuangan ini dipertahankan saat keluarga dihapus (siswa hanya dianonimkan); FK ke `siswa` RESTRICT.
 Dua trigger penting lapis kedua: tepat satu order terbuka per anak, dan akses tanpa verifikasi setuju ditolak DB.
@@ -69,13 +71,17 @@ CREATE TABLE IF NOT EXISTS harian_akses (
     berakhir TEXT NOT NULL CHECK(berakhir GLOB {waktu} AND berakhir>mulai),
     dibuat TEXT NOT NULL CHECK(dibuat GLOB {waktu})
 );
+CREATE TABLE IF NOT EXISTS harian_bukti_hapus (
+    bukti_id INTEGER PRIMARY KEY REFERENCES harian_bukti(id) ON DELETE RESTRICT,
+    dihapus TEXT NOT NULL CHECK(dihapus GLOB {waktu})
+);
 CREATE INDEX IF NOT EXISTS idx_harian_order_siswa ON harian_order(siswa_id, dibuat);
 CREATE INDEX IF NOT EXISTS idx_harian_bukti_order ON harian_bukti(order_id, id);
 CREATE INDEX IF NOT EXISTS idx_harian_akses_siswa ON harian_akses(siswa_id, berakhir);
 """.format(hex=_HEX, waktu=_WAKTU, paket=_PAKET, harga=_HARGA, kode_min=h.KODE_MIN, kode_maks=h.KODE_MAKS,
            mime=_MIME, ukuran_maks=BATAS_UKURAN_BUKTI, pelaku=_PELAKU, alasan_maks=BATAS_ALASAN)
 
-TABEL = ("harian_order", "harian_tagihan", "harian_bukti", "harian_verifikasi", "harian_akses")
+TABEL = ("harian_order", "harian_tagihan", "harian_bukti", "harian_verifikasi", "harian_akses", "harian_bukti_hapus")
 
 # Kunci unik per tabel untuk replace-guard (INSERT OR REPLACE menghapus baris lama tanpa memicu trigger DELETE).
 _KUNCI = {
@@ -85,6 +91,7 @@ _KUNCI = {
     "harian_verifikasi": ("(NEW.id IS NOT NULL AND id=NEW.id)",),
     "harian_akses": ("(NEW.id IS NOT NULL AND id=NEW.id)", "order_id=NEW.order_id",
                      "verifikasi_id=NEW.verifikasi_id"),
+    "harian_bukti_hapus": ("bukti_id=NEW.bukti_id",),
 }
 
 # Bukti terbaru yang belum diputuskan: id bukti lebih besar dari keputusan terakhir untuk order itu.
@@ -120,6 +127,10 @@ _ATURAN = (
     ("harian_akses_verifikasi", "harian_akses",
      "NOT EXISTS(SELECT 1 FROM harian_verifikasi WHERE id=NEW.verifikasi_id AND order_id=NEW.order_id "
      "AND keputusan='setuju')", "akses langganan tanpa verifikasi setuju"),
+    ("harian_bukti_hapus_putusan", "harian_bukti_hapus",
+     "NOT EXISTS(SELECT 1 FROM harian_verifikasi v WHERE v.bukti_hingga_id>=NEW.bukti_id "
+     "AND v.order_id=(SELECT order_id FROM harian_bukti WHERE id=NEW.bukti_id))",
+     "bukti langganan belum diputuskan"),
     ("harian_akses_siswa", "harian_akses",
      "NEW.siswa_id IS NOT (SELECT siswa_id FROM harian_order WHERE id=NEW.order_id)",
      "akses langganan bukan untuk anak pemilik order"),

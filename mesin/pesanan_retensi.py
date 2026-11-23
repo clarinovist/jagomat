@@ -1,9 +1,13 @@
 """Retensi bukti transfer: hapus berkas fisik, tandai di ledger, bersihkan sisa sementara dan berkas yatim.
 
-Tidak dijadwalkan atau dijalankan oleh aplikasi (tanpa cron/worker/startup): hanya dipanggil
-operator lewat CLI
+Tidak dijadwalkan atau dijalankan oleh aplikasi (tanpa worker/startup): hanya dipanggil operator atau cron harian host
+lewat CLI
 
     mesin/.venv/bin/python mesin/pesanan_retensi.py --database <admin-control.db> [--folder <folder-bukti>]
+        [--database-belajar <latihan.db>]
+
+Jalur yang sama juga menyapu bukti langganan Latihan Harian (`harian_bukti_retensi`: DB belajar, subfolder `harian/`)
+setelah sapuan transfer; DB belajar tidak ada = dilewati, gagalnya membuat exit 1 seperti sapuan transfer.
 
 Aturan keamanan:
 
@@ -60,15 +64,19 @@ def _tambah(hasil: HasilSapu, **selisih) -> HasilSapu:
     return HasilSapu(**{k: getattr(hasil, k) + selisih.get(k, 0) for k in HasilSapu.__dataclass_fields__})
 
 
-def _sapu_satu(kon, folder, bukti, sekarang: str, hari: int) -> dict:
-    """Selisih hitungan satu bukti; galat -> `gagal` 1 (dicoba lagi pada sapu berikutnya)."""
+def _sapu_satu(kon, folder, bukti, sekarang: str, hari: int, tandai=None) -> dict:
+    """Selisih hitungan satu bukti; galat -> `gagal` 1 (dicoba lagi pada sapu berikutnya).
+
+    `tandai` = fungsi penanda (kon, bukti_id, sekarang, hari); bawaannya penanda ledger transfer. Sapuan bukti langganan
+    Latihan Harian (`harian_bukti_retensi`) memakai urutan hapus-lalu-tandai yang sama lewat parameter ini.
+    """
     try:
         terhapus = bukti_berkas.hapus_berkas(bukti["berkas"], folder)
     except _GALAT_BUKTI:
         return {"gagal": 1}
     hitungan = {"berkas_dihapus": int(terhapus), "berkas_sudah_hilang": int(not terhapus)}
     try:
-        pesanan_transfer.tandai_dihapus(kon, bukti["bukti_id"], sekarang, hari)
+        (tandai or pesanan_transfer.tandai_dihapus)(kon, bukti["bukti_id"], sekarang, hari)
     except _GALAT_BUKTI:
         return {**hitungan, "gagal": 1}
     return {**hitungan, "ditandai": 1}
@@ -178,25 +186,43 @@ COPY_PERIKSA_FOLDER = ("Ada yang gagal: periksa izin dan pastikan --folder sama 
                        "(OSN_DIREKTORI_BUKTI di container). Berkas sudah hilang yang banyak juga tanda folder salah.")
 
 
+def _sapu_langganan(opsi_belajar: Optional[str], path_db: Path, folder: Path, sekarang: str) -> int:
+    """Sapuan bukti langganan Latihan Harian (DB belajar); mengembalikan jumlah gagal, dan mencetak ringkasannya.
+
+    Impor malas: domain pesanan tidak mengimpor DB belajar di tingkat atas (dijaga `test_pesanan_isolasi`).
+    """
+    import harian_bukti_retensi
+    hasil = harian_bukti_retensi.sapu_dari_jalur(opsi_belajar, path_db, folder, sekarang)
+    if hasil is None:
+        print("Sapu retensi langganan Latihan Harian dilewati: DB belajar tidak ditemukan atau belum punya tabelnya.")
+        return 0
+    print(harian_bukti_retensi.ringkasan(hasil))
+    return hasil.gagal
+
+
 def main(argv=None, *, sekarang: Optional[str] = None) -> int:
     """Operator eksplisit; tidak pernah dipanggil startup atau GET. `sekarang` hanya untuk uji."""
     parser = argparse.ArgumentParser(description="Sapu retensi bukti transfer (30 hari sesudah keputusan; yatim > 24 jam)")
     parser.add_argument("--database", required=True, help="Path admin-control.db yang sudah diverifikasi")
     parser.add_argument("--folder", help="Folder bukti (bawaan: OSN_DIREKTORI_BUKTI atau di samping DB)")
+    parser.add_argument("--database-belajar", help="DB belajar untuk bukti langganan Latihan Harian "
+                        "(bawaan: OSN_BERKAS_DB, lalu latihan.db di samping admin-control.db; tidak ada = dilewati)")
     args = parser.parse_args(argv)
     path_db = Path(args.database)
     if not path_db.exists():
         print("Database tidak ditemukan; tidak ada yang diubah.", file=sys.stderr)
         return 2
     import admin_store_core
+    folder, kini = _folder_tujuan(args.folder, path_db), sekarang or _sekarang_utc()
     try:
         with pesanan_transfer.buka(path_db, tulis_data=True) as kon:
-            hasil = sapu(kon, _folder_tujuan(args.folder, path_db), sekarang or _sekarang_utc())
+            hasil = sapu(kon, folder, kini)
     except (admin_store_core.StoreBelumSiap, sqlite3.Error, OSError, ValueError):
         print("Ledger transfer belum siap atau tidak bisa dibuka; tidak ada yang diubah.", file=sys.stderr)
         return 2
     print(_ringkasan(hasil))
-    if hasil.gagal:
+    gagal_langganan = _sapu_langganan(args.database_belajar, path_db, folder, kini)
+    if hasil.gagal or gagal_langganan:
         print(COPY_PERIKSA_FOLDER, file=sys.stderr)
         return EXIT_SEBAGIAN
     return 0
