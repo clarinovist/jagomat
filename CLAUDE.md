@@ -36,10 +36,17 @@ santai tapi akurat. Nama berkas modul bahasa Inggris; fungsi/variabel tetap Indo
 
 ## 1. Konteks & batas arsitektur
 
-Aplikasi orang tua (peran guru) untuk latihan OSN/SASMO anak SD: generator soal
-berparameter, diagnosis B/K/H/E/T/N, lembar cetak, dan laporan per anak. Sasaran
-diperluas bertahap hingga kelas 9 (keputusan pemilik 28 Okt 2026); klaim publik
+Aplikasi latihan matematika SD dan alat guru les (peran guru) untuk OSN/SASMO dan kurikulum
+sekolah: generator soal berparameter, diagnosis B/K/H/E/T/N, lembar cetak, dan laporan per anak.
+Sasaran diperluas bertahap hingga kelas 9 (keputusan pemilik 28 Okt 2026); klaim publik
 mengikuti batas jenjang di referensi workflow.
+
+**Arah akun (keputusan pemilik 23 Nov 2026, belum diimplementasikan; plan lokal
+`docs/plan/2026-11-23-ruang-orang-tua-dan-latihan-harian.md`):** pendaftaran publik (landing cek
+kemampuan dan `/daftar`) akan membuat **akun anak**, bukan akun guru; orang tua tidak punya akun dan
+melihat hasil lewat halaman orang tua di dalam akun anak; peran `guru` khusus guru les, dibuat admin
+lewat lembaga; anak pendaftar dipegang lembaga Jagomat lalu dipindah ke guru anggota. Sampai fase itu
+dirilis, akun funnel dan `/daftar` tetap akun guru seperti sekarang; jangan mengubahnya tanpa fase plan.
 
 - **Pure Python stdlib**, tanpa framework/dependensi pihak ketiga. Dev dependency hanya
   `pytest` + `pytest-xdist`. Paket tambahan harus diajukan ke user dulu.
@@ -292,7 +299,15 @@ Preferensi pengguna: **selalu rapikan setelah selesai, tanpa menunggu permintaan
   nomor telepon (email dan credential tetap ditolak). Fitur aplikasi yang menyimpan kontak
   terstruktur tetap jalur Kritis dan perlu plan; saat ini aplikasi belum menyimpan kontak
   terstruktur. Centang persetujuan digital di aplikasi (`setuju`, `/persetujuan`) tidak berubah.
-- **Palang murid:** sisi anak tidak boleh membaca kunci/malrule/diagnosis/laporan. Fixture
+  Arah 23 Nov 2026: kontak orang tua pendaftar akan disimpan terkait akun anak untuk penagihan;
+  aturan "tidak pernah tampil ke murid" tetap berlaku penuh di sisi murid, termasuk halaman orang tua.
+- **Palang murid:** sisi anak tidak boleh membaca kunci/malrule/diagnosis/laporan.
+  **Pengecualian (keputusan pemilik 23 Nov 2026, berlaku saat fasenya dirilis):** murid boleh membuka
+  **halaman orang tua** miliknya sendiri (hasil cek/Peta Kemampuan, nilai, laporan Guru yang sudah
+  terbit, ringkasan Latihan Harian, tagihan) baca-saja dari akun murid, kecuali orang tua memasang
+  **PIN tirai** untuk halaman itu. PIN tirai bukan batas keamanan data. Kunci, malrule, kode diagnosis,
+  pembahasan soal yang akan dikerjakan, dan kontak orang tua tetap tidak tampil di sisi murid;
+  `siswa_id` hanya dari sesi murid. Di luar halaman itu palang lama berlaku utuh. Fixture
   `db` guru dan `db_terjaga` harus terpisah; stamp `pemilik="guru"` bila perlu, bukan kendurkan
   guard. Rute MURID sebelum `_lolos_sandi`; fungsi berkunci di permukaan terpisah (misalnya
   `diagnosa_murid` di `web.py`, bukan `students.py`). CSS murid di `GAYA_STITCH`, bukan `CSS_SESI`.
