@@ -101,6 +101,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     # F2c: pesanan Peta Kemampuan dari akun anak (prefix; GET /murid/pesanan, /qr, /pesan). Sakelar
     # DAFTAR_AKUN_ANAK mati = jatuh ke penangan murid biasa (anonim 303 /masuk).
     ("/murid/pesanan", "murid"),
+    ("/murid/latihan-harian", "murid"),  # F4 Latihan Harian (prefix: beranda, /sesi/<id>, /sesi/<id>/ringkasan); sakelar LATIHAN_HARIAN mati = identik rute tak dikenal
     ("/lembaga", "guru"),  # hanya pemilik les; selain itu 404 identik rute tak dikenal
     ("/sesi/", "guru"),
     ("/lampiran/", "guru"),
@@ -148,6 +149,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/murid/orang-tua/pin/hapus", "murid"),  # F3: hapus PIN (tirai terbuka + konfirmasi)
     ("/murid/cek/mulai", "murid"),  # F2b: mulai cek dari sesi anak (exact); DAFTAR_AKUN_ANAK + funnel mati = jalur murid asing
     ("/murid/pesanan", "murid"),  # F2c: POST pesan/periksa/ulang/buat/tagihan/bukti; anonim 401 (palang sandi)
+    ("/murid/latihan-harian", "murid"),  # F4: POST /mulai dan /sesi/<id>/jawab; sakelar LATIHAN_HARIAN mati = identik rute tak dikenal
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),
@@ -760,6 +762,9 @@ class Penangan(BaseHTTPRequestHandler):
             import pesanan_murid_http  # F2c: pesanan Peta Kemampuan dari akun anak (di balik sakelar)
             if pesanan_murid_http.tangani_get(self, jalur, self.path):
                 return
+            import harian_http  # F4: Latihan Harian (di balik sakelar LATIHAN_HARIAN); mati = False
+            if harian_http.tangani_get(self, jalur, self.path):
+                return
             import student_http
             student_http.tangani_get(self, jalur, self.path)
             return
@@ -892,6 +897,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import pesanan_murid_http  # F2c: POST pesanan dari akun anak; setelah _asal_sama_post
         if pesanan_murid_http.tangani_post(self, jalur):
+            return
+        import harian_http  # F4: POST Latihan Harian; setelah _asal_sama_post, mati = False
+        if harian_http.tangani_post(self, jalur):
             return
         import student_http
         if student_http.tangani_post(self, jalur):

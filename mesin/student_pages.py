@@ -190,7 +190,7 @@ def _kartu_lomba(kon, siswa_id: int, sekarang: int | None, besar: bool) -> str:
 def halaman_daftar_sesi_baru(
     kon, siswa_id: int, nama: str, sesi_selesai: int | None = None, lomba_aktif: bool = False,
     sekarang: int | None = None, orang_tua: bool = False,
-    kartu_cek: str = "", sembunyikan_sesi: frozenset = frozenset(),
+    kartu_cek: str = "", sembunyikan_sesi: frozenset = frozenset(), kartu_harian: str = "",
 ) -> bytes:
     """Beranda buku belajar: satu sesi utama, tugas lain, kabar, dan riwayat.
 
@@ -222,7 +222,7 @@ def halaman_daftar_sesi_baru(
             kolom, kartu_lomba = kartu_lomba, ""  # kartu besar menggantikan "Siap untuk latihan pertama?"
         else:
             kolom = _keadaan_beranda(daftar, tugas, menunggu)
-    kolom = kartu_cek + kolom
+    kolom = kartu_cek + kartu_harian + kolom
     if tugas:
         kolom += (
             '<section class="murid-latihan-lain-st" aria-labelledby="judul-lain">'
