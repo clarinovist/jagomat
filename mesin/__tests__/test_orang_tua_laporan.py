@@ -8,6 +8,7 @@ import pytest
 
 import database
 import parent_report_page as halaman
+import orang_tua_pages
 import parent_report_store as store
 import student_pages
 
@@ -47,6 +48,52 @@ def test_terbit_terbaru_memilih_id_terbesar_yang_terbit_dan_milik_anak_itu(db):
     assert hasil["catatan"] == "baru" and hasil["nama"] == "Anak A" and hasil["guru"] == "Bu Guru"
     assert hasil["periode"] == ("2026-11-01", "2026-11-15") and hasil["diterbitkan"]
     assert hasil["isi"]["topik"] == ["Pecahan"]
+
+
+def test_tautan_dicabut_menyembunyikan_laporan_dan_halaman_menampilkan_kalimat_kosong(db):
+    with database.buka(db) as kon:
+        siswa = database.tambah_siswa(kon, "Anak Sintetis", "P4", pemilik="guru")
+        _laporan(kon, siswa, "CATATAN RAHASIA", terbit=True)
+        assert store.cabut_tautan(kon, siswa, sekarang=1_790_000_100) is True
+        hasil = store.terbit_terbaru(kon, siswa)
+    assert hasil is None
+    blok = orang_tua_pages._blok_laporan(hasil)
+    assert "Belum ada laporan dari Guru." in blok and "CATATAN RAHASIA" not in blok
+
+
+def test_tautan_kedaluwarsa_tidak_menyembunyikan_laporan(db):
+    with database.buka(db) as kon:
+        siswa = database.tambah_siswa(kon, "Anak Sintetis", "P4", pemilik="guru")
+        _laporan(kon, siswa, "MASIH TAMPIL", terbit=True, kini=1_790_000_000)
+        lewat = 1_790_000_000 + 365 * 24 * 3600
+        assert store.tautan_aktif(kon, siswa, sekarang=lewat) is None  # tautan memang sudah mati
+        hasil = store.terbit_terbaru(kon, siswa)
+    assert hasil is not None and hasil["catatan"] == "MASIH TAMPIL"
+
+
+def test_laporan_tampil_lagi_setelah_tautan_diganti_atau_terbit_baru(db):
+    with database.buka(db) as kon:
+        siswa = database.tambah_siswa(kon, "Anak Sintetis", "P4", pemilik="guru")
+        lama = _laporan(kon, siswa, "LAMA", terbit=True)
+        store.cabut_tautan(kon, siswa, sekarang=1_790_000_100)
+        assert store.terbit_terbaru(kon, siswa) is None
+        store.ganti_tautan(kon, siswa, lama, sekarang=1_790_000_200)
+        assert store.terbit_terbaru(kon, siswa)["catatan"] == "LAMA"
+        store.cabut_tautan(kon, siswa, sekarang=1_790_000_300)
+        assert store.terbit_terbaru(kon, siswa) is None
+        _laporan(kon, siswa, "BARU", terbit=True, kini=1_790_000_400)
+        assert store.terbit_terbaru(kon, siswa)["catatan"] == "BARU"
+
+
+def test_cabut_tautan_satu_anak_tidak_menyembunyikan_laporan_anak_lain(db):
+    with database.buka(db) as kon:
+        a = database.tambah_siswa(kon, "Anak A", "P4", pemilik="guru")
+        b = database.tambah_siswa(kon, "Anak B", "P4", pemilik="guru")
+        _laporan(kon, a, "A", terbit=True)
+        _laporan(kon, b, "B", terbit=True)
+        store.cabut_tautan(kon, a, sekarang=1_790_000_100)
+        assert store.terbit_terbaru(kon, a) is None
+        assert store.terbit_terbaru(kon, b)["catatan"] == "B"
 
 
 def _isi(**tambahan):

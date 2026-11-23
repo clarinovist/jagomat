@@ -459,6 +459,44 @@ def test_penanda_tidak_memberi_akses_ke_hasil(cek):
     assert minta(cek.server, "/cek-kemampuan/hasil")[0] in (302, 303, 401, 404)
 
 
+# --- di=akun (cek dimulai dari akun anak, F2b) --------------------------------
+
+def _hore(cek, **di):
+    data = {"aksi": "kumpul", "revisi_pekerjaan": str(cek.revisi())}
+    return minta(cek.server, cek.jalur(**di), data)
+
+
+def test_hore_varian_akun_punya_tautan_beranda_dan_kalimat_orang_tua(cek):
+    kode, isi, _t = _hore(cek, di="akun")
+    assert kode == 200
+    assert 'href="/murid">Kembali ke beranda</a>' in isi
+    assert "Minta Ayah/Bunda membuka halaman orang tua untuk melihat hasilnya." in isi
+    assert "Tunjukkan layar ini" not in isi and "/masuk" not in isi
+
+
+@pytest.mark.parametrize("di", [None, "hp-ini", "lain", "AKUN"])
+def test_hore_varian_lain_tidak_memuat_tautan_beranda(cek, di):
+    isi = _hore(cek, **({"di": di} if di else {}))[1]
+    assert "Kembali ke beranda" not in isi and 'href="/murid"' not in isi
+    assert "Minta Ayah/Bunda membuka" not in isi
+    if di == "hp-ini":
+        assert "Ayah/Bunda, masuk untuk lihat hasil" in isi
+    else:
+        assert "Tunjukkan layar ini ke Ayah/Bunda" in isi and "/masuk" not in isi
+
+
+def test_penanda_akun_dibawa_di_tautan_dan_pengalihan_dan_tanpa_kata_terlarang(cek):
+    cek.simpan(1)
+    kode, _i, tajuk = minta(cek.server, cek.jalur(di="akun"))
+    assert kode == 303 and "di=akun" in lokasi(tajuk)
+    kode, isi, _t = minta(cek.server, cek.jalur(soal=2, di="akun"))
+    tautan = re.findall(r'(?:href|action)="(/mulai/[^"]*)"', isi)
+    assert kode == 200 and tautan and all("di=akun" in x for x in tautan)
+    polos = buang_soal_dan_gaya(_hore(cek, di="akun")[1]).lower()
+    for kata in KATA_TERLARANG:
+        assert kata not in polos, kata
+
+
 # --- finalisasi & mutasi -----------------------------------------------------
 
 def test_finalisasi_menandai_selesai_sekali_dan_mengarsip(cek):

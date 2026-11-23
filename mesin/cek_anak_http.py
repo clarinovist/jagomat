@@ -16,7 +16,7 @@ import re
 import urllib.parse
 
 import database
-from cek_anak_komponen import NILAI_DI_HP_INI, JEDA_SETELAH, Konteks, url
+from cek_anak_komponen import JEDA_SETELAH, Konteks, konteks_dari_query, url
 from cek_anak_pages import (
     PESAN_BELUM_PILIH, layar_hore, layar_jeda, layar_keluar, layar_pesan, layar_peta,
     layar_sapaan, layar_soal, lokasi_berikut, sudah_dijawab,
@@ -108,7 +108,7 @@ def tangani_get(penangan, kon, token: str, akses) -> bool:
     q = _baca_query(penangan.path)
     if q is None or sum(1 for nama in KUNCI_LAYAR if nama in q) > 1:
         return _tidak_ada(penangan)
-    k = Konteks(token, q.get("di") == NILAI_DI_HP_INI)
+    k = konteks_dari_query(token, q)
     muat = _muat(kon, akses)
     if muat is None:
         return _tidak_ada(penangan)
@@ -170,7 +170,7 @@ def _tolak(penangan, kon, k, kode: int, teks: str, tujuan: str) -> bool:
 def tangani_post(penangan, kon, token: str, akses, data: dict) -> bool:
     """Aksi anak; pemanggil sudah membuka transaksi (BEGIN IMMEDIATE) dan memvalidasi token."""
     q = _baca_query(penangan.path)
-    k = Konteks(token, bool(q) and q.get("di") == NILAI_DI_HP_INI)
+    k = konteks_dari_query(token, q)
     aksi = data.get("aksi")
     if q is None or aksi not in AKSI_SAH:
         return _tolak(penangan, kon, k, 400, GALAT_ISIAN, url(k))

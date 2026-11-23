@@ -28,6 +28,8 @@ TOPIK_CEK = (
 )
 JEDA_SETELAH = (5, 10)
 NILAI_DI_HP_INI = "hp-ini"
+NILAI_DI_AKUN = "akun"  # cek dimulai dari akun anak (F2b): layar akhir punya jalan kembali ke /murid
+TUJUAN_BERANDA_ANAK = "/murid"
 TUJUAN_LOGIN_HASIL = "/masuk?lanjut=/cek-kemampuan/hasil"
 DASAR_URL = "/mulai/"
 # Warna ubin per topik: konstanta. Label teksnya BUKAN konstanta: lihat `nama_topik`.
@@ -98,13 +100,22 @@ class Konteks:
 
     token: str
     di_hp_ini: bool = False
+    di_akun: bool = False
+
+
+def konteks_dari_query(token: str, q) -> Konteks:
+    """Konteks dari query ``di`` (whitelist: ``hp-ini`` atau ``akun``); nilai lain = polos."""
+    nilai = q.get("di") if q else None
+    return Konteks(token, nilai == NILAI_DI_HP_INI, nilai == NILAI_DI_AKUN)
 
 
 def url(k: Konteks, **param) -> str:
-    """Alamat halaman anak; parameter ``di`` selalu dibawa bila alur "Di HP ini"."""
+    """Alamat halaman anak; parameter ``di`` selalu dibawa bila alur "Di HP ini" atau dari akun anak."""
     pasangan = [(nama, str(nilai)) for nama, nilai in param.items() if nilai is not None]
     if k.di_hp_ini:
         pasangan.append(("di", NILAI_DI_HP_INI))
+    elif k.di_akun:
+        pasangan.append(("di", NILAI_DI_AKUN))
     dasar = DASAR_URL + k.token
     return dasar + ("?" + urllib.parse.urlencode(pasangan) if pasangan else "")
 

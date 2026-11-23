@@ -147,7 +147,16 @@ def terbit_terbaru(kon, siswa_id: int):
 
     Dipakai halaman orang tua di akun murid: draf (belum terbit) tidak pernah terbaca, dan kunci
     `siswa_id` selalu dari sisi server. Nama anak dibaca live. Hanya membaca.
+
+    Tautan yang DICABUT Guru (baris `tautan_laporan` dengan `dicabut` terisi) menyembunyikan laporan dari
+    halaman orang tua sampai tautan diganti/terbit baru (keputusan Pemilik 23 Nov 2026). Tautan yang hanya
+    kedaluwarsa tidak menyembunyikan apa pun; tanpa baris tautan, laporan terbit terbaru tetap tampil.
     """
+    dicabut = kon.execute(
+        "SELECT 1 FROM tautan_laporan WHERE siswa_id = ? AND dicabut IS NOT NULL", (siswa_id,)
+    ).fetchone()
+    if dicabut is not None:
+        return None
     baris = kon.execute(
         """SELECT s.nama, l.isi, l.catatan, l.guru, l.periode_mulai, l.periode_akhir, l.diterbitkan
            FROM laporan_ortu l JOIN siswa s ON s.id = l.siswa_id

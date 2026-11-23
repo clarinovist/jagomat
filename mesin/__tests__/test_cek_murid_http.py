@@ -91,7 +91,7 @@ def test_mulai_membuat_cek_untuk_akun_murid_dan_mengalihkan_ke_tautan_anak(serve
     kode, isi, header = anak.post()
     assert kode == 303 and isi == ""
     lokasi = header["Location"]
-    assert re.fullmatch(r"/mulai/[A-Za-z0-9_-]{43}", lokasi)
+    assert re.fullmatch(r"/mulai/[A-Za-z0-9_-]{43}\?di=akun", lokasi)
     assert header["Cache-Control"] == "no-store" and header["Referrer-Policy"] == "no-referrer"
     assert "Set-Cookie" not in header
     baris = anak.baris_cek()
@@ -200,9 +200,9 @@ def _kumpulkan_lewat_tautan(server, anak, lokasi, benar=7):
     baris = anak.baris_cek()
     with server.buka() as kon:
         kit_cek.jawab(kon, baris["sesi_id"], semua_benar=benar)
-    _, peta, _ = kirim(server, lokasi + "?peta=1")
+    _, peta, _ = kirim(server, lokasi.split("?")[0] + "?peta=1")
     revisi = POLA_REVISI.search(peta).group(1)
-    return kirim(server, lokasi, {"aksi": "kumpul", "revisi_pekerjaan": revisi})
+    return kirim(server, lokasi.split("?")[0], {"aksi": "kumpul", "revisi_pekerjaan": revisi})
 
 
 def test_selesai_hore_tanpa_skor_hasil_siswa_berisi_skor_dan_kartu_hilang(server, gerbang_hidup):

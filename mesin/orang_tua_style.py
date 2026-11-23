@@ -33,6 +33,7 @@ GAYA_ORTU = f"""
 .ortu-galat-st {{ background: {T.LATAR_GALAT}; color: {T.TEKS_GALAT}; border: {T.TEBAL_GARIS} solid {T.BORDER_GALAT}; }}
 .ortu-tombol-st {{ min-height: {T.TINGGI_CTA}; padding: 0 {T.SP_4}; border: 0; border-radius: {T.RADIUS_SEDANG};
   background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; font: 700 {T.UKURAN_BADAN_LAYAR}/1.2 {T.FONT_HEADLINE}; cursor: pointer; }}
+a.ortu-tombol-st {{ display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }}
 .ortu-tombol-st:hover {{ background: {T.AKSEN_TEAL_HOVER}; }}
 .ortu-tombol-st:focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 .ortu-konfirmasi-st {{ display: flex; align-items: flex-start; gap: {T.SP_3}; font-size: {T.UKURAN_TEKS_BANTUAN};

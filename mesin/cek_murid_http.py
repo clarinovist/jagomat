@@ -6,7 +6,7 @@ Diletakkan di rantai POST `web.py` setelah guard asal dan sebelum `student_http`
 Cara kerja (memakai ulang alur anak yang ada, tanpa menyalin mesin soal/penilaian): satu transaksi
 `BEGIN IMMEDIATE` -> `siswa_dari_akun` -> `cek_murid.mulai` -> `share_links.buat` -> commit, lalu 303 ke
 `/mulai/<token>` (layar cek anak `cek_anak_http`). Sesi login anak TIDAK dihapus (beda dengan `hp_ini` guru) dan
-tanpa `?di=hp-ini` (CTA layar akhir varian itu menuju rute guru). Token bearer ada di `Location`, jadi respons
+memakai `?di=akun` (layar akhir: tautan kembali ke /murid), bukan `?di=hp-ini` (CTA layar akhir varian itu menuju rute guru). Token bearer ada di `Location`, jadi respons
 no-store dan tanpa referrer.
 
 `siswa_id` dan `id_akun` HANYA dari principal sesi server. Body POST harus kosong (field apa pun = 400 tanpa
@@ -76,7 +76,7 @@ def _jalankan(principal):
             token = share_links.buat(kon, hasil["sesi_id"])
         except ValueError:  # sesi sudah dikumpulkan/dibatalkan: tidak ada yang perlu dilanjutkan
             return TUJUAN_BERANDA
-        return "/mulai/" + token
+        return "/mulai/" + token + "?di=akun"
 
 
 def tangani_post(penangan, jalur: str) -> bool:

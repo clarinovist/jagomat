@@ -13,7 +13,7 @@ import pecahan
 from brand import maskot
 from cek_anak_komponen import (
     DOODLE_HORE, DOODLE_KEPALA, DOODLE_PETA, DOODLE_SAPAAN, IKON_JEDA, IKON_PENSIL,
-    JEDA_SETELAH, TUJUAN_LOGIN_HASIL, Konteks, attr, esc, kepala_teal, kerangka, konfeti,
+    JEDA_SETELAH, TUJUAN_BERANDA_ANAK, TUJUAN_LOGIN_HASIL, Konteks, attr, esc, kepala_teal, kerangka, konfeti,
     label_topik, stiker, url,
 )
 from choice_pages import pertanyaan
@@ -284,6 +284,11 @@ def _blok_serah(k: Konteks) -> str:
         return (
             f'<a class="cta putih" href="{esc(TUJUAN_LOGIN_HASIL)}">'
             'Ayah/Bunda, masuk untuk lihat hasil</a>'
+        )
+    if k.di_akun:
+        return (
+            f'<a class="cta putih" href="{esc(TUJUAN_BERANDA_ANAK)}">Kembali ke beranda</a>'
+            '<p class="serah">Minta Ayah/Bunda membuka halaman orang tua untuk melihat hasilnya.</p>'
         )
     return (
         '<p class="serah">Tunjukkan layar ini ke Ayah/Bunda. '

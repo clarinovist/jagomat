@@ -205,7 +205,7 @@ Riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   Akun guru lama tidak dimigrasi.
 - **Halaman orang tua di akun murid (F3, 23 Nov 2026)**: di balik sakelar yang sama (`DAFTAR_AKUN_ANAK`; mati = 404 identik rute murid
   tak dikenal, tanpa tombol), untuk SEMUA akun murid terhubung siswa. Beranda murid menampilkan tautan sekunder "Untuk Ayah/Bunda" ke
-  `/murid/orang-tua`: baca-saja berisi hasil cek (skor, kategori, ringkasan topik), laporan Guru terbit terbaru, status pembayaran Peta
+  `/murid/orang-tua`: baca-saja berisi hasil cek (skor, kategori, ringkasan topik), laporan Guru terbit terbaru (tidak tampil bila Guru mencabut tautannya; kedaluwarsa tautan tidak menyembunyikannya; tampil lagi bila tautan diganti/terbit baru), status pembayaran Peta
   Kemampuan (teks sama dengan halaman pesanan, tanpa tombol bayar) dan kartu PIN. Bila anak punya PIN tirai, halaman hanya menampilkan form
   PIN (4 angka) sampai PIN benar; tirai terbuka 30 menit per sesi (hilang saat keluar), salah 5x/15 menit = "Coba lagi beberapa menit lagi."
   Pasang/ganti/hapus PIN hanya saat tirai terbuka atau belum ada PIN (hapus wajib centang konfirmasi). Nomor WhatsApp, kunci, malrule,
@@ -214,7 +214,7 @@ Riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   menampilkan kartu "Cek kemampuan" (Mulai/Lanjutkan) hanya untuk anak hasil pendaftaran mode anak (ada
   `persetujuan_daftar_anak` bernotice sama) yang cek-nya belum dikumpulkan; setelah dikumpulkan kartu hilang (hasil dilihat
   orang tua di halaman orang tua, F3). `POST /murid/cek/mulai` (tanpa field; siswa dan akun HANYA dari sesi) membuat/
-  melanjutkan cek lewat mesin yang ada lalu 303 ke tautan anak `/mulai/<token>` (layar akhir tetap "Hore" tanpa skor).
+  melanjutkan cek lewat mesin yang ada lalu 303 ke tautan anak `/mulai/<token>?di=akun` (layar akhir tetap "Hore" tanpa skor; varian `akun` menambah tautan "Kembali ke beranda" ke `/murid` dan kalimat minta Ayah/Bunda membuka halaman orang tua; varian lain tak berubah).
   Sesi cek disembunyikan dari daftar latihan biasa. Tanpa persetujuan/anak lain/gerbang mati: tak ada tulisan; gerbang
   mati = jalur murid asing. Skor dihitung `cek_gratis.selesaikan_jika_siap`, dibaca `cek_gratis.hasil_siswa(id_akun_murid, siswa_id)`.
   Akun guru lama tidak dimigrasi; halaman orang tua dan cek di sesi anak menyusul (F2b/F3).
