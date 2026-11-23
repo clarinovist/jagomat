@@ -427,7 +427,7 @@ def test_batas_gratis_satu_sesi_dimulai_per_hari_wib_dengan_halaman_ramah(server
     assert COPY_HABIS in beranda.isi and 'href="/murid/orang-tua"' in beranda.isi
     assert 'name="tingkat"' not in beranda.isi
     assert _db(server, "SELECT COUNT(*) FROM harian_sesi")[0][0] == 1
-    jam.t = harian_waktu.awal_hari_wib(T0) + 86400 + 60  # hari WIB berikutnya
+    jam.t = T0 + 9 * 3600 + 60  # 00:01 WIB hari berikutnya (literal; T0 = 15:00 WIB)
     assert _mulai(server) != sesi
 
 
@@ -537,7 +537,6 @@ def test_kartu_beranda_murid_tingkat_titik_dan_tombol(server):
     _jawab(server, sesi, 1, "A")
     lanjut = _get(server, "/murid").isi
     assert "Tingkat 3" in lanjut and "Lanjutkan" in lanjut and ("sesi/%d?no=2" % sesi) in lanjut
-    hari_ini = harian_waktu.tanggal_wib(T0)
     assert re.search(r'<li class="ada">', lanjut)  # hari ini bertitik
 
 

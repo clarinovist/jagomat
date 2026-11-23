@@ -12,8 +12,9 @@ import harian_latihan_store as hs
 import harian_waktu
 
 T0 = 1_800_000_000  # 2027-01-15 08:00:00 UTC = 15:00 WIB
-SEBELUM_TENGAH_MALAM_WIB = harian_waktu.awal_hari_wib(T0) + 86400 - 1
-TEPAT_TENGAH_MALAM_WIB = harian_waktu.awal_hari_wib(T0) + 86400
+# Literal, bukan dari harian_waktu: 00:00 WIB hari berikutnya = 17:00:00 UTC hari yang sama (T0 = 08:00:00 UTC).
+TEPAT_TENGAH_MALAM_WIB = T0 + 9 * 3600
+SEBELUM_TENGAH_MALAM_WIB = TEPAT_TENGAH_MALAM_WIB - 1
 AKAR = Path(__file__).resolve().parent.parent
 
 

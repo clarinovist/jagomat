@@ -54,6 +54,7 @@ GAYA_HARIAN = GAYA_KARTU + f"""
 .hr-progres li.sudah {{ background: {T.ANAK_AKSEN}; color: {T.TEKS_PUTIH}; border-color: {T.ANAK_AKSEN}; }}
 .hr-progres li.aktif {{ box-shadow: 0 0 0 2px {T.LATAR_MURID}, 0 0 0 4px {T.TEKS_JUDUL}; }}
 .hr-soal {{ font-size: {T.UKURAN_SOAL}; font-weight: {T.BOBOT_SOAL}; line-height: {T.LINE_HEIGHT_SOAL}; }}
+.hr-isi form {{ display: flex; flex-direction: column; gap: {T.SP_4}; margin: 0; }}
 .hr-pilihan {{ display: grid; grid-template-columns: 1fr; gap: {T.SP_3}; margin: 0; padding: 0; border: 0; min-width: 0; }}
 .hr-pilihan legend {{ position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }}
 .hr-pilih {{ display: flex; align-items: center; gap: {T.SP_3}; min-height: {_TINGGI_PILIHAN}; padding: {T.SP_2} {T.SP_4};
