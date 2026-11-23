@@ -95,6 +95,18 @@ def badge_status(status: Sequence[str]) -> str:
 
 
 
+def badge_aktif(aktif: bool, teks_aktif: str = "Aktif", teks_mati: str = "Mati") -> str:
+    """Penanda status besar untuk kartu pengaturan: hijau bila aktif, netral bila mati."""
+    return '<span class="admin-badge admin-status-besar%s">%s</span>' % (
+        " bien" if aktif else "", e(teks_aktif if aktif else teks_mati))
+
+
+def lipat_aksi(ringkasan: str, kelas_ringkasan: str, isi: str) -> str:
+    """Tindakan terlipat: `isi` (biasanya form sandi) baru tampil setelah <details> dibuka."""
+    return ('<details class="admin-aksi-ubah"><summary class="%s">%s</summary>%s</details>'
+            % (e(kelas_ringkasan), e(ringkasan), isi))
+
+
 def waktu(nilai: Optional[str]) -> str:
     return e(L.tanggal(nilai))
 

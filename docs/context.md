@@ -170,7 +170,10 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `feature_switch.py` (DB terpisah, fail-closed, env fallback; `VERSI_SKEMA` tetap 1, `ubah()` memperlebar CHECK nama DB lama dalam satu transaksi sehingga kode lama tetap bisa membaca) + `sakelar_registry.py`; guard aksi sama
   dengan panel rekening (tinjauan bertanda tangan, sandi ulang, konflik revisi, audit). Database sakelar
   rusak = 503 jujur. GET `/admin/sakelar` kini halaman Pengaturan layanan (menggabungkan Operasional:
-  `admin_launch_http.halaman_pengaturan` + kartu rekening `admin_rekening_http.bagian_pengaturan`);
+  `admin_launch_http.halaman_pengaturan` + kartu rekening `admin_rekening_http.bagian_pengaturan`; rombak 23 Nov 2026: `admin_sakelar_pages.bagian`
+  mengembalikan `BagianSakelar` (kartu per kelompok dari `sakelar_registry.kelompok`, plus `akibat_mati` untuk konfirmasi), `admin_launch_pages.operasional` menyusun ringkasan,
+  kelompok, checklist transfer (`admin_sakelar_pages.checklist_transfer`, bahan: `admin_rekening_http.status_keadaan`, tahap QRIS, sakelar transfer), dan Kesehatan sistem terlipat;
+  tindakan terlipat memakai `admin_komponen.lipat_aksi`/`badge_aktif`, tanpa JS baru: konfirmasi lewat `data-konfirmasi` + skrip admin yang sudah ada);
   `/admin?section=operasional` hanya 303 ke sana. Bagian pendaftaran mandiri dirender
   `admin_pages.render_bagian_pendaftaran` lewat `admin_sakelar_http.bagian_pendaftaran` (handler POST
   `admin_http._post_pendaftaran` tidak berubah; `?section=pendaftaran` = 303). "Perlu perhatian" memakai

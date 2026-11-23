@@ -323,13 +323,41 @@ button:disabled, button:disabled:hover {{ background: {T.ADMIN_NETRAL_LATAR}; bo
 .admin-tahap {{ display: flex; flex-direction: column; gap: {T.SP_1}; }}
 .admin-tahap-aktif .admin-meta {{ color: {T.ADMIN_AKSEN_TEKS}; font-weight: 600; }}
 .admin-tahap-hint {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ADMIN_REDUP}; }}
-.admin-prasyarat {{ margin: {T.SP_4} 0; padding: {T.SP_4} {T.SP_5}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_KARTU}; }}
-.admin-prasyarat h3 {{ margin: 0 0 {T.SP_3}; }}
-.admin-prasyarat ul {{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,15rem),1fr)); gap: {T.SP_2} {T.SP_5}; }}
-.admin-prasyarat-item {{ display: flex; align-items: center; gap: {T.SP_3}; }}
-.admin-prasyarat-item::before {{ content: ''; width: 10px; height: 10px; flex: none; border-radius: {T.RADIUS_BULAT}; background: {T.ADMIN_BAIK_TITIK}; }}
-.admin-prasyarat-item.perhatian::before {{ background: {T.ADMIN_AKSEN_PERHATIAN}; }}
-.admin-prasyarat-item.perhatian strong {{ color: {T.ADMIN_PERHATIAN_TEKS}; }}
+.admin-kelompok {{ margin: 0 0 {T.SP_6}; }}
+.admin-kelompok-judul {{ margin: 0 0 {T.SP_4}; font-size: {T.UKURAN_JUDUL_DEWASA}; }}
+.admin-fitur-kepala {{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: {T.SP_2} {T.SP_4}; margin: 0 0 {T.SP_3}; }}
+.admin-kartu .admin-fitur-kepala h2, .admin-kartu .admin-fitur-kepala h3 {{ margin: 0; font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
+.admin-badge.admin-status-besar {{ margin: 0; padding: {T.SP_2} {T.SP_4}; font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
+.admin-kartu-fitur > p {{ margin: 0 0 {T.SP_4}; }}
+.admin-aksi-ubah {{ margin: {T.SP_3} 0; }}
+.admin-aksi-ubah > summary {{ list-style: none; width: fit-content; max-width: 100%; }}
+.admin-aksi-ubah > summary::-webkit-details-marker {{ display: none; }}
+.admin-aksi-ubah[open] > summary {{ margin-bottom: {T.SP_4}; }}
+.admin-tombol.admin-bahaya-garis {{ background: {T.ADMIN_PERMUKAAN}; border-color: {T.ADMIN_BAHAYA_TOMBOL}; color: {T.ADMIN_BAHAYA_TEKS}; }}
+.admin-tombol.admin-bahaya-garis:hover {{ background: {T.ADMIN_BAHAYA_LATAR}; color: {T.ADMIN_BAHAYA_TEKS}; }}
+.admin-detail-teknis {{ margin-top: {T.SP_3}; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ADMIN_REDUP}; }}
+.admin-detail-teknis > summary {{ display: flex; align-items: center; min-height: {T.TARGET_SENTUH}; cursor: pointer; }}
+.admin-detail-teknis p {{ margin: 0 0 {T.SP_2}; }}
+.admin-tautan-teks {{ color: {T.ADMIN_AKSEN}; font-weight: 600; }}
+.admin-ringkasan-daftar {{ list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,19rem),1fr)); gap: {T.SP_3}; }}
+.admin-ringkasan-item {{ display: flex; align-items: center; justify-content: space-between; gap: {T.SP_3}; padding: {T.SP_3} {T.SP_4}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_KARTU}; }}
+.admin-ringkasan-item {{ flex-wrap: wrap; }}
+.admin-ringkasan-item a {{ display: inline-flex; align-items: center; flex: 1 1 9rem; min-height: {T.TARGET_SENTUH}; }}
+.admin-ringkasan-item .admin-badge {{ flex: none; white-space: nowrap; }}
+.admin-langkah {{ list-style: none; margin: {T.SP_4} 0 0; padding: 0; counter-reset: langkah; display: flex; flex-direction: column; gap: {T.SP_3}; }}
+.admin-langkah-item {{ counter-increment: langkah; display: flex; flex-wrap: wrap; align-items: center; gap: {T.SP_2} {T.SP_4}; padding: {T.SP_3} {T.SP_4}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_KARTU}; }}
+.admin-langkah-item::before {{ content: counter(langkah); flex: none; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: {T.RADIUS_BULAT}; background: {T.ADMIN_NETRAL_LATAR}; color: {T.ADMIN_NETRAL_TEKS}; font-weight: 700; }}
+.admin-langkah-item.selesai::before {{ background: {T.ADMIN_BAIK_LATAR}; color: {T.ADMIN_BAIK_TEKS}; }}
+.admin-langkah-item.belum::before {{ background: {T.ADMIN_PERHATIAN_LATAR}; color: {T.ADMIN_PERHATIAN_TEKS}; }}
+.admin-langkah-isi {{ flex: 1 1 14rem; min-width: 0; display: flex; flex-direction: column; gap: {T.SP_1}; }}
+.admin-kesehatan > summary {{ display: flex; flex-wrap: wrap; align-items: center; gap: {T.SP_2} {T.SP_4}; min-height: {T.TARGET_SENTUH}; cursor: pointer; }}
+.admin-kartu.admin-kesehatan > summary h2 {{ margin: 0; }}
+.admin-sub-bagian {{ margin-top: {T.SP_5}; padding-top: {T.SP_5}; border-top: 1px solid {T.ADMIN_BORDER}; }}
+.admin-sub-bagian h3 {{ margin: 0 0 {T.SP_3}; font-size: {T.UKURAN_BAGIAN_DEWASA}; }}
+.admin-sub-bagian .admin-fitur-kepala h3 {{ margin: 0; }}
+.admin-prasyarat {{ margin: {T.SP_4} 0; }}
+.admin-prasyarat > summary {{ display: flex; align-items: center; min-height: {T.TARGET_SENTUH}; font-weight: 600; cursor: pointer; }}
+.admin-prasyarat .admin-baris-status {{ padding: {T.SP_3} {T.SP_4}; }}
 .admin-ai-grid {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,12.5rem),1fr)); gap: {T.SP_3}; margin-bottom: {T.SP_4}; }}
 .admin-ai-tile {{ display: flex; flex-direction: column; align-items: flex-start; gap: {T.SP_2}; padding: {T.SP_4} {T.SP_4}; border: 1px solid {T.ADMIN_BORDER}; border-radius: {T.RADIUS_KARTU}; }}
 .admin-ai-tile strong {{ font-size: {T.UKURAN_ANGKA_DEWASA}; }}

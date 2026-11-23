@@ -36,8 +36,10 @@ def _kirim(penangan,p,section,isi,kode=200):
     h._kirim_privat(penangan,h._halaman_admin(p,section,isi,penangan=penangan,skrip=True,judul=JUDUL[section],subjudul=None),kode,skrip=True)
 
 
-def halaman_pengaturan(penangan,p,*,kode_dukungan='',sakelar='',rekening='',pendaftaran=''):
-    """Isi halaman Pengaturan layanan; ``sakelar``/``rekening``/``pendaftaran`` dirender pemiliknya (admin_sakelar_http/admin_rekening_http)."""
+def halaman_pengaturan(penangan,p,*,kode_dukungan='',sakelar='',rekening='',pendaftaran='',status_rekening=None,pendaftaran_dibuka=None):
+    """Isi halaman Pengaturan layanan; ``sakelar``/``rekening``/``pendaftaran`` dirender pemiliknya (admin_sakelar_http/admin_rekening_http).
+
+    ``status_rekening`` dan ``pendaftaran_dibuka`` hanya bahan ringkasan dan checklist (tanpa efek pada form)."""
     kini=int(time.time())
     runtime=billing.runtime_penangan(penangan)
     kesiapan=billing.kesiapan_penangan(penangan)
@@ -48,9 +50,8 @@ def halaman_pengaturan(penangan,p,*,kode_dukungan='',sakelar='',rekening='',pend
     config=ringkas['pembayaran_config']
     if p.metode=='cookie' and config:
         c,t=_form(penangan,p,'atur_pembayaran',{'revisi':config['revisi'],'tahap':config['tahap']})
-        opsi=''.join('<option value="%s"%s>%s</option>'%(nilai,' selected' if nilai==config['tahap'] else '',label) for nilai,label in (
-            ('nonaktif','Nonaktif'),('rekonsiliasi','Rekonsiliasi'),('checkout','Checkout'),('penegakan','Penegakan')))
-        fields='<p><strong>Aturan perubahan:</strong> kenaikan hanya satu tahap. Penurunan dapat langsung dipakai saat insiden; pilih Rekonsiliasi agar transaksi berjalan tetap bisa diperiksa.</p><label>Tahap tujuan<select name="tahap">%s</select></label><label><input type="checkbox" name="konfirmasi" value="1" required> Saya sudah meninjau tahap saat ini, tahap tujuan, prasyarat, dan dampaknya pada pembayaran baru serta transaksi berjalan.</label>'%opsi
+        opsi=''.join('<option value="%s"%s>%s</option>'%(nilai,' selected' if nilai==config['tahap'] else '',ui.e(ui.LABEL_TAHAP[nilai])) for nilai in ui.TAHAP_PEMBAYARAN)
+        fields='<p><strong>Aturan perubahan:</strong> membuka hanya boleh satu langkah sekali. Menutup boleh langsung saat ada masalah; pilih Tutup untuk pesanan baru agar pesanan yang sudah berjalan tetap bisa diperiksa.</p><label>Status tujuan<select name="tahap">%s</select></label><label><input type="checkbox" name="konfirmasi" value="1" required> Saya sudah meninjau tahap saat ini, tahap tujuan, prasyarat, dan dampaknya pada pembayaran baru serta transaksi berjalan.</label>'%opsi
         form=ui.formulir('pembayaran',c,t,fields,'Terapkan perubahan tahap')
     config_dukungan=ringkas['dukungan_config']
     if p.metode=='cookie' and config_dukungan:
@@ -63,7 +64,8 @@ def halaman_pengaturan(penangan,p,*,kode_dukungan='',sakelar='',rekening='',pend
         form_dukungan=ui.formulir_dukungan(c,t,config_dukungan)
     return ui.operasional(ringkas,form,form_dukungan,
                           feedback=FEEDBACK_DUKUNGAN.get(kode_dukungan,''),
-                          sakelar=sakelar,rekening=rekening,pendaftaran=pendaftaran)
+                          sakelar=sakelar,rekening=rekening,pendaftaran=pendaftaran,
+                          status_rekening=status_rekening,pendaftaran_dibuka=pendaftaran_dibuka)
 
 
 def get(penangan,p,q):

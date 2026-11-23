@@ -86,6 +86,14 @@ def bagian_pengaturan() -> str:
     return ui.kartu_ringkas(keadaan)
 
 
+def status_keadaan():
+    """Keadaan rekening (`ui.KEADAAN_*`) untuk checklist transfer di Pengaturan layanan; None bila tak terbaca."""
+    try:
+        return _keadaan(h._path_admin())["status"]
+    except _GALAT_BACA:
+        return None
+
+
 def _hasil_query(penangan):
     hasil = h._query(penangan, diizinkan={"hasil"}).get("hasil")
     if hasil is not None and hasil not in ui.KODE_HASIL:

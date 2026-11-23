@@ -194,13 +194,16 @@ def test_pengaturan_layanan_urutan_bagian_dan_menu_aktif(transfer, admin):
     kode, isi, _t = minta_admin(transfer, PENGATURAN, admin)
     assert kode == 200
     utama = _utama(isi)
-    urutan = [utama.index(t) for t in ('id="sakelar"', 'id="pembayaran"', 'id="rekening"', 'id="kesiapan"',
-                                       'id="dukungan"', 'id="ai"')]
+    urutan = [utama.index(t) for t in ('id="ringkasan"', 'id="sakelar"', 'id="pembayaran"', 'id="rekening"',
+                                       'id="pendaftaran"', 'id="kesehatan"', 'id="kesiapan"', 'id="dukungan"')]
     assert urutan == sorted(urutan)
     assert '<h1 id="judul-admin">Pengaturan layanan</h1>' in isi
     assert '<a href="/admin/sakelar" aria-current="page">' in _menu(isi)
-    for sid in ("sakelar", "rekening", "kesiapan", "dukungan", "ai"):
-        assert utama.count('id="%s"' % sid) == 1 and 'href="#%s"' % sid in utama
+    for sid in ("ringkasan", "sakelar", "pembayaran", "rekening", "pendaftaran", "kesehatan", "kesiapan", "dukungan"):
+        assert utama.count('id="%s"' % sid) == 1, sid
+    for sid in ("ringkasan", "penjualan", "belajar", "pendaftaran", "kesehatan"):
+        assert 'href="#%s"' % sid in utama, sid
+    assert 'id="ai"' not in utama and 'href="#ai"' not in utama
 
 
 def test_kendali_pembayaran_dan_sakelar_masing_masing_sekali_dan_tidak_ada_form_rekening(transfer, admin):
@@ -209,10 +212,10 @@ def test_kendali_pembayaran_dan_sakelar_masing_masing_sekali_dan_tidak_ada_form_
     # Dua kendali pembayaran berbeda (transfer rekening = sakelar fitur; tahap Midtrans = rute layanan): sekali masing-masing.
     assert utama.count('action="/admin/layanan/pembayaran"') == 1
     assert utama.count('action="/admin/layanan/dukungan"') == 1
-    assert utama.count("Pembayaran transfer rekening") == 1
+    assert utama.count("<h3>Pembayaran transfer rekening</h3>") == 1  # satu kartu; ringkasan/checklist hanya menautkan
     assert len(re.findall(r'<form[^>]*action="/admin/sakelar"', utama)) == len(fs.NAMA_SAKELAR)  # satu form per sakelar
     assert 'action="/admin/pesanan/rekening"' not in utama  # form berkata sandi tetap hanya di rutenya
-    assert utama.count('href="/admin/pesanan/rekening"') == 1  # tautan "Ubah rekening"
+    assert utama.count('>Ubah rekening</a>') == 1  # satu tautan ubah di kartu rekening (checklist menautkan terpisah)
     assert "Ubah rekening" in utama
 
 
@@ -224,11 +227,10 @@ def test_kartu_rekening_menampilkan_nomor_ter_mask_tanpa_nomor_lengkap(transfer,
     assert "Revisi" in kartu and "<form" not in kartu
 
 
-def test_ai_hanya_satu_baris_status_ke_halaman_ai(transfer, admin):
+def test_baris_ai_tidak_ada_lagi_di_pengaturan_layanan(transfer, admin):
     utama = _utama(minta_admin(transfer, PENGATURAN, admin)[1])
-    assert "AI: tidak dipakai · akan dimatikan" in utama
-    assert "admin-ai-tile" not in utama
-    assert utama.count('href="/admin/ai"') == 1
+    assert "AI: tidak dipakai" not in utama and "admin-ai-tile" not in utama
+    assert 'href="/admin/ai"' not in utama and 'id="ai"' not in utama
 
 
 def test_tautan_antrean_ke_kesiapan_mendarat_di_bagian_kesiapan(transfer, admin):
@@ -244,8 +246,9 @@ def test_pengaturan_basic_auth_baca_saja_tanpa_form_bagian_lain_tampil(transfer)
     assert kode == 200
     utama = _utama(isi)
     assert 'name="reauth"' not in utama and 'name="tinjauan"' not in utama
-    for sid in ("sakelar", "rekening", "kesiapan", "dukungan", "ai"):
+    for sid in ("ringkasan", "sakelar", "rekening", "pendaftaran", "kesehatan", "kesiapan", "dukungan"):
         assert 'id="%s"' % sid in utama
+    assert "<form" not in utama and "<button" not in utama
 
 
 def test_rekening_belum_dipasang_menjadi_kartu_galat_tanpa_membuang_bagian_lain(tertutup):

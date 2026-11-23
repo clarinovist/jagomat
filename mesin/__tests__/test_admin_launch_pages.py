@@ -182,64 +182,200 @@ def test_operasional_kontrak_form_dukungan_dan_pembayaran_tidak_berubah():
     assert "<script" not in isi
 
 
-def test_operasional_teks_keamanan_dan_konfirmasi_dipertahankan_kata_per_kata():
+def test_operasional_teks_keamanan_dan_konfirmasi_dipertahankan():
     isi = ui.operasional(_ringkas(), _form_pembayaran(), ui.formulir_dukungan("c", "t", _config()))
 
     for teks in (
         "Saya memahami perubahan ini langsung menjadi kontak dan janji layanan pada halaman publik.",
         "Contoh: 0821 3711 1988. URL wa.me dibuat oleh aplikasi; jangan masukkan URL atau kode negara.",
-        "Secret hanya dipasang di server dan nilainya tidak pernah tampil di panel.",
-        "Tahap harus dinaikkan satu per satu. Penurunan boleh langsung saat insiden.",
+        "Kunci rahasia hanya dipasang di server dan isinya tidak pernah tampil di panel.",
+        "Membuka dilakukan bertahap, satu langkah sekali. Menutup boleh langsung saat ada masalah;",
         "WhatsApp adalah kanal komunikasi, bukan bukti kepemilikan akun.",
-        "Validitas bundle bukan bukti backup terjadwal, salinan luar server, atau rehearsal terbaru.",
-        "Tahap saat ini: <strong>Checkout</strong> · revisi 3",
+        "Cadangan yang valid belum tentu terjadwal, tersalin ke luar server, atau sudah dilatih pemulihannya.",
+        "Tahap internal: checkout · revisi 3.",
+        "Saya sudah meninjau.",
     ):
         assert teks in isi, teks
 
 
-def test_operasional_tab_stepper_prasyarat_dan_baris_ai():
+import admin_sakelar_pages as sak
+import feature_switch as fs
+import sakelar_registry as reg
+
+
+def _bagian(aktif=(), tokens=None, hasil=None):
+    daftar = tuple(fs.Sakelar(n, n in aktif, 2 if n in aktif else 0, "db" if n in aktif else "env")
+                   for n in fs.NAMA_SAKELAR)
+    return sak.bagian(daftar, tokens, hasil=hasil)
+
+
+def _kartu(isi, sid):
+    return isi.split('id="%s"' % sid, 1)[1].split("</section>", 1)[0]
+
+
+def test_operasional_ringkasan_aktif_di_atas_dengan_badge_awam():
+    bagian = _bagian(aktif=(sak.FUNNEL,))
+    isi = ui.operasional(_ringkas("penegakan"), "", "", sakelar=bagian, pendaftaran='<section id="pendaftaran">P</section>',
+                         pendaftaran_dibuka=False)
+
+    ringkasan = _kartu(isi, "ringkasan")
+    assert "Yang aktif sekarang" in ringkasan
+    assert isi.index('id="ringkasan"') < isi.index('id="sakelar"') < isi.index('id="penjualan"')
+    baris = re.findall(r'<li class="admin-ringkasan-item"><a class="admin-tautan-teks" href="#([^"]+)">(.*?)</a>(.*?)</li>', ringkasan)
+    assert [b[0] for b in baris] == [sak.id_kartu(sak.FUNNEL), "pembayaran", sak.id_kartu(sak.TRANSFER), "pendaftaran",
+                                     "s-osn_cetak_ringkas", "s-osn_bank_kalimat", "s-osn_lomba"]
+    status = {b[1]: re.sub(r"<[^>]+>", "", b[2]) for b in baris}
+    assert status["Cek Kemampuan dan Paket Coba"] == "Aktif"
+    assert status["Pembayaran QRIS (Midtrans)"] == "Buka + akses berbayar"
+    assert status["Pembayaran transfer rekening"] == "Mati"
+    assert status["Pendaftaran mandiri"] == "Ditutup"
+    assert status["Latihan Lomba (Grand Final)"] == "Mati"
+    assert ringkasan.count("admin-status-besar bien") == 2  # funnel + QRIS terbuka
+
+
+def test_operasional_ringkasan_qris_untuk_setiap_tahap_dengan_value_select_tetap():
+    for tahap, teks in (("nonaktif", "Tutup"), ("rekonsiliasi", "Tutup untuk pesanan baru"), ("checkout", "Buka"),
+                        ("penegakan", "Buka + akses berbayar")):
+        isi = ui.operasional(_ringkas(tahap), "", "")
+        assert re.sub(r"<[^>]+>", "", _kartu(isi, "pembayaran").split("</div>", 1)[0]).endswith(teks), tahap
+    assert ui.LABEL_TAHAP == {"nonaktif": "Tutup",
+                              "rekonsiliasi": "Tutup untuk pesanan baru (pesanan lama tetap diproses)",
+                              "checkout": "Buka", "penegakan": "Buka + akses berbayar"}
+    assert ui.TAHAP_PEMBAYARAN == ("nonaktif", "rekonsiliasi", "checkout", "penegakan")
+
+
+def test_operasional_kartu_qris_awam_tanpa_jargon_dan_prasyarat_satu_kolom():
+    isi = ui.operasional(_ringkas(siap=False), _form_pembayaran(), "")
+    kartu = _kartu(isi, "pembayaran")
+
+    assert "<h3>Pembayaran QRIS (Midtrans)</h3>" in kartu and "Sakelar pembayaran" not in isi
+    assert isi.count('aria-current="step"') == 1 and "Langkah 3 · saat ini" in isi
+    for label in ui.LABEL_TAHAP.values():
+        assert "<strong>%s</strong>" % label in kartu
+    for jargon in ("Key/provider produksi", "Recovery exact-pair", "Kebijakan D8/D9", "Prasyarat tepercaya",
+                   "Callback dan rekonsiliasi", "Penegakan", "Nonaktif"):
+        assert jargon not in isi, jargon
+    # Prasyarat = daftar satu kolom (bukan grid), terbuka bila ada yang belum siap, dengan hitungan.
+    assert '<details class="admin-prasyarat" open><summary>Syarat membuka QRIS · 0 dari 4 siap</summary>' in kartu
+    assert kartu.count('class="admin-baris-status perhatian"') == 4 and "admin-prasyarat-item" not in isi
+    lengkap = ui.operasional(_ringkas(siap=True), "", "")
+    assert '<details class="admin-prasyarat"><summary>Syarat membuka QRIS · 4 dari 4 siap' in lengkap
+
+
+def test_operasional_sandi_di_dalam_details_untuk_qris_dan_dukungan():
+    isi = ui.operasional(_ringkas(), _form_pembayaran(), ui.formulir_dukungan("c", "t", _config()))
+
+    sisa = re.sub(r'<details class="admin-aksi-ubah">.*?</details>', "", isi, flags=re.S)
+    assert 'name="reauth"' not in sisa and isi.count('name="reauth"') == 2
+    assert isi.count('<details class="admin-aksi-ubah"><summary class="admin-tombol">Ubah status QRIS…</summary>') == 1
+    assert 'Ubah kontak dukungan…</summary><form method="post" action="/admin/layanan/dukungan"' in isi
+
+
+def test_operasional_urutan_kelompok_dan_id_lama_tetap_ada():
+    bagian = _bagian(tokens=None)
+    isi = ui.operasional(_ringkas(), _form_pembayaran(), "", sakelar=bagian,
+                         rekening='<section id="rekening">REKENING</section>',
+                         pendaftaran='<section id="pendaftaran">P</section>', status_rekening="terisi",
+                         pendaftaran_dibuka=True)
+
+    urutan = [isi.index(t) for t in ('id="ringkasan"', 'id="sakelar"', 'id="penjualan"', 'id="s-funnel_aktif"',
+                                     'id="pembayaran"', 'id="s-pesanan_transfer_aktif"', 'id="buka-transfer"',
+                                     'id="rekening"', 'id="belajar"', 'id="pendaftaran"', 'id="kesehatan"',
+                                     'id="kesiapan"', 'id="dukungan"')]
+    assert urutan == sorted(urutan)
+    penjualan = isi.split('id="penjualan"', 1)[1].split('id="belajar"', 1)[0]
+    assert "Penjualan dan pembayaran" in isi and 'id="pembayaran"' in penjualan and 'id="rekening"' in penjualan
+    belajar = isi.split('id="belajar"', 1)[1].split('id="pendaftaran"', 1)[0]
+    assert "Fitur belajar" in belajar and "Latihan Lomba" in belajar and "Cek Kemampuan" not in belajar
+    for sid in ("ringkasan", "penjualan", "belajar", "pendaftaran", "kesehatan"):
+        assert 'href="#%s"' % sid in isi and isi.count('id="%s"' % sid) == 1
+
+
+def test_operasional_tanpa_bagian_isian_tidak_menautkan_bagian_kosong():
     isi = ui.operasional(_ringkas(), "", "")
 
-    assert '<nav class="admin-navigasi-bagian" aria-label="Bagian pengaturan layanan">' in isi
-    for sid in ("kesiapan", "dukungan", "ai"):
-        assert 'href="#%s"' % sid in isi and 'id="%s"' % sid in isi
-    assert 'id="pembayaran"' in isi
-    assert 'href="#sakelar"' not in isi and 'href="#rekening"' not in isi  # bagian tanpa isi tidak ditautkan
-    assert isi.count('aria-current="step"') == 1
-    assert '<li aria-current="step"' in isi and "Tahap 3 · saat ini" in isi
-    for tahap in ("Nonaktif", "Rekonsiliasi", "Checkout", "Penegakan"):
-        assert tahap in isi
-    assert isi.count('class="admin-tahap-hint"') == 4
-    assert "Key/provider produksi" in isi and "Kebijakan D8/D9" in isi
-    # AI hanya satu baris status (rencana pematian); rincian dan pengaturan tetap di /admin/ai.
-    assert 'admin-ai-tile' not in isi and "Gagal / tak pasti" not in isi
-    assert "AI: tidak dipakai · akan dimatikan" in isi
-    assert isi.count('href="/admin/ai"') == 1
+    assert 'href="#belajar"' not in isi and 'href="#pendaftaran"' not in isi and 'id="belajar"' not in isi
+    assert 'id="sakelar"' not in isi and 'id="buka-transfer"' not in isi
+    assert 'id="pembayaran"' in isi and 'href="#penjualan"' in isi
 
 
-def test_operasional_urutan_sakelar_rekening_kesiapan_dukungan_ai():
-    isi = ui.operasional(_ringkas(), _form_pembayaran(), "", sakelar="<section>SAKELAR</section>",
-                         rekening='<section id="rekening">REKENING</section>')
+def test_operasional_sakelar_galat_tetap_tampil_tanpa_ringkasan_sakelar_dan_checklist():
+    isi = ui.operasional(_ringkas(), "", "", sakelar=sak.halaman_galat())
 
-    urutan = [isi.index(t) for t in ('id="sakelar"', 'id="pembayaran"', 'id="rekening"', 'id="kesiapan"',
-                                     'id="dukungan"', 'id="ai"')]
-    assert urutan == sorted(urutan)
-    sakelar = isi.split('<div id="sakelar">', 1)[1].split('id="rekening"', 1)[0]
-    assert "SAKELAR" in sakelar and 'id="pembayaran"' in sakelar  # tahap pembayaran satu grup dengan sakelar fitur
-    for sid in ("sakelar", "rekening"):
-        assert 'href="#%s"' % sid in isi
+    assert 'role="alert"' in isi and 'id="buka-transfer"' not in isi and 'id="pembayaran"' in isi
+    assert isi.index('role="alert"') < isi.index('id="pembayaran"')
+
+
+def _langkah(isi):
+    kartu = _kartu(isi, "buka-transfer")
+    return re.findall(r'<li class="admin-langkah-item (\S+)">', kartu)
+
+
+def test_operasional_checklist_transfer_status_dari_rekening_qris_dan_sakelar():
+    kasus = (
+        (dict(status_rekening="kosong", tahap="checkout", aktif=()), ["belum", "belum", "belum"]),
+        (dict(status_rekening="terisi", tahap="nonaktif", aktif=()), ["selesai", "selesai", "belum"]),
+        (dict(status_rekening="terisi", tahap="rekonsiliasi", aktif=(sak.TRANSFER,)), ["selesai", "selesai", "selesai"]),
+        (dict(status_rekening="terisi", tahap="penegakan", aktif=(sak.TRANSFER,)), ["selesai", "belum", "selesai"]),
+        (dict(status_rekening="belum_dipasang", tahap="nonaktif", aktif=()), ["belum", "selesai", "belum"]),
+    )
+    for param, harapan in kasus:
+        isi = ui.operasional(_ringkas(param["tahap"]), "", "", sakelar=_bagian(aktif=param["aktif"]),
+                             status_rekening=param["status_rekening"])
+        assert _langkah(isi) == harapan, param
+    isi = ui.operasional(_ringkas("nonaktif"), "", "", sakelar=_bagian(), status_rekening="belum_dipasang")
+    assert "belum dipasang operator" in _kartu(isi, "buka-transfer")
+
+
+def test_operasional_checklist_tanpa_config_pembayaran_atau_rekening_tak_terbaca_bukan_selesai():
+    ringkas = _ringkas()
+    ringkas["pembayaran_config"] = None
+    isi = ui.operasional(ringkas, "", "", sakelar=_bagian(), status_rekening=None)
+
+    assert _langkah(isi) == ["tak-tahu", "tak-tahu", "belum"]
+    assert 'class="admin-badge admin-status-besar">Tidak bisa dibaca<' in isi  # QRIS di ringkasan
+
+
+def test_operasional_kesehatan_sistem_terlipat_memuat_kesiapan_dan_dukungan():
+    isi = ui.operasional(_ringkas(siap=False), "", ui.formulir_dukungan("c", "t", _config()))
+
+    kesehatan = isi.split('<details class="admin-kartu admin-kesehatan" id="kesehatan">', 1)[1].split("</details>", 1)[0]
+    assert "Kesehatan sistem" in kesehatan and 'id="kesiapan"' in kesehatan and 'id="dukungan"' in kesehatan
+    assert "Cadangan mencakup data sampai: belum tercatat" in isi
+    assert '<span class="admin-badge perhatian">1 perlu dilihat</span>' in kesehatan  # hanya cadangan
+    terbuka = ui.operasional(_ringkas(), "", "", feedback="Pengaturan dukungan tersimpan.")
+    assert '<details class="admin-kartu admin-kesehatan" id="kesehatan" open>' in terbuka  # umpan balik terlihat
+
+
+def test_operasional_tidak_ada_baris_ai_dan_tidak_ada_tautan_pengaturan_ai():
+    isi = ui.operasional(_ringkas(), "", "")
+
+    assert 'id="ai"' not in isi and 'href="#ai"' not in isi and 'href="/admin/ai"' not in isi
+    assert "AI: tidak dipakai" not in isi and "akan dimatikan" not in isi
 
 
 def test_operasional_backup_belum_tercatat_dan_prasyarat_belum_siap_tetap_teks():
     isi = ui.operasional(_ringkas(siap=False), "", "")
 
-    assert "Cutoff backup:" in isi and "belum tercatat" in isi
+    assert "Cadangan mencakup data sampai:" in isi and "belum tercatat" in isi
     assert isi.count("Belum siap") >= 4
-    assert 'admin-baris-status perhatian' in isi  # baris backup yang belum terverifikasi disorot
+    assert 'admin-baris-status perhatian' in isi  # baris cadangan yang belum terverifikasi disorot
 
 
-def test_operasional_tanpa_config_dukungan_menampilkan_belum_siap():
+def test_operasional_tanpa_config_dukungan_netral_bukan_kotak_merah():
     isi = ui.operasional(_ringkas(dukungan=False), "", "")
 
-    assert 'class="admin-kartu admin-galat" id="dukungan"' in isi and "Belum siap" in isi
-    assert "<form" not in isi
+    kartu = _kartu(isi, "dukungan")
+    assert "admin-galat" not in kartu and 'role="alert"' not in kartu
+    assert '<span class="admin-badge">Belum siap</span>' in kartu and "kontak publik ditahan" in kartu
+    assert "migrator" not in isi and "<form" not in isi
+    assert '<span class="admin-badge perhatian">2 perlu dilihat</span>' in isi  # cadangan + dukungan
+
+
+def test_operasional_baca_saja_tanpa_form_walau_semua_bagian_ada():
+    bagian = _bagian(tokens=None)
+    isi = ui.operasional(_ringkas(), "", "", sakelar=bagian, pendaftaran=sak.halaman_pendaftaran_baca(True),
+                         status_rekening="terisi", pendaftaran_dibuka=True)
+
+    assert "<form" not in isi and 'name="reauth"' not in isi and "<button" not in isi
+    assert "Tampilan baca-saja" in isi

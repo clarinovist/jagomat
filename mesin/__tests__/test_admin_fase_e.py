@@ -39,8 +39,9 @@ def test_pengaturan_layanan_memuat_bagian_pendaftaran_dengan_form_lama(server):
     for nama in ("aksi", "csrf", "tinjauan", "dibuka", "pesan_kode", "reauth"):
         assert 'name="%s"' % nama in bagian
     assert "<details><summary>Pratinjau saat ditutup" in bagian
-    # urutan: sakelar fitur, lalu pendaftaran, lalu rekening
-    assert isi.index('id="sakelar"') < isi.index('id="pendaftaran"') < isi.index('id="rekening"')
+    # urutan: sakelar fitur + rekening (Penjualan dan pembayaran), fitur belajar, lalu pendaftaran
+    assert isi.index('id="sakelar"') < isi.index('id="rekening"') < isi.index('id="pendaftaran"')
+    assert '<details class="admin-aksi-ubah"><summary class="admin-tombol">Ubah pengaturan pendaftaran…</summary>' in isi
 
 
 def test_pendaftaran_ditutup_lewat_pengaturan_layanan_prg_ke_halaman_yang_sama(server):

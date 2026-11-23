@@ -6,8 +6,9 @@ from datetime import datetime
 import product_analytics as d
 import support_settings as dukungan
 import admin_labels as L
+import admin_sakelar_pages as sak
 from admin_daftar_pages import kartu_tabel, sel_nama
-from admin_komponen import kartu_akan_dimatikan, kepala_cari  # noqa: F401 (dipakai admin_launch_http)
+from admin_komponen import kartu_akan_dimatikan, kepala_cari, lipat_aksi  # noqa: F401 (dipakai admin_launch_http)
 
 
 def e(nilai):
@@ -129,8 +130,23 @@ def formulir_dukungan(csrf, token, config):
                 config.sla_respons_hari,config.sla_status_hari)
 
 
-DAMPAK_TAHAP={'nonaktif':'Tidak membuat atau memeriksa pembayaran.','rekonsiliasi':'Hanya memeriksa transaksi yang sudah ada; pembayaran baru tetap ditutup.','checkout':'Membuka pembayaran baru dan rekonsiliasi.','penegakan':'Menerapkan akses berbayar setelah checkout.'}
+LABEL_TAHAP={'nonaktif':'Tutup','rekonsiliasi':'Tutup untuk pesanan baru (pesanan lama tetap diproses)','checkout':'Buka','penegakan':'Buka + akses berbayar'}
+BADGE_TAHAP={'nonaktif':('Tutup',''),'rekonsiliasi':('Tutup untuk pesanan baru',' perhatian'),'checkout':('Buka',' bien'),'penegakan':('Buka + akses berbayar',' bien')}
+DAMPAK_TAHAP={'nonaktif':'Pembeli tidak bisa membayar lewat QRIS dan tidak ada transaksi QRIS yang diperiksa.',
+              'rekonsiliasi':'Tidak ada pesanan QRIS baru. Pesanan yang sudah berjalan tetap diperiksa sampai selesai.',
+              'checkout':'Pembeli bisa membayar lewat QRIS. Pesanan yang berjalan tetap diperiksa.',
+              'penegakan':'Sama seperti Buka, ditambah akses berbayar mulai diberlakukan.'}
 TAHAP_PEMBAYARAN=('nonaktif','rekonsiliasi','checkout','penegakan')
+TAHAP_QRIS_TUTUP=('nonaktif','rekonsiliasi')
+PRASYARAT_QRIS=(('provider_produksi','Kunci Midtrans produksi terpasang di server'),
+                ('callback','Server siap menerima notifikasi pembayaran dari Midtrans'),
+                ('recovery','Pemulihan rilis (rollback) sudah terverifikasi'),
+                ('kebijakan','Kebijakan refund, pajak, dan penghapusan data sudah diputuskan'))
+COPY_ATURAN_QRIS=('Membuka dilakukan bertahap, satu langkah sekali. Menutup boleh langsung saat ada masalah; '
+                  'pilih Tutup untuk pesanan baru supaya pesanan yang sudah berjalan tetap diperiksa. '
+                  'Kunci rahasia hanya dipasang di server dan isinya tidak pernah tampil di panel.')
+COPY_DUKUNGAN_BELUM=('Pengaturan dukungan belum terpasang atau rusak di server ini, jadi kontak publik ditahan. '
+                     'Operator perlu memasangnya dan memeriksa pemulihan sebelum layanan dibuka.')
 
 
 def _baris_status(nama,nilai,perhatian=False):
@@ -138,75 +154,137 @@ def _baris_status(nama,nilai,perhatian=False):
 
 
 def _kartu_kesiapan(r):
-    baris=''.join(_baris_status(k,r[v],v=='backup' and r['backup_cutoff'] is None) for k,v in [('Penyimpanan admin','admin'),('Pembayaran','pembayaran'),('Backup','backup')])
+    baris=''.join(_baris_status(k,r[v],v=='backup' and r['backup_cutoff'] is None) for k,v in [('Penyimpanan admin','admin'),('Pembayaran','pembayaran'),('Cadangan','backup')])
     cutoff='belum tercatat' if r['backup_cutoff'] is None else tanggal(r['backup_cutoff'])
-    return ('<section class="admin-kartu admin-kartu-tabel" id="kesiapan"><div class="admin-kartu-kepala"><h2>Kesiapan layanan</h2></div>'
-            '<ul class="admin-daftar-status">%s</ul><div class="admin-kartu-kaki admin-kaki-garis"><p>Cutoff backup: %s</p>'
-            '<p class="admin-meta">Validitas bundle bukan bukti backup terjadwal, salinan luar server, atau rehearsal terbaru.</p></div></section>')%(baris,cutoff)
+    return ('<section class="admin-sub-bagian" id="kesiapan"><h3>Kesiapan layanan</h3>'
+            '<ul class="admin-daftar-status">%s</ul><div class="admin-kaki-garis"><p>Cadangan mencakup data sampai: %s</p>'
+            '<p class="admin-meta">Cadangan yang valid belum tentu terjadwal, tersalin ke luar server, atau sudah dilatih pemulihannya.</p></div></section>')%(baris,cutoff)
 
 
 def _kartu_dukungan(r,form_dukungan):
     support=r.get('dukungan_config')
     if not support:
-        return ('<section class="admin-kartu admin-galat" id="dukungan"><h2>Dukungan pengguna</h2><p>Status: <strong>Belum siap</strong></p>'
-                '<p>Schema atau konfigurasi dukungan hilang/rusak. Kontak publik ditahan; jalankan migrator opt-in dan periksa recovery sebelum membuka layanan.</p></section>')
+        return ('<section class="admin-sub-bagian" id="dukungan"><h3>Dukungan pengguna</h3>'
+                '<p><span class="admin-badge">Belum siap</span></p><p>%s</p></section>')%e(COPY_DUKUNGAN_BELUM)
     publik=dukungan.proyeksi_publik(support)
-    return ('<section class="admin-kartu" id="dukungan"><div class="admin-seksi-kepala"><h2>Dukungan pengguna</h2>'
-            '<p>Status: <strong>Siap</strong> · revisi %d</p></div>'
+    ubah=lipat_aksi('Ubah kontak dukungan…','admin-tombol admin-tombol-sekunder',form_dukungan) if form_dukungan else ''
+    return ('<section class="admin-sub-bagian" id="dukungan"><div class="admin-fitur-kepala"><h3>Dukungan pengguna</h3>'
+            '<span class="admin-badge bien">Siap</span></div>'
             '<dl class="admin-rincian"><dt>WhatsApp Business</dt><dd>%s</dd><dt>Jam layanan</dt><dd>%s</dd>'
             '<dt>Respons awal</dt><dd>Maksimal %d hari kerja</dd><dt>Status awal</dt><dd>Maksimal %d hari kerja</dd></dl>%s'
-            '<p class="admin-meta">WhatsApp adalah kanal komunikasi, bukan bukti kepemilikan akun. Reset hanya setelah verifikasi independen; bila tidak tersedia, reset ditahan.</p></section>')%(
-                support.revisi,e(publik.whatsapp_label),e(publik.jam_layanan_label),
-                support.sla_respons_hari,support.sla_status_hari,form_dukungan)
+            '<p class="admin-meta">WhatsApp adalah kanal komunikasi, bukan bukti kepemilikan akun. Reset hanya setelah verifikasi independen; bila tidak tersedia, reset ditahan.</p>'
+            '<details class="admin-detail-teknis"><summary>Detail teknis</summary><p class="admin-meta">Revisi %d.</p></details></section>')%(
+                e(publik.whatsapp_label),e(publik.jam_layanan_label),
+                support.sla_respons_hari,support.sla_status_hari,ubah,support.revisi)
 
 
 def _stepper(tahap):
     kartu=''
     for nomor,kode in enumerate(TAHAP_PEMBAYARAN,1):
         aktif=kode==tahap
-        kartu+=('<li%s class="admin-tahap%s"><span class="admin-meta">Tahap %d%s</span><strong>%s</strong>'
-                '<span class="admin-tahap-hint">%s</span></li>')%(' aria-current="step"' if aktif else '',' admin-tahap-aktif' if aktif else '',nomor,' · saat ini' if aktif else '',e(L.label_status(kode)),e(DAMPAK_TAHAP[kode]))
-    return '<ol class="admin-stepper" aria-label="Tahap pembayaran">%s</ol>'%kartu
+        kartu+=('<li%s class="admin-tahap%s"><span class="admin-meta">Langkah %d%s</span><strong>%s</strong>'
+                '<span class="admin-tahap-hint">%s</span></li>')%(' aria-current="step"' if aktif else '',' admin-tahap-aktif' if aktif else '',nomor,' · saat ini' if aktif else '',e(LABEL_TAHAP[kode]),e(DAMPAK_TAHAP[kode]))
+    return '<ol class="admin-stepper" aria-label="Status pembayaran QRIS">%s</ol>'%kartu
+
+
+def _syarat_qris(kesiapan):
+    siap=sum(1 for k,_ in PRASYARAT_QRIS if kesiapan.get(k))
+    baris=''.join(_baris_status(label,'Siap' if kesiapan.get(k) else 'Belum siap',not kesiapan.get(k)) for k,label in PRASYARAT_QRIS)
+    return ('<details class="admin-prasyarat"%s><summary>Syarat membuka QRIS · %d dari %d siap</summary>'
+            '<ul class="admin-daftar-status">%s</ul></details>')%('' if siap==len(PRASYARAT_QRIS) else ' open',siap,len(PRASYARAT_QRIS),baris)
+
+
+def _kepala_qris(tahap):
+    if tahap not in BADGE_TAHAP:
+        return '<span class="admin-badge admin-status-besar">Tidak bisa dibaca</span>'
+    teks,varian=BADGE_TAHAP[tahap]
+    return '<span class="admin-badge admin-status-besar%s">%s</span>'%(varian,e(teks))
 
 
 def _kartu_pembayaran(r,form_pembayaran):
     cfg=r.get('pembayaran_config')
-    tahap=cfg['tahap'] if cfg else 'tidak tersedia'
+    tahap=cfg['tahap'] if cfg else None
     kesiapan=r.get('pembayaran_kesiapan',{})
-    prasyarat=''.join('<li class="admin-prasyarat-item%s">%s: <strong>%s</strong></li>'%('' if kesiapan.get(k) else ' perhatian',e(label),'Siap' if kesiapan.get(k) else 'Belum siap') for k,label in [('provider_produksi','Key/provider produksi'),('callback','Callback dan rekonsiliasi'),('recovery','Recovery exact-pair'),('kebijakan','Kebijakan D8/D9')])
-    dampak=DAMPAK_TAHAP.get(tahap,'Status tidak tersedia.')
-    return ('<section class="admin-kartu" id="pembayaran"><div class="admin-seksi-kepala"><h2>Sakelar pembayaran</h2>'
-            '<p>Tahap saat ini: <strong>%s</strong>%s</p></div><p>%s</p>%s'
-            '<div class="admin-prasyarat"><h3>Prasyarat tepercaya</h3><ul>%s</ul></div>%s'
-            '<p class="admin-meta">Tahap harus dinaikkan satu per satu. Penurunan boleh langsung saat insiden. Secret hanya dipasang di server dan nilainya tidak pernah tampil di panel.</p></section>')%(
-                e(L.label_status(tahap)),' · revisi %d'%cfg['revisi'] if cfg else '',e(dampak),_stepper(tahap),prasyarat,form_pembayaran)
+    ubah=lipat_aksi('Ubah status QRIS…','admin-tombol',form_pembayaran) if form_pembayaran else ''
+    teknis=('<details class="admin-detail-teknis"><summary>Detail teknis</summary><p class="admin-meta">Tahap internal: %s · revisi %d.</p></details>'%(e(tahap),cfg['revisi'])) if cfg else ''
+    return ('<section class="admin-kartu admin-kartu-fitur" id="pembayaran"><div class="admin-fitur-kepala"><h3>Pembayaran QRIS (Midtrans)</h3>%s</div>'
+            '<p>%s</p>%s%s%s%s<p class="admin-meta">%s</p></section>')%(
+                _kepala_qris(tahap),e(DAMPAK_TAHAP.get(tahap,'Status pembayaran QRIS tidak tersedia.')),
+                _stepper(tahap),_syarat_qris(kesiapan),ubah,teknis,e(COPY_ATURAN_QRIS))
 
 
-def _baris_ai():
-    """AI hanya satu baris status; rincian dan pengaturannya tetap di halaman /admin/ai."""
-    return ('<section class="admin-kartu admin-status-baris" id="ai" aria-label="AI">'
-            '<h2><span class="admin-titik-status admin-titik-netral" aria-hidden="true"></span>'
-            'AI: tidak dipakai · akan dimatikan</h2>'
-            '<a class="admin-tautan" href="/admin/ai">Buka pengaturan AI</a></section>')
+def _item_ringkasan(label,badge,href):
+    return '<li class="admin-ringkasan-item"><a class="admin-tautan-teks" href="#%s">%s</a>%s</li>'%(href,e(label),badge)
 
 
-def _navigasi_bagian(sakelar,rekening,pendaftaran=''):
-    tautan=[('sakelar','Sakelar fitur')] if sakelar else []
+def _ringkasan_aktif(sakelar,cfg,pendaftaran_dibuka,ada_pendaftaran):
+    """Ringkasan "Yang aktif sekarang": satu baris per layanan dengan penanda Aktif/Mati, bahasa awam."""
+    tahap=cfg['tahap'] if cfg else None
+    status={nama:(label,aktif) for nama,label,aktif in sakelar.status} if isinstance(sakelar,sak.BagianSakelar) else {}
+    def baris_sakelar(nama):
+        label,aktif=status[nama]
+        return _item_ringkasan(label,sak.badge_status(aktif),sak.id_kartu(nama))
+    baris=[]
+    if sak.FUNNEL in status: baris.append(baris_sakelar(sak.FUNNEL))
+    baris.append(_item_ringkasan('Pembayaran QRIS (Midtrans)',_kepala_qris(tahap),'pembayaran'))
+    if sak.TRANSFER in status: baris.append(baris_sakelar(sak.TRANSFER))
+    if ada_pendaftaran:
+        badge='<span class="admin-badge admin-status-besar">Tidak bisa dibaca</span>' if pendaftaran_dibuka is None else sak.badge_status(pendaftaran_dibuka,teks_aktif='Dibuka',teks_mati='Ditutup')
+        baris.append(_item_ringkasan('Pendaftaran mandiri',badge,'pendaftaran'))
+    baris+=[baris_sakelar(n) for n in status if n not in (sak.FUNNEL,sak.TRANSFER)]
+    return '<section class="admin-kartu admin-ringkasan" id="ringkasan"><h2>Yang aktif sekarang</h2><ul class="admin-ringkasan-daftar">%s</ul></section>'%''.join(baris)
+
+
+def _navigasi_bagian(punya_belajar,pendaftaran=''):
+    tautan=[('ringkasan','Yang aktif sekarang'),('penjualan','Penjualan dan pembayaran')]
+    tautan+=[('belajar','Fitur belajar')] if punya_belajar else []
     tautan+=[('pendaftaran','Pendaftaran mandiri')] if pendaftaran else []
-    tautan+=[('rekening','Rekening transfer')] if rekening else []
-    tautan+=[('kesiapan','Kesiapan'),('dukungan','Dukungan pengguna'),('ai','AI')]
+    tautan+=[('kesehatan','Kesehatan sistem')]
     return '<nav class="admin-navigasi-bagian" aria-label="Bagian pengaturan layanan"><span>Lompat ke</span>'+''.join('<a href="#%s">%s</a>'%(sid,label) for sid,label in tautan)+'</nav>'
 
 
-def operasional(r,form_pembayaran='',form_dukungan='',feedback='',*,sakelar='',rekening='',pendaftaran=''):
-    """Halaman Pengaturan layanan. Urutan: sakelar fitur (termasuk tahap pembayaran), pendaftaran mandiri, rekening, kesiapan, AI.
+def _kelompok(sid,judul,isi):
+    return '<section class="admin-kelompok" id="%s"><h2 class="admin-kelompok-judul">%s</h2>%s</section>'%(sid,e(judul),isi)
 
-    ``sakelar``, ``pendaftaran``, dan ``rekening`` sudah dirender modul pemiliknya (kartu ringkas; form ubah tetap di rutenya)."""
+
+def _kelompok_penjualan(r,sakelar,pembayaran,rekening,status_rekening):
+    if not isinstance(sakelar,sak.BagianSakelar):
+        return _kelompok('penjualan',sak.LABEL_KELOMPOK['penjualan'],sakelar+pembayaran+rekening)
+    cfg=r.get('pembayaran_config')
+    status={nama:aktif for nama,_l,aktif in sakelar.status}
+    checklist=sak.checklist_transfer(rekening=status_rekening,
+        qris_tutup=None if not cfg else cfg['tahap'] in TAHAP_QRIS_TUTUP,
+        transfer_aktif=status.get(sak.TRANSFER,False)) if sak.TRANSFER in status else ''
+    kartu=dict(sakelar.penjualan)
+    isi=kartu.pop(sak.FUNNEL,'')+pembayaran+kartu.pop(sak.TRANSFER,'')+checklist+''.join(kartu.values())+rekening
+    return _kelompok('penjualan',sak.LABEL_KELOMPOK['penjualan'],isi)
+
+
+def _kesehatan(r,form_dukungan,buka):
+    perlu=int(r['backup_cutoff'] is None)+int(not r.get('dukungan_config'))
+    badge='<span class="admin-badge perhatian">%d perlu dilihat</span>'%perlu if perlu else '<span class="admin-badge bien">Semua siap</span>'
+    return ('<details class="admin-kartu admin-kesehatan" id="kesehatan"%s><summary><h2>Kesehatan sistem</h2>%s'
+            '<span class="admin-meta">Penyimpanan, cadangan, dan dukungan pengguna</span></summary>%s%s</details>')%(
+                ' open' if buka else '',badge,_kartu_kesiapan(r),_kartu_dukungan(r,form_dukungan))
+
+
+def operasional(r,form_pembayaran='',form_dukungan='',feedback='',*,sakelar='',rekening='',pendaftaran='',status_rekening=None,pendaftaran_dibuka=None):
+    """Halaman Pengaturan layanan. Urutan: ringkasan "Yang aktif sekarang", Penjualan dan pembayaran (Cek Kemampuan,
+    QRIS, transfer + checklist, rekening), Fitur belajar, Pendaftaran mandiri, Kesehatan sistem (terlipat).
+
+    `sakelar` = `BagianSakelar` (atau HTML galat), `pendaftaran` dan `rekening` sudah dirender modul pemiliknya
+    (kartu ringkas; form ubah tetap di rutenya). `status_rekening` = keadaan rekening untuk checklist transfer."""
     status='<p class="admin-kartu admin-catatan" role="status" aria-atomic="true">%s</p>'%e(feedback) if feedback else ''
-    pembayaran=_kartu_pembayaran(r,form_pembayaran)
-    bagian_sakelar='<div id="sakelar">%s%s</div>'%(sakelar,pembayaran) if sakelar else pembayaran
-    return (status+_navigasi_bagian(sakelar,rekening,pendaftaran)+bagian_sakelar
-            +pendaftaran+rekening+_kartu_kesiapan(r)+_kartu_dukungan(r,form_dukungan)+_baris_ai())
+    bagian=sakelar if isinstance(sakelar,sak.BagianSakelar) else None
+    umpan=bagian.umpan_balik if bagian else ''
+    catatan=bagian.catatan if bagian else ''
+    belajar=_kelompok('belajar',sak.LABEL_KELOMPOK['belajar'],''.join(bagian.belajar.values())) if bagian and bagian.belajar else ''
+    teknis=bagian.catatan_teknis if bagian else ''
+    penjualan=_kelompok_penjualan(r,sakelar,_kartu_pembayaran(r,form_pembayaran),rekening,status_rekening)
+    wadah='<div id="sakelar">' if sakelar else '<div>'
+    return (umpan+status+_ringkasan_aktif(sakelar,r.get('pembayaran_config'),pendaftaran_dibuka,bool(pendaftaran))
+            +_navigasi_bagian(bool(belajar),pendaftaran)+catatan+wadah+penjualan+belajar+teknis+'</div>'
+            +pendaftaran+_kesehatan(r,form_dukungan,bool(feedback)))
 
 
 def _hero_manfaat(m,judul,bantuan,angka,persen):

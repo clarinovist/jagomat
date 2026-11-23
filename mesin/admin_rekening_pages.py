@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Mapping, Optional, Tuple
 
 import admin_labels as L
-from admin_komponen import e
+from admin_komponen import badge_aktif, e
 from admin_pesanan_pages import RUTE, RUTE_REKENING
 from pesanan_rekening import BATAS_ATAS_NAMA, BATAS_NAMA_BANK, BATAS_NOMOR
 
@@ -113,16 +113,17 @@ def kartu_ringkas(keadaan: Mapping) -> str:
     """Kartu #rekening di Pengaturan layanan: ringkasan ter-mask dan tautan ke halaman ubah.
 
     Sengaja tanpa form: perubahan rekening (dengan sandi) hanya lewat `RUTE_REKENING`."""
+    terisi = keadaan["status"] == KEADAAN_TERISI
     return (
-        '<section class="admin-kartu" id="rekening"><div class="admin-seksi-kepala"><h2>%s</h2>'
-        '<a class="admin-tautan" href="%s">Ubah rekening</a></div>%s</section>'
-        % (e(JUDUL), RUTE_REKENING, _ringkasan(keadaan))
+        '<section class="admin-kartu" id="rekening"><div class="admin-fitur-kepala"><h3>%s</h3>%s</div>%s'
+        '<p><a class="admin-tautan" href="%s">Ubah rekening</a></p></section>'
+        % (e(JUDUL), badge_aktif(terisi, "Terisi", "Belum diisi"), _ringkasan(keadaan), RUTE_REKENING)
     )
 
 
 def kartu_tidak_siap() -> str:
     """Pengganti kartu #rekening saat skema/DB rekening belum siap; halaman lain tetap tampil."""
-    return ('<section class="admin-kartu admin-galat" id="rekening" role="alert"><h2>%s</h2><p>%s</p></section>'
+    return ('<section class="admin-kartu admin-galat" id="rekening" role="alert"><h3>%s</h3><p>%s</p></section>'
             % (e(JUDUL), e(COPY_TIDAK_SIAP)))
 
 

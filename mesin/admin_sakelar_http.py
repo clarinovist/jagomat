@@ -1,4 +1,4 @@
-"""Rute admin Pengaturan layanan: GET/POST `/admin/sakelar` (empat sakelar, DB sakelar terpisah).
+"""Rute admin Pengaturan layanan: GET/POST `/admin/sakelar` (lima sakelar fitur, DB sakelar terpisah).
 
 GET menampilkan halaman Pengaturan layanan lengkap (sakelar fitur, tahap pembayaran, rekening, kesiapan,
 dukungan, baris AI); bagian sakelar dirender di sini, bagian lain oleh pemiliknya masing-masing. POST di
@@ -18,7 +18,7 @@ sakelar dibaca. Aturan:
 from __future__ import annotations
 
 import sqlite3
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 
 import admin_http as h
 import admin_launch_http as launch
@@ -38,8 +38,8 @@ TRANSFER = "PESANAN_TRANSFER_AKTIF"
 HASIL_TERSIMPAN = "tersimpan"
 BATAS_ACTOR = 100
 REVISI_SEED = 1  # baris yang belum ada di DB dibuat feature_switch.ubah dengan revisi 1
-COPY_BELUM_FUNNEL = "Funnel Cek Kemampuan harus aktif lebih dulu."
-COPY_BELUM_REKENING = "Rekening transfer harus terisi (atau belum bisa diperiksa); isi di halaman rekening."
+COPY_BELUM_FUNNEL = ui.COPY_BELUM_FUNNEL
+COPY_BELUM_REKENING = ui.COPY_BELUM_REKENING
 _GALAT_REKENING = (admin_store.StoreBelumSiap, sqlite3.Error, OSError, ValueError)
 _GALAT_BACA = (feature_switch.GalatSakelar, OSError)
 
@@ -104,8 +104,8 @@ def _query_halaman(penangan) -> Tuple[Optional[str], str]:
     return hasil, dukungan or ""
 
 
-def bagian_sakelar(penangan, principal, hasil: Optional[str]) -> Tuple[str, int]:
-    """(HTML bagian sakelar, kode HTTP). DB sakelar tak terbaca = kartu galat + 503, tanpa membuang bagian
+def bagian_sakelar(penangan, principal, hasil: Optional[str]) -> Tuple[Union[ui.BagianSakelar, str], int]:
+    """(bagian sakelar, kode HTTP). DB sakelar tak terbaca = HTML kartu galat + 503, tanpa membuang bagian
     halaman lain; PermissionError (sesi berkuki tak sah) diteruskan ke pemanggil."""
     try:
         daftar = feature_switch.daftar(seed=sakelar_registry.seed_env())
@@ -113,15 +113,21 @@ def bagian_sakelar(penangan, principal, hasil: Optional[str]) -> Tuple[str, int]
         tokens = _tokens(penangan, principal, daftar, prasyarat) if principal.metode == "cookie" else None
     except _GALAT_BACA:
         return ui.halaman_galat(), 503
-    return ui.halaman(daftar, tokens, prasyarat=prasyarat, hasil=hasil), 200
+    return ui.bagian(daftar, tokens, prasyarat=prasyarat, hasil=hasil), 200
 
 
-def bagian_pendaftaran(penangan, principal) -> str:
-    """Bagian "Pendaftaran mandiri" (sakelar ke-6): form yang sama dengan kontrak lama, POST tetap ke /admin/pendaftaran.
-    Store admin belum siap = kartu galat tanpa form; sesi non-cookie = hanya status baca-saja."""
+def status_pendaftaran():
+    """Status pendaftaran mandiri, atau None bila store admin belum siap (tanpa membuat store)."""
     try:
-        status = admin_registration.status(h._path_admin())
+        return admin_registration.status(h._path_admin())
     except _GALAT_REKENING:
+        return None
+
+
+def bagian_pendaftaran(penangan, principal, status) -> str:
+    """Bagian "Pendaftaran mandiri" (sakelar ke-6): form yang sama dengan kontrak lama, POST tetap ke /admin/pendaftaran.
+    `status` None (store admin belum siap) = kartu galat tanpa form; sesi non-cookie = hanya status baca-saja."""
+    if status is None:
         return ui.halaman_pendaftaran_galat()
     if principal.metode != "cookie":
         return ui.halaman_pendaftaran_baca(status.dibuka)
@@ -136,10 +142,13 @@ def _get(penangan, principal) -> None:
     try:
         hasil, dukungan = _query_halaman(penangan)
         sakelar, kode = bagian_sakelar(penangan, principal, hasil)
+        status_daftar = status_pendaftaran()
         isi = launch.halaman_pengaturan(
             penangan, principal, kode_dukungan=dukungan, sakelar=sakelar,
             rekening=admin_rekening_http.bagian_pengaturan(),
-            pendaftaran=bagian_pendaftaran(penangan, principal))
+            pendaftaran=bagian_pendaftaran(penangan, principal, status_daftar),
+            status_rekening=admin_rekening_http.status_keadaan(),
+            pendaftaran_dibuka=None if status_daftar is None else bool(status_daftar.dibuka))
     except PermissionError:
         return h._galat(penangan, 403, ui.COPY_TANPA_SESI)
     except (admin_store.StoreBelumSiap, sqlite3.Error, OSError):

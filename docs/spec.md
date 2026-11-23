@@ -178,8 +178,10 @@ riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   (slot terpakai walau AI gagal), balasan > 8 KB atau > 30 detik ditolak. Tanpa kunci atau kuota habis/tak terbaca, tombol hilang dan cetakan manual
   tetap jalan. Fitur ini berdiri sendiri: menghentikan fitur AI lama di /admin/ai tidak mematikannya dan pemakaiannya tidak muncul di ledger /admin/ai.
 - **Pengaturan layanan** (`/admin/sakelar`, satu halaman; `/admin?section=operasional` mengalihkan 303 ke
-  sini): sakelar fitur + tahap pembayaran, pendaftaran mandiri (form lama, POST tetap ke `/admin/pendaftaran`), kartu rekening transfer (ubah di `/admin/pesanan/rekening`),
-  kesiapan/dukungan, satu baris status AI. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,
+  sini), dirombak 23 Nov 2026 agar terbaca Pemilik: ringkasan "Yang aktif sekarang" (badge Aktif/Mati), lalu kelompok Penjualan dan pembayaran
+  (Cek Kemampuan, pembayaran QRIS Midtrans dengan label tahap awam Tutup/Buka, transfer rekening + checklist tiga langkah membukanya, kartu rekening; ubah di `/admin/pesanan/rekening`),
+  Fitur belajar, pendaftaran mandiri (form lama, POST tetap ke `/admin/pendaftaran`), dan Kesehatan sistem terlipat (kesiapan, dukungan). Kolom sandi tiap form baru tampil
+  setelah `<details>` tindakan dibuka; mematikan fitur aktif memakai konfirmasi yang menyebut akibatnya (`akibat_mati` di registri). Baris status AI sudah dihapus dari halaman ini. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,
   `OSN_CETAK_RINGKAS`, `OSN_BANK_KALIMAT`, `OSN_LOMBA`. Nilai disimpan di DB terpisah `/data/sakelar.db` (dibuat saat
   perubahan pertama; env tetap fallback; DB lama dengan empat nama diperlebar saat perubahan pertama tanpa menaikkan versi skema), dengan tinjauan bertanda tangan, sandi ulang, optimistic
   concurrency, dan audit. DB sakelar rusak = kartu galat + status 503, bagian lain halaman tetap tampil; menyalakan transfer ditolak bila funnel

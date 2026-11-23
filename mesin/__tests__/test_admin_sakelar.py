@@ -135,7 +135,7 @@ def test_halaman_admin_memuat_lima_sakelar_dengan_form_dan_tanpa_rahasia(tertutu
     for nama_field in ("csrf", "tinjauan", "reauth"):
         assert 'name="%s"' % nama_field in isi
     assert len(POLA_FORM.findall(isi)) == 5 - 1  # transfer terkunci: funnel mati
-    assert "Env (belum diatur admin)" in isi
+    assert "nilai bawaan server, belum pernah diubah di sini" in isi
     assert SANDI_ADMIN not in isi and str(tmp_path) not in isi and "sakelar.db" not in isi
     assert 'href="/admin/sakelar" aria-current="page"' in isi
 
@@ -162,8 +162,10 @@ def test_umpan_balik_tersimpan_hanya_dari_kode_dikenal(tertutup, admin):
 
 def test_baris_transfer_menampilkan_prasyarat_dan_tombol_nonaktif_saat_belum_terpenuhi(tertutup, admin):
     isi = minta_admin(tertutup, SAKELAR, admin)[1]
-    baris = isi.split(html.escape(sakelar_registry.info(TRANSFER).label), 1)[1].split("</section>", 1)[0]
-    assert "funnel" in baris.lower() and "rekening" in baris.lower()
+    baris = isi.split('id="s-pesanan_transfer_aktif"', 1)[1].split("</section>", 1)[0]
+    assert html.escape(sakelar_registry.info(TRANSFER).label) in baris
+    assert "cek kemampuan" in baris.lower() and "rekening" in baris.lower()
+    assert 'href="/admin/pesanan/rekening"' in baris  # prasyarat rekening menautkan halaman rekening
     assert "disabled" in baris and 'name="tinjauan"' not in baris
 
 
@@ -233,7 +235,7 @@ def test_nyalakan_transfer_ditolak_saat_funnel_mati(tertutup, admin, monkeypatch
     _funnel(monkeypatch, False)
     _rekening(True)
     kode, isi, _t = _kirim(tertutup, admin, TRANSFER, True)
-    assert kode == 409 and "funnel" in isi.lower() and "Traceback" not in isi
+    assert kode == 409 and "cek kemampuan" in isi.lower() and "Traceback" not in isi
     assert _stempel() == ([], [])
 
 
@@ -341,3 +343,141 @@ def test_skema_db_tak_dikenal_503(tertutup, admin):
     with sqlite3.connect(_db()) as kon:
         kon.execute("PRAGMA user_version = 99")
     assert minta_admin(tertutup, SAKELAR, admin)[0] == 503
+
+
+# --- rombak tampilan Pengaturan layanan (23 Nov 2026): ringkasan, checklist, tindakan terlipat --------------
+
+def ui_id(nama: str) -> str:
+    return "s-" + nama.lower()
+
+
+def _utama(isi: str) -> str:
+    return isi.split('<main id="konten-admin"', 1)[1].split("</main>", 1)[0]
+
+
+def _kartu(isi: str, sid: str) -> str:
+    return isi.split('id="%s"' % sid, 1)[1].split("</section>", 1)[0]
+
+
+def _langkah(isi: str):
+    return re.findall(r'<li class="admin-langkah-item (\S+)">', _kartu(isi, "buka-transfer"))
+
+
+def test_ringkasan_aktif_menampilkan_status_semua_layanan_di_atas(tertutup, admin):
+    kode, isi, _t = minta_admin(tertutup, SAKELAR, admin)
+    utama = _utama(isi)
+    ringkasan = _kartu(utama, "ringkasan")
+    assert kode == 200 and utama.index('id="ringkasan"') < utama.index('id="penjualan"')
+    for nama in fs.NAMA_SAKELAR:
+        assert html.escape(sakelar_registry.info(nama).label) in ringkasan
+    assert "Pembayaran QRIS (Midtrans)" in ringkasan and "Pendaftaran mandiri" in ringkasan
+    assert 'admin-badge admin-status-besar">Tutup<' in ringkasan  # QRIS tahap nonaktif
+
+    def badge(nama):
+        baris = ringkasan.split('href="#%s"' % ui_id(nama), 1)[1].split("</li>", 1)[0]
+        return re.sub(r"<[^>]+>", "", baris.split("</a>", 1)[1])
+
+    awal = {s.nama: badge(s.nama) for s in fs.daftar(seed=sakelar_registry.seed_env())}
+    assert all(awal[s.nama] == ("Aktif" if s.aktif else "Mati")
+               for s in fs.daftar(seed=sakelar_registry.seed_env()))
+    # Nyalakan satu fitur: ringkasan ikut berubah.
+    assert awal[CETAK] == "Mati"
+    assert _kirim(tertutup, admin, CETAK, True)[0] == 303
+    ringkasan = _kartu(_utama(minta_admin(tertutup, SAKELAR, admin)[1]), "ringkasan")
+    assert badge(CETAK) == "Aktif"
+
+
+def test_kelompok_dan_urutan_kartu_di_halaman(tertutup, admin):
+    utama = _utama(minta_admin(tertutup, SAKELAR, admin)[1])
+    penjualan = utama.split('id="penjualan"', 1)[1].split('id="belajar"', 1)[0]
+    belajar = utama.split('id="belajar"', 1)[1].split('id="pendaftaran"', 1)[0]
+    urutan = [penjualan.index(t) for t in ('id="s-funnel_aktif"', 'id="pembayaran"', 'id="s-pesanan_transfer_aktif"',
+                                           'id="buka-transfer"', 'id="rekening"')]
+    assert urutan == sorted(urutan)
+    for nama in ("OSN_LOMBA", "OSN_CETAK_RINGKAS", "OSN_BANK_KALIMAT"):
+        assert 'id="s-%s"' % nama.lower() in belajar
+    assert "Kesehatan sistem" in utama and utama.index('id="kesehatan"') > utama.index('id="pendaftaran"')
+
+
+def test_checklist_transfer_skema_rekening_belum_dipasang(tertutup, admin):
+    utama = _utama(minta_admin(tertutup, SAKELAR, admin)[1])
+    assert _langkah(utama) == ["belum", "selesai", "belum"]
+    assert "belum dipasang operator" in _kartu(utama, "buka-transfer")
+
+
+def test_checklist_transfer_rekening_kosong_lalu_terisi(tertutup, admin, monkeypatch):
+    _rekening(False)
+    utama = _utama(minta_admin(tertutup, SAKELAR, admin)[1])
+    assert _langkah(utama) == ["belum", "selesai", "belum"]
+    assert 'href="/admin/pesanan/rekening">Isi di halaman rekening</a>' in _kartu(utama, "buka-transfer")
+    isi_rekening(admin_store.BAWAAN)
+    utama = _utama(minta_admin(tertutup, SAKELAR, admin)[1])
+    assert _langkah(utama) == ["selesai", "selesai", "belum"]
+
+
+def test_checklist_transfer_selesai_semua_setelah_transfer_dinyalakan(tertutup, admin, monkeypatch):
+    _funnel(monkeypatch, True)
+    _rekening(True)
+    assert _kirim(tertutup, admin, TRANSFER, True)[0] == 303
+    assert _langkah(_utama(minta_admin(tertutup, SAKELAR, admin)[1])) == ["selesai", "selesai", "selesai"]
+
+
+def test_checklist_qris_terbuka_belum_selesai_walau_transfer_menyala(tertutup, admin, monkeypatch):
+    _funnel(monkeypatch, True)
+    _rekening(True)
+    monkeypatch.setattr(admin_sakelar_http.launch.billing, "kesiapan_penangan", lambda _p: {})
+    assert _kirim(tertutup, admin, TRANSFER, True)[0] == 303
+    ringkas_asli = admin_sakelar_http.launch.admin_operations.ringkasan
+
+    def ringkas_checkout(*a, **kw):
+        hasil = ringkas_asli(*a, **kw)
+        return {**hasil, "pembayaran_config": {"tahap": "checkout", "revisi": 5}}
+
+    monkeypatch.setattr(admin_sakelar_http.launch.admin_operations, "ringkasan", ringkas_checkout)
+    utama = _utama(minta_admin(tertutup, SAKELAR, admin)[1])
+    assert _langkah(utama) == ["selesai", "belum", "selesai"]
+    assert 'admin-badge admin-status-besar bien">Buka<' in _kartu(utama, "pembayaran")
+
+
+def test_sandi_tiap_form_hanya_di_dalam_details_terlipat(tertutup, admin):
+    isi = _utama(minta_admin(tertutup, SAKELAR, admin)[1])
+    sisa = re.sub(r'<details class="admin-aksi-ubah">.*?</details>', "", isi, flags=re.S)
+    assert 'name="reauth"' not in sisa and 'type="password"' not in sisa
+    assert isi.count('name="reauth"') >= 5  # empat sakelar bisa dinyalakan + QRIS + pendaftaran + dukungan
+    assert '<details class="admin-aksi-ubah" open' not in isi
+
+
+def test_mematikan_fitur_aktif_memakai_konfirmasi_dengan_akibat_dan_form_tetap_sama(tertutup, admin):
+    assert _kirim(tertutup, admin, CETAK, True)[0] == 303
+    isi = minta_admin(tertutup, SAKELAR, admin)[1]
+    kartu = _kartu(isi, "s-osn_cetak_ringkas")
+    info = sakelar_registry.info(CETAK)
+    form = re.search(r"<form[^>]*>", kartu).group(0)
+    assert html.unescape(re.search(r'data-konfirmasi="([^"]*)"', form).group(1)) == \
+        "Matikan %s? %s" % (info.label, info.akibat_mati)
+    assert 'class="admin-tombol admin-bahaya" type="submit">Matikan</button>' in kartu
+    assert "data-konfirmasi" not in _kartu(isi, "s-osn_bank_kalimat")  # fitur mati: tanpa konfirmasi
+    # Skrip konfirmasi yang sudah ada dimuat; tidak ada skrip baru pada halaman ini.
+    assert "form[data-konfirmasi" in isi and isi.count("<script") == 1
+    # Form dari halaman tetap bisa dikirim apa adanya (nama field tidak berubah).
+    data = {k: html.unescape(v) for k, v in POLA_HIDDEN.findall(kartu)}
+    assert set(data) == {"csrf", "tinjauan"}
+    kode, _i, tajuk = minta_admin(tertutup, SAKELAR, admin, {**data, "reauth": SANDI_ADMIN})
+    assert kode == 303 and _kondisi(CETAK).aktif is False
+
+
+def test_tidak_ada_baris_ai_dan_jargon_lama_di_halaman(tertutup, admin):
+    utama = _utama(minta_admin(tertutup, SAKELAR, admin)[1])
+    for teks in ("AI: tidak dipakai", 'id="ai"', 'href="/admin/ai"', "Sakelar pembayaran", "Env (belum diatur",
+                 "Key/provider produksi", "Recovery exact-pair", "Kebijakan D8/D9", "Prasyarat tepercaya",
+                 "migrator opt-in", "runtime produksi", "Perubahan pertama menyimpan nilai env"):
+        assert teks not in utama, teks
+
+
+def test_baca_saja_tanpa_cookie_tidak_punya_form_tombol_atau_konfirmasi(tertutup):
+    kode, isi, _t = minta_mentah(tertutup, SAKELAR, AKUN_ADMIN)
+    utama = _utama(isi)
+    assert kode == 200 and "Tampilan baca-saja" in utama
+    for terlarang in ("<form", "<button", "data-konfirmasi", 'name="reauth"', 'name="tinjauan"'):
+        assert terlarang not in utama, terlarang
+    assert 'id="ringkasan"' in utama and 'id="buka-transfer"' in utama  # status tetap terbaca

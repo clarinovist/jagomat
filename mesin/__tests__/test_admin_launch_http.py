@@ -58,9 +58,12 @@ def test_biaya_http_csrf_reauth_replay(server):
 def test_sakelar_pembayaran_http_gate_reauth_csrf_dan_tahap(server,monkeypatch):
     token=_login(server,'Admin-C',SANDI_ADMIN)
     body=_minta(server,'/admin/sakelar',cookie=token)[1]
-    assert 'Tahap saat ini: <strong>Nonaktif</strong>' in body
-    assert 'Tidak membuat atau memeriksa pembayaran.' in body
-    assert 'Tahap tujuan' in body and 'Terapkan perubahan tahap' in body
+    kartu_awal=body.split('id="pembayaran"',1)[1].split('</section>',1)[0]
+    assert 'Pembayaran QRIS (Midtrans)' in kartu_awal and 'Sakelar pembayaran' not in body
+    assert '<span class="admin-badge admin-status-besar">Tutup</span>' in kartu_awal
+    assert 'Pembeli tidak bisa membayar lewat QRIS dan tidak ada transaksi QRIS yang diperiksa.' in body
+    assert 'Status tujuan' in body and 'Terapkan perubahan tahap' in body
+    assert '<option value="nonaktif" selected>Tutup</option>' in body  # label awam, value tetap
     # Halaman Pengaturan layanan memuat banyak form; ambil token dari kartu pembayaran saja.
     kartu=body.split('id="pembayaran"',1)[1].split('</section>',1)[0]
     form=dict(csrf=_hidden(kartu,'csrf'),tinjauan=_hidden(kartu,'tinjauan'),
@@ -85,8 +88,9 @@ def test_sakelar_pembayaran_http_gate_reauth_csrf_dan_tahap(server,monkeypatch):
         assert cfg['tahap']=='rekonsiliasi' and cfg['revisi']==2
         assert c.execute('SELECT COUNT(*) FROM pembayaran_audit').fetchone()[0]==1
     body=_minta(server,'/admin/sakelar',cookie=token)[1]
-    assert 'Tahap saat ini: <strong>Rekonsiliasi</strong>' in body
-    assert 'Key/provider produksi: <strong>Siap</strong>' in body
+    assert '<span class="admin-badge admin-status-besar perhatian">Tutup untuk pesanan baru</span>' in body
+    assert '<option value="rekonsiliasi" selected>Tutup untuk pesanan baru (pesanan lama tetap diproses)</option>' in body
+    assert '<span>Kunci Midtrans produksi terpasang di server</span><span class="admin-badge">Siap</span>' in body
     assert 'kunci-sintetis' not in body and 'Server Key' not in body
 
 

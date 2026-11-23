@@ -16,7 +16,7 @@ import admin_labels as L
 from admin_antrean_pages import AntreanAdmin, SinyalNav, render_antrean
 from admin_ikon import ikon
 from admin_labels import LABEL_STATUS
-from admin_komponen import badge_status as _badge_status, e as _e, hidden_filter as _hidden_filter, opsi as _opsi, pager as _pager, pisah_kepala_cari as _pisah_kepala_cari, waktu as _waktu
+from admin_komponen import badge_aktif as _badge_aktif, lipat_aksi as _lipat_aksi, badge_status as _badge_status, e as _e, hidden_filter as _hidden_filter, opsi as _opsi, pager as _pager, pisah_kepala_cari as _pisah_kepala_cari, waktu as _waktu
 from admin_daftar_pages import render_keluarga, render_siswa  # noqa: F401 (API publik admin_pages)
 from admin_riwayat_pages import nav_riwayat, render_audit_batch, render_riwayat, render_riwayat_ai  # noqa: F401 (API publik admin_pages)
 import brand
@@ -638,12 +638,14 @@ def render_bagian_pendaftaran(status, *, csrf: str, token: str) -> str:
     dibuka = bool(status.dibuka)
     return (
         '<section class="admin-kartu admin-pendaftaran" id="pendaftaran" aria-labelledby="judul-pendaftaran">'
-        '<div class="admin-seksi-kepala"><h2 id="judul-pendaftaran">'
-        '<span class="admin-titik-status%s" aria-hidden="true"></span>Pendaftaran mandiri: %s</h2>'
-        '<span class="admin-meta">Perubahan tidak memengaruhi login yang sudah ada.</span></div>%s'
+        '<div class="admin-fitur-kepala"><h2 id="judul-pendaftaran">'
+        '<span class="admin-titik-status%s" aria-hidden="true"></span>Pendaftaran mandiri: %s</h2>%s</div>'
+        '<p class="admin-meta">Perubahan tidak memengaruhi login yang sudah ada.</p>%s'
         '<details><summary>Pratinjau saat ditutup</summary>%s</details></section>' % (
             "" if dibuka else " admin-titik-netral", "dibuka" if dibuka else "ditutup",
-            _form_pendaftaran(status, csrf, token), _pratinjau_pendaftaran(status),
+            _badge_aktif(dibuka, "Dibuka", "Ditutup"),
+            _lipat_aksi("Ubah pengaturan pendaftaran…", "admin-tombol", _form_pendaftaran(status, csrf, token)),
+            _pratinjau_pendaftaran(status),
         )
     )
 
