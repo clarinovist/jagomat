@@ -78,6 +78,9 @@ JUMLAH_RECOVERY = {
     # Koleksi recovery latihan-harian c1bf719 (0c17f2c F4/F5/F6 + kontrak 3cf1062): collect-only
     # arsip exact 27.526 nodeid di Python 3.9, 23 Nov 2026.
     "c1bf7191d8fd4c1c46a5cfc0574f1d3bbd5b1f38": 27526,
+    # Koleksi recovery lomba-tanggal 3cf536c (c1bf719 + berkas kontrak tanggal/nama lomba + kontrak 464074b): collect-only
+    # arsip exact 27.556 nodeid di Python 3.9, 23 Nov 2026.
+    "3cf536c9da6fee9e86a25beee1c22f42f57f5e78": 27556,
     "ff6acb158985f78ef0287ec18fb045d273921bdc": 13507,
     "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
     # Arsip exact reader katalog; nodeid identik empat manifest CI39596225447
