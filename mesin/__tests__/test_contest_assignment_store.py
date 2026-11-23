@@ -1,5 +1,6 @@
 """Penugasan Mode Lomba per anak: simpan, ubah, validasi nilai, CHECK DB, dan CASCADE saat siswa dihapus."""
 import dataclasses
+import datetime
 import sqlite3
 
 import pytest
@@ -30,7 +31,8 @@ def anak_lain(kon):
 
 
 def _atur(kon, siswa_id, **ubah):
-    nilai = dict(aktif=True, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None, sekarang=SEKARANG, oleh="guru1")
+    nilai = dict(aktif=True, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None,
+                 tanggal_lomba=None, nama_lomba=None, sekarang=SEKARANG, oleh="guru1")
     nilai.update(ubah)
     return A.atur(kon, siswa_id, **nilai)
 
@@ -182,3 +184,72 @@ def test_durasi_tidak_sah_ditolak_tanpa_menulis(kon, anak, ubah):
 def test_durasi_pada_batas_diterima(kon, anak, menit):
     hasil = _atur(kon, anak, durasi_latihan_detik=menit * 60, durasi_simulasi_detik=menit * 60)
     assert hasil.durasi_latihan_detik == menit * 60
+
+
+# --- tanggal dan nama lomba per anak (23 Nov 2026) ---------------------------------------------------------
+
+def test_tanggal_dan_nama_lomba_tersimpan_dan_terbaca_lagi(kon, anak):
+    hasil = _atur(kon, anak, tanggal_lomba=datetime.date(2026, 12, 20), nama_lomba="Olimpiade Kota")
+
+    assert (hasil.tanggal_lomba, hasil.nama_lomba) == (datetime.date(2026, 12, 20), "Olimpiade Kota")
+    assert A.ambil(kon, anak) == hasil
+    baris = kon.execute("SELECT tanggal_lomba, nama_lomba FROM lomba_penugasan").fetchone()
+    assert tuple(baris) == ("2026-12-20", "Olimpiade Kota")
+
+
+def test_tanggal_dan_nama_none_tersimpan_sebagai_null_bukan_tanggal_paket(kon, anak):
+    hasil = _atur(kon, anak)
+
+    assert hasil.tanggal_lomba is None and hasil.nama_lomba is None
+    assert tuple(kon.execute("SELECT tanggal_lomba, nama_lomba FROM lomba_penugasan").fetchone()) == (None, None)
+
+
+def test_atur_kedua_mengganti_tanggal_dan_nama_lama(kon, anak):
+    _atur(kon, anak, tanggal_lomba=datetime.date(2026, 12, 20), nama_lomba="Lama")
+
+    hasil = _atur(kon, anak, tanggal_lomba=datetime.date(2027, 1, 5), nama_lomba="Baru")
+    assert (hasil.tanggal_lomba, hasil.nama_lomba) == (datetime.date(2027, 1, 5), "Baru")
+
+    kosong = _atur(kon, anak)
+    assert (kosong.tanggal_lomba, kosong.nama_lomba) == (None, None)
+
+
+def test_tanggal_dan_nama_wajib_disebut_saat_atur(kon, anak):
+    with pytest.raises(TypeError):
+        A.atur(kon, anak, aktif=True, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None,
+               durasi_simulasi_detik=None, sekarang=SEKARANG, oleh="g")
+
+
+@pytest.mark.parametrize("tanggal", [
+    "2026-12-20", 20261220, True, datetime.datetime(2026, 12, 20, 10, 0), 1.5,
+])
+def test_tanggal_tidak_sah_ditolak_tanpa_menulis(kon, anak, tanggal):
+    awal = _atur(kon, anak, tanggal_lomba=datetime.date(2026, 12, 20))
+    with pytest.raises(ValueError):
+        _atur(kon, anak, tanggal_lomba=tanggal)
+    assert A.ambil(kon, anak) == awal
+
+
+@pytest.mark.parametrize("nama", ["", "   ", "x" * 61, "a\nb", "a\x00b", "tab\there", 123, b"abc"])
+def test_nama_tidak_sah_ditolak_tanpa_menulis(kon, anak, nama):
+    awal = _atur(kon, anak, nama_lomba="Awal")
+    with pytest.raises(ValueError):
+        _atur(kon, anak, nama_lomba=nama)
+    assert A.ambil(kon, anak) == awal
+
+
+def test_nama_di_batas_enam_puluh_diterima_dan_di_strip(kon, anak):
+    assert _atur(kon, anak, nama_lomba="n" * 60).nama_lomba == "n" * 60
+    assert _atur(kon, anak, nama_lomba="  Lomba Sekolah  ").nama_lomba == "Lomba Sekolah"
+
+
+@pytest.mark.parametrize("kolom,nilai", (
+    ("tanggal_lomba", "2026-13-45"), ("tanggal_lomba", "2026-1-1"), ("tanggal_lomba", "20261220"),
+    ("tanggal_lomba", "2026-12-20 "), ("tanggal_lomba", ""), ("nama_lomba", ""), ("nama_lomba", "x" * 61),
+))
+def test_check_db_menolak_tanggal_dan_nama_liar_walau_lewat_sql_langsung(kon, anak, kolom, nilai):
+    dasar = {"siswa_id": anak, "paket_id": "p", "aktif": 1, "diubah_epoch": SEKARANG, kolom: nilai}
+
+    with pytest.raises(sqlite3.IntegrityError):
+        kon.execute("INSERT INTO lomba_penugasan(" + ", ".join(dasar) + ") VALUES ("
+                    + ", ".join(":" + k for k in dasar) + ")", dasar)

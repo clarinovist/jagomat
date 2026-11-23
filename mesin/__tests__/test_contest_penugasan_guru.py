@@ -113,7 +113,7 @@ def test_kartu_belum_aktif_tampil_di_atas_dengan_form_dan_pilihan_target(s):
 def test_kartu_menampilkan_status_aktif_dengan_nama_anak_di_escape(s):
     with s.buka() as kon:
         AS.atur(kon, s.anak, aktif=True, target_harian=3, tampil_hitung_mundur=False, durasi_latihan_detik=None, durasi_simulasi_detik=None,
-                sekarang=SEKARANG_UJI, oleh="guru")
+                tanggal_lomba=None, nama_lomba=None, sekarang=SEKARANG_UJI, oleh="guru")
 
     isi = _halaman(s)
 
@@ -132,7 +132,7 @@ def test_pesan_tersimpan_hanya_muncul_dengan_tersimpan_satu(s):
 def test_riwayat_guru_tetap_terbuka_walau_penugasan_mati(s):
     with s.buka() as kon:
         AS.atur(kon, s.anak, aktif=False, target_harian=None, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None,
-                sekarang=SEKARANG_UJI, oleh="guru")
+                tanggal_lomba=None, nama_lomba=None, sekarang=SEKARANG_UJI, oleh="guru")
 
     assert "Belum ada sesi latihan yang selesai" in _halaman(s)
 
@@ -203,7 +203,7 @@ def test_guru_pemilik_anak_keluarga_sendiri_lain_dapat_mengatur(s):
 def test_bukan_pemilik_dijawab_404_identik_dan_baris_tidak_berubah(s):
     with s.buka() as kon:
         AS.atur(kon, s.anak, aktif=False, target_harian=1, tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None,
-                sekarang=SEKARANG_UJI, oleh="semula")
+                tanggal_lomba=None, nama_lomba=None, sekarang=SEKARANG_UJI, oleh="semula")
     sebelum = _tabel(s)
 
     hasil = _post(s, s.anak, {"aktif": "1", "target": "3"}, auth=GURU_LAIN)

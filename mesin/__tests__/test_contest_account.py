@@ -91,7 +91,7 @@ def test_kartu_kosong_saat_sakelar_induk_mati(s, monkeypatch):
 def test_guru_mengaktifkan_lalu_mematikan_anaknya_dan_target_dipertahankan(s):
     with s.buka() as kon:
         AS.atur(kon, s.anak, aktif=False, target_harian=1, tampil_hitung_mundur=False, durasi_latihan_detik=20 * 60,
-                durasi_simulasi_detik=90 * 60, sekarang=1, oleh="guru")
+                durasi_simulasi_detik=90 * 60, tanggal_lomba=None, nama_lomba=None, sekarang=1, oleh="guru")
 
     kode, isi = _minta(s, "/akun", _aksi(s.anak, "1"))
     aktif = _tunggu_penugasan(s, s.anak, True)

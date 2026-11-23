@@ -102,7 +102,7 @@ def server(tmp_path, monkeypatch, jam):
             uji.anak_dua = database.tambah_siswa(kon, "Budi Sintetis", pemilik="guru")
             for anak in (uji.anak_satu, uji.anak_dua):      # Mode Lomba per anak: Guru sudah mengaktifkan
                 contest_assignment_store.atur(kon, anak, aktif=True, target_harian=None,
-                                              tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None, sekarang=T0, oleh="guru-uji")
+                                              tampil_hitung_mundur=None, durasi_latihan_detik=None, durasi_simulasi_detik=None, tanggal_lomba=None, nama_lomba=None, sekarang=T0, oleh="guru-uji")
         auth.tambah_akun("budi-uji", SANDI_DUA, "murid", siswa_id=uji.anak_dua)
         yield uji
     finally:

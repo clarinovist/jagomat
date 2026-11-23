@@ -282,7 +282,7 @@ def _buat_lomba(kon, siswa_id, seed):
     import contest_store
 
     contest_assignment_store.atur(kon, siswa_id, aktif=True, target_harian=3, tampil_hitung_mundur=False, durasi_latihan_detik=None, durasi_simulasi_detik=None,
-                                  sekarang=1_800_000_000, oleh="guru-sintetis")
+                                  tanggal_lomba=None, nama_lomba=None, sekarang=1_800_000_000, oleh="guru-sintetis")
     sesi = contest_store.mulai_atau_lanjut(kon, siswa_id, 1_800_000_000, seed=seed)
     contest_store.simpan_jawaban(kon, siswa_id, sesi.id, 1, "A", 1_800_000_010)
     return sesi.id

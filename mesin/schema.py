@@ -778,6 +778,11 @@ MIGRASI: list[tuple[str, str, str]] = [
     ("lomba_sesi", "mode", "ALTER TABLE lomba_sesi ADD COLUMN mode TEXT NOT NULL DEFAULT 'latihan' CHECK (mode IN ('latihan', 'simulasi'))"),
     ("lomba_penugasan", "durasi_latihan_detik", "ALTER TABLE lomba_penugasan ADD COLUMN durasi_latihan_detik INTEGER CHECK (durasi_latihan_detik IS NULL OR durasi_latihan_detik BETWEEN 300 AND 10800)"),
     ("lomba_penugasan", "durasi_simulasi_detik", "ALTER TABLE lomba_penugasan ADD COLUMN durasi_simulasi_detik INTEGER CHECK (durasi_simulasi_detik IS NULL OR durasi_simulasi_detik BETWEEN 300 AND 10800)"),
+    # Tanggal + nama lomba per anak (23 Nov 2026). DEFAULT hanya di DDL migrasi: baris yang SUDAH ada mempertahankan
+    # perilaku lama (12 Des 2026, Grand Final Corexis); `contest_assignment_store.atur` selalu menulis kedua kolom
+    # secara eksplisit (None -> NULL), jadi anak baru tidak mewarisi tanggal itu.
+    ("lomba_penugasan", "tanggal_lomba", "ALTER TABLE lomba_penugasan ADD COLUMN tanggal_lomba TEXT DEFAULT '2026-12-12' CHECK (tanggal_lomba IS NULL OR (length(tanggal_lomba) = 10 AND tanggal_lomba GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' AND date(tanggal_lomba) IS tanggal_lomba))"),
+    ("lomba_penugasan", "nama_lomba", "ALTER TABLE lomba_penugasan ADD COLUMN nama_lomba TEXT DEFAULT 'Grand Final Corexis' CHECK (nama_lomba IS NULL OR length(nama_lomba) BETWEEN 1 AND 60)"),
 ]
 
 # View yang definisinya berubah dan karena itu harus dibangun ulang.

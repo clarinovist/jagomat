@@ -219,6 +219,8 @@ def _simpan(penangan, kon, siswa_id: int) -> str:
             durasi_latihan_detik=_pilih_durasi(pengaturan.durasi_latihan, lama.durasi_latihan_detik if lama else None),
             durasi_simulasi_detik=_pilih_durasi(pengaturan.durasi_simulasi,
                                                 lama.durasi_simulasi_detik if lama else None),
+            tanggal_lomba=lama.tanggal_lomba if lama else None,
+            nama_lomba=lama.nama_lomba if lama else None,
             sekarang=_sekarang(), oleh=penangan._identitas()[0][:AS.MAKS_PANJANG_OLEH])
     return "tersimpan"
 
