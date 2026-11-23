@@ -106,6 +106,7 @@ _PROBE_POST = {
     "/masuk": "/masuk",
     "/daftar": "/daftar",
     "/murid/": "/murid/kerjakan/1",
+    "/murid/cek/mulai": "/murid/cek/mulai",
     "/lembaga": "/lembaga/pindah",
     "/sesi/": "/sesi/1",
     "/akun": "/akun",

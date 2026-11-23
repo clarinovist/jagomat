@@ -139,6 +139,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
     ("/daftar", "publik"),
     ("/murid/", "murid"),
+    ("/murid/cek/mulai", "murid"),  # F2b: mulai cek dari sesi anak (exact); DAFTAR_AKUN_ANAK + funnel mati = jalur murid asing
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),
@@ -863,6 +864,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import contest_http  # setelah _asal_sama_post; sebelum student_http
         if contest_http.tangani_post(self, jalur):
+            return
+        import cek_murid_http  # F2b: cek kemampuan dari sesi anak; sebelum _lolos_sandi, gerbang mati = False
+        if cek_murid_http.tangani_post(self, jalur):
             return
         import student_http
         if student_http.tangani_post(self, jalur):
