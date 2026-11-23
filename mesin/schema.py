@@ -22,8 +22,9 @@ SKEMA = """
 PRAGMA journal_mode = WAL;
 PRAGMA foreign_keys = ON;
 
--- Anak. Disimpan inisial/nama panggilan saja, bukan nama lengkap:
--- mengurangi dampak kalau basis data ini bocor.
+-- Anak. Pendaftaran mode anak (23 Nov 2026) menyimpan nama lengkap anak
+-- (nama akun anak dipakai juga sebagai nama tampilan); data anak tetap privat
+-- di aplikasi: tidak masuk Git, log, layanan pihak ketiga, atau fixture.
 --
 -- `pemilik` = username akun guru/orang tua pemiliknya (multi-keluarga).
 -- Kosong berarti warisan era single-family: hanya terlihat oleh admin,

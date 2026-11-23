@@ -31,8 +31,11 @@ HASIL_BELUM = {"status": "belum_selesai", "skor": None, "kategori": None,
 # (2) desain ulang sisi orang tua sesuai prototipe (kepala skor dengan cincin, "X dari 15 soal benar", chip
 # ringkasan, daftar terkunci, kotak batas, tautan contoh, tautan ke halaman siap mulai di hasil belum selesai).
 # Kontrak "tanpa byte pesan" dijaga eksplisit oleh test_cta_pesan_tidak_meninggalkan_byte_saat_token_none.
-GOLDEN_SELESAI = "a225a9018cfa6ca3b6433553fb1683c5ee12b75f4a6584692765f03320fa3fae"  # 22 Nov: shell guru (font lokal, topbar); isi <main> identik
-GOLDEN_BELUM = "2b0e131f6f1ed45fd6712e224b7012c6b0c9185f13114d8917f0566e69a955b7"
+# Diperbarui 23 Nov 2026 (golden terakhir hijau di 0ac865e, 22 Nov): hanya blok <style> yang berubah, isi <body>
+# dan skrip identik. Penyebab: CSS bersama (3667919 tombol koral jadi teal; bcfe8e2 area anak 22 Nov; 7eaaf9d font
+# lokal/CSP 23 Nov). Perilaku (field, tautan, token, CTA) tidak berubah.
+GOLDEN_SELESAI = "fd4ef7be6f3a739037aef8338194dfdbbb3fae662181a98ed375b002ed9c92e7"
+GOLDEN_BELUM = "98b796430be2aa97cfa631c9f199003385fb38655f95dc856e6c485c3abe60fa"
 
 
 def _render(hasil, **kw):

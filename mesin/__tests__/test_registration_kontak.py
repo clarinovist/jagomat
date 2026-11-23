@@ -27,10 +27,15 @@ WA_MASUKAN = "0812-3456-7890"
 WA_NORMAL = "6281234567890"
 WA_LAIN = "6285551234567"
 SIDIK_EMAS = "b0924e77255ebfa466ed710823dcee44a30b859f35446d5697cea2ba54329f7d"
+# Diperbarui 23 Nov 2026, perubahan tampilan yang disengaja, bukan perilaku form: golden terakhir hijau di
+# deb96ef (22 Nov 16:48). Sejak itu hanya <head> dan <style> halaman_daftar yang berubah: tautan Google Fonts
+# diganti @font-face same-origin (3c07916 font merek 22 Nov, 7eaaf9d font lokal/CSP 23 Nov) dan CSS bersama
+# bergeser oleh shell guru (6221a6b, e630a8c, 3667919 22 Nov) dan area anak (bcfe8e2 22 Nov). Body <form>
+# (field, action, token, CTA, kesepakatan) dan skrip identik; dibuktikan lewat diff markup di luar <style>.
 MARKUP_EMAS = {
-    "polos": "0ad0c4f69826f9f983ba54b2c93f445391e71c3f476d22a0620967b5ae771b2f",
-    "lengkap": "651ec6a7b61bc757d1c14eb1ac3d13d48633e4d5716136d65575098d6fc580f5",
-    "kesepakatan": "0a353790bcef1c143763c44c8366098796810b18f6e7b41d841e689476dbc669",
+    "polos": "d37778b3d40b4a26392d3772a8bb08b44382c7aec33decc78536ba23e572d307",
+    "lengkap": "e7fd1f743e86681bda361b4b6bc85fb007fd4ccd58654dd8b3c16682bb99ffbd",
+    "kesepakatan": "709768b616036408af166ba27b02b814ab2e3c6d2e0b6913b9817e83c31d3b50",
 }
 
 
