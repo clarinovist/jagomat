@@ -32,6 +32,7 @@ NAMA_SAKELAR = (
     "OSN_BANK_KALIMAT",
     "OSN_LOMBA",
     "DAFTAR_AKUN_ANAK",
+    "LATIHAN_HARIAN",
 )
 
 BERKAS_BAWAAN = "/data/sakelar.db"

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Callable, Dict
 
 import choice_pages
+import akses_harian
 import contest_gate
 import daftar_anak_gate
 import feature_switch
@@ -79,6 +80,13 @@ _INFO = {
         akibat_mati="Pendaftar baru kembali membuat akun guru untuk orang tua. Akun anak yang sudah dibuat tetap bisa masuk.",
         kelompok=KELOMPOK_PENJUALAN,
         dari_env=daftar_anak_gate.dari_env),
+    "LATIHAN_HARIAN": InfoSakelar(
+        label="Latihan Harian",
+        dampak="Saat aktif, murid bisa berlatih soal harian per tingkat: satu sesi gratis per hari, tanpa batas "
+               "untuk pelanggan dan murid les. Saat mati, fitur ini tidak tampil dan halamannya tampil seperti tidak ada.",
+        akibat_mati="Murid dan orang tua tidak bisa membuka Latihan Harian; halamannya tampil seperti tidak ada.",
+        kelompok=KELOMPOK_BELAJAR,
+        dari_env=akses_harian.dari_env),
 }
 
 if tuple(_INFO) != feature_switch.NAMA_SAKELAR:
