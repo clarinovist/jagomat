@@ -2,8 +2,11 @@
 
 Tanpa HTTP/berkas. Keputusan = satu `BEGIN IMMEDIATE`: tulis `harian_verifikasi` (hanya atas bukti terbaru yang
 DILIHAT admin; bukti baru sejak itu = konflik tanpa tulis) lalu, bila setuju, `harian_akses` di transaksi yang sama.
-Masa aktif: mulai = max(sekarang, akhir akses terakhir anak) supaya perpanjangan menyambung; berakhir = mulai +
-periode paket dalam bulan kalender WIB (`harian_langganan_dasar.tambah_bulan_wib`). Tanpa nama anak atau kontak.
+Masa aktif: mulai = max(sekarang, akhir akses terakhir anak) supaya perpanjangan menyambung. berakhir dihitung dari
+JANGKAR rantai akses yang tersambung (mulai akses pertama dalam rantai): jangkar + bulan paket seluruh rantai (termasuk
+paket baru) dalam bulan kalender WIB (`harian_langganan_dasar.tambah_bulan_wib`), sehingga hari jangkar tidak bergeser
+oleh jepit akhir bulan (31 Jan -> 28 Feb -> 31 Mar). Akses terakhir sudah berakhir = rantai baru, jangkar = sekarang.
+Tanpa nama anak atau kontak.
 """
 from __future__ import annotations
 
@@ -35,11 +38,18 @@ def _order(kon, order_id: str):
                        (order_id,)).fetchone()
 
 
+def _keadaan_bukti(baris, hingga: int) -> str:
+    if baris["dihapus"] is not None:
+        return "dihapus"
+    return "diputuskan" if baris["id"] <= hingga else "menunggu"
+
+
 def _bukti(kon, order_id: str, hingga: int) -> tuple:
-    baris = kon.execute("SELECT %s FROM harian_bukti WHERE order_id=? ORDER BY id" % ",".join(_KOLOM_BUKTI),
-                        (order_id,))
-    return tuple({**{k: b[k] for k in _KOLOM_BUKTI}, "keadaan": "diputuskan" if b["id"] <= hingga else "menunggu"}
-                 for b in baris)
+    """Bukti satu order dengan keadaan: `dihapus` (ada tanda di harian_bukti_hapus), `diputuskan`, atau `menunggu`."""
+    baris = kon.execute(
+        "SELECT %s,x.dihapus AS dihapus FROM harian_bukti b LEFT JOIN harian_bukti_hapus x ON x.bukti_id=b.id "
+        "WHERE b.order_id=? ORDER BY b.id" % ",".join("b." + k for k in _KOLOM_BUKTI), (order_id,))
+    return tuple({**{k: b[k] for k in _KOLOM_BUKTI}, "keadaan": _keadaan_bukti(b, hingga)} for b in baris)
 
 
 def detail(kon, order_id: str, sekarang) -> Optional[dict]:
@@ -69,14 +79,30 @@ def bukti_meta(kon, bukti_id) -> Optional[dict]:
     return None if baris is None else {k: baris[k] for k in ("berkas", "mime", "ukuran")}
 
 
-def _mulai_akses(kon, siswa_id: int, kini: str) -> str:
-    akhir = kon.execute("SELECT MAX(berakhir) FROM harian_akses WHERE siswa_id=?", (siswa_id,)).fetchone()[0]
-    return kini if akhir is None or akhir < kini else akhir
+def _rantai_akses(kon, siswa_id: int, kini: str) -> tuple:
+    """(mulai_baru, jangkar, bulan_terpakai) untuk akses berikutnya milik anak.
+
+    Rantai = akses terakhir bila belum berakhir (berakhir >= kini) ditambah akses sebelumnya yang tersambung
+    (mulai baris == berakhir baris sebelumnya), mundur sampai putus. Jangkar = mulai akses pertama rantai;
+    bulan_terpakai = jumlah bulan paket seluruh rantai. Tanpa akses, atau akses terakhir sudah berakhir:
+    rantai baru (mulai = jangkar = kini, bulan_terpakai = 0). Hanya SELECT; dipanggil di dalam transaksi tulis.
+    """
+    baris = kon.execute(
+        "SELECT a.mulai,a.berakhir,o.paket FROM harian_akses a JOIN harian_order o ON o.id=a.order_id "
+        "WHERE a.siswa_id=? ORDER BY a.id DESC", (siswa_id,)).fetchall()
+    if not baris or baris[0]["berakhir"] < kini:
+        return kini, kini, 0
+    rantai = [baris[0]]
+    for sebelumnya in baris[1:]:
+        if sebelumnya["berakhir"] != rantai[-1]["mulai"]:
+            break
+        rantai.append(sebelumnya)
+    return baris[0]["berakhir"], rantai[-1]["mulai"], sum(h.PAKET[b["paket"]].bulan for b in rantai)
 
 
 def _tulis_akses(kon, order, verifikasi_id: int, kini: str) -> None:
-    mulai = _mulai_akses(kon, order["siswa_id"], kini)
-    berakhir = h.tambah_bulan_wib(mulai, h.PAKET[order["paket"]].bulan)
+    mulai, jangkar, bulan_terpakai = _rantai_akses(kon, order["siswa_id"], kini)
+    berakhir = h.tambah_bulan_wib(jangkar, bulan_terpakai + h.PAKET[order["paket"]].bulan)
     kon.execute("INSERT INTO harian_akses(order_id,siswa_id,verifikasi_id,mulai,berakhir,dibuat) VALUES(?,?,?,?,?,?)",
                 (order["id"], order["siswa_id"], verifikasi_id, mulai, berakhir, kini))
 

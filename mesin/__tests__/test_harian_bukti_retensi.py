@@ -10,6 +10,7 @@ import pytest
 
 import database
 import harian_langganan_berkas as berkas_harian
+import harian_langganan_admin_pages as halaman
 import harian_langganan_dasar as h
 import harian_langganan_putusan as putusan
 import harian_bukti_retensi as retensi
@@ -97,6 +98,35 @@ def _ada(folder, nama):
 
 def _tertanda(kon):
     return kon.execute("SELECT COUNT(*) FROM harian_bukti_hapus").fetchone()[0]
+
+
+# --- halaman admin: bukti yang sudah dihapus retensi --------------------------------------------
+
+def test_detail_dan_halaman_admin_bukti_terhapus_retensi_tanpa_tautan_atau_pratinjau(kon, folder):
+    _, order_lama, id_lama, _ = _putuskan(kon, folder, waktu=T0)
+    _, order_baru, id_baru, _ = _putuskan(kon, folder, waktu="2026-12-15T03:00:00")
+    sekarang = "2026-12-24T03:00:00"  # lama 31 hari sejak keputusan, baru hanya 9 hari
+
+    assert retensi.sapu(kon, folder, sekarang).ditandai == 1
+
+    rinci_lama = putusan.detail(kon, order_lama, sekarang)
+    assert [b["keadaan"] for b in rinci_lama["bukti"]] == ["dihapus"]
+    html_lama = halaman.halaman_detail(rinci_lama, None)
+    assert "/admin/langganan/bukti" not in html_lama and "<img" not in html_lama
+    assert "Sudah dihapus (retensi 30 hari)" in html_lama and "Sudah diputuskan" not in html_lama
+    rinci_baru = putusan.detail(kon, order_baru, sekarang)
+    assert [b["keadaan"] for b in rinci_baru["bukti"]] == ["diputuskan"]
+    html_baru = halaman.halaman_detail(rinci_baru, None)
+    assert 'href="/admin/langganan/bukti?id=%d"' % id_baru in html_baru and "<img" in html_baru
+
+
+def test_detail_bukti_sebelum_sapuan_tetap_diputuskan_dengan_tautan(kon, folder):
+    _, order, bukti_id, _ = _putuskan(kon, folder, waktu=T0)
+
+    rinci = putusan.detail(kon, order, KURANG_SEDETIK)
+
+    assert [b["keadaan"] for b in rinci["bukti"]] == ["diputuskan"]
+    assert "/admin/langganan/bukti?id=%d" % bukti_id in halaman.halaman_detail(rinci, None)
 
 
 # --- sapuan inti --------------------------------------------------------------------------------

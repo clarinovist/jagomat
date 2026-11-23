@@ -28,6 +28,7 @@ HASIL_SETUJU = "verifikasi_setuju"
 HASIL_TOLAK = "verifikasi_tolak"
 COPY_HASIL = {HASIL_SETUJU: "Langganan disetujui dan masa aktif sudah dicatat.",
               HASIL_TOLAK: "Bukti ditolak; orang tua melihat alasannya dan dapat mengunggah ulang."}
+COPY_BUKTI_DIHAPUS = "Sudah dihapus (retensi 30 hari)"
 COPY_ANTREAN_KOSONG = "Tidak ada bukti langganan yang menunggu verifikasi."
 COPY_KONFIRMASI_SETUJUI = (
     "Setujui transfer ini? Langganan langsung aktif dan keputusan tidak dapat dibatalkan.")
@@ -44,6 +45,8 @@ COPY_GALAT_ALASAN = (
 COPY_STATUS = {h.STATUS_AKTIF: "Disetujui", h.STATUS_MENUNGGU: "Menunggu verifikasi",
                h.STATUS_DITOLAK: "Ditolak (menunggu unggah ulang)", h.STATUS_KEDALUWARSA: "Kedaluwarsa",
                h.STATUS_BELUM_BAYAR: "Menunggu pembayaran"}
+
+COPY_KEADAAN_BUKTI = {"menunggu": "Menunggu keputusan", "diputuskan": "Sudah diputuskan", "dihapus": COPY_BUKTI_DIHAPUS}
 
 Token = Tuple[str, str]
 
@@ -88,6 +91,8 @@ def _form_tolak(token: Token) -> str:
 
 
 def _pratinjau(bukti: Mapping) -> str:
+    if bukti["keadaan"] == "dihapus":
+        return ""
     alamat = "%s?id=%d" % (RUTE_BUKTI, bukti["id"])
     gambar = ('<img src="%s" alt="Bukti transfer nomor %d" class="admin-bukti-gambar">' % (alamat, bukti["id"])
               if bukti["mime"].startswith("image/") else "")
@@ -97,7 +102,7 @@ def _pratinjau(bukti: Mapping) -> str:
 
 def _baris_bukti(bukti: Mapping) -> str:
     ukuran = max(1, -(-bukti["ukuran"] // vp.BYTE_PER_KB))
-    keadaan = "Menunggu keputusan" if bukti["keadaan"] == "menunggu" else "Sudah diputuskan"
+    keadaan = COPY_KEADAAN_BUKTI[bukti["keadaan"]]
     sel = (bukti["id"], vp._waktu(bukti["diunggah"]), e(vp._LABEL_MIME.get(bukti["mime"], bukti["mime"])),
            "%d KB" % ukuran, e(keadaan), _pratinjau(bukti))
     return "<tr>%s</tr>" % "".join("<td>%s</td>" % s for s in sel)

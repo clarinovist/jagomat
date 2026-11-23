@@ -247,7 +247,62 @@ def test_perpanjangan_menyambung_dari_akhir_akses_aktif(kon):
     langganan_aktif(kon, s, "2026-11-25T03:00:00")
     baris = kon.execute("SELECT mulai,berakhir FROM harian_akses ORDER BY id").fetchall()
     assert baris[1]["mulai"] == pertama == baris[0]["berakhir"]
-    assert baris[1]["berakhir"] == h.tambah_bulan_wib(pertama, 1)
+    # berakhir dihitung dari jangkar rantai (mulai akses pertama), bukan dari akhir akses sebelumnya
+    assert baris[1]["berakhir"] == h.tambah_bulan_wib(baris[0]["mulai"], 2)
+
+
+def _akses(kon):
+    return kon.execute("SELECT mulai,berakhir FROM harian_akses ORDER BY id").fetchall()
+
+
+def test_perpanjangan_bulanan_berantai_tidak_menggeser_hari_jangkar(kon):
+    s = anak(kon)
+    jangkar = "2026-01-31T03:00:00"
+    langganan_aktif(kon, s, jangkar)
+    for n in range(1, 5):  # 4 perpanjangan saat masih aktif, tiap kali sehari sebelum habis
+        akhir_lama = _akses(kon)[-1]["berakhir"]
+        langganan_aktif(kon, s, h.tambah_jam(akhir_lama, -24))
+    baris = _akses(kon)
+    assert [b["berakhir"] for b in baris] == [h.tambah_bulan_wib(jangkar, n) for n in range(1, 6)]
+    assert baris[1]["berakhir"] == h.tambah_bulan_wib(jangkar, 2) != h.tambah_bulan_wib(baris[0]["berakhir"], 1)
+    assert [b["mulai"] for b in baris[1:]] == [b["berakhir"] for b in baris[:-1]]
+
+
+def test_perpanjangan_31_januari_lalu_maret_tetap_31_maret(kon):
+    s = anak(kon)
+    langganan_aktif(kon, s, "2026-01-31T03:00:00")
+    langganan_aktif(kon, s, "2026-02-10T03:00:00")
+    baris = _akses(kon)
+    assert baris[0]["berakhir"] == "2026-02-28T03:00:00"
+    assert baris[1]["berakhir"] == "2026-03-31T03:00:00"
+
+
+def test_perpanjangan_campuran_tahunan_lalu_bulanan_memakai_jangkar_pertama(kon):
+    s = anak(kon)
+    jangkar = "2026-01-31T03:00:00"
+    t = pesan(kon, s, "tahunan", waktu=jangkar)
+    b = bukti(kon, s, waktu=jangkar)
+    setuju(kon, t["order_id"], jangkar, b["bukti_id"])
+    langganan_aktif(kon, s, "2026-12-01T03:00:00")
+    langganan_aktif(kon, s, "2027-01-15T03:00:00")
+    baris = _akses(kon)
+    assert baris[0]["berakhir"] == "2027-01-31T03:00:00"
+    assert baris[1]["mulai"] == baris[0]["berakhir"]
+    assert baris[1]["berakhir"] == h.tambah_bulan_wib(jangkar, 13) == "2027-02-28T03:00:00"
+    assert baris[2]["berakhir"] == h.tambah_bulan_wib(jangkar, 14) == "2027-03-31T03:00:00"
+
+
+def test_perpanjangan_setelah_celah_memulai_jangkar_baru_dari_sekarang(kon):
+    s = anak(kon)
+    langganan_aktif(kon, s, "2026-01-31T03:00:00")
+    langganan_aktif(kon, s, "2026-02-10T03:00:00")  # rantai lama: jangkar 31 Jan, berakhir 31 Mar
+    langganan_aktif(kon, s, "2026-05-15T03:00:00")  # sudah berakhir -> rantai baru
+    langganan_aktif(kon, s, "2026-05-20T03:00:00")  # menyambung ke rantai baru
+    baris = _akses(kon)
+    assert baris[2]["mulai"] == "2026-05-15T03:00:00"
+    assert baris[2]["berakhir"] == "2026-06-15T03:00:00"
+    assert baris[3]["mulai"] == baris[2]["berakhir"]
+    assert baris[3]["berakhir"] == "2026-07-15T03:00:00"  # bukan hari 31 warisan rantai lama
 
 
 def test_setelah_berakhir_mulai_dari_sekarang_bukan_dari_masa_lalu(kon):
