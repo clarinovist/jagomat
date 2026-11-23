@@ -261,11 +261,14 @@ def _bagian_ringkasan(ringkasan, cakupan) -> str:
     return bagian
 
 
-def isi_laporan(*, nama, isi, catatan, guru, periode, diterbitkan=None, kedaluarsa=None, judul_tag="h1") -> str:
+def isi_laporan(*, nama, isi, catatan, guru, periode, diterbitkan=None, kedaluarsa=None, judul_tag="h1",
+                tanpa_batas_berlaku=False) -> str:
     """Markup satu laporan (`<article class="lo">`); dipakai halaman orang tua dan pratinjau guru.
 
     Hanya field allowlist yang dibaca dari `isi`. Tanggal terbit dan batas berlaku kosong
     pada pratinjau draf. Payload v1 lama tetap dirender utuh tanpa memaksa blok baru.
+    `tanpa_batas_berlaku` (halaman orang tua di akun murid, tanpa tautan bearer) hanya menulis tanggal terbit:
+    tanpa baris "Pratinjau" dan tanpa "Berlaku sampai". Bawaan False: jalur token dan pratinjau tidak berubah.
     """
     topik = [str(t) for t in (isi.get("topik") or [])]
     bagian_catatan = ""
@@ -275,7 +278,9 @@ def isi_laporan(*, nama, isi, catatan, guru, periode, diterbitkan=None, kedaluar
         bagian_catatan = (f'<section><p class="sub">Catatan guru</p>'
                           f'<div class="catatan">{_esc(catatan)}</div>{tanda}</section>')
     oleh = f" oleh {_esc(guru)}" if ada_guru and not bagian_catatan else ""
-    if diterbitkan is None or kedaluarsa is None:
+    if tanpa_batas_berlaku:
+        penutup = "" if diterbitkan is None else f'<p class="kecil">Diterbitkan {_esc(_tanggal_panjang(diterbitkan))}{oleh}.</p>'
+    elif diterbitkan is None or kedaluarsa is None:
         penutup = '<p class="kecil">Pratinjau: tanggal terbit dan batas berlaku terisi saat laporan diterbitkan.</p>'
     else:
         penutup = (f'<p class="kecil">Diterbitkan {_esc(_tanggal_panjang(diterbitkan))}{oleh}.</p>'

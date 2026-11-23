@@ -142,6 +142,26 @@ def bukti_berubah(kon, siswa_id: int, laporan_id: int) -> int:
     ).fetchone()[0]
 
 
+def terbit_terbaru(kon, siswa_id: int):
+    """Laporan terbit terbaru milik anak ini (isi dan catatan tanpa token), atau None bila belum ada.
+
+    Dipakai halaman orang tua di akun murid: draf (belum terbit) tidak pernah terbaca, dan kunci
+    `siswa_id` selalu dari sisi server. Nama anak dibaca live. Hanya membaca.
+    """
+    baris = kon.execute(
+        """SELECT s.nama, l.isi, l.catatan, l.guru, l.periode_mulai, l.periode_akhir, l.diterbitkan
+           FROM laporan_ortu l JOIN siswa s ON s.id = l.siswa_id
+           WHERE l.siswa_id = ? AND l.diterbitkan IS NOT NULL
+           ORDER BY l.id DESC LIMIT 1""",
+        (siswa_id,),
+    ).fetchone()
+    if baris is None:
+        return None
+    return {"nama": baris["nama"], "isi": json.loads(baris["isi"]), "catatan": baris["catatan"],
+            "guru": baris["guru"], "periode": (baris["periode_mulai"], baris["periode_akhir"]),
+            "diterbitkan": baris["diterbitkan"]}
+
+
 def ambil_dengan_token(kon, token, sekarang=None):
     """Isi laporan untuk token sah; selainnya None. Nama anak dibaca live."""
     if not tautan.token_sah(token):

@@ -97,6 +97,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/guru", "guru"),
     ("/ortu", "guru"),  # alias lama beranda guru
     ("/murid", "murid"),  # sebelum palang sandi: 303 ke /masuk tanpa sesi murid
+    ("/murid/orang-tua", "murid"),  # F3 halaman orang tua (exact); sakelar DAFTAR_AKUN_ANAK mati = identik rute tak dikenal
     ("/lembaga", "guru"),  # hanya pemilik les; selain itu 404 identik rute tak dikenal
     ("/sesi/", "guru"),
     ("/lampiran/", "guru"),
@@ -139,6 +140,9 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/masuk", "publik"),  # form publik: dikecualikan dari palang asal
     ("/daftar", "publik"),
     ("/murid/", "murid"),
+    ("/murid/orang-tua/pin", "murid"),  # F3: buka tirai dengan PIN; sakelar mati = identik rute tak dikenal
+    ("/murid/orang-tua/pin/atur", "murid"),  # F3: pasang/ganti PIN (hanya tirai terbuka atau tanpa PIN)
+    ("/murid/orang-tua/pin/hapus", "murid"),  # F3: hapus PIN (tirai terbuka + konfirmasi)
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),
@@ -254,8 +258,13 @@ class Penangan(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(isi)
 
-    def _kirim_privat(self, isi: bytes, kode: int = 200, *, beranda_guru: bool = False) -> None:
-        """Respons privat; enhancement terdaftar berhash dengan izin koneksi terbatas."""
+    def _kirim_privat(self, isi: bytes, kode: int = 200, *, beranda_guru: bool = False,
+                      skrip_sandi: bool = False) -> None:
+        """Respons privat; enhancement terdaftar berhash dengan izin koneksi terbatas.
+
+        `skrip_sandi` (opt-in, halaman murid dengan input PIN) ikut mengizinkan hash `SKRIP_MATA_SANDI`
+        yang sudah disetujui, supaya toggle mata tetap jalan di bawah CSP ketat ini.
+        """
         import assistant_browser
         from offline_browser import HASH_OFFLINE
         isi, izin_skrip = assistant_browser.lengkapi_respons(isi)
@@ -265,6 +274,12 @@ class Penangan(BaseHTTPRequestHandler):
                 "script-src ", "script-src " + izin_offline + " ", 1)
         else:
             izin_skrip = "script-src " + izin_offline + "; " + izin_skrip
+        if skrip_sandi:
+            import base64
+            import hashlib
+            from teacher_style import SKRIP_MATA_SANDI
+            hash_sandi = "'sha256-" + base64.b64encode(hashlib.sha256(SKRIP_MATA_SANDI.encode()).digest()).decode() + "'"
+            izin_skrip = izin_skrip.replace("script-src ", "script-src " + hash_sandi + " ", 1)
         # Halaman privat: tanpa host pihak ketiga; font merek same-origin dari /aset/.
         izin_gaya = "style-src 'unsafe-inline'; font-src 'self'; "
         if beranda_guru:

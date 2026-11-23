@@ -65,6 +65,10 @@ def _get(penangan, kon, jalur: str, jalur_penuh: str) -> None:
         ))
         return
 
+    import orang_tua_http
+    if jalur == orang_tua_http.RUTE and orang_tua_http.tangani_get(penangan, kon, siswa_id):
+        return
+
     if jalur == "/murid":
         sesi_selesai = None
         if jalur_penuh:
@@ -79,7 +83,7 @@ def _get(penangan, kon, jalur: str, jalur_penuh: str) -> None:
         import contest_http
         penangan._kirim(student_pages.halaman_daftar_sesi_baru(
             kon, siswa_id, kredensial[0], sesi_selesai, lomba_aktif=contest_gate.aktif_untuk(kon, siswa_id),
-            sekarang=contest_http._sekarang(),
+            sekarang=contest_http._sekarang(), orang_tua=orang_tua_http.tersedia(),
         ))
         return
 
@@ -152,7 +156,8 @@ def tangani_post(penangan, jalur: str) -> bool:
     if jalur.startswith("/murid/foto/"):
         _post_foto(penangan, jalur)
         return True
-    return False
+    import orang_tua_http
+    return orang_tua_http.tangani_post(penangan, jalur)
 
 
 def _post_kerjakan(penangan, jalur: str) -> None:

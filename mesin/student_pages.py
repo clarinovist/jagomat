@@ -189,9 +189,14 @@ def _kartu_lomba(kon, siswa_id: int, sekarang: int | None, besar: bool) -> str:
 
 def halaman_daftar_sesi_baru(
     kon, siswa_id: int, nama: str, sesi_selesai: int | None = None, lomba_aktif: bool = False,
-    sekarang: int | None = None,
+    sekarang: int | None = None, orang_tua: bool = False,
 ) -> bytes:
-    """Beranda buku belajar: satu sesi utama, tugas lain, kabar, dan riwayat."""
+    """Beranda buku belajar: satu sesi utama, tugas lain, kabar, dan riwayat.
+
+    `orang_tua` (sakelar DAFTAR_AKUN_ANAK hidup) menambah satu tautan sekunder "Untuk Ayah/Bunda";
+    bawaan False menghasilkan halaman yang byte-identik dengan sebelumnya.
+    """
+    from orang_tua_style import GAYA_TAUTAN_BERANDA, TAUTAN_BERANDA
     from contest_style import GAYA_BERANDA
     from style_stitch import gaya_stitch
     from students import beranda_murid
@@ -246,7 +251,7 @@ def halaman_daftar_sesi_baru(
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{brand.judul("Ruang belajarku")}</title>{brand.tag_kepala()}
-{kepala_murid(gaya_stitch() + (GAYA_BERANDA if lomba_aktif else ""))}</head><body class="st murid-beranda-st">
+{kepala_murid(gaya_stitch() + (GAYA_BERANDA if lomba_aktif else "") + (GAYA_TAUTAN_BERANDA if orang_tua else ""))}</head><body class="st murid-beranda-st">
 <a class="murid-lewati-st" href="#utama">Lewati ke latihan</a>
 <div class="murid-wadah-st">
 {topbar}
@@ -257,7 +262,7 @@ def halaman_daftar_sesi_baru(
 <span class="murid-akun-hint-st">Bukan kamu? Tekan Keluar dulu.</span></section>
 {banner}<div class="murid-grid-st"><div class="murid-kolom-utama-st">{kolom}</div>
 {'<aside class="murid-pendamping-st" aria-label="Kabar latihanmu">' + pendamping + '</aside>' if pendamping else ''}
-</div></main><footer class="murid-kaki-st">{T.TAGLINE} <span aria-hidden="true">✦</span> Satu langkah setiap kali.</footer>
+</div>{TAUTAN_BERANDA if orang_tua else ''}</main><footer class="murid-kaki-st">{T.TAGLINE} <span aria-hidden="true">✦</span> Satu langkah setiap kali.</footer>
 </div>
 </body></html>'''
     return isi.encode()

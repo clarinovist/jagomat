@@ -202,6 +202,15 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `product_analytics_store`, `subscription_service`) menerima kedua kode. Tabel aditif `schema_daftar_anak.py`:
   `persetujuan_daftar_anak` (`daftar_anak_store`) dan `pin_orang_tua` (`pin_orang_tua_store`: simpan/periksa
   waktu-tetap/hapus; dipakai F3). Hook akun guru (kebijakan, analitik KPI, sinkron langganan) tidak dipanggil untuk murid.
+- Halaman orang tua di akun murid (F3, di balik sakelar yang sama): `orang_tua_http.py` (GET `/murid/orang-tua`, POST `/pin`, `/pin/atur`,
+  `/pin/hapus`; dipanggil `student_http` sebelum `_lolos_sandi`, mati = `False` sehingga jatuh ke perilaku rute tak dikenal),
+  `orang_tua_data.py` (hasil cek via `cek_gratis.hasil_siswa`, `parent_report_store.terbit_terbaru`, status order lewat koneksi
+  read-only ledger), `orang_tua_pages.py` + `orang_tua_style.py` (render; pakai ulang blok `cek_pages`, `parent_report_page.isi_laporan(
+  tanpa_batas_berlaku=True)`, `pesanan_pages.COPY_STATUS`; satu-satunya skrip = `SKRIP_MATA_SANDI`, hash CSP lewat opsi `skrip_sandi` pada
+  `web._kirim_privat`). Status tirai di `tirai_orang_tua.py`: peta memori proses (Lock) berkunci (sha256 token cookie, id_akun, siswa_id),
+  30 menit, dibersihkan di `/keluar`; bukan cookie dan bukan `sessions.py` (berkas kontrak rilis). Restart menutup semua tirai (fail-closed).
+  Laju PIN: `laju_masuk` ruang `pin-orang-tua` per (anak, IP), dicek sebelum PBKDF2. Basic auth tidak pernah membuka tirai. Nama modul
+  sengaja tanpa `store`/`schema` (sidik jari kontrak), kecuali `parent_report_store` yang bertambah `terbit_terbaru` (ikut pin recovery).
 - Funnel Cek Kemampuan Fase 1 (hanya permukaan publik): `funnel_http.py` (GET `/cek-kemampuan`, `/paket-coba`,
   sebelum `_lolos_sandi`, tanpa POST; `tangani_beranda` dipanggil `public_http.py` untuk `/` anonim, False saat
   sakelar mati agar landing lama jadi cadangan) + `funnel_pages.py` (markup, copy §7 plan) + `funnel_style.py`

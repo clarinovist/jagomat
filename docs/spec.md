@@ -54,7 +54,7 @@ pivot memakai data sintetis; pilot dengan data nyata perlu keputusan dan gerbang
 privasi tersendiri. Peran teknis `guru` mencakup orang tua dan hanya mengelola data
 miliknya; `murid` mengerjakan latihan; `admin` mengelola lintas keluarga dengan
 batas khusus. **Arah yang diputuskan 23 Nov 2026 (F2a: pendaftaran akun anak sudah ada di balik sakelar
-`DAFTAR_AKUN_ANAK`, bawaan mati; halaman orang tua belum):** pendaftaran publik
+`DAFTAR_AKUN_ANAK`, bawaan mati; halaman orang tua = F3, lihat Fitur di bawah):** pendaftaran publik
 membuat akun anak; orang tua melihat hasil lewat halaman orang tua di akun anak (anak boleh ikut
 melihat, kecuali orang tua memasang PIN tirai); `guru` khusus guru les; anak pendaftar dipegang
 lembaga Jagomat lalu dipindah ke guru anggota; Latihan Harian per tingkat (Rp39.000/bulan,
@@ -202,7 +202,14 @@ Riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   akun anak, persetujuan (`versi_notice` sama dengan cek gratis) dan hash PIN (bila diisi) di transaksi yang sama,
   lalu sesi murid dan redirect ke `/murid`. Sakelar hidup tetapi antrean belum siap = "Pendaftaran sementara belum
   dibuka." tanpa menulis apa pun (tidak jatuh ke alur guru). Sakelar mati = alur akun guru seperti sebelumnya.
-  Akun guru lama tidak dimigrasi; halaman orang tua, cek di sesi anak, dan pesanan dari akun anak menyusul (F2b/F2c/F3).
+  Akun guru lama tidak dimigrasi; cek di sesi anak dan pesanan dari akun anak menyusul (F2b/F2c).
+- **Halaman orang tua di akun murid (F3, 23 Nov 2026)**: di balik sakelar yang sama (`DAFTAR_AKUN_ANAK`; mati = 404 identik rute murid
+  tak dikenal, tanpa tombol), untuk SEMUA akun murid terhubung siswa. Beranda murid menampilkan tautan sekunder "Untuk Ayah/Bunda" ke
+  `/murid/orang-tua`: baca-saja berisi hasil cek (skor, kategori, ringkasan topik), laporan Guru terbit terbaru, status pembayaran Peta
+  Kemampuan (teks sama dengan halaman pesanan, tanpa tombol bayar) dan kartu PIN. Bila anak punya PIN tirai, halaman hanya menampilkan form
+  PIN (4 angka) sampai PIN benar; tirai terbuka 30 menit per sesi (hilang saat keluar), salah 5x/15 menit = "Coba lagi beberapa menit lagi."
+  Pasang/ganti/hapus PIN hanya saat tirai terbuka atau belum ada PIN (hapus wajib centang konfirmasi). Nomor WhatsApp, kunci, malrule,
+  kode diagnosis, dan pembahasan tidak pernah tampil; nomor hanya bisa diubah lewat tim. PIN tirai bukan batas keamanan data.
 - **Latihan Lomba** (Grand Final Corexis, Matematika Level 1; segmen khusus untuk anak pemilik, di balik sakelar admin `OSN_LOMBA` = saklar induk, bawaan mati;
   mati = semua alamatnya 404). Aktivasi per anak oleh Guru (Mode Lomba, 22 Nov 2026): murid hanya melihat Lomba bila sakelar induk hidup DAN Guru/admin mengaktifkannya untuk anak itu: tombol Aktifkan/Matikan di kartu anak `/akun?section=siswa` (hanya mengubah aktif; target dan durasi tetap), atau rinci di `/anak/<id>/lomba` (kartu "Mode Lomba": aktif/belum, target harian 0-3 atau ikut paket, hitung mundur tampil/tidak, waktu Latihan dan waktu Simulasi dalam menit bulat 5-180, kosong = bawaan 15/60, di luar itu ditolak dengan pesan ramah tanpa menyimpan, berlaku untuk sesi berikutnya; tanpa penugasan = tidak aktif; anak tanpa penugasan aktif mendapat 404 yang sama dengan jalur murid tak dikenal; riwayat Guru tetap terbuka walau mati). Murid yang terhubung ke data siswa dan sudah ditugaskan membuka `/murid/lomba` (tautan di beranda murid hanya saat itu) dan memilih dua mode (22 Nov 2026): **Latihan** 10 soal
   (8 pilihan ganda + 2 isian; maks satu soal Inggris) atau **Simulasi Lomba** 35 soal (30 PG + 5 isian, format PDF lomba: Bilangan 9, Operasi 9, Pengukuran 8, Bangun 9; isian di ≥3 topik;

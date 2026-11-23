@@ -285,6 +285,8 @@ def tangani_post(penangan, jalur: str) -> bool:
     token = penangan._ambil_token()
     if token:
         sessions.hapus(token)
+        import tirai_orang_tua
+        tirai_orang_tua.tutup_sesi(token)
     penangan.send_response(303)
     penangan.send_header("Location", "/masuk")
     penangan.send_header("Set-Cookie", penangan._set_cookie(None))

@@ -70,6 +70,7 @@ _PROBE_GET = {
     "/guru": "/guru",
     "/ortu": "/ortu",
     "/murid": "/murid",
+    "/murid/orang-tua": "/murid/orang-tua",
     "/lembaga": "/lembaga",
     "/sesi/": "/sesi/1",
     "/lampiran/": "/lampiran/1",
@@ -106,6 +107,9 @@ _PROBE_POST = {
     "/masuk": "/masuk",
     "/daftar": "/daftar",
     "/murid/": "/murid/kerjakan/1",
+    "/murid/orang-tua/pin": "/murid/orang-tua/pin",
+    "/murid/orang-tua/pin/atur": "/murid/orang-tua/pin/atur",
+    "/murid/orang-tua/pin/hapus": "/murid/orang-tua/pin/hapus",
     "/lembaga": "/lembaga/pindah",
     "/sesi/": "/sesi/1",
     "/akun": "/akun",
@@ -210,6 +214,10 @@ def test_tabel_akses_punya_probe():
     assert urutan.index("/admin") < urutan.index("/guru")
     assert urutan.index("/murid") < urutan.index("/sesi/")
     assert get["/murid"] == "murid" and get["/admin"] == "admin"
+    # F3 halaman orang tua: exact, murid, tepat sesudah /murid (sebelum palang sandi guru `/sesi/`).
+    assert get["/murid/orang-tua"] == "murid" and urutan.index("/murid/orang-tua") == urutan.index("/murid") + 1
+    for rute in ("/murid/orang-tua/pin", "/murid/orang-tua/pin/atur", "/murid/orang-tua/pin/hapus"):
+        assert post[rute] == "murid" and rute not in get
     # `/cek-kemampuan` exact tetap publik; rute akun di bawahnya exact dan guru.
     assert get["/cek-kemampuan"] == "publik"
     assert get["/cek-kemampuan/mulai"] == get["/cek-kemampuan/hasil"] == "guru"
