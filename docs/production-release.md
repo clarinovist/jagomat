@@ -12,6 +12,28 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy Latihan Harian + langganan (F4/F5/F6) + aktivasi `LATIHAN_HARIAN` — 23 November 2026
+
+Controlled `deploy-v2` memasang **cf43373** (digest `sha256:3c5df63f…504a`), healthy, menggantikan **7a4d388**. Isi: Latihan
+Harian per tingkat (PG 4 opsi, jawaban terkunci + pembahasan, 1 sesi gratis/hari WIB dihitung dari sesi yang dikerjakan, tanpa
+batas untuk langganan/murid les), langganan Rp39.000/bulan dan Rp349.000/tahun (tabel `harian_*`, tagihan transfer kode unik,
+antrean `/admin/langganan` tidak bergantung sakelar, akses menyambung, banner 3 hari), retensi bukti langganan 30 hari lewat
+`pesanan_retensi.py` (cron yang sama), F6 pindah anak massal `/lembaga/pindah-banyak`, golden tes diperbarui. Dalam hold,
+`LATIHAN_HARIAN=1` ditulis ke `visual.conf` (CAS); flag akun anak dan Bilangan Sekolah tetap.
+
+- **Kontrak bergeser** `d177f0ec…` → **`3cf10624…df9c`**. Recovery baru **c1bf719** di branch `recovery-latihan-harian` = 0c17f2c +
+  commit kontrak; digest `sha256:245f0437…4dac`; pair ok, `provider_calls` 0. Pin di `main` cf43373 (anchor 27.526 nodeid).
+  Push CI 45185194602 dan dispatch 45185290522 hijau.
+- Kit `deploy-latihan-harian-20261123` (agent, izin Pemilik): approval 7a4d388 diarsipkan, `PERSIAPAN_OK`, backup lima file + riset,
+  rehearsal C–B–C, hash backup lokal cocok, `FLAG_DITULIS_CAS`, deploy exit0. **Reopen pertama gagal di probe kit** (probe akun anak
+  masih mengharuskan `DAFTAR_AKUN_ANAK` sakelar terakhir; kini `LATIHAN_HARIAN`): kandidat sehat, situs tetap hold ±2 menit; probe
+  diperbaiki (cukup `DAFTAR_AKUN_ANAK` ada di daftar), unggah ulang, `reopen` diulang -> `LIVE_ADMIN_HEALTHY`, postcheck hijau,
+  cleanup 4 direktori. Pelajaran: probe kit tidak boleh mengunci posisi terakhir tuple sakelar.
+- Verifikasi agent: env `LATIHAN_HARIAN=1`, `akses_harian.aktif()` True, mode daftar anak, smoke publik normal, rute murid baru 303 ke /masuk.
+- Tindak lanjut: periksa log cron retensi pertama (`/opt/osn/log/pesanan-retensi.log`) memuat "langganan Latihan Harian selesai".
+- Backup induk `/opt/osn/cadangan/deploy-latihan-harian-20261123/` + salinan lokal `mesin/cadangan/...`. Approval terkonsumsi rilis
+  ini di `/opt/osn/rollout-approval.json`; arsipkan sebelum `prepare` berikutnya.
+
 ## Deploy akun anak (F0–F3) + aktivasi pendaftaran akun anak — 23 November 2026
 
 Controlled `deploy-v2` memasang **7a4d388** (digest `sha256:392f89c0…74ae`), healthy, menggantikan **fcfc465**. Isi: lembaga
