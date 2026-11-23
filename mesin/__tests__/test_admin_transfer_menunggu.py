@@ -5,7 +5,7 @@ import admin_store
 import admin_transfer_menunggu as TM
 import pesanan_admin
 import pesanan_transfer as tf
-from transfer_kit import siapkan_db, siapkan_db_transfer, tagihan, unggah
+from transfer_kit import akun_ke, siapkan_db, siapkan_db_transfer, tagihan, unggah
 
 SEKARANG_ISO = "2026-11-18T13:00:00"
 
@@ -13,13 +13,13 @@ SEKARANG_ISO = "2026-11-18T13:00:00"
 def _tiga_order(path):
     """n=1 diunggah paling baru, n=3 paling lama; n=4 belum punya bukti (bukan menunggu)."""
     with tf.buka(path, tulis_data=True) as kon:
-        o1, _ = tagihan(kon, 1)
-        unggah(kon, o1, 1, sekarang="2026-11-18T12:00:00")
-        o2, _ = tagihan(kon, 2)
-        unggah(kon, o2, 2, sekarang="2026-11-18T11:30:00")
-        o3, _ = tagihan(kon, 3)
-        unggah(kon, o3, 3, sekarang="2026-11-18T11:00:00")
-        tagihan(kon, 4)
+        o1, _ = tagihan(kon, 1, akun=akun_ke(1))
+        unggah(kon, o1, 1, akun=akun_ke(1), sekarang="2026-11-18T12:00:00")
+        o2, _ = tagihan(kon, 2, akun=akun_ke(2))
+        unggah(kon, o2, 2, akun=akun_ke(2), sekarang="2026-11-18T11:30:00")
+        o3, _ = tagihan(kon, 3, akun=akun_ke(3))
+        unggah(kon, o3, 3, akun=akun_ke(3), sekarang="2026-11-18T11:00:00")
+        tagihan(kon, 4, akun=akun_ke(4))
     return o1["order_id"], o2["order_id"], o3["order_id"]
 
 

@@ -6,7 +6,7 @@ import pesanan_jendela as jd
 import pesanan_status as st
 import pesanan_transfer as tf
 import pesanan_transfer_baca as tb
-from pesanan_kit import (AKUN_A, SEKARANG, SESUDAH_KEDALUWARSA, buat, hitung, operasi, siapkan_db,
+from pesanan_kit import (AKUN_A, AKUN_B, SEKARANG, SESUDAH_KEDALUWARSA, buat, hitung, operasi, siapkan_db,
                          terapkan)
 from transfer_kit import (ADMIN, SESUDAH_UPLOAD, menunggu, siapkan_db_transfer, tagihan, unggah)
 
@@ -30,7 +30,9 @@ def lunas(kon, n=1):
     ({"transfer_lunas": True}, "sudah_dibayar"),
     ({"transfer_lunas": True, "transfer_direfund": True}, "direfund"),
     ({"transfer_lunas": True, "receipt_hasil": "lunas"}, "perlu_diperiksa"),
-    ({"transfer_bukti": "menunggu", "receipt_hasil": "lunas"}, "sudah_dibayar"),
+    ({"transfer_bukti": "menunggu", "receipt_hasil": "lunas"}, "perlu_diperiksa"),   # dua jalur: uang bisa masuk dua kali
+    ({"transfer_bukti": "ditolak", "receipt_hasil": "lunas"}, "sudah_dibayar"),
+    ({"transfer_bukti": "menunggu", "receipt_hasil": "perlu_diperiksa"}, "perlu_diperiksa"),
 ])
 def test_turunkan_status_dengan_fakta_transfer_sebelum_kedaluwarsa(kwargs, harapan):
     dasar = dict(kedaluwarsa="2026-11-19T10:00:00", sekarang=SEKARANG, receipt_hasil=None,
@@ -69,7 +71,7 @@ def test_fakta_default_pada_db_tanpa_namespace_transfer(tmp_path):
 def test_kuota_menghitung_lunas_transfer_dan_bukti_menunggu_walau_jendela_habis(kon):
     lunas(kon, 1)
     menunggu(kon, 2)
-    tagihan(kon, 3)                                   # tanpa bukti: lepas dari kuota sesudah jendela
+    tagihan(kon, 3, akun=AKUN_B)                      # tanpa bukti: lepas dari kuota sesudah jendela
     assert jd.jumlah_aktif(kon, SEKARANG) == 3
     assert jd.jumlah_aktif(kon, SESUDAH_KEDALUWARSA) == 2
 

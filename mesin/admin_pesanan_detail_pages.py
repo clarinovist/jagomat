@@ -34,6 +34,10 @@ COPY_LANGKAH = {
     po.LANGKAH_REFUND: "Uang kembali dicatat",
     po.LANGKAH_KEDALUWARSA: "Waktu bayar habis",
 }
+COPY_DUA_JALUR = "Dibayar lewat dua jalur — cek refund"
+COPY_BUKTI_DIPAKAI_ULANG = (
+    "Bukti dengan berkas identik juga muncul di %d order lain. Cocokkan dengan mutasi bank sebelum menyetujui."
+)
 COPY_RINGKAS_PERIKSA = "Periksa status ke penyedia pembayaran"
 COPY_PERIKSA_JELAS = (
     "Tanyakan status order ini ke penyedia pembayaran; status pesanan mengikuti jawabannya. "
@@ -111,6 +115,16 @@ def _ringkasan(detail: Mapping) -> str:
             '<dl class="admin-order-rincian">%s</dl></section>' % (L.referensi(detail["order_id"]), badge, rincian))
 
 
+def _peringatan(detail: Mapping) -> str:
+    """Penanda admin: dua jalur bayar dan bukti yang dipakai ulang (hanya jumlah order lain, tanpa id)."""
+    teks = []
+    if detail.get("dua_jalur"):
+        teks.append(COPY_DUA_JALUR)
+    if detail.get("bukti_dipakai_ulang"):
+        teks.append(COPY_BUKTI_DIPAKAI_ULANG % detail["bukti_dipakai_ulang"])
+    return "".join('<p class="admin-kartu admin-catatan" role="note">%s</p>' % e(t) for t in teks)
+
+
 def _langkah(langkah: Mapping) -> str:
     label = COPY_LANGKAH.get(langkah["kode"], langkah["kode"])
     banyak = langkah["kode"] == po.LANGKAH_BUKTI and langkah["jumlah"] > 1
@@ -167,5 +181,5 @@ def halaman(detail: Mapping, *, gerbang_terbuka: bool, forms: Optional[Mapping] 
     sesi = '<p class="admin-meta">%s</p>' % e(ui.COPY_TANPA_SESI) if baca_saja else ""
     kembali = '<p><a class="admin-tautan" href="%s">%s</a></p>' % (ui.RUTE, e(COPY_KEMBALI))
     umpan = ui.umpan_balik(hasil if hasil in ui.KODE_HASIL_DETAIL else None)
-    return (kembali + umpan + sesi + _ringkasan(detail) + _perjalanan(detail)
+    return (kembali + umpan + sesi + _peringatan(detail) + _ringkasan(detail) + _perjalanan(detail)
             + _periksa(detail, gerbang_terbuka, token) + _refund(detail, gerbang_terbuka, token))

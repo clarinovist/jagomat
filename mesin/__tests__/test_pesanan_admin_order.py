@@ -10,10 +10,12 @@ import pesanan_admin_order as po
 import pesanan_transfer as tf
 from pesanan_kit import (AKUN_A, MERCHANT, SEKARANG, SESUDAH_KEDALUWARSA, TRANSAKSI, buat, operasi,
                          ord_id, siapkan_db, terapkan)
-from transfer_kit import ADMIN, SESUDAH_UPLOAD, menunggu, siapkan_db_transfer, tagihan
+from transfer_kit import (ADMIN, SESUDAH_UPLOAD, akun_ke, menunggu, sha, siapkan_db_transfer, tagihan,
+                          unggah)
 
 SESUDAH = "2026-11-18T13:00:00"
-KUNCI_DETAIL = {"order_id", "akun", "status", "dibuat", "kedaluwarsa", "cara", "nominal", "jumlah_bukti", "langkah"}
+KUNCI_DETAIL = {"order_id", "akun", "status", "dibuat", "kedaluwarsa", "cara", "nominal", "jumlah_bukti", "langkah",
+                "dua_jalur", "bukti_dipakai_ulang"}
 
 
 @pytest.fixture
@@ -113,20 +115,156 @@ def test_langkah_terurut_menurut_waktu(kon):
     assert waktu == sorted(waktu)
 
 
+# --- penanda dua jalur dan bukti dipakai ulang ----------------------------------------
+
+def test_detail_dua_jalur_bila_receipt_lunas_dan_bukti_menunggu(kon):
+    order, _ = menunggu(kon, 1)
+    terapkan(kon, order, 1, sekarang=SESUDAH_UPLOAD)
+    detail = po.detail_order(kon, order["order_id"], SESUDAH)
+    assert detail["status"] == "perlu_diperiksa" and detail["dua_jalur"] is True
+    item = pesanan.daftar_admin(kon, halaman=1, per_halaman=5, sekarang=SESUDAH)["items"][0]
+    assert item["status"] == "perlu_diperiksa" and item["dua_jalur"] is True
+
+
+def test_detail_dua_jalur_bila_receipt_lunas_dan_transfer_lunas(kon):
+    order, _ = menunggu(kon, 1)
+    tf.setujui(kon, order["order_id"], ADMIN, SESUDAH_UPLOAD)
+    # trigger skema hanya menjaga satu arah (lunas transfer tanpa receipt); receipt sesudahnya tetap masuk.
+    terapkan(kon, order, 1, sekarang=SESUDAH_UPLOAD)
+    detail = po.detail_order(kon, order["order_id"], SESUDAH)
+    assert detail["status"] == "perlu_diperiksa" and detail["dua_jalur"] is True
+
+
+def test_detail_bukan_dua_jalur_untuk_satu_jalur_saja(kon):
+    transfer, _ = menunggu(kon, 1)
+    qris = buat(kon, 2, akun=akun_ke(2))
+    terapkan(kon, qris, 2, transaction_id="trx-qris-2")
+    ditolak, _ = menunggu(kon, 3, akun=akun_ke(3))
+    tf.tolak(kon, ditolak["order_id"], ADMIN, "buram", SESUDAH_UPLOAD)
+    terapkan(kon, ditolak, 3, transaction_id="trx-ditolak-3")
+    for order in (transfer, qris, ditolak):
+        assert po.detail_order(kon, order["order_id"], SESUDAH)["dua_jalur"] is False
+    assert not any(i["dua_jalur"] for i in pesanan.daftar_admin(
+        kon, halaman=1, per_halaman=10, sekarang=SESUDAH)["items"])
+
+
+def _dua_order_bukti_sama(kon, n_lain=1):
+    pertama, _ = menunggu(kon, 1, akun=akun_ke(1))
+    lain = []
+    for n in range(2, 2 + n_lain):
+        order, _ = tagihan(kon, n, akun=akun_ke(n))
+        unggah(kon, order, n, akun=akun_ke(n), sha256=sha(1))
+        lain.append(order)
+    return pertama, lain
+
+
+def test_detail_menghitung_order_lain_dengan_sha256_bukti_sama(kon):
+    pertama, lain = _dua_order_bukti_sama(kon, n_lain=2)
+    sendiri, _ = menunggu(kon, 9, akun=akun_ke(9))
+    assert po.detail_order(kon, pertama["order_id"], SESUDAH)["bukti_dipakai_ulang"] == 2
+    assert po.detail_order(kon, lain[0]["order_id"], SESUDAH)["bukti_dipakai_ulang"] == 2
+    assert po.detail_order(kon, sendiri["order_id"], SESUDAH)["bukti_dipakai_ulang"] == 0
+
+
+def test_detail_bukti_dipakai_ulang_hanya_hitungan_tanpa_id_order_atau_sha(kon):
+    pertama, lain = _dua_order_bukti_sama(kon)
+    teks = repr(po.detail_order(kon, pertama["order_id"], SESUDAH))
+    assert lain[0]["order_id"] not in teks and sha(1) not in teks and akun_ke(2)[:13] not in teks
+
+
+def test_unggah_ulang_berkas_sama_pada_order_sendiri_bukan_pemakaian_ulang(kon):
+    order, _ = menunggu(kon, 1)
+    unggah(kon, order, 2, sha256=sha(1))                   # idempoten: tidak ada baris baru
+    assert po.detail_order(kon, order["order_id"], SESUDAH)["bukti_dipakai_ulang"] == 0
+
+
+def test_detail_pada_db_tanpa_transfer_bukti_dipakai_ulang_nol(kon_qris):
+    order = buat(kon_qris, 1)
+    detail = po.detail_order(kon_qris, order["order_id"], SEKARANG)
+    assert detail["bukti_dipakai_ulang"] == 0 and detail["dua_jalur"] is False
+
+
+# --- menunggu > 72 jam ------------------------------------------------------------
+
+KINI = "2026-11-18T12:00:00"
+
+
+def _menunggu_diunggah(kon, n, dibuat, diunggah):
+    order, _ = tagihan(kon, n, akun=akun_ke(n), sekarang=dibuat)
+    unggah(kon, order, n, akun=akun_ke(n), sekarang=diunggah)
+    return order["order_id"]
+
+
+def _empat_menunggu(kon):
+    """lama (4 hari), batas (tepat 72 jam), hampir (72 jam kurang 1 detik), baru (0 jam)."""
+    return {
+        "lama": _menunggu_diunggah(kon, 1, "2026-11-14T10:00:00", "2026-11-14T11:00:00"),
+        "batas": _menunggu_diunggah(kon, 2, "2026-11-15T09:00:00", "2026-11-15T12:00:00"),
+        "hampir": _menunggu_diunggah(kon, 3, "2026-11-15T10:00:00", "2026-11-15T12:00:01"),
+        "baru": _menunggu_diunggah(kon, 4, "2026-11-18T10:00:00", "2026-11-18T11:00:00"),
+    }
+
+
+def _tab_menunggu(kon):
+    return pesanan_admin.daftar_tersaring(kon, halaman=1, per_halaman=25, sekarang=KINI, kelompok="menunggu")
+
+
+def test_menunggu_lama_ditandai_mulai_72_jam_sejak_bukti_terakhir(kon):
+    o = _empat_menunggu(kon)
+    tanda = {i["order_id"]: i["menunggu_lama"] for i in _tab_menunggu(kon)["items"]}
+    assert tanda == {o["lama"]: True, o["batas"]: True, o["hampir"]: False, o["baru"]: False}
+
+
+def test_menunggu_lama_diurutkan_paling_atas_di_tab_menunggu(kon):
+    o = _empat_menunggu(kon)
+    urutan = [i["order_id"] for i in _tab_menunggu(kon)["items"]]
+    assert urutan == [o["batas"], o["lama"], o["baru"], o["hampir"]]     # lama dulu; sisanya urut semula
+
+
+def test_menunggu_lama_diurutkan_juga_di_daftar_hanya_menunggu(kon):
+    o = _empat_menunggu(kon)
+    daftar = pesanan.daftar_admin(kon, halaman=1, per_halaman=25, sekarang=KINI, hanya_menunggu=True)
+    assert [i["order_id"] for i in daftar["items"]] == [o["batas"], o["lama"], o["baru"], o["hampir"]]
+    assert daftar["items"] == _tab_menunggu(kon)["items"]
+
+
+def test_menunggu_lama_tidak_mengubah_urutan_kelompok_lain(kon):
+    o = _empat_menunggu(kon)
+    semua = pesanan_admin.daftar_tersaring(kon, halaman=1, per_halaman=25, sekarang=KINI)
+    assert [i["order_id"] for i in semua["items"]] == [o["baru"], o["hampir"], o["batas"], o["lama"]]
+    assert sum(1 for i in semua["items"] if i["menunggu_lama"]) == 2
+
+
+def test_penanda_menunggu_lama_hanya_untuk_status_menunggu_verifikasi(kon):
+    order = _menunggu_diunggah(kon, 1, "2026-11-14T10:00:00", "2026-11-14T11:00:00")
+    tf.tolak(kon, order, ADMIN, "buram", "2026-11-14T12:00:00")
+    item = pesanan_admin.daftar_tersaring(kon, halaman=1, per_halaman=5, sekarang=KINI)["items"][0]
+    assert item["status"] != "menunggu_verifikasi" and item["menunggu_lama"] is False
+
+
+def test_penanda_memakai_bukti_terakhir_bukan_bukti_pertama(kon):
+    order = _menunggu_diunggah(kon, 1, "2026-11-14T10:00:00", "2026-11-14T11:00:00")
+    unggah(kon, {"order_id": order}, 7, akun=akun_ke(1), sekarang="2026-11-14T12:00:00")
+    assert _tab_menunggu(kon)["items"][0]["menunggu_lama"] is True
+    kini_awal = pesanan_admin.daftar_tersaring(kon, halaman=1, per_halaman=5, sekarang="2026-11-15T11:00:00",
+                                               kelompok="menunggu")
+    assert kini_awal["items"][0]["menunggu_lama"] is False             # bukti terakhir baru 23 jam
+
+
 # --- daftar_tersaring ----------------------------------------------------------------
 
 def _isi_status_beragam(kon):
     """Satu order per kelompok: belum bayar, menunggu, dibayar (transfer), direfund, ditolak, kedaluwarsa."""
-    belum, _ = tagihan(kon, 1, sekarang="2026-11-18T09:00:00")
-    tunggu, _ = menunggu(kon, 2)
-    lunas, _ = menunggu(kon, 3)
+    belum, _ = tagihan(kon, 1, akun=akun_ke(1), sekarang="2026-11-18T09:00:00")
+    tunggu, _ = menunggu(kon, 2, akun=akun_ke(2))
+    lunas, _ = menunggu(kon, 3, akun=akun_ke(3))
     tf.setujui(kon, lunas["order_id"], ADMIN, SESUDAH_UPLOAD)
-    refund, _ = menunggu(kon, 4)
+    refund, _ = menunggu(kon, 4, akun=akun_ke(4))
     tf.setujui(kon, refund["order_id"], ADMIN, SESUDAH_UPLOAD)
     pesanan.catat_refund(kon, refund["order_id"], operasi(9), "admin_a", "kebijakan", SESUDAH_UPLOAD)
-    tolak, _ = menunggu(kon, 5)
+    tolak, _ = menunggu(kon, 5, akun=akun_ke(5))
     tf.tolak(kon, tolak["order_id"], ADMIN, "Tidak jelas", SESUDAH_UPLOAD)
-    lama = buat(kon, 6, sekarang="2026-11-10T09:00:00")
+    lama = buat(kon, 6, akun=akun_ke(6), sekarang="2026-11-10T09:00:00")
     return {"belum": belum, "tunggu": tunggu, "lunas": lunas, "refund": refund, "tolak": tolak, "lama": lama}
 
 
@@ -182,7 +320,7 @@ def test_tersaring_menunggu_sama_dengan_hanya_menunggu_lama(kon):
 
 def test_tersaring_paginasi_memotong_setelah_saring(kon):
     for n in range(1, 8):
-        menunggu(kon, n)
+        menunggu(kon, n, akun=akun_ke(n))
     h1 = _tersaring(kon, "menunggu", 1, 3)
     h3 = _tersaring(kon, "menunggu", 3, 3)
     assert (len(h1["items"]), len(h3["items"]), h1["total"]) == (3, 1, 7)

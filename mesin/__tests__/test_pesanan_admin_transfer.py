@@ -123,9 +123,9 @@ def test_ambil_bukti_id_tak_sah_atau_tak_ada_none(kon, nilai):
 def test_daftar_hanya_menunggu_hanya_status_menunggu_verifikasi(kon):
     menunggu(kon, 1)
     buat(kon, 2, akun=AKUN_B)                   # belum bayar
-    lunas, _ = menunggu(kon, 3)
+    lunas, _ = menunggu(kon, 3, akun=AKUN_B)
     tf.setujui(kon, lunas["order_id"], ADMIN, SESUDAH_UPLOAD)
-    ditolak, _ = menunggu(kon, 4)
+    ditolak, _ = menunggu(kon, 4, akun=AKUN_B)
     tf.tolak(kon, ditolak["order_id"], ADMIN, "Tidak jelas", SESUDAH_UPLOAD)
     hasil = pesanan.daftar_admin(kon, halaman=1, per_halaman=25, sekarang=SESUDAH_UPLOAD,
                                  hanya_menunggu=True)
@@ -161,7 +161,7 @@ def test_daftar_tanpa_filter_tetap_memuat_semua_dan_bentuk_item_tidak_berubah(ko
     buat(kon, 2, akun=AKUN_B)
     hasil = pesanan.daftar_admin(kon, halaman=1, per_halaman=25, sekarang=SESUDAH_UPLOAD)
     assert hasil["total"] == 2
-    assert set(hasil["items"][0]) == {"order_id", "akun", "dibuat", "kedaluwarsa", "alasan_kode", "status"}
+    assert set(hasil["items"][0]) == {"order_id", "akun", "dibuat", "kedaluwarsa", "alasan_kode", "status", "dua_jalur", "menunggu_lama"}
 
 
 # --- keputusan atas bukti yang dilihat -----------------------------------------

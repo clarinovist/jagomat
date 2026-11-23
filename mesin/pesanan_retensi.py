@@ -1,4 +1,4 @@
-"""Retensi bukti transfer 30 hari: hapus berkas fisik, tandai di ledger, bersihkan sisa sementara.
+"""Retensi bukti transfer: hapus berkas fisik, tandai di ledger, bersihkan sisa sementara dan berkas yatim.
 
 Tidak dijadwalkan atau dijalankan oleh aplikasi (tanpa cron/worker/startup): hanya dipanggil
 operator lewat CLI
@@ -14,6 +14,9 @@ Aturan keamanan:
   bukti itu dicoba lagi pada sapu berikutnya. Ringkasan hanya angka, tanpa nama berkas atau id.
 - Sisa sementara `.tmp-*` (tulis yang terputus) dibuang bila berkas biasa (bukan tautan/direktori)
   dan lebih tua dari `UMUR_SEMENTARA_DETIK`. Ambang memakai jam suntikan yang sama dengan retensi.
+- Berkas yatim (crash antara simpan berkas dan catat DB): berkas biasa bernama 32 hex di folder bukti yang TIDAK
+  dirujuk kolom `berkas` baris `transfer_bukti` mana pun (termasuk yang sudah bertanda hapus) dan lebih tua dari
+  `JAM_SAPU_YATIM` jam dibuang. Tautan, direktori, dan nama selain pola bukti tidak pernah disentuh.
 - Folder tujuan eksplisit (opsi, env, atau di samping DB): tidak mengubah global/ENV dan tidak dibuat.
   Folder yang tidak ada TIDAK menandai apa pun di ledger (bukti kedaluwarsa dihitung `gagal`); tanpa bukti
   kedaluwarsa hasilnya nol. `berkas_sudah_hilang` yang tinggi = tanda folder salah (jangan abaikan).
@@ -36,6 +39,8 @@ import pesanan_dasar as d
 import pesanan_transfer
 
 UMUR_SEMENTARA_DETIK = 3600
+JAM_SAPU_YATIM = 24
+DETIK_PER_JAM = 3600
 EXIT_SEBAGIAN = 1
 _FORMAT_WAKTU = "%Y-%m-%dT%H:%M:%S"
 _GALAT_BUKTI = (bukti_berkas.BuktiBerkasError, OSError, d.PesananError, sqlite3.Error)
@@ -48,6 +53,7 @@ class HasilSapu:
     ditandai: int = 0
     gagal: int = 0
     sementara_dibersihkan: int = 0
+    yatim_dibuang: int = 0
 
 
 def _tambah(hasil: HasilSapu, **selisih) -> HasilSapu:
@@ -101,8 +107,40 @@ def _bersihkan_sementara(folder: Path, sekarang: str) -> int:
     return jumlah
 
 
+def _yatim_usang(entri, batas: float, dirujuk) -> bool:
+    """Berkas biasa bernama bukti, tak dirujuk ledger, dan mtime <= batas (lstat: tautan/direktori tidak lolos)."""
+    if bukti_berkas.POLA_NAMA.fullmatch(entri.name) is None or entri.name in dirujuk:
+        return False
+    info = os.lstat(entri.path)
+    return stat.S_ISREG(info.st_mode) and info.st_mtime <= batas
+
+
+def _berkas_dirujuk(kon) -> frozenset:
+    """Semua nama berkas di `transfer_bukti` (baris mana pun, termasuk yang bertanda hapus)."""
+    return frozenset(baris[0] for baris in kon.execute("SELECT berkas FROM transfer_bukti"))
+
+
+def _buang_yatim(kon, folder: Path, sekarang: str) -> int:
+    """Hapus berkas yatim berumur > `JAM_SAPU_YATIM`; folder tidak ada = 0. Galat satu berkas dilewati."""
+    if not folder.is_dir():
+        return 0
+    batas = _epoch(sekarang) - JAM_SAPU_YATIM * DETIK_PER_JAM
+    with os.scandir(folder) as isi:
+        entri_folder = list(isi)
+    dirujuk = _berkas_dirujuk(kon)
+    jumlah = 0
+    for entri in entri_folder:
+        try:
+            if _yatim_usang(entri, batas, dirujuk):
+                os.unlink(entri.path)
+                jumlah += 1
+        except OSError:
+            continue
+    return jumlah
+
+
 def sapu(kon, folder, sekarang: str, *, hari: int = pesanan_transfer.HARI_RETENSI_BUKTI) -> HasilSapu:
-    """Satu sapu retensi: bukti kedaluwarsa (berkas -> tanda) + sisa sementara; kembalikan ringkasan.
+    """Satu sapu retensi: bukti kedaluwarsa (berkas -> tanda) + sisa sementara + berkas yatim; kembalikan ringkasan.
 
     `kon` koneksi tulis `pesanan_transfer.buka(..., tulis_data=True)`; `folder` folder bukti;
     `sekarang` waktu ledger (UTC naif). Idempoten: sapu ulang tanpa perubahan menghasilkan nol.
@@ -116,7 +154,8 @@ def sapu(kon, folder, sekarang: str, *, hari: int = pesanan_transfer.HARI_RETENS
     hasil = HasilSapu()
     for bukti in kedaluwarsa:
         hasil = _tambah(hasil, **_sapu_satu(kon, folder, bukti, sekarang, hari))
-    return _tambah(hasil, sementara_dibersihkan=_bersihkan_sementara(folder, sekarang))
+    return _tambah(hasil, sementara_dibersihkan=_bersihkan_sementara(folder, sekarang),
+                   yatim_dibuang=_buang_yatim(kon, folder, sekarang))
 
 
 # --- CLI operator --------------------------------------------------------------
@@ -130,9 +169,9 @@ def _folder_tujuan(opsi: Optional[str], path_db: Path) -> Path:
 
 def _ringkasan(hasil: HasilSapu) -> str:
     return ("Sapu retensi selesai: %d bukti ditandai, %d berkas dihapus, %d berkas sudah hilang, "
-            "%d gagal (dicoba lagi pada sapu berikutnya), %d sisa sementara dibuang."
+            "%d gagal (dicoba lagi pada sapu berikutnya), %d sisa sementara dibuang, %d berkas yatim dibuang."
             % (hasil.ditandai, hasil.berkas_dihapus, hasil.berkas_sudah_hilang, hasil.gagal,
-               hasil.sementara_dibersihkan))
+               hasil.sementara_dibersihkan, hasil.yatim_dibuang))
 
 
 COPY_PERIKSA_FOLDER = ("Ada yang gagal: periksa izin dan pastikan --folder sama dengan folder bukti aplikasi "
@@ -141,7 +180,7 @@ COPY_PERIKSA_FOLDER = ("Ada yang gagal: periksa izin dan pastikan --folder sama 
 
 def main(argv=None, *, sekarang: Optional[str] = None) -> int:
     """Operator eksplisit; tidak pernah dipanggil startup atau GET. `sekarang` hanya untuk uji."""
-    parser = argparse.ArgumentParser(description="Sapu retensi bukti transfer (30 hari)")
+    parser = argparse.ArgumentParser(description="Sapu retensi bukti transfer (30 hari sesudah keputusan; yatim > 24 jam)")
     parser.add_argument("--database", required=True, help="Path admin-control.db yang sudah diverifikasi")
     parser.add_argument("--folder", help="Folder bukti (bawaan: OSN_DIREKTORI_BUKTI atau di samping DB)")
     args = parser.parse_args(argv)

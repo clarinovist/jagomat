@@ -16,7 +16,11 @@ Aturan jendela bayar (24 jam, `pesanan_jendela`):
 * `ditolak` berlaku selama jendela terbuka (boleh unggah ulang); sesudahnya menjadi
   `kedaluwarsa` dan order dibuka ulang lewat jendela baru.
 * Nominal (49.000 + kode 1..999) unik di antara tagihan jendela-terbaru yang masih
-  dipegang: belum lunas dan (jendela terbuka atau menunggu verifikasi).
+  dipegang: belum lunas dan (jendela terbuka atau menunggu verifikasi), ditambah tagihan
+  yang dibayar lewat transfer dalam `HARI_TAHAN_KODE_LUNAS` hari terakhir.
+* Satu akun hanya boleh punya satu order `menunggu_verifikasi` pada satu waktu: tagihan/bukti
+  untuk order lain milik akun yang sama ditolak (`PesananMenungguLain`).
+* Order yang sudah punya receipt penyedia (Midtrans) tidak dibuatkan tagihan transfer.
 """
 from __future__ import annotations
 
@@ -35,6 +39,7 @@ from schema_transfer import (BATAS_ALASAN, BATAS_UKURAN_BUKTI, KODE_MAKS, KODE_M
                              MIME_BUKTI)
 
 HARI_RETENSI_BUKTI = 30
+HARI_TAHAN_KODE_LUNAS = 30     # kode unik order lunas-transfer tidak dipakai ulang selama ini
 JAM_PER_HARI = 24
 KEPUTUSAN_SETUJU = "setuju"
 KEPUTUSAN_TOLAK = "tolak"
@@ -56,6 +61,11 @@ class PesananKodeUnikHabis(d.PesananKonflik):
 class PesananBatasBukti(d.PesananKonflik):
     def __init__(self):
         super().__init__("batas bukti transfer tercapai")
+
+
+class PesananMenungguLain(d.PesananKonflik):
+    def __init__(self):
+        super().__init__("akun sudah punya pesanan lain yang menunggu verifikasi")
 
 
 @contextmanager
@@ -87,7 +97,39 @@ def _nominal_dipegang(kon, kini):
            WHERE t.urutan=(SELECT MAX(j.urutan) FROM pesanan_jendela j WHERE j.order_id=t.order_id)
              AND NOT %s AND (%s>? OR %s)""" % (fakta["lunas"], st.SQL_KEDALUWARSA_TERBARU,
                                                fakta["menunggu"]), (kini,))
+    return {b[0] for b in baris} | _nominal_lunas_ditahan(kon, kini)
+
+
+def _nominal_lunas_ditahan(kon, kini):
+    """Nominal tagihan yang dibayar lewat transfer dalam `HARI_TAHAN_KODE_LUNAS` hari terakhir.
+
+    Yang ditahan tagihan jendela yang benar-benar dibayar (urutan keputusan setuju), supaya kode
+    tidak langsung dipakai ulang oleh order lain (bukti lama jadi sulit dipalsukan sebagai pembayaran baru).
+    """
+    batas = _batas_retensi(kini, HARI_TAHAN_KODE_LUNAS)
+    baris = kon.execute(
+        """SELECT t.nominal_transfer FROM transfer_lunas tl
+           JOIN transfer_verifikasi v ON v.id=tl.verifikasi_id
+           JOIN transfer_tagihan t ON t.order_id=tl.order_id AND t.urutan=v.urutan
+           WHERE tl.dibuat>?""", (batas,))
     return {b[0] for b in baris}
+
+
+def _wajib_tanpa_receipt_provider(kon, order_id):
+    """Order yang sudah punya receipt penyedia tidak boleh ditagih lewat transfer (hindari bayar dua kali)."""
+    if st.receipt_order(kon, order_id) is not None:
+        raise d.PesananKonflik("pesanan sudah punya pembayaran dari penyedia")
+
+
+def _wajib_tanpa_menunggu_lain(kon, order, kini):
+    """Tolak bila akun yang sama sudah punya order LAIN berstatus `menunggu_verifikasi`."""
+    kolom = ",".join("o." + k for k in st.KOLOM_ORDER)
+    kandidat = kon.execute(
+        "SELECT %s FROM pesanan_order o WHERE o.akun_id=? AND o.order_id<>? AND %s"
+        % (kolom, tb.sql_fakta(kon)["menunggu"]), (order["akun_id"], order["order_id"]))
+    for baris in kandidat.fetchall():
+        if st.status_dari_db(kon, st.dict_order(baris), kini) == d.STATUS_MENUNGGU_VERIFIKASI:
+            raise PesananMenungguLain()
 
 
 def _alokasi_kode(kon, order, kini, pilih):
@@ -108,7 +150,9 @@ def buat_tagihan_transfer(kon, order_id, akun_id, sekarang, *, acak=None):
     disuntik tes), dipilih dari kode yang belum dipegang tagihan lain; kosong ->
     PesananKodeUnikHabis. Tagihan jendela ini sudah ada -> dikembalikan (`baru=False`).
     Order bukan milik akun / tak dikenal -> PesananTidakDitemukan identik; status selain
-    `belum_bayar` (lunas, kedaluwarsa, menunggu, ...) -> PesananKonflik. Mengembalikan dict
+    `belum_bayar` (lunas, kedaluwarsa, menunggu, ...) -> PesananKonflik; order yang sudah punya receipt
+    penyedia (juga bila tagihan sudah ada) -> PesananKonflik; akun yang sudah punya order lain
+    `menunggu_verifikasi` -> PesananMenungguLain. Mengembalikan dict
     {order_id, urutan, kode_unik, nominal_transfer, dibuat, baru}.
     """
     d.periksa_koneksi(kon)
@@ -117,11 +161,13 @@ def buat_tagihan_transfer(kon, order_id, akun_id, sekarang, *, acak=None):
     with d.tulis(kon):
         order = st.ambil_order(kon, order_id, akun_id)
         urutan = st.jendela_terbaru(kon, order_id)["urutan"]
+        _wajib_tanpa_receipt_provider(kon, order_id)
         ada = _tagihan(kon, order_id, urutan)
         if ada is not None:
             return {**ada, "baru": False}
         if st.status_dari_db(kon, order, kini) != d.STATUS_BELUM_BAYAR:
             raise d.PesananKonflik("pesanan tidak dapat ditagih lewat transfer")
+        _wajib_tanpa_menunggu_lain(kon, order, kini)
         kode = _alokasi_kode(kon, order, kini, pilih)
         try:
             kon.execute("INSERT INTO transfer_tagihan(order_id,urutan,kode_unik,nominal_transfer,"
@@ -174,7 +220,8 @@ def catat_bukti(kon, order_id, akun_id, mime, ukuran, sha256, nama_tersimpan, se
     Input diperiksa sebelum DB; order bukan milik akun -> PesananTidakDitemukan tanpa tulis.
     Prasyarat: tagihan jendela terbaru ada, jendela masih terbuka, status belum_bayar/
     ditolak/menunggu_verifikasi, kurang dari `MAKS_BUKTI` bukti (PesananBatasBukti).
-    Berkas sama (sha256) yang masih menunggu -> bukti yang ada (`baru=False`).
+    Berkas sama (sha256) yang masih menunggu -> bukti yang ada (`baru=False`). Bila order ini belum
+    menunggu verifikasi dan akun punya order LAIN yang menunggu -> PesananMenungguLain.
     Mengembalikan {bukti_id, status, baru}.
     """
     d.periksa_koneksi(kon)
@@ -187,6 +234,8 @@ def catat_bukti(kon, order_id, akun_id, mime, ukuran, sha256, nama_tersimpan, se
         ada = _bukti_menunggu_sama(kon, order_id, sha256)
         if ada is not None:
             return {"bukti_id": ada, "status": status, "baru": False}
+        if status != d.STATUS_MENUNGGU_VERIFIKASI:
+            _wajib_tanpa_menunggu_lain(kon, order, kini)
         jumlah = kon.execute("SELECT COUNT(*) FROM transfer_bukti WHERE order_id=?",
                              (order_id,)).fetchone()[0]
         if jumlah >= MAKS_BUKTI:
@@ -355,8 +404,8 @@ def bukti_kedaluwarsa(kon, sekarang, hari=HARI_RETENSI_BUKTI):
     """Bukti yang keputusannya sudah >= `hari` hari lalu dan belum ditandai terhapus.
 
     Tuple dict {bukti_id, order_id, berkas}. Bukti yang belum diputuskan tidak pernah
-    kedaluwarsa. Hanya SELECT: pemanggil menghapus berkas fisik lalu memanggil
-    :func:`tandai_dihapus`.
+    kedaluwarsa (trigger `transfer_bukti_hapus_putusan` melarang menandainya terhapus). Hanya SELECT:
+    pemanggil menghapus berkas fisik lalu memanggil :func:`tandai_dihapus`.
     """
     d.periksa_koneksi(kon)
     return _pilih_kedaluwarsa(kon, _batas_retensi(sekarang, hari))

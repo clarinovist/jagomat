@@ -65,6 +65,15 @@ def jendela_terbaru(kon, order_id):
     return {k: baris[k] for k in _KOLOM_JENDELA}
 
 
+def dua_jalur(receipt_hasil, transfer_lunas, transfer_bukti):
+    """True bila receipt provider lunas DAN jejak transfer aktif (lunas atau bukti menunggu).
+
+    Uang berpotensi masuk dua kali (QRIS dan rekening): status dipaksa `perlu_diperiksa` dan admin
+    diberi penanda untuk memeriksa refund. Bukti ditolak tidak dihitung (tidak ada klaim transfer aktif).
+    """
+    return receipt_hasil == "lunas" and (bool(transfer_lunas) or transfer_bukti == tb.BUKTI_MENUNGGU)
+
+
 def turunkan_status(*, kedaluwarsa, sekarang, receipt_hasil, direfund, refund_teramati,
                     transfer_lunas=False, transfer_direfund=False, transfer_bukti=None):
     """Fungsi murni: status turunan dari fakta.
@@ -78,9 +87,13 @@ def turunkan_status(*, kedaluwarsa, sekarang, receipt_hasil, direfund, refund_te
     perlu_diperiksa); `transfer_bukti='menunggu'` -> menunggu_verifikasi dan TIDAK
     kedaluwarsa (bukti diunggah di dalam jendela bayar, keputusan admin yang menentukan);
     `'ditolak'` -> ditolak selama jendela masih terbuka, sesudahnya kedaluwarsa.
+    Receipt provider lunas bersama bukti transfer menunggu (atau transfer lunas) = dua jalur
+    (:func:`dua_jalur`) -> perlu_diperiksa, bukan sudah_dibayar.
     """
     if direfund or transfer_direfund:
         return d.STATUS_DIREFUND
+    if dua_jalur(receipt_hasil, transfer_lunas, transfer_bukti):
+        return d.STATUS_PERLU_DIPERIKSA
     if transfer_lunas:
         return d.STATUS_PERLU_DIPERIKSA if receipt_hasil is not None else d.STATUS_SUDAH_DIBAYAR
     if receipt_hasil == "lunas":

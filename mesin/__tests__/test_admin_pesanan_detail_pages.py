@@ -91,3 +91,22 @@ def test_tombol_refund_gaya_bahaya_garis_dan_konfirmasi_menyebut_tak_dapat_dibat
     isi = _render(_detail(status="sudah_dibayar"))
     assert re.search(r'<button class="admin-tombol admin-bahaya-garis" type="submit">Catat uang kembali</button>', isi)
     assert "tidak dapat dibatalkan" in isi
+
+
+def test_penanda_dua_jalur_tampil_hanya_bila_dua_jalur():
+    assert dp.COPY_DUA_JALUR in _render(_detail(status="perlu_diperiksa", dua_jalur=True))
+    assert dp.COPY_DUA_JALUR not in _render(_detail(status="perlu_diperiksa", dua_jalur=False))
+    assert dp.COPY_DUA_JALUR not in _render()                       # fixture lama tanpa kunci: tanpa penanda
+
+
+def test_peringatan_bukti_dipakai_ulang_menyebut_jumlah_order_lain_saja():
+    isi = _render(_detail(status="menunggu_verifikasi", bukti_dipakai_ulang=3))
+    assert "muncul di 3 order lain" in isi and "mutasi bank" in isi
+    assert "muncul di" not in _render(_detail(bukti_dipakai_ulang=0))
+    assert "muncul di" not in _render()
+
+
+def test_peringatan_tanpa_form_dan_tanpa_hex_atau_id_order_lain():
+    isi = _render(_detail(status="perlu_diperiksa", dua_jalur=True, bukti_dipakai_ulang=2))
+    assert 'role="note"' in isi and isi.count('role="note"') == 2
+    assert not re.search(r"#[0-9a-fA-F]{3,8}\b", isi.replace("&#", ""))

@@ -210,6 +210,89 @@ def test_folder_tidak_ada_nol_tanpa_galat_dan_tidak_dibuat(kon, tmp_path):
     assert (hasil.sementara_dibersihkan, hasil.gagal) == (0, 0) and not ada_nanti.exists()
 
 
+# --- berkas yatim --------------------------------------------------------------
+
+JAM = 3600
+
+
+def _yatim(folder, nama, jam=25):
+    """Berkas bernama bukti yang tidak ada di ledger, berumur `jam` jam terhadap SESUDAH_30_HARI."""
+    return _lama(folder, nama, selisih_detik=jam * JAM)
+
+
+def test_yatim_lebih_dari_24_jam_dibuang_dan_dihitung(kon, folder):
+    yatim = _yatim(folder, "1" * 32, jam=25)
+    hasil = pr.sapu(kon, folder, SESUDAH_30_HARI)
+    assert hasil.yatim_dibuang == 1 and not yatim.exists()
+
+
+def test_yatim_ambang_tepat_24_jam_dibuang_kurang_sedetik_tidak(kon, folder):
+    tepat = _lama(folder, "1" * 32, selisih_detik=24 * JAM)
+    kurang = _lama(folder, "2" * 32, selisih_detik=24 * JAM - 1)
+    hasil = pr.sapu(kon, folder, SESUDAH_30_HARI)
+    assert hasil.yatim_dibuang == 1 and not tepat.exists() and kurang.exists()
+
+
+def test_berkas_yang_dirujuk_ledger_tidak_dibuang_walau_lebih_tua_dari_24_jam(kon, folder):
+    menunggu(kon, 1)                                       # belum diputuskan, belum 60 hari: tetap dirujuk
+    dirujuk = _yatim(folder, berkas(1), jam=24 * 20)
+    hasil = pr.sapu(kon, folder, SESUDAH_30_HARI)
+    assert hasil.yatim_dibuang == 0 and dirujuk.exists()
+
+
+def test_berkas_dirujuk_baris_bertanda_hapus_tetap_tidak_dibuang_sebagai_yatim(kon, folder):
+    _putuskan(kon, folder, 1)
+    pr.sapu(kon, folder, SESUDAH_30_HARI)                  # berkas dihapus dan bukti ditandai
+    muncul_lagi = _yatim(folder, berkas(1), jam=24 * 20)   # baris masih merujuk nama ini
+    hasil = pr.sapu(kon, folder, SESUDAH_30_HARI)
+    assert hasil.yatim_dibuang == 0 and muncul_lagi.exists()
+
+
+def test_sapu_yatim_tidak_menyentuh_tautan_direktori_dan_nama_bukan_pola_bukti(kon, folder, tmp_path):
+    luar = tmp_path / "luar.bin"
+    luar.write_bytes(b"rahasia")
+    tautan = folder / ("a" * 32)
+    os.symlink(luar, tautan)
+    direktori = folder / ("b" * 32)
+    direktori.mkdir()
+    lain = [_yatim(folder, nama, jam=24 * 30) for nama in ("catatan.txt", "c" * 31, "D" * 32, "e" * 33)]
+    hasil = pr.sapu(kon, folder, "2099-01-01T00:00:00")
+    assert hasil.yatim_dibuang == 0
+    assert luar.read_bytes() == b"rahasia" and os.path.islink(tautan) and direktori.is_dir()
+    assert all(x.exists() for x in lain)
+
+
+def test_yatim_memakai_jam_suntikan_bukan_jam_dinding(kon, folder):
+    muda = _lama(folder, "1" * 32, sekarang="2020-01-01T00:00:00", selisih_detik=60)
+    pr.sapu(kon, folder, "2020-01-01T00:00:00")
+    assert muda.exists()                                   # jam dinding menganggapnya berumur bertahun-tahun
+
+
+def test_sementara_tetap_ditangani_logika_sementara_bukan_dihitung_yatim(kon, folder):
+    _lama(folder, ".tmp-" + "a" * 32, selisih_detik=2 * JAM)
+    hasil = pr.sapu(kon, folder, SESUDAH_30_HARI)
+    assert (hasil.sementara_dibersihkan, hasil.yatim_dibuang) == (1, 0)
+
+
+def test_folder_tidak_ada_tidak_dibuat_dan_yatim_nol(kon, tmp_path):
+    hasil = pr.sapu(kon, tmp_path / "belum-ada", SESUDAH_30_HARI)
+    assert hasil.yatim_dibuang == 0 and not (tmp_path / "belum-ada").exists()
+
+
+def test_yatim_dibuang_idempoten_sapu_kedua_nol(kon, folder):
+    _yatim(folder, "1" * 32)
+    assert pr.sapu(kon, folder, SESUDAH_30_HARI).yatim_dibuang == 1
+    assert pr.sapu(kon, folder, SESUDAH_30_HARI).yatim_dibuang == 0
+
+
+def test_cli_ringkasan_memuat_hitungan_yatim_tanpa_nama_berkas(db, folder, capsys):
+    _yatim(folder, "9" * 32)
+    kode = pr.main(["--database", str(db), "--folder", str(folder)], sekarang=SESUDAH_30_HARI)
+    keluar = capsys.readouterr().out
+    assert kode == 0 and "1 berkas yatim dibuang" in keluar and "9" * 32 not in keluar
+    assert not (folder / ("9" * 32)).exists()
+
+
 # --- CLI -----------------------------------------------------------------------
 
 def test_cli_menyapu_dan_mencetak_ringkasan_tanpa_nama_berkas(db, folder, capsys):

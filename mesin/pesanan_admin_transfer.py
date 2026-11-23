@@ -42,6 +42,19 @@ def ringkasan(kon, order_ids) -> dict:
                 "diunggah": bukti.get(i, (0, None))[1]} for i in ids}
 
 
+def order_lain_bukti_sama(kon, order_id) -> int:
+    """Jumlah order LAIN yang punya bukti dengan sha256 sama dengan salah satu bukti order ini.
+
+    Hanya hitungan (tanpa id order/akun lain atau sha256). 0 bila transfer belum dipasang.
+    """
+    d.periksa_koneksi(kon)
+    if not tb.terpasang(kon):
+        return 0
+    return kon.execute(
+        "SELECT COUNT(DISTINCT b2.order_id) FROM transfer_bukti b1 JOIN transfer_bukti b2 "
+        "ON b2.sha256=b1.sha256 AND b2.order_id<>b1.order_id WHERE b1.order_id=?", (order_id,)).fetchone()[0]
+
+
 def _keadaan_bukti(bukti_id, diputuskan_hingga, dihapus) -> str:
     if bukti_id in dihapus:
         return KEADAAN_DIHAPUS

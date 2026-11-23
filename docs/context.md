@@ -236,7 +236,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
 - Transfer rekening (jalur utama pembayaran, verifikasi manual admin; tahap 1 = skema + logika inti; tahap 2 = alur guru di bawah; tahap 3 = admin, retensi, jendela ulang):
   `schema_transfer.py` (namespace `transfer_*`, sengaja BUKAN `pesanan_*` agar `schema_pesanan.validasi` dan rollback image lama utuh;
   tagihan per jendela bayar, bukti, penanda hapus, verifikasi, `transfer_lunas`, `transfer_refund`; append-only) + `pesanan_transfer.py`
-  (tagihan nominal unik 49.000+kode 1..999, bukti, setujui/tolak, retensi bukti 30 hari) + `pesanan_transfer_baca.py` (fakta untuk status
+  (tagihan nominal unik 49.000+kode 1..999 dengan kode lunas ditahan 30 hari, bukti, setujui/tolak, retensi bukti 30 hari; satu akun
+  maksimal satu order `menunggu_verifikasi`; order yang sudah punya receipt Midtrans tidak ditagih transfer; receipt lunas + jejak transfer
+  aktif = `perlu_diperiksa` "dua jalur") + `pesanan_transfer_baca.py` (fakta untuk status
   turunan, aman pada DB tanpa `transfer_*`). Status baru `menunggu_verifikasi` (tidak kedaluwarsa) dan `ditolak`. Rekening tujuan:
   `pesanan_rekening.py` (`rekening_*`, pola `support_settings`, tanpa seed; admin wajib mengisi). Migrasi opt-in eksplisit
   (`schema_pesanan.migrasikan`, `schema_transfer.migrasikan`, `pesanan_rekening.migrasikan`); QRIS Midtrans tetap ada, nonaktif.
@@ -254,7 +256,8 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   admin; setelah keputusan, admin dialihkan ke transfer menunggu tertua berikutnya, atau ke daftar menunggu bila habis); `/admin/pesanan/rekening` (`admin_rekening_pages/http`; nomor ter-mask, revisi+sidik di tinjauan = optimistic concurrency);
   pola bersama `admin_pesanan_aksi.py`. Guru: `POST /pesanan/tagihan/ulang` (`pesanan_transfer_ulang.py`) membuka jendela bayar baru
   (maks 5, tagihan + kode unik baru) hanya bila waktu habis tanpa bukti dan Midtrans tertutup. Operator (tidak dijadwalkan aplikasi):
-  `pesanan_retensi.py` (hapus berkas lalu tandai, bukti 30 hari sesudah keputusan, sisa `.tmp-*` > 1 jam) dan `pesanan_transfer_migrasi.py`.
+  `pesanan_retensi.py` (hapus berkas lalu tandai, bukti 30 hari sesudah keputusan, sisa `.tmp-*` > 1 jam, berkas yatim tak dirujuk
+  ledger > 24 jam; bukti belum diputuskan tidak dihapus karena trigger skema, admin ditandai "Menunggu > 72 jam") dan `pesanan_transfer_migrasi.py`.
 - Lembaga les: `schema_lembaga.py` (tabel aditif `lembaga`, `anggota_lembaga`, `pindah_siswa`
   append-only lewat trigger) + `lembaga_store.py` (semua SQL; `pindahkan` mengecek ulang semua
   predikat dalam `BEGIN IMMEDIATE`) → `lembaga_pages.py`/`lembaga_http.py` (`/lembaga`) dan

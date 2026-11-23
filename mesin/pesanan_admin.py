@@ -17,6 +17,7 @@ from schema_pesanan import CATATAN_REFUND
 
 BATAS_ID_YATIM = 40
 BATAS_PER_HALAMAN = 100
+JAM_PENANDA_MENUNGGU = 72  # bukti terakhir menunggu keputusan lebih lama dari ini = ditandai di admin
 # Kelompok saringan daftar admin. Sekat penuh: setiap status turunan masuk tepat satu kelompok.
 # `dibayar` memuat order yang pernah dibayar (termasuk perlu_diperiksa dan direfund); `ditolak`
 # memuat bukti ditolak dan jendela bayar yang habis.
@@ -102,7 +103,7 @@ SELECT o.order_id, o.akun_id, o.dibuat, %s AS kedaluwarsa, r.hasil AS receipt_ha
        EXISTS(SELECT 1 FROM pesanan_refund f WHERE f.order_id=o.order_id) AS direfund,
        EXISTS(SELECT 1 FROM pesanan_pengamatan p WHERE p.order_id=o.order_id
               AND p.sumber='status' AND p.transaction_status IN (%s)) AS refund_teramati,
-       %s AS transfer_lunas, %s AS transfer_direfund, %s AS transfer_bukti
+       %s AS transfer_lunas, %s AS transfer_direfund, %s AS transfer_bukti, %s AS bukti_diunggah
 FROM pesanan_order o LEFT JOIN pesanan_receipt r ON r.order_id=o.order_id%s
 ORDER BY o.dibuat DESC, o.order_id DESC LIMIT ? OFFSET ?
 """
@@ -113,23 +114,38 @@ def _sql_daftar(kon, hanya_menunggu=False):
     saring = " WHERE " + fakta["menunggu"] if hanya_menunggu else ""
     return _SQL_DAFTAR % (
         st.SQL_KEDALUWARSA_TERBARU, ",".join("'%s'" % s for s in d.STATUS_REFUND_PROVIDER),
-        fakta["lunas"], fakta["direfund"], fakta["bukti"], saring)
+        fakta["lunas"], fakta["direfund"], fakta["bukti"], fakta["diunggah"], saring)
+
+
+def _menunggu_lama(status, diunggah, kini):
+    """True bila order menunggu verifikasi dan bukti terakhirnya diunggah lebih dari `JAM_PENANDA_MENUNGGU` jam lalu."""
+    if status != d.STATUS_MENUNGGU_VERIFIKASI or diunggah is None:
+        return False
+    return diunggah <= d.tambah_jam(kini, -JAM_PENANDA_MENUNGGU)
+
+
+def _lama_di_atas(items):
+    """Urutan stabil: order menunggu-lama lebih dulu, sisanya tetap urut semula."""
+    return tuple(sorted(items, key=lambda i: not i["menunggu_lama"]))
 
 
 def _item_admin(baris, kini):
+    status = st.turunkan_status(
+        kedaluwarsa=baris["kedaluwarsa"], sekarang=kini,
+        receipt_hasil=baris["receipt_hasil"], direfund=bool(baris["direfund"]),
+        refund_teramati=bool(baris["refund_teramati"]),
+        transfer_lunas=bool(baris["transfer_lunas"]),
+        transfer_direfund=bool(baris["transfer_direfund"]),
+        transfer_bukti=baris["transfer_bukti"])
     return {
         "order_id": baris["order_id"],
         "akun": baris["akun_id"][:_PANJANG_AKUN_SINGKAT],
         "dibuat": baris["dibuat"],
         "kedaluwarsa": baris["kedaluwarsa"],
         "alasan_kode": baris["alasan_kode"],
-        "status": st.turunkan_status(
-            kedaluwarsa=baris["kedaluwarsa"], sekarang=kini,
-            receipt_hasil=baris["receipt_hasil"], direfund=bool(baris["direfund"]),
-            refund_teramati=bool(baris["refund_teramati"]),
-            transfer_lunas=bool(baris["transfer_lunas"]),
-            transfer_direfund=bool(baris["transfer_direfund"]),
-            transfer_bukti=baris["transfer_bukti"]),
+        "status": status,
+        "dua_jalur": st.dua_jalur(baris["receipt_hasil"], bool(baris["transfer_lunas"]), baris["transfer_bukti"]),
+        "menunggu_lama": _menunggu_lama(status, baris["bukti_diunggah"], kini),
     }
 
 
@@ -140,8 +156,8 @@ def _daftar_menunggu(kon, halaman, per_halaman, kini):
     berbeda dari status yang ditampilkan; kandidat kecil (bukti belum diputuskan).
     """
     baris = kon.execute(_sql_daftar(kon, True), (-1, 0)).fetchall()
-    items = tuple(i for i in (_item_admin(b, kini) for b in baris)
-                  if i["status"] == d.STATUS_MENUNGGU_VERIFIKASI)
+    items = _lama_di_atas(i for i in (_item_admin(b, kini) for b in baris)
+                          if i["status"] == d.STATUS_MENUNGGU_VERIFIKASI)
     awal = (halaman - 1) * per_halaman
     return {"items": items[awal:awal + per_halaman], "total": len(items),
             "halaman": halaman, "per_halaman": per_halaman}
@@ -186,6 +202,8 @@ def daftar_tersaring(kon, *, halaman, per_halaman, sekarang, kelompok=None):
     hitungan = {k: sum(1 for i in semua if i["status"] in status) for k, status in KELOMPOK_STATUS.items()}
     hitungan[KUNCI_SEMUA] = len(semua)
     pilihan = semua if kelompok is None else tuple(i for i in semua if i["status"] in KELOMPOK_STATUS[kelompok])
+    if kelompok == "menunggu":
+        pilihan = _lama_di_atas(pilihan)
     awal = (halaman - 1) * per_halaman
     return {"items": pilihan[awal:awal + per_halaman], "total": len(pilihan), "halaman": halaman,
             "per_halaman": per_halaman, "hitungan": hitungan}

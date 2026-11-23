@@ -424,3 +424,18 @@ def test_daftar_strip_rekening_kosong_jujur(bayar, admin):
 def test_daftar_tanpa_kotak_cari(bayar, admin):
     isi = minta_admin(bayar, HALAMAN, admin)[1]
     assert 'type="search"' not in isi and 'name="cari"' not in isi and 'name="q"' not in isi
+
+
+def test_dua_jalur_detail_dan_daftar_menandai_cek_refund_dan_status_perlu_diperiksa(transfer, admin):
+    import pesanan
+    import pesanan_alur
+    from pesanan_http_kit import ledger, settlement
+    order_id = order_menunggu(transfer)
+    assert dui.COPY_DUA_JALUR not in _detail(transfer, admin, order_id)       # satu jalur: tanpa penanda
+    with ledger() as kon:
+        pesanan.terapkan_hasil_provider(kon, order_id, settlement(order_id, "trx-dua-jalur-0001"),
+                                        pesanan_alur._sekarang(), "op-dua-jalur-0001")
+    isi = _detail(transfer, admin, order_id)
+    assert dui.COPY_DUA_JALUR in isi and "Perlu diperiksa" in isi
+    kode, daftar, _t = minta_admin(transfer, HALAMAN, admin)
+    assert kode == 200 and dui.ui.COPY_DUA_JALUR in daftar and "Perlu diperiksa" in daftar

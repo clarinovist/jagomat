@@ -205,3 +205,15 @@ def test_kode_hasil_verifikasi_dikenal_dan_label_status_baru_ada():
 def test_kode_hasil_detail_hanya_periksa_dan_refund():
     assert pg.KODE_HASIL_DETAIL == {"periksa_ok", "periksa_dilewati", "periksa_gagal", "gerbang_tertutup",
                                     "refund_dicatat", "refund_sudah_ada"}
+
+
+def test_penanda_dua_jalur_dan_menunggu_lama_tampil_di_sel_status():
+    isi = _render(_item(status="perlu_diperiksa", dua_jalur=True),
+                  _item(order_id="ord_" + "b" * 32, status="menunggu_verifikasi", menunggu_lama=True))
+    assert isi.count("admin-badge perhatian") >= 2
+    assert pg.e(pg.COPY_DUA_JALUR) in isi and pg.e(pg.COPY_MENUNGGU_LAMA) in isi
+
+
+def test_tanpa_penanda_bila_kunci_tidak_ada_atau_salah():
+    isi = _render(_item(), _item(order_id="ord_" + "b" * 32, dua_jalur=False, menunggu_lama=False))
+    assert pg.e(pg.COPY_DUA_JALUR) not in isi and pg.e(pg.COPY_MENUNGGU_LAMA) not in isi

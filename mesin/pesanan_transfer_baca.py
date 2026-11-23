@@ -31,7 +31,8 @@ _SQL_ADA = {
         "AND tv.keputusan='tolak' AND tv.urutan="
         "(SELECT MAX(tj.urutan) FROM pesanan_jendela tj WHERE tj.order_id=o.order_id))"),
 }
-_SQL_NETRAL = {"lunas": "0", "direfund": "0", "menunggu": "0", "bukti": "NULL"}
+_SQL_DIUNGGAH = "(SELECT MAX(tu.diunggah) FROM transfer_bukti tu WHERE tu.order_id=o.order_id)"
+_SQL_NETRAL = {"lunas": "0", "direfund": "0", "menunggu": "0", "bukti": "NULL", "diunggah": "NULL"}
 
 
 def terpasang(kon):
@@ -41,13 +42,13 @@ def terpasang(kon):
 
 
 def sql_fakta(kon):
-    """Fragmen SQL boolean/teks untuk order beralias `o`: lunas, direfund, menunggu, bukti."""
+    """Fragmen SQL untuk order beralias `o`: lunas, direfund, menunggu, bukti, diunggah (waktu bukti terakhir)."""
     if not terpasang(kon):
         return dict(_SQL_NETRAL)
     bukti = "CASE WHEN %s THEN '%s' WHEN %s THEN '%s' END" % (
         _SQL_ADA["menunggu"], BUKTI_MENUNGGU, _SQL_ADA["ditolak"], BUKTI_DITOLAK)
     return {"lunas": _SQL_ADA["lunas"], "direfund": _SQL_ADA["direfund"],
-            "menunggu": _SQL_ADA["menunggu"], "bukti": bukti}
+            "menunggu": _SQL_ADA["menunggu"], "bukti": bukti, "diunggah": _SQL_DIUNGGAH}
 
 
 def fakta(kon, order_id):

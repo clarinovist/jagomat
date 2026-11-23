@@ -1,6 +1,7 @@
 """Pembaca detail satu order untuk halaman admin `/admin/pesanan/order` (SELECT saja, tanpa HTTP).
 
-Data minimal: awalan akun, status turunan, nominal tagihan, waktu, dan urutan perjalanan order. Tidak pernah
+Data minimal: awalan akun, status turunan, nominal tagihan, waktu, urutan perjalanan order, penanda dua jalur
+bayar, dan JUMLAH order lain dengan bukti sama (hitungan saja). Tidak pernah
 mengembalikan transaksi_id, merchant, payload, kontak, nama anak, siswa_id, nama berkas, atau sha256.
 Aman pada DB tanpa namespace `transfer_*` (order QRIS tetap terbaca; nominal None).
 """
@@ -62,12 +63,19 @@ def _cara_bayar(kon, order_id: str) -> str:
     return CARA_QRIS
 
 
+def _dua_jalur(kon, order_id: str) -> bool:
+    receipt = st.receipt_order(kon, order_id)
+    fakta = tb.fakta(kon, order_id)
+    return st.dua_jalur(None if receipt is None else receipt["hasil"], fakta["lunas"], fakta["bukti"])
+
+
 def detail_order(kon, order_id, sekarang) -> Optional[dict]:
     """Detail satu order (dict baru) atau None bila order tak dikenal.
 
     Kunci: order_id, akun (awalan), status, dibuat, kedaluwarsa (jendela bayar terbaru), cara, nominal
-    (tagihan transfer atau None), jumlah_bukti, langkah (tuple dict {kode, waktu, jumlah} terurut waktu;
-    hanya langkah yang datanya ada). `order_id` tak sah = PesananDataTidakSah.
+    (tagihan transfer atau None), jumlah_bukti, dua_jalur (receipt penyedia lunas + jejak transfer aktif),
+    bukti_dipakai_ulang (jumlah order lain dengan sha256 bukti sama), langkah (tuple dict {kode, waktu, jumlah}
+    terurut waktu; hanya langkah yang datanya ada). `order_id` tak sah = PesananDataTidakSah.
     """
     d.periksa_koneksi(kon)
     d.periksa_order_id(order_id)
@@ -85,4 +93,6 @@ def detail_order(kon, order_id, sekarang) -> Optional[dict]:
     return {"order_id": order_id, "akun": baris["akun_id"][:_PANJANG_AKUN_SINGKAT], "status": status,
             "dibuat": baris["dibuat"], "kedaluwarsa": kedaluwarsa, "cara": _cara_bayar(kon, order_id),
             "nominal": ringkas.get("nominal"), "jumlah_bukti": ringkas.get("jumlah_bukti", 0),
+            "dua_jalur": _dua_jalur(kon, order_id),
+            "bukti_dipakai_ulang": pat.order_lain_bukti_sama(kon, order_id),
             "langkah": tuple(sorted(langkah, key=lambda x: x["waktu"]))}

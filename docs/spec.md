@@ -266,8 +266,9 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   unggah bukti (JPEG/PNG/PDF, maks 5 MB, maks 5 bukti); QRIS tampil sebagai pilihan kedua bila Midtrans juga terbuka. Status
   `menunggu_verifikasi`/`ditolak`; lunas hanya setelah admin menyetujui. Admin memverifikasi di `/admin/pesanan` (tab Menunggu
   verifikasi, pratinjau bukti, setujui atau tolak dengan alasan, sandi ulang) dan mengisi rekening di `/admin/pesanan/rekening`; guru dapat
-  membuka waktu pembayaran baru (maks 5 jendela) bila waktu habis tanpa bukti dan Midtrans tertutup. Bukti dihapus 30 hari sesudah
-  keputusan lewat CLI operator dan tidak ikut backup.
+  membuka waktu pembayaran baru (maks 5 jendela) bila waktu habis tanpa bukti dan Midtrans tertutup. Satu akun hanya boleh punya satu
+  pesanan menunggu verifikasi; admin melihat penanda "Menunggu > 72 jam", "Dibayar lewat dua jalur" (QRIS + transfer, cek refund), dan
+  peringatan bila berkas bukti identik muncul di order lain. Bukti dihapus 30 hari sesudah keputusan lewat CLI operator dan tidak ikut backup.
 - [Backup operasional](operational-backup.md) manual mencakup core, riset dan foto;
   scheduler/off-site otomatis belum tersedia, bukan janji pemulihan seluruh VPS.
 

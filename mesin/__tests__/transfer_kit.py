@@ -20,6 +20,11 @@ def siapkan_db_transfer(tmp_path):
     return path
 
 
+def akun_ke(n):
+    """Akun sintetis ke-n: satu akun hanya boleh punya satu order menunggu verifikasi."""
+    return "akun_" + ("%02x" % (n + 0xC0)) * 16
+
+
 def sha(n):
     return "%064x" % (n + 0xA0)
 

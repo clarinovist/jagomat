@@ -64,6 +64,8 @@ COPY_KOSONG_SARING = {
 }
 COPY_KOSONG_MENUNGGU = COPY_KOSONG_SARING[SARING_MENUNGGU]
 COPY_PERIKSA_BUKTI = "Periksa bukti"
+COPY_DUA_JALUR = "Dibayar lewat dua jalur — cek refund"
+COPY_MENUNGGU_LAMA = "Menunggu > 72 jam"
 COPY_DETAIL = "Detail"
 # Alasan receipt penyedia (`alasan_kode`) dalam bahasa awam; kode tak dikenal jatuh ke "Lainnya".
 COPY_ALASAN = {
@@ -139,9 +141,15 @@ def _sel_status(item: Mapping) -> str:
     status = item["status"]
     badge = '<span class="admin-badge%s">%s</span>' % (KELAS_BADGE.get(status, ""), e(COPY_STATUS.get(status, status)))
     kode = item["alasan_kode"]
-    if not kode:
-        return badge
-    return '%s<br><span class="admin-meta">%s</span>' % (badge, e(COPY_ALASAN.get(kode, COPY_ALASAN_LAIN)))
+    if kode:
+        badge += '<br><span class="admin-meta">%s</span>' % e(COPY_ALASAN.get(kode, COPY_ALASAN_LAIN))
+    return badge + _penanda(item)
+
+
+def _penanda(item: Mapping) -> str:
+    """Penanda admin (dua jalur bayar, menunggu lama); item buatan tangan tanpa kunci ini = tanpa penanda."""
+    teks = [t for kunci, t in (("dua_jalur", COPY_DUA_JALUR), ("menunggu_lama", COPY_MENUNGGU_LAMA)) if item.get(kunci)]
+    return "".join('<br><span class="admin-badge perhatian">%s</span>' % e(t) for t in teks)
 
 
 def _sel_aksi(item: Mapping) -> str:

@@ -115,8 +115,38 @@ def test_nominal_dilepas_setelah_kedaluwarsa_tanpa_bukti(kon):
 def test_nominal_tetap_dipegang_selama_menunggu_verifikasi_walau_lewat_jendela(kon):
     order, lama = tagihan(kon, 1, acak=terendah)
     unggah(kon, order, 1)
-    _, baru = tagihan(kon, 2, sekarang=SESUDAH_KEDALUWARSA, acak=terendah)
+    _, baru = tagihan(kon, 2, akun=AKUN_B, sekarang=SESUDAH_KEDALUWARSA, acak=terendah)
     assert baru["kode_unik"] != lama["kode_unik"]
+
+
+def _lunas_transfer_dengan_kode_terendah(kon):
+    order, tag = tagihan(kon, 1, acak=terendah)
+    unggah(kon, order, 1)
+    tf.setujui(kon, order["order_id"], ADMIN, SESUDAH_UPLOAD)
+    return tag
+
+
+def test_kode_order_lunas_transfer_ditahan_29_hari(kon):
+    lama = _lunas_transfer_dengan_kode_terendah(kon)
+    _, baru = tagihan(kon, 2, akun=AKUN_B, sekarang="2026-12-17T12:00:00", acak=terendah)
+    assert baru["kode_unik"] != lama["kode_unik"]
+
+
+def test_kode_order_lunas_transfer_dilepas_sesudah_30_hari(kon):
+    lama = _lunas_transfer_dengan_kode_terendah(kon)
+    _, baru = tagihan(kon, 2, akun=AKUN_B, sekarang="2026-12-19T12:00:00", acak=terendah)
+    assert baru["kode_unik"] == lama["kode_unik"]
+
+
+def test_hanya_tagihan_yang_dibayar_ditahan_bukan_tagihan_jendela_lain(kon):
+    order, pertama = tagihan(kon, 1, acak=max)           # jendela #1: kode 999, tidak dibayar
+    pesanan.buka_jendela_ulang(kon, order["order_id"], AKUN_A, SESUDAH_KEDALUWARSA, operasi(1))
+    kedua = tf.buat_tagihan_transfer(kon, order["order_id"], AKUN_A, SESUDAH_KEDALUWARSA, acak=terendah)
+    unggah(kon, order, 1, sekarang=SESUDAH_KEDALUWARSA)
+    tf.setujui(kon, order["order_id"], ADMIN, SESUDAH_KEDALUWARSA)
+    _, baru = tagihan(kon, 2, akun=AKUN_B, sekarang="2026-11-20T12:00:00", acak=max)
+    assert kedua["urutan"] == 2 and pertama["kode_unik"] == 999 and kedua["kode_unik"] == 1
+    assert baru["kode_unik"] == 999                        # kode jendela #1 tak dibayar: bebas; kode #2 ditahan
 
 
 def test_jendela_dibuka_ulang_mendapat_tagihan_baru_tanpa_tabrakan(kon):
@@ -146,6 +176,81 @@ def test_ambil_tagihan_hanya_untuk_pemilik_dan_none_bila_belum_ada(kon):
     assert baca["nominal_transfer"] == tag["nominal_transfer"]
     with pytest.raises(pesanan.PesananTidakDitemukan):
         tf.ambil_tagihan(kon, tag["order_id"], AKUN_B)
+
+
+def test_tagihan_ulang_ditolak_bila_receipt_penyedia_masuk_sesudah_tagihan_dibuat(kon):
+    order, _ = tagihan(kon, 1)
+    terapkan(kon, order, 1)                              # receipt Midtrans lunas masuk
+    sebelum = isi(kon)
+    with pytest.raises(pesanan.PesananKonflik):
+        tf.buat_tagihan_transfer(kon, order["order_id"], AKUN_A, SEKARANG)   # bukan pengembalian idempoten
+    assert isi(kon) == sebelum
+
+
+def test_tagihan_ditolak_bila_akun_punya_order_lain_menunggu_verifikasi(kon):
+    menunggu(kon, 1)
+    order2 = buat(kon, 2)
+    sebelum = isi(kon)
+    with pytest.raises(tf.PesananMenungguLain):
+        tf.buat_tagihan_transfer(kon, order2["order_id"], AKUN_A, SEKARANG)
+    assert isi(kon) == sebelum and issubclass(tf.PesananMenungguLain, pesanan.PesananKonflik)
+
+
+def test_bukti_ditolak_bila_akun_punya_order_lain_menunggu_verifikasi(kon):
+    order1, _ = tagihan(kon, 1)
+    order2, _ = tagihan(kon, 2)                          # dua tagihan sebelum ada bukti: sah
+    unggah(kon, order1, 1)
+    sebelum = isi(kon)
+    with pytest.raises(tf.PesananMenungguLain):
+        unggah(kon, order2, 2)
+    assert isi(kon) == sebelum
+    assert status(kon, order2) == "belum_bayar"
+
+
+def test_order_menunggu_boleh_menambah_bukti_sendiri_meski_bukan_satu_satunya(kon):
+    order1, _ = menunggu(kon, 1)
+    assert unggah(kon, order1, 2)["baru"] is True
+
+
+def test_akun_lain_tidak_terpengaruh_order_menunggu_akun_pertama(kon):
+    menunggu(kon, 1)
+    order2, _ = tagihan(kon, 2, akun=AKUN_B)
+    assert unggah(kon, order2, 2, akun=AKUN_B)["status"] == "menunggu_verifikasi"
+
+
+def test_order_lain_akun_sama_boleh_lanjut_sesudah_yang_menunggu_diputuskan(kon):
+    order2, _ = tagihan(kon, 3)
+    order1, _ = menunggu(kon, 1)
+    tf.tolak(kon, order1["order_id"], ADMIN, "buram", SESUDAH_UPLOAD)
+    assert unggah(kon, order2, 3)["status"] == "menunggu_verifikasi"
+
+
+def test_order_lain_perlu_diperiksa_tidak_memblokir_akun(kon):
+    order1, _ = menunggu(kon, 1)
+    terapkan(kon, order1, 1, sekarang=SESUDAH_UPLOAD)    # dua jalur: perlu_diperiksa, bukan menunggu
+    assert status(kon, order1) == "perlu_diperiksa"
+    _, tag = tagihan(kon, 2)
+    assert tag["baru"] is True
+
+
+def test_domain_mengizinkan_banyak_order_per_akun_dan_hanya_satu_menunggu(kon):
+    # Bukti batas: UNIQUE hanya pada siswa_id (schema_pesanan.py:44), bukan akun_id.
+    buat(kon, 1)
+    buat(kon, 2)
+    assert kon.execute("SELECT COUNT(*) FROM pesanan_order WHERE akun_id=?", (AKUN_A,)).fetchone()[0] == 2
+
+
+def test_receipt_lunas_dengan_bukti_menunggu_berstatus_perlu_diperiksa(kon):
+    order, _ = menunggu(kon, 1)
+    terapkan(kon, order, 1, sekarang=SESUDAH_UPLOAD)
+    assert status(kon, order) == "perlu_diperiksa"
+
+
+def test_receipt_lunas_dengan_bukti_ditolak_tetap_sudah_dibayar(kon):
+    order, _ = menunggu(kon, 1)
+    tf.tolak(kon, order["order_id"], ADMIN, "buram", SESUDAH_UPLOAD)
+    terapkan(kon, order, 1, sekarang=SESUDAH_UPLOAD)
+    assert status(kon, order) == "sudah_dibayar"
 
 
 # --- bukti ------------------------------------------------------------------

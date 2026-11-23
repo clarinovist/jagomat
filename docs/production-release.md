@@ -335,13 +335,20 @@ berkas bernama tetap, jadi folder itu tidak tersapu); (3) migrasi salinan, lalu 
 `mesin/.venv/bin/python mesin/pesanan_transfer_migrasi.py --database <admin-control.db>` (idempoten; memasang
 `transfer_*` dan `rekening_*` tanpa seed dan tanpa bump `user_version`; bila `pesanan_*` belum terpasang perintah
 gagal keras, `--termasuk-pesanan` memasangnya lebih dulu sebagai langkah rilis tersendiri); (4) lepas hold, lalu
-admin mengisi rekening di `/admin/pesanan/rekening`; (5) baru operator menyetel `PESANAN_TRANSFER_AKTIF=1` lewat
-mekanisme flag produksi yang ada (`/opt/osn/visual.conf`, lihat bagian "Aktivasi funnel"; pastikan jalur `docker run`
-utama dan rollback `osn-deploy` sama-sama memuatnya, dan jangan mengubah `osn-deploy` tanpa persetujuan). Folder bukti bawaannya `bukti-transfer` di samping
+admin mengisi rekening di `/admin/pesanan/rekening`; (5) keputusan Pemilik 23 Nov 2026: QRIS ditutup saat transfer dibuka, jadi
+admin menurunkan tahap pembayaran `checkout` -> `rekonsiliasi` di `/admin/sakelar` (callback/rekonsiliasi order Midtrans lama tetap
+jalan); (6) baru menyalakan `PESANAN_TRANSFER_AKTIF` di `/admin/sakelar` (baris DB sakelar menang atas env; produksi sudah punya
+barisnya dengan nilai 0, jadi `visual.conf` tidak perlu diubah). Folder bukti bawaannya `bukti-transfer` di samping
 `admin-control.db` pada volume data persisten, sehingga selamat dari pergantian container; bila `OSN_DIREKTORI_BUKTI`
 diubah, arahkan ke folder 0700 di volume data yang sama, bukan ke dalam filesystem container.
 
-Retensi 30 hari (manual, belum dijadwalkan; jangan memasang cron/worker tanpa izin):
+SOP rekening tujuan (pengganti sementara temuan #6 tinjauan 19 Nov, keputusan Pemilik 23 Nov 2026): audit `rekening_audit` hanya
+menyimpan sidik, jadi setiap mengubah rekening admin wajib mengabari Pemilik dan grup tim (bank + 4 digit terakhir lama dan baru)
+sebelum menyimpan; Pemilik mencocokkan rekening yang tampil di `/pesanan` setelahnya. Admin wajib mencocokkan setiap bukti dengan
+mutasi bank sebelum menyetujui, terutama bila detail order memperingatkan berkas bukti identik di order lain.
+
+Retensi 30 hari sesudah keputusan + berkas yatim > 24 jam (keputusan Pemilik 23 Nov 2026: dijadwalkan harian lewat cron yang
+dipasang kit rilis pembukaan transfer; selain itu jangan memasang cron/worker tanpa izin):
 `mesin/.venv/bin/python mesin/pesanan_retensi.py --database <admin-control.db> [--folder <folder-bukti>]`. `--folder`
 wajib sama dengan folder bukti aplikasi (nilai `OSN_DIREKTORI_BUKTI` di container, atau default di samping DB) atau
 perintah dijalankan di dalam container; folder yang tidak ada tidak menandai apa pun di ledger (dilaporkan `gagal`,
