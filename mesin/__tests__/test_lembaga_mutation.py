@@ -131,3 +131,83 @@ KASUS_F1 = [
 def test_mutasi_guard_lepas_dan_pembeda_nama(tmp_path, lama, baru, berkas, uji, sehat):
     target, p, teks = _salin_dan_mutasi(tmp_path, STORE, lama, baru)
     _buktikan_merah_sehat_hijau(target, p, teks, berkas, uji, sehat, "failed")
+
+
+# --- F6: pindah banyak anak sekaligus (semua-atau-tidak, kewenangan per anak, sesi berjalan) ----------
+
+UJI_BANYAK = "test_lembaga_banyak.py"
+UJI_BANYAK_HTTP = "test_lembaga_banyak_http.py"
+SEHAT_BANYAK = "test_banyak_sukses_satu_ubahan_dan_satu_jejak_per_anak"
+SEHAT_BANYAK_HTTP = "test_banyak_sukses_alihkan_dengan_jumlah_dan_tujuan_lalu_pesan_ramah"
+# (i) tidak atomik: tulis anak satu per satu sambil memeriksa; anak bermasalah di akhir menolak
+# setelah anak sebelumnya sudah tertulis (jalur sukses tetap sama hasilnya).
+TOLAK_BANYAK = (
+    "    penolakan = _tolak_batch(kon, anak, ke)\n"
+    "    if penolakan is not None:\n"
+    "        return penolakan\n"
+)
+TIDAK_ATOMIK = (
+    "    for a in anak:\n"
+    "        if _sesi_berjalan(kon, int(a[\"id\"])):\n"
+    "            return HasilPindahBanyak(STATUS_SESI_BERJALAN, 1, ke)\n"
+    "        _tulis_pindah(kon, lembaga_id=int(lembaga[\"id\"]), siswa_id=int(a[\"id\"]),\n"
+    "                      dari=a[\"pemilik\"], ke=ke, nama_baru=a[\"nama\"], oleh=oleh)\n"
+    "    return HasilPindahBanyak(STATUS_OK, len(anak), ke)\n"
+)
+# (ii) kewenangan hanya diperiksa untuk anak pertama (anak berikutnya lolos walau di luar lembaga).
+CEK_ANAK = '        if baris is None or baris["pemilik"] not in penghuni:\n'
+CEK_ANAK_PERTAMA = '        if baris is None or (not anak and baris["pemilik"] not in penghuni):\n'
+# (iii) tujuan tidak diperiksa sebagai penghuni lembaga.
+CEK_TUJUAN = "    anak = _anak_berwenang(kon, penghuni, siswa_ids) if ke in penghuni else None\n"
+# (iv) cek sesi berjalan per anak dimatikan.
+CEK_SESI_BANYAK = '    berjalan = sum(1 for a in anak if _sesi_berjalan(kon, int(a["id"])))\n'
+# (v) pembeda nama antar anak dalam satu batch dimatikan.
+PESAN_NAMA = "        dipesan.append(nama_baru)\n"
+# (vi) batas jumlah dimatikan; (vii) duplikat id lolos ke store.
+CEK_BATAS = "    if len(siswa_ids) > BATAS_PINDAH_BANYAK:\n"
+CEK_DUPLIKAT = "        and len(set(siswa_ids)) == len(siswa_ids)\n"
+KASUS_F6_STORE = [
+    (TOLAK_BANYAK, TIDAK_ATOMIK, UJI_BANYAK,
+     "test_banyak_ditolak_selagi_anak_terakhir_punya_sesi_berjalan"),
+    (CEK_ANAK, CEK_ANAK_PERTAMA, UJI_BANYAK,
+     "test_banyak_ditolak_bila_anak_terakhir_di_luar_lembaga_atau_tak_ada"),
+    (CEK_ANAK, CEK_ANAK_PERTAMA, UJI_BANYAK_HTTP,
+     "test_banyak_sebagian_anak_bukan_milik_lembaga_404_identik_tanpa_efek"),
+    (CEK_TUJUAN, "    anak = _anak_berwenang(kon, penghuni, siswa_ids)\n", UJI_BANYAK,
+     "test_banyak_ditolak_bila_tujuan_di_luar_lembaga"),
+    (CEK_SESI_BANYAK, "    berjalan = 0\n", UJI_BANYAK,
+     "test_banyak_ditolak_selagi_anak_terakhir_punya_sesi_berjalan"),
+    (CEK_SESI_BANYAK, "    berjalan = 0\n", UJI_BANYAK_HTTP,
+     "test_banyak_sesi_berjalan_menolak_seluruh_permintaan_dengan_jumlah"),
+    (PESAN_NAMA, "        pass\n", UJI_BANYAK, "test_banyak_nama_kembar_hanya_di_dalam_batch"),
+    (CEK_BATAS, "    if False:\n", UJI_BANYAK, "test_banyak_di_atas_batas_ditolak_tanpa_tulis"),
+    (CEK_DUPLIKAT, "        and True\n", UJI_BANYAK, "test_banyak_duplikat_id_ditolak_walau_anak_sah"),
+]
+
+
+@pytest.mark.parametrize("lama,baru,berkas,uji", KASUS_F6_STORE)
+def test_mutasi_guard_pindah_banyak_store(tmp_path, lama, baru, berkas, uji):
+    target, p, teks = _salin_dan_mutasi(tmp_path, STORE, lama, baru)
+    sehat = SEHAT_BANYAK if berkas == UJI_BANYAK else SEHAT_BANYAK_HTTP
+    _buktikan_merah_sehat_hijau(target, p, teks, berkas, uji, sehat, "failed")
+
+
+KASUS_F6_HTTP = [
+    # Duplikat id divalidasi di server (400), bukan diserahkan ke store.
+    ("    return (angka, tujuan[0]) if len(set(angka)) == len(angka) else None\n",
+     "    return (angka, tujuan[0])\n", "test_banyak_isian_salah_bentuk_dari_pemilik_400_tanpa_tulis"),
+    # Kolom asing ditolak.
+    ('    if pasangan is None or any(k not in ("siswa_id", "ke") for k, _ in pasangan):\n',
+     "    if pasangan is None:\n", "test_banyak_isian_salah_bentuk_dari_pemilik_400_tanpa_tulis"),
+    # Tujuan di kueri pesan hanya ditampilkan bila penghuni lembaga.
+    ('    return (jumlah if jumlah <= toko.BATAS_PINDAH_BANYAK else 0), (ke if ke in penghuni else "")\n',
+     "    return jumlah, ke\n",
+     "test_pesan_banyak_tanpa_parameter_sah_tidak_tampil_dan_tidak_memantulkan"),
+]
+
+
+@pytest.mark.parametrize("lama,baru,uji", KASUS_F6_HTTP)
+def test_mutasi_guard_pindah_banyak_http(tmp_path, lama, baru, uji):
+    target, p, teks = _salin_dan_mutasi(tmp_path, "lembaga_http.py", lama, baru)
+    _buktikan_merah_sehat_hijau(
+        target, p, teks, UJI_BANYAK_HTTP, uji, SEHAT_BANYAK_HTTP, "failed")

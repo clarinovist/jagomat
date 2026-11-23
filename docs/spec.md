@@ -68,6 +68,12 @@ anggota di `/lembaga` (anak, jumlah sesi, sesi terakhir, menunggu konfirmasi) da
 memindahkan anak antar guru lembaganya; ia **tidak** membuka sesi/jawaban anak guru lain.
 Pindah ditolak bila anak sedang punya sesi berjalan; nama kembar di guru tujuan tidak menolak,
 tetapi nama anak diberi pembeda "(2)", "(3)", dst. (ditolak hanya bila pembeda habis di "(99)").
+Pemilik les juga bisa **memindahkan banyak anak sekaligus** ke satu guru tujuan: centang anak di `/lembaga`
+(HTML native, maksimal 50 per permintaan; `POST /lembaga/pindah-banyak`), satu transaksi semua-atau-tidak-sama-sekali
+dengan kewenangan yang sama seperti pindah satu anak (anak dan tujuan penghuni lembaga yang sama, selain itu 404 identik).
+Seluruh permintaan ditolak tanpa mengubah apa pun, dengan jumlah anak bermasalah di pesan, bila ada anak yang
+sudah di guru tujuan, bersesi berjalan, atau pembeda nama habis; nama kembar (juga antar anak dalam batch) diberi
+pembeda, dan tiap anak mendapat satu jejak pindah.
 Admin yang melepas anggota mengembalikan **semua** anaknya ke pemilik lembaga (satu jejak per anak,
 nama kembar diberi pembeda; ditolak bila ada anaknya dengan sesi berjalan, tanpa mengubah apa pun).
 Riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 identik.

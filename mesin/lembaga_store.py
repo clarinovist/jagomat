@@ -18,6 +18,11 @@ STATUS_SAMA = "sama"
 STATUS_BENTROK_NAMA = "bentrok_nama"
 STATUS_SESI_BERJALAN = "sesi_berjalan"
 STATUS_PENOLAKAN_BISNIS = frozenset((STATUS_SAMA, STATUS_BENTROK_NAMA, STATUS_SESI_BERJALAN))
+STATUS_TERLALU_BANYAK = "terlalu_banyak"
+# Penolakan bisnis pindah banyak: semua penolakan pindah satu anak + batas jumlah per permintaan.
+STATUS_PENOLAKAN_BANYAK = STATUS_PENOLAKAN_BISNIS | {STATUS_TERLALU_BANYAK}
+# Batas jumlah anak dalam SATU permintaan pindah banyak (transaksi dan form tetap kecil).
+BATAS_PINDAH_BANYAK = 50
 
 # Operasi baca foto yang belum final; `unknown` ikut ditahan (pilihan restriktif).
 _STATUS_FOTO_BELUM_FINAL = ("reserved", "sent", "unknown")
@@ -43,6 +48,19 @@ class HasilPindah:
     status: str
     dari: str = ""
     nama_baru: str = ""
+
+    @property
+    def berhasil(self) -> bool:
+        return self.status == STATUS_OK
+
+
+@dataclass(frozen=True)
+class HasilPindahBanyak:
+    """Hasil pindah banyak: `jumlah` = anak yang dipindah (status ok) atau anak yang
+    bermasalah (penolakan bisnis); `ke` = guru tujuan."""
+    status: str
+    jumlah: int = 0
+    ke: str = ""
 
     @property
     def berhasil(self) -> bool:
@@ -317,3 +335,68 @@ def pindahkan(kon: sqlite3.Connection, *, oleh: str, siswa_id: int, ke: str) -> 
     _tulis_pindah(kon, lembaga_id=int(lembaga["id"]), siswa_id=siswa_id,
                   dari=dari, ke=ke, nama_baru=nama_baru, oleh=oleh)
     return HasilPindah(STATUS_OK, dari, nama_baru)
+
+
+def _bentuk_batch_sah(siswa_ids, ke) -> bool:
+    """Daftar id integer tak kosong tanpa duplikat dan tujuan bertipe str."""
+    return (
+        isinstance(ke, str) and isinstance(siswa_ids, (list, tuple)) and len(siswa_ids) > 0
+        and all(isinstance(i, int) and not isinstance(i, bool) for i in siswa_ids)
+        and len(set(siswa_ids)) == len(siswa_ids)
+    )
+
+
+def _anak_berwenang(kon: sqlite3.Connection, penghuni, siswa_ids):
+    """Baris anak (urut id) bila SEMUA ada dan dipegang penghuni lembaga; selain itu None."""
+    anak = []
+    for siswa_id in sorted(siswa_ids):
+        baris = kon.execute(
+            "SELECT id, nama, pemilik FROM siswa WHERE id = ?", (siswa_id,)).fetchone()
+        if baris is None or baris["pemilik"] not in penghuni:
+            return None
+        anak.append(baris)
+    return anak
+
+
+def _tolak_batch(kon: sqlite3.Connection, anak, ke: str) -> Optional[HasilPindahBanyak]:
+    """Penolakan bisnis pindah banyak (jumlah = anak bermasalah), atau None bila boleh."""
+    sama = sum(1 for a in anak if a["pemilik"] == ke)
+    if sama:
+        return HasilPindahBanyak(STATUS_SAMA, sama, ke)
+    berjalan = sum(1 for a in anak if _sesi_berjalan(kon, int(a["id"])))
+    if berjalan:
+        return HasilPindahBanyak(STATUS_SESI_BERJALAN, berjalan, ke)
+    return None
+
+
+def pindahkan_banyak(kon: sqlite3.Connection, *, oleh: str, siswa_ids,
+                     ke: str) -> HasilPindahBanyak:
+    """Pindahkan beberapa anak ke SATU guru lembaga yang sama (di dalam BEGIN IMMEDIATE).
+
+    Semua-atau-tidak-sama-sekali: seluruh predikat diputuskan sebelum menulis apa pun.
+    Urutan: kewenangan dulu (pemilik lembaga; SETIAP anak dan tujuan penghuni lembaga yang
+    sama; `tidak_berwenang` tanpa membedakan sebab), lalu penolakan bisnis (anak sudah di
+    tujuan, sesi berjalan, pembeda nama habis; `jumlah` = anak bermasalah). Nama kembar
+    diberi pembeda, termasuk antar anak dalam satu batch. Satu UPDATE + satu jejak per anak.
+    """
+    lembaga = lembaga_milik(kon, oleh)
+    if lembaga is None or not _bentuk_batch_sah(siswa_ids, ke):
+        return HasilPindahBanyak(STATUS_TIDAK_BERWENANG)
+    if len(siswa_ids) > BATAS_PINDAH_BANYAK:
+        return HasilPindahBanyak(STATUS_TERLALU_BANYAK, len(siswa_ids), ke)
+    penghuni = _penghuni(kon, lembaga)
+    anak = _anak_berwenang(kon, penghuni, siswa_ids) if ke in penghuni else None
+    if anak is None:
+        return HasilPindahBanyak(STATUS_TIDAK_BERWENANG)
+    penolakan = _tolak_batch(kon, anak, ke)
+    if penolakan is not None:
+        return penolakan
+    try:
+        rencana = _rencana_nama(kon, anak, ke)
+    except PenolakanNamaAnak:
+        return HasilPindahBanyak(STATUS_BENTROK_NAMA, 0, ke)
+    dari = {int(a["id"]): a["pemilik"] for a in anak}
+    for siswa_id, nama_baru in rencana:
+        _tulis_pindah(kon, lembaga_id=int(lembaga["id"]), siswa_id=siswa_id,
+                      dari=dari[siswa_id], ke=ke, nama_baru=nama_baru, oleh=oleh)
+    return HasilPindahBanyak(STATUS_OK, len(rencana), ke)
