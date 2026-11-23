@@ -4,7 +4,7 @@ Aturan yang ditegakkan DI SINI (bukan di halaman), semuanya per `siswa_id` yang 
 server (tidak pernah dari URL/form):
 - Kepemilikan: sesi yang bukan milik anak itu = `HarianTidakDitemukan` (pemanggil menjawab 404 identik), tanpa efek.
 - Satu sesi berjalan per anak (indeks unik parsial). `mulai` menjalankan urutan: sesi berjalan dilanjutkan
-  (tidak dihitung lagi) -> batas gratis (`akses_harian`, hari kalender WIB dari `sekarang`) -> rakit -> simpan.
+  (tidak dihitung lagi) -> batas gratis (`akses_harian`; sesi dikerjakan hari kalender WIB `sekarang`, lihat `sesi_dikerjakan_hari_ini`) -> rakit -> simpan.
 - Soal disimpan sebagai snapshot saat sesi dibuat. `muat_soal` membaca proyeksi AMAN (penyajian + empat opsi) lebih
   dulu; kunci dan pembahasan baru dibaca setelah soal itu terjawab (`UmpanBalik`). Soal hanya terbuka berurutan:
   nomor n bisa dibuka/dijawab bila n <= banyak jawaban + 1, jadi soal berikutnya tidak bocor.
@@ -169,16 +169,25 @@ def tingkat_terakhir(kon, siswa_id: int) -> Optional[str]:
     return None if baris is None else baris["tingkat"]
 
 
-def sesi_dimulai_hari_ini(kon, siswa_id: int, sekarang: int) -> int:
+def sesi_dikerjakan_hari_ini(kon, siswa_id: int, sekarang: int) -> int:
+    """Sesi anak ini yang DIKERJAKAN pada hari WIB `sekarang`: dimulai hari itu ATAU ada soal yang dijawab hari itu.
+
+    Menyelesaikan sesi menggantung dari hari sebelumnya ikut memakai jatah hari baru, jadi akun gratis tidak
+    bisa menyelesaikan sesi lama lalu memulai sesi baru di hari yang sama (±2 sesi/hari). Dipilih ketimbang
+    menutup sesi menggantung saat hari berganti: status sesi dikunci CHECK skema (hanya berjalan/selesai) dan
+    menandai selesai akan merusak ringkasan sesi. Melanjutkan tanpa menjawab belum dihitung.
+    """
     awal, akhir = harian_waktu.batas_hari_wib(sekarang)
-    return kon.execute("SELECT COUNT(*) FROM harian_sesi WHERE siswa_id = ? AND mulai_epoch >= ? AND mulai_epoch < ?",
-                       (siswa_id, awal, akhir)).fetchone()[0]
+    return kon.execute(
+        "SELECT COUNT(*) FROM harian_sesi s WHERE s.siswa_id = ? AND ((s.mulai_epoch >= ? AND s.mulai_epoch < ?) "
+        "OR EXISTS (SELECT 1 FROM harian_jawaban j WHERE j.sesi_id = s.id AND j.dijawab_epoch >= ? "
+        "AND j.dijawab_epoch < ?))", (siswa_id, awal, akhir, awal, akhir)).fetchone()[0]
 
 
 def kuota(kon, siswa_id: int, sekarang: int) -> Kuota:
     """Akses (`akses_harian`) dan jatah hari ini; `habis` hanya bila TIDAK tanpa batas dan jatah gratis terpakai."""
     akses = akses_harian.akses(kon, siswa_id, harian_waktu.kini_baku(sekarang))
-    terpakai = sesi_dimulai_hari_ini(kon, siswa_id, sekarang)
+    terpakai = sesi_dikerjakan_hari_ini(kon, siswa_id, sekarang)
     return Kuota(akses, terpakai, (not akses.tanpa_batas) and terpakai >= akses_harian.BATAS_GRATIS_PER_HARI)
 
 

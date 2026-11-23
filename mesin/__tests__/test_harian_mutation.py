@@ -3,15 +3,10 @@
 Tiap kasus mematikan satu guard di salinan (satu atau beberapa penggantian), memastikan tes terkait MERAH karena
 perilaku (bukan import/fixture rusak), lalu memulihkan dan memastikan HIJAU. Workspace asli tidak disentuh.
 """
-import os
-from pathlib import Path
-import shutil
-import subprocess
-import sys
-
 import pytest
 
-AKAR = Path(__file__).resolve().parents[2]
+from harian_mutasi_kit import uji_mutasi
+
 BERKAS_TES = ("test_harian_http.py", "test_harian_latihan_store.py", "http_test_kit.py", "conftest.py")
 TES_HTTP = "test_harian_http.py"
 TES_STORE = "test_harian_latihan_store.py"
@@ -45,9 +40,23 @@ KASUS = (
         ("(not akses.tanpa_batas) and terpakai >= akses_harian.BATAS_GRATIS_PER_HARI", "False"),
     ], TES_STORE, "test_batas_gratis_satu_sesi_dimulai_per_hari_wib"),
     ("batas_gratis_bukan_per_anak", "harian_latihan_store.py", [
-        ("WHERE siswa_id = ? AND mulai_epoch >= ? AND mulai_epoch < ?\",\n                       (siswa_id, awal, akhir))",
-         "WHERE mulai_epoch >= ? AND mulai_epoch < ?\",\n                       (awal, akhir))"),
-    ], TES_STORE, "test_batas_gratis_per_anak_bukan_per_akun_atau_global"),
+        ("WHERE s.siswa_id = ? AND ((s.mulai_epoch", "WHERE ((s.mulai_epoch"),
+        ("(siswa_id, awal, akhir, awal, akhir)", "(awal, akhir, awal, akhir)"),
+    ], TES_STORE, "test_batas_gratis_per_anak_bukan_per_akun_atau_global or test_jawaban_sesi_anak_lain_tidak_memakai_jatah_anak_ini"),
+    ("jatah_hanya_sesi_dimulai_hari_ini", "harian_latihan_store.py", [
+        ("\"OR EXISTS (SELECT 1 FROM harian_jawaban j WHERE j.sesi_id = s.id AND j.dijawab_epoch >= ? \"\n        \"AND j.dijawab_epoch < ?))\", (siswa_id, awal, akhir, awal, akhir)",
+         "\")\", (siswa_id, awal, akhir)"),
+    ], TES_STORE, "test_sesi_menggantung_diselesaikan_di_hari_baru_memakai_jatah_hari_baru or test_menjawab_satu_soal_sesi_lama_di_hari_baru_sudah_menghitung_jatah_hari_itu"),
+    ("jatah_mengabaikan_sesi_dimulai_tanpa_jawaban", "harian_latihan_store.py", [
+        ("((s.mulai_epoch >= ? AND s.mulai_epoch < ?) \"\n        \"OR EXISTS", "(0 \"\n        \"OR EXISTS"),
+        ("(siswa_id, awal, akhir, awal, akhir)", "(siswa_id, awal, awal, akhir)"),
+    ], TES_STORE, "test_sesi_yang_baru_dimulai_tanpa_jawaban_sudah_menghitung_jatah"),
+    ("jatah_jawaban_batas_atas_inklusif", "harian_latihan_store.py", [
+        ("AND j.dijawab_epoch < ?))", "AND j.dijawab_epoch <= ?))"),
+    ], TES_STORE, "test_jawaban_tepat_tengah_malam_wib_milik_hari_baru_bukan_hari_lama"),
+    ("jatah_jawaban_batas_bawah_eksklusif", "harian_latihan_store.py", [
+        ("j.dijawab_epoch >= ? \"", "j.dijawab_epoch > ? \""),
+    ], TES_STORE, "test_batas_hari_jawaban_tepat_tengah_malam_wib"),
     ("hari_utc_bukan_wib", "harian_waktu.py", [
         ("OFFSET_WIB_DETIK = 7 * 3600", "OFFSET_WIB_DETIK = 0"),
     ], TES_STORE, "test_batas_gratis_memakai_hari_kalender_wib_bukan_utc"),
@@ -90,35 +99,4 @@ KASUS = (
 
 @pytest.mark.parametrize("nama,berkas,ganti,berkas_tes,tes", KASUS, ids=[k[0] for k in KASUS])
 def test_mutasi_guard_harian_merah_lalu_pulih(tmp_path, nama, berkas, ganti, berkas_tes, tes):
-    sumber = tmp_path / "mesin"
-    sumber.mkdir()
-    for f in (AKAR / "mesin").glob("*.py"):
-        shutil.copy2(f, sumber / f.name)
-    for nama_tes in BERKAS_TES:
-        shutil.copy2(Path(__file__).with_name(nama_tes), tmp_path / nama_tes)
-    if (AKAR / "mesin" / "aset").exists():
-        os.symlink(AKAR / "mesin" / "aset", sumber / "aset")
-    target = sumber / berkas
-    asli = target.read_text()
-    for lama, _baru in ganti:
-        assert asli.count(lama) == 1, "anchor mutasi tidak ditemukan tepat satu kali: " + lama
-    cmd = [sys.executable, "-B", "-m", "pytest", berkas_tes, "-k", tes, "-q", "-W", "error", "-p", "no:cacheprovider"]
-    env = {"PATH": os.environ.get("PATH", ""), "PYTHONPATH": str(sumber), "OSN_PBKDF2_ITERASI": "1000",
-           "PYTHONDONTWRITEBYTECODE": "1"}
-
-    def jalankan():
-        return subprocess.run(cmd, cwd=tmp_path, env=env, capture_output=True, text=True, timeout=150)
-
-    hijau_awal = jalankan()
-    assert hijau_awal.returncode == 0, hijau_awal.stdout + hijau_awal.stderr
-    mutan = asli
-    for lama, baru in ganti:
-        mutan = mutan.replace(lama, baru)
-    target.write_text(mutan)
-    merah = jalankan()
-    assert merah.returncode == 1 and " failed" in merah.stdout and " error" not in merah.stdout, (
-        merah.stdout + merah.stderr)
-    assert "ImportError" not in merah.stdout and "SyntaxError" not in merah.stdout and "NameError" not in merah.stdout
-    target.write_text(asli)
-    hijau = jalankan()
-    assert hijau.returncode == 0, hijau.stdout + hijau.stderr
+    uji_mutasi(tmp_path, berkas, ganti, berkas_tes, tes, BERKAS_TES)

@@ -399,7 +399,10 @@ wajib sama dengan folder bukti aplikasi (nilai `OSN_DIREKTORI_BUKTI` di containe
 perintah dijalankan di dalam container; folder yang tidak ada tidak menandai apa pun di ledger (dilaporkan `gagal`,
 exit 1) dan `berkas sudah hilang` yang tinggi adalah tanda folder salah. Urutannya hapus berkas lalu tandai di
 ledger (idempoten; berkas yang sudah hilang tidak membuat macet), dan sisa `.tmp-*` lebih tua dari satu jam dibuang.
-Ringkasannya hanya angka. Bukti yang belum diputuskan tidak pernah dihapus.
+Ringkasannya hanya angka. Bukti yang belum diputuskan tidak pernah dihapus. Perintah yang sama kini juga menyapu bukti
+transfer langganan Latihan Harian (subfolder `harian/` dari `--folder`, tabel `harian_bukti` di DB belajar): DB belajar
+dicari lewat `--database-belajar`, lalu env `OSN_BERKAS_DB`, lalu `latihan.db` di samping admin-control.db, dan dilewati
+bila tidak ada. Tidak perlu cron baru.
 
 ## Aktivasi funnel Cek Kemampuan dan pembayaran Paket Coba — 19 November 2026
 

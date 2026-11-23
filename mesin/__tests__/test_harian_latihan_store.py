@@ -204,6 +204,102 @@ def test_batas_gratis_memakai_hari_kalender_wib_bukan_utc(kon):
     assert baru and lagi.id != sesi.id
 
 
+HARI_BERIKUT = TEPAT_TENGAH_MALAM_WIB + 600  # 00:10 WIB hari berikutnya
+HARI_LUSA = TEPAT_TENGAH_MALAM_WIB + 24 * 3600 + 600
+
+
+def _sesi_menggantung_sepuluh_soal(kon, anak, terjawab=3):
+    """Mulai sesi di hari pertama dan jawab `terjawab` soal; sisanya menggantung ke hari berikutnya."""
+    sesi, _ = _mulai(kon, anak, "t3", T0)
+    for n in range(1, terjawab + 1):
+        _jawab(kon, anak, sesi.id, n, "A", T0 + n)
+    return sesi
+
+
+def test_sesi_menggantung_diselesaikan_di_hari_baru_memakai_jatah_hari_baru(kon):
+    anak = _anak(kon)
+    sesi = _sesi_menggantung_sepuluh_soal(kon, anak)
+    lanjut, baru = _mulai(kon, anak, "t3", HARI_BERIKUT)
+    assert not baru and lanjut.id == sesi.id
+    assert hs.kuota(kon, anak, HARI_BERIKUT).terpakai == 0  # melanjutkan saja belum dihitung
+    for n in range(4, 11):
+        _jawab(kon, anak, sesi.id, n, "A", HARI_BERIKUT + n)
+
+    assert hs.kuota(kon, anak, HARI_BERIKUT + 20).habis
+    kon.execute("BEGIN IMMEDIATE")
+    with pytest.raises(hs.BatasGratisHabis):
+        hs.mulai(kon, anak, "t3", HARI_BERIKUT + 30)
+    kon.rollback()
+    assert kon.execute("SELECT COUNT(*) FROM harian_sesi").fetchone()[0] == 1
+
+
+def test_menjawab_satu_soal_sesi_lama_di_hari_baru_sudah_menghitung_jatah_hari_itu(kon):
+    anak = _anak(kon)
+    sesi = _sesi_menggantung_sepuluh_soal(kon, anak)
+
+    _jawab(kon, anak, sesi.id, 4, "A", HARI_BERIKUT)
+
+    kuota = hs.kuota(kon, anak, HARI_BERIKUT + 1)
+    assert kuota.terpakai == 1 and kuota.habis
+
+
+def test_jatah_pulih_di_hari_berikutnya_setelah_sesi_menggantung_selesai(kon):
+    anak = _anak(kon)
+    sesi = _sesi_menggantung_sepuluh_soal(kon, anak)
+    for n in range(4, 11):
+        _jawab(kon, anak, sesi.id, n, "A", HARI_BERIKUT + n)
+
+    baru_lagi, baru = _mulai(kon, anak, "t3", HARI_LUSA)
+
+    assert baru and baru_lagi.id != sesi.id
+
+
+def test_sesi_yang_baru_dimulai_tanpa_jawaban_sudah_menghitung_jatah(kon):
+    anak = _anak(kon)
+    _mulai(kon, anak, "t3", T0)
+
+    assert hs.kuota(kon, anak, T0 + 1).terpakai == 1
+    assert hs.kuota(kon, anak, HARI_BERIKUT).terpakai == 0  # tidak dijawab di hari baru
+
+
+def test_batas_hari_jawaban_tepat_tengah_malam_wib(kon):
+    anak = _anak(kon)
+    sesi = _sesi_menggantung_sepuluh_soal(kon, anak, terjawab=2)
+    _jawab(kon, anak, sesi.id, 3, "A", TEPAT_TENGAH_MALAM_WIB)  # 00:00:00 WIB: milik hari baru
+
+    assert hs.kuota(kon, anak, TEPAT_TENGAH_MALAM_WIB).terpakai == 1
+    assert hs.kuota(kon, anak, SEBELUM_TENGAH_MALAM_WIB).terpakai == 1  # sesi dimulai hari itu juga
+
+
+def test_jawaban_tepat_tengah_malam_wib_milik_hari_baru_bukan_hari_lama(kon):
+    anak = _anak(kon)
+    sesi, _ = _mulai(kon, anak, "t3", T0 - 24 * 3600)  # dimulai di hari sebelum T0
+    _jawab(kon, anak, sesi.id, 1, "A", TEPAT_TENGAH_MALAM_WIB)  # 00:00:00 WIB hari setelah T0
+
+    assert hs.kuota(kon, anak, T0).terpakai == 0
+    assert hs.kuota(kon, anak, TEPAT_TENGAH_MALAM_WIB).terpakai == 1
+
+
+def test_jawaban_sesi_anak_lain_tidak_memakai_jatah_anak_ini(kon):
+    a, b = _anak(kon, "Anak A"), _anak(kon, "Anak B")
+    sesi = _sesi_menggantung_sepuluh_soal(kon, a)
+    _jawab(kon, a, sesi.id, 4, "A", HARI_BERIKUT)
+
+    assert hs.kuota(kon, b, HARI_BERIKUT + 1).terpakai == 0
+
+
+def test_tanpa_batas_dengan_sesi_menggantung_tetap_boleh_sesi_baru(kon, monkeypatch):
+    anak = _anak(kon)
+    sesi = _sesi_menggantung_sepuluh_soal(kon, anak)
+    monkeypatch.setattr(akses_harian, "akses", lambda k, s, kini: akses_harian.Akses(True, "langganan", None))
+    for n in range(4, 11):
+        _jawab(kon, anak, sesi.id, n, "A", HARI_BERIKUT + n)
+
+    baru_lagi, baru = _mulai(kon, anak, "t3", HARI_BERIKUT + 30)
+
+    assert baru and baru_lagi.id != sesi.id
+
+
 def test_sesi_berjalan_boleh_dilanjutkan_walau_jatah_habis(kon):
     anak = _anak(kon)
     sesi, _ = _mulai(kon, anak, "t3", T0)

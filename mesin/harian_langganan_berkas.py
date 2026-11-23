@@ -3,7 +3,7 @@
 Sapuan yatim `pesanan_retensi` membuang berkas 32-hex di folder bukti yang tidak dirujuk `transfer_bukti`; bukti
 langganan dirujuk `harian_bukti` (DB lain), jadi ia disimpan di subfolder `harian/` yang tidak pernah disentuh
 sapuan itu (direktori tidak dihapus dan tidak dipindai rekursif). Fungsi tipis di atas `bukti_berkas` (nama acak
-server, tulis atomik, nama divalidasi, symlink ditolak). Retensi 30 hari untuk bukti langganan BELUM ada (celah).
+server, tulis atomik, nama divalidasi, symlink ditolak). Retensi 30 hari sesudah keputusan dijalankan `harian_bukti_retensi` lewat jalur cron `pesanan_retensi` yang sama.
 """
 from __future__ import annotations
 

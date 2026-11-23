@@ -79,14 +79,48 @@ def keadaan(server):
 
 # --- sakelar dan palang ----------------------------------------------------------------------
 
-def test_sakelar_mati_semua_rute_admin_404_identik_rute_tak_dikenal(mati):
-    cookie = login_admin(mati)
-    acuan = minta_admin(mati, TAK_ADA, cookie)
-    for jalur in (DAFTAR, DETAIL + "?order=" + ORDER_ASING, BUKTI + "?id=1"):
-        assert minta_admin(mati, jalur, cookie)[:2] == acuan[:2], jalur
-    for jalur in (SETUJUI, TOLAK):
-        kode, isi, _ = minta_admin(mati, jalur, cookie, {"x": "1"})
-        assert kode == 404
+def _matikan_sakelar(monkeypatch):
+    monkeypatch.delenv("LATIHAN_HARIAN")
+
+
+def test_sakelar_mati_antrean_detail_dan_pratinjau_admin_tetap_terbuka(hidup, menunggu, admin, monkeypatch):
+    _, oid = menunggu
+    _matikan_sakelar(monkeypatch)
+    assert not akses_harian.aktif()
+    kode, isi, _ = minta_admin(hidup, DAFTAR, admin)
+    assert kode == 200 and oid in isi
+    kode, isi, _ = minta_admin(hidup, "%s?order=%s" % (DETAIL, oid), admin)
+    assert kode == 200 and 'action="%s"' % SETUJUI in isi
+    kode, _, tajuk = minta_admin(hidup, "%s?id=%d" % (BUKTI, bukti_terakhir(hidup, oid)), admin)
+    assert kode == 200 and tajuk["Content-Type"] == "image/jpeg"
+
+
+def test_sakelar_mati_admin_tetap_bisa_setujui_bukti_yang_sudah_masuk(hidup, menunggu, admin, monkeypatch):
+    murid, oid = menunggu
+    _matikan_sakelar(monkeypatch)
+    kode, _, tajuk = putus(hidup, admin, SETUJUI, oid)
+    assert (kode, tajuk["Location"]) == (303, DAFTAR + "?hasil=verifikasi_setuju")
+    with hidup.buka() as kon:
+        assert kon.execute("SELECT COUNT(*) FROM harian_akses WHERE siswa_id=?", (murid.siswa_id,)).fetchone()[0] == 1
+
+
+def test_sakelar_mati_admin_tetap_bisa_tolak_bukti_yang_sudah_masuk(hidup, menunggu, admin, monkeypatch):
+    _, oid = menunggu
+    _matikan_sakelar(monkeypatch)
+    kode, _, tajuk = putus(hidup, admin, TOLAK, oid)
+    assert (kode, tajuk["Location"]) == (303, DAFTAR + "?hasil=verifikasi_tolak")
+    with hidup.buka() as kon:
+        assert kon.execute("SELECT keputusan FROM harian_verifikasi").fetchall()[0][0] == "tolak"
+
+
+@pytest.mark.parametrize("jalur", [DAFTAR, DETAIL + "?order=" + ORDER_ASING, BUKTI + "?id=1"])
+def test_sakelar_mati_non_admin_tetap_404_identik_rute_tak_dikenal(mati, jalur):
+    acuan = minta_mentah(mati, TAK_ADA, None)[:2]
+    assert minta_mentah(mati, jalur, None)[:2] == acuan
+    assert minta_mentah(mati, jalur, ("guru", "sandi-guru-panjang-123"))[:2] == acuan
+    assert minta_mentah(mati, jalur, ("feby", "sandi-feby-12345"))[:2] == acuan
+    for aksi in (SETUJUI, TOLAK):
+        assert minta_mentah(mati, aksi, None, {"x": "1"})[:2] == minta_mentah(mati, TAK_ADA, None, {"x": "1"})[:2]
 
 
 def test_menu_admin_memuat_butir_langganan_harian(hidup):
