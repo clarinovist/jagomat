@@ -5,8 +5,10 @@ Data sepenuhnya sintetis. Fixture dan helper dipakai bersama `test_lembaga_http`
 """
 from __future__ import annotations
 
+import html
 import re
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
@@ -14,6 +16,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import database  # noqa: E402
+import lembaga_pages as tampilan  # noqa: E402
 import lembaga_store as L  # noqa: E402
 from test_lembaga_http import (  # noqa: E402,F401
     GURU_A, GURU_B, LINTAS_SITUS, LUAR, PEMILIK, TIDAK_ADA, _pemilik, _post, _sebagai, _snapshot,
@@ -215,26 +218,187 @@ def test_banyak_memakai_batas_laju(server, monkeypatch):
 
 # --- halaman -----------------------------------------------------------------------
 
-def test_halaman_menawarkan_form_banyak_di_luar_tabel_dengan_kotak_centang_native(server):
+# --- halaman: seksi per guru, form pindah banyak per seksi ----------------------
+
+_GURU_LEMBAGA = (PEMILIK, GURU_A, GURU_B)
+
+
+class _Struktur(HTMLParser):
+    """Kerangka `<main>` halaman `/lembaga`: seksi guru, form di dalamnya, kotak centang, dan id."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.seksi = []
+        self.semua_id = []
+        self.form_bersarang = 0
+        self.skrip = 0
+        self._dalam_main = False
+        self._seksi = None
+        self._form = None
+        self._kedalaman_form = 0
+        self._dalam_h2 = False
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "main":
+            self._dalam_main = True
+        if not self._dalam_main:
+            return
+        if "id" in a:
+            self.semua_id.append(a["id"])
+        if tag == "script":
+            self.skrip += 1
+        elif tag == "section":
+            self._seksi = {"judul": "", "teks": "", "forms": [], "kotak": []}
+            self.seksi.append(self._seksi)
+        elif tag == "h2":
+            self._dalam_h2 = True
+        elif tag == "form":
+            self._buka_form(a)
+        elif tag == "option" and self._form is not None:
+            self._form["opsi"].append(a.get("value", ""))
+        elif tag in ("input", "select") and self._form is not None and "name" in a:
+            self._form["nama"].append(a["name"])
+        elif tag == "input" and a.get("type") == "checkbox" and self._seksi is not None:
+            self._seksi["kotak"].append((a.get("value"), a.get("form")))
+
+    def handle_endtag(self, tag):
+        if tag == "main":
+            self._dalam_main = False
+        elif tag == "section":
+            self._seksi = None
+        elif tag == "h2":
+            self._dalam_h2 = False
+        elif tag == "form" and self._kedalaman_form:
+            self._kedalaman_form -= 1
+            if not self._kedalaman_form:
+                self._form = None
+
+    def handle_data(self, data):
+        if self._seksi is None:
+            return
+        self._seksi["teks"] += data
+        if self._dalam_h2:
+            self._seksi["judul"] += data
+
+    def _buka_form(self, a):
+        if self._kedalaman_form:
+            self.form_bersarang += 1
+        self._kedalaman_form += 1
+        self._form = {"id": a.get("id"), "action": a.get("action"), "opsi": [], "nama": []}
+        if self._seksi is not None:
+            self._seksi["forms"].append(self._form)
+
+
+def _struktur(isi):
+    p = _Struktur()
+    p.feed(isi)
+    p.close()
+    return p
+
+
+def _form_banyak(seksi):
+    return [f for f in seksi["forms"] if f["action"] == RUTE]
+
+
+def _seksi_guru(struktur, guru):
+    cocok = [s for s in struktur.seksi if s["judul"].strip().replace(" (pemilik les)", "") == guru]
+    assert len(cocok) == 1, "seksi guru %s tidak tepat satu" % guru
+    return cocok[0]
+
+
+def _halaman_lembaga(server):
     _, isi, _ = server.minta("/lembaga", auth=_sebagai(PEMILIK))
-    form = re.search(r'<form[^>]*id="form-pindah-banyak"[^>]*action="/lembaga/pindah-banyak"[^>]*>'
-                     r'(.*?)</form>', isi, re.S)
-    assert form, "form pindah banyak tidak ditemukan"
-    pilihan = re.findall(r'<option value="([^"]*)"', form.group(1))
-    assert pilihan == [PEMILIK, GURU_A, GURU_B]
-    kotak = re.findall(r'<input type="checkbox" name="siswa_id" value="(\d+)" form="form-pindah-banyak"', isi)
-    assert sorted(map(int, kotak)) == sorted(server.anak[k] for k in ("a", "b", "o"))
-    assert "<script" not in isi.split("<main", 1)[1].split("</main>")[0]
+    return isi
+
+
+def _pemilik_per_anak(server):
+    return {str(server.anak["a"]): GURU_A, str(server.anak["b"]): GURU_B,
+            str(server.anak["o"]): PEMILIK}
+
+
+def test_halaman_menawarkan_form_banyak_per_seksi_di_luar_tabel_dengan_kotak_centang_native(server):
+    isi = _halaman_lembaga(server)
+    struktur = _struktur(isi)
+    assert struktur.skrip == 0
+    for guru in _GURU_LEMBAGA:
+        formulir = _form_banyak(_seksi_guru(struktur, guru))
+        assert len(formulir) == 1, "seksi %s harus punya tepat satu form pindah banyak" % guru
+        assert formulir[0]["nama"] == ["ke"]  # hanya select tujuan, tanpa isian tersembunyi/csrf
+    kotak = [(v, f) for s in struktur.seksi for v, f in s["kotak"]]
+    assert sorted(int(v) for v, _ in kotak) == sorted(server.anak[k] for k in ("a", "b", "o"))
     assert isi.count('action="/lembaga/pindah"') == 3  # form satu-anak tetap ada
-    assert "csrf" not in form.group(1).lower()
+
+
+@pytest.mark.parametrize("guru", _GURU_LEMBAGA)
+def test_opsi_tujuan_seksi_tidak_memuat_guru_seksi_itu(server, guru):
+    seksi = _seksi_guru(_struktur(_halaman_lembaga(server)), guru)
+    formulir = _form_banyak(seksi)
+    assert len(formulir) == 1
+    assert sorted(formulir[0]["opsi"]) == sorted(g for g in _GURU_LEMBAGA if g != guru)
+
+
+def test_centang_anak_hanya_mengacu_form_seksinya_dan_tujuan_tidak_memuat_pemiliknya(server):
+    struktur = _struktur(_halaman_lembaga(server))
+    pemilik = _pemilik_per_anak(server)
+    formulir = {f["id"]: f for s in struktur.seksi for f in _form_banyak(s)}
+    assert sum(len(s["kotak"]) for s in struktur.seksi) == 3
+    for seksi in struktur.seksi:
+        id_seksi = [f["id"] for f in _form_banyak(seksi)]
+        for nilai, form_id in seksi["kotak"]:
+            assert form_id in id_seksi, "kotak anak %s tidak mengacu form seksinya" % nilai
+            assert pemilik[nilai] not in formulir[form_id]["opsi"]
+
+
+def test_id_form_unik_di_dalam_main_dan_tidak_ada_form_bersarang(server):
+    struktur = _struktur(_halaman_lembaga(server))
+    assert len(struktur.semua_id) == len(set(struktur.semua_id))
+    assert struktur.form_bersarang == 0
+
+
+def test_seksi_tanpa_anak_tidak_punya_form_dan_tetap_jadi_tujuan(server):
+    with server.buka() as kon:
+        kon.execute("UPDATE siswa SET pemilik=? WHERE id=?", (GURU_A, server.anak["b"]))
+    struktur = _struktur(_halaman_lembaga(server))
+    seksi_b = _seksi_guru(struktur, GURU_B)
+    assert "Belum ada anak." in seksi_b["teks"]
+    assert seksi_b["forms"] == [] and seksi_b["kotak"] == []
+    formulir_a = _form_banyak(_seksi_guru(struktur, GURU_A))
+    assert len(formulir_a) == 1
+    assert sorted(formulir_a[0]["opsi"]) == sorted([PEMILIK, GURU_B])
+
+
+def test_halaman_pindah_banyak_tanpa_script_di_dalam_main(server):
+    assert _struktur(_halaman_lembaga(server)).skrip == 0
+
+
+def test_nama_guru_dan_anak_di_escape_di_seluruh_halaman():
+    guru_bahaya = '<i>Guru "A" & co</i>'
+    anak_bahaya = "<b>Anak</b>"
+    ringkas = (
+        L.GuruRingkas(guru=guru_bahaya, anak=(L.AnakRingkas(
+            siswa_id=7, nama=anak_bahaya, jumlah_sesi=0, sesi_terakhir="",
+            menunggu_konfirmasi=0),)),
+        L.GuruRingkas(guru="guru-x", anak=(L.AnakRingkas(
+            siswa_id=8, nama="Anak X", jumlah_sesi=0, sesi_terakhir="",
+            menunggu_konfirmasi=0),)),
+    )
+    isi = tampilan.halaman({"nama": "Les", "pemilik": "guru-x"}, ringkas, "", None)
+    isi = isi.decode("utf-8") if isinstance(isi, bytes) else isi
+    esc_guru, esc_anak = html.escape(guru_bahaya), html.escape(anak_bahaya)
+    assert "<i>Guru" not in isi and "<b>Anak" not in isi
+    assert "<h2>%s" % esc_guru in isi
+    assert 'value="%s"' % esc_guru in isi
+    assert "dari %s (maksimal" % esc_guru in isi
+    assert 'aria-label="Pilih %s"' % esc_anak in isi
 
 
 def test_halaman_tanpa_guru_lain_tidak_menawarkan_pindah_banyak(server):
     with server.buka() as kon:
         for g in (GURU_A, GURU_B):
             L.lepas_anggota(kon, lembaga_id=server.lid, guru=g, oleh="pengelola-l")
-    _, isi, _ = server.minta("/lembaga", auth=_sebagai(PEMILIK))
-    assert "form-pindah-banyak" not in isi and 'type="checkbox"' not in isi
+    isi = _halaman_lembaga(server)
+    assert 'action="/lembaga/pindah-banyak"' not in isi and 'type="checkbox"' not in isi
 
 
 @pytest.mark.parametrize("kueri", [

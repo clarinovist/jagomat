@@ -90,33 +90,38 @@ def _form_pindah(siswa_id: int, nama: str, tujuan: Sequence[str]) -> str:
     )
 
 
-def _sel_pilih(anak, tujuan: Sequence[str]) -> str:
-    """Kotak centang native untuk pindah banyak, tertaut ke form di luar tabel (atribut form)."""
-    if not tujuan:
+def _id_form_seksi(indeks: int) -> str:
+    """Id unik per seksi guru; tidak diturunkan dari nama agar tidak perlu escape/bentrok."""
+    return f"{ID_FORM_BANYAK}-{indeks}"
+
+
+def _sel_pilih(anak, form_id: str) -> str:
+    """Kotak centang native untuk pindah banyak, tertaut ke form seksinya (atribut form)."""
+    if not form_id:
         return ""
     return (
         '<td class="lembaga-pilih-st" data-label="Pilih">'
         f'<input type="checkbox" name="siswa_id" value="{int(anak.siswa_id)}" '
-        f'form="{ID_FORM_BANYAK}" aria-label="Pilih {_e(anak.nama)}"></td>'
+        f'form="{_e(form_id)}" aria-label="Pilih {_e(anak.nama)}"></td>'
     )
 
 
-def _form_banyak(semua: Sequence[str]) -> str:
-    """Satu form di luar tabel (form tidak boleh bersarang): tujuan + tombol; centang di tiap baris."""
-    opsi = "".join(f'<option value="{_e(guru)}">{_e(guru)}</option>' for guru in semua)
+def _form_banyak(asal: str, tujuan: Sequence[str], form_id: str) -> str:
+    """Form pindah banyak satu seksi, di luar tabel (form tidak boleh bersarang)."""
+    opsi = "".join(f'<option value="{_e(guru)}">{_e(guru)}</option>' for guru in tujuan)
     return (
-        f'<form class="lembaga-guru-st lembaga-pindah-st" id="{ID_FORM_BANYAK}" method="post" '
+        f'<form class="lembaga-pindah-st" id="{_e(form_id)}" method="post" '
         'action="/lembaga/pindah-banyak">'
-        '<label><span class="lembaga-meta-st">Pindahkan semua anak yang dicentang di tabel '
+        f'<label><span class="lembaga-meta-st">Pindahkan anak yang dicentang dari {_e(asal)} '
         f'(maksimal {BATAS_PINDAH_BANYAK}) ke</span> <select name="ke" required>{opsi}</select></label>'
         '<button class="guru-tambah-st" type="submit">Pindahkan yang dicentang</button></form>'
     )
 
 
-def _baris_anak(anak, tujuan: Sequence[str]) -> str:
+def _baris_anak(anak, tujuan: Sequence[str], form_id: str) -> str:
     terakhir = _e(anak.sesi_terakhir) if anak.sesi_terakhir else "&mdash;"
     return (
-        f'<tr><th scope="row">{_e(anak.nama)}</th>{_sel_pilih(anak, tujuan)}'
+        f'<tr><th scope="row">{_e(anak.nama)}</th>{_sel_pilih(anak, form_id)}'
         f'<td data-label="Sesi">{anak.jumlah_sesi}</td>'
         f'<td data-label="Sesi terakhir">{terakhir}</td>'
         f'<td data-label="Menunggu konfirmasi">{anak.menunggu_konfirmasi}</td>'
@@ -124,21 +129,26 @@ def _baris_anak(anak, tujuan: Sequence[str]) -> str:
     )
 
 
-def _bagian_guru(guru: GuruRingkas, semua: Sequence[str], pemilik: str) -> str:
+def _isi_anak(guru: GuruRingkas, tujuan: Sequence[str], indeks: int) -> str:
+    """Tabel anak guru; bila ada guru tujuan lain, form pindah banyak milik seksi ini ikut."""
+    form_id = _id_form_seksi(indeks) if tujuan else ""
+    tabel = (
+        '<table class="lembaga-tabel-st"><thead><tr>'
+        '<th scope="col">Anak</th>' + ('<th scope="col">Pilih</th>' if form_id else "")
+        + '<th scope="col">Sesi</th>'
+        '<th scope="col">Sesi terakhir</th><th scope="col">Menunggu konfirmasi</th>'
+        '<th scope="col">Pindahkan</th></tr></thead><tbody>'
+        + "".join(_baris_anak(a, tujuan, form_id) for a in guru.anak)
+        + "</tbody></table>"
+    )
+    return tabel + (_form_banyak(guru.guru, tujuan, form_id) if form_id else "")
+
+
+def _bagian_guru(guru: GuruRingkas, semua: Sequence[str], pemilik: str, indeks: int) -> str:
     tujuan = [g for g in semua if g != guru.guru]
     label = _e(guru.guru) + (" (pemilik les)" if guru.guru == pemilik else "")
-    if guru.anak:
-        isi = (
-            '<table class="lembaga-tabel-st"><thead><tr>'
-            '<th scope="col">Anak</th>' + ('<th scope="col">Pilih</th>' if tujuan else "")
-            + '<th scope="col">Sesi</th>'
-            '<th scope="col">Sesi terakhir</th><th scope="col">Menunggu konfirmasi</th>'
-            '<th scope="col">Pindahkan</th></tr></thead><tbody>'
-            + "".join(_baris_anak(a, tujuan) for a in guru.anak)
-            + "</tbody></table>"
-        )
-    else:
-        isi = '<p class="lembaga-meta-st">Belum ada anak.</p>'
+    isi = (_isi_anak(guru, tujuan, indeks) if guru.anak
+           else '<p class="lembaga-meta-st">Belum ada anak.</p>')
     return f'<section class="lembaga-guru-st" aria-label="Guru {label}"><h2>{label}</h2>{isi}</section>'
 
 
@@ -166,8 +176,7 @@ def halaman(lembaga, ringkas: Sequence[GuruRingkas], kode_pesan: str, ident,
         f"<p>{len(ringkas)} guru, {jumlah_anak} anak. Halaman ini hanya menampilkan "
         "ringkasan; isi belajar anak tetap dilihat oleh gurunya sendiri.</p></div></header>"
         + kabar
-        + (_form_banyak(semua) if len(semua) > 1 and jumlah_anak else "")
-        + "".join(_bagian_guru(g, semua, lembaga["pemilik"]) for g in ringkas)
+        + "".join(_bagian_guru(g, semua, lembaga["pemilik"], i) for i, g in enumerate(ringkas))
         + '<p><a class="guru-tambah-st" href="/guru">Kembali ke ruang guru</a></p></main>'
     )
     return _halaman_stitch("Lembaga les", isi, ident=ident, kelas_bungkus="guru-beranda-st", privat=True)
