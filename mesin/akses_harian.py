@@ -5,7 +5,7 @@ Urutan aturan `akses()`:
 1. langganan aktif (kait `_langganan_aktif`, diisi F5) -> tanpa batas, sumber `langganan`;
 2. murid les: anak dipegang guru ANGGOTA lembaga antrean (`OSN_LEMBAGA_ANTREAN`) -> tanpa batas, sumber `les`.
    Pemilik lembaga (koordinator) sendiri bukan murid les; lembaga antrean tak terkonfigurasi -> bukan les;
-3. selain itu -> sumber `gratis`, dibatasi `BATAS_GRATIS_PER_HARI` sesi per hari (WIB; ditegakkan pemanggil).
+3. selain itu -> sumber `gratis`, dibatasi `BATAS_GRATIS_PER_HARI` sesi DIKERJAKAN per hari (WIB; dimulai atau dijawab hari itu; ditegakkan pemanggil).
 """
 from __future__ import annotations
 

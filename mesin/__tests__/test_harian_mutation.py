@@ -45,9 +45,23 @@ KASUS = (
         ("(not akses.tanpa_batas) and terpakai >= akses_harian.BATAS_GRATIS_PER_HARI", "False"),
     ], TES_STORE, "test_batas_gratis_satu_sesi_dimulai_per_hari_wib"),
     ("batas_gratis_bukan_per_anak", "harian_latihan_store.py", [
-        ("WHERE siswa_id = ? AND mulai_epoch >= ? AND mulai_epoch < ?\",\n                       (siswa_id, awal, akhir))",
-         "WHERE mulai_epoch >= ? AND mulai_epoch < ?\",\n                       (awal, akhir))"),
-    ], TES_STORE, "test_batas_gratis_per_anak_bukan_per_akun_atau_global"),
+        ("WHERE s.siswa_id = ? AND ((s.mulai_epoch", "WHERE ((s.mulai_epoch"),
+        ("(siswa_id, awal, akhir, awal, akhir)", "(awal, akhir, awal, akhir)"),
+    ], TES_STORE, "test_batas_gratis_per_anak_bukan_per_akun_atau_global or test_jawaban_sesi_anak_lain_tidak_memakai_jatah_anak_ini"),
+    ("jatah_hanya_sesi_dimulai_hari_ini", "harian_latihan_store.py", [
+        ("\"OR EXISTS (SELECT 1 FROM harian_jawaban j WHERE j.sesi_id = s.id AND j.dijawab_epoch >= ? \"\n        \"AND j.dijawab_epoch < ?))\", (siswa_id, awal, akhir, awal, akhir)",
+         "\")\", (siswa_id, awal, akhir)"),
+    ], TES_STORE, "test_sesi_menggantung_diselesaikan_di_hari_baru_memakai_jatah_hari_baru or test_menjawab_satu_soal_sesi_lama_di_hari_baru_sudah_menghitung_jatah_hari_itu"),
+    ("jatah_mengabaikan_sesi_dimulai_tanpa_jawaban", "harian_latihan_store.py", [
+        ("((s.mulai_epoch >= ? AND s.mulai_epoch < ?) \"\n        \"OR EXISTS", "(0 \"\n        \"OR EXISTS"),
+        ("(siswa_id, awal, akhir, awal, akhir)", "(siswa_id, awal, awal, akhir)"),
+    ], TES_STORE, "test_sesi_yang_baru_dimulai_tanpa_jawaban_sudah_menghitung_jatah"),
+    ("jatah_jawaban_batas_atas_inklusif", "harian_latihan_store.py", [
+        ("AND j.dijawab_epoch < ?))", "AND j.dijawab_epoch <= ?))"),
+    ], TES_STORE, "test_jawaban_tepat_tengah_malam_wib_milik_hari_baru_bukan_hari_lama"),
+    ("jatah_jawaban_batas_bawah_eksklusif", "harian_latihan_store.py", [
+        ("j.dijawab_epoch >= ? \"", "j.dijawab_epoch > ? \""),
+    ], TES_STORE, "test_batas_hari_jawaban_tepat_tengah_malam_wib"),
     ("hari_utc_bukan_wib", "harian_waktu.py", [
         ("OFFSET_WIB_DETIK = 7 * 3600", "OFFSET_WIB_DETIK = 0"),
     ], TES_STORE, "test_batas_gratis_memakai_hari_kalender_wib_bukan_utc"),
