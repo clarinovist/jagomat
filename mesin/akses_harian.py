@@ -16,6 +16,7 @@ from typing import Optional
 
 import daftar_anak_gate
 import feature_switch
+import harian_langganan_akses
 
 NAMA_SAKELAR = "LATIHAN_HARIAN"
 BATAS_GRATIS_PER_HARI = 1
@@ -41,12 +42,11 @@ def aktif() -> bool:
 
 
 def _langganan_aktif(kon: sqlite3.Connection, siswa_id: int, kini) -> Optional[str]:
-    """KAIT untuk F5: tanggal berakhir langganan yang masih aktif pada `kini`, atau None bila tidak ada.
+    """Tanggal berakhir langganan yang masih aktif pada `kini`, atau None (tabel `harian_akses` absen = None, bukan galat).
 
-    Sekarang selalu None: tabel `harian_akses` belum ada dan F5 yang mengisinya. Tidak boleh error
-    saat tabel absen.
+    Diisi F5 (`harian_langganan_akses`): hak tanpa batas hanya dari langganan yang disetujui admin.
     """
-    return None
+    return harian_langganan_akses.berakhir_aktif(kon, siswa_id, kini)
 
 
 def _murid_les(kon: sqlite3.Connection, siswa_id: int) -> bool:

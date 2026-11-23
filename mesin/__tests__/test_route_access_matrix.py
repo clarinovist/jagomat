@@ -51,6 +51,7 @@ _PROBE_GET = {
     "/admin/pesanan/order": "/admin/pesanan/order?id=ord_" + "0" * 32,
     "/admin/pesanan/rekening": "/admin/pesanan/rekening",
     "/admin/sakelar": "/admin/sakelar",
+    "/admin/langganan": "/admin/langganan",
     "/admin/kurikulum": "/admin/kurikulum",
     "/admin/kurikulum/cp-detail": "/admin/kurikulum/cp-detail",
     "/admin/kurikulum/buat": "/admin/kurikulum/buat?kelas=3&bab=1",
@@ -72,6 +73,7 @@ _PROBE_GET = {
     "/murid": "/murid",
     "/murid/orang-tua": "/murid/orang-tua",
     "/murid/pesanan": "/murid/pesanan",
+    "/murid/langganan": "/murid/langganan",
     "/lembaga": "/lembaga",
     "/sesi/": "/sesi/1",
     "/lampiran/": "/lampiran/1",
@@ -95,6 +97,7 @@ _PROBE_POST = {
     "/admin/pesanan/tolak": "/admin/pesanan/tolak",
     "/admin/pesanan/rekening": "/admin/pesanan/rekening",
     "/admin/sakelar": "/admin/sakelar",
+    "/admin/langganan": "/admin/langganan/setujui",
     "/admin/kurikulum/cp": "/admin/kurikulum/cp",
     "/admin/kurikulum/cp/kembalikan": "/admin/kurikulum/cp/kembalikan",
     "/admin/kurikulum/label": "/admin/kurikulum/label",
@@ -113,6 +116,7 @@ _PROBE_POST = {
     "/murid/orang-tua/pin/hapus": "/murid/orang-tua/pin/hapus",
     "/murid/cek/mulai": "/murid/cek/mulai",
     "/murid/pesanan": "/murid/pesanan/pesan",
+    "/murid/langganan": "/murid/langganan/buat",
     "/lembaga": "/lembaga/pindah",
     "/sesi/": "/sesi/1",
     "/akun": "/akun",
@@ -224,6 +228,9 @@ def test_tabel_akses_punya_probe():
     # F2c: pesanan dari akun anak; tepat setelah /murid (sebelum palang sandi), POST di bawah prefix /murid/.
     assert get["/murid/pesanan"] == post["/murid/pesanan"] == "murid"
     assert urutan.index("/murid/pesanan") == urutan.index("/murid/orang-tua") + 1
+    # F5: langganan Latihan Harian dari akun anak; tepat setelah /murid/pesanan, GET exact dan POST di bawahnya.
+    assert get["/murid/langganan"] == post["/murid/langganan"] == "murid"
+    assert urutan.index("/murid/langganan") == urutan.index("/murid/pesanan") + 1
     # `/cek-kemampuan` exact tetap publik; rute akun di bawahnya exact dan guru.
     assert get["/cek-kemampuan"] == "publik"
     assert get["/cek-kemampuan/mulai"] == get["/cek-kemampuan/hasil"] == "guru"
@@ -245,6 +252,7 @@ def test_tabel_akses_punya_probe():
         assert post[rute] == "admin" and rute not in get
     assert get["/admin/pesanan/rekening"] == post["/admin/pesanan/rekening"] == "admin"
     assert get["/admin/sakelar"] == post["/admin/sakelar"] == "admin"
+    assert get["/admin/langganan"] == post["/admin/langganan"] == "admin"
     assert get["/admin/kurikulum/cp"] == post["/admin/kurikulum/cp"] == "admin"
     assert get["/admin/kurikulum"] == get["/admin/kurikulum/cp-detail"] == get["/admin/kurikulum/buat"] == "admin"
     assert not {"/admin/kurikulum", "/admin/kurikulum/cp-detail", "/admin/kurikulum/buat"} & set(post)

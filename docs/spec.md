@@ -58,7 +58,7 @@ batas khusus. **Akun anak (23 Nov 2026; produksi aktif sejak rilis 7a4d388: sake
 membuat akun anak; orang tua melihat hasil lewat halaman orang tua di akun anak (anak boleh ikut
 melihat, kecuali orang tua memasang PIN tirai); `guru` khusus guru les; anak pendaftar dipegang
 lembaga Jagomat lalu dipindah ke guru anggota; Latihan Harian per tingkat (Rp39.000/bulan,
-Rp349.000/tahun, termasuk untuk murid les; Latihan Harian belum dibangun). Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** nama AI.
+Rp349.000/tahun, termasuk untuk murid les; mesin soal Latihan Harian = F4, langganan = F5 di bawah). Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** nama AI.
 **Pemilik les** adalah akun guru yang oleh admin dijadikan pemilik sebuah lembaga
 (tersimpan di DB, bukan peran baru di berkas akun). Admin mengatur lembaga, anggota,
 dan pembubaran di `/admin/lembaga` (setiap aksi tulis meminta sandi admin; pembubaran juga meminta nama
@@ -190,10 +190,11 @@ Riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   (Cek Kemampuan, pembayaran QRIS Midtrans dengan label tahap awam Tutup/Buka, transfer rekening + checklist tiga langkah membukanya, kartu rekening; ubah di `/admin/pesanan/rekening`),
   Fitur belajar, pendaftaran mandiri (form lama, POST tetap ke `/admin/pendaftaran`), dan Kesehatan sistem terlipat (kesiapan, dukungan). Kolom sandi tiap form baru tampil
   setelah `<details>` tindakan dibuka; mematikan fitur aktif memakai konfirmasi yang menyebut akibatnya (`akibat_mati` di registri). Baris status AI sudah dihapus dari halaman ini. Admin mengubah **sakelar fitur**: `FUNNEL_AKTIF`, `PESANAN_TRANSFER_AKTIF`,
-  `OSN_CETAK_RINGKAS`, `OSN_BANK_KALIMAT`, `OSN_LOMBA`, `DAFTAR_AKUN_ANAK`, `LATIHAN_HARIAN` (bawaan mati; fitur Latihan Harian belum ada, baru kontrak `akses_harian.py`: tanpa batas bila langganan aktif atau anak dipegang guru anggota lembaga antrean, selain itu 1 sesi gratis per hari). Nilai disimpan di DB terpisah `/data/sakelar.db` (dibuat saat
+  `OSN_CETAK_RINGKAS`, `OSN_BANK_KALIMAT`, `OSN_LOMBA`, `DAFTAR_AKUN_ANAK`, `LATIHAN_HARIAN` (bawaan mati; kontrak `akses_harian.py`: tanpa batas bila langganan aktif atau anak dipegang guru anggota lembaga antrean, selain itu 1 sesi gratis per hari; sakelar ini juga membuka semua rute langganan di bawah, mati = 404 rute tak dikenal). Nilai disimpan di DB terpisah `/data/sakelar.db` (dibuat saat
   perubahan pertama; env tetap fallback; DB lama dengan empat nama diperlebar saat perubahan pertama tanpa menaikkan versi skema), dengan tinjauan bertanda tangan, sandi ulang, optimistic
   concurrency, dan audit. DB sakelar rusak = kartu galat + status 503, bagian lain halaman tetap tampil; menyalakan transfer ditolak bila funnel
   mati atau rekening kosong.
+  **Langganan Latihan Harian (F5):** orang tua di akun anak membuka `/murid/langganan`, memilih paket Bulanan (Rp39.000, 1 bulan kalender) atau Tahunan (Rp349.000, 12 bulan), mendapat tagihan transfer (rekening admin yang sama dengan Paket Coba, nominal = harga + kode unik 1..999 bebas tabrakan, jendela bayar 24 jam, satu tagihan terbuka per anak), mengunggah bukti (JPEG/PNG/PDF maks 5 MB), lalu melihat status menunggu/ditolak (dengan alasan; boleh unggah ulang)/aktif. Admin memeriksa di `/admin/langganan` (tinjauan bertanda tangan + sandi ulang); setuju menulis keputusan dan masa aktif dalam satu transaksi, perpanjangan menyambung dari akhir masa aktif. Halaman orang tua menampilkan kartu status dan banner "berakhir N hari lagi" bila sisa <= 3 hari. Harga hanya konstanta server; tanpa WA. Bukti langganan belum punya retensi 30 hari otomatis (celah).
 - **Pendaftaran akun anak (F2a, 23 Nov 2026)**: saat sakelar `DAFTAR_AKUN_ANAK` hidup DAN lembaga antrean
   terkonfigurasi (env server `OSN_LEMBAGA_ANTREAN` = id lembaga; pemilik lembaga = akun koordinator), `/daftar`
   dan `/daftar?jalur=cek` memakai satu form orang tua: nama login anak, sandi anak, nama lengkap anak (1–80),

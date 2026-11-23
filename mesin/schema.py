@@ -871,3 +871,8 @@ SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_LOMBA + '\n-
 from schema_daftar_anak import SKEMA_DAFTAR_ANAK  # noqa: E402
 
 SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_DAFTAR_ANAK + '\n-- Ringkasan per sesi supaya laporan', 1)
+
+# Langganan Latihan Harian (F5): ledger append-only aditif, idempoten, tanpa migrasi; FK ke siswa RESTRICT.
+from schema_harian_langganan import SKEMA_HARIAN_LANGGANAN  # noqa: E402
+
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_HARIAN_LANGGANAN + '\n-- Ringkasan per sesi supaya laporan', 1)

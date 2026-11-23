@@ -57,6 +57,10 @@ def test_lembaga_antrean_tidak_terkonfigurasi_bukan_les(kon, monkeypatch, nilai)
 
 
 def test_tabel_harian_akses_absen_tidak_error(kon):
+    """DB lama tanpa tabel F5: langganan = tidak ada, bukan galat (tabel dibuang dulu karena skema F5 sudah terpasang)."""
+    for (nama,) in kon.execute("SELECT name FROM sqlite_master WHERE type='trigger' AND name GLOB 'harian_*'").fetchall():
+        kon.execute("DROP TRIGGER %s" % nama)
+    kon.execute("DROP TABLE harian_akses")
     ada = kon.execute("SELECT 1 FROM sqlite_master WHERE name='harian_akses'").fetchone()
     assert ada is None
     assert ah.akses(kon, _anak(kon, "guru-luar"), "2026-11-23").tanpa_batas is False
