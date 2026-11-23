@@ -12,6 +12,27 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy akun anak (F0–F3) + aktivasi pendaftaran akun anak — 23 November 2026
+
+Controlled `deploy-v2` memasang **7a4d388** (digest `sha256:392f89c0…74ae`), healthy, menggantikan **fcfc465**. Isi: lembaga
+(lepas guru mengembalikan anak, nama kembar diberi pembeda), pendaftaran publik membuat akun anak (saga mode anak,
+tabel aditif `persetujuan_daftar_anak` + `pin_orang_tua`), halaman orang tua `/murid/orang-tua` dengan PIN tirai, cek
+kemampuan dan pesanan Rp49.000 dari akun anak. Dalam hold yang sama `visual.conf` mendapat `OSN_LEMBAGA_ANTREAN=1` dan
+`DAFTAR_AKUN_ANAK=1` (CAS), sehingga `/daftar` dan jalur cek langsung membuat akun anak (keputusan Pemilik: tanpa uji.jagomat.id).
+
+- **Kontrak bergeser** `bf0b1398…` → **`d177f0ec…dc13`**. Recovery baru **7ab483c** di branch `recovery-akun-anak` = 1d7c104 +
+  commit kontrak; digest `sha256:0208b802…6bc0`; pair ok, `provider_calls` 0. Pin di `main` 7a4d388 (metadata, `deploy.yml`,
+  anchor koleksi 27.023 nodeid). Push CI 45166673204 dan dispatch 45166794320 hijau.
+- Lembaga antrean: id 1 "jagomat", pemilik `koordinator-jagomat` (dibuat Pemilik lewat `/admin` sebelum rilis; `prepare`
+  memverifikasi lembaga ada dan pemilik akun guru aktif).
+- Kit `deploy-akun-anak-20261123` (dijalankan agent atas izin Pemilik): approval fcfc465 diarsipkan, `PERSIAPAN_OK`, backup
+  lima file + riset, rehearsal C–B–C (tabel baru diizinkan, tabel lama utuh), hash backup lokal cocok, `FLAG_DITULIS_CAS`,
+  deploy exit0, `LIVE_ADMIN_HEALTHY` (env + probe gerbang mode anak + tabel baru), postcheck hijau (smoke `/`200 `/akun`401
+  `/murid/`303 `/cek-kemampuan`200 `/daftar?jalur=cek`200 berisi form akun anak; galat 0; histori terjaga), cleanup 4 direktori.
+- Matikan cepat: sakelar "Pendaftaran akun anak" di `/admin/sakelar` (baris DB menang atas env). Akun anak yang sudah ada tetap masuk.
+- Backup induk `/opt/osn/cadangan/deploy-akun-anak-20261123/`, salinan lokal `mesin/cadangan/deploy-akun-anak-20261123/`.
+  Approval terkonsumsi rilis ini ada di `/opt/osn/rollout-approval.json`; arsipkan sebelum `prepare` berikutnya.
+
 ## Aktivasi Bilangan Sekolah (`OSN_BILANGAN_SEKOLAH=1`) — 23 November 2026
 
 Aktivasi terkontrol di atas artifact live yang sama, **fcfc465** (digest `sha256:49b71db2…6003`), recovery

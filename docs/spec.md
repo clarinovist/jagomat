@@ -53,12 +53,12 @@ siklus dan pilot tetap P3–P6 (keputusan 30 Okt 2026). Batas klaim publik di
 pivot memakai data sintetis; pilot dengan data nyata perlu keputusan dan gerbang
 privasi tersendiri. Peran teknis `guru` mencakup orang tua dan hanya mengelola data
 miliknya; `murid` mengerjakan latihan; `admin` mengelola lintas keluarga dengan
-batas khusus. **Arah yang diputuskan 23 Nov 2026 (F2a: pendaftaran akun anak sudah ada di balik sakelar
-`DAFTAR_AKUN_ANAK`, bawaan mati; halaman orang tua = F3, lihat Fitur di bawah):** pendaftaran publik
+batas khusus. **Akun anak (23 Nov 2026; produksi aktif sejak rilis 7a4d388: sakelar `DAFTAR_AKUN_ANAK` = 1 lewat
+`visual.conf`, lembaga antrean id 1 "jagomat" milik `koordinator-jagomat`; lihat Fitur di bawah):** pendaftaran publik
 membuat akun anak; orang tua melihat hasil lewat halaman orang tua di akun anak (anak boleh ikut
 melihat, kecuali orang tua memasang PIN tirai); `guru` khusus guru les; anak pendaftar dipegang
 lembaga Jagomat lalu dipindah ke guru anggota; Latihan Harian per tingkat (Rp39.000/bulan,
-Rp349.000/tahun, termasuk untuk murid les). Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** nama AI.
+Rp349.000/tahun, termasuk untuk murid les; Latihan Harian belum dibangun). Pada UI guru, orang dewasa disebut **Guru/Anda**, **Pendamping** nama AI.
 **Pemilik les** adalah akun guru yang oleh admin dijadikan pemilik sebuah lembaga
 (tersimpan di DB, bukan peran baru di berkas akun). Admin mengatur lembaga, anggota,
 dan pembubaran di `/admin/lembaga` (setiap aksi tulis meminta sandi admin; pembubaran juga meminta nama

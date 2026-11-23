@@ -41,12 +41,12 @@ sekolah: generator soal berparameter, diagnosis B/K/H/E/T/N, lembar cetak, dan l
 Sasaran diperluas bertahap hingga kelas 9 (keputusan pemilik 28 Okt 2026); klaim publik
 mengikuti batas jenjang di referensi workflow.
 
-**Arah akun (keputusan pemilik 23 Nov 2026, belum diimplementasikan; plan lokal
+**Arah akun (keputusan pemilik 23 Nov 2026; LIVE sejak 23 Nov 2026 rilis 7a4d388, plan lokal
 `docs/plan/2026-11-23-ruang-orang-tua-dan-latihan-harian.md`):** pendaftaran publik (landing cek
-kemampuan dan `/daftar`) akan membuat **akun anak**, bukan akun guru; orang tua tidak punya akun dan
-melihat hasil lewat halaman orang tua di dalam akun anak; peran `guru` khusus guru les, dibuat admin
-lewat lembaga; anak pendaftar dipegang lembaga Jagomat lalu dipindah ke guru anggota. Sampai fase itu
-dirilis, akun funnel dan `/daftar` tetap akun guru seperti sekarang; jangan mengubahnya tanpa fase plan.
+kemampuan dan `/daftar`) membuat **akun anak**, bukan akun guru (sakelar `DAFTAR_AKUN_ANAK` + env
+`OSN_LEMBAGA_ANTREAN`); orang tua tidak punya akun dan melihat hasil lewat halaman orang tua di dalam akun
+anak; peran `guru` khusus guru les, dibuat admin lewat lembaga; anak pendaftar dipegang lembaga Jagomat
+(koordinator) lalu dipindah ke guru anggota. Akun guru orang tua lama tidak dimigrasi.
 
 - **Pure Python stdlib**, tanpa framework/dependensi pihak ketiga. Dev dependency hanya
   `pytest` + `pytest-xdist`. Paket tambahan harus diajukan ke user dulu.
