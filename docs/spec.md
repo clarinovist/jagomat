@@ -18,9 +18,9 @@ keputusan pemilik setelah self-review, bukan ulasan guru independen), sedangkan 
 selalu mengenalnya. Recovery `c58390a` (writer katalog1/teori1) mengenal kelima jenis.
 Topik `bilangan-sekolah` (P3–P5, mode sekolah: nilai tempat, mengurutkan, penjumlahan/pengurangan
 bersusun, perkalian/pembagian, kalimat matematika; semua teks angka) hanya dibuat bila
-`OSN_BILANGAN_SEKOLAH=1` (bawaan 0, belum aktif di produksi) dan **hanya untuk Latihan manual
-guru dan lembar cetak**: tidak masuk Campuran, siklus terpandu, Pendamping, atau sisi murid.
-Rentang bilangan dan malrule belum diulas guru; flag tidak boleh menyala sebelum itu.
+`OSN_BILANGAN_SEKOLAH=1` (bawaan kode 0; **produksi 1 sejak 23 Nov 2026** setelah ulasan Mutia atas
+rentang dan malrule) dan **hanya untuk Latihan manual guru dan lembar cetak**: tidak masuk Campuran,
+siklus terpandu, Pendamping, atau sisi murid.
 Topik `matematika-awal` ("Matematika Awal"; level P1 sampai P6) mengisi bab Kurikulum Merdeka SD yang
 belum cukup soal dengan 25 jenis soal (teks, dan bergambar lewat keluarga visual `matematika-awal` yang flagnya belum menyala): P1 `kenali_bentuk`, `ukur_satuan_tak_baku`,
 `baca_diagram_gambar`, `bilang_benda_awal`, `tambah_kurang_20`, `kenali_bangun_awal`; P2 `kenali_bentuk`, `pola_posisi`,

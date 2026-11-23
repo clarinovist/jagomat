@@ -12,6 +12,30 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Aktivasi Bilangan Sekolah (`OSN_BILANGAN_SEKOLAH=1`) — 23 November 2026
+
+Aktivasi terkontrol di atas artifact live yang sama, **fcfc465** (digest `sha256:49b71db2…6003`), recovery
+**3bd368e** (digest `sha256:55aad8e7…c4a6`), kontrak `bf0b1398…` tetap; tanpa build, push, atau skema
+(preseden: aktivasi funnel 19 Nov di atas a1443b3). `OSN_BILANGAN_SEKOLAH=1` ditulis ke `/opt/osn/visual.conf`
+(CAS dalam hold), lalu `deploy-v2` artifact sama dengan env baru. Lima jenis P3–P5 kini bisa dibuat Guru di
+Latihan manual dan lembar cetak; tetap manual-saja.
+
+- Syarat: (1) ulasan Mutia atas lima poin rentang/malrule disetujui (Pemilik, 23 Nov); (2) recovery 3bd368e memuat
+  `926d07f` dan modul topik/templat/generator/`question_views` identik dengan fcfc465, dibuktikan di `prepare` dengan
+  probe `BILSEK_MATI` (sakelar mati: pembaca kenal lima jenis, pembuatan ditolak) dan `BILSEK_AKTIF` (env flag 1:
+  lembar P3–P5 berisi lima jenis ×2, kunci + penyajian terbaca, tetap di luar siklus) pada **kandidat dan recovery**;
+  (3) izin rilis Pemilik.
+- Kit `deploy-bilsek-aktif-20261123` (dijalankan agent atas izin Pemilik): approval fcfc465 diarsipkan; percobaan
+  pertama berhenti di `prepare` sebelum hold (probe live mengharapkan tahap QRIS `rekonsiliasi`, live sudah `nonaktif`;
+  asersi disesuaikan, produksi tidak berubah). Ulang: `PERSIAPAN_OK`, backup lima file + riset, rehearsal C–B–C, hash
+  backup lokal cocok, `FLAG_DITULIS_CAS`, deploy exit0, reopen `LIVE_ADMIN_HEALTHY`, postcheck hijau (smoke `/`200
+  `/akun`401 `/murid/`303 `/cek-kemampuan`200, galat 0, histori terjaga, config lain = hash prepare), cleanup 4 direktori.
+- Verifikasi agent sesudahnya: env container `OSN_BILANGAN_SEKOLAH=1`, baris terakhir `visual.conf` = flag,
+  `BILSEK_AKTIF_OK` di container live. Tahap QRIS tetap `nonaktif`, transfer tetap aktif.
+- Backup induk `/opt/osn/cadangan/deploy-bilsek-aktif-20261123/`, salinan lokal
+  `mesin/cadangan/deploy-bilsek-aktif-20261123/` (gitignored). Approval terkonsumsi rilis ini ada di
+  `/opt/osn/rollout-approval.json`; arsipkan sebelum `prepare` berikutnya.
+
 ## Deploy font lokal & CSP tanpa Google — 23 November 2026
 
 Controlled `deploy-v2` memasang **7eaaf9d** (digest `sha256:4ddac0b4…d1ad`), healthy, menggantikan **bcfe8e2**.
@@ -2560,6 +2584,7 @@ recovery baru yang mengenali kelima template dan `Topik.hanya_manual` (tanpa itu
 melempar `KeyError` dan `topics.dari_sesi` jatuh diam-diam ke topik bawaan untuk sesi
 `bilangan-sekolah`), dibuktikan pair exact-image yang membaca sesi dan bank topik ini;
 (3) izin rilis; flag dipasang lewat `visual.conf`/`jalankan-rilis.py`, bukan registri `/admin/sakelar`.
+**Status 23 Nov 2026: ketiga syarat terpenuhi dan flag 1 aktif** (lihat "Aktivasi Bilangan Sekolah" di atas).
 
 ## Syarat sebelum deploy kode `matematika-awal`
 
