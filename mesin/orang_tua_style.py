@@ -30,6 +30,7 @@ GAYA_ORTU = f"""
 .ortu-kabar-st, .ortu-galat-st {{ margin: 0; padding: {T.SP_3} {T.SP_4}; border-radius: {T.RADIUS_KARTU};
   font-size: {T.UKURAN_TEKS_BANTUAN}; }}
 .ortu-kabar-st {{ background: {T.LATAR_TERSIMPAN}; color: {T.TEKS_TERSIMPAN}; border: {T.TEBAL_GARIS} solid {T.BORDER_TERSIMPAN}; }}
+.ortu-kabar-st a {{ color: inherit; font-weight: 700; }}
 .ortu-galat-st {{ background: {T.LATAR_GALAT}; color: {T.TEKS_GALAT}; border: {T.TEBAL_GARIS} solid {T.BORDER_GALAT}; }}
 .ortu-tombol-st {{ min-height: {T.TINGGI_CTA}; padding: 0 {T.SP_4}; border: 0; border-radius: {T.RADIUS_SEDANG};
   background: {T.AKSEN_TEAL_TUA}; color: {T.TEKS_PUTIH}; font: 700 {T.UKURAN_BADAN_LAYAR}/1.2 {T.FONT_HEADLINE}; cursor: pointer; }}

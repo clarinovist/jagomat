@@ -32,6 +32,7 @@ SECTION = (
     ("perhatian", "Perlu ditangani", "/admin?section=perhatian"),
     ("pesanan", "Pesanan & transfer", "/admin/pesanan"),
     ("rekening", "Rekening transfer", "/admin/sakelar#rekening"),
+    ("langganan_harian", "Langganan Harian", "/admin/langganan"),
     ("cek-topik", "Topik Cek Kemampuan", "/admin/cek-topik"),
     ("kurikulum", "Peta kurikulum", "/admin/kurikulum"),
     ("keluarga", "Keluarga", "/admin?section=keluarga"),
@@ -53,7 +54,7 @@ GRUP_LAINNYA = "Lainnya"
 # (plan redesign-admin E4); setelah masa itu pindahkan ke GRUP_LAINNYA.
 GRUP_SECTION = (
     ("Pusat kendali", ("ringkasan",)),
-    ("Penjualan", ("pesanan", "rekening", "cek-topik")),
+    ("Penjualan", ("pesanan", "langganan_harian", "rekening", "cek-topik")),
     ("Pengguna", ("keluarga", "siswa", "lembaga", "pemakaian", "riset")),
     ("Sistem", ("operasional", "riwayat")),
     (GRUP_LAINNYA, ("langganan", "kpi", "ai")),

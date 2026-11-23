@@ -14,6 +14,7 @@ import html
 import brand
 import cek_gratis_skor
 import cek_pages
+import harian_langganan_pages
 import parent_report_page
 import pesanan_pages
 from funnel_style import GAYA_FUNNEL
@@ -201,7 +202,9 @@ def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "") -> bytes:
     """Isi halaman (tirai terbuka atau anak tanpa PIN); `data` = `orang_tua_data.DataOrangTua`."""
     badan = (
         '<div class="funnel-alur-st">' + _kepala() + _pesan(kabar, galat)
+        + harian_langganan_pages.banner_orang_tua(data.langganan, data.nama_anak)
         + _blok_cek(data.hasil_cek, data.nama_anak) + _blok_laporan(data.laporan)
-        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai") + _blok_pin(ada_pin) + "</div>"
+        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai")
+        + harian_langganan_pages.kartu_orang_tua(data.langganan) + _blok_pin(ada_pin) + "</div>"
     )
     return _dokumen(badan)

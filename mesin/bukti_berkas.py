@@ -72,8 +72,8 @@ def jalur_berkas(nama, folder=None) -> Path:
     return (direktori_bukti() if folder is None else Path(folder)) / _periksa_nama(nama)
 
 
-def _siapkan_folder() -> Path:
-    folder = direktori_bukti()
+def _siapkan_folder(folder=None) -> Path:
+    folder = direktori_bukti() if folder is None else Path(folder)
     os.makedirs(folder, mode=MODE_FOLDER, exist_ok=True)
     os.chmod(folder, MODE_FOLDER)
     return folder
@@ -94,15 +94,18 @@ def _tulis_sementara(folder: Path, isi: bytes) -> Path:
     return jalur
 
 
-def simpan_berkas(isi: bytes) -> str:
+def simpan_berkas(isi: bytes, folder=None) -> str:
     """Simpan `isi` sebagai berkas baru bernama acak; kembalikan nama (32 hex).
+
+    `folder` opsional (bawaan folder bukti aplikasi): langganan Latihan Harian memakai subfolder sendiri supaya
+    sapuan yatim retensi Paket Coba tidak menghapus berkasnya.
 
     Atomik: berkas akhir tidak pernah tampak setengah ditulis. Galat OS diteruskan setelah
     berkas sementara dibersihkan.
     """
     if type(isi) is not bytes:
         raise BuktiBerkasError("isi bukti harus bytes")
-    folder = _siapkan_folder()
+    folder = _siapkan_folder(folder)
     sementara = _tulis_sementara(folder, isi)
     nama = secrets.token_hex(PANJANG_NAMA_BYTE)
     try:
@@ -113,9 +116,9 @@ def simpan_berkas(isi: bytes) -> str:
     return nama
 
 
-def buka_berkas(nama) -> BinaryIO:
+def buka_berkas(nama, folder=None) -> BinaryIO:
     """Buka berkas bukti untuk dibaca (biner); nama tidak sah ditolak, symlink ditolak."""
-    jalur = jalur_berkas(nama)
+    jalur = jalur_berkas(nama, folder)
     fd = os.open(jalur, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
     return os.fdopen(fd, "rb")
 

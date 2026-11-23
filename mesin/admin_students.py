@@ -283,6 +283,8 @@ def _referensi_siswa_ada(kon, siswa_id: int) -> bool:
         # wajib ditahan di sini agar tidak meninggalkan receipt yatim yang
         # membuat validasi backup menolak seluruh bundle.
         ("registrasi_profil_anak", "siswa_id"),
+        # Ledger langganan Latihan Harian (uang) dipertahankan: FK RESTRICT, jadi siswa ber-order tidak dihapus.
+        ("harian_order", "siswa_id"),
     ):
         if kon.execute(
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (nama,)

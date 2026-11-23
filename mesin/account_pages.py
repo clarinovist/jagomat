@@ -687,6 +687,16 @@ def proses_akun(
                 f"{nama} punya bukti registrasi profil anak. Siswa "
                 f"ber-receipt pendaftaran sengaja tidak bisa dihapus.",
             )
+        if kon.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='harian_order'"
+        ).fetchone() and kon.execute(
+            "SELECT 1 FROM harian_order WHERE siswa_id = ? LIMIT 1", (siswa_id,)
+        ).fetchone():
+            return (
+                "",
+                f"{nama} punya catatan langganan Latihan Harian. Siswa ber-langganan "
+                f"sengaja tidak bisa dihapus.",
+            )
         import students as _murid
 
         login = _murid.akun_murid_dari_siswa(kon, siswa_id)
