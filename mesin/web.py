@@ -98,6 +98,9 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/ortu", "guru"),  # alias lama beranda guru
     ("/murid", "murid"),  # sebelum palang sandi: 303 ke /masuk tanpa sesi murid
     ("/murid/orang-tua", "murid"),  # F3 halaman orang tua (exact); sakelar DAFTAR_AKUN_ANAK mati = identik rute tak dikenal
+    # F2c: pesanan Peta Kemampuan dari akun anak (prefix; GET /murid/pesanan, /qr, /pesan). Sakelar
+    # DAFTAR_AKUN_ANAK mati = jatuh ke penangan murid biasa (anonim 303 /masuk).
+    ("/murid/pesanan", "murid"),
     ("/lembaga", "guru"),  # hanya pemilik les; selain itu 404 identik rute tak dikenal
     ("/sesi/", "guru"),
     ("/lampiran/", "guru"),
@@ -144,6 +147,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/murid/orang-tua/pin/atur", "murid"),  # F3: pasang/ganti PIN (hanya tirai terbuka atau tanpa PIN)
     ("/murid/orang-tua/pin/hapus", "murid"),  # F3: hapus PIN (tirai terbuka + konfirmasi)
     ("/murid/cek/mulai", "murid"),  # F2b: mulai cek dari sesi anak (exact); DAFTAR_AKUN_ANAK + funnel mati = jalur murid asing
+    ("/murid/pesanan", "murid"),  # F2c: POST pesan/periksa/ulang/buat/tagihan/bukti; anonim 401 (palang sandi)
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),
@@ -753,6 +757,9 @@ class Penangan(BaseHTTPRequestHandler):
             import contest_http  # Latihan Lomba: harus sebelum student_http (yang menjawab 404 sisanya)
             if contest_http.tangani_get(self, jalur, self.path):
                 return
+            import pesanan_murid_http  # F2c: pesanan Peta Kemampuan dari akun anak (di balik sakelar)
+            if pesanan_murid_http.tangani_get(self, jalur, self.path):
+                return
             import student_http
             student_http.tangani_get(self, jalur, self.path)
             return
@@ -882,6 +889,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import cek_murid_http  # F2b: cek kemampuan dari sesi anak; sebelum _lolos_sandi, gerbang mati = False
         if cek_murid_http.tangani_post(self, jalur):
+            return
+        import pesanan_murid_http  # F2c: POST pesanan dari akun anak; setelah _asal_sama_post
+        if pesanan_murid_http.tangani_post(self, jalur):
             return
         import student_http
         if student_http.tangani_post(self, jalur):

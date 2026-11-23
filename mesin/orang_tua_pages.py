@@ -38,6 +38,8 @@ COPY_CEK_BELUM_SELESAI = "Cek kemampuan belum selesai dikerjakan."
 COPY_LAPORAN_JUDUL = "Laporan dari Guru"
 COPY_LAPORAN_KOSONG = "Belum ada laporan dari Guru."
 COPY_PESANAN_JUDUL = "Peta Kemampuan"
+COPY_PESANAN_TAWARAN = "Laporan lengkap dikerjakan guru dari hasil cek ini. " + __import__("funnel_pages").COPY_HARGA
+COPY_PESANAN_LANJUT = "Lanjutkan pembayaran atau lihat statusnya di halaman pembayaran."
 COPY_PIN_MASUK_JUDUL = "Masukkan PIN"
 COPY_PIN_MASUK_TEKS = "Halaman ini ditutup dengan PIN. Masukkan 4 angka PIN Ayah/Bunda untuk membukanya."
 COPY_PIN_SALAH = "PIN belum cocok. Coba lagi."
@@ -143,14 +145,31 @@ def _blok_laporan(laporan) -> str:
     return f'<section class="ortu-kartu-st" id="ortu-laporan"><h2>{_e(COPY_LAPORAN_JUDUL)}</h2>{isi}</section>'
 
 
-def _blok_pesanan(status) -> str:
-    if status not in pesanan_pages.COPY_STATUS:
+def _blok_pesanan(status, cek_selesai: bool) -> str:
+    """Status Peta Kemampuan + satu pintu ke halaman pembayaran akun anak (F2c).
+
+    Kalimat instruksi bayar (mis. "Pindai kode QRIS") tidak diulang di sini: jalur aktif (transfer/QRIS) hanya
+    dijelaskan di halaman pembayaran. Tanpa cek selesai dan tanpa pesanan, kartu tidak tampil.
+    """
+    if status in pesanan_pages.COPY_STATUS:
+        judul, kalimat = pesanan_pages.COPY_STATUS[status]
+        if status != pesanan_pages.STATUS_SUDAH_DIBAYAR:
+            kalimat = COPY_PESANAN_LANJUT
+        isi = f'<h3>{_e(judul)}</h3><p>{_e(kalimat)}</p>'
+        tombol = "" if status == pesanan_pages.STATUS_SUDAH_DIBAYAR else _tautan_bayar("Buka halaman pembayaran")
+    elif cek_selesai:
+        isi = f'<p>{_e(COPY_PESANAN_TAWARAN)}</p>'
+        tombol = _tautan_bayar("Lanjut ke pembayaran")
+    else:
         return ""
-    judul, kalimat = pesanan_pages.COPY_STATUS[status]
     return (
-        f'<section class="ortu-kartu-st" id="ortu-pesanan"><h2>{_e(COPY_PESANAN_JUDUL)}</h2>'
-        f'<h3>{_e(judul)}</h3><p>{_e(kalimat)}</p></section>'
+        f'<section class="ortu-kartu-st" id="ortu-pesanan"><h2>{_e(COPY_PESANAN_JUDUL)}</h2>{isi}{tombol}</section>'
     )
+
+
+def _tautan_bayar(teks: str) -> str:
+    import pesanan_permukaan
+    return f'<a class="ortu-tombol-st" href="{_e(pesanan_permukaan.RUTE_MURID.status)}">{_e(teks)}</a>'
 
 
 def _form_atur(ada_pin: bool) -> str:
@@ -183,6 +202,6 @@ def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "") -> bytes:
     badan = (
         '<div class="funnel-alur-st">' + _kepala() + _pesan(kabar, galat)
         + _blok_cek(data.hasil_cek, data.nama_anak) + _blok_laporan(data.laporan)
-        + _blok_pesanan(data.status_pesanan) + _blok_pin(ada_pin) + "</div>"
+        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai") + _blok_pin(ada_pin) + "</div>"
     )
     return _dokumen(badan)

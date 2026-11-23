@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 
 from cek_pages import _a, _e
 from pesanan_dasar import STATUS_BELUM_BAYAR, STATUS_DITOLAK, STATUS_MENUNGGU_VERIFIKASI
+from pesanan_permukaan import RUTE_GURU, Rute
 from schema_transfer import BATAS_UKURAN_BUKTI, MAKS_BUKTI
 
 RUTE_TAGIHAN = "/pesanan/tagihan"
@@ -103,19 +104,19 @@ def _tombol(teks: str) -> str:
     return f'<p class="akun-aksi-sandi"><button type="submit" class="tombol-utama-akun">{_e(teks)}</button></p>'
 
 
-def _form_tagihan(token: str) -> str:
-    return (f'<form method="post" action="{RUTE_TAGIHAN}">'
+def _form_tagihan(token: str, rute: Rute) -> str:
+    return (f'<form method="post" action="{rute.tagihan}">'
             f'<input type="hidden" name="token" value="{_a(token)}">{_tombol(COPY_TOMBOL_TAGIHAN)}</form>')
 
 
-def _form_ulang(token: str) -> str:
-    return (f'<form method="post" action="{RUTE_ULANG}">'
+def _form_ulang(token: str, rute: Rute) -> str:
+    return (f'<form method="post" action="{rute.ulang_transfer}">'
             f'<input type="hidden" name="token" value="{_a(token)}">{_tombol(COPY_TOMBOL_ULANG)}</form>')
 
 
-def _form_unggah(token: str, ulang: bool) -> str:
+def _form_unggah(token: str, ulang: bool, rute: Rute) -> str:
     return (
-        f'<form method="post" action="{RUTE_BUKTI}" enctype="multipart/form-data">'
+        f'<form method="post" action="{rute.bukti}" enctype="multipart/form-data">'
         f'<input type="hidden" name="token" value="{_a(token)}">'
         f'<p><label>{_e(COPY_LABEL_BERKAS)}<br>'
         f'<input type="file" name="berkas" accept="{_ACCEPT_BUKTI}" required></label></p>'
@@ -134,15 +135,15 @@ def _rincian(tampilan, rekening) -> str:
     )
 
 
-def _aksi_unggah(tampilan, token_untuk) -> str:
+def _aksi_unggah(tampilan, token_untuk, rute: Rute) -> str:
     if tampilan.boleh_unggah:
-        return _form_unggah(token_untuk(AKSI_BUKTI), tampilan.status == STATUS_DITOLAK)
+        return _form_unggah(token_untuk(AKSI_BUKTI), tampilan.status == STATUS_DITOLAK, rute)
     if tampilan.jumlah_bukti >= MAKS_BUKTI:
         return _catatan(COPY_BATAS_TERCAPAI)
     return ""
 
 
-def _isi_dengan_tagihan(tampilan, rekening, token_untuk) -> str:
+def _isi_dengan_tagihan(tampilan, rekening, token_untuk, rute: Rute) -> str:
     isi = f"<h2>{_e(COPY_JUDUL)}</h2>"
     if tampilan.status == STATUS_DITOLAK and tampilan.alasan_tolak:
         isi += f'<p class="funnel-catatan-st">{_e(COPY_DITOLAK)} <strong>{_e(tampilan.alasan_tolak)}</strong></p>'
@@ -151,10 +152,10 @@ def _isi_dengan_tagihan(tampilan, rekening, token_untuk) -> str:
     isi += _rincian(tampilan, rekening)
     if tampilan.status != STATUS_MENUNGGU_VERIFIKASI:
         isi += _catatan(COPY_ATURAN)
-    return isi + _aksi_unggah(tampilan, token_untuk)
+    return isi + _aksi_unggah(tampilan, token_untuk, rute)
 
 
-def blok_transfer(tampilan, rekening, token_untuk) -> str:
+def blok_transfer(tampilan, rekening, token_untuk, rute: Rute = RUTE_GURU) -> str:
     """Kartu 'Bayar lewat transfer' sesuai status; '' bila status tidak relevan (lunas, dst.).
 
     Status kedaluwarsa: kartu 'Buka waktu pembayaran baru' hanya bila `tampilan.boleh_ulang`.
@@ -163,10 +164,10 @@ def blok_transfer(tampilan, rekening, token_untuk) -> str:
     """
     if tampilan.boleh_tagihan:
         return _kartu(f"<h2>{_e(COPY_JUDUL)}</h2><p>{_e(COPY_PENGANTAR)}</p>"
-                      + _form_tagihan(token_untuk(AKSI_TAGIHAN)))
+                      + _form_tagihan(token_untuk(AKSI_TAGIHAN), rute))
     if tampilan.nominal is not None and tampilan.status in _STATUS_BLOK:
-        return _kartu(_isi_dengan_tagihan(tampilan, rekening, token_untuk))
+        return _kartu(_isi_dengan_tagihan(tampilan, rekening, token_untuk, rute))
     if tampilan.boleh_ulang:
         return _kartu(f"<h2>{_e(COPY_JUDUL_ULANG)}</h2><p>{_e(COPY_PENGANTAR_ULANG)}</p>"
-                      + _form_ulang(token_untuk(AKSI_ULANG)))
+                      + _form_ulang(token_untuk(AKSI_ULANG), rute))
     return ""

@@ -160,17 +160,32 @@ def _baca_keadaan(path, akun_id, order_id) -> Keadaan:
         return _keadaan(kon, pesanan.ambil_order(kon, order_id, akun_id), _sekarang())
 
 
+def _anak_pembeli(kon, principal):
+    """Anak yang dipesan, dari PERAN principal sesi server (tidak pernah dari input klien).
+
+    Murid (orang tua memakai akun anak): anak = siswa yang tertaut ke akun muridnya
+    (`students.siswa_dari_akun`). Guru: anak pertama milik akun (`_anak_akun`).
+    """
+    if principal.peran == "murid":
+        import students
+        siswa_id = students.siswa_dari_akun(kon, principal.pengguna)
+        if siswa_id is None:
+            return None
+        return kon.execute("SELECT id, nama FROM siswa WHERE id = ?", (siswa_id,)).fetchone()
+    return _anak_akun(kon, principal.pengguna)
+
+
 def ambil_anak(principal):
-    """(id, nama) anak akun sesi (satu anak per akun: id terkecil) atau None."""
+    """(id, nama) anak akun sesi (guru: id terkecil; murid: anak tertaut) atau None."""
     with database.buka() as kon:
-        baris = _anak_akun(kon, principal.pengguna)
+        baris = _anak_pembeli(kon, principal)
     return None if baris is None else {"id": baris["id"], "nama": baris["nama"]}
 
 
 def _prasyarat(principal):
     """(anak, cek_id, selesai, punya_kontak) dari DB belajar; hanya baca, per anak."""
     with database.buka() as kon:
-        baris = _anak_akun(kon, principal.pengguna)
+        baris = _anak_pembeli(kon, principal)
         if baris is None:
             raise PesananTanpaAnak()
         hasil = cek_gratis.hasil_siswa(kon, principal.id_akun, baris["id"])
@@ -180,6 +195,18 @@ def _prasyarat(principal):
     selesai = pesanan.periksa_prasyarat_cek(hasil) and cek is not None
     return (baris["id"], None if cek is None else cek["id"], selesai,
             kontak is not None and bool(kontak.get("wa")))
+
+
+def kendala_pesan(principal):
+    """Eksepsi prasyarat yang akan menolak pesanan SEKARANG (cek belum selesai, tanpa kontak) atau None.
+
+    Hanya baca; dipakai halaman murid untuk memilih kartu "Pesan" atau pesan penolakan yang sama
+    dengan POST. Raise PesananTanpaAnak bila akun tanpa anak.
+    """
+    _siswa, _cek, selesai, punya_kontak = _prasyarat(principal)
+    if not selesai:
+        return PesananCekBelumSelesai()
+    return None if punya_kontak else pesanan.PesananButuhKontak()
 
 
 def pastikan_transaksi(path, order_id, akun_id, klien) -> None:
