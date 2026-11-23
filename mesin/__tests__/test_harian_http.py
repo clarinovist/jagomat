@@ -59,13 +59,15 @@ class Hasil:
         return self.kode, self.isi, {k: self.header[k] for k in HEADER_PENTING if k in self.header}
 
 
-def _minta(uji, jalur, *, auth_=None, data=None, isi_mentah=None):
+def _minta(uji, jalur, *, auth_=None, data=None, isi_mentah=None, header=None, tipe="application/x-www-form-urlencoded"):
     isi = isi_mentah if isi_mentah is not None else (urllib.parse.urlencode(data).encode() if data is not None else None)
     req = urllib.request.Request(uji.alamat + jalur, data=isi, method="POST" if isi is not None else "GET")
     if isi is not None:
-        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        req.add_header("Content-Type", tipe)
     if auth_:
         req.add_header("Authorization", _basic(*auth_))
+    for nama, nilai in (header or {}).items():
+        req.add_header(nama, nilai)
     try:
         with urllib.request.build_opener(_TanpaIkut).open(req, timeout=10) as r:
             return Hasil(r.status, r.read().decode("utf-8", "replace"), dict(r.headers))
@@ -246,9 +248,9 @@ def test_mulai_isian_tak_sah_ditolak_400_tanpa_efek(server, data):
 
 
 def test_mulai_dengan_content_type_bukan_form_ditolak(server):
-    hasil = _minta(server, DASAR + "/mulai", auth_=MURID_SATU, isi_mentah=b'{"tingkat": "t3"}')
+    hasil = _minta(server, DASAR + "/mulai", auth_=MURID_SATU, isi_mentah=b'{"tingkat": "t3"}', tipe="application/json")
 
-    assert hasil.kode in (400, 413) or hasil.kode == 400
+    assert hasil.kode == 400
     assert _db(server, "SELECT COUNT(*) FROM harian_sesi")[0][0] == 0
 
 
@@ -268,6 +270,37 @@ def test_beranda_saat_berjalan_menawarkan_lanjutkan(server):
 
     assert "Latihanmu masih berjalan" in isi and "Lanjutkan" in isi and ("sesi/%d?no=2" % sesi) in isi
     assert 'name="tingkat"' not in isi
+
+
+# 4b --- CSRF: asal lintas situs ditolak tanpa efek ----------------------------------------------------
+
+ASAL_ASING = [{"Sec-Fetch-Site": "cross-site"}, {"Origin": "https://contoh.example"}]
+
+
+@pytest.mark.parametrize("header", ASAL_ASING, ids=["cross-site", "origin-asing"])
+def test_post_mulai_lintas_situs_ditolak_tanpa_efek(server, header):
+    hasil = _minta(server, DASAR + "/mulai", auth_=MURID_SATU, data={"tingkat": "t3"}, header=header)
+
+    assert hasil.kode == 403
+    assert _tabel_harian(server) == {"harian_sesi": [], "harian_soal": [], "harian_jawaban": []}
+
+
+@pytest.mark.parametrize("header", ASAL_ASING, ids=["cross-site", "origin-asing"])
+def test_post_jawab_lintas_situs_ditolak_tanpa_efek(server, header):
+    sesi = _mulai(server)
+    sebelum = _tabel_harian(server)
+
+    hasil = _minta(server, "%s/sesi/%d/jawab" % (DASAR, sesi), auth_=MURID_SATU, data={"no": "1", "pilihan": "A"}, header=header)
+
+    assert hasil.kode == 403
+    assert _tabel_harian(server) == sebelum
+
+
+def test_post_mulai_asal_sama_tetap_diterima(server):
+    hasil = _minta(server, DASAR + "/mulai", auth_=MURID_SATU, data={"tingkat": "t3"},
+                   header={"Sec-Fetch-Site": "same-origin"})
+
+    assert hasil.kode == 303
 
 
 # 5 --- soal tanpa kebocoran ----------------------------------------------------------------------

@@ -50,7 +50,7 @@ def test_pg_menjalankan_validasi_semantik_keunikan(monkeypatch):
 
 def test_pg_opsi_setara_secara_matematis_ditolak(monkeypatch):
     """Dua pengecoh bernilai sama ('7' dan '7.0') tidak boleh lolos sebagai dua opsi."""
-    monkeypatch.setattr(harian_pg.choice_generation, "kandidat", lambda soal, n=None: ("empat-v1", "angka", ("7", "7.0", "9")))
+    monkeypatch.setattr(harian_pg.choice_generation, "kandidat", lambda soal, n=None: ("empat-v1", "angka", ("7.0", "8", "9")))
     asal = generator.buat_soal("tambah_dasar", 7001, "P2", "bilangan-dasar")
     monkeypatch.setattr(generator, "buat_soal", lambda *a, **k: dataclasses.replace(asal, kunci="7"))
 
