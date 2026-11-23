@@ -147,6 +147,9 @@ def test_antrean_memuat_paket_nominal_persis_dan_tautan_tanpa_nama_anak(hidup, m
         nominal = kon.execute("SELECT nominal_transfer FROM harian_tagihan").fetchone()[0]
     assert 'Rp39.<mark class="admin-digit-unik">%03d</mark>' % (nominal - 39000) in isi
     assert "Anak Alfa" not in isi and "murid-a" not in isi
+    # Tabel bisa digeser di layar sempit: ada petunjuk visual (hanya tampil di layar sempit lewat CSS).
+    assert 'class="admin-geser"' in isi and "Geser tabel ke samping" in isi
+    assert ".admin-geser {" in isi and "@media (max-width: 51.25rem) {\n  .admin-geser { display: block; }" in isi
 
 
 def test_antrean_kosong_pesan_jujur(hidup, admin):

@@ -136,6 +136,12 @@ def test_buat_tagihan_nominal_dari_server_dan_halaman_tagihan(dua):
     assert "Bank Contoh" in t and "1234 5678 90" in t and "PT Contoh Sintetis" in t
     assert "Unggah bukti" in t and "Pilih Bulanan" not in t
     assert "Batas waktu" in t and "24 November 2026 pukul 10.00 WIB" in t
+    # Input berkas bukti bergaya (bukan kontrol bawaan browser): batas, tombol "Choose File", dan fokus.
+    mentah = halaman(dua, dua.a)
+    assert 'type="file"' in mentah
+    for aturan in (".kartu-st input[type=file] {", ".kartu-st input[type=file]::file-selector-button {",
+                   ".kartu-st input[type=file]:focus-visible {"):
+        assert aturan in mentah, aturan
 
 
 def test_tahunan_nominal_349_ribu_plus_kode(dua):

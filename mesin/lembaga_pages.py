@@ -34,6 +34,8 @@ PESAN = {
     "banyak_terlalu": "Terlalu banyak anak dipilih sekaligus (maksimal %d per pindah), jadi tidak ada "
                       "anak yang dipindahkan. Pilih lebih sedikit lalu coba lagi." % BATAS_PINDAH_BANYAK,
 }
+# Kode pesan berhasil; selain itu penolakan, tampil sebagai peringatan merah (role="alert"), bukan banner hijau bertanda centang.
+KODE_BERHASIL = frozenset({"pindah_ok", "banyak_ok"})
 ID_FORM_BANYAK = "form-pindah-banyak"
 
 GAYA = f"""<style>
@@ -54,6 +56,8 @@ GAYA = f"""<style>
 .lembaga-pindah-st select:focus-visible {{ outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: 2px; }}
 .lembaga-pilih-st input {{ width: 1.25rem; height: 1.25rem; }}
 .lembaga-meta-st {{ color: {T.TEKS_SUBTLE}; font-size: {T.UKURAN_TEKS_LABEL}; }}
+.lembaga-galat-st {{ background: {T.LATAR_GALAT}; border: {T.TEBAL_GARIS} solid {T.BORDER_GALAT};
+  color: {T.TEKS_GALAT}; border-radius: {T.RADIUS_KARTU}; padding: {T.SP_3} {T.SP_4}; overflow-wrap: anywhere; }}
 @media (max-width: 560px) {{
   .lembaga-guru-st {{ padding: {T.SP_3}; }}
   .lembaga-tabel-st, .lembaga-tabel-st tbody, .lembaga-tabel-st tr,
@@ -164,10 +168,15 @@ def halaman(lembaga, ringkas: Sequence[GuruRingkas], kode_pesan: str, ident,
             jumlah: int = 0, ke: str = "") -> bytes:
     semua = [g.guru for g in ringkas]
     pesan = _teks_pesan(kode_pesan, jumlah, ke)
-    kabar = (
-        '<div class="st-banner-sukses" role="status"><span class="ikon" aria-hidden="true">'
-        f"✓</span><span>{_e(pesan)}</span></div>" if pesan else ""
-    )
+    if not pesan:
+        kabar = ""
+    elif kode_pesan in KODE_BERHASIL:
+        kabar = (
+            '<div class="st-banner-sukses" role="status"><span class="ikon" aria-hidden="true">'
+            f"✓</span><span>{_e(pesan)}</span></div>"
+        )
+    else:
+        kabar = f'<div class="lembaga-galat-st" role="alert">{_e(pesan)}</div>'
     jumlah_anak = sum(len(g.anak) for g in ringkas)
     isi = (
         GAYA + '<main aria-labelledby="judul-lembaga" class="lembaga-st">'

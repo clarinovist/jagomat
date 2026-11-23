@@ -464,6 +464,7 @@ summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-weight: 600;
 .kolom-sandi > input {{ padding-right: 52px !important; }}
 .tombol-mata {{ position: absolute; right: 3px; top: 50%; transform: translateY(-50%); width: {T.TARGET_SENTUH}; height: {T.TARGET_SENTUH}; padding: 0; display: grid; place-items: center; border: 0; border-radius: {T.RADIUS_SEDANG}; background: transparent; color: {T.ADMIN_REDUP}; }}
 .admin-tabel-wrap {{ overflow-x: auto; max-width: 100%; }}
+.admin-geser {{ display: none; margin: 0; padding: {T.SP_2} {T.SP_5}; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ADMIN_REDUP}; }}
 .admin-tabel-wrap:focus-visible {{ outline-offset: -3px; }}
 .admin-tabel a:focus-visible {{ outline-offset: -3px; }}
 .admin-tabel {{ width: 100%; border-collapse: collapse; min-width: 42rem; }}
@@ -633,6 +634,7 @@ summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-weight: 600;
   .admin-dua-kolom, .admin-dua-kolom.admin-kolom-2-1 {{ grid-template-columns: 1fr; }}
 }}
 @media (max-width: 51.25rem) {{
+  .admin-geser {{ display: block; }}
   .admin-layout {{ display: block; }}
   .admin-sidebar {{ display: none; }}
   .admin-brand-mobile {{ display: flex; grid-column: 1; grid-row: 1; gap: {T.SP_2}; min-height: {T.TARGET_SENTUH}; padding: 0; }}

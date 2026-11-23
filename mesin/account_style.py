@@ -25,6 +25,18 @@ GAYA_AKUN = f"""
   {_A} .akun-grid-st {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: {T.SP_5}; align-items: start; }}
   {_A} .akun-grid-st:has(> .akun-kolom-st:only-child) {{ grid-template-columns: minmax(0, {T.LEBAR_KONTEN}); }}
 }}
+{_A} .kartu-st input[type=file] {{
+  display: block; width: 100%; max-width: 100%; box-sizing: border-box; margin-top: {T.SP_2}; min-height: {T.TINGGI_KONTROL};
+  padding: {T.SP_2} {T.SP_3}; border: {T.TEBAL_GARIS} solid {T.BORDER_KONTROL}; border-radius: {T.RADIUS_SEDANG};
+  background: {T.LATAR_KARTU}; color: {T.TEKS_UTAMA}; font: inherit; font-size: {T.UKURAN_BADAN_LAYAR};
+}}
+{_A} .kartu-st input[type=file]::file-selector-button {{
+  font: inherit; font-weight: 700; font-size: {T.UKURAN_TEKS_LABEL}; line-height: 1.4; min-height: {T.TARGET_SENTUH}; padding: {T.SP_2} {T.SP_4}; margin-right: {T.SP_3};
+  border: {T.TEBAL_GARIS} solid {T.AKSEN_TEAL_TUA}; border-radius: {T.RADIUS_SEDANG}; background: transparent;
+  color: {T.AKSEN_TEAL_TUA}; cursor: pointer;
+}}
+{_A} .kartu-st input[type=file]::file-selector-button:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}
+{_A} .kartu-st input[type=file]:focus-visible {{ outline: 3px solid {T.AKSEN_TEAL_TUA}; outline-offset: 2px; }}
 {_A} .akun-aksi-sandi {{ display: flex; align-items: center; flex-wrap: wrap; gap: {T.SP_2} {T.SP_4}; }}
 {_A} .akun-aksi-sandi a {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; font-weight: 600; }}
 {_A} .akun-tombol-garis-st {{

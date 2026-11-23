@@ -287,7 +287,8 @@ def test_penolakan_bisnis_303_dengan_kode_tanpa_tulis(server):
         assert tajuk["Location"] == "/lembaga?pesan=" + kode_pesan
         assert _snapshot(server) == sebelum
         _, halaman, _ = server.minta(tajuk["Location"], auth=_sebagai(PEMILIK))
-        assert 'role="status"' in halaman
+        # Penolakan = peringatan (role=alert), bukan banner sukses hijau.
+        assert 'class="lembaga-galat-st" role="alert"' in halaman and 'class="st-banner-sukses"' not in halaman
 
 
 @pytest.mark.parametrize("data", [

@@ -55,6 +55,7 @@ def test_banyak_sukses_alihkan_dengan_jumlah_dan_tujuan_lalu_pesan_ramah(server)
     assert [tuple(r) for r in jejak] == [(a, GURU_A, GURU_B, PEMILIK), (o, PEMILIK, GURU_B, PEMILIK)]
     _, halaman, _ = server.minta(tajuk["Location"], auth=_sebagai(PEMILIK))
     assert "2 anak dipindahkan ke " + GURU_B in halaman and 'role="status"' in halaman
+    assert 'class="st-banner-sukses"' in halaman and 'class="lembaga-galat-st"' not in halaman
 
 
 def test_banyak_nama_kembar_antar_anak_dan_dengan_tujuan_diberi_pembeda(server):
@@ -117,6 +118,8 @@ def test_banyak_sesi_berjalan_menolak_seluruh_permintaan_dengan_jumlah(server):
     assert _snapshot(server) == sebelum
     _, halaman, _ = server.minta(tajuk["Location"], auth=_sebagai(PEMILIK))
     assert "1 anak yang Anda pilih masih punya sesi" in halaman
+    # Penolakan tampil sebagai peringatan merah (role=alert), bukan banner hijau bertanda centang.
+    assert 'class="lembaga-galat-st" role="alert"' in halaman and 'class="st-banner-sukses"' not in halaman
 
 
 def test_banyak_anak_sudah_di_tujuan_menolak_seluruh_permintaan(server):

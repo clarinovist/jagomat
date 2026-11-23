@@ -126,6 +126,7 @@ def _tabel(judul: str, kepala: Tuple[str, ...], baris: str, kosong: str) -> str:
     th = "".join('<th scope="col">%s</th>' % k for k in kepala)
     isi = baris or '<tr><td colspan="%d" class="admin-kosong">%s</td></tr>' % (len(kepala), e(kosong))
     return ('<section class="admin-kartu admin-kartu-tabel"><div class="admin-kartu-kepala"><h2>%s</h2></div>'
+            '<p class="admin-geser" aria-hidden="true">Geser tabel ke samping untuk melihat kolom lainnya &rarr;</p>'
             '<div class="admin-tabel-wrap" tabindex="0" role="region" aria-label="%s"><table class="admin-tabel">'
             '<thead><tr>%s</tr></thead><tbody>%s</tbody></table></div></section>' % (e(judul), e(judul), th, isi))
 
