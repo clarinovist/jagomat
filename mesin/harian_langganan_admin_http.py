@@ -2,9 +2,9 @@
 `/setujui` dan `/tolak`.
 
 Dijawab `admin_http` sebelum palang guru, jadi anonim, murid, dan guru menerima 404 yang sama dengan rute admin tak
-dikenal SEBELUM DB atau berkas disentuh. Semua rute hanya hidup bila sakelar `LATIHAN_HARIAN` aktif (mati = tidak
-ditangani = 404 rute tak dikenal); konsekuensinya bukti yang sedang menunggu baru dapat diputuskan setelah sakelar
-dinyalakan lagi. Aturan aksi (pola uang yang sama dengan verifikasi transfer):
+dikenal SEBELUM DB atau berkas disentuh. Rute admin TIDAK bergantung pada sakelar `LATIHAN_HARIAN`: antrean tetap
+terbuka walau sakelar mati supaya bukti transfer yang sudah masuk tetap bisa diputuskan (hanya rute murid yang
+404 saat sakelar mati). Aturan aksi (pola uang yang sama dengan verifikasi transfer):
 
 - CSRF + tinjauan bertanda tangan terikat aksi dan sesi + sandi admin ulang (`h._token_final`), wajib sesi berkuki.
   `order_id` dan bukti terakhir yang dilihat admin HANYA dari tinjauan (`target_id`, `target_revisi`); `admin_id`
@@ -25,7 +25,6 @@ import admin_pesanan_pages as daftar_ui
 import admin_security
 import admin_store
 import admin_verifikasi_http as bukti_umum
-import akses_harian
 import bukti_berkas
 import database
 import harian_langganan_admin_pages as ui
@@ -142,7 +141,7 @@ def _get_bukti(penangan, principal) -> None:
 
 
 def tangani_get(penangan, jalur) -> bool:
-    if jalur not in RUTE_GET or not akses_harian.aktif():
+    if jalur not in RUTE_GET:
         return False
     principal = h._principal_admin(penangan)
     if principal is None:
@@ -181,7 +180,7 @@ def _putuskan(penangan, principal, jalur: str) -> None:
 
 
 def tangani_post(penangan, jalur) -> bool:
-    if jalur not in _AKSI_POST or not akses_harian.aktif():
+    if jalur not in _AKSI_POST:
         return False
     principal = h._principal_admin(penangan)
     if principal is None:
