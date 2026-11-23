@@ -32,6 +32,7 @@ class DataOrangTua:
     laporan: Optional[dict]
     status_pesanan: Optional[str]
     langganan: Optional[harian_langganan_ringkas.Ringkasan] = None
+    harian: Optional[object] = None  # RingkasanHarian (Latihan Harian) atau None bila sakelar mati
 
 
 def _sekarang_baku() -> str:
@@ -72,10 +73,12 @@ def langganan(kon, siswa_id: int, sekarang: str) -> Optional[harian_langganan_ri
 
 def kumpulkan(kon, id_akun: str, siswa_id: int, sekarang: Optional[str] = None) -> DataOrangTua:
     """Isi halaman untuk anak sesi ini; `kon` ber-row_factory Row (database.buka)."""
+    import harian_http  # F4: ringkasan Latihan Harian; None bila sakelar LATIHAN_HARIAN mati
     return DataOrangTua(
         nama_anak=_nama_anak(kon, siswa_id),
         hasil_cek=cek_gratis.hasil_siswa(kon, id_akun, siswa_id),
         laporan=parent_report_store.terbit_terbaru(kon, siswa_id),
         status_pesanan=status_pesanan(id_akun, siswa_id, sekarang),
         langganan=langganan(kon, siswa_id, _sekarang_baku() if sekarang is None else sekarang),
+        harian=harian_http.ringkasan_untuk_orang_tua(kon, siswa_id),
     )

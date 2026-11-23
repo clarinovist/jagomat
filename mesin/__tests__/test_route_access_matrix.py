@@ -74,6 +74,7 @@ _PROBE_GET = {
     "/murid/orang-tua": "/murid/orang-tua",
     "/murid/pesanan": "/murid/pesanan",
     "/murid/langganan": "/murid/langganan",
+    "/murid/latihan-harian": "/murid/latihan-harian",
     "/lembaga": "/lembaga",
     "/sesi/": "/sesi/1",
     "/lampiran/": "/lampiran/1",
@@ -117,6 +118,7 @@ _PROBE_POST = {
     "/murid/cek/mulai": "/murid/cek/mulai",
     "/murid/pesanan": "/murid/pesanan/pesan",
     "/murid/langganan": "/murid/langganan/buat",
+    "/murid/latihan-harian": "/murid/latihan-harian/mulai",
     "/lembaga": "/lembaga/pindah",
     "/sesi/": "/sesi/1",
     "/akun": "/akun",
@@ -231,6 +233,9 @@ def test_tabel_akses_punya_probe():
     # F5: langganan Latihan Harian dari akun anak; tepat setelah /murid/pesanan, GET exact dan POST di bawahnya.
     assert get["/murid/langganan"] == post["/murid/langganan"] == "murid"
     assert urutan.index("/murid/langganan") == urutan.index("/murid/pesanan") + 1
+    # F4: Latihan Harian (prefix murid), tepat setelah /murid/pesanan; sakelar mati = rute murid tak dikenal.
+    assert get["/murid/latihan-harian"] == post["/murid/latihan-harian"] == "murid"
+    assert urutan.index("/murid/latihan-harian") == urutan.index("/murid/langganan") + 1
     # `/cek-kemampuan` exact tetap publik; rute akun di bawahnya exact dan guru.
     assert get["/cek-kemampuan"] == "publik"
     assert get["/cek-kemampuan/mulai"] == get["/cek-kemampuan/hasil"] == "guru"

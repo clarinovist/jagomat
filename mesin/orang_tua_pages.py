@@ -173,6 +173,14 @@ def _tautan_bayar(teks: str) -> str:
     return f'<a class="ortu-tombol-st" href="{_e(pesanan_permukaan.RUTE_MURID.status)}">{_e(teks)}</a>'
 
 
+def _blok_harian(ringkas) -> str:
+    """Kartu ringkasan Latihan Harian (F4); kosong bila sakelar mati (`ringkas` None)."""
+    if ringkas is None:
+        return ""
+    import harian_pages
+    return harian_pages.blok_orang_tua(ringkas)
+
+
 def _form_atur(ada_pin: bool) -> str:
     return (
         f'<form method="post" action="{RUTE_ATUR}">'
@@ -204,7 +212,7 @@ def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "") -> bytes:
         '<div class="funnel-alur-st">' + _kepala() + _pesan(kabar, galat)
         + harian_langganan_pages.banner_orang_tua(data.langganan, data.nama_anak)
         + _blok_cek(data.hasil_cek, data.nama_anak) + _blok_laporan(data.laporan)
-        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai")
+        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai") + _blok_harian(data.harian)
         + harian_langganan_pages.kartu_orang_tua(data.langganan) + _blok_pin(ada_pin) + "</div>"
     )
     return _dokumen(badan)

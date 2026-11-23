@@ -876,3 +876,7 @@ SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_DAFTAR_ANAK 
 from schema_harian_langganan import SKEMA_HARIAN_LANGGANAN  # noqa: E402
 
 SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_HARIAN_LANGGANAN + '\n-- Ringkasan per sesi supaya laporan', 1)
+# Latihan Harian per tingkat (F4): tiga tabel harian_*, aditif, idempoten, tanpa migrasi; milik siswa (CASCADE).
+from schema_harian_latihan import SKEMA_HARIAN_LATIHAN  # noqa: E402
+
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_HARIAN_LATIHAN + '\n-- Ringkasan per sesi supaya laporan', 1)
