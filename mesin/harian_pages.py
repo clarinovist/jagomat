@@ -24,7 +24,7 @@ from style_stitch import gaya_stitch
 DASAR = "/murid/latihan-harian"
 ALAMAT_AWAL = DASAR
 ALAMAT_MULAI = DASAR + "/mulai"
-ALAMAT_ORANG_TUA = "/murid/orang-tua"  # placeholder: F5 menyediakan rute berlangganan di halaman orang tua
+ALAMAT_ORANG_TUA = "/murid/orang-tua"  # halaman orang tua (di balik PIN tirai) memuat kartu langganan F5
 NAMA_HARI = ("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
 COPY_JUDUL = "Latihan Harian"
 COPY_HABIS = "Jatah latihan gratis hari ini sudah dipakai"
