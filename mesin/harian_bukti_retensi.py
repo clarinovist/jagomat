@@ -20,6 +20,7 @@ Aturan keamanan (sama dengan Paket Coba):
 """
 from __future__ import annotations
 
+from contextlib import closing
 import os
 from pathlib import Path
 import sqlite3
@@ -120,7 +121,7 @@ def _siap(path: Path) -> bool:
     """True bila berkas ada dan ketiga tabel yang dibutuhkan sudah ada. Hanya baca (`mode=ro`), tidak membuat apa pun."""
     if not path.is_file():
         return False
-    with sqlite3.connect("%s?mode=ro" % path.resolve().as_uri(), uri=True) as baca:
+    with closing(sqlite3.connect("%s?mode=ro" % path.resolve().as_uri(), uri=True)) as baca:
         ada = {b[0] for b in baca.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     return _TABEL_WAJIB <= ada
 
