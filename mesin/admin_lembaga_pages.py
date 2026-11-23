@@ -17,6 +17,22 @@ AKSI_TAMBAH = "lembaga_tambah"
 AKSI_LEPAS = "lembaga_lepas"
 AKSI_BUBARKAN = "lembaga_bubarkan"
 COPY_NAMA_TIDAK_COCOK = "Nama lembaga yang diketik tidak cocok. Tidak ada yang dibubarkan."
+COPY_LEPAS_SESI_BERJALAN = (
+    "Guru ini belum bisa dilepas: masih ada anaknya dengan sesi yang sedang berjalan atau belum "
+    "dikonfirmasi. Selesaikan dan konfirmasi sesinya dulu, lalu lepas lagi. Tidak ada yang diubah."
+)
+COPY_LEPAS_NAMA_HABIS = (
+    "Guru ini belum bisa dilepas: nama salah satu anaknya sudah terlalu banyak kembar di pemilik "
+    "les, sehingga nomor pembeda habis. Ubah nama anak itu dulu. Tidak ada yang diubah."
+)
+
+
+def teks_konfirmasi_lepas(guru: str, jumlah_anak: int) -> str:
+    """Teks `confirm()` lepas anggota; menyebut ke mana anaknya pergi."""
+    if jumlah_anak <= 0:
+        return "Lepas %s dari lembaga?" % guru
+    return "Lepas %s dari lembaga? %d anak akan kembali ke antrean lembaga (pemilik les)." % (
+        guru, jumlah_anak)
 
 
 @dataclass(frozen=True)
@@ -26,6 +42,7 @@ class TokenLembaga:
     buat: str
     tambah: Mapping[int, str] = field(default_factory=dict)
     lepas: Mapping[Tuple[int, str], str] = field(default_factory=dict)
+    anak_guru: Mapping[str, int] = field(default_factory=dict)
     bubarkan: Mapping[int, str] = field(default_factory=dict)
 
 
@@ -71,7 +88,7 @@ def _form_lepas(token: TokenLembaga, lembaga_id: int, guru: str) -> str:
         '<span class="admin-lembaga-nama">%s</span>%s'
         '<button class="admin-tombol admin-tombol-sekunder" type="submit">Lepas</button></form>'
     ) % (
-        e("Lepas %s dari lembaga? Anak yang sudah dipindahkan tetap milik gurunya." % guru),
+        e(teks_konfirmasi_lepas(guru, token.anak_guru.get(guru, 0))),
         _tersembunyi(token.csrf, tinjauan, lembaga_id), e(guru), e(guru), _kolom_sandi(),
     )
 

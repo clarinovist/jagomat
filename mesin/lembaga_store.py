@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import sqlite3
-from typing import Tuple
+from typing import Iterable, Optional, Tuple
 
 STATUS_OK = "ok"
 STATUS_TIDAK_BERWENANG = "tidak_berwenang"
@@ -22,16 +22,27 @@ STATUS_PENOLAKAN_BISNIS = frozenset((STATUS_SAMA, STATUS_BENTROK_NAMA, STATUS_SE
 # Operasi baca foto yang belum final; `unknown` ikut ditahan (pilihan restriktif).
 _STATUS_FOTO_BELUM_FINAL = ("reserved", "sent", "unknown")
 BATAS_NAMA = 80
+# Pembeda nama kembar: "nama", "nama (2)", ... "nama (99)"; lewat itu pemanggil menolak.
+BATAS_PEMBEDA = 99
 
 
 class PenolakanLembaga(ValueError):
     """Perubahan keanggotaan/pembuatan lembaga melanggar aturan."""
 
 
+class PenolakanSesiBerjalan(PenolakanLembaga):
+    """Guru yang dilepas masih punya anak dengan sesi berjalan; tidak ada yang ditulis."""
+
+
+class PenolakanNamaAnak(PenolakanLembaga):
+    """Pembeda nama anak habis di pemilik lembaga; tidak ada yang ditulis."""
+
+
 @dataclass(frozen=True)
 class HasilPindah:
     status: str
     dari: str = ""
+    nama_baru: str = ""
 
     @property
     def berhasil(self) -> bool:
@@ -131,13 +142,39 @@ def nama_lembaga_terikat(kon: sqlite3.Connection, guru: str):
     return baris["nama"] if baris is not None else None
 
 
-def lepas_anggota(kon: sqlite3.Connection, *, lembaga_id: int, guru: str) -> None:
-    """Lepas anggota; anak yang sudah dipindahkan tetap milik gurunya."""
-    kur = kon.execute(
-        "DELETE FROM anggota_lembaga WHERE lembaga_id = ? AND guru = ?", (lembaga_id, guru)
-    )
-    if kur.rowcount != 1:
+def jumlah_anak_guru(kon: sqlite3.Connection, guru: str) -> int:
+    """Jumlah anak yang dipegang ``guru`` (untuk teks konfirmasi lepas)."""
+    return int(kon.execute(
+        "SELECT COUNT(*) FROM siswa WHERE pemilik = ?", (guru,)).fetchone()[0])
+
+
+def lepas_anggota(kon: sqlite3.Connection, *, lembaga_id: int, guru: str, oleh: str) -> int:
+    """Lepas anggota dan kembalikan SEMUA anaknya ke pemilik lembaga; hasilnya jumlah anak.
+
+    Dipanggil di dalam ``BEGIN IMMEDIATE`` pemanggil. Semua penolakan (bukan anggota,
+    sesi berjalan, pembeda nama habis) diputuskan sebelum menulis apa pun. Penulisan:
+    satu UPDATE per anak yang dijaga pemilik lama, satu jejak per anak, lalu keanggotaan
+    dihapus.
+    """
+    lembaga = kon.execute(
+        "SELECT l.id, l.pemilik FROM anggota_lembaga a JOIN lembaga l ON l.id = a.lembaga_id "
+        "WHERE a.lembaga_id = ? AND a.guru = ?", (lembaga_id, guru),
+    ).fetchone()
+    if lembaga is None:
         raise PenolakanLembaga("guru bukan anggota lembaga ini")
+    anak = kon.execute(
+        "SELECT id, nama FROM siswa WHERE pemilik = ? ORDER BY id", (guru,)).fetchall()
+    if any(_sesi_berjalan(kon, int(a["id"])) for a in anak):
+        raise PenolakanSesiBerjalan("guru masih punya anak dengan sesi berjalan")
+    pemilik = lembaga["pemilik"]
+    for siswa_id, nama_baru in _rencana_nama(kon, anak, pemilik):
+        _tulis_pindah(kon, lembaga_id=int(lembaga["id"]), siswa_id=siswa_id,
+                      dari=guru, ke=pemilik, nama_baru=nama_baru, oleh=oleh)
+    if kon.execute(
+        "DELETE FROM anggota_lembaga WHERE lembaga_id = ? AND guru = ?", (lembaga_id, guru)
+    ).rowcount != 1:
+        raise RuntimeError("keanggotaan berubah saat dilepas")
+    return len(anak)
 
 
 def daftar_lembaga(kon: sqlite3.Connection) -> Tuple[Tuple[sqlite3.Row, Tuple[str, ...]], ...]:
@@ -199,6 +236,56 @@ def _sesi_berjalan(kon: sqlite3.Connection, siswa_id: int) -> bool:
     ).fetchone() is not None
 
 
+def _nama_terpakai(kon: sqlite3.Connection, nama: str, pemilik: str) -> bool:
+    return kon.execute(
+        "SELECT 1 FROM siswa WHERE nama = ? COLLATE NOCASE AND pemilik = ?", (nama, pemilik)
+    ).fetchone() is not None
+
+
+def nama_bebas(kon: sqlite3.Connection, nama: str, pemilik: str,
+               dipesan: Iterable[str] = ()) -> Optional[str]:
+    """Nama anak yang belum dipakai ``pemilik``: apa adanya, atau "nama (2)", "(3)", ...
+
+    Perbandingan tidak peduli huruf besar/kecil (seperti pencarian lama). ``dipesan`` =
+    nama yang sedang dibagikan dalam satu operasi dan belum tertulis di DB. Hanya membaca.
+    Mengembalikan None bila sampai "(99)" masih bentrok.
+    """
+    pesanan = frozenset(n.casefold() for n in dipesan)
+    for urut in range(1, BATAS_PEMBEDA + 1):
+        calon = nama if urut == 1 else "%s (%d)" % (nama, urut)
+        if calon.casefold() not in pesanan and not _nama_terpakai(kon, calon, pemilik):
+            return calon
+    return None
+
+
+def _rencana_nama(kon: sqlite3.Connection, anak, pemilik: str) -> Tuple[Tuple[int, str], ...]:
+    """(id, nama baru di ``pemilik``) per anak; anak sekelompok saling diberi pembeda."""
+    dipesan: list = []
+    rencana = []
+    for a in anak:
+        nama_baru = nama_bebas(kon, a["nama"], pemilik, dipesan)
+        if nama_baru is None:
+            raise PenolakanNamaAnak("pembeda nama anak habis di pemilik lembaga")
+        dipesan.append(nama_baru)
+        rencana.append((int(a["id"]), nama_baru))
+    return tuple(rencana)
+
+
+def _tulis_pindah(kon: sqlite3.Connection, *, lembaga_id: int, siswa_id: int,
+                  dari: str, ke: str, nama_baru: str, oleh: str) -> None:
+    """Satu UPDATE kepemilikan (dijaga pemilik lama, rowcount dicek) lalu satu jejak."""
+    kur = kon.execute(
+        "UPDATE siswa SET pemilik = ?, nama = ? WHERE id = ? AND pemilik = ?",
+        (ke, nama_baru, siswa_id, dari),
+    )
+    if kur.rowcount != 1:
+        raise RuntimeError("kepemilikan anak berubah saat dipindahkan")
+    kon.execute(
+        "INSERT INTO pindah_siswa (siswa_id, lembaga_id, dari, ke, oleh) VALUES (?,?,?,?,?)",
+        (siswa_id, lembaga_id, dari, ke, oleh),
+    )
+
+
 def _penghuni(kon: sqlite3.Connection, lembaga) -> frozenset:
     return frozenset((lembaga["pemilik"], *anggota(kon, int(lembaga["id"]))))
 
@@ -207,8 +294,10 @@ def pindahkan(kon: sqlite3.Connection, *, oleh: str, siswa_id: int, ke: str) -> 
     """Pindahkan anak ke guru lain di lembaga yang sama (di dalam BEGIN IMMEDIATE).
 
     Urutan: kewenangan dulu (status ``tidak_berwenang`` tanpa membedakan sebab),
-    lalu penolakan bisnis. Penulisan hanya di akhir: satu UPDATE kepemilikan
-    yang dijaga pemilik lama, lalu satu baris jejak.
+    lalu penolakan bisnis. Nama kembar di tujuan tidak menolak: nama anak diberi
+    pembeda ("nama (2)") dalam UPDATE yang sama; ``bentrok_nama`` hanya bila pembeda
+    habis. Penulisan hanya di akhir: satu UPDATE kepemilikan yang dijaga pemilik lama,
+    lalu satu baris jejak.
     """
     lembaga = lembaga_milik(kon, oleh)
     if lembaga is None or not isinstance(siswa_id, int) or not isinstance(ke, str):
@@ -220,19 +309,11 @@ def pindahkan(kon: sqlite3.Connection, *, oleh: str, siswa_id: int, ke: str) -> 
     dari = anak["pemilik"]
     if ke == dari:
         return HasilPindah(STATUS_SAMA, dari)
-    if kon.execute(
-        "SELECT 1 FROM siswa WHERE nama = ? AND pemilik = ?", (anak["nama"], ke)
-    ).fetchone():
+    nama_baru = nama_bebas(kon, anak["nama"], ke)
+    if nama_baru is None:
         return HasilPindah(STATUS_BENTROK_NAMA, dari)
     if _sesi_berjalan(kon, siswa_id):
         return HasilPindah(STATUS_SESI_BERJALAN, dari)
-    kur = kon.execute(
-        "UPDATE siswa SET pemilik = ? WHERE id = ? AND pemilik = ?", (ke, siswa_id, dari)
-    )
-    if kur.rowcount != 1:
-        raise RuntimeError("kepemilikan anak berubah saat dipindahkan")
-    kon.execute(
-        "INSERT INTO pindah_siswa (siswa_id, lembaga_id, dari, ke, oleh) VALUES (?,?,?,?,?)",
-        (siswa_id, int(lembaga["id"]), dari, ke, oleh),
-    )
-    return HasilPindah(STATUS_OK, dari)
+    _tulis_pindah(kon, lembaga_id=int(lembaga["id"]), siswa_id=siswa_id,
+                  dari=dari, ke=ke, nama_baru=nama_baru, oleh=oleh)
+    return HasilPindah(STATUS_OK, dari, nama_baru)

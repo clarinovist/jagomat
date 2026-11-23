@@ -65,8 +65,11 @@ lembaga diketik persis, divalidasi di server); satu guru maksimal satu lembaga; 
 masih terikat lembaga tidak bisa dihapus. Pemilik les hanya melihat ringkasan per guru
 anggota di `/lembaga` (anak, jumlah sesi, sesi terakhir, menunggu konfirmasi) dan bisa
 memindahkan anak antar guru lembaganya; ia **tidak** membuka sesi/jawaban anak guru lain.
-Pindah ditolak bila nama bentrok di guru tujuan atau anak sedang punya sesi berjalan;
-riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 identik.
+Pindah ditolak bila anak sedang punya sesi berjalan; nama kembar di guru tujuan tidak menolak,
+tetapi nama anak diberi pembeda "(2)", "(3)", dst. (ditolak hanya bila pembeda habis di "(99)").
+Admin yang melepas anggota mengembalikan **semua** anaknya ke pemilik lembaga (satu jejak per anak,
+nama kembar diberi pembeda; ditolak bila ada anaknya dengan sesi berjalan, tanpa mengubah apa pun).
+Riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 identik.
 
 ## Cakupan aktif
 

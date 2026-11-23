@@ -194,6 +194,24 @@ def test_pindah_sukses_alihkan_dengan_kode_dan_ubah_pemilik(server):
     assert [tuple(r) for r in jejak] == [(GURU_A, GURU_B, PEMILIK)]
 
 
+def test_pindah_nama_kembar_berhasil_dengan_pembeda_dan_akun_murid_tetap_menunjuk_anak_itu(server):
+    anak = server.anak["a"]
+    with server.buka() as kon:
+        database.tambah_siswa(kon, "Anak Alfa", "P3", pemilik=GURU_B)
+    auth.tambah_akun("anak-alfa", "sandi-anak-alfa-123", "murid", siswa_id=anak)
+    kode, _, tajuk = _pindah(server, PEMILIK, anak, GURU_B)
+    assert kode == 303 and tajuk["Location"] == "/lembaga?pesan=pindah_ok"
+    with server.buka() as kon:
+        baris = kon.execute("SELECT nama, pemilik FROM siswa WHERE id=?", (anak,)).fetchone()
+        assert (baris["nama"], baris["pemilik"]) == ("Anak Alfa (2)", GURU_B)
+        assert kon.execute("SELECT COUNT(*) FROM siswa WHERE pemilik=?", (GURU_B,)).fetchone()[0] == 3
+    _, halaman, _ = server.minta("/lembaga?pesan=pindah_ok", auth=_sebagai(PEMILIK))
+    assert "Anak Alfa (2)" in halaman and "diberi nomor" in halaman
+    assert server.minta("/murid", auth=("anak-alfa", "sandi-anak-alfa-123"))[0] == 200
+    assert server.minta(f"/anak/{anak}", auth=_sebagai(GURU_B))[0] == 200
+    assert server.minta(f"/anak/{anak}", auth=_sebagai(GURU_A))[0] == 404
+
+
 def test_pemilik_les_boleh_memindahkan_anaknya_sendiri_ke_anggota(server):
     assert _pindah(server, PEMILIK, server.anak["o"], GURU_A)[0] == 303
     assert _pemilik(server, server.anak["o"]) == GURU_A
@@ -252,7 +270,9 @@ def test_pindah_ditolak_bila_lembaga_lain(server):
 
 def test_penolakan_bisnis_303_dengan_kode_tanpa_tulis(server):
     with server.buka() as kon:
-        database.tambah_siswa(kon, "Anak Alfa", "P3", pemilik=GURU_B)  # bentrok nama
+        database.tambah_siswa(kon, "Anak Alfa", "P3", pemilik=GURU_B)
+        for urut in range(2, L.BATAS_PEMBEDA + 1):  # pembeda nama "Anak Alfa" habis di GURU_B
+            database.tambah_siswa(kon, "Anak Alfa (%d)" % urut, "P3", pemilik=GURU_B)
         sesi = database.buat_sesi(kon, server.anak["o"], seed=9, jumlah_soal=1)
         kon.execute("UPDATE sesi SET mulai='2026-11-01 08:00:00' WHERE id=?", (sesi,))
     sebelum = _snapshot(server)

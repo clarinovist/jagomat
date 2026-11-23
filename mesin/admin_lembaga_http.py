@@ -58,7 +58,7 @@ class NamaTidakCocok(ValueError):
     """Nama lembaga yang diketik admin tidak sama persis dengan nama tersimpan."""
 
 
-def _token_form(penangan, principal, lembaga):
+def _token_form(penangan, principal, lembaga, anak_guru):
     """Token form hanya untuk sesi cookie; selain itu halaman hanya-baca."""
     if principal.metode != "cookie":
         return None
@@ -75,6 +75,7 @@ def _token_form(penangan, principal, lembaga):
                 for b, _ in lembaga},
         lepas={(int(b["id"]), g): tinjauan(ui.AKSI_LEPAS, {"target_id": int(b["id"]), "akun": g})
                for b, anggota in lembaga for g in anggota},
+        anak_guru=anak_guru,
         bubarkan={int(b["id"]): tinjauan(ui.AKSI_BUBARKAN, {"target_id": int(b["id"])})
                   for b, _ in lembaga},
     )
@@ -92,8 +93,9 @@ def tangani_get(penangan, jalur) -> bool:
         with database.buka() as kon:
             lembaga = toko.daftar_lembaga(kon)
             terikat = toko.guru_terikat(kon)
+            anak_guru = {g: toko.jumlah_anak_guru(kon, g) for _, anggota in lembaga for g in anggota}
         calon = tuple(g for g in nama_guru_aktif() if g not in terikat)
-        token = _token_form(penangan, principal, lembaga)
+        token = _token_form(penangan, principal, lembaga, anak_guru)
     except ValueError:
         h._tidak_ada(penangan)
         return True
@@ -127,8 +129,11 @@ def _bubarkan(kon, lembaga_id: int, konfirmasi: str) -> None:
     toko.bubarkan_lembaga(kon, lembaga_id=lembaga_id)
 
 
-def _siapkan(jalur: str, meta: dict, data: dict):
-    """Validasi isian dan target tinjauan; kembalikan `aksi(kon)` yang menulis. Isian asing ditolak."""
+def _siapkan(jalur: str, meta: dict, data: dict, oleh: str):
+    """Validasi isian dan target tinjauan; kembalikan `aksi(kon)` yang menulis. Isian asing ditolak.
+
+    ``oleh`` = nama admin yang beraksi (dicatat di jejak pindah saat lepas anggota).
+    """
     if jalur == "/admin/lembaga/buat":
         if set(data) != {"nama", "pemilik"}:
             raise ValueError("isian tidak sah")
@@ -151,12 +156,13 @@ def _siapkan(jalur: str, meta: dict, data: dict):
         guru = _guru_sah(data["guru"])
         return lambda kon: toko.tambah_anggota(kon, lembaga_id=lembaga_id, guru=guru)
     _cocok_tinjauan(meta, lembaga_id, data["guru"])
-    return lambda kon: toko.lepas_anggota(kon, lembaga_id=lembaga_id, guru=data["guru"])
+    return lambda kon: toko.lepas_anggota(
+        kon, lembaga_id=lembaga_id, guru=data["guru"], oleh=oleh)
 
 
-def _jalankan(jalur: str, meta: dict, data: dict) -> None:
+def _jalankan(jalur: str, meta: dict, data: dict, oleh: str) -> None:
     """Validasi lalu tulis dalam satu transaksi; penolakan tidak menulis apa pun."""
-    aksi = _siapkan(jalur, meta, data)
+    aksi = _siapkan(jalur, meta, data, oleh)
     with database.buka() as kon:
         kon.execute("BEGIN IMMEDIATE")
         aksi(kon)
@@ -173,10 +179,14 @@ def tangani_post(penangan, jalur) -> bool:
         return True
     try:
         data = admin_security.baca_form(penangan, maksimum_field=8)
-        _akun, tinjauan, _token = h._token_final(penangan, principal, data, aksi)
-        _jalankan(jalur, tinjauan["data"], data)
+        akun, tinjauan, _token = h._token_final(penangan, principal, data, aksi)
+        _jalankan(jalur, tinjauan["data"], data, akun["pengguna"])
     except PermissionError:
         h._galat(penangan, 403, "Form kedaluwarsa atau autentikasi ulang tidak sah.")
+    except toko.PenolakanSesiBerjalan:
+        h._galat(penangan, 409, ui.COPY_LEPAS_SESI_BERJALAN)
+    except toko.PenolakanNamaAnak:
+        h._galat(penangan, 409, ui.COPY_LEPAS_NAMA_HABIS)
     except toko.PenolakanLembaga:
         h._galat(penangan, 409, "Perubahan ditolak: lembaga atau guru sudah berubah (mis. lembaga sudah dibubarkan atau guru sudah terikat di lembaga lain). Muat ulang halaman, lalu coba lagi.")
     except NamaTidakCocok:

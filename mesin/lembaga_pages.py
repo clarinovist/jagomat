@@ -15,9 +15,10 @@ from lembaga_store import GuruRingkas
 from teacher_shell import _halaman_stitch
 
 PESAN = {
-    "pindah_ok": "Anak sudah dipindahkan ke guru tujuan.",
-    "bentrok_nama": "Guru tujuan sudah punya anak dengan nama yang sama. "
-                    "Ubah salah satu nama dulu, lalu coba lagi.",
+    "pindah_ok": "Anak sudah dipindahkan ke guru tujuan. Bila namanya kembar dengan anak "
+                 "guru tujuan, nama diberi nomor, misalnya (2).",
+    "bentrok_nama": "Guru tujuan sudah punya terlalu banyak anak dengan nama yang sama, "
+                    "sehingga nomor pembeda habis. Ubah salah satu nama dulu, lalu coba lagi.",
     "sesi_berjalan": "Anak masih punya sesi yang sedang berjalan atau belum "
                      "dikonfirmasi. Selesaikan dan konfirmasi dulu sebelum dipindahkan.",
     "sama": "Anak itu sudah dimiliki guru tersebut.",

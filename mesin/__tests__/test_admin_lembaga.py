@@ -220,6 +220,87 @@ def test_tambah_dan_lepas_anggota(data):
     assert kode == 303 and _keadaan(data)[0][1] == ()
 
 
+# --- lepas anggota: anak kembali ke pemilik lembaga ---------------------------------------
+
+def _tambah_anak(server, nama, pemilik):
+    with server.buka() as kon:
+        return database.tambah_siswa(kon, nama, "P3", pemilik=pemilik)
+
+
+def _keadaan_anak(server):
+    with server.buka() as kon:
+        return tuple(
+            tuple(tuple(r) for r in kon.execute(sql))
+            for sql in ("SELECT id,nama,pemilik FROM siswa ORDER BY id",
+                        "SELECT siswa_id,lembaga_id,dari,ke,oleh FROM pindah_siswa ORDER BY id"))
+
+
+def _teks_konfirmasi(isi, guru):
+    blok = _blok(isi, LEPAS, 'name="guru" value="%s"' % guru)
+    return re.search(r'data-konfirmasi="([^"]*)"', blok).group(1)
+
+
+def test_konfirmasi_lepas_menyebut_jumlah_anak_yang_kembali_ke_pemilik_les(siap):
+    for nama in ("Anak Satu", "Anak Dua", "Anak Tiga"):
+        _tambah_anak(siap, nama, "guru-x1")
+    teks = _teks_konfirmasi(_halaman(siap), "guru-x1")
+    assert teks == "Lepas guru-x1 dari lembaga? 3 anak akan kembali ke antrean lembaga (pemilik les)."
+    assert "tetap milik gurunya" not in teks
+
+
+def test_konfirmasi_lepas_tanpa_anak_tidak_menyebut_jumlah(siap):
+    assert _teks_konfirmasi(_halaman(siap), "guru-x1") == "Lepas guru-x1 dari lembaga?"
+
+
+def test_lepas_sukses_memindah_semua_anak_ke_pemilik_dengan_jejak_oleh_admin(siap):
+    satu = _tambah_anak(siap, "Anak Satu", "guru-x1")
+    kembar = _tambah_anak(siap, "Anak Kembar", "guru-x1")
+    lama = _tambah_anak(siap, "Anak Kembar", "pemilik-x")
+    lain = _tambah_anak(siap, "Anak Lain", "guru-x2")
+    kode, _, tajuk = _post(siap, LEPAS, _sah(siap, LEPAS, lid=siap.satu, guru="guru-x1"))
+    assert kode == 303 and tajuk["Location"] == "/admin/lembaga"
+    assert _keadaan(siap)[0][1] == ()
+    anak, jejak = _keadaan_anak(siap)
+    punyaku = {satu, kembar, lama, lain}
+    assert {a[0]: a[1:] for a in anak if a[0] in punyaku} == {
+        satu: ("Anak Satu", "pemilik-x"), kembar: ("Anak Kembar (2)", "pemilik-x"),
+        lama: ("Anak Kembar", "pemilik-x"), lain: ("Anak Lain", "guru-x2")}
+    assert jejak == tuple((s, siap.satu, "guru-x1", "pemilik-x", "Admin-C") for s in (satu, kembar))
+
+
+@pytest.mark.parametrize("kolom", ["mulai", "selesai"])
+def test_lepas_ditolak_saat_sesi_berjalan_dengan_pesan_ramah_tanpa_efek(siap, kolom):
+    bersih = _tambah_anak(siap, "Anak Bersih", "guru-x1")
+    berjalan = _tambah_anak(siap, "Anak Berjalan", "guru-x1")
+    with siap.buka() as kon:
+        sesi = database.buat_sesi(kon, berjalan, seed=1, jumlah_soal=1)
+        kon.execute("UPDATE sesi SET %s='2026-11-01 08:00:00' WHERE id=?" % kolom, (sesi,))
+    form = _sah(siap, LEPAS, lid=siap.satu, guru="guru-x1")
+    sebelum = (_keadaan(siap), _keadaan_anak(siap))
+    kode, isi, _ = _post(siap, LEPAS, form)
+    assert kode == 409
+    assert "sesi yang sedang berjalan" in isi and "Selesaikan dan konfirmasi" in isi
+    assert "Muat ulang halaman" not in isi
+    assert (_keadaan(siap), _keadaan_anak(siap)) == sebelum
+    # Setelah sesi dikonfirmasi, form yang sama boleh dipakai ulang.
+    with siap.buka() as kon:
+        kon.execute("UPDATE sesi SET dikonfirmasi_guru='guru-x1' WHERE id=?", (sesi,))
+    assert _post(siap, LEPAS, form)[0] == 303
+    assert {a[0]: a[2] for a in _keadaan_anak(siap)[0] if a[0] in (bersih, berjalan)} == {
+        bersih: "pemilik-x", berjalan: "pemilik-x"}
+
+
+def test_lepas_ditolak_bila_pembeda_nama_habis_dengan_pesan_ramah_tanpa_efek(siap):
+    _tambah_anak(siap, "Anak Kembar", "guru-x1")
+    _tambah_anak(siap, "Anak Kembar", "pemilik-x")
+    for urut in range(2, L.BATAS_PEMBEDA + 1):
+        _tambah_anak(siap, "Anak Kembar (%d)" % urut, "pemilik-x")
+    sebelum = (_keadaan(siap), _keadaan_anak(siap))
+    kode, isi, _ = _post(siap, LEPAS, _sah(siap, LEPAS, lid=siap.satu, guru="guru-x1"))
+    assert kode == 409 and "nomor pembeda habis" in isi
+    assert (_keadaan(siap), _keadaan_anak(siap)) == sebelum
+
+
 def test_bubarkan_dengan_nama_persis_dan_sandi_berhasil(siap):
     kode, _, tajuk = _post(siap, BUBARKAN, _sah(siap, BUBARKAN, lid=siap.satu))
     assert kode == 303 and tajuk["Location"] == "/admin/lembaga"
