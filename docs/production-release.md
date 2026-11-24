@@ -12,6 +12,23 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Persiapan rilis jadwal perpanjangan + kartu ortu (belum dirilis) — 25 November 2026
+
+Kode di `main` lokal `17bd0b6` (belum push/deploy; sakelar `PAKET_BELAJAR` tetap mati, `visual.conf` tidak diubah).
+Skema `jadwal_*` TIDAK berubah (tanpa migrasi, tanpa bump `user_version`); `jadwal_store.py` berubah sehingga sidik
+kontrak bergeser.
+
+- **Kontrak bergeser** `9443dac…` → **`50a32be…`** (`50a32bee681b90a70986bf1a609fcc4b21007516f79314fe1e32d947d824a29e`).
+  Recovery baru **36eb20d** (`36eb20d9ded0e2ef460b6ce8b6d7a0cf541e97e9`, branch `recovery-jadwal-2` = `6142611` +
+  `jadwal_store.py` byte-identik dengan main `17bd0b6` + commit kontrak; impor tidak berubah dan semua modul yang
+  diimpornya identik dengan main). Sidik kontrak kandidat dan recovery dihitung dengan `PROBE_KONTRAK` lokal dan
+  identik. Anchor koleksi recovery 27.849 nodeid (tanpa tes baru). Branch `recovery-jadwal-2` wajib dipush sebelum
+  `main`.
+- Deployer (`scripts/deploy.py`) TIDAK berubah: tidak ada probe baru; `PROBE_JADWAL_SKEMA` dan pasangan
+  `jadwal_pair_checks` 8 tetap berlaku.
+- Rollback: recovery 36eb20d dan `6142611` sama-sama membuka DB ber-`jadwal_*` (skema sama); recovery lama tidak punya
+  perpanjangan/kartu orang tua, jadi jangan memperpanjang dari image lama.
+
 ## Deploy jadwal Paket Belajar (`jadwal_*`) — 25 November 2026
 
 Controlled `deploy-v2` memasang **5c7849f** (`5c7849fcf70e398eef98f524013cb6cb4427b60a`, digest `sha256:d5d5fa52…f1b3`),
