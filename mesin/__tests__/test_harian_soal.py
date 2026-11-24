@@ -106,9 +106,12 @@ def test_audit_template_melaporkan_lolos_dan_alasan():
 
 # --- tingkat -----------------------------------------------------------------------------------
 
-def test_delapan_tingkat_dan_judul_bukan_kelas():
+def test_delapan_tingkat_judul_kelas_dan_kode_tetap():
+    """Keputusan Pemilik 24 Nov 2026: judul tampil "Kelas N"; kode t1..t6 (yang disimpan di DB) tidak berubah."""
     assert ht.KODE_SAH == ("t1", "t2", "t3", "t4", "t5", "t6", "osn-pemula", "osn-lanjut")
-    assert all("kelas" not in (t.judul + t.ringkas).lower() for t in ht.DAFTAR_TINGKAT)
+    assert [ht.ambil_tingkat("t%d" % n).judul for n in range(1, 7)] == ["Kelas %d" % n for n in range(1, 7)]
+    assert all("Tingkat" not in t.judul for t in ht.DAFTAR_TINGKAT)
+    assert all("kelas" not in t.judul.lower() for t in ht.DAFTAR_TINGKAT if t.kelas is None)
 
 
 def test_tingkat_kode_tidak_sah_keyerror():
@@ -162,7 +165,7 @@ def test_audit_tingkat_melaporkan_jenis_tersisih_dan_sumber_kosong():
     assert any(t.template_id == "bandingkan_bilangan" and t.level == "P1" for t in t1.tersisih)
     assert any(l.startswith("3. Pengurangan") for l in t1.sumber_kosong)  # satu-satunya pelatih bab ini tersisih
     assert any(t.template_id == "jaring_jaring" and "lima_opsi" in t.alasan for t in t6.tersisih)
-    assert "Tingkat 1" in ht.laporan_audit() and "bandingkan_bilangan" in ht.laporan_audit()
+    assert "Kelas 1" in ht.laporan_audit() and "bandingkan_bilangan" in ht.laporan_audit()
 
 
 def test_semua_tingkat_punya_sumber_layak():

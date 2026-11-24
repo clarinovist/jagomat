@@ -92,7 +92,7 @@ def _daftar_tingkat(saran: Optional[str], terakhir: Optional[str]) -> str:
         isi = "".join(_kartu_tingkat(t, saran, terakhir) for t in daftar)
         return f'<section aria-label="{_e(judul)}"><h2>{_e(judul)}</h2><ul class="hr-daftar">{isi}</ul></section>'
 
-    return blok("Pilih tingkat", kelas) + blok("Tantangan OSN", osn)
+    return blok("Pilih kelas", kelas) + blok("Tantangan OSN", osn)
 
 
 def _kartu_berjalan(sesi: hs.SesiRingkas) -> str:
@@ -242,7 +242,7 @@ def kartu_beranda(sesi_berjalan: Optional[hs.SesiRingkas], terakhir: Optional[st
         tingkat = terakhir
         teks = "Jatah latihan gratis hari ini sudah dipakai." if habis else "10 soal pilihan ganda, langsung tahu benar atau salah."
         tombol = ("Lihat latihan", ALAMAT_AWAL) if habis else ("Mulai latihan", ALAMAT_AWAL)
-    nama = _judul_tingkat(tingkat) if tingkat else "Pilih tingkatmu"
+    nama = _judul_tingkat(tingkat) if tingkat else "Pilih kelasmu"
     return (f'<style>{harian_style.GAYA_KARTU}</style>'
             '<section class="murid-latihan-lain-st" aria-labelledby="judul-harian" style="margin-block-end: 1rem">'
             f'<div class="murid-kepala-bagian-st"><h2 id="judul-harian">{COPY_JUDUL}</h2></div>'
@@ -256,7 +256,7 @@ def blok_orang_tua(ringkas: hs.RingkasanHarian) -> str:
         isi = "<p>Belum ada Latihan Harian.</p>"
     else:
         persen = "-" if ringkas.persen_benar is None else "%d%%" % ringkas.persen_benar
-        isi = (f'<p>Tingkat terakhir: <b>{_e(_judul_tingkat(ringkas.tingkat_terakhir or ""))}</b></p>'
+        isi = (f'<p>Terakhir berlatih: <b>{_e(_judul_tingkat(ringkas.tingkat_terakhir or ""))}</b></p>'
                f'{_hari_html(ringkas.hari)}'
                f'<p>Hari latihan dalam 7 hari terakhir: <b>{ringkas.jumlah_hari}</b> dari 7</p>'
                f'<p>Soal dikerjakan: <b>{ringkas.soal_dikerjakan}</b> · Persen tepat: <b>{persen}</b></p>')

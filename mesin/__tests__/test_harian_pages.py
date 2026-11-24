@@ -84,9 +84,9 @@ def test_kartu_beranda_tujuh_titik_dan_tombol_sesuai_keadaan():
     jalan = P.kartu_beranda(_sesi(), "t2", False, pekan)
     habis = P.kartu_beranda(None, "t2", True, pekan)
 
-    assert baru.count('class="hr-titik"') == 7 and "Pilih tingkatmu" in baru and "Mulai latihan" in baru
+    assert baru.count('class="hr-titik"') == 7 and "Pilih kelasmu" in baru and "Mulai latihan" in baru
     assert 'class="ada"' in baru and baru.count('class="kosong"') == 6
-    assert "Tingkat 2" in jalan and "Lanjutkan" in jalan and "sesi/4?no=3" in jalan
+    assert "Kelas 2" in jalan and "Lanjutkan" in jalan and "sesi/4?no=3" in jalan
     assert "Lihat latihan" in habis and "Jatah latihan gratis hari ini sudah dipakai" in habis
 
 
@@ -94,7 +94,7 @@ def test_blok_orang_tua_angka_dan_kosong():
     hari = tuple(("2027-01-%02d" % (9 + i), i in (1, 5)) for i in range(7))
     isi = _teks(P.blok_orang_tua(hs.RingkasanHarian("t5", hari, 12, 9)).encode())
 
-    assert "Tingkat 5" in isi and "2</b> dari 7" in P.blok_orang_tua(hs.RingkasanHarian("t5", hari, 12, 9)) \
+    assert "Kelas 5" in isi and "2</b> dari 7" in P.blok_orang_tua(hs.RingkasanHarian("t5", hari, 12, 9)) \
         and "12" in isi and "75%" in isi
     kosong = _teks(P.blok_orang_tua(hs.RingkasanHarian(None, hari, 0, 0)).encode())
     assert "Belum ada Latihan Harian" in kosong and "%" not in kosong

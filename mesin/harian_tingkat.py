@@ -1,4 +1,4 @@
-"""Tingkat Latihan Harian: Tingkat 1-6 (bab Kurikulum Merdeka per kelas) dan dua Tantangan OSN.
+"""Tingkat Latihan Harian: Kelas 1-6 (bab Kurikulum Merdeka per kelas) dan dua Tantangan OSN.
 
 Data murni, tanpa DB. Tiap tingkat dipetakan ke kumpulan *sumber* (bab, atau grup pengayaan untuk OSN) yang
 masing-masing berisi `(topik_id, template_id, level)` yang tersedia di level tingkat itu dan palang rilisnya
@@ -6,7 +6,7 @@ terbuka (`kurikulum_kelas_hitung.template_dibuka`, dibaca di luar cache supaya s
 Kecocokan bab 'ada' dan 'sebagian' sama-sama boleh. Jenis soal yang tak bisa jadi PG 4 opsi sah dikeluarkan
 (`harian_pg.audit_template`); `audit_tingkat` melaporkan daftar yang tersisih per tingkat.
 
-Nama tingkat memakai judul materi, bukan "Kelas", supaya anak bebas memilih tanpa malu.
+Judul tampil memakai "Kelas N" (keputusan Pemilik 24 Nov 2026); kode `t1`..`t6` yang disimpan di DB tidak berubah.
 Saran tingkat dari profil kelas anak (`learning_profile`) hanya saran: anak memilih sendiri.
 """
 from __future__ import annotations
@@ -34,18 +34,18 @@ class Tingkat:
     kode: str
     judul: str
     ringkas: str
-    kelas: Optional[int]  # kelas buku (1-6) untuk Tingkat 1-6; None untuk Tantangan OSN
+    kelas: Optional[int]  # kelas buku (1-6) untuk Kelas 1-6; None untuk Tantangan OSN
     level: Tuple[str, ...]  # level P<k> tempat template dicari
     bawah: Optional[str]  # kode tingkat yang soalnya boleh jadi ulangan (maks 2 per sesi)
 
 
 DAFTAR_TINGKAT: Tuple[Tingkat, ...] = (
-    Tingkat("t1", "Tingkat 1", "Bilangan sampai 20, bentuk, dan diagram", 1, ("P1",), None),
-    Tingkat("t2", "Tingkat 2", "Bilangan sampai 100, jam, dan pecahan setengah", 2, ("P2",), "t1"),
-    Tingkat("t3", "Tingkat 3", "Ribuan, perkalian, dan bangun datar", 3, ("P3",), "t2"),
-    Tingkat("t4", "Tingkat 4", "Pecahan, pola, dan luas", 4, ("P4",), "t3"),
-    Tingkat("t5", "Tingkat 5", "KPK, FPB, pecahan, dan sudut", 5, ("P5",), "t4"),
-    Tingkat("t6", "Tingkat 6", "Rasio, pecahan desimal, dan kubus", 6, ("P6",), "t5"),
+    Tingkat("t1", "Kelas 1", "Bilangan sampai 20, bentuk, dan diagram", 1, ("P1",), None),
+    Tingkat("t2", "Kelas 2", "Bilangan sampai 100, jam, dan pecahan setengah", 2, ("P2",), "t1"),
+    Tingkat("t3", "Kelas 3", "Ribuan, perkalian, dan bangun datar", 3, ("P3",), "t2"),
+    Tingkat("t4", "Kelas 4", "Pecahan, pola, dan luas", 4, ("P4",), "t3"),
+    Tingkat("t5", "Kelas 5", "KPK, FPB, pecahan, dan sudut", 5, ("P5",), "t4"),
+    Tingkat("t6", "Kelas 6", "Rasio, pecahan desimal, dan kubus", 6, ("P6",), "t5"),
     Tingkat(KODE_OSN_PEMULA, "Tantangan OSN Pemula", "Soal pengayaan tingkat awal", None, ("P3", "P4"), None),
     Tingkat(KODE_OSN_LANJUT, "Tantangan OSN Lanjut", "Soal pengayaan tingkat lanjut", None, ("P5", "P6"),
             KODE_OSN_PEMULA),

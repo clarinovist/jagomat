@@ -207,14 +207,16 @@ def test_anonim_post_ditolak_401_tanpa_efek(server, jalur):
 
 # 3 --- beranda ------------------------------------------------------------------------------------
 
-def test_beranda_menampilkan_delapan_tingkat_dengan_judul_materi(server):
+def test_beranda_menampilkan_enam_kelas_dan_dua_tantangan_osn(server):
     hasil = _get(server, DASAR)
 
     assert hasil.kode == 200 and hasil.header["cache-control"] == "no-store"
     for kode in ("t1", "t2", "t3", "t4", "t5", "t6", "osn-pemula", "osn-lanjut"):
         assert 'name="tingkat" value="%s"' % kode in hasil.isi
     assert "Tantangan OSN Pemula" in hasil.isi and "Tantangan OSN Lanjut" in hasil.isi
-    assert "Kelas" not in _hapus_html(hasil.isi)
+    teks = _hapus_html(hasil.isi)
+    assert all("Kelas %d" % n in teks for n in range(1, 7)) and "Pilih kelas" in teks
+    assert "Tingkat" not in teks
 
 
 def test_beranda_menandai_saran_dari_profil_kelas_anak(server):
@@ -563,12 +565,12 @@ def test_sesi_http_penuh_tidak_mengubah_satu_pun_tabel_non_harian(server):
 def test_kartu_beranda_murid_tingkat_titik_dan_tombol(server):
     awal = _get(server, "/murid").isi
 
-    assert 'id="judul-harian"' in awal and "Latihan Harian" in awal and "Pilih tingkatmu" in awal
+    assert 'id="judul-harian"' in awal and "Latihan Harian" in awal and "Pilih kelasmu" in awal
     assert awal.count('class="hr-titik"') == 7 and "Mulai latihan" in awal
     sesi = _mulai(server, "t3")
     _jawab(server, sesi, 1, "A")
     lanjut = _get(server, "/murid").isi
-    assert "Tingkat 3" in lanjut and "Lanjutkan" in lanjut and ("sesi/%d?no=2" % sesi) in lanjut
+    assert "Kelas 3" in lanjut and "Lanjutkan" in lanjut and ("sesi/%d?no=2" % sesi) in lanjut
     assert re.search(r'<li class="ada">', lanjut)  # hari ini bertitik
 
 
@@ -587,7 +589,7 @@ def test_kartu_beranda_anak_lain_tidak_memuat_riwayat_anak_ini(server):
 
     isi = _get(server, "/murid", MURID_DUA).isi
 
-    assert "Pilih tingkatmu" in isi and '<li class="ada">' not in isi
+    assert "Pilih kelasmu" in isi and '<li class="ada">' not in isi
 
 
 # 12 --- ringkasan di halaman orang tua -------------------------------------------------------------
@@ -604,7 +606,7 @@ def test_halaman_orang_tua_menampilkan_ringkasan_hanya_bila_sakelar_hidup(server
 
     assert hidup.kode == 200 and 'id="ortu-harian"' in hidup.isi
     teks = _hapus_html(hidup.isi)
-    assert "Tingkat 3" in teks and "4" in teks and "75%" in teks
+    assert "Kelas 3" in teks and "4" in teks and "75%" in teks
     assert 'id="ortu-harian"' not in mati.isi
     for kata in ("pembahasan", "jawaban benar", "kunci"):
         assert kata not in teks.lower()
