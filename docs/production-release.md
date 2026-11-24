@@ -476,7 +476,7 @@ struktur `purna_*` yang parsial/berbeda/tanpa ledger pesanan + transfer membuat 
 
 Urutan: (1) **prasyarat, diperiksa bukan diasumsikan:** pada salinan backup terbaru (bukan DB live) jalankan
 `sqlite3 "file:<salinan>/admin-control.db?mode=ro" "SELECT name FROM sqlite_master WHERE type='table' AND (name GLOB 'pesanan_*' OR name GLOB 'transfer_*')"`;
-`pesanan_*` dan `transfer_*` wajib sudah ada di live. Bila belum, selesaikan dulu urutan operator transfer di atas (CLI purna menolak
+`pesanan_*` dan `transfer_*` wajib sudah ada di live. **Observasi bertanggal (24 Nov 2026, SSH read-only, agregat saja, DB `mode=ro` + `query_only`):** keenam tabel `pesanan_*` dan `transfer_*`/`rekening_*` sudah ada di live (2 order dibuat, 0 receipt, 0 `transfer_lunas`, 0 refund); catatan "belum dimigrasikan" di bagian transfer di atas adalah snapshot lama. **Periksa ulang saat rilis, jangan mengandalkan observasi ini.** Bila belum, selesaikan dulu urutan operator transfer di atas (CLI purna menolak
 dengan exit 2 dan tidak mengubah apa pun; tidak ada opsi memasang pesanan/transfer dari sana); (2) hold dan write hold seperti
 rilis migrasi biasa; (3) backup coherent empat DB + `sandi.json` (inventaris `admin_backup` bukan folder bukti);
 (4) **rehearsal pada SALINAN** bundle: `admin_backup.rehearsal_bundle(bundle, migrator_ai=..., target_purna=True)` harus lolos
@@ -492,6 +492,17 @@ sendiri dan validasi lamanya tidak mengenalnya (dikunci `test_schema_purna.py`);
 **tidak dihapus** saat rollback (ledger append-only, bukti transaksi); mengembalikan data ke sebelum migrasi hanya lewat
 bundle backup langkah (3). Kebijakan retensi/hapus keluarga untuk `purna_*` mengikuti `pesanan_*` dan keputusan finalnya
 milik Pemilik.
+
+Catatan rollback guard refund: image lama TIDAK punya guard "refund ditolak setelah voucher dipakai". Guard itu sengaja
+ada di domain (`pesanan_refund_aturan.periksa_layak_refund` lewat `purna.voucher_dipakai`), bukan trigger DB, karena
+tabel refund milik namespace lain. Akibatnya setelah rollback admin TIDAK boleh mencatat refund untuk order yang
+voucher-nya sudah dipakai (periksa kartu "Voucher dan laporan" di Detail order: status "Sudah dipakai"); image lama
+akan menerimanya dan ledger refund bersifat append-only (tidak bisa dibatalkan).
+
+Catatan operasional "terlambat": status terlambat dan jam terbit bergantung pada admin mencatat laporan terbit
+segera setelah laporan dikirim, karena jam pencatatan = jam terbit. Pencatatan yang ditunda membuat order tampak
+terlambat dan membuka pilihan "uang kembali" bagi keluarga. Kartu Detail order menampilkan petunjuk "Catat segera
+setelah laporan dikirim." tepat di atas form terbit.
 
 Ringkasan pin recovery baru (**BELUM DIJALANKAN; butuh izin push dan deploy terpisah**): kontrak kandidat bergeser karena
 berkas baru dan perubahan store, jadi (a) buat cabang `recovery-purna` dari recovery terakhir + skema/store purna saja dan commit

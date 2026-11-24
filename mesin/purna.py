@@ -16,6 +16,10 @@ Kepemilikan order oleh akun pembeli TIDAK ditegakkan di sini: modul ini bekerja 
 (pembeli) wajib memastikan order milik akun sesi (`pesanan_status.ambil_order`, 404 identik) sebelum memanggil
 :func:`catat_pilihan`.
 
+Voucher 'ditahan' (lunas tetapi status turunan bukan `sudah_dibayar`, praktis `perlu_diperiksa`: dua jalur bayar atau
+observasi refund/chargeback penyedia) tidak bisa dipakai, dipilih, atau diterbitkan laporannya; refund tetap boleh
+dicatat. Pencatatan laporan terbit juga ditolak sesudah keluarga memilih `uang_kembali` (final).
+
 Larangan "refund setelah voucher dipakai" ditegakkan di `pesanan_refund_aturan.periksa_layak_refund` lewat
 :func:`voucher_dipakai` (skema `purna_*` tidak boleh menyentuh tabel refund milik namespace lain).
 Idempotensi = SELECT lalu INSERT dalam satu transaksi tulis; `INSERT OR IGNORE` tidak dipakai.
@@ -45,12 +49,16 @@ VOUCHER_AKTIF = "aktif"
 VOUCHER_DIPAKAI = "dipakai"
 VOUCHER_KEDALUWARSA = "kedaluwarsa"
 VOUCHER_BATAL = "batal"
+VOUCHER_DITAHAN = "ditahan"
+PESAN_DITAHAN = "pembayaran order perlu diperiksa"
+PESAN_SUDAH_UANG_KEMBALI = "keluarga sudah meminta uang kembali"
 
 _PESAN_VOUCHER_TIDAK_AKTIF = {
     VOUCHER_BELUM_LUNAS: "order belum lunas",
     VOUCHER_DIPAKAI: "voucher sudah dipakai",
     VOUCHER_KEDALUWARSA: "voucher sudah kedaluwarsa",
     VOUCHER_BATAL: "voucher dibatalkan: order direfund atau memilih uang kembali",
+    VOUCHER_DITAHAN: PESAN_DITAHAN,
 }
 
 
@@ -70,6 +78,7 @@ class KeadaanPurna:
     pilihan: Optional[str]
     bisa_pilih: bool
     dipakai: bool
+    ditahan: bool
 
 
 # --- turunan murni ---------------------------------------------------------------------------
@@ -86,7 +95,11 @@ def sla_jam(waktu_lunas):
 
 
 def kode_voucher(order_id):
-    """Kode tampilan tetap dari order_id; kunci kanonis tetap order_id (jangan dipakai sebagai kunci)."""
+    """Kode tampilan tetap dari order_id: 12 heks pertama (48 bit) sesudah awalan, huruf besar.
+
+    BUKAN bukti kepemilikan dan tidak ada endpoint yang menerimanya sebagai kunci; kunci kanonis tetap order_id.
+    Pencocokan oleh petugas lewat akun/order, bukan lewat kode.
+    """
     d.periksa_order_id(order_id)
     return AWALAN_KODE + order_id[len(d.PREFIX_ORDER):][:PANJANG_KODE].upper()
 
@@ -100,20 +113,32 @@ def _tenggat(waktu_lunas):
             d.tambah_jam(janji, JAM_TOLERANSI_TERLAMBAT))
 
 
-def _status_voucher(*, lunas, direfund, pilihan, dipakai, kini, berlaku_hingga):
+def _ditahan(*, lunas, direfund, status):
+    """Lunas, belum direfund, tetapi status turunan bukan `sudah_dibayar` (praktis `perlu_diperiksa`).
+
+    Dua jalur bayar atau observasi refund/chargeback penyedia: uangnya belum pasti, jadi voucher dan laporan ditahan.
+    """
+    return lunas and not direfund and status != d.STATUS_SUDAH_DIBAYAR
+
+
+def _status_voucher(*, lunas, direfund, pilihan, dipakai, ditahan, kini, berlaku_hingga):
+    """Urutan: batal > dipakai > ditahan > kedaluwarsa > aktif (lunas) / belum_lunas."""
     if direfund or pilihan == PILIHAN_UANG_KEMBALI:
         return VOUCHER_BATAL
     if dipakai:
         return VOUCHER_DIPAKAI
+    if ditahan:
+        return VOUCHER_DITAHAN
     if berlaku_hingga is not None and kini >= berlaku_hingga:
         return VOUCHER_KEDALUWARSA
     return VOUCHER_AKTIF if lunas else VOUCHER_BELUM_LUNAS
 
 
-def _bisa_pilih(*, siap, lunas, direfund, terlambat, dipakai, terbit):
+def _bisa_pilih(*, siap, lunas, direfund, ditahan, terlambat, dipakai, terbit):
     return (siap
             and lunas
             and not direfund
+            and not ditahan
             and terlambat
             and not dipakai
             and terbit is None)
@@ -179,20 +204,22 @@ def _keadaan(kon, order_id, kini):
     baris = st.baris_order(kon, order_id)
     if baris is None:
         raise d.PesananTidakDitemukan()
-    direfund = st.status_dari_db(kon, st.dict_order(baris), kini) == d.STATUS_DIREFUND
+    status = st.status_dari_db(kon, st.dict_order(baris), kini)
+    direfund = status == d.STATUS_DIREFUND
     lunas_pada = waktu_lunas(kon, order_id)
     lunas = lunas_pada is not None
+    ditahan = _ditahan(lunas=lunas, direfund=direfund, status=status)
     berlaku_hingga, janji, batas = _tenggat(lunas_pada)
     terbit, pilihan, dipakai = _waktu_terbit(kon, order_id), _pilihan_efektif(kon, order_id), voucher_dipakai(kon, order_id)
     terlambat = lunas and terbit is None and kini > batas
     return KeadaanPurna(
         lunas=lunas, direfund=direfund, waktu_lunas=lunas_pada, kode=kode_voucher(order_id),
         voucher=_status_voucher(lunas=lunas, direfund=direfund, pilihan=pilihan, dipakai=dipakai,
-                                kini=kini, berlaku_hingga=berlaku_hingga),
+                                ditahan=ditahan, kini=kini, berlaku_hingga=berlaku_hingga),
         berlaku_hingga=berlaku_hingga, janji_terbit=janji, batas_pilihan=batas, terbit=terbit,
-        terlambat=terlambat, pilihan=pilihan, dipakai=dipakai,
-        bisa_pilih=_bisa_pilih(siap=terpasang(kon), lunas=lunas, direfund=direfund, terlambat=terlambat,
-                               dipakai=dipakai, terbit=terbit))
+        terlambat=terlambat, pilihan=pilihan, dipakai=dipakai, ditahan=ditahan,
+        bisa_pilih=_bisa_pilih(siap=terpasang(kon), lunas=lunas, direfund=direfund, ditahan=ditahan,
+                               terlambat=terlambat, dipakai=dipakai, terbit=terbit))
 
 
 def keadaan(kon, order_id, sekarang):
@@ -222,7 +249,7 @@ def _pakai_sudah_ada(kon, operasi_id, isi):
 def catat_pakai(kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang):
     """Catat pemakaian voucher; idempoten per `operasi_id`. Mengembalikan {baru}.
 
-    Hanya bila voucher 'aktif' (lunas, tidak direfund/uang kembali, belum dipakai, belum kedaluwarsa); selain itu
+    Hanya bila voucher 'aktif' (lunas, tidak direfund/uang kembali/ditahan, belum dipakai, belum kedaluwarsa); selain itu
     PesananKonflik. Replay identik -> baru False (juga sesudah kedaluwarsa); operasi sama isi beda, atau order
     sudah punya pemakaian lain -> PesananKonflik.
     """
@@ -249,8 +276,10 @@ def catat_pakai(kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang)
 def catat_terbit(kon, order_id, dicatat_oleh, sekarang):
     """Catat laporan terbit (terbit = `sekarang`) untuk order lunas yang tidak direfund; idempoten per order.
 
-    Replay (sudah ada, siapa pun pencatatnya) -> baru False tanpa tulis. Waktu terbit lebih awal dari waktu
-    lunas -> PesananKonflik (trigger skema tidak sampai terpicu).
+    Replay (sudah ada, siapa pun pencatatnya) -> baru False tanpa tulis. Ditolak (PesananKonflik) bila order belum
+    lunas, direfund, keluarga sudah meminta uang kembali (pilihan efektif `uang_kembali`, final), atau voucher
+    ditahan (pembayaran perlu diperiksa). Waktu terbit lebih awal dari waktu lunas -> PesananKonflik (trigger
+    skema tidak sampai terpicu).
     """
     d.periksa_koneksi(kon)
     d.periksa_order_id(order_id)
@@ -265,6 +294,10 @@ def catat_terbit(kon, order_id, dicatat_oleh, sekarang):
             raise d.PesananKonflik("order belum lunas")
         if k.direfund:
             raise d.PesananKonflik("order sudah direfund")
+        if k.pilihan == PILIHAN_UANG_KEMBALI:
+            raise d.PesananKonflik(PESAN_SUDAH_UANG_KEMBALI)
+        if k.ditahan:
+            raise d.PesananKonflik(PESAN_DITAHAN)
         if kini < k.waktu_lunas:
             raise d.PesananKonflik("waktu terbit lebih awal dari waktu lunas")
         kon.execute("INSERT INTO purna_laporan_terbit(order_id,terbit,dicatat_oleh,dibuat) VALUES(?,?,?,?)",
@@ -277,6 +310,8 @@ def _alasan_tidak_bisa_pilih(k):
         return "order belum lunas"
     if k.direfund:
         return "order sudah direfund"
+    if k.ditahan:
+        return PESAN_DITAHAN
     if k.dipakai:
         return "voucher sudah dipakai"
     if k.terbit is not None:
@@ -292,7 +327,7 @@ def _pilihan_sudah_ada(kon, order_id, pilihan):
 def catat_pilihan(kon, order_id, pilihan, sekarang):
     """Catat pilihan pembeli saat laporan terlambat ('menunggu' atau 'uang_kembali'); monoton. Mengembalikan {baru}.
 
-    Hanya bila `bisa_pilih` (lunas, tidak direfund, terlambat, voucher belum dipakai, laporan belum terbit).
+    Hanya bila `bisa_pilih` (lunas, tidak direfund, tidak ditahan, terlambat, voucher belum dipakai, laporan belum terbit).
     'uang_kembali' boleh menyusul 'menunggu' dan FINAL; 'menunggu' sesudah 'uang_kembali' -> PesananKonflik.
     Replay identik -> baru False (juga sesudah refund atau terbit). Kepemilikan order oleh pembeli ditegakkan
     pemanggil HTTP, bukan di sini.

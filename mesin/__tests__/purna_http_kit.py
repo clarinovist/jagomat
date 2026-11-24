@@ -14,12 +14,14 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import admin_store  # noqa: E402
+import pesanan  # noqa: E402
+import pesanan_status  # noqa: E402
 import purna  # noqa: E402
 import schema_purna  # noqa: E402
 import schema_transfer  # noqa: E402
 from admin_pesanan_kit import login_admin, order_lunas  # noqa: E402
 from admin_transfer_kit import SETUJUI, kirim_putusan, order_menunggu  # noqa: E402
-from pesanan_http_kit import bayar, jam, keluarga, ledger, server, tertutup  # noqa: E402,F401
+from pesanan_http_kit import bayar, data_status, jam, keluarga, ledger, server, settlement, tertutup  # noqa: E402,F401
 from pesanan_transfer_http_kit import transfer  # noqa: E402,F401
 
 TABEL_EFEK = schema_purna.TABEL + ("pesanan_refund", "transfer_refund")
@@ -72,3 +74,17 @@ def pilih_uang_kembali(order_id: str, sekarang: str) -> None:
     """Pembeli memilih uang kembali (lewat domain; HTTP pembeli = V4): menyiapkan keadaan untuk tes admin."""
     with ledger() as kon:
         purna.catat_pilihan(kon, order_id, purna.PILIHAN_UANG_KEMBALI, sekarang)
+
+
+def jadikan_ditahan(server, order_id: str, jam) -> None:
+    """Order lunas dijadikan 'perlu_diperiksa' lewat ledger: jalur bayar kedua (order transfer + settlement QRIS) atau
+    observasi refund penyedia (order QRIS). Tetap lunas dan belum direfund, jadi voucher-nya 'ditahan'."""
+    with ledger() as kon:
+        ada_receipt = kon.execute("SELECT 1 FROM pesanan_receipt WHERE order_id=?", (order_id,)).fetchone() is not None
+        data = (data_status(order_id, server.provider.transaksi[order_id], status_code="200",
+                            transaction_status="refund")
+                if ada_receipt else settlement(order_id, "trx-sintetis-dua-jalur"))
+        pesanan.terapkan_hasil_provider(kon, order_id, data, jam(), "op-ditahan-0001")
+        baris = pesanan_status.baris_order(kon, order_id)
+        status = pesanan_status.status_dari_db(kon, pesanan_status.dict_order(baris), jam())
+    assert status == "perlu_diperiksa"

@@ -25,6 +25,7 @@ from pesanan_murid_kit import M, NAMA_ANAK_A, NAMA_ANAK_B, buat_murid, sakelar_h
 from pesanan_transfer_http_kit import minta_multipart, transfer  # noqa: F401
 from pesanan_transfer_pages import waktu_wib
 from purna_http_kit import bayar_purna, potret_efek, transfer_purna  # noqa: F401
+from purna_http_kit import jadikan_ditahan as jadikan_ditahan_kit
 
 PILIH = M + "/pilih"
 JAM_LEWAT_BATAS = 24 * 5 + 1       # janji 48 jam + toleransi 72 jam + 1 jam
@@ -109,7 +110,10 @@ def kartu(isi):
 
 
 def pilih(siap, pilihan, murid=None, **kw):
+    """POST pilihan; 'uang_kembali' otomatis membawa kotak yakin kecuali yakin=False (konfirmasi M-1)."""
     ekstra = {} if pilihan is None else {"pilihan": pilihan}
+    if kw.pop("yakin", True) and pilihan == purna.PILIHAN_UANG_KEMBALI:
+        ekstra["yakin"] = "1"
     ekstra.update(kw.pop("ekstra", {}))
     return kirim(siap.server, PILIH, (murid or siap.murid).akun, aksi=kw.pop("aksi", "pilih"),
                  ekstra=ekstra, **kw)
@@ -123,6 +127,10 @@ def keadaan(siap):
 def terlambat(siap, jam):
     jam.maju_jam(JAM_LEWAT_BATAS)
     assert keadaan(siap).bisa_pilih
+
+
+def jadikan_ditahan(siap, jam):
+    jadikan_ditahan_kit(siap.server, siap.order_id, jam)
 
 
 def baris_pilihan():
@@ -186,12 +194,13 @@ def test_kartu_tidak_tampil_bila_skema_purna_belum_dipasang(transfer_lunas_tanpa
 
 # --- kartu: tombol dan keadaan pilihan ---------------------------------------------------------
 
-def test_dua_tombol_dalam_satu_form_hanya_saat_terlambat_dan_bisa_pilih(lunas_murid, jam):
+def test_dua_tombol_dalam_dua_form_terpisah_hanya_saat_terlambat_dan_bisa_pilih(lunas_murid, jam):
     siap = lunas_murid
     terlambat(siap, jam)
     isi = kartu(halaman(siap))
-    assert isi.count("<form") == 1 and f'action="{PILIH}"' in isi
+    assert isi.count("<form") == 2 and isi.count(f'action="{PILIH}"') == 2
     assert TOMBOL.findall(isi) == ["menunggu", "uang_kembali"]
+    assert isi.count('name="yakin" value="1" required') == 1        # hanya form uang kembali yang punya kotak yakin
     tampak = teks_tampak(isi)
     assert "Tetap menunggu" in tampak and "Minta uang kembali" in tampak
     assert 'name="token"' in isi and "Laporan lengkap dijanjikan terbit" in tampak
@@ -247,7 +256,7 @@ def pesan_bentrok():
     return pesanan_pages.COPY_BENTROK
 
 
-@pytest.mark.parametrize("keadaan_tolak", ["belum_terlambat", "terbit", "dipakai", "direfund"])
+@pytest.mark.parametrize("keadaan_tolak", ["belum_terlambat", "terbit", "dipakai", "direfund", "ditahan"])
 def test_pilih_ditolak_409_tanpa_efek_bila_tidak_bisa_pilih(lunas_murid, jam, keadaan_tolak):
     siap = lunas_murid
     if keadaan_tolak != "belum_terlambat":
@@ -259,11 +268,13 @@ def test_pilih_ditolak_409_tanpa_efek_bila_tidak_bisa_pilih(lunas_murid, jam, ke
             purna.catat_pakai(kon, siap.order_id, "vch_sintetis_0001", "admin_sintetis", "kelas", jam())
         elif keadaan_tolak == "direfund":
             refund_mentah(siap, jam, kon)
+    if keadaan_tolak == "ditahan":
+        jadikan_ditahan(siap, jam)
     sebelum = potret_efek()
     kode, isi, _ = pilih(siap, "menunggu")
     assert kode == 409 and pesan_bentrok() in isi
     tampak = teks_tampak(isi).lower()
-    for alasan in ("belum terlambat", "sudah terbit", "sudah dipakai", "direfund", "purna"):
+    for alasan in ("belum terlambat", "sudah terbit", "sudah dipakai", "direfund", "purna", "perlu diperiksa"):
         assert alasan not in tampak
     assert potret_efek() == sebelum
 
@@ -410,3 +421,86 @@ def test_guru_lama_tanpa_kartu_dan_tanpa_tombol_dan_tanpa_rute_pilih(bayar_purna
     tok = token(AKUN_A, "pilih")
     assert minta_mentah(bayar_purna, "/pesanan/pilih", AKUN_A, {"token": tok, "pilihan": "menunggu"})[:2] == harap
     assert potret_efek()["purna_pilihan_terlambat"] == []
+
+
+# --- M-2: POST manual pada order yang bukan lunas-normal harus konflik tanpa efek tulis -----------------
+
+@pytest.mark.parametrize("pilihan", ["menunggu", "uang_kembali"])
+def test_pilih_manual_pada_order_perlu_diperiksa_konflik_tanpa_efek_dan_kartu_tidak_tampil(lunas_murid, jam, pilihan):
+    siap = lunas_murid
+    terlambat(siap, jam)
+    jadikan_ditahan(siap, jam)
+    k = keadaan(siap)
+    assert (k.lunas, k.ditahan, k.bisa_pilih, k.voucher) == (True, True, False, purna.VOUCHER_DITAHAN)
+    isi = halaman(siap)
+    assert "kartu-voucher" not in isi and PILIH not in isi                # kartu pembeli hanya untuk sudah_dibayar
+    sebelum = potret_efek()
+    kode, badan, _ = pilih(siap, pilihan)
+    assert kode == 409 and pesan_bentrok() in badan
+    assert potret_efek() == sebelum
+
+
+@pytest.mark.parametrize("pilihan", ["menunggu", "uang_kembali"])
+def test_pilih_manual_pada_order_belum_dibayar_konflik_tanpa_efek(sakelar_hidup, bayar_purna, pilihan):
+    murid = buat_murid(bayar_purna, "murid-a", NAMA_ANAK_A)
+    siap = Siap(bayar_purna, murid, _pesan_dan_tagihan(bayar_purna, murid))
+    assert not keadaan(siap).lunas
+    sebelum = potret_efek()
+    kode, badan, _ = pilih(siap, pilihan)
+    assert kode == 409 and pesan_bentrok() in badan
+    assert potret_efek() == sebelum
+
+
+# --- M-1: konfirmasi "yakin" untuk uang kembali ditegakkan server ----------------------------------
+
+def test_kartu_terlambat_memuat_kotak_yakin_hanya_di_form_uang_kembali(lunas_murid, jam):
+    import pesanan_voucher_pages as hv
+    siap = lunas_murid
+    terlambat(siap, jam)
+    isi = kartu(halaman(siap))
+    assert isi.count('type="checkbox" name="yakin" value="1" required') == 1 and hv.COPY_YAKIN in teks_tampak(isi)
+    assert "Final" not in isi.split("menunggu")[0]
+
+
+def test_uang_kembali_tanpa_yakin_ditolak_400_dengan_pesan_konfirmasi_tanpa_efek(lunas_murid, jam):
+    import pesanan_voucher_pages as hv
+    siap = lunas_murid
+    terlambat(siap, jam)
+    sebelum = potret_efek()
+    kode, badan, _ = pilih(siap, "uang_kembali", yakin=False)
+    assert kode == 400 and hv.COPY_YAKIN_WAJIB in badan
+    assert potret_efek() == sebelum and keadaan(siap).pilihan is None
+
+
+@pytest.mark.parametrize("nilai", ["", "0", "2", "on", "true"])
+def test_uang_kembali_dengan_yakin_bukan_satu_ditolak_400_tanpa_efek(lunas_murid, jam, nilai):
+    siap = lunas_murid
+    terlambat(siap, jam)
+    sebelum = potret_efek()
+    assert pilih(siap, "uang_kembali", yakin=False, ekstra={"yakin": nilai})[0] == 400
+    assert potret_efek() == sebelum
+
+
+def test_menunggu_dengan_yakin_ditolak_400_tanpa_efek(lunas_murid, jam):
+    siap = lunas_murid
+    terlambat(siap, jam)
+    sebelum = potret_efek()
+    assert pilih(siap, "menunggu", ekstra={"yakin": "1"})[0] == 400
+    assert potret_efek() == sebelum
+
+
+def test_uang_kembali_dengan_yakin_dan_field_asing_ditolak_400_tanpa_efek(lunas_murid, jam):
+    siap = lunas_murid
+    terlambat(siap, jam)
+    sebelum = potret_efek()
+    assert pilih(siap, "uang_kembali", ekstra={"order_id": "ord_x"})[0] == 400
+    assert potret_efek() == sebelum
+
+
+def test_uang_kembali_dengan_yakin_dicatat_prg_303_dan_menunggu_tanpa_yakin_tetap_303(lunas_murid, jam):
+    siap = lunas_murid
+    terlambat(siap, jam)
+    assert pilih(siap, "menunggu")[0] == 303
+    kode, badan, tajuk = pilih(siap, "uang_kembali")
+    assert (kode, badan, tajuk.get("Location")) == (303, "", M)
+    assert baris_pilihan() == ["menunggu", "uang_kembali"]

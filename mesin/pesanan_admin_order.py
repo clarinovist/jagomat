@@ -74,19 +74,19 @@ def purna_ringkas(kon, order_id, sekarang) -> dict:
     """Whitelist keadaan purna satu order untuk admin (dict baru): hanya status, kode, dan waktu turunan.
 
     Kunci: terpasang, lunas, voucher, kode, berlaku_hingga, janji_terbit, batas_pilihan, terbit, terlambat,
-    pilihan, dipakai, direfund. Tanpa nama, kontak, akun, pelaku pencatat, atau operasi_id. Bila skema `purna_*`
+    pilihan, dipakai, direfund, ditahan (13 kunci). Tanpa nama, kontak, akun, pelaku pencatat, atau operasi_id. Bila skema `purna_*`
     belum dimigrasikan, hasilnya netral (`terpasang` False, selebihnya kosong) supaya pemanggil tidak bisa
     bertindak atas status turunan ledger yang belum punya tabel pencatatnya.
     """
     if not purna.terpasang(kon):
         return {"terpasang": False, "lunas": False, "voucher": None, "kode": None, "berlaku_hingga": None,
                 "janji_terbit": None, "batas_pilihan": None, "terbit": None, "terlambat": False,
-                "pilihan": None, "dipakai": False, "direfund": False}
+                "pilihan": None, "dipakai": False, "direfund": False, "ditahan": False}
     k = purna.keadaan(kon, order_id, sekarang)
     return {"terpasang": True, "lunas": k.lunas, "voucher": k.voucher, "kode": k.kode,
             "berlaku_hingga": k.berlaku_hingga, "janji_terbit": k.janji_terbit, "batas_pilihan": k.batas_pilihan,
             "terbit": k.terbit, "terlambat": k.terlambat, "pilihan": k.pilihan, "dipakai": k.dipakai,
-            "direfund": k.direfund}
+            "direfund": k.direfund, "ditahan": k.ditahan}
 
 
 def detail_order(kon, order_id, sekarang) -> Optional[dict]:

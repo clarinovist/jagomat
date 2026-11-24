@@ -3,7 +3,12 @@
 Hanya HTML native (tanpa JS). Renderer murni: menerima `purna.KeadaanPurna` yang sudah dibaca pemanggil dan token form
 pilihan; tidak membuka DB dan tidak membuat token. Isi kartu hanya kode TURUNAN dan waktu (WIB lewat
 `pesanan_transfer_pages.waktu_wib`, helper yang sudah ada). Tanpa kontak, tanpa kunci/malrule/diagnosis, tanpa
-operasi_id atau order_id: kartu ini tampil di permukaan murid.
+operasi_id atau order_id penuh: kartu ini tampil di permukaan murid.
+Kode voucher yang tampil adalah kode TURUNAN: 12 heks pertama (48 bit) dari order_id, bukan order_id penuh. Kode itu
+BUKAN bukti kepemilikan dan tidak ada endpoint yang menerimanya sebagai kunci; petugas mencocokkan lewat akun/order.
+
+Form pilihan dipisah per pilihan: "Tetap menunggu" tanpa konfirmasi, "Minta uang kembali" (final, membatalkan
+voucher) dengan kotak centang `yakin` yang WAJIB dan ditegakkan server (`pesanan_pilih_http`).
 
 Tombol pilihan (menunggu / uang kembali) hanya dirender bila `tombol_tampil`: permukaan punya rute pilih (murid; guru
 lama `None`), keadaan `bisa_pilih`, dan pilihan belum `uang_kembali` (final). UI memakai `k.pilihan`, bukan hanya
@@ -24,6 +29,7 @@ COPY_STATUS_VOUCHER = {
     purna.VOUCHER_DIPAKAI: "Voucher sudah dipakai.",
     purna.VOUCHER_KEDALUWARSA: "Voucher sudah kedaluwarsa.",
     purna.VOUCHER_BATAL: "Voucher tidak berlaku lagi karena uang dikembalikan atau diminta kembali.",
+    purna.VOUCHER_DITAHAN: "Voucher ditahan sampai pembayaran selesai diperiksa tim.",
 }
 COPY_TERBIT = "Laporan sudah terbit."
 COPY_JANJI = "Laporan lengkap dijanjikan terbit "
@@ -33,6 +39,9 @@ COPY_TERLAMBAT = (
 )
 COPY_MEMILIH_MENUNGGU = "Anda memilih menunggu."
 COPY_UANG_KEMBALI_DICATAT = "Permintaan uang kembali dicatat. Tim akan menghubungi Anda."
+COPY_YAKIN = "Saya yakin meminta uang kembali. Pilihan ini final dan voucher tidak berlaku lagi."
+COPY_YAKIN_WAJIB = "Centang konfirmasi dulu untuk meminta uang kembali."
+COPY_KEMBALI_STATUS = "Kembali ke status pesanan"
 COPY_TOMBOL = {
     purna.PILIHAN_MENUNGGU: "Tetap menunggu",
     purna.PILIHAN_UANG_KEMBALI: "Minta uang kembali",
@@ -56,14 +65,25 @@ def _pilihan_tersedia(k) -> tuple:
     return (purna.PILIHAN_MENUNGGU, purna.PILIHAN_UANG_KEMBALI)
 
 
-def _form_pilih(k, rute: Rute, token: str) -> str:
-    tombol = "".join(
-        f'<button type="submit" name="pilihan" value="{_a(nilai)}" class="{_KELAS_TOMBOL[nilai]}">'
-        f"{_e(COPY_TOMBOL[nilai])}</button> "
-        for nilai in _pilihan_tersedia(k))
+def _kotak_yakin(nilai: str) -> str:
+    """Kotak centang konfirmasi (tanpa JS; server menegakkan) hanya untuk pilihan uang kembali yang final."""
+    if nilai != purna.PILIHAN_UANG_KEMBALI:
+        return ""
+    return (f'<label class="funnel-catatan-st"><input type="checkbox" name="yakin" value="1" required> '
+            f"<span>{_e(COPY_YAKIN)}</span></label>")
+
+
+def _form_satu_pilihan(nilai: str, rute: Rute, token: str) -> str:
+    """Satu form per pilihan: kotak yakin wajib hanya di form uang kembali, jadi 'menunggu' tidak ikut terhalang."""
+    tombol = (f'<button type="submit" name="pilihan" value="{_a(nilai)}" class="{_KELAS_TOMBOL[nilai]}">'
+              f"{_e(COPY_TOMBOL[nilai])}</button>")
     return (f'<form method="post" action="{_a(rute.pilih)}">'
             f'<input type="hidden" name="token" value="{_a(token)}">'
-            f'<p class="akun-aksi-sandi">{tombol}</p></form>')
+            f'{_kotak_yakin(nilai)}<p class="akun-aksi-sandi">{tombol}</p></form>')
+
+
+def _form_pilih(k, rute: Rute, token: str) -> str:
+    return "".join(_form_satu_pilihan(nilai, rute, token) for nilai in _pilihan_tersedia(k))
 
 
 def teks_janji(k) -> str:

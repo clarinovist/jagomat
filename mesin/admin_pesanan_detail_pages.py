@@ -79,6 +79,7 @@ COPY_VOUCHER = {
     purna.VOUCHER_DIPAKAI: "Sudah dipakai",
     purna.VOUCHER_KEDALUWARSA: "Kedaluwarsa",
     purna.VOUCHER_BATAL: "Dibatalkan (direfund atau keluarga minta uang kembali)",
+    purna.VOUCHER_DITAHAN: "Ditahan (pembayaran perlu diperiksa)",
 }
 COPY_PILIHAN = {purna.PILIHAN_MENUNGGU: "Menunggu laporan", purna.PILIHAN_UANG_KEMBALI: "Minta uang kembali"}
 COPY_LAPORAN_BELUM = "Belum terbit"
@@ -87,6 +88,11 @@ COPY_LAPORAN_TERLAMBAT = "Terlambat sejak %s"
 COPY_TOMBOL_VOUCHER = "Catat voucher dipakai"
 COPY_KONFIRMASI_VOUCHER = "Voucher ditandai sudah dipakai dan order ini tidak bisa direfund lagi. Tidak bisa dibatalkan."
 COPY_TOMBOL_TERBIT = "Catat laporan terbit"
+COPY_PETUNJUK_TERBIT = "Catat segera setelah laporan dikirim."
+COPY_DITAHAN = (
+    "Pembayaran order ini perlu diperiksa, jadi voucher dan laporan terbit ditahan sampai statusnya normal. "
+    "Catat uang kembali tetap bisa dilakukan."
+)
 COPY_KONFIRMASI_TERBIT = "Laporan ditandai sudah terbit sekarang (jam pencatatan). Tidak bisa dibatalkan."
 COPY_REFUND_VOUCHER_DIPAKAI = "Voucher sudah dipakai; refund tidak tersedia."
 COPY_MINTA_UANG_KEMBALI = "Keluarga meminta uang kembali (laporan terlambat)"
@@ -129,9 +135,10 @@ def _form_voucher(token: Tuple[str, str]) -> str:
 
 
 def _form_terbit(token: Tuple[str, str]) -> str:
-    return ('<form method="post" action="%s" data-konfirmasi="%s">%s%s'
+    return ('<p class="admin-meta">%s</p><form method="post" action="%s" data-konfirmasi="%s">%s%s'
             '<button class="admin-tombol admin-bahaya-garis" type="submit">%s</button></form>'
-            % (ui.RUTE_TERBIT, e(COPY_KONFIRMASI_TERBIT), _hidden(*token), _SANDI, e(COPY_TOMBOL_TERBIT)))
+            % (e(COPY_PETUNJUK_TERBIT), ui.RUTE_TERBIT, e(COPY_KONFIRMASI_TERBIT), _hidden(*token), _SANDI,
+               e(COPY_TOMBOL_TERBIT)))
 
 
 def _baris_rincian(label: str, nilai: str) -> str:
@@ -189,8 +196,9 @@ def _kartu_purna(detail: Mapping, gerbang_terbuka: bool, forms: Mapping) -> str:
         form += _form_voucher(forms[ui.AKSI_VOUCHER])
     if ui.AKSI_TERBIT in tersedia and ui.AKSI_TERBIT in forms:
         form += _form_terbit(forms[ui.AKSI_TERBIT])
-    return '<section class="admin-kartu">%s<dl class="admin-order-rincian">%s</dl>%s</section>' % (
-        kepala, _rincian_purna(pur), form)
+    catatan = '<p class="admin-meta">%s</p>' % e(COPY_DITAHAN) if pur.get("ditahan") else ""
+    return '<section class="admin-kartu">%s<dl class="admin-order-rincian">%s</dl>%s%s</section>' % (
+        kepala, _rincian_purna(pur), catatan, form)
 
 
 def _peringatan(detail: Mapping) -> str:

@@ -22,6 +22,7 @@ T = "mesin/__tests__/"
 B = T + "test_purna.py::"
 W = T + "test_purna_tulis.py::"
 F = T + "test_purna_refund.py::"
+D = T + "test_purna_ditahan.py::"
 PURNA, ATURAN, TRANSFER = "mesin/purna.py", "mesin/pesanan_refund_aturan.py", "mesin/pesanan_transfer.py"
 
 KASUS = (
@@ -61,13 +62,38 @@ KASUS = (
      (B + "test_berlaku_hingga_tepat_hari_voucher_kali_dua_puluh_empat_jam_dari_waktu_lunas",
       B + "test_keadaan_qris_aktif_memuat_semua_turunan")),
     ("K5-direfund-tidak-dibaca-dari-ledger",
-     ((PURNA, "    direfund = st.status_dari_db(kon, st.dict_order(baris), kini) == d.STATUS_DIREFUND\n",
-       "    direfund = False\n"),),
+     ((PURNA, "    direfund = status == d.STATUS_DIREFUND\n", "    direfund = False\n"),),
      (B + "test_keadaan_direfund_voucher_batal_di_kedua_ledger", W + "test_pilihan_ditolak_bila_order_sudah_direfund")),
     ("K6-transfer-lunas-tidak-dibaca",
      ((PURNA, '    if not tb.fakta(kon, order_id)["lunas"]:\n', "    if True:\n"),),
      (B + "test_waktu_lunas_transfer_dari_transfer_lunas", B + "test_keadaan_transfer_aktif",
       W + "test_pakai_voucher_aktif_menulis_satu_baris_untuk_qris_dan_transfer")),
+    # --- ditahan (H-1): lunas tetapi status turunan bukan sudah_dibayar ---
+    ("H1a-status-voucher-tanpa-ditahan",
+     ((PURNA, "    if ditahan:\n        return VOUCHER_DITAHAN\n", "    if False:\n        return VOUCHER_DITAHAN\n"),),
+     (D + "test_order_perlu_diperiksa_tetap_lunas_tetapi_voucher_ditahan_dan_tidak_bisa_pilih",
+      D + "test_pakai_ditolak_pada_order_ditahan_tanpa_tulis", D + "test_ditahan_didahulukan_dari_kedaluwarsa_dan_aktif")),
+    ("H1b-bisa-pilih-tanpa-ditahan",
+     ((PURNA, "            and not ditahan\n", ""),),
+     (D + "test_pilihan_ditolak_pada_order_ditahan_tanpa_tulis",
+      D + "test_order_perlu_diperiksa_tetap_lunas_tetapi_voucher_ditahan_dan_tidak_bisa_pilih")),
+    ("H1c-terbit-tanpa-gate-ditahan",
+     ((PURNA, "        if k.ditahan:\n            raise d.PesananKonflik(PESAN_DITAHAN)\n", "        if False:\n            pass\n"),),
+     (D + "test_terbit_ditolak_pada_order_ditahan_tanpa_tulis",)),
+    ("H1d-ditahan-tidak-diturunkan-dari-status",
+     ((PURNA, "    ditahan = _ditahan(lunas=lunas, direfund=direfund, status=status)\n", "    ditahan = False\n"),),
+     (D + "test_order_perlu_diperiksa_tetap_lunas_tetapi_voucher_ditahan_dan_tidak_bisa_pilih",
+      D + "test_pakai_ditolak_pada_order_ditahan_tanpa_tulis", D + "test_terbit_ditolak_pada_order_ditahan_tanpa_tulis",
+      D + "test_pilihan_ditolak_pada_order_ditahan_tanpa_tulis")),
+    ("H1e-ditahan-menghalangi-refund",
+     ((ATURAN, "    if purna.voucher_dipakai(kon, order_id):\n", "    if purna.voucher_dipakai(kon, order_id) or purna.keadaan(kon, order_id, kini).ditahan:\n"),),
+     (D + "test_refund_tetap_bisa_dicatat_pada_order_ditahan_lalu_voucher_batal",)),
+    # --- L-1: terbit setelah keluarga minta uang kembali ---
+    ("L6-terbit-setelah-uang-kembali",
+     ((PURNA, "        if k.pilihan == PILIHAN_UANG_KEMBALI:\n            raise d.PesananKonflik(PESAN_SUDAH_UANG_KEMBALI)\n",
+       "        if False:\n            pass\n"),),
+     (D + "test_terbit_ditolak_sesudah_keluarga_minta_uang_kembali_tanpa_tulis",
+      D + "test_terbit_ditolak_walau_keluarga_memilih_menunggu_lalu_uang_kembali")),
     # --- batas terlambat dan SLA ---
     ("L1-batas-terlambat-termasuk-sama-dengan",
      ((PURNA, "terlambat = lunas and terbit is None and kini > batas", "terlambat = lunas and terbit is None and kini >= batas"),),

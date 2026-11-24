@@ -18,13 +18,50 @@ def tombol(k, rute=permukaan.RUTE_MURID, token=TOKEN):
     return TOMBOL.findall(hv.kartu_voucher(k, rute, token))
 
 
+def _form(isi, pilihan):
+    """Isi <form> yang memuat tombol dengan nilai pilihan tertentu (form terpisah per pilihan)."""
+    for bagian in re.findall(r"<form.*?</form>", isi, re.S):
+        if f'name="pilihan" value="{pilihan}"' in bagian:
+            return bagian
+    return None
+
+
 def test_dua_tombol_bila_bisa_pilih_dan_belum_memilih():
     assert tombol(DASAR) == ["menunggu", "uang_kembali"]
+
+
+def test_form_menunggu_dan_uang_kembali_terpisah_dan_hanya_uang_kembali_punya_kotak_yakin():
+    isi = hv.kartu_voucher(DASAR, permukaan.RUTE_MURID, TOKEN)
+    assert isi.count("<form") == 2
+    menunggu, kembali = _form(isi, "menunggu"), _form(isi, "uang_kembali")
+    assert menunggu != kembali and 'name="pilihan" value="uang_kembali"' not in menunggu
+    assert "yakin" not in menunggu
+    assert '<input type="checkbox" name="yakin" value="1" required>' in kembali
+    assert hv.COPY_YAKIN in kembali
+    for bagian in (menunggu, kembali):
+        assert 'action="/murid/pesanan/pilih"' in bagian and f'name="token" value="{TOKEN}"' in bagian
+
+
+def test_teks_yakin_menyebut_final_dan_voucher_tidak_berlaku():
+    assert hv.COPY_YAKIN == "Saya yakin meminta uang kembali. Pilihan ini final dan voucher tidak berlaku lagi."
+
+
+def test_kamus_status_voucher_total_untuk_semua_status_dan_ditahan_punya_kalimat_awam():
+    semua = {nilai for nama, nilai in vars(purna).items() if nama.startswith("VOUCHER_")}
+    assert semua == set(hv.COPY_STATUS_VOUCHER)
+    assert hv.COPY_STATUS_VOUCHER[purna.VOUCHER_DITAHAN] == "Voucher ditahan sampai pembayaran selesai diperiksa tim."
+
+
+def test_kartu_menampilkan_kalimat_ditahan_tanpa_tombol_bila_tidak_bisa_pilih():
+    k = replace(DASAR, voucher=purna.VOUCHER_DITAHAN, ditahan=True, bisa_pilih=False)
+    isi = hv.kartu_voucher(k, permukaan.RUTE_MURID, TOKEN)
+    assert hv.COPY_STATUS_VOUCHER[purna.VOUCHER_DITAHAN] in isi and "<button" not in isi
 
 
 def test_satu_tombol_uang_kembali_bila_sudah_memilih_menunggu():
     isi = hv.kartu_voucher(replace(DASAR, pilihan=purna.PILIHAN_MENUNGGU), permukaan.RUTE_MURID, TOKEN)
     assert TOMBOL.findall(isi) == ["uang_kembali"] and hv.COPY_MEMILIH_MENUNGGU in isi
+    assert isi.count("<form") == 1 and 'name="yakin"' in isi
 
 
 def test_tanpa_tombol_bila_uang_kembali_walau_bisa_pilih_masih_true():

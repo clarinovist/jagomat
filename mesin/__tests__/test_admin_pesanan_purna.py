@@ -29,7 +29,7 @@ from http_test_kit import SANDI_GURU, SANDI_MURID  # noqa: E402
 from pesanan_http_kit import ProviderPalsu, WAKTU_AWAL, bayar, jam, keadaan_ledger, keluarga, ledger, server, tertutup  # noqa: E402,F401
 from pesanan_transfer_http_kit import transfer  # noqa: E402,F401
 from purna_http_kit import (  # noqa: E402,F401
-    bayar_purna, kosong, lunas, lunas_transfer, pilih_uang_kembali, potret_efek, transfer_purna,
+    bayar_purna, jadikan_ditahan, kosong, lunas, lunas_transfer, pilih_uang_kembali, potret_efek, transfer_purna,
 )
 
 AKUN_GURU = ("guru", SANDI_GURU)
@@ -478,3 +478,54 @@ def test_daftar_purna_belum_terpasang_tetap_tampil_dengan_strip(bayar):
     order_lunas(bayar, admin)
     kode, isi, _t = minta_admin(bayar, HALAMAN, admin)
     assert kode == 200 and _sel_laporan(isi) == "—"
+
+
+# --- order ditahan (H-1): lunas tetapi perlu_diperiksa; refund tetap bisa --------------------------------
+
+def test_detail_order_ditahan_tanpa_form_voucher_dan_terbit_dengan_catatan_dan_form_refund_tetap_ada(lunas, jam):
+    server, admin, oid = lunas
+    jam.maju_jam(JAM_LEWAT_BATAS)
+    jadikan_ditahan(server, oid, jam)
+    isi = _detail(server, admin, oid)
+    assert dui.COPY_VOUCHER["ditahan"] in isi and dui.COPY_DITAHAN in isi
+    assert set(form_order(isi)) == {REFUND}
+
+
+@pytest.mark.parametrize("jalur", [VOUCHER, TERBIT])
+def test_voucher_dan_terbit_pada_order_ditahan_409_tanpa_efek(lunas, jam, jalur):
+    server, admin, oid = lunas
+    jadikan_ditahan(server, oid, jam)
+    sebelum = potret_efek()
+    kode, isi, _t = kirim_aksi(server, admin, jalur, oid)
+    assert kode == 409 and "Traceback" not in isi
+    assert potret_efek() == sebelum
+
+
+def test_refund_post_pada_order_ditahan_tetap_tercatat_dan_voucher_batal(lunas, jam):
+    server, admin, oid = lunas
+    jadikan_ditahan(server, oid, jam)
+    kode, _i, tajuk = kirim_aksi(server, admin, REFUND, oid)
+    assert (kode, hasil_dari(tajuk, oid)) == (303, "refund_dicatat")
+    efek = potret_efek()
+    assert len(efek["pesanan_refund"]) + len(efek["transfer_refund"]) == 1
+    assert dui.COPY_VOUCHER["batal"] in _detail(server, admin, oid)
+
+
+def test_daftar_kolom_laporan_order_ditahan_perlu_diperiksa(lunas, jam):
+    server, admin, oid = lunas
+    jam.maju_jam(JAM_LEWAT_BATAS)
+    jadikan_ditahan(server, oid, jam)
+    assert _sel_laporan(minta_admin(server, HALAMAN, admin)[1]) == "Perlu diperiksa"
+
+
+# --- L-1: terbit tertutup sesudah keluarga minta uang kembali -------------------------------------------
+
+def test_terbit_sesudah_keluarga_minta_uang_kembali_409_tanpa_efek_dan_form_hilang(lunas, jam):
+    server, admin, oid = lunas
+    jam.maju_jam(JAM_LEWAT_BATAS)
+    pilih_uang_kembali(oid, jam())
+    isi = _detail(server, admin, oid)
+    assert TERBIT not in form_order(isi) and REFUND in form_order(isi)
+    sebelum = potret_efek()
+    assert kirim_aksi(server, admin, TERBIT, oid)[0] == 409
+    assert potret_efek() == sebelum and sebelum["purna_laporan_terbit"] == []
