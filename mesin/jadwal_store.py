@@ -1,11 +1,13 @@
 """Kelompok, penempatan, dan jadwal Paket Belajar (tanpa HTTP, jaringan, env, atau berkas).
 
-Mini Class dijadwalkan sebagai kelompok (satu lokasi/guru, 8 pertemuan mingguan, kuota 5); Private per anak
+Mini Class dijadwalkan sebagai kelompok (satu lokasi/guru, 8 pertemuan 2x seminggu selama 4 pekan, kuota 5); Private per anak
 (guru per anak, lokasi "Online"). Semua tulis dalam satu `BEGIN IMMEDIATE` (`pesanan_dasar.tulis`) di
 admin-control.db. Nominal tidak disentuh di sini; jadwal hanya membaca order/akses kelas.
 
 Kuota dan kecocokan paket dijaga dua lapis: store (pesan jelas) dan trigger skema (fail-closed). Penempatan
 hanya untuk order yang statusnya `aktif`; satu penempatan per order dan per anak (lepas dulu sebelum pindah).
+Pertemuan tidak boleh jatuh setelah akses paket berakhir (`_batas_akses_*`): delapan pertemuan harus selesai
+dalam masa akses satu bulan.
 """
 from __future__ import annotations
 
@@ -21,6 +23,9 @@ import paket_belajar_katalog as katalog
 import pesanan_dasar as d
 import schema_jadwal
 import schema_kelas
+
+PESAN_LEWAT_AKSES = "pertemuan terakhir jatuh setelah masa akses paket berakhir; mulai lebih awal"
+PESAN_GESER_LEWAT_AKSES = "pertemuan tidak boleh digeser melewati masa akses paket berakhir"
 
 
 @contextmanager
@@ -45,6 +50,35 @@ def _isi_kelompok(kon, kelompok_id) -> int:
                        (kelompok_id,)).fetchone()[0]
 
 
+def _batas_akses_order(kon, order_id) -> Optional[str]:
+    """Akhir akses terjauh order (UTC baku); None bila belum ada akses."""
+    return kon.execute("SELECT MAX(berakhir) FROM kelas_akses WHERE order_id=?", (order_id,)).fetchone()[0]
+
+
+def _batas_akses_kelompok(kon, kelompok_id) -> Optional[str]:
+    """Batas terkecil di antara anggota yang punya akses; None bila tidak ada anggota berakses (tanpa batas)."""
+    return kon.execute(
+        """SELECT MIN(akhir) FROM (SELECT MAX(a.berakhir) AS akhir FROM jadwal_penempatan p
+                                    JOIN kelas_akses a ON a.order_id=p.order_id
+                                   WHERE p.kelompok_id=? GROUP BY p.order_id)""",
+        (kelompok_id,)).fetchone()[0]
+
+
+def _pertemuan_aktif_terakhir(kon, kelompok_id) -> Optional[str]:
+    return kon.execute("SELECT MAX(mulai) FROM jadwal_pertemuan WHERE kelompok_id=? AND dibatalkan=0",
+                       (kelompok_id,)).fetchone()[0]
+
+
+def _pertemuan_mendatang(kon, kelompok_id, kini) -> Optional[str]:
+    return kon.execute("SELECT MIN(mulai) FROM jadwal_pertemuan WHERE kelompok_id=? AND dibatalkan=0 AND mulai>=?",
+                       (kelompok_id, kini)).fetchone()[0]
+
+
+def _pastikan_dalam_akses(waktu_akhir: Optional[str], batas: Optional[str], pesan: str = PESAN_LEWAT_AKSES) -> None:
+    if waktu_akhir is not None and batas is not None and waktu_akhir > batas:
+        raise jd.JadwalTidakSah(pesan)
+
+
 def _tulis_sesi(kon, *, kelompok_id=None, order_id=None, mulai, menit, aktor, kini):
     for ke, waktu in enumerate(jd.delapan_pertemuan(mulai), start=1):
         kon.execute(
@@ -55,8 +89,17 @@ def _tulis_sesi(kon, *, kelompok_id=None, order_id=None, mulai, menit, aktor, ki
 
 # --- kelompok -------------------------------------------------------------------------------
 
+def _tolak_kelompok_kembar(kon, nama: str, mulai: str) -> None:
+    """Nama sama (casefold) dan pertemuan pertama sama = klik ganda; ditolak tanpa menulis."""
+    serupa = kon.execute(
+        "SELECT k.nama FROM jadwal_kelompok k JOIN jadwal_pertemuan s ON s.kelompok_id=k.id AND s.ke=1 "
+        "WHERE s.mulai=?", (mulai,)).fetchall()
+    if any(baris["nama"].casefold() == nama.casefold() for baris in serupa):
+        raise jd.JadwalKonflik("kelompok dengan nama dan waktu mulai yang sama sudah ada")
+
+
 def buat_kelompok(kon, admin_id, *, nama, lokasi, guru_id, kuota, tanggal, jam, sekarang) -> str:
-    """Buat kelompok Mini + delapan pertemuan mingguan; mengembalikan id kelompok (atomik)."""
+    """Buat kelompok Mini + delapan pertemuan (2x seminggu); kelompok kembar ditolak; mengembalikan id (atomik)."""
     d.periksa_koneksi(kon)
     aktor = d.periksa_pelaku(admin_id)
     nama = jd.periksa_teks(nama, "nama kelompok", 80)
@@ -67,6 +110,7 @@ def buat_kelompok(kon, admin_id, *, nama, lokasi, guru_id, kuota, tanggal, jam, 
     kid, kini = jd.id_kelompok_baru(), dasar.ke_baku(sekarang)
     menit = katalog.ambil(schema_jadwal.KODE_PAKET_MINI).menit
     with d.tulis(kon):
+        _tolak_kelompok_kembar(kon, nama, mulai)
         kon.execute(
             "INSERT INTO jadwal_kelompok(id,paket,nama,lokasi,guru_id,kuota,dibuat,diubah,"
             "dibuat_oleh,diubah_oleh) VALUES(?,?,?,?,?,?,?,?,?,?)",
@@ -96,15 +140,16 @@ def ubah_kelompok(kon, admin_id, kelompok_id, *, nama, lokasi, guru_id, kuota, s
             raise jd.JadwalKonflik("kuota lebih kecil dari jumlah anggota") from None
 
 
-def daftar_kelompok(kon) -> List[dict]:
-    """Semua kelompok + terisi/kuota + pertemuan berikutnya (tanpa nama anak)."""
+def daftar_kelompok(kon, sekarang) -> List[dict]:
+    """Semua kelompok + terisi/kuota + pertemuan aktif berikutnya (mulai >= `sekarang`; None bila selesai)."""
     d.periksa_koneksi(kon)
+    kini = dasar.ke_baku(sekarang)
     baris = kon.execute(
         """SELECT k.id,k.nama,k.lokasi,k.guru_id,k.kuota,
                   (SELECT COUNT(*) FROM jadwal_penempatan p WHERE p.kelompok_id=k.id) AS terisi,
                   (SELECT MIN(s.mulai) FROM jadwal_pertemuan s
-                    WHERE s.kelompok_id=k.id AND s.dibatalkan=0) AS berikut
-             FROM jadwal_kelompok k ORDER BY k.nama,k.id""")
+                    WHERE s.kelompok_id=k.id AND s.dibatalkan=0 AND s.mulai>=?) AS berikut
+             FROM jadwal_kelompok k ORDER BY k.nama,k.id""", (kini,))
     return [dict(b) for b in baris]
 
 
@@ -157,6 +202,9 @@ def tempatkan(kon, admin_id, order_id, *, kelompok_id=None, guru_id=None, tangga
             kelompok = _group(kon, kid)
             if kelompok is None:
                 raise jd.JadwalTidakDitemukan()
+            if _pertemuan_mendatang(kon, kid, kini) is None:
+                raise jd.JadwalKonflik("kelompok sudah selesai")
+            _pastikan_dalam_akses(_pertemuan_aktif_terakhir(kon, kid), _batas_akses_order(kon, order_id))
             if _isi_kelompok(kon, kid) >= kelompok["kuota"]:
                 raise jd.JadwalPenuh()
             try:
@@ -173,6 +221,7 @@ def tempatkan(kon, admin_id, order_id, *, kelompok_id=None, guru_id=None, tangga
             raise jd.JadwalTidakSah("penempatan Private butuh guru, tanggal, dan jam")
         guru = jd.periksa_guru_id(guru_id)
         mulai = jd.pertemuan_pertama(tanggal, jam, sekarang)
+        _pastikan_dalam_akses(jd.delapan_pertemuan(mulai)[-1], _batas_akses_order(kon, order_id))
         try:
             kon.execute(
                 "INSERT INTO jadwal_penempatan(order_id,kelompok_id,guru_id,lokasi,dibuat,diubah,"
@@ -245,16 +294,24 @@ def pertemuan_dari(kon, pertemuan_id) -> Optional[dict]:
     return None if baris is None else dict(baris)
 
 
+def _batas_akses_sesi(kon, sesi: dict) -> Optional[str]:
+    if sesi["order_id"] is not None:
+        return _batas_akses_order(kon, sesi["order_id"])
+    return _batas_akses_kelompok(kon, sesi["kelompok_id"])
+
+
 def ubah_pertemuan(kon, admin_id, pertemuan_id, *, tanggal, jam, sekarang) -> None:
-    """Geser satu pertemuan; identitas (kelompok/order/ke) tidak berubah."""
+    """Geser satu pertemuan; identitas (kelompok/order/ke) tidak berubah dan waktu tidak melewati masa akses."""
     d.periksa_koneksi(kon)
     aktor = d.periksa_pelaku(admin_id)
     pid = jd.periksa_pertemuan_id(pertemuan_id)
     mulai = jd.pertemuan_pertama(tanggal, jam, sekarang)
     kini = dasar.ke_baku(sekarang)
     with d.tulis(kon):
-        if pertemuan_dari(kon, pid) is None:
+        sesi = pertemuan_dari(kon, pid)
+        if sesi is None:
             raise jd.JadwalTidakDitemukan()
+        _pastikan_dalam_akses(mulai, _batas_akses_sesi(kon, sesi), PESAN_GESER_LEWAT_AKSES)
         kon.execute("UPDATE jadwal_pertemuan SET mulai=?,diubah=?,diubah_oleh=? WHERE id=?",
                     (mulai, kini, aktor, pid))
 

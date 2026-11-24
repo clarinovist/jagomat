@@ -1,4 +1,4 @@
-"""Dasar domain jadwal Paket Belajar: galat, validasi isian, dan kalender WIB untuk 8 pertemuan mingguan.
+"""Dasar domain jadwal Paket Belajar: galat, validasi isian, dan kalender WIB untuk 8 pertemuan (2x seminggu, 4 pekan).
 
 Tanpa DB/jaringan. Waktu disimpan UTC naif `YYYY-MM-DDTHH:MM:SS` (format ledger), sedangkan admin mengisi
 tanggal + jam WIB. Jadwal bukan ledger keuangan: waktu dan status batal boleh berubah, tetapi identitas baris
@@ -20,6 +20,14 @@ _POLA_KELOMPOK = re.compile(r"klp_[0-9a-f]{32}")
 _POLA_GURU = re.compile(r"akun_[0-9a-f]{32}")
 _POLA_TANGGAL = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 _POLA_JAM = re.compile(r"([01][0-9]|2[0-3]):[0-5][0-9]")
+FORMAT_BAKU = "%Y-%m-%dT%H:%M:%S"
+HARI_PER_PEKAN = 7
+PEKAN_PAKET = 4
+JARAK_PERTEMUAN_KEDUA_HARI = 3
+# Delapan pertemuan selesai dalam masa akses satu bulan: offset hari dari pertemuan pertama.
+OFFSET_PERTEMUAN_HARI = tuple(HARI_PER_PEKAN * pekan + tambah
+                              for pekan in range(PEKAN_PAKET) for tambah in (0, JARAK_PERTEMUAN_KEDUA_HARI))
+BATAS_MAJU_HARI = 366
 
 
 class JadwalKonflik(d.PesananKonflik):
@@ -91,19 +99,37 @@ def periksa_tanggal_jam(tanggal, jam) -> datetime:
         raise JadwalTidakSah("tanggal tidak sah") from None
 
 
+def _ke_baku(waktu: datetime) -> str:
+    """Baku UTC naif; tahun selalu 4 digit (strftime `%Y` tidak menjamin itu di semua platform)."""
+    return waktu.replace(tzinfo=None).isoformat(timespec="seconds")
+
+
 def pertemuan_pertama(tanggal, jam, sekarang_baku: str, *, izinkan_lampau=False) -> str:
-    """Baku UTC pertemuan pertama; tanggal WIB di masa lalu ditolak kecuali diminta."""
+    """Baku UTC pertemuan pertama.
+
+    Waktu (bukan hanya tanggal) yang sudah lewat ditolak kecuali diminta; tanggal WIB lebih dari
+    `BATAS_MAJU_HARI` hari dari hari ini selalu ditolak (cegah tahun ekstrem). Pesan tanpa gema isian.
+    """
     waktu = periksa_tanggal_jam(tanggal, jam)
-    if not izinkan_lampau and waktu.date() < h.tanggal_wib(sekarang_baku):
-        raise JadwalTidakSah("tanggal mulai sudah lewat")
-    return waktu.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+    sekarang = h.ke_baku(sekarang_baku)
+    if waktu.date() > h.tanggal_wib(sekarang) + timedelta(days=BATAS_MAJU_HARI):
+        raise JadwalTidakSah("tanggal mulai terlalu jauh ke depan")
+    try:
+        baku = _ke_baku(waktu.astimezone(timezone.utc))
+    except (OverflowError, ValueError):
+        raise JadwalTidakSah("tanggal tidak sah") from None
+    if not izinkan_lampau and baku < sekarang:
+        raise JadwalTidakSah("waktu mulai sudah lewat")
+    return baku
 
 
 def delapan_pertemuan(mulai_baku: str) -> tuple:
-    """Delapan waktu baku mingguan mulai dari `mulai_baku`."""
-    awal = datetime.strptime(mulai_baku, "%Y-%m-%dT%H:%M:%S")
-    return tuple((awal + timedelta(days=7 * (ke - 1))).strftime("%Y-%m-%dT%H:%M:%S")
-                 for ke in range(1, PERTEMUAN + 1))
+    """Delapan waktu baku dari `mulai_baku`: 2x seminggu selama 4 pekan (offset 0,3,7,10,14,17,21,24 hari)."""
+    awal = datetime.strptime(mulai_baku, FORMAT_BAKU)
+    try:
+        return tuple(_ke_baku(awal + timedelta(days=hari)) for hari in OFFSET_PERTEMUAN_HARI)
+    except OverflowError:
+        raise JadwalTidakSah("tanggal tidak sah") from None
 
 
 def tanggal_jam_wib(baku: str) -> tuple:

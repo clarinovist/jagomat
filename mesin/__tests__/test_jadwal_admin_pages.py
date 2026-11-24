@@ -1,6 +1,8 @@
 """Render admin jadwal: teks kunci, form, escape, dan tidak ada sandi ulang."""
+import re
 from datetime import datetime, timedelta
 
+import admin_style
 import jadwal_admin_pages as ui
 
 GURU = {"akun_" + "9" * 32: "guru-satu"}
@@ -44,6 +46,62 @@ def test_halaman_kelompok_memuat_anggota_dan_delapan_sesi_dengan_aksi():
     assert "kor_" + "b" * 32 in isi
     assert "Ubah kelompok" in isi and "Lepas" not in isi
     assert 'name="reauth"' not in isi
+
+
+def test_petunjuk_menyebut_dua_kali_seminggu_selama_empat_pekan_bukan_mingguan():
+    assert "dua kali seminggu selama empat pekan" in ui.COPY_PETUNJUK
+    for teks in (ui.COPY_PETUNJUK, ui.blok_daftar([], GURU, TOKEN)):
+        assert "mingguan" not in teks
+
+
+def test_penempatan_mini_menyembunyikan_kelompok_selesai():
+    tokens = {"tempatkan": TOKEN, "lepas": TOKEN, "sesi_ubah": TOKEN, "sesi_batal": TOKEN}
+    selesai = _kelompok(nama="Sudah Selesai", terisi=1, berikut=None)
+    jalan = _kelompok(nama="Masih Jalan", terisi=1)
+    isi = ui.blok_penempatan({"paket": "mini"}, None, [selesai, jalan], GURU, True, tokens)
+    assert "Masih Jalan" in isi and "Sudah Selesai" not in isi
+    hanya_selesai = ui.blok_penempatan({"paket": "mini"}, None, [selesai], GURU, True, tokens)
+    assert ui.COPY_KUOTA_PENUH in hanya_selesai and "Tempatkan ke kelompok" not in hanya_selesai
+
+
+def _isi_sesi(dibatalkan):
+    sesi = [{"id": 7, "ke": 1, "mulai": "2026-12-01T09:30:00", "menit": 60, "dibatalkan": dibatalkan}]
+    ringkas = {"kelompok_id": None, "guru_id": "akun_" + "9" * 32, "lokasi": "Online", "sesi": sesi}
+    tokens = {"tempatkan": TOKEN, "lepas": TOKEN, "sesi_ubah": TOKEN, "sesi_batal": TOKEN}
+    return ui.blok_penempatan({"paket": "private"}, ringkas, [], GURU, True, tokens)
+
+
+def test_tombol_aktifkan_tidak_bergaya_bahaya_tetapi_batalkan_ya():
+    aktif = _isi_sesi(0)
+    assert '<button class="admin-tombol admin-bahaya" type="submit">Batalkan</button>' in aktif
+    batal = _isi_sesi(1)
+    assert '<button class="admin-tombol" type="submit">Aktifkan</button>' in batal
+    pembatalan = batal.split("/admin/kelas/pertemuan/batal")[1].split("</form>")[0]
+    assert "admin-bahaya" not in pembatalan
+
+
+def test_kedua_form_aksi_pertemuan_dibungkus_satu_baris():
+    isi = _isi_sesi(0)
+    sel = isi.split('<td><div class="admin-aksi-sesi-baris">')[1].split("</td>")[0]
+    assert sel.endswith("</div>") and sel.count("<form") == 2 and sel.count("</form>") == 2
+
+
+def _aturan(css, pemilih, berisi):
+    """Badan aturan CSS yang daftar pemilihnya memuat `pemilih` persis dan badannya memuat `berisi`."""
+    for daftar, badan in re.findall(r"(?:^|\n)([^{}\n]+)\{([^}]*)\}", css):
+        if pemilih in [p.strip() for p in daftar.split(",")] and berisi in badan:
+            return badan
+    raise AssertionError("aturan %s dengan %s tidak ada" % (pemilih, berisi))
+
+
+def test_css_baris_form_sejajar_satu_baris_tanpa_hex_baru():
+    css = admin_style.GAYA_ADMIN
+    for pemilih in (".admin-form-baris", ".admin-aksi-sesi-baris"):
+        badan = _aturan(css, pemilih, "display: flex")
+        assert "flex-wrap: wrap" in badan and "align-items: center" in badan
+        assert "gap:" in badan and "#" not in badan
+    lebar = _aturan(css, ".admin-form-baris input:not([type=hidden])", "width: auto")
+    assert "#" not in lebar
 
 
 def test_penempatan_mini_hanya_kelompok_dengan_sisa_dan_hormati_status():

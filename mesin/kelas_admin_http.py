@@ -97,7 +97,7 @@ def _get_antrean(penangan, principal) -> None:
         with _buka() as kon:
             daftar = store.antrean(kon)
             try:
-                kelompok = jadwal_store.daftar_kelompok(kon)
+                kelompok = jadwal_store.daftar_kelompok(kon, alur.waktu_sekarang())
             except (sqlite3.OperationalError, ValueError):
                 kelompok = None
         formulir = _form_keluarga(penangan, principal)
@@ -161,7 +161,7 @@ def _get_detail(penangan, principal) -> None:
         kelompok, ringkas, tersedia = [], None, False
         try:
             with jadwal_http._buka() as kon_jadwal:
-                kelompok = jadwal_store.daftar_kelompok(kon_jadwal)
+                kelompok = jadwal_store.daftar_kelompok(kon_jadwal, alur.waktu_sekarang())
                 ringkas = jadwal_store.ringkas_order(kon_jadwal, order_id)
                 tersedia = True
         except (admin_store.StoreBelumSiap, sqlite3.Error, ValueError):

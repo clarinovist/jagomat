@@ -8,7 +8,7 @@ Pola sama dengan `schema_kelas`/`schema_purna`: tanpa bump `user_version`, absen
 parsial/berbeda ditolak, migrasi hanya lewat :func:`migrasikan` eksplisit. `jadwal_*` mensyaratkan `kelas_*`
 sudah terpasang (kunci asing ke `kelas_order`).
 
-Keputusan Pemilik 25 Nov 2026: Mini Class = kelompok (maks. 5 anak, satu lokasi/guru, 8 pertemuan mingguan);
+Keputusan Pemilik 25 Nov 2026: Mini Class = kelompok (maks. 5 anak, satu lokasi/guru, 8 pertemuan dua kali seminggu selama empat pekan);
 Private = per anak (guru per anak, lokasi "Online"). Jadwal bukan ledger keuangan: baris boleh diubah
 (waktu, batal) dengan `diubah`; identitas baris (`kelompok_id`/`order_id`/`ke`) tidak boleh berpindah.
 

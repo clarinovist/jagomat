@@ -48,10 +48,10 @@ def _guru() -> str:
     return auth.cari_akun("guru-b")["id_akun"]
 
 
-def _buat_kelompok(server, cookie, *, kuota=5, nama="Mini A") -> str:
+def _buat_kelompok(server, cookie, *, kuota=5, nama="Mini A", tanggal="2026-11-24", jam="09:00") -> str:
     data = _token(cookie, "jadwal_kelompok_buat", {"section": "kelas_belajar"})
     data.update({"nama": nama, "lokasi": "Ruang 1", "guru_id": _guru(), "kuota": str(kuota),
-                 "tanggal": "2026-11-28", "jam": "09:00"})
+                 "tanggal": tanggal, "jam": jam})
     kode, _, tajuk = minta_admin(server, KELOMPOK, cookie, data)
     assert kode == 303, kode
     return tajuk["Location"].split("id=")[1]
@@ -92,7 +92,7 @@ def test_daftar_menampilkan_kelompok_form_dan_guru(siap, admin):
 def test_buat_kelompok_lewat_http_menulis_delapan_sesi(siap, admin):
     kid = _buat_kelompok(siap, admin)
     assert len(_baris("SELECT * FROM jadwal_kelompok WHERE id=?", (kid,))) == 1
-    assert _baris("SELECT * FROM jadwal_pertemuan WHERE kelompok_id=?", (kid,))[0]["mulai"] == "2026-11-28T02:00:00"
+    assert _baris("SELECT * FROM jadwal_pertemuan WHERE kelompok_id=?", (kid,))[0]["mulai"] == "2026-11-24T02:00:00"
     assert len(_baris("SELECT * FROM jadwal_pertemuan WHERE kelompok_id=?", (kid,))) == 8
     kode, isi, _ = minta_admin(siap, "%s?id=%s" % (KELOMPOK, kid), admin)
     assert kode == 200 and "Delapan pertemuan" in isi and isi.count('action="/admin/kelas/pertemuan"') == 8
@@ -101,7 +101,7 @@ def test_buat_kelompok_lewat_http_menulis_delapan_sesi(siap, admin):
 def test_buat_kelompok_isian_asing_dan_csrf_salah_ditolak_tanpa_tulis(siap, admin):
     data = _token(admin, "jadwal_kelompok_buat", {"section": "kelas_belajar"})
     data.update({"nama": "Mini", "lokasi": "Ruang", "guru_id": _guru(), "kuota": "5",
-                 "tanggal": "2026-11-28", "jam": "09:00", "order_id": "kor_" + "0" * 32})
+                 "tanggal": "2026-11-24", "jam": "09:00", "order_id": "kor_" + "0" * 32})
     assert minta_admin(siap, KELOMPOK, admin, data)[0] == 400
     data.pop("order_id")
     data["csrf"] = "salah"
@@ -132,15 +132,15 @@ def test_hanya_order_aktif_yang_tampil_form_penempatan(siap, admin):
 def test_private_lewat_http_sesi_bisa_diubah_dan_dibatalkan(siap, admin):
     order = _aktif("private")
     data = _token(admin, "jadwal_tempatkan", {"order_id": order})
-    data.update({"guru_id": _guru(), "tanggal": "2026-12-01", "jam": "16:30"})
+    data.update({"guru_id": _guru(), "tanggal": "2026-11-25", "jam": "16:30"})
     assert minta_admin(siap, PENEMPATAN, admin, data)[0] == 303
     sesi = _baris("SELECT * FROM jadwal_pertemuan WHERE order_id=? ORDER BY ke", (order,))
-    assert len(sesi) == 8 and sesi[0]["mulai"] == "2026-12-01T09:30:00"
+    assert len(sesi) == 8 and sesi[0]["mulai"] == "2026-11-25T09:30:00" and sesi[1]["mulai"] == "2026-11-28T09:30:00"
     pid = sesi[0]["id"]
     ubah = _token(admin, "jadwal_pertemuan_ubah", {"order_id": order})
-    ubah.update({"pertemuan_id": str(pid), "tanggal": "2026-12-02", "jam": "17:00"})
+    ubah.update({"pertemuan_id": str(pid), "tanggal": "2026-11-26", "jam": "17:00"})
     assert minta_admin(siap, PERTEMUAN, admin, ubah)[0] == 303
-    assert _baris("SELECT mulai FROM jadwal_pertemuan WHERE id=?", (pid,))[0]["mulai"] == "2026-12-02T10:00:00"
+    assert _baris("SELECT mulai FROM jadwal_pertemuan WHERE id=?", (pid,))[0]["mulai"] == "2026-11-26T10:00:00"
     batal = _token(admin, "jadwal_pertemuan_batal", {"order_id": order})
     batal.update({"pertemuan_id": str(pid), "batal": "1"})
     assert minta_admin(siap, BATAL, admin, batal)[0] == 303
@@ -152,13 +152,13 @@ def test_sesi_order_lain_tidak_bisa_diubah_dari_tinjauan_ini(siap, admin):
     with pesanan.buka(admin_store.BAWAAN, tulis_data=True) as kon:
         lain = kelas_kit.lunas(kon, 2, "private", n=2)
         js = __import__("jadwal_store")
-        js.tempatkan(kon, "admin_sintetis", lain.order_id, guru_id=_guru(), tanggal="2026-12-01",
+        js.tempatkan(kon, "admin_sintetis", lain.order_id, guru_id=_guru(), tanggal="2026-11-25",
                      jam="16:30", sekarang=kelas_kit.SESUDAH_UPLOAD)
     sesi_lain = _baris("SELECT id FROM jadwal_pertemuan WHERE order_id=? ORDER BY ke", (lain.order_id,))[0]["id"]
     ubah = _token(admin, "jadwal_pertemuan_ubah", {"order_id": order})
-    ubah.update({"pertemuan_id": str(sesi_lain), "tanggal": "2026-12-02", "jam": "17:00"})
+    ubah.update({"pertemuan_id": str(sesi_lain), "tanggal": "2026-11-26", "jam": "17:00"})
     assert minta_admin(siap, PERTEMUAN, admin, ubah)[0] == 404
-    assert _baris("SELECT mulai FROM jadwal_pertemuan WHERE id=?", (sesi_lain,))[0]["mulai"] == "2026-12-01T09:30:00"
+    assert _baris("SELECT mulai FROM jadwal_pertemuan WHERE id=?", (sesi_lain,))[0]["mulai"] == "2026-11-25T09:30:00"
 
 
 def test_lepas_membebaskan_kuota_dan_menghapus_sesi_private(siap, admin):
@@ -173,7 +173,7 @@ def test_lepas_membebaskan_kuota_dan_menghapus_sesi_private(siap, admin):
     privat = _aktif("private", 3, 3)
     with pesanan.buka(admin_store.BAWAAN, tulis_data=True) as kon:
         __import__("jadwal_store").tempatkan(kon, "admin_sintetis", privat, guru_id=_guru(),
-                                             tanggal="2026-12-01", jam="16:30",
+                                             tanggal="2026-11-25", jam="16:30",
                                              sekarang=kelas_kit.SESUDAH_UPLOAD)
     lepas = _token(admin, "jadwal_lepas", {"order_id": privat})
     assert minta_admin(siap, LEPAS, admin, lepas)[0] == 303
@@ -195,3 +195,68 @@ def test_sakelar_paket_mati_admin_jadwal_tetap_terbuka(siap, admin, monkeypatch)
     _buat_kelompok(siap, admin)
     kode, isi, _ = minta_admin(siap, DAFTAR, admin)
     assert kode == 200 and "Buat kelompok Mini Class" in isi
+
+
+def test_private_melewati_akses_lewat_http_ditolak_tanpa_tulis(siap, admin):
+    order = _aktif("private")                                  # akses berakhir 20 Des 16.30 WIB
+    data = _token(admin, "jadwal_tempatkan", {"order_id": order})
+    data.update({"guru_id": _guru(), "tanggal": "2026-11-26", "jam": "16:31"})   # ke-8 lewat 1 menit
+    assert minta_admin(siap, PENEMPATAN, admin, data)[0] == 400
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_penempatan WHERE order_id=?", (order,))[0]["n"] == 0
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_pertemuan WHERE order_id=?", (order,))[0]["n"] == 0
+
+
+def test_ubah_pertemuan_private_melewati_akses_lewat_http_ditolak(siap, admin):
+    order = _aktif("private")
+    data = _token(admin, "jadwal_tempatkan", {"order_id": order})
+    data.update({"guru_id": _guru(), "tanggal": "2026-11-25", "jam": "16:30"})
+    assert minta_admin(siap, PENEMPATAN, admin, data)[0] == 303
+    sesi = _baris("SELECT id,mulai FROM jadwal_pertemuan WHERE order_id=? ORDER BY ke", (order,))[7]
+    ubah = _token(admin, "jadwal_pertemuan_ubah", {"order_id": order})
+    ubah.update({"pertemuan_id": str(sesi["id"]), "tanggal": "2026-12-21", "jam": "09:00"})
+    assert minta_admin(siap, PERTEMUAN, admin, ubah)[0] == 400
+    assert _baris("SELECT mulai FROM jadwal_pertemuan WHERE id=?", (sesi["id"],))[0]["mulai"] == sesi["mulai"]
+
+
+def test_klik_ganda_buat_kelompok_ditolak_409_tanpa_kembaran(siap, admin):
+    _buat_kelompok(siap, admin)
+    data = _token(admin, "jadwal_kelompok_buat", {"section": "kelas_belajar"})
+    data.update({"nama": "mini a", "lokasi": "Ruang 1", "guru_id": _guru(), "kuota": "5",
+                 "tanggal": "2026-11-24", "jam": "09:00"})
+    assert minta_admin(siap, KELOMPOK, admin, data)[0] == 409
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_kelompok")[0]["n"] == 1
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_pertemuan")[0]["n"] == 8
+
+
+def test_kelompok_selesai_tidak_muncul_di_dropdown_dan_ditolak_http(siap, admin, jam):
+    selesai = _buat_kelompok(siap, admin, nama="Sudah Selesai")                       # 24 Nov .. 18 Des
+    _buat_kelompok(siap, admin, nama="Masih Jalan", tanggal="2026-11-26")             # sampai 20 Des
+    order = _aktif("mini")
+    jam.nilai = "2026-12-19T00:00:00"                                                  # kelompok pertama selesai
+    kode, isi, _ = minta_admin(siap, "%s?order=%s" % (DETAIL, order), admin)
+    assert kode == 200 and "Masih Jalan" in isi and "Sudah Selesai" not in isi
+    assert _tempat_mini(siap, admin, order, selesai)[0] == 409
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_penempatan")[0]["n"] == 0
+
+
+def test_tombol_aktifkan_di_halaman_kelompok_tanpa_gaya_bahaya(siap, admin):
+    kid = _buat_kelompok(siap, admin)
+    pid = _baris("SELECT id FROM jadwal_pertemuan WHERE kelompok_id=? ORDER BY ke", (kid,))[0]["id"]
+    batal = _token(admin, "jadwal_pertemuan_batal", {"kelompok_id": kid})
+    batal.update({"pertemuan_id": str(pid), "batal": "1"})
+    assert minta_admin(siap, BATAL, admin, batal)[0] == 303
+    _, isi, _ = minta_admin(siap, "%s?id=%s" % (KELOMPOK, kid), admin)
+    assert '<button class="admin-tombol" type="submit">Aktifkan</button>' in isi
+    assert isi.count('<button class="admin-tombol admin-bahaya" type="submit">Batalkan</button>') == 7
+    assert isi.count('class="admin-aksi-sesi-baris"') == 8
+
+
+def test_guru_map_melewati_akun_tanpa_id_dan_halaman_kelas_tetap_terbuka(siap, admin, monkeypatch):
+    asli = auth.muat_akun
+    rusak = [{"peran": "guru", "pengguna": "tanpa-id"}, {"peran": "guru", "pengguna": "id-kosong", "id_akun": ""}]
+    monkeypatch.setattr(auth, "muat_akun", lambda path=None: list(asli(path)) + rusak)
+    from jadwal_admin_http import guru_map
+    peta = guru_map()
+    assert "tanpa-id" not in peta.values() and "id-kosong" not in peta.values()
+    assert _guru() in peta
+    assert minta_admin(siap, DAFTAR, admin)[0] == 200

@@ -17,9 +17,10 @@ RUTE_KELOMPOK = "/admin/kelas/kelompok"
 JUDUL_DAFTAR = "Kelompok Mini Class & jadwal"
 COPY_KOSONG = "Belum ada kelompok Mini Class."
 COPY_PETUNJUK = ("Mini Class dijadwalkan per kelompok (maksimal 5 anak): satu lokasi, satu guru, delapan "
-                 "pertemuan mingguan. Private dijadwalkan per anak dari halaman detail order.")
+                 "pertemuan, dua kali seminggu selama empat pekan (selesai dalam masa akses 1 bulan). "
+                 "Private dijadwalkan per anak dari halaman detail order.")
 COPY_TANPA_GURU = "Belum ada akun guru aktif. Tambah akun guru dulu sebelum menjadwalkan."
-COPY_KUOTA_PENUH = "Semua kelompok sudah penuh; buat kelompok baru atau lepaskan anggota."
+COPY_KUOTA_PENUH = "Semua kelompok sudah penuh atau selesai; buat kelompok baru atau lepaskan anggota."
 COPY_TANPA_KELOMPOK = "Belum ada kelompok Mini Class. Buat kelompok dulu di halaman antrean."
 COPY_SESI_KOSONG = "Belum ada pertemuan."
 COPY_TANPA_ANGGOTA = "Belum ada anak ditempatkan di kelompok ini."
@@ -86,26 +87,33 @@ def blok_daftar(daftar: Sequence[Mapping], guru: Mapping[str, str], token) -> st
             % (_e(JUDUL_DAFTAR), _e(COPY_PETUNJUK), tabel, form + catatan))
 
 
+def _aksi_sesi(sesi: Mapping, token_ubah, token_batal) -> str:
+    """Dua form aksi satu pertemuan (simpan waktu, batalkan/aktifkan) dalam satu baris."""
+    dibatalkan = bool(sesi["dibatalkan"])
+    tanggal, jam = jd.tanggal_jam_wib(sesi["mulai"])
+    kelas_tombol = "admin-tombol" if dibatalkan else "admin-tombol admin-bahaya"
+    return (
+        '<div class="admin-aksi-sesi-baris">'
+        '<form method="post" action="/admin/kelas/pertemuan" class="admin-form-baris">%s'
+        '<input type="hidden" name="pertemuan_id" value="%d">'
+        '<input type="date" name="tanggal" value="%s" required>'
+        '<input type="time" name="jam" value="%s" required>'
+        '<button class="admin-tombol" type="submit">Simpan</button></form>'
+        '<form method="post" action="/admin/kelas/pertemuan/batal" class="admin-form-baris" '
+        'data-konfirmasi="%s">%s'
+        '<input type="hidden" name="pertemuan_id" value="%d">'
+        '<input type="hidden" name="batal" value="%d">'
+        '<button class="%s" type="submit">%s</button></form></div>'
+        % (_hidden(token_ubah), sesi["id"], _e(tanggal), _e(jam),
+           _e(COPY_AKTIFKAN if dibatalkan else COPY_BATAL), _hidden(token_batal), sesi["id"],
+           0 if dibatalkan else 1, kelas_tombol, "Aktifkan" if dibatalkan else "Batalkan"))
+
+
 def _baris_sesi(sesi: Sequence[Mapping], token_ubah, token_batal, *, bisa_ubah: bool) -> str:
     baris = []
     for s in sesi:
-        tanggal, jam = jd.tanggal_jam_wib(s["mulai"])
         status = "Dibatalkan" if s["dibatalkan"] else "Aktif"
-        aksi = ""
-        if bisa_ubah:
-            aksi = (
-                '<form method="post" action="/admin/kelas/pertemuan" class="admin-form-baris">%s'
-                '<input type="hidden" name="pertemuan_id" value="%d">'
-                '<input type="date" name="tanggal" value="%s" required>'
-                '<input type="time" name="jam" value="%s" required>'
-                '<button class="admin-tombol" type="submit">Simpan</button></form>'
-                '<form method="post" action="/admin/kelas/pertemuan/batal" data-konfirmasi="%s">%s'
-                '<input type="hidden" name="pertemuan_id" value="%d">'
-                '<input type="hidden" name="batal" value="%d">'
-                '<button class="admin-tombol admin-bahaya" type="submit">%s</button></form>'
-                % (_hidden(token_ubah), s["id"], _e(tanggal), _e(jam),
-                   _e(COPY_AKTIFKAN if s["dibatalkan"] else COPY_BATAL), _hidden(token_batal), s["id"],
-                   0 if s["dibatalkan"] else 1, "Aktifkan" if s["dibatalkan"] else "Batalkan"))
+        aksi = _aksi_sesi(s, token_ubah, token_batal) if bisa_ubah else ""
         baris.append("<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td></tr>"
                      % (s["ke"], _e(_waktu(s["mulai"])), _e(status), aksi))
     return vp._tabel("Delapan pertemuan", ("Ke", "Waktu (WIB)", "Status", "Aksi"), "".join(baris), COPY_SESI_KOSONG)
@@ -140,10 +148,11 @@ def halaman_kelompok(detail: Mapping, guru: Mapping[str, str], tokens: Mapping) 
 
 
 def _sisa_kelompok(daftar: Sequence[Mapping]) -> str:
+    """Opsi kelompok yang masih bisa dimasuki: masih punya pertemuan berikut (belum selesai) dan belum penuh."""
     opsi = []
     for b in daftar:
         sisa = b["kuota"] - b["terisi"]
-        if sisa > 0:
+        if sisa > 0 and b.get("berikut"):
             opsi.append('<option value="%s">%s — sisa %d anak</option>'
                         % (_e(b["id"]), _e(b["nama"]), sisa))
     return "".join(opsi)

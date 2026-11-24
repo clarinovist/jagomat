@@ -34,9 +34,11 @@ RUTE_PENEMPATAN = "/admin/kelas/penempatan"
 RUTE_LEPAS = "/admin/kelas/penempatan/lepas"
 RUTE_PERTEMUAN = "/admin/kelas/pertemuan"
 RUTE_PERTEMUAN_BATAL = "/admin/kelas/pertemuan/batal"
-COPY_KONFLIK = ("Jadwal tidak dapat disimpan: kelompok mungkin penuh, anak sudah punya penempatan, atau paket "
-                "belum aktif. Lepas penempatan lama / pilih kelompok lain. Tidak ada yang diubah.")
-COPY_ISIAN = ("Isian jadwal tidak sah: periksa nama, lokasi, guru, kuota (1-5), tanggal, dan jam. "
+COPY_KONFLIK = ("Jadwal tidak dapat disimpan: kelompok mungkin penuh, sudah selesai, atau kembar (nama dan waktu "
+                "mulai sama), anak sudah punya penempatan, atau paket belum aktif. Lepas penempatan lama / "
+                "pilih kelompok lain. Tidak ada yang diubah.")
+COPY_ISIAN = ("Isian jadwal tidak sah: periksa nama, lokasi, guru, kuota (1-5), tanggal, dan jam; pertemuan "
+              "tidak boleh sudah lewat atau melewati masa akses paket (delapan pertemuan memakan 24 hari). "
               "Tidak ada yang diubah.")
 COPY_LAYANAN = "Jadwal belum siap di server. Coba lagi beberapa saat; tidak ada yang diubah."
 MAKS_FIELD = 12
@@ -46,7 +48,7 @@ _GALAT_LAYANAN = (admin_store.StoreBelumSiap, pesanan.PesananError, sqlite3.Erro
 def guru_map() -> dict:
     """Akun guru aktif: id -> nama pengguna. Akun nonaktif tidak bisa dipilih."""
     return {a["id_akun"]: a["pengguna"] for a in auth.muat_akun()
-            if a.get("peran") == "guru" and not a.get("dinonaktifkan")}
+            if a.get("peran") == "guru" and not a.get("dinonaktifkan") and a.get("id_akun")}
 
 
 def bentuk_token(penangan, principal, aksi_nama: str, isi: dict):

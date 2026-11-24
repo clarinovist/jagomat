@@ -459,6 +459,9 @@ form[action="/admin/layanan/pembayaran"], form[action="/admin/layanan/dukungan"]
 .admin-kartu label:has(input[type=checkbox]), .admin-kartu label:has(input[type=radio]) {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} {T.SP_3}; background: {T.ADMIN_NETRAL_LATAR}; border-radius: {T.RADIUS_SEDANG}; }}
 .admin-kartu button:not(.tombol-mata) {{ min-height: {T.TINGGI_KONTROL}; }}
 .admin-kartu form + form, .admin-form-tindakan form + form {{ margin-top: {T.SP_5}; }}
+.admin-form-baris, .admin-aksi-sesi-baris {{ display: flex; flex-wrap: wrap; gap: {T.SP_3}; align-items: center; }}
+.admin-form-baris input:not([type=hidden]), .admin-kartu .admin-form-baris input:not([type=hidden]):not([type=checkbox]):not([type=radio]) {{ width: auto; margin-top: 0; }}
+.admin-kartu .admin-aksi-sesi-baris form + form, .admin-kartu .admin-form-baris + .admin-form-baris {{ margin-top: 0; }}
 summary {{ min-height: {T.TARGET_SENTUH}; padding: {T.SP_3} 0; font-weight: 600; }}
 .kolom-sandi {{ display: block; position: relative; min-width: 0; }}
 .kolom-sandi > input {{ padding-right: 52px !important; }}
