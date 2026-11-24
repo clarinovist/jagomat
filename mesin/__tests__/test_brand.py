@@ -570,7 +570,7 @@ def test_maskot_ringan():
 
 POSE_V4 = (
     "semangat", "menyemangati", "terkejut", "berhitung", "memeriksa", "istirahat",
-    "bingung", "menunggu", "mencari", "terkunci",
+    "bingung", "menunggu", "mencari", "gembok",
 )
 
 

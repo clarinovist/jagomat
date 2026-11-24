@@ -9,10 +9,20 @@ from murid_shell import bungkus_murid, kepala_murid, topbar_murid
 from style_stitch import gaya_stitch
 
 
-def _catatan(isi: str) -> str:
+JUDUL_TIDAK_ADA = "404"
+
+
+def _hiasan(judul: str) -> str:
+    """Maskot untuk semua halaman 404. Satu masukan -> satu body, jadi 404 'tak ada' dan 'bukan milikmu' tetap identik."""
+    if judul != JUDUL_TIDAK_ADA:
+        return ""
+    return brand.maskot("bingung", 96, kelas="pesan-maskot-st")
+
+
+def _catatan(isi: str, hiasan: str = "") -> str:
     return f"""<section class="pesan-catatan-st">
 <p class="pesan-alis-st">CATATAN DARI {html.escape(T.NAMA_PRODUK.upper())}</p>
-{isi}
+{hiasan}{isi}
 </section>"""
 
 
@@ -34,7 +44,7 @@ def halaman_pesan(judul: str, isi: str) -> bytes:
 <title>{html.escape(brand.judul(judul))}</title>
 {brand.tag_kepala()}{tag_font_lokal()}<style>{tanpa_impor_font_cdn(gaya_stitch())}</style></head>
 <body class="st"><div class="bungkus-st shell-guru-st">{_topbar_pesan()}
-<main class="pesan-editorial-st">{_catatan(isi)}</main></div></body></html>""".encode()
+<main class="pesan-editorial-st">{_catatan(isi, _hiasan(judul))}</main></div></body></html>""".encode()
 
 
 def halaman_pesan_murid(judul: str, isi: str) -> bytes:
@@ -48,4 +58,4 @@ def halaman_pesan_murid(judul: str, isi: str) -> bytes:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(brand.judul(judul))}</title>
 {brand.tag_kepala()}{kepala_murid(gaya_stitch())}</head>
-<body class="st">{bungkus_murid(topbar_murid() + '<main class="pesan-editorial-st">' + _catatan(isi) + '</main>')}</body></html>""".encode()
+<body class="st">{bungkus_murid(topbar_murid() + '<main class="pesan-editorial-st">' + _catatan(isi, _hiasan(judul)) + '</main>')}</body></html>""".encode()

@@ -119,7 +119,7 @@ def halaman_pin(galat: str = "") -> bytes:
         f'<form method="post" action="{RUTE_PIN}">{_field_pin("pin", "PIN Ayah/Bunda", "pin")}'
         f'{_tombol("Buka halaman")}</form>'
     )
-    maskot = brand.maskot("terkunci", 96, kelas="ortu-pin-maskot-st")
+    maskot = brand.maskot("gembok", 96, kelas="ortu-pin-maskot-st")
     badan = (
         '<div class="funnel-alur-st">' + _kepala() + _pesan("", galat)
         + f'<section class="ortu-kartu-st" id="ortu-pin-masuk">{maskot}<h2>{_e(COPY_PIN_MASUK_JUDUL)}</h2>'

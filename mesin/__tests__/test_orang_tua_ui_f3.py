@@ -195,9 +195,9 @@ def test_halaman_tirai_pin_tidak_ikut_gaya_ceria_dan_tanpa_data_anak():
     assert "Anak Sintetis" not in html and "Catatan sintetis" not in html and "Bu Guru" not in html
 
 
-def test_halaman_pin_memakai_satu_maskot_terkunci_tanpa_gaya_ceria():
+def test_halaman_pin_memakai_satu_maskot_gembok_tanpa_gaya_ceria():
     html = P.halaman_pin().decode()
-    assert html.count("maskot-terkunci-v4-96.png") == 1 and html.count("/aset/maskot-") == 1
+    assert html.count("maskot-gembok-v4-96.png") == 1 and html.count("/aset/maskot-") == 1
     assert 'class="ortu-pin-maskot-st"' in html and 'class="ceria-maskot"' not in html
 
 

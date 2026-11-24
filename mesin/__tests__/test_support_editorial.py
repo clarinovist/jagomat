@@ -14,7 +14,7 @@ import web
 from generator import buat_lembar
 from print_style import GAYA_CETAK
 from screen_style import GAYA_LAYAR
-from support_pages import halaman_pesan
+from support_pages import halaman_pesan, halaman_pesan_murid
 
 
 @pytest.mark.parametrize('fungsi,kelas', [(landing.halaman_lupa_sandi, 'lupa-editorial-st'), (landing.halaman_kebijakan, 'privasi-editorial-st')])
@@ -88,3 +88,13 @@ def test_kontras_aksen_editorial_di_latar_terpakai():
     for depan, latar in [(T.TEKS_PUTIH, T.AKSEN_TEAL_TUA), (T.TEKS_PUTIH, T.AKSEN_KORAL_TUA), (T.AKSEN_TEAL_TUA, T.LATAR_MURID), (T.TEKS_VARIAN, T.LATAR_MURID)]:
         a, b = sorted([luminansi(depan), luminansi(latar)])
         assert (b + .05) / (a + .05) >= 4.5
+
+
+@pytest.mark.parametrize('helper', [halaman_pesan, halaman_pesan_murid])
+def test_halaman_404_memakai_satu_maskot_bingung_dan_tetap_identik(helper):
+    tak_ada = helper('404', '<h1>Halaman tidak ada</h1>').decode()
+    bukan_milik = helper('404', '<h1>Halaman tidak ada</h1>').decode()
+    assert tak_ada == bukan_milik, 'keidentikan body 404 harus terjaga'
+    assert tak_ada.count('/aset/maskot-') == 1 and tak_ada.count('/aset/maskot-bingung-v4-96.png') == 1
+    lain = helper('Pesan', '<h1>Halo</h1>').decode()
+    assert '/aset/maskot-' not in lain

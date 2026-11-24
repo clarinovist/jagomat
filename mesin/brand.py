@@ -77,7 +77,7 @@ ASET.update({
 # dengan v3. Berkas berversi v4; pose v3 tidak diganti. Pemakaian per layar menyusul.
 POSE_MASKOT_V4 = (
     "semangat", "menyemangati", "terkejut", "berhitung", "memeriksa", "istirahat",
-    "bingung", "menunggu", "mencari", "terkunci",
+    "bingung", "menunggu", "mencari", "gembok",
 )
 ASET.update({
     f"maskot-{pose}-v4-{px}.png": "image/png"

@@ -90,7 +90,7 @@ def test_halaman_500_menjelaskan_dalam_bahasa_manusia(server, monkeypatch):
         f"/sesi-remedial/{sid}", auth=("guru", SANDI_GURU), data={}
     )
     assert "Ada yang bermasalah" in isi
-    assert isi.count("/aset/maskot-bingung-v4-240.png") == 1
+    assert isi.count("/aset/maskot-bingung-v4-96.png") == 1
     assert "coba lagi" in isi.lower()
 
 

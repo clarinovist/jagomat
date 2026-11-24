@@ -404,7 +404,7 @@ class Penangan(BaseHTTPRequestHandler):
             return
         isi = _halaman(
             "Ada yang bermasalah",
-            brand.maskot("bingung", 240)
+            brand.maskot("bingung", 96, kelas="pesan-maskot-st")
             + "<h1>Ada yang bermasalah</h1>"
             "<p>Permintaan ini gagal diproses. Kesalahannya ada di sisi "
             "aplikasi, bukan pada yang kamu isi.</p>"
