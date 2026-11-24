@@ -226,6 +226,17 @@ def test_animasi_hanya_di_dalam_prefers_reduced_motion_no_preference():
     assert "!important" not in S.GAYA_CERIA
 
 
+def test_gerakan_maskot_napas_dan_gaya_pose_hanya_di_dalam_media_no_preference():
+    luar, dalam = _tanpa_blok_media(S.GAYA_CERIA)
+    for nama in ("ceria-napas", "ceria-lompat", "ceria-condong"):
+        assert f"@keyframes {nama}" in dalam, nama
+        assert nama not in luar, nama
+    # napas/lompat/miring memakai properti individual agar tidak menimpa transform ceria-naik
+    assert "scale: 1.02" in dalam and "translate: 0 -12px" in dalam and "rotate: -4deg" in dalam
+    assert '.ceria-maskot[src*="maskot-merayakan-"]' in dalam
+    assert '.ceria-maskot[src*="maskot-berpikir-"]' in dalam
+
+
 def test_keadaan_diam_lengkap_tanpa_opacity_nol_di_luar_media():
     luar, _ = _tanpa_blok_media(S.GAYA_CERIA)
     assert "opacity: 0" not in luar and "visibility: hidden" not in luar and "display: none" not in luar

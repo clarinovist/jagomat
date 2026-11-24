@@ -122,13 +122,21 @@ GAYA_CERIA = f"""
 .ceria-banner.ceria-hampir {{ background: {T.LATAR_CATATAN}; border-color: {T.BORDER_CATATAN}; color: {T.ANAK_PERHATIAN_TEKS}; }}
 
 @media (prefers-reduced-motion: no-preference) {{
-  .ceria-maskot, .ceria-gelembung {{ animation: ceria-naik .6s ease-out both; }}
+  .ceria-gelembung {{ animation: ceria-naik .6s ease-out both; }}
+  /* Maskot: masuk memantul (transform), lalu napas pelan saat diam (scale). Properti terpisah
+     agar gerakan gaya-pose di bawah bisa menumpuk tanpa saling menimpa. */
+  .ceria-maskot {{ animation: ceria-naik .6s ease-out both, ceria-napas 3.6s ease-in-out .6s infinite; }}
+  .ceria-maskot[src*="maskot-merayakan-"] {{ animation: ceria-naik .6s ease-out both, ceria-napas 3.6s ease-in-out .6s infinite, ceria-lompat .5s ease-out .6s both; }}
+  .ceria-maskot[src*="maskot-berpikir-"] {{ transform-origin: 50% 100%; animation: ceria-naik .6s ease-out both, ceria-napas 3.6s ease-in-out .6s infinite, ceria-condong .8s ease-in-out .6s both; }}
   .ceria-konfeti i {{ animation: ceria-muncul .7s ease-out both; }}
   .ceria-konfeti i:nth-child(2n) {{ animation-delay: .12s; }}
   .ceria-konfeti i:nth-child(3n) {{ animation-delay: .24s; }}
   .ceria-tombol {{ transition: transform .12s ease; }}
   .ceria-tombol:hover {{ transform: translateY(-2px); }}
   @keyframes ceria-naik {{ 0% {{ transform: translateY(10px) scale(.94); }} 60% {{ transform: translateY(-5px) scale(1.02); }} 100% {{ transform: none; }} }}
+  @keyframes ceria-napas {{ 0%, 100% {{ scale: 1; }} 50% {{ scale: 1.02; }} }}
+  @keyframes ceria-lompat {{ 0%, 100% {{ translate: 0 0; }} 40% {{ translate: 0 -12px; }} 70% {{ translate: 0 -3px; }} }}
+  @keyframes ceria-condong {{ 0% {{ rotate: 0deg; }} 100% {{ rotate: -4deg; }} }}
   @keyframes ceria-muncul {{ 0% {{ opacity: 0; translate: 0 -14px; }} 100% {{ opacity: 1; translate: 0 0; }} }}
 }}
 """
