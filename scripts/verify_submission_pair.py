@@ -34,6 +34,8 @@ from release_sensor_pair import (SUMBER_TULIS as SENSOR_TULIS,
     SUMBER_BACA as SENSOR_BACA, SUMBER_KEMBALI as SENSOR_KEMBALI)
 from release_question_pair import (SUMBER_TULIS as SOAL_TULIS,
     SUMBER_BACA as SOAL_BACA, SUMBER_KEMBALI as SOAL_KEMBALI)
+from release_kelas_pair import (SUMBER_TULIS as KELAS_TULIS,
+    SUMBER_BACA as KELAS_BACA, SUMBER_KEMBALI as KELAS_KEMBALI)
 
 TULIS_PILOT = 'FOKUS_TULIS = ' + repr(FOKUS_TULIS) + '\nPROBE_PROFIL = ' + repr(SUMBER_UJI_PROFIL) + '\nADMIN_TULIS = ' + repr(ADMIN_TULIS) + '\n' + TULIS_PILOT
 BACA_PILOT = 'FOKUS_BACA = ' + repr(FOKUS_BACA) + '\nADMIN_BACA = ' + repr(ADMIN_BACA) + '\n' + BACA_PILOT
@@ -52,6 +54,7 @@ for _nama in (
     "release_package_pair", "release_quota_pair", "release_registration_pair",
     "release_support_pair", "release_policy_pair", "release_sensor_pair",
     "release_question_pair", "release_admin_launch_pair",
+    "release_kelas_pair",
 ):
     _validasi_pair(sys.modules[_nama], nama=_nama)
 
@@ -261,6 +264,9 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             (23, candidate_image, SOAL_TULIS, 'OSN_QUESTION_WRITER_OK'),
             (24, recovery_image, SOAL_BACA, 'OSN_QUESTION_RECOVERY_OK'),
             (25, candidate_image, SOAL_KEMBALI, 'OSN_QUESTION_RETURN_OK'),
+            (26, candidate_image, KELAS_TULIS, 'OSN_KELAS_WRITER_OK'),
+            (27, recovery_image, KELAS_BACA, 'OSN_KELAS_RECOVERY_OK'),
+            (28, candidate_image, KELAS_KEMBALI, 'OSN_KELAS_RETURN_OK'),
         ):
             if _jalankan(image, volume, sumber, token, nomor) != marker:
                 raise GalatVerifikasi('probe_paket_kuota_gagal')
@@ -277,7 +283,7 @@ def verifikasi(candidate_image, candidate_revision, recovery_image, recovery_rev
             'package_pair_checks': 8, 'quota_pair_checks': 8,
             'photo_pair_checks': 8, 'registration_pair_checks': 8,
             'support_pair_checks': 8, 'sensor_pair_checks': 8, 'policy_pair_checks': 6,
-            'question_pair_checks': 8, 'provider_calls': 0}
+            'question_pair_checks': 8, 'kelas_pair_checks': 8, 'provider_calls': 0}
 
 
 def main(argv=None):

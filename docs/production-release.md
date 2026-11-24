@@ -12,6 +12,37 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Persiapan rilis Paket Belajar 1 Bulan — 24 November 2026 (BELUM DIRILIS)
+
+Kandidat `main` lokal memuat Paket Belajar (Private/Mini Class) di balik sakelar `PAKET_BELAJAR`
+(bawaan mati; menutup rute MURID saja, `/admin/kelas` tetap terbuka seperti Harian). Belum ada push,
+deploy, atau migrasi live; tabel `kelas_*` belum ada di produksi.
+
+- **Kontrak bergeser** `7206a9ff…` → **`fec2fd50…`** (`schema_kelas.py` + `kelas_store.py`). Recovery baru
+  **85bbd52** (branch `recovery-kelas-paket` = `6613e5d` + lapisan data `kelas_*` tanpa HTTP/gate, plus
+  commit kontrak) — **wajib dipush ke origin sebelum `main`**. `scripts/release-metadata.json` dan
+  `RECOVERY_SHA` (env + checkout) di `main` lokal sudah menunjuk `85bbd52`; anchor koleksi recovery
+  **27.849 nodeid** (Python 3.9, tanpa tes baru di pohon recovery). Belum ada push/dispatch.
+- **Probe:** `PROBE_KELAS_SKEMA` (live `admin-control.db` `mode=ro`; tabel belum ada = lulus, sudah ada
+  wajib persis DDL source), blok `PROBE_IMAGE` (migrasi `kelas_*` dua kali + `foreign_key_check` bersih),
+  dan probe pasangan `scripts/release_kelas_pair.py` (tulis kandidat → baca recovery → lanjut kandidat
+  sampai akses tertulis; `kelas_pair_checks` 8, total 28 langkah probe pasangan).
+- **Backup:** `admin_backup.validasi_bundle` kini menandai `skema_kelas`; `rehearsal_bundle(target_kelas=True)`
+  memasang `kelas_*` hanya di turunan (menyeret pesanan), mempertahankan baris ledger lama, dan menolak
+  penurunan/parsial. Tool host `/opt/osn/backup-tool` (+ `backup-harian`) harus memuat `schema_kelas.py`
+  dan `paket_belajar_katalog.py` sebelum bundle pasca-migrasi divalidasi.
+- **Migrasi live** (setelah hold + backup coherent + rehearsal pada salinan):
+  `mesin/.venv/bin/python mesin/kelas_migrasi.py --database <salinan/admin-control.db>`, lalu perintah yang
+  sama pada live. Idempoten, tanpa seed, tanpa bump `user_version`; exit 2 = ditolak tanpa mengubah apa pun.
+  `pesanan_*` dan `transfer_*` wajib sudah ada; `purna_*` opsional (tanpa purna tidak ada potongan deposit).
+- **Sakelar:** nyalakan `PAKET_BELAJAR` di `/admin/sakelar` hanya setelah migrasi + smoke; mematikannya
+  mengembalikan rute murid ke 404 (ledger dan berkas tetap). Mini Class offline belum punya lokasi; kartu
+  menulis "Lokasi diumumkan setelah pendaftaran".
+- **Celah operasional (SOP tim, belum otomatis):** deposit yang kedaluwarsa/ditahan sebelum bukti disetujui
+  harus DITOLAK admin (pembeli membuat tagihan baru dengan nominal benar); pembeli yang sudah transfer
+  nominal berdiskon tetapi diskonnya tidak lagi sah ditagih selisihnya secara manual. Penjadwalan Guru,
+  penegakan kuota 5, retensi berkas `kelas/`, dan pengingat perpanjangan belum ada.
+
 ## Deploy Peta Kemampuan ditulis Guru dan migrasi `purna_*` (deposit) — 24 November 2026
 
 Controlled `deploy-v2` memasang **1e61c8f** (`1e61c8f4e11b14a1b457153f0e945e4644164029`, digest

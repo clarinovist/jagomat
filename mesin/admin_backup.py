@@ -72,6 +72,7 @@ class RingkasanBackup:
     skema_sensor: bool = False
     skema_policy: bool = False
     skema_pesanan_transfer: Tuple[bool, bool, bool, bool] = (False, False, False, False)
+    skema_kelas: bool = False
 
 
 def _sha256(path: Path) -> str:
@@ -360,6 +361,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
     skema_sensor = False
     skema_policy = False
     skema_pesanan_transfer = (False, False, False, False)
+    skema_kelas = False
     if versi_admin in (VERSI_TARGET['admin'], 8, 9):
         import admin_store
         import support_settings
@@ -374,6 +376,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
                 skema_policy = policy_schema.validasi(kon)
                 import admin_backup_pesanan
                 skema_pesanan_transfer = admin_backup_pesanan.deteksi(kon)
+                skema_kelas = admin_backup_pesanan.deteksi_kelas(kon)
                 if versi_admin == 9:
                     import assistant_quota_store
                     assistant_quota_store.validasi_sumber(kon)
@@ -415,7 +418,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
         or bool(foto_pending or foto_unknown) or bool(registrasi_pending),
         kuota_pending, kuota_unknown, skema_foto, foto_pending, foto_unknown,
         skema_registrasi, registrasi_pending, skema_dukungan, skema_sensor, skema_policy,
-        skema_pesanan_transfer,
+        skema_pesanan_transfer, skema_kelas,
     )
 
 
@@ -620,13 +623,15 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
                      target_registrasi=None, target_penutupan=None,
                      target_dukungan=None, target_sensor=None, target_policy=None,
                      target_pesanan=None, target_transfer=None,
-                     target_rekening=None, target_purna=None) -> RingkasanBackup:
+                     target_rekening=None, target_purna=None,
+                     target_kelas=None) -> RingkasanBackup:
     """Migrasikan turunan temp dua kali; backup induk tidak pernah ditulis.
 
     ``migrator_ai`` wajib dari candidate AI2. ``target_admin`` None mempertahankan
     versi8/9 atau menaikkan legacy ke7; target9 eksplisit menguji8→9. ``target_pesanan``/
-    ``target_transfer``/``target_rekening``/``target_purna`` opt-in skema pesanan v1, ``transfer_*`` (menyeret
-    pesanan), ``rekening_*``, dan ``purna_*`` (menyeret pesanan + transfer) hanya pada turunan; None mempertahankan, menurun ditolak. Bukan izin
+    ``target_transfer``/``target_rekening``/``target_purna``/``target_kelas`` opt-in skema pesanan v1, ``transfer_*``
+    (menyeret pesanan), ``rekening_*``, ``purna_*`` (menyeret pesanan + transfer), dan ``kelas_*`` (menyeret
+    pesanan) hanya pada turunan; None mempertahankan, menurun ditolak. Bukan izin
     migrasi backup induk, downgrade, aktivasi entitlement, atau provider.
     ``target_foto=True`` memasang receipt hanya pada turunan; None mempertahankan
     schema induk. ``target_registrasi=True`` juga opt-in hanya turunan. Receipt,
@@ -673,12 +678,20 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
     if type(target_dukungan) is not bool or (sebelum.skema_dukungan and not target_dukungan):
         raise BackupTidakSah('target rehearsal dukungan tidak sah')
     import admin_backup_pesanan
+    if target_kelas is True and target_pesanan is None:
+        target_pesanan = True
     try:
         target_pesanan_transfer = admin_backup_pesanan.tentukan_target(
             sebelum.skema_pesanan_transfer, target_pesanan, target_transfer, target_rekening,
             target_purna)
     except ValueError:
         raise BackupTidakSah('target rehearsal pesanan tidak sah') from None
+    if target_kelas is None:
+        target_kelas = sebelum.skema_kelas
+    if type(target_kelas) is not bool or (sebelum.skema_kelas and not target_kelas):
+        raise BackupTidakSah('target rehearsal kelas tidak sah')
+    if target_kelas and not target_pesanan_transfer[0]:
+        raise BackupTidakSah('target rehearsal kelas memerlukan pesanan')
     with tempfile.TemporaryDirectory(prefix="jagomat-rehearsal-") as direktori:
         turunan = Path(direktori)
         turunan.chmod(0o700)
@@ -727,6 +740,8 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
                 policy_schema.migrasikan(turunan / BERKAS_WAJIB['admin'])
             admin_backup_pesanan.migrasikan(turunan / BERKAS_WAJIB['admin'],
                                             target_pesanan_transfer, sebelum.cutoff)
+            if target_kelas:
+                admin_backup_pesanan.migrasikan_kelas(turunan / BERKAS_WAJIB['admin'])
             migrator_ai(turunan / BERKAS_WAJIB["ai"])
             assistant_schema.siapkan(turunan / BERKAS_WAJIB["pendamping"]) 
         foto_akhir = _validasi_foto(turunan / BERKAS_WAJIB['belajar'])
@@ -765,6 +780,8 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
                 raise BackupTidakSah('state policy berubah selama rehearsal')
             if admin_backup_pesanan.deteksi(kon) != target_pesanan_transfer:
                 raise BackupTidakSah('state pesanan berubah selama rehearsal')
+            if admin_backup_pesanan.deteksi_kelas(kon) != target_kelas:
+                raise BackupTidakSah('state kelas berubah selama rehearsal')
             if target_admin == 9:
                 import assistant_quota_store
                 assistant_quota_store.validasi_sumber(kon)
@@ -802,4 +819,5 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
         target_foto, sebelum.operasi_foto_pending, sebelum.operasi_foto_unknown,
         target_registrasi, sebelum.operasi_registrasi_profil_pending,
         target_dukungan, target_sensor, target_policy, target_pesanan_transfer,
+        target_kelas,
     )

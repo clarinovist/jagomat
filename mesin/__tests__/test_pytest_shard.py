@@ -84,6 +84,9 @@ JUMLAH_RECOVERY = {
     # Koleksi recovery peta-purna 6613e5d (87d6ff4 + kontrak peta_laporan/purna_* + kontrak 7206a9f): collect-only
     # arsip exact 27.849 nodeid di Python 3.9, 24 Nov 2026.
     "6613e5d72404b421b84b41f1387e9aa6d39df378": 27849,
+    # Koleksi recovery kelas-paket 85bbd52 (6613e5d + lapisan data kelas_* + kontrak fec2fd5): collect-only
+    # arsip exact 27.849 nodeid di Python 3.9, 24 Nov 2026 (tanpa tes baru di pohon recovery).
+    "85bbd528264b221148d522d958bcb31bb66ce907": 27849,
     "ff6acb158985f78ef0287ec18fb045d273921bdc": 13507,
     "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
     # Arsip exact reader katalog; nodeid identik empat manifest CI39596225447

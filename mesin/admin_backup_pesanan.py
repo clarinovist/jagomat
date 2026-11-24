@@ -1,8 +1,9 @@
-"""Opt-in skema pesanan v1, `transfer_*`, `rekening_*`, dan `purna_*` pada validator/rehearsal backup.
+"""Opt-in skema pesanan v1, `transfer_*`, `rekening_*`, `purna_*`, dan `kelas_*` pada validator/rehearsal backup.
 
-Urutan tetap (pesanan, transfer, rekening, purna): transfer bergantung pada ledger pesanan, purna
-bergantung pada pesanan dan transfer. Semua fungsi murni terhadap koneksi/path yang diberikan; galat
-input memakai ValueError agar `admin_backup` menerjemahkannya menjadi `BackupTidakSah`.
+Urutan tetap (pesanan, transfer, rekening, purna, kelas): transfer bergantung pada ledger pesanan, purna
+bergantung pada pesanan dan transfer, kelas bergantung pada ledger pesanan (dan memakai purna saat lunas).
+Semua fungsi murni terhadap koneksi/path yang diberikan; galat input memakai ValueError agar
+`admin_backup` menerjemahkannya menjadi `BackupTidakSah`.
 """
 from __future__ import annotations
 
@@ -57,3 +58,15 @@ def migrasikan(path, target: Skema, sekarang: int) -> None:
     if target[3]:
         import schema_purna
         schema_purna.migrasikan(path)
+
+
+def deteksi_kelas(kon) -> bool:
+    """Namespace `kelas_*` terpasang dan sah (True), absen (False), parsial/berbeda -> ValueError."""
+    import schema_kelas
+    return schema_kelas.validasi(kon)
+
+
+def migrasikan_kelas(path) -> None:
+    """Pasang skema `kelas_*` (idempoten) pada salinan temp; mensyaratkan ledger pesanan."""
+    import schema_kelas
+    schema_kelas.migrasikan(path)

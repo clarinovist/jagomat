@@ -51,6 +51,12 @@ seluruh VPS.** Pemulihan host juga membutuhkan image exact, config/secret existi
 melalui inventaris privat, dan rotasi/rekonsiliasi sesuai runbook. Jangan memulihkan
 sesi login lama atau consent epoch tanpa prosedur domain.
 
+`kelas_*` (Paket Belajar) berada di `admin-control.db`, jadi ikut bundle core tanpa berkas baru; validator
+`admin_backup` menandai `skema_kelas` dan `rehearsal_bundle(target_kelas=True)` menguji migrasi hanya pada
+turunan. Tool host `/opt/osn/backup-tool` dan `backup-harian` perlu `schema_kelas.py` +
+`paket_belajar_katalog.py` agar cek skema bundle pasca-migrasi berjalan. Bukti transfer di subfolder
+`kelas/` belum punya retensi sendiri.
+
 ## Capture terkontrol, bukan backup hot lintas-DB
 
 Tool `scripts/operational_backup.py` tidak menghentikan server atau memasang hold.
