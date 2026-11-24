@@ -77,7 +77,7 @@ KASUS = (
      ((HTTP, '    if data.get("konfirmasi") != "1":', "    if False:"),),
      (H + "test_hapus_pin_butuh_tirai_terbuka_dan_konfirmasi",)),
     ("F12-cek-akun-lain-dipakai",
-     ((DATA, "cek_gratis.hasil_siswa(kon, id_akun, siswa_id)", "cek_gratis.baca_hasil(kon, id_akun)"),),
+     ((DATA, "hasil_cek=cek_gratis.hasil_siswa(kon, id_akun, siswa_id)", "hasil_cek=cek_gratis.baca_hasil(kon, id_akun)"),),
      (H + "test_cek_milik_akun_lain_tidak_tampil", H + "test_cek_anak_lain_di_akun_yang_sama_tidak_dipakai")),
     ("F13-pesanan-akun-lain-dipakai",
      ((DATA, '"SELECT order_id FROM pesanan_order WHERE akun_id = ? AND siswa_id = ?", (id_akun, siswa_id)',

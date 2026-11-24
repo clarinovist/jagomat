@@ -43,8 +43,8 @@ def _penuh() -> str:
 
 def test_urutan_blok_halaman():
     html = _penuh()
-    penanda = ['id="ortu-langganan-banner"', 'class="ceria-hero"', 'id="ortu-hasil-cek"', 'id="ortu-harian"',
-               'id="ortu-langganan"', 'id="ortu-laporan"', 'id="ortu-pesanan"', 'id="ortu-pin"']
+    penanda = ['id="ortu-langganan-banner"', 'class="ceria-hero"', 'id="ortu-hasil-cek"', 'id="ortu-pesanan"',
+               'id="ortu-harian"', 'id="ortu-langganan"', 'id="ortu-laporan"', 'id="ortu-pin"']
     posisi = [html.index(p) for p in penanda]
     assert posisi == sorted(posisi) and len(set(posisi)) == len(penanda)
 

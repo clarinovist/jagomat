@@ -232,6 +232,22 @@ def selesaikan_jika_siap(kon, id_akun, sekarang) -> bool:
     return tersimpan
 
 
+def selesaikan_sesi(kon, sesi_id, sekarang) -> bool:
+    """Nilai cek yang memiliki sesi ini (dipanggil saat anak mengumpulkan lewat tautan).
+
+    Pemilik dicari dari baris `cek_gratis` (kolom `sesi_id`, tanpa ubah skema). Sesi
+    yang bukan sesi cek (tautan guru biasa) tidak punya baris: tidak melakukan apa
+    pun dan mengembalikan False. Tanpa panggilan penyedia/AI; selebihnya sama dengan
+    `selesaikan_jika_siap` (idempoten, di transaksi pemanggil, tidak commit).
+    """
+    baris = kon.execute(
+        "SELECT id_akun FROM cek_gratis WHERE sesi_id = ?", (sesi_id,)
+    ).fetchone()
+    if baris is None:
+        return False
+    return selesaikan_jika_siap(kon, baris["id_akun"], sekarang)
+
+
 def _urai_ringkasan(teks) -> dict:
     try:
         data = json.loads(teks)

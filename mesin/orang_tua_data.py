@@ -109,9 +109,31 @@ def langganan(kon, siswa_id: int, sekarang: str) -> Optional[harian_langganan_ri
     return harian_langganan_ringkas.ringkasan(kon, siswa_id, sekarang)
 
 
+def _nilai_bila_sudah_kumpul(kon, id_akun: str, siswa_id: int, sekarang: Optional[str]) -> None:
+    """Nilai cek anak yang sudah dikumpulkan tetapi skornya masih kosong (data lama atau balapan).
+
+    Hanya berjalan bila status `belum_selesai`, jadi tampilan biasa tidak mengambil kunci tulis.
+    Idempoten; gagal menilai dicatat tanpa data dan halaman tetap tampil (belum selesai).
+    """
+    if cek_gratis.hasil_siswa(kon, id_akun, siswa_id)["status"] != "belum_selesai":
+        return
+    try:
+        if not kon.in_transaction:
+            kon.execute("BEGIN IMMEDIATE")
+        cek_gratis.selesaikan_jika_siap(kon, id_akun, _sekarang_baku() if sekarang is None else sekarang)
+    except (ValueError, sqlite3.Error) as galat:
+        _LOG.warning("penilaian cek halaman orang tua gagal: %s", type(galat).__name__)
+        if kon.in_transaction:
+            kon.rollback()
+
+
 def kumpulkan(kon, id_akun: str, siswa_id: int, sekarang: Optional[str] = None) -> DataOrangTua:
-    """Isi halaman untuk anak sesi ini; `kon` ber-row_factory Row (database.buka)."""
+    """Isi halaman untuk anak sesi ini; `kon` ber-row_factory Row (database.buka).
+
+    `kon` harus koneksi tulis: cek yang sudah dikumpulkan tetapi belum bernilai dinilai dulu.
+    """
     import harian_http  # F4: ringkasan Latihan Harian; None bila sakelar LATIHAN_HARIAN mati
+    _nilai_bila_sudah_kumpul(kon, id_akun, siswa_id, sekarang)
     status = status_pesanan(id_akun, siswa_id, sekarang)
     return DataOrangTua(
         nama_anak=_nama_anak(kon, siswa_id),

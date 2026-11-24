@@ -12,9 +12,12 @@ menyentuh penilaian adalah helper finalisasi bersama dengan jalur lama.
 """
 from __future__ import annotations
 
+import logging
 import re
 import urllib.parse
+from datetime import datetime, timezone
 
+import cek_gratis
 import database
 from cek_anak_komponen import JEDA_SETELAH, Konteks, konteks_dari_query, url
 from cek_anak_pages import (
@@ -37,6 +40,8 @@ FIELD_BOLEH = {
 GALAT_ISIAN = "Isian tidak bisa diproses. Muat ulang halaman, lalu coba lagi."
 GALAT_USANG = "Jawabanmu berubah di halaman lain. Muat ulang halaman, lalu lanjutkan."
 STATUS_USANG = 409
+FORMAT_WAKTU = "%Y-%m-%dT%H:%M:%S"
+_LOG = logging.getLogger(__name__)
 
 
 def adalah_sesi_cek(kon, sesi_id: int) -> bool:
@@ -249,6 +254,19 @@ def _post_simpan(penangan, kon, k, akses, data, info, daftar, aksi, nama_opsi) -
     return _alihkan(penangan, lokasi_berikut(k, nomor, len(daftar), dari == "peta", "simpan"))
 
 
+def _nilai_cek_saat_kumpul(kon, sesi_id: int) -> None:
+    """Tulis skor cek di transaksi kumpul yang sama, supaya halaman orang tua langsung punya hasil.
+
+    Gagal menilai tidak boleh menggagalkan kiriman anak: dicatat tanpa data, dan halaman
+    orang tua mencoba lagi saat dibuka (`orang_tua_data`).
+    """
+    kini = datetime.now(timezone.utc).strftime(FORMAT_WAKTU)
+    try:
+        cek_gratis.selesaikan_sesi(kon, sesi_id, kini)
+    except ValueError as galat:
+        _LOG.warning("penilaian cek saat kumpul gagal: %s", type(galat).__name__)
+
+
 def _post_kumpul(penangan, kon, k, akses, data, info, daftar) -> bool:
     import student_submissions as kiriman
 
@@ -261,6 +279,7 @@ def _post_kumpul(penangan, kon, k, akses, data, info, daftar) -> bool:
         return _tolak(penangan, kon, k, status, teks, url(k, peta=1))
     dijawab = sum(1 for e in daftar if sudah_dijawab(e))
     kiriman_baru = finalkan_kiriman_tautan(kon, sesi_id)
+    _nilai_cek_saat_kumpul(kon, sesi_id)
     kon.commit()
     catat_kiriman_tautan(sesi_id, kiriman_baru)
     penangan._kirim_tautan(layar_hore(k, info["nama"], dijawab, len(daftar)))

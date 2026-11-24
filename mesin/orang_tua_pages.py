@@ -44,6 +44,8 @@ COPY_KALIMAT = (
 COPY_CEK_JUDUL = "Hasil cek kemampuan"
 COPY_CEK_BELUM = "Cek kemampuan belum dikerjakan."
 COPY_CEK_BELUM_SELESAI = "Cek kemampuan belum selesai dikerjakan."
+COPY_CEK_LANJUT = "Lanjutkan cek"
+RUTE_BERANDA_ANAK = "/murid"  # beranda anak: kartu cek ada di sana
 COPY_LAPORAN_JUDUL = "Laporan dari Guru"
 COPY_LAPORAN_KOSONG = "Belum ada laporan dari Guru."
 COPY_PESANAN_JUDUL = "Peta Kemampuan"
@@ -132,11 +134,16 @@ def halaman_pin(galat: str = "") -> bytes:
     return _dokumen(badan)
 
 
+def _tautan_lanjut_cek() -> str:
+    return (f'<a class="ortu-tombol-st ortu-tombol-pinggir-st" href="{RUTE_BERANDA_ANAK}">'
+            f'{_e(COPY_CEK_LANJUT)}</a>')
+
+
 def _blok_cek(hasil: dict, nama_anak: str) -> str:
     if hasil["status"] == "belum_mulai":
-        isi = f'<p>{_e(COPY_CEK_BELUM)}</p>'
+        isi = f'<p>{_e(COPY_CEK_BELUM)}</p>' + _tautan_lanjut_cek()
     elif hasil["status"] != "selesai":
-        isi = f'<p>{_e(COPY_CEK_BELUM_SELESAI)}</p>'
+        isi = f'<p>{_e(COPY_CEK_BELUM_SELESAI)}</p>' + _tautan_lanjut_cek()
     else:
         isi = (
             cek_pages._blok_kepala_hasil(hasil, nama_anak, None)
@@ -257,17 +264,18 @@ def _kaki() -> str:
 def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "") -> bytes:
     """Isi halaman (tirai terbuka atau anak tanpa PIN); `data` = `orang_tua_data.DataOrangTua`.
 
-    Urutan: banner perpanjang, hero ringkasan, hasil cek, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, laporan Guru, Peta, PIN (lipat).
+    Urutan: banner perpanjang, hero ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, laporan Guru, PIN (lipat).
     """
     pin_terbuka = bool(KABAR.get(kabar) or galat)
     badan = (
         '<div class="funnel-alur-st">' + _pesan(kabar, galat)
         + harian_langganan_pages.banner_orang_tua(data.langganan, data.nama_anak)
         + _hero_ringkasan(data.nama_anak, data.harian)
-        + _blok_cek(data.hasil_cek, data.nama_anak) + peta_laporan_ortu_pages.blok_peta(data.peta)
+        + _blok_cek(data.hasil_cek, data.nama_anak)
+        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai", data.purna)
+        + peta_laporan_ortu_pages.blok_peta(data.peta)
         + _blok_harian(data.harian)
         + harian_langganan_pages.kartu_orang_tua(data.langganan) + _blok_laporan(data.laporan)
-        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai", data.purna)
         + _blok_pin(ada_pin, pin_terbuka) + _kaki() + "</div>"
     )
     return _dokumen(badan, ceria=True)

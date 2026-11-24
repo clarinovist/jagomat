@@ -215,9 +215,9 @@ def test_selesai_hore_tanpa_skor_hasil_siswa_berisi_skor_dan_kartu_hilang(server
     for kata in KATA_HORE_TERLARANG:
         assert kata not in polos, kata
     with server.buka() as kon:
+        hasil = cek_gratis.hasil_siswa(kon, anak.id_akun, anak.siswa_id)  # skor sudah ditulis saat kumpul
         kon.execute("BEGIN IMMEDIATE")
-        assert cek_gratis.selesaikan_jika_siap(kon, anak.id_akun, kit_cek.SEKARANG) is True
-        hasil = cek_gratis.hasil_siswa(kon, anak.id_akun, anak.siswa_id)
+        assert cek_gratis.selesaikan_jika_siap(kon, anak.id_akun, kit_cek.SEKARANG) is False  # idempoten
     assert hasil["status"] == "selesai" and hasil["skor"] == cek_gratis_skor.hitung_skor(7, JUMLAH_SOAL)
     _, isi, _ = anak.get("/murid")
     assert ACTION_KARTU not in isi and "Cek kemampuan" not in isi
@@ -227,7 +227,11 @@ def test_selesai_hore_tanpa_skor_hasil_siswa_berisi_skor_dan_kartu_hilang(server
 def test_mulai_setelah_selesai_kembali_ke_beranda_tanpa_cek_kedua(server, gerbang_hidup):
     anak = Anak(server, "raka-ulang")
     _, _, header = anak.post()
-    _kumpulkan_lewat_tautan(server, anak, header["Location"])
+    sesi_id = anak.baris_cek()["sesi_id"]
+    with server.buka() as kon:  # sesi selesai tapi skor masih NULL (data sebelum skor ditulis saat kumpul)
+        kit_cek.jawab(kon, sesi_id, semua_benar=7)
+        kit_cek.tandai_selesai(kon, sesi_id)
+    assert anak.baris_cek()["skor"] is None
     assert ACTION_KARTU not in anak.get("/murid")[1]  # kartu hilang begitu sesi dikumpulkan, sebelum dinilai
     sebelum = jumlah_baris(server, *TABEL_CEK)
     kode, _, tajuk = anak.post()

@@ -126,8 +126,8 @@ def test_alur_penuh_sapaan_simpan_lewati_jeda_peta_kumpulkan_hore(cek):
     assert cek.get()[0] == 404 and cek.post({"aksi": "mulai"})[0] == 404
     assert cek.get(soal=1)[0] == 404
     with cek.server.buka() as kon:
-        assert cek_gratis.selesaikan_jika_siap(kon, ID_A, SEKARANG) is True
-        hasil = cek_gratis.baca_hasil(kon, ID_A)
+        hasil = cek_gratis.baca_hasil(kon, ID_A)  # skor sudah ditulis saat kumpul
+        assert cek_gratis.selesaikan_jika_siap(kon, ID_A, SEKARANG) is False  # idempoten
         sumber = kon.execute("SELECT sumber FROM pengiriman_sesi WHERE sesi_id = ?", (cek.sesi_id,)).fetchone()[0]
     assert hasil["status"] == "selesai" and 0 <= hasil["skor"] <= 100
     assert sumber == "tautan"
@@ -137,8 +137,8 @@ def test_kumpulkan_tanpa_satu_pun_jawaban_tetap_menyelesaikan_sesi(cek):
     kode, isi, _t = cek.kumpul()
     assert kode == 200 and "0 dari 15 soal dijawab" in isi
     with cek.server.buka() as kon:
-        assert cek_gratis.selesaikan_jika_siap(kon, ID_A, SEKARANG) is True
-        assert cek_gratis.baca_hasil(kon, ID_A)["skor"] == 0
+        assert cek_gratis.baca_hasil(kon, ID_A)["skor"] == 0  # sudah dinilai saat kumpul
+        assert cek_gratis.selesaikan_jika_siap(kon, ID_A, SEKARANG) is False  # idempoten
 
 
 def test_jeda_hanya_sekali_dan_tidak_dari_peta(cek):
