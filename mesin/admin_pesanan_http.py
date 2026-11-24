@@ -31,6 +31,7 @@ SEBELUM ledger dibaca. Aturan yang ditegakkan di sini:
 from __future__ import annotations
 
 import hashlib
+import logging
 import re
 import sqlite3
 
@@ -41,6 +42,8 @@ import admin_rekening_http
 import admin_security
 import admin_store
 import admin_verifikasi_http
+import cek_ringkasan_admin
+import database
 import pesanan
 import pesanan_admin_transfer
 import pesanan_alur as alur
@@ -72,6 +75,10 @@ MAKS_HALAMAN = 100000
 _POLA_ORDER = re.compile(r"ord_[0-9a-f]{32}")
 _PANJANG_OPERASI = 32
 _GALAT_BACA = (admin_store.StoreBelumSiap, pesanan.PesananError, sqlite3.Error, OSError)
+# Galat baca kartu data cek (DB belajar): kartu menampilkan "tidak terbaca", halaman tetap utuh. ValueError/LookupError
+# mencakup ringkasan tersimpan yang rusak dan id yang tak sah; hanya NAMA tipe yang dicatat di log.
+_GALAT_CEK = (admin_store.StoreBelumSiap, pesanan.PesananError, sqlite3.Error, OSError, ValueError, LookupError)
+_log = logging.getLogger(__name__)
 
 
 def _admin(penangan):
@@ -154,6 +161,32 @@ def _baca_detail(order_id):
         return pesanan.detail_order(kon, order_id, alur._sekarang())
 
 
+def _baca_cek(order_id):
+    """Ringkasan data cek untuk order lunas, atau None bila tidak terbaca (galat, atau tiga kunci tidak cocok).
+
+    Tiga kunci (siswa, cek, akun) dibaca dari ledger admin di server, lalu dipakai membaca DB belajar lewat koneksi
+    yang dibuka `database.buka()` (pola admin lain) dan dikunci `query_only`: tidak ada tulis ke DB belajar.
+    """
+    try:
+        with pesanan.buka(h._path_admin()) as kon:
+            kunci = pesanan_admin_order.kunci_cek(kon, order_id)
+        if kunci is None:
+            return None
+        with database.buka() as kon:
+            kon.execute("PRAGMA query_only = ON")
+            return cek_ringkasan_admin.ringkasan_untuk_order(kon, *kunci, alur._sekarang())
+    except _GALAT_CEK as galat:
+        _log.warning("kartu data cek gagal dibaca: %s", type(galat).__name__)
+        return None
+
+
+def _dengan_cek(detail: dict) -> dict:
+    """Detail + kunci `cek` bila order lunas (dict baru); selain itu detail apa adanya, tanpa membaca DB belajar."""
+    if not pesanan_admin_order.kartu_cek_berlaku(detail["status"]):
+        return detail
+    return {**detail, "cek": _baca_cek(detail["order_id"])}
+
+
 def _get_detail(penangan, principal) -> None:
     try:
         order_id, hasil = _detail_query(penangan)
@@ -169,6 +202,7 @@ def _get_detail(penangan, principal) -> None:
         return _kirim(penangan, principal, ui.halaman_tidak_siap(), 503, judul=dui.JUDUL, subjudul=dui.SUBJUDUL)
     if detail is None:
         return h._tidak_ada(penangan)
+    detail = _dengan_cek(detail)
     _kirim(penangan, principal, dui.halaman(
         detail, gerbang_terbuka=gerbang, forms=forms, hasil=hasil, baca_saja=principal.metode != "cookie"),
         judul=dui.JUDUL, subjudul=dui.SUBJUDUL)

@@ -14,6 +14,7 @@ from __future__ import annotations
 from typing import Mapping, Optional, Tuple
 
 import admin_labels as L
+import admin_pesanan_cek_pages as cek_pages
 import admin_pesanan_pages as ui
 import pesanan_admin_order as po
 import purna
@@ -201,6 +202,11 @@ def _kartu_purna(detail: Mapping, gerbang_terbuka: bool, forms: Mapping) -> str:
         kepala, _rincian_purna(pur), catatan, form)
 
 
+def _kartu_cek(detail: Mapping) -> str:
+    """Kartu "Data cek untuk laporan" hanya bila pemanggil menyertakan kunci `cek` (order lunas); None = tidak terbaca."""
+    return cek_pages.kartu(detail["cek"]) if "cek" in detail else ""
+
+
 def _peringatan(detail: Mapping) -> str:
     """Penanda admin: dua jalur bayar dan bukti yang dipakai ulang (hanya jumlah order lain, tanpa id)."""
     teks = []
@@ -278,5 +284,5 @@ def halaman(detail: Mapping, *, gerbang_terbuka: bool, forms: Optional[Mapping] 
     kembali = '<p><a class="admin-tautan" href="%s">%s</a></p>' % (ui.RUTE, e(COPY_KEMBALI))
     umpan = ui.umpan_balik(hasil if hasil in ui.KODE_HASIL_DETAIL else None)
     return (kembali + umpan + sesi + _peringatan(detail) + _ringkasan(detail)
-            + _kartu_purna(detail, gerbang_terbuka, token) + _perjalanan(detail)
+            + _kartu_purna(detail, gerbang_terbuka, token) + _kartu_cek(detail) + _perjalanan(detail)
             + _periksa(detail, gerbang_terbuka, token) + _refund(detail, gerbang_terbuka, token))

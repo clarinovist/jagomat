@@ -89,6 +89,24 @@ def purna_ringkas(kon, order_id, sekarang) -> dict:
             "direfund": k.direfund, "ditahan": k.ditahan}
 
 
+def kartu_cek_berlaku(status) -> bool:
+    """Gerbang kartu "Data cek untuk laporan" di Detail order: hanya order LUNAS (status turunan `sudah_dibayar`).
+
+    `perlu_diperiksa`, `direfund`, dan status belum lunas tidak mendapat kartu: laporan tidak ditulis untuk
+    pembayaran yang belum pasti atau sudah dikembalikan.
+    """
+    return status == d.STATUS_SUDAH_DIBAYAR
+
+
+def kunci_cek(kon, order_id) -> Optional[tuple]:
+    """(siswa_id, cek_id, akun_id) dari baris pesanan_order di ledger admin, atau None bila order tak ada.
+
+    Dipakai SERVER untuk mencocokkan baris cek di DB belajar; tidak pernah masuk `detail_order` maupun HTML.
+    """
+    baris = st.baris_order(kon, order_id)
+    return None if baris is None else (baris["siswa_id"], baris["cek_id"], baris["akun_id"])
+
+
 def detail_order(kon, order_id, sekarang) -> Optional[dict]:
     """Detail satu order (dict baru) atau None bila order tak dikenal.
 
