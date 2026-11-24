@@ -8,19 +8,23 @@ pesanan/transfer tetap byte-identik; image lama tetap dapat membuka DB yang suda
 (rollback aman).
 
 Pola sama dengan `schema_transfer`: tanpa bump `user_version`, absen sah (belum dimigrasikan),
-parsial/berbeda ditolak (ValueError), migrasi hanya lewat :func:`migrasikan` eksplisit. Kedua tabel
+parsial/berbeda ditolak (ValueError), migrasi hanya lewat :func:`migrasikan` eksplisit. Ketiga tabel
 append-only (trigger ABORT atas UPDATE/DELETE dan replace-guard); koreksi hanya lewat baris baru. Status
 tidak disimpan:
 
 * `purna_voucher_pakai`      satu catatan pemakaian voucher per order (kelas atau lainnya);
-* `purna_pilihan_terlambat`  pilihan pembeli bila voucher terlambat: menunggu atau uang kembali.
+* `purna_pilihan_terlambat`  pilihan pembeli bila voucher terlambat, MONOTON per order: baris
+  `menunggu` boleh disusul baris `uang_kembali` (kunci `(order_id, pilihan)`); `uang_kembali` FINAL;
+* `purna_laporan_terbit`     waktu laporan Peta Kemampuan diterbitkan untuk order itu (satu per order).
 
 Aturan lapis kedua di tingkat DB (BEFORE INSERT, ABORT), di luar domain:
 
-* kedua tabel hanya untuk order LUNAS (receipt Midtrans `lunas` atau `transfer_lunas`);
-* kedua tabel ditolak bila order sudah direfund di salah satu ledger (`pesanan_refund` atau `transfer_refund`);
+* ketiga tabel hanya untuk order LUNAS (receipt Midtrans `lunas` atau `transfer_lunas`);
+* ketiga tabel ditolak bila order sudah direfund di salah satu ledger (`pesanan_refund` atau `transfer_refund`);
 * pilihan terlambat ditolak bila voucher order itu sudah dipakai;
-* voucher ditolak bila order sudah memilih `uang_kembali`.
+* `menunggu` ditolak bila order itu sudah memilih `uang_kembali` (monoton);
+* voucher ditolak bila order sudah memilih `uang_kembali`;
+* laporan terbit ditolak bila waktu terbit lebih awal dari waktu lunas order.
 
 BATAS YANG DISENGAJA: larangan "refund setelah voucher dipakai" TIDAK dapat menjadi trigger di sini,
 karena tabel refund milik namespace lain dan DDL-nya harus tetap identik (syarat rollback aman).
@@ -47,19 +51,27 @@ CREATE TABLE purna_voucher_pakai (
     dibuat TEXT NOT NULL CHECK(dibuat GLOB {waktu})
 );
 CREATE TABLE purna_pilihan_terlambat (
-    order_id TEXT PRIMARY KEY REFERENCES pesanan_order(order_id) ON DELETE RESTRICT,
+    order_id TEXT NOT NULL REFERENCES pesanan_order(order_id) ON DELETE RESTRICT,
     pilihan TEXT NOT NULL CHECK(pilihan IN ({pilihan})),
+    dibuat TEXT NOT NULL CHECK(dibuat GLOB {waktu}),
+    PRIMARY KEY(order_id, pilihan)
+);
+CREATE TABLE purna_laporan_terbit (
+    order_id TEXT PRIMARY KEY REFERENCES pesanan_order(order_id) ON DELETE RESTRICT,
+    terbit TEXT NOT NULL CHECK(terbit GLOB {waktu}),
+    dicatat_oleh TEXT NOT NULL CHECK(length(dicatat_oleh) BETWEEN 1 AND {pelaku_maks} AND dicatat_oleh {pelaku}),
     dibuat TEXT NOT NULL CHECK(dibuat GLOB {waktu})
 );
 """.format(id=sp._ID, waktu=sp._WAKTU, pelaku=st._PELAKU, pelaku_maks=_PELAKU_MAKS,
            catatan=sp._enum(CATATAN_PAKAI), pilihan=sp._enum(PILIHAN_TERLAMBAT))
 
-TABEL = ("purna_voucher_pakai", "purna_pilihan_terlambat")
+TABEL = ("purna_voucher_pakai", "purna_pilihan_terlambat", "purna_laporan_terbit")
 
 # Kunci unik per tabel untuk replace-guard (BEFORE INSERT menggigit INSERT OR REPLACE).
 _KUNCI = {
     "purna_voucher_pakai": ("operasi_id=NEW.operasi_id", "order_id=NEW.order_id"),
-    "purna_pilihan_terlambat": ("order_id=NEW.order_id",),
+    "purna_pilihan_terlambat": ("(order_id=NEW.order_id AND pilihan=NEW.pilihan)",),
+    "purna_laporan_terbit": ("order_id=NEW.order_id",),
 }
 
 
@@ -86,6 +98,12 @@ _BELUM_LUNAS = ("NOT EXISTS(SELECT 1 FROM pesanan_receipt WHERE order_id=NEW.ord
 _SUDAH_REFUND = ("EXISTS(SELECT 1 FROM pesanan_refund WHERE order_id=NEW.order_id) "
                  "OR EXISTS(SELECT 1 FROM transfer_refund WHERE order_id=NEW.order_id)")
 
+# Waktu lunas = receipt Midtrans lunas, selain itu transfer_lunas (urutan sama dengan domain `purna`).
+# Bila order belum lunas hasilnya NULL (perbandingan tidak menolak; trigger `_lunas` yang menolak).
+_TERBIT_SEBELUM_LUNAS = (
+    "NEW.terbit < COALESCE((SELECT dibuat FROM pesanan_receipt WHERE order_id=NEW.order_id AND hasil='lunas'),"
+    "(SELECT dibuat FROM transfer_lunas WHERE order_id=NEW.order_id))")
+
 # Aturan lapis kedua di luar domain: (nama trigger, tabel, kondisi abort, pesan).
 _ATURAN = (
     ("purna_voucher_pakai_lunas", "purna_voucher_pakai", _BELUM_LUNAS,
@@ -103,6 +121,16 @@ _ATURAN = (
      "EXISTS(SELECT 1 FROM purna_pilihan_terlambat WHERE order_id=NEW.order_id "
      "AND pilihan='uang_kembali')",
      "voucher purna ditolak: order sudah memilih uang kembali"),
+    ("purna_pilihan_terlambat_menunggu_setelah_uang_kembali", "purna_pilihan_terlambat",
+     "NEW.pilihan='menunggu' AND EXISTS(SELECT 1 FROM purna_pilihan_terlambat "
+     "WHERE pilihan='uang_kembali' AND order_id=NEW.order_id)",
+     "pilihan terlambat ditolak: sudah memilih uang kembali"),
+    ("purna_laporan_terbit_lunas", "purna_laporan_terbit", _BELUM_LUNAS,
+     "laporan terbit hanya untuk order lunas"),
+    ("purna_laporan_terbit_refund", "purna_laporan_terbit", _SUDAH_REFUND,
+     "laporan terbit ditolak: order sudah direfund"),
+    ("purna_laporan_terbit_sebelum_lunas", "purna_laporan_terbit", _TERBIT_SEBELUM_LUNAS,
+     "laporan terbit ditolak: lebih awal dari waktu lunas"),
 )
 
 for _tabel in TABEL:

@@ -21,7 +21,8 @@ from pesanan_kit import SEKARANG, buat, hitung, operasi, siapkan_db, terapkan
 from transfer_kit import ADMIN, menunggu, siapkan_db_transfer
 
 WAKTU_SETUJU = "2026-11-18T12:00:00"
-TABEL_PURNA = ("purna_voucher_pakai", "purna_pilihan_terlambat")
+TABEL_PURNA = ("purna_voucher_pakai", "purna_pilihan_terlambat", "purna_laporan_terbit")
+TERBIT_SAH = "2026-11-20T10:00:00"   # sesudah waktu lunas fixture (QRIS 18 Nov 10:00, transfer 18 Nov 12:00)
 
 
 class GuardSalah(AssertionError):
@@ -98,6 +99,7 @@ def refund(kon, order_id, n):
 
 SQL_PAKAI = "INSERT INTO purna_voucher_pakai VALUES(?,?,?,?,?)"
 SQL_PILIH = "INSERT INTO purna_pilihan_terlambat VALUES(?,?,?)"
+SQL_TERBIT = "INSERT INTO purna_laporan_terbit VALUES(?,?,?,?)"
 
 
 def pakai(order_id, n=1, *, pelaku=ADMIN, catatan="kelas", dibuat=SEKARANG, operasi_id=None):
@@ -106,6 +108,10 @@ def pakai(order_id, n=1, *, pelaku=ADMIN, catatan="kelas", dibuat=SEKARANG, oper
 
 def pilih(order_id, pilihan="menunggu", dibuat=SEKARANG):
     return (order_id, pilihan, dibuat)
+
+
+def terbit(order_id, *, waktu=TERBIT_SAH, pelaku=ADMIN, dibuat=None):
+    return (order_id, waktu, pelaku, dibuat or waktu)
 
 
 # --- skenario guard (dipakai tes biasa DAN tes mutation) -----------------------------------
@@ -155,8 +161,71 @@ def skenario_replace_pilihan(kon):
     oid = order_qris_lunas(kon, 1)
     harus_lolos(kon, SQL_PILIH, pilih(oid, "menunggu"))
     harus_abort(kon, "INSERT OR REPLACE INTO purna_pilihan_terlambat VALUES(?,?,?)",
-                pilih(oid, "uang_kembali"), "duplikat")
-    assert kon.execute("SELECT pilihan FROM purna_pilihan_terlambat").fetchone()[0] == "menunggu"
+                pilih(oid, "menunggu", "2026-11-18T11:00:00"), "duplikat")
+    isi = kon.execute("SELECT pilihan,dibuat FROM purna_pilihan_terlambat").fetchall()
+    assert [tuple(r) for r in isi] == [("menunggu", SEKARANG)]
+
+
+def skenario_pilihan_monoton(kon):
+    """menunggu boleh disusul uang_kembali (final); menunggu sesudahnya dan duplikat ditolak."""
+    oid = order_qris_lunas(kon, 1)
+    harus_lolos(kon, SQL_PILIH, pilih(oid, "menunggu"))
+    harus_lolos(kon, SQL_PILIH, pilih(oid, "uang_kembali"))
+    harus_abort(kon, SQL_PILIH, pilih(oid, "menunggu", "2026-11-18T11:00:00"),
+                "pilihan terlambat ditolak: sudah memilih uang kembali")
+    harus_abort(kon, "INSERT OR REPLACE INTO purna_pilihan_terlambat VALUES(?,?,?)",
+                pilih(oid, "uang_kembali", "2026-11-18T11:00:00"), "duplikat")
+    isi = kon.execute("SELECT pilihan FROM purna_pilihan_terlambat ORDER BY rowid").fetchall()
+    assert [r[0] for r in isi] == ["menunggu", "uang_kembali"]
+
+
+def skenario_update_laporan(kon):
+    oid = order_qris_lunas(kon, 1)
+    harus_lolos(kon, SQL_TERBIT, terbit(oid))
+    harus_abort(kon, "UPDATE purna_laporan_terbit SET dicatat_oleh='lain'", (), "immutable")
+    assert kon.execute("SELECT dicatat_oleh FROM purna_laporan_terbit").fetchone()[0] == ADMIN
+
+
+def skenario_delete_laporan(kon):
+    oid = order_qris_lunas(kon, 1)
+    harus_lolos(kon, SQL_TERBIT, terbit(oid))
+    harus_abort(kon, "DELETE FROM purna_laporan_terbit", (), "immutable")
+    assert hitung(kon, "purna_laporan_terbit") == 1
+
+
+def skenario_replace_laporan(kon):
+    oid = order_qris_lunas(kon, 1)
+    harus_lolos(kon, SQL_TERBIT, terbit(oid))
+    harus_abort(kon, "INSERT OR REPLACE INTO purna_laporan_terbit VALUES(?,?,?,?)",
+                terbit(oid, waktu="2026-11-21T10:00:00", pelaku="admin_lain"), "duplikat")
+    isi = kon.execute("SELECT terbit,dicatat_oleh FROM purna_laporan_terbit").fetchall()
+    assert [tuple(r) for r in isi] == [(TERBIT_SAH, ADMIN)]
+
+
+def skenario_lunas_laporan(kon):
+    belum = order_belum_lunas(kon, 1)
+    diperiksa = order_receipt_perlu_diperiksa(kon, 2)
+    for oid in (belum, diperiksa):
+        harus_abort(kon, SQL_TERBIT, terbit(oid), "laporan terbit hanya untuk order lunas")
+    assert hitung(kon, "purna_laporan_terbit") == 0
+
+
+def skenario_refund_laporan(kon):
+    for oid in _order_direfund(kon):
+        harus_abort(kon, SQL_TERBIT, terbit(oid), "laporan terbit ditolak: order sudah direfund")
+    assert hitung(kon, "purna_laporan_terbit") == 0
+
+
+def skenario_laporan_sebelum_lunas(kon):
+    """Terbit lebih awal dari waktu lunas ditolak (QRIS dan transfer); tepat sama dengan waktu lunas sah."""
+    o_qris, o_transfer = order_qris_lunas(kon, 1), order_transfer_lunas(kon, 2)
+    pesan = "laporan terbit ditolak: lebih awal dari waktu lunas"
+    harus_abort(kon, SQL_TERBIT, terbit(o_qris, waktu="2026-11-18T09:59:59"), pesan)
+    harus_abort(kon, SQL_TERBIT, terbit(o_transfer, waktu="2026-11-18T11:59:59"), pesan)
+    assert hitung(kon, "purna_laporan_terbit") == 0
+    harus_lolos(kon, SQL_TERBIT, terbit(o_qris, waktu=SEKARANG))
+    harus_lolos(kon, SQL_TERBIT, terbit(o_transfer, waktu=WAKTU_SETUJU))
+    assert hitung(kon, "purna_laporan_terbit") == 2
 
 
 def skenario_lunas_voucher(kon):
@@ -222,6 +291,9 @@ def skenario_jalur_sah(kon):
     harus_lolos(kon, SQL_PAKAI, pakai(o_menunggu, 3))
     harus_lolos(kon, SQL_PILIH, pilih(o_kembali, "uang_kembali"))
     assert hitung(kon, "purna_voucher_pakai") == 3 and hitung(kon, "purna_pilihan_terlambat") == 2
+    harus_lolos(kon, SQL_TERBIT, terbit(o_qris))
+    harus_lolos(kon, SQL_TERBIT, terbit(o_transfer))
+    assert hitung(kon, "purna_laporan_terbit") == 2
 
 
 SKENARIO = {fn.__name__: fn for fn in (
@@ -229,7 +301,9 @@ SKENARIO = {fn.__name__: fn for fn in (
     skenario_delete_pilihan, skenario_replace_voucher, skenario_replace_pilihan,
     skenario_lunas_voucher, skenario_lunas_pilihan, skenario_refund_voucher,
     skenario_refund_pilihan, skenario_voucher_dipakai_menolak_pilihan,
-    skenario_uang_kembali_menolak_voucher, skenario_jalur_sah)}
+    skenario_uang_kembali_menolak_voucher, skenario_jalur_sah, skenario_pilihan_monoton,
+    skenario_update_laporan, skenario_delete_laporan, skenario_replace_laporan,
+    skenario_lunas_laporan, skenario_refund_laporan, skenario_laporan_sebelum_lunas)}
 
 
 def jalankan(path, skenario):
@@ -301,6 +375,9 @@ def test_migrasi_ditolak_bila_transfer_belum_terpasang(tmp_path):
     "DROP TRIGGER purna_voucher_pakai_lunas",
     "DROP TRIGGER purna_pilihan_terlambat_voucher_dipakai",
     "DROP TRIGGER purna_voucher_pakai_uang_kembali",
+    "DROP TRIGGER purna_pilihan_terlambat_menunggu_setelah_uang_kembali",
+    "DROP TRIGGER purna_laporan_terbit_lunas",
+    "DROP TRIGGER purna_laporan_terbit_tolak_replace",
 ])
 def test_struktur_parsial_atau_berbeda_ditolak_validasi_dan_migrasi(db, rusak):
     with contextlib.closing(sqlite3.connect(db)) as kon:
@@ -383,6 +460,7 @@ def test_fk_ke_pesanan_order_restrict_dan_foreign_key_check_kosong(db):
         oid, lain = order_qris_lunas(kon, 1), order_qris_lunas(kon, 2)
         kon.execute(SQL_PAKAI, pakai(oid))
         kon.execute(SQL_PILIH, pilih(lain))
+        kon.execute(SQL_TERBIT, terbit(lain))
         kon.commit()
         assert not kon.execute("PRAGMA foreign_key_check").fetchall()
         with pytest.raises(sqlite3.IntegrityError):
@@ -404,6 +482,19 @@ def test_check_kolom_voucher_pakai(db, nilai):
             kon.execute(SQL_PAKAI, pakai(oid, **nilai))
         kon.rollback()
         assert hitung(kon, "purna_voucher_pakai") == 0
+
+
+@pytest.mark.parametrize("nilai", [
+    dict(pelaku=""), dict(pelaku="admin sintetis"), dict(pelaku="a" * 65),
+    dict(waktu="kemarin"), dict(waktu="2026-11-20 10:00:00"), dict(dibuat="kemarin"),
+])
+def test_check_kolom_laporan_terbit(db, nilai):
+    with pesanan.buka(db, tulis_data=True) as kon:
+        oid = order_qris_lunas(kon, 1)
+        with pytest.raises(sqlite3.IntegrityError):
+            kon.execute(SQL_TERBIT, terbit(oid, **nilai))
+        kon.rollback()
+        assert hitung(kon, "purna_laporan_terbit") == 0
 
 
 @pytest.mark.parametrize("nilai", [dict(pilihan="batal"), dict(pilihan=""), dict(dibuat="kemarin")])
@@ -441,8 +532,20 @@ def _lucuti_trigger(ddl, nama):
     return hasil
 
 
+# Cabang yang memang berulang di beberapa trigger (mutasi sengaja menyentuh semuanya).
+_CABANG_BERULANG = {
+    "NOT EXISTS(SELECT 1 FROM pesanan_receipt WHERE order_id=NEW.order_id AND hasil='lunas')",
+    "NOT EXISTS(SELECT 1 FROM transfer_lunas WHERE order_id=NEW.order_id)",
+    "pesanan_receipt WHERE order_id=NEW.order_id AND hasil='lunas'",
+    "EXISTS(SELECT 1 FROM pesanan_refund WHERE order_id=NEW.order_id)",
+    "EXISTS(SELECT 1 FROM transfer_refund WHERE order_id=NEW.order_id)",
+    "pilihan='uang_kembali'", "operasi_id=NEW.operasi_id",
+}
+
+
 def _ganti(ddl, lama, baru):
     assert lama in ddl, "mutasi hampa: %r tidak ada di DDL" % lama
+    assert lama in _CABANG_BERULANG or ddl.count(lama) == 1, "pola mutasi harus unik: %r" % lama
     return ddl.replace(lama, baru)
 
 
@@ -459,6 +562,13 @@ GUARD = (
     ("purna_pilihan_terlambat_refund", "skenario_refund_pilihan"),
     ("purna_pilihan_terlambat_voucher_dipakai", "skenario_voucher_dipakai_menolak_pilihan"),
     ("purna_voucher_pakai_uang_kembali", "skenario_uang_kembali_menolak_voucher"),
+    ("purna_pilihan_terlambat_menunggu_setelah_uang_kembali", "skenario_pilihan_monoton"),
+    ("purna_laporan_terbit_tolak_update", "skenario_update_laporan"),
+    ("purna_laporan_terbit_tolak_delete", "skenario_delete_laporan"),
+    ("purna_laporan_terbit_tolak_replace", "skenario_replace_laporan"),
+    ("purna_laporan_terbit_lunas", "skenario_lunas_laporan"),
+    ("purna_laporan_terbit_refund", "skenario_refund_laporan"),
+    ("purna_laporan_terbit_sebelum_lunas", "skenario_laporan_sebelum_lunas"),
 )
 
 
@@ -509,6 +619,24 @@ CABANG = (
     ("replace-voucher-tanpa-kunci-order",
      ("OR order_id=NEW.order_id)", "OR 0)"),
      "skenario_replace_voucher"),
+    ("replace-pilihan-tanpa-kunci-pilihan",
+     (" AND pilihan=NEW.pilihan)", ")"),
+     "skenario_pilihan_monoton"),
+    ("replace-pilihan-tanpa-kunci-order",
+     ("(order_id=NEW.order_id AND pilihan=NEW.pilihan)", "(0 AND pilihan=NEW.pilihan)"),
+     "skenario_replace_pilihan"),
+    ("terbit-sama-dengan-waktu-lunas-jadi-ditolak",
+     ("NEW.terbit < COALESCE", "NEW.terbit <= COALESCE"),
+     "skenario_laporan_sebelum_lunas"),
+    ("terbit-sebelum-lunas-tanpa-cabang-transfer",
+     ("(SELECT dibuat FROM transfer_lunas WHERE order_id=NEW.order_id)", "NULL"),
+     "skenario_laporan_sebelum_lunas"),
+    ("terbit-sebelum-lunas-tanpa-cabang-receipt",
+     ("(SELECT dibuat FROM pesanan_receipt WHERE order_id=NEW.order_id AND hasil='lunas'),", "NULL,"),
+     "skenario_laporan_sebelum_lunas"),
+    ("terbit-sebelum-lunas-arah-terbalik",
+     ("NEW.terbit < COALESCE", "NEW.terbit > COALESCE"),
+     "skenario_laporan_sebelum_lunas"),
 )
 
 
