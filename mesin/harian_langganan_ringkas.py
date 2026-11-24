@@ -19,6 +19,7 @@ class Ringkasan:
     berakhir: Optional[str]
     sisa_hari: int
     status_tagihan: Optional[str]
+    alasan_tolak: Optional[str] = None
 
     @property
     def langganan_aktif(self) -> bool:
@@ -35,4 +36,7 @@ def ringkasan(kon, siswa_id: int, kini) -> Ringkasan:
     akses = akses_harian.akses(kon, siswa_id, kini)
     tampil = store.tampilan_terbuka(kon, siswa_id, kini)
     sisa = h.sisa_hari(akses.berakhir, kini) if akses.berakhir else 0
-    return Ringkasan(akses.sumber, akses.berakhir, sisa, None if tampil is None else tampil.status)
+    if tampil is None:
+        return Ringkasan(akses.sumber, akses.berakhir, sisa, None)
+    alasan = tampil.alasan_tolak if tampil.status == h.STATUS_DITOLAK else None
+    return Ringkasan(akses.sumber, akses.berakhir, sisa, tampil.status, alasan)

@@ -20,6 +20,9 @@ def _semua_komponen(teks=JAHAT):
         "bicara": C.maskot_bicara("menyapa", teks, teks, teks),
         "ortu": C.kartu_ajakan_ortu("/murid/orang-tua", teks, teks, [teks, teks], label=teks,
                                     judul_awal=teks, judul_sorot=teks),
+        "navy": C.kartu_navy(C.sorot(teks), "<p>isi</p>", "/murid/langganan", teks, label=teks, id_=teks),
+        "lencana": C.lencana(teks, "kuning"),
+        "status": C.kartu_status("koral", teks, teks, "<p>isi</p>", id_=teks, tombol=("/murid/langganan", teks)),
         "titik_teal": C.titik_hari({0, 3}),
         "titik_krem": C.titik_hari({6}, latar="krem"),
         "progres": C.progres_soal(2, 3),
@@ -227,3 +230,43 @@ def test_modul_tidak_memuat_kode_debug_dan_tidak_mengimpor_basis_data():
         sumber = (Path(brand.__file__).parent / nama).read_text()
         assert "print(" not in sumber and "console." not in sumber
         assert "sqlite3" not in sumber and "import database" not in sumber
+
+
+def test_kartu_ajakan_ortu_bentuk_html_tidak_berubah_setelah_memakai_kartu_navy():
+    isi = C.kartu_ajakan_ortu("/murid/orang-tua", "Lihat", "mulai Rp1/bulan", poin=("a", "b"), level=2)
+    assert isi == ('<section class="ceria-ortu"><p class="ceria-alis">Untuk Ayah/Bunda</p><h2 class="ceria-judul">'
+                   'Latihan <span class="ceria-sorot">tanpa batas</span> mulai Rp1/bulan</h2>'
+                   '<ul class="ceria-centang"><li>a</li><li>b</li></ul>'
+                   '<a class="ceria-tombol" href="/murid/orang-tua">Lihat</a></section>')
+
+
+def test_kartu_navy_bebas_judul_id_dan_tepat_satu_tautan():
+    isi = C.kartu_navy("Belum berlangganan", "<p>x</p>", "/murid/langganan", "Lihat paket", label="Langganan", id_="ortu-langganan")
+    assert 'id="ortu-langganan"' in isi and isi.count("<a ") == 1 and "Belum berlangganan</h3>" in isi
+    assert C.kartu_navy("j", "", "/x", "t", label="l", id_="").count("id=") == 0
+
+
+@pytest.mark.parametrize("href", ["https://contoh.id", "//contoh.id", "murid", "javascript:alert(1)"])
+def test_kartu_navy_dan_status_menolak_tautan_luar(href):
+    with pytest.raises(ValueError):
+        C.kartu_navy("j", "", href, "t", label="l")
+    with pytest.raises(ValueError):
+        C.kartu_status("hijau", "l", "j", tombol=(href, "t"))
+
+
+def test_lencana_dan_kartu_status_menolak_nada_dan_level_tak_dikenal():
+    with pytest.raises(ValueError):
+        C.lencana("x", "merah")
+    with pytest.raises(ValueError):
+        C.kartu_status("ungu", "x", "y")
+    with pytest.raises(ValueError):
+        C.kartu_status("hijau", "x", "y", level=5)
+    with pytest.raises(ValueError):
+        C.kartu_navy("j", "", "/x", "t", label="l", level=1)
+
+
+@pytest.mark.parametrize("nada", C.NADA_STATUS)
+def test_kartu_status_selalu_berlencana_teks_dan_tanpa_tombol_bila_tak_diminta(nada):
+    isi = C.kartu_status(nada, "Teks status", "Judul", "<p>isi</p>")
+    assert 'class="ceria-lencana ceria-lencana-%s">Teks status</span>' % nada in isi and "<a " not in isi
+    assert "ceria-status-%s" % nada in isi

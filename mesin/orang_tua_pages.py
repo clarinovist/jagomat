@@ -15,12 +15,14 @@ import brand
 import cek_gratis_skor
 import cek_pages
 import harian_langganan_pages
+import playful_components as C
 import parent_report_page
 import pesanan_pages
 from funnel_style import GAYA_FUNNEL
 from murid_shell import PANAH_KEMBALI, aksi_topbar, bungkus_murid, kepala_murid, topbar_murid
 from orang_tua_style import GAYA_ORTU, RUTE
 from parent_report_page import GAYA_LO
+from playful_style import GAYA_CERIA
 from style_stitch import gaya_stitch
 from teacher_style import SKRIP_MATA_SANDI
 
@@ -30,6 +32,9 @@ RUTE_HAPUS = RUTE_PIN + "/hapus"
 
 COPY_JUDUL = "Halaman Ayah/Bunda"
 COPY_ALIS = "UNTUK AYAH/BUNDA"
+COPY_SAPAAN = "Halo, Ayah/Bunda"
+COPY_RINGKASAN_ANAK = "Ringkasan belajar %s"
+COPY_RINGKASAN_UMUM = "Ringkasan belajar anak"
 COPY_KALIMAT = (
     "Halaman ini untuk Ayah/Bunda. Nomor WhatsApp untuk tagihan hanya bisa diubah lewat tim Jagomat."
 )
@@ -49,6 +54,8 @@ COPY_PIN_PERLU_BUKA = "Masukkan PIN dulu, ya."
 COPY_PIN_TIDAK_SAH = "PIN harus 4 angka, dan isian ulangnya harus sama."
 COPY_KONFIRMASI_WAJIB = "Centang konfirmasi dulu untuk menghapus PIN."
 COPY_PIN_KARTU = "PIN halaman Ayah/Bunda"
+COPY_PIN_STATUS_ADA = "Sudah dipasang"
+COPY_PIN_STATUS_TIDAK_ADA = "Belum dipasang"
 COPY_PIN_ADA = "PIN sudah dipasang. Halaman ini tertutup sampai PIN dimasukkan."
 COPY_PIN_TIDAK_ADA = "Belum ada PIN. Siapa pun yang memegang akun anak bisa membuka halaman ini."
 COPY_PIN_CATATAN = "PIN ini penutup halaman, bukan pengaman data."
@@ -92,8 +99,8 @@ def _kepala() -> str:
     )
 
 
-def _dokumen(badan: str) -> bytes:
-    css = gaya_stitch() + GAYA_FUNNEL + GAYA_LO + GAYA_ORTU
+def _dokumen(badan: str, ceria: bool = False) -> bytes:
+    css = gaya_stitch() + GAYA_FUNNEL + GAYA_LO + GAYA_ORTU + (GAYA_CERIA if ceria else "")
     topbar = topbar_murid(aksi_topbar("/murid", "Kembali", PANAH_KEMBALI))
     return (
         '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">'
@@ -131,46 +138,53 @@ def _blok_cek(hasil: dict, nama_anak: str) -> str:
             '<h3 class="funnel-sub-judul-st" id="judul-ringkasan">Ringkasan awal</h3>'
             f'{cek_pages._blok_ringkasan(hasil["ringkasan"])}</section>'
         )
-    return f'<section class="ortu-kartu-st" id="ortu-hasil-cek"><h2>{_e(COPY_CEK_JUDUL)}</h2>{isi}</section>'
+    return (f'<section class="ortu-kartu-st ortu-hasil-st" id="ortu-hasil-cek"><h2>{_e(COPY_CEK_JUDUL)}</h2>'
+            f'{isi}</section>')
+
+
+def _kartu_laporan_kosong() -> str:
+    """Kartu sabar: satu kalimat. Satu-satunya tempat di halaman ini yang membawa maskot."""
+    maskot = brand.maskot("membaca", C.UKURAN_MASKOT_BICARA, alt="Jago, maskot Jagomat, sedang membaca",
+                          kelas="ceria-maskot")
+    return (f'<section class="ortu-kartu-st ortu-kosong-st" id="ortu-laporan">{maskot}'
+            f'<h2>{_e(COPY_LAPORAN_JUDUL)}</h2><p>{_e(COPY_LAPORAN_KOSONG)}</p></section>')
 
 
 def _blok_laporan(laporan) -> str:
     if laporan is None:
-        isi = f'<p>{_e(COPY_LAPORAN_KOSONG)}</p>'
-    else:
-        isi = parent_report_page.isi_laporan(
-            nama=laporan["nama"], isi=laporan["isi"], catatan=laporan["catatan"], guru=laporan["guru"],
-            periode=laporan["periode"], diterbitkan=laporan["diterbitkan"], judul_tag="h3",
-            tanpa_batas_berlaku=True,
-        )
+        return _kartu_laporan_kosong()
+    isi = parent_report_page.isi_laporan(
+        nama=laporan["nama"], isi=laporan["isi"], catatan=laporan["catatan"], guru=laporan["guru"],
+        periode=laporan["periode"], diterbitkan=laporan["diterbitkan"], judul_tag="h3",
+        tanpa_batas_berlaku=True,
+    )
     return f'<section class="ortu-kartu-st" id="ortu-laporan"><h2>{_e(COPY_LAPORAN_JUDUL)}</h2>{isi}</section>'
 
 
 def _blok_pesanan(status, cek_selesai: bool) -> str:
-    """Status Peta Kemampuan + satu pintu ke halaman pembayaran akun anak (F2c).
+    """Status Peta Kemampuan (lencana teks) + satu pintu ke halaman pembayaran akun anak (F2c).
 
     Kalimat instruksi bayar (mis. "Pindai kode QRIS") tidak diulang di sini: jalur aktif (transfer/QRIS) hanya
     dijelaskan di halaman pembayaran. Tanpa cek selesai dan tanpa pesanan, kartu tidak tampil.
     """
     if status in pesanan_pages.COPY_STATUS:
         judul, kalimat = pesanan_pages.COPY_STATUS[status]
-        if status != pesanan_pages.STATUS_SUDAH_DIBAYAR:
-            kalimat = COPY_PESANAN_LANJUT
-        isi = f'<h3>{_e(judul)}</h3><p>{_e(kalimat)}</p>'
-        tombol = "" if status == pesanan_pages.STATUS_SUDAH_DIBAYAR else _tautan_bayar("Buka halaman pembayaran")
+        sudah = status == pesanan_pages.STATUS_SUDAH_DIBAYAR
+        isi = C.lencana(judul, "hijau" if sudah else "kuning") + f'<p>{_e(kalimat if sudah else COPY_PESANAN_LANJUT)}</p>'
+        tombol = "" if sudah else _tautan_bayar("Buka halaman pembayaran")
     elif cek_selesai:
         isi = f'<p>{_e(COPY_PESANAN_TAWARAN)}</p>'
         tombol = _tautan_bayar("Lanjut ke pembayaran")
     else:
         return ""
-    return (
-        f'<section class="ortu-kartu-st" id="ortu-pesanan"><h2>{_e(COPY_PESANAN_JUDUL)}</h2>{isi}{tombol}</section>'
-    )
+    return (f'<section class="ortu-kartu-st ortu-pesanan-st" id="ortu-pesanan"><h2>{_e(COPY_PESANAN_JUDUL)}</h2>'
+            f'{isi}{tombol}</section>')
 
 
 def _tautan_bayar(teks: str) -> str:
     import pesanan_permukaan
-    return f'<a class="ortu-tombol-st" href="{_e(pesanan_permukaan.RUTE_MURID.status)}">{_e(teks)}</a>'
+    return (f'<a class="ortu-tombol-st ortu-tombol-pinggir-st" '
+            f'href="{_e(pesanan_permukaan.RUTE_MURID.status)}">{_e(teks)}</a>')
 
 
 def _blok_harian(ringkas) -> str:
@@ -197,22 +211,50 @@ def _form_hapus() -> str:
     )
 
 
-def _blok_pin(ada_pin: bool) -> str:
+def _blok_pin(ada_pin: bool, terbuka: bool = False) -> str:
+    """PIN dilipat dalam `<details>` native; `terbuka` membuka lipatan (umpan balik PIN terlihat). Form tak berubah."""
     status = COPY_PIN_ADA if ada_pin else COPY_PIN_TIDAK_ADA
+    lencana = C.lencana(COPY_PIN_STATUS_ADA if ada_pin else COPY_PIN_STATUS_TIDAK_ADA, "hijau" if ada_pin else "kuning")
     forms = _form_atur(ada_pin) + (_form_hapus() if ada_pin else "")
-    return (
-        f'<section class="ortu-kartu-st" id="ortu-pin"><h2>{_e(COPY_PIN_KARTU)}</h2>'
-        f'<p>{_e(status)}</p><p>{_e(COPY_PIN_CATATAN)}</p>{forms}</section>'
-    )
+    buka = " open" if terbuka else ""
+    return (f'<details class="ortu-pin-st" id="ortu-pin"{buka}><summary><span>{_e(COPY_PIN_KARTU)}</span>{lencana}</summary>'
+            f'<div class="ortu-pin-isi-st"><p>{_e(status)}</p>{forms}</div></details>')
+
+
+def _tiga_angka(ringkas) -> str:
+    """Hari latihan (dari 7), soal dikerjakan, persen tepat; semuanya dari `RingkasanHarian`, tanpa angka lain."""
+    persen = "-" if ringkas.persen_benar is None else "%d%%" % ringkas.persen_benar
+    butir = ((f"{ringkas.jumlah_hari}/7", "hari latihan"), (str(ringkas.soal_dikerjakan), "soal dikerjakan"),
+             (persen, "tepat"))
+    isi = "".join(f"<li><b>{_e(angka)}</b>{_e(nama)}</li>" for angka, nama in butir)
+    return f'<ul class="ortu-tiga-st">{isi}</ul>'
+
+
+def _hero_ringkasan(nama_anak: str, harian) -> str:
+    """Hero teal "Halo, Ayah/Bunda" + nama anak; tiga angka hanya saat Latihan Harian aktif (`harian` bukan None)."""
+    ringkasan = COPY_RINGKASAN_ANAK % nama_anak if nama_anak else COPY_RINGKASAN_UMUM
+    isi = (f'<p class="ceria-alis-hero">{_e(COPY_ALIS)}</p>'
+           f'<h1 id="judul-ortu" class="ortu-judul-hero-st">{_e(COPY_SAPAAN)}</h1><p>{_e(ringkasan)}</p>')
+    return C.hero(isi + (_tiga_angka(harian) if harian is not None else ""))
+
+
+def _kaki() -> str:
+    return (f'<p class="ortu-kaki-st">{_e(COPY_PIN_CATATAN)}</p><p class="ortu-kaki-st">{_e(COPY_KALIMAT)}</p>')
 
 
 def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "") -> bytes:
-    """Isi halaman (tirai terbuka atau anak tanpa PIN); `data` = `orang_tua_data.DataOrangTua`."""
+    """Isi halaman (tirai terbuka atau anak tanpa PIN); `data` = `orang_tua_data.DataOrangTua`.
+
+    Urutan: banner perpanjang, hero ringkasan, hasil cek, Latihan Harian, langganan, laporan Guru, Peta, PIN (lipat).
+    """
+    pin_terbuka = bool(KABAR.get(kabar) or galat)
     badan = (
-        '<div class="funnel-alur-st">' + _kepala() + _pesan(kabar, galat)
+        '<div class="funnel-alur-st">' + _pesan(kabar, galat)
         + harian_langganan_pages.banner_orang_tua(data.langganan, data.nama_anak)
-        + _blok_cek(data.hasil_cek, data.nama_anak) + _blok_laporan(data.laporan)
-        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai") + _blok_harian(data.harian)
-        + harian_langganan_pages.kartu_orang_tua(data.langganan) + _blok_pin(ada_pin) + "</div>"
+        + _hero_ringkasan(data.nama_anak, data.harian)
+        + _blok_cek(data.hasil_cek, data.nama_anak) + _blok_harian(data.harian)
+        + harian_langganan_pages.kartu_orang_tua(data.langganan) + _blok_laporan(data.laporan)
+        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai")
+        + _blok_pin(ada_pin, pin_terbuka) + _kaki() + "</div>"
     )
-    return _dokumen(badan)
+    return _dokumen(badan, ceria=True)

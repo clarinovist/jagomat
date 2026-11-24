@@ -17,14 +17,19 @@ COPY_JUDUL_PESAN = "Pesan Peta Kemampuan"
 COPY_TOMBOL_PESAN = "Pesan Peta Kemampuan"
 
 
-def halaman_murid(judul: str, id_judul: str, isi: str, beranda: str, label_beranda: str) -> bytes:
-    """Halaman pesanan dalam shell murid; `isi` adalah markup tepercaya dari renderer pesanan."""
+def halaman_murid(judul: str, id_judul: str, isi: str, beranda: str, label_beranda: str,
+                  css_tambahan: str = "") -> bytes:
+    """Halaman pesanan dalam shell murid; `isi` adalah markup tepercaya dari renderer pesanan.
+
+    `css_tambahan` (CSS tepercaya dari modul gaya, bukan masukan pengguna) ditambahkan setelah `GAYA_AKUN`;
+    kosong (bawaan) berarti byte halaman sama dengan sebelum parameter ini ada (halaman Peta pesanan).
+    """
     topbar = topbar_murid(aksi_topbar(beranda, label_beranda, PANAH_KEMBALI))
     utama = f'<main class="{KELAS_UTAMA}" aria-labelledby="{_a(id_judul)}">{isi}</main>'
     return f"""<!DOCTYPE html><html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_e(brand.judul(judul))}</title>
-{brand.tag_kepala()}{kepala_murid(gaya_stitch() + GAYA_AKUN)}</head>
+{brand.tag_kepala()}{kepala_murid(gaya_stitch() + GAYA_AKUN + css_tambahan)}</head>
 <body class="st">{bungkus_murid(topbar + utama)}</body></html>""".encode()
 
 

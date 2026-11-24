@@ -29,6 +29,7 @@ _ALT_POSE = {
     "menulis": "Jago, maskot Jagomat, sedang menulis",
     "merayakan": "Jago, maskot Jagomat, merayakan",
 }
+NADA_STATUS = ("kuning", "hijau", "koral")
 _LEVEL_JUDUL = (2, 3, 4)
 _SIMBOL_HERO = ("+", "&divide;", "&times;", "7")
 _JUMLAH_KONFETI = 8
@@ -79,6 +80,24 @@ def maskot_bicara(pose: str, awal: str, tebal: str = "", akhir: str = "", alt: O
             f'<p class="ceria-gelembung">{_e(awal)}{isi_tebal}{_e(akhir)}</p></div>')
 
 
+def _id_atribut(id_: str) -> str:
+    return f' id="{_e(id_)}"' if id_ else ""
+
+
+def kartu_navy(judul_html: str, isi_html: str, href: str, teks_tombol: str, *, label: str,
+               id_: str = "", level: int = 3) -> str:
+    """Kartu navy untuk orang dewasa pembayar: label, judul bebas, isi, dan SATU tautan tombol.
+
+    `judul_html` dan `isi_html` adalah HTML tepercaya dari komponen lain (mis. `sorot`); `label`, `teks_tombol`,
+    dan `id_` di-escape di sini. `href` wajib alamat dalam aplikasi.
+    """
+    if level not in _LEVEL_JUDUL:
+        raise ValueError(f"level judul tidak didukung: {level!r}")
+    return (f'<section class="ceria-ortu"{_id_atribut(id_)}><p class="ceria-alis">{_e(label)}</p>'
+            f'<h{level} class="ceria-judul">{judul_html}</h{level}>{isi_html}'
+            f'<a class="ceria-tombol" href="{_e(_alamat_dalam(href))}">{_e(teks_tombol)}</a></section>')
+
+
 def kartu_ajakan_ortu(href: str, teks_tombol: str, teks_harga: str, poin: Sequence[str] = (),
                       label: str = "Untuk Ayah/Bunda", judul_awal: str = "Latihan",
                       judul_sorot: str = "tanpa batas", level: int = 3) -> str:
@@ -86,14 +105,34 @@ def kartu_ajakan_ortu(href: str, teks_tombol: str, teks_harga: str, poin: Sequen
 
     `teks_harga` dihitung pemanggil dari konstanta paket (mis. "mulai Rp39.000/bulan"), bukan ditulis tangan di sini.
     """
-    if level not in _LEVEL_JUDUL:
-        raise ValueError(f"level judul tidak didukung: {level!r}")
     daftar = "".join(f"<li>{_e(p)}</li>" for p in poin)
     centang = f'<ul class="ceria-centang">{daftar}</ul>' if daftar else ""
     judul = f'{_e(judul_awal)} {sorot(judul_sorot)} {_e(teks_harga)}'
-    return (f'<section class="ceria-ortu"><p class="ceria-alis">{_e(label)}</p>'
-            f'<h{level} class="ceria-judul">{judul}</h{level}>{centang}'
-            f'<a class="ceria-tombol" href="{_e(_alamat_dalam(href))}">{_e(teks_tombol)}</a></section>')
+    return kartu_navy(judul, centang, href, teks_tombol, label=label, level=level)
+
+
+def lencana(teks: str, nada: str) -> str:
+    """Lencana teks status (status tidak pernah hanya warna). `nada` = "kuning", "hijau", atau "koral"."""
+    if nada not in NADA_STATUS:
+        raise ValueError(f"nada lencana tidak dikenal: {nada!r}")
+    return f'<span class="ceria-lencana ceria-lencana-{nada}">{_e(teks)}</span>'
+
+
+def kartu_status(nada: str, teks_lencana: str, judul: str, isi_html: str = "", *, id_: str = "",
+                 tombol: Optional[Sequence[str]] = None, level: int = 3) -> str:
+    """Kartu status berwarna lembut: lencana teks, judul, isi, dan paling banyak SATU tautan tombol.
+
+    `tombol` = (href, teks) atau None. `isi_html` adalah HTML tepercaya; `judul`, `teks_lencana`, `id_` di-escape.
+    """
+    if level not in _LEVEL_JUDUL:
+        raise ValueError(f"level judul tidak didukung: {level!r}")
+    badge = lencana(teks_lencana, nada)  # menolak nada tak dikenal
+    aksi = ""
+    if tombol is not None:
+        href, teks = tombol
+        aksi = f'<a class="ceria-tombol" href="{_e(_alamat_dalam(href))}">{_e(teks)}</a>'
+    return (f'<section class="ceria-status ceria-status-{nada}"{_id_atribut(id_)}>{badge}'
+            f'<h{level} class="ceria-judul">{_e(judul)}</h{level}>{isi_html}{aksi}</section>')
 
 
 def titik_hari(terisi: Collection[int], latar: str = "teal") -> str:

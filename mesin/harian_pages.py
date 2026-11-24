@@ -29,7 +29,6 @@ DASAR = "/murid/latihan-harian"
 ALAMAT_AWAL = DASAR
 ALAMAT_MULAI = DASAR + "/mulai"
 ALAMAT_ORANG_TUA = "/murid/orang-tua"  # halaman orang tua (di balik PIN tirai) memuat kartu langganan F5
-NAMA_HARI = ("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
 COPY_JUDUL = "Latihan Harian"
 COPY_HABIS = "Jatah latihan gratis hari ini sudah dipakai"
 COPY_HABIS_JUDUL = "Hebat, latihan hari ini selesai!"
@@ -266,16 +265,6 @@ def halaman_gagal_siapkan() -> bytes:
 
 # --- kartu beranda murid dan blok halaman orang tua --------------------------------------------
 
-def _hari_html(hari: Sequence[tuple]) -> str:
-    butir = []
-    for tanggal, ada in hari:
-        nama = NAMA_HARI[datetime.date.fromisoformat(tanggal).weekday()]
-        butir.append(f'<li class="{"ada" if ada else "kosong"}"><span class="hr-titik" aria-hidden="true"></span>'
-                     f'<span aria-hidden="true">{nama}</span><span class="hr-sr">{nama}, '
-                     f'{"ada latihan" if ada else "belum latihan"}</span></li>')
-    return f'<ol class="hr-hari">{"".join(butir)}</ol>'
-
-
 def _indeks_hari(pekan: Sequence[tuple]) -> set:
     """Indeks hari (0 = Senin) pada `pekan` yang ada latihan, untuk `titik_hari`."""
     return {datetime.date.fromisoformat(tanggal).weekday() for tanggal, ada in pekan if ada}
@@ -305,14 +294,16 @@ def kartu_beranda(sesi_berjalan: Optional[hs.SesiRingkas], terakhir: Optional[st
 
 
 def blok_orang_tua(ringkas: hs.RingkasanHarian) -> str:
-    """Kartu ringkasan halaman orang tua: tingkat, hari latihan 7 hari terakhir, soal dikerjakan, persen benar."""
+    """Kartu ringkasan halaman orang tua: kelas terakhir, hari latihan 7 hari terakhir, soal dikerjakan, persen benar.
+
+    CSS komponen ceria (titik hari) dimuat oleh halaman pemanggil lewat `playful_style.GAYA_CERIA`.
+    """
     if ringkas.tingkat_terakhir is None and ringkas.soal_dikerjakan == 0:
         isi = "<p>Belum ada Latihan Harian.</p>"
     else:
         persen = "-" if ringkas.persen_benar is None else "%d%%" % ringkas.persen_benar
         isi = (f'<p>Terakhir berlatih: <b>{_e(_judul_tingkat(ringkas.tingkat_terakhir or ""))}</b></p>'
-               f'{_hari_html(ringkas.hari)}'
+               f'{C.titik_hari(_indeks_hari(ringkas.hari), latar="krem")}'
                f'<p>Hari latihan dalam 7 hari terakhir: <b>{ringkas.jumlah_hari}</b> dari 7</p>'
                f'<p>Soal dikerjakan: <b>{ringkas.soal_dikerjakan}</b> · Persen tepat: <b>{persen}</b></p>')
-    return (f'<style>{harian_style.GAYA_KARTU}</style>'
-            f'<section class="ortu-kartu-st" id="ortu-harian"><h2>{COPY_JUDUL}</h2>{isi}</section>')
+    return f'<section class="ortu-kartu-st" id="ortu-harian"><h2>{COPY_JUDUL}</h2>{isi}</section>'

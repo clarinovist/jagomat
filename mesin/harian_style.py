@@ -1,9 +1,9 @@
-"""CSS Latihan Harian: halaman anak (`GAYA_HARIAN`) dan potongan kecil untuk kartu beranda/halaman orang tua (`GAYA_KARTU`).
+"""CSS Latihan Harian: halaman anak (`GAYA_HARIAN`) dan potongan kecil untuk kartu beranda murid (`GAYA_KARTU`).
 
 Semua warna, jarak, radius, dan ukuran dari `design_tokens` (tanpa hex). Tombol dan pilihan besar untuk jari anak
 (tinggi >= `T.TARGET_SENTUH`), status benar/salah selalu disertai teks (bukan warna saja).
 Komponen ceria bersama (progres, banner, hero, kartu ajakan, titik hari) ada di `playful_style.GAYA_CERIA`, yang
-ditambahkan pemanggil ke `<head>`. `GAYA_KARTU` disisipkan sebagai `<style>` di dalam kartu supaya beranda murid dan halaman orang tua tidak perlu
+ditambahkan pemanggil ke `<head>`. `GAYA_KARTU` disisipkan sebagai `<style>` di dalam kartu supaya beranda murid tidak perlu
 menambah stylesheet (CSP `style-src 'unsafe-inline'` sudah berlaku).
 """
 from __future__ import annotations
@@ -11,15 +11,9 @@ from __future__ import annotations
 import design_tokens as T
 
 _TINGGI_PILIHAN = "3.5rem"
-_UKURAN_TITIK = "1.1rem"
 _LEBAR_NOMOR = "2rem"
 
 GAYA_KARTU = f"""
-.hr-hari {{ display: flex; gap: {T.SP_2}; margin: {T.SP_3} 0; padding: 0; list-style: none; }}
-.hr-hari li {{ display: flex; flex-direction: column; align-items: center; gap: {T.SP_1}; font-size: {T.UKURAN_TEKS_META}; color: {T.TEKS_VARIAN}; }}
-.hr-titik {{ display: block; width: {_UKURAN_TITIK}; height: {_UKURAN_TITIK}; border-radius: {T.RADIUS_BULAT};
-  background: {T.ANAK_ABU_HANGAT}; border: 2px solid {T.ANAK_BORDER_PIL}; }}
-.hr-hari .ada .hr-titik {{ background: {T.ANAK_AKSEN}; border-color: {T.ANAK_AKSEN}; }}
 .hr-sr {{ position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
   clip: rect(0 0 0 0); white-space: nowrap; border: 0; }}
 .hr-tombol {{ display: inline-flex; align-items: center; justify-content: center; min-height: {T.TINGGI_CTA};

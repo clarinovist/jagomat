@@ -217,6 +217,16 @@ Riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   PIN (4 angka) sampai PIN benar; tirai terbuka 30 menit per sesi (hilang saat keluar), salah 5x/15 menit = "Coba lagi beberapa menit lagi."
   Pasang/ganti/hapus PIN hanya saat tirai terbuka atau belum ada PIN (hapus wajib centang konfirmasi). Nomor WhatsApp, kunci, malrule,
   kode diagnosis, dan pembahasan tidak pernah tampil; nomor hanya bisa diubah lewat tim. PIN tirai bukan batas keamanan data.
+  Tampilan gaya landing page (24 Nov 2026, presentasi saja): urutan blok = banner "berakhir N hari lagi" (bila ada), hero teal "Halo,
+  Ayah/Bunda" + nama anak (tiga angka hari latihan/soal dikerjakan/persen tepat hanya saat Latihan Harian aktif; tanpa chip kelas karena
+  kelas anak tidak ada di data halaman), hasil cek (cincin skor yang sudah ada; tanpa batang per bagian karena data hanya memuat skor,
+  kategori, dan daftar topik), Latihan Harian (titik hari), kartu langganan, laporan Guru (kosong = kartu sabar), kartu Peta Kemampuan, lalu PIN
+  dilipat dalam `<details>` (terbuka otomatis bila ada pesan PIN). Kartu langganan punya enam keadaan berlencana teks: belum berlangganan
+  (navy, "mulai Rp39.000/bulan" dihitung dari paket), menunggu pemeriksaan (kuning), aktif (hijau, "Tanpa batas sampai ..."), segera berakhir
+  (sisa <= 3 hari, koral lembut, Perpanjang), bukti ditolak (alasan + Unggah ulang bukti), murid les (hijau, tanpa tombol); tombol selalu ke
+  `/murid/langganan`. Halaman itu: satu kartu per paket (form native "Pilih Bulanan/Tahunan"; stiker "Paling hemat", "Setara sekitar" dan
+  "Hemat" Tahunan dihitung dari konstanta paket), kartu tagihan berpola kertas dengan nominal besar + langkah "1 Transfer, 2 Unggah bukti,
+  3 Aktif", status menunggu (maskot berpikir) dan aktif (hero berkonfeti); satu maskot per layar, tanpa skrip baru.
 - **Cek kemampuan di sesi anak (F2b, 23 Nov 2026)**: bila sakelar `DAFTAR_AKUN_ANAK` DAN funnel hidup, beranda murid
   menampilkan kartu "Cek kemampuan" (Mulai/Lanjutkan) hanya untuk anak hasil pendaftaran mode anak (ada
   `persetujuan_daftar_anak` bernotice sama) yang cek-nya belum dikumpulkan; setelah dikumpulkan kartu hilang (hasil dilihat

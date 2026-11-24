@@ -79,6 +79,23 @@ GAYA_CERIA = f"""
 .ceria-tombol:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
 .ceria-ortu :focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.AKSEN_MURID_AMBER}; outline-offset: 3px; }}
 
+/* Kartu status lembut (kuning menunggu, hijau aman, koral perlu tindakan) dengan lencana teks. */
+.ceria-status {{ display: flex; flex-direction: column; align-items: flex-start; gap: {T.SP_2}; padding: {T.SP_4}; border: {T.TEBAL_GARIS} solid;
+  border-radius: {T.RADIUS_KARTU_BESAR}; }}
+.ceria-status > * {{ margin: 0; }}
+.ceria-status .ceria-judul {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BAGIAN_STITCH}; font-weight: 800; line-height: 1.25; color: inherit; }}
+.ceria-status > p {{ line-height: 1.5; }}
+.ceria-status .ceria-tombol {{ align-self: stretch; margin-top: {T.SP_1}; }}
+.ceria-status-kuning {{ background: {T.LATAR_CATATAN}; border-color: {T.BORDER_CATATAN}; color: {T.ANAK_PERHATIAN_TEKS}; }}
+.ceria-status-hijau {{ background: {T.LATAR_TERSIMPAN}; border-color: {T.BORDER_TERSIMPAN}; color: {T.TEKS_TERSIMPAN}; }}
+.ceria-status-koral {{ background: {T.LATAR_GALAT}; border-color: {T.BORDER_GALAT}; color: {T.TEKS_GALAT}; }}
+.ceria-lencana {{ display: inline-block; white-space: nowrap; padding: 2px {T.SP_3}; background: {T.LATAR_KARTU}; border: {T.TEBAL_GARIS} solid; border-radius: {T.RADIUS_PIL};
+  font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; }}
+.ceria-lencana-kuning {{ color: {T.AKSEN_AMBER_TUA}; border-color: {T.BORDER_CATATAN}; }}
+.ceria-lencana-hijau {{ color: {T.TEKS_TERSIMPAN}; border-color: {T.BORDER_TERSIMPAN}; }}
+.ceria-lencana-koral {{ color: {T.TEKS_GALAT}; border-color: {T.BORDER_GALAT}; }}
+.ceria-status :focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 3px; }}
+
 /* Deretan titik 7 hari: varian di atas teal (bawaan) dan di atas krem. */
 .ceria-titik {{ display: flex; gap: {T.SP_2}; margin: 0; padding: 0; list-style: none; }}
 .ceria-titik li {{ flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: {T.SP_1};
