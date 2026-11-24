@@ -6,6 +6,7 @@ dicentang (tidak tersimpan) dan jawaban tantangan terbuka lewat `<details>`.
 """
 from __future__ import annotations
 
+import paket_belajar_katalog as katalog
 from peta_ikon import ikon, ubin_materi
 from peta_komponen import kepala_panel
 from peta_teks import e
@@ -14,9 +15,10 @@ HARI = ("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
 KUNCI_STIKER_CONTOH = "jagomat-contoh-peta-hari"
 KUNCI_STIKER = "jagomat-peta-hari"
 MINGGU_CEK_ULANG = "Cek ulang bersama Guru di kelas, lalu peta baru"
-# Keputusan 20 poin 7 (21 Nov 2026): harga kelas tampil di akhir laporan. Hanya tampilan; belum ada tagihan kelas di aplikasi.
-RUPIAH_KELAS_BULAN = 200_000
-PERTEMUAN_KELAS_BULAN = 8
+# Keputusan 20 poin 7 (21 Nov 2026): harga kelas tampil di akhir laporan. Angka kelas dari katalog Mini Class
+# (`paket_belajar_katalog`, keputusan Pemilik 24 Nov 2026), bukan tulis tangan di sini.
+COPY_LOKASI_KELAS = "Lokasi diumumkan setelah pendaftaran."
+_LABEL_MODE = {katalog.MODE_ONLINE: "online", katalog.MODE_OFFLINE: "tatap muka"}
 
 
 def _rupiah(nilai: int) -> str:
@@ -95,13 +97,15 @@ def _centang(teks: str) -> str:
 def _program(cta_html: str) -> str:
     from funnel_pages import COPY_DEPOSIT, COPY_KONSULTASI, COPY_TIDAK_WAJIB_KELAS
 
+    mini = katalog.ambil(katalog.KODE_MINI)
     kelas = (
         "Mulai dari fokus di laporan ini.",
-        "Dua pertemuan seminggu, 45 menit, dipandu Guru.",
+        "Kelas kecil maksimal %d anak, %s, %d menit per pertemuan, dipandu Guru."
+        % (mini.kuota, _LABEL_MODE[mini.mode], mini.menit),
         "Cek ulang bersama Guru tiap 4 minggu, lalu peta baru.",
         "Laporan perkembangan pada fokus yang dilatih.",
     )
-    harga = "%s per bulan, %d pertemuan." % (_rupiah(RUPIAH_KELAS_BULAN), PERTEMUAN_KELAS_BULAN)
+    harga = "%s per bulan, %d pertemuan." % (_rupiah(mini.harga), mini.pertemuan)
     return (
         '<div class="peta-program-st"><div class="peta-kartu-st peta-konsul-st"><span class="peta-alis-st">Termasuk dalam Peta Kemampuan</span>'
         '<h3 class="peta-judul-bagian-st">Konsultasi 20 menit dengan Guru</h3><p>%s</p>%s</div>'
@@ -109,9 +113,9 @@ def _program(cta_html: str) -> str:
         '<h3 class="peta-judul-bagian-st">Kelas kecil Jagomat</h3><ul class="peta-cek-st">%s</ul>'
         '<p class="peta-bantuan-st"><b>%s</b></p>'
         '<div class="peta-voucher-st">%s<span>%s %s</span></div>'
-        '<p class="peta-bantuan-st">Jadwal dan rincian lain kita bahas saat konsultasi.</p></div></div>'
+        '<p class="peta-bantuan-st">%s Jadwal dan rincian lain kita bahas saat konsultasi.</p></div></div>'
     ) % (e(COPY_KONSULTASI), cta_html, "".join(_centang(k) for k in kelas), e(harga), ikon("voucher", 22, "2"),
-         e(COPY_DEPOSIT), e(COPY_TIDAK_WAJIB_KELAS))
+         e(COPY_DEPOSIT), e(COPY_TIDAK_WAJIB_KELAS), e(COPY_LOKASI_KELAS))
 
 
 def panel_misi(data, contoh: bool, cta_html: str, pose_hore: str) -> str:

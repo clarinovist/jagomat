@@ -1,7 +1,8 @@
 """Renderer murni halaman admin Paket Belajar: antrean bukti menunggu dan detail verifikasi (tanpa I/O).
 
 Mengikuti `harian_langganan_admin_pages`: mengembalikan fragmen HTML (str) yang dibungkus `admin_http._halaman_admin`
-oleh pemanggil. Tanpa id anak, nama anak, kontak, nama berkas, atau sha256; bukti hanya referensi (`BuktiView`).
+oleh pemanggil. Tanpa id anak di antrean/detail, nama anak, kontak, nama berkas, atau sha256; bukti hanya referensi (`BuktiView`,
+id = bilangan ledger `kelas_bukti`, sama dengan `kelas_putusan.bukti_meta`).
 Nominal disorot persis (tiga digit terakhir = kode unik). Form Setujui (tanpa alasan) dan Tolak (alasan wajib) hanya
 untuk status menunggu dan sesi berkuki; token tinjauan terikat ke order dan bukti yang dilihat dibuat pemanggil
 (`forms = {'setujui': (csrf, tinjauan), 'tolak': (csrf, tinjauan)}`). Semua nilai dinamis di-escape.
@@ -23,21 +24,32 @@ RUTE_VERIFIKASI = RUTE + "/verifikasi"
 RUTE_BUKTI = RUTE + "/bukti"
 RUTE_SETUJUI = RUTE + "/setujui"
 RUTE_TOLAK = RUTE + "/tolak"
+RUTE_KELUARGA = RUTE + "/keluarga"
 SECTION = "kelas_belajar"
 JUDUL = "Paket Belajar 1 Bulan"
 SUBJUDUL = "Periksa bukti transfer paket Private/Mini Class terhadap nominal persis, lalu setujui atau tolak."
 AKSI_SETUJUI = "setujui_kelas"
 AKSI_TOLAK = "tolak_kelas"
+AKSI_KELUARGA = "tautkan_keluarga_kelas"
 COPY_ANTREAN_KOSONG = "Tidak ada bukti paket belajar yang menunggu verifikasi."
 COPY_KONFIRMASI_SETUJUI = "Setujui transfer ini? Paket langsung aktif dan keputusan tidak dapat dibatalkan."
 COPY_KONFIRMASI_TOLAK = ("Tolak bukti ini? Orang tua akan melihat bahwa bukti ditolak dan dapat mengunggah ulang "
                          "selama waktu pembayaran terbuka.")
 COPY_CATATAN_NOMINAL = ("Cocokkan nominal di mutasi rekening dengan angka di atas sampai tiga digit terakhir. Hanya "
                         "bukti yang Anda lihat di halaman ini yang akan diputuskan; bila ada bukti baru, buka ulang.")
+COPY_GALAT_KONFLIK = ("Bukti ini tidak sedang menunggu verifikasi, sudah diputuskan, atau ada bukti baru sejak Anda "
+                      "membuka halaman verifikasi. Buka ulang halaman verifikasi; tidak ada yang diubah.")
+COPY_GALAT_ALASAN = ("Alasan penolakan wajib diisi (1 sampai %d karakter, tanpa karakter kontrol). "
+                     "Tidak ada yang diubah." % BATAS_ALASAN)
+COPY_JUDUL_KELUARGA ="Tautkan keluarga (diskon anak kedua)"
+COPY_CATATAN_KELUARGA = ("Tautkan dua anak yang satu keluarga. Anak ke-2 dan seterusnya tanpa deposit Peta sendiri "
+                         "mendapat diskon pada paket belajar. Pembeli tidak dapat memilih ini sendiri.")
+COPY_KONFIRMASI_KELUARGA = "Tautkan kedua anak sebagai satu keluarga? Tautan tidak dapat dilepas dari halaman ini."
 COPY_STATUS = {k.STATUS_AKTIF: "Disetujui", k.STATUS_MENUNGGU: "Menunggu verifikasi",
                k.STATUS_DITOLAK: "Ditolak (menunggu unggah ulang)", k.STATUS_KEDALUWARSA: "Kedaluwarsa",
                k.STATUS_BELUM_BAYAR: "Menunggu pembayaran"}
-_ID_BUKTI = re.compile(r"[0-9a-f]{32}")
+MAKS_ANGKA_ID_BUKTI = 18
+_ID_BUKTI = re.compile(r"[0-9]{1,%d}" % MAKS_ANGKA_ID_BUKTI)
 _LABEL_MIME = {"image/jpeg": "JPEG", "image/png": "PNG", "application/pdf": "PDF"}
 
 Token = Tuple[str, str]
@@ -45,7 +57,10 @@ Token = Tuple[str, str]
 
 @dataclass(frozen=True)
 class BuktiView:
-    """Referensi satu bukti: id berkas (32 hex), waktu ledger UTC naif, ukuran byte, mime. Tanpa isi berkas."""
+    """Referensi satu bukti: id ledger (bilangan bulat dalam teks), waktu UTC naif, ukuran byte, mime.
+
+    Tanpa isi berkas dan tanpa nama berkas tersimpan.
+    """
     id: str
     waktu: str
     ukuran: int
@@ -139,3 +154,16 @@ def halaman_detail(item: k.ItemAntrean, tagihan: k.TagihanKelas, bukti: Sequence
     tabel = vp._tabel("Bukti transfer", ("No.", "Diunggah", "Jenis", "Ukuran", "Pratinjau"), baris,
                       vp.COPY_TIDAK_ADA_BUKTI)
     return _ringkasan(item, tagihan) + sesi + tabel + keputusan
+
+
+def form_keluarga(csrf: str, tinjauan: str) -> str:
+    """Form kecil admin: tautkan dua anak (id siswa angka) sebagai satu keluarga untuk diskon anak kedua."""
+    return ('<section class="admin-kartu admin-form-tindakan admin-form-pendek"><h2>%s</h2><p class="admin-meta">%s</p>'
+            '<form method="post" action="%s" data-konfirmasi="%s">%s'
+            '<label>Id siswa pertama<input type="number" name="siswa_a" required min="1" inputmode="numeric" '
+            'autocomplete="off"></label>'
+            '<label>Id siswa kedua<input type="number" name="siswa_b" required min="1" inputmode="numeric" '
+            'autocomplete="off"></label>%s<button class="admin-tombol" type="submit">Tautkan keluarga</button>'
+            '</form></section>'
+            % (e(COPY_JUDUL_KELUARGA), e(COPY_CATATAN_KELUARGA), RUTE_KELUARGA, e(COPY_KONFIRMASI_KELUARGA),
+               vp._hidden(csrf, tinjauan), vp._SANDI))

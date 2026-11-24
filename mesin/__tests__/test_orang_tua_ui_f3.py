@@ -214,3 +214,28 @@ def test_css_ceria_dimuat_di_isi_halaman_dan_modul_tanpa_hex():
     for nama in ("orang_tua_style.py", "orang_tua_pages.py", "harian_langganan_style.py", "harian_langganan_pages.py"):
         sumber = (Path(P.__file__).parent / nama).read_text()
         assert not re.search(r"#[0-9a-fA-F]{3,8}\b", sumber.replace("&#", "")), nama
+
+
+# --- kartu Paket Belajar (hanya bila pemanggil menyalakan; sakelar PAKET_BELAJAR) -------------------
+
+def _isi_paket(data, tautan):
+    return _badan(P.halaman_isi(data, False, "", "", tautan_paket=tautan).decode())
+
+
+def test_kartu_paket_belajar_hanya_saat_diminta_dan_byte_sama_bila_mati():
+    harian = hs.RingkasanHarian("t5", HARI, 12, 9)
+    data = _data(laporan=LAPORAN, langganan=LANGGANAN_SEGERA, harian=harian)
+    assert _isi_paket(data, False) == _badan(_isi(data)) and 'id="ortu-paket"' not in _isi_paket(data, False)
+    assert 'id="ortu-paket"' in _isi_paket(data, True)
+
+
+def test_kartu_paket_belajar_setelah_langganan_sebelum_laporan_guru():
+    harian = hs.RingkasanHarian("t5", HARI, 12, 9)
+    html = _isi_paket(_data(laporan=LAPORAN, langganan=LANGGANAN_SEGERA, harian=harian), True)
+    posisi = [html.index(p) for p in ('id="ortu-harian"', 'id="ortu-langganan"', 'id="ortu-paket"', 'id="ortu-laporan"')]
+    assert posisi == sorted(posisi)
+    kartu = html[html.index('id="ortu-paket"'):]
+    kartu = kartu[:kartu.index("</section>")]
+    assert 'href="/murid/paket"' in kartu and "Belajar bersama Guru" in kartu
+    for klaim in ("nilai naik", "pasti", "dijamin", "Rp"):
+        assert klaim not in kartu

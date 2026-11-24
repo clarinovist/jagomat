@@ -498,9 +498,12 @@ def tangani_get(penangan, jalur):
     import admin_sakelar_http
     import admin_usage_http
     import harian_langganan_admin_http
+    import kelas_admin_http
     if admin_kurikulum_merdeka_http.tangani_get(penangan, jalur):
         return True
     if harian_langganan_admin_http.tangani_get(penangan, jalur):
+        return True
+    if kelas_admin_http.tangani_get(penangan, jalur):
         return True
     if admin_kurikulum_http.tangani_get(penangan, jalur):
         return True
@@ -1103,7 +1106,10 @@ def _tangani_post_admin(penangan, jalur):
     import admin_research_http
     import admin_sakelar_http
     import harian_langganan_admin_http
+    import kelas_admin_http
     if harian_langganan_admin_http.tangani_post(penangan, jalur):
+        return True
+    if kelas_admin_http.tangani_post(penangan, jalur):
         return True
     if admin_kurikulum_cp_http.tangani_post(penangan, jalur):
         return True

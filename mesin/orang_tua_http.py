@@ -24,6 +24,7 @@ import database
 import laju_masuk
 import orang_tua_data
 import orang_tua_pages as halaman
+import paket_belajar_gate
 import pin_orang_tua_store as pin_store
 import tirai_orang_tua as tirai
 from orang_tua_style import RUTE
@@ -101,7 +102,8 @@ def _tampilkan(penangan, kon, ctx: _Konteks, *, kabar: str = "", galat: str = ""
         _kirim(penangan, halaman.halaman_pin(), kode)
         return
     data = orang_tua_data.kumpulkan(kon, ctx.id_akun, ctx.siswa_id)
-    _kirim(penangan, halaman.halaman_isi(data, ada_pin, kabar=kabar, galat=galat), kode)
+    _kirim(penangan, halaman.halaman_isi(data, ada_pin, kabar=kabar, galat=galat,
+                                      tautan_paket=paket_belajar_gate.aktif()), kode)
 
 
 def tangani_get(penangan, kon, siswa_id: int) -> bool:

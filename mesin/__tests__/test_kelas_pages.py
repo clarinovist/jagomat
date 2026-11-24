@@ -181,3 +181,16 @@ def test_modul_tanpa_hex_warna_dan_tanpa_skrip_baru():
 def test_rute():
     assert halaman.RUTE == "/murid/paket" and halaman.RUTE_BUAT == "/murid/paket/buat"
     assert halaman.RUTE_BUKTI == "/murid/paket/bukti"
+
+
+# --- info dan kalimat aktif (dipakai lapisan HTTP) -----------------------------------------------
+
+def test_halaman_info_escape_dan_tautan_kembali():
+    html = halaman.halaman_info("Judul <b>", "Isi & <script>").decode().split("</head>", 1)[1]
+    assert "<script>" not in html and "&lt;script&gt;" in html and "Judul &lt;b&gt;" in html
+    assert 'href="/murid/paket"' in html and "<form" not in html
+
+
+def test_kalimat_aktif_memuat_nama_paket_dan_tanggal():
+    teks = halaman.kalimat_aktif("Private", AKHIR)
+    assert teks == "Paket Private aktif sampai 23 Des 2026."

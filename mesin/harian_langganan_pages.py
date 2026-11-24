@@ -20,6 +20,7 @@ from format_tanggal import tanggal_pendek
 import harian_langganan_dasar as h
 import harian_langganan_ringkas as ringkas
 import harian_langganan_style
+import kelas_pages
 import pesanan_murid_pages
 from harian_pages import teks_harga_ortu
 from pesanan_transfer_pages import (COPY_ATURAN, COPY_BERKAS_BESAR, COPY_BERKAS_KOSONG, COPY_BERKAS_TAK_TERBACA,
@@ -277,9 +278,14 @@ def _badan(r: ringkas.Ringkasan, tampil, rekening, token_untuk: TokenUntuk) -> s
     return status + _kartu_pilih(r, token_untuk, dengan_maskot=not ada_maskot)
 
 
-def halaman_langganan(r: ringkas.Ringkasan, tampil, rekening, token_untuk: TokenUntuk) -> bytes:
-    """Halaman /murid/langganan: status akses + (pilih paket | tagihan terbuka)."""
-    return _bungkus(_badan(r, tampil, rekening, token_untuk))
+def halaman_langganan(r: ringkas.Ringkasan, tampil, rekening, token_untuk: TokenUntuk,
+                      tautan_paket: bool = False) -> bytes:
+    """Halaman /murid/langganan: status akses + (pilih paket | tagihan terbuka).
+
+    `tautan_paket` (pemanggil menyalakannya hanya saat sakelar PAKET_BELAJAR aktif) menambah satu tautan kecil ke
+    `/murid/paket`; mati = byte halaman sama dengan sebelum parameter ini ada.
+    """
+    return _bungkus(_badan(r, tampil, rekening, token_untuk) + (kelas_pages.tautan_masuk() if tautan_paket else ""))
 
 
 def halaman_info(judul: str, teks: str) -> bytes:

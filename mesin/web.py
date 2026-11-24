@@ -79,6 +79,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/rekening", "admin"),
     ("/admin/sakelar", "admin"),  # sakelar fitur: empat sakelar admin; sudah tercakup prefix `/admin`
     ("/admin/langganan", "admin"),  # F5: antrean bukti langganan Latihan Harian (+ /verifikasi, /bukti); sakelar mati = 404 rute tak dikenal
+    ("/admin/kelas", "admin"),  # Paket Belajar: antrean bukti (+ /verifikasi, /bukti); admin tetap terbuka walau sakelar mati
     ("/admin/kurikulum", "admin"),  # Kurikulum Merdeka: tabel materi per kelas (exact; tanpa query)
     ("/admin/kurikulum/cp-detail", "admin"),  # Detail CP: ringkasan CP, celah, per fase, per topik (exact)
     ("/admin/kurikulum/buat", "admin"),  # Buat soal per bab (`?kelas=&bab=&jumlah=&seed=`); tidak menulis DB
@@ -104,6 +105,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/murid/pesanan", "murid"),
     ("/murid/langganan", "murid"),  # F5: langganan Latihan Harian (exact + /buat /bukti); sakelar LATIHAN_HARIAN mati = jalur murid asing
     ("/murid/latihan-harian", "murid"),  # F4 Latihan Harian (prefix: beranda, /sesi/<id>, /sesi/<id>/ringkasan); sakelar LATIHAN_HARIAN mati = identik rute tak dikenal
+    ("/murid/paket", "murid"),  # Paket Belajar 1 Bulan (exact + /buat /bukti); sakelar PAKET_BELAJAR mati = jalur murid asing
     ("/lembaga", "guru"),  # hanya pemilik les; selain itu 404 identik rute tak dikenal
     ("/sesi/", "guru"),
     ("/lampiran/", "guru"),
@@ -135,6 +137,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/rekening", "admin"),
     ("/admin/sakelar", "admin"),  # ubah sakelar fitur; tinjauan bertanda tangan + sandi ulang
     ("/admin/langganan", "admin"),  # F5: POST /setujui dan /tolak langganan; tinjauan bertanda tangan + sandi ulang
+    ("/admin/kelas", "admin"),  # Paket Belajar: POST /setujui, /tolak, /keluarga; tinjauan bertanda tangan + sandi ulang
     ("/admin/kurikulum/cp", "admin"),  # ubah pemetaan CP per grup; tinjauan bertanda tangan + sandi ulang
     ("/admin/kurikulum/cp/kembalikan", "admin"),  # kembalikan pemetaan CP ke bawaan kode (aksi dan tinjauan sendiri)
     ("/admin/kurikulum/label", "admin"),  # ubah label awam topik; tinjauan bertanda tangan + sandi ulang
@@ -155,6 +158,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/murid/pesanan", "murid"),  # F2c: POST pesan/periksa/ulang/buat/tagihan/bukti; anonim 401 (palang sandi)
     ("/murid/langganan", "murid"),  # F5: POST buat tagihan / unggah bukti langganan; sakelar mati = jalur murid asing
     ("/murid/latihan-harian", "murid"),  # F4: POST /mulai dan /sesi/<id>/jawab; sakelar LATIHAN_HARIAN mati = identik rute tak dikenal
+    ("/murid/paket", "murid"),  # Paket Belajar: POST buat tagihan / unggah bukti; sakelar PAKET_BELAJAR mati = jalur murid asing
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),
@@ -774,6 +778,9 @@ class Penangan(BaseHTTPRequestHandler):
             import harian_http  # F4: Latihan Harian (di balik sakelar LATIHAN_HARIAN); mati = False
             if harian_http.tangani_get(self, jalur, self.path):
                 return
+            import kelas_murid_http  # Paket Belajar 1 Bulan (di balik sakelar PAKET_BELAJAR); mati = False
+            if kelas_murid_http.tangani_get(self, jalur, self.path):
+                return
             import student_http
             student_http.tangani_get(self, jalur, self.path)
             return
@@ -915,6 +922,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         import harian_http  # F4: POST Latihan Harian; setelah _asal_sama_post, mati = False
         if harian_http.tangani_post(self, jalur):
+            return
+        import kelas_murid_http  # Paket Belajar: POST dari akun anak; setelah _asal_sama_post, mati = False
+        if kelas_murid_http.tangani_post(self, jalur):
             return
         import student_http
         if student_http.tangani_post(self, jalur):

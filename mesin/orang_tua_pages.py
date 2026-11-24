@@ -16,6 +16,7 @@ import cek_gratis_skor
 import cek_pages
 import harian_langganan_pages
 import harian_pages
+import kelas_pages
 import playful_components as C
 import parent_report_page
 import pesanan_pages
@@ -261,10 +262,10 @@ def _kaki() -> str:
     return (f'<p class="ortu-kaki-st">{_e(COPY_PIN_CATATAN)}</p><p class="ortu-kaki-st">{_e(COPY_KALIMAT)}</p>')
 
 
-def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "") -> bytes:
+def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan_paket: bool = False) -> bytes:
     """Isi halaman (tirai terbuka atau anak tanpa PIN); `data` = `orang_tua_data.DataOrangTua`.
 
-    Urutan: banner perpanjang, hero ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, laporan Guru, PIN (lipat).
+    Urutan: banner perpanjang, hero ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, kartu paket belajar (hanya bila `tautan_paket`), laporan Guru, PIN (lipat).
     """
     pin_terbuka = bool(KABAR.get(kabar) or galat)
     badan = (
@@ -275,7 +276,8 @@ def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "") -> bytes:
         + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai", data.purna)
         + peta_laporan_ortu_pages.blok_peta(data.peta)
         + _blok_harian(data.harian)
-        + harian_langganan_pages.kartu_orang_tua(data.langganan) + _blok_laporan(data.laporan)
+        + harian_langganan_pages.kartu_orang_tua(data.langganan) + (kelas_pages.kartu_orang_tua() if tautan_paket else "")
+        + _blok_laporan(data.laporan)
         + _blok_pin(ada_pin, pin_terbuka) + _kaki() + "</div>"
     )
     return _dokumen(badan, ceria=True)

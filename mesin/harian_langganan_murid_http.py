@@ -29,6 +29,7 @@ import harian_langganan_dasar as h
 import harian_langganan_pages as halaman
 import harian_langganan_ringkas as ringkas
 import harian_langganan_store as store
+import paket_belajar_gate
 import pesanan_alur as alur
 import pesanan_dasar as d
 import pesanan_http
@@ -91,7 +92,8 @@ def _get_halaman(penangan, principal, siswa_id: int) -> None:
     except _GALAT_LAYANAN:
         _info(penangan, "Belum bisa diproses", halaman.COPY_BELUM_SIAP, KODE_TIDAK_SIAP)
         return
-    penangan._kirim_privat(halaman.halaman_langganan(r, tampil, rekening, _token_untuk(penangan, principal)))
+    penangan._kirim_privat(halaman.halaman_langganan(r, tampil, rekening, _token_untuk(penangan, principal),
+                                                     tautan_paket=paket_belajar_gate.aktif()))
 
 
 def tangani_get(penangan, jalur: str, jalur_penuh: str = "") -> bool:

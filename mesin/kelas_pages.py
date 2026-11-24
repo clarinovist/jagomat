@@ -210,6 +210,36 @@ def halaman_tagihan(tagihan: k.TagihanKelas, paket: k.PaketBelajar, rekening: st
     return _bungkus(pesan + _kartu_status(tagihan) + rincian + uang + kembali)
 
 
+COPY_LABEL_KARTU_ORTU = "Paket belajar"
+COPY_JUDUL_KARTU_ORTU = "Belajar bersama Guru"
+COPY_TOMBOL_KARTU_ORTU = "Lihat paket belajar"
+COPY_TAUTAN_MASUK = "Belajar bersama Guru: lihat paket belajar"
+
+
+def tautan_masuk() -> str:
+    """Satu tautan kecil ke `/murid/paket` untuk halaman langganan (pemanggil hanya memakainya bila sakelar aktif)."""
+    return f'<p class="lg-kembali"><a href="{RUTE}">{_e(COPY_TAUTAN_MASUK)}</a></p>'
+
+
+def kartu_orang_tua() -> str:
+    """Kartu kecil halaman orang tua yang menuju `/murid/paket`; nama paket dan jumlah pertemuan dari katalog, tanpa klaim hasil."""
+    nama = " atau ".join(p.nama for p in k.DAFTAR_PAKET)
+    isi = _p(f"Pilih {nama}, {k.PERTEMUAN_PER_BULAN} pertemuan sebulan. Daftar lewat transfer, tim kami yang memeriksa.")
+    return C.kartu_navy(_e(COPY_JUDUL_KARTU_ORTU), isi, RUTE, COPY_TOMBOL_KARTU_ORTU, label=COPY_LABEL_KARTU_ORTU,
+                        id_="ortu-paket", level=2)
+
+
+def kalimat_aktif(nama_paket: str, berakhir: str) -> str:
+    """Satu kalimat status paket aktif (untuk `kabar` halaman pilih); `berakhir` = UTC naif baku."""
+    return f"Paket {nama_paket} aktif sampai {_tanggal(berakhir)}."
+
+
+def halaman_info(judul: str, teks: str) -> bytes:
+    """Pesan tetap tanpa form (galat/penutupan), dengan tautan kembali ke halaman pilih paket."""
+    isi = _kartu(f"<h2>{_e(judul)}</h2>{_p(teks)}") + f'<p class="lg-kembali"><a href="{RUTE}">{_e(COPY_KEMBALI)}</a></p>'
+    return _bungkus(isi)
+
+
 def _bungkus(isi: str) -> bytes:
     badan = f'<div class="lg-isi"><h1 id="{ID_JUDUL}">{_e(COPY_JUDUL)}</h1>{isi}</div>'
     css = GAYA_CERIA + harian_langganan_style.GAYA_LANGGANAN_HARIAN

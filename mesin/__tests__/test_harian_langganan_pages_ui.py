@@ -218,3 +218,14 @@ def test_modul_tak_lagi_memakai_escape_tanpa_kutip_dari_cek_pages():
     sumber = Path(halaman.__file__).read_text()
     assert "cek_pages" not in sumber
     assert halaman._e('a"b') == "a&quot;b"
+
+
+# --- tautan masuk Paket Belajar (hanya bila sakelar PAKET_BELAJAR aktif; pemanggil memutuskan) -------
+
+def test_tautan_paket_belajar_hanya_bila_diminta():
+    bawaan = halaman.halaman_langganan(_gratis(), None, REKENING, _token)
+    dengan = halaman.halaman_langganan(_gratis(), None, REKENING, _token, tautan_paket=True).decode()
+    assert b'href="/murid/paket"' not in bawaan
+    assert 'href="/murid/paket"' in dengan and dengan.count('href="/murid/paket"') == 1
+    assert "Belajar bersama Guru" in _teks(dengan)
+    assert halaman.halaman_langganan(_gratis(), None, REKENING, _token, tautan_paket=False) == bawaan

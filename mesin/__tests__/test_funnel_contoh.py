@@ -62,7 +62,7 @@ def test_contoh_v1_valid_dan_sesuai_laporan_nyata():
     peta_laporan_snapshot.periksa_isi(funnel_contoh.CONTOH_PETA_V1["isi"])
     assert peta_laporan_store.periksa_catatan(funnel_contoh.CONTOH_PETA_V1["catatan"]) is None
     for wajib in ("Ditinjau Guru Jagomat", "Penguasaan per materi", "Yang paling perlu dilatih dulu",
-                  "Catatan dari Guru", "Rp200.000 per bulan", "Rp49.000"):
+                  "Catatan dari Guru", "Rp250.000 per bulan", "Rp49.000"):
         assert wajib in isi, wajib
     for lama in ("Pola kesalahan", "peringkat", "persentil", "Lencana", "/contoh-peta-kemampuan/lembar",
                  "otomatis dipotong", "otomatis memotong"):

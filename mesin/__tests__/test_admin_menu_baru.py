@@ -25,7 +25,7 @@ from pesanan_transfer_http_kit import NOMOR, minta_mentah, server, tertutup, tra
 PENGATURAN = "/admin/sakelar"
 REKENING = "/admin/pesanan/rekening"
 POLA_NAV = re.compile(r'<nav class="admin-nav admin-menu"[^>]*>(.*?)</nav>', re.S)
-BATAS_BUTIR_INTI = 12
+BATAS_BUTIR_INTI = 13  # 12 + butir "Paket belajar" (Penjualan, 24 Nov 2026)
 
 # Rute admin yang lama dan baru: (jalur, status langsung). 303 diikuti sekali dan harus berakhir 200.
 RUTE_ADMIN = (
@@ -111,7 +111,7 @@ def test_post_ke_rute_operasional_lama_tidak_dialihkan(transfer, admin):
 
 # --- menu ------------------------------------------------------------------------------
 
-def test_menu_inti_tidak_lebih_dari_dua_belas_butir_di_luar_lainnya():
+def test_menu_inti_tidak_lebih_dari_tiga_belas_butir_di_luar_lainnya():
     inti = [sid for grup, daftar in admin_pages.GRUP_SECTION if grup != admin_pages.GRUP_LAINNYA for sid in daftar]
     assert len(inti) <= BATAS_BUTIR_INTI
     html = admin_pages.halaman_admin("ringkasan", "", pengguna="Pengelola").decode()

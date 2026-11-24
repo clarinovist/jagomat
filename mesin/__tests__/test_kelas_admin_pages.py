@@ -6,7 +6,7 @@ import kelas_admin_pages as ui
 import paket_belajar_katalog as k
 
 ORDER = "kls_" + "b" * 32
-BUKTI_ID = "c" * 32
+BUKTI_ID = "123"
 FORMS = {"setujui": ("csrf-s", "tinjauan-s"), "tolak": ("csrf-t", "tinjauan-t")}
 SOROT = '<mark class="admin-digit-unik">427</mark>'
 
@@ -64,7 +64,7 @@ def test_detail_tanpa_form_bila_bukan_menunggu_atau_tanpa_sesi():
 
 
 def test_detail_rincian_nominal_dan_bukti():
-    bukti = [_bukti(), _bukti(id="d" * 32, mime="application/pdf", ukuran=10)]
+    bukti = [_bukti(), _bukti(id="124", mime="application/pdf", ukuran=10)]
     html = ui.halaman_detail(_item(), _tagihan(), bukti, FORMS)
     teks = _teks(html)
     assert "Rp640.000" in teks and "Rp49.000" in teks and "Rp591." + SOROT in html
@@ -90,3 +90,17 @@ def test_admin_tanpa_kata_terlarang_dan_tanpa_hex():
 
 def test_rute():
     assert ui.RUTE == "/admin/kelas" and ui.RUTE_SETUJUI == "/admin/kelas/setujui"
+
+
+def test_id_bukti_hanya_bilangan_bulat_dari_ledger():
+    assert f"/admin/kelas/bukti?id={BUKTI_ID}" in ui.halaman_detail(_item(), _tagihan(), [_bukti()], FORMS)
+    for salah in ("c" * 32, "12a", "", "-1", "1" * 19):
+        html = ui.halaman_detail(_item(), _tagihan(), [_bukti(id=salah)], FORMS)
+        assert "/admin/kelas/bukti?id=" not in html, salah
+
+
+def test_form_keluarga_dua_angka_token_dan_sandi():
+    html = ui.form_keluarga("csrf-k", "tinjauan-k")
+    assert 'action="/admin/kelas/keluarga"' in html and 'name="siswa_a"' in html and 'name="siswa_b"' in html
+    assert 'value="csrf-k"' in html and 'value="tinjauan-k"' in html and 'name="reauth"' in html
+    assert ui.AKSI_KELUARGA == "tautkan_keluarga_kelas" and ui.RUTE_KELUARGA == "/admin/kelas/keluarga"
