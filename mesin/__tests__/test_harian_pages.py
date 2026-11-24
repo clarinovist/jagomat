@@ -183,6 +183,17 @@ def test_jatah_habis_tanpa_halaman_ortu_menyembunyikan_ajakan():
     assert _jumlah_maskot(habis) == 1 and "maskot-istirahat-v4-96.png" in habis
 
 
+@pytest.mark.parametrize("benar,beruntun,pose,kata", [
+    (True, 1, "merayakan-v3", "Hebat!"), (True, 2, "merayakan-v3", "Hebat!"),
+    (True, 3, "terkejut-v4", "Sudah 3 betul berturut-turut!"), (True, 5, "terkejut-v4", "Sudah 5 betul berturut-turut!"),
+    (False, 1, "memeriksa-v4", "Yuk lihat caranya."), (False, 2, "menyemangati-v4", "Terus semangat"),
+])
+def test_pose_umpan_balik_mengikuti_jawaban_beruntun(benar, beruntun, pose, kata):
+    umpan = hs.UmpanBalik(1, benar, 1 if benar else 0, "cara", beruntun)
+    html = _badan(P.halaman_soal(7, "t1", SOAL, umpan, 3))
+    assert "maskot-%s-96.png" % pose in html and kata in html and _jumlah_maskot(html) == 1
+
+
 def test_umpan_betul_hijau_dan_belum_tepat_hangat_berlabel_teks():
     betul = _badan(P.halaman_soal(7, "t1", SOAL, hs.UmpanBalik(1, True, 1, "cara"), 3))
     belum = _badan(P.halaman_soal(7, "t1", SOAL, hs.UmpanBalik(1, False, 0, "cara"), 3))

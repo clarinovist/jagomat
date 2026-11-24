@@ -67,6 +67,35 @@ def _kunci_huruf(kon, sesi, nomor):
     return "ABCD"[kon.execute("SELECT kunci_indeks FROM harian_soal WHERE sesi_id=? AND nomor=?", (sesi, nomor)).fetchone()[0]]
 
 
+def _jawab_pola(kon, siswa, sesi, pola):
+    """pola: string 'B'/'S' per soal berurutan (benar/salah) dari soal 1."""
+    for n, p in enumerate(pola, 1):
+        kunci = _kunci_huruf(kon, sesi, n)
+        huruf = kunci if p == "B" else next(h for h in "ABCD" if h != kunci)
+        _jawab(kon, siswa, sesi, n, huruf)
+
+
+@pytest.mark.parametrize("pola,nomor,benar,beruntun", [
+    ("B", 1, True, 1), ("BBB", 3, True, 3), ("SBB", 3, True, 2), ("BBS", 3, False, 1),
+    ("BSS", 3, False, 2), ("BBBBS", 4, True, 4), ("SSS", 2, False, 2),
+])
+def test_umpan_balik_menghitung_jawaban_beruntun_dalam_sesi_ini(kon, pola, nomor, benar, beruntun):
+    anak = _anak(kon)
+    sesi, _ = _mulai(kon, anak)
+    _jawab_pola(kon, anak, sesi.id, pola)
+    _, umpan = hs.muat_soal(kon, anak, sesi.id, nomor)
+    assert umpan.benar is benar and umpan.beruntun == beruntun
+
+
+def test_beruntun_tidak_menyeberang_sesi_lain(kon):
+    anak = _anak(kon)
+    pertama, _ = _mulai(kon, anak)
+    _jawab_pola(kon, anak, pertama.id, "BBBBBBBBBB")
+    kedua, _ = _mulai(kon, anak, sekarang=T0 + 2 * 86400)
+    _jawab_pola(kon, anak, kedua.id, "B")
+    assert hs.muat_soal(kon, anak, kedua.id, 1)[1].beruntun == 1
+
+
 def _selesaikan(kon, siswa, sesi, sekarang=T0, benar=True):
     for n in range(1, 11):
         kunci = _kunci_huruf(kon, sesi, n)

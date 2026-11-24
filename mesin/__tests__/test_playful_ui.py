@@ -235,6 +235,7 @@ def test_gerakan_maskot_napas_dan_gaya_pose_hanya_di_dalam_media_no_preference()
     assert "scale: 1.02" in dalam and "translate: 0 -12px" in dalam and "rotate: -4deg" in dalam
     assert '.ceria-maskot[src*="maskot-merayakan-"]' in dalam
     assert '.ceria-maskot[src*="maskot-berpikir-"]' in dalam
+    assert "@keyframes ceria-sentak" in dalam and '.ceria-maskot[src*="maskot-terkejut-"]' in dalam and "ceria-sentak" not in luar
 
 
 def test_keadaan_diam_lengkap_tanpa_opacity_nol_di_luar_media():

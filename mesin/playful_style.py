@@ -127,6 +127,7 @@ GAYA_CERIA = f"""
      agar gerakan gaya-pose di bawah bisa menumpuk tanpa saling menimpa. */
   .ceria-maskot {{ animation: ceria-naik .6s ease-out both, ceria-napas 3.6s ease-in-out .6s infinite; }}
   .ceria-maskot[src*="maskot-merayakan-"] {{ animation: ceria-naik .6s ease-out both, ceria-napas 3.6s ease-in-out .6s infinite, ceria-lompat .5s ease-out .6s both; }}
+  .ceria-maskot[src*="maskot-terkejut-"] {{ animation: ceria-naik .6s ease-out both, ceria-napas 3.6s ease-in-out .6s infinite, ceria-sentak .5s ease-in-out .6s both; }}
   .ceria-maskot[src*="maskot-berpikir-"] {{ transform-origin: 50% 100%; animation: ceria-naik .6s ease-out both, ceria-napas 3.6s ease-in-out .6s infinite, ceria-condong .8s ease-in-out .6s both; }}
   .ceria-konfeti i {{ animation: ceria-muncul .7s ease-out both; }}
   .ceria-konfeti i:nth-child(2n) {{ animation-delay: .12s; }}
@@ -134,6 +135,7 @@ GAYA_CERIA = f"""
   .ceria-tombol {{ transition: transform .12s ease; }}
   .ceria-tombol:hover {{ transform: translateY(-2px); }}
   @keyframes ceria-naik {{ 0% {{ transform: translateY(10px) scale(.94); }} 60% {{ transform: translateY(-5px) scale(1.02); }} 100% {{ transform: none; }} }}
+  @keyframes ceria-sentak {{ 0%, 100% {{ rotate: 0deg; }} 25% {{ rotate: -4deg; }} 50% {{ rotate: 3deg; }} 75% {{ rotate: -2deg; }} }}
   @keyframes ceria-napas {{ 0%, 100% {{ scale: 1; }} 50% {{ scale: 1.02; }} }}
   @keyframes ceria-lompat {{ 0%, 100% {{ translate: 0 0; }} 40% {{ translate: 0 -12px; }} 70% {{ translate: 0 -3px; }} }}
   @keyframes ceria-condong {{ 0% {{ rotate: 0deg; }} 100% {{ rotate: -4deg; }} }}

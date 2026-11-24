@@ -189,11 +189,23 @@ def _opsi_terkunci(opsi: Sequence[str], umpan: hs.UmpanBalik) -> str:
     return f'<div class="hr-pilihan" role="group" aria-label="Pilihan jawaban, sudah terkunci">{"".join(butir)}</div>'
 
 
+# Beruntun dalam satu sesi (keputusan 24 Nov 2026): 3 betul berturut-turut = terkejut senang,
+# 2 belum tepat berturut-turut = menyemangati; selain itu pose biasa.
+AMBANG_BETUL_BERUNTUN = 3
+AMBANG_SALAH_BERUNTUN = 2
+
+
 def _banner_umpan(umpan: hs.UmpanBalik) -> str:
     """Satu-satunya maskot layar soal terjawab. Betul = hijau; belum tepat = hangat (bukan merah)."""
     if umpan.benar:
         huruf = hs.HURUF_PILIHAN[umpan.pilihan]
+        if umpan.beruntun >= AMBANG_BETUL_BERUNTUN:
+            teks = "Jawabanmu %s tepat. Sudah %d betul berturut-turut!" % (huruf, umpan.beruntun)
+            return C.banner_umpan_balik(True, "Betul!", teks, pose="terkejut", level=2)
         return C.banner_umpan_balik(True, "Betul!", "Jawabanmu %s tepat. Hebat!" % huruf, level=2)
+    if umpan.beruntun >= AMBANG_SALAH_BERUNTUN:
+        return C.banner_umpan_balik(False, "Belum tepat, tidak apa-apa.", "Terus semangat, kamu pasti bisa. Yuk lihat caranya.",
+                                    pose="menyemangati", level=2)
     return C.banner_umpan_balik(False, "Belum tepat, tidak apa-apa.", "Yuk lihat caranya.", pose="memeriksa", level=2)
 
 
