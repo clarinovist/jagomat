@@ -119,6 +119,7 @@ _PROBE_POST = {
     "/murid/orang-tua/pin/hapus": "/murid/orang-tua/pin/hapus",
     "/murid/cek/mulai": "/murid/cek/mulai",
     "/murid/pesanan": "/murid/pesanan/pesan",
+    "/murid/pesanan/pilih": "/murid/pesanan/pilih",
     "/murid/langganan": "/murid/langganan/buat",
     "/murid/latihan-harian": "/murid/latihan-harian/mulai",
     "/lembaga": "/lembaga/pindah",
@@ -232,6 +233,10 @@ def test_tabel_akses_punya_probe():
     # F2c: pesanan dari akun anak; tepat setelah /murid (sebelum palang sandi), POST di bawah prefix /murid/.
     assert get["/murid/pesanan"] == post["/murid/pesanan"] == "murid"
     assert urutan.index("/murid/pesanan") == urutan.index("/murid/orang-tua") + 1
+    # V4a: pilihan terlambat pembeli: POST saja, tepat setelah /murid/pesanan di tabel POST; GET tidak bertambah.
+    urutan_post = [prefix for prefix, _tingkat in web.AKSES_RUTE_POST]
+    assert post["/murid/pesanan/pilih"] == "murid" and "/murid/pesanan/pilih" not in get
+    assert urutan_post.index("/murid/pesanan/pilih") == urutan_post.index("/murid/pesanan") + 1
     # F5: langganan Latihan Harian dari akun anak; tepat setelah /murid/pesanan, GET exact dan POST di bawahnya.
     assert get["/murid/langganan"] == post["/murid/langganan"] == "murid"
     assert urutan.index("/murid/langganan") == urutan.index("/murid/pesanan") + 1

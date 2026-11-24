@@ -83,6 +83,9 @@ def test_harga_hanya_di_faq_dan_pembatalan_15_soal(halaman):
     assert utama.count("Rp49.000") == 1 and "Rp49.000" in faq
     assert "tidak dapat dikembalikan" in faq
     assert "3×24 jam" in faq and "uang kembali penuh" in faq
+    # DRAF 5 (24 Nov 2026): voucher kelas bersama Guru 90 hari, janji 48 jam, pilihan di halaman pesanan.
+    assert "voucher kelas bersama Guru (berlaku 90 hari)" in faq and "48 jam" in faq
+    assert "halaman pesanan" in faq and "program belajar" not in faq
     assert "15 soal" in faq
     assert "25 menit" not in halaman
     assert "cek-tiket-st" not in utama

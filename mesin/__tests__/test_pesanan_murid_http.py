@@ -30,50 +30,10 @@ from pesanan_transfer_http_kit import (  # noqa: F401
 from bukti_kit import bukti, tipe_konten
 import cek_http_kit
 from cek_http_kit import AKUN_A as GURU_A, AKUN_ADMIN, keluarga  # noqa: F401
-
-M = "/murid/pesanan"
-SANDI = "sandi-murid-sintetis-123"
-NAMA_ANAK_A = "Anak Murid Alfa"
-NAMA_ANAK_B = "Anak Murid Beta"
-KATA_TERLARANG = ("malrule", "diagnosis", "kode_final", "persentil", "peringkat", "kunci jawaban")
-SELESAI = "2026-11-18T09:30:00"
-
-
-class Murid:
-    def __init__(self, akun, id_akun, siswa_id):
-        self.akun, self.id_akun, self.siswa_id = akun, id_akun, siswa_id
-
-
-def buat_murid(server, nama, nama_anak, *, cek=True, kontak=True):
-    """Akun murid bertaut ke siswa baru (pemilik koordinator sintetis), cek selesai + kontak opsional."""
-    with server.buka() as kon:
-        siswa = cek_gratis_kit_tambah(kon, nama_anak)
-    principal = auth.tambah_akun_dan_principal(nama, SANDI, "murid", siswa_id=siswa)
-    if cek:
-        with server.buka() as kon:
-            cek_gratis.mulai(kon, principal.id_akun, siswa, "koordinator-sintetis", True, WAKTU_AWAL, seed=7)
-            sesi = kon.execute("SELECT sesi_id FROM cek_gratis WHERE id_akun=?", (principal.id_akun,)).fetchone()[0]
-            jawab(kon, sesi, semua_benar=10)
-            tandai_selesai(kon, sesi)
-            assert cek_gratis.selesaikan_jika_siap(kon, principal.id_akun, WAKTU_AWAL)
-    if kontak:
-        with server.buka() as kon:
-            kon.execute("BEGIN IMMEDIATE")
-            kontak_akun.simpan(kon, principal.id_akun, WA_SINTETIS, "2026-11-18T09:00:00")
-            kon.commit()
-    return Murid((nama, SANDI), principal.id_akun, siswa)
-
-
-def cek_gratis_kit_tambah(kon, nama_anak):
-    from cek_gratis_kit import tambah_anak
-    return tambah_anak(kon, nama_anak, "koordinator-sintetis", 4)
-
-
-@pytest.fixture()
-def sakelar_hidup(monkeypatch, tmp_path):
-    monkeypatch.setenv("SAKELAR_BERKAS_DB", str(tmp_path / "tidak-ada-sakelar.db"))
-    monkeypatch.setenv("DAFTAR_AKUN_ANAK", "1")
-
+from pesanan_murid_kit import (  # noqa: F401
+    KATA_TERLARANG, M, NAMA_ANAK_A, NAMA_ANAK_B, SANDI, SELESAI, Murid, buat_murid, cek_gratis_kit_tambah,
+    sakelar_hidup,
+)
 
 @pytest.fixture()
 def dua(transfer, sakelar_hidup):
@@ -118,7 +78,7 @@ def semua_halaman(server, murid):
 
 JALUR_GET = (M, M + "/qr", M + "/pesan")
 JALUR_POST = (M + "/pesan", M + "/periksa", M + "/ulang", M + "/buat", M + "/tagihan", M + "/bukti",
-              M + "/tagihan/ulang")
+              M + "/tagihan/ulang", M + "/pilih")
 
 
 def test_sakelar_mati_semua_rute_sama_dengan_jalur_murid_tak_dikenal(transfer, monkeypatch, tmp_path):

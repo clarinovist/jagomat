@@ -31,6 +31,8 @@ class Rute:
     label_hasil: str
     kontak: Optional[str]
     label_kontak: str
+    # Pilihan pembeli saat laporan terlambat (V4a): hanya permukaan murid; None (guru lama) = tanpa tombol dan tanpa rute.
+    pilih: Optional[str] = None
 
 
 RUTE_GURU = Rute(
@@ -51,13 +53,15 @@ RUTE_MURID = Rute(
     beranda="/murid", label_beranda="Beranda",
     hasil="/murid", label_hasil="Kembali ke beranda",
     kontak=None, label_kontak="",
+    pilih="/murid/pesanan/pilih",
 )
 
 _KANONIK_KE_MURID = tuple(
     (getattr(RUTE_GURU, nama), getattr(RUTE_MURID, nama))
-    for nama in ("status", "qr", "pesan", "periksa", "ulang", "buat", "tagihan", "bukti", "ulang_transfer")
+    for nama in ("status", "qr", "pesan", "periksa", "ulang", "buat", "tagihan", "bukti", "ulang_transfer", "pilih")
 )
-# Alamat murid -> alamat guru yang setara (kunci tabel aksi/gerbang di penangan bersama).
+# Alamat murid -> alamat guru yang setara (kunci tabel aksi/gerbang di penangan bersama). `pilih` tidak punya
+# padanan guru (None): penangan murid melayaninya sendiri SEBELUM mencari padanan ini (`pesanan_pilih_http`).
 MURID_KE_KANONIK = {murid: guru for guru, murid in _KANONIK_KE_MURID}
 
 

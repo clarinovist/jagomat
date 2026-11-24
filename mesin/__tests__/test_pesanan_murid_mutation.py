@@ -30,8 +30,8 @@ KASUS = (
      (T + "test_sakelar_mati_semua_rute_sama_dengan_jalur_murid_tak_dikenal",)),
     ("R2-gerbang-sakelar-post-dilewati",
      ((MURID, "    if not daftar_anak_gate.aktif():\n        return False\n    principal = _pembeli(penangan)\n"
-       "    if principal is None:\n        return False\n    kanonik",
-       "    principal = _pembeli(penangan)\n    if principal is None:\n        return False\n    kanonik"),),
+       "    if principal is None:\n        return False\n    if jalur == _RUTE.pilih:",
+       "    principal = _pembeli(penangan)\n    if principal is None:\n        return False\n    if jalur == _RUTE.pilih:"),),
      (T + "test_sakelar_mati_semua_rute_sama_dengan_jalur_murid_tak_dikenal",)),
     ("R3a-peran-bukan-murid-lolos-saja",
      ((HTTP, "    if principal is None or principal.peran != permukaan.PERAN_MURID:\n        return None\n    return principal",

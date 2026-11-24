@@ -23,6 +23,7 @@ from pesanan_dasar import (
 )
 from pesanan_permukaan import RUTE_GURU, Rute, rute_untuk_peran
 from pesanan_transfer_pages import COPY_JUDUL_QRIS, COPY_PETUNJUK_QRIS, COPY_STATUS_PILIH
+from pesanan_voucher_pages import kartu_voucher
 
 RUTE_STATUS = "/pesanan"
 RUTE_QR = "/pesanan/qr"
@@ -44,9 +45,10 @@ COPY_TUTUP_SUDAH_BAYAR = (
 )
 # Selaras COPY_PEMBATALAN (Keputusan 18: tanpa refund untuk Peta Kemampuan, kecuali laporan terlambat).
 COPY_REFUND = (
-    "Peta Kemampuan tidak dapat dikembalikan; Rp49.000 menjadi voucher program belajar bila Anda "
-    "lanjut. Bila laporan terlambat lebih dari 3×24 jam dari jam terbit yang kami kabari, Anda boleh "
-    "memilih menunggu atau uang kembali. Hubungi tim lewat WhatsApp."
+    "Peta Kemampuan tidak dapat dikembalikan; Rp49.000 menjadi voucher kelas bersama Guru (berlaku 90 hari) "
+    "bila Anda lanjut. Laporan dijanjikan terbit dalam 48 jam setelah pembayaran. Bila terlambat lebih dari "
+    "3×24 jam dari jam yang tertera di halaman pesanan, Anda boleh memilih menunggu atau uang kembali "
+    "di halaman pesanan."
 )
 COPY_KUOTA_HABIS = (
     "Pendaftaran Peta Kemampuan sedang dihentikan sementara; "
@@ -209,7 +211,9 @@ def halaman_status(ident, tampilan: dict, token) -> bytes:
     'periksa', 'buat', atau 'ulang'), boleh_ulang, belum_terperiksa. `token` hanya
     dipakai bila `aksi` ada. Satu aksi satu tombol. Opsional (jalur transfer):
     `blok_transfer` (HTML kartu transfer dari `pesanan_transfer_pages`, tampil sebelum QRIS)
-    dan `qris` (False bila gerbang Midtrans tertutup: tanpa catatan QR).
+    dan `qris` (False bila gerbang Midtrans tertutup: tanpa catatan QR). Opsional (V4a): `purna`
+    (`purna.KeadaanPurna`; kartu "Voucher dan laporan") dan `token_pilih` (token form pilihan terlambat; None =
+    tanpa tombol).
     """
     transfer = tampilan.get("blok_transfer", "")
     pilih_cara = bool(transfer) and tampilan["status"] == STATUS_BELUM_BAYAR
@@ -225,6 +229,8 @@ def halaman_status(ident, tampilan: dict, token) -> bytes:
     if tampilan["qr"]:
         isi += _kartu(_blok_qr(_rute(ident), pilihan_kedua=bool(transfer)))
     isi += _catatan_status(tampilan)
+    if tampilan.get("purna") is not None:  # V4a: order lunas + purna terpasang (diputuskan pemanggil)
+        isi += kartu_voucher(tampilan["purna"], _rute(ident), tampilan.get("token_pilih"))
     if tampilan["aksi"] is not None:
         isi += _kartu(_form(_rute(ident), tampilan["aksi"], token))
     isi += _catatan_refund()

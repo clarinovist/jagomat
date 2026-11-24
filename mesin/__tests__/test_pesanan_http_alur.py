@@ -561,3 +561,6 @@ def test_copy_refund_selaras_keputusan_18_tanpa_refund_kecuali_terlambat():
     assert "tidak dapat dikembalikan" in rp and "voucher" in rp
     assert "3×24 jam" in rp and "menunggu" in rp and "uang kembali" in rp
     assert "sebelum guru mulai meninjau" not in rp
+    # DRAF 5 (24 Nov 2026): voucher kelas bersama Guru 90 hari, janji 48 jam, pilihan di halaman pesanan.
+    assert "voucher kelas bersama Guru (berlaku 90 hari)" in rp and "48 jam" in rp
+    assert "halaman pesanan" in rp and "program belajar" not in rp and "WhatsApp" not in rp

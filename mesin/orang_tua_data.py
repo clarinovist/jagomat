@@ -20,6 +20,7 @@ import harian_langganan_ringkas
 import parent_report_store
 import pesanan_dasar
 import pesanan_status
+import pesanan_voucher_baca
 
 _FORMAT_WAKTU = "%Y-%m-%dT%H:%M:%S"
 _LOG = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ class DataOrangTua:
     status_pesanan: Optional[str]
     langganan: Optional[harian_langganan_ringkas.Ringkasan] = None
     harian: Optional[object] = None  # RingkasanHarian (Latihan Harian) atau None bila sakelar mati
+    purna: Optional[object] = None  # KeadaanPurna (janji terbit laporan) atau None: belum lunas / purna belum dipasang
 
 
 def _sekarang_baku() -> str:
@@ -44,6 +46,14 @@ def _nama_anak(kon, siswa_id: int) -> str:
     return "" if baris is None else baris["nama"]
 
 
+def _order_id(kon, id_akun: str, siswa_id: int) -> Optional[str]:
+    """order_id milik akun ini untuk anak ini (kunci dari sesi server), atau None."""
+    baris = kon.execute(
+        "SELECT order_id FROM pesanan_order WHERE akun_id = ? AND siswa_id = ?", (id_akun, siswa_id)
+    ).fetchone()
+    return None if baris is None else baris["order_id"]
+
+
 def status_pesanan(id_akun: str, siswa_id: int, sekarang: Optional[str] = None) -> Optional[str]:
     """Status turunan order milik akun ini untuk anak ini, atau None (tanpa order / penyimpanan belum siap).
 
@@ -52,16 +62,27 @@ def status_pesanan(id_akun: str, siswa_id: int, sekarang: Optional[str] = None) 
     """
     try:
         with pesanan_dasar.buka(admin_store.BAWAAN) as kon:
-            baris = kon.execute(
-                "SELECT order_id FROM pesanan_order WHERE akun_id = ? AND siswa_id = ?", (id_akun, siswa_id)
-            ).fetchone()
-            if baris is None:
+            order_id = _order_id(kon, id_akun, siswa_id)
+            if order_id is None:
                 return None
             kini = _sekarang_baku() if sekarang is None else sekarang
-            return pesanan_status.status_order(kon, baris["order_id"], id_akun, kini)["status"]
+            return pesanan_status.status_order(kon, order_id, id_akun, kini)["status"]
     except (admin_store_core.StoreBelumSiap, pesanan_dasar.PesananError, sqlite3.Error) as galat:
         _LOG.warning("status pesanan halaman orang tua tidak terbaca: %s", type(galat).__name__)
         return None
+
+
+def keadaan_purna(id_akun: str, siswa_id: int, status: Optional[str], sekarang: Optional[str] = None):
+    """Keadaan purna order anak ini untuk baris janji terbit; None bila belum lunas atau purna belum dipasang."""
+    if status != pesanan_dasar.STATUS_SUDAH_DIBAYAR:
+        return None
+    try:
+        with pesanan_dasar.buka(admin_store.BAWAAN) as kon:
+            order_id = _order_id(kon, id_akun, siswa_id)
+    except (admin_store_core.StoreBelumSiap, pesanan_dasar.PesananError, sqlite3.Error) as galat:
+        _LOG.warning("order halaman orang tua tidak terbaca: %s", type(galat).__name__)
+        return None
+    return None if order_id is None else pesanan_voucher_baca.keadaan_order(order_id, id_akun, sekarang)
 
 
 def langganan(kon, siswa_id: int, sekarang: str) -> Optional[harian_langganan_ringkas.Ringkasan]:
@@ -74,11 +95,13 @@ def langganan(kon, siswa_id: int, sekarang: str) -> Optional[harian_langganan_ri
 def kumpulkan(kon, id_akun: str, siswa_id: int, sekarang: Optional[str] = None) -> DataOrangTua:
     """Isi halaman untuk anak sesi ini; `kon` ber-row_factory Row (database.buka)."""
     import harian_http  # F4: ringkasan Latihan Harian; None bila sakelar LATIHAN_HARIAN mati
+    status = status_pesanan(id_akun, siswa_id, sekarang)
     return DataOrangTua(
         nama_anak=_nama_anak(kon, siswa_id),
         hasil_cek=cek_gratis.hasil_siswa(kon, id_akun, siswa_id),
         laporan=parent_report_store.terbit_terbaru(kon, siswa_id),
-        status_pesanan=status_pesanan(id_akun, siswa_id, sekarang),
+        status_pesanan=status,
         langganan=langganan(kon, siswa_id, _sekarang_baku() if sekarang is None else sekarang),
         harian=harian_http.ringkasan_untuk_orang_tua(kon, siswa_id),
+        purna=keadaan_purna(id_akun, siswa_id, status, sekarang),
     )

@@ -114,6 +114,23 @@ def test_landing_memakai_nama_peta_kemampuan_bukan_paket_coba(server, monkeypatc
     assert "Paket Coba" not in landing.halaman_landing().decode()
 
 
+def test_kalimat_voucher_dan_terlambat_draf5_dipakai_harfiah():
+    voucher = "voucher kelas bersama Guru (berlaku 90 hari) bila Anda lanjut"
+    assert funnel_pages.COPY_PAKET_ISI[2] == "Rp49.000 jadi " + voucher
+    assert funnel_pages.COPY_TIDAK_KEMBALI == "Peta Kemampuan tidak dapat dikembalikan, jadi Rp49.000 menjadi " + voucher + "."
+    assert funnel_pages.COPY_DEPOSIT == (
+        "Setelah pembayaran, kode voucher Rp49.000 muncul di halaman pesanan Anda. "
+        "Voucher berlaku 90 hari untuk kelas bersama Guru bila Anda lanjut.")
+    assert funnel_pages.COPY_PEMBATALAN_BUTIR[0][1].endswith("Rp49.000 menjadi " + voucher + ".")
+    assert funnel_pages.COPY_PEMBATALAN_BUTIR[2] == (
+        "Laporan dijanjikan terbit dalam 48 jam setelah pembayaran.",
+        " Bila terlambat lebih dari 3×24 jam dari jam yang tertera di halaman pesanan, "
+        "Anda memilih tetap menunggu atau uang kembali penuh.")
+    for kalimat in (funnel_pages.COPY_TIDAK_KEMBALI, funnel_pages.COPY_DEPOSIT, *funnel_pages.COPY_PAKET_ISI,
+                    *(a + b for a, b in funnel_pages.COPY_PEMBATALAN_BUTIR)):
+        assert "program belajar" not in kalimat and "lewat WhatsApp" not in kalimat and "dicatat oleh tim" not in kalimat
+
+
 def test_paket_coba_menyatakan_tidak_dapat_dikembalikan(server, monkeypatch):
     monkeypatch.setenv("FUNNEL_AKTIF", "1")
     _, isi, _ = server.minta("/paket-coba")

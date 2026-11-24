@@ -119,9 +119,10 @@ COPY_FAQ_JUDUL = "Biar Bunda tenang sebelum mulai."
 COPY_FAQ_BAYAR = (
     "Cek Kemampuan gratis. Pembayaran hanya bila Bunda membuka Peta Kemampuan "
     "(Rp49.000 sekali bayar) dari halaman hasil. Peta Kemampuan tidak dapat "
-    "dikembalikan dan menjadi voucher program belajar bila Bunda lanjut. Bila laporan "
-    "terlambat lebih dari 3×24 jam dari jam yang dikabarkan, Bunda memilih menunggu "
-    "atau uang kembali penuh."
+    "dikembalikan dan menjadi voucher kelas bersama Guru (berlaku 90 hari) bila Bunda lanjut. "
+    "Laporan dijanjikan terbit dalam 48 jam setelah pembayaran. Bila terlambat lebih dari 3×24 jam "
+    "dari jam yang tertera di halaman pesanan, Bunda memilih menunggu atau uang kembali penuh "
+    "di halaman pesanan."
 )
 # (ikon, warna, pertanyaan, jawaban teks, atau None bila jawabannya daftar batas hasil)
 COPY_FAQ = (

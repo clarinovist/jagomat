@@ -19,6 +19,7 @@ import harian_pages
 import playful_components as C
 import parent_report_page
 import pesanan_pages
+import pesanan_voucher_pages
 from funnel_style import GAYA_FUNNEL
 from murid_shell import PANAH_KEMBALI, aksi_topbar, bungkus_murid, kepala_murid, topbar_murid
 from orang_tua_style import GAYA_ORTU, RUTE
@@ -162,8 +163,11 @@ def _blok_laporan(laporan) -> str:
     return f'<section class="ortu-kartu-st" id="ortu-laporan"><h2>{_e(COPY_LAPORAN_JUDUL)}</h2>{isi}</section>'
 
 
-def _blok_pesanan(status, cek_selesai: bool) -> str:
+def _blok_pesanan(status, cek_selesai: bool, purna=None) -> str:
     """Status Peta Kemampuan (lencana teks) + satu pintu ke halaman pembayaran akun anak (F2c).
+
+    `purna` (V4a, `KeadaanPurna` atau None): bila ada, SATU baris janji terbit / status laporan, tanpa tombol dan tanpa
+    entry point tambahan (voucher dan pilihan terlambat hanya di halaman pesanan).
 
     Kalimat instruksi bayar (mis. "Pindai kode QRIS") tidak diulang di sini: jalur aktif (transfer/QRIS) hanya
     dijelaskan di halaman pembayaran. Tanpa cek selesai dan tanpa pesanan, kartu tidak tampil.
@@ -173,6 +177,8 @@ def _blok_pesanan(status, cek_selesai: bool) -> str:
         sudah = status == pesanan_pages.STATUS_SUDAH_DIBAYAR
         isi = C.lencana(judul, "hijau" if sudah else "kuning") + f'<p>{_e(kalimat if sudah else COPY_PESANAN_LANJUT)}</p>'
         tombol = "" if sudah else _tautan_bayar("Buka halaman pembayaran")
+        if sudah and purna is not None:
+            isi += f'<p>{_e(pesanan_voucher_pages.teks_janji(purna))}</p>'
     elif cek_selesai:
         isi = f'<p>{_e(COPY_PESANAN_TAWARAN)}</p>'
         tombol = _tautan_bayar("Lanjut ke pembayaran")
@@ -254,7 +260,7 @@ def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "") -> bytes:
         + _hero_ringkasan(data.nama_anak, data.harian)
         + _blok_cek(data.hasil_cek, data.nama_anak) + _blok_harian(data.harian)
         + harian_langganan_pages.kartu_orang_tua(data.langganan) + _blok_laporan(data.laporan)
-        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai")
+        + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai", data.purna)
         + _blok_pin(ada_pin, pin_terbuka) + _kaki() + "</div>"
     )
     return _dokumen(badan, ceria=True)

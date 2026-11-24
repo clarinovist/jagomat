@@ -3,7 +3,7 @@
 Mesin pesanan/transfer/ledger SAMA dengan sisi guru (`pesanan_http.layani_*`,
 `pesanan_transfer_http.layani_post`); modul ini hanya penentu pembeli + alamat. Titik masuk GET:
 `/murid/pesanan` (status/tagihan; bila belum ada pesanan menampilkan kartu "Pesan"). Rute lain:
-`/murid/pesanan/{qr,pesan,periksa,ulang,buat,tagihan,bukti,tagihan/ulang}`.
+`/murid/pesanan/{qr,pesan,periksa,ulang,buat,tagihan,bukti,tagihan/ulang,pilih}`.
 
 Aturan yang ditegakkan di sini, bukan di halaman:
 
@@ -14,6 +14,7 @@ Aturan yang ditegakkan di sini, bukan di halaman:
   diabaikan dan form hanya `{token}` (field lain -> 400). Kontak = `kontak_akun(id_akun murid)`.
 - Anonim, guru, dan admin tidak ditangani (`False`): GET -> 303 /masuk, POST -> 401 seperti jalur murid lain.
 - Sakelar hidup tetapi gerbang pembayaran tertutup: GET = halaman "belum dibuka", POST = 404 murid, tanpa efek.
+  Pengecualian: POST `/murid/pesanan/pilih` (V4a, pilihan saat laporan terlambat) tidak bergantung gerbang pembayaran.
 - Nomor WhatsApp tidak pernah dirender; tidak ada rute kontak untuk murid (ubah lewat admin).
 """
 from __future__ import annotations
@@ -22,12 +23,13 @@ import daftar_anak_gate
 import database
 import pesanan_http
 import pesanan_permukaan as permukaan
+import pesanan_pilih_http
 import pesanan_transfer_http
 
 _RUTE = permukaan.RUTE_MURID
 _GET = frozenset({_RUTE.status, _RUTE.qr, _RUTE.pesan})
 _POST = frozenset({_RUTE.pesan, _RUTE.periksa, _RUTE.ulang, _RUTE.buat, _RUTE.tagihan,
-                   _RUTE.bukti, _RUTE.ulang_transfer})
+                   _RUTE.bukti, _RUTE.ulang_transfer, _RUTE.pilih})
 
 
 def _pembeli(penangan):
@@ -62,6 +64,9 @@ def tangani_post(penangan, jalur: str) -> bool:
     principal = _pembeli(penangan)
     if principal is None:
         return False
+    if jalur == _RUTE.pilih:  # tanpa gerbang pembayaran dan tanpa padanan guru: lihat `pesanan_pilih_http`
+        pesanan_pilih_http.layani_post(penangan, principal)
+        return True
     kanonik = permukaan.MURID_KE_KANONIK[jalur]
     if pesanan_http.layani_post(penangan, kanonik, principal):
         return True

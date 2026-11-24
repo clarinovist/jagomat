@@ -25,19 +25,19 @@ NAMA_PAKET = "Peta Kemampuan"
 COPY_BUKAN_LANGGANAN = "Bukan langganan, jadi bulan depan tidak ada tagihan lagi."
 COPY_HARGA = f"{NAMA_PAKET} Rp49.000, sekali bayar. {COPY_BUKAN_LANGGANAN}"
 
-# DRAF: Keputusan 18 (tim/founder/keputusan-pemilik.md): tidak dapat dikembalikan, jadi voucher; menunggu persetujuan Pemilik.
+# DRAF 5: kalimat 24 Nov 2026 menunggu persetujuan Pemilik di tempat rilis (Keputusan 18: tidak dapat dikembalikan, jadi voucher).
 COPY_TIDAK_KEMBALI = (
     "Peta Kemampuan tidak dapat dikembalikan, jadi Rp49.000 menjadi voucher "
-    "program belajar bila Anda lanjut."
+    "kelas bersama Guru (berlaku 90 hari) bila Anda lanjut."
 )
-# DRAF: ketentuan laporan terlambat dan program kelas menunggu persetujuan Pemilik.
+# DRAF 5: kalimat 24 Nov 2026 menunggu persetujuan Pemilik di tempat rilis (ketentuan laporan terlambat dan program kelas).
 COPY_PEMBATALAN_BUTIR = (
     ("Peta Kemampuan tidak dapat dikembalikan,",
      " karena guru langsung mengerjakan laporannya. Sebagai gantinya, Rp49.000 "
-     "menjadi voucher program belajar bila Anda lanjut."),
+     "menjadi voucher kelas bersama Guru (berlaku 90 hari) bila Anda lanjut."),
     ("Program belajar (kelas)", " punya ketentuan pengembalian tersendiri."),
-    ("Laporan terlambat lebih dari 3×24 jam",
-     " dari jam terbit yang kami kabari: Anda memilih tetap menunggu atau uang kembali penuh."),
+    ("Laporan dijanjikan terbit dalam 48 jam setelah pembayaran.",
+     " Bila terlambat lebih dari 3×24 jam dari jam yang tertera di halaman pesanan, Anda memilih tetap menunggu atau uang kembali penuh."),
     ("Tidak bisa hadir di jadwal konsultasi:",
      " kabari kami, kita cari waktu lain, tidak hangus."),
 )
@@ -47,8 +47,8 @@ COPY_KONSULTASI = (
     "ngobrol 20 menit dengan guru. Pagi, malam, atau akhir pekan, kita cari yang cocok."
 )
 COPY_DEPOSIT = (
-    "Voucher dikirim lewat WhatsApp setelah pembayaran dan dicatat oleh tim. "
-    "Nilainya Rp49.000 untuk program belajar di Jagomat bila Anda lanjut."
+    "Setelah pembayaran, kode voucher Rp49.000 muncul di halaman pesanan Anda. "
+    "Voucher berlaku 90 hari untuk kelas bersama Guru bila Anda lanjut."
 )
 # Peluncuran awal; HAPUS konstanta ini (dan pemakaiannya) saat kuota 20 keluarga habis.
 COPY_KUOTA_AWAL = "Peluncuran awal: 20 keluarga pertama"
@@ -58,7 +58,7 @@ COPY_PAKET_DARI_HASIL = (
     f"{NAMA_PAKET} dibuka dari halaman hasil, setelah cek gratis selesai."
 )
 
-# DRAF: teks final menunggu persetujuan Pemilik (copy landing dan halaman Peta Kemampuan).
+# DRAF 5: kalimat 24 Nov 2026 menunggu persetujuan Pemilik di tempat rilis (copy landing dan halaman Peta Kemampuan).
 COPY_PERTANYAAN = "Tes matematika gratis · SD kelas 1–6"
 COPY_SUB_HERO = (
     "Yuk, cari tahu dulu di mana level kemampuan matematika anak Bunda sebenarnya: "
@@ -87,7 +87,7 @@ COPY_PENGANTAR_PAKET = (
 COPY_PAKET_ISI = (
     "Laporan lengkap yang dibaca guru: penguasaan per materi, pola kesalahan, dan urutan belajar yang paling perlu dulu",
     "Ngobrol 20 menit dengan guru tentang cara berpikir anak dan apa yang bisa dilatih",
-    "Rp49.000 jadi voucher program belajar bila Anda lanjut",
+    "Rp49.000 jadi voucher kelas bersama Guru (berlaku 90 hari) bila Anda lanjut",
 )
 COPY_TIDAK_WAJIB_KELAS = (
     "Tidak wajib ikut kelas. Laporan ini tetap milik Anda. Cek ulang dan laporan kemajuan tiap 4 minggu ada di kelas."
@@ -253,7 +253,7 @@ def _kartu_harga() -> str:
     <div class="funnel-harga-kartu-st">
       <p class="funnel-harga-baris-st"><strong>Rp49.000</strong><span>sekali bayar</span></p>
       <span class="funnel-pil-hijau-st">Sekali bayar, bukan langganan</span>
-      <span class="funnel-pil-hijau-st funnel-pil-kuning-st">Jadi voucher program belajar</span>
+      <span class="funnel-pil-hijau-st funnel-pil-kuning-st">Jadi voucher kelas bersama Guru</span>
       <p class="funnel-contoh-tautan-st">{_tautan_contoh("funnel-tautan-sekunder-st")}</p>
       <p class="funnel-catatan-kelas-st">{_e(COPY_HARGA)}</p>
       <ul class="funnel-centang-st">{_centang(COPY_PAKET_ISI)}</ul>

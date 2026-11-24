@@ -82,8 +82,8 @@ KASUS = (
     ("F13-pesanan-akun-lain-dipakai",
      ((DATA, '"SELECT order_id FROM pesanan_order WHERE akun_id = ? AND siswa_id = ?", (id_akun, siswa_id)',
        '"SELECT order_id FROM pesanan_order WHERE siswa_id = ? AND ? IS NOT NULL", (siswa_id, id_akun)'),
-      (DATA, 'return pesanan_status.status_order(kon, baris["order_id"], id_akun, kini)["status"]',
-       'return pesanan_status.status_dari_db(kon, pesanan_status.dict_order(pesanan_status.baris_order(kon, baris["order_id"])), '
+      (DATA, 'return pesanan_status.status_order(kon, order_id, id_akun, kini)["status"]',
+       'return pesanan_status.status_dari_db(kon, pesanan_status.dict_order(pesanan_status.baris_order(kon, order_id)), '
        'pesanan_dasar.waktu_baku(kini))'),),
      (H + "test_tanpa_order_atau_order_akun_lain_kartu_tidak_tampil",)),
     ("F14-asal-post-tidak-diperiksa",
