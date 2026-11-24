@@ -122,6 +122,15 @@ def progres_soal(sudah: int, kini: Optional[int] = None, jumlah: int = JUMLAH_SO
             f'aria-label="{sudah} dari {jumlah} soal sudah dijawab">{segmen}</div>')
 
 
+def skor_besar(benar: int, jumlah: int = JUMLAH_SOAL_SESI) -> str:
+    """Skor besar "N dari M benar" + deretan M titik (terisi sebanyak benar). Tanpa peringkat atau pembanding."""
+    if jumlah < 1 or not 0 <= benar <= jumlah:
+        raise ValueError(f"skor tidak sah: benar={benar!r} jumlah={jumlah!r}")
+    titik = "".join(f'<i class="{"ceria-isi" if n < benar else ""}"></i>' for n in range(jumlah))
+    return (f'<p class="ceria-skor"><b>{benar}</b> dari {jumlah} benar</p>'
+            f'<div class="ceria-bintang" aria-hidden="true">{titik}</div>')
+
+
 def banner_umpan_balik(betul: bool, judul: str, teks: str, pose: Optional[str] = None,
                        alt: Optional[str] = None, level: int = 3) -> str:
     """Banner umpan balik dengan slot maskot. Betul = hijau; belum tepat = hangat (amber), BUKAN merah.

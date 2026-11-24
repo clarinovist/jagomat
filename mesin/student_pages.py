@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 
 import brand
+import playful_components as C
 import visual_renderer
 import design_tokens as T
 from learning_stage_labels import penanda_tahap
@@ -187,6 +188,14 @@ def _kartu_lomba(kon, siswa_id: int, sekarang: int | None, besar: bool) -> str:
     return kartu_untuk_siswa(kon, siswa_id, int(time.time()) if sekarang is None else sekarang, besar)
 
 
+def _hero_sapaan(nama: str) -> str:
+    """Sapaan beranda dalam hero teal tanpa maskot (maskot sudah ada di kartu sesi, banner, atau keadaan kosong)."""
+    return C.hero(
+        '<p class="ceria-alis-hero">RUANG BELAJARKU</p>'
+        f'<h1 id="judul-sapaan">Halo, {_escape(nama)}!</h1><p>Sedikit demi sedikit, makin mengerti.</p>'
+        '<span class="ceria-hint-hero">Bukan kamu? Tekan Keluar dulu.</span>')
+
+
 def halaman_daftar_sesi_baru(
     kon, siswa_id: int, nama: str, sesi_selesai: int | None = None, lomba_aktif: bool = False,
     sekarang: int | None = None, orang_tua: bool = False,
@@ -199,6 +208,7 @@ def halaman_daftar_sesi_baru(
     """
     from orang_tua_style import GAYA_TAUTAN_BERANDA, TAUTAN_BERANDA
     from contest_style import GAYA_BERANDA
+    from playful_style import GAYA_CERIA
     from style_stitch import gaya_stitch
     from students import beranda_murid
 
@@ -249,19 +259,17 @@ def halaman_daftar_sesi_baru(
             + ''.join(_kartu_beranda(s) for s in riwayat) + '</div></details>'
         )
     topbar = topbar_murid(tombol_keluar())
+    sapaan = _hero_sapaan(nama)
     isi = f'''<!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{brand.judul("Ruang belajarku")}</title>{brand.tag_kepala()}
-{kepala_murid(gaya_stitch() + (GAYA_BERANDA if lomba_aktif else "") + (GAYA_TAUTAN_BERANDA if orang_tua else ""))}</head><body class="st murid-beranda-st">
+{kepala_murid(gaya_stitch() + GAYA_CERIA + (GAYA_BERANDA if lomba_aktif else "") + (GAYA_TAUTAN_BERANDA if orang_tua else ""))}</head><body class="st murid-beranda-st">
 <a class="murid-lewati-st" href="#utama">Lewati ke latihan</a>
 <div class="murid-wadah-st">
 {topbar}
 <main id="utama" class="murid-kanvas-st">
-<section class="murid-sapaan-st" aria-labelledby="judul-sapaan">
-<p class="murid-alis-st">RUANG BELAJARKU</p>
-<h1 id="judul-sapaan">Halo, {_escape(nama)}!</h1><p>Sedikit demi sedikit, makin mengerti.</p>
-<span class="murid-akun-hint-st">Bukan kamu? Tekan Keluar dulu.</span></section>
+<section class="murid-sapaan-st" aria-labelledby="judul-sapaan">{sapaan}</section>
 {banner}<div class="murid-grid-st"><div class="murid-kolom-utama-st">{kolom}</div>
 {'<aside class="murid-pendamping-st" aria-label="Kabar latihanmu">' + pendamping + '</aside>' if pendamping else ''}
 </div>{TAUTAN_BERANDA if orang_tua else ''}</main><footer class="murid-kaki-st">{T.TAGLINE} <span aria-hidden="true">✦</span> Satu langkah setiap kali.</footer>

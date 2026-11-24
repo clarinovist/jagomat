@@ -225,9 +225,11 @@ def test_beranda_menandai_saran_dari_profil_kelas_anak(server):
 
     isi = _get(server, DASAR).isi
 
-    cocok = re.search(r'value="(\w[\w-]*)">\s*<button[^>]*><b>[^<]*</b><span>[^<]*</span><span class="hr-lencana">Disarankan', isi)
+    cocok = re.search(r'value="(\w[\w-]*)">\s*<button[^>]*class="hr-tingkat saran"[^>]*><b>[^<]*</b><span class="hr-sr">[^<]*</span><span class="hr-saran">Saran', isi)
     assert cocok and cocok.group(1) == "t5"
-    assert "Disarankan untukmu" not in _get(server, DASAR, MURID_DUA).isi  # anak lain tanpa profil: tanpa saran
+    assert "Mulai dari <b>Kelas 5</b> ya, sesuai kelasmu." in isi
+    lain = _get(server, DASAR, MURID_DUA).isi  # anak lain tanpa profil: tanpa saran
+    assert 'class="hr-saran"' not in lain and "Pilih kelasmu ya." in lain
 
 
 # 4 --- mulai ---------------------------------------------------------------------------------------
@@ -319,7 +321,7 @@ def test_soal_belum_dijawab_tanpa_pembahasan_kunci_dan_markup_pilihan_seragam(se
     assert hasil.kode == 200 and hasil.header["cache-control"] == "no-store"
     for n in range(1, 11):  # pembahasan satu pun soal sesi ini tidak ada di halaman
         assert _pembahasan(server, sesi, n) not in hasil.isi
-    for kata in ("Caranya", "Jawaban yang benar", "Jawabanmu", "Benar! Hebat", "Belum tepat", "kunci_indeks"):
+    for kata in ("Cara mengerjakannya", "Jawaban benar", "Jawabanmu", "Betul!", "Belum tepat", 'class="ceria-banner', "kunci_indeks"):
         assert kata not in hasil.isi
     label = _label_pilihan(hasil.isi)
     assert len(label) == 4
@@ -339,7 +341,8 @@ def test_jawab_mengunci_lalu_halaman_menampilkan_benar_salah_dan_pembahasan(serv
     halaman = _get(server, kirim.lokasi)
 
     assert kirim.kode == 303 and kirim.lokasi == "%s/sesi/%d?no=1" % (DASAR, sesi)
-    assert "Belum tepat" in halaman.isi and "Caranya" in halaman.isi and "Jawaban yang benar" in halaman.isi
+    assert "Belum tepat" in halaman.isi and "Cara mengerjakannya" in halaman.isi and "Jawaban benar" in halaman.isi
+    assert "ceria-hampir" in halaman.isi.split("</style>", 1)[1]  # hangat, bukan merah
     assert _pembahasan(server, sesi, 1).split("\n")[0][:20] in halaman.isi.replace("<br>", "\n")
     assert 'type="radio"' not in halaman.isi  # terkunci: tidak ada kontrol jawab
     assert ("sesi/%d?no=2" % sesi) in halaman.isi  # tombol lanjut
@@ -352,7 +355,8 @@ def test_jawab_benar_menampilkan_umpan_benar(server):
 
     _jawab(server, sesi, 1, _kunci_huruf(server, sesi, 1))
 
-    assert "Benar! Hebat." in _get(server, "%s/sesi/%d?no=1" % (DASAR, sesi)).isi
+    halaman = _get(server, "%s/sesi/%d?no=1" % (DASAR, sesi)).isi
+    assert "Betul!" in halaman and "Jawabanmu, benar" in halaman and "Belum tepat" not in halaman
 
 
 def test_soal_berikutnya_tidak_bocor_setelah_menjawab_soal_sebelumnya(server):
@@ -361,7 +365,7 @@ def test_soal_berikutnya_tidak_bocor_setelah_menjawab_soal_sebelumnya(server):
 
     halaman2 = _get(server, "%s/sesi/%d?no=2" % (DASAR, sesi))
 
-    assert halaman2.kode == 200 and "Caranya" not in halaman2.isi
+    assert halaman2.kode == 200 and "Cara mengerjakannya" not in halaman2.isi
     for n in range(2, 11):
         assert _pembahasan(server, sesi, n) not in halaman2.isi
 
@@ -448,9 +452,63 @@ def test_sesi_penuh_ringkasan_jumlah_benar_tanpa_peringkat(server):
     assert _get(server, "%s/sesi/%d" % (DASAR, sesi)).lokasi == "%s/sesi/%d/ringkasan" % (DASAR, sesi)
 
 
+# 7b --- ajakan Untuk Ayah/Bunda (tampilan saja, bukan gerbang) -------------------------------------
+
+def _selesaikan_dan_ringkasan(server):
+    sesi = _mulai(server)
+    _selesaikan(server, sesi)
+    return _get(server, "%s/sesi/%d/ringkasan" % (DASAR, sesi)).isi
+
+
+def test_ringkasan_anak_gratis_dengan_halaman_ortu_menampilkan_satu_ajakan(server, monkeypatch):
+    monkeypatch.setenv("DAFTAR_AKUN_ANAK", "1")
+
+    isi = _selesaikan_dan_ringkasan(server)
+
+    assert isi.count('href="/murid/orang-tua"') == 1 and "Untuk Ayah/Bunda · lihat paket" in isi
+    assert "Sesi hari ini" in isi and 'class="ceria-hero"' in isi
+
+
+def test_ringkasan_tanpa_halaman_ortu_tidak_menampilkan_ajakan(server, monkeypatch):
+    monkeypatch.setenv("DAFTAR_AKUN_ANAK", "0")
+
+    isi = _selesaikan_dan_ringkasan(server)
+
+    assert 'href="/murid/orang-tua"' not in isi and "Latihan lagi" in isi
+
+
+def test_ringkasan_anak_tanpa_batas_tidak_diajak_berlangganan(server, monkeypatch):
+    monkeypatch.setenv("DAFTAR_AKUN_ANAK", "1")
+    monkeypatch.setattr(akses_harian, "_langganan_aktif", lambda kon, siswa_id, kini: "2099-01-01T00:00:00")
+
+    isi = _selesaikan_dan_ringkasan(server)
+
+    assert 'href="/murid/orang-tua"' not in isi and 'class="ceria-ortu"' not in isi
+
+
+def test_jatah_habis_tanpa_halaman_ortu_menyembunyikan_ajakan_tetapi_tetap_ramah(server, jam, monkeypatch):
+    monkeypatch.setenv("DAFTAR_AKUN_ANAK", "0")
+    _selesaikan(server, _mulai(server))
+
+    beranda = _get(server, DASAR).isi
+
+    assert COPY_HABIS in beranda and 'href="/murid/orang-tua"' not in beranda
+
+
+def test_beranda_murid_hero_sapaan_dan_tepat_satu_tautan_ortu_dengan_kartu_harian(server, monkeypatch):
+    monkeypatch.setenv("DAFTAR_AKUN_ANAK", "1")
+
+    isi = _get(server, "/murid").isi
+
+    assert isi.count('href="/murid/orang-tua"') == 1
+    assert re.search(r'<h1 id="judul-sapaan">Halo, feby!</h1>', isi) and 'class="ceria-hero"' in isi
+    assert isi.count("<script") == 0 and 'id="judul-harian"' in isi
+
+
 # 8 --- batas gratis --------------------------------------------------------------------------------
 
-def test_batas_gratis_satu_sesi_dimulai_per_hari_wib_dengan_halaman_ramah(server, jam):
+def test_batas_gratis_satu_sesi_dimulai_per_hari_wib_dengan_halaman_ramah(server, jam, monkeypatch):
+    monkeypatch.setenv("DAFTAR_AKUN_ANAK", "1")
     sesi = _mulai(server)
     _selesaikan(server, sesi)
 
@@ -458,7 +516,8 @@ def test_batas_gratis_satu_sesi_dimulai_per_hari_wib_dengan_halaman_ramah(server
     beranda = _get(server, kedua.lokasi)
 
     assert kedua.kode == 303 and kedua.lokasi == DASAR
-    assert COPY_HABIS in beranda.isi and 'href="/murid/orang-tua"' in beranda.isi
+    assert COPY_HABIS in beranda.isi and beranda.isi.count('href="/murid/orang-tua"') == 1
+    assert "Hebat, latihan hari ini selesai!" in beranda.isi and "mulai Rp39.000/bulan" in beranda.isi
     assert 'name="tingkat"' not in beranda.isi
     assert _db(server, "SELECT COUNT(*) FROM harian_sesi")[0][0] == 1
     jam.t = T0 + 9 * 3600 + 60  # 00:01 WIB hari berikutnya (literal; T0 = 15:00 WIB)
@@ -566,12 +625,12 @@ def test_kartu_beranda_murid_tingkat_titik_dan_tombol(server):
     awal = _get(server, "/murid").isi
 
     assert 'id="judul-harian"' in awal and "Latihan Harian" in awal and "Pilih kelasmu" in awal
-    assert awal.count('class="hr-titik"') == 7 and "Mulai latihan" in awal
+    assert awal.count('class="ceria-kosong"') == 7 and "Mulai latihan" in awal
     sesi = _mulai(server, "t3")
     _jawab(server, sesi, 1, "A")
     lanjut = _get(server, "/murid").isi
     assert "Kelas 3" in lanjut and "Lanjutkan" in lanjut and ("sesi/%d?no=2" % sesi) in lanjut
-    assert re.search(r'<li class="ada">', lanjut)  # hari ini bertitik
+    assert 'class="ceria-isi"' in lanjut  # hari ini bertitik
 
 
 def test_kartu_beranda_saat_jatah_habis(server):
@@ -589,7 +648,7 @@ def test_kartu_beranda_anak_lain_tidak_memuat_riwayat_anak_ini(server):
 
     isi = _get(server, "/murid", MURID_DUA).isi
 
-    assert "Pilih kelasmu" in isi and '<li class="ada">' not in isi
+    assert "Pilih kelasmu" in isi and 'class="ceria-isi"' not in isi
 
 
 # 12 --- ringkasan di halaman orang tua -------------------------------------------------------------

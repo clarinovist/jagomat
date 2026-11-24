@@ -44,6 +44,19 @@ GAYA_CERIA = f"""
 .ceria-gelembung::before {{ content: ""; position: absolute; left: -7px; bottom: 6px; border: 7px solid transparent; border-left: 0; border-right-color: {T.LATAR_KARTU}; }}
 .ceria-gelembung b {{ color: {T.AKSEN_KORAL_TUA}; }}
 
+/* Teks di dalam hero (judul, alis, petunjuk): putih di atas teal. */
+.ceria-hero :is(h1, h2, h3) {{ color: {T.TEKS_PUTIH}; }}
+.ceria-hero .ceria-alis-hero {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 700; letter-spacing: .09em; color: {T.TEKS_DI_TEAL}; }}
+.ceria-hero .ceria-hint-hero {{ display: block; font-size: {T.UKURAN_TEKS_LABEL}; color: {T.TEKS_DI_TEAL}; }}
+.ceria-hero > p {{ color: {T.TEKS_DI_TEAL}; }}
+
+/* Skor besar sesi + deretan titik (terisi = benar). */
+.ceria-hero .ceria-skor {{ font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_BADAN_LAYAR}; font-weight: 700; color: {T.TEKS_DI_TEAL}; }}
+.ceria-skor b {{ font-size: {T.UKURAN_ANGKA_FUNNEL}; font-weight: 800; line-height: 1; color: {T.TEKS_PUTIH}; }}
+.ceria-bintang {{ display: flex; flex-wrap: wrap; gap: 5px; }}
+.ceria-bintang i {{ display: block; width: 15px; height: 15px; border-radius: {T.RADIUS_BULAT}; border: 2px solid {T.TEKS_DI_TEAL_REDUP}; }}
+.ceria-bintang i.ceria-isi {{ background: {T.AKSEN_MURID_AMBER}; border-color: {T.AKSEN_MURID_AMBER}; }}
+
 /* Stiker miring dan kata kunci bergaris. Sorot hanya untuk latar gelap (navy/teal). */
 .ceria-stiker {{ display: inline-block; align-self: flex-start; padding: {T.SP_1} {T.SP_3}; background: {T.AKSEN_MURID_AMBER}; color: {T.TEKS_JUDUL};
   font-family: {T.FONT_HEADLINE}; font-size: {T.UKURAN_TEKS_LABEL}; font-weight: 800; border-radius: {T.RADIUS_KECIL};
@@ -52,7 +65,7 @@ GAYA_CERIA = f"""
 .ceria-sorot {{ color: {T.AKSEN_MURID_AMBER}; text-decoration: underline; text-decoration-color: {T.AKSEN_MURID_KORAL};
   text-decoration-thickness: 3px; text-underline-offset: 3px; }}
 
-/* Kartu navy ajakan Untuk Ayah/Bunda: satu tautan saja. */
+/* Kartu navy ajakan untuk orang dewasa pembayar: satu tautan saja. */
 .ceria-ortu {{ display: flex; flex-direction: column; gap: {T.SP_3}; padding: {T.SP_5}; background: {T.TEKS_JUDUL}; color: {T.TEKS_DI_NAVY};
   border-radius: {T.RADIUS_KARTU_BESAR}; }}
 .ceria-ortu > * {{ margin: 0; }}

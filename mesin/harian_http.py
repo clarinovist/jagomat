@@ -28,6 +28,7 @@ import urllib.parse
 from typing import Dict, Optional
 
 import akses_harian
+import daftar_anak_gate
 import database
 import harian_latihan_store as hs
 import harian_pages as P
@@ -143,12 +144,18 @@ def _jalankan_get(penangan, pengguna: str, rute: tuple, jalur_penuh: str) -> Non
         return _get_soal(penangan, kon, siswa_id, sesi, jalur_penuh)
 
 
+def _ada_halaman_ortu() -> bool:
+    """Bendera tampilan: halaman orang tua hanya ada bila sakelar DAFTAR_AKUN_ANAK hidup (sama dengan
+    `orang_tua_http.tersedia()`, dibaca langsung dari gerbangnya agar tak ada impor melingkar). Bukan gerbang akses."""
+    return daftar_anak_gate.aktif()
+
+
 def _get_awal(penangan, kon, siswa_id: int) -> None:
     sekarang = _sekarang()
     berjalan = hs.sesi_berjalan(kon, siswa_id)
     habis = hs.kuota(kon, siswa_id, sekarang).habis
     penangan._kirim_privat(P.halaman_beranda(berjalan, habis, ht.saran_tingkat(kon, siswa_id),
-                                             hs.tingkat_terakhir(kon, siswa_id)))
+                                             hs.tingkat_terakhir(kon, siswa_id), ada_ortu=_ada_halaman_ortu()))
 
 
 def _nomor_dari_query(jalur_penuh: str) -> Optional[int]:
@@ -174,7 +181,8 @@ def _get_ringkasan(penangan, kon, siswa_id: int, sesi: hs.SesiRingkas) -> None:
     ringkas = hs.ringkasan_sesi(kon, siswa_id, sesi.id)
     if ringkas is None:
         return _alihkan(penangan, P.alamat_sesi(sesi.id, sesi.nomor_berikut))
-    penangan._kirim_privat(P.halaman_ringkasan(ringkas))
+    tanpa_batas = hs.kuota(kon, siswa_id, _sekarang()).akses.tanpa_batas
+    penangan._kirim_privat(P.halaman_ringkasan(ringkas, tampil_ajakan_ortu=_ada_halaman_ortu() and not tanpa_batas))
 
 
 # --- permukaan lain: kartu beranda murid dan ringkasan halaman orang tua --------------------------

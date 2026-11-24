@@ -23,6 +23,7 @@ def _semua_komponen(teks=JAHAT):
         "titik_teal": C.titik_hari({0, 3}),
         "titik_krem": C.titik_hari({6}, latar="krem"),
         "progres": C.progres_soal(2, 3),
+        "skor": C.skor_besar(8),
         "banner_betul": C.banner_umpan_balik(True, teks, teks),
         "banner_belum": C.banner_umpan_balik(False, teks, teks),
     }
@@ -136,6 +137,22 @@ def test_progres_soal_sepuluh_segmen_sudah_kini_belum():
 def test_progres_soal_menolak_nilai_tidak_sah(sudah, kini):
     with pytest.raises(ValueError):
         C.progres_soal(sudah, kini)
+
+
+def test_skor_besar_teks_dan_titik_terisi_sebanyak_benar():
+    isi = C.skor_besar(8)
+    assert '<p class="ceria-skor"><b>8</b> dari 10 benar</p>' in isi
+    assert isi.count("<i") == 10 and isi.count('class="ceria-isi"') == 8
+    assert 'class="ceria-bintang" aria-hidden="true"' in isi
+    assert C.skor_besar(0).count("ceria-isi") == 0 and C.skor_besar(10).count("ceria-isi") == 10
+    for kata in ("peringkat", "persentil", "dibanding"):
+        assert kata not in isi.lower()
+
+
+@pytest.mark.parametrize("benar,jumlah", [(-1, 10), (11, 10), (1, 0)])
+def test_skor_besar_menolak_nilai_tidak_sah(benar, jumlah):
+    with pytest.raises(ValueError):
+        C.skor_besar(benar, jumlah)
 
 
 def test_hero_simbol_dan_konfeti_dekoratif_untuk_pembaca_layar():
