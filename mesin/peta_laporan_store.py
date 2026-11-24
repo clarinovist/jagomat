@@ -17,18 +17,36 @@ from peta_laporan_snapshot import periksa_isi
 
 BATAS_CATATAN = 2000
 BATAS_GURU = 64
+MIN_CATATAN_TERBIT = 10   # karakter efektif (huruf/angka/tanda baca) agar catatan boleh diterbitkan
+PESAN_CATATAN_SINGKAT = "Catatan terlalu singkat untuk diterbitkan"
 _SPASI = " \t\n\r"
 _KONTROL_BOLEH = "\n\t\r"
+# Penanda arah teks (bidi override/isolate): Cf, jadi tak terlihat, tetapi bisa membalik tampilan catatan.
+_BIDI_KONTROL = frozenset("\u202a\u202b\u202c\u202d\u202e\u2066\u2067\u2068\u2069")
+_KATEGORI_EFEKTIF = ("L", "N", "P")
 # Catatan Guru dibaca orang tua DAN anak (sesi murid): bukan jalur untuk kontak, tautan, atau istilah internal.
+# CATATAN: penyaring kontak/istilah di bawah adalah PENGINGAT untuk Guru, bukan batas keamanan: teks yang disusun
+# sengaja (ejaan lain, huruf mirip yang belum terdaftar, dst.) tetap bisa lolos.
 CATATAN_PANJANG = "panjang"
 CATATAN_KONTROL = "kontrol"
 CATATAN_KONTAK = "kontak"
 CATATAN_ISTILAH_INTERNAL = "istilah_internal"
 _MIN_DIGIT_KONTAK = 9   # nomor telepon >= 9 digit; tanggal dd-mm-yyyy (8 digit) dan nilai pendek tidak ikut tertolak
-_POLA_DIGIT_KONTAK = re.compile(r"\d(?:[\s.\-\u2010-\u2015()]*\d){%d}" % (_MIN_DIGIT_KONTAK - 1))
+_POLA_DIGIT_KONTAK = re.compile(r"\d(?:[\s.\-\u2010-\u2015()/,_:]*\d){%d}" % (_MIN_DIGIT_KONTAK - 1))
 _POLA_TEL = re.compile(r"(?<![a-z0-9])tel:")
-_PENANDA_KONTAK = ("wa.me", "whatsapp", "@", "http", "www.")
-_ISTILAH_INTERNAL = ("malrule", "kode_final", "kode_usulan", "kode diagnosis", "kunci jawaban")
+_PENANDA_KONTAK = ("wa.me", "whatsapp", "@", "http", "www.", "bit.ly", "instagram", "telegram")
+_POLA_PENANDA_KONTAK = re.compile(
+    r"[a-z0-9-]+\.(?:com|co\.id|id|net|org|me|io|link)\b"                    # nama domain umum (termasuk t.me)
+    r"|\b(?:dot com|at gmail)\b")                                            # ejaan kata-kata (spasi sudah dirapatkan)
+# Istilah dibandingkan sesudah [_-\s]+ dilipat jadi satu spasi ("kunci_jawaban", "kode-diagnosis", "mal rule").
+_POLA_ISTILAH_INTERNAL = re.compile(
+    r"malrule|kode final|kode usulan|kode diagnosis|kunci jawaban|(?<![a-z])mal rule")
+# Huruf Sirilik/Yunani yang paling sering dipakai meniru huruf Latin (a e o p c x y i h j s, dst.).
+_HOMOGLYPH = str.maketrans({
+    "\u0430": "a", "\u0435": "e", "\u043e": "o", "\u0440": "p", "\u0441": "c", "\u0445": "x", "\u0443": "y",
+    "\u0456": "i", "\u04bb": "h", "\u0458": "j", "\u0455": "s",
+    "\u03b1": "a", "\u03b5": "e", "\u03bf": "o", "\u03c1": "p", "\u03b9": "i", "\u03c7": "x",
+})
 _KOLOM = "id, siswa_id, isi, catatan, guru, dibuat, diterbitkan, diterbitkan_oleh"
 
 
@@ -78,18 +96,19 @@ def ambil(kon, siswa_id: int):
 
 
 def _normal(catatan: str) -> str:
-    """Bentuk pembanding: NFKC, tanpa karakter format (lebar nol, bidi, soft hyphen), huruf kecil."""
+    """Bentuk pembanding: NFKC, tanpa karakter format (lebar nol, bidi, soft hyphen), huruf kecil, homoglyph dilipat."""
     tanpa_format = "".join(c for c in catatan if unicodedata.category(c) != "Cf")
-    return unicodedata.normalize("NFKC", tanpa_format).casefold()
+    return unicodedata.normalize("NFKC", tanpa_format).casefold().translate(_HOMOGLYPH)
 
 
 def _kode_isi(catatan: str):
     """Kode galat untuk isi catatan (kontak/istilah internal) atau None; catatan sudah lolos panjang dan kontrol."""
     bentuk = _normal(catatan)
-    if _POLA_DIGIT_KONTAK.search(bentuk) or _POLA_TEL.search(bentuk) or any(p in bentuk for p in _PENANDA_KONTAK):
-        return CATATAN_KONTAK
     rapat = " ".join(bentuk.split())
-    if any(istilah in rapat for istilah in _ISTILAH_INTERNAL):
+    if (_POLA_DIGIT_KONTAK.search(bentuk) or _POLA_TEL.search(bentuk) or any(p in bentuk for p in _PENANDA_KONTAK)
+            or _POLA_PENANDA_KONTAK.search(rapat)):
+        return CATATAN_KONTAK
+    if _POLA_ISTILAH_INTERNAL.search(re.sub(r"[_\-\s]+", " ", bentuk)):
         return CATATAN_ISTILAH_INTERNAL
     return None
 
@@ -103,7 +122,7 @@ def periksa_catatan(catatan: str):
         raise TypeError("catatan harus str")
     if len(catatan) > BATAS_CATATAN:
         return CATATAN_PANJANG
-    if any(unicodedata.category(c) == "Cc" and c not in _KONTROL_BOLEH for c in catatan):
+    if any(c in _BIDI_KONTROL or (unicodedata.category(c) == "Cc" and c not in _KONTROL_BOLEH) for c in catatan):
         return CATATAN_KONTROL
     return _kode_isi(catatan)
 
@@ -123,8 +142,20 @@ def simpan_catatan(kon, siswa_id: int, catatan: str) -> None:
         raise ValueError("laporan bukan draf milik anak ini")
 
 
+def catatan_cukup_untuk_terbit(catatan: str) -> bool:
+    """Murni: bentuk efektif catatan memuat >= MIN_CATATAN_TERBIT karakter huruf/angka/tanda baca (kategori L, N, P).
+
+    Karakter format (Cf: U+200B dst.), spasi Unicode (U+00A0, U+2003, dst.), dan kontrol tidak dihitung, jadi karakter
+    tak terlihat tidak membuat catatan dianggap terisi."""
+    efektif = sum(unicodedata.category(c)[0] in _KATEGORI_EFEKTIF for c in catatan)
+    return efektif >= MIN_CATATAN_TERBIT
+
+
 def terbitkan(kon, siswa_id: int, guru: str, sekarang) -> str:
-    """Terbitkan draf yang catatannya tidak kosong; mengembalikan waktu terbit. Terbit kedua kali = ValueError."""
+    """Terbitkan draf yang catatannya cukup (catatan_cukup_untuk_terbit); mengembalikan waktu terbit. Terbit kedua = ValueError.
+
+    Draf boleh menyimpan catatan kosong/pendek (`simpan_catatan`); aturan panjang efektif hanya berlaku saat terbit.
+    """
     akun = _guru(guru)
     waktu = _epoch(sekarang)
     laporan = ambil(kon, siswa_id)
@@ -134,6 +165,8 @@ def terbitkan(kon, siswa_id: int, guru: str, sekarang) -> str:
         raise ValueError("catatan wajib diisi sebelum terbit")
     if periksa_catatan(laporan["catatan"]) is not None:
         raise ValueError("catatan tersimpan tidak sah; ubah dulu sebelum terbit")
+    if not catatan_cukup_untuk_terbit(laporan["catatan"]):
+        raise ValueError(PESAN_CATATAN_SINGKAT)
     cur = kon.execute(
         """UPDATE peta_laporan SET diterbitkan = datetime(?, 'unixepoch', '+7 hours'), diterbitkan_oleh = ?
            WHERE siswa_id = ? AND diterbitkan IS NULL""",

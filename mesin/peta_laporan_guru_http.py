@@ -20,6 +20,7 @@ import calendar
 import logging
 import re
 import sqlite3
+import urllib.parse
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 
@@ -59,9 +60,14 @@ _PESAN_KODE_CATATAN = {
     toko.CATATAN_KONTAK: PESAN_CATATAN_TERLARANG,
     toko.CATATAN_ISTILAH_INTERNAL: PESAN_CATATAN_TERLARANG,
 }
+PESAN_CATATAN_SINGKAT = toko.PESAN_CATATAN_SINGKAT
 PESAN_CATATAN_KOSONG = "Isi catatan untuk orang tua dan simpan dulu sebelum menerbitkan."
 PESAN_FORM = "Isian tidak sah atau terlalu besar."
 PESAN_KONFIRMASI = "Centang kotak konfirmasi dulu. Tidak ada yang diubah."
+# Batas tubuh form: catatan 2000 karakter terburuk 12 byte terkirim per karakter (UTF-8 4 byte, tiap byte `%XX`),
+# ditambah nama field dan sedikit sisa; batas umum `dasar.BATAS_FORM` (20.000) menolak 2000 emoji.
+BATAS_FORM_CATATAN = toko.BATAS_CATATAN * 12 + 1024
+_MAKS_FIELD_FORM = 16
 _log = logging.getLogger(__name__)
 
 
@@ -74,6 +80,21 @@ def _buka_admin(tulis: bool = False):
     """Satu-satunya pintu ke ledger admin. `admin_store.BAWAAN` dibaca saat dipanggil (bukan salinan impor)."""
     with pesanan.buka(admin_store.BAWAAN, tulis_data=tulis) as kon:
         yield kon
+
+
+def _baca_form(penangan):
+    """Form urlencoded untuk rute ini (batas `BATAS_FORM_CATATAN`); None bila terlalu besar, salah bentuk, atau kunci ganda."""
+    tubuh = penangan._baca_tubuh(BATAS_FORM_CATATAN)
+    if tubuh is None:
+        return None
+    try:
+        pasangan = urllib.parse.parse_qs(
+            tubuh.decode("utf-8", "strict"), keep_blank_values=True, max_num_fields=_MAKS_FIELD_FORM)
+    except (UnicodeDecodeError, ValueError):
+        return None
+    if any(len(v) != 1 for v in pasangan.values()):
+        return None
+    return {k: v[0] for k, v in pasangan.items()}
 
 
 def _kini() -> str:
@@ -237,7 +258,7 @@ def _galat_form(ctx, pesan: str, kode: int = 400, **kw) -> bool:
 
 def _jalankan(penangan, kon, siswa, ident, order, purna_ringkas, kini, aksi) -> bool:
     ctx = (penangan, kon, siswa, ident, order, purna_ringkas, kini)
-    data = dasar._baca_form(penangan)
+    data = _baca_form(penangan)
     if data is None:
         return _galat_form(ctx, PESAN_FORM)
     if aksi == "buat":
@@ -296,12 +317,14 @@ def _catatan(ctx, data) -> bool:
 
 
 def _pesan_draf_belum_layak(laporan):
-    """Pesan tetap bila catatan draf kosong atau (data lama) tak lolos aturan sekarang; None bila layak/bukan draf."""
+    """Pesan tetap bila catatan draf kosong, tak lolos aturan sekarang, atau terlalu singkat (bentuk efektif); None bila layak."""
     if laporan is None or laporan["diterbitkan"] is not None:
         return None
     if not laporan["catatan"].strip():
         return PESAN_CATATAN_KOSONG
-    return PESAN_CATATAN_TERSIMPAN if toko.periksa_catatan(laporan["catatan"]) is not None else None
+    if toko.periksa_catatan(laporan["catatan"]) is not None:
+        return PESAN_CATATAN_TERSIMPAN
+    return None if toko.catatan_cukup_untuk_terbit(laporan["catatan"]) else PESAN_CATATAN_SINGKAT
 
 
 def _terbitkan(ctx, data) -> bool:
@@ -347,6 +370,7 @@ def _hapus(ctx, data) -> bool:
 def kartu_untuk_anak(kon, siswa_id: int) -> str:
     """Kartu kecil untuk halaman anak: hanya bila anak punya order Peta lunas; apa pun galatnya = "" (tanpa kartu).
 
+    Galat dicatat hanya sebagai NAMA tipe (tanpa pesan, bisa memuat data).
     Hanya membaca; tidak pernah mengulang pencatatan purna dan tidak membaca data cek.
     """
     try:
@@ -354,6 +378,8 @@ def kartu_untuk_anak(kon, siswa_id: int) -> str:
         if order is None or purna_ringkas is None:
             return ""
         laporan = toko.ambil(kon, siswa_id)
-    except (OrderTakTerbaca, ValueError, sqlite3.Error):
+    except Exception as galat:  # noqa: BLE001
+        # Disengaja: kartu hanya dekorasi; galat apa pun tidak boleh membuat tab Perkembangan 500. Log hanya NAMA tipe.
+        _log.warning("kartu Peta dilewati: %s", type(galat).__name__)
         return ""
     return hal.kartu_masuk(siswa_id, purna=purna_ringkas, laporan=laporan)

@@ -22,7 +22,9 @@ PESAN_RETENSI = "Data per materi sudah dihapus (retensi 30 hari); laporan tidak 
 PESAN_BELUM_DINILAI = "Jawaban cek belum selesai dinilai; laporan belum bisa dibuat."
 PESAN_TIDAK_TERBACA = "Data cek tidak terbaca; laporan belum bisa dibuat."
 KONFIRMASI_TERBIT = "Setelah terbit, laporan tidak bisa diubah dan langsung terlihat oleh orang tua"
-KONFIRMASI_HAPUS = "Draf ini akan dihapus dan tidak bisa dikembalikan"
+KONFIRMASI_HAPUS = (
+    "Draf ini akan dihapus dan tidak bisa dikembalikan; data per materi tidak dapat dibuat ulang bila sudah lewat "
+    "30 hari sejak cek")
 PESAN_INFO = {
     "belum_bayar": "Pembayaran Peta Kemampuan untuk anak ini belum selesai, jadi laporan belum bisa dibuat.",
     "menunggu_verifikasi": "Bukti pembayaran Peta Kemampuan untuk anak ini masih diperiksa tim.",

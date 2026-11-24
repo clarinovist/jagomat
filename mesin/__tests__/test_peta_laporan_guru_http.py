@@ -350,11 +350,12 @@ def test_catatan_berisi_karakter_kontrol_ditolak_400(lunas):
     assert _efek(server) != sebelum
 
 
-def test_tubuh_lebih_dari_20000_byte_ditolak_400_tanpa_efek(lunas):
+def test_tubuh_melebihi_batas_form_rute_ditolak_400_pesan_form_tanpa_efek(lunas):
     server, _admin, _oid = lunas
     _siapkan_draf(server)
     sebelum = _efek(server)
-    assert _post(server, "catatan", {"catatan": "x" * 25000})[0] == 400
+    kode, isi, _t = _post(server, "catatan", {"catatan": "x" * (pgh.BATAS_FORM_CATATAN + 1)})
+    assert kode == 400 and pgh.PESAN_FORM in isi
     assert _efek(server) == sebelum
 
 
@@ -469,6 +470,31 @@ def test_kartu_toleran_galat_ledger_halaman_anak_tetap_200_tanpa_kartu(lunas, mo
     monkeypatch.setattr(pgh, "_buka_admin", gagal)
     kode, isi, _t = _anak(server)
     assert kode == 200 and "/peta" not in isi and "Traceback" not in isi
+
+
+def test_kartu_galat_apa_pun_dari_ledger_halaman_anak_tetap_200_tanpa_kartu_dan_log_hanya_tipe(
+        lunas, monkeypatch, caplog):
+    server, _admin, _oid = lunas
+
+    def gagal(*_a, **_k):
+        raise KeyError("RAHASIA-SINTETIS-123")
+
+    monkeypatch.setattr(po, "order_peta_untuk_siswa", gagal)
+    with caplog.at_level("WARNING", logger=pgh.__name__):
+        kode, isi, _t = _anak(server)
+    assert kode == 200 and "/peta" not in isi and "Traceback" not in isi
+    assert "KeyError" in caplog.text and "RAHASIA-SINTETIS-123" not in caplog.text
+
+
+def test_kartu_galat_apa_pun_dari_toko_laporan_halaman_anak_tetap_200_tanpa_kartu(lunas, monkeypatch):
+    server, _admin, _oid = lunas
+
+    def gagal(*_a, **_k):
+        raise KeyError("x")
+
+    monkeypatch.setattr(peta_laporan_store, "ambil", gagal)
+    kode, isi, _t = _anak(server)
+    assert kode == 200 and "/peta" not in isi
 
 
 def test_kartu_tidak_menulis_purna_walau_laporan_terbit_belum_tercatat(lunas, monkeypatch):

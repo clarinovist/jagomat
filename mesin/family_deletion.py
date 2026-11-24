@@ -274,6 +274,23 @@ def _hapus_peta_laporan(kon, siswa_ids) -> None:
     kon.execute("DELETE FROM peta_laporan WHERE siswa_id IN (%s)" % q, siswa_ids)
 
 
+def _hapus_laporan_ortu(kon, siswa_ids) -> None:
+    """Hapus laporan orang tua (draf dan terbit) beserta tautannya untuk anak-anak target.
+
+    Siswa hanya dianonimkan, jadi cascade FK tidak berlaku (pola sama dengan `_hapus_harian`); tanpa ini tautan lama
+    tetap membuka catatan Guru dan hasil belajar anak dengan nama samaran. Tautan dihapus lebih dulu, lalu laporan
+    (FK komposit tautan -> laporan). Tiap tabel dicek sendiri: basis lama tanpa tabel dilewati. Anak keluarga lain
+    tidak disentuh.
+    """
+    if not siswa_ids:
+        return
+    q = ",".join("?" for _ in siswa_ids)
+    if _tabel(kon, "tautan_laporan"):
+        kon.execute("DELETE FROM tautan_laporan WHERE siswa_id IN (%s)" % q, siswa_ids)
+    if _tabel(kon, "laporan_ortu"):
+        kon.execute("DELETE FROM laporan_ortu WHERE siswa_id IN (%s)" % q, siswa_ids)
+
+
 def _hapus_cek(kon, target_id: str, siswa_ids) -> None:
     """Hapus baris cek gratis keluarga target (kunci ``id_akun`` atau anaknya).
 
@@ -318,6 +335,7 @@ def _ubah_belajar(path, pemilik: str, target_id: str, pseudonim: str):
         _hapus_lomba(kon, siswa_ids)
         _hapus_harian(kon, siswa_ids)
         _hapus_peta_laporan(kon, siswa_ids)
+        _hapus_laporan_ortu(kon, siswa_ids)
         if kon.execute("PRAGMA foreign_key_check").fetchone() is not None:
             raise PenghapusanDitolak("integritas basis belajar gagal")
         return siswa_ids
