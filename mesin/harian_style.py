@@ -37,7 +37,6 @@ GAYA_HARIAN = GAYA_KARTU + f"""
 .hr-isi :focus-visible {{ outline: {T.TEBAL_FOKUS} solid {T.FOKUS_AKSEN}; outline-offset: 2px; }}
 .hr-kartu {{ display: flex; flex-direction: column; gap: {T.SP_3}; padding: {T.SP_5}; background: {T.LATAR_KARTU};
   border: {T.TEBAL_GARIS} solid {T.ANAK_BORDER}; border-radius: {T.RADIUS_KARTU_BESAR}; }}
-.hr-kartu.catatan {{ color: {T.ANAK_PERHATIAN_TEKS}; background: {T.ANAK_PERHATIAN_LATAR}; border-color: {T.ANAK_PERHATIAN_BORDER}; }}
 .hr-redup {{ font-size: {T.UKURAN_TEKS_LABEL}; color: {T.ANAK_TEKS_REDUP}; }}
 .hr-daftar {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: {T.SP_3}; margin: 0; padding: 0; list-style: none; }}
 .hr-daftar.osn {{ grid-template-columns: 1fr; }}

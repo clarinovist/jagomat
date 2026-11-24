@@ -12,10 +12,10 @@ Aturan isi:
 """
 from __future__ import annotations
 
+import html
 from typing import Callable, Optional
 
 import playful_components as C
-from cek_pages import _a, _e
 from format_tanggal import tanggal_pendek
 import harian_langganan_dasar as h
 import harian_langganan_ringkas as ringkas
@@ -87,6 +87,10 @@ COPY_BERKAS = {"kosong": COPY_BERKAS_KOSONG, "besar": COPY_BERKAS_BESAR, "tipe":
                "terbaca": COPY_BERKAS_TAK_TERBACA}
 
 TokenUntuk = Callable[[str], str]
+
+
+def _e(teks: object) -> str:
+    return html.escape(str(teks), quote=True)
 
 
 def _p(teks: str) -> str:
@@ -169,8 +173,8 @@ def _teks_tombol_paket(paket: h.Paket, perpanjang: bool) -> str:
 
 def _form_paket(paket: h.Paket, token_untuk: TokenUntuk, perpanjang: bool) -> str:
     return (f'<form method="post" action="{RUTE_BUAT}">'
-            f'<input type="hidden" name="token" value="{_a(token_untuk(AKSI_BUAT + paket.kode))}">'
-            f'<input type="hidden" name="paket" value="{_a(paket.kode)}">'
+            f'<input type="hidden" name="token" value="{_e(token_untuk(AKSI_BUAT + paket.kode))}">'
+            f'<input type="hidden" name="paket" value="{_e(paket.kode)}">'
             f'{_tombol(_teks_tombol_paket(paket, perpanjang))}</form>')
 
 
@@ -239,7 +243,7 @@ def _rincian(tampil, rekening) -> str:
 def _form_unggah(token: str, ulang: bool) -> str:
     return (
         f'<form method="post" action="{RUTE_BUKTI}" enctype="multipart/form-data">'
-        f'<input type="hidden" name="token" value="{_a(token)}">'
+        f'<input type="hidden" name="token" value="{_e(token)}">'
         f'<label class="lg-berkas">{_e(COPY_LABEL_BERKAS)}'
         f'<input type="file" name="berkas" accept="{_ACCEPT_BUKTI}" required></label>'
         f'{_tombol(COPY_TOMBOL_UNGGAH_ULANG if ulang else COPY_TOMBOL_UNGGAH)}</form>')
@@ -303,11 +307,11 @@ def banner_orang_tua(r: Optional[ringkas.Ringkasan], nama_anak: str) -> str:
 
 
 def _kartu_navy_belum() -> str:
-    """Belum berlangganan: kartu navy; harga 'mulai ...' dari PAKET."""
+    """Belum berlangganan: kartu navy; harga dari PAKET."""
     isi = (f"{_p(COPY_GRATIS_ISI)}"
            f'<p>Buka latihan {C.sorot("tanpa batas")} {_e(teks_harga_ortu())}.</p>')
     return C.kartu_navy(_e(COPY_GRATIS_JUDUL), isi, RUTE, COPY_TOMBOL_LIHAT_PAKET, label=COPY_LABEL_KARTU,
-                        id_="ortu-langganan")
+                        id_="ortu-langganan", level=2)
 
 
 def _ke_langganan(teks: str) -> tuple:
@@ -319,14 +323,14 @@ def _kartu_ortu_tagihan(r: ringkas.Ringkasan) -> Optional[str]:
     if r.status_tagihan == h.STATUS_DITOLAK:
         isi = f"<p>{_e(COPY_ALASAN_TIM)} <strong>{_e(r.alasan_tolak)}</strong></p>" if r.alasan_tolak else ""
         return C.kartu_status("koral", COPY_LENCANA_DITOLAK, COPY_DITOLAK_JUDUL, isi + _p(kalimat_status(r)),
-                              id_="ortu-langganan", tombol=_ke_langganan(COPY_TOMBOL_UNGGAH_ULANG))
+                              id_="ortu-langganan", tombol=_ke_langganan(COPY_TOMBOL_UNGGAH_ULANG), level=2)
     if r.status_tagihan == h.STATUS_MENUNGGU:
         return C.kartu_status("kuning", COPY_LENCANA_MENUNGGU, COPY_MENUNGGU_JUDUL,
                               _p(COPY_MENUNGGU_ISI) + _p(kalimat_status(r)),
-                              id_="ortu-langganan", tombol=_ke_langganan(COPY_TOMBOL_LIHAT_STATUS))
+                              id_="ortu-langganan", tombol=_ke_langganan(COPY_TOMBOL_LIHAT_STATUS), level=2)
     if r.status_tagihan is not None:
         return C.kartu_status("kuning", COPY_LENCANA_BELUM_BAYAR, COPY_JUDUL_BELUM_BAYAR, _p(kalimat_status(r)),
-                              id_="ortu-langganan", tombol=_ke_langganan(COPY_TOMBOL_LANJUT_BAYAR))
+                              id_="ortu-langganan", tombol=_ke_langganan(COPY_TOMBOL_LANJUT_BAYAR), level=2)
     return None
 
 
@@ -336,9 +340,9 @@ def _kartu_ortu_aktif(r: ringkas.Ringkasan) -> str:
     if r.perlu_pengingat:
         isi = _p(kalimat_status(r)) + _p(COPY_PENGANTAR_PERPANJANG)
         return C.kartu_status("koral", COPY_LENCANA_SEGERA % r.sisa_hari, COPY_JUDUL_SEGERA, isi,
-                              id_="ortu-langganan", tombol=tombol)
+                              id_="ortu-langganan", tombol=tombol, level=2)
     return C.kartu_status("hijau", COPY_LENCANA_AKTIF, COPY_AKTIF_JUDUL % tanggal_berakhir(r.berakhir or ""),
-                          _p(COPY_AKTIF_ISI), id_="ortu-langganan", tombol=tombol)
+                          _p(COPY_AKTIF_ISI), id_="ortu-langganan", tombol=tombol, level=2)
 
 
 def kartu_orang_tua(r: Optional[ringkas.Ringkasan]) -> str:
@@ -349,7 +353,7 @@ def kartu_orang_tua(r: Optional[ringkas.Ringkasan]) -> str:
     if r is None:
         return ""
     if r.sumber == "les":
-        return C.kartu_status("hijau", COPY_LENCANA_LES, COPY_LES_JUDUL, _p(COPY_LES), id_="ortu-langganan")
+        return C.kartu_status("hijau", COPY_LENCANA_LES, COPY_LES_JUDUL, _p(COPY_LES), id_="ortu-langganan", level=2)
     kartu_tagihan = _kartu_ortu_tagihan(r)
     if kartu_tagihan is not None:
         return kartu_tagihan

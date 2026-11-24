@@ -9,6 +9,7 @@ import playful_style as S
 import style_stitch
 
 JAHAT = '<script>alert(1)</script>"&\''
+JAHAT_ATRIBUT = '" onerror="alert(1)" onclick="x'
 
 
 def _semua_komponen(teks=JAHAT):
@@ -36,7 +37,18 @@ def _semua_komponen(teks=JAHAT):
 def test_komponen_meng_escape_input_dan_tanpa_script(nama, isi):
     assert "<script" not in isi.lower(), nama
     assert "alert(1)" not in isi.replace("&lt;script&gt;alert(1)&lt;/script&gt;", ""), nama
-    assert "onerror" not in isi.lower() and "onclick" not in isi.lower()
+
+
+@pytest.mark.parametrize("nama,isi", sorted(_semua_komponen(JAHAT_ATRIBUT).items()))
+def test_kutip_penutup_atribut_dari_pemanggil_tidak_lolos(nama, isi):
+    assert '" onerror' not in isi and '" onclick' not in isi, nama
+
+
+def test_nilai_atribut_berkutip_ter_escape_jadi_entitas():
+    navy = C.kartu_navy("j", "", "/x", "t", label="l", id_=JAHAT_ATRIBUT)
+    status = C.kartu_status("hijau", "l", "j", id_=JAHAT_ATRIBUT)
+    aman = "&quot; onerror=&quot;alert(1)&quot; onclick=&quot;x"
+    assert f'id="{aman}"' in navy and f'id="{aman}"' in status
 
 
 def test_teks_pemanggil_muncul_sebagai_entitas():
@@ -44,12 +56,11 @@ def test_teks_pemanggil_muncul_sebagai_entitas():
     assert "&lt;b&gt;a&lt;/b&gt;" in isi and "<b>&lt;i&gt;b&lt;/i&gt;</b>" in isi and "&amp;c" in isi
 
 
-def test_maskot_bicara_memakai_brand_dengan_alt_bermakna():
+def test_maskot_bicara_memakai_brand_sebagai_hiasan_beralt_kosong():
     isi = C.maskot_bicara("menyapa", "Halo, ", "Aisyah", "!")
     assert "/aset/maskot-menyapa-v3-96.png" in isi
     assert 'width="96"' in isi and 'class="ceria-maskot"' in isi
-    alt = re.search(r'alt="([^"]*)"', isi).group(1)
-    assert alt and "menyapa" in alt
+    assert 'alt=""' in isi  # hiasan: pesan sudah dibawa teks gelembung
     assert isi.count("<img") == 1
     assert "Halo, <b>Aisyah</b>!" in isi
 
@@ -69,7 +80,8 @@ def test_pose_tidak_dikenal_ditolak():
 def test_banner_umpan_balik_varian_dan_slot_maskot(betul, pose, kelas):
     isi = C.banner_umpan_balik(betul, "Judul", "Teks")
     assert kelas in isi and f"maskot-{pose}-v3-96.png" in isi and 'role="status"' in isi
-    assert re.search(r'alt="[^"]+"', isi)
+    assert 'alt=""' in isi and "Judul</h3>" in isi and "<p>Teks</p>" in isi
+    assert 'alt="Maskot gembira"' in C.banner_umpan_balik(betul, "J", "T", alt="Maskot gembira")
 
 
 def test_banner_belum_tepat_bukan_merah():
@@ -82,19 +94,25 @@ def test_banner_belum_tepat_bukan_merah():
 
 
 def test_kartu_ajakan_ortu_hanya_satu_tautan():
-    isi = C.kartu_ajakan_ortu("/murid/orang-tua", "Untuk Ayah/Bunda · lihat paket", "mulai Rp39.000/bulan",
+    isi = C.kartu_ajakan_ortu("/murid/orang-tua", "Untuk Ayah/Bunda · lihat paket", "Rp39.000/bulan",
                               ["Sesi sebanyak yang anak mau", "1 sesi gratis tetap ada tiap hari"])
     assert isi.count("<a ") == 1 and isi.count("href=") == 1
     assert 'href="/murid/orang-tua"' in isi
-    assert isi.count("<li>") == 2 and "mulai Rp39.000/bulan" in isi
+    assert isi.count("<li>") == 2 and "Rp39.000/bulan" in isi and "mulai" not in isi
     assert 'class="ceria-sorot">tanpa batas<' in isi
     assert "UNTUK" not in isi and "Untuk Ayah/Bunda</p>" in isi
 
 
-@pytest.mark.parametrize("href", ["https://x.example/", "//x.example/", "javascript:alert(1)", "", "murid/orang-tua"])
+@pytest.mark.parametrize("href", ["https://x.example/", "//x.example/", "javascript:alert(1)", "", "murid/orang-tua",
+                                  "/\\evil.com", "/\t/evil.com", "/ x", "/x\n", "/x\x00", "/x\x7f", "/x\u00a0y"])
 def test_kartu_ajakan_ortu_menolak_tautan_luar(href):
     with pytest.raises(ValueError):
         C.kartu_ajakan_ortu(href, "a", "b")
+
+
+@pytest.mark.parametrize("href", ["/murid/orang-tua", "/murid/langganan?x=1"])
+def test_kartu_ajakan_ortu_meloloskan_alamat_dalam(href):
+    assert f'href="{href}"' in C.kartu_ajakan_ortu(href, "a", "b")
 
 
 def test_kartu_ajakan_ortu_tanpa_poin_tak_membuat_daftar():
@@ -233,9 +251,9 @@ def test_modul_tidak_memuat_kode_debug_dan_tidak_mengimpor_basis_data():
 
 
 def test_kartu_ajakan_ortu_bentuk_html_tidak_berubah_setelah_memakai_kartu_navy():
-    isi = C.kartu_ajakan_ortu("/murid/orang-tua", "Lihat", "mulai Rp1/bulan", poin=("a", "b"), level=2)
+    isi = C.kartu_ajakan_ortu("/murid/orang-tua", "Lihat", "Rp1/bulan", poin=("a", "b"), level=2)
     assert isi == ('<section class="ceria-ortu"><p class="ceria-alis">Untuk Ayah/Bunda</p><h2 class="ceria-judul">'
-                   'Latihan <span class="ceria-sorot">tanpa batas</span> mulai Rp1/bulan</h2>'
+                   'Latihan <span class="ceria-sorot">tanpa batas</span> Rp1/bulan</h2>'
                    '<ul class="ceria-centang"><li>a</li><li>b</li></ul>'
                    '<a class="ceria-tombol" href="/murid/orang-tua">Lihat</a></section>')
 
@@ -270,3 +288,10 @@ def test_kartu_status_selalu_berlencana_teks_dan_tanpa_tombol_bila_tak_diminta(n
     isi = C.kartu_status(nada, "Teks status", "Judul", "<p>isi</p>")
     assert 'class="ceria-lencana ceria-lencana-%s">Teks status</span>' % nada in isi and "<a " not in isi
     assert "ceria-status-%s" % nada in isi
+
+
+def test_gelembung_lebih_spesifik_dari_aturan_paragraf_halaman_harian():
+    import harian_style
+    assert ".ceria-maskot-baris .ceria-gelembung {" in S.GAYA_CERIA
+    assert not re.search(r"(?m)^\.ceria-gelembung \{", S.GAYA_CERIA)  # selektor polos (0,1,0) kalah dari `.hr-isi p`
+    assert ".hr-isi h1, .hr-isi h2, .hr-isi h3, .hr-isi p { margin: 0; }" in harian_style.GAYA_HARIAN

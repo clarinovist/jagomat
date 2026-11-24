@@ -39,10 +39,10 @@ GAYA_CERIA = f"""
 /* Maskot + gelembung bicara. */
 .ceria-maskot-baris {{ display: flex; align-items: flex-end; gap: {T.SP_2}; }}
 .ceria-maskot {{ flex: none; display: block; height: auto; filter: {T.BAYANGAN_MASKOT}; }}
-.ceria-gelembung {{ position: relative; margin: 0 0 {T.SP_5}; padding: {T.SP_3} {T.SP_4}; background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL};
+.ceria-maskot-baris .ceria-gelembung {{ position: relative; margin: 0 0 {T.SP_5}; padding: {T.SP_3} {T.SP_4}; background: {T.LATAR_KARTU}; color: {T.TEKS_JUDUL};
   border-radius: 16px 16px 16px 4px; font-weight: 600; line-height: 1.4; box-shadow: {T.BAYANGAN_TIMBUL_GELAP}; }}
-.ceria-gelembung::before {{ content: ""; position: absolute; left: -7px; bottom: 6px; border: 7px solid transparent; border-left: 0; border-right-color: {T.LATAR_KARTU}; }}
-.ceria-gelembung b {{ color: {T.AKSEN_KORAL_TUA}; }}
+.ceria-maskot-baris .ceria-gelembung::before {{ content: ""; position: absolute; left: -7px; bottom: 6px; border: 7px solid transparent; border-left: 0; border-right-color: {T.LATAR_KARTU}; }}
+.ceria-maskot-baris .ceria-gelembung b {{ color: {T.AKSEN_KORAL_TUA}; }}
 
 /* Teks di dalam hero (judul, alis, petunjuk): putih di atas teal. */
 .ceria-hero :is(h1, h2, h3) {{ color: {T.TEKS_PUTIH}; }}

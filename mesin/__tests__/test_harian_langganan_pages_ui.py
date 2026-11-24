@@ -204,3 +204,17 @@ def test_halaman_murid_bawaan_sama_dengan_rakitan_lama_tanpa_parameter():
 {brand.tag_kepala()}{kepala_murid(gaya_stitch() + GAYA_AKUN)}</head>
 <body class="st">{bungkus_murid(topbar + utama)}</body></html>""".encode()
     assert pesanan_murid_pages.halaman_murid("Judul", "j", badan, "/murid", "Beranda") == lama
+
+
+def test_nilai_berkutip_ter_escape_di_atribut_dan_teks():
+    html = halaman.halaman_langganan(_gratis(), None, REKENING, lambda aksi: '" onfocus="x').decode()
+    assert '" onfocus' not in html and 'value="&quot; onfocus=&quot;x"' in html
+    tolak = _halaman(_gratis(), _tampil(dasar.STATUS_DITOLAK, alasan='" onclick="y'))
+    assert "&quot; onclick=&quot;y" in tolak and '" onclick' not in tolak
+
+
+def test_modul_tak_lagi_memakai_escape_tanpa_kutip_dari_cek_pages():
+    from pathlib import Path
+    sumber = Path(halaman.__file__).read_text()
+    assert "cek_pages" not in sumber
+    assert halaman._e('a"b') == "a&quot;b"

@@ -128,9 +128,9 @@ def _kartu_berjalan(sesi: hs.SesiRingkas) -> str:
 
 
 def teks_harga_ortu() -> str:
-    """"mulai Rp39.000/bulan", dihitung dari konstanta paket Bulanan (bukan ditulis tangan)."""
+    """"Rp39.000/bulan", dihitung dari konstanta paket Bulanan (bukan ditulis tangan)."""
     paket = paket_dasar.PAKET[paket_dasar.PAKET_BULANAN]
-    return "mulai %s/bulan" % rupiah(paket.rupiah // paket.bulan)
+    return "%s/bulan" % rupiah(paket.rupiah // paket.bulan)
 
 
 def kartu_ajakan_langganan() -> str:
@@ -246,10 +246,10 @@ def halaman_ringkasan(ringkas: hs.RingkasanSesi, tampil_ajakan_ortu: bool = Fals
     menampilkan kartu ajakan; tampilan saja, bukan gerbang akses.
     """
     hero = C.hero(
-        C.maskot_bicara("merayakan", "Sesi hari ini ", "selesai", "! Kerja bagus.")
+        C.maskot_bicara("merayakan", "Sesi ini ", "selesai", "! Kerja bagus.")
         + C.skor_besar(ringkas.benar, ringkas.jumlah_soal)
         + f'<p>{_e(_semangat(ringkas.benar, ringkas.jumlah_soal))}</p>'
-        + C.stiker("Selesai hari ini"), konfeti=True)
+        + C.stiker("Sesi selesai"), konfeti=True)
     isi = (f'<h1 class="hr-sr">Latihan selesai</h1><p class="hr-redup">{_e(_judul_tingkat(ringkas.tingkat))}</p>{hero}'
            f'<div class="hr-aksi"><a class="hr-tombol" href="{ALAMAT_AWAL}">Latihan lagi</a>'
            '<a class="hr-tombol sekunder" href="/murid">Kembali ke ruang belajar</a></div>'
@@ -293,6 +293,11 @@ def kartu_beranda(sesi_berjalan: Optional[hs.SesiRingkas], terakhir: Optional[st
             f'<a class="hr-tombol" href="{tombol[1]}">{_e(tombol[0])}</a></div></section>')
 
 
+def teks_persen_tepat(ringkas: hs.RingkasanHarian) -> str:
+    """"87%" atau "-" bila belum ada soal dikerjakan; dipakai kartu ringkasan halaman Ayah/Bunda."""
+    return "-" if ringkas.persen_benar is None else "%d%%" % ringkas.persen_benar
+
+
 def blok_orang_tua(ringkas: hs.RingkasanHarian) -> str:
     """Kartu ringkasan halaman orang tua: kelas terakhir, hari latihan 7 hari terakhir, soal dikerjakan, persen benar.
 
@@ -301,9 +306,8 @@ def blok_orang_tua(ringkas: hs.RingkasanHarian) -> str:
     if ringkas.tingkat_terakhir is None and ringkas.soal_dikerjakan == 0:
         isi = "<p>Belum ada Latihan Harian.</p>"
     else:
-        persen = "-" if ringkas.persen_benar is None else "%d%%" % ringkas.persen_benar
         isi = (f'<p>Terakhir berlatih: <b>{_e(_judul_tingkat(ringkas.tingkat_terakhir or ""))}</b></p>'
                f'{C.titik_hari(_indeks_hari(ringkas.hari), latar="krem")}'
-               f'<p>Hari latihan dalam 7 hari terakhir: <b>{ringkas.jumlah_hari}</b> dari 7</p>'
-               f'<p>Soal dikerjakan: <b>{ringkas.soal_dikerjakan}</b> · Persen tepat: <b>{persen}</b></p>')
+               f'<p>Hari latihan dalam 7 hari terakhir: <b>{ringkas.jumlah_hari}</b> dari {len(C.HARI_PEKAN)}</p>'
+               f'<p>Soal dikerjakan: <b>{ringkas.soal_dikerjakan}</b> · Persen tepat: <b>{teks_persen_tepat(ringkas)}</b></p>')
     return f'<section class="ortu-kartu-st" id="ortu-harian"><h2>{COPY_JUDUL}</h2>{isi}</section>'

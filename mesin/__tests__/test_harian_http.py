@@ -466,7 +466,7 @@ def test_ringkasan_anak_gratis_dengan_halaman_ortu_menampilkan_satu_ajakan(serve
     isi = _selesaikan_dan_ringkasan(server)
 
     assert isi.count('href="/murid/orang-tua"') == 1 and "Untuk Ayah/Bunda · lihat paket" in isi
-    assert "Sesi hari ini" in isi and 'class="ceria-hero"' in isi
+    assert "Sesi ini" in isi and "Sesi selesai" in isi and 'class="ceria-hero"' in isi
 
 
 def test_ringkasan_tanpa_halaman_ortu_tidak_menampilkan_ajakan(server, monkeypatch):
@@ -517,7 +517,7 @@ def test_batas_gratis_satu_sesi_dimulai_per_hari_wib_dengan_halaman_ramah(server
 
     assert kedua.kode == 303 and kedua.lokasi == DASAR
     assert COPY_HABIS in beranda.isi and beranda.isi.count('href="/murid/orang-tua"') == 1
-    assert "Hebat, latihan hari ini selesai!" in beranda.isi and "mulai Rp39.000/bulan" in beranda.isi
+    assert "Hebat, latihan hari ini selesai!" in beranda.isi and "Rp39.000/bulan" in beranda.isi and "mulai Rp" not in beranda.isi
     assert 'name="tingkat"' not in beranda.isi
     assert _db(server, "SELECT COUNT(*) FROM harian_sesi")[0][0] == 1
     jam.t = T0 + 9 * 3600 + 60  # 00:01 WIB hari berikutnya (literal; T0 = 15:00 WIB)

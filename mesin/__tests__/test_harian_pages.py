@@ -80,7 +80,7 @@ def test_ringkasan_tanpa_peringkat():
     teks = _teks(P.halaman_ringkasan(hs.RingkasanSesi("t3", 10, 8))).lower()
 
     assert "8 dari 10 benar" in teks and "peringkat" not in teks and "persentil" not in teks
-    assert "selesai hari ini" in teks and "dibanding" not in teks
+    assert "sesi ini selesai" in teks and "sesi selesai" in teks and "hari ini" not in teks and "dibanding" not in teks
 
 
 def test_ringkasan_hero_satu_maskot_skor_besar_dan_sepuluh_titik():
@@ -88,7 +88,9 @@ def test_ringkasan_hero_satu_maskot_skor_besar_dan_sepuluh_titik():
 
     assert 'class="ceria-hero"' in isi and 'class="ceria-konfeti"' in isi and _jumlah_maskot(isi) == 1
     assert '<p class="ceria-skor"><b>8</b> dari 10 benar</p>' in isi
-    assert isi.count('<i class="ceria-isi"></i>') == 8 and isi.count("<i></i>") >= 2
+    bintang = re.search(r'<div class="ceria-bintang"[^>]*>(.*?)</div>', isi, re.S).group(1)
+    assert bintang.count("<i ") == 10 and bintang.count('<i class="ceria-isi"></i>') == 8
+    assert bintang.count('<i class=""></i>') == 2
     assert "Latihan lagi" in isi and "<h1" in isi and "<script" not in isi
 
 
@@ -157,13 +159,21 @@ def test_ajakan_harga_dihitung_dari_paket_bukan_hardcode(monkeypatch):
 
     habis = _badan(P.halaman_beranda(None, True, None, None))
 
-    assert "mulai Rp41.000/bulan" in habis and "Rp39.000" not in habis
+    assert "Rp41.000/bulan" in habis and "mulai" not in habis and "Rp39.000" not in habis
+
+
+def test_teks_persen_tepat_strip_bila_belum_ada_soal_dan_persen_bila_ada():
+    kosong = hs.RingkasanHarian(None, (), 0, 0)
+    ada = hs.RingkasanHarian("t5", (), 12, 9)
+
+    assert P.teks_persen_tepat(kosong) == "-"
+    assert P.teks_persen_tepat(ada) == "75%"
 
 
 def test_ajakan_harga_bawaan_sesuai_paket_bulanan():
     paket = paket_dasar.PAKET[paket_dasar.PAKET_BULANAN]
 
-    assert P.teks_harga_ortu() == "mulai Rp%s/bulan" % format(paket.rupiah // paket.bulan, ",").replace(",", ".")
+    assert P.teks_harga_ortu() == "Rp%s/bulan" % format(paket.rupiah // paket.bulan, ",").replace(",", ".")
 
 
 def test_jatah_habis_tanpa_halaman_ortu_menyembunyikan_ajakan():

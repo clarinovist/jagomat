@@ -181,15 +181,18 @@ def test_catatan_jujur_pin_dan_kalimat_tim_tetap_ada():
 # --- skrip, kebocoran, tirai ------------------------------------------------------------------
 
 def test_hanya_skrip_mata_sandi_dan_tanpa_skrip_baru():
-    html = _isi(_penuh_data := _data(laporan=LAPORAN, langganan=LANGGANAN_SEGERA,
-                                     harian=hs.RingkasanHarian("t5", HARI, 12, 9)), ada_pin=True)
+    html = _isi(_data(laporan=LAPORAN, langganan=LANGGANAN_SEGERA, harian=hs.RingkasanHarian("t5", HARI, 12, 9)),
+                ada_pin=True)
     skrip = re.findall(r"<script[^>]*>(.*?)</script>", html, flags=re.S)
     assert skrip == [SKRIP_MATA_SANDI] and html.count("<script") == 1
 
 
 def test_halaman_tirai_pin_tidak_ikut_gaya_ceria_dan_tanpa_data_anak():
-    html = P.halaman_pin().decode()
-    assert "ceria-hero" not in html and "Anak Sintetis" not in html and 'id="ortu-pin-masuk"' in html
+    penuh = _isi(_data(nama="Anak Sintetis", laporan=LAPORAN), ada_pin=True)
+    html = P.halaman_pin(P.COPY_PIN_TIDAK_SAH).decode()
+    assert "Anak Sintetis" in penuh and "Catatan sintetis" in penuh  # kontrol positif: halaman penuh memuat data
+    assert "ceria-hero" not in html and 'id="ortu-pin-masuk"' in html
+    assert "Anak Sintetis" not in html and "Catatan sintetis" not in html and "Bu Guru" not in html
 
 
 def test_tanpa_kontak_diagnosis_atau_kunci_di_isi_halaman():

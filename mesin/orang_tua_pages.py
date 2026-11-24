@@ -15,6 +15,7 @@ import brand
 import cek_gratis_skor
 import cek_pages
 import harian_langganan_pages
+import harian_pages
 import playful_components as C
 import parent_report_page
 import pesanan_pages
@@ -144,8 +145,7 @@ def _blok_cek(hasil: dict, nama_anak: str) -> str:
 
 def _kartu_laporan_kosong() -> str:
     """Kartu sabar: satu kalimat. Satu-satunya tempat di halaman ini yang membawa maskot."""
-    maskot = brand.maskot("membaca", C.UKURAN_MASKOT_BICARA, alt="Jago, maskot Jagomat, sedang membaca",
-                          kelas="ceria-maskot")
+    maskot = brand.maskot("membaca", C.UKURAN_MASKOT_BICARA, kelas="ceria-maskot")
     return (f'<section class="ortu-kartu-st ortu-kosong-st" id="ortu-laporan">{maskot}'
             f'<h2>{_e(COPY_LAPORAN_JUDUL)}</h2><p>{_e(COPY_LAPORAN_KOSONG)}</p></section>')
 
@@ -223,9 +223,8 @@ def _blok_pin(ada_pin: bool, terbuka: bool = False) -> str:
 
 def _tiga_angka(ringkas) -> str:
     """Hari latihan (dari 7), soal dikerjakan, persen tepat; semuanya dari `RingkasanHarian`, tanpa angka lain."""
-    persen = "-" if ringkas.persen_benar is None else "%d%%" % ringkas.persen_benar
-    butir = ((f"{ringkas.jumlah_hari}/7", "hari latihan"), (str(ringkas.soal_dikerjakan), "soal dikerjakan"),
-             (persen, "tepat"))
+    butir = ((f"{ringkas.jumlah_hari}/{len(C.HARI_PEKAN)}", "hari latihan"),
+             (str(ringkas.soal_dikerjakan), "soal dikerjakan"), (harian_pages.teks_persen_tepat(ringkas), "tepat"))
     isi = "".join(f"<li><b>{_e(angka)}</b>{_e(nama)}</li>" for angka, nama in butir)
     return f'<ul class="ortu-tiga-st">{isi}</ul>'
 

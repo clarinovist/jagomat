@@ -21,14 +21,6 @@ JUMLAH_SOAL_SESI = 10
 UKURAN_MASKOT_BICARA = 96
 POSE_BETUL = "merayakan"
 POSE_BELUM_TEPAT = "berpikir"
-_ALT_POSE = {
-    "menyapa": "Jago, maskot Jagomat, menyapa",
-    "menunjuk": "Jago, maskot Jagomat, menunjuk",
-    "berpikir": "Jago, maskot Jagomat, sedang berpikir",
-    "membaca": "Jago, maskot Jagomat, sedang membaca",
-    "menulis": "Jago, maskot Jagomat, sedang menulis",
-    "merayakan": "Jago, maskot Jagomat, merayakan",
-}
 NADA_STATUS = ("kuning", "hijau", "koral")
 _LEVEL_JUDUL = (2, 3, 4)
 _SIMBOL_HERO = ("+", "&divide;", "&times;", "7")
@@ -39,9 +31,15 @@ def _e(nilai: object) -> str:
     return html.escape(str(nilai), quote=True)
 
 
+def _karakter_terlarang(href: str) -> bool:
+    """Backslash, spasi, dan karakter kontrol: browser menormalkannya (mis. "/\\x" atau "/<TAB>/x" jadi "//x")."""
+    return any(c == "\\" or c.isspace() or ord(c) < 32 or ord(c) == 127 for c in href)
+
+
 def _alamat_dalam(href: str) -> str:
     """Tautan kartu ajakan wajib alamat dalam aplikasi ("/..." bukan "//..."), supaya tak bisa jadi skema lain."""
-    if not isinstance(href, str) or not href.startswith("/") or href.startswith("//"):
+    if (not isinstance(href, str) or not href.startswith("/") or href.startswith("//")
+            or _karakter_terlarang(href)):
         raise ValueError(f"tautan harus alamat dalam aplikasi: {href!r}")
     return href
 
@@ -68,13 +66,13 @@ def hero(isi: str, *, konfeti: bool = False) -> str:
     return f'<div class="ceria-hero">{hias}{isi}</div>'
 
 
-def maskot_bicara(pose: str, awal: str, tebal: str = "", akhir: str = "", alt: Optional[str] = None) -> str:
+def maskot_bicara(pose: str, awal: str, tebal: str = "", akhir: str = "", alt: str = "") -> str:
     """Baris maskot + gelembung bicara: `awal` + **tebal** + `akhir` (semuanya di-escape).
 
-    `alt` bawaan menyebut pose maskot; pemanggil boleh mengganti bila perlu. Pose tak dikenal -> ValueError.
+    Maskot hiasan (alt kosong): pesan sudah dibawa teks gelembung. Pemanggil boleh mengisi `alt` bila gambarnya
+    membawa informasi. Pose tak dikenal -> ValueError.
     """
-    teks_alt = alt if alt is not None else _ALT_POSE.get(pose, "")
-    gambar = brand.maskot(pose, UKURAN_MASKOT_BICARA, alt=teks_alt, kelas="ceria-maskot")
+    gambar = brand.maskot(pose, UKURAN_MASKOT_BICARA, alt=alt, kelas="ceria-maskot")
     isi_tebal = f"<b>{_e(tebal)}</b>" if tebal else ""
     return (f'<div class="ceria-maskot-baris">{gambar}'
             f'<p class="ceria-gelembung">{_e(awal)}{isi_tebal}{_e(akhir)}</p></div>')
@@ -103,7 +101,7 @@ def kartu_ajakan_ortu(href: str, teks_tombol: str, teks_harga: str, poin: Sequen
                       judul_sorot: str = "tanpa batas", level: int = 3) -> str:
     """Kartu navy ajakan untuk orang dewasa: judul "<awal> <sorot> <teks_harga>", daftar centang, SATU tautan tombol.
 
-    `teks_harga` dihitung pemanggil dari konstanta paket (mis. "mulai Rp39.000/bulan"), bukan ditulis tangan di sini.
+    `teks_harga` dihitung pemanggil dari konstanta paket (mis. "Rp39.000/bulan"), bukan ditulis tangan di sini.
     """
     daftar = "".join(f"<li>{_e(p)}</li>" for p in poin)
     centang = f'<ul class="ceria-centang">{daftar}</ul>' if daftar else ""
@@ -171,16 +169,16 @@ def skor_besar(benar: int, jumlah: int = JUMLAH_SOAL_SESI) -> str:
 
 
 def banner_umpan_balik(betul: bool, judul: str, teks: str, pose: Optional[str] = None,
-                       alt: Optional[str] = None, level: int = 3) -> str:
+                       alt: str = "", level: int = 3) -> str:
     """Banner umpan balik dengan slot maskot. Betul = hijau; belum tepat = hangat (amber), BUKAN merah.
 
-    Pose bawaan: merayakan (betul) / berpikir (belum tepat). Pemanggil menjaga satu maskot per layar.
+    Pose bawaan: merayakan (betul) / berpikir (belum tepat). Maskot hiasan (alt kosong; judul dan teks membawa
+    pesan), `alt` bisa diisi pemanggil. Pemanggil menjaga satu maskot per layar.
     """
     if level not in _LEVEL_JUDUL:
         raise ValueError(f"level judul tidak didukung: {level!r}")
     pose_pakai = pose or (POSE_BETUL if betul else POSE_BELUM_TEPAT)
-    teks_alt = alt if alt is not None else _ALT_POSE.get(pose_pakai, "")
-    gambar = brand.maskot(pose_pakai, UKURAN_MASKOT_BICARA, alt=teks_alt, kelas="ceria-maskot")
+    gambar = brand.maskot(pose_pakai, UKURAN_MASKOT_BICARA, alt=alt, kelas="ceria-maskot")
     kelas = "ceria-banner ceria-betul" if betul else "ceria-banner ceria-hampir"
     return (f'<div class="{kelas}" role="status">{gambar}'
             f'<div><h{level} class="ceria-judul">{_e(judul)}</h{level}><p>{_e(teks)}</p></div></div>')

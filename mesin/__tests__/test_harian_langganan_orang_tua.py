@@ -181,15 +181,26 @@ def test_nada_kartu_per_keadaan_tidak_tercampur():
 
 
 def test_kartu_belum_berlangganan_harga_dari_paket(monkeypatch):
-    assert "mulai Rp39.000/bulan" in re.sub(r"<[^>]+>", "", _kartu(_r()))
+    assert "Rp39.000/bulan" in re.sub(r"<[^>]+>", "", _kartu(_r()))
     baru = dasar.Paket("bulanan", "Bulanan", 45000, 1)
     monkeypatch.setattr(dasar, "PAKET", MappingProxyType({"bulanan": baru, "tahunan": dasar.Paket("tahunan", "Tahunan", 400000, 12)}))
-    assert "mulai Rp45.000/bulan" in re.sub(r"<[^>]+>", "", _kartu(_r()))
+    assert "Rp45.000/bulan" in re.sub(r"<[^>]+>", "", _kartu(_r()))
 
 
 def test_alasan_penolakan_di_kartu_di_escape():
     html = _kartu(_r(tagihan=dasar.STATUS_DITOLAK, alasan="<b>X</b> & Y"))
     assert "&lt;b&gt;X&lt;/b&gt; &amp; Y" in html and "<b>X</b>" not in html
+
+
+def test_kutip_dari_alasan_penolakan_ter_escape_jadi_entitas():
+    html = _kartu(_r(tagihan=dasar.STATUS_DITOLAK, alasan='" onerror="x'))
+    assert "&quot; onerror=&quot;x" in html and '" onerror' not in html
+
+
+@pytest.mark.parametrize("nama", sorted(KEADAAN))
+def test_kartu_halaman_ayah_bunda_berjudul_h2_bukan_h3(nama):
+    html = _kartu(KEADAAN[nama][0])
+    assert "<h2 " in html and "<h3" not in html, nama
 
 
 def test_tagihan_ditolak_tanpa_alasan_tidak_mengarang_alasan():
