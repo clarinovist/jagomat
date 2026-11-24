@@ -1,6 +1,6 @@
 # Status proyek dan pekerjaan tersisa
 
-**Diperbarui 21 November 2026.** Ini indeks status, bukan perubahan keputusan produk
+**Diperbarui 25 November 2026.** Ini indeks status, bukan perubahan keputusan produk
 atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
 [CLAUDE.md](../CLAUDE.md). Catatan lama harus dibaca menurut tanggal dan scope-nya.
 
@@ -15,8 +15,11 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   kandidat Fase 1–3 ter-deploy dan **funnel diaktifkan 19 November 2026 termasuk
   pembayaran Paket Coba** (`FUNNEL_AKTIF=1`, ledger `pesanan_*` dimigrasikan);
   deliverable Fase 4 masih menyusul/manual. Status baris F1 di tabel bawah.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`deb96ef`** (22 November 2026 sore;
-  tombol Mode Lomba per anak di `/akun?section=siswa`, tanpa skema, recovery 1206bc9). Sebelumnya **`7982f2c`** (22 November 2026 sore;
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`c2d89fe`** (25 November 2026; Paket Belajar
+  1 Bulan `kelas_*` terpasang, sakelar `PAKET_BELAJAR` mati, recovery 85bbd52 kontrak fec2fd5; rincian di
+  production-release.md). Sebelumnya **`1e61c8f`** (24 November 2026; Peta Kemampuan ditulis Guru + deposit
+  purna_*, recovery 6613e5d). Sebelumnya **`deb96ef`** (22 November 2026 sore; tombol Mode Lomba per anak di
+  `/akun?section=siswa`, tanpa skema, recovery 1206bc9). Sebelumnya **`7982f2c`** (22 November 2026 sore;
   Mode Lomba per anak diaktifkan Guru, tabel `lomba_penugasan`, recovery baru 1206bc9 kontrak 47a7cd9;
   rincian di production-release.md). Sebelumnya **`4a6b93e`** (22 November 2026 siang;
   UI Latihan Lomba + paket konfigurasi, tanpa migrasi; sakelar `OSN_LOMBA` hidup sejak pagi oleh Pemilik;

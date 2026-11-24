@@ -12,36 +12,37 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
-## Persiapan rilis Paket Belajar 1 Bulan — 24 November 2026 (BELUM DIRILIS)
+## Deploy Paket Belajar 1 Bulan (`kelas_*`) — 25 November 2026
 
-Kandidat `main` lokal memuat Paket Belajar (Private/Mini Class) di balik sakelar `PAKET_BELAJAR`
-(bawaan mati; menutup rute MURID saja, `/admin/kelas` tetap terbuka seperti Harian). Belum ada push,
-deploy, atau migrasi live; tabel `kelas_*` belum ada di produksi.
+Controlled `deploy-v2` memasang **c2d89fe** (digest `sha256:50603402…9350`), healthy, menggantikan
+**1e61c8f**, 03.06–03.09 WIB. Isi: katalog Private/Mini Class, tagihan transfer + kode unik, bukti,
+persetujuan admin `/admin/kelas`, akses + pemakaian deposit Peta atomik, diskon anak kedua lewat tautan
+keluarga, dan halaman pembeli `/murid/paket`. **Sakelar `PAKET_BELAJAR` tetap MATI** (bawaan; `visual.conf`
+tidak diubah): rute murid mengikuti perilaku rute murid lain yang belum aktif sampai Pemilik menyalakannya.
 
-- **Kontrak bergeser** `7206a9ff…` → **`fec2fd50…`** (`schema_kelas.py` + `kelas_store.py`). Recovery baru
-  **85bbd52** (branch `recovery-kelas-paket` = `6613e5d` + lapisan data `kelas_*` tanpa HTTP/gate, plus
-  commit kontrak) — **wajib dipush ke origin sebelum `main`**. `scripts/release-metadata.json` dan
-  `RECOVERY_SHA` (env + checkout) di `main` lokal sudah menunjuk `85bbd52`; anchor koleksi recovery
-  **27.849 nodeid** (Python 3.9, tanpa tes baru di pohon recovery). Belum ada push/dispatch.
-- **Probe:** `PROBE_KELAS_SKEMA` (live `admin-control.db` `mode=ro`; tabel belum ada = lulus, sudah ada
-  wajib persis DDL source), blok `PROBE_IMAGE` (migrasi `kelas_*` dua kali + `foreign_key_check` bersih),
-  dan probe pasangan `scripts/release_kelas_pair.py` (tulis kandidat → baca recovery → lanjut kandidat
-  sampai akses tertulis; `kelas_pair_checks` 8, total 28 langkah probe pasangan).
-- **Backup:** `admin_backup.validasi_bundle` kini menandai `skema_kelas`; `rehearsal_bundle(target_kelas=True)`
-  memasang `kelas_*` hanya di turunan (menyeret pesanan), mempertahankan baris ledger lama, dan menolak
-  penurunan/parsial. Tool host `/opt/osn/backup-tool` (+ `backup-harian`) harus memuat `schema_kelas.py`
-  dan `paket_belajar_katalog.py` sebelum bundle pasca-migrasi divalidasi.
-- **Migrasi live** (setelah hold + backup coherent + rehearsal pada salinan):
-  `mesin/.venv/bin/python mesin/kelas_migrasi.py --database <salinan/admin-control.db>`, lalu perintah yang
-  sama pada live. Idempoten, tanpa seed, tanpa bump `user_version`; exit 2 = ditolak tanpa mengubah apa pun.
-  `pesanan_*` dan `transfer_*` wajib sudah ada; `purna_*` opsional (tanpa purna tidak ada potongan deposit).
-- **Sakelar:** nyalakan `PAKET_BELAJAR` di `/admin/sakelar` hanya setelah migrasi + smoke; mematikannya
-  mengembalikan rute murid ke 404 (ledger dan berkas tetap). Mini Class offline belum punya lokasi; kartu
-  menulis "Lokasi diumumkan setelah pendaftaran".
-- **Celah operasional (SOP tim, belum otomatis):** deposit yang kedaluwarsa/ditahan sebelum bukti disetujui
-  harus DITOLAK admin (pembeli membuat tagihan baru dengan nominal benar); pembeli yang sudah transfer
-  nominal berdiskon tetapi diskonnya tidak lagi sah ditagih selisihnya secara manual. Penjadwalan Guru,
-  penegakan kuota 5, retensi berkas `kelas/`, dan pengingat perpanjangan belum ada.
+- **Kontrak bergeser** `7206a9f…` → **`fec2fd5…`** (`schema_kelas`/`kelas_store`). Recovery baru **85bbd52**
+  (branch `recovery-kelas-paket` = `6613e5d` + lapisan data `kelas_*`, digest `sha256:ce0103df…333e`), pair ok
+  (`kelas_pair_checks` 8, `provider_calls` 0). Anchor koleksi recovery 27.849 nodeid. Push CI 45474759647 dan
+  dispatch 45474937228 hijau (job `pasang` dilewati sesuai desain).
+- Deployer source gate dipasang atomik `3dc1a804…` → **`770c768b…`** (cadangan
+  `/opt/osn/osn-deploy.bak-20261125T030104`).
+- Kit `deploy-kelas-paket-20261125` (izin Pemilik): approval lama `1e61c8f` diarsipkan ke
+  `approval-consumed-1e61c8f.json`, `PERSIAPAN_OK`, backup lima file + riset cutoff 03.07.04 (hash lokal di
+  `mesin/cadangan/deploy-kelas-paket-20261125/` dan induk `/opt/osn/cadangan/deploy-kelas-paket-20261125/`),
+  rehearsal C–B–C + `rehearsal_bundle(target_kelas=True)`, migrasi live `kelas_migrasi` pada `admin-control.db`
+  (6 tabel, 0 baris, `user_version` 9 tetap), `deploy-v2` exit 0, `reopen` `LIVE_ADMIN_HEALTHY`, postcheck hijau
+  (0 Traceback/OperationalError/IntegrityError, `history_hash_preserved`), cleanup 4 direktori.
+- Smoke publik HTTPS (`https://jagomat.id`): `/` 200, `/akun` 401, `/murid/` 303 (`/masuk`), `/murid/paket` 303,
+  `/cek-kemampuan` 200, `/paket-coba` 200, `/contoh-peta-kemampuan` 200, `/kebijakan-privasi` 200,
+  `/admin/cek-topik` `/admin/sakelar` `/admin/profil-guru` `/admin/kurikulum` 404 anonim.
+- Rollback: recovery 85bbd52 membuka DB ber-`kelas_*` lalu mengabaikannya (tabel/ledger dipertahankan, tidak
+  dihapus). Mengembalikan data ke sebelum migrasi hanya lewat bundle backup. Setelah rollback jangan
+  menyetujui/mencatat pemakaian deposit kelas dari image lama (fitur tidak ada di sana).
+- Aktivasi: `/admin/sakelar` → `PAKET_BELAJAR` (baris DB menang atas env). Mematikan lewat sakelar yang sama;
+  ledger dan berkas tetap.
+- Belum: lokasi Mini Class, penjadwalan Guru, penegakan kuota 5, retensi berkas bukti `kelas/`, pengingat
+  perpanjangan. SOP: deposit kedaluwarsa/ditahan saat bukti disetujui = admin menolak, pembeli membuat tagihan
+  baru; pembeli yang sudah transfer nominal berdiskon tetapi diskonnya tidak lagi sah ditagih selisihnya manual.
 
 ## Deploy Peta Kemampuan ditulis Guru dan migrasi `purna_*` (deposit) — 24 November 2026
 
