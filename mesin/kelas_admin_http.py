@@ -34,6 +34,9 @@ import kelas_berkas as berkas
 import kelas_dasar as dasar
 import kelas_putusan as putusan
 import kelas_store as store
+import jadwal_admin_http as jadwal_http
+import jadwal_admin_pages as jadwal_ui
+import jadwal_store
 import paket_belajar_katalog as katalog
 import pesanan
 import pesanan_alur as alur
@@ -93,12 +96,25 @@ def _get_antrean(penangan, principal) -> None:
     try:
         with _buka() as kon:
             daftar = store.antrean(kon)
+            try:
+                kelompok = jadwal_store.daftar_kelompok(kon)
+            except (sqlite3.OperationalError, ValueError):
+                kelompok = None
         formulir = _form_keluarga(penangan, principal)
     except PermissionError:
         return h._galat(penangan, 403, daftar_ui.COPY_GALAT_FORM)
     except _GALAT_BACA:
         return _kirim(penangan, principal, daftar_ui.halaman_tidak_siap(), 503)
-    _kirim(penangan, principal, ui.halaman_antrean(daftar, PESAN_HASIL.get(hasil, "")) + formulir)
+    isi = ui.halaman_antrean(daftar, PESAN_HASIL.get(hasil, "")) + formulir
+    if kelompok is not None:
+        token = jadwal_http.bentuk_token(penangan, principal, jadwal_http.AKSI_BUAT, {"section": ui.SECTION})
+        if token is not None:
+            try:
+                guru = jadwal_http.guru_map()
+            except (OSError, ValueError):
+                guru = {}
+            isi += jadwal_ui.blok_daftar(kelompok, guru, token)
+    _kirim(penangan, principal, isi)
 
 
 def _order_query(penangan) -> str:
@@ -140,7 +156,29 @@ def _get_detail(penangan, principal) -> None:
         return _kirim(penangan, principal, daftar_ui.halaman_tidak_siap(), 503)
     if detail is None:
         return h._tidak_ada(penangan)
-    _kirim(penangan, principal, ui.halaman_detail(*_tampilan(detail), forms, baca_saja=principal.metode != "cookie"))
+    isi = ui.halaman_detail(*_tampilan(detail), forms, baca_saja=principal.metode != "cookie")
+    if principal.metode == "cookie":
+        kelompok, ringkas, tersedia = [], None, False
+        try:
+            with jadwal_http._buka() as kon_jadwal:
+                kelompok = jadwal_store.daftar_kelompok(kon_jadwal)
+                ringkas = jadwal_store.ringkas_order(kon_jadwal, order_id)
+                tersedia = True
+        except (admin_store.StoreBelumSiap, sqlite3.Error, ValueError):
+            pass
+        if tersedia:
+            try:
+                guru = jadwal_http.guru_map()
+            except (OSError, ValueError):
+                guru = {}
+            tokens = {nama: jadwal_http.bentuk_token(penangan, principal, kode, {"order_id": order_id})
+                      for nama, kode in (("tempatkan", jadwal_http.AKSI_TEMPATKAN),
+                                         ("lepas", jadwal_http.AKSI_LEPAS),
+                                         ("sesi_ubah", jadwal_http.AKSI_SESI_UBAH),
+                                         ("sesi_batal", jadwal_http.AKSI_SESI_BATAL))}
+            isi += jadwal_ui.blok_penempatan({"paket": detail["kode_paket"]}, ringkas, kelompok, guru,
+                                             detail["status"] == dasar.STATUS_AKTIF, tokens)
+    _kirim(penangan, principal, isi)
 
 
 # --- pratinjau bukti --------------------------------------------------------------------------

@@ -80,6 +80,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin/sakelar", "admin"),  # sakelar fitur: empat sakelar admin; sudah tercakup prefix `/admin`
     ("/admin/langganan", "admin"),  # F5: antrean bukti langganan Latihan Harian (+ /verifikasi, /bukti); sakelar mati = 404 rute tak dikenal
     ("/admin/kelas", "admin"),  # Paket Belajar: antrean bukti (+ /verifikasi, /bukti); admin tetap terbuka walau sakelar mati
+    ("/admin/kelas/kelompok", "admin"),  # Jadwal: detail kelompok Mini Class (GET) dan buat/ubah (POST)
     ("/admin/kurikulum", "admin"),  # Kurikulum Merdeka: tabel materi per kelas (exact; tanpa query)
     ("/admin/kurikulum/cp-detail", "admin"),  # Detail CP: ringkasan CP, celah, per fase, per topik (exact)
     ("/admin/kurikulum/buat", "admin"),  # Buat soal per bab (`?kelas=&bab=&jumlah=&seed=`); tidak menulis DB
@@ -138,6 +139,12 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/sakelar", "admin"),  # ubah sakelar fitur; tinjauan bertanda tangan + sandi ulang
     ("/admin/langganan", "admin"),  # F5: POST /setujui dan /tolak langganan; tinjauan bertanda tangan + sandi ulang
     ("/admin/kelas", "admin"),  # Paket Belajar: POST /setujui, /tolak, /keluarga; tinjauan bertanda tangan + sandi ulang
+    ("/admin/kelas/kelompok", "admin"),  # Jadwal: buat kelompok Mini (+ 8 pertemuan)
+    ("/admin/kelas/kelompok/ubah", "admin"),  # Jadwal: ubah nama/lokasi/guru/kuota kelompok
+    ("/admin/kelas/penempatan", "admin"),  # Jadwal: tempatkan order aktif (kelompok/private)
+    ("/admin/kelas/penempatan/lepas", "admin"),  # Jadwal: lepas penempatan + sesi private
+    ("/admin/kelas/pertemuan", "admin"),  # Jadwal: ubah tanggal/jam satu pertemuan
+    ("/admin/kelas/pertemuan/batal", "admin"),  # Jadwal: batalkan/aktifkan satu pertemuan
     ("/admin/kurikulum/cp", "admin"),  # ubah pemetaan CP per grup; tinjauan bertanda tangan + sandi ulang
     ("/admin/kurikulum/cp/kembalikan", "admin"),  # kembalikan pemetaan CP ke bawaan kode (aksi dan tinjauan sendiri)
     ("/admin/kurikulum/label", "admin"),  # ubah label awam topik; tinjauan bertanda tangan + sandi ulang
