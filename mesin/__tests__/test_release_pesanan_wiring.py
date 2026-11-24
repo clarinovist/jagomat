@@ -11,6 +11,7 @@ import admin_backup
 import admin_store
 import pesanan_rekening
 import schema_pesanan
+import schema_purna
 import schema_transfer
 from test_admin_backup import _buat_ai_v2, _buat_bundle
 
@@ -30,9 +31,14 @@ def _status_skema(path):
                 pesanan_rekening.validasi_schema(kon))
 
 
+def _purna_terpasang(path):
+    with admin_store.buka_baca(path) as kon:
+        return schema_purna.validasi(kon)
+
+
 # --- probe image ----------------------------------------------------------------
 
-def test_probe_image_memasang_ketiga_skema_dua_kali_tanpa_data_nyata(tmp_path):
+def test_probe_image_memasang_semua_skema_dua_kali_tanpa_data_nyata(tmp_path):
     script = ("import sys\nsys.path.insert(0, " + repr(str(AKAR / "mesin")) + ")\n" +
               deploy.PROBE_IMAGE.replace("/data/", str(tmp_path) + "/"))
     hasil = subprocess.run([sys.executable, "-E", "-B", "-"], input=script, cwd=tmp_path,
@@ -40,13 +46,26 @@ def test_probe_image_memasang_ketiga_skema_dua_kali_tanpa_data_nyata(tmp_path):
     assert hasil.returncode == 0, hasil.stderr
     assert hasil.stdout.strip() == "OSN_IMAGE_ADMIN9_AI2_OK"
     assert _status_skema(tmp_path / "admin-control.db") == (True, True, True)
+    assert _purna_terpasang(tmp_path / "admin-control.db") is True
     assert pesanan_rekening.baca(tmp_path / "admin-control.db") is None     # tanpa rekening bawaan
 
 
-@pytest.mark.parametrize("modul", ["schema_pesanan", "schema_transfer", "pesanan_rekening"])
+@pytest.mark.parametrize("modul", ["schema_pesanan", "schema_transfer", "schema_purna",
+                                   "pesanan_rekening"])
 def test_probe_image_mengimpor_modul_opsional_dengan_penjaga_importerror(modul):
     potongan = deploy.PROBE_IMAGE[deploy.PROBE_IMAGE.index("import " + modul):]
     assert potongan.splitlines()[1].strip().startswith("except ImportError")
+
+
+def test_probe_image_purna_dipasang_setelah_transfer_dan_sebelum_rekening():
+    urutan = [deploy.PROBE_IMAGE.index("import " + m)
+              for m in ("schema_pesanan", "schema_transfer", "schema_purna", "pesanan_rekening")]
+    assert urutan == sorted(urutan)
+    potongan = deploy.PROBE_IMAGE[deploy.PROBE_IMAGE.index("import schema_purna"):
+                                  deploy.PROBE_IMAGE.index("import pesanan_rekening")]
+    assert "assert not schema_purna.validasi(kon)" in potongan
+    assert "for _ in range(2):" in potongan
+    assert "assert schema_purna.validasi(kon)" in potongan
 
 
 # --- preview soft launch ------------------------------------------------------------

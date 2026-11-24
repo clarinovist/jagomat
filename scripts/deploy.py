@@ -581,8 +581,8 @@ finally:
 '''
 PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_POLICY_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
 
-# Pesanan v1 + transfer_* + rekening_* adalah migrasi opt-in yang eksplisit: probe image
-# (container synthetic tanpa data nyata) memastikan ketiganya idempoten. Impor diberi
+# Pesanan v1 + transfer_* + purna_* + rekening_* adalah migrasi opt-in yang eksplisit: probe image
+# (container synthetic tanpa data nyata) memastikan keempatnya idempoten. Impor diberi
 # penjaga agar image lama yang belum membawa modulnya tetap dapat diprobe.
 PROBE_IMAGE = PROBE_IMAGE.replace("print('OSN_IMAGE_ADMIN9_AI2_OK')", '''
 try:
@@ -607,6 +607,17 @@ if schema_transfer is not None:
         schema_transfer.migrasikan(Path('/data/admin-control.db'))
     with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
         assert schema_transfer.validasi(kon)
+try:
+    import schema_purna
+except ImportError:
+    schema_purna = None
+if schema_purna is not None:
+    with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+        assert not schema_purna.validasi(kon)
+    for _ in range(2):
+        schema_purna.migrasikan(Path('/data/admin-control.db'))
+    with admin_store.buka_baca(Path('/data/admin-control.db')) as kon:
+        assert schema_purna.validasi(kon)
 try:
     import pesanan_rekening
 except ImportError:
