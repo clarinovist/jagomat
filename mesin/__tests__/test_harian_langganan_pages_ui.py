@@ -125,10 +125,10 @@ def test_langkah_mengikuti_status_tagihan():
 
 # --- status ------------------------------------------------------------------------------------
 
-def test_menunggu_kartu_kuning_dengan_satu_maskot_berpikir():
+def test_menunggu_kartu_kuning_dengan_satu_maskot_menunggu():
     html = _halaman(_gratis(), _tampil(dasar.STATUS_MENUNGGU, jumlah_bukti=1))
     assert "ceria-status-kuning" in html and "Menunggu pemeriksaan" in html and "Bukti sudah kami terima" in html
-    assert _maskot(html) == 1 and "maskot-berpikir" in html and html.count("Bukti sudah kami terima") == 1
+    assert _maskot(html) == 1 and "maskot-menunggu-v4" in html and html.count("Bukti sudah kami terima") == 1
 
 
 def test_ditolak_menampilkan_alasan_ter_escape_dan_unggah_ulang():

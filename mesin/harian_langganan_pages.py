@@ -149,7 +149,7 @@ def _hero_aktif(r: ringkas.Ringkasan) -> str:
 
 
 def _kartu_menunggu(r: ringkas.Ringkasan) -> str:
-    sapa = C.maskot_bicara("berpikir", COPY_SAPA_MENUNGGU)
+    sapa = C.maskot_bicara("menunggu", COPY_SAPA_MENUNGGU)
     tambahan = _p(kalimat_status(r)) if r.langganan_aktif else ""
     kartu = C.kartu_status("kuning", COPY_LENCANA_MENUNGGU, COPY_MENUNGGU_JUDUL, _p(COPY_MENUNGGU_ISI) + tambahan,
                            level=2)

@@ -56,6 +56,7 @@ a.ortu-tombol-st {{ display: inline-flex; align-items: center; justify-content: 
 .ortu-hasil-st .funnel-benar-st {{ text-align: left; }}
 .ortu-kosong-st {{ justify-items: center; text-align: center; border-style: dashed; }}
 .ortu-kosong-st .ceria-maskot {{ width: 64px; }}
+.ortu-pin-maskot-st {{ display: block; margin: 0 auto {T.SP_2}; }}
 .ortu-pesanan-st .ceria-lencana {{ justify-self: start; }}
 a.ortu-tombol-pinggir-st {{ background: {T.LATAR_KARTU}; color: {T.AKSEN_TEAL_TUA}; border: 2px solid {T.AKSEN_TEAL_TUA}; }}
 a.ortu-tombol-pinggir-st:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}

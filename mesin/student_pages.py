@@ -158,7 +158,9 @@ def _kartu_beranda(sesi: dict, utama: bool = False) -> str:
 
 def _keadaan_beranda(daftar: list, tugas: list, menunggu: list) -> str:
     """Blok maskot + pesan saat tidak ada sesi utama."""
+    pose = "berpikir"
     if not daftar:
+        pose = "mencari"
         judul, pesan = "Siap untuk latihan pertama?", (
             "Belum ada sesi latihan yang disiapkan. Minta orang tua atau gurumu membuatkan, ya."
         )
@@ -167,6 +169,7 @@ def _keadaan_beranda(daftar: list, tugas: list, menunggu: list) -> str:
             "Gurumu akan menyiapkan langkah berikutnya. Latihan lain yang tersedia tetap bisa kamu buka di bawah."
         )
     elif menunggu:
+        pose = "istirahat"
         judul, pesan = "Terima kasih sudah mencoba!", (
             "Latihanmu sudah dikirim. Sekarang boleh istirahat dulu."
         )
@@ -176,7 +179,7 @@ def _keadaan_beranda(daftar: list, tugas: list, menunggu: list) -> str:
         )
     return (
         '<section class="murid-keadaan-st">'
-        f'{brand.maskot("berpikir", 240)}'
+        f'{brand.maskot(pose, 240)}'
         f'<div><h2>{judul}</h2><p>{pesan}</p></div></section>'
     )
 

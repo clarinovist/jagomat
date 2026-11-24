@@ -603,6 +603,19 @@ def test_pose_v4_aset_png_transparan_margin_utuh_dan_ringan(pose, px):
     assert any(0 < a < 255 for a in datar), "tepi harus punya antialias"
 
 
+def test_keadaan_beranda_murid_memilih_pose_menurut_keadaan():
+    import student_pages
+
+    kosong = student_pages._keadaan_beranda([], [], [])
+    terkirim = student_pages._keadaan_beranda([1], [], [1])
+    diperiksa = student_pages._keadaan_beranda([1], [], [])
+    assert "maskot-mencari-v4-240.png" in kosong
+    assert "maskot-istirahat-v4-240.png" in terkirim
+    assert "maskot-berpikir-v3-240.png" in diperiksa
+    for blok in (kosong, terkirim, diperiksa):
+        assert blok.count("<img") == 1
+
+
 def test_pose_v4_total_ringan():
     total = sum(
         (ROOT / "aset" / f"maskot-{pose}-v4-{px}.png").stat().st_size
@@ -749,7 +762,7 @@ def test_keadaan_kosong_pakai_maskot(server_kosong):
     kode, isi, _ = server_kosong.minta("/murid", auth=("feby", SANDI_MURID))
     assert kode == 200
     assert "Belum ada sesi" in isi
-    assert "/aset/maskot-berpikir-v3-240.png" in isi, "keadaan kosong tanpa maskot"
+    assert "/aset/maskot-mencari-v4-240.png" in isi, "keadaan kosong tanpa maskot"
 
 
 def test_keadaan_kosong_border_bukan_teks_literal(server_kosong):

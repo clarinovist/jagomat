@@ -122,7 +122,7 @@ def test_beranda_tiga_keadaan():
 def test_pilih_kelas_maskot_menyebut_kelas_saran_dan_satu_maskot():
     pilih = _badan(P.halaman_beranda(None, False, "t4", "t2"))
 
-    assert _jumlah_maskot(pilih) == 1
+    assert _jumlah_maskot(pilih) == 1 and "maskot-semangat-v4-96.png" in pilih
     assert "Mulai dari <b>Kelas 4</b> ya, sesuai kelasmu." in pilih
     assert "Boleh pilih kelas lain untuk mengulang atau menantang diri." in pilih
     assert pilih.count('class="ceria-stiker ceria-miring-kanan">Pengayaan<') == 2
@@ -180,7 +180,7 @@ def test_jatah_habis_tanpa_halaman_ortu_menyembunyikan_ajakan():
     habis = _badan(P.halaman_beranda(None, True, None, None, ada_ortu=False))
 
     assert P.COPY_HABIS in habis and _jumlah_tautan_ortu(habis) == 0 and "ceria-ortu" not in habis
-    assert _jumlah_maskot(habis) == 1
+    assert _jumlah_maskot(habis) == 1 and "maskot-istirahat-v4-96.png" in habis
 
 
 def test_umpan_betul_hijau_dan_belum_tepat_hangat_berlabel_teks():
@@ -191,6 +191,7 @@ def test_umpan_betul_hijau_dan_belum_tepat_hangat_berlabel_teks():
     assert "ceria-hampir" in belum and "Belum tepat, tidak apa-apa." in belum and "Yuk lihat caranya." in belum
     assert "ceria-hampir" not in betul and "ceria-betul" not in belum
     assert _jumlah_maskot(betul) == 1 and _jumlah_maskot(belum) == 1
+    assert "maskot-merayakan-v3-96.png" in betul and "maskot-memeriksa-v4-96.png" in belum
     assert "Jawabanmu, benar" in betul and "Jawabanmu" in belum and "Jawaban benar" in belum
     assert "Cara mengerjakannya" in belum and _jumlah_tautan_ortu(belum) == 0
 

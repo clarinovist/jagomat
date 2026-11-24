@@ -117,8 +117,8 @@ def _sapaan_pilih(saran: Optional[str]) -> str:
     """Satu maskot di layar pilih kelas: menyebut kelas saran bila ada dan dikenal, kalau tidak kalimat netral."""
     judul = _judul_tingkat(saran) if saran else ""
     if judul:
-        return C.maskot_bicara("menunjuk", "Mulai dari ", judul, " ya, sesuai kelasmu.")
-    return C.maskot_bicara("menunjuk", COPY_PILIH_NETRAL)
+        return C.maskot_bicara("semangat", "Mulai dari ", judul, " ya, sesuai kelasmu.")
+    return C.maskot_bicara("semangat", COPY_PILIH_NETRAL)
 
 
 def _kartu_berjalan(sesi: hs.SesiRingkas) -> str:
@@ -139,7 +139,8 @@ def kartu_ajakan_langganan() -> str:
 
 
 def _kartu_habis(ada_ortu: bool) -> str:
-    banner = C.banner_umpan_balik(True, COPY_HABIS_JUDUL, "%s. %s" % (COPY_HABIS, COPY_HABIS_BESOK), level=2)
+    banner = C.banner_umpan_balik(True, COPY_HABIS_JUDUL, "%s. %s" % (COPY_HABIS, COPY_HABIS_BESOK),
+                                  pose="istirahat", level=2)
     return banner + (kartu_ajakan_langganan() if ada_ortu else "")
 
 
@@ -193,7 +194,7 @@ def _banner_umpan(umpan: hs.UmpanBalik) -> str:
     if umpan.benar:
         huruf = hs.HURUF_PILIHAN[umpan.pilihan]
         return C.banner_umpan_balik(True, "Betul!", "Jawabanmu %s tepat. Hebat!" % huruf, level=2)
-    return C.banner_umpan_balik(False, "Belum tepat, tidak apa-apa.", "Yuk lihat caranya.", level=2)
+    return C.banner_umpan_balik(False, "Belum tepat, tidak apa-apa.", "Yuk lihat caranya.", pose="memeriksa", level=2)
 
 
 def _cara_dan_lanjut(umpan: hs.UmpanBalik, nomor: int, jumlah: int, sesi_id: int) -> str:
