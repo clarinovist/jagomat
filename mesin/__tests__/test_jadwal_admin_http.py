@@ -180,6 +180,20 @@ def test_lepas_membebaskan_kuota_dan_menghapus_sesi_private(siap, admin):
     assert _baris("SELECT COUNT(*) AS n FROM jadwal_pertemuan WHERE order_id=?", (privat,))[0]["n"] == 0
 
 
+def test_lepas_private_setelah_pertemuan_mulai_ditolak_409_tanpa_efek(siap, admin, jam):  # noqa: F811
+    privat = _aktif("private", 3, 3)
+    with pesanan.buka(admin_store.BAWAAN, tulis_data=True) as kon:
+        __import__("jadwal_store").tempatkan(kon, "admin_sintetis", privat, guru_id=_guru(),
+                                             tanggal="2026-11-25", jam="16:30",
+                                             sekarang=kelas_kit.SESUDAH_UPLOAD)
+    jam.maju_jam(72)                                     # sekarang sesudah pertemuan pertama
+    lepas = _token(admin, "jadwal_lepas", {"order_id": privat})
+    kode, isi, _ = minta_admin(siap, LEPAS, admin, lepas)
+    assert kode == 409 and "sudah mulai berlangsung" in isi
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_penempatan WHERE order_id=?", (privat,))[0]["n"] == 1
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_pertemuan WHERE order_id=?", (privat,))[0]["n"] == 8
+
+
 def test_kuota_tidak_boleh_turun_di_bawah_anggota_lewat_http(siap, admin):
     kid = _buat_kelompok(siap, admin, kuota=2)
     for n in (1, 2):

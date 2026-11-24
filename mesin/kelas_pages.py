@@ -45,6 +45,8 @@ COPY_TULIS_TRANSFER = "Transfer persis ya. Tiga angka terakhir = kode unik."
 COPY_LABEL_NOMINAL = "Total yang harus Anda transfer:"
 COPY_MENUNGGU = "Bukti sudah kami terima. Tim sedang memeriksanya; paket aktif setelah bukti disetujui."
 COPY_AKTIF_ISI = "Penjadwalan pertemuan diatur tim setelah pembayaran disetujui."
+COPY_JUDUL_JADWAL = "Jadwal pertemuan"
+COPY_DIBATALKAN = "Dibatalkan"
 COPY_KEDALUWARSA = "Waktu pembayaran tagihan ini sudah habis. Silakan daftar lagi dari halaman pilih paket."
 COPY_KEMBALI = "Kembali ke pilih paket"
 _ACCEPT_BUKTI = "image/jpeg,image/png,application/pdf"
@@ -132,10 +134,30 @@ def _kartu_paket(kartu: k.KartuPaket, token_untuk: TokenUntuk) -> str:
             f'{_rincian_khusus(kartu.rincian)}{aksi}</section>')
 
 
+def _baris_pertemuan(sesi: dict) -> str:
+    """'Pertemuan N · <waktu WIB>' (+ ' · Dibatalkan'); status selalu teks, bukan hanya warna."""
+    teks = f"Pertemuan {int(sesi['ke'])} · {waktu_wib(sesi['mulai'])}"
+    if sesi["dibatalkan"]:
+        teks += f" · {COPY_DIBATALKAN}"
+    return _p(teks, "lg-ket")
+
+
+def _kartu_jadwal(jadwal: Optional[dict]) -> str:
+    """Kartu 'Jadwal pertemuan': lokasi lalu pertemuan berurut. Hanya lokasi dan waktu; tanpa guru atau id apa pun."""
+    if jadwal is None:
+        return ""
+    sesi = "".join(_baris_pertemuan(x) for x in jadwal["sesi"])
+    return _kartu(f"<h2>{_e(COPY_JUDUL_JADWAL)}</h2>{_baris('Lokasi', jadwal['lokasi'])}{sesi}")
+
+
 def halaman_pilih_paket(kartu: Sequence[k.KartuPaket], tagihan: Optional[k.TagihanKelas],
-                        token_untuk: TokenUntuk, galat: str = "", kabar: str = "") -> bytes:
-    """Halaman /murid/paket: status tagihan terakhir (bila ada) + kartu paket dengan rincian khusus pembeli."""
-    pesan = (_kartu(_p(galat)) if galat else "") + (_kartu(_p(kabar)) if kabar else "")
+                        token_untuk: TokenUntuk, galat: str = "", kabar: str = "",
+                        jadwal: Optional[dict] = None) -> bytes:
+    """Halaman /murid/paket: status tagihan terakhir (bila ada) + kartu paket dengan rincian khusus pembeli.
+
+    `jadwal` (bacaan `jadwal_store.jadwal_untuk_murid`) menambah kartu jadwal pertemuan; None = tanpa kartu.
+    """
+    pesan = (_kartu(_p(galat)) if galat else "") + (_kartu(_p(kabar)) if kabar else "") + _kartu_jadwal(jadwal)
     status = _kartu_status(tagihan) if tagihan is not None else ""
     sapa = C.maskot_bicara("menunjuk", COPY_SAPA)
     judul = f'<div class="lg-pilih-judul"><h2>Pilih paket</h2>{_p(COPY_PENGANTAR)}</div>'

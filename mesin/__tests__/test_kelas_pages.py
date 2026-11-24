@@ -194,3 +194,43 @@ def test_halaman_info_escape_dan_tautan_kembali():
 def test_kalimat_aktif_memuat_nama_paket_dan_tanggal():
     teks = halaman.kalimat_aktif("Private", AKHIR)
     assert teks == "Paket Private aktif sampai 23 Des 2026."
+
+
+# --- kartu jadwal pertemuan untuk orang tua --------------------------------------------------------
+
+def _jadwal(lokasi="Online", batal=(), mulai="2026-11-24T02:00:00"):
+    sesi = [{"ke": n, "mulai": mulai if n == 1 else "2026-12-%02dT09:30:00" % n, "menit": 60,
+             "dibatalkan": n in batal} for n in range(1, 9)]
+    return {"lokasi": lokasi, "sesi": sesi}
+
+
+def test_kartu_jadwal_memuat_lokasi_delapan_pertemuan_waktu_wib_dan_label_dibatalkan():
+    html = _pilih(_dua_kartu(), jadwal=_jadwal("Ruang Melati", batal=(3,)))
+    teks = _teks(html)
+    assert "Jadwal pertemuan" in teks and "Lokasi: Ruang Melati" in teks
+    assert len(re.findall(r"Pertemuan [1-8] ·", teks)) == 8
+    assert "Pertemuan 1 · 24 November 2026 pukul 09.00 WIB" in teks    # 02:00 UTC = 09.00 WIB
+    assert teks.count("Dibatalkan") == 1
+    assert re.search(r"Pertemuan 3 · [^·]+WIB · Dibatalkan", teks)
+
+
+def test_tanpa_jadwal_tidak_ada_kartu_jadwal():
+    assert "Jadwal pertemuan" not in _teks(_pilih(_dua_kartu()))
+    assert "Jadwal pertemuan" not in _teks(_pilih(_dua_kartu(), jadwal=None))
+
+
+def test_kartu_jadwal_escape_lokasi_dan_tanpa_skrip():
+    html = _pilih(_dua_kartu(), jadwal=_jadwal("<script>alert(1)</script>"))
+    assert "<script>alert" not in html and "&lt;script&gt;" in html
+
+
+def test_kartu_jadwal_tanpa_hex_id_dan_guru():
+    html = _pilih(_dua_kartu(), jadwal=_jadwal())
+    for gejala in ("akun_", "klp_", "kor_"):
+        assert gejala not in html
+    assert "Jadwal pertemuan" in _teks(html) and "<script" not in html
+
+
+def test_teks_aktif_lama_dipertahankan_di_kartu_status():
+    html = _tagih(_tagihan(status=k.STATUS_AKTIF, berakhir=AKHIR))
+    assert "Penjadwalan pertemuan diatur tim setelah pembayaran disetujui." in _teks(html)

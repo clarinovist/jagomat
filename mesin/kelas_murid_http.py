@@ -19,6 +19,9 @@ murid ke siswanya. Aturan yang ditegakkan di sini, bukan di halaman:
 - Rekening belum diisi admin: GET = halaman jujur "belum dibuka", POST = 404 murid, tanpa efek.
 - Unggah: laju ketat, body berbatas, multipart sempit, token, ukuran, magic bytes, lalu hambatan status; berkas
   ditulis atomik ke subfolder khusus (`kelas_berkas`) dan dihapus bila catat gagal/duplikat.
+- Kartu jadwal pertemuan (halaman pilih, paket aktif) memakai order milik akun + anak sesi saja (`jadwal_terbaru_murid`)
+  dan GAGAL-DIAM: jadwal belum dipasang/rusak = tanpa kartu, halaman dan galat tagihan tidak terpengaruh. Hanya
+  lokasi dan waktu pertemuan; tidak ada guru atau id.
 - Nama anak, kontak, id order, dan jalur berkas tidak pernah dirender; pesan galat tetap, tanpa `str(galat)`.
 """
 from __future__ import annotations
@@ -31,6 +34,7 @@ import admin_store_core
 import bukti_berkas
 import bukti_multipart
 import database
+import jadwal_store
 import kelas_berkas as berkas
 import kelas_dasar as dasar
 import kelas_pages as halaman
@@ -131,6 +135,19 @@ def _kabar_aktif(kon, akun_id: str, siswa_id: int, kini: str) -> str:
     return " ".join(kalimat)
 
 
+def _jadwal_anak(akun_id: str, siswa_id: int, kini: str):
+    """Jadwal pertemuan anak ini (order aktif terbaru berpenempatan) atau None.
+
+    Fail-silent HANYA untuk bagian jadwal: belum dipasang, struktur rusak, atau galat baca = tanpa kartu supaya
+    fitur tambahan ini tidak pernah merusak halaman tagihan. Dipanggil sesudah pembacaan tagihan selesai.
+    """
+    try:
+        with jadwal_store.buka(admin_store.BAWAAN) as kon:
+            return jadwal_store.jadwal_terbaru_murid(kon, akun_id, siswa_id, kini)
+    except (admin_store_core.StoreBelumSiap, sqlite3.Error, ValueError):
+        return None
+
+
 def _badan_get(penangan, principal, siswa_id: int, rekening: str):
     kini = alur.waktu_sekarang()
     token_untuk = _token_untuk(penangan, principal)
@@ -140,7 +157,8 @@ def _badan_get(penangan, principal, siswa_id: int, rekening: str):
             return halaman.halaman_tagihan(tagihan, katalog.ambil(tagihan.kode_paket), rekening, token_untuk)
         kartu = store.kartu_paket(kon, principal.id_akun, siswa_id, kini)
         kabar = _kabar_aktif(kon, principal.id_akun, siswa_id, kini)
-    return halaman.halaman_pilih_paket(kartu, None, token_untuk, kabar=kabar)
+    jadwal = _jadwal_anak(principal.id_akun, siswa_id, kini)
+    return halaman.halaman_pilih_paket(kartu, None, token_untuk, kabar=kabar, jadwal=jadwal)
 
 
 def _get_halaman(penangan, principal, siswa_id: int) -> None:

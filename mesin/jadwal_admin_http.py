@@ -35,8 +35,9 @@ RUTE_LEPAS = "/admin/kelas/penempatan/lepas"
 RUTE_PERTEMUAN = "/admin/kelas/pertemuan"
 RUTE_PERTEMUAN_BATAL = "/admin/kelas/pertemuan/batal"
 COPY_KONFLIK = ("Jadwal tidak dapat disimpan: kelompok mungkin penuh, sudah selesai, atau kembar (nama dan waktu "
-                "mulai sama), anak sudah punya penempatan, atau paket belum aktif. Lepas penempatan lama / "
-                "pilih kelompok lain. Tidak ada yang diubah.")
+                "mulai sama), anak masih punya penempatan yang aksesnya belum berakhir, pertemuan order ini sudah "
+                "pernah dijadwalkan, Private sudah mulai berlangsung (tidak bisa dilepas), atau paket belum aktif. "
+                "Lepas penempatan lama / pilih kelompok lain. Tidak ada yang diubah.")
 COPY_ISIAN = ("Isian jadwal tidak sah: periksa nama, lokasi, guru, kuota (1-5), tanggal, dan jam; pertemuan "
               "tidak boleh sudah lewat atau melewati masa akses paket (delapan pertemuan memakan 24 hari). "
               "Tidak ada yang diubah.")

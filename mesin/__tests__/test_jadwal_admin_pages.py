@@ -135,3 +135,11 @@ def test_penempatan_kelompok_read_only_dengan_tautan():
     assert 'href="/admin/kelas/kelompok?id=klp_' in isi
     assert 'action="/admin/kelas/pertemuan"' not in isi
     assert "Lepas penempatan" in isi
+
+
+def test_konfirmasi_lepas_menjelaskan_aturan_private_mini_dan_perpanjangan():
+    tokens = {"tempatkan": TOKEN, "lepas": TOKEN, "sesi_ubah": TOKEN, "sesi_batal": TOKEN}
+    ringkas = {"kelompok_id": None, "guru_id": "akun_" + "9" * 32, "lokasi": "Online", "sesi": []}
+    isi = ui.blok_penempatan({"paket": "private"}, ringkas, [], GURU, True, tokens)
+    assert "hanya bisa dilepas sebelum pertemuan pertama" in isi
+    assert "Mini Class bisa dilepas kapan saja" in isi and "dipensiunkan otomatis" in isi

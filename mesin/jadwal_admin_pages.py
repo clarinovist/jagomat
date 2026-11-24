@@ -25,8 +25,9 @@ COPY_TANPA_KELOMPOK = "Belum ada kelompok Mini Class. Buat kelompok dulu di hala
 COPY_SESI_KOSONG = "Belum ada pertemuan."
 COPY_TANPA_ANGGOTA = "Belum ada anak ditempatkan di kelompok ini."
 COPY_BELUM_AKTIF = "Jadwal bisa dibuat setelah bukti transfer disetujui (paket aktif)."
-COPY_LEPAS = ("Lepas penempatan anak ini? Sesi Private ikut dihapus; sesi kelompok tetap milik kelompok. "
-              "Anak bisa ditempatkan lagi setelahnya.")
+COPY_LEPAS = ("Lepas penempatan anak ini? Private hanya bisa dilepas sebelum pertemuan pertama; sesinya ikut dihapus. "
+              "Mini Class bisa dilepas kapan saja; sesi kelompok tetap milik kelompok. "
+              "Perpanjangan tidak perlu dilepas dulu: penempatan lama yang aksesnya sudah berakhir dipensiunkan otomatis.")
 COPY_BATAL = "Batalkan pertemuan ini? Pertemuan tetap tercatat sebagai dibatalkan dan bisa diaktifkan lagi."
 COPY_AKTIFKAN = "Aktifkan lagi pertemuan yang dibatalkan ini?"
 
