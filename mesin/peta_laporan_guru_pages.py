@@ -17,6 +17,7 @@ from teacher_shell import _halaman as _bingkai
 RUTE_DASAR = "/anak/%d/peta"
 LABEL_TINJAU = "Ditinjau Guru Jagomat"
 BATAS_CATATAN = 2000
+PETUNJUK_CATATAN = "Catatan ini dibaca orang tua dan anak. Jangan tulis nomor telepon, tautan, atau kunci jawaban."
 PESAN_RETENSI = "Data per materi sudah dihapus (retensi 30 hari); laporan tidak bisa dibuat."
 PESAN_BELUM_DINILAI = "Jawaban cek belum selesai dinilai; laporan belum bisa dibuat."
 PESAN_TIDAK_TERBACA = "Data cek tidak terbaca; laporan belum bisa dibuat."
@@ -146,6 +147,7 @@ def _form_draf(sid: int, laporan, catatan_kiriman) -> str:
         '<label for="catatan">Catatan untuk orang tua (teks ini dibaca orang tua)</label>'
         f'<textarea id="catatan" name="catatan" maxlength="{BATAS_CATATAN}">{_e(isi_catatan)}</textarea>'
         f'<p class="sub">Teks biasa, sampai {BATAS_CATATAN} karakter. Simpan catatan dulu sebelum menerbitkan.</p>'
+        f'<p class="sub">{_e(PETUNJUK_CATATAN)}</p>'
         '<div class="baris-aksi"><button class="btn-st" type="submit">Simpan catatan</button></div></form>'
         f'<form method="post" action="{dasar}/terbitkan" class="kartu-st"><h2>Terbitkan</h2>'
         '<p>Yang diterbitkan adalah catatan yang sudah disimpan.</p>'

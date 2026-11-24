@@ -415,7 +415,8 @@ def test_halaman_tanpa_kata_terlarang_dan_tanpa_data_pembayar(lunas):
     server, _admin, oid = lunas
     akun = _siswa_order()["akun_id"]
     for isi in _semua_keadaan(server):
-        konten = isi.split("<main", 1)[1]
+        # Petunjuk untuk Guru ("jangan tulis ... kunci jawaban") memang menyebut istilahnya; yang dijaga: tidak ada kebocoran lain.
+        konten = isi.split("<main", 1)[1].replace(pgh.hal.PETUNJUK_CATATAN, "")
         teks = _teks(konten).lower()
         assert [k for k in TERLARANG if k in teks] == []
         assert [k for k in TERLARANG if k in POLA_GAYA_SKRIP.sub("", konten).lower()] == []

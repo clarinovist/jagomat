@@ -10,12 +10,25 @@ Pemeriksaan kepemilikan anak oleh Guru adalah tugas pemanggil; kunci `siswa_id` 
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 
 from peta_laporan_snapshot import periksa_isi
 
 BATAS_CATATAN = 2000
 BATAS_GURU = 64
 _SPASI = " \t\n\r"
+_KONTROL_BOLEH = "\n\t\r"
+# Catatan Guru dibaca orang tua DAN anak (sesi murid): bukan jalur untuk kontak, tautan, atau istilah internal.
+CATATAN_PANJANG = "panjang"
+CATATAN_KONTROL = "kontrol"
+CATATAN_KONTAK = "kontak"
+CATATAN_ISTILAH_INTERNAL = "istilah_internal"
+_MIN_DIGIT_KONTAK = 9   # nomor telepon >= 9 digit; tanggal dd-mm-yyyy (8 digit) dan nilai pendek tidak ikut tertolak
+_POLA_DIGIT_KONTAK = re.compile(r"\d(?:[\s.\-\u2010-\u2015()]*\d){%d}" % (_MIN_DIGIT_KONTAK - 1))
+_POLA_TEL = re.compile(r"(?<![a-z0-9])tel:")
+_PENANDA_KONTAK = ("wa.me", "whatsapp", "@", "http", "www.")
+_ISTILAH_INTERNAL = ("malrule", "kode_final", "kode_usulan", "kode diagnosis", "kunci jawaban")
 _KOLOM = "id, siswa_id, isi, catatan, guru, dibuat, diterbitkan, diterbitkan_oleh"
 
 
@@ -64,10 +77,44 @@ def ambil(kon, siswa_id: int):
     return None if baris is None else _baris_ke_dict(baris)
 
 
+def _normal(catatan: str) -> str:
+    """Bentuk pembanding: NFKC, tanpa karakter format (lebar nol, bidi, soft hyphen), huruf kecil."""
+    tanpa_format = "".join(c for c in catatan if unicodedata.category(c) != "Cf")
+    return unicodedata.normalize("NFKC", tanpa_format).casefold()
+
+
+def _kode_isi(catatan: str):
+    """Kode galat untuk isi catatan (kontak/istilah internal) atau None; catatan sudah lolos panjang dan kontrol."""
+    bentuk = _normal(catatan)
+    if _POLA_DIGIT_KONTAK.search(bentuk) or _POLA_TEL.search(bentuk) or any(p in bentuk for p in _PENANDA_KONTAK):
+        return CATATAN_KONTAK
+    rapat = " ".join(bentuk.split())
+    if any(istilah in rapat for istilah in _ISTILAH_INTERNAL):
+        return CATATAN_ISTILAH_INTERNAL
+    return None
+
+
+def periksa_catatan(catatan: str):
+    """Murni: None bila catatan Guru sah; selain itu KODE galat tetap (panjang, kontrol, kontak, istilah_internal).
+
+    Satu sumber kebenaran untuk simpan, terbit, dan halaman Guru. Kode tidak memuat bagian catatan yang ditolak.
+    """
+    if type(catatan) is not str:
+        raise TypeError("catatan harus str")
+    if len(catatan) > BATAS_CATATAN:
+        return CATATAN_PANJANG
+    if any(unicodedata.category(c) == "Cc" and c not in _KONTROL_BOLEH for c in catatan):
+        return CATATAN_KONTROL
+    return _kode_isi(catatan)
+
+
 def simpan_catatan(kon, siswa_id: int, catatan: str) -> None:
-    """Ganti catatan Guru pada DRAF; laporan terbit atau tidak ada = ValueError."""
-    if type(catatan) is not str or len(catatan) > BATAS_CATATAN:
-        raise ValueError("catatan terlalu panjang")
+    """Ganti catatan Guru pada DRAF; catatan tak sah (periksa_catatan), laporan terbit, atau tak ada = ValueError."""
+    if type(catatan) is not str:
+        raise ValueError("catatan harus teks")
+    kode = periksa_catatan(catatan)
+    if kode is not None:
+        raise ValueError("catatan tidak sah: %s" % kode)
     cur = kon.execute(
         "UPDATE peta_laporan SET catatan = ? WHERE siswa_id = ? AND diterbitkan IS NULL",
         (catatan, siswa_id),
@@ -85,6 +132,8 @@ def terbitkan(kon, siswa_id: int, guru: str, sekarang) -> str:
         raise ValueError("laporan bukan draf milik anak ini")
     if not laporan["catatan"].strip(_SPASI):
         raise ValueError("catatan wajib diisi sebelum terbit")
+    if periksa_catatan(laporan["catatan"]) is not None:
+        raise ValueError("catatan tersimpan tidak sah; ubah dulu sebelum terbit")
     cur = kon.execute(
         """UPDATE peta_laporan SET diterbitkan = datetime(?, 'unixepoch', '+7 hours'), diterbitkan_oleh = ?
            WHERE siswa_id = ? AND diterbitkan IS NULL""",

@@ -20,6 +20,7 @@ AKAR = Path(__file__).resolve().parents[2]
 T = "mesin/__tests__/test_peta_laporan_guru_http.py::"
 HTTP = "mesin/peta_laporan_guru_http.py"
 HAL = "mesin/peta_laporan_guru_pages.py"
+TOKO = "mesin/peta_laporan_store.py"
 ORDER = "mesin/pesanan_admin_order.py"
 KASUS = (
     ("a-kepemilikan-guru-dilepas",
@@ -67,7 +68,7 @@ KASUS = (
      ((HTTP, "        return _buat(ctx) if not data else _galat_form(ctx, PESAN_FORM)\n", "        return _buat(ctx)\n"),),
      (T + "test_buat_dengan_field_apa_pun_400_isi_tidak_pernah_dari_form",)),
     ("l-batas-catatan-dilepas",
-     ((HTTP, "    if len(catatan) > toko.BATAS_CATATAN:\n        return PESAN_CATATAN_PANJANG\n", ""),),
+     ((TOKO, "    if len(catatan) > BATAS_CATATAN:\n        return CATATAN_PANJANG\n", ""),),
      (T + "test_catatan_2000_karakter_boleh_2001_ditolak_400_tanpa_efek",)),
     ("m-escape-dilepas",
      ((HAL, "    return html.escape(str(nilai), quote=True)\n", "    return str(nilai)\n"),),

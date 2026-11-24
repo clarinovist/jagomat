@@ -47,6 +47,18 @@ PESAN_STATUS = "Aksi tidak dapat dilakukan pada laporan dengan status ini."
 PESAN_BAHAN = "Laporan belum bisa dibuat: data per materi tidak tersedia atau draf sudah ada."
 PESAN_CATATAN_PANJANG = "Catatan terlalu panjang (maksimal 2000 karakter)."
 PESAN_CATATAN_ISI = "Catatan berisi karakter yang tidak diperbolehkan."
+PESAN_CATATAN_TERLARANG = (
+    "Catatan tidak boleh memuat nomor telepon, tautan, alamat email, atau istilah internal "
+    "seperti kode diagnosis atau kunci jawaban.")
+PESAN_CATATAN_TERSIMPAN = (
+    "Catatan yang tersimpan tidak memenuhi aturan (tanpa nomor telepon, tautan, alamat email, atau istilah internal). "
+    "Ubah dan simpan catatan dulu sebelum menerbitkan.")
+_PESAN_KODE_CATATAN = {
+    toko.CATATAN_PANJANG: PESAN_CATATAN_PANJANG,
+    toko.CATATAN_KONTROL: PESAN_CATATAN_ISI,
+    toko.CATATAN_KONTAK: PESAN_CATATAN_TERLARANG,
+    toko.CATATAN_ISTILAH_INTERNAL: PESAN_CATATAN_TERLARANG,
+}
 PESAN_CATATAN_KOSONG = "Isi catatan untuk orang tua dan simpan dulu sebelum menerbitkan."
 PESAN_FORM = "Isian tidak sah atau terlalu besar."
 PESAN_KONFIRMASI = "Centang kotak konfirmasi dulu. Tidak ada yang diubah."
@@ -263,12 +275,9 @@ def _buat(ctx) -> bool:
 
 
 def _catatan_sah(catatan: str):
-    """Pesan galat untuk catatan yang tak boleh disimpan, atau None."""
-    if len(catatan) > toko.BATAS_CATATAN:
-        return PESAN_CATATAN_PANJANG
-    if any(ord(c) < 32 and c not in "\n\t" for c in catatan):
-        return PESAN_CATATAN_ISI
-    return None
+    """Pesan galat untuk catatan yang tak boleh disimpan, atau None (aturan hanya di toko.periksa_catatan)."""
+    kode = toko.periksa_catatan(catatan)
+    return None if kode is None else _PESAN_KODE_CATATAN.get(kode, PESAN_CATATAN_ISI)
 
 
 def _catatan(ctx, data) -> bool:
@@ -286,6 +295,15 @@ def _catatan(ctx, data) -> bool:
     return _alihkan_peta(penangan, siswa)
 
 
+def _pesan_draf_belum_layak(laporan):
+    """Pesan tetap bila catatan draf kosong atau (data lama) tak lolos aturan sekarang; None bila layak/bukan draf."""
+    if laporan is None or laporan["diterbitkan"] is not None:
+        return None
+    if not laporan["catatan"].strip():
+        return PESAN_CATATAN_KOSONG
+    return PESAN_CATATAN_TERSIMPAN if toko.periksa_catatan(laporan["catatan"]) is not None else None
+
+
 def _terbitkan(ctx, data) -> bool:
     penangan, kon, siswa, ident, order, _purna, kini = ctx
     if data["konfirmasi"] != "1":
@@ -293,9 +311,10 @@ def _terbitkan(ctx, data) -> bool:
     kon.execute("BEGIN IMMEDIATE")
     try:
         laporan = toko.ambil(kon, siswa["id"])
-        if laporan is not None and laporan["diterbitkan"] is None and not laporan["catatan"].strip():
+        pesan = _pesan_draf_belum_layak(laporan)
+        if pesan:
             kon.rollback()
-            return _galat_form(ctx, PESAN_CATATAN_KOSONG, 409)
+            return _galat_form(ctx, pesan, 409)
         toko.terbitkan(kon, siswa["id"], ident[0], _epoch(kini))
     except ValueError:
         return _gagal_domain(ctx, PESAN_STATUS)

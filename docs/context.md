@@ -356,7 +356,7 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `sesi`/`cek_gratis`; trigger: terbit tak bisa di-UPDATE, `isi`/`siswa_id`/`guru`/`dibuat` tak berubah, terbit butuh catatan,
   baris baru wajib draf; sengaja TANPA trigger DELETE agar cascade dan penghapusan keluarga tetap jalan),
   `peta_laporan_store.py` (semua SQL: draf, catatan, terbit, hapus draf, `terbit_terakhir` tanpa akun Guru; transaksi pemanggil, waktu
-  disuntik) dan `peta_laporan_snapshot.py` (pembangun murni dari `cek_ringkasan_admin.ringkasan_untuk_order` hanya bila bahan `ada`,
+  disuntik; `periksa_catatan` = satu-satunya aturan catatan Guru: tanpa kontak/tautan/istilah internal, dipakai simpan, terbit, dan form Guru) dan `peta_laporan_snapshot.py` (pembangun murni dari `cek_ringkasan_admin.ringkasan_untuk_order` hanya bila bahan `ada`,
   plus `periksa_isi` yang dipakai store saat menulis dan membaca). Snapshot dibekukan saat draf dibuat karena data per materi hilang
   oleh retensi 30 hari. Siswa hanya dianonimkan saat hapus keluarga, jadi `family_deletion._hapus_peta_laporan` menghapusnya eksplisit
   (draf dan terbit). Probe deploy `PROBE_PETA_LAPORAN_SKEMA`: tabel belum ada lulus (preflight sebelum migrasi), sudah ada wajib persis DDL source.
