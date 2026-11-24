@@ -276,6 +276,13 @@ def validasi_skema(kon: sqlite3.Connection) -> None:
         schema_transfer.validasi(kon)
     except (ValueError, sqlite3.Error):
         raise StoreBelumSiap("struktur ledger transfer tidak lengkap") from None
+    # Ledger purna (voucher, janji terbit, pilihan terlambat) memakai namespace `purna_*` dan
+    # bergantung pada pesanan + transfer; sama: absent sah, parsial/berbeda/tanpa ledger fail-closed.
+    import schema_purna
+    try:
+        schema_purna.validasi(kon)
+    except (ValueError, sqlite3.Error):
+        raise StoreBelumSiap("struktur ledger purna tidak lengkap") from None
     # Konfigurasi dukungan adalah schema aditif opt-in tanpa bump user_version:
     # absent masih sah sebelum migrasi, tetapi struktur parsial harus fail-closed.
     import support_settings

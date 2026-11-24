@@ -71,7 +71,7 @@ class RingkasanBackup:
     skema_dukungan: bool = False
     skema_sensor: bool = False
     skema_policy: bool = False
-    skema_pesanan_transfer: Tuple[bool, bool, bool] = (False, False, False)
+    skema_pesanan_transfer: Tuple[bool, bool, bool, bool] = (False, False, False, False)
 
 
 def _sha256(path: Path) -> str:
@@ -359,7 +359,7 @@ def validasi_bundle(bundle, *, bundle_id: Optional[str] = None) -> RingkasanBack
     skema_dukungan = False
     skema_sensor = False
     skema_policy = False
-    skema_pesanan_transfer = (False, False, False)
+    skema_pesanan_transfer = (False, False, False, False)
     if versi_admin in (VERSI_TARGET['admin'], 8, 9):
         import admin_store
         import support_settings
@@ -620,13 +620,13 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
                      target_registrasi=None, target_penutupan=None,
                      target_dukungan=None, target_sensor=None, target_policy=None,
                      target_pesanan=None, target_transfer=None,
-                     target_rekening=None) -> RingkasanBackup:
+                     target_rekening=None, target_purna=None) -> RingkasanBackup:
     """Migrasikan turunan temp dua kali; backup induk tidak pernah ditulis.
 
     ``migrator_ai`` wajib dari candidate AI2. ``target_admin`` None mempertahankan
     versi8/9 atau menaikkan legacy ke7; target9 eksplisit menguji8→9. ``target_pesanan``/
-    ``target_transfer``/``target_rekening`` opt-in skema pesanan v1, ``transfer_*`` (menyeret
-    pesanan), dan ``rekening_*`` hanya pada turunan; None mempertahankan, menurun ditolak. Bukan izin
+    ``target_transfer``/``target_rekening``/``target_purna`` opt-in skema pesanan v1, ``transfer_*`` (menyeret
+    pesanan), ``rekening_*``, dan ``purna_*`` (menyeret pesanan + transfer) hanya pada turunan; None mempertahankan, menurun ditolak. Bukan izin
     migrasi backup induk, downgrade, aktivasi entitlement, atau provider.
     ``target_foto=True`` memasang receipt hanya pada turunan; None mempertahankan
     schema induk. ``target_registrasi=True`` juga opt-in hanya turunan. Receipt,
@@ -675,7 +675,8 @@ def rehearsal_bundle(bundle, *, migrator_ai=None, target_admin=None, target_foto
     import admin_backup_pesanan
     try:
         target_pesanan_transfer = admin_backup_pesanan.tentukan_target(
-            sebelum.skema_pesanan_transfer, target_pesanan, target_transfer, target_rekening)
+            sebelum.skema_pesanan_transfer, target_pesanan, target_transfer, target_rekening,
+            target_purna)
     except ValueError:
         raise BackupTidakSah('target rehearsal pesanan tidak sah') from None
     with tempfile.TemporaryDirectory(prefix="jagomat-rehearsal-") as direktori:

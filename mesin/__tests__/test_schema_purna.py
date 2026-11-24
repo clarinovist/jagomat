@@ -6,12 +6,14 @@ tes mutation menjalankan skenario YANG SAMA pada salinan sementara yang DDL-nya 
 dan menuntut `GuardSalah` (merah karena asersi guard, bukan karena fixture/import rusak).
 """
 import contextlib
+from pathlib import Path
 import re
 import sqlite3
 
 import pytest
 
 import admin_store
+import admin_store_core
 import pesanan
 import pesanan_transfer as tf
 import schema_pesanan
@@ -307,11 +309,14 @@ SKENARIO = {fn.__name__: fn for fn in (
 
 
 def jalankan(path, skenario):
-    with pesanan.buka(path, tulis_data=True) as kon:
-        try:
-            SKENARIO[skenario](kon)
-        finally:
-            kon.rollback()
+    # Koneksi langsung tanpa validasi skema: store sengaja menolak purna yang dilucuti guard-nya
+    # (fail-closed), sedangkan mutation memang menjalankan skenario pada DB termutasi itu.
+    kon = admin_store_core.koneksi(Path(path), "rw")
+    try:
+        SKENARIO[skenario](kon)
+    finally:
+        kon.rollback()
+        kon.close()
 
 
 @pytest.fixture
@@ -387,7 +392,7 @@ def test_struktur_parsial_atau_berbeda_ditolak_validasi_dan_migrasi(db, rusak):
     with pytest.raises(ValueError):
         with contextlib.closing(sqlite3.connect(db)) as kon:
             schema_purna.validasi(kon)
-    with pytest.raises(ValueError):
+    with pytest.raises((ValueError, admin_store.StoreBelumSiap)):   # store fail-closed menolak lebih dulu
         schema_purna.migrasikan(db)
     assert dump(db) == sebelum
 
@@ -403,7 +408,7 @@ def test_tabel_hilang_sebagian_ditolak(db):
     with pytest.raises(ValueError):
         with contextlib.closing(sqlite3.connect(db)) as kon:
             schema_purna.validasi(kon)
-    with pytest.raises(ValueError):
+    with pytest.raises((ValueError, admin_store.StoreBelumSiap)):   # store fail-closed menolak lebih dulu
         schema_purna.migrasikan(db)
 
 
@@ -414,7 +419,7 @@ def test_definisi_tabel_berbeda_ditolak(db):
     with pytest.raises(ValueError):
         with contextlib.closing(sqlite3.connect(db)) as kon:
             schema_purna.validasi(kon)
-    with pytest.raises(ValueError):
+    with pytest.raises((ValueError, admin_store.StoreBelumSiap)):   # store fail-closed menolak lebih dulu
         schema_purna.migrasikan(db)
 
 

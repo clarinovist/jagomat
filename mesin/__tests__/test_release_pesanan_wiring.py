@@ -94,7 +94,7 @@ def test_preview_soft_launch_memasang_skema_pesanan_transfer_rekening(tmp_path, 
 
 def test_validasi_bundle_baru_belum_memasang_skema_pesanan(tmp_path):
     hasil = admin_backup.validasi_bundle(_buat_bundle(tmp_path))
-    assert hasil.skema_pesanan_transfer == (False, False, False)
+    assert hasil.skema_pesanan_transfer == (False, False, False, False)
 
 
 def test_rehearsal_pesanan_transfer_rekening_opt_in_hanya_pada_turunan(tmp_path):
@@ -103,20 +103,20 @@ def test_rehearsal_pesanan_transfer_rekening_opt_in_hanya_pada_turunan(tmp_path)
     akhir = admin_backup.rehearsal_bundle(
         bundle, migrator_ai=_buat_ai_v2, target_pesanan=True, target_transfer=True,
         target_rekening=True)
-    assert akhir.skema_pesanan_transfer == (True, True, True)
+    assert akhir.skema_pesanan_transfer == (True, True, True, False)
     assert _isi_bytes(bundle) == sebelum
     default = admin_backup.rehearsal_bundle(bundle, migrator_ai=_buat_ai_v2)
-    assert default.skema_pesanan_transfer == (False, False, False)
+    assert default.skema_pesanan_transfer == (False, False, False, False)
 
 
 def test_rehearsal_sebagian_dan_transfer_menyeret_pesanan(tmp_path):
     bundle = _buat_bundle(tmp_path)
     hanya_rekening = admin_backup.rehearsal_bundle(
         bundle, migrator_ai=_buat_ai_v2, target_rekening=True)
-    assert hanya_rekening.skema_pesanan_transfer == (False, False, True)
+    assert hanya_rekening.skema_pesanan_transfer == (False, False, True, False)
     transfer = admin_backup.rehearsal_bundle(
         bundle, migrator_ai=_buat_ai_v2, target_transfer=True)
-    assert transfer.skema_pesanan_transfer == (True, True, False)
+    assert transfer.skema_pesanan_transfer == (True, True, False, False)
 
 
 def test_rehearsal_menolak_target_tidak_sah(tmp_path):
@@ -136,9 +136,9 @@ def test_bundle_yang_sudah_terpasang_divalidasi_dipertahankan_dan_tidak_boleh_tu
     pesanan_rekening.migrasikan(admin, sekarang=101)
     (bundle / "manifest.json").unlink()
     admin_backup.buat_manifest(bundle, bundle_id="backup-sintetis-pesanan", cutoff=101)
-    assert admin_backup.validasi_bundle(bundle).skema_pesanan_transfer == (True, True, True)
+    assert admin_backup.validasi_bundle(bundle).skema_pesanan_transfer == (True, True, True, False)
     assert admin_backup.rehearsal_bundle(
-        bundle, migrator_ai=_buat_ai_v2).skema_pesanan_transfer == (True, True, True)
+        bundle, migrator_ai=_buat_ai_v2).skema_pesanan_transfer == (True, True, True, False)
     for turun in (dict(target_pesanan=False), dict(target_transfer=False),
                   dict(target_rekening=False)):
         with pytest.raises(admin_backup.BackupTidakSah):
@@ -154,5 +154,109 @@ def test_bundle_dengan_transfer_parsial_ditolak_validator(tmp_path):
         kon.execute("DROP TRIGGER transfer_refund_tolak_delete")
     (bundle / "manifest.json").unlink()
     admin_backup.buat_manifest(bundle, bundle_id="backup-sintetis-parsial", cutoff=102)
+    with pytest.raises(admin_backup.BackupTidakSah):
+        admin_backup.validasi_bundle(bundle)
+
+
+# --- purna_* pada backup/rehearsal ------------------------------------------------------
+
+def _bundle_dengan(tmp_path, *, transfer=False, rekening=False, purna=False, cutoff=201):
+    """Bundle sintetis yang adminnya sudah dipasang skema opsional (lewat migrator masing-masing)."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    bundle = _buat_bundle(tmp_path)
+    admin = bundle / "admin-control.db"
+    if transfer or purna:
+        schema_pesanan.migrasikan(admin)
+        schema_transfer.migrasikan(admin)
+    if rekening:
+        pesanan_rekening.migrasikan(admin, sekarang=cutoff)
+    if purna:
+        schema_purna.migrasikan(admin)
+    (bundle / "manifest.json").unlink()
+    admin_backup.buat_manifest(bundle, bundle_id="backup-sintetis-purna", cutoff=cutoff)
+    return bundle
+
+
+def _rusak_admin(bundle, sql):
+    with sqlite3.connect(bundle / "admin-control.db") as kon:
+        kon.execute("PRAGMA foreign_keys=OFF")
+        kon.executescript(sql)
+    (bundle / "manifest.json").unlink()
+    admin_backup.buat_manifest(bundle, bundle_id="backup-sintetis-rusak", cutoff=202)
+
+
+def test_tentukan_target_purna_menyeret_transfer_dan_pesanan():
+    import admin_backup_pesanan as abp
+    assert abp.tentukan_target(abp.TIDAK_ADA, None, None, None, True) == (True, True, False, True)
+    assert abp.tentukan_target((True, True, False, True), None, None, None) == (True, True, False, True)
+    assert abp.tentukan_target(abp.TIDAK_ADA, None, None, None) == abp.TIDAK_ADA
+
+
+def test_tentukan_target_menolak_purna_tanpa_transfer_atau_menurun():
+    import admin_backup_pesanan as abp
+    with pytest.raises(ValueError):
+        abp.tentukan_target(abp.TIDAK_ADA, None, False, None, True)
+    with pytest.raises(ValueError):
+        abp.tentukan_target((True, True, False, True), None, None, None, False)
+    with pytest.raises(ValueError):
+        abp.tentukan_target(abp.TIDAK_ADA, None, None, None, "ya")
+
+
+def test_bundle_berisi_purna_lolos_validasi_dan_rehearsal_tanpa_menulis_bundle(tmp_path):
+    bundle = _bundle_dengan(tmp_path, purna=True, rekening=True)
+    sebelum = _isi_bytes(bundle)
+    assert admin_backup.validasi_bundle(bundle).skema_pesanan_transfer == (True, True, True, True)
+    akhir = admin_backup.rehearsal_bundle(bundle, migrator_ai=_buat_ai_v2)
+    assert akhir.skema_pesanan_transfer == (True, True, True, True)
+    assert _isi_bytes(bundle) == sebelum
+
+
+def test_rehearsal_target_purna_hanya_pada_turunan(tmp_path):
+    bundle = _bundle_dengan(tmp_path)
+    sebelum = _isi_bytes(bundle)
+    akhir = admin_backup.rehearsal_bundle(bundle, migrator_ai=_buat_ai_v2, target_purna=True)
+    assert akhir.skema_pesanan_transfer == (True, True, False, True)
+    assert _isi_bytes(bundle) == sebelum
+    assert _purna_terpasang(bundle / "admin-control.db") is False
+
+
+def test_bundle_lama_tanpa_purna_tetap_lolos_dan_tidak_dipasangi_purna(tmp_path):
+    lama = _bundle_dengan(tmp_path / "lama", transfer=True, rekening=True)
+    hasil = admin_backup.rehearsal_bundle(lama, migrator_ai=_buat_ai_v2)
+    assert hasil.skema_pesanan_transfer == (True, True, True, False)
+    kosong = _bundle_dengan(tmp_path / "kosong")
+    assert admin_backup.rehearsal_bundle(
+        kosong, migrator_ai=_buat_ai_v2).skema_pesanan_transfer == (False, False, False, False)
+
+
+def test_rehearsal_purna_tidak_boleh_turun_dan_menolak_transfer_dimatikan(tmp_path):
+    bundle = _bundle_dengan(tmp_path / "a", purna=True)
+    with pytest.raises(admin_backup.BackupTidakSah):
+        admin_backup.rehearsal_bundle(bundle, migrator_ai=_buat_ai_v2, target_purna=False)
+    kosong = _bundle_dengan(tmp_path / "b")
+    with pytest.raises(admin_backup.BackupTidakSah):
+        admin_backup.rehearsal_bundle(kosong, migrator_ai=_buat_ai_v2, target_purna=True,
+                                      target_transfer=False)
+    with pytest.raises(admin_backup.BackupTidakSah):
+        admin_backup.rehearsal_bundle(kosong, migrator_ai=_buat_ai_v2, target_purna="ya")
+
+
+@pytest.mark.parametrize("rusak", [
+    "DROP TRIGGER purna_voucher_pakai_tolak_update",
+    "DROP TRIGGER purna_laporan_terbit_lunas",
+])
+def test_bundle_dengan_purna_parsial_ditolak_validasi_dan_rehearsal(tmp_path, rusak):
+    bundle = _bundle_dengan(tmp_path, purna=True)
+    _rusak_admin(bundle, rusak)
+    with pytest.raises(admin_backup.BackupTidakSah):
+        admin_backup.validasi_bundle(bundle)
+    with pytest.raises(admin_backup.BackupTidakSah):
+        admin_backup.rehearsal_bundle(bundle, migrator_ai=_buat_ai_v2)
+
+
+def test_bundle_dengan_purna_tanpa_transfer_ditolak(tmp_path):
+    bundle = _bundle_dengan(tmp_path)
+    schema_pesanan.migrasikan(bundle / "admin-control.db")
+    _rusak_admin(bundle, schema_purna.DDL)
     with pytest.raises(admin_backup.BackupTidakSah):
         admin_backup.validasi_bundle(bundle)

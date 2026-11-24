@@ -465,6 +465,40 @@ transfer langganan Latihan Harian (subfolder `harian/` dari `--folder`, tabel `h
 dicari lewat `--database-belajar`, lalu env `OSN_BERKAS_DB`, lalu `latihan.db` di samping admin-control.db, dan dilewati
 bila tidak ada. Tidak perlu cron baru.
 
+## Kandidat purna (voucher, janji terbit, pilihan terlambat) — urutan operator (belum dirilis, bukan snapshot)
+
+Bagian ini bukan snapshot rilis. Skema `purna_*` (`schema_purna.py`: voucher dipakai, pilihan terlambat, laporan terbit) dan
+domain/admin-nya sudah ada di source, tetapi **BELUM DIJALANKAN di produksi; butuh izin push dan deploy terpasang
+terpisah**, dan tidak ada klaim sudah dirilis. Perintah operator tidak dijalankan startup, GET, atau rilis otomatis dan selalu
+mensyaratkan `--database` eksplisit; jalankan lebih dulu terhadap **salinan** terverifikasi. Store admin kandidat fail-closed:
+struktur `purna_*` yang parsial/berbeda/tanpa ledger pesanan + transfer membuat store menolak dibuka, sedangkan DB tanpa
+`purna_*` tetap sah (absen = sah), jadi image kandidat aman dipasang sebelum migrasi.
+
+Urutan: (1) **prasyarat, diperiksa bukan diasumsikan:** pada salinan backup terbaru (bukan DB live) jalankan
+`sqlite3 "file:<salinan>/admin-control.db?mode=ro" "SELECT name FROM sqlite_master WHERE type='table' AND (name GLOB 'pesanan_*' OR name GLOB 'transfer_*')"`;
+`pesanan_*` dan `transfer_*` wajib sudah ada di live. Bila belum, selesaikan dulu urutan operator transfer di atas (CLI purna menolak
+dengan exit 2 dan tidak mengubah apa pun; tidak ada opsi memasang pesanan/transfer dari sana); (2) hold dan write hold seperti
+rilis migrasi biasa; (3) backup coherent empat DB + `sandi.json` (inventaris `admin_backup` bukan folder bukti);
+(4) **rehearsal pada SALINAN** bundle: `admin_backup.rehearsal_bundle(bundle, migrator_ai=..., target_purna=True)` harus lolos
+(bundle berisi purna lolos, purna parsial ditolak, bundle lama tanpa purna tetap lolos), lalu migrasi salinan DB:
+`mesin/.venv/bin/python mesin/purna_migrasi.py --database <salinan/admin-control.db>` (exit 0, jalankan dua kali untuk memastikan idempoten);
+(5) migrasi live dengan perintah yang sama pada `<admin-control.db>` live (idempoten; tanpa seed, tanpa bump `user_version`; exit 2 =
+ditolak tanpa mengubah apa pun, jangan lanjut sebelum penyebabnya jelas); (6) probe image kandidat (`PROBE_IMAGE` memasang
+purna dua kali di data sintetis, bukan DB live) dan probe skema live mode `ro`: `purna_*` valid, `PRAGMA foreign_key_check` kosong;
+(7) lepas hold dan periksa health serta smoke publik standar tanpa menyentuh data anak.
+
+Rollback: image lama (tanpa modul purna) tetap dapat membuka DB yang sudah ber-`purna_*` karena namespace tabelnya
+sendiri dan validasi lamanya tidak mengenalnya (dikunci `test_schema_purna.py`); trigger tetap tertanam di DB. Tabel `purna_*`
+**tidak dihapus** saat rollback (ledger append-only, bukti transaksi); mengembalikan data ke sebelum migrasi hanya lewat
+bundle backup langkah (3). Kebijakan retensi/hapus keluarga untuk `purna_*` mengikuti `pesanan_*` dan keputusan finalnya
+milik Pemilik.
+
+Ringkasan pin recovery baru (**BELUM DIJALANKAN; butuh izin push dan deploy terpisah**): kontrak kandidat bergeser karena
+berkas baru dan perubahan store, jadi (a) buat cabang `recovery-purna` dari recovery terakhir + skema/store purna saja dan commit
+kontrak, (b) push `recovery-purna` ke origin **sebelum** `main` (CI memeriksa SHA recovery), (c) dispatch gate pasangan
+kandidat/recovery sampai `pair_verified`, lalu (d) perbarui `scripts/release-metadata.json` dan `RECOVERY_SHA` (workflow + dua
+checkout, anchor koleksi) di `main`. Sesi persiapan ini tidak mengubah metadata rilis maupun menjalankan langkah-langkah itu.
+
 ## Aktivasi funnel Cek Kemampuan dan pembayaran Paket Coba — 19 November 2026
 
 Aktivasi terkontrol di atas artifact yang sama, **a1443b3** (digest
