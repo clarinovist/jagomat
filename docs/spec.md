@@ -319,7 +319,7 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   sampai batas). Nominal selalu konstanta server; status lunas hanya dari ledger yang diisi provider (callback atau periksa
   server-ke-server), tidak dari URL/form. Pembayaran hanya hidup bila tiga syarat terpenuhi: `FUNNEL_AKTIF`, sakelar pembayaran
   efektif, dan tahap `checkout`; selain itu halaman status jujur/404 dan POST tanpa efek. Admin memantau di `/admin/pesanan`
-  (daftar minimal, periksa status, catat refund manual; tanpa API refund). Belum ada worker rekonsiliasi; kebijakan refund dan
+  (daftar minimal dengan kolom Laporan, periksa status, catat refund manual, catat voucher dipakai dan laporan terbit; tanpa API refund; refund ditolak sesudah voucher dipakai). Belum ada worker rekonsiliasi; kebijakan refund dan
   hapus keluarga vs catatan keuangan menunggu keputusan Pemilik.
   Jalur transfer rekening (verifikasi manual admin, **belum aktif**): bila `PESANAN_TRANSFER_AKTIF=1`, funnel aktif, runtime produksi ada,
   dan admin sudah mengisi rekening, `/pesanan` menawarkan "Bayar lewat transfer" (nominal Rp49.000 + kode unik, harus persis) dan

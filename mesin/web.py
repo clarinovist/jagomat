@@ -129,6 +129,8 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin", "admin"),
     ("/admin/pesanan/periksa", "admin"),  # Fase 3c-4: periksa/refund order; tercakup prefix `/admin`
     ("/admin/pesanan/refund", "admin"),
+    ("/admin/pesanan/voucher", "admin"),  # V3 purna: catat voucher dipakai; tinjauan bertanda tangan + sandi ulang
+    ("/admin/pesanan/terbit", "admin"),  # V3 purna: catat laporan terbit; tinjauan bertanda tangan + sandi ulang
     ("/admin/pesanan/setujui", "admin"),  # transfer rekening (tahap 3): keputusan verifikasi dan rekening
     ("/admin/pesanan/tolak", "admin"),
     ("/admin/pesanan/rekening", "admin"),

@@ -1,8 +1,9 @@
 """Renderer murni halaman admin "Detail order" `/admin/pesanan/order?id=` (Fase C): tanpa I/O, tanpa JS baru.
 
 Isi: ringkasan (nominal persis dengan tiga digit unik disorot, cara bayar, waktu WIB), urutan perjalanan order
-(hanya langkah yang datanya ada), tautan ke bukti transfer, lalu dua tindakan berisiko dalam `<details>`:
-"Periksa status ke penyedia pembayaran" dan "Pengecualian: catat uang kembali". Kedua form tetap memakai token
+(hanya langkah yang datanya ada), tautan ke bukti transfer, kartu "Voucher dan laporan" (keadaan purna dan dua
+tindakan: catat voucher dipakai, catat laporan terbit), lalu dua tindakan berisiko dalam `<details>`:
+"Periksa status ke penyedia pembayaran" dan "Pengecualian: catat uang kembali". Semua form tetap memakai token
 final admin (csrf + tinjauan terikat aksi dan sesi + sandi ulang) dan hanya muncul untuk sesi berkuki.
 
 Data hanya proyeksi minimal dari `pesanan_admin_order.detail_order`: tanpa kontak, nama anak, siswa_id,
@@ -15,6 +16,7 @@ from typing import Mapping, Optional, Tuple
 import admin_labels as L
 import admin_pesanan_pages as ui
 import pesanan_admin_order as po
+import purna
 from admin_komponen import e
 from admin_verifikasi_pages import nominal_sorot
 
@@ -69,6 +71,29 @@ COPY_ALASAN_REFUND = {
     "lainnya": "Lainnya",
 }
 
+COPY_JUDUL_PURNA = "Voucher dan laporan"
+COPY_PURNA_BELUM = "Voucher dan laporan belum dipasang di database ini."
+COPY_VOUCHER = {
+    purna.VOUCHER_AKTIF: "Aktif",
+    purna.VOUCHER_BELUM_LUNAS: "Belum aktif (order belum lunas)",
+    purna.VOUCHER_DIPAKAI: "Sudah dipakai",
+    purna.VOUCHER_KEDALUWARSA: "Kedaluwarsa",
+    purna.VOUCHER_BATAL: "Dibatalkan (direfund atau keluarga minta uang kembali)",
+}
+COPY_PILIHAN = {purna.PILIHAN_MENUNGGU: "Menunggu laporan", purna.PILIHAN_UANG_KEMBALI: "Minta uang kembali"}
+COPY_LAPORAN_BELUM = "Belum terbit"
+COPY_LAPORAN_SUDAH = "Sudah terbit"
+COPY_LAPORAN_TERLAMBAT = "Terlambat sejak %s"
+COPY_TOMBOL_VOUCHER = "Catat voucher dipakai"
+COPY_KONFIRMASI_VOUCHER = "Voucher ditandai sudah dipakai dan order ini tidak bisa direfund lagi. Tidak bisa dibatalkan."
+COPY_TOMBOL_TERBIT = "Catat laporan terbit"
+COPY_KONFIRMASI_TERBIT = "Laporan ditandai sudah terbit sekarang (jam pencatatan). Tidak bisa dibatalkan."
+COPY_REFUND_VOUCHER_DIPAKAI = "Voucher sudah dipakai; refund tidak tersedia."
+COPY_MINTA_UANG_KEMBALI = "Keluarga meminta uang kembali (laporan terlambat)"
+# Enum `catatan_kode` pemakaian voucher (sama dengan `schema_purna.CATATAN_PAKAI`).
+URUTAN_ALASAN_VOUCHER = ("kelas", "lainnya")
+COPY_ALASAN_VOUCHER = {"kelas": "Dipakai untuk kelas", "lainnya": "Lainnya"}
+
 _SANDI = ('<label>Sandi admin saat ini<input type="password" name="reauth" required '
           'autocomplete="current-password"></label>')
 
@@ -95,6 +120,20 @@ def _form_refund(token: Tuple[str, str]) -> str:
             % (ui.RUTE_REFUND, e(COPY_KONFIRMASI_REFUND), _hidden(*token), opsi, _SANDI, e(COPY_TOMBOL_REFUND)))
 
 
+def _form_voucher(token: Tuple[str, str]) -> str:
+    opsi = "".join('<option value="%s">%s</option>' % (e(k), e(COPY_ALASAN_VOUCHER[k])) for k in URUTAN_ALASAN_VOUCHER)
+    return ('<form method="post" action="%s" data-konfirmasi="%s">%s'
+            '<label>Dipakai untuk<select name="catatan_kode" required>%s</select></label>%s'
+            '<button class="admin-tombol admin-bahaya-garis" type="submit">%s</button></form>'
+            % (ui.RUTE_VOUCHER, e(COPY_KONFIRMASI_VOUCHER), _hidden(*token), opsi, _SANDI, e(COPY_TOMBOL_VOUCHER)))
+
+
+def _form_terbit(token: Tuple[str, str]) -> str:
+    return ('<form method="post" action="%s" data-konfirmasi="%s">%s%s'
+            '<button class="admin-tombol admin-bahaya-garis" type="submit">%s</button></form>'
+            % (ui.RUTE_TERBIT, e(COPY_KONFIRMASI_TERBIT), _hidden(*token), _SANDI, e(COPY_TOMBOL_TERBIT)))
+
+
 def _baris_rincian(label: str, nilai: str) -> str:
     return "<div><dt>%s</dt><dd>%s</dd></div>" % (e(label), nilai)
 
@@ -113,6 +152,45 @@ def _ringkasan(detail: Mapping) -> str:
         _baris_rincian("Batas bayar", _waktu(detail["kedaluwarsa"]))))
     return ('<section class="admin-kartu"><div class="admin-kepala-aksi"><h2>Order %s</h2>%s</div>'
             '<dl class="admin-order-rincian">%s</dl></section>' % (L.referensi(detail["order_id"]), badge, rincian))
+
+
+def _status_laporan(pur: Mapping) -> str:
+    if pur["terlambat"]:
+        return COPY_LAPORAN_TERLAMBAT % _waktu(pur["batas_pilihan"])
+    if pur["terbit"] is not None:
+        return e(COPY_LAPORAN_SUDAH)
+    return e(COPY_LAPORAN_BELUM) if pur["lunas"] else "—"
+
+
+def _tanggal_atau_strip(nilai) -> str:
+    return "—" if nilai is None else _waktu(nilai)
+
+
+def _rincian_purna(pur: Mapping) -> str:
+    return "".join((
+        _baris_rincian("Kode voucher", '<code class="admin-id">%s</code>' % e(pur["kode"])),
+        _baris_rincian("Status voucher", e(COPY_VOUCHER.get(pur["voucher"], pur["voucher"]))),
+        _baris_rincian("Berlaku hingga", _tanggal_atau_strip(pur["berlaku_hingga"])),
+        _baris_rincian("Janji terbit", _tanggal_atau_strip(pur["janji_terbit"])),
+        _baris_rincian("Status laporan", _status_laporan(pur)),
+        _baris_rincian("Waktu terbit", _tanggal_atau_strip(pur["terbit"])),
+        _baris_rincian("Pilihan keluarga", e(COPY_PILIHAN.get(pur["pilihan"], "—")))))
+
+
+def _kartu_purna(detail: Mapping, gerbang_terbuka: bool, forms: Mapping) -> str:
+    """Kartu "Voucher dan laporan": keadaan purna + form voucher/terbit sesuai `ui.aksi_tersedia` dan token."""
+    pur = detail.get("purna") or {}
+    kepala = "<h2>%s</h2>" % e(COPY_JUDUL_PURNA)
+    if not pur.get("terpasang"):
+        return '<section class="admin-kartu">%s<p class="admin-meta">%s</p></section>' % (kepala, e(COPY_PURNA_BELUM))
+    tersedia = ui.aksi_tersedia(detail, gerbang_terbuka)
+    form = ""
+    if ui.AKSI_VOUCHER in tersedia and ui.AKSI_VOUCHER in forms:
+        form += _form_voucher(forms[ui.AKSI_VOUCHER])
+    if ui.AKSI_TERBIT in tersedia and ui.AKSI_TERBIT in forms:
+        form += _form_terbit(forms[ui.AKSI_TERBIT])
+    return '<section class="admin-kartu">%s<dl class="admin-order-rincian">%s</dl>%s</section>' % (
+        kepala, _rincian_purna(pur), form)
 
 
 def _peringatan(detail: Mapping) -> str:
@@ -162,13 +240,23 @@ def _periksa(detail: Mapping, gerbang_terbuka: bool, forms: Mapping) -> str:
     return _lipat(COPY_RINGKAS_PERIKSA, "<p>%s</p>%s" % (e(teks), form))
 
 
+def _catatan(teks: str) -> str:
+    return '<p class="admin-kartu admin-catatan" role="note">%s</p>' % e(teks)
+
+
 def _refund(detail: Mapping, gerbang_terbuka: bool, forms: Mapping) -> str:
-    """Hanya untuk order yang boleh dicatat uang kembalinya; selain itu kosong (tidak ada pintu samping)."""
+    """Hanya untuk order yang boleh dicatat uang kembalinya; selain itu kosong (tidak ada pintu samping).
+
+    Voucher sudah dipakai = catatan pengganti (penegakan sebenarnya di domain). Keluarga minta uang kembali dan
+    belum direfund = peringatan jelas tepat di atas form.
+    """
+    pur = detail.get("purna") or {}
     if ui.AKSI_REFUND not in ui.aksi_tersedia(detail, gerbang_terbuka):
-        return ""
+        return _catatan(COPY_REFUND_VOUCHER_DIPAKAI) if pur.get("dipakai") else ""
     form = _form_refund(forms[ui.AKSI_REFUND]) if ui.AKSI_REFUND in forms else ""
     isi = '<p>%s</p>%s<p class="admin-meta">%s</p>' % (e(COPY_KEBIJAKAN_REFUND), form, e(COPY_SATU_CATATAN))
-    return _lipat(COPY_RINGKAS_REFUND, isi)
+    minta = pur.get("pilihan") == purna.PILIHAN_UANG_KEMBALI and not pur.get("direfund")
+    return (_catatan(COPY_MINTA_UANG_KEMBALI) if minta else "") + _lipat(COPY_RINGKAS_REFUND, isi)
 
 
 def halaman(detail: Mapping, *, gerbang_terbuka: bool, forms: Optional[Mapping] = None,
@@ -181,5 +269,6 @@ def halaman(detail: Mapping, *, gerbang_terbuka: bool, forms: Optional[Mapping] 
     sesi = '<p class="admin-meta">%s</p>' % e(ui.COPY_TANPA_SESI) if baca_saja else ""
     kembali = '<p><a class="admin-tautan" href="%s">%s</a></p>' % (ui.RUTE, e(COPY_KEMBALI))
     umpan = ui.umpan_balik(hasil if hasil in ui.KODE_HASIL_DETAIL else None)
-    return (kembali + umpan + sesi + _peringatan(detail) + _ringkasan(detail) + _perjalanan(detail)
+    return (kembali + umpan + sesi + _peringatan(detail) + _ringkasan(detail)
+            + _kartu_purna(detail, gerbang_terbuka, token) + _perjalanan(detail)
             + _periksa(detail, gerbang_terbuka, token) + _refund(detail, gerbang_terbuka, token))

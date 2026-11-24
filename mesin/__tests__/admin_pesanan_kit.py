@@ -27,7 +27,12 @@ HALAMAN = "/admin/pesanan"
 DETAIL = HALAMAN + "/order"
 PERIKSA = HALAMAN + "/periksa"
 REFUND = HALAMAN + "/refund"
-RUTE_AKSI = (PERIKSA, REFUND)
+VOUCHER = HALAMAN + "/voucher"
+TERBIT = HALAMAN + "/terbit"
+RUTE_AKSI = (PERIKSA, REFUND)  # aksi lama; aksi purna (voucher, terbit) ada di RUTE_PURNA dan diuji terpisah
+RUTE_PURNA = (VOUCHER, TERBIT)
+AKSI_RUTE = {PERIKSA: ap.AKSI_PERIKSA, REFUND: ap.AKSI_REFUND, VOUCHER: ap.AKSI_VOUCHER, TERBIT: ap.AKSI_TERBIT}
+ISIAN_BAWAAN = {REFUND: {"catatan_kode": "permintaan_pembeli"}, VOUCHER: {"catatan_kode": "kelas"}}
 TAK_ADA = "/admin/tidak-ada"
 ORDER_ASING = "ord_" + "0" * 32
 POLA_FORM = re.compile(r'<form method="post" action="([^"]+)"[^>]*>(.*?)</form>', re.S)
@@ -89,10 +94,8 @@ def token_langsung(cookie: str, aksi: str, order_id: str) -> dict:
 
 def kirim_aksi(server, cookie, jalur, order_id, *, ekstra=None, ganti=None, hapus=()):
     """POST aksi admin dengan token langsung; `ganti`/`hapus` mengubah field."""
-    aksi = ap.AKSI_PERIKSA if jalur == PERIKSA else ap.AKSI_REFUND
-    data = token_langsung(cookie, aksi, order_id)
-    if jalur == REFUND:
-        data["catatan_kode"] = "permintaan_pembeli"
+    data = token_langsung(cookie, AKSI_RUTE[jalur], order_id)
+    data.update(ISIAN_BAWAAN.get(jalur, {}))
     data.update(ekstra or {})
     data.update(ganti or {})
     for kunci in hapus:
@@ -106,8 +109,7 @@ def kirim_dari_detail(server, cookie, jalur, order_id, *, ekstra=None, ganti=Non
     assert kode == 200
     data = dict(form_order(isi)[jalur])
     data["reauth"] = SANDI_ADMIN
-    if jalur == REFUND:
-        data["catatan_kode"] = "permintaan_pembeli"
+    data.update(ISIAN_BAWAAN.get(jalur, {}))
     data.update(ekstra or {})
     data.update(ganti or {})
     for kunci in hapus:

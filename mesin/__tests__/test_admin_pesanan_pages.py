@@ -62,7 +62,7 @@ def test_halaman_daftar_tanpa_form_dan_tanpa_kolom_sandi():
 def test_kolom_tabel_sesuai_rancangan_fase_c():
     isi = _render(_item())
     kepala = re.findall(r'<th scope="col">([^<]+)</th>', isi)
-    assert kepala == ["Order", "Akun", "Nominal", "Dibayar / diunggah", "Status", "Aksi"]
+    assert kepala == ["Order", "Akun", "Nominal", "Dibayar / diunggah", "Status", "Laporan", "Aksi"]
 
 
 def test_halaman_umpan_balik_hanya_dari_kode_dikenal():
@@ -202,9 +202,10 @@ def test_kode_hasil_verifikasi_dikenal_dan_label_status_baru_ada():
     assert pg.COPY_STATUS["menunggu_verifikasi"] and pg.COPY_STATUS["ditolak"]
 
 
-def test_kode_hasil_detail_hanya_periksa_dan_refund():
+def test_kode_hasil_detail_hanya_aksi_detail_order():
     assert pg.KODE_HASIL_DETAIL == {"periksa_ok", "periksa_dilewati", "periksa_gagal", "gerbang_tertutup",
-                                    "refund_dicatat", "refund_sudah_ada"}
+                                    "refund_dicatat", "refund_sudah_ada", "voucher_dicatat", "voucher_sudah_ada",
+                                    "terbit_dicatat", "terbit_sudah_ada"}
 
 
 def test_penanda_dua_jalur_dan_menunggu_lama_tampil_di_sel_status():

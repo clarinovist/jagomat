@@ -15,6 +15,7 @@ from urllib.parse import urlencode
 
 import admin_labels as L
 import pesanan_dasar as d
+import purna
 from admin_daftar_pages import kartu_tabel
 from admin_komponen import e
 from pesanan_transfer_pages import rupiah
@@ -22,6 +23,8 @@ from pesanan_transfer_pages import rupiah
 RUTE = "/admin/pesanan"
 RUTE_PERIKSA = RUTE + "/periksa"
 RUTE_REFUND = RUTE + "/refund"
+RUTE_VOUCHER = RUTE + "/voucher"
+RUTE_TERBIT = RUTE + "/terbit"
 RUTE_VERIFIKASI = RUTE + "/verifikasi"
 RUTE_REKENING = RUTE + "/rekening"
 RUTE_ORDER = RUTE + "/order"
@@ -32,10 +35,12 @@ SUBJUDUL = "Daftar order. Periksa bukti transfer atau buka detail order; tanpa k
 PER_HALAMAN = 25
 AKSI_PERIKSA = "periksa"
 AKSI_REFUND = "refund"
+AKSI_VOUCHER = "voucher"
+AKSI_TERBIT = "terbit"
 STATUS_PERIKSA = ("belum_bayar", "kedaluwarsa")
 STATUS_REFUND = d.STATUS_BISA_REFUND  # satu sumber dengan penegakan server (`pesanan_refund_aturan`)
 KELAS_BADGE = {"sudah_dibayar": " bien", "perlu_diperiksa": " perhatian", "menunggu_verifikasi": " perhatian"}
-_KOLOM = ("Order", "Akun", "Nominal", "Dibayar / diunggah", "Status", "Aksi")
+_KOLOM = ("Order", "Akun", "Nominal", "Dibayar / diunggah", "Status", "Laporan", "Aksi")
 
 COPY_STATUS = {
     "belum_bayar": "Menunggu pembayaran",
@@ -67,6 +72,11 @@ COPY_PERIKSA_BUKTI = "Periksa bukti"
 COPY_DUA_JALUR = "Dibayar lewat dua jalur — cek refund"
 COPY_MENUNGGU_LAMA = "Menunggu > 72 jam"
 COPY_DETAIL = "Detail"
+COPY_LAPORAN_KOSONG = "—"
+COPY_LAPORAN_MINTA_KEMBALI = "Minta uang kembali"
+COPY_LAPORAN_TERLAMBAT = "Terlambat"
+COPY_LAPORAN_TERBIT = "Terbit"
+COPY_LAPORAN_JANJI = "Janji %s"
 # Alasan receipt penyedia (`alasan_kode`) dalam bahasa awam; kode tak dikenal jatuh ke "Lainnya".
 COPY_ALASAN = {
     "ok": "Pembayaran sesuai",
@@ -85,12 +95,16 @@ COPY_HASIL = {
     "gerbang_tertutup": "Pembayaran sedang ditutup, jadi pemeriksaan tidak dijalankan. Tidak ada yang berubah.",
     "refund_dicatat": "Catatan refund tersimpan. Ini hanya catatan; dana dikembalikan lewat jalur manual di luar aplikasi.",
     "refund_sudah_ada": "Catatan refund yang sama sudah tersimpan sebelumnya. Tidak ada yang berubah.",
+    "voucher_dicatat": "Voucher tercatat sudah dipakai. Order ini tidak bisa direfund lagi.",
+    "voucher_sudah_ada": "Pemakaian voucher yang sama sudah tercatat sebelumnya. Tidak ada yang berubah.",
+    "terbit_dicatat": "Laporan tercatat sudah terbit (jam pencatatan).",
+    "terbit_sudah_ada": "Laporan sudah tercatat terbit sebelumnya. Tidak ada yang berubah.",
     "verifikasi_setuju": "Transfer disetujui. Pesanan ini sekarang tercatat lunas.",
     "verifikasi_tolak": ("Bukti ditolak beserta alasannya. Guru dapat mengunggah ulang selama waktu "
                          "pembayaran masih terbuka."),
 }
 KODE_HASIL = frozenset(COPY_HASIL)
-# Hasil yang boleh tampil di halaman Detail order (hasil aksi periksa/refund; keputusan verifikasi tidak).
+# Hasil yang boleh tampil di halaman Detail order (hasil aksi periksa/refund/voucher/terbit; keputusan verifikasi tidak).
 KODE_HASIL_DETAIL = frozenset(k for k in COPY_HASIL if not k.startswith("verifikasi_"))
 COPY_GERBANG_BUKA = "Pembayaran dibuka"
 COPY_GERBANG_TUTUP = "Pembayaran ditutup (pemeriksaan ke penyedia tidak tersedia)"
@@ -104,21 +118,54 @@ COPY_TANPA_SESI = "Tampilan baca-saja. Masuk melalui formulir untuk memeriksa at
 COPY_GALAT_FORM = "Form atau autentikasi ulang tidak sah. Buka ulang halaman tadi, lalu coba lagi."
 COPY_GALAT_ISIAN = "Isian pesanan tidak sah. Tidak ada yang diubah."
 COPY_GALAT_KONFLIK = (
-    "Pesanan ini belum punya pembayaran tercatat, atau sudah punya catatan refund yang berbeda. "
-    "Tidak ada yang diubah."
+    "Tindakan ini tidak bisa dilakukan pada keadaan pesanan sekarang, misalnya belum ada pembayaran tercatat, "
+    "sudah ada catatan lain, sudah direfund, voucher sudah dipakai atau kedaluwarsa, atau fitur voucher belum "
+    "dipasang. Tidak ada yang diubah. Muat ulang Detail order untuk melihat keadaan terbaru."
 )
 COPY_GALAT_LAYANAN = "Layanan pesanan belum bisa menyelesaikan tindakan ini. Tidak ada yang diubah; coba lagi nanti."
 
 
 def aksi_tersedia(item: Mapping, gerbang_terbuka: bool) -> Tuple[str, ...]:
-    """Aksi yang boleh ditampilkan untuk satu order (server tetap menegakkan sendiri)."""
+    """Aksi yang boleh ditampilkan untuk satu order (server tetap menegakkan sendiri).
+
+    Satu-satunya gerbang untuk tampilan form DAN penerbitan token Detail order. `item["purna"]` (whitelist
+    `pesanan_admin_order.purna_ringkas`) bisa tidak ada pada item buatan tangan = purna belum terpasang.
+    Refund tidak ditawarkan bila voucher sudah dipakai; penegakan sebenarnya tetap di domain.
+    """
     status = item["status"]
+    pur = item.get("purna") or {}
+    terpasang = bool(pur.get("terpasang"))
     aksi = []
     if gerbang_terbuka and status in STATUS_PERIKSA:
         aksi.append(AKSI_PERIKSA)
-    if status in STATUS_REFUND:
+    if status in STATUS_REFUND and not pur.get("dipakai"):
         aksi.append(AKSI_REFUND)
+    if terpasang and pur.get("voucher") == purna.VOUCHER_AKTIF:
+        aksi.append(AKSI_VOUCHER)
+    if terpasang and pur.get("lunas") and pur.get("terbit") is None and not pur.get("direfund"):
+        aksi.append(AKSI_TERBIT)
     return tuple(aksi)
+
+
+def teks_laporan(pur: Optional[Mapping]) -> str:
+    """Ringkasan satu kata untuk kolom Laporan (teks polos, belum di-escape); tanpa purna terpasang = "—".
+
+    Urutan: minta uang kembali (belum direfund) > terlambat > terbit > janji (lunas, belum terbit). Order yang
+    sudah direfund dan belum terbit tidak punya janji lagi ("—"; status refund ada di kolom Status).
+    """
+    if not pur or not pur.get("terpasang"):
+        return COPY_LAPORAN_KOSONG
+    if pur["pilihan"] == purna.PILIHAN_UANG_KEMBALI and not pur["direfund"]:
+        return COPY_LAPORAN_MINTA_KEMBALI
+    if pur["direfund"] and pur["terbit"] is None:
+        return COPY_LAPORAN_KOSONG
+    if pur["terlambat"]:
+        return COPY_LAPORAN_TERLAMBAT
+    if pur["terbit"] is not None:
+        return COPY_LAPORAN_TERBIT
+    if pur["lunas"]:
+        return COPY_LAPORAN_JANJI % L.tanggal(pur["janji_terbit"] + "Z")
+    return COPY_LAPORAN_KOSONG
 
 
 def _waktu(nilai: str) -> str:
@@ -160,11 +207,12 @@ def _sel_aksi(item: Mapping) -> str:
     return '<a class="admin-tautan" href="%s?id=%s">%s</a>' % (RUTE_ORDER, e(item["order_id"]), e(COPY_DETAIL))
 
 
-def _baris(item: Mapping, transfer: Mapping) -> str:
+def _baris(item: Mapping, transfer: Mapping, laporan: Optional[Mapping] = None) -> str:
     ringkas = transfer.get(item["order_id"], {})
+    teks = teks_laporan((laporan or {}).get(item["order_id"]))
     return ("<tr>" + "".join("<td>%s</td>" % sel for sel in (
         _sel_order(item), e(item["akun"]), _sel_nominal(ringkas), _sel_bukti(ringkas),
-        _sel_status(item), _sel_aksi(item))) + "</tr>")
+        _sel_status(item), e(teks), _sel_aksi(item))) + "</tr>")
 
 
 def _alamat(halaman: int, saring: Optional[str]) -> str:
@@ -211,16 +259,18 @@ def umpan_balik(hasil: Optional[str]) -> str:
 
 def halaman(daftar: Mapping, *, halaman: int, gerbang_terbuka: bool, hasil: Optional[str],
             transfer: Optional[Mapping] = None, saring: Optional[str] = None,
-            hitungan: Optional[Mapping] = None, rekening_terisi: Optional[bool] = None) -> str:
+            hitungan: Optional[Mapping] = None, rekening_terisi: Optional[bool] = None,
+            laporan: Optional[Mapping] = None) -> str:
     """Isi section pesanan: tanpa form (tindakan ada di Detail order).
 
     `transfer` = {order_id: {nominal, jumlah_bukti, diunggah}} dari `pesanan_admin_transfer.ringkasan`;
     `saring` = kunci `KODE_SARING` atau None (semua); `hitungan` = {kelompok|semua: n} atau None (tanpa angka);
-    `rekening_terisi` = True/False/None (None = tidak ditampilkan).
+    `rekening_terisi` = True/False/None (None = tidak ditampilkan);
+    `laporan` = {order_id: `pesanan_admin_order.purna_ringkas`} untuk kolom Laporan (None/kosong = "—").
     """
     ringkas = transfer or {}
     kosong = COPY_KOSONG_SARING.get(saring, COPY_KOSONG)
-    baris = "".join(_baris(i, ringkas) for i in daftar["items"]) or (
+    baris = "".join(_baris(i, ringkas, laporan) for i in daftar["items"]) or (
         '<tr><td colspan="%d" class="admin-kosong">%s</td></tr>' % (len(_KOLOM), e(kosong)))
     kepala = tuple('<th scope="col">%s</th>' % x for x in _KOLOM)
     return (umpan_balik(hasil) + _strip_layanan(gerbang_terbuka, rekening_terisi) + _chips(saring, hitungan or {})

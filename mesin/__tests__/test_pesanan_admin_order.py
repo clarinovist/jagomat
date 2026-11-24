@@ -15,7 +15,7 @@ from transfer_kit import (ADMIN, SESUDAH_UPLOAD, akun_ke, menunggu, sha, siapkan
 
 SESUDAH = "2026-11-18T13:00:00"
 KUNCI_DETAIL = {"order_id", "akun", "status", "dibuat", "kedaluwarsa", "cara", "nominal", "jumlah_bukti", "langkah",
-                "dua_jalur", "bukti_dipakai_ulang"}
+                "dua_jalur", "bukti_dipakai_ulang", "purna"}
 
 
 @pytest.fixture

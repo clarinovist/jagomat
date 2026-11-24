@@ -14,6 +14,10 @@ SEBELUM ledger dibaca. Aturan yang ditegakkan di sini:
 - Refund: hanya CATATAN (`pesanan.catat_refund`), tanpa panggilan API refund dan tidak dibatasi gerbang.
   `catatan_kode` divalidasi enum di sini; galat domain tak terduga = 503 (bukan 400). `operasi_id`
   deterministik per order (idempoten, satu catatan per order); `dicatat_oleh` = id akun admin sesi.
+- Voucher dan laporan (V3, domain `purna`): `/admin/pesanan/voucher` (aksi `catat_voucher_pakai`, form hanya `catatan_kode`
+  dari `schema_purna.CATATAN_PAKAI`, `operasi_id` deterministik per order) dan `/admin/pesanan/terbit` (aksi
+  `catat_laporan_terbit`, form harus kosong). Pola, token, galat, dan PRG sama dengan refund; skema purna belum
+  terpasang = PesananKonflik dari domain = 409. Refund sesudah voucher dipakai ditolak domain, bukan hanya disembunyikan.
 - Jejak: catatan refund itu sendiri (pelaku, kode, waktu; tabel append-only). Aksi periksa tidak
   menulis jurnal admin (kontrak jurnal `operasi_admin` tidak diubah); efeknya tercatat sebagai pengamatan ledger.
 - Tidak ada `str(galat)` di respons; PRG: pengalihan 303 ke Detail order (`/admin/pesanan/order?id=&hasil=`)
@@ -43,18 +47,27 @@ import pesanan_alur as alur
 import pesanan_http
 import pesanan_midtrans
 import pesanan_rekening
+import pesanan_admin_order
 import pesanan_status as st
+import purna
 from admin_pesanan_aksi import periksa_order
 from schema_pesanan import CATATAN_REFUND
+from schema_purna import CATATAN_PAKAI
 
 RUTE = ui.RUTE
 RUTE_PERIKSA = ui.RUTE_PERIKSA
 RUTE_REFUND = ui.RUTE_REFUND
+RUTE_VOUCHER = ui.RUTE_VOUCHER
+RUTE_TERBIT = ui.RUTE_TERBIT
 RUTE_ORDER = ui.RUTE_ORDER
 AKSI_PERIKSA = "periksa_pesanan"
 AKSI_REFUND = "catat_refund_pesanan"
-AKSI_RUTE = {RUTE_PERIKSA: AKSI_PERIKSA, RUTE_REFUND: AKSI_REFUND}
-_AKSI_UI = {ui.AKSI_PERIKSA: AKSI_PERIKSA, ui.AKSI_REFUND: AKSI_REFUND}
+AKSI_VOUCHER = "catat_voucher_pakai"
+AKSI_TERBIT = "catat_laporan_terbit"
+AKSI_RUTE = {RUTE_PERIKSA: AKSI_PERIKSA, RUTE_REFUND: AKSI_REFUND, RUTE_VOUCHER: AKSI_VOUCHER,
+             RUTE_TERBIT: AKSI_TERBIT}
+_AKSI_UI = {ui.AKSI_PERIKSA: AKSI_PERIKSA, ui.AKSI_REFUND: AKSI_REFUND, ui.AKSI_VOUCHER: AKSI_VOUCHER,
+            ui.AKSI_TERBIT: AKSI_TERBIT}
 MAKS_HALAMAN = 100000
 _POLA_ORDER = re.compile(r"ord_[0-9a-f]{32}")
 _PANJANG_OPERASI = 32
@@ -116,11 +129,19 @@ def _kirim(penangan, principal, isi, kode=200, *, judul=ui.JUDUL, subjudul=ui.SU
 
 
 def _baca_daftar(halaman, saring):
-    """(daftar tersaring + hitungan, ringkasan transfer per order) dalam satu koneksi baca."""
+    """(daftar tersaring + hitungan, ringkasan transfer per order, ringkasan purna per order) dalam satu koneksi baca.
+
+    Kolom Laporan memanggil `purna_ringkas` per baris halaman (N+1 sengaja: paling banyak `ui.PER_HALAMAN` = 25 baris,
+    batas keras domain 100, tiap panggilan hanya SELECT kecil pada SQLite lokal), supaya turunan voucher/terlambat
+    memakai satu sumber dengan Detail order dan tidak ada salinan logikanya di SQL daftar.
+    """
     with pesanan.buka(h._path_admin()) as kon:
+        kini = alur._sekarang()
         daftar = pesanan.daftar_tersaring(
-            kon, halaman=halaman, per_halaman=ui.PER_HALAMAN, sekarang=alur._sekarang(), kelompok=saring)
-        return daftar, pesanan_admin_transfer.ringkasan(kon, [i["order_id"] for i in daftar["items"]])
+            kon, halaman=halaman, per_halaman=ui.PER_HALAMAN, sekarang=kini, kelompok=saring)
+        ids = [i["order_id"] for i in daftar["items"]]
+        laporan = {oid: pesanan_admin_order.purna_ringkas(kon, oid, kini) for oid in ids}
+        return daftar, pesanan_admin_transfer.ringkasan(kon, ids), laporan
 
 
 def _rekening_terisi() -> bool:
@@ -171,7 +192,7 @@ def tangani_get(penangan, jalur) -> bool:
         h._tidak_ada(penangan)
         return True
     try:
-        daftar, transfer = _baca_daftar(halaman, saring)
+        daftar, transfer, laporan = _baca_daftar(halaman, saring)
         gerbang = _runtime_periksa(penangan) is not None
         rekening = _rekening_terisi()
     except _GALAT_BACA:
@@ -179,7 +200,7 @@ def tangani_get(penangan, jalur) -> bool:
         return True
     _kirim(penangan, principal, ui.halaman(
         daftar, halaman=halaman, gerbang_terbuka=gerbang, hasil=hasil, transfer=transfer, saring=saring,
-        hitungan=daftar["hitungan"], rekening_terisi=rekening))
+        hitungan=daftar["hitungan"], rekening_terisi=rekening, laporan=laporan))
     return True
 
 
@@ -188,6 +209,11 @@ def tangani_get(penangan, jalur) -> bool:
 def operasi_refund(order_id: str) -> str:
     """Id operasi deterministik per order: replay identik idempoten, isi beda = konflik."""
     return "rfd_" + hashlib.sha256(order_id.encode("utf-8")).hexdigest()[:_PANJANG_OPERASI]
+
+
+def operasi_voucher(order_id: str) -> str:
+    """Id operasi pemakaian voucher, deterministik per order (satu catatan per order; replay idempoten)."""
+    return "vch_" + hashlib.sha256(order_id.encode("utf-8")).hexdigest()[:_PANJANG_OPERASI]
 
 
 def _order_dari_tinjauan(tinjauan) -> str:
@@ -233,14 +259,46 @@ def _refund(principal, order_id: str, data: dict) -> str:
     return "refund_dicatat" if hasil["baru"] else "refund_sudah_ada"
 
 
+def _voucher(principal, order_id: str, data: dict) -> str:
+    """Catat voucher dipakai: hanya field `catatan_kode` (enum `schema_purna.CATATAN_PAKAI`); order dari tinjauan."""
+    if set(data) != {"catatan_kode"}:
+        raise ValueError("isian voucher tidak sah")
+    catatan = data["catatan_kode"]
+    if catatan not in CATATAN_PAKAI:
+        raise ValueError("catatan_kode voucher tidak sah")
+    with pesanan.buka(h._path_admin(), tulis_data=True) as kon:
+        hasil = purna.catat_pakai(
+            kon, order_id, operasi_voucher(order_id), principal.id_akun, catatan, alur._sekarang())
+    return "voucher_dicatat" if hasil["baru"] else "voucher_sudah_ada"
+
+
+def _terbit(principal, order_id: str, data: dict) -> str:
+    """Catat laporan terbit: tanpa field apa pun; waktu terbit = jam pencatatan server."""
+    if data:
+        raise ValueError("isian terbit asing")
+    with pesanan.buka(h._path_admin(), tulis_data=True) as kon:
+        hasil = purna.catat_terbit(kon, order_id, principal.id_akun, alur._sekarang())
+    return "terbit_dicatat" if hasil["baru"] else "terbit_sudah_ada"
+
+
+def _kode_hasil(penangan, principal, jalur: str, order_id: str, data: dict) -> str:
+    """Jalankan aksi sesuai rute; tiap rute punya penangan sendiri (tidak ada jalur bawaan)."""
+    if jalur == RUTE_PERIKSA:
+        return _periksa(penangan, principal, order_id, data)
+    if jalur == RUTE_REFUND:
+        return _refund(principal, order_id, data)
+    if jalur == RUTE_VOUCHER:
+        return _voucher(principal, order_id, data)
+    if jalur == RUTE_TERBIT:
+        return _terbit(principal, order_id, data)
+    raise LookupError("rute tidak dikenal")
+
+
 def _jalankan(penangan, principal, jalur: str, data: dict) -> None:
     aksi = AKSI_RUTE[jalur]
     _akun, tinjauan, _token = h._token_final(penangan, principal, data, aksi)
     order_id = _order_dari_tinjauan(tinjauan)
-    if jalur == RUTE_PERIKSA:
-        kode = _periksa(penangan, principal, order_id, data)
-    else:
-        kode = _refund(principal, order_id, data)
+    kode = _kode_hasil(penangan, principal, jalur, order_id, data)
     h._redirect(penangan, "%s?id=%s&hasil=%s" % (RUTE_ORDER, order_id, kode))
 
 
