@@ -14,8 +14,8 @@ murid ke siswanya. Aturan yang ditegakkan di sini, bukan di halaman:
   Nominal selalu dari katalog + deposit/keluarga di server (`kelas_store.buat_tagihan`), tidak pernah dari form. Status
   anak kedua tidak bisa dipilih pembeli (hanya admin menautkan keluarga).
 - Satu tagihan terbuka per anak LINTAS paket: form bukti tidak memuat kode paket, jadi paket yang menerima bukti
-  diturunkan dari tagihan terbuka sesi. Membuat tagihan paket lain saat satu masih terbuka = 409. (Cek-lalu-buat
-  tidak atomik; balapan dua tab bisa melahirkan dua tagihan terbuka, dan bukti selalu ke tagihan pertama di katalog.)
+  diturunkan dari tagihan terbuka sesi. Membuat tagihan paket lain saat satu masih terbuka = 409, dicek di transaksi
+  tulis yang sama dengan pembuatan (`tolak_paket_lain_terbuka`), jadi dua tab tidak bisa melahirkan dua tagihan terbuka.
 - Rekening belum diisi admin: GET = halaman jujur "belum dibuka", POST = 404 murid, tanpa efek.
 - Unggah: laju ketat, body berbatas, multipart sempit, token, ukuran, magic bytes, lalu hambatan status; berkas
   ditulis atomik ke subfolder khusus (`kelas_berkas`) dan dihapus bila catat gagal/duplikat.
@@ -190,11 +190,8 @@ def _form_buat(penangan, principal):
 
 
 def _buat(kon, akun_id: str, siswa_id: int, kode: str, kini: str) -> None:
-    """Tagihan baru; paket LAIN yang masih terbuka = konflik (satu tagihan terbuka per anak)."""
-    for paket in katalog.DAFTAR_PAKET:
-        if paket.kode != kode and store.tagihan_terbuka(kon, akun_id, siswa_id, paket.kode, kini) is not None:
-            raise dasar.KelasKonflik("tagihan paket lain masih terbuka")
-    store.buat_tagihan(kon, akun_id, siswa_id, kode, kini)
+    """Tagihan baru; paket LAIN yang masih terbuka = konflik, dicek di transaksi yang sama (atomik)."""
+    store.buat_tagihan(kon, akun_id, siswa_id, kode, kini, tolak_paket_lain_terbuka=True)
 
 
 def _galat_buat(penangan, galat: Exception) -> None:

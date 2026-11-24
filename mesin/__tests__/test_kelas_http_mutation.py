@@ -68,8 +68,8 @@ KASUS = (
         ("halaman.AKSI_BUAT + kode, data[\"token\"]", "halaman.AKSI_BUAT + \"mini\", data[\"token\"]"),
     ], TES_MURID, _TOKEN_KODE),
     ("satu_tagihan_lintas_paket_dilepas", MURID, [
-        ("        if paket.kode != kode and store.tagihan_terbuka(kon, akun_id, siswa_id, paket.kode, kini) is not None:",
-         "        if False:"),
+        ("store.buat_tagihan(kon, akun_id, siswa_id, kode, kini, tolak_paket_lain_terbuka=True)",
+         "store.buat_tagihan(kon, akun_id, siswa_id, kode, kini, tolak_paket_lain_terbuka=False)"),
     ], TES_MURID, _SATU_TAGIHAN),
     ("rekening_kosong_tetap_melayani_post", MURID, [
         ("    if _rekening() is None:  # gerbang pembayaran tertutup", "    if False:  # gerbang pembayaran tertutup"),

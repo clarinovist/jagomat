@@ -368,3 +368,21 @@ def test_antrean_urut_bukti_terlama_dan_hanya_yang_menunggu(kon_kelas):
     assert [(i.siswa_id, i.kode_paket) for i in antre] == [(1, "private"), (2, "mini")]
     assert all(isinstance(i, katalog.ItemAntrean) and i.total > 0 and i.bukti_terakhir for i in antre)
     assert antre[0].bukti_terakhir <= antre[1].bukti_terakhir
+
+
+# --- satu tagihan terbuka per anak lintas paket (opsi untuk jalur HTTP, atomik di transaksi yang sama) ----------
+
+def test_opsi_tolak_paket_lain_terbuka_menolak_paket_kedua_dan_idempoten_untuk_paket_sama(kon_kelas):
+    pertama = tagih(kon_kelas, 1, "mini")
+    with pytest.raises(k.KelasKonflik):
+        kelas_store.buat_tagihan(kon_kelas, AKUN_A, 1, "private", KINI, acak=lambda bebas: bebas[0],
+                                 tolak_paket_lain_terbuka=True)
+    assert kelas_store.tagihan_terbuka(kon_kelas, AKUN_A, 1, "private", KINI) is None
+    ulang = kelas_store.buat_tagihan(kon_kelas, AKUN_A, 1, "mini", KINI, acak=lambda bebas: bebas[0],
+                                     tolak_paket_lain_terbuka=True)
+    assert ulang.order_id == pertama.order_id
+
+
+def test_tanpa_opsi_paket_lain_tetap_boleh_terbuka_bersamaan(kon_kelas):
+    tagih(kon_kelas, 1, "mini")
+    assert tagih(kon_kelas, 1, "private").kode_paket == "private"

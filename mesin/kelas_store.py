@@ -174,13 +174,15 @@ def _tulis_order(kon, akun_id, siswa_id, kode_paket, rincian, deposit_order, kod
     return order_id
 
 
-def buat_tagihan(kon, akun_id, siswa_id, kode_paket, sekarang, *, acak=None) -> katalog.TagihanKelas:
+def buat_tagihan(kon, akun_id, siswa_id, kode_paket, sekarang, *, acak=None,
+                 tolak_paket_lain_terbuka=False) -> katalog.TagihanKelas:
     """Order + tagihan transfer paket untuk anak `siswa_id` atas nama `akun_id` (atomik, idempoten per paket terbuka).
 
     Nominal dihitung server: katalog + deposit Peta aktif + status anak kedua (`kelas_rincian`); tidak ada angka dari
     pemanggil. Paket asing -> PesananDataTidakSah. Anak yang sudah punya order atas nama akun lain ->
     PesananTidakDitemukan. Sudah ada tagihan terbuka untuk paket itu: dikembalikan apa adanya. Kode unik dari
-    `secrets` (atau `acak(bebas)` suntikan tes); habis -> KodeUnikHabis.
+    `secrets` (atau `acak(bebas)` suntikan tes); habis -> KodeUnikHabis. `tolak_paket_lain_terbuka` (jalur HTTP): bila
+    paket LAIN masih terbuka untuk anak ini, KelasKonflik di transaksi yang sama (tidak ada balapan dua tab).
     """
     d.periksa_koneksi(kon)
     d.periksa_akun_id(akun_id)
@@ -193,6 +195,8 @@ def buat_tagihan(kon, akun_id, siswa_id, kode_paket, sekarang, *, acak=None) -> 
         ada = ks.order_terbuka(kon, akun_id, siswa_id, paket, kini)
         if ada is not None:
             return _tagihan_kelas(kon, *ada)
+        if tolak_paket_lain_terbuka and any(True for _ in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini)):
+            raise k.KelasKonflik("tagihan paket lain masih terbuka")
         rincian, deposit_order = kelas_rincian.rincian_untuk(kon, akun_id, siswa_id, paket, kini)
         kode = _alokasi_kode(kon, rincian.nominal, kini, pilih)
         order_id = _tulis_order(kon, akun_id, siswa_id, paket, rincian, deposit_order, kode, kini)
