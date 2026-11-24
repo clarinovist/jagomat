@@ -93,16 +93,16 @@ def test_belum_mulai_punya_tautan_lanjut_ke_beranda_anak(server, gerbang_hidup):
     anak = Anak(server, "raka-ortu-e")
     kode, isi, _ = anak.get(RUTE_ORTU)
     assert kode == 200 and "belum dikerjakan" in isi
-    assert f'href="/murid">{TEKS_LANJUT}</a>' in isi
+    assert f'href="{halaman.RUTE_BERANDA_ANAK}">{TEKS_LANJUT}</a>' in isi
 
 
 # --- perbaikan tautan jalan keluar (render murni) ----------------------------------------
 
 @pytest.mark.parametrize("hasil", [HASIL_BELUM_MULAI, HASIL_BELUM_SELESAI])
-def test_blok_cek_belum_selesai_punya_satu_tautan_ke_beranda_anak(hasil):
+def test_blok_cek_belum_selesai_punya_satu_tautan_ke_kartu_cek_di_beranda(hasil):
     isi = halaman._blok_cek(hasil, "Anak Sintetis")
     assert isi.count(TEKS_LANJUT) == 1
-    assert 'href="/murid"' in isi and "ortu-tombol-st ortu-tombol-pinggir-st" in isi
+    assert 'href="/murid#judul-cek-murid"' in isi and "ortu-tombol-st ortu-tombol-pinggir-st" in isi
 
 
 def test_blok_cek_selesai_tanpa_tautan_lanjut():

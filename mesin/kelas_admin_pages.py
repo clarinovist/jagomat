@@ -32,7 +32,8 @@ AKSI_SETUJUI = "setujui_kelas"
 AKSI_TOLAK = "tolak_kelas"
 AKSI_KELUARGA = "tautkan_keluarga_kelas"
 COPY_ANTREAN_KOSONG = "Tidak ada bukti paket belajar yang menunggu verifikasi."
-COPY_KONFIRMASI_SETUJUI = "Setujui transfer ini? Paket langsung aktif dan keputusan tidak dapat dibatalkan."
+COPY_KONFIRMASI_SETUJUI = ("Setujui transfer ini? Paket aktif bila semua syaratnya terpenuhi (termasuk deposit Peta). "
+                          "Keputusan tidak dapat dibatalkan.")
 COPY_KONFIRMASI_TOLAK = ("Tolak bukti ini? Orang tua akan melihat bahwa bukti ditolak dan dapat mengunggah ulang "
                          "selama waktu pembayaran terbuka.")
 COPY_CATATAN_NOMINAL = ("Cocokkan nominal di mutasi rekening dengan angka di atas sampai tiga digit terakhir. Hanya "

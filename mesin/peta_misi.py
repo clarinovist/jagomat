@@ -14,7 +14,7 @@ from peta_teks import e
 HARI = ("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
 KUNCI_STIKER_CONTOH = "jagomat-contoh-peta-hari"
 KUNCI_STIKER = "jagomat-peta-hari"
-MINGGU_CEK_ULANG = "Cek ulang bersama Guru di kelas, lalu peta baru"
+MINGGU_CEK_ULANG = "Cek ulang bersama Guru, lalu peta baru"
 # Keputusan 20 poin 7 (21 Nov 2026): harga kelas tampil di akhir laporan. Angka kelas dari katalog Mini Class
 # (`paket_belajar_katalog`, keputusan Pemilik 24 Nov 2026), bukan tulis tangan di sini.
 COPY_LOKASI_KELAS = "Lokasi diumumkan setelah pendaftaran."
@@ -85,7 +85,7 @@ def _jalur(data) -> str:
     return (
         '<div class="peta-kartu-st"><div class="peta-kepala-kartu-st"><span class="peta-alis-st">Jalur latihan %d minggu</span>'
         '<p class="peta-bantuan-st">Ini urutan kegiatan, bukan janji hasil. Minggu 1–3 bisa Anda mulai sendiri; '
-        'cek ulang dengan soal baru di minggu ke-4 dikerjakan bersama Guru di kelas.</p></div>'
+        'cek ulang dengan soal baru di minggu ke-4 dikerjakan bersama Guru.</p></div>'
         '<ol class="peta-jalur-st">%s</ol></div>'
     ) % (len(langkah), "".join(butir))
 
@@ -102,8 +102,7 @@ def _program(cta_html: str) -> str:
         "Mulai dari fokus di laporan ini.",
         "Kelas kecil maksimal %d anak, %s, %d menit per pertemuan, dipandu Guru."
         % (mini.kuota, _LABEL_MODE[mini.mode], mini.menit),
-        "Cek ulang bersama Guru tiap 4 minggu, lalu peta baru.",
-        "Laporan perkembangan pada fokus yang dilatih.",
+        "%d pertemuan dalam sebulan, jadwal diatur tim." % mini.pertemuan,
     )
     harga = "%s per bulan, %d pertemuan." % (_rupiah(mini.harga), mini.pertemuan)
     return (

@@ -201,9 +201,11 @@ def test_satu_tombol_utama_dan_harga_kelas_tampil_di_akhir_laporan():
 
 
 def test_cek_ulang_bagian_kelas_dan_tidak_wajib_dengan_bingkai_baru():
-    # Keputusan 20 (R1): cek ulang minggu ke-4 ada di kelas; "tidak wajib" tetap jujur (Keputusan 15).
+    # Keputusan Pemilik 25 Nov 2026: kartu kelas TIDAK menjanjikan cek ulang/laporan
+    # perkembangan bulanan; "tidak wajib" tetap jujur (Keputusan 15).
     isi = _teks_tampak(_laporan())
-    assert "Cek ulang bersama Guru" in isi and "di kelas" in isi
+    assert "Cek ulang bersama Guru" in isi and "di kelas" not in isi
+    assert "Laporan perkembangan pada fokus" not in isi and "tiap 4 minggu" not in isi
     assert "Tidak wajib ikut kelas" in isi and "tetap milik Anda" in isi
     assert "berlatih sendiri" not in isi
     assert "Minggu 1–3 bisa Anda mulai sendiri" in isi

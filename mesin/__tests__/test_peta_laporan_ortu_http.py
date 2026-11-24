@@ -76,12 +76,13 @@ def test_terbit_dan_lunas_menampilkan_blok_lengkap(dunia):
     assert 'max="7"' in blok and 'value="2"' in blok
 
 
-def test_urutan_blok_setelah_hasil_cek_dan_sebelum_laporan_dan_pesanan(dunia):
+def test_urutan_blok_cek_pesanan_peta_laporan(dunia):
+    # Perbaikan 24 Nov 2026 memindahkan kartu pesanan Peta ke atas Peta/laporan; urutan ini yang dijaga.
     _lunas(dunia)
     _seed_cek(dunia, dunia.a, dunia.akun_a.id_akun, 72, "Cukup baik", ["Pecahan"], ["Pengukuran"])
     _peta(dunia, dunia.a)
     isi, _ = _halaman(dunia)
-    posisi = [isi.index(f'id="{x}"') for x in ("ortu-hasil-cek", "ortu-peta", "ortu-laporan", "ortu-pesanan")]
+    posisi = [isi.index(f'id="{x}"') for x in ("ortu-hasil-cek", "ortu-pesanan", "ortu-peta", "ortu-laporan")]
     assert posisi == sorted(posisi) and isi.count('id="ortu-peta"') == 1
 
 

@@ -89,7 +89,7 @@ COPY_PAKET_ISI = (
     "Rp49.000 jadi deposit: memotong tagihan bulan pertama bila Anda mendaftar kelas bersama Guru (berlaku 90 hari)",
 )
 COPY_TIDAK_WAJIB_KELAS = (
-    "Tidak wajib ikut kelas. Laporan ini tetap milik Anda. Cek ulang dan laporan kemajuan tiap 4 minggu ada di kelas."
+    "Tidak wajib ikut kelas. Laporan ini tetap milik Anda."
 )
 COPY_BATAS_JUDUL = "Biar harapannya pas"
 COPY_BATAS_HASIL = (
