@@ -566,6 +566,62 @@ def test_maskot_ringan():
     assert total < 80_000, f"total enam pose maskot {total}B terlalu berat"
 
 
+# ── sepuluh pose tambahan (v4, disetujui Pemilik 24 Nov 2026) ──
+
+POSE_V4 = (
+    "semangat", "menyemangati", "terkejut", "berhitung", "memeriksa", "istirahat",
+    "bingung", "menunggu", "mencari", "terkunci",
+)
+
+
+def test_pose_v4_daftar_tetap_dan_tidak_menimpa_v3():
+    assert brand.POSE_MASKOT_V4 == POSE_V4
+    assert not set(brand.POSE_MASKOT_V4) & set(brand.POSE_MASKOT)
+    for pose in POSE_V4:
+        assert f"/aset/maskot-{pose}-v4-240.png" in brand.maskot(pose)
+        assert f"/aset/maskot-{pose}-v4-96.png" in brand.maskot(pose, 96)
+    # pose v3 tetap memakai berkas v3
+    assert "/aset/maskot-menyapa-v3-240.png" in brand.maskot("menyapa")
+
+
+@pytest.mark.parametrize("pose", POSE_V4)
+@pytest.mark.parametrize("px", (96, 240))
+def test_pose_v4_aset_png_transparan_margin_utuh_dan_ringan(pose, px):
+    nama = f"maskot-{pose}-v4-{px}.png"
+    assert nama in brand.ASET, f"{nama} tidak di allow-list"
+    p = ROOT / "aset" / nama
+    data = p.read_bytes()
+    assert data[:8] == b"\x89PNG\r\n\x1a\n"
+    assert data[25] in (3, 6) and (data[25] != 3 or b"tRNS" in data)
+    assert len(data) < (15_000 if px == 240 else 5_000), f"{nama} {len(data)}B"
+    alpha = [[w[3] for w in baris] for baris in _piksel_maskot(pose, px, "v4")]
+    assert len(alpha) == px and len(alpha[0]) == px
+    assert not any(alpha[0] + alpha[-1]) and all(b[0] == b[-1] == 0 for b in alpha)
+    datar = [a for baris in alpha for a in baris]
+    assert datar.count(0) > px * px * 0.2
+    assert datar.count(255) > px * px * 0.2, "karakter tidak boleh ikut hilang"
+    assert any(0 < a < 255 for a in datar), "tepi harus punya antialias"
+
+
+def test_pose_v4_total_ringan():
+    total = sum(
+        (ROOT / "aset" / f"maskot-{pose}-v4-{px}.png").stat().st_size
+        for pose in POSE_V4 for px in (240, 96)
+    )
+    assert total < 130_000, f"total sepuluh pose v4 {total}B terlalu berat"
+
+
+def test_pose_v4_terlayani_lewat_rute_aset(server):
+    for pose in POSE_V4:
+        for px in (240, 96):
+            nama = f"maskot-{pose}-v4-{px}.png"
+            kode, isi, hdr = server.minta(f"/aset/{nama}", biner=True)
+            assert kode == 200, f"{nama} -> {kode}"
+            assert hdr["Content-Type"] == "image/png"
+            assert isi == (ROOT / "aset" / nama).read_bytes()
+            assert "immutable" in hdr["Cache-Control"]
+
+
 def test_maskot_helper_menolak_pose_dan_ukuran_asing():
     """Enam pose disetujui; nama/ukuran asing tetap ditolak sebelum render."""
     assert set(brand.POSE_MASKOT) == {

@@ -73,6 +73,17 @@ ASET.update({
     for pose in POSE_MASKOT for versi in ("v2", "v3") for px in (240, 96)
 })
 
+# Sepuluh pose tambahan (disetujui Pemilik 24 Nov 2026), satu gambar per pose, gaya sama
+# dengan v3. Berkas berversi v4; pose v3 tidak diganti. Pemakaian per layar menyusul.
+POSE_MASKOT_V4 = (
+    "semangat", "menyemangati", "terkejut", "berhitung", "memeriksa", "istirahat",
+    "bingung", "menunggu", "mencari", "terkunci",
+)
+ASET.update({
+    f"maskot-{pose}-v4-{px}.png": "image/png"
+    for pose in POSE_MASKOT_V4 for px in (240, 96)
+})
+
 # Ikon benda untuk adegan visual Matematika Awal; daftar namanya satu-satunya
 # di `adegan_awal_data.IKON_DIDUKUNG`. WebP RGBA 192x192, URL immutable bernama
 # versi; isi berkas tidak diganti.
@@ -251,11 +262,12 @@ def maskot(pose: str = "menyapa", px: int = 240, alt: str = "", kelas: str = "")
     px: 240 (sapaan/banner) atau 96 (inline kecil). Dua berkas terpisah,
     bukan satu besar yang di-scale CSS — halaman anak sering dibuka di HP.
     """
-    if pose not in POSE_MASKOT:
+    if pose not in POSE_MASKOT and pose not in POSE_MASKOT_V4:
         raise ValueError(f"pose maskot tidak dikenal: {pose!r}")
     if px not in (240, 96):
         raise ValueError(f"ukuran maskot tidak tersedia: {px}")
-    berkas_maskot = f"maskot-{pose}-v3-{px}.png"
+    versi = "v3" if pose in POSE_MASKOT else "v4"
+    berkas_maskot = f"maskot-{pose}-{versi}-{px}.png"
     atribut_kelas = f' class="{kelas}"' if kelas else ""
     return (
         f'<img src="/aset/{berkas_maskot}" alt="{_esc(alt)}"{atribut_kelas} '
