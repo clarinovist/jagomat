@@ -30,6 +30,7 @@ from typing import Dict, Optional
 import akses_harian
 import daftar_anak_gate
 import database
+import harian_beruntun
 import harian_latihan_store as hs
 import harian_pages as P
 import harian_rakit
@@ -174,7 +175,8 @@ def _get_soal(penangan, kon, siswa_id: int, sesi: hs.SesiRingkas, jalur_penuh: s
             return _alihkan(penangan, P.alamat_ringkasan(sesi.id))
         nomor = sesi.nomor_berikut
     soal, umpan = hs.muat_soal(kon, siswa_id, sesi.id, nomor)
-    penangan._kirim_privat(P.halaman_soal(sesi.id, sesi.tingkat, soal, umpan, sesi.terjawab))
+    beruntun = harian_beruntun.hitung(kon, sesi.id, nomor, umpan.benar) if umpan is not None else 1
+    penangan._kirim_privat(P.halaman_soal(sesi.id, sesi.tingkat, soal, umpan, sesi.terjawab, beruntun))
 
 
 def _get_ringkasan(penangan, kon, siswa_id: int, sesi: hs.SesiRingkas) -> None:

@@ -16,7 +16,7 @@ server (tidak pernah dari URL/form):
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 import json
 import secrets
 import sqlite3
@@ -88,7 +88,6 @@ class UmpanBalik:
     benar: bool
     kunci_indeks: int
     pembahasan: str
-    beruntun: int = 1  # jawaban berturut-turut (termasuk soal ini) dengan hasil benar/salah yang sama
 
 
 @dataclass(frozen=True)
@@ -249,20 +248,7 @@ def muat_soal(kon, siswa_id: int, sesi_id: int, nomor: int) -> Tuple[SoalAnak, O
         return soal, None
     kunci = kon.execute("SELECT kunci_indeks, pembahasan FROM harian_soal WHERE sesi_id = ? AND nomor = ?",
                         (sesi_id, nomor)).fetchone()
-    umpan = UmpanBalik(jawaban["pilihan"], bool(jawaban["benar"]), kunci["kunci_indeks"], kunci["pembahasan"])
-    return soal, replace(umpan, beruntun=_hitung_beruntun(kon, sesi_id, nomor, umpan.benar))
-
-
-def _hitung_beruntun(kon, sesi_id: int, nomor: int, benar: bool) -> int:
-    """Berapa jawaban terakhir (sampai soal `nomor`, dalam sesi ini) yang hasilnya sama dengan `benar`."""
-    baris = kon.execute("SELECT benar FROM harian_jawaban WHERE sesi_id = ? AND nomor <= ? ORDER BY nomor DESC",
-                        (sesi_id, nomor)).fetchall()
-    jumlah = 0
-    for b in baris:
-        if bool(b["benar"]) != benar:
-            break
-        jumlah += 1
-    return jumlah
+    return soal, UmpanBalik(jawaban["pilihan"], bool(jawaban["benar"]), kunci["kunci_indeks"], kunci["pembahasan"])
 
 
 def jawab(kon, siswa_id: int, sesi_id: int, nomor: int, huruf, sekarang: int) -> HasilJawab:

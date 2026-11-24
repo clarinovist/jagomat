@@ -332,6 +332,21 @@ def test_soal_belum_dijawab_tanpa_pembahasan_kunci_dan_markup_pilihan_seragam(se
     assert not re.search(r'class="hr-pilih (benar|salah)', hasil.isi)
 
 
+def test_umpan_balik_beruntun_memilih_pose_lewat_http(server):
+    sesi = _mulai(server)
+    for n in (1, 2, 3):
+        _jawab(server, sesi, n, _kunci_huruf(server, sesi, n))
+    tiga_betul = _get(server, "%s/sesi/%d?no=3" % (DASAR, sesi)).isi
+    assert "maskot-terkejut-v4-96.png" in tiga_betul and "Sudah 3 betul berturut-turut!" in tiga_betul
+    dua_betul = _get(server, "%s/sesi/%d?no=2" % (DASAR, sesi)).isi
+    assert "maskot-merayakan-v3-96.png" in dua_betul and "berturut-turut" not in dua_betul
+    for n in (4, 5):
+        kunci = _kunci_huruf(server, sesi, n)
+        _jawab(server, sesi, n, next(h for h in "ABCD" if h != kunci))
+    assert "maskot-memeriksa-v4-96.png" in _get(server, "%s/sesi/%d?no=4" % (DASAR, sesi)).isi
+    assert "maskot-menyemangati-v4-96.png" in _get(server, "%s/sesi/%d?no=5" % (DASAR, sesi)).isi
+
+
 def test_jawab_mengunci_lalu_halaman_menampilkan_benar_salah_dan_pembahasan(server):
     sesi = _mulai(server)
     kunci = _kunci_huruf(server, sesi, 1)

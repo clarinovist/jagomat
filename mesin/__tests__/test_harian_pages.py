@@ -189,8 +189,8 @@ def test_jatah_habis_tanpa_halaman_ortu_menyembunyikan_ajakan():
     (False, 1, "memeriksa-v4", "Yuk lihat caranya."), (False, 2, "menyemangati-v4", "Terus semangat"),
 ])
 def test_pose_umpan_balik_mengikuti_jawaban_beruntun(benar, beruntun, pose, kata):
-    umpan = hs.UmpanBalik(1, benar, 1 if benar else 0, "cara", beruntun)
-    html = _badan(P.halaman_soal(7, "t1", SOAL, umpan, 3))
+    umpan = hs.UmpanBalik(1, benar, 1 if benar else 0, "cara")
+    html = _badan(P.halaman_soal(7, "t1", SOAL, umpan, 3, beruntun))
     assert "maskot-%s-96.png" % pose in html and kata in html and _jumlah_maskot(html) == 1
 
 

@@ -195,15 +195,15 @@ AMBANG_BETUL_BERUNTUN = 3
 AMBANG_SALAH_BERUNTUN = 2
 
 
-def _banner_umpan(umpan: hs.UmpanBalik) -> str:
+def _banner_umpan(umpan: hs.UmpanBalik, beruntun: int = 1) -> str:
     """Satu-satunya maskot layar soal terjawab. Betul = hijau; belum tepat = hangat (bukan merah)."""
     if umpan.benar:
         huruf = hs.HURUF_PILIHAN[umpan.pilihan]
-        if umpan.beruntun >= AMBANG_BETUL_BERUNTUN:
-            teks = "Jawabanmu %s tepat. Sudah %d betul berturut-turut!" % (huruf, umpan.beruntun)
+        if beruntun >= AMBANG_BETUL_BERUNTUN:
+            teks = "Jawabanmu %s tepat. Sudah %d betul berturut-turut!" % (huruf, beruntun)
             return C.banner_umpan_balik(True, "Betul!", teks, pose="terkejut", level=2)
         return C.banner_umpan_balik(True, "Betul!", "Jawabanmu %s tepat. Hebat!" % huruf, level=2)
-    if umpan.beruntun >= AMBANG_SALAH_BERUNTUN:
+    if beruntun >= AMBANG_SALAH_BERUNTUN:
         return C.banner_umpan_balik(False, "Belum tepat, tidak apa-apa.", "Terus semangat, kamu pasti bisa. Yuk lihat caranya.",
                                     pose="menyemangati", level=2)
     return C.banner_umpan_balik(False, "Belum tepat, tidak apa-apa.", "Yuk lihat caranya.", pose="memeriksa", level=2)
@@ -220,7 +220,7 @@ def _cara_dan_lanjut(umpan: hs.UmpanBalik, nomor: int, jumlah: int, sesi_id: int
 
 
 def halaman_soal(sesi_id: int, tingkat_kode: str, soal: hs.SoalAnak, umpan: Optional[hs.UmpanBalik],
-                 terjawab: int) -> bytes:
+                 terjawab: int, beruntun: int = 1) -> bytes:
     """Satu soal. Tanpa `umpan`: form pilih-lalu-periksa tanpa kunci/pembahasan. Dengan `umpan`: terkunci + pembahasan."""
     penyajian = visual_renderer.render_pertanyaan(soal.penyajian, gaya="stitch", namespace="h%d" % soal.nomor)
     if umpan is None:
@@ -229,7 +229,7 @@ def halaman_soal(sesi_id: int, tingkat_kode: str, soal: hs.SoalAnak, umpan: Opti
                  f'{_opsi_belum_dijawab(soal.opsi)}'
                  '<div class="hr-aksi"><button type="submit" class="hr-tombol">Periksa jawabanku</button></div></form>')
     else:
-        bawah = (_banner_umpan(umpan) + _opsi_terkunci(soal.opsi, umpan)
+        bawah = (_banner_umpan(umpan, beruntun) + _opsi_terkunci(soal.opsi, umpan)
                  + _cara_dan_lanjut(umpan, soal.nomor, soal.jumlah, sesi_id))
     info = " · ".join(x for x in (_judul_tingkat(tingkat_kode), "Soal %d dari %d" % (soal.nomor, soal.jumlah)) if x)
     sudah = min(max(terjawab, 0), soal.jumlah)
