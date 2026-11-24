@@ -1,4 +1,4 @@
-"""CLI operator: pasang skema purna (`purna_*`: voucher, janji terbit, pilihan terlambat).
+"""CLI operator: pasang skema purna (`purna_*`: voucher/deposit, janji terbit).
 
 Tidak pernah dipanggil startup, GET, atau rilis otomatis; operator menjalankannya terhadap SALINAN
 terverifikasi dulu, baru DB live setelah hold dan backup (lihat `docs/production-release.md`):
@@ -11,7 +11,7 @@ memasang pesanan atau transfer dari sini (itu langkah rilis tersendiri, `pesanan
 Idempoten, tanpa seed, tanpa bump `user_version`.
 
 Tanggung jawab retensi: kebijakan retensi/penghapusan keluarga untuk `purna_*` mengikuti `pesanan_*`
-(`family_deletion` tidak menyentuh ledger keuangan, jadi voucher, janji terbit, dan pilihan terlambat
+(`family_deletion` tidak menyentuh ledger keuangan, jadi voucher dan janji terbit
 ikut tetap sebagai bukti transaksi). Keputusan finalnya milik Pemilik (`docs/spec.md:315-323`); modul ini tidak menetapkan atau mengubah kebijakan itu.
 """
 from __future__ import annotations
@@ -69,7 +69,7 @@ def migrasikan(path: Path) -> None:
 
 def main(argv=None) -> int:
     """Migrator operator eksplisit; mengembalikan 0 bila sukses, 2 bila ditolak (tanpa traceback)."""
-    parser = argparse.ArgumentParser(description="Pasang schema purna (voucher, janji terbit, pilihan terlambat)")
+    parser = argparse.ArgumentParser(description="Pasang schema purna (voucher, janji terbit)")
     parser.add_argument("--database", required=True, help="Path admin-control.db yang sudah diverifikasi")
     args = parser.parse_args(argv)
     path = Path(args.database)

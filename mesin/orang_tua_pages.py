@@ -166,8 +166,8 @@ def _blok_laporan(laporan) -> str:
 def _blok_pesanan(status, cek_selesai: bool, purna=None) -> str:
     """Status Peta Kemampuan (lencana teks) + satu pintu ke halaman pembayaran akun anak (F2c).
 
-    `purna` (V4a, `KeadaanPurna` atau None): bila ada, SATU baris janji terbit / status laporan, tanpa tombol dan tanpa
-    entry point tambahan (voucher dan pilihan terlambat hanya di halaman pesanan).
+    `purna` (`KeadaanPurna` atau None): bila ada, SATU baris janji terbit / status laporan, tanpa tombol dan tanpa
+    entry point tambahan (kartu deposit hanya di halaman pesanan).
 
     Kalimat instruksi bayar (mis. "Pindai kode QRIS") tidak diulang di sini: jalur aktif (transfer/QRIS) hanya
     dijelaskan di halaman pembayaran. Tanpa cek selesai dan tanpa pesanan, kartu tidak tampil.

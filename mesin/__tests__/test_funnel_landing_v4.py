@@ -80,12 +80,13 @@ def test_tanpa_kata_terlarang_di_teks_terlihat_dan_skrip(halaman):
 def test_harga_hanya_di_faq_dan_pembatalan_15_soal(halaman):
     utama = _utama(halaman)
     faq = utama.split('id="judul-faq"', 1)[1]
-    assert utama.count("Rp49.000") == 1 and "Rp49.000" in faq
+    assert utama.count("Rp49.000") == faq.count("Rp49.000") == 2      # harga sekali bayar + deposit, keduanya di FAQ
     assert "tidak dapat dikembalikan" in faq
-    assert "3×24 jam" in faq and "uang kembali penuh" in faq
-    # DRAF 5 (24 Nov 2026): voucher kelas bersama Guru 90 hari, janji 48 jam, pilihan di halaman pesanan.
-    assert "voucher kelas bersama Guru (berlaku 90 hari)" in faq and "48 jam" in faq
-    assert "halaman pesanan" in faq and "program belajar" not in faq
+    # DRAF 5 (24 Nov 2026, deposit): deposit memotong tagihan kelas 90 hari, janji 48 jam, hubungi tim bila terlambat.
+    assert "deposit yang memotong tagihan kelas bersama Guru (berlaku 90 hari)" in faq and "48 jam" in faq
+    assert "Tidak ada uang kembali otomatis" in faq and "hubungi tim lewat WhatsApp" in faq
+    for lama in ("3×24 jam", "uang kembali penuh", "voucher", "memilih menunggu", "halaman pesanan", "program belajar"):
+        assert lama not in faq, lama
     assert "15 soal" in faq
     assert "25 menit" not in halaman
     assert "cek-tiket-st" not in utama

@@ -29,7 +29,7 @@ from http_test_kit import SANDI_GURU, SANDI_MURID  # noqa: E402
 from pesanan_http_kit import ProviderPalsu, WAKTU_AWAL, bayar, jam, keadaan_ledger, keluarga, ledger, server, tertutup  # noqa: E402,F401
 from pesanan_transfer_http_kit import transfer  # noqa: E402,F401
 from purna_http_kit import (  # noqa: E402,F401
-    bayar_purna, jadikan_ditahan, kosong, lunas, lunas_transfer, pilih_uang_kembali, potret_efek, transfer_purna,
+    bayar_purna, jadikan_ditahan, kosong, lunas, lunas_transfer, potret_efek, transfer_purna,
 )
 
 AKUN_GURU = ("guru", SANDI_GURU)
@@ -132,15 +132,6 @@ def test_voucher_kedaluwarsa_409_tanpa_efek_dan_form_hilang(lunas, jam):
     sebelum = potret_efek()
     assert kirim_aksi(server, admin, VOUCHER, oid)[0] == 409
     assert potret_efek() == sebelum
-
-
-def test_voucher_keluarga_minta_uang_kembali_409_tanpa_efek(lunas, jam):
-    server, admin, oid = lunas
-    jam.maju_jam(JAM_LEWAT_BATAS)
-    pilih_uang_kembali(oid, jam())
-    sebelum = potret_efek()
-    assert kirim_aksi(server, admin, VOUCHER, oid)[0] == 409
-    assert potret_efek() == sebelum and sebelum["purna_voucher_pakai"] == []
 
 
 # --- terbit: sukses, replay, konflik ---------------------------------------------------------
@@ -412,18 +403,15 @@ def test_form_refund_tersembunyi_sesudah_voucher_dipakai_dengan_catatan_penggant
     assert "Voucher sudah dipakai; refund tidak tersedia." in isi
 
 
-def test_peringatan_minta_uang_kembali_dekat_form_refund_dan_status_terlambat(lunas, jam):
+def test_detail_terlambat_menampilkan_status_tanpa_peringatan_atau_pilihan_keluarga_dan_aksi_tetap_tersedia(lunas, jam):
     server, admin, oid = lunas
     jam.maju_jam(JAM_LEWAT_BATAS)
     isi = _detail(server, admin, oid)
-    assert "Terlambat sejak" in isi and "Keluarga meminta uang kembali" not in isi
-    pilih_uang_kembali(oid, jam())
-    isi = _detail(server, admin, oid)
-    assert "Keluarga meminta uang kembali (laporan terlambat)" in isi and "Minta uang kembali" in isi
-    assert isi.index("Keluarga meminta uang kembali") < isi.index(dui.COPY_RINGKAS_REFUND)
-    assert REFUND in form_order(isi) and VOUCHER not in form_order(isi)
+    assert "Terlambat sejak" in isi
+    for lama in ("Keluarga meminta uang kembali", "Minta uang kembali", "Pilihan keluarga"):
+        assert lama not in isi
+    assert {REFUND, VOUCHER, TERBIT} <= set(form_order(isi))           # aksi manual admin tidak berubah
     assert kirim_dari_detail(server, admin, REFUND, oid, ganti={"catatan_kode": "kebijakan"})[0] == 303
-    assert "Keluarga meminta uang kembali" not in _detail(server, admin, oid)
 
 
 def test_sesi_basic_baca_saja_kartu_purna_tampil_tanpa_form(lunas):
@@ -452,8 +440,6 @@ def test_daftar_kolom_laporan_semua_keadaan(lunas, jam):
     assert re.fullmatch(r"Janji 20 Nov 2026, \d\d\.00 WIB", _sel_laporan(daftar()))
     jam.maju_jam(JAM_LEWAT_BATAS)
     assert _sel_laporan(daftar()) == "Terlambat"
-    pilih_uang_kembali(oid, jam())
-    assert _sel_laporan(daftar()) == "Minta uang kembali"
     assert kirim_aksi(server, admin, REFUND, oid)[0] == 303
     assert _sel_laporan(daftar()) == "—"                              # direfund tanpa terbit: tidak ada janji lagi
 
@@ -518,14 +504,12 @@ def test_daftar_kolom_laporan_order_ditahan_perlu_diperiksa(lunas, jam):
     assert _sel_laporan(minta_admin(server, HALAMAN, admin)[1]) == "Perlu diperiksa"
 
 
-# --- L-1: terbit tertutup sesudah keluarga minta uang kembali -------------------------------------------
+# --- terbit tetap tersedia walau laporan terlambat ---------------------------------------------------
 
-def test_terbit_sesudah_keluarga_minta_uang_kembali_409_tanpa_efek_dan_form_hilang(lunas, jam):
+def test_terbit_tetap_tersedia_dan_dicatat_walau_laporan_terlambat(lunas, jam):
     server, admin, oid = lunas
     jam.maju_jam(JAM_LEWAT_BATAS)
-    pilih_uang_kembali(oid, jam())
-    isi = _detail(server, admin, oid)
-    assert TERBIT not in form_order(isi) and REFUND in form_order(isi)
-    sebelum = potret_efek()
-    assert kirim_aksi(server, admin, TERBIT, oid)[0] == 409
-    assert potret_efek() == sebelum and sebelum["purna_laporan_terbit"] == []
+    assert TERBIT in form_order(_detail(server, admin, oid))
+    assert kirim_aksi(server, admin, TERBIT, oid)[0] == 303
+    assert len(potret_efek()["purna_laporan_terbit"]) == 1
+    assert TERBIT not in form_order(_detail(server, admin, oid))

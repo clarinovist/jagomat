@@ -44,7 +44,7 @@ def test_db_dengan_purna_utuh_terbuka_baca_dan_tulis(tmp_path):
 @pytest.mark.parametrize("rusak", [
     "DROP TRIGGER purna_voucher_pakai_tolak_update",
     "DROP TRIGGER purna_laporan_terbit_lunas",
-    "DROP TRIGGER purna_pilihan_terlambat_tolak_replace",
+    "DROP TRIGGER purna_voucher_pakai_refund",
 ])
 def test_purna_dengan_trigger_hilang_ditolak(tmp_path, rusak):
     path = siapkan_db_transfer(tmp_path)

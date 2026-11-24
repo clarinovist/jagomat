@@ -58,9 +58,9 @@ def sakelar_hidup(monkeypatch, tmp_path):
     monkeypatch.setenv("DAFTAR_AKUN_ANAK", "1")
 
 
-# Keadaan purna sintetis (order lunas yang sudah terlambat dan belum memilih) untuk tes renderer kartu voucher.
+# Keadaan purna sintetis (order lunas yang sudah terlambat dan belum terbit) untuk tes renderer kartu deposit.
 KEADAAN_TERLAMBAT = purna.KeadaanPurna(
     lunas=True, direfund=False, waktu_lunas="2026-11-18T10:00:00", kode="JGV-ABCDEF123456",
     voucher=purna.VOUCHER_AKTIF, berlaku_hingga="2027-02-16T10:00:00", janji_terbit="2026-11-20T10:00:00",
-    batas_pilihan="2026-11-23T10:00:00", terbit=None, terlambat=True, pilihan=None, bisa_pilih=True, dipakai=False,
+    batas_pilihan="2026-11-23T10:00:00", terbit=None, terlambat=True, dipakai=False,
     ditahan=False)

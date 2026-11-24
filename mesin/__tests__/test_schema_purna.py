@@ -23,7 +23,7 @@ from pesanan_kit import SEKARANG, buat, hitung, operasi, siapkan_db, terapkan
 from transfer_kit import ADMIN, menunggu, siapkan_db_transfer
 
 WAKTU_SETUJU = "2026-11-18T12:00:00"
-TABEL_PURNA = ("purna_voucher_pakai", "purna_pilihan_terlambat", "purna_laporan_terbit")
+TABEL_PURNA = ("purna_voucher_pakai", "purna_laporan_terbit")
 TERBIT_SAH = "2026-11-20T10:00:00"   # sesudah waktu lunas fixture (QRIS 18 Nov 10:00, transfer 18 Nov 12:00)
 
 
@@ -100,16 +100,11 @@ def refund(kon, order_id, n):
 
 
 SQL_PAKAI = "INSERT INTO purna_voucher_pakai VALUES(?,?,?,?,?)"
-SQL_PILIH = "INSERT INTO purna_pilihan_terlambat VALUES(?,?,?)"
 SQL_TERBIT = "INSERT INTO purna_laporan_terbit VALUES(?,?,?,?)"
 
 
 def pakai(order_id, n=1, *, pelaku=ADMIN, catatan="kelas", dibuat=SEKARANG, operasi_id=None):
     return (operasi_id or operasi(n), order_id, pelaku, catatan, dibuat)
-
-
-def pilih(order_id, pilihan="menunggu", dibuat=SEKARANG):
-    return (order_id, pilihan, dibuat)
 
 
 def terbit(order_id, *, waktu=TERBIT_SAH, pelaku=ADMIN, dibuat=None):
@@ -132,20 +127,6 @@ def skenario_delete_voucher(kon):
     assert hitung(kon, "purna_voucher_pakai") == 1
 
 
-def skenario_update_pilihan(kon):
-    oid = order_qris_lunas(kon, 1)
-    harus_lolos(kon, SQL_PILIH, pilih(oid))
-    harus_abort(kon, "UPDATE purna_pilihan_terlambat SET pilihan='uang_kembali'", (), "immutable")
-    assert kon.execute("SELECT pilihan FROM purna_pilihan_terlambat").fetchone()[0] == "menunggu"
-
-
-def skenario_delete_pilihan(kon):
-    oid = order_qris_lunas(kon, 1)
-    harus_lolos(kon, SQL_PILIH, pilih(oid))
-    harus_abort(kon, "DELETE FROM purna_pilihan_terlambat", (), "immutable")
-    assert hitung(kon, "purna_pilihan_terlambat") == 1
-
-
 def skenario_replace_voucher(kon):
     o1, o2 = order_qris_lunas(kon, 1), order_qris_lunas(kon, 2)
     harus_lolos(kon, SQL_PAKAI, pakai(o1, 1))
@@ -157,28 +138,6 @@ def skenario_replace_voucher(kon):
                 pakai(o1, 2, catatan="lainnya"), "duplikat")
     isi = kon.execute("SELECT operasi_id,order_id,catatan_kode FROM purna_voucher_pakai").fetchall()
     assert [tuple(r) for r in isi] == [(operasi(1), o1, "kelas")]
-
-
-def skenario_replace_pilihan(kon):
-    oid = order_qris_lunas(kon, 1)
-    harus_lolos(kon, SQL_PILIH, pilih(oid, "menunggu"))
-    harus_abort(kon, "INSERT OR REPLACE INTO purna_pilihan_terlambat VALUES(?,?,?)",
-                pilih(oid, "menunggu", "2026-11-18T11:00:00"), "duplikat")
-    isi = kon.execute("SELECT pilihan,dibuat FROM purna_pilihan_terlambat").fetchall()
-    assert [tuple(r) for r in isi] == [("menunggu", SEKARANG)]
-
-
-def skenario_pilihan_monoton(kon):
-    """menunggu boleh disusul uang_kembali (final); menunggu sesudahnya dan duplikat ditolak."""
-    oid = order_qris_lunas(kon, 1)
-    harus_lolos(kon, SQL_PILIH, pilih(oid, "menunggu"))
-    harus_lolos(kon, SQL_PILIH, pilih(oid, "uang_kembali"))
-    harus_abort(kon, SQL_PILIH, pilih(oid, "menunggu", "2026-11-18T11:00:00"),
-                "pilihan terlambat ditolak: sudah memilih uang kembali")
-    harus_abort(kon, "INSERT OR REPLACE INTO purna_pilihan_terlambat VALUES(?,?,?)",
-                pilih(oid, "uang_kembali", "2026-11-18T11:00:00"), "duplikat")
-    isi = kon.execute("SELECT pilihan FROM purna_pilihan_terlambat ORDER BY rowid").fetchall()
-    assert [r[0] for r in isi] == ["menunggu", "uang_kembali"]
 
 
 def skenario_update_laporan(kon):
@@ -238,14 +197,6 @@ def skenario_lunas_voucher(kon):
     assert hitung(kon, "purna_voucher_pakai") == 0
 
 
-def skenario_lunas_pilihan(kon):
-    belum = order_belum_lunas(kon, 1)
-    diperiksa = order_receipt_perlu_diperiksa(kon, 2)
-    for oid in (belum, diperiksa):
-        harus_abort(kon, SQL_PILIH, pilih(oid), "pilihan terlambat hanya untuk order lunas")
-    assert hitung(kon, "purna_pilihan_terlambat") == 0
-
-
 def _order_direfund(kon):
     o_qris = order_qris_lunas(kon, 1)
     o_transfer = order_transfer_lunas(kon, 2)
@@ -261,49 +212,20 @@ def skenario_refund_voucher(kon):
     assert hitung(kon, "purna_voucher_pakai") == 0
 
 
-def skenario_refund_pilihan(kon):
-    for oid in _order_direfund(kon):
-        harus_abort(kon, SQL_PILIH, pilih(oid), "pilihan terlambat ditolak: order sudah direfund")
-    assert hitung(kon, "purna_pilihan_terlambat") == 0
-
-
-def skenario_voucher_dipakai_menolak_pilihan(kon):
-    oid = order_qris_lunas(kon, 1)
-    harus_lolos(kon, SQL_PAKAI, pakai(oid))
-    for pilihan in ("menunggu", "uang_kembali"):
-        harus_abort(kon, SQL_PILIH, pilih(oid, pilihan),
-                    "pilihan terlambat ditolak: voucher order sudah dipakai")
-    assert hitung(kon, "purna_pilihan_terlambat") == 0
-
-
-def skenario_uang_kembali_menolak_voucher(kon):
-    oid = order_transfer_lunas(kon, 1)
-    harus_lolos(kon, SQL_PILIH, pilih(oid, "uang_kembali"))
-    harus_abort(kon, SQL_PAKAI, pakai(oid), "voucher purna ditolak: order sudah memilih uang kembali")
-    assert hitung(kon, "purna_voucher_pakai") == 0
-
-
 def skenario_jalur_sah(kon):
-    """Kasus yang HARUS lolos: QRIS-lunas dan transfer-lunas; pilihan 'menunggu' tidak menghalangi voucher."""
+    """Kasus yang HARUS lolos: order QRIS-lunas dan transfer-lunas untuk voucher dan laporan terbit."""
     o_qris, o_transfer = order_qris_lunas(kon, 1), order_transfer_lunas(kon, 2)
-    o_menunggu, o_kembali = order_qris_lunas(kon, 3), order_transfer_lunas(kon, 4)
     harus_lolos(kon, SQL_PAKAI, pakai(o_qris, 1))
     harus_lolos(kon, SQL_PAKAI, pakai(o_transfer, 2, catatan="lainnya"))
-    harus_lolos(kon, SQL_PILIH, pilih(o_menunggu, "menunggu"))
-    harus_lolos(kon, SQL_PAKAI, pakai(o_menunggu, 3))
-    harus_lolos(kon, SQL_PILIH, pilih(o_kembali, "uang_kembali"))
-    assert hitung(kon, "purna_voucher_pakai") == 3 and hitung(kon, "purna_pilihan_terlambat") == 2
+    assert hitung(kon, "purna_voucher_pakai") == 2
     harus_lolos(kon, SQL_TERBIT, terbit(o_qris))
     harus_lolos(kon, SQL_TERBIT, terbit(o_transfer))
     assert hitung(kon, "purna_laporan_terbit") == 2
 
 
 SKENARIO = {fn.__name__: fn for fn in (
-    skenario_update_voucher, skenario_delete_voucher, skenario_update_pilihan,
-    skenario_delete_pilihan, skenario_replace_voucher, skenario_replace_pilihan,
-    skenario_lunas_voucher, skenario_lunas_pilihan, skenario_refund_voucher,
-    skenario_refund_pilihan, skenario_voucher_dipakai_menolak_pilihan,
-    skenario_uang_kembali_menolak_voucher, skenario_jalur_sah, skenario_pilihan_monoton,
+    skenario_update_voucher, skenario_delete_voucher, skenario_replace_voucher,
+    skenario_lunas_voucher, skenario_refund_voucher, skenario_jalur_sah,
     skenario_update_laporan, skenario_delete_laporan, skenario_replace_laporan,
     skenario_lunas_laporan, skenario_refund_laporan, skenario_laporan_sebelum_lunas)}
 
@@ -329,7 +251,26 @@ def db(tmp_path):
 def test_konstanta_publik():
     assert schema_purna.TABEL == TABEL_PURNA
     assert schema_purna.CATATAN_PAKAI == ("kelas", "lainnya")
-    assert schema_purna.PILIHAN_TERLAMBAT == ("menunggu", "uang_kembali")
+    assert not hasattr(schema_purna, "PILIHAN_TERLAMBAT")
+
+
+def test_skema_tanpa_tabel_pilihan_terlambat(db):
+    with contextlib.closing(sqlite3.connect(db)) as kon:
+        objek = {r[0] for r in kon.execute("SELECT name FROM sqlite_master WHERE name GLOB 'purna_*'")}
+    assert not any("pilihan" in nama or "uang_kembali" in nama for nama in objek)
+    assert "pilihan" not in schema_purna.DDL and "uang_kembali" not in schema_purna.DDL
+    with contextlib.closing(sqlite3.connect(db)) as kon:
+        tabel = {r[0] for r in kon.execute("SELECT name FROM sqlite_master WHERE type='table' AND name GLOB 'purna_*'")}
+    assert tabel == set(TABEL_PURNA)
+
+
+def test_db_berisi_tabel_pilihan_lama_ditolak_validasi(db):
+    # Skema lama belum pernah dirilis; DB yang masih memuat tabel pilihan dianggap berbeda (tanpa migrasi turun).
+    with contextlib.closing(sqlite3.connect(db)) as kon:
+        kon.execute("CREATE TABLE purna_pilihan_terlambat (order_id TEXT, pilihan TEXT, dibuat TEXT)")
+        kon.commit()
+        with pytest.raises(ValueError):
+            schema_purna.validasi(kon)
 
 
 def test_absen_sah_dan_tidak_dipasang_oleh_migrasi_pesanan_atau_transfer(tmp_path):
@@ -376,11 +317,9 @@ def test_migrasi_ditolak_bila_transfer_belum_terpasang(tmp_path):
 
 @pytest.mark.parametrize("rusak", [
     "DROP TRIGGER purna_voucher_pakai_tolak_update",
-    "DROP TRIGGER purna_pilihan_terlambat_tolak_replace",
     "DROP TRIGGER purna_voucher_pakai_lunas",
-    "DROP TRIGGER purna_pilihan_terlambat_voucher_dipakai",
-    "DROP TRIGGER purna_voucher_pakai_uang_kembali",
-    "DROP TRIGGER purna_pilihan_terlambat_menunggu_setelah_uang_kembali",
+    "DROP TRIGGER purna_voucher_pakai_refund",
+    "DROP TRIGGER purna_laporan_terbit_sebelum_lunas",
     "DROP TRIGGER purna_laporan_terbit_lunas",
     "DROP TRIGGER purna_laporan_terbit_tolak_replace",
 ])
@@ -401,9 +340,9 @@ def test_tabel_hilang_sebagian_ditolak(db):
     with contextlib.closing(sqlite3.connect(db)) as kon:
         for trg in [r[0] for r in kon.execute(
                 "SELECT name FROM sqlite_master WHERE type='trigger' "
-                "AND tbl_name='purna_pilihan_terlambat'")]:
+                "AND tbl_name='purna_laporan_terbit'")]:
             kon.execute("DROP TRIGGER %s" % trg)
-        kon.execute("DROP TABLE purna_pilihan_terlambat")
+        kon.execute("DROP TABLE purna_laporan_terbit")
         kon.commit()
     with pytest.raises(ValueError):
         with contextlib.closing(sqlite3.connect(db)) as kon:
@@ -464,7 +403,6 @@ def test_fk_ke_pesanan_order_restrict_dan_foreign_key_check_kosong(db):
     with pesanan.buka(db, tulis_data=True) as kon:
         oid, lain = order_qris_lunas(kon, 1), order_qris_lunas(kon, 2)
         kon.execute(SQL_PAKAI, pakai(oid))
-        kon.execute(SQL_PILIH, pilih(lain))
         kon.execute(SQL_TERBIT, terbit(lain))
         kon.commit()
         assert not kon.execute("PRAGMA foreign_key_check").fetchall()
@@ -472,7 +410,7 @@ def test_fk_ke_pesanan_order_restrict_dan_foreign_key_check_kosong(db):
             kon.execute("DELETE FROM pesanan_order WHERE order_id=?", (oid,))
         kon.rollback()
         with pytest.raises(sqlite3.IntegrityError):
-            kon.execute(SQL_PILIH, pilih("ord_" + "0" * 32))      # order tidak ada
+            kon.execute(SQL_PAKAI, pakai("ord_" + "0" * 32))      # order tidak ada
 
 
 @pytest.mark.parametrize("nilai", [
@@ -500,16 +438,6 @@ def test_check_kolom_laporan_terbit(db, nilai):
             kon.execute(SQL_TERBIT, terbit(oid, **nilai))
         kon.rollback()
         assert hitung(kon, "purna_laporan_terbit") == 0
-
-
-@pytest.mark.parametrize("nilai", [dict(pilihan="batal"), dict(pilihan=""), dict(dibuat="kemarin")])
-def test_check_kolom_pilihan_terlambat(db, nilai):
-    with pesanan.buka(db, tulis_data=True) as kon:
-        oid = order_qris_lunas(kon, 1)
-        with pytest.raises(sqlite3.IntegrityError):
-            kon.execute(SQL_PILIH, pilih(oid, **nilai))
-        kon.rollback()
-        assert hitung(kon, "purna_pilihan_terlambat") == 0
 
 
 # --- guard tingkat DB (skenario dijalankan pada DB hasil migrasikan) ---------------------------
@@ -544,7 +472,7 @@ _CABANG_BERULANG = {
     "pesanan_receipt WHERE order_id=NEW.order_id AND hasil='lunas'",
     "EXISTS(SELECT 1 FROM pesanan_refund WHERE order_id=NEW.order_id)",
     "EXISTS(SELECT 1 FROM transfer_refund WHERE order_id=NEW.order_id)",
-    "pilihan='uang_kembali'", "operasi_id=NEW.operasi_id",
+    "operasi_id=NEW.operasi_id",
 }
 
 
@@ -558,16 +486,8 @@ GUARD = (
     ("purna_voucher_pakai_tolak_update", "skenario_update_voucher"),
     ("purna_voucher_pakai_tolak_delete", "skenario_delete_voucher"),
     ("purna_voucher_pakai_tolak_replace", "skenario_replace_voucher"),
-    ("purna_pilihan_terlambat_tolak_update", "skenario_update_pilihan"),
-    ("purna_pilihan_terlambat_tolak_delete", "skenario_delete_pilihan"),
-    ("purna_pilihan_terlambat_tolak_replace", "skenario_replace_pilihan"),
     ("purna_voucher_pakai_lunas", "skenario_lunas_voucher"),
-    ("purna_pilihan_terlambat_lunas", "skenario_lunas_pilihan"),
     ("purna_voucher_pakai_refund", "skenario_refund_voucher"),
-    ("purna_pilihan_terlambat_refund", "skenario_refund_pilihan"),
-    ("purna_pilihan_terlambat_voucher_dipakai", "skenario_voucher_dipakai_menolak_pilihan"),
-    ("purna_voucher_pakai_uang_kembali", "skenario_uang_kembali_menolak_voucher"),
-    ("purna_pilihan_terlambat_menunggu_setelah_uang_kembali", "skenario_pilihan_monoton"),
     ("purna_laporan_terbit_tolak_update", "skenario_update_laporan"),
     ("purna_laporan_terbit_tolak_delete", "skenario_delete_laporan"),
     ("purna_laporan_terbit_tolak_replace", "skenario_replace_laporan"),
@@ -612,24 +532,12 @@ CABANG = (
     ("refund-tanpa-cabang-transfer-refund",
      ("EXISTS(SELECT 1 FROM transfer_refund WHERE order_id=NEW.order_id)", "0"),
      "skenario_refund_voucher"),
-    ("uang-kembali-terlalu-luas",
-     ("pilihan='uang_kembali'", "pilihan IS NOT NULL"),
-     "skenario_jalur_sah"),
-    ("uang-kembali-tanpa-filter-pilihan",
-     ("pilihan='uang_kembali'", "1"),
-     "skenario_jalur_sah"),
     ("replace-voucher-tanpa-kunci-operasi",
      ("operasi_id=NEW.operasi_id", "0"),
      "skenario_replace_voucher"),
     ("replace-voucher-tanpa-kunci-order",
      ("OR order_id=NEW.order_id)", "OR 0)"),
      "skenario_replace_voucher"),
-    ("replace-pilihan-tanpa-kunci-pilihan",
-     (" AND pilihan=NEW.pilihan)", ")"),
-     "skenario_pilihan_monoton"),
-    ("replace-pilihan-tanpa-kunci-order",
-     ("(order_id=NEW.order_id AND pilihan=NEW.pilihan)", "(0 AND pilihan=NEW.pilihan)"),
-     "skenario_replace_pilihan"),
     ("terbit-sama-dengan-waktu-lunas-jadi-ditolak",
      ("NEW.terbit < COALESCE", "NEW.terbit <= COALESCE"),
      "skenario_laporan_sebelum_lunas"),

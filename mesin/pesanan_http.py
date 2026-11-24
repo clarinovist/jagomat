@@ -54,7 +54,6 @@ import pesanan_transfer_gerbang as gerbang_transfer
 import pesanan_transfer_pages as halaman_transfer
 import pesanan_transfer_tampil
 import pesanan_voucher_baca
-import pesanan_voucher_pages
 from cek_http import _tidak_ada
 from kontak_http import _alihkan, _baca_form, _principal_guru
 from support_pages import halaman_pesan
@@ -68,7 +67,6 @@ RUTE_BUAT = halaman.RUTE_BUAT
 RUTE_GET = frozenset({RUTE_STATUS, RUTE_QR, RUTE_PESAN})
 RUTE_POST = frozenset({RUTE_PESAN, RUTE_PERIKSA, RUTE_ULANG, RUTE_BUAT})
 AKSI_PESAN = "pesan"
-AKSI_PILIH = "pilih"  # pilihan saat laporan terlambat (V4a); POST-nya dilayani `pesanan_pilih_http`
 AKSI_RUTE = {RUTE_PESAN: AKSI_PESAN, RUTE_PERIKSA: alur.AKSI_PERIKSA,
              RUTE_ULANG: alur.AKSI_ULANG, RUTE_BUAT: alur.AKSI_BUAT}
 KUNCI_FORM = frozenset({"token"})
@@ -312,19 +310,14 @@ def _belum_ada_pesanan(penangan, principal, anak) -> None:
         penangan._kirim_privat(halaman.halaman_belum_memesan(_ident(principal), token))
 
 
-def _data_voucher(penangan, principal, status):
-    """(keadaan purna, token pilih) untuk kartu voucher; (None, None) = tanpa kartu.
+def _data_voucher(principal, status):
+    """Keadaan purna untuk kartu deposit; None = tanpa kartu.
 
-    Hanya permukaan murid, order lunas, dan skema purna terpasang. Token pilih hanya dibuat bila tombolnya akan tampil.
+    Hanya permukaan murid, order lunas, dan skema purna terpasang.
     """
     if principal.peran != permukaan.PERAN_MURID:
-        return None, None
-    keadaan = pesanan_voucher_baca.keadaan_kartu(principal, status)
-    if keadaan is None:
-        return None, None
-    if not pesanan_voucher_pages.tombol_tampil(keadaan, permukaan.rute_untuk(principal)):
-        return keadaan, None
-    return keadaan, buat_token(principal, penangan._ambil_token(), AKSI_PILIH)
+        return None
+    return pesanan_voucher_baca.keadaan_kartu(principal, status)
 
 
 def _get_status(penangan, principal, runtime, rekening) -> None:
@@ -344,13 +337,13 @@ def _get_status(penangan, principal, runtime, rekening) -> None:
     aksi = _aksi_midtrans(tampil, runtime)
     token = None if aksi is None else buat_token(principal, penangan._ambil_token(), aksi)
     blok = "" if rekening is None else _blok_transfer(penangan, principal, rekening, runtime)
-    voucher, token_pilih = _data_voucher(penangan, principal, tampil.status)
+    voucher = _data_voucher(principal, tampil.status)
     penangan._kirim_privat(halaman.halaman_status(_ident(principal), {
         "status": tampil.status, "nama_anak": tampil.nama_anak, "qr": tampil.qr_url is not None,
         "aksi": aksi, "boleh_ulang": tampil.boleh_ulang,
         "belum_terperiksa": tampil.belum_terperiksa,
         "blok_transfer": blok, "qris": runtime is not None,
-        "purna": voucher, "token_pilih": token_pilih}, token))
+        "purna": voucher}, token))
 
 
 def _get_qr(penangan, principal, runtime) -> None:

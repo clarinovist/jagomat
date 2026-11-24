@@ -465,9 +465,9 @@ transfer langganan Latihan Harian (subfolder `harian/` dari `--folder`, tabel `h
 dicari lewat `--database-belajar`, lalu env `OSN_BERKAS_DB`, lalu `latihan.db` di samping admin-control.db, dan dilewati
 bila tidak ada. Tidak perlu cron baru.
 
-## Kandidat purna (voucher, janji terbit, pilihan terlambat) — urutan operator (belum dirilis, bukan snapshot)
+## Kandidat purna (voucher/deposit, janji terbit) — urutan operator (belum dirilis, bukan snapshot)
 
-Bagian ini bukan snapshot rilis. Skema `purna_*` (`schema_purna.py`: voucher dipakai, pilihan terlambat, laporan terbit) dan
+Bagian ini bukan snapshot rilis. Skema `purna_*` (`schema_purna.py`: voucher/deposit dipakai, laporan terbit; tanpa tabel pilihan pembeli) dan
 domain/admin-nya sudah ada di source, tetapi **BELUM DIJALANKAN di produksi; butuh izin push dan deploy terpasang
 terpisah**, dan tidak ada klaim sudah dirilis. Perintah operator tidak dijalankan startup, GET, atau rilis otomatis dan selalu
 mensyaratkan `--database` eksplisit; jalankan lebih dulu terhadap **salinan** terverifikasi. Store admin kandidat fail-closed:
@@ -501,7 +501,7 @@ akan menerimanya dan ledger refund bersifat append-only (tidak bisa dibatalkan).
 
 Catatan operasional "terlambat": status terlambat dan jam terbit bergantung pada admin mencatat laporan terbit
 segera setelah laporan dikirim, karena jam pencatatan = jam terbit. Pencatatan yang ditunda membuat order tampak
-terlambat dan membuka pilihan "uang kembali" bagi keluarga. Kartu Detail order menampilkan petunjuk "Catat segera
+terlambat (informasi untuk admin dan kalimat maaf di kartu pembeli; tidak membuka pilihan apa pun bagi keluarga). Kartu Detail order menampilkan petunjuk "Catat segera
 setelah laporan dikirim." tepat di atas form terbit.
 
 Ringkasan pin recovery baru (**BELUM DIJALANKAN; butuh izin push dan deploy terpisah**): kontrak kandidat bergeser karena

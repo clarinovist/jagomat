@@ -19,7 +19,7 @@ FORMS = {"voucher": TOKEN, "terbit": TOKEN, "refund": TOKEN, "periksa": TOKEN}
 def _purna(**ganti):
     dasar = {"terpasang": True, "lunas": True, "voucher": "aktif", "kode": "JGV-AAAAAAAAAAAA",
              "berlaku_hingga": "2027-02-16T10:00:00", "janji_terbit": "2026-11-20T10:00:00",
-             "batas_pilihan": "2026-11-23T10:00:00", "terbit": None, "terlambat": False, "pilihan": None,
+             "batas_pilihan": "2026-11-23T10:00:00", "terbit": None, "terlambat": False,
              "dipakai": False, "direfund": False, "ditahan": False}
     return {**dasar, **ganti}
 
@@ -38,8 +38,7 @@ def _detail(status="sudah_dibayar", **purna):
     ({"dipakai": True, "voucher": "dipakai"}, ("terbit",)),
     ({"terbit": "2026-11-18T12:00:00"}, ("refund", "voucher")),
     ({"voucher": "kedaluwarsa"}, ("refund", "terbit")),
-    ({"voucher": "batal", "pilihan": "uang_kembali"}, ("refund",)),
-    ({"pilihan": "menunggu"}, ("refund", "voucher", "terbit")),
+    ({"voucher": "batal", "direfund": True}, ("refund",)),
     ({"terpasang": False}, ("refund",)),
 ])
 def test_aksi_tersedia_order_lunas_menurut_keadaan_purna(ganti, harap):
@@ -51,10 +50,9 @@ def test_aksi_tersedia_order_ditahan_hanya_refund_tanpa_voucher_dan_terbit():
     assert ui.aksi_tersedia(item, False) == ("refund",)
 
 
-def test_aksi_tersedia_terbit_hanya_bila_tidak_ditahan_dan_bukan_uang_kembali():
+def test_aksi_tersedia_terbit_hanya_bila_tidak_ditahan():
     assert ui.AKSI_TERBIT in ui.aksi_tersedia(_detail(), False)
     assert ui.AKSI_TERBIT not in ui.aksi_tersedia(_detail(ditahan=True), False)
-    assert ui.AKSI_TERBIT not in ui.aksi_tersedia(_detail(pilihan="uang_kembali"), False)
 
 
 def test_aksi_tersedia_order_direfund_tanpa_voucher_dan_terbit():
@@ -78,14 +76,10 @@ def test_aksi_tersedia_item_tanpa_kunci_purna_dianggap_belum_terpasang():
     ({}, "Janji 20 Nov 2026, 17.00 WIB"),
     ({"terlambat": True}, "Terlambat"),
     ({"terbit": "2026-11-19T10:00:00"}, "Terbit"),
-    ({"terlambat": True, "pilihan": "menunggu"}, "Terlambat"),
-    ({"terlambat": True, "pilihan": "uang_kembali"}, "Minta uang kembali"),
-    ({"pilihan": "uang_kembali", "terlambat": True, "direfund": True}, "—"),
     ({"direfund": True, "terlambat": True}, "—"),
     ({"direfund": True, "terbit": "2026-11-19T10:00:00"}, "Terbit"),
     ({"ditahan": True}, "Perlu diperiksa"),
     ({"ditahan": True, "terlambat": True}, "Perlu diperiksa"),
-    ({"ditahan": True, "terlambat": True, "pilihan": "uang_kembali"}, "Minta uang kembali"),
 ])
 def test_teks_laporan_urutan_keutamaan(ganti, harap):
     assert ui.teks_laporan(_purna(**ganti)) == harap
@@ -161,10 +155,13 @@ def test_kartu_order_normal_tanpa_catatan_ditahan():
     assert dp.COPY_DITAHAN not in dp.halaman(_detail(), gerbang_terbuka=False, forms=FORMS)
 
 
-def test_form_terbit_tersembunyi_sesudah_keluarga_minta_uang_kembali_belum_direfund():
-    isi = dp.halaman(_detail(pilihan="uang_kembali", voucher="batal"), gerbang_terbuka=False, forms=FORMS)
-    assert 'action="/admin/pesanan/terbit"' not in isi
-    assert 'action="/admin/pesanan/refund"' in isi and dp.COPY_MINTA_UANG_KEMBALI in isi
+def test_kartu_terlambat_tetap_menawarkan_form_terbit_dan_refund_tanpa_peringatan_atau_pilihan_keluarga():
+    isi = dp.halaman(_detail(terlambat=True), gerbang_terbuka=False, forms=FORMS)
+    assert 'action="/admin/pesanan/terbit"' in isi and 'action="/admin/pesanan/refund"' in isi
+    for lama in ("Keluarga meminta uang kembali", "Minta uang kembali", "Pilihan keluarga"):
+        assert lama not in isi
+    assert not hasattr(dp, "COPY_PILIHAN") and not hasattr(dp, "COPY_MINTA_UANG_KEMBALI")
+    assert not hasattr(ui, "COPY_LAPORAN_MINTA_KEMBALI")
 
 
 def test_petunjuk_catat_segera_dekat_form_terbit_hanya_bila_form_tampil():

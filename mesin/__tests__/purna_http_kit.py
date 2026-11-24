@@ -70,12 +70,6 @@ def kosong(potret: dict) -> bool:
     return not any(potret.values())
 
 
-def pilih_uang_kembali(order_id: str, sekarang: str) -> None:
-    """Pembeli memilih uang kembali (lewat domain; HTTP pembeli = V4): menyiapkan keadaan untuk tes admin."""
-    with ledger() as kon:
-        purna.catat_pilihan(kon, order_id, purna.PILIHAN_UANG_KEMBALI, sekarang)
-
-
 def jadikan_ditahan(server, order_id: str, jam) -> None:
     """Order lunas dijadikan 'perlu_diperiksa' lewat ledger: jalur bayar kedua (order transfer + settlement QRIS) atau
     observasi refund penyedia (order QRIS). Tetap lunas dan belum direfund, jadi voucher-nya 'ditahan'."""

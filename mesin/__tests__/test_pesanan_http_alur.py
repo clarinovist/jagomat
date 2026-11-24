@@ -556,11 +556,12 @@ def test_ledger_belum_dimigrasikan_halaman_jujur_503_tanpa_efek(keluarga, monkey
     assert keluarga.provider.panggilan == []
 
 
-def test_copy_refund_selaras_keputusan_18_tanpa_refund_kecuali_terlambat():
+def test_copy_refund_selaras_keputusan_deposit_tanpa_uang_kembali_otomatis():
     rp = pesanan_pages.COPY_REFUND
-    assert "tidak dapat dikembalikan" in rp and "voucher" in rp
-    assert "3×24 jam" in rp and "menunggu" in rp and "uang kembali" in rp
+    assert "tidak dapat dikembalikan" in rp and "deposit" in rp
     assert "sebelum guru mulai meninjau" not in rp
-    # DRAF 5 (24 Nov 2026): voucher kelas bersama Guru 90 hari, janji 48 jam, pilihan di halaman pesanan.
-    assert "voucher kelas bersama Guru (berlaku 90 hari)" in rp and "48 jam" in rp
-    assert "halaman pesanan" in rp and "program belajar" not in rp and "WhatsApp" not in rp
+    # DRAF 5 (24 Nov 2026, deposit): memotong tagihan kelas bersama Guru 90 hari, janji 48 jam, hubungi tim bila terlambat.
+    assert "deposit yang otomatis memotong tagihan kelas bersama Guru (berlaku 90 hari)" in rp and "48 jam" in rp
+    assert "Tidak ada uang kembali otomatis" in rp and "hubungi tim lewat WhatsApp" in rp
+    for lama in ("voucher", "3×24", "memilih", "halaman pesanan", "program belajar"):
+        assert lama not in rp, lama

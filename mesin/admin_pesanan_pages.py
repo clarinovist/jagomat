@@ -73,7 +73,6 @@ COPY_DUA_JALUR = "Dibayar lewat dua jalur — cek refund"
 COPY_MENUNGGU_LAMA = "Menunggu > 72 jam"
 COPY_DETAIL = "Detail"
 COPY_LAPORAN_KOSONG = "—"
-COPY_LAPORAN_MINTA_KEMBALI = "Minta uang kembali"
 COPY_LAPORAN_TERLAMBAT = "Terlambat"
 COPY_LAPORAN_TERBIT = "Terbit"
 COPY_LAPORAN_DITAHAN = "Perlu diperiksa"
@@ -121,7 +120,7 @@ COPY_GALAT_ISIAN = "Isian pesanan tidak sah. Tidak ada yang diubah."
 COPY_GALAT_KONFLIK = (
     "Tindakan ini tidak bisa dilakukan pada keadaan pesanan sekarang, misalnya belum ada pembayaran tercatat, "
     "sudah ada catatan lain, sudah direfund, voucher sudah dipakai atau kedaluwarsa, pembayaran order masih "
-    "perlu diperiksa, keluarga sudah meminta uang kembali (untuk laporan terbit), atau fitur voucher belum "
+    "perlu diperiksa, atau fitur voucher belum "
     "dipasang. Tidak ada yang diubah. Muat ulang Detail order untuk melihat keadaan terbaru."
 )
 COPY_GALAT_LAYANAN = "Layanan pesanan belum bisa menyelesaikan tindakan ini. Tidak ada yang diubah; coba lagi nanti."
@@ -133,8 +132,8 @@ def aksi_tersedia(item: Mapping, gerbang_terbuka: bool) -> Tuple[str, ...]:
     Satu-satunya gerbang untuk tampilan form DAN penerbitan token Detail order. `item["purna"]` (whitelist
     `pesanan_admin_order.purna_ringkas`) bisa tidak ada pada item buatan tangan = purna belum terpasang.
     Refund tidak ditawarkan bila voucher sudah dipakai; penegakan sebenarnya tetap di domain. Form terbit hanya
-    untuk order lunas yang belum terbit, belum direfund, TIDAK ditahan (pembayaran perlu diperiksa), dan yang
-    keluarganya belum meminta uang kembali; form voucher hanya bila voucher 'aktif'.
+    untuk order lunas yang belum terbit, belum direfund, dan TIDAK ditahan (pembayaran perlu diperiksa); form voucher
+    hanya bila voucher 'aktif'.
     """
     status = item["status"]
     pur = item.get("purna") or {}
@@ -156,21 +155,18 @@ def _terbit_tersedia(pur: Mapping) -> bool:
             and bool(pur.get("lunas"))
             and pur.get("terbit") is None
             and not pur.get("direfund")
-            and not pur.get("ditahan")
-            and pur.get("pilihan") != purna.PILIHAN_UANG_KEMBALI)
+            and not pur.get("ditahan"))
 
 
 def teks_laporan(pur: Optional[Mapping]) -> str:
     """Ringkasan satu kata untuk kolom Laporan (teks polos, belum di-escape); tanpa purna terpasang = "—".
 
-    Urutan: minta uang kembali (belum direfund) > ditahan ("Perlu diperiksa") > terlambat > terbit > janji (lunas,
+    Urutan: direfund tanpa terbit ("—") > ditahan ("Perlu diperiksa") > terlambat > terbit > janji (lunas,
     belum terbit). Order yang sudah direfund dan belum terbit tidak punya janji lagi ("—"; status refund ada di
     kolom Status).
     """
     if not pur or not pur.get("terpasang"):
         return COPY_LAPORAN_KOSONG
-    if pur["pilihan"] == purna.PILIHAN_UANG_KEMBALI and not pur["direfund"]:
-        return COPY_LAPORAN_MINTA_KEMBALI
     if pur["direfund"] and pur["terbit"] is None:
         return COPY_LAPORAN_KOSONG
     if pur.get("ditahan"):

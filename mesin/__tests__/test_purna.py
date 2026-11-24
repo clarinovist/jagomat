@@ -17,7 +17,7 @@ from purna_kit import (PELAKU, QRIS_BATAS, QRIS_HINGGA, QRIS_JANJI, SEKARANG, TR
 
 POLA_WAKTU = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
 SESUDAH_JANJI = "2026-11-21T00:00:00"          # lewat janji (20 Nov 10:00), belum lewat batas
-SESUDAH_BATAS = "2026-11-23T10:00:01"          # satu detik lewat batas pilihan QRIS
+SESUDAH_BATAS = "2026-11-23T10:00:01"          # satu detik lewat batas terlambat QRIS
 
 
 def _geser(waktu, detik):
@@ -149,7 +149,7 @@ def test_keadaan_belum_lunas(kon):
     k = purna.keadaan(kon, order_belum_lunas(kon, 1), SEKARANG)
     assert (k.lunas, k.direfund, k.voucher) == (False, False, "belum_lunas")
     assert (k.waktu_lunas, k.berlaku_hingga, k.janji_terbit, k.batas_pilihan) == (None,) * 4
-    assert (k.terbit, k.pilihan, k.terlambat, k.bisa_pilih) == (None, None, False, False)
+    assert (k.terbit, k.terlambat, k.dipakai) == (None, False, False)
 
 
 def test_keadaan_qris_aktif_memuat_semua_turunan(kon):
@@ -159,7 +159,7 @@ def test_keadaan_qris_aktif_memuat_semua_turunan(kon):
     assert k.kode == purna.kode_voucher(oid)
     assert (k.waktu_lunas, k.janji_terbit, k.batas_pilihan, k.berlaku_hingga) == (
         SEKARANG, QRIS_JANJI, QRIS_BATAS, QRIS_HINGGA)
-    assert (k.terbit, k.pilihan, k.terlambat, k.bisa_pilih, k.dipakai) == (None, None, False, False, False)
+    assert (k.terbit, k.terlambat, k.dipakai) == (None, False, False)
 
 
 def test_keadaan_transfer_aktif(kon):
@@ -214,38 +214,33 @@ def test_berlaku_hingga_tepat_hari_voucher_kali_dua_puluh_empat_jam_dari_waktu_l
     assert k.berlaku_hingga == d.tambah_jam(SEKARANG, purna.HARI_VOUCHER * 24)
 
 
-def test_terlambat_tepat_di_batas_pilihan_bukan_terlambat_plus_satu_detik_terlambat(kon):
+def test_terlambat_tepat_di_batas_bukan_terlambat_plus_satu_detik_terlambat(kon):
     oid = order_qris_lunas(kon, 1)
     assert purna.keadaan(kon, oid, SESUDAH_JANJI).terlambat is False
     assert purna.keadaan(kon, oid, QRIS_BATAS).terlambat is False
     sesudah = purna.keadaan(kon, oid, SESUDAH_BATAS)
-    assert (sesudah.terlambat, sesudah.bisa_pilih, sesudah.voucher) == (True, True, "aktif")
+    assert (sesudah.terlambat, sesudah.voucher) == (True, "aktif")   # terlambat hanya informasi, tidak membatalkan deposit
 
 
-def test_batas_pilihan_tepat_janji_ditambah_toleransi(kon):
+def test_batas_terlambat_tepat_janji_ditambah_toleransi(kon):
     k = purna.keadaan(kon, order_qris_lunas(kon, 1), SEKARANG)
     assert k.batas_pilihan == d.tambah_jam(k.janji_terbit, purna.JAM_TOLERANSI_TERLAMBAT)
 
 
-def test_terbit_membuat_tidak_terlambat_dan_tidak_bisa_pilih(kon):
+def test_terbit_membuat_tidak_terlambat(kon):
     oid = order_qris_lunas(kon, 1)
     kon.execute("INSERT INTO purna_laporan_terbit VALUES(?,?,?,?)", (oid, QRIS_JANJI, PELAKU, QRIS_JANJI))
     kon.commit()
     k = purna.keadaan(kon, oid, SESUDAH_BATAS)
-    assert (k.terbit, k.terlambat, k.bisa_pilih) == (QRIS_JANJI, False, False)
+    assert (k.terbit, k.terlambat) == (QRIS_JANJI, False)
 
 
-def test_pilihan_efektif_dan_voucher_batal_bila_uang_kembali(kon):
-    oid = order_qris_lunas(kon, 1)
-    assert purna.keadaan(kon, oid, SESUDAH_BATAS).pilihan is None
-    kon.execute("INSERT INTO purna_pilihan_terlambat VALUES(?,?,?)", (oid, "menunggu", SESUDAH_BATAS))
-    kon.commit()
-    menunggu = purna.keadaan(kon, oid, SESUDAH_BATAS)
-    assert (menunggu.pilihan, menunggu.voucher) == ("menunggu", "aktif")
-    kon.execute("INSERT INTO purna_pilihan_terlambat VALUES(?,?,?)", (oid, "uang_kembali", SESUDAH_BATAS))
-    kon.commit()
-    final = purna.keadaan(kon, oid, SESUDAH_BATAS)
-    assert (final.pilihan, final.voucher) == ("uang_kembali", "batal")
+def test_keadaan_tidak_punya_lagi_pilihan_pembeli(kon):
+    k = purna.keadaan(kon, order_qris_lunas(kon, 1), SESUDAH_BATAS)
+    nama = {f.name for f in dataclasses.fields(k)}
+    assert not {"pilihan", "bisa_pilih"} & nama
+    assert not hasattr(purna, "catat_pilihan")
+    assert not hasattr(purna, "PILIHAN_UANG_KEMBALI")
 
 
 def _pakai_mentah(kon, oid, n=1):
@@ -268,36 +263,12 @@ def test_batal_didahulukan_dari_dipakai_dan_kedaluwarsa(kon):
     assert (k.voucher, k.direfund, k.dipakai) == ("batal", True, True)
 
 
-def test_dipakai_menutup_pilihan_meski_voucher_batal_menutupi_status(kon):
-    oid = order_qris_lunas(kon, 1)
-    _pakai_mentah(kon, oid)
-    refund_mentah(kon, oid)
-    assert purna.keadaan(kon, oid, SESUDAH_BATAS).bisa_pilih is False
-
-
-@pytest.mark.parametrize("kasus", ["direfund", "dipakai", "terbit", "belum_terlambat"])
-def test_bisa_pilih_mati_bila_salah_satu_syarat_gagal(kon, kasus):
-    oid = order_qris_lunas(kon, 1)
-    sekarang = SESUDAH_BATAS
-    if kasus == "direfund":
-        refund_mentah(kon, oid)
-    elif kasus == "dipakai":
-        _pakai_mentah(kon, oid)
-    elif kasus == "terbit":
-        kon.execute("INSERT INTO purna_laporan_terbit VALUES(?,?,?,?)", (oid, QRIS_JANJI, PELAKU, QRIS_JANJI))
-        kon.commit()
-    else:
-        sekarang = QRIS_BATAS
-    assert purna.keadaan(kon, oid, sekarang).bisa_pilih is False
-
-
 # --- purna belum terpasang -------------------------------------------------------------------
 
 def test_keadaan_netral_bila_purna_belum_terpasang(kon_tanpa_purna):
     oid = order_qris_lunas(kon_tanpa_purna, 1)
     k = purna.keadaan(kon_tanpa_purna, oid, SESUDAH_BATAS)
-    assert (k.lunas, k.voucher, k.terbit, k.pilihan, k.dipakai) == (True, "aktif", None, None, False)
-    assert k.bisa_pilih is False                  # tidak ada tabel untuk menulis pilihan
+    assert (k.lunas, k.voucher, k.terbit, k.dipakai) == (True, "aktif", None, False)
 
 
 def test_keadaan_aman_di_db_pesanan_saja(kon_pesanan_saja):

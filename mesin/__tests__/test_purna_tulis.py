@@ -1,4 +1,4 @@
-"""Domain purna (tulis): catat_pakai, catat_terbit, catat_pilihan. Data sintetis QRIS dan transfer."""
+"""Domain purna (tulis): catat_pakai dan catat_terbit. Data sintetis QRIS dan transfer."""
 import pytest
 
 import pesanan
@@ -8,8 +8,6 @@ from purna_kit import (PELAKU, QRIS_BATAS, QRIS_HINGGA, QRIS_JANJI, SEKARANG, TR
                        WAKTU_SETUJU, baris, db, hitung, kon, kon_pesanan_saja, kon_tanpa_purna, operasi,
                        order_belum_lunas, order_qris_lunas, order_transfer_lunas, refund_mentah)
 
-SESUDAH_BATAS = "2026-11-23T10:00:01"            # QRIS: lewat janji + toleransi
-SESUDAH_BATAS_TRANSFER = "2026-11-23T12:00:01"
 SESUDAH_HINGGA = "2027-02-16T10:00:00"           # QRIS: tepat batas kedaluwarsa
 SEBELUM_LUNAS = "2026-11-18T09:59:59"
 
@@ -91,20 +89,6 @@ def test_pakai_ditolak_bila_order_sudah_direfund_di_kedua_ledger(kon, buat_order
     with pytest.raises(d.PesananKonflik, match="dibatalkan"):
         pakai(kon, oid)
     assert baris(kon, "purna_voucher_pakai") == []
-
-
-def test_pakai_ditolak_bila_sudah_memilih_uang_kembali(kon):
-    oid = order_qris_lunas(kon, 1)
-    purna.catat_pilihan(kon, oid, "uang_kembali", SESUDAH_BATAS)
-    with pytest.raises(d.PesananKonflik, match="dibatalkan"):
-        pakai(kon, oid, sekarang=SESUDAH_BATAS)
-    assert baris(kon, "purna_voucher_pakai") == []
-
-
-def test_pakai_menunggu_belum_membatalkan_voucher(kon):
-    oid = order_qris_lunas(kon, 1)
-    purna.catat_pilihan(kon, oid, "menunggu", SESUDAH_BATAS)
-    assert pakai(kon, oid, sekarang=SESUDAH_BATAS) == {"baru": True}
 
 
 def test_pakai_kedaluwarsa_tepat_di_batas_ditolak_satu_detik_sebelumnya_boleh(kon):
@@ -227,115 +211,3 @@ def test_terbit_tanpa_purna_terpasang_ditolak_jelas(kon_tanpa_purna):
     oid = order_qris_lunas(kon_tanpa_purna, 1)
     with pytest.raises(d.PesananKonflik, match="belum dipasang"):
         purna.catat_terbit(kon_tanpa_purna, oid, PELAKU, QRIS_JANJI)
-
-
-# --- catat_pilihan -------------------------------------------------------------------------
-
-def test_pilihan_menunggu_lalu_uang_kembali_final_untuk_qris(kon):
-    oid = order_qris_lunas(kon, 1)
-    assert purna.catat_pilihan(kon, oid, "menunggu", SESUDAH_BATAS) == {"baru": True}
-    assert purna.catat_pilihan(kon, oid, "uang_kembali", "2026-11-24T10:00:00") == {"baru": True}
-    assert baris(kon, "purna_pilihan_terlambat") == [(oid, "menunggu", SESUDAH_BATAS),
-                                                    (oid, "uang_kembali", "2026-11-24T10:00:00")]
-    k = purna.keadaan(kon, oid, "2026-11-24T10:00:00")
-    assert (k.pilihan, k.voucher) == ("uang_kembali", "batal")
-    tanpa_transaksi_terbuka(kon)
-
-
-def test_pilihan_transfer_uang_kembali_langsung_tanpa_menunggu(kon):
-    oid = order_transfer_lunas(kon, 1)
-    assert purna.catat_pilihan(kon, oid, "uang_kembali", SESUDAH_BATAS_TRANSFER) == {"baru": True}
-    assert purna.keadaan(kon, oid, SESUDAH_BATAS_TRANSFER).pilihan == "uang_kembali"
-
-
-@pytest.mark.parametrize("pilihan", ["menunggu", "uang_kembali"])
-def test_pilihan_replay_identik_tanpa_tulis(kon, pilihan):
-    oid = order_qris_lunas(kon, 1)
-    purna.catat_pilihan(kon, oid, pilihan, SESUDAH_BATAS)
-    assert purna.catat_pilihan(kon, oid, pilihan, "2026-11-25T10:00:00") == {"baru": False}
-    assert baris(kon, "purna_pilihan_terlambat") == [(oid, pilihan, SESUDAH_BATAS)]
-
-
-def test_pilihan_menunggu_setelah_uang_kembali_konflik_walau_baris_menunggu_ada(kon):
-    oid = order_qris_lunas(kon, 1)
-    purna.catat_pilihan(kon, oid, "menunggu", SESUDAH_BATAS)
-    purna.catat_pilihan(kon, oid, "uang_kembali", SESUDAH_BATAS)
-    sebelum = baris(kon, "purna_pilihan_terlambat")
-    with pytest.raises(d.PesananKonflik, match="final"):
-        purna.catat_pilihan(kon, oid, "menunggu", "2026-11-25T10:00:00")
-    assert baris(kon, "purna_pilihan_terlambat") == sebelum
-
-
-def test_pilihan_uang_kembali_replay_tetap_dilayani_setelah_refund_dan_terbit(kon):
-    oid = order_qris_lunas(kon, 1)
-    purna.catat_pilihan(kon, oid, "uang_kembali", SESUDAH_BATAS)
-    pesanan.catat_refund(kon, oid, operasi(7), PELAKU, "kebijakan", "2026-11-24T10:00:00")
-    assert purna.catat_pilihan(kon, oid, "uang_kembali", "2026-11-25T10:00:00") == {"baru": False}
-
-
-def test_pilihan_ditolak_bila_belum_terlambat_tepat_di_batas_boleh_satu_detik_sesudahnya(kon):
-    a, b = order_qris_lunas(kon, 1), order_qris_lunas(kon, 2)
-    with pytest.raises(d.PesananKonflik, match="belum terlambat"):
-        purna.catat_pilihan(kon, a, "menunggu", QRIS_BATAS)
-    with pytest.raises(d.PesananKonflik, match="belum terlambat"):
-        purna.catat_pilihan(kon, a, "uang_kembali", QRIS_JANJI)
-    assert baris(kon, "purna_pilihan_terlambat") == []
-    assert purna.catat_pilihan(kon, b, "menunggu", SESUDAH_BATAS) == {"baru": True}
-
-
-def test_pilihan_ditolak_bila_belum_lunas(kon):
-    with pytest.raises(d.PesananKonflik, match="belum lunas"):
-        purna.catat_pilihan(kon, order_belum_lunas(kon, 1), "menunggu", SESUDAH_BATAS)
-    assert baris(kon, "purna_pilihan_terlambat") == []
-
-
-@pytest.mark.parametrize("pilihan", ["menunggu", "uang_kembali"])
-def test_pilihan_ditolak_bila_laporan_sudah_terbit(kon, pilihan):
-    oid = order_qris_lunas(kon, 1)
-    purna.catat_terbit(kon, oid, PELAKU, QRIS_JANJI)
-    with pytest.raises(d.PesananKonflik, match="terbit"):
-        purna.catat_pilihan(kon, oid, pilihan, SESUDAH_BATAS)
-    assert baris(kon, "purna_pilihan_terlambat") == []
-
-
-@pytest.mark.parametrize("pilihan", ["menunggu", "uang_kembali"])
-def test_pilihan_ditolak_bila_voucher_sudah_dipakai(kon, pilihan):
-    oid = order_qris_lunas(kon, 1)
-    pakai(kon, oid)
-    with pytest.raises(d.PesananKonflik, match="dipakai"):
-        purna.catat_pilihan(kon, oid, pilihan, SESUDAH_BATAS)
-    assert baris(kon, "purna_pilihan_terlambat") == []
-
-
-@pytest.mark.parametrize("pilihan", ["menunggu", "uang_kembali"])
-def test_pilihan_ditolak_bila_order_sudah_direfund(kon, pilihan):
-    oid = order_qris_lunas(kon, 1)
-    pesanan.catat_refund(kon, oid, operasi(7), PELAKU, "kebijakan", SEKARANG)
-    with pytest.raises(d.PesananKonflik, match="direfund"):
-        purna.catat_pilihan(kon, oid, pilihan, SESUDAH_BATAS)
-    assert baris(kon, "purna_pilihan_terlambat") == []
-
-
-def test_pilihan_ditolak_bila_dipakai_walau_voucher_batal_menutupi_status(kon):
-    oid = order_qris_lunas(kon, 1)
-    pakai(kon, oid)
-    refund_mentah(kon, oid)
-    with pytest.raises(d.PesananKonflik):
-        purna.catat_pilihan(kon, oid, "uang_kembali", SESUDAH_BATAS)
-    assert baris(kon, "purna_pilihan_terlambat") == []
-
-
-def test_pilihan_validasi_dan_order_tidak_ada(kon):
-    oid = order_qris_lunas(kon, 1)
-    for argumen in ((oid, "batal", SESUDAH_BATAS), (oid, "", SESUDAH_BATAS), (oid, None, SESUDAH_BATAS),
-                    ("x", "menunggu", SESUDAH_BATAS), (oid, "menunggu", "kemarin")):
-        with pytest.raises(d.PesananDataTidakSah):
-            purna.catat_pilihan(kon, *argumen)
-    with pytest.raises(d.PesananTidakDitemukan):
-        purna.catat_pilihan(kon, "ord_" + "f" * 32, "menunggu", SESUDAH_BATAS)
-
-
-def test_pilihan_tanpa_purna_terpasang_ditolak_jelas(kon_tanpa_purna):
-    oid = order_qris_lunas(kon_tanpa_purna, 1)
-    with pytest.raises(d.PesananKonflik, match="belum dipasang"):
-        purna.catat_pilihan(kon_tanpa_purna, oid, "menunggu", SESUDAH_BATAS)

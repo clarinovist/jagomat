@@ -322,9 +322,8 @@ berjeda → checkpoint → maju/eskalasi.** [Kontrak lengkap](siklus-belajar-ter
   efektif, dan tahap `checkout`; selain itu halaman status jujur/404 dan POST tanpa efek. Admin memantau di `/admin/pesanan`
   (daftar minimal dengan kolom Laporan, periksa status, catat refund manual, catat voucher dipakai dan laporan terbit; tanpa API refund; refund ditolak sesudah voucher dipakai). Belum ada worker rekonsiliasi; kebijakan refund dan
   hapus keluarga vs catatan keuangan menunggu keputusan Pemilik. Di halaman pesanan akun anak (murid), pembeli yang sudah lunas
-  melihat kartu "Voucher dan laporan" (kode voucher, berlaku 90 hari untuk kelas bersama Guru, janji laporan terbit 48 jam dalam WIB; voucher ditahan sementara bila pembayaran order perlu diperiksa tim);
-  bila laporan terlambat lebih dari 3×24 jam dari janji, pembeli memilih tetap menunggu atau uang kembali di halaman itu (POST
-  `/murid/pesanan/pilih`, tanpa menyentuh gerbang pembayaran; uang kembali dicatat final dan ditindaklanjuti tim, dan harus dikonfirmasi dengan kotak centang "Saya yakin"). Halaman orang tua hanya
+  melihat kartu "Deposit dan laporan" (Rp49.000 menjadi deposit yang otomatis memotong tagihan kelas bersama Guru bila mendaftar, berlaku 90 hari, status deposit, janji laporan terbit 48 jam dalam WIB; deposit ditahan sementara bila pembayaran order perlu diperiksa tim; tanpa kode voucher dan tanpa tombol).
+  Tidak ada uang kembali otomatis dan tidak ada pilihan pembeli (keputusan Pemilik 24 Nov 2026): bila laporan terlambat, kartu hanya meminta maaf dan pembeli menghubungi tim lewat WhatsApp; Pencatatan terbitnya laporan di aplikasi saat ini lewat admin. Halaman orang tua hanya
   menambah satu baris janji terbit. Kalimat copy publik terkait ber-status DRAF 5 menunggu persetujuan Pemilik.
   Jalur transfer rekening (verifikasi manual admin, **belum aktif**): bila `PESANAN_TRANSFER_AKTIF=1`, funnel aktif, runtime produksi ada,
   dan admin sudah mengisi rekening, `/pesanan` menawarkan "Bayar lewat transfer" (nominal Rp49.000 + kode unik, harus persis) dan

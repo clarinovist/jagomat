@@ -1,11 +1,11 @@
-"""Mutation guard pilihan terlambat dan kartu voucher pembeli (V4a) pada SALINAN repo terisolasi (bukan workspace).
+"""Mutation guard kartu deposit pembeli dan rute pilihan yang sudah dihapus, pada SALINAN repo terisolasi.
 
 Meniru `test_pesanan_murid_mutation.py`: tiap kasus menonaktifkan satu guard di salinan lalu menjalankan tes yang
 menjaganya; hasil harus MERAH karena asersi (bukan import/fixture rusak). Kontrol: tanpa mutasi, tes yang sama HIJAU di
 salinan yang sama. Pola mutasi harus unik di berkasnya. Salinan tanpa `.venv`, cadangan, `*.db`, `*.json`.
 
-Catatan: `pesanan_status.ambil_order` di rute pilih adalah lapis kedua (order sudah diturunkan dari akun sesi lewat
-`order_id_akun`); karena itu kasus kepemilikan juga mengganti SUMBER order ke order mana pun di DB.
+Catatan: `pesanan_status.ambil_order` di `keadaan_order` adalah lapis kedua (order sudah diturunkan dari akun sesi
+lewat `order_id_akun`); karena itu kasus kepemilikan juga mengganti SUMBER order ke order mana pun di DB.
 """
 from __future__ import annotations
 
@@ -22,84 +22,50 @@ AKAR = Path(__file__).resolve().parents[2]
 P = "mesin/__tests__/test_pesanan_murid_purna.py::"
 U = "mesin/__tests__/test_pesanan_voucher_pages.py::"
 K = "mesin/__tests__/test_orang_tua_pesanan_kartu.py::"
-PILIH, BACA, HALAMAN, HTTP = (
-    "mesin/pesanan_pilih_http.py", "mesin/pesanan_voucher_baca.py", "mesin/pesanan_voucher_pages.py",
-    "mesin/pesanan_http.py")
-PURNA = "mesin/purna.py"
-KONDISI_TOMBOL = "    return rute.pilih is not None and k.bisa_pilih and k.pilihan != purna.PILIHAN_UANG_KEMBALI\n"
-SYARAT_TOMBOL = (P + "test_dua_tombol_dalam_dua_form_terpisah_hanya_saat_terlambat_dan_bisa_pilih",
-                 P + "test_memilih_uang_kembali_dicatat_tanpa_tombol_dan_voucher_batal",
-                 P + "test_guru_lama_tanpa_kartu_dan_tanpa_tombol_dan_tanpa_rute_pilih",
-                 U + "test_tanpa_tombol_bila_tidak_bisa_pilih", U + "test_tanpa_tombol_bila_uang_kembali_walau_bisa_pilih_masih_true",
-                 U + "test_tanpa_tombol_untuk_permukaan_guru_tanpa_rute_pilih")
+BACA, HALAMAN, HTTP, MURID = (
+    "mesin/pesanan_voucher_baca.py", "mesin/pesanan_voucher_pages.py", "mesin/pesanan_http.py",
+    "mesin/pesanan_murid_http.py")
+ORTU = "mesin/orang_tua_pages.py"
+KARTU_AKHIR = "        + _blok_laporan(k)\n    )"
+PILIH_BARU = '"/murid/pesanan/pilih"'
 
 KASUS = (
-    ("V1-kepemilikan-order-bukan-dari-akun-sesi",
-     ((PILIH, "    order_id = alur.order_id_akun(admin_store.BAWAAN, principal)\n    if order_id is None:\n        raise pesanan.PesananTidakDitemukan()\n",
-       "    with pesanan.buka(admin_store.BAWAAN) as kon0:\n"
-       "        baris = kon0.execute('SELECT order_id FROM pesanan_order ORDER BY rowid LIMIT 1').fetchone()\n"
-       "    order_id = None if baris is None else baris[0]\n    if order_id is None:\n        raise pesanan.PesananTidakDitemukan()\n"),
-      (PILIH, "        order = pesanan_status.ambil_order(kon, order_id, principal.id_akun)\n        purna.catat_pilihan(kon, order[\"order_id\"], pilihan, alur.waktu_sekarang())",
-       "        purna.catat_pilihan(kon, order_id, pilihan, alur.waktu_sekarang())")),
-     (P + "test_murid_lain_dan_order_tak_ada_404_identik_dengan_rute_tak_dikenal_tanpa_efek",)),
-    ("V2-whitelist-pilihan-dilepas",
-     ((PILIH, "    if data[\"pilihan\"] not in schema_purna.PILIHAN_TERLAMBAT:\n        penangan._tolak_isian()\n        return None\n", ""),),
-     (P + "test_pilihan_asing_dan_form_asing_400_tanpa_efek",)),
-    ("V3-form-persis-dilonggarkan",
-     ((PILIH, "    if data is None or frozenset(data) not in KUNCI_FORM:", "    if data is None or not KUNCI_DASAR <= frozenset(data):"),),
-     (P + "test_pilihan_asing_dan_form_asing_400_tanpa_efek",)),
-    ("V12a-uang-kembali-tanpa-yakin-diterima",
-     ((PILIH, '    if "yakin" not in data:\n', "    if False:\n"),),
-     (P + "test_uang_kembali_tanpa_yakin_ditolak_400_dengan_pesan_konfirmasi_tanpa_efek",)),
-    ("V12b-nilai-yakin-tidak-diperiksa",
-     ((PILIH, '    if data["yakin"] != NILAI_YAKIN:\n', "    if False:\n"),),
-     (P + "test_uang_kembali_dengan_yakin_bukan_satu_ditolak_400_tanpa_efek",)),
-    ("V12c-menunggu-boleh-membawa-yakin",
-     ((PILIH, '        if "yakin" in data:\n            penangan._tolak_isian()\n            return False\n', ""),),
-     (P + "test_menunggu_dengan_yakin_ditolak_400_tanpa_efek",)),
-    ("V13a-kotak-yakin-juga-di-form-menunggu",
-     ((HALAMAN, '    if nilai != purna.PILIHAN_UANG_KEMBALI:\n        return ""\n', "    if False:\n        return \"\"\n"),),
-     (U + "test_form_menunggu_dan_uang_kembali_terpisah_dan_hanya_uang_kembali_punya_kotak_yakin",
-      P + "test_kartu_terlambat_memuat_kotak_yakin_hanya_di_form_uang_kembali")),
-    ("V13b-kotak-yakin-hilang-dari-form-uang-kembali",
-     ((HALAMAN, "            f'{_kotak_yakin(nilai)}<p class=\"akun-aksi-sandi\">{tombol}</p></form>')", "            f'<p class=\"akun-aksi-sandi\">{tombol}</p></form>')"),),
-     (U + "test_form_menunggu_dan_uang_kembali_terpisah_dan_hanya_uang_kembali_punya_kotak_yakin",
-      P + "test_kartu_terlambat_memuat_kotak_yakin_hanya_di_form_uang_kembali")),
-    ("V14-pilih-pada-order-ditahan-diterima",
-     ((PURNA, "            and not ditahan\n", ""),),
-     (P + "test_pilih_manual_pada_order_perlu_diperiksa_konflik_tanpa_efek_dan_kartu_tidak_tampil",
-      P + "test_pilih_ditolak_409_tanpa_efek_bila_tidak_bisa_pilih")),
-    ("V4a-token-tidak-divalidasi",
-     ((PILIH, "    if not dasar.token_sah(principal, penangan._ambil_token(), AKSI_PILIH, data[\"token\"]):", "    if False:"),),
-     (P + "test_token_tidak_sah_403_tanpa_efek",)),
-    ("V4b-token-tidak-terikat-aksi-pilih",
-     ((PILIH, "AKSI_PILIH, data[\"token\"]", "dasar.alur.AKSI_PERIKSA, data[\"token\"]"),),
-     (P + "test_token_tidak_sah_403_tanpa_efek",)),
-    ("V5-pembatas-laju-dilepas",
-     ((PILIH, "    if not dasar._izinkan(penangan, principal, ketat=True):", "    if False:"),),
-     (P + "test_pembatas_laju_429_tanpa_efek_tambahan",)),
-    ("V6a-tombol-tanpa-syarat-bisa-pilih",
-     ((HALAMAN, KONDISI_TOMBOL, "    return rute.pilih is not None and k.pilihan != purna.PILIHAN_UANG_KEMBALI\n"),), SYARAT_TOMBOL),
-    ("V6b-tombol-tanpa-syarat-bukan-uang-kembali",
-     ((HALAMAN, KONDISI_TOMBOL, "    return rute.pilih is not None and k.bisa_pilih\n"),), SYARAT_TOMBOL),
-    ("V6c-tombol-tanpa-syarat-rute-pilih",
-     ((HALAMAN, KONDISI_TOMBOL, "    return k.bisa_pilih and k.pilihan != purna.PILIHAN_UANG_KEMBALI\n"),), SYARAT_TOMBOL),
-    ("V7-kartu-merender-kontak",
-     ((HALAMAN, "        + _blok_pilihan(k, rute, token_pilih)\n    )",
-       "        + _blok_pilihan(k, rute, token_pilih)\n        + '<a href=\"https://wa.me/6281234567890\">Hubungi</a>'\n    )"),),
+    ("V1a-rute-pilih-dihidupkan-lagi-untuk-murid",
+     ((MURID, "_RUTE.bukti, _RUTE.ulang_transfer})", "_RUTE.bukti, _RUTE.ulang_transfer, %s})" % PILIH_BARU),),
+     (P + "test_murid_post_rute_pilih_404_identik_dengan_rute_tak_dikenal_tanpa_efek",)),
+    ("V2-kartu-memuat-tombol",
+     ((HALAMAN, KARTU_AKHIR, "        + _blok_laporan(k)\n        + '<button type=\"submit\">Pilih</button>'\n    )"),),
+     (P + "test_kartu_tampil_untuk_order_lunas_dengan_deposit_tenggat_dan_janji_tanpa_tombol",
+      P + "test_kartu_terlambat_tanpa_tombol_dengan_kalimat_maaf_lalu_terbit_menurut_keadaan",
+      U + "test_kartu_tanpa_tombol_form_atau_pilihan_apa_pun")),
+    ("V3-kartu-menampilkan-kode-voucher",
+     ((HALAMAN, KARTU_AKHIR, "        + _blok_laporan(k)\n        + '<code>%s</code>' % k.kode\n    )"),),
+     (P + "test_kode_voucher_internal_tidak_tampil_ke_pembeli_tetapi_ada_di_domain",
+      U + "test_kode_voucher_internal_tidak_ditampilkan_ke_pembeli")),
+    ("V4-kartu-merender-kontak",
+     ((HALAMAN, KARTU_AKHIR, "        + _blok_laporan(k)\n        + '<a href=\"https://wa.me/6281234567890\">Hubungi</a>'\n    )"),),
      (P + "test_halaman_murid_tanpa_kata_terlarang_kontak_atau_id_internal", U + "test_kartu_tanpa_kontak_dan_id_internal")),
-    ("V8-kartu-tanpa-syarat-purna-terpasang",
+    ("V5-kartu-tanpa-syarat-purna-terpasang",
      ((BACA, "            if not purna.terpasang(kon):\n                return None\n", ""),),
      (P + "test_kartu_tidak_tampil_bila_skema_purna_belum_dipasang",
       P + "test_halaman_orang_tua_tanpa_baris_janji_bila_purna_belum_dipasang")),
-    ("V9-kartu-tanpa-syarat-status-lunas",
+    ("V6-kartu-tanpa-syarat-status-sudah-dibayar-ditahan-dan-direfund-tampil",
      ((BACA, "    if status != dasar.STATUS_SUDAH_DIBAYAR:\n        return None\n", ""),),
-     (P + "test_kartu_tidak_tampil_untuk_order_direfund",)),
-    ("V10-kartu-juga-untuk-permukaan-guru",
-     ((HTTP, "    if principal.peran != permukaan.PERAN_MURID:\n        return None, None\n    keadaan =", "    keadaan ="),),
-     (P + "test_guru_lama_tanpa_kartu_dan_tanpa_tombol_dan_tanpa_rute_pilih",)),
-    ("V11-baris-janji-orang-tua-tidak-tampil",
-     ((("mesin/orang_tua_pages.py"), "        if sudah and purna is not None:", "        if sudah and purna is None:"),),
+     (P + "test_kartu_tidak_tampil_untuk_order_direfund",
+      P + "test_kartu_tidak_tampil_untuk_order_perlu_diperiksa_ditahan")),
+    ("V7-kartu-juga-untuk-permukaan-guru",
+     ((HTTP, "    if principal.peran != permukaan.PERAN_MURID:\n        return None\n", ""),),
+     (P + "test_guru_lama_rute_pilih_identik_rute_tak_dikenal_tanpa_kartu",)),
+    ("V8-kepemilikan-kartu-order-bukan-dari-akun-sesi",
+     ((BACA, "    order_id = alur.order_id_akun(admin_store.BAWAAN, principal)\n    if order_id is None:\n        return None\n",
+       "    with pesanan_transfer.buka(admin_store.BAWAAN) as kon0:\n"
+       "        baris0 = kon0.execute('SELECT order_id FROM pesanan_order ORDER BY rowid LIMIT 1').fetchone()\n"
+       "    order_id = None if baris0 is None else baris0[0]\n    if order_id is None:\n        return None\n"),
+      (BACA, "            order = pesanan_status.ambil_order(kon, order_id, akun_id)\n",
+       "            order = {\"order_id\": order_id}\n")),
+     (P + "test_kartu_murid_b_memakai_order_miliknya_bukan_order_milik_lain",)),
+    ("V9-baris-janji-orang-tua-tidak-tampil",
+     ((ORTU, "        if sudah and purna is not None:", "        if sudah and purna is None:"),),
      (K + "test_sudah_dibayar_dengan_purna_menambah_satu_baris_janji_tanpa_tombol",
       P + "test_halaman_orang_tua_memuat_satu_baris_janji_tanpa_tombol_dan_beranda_tetap_satu_tautan")),
 )

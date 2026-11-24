@@ -43,12 +43,11 @@ COPY_TUTUP_SUDAH_BAYAR = (
     "Jika Anda sudah pernah membayar, pembayaran itu tetap tercatat. "
     "Hubungi tim lewat WhatsApp bila ada yang perlu dipastikan."
 )
-# Selaras COPY_PEMBATALAN (Keputusan 18: tanpa refund untuk Peta Kemampuan, kecuali laporan terlambat).
+# Selaras COPY_PEMBATALAN (24 Nov 2026: tanpa uang kembali otomatis; Rp49.000 menjadi deposit).
 COPY_REFUND = (
-    "Peta Kemampuan tidak dapat dikembalikan; Rp49.000 menjadi voucher kelas bersama Guru (berlaku 90 hari) "
-    "bila Anda lanjut. Laporan dijanjikan terbit dalam 48 jam setelah pembayaran. Bila terlambat lebih dari "
-    "3×24 jam dari jam yang tertera di halaman pesanan, Anda boleh memilih menunggu atau uang kembali "
-    "di halaman pesanan."
+    "Peta Kemampuan tidak dapat dikembalikan; Rp49.000 menjadi deposit yang otomatis memotong tagihan kelas "
+    "bersama Guru (berlaku 90 hari) bila Anda daftar. Laporan dijanjikan terbit dalam 48 jam setelah "
+    "pembayaran. Tidak ada uang kembali otomatis; bila laporan terlambat, hubungi tim lewat WhatsApp."
 )
 COPY_KUOTA_HABIS = (
     "Pendaftaran Peta Kemampuan sedang dihentikan sementara; "
@@ -211,9 +210,8 @@ def halaman_status(ident, tampilan: dict, token) -> bytes:
     'periksa', 'buat', atau 'ulang'), boleh_ulang, belum_terperiksa. `token` hanya
     dipakai bila `aksi` ada. Satu aksi satu tombol. Opsional (jalur transfer):
     `blok_transfer` (HTML kartu transfer dari `pesanan_transfer_pages`, tampil sebelum QRIS)
-    dan `qris` (False bila gerbang Midtrans tertutup: tanpa catatan QR). Opsional (V4a): `purna`
-    (`purna.KeadaanPurna`; kartu "Voucher dan laporan") dan `token_pilih` (token form pilihan terlambat; None =
-    tanpa tombol).
+    dan `qris` (False bila gerbang Midtrans tertutup: tanpa catatan QR). Opsional: `purna`
+    (`purna.KeadaanPurna`; kartu "Deposit dan laporan", tanpa tombol).
     """
     transfer = tampilan.get("blok_transfer", "")
     pilih_cara = bool(transfer) and tampilan["status"] == STATUS_BELUM_BAYAR
@@ -229,8 +227,8 @@ def halaman_status(ident, tampilan: dict, token) -> bytes:
     if tampilan["qr"]:
         isi += _kartu(_blok_qr(_rute(ident), pilihan_kedua=bool(transfer)))
     isi += _catatan_status(tampilan)
-    if tampilan.get("purna") is not None:  # V4a: order lunas + purna terpasang (diputuskan pemanggil)
-        isi += kartu_voucher(tampilan["purna"], _rute(ident), tampilan.get("token_pilih"))
+    if tampilan.get("purna") is not None:  # order lunas + purna terpasang (diputuskan pemanggil)
+        isi += kartu_voucher(tampilan["purna"])
     if tampilan["aksi"] is not None:
         isi += _kartu(_form(_rute(ident), tampilan["aksi"], token))
     isi += _catatan_refund()

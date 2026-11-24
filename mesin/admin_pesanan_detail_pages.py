@@ -53,8 +53,8 @@ COPY_PERIKSA_TIDAK_PERLU = (
 COPY_TOMBOL_PERIKSA = "Periksa status"
 COPY_RINGKAS_REFUND = "Pengecualian: catat uang kembali"
 COPY_KEBIJAKAN_REFUND = (
-    "Peta Kemampuan tidak ada uang kembali. Pengecualian: laporan terlambat dan keluarga memilih uang kembali "
-    "penuh. Aplikasi hanya mencatat; dana dikembalikan manual lewat rekening."
+    "Peta Kemampuan tidak ada uang kembali otomatis. Catat hanya untuk pengecualian "
+    "yang diputuskan tim. Aplikasi hanya mencatat; dana dikembalikan manual lewat rekening."
 )
 COPY_TOMBOL_REFUND = "Catat uang kembali"
 COPY_KONFIRMASI_REFUND = (
@@ -62,8 +62,8 @@ COPY_KONFIRMASI_REFUND = (
     "dan tidak dapat dibatalkan."
 )
 COPY_SATU_CATATAN = "Satu order hanya bisa punya satu catatan uang kembali."
-# Enum `catatan_kode` yang diterima server tidak berubah. `kebijakan` dipilih untuk "laporan terlambat"
-# (pengecualian Keputusan 18) dan menjadi pilihan pertama (bawaan <select>).
+# Enum `catatan_kode` yang diterima server tidak berubah. `kebijakan` (pengecualian yang diputuskan tim,
+# mis. laporan terlambat) menjadi pilihan pertama (bawaan <select>).
 URUTAN_ALASAN_REFUND = ("kebijakan", "kesalahan_sistem", "permintaan_pembeli", "lainnya")
 COPY_ALASAN_REFUND = {
     "kebijakan": "Laporan terlambat (pengecualian kebijakan)",
@@ -79,10 +79,9 @@ COPY_VOUCHER = {
     purna.VOUCHER_BELUM_LUNAS: "Belum aktif (order belum lunas)",
     purna.VOUCHER_DIPAKAI: "Sudah dipakai",
     purna.VOUCHER_KEDALUWARSA: "Kedaluwarsa",
-    purna.VOUCHER_BATAL: "Dibatalkan (direfund atau keluarga minta uang kembali)",
+    purna.VOUCHER_BATAL: "Dibatalkan (order direfund)",
     purna.VOUCHER_DITAHAN: "Ditahan (pembayaran perlu diperiksa)",
 }
-COPY_PILIHAN = {purna.PILIHAN_MENUNGGU: "Menunggu laporan", purna.PILIHAN_UANG_KEMBALI: "Minta uang kembali"}
 COPY_LAPORAN_BELUM = "Belum terbit"
 COPY_LAPORAN_SUDAH = "Sudah terbit"
 COPY_LAPORAN_TERLAMBAT = "Terlambat sejak %s"
@@ -96,7 +95,6 @@ COPY_DITAHAN = (
 )
 COPY_KONFIRMASI_TERBIT = "Laporan ditandai sudah terbit sekarang (jam pencatatan). Tidak bisa dibatalkan."
 COPY_REFUND_VOUCHER_DIPAKAI = "Voucher sudah dipakai; refund tidak tersedia."
-COPY_MINTA_UANG_KEMBALI = "Keluarga meminta uang kembali (laporan terlambat)"
 # Enum `catatan_kode` pemakaian voucher (sama dengan `schema_purna.CATATAN_PAKAI`).
 URUTAN_ALASAN_VOUCHER = ("kelas", "lainnya")
 COPY_ALASAN_VOUCHER = {"kelas": "Dipakai untuk kelas", "lainnya": "Lainnya"}
@@ -181,8 +179,7 @@ def _rincian_purna(pur: Mapping) -> str:
         _baris_rincian("Berlaku hingga", _tanggal_atau_strip(pur["berlaku_hingga"])),
         _baris_rincian("Janji terbit", _tanggal_atau_strip(pur["janji_terbit"])),
         _baris_rincian("Status laporan", _status_laporan(pur)),
-        _baris_rincian("Waktu terbit", _tanggal_atau_strip(pur["terbit"])),
-        _baris_rincian("Pilihan keluarga", e(COPY_PILIHAN.get(pur["pilihan"], "—")))))
+        _baris_rincian("Waktu terbit", _tanggal_atau_strip(pur["terbit"]))))
 
 
 def _kartu_purna(detail: Mapping, gerbang_terbuka: bool, forms: Mapping) -> str:
@@ -261,16 +258,14 @@ def _catatan(teks: str) -> str:
 def _refund(detail: Mapping, gerbang_terbuka: bool, forms: Mapping) -> str:
     """Hanya untuk order yang boleh dicatat uang kembalinya; selain itu kosong (tidak ada pintu samping).
 
-    Voucher sudah dipakai = catatan pengganti (penegakan sebenarnya di domain). Keluarga minta uang kembali dan
-    belum direfund = peringatan jelas tepat di atas form.
+    Voucher sudah dipakai = catatan pengganti (penegakan sebenarnya di domain).
     """
     pur = detail.get("purna") or {}
     if ui.AKSI_REFUND not in ui.aksi_tersedia(detail, gerbang_terbuka):
         return _catatan(COPY_REFUND_VOUCHER_DIPAKAI) if pur.get("dipakai") else ""
     form = _form_refund(forms[ui.AKSI_REFUND]) if ui.AKSI_REFUND in forms else ""
     isi = '<p>%s</p>%s<p class="admin-meta">%s</p>' % (e(COPY_KEBIJAKAN_REFUND), form, e(COPY_SATU_CATATAN))
-    minta = pur.get("pilihan") == purna.PILIHAN_UANG_KEMBALI and not pur.get("direfund")
-    return (_catatan(COPY_MINTA_UANG_KEMBALI) if minta else "") + _lipat(COPY_RINGKAS_REFUND, isi)
+    return _lipat(COPY_RINGKAS_REFUND, isi)
 
 
 def halaman(detail: Mapping, *, gerbang_terbuka: bool, forms: Optional[Mapping] = None,

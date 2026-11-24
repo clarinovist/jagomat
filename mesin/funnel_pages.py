@@ -25,19 +25,19 @@ NAMA_PAKET = "Peta Kemampuan"
 COPY_BUKAN_LANGGANAN = "Bukan langganan, jadi bulan depan tidak ada tagihan lagi."
 COPY_HARGA = f"{NAMA_PAKET} Rp49.000, sekali bayar. {COPY_BUKAN_LANGGANAN}"
 
-# DRAF 5: kalimat 24 Nov 2026 menunggu persetujuan Pemilik di tempat rilis (Keputusan 18: tidak dapat dikembalikan, jadi voucher).
+# DRAF 5 (24 Nov 2026, deposit; menunggu persetujuan Pemilik di tempat rilis): tidak dapat dikembalikan, jadi deposit.
 COPY_TIDAK_KEMBALI = (
-    "Peta Kemampuan tidak dapat dikembalikan, jadi Rp49.000 menjadi voucher "
-    "kelas bersama Guru (berlaku 90 hari) bila Anda lanjut."
+    "Peta Kemampuan tidak dapat dikembalikan, jadi Rp49.000 menjadi deposit yang memotong "
+    "tagihan kelas bersama Guru (berlaku 90 hari) bila Anda daftar."
 )
-# DRAF 5: kalimat 24 Nov 2026 menunggu persetujuan Pemilik di tempat rilis (ketentuan laporan terlambat dan program kelas).
+# DRAF 5 (24 Nov 2026, deposit; menunggu persetujuan Pemilik di tempat rilis): ketentuan laporan terlambat dan program kelas.
 COPY_PEMBATALAN_BUTIR = (
     ("Peta Kemampuan tidak dapat dikembalikan,",
      " karena guru langsung mengerjakan laporannya. Sebagai gantinya, Rp49.000 "
-     "menjadi voucher kelas bersama Guru (berlaku 90 hari) bila Anda lanjut."),
+     "menjadi deposit yang memotong tagihan kelas bersama Guru (berlaku 90 hari) bila Anda daftar."),
     ("Program belajar (kelas)", " punya ketentuan pengembalian tersendiri."),
     ("Laporan dijanjikan terbit dalam 48 jam setelah pembayaran.",
-     " Bila terlambat lebih dari 3×24 jam dari jam yang tertera di halaman pesanan, Anda memilih tetap menunggu atau uang kembali penuh."),
+     " Bila terlambat, hubungi tim lewat WhatsApp; kami kabari dan bantu sampai laporan Anda terbit."),
     ("Tidak bisa hadir di jadwal konsultasi:",
      " kabari kami, kita cari waktu lain, tidak hangus."),
 )
@@ -47,8 +47,8 @@ COPY_KONSULTASI = (
     "ngobrol 20 menit dengan guru. Pagi, malam, atau akhir pekan, kita cari yang cocok."
 )
 COPY_DEPOSIT = (
-    "Setelah pembayaran, kode voucher Rp49.000 muncul di halaman pesanan Anda. "
-    "Voucher berlaku 90 hari untuk kelas bersama Guru bila Anda lanjut."
+    "Rp49.000 menjadi deposit di akun Anda. Bila Anda daftar kelas bersama Guru dalam 90 hari, "
+    "tagihan kelas otomatis dipotong Rp49.000."
 )
 # Peluncuran awal; HAPUS konstanta ini (dan pemakaiannya) saat kuota 20 keluarga habis.
 COPY_KUOTA_AWAL = "Peluncuran awal: 20 keluarga pertama"
@@ -58,7 +58,7 @@ COPY_PAKET_DARI_HASIL = (
     f"{NAMA_PAKET} dibuka dari halaman hasil, setelah cek gratis selesai."
 )
 
-# DRAF 5: kalimat 24 Nov 2026 menunggu persetujuan Pemilik di tempat rilis (copy landing dan halaman Peta Kemampuan).
+# DRAF 5 (24 Nov 2026, deposit; menunggu persetujuan Pemilik di tempat rilis): copy landing dan halaman Peta Kemampuan.
 COPY_PERTANYAAN = "Tes matematika gratis · SD kelas 1–6"
 COPY_SUB_HERO = (
     "Yuk, cari tahu dulu di mana level kemampuan matematika anak Bunda sebenarnya: "
@@ -77,7 +77,6 @@ COPY_PAKET_SUB = (
     "Latihan yang tepat sasaran membantu nilai matematika anak naik. "
     "Mulai dari satu langkah yang jelas minggu ini."
 )
-COPY_PIL_VOUCHER = "Jadi voucher Rp49.000 bila lanjut belajar"
 COPY_JUDUL_PAKET_HALAMAN = "Lihat pola salahnya. Tahu satu langkah berikutnya."
 COPY_PENGANTAR_PAKET = (
     "Laporan lengkap yang dibaca guru, plus obrolan 20 menit untuk mengubahnya jadi "
@@ -87,7 +86,7 @@ COPY_PENGANTAR_PAKET = (
 COPY_PAKET_ISI = (
     "Laporan lengkap yang dibaca guru: penguasaan per materi, pola kesalahan, dan urutan belajar yang paling perlu dulu",
     "Ngobrol 20 menit dengan guru tentang cara berpikir anak dan apa yang bisa dilatih",
-    "Rp49.000 jadi voucher kelas bersama Guru (berlaku 90 hari) bila Anda lanjut",
+    "Rp49.000 jadi deposit: otomatis memotong tagihan kelas bersama Guru bila Anda daftar (berlaku 90 hari)",
 )
 COPY_TIDAK_WAJIB_KELAS = (
     "Tidak wajib ikut kelas. Laporan ini tetap milik Anda. Cek ulang dan laporan kemajuan tiap 4 minggu ada di kelas."
@@ -253,7 +252,7 @@ def _kartu_harga() -> str:
     <div class="funnel-harga-kartu-st">
       <p class="funnel-harga-baris-st"><strong>Rp49.000</strong><span>sekali bayar</span></p>
       <span class="funnel-pil-hijau-st">Sekali bayar, bukan langganan</span>
-      <span class="funnel-pil-hijau-st funnel-pil-kuning-st">Jadi voucher kelas bersama Guru</span>
+      <span class="funnel-pil-hijau-st funnel-pil-kuning-st">Jadi deposit kelas bersama Guru</span>
       <p class="funnel-contoh-tautan-st">{_tautan_contoh("funnel-tautan-sekunder-st")}</p>
       <p class="funnel-catatan-kelas-st">{_e(COPY_HARGA)}</p>
       <ul class="funnel-centang-st">{_centang(COPY_PAKET_ISI)}</ul>
@@ -281,7 +280,7 @@ def _faq() -> str:
       <div class="funnel-jawab-st">{_e(COPY_KONSULTASI)}</div></details>
     <details open><summary>Apakah uangnya bisa kembali?</summary>
       <div class="funnel-jawab-st">{_faq_pembatalan()}</div></details>
-    <details><summary>Bagaimana cara memakai voucher Rp49.000?</summary>
+    <details><summary>Bagaimana cara memakai deposit Rp49.000?</summary>
       <div class="funnel-jawab-st">{_e(COPY_DEPOSIT)}</div></details>
   </div>
 </section>"""

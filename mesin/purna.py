@@ -1,4 +1,4 @@
-"""Domain purna: voucher pemakaian, janji terbit laporan, dan pilihan terlambat untuk order Paket Coba lunas.
+"""Domain purna: voucher (deposit Rp49.000) pemakaian dan janji terbit laporan untuk order Paket Coba lunas.
 
 Domain murni di koneksi DB admin-control (seperti `pesanan_admin`): tanpa HTTP, tanpa env, tanpa jaringan.
 Termasuk domain pesanan: hanya boleh mengimpor `pesanan_*` dan `schema_purna` (tidak boleh mengimpor admin,
@@ -9,16 +9,19 @@ manusia di namespace `purna_*` (lihat `schema_purna`). Lunas dan refund dibaca d
 `pesanan_receipt`/`pesanan_refund`; transfer: `transfer_lunas`/`transfer_refund`) lewat fungsi turunan yang
 sudah ada (`pesanan_status`, `pesanan_transfer_baca`), bukan salinan logikanya.
 
-Bila `purna_*` BELUM dimigrasikan: fungsi baca mengembalikan keadaan netral (tanpa pemakaian, pilihan, dan
-laporan terbit; `bisa_pilih` False) dan fungsi tulis menolak dengan PesananKonflik "belum dipasang".
+Bila `purna_*` BELUM dimigrasikan: fungsi baca mengembalikan keadaan netral (tanpa pemakaian dan laporan
+terbit) dan fungsi tulis menolak dengan PesananKonflik "belum dipasang".
 
 Kepemilikan order oleh akun pembeli TIDAK ditegakkan di sini: modul ini bekerja pada `order_id`. Pemanggil HTTP
-(pembeli) wajib memastikan order milik akun sesi (`pesanan_status.ambil_order`, 404 identik) sebelum memanggil
-:func:`catat_pilihan`.
+(pembeli) wajib memastikan order milik akun sesi (`pesanan_status.ambil_order`, 404 identik) sebelum membaca
+keadaan untuk ditampilkan.
+
+Tidak ada uang kembali otomatis (keputusan Pemilik 24 Nov 2026): uang Rp49.000 menjadi deposit yang memotong
+tagihan kelas bersama Guru. `terlambat` hanya informasi untuk admin dan pembeli; keterlambatan tidak membuka
+pilihan apa pun.
 
 Voucher 'ditahan' (lunas tetapi status turunan bukan `sudah_dibayar`, praktis `perlu_diperiksa`: dua jalur bayar atau
-observasi refund/chargeback penyedia) tidak bisa dipakai, dipilih, atau diterbitkan laporannya; refund tetap boleh
-dicatat. Pencatatan laporan terbit juga ditolak sesudah keluarga memilih `uang_kembali` (final).
+observasi refund/chargeback penyedia) tidak bisa dipakai atau diterbitkan laporannya; refund tetap boleh dicatat.
 
 Larangan "refund setelah voucher dipakai" ditegakkan di `pesanan_refund_aturan.periksa_layak_refund` lewat
 :func:`voucher_dipakai` (skema `purna_*` tidak boleh menyentuh tabel refund milik namespace lain).
@@ -37,13 +40,12 @@ import schema_purna as sk
 # Janji terbit: (berlaku_dari_waktu_lunas, jam), urut menaik. Order memakai entri terakhir yang
 # berlaku_dari <= waktu lunasnya, jadi menambah entri baru tidak menggeser janji order yang sudah lunas.
 SLA_TERBIT = (("2000-01-01T00:00:00", 48),)
-JAM_TOLERANSI_TERLAMBAT = 72    # jam sesudah janji sebelum pembeli boleh memilih (menunggu / uang kembali)
-HARI_VOUCHER = 90               # masa berlaku voucher sejak waktu lunas
+JAM_TOLERANSI_TERLAMBAT = 72    # jam sesudah janji sebelum laporan dianggap terlambat
+HARI_VOUCHER = 90               # masa berlaku voucher (deposit) sejak waktu lunas
 JAM_PER_HARI = 24
 AWALAN_KODE = "JGV-"
 PANJANG_KODE = 12
 
-PILIHAN_MENUNGGU, PILIHAN_UANG_KEMBALI = sk.PILIHAN_TERLAMBAT
 VOUCHER_BELUM_LUNAS = "belum_lunas"
 VOUCHER_AKTIF = "aktif"
 VOUCHER_DIPAKAI = "dipakai"
@@ -51,13 +53,12 @@ VOUCHER_KEDALUWARSA = "kedaluwarsa"
 VOUCHER_BATAL = "batal"
 VOUCHER_DITAHAN = "ditahan"
 PESAN_DITAHAN = "pembayaran order perlu diperiksa"
-PESAN_SUDAH_UANG_KEMBALI = "keluarga sudah meminta uang kembali"
 
 _PESAN_VOUCHER_TIDAK_AKTIF = {
     VOUCHER_BELUM_LUNAS: "order belum lunas",
     VOUCHER_DIPAKAI: "voucher sudah dipakai",
     VOUCHER_KEDALUWARSA: "voucher sudah kedaluwarsa",
-    VOUCHER_BATAL: "voucher dibatalkan: order direfund atau memilih uang kembali",
+    VOUCHER_BATAL: "voucher dibatalkan: order direfund",
     VOUCHER_DITAHAN: PESAN_DITAHAN,
 }
 
@@ -72,11 +73,9 @@ class KeadaanPurna:
     voucher: str
     berlaku_hingga: Optional[str]
     janji_terbit: Optional[str]
-    batas_pilihan: Optional[str]
+    batas_pilihan: Optional[str]    # janji + toleransi; lewat batas ini laporan dianggap terlambat
     terbit: Optional[str]
     terlambat: bool
-    pilihan: Optional[str]
-    bisa_pilih: bool
     dipakai: bool
     ditahan: bool
 
@@ -121,9 +120,9 @@ def _ditahan(*, lunas, direfund, status):
     return lunas and not direfund and status != d.STATUS_SUDAH_DIBAYAR
 
 
-def _status_voucher(*, lunas, direfund, pilihan, dipakai, ditahan, kini, berlaku_hingga):
-    """Urutan: batal > dipakai > ditahan > kedaluwarsa > aktif (lunas) / belum_lunas."""
-    if direfund or pilihan == PILIHAN_UANG_KEMBALI:
+def _status_voucher(*, lunas, direfund, dipakai, ditahan, kini, berlaku_hingga):
+    """Urutan: batal (direfund) > dipakai > ditahan > kedaluwarsa > aktif (lunas) / belum_lunas."""
+    if direfund:
         return VOUCHER_BATAL
     if dipakai:
         return VOUCHER_DIPAKAI
@@ -132,16 +131,6 @@ def _status_voucher(*, lunas, direfund, pilihan, dipakai, ditahan, kini, berlaku
     if berlaku_hingga is not None and kini >= berlaku_hingga:
         return VOUCHER_KEDALUWARSA
     return VOUCHER_AKTIF if lunas else VOUCHER_BELUM_LUNAS
-
-
-def _bisa_pilih(*, siap, lunas, direfund, ditahan, terlambat, dipakai, terbit):
-    return (siap
-            and lunas
-            and not direfund
-            and not ditahan
-            and terlambat
-            and not dipakai
-            and terbit is None)
 
 
 # --- baca ------------------------------------------------------------------------------------
@@ -181,17 +170,6 @@ def voucher_dipakai(kon, order_id):
     return kon.execute("SELECT 1 FROM purna_voucher_pakai WHERE order_id=?", (order_id,)).fetchone() is not None
 
 
-def _pilihan_efektif(kon, order_id):
-    """'uang_kembali' bila ada barisnya (final), selain itu 'menunggu' bila ada, selain itu None."""
-    if not _ada_tabel(kon, "purna_pilihan_terlambat"):
-        return None
-    ada = {b["pilihan"] for b in kon.execute(
-        "SELECT pilihan FROM purna_pilihan_terlambat WHERE order_id=?", (order_id,))}
-    if PILIHAN_UANG_KEMBALI in ada:
-        return PILIHAN_UANG_KEMBALI
-    return PILIHAN_MENUNGGU if PILIHAN_MENUNGGU in ada else None
-
-
 def _waktu_terbit(kon, order_id):
     if not _ada_tabel(kon, "purna_laporan_terbit"):
         return None
@@ -210,16 +188,14 @@ def _keadaan(kon, order_id, kini):
     lunas = lunas_pada is not None
     ditahan = _ditahan(lunas=lunas, direfund=direfund, status=status)
     berlaku_hingga, janji, batas = _tenggat(lunas_pada)
-    terbit, pilihan, dipakai = _waktu_terbit(kon, order_id), _pilihan_efektif(kon, order_id), voucher_dipakai(kon, order_id)
+    terbit, dipakai = _waktu_terbit(kon, order_id), voucher_dipakai(kon, order_id)
     terlambat = lunas and terbit is None and kini > batas
     return KeadaanPurna(
         lunas=lunas, direfund=direfund, waktu_lunas=lunas_pada, kode=kode_voucher(order_id),
-        voucher=_status_voucher(lunas=lunas, direfund=direfund, pilihan=pilihan, dipakai=dipakai,
-                                ditahan=ditahan, kini=kini, berlaku_hingga=berlaku_hingga),
+        voucher=_status_voucher(lunas=lunas, direfund=direfund, dipakai=dipakai, ditahan=ditahan,
+                                kini=kini, berlaku_hingga=berlaku_hingga),
         berlaku_hingga=berlaku_hingga, janji_terbit=janji, batas_pilihan=batas, terbit=terbit,
-        terlambat=terlambat, pilihan=pilihan, dipakai=dipakai, ditahan=ditahan,
-        bisa_pilih=_bisa_pilih(siap=terpasang(kon), lunas=lunas, direfund=direfund, ditahan=ditahan,
-                               terlambat=terlambat, dipakai=dipakai, terbit=terbit))
+        terlambat=terlambat, dipakai=dipakai, ditahan=ditahan)
 
 
 def keadaan(kon, order_id, sekarang):
@@ -249,7 +225,7 @@ def _pakai_sudah_ada(kon, operasi_id, isi):
 def catat_pakai(kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang):
     """Catat pemakaian voucher; idempoten per `operasi_id`. Mengembalikan {baru}.
 
-    Hanya bila voucher 'aktif' (lunas, tidak direfund/uang kembali/ditahan, belum dipakai, belum kedaluwarsa); selain itu
+    Hanya bila voucher 'aktif' (lunas, tidak direfund/ditahan, belum dipakai, belum kedaluwarsa); selain itu
     PesananKonflik. Replay identik -> baru False (juga sesudah kedaluwarsa); operasi sama isi beda, atau order
     sudah punya pemakaian lain -> PesananKonflik.
     """
@@ -277,8 +253,7 @@ def catat_terbit(kon, order_id, dicatat_oleh, sekarang):
     """Catat laporan terbit (terbit = `sekarang`) untuk order lunas yang tidak direfund; idempoten per order.
 
     Replay (sudah ada, siapa pun pencatatnya) -> baru False tanpa tulis. Ditolak (PesananKonflik) bila order belum
-    lunas, direfund, keluarga sudah meminta uang kembali (pilihan efektif `uang_kembali`, final), atau voucher
-    ditahan (pembayaran perlu diperiksa). Waktu terbit lebih awal dari waktu lunas -> PesananKonflik (trigger
+    lunas, direfund, atau voucher ditahan (pembayaran perlu diperiksa). Waktu terbit lebih awal dari waktu lunas -> PesananKonflik (trigger
     skema tidak sampai terpicu).
     """
     d.periksa_koneksi(kon)
@@ -294,58 +269,10 @@ def catat_terbit(kon, order_id, dicatat_oleh, sekarang):
             raise d.PesananKonflik("order belum lunas")
         if k.direfund:
             raise d.PesananKonflik("order sudah direfund")
-        if k.pilihan == PILIHAN_UANG_KEMBALI:
-            raise d.PesananKonflik(PESAN_SUDAH_UANG_KEMBALI)
         if k.ditahan:
             raise d.PesananKonflik(PESAN_DITAHAN)
         if kini < k.waktu_lunas:
             raise d.PesananKonflik("waktu terbit lebih awal dari waktu lunas")
         kon.execute("INSERT INTO purna_laporan_terbit(order_id,terbit,dicatat_oleh,dibuat) VALUES(?,?,?,?)",
                     (order_id, kini, dicatat_oleh, kini))
-        return {"baru": True}
-
-
-def _alasan_tidak_bisa_pilih(k):
-    if not k.lunas:
-        return "order belum lunas"
-    if k.direfund:
-        return "order sudah direfund"
-    if k.ditahan:
-        return PESAN_DITAHAN
-    if k.dipakai:
-        return "voucher sudah dipakai"
-    if k.terbit is not None:
-        return "laporan sudah terbit"
-    return "pesanan belum terlambat"
-
-
-def _pilihan_sudah_ada(kon, order_id, pilihan):
-    return kon.execute("SELECT 1 FROM purna_pilihan_terlambat WHERE order_id=? AND pilihan=?",
-                       (order_id, pilihan)).fetchone() is not None
-
-
-def catat_pilihan(kon, order_id, pilihan, sekarang):
-    """Catat pilihan pembeli saat laporan terlambat ('menunggu' atau 'uang_kembali'); monoton. Mengembalikan {baru}.
-
-    Hanya bila `bisa_pilih` (lunas, tidak direfund, tidak ditahan, terlambat, voucher belum dipakai, laporan belum terbit).
-    'uang_kembali' boleh menyusul 'menunggu' dan FINAL; 'menunggu' sesudah 'uang_kembali' -> PesananKonflik.
-    Replay identik -> baru False (juga sesudah refund atau terbit). Kepemilikan order oleh pembeli ditegakkan
-    pemanggil HTTP, bukan di sini.
-    """
-    d.periksa_koneksi(kon)
-    d.periksa_order_id(order_id)
-    if pilihan not in sk.PILIHAN_TERLAMBAT:
-        raise d.PesananDataTidakSah("pilihan tidak sah")
-    kini = d.waktu_baku(sekarang)
-    with d.tulis(kon):
-        _wajib_terpasang(kon)
-        k = _keadaan(kon, order_id, kini)
-        if pilihan == PILIHAN_MENUNGGU and k.pilihan == PILIHAN_UANG_KEMBALI:
-            raise d.PesananKonflik("pilihan uang kembali sudah final")
-        if _pilihan_sudah_ada(kon, order_id, pilihan):
-            return {"baru": False}
-        if not k.bisa_pilih:
-            raise d.PesananKonflik(_alasan_tidak_bisa_pilih(k))
-        kon.execute("INSERT INTO purna_pilihan_terlambat(order_id,pilihan,dibuat) VALUES(?,?,?)",
-                    (order_id, pilihan, kini))
         return {"baru": True}

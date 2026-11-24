@@ -8,9 +8,9 @@ from purna_kit import (PELAKU, QRIS_BATAS, QRIS_HINGGA, QRIS_JANJI, SEKARANG, db
                        kon_tanpa_purna, operasi, order_belum_lunas, order_qris_lunas)
 
 KUNCI_PURNA = {"terpasang", "lunas", "voucher", "kode", "berlaku_hingga", "janji_terbit", "batas_pilihan", "terbit",
-               "terlambat", "pilihan", "dipakai", "direfund", "ditahan"}
+               "terlambat", "dipakai", "direfund", "ditahan"}
 NETRAL = {"terpasang": False, "lunas": False, "voucher": None, "kode": None, "berlaku_hingga": None,
-          "janji_terbit": None, "batas_pilihan": None, "terbit": None, "terlambat": False, "pilihan": None,
+          "janji_terbit": None, "batas_pilihan": None, "terbit": None, "terlambat": False,
           "dipakai": False, "direfund": False, "ditahan": False}
 SESUDAH_BATAS = "2026-11-24T00:00:00"
 
@@ -18,7 +18,7 @@ SESUDAH_BATAS = "2026-11-24T00:00:00"
 def test_whitelist_purna_daftar_kunci_persis_pada_detail_order(kon):
     oid = order_qris_lunas(kon)
     detail = po.detail_order(kon, oid, SEKARANG)
-    assert set(detail["purna"]) == KUNCI_PURNA and len(KUNCI_PURNA) == 13
+    assert set(detail["purna"]) == KUNCI_PURNA and len(KUNCI_PURNA) == 12 and "pilihan" not in KUNCI_PURNA
     assert detail["purna"] == po.purna_ringkas(kon, oid, SEKARANG)
 
 
@@ -27,7 +27,7 @@ def test_nilai_purna_order_lunas_baru(kon):
     assert po.detail_order(kon, oid, SEKARANG)["purna"] == {
         "terpasang": True, "lunas": True, "voucher": "aktif", "kode": purna.kode_voucher(oid),
         "berlaku_hingga": QRIS_HINGGA, "janji_terbit": QRIS_JANJI, "batas_pilihan": QRIS_BATAS, "terbit": None,
-        "terlambat": False, "pilihan": None, "dipakai": False, "direfund": False, "ditahan": False}
+        "terlambat": False, "dipakai": False, "direfund": False, "ditahan": False}
 
 
 def test_nilai_purna_belum_lunas(kon):

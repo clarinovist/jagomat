@@ -119,7 +119,6 @@ _PROBE_POST = {
     "/murid/orang-tua/pin/hapus": "/murid/orang-tua/pin/hapus",
     "/murid/cek/mulai": "/murid/cek/mulai",
     "/murid/pesanan": "/murid/pesanan/pesan",
-    "/murid/pesanan/pilih": "/murid/pesanan/pilih",
     "/murid/langganan": "/murid/langganan/buat",
     "/murid/latihan-harian": "/murid/latihan-harian/mulai",
     "/lembaga": "/lembaga/pindah",
@@ -233,10 +232,8 @@ def test_tabel_akses_punya_probe():
     # F2c: pesanan dari akun anak; tepat setelah /murid (sebelum palang sandi), POST di bawah prefix /murid/.
     assert get["/murid/pesanan"] == post["/murid/pesanan"] == "murid"
     assert urutan.index("/murid/pesanan") == urutan.index("/murid/orang-tua") + 1
-    # V4a: pilihan terlambat pembeli: POST saja, tepat setelah /murid/pesanan di tabel POST; GET tidak bertambah.
-    urutan_post = [prefix for prefix, _tingkat in web.AKSES_RUTE_POST]
-    assert post["/murid/pesanan/pilih"] == "murid" and "/murid/pesanan/pilih" not in get
-    assert urutan_post.index("/murid/pesanan/pilih") == urutan_post.index("/murid/pesanan") + 1
+    # Rute pilihan terlambat (uang kembali) sudah dihapus: tidak ada entri tabel tersendiri.
+    assert "/murid/pesanan/pilih" not in get and "/murid/pesanan/pilih" not in post
     # F5: langganan Latihan Harian dari akun anak; tepat setelah /murid/pesanan, GET exact dan POST di bawahnya.
     assert get["/murid/langganan"] == post["/murid/langganan"] == "murid"
     assert urutan.index("/murid/langganan") == urutan.index("/murid/pesanan") + 1
@@ -306,6 +303,14 @@ def test_anonim_post_sesuai_tingkat(server, prefix, tingkat):
     assert kode in _HARAPAN_ANONIM_POST[tingkat], f"POST {jalur} anonim: {kode}"
     if tingkat != "publik":
         assert NAMA_ANAK not in isi, f"POST {jalur} membocorkan nama anak"
+
+
+def test_anonim_post_rute_pilih_yang_dihapus_sama_dengan_rute_murid_tak_dikenal(server):
+    """`/murid/pesanan/pilih` tidak ada lagi: anonim 401 persis seperti rute tak dikenal di bawah `/murid/pesanan`."""
+    kode_pilih, isi_pilih, _ = _minta_mentah(server, "/murid/pesanan/pilih", data={})
+    kode_asing, isi_asing, _ = _minta_mentah(server, "/murid/pesanan/tidak-ada-rute", data={})
+    assert kode_pilih == kode_asing == 401
+    assert isi_pilih == isi_asing
 
 
 def test_anonim_di_root_mendapat_landing_bukan_beranda_guru(server):
