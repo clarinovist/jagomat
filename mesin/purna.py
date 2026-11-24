@@ -29,6 +29,7 @@ Idempotensi = SELECT lalu INSERT dalam satu transaksi tulis; `INSERT OR IGNORE` 
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Optional
 
@@ -223,13 +224,17 @@ def _pakai_sudah_ada(kon, operasi_id, isi):
     return bool(ada)
 
 
-def catat_pakai(kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang):
-    """Catat pemakaian voucher; idempoten per `operasi_id`. Mengembalikan {baru}.
+@contextmanager
+def _transaksi_pemanggil(kon):
+    """Konteks untuk transaksi yang dimiliki pemanggil: wajib sudah terbuka; tidak commit dan tidak rollback."""
+    d.periksa_koneksi(kon)
+    if not kon.in_transaction:
+        raise d.PesananDataTidakSah("koneksi tidak dalam transaksi")
+    yield kon
 
-    Hanya bila voucher 'aktif' (lunas, tidak direfund/ditahan, belum dipakai, belum kedaluwarsa); selain itu
-    PesananKonflik. Replay identik -> baru False (juga sesudah kedaluwarsa); operasi sama isi beda, atau order
-    sudah punya pemakaian lain -> PesananKonflik.
-    """
+
+def _catat_pakai(konteks, kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang):
+    """Badan tunggal pencatatan pemakaian; `konteks` = pemilik transaksi (`d.tulis` atau `_transaksi_pemanggil`)."""
     d.periksa_koneksi(kon)
     d.periksa_order_id(order_id)
     d.periksa_operasi_id(operasi_id)
@@ -238,7 +243,7 @@ def catat_pakai(kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang)
         raise d.PesananDataTidakSah("catatan_kode tidak sah")
     kini = d.waktu_baku(sekarang)
     isi = (order_id, dicatat_oleh, catatan_kode)
-    with d.tulis(kon):
+    with konteks(kon):
         _wajib_terpasang(kon)
         if _pakai_sudah_ada(kon, operasi_id, isi):
             return {"baru": False}
@@ -248,6 +253,26 @@ def catat_pakai(kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang)
         kon.execute("INSERT INTO purna_voucher_pakai(operasi_id,order_id,dicatat_oleh,catatan_kode,dibuat) "
                     "VALUES(?,?,?,?,?)", (operasi_id,) + isi + (kini,))
         return {"baru": True}
+
+
+def catat_pakai(kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang):
+    """Catat pemakaian voucher; idempoten per `operasi_id`. Mengembalikan {baru}.
+
+    Hanya bila voucher 'aktif' (lunas, tidak direfund/ditahan, belum dipakai, belum kedaluwarsa); selain itu
+    PesananKonflik. Replay identik -> baru False (juga sesudah kedaluwarsa); operasi sama isi beda, atau order
+    sudah punya pemakaian lain -> PesananKonflik. Membuka transaksinya sendiri (`BEGIN IMMEDIATE`).
+    """
+    return _catat_pakai(d.tulis, kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang)
+
+
+def catat_pakai_dalam_transaksi(kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang):
+    """Sama dengan :func:`catat_pakai` tetapi DI DALAM transaksi tulis milik pemanggil (domain kelas).
+
+    Koneksi wajib sudah `in_transaction` (selain itu PesananDataTidakSah, tanpa tulis); fungsi ini tidak commit
+    dan tidak rollback: galat (PesananKonflik dst.) naik ke pemanggil, yang membatalkan seluruh transaksinya,
+    sehingga pemakaian deposit dan akses kelas atomik. Aturan dan idempotensi identik dengan catat_pakai.
+    """
+    return _catat_pakai(_transaksi_pemanggil, kon, order_id, operasi_id, dicatat_oleh, catatan_kode, sekarang)
 
 
 def catat_terbit(kon, order_id, dicatat_oleh, sekarang):

@@ -16,7 +16,7 @@ DDL_SAKELAR_LAMA = (
 DDL_AUDIT_LAMA = (
     "CREATE TABLE audit_sakelar (id INTEGER PRIMARY KEY AUTOINCREMENT, nama TEXT NOT NULL, lama INTEGER, "
     "baru INTEGER NOT NULL, revisi INTEGER NOT NULL, actor_id TEXT NOT NULL, dibuat TEXT NOT NULL)")
-NAMA_TERBARU = ("DAFTAR_AKUN_ANAK", "LATIHAN_HARIAN")  # sakelar keenam dan ketujuh; pelebaran dari 4 nama ke atas tetap sama
+NAMA_TERBARU = ("DAFTAR_AKUN_ANAK", "LATIHAN_HARIAN", "PAKET_BELAJAR")  # sakelar keenam sampai kedelapan; pelebaran dari 4 nama ke atas tetap sama
 SEED = {nama: False for nama in NAMA_LAMA + (NAMA_BARU,) + NAMA_TERBARU}
 # keadaan produksi yang masuk akal: funnel hidup (revisi 3), transfer hidup (revisi 2), sisanya mati
 KEADAAN_LAMA = {"FUNNEL_AKTIF": (1, 3), "PESANAN_TRANSFER_AKTIF": (1, 2),
@@ -129,7 +129,7 @@ def test_perluasan_idempoten_dan_tidak_membangun_ulang_tabel_yang_sudah_lebar(db
     rowid_sebelum = _baca(db_lama, "SELECT rootpage FROM sqlite_master WHERE name='sakelar'")[0][0]
     _ubah(db_lama, aktif=False, revisi=2)
     assert _baca(db_lama, "SELECT rootpage FROM sqlite_master WHERE name='sakelar'")[0][0] == rowid_sebelum
-    assert _baca(db_lama, "SELECT COUNT(*) FROM sakelar")[0][0] == 7
+    assert _baca(db_lama, "SELECT COUNT(*) FROM sakelar")[0][0] == 8
 
 
 def test_perluasan_gagal_di_tengah_membatalkan_semuanya_dan_db_lama_utuh(db_lama, monkeypatch):

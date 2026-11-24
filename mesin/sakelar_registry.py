@@ -15,6 +15,7 @@ import contest_gate
 import daftar_anak_gate
 import feature_switch
 import funnel_flag
+import paket_belajar_gate
 import pesanan_transfer_gerbang
 import story_frames
 
@@ -87,6 +88,15 @@ _INFO = {
         akibat_mati="Murid dan orang tua tidak bisa membuka Latihan Harian; halamannya tampil seperti tidak ada.",
         kelompok=KELOMPOK_BELAJAR,
         dari_env=akses_harian.dari_env),
+    "PAKET_BELAJAR": InfoSakelar(
+        label="Paket Belajar 1 Bulan",
+        dampak="Saat aktif, orang tua bisa memilih paket belajar Private atau Mini Class, membayar lewat transfer "
+               "rekening, dan admin menyetujui bukti bayarnya. Saat mati, halaman paket tampil seperti tidak ada "
+               "dan Latihan Harian tidak berubah.",
+        akibat_mati="Orang tua tidak bisa memilih atau membayar paket belajar baru; halamannya tampil seperti tidak ada. "
+                    "Paket yang sudah disetujui tetap tercatat.",
+        kelompok=KELOMPOK_PENJUALAN,
+        dari_env=paket_belajar_gate.dari_env),
 }
 
 if tuple(_INFO) != feature_switch.NAMA_SAKELAR:

@@ -33,6 +33,7 @@ NAMA_SAKELAR = (
     "OSN_LOMBA",
     "DAFTAR_AKUN_ANAK",
     "LATIHAN_HARIAN",
+    "PAKET_BELAJAR",
 )
 
 BERKAS_BAWAAN = "/data/sakelar.db"
