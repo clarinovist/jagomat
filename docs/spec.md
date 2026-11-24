@@ -164,6 +164,7 @@ Riwayat belajar ikut anak, jejak pindah append-only. Guru lain mendapat 404 iden
   jeda selesai→konfirmasi, perkiraan waktu tinjau, sumber, laporan terbit. Tanpa nama anak;
   waktu persiapan belum terukur.
 - Admin melihat **data cek untuk laporan** di Detail order (`/admin/pesanan/order?id=`) untuk order lunas, baca-saja: skor, kategori, ringkasan, dan benar/total per materi, plus sisa hari sebelum data per materi dihapus retensi 30 hari, supaya tim bisa menulis laporan Peta Kemampuan dalam janji 48 jam. Tanpa nama anak, kontak, soal, jawaban, atau kunci; bukan akses orang tua atau Guru.
+- Laporan Peta Kemampuan untuk orang tua ditulis dan diterbitkan oleh **Guru**, bukan admin: draf berisi snapshot hasil cek (dibekukan sebelum data per materi hilang oleh retensi 30 hari) plus catatan Guru, terbit hanya bila catatan terisi, dan tidak bisa diubah setelah terbit; satu laporan per anak, ikut terhapus bersama anak. Fondasi data ada (D1-1); halaman Guru dan halaman orang tua menyusul.
 - Admin melihat **Topik Cek Kemampuan** (`/admin/cek-topik`, baca-saja, tanpa DB): topik cek gratis
   per kelas, soal per topik, contoh jenis soal, dan status materi dasar kelas 1–2. Diturunkan dari kode;
   mengubahnya lewat kode dan rilis, bukan dari admin. Tab "Kurikulum Merdeka" (`/admin/kurikulum`):

@@ -351,6 +351,15 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   dengan `csp` sempit; rute guru `/anak/<id>/laporan-ortu...` setelah `_lolos_sandi`, sebelum profil) dan
   `parent_report_guru_pages.py`. Hanya menulis dua tabel sendiri; dijaga M1 authorizer SQLite, M2 allowlist,
   M3 teks terlarang, M4 tanpa tulis bukti (`test_laporan_ortu_field_guard.py`).
+- Laporan Peta Kemampuan untuk orang tua ditulis Guru (D1-1, fondasi data; belum ada halaman/rute, belum dirilis; plan lokal `docs/plan/2026-11-24-d1-laporan-guru.md`):
+  `schema_peta_laporan.py` (tabel aditif `peta_laporan` di DB belajar, satu baris per anak, FK `siswa` CASCADE, tanpa FK ke
+  `sesi`/`cek_gratis`; trigger: terbit tak bisa di-UPDATE, `isi`/`siswa_id`/`guru`/`dibuat` tak berubah, terbit butuh catatan,
+  baris baru wajib draf; sengaja TANPA trigger DELETE agar cascade dan penghapusan keluarga tetap jalan),
+  `peta_laporan_store.py` (semua SQL: draf, catatan, terbit, hapus draf, `terbit_terakhir` tanpa akun Guru; transaksi pemanggil, waktu
+  disuntik) dan `peta_laporan_snapshot.py` (pembangun murni dari `cek_ringkasan_admin.ringkasan_untuk_order` hanya bila bahan `ada`,
+  plus `periksa_isi` yang dipakai store saat menulis dan membaca). Snapshot dibekukan saat draf dibuat karena data per materi hilang
+  oleh retensi 30 hari. Siswa hanya dianonimkan saat hapus keluarga, jadi `family_deletion._hapus_peta_laporan` menghapusnya eksplisit
+  (draf dan terbit). Probe deploy `PROBE_PETA_LAPORAN_SKEMA`: tabel belum ada lulus (preflight sebelum migrasi), sudah ada wajib persis DDL source.
 - Tes diagnostik tajam (live 15 Nov 2026, `7b57cc7`): `diagnostic_battery.py` komposer murni paket
   berpasangan per jenjang (triase prasyarat + minimal dua probe per sub-konsep; P1/P2 10, P3 20,
   P4–P6 24 butir). `database.buat_sesi_diagnostik` (berkas kontrak, memakai `buat_sesi_dari_urutan`

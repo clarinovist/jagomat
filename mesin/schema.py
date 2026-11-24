@@ -886,3 +886,8 @@ SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_HARIAN_LANGG
 from schema_harian_latihan import SKEMA_HARIAN_LATIHAN  # noqa: E402
 
 SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_HARIAN_LATIHAN + '\n-- Ringkasan per sesi supaya laporan', 1)
+
+# Laporan Peta Kemampuan ditulis Guru (D1-1): aditif, idempoten, tanpa migrasi; milik siswa (CASCADE).
+from schema_peta_laporan import SKEMA_PETA_LAPORAN  # noqa: E402
+
+SKEMA = SKEMA.replace('-- Ringkasan per sesi supaya laporan', SKEMA_PETA_LAPORAN + '\n-- Ringkasan per sesi supaya laporan', 1)

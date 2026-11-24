@@ -581,6 +581,34 @@ finally:
 '''
 PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_POLICY_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
 
+# Laporan Peta untuk orang tua (D1-1): tabel aditif di DB belajar, dibuat startup kandidat (bukan probe).
+# Preflight berjalan SEBELUM migrasi, jadi tabel yang belum ada = lulus; bila sudah ada, objeknya (tabel + trigger)
+# wajib persis DDL source image. Image lama tanpa modul skema (recovery) tidak memeriksa tabel tambahan itu.
+PROBE_PETA_LAPORAN_SKEMA = '''
+import ast
+from pathlib import Path
+kon = sqlite3.connect('file:/data/latihan.db?mode=ro', uri=True, timeout=2)
+try:
+    kon.execute('PRAGMA query_only=ON')
+    sql = "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE tbl_name='peta_laporan' ORDER BY type,name"
+    aktual = kon.execute(sql).fetchall()
+    sumber = Path('/app/schema_peta_laporan.py')
+    if aktual and sumber.is_file():
+        pohon = ast.parse(sumber.read_text())
+        ddl = [ast.literal_eval(n.value) for n in pohon.body if isinstance(n, ast.Assign)
+               and any(isinstance(t, ast.Name) and t.id=='SKEMA_PETA_LAPORAN' for t in n.targets)]
+        assert len(ddl)==1
+        acuan = sqlite3.connect(':memory:')
+        try:
+            acuan.executescript(ddl[0])
+            assert aktual == acuan.execute(sql).fetchall()
+        finally:
+            acuan.close()
+finally:
+    kon.close()
+'''
+PROBE_SKEMA = PROBE_SKEMA.replace("print('OSN_SCHEMA_ADMIN9_AI2_OK')", PROBE_PETA_LAPORAN_SKEMA + "\nprint('OSN_SCHEMA_ADMIN9_AI2_OK')")
+
 # Pesanan v1 + transfer_* + purna_* + rekening_* adalah migrasi opt-in yang eksplisit: probe image
 # (container synthetic tanpa data nyata) memastikan keempatnya idempoten. Impor diberi
 # penjaga agar image lama yang belum membawa modulnya tetap dapat diprobe.
