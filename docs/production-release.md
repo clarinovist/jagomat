@@ -12,6 +12,18 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy UI anak, halaman Ayah/Bunda, dan langganan gaya landing page — 24 November 2026
+
+Controlled `deploy-v2` memasang **1a89bb7** (digest `sha256:3d771cb1…6ba0`), healthy, menggantikan **293e2ab**, ±10.31 WIB. Hanya tampilan (lima commit
+a500185..1a89bb7): komponen ceria bersama (`playful_*`), istilah Kelas menggantikan Tingkat, tampilan anak (pilih kelas, soal, umpan balik, ringkasan,
+jatah habis, hero beranda), halaman Ayah/Bunda (hero, urutan blok, PIN dilipat), kartu langganan enam keadaan, pilih paket, tagihan, status.
+Kontrak TIDAK bergeser (`464074bf…`); recovery tetap **3cf536c** (digest dibangun ulang `sha256:2c712566…a524`); tanpa migrasi skema dan tanpa flag
+baru. Push CI 45319294790 dan dispatch 45319376765 hijau (job pasang dilewati sesuai desain), kit `deploy-ui-ceria-20261124` (agent, izin Pemilik):
+approval diarsipkan, `PERSIAPAN_OK`, backup lima file + riset, rehearsal C–B–C, hash backup lokal cocok, deploy exit0, `reopen` `LIVE_ADMIN_HEALTHY`,
+postcheck hijau (0 Traceback/OperationalError/IntegrityError, konfigurasi pulih), cleanup 4 direktori. Smoke publik: `/` 200, `/akun` 401, `/murid/` 303.
+Rollback: recovery 3cf536c (UI lama, tanpa perubahan data). Belum diperiksa dengan akun anak/orang tua sungguhan di produksi (hanya smoke anonim dan
+render sintetis lokal); tombol "lihat paket" di layar anak tetap lewat `/murid/orang-tua` (PIN tirai), tanpa perubahan akses.
+
 ## Deploy perbaikan tampilan (peringatan pindah massal, geser tabel admin, input berkas bukti) — 24 November 2026
 
 Controlled `deploy-v2` memasang **293e2ab** (digest `sha256:5c750979…8f4d`), healthy, menggantikan **cc5c363**, ±05.28 WIB. Hanya tampilan:
