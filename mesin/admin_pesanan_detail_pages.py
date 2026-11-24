@@ -2,7 +2,7 @@
 
 Isi: ringkasan (nominal persis dengan tiga digit unik disorot, cara bayar, waktu WIB), urutan perjalanan order
 (hanya langkah yang datanya ada), tautan ke bukti transfer, kartu "Voucher dan laporan" (keadaan purna dan dua
-tindakan: catat voucher dipakai, catat laporan terbit), lalu dua tindakan berisiko dalam `<details>`:
+status laporan, dan tindakan catat voucher dipakai), lalu dua tindakan berisiko dalam `<details>`:
 "Periksa status ke penyedia pembayaran" dan "Pengecualian: catat uang kembali". Semua form tetap memakai token
 final admin (csrf + tinjauan terikat aksi dan sesi + sandi ulang) dan hanya muncul untuk sesi berkuki.
 
@@ -87,13 +87,10 @@ COPY_LAPORAN_SUDAH = "Sudah terbit"
 COPY_LAPORAN_TERLAMBAT = "Terlambat sejak %s"
 COPY_TOMBOL_VOUCHER = "Catat voucher dipakai"
 COPY_KONFIRMASI_VOUCHER = "Voucher ditandai sudah dipakai dan order ini tidak bisa direfund lagi. Tidak bisa dibatalkan."
-COPY_TOMBOL_TERBIT = "Catat laporan terbit"
-COPY_PETUNJUK_TERBIT = "Catat segera setelah laporan dikirim."
 COPY_DITAHAN = (
     "Pembayaran order ini perlu diperiksa, jadi voucher dan laporan terbit ditahan sampai statusnya normal. "
     "Catat uang kembali tetap bisa dilakukan."
 )
-COPY_KONFIRMASI_TERBIT = "Laporan ditandai sudah terbit sekarang (jam pencatatan). Tidak bisa dibatalkan."
 COPY_REFUND_VOUCHER_DIPAKAI = "Voucher sudah dipakai; refund tidak tersedia."
 # Enum `catatan_kode` pemakaian voucher (sama dengan `schema_purna.CATATAN_PAKAI`).
 URUTAN_ALASAN_VOUCHER = ("kelas", "lainnya")
@@ -131,13 +128,6 @@ def _form_voucher(token: Tuple[str, str]) -> str:
             '<label>Dipakai untuk<select name="catatan_kode" required>%s</select></label>%s'
             '<button class="admin-tombol admin-bahaya-garis" type="submit">%s</button></form>'
             % (ui.RUTE_VOUCHER, e(COPY_KONFIRMASI_VOUCHER), _hidden(*token), opsi, _SANDI, e(COPY_TOMBOL_VOUCHER)))
-
-
-def _form_terbit(token: Tuple[str, str]) -> str:
-    return ('<p class="admin-meta">%s</p><form method="post" action="%s" data-konfirmasi="%s">%s%s'
-            '<button class="admin-tombol admin-bahaya-garis" type="submit">%s</button></form>'
-            % (e(COPY_PETUNJUK_TERBIT), ui.RUTE_TERBIT, e(COPY_KONFIRMASI_TERBIT), _hidden(*token), _SANDI,
-               e(COPY_TOMBOL_TERBIT)))
 
 
 def _baris_rincian(label: str, nilai: str) -> str:
@@ -183,7 +173,7 @@ def _rincian_purna(pur: Mapping) -> str:
 
 
 def _kartu_purna(detail: Mapping, gerbang_terbuka: bool, forms: Mapping) -> str:
-    """Kartu "Voucher dan laporan": keadaan purna + form voucher/terbit sesuai `ui.aksi_tersedia` dan token."""
+    """Kartu "Voucher dan laporan": keadaan purna + form voucher sesuai `ui.aksi_tersedia` dan token."""
     pur = detail.get("purna") or {}
     kepala = "<h2>%s</h2>" % e(COPY_JUDUL_PURNA)
     if not pur.get("terpasang"):
@@ -192,8 +182,6 @@ def _kartu_purna(detail: Mapping, gerbang_terbuka: bool, forms: Mapping) -> str:
     form = ""
     if ui.AKSI_VOUCHER in tersedia and ui.AKSI_VOUCHER in forms:
         form += _form_voucher(forms[ui.AKSI_VOUCHER])
-    if ui.AKSI_TERBIT in tersedia and ui.AKSI_TERBIT in forms:
-        form += _form_terbit(forms[ui.AKSI_TERBIT])
     catatan = '<p class="admin-meta">%s</p>' % e(COPY_DITAHAN) if pur.get("ditahan") else ""
     return '<section class="admin-kartu">%s<dl class="admin-order-rincian">%s</dl>%s%s</section>' % (
         kepala, _rincian_purna(pur), catatan, form)

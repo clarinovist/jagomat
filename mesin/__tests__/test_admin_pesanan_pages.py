@@ -204,8 +204,7 @@ def test_kode_hasil_verifikasi_dikenal_dan_label_status_baru_ada():
 
 def test_kode_hasil_detail_hanya_aksi_detail_order():
     assert pg.KODE_HASIL_DETAIL == {"periksa_ok", "periksa_dilewati", "periksa_gagal", "gerbang_tertutup",
-                                    "refund_dicatat", "refund_sudah_ada", "voucher_dicatat", "voucher_sudah_ada",
-                                    "terbit_dicatat", "terbit_sudah_ada"}
+                                    "refund_dicatat", "refund_sudah_ada", "voucher_dicatat", "voucher_sudah_ada"}
 
 
 def test_penanda_dua_jalur_dan_menunggu_lama_tampil_di_sel_status():

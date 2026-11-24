@@ -130,7 +130,6 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/periksa", "admin"),  # Fase 3c-4: periksa/refund order; tercakup prefix `/admin`
     ("/admin/pesanan/refund", "admin"),
     ("/admin/pesanan/voucher", "admin"),  # V3 purna: catat voucher dipakai; tinjauan bertanda tangan + sandi ulang
-    ("/admin/pesanan/terbit", "admin"),  # V3 purna: catat laporan terbit; tinjauan bertanda tangan + sandi ulang
     ("/admin/pesanan/setujui", "admin"),  # transfer rekening (tahap 3): keputusan verifikasi dan rekening
     ("/admin/pesanan/tolak", "admin"),
     ("/admin/pesanan/rekening", "admin"),
@@ -794,6 +793,9 @@ class Penangan(BaseHTTPRequestHandler):
             return
         if parent_report_http.tangani_guru_get(self, jalur):
             return
+        import peta_laporan_guru_http  # D1-2: laporan Peta untuk orang tua ditulis Guru; sebelum penangkap /anak/
+        if peta_laporan_guru_http.tangani_get(self, jalur):
+            return
         import contest_guru_http  # Latihan Lomba (riwayat anak untuk guru/admin): sebelum penangkap /anak/
         if contest_guru_http.tangani_get(self, jalur, self.path):
             return
@@ -945,6 +947,9 @@ class Penangan(BaseHTTPRequestHandler):
         if share_http.tangani_guru_post(self, jalur):
             return
         if parent_report_http.tangani_guru_post(self, jalur):
+            return
+        import peta_laporan_guru_http  # D1-2: POST buat/catatan/terbitkan/hapus; hanya peran guru
+        if peta_laporan_guru_http.tangani_post(self, jalur):
             return
         import contest_guru_http  # Mode Lomba per anak (pengaturan Guru): setelah _lolos_sandi dan _asal_sama_post
         if contest_guru_http.tangani_post(self, jalur):

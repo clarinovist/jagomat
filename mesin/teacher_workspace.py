@@ -360,10 +360,12 @@ def halaman_anak(
         from report_dashboard import GAYA_LAPORAN
         from reports import konten_laporan
         from parent_report_guru_pages import kartu_masuk
+        from peta_laporan_guru_http import kartu_untuk_anak
         # Mode Lomba tidak lagi di tab ini: diatur dari kartu anak di /akun?section=siswa (22 Nov 2026).
         isi_profil = (
             f'<style>{GAYA_LAPORAN}{GAYA_PETA}</style>'
             + kartu_masuk(int(siswa["id"]))
+            + kartu_untuk_anak(kon, int(siswa["id"]))
             + konten_laporan(kon, int(siswa["id"]), query=query)
         )
     elif section == "riwayat":

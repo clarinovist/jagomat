@@ -107,6 +107,30 @@ def kunci_cek(kon, order_id) -> Optional[tuple]:
     return None if baris is None else (baris["siswa_id"], baris["cek_id"], baris["akun_id"])
 
 
+KUNCI_ORDER_PETA = ("order_id", "siswa_id", "cek_id", "akun_id", "status")
+
+
+def order_peta_untuk_siswa(kon, siswa_id, sekarang) -> Optional[dict]:
+    """Order Peta milik anak ini dari ledger admin (dict baru 5 kunci `KUNCI_ORDER_PETA`), atau None bila tidak ada.
+
+    Dipanggil HANYA sesudah kepemilikan Guru atas anak diverifikasi pemanggil. Kunci cek dan akun dibaca server
+    dari ledger, tidak pernah dari URL/form. `status` = status turunan pada `sekarang` (ISO). `siswa_id` yang bukan
+    bilangan bulat >= 1 (termasuk bool) = None. Hanya SELECT; satu order per anak (UNIQUE siswa_id di skema).
+    """
+    d.periksa_koneksi(kon)
+    if type(siswa_id) is not int or siswa_id < 1:
+        return None
+    kini = d.waktu_baku(sekarang)
+    baris = kon.execute(
+        "SELECT order_id FROM pesanan_order WHERE siswa_id=?", (siswa_id,)).fetchone()
+    if baris is None:
+        return None
+    order = st.baris_order(kon, baris["order_id"])
+    return {"order_id": order["order_id"], "siswa_id": order["siswa_id"], "cek_id": order["cek_id"],
+            "akun_id": order["akun_id"],
+            "status": st.status_dari_db(kon, st.dict_order(order), kini)}
+
+
 def detail_order(kon, order_id, sekarang) -> Optional[dict]:
     """Detail satu order (dict baru) atau None bila order tak dikenal.
 

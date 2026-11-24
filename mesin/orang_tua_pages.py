@@ -20,6 +20,7 @@ import playful_components as C
 import parent_report_page
 import pesanan_pages
 import pesanan_voucher_pages
+import peta_laporan_ortu_pages
 from funnel_style import GAYA_FUNNEL
 from murid_shell import PANAH_KEMBALI, aksi_topbar, bungkus_murid, kepala_murid, topbar_murid
 from orang_tua_style import GAYA_ORTU, RUTE
@@ -251,14 +252,15 @@ def _kaki() -> str:
 def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "") -> bytes:
     """Isi halaman (tirai terbuka atau anak tanpa PIN); `data` = `orang_tua_data.DataOrangTua`.
 
-    Urutan: banner perpanjang, hero ringkasan, hasil cek, Latihan Harian, langganan, laporan Guru, Peta, PIN (lipat).
+    Urutan: banner perpanjang, hero ringkasan, hasil cek, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, laporan Guru, Peta, PIN (lipat).
     """
     pin_terbuka = bool(KABAR.get(kabar) or galat)
     badan = (
         '<div class="funnel-alur-st">' + _pesan(kabar, galat)
         + harian_langganan_pages.banner_orang_tua(data.langganan, data.nama_anak)
         + _hero_ringkasan(data.nama_anak, data.harian)
-        + _blok_cek(data.hasil_cek, data.nama_anak) + _blok_harian(data.harian)
+        + _blok_cek(data.hasil_cek, data.nama_anak) + peta_laporan_ortu_pages.blok_peta(data.peta)
+        + _blok_harian(data.harian)
         + harian_langganan_pages.kartu_orang_tua(data.langganan) + _blok_laporan(data.laporan)
         + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai", data.purna)
         + _blok_pin(ada_pin, pin_terbuka) + _kaki() + "</div>"

@@ -13,7 +13,7 @@ import admin_pesanan_pages as ui  # noqa: E402
 
 ORDER = "ord_" + "a" * 32
 TOKEN = ("csrf-sintetis", "tinjauan-sintetis")
-FORMS = {"voucher": TOKEN, "terbit": TOKEN, "refund": TOKEN, "periksa": TOKEN}
+FORMS = {"voucher": TOKEN, "refund": TOKEN, "periksa": TOKEN}
 
 
 def _purna(**ganti):
@@ -34,10 +34,10 @@ def _detail(status="sudah_dibayar", **purna):
 # --- aksi_tersedia ----------------------------------------------------------------------
 
 @pytest.mark.parametrize("ganti,harap", [
-    ({}, ("refund", "voucher", "terbit")),
-    ({"dipakai": True, "voucher": "dipakai"}, ("terbit",)),
+    ({}, ("refund", "voucher")),
+    ({"dipakai": True, "voucher": "dipakai"}, ()),
     ({"terbit": "2026-11-18T12:00:00"}, ("refund", "voucher")),
-    ({"voucher": "kedaluwarsa"}, ("refund", "terbit")),
+    ({"voucher": "kedaluwarsa"}, ("refund",)),
     ({"voucher": "batal", "direfund": True}, ("refund",)),
     ({"terpasang": False}, ("refund",)),
 ])
@@ -45,21 +45,22 @@ def test_aksi_tersedia_order_lunas_menurut_keadaan_purna(ganti, harap):
     assert ui.aksi_tersedia(_detail(**ganti), False) == harap
 
 
-def test_aksi_tersedia_order_ditahan_hanya_refund_tanpa_voucher_dan_terbit():
+def test_aksi_tersedia_order_ditahan_hanya_refund_tanpa_voucher():
     item = _detail("perlu_diperiksa", ditahan=True, voucher="ditahan")
     assert ui.aksi_tersedia(item, False) == ("refund",)
 
 
-def test_aksi_tersedia_terbit_hanya_bila_tidak_ditahan():
-    assert ui.AKSI_TERBIT in ui.aksi_tersedia(_detail(), False)
-    assert ui.AKSI_TERBIT not in ui.aksi_tersedia(_detail(ditahan=True), False)
+def test_tidak_ada_aksi_terbit_admin_di_aksi_tersedia_apa_pun_keadaannya():
+    assert not hasattr(ui, "AKSI_TERBIT") and not hasattr(ui, "RUTE_TERBIT")
+    for ganti in ({}, {"terlambat": True}, {"ditahan": True}, {"terbit": "2026-11-18T12:00:00"}):
+        assert "terbit" not in ui.aksi_tersedia(_detail(**ganti), True)
 
 
-def test_aksi_tersedia_order_direfund_tanpa_voucher_dan_terbit():
+def test_aksi_tersedia_order_direfund_tanpa_voucher():
     assert ui.aksi_tersedia(_detail("direfund", voucher="batal", direfund=True), True) == ()
 
 
-def test_aksi_tersedia_order_belum_lunas_tanpa_voucher_dan_terbit():
+def test_aksi_tersedia_order_belum_lunas_tanpa_voucher():
     assert ui.aksi_tersedia(_detail("belum_bayar", lunas=False, voucher="belum_lunas"), True) == ("periksa",)
 
 
@@ -104,15 +105,14 @@ def test_kartu_purna_tanpa_token_tidak_ada_form_meski_aksi_tersedia():
     assert "Voucher dan laporan" in isi and "<form" not in isi
 
 
-def test_kartu_purna_dengan_token_memuat_dua_form_dan_enum_pakai():
+def test_kartu_purna_dengan_token_memuat_form_voucher_dan_refund_tanpa_form_terbit():
     isi = dp.halaman(_detail(), gerbang_terbuka=False, forms=FORMS)
-    assert isi.count('action="/admin/pesanan/voucher"') == 1 and isi.count('action="/admin/pesanan/terbit"') == 1
+    assert isi.count('action="/admin/pesanan/voucher"') == 1 and 'action="/admin/pesanan/terbit"' not in isi
 
 
 def test_kartu_purna_belum_terpasang_satu_baris_tanpa_form_walau_token_ada():
     isi = dp.halaman(_detail(terpasang=False), gerbang_terbuka=False, forms=FORMS)
     assert dp.COPY_PURNA_BELUM in isi and 'action="/admin/pesanan/voucher"' not in isi
-    assert 'action="/admin/pesanan/terbit"' not in isi
 
 
 def test_kartu_purna_item_tanpa_kunci_purna_dianggap_belum_terpasang():
@@ -143,7 +143,7 @@ def _tanpa_tag(isi):
     return re.sub(r"<[^>]+>", " ", isi)
 
 
-def test_kartu_order_ditahan_menampilkan_status_dan_catatan_tanpa_form_voucher_dan_terbit():
+def test_kartu_order_ditahan_menampilkan_status_dan_catatan_tanpa_form_voucher():
     isi = dp.halaman(_detail("perlu_diperiksa", ditahan=True, voucher="ditahan"), gerbang_terbuka=False, forms=FORMS)
     assert dp.COPY_VOUCHER["ditahan"] == "Ditahan (pembayaran perlu diperiksa)"
     assert dp.COPY_VOUCHER["ditahan"] in isi and dp.COPY_DITAHAN in isi
@@ -155,24 +155,20 @@ def test_kartu_order_normal_tanpa_catatan_ditahan():
     assert dp.COPY_DITAHAN not in dp.halaman(_detail(), gerbang_terbuka=False, forms=FORMS)
 
 
-def test_kartu_terlambat_tetap_menawarkan_form_terbit_dan_refund_tanpa_peringatan_atau_pilihan_keluarga():
+def test_kartu_terlambat_menampilkan_status_dan_tetap_menawarkan_refund_tanpa_form_terbit_atau_pilihan_keluarga():
     isi = dp.halaman(_detail(terlambat=True), gerbang_terbuka=False, forms=FORMS)
-    assert 'action="/admin/pesanan/terbit"' in isi and 'action="/admin/pesanan/refund"' in isi
+    assert "Terlambat sejak" in isi and 'action="/admin/pesanan/refund"' in isi
+    assert 'action="/admin/pesanan/terbit"' not in isi
     for lama in ("Keluarga meminta uang kembali", "Minta uang kembali", "Pilihan keluarga"):
         assert lama not in isi
     assert not hasattr(dp, "COPY_PILIHAN") and not hasattr(dp, "COPY_MINTA_UANG_KEMBALI")
     assert not hasattr(ui, "COPY_LAPORAN_MINTA_KEMBALI")
 
 
-def test_petunjuk_catat_segera_dekat_form_terbit_hanya_bila_form_tampil():
-    ada = dp.halaman(_detail(), gerbang_terbuka=False, forms=FORMS)
-    assert dp.COPY_PETUNJUK_TERBIT == "Catat segera setelah laporan dikirim."
-    assert dp.COPY_PETUNJUK_TERBIT in ada and ada.index(dp.COPY_PETUNJUK_TERBIT) < ada.index('action="/admin/pesanan/terbit"')
-    assert dp.COPY_PETUNJUK_TERBIT not in dp.halaman(_detail(terbit="2026-11-19T10:00:00"), gerbang_terbuka=False, forms=FORMS)
-    assert dp.COPY_PETUNJUK_TERBIT not in dp.halaman(_detail(), gerbang_terbuka=False, forms={})
-
-
-def test_konfirmasi_form_terbit_tidak_berubah():
-    isi = dp.halaman(_detail(), gerbang_terbuka=False, forms=FORMS)
-    assert dp.COPY_KONFIRMASI_TERBIT == "Laporan ditandai sudah terbit sekarang (jam pencatatan). Tidak bisa dibatalkan."
-    assert 'data-konfirmasi="%s"' % dp.COPY_KONFIRMASI_TERBIT in isi
+def test_kartu_menampilkan_status_terbit_baca_saja_tanpa_copy_catat_terbit():
+    sudah = dp.halaman(_detail(terbit="2026-11-19T10:00:00"), gerbang_terbuka=False, forms=FORMS)
+    assert dp.COPY_LAPORAN_SUDAH in sudah and "Waktu terbit" in sudah
+    belum = dp.halaman(_detail(), gerbang_terbuka=False, forms=FORMS)
+    assert dp.COPY_LAPORAN_BELUM in belum and "Catat laporan terbit" not in belum
+    for nama in ("COPY_TOMBOL_TERBIT", "COPY_PETUNJUK_TERBIT", "COPY_KONFIRMASI_TERBIT", "_form_terbit"):
+        assert not hasattr(dp, nama)

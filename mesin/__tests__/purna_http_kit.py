@@ -1,4 +1,4 @@
-"""Pembantu tes HTTP aksi admin purna (voucher dipakai, laporan terbit): fixture DB, order lunas, potret efek.
+"""Pembantu tes HTTP purna (aksi admin voucher dipakai; terbit dicatat jalur Guru): fixture DB, order lunas, potret efek.
 
 Data sintetis; server, provider, dan jam palsu dari `pesanan_http_kit`. Fixture `bayar_purna` (QRIS) dan
 `transfer_purna` (transfer rekening) memigrasikan `transfer_*` dan `purna_*` pada DB admin sintetis; `bayar` polos
@@ -58,6 +58,12 @@ def lunas(request):
     server = request.getfixturevalue("transfer_purna")
     admin = login_admin(server)
     return server, admin, lunas_transfer(server, admin)
+
+
+def catat_terbit_ledger(order_id: str, waktu: str, pelaku: str = "guru") -> None:
+    """Pencatatan terbit seperti yang dilakukan jalur Guru (aksi admin dihapus): langsung ke domain purna."""
+    with ledger() as kon:
+        purna.catat_terbit(kon, order_id, pelaku, waktu)
 
 
 def potret_efek() -> dict:

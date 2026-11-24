@@ -1,4 +1,4 @@
-"""Aksi admin purna lewat HTTP: catat voucher dipakai dan catat laporan terbit dari Detail order (V3).
+"""Aksi admin purna lewat HTTP: catat voucher dipakai dari Detail order (V3); aksi catat terbit DIHAPUS (D1-2).
 
 Order lunas di jalur QRIS DAN transfer rekening (fixture `lunas`); provider dan data sintetis. Efek (atau ketiadaannya)
 dibuktikan dari tabel purna dan kedua tabel refund, bukan hanya kode status. Tes negatif di sini menjadi sasaran
@@ -20,7 +20,7 @@ import admin_pesanan_detail_pages as dui  # noqa: E402
 import admin_pesanan_http as ap  # noqa: E402
 import schema_purna  # noqa: E402
 from admin_pesanan_kit import (  # noqa: E402
-    HALAMAN, ORDER_ASING, REFUND, TAK_ADA, TERBIT, VOUCHER, RUTE_PURNA, AKSI_RUTE, alamat_detail, form_order,
+    HALAMAN, ORDER_ASING, REFUND, TAK_ADA, TERBIT_LAMA, VOUCHER, RUTE_PURNA, AKSI_RUTE, alamat_detail, form_order,
     hasil_dari, id_admin, kirim_aksi, kirim_dari_detail, login_admin, markup, minta_admin, order_bayar,
     order_lunas, token_langsung,
 )
@@ -29,7 +29,7 @@ from http_test_kit import SANDI_GURU, SANDI_MURID  # noqa: E402
 from pesanan_http_kit import ProviderPalsu, WAKTU_AWAL, bayar, jam, keadaan_ledger, keluarga, ledger, server, tertutup  # noqa: E402,F401
 from pesanan_transfer_http_kit import transfer  # noqa: E402,F401
 from purna_http_kit import (  # noqa: E402,F401
-    bayar_purna, jadikan_ditahan, kosong, lunas, lunas_transfer, potret_efek, transfer_purna,
+    bayar_purna, catat_terbit_ledger, jadikan_ditahan, kosong, lunas, lunas_transfer, potret_efek, transfer_purna,
 )
 
 AKUN_GURU = ("guru", SANDI_GURU)
@@ -52,7 +52,7 @@ def _sel_laporan(isi: str) -> str:
 
 
 def _rute_dan_isian(jalur):
-    return {VOUCHER: {"catatan_kode": "kelas"}, TERBIT: {}}[jalur]
+    return {VOUCHER: {"catatan_kode": "kelas"}}[jalur]
 
 
 # --- voucher: sukses, replay, konflik ----------------------------------------------------
@@ -60,7 +60,7 @@ def _rute_dan_isian(jalur):
 def test_voucher_dari_detail_dicatat_oleh_admin_sesi_lalu_refund_tertutup_dan_form_hilang(lunas):
     server, admin, oid = lunas
     isi = _detail(server, admin, oid)
-    assert set(form_order(isi)) == {VOUCHER, TERBIT, REFUND}
+    assert set(form_order(isi)) == {VOUCHER, REFUND}
     kode, badan, tajuk = kirim_dari_detail(server, admin, VOUCHER, oid)
     assert (kode, badan, hasil_dari(tajuk, oid)) == (303, "", "voucher_dicatat")
     (baris,) = potret_efek()["purna_voucher_pakai"]
@@ -68,7 +68,7 @@ def test_voucher_dari_detail_dicatat_oleh_admin_sesi_lalu_refund_tertutup_dan_fo
     assert baris[0].startswith("vch_") and baris[1:4] == (oid, id_admin(), "kelas")
     sesudah = _detail(server, admin, oid, "voucher_dicatat")
     assert "Voucher tercatat sudah dipakai" in sesudah and "Sudah dipakai" in sesudah
-    assert set(form_order(sesudah)) == {TERBIT}
+    assert form_order(sesudah) == {}
     assert dui.COPY_REFUND_VOUCHER_DIPAKAI in sesudah and dui.COPY_RINGKAS_REFUND not in sesudah
 
 
@@ -98,11 +98,12 @@ def test_voucher_kedua_kali_catatan_beda_409_catatan_pertama_tetap(lunas):
     assert baris[3] == "kelas"
 
 
-def test_voucher_sesudah_terbit_masih_boleh_dan_terbit_sesudah_voucher_replay_saja(lunas):
+def test_voucher_sesudah_terbit_dicatat_jalur_guru_masih_boleh(lunas, jam):
     server, admin, oid = lunas
-    assert hasil_dari(kirim_aksi(server, admin, TERBIT, oid)[2], oid) == "terbit_dicatat"
+    catat_terbit_ledger(oid, jam())
     assert hasil_dari(kirim_aksi(server, admin, VOUCHER, oid)[2], oid) == "voucher_dicatat"
-    assert hasil_dari(kirim_aksi(server, admin, TERBIT, oid)[2], oid) == "terbit_sudah_ada"
+    efek = potret_efek()
+    assert len(efek["purna_laporan_terbit"]) == 1 and len(efek["purna_voucher_pakai"]) == 1
 
 
 def test_voucher_order_belum_lunas_409_tanpa_efek(bayar_purna):
@@ -128,56 +129,36 @@ def test_voucher_kedaluwarsa_409_tanpa_efek_dan_form_hilang(lunas, jam):
     server, admin, oid = lunas
     jam.maju_jam(JAM_LEWAT_VOUCHER)
     isi = _detail(server, admin, oid)
-    assert VOUCHER not in form_order(isi) and "Kedaluwarsa" in isi and TERBIT in form_order(isi)
+    assert VOUCHER not in form_order(isi) and "Kedaluwarsa" in isi
     sebelum = potret_efek()
     assert kirim_aksi(server, admin, VOUCHER, oid)[0] == 409
     assert potret_efek() == sebelum
 
 
-# --- terbit: sukses, replay, konflik ---------------------------------------------------------
+# --- aksi admin terbit dihapus (D1-2) -------------------------------------------------------
 
-def test_terbit_dari_detail_mencatat_jam_server_oleh_admin_sesi_lalu_form_hilang(lunas, jam):
+def test_rute_terbit_lama_kini_404_identik_rute_tak_dikenal_tanpa_efek(lunas):
     server, admin, oid = lunas
-    jam.maju_jam(5)
-    kode, badan, tajuk = kirim_dari_detail(server, admin, TERBIT, oid)
-    assert (kode, badan, hasil_dari(tajuk, oid)) == (303, "", "terbit_dicatat")
-    (baris,) = potret_efek()["purna_laporan_terbit"]
-    assert baris[:3] == (oid, jam(), id_admin())  # waktu terbit = jam pencatatan server (bukan dari form)
-    sesudah = _detail(server, admin, oid, "terbit_dicatat")
-    assert "Laporan tercatat sudah terbit" in sesudah and "Sudah terbit" in sesudah
-    assert set(form_order(sesudah)) == {VOUCHER, REFUND}
-
-
-def test_terbit_replay_dari_token_baru_sudah_ada_waktu_pertama_tetap(lunas, jam):
-    server, admin, oid = lunas
-    assert kirim_aksi(server, admin, TERBIT, oid)[0] == 303
-    pertama = potret_efek()["purna_laporan_terbit"]
-    jam.maju_jam(3)
-    kode, _i, tajuk = kirim_aksi(server, admin, TERBIT, oid)
-    assert (kode, hasil_dari(tajuk, oid)) == (303, "terbit_sudah_ada")
-    assert potret_efek()["purna_laporan_terbit"] == pertama
-
-
-def test_terbit_order_belum_lunas_409_tanpa_efek(bayar_purna):
-    admin = login_admin(bayar_purna)
-    order, _trx = order_bayar(bayar_purna)
-    kode, isi, _t = kirim_aksi(bayar_purna, admin, TERBIT, order["order_id"])
-    assert kode == 409 and "Traceback" not in isi
-    assert kosong(potret_efek())
-
-
-def test_terbit_order_direfund_409_tanpa_efek(lunas):
-    server, admin, oid = lunas
-    assert kirim_aksi(server, admin, REFUND, oid)[0] == 303
     sebelum = potret_efek()
-    assert kirim_aksi(server, admin, TERBIT, oid)[0] == 409
+    acuan = minta_admin(server, TAK_ADA, admin, {"x": "1"})
+    assert acuan[0] == 404
+    data = {**token_langsung(admin, "catat_laporan_terbit", oid)}
+    assert minta_admin(server, TERBIT_LAMA, admin, data)[:2] == acuan[:2]
+    assert minta_admin(server, TERBIT_LAMA, admin, {})[:2] == acuan[:2]
     assert potret_efek() == sebelum and sebelum["purna_laporan_terbit"] == []
 
 
-def test_terbit_dan_voucher_tidak_menulis_ledger_pembayaran(lunas):
+def test_detail_order_tanpa_form_atau_tautan_terbit_dan_tanpa_nama_aksi_lama(lunas):
+    server, admin, oid = lunas
+    isi = _detail(server, admin, oid)
+    assert "/admin/pesanan/terbit" not in isi and "Catat laporan terbit" not in isi
+    assert not hasattr(ap, "RUTE_TERBIT") and not hasattr(ap, "AKSI_TERBIT") and not hasattr(ap, "_terbit")
+
+
+def test_voucher_tidak_menulis_ledger_pembayaran(lunas):
     server, admin, oid = lunas
     sebelum = keadaan_ledger()
-    assert kirim_aksi(server, admin, TERBIT, oid)[0] == 303 and kirim_aksi(server, admin, VOUCHER, oid)[0] == 303
+    assert kirim_aksi(server, admin, VOUCHER, oid)[0] == 303
     assert keadaan_ledger() == sebelum
 
 
@@ -222,18 +203,7 @@ def test_voucher_isian_tak_sah_400_tanpa_efek(lunas, ganti, hapus, ekstra):
     assert potret_efek() == sebelum
 
 
-@pytest.mark.parametrize("ekstra", [
-    {"catatan_kode": "kelas"}, {"terbit": "2026-11-18T10:00:00"}, {"order_id": ORDER_ASING}, {"akun_id": "akun_x"},
-])
-def test_terbit_field_asing_400_tanpa_efek(lunas, ekstra):
-    server, admin, oid = lunas
-    sebelum = potret_efek()
-    kode, _i, _t = kirim_aksi(server, admin, TERBIT, oid, ekstra=ekstra)
-    assert kode == 400
-    assert potret_efek() == sebelum
-
-
-def test_voucher_dan_terbit_order_id_hanya_dari_tinjauan_bukan_form(lunas):
+def test_voucher_order_id_hanya_dari_tinjauan_bukan_form(lunas):
     server, admin, oid = lunas
     form = form_order(_detail(server, admin, oid))
     data = {**form[VOUCHER], "reauth": SANDI_ADMIN, "catatan_kode": "kelas", "order_id": ORDER_ASING}
@@ -258,8 +228,7 @@ def test_guard_form_ditolak_403_tanpa_efek(lunas, jalur, ganti, hapus):
 
 
 @pytest.mark.parametrize("jalur,aksi_asing", [
-    (VOUCHER, ap.AKSI_REFUND), (VOUCHER, ap.AKSI_TERBIT), (VOUCHER, ap.AKSI_PERIKSA),
-    (TERBIT, ap.AKSI_REFUND), (TERBIT, ap.AKSI_VOUCHER), (TERBIT, ap.AKSI_PERIKSA),
+    (VOUCHER, ap.AKSI_REFUND), (VOUCHER, ap.AKSI_PERIKSA),
 ])
 def test_tinjauan_aksi_lain_ditolak_lintas_rute_purna(lunas, jalur, aksi_asing):
     server, admin, oid = lunas
@@ -271,7 +240,7 @@ def test_tinjauan_aksi_lain_ditolak_lintas_rute_purna(lunas, jalur, aksi_asing):
 @pytest.mark.parametrize("jalur_asing", [REFUND, "/admin/pesanan/periksa"])
 def test_tinjauan_purna_ditolak_di_rute_refund_dan_periksa(lunas, jalur_asing):
     server, admin, oid = lunas
-    for aksi in (ap.AKSI_VOUCHER, ap.AKSI_TERBIT):
+    for aksi in (ap.AKSI_VOUCHER, "catat_laporan_terbit"):
         data = {**token_langsung(admin, aksi, oid), "catatan_kode": "kebijakan"}
         assert minta_admin(server, jalur_asing, admin, data)[0] == 403
     assert kosong(potret_efek())
@@ -359,16 +328,13 @@ def test_kartu_purna_order_lunas_memuat_kode_status_dan_tanggal_di_antara_ringka
     assert isi.index("<h2>Order ") < isi.index(dui.COPY_JUDUL_PURNA) < isi.index("Perjalanan order")
 
 
-def test_form_voucher_dan_terbit_membawa_data_konfirmasi_konsekuensi_persis(lunas):
+def test_form_voucher_membawa_data_konfirmasi_konsekuensi_persis(lunas):
     server, admin, oid = lunas
     isi = _detail(server, admin, oid)
     voucher = re.search(r'<form method="post" action="/admin/pesanan/voucher" data-konfirmasi="([^"]+)">(.*?)</form>', isi, re.S)
-    terbit = re.search(r'<form method="post" action="/admin/pesanan/terbit" data-konfirmasi="([^"]+)">(.*?)</form>', isi, re.S)
     assert html.unescape(voucher.group(1)) == "Voucher ditandai sudah dipakai dan order ini tidak bisa direfund lagi. Tidak bisa dibatalkan."
-    assert html.unescape(terbit.group(1)) == "Laporan ditandai sudah terbit sekarang (jam pencatatan). Tidak bisa dibatalkan."
     opsi = re.findall(r'<option value="([^"]+)"', voucher.group(2))
     assert opsi == list(schema_purna.CATATAN_PAKAI) == list(dui.URUTAN_ALASAN_VOUCHER)
-    assert set(form_order(isi)[TERBIT]) == {"csrf", "tinjauan"}       # terbit: tanpa field isian
     assert 'name="reauth"' in markup(isi)
 
 
@@ -377,22 +343,22 @@ def test_form_purna_tersembunyi_untuk_order_belum_lunas(bayar_purna):
     order, _trx = order_bayar(bayar_purna)
     isi = _detail(bayar_purna, admin, order["order_id"])
     assert dui.COPY_JUDUL_PURNA in isi and "Belum aktif" in isi
-    assert VOUCHER not in form_order(isi) and TERBIT not in form_order(isi)
+    assert VOUCHER not in form_order(isi)
 
 
-def test_form_terbit_tersembunyi_sesudah_terbit_dan_sesudah_refund(lunas):
+def test_form_tersembunyi_sesudah_refund_walau_laporan_sudah_terbit(lunas, jam):
     server, admin, oid = lunas
-    assert kirim_aksi(server, admin, TERBIT, oid)[0] == 303
-    assert TERBIT not in form_order(_detail(server, admin, oid))
+    catat_terbit_ledger(oid, jam())
+    assert set(form_order(_detail(server, admin, oid))) == {VOUCHER, REFUND}
     assert kirim_aksi(server, admin, REFUND, oid)[0] == 303
-    assert form_order(_detail(server, admin, oid)) == {}            # direfund: voucher batal, terbit sudah ada
+    assert form_order(_detail(server, admin, oid)) == {}            # direfund: voucher batal
 
 
-def test_form_voucher_dan_terbit_tersembunyi_sesudah_refund_tanpa_terbit(lunas):
+def test_form_voucher_tersembunyi_sesudah_refund_tanpa_terbit(lunas):
     server, admin, oid = lunas
     assert kirim_aksi(server, admin, REFUND, oid)[0] == 303
     isi = _detail(server, admin, oid)
-    assert VOUCHER not in form_order(isi) and TERBIT not in form_order(isi) and "Dibatalkan" in isi
+    assert VOUCHER not in form_order(isi) and "Dibatalkan" in isi
 
 
 def test_form_refund_tersembunyi_sesudah_voucher_dipakai_dengan_catatan_pengganti(lunas):
@@ -410,7 +376,7 @@ def test_detail_terlambat_menampilkan_status_tanpa_peringatan_atau_pilihan_kelua
     assert "Terlambat sejak" in isi
     for lama in ("Keluarga meminta uang kembali", "Minta uang kembali", "Pilihan keluarga"):
         assert lama not in isi
-    assert {REFUND, VOUCHER, TERBIT} <= set(form_order(isi))           # aksi manual admin tidak berubah
+    assert {REFUND, VOUCHER} <= set(form_order(isi))                   # aksi manual admin tidak berubah
     assert kirim_dari_detail(server, admin, REFUND, oid, ganti={"catatan_kode": "kebijakan"})[0] == 303
 
 
@@ -444,9 +410,9 @@ def test_daftar_kolom_laporan_semua_keadaan(lunas, jam):
     assert _sel_laporan(daftar()) == "—"                              # direfund tanpa terbit: tidak ada janji lagi
 
 
-def test_daftar_kolom_laporan_terbit_mengalahkan_janji(lunas):
+def test_daftar_kolom_laporan_terbit_mengalahkan_janji(lunas, jam):
     server, admin, oid = lunas
-    assert kirim_aksi(server, admin, TERBIT, oid)[0] == 303
+    catat_terbit_ledger(oid, jam())
     assert _sel_laporan(minta_admin(server, HALAMAN, admin)[1]) == "Terbit"
 
 
@@ -456,7 +422,7 @@ def test_daftar_kolom_laporan_belum_lunas_strip_dan_tanpa_tombol_aksi_baru(bayar
     isi = minta_admin(bayar_purna, HALAMAN, admin)[1]
     assert _sel_laporan(isi) == "—"
     assert form_order(isi) == {} and 'action="/admin/pesanan/' not in isi
-    assert 'href="/admin/pesanan/voucher' not in isi and 'href="/admin/pesanan/terbit' not in isi
+    assert 'href="/admin/pesanan/voucher' not in isi
 
 
 def test_daftar_purna_belum_terpasang_tetap_tampil_dengan_strip(bayar):
@@ -468,7 +434,7 @@ def test_daftar_purna_belum_terpasang_tetap_tampil_dengan_strip(bayar):
 
 # --- order ditahan (H-1): lunas tetapi perlu_diperiksa; refund tetap bisa --------------------------------
 
-def test_detail_order_ditahan_tanpa_form_voucher_dan_terbit_dengan_catatan_dan_form_refund_tetap_ada(lunas, jam):
+def test_detail_order_ditahan_tanpa_form_voucher_dengan_catatan_dan_form_refund_tetap_ada(lunas, jam):
     server, admin, oid = lunas
     jam.maju_jam(JAM_LEWAT_BATAS)
     jadikan_ditahan(server, oid, jam)
@@ -477,8 +443,8 @@ def test_detail_order_ditahan_tanpa_form_voucher_dan_terbit_dengan_catatan_dan_f
     assert set(form_order(isi)) == {REFUND}
 
 
-@pytest.mark.parametrize("jalur", [VOUCHER, TERBIT])
-def test_voucher_dan_terbit_pada_order_ditahan_409_tanpa_efek(lunas, jam, jalur):
+@pytest.mark.parametrize("jalur", [VOUCHER])
+def test_voucher_pada_order_ditahan_409_tanpa_efek(lunas, jam, jalur):
     server, admin, oid = lunas
     jadikan_ditahan(server, oid, jam)
     sebelum = potret_efek()
@@ -504,12 +470,15 @@ def test_daftar_kolom_laporan_order_ditahan_perlu_diperiksa(lunas, jam):
     assert _sel_laporan(minta_admin(server, HALAMAN, admin)[1]) == "Perlu diperiksa"
 
 
-# --- terbit tetap tersedia walau laporan terlambat ---------------------------------------------------
+# --- kartu admin: terbit dicatat jalur Guru mengalahkan terlambat -------------------------------------
 
-def test_terbit_tetap_tersedia_dan_dicatat_walau_laporan_terlambat(lunas, jam):
+def test_kartu_admin_terbit_dari_jalur_guru_menggantikan_terlambat_tanpa_form_terbit(lunas, jam):
     server, admin, oid = lunas
     jam.maju_jam(JAM_LEWAT_BATAS)
-    assert TERBIT in form_order(_detail(server, admin, oid))
-    assert kirim_aksi(server, admin, TERBIT, oid)[0] == 303
+    sebelum = _detail(server, admin, oid)
+    assert "Terlambat sejak" in sebelum
+    catat_terbit_ledger(oid, jam())
+    sesudah = _detail(server, admin, oid)
+    assert "Sudah terbit" in sesudah and "Terlambat sejak" not in sesudah
     assert len(potret_efek()["purna_laporan_terbit"]) == 1
-    assert TERBIT not in form_order(_detail(server, admin, oid))
+    assert "/admin/pesanan/terbit" not in sesudah

@@ -19,6 +19,7 @@ import cek_gratis
 import harian_langganan_ringkas
 import parent_report_store
 import pesanan_dasar
+import peta_laporan_store
 import pesanan_status
 import pesanan_voucher_baca
 
@@ -35,6 +36,7 @@ class DataOrangTua:
     langganan: Optional[harian_langganan_ringkas.Ringkasan] = None
     harian: Optional[object] = None  # RingkasanHarian (Latihan Harian) atau None bila sakelar mati
     purna: Optional[object] = None  # KeadaanPurna (janji terbit laporan) atau None: belum lunas / purna belum dipasang
+    peta: Optional[dict] = None  # laporan Peta TERBIT (isi, catatan, diterbitkan) bila order lunas; selain itu None
 
 
 def _sekarang_baku() -> str:
@@ -85,6 +87,21 @@ def keadaan_purna(id_akun: str, siswa_id: int, status: Optional[str], sekarang: 
     return None if order_id is None else pesanan_voucher_baca.keadaan_order(order_id, id_akun, sekarang)
 
 
+def peta_terbit(kon, siswa_id: int, status: Optional[str]) -> Optional[dict]:
+    """Laporan Peta TERBIT anak ini, hanya bila status pesanannya sudah_dibayar; selain itu None.
+
+    Belum lunas, ditahan, atau dikembalikan tidak membaca laporan sama sekali. Isi rusak atau penyimpanan tak
+    terbaca menyembunyikan blok (dicatat tanpa data), bukan membuat halaman gagal.
+    """
+    if status != pesanan_dasar.STATUS_SUDAH_DIBAYAR:
+        return None
+    try:
+        return peta_laporan_store.terbit_terakhir(kon, siswa_id)
+    except (ValueError, sqlite3.Error) as galat:
+        _LOG.warning("laporan peta halaman orang tua tidak terbaca: %s", type(galat).__name__)
+        return None
+
+
 def langganan(kon, siswa_id: int, sekarang: str) -> Optional[harian_langganan_ringkas.Ringkasan]:
     """Ringkasan langganan Latihan Harian anak ini; None bila sakelar LATIHAN_HARIAN mati (tanpa kartu dan banner)."""
     if not akses_harian.aktif():
@@ -104,4 +121,5 @@ def kumpulkan(kon, id_akun: str, siswa_id: int, sekarang: Optional[str] = None) 
         langganan=langganan(kon, siswa_id, _sekarang_baku() if sekarang is None else sekarang),
         harian=harian_http.ringkasan_untuk_orang_tua(kon, siswa_id),
         purna=keadaan_purna(id_akun, siswa_id, status, sekarang),
+        peta=peta_terbit(kon, siswa_id, status),
     )

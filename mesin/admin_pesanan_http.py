@@ -14,10 +14,11 @@ SEBELUM ledger dibaca. Aturan yang ditegakkan di sini:
 - Refund: hanya CATATAN (`pesanan.catat_refund`), tanpa panggilan API refund dan tidak dibatasi gerbang.
   `catatan_kode` divalidasi enum di sini; galat domain tak terduga = 503 (bukan 400). `operasi_id`
   deterministik per order (idempoten, satu catatan per order); `dicatat_oleh` = id akun admin sesi.
-- Voucher dan laporan (V3, domain `purna`): `/admin/pesanan/voucher` (aksi `catat_voucher_pakai`, form hanya `catatan_kode`
-  dari `schema_purna.CATATAN_PAKAI`, `operasi_id` deterministik per order) dan `/admin/pesanan/terbit` (aksi
-  `catat_laporan_terbit`, form harus kosong). Pola, token, galat, dan PRG sama dengan refund; skema purna belum
-  terpasang = PesananKonflik dari domain = 409. Refund sesudah voucher dipakai ditolak domain, bukan hanya disembunyikan.
+- Voucher (V3, domain `purna`): `/admin/pesanan/voucher` (aksi `catat_voucher_pakai`, form hanya `catatan_kode`
+  dari `schema_purna.CATATAN_PAKAI`, `operasi_id` deterministik per order). Pola, token, galat, dan PRG sama dengan refund;
+  skema purna belum terpasang = PesananKonflik dari domain = 409. Refund sesudah voucher dipakai ditolak domain, bukan
+  hanya disembunyikan. Aksi admin "catat laporan terbit" DIHAPUS (D1-2, 24 Nov 2026): laporan ditulis dan diterbitkan Guru
+  (`peta_laporan_guru_http`), dan `/admin/pesanan/terbit` kini rute tak dikenal (404 identik).
 - Jejak: catatan refund itu sendiri (pelaku, kode, waktu; tabel append-only). Aksi periksa tidak
   menulis jurnal admin (kontrak jurnal `operasi_admin` tidak diubah); efeknya tercatat sebagai pengamatan ledger.
 - Tidak ada `str(galat)` di respons; PRG: pengalihan 303 ke Detail order (`/admin/pesanan/order?id=&hasil=`)
@@ -61,16 +62,12 @@ RUTE = ui.RUTE
 RUTE_PERIKSA = ui.RUTE_PERIKSA
 RUTE_REFUND = ui.RUTE_REFUND
 RUTE_VOUCHER = ui.RUTE_VOUCHER
-RUTE_TERBIT = ui.RUTE_TERBIT
 RUTE_ORDER = ui.RUTE_ORDER
 AKSI_PERIKSA = "periksa_pesanan"
 AKSI_REFUND = "catat_refund_pesanan"
 AKSI_VOUCHER = "catat_voucher_pakai"
-AKSI_TERBIT = "catat_laporan_terbit"
-AKSI_RUTE = {RUTE_PERIKSA: AKSI_PERIKSA, RUTE_REFUND: AKSI_REFUND, RUTE_VOUCHER: AKSI_VOUCHER,
-             RUTE_TERBIT: AKSI_TERBIT}
-_AKSI_UI = {ui.AKSI_PERIKSA: AKSI_PERIKSA, ui.AKSI_REFUND: AKSI_REFUND, ui.AKSI_VOUCHER: AKSI_VOUCHER,
-            ui.AKSI_TERBIT: AKSI_TERBIT}
+AKSI_RUTE = {RUTE_PERIKSA: AKSI_PERIKSA, RUTE_REFUND: AKSI_REFUND, RUTE_VOUCHER: AKSI_VOUCHER}
+_AKSI_UI = {ui.AKSI_PERIKSA: AKSI_PERIKSA, ui.AKSI_REFUND: AKSI_REFUND, ui.AKSI_VOUCHER: AKSI_VOUCHER}
 MAKS_HALAMAN = 100000
 _POLA_ORDER = re.compile(r"ord_[0-9a-f]{32}")
 _PANJANG_OPERASI = 32
@@ -306,15 +303,6 @@ def _voucher(principal, order_id: str, data: dict) -> str:
     return "voucher_dicatat" if hasil["baru"] else "voucher_sudah_ada"
 
 
-def _terbit(principal, order_id: str, data: dict) -> str:
-    """Catat laporan terbit: tanpa field apa pun; waktu terbit = jam pencatatan server."""
-    if data:
-        raise ValueError("isian terbit asing")
-    with pesanan.buka(h._path_admin(), tulis_data=True) as kon:
-        hasil = purna.catat_terbit(kon, order_id, principal.id_akun, alur._sekarang())
-    return "terbit_dicatat" if hasil["baru"] else "terbit_sudah_ada"
-
-
 def _kode_hasil(penangan, principal, jalur: str, order_id: str, data: dict) -> str:
     """Jalankan aksi sesuai rute; tiap rute punya penangan sendiri (tidak ada jalur bawaan)."""
     if jalur == RUTE_PERIKSA:
@@ -323,8 +311,6 @@ def _kode_hasil(penangan, principal, jalur: str, order_id: str, data: dict) -> s
         return _refund(principal, order_id, data)
     if jalur == RUTE_VOUCHER:
         return _voucher(principal, order_id, data)
-    if jalur == RUTE_TERBIT:
-        return _terbit(principal, order_id, data)
     raise LookupError("rute tidak dikenal")
 
 

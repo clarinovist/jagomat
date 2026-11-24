@@ -1,4 +1,4 @@
-"""Mutation guard aksi admin purna (V3: voucher dipakai, laporan terbit) pada SALINAN repo terisolasi (bukan workspace).
+"""Mutation guard aksi admin purna (V3: voucher dipakai; aksi terbit dihapus di D1-2) pada SALINAN repo terisolasi (bukan workspace).
 
 Meniru `test_admin_pesanan_mutation.py`: tiap kasus menonaktifkan satu guard di salinan lalu menjalankan tes yang
 menjaganya; hasil harus MERAH karena asersi (bukan import/fixture rusak). Kontrol: tanpa mutasi, tes yang sama harus
@@ -30,20 +30,10 @@ REAUTH = (ADMIN, '    if not _reauth(principal, data.pop("reauth", "")):\n      
 KASUS = (
     ("a-validasi-field-voucher-dilepas",
      ((HTTP, '    if set(data) != {"catatan_kode"}:\n        raise ValueError("isian voucher tidak sah")\n', ""),),
-     (P + "test_voucher_isian_tak_sah_400_tanpa_efek", P + "test_voucher_dan_terbit_order_id_hanya_dari_tinjauan_bukan_form")),
+     (P + "test_voucher_isian_tak_sah_400_tanpa_efek", P + "test_voucher_order_id_hanya_dari_tinjauan_bukan_form")),
     ("b-validasi-enum-catatan-kode-dilepas",
      ((HTTP, '    if catatan not in CATATAN_PAKAI:\n        raise ValueError("catatan_kode voucher tidak sah")\n', ""),),
      (P + "test_voucher_isian_tak_sah_400_tanpa_efek",)),
-    ("c-validasi-data-kosong-terbit-dilepas",
-     ((HTTP, '    if data:\n        raise ValueError("isian terbit asing")\n', ""),),
-     (P + "test_terbit_field_asing_400_tanpa_efek",)),
-    ("d1-aksi-rute-terbit-salah-petakan",
-     ((HTTP, "             RUTE_TERBIT: AKSI_TERBIT}\n", "             RUTE_TERBIT: AKSI_VOUCHER}\n"),),
-     (P + "test_terbit_dari_detail_mencatat_jam_server_oleh_admin_sesi_lalu_form_hilang",
-      P + "test_tinjauan_aksi_lain_ditolak_lintas_rute_purna")),
-    ("d2-aksi-token-form-terbit-salah-petakan",
-     ((HTTP, "            ui.AKSI_TERBIT: AKSI_TERBIT}\n", "            ui.AKSI_TERBIT: AKSI_VOUCHER}\n"),),
-     (P + "test_terbit_dari_detail_mencatat_jam_server_oleh_admin_sesi_lalu_form_hilang",)),
     ("d3-aksi-tinjauan-tidak-dicocokkan",
      ((ADMIN, '    if tinjauan["aksi"] != aksi:\n        raise PermissionError("Tinjauan tidak cocok.")\n', ""),),
      (P + "test_tinjauan_aksi_lain_ditolak_lintas_rute_purna", P + "test_tinjauan_purna_ditolak_di_rute_refund_dan_periksa")),
@@ -55,15 +45,6 @@ KASUS = (
      ((HALAMAN, '    if terpasang and pur.get("voucher") == purna.VOUCHER_AKTIF:\n', "    if terpasang:\n"),),
      (P + "test_form_purna_tersembunyi_untuk_order_belum_lunas", P + "test_voucher_kedaluwarsa_409_tanpa_efek_dan_form_hilang",
       G + "test_aksi_tersedia_order_lunas_menurut_keadaan_purna")),
-    ("f2-syarat-tampil-form-terbit-dilepas",
-     ((HALAMAN, "    if _terbit_tersedia(pur):\n", "    if terpasang:\n"),),
-     (P + "test_form_terbit_tersembunyi_sesudah_terbit_dan_sesudah_refund", P + "test_form_purna_tersembunyi_untuk_order_belum_lunas",
-      G + "test_aksi_tersedia_order_lunas_menurut_keadaan_purna")),
-    ("f3-form-terbit-tanpa-gate-ditahan",
-     ((HALAMAN, '            and not pur.get("ditahan"))', "            and True)"),),
-     (G + "test_aksi_tersedia_order_ditahan_hanya_refund_tanpa_voucher_dan_terbit",
-      G + "test_aksi_tersedia_terbit_hanya_bila_tidak_ditahan",
-      P + "test_detail_order_ditahan_tanpa_form_voucher_dan_terbit_dengan_catatan_dan_form_refund_tetap_ada")),
     ("f5-kolom-laporan-ditahan-dilepas",
      ((HALAMAN, '    if pur.get("ditahan"):\n        return COPY_LAPORAN_DITAHAN\n', "    if False:\n        return COPY_LAPORAN_DITAHAN\n"),),
      (G + "test_teks_laporan_urutan_keutamaan", P + "test_daftar_kolom_laporan_order_ditahan_perlu_diperiksa")),

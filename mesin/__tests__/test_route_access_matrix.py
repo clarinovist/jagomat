@@ -95,7 +95,6 @@ _PROBE_POST = {
     "/admin/pesanan/periksa": "/admin/pesanan/periksa",
     "/admin/pesanan/refund": "/admin/pesanan/refund",
     "/admin/pesanan/voucher": "/admin/pesanan/voucher",
-    "/admin/pesanan/terbit": "/admin/pesanan/terbit",
     "/admin/pesanan/setujui": "/admin/pesanan/setujui",
     "/admin/pesanan/tolak": "/admin/pesanan/tolak",
     "/admin/pesanan/rekening": "/admin/pesanan/rekening",
@@ -257,8 +256,9 @@ def test_tabel_akses_punya_probe():
     assert "/pesanan/tagihan/ulang" not in get
     for rute in ("/admin/pesanan/verifikasi", "/admin/pesanan/bukti", "/admin/pesanan/order"):
         assert get[rute] == "admin" and rute not in post
-    for rute in ("/admin/pesanan/setujui", "/admin/pesanan/tolak", "/admin/pesanan/voucher", "/admin/pesanan/terbit"):
+    for rute in ("/admin/pesanan/setujui", "/admin/pesanan/tolak", "/admin/pesanan/voucher"):
         assert post[rute] == "admin" and rute not in get
+    assert "/admin/pesanan/terbit" not in post and "/admin/pesanan/terbit" not in get  # aksi admin dihapus (D1-2)
     assert get["/admin/pesanan/rekening"] == post["/admin/pesanan/rekening"] == "admin"
     assert get["/admin/sakelar"] == post["/admin/sakelar"] == "admin"
     assert get["/admin/langganan"] == post["/admin/langganan"] == "admin"

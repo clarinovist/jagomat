@@ -24,7 +24,6 @@ RUTE = "/admin/pesanan"
 RUTE_PERIKSA = RUTE + "/periksa"
 RUTE_REFUND = RUTE + "/refund"
 RUTE_VOUCHER = RUTE + "/voucher"
-RUTE_TERBIT = RUTE + "/terbit"
 RUTE_VERIFIKASI = RUTE + "/verifikasi"
 RUTE_REKENING = RUTE + "/rekening"
 RUTE_ORDER = RUTE + "/order"
@@ -36,7 +35,6 @@ PER_HALAMAN = 25
 AKSI_PERIKSA = "periksa"
 AKSI_REFUND = "refund"
 AKSI_VOUCHER = "voucher"
-AKSI_TERBIT = "terbit"
 STATUS_PERIKSA = ("belum_bayar", "kedaluwarsa")
 STATUS_REFUND = d.STATUS_BISA_REFUND  # satu sumber dengan penegakan server (`pesanan_refund_aturan`)
 KELAS_BADGE = {"sudah_dibayar": " bien", "perlu_diperiksa": " perhatian", "menunggu_verifikasi": " perhatian"}
@@ -97,14 +95,12 @@ COPY_HASIL = {
     "refund_sudah_ada": "Catatan refund yang sama sudah tersimpan sebelumnya. Tidak ada yang berubah.",
     "voucher_dicatat": "Voucher tercatat sudah dipakai. Order ini tidak bisa direfund lagi.",
     "voucher_sudah_ada": "Pemakaian voucher yang sama sudah tercatat sebelumnya. Tidak ada yang berubah.",
-    "terbit_dicatat": "Laporan tercatat sudah terbit (jam pencatatan).",
-    "terbit_sudah_ada": "Laporan sudah tercatat terbit sebelumnya. Tidak ada yang berubah.",
     "verifikasi_setuju": "Transfer disetujui. Pesanan ini sekarang tercatat lunas.",
     "verifikasi_tolak": ("Bukti ditolak beserta alasannya. Guru dapat mengunggah ulang selama waktu "
                          "pembayaran masih terbuka."),
 }
 KODE_HASIL = frozenset(COPY_HASIL)
-# Hasil yang boleh tampil di halaman Detail order (hasil aksi periksa/refund/voucher/terbit; keputusan verifikasi tidak).
+# Hasil yang boleh tampil di halaman Detail order (hasil aksi periksa/refund/voucher; keputusan verifikasi tidak).
 KODE_HASIL_DETAIL = frozenset(k for k in COPY_HASIL if not k.startswith("verifikasi_"))
 COPY_GERBANG_BUKA = "Pembayaran dibuka"
 COPY_GERBANG_TUTUP = "Pembayaran ditutup (pemeriksaan ke penyedia tidak tersedia)"
@@ -131,9 +127,8 @@ def aksi_tersedia(item: Mapping, gerbang_terbuka: bool) -> Tuple[str, ...]:
 
     Satu-satunya gerbang untuk tampilan form DAN penerbitan token Detail order. `item["purna"]` (whitelist
     `pesanan_admin_order.purna_ringkas`) bisa tidak ada pada item buatan tangan = purna belum terpasang.
-    Refund tidak ditawarkan bila voucher sudah dipakai; penegakan sebenarnya tetap di domain. Form terbit hanya
-    untuk order lunas yang belum terbit, belum direfund, dan TIDAK ditahan (pembayaran perlu diperiksa); form voucher
-    hanya bila voucher 'aktif'.
+    Refund tidak ditawarkan bila voucher sudah dipakai; penegakan sebenarnya tetap di domain. Form voucher hanya
+    bila voucher 'aktif'. Tidak ada aksi catat laporan terbit: laporan ditulis dan diterbitkan Guru (D1-2).
     """
     status = item["status"]
     pur = item.get("purna") or {}
@@ -145,17 +140,7 @@ def aksi_tersedia(item: Mapping, gerbang_terbuka: bool) -> Tuple[str, ...]:
         aksi.append(AKSI_REFUND)
     if terpasang and pur.get("voucher") == purna.VOUCHER_AKTIF:
         aksi.append(AKSI_VOUCHER)
-    if _terbit_tersedia(pur):
-        aksi.append(AKSI_TERBIT)
     return tuple(aksi)
-
-
-def _terbit_tersedia(pur: Mapping) -> bool:
-    return (bool(pur.get("terpasang"))
-            and bool(pur.get("lunas"))
-            and pur.get("terbit") is None
-            and not pur.get("direfund")
-            and not pur.get("ditahan"))
 
 
 def teks_laporan(pur: Optional[Mapping]) -> str:

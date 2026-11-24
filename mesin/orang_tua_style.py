@@ -67,5 +67,20 @@ a.ortu-tombol-pinggir-st:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}
 .ortu-pin-isi-st {{ display: grid; gap: {T.SP_3}; padding: 0 {T.SP_4} {T.SP_4}; }}
 .ortu-pin-isi-st > :is(p, form) {{ margin: 0; }}
 .ortu-pin-isi-st form {{ display: grid; gap: {T.SP_3}; }}
+/* Peta Kemampuan lengkap (D1-3): daftar materi dengan <meter> native; warna hanya token. */
+.ortu-peta-pengantar-st, .ortu-peta-tanggal-st {{ font-size: {T.UKURAN_TEKS_BANTUAN}; line-height: 1.5; color: {T.TEKS_VARIAN}; }}
+.ortu-peta-skor-st {{ font-size: {T.UKURAN_BADAN_LAYAR}; color: {T.TEKS_JUDUL}; }}
+.ortu-peta-skor-st b {{ font: 800 {T.UKURAN_JUDUL_STITCH}/1.2 {T.FONT_HEADLINE}; }}
+.ortu-peta-bagian-st {{ display: grid; gap: {T.SP_2}; }}
+.ortu-peta-bagian-st > :is(h3, p, ul, ol) {{ margin: 0; }}
+.ortu-peta-materi-st {{ display: grid; gap: {T.SP_3}; padding: 0; list-style: none; }}
+.ortu-peta-materi-st li {{ display: grid; gap: {T.SP_1}; }}
+.ortu-peta-nama-st {{ display: flex; flex-wrap: wrap; justify-content: space-between; gap: {T.SP_1} {T.SP_3};
+  font-size: {T.UKURAN_TEKS_BANTUAN}; line-height: 1.4; color: {T.TEKS_JUDUL}; }}
+.ortu-peta-meter-st {{ width: 100%; height: {T.SP_4}; }}
+.ortu-peta-meter-st::-webkit-meter-optimum-value {{ background: {T.AKSEN_MURID_UTAMA}; }}
+.ortu-peta-meter-st::-moz-meter-bar {{ background: {T.AKSEN_MURID_UTAMA}; }}
+.ortu-peta-daftar-st {{ padding-left: {T.SP_5}; font-size: {T.UKURAN_BADAN_LAYAR}; line-height: 1.5; color: {T.TEKS_UTAMA}; }}
+.ortu-peta-catatan-st p {{ font-size: {T.UKURAN_BADAN_LAYAR}; line-height: 1.6; color: {T.TEKS_UTAMA}; overflow-wrap: anywhere; }}
 .ortu-kaki-st {{ margin: 0; text-align: center; font-size: {T.UKURAN_TEKS_CATATAN}; line-height: 1.5; color: {T.TEKS_VARIAN}; }}
 """
