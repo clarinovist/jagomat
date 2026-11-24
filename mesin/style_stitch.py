@@ -2795,6 +2795,7 @@ a.tombol-coral:hover {{ background: {T.AKSEN_KORAL_HOVER}; }}
   .pendamping-editorial-st:is(.akun-editorial-st, .admin-editorial-st) td[data-label]::before {{ content: attr(data-label); display: block; font-size: .72rem; font-weight: 700; color: {T.TEKS_VARIAN}; margin-bottom: {T.SP_1}; }}
 }}
 .pendamping-editorial-st.bagikan-editorial-st {{ max-width: 48rem; }}
+.bagikan-editorial-st .bagikan-maskot-st {{ display: block; margin-bottom: {T.SP_2}; }}
 .bagikan-editorial-st .bagikan-kartu-st label {{ display: block; font-weight: 700; margin-bottom: {T.SP_2}; }}
 .bagikan-editorial-st #tautan-sesi {{ width: 100%; font-size: {T.UKURAN_TEKS_BANTUAN}; }}
 .bagikan-editorial-st .bagikan-perhatian-st {{

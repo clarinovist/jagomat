@@ -54,6 +54,14 @@ def test_halaman_status_tidak_keyerror_untuk_semua_status(status):
     assert halaman.COPY_STATUS[status][0] in isi
 
 
+def test_maskot_terima_kasih_hanya_di_status_pembayaran_diterima():
+    for status in d.STATUS_TURUNAN:
+        isi = halaman.halaman_status(IDENT, _tampilan(status), None).decode()
+        ada = isi.count("/aset/maskot-terima-kasih-v4-96.png")
+        assert ada == (1 if status == d.STATUS_SUDAH_DIBAYAR else 0), status
+        assert isi.count("/aset/maskot-") == ada
+
+
 def test_teks_status_baru_sesuai_permintaan():
     assert halaman.COPY_STATUS[d.STATUS_MENUNGGU_VERIFIKASI][0] == "Bukti diterima, menunggu pemeriksaan"
     assert halaman.COPY_STATUS[d.STATUS_DITOLAK][0] == "Bukti belum sesuai"

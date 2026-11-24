@@ -571,6 +571,7 @@ def test_maskot_ringan():
 POSE_V4 = (
     "semangat", "menyemangati", "terkejut", "berhitung", "memeriksa", "istirahat",
     "bingung", "menunggu", "mencari", "gembok",
+    "naik-level", "piala", "medali", "sedih", "mengirim", "terima-kasih",
 )
 
 
@@ -617,11 +618,12 @@ def test_keadaan_beranda_murid_memilih_pose_menurut_keadaan():
 
 
 def test_pose_v4_total_ringan():
+    """Bobot gabungan 16 pose; tiap layar hanya memuat satu pose."""
     total = sum(
         (ROOT / "aset" / f"maskot-{pose}-v4-{px}.png").stat().st_size
         for pose in POSE_V4 for px in (240, 96)
     )
-    assert total < 130_000, f"total sepuluh pose v4 {total}B terlalu berat"
+    assert total < 200_000, f"total enam belas pose v4 {total}B terlalu berat"
 
 
 def test_pose_v4_terlayani_lewat_rute_aset(server):

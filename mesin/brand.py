@@ -73,11 +73,13 @@ ASET.update({
     for pose in POSE_MASKOT for versi in ("v2", "v3") for px in (240, 96)
 })
 
-# Sepuluh pose tambahan (disetujui Pemilik 24 Nov 2026), satu gambar per pose, gaya sama
-# dengan v3. Berkas berversi v4; pose v3 tidak diganti. Pemakaian per layar menyusul.
+# Enam belas pose tambahan (disetujui Pemilik 24 Nov 2026), satu gambar per pose, gaya sama
+# dengan v3. Berkas berversi v4; pose v3 tidak diganti. Slug "gembok" (bukan "terkunci"):
+# nama berkas tidak boleh memuat kata terlarang penjaga halaman orang tua.
 POSE_MASKOT_V4 = (
     "semangat", "menyemangati", "terkejut", "berhitung", "memeriksa", "istirahat",
     "bingung", "menunggu", "mencari", "gembok",
+    "naik-level", "piala", "medali", "sedih", "mengirim", "terima-kasih",
 )
 ASET.update({
     f"maskot-{pose}-v4-{px}.png": "image/png"

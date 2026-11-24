@@ -238,14 +238,24 @@ def _tanpa_gaya(isi):
     return re.sub(r"<style>.*?</style>", "", isi, flags=re.S)
 
 
-@pytest.mark.parametrize("benar,pose", [(10, "merayakan"), (8, "merayakan"), (7, "menyapa"), (5, "menyapa"),
-                                         (4, "berpikir"), (0, "berpikir")])
-def test_pose_maskot_menurut_persen_benar(benar, pose):
+@pytest.mark.parametrize("benar,berkas", [(10, "piala-v4"), (8, "piala-v4"), (7, "menyapa-v3"), (5, "menyapa-v3"),
+                                            (4, "berpikir-v3"), (0, "berpikir-v3")])
+def test_pose_maskot_menurut_persen_benar(benar, berkas):
     butir = _sepuluh(salah=range(benar + 1, 11))
 
     isi = _halaman(butir=butir)
 
-    assert f"maskot-{pose}-v3-96.png" in isi and isi.count("/aset/maskot-") == 1
+    assert f"maskot-{berkas}-96.png" in isi and isi.count("/aset/maskot-") == 1
+
+
+@pytest.mark.parametrize("benar,naik,berkas", [(5, True, "naik-level-v4"), (0, True, "naik-level-v4"),
+                                               (5, False, "menyapa-v3"), (9, True, "piala-v4")])
+def test_pose_naik_level_bila_nilai_naik_tapi_belum_tinggi(benar, naik, berkas):
+    butir = _sepuluh(salah=range(benar + 1, 11))
+
+    isi = RP.halaman_hasil_anak(_hasil(butir=butir), "Naik 2 dari latihan sebelumnya", naik).decode()
+
+    assert f"maskot-{berkas}-96.png" in isi and isi.count("/aset/maskot-") == 1
 
 
 def test_bilah_atas_dan_tombol_bawah_menautkan_ke_beranda_murid():

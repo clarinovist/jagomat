@@ -143,10 +143,13 @@ def _jenis_hasil(butir: R.ButirRinci) -> str:
     return "benar" if butir.benar else "salah"
 
 
-def _pose_maskot(nilai: int, jumlah: int) -> str:
+def _pose_maskot(nilai: int, jumlah: int, naik: bool = False) -> str:
+    """Piala untuk hasil tinggi; naik-level bila nilai naik dari sesi sebelumnya (tapi belum tinggi)."""
     persen_benar = persen(nilai, jumlah)
     if persen_benar >= BATAS_SEMANGAT_TINGGI:
-        return "merayakan"
+        return "piala"
+    if naik:
+        return "naik-level"
     return "menyapa" if persen_benar >= BATAS_SEMANGAT_SEDANG else "berpikir"
 
 
@@ -185,10 +188,11 @@ def _kelompok_soal(butir: Sequence[R.ButirRinci]) -> str:
     return bagian
 
 
-def halaman_hasil_anak(hasil: R.HasilRinci, banding: str = "") -> bytes:
+def halaman_hasil_anak(hasil: R.HasilRinci, banding: str = "", naik: bool = False) -> bytes:
     """Hasil setelah sesi selesai: ringkasan, peta nomor, bar topik, soal yang perlu dilihat lagi, lalu yang benar.
 
     `banding` = kalimat pembanding dengan latihan sebelumnya (kosong bila tidak ada pembanding yang sah).
+    `naik` = nilai lebih tinggi dari sesi sebelumnya yang sah (hanya memilih pose maskot).
     """
     judul = "Waktu habis!" if hasil.sesi.status == K.WAKTU_HABIS else "Sesi selesai!"
     kalimat = f'<p class="hl-banding">{_e(banding)}</p>' if banding else ""
@@ -196,7 +200,7 @@ def halaman_hasil_anak(hasil: R.HasilRinci, banding: str = "") -> bytes:
     label_ulang = "Simulasi lagi" if mode == PK.MODE_SIMULASI else "Latihan lagi"
     isi = f"""{KP.bilah_beranda()}
 <main class="isi hasil-lomba"><section class="hl-kartu hl-ringkas-anak">
-{KP.maskot_kartu(_pose_maskot(hasil.nilai, hasil.jumlah_soal))}
+{KP.maskot_kartu(_pose_maskot(hasil.nilai, hasil.jumlah_soal, naik))}
 <p class="hl-mode">{PK.LABEL_MODE[mode]}</p>
 <h1 class="judul">{judul}</h1>
 <p class="angka-besar"><span class="sr-saja">Nilai: </span>{int(hasil.nilai)}/{int(hasil.jumlah_soal)}</p>

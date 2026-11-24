@@ -8,6 +8,7 @@ from __future__ import annotations
 import html
 import json
 
+import brand
 import design_tokens as T
 import parent_report_page as halaman
 from teacher_shell import _halaman as _bingkai
@@ -137,6 +138,7 @@ def halaman_detail(siswa, lap, ident, *, tautan=None, berubah=0, token_url="", h
     if token_url:
         bagian += (
             '<section class="kartu-st bagikan-kartu-st" aria-labelledby="label-tautan">'
+            + brand.maskot("mengirim", 96, kelas="bagikan-maskot-st") +
             '<label id="label-tautan" for="tautan-ortu">Tautan untuk orang tua</label>'
             f'<input id="tautan-ortu" type="text" readonly value="{_e(token_url)}" spellcheck="false">'
             '<p class="sub">Salin sekarang: tautan ini hanya ditampilkan sekali. Siapa pun yang memegangnya '

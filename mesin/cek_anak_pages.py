@@ -301,7 +301,7 @@ def layar_hore(k: Konteks, nama: str, dijawab: int, jumlah: int) -> bytes:
 {konfeti()}
 <div class="doodle" aria-hidden="true">{DOODLE_HORE}</div>
 <div class="tengah">
-{maskot("merayakan", 240, kelas="maskot-sedang")}
+{maskot("medali", 240, kelas="maskot-sedang")}
 <h1>Hore, {esc(nama)} selesai!</h1>
 <div class="stiker">{stiker(jumlah)}</div>
 <p class="besar">Kamu dapat stiker <b>Pejuang {int(jumlah)} Soal</b>.</p>

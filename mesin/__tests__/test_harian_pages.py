@@ -194,6 +194,16 @@ def test_pose_umpan_balik_mengikuti_jawaban_beruntun(benar, beruntun, pose, kata
     assert "maskot-%s-96.png" % pose in html and kata in html and _jumlah_maskot(html) == 1
 
 
+@pytest.mark.parametrize("benar,pose,konfeti", [(10, "merayakan-v3", True), (4, "merayakan-v3", True),
+                                                (3, "sedih-v4", False), (0, "sedih-v4", False)])
+def test_ringkasan_pose_sedih_hangat_tanpa_konfeti_hanya_untuk_skor_rendah(benar, pose, konfeti):
+    html = _badan(P.halaman_ringkasan(hs.RingkasanSesi("t3", 10, benar)))
+
+    assert "maskot-%s-96.png" % pose in html and _jumlah_maskot(html) == 1
+    assert ('class="ceria-konfeti"' in html) is konfeti
+    assert ("Kamu sudah mencoba" in html) is (not konfeti)
+
+
 def test_umpan_betul_hijau_dan_belum_tepat_hangat_berlabel_teks():
     betul = _badan(P.halaman_soal(7, "t1", SOAL, hs.UmpanBalik(1, True, 1, "cara"), 3))
     belum = _badan(P.halaman_soal(7, "t1", SOAL, hs.UmpanBalik(1, False, 0, "cara"), 3))

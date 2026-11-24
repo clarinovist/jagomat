@@ -14,6 +14,7 @@ diputuskan. Batas isi:
 """
 from __future__ import annotations
 
+import brand
 from cek_pages import RUTE_HASIL, _a, _bungkus, _e, _kepala
 from funnel_pages import COPY_HARGA
 from pesanan_dasar import (
@@ -213,9 +214,11 @@ def halaman_status(ident, tampilan: dict, token) -> bytes:
     transfer = tampilan.get("blok_transfer", "")
     pilih_cara = bool(transfer) and tampilan["status"] == STATUS_BELUM_BAYAR
     judul, kalimat = COPY_STATUS_PILIH_CARA if pilih_cara else COPY_STATUS[tampilan["status"]]
+    maskot = (brand.maskot("terima-kasih", 96, kelas="funnel-maskot-st")
+              if tampilan["status"] == STATUS_SUDAH_DIBAYAR and not pilih_cara else "")
     isi = (
         _kepala_ident(ident, tampilan["nama_anak"])
-        + _kartu(f"<h2>{_e(judul)}</h2><p>{_e(kalimat)}</p>"
+        + _kartu(f"{maskot}<h2>{_e(judul)}</h2><p>{_e(kalimat)}</p>"
                  f'<p class="funnel-catatan-st">{_e(COPY_HARGA)}</p>')
     )
     isi += transfer

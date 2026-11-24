@@ -258,11 +258,15 @@ def halaman_ringkasan(ringkas: hs.RingkasanSesi, tampil_ajakan_ortu: bool = Fals
     `tampil_ajakan_ortu` (dihitung pemanggil: halaman orang tua tersedia dan anak belum tanpa batas) hanya
     menampilkan kartu ajakan; tampilan saja, bukan gerbang akses.
     """
+    rendah = ringkas.benar * 10 < ringkas.jumlah_soal * 4
+    # Skor rendah: pose sedih yang hangat, tanpa konfeti dan tanpa "kerja bagus" berlebihan.
+    sapa = (C.maskot_bicara("sedih", "Sesi ini ", "selesai", ". Kamu sudah mencoba, itu yang penting.") if rendah
+            else C.maskot_bicara("merayakan", "Sesi ini ", "selesai", "! Kerja bagus."))
     hero = C.hero(
-        C.maskot_bicara("merayakan", "Sesi ini ", "selesai", "! Kerja bagus.")
+        sapa
         + C.skor_besar(ringkas.benar, ringkas.jumlah_soal)
         + f'<p>{_e(_semangat(ringkas.benar, ringkas.jumlah_soal))}</p>'
-        + C.stiker("Sesi selesai"), konfeti=True)
+        + C.stiker("Sesi selesai"), konfeti=not rendah)
     isi = (f'<h1 class="hr-sr">Latihan selesai</h1><p class="hr-redup">{_e(_judul_tingkat(ringkas.tingkat))}</p>{hero}'
            f'<div class="hr-aksi"><a class="hr-tombol" href="{ALAMAT_AWAL}">Latihan lagi</a>'
            '<a class="hr-tombol sekunder" href="/murid">Kembali ke ruang belajar</a></div>'

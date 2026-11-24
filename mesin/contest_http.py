@@ -226,7 +226,8 @@ def _layani_hasil(kon, siswa_id: int, sesi: K.SesiRingkas, sekarang: int) -> _Re
     hasil = contest_results.hasil_rinci(kon, siswa_id, sesi.id, sekarang)
     sebelumnya = contest_anak.nilai_sebelumnya(kon, siswa_id, sesi.id, sekarang)
     banding = contest_anak.kalimat_banding(hasil.nilai, sebelumnya, sesi.mode)
-    return _halaman_tautan(RP.halaman_hasil_anak(hasil, banding))
+    naik = sebelumnya is not None and hasil.nilai > sebelumnya
+    return _halaman_tautan(RP.halaman_hasil_anak(hasil, banding, naik))
 
 
 def _baca_isian(penangan) -> Optional[Dict[str, str]]:

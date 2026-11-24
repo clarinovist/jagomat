@@ -121,6 +121,7 @@ def test_alur_penuh_sapaan_simpan_lewati_jeda_peta_kumpulkan_hore(cek):
     kode, isi, _t = cek.kumpul()
     assert kode == 200 and "Hore" in isi and "13 dari 15 soal dijawab" in isi
     assert "Pejuang 15 Soal" in isi
+    assert "maskot-medali-v4-240.png" in isi and isi.count("/aset/maskot-") == 1
 
     assert cek.get()[0] == 404 and cek.post({"aksi": "mulai"})[0] == 404
     assert cek.get(soal=1)[0] == 404

@@ -109,6 +109,7 @@ def test_alur_penuh_terbit_ganti_cabut(s):
     assert kode == 200 and hd["Cache-Control"] == "no-store"
     tautan = re.search(r'value="(https://[^"]+/laporan-ortu/([A-Za-z0-9_-]{43}))"', isi)
     assert tautan, isi[:300]
+    assert isi.count("/aset/maskot-mengirim-v4-96.png") == 1 and isi.count("/aset/maskot-") == 1
     token = tautan.group(2)
     kode, ortu, _ = s.minta(f"/laporan-ortu/{token}")
     assert kode == 200 and "Sudah lebih tenang." in ortu and "Anak Milik Guru" in ortu

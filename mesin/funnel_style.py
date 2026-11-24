@@ -19,6 +19,7 @@ GAYA_FUNNEL = f"""
 .funnel-dua-kolom-st {{ display: grid; gap: {T.SP_5}; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); align-items: start; }}
 .funnel-dua-kolom-st > .landing-kartu-st {{ height: 100%; }}
 .funnel-kartu-batas-st {{ background: {T.LATAR_CATATAN}; border-color: {T.BORDER_CATATAN}; }}
+.funnel-maskot-st {{ display: block; margin: 0 0 {T.SP_2}; }}
 .funnel-catatan-st {{ font-size: {T.UKURAN_TEKS_BANTUAN}; color: {T.TEKS_VARIAN}; margin: {T.SP_3} 0 0; }}
 .funnel-tautan-st {{ display: inline-flex; align-items: center; min-height: {T.TARGET_SENTUH}; color: {T.TEKS_JUDUL}; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }}
 .funnel-tautan-baris-st {{ display: flex; flex-wrap: wrap; align-items: center; gap: {T.SP_2} {T.SP_5}; margin: {T.SP_3} 0 0; }}
