@@ -15,9 +15,10 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   kandidat Fase 1–3 ter-deploy dan **funnel diaktifkan 19 November 2026 termasuk
   pembayaran Paket Coba** (`FUNNEL_AKTIF=1`, ledger `pesanan_*` dimigrasikan);
   deliverable Fase 4 masih menyusul/manual. Status baris F1 di tabel bawah.
-- Artifact aplikasi produksi terakhir yang diverifikasi: **`c2d89fe`** (25 November 2026; Paket Belajar
-  1 Bulan `kelas_*` terpasang, sakelar `PAKET_BELAJAR` mati, recovery 85bbd52 kontrak fec2fd5; rincian di
-  production-release.md). Sebelumnya **`1e61c8f`** (24 November 2026; Peta Kemampuan ditulis Guru + deposit
+- Artifact aplikasi produksi terakhir yang diverifikasi: **`5c7849f`** (25 November 2026; jadwal Paket Belajar
+  `jadwal_*` terpasang untuk admin, sakelar `PAKET_BELAJAR` mati, recovery 6142611 kontrak 9443dac; rincian di
+  production-release.md). Sebelumnya **`c2d89fe`** (25 November 2026; Paket Belajar 1 Bulan `kelas_*`, recovery
+  85bbd52). Sebelumnya **`1e61c8f`** (24 November 2026; Peta Kemampuan ditulis Guru + deposit
   purna_*, recovery 6613e5d). Sebelumnya **`deb96ef`** (22 November 2026 sore; tombol Mode Lomba per anak di
   `/akun?section=siswa`, tanpa skema, recovery 1206bc9). Sebelumnya **`7982f2c`** (22 November 2026 sore;
   Mode Lomba per anak diaktifkan Guru, tabel `lomba_penugasan`, recovery baru 1206bc9 kontrak 47a7cd9;

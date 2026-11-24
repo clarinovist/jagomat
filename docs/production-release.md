@@ -7,33 +7,46 @@ Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migra
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
 Deployer di host: `/usr/local/bin/osn-deploy` **identik byte-per-byte dengan `scripts/deploy.py`**
-(sha256 `3dc1a804b2e43026…`, diperbarui atomik 24 Nov 2026 dari `8bb44ec2bb968e53…`), jadi sumbernya terlacak di Git; hanya satu
+(sha256 `9f8ce27cb26d16cc…`, diperbarui atomik 25 Nov 2026 dari `770c768b6ec5b1dc…`), jadi sumbernya terlacak di Git; hanya satu
 jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang sama dengan
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
-## Persiapan rilis jadwal Paket Belajar (`jadwal_*`) (belum dirilis) — 25 November 2026
+## Deploy jadwal Paket Belajar (`jadwal_*`) — 25 November 2026
 
-Kode di `main` lokal (belum push/deploy; sakelar `PAKET_BELAJAR` tetap mati, `visual.conf` tidak diubah).
-Plan lokal `docs/plan/2026-11-25-rilis-jadwal.md`.
+Controlled `deploy-v2` memasang **5c7849f** (`5c7849fcf70e398eef98f524013cb6cb4427b60a`, digest `sha256:d5d5fa52…f1b3`),
+healthy, menggantikan **c2d89fe**, 05.39–±05.50 WIB. Isi: admin menyiapkan kelompok Mini Class (maks 5 anak, lokasi,
+guru), penempatan Mini/Private, dan 8 pertemuan **dua kali seminggu selama empat pekan** (selesai dalam masa akses
+1 bulan; pertemuan terakhir tidak boleh melewati akhir akses), tabel `jadwal_*` di `admin-control.db`. **Admin saja;
+sakelar `PAKET_BELAJAR` tetap MATI**, `visual.conf` tidak diubah. Plan lokal `docs/plan/2026-11-25-rilis-jadwal.md`.
 
-- **Kontrak bergeser** `fec2fd5…` → **`9443dac…`** (`schema_jadwal`/`jadwal_store`). Recovery baru
-  **6142611** (`6142611adbc79a2a659e9adb764211856494f2ce`, branch `recovery-jadwal` = `85bbd52` + lapisan data
-  `schema_jadwal`/`jadwal_dasar`/`jadwal_store` byte-identik dengan main `d50740d` + commit kontrak; semua modul
-  yang diimpornya sudah identik). Anchor koleksi recovery 27.849 nodeid (tanpa tes baru). Branch `recovery-jadwal`
-  wajib dipush sebelum `main`.
-- Probe: `PROBE_JADWAL_SKEMA` (live `mode=ro`; tabel belum ada lulus, bila ada wajib persis DDL dan `kelas_*` sah),
-  blok `PROBE_IMAGE` (migrasi jadwal dua kali di atas kelas + `foreign_key_check` bersih, dijaga `ImportError` untuk
-  image lama), pasangan `scripts/release_jadwal_pair.py` (jam tetap sintetis; kandidat menulis kelompok, penempatan
-  Mini/Private, dan pertemuan, recovery membaca bersih tanpa menulis, kandidat melanjutkan; `jadwal_pair_checks` 8,
-  nomor probe 29–31 di `verify_submission_pair.py`).
-- Backup opt-in: `admin_backup.validasi_bundle` menandai `skema_jadwal` dan `rehearsal_bundle(target_jadwal=...)`
-  menyeret kelas + pesanan, menolak turun dan parsial. Tidak ada validator backup/probe lama yang menolak tabel atau
-  trigger `jadwal_*` (dibuktikan `test_jadwal_backup.py`, termasuk validator `85bbd52`).
-- Urutan operator mengikuti kit kelas: backup, rehearsal `target_jadwal=True`, lalu migrasi live
-  `mesin/jadwal_migrasi.py` pada `admin-control.db` (prasyarat `kelas_*`, idempoten, tanpa bump `user_version`).
-- Rollback: recovery 6142611 membuka DB ber-`jadwal_*` dan membacanya; recovery `85bbd52` mengabaikannya (namespace
-  terpisah). Setelah rollback jangan menempatkan atau menggeser jadwal dari image lama (fitur tidak ada di sana).
+- **Kontrak bergeser** `fec2fd5…` → **`9443dac…`** (`schema_jadwal`/`jadwal_store`). Recovery baru **6142611**
+  (`6142611adbc79a2a659e9adb764211856494f2ce`, branch `recovery-jadwal` = `85bbd52` + lapisan data
+  `schema_jadwal`/`jadwal_dasar`/`jadwal_store` byte-identik dengan main `d50740d` + commit kontrak), digest
+  `sha256:13e3f9eb…c5bd`; pair ok (`jadwal_pair_checks` 8, `provider_calls` 0). Anchor koleksi recovery 27.849 nodeid.
+  Push CI 45502064516 dan dispatch 45502187808 hijau (job `pasang` dilewati sesuai desain). Branch `recovery-jadwal`
+  dipush sebelum `main`.
+- Probe: `PROBE_JADWAL_SKEMA` (live `mode=ro`; tabel belum ada lulus), `PROBE_IMAGE` (migrasi jadwal dua kali di atas
+  kelas + `foreign_key_check`), `scripts/release_jadwal_pair.py` (jam tetap sintetis). Backup opt-in:
+  `skema_jadwal` pada `validasi_bundle`, `rehearsal_bundle(target_jadwal=True)` menyeret kelas + pesanan, menolak turun
+  dan parsial; tidak ada validator backup lama yang menolak `jadwal_*` (`test_jadwal_backup.py`).
+- Deployer source gate dipasang atomik `770c768b…` → **`9f8ce27c…`** (cadangan `/opt/osn/osn-deploy.bak-20261125T053805`).
+- Kit `deploy-jadwal-20261125` (izin Pemilik): approval `c2d89fe` diarsipkan ke `approval-consumed-c2d89fe.json`,
+  `PERSIAPAN_OK`, backup lima file + riset (hash lokal di `mesin/cadangan/deploy-jadwal-20261125/` dan induk
+  `/opt/osn/cadangan/deploy-jadwal-20261125/`), rehearsal C–B–C + `rehearsal_bundle(target_jadwal=True)`, migrasi live
+  `jadwal_migrasi` pada `admin-control.db` (3 tabel, 0 baris, `user_version` 9 tetap; recovery 6142611 membukanya),
+  `deploy-v2` exit 0, `reopen` `LIVE_ADMIN_HEALTHY`, postcheck hijau (0 Traceback/OperationalError/IntegrityError,
+  `history_hash_preserved`, `jadwal_schema_valid`, `paket_belajar_mati`), cleanup 4 direktori.
+- Smoke publik HTTPS (`https://jagomat.id`): `/` 200, `/akun` 401, `/murid/` 303, `/murid/paket` 303, `/admin/kelas`
+  404 anonim, `/cek-kemampuan` 200, `/paket-coba` 200, `/contoh-peta-kemampuan` 200, `/kebijakan-privasi` 200.
+- Rollback: recovery 6142611 membuka DB ber-`jadwal_*`; recovery `85bbd52` mengabaikannya (namespace terpisah). Data
+  sebelum migrasi hanya lewat bundle backup. Setelah rollback jangan menempatkan atau menggeser jadwal dari image lama.
+- Host: tool backup (`/opt/osn/backup-tool`, `backup-harian`) TIDAK diperbarui; tool lama tidak mengenal `jadwal_*`
+  tetapi tidak menolaknya. Bila `admin_backup` baru dipasang di host, bawa juga `schema_jadwal.py`.
+- **Sakelar `PAKET_BELAJAR` jangan dinyalakan dulu.** Terbuka: perpanjangan bulanan bentrok dengan aturan satu
+  penempatan per anak (lepas Private menghapus sesi lama tanpa jejak); tinjauan bertanda tangan 15 menit masih bisa
+  diputar ulang untuk form lepas/ubah; anak masih bisa masuk kelompok setelah pertemuan ke-1 lewat (harga penuh);
+  bentrok jadwal guru tidak dicek; lokasi Mini Class belum ditetapkan; tampilan jadwal ke orang tua belum ada.
 
 ## Deploy Paket Belajar 1 Bulan (`kelas_*`) — 25 November 2026
 
