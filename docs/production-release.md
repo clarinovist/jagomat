@@ -12,6 +12,29 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Persiapan rilis jadwal Paket Belajar (`jadwal_*`) (belum dirilis) — 25 November 2026
+
+Kode di `main` lokal (belum push/deploy; sakelar `PAKET_BELAJAR` tetap mati, `visual.conf` tidak diubah).
+Plan lokal `docs/plan/2026-11-25-rilis-jadwal.md`.
+
+- **Kontrak bergeser** `fec2fd5…` → **`9443dac…`** (`schema_jadwal`/`jadwal_store`). Recovery baru
+  **6142611** (`6142611adbc79a2a659e9adb764211856494f2ce`, branch `recovery-jadwal` = `85bbd52` + lapisan data
+  `schema_jadwal`/`jadwal_dasar`/`jadwal_store` byte-identik dengan main `d50740d` + commit kontrak; semua modul
+  yang diimpornya sudah identik). Anchor koleksi recovery 27.849 nodeid (tanpa tes baru). Branch `recovery-jadwal`
+  wajib dipush sebelum `main`.
+- Probe: `PROBE_JADWAL_SKEMA` (live `mode=ro`; tabel belum ada lulus, bila ada wajib persis DDL dan `kelas_*` sah),
+  blok `PROBE_IMAGE` (migrasi jadwal dua kali di atas kelas + `foreign_key_check` bersih, dijaga `ImportError` untuk
+  image lama), pasangan `scripts/release_jadwal_pair.py` (jam tetap sintetis; kandidat menulis kelompok, penempatan
+  Mini/Private, dan pertemuan, recovery membaca bersih tanpa menulis, kandidat melanjutkan; `jadwal_pair_checks` 8,
+  nomor probe 29–31 di `verify_submission_pair.py`).
+- Backup opt-in: `admin_backup.validasi_bundle` menandai `skema_jadwal` dan `rehearsal_bundle(target_jadwal=...)`
+  menyeret kelas + pesanan, menolak turun dan parsial. Tidak ada validator backup/probe lama yang menolak tabel atau
+  trigger `jadwal_*` (dibuktikan `test_jadwal_backup.py`, termasuk validator `85bbd52`).
+- Urutan operator mengikuti kit kelas: backup, rehearsal `target_jadwal=True`, lalu migrasi live
+  `mesin/jadwal_migrasi.py` pada `admin-control.db` (prasyarat `kelas_*`, idempoten, tanpa bump `user_version`).
+- Rollback: recovery 6142611 membuka DB ber-`jadwal_*` dan membacanya; recovery `85bbd52` mengabaikannya (namespace
+  terpisah). Setelah rollback jangan menempatkan atau menggeser jadwal dari image lama (fitur tidak ada di sana).
+
 ## Deploy Paket Belajar 1 Bulan (`kelas_*`) — 25 November 2026
 
 Controlled `deploy-v2` memasang **c2d89fe** (digest `sha256:50603402…9350`), healthy, menggantikan

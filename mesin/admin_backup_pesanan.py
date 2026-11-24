@@ -1,7 +1,8 @@
-"""Opt-in skema pesanan v1, `transfer_*`, `rekening_*`, `purna_*`, dan `kelas_*` pada validator/rehearsal backup.
+"""Opt-in skema pesanan v1, `transfer_*`, `rekening_*`, `purna_*`, `kelas_*`, dan `jadwal_*` pada validator/rehearsal backup.
 
-Urutan tetap (pesanan, transfer, rekening, purna, kelas): transfer bergantung pada ledger pesanan, purna
-bergantung pada pesanan dan transfer, kelas bergantung pada ledger pesanan (dan memakai purna saat lunas).
+Urutan tetap (pesanan, transfer, rekening, purna, kelas, jadwal): transfer bergantung pada ledger pesanan, purna
+bergantung pada pesanan dan transfer, kelas bergantung pada ledger pesanan (dan memakai purna saat lunas),
+jadwal bergantung pada kelas.
 Semua fungsi murni terhadap koneksi/path yang diberikan; galat input memakai ValueError agar
 `admin_backup` menerjemahkannya menjadi `BackupTidakSah`.
 """
@@ -70,3 +71,15 @@ def migrasikan_kelas(path) -> None:
     """Pasang skema `kelas_*` (idempoten) pada salinan temp; mensyaratkan ledger pesanan."""
     import schema_kelas
     schema_kelas.migrasikan(path)
+
+
+def deteksi_jadwal(kon) -> bool:
+    """Namespace `jadwal_*` terpasang dan sah (True), absen (False), parsial/berbeda/tanpa kelas -> ValueError."""
+    import schema_jadwal
+    return schema_jadwal.validasi(kon)
+
+
+def migrasikan_jadwal(path) -> None:
+    """Pasang skema `jadwal_*` (idempoten) pada salinan temp; mensyaratkan `kelas_*` sudah terpasang."""
+    import schema_jadwal
+    schema_jadwal.migrasikan(path)

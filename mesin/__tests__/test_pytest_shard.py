@@ -87,6 +87,9 @@ JUMLAH_RECOVERY = {
     # Koleksi recovery kelas-paket 85bbd52 (6613e5d + lapisan data kelas_* + kontrak fec2fd5): collect-only
     # arsip exact 27.849 nodeid di Python 3.9, 24 Nov 2026 (tanpa tes baru di pohon recovery).
     "85bbd528264b221148d522d958bcb31bb66ce907": 27849,
+    # Koleksi recovery jadwal 6142611 (85bbd52 + lapisan data jadwal_* + kontrak 9443dac): tanpa tes baru di pohon
+    # recovery, jadi jumlah sama dengan 85bbd52. Diverifikasi ulang oleh test_pytest_shard (collect-only arsip exact).
+    "6142611adbc79a2a659e9adb764211856494f2ce": 27849,
     "ff6acb158985f78ef0287ec18fb045d273921bdc": 13507,
     "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
     # Arsip exact reader katalog; nodeid identik empat manifest CI39596225447

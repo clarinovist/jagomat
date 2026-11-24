@@ -57,6 +57,12 @@ turunan. Tool host `/opt/osn/backup-tool` dan `backup-harian` perlu `schema_kela
 `paket_belajar_katalog.py` agar cek skema bundle pasca-migrasi berjalan. Bukti transfer di subfolder
 `kelas/` belum punya retensi sendiri.
 
+`jadwal_*` (jadwal Paket Belajar: kelompok, penempatan, pertemuan) juga di `admin-control.db` dan opt-in sama:
+`admin_backup` menandai `skema_jadwal`; `rehearsal_bundle(target_jadwal=True)` menyeret `kelas_*` dan pesanan,
+menolak turun dan struktur parsial. Tool host (`/opt/osn/backup-tool`, `backup-harian`) yang memuat `admin_backup`
+baru perlu `schema_jadwal.py` (impor `schema_kelas`, `schema_pesanan`, `schema_transfer`) agar cek skema berjalan;
+tool lama tidak menolak tabel `jadwal_*` (tidak mengenalnya).
+
 ## Capture terkontrol, bukan backup hot lintas-DB
 
 Tool `scripts/operational_backup.py` tidak menghentikan server atau memasang hold.

@@ -68,6 +68,9 @@ def docker(monkeypatch):
             if masukan==pair.KELAS_TULIS:return 'OSN_KELAS_WRITER_OK'
             if masukan==pair.KELAS_BACA:return 'OSN_KELAS_RECOVERY_OK'
             if masukan==pair.KELAS_KEMBALI:return 'OSN_KELAS_RETURN_OK'
+            if masukan==pair.JADWAL_TULIS:return 'OSN_JADWAL_WRITER_OK'
+            if masukan==pair.JADWAL_BACA:return 'OSN_JADWAL_RECOVERY_OK'
+            if masukan==pair.JADWAL_KEMBALI:return 'OSN_JADWAL_RETURN_OK'
         return ''
     monkeypatch.setattr(pair,'_panggil',panggil)
     return images,revisions,panggilan,panggil
@@ -80,7 +83,7 @@ def test_volume_probe_sendiri_dan_urutan_write_read_cleanup(docker):
     assert hasil['candidate_digest']==images[0].split('@')[1]
     assert hasil['recovery_digest']==images[1].split('@')[1]
     runs=[(a,s) for a,s in calls if a[0]=='run']
-    assert len(runs)==29
+    assert len(runs)==32
     assert (hasil['package_pair_checks'], hasil['quota_pair_checks'],
             hasil['photo_pair_checks'], hasil['registration_pair_checks'],
             hasil['support_pair_checks']) == (8, 8, 8, 8, 8)
@@ -99,8 +102,11 @@ def test_volume_probe_sendiri_dan_urutan_write_read_cleanup(docker):
     assert [a[-4] for a,_ in runs[23:26]]==[images[0],images[1],images[0]]
     assert [s for _,s in runs[26:29]]==[pair.KELAS_TULIS,pair.KELAS_BACA,pair.KELAS_KEMBALI]
     assert [a[-4] for a,_ in runs[26:29]]==[images[0],images[1],images[0]]
+    assert [s for _,s in runs[29:32]]==[pair.JADWAL_TULIS,pair.JADWAL_BACA,pair.JADWAL_KEMBALI]
+    assert [a[-4] for a,_ in runs[29:32]]==[images[0],images[1],images[0]]
     assert hasil['question_pair_checks']==8
     assert hasil['kelas_pair_checks']==8
+    assert hasil['jadwal_pair_checks']==8
     assert hasil['policy_pair_checks']==6
     assert hasil['sensor_pair_checks']==8
     assert hasil['learning_pair_checks']==8
