@@ -45,9 +45,10 @@ COPY_TUTUP_SUDAH_BAYAR = (
 )
 # Selaras COPY_PEMBATALAN (24 Nov 2026: tanpa uang kembali otomatis; Rp49.000 menjadi deposit).
 COPY_REFUND = (
-    "Peta Kemampuan tidak dapat dikembalikan; Rp49.000 menjadi deposit yang otomatis memotong tagihan kelas "
-    "bersama Guru (berlaku 90 hari) bila Anda daftar. Laporan dijanjikan terbit dalam 48 jam setelah "
-    "pembayaran. Tidak ada uang kembali otomatis; bila laporan terlambat, hubungi tim lewat WhatsApp."
+    "Peta Kemampuan tidak dapat dikembalikan; Rp49.000 menjadi deposit yang memotong tagihan "
+    "bulan pertama kelas bersama Guru (berlaku 90 hari) bila Anda mendaftar. Laporan dijanjikan "
+    "terbit dalam 48 jam setelah pembayaran. Tidak ada uang kembali otomatis; bila laporan "
+    "terlambat, hubungi tim lewat WhatsApp."
 )
 COPY_KUOTA_HABIS = (
     "Pendaftaran Peta Kemampuan sedang dihentikan sementara; "
@@ -96,6 +97,7 @@ COPY_STATUS = {
 }
 # Status belum bayar bila jalur transfer ikut ditawarkan (QRIS, bila ada, menjadi pilihan kedua).
 COPY_STATUS_PILIH_CARA = ("Menunggu pembayaran", COPY_STATUS_PILIH)
+COPY_STATUS_TERBIT = "Pembayaran diterima. Laporan lengkap sudah terbit di halaman Ayah/Bunda."
 COPY_QR_BELUM_ADA = "Kode QR belum tersedia saat ini."
 COPY_BELUM_TERPERIKSA = (
     "Status terbaru belum bisa diperiksa ke penyedia pembayaran sekarang. "
@@ -216,6 +218,10 @@ def halaman_status(ident, tampilan: dict, token) -> bytes:
     transfer = tampilan.get("blok_transfer", "")
     pilih_cara = bool(transfer) and tampilan["status"] == STATUS_BELUM_BAYAR
     judul, kalimat = COPY_STATUS_PILIH_CARA if pilih_cara else COPY_STATUS[tampilan["status"]]
+    purna = tampilan.get("purna")
+    if (not pilih_cara and tampilan["status"] == STATUS_SUDAH_DIBAYAR
+            and purna is not None and purna.terbit is not None):
+        kalimat = COPY_STATUS_TERBIT
     maskot = (brand.maskot("terima-kasih", 96, kelas="funnel-maskot-st")
               if tampilan["status"] == STATUS_SUDAH_DIBAYAR and not pilih_cara else "")
     isi = (

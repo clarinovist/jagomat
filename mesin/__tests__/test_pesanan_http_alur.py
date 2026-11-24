@@ -561,7 +561,7 @@ def test_copy_refund_selaras_keputusan_deposit_tanpa_uang_kembali_otomatis():
     assert "tidak dapat dikembalikan" in rp and "deposit" in rp
     assert "sebelum guru mulai meninjau" not in rp
     # DRAF 5 (24 Nov 2026, deposit): memotong tagihan kelas bersama Guru 90 hari, janji 48 jam, hubungi tim bila terlambat.
-    assert "deposit yang otomatis memotong tagihan kelas bersama Guru (berlaku 90 hari)" in rp and "48 jam" in rp
+    assert "deposit yang memotong tagihan bulan pertama kelas bersama Guru (berlaku 90 hari)" in rp and "48 jam" in rp
     assert "Tidak ada uang kembali otomatis" in rp and "hubungi tim lewat WhatsApp" in rp
-    for lama in ("voucher", "3×24", "memilih", "halaman pesanan", "program belajar"):
+    for lama in ("voucher", "3×24", "memilih", "halaman pesanan", "program belajar", "otomatis memotong"):
         assert lama not in rp, lama

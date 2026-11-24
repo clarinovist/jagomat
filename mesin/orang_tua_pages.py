@@ -49,6 +49,8 @@ COPY_LAPORAN_KOSONG = "Belum ada laporan dari Guru."
 COPY_PESANAN_JUDUL = "Peta Kemampuan"
 COPY_PESANAN_TAWARAN = "Laporan lengkap dikerjakan guru dari hasil cek ini. " + __import__("funnel_pages").COPY_HARGA
 COPY_PESANAN_LANJUT = "Lanjutkan pembayaran atau lihat statusnya di halaman pembayaran."
+COPY_PESANAN_TERBIT = "Pembayaran diterima. Laporan Peta Kemampuan sudah tersedia di halaman ini."
+COPY_PESANAN_LIHAT_DEPOSIT = "Lihat deposit & rincian pesanan"
 COPY_PIN_MASUK_JUDUL = "Masukkan PIN"
 COPY_PIN_MASUK_TEKS = "Halaman ini ditutup dengan PIN. Masukkan 4 angka PIN Ayah/Bunda untuk membukanya."
 COPY_PIN_SALAH = "PIN belum cocok. Coba lagi."
@@ -165,10 +167,10 @@ def _blok_laporan(laporan) -> str:
 
 
 def _blok_pesanan(status, cek_selesai: bool, purna=None) -> str:
-    """Status Peta Kemampuan (lencana teks) + satu pintu ke halaman pembayaran akun anak (F2c).
+    """Status Peta Kemampuan (lencana teks) + satu pintu ke halaman pembayaran/pesanan akun anak (F2c).
 
-    `purna` (`KeadaanPurna` atau None): bila ada, SATU baris janji terbit / status laporan, tanpa tombol dan tanpa
-    entry point tambahan (kartu deposit hanya di halaman pesanan).
+    `purna` (`KeadaanPurna` atau None): bila ada, SATU baris janji terbit / status laporan serta tautan
+    ke `/murid/pesanan` untuk melihat kartu deposit & rincian pesanan (tanpa tombol form).
 
     Kalimat instruksi bayar (mis. "Pindai kode QRIS") tidak diulang di sini: jalur aktif (transfer/QRIS) hanya
     dijelaskan di halaman pembayaran. Tanpa cek selesai dan tanpa pesanan, kartu tidak tampil.
@@ -176,10 +178,13 @@ def _blok_pesanan(status, cek_selesai: bool, purna=None) -> str:
     if status in pesanan_pages.COPY_STATUS:
         judul, kalimat = pesanan_pages.COPY_STATUS[status]
         sudah = status == pesanan_pages.STATUS_SUDAH_DIBAYAR
-        isi = C.lencana(judul, "hijau" if sudah else "kuning") + f'<p>{_e(kalimat if sudah else COPY_PESANAN_LANJUT)}</p>'
+        teks = (COPY_PESANAN_TERBIT if sudah and purna is not None and purna.terbit is not None
+                else kalimat if sudah else COPY_PESANAN_LANJUT)
+        isi = C.lencana(judul, "hijau" if sudah else "kuning") + f'<p>{_e(teks)}</p>'
         tombol = "" if sudah else _tautan_bayar("Buka halaman pembayaran")
         if sudah and purna is not None:
             isi += f'<p>{_e(pesanan_voucher_pages.teks_janji(purna))}</p>'
+            tombol = _tautan_bayar(COPY_PESANAN_LIHAT_DEPOSIT)
     elif cek_selesai:
         isi = f'<p>{_e(COPY_PESANAN_TAWARAN)}</p>'
         tombol = _tautan_bayar("Lanjut ke pembayaran")

@@ -66,8 +66,11 @@ KASUS = (
      (P + "test_kartu_murid_b_memakai_order_miliknya_bukan_order_milik_lain",)),
     ("V9-baris-janji-orang-tua-tidak-tampil",
      ((ORTU, "        if sudah and purna is not None:", "        if sudah and purna is None:"),),
-     (K + "test_sudah_dibayar_dengan_purna_menambah_satu_baris_janji_tanpa_tombol",
+     (K + "test_sudah_dibayar_dengan_purna_menambah_satu_baris_janji_dan_tautan_deposit_tanpa_form",
       P + "test_halaman_orang_tua_memuat_satu_baris_janji_tanpa_tombol_dan_beranda_tetap_satu_tautan")),
+    ("V10-tautan-deposit-hilang-saat-sudah-dibayar",
+     ((ORTU, "            tombol = _tautan_bayar(COPY_PESANAN_LIHAT_DEPOSIT)", ""),),
+     (K + "test_sudah_dibayar_dengan_purna_menambah_satu_baris_janji_dan_tautan_deposit_tanpa_form",)),
 )
 
 

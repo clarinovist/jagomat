@@ -127,6 +127,9 @@ def test_contoh_berlabel_dan_hanya_nama_sintetis_aisyah(halaman):
     assert "Contoh hasil" in utama and "Peta Kemampuan" in utama
     assert "Bu Contoh" not in utama
     assert "(sintetis)" not in utama.replace("Contoh sintetis", "")
+    teks = _teks_terlihat("<style></style>" + utama).lower()
+    for lama in ("pola kesalahan", "pola salah", "otomatis memotong", "otomatis dipotong", "lencana di laporan"):
+        assert lama not in teks, lama
 
 
 def test_kartu_guru_tidak_tampil_saat_profil_kosong(halaman):

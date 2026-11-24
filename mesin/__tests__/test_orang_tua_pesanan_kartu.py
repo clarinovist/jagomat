@@ -23,16 +23,25 @@ def test_belum_bayar_tidak_mengulang_instruksi_qris_dan_menautkan_pembayaran():
     assert pesanan_permukaan.RUTE_MURID.status in html
 
 
-def test_sudah_dibayar_dengan_purna_menambah_satu_baris_janji_tanpa_tombol():
+def test_sudah_dibayar_dengan_purna_menambah_satu_baris_janji_dan_tautan_deposit_tanpa_form():
     # Arrange
     import pesanan_voucher_pages as hv
+    from dataclasses import replace
     from pesanan_murid_kit import KEADAAN_TERLAMBAT as DASAR
     # Act
     html = halaman._blok_pesanan(pesanan_pages.STATUS_SUDAH_DIBAYAR, True, DASAR)
     # Assert
     assert hv.teks_janji(DASAR) in html and html.count(hv.COPY_JANJI) == 1
     assert "<button" not in html and "<form" not in html and "pilih" not in html
-    assert pesanan_permukaan.RUTE_MURID.status not in html
+    assert f'href="{pesanan_permukaan.RUTE_MURID.status}"' in html
+    assert "Lihat deposit &amp; rincian pesanan" in html
+    assert "Akses laporan lengkap menyusul" in html
+
+    terbit = halaman._blok_pesanan(
+        pesanan_pages.STATUS_SUDAH_DIBAYAR, True, replace(DASAR, terbit="2026-11-19T10:00:00", terlambat=False))
+    assert halaman.COPY_PESANAN_TERBIT in terbit
+    assert "Akses laporan lengkap menyusul" not in terbit
+    assert f'href="{pesanan_permukaan.RUTE_MURID.status}"' in terbit
 
 
 def test_belum_dibayar_dengan_purna_tidak_menambah_baris_janji():

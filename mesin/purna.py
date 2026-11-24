@@ -40,7 +40,8 @@ import schema_purna as sk
 # Janji terbit: (berlaku_dari_waktu_lunas, jam), urut menaik. Order memakai entri terakhir yang
 # berlaku_dari <= waktu lunasnya, jadi menambah entri baru tidak menggeser janji order yang sudah lunas.
 SLA_TERBIT = (("2000-01-01T00:00:00", 48),)
-JAM_TOLERANSI_TERLAMBAT = 72    # jam sesudah janji sebelum laporan dianggap terlambat
+# Laporan dianggap terlambat segera setelah melewati janji SLA 48 jam (tanpa masa tunggu 72 jam sejak fitur uang kembali otomatis dihapus).
+JAM_TOLERANSI_TERLAMBAT = 0
 HARI_VOUCHER = 90               # masa berlaku voucher (deposit) sejak waktu lunas
 JAM_PER_HARI = 24
 AWALAN_KODE = "JGV-"

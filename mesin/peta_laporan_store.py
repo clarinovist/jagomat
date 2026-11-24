@@ -31,8 +31,14 @@ CATATAN_PANJANG = "panjang"
 CATATAN_KONTROL = "kontrol"
 CATATAN_KONTAK = "kontak"
 CATATAN_ISTILAH_INTERNAL = "istilah_internal"
-_MIN_DIGIT_KONTAK = 9   # nomor telepon >= 9 digit; tanggal dd-mm-yyyy (8 digit) dan nilai pendek tidak ikut tertolak
-_POLA_DIGIT_KONTAK = re.compile(r"\d(?:[\s.\-\u2010-\u2015()/,_:]*\d){%d}" % (_MIN_DIGIT_KONTAK - 1))
+_MIN_DIGIT_KONTAK = 9   # nomor telepon >= 9 digit; tanggal dd-mm-yyyy (8 digit) dan deret angka matematika tidak ikut tertolak
+_SEP_TELEPON = r"[\s.\-\u2010-\u2015()_]*"
+_SEP_LONGGAR = r"[\s.\-\u2010-\u2015()/,_:]*"
+_POLA_DIGIT_KONTAK = re.compile(r"\d(?:%s\d){%d}" % (_SEP_TELEPON, _MIN_DIGIT_KONTAK - 1))
+_POLA_TELEPON_ID_LONGGAR = re.compile(
+    r"(?<!\d)(?:\+?6%s2%s8|0%s8)(?:%s\d){%d}"
+    % (_SEP_TELEPON, _SEP_LONGGAR, _SEP_TELEPON, _SEP_LONGGAR, _MIN_DIGIT_KONTAK - 2)
+)
 _POLA_TEL = re.compile(r"(?<![a-z0-9])tel:")
 _PENANDA_KONTAK = ("wa.me", "whatsapp", "@", "http", "www.", "bit.ly", "instagram", "telegram")
 _POLA_PENANDA_KONTAK = re.compile(
@@ -105,7 +111,8 @@ def _kode_isi(catatan: str):
     """Kode galat untuk isi catatan (kontak/istilah internal) atau None; catatan sudah lolos panjang dan kontrol."""
     bentuk = _normal(catatan)
     rapat = " ".join(bentuk.split())
-    if (_POLA_DIGIT_KONTAK.search(bentuk) or _POLA_TEL.search(bentuk) or any(p in bentuk for p in _PENANDA_KONTAK)
+    if (_POLA_DIGIT_KONTAK.search(bentuk) or _POLA_TELEPON_ID_LONGGAR.search(bentuk)
+            or _POLA_TEL.search(bentuk) or any(p in bentuk for p in _PENANDA_KONTAK)
             or _POLA_PENANDA_KONTAK.search(rapat)):
         return CATATAN_KONTAK
     if _POLA_ISTILAH_INTERNAL.search(re.sub(r"[_\-\s]+", " ", bentuk)):

@@ -47,8 +47,8 @@ COPY_KONSULTASI = (
     "ngobrol 20 menit dengan guru. Pagi, malam, atau akhir pekan, kita cari yang cocok."
 )
 COPY_DEPOSIT = (
-    "Rp49.000 menjadi deposit di akun Anda. Bila Anda daftar kelas bersama Guru dalam 90 hari, "
-    "tagihan kelas otomatis dipotong Rp49.000."
+    "Rp49.000 menjadi deposit di akun Anda dan memotong tagihan bulan pertama "
+    "bila Anda mendaftar kelas bersama Guru dalam 90 hari."
 )
 # Peluncuran awal; HAPUS konstanta ini (dan pemakaiannya) saat kuota 20 keluarga habis.
 COPY_KUOTA_AWAL = "Peluncuran awal: 20 keluarga pertama"
@@ -77,23 +77,23 @@ COPY_PAKET_SUB = (
     "Latihan yang tepat sasaran membantu nilai matematika anak naik. "
     "Mulai dari satu langkah yang jelas minggu ini."
 )
-COPY_JUDUL_PAKET_HALAMAN = "Lihat pola salahnya. Tahu satu langkah berikutnya."
+COPY_JUDUL_PAKET_HALAMAN = "Lihat di mana salahnya mengumpul. Tahu satu langkah berikutnya."
 COPY_PENGANTAR_PAKET = (
     "Laporan lengkap yang dibaca guru, plus obrolan 20 menit untuk mengubahnya jadi "
     "langkah nyata di rumah, supaya anak makin jago berhitung. Di peluncuran awal, "
     "20 keluarga pertama dibaca langsung oleh guru kami."
 )
 COPY_PAKET_ISI = (
-    "Laporan lengkap yang dibaca guru: penguasaan per materi, pola kesalahan, dan urutan belajar yang paling perlu dulu",
+    "Laporan lengkap yang dibaca guru: penguasaan per materi, di materi mana salahnya mengumpul, catatan dari guru, dan urutan belajar yang paling perlu dulu",
     "Ngobrol 20 menit dengan guru tentang cara berpikir anak dan apa yang bisa dilatih",
-    "Rp49.000 jadi deposit: otomatis memotong tagihan kelas bersama Guru bila Anda daftar (berlaku 90 hari)",
+    "Rp49.000 jadi deposit: memotong tagihan bulan pertama bila Anda mendaftar kelas bersama Guru (berlaku 90 hari)",
 )
 COPY_TIDAK_WAJIB_KELAS = (
     "Tidak wajib ikut kelas. Laporan ini tetap milik Anda. Cek ulang dan laporan kemajuan tiap 4 minggu ada di kelas."
 )
 COPY_BATAS_JUDUL = "Biar harapannya pas"
 COPY_BATAS_HASIL = (
-    "Hasil membaca pola dari soal yang dikerjakan, bukan ujian menyeluruh.",
+    "Hasil membaca soal yang dikerjakan, bukan ujian menyeluruh.",
     "Ini alat bantu memahami anak, bukan jaminan nilai naik.",
     "Materi di luar soal yang dikerjakan belum terbaca.",
 )
@@ -199,9 +199,9 @@ def _centang(butir) -> str:
     return "".join(f"<li>{_ikon(_D_CENTANG, 20, '2.8')}<span>{_e(b)}</span></li>" for b in butir)
 
 
-def _bungkus(judul: str, isi: str) -> bytes:
+def _bungkus(judul: str, isi: str, *, css_tambahan: str = "") -> bytes:
     return landing._halaman_publik_stitch(
-        judul, isi, kelas_badan="landing-halaman-st"
+        judul, isi, kelas_badan="landing-halaman-st", css_tambahan=css_tambahan,
     )
 
 

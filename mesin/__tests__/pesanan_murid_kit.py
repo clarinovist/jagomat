@@ -62,5 +62,5 @@ def sakelar_hidup(monkeypatch, tmp_path):
 KEADAAN_TERLAMBAT = purna.KeadaanPurna(
     lunas=True, direfund=False, waktu_lunas="2026-11-18T10:00:00", kode="JGV-ABCDEF123456",
     voucher=purna.VOUCHER_AKTIF, berlaku_hingga="2027-02-16T10:00:00", janji_terbit="2026-11-20T10:00:00",
-    batas_pilihan="2026-11-23T10:00:00", terbit=None, terlambat=True, dipakai=False,
+    batas_pilihan="2026-11-20T10:00:00", terbit=None, terlambat=True, dipakai=False,
     ditahan=False)

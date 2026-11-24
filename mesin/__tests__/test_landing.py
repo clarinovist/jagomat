@@ -98,6 +98,9 @@ def test_kebijakan_tautan_sumber_aktif():
     wajib ada."""
     assert 'href="/kebijakan-privasi"' in _html(halaman_landing)
     assert 'href="/kebijakan-privasi"' in _html(halaman_daftar)
+    privasi = _html(halaman_kebijakan)
+    assert "30 hari setelah cek selesai" in privasi
+    assert "laporan Peta Kemampuan" in privasi and "keluarga dihapus" in privasi
     sumber = Path(account_pages.__file__).read_text(encoding="utf-8")
     assert 'href="/kebijakan-privasi"' in sumber
 

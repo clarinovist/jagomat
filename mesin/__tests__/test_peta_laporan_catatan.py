@@ -85,6 +85,7 @@ KONTROL = ("a\x00b", "a\x01b", "a\x1bb", "a\x7fb", "a\x85b",
 # L1: pemisah digit tambahan, homoglyph Sirilik/Yunani, penanda tambahan, istilah internal dengan pemisah.
 KONTAK_L1 = (
     "0812/3456/7890", "0812,3456,7890", "0812_3456_7890", "0812:3456:7890", "0 8 1 2 / 3 4 5 , 6 7",
+    "+62/812,3456:7890",
     "w\u0430.me/628123", "w\u04bbatsapp", "wh\u0430tsapp", "wh\u03b1tsapp", "WA.M\u0415", "buka contoh.c\u043em",
     "t.me/guru", "bit.ly/abc", "Instagram saya", "INSTAGRAM", "ikut telegram", "buka contoh.com", "situs.co.id",
     "belajar.net", "x.org", "kontak.io", "a-b.link", "guru.id", "guru dot com", "kirim ke nama at gmail",
@@ -101,6 +102,13 @@ LOLOS_L1 = (
     "Aturan normal rule dan formal rule bukan istilah internal; rapat.Mei dibuka dan lihat gmail biasa.",
     "Telepon rumah tidak dipakai; sampai jumpa di kelas, ya.",
     "Ananda lebih rapi menulis di buku; coba soal nomor 3, 5, dan 7 sebelum pertemuan berikutnya.",
+    "Latihan kelipatan: 2, 4, 6, 8, 10, 12, 14, 16",
+    "Coba kerjakan pecahan 1/2, 2/4, 3/6, 4/8, 5/10",
+    "Ulangi bab 1 (hal 12-15), 20-25, 30-35",
+    "10, 20, 30, 40, 50",
+    "Kelipatan 8: 0, 8, 16, 24, 32, 40",
+    "Pecahan 0/8, 1/8, 2/8, 3/8, 4/8, 5/8",
+    "Jadwal ulang 24/11/2026 15:30 di kelas",
 )
 
 

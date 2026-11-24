@@ -10,9 +10,9 @@ from pesanan_kit import SEKARANG, buat, hitung, operasi, siapkan_db, terapkan  #
 from transfer_kit import ADMIN, menunggu, siapkan_db_transfer
 
 WAKTU_SETUJU = "2026-11-18T12:00:00"
-# Order QRIS lunas pada SEKARANG; order transfer lunas pada WAKTU_SETUJU (SLA 48 jam, toleransi 72 jam, voucher 90 hari).
-QRIS_JANJI, QRIS_BATAS, QRIS_HINGGA = "2026-11-20T10:00:00", "2026-11-23T10:00:00", "2027-02-16T10:00:00"
-TRANSFER_JANJI, TRANSFER_BATAS, TRANSFER_HINGGA = ("2026-11-20T12:00:00", "2026-11-23T12:00:00",
+# Order QRIS lunas pada SEKARANG; order transfer lunas pada WAKTU_SETUJU (SLA 48 jam, toleransi 0 jam, voucher 90 hari).
+QRIS_JANJI, QRIS_BATAS, QRIS_HINGGA = "2026-11-20T10:00:00", "2026-11-20T10:00:00", "2027-02-16T10:00:00"
+TRANSFER_JANJI, TRANSFER_BATAS, TRANSFER_HINGGA = ("2026-11-20T12:00:00", "2026-11-20T12:00:00",
                                                    "2027-02-16T12:00:00")
 PELAKU = ADMIN
 

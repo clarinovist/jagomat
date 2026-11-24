@@ -77,9 +77,10 @@ a.ortu-tombol-pinggir-st:hover {{ background: {T.ANAK_AKSEN_LATAR}; }}
 .ortu-peta-materi-st li {{ display: grid; gap: {T.SP_1}; }}
 .ortu-peta-nama-st {{ display: flex; flex-wrap: wrap; justify-content: space-between; gap: {T.SP_1} {T.SP_3};
   font-size: {T.UKURAN_TEKS_BANTUAN}; line-height: 1.4; color: {T.TEKS_JUDUL}; }}
-.ortu-peta-meter-st {{ width: 100%; height: {T.SP_4}; }}
-.ortu-peta-meter-st::-webkit-meter-optimum-value {{ background: {T.AKSEN_MURID_UTAMA}; }}
-.ortu-peta-meter-st::-moz-meter-bar {{ background: {T.AKSEN_MURID_UTAMA}; }}
+.ortu-peta-meter-st {{ display: block; width: 100%; height: {T.SP_4}; background: {T.LAPORAN_GRID_BAR}; border-radius: {T.RADIUS_PIL}; overflow: hidden; }}
+.ortu-peta-meter-st::-webkit-meter-bar {{ background: {T.LAPORAN_GRID_BAR}; border: 0; border-radius: {T.RADIUS_PIL}; height: {T.SP_4}; }}
+.ortu-peta-meter-st::-webkit-meter-optimum-value {{ background: {T.AKSEN_MURID_UTAMA}; border-radius: {T.RADIUS_PIL}; }}
+.ortu-peta-meter-st::-moz-meter-bar {{ background: {T.AKSEN_MURID_UTAMA}; border-radius: {T.RADIUS_PIL}; }}
 .ortu-peta-daftar-st {{ padding-left: {T.SP_5}; font-size: {T.UKURAN_BADAN_LAYAR}; line-height: 1.5; color: {T.TEKS_UTAMA}; }}
 .ortu-peta-catatan-st p {{ font-size: {T.UKURAN_BADAN_LAYAR}; line-height: 1.6; color: {T.TEKS_UTAMA}; overflow-wrap: anywhere; }}
 .ortu-kaki-st {{ margin: 0; text-align: center; font-size: {T.UKURAN_TEKS_CATATAN}; line-height: 1.5; color: {T.TEKS_VARIAN}; }}

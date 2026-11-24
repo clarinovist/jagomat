@@ -16,8 +16,8 @@ from purna_kit import (PELAKU, QRIS_BATAS, QRIS_HINGGA, QRIS_JANJI, SEKARANG, TR
                        order_transfer_lunas, refund_mentah)
 
 POLA_WAKTU = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
-SESUDAH_JANJI = "2026-11-21T00:00:00"          # lewat janji (20 Nov 10:00), belum lewat batas
-SESUDAH_BATAS = "2026-11-23T10:00:01"          # satu detik lewat batas terlambat QRIS
+SEBELUM_BATAS = "2026-11-20T09:59:59"        # satu detik sebelum janji 48 jam
+SESUDAH_BATAS = "2026-11-20T10:00:01"        # satu detik lewat janji 48 jam QRIS
 
 
 def _geser(waktu, detik):
@@ -33,7 +33,7 @@ def detik_sebelum(waktu):
 
 def test_konstanta_dan_entri_sla_awal():
     assert purna.SLA_TERBIT[0] == ("2000-01-01T00:00:00", 48)
-    assert purna.JAM_TOLERANSI_TERLAMBAT == 72
+    assert purna.JAM_TOLERANSI_TERLAMBAT == 0
     assert purna.HARI_VOUCHER == 90
 
 
@@ -78,7 +78,7 @@ def test_entri_sla_baru_berlaku_untuk_order_yang_lunas_sesudahnya(kon, monkeypat
     monkeypatch.setattr(purna, "SLA_TERBIT", purna.SLA_TERBIT + (("2026-11-18T11:00:00", 24),))
     k = purna.keadaan(kon, baru, SEKARANG)
     assert k.janji_terbit == "2026-11-19T12:00:00"
-    assert k.batas_pilihan == "2026-11-22T12:00:00"
+    assert k.batas_pilihan == "2026-11-19T12:00:00"
 
 
 # --- kode voucher --------------------------------------------------------------------------
@@ -188,7 +188,7 @@ def test_keadaan_order_tidak_ada_atau_id_salah(kon):
 
 def test_keadaan_menormalkan_waktu_berzona(kon):
     oid = order_qris_lunas(kon, 1)
-    k = purna.keadaan(kon, oid, "2026-11-23T17:00:01+07:00")          # = SESUDAH_BATAS UTC
+    k = purna.keadaan(kon, oid, "2026-11-20T17:00:01+07:00")          # = SESUDAH_BATAS UTC
     assert k.terlambat is True
 
 
@@ -216,7 +216,7 @@ def test_berlaku_hingga_tepat_hari_voucher_kali_dua_puluh_empat_jam_dari_waktu_l
 
 def test_terlambat_tepat_di_batas_bukan_terlambat_plus_satu_detik_terlambat(kon):
     oid = order_qris_lunas(kon, 1)
-    assert purna.keadaan(kon, oid, SESUDAH_JANJI).terlambat is False
+    assert purna.keadaan(kon, oid, SEBELUM_BATAS).terlambat is False
     assert purna.keadaan(kon, oid, QRIS_BATAS).terlambat is False
     sesudah = purna.keadaan(kon, oid, SESUDAH_BATAS)
     assert (sesudah.terlambat, sesudah.voucher) == (True, "aktif")   # terlambat hanya informasi, tidak membatalkan deposit

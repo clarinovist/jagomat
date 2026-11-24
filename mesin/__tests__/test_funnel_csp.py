@@ -84,7 +84,7 @@ def test_skrip_laporan_dan_cetak_ikut_ter_hash(server, monkeypatch):
     monkeypatch.setenv("FUNNEL_AKTIF", "1")
     _k, _i, laporan = server.minta("/contoh-peta-kemampuan", biner=True)
     _k, _i, lembar = server.minta("/contoh-peta-kemampuan/lembar", biner=True)
-    assert _hash(peta_browser.SKRIP_PETA.encode()) in laporan["Content-Security-Policy"]
+    assert _hash(peta_browser.SKRIP_PETA.encode()) not in laporan["Content-Security-Policy"]
     assert _hash(peta_browser.SKRIP_CETAK.encode()) in lembar["Content-Security-Policy"]
     assert _hash(peta_browser.SKRIP_PETA.encode()) not in lembar["Content-Security-Policy"]
 

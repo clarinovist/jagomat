@@ -29,7 +29,7 @@ def _font_link() -> str:
 
 def _halaman_publik_stitch(
     judul: str, isi: str, og: dict[str, str] | None = None,
-    *, kelas_badan: str = "publik-badan-st",
+    *, kelas_badan: str = "publik-badan-st", css_tambahan: str = "",
 ) -> bytes:
     """Kerangka halaman publik versi Stitch — GAYA_STITCH, body.st.
 
@@ -48,7 +48,7 @@ def _halaman_publik_stitch(
 <title>{html.escape(brand.judul(judul))}</title>
 {brand.tag_kepala(og)}
 {_font_link()}
-<style>{tanpa_impor_font_cdn(gaya_stitch())}</style></head>
+<style>{tanpa_impor_font_cdn(gaya_stitch())}{css_tambahan}</style></head>
 <body class="st"><div class="{html.escape(kelas_badan, quote=True)}">{isi}</div>
 <script>{SKRIP_MATA_SANDI}</script><script>{SKRIP_CEGAH_KIRIM_GANDA}</script><script>{SKRIP_OFFLINE}</script></body></html>""".encode()
 
@@ -362,6 +362,10 @@ di atas; penyedia font menerima permintaan aset tampilan, bukan data latihan.</p
 terlindungi, akun login anak, chat, memori, dan persetujuan sesuai permukaannya.
 Analitik opsional dapat dicabut dari pengaturan akun. Penghapusan aktif tidak
 langsung menghapus salinan cadangan; backup privat dapat bertahan maksimal 30 hari.</p>
+<p>Untuk Cek Kemampuan gratis, bahan mentah (soal dan jawaban anak) dihapus otomatis
+30 hari setelah cek selesai. Ringkasan hasil cek dan laporan Peta Kemampuan yang
+sudah diterbitkan Guru tetap tersimpan selama akun aktif, dan ikut terhapus saat
+keluarga dihapus.</p>
 <p>Untuk penghapusan seluruh keluarga, gunakan jalur dukungan di bawah. Pesan awal
 tidak menghapus data dan tidak boleh memuat data pribadi anak. Setelah verifikasi
 independen dan backup pemulihan terkonfirmasi, data akun, profil, sesi yang tidak

@@ -115,14 +115,14 @@ def test_landing_memakai_nama_peta_kemampuan_bukan_paket_coba(server, monkeypatc
 
 
 def test_kalimat_deposit_dan_terlambat_draf5_dipakai_harfiah():
-    deposit = "Rp49.000 jadi deposit: otomatis memotong tagihan kelas bersama Guru bila Anda daftar (berlaku 90 hari)"
+    deposit = "Rp49.000 jadi deposit: memotong tagihan bulan pertama bila Anda mendaftar kelas bersama Guru (berlaku 90 hari)"
     tegas = ("Rp49.000 menjadi deposit yang memotong tagihan kelas bersama Guru (berlaku 90 hari) "
              "bila Anda daftar.")
     assert funnel_pages.COPY_PAKET_ISI[2] == deposit
     assert funnel_pages.COPY_TIDAK_KEMBALI == "Peta Kemampuan tidak dapat dikembalikan, jadi " + tegas
     assert funnel_pages.COPY_DEPOSIT == (
-        "Rp49.000 menjadi deposit di akun Anda. Bila Anda daftar kelas bersama Guru dalam 90 hari, "
-        "tagihan kelas otomatis dipotong Rp49.000.")
+        "Rp49.000 menjadi deposit di akun Anda dan memotong tagihan bulan pertama "
+        "bila Anda mendaftar kelas bersama Guru dalam 90 hari.")
     assert funnel_pages.COPY_PEMBATALAN_BUTIR[0][1] == (
         " karena guru langsung mengerjakan laporannya. Sebagai gantinya, " + tegas)
     assert funnel_pages.COPY_PEMBATALAN_BUTIR[2] == (
@@ -131,8 +131,9 @@ def test_kalimat_deposit_dan_terlambat_draf5_dipakai_harfiah():
     for kalimat in (funnel_pages.COPY_TIDAK_KEMBALI, funnel_pages.COPY_DEPOSIT, *funnel_pages.COPY_PAKET_ISI,
                     *(a + b for a, b in funnel_pages.COPY_PEMBATALAN_BUTIR)):
         assert "program belajar" not in kalimat and "dicatat oleh tim" not in kalimat
-        for lama in ("voucher", "3×24", "uang kembali penuh", "memilih tetap menunggu", "halaman pesanan"):
-            assert lama not in kalimat, lama
+        for lama in ("voucher", "3×24", "uang kembali penuh", "memilih tetap menunggu", "halaman pesanan",
+                     "otomatis memotong", "otomatis dipotong", "pola kesalahan", "pola salah"):
+            assert lama not in kalimat.lower(), lama
     assert not hasattr(funnel_pages, "COPY_PIL_VOUCHER")
 
 

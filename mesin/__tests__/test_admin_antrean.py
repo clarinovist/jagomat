@@ -11,7 +11,7 @@ import admin_queries as Q
 import admin_store
 import admin_transfer_menunggu as TM
 import pesanan_transfer as tf
-from transfer_kit import SESUDAH_UPLOAD, siapkan_db_transfer, tagihan, unggah
+from transfer_kit import SESUDAH_UPLOAD, akun_ke, siapkan_db_transfer, tagihan, unggah
 
 SEKARANG = 1_760_000_000.0  # 2025-10-09; sintetis
 HARI = 86400
@@ -220,8 +220,8 @@ def test_transfer_nyata_dari_ledger_terurut_terlama_dulu(tmp_path, tanpa_operasi
     with tf.buka(path, tulis_data=True) as kon:
         baru, tag_baru = tagihan(kon, 1)
         unggah(kon, baru, 1, sekarang="2026-11-18T12:00:00")
-        lama, tag_lama = tagihan(kon, 2)
-        unggah(kon, lama, 2, sekarang="2026-11-18T11:00:00")
+        lama, tag_lama = tagihan(kon, 2, akun=akun_ke(2))
+        unggah(kon, lama, 2, akun=akun_ke(2), sekarang="2026-11-18T11:00:00")
     hasil = A.kumpulkan(_konteks([]), path, sekarang=_epoch("2026-11-18T13:00:00"))
     assert [i.jalur.rsplit("=", 1)[1] for i in hasil.item] == [lama["order_id"], baru["order_id"]]
     assert "Rp49.%03d" % (tag_lama["nominal_transfer"] - 49000) in hasil.item[0].deskripsi

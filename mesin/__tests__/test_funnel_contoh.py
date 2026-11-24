@@ -51,32 +51,38 @@ def test_sakelar_aktif_mengembalikan_contoh(server, monkeypatch):
     assert kode == 200 and "Penguasaan per materi" in isi
 
 
-def test_label_data_sintetis_dan_bagian_berurutan():
+def test_contoh_v1_valid_dan_sesuai_laporan_nyata():
+    import peta_laporan_snapshot
+    import peta_laporan_store
+
     isi = _halaman()
     assert "data sintetis, bukan hasil anak sungguhan" in isi
-    urutan = [funnel_contoh.COPY_CONTOH_JUDUL, "Laporan Aisyah · Kelas 4", 'id="h-ringkasan"', 'id="h-materi"',
-              'id="h-pola"', 'id="h-langkah"']
-    posisi = [isi.index(t) for t in urutan]
-    assert posisi == sorted(posisi)
+    assert funnel_contoh.COPY_CONTOH_JUDUL in isi
+    assert "Contoh untuk Aisyah · Kelas 4 · 15 soal" in isi
+    peta_laporan_snapshot.periksa_isi(funnel_contoh.CONTOH_PETA_V1["isi"])
+    assert peta_laporan_store.periksa_catatan(funnel_contoh.CONTOH_PETA_V1["catatan"]) is None
+    for wajib in ("Ditinjau Guru Jagomat", "Penguasaan per materi", "Yang paling perlu dilatih dulu",
+                  "Catatan dari Guru", "Rp200.000 per bulan", "Rp49.000"):
+        assert wajib in isi, wajib
+    for lama in ("Pola kesalahan", "peringkat", "persentil", "Lencana", "/contoh-peta-kemampuan/lembar",
+                 "otomatis dipotong", "otomatis memotong"):
+        assert lama not in isi, lama
 
 
-def test_bar_materi_lebar_persen_dari_data():
-    import peta_contoh_data
-    from cek_gratis_skor import hitung_skor
-
+def test_bar_meter_dari_data_contoh():
     isi = _halaman()
-    for materi in peta_contoh_data.DATA_CONTOH.materi:
-        assert f'style="width:{hitung_skor(materi.benar, materi.soal)}%"' in isi
+    for materi in funnel_contoh.CONTOH_PETA_V1["isi"]["per_materi"]:
+        assert f'min="0" max="{materi["total"]}" value="{materi["benar"]}"' in isi
 
 
-def test_satu_cta_utama_dan_skrip_hanya_polos():
+def test_satu_cta_utama_dan_tanpa_skrip_tambahan():
     isi = _halaman()
     assert isi.count('href="/daftar?jalur=cek"') == 1
     assert "Cek anak saya, gratis" in isi
-    # Skrip di berkas renderer tidak ditulis langsung; semua skrip di respons polos (tanpa atribut).
+    # Skrip di berkas renderer tidak ditulis langsung; jumlah skrip identik dengan /paket-coba (Zero-JS tambahan).
     assert "<script" not in Path(funnel_contoh.__file__).read_text(encoding="utf-8")
     assert len(re.findall(r"<script\b", isi)) == len(re.findall(r"<script>", isi))
-    assert len(re.findall(r"<script>", isi)) == len(re.findall(r"<script>", funnel_pages.halaman_paket_coba().decode())) + 1
+    assert len(re.findall(r"<script>", isi)) == len(re.findall(r"<script>", funnel_pages.halaman_paket_coba().decode()))
 
 
 def test_copy_tanpa_kata_terlarang():

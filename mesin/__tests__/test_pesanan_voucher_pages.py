@@ -17,9 +17,10 @@ def test_judul_dan_baris_deposit_memakai_nominal_dari_rupiah_paket():
     assert "Deposit " + rupiah(pesanan_dasar.RUPIAH_PAKET) in isi and "Deposit Rp49.000" in isi
 
 
-def test_baris_otomatis_memotong_dan_berlaku_hingga_dalam_wib():
+def test_baris_potongan_dan_berlaku_hingga_dalam_wib():
     isi = hv.kartu_voucher(DASAR)
-    assert "Otomatis memotong tagihan kelas bersama Guru bila Anda daftar" in isi
+    assert "Memotong tagihan bulan pertama kelas bersama Guru bila Anda mendaftar." in isi
+    assert "otomatis" not in isi.lower()
     assert "Berlaku hingga " + waktu_wib(DASAR.berlaku_hingga) in isi
 
 
@@ -44,7 +45,8 @@ def test_status_deposit_aktif_terpakai_kedaluwarsa_ditahan_batal_tampil_di_kartu
 def test_kartu_menampilkan_janji_terbit_dan_kalimat_terlambat_bila_terlambat():
     isi = hv.kartu_voucher(DASAR)
     assert hv.COPY_JANJI + waktu_wib(DASAR.janji_terbit) in isi
-    assert "Laporan belum terbit dan sudah lewat janji. Mohon maaf, tim sedang menyiapkannya." in isi
+    assert "Laporan belum terbit dan sudah lewat janji. Mohon maaf, tim sedang menyiapkannya;" in isi
+    assert "WhatsApp" in isi
 
 
 def test_laporan_terbit_tanpa_penjelasan_terlambat():

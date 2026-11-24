@@ -20,14 +20,14 @@ JALUR_MULAI = "#mulai"
 
 COPY_H1 = ("Sudah les matematika, tapi nilainya ", "masih begitu-begitu saja?")
 COPY_CTA_LANDING = "Mulai tes gratis"
-COPY_GELEMBUNG = "Halo! Aku bantu cari salahnya di langkah mana."
+COPY_GELEMBUNG = "Halo! Aku bantu lihat di materi mana salahnya mengumpul."
 COPY_FAKTA = ("Kelas 1–6 SD", "Soal sesuai kelas", "Laporan lengkap dibaca Guru")
 COPY_ARIA_PANGGUNG = "Contoh hasil, data sintetis"
 
 # Kartu contoh di hero: data sintetis, label contoh selalu tampil.
 COPY_CONTOH_NAMA = "Aisyah · kelas 4"
 COPY_CONTOH_RINGKAS = "Hitung dasar kuat. Soal cerita perlu diperkuat."
-COPY_CONTOH_POSISI = ("Lebih tinggi dari ", "64%", " anak kelas 4 yang ikut Cek Jagomat")
+COPY_CONTOH_POSISI = ("Prioritas latihan dulu: ", "Soal cerita", " lalu Perkalian")
 COPY_CONTOH_MATERI = (
     ("tambah", "teal", "Tambah-kurang", 83, "kuat"),
     ("kali", "koral", "Perkalian", 55, "perlu diperkuat"),
@@ -75,7 +75,7 @@ COPY_SOLUSI_ISI = (
 
 COPY_DEMO_ALIS = "Coba sebentar"
 COPY_DEMO_JUDUL = "Tebak: di langkah mana salahnya?"
-COPY_DEMO_SUB = "Begini cara Guru Jagomat membaca jawaban anak. Contoh sintetis."
+COPY_DEMO_SUB = "Contoh cara Guru Jagomat melihat kesalahan hitung anak saat meninjau atau membimbing. Contoh sintetis."
 COPY_DEMO_SOAL = "47 × 6 = …"
 COPY_DEMO_JAWABAN = ("Jawaban anak ", "242", ". Seharusnya ", "282", ".")
 # (teks langkah, apakah di sini salahnya)
@@ -92,8 +92,8 @@ COPY_DEMO_TEPAT = (
 )
 COPY_DEMO_LIHAT = "Lihat jawabannya"
 COPY_DEMO_BAWAH = (
-    "Di Peta Kemampuan, setiap materi yang perlu diperkuat dibahas seperti ini, "
-    "lengkap dengan latihan 10 menit."
+    "Di Peta Kemampuan, Bunda melihat penguasaan per materi, urutan materi "
+    "yang paling perlu dilatih dulu, dan catatan dari Guru."
 )
 COPY_TAUTAN_MULAI = "Mulai tes gratis ↑"
 
@@ -212,8 +212,8 @@ def _kartu_materi() -> str:
 def _kartu_lencana() -> str:
     return (
         '<div class="cek-kt-st cek-kt-lencana-st" tabindex="0">'
-        f'<div class="cek-medali-st">{_ikon("tambah", 34)}</div>'
-        "<b>Jago Tambah-Kurang</b><small>Lencana di laporan</small></div>"
+        f'<div class="cek-medali-st">{_ikon("centang", 34)}</div>'
+        "<b>Ditinjau Guru Jagomat</b><small>Catatan khusus untuk Bunda</small></div>"
     )
 
 

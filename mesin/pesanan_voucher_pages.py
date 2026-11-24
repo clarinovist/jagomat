@@ -1,7 +1,7 @@
 """Kartu "Deposit dan laporan" di halaman status pesanan pembeli: deposit Rp49.000, masa berlaku, janji terbit laporan.
 
 Hanya HTML native (tanpa JS) dan TANPA tombol atau form apa pun: tidak ada pilihan pembeli dan tidak ada uang kembali
-otomatis (keputusan Pemilik 24 Nov 2026); Rp49.000 menjadi deposit yang otomatis memotong tagihan kelas bersama Guru.
+otomatis (keputusan Pemilik 24 Nov 2026); Rp49.000 menjadi deposit yang memotong tagihan kelas bersama Guru.
 Renderer murni: menerima `purna.KeadaanPurna` yang sudah dibaca pemanggil; tidak membuka DB dan tidak membuat token.
 Isi kartu hanya nominal deposit (dari `pesanan_dasar.RUPIAH_PAKET`), status turunan, dan waktu (WIB lewat
 `pesanan_transfer_pages.waktu_wib`). Kode voucher internal TIDAK ditampilkan ke pembeli (tetap ada di domain dan
@@ -18,7 +18,7 @@ from pesanan_transfer_pages import rupiah, waktu_wib
 ID_KARTU = "kartu-voucher"
 COPY_JUDUL = "Deposit dan laporan"
 COPY_DEPOSIT = "Deposit "
-COPY_OTOMATIS = "Otomatis memotong tagihan kelas bersama Guru bila Anda daftar"
+COPY_POTONGAN = "Memotong tagihan bulan pertama kelas bersama Guru bila Anda mendaftar."
 COPY_BERLAKU = "Berlaku hingga "
 COPY_STATUS_VOUCHER = {
     purna.VOUCHER_BELUM_LUNAS: "Deposit aktif setelah pembayaran diterima.",
@@ -30,7 +30,10 @@ COPY_STATUS_VOUCHER = {
 }
 COPY_TERBIT = "Laporan sudah terbit."
 COPY_JANJI = "Laporan lengkap dijanjikan terbit "
-COPY_TERLAMBAT = "Laporan belum terbit dan sudah lewat janji. Mohon maaf, tim sedang menyiapkannya."
+COPY_TERLAMBAT = (
+    "Laporan belum terbit dan sudah lewat janji. Mohon maaf, tim sedang menyiapkannya; "
+    "silakan hubungi tim lewat WhatsApp bila perlu bantuan."
+)
 
 
 def _baris(teks: str) -> str:
@@ -52,7 +55,7 @@ def kartu_voucher(k) -> str:
     isi = (
         f"<h2>{_e(COPY_JUDUL)}</h2>"
         f'<p class="funnel-catatan-st"><b>{_e(COPY_DEPOSIT + rupiah(pesanan_dasar.RUPIAH_PAKET))}</b></p>'
-        + _baris(COPY_OTOMATIS)
+        + _baris(COPY_POTONGAN)
         + _baris(COPY_BERLAKU + waktu_wib(k.berlaku_hingga))
         + _baris(COPY_STATUS_VOUCHER[k.voucher])
         + _blok_laporan(k)

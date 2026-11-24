@@ -28,7 +28,7 @@ from purna_http_kit import bayar_purna, potret_efek, transfer_purna  # noqa: F40
 from purna_http_kit import jadikan_ditahan as jadikan_ditahan_kit
 
 PILIH = M + "/pilih"          # rute lama (pilihan terlambat) yang sudah dihapus
-JAM_LEWAT_BATAS = 24 * 5 + 1       # janji 48 jam + toleransi 72 jam + 1 jam
+JAM_LEWAT_BATAS = 48 + 1           # janji 48 jam + 1 jam
 KATA_TERLARANG = ("kunci", "malrule", "diagnos", "kode_final", "pembahasan", "jawaban benar", "tel:", "wa.me")
 KARTU = re.compile(r'<div class="kartu-st" id="kartu-voucher">(.*?)</div>', re.S)
 
@@ -131,7 +131,8 @@ def test_kartu_tampil_untuk_order_lunas_dengan_deposit_tenggat_dan_janji_tanpa_t
     tampak = teks_tampak(isi)
     assert "Deposit dan laporan" in tampak
     assert "Deposit " + rupiah(pesanan_dasar.RUPIAH_PAKET) in tampak
-    assert "Otomatis memotong tagihan kelas bersama Guru bila Anda daftar" in tampak
+    assert "Memotong tagihan bulan pertama kelas bersama Guru bila Anda mendaftar." in tampak
+    assert "otomatis" not in tampak.lower()
     assert "Berlaku hingga " + waktu_wib(k.berlaku_hingga) in tampak
     assert "Laporan lengkap dijanjikan terbit " + waktu_wib(k.janji_terbit) in tampak
     assert hv.COPY_STATUS_VOUCHER[purna.VOUCHER_AKTIF] in tampak
@@ -196,13 +197,16 @@ def test_kartu_terlambat_tanpa_tombol_dengan_kalimat_maaf_lalu_terbit_menurut_ke
     siap = lunas_murid
     terlambat(siap, jam)
     isi = kartu(halaman(siap))
-    assert "Laporan belum terbit dan sudah lewat janji. Mohon maaf, tim sedang menyiapkannya." in teks_tampak(isi)
+    assert "Laporan belum terbit dan sudah lewat janji. Mohon maaf, tim sedang menyiapkannya;" in teks_tampak(isi)
+    assert "WhatsApp" in teks_tampak(isi)
     assert "<form" not in isi and "<button" not in isi and PILIH not in halaman(siap)
     with ledger() as kon:
         purna.catat_terbit(kon, siap.order_id, "admin_sintetis", jam())
-    isi = kartu(halaman(siap))
+    hal_terbit = halaman(siap)
+    isi = kartu(hal_terbit)
     assert "Laporan sudah terbit" in teks_tampak(isi) and "<form" not in isi
     assert "sudah lewat janji" not in teks_tampak(isi)
+    assert "Akses laporan lengkap menyusul" not in teks_tampak(hal_terbit)
 
 
 def test_kartu_tidak_menyebut_uang_kembali_pilihan_atau_voucher(lunas_murid, jam):

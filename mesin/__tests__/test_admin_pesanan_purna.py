@@ -34,7 +34,7 @@ from purna_http_kit import (  # noqa: E402,F401
 
 AKUN_GURU = ("guru", SANDI_GURU)
 AKUN_MURID = ("feby", SANDI_MURID)
-JAM_LEWAT_BATAS = 24 * 5 + 1       # janji 48 jam + toleransi 72 jam + 1 jam
+JAM_LEWAT_BATAS = 48 + 1           # janji 48 jam + 1 jam
 JAM_LEWAT_VOUCHER = 24 * 90 + 1    # masa berlaku voucher 90 hari + 1 jam
 BARIS = re.compile(r"<tr><td>.*?</tr>", re.S)
 SEL = re.compile(r"<td>(.*?)</td>", re.S)

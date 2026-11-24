@@ -68,7 +68,7 @@ COPY_KUNCI_JUDUL = "Ada di laporan lengkap"
 # DRAF: teks final menunggu persetujuan Pemilik
 COPY_KUNCI_BUTIR = (
     "Penguasaan per materi",
-    "Analisis kesalahan",
+    "Catatan dari guru",
     "Urutan belajar prioritas",
 )
 # DRAF: teks final menunggu persetujuan Pemilik
