@@ -5,7 +5,10 @@ Mini Class dijadwalkan sebagai kelompok (satu lokasi/guru, 8 pertemuan 2x seming
 admin-control.db. Nominal tidak disentuh di sini; jadwal hanya membaca order/akses kelas.
 
 Kuota dan kecocokan paket dijaga dua lapis: store (pesan jelas) dan trigger skema (fail-closed). Penempatan
-hanya untuk order yang statusnya `aktif`; satu penempatan per order dan per anak (lepas dulu sebelum pindah).
+hanya untuk order yang statusnya `aktif`; satu penempatan per order dan per anak. Perpanjangan bulanan: penempatan
+LAMA anak yang sama dipensiunkan (baris penempatan dihapus, sesi Private tetap sebagai riwayat) bila akses order
+lamanya sudah berakhir pada waktu penempatan, atau menyambung ke akses order baru dan semua pertemuan lamanya sudah
+lewat/dibatalkan; selain itu lepas dulu.
 Pertemuan tidak boleh jatuh setelah akses paket berakhir (`_batas_akses_*`): delapan pertemuan harus selesai
 dalam masa akses satu bulan.
 """
@@ -77,6 +80,48 @@ def _pertemuan_mendatang(kon, kelompok_id, kini) -> Optional[str]:
 def _pastikan_dalam_akses(waktu_akhir: Optional[str], batas: Optional[str], pesan: str = PESAN_LEWAT_AKSES) -> None:
     if waktu_akhir is not None and batas is not None and waktu_akhir > batas:
         raise jd.JadwalTidakSah(pesan)
+
+
+def _sesi_lama_tersisa(kon, order_lama, kini: str) -> bool:
+    """Masih ada pertemuan aktif (tidak dibatalkan) yang belum mulai pada penempatan lama (sesi order atau kelompok)."""
+    return kon.execute(
+        "SELECT 1 FROM jadwal_pertemuan s WHERE s.dibatalkan=0 AND s.mulai>=? AND (s.order_id=? OR "
+        "s.kelompok_id=(SELECT kelompok_id FROM jadwal_penempatan WHERE order_id=?)) LIMIT 1",
+        (kini, order_lama, order_lama)).fetchone() is not None
+
+
+def _akses_lama_berakhir(kon, order_lama, mulai_baru: Optional[str], kini: str) -> bool:
+    """True bila akses order lama sudah berakhir pada `kini`, atau menyambung ke `mulai_baru` TANPA pertemuan tersisa.
+
+    Perpanjangan dini (akses lama belum habis) hanya boleh bila semua pertemuan lama sudah lewat atau dibatalkan;
+    kalau tidak, penempatan lama tetap (konflik) supaya anak tidak hilang dari jadwal yang masih berjalan.
+    """
+    akhir = _batas_akses_order(kon, order_lama)
+    if akhir is None:
+        return False
+    if akhir <= kini:
+        return True
+    return mulai_baru is not None and akhir <= mulai_baru and not _sesi_lama_tersisa(kon, order_lama, kini)
+
+
+def _pensiunkan_penempatan_lama(kon, order_id, kini: str) -> None:
+    """Hapus penempatan LAIN anak yang sama bila semuanya sudah berakhir aksesnya; kalau tidak, tidak menghapus apa pun.
+
+    Hanya baris `jadwal_penempatan` yang dihapus: sesi Private lama tetap sebagai riwayat dan sesi kelompok milik
+    kelompok. Penempatan lama yang masih berjalan dibiarkan, sehingga trigger `jadwal_penempatan_anak` menolak
+    penempatan baru (JadwalKonflik). Dipanggil di dalam transaksi `tempatkan`: gagal sesudahnya = rollback bersama.
+    """
+    lama = [b["order_id"] for b in kon.execute(
+        "SELECT p.order_id FROM jadwal_penempatan p JOIN kelas_order o ON o.id=p.order_id "
+        "WHERE p.order_id<>? AND o.siswa_id=(SELECT siswa_id FROM kelas_order WHERE id=?)",
+        (order_id, order_id))]
+    if not lama:
+        return
+    mulai_baru = kon.execute("SELECT MIN(mulai) FROM kelas_akses WHERE order_id=?", (order_id,)).fetchone()[0]
+    if not all(_akses_lama_berakhir(kon, ada, mulai_baru, kini) for ada in lama):
+        return
+    for ada in lama:
+        kon.execute("DELETE FROM jadwal_penempatan WHERE order_id=?", (ada,))
 
 
 def _tulis_sesi(kon, *, kelompok_id=None, order_id=None, mulai, menit, aktor, kini):
@@ -205,6 +250,7 @@ def tempatkan(kon, admin_id, order_id, *, kelompok_id=None, guru_id=None, tangga
             if _pertemuan_mendatang(kon, kid, kini) is None:
                 raise jd.JadwalKonflik("kelompok sudah selesai")
             _pastikan_dalam_akses(_pertemuan_aktif_terakhir(kon, kid), _batas_akses_order(kon, order_id))
+            _pensiunkan_penempatan_lama(kon, order_id, kini)
             if _isi_kelompok(kon, kid) >= kelompok["kuota"]:
                 raise jd.JadwalPenuh()
             try:
@@ -221,7 +267,10 @@ def tempatkan(kon, admin_id, order_id, *, kelompok_id=None, guru_id=None, tangga
             raise jd.JadwalTidakSah("penempatan Private butuh guru, tanggal, dan jam")
         guru = jd.periksa_guru_id(guru_id)
         mulai = jd.pertemuan_pertama(tanggal, jam, sekarang)
+        if _punya_sesi(kon, order_id):
+            raise jd.JadwalKonflik("pertemuan order ini sudah pernah dijadwalkan")
         _pastikan_dalam_akses(jd.delapan_pertemuan(mulai)[-1], _batas_akses_order(kon, order_id))
+        _pensiunkan_penempatan_lama(kon, order_id, kini)
         try:
             kon.execute(
                 "INSERT INTO jadwal_penempatan(order_id,kelompok_id,guru_id,lokasi,dibuat,diubah,"
@@ -232,6 +281,15 @@ def tempatkan(kon, admin_id, order_id, *, kelompok_id=None, guru_id=None, tangga
         _tulis_sesi(kon, order_id=order_id, mulai=mulai,
                     menit=katalog.ambil(schema_jadwal.KODE_PAKET_PRIVATE).menit, aktor=aktor, kini=kini)
         return {"jenis": "privat", "kelompok_id": None, "guru_id": guru, "sesi": []}
+
+
+def _punya_sesi(kon, order_id) -> bool:
+    return kon.execute("SELECT 1 FROM jadwal_pertemuan WHERE order_id=? LIMIT 1", (order_id,)).fetchone() is not None
+
+
+def _sesi_sudah_mulai(kon, order_id, kini: str) -> bool:
+    return kon.execute("SELECT 1 FROM jadwal_pertemuan WHERE order_id=? AND mulai<? AND dibatalkan=0 LIMIT 1",
+                       (order_id, kini)).fetchone() is not None
 
 
 def _peta_integritas(galat):
@@ -248,16 +306,23 @@ def _peta_integritas(galat):
 
 
 def lepas_penempatan(kon, admin_id, order_id, *, sekarang) -> None:
-    """Lepas penempatan; sesi Private ikut dihapus, sesi kelompok tetap milik kelompok."""
+    """Lepas penempatan. Mini boleh kapan saja (sesi tetap milik kelompok).
+
+    Private hanya sebelum ada pertemuan yang mulai (semua `mulai >= sekarang`); sesinya ikut dihapus. Sesudah itu
+    sesi adalah riwayat, jadi penempatan tidak dilepas (JadwalKonflik, tanpa efek).
+    """
     d.periksa_koneksi(kon)
     d.periksa_pelaku(admin_id)
     order_id = dasar.periksa_order_id(order_id)
+    kini = dasar.ke_baku(sekarang)
     with d.tulis(kon):
         ada = kon.execute("SELECT kelompok_id FROM jadwal_penempatan WHERE order_id=?",
                           (order_id,)).fetchone()
         if ada is None:
             raise jd.JadwalTidakDitemukan()
         if ada["kelompok_id"] is None:
+            if _sesi_sudah_mulai(kon, order_id, kini):
+                raise jd.JadwalKonflik("sebagian pertemuan sudah berlangsung; penempatan tidak dilepas")
             kon.execute("DELETE FROM jadwal_pertemuan WHERE order_id=?", (order_id,))
         kon.execute("DELETE FROM jadwal_penempatan WHERE order_id=?", (order_id,))
 
@@ -281,6 +346,51 @@ def ringkas_order(kon, order_id) -> Optional[dict]:
             WHERE kelompok_id=? OR order_id=? ORDER BY ke,id""",
         (baris["kelompok_id"], order_id))]
     return hasil
+
+
+# --- bacaan untuk orang tua -----------------------------------------------------------------
+
+def jadwal_untuk_murid(kon, order_id) -> Optional[dict]:
+    """Jadwal penempatan satu order untuk orang tua: `{"lokasi", "sesi": [{ke,mulai,menit,dibatalkan}]}` atau None.
+
+    Sengaja TANPA guru, id kelompok/order, atau nama/kontak apa pun. Private: lokasi "Online" dan sesi order;
+    Mini: lokasi dan sesi kelompok. Order tanpa penempatan (termasuk yang sudah dipensiunkan) -> None.
+    """
+    d.periksa_koneksi(kon)
+    order_id = dasar.periksa_order_id(order_id)
+    baris = kon.execute(
+        """SELECT p.kelompok_id,COALESCE(p.lokasi,k.lokasi) AS lokasi
+             FROM jadwal_penempatan p LEFT JOIN jadwal_kelompok k ON k.id=p.kelompok_id
+            WHERE p.order_id=?""", (order_id,)).fetchone()
+    if baris is None:
+        return None
+    sesi = kon.execute(
+        """SELECT ke,mulai,menit,dibatalkan FROM jadwal_pertemuan
+            WHERE kelompok_id=? OR order_id=? ORDER BY ke,id""", (baris["kelompok_id"], order_id))
+    return {"lokasi": baris["lokasi"],
+            "sesi": [{"ke": s["ke"], "mulai": s["mulai"], "menit": s["menit"], "dibatalkan": bool(s["dibatalkan"])}
+                     for s in sesi]}
+
+
+def jadwal_terbaru_murid(kon, akun_id, siswa_id, sekarang) -> Optional[dict]:
+    """Jadwal order AKTIF terbaru milik (akun, anak) ini yang punya penempatan, atau None.
+
+    Order hanya dari akun dan anak yang disuntik pemanggil (dari sesi); order akun/anak lain tidak pernah terbaca.
+    Order yang belum aktif (menunggu, ditolak, kedaluwarsa) dilewati, jadi perpanjangan yang belum dibayar tidak
+    menyembunyikan jadwal yang sedang berjalan.
+    """
+    d.periksa_koneksi(kon)
+    d.periksa_akun_id(akun_id)
+    dasar.periksa_siswa_id(siswa_id)
+    kini = dasar.ke_baku(sekarang)
+    for order in kon.execute("SELECT %s FROM kelas_order WHERE akun_id=? AND siswa_id=? "
+                             "ORDER BY dibuat DESC,id DESC" % ks.KOLOM_ORDER, (akun_id, siswa_id)).fetchall():
+        if ks.status_dari(order, ks.fakta_order(kon, order["id"]), kini) != dasar.STATUS_AKTIF:
+            continue
+        jadwal = jadwal_untuk_murid(kon, order["id"])
+        if jadwal is not None:
+            return jadwal
+    return None
 
 
 # --- pertemuan ------------------------------------------------------------------------------
