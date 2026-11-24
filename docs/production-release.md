@@ -7,10 +7,39 @@ Kontrak [mode](#kontrak-mode-dan-bootstrap) dan [operasi](#deploy-rutin-vs-migra
 tetap berlaku. Izin operasi mengikuti workspace/CLAUDE, bukan larangan push/SSH lama.
 
 Deployer di host: `/usr/local/bin/osn-deploy` **identik byte-per-byte dengan `scripts/deploy.py`**
-(sha256 `8bb44ec2bb968e53…`, diverifikasi 21 Nov 2026), jadi sumbernya terlacak di Git; hanya satu
+(sha256 `3dc1a804b2e43026…`, diperbarui atomik 24 Nov 2026 dari `8bb44ec2bb968e53…`), jadi sumbernya terlacak di Git; hanya satu
 jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang sama dengan
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
+
+## Deploy Peta Kemampuan ditulis Guru dan migrasi `purna_*` (deposit) — 24 November 2026
+
+Controlled `deploy-v2` memasang **1e61c8f** (`1e61c8f4e11b14a1b457153f0e945e4644164029`, digest
+`sha256:3eae7387…1935`), healthy, menggantikan **87d6ff4**, 19.32 WIB. Isi: laporan Peta Kemampuan ditulis dan
+diterbitkan Guru (`/anak/<id>/peta`, tabel aditif `peta_laporan` + 4 trigger di `latihan.db`, penghapusan ikut
+`family_deletion`), blok laporan orang tua (`peta_laporan_ortu_pages`), deposit Rp49.000 tanpa tombol minta uang
+kembali (skema `purna_*` di `admin-control.db`), SLA 48 jam langsung tanpa toleransi (`JAM_TOLERANSI_TERLAMBAT=0`),
+penyaring catatan Guru (`peta_laporan_store`), contoh Peta v1 di `/contoh-peta-kemampuan`, pembaruan
+`/kebijakan-privasi`, dan perbaikan dua tes prakerja (`test_admin_antrean`, `test_pesanan_http_hasil`). Tanpa flag
+baru; `/opt/osn/visual.conf` tidak diubah.
+
+- **Kontrak bergeser** `464074bf…` → **`7206a9ff…`**. Recovery baru **6613e5d** (`6613e5d72404b421b84b41f1387e9aa6d39df378`,
+  branch `recovery-peta-purna` = `87d6ff4` + berkas kontrak `peta_laporan`/`purna_*` + `family_deletion` + commit
+  kontrak), digest `sha256:8dd5ad69…c400`; pair ok (`provider_calls` 0). Anchor koleksi `test_pytest_shard.py` 27.849
+  nodeid (Python 3.9). Push CI [45388961759](https://github.com/clarinovist/jagomat/actions/runs/45388961759) dan
+  dispatch [45389039468](https://github.com/clarinovist/jagomat/actions/runs/45389039468) hijau (`pasang` dilewati).
+- Deployer source gate dipasang atomik `8bb44ec2…` → **`3dc1a804…`** (cadangan lama `/opt/osn/osn-deploy.bak-20261124T190851`).
+- Kit `deploy-peta-purna-20261124` (izin Pemilik): approval `87d6ff4` diarsipkan ke `approval-consumed-87d6ff4.json`,
+  `PERSIAPAN_OK`, hold 19.28.29–19.32.15 WIB (±3 mnt 46 dtk, Caddy 503), backup lima file + `riset-separate.db`
+  (terverifikasi hash lokal di `mesin/cadangan/deploy-peta-purna-20261124-2/` dan induk
+  `/opt/osn/cadangan/deploy-peta-purna-20261124-2/`), rehearsal C–B–C + `rehearsal_bundle(target_purna=True)`,
+  migrasi live `purna_migrasi` pada `admin-control.db` (2 tabel, 0 baris, `user_version` 9 tetap), startup membuat
+  `peta_laporan` + 4 trigger di `latihan.db`, `deploy-v2` exit 0 (approval `9fd8f3e71ea1aab02f6f74116844015c`
+  terkonsumsi), `reopen` `LIVE_ADMIN_HEALTHY`, postcheck hijau (0 `Traceback`/`OperationalError`/`IntegrityError`,
+  WAL, `history_hash_preserved`), cleanup 4 direktori.
+- Smoke publik HTTPS (`https://jagomat.id`): `/` 200, `/akun` 401, `/murid/` 303 (`/masuk`), `/paket-coba` 200 (ada
+  `Rp49.000`, tanpa `otomatis memotong`), `/contoh-peta-kemampuan` 200 (ada `<meter`, tanpa `Pola kesalahan`),
+  `/kebijakan-privasi` 200 (ada `Peta Kemampuan`).
 
 ## Deploy UI anak, halaman Ayah/Bunda, dan langganan gaya landing page — 24 November 2026
 
@@ -465,11 +494,10 @@ transfer langganan Latihan Harian (subfolder `harian/` dari `--folder`, tabel `h
 dicari lewat `--database-belajar`, lalu env `OSN_BERKAS_DB`, lalu `latihan.db` di samping admin-control.db, dan dilewati
 bila tidak ada. Tidak perlu cron baru.
 
-## Kandidat purna (voucher/deposit, janji terbit) — urutan operator (belum dirilis, bukan snapshot)
+## Kandidat purna (voucher/deposit, janji terbit) — sudah dimigrasikan & dirilis di `1e61c8f` (24 Nov 2026)
 
-Bagian ini bukan snapshot rilis. Skema `purna_*` (`schema_purna.py`: voucher/deposit dipakai, laporan terbit; tanpa tabel pilihan pembeli) dan
-domain/admin-nya sudah ada di source, tetapi **BELUM DIJALANKAN di produksi; butuh izin push dan deploy terpasang
-terpisah**, dan tidak ada klaim sudah dirilis. Perintah operator tidak dijalankan startup, GET, atau rilis otomatis dan selalu
+Catatan historis urutan operator (sudah dijalankan dan dirilis di **1e61c8f**; lihat snapshot terbaru di atas). Skema `purna_*` (`schema_purna.py`: voucher/deposit dipakai, laporan terbit; tanpa tabel pilihan pembeli) dan
+domain/admin-nya kini sudah terpasang dan dimigrasikan di produksi (`purna_voucher_pakai`, `purna_laporan_terbit`). Perintah operator tidak dijalankan startup, GET, atau rilis otomatis dan selalu
 mensyaratkan `--database` eksplisit; jalankan lebih dulu terhadap **salinan** terverifikasi. Store admin kandidat fail-closed:
 struktur `purna_*` yang parsial/berbeda/tanpa ledger pesanan + transfer membuat store menolak dibuka, sedangkan DB tanpa
 `purna_*` tetap sah (absen = sah), jadi image kandidat aman dipasang sebelum migrasi.
