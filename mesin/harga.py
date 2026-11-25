@@ -3,7 +3,7 @@
 Akses data tanpa tampilan. Tabel `harga_*` (schema_harga) opt-in: selama belum dipasang, nilai aktif = HARGA_AWAL
 (gagal aman, tidak melempar); skema yang ada tetapi rusak melempar ValueError (tidak menagih dari data tak jelas).
 Fungsi baca menerima koneksi dan hanya SELECT. Tidak menyentuh tabel kelas_*. Harga Latihan Harian bukan di sini.
-Dipakai `kelas_rincian` (tagihan baru) dan halaman contoh Peta; tagihan yang sudah dibuat memakai harga tersimpan.
+Irisan ini belum dipakai alur katalog atau tagihan.
 """
 from __future__ import annotations
 

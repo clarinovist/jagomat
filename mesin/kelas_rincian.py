@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-import harga
 import kelas_status as ks
 import paket_belajar_katalog as katalog
 import purna
@@ -51,13 +50,10 @@ def rincian_untuk(kon, akun_id: str, siswa_id: int, kode_paket: str, kini: str,
     """(rincian, order_id Peta yang dipotongkan atau None) untuk tagihan BARU paket ini pada `kini`.
 
     `abaikan_order`: tagihan yang sedang digantikan; deposit yang ia pegang tidak dianggap dipegang lain.
-    Harga bulanan dibaca dari harga aktif admin (`harga.harga_aktif`, koneksi yang sama). Galat skema harga
-    dibiarkan naik: tagihan baru gagal tertutup, tidak memakai harga katalog diam-diam.
     """
     deposit = deposit_aktif(kon, akun_id, siswa_id, kini)
     if deposit is not None and _deposit_dipegang_lain(
             kon, akun_id, siswa_id, kode_paket, deposit, kini, abaikan_order):
         deposit = None
-    harga_paket = harga.harga_aktif(kon, kode_paket)
-    rincian = katalog.hitung_rincian(kode_paket, deposit_aktif=deposit is not None, harga_paket=harga_paket)
+    rincian = katalog.hitung_rincian(kode_paket, deposit_aktif=deposit is not None)
     return rincian, (deposit if rincian.potongan_deposit > 0 else None)
