@@ -73,7 +73,7 @@ KASUS = (
     ("M8-urutan-blok-dipindah",
      ((ORTU, " + peta_laporan_ortu_pages.blok_peta(data.peta)\n        + _blok_harian", "\n        + _blok_harian"),
       (ORTU, "+ _blok_pin(ada_pin, pin_terbuka)", "+ peta_laporan_ortu_pages.blok_peta(data.peta) + _blok_pin(ada_pin, pin_terbuka)")),
-     (H + "test_urutan_blok_setelah_hasil_cek_dan_sebelum_laporan_dan_pesanan",)),
+     (H + "test_urutan_blok_cek_pesanan_peta_laporan",)),
     ("M9-blok-tidak-dirender",
      ((ORTU, "peta_laporan_ortu_pages.blok_peta(data.peta)", '""'),),
      (H + "test_terbit_dan_lunas_menampilkan_blok_lengkap",)),

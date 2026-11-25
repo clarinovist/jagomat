@@ -33,14 +33,15 @@ SIDIK_EMAS = "b0924e77255ebfa466ed710823dcee44a30b859f35446d5697cea2ba54329f7d"
 # bergeser oleh shell guru (6221a6b, e630a8c, 3667919 22 Nov) dan area anak (bcfe8e2 22 Nov). Body <form>
 # (field, action, token, CTA, kesepakatan) dan skrip identik; dibuktikan lewat diff markup di luar <style>.
 MARKUP_EMAS = {
-    "polos": "d37778b3d40b4a26392d3772a8bb08b44382c7aec33decc78536ba23e572d307",
-    "lengkap": "e7fd1f743e86681bda361b4b6bc85fb007fd4ccd58654dd8b3c16682bb99ffbd",
-    "kesepakatan": "709768b616036408af166ba27b02b814ab2e3c6d2e0b6913b9817e83c31d3b50",
+    "polos": "32bec3d08ec2f602464872d266dde4bf395027d0f21bdff72f6daac1a13e3b8c",
+    "lengkap": "4e912f6da24ebaa1d0c60449b8ab9d8466a7da22321ef559f37e2889c8b4948d",
+    "kesepakatan": "5fbedff2c99918d086bf7ccddf4b64bfcdcf047ebe3cf932b6eeea6d0cc4f1b5",
 }
 
 
 def _sha(isi: bytes) -> str:
-    return hashlib.sha256(isi).hexdigest()
+    """Sidik markup tanpa isi blok <style>: CSS bersama berubah oleh halaman lain; yang dijaga di sini markup form."""
+    return hashlib.sha256(re.sub(rb"<style>.*?</style>", b"<style></style>", isi, flags=re.S)).hexdigest()
 
 
 # --- sakelar ---------------------------------------------------------------
