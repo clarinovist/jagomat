@@ -12,22 +12,34 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
-## Persiapan rilis jadwal perpanjangan + kartu ortu (belum dirilis) — 25 November 2026
+## Deploy perpanjangan jadwal + kartu jadwal orang tua — 25 November 2026
 
-Kode di `main` lokal `17bd0b6` (belum push/deploy; sakelar `PAKET_BELAJAR` tetap mati, `visual.conf` tidak diubah).
-Skema `jadwal_*` TIDAK berubah (tanpa migrasi, tanpa bump `user_version`); `jadwal_store.py` berubah sehingga sidik
-kontrak bergeser.
+Controlled `deploy-v2` memasang **0d5d046** (`0d5d046d57a882bc98adc3ca521c586fac493911`, digest `sha256:be6480ad…bdb9`),
+healthy, menggantikan **5c7849f**, ±08.25–08.40 WIB. Isi (kode `17bd0b6`): perpanjangan bulanan memensiunkan
+penempatan lama anak (akses berakhir, atau menyambung dan semua pertemuan lamanya sudah lewat/dibatalkan; sesi Private
+lama tetap riwayat), lepas Private hanya bila tak ada sesi aktif yang sudah mulai, dan kartu "Jadwal pertemuan"
+(lokasi + 8 pertemuan WIB, tanpa guru/id) di `/murid/paket`. **Sakelar `PAKET_BELAJAR` tetap MATI**, `visual.conf` tidak
+diubah. Skema `jadwal_*` TIDAK berubah: tanpa migrasi, tanpa bump `user_version`, deployer tidak berubah (`9f8ce27c…`).
 
-- **Kontrak bergeser** `9443dac…` → **`50a32be…`** (`50a32bee681b90a70986bf1a609fcc4b21007516f79314fe1e32d947d824a29e`).
-  Recovery baru **36eb20d** (`36eb20d9ded0e2ef460b6ce8b6d7a0cf541e97e9`, branch `recovery-jadwal-2` = `6142611` +
-  `jadwal_store.py` byte-identik dengan main `17bd0b6` + commit kontrak; impor tidak berubah dan semua modul yang
-  diimpornya identik dengan main). Sidik kontrak kandidat dan recovery dihitung dengan `PROBE_KONTRAK` lokal dan
-  identik. Anchor koleksi recovery 27.849 nodeid (tanpa tes baru). Branch `recovery-jadwal-2` wajib dipush sebelum
-  `main`.
-- Deployer (`scripts/deploy.py`) TIDAK berubah: tidak ada probe baru; `PROBE_JADWAL_SKEMA` dan pasangan
-  `jadwal_pair_checks` 8 tetap berlaku.
-- Rollback: recovery 36eb20d dan `6142611` sama-sama membuka DB ber-`jadwal_*` (skema sama); recovery lama tidak punya
+- **Kontrak bergeser** `9443dac…` → **`50a32be…`** (`jadwal_store`). Recovery baru **36eb20d**
+  (`36eb20d9ded0e2ef460b6ce8b6d7a0cf541e97e9`, branch `recovery-jadwal-2` = `6142611` + `jadwal_store.py` byte-identik
+  dengan main `17bd0b6` + commit kontrak), digest `sha256:6f03bab8…0621`; pair ok (`jadwal_pair_checks` 8, `provider_calls`
+  0). Anchor koleksi recovery 27.849 nodeid. Push CI 45503409028 dan dispatch 45514545719 hijau (job `pasang` dilewati).
+  Branch `recovery-jadwal-2` dipush sebelum `main`.
+- Kit `deploy-jadwal2-20261125` (izin Pemilik, salinan kit jadwal dengan langkah `migrate` = PEMERIKSAAN saja): approval
+  `5c7849f` diarsipkan ke `approval-consumed-5c7849f.json`, `PERSIAPAN_OK`, backup lima file + riset (hash lokal di
+  `mesin/cadangan/deploy-jadwal2-20261125/` dan induk `/opt/osn/cadangan/deploy-jadwal2-20261125/`), rehearsal C–B–C +
+  `rehearsal_bundle(target_jadwal=True)`, pemeriksaan live `jadwal_*` valid dan dibuka recovery 36eb20d,
+  `deploy-v2` exit 0, `reopen` `LIVE_ADMIN_HEALTHY`, postcheck hijau (0 Traceback/OperationalError/IntegrityError,
+  `history_hash_preserved`, `jadwal_schema_valid`, `paket_belajar_mati`), cleanup 4 direktori.
+- Smoke publik HTTPS (`https://jagomat.id`): `/` 200, `/akun` 401, `/murid/` 303, `/murid/paket` 303, `/admin/kelas`
+  404 anonim, `/cek-kemampuan` 200.
+- Rollback: recovery 36eb20d dan `6142611` sama-sama membuka DB ber-`jadwal_*`; recovery lama tidak punya
   perpanjangan/kartu orang tua, jadi jangan memperpanjang dari image lama.
+- **Sakelar `PAKET_BELAJAR` masih jangan dinyalakan sampai:** tinjauan bertanda tangan (form lepas/ubah) tidak bisa
+  diputar ulang, pendaftaran kelompok setelah pertemuan ke-1 diputuskan Pemilik, bentrok jadwal guru dicek, lokasi Mini
+  Class ditetapkan, retensi berkas bukti `kelas/` dan SOP deposit kedaluwarsa tersedia. Kartu jadwal orang tua belum
+  menampilkan guru (sengaja, demi privasi alias login).
 
 ## Deploy jadwal Paket Belajar (`jadwal_*`) — 25 November 2026
 
