@@ -244,17 +244,31 @@ def daftar_slot_admin(kon_admin, sekarang, guru_sah, path=None) -> Tuple[SlotAdm
     return dsr.dengan_baca(path, lambda kon_p: _daftar_slot(kon_admin, kon_p, kini, sah), ())
 
 
-def _status_terakhir(kon_p, oid: str) -> Optional[StatusPengajuan]:
+STATUS_BASI = "basi"  # status virtual (tidak disimpan): pengajuan 'diajukan' yang sudah tidak bisa dijalankan
+
+
+def _status_terakhir(kon_p, oid: str, kon_admin=None, kini: str = "", guru_sah=None) -> Optional[StatusPengajuan]:
     baris = kon_p.execute(
         "SELECT p.id, p.slot_id, p.status, s.mulai FROM private_pengajuan p "
         "JOIN private_slot s ON s.id=p.slot_id WHERE p.order_id=? ORDER BY p.id DESC LIMIT 1", (oid,)).fetchone()
     if baris is None:
         return None
-    return StatusPengajuan(baris["id"], baris["status"], baris["slot_id"], baris["mulai"])
+    status = baris["status"]
+    if status == dsr.STATUS_DIAJUKAN and guru_sah is not None and _pengajuan_basi(kon_admin, kon_p, oid, baris["slot_id"], kini, guru_sah):
+        status = STATUS_BASI
+    return StatusPengajuan(baris["id"], status, baris["slot_id"], baris["mulai"])
 
 
-def status_pengajuan(kon_admin, akun_id, siswa_id, sekarang, path=None) -> Optional[StatusPengajuan]:
-    """Pengajuan terakhir dari order Private aktif terbaru milik (akun, anak), atau None."""
+def _pengajuan_basi(kon_admin, kon_p, oid: str, slot_id: int, kini: str, guru_sah) -> bool:
+    slot = dsr.ambil_slot(kon_p, slot_id)
+    return dsr.alasan_basi(fakta_order(kon_admin, oid, kini), slot, kini, guru_sah, terisi_penempatan(kon_admin)) is not None
+
+
+def status_pengajuan(kon_admin, akun_id, siswa_id, sekarang, path=None, guru_sah=None) -> Optional[StatusPengajuan]:
+    """Pengajuan terakhir dari order Private aktif terbaru milik (akun, anak), atau None.
+
+    Bila `guru_sah` diberikan, pengajuan 'diajukan' yang sudah basi dikembalikan dengan status virtual 'basi'.
+    """
     akun = d.periksa_akun_id(akun_id)
     siswa = kd.periksa_siswa_id(siswa_id)
     kini = kd.ke_baku(sekarang)
@@ -262,4 +276,4 @@ def status_pengajuan(kon_admin, akun_id, siswa_id, sekarang, path=None) -> Optio
     oid = _order_privat_terbaru(kon_admin, akun, siswa, kini)
     if oid is None:
         return None
-    return dsr.dengan_baca(path, lambda kon_p: _status_terakhir(kon_p, oid), None)
+    return dsr.dengan_baca(path, lambda kon_p: _status_terakhir(kon_p, oid, kon_admin, kini, guru_sah), None)

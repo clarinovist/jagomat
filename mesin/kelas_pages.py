@@ -196,14 +196,15 @@ def _kartu_pilih_jadwal(pilihan: Sequence, token_untuk: TokenUntuk) -> str:
 
 def halaman_pilih_paket(kartu: Sequence[k.KartuPaket], tagihan: Optional[k.TagihanKelas],
                         token_untuk: TokenUntuk, galat: str = "", kabar: str = "",
-                        jadwal: Optional[dict] = None, pilihan_jadwal: Sequence = ()) -> bytes:
+                        jadwal: Optional[dict] = None, pilihan_jadwal: Sequence = (), privat: str = "") -> bytes:
     """Halaman /murid/paket: status tagihan terakhir (bila ada) + kartu paket dengan rincian khusus pembeli.
 
     `jadwal` (bacaan `jadwal_store.jadwal_untuk_murid`) menambah kartu jadwal pertemuan; None = tanpa kartu.
     `pilihan_jadwal` (`jadwal_pilih.pilihan_untuk`) menambah kartu pilih kelompok; kosong = tanpa kartu.
+    `privat` (kartu Jadwal Private dari `kelas_private_pages`) menambah kartu di bawahnya; "" = tanpa kartu.
     """
     pesan = ((_kartu(_p(galat)) if galat else "") + (_kartu(_p(kabar)) if kabar else "") + _kartu_jadwal(jadwal)
-             + _kartu_pilih_jadwal(pilihan_jadwal, token_untuk))
+             + _kartu_pilih_jadwal(pilihan_jadwal, token_untuk) + privat)
     status = _kartu_status(tagihan) if tagihan is not None else ""
     sapa = C.maskot_bicara("menunjuk", COPY_SAPA)
     judul = f'<div class="lg-pilih-judul"><h2>Pilih paket</h2>{_p(COPY_PENGANTAR)}</div>'

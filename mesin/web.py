@@ -174,6 +174,8 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/murid/langganan", "murid"),  # F5: POST buat tagihan / unggah bukti langganan; sakelar mati = jalur murid asing
     ("/murid/latihan-harian", "murid"),  # F4: POST /mulai dan /sesi/<id>/jawab; sakelar LATIHAN_HARIAN mati = identik rute tak dikenal
     ("/murid/paket", "murid"),  # Paket Belajar: POST buat tagihan / unggah bukti; sakelar PAKET_BELAJAR mati = jalur murid asing
+    ("/murid/paket/jadwal-private/ajukan", "murid"),  # Jadwal Private: POST ajukan slot (token + slot); sakelar mati = jalur murid asing
+    ("/murid/paket/jadwal-private/batal", "murid"),  # Jadwal Private: POST batal pengajuan (token); sakelar mati = jalur murid asing
     ("/lembaga", "guru"),  # `/lembaga/pindah`: pemilik les; guard asal dispatcher
     ("/sesi/", "guru"),  # siklus memegang guard asal sendiri (_baca_form)
     ("/akun", "guru"),

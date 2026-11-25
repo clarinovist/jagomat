@@ -36,6 +36,7 @@ import bukti_multipart
 import database
 import jadwal_dasar
 import jadwal_pilih
+import jadwal_private_murid_http as jpm
 import jadwal_store
 import kelas_berkas as berkas
 import kelas_dasar as dasar
@@ -43,6 +44,7 @@ import kelas_ganti
 import kelas_unggah
 import kelas_status as ks
 import kelas_pages as halaman
+import kelas_private_pages as priv
 import kelas_store as store
 import paket_belajar_gate
 import paket_belajar_katalog as katalog
@@ -81,7 +83,8 @@ COPY_BATAS_BUKTI = "Batas bukti untuk tagihan ini sudah tercapai. Hubungi tim bi
 COPY_BERKAS = {"kosong": COPY_BERKAS_KOSONG, "besar": COPY_BERKAS_BESAR, "tipe": COPY_TIPE_TIDAK_DIDUKUNG,
                "terbaca": COPY_BERKAS_TAK_TERBACA}
 _GET = frozenset({halaman.RUTE})
-_POST = frozenset({halaman.RUTE_BUAT, halaman.RUTE_BUKTI, halaman.RUTE_GANTI, halaman.RUTE_JADWAL})
+_POST = frozenset({halaman.RUTE_BUAT, halaman.RUTE_BUKTI, halaman.RUTE_GANTI, halaman.RUTE_JADWAL,
+                   priv.RUTE_AJUKAN, priv.RUTE_BATAL})
 KUNCI_FORM_JADWAL = frozenset({"token", "kelompok"})
 _GALAT_LAYANAN = (d.PesananError, sqlite3.Error, OSError, bukti_berkas.BuktiBerkasError, ValueError,
                   admin_store_core.StoreBelumSiap)
@@ -187,10 +190,12 @@ def _badan_get(penangan, principal, siswa_id: int, rekening: str):
     jadwal = _jadwal_anak(principal.id_akun, siswa_id, kini)
     if _tirai_tertutup(penangan, principal, siswa_id):
         kabar = (kabar + " " if kabar else "") + COPY_TIRAI_KABAR
-        pilihan = ()
+        pilihan, privat = (), ""
     else:
         pilihan = _pilihan_jadwal(principal.id_akun, siswa_id, kini)
-    return halaman.halaman_pilih_paket(kartu, None, token_untuk, kabar=kabar, jadwal=jadwal, pilihan_jadwal=pilihan)
+        privat = jpm.kartu_untuk(principal.id_akun, siswa_id, kini, token_untuk)
+    return halaman.halaman_pilih_paket(kartu, None, token_untuk, kabar=kabar, jadwal=jadwal,
+                                       pilihan_jadwal=pilihan, privat=privat)
 
 
 def _get_halaman(penangan, principal, siswa_id: int) -> None:
@@ -442,6 +447,6 @@ def tangani_post(penangan, jalur: str) -> bool:
         _info(penangan, "Untuk Ayah/Bunda", COPY_TIRAI_TERTUTUP, KODE_TIRAI)
         return True
     {halaman.RUTE_BUAT: _post_buat, halaman.RUTE_BUKTI: _post_bukti, halaman.RUTE_GANTI: _post_ganti,
-     halaman.RUTE_JADWAL: _post_jadwal}[jalur](
+     halaman.RUTE_JADWAL: _post_jadwal, priv.RUTE_AJUKAN: jpm.post_ajukan, priv.RUTE_BATAL: jpm.post_batal}[jalur](
         penangan, *pembeli)
     return True

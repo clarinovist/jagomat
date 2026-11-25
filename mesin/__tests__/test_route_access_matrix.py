@@ -139,6 +139,8 @@ _PROBE_POST = {
     "/murid/langganan": "/murid/langganan/buat",
     "/murid/latihan-harian": "/murid/latihan-harian/mulai",
     "/murid/paket": "/murid/paket/buat",
+    "/murid/paket/jadwal-private/ajukan": "/murid/paket/jadwal-private/ajukan",
+    "/murid/paket/jadwal-private/batal": "/murid/paket/jadwal-private/batal",
     "/lembaga": "/lembaga/pindah",
     "/sesi/": "/sesi/1",
     "/akun": "/akun",
@@ -261,6 +263,9 @@ def test_tabel_akses_punya_probe():
     # Paket Belajar 1 Bulan (sakelar PAKET_BELAJAR): exact murid, tepat setelah Latihan Harian; GET dan POST di bawahnya.
     assert get["/murid/paket"] == post["/murid/paket"] == "murid"
     assert urutan.index("/murid/paket") == urutan.index("/murid/latihan-harian") + 1
+    # Jadwal Private (orang tua): exact murid, tanpa entri GET; sakelar PAKET_BELAJAR mati = jalur murid asing.
+    for rute in ("/murid/paket/jadwal-private/ajukan", "/murid/paket/jadwal-private/batal"):
+        assert post[rute] == "murid" and rute not in get
     # `/cek-kemampuan` exact tetap publik; rute akun di bawahnya exact dan guru.
     assert get["/cek-kemampuan"] == "publik"
     assert get["/cek-kemampuan/mulai"] == get["/cek-kemampuan/hasil"] == "guru"
