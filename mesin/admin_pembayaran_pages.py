@@ -70,7 +70,7 @@ def _baris(item: S.BarisBayar) -> str:
         KELAS_BADGE.get(item.status, ""), e(COPY_STATUS.get(item.status, item.status)))
     nominal = rupiah(item.nominal) if item.nominal else "—"
     cta = COPY_PERIKSA_BUKTI if item.status == S.S_MENUNGGU else COPY_DETAIL
-    sel = (e(COPY_JENIS.get(item.jenis, item.jenis)), '<code class="admin-ref">%s</code>' % e(item.order_id),
+    sel = (e(COPY_JENIS.get(item.jenis, item.jenis)), L.referensi_pendek(item.order_id),
            e(nominal), e(L.tanggal(item.dibuat + "Z")), status,
            '<a class="admin-tautan" href="%s">%s</a>' % (e(item.jalur), e(cta)))
     return "<tr>" + "".join("<td>%s</td>" % s for s in sel) + "</tr>"

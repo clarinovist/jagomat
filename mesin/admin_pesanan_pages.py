@@ -6,6 +6,8 @@ ada di halaman Detail order (`admin_pesanan_detail_pages`), bukan di tabel: tida
 
 Tanpa I/O, tanpa JS baru, tanpa warna sendiri (kelas komponen admin yang ada). Data hanya proyeksi minimal dari
 `pesanan_admin.daftar_tersaring`: tanpa kontak, nama anak, siswa_id, cek_id, merchant, atau payload.
+Kolom Order memakai referensi pendek (`#xxxxxxxx`, id penuh di `title` dan halaman Detail) supaya satu baris tidak
+terbakar 40 karakter id; kolom Nominal memakai tagihan transfer atau `rupiah` order untuk jalur penyedia.
 Semua nilai dinamis di-escape; waktu ledger (UTC naif) ditampilkan dalam WIB.
 """
 from __future__ import annotations
@@ -172,8 +174,10 @@ def _waktu(nilai: str) -> str:
     return e(L.tanggal(nilai + "Z"))
 
 
-def _sel_nominal(ringkas: Mapping) -> str:
-    return e(rupiah(ringkas["nominal"])) if ringkas.get("nominal") else "—"
+def _sel_nominal(item: Mapping, ringkas: Mapping) -> str:
+    """Nominal tagihan transfer bila ada; jalur penyedia (QRIS) memakai rupiah order; tanpa keduanya = "—"."""
+    nominal = ringkas.get("nominal") or item.get("rupiah")
+    return e(rupiah(nominal)) if nominal else "—"
 
 
 def _sel_bukti(ringkas: Mapping) -> str:
@@ -181,7 +185,7 @@ def _sel_bukti(ringkas: Mapping) -> str:
 
 
 def _sel_order(item: Mapping) -> str:
-    return "%s<br><span class=\"admin-meta\">%s</span>" % (L.referensi(item["order_id"]), _waktu(item["dibuat"]))
+    return "%s<br><span class=\"admin-meta\">%s</span>" % (L.referensi_pendek(item["order_id"]), _waktu(item["dibuat"]))
 
 
 def _sel_status(item: Mapping) -> str:
@@ -211,7 +215,7 @@ def _baris(item: Mapping, transfer: Mapping, laporan: Optional[Mapping] = None) 
     ringkas = transfer.get(item["order_id"], {})
     teks = teks_laporan((laporan or {}).get(item["order_id"]))
     return ("<tr>" + "".join("<td>%s</td>" % sel for sel in (
-        _sel_order(item), e(item["akun"]), _sel_nominal(ringkas), _sel_bukti(ringkas),
+        _sel_order(item), e(item["akun"]), _sel_nominal(item, ringkas), _sel_bukti(ringkas),
         _sel_status(item), e(teks), _sel_aksi(item))) + "</tr>")
 
 
@@ -225,8 +229,8 @@ def _pager(halaman: int, total: int, saring: Optional[str]) -> str:
     for nomor, label in ((halaman - 1, "Sebelumnya"), (halaman + 1, "Berikutnya")):
         if 1 <= nomor <= jumlah:
             kontrol += '<a class="admin-tautan" href="%s">%s</a>' % (e(_alamat(nomor, saring)), label)
-    return ('<div class="admin-pager"><span>Halaman %d dari %d · %d order</span>'
-            '<div class="admin-aksi-baca">%s</div></div>' % (halaman, jumlah, total, kontrol))
+    return ('<div class="admin-pager"><span>Halaman %d dari %d</span>'
+            '<div class="admin-aksi-baca">%s</div></div>' % (halaman, jumlah, kontrol))
 
 
 def _chip(label: str, nilai: Optional[str], saring: Optional[str], hitungan: Mapping) -> str:
@@ -283,7 +287,7 @@ def halaman(daftar: Mapping, *, halaman: int, gerbang_terbuka: bool, hasil: Opti
     kepala = tuple('<th scope="col">%s</th>' % x for x in _KOLOM)
     return (umpan_balik(hasil) + _strip_layanan(gerbang_terbuka, rekening_terisi) + _catatan_jalur_lain() + _chips(saring, hitungan or {})
             + kartu_tabel("Pesanan", kepala, baris, _pager(halaman, daftar["total"], saring),
-                          keterangan="%d tercatat · Halaman %d" % (daftar["total"], halaman)))
+                          keterangan="%d order" % daftar["total"]))
 
 
 def halaman_tidak_siap() -> str:

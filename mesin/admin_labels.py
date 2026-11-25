@@ -1,6 +1,7 @@
 """Label dan format presentasi admin; tidak menafsirkan ulang status domain."""
 from datetime import datetime, timedelta, timezone
 import html
+import re
 
 WIB = timezone(timedelta(hours=7))
 BULAN = ('Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des')
@@ -98,3 +99,22 @@ def hari_ini(sekarang=None):
 def referensi(nilai):
     teks = str(nilai or '—')
     return '<code class="admin-id" title="%s">%s</code>' % (html.escape(teks, quote=True), html.escape(teks))
+
+
+PANJANG_REFERENSI_PENDEK = 8  # awal id sesudah awalan; cukup untuk dicocokkan mata di daftar
+_AWALAN_ID = re.compile(r"^[a-z]{2,5}_")
+
+
+def referensi_pendek(nilai):
+    """Label ringkas id ledger untuk DAFTAR: `#xxxxxxxx`, id penuh hanya di `title` dan halaman Detail.
+
+    Satu sel daftar tidak perlu 40 karakter heksadesimal (mis. `ord_` + 32 heks): cukup penanda unik yang bisa
+    dicocokkan mata, sedangkan id penuh tetap bisa disalin di halaman Detail lewat :func:`referensi`. Hanya awalan
+    huruf kecil (mis. `ord_`, `akun_`) yang dibuang; id tanpa awalan dipendekkan apa adanya.
+    """
+    teks = str(nilai or '')
+    if not teks:
+        return '—'
+    awalan = _AWALAN_ID.match(teks)
+    pendek = '#' + teks[awalan.end():][:PANJANG_REFERENSI_PENDEK] if awalan else '#' + teks[:PANJANG_REFERENSI_PENDEK]
+    return '<code class="admin-id" title="%s">%s</code>' % (html.escape(teks, quote=True), html.escape(pendek))

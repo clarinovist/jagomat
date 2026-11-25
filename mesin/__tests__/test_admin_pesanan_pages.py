@@ -122,6 +122,54 @@ def test_nominal_dan_unggah_kosong_tanpa_data_transfer():
     assert "Rp" not in isi and "<td>—</td><td>—</td>" in isi
 
 
+ID_PANJANG = "ord_b0ff0f24" + "c" * 24
+
+
+def test_kolom_order_memakai_referensi_pendek_dan_id_penuh_hanya_di_title():
+    isi = _render(_item(order_id=ID_PANJANG))
+    assert '<code class="admin-id" title="%s">#b0ff0f24</code>' % ID_PANJANG in isi
+    assert ">%s<" % ID_PANJANG not in isi  # id 40 karakter tidak lagi jadi teks yang tampil
+
+
+def test_aksi_tetap_rute_ke_id_penuh():
+    isi = _render(_item(order_id=ID_PANJANG))
+    assert 'href="%s?id=%s"' % (pg.RUTE_ORDER, ID_PANJANG) in isi
+
+
+def test_nominal_jalur_penyedia_memakai_rupiah_order():
+    isi = _render(_item(status="belum_bayar", rupiah=49000), transfer={})
+    assert "Rp49.000" in isi
+
+
+def test_nominal_tagihan_transfer_menang_dari_rupiah_order():
+    isi = _render(_item_transfer(rupiah=49000), transfer=RINGKAS)
+    assert "Rp49.321" in isi and "Rp49.000" not in isi
+
+
+def test_hitungan_tidak_diulang_di_kepala_dan_kaki_tabel():
+    isi = pg.halaman(_daftar(_item(), total=60), halaman=1, gerbang_terbuka=False, hasil=None)
+    kepala, kaki = isi.split("</thead>")[0], isi.split("admin-pager")[1]
+    assert "60 order" in kepala and "Halaman" not in kepala
+    assert "Halaman 1 dari 3" in kaki and "60 order" not in kaki
+
+
+@pytest.mark.parametrize("nilai,harap", [
+    ("ord_b0ff0f24c0ffee", "#b0ff0f24"),
+    ("akun_a1a1a1a1", "#a1a1a1a1"),
+    ("b0ff0f24c0ffee", "#b0ff0f24"),
+    ("", "—"),
+    (None, "—"),
+])
+def test_referensi_pendek_ringkas_dan_aman(nilai, harap):
+    import admin_labels
+    teks = admin_labels.referensi_pendek(nilai)
+    if not nilai:
+        assert teks == "—"  # id kosong tidak dirender sebagai label palsu
+        return
+    assert ">%s</code>" % harap in teks
+    assert 'title="%s"' % nilai in teks  # id penuh tetap tersedia untuk disalin/dicocokkan
+
+
 @pytest.mark.parametrize("kode,harap", [
     ("nominal", "Nominal tidak sesuai"), ("merchant", "Penjual tidak sesuai"),
     ("mata_uang", "Mata uang tidak sesuai"), ("kanal", "Cara bayar tidak sesuai"),

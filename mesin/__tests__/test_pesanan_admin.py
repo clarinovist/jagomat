@@ -139,7 +139,10 @@ def test_daftar_admin_data_minimal_tanpa_kontak_anak_atau_payload(kon):
     order = buat(kon, 1, cek_id=77)
     terapkan(kon, order, 1)
     item = pesanan.daftar_admin(kon, halaman=1, per_halaman=5, sekarang=SEKARANG)["items"][0]
-    assert set(item) == {"order_id", "akun", "dibuat", "kedaluwarsa", "alasan_kode", "status", "dua_jalur", "menunggu_lama"}
+    assert set(item) == {
+        "order_id", "akun", "rupiah", "dibuat", "kedaluwarsa", "alasan_kode", "status",
+        "dua_jalur", "menunggu_lama"}
+    assert item["rupiah"] == order["rupiah"]  # harga order untuk kolom Nominal jalur penyedia
     assert item["akun"] == AKUN_A[:13] and AKUN_A not in item.values()
     teks = " ".join(str(v) for v in item.values())
     assert MERCHANT not in teks and "trx-" not in teks

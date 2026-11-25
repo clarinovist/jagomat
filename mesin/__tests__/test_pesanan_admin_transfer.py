@@ -161,7 +161,9 @@ def test_daftar_tanpa_filter_tetap_memuat_semua_dan_bentuk_item_tidak_berubah(ko
     buat(kon, 2, akun=AKUN_B)
     hasil = pesanan.daftar_admin(kon, halaman=1, per_halaman=25, sekarang=SESUDAH_UPLOAD)
     assert hasil["total"] == 2
-    assert set(hasil["items"][0]) == {"order_id", "akun", "dibuat", "kedaluwarsa", "alasan_kode", "status", "dua_jalur", "menunggu_lama"}
+    assert set(hasil["items"][0]) == {
+        "order_id", "akun", "rupiah", "dibuat", "kedaluwarsa", "alasan_kode", "status",
+        "dua_jalur", "menunggu_lama"}
 
 
 # --- keputusan atas bukti yang dilihat -----------------------------------------

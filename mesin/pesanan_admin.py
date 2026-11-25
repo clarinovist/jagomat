@@ -98,7 +98,7 @@ def _tulis_refund(kon, operasi_id, isi, kini):
 
 
 _SQL_DAFTAR = """
-SELECT o.order_id, o.akun_id, o.dibuat, %s AS kedaluwarsa, r.hasil AS receipt_hasil,
+SELECT o.order_id, o.akun_id, o.rupiah, o.dibuat, %s AS kedaluwarsa, r.hasil AS receipt_hasil,
        r.alasan_kode,
        EXISTS(SELECT 1 FROM pesanan_refund f WHERE f.order_id=o.order_id) AS direfund,
        EXISTS(SELECT 1 FROM pesanan_pengamatan p WHERE p.order_id=o.order_id
@@ -140,6 +140,7 @@ def _item_admin(baris, kini):
     return {
         "order_id": baris["order_id"],
         "akun": baris["akun_id"][:_PANJANG_AKUN_SINGKAT],
+        "rupiah": baris["rupiah"],
         "dibuat": baris["dibuat"],
         "kedaluwarsa": baris["kedaluwarsa"],
         "alasan_kode": baris["alasan_kode"],
@@ -167,7 +168,8 @@ def daftar_admin(kon, *, halaman, per_halaman, sekarang, hanya_menunggu=False):
     """Daftar order terbaru (SELECT saja) berdata minimal untuk admin.
 
     Tanpa kontak, nama anak, siswa_id, cek_id, merchant, atau payload; akun
-    hanya awalan id. `sekarang` dibutuhkan untuk status `kedaluwarsa`.
+    hanya awalan id, `rupiah` = harga order (dipakai kolom Nominal bila bukan jalur transfer).
+    `sekarang` dibutuhkan untuk status `kedaluwarsa`.
     `hanya_menunggu` = hanya order berstatus `menunggu_verifikasi` (tab verifikasi transfer).
     """
     d.periksa_koneksi(kon)

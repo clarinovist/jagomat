@@ -263,7 +263,9 @@ terhadap `mesin/`. Alur: topik/generator → penyajian tersimpan → tinjauan/di
   `pesanan_alur.py`; guru saja, token HMAC `pesanan-form-v1`, laju per akun+IP, gerbang `pesanan.baca_gerbang` fail-closed,
   hasil cek dibaca per anak lewat `cek_gratis.hasil_siswa`). Admin: `admin_pesanan_http.py`/`admin_pesanan_pages.py` di
   `/admin/pesanan` (daftar tanpa form/kolom sandi, chip saringan `?status=menunggu|belum_bayar|dibayar|ditolak` dari
-  `pesanan_admin.daftar_tersaring`; satu tautan per baris: Periksa bukti atau Detail) dan Detail order `/admin/pesanan/order?id=`
+  `pesanan_admin.daftar_tersaring`; satu tautan per baris: Periksa bukti atau Detail; kolom Order memakai referensi
+  pendek `#xxxxxxxx` — id penuh hanya di `title` dan halaman Detail lewat `admin_labels.referensi_pendek`/`referensi` —
+  dan kolom Nominal memakai tagihan transfer, atau `pesanan_admin` item `rupiah` bila order lewat penyedia) dan Detail order `/admin/pesanan/order?id=`
   (`admin_pesanan_detail_pages.py` + `pesanan_admin_order.py`, admin saja, 404 identik bila tak sah): periksa status dan catat uang
   kembali (pengecualian) ada di sini sebagai `<details>`, token final admin (CSRF + tinjauan + sandi ulang), PRG ke detail; tidak
   menulis jurnal `operasi_admin`, jejak refund = baris `pesanan_refund`/`transfer_refund`). Server menegakkan sendiri: refund hanya untuk status

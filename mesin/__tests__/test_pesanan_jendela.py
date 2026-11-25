@@ -109,7 +109,9 @@ def test_daftar_admin_memakai_jendela_terbaru_dan_tetap_minimal(kon):
     item = pesanan.daftar_admin(kon, halaman=1, per_halaman=5,
                                 sekarang=SESUDAH_KEDALUWARSA)["items"][0]
     assert item["status"] == "belum_bayar" and item["kedaluwarsa"] == baru["kedaluwarsa"]
-    assert set(item) == {"order_id", "akun", "dibuat", "kedaluwarsa", "alasan_kode", "status", "dua_jalur", "menunggu_lama"}
+    assert set(item) == {
+        "order_id", "akun", "rupiah", "dibuat", "kedaluwarsa", "alasan_kode", "status",
+        "dua_jalur", "menunggu_lama"}
 
 
 def test_receipt_lunas_tetap_lunas_walau_jendela_lewat(kon):
