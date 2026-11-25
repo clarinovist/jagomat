@@ -79,9 +79,13 @@ def rincian_dari_baris(kode_paket: str, tagihan) -> katalog.Rincian:
 
 
 def order_terbuka_siswa(kon, akun_id: str, siswa_id: int, kini: str) -> Iterator[Tuple[object, Fakta, str]]:
-    """(baris order, fakta, status) semua order milik akun untuk anak ini yang masih terbuka, terbaru dulu."""
+    """(baris order, fakta, status) semua order milik akun untuk anak ini yang masih terbuka, terbaru dulu.
+
+    "Terbaru" = urutan sisip (rowid, ledger tidak pernah dihapus), bukan `dibuat`: jam server yang melompat mundur tidak boleh membuat
+    tagihan hasil ganti paket kalah dari tagihan lama.
+    """
     for order in kon.execute("SELECT %s FROM kelas_order WHERE akun_id=? AND siswa_id=? "
-                             "ORDER BY dibuat DESC,id DESC" % KOLOM_ORDER, (akun_id, siswa_id)).fetchall():
+                             "ORDER BY rowid DESC" % KOLOM_ORDER, (akun_id, siswa_id)).fetchall():
         fakta = fakta_order(kon, order["id"])
         status = status_dari(order, fakta, kini)
         if status in k.STATUS_TERBUKA:

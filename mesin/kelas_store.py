@@ -23,7 +23,6 @@ from typing import List, Optional
 import kelas_dasar as k
 import kelas_rincian
 import kelas_status as ks
-from kelas_keluarga import tautkan_keluarga  # noqa: F401  (antarmuka admin)
 import paket_belajar_katalog as katalog
 import pesanan_dasar as d
 import pesanan_transfer
@@ -69,7 +68,8 @@ def kartu_paket(kon, akun_id, siswa_id, sekarang) -> List[katalog.KartuPaket]:
     """Satu kartu per paket katalog untuk pembeli ini: rincian nominal (deposit/diskon) dan ada tidaknya tagihan terbuka.
 
     Bila paket itu sudah punya tagihan terbuka, rincian = rincian tersimpan di tagihan itu (yang akan ditagihkan);
-    selain itu dihitung dari katalog dan ledger. SELECT saja. Anak yang order-nya milik akun lain -> PesananTidakDitemukan.
+    selain itu dihitung dari katalog dan ledger. Harga di kartu = `harga_dasar` rincian pada kartu itu (harga aktif,
+    atau harga tersimpan bila tagihan terbuka). SELECT saja. Anak yang order-nya milik akun lain -> PesananTidakDitemukan.
     """
     d.periksa_koneksi(kon)
     d.periksa_akun_id(akun_id)
@@ -83,7 +83,8 @@ def kartu_paket(kon, akun_id, siswa_id, sekarang) -> List[katalog.KartuPaket]:
             rincian = ks.rincian_dari_baris(paket.kode, ks.baris_tagihan(kon, ada[0]["id"]))
         else:
             rincian = kelas_rincian.rincian_untuk(kon, akun_id, siswa_id, paket.kode, kini)[0]
-        kartu.append(katalog.KartuPaket(paket, rincian, ada is not None))
+        paket_kartu = katalog.paket_dengan_harga(paket.kode, rincian.harga_dasar)
+        kartu.append(katalog.KartuPaket(paket_kartu, rincian, ada is not None))
     return kartu
 
 
@@ -178,7 +179,7 @@ def buat_tagihan(kon, akun_id, siswa_id, kode_paket, sekarang, *, acak=None,
                  tolak_paket_lain_terbuka=False) -> katalog.TagihanKelas:
     """Order + tagihan transfer paket untuk anak `siswa_id` atas nama `akun_id` (atomik, idempoten per paket terbuka).
 
-    Nominal dihitung server: katalog + deposit Peta aktif + status anak kedua (`kelas_rincian`); tidak ada angka dari
+    Nominal dihitung server: katalog + deposit Peta aktif (`kelas_rincian`); tidak ada angka dari
     pemanggil. Paket asing -> PesananDataTidakSah. Anak yang sudah punya order atas nama akun lain ->
     PesananTidakDitemukan. Sudah ada tagihan terbuka untuk paket itu: dikembalikan apa adanya. Kode unik dari
     `secrets` (atau `acak(bebas)` suntikan tes); habis -> KodeUnikHabis. `tolak_paket_lain_terbuka` (jalur HTTP): bila

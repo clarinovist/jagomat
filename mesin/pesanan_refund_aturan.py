@@ -5,13 +5,18 @@ rekening). Tabel dipilih dari ada-tidaknya receipt, jadi receipt penyedia yang m
 transfer bisa mengarahkan refund kedua ke tabel lain. Karena itu replay dan konflik selalu diperiksa di kedua
 tabel sebelum INSERT. Status turunan juga ditegakkan di sini (bukan hanya disembunyikan tombolnya di UI).
 
-Dipanggil di dalam transaksi tulis pemanggil. Tanpa impor selain domain pesanan; bukan modul kontrak rilis.
+Voucher purna yang sudah dipakai tidak boleh direfund (`purna.voucher_dipakai`); penegakannya di
+`periksa_layak_refund`, yang dilewati kedua jalur refund (QRIS dan transfer rekening).
+
+Dipanggil di dalam transaksi tulis pemanggil. Tanpa impor selain domain pesanan (`purna` termasuk domain
+pesanan); bukan modul kontrak rilis.
 """
 from __future__ import annotations
 
 import pesanan_dasar as d
 import pesanan_status as st
 import pesanan_transfer_baca as tb
+import purna
 
 _SQL_REFUND = {
     "pesanan_refund": "SELECT operasi_id,order_id,dicatat_oleh,catatan_kode FROM pesanan_refund "
@@ -40,12 +45,14 @@ def refund_sudah_ada(kon, operasi_id, isi):
 
 
 def periksa_layak_refund(kon, order_id, kini):
-    """Tolak (PesananKonflik) bila status turunan order tidak termasuk `STATUS_BISA_REFUND`."""
+    """Tolak (PesananKonflik) bila status turunan tidak termasuk `STATUS_BISA_REFUND` atau voucher sudah dipakai."""
     baris = st.baris_order(kon, order_id)
     if baris is None:
         raise d.PesananTidakDitemukan()
     if st.status_dari_db(kon, st.dict_order(baris), kini) not in d.STATUS_BISA_REFUND:
         raise d.PesananKonflik("status order tidak layak refund")
+    if purna.voucher_dipakai(kon, order_id):
+        raise d.PesananKonflik("voucher sudah dipakai")
 
 
 def siapkan_refund(kon, operasi_id, isi, kini):
