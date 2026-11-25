@@ -1,8 +1,8 @@
-"""Opt-in skema pesanan v1, `transfer_*`, `rekening_*`, `purna_*`, `kelas_*`, dan `jadwal_*` pada validator/rehearsal backup.
+"""Opt-in skema pesanan v1, `transfer_*`, `rekening_*`, `purna_*`, `kelas_*`, `jadwal_*`, dan `harga_*` pada validator/rehearsal backup.
 
 Urutan tetap (pesanan, transfer, rekening, purna, kelas, jadwal): transfer bergantung pada ledger pesanan, purna
 bergantung pada pesanan dan transfer, kelas bergantung pada ledger pesanan (dan memakai purna saat lunas),
-jadwal bergantung pada kelas.
+jadwal bergantung pada kelas, harga berdiri sendiri (tanpa kunci asing).
 Semua fungsi murni terhadap koneksi/path yang diberikan; galat input memakai ValueError agar
 `admin_backup` menerjemahkannya menjadi `BackupTidakSah`.
 """
@@ -83,3 +83,15 @@ def migrasikan_jadwal(path) -> None:
     """Pasang skema `jadwal_*` (idempoten) pada salinan temp; mensyaratkan `kelas_*` sudah terpasang."""
     import schema_jadwal
     schema_jadwal.migrasikan(path)
+
+
+def deteksi_harga(kon) -> bool:
+    """Namespace `harga_*` terpasang dan sah (True), absen (False), parsial/berbeda -> ValueError."""
+    import schema_harga
+    return schema_harga.validasi(kon)
+
+
+def migrasikan_harga(path) -> None:
+    """Pasang skema `harga_*` (idempoten) pada salinan temp; tidak mensyaratkan ledger lain."""
+    import schema_harga
+    schema_harga.migrasikan(path)

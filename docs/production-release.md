@@ -38,6 +38,20 @@ jadi pisahkan sebelum push). Rincian perilaku di spec.md (Paket Belajar, "Perbai
 - **Tab Akun guru di admin:** tanpa migrasi dan tanpa berkas kontrak; rute `/admin?section=guru` baru dan parameter `dari=guru` pada /admin/tinjau. Rollback ke image lama: tab hilang, `section=guru` jatuh ke Ringkasan, aksi akun lewat menu Keluarga tetap. Cek setelah deploy: tab tampil untuk admin, non-admin 404, reset sandi guru sintetis dari tab.
 - Tes mutasi `test_peta_laporan_ortu_mutation` kasus M8 sudah gagal di HEAD sebelum perubahan ini.
 
+## Pin recovery harga (`harga_*`, harga admin) — disiapkan 25 November 2026, BELUM deploy
+
+Perkakas rilis lapisan harga (`6da1fe8`, `3e4f755`, `a16a4e1`; domain `harga*.py`, `schema_harga.py`, layar `/admin/harga`) mengikuti pola `jadwal_*`:
+- **Pin recovery baru `d91a1c5`** (`d91a1c50e8a3458c17a35635542307bd43aaa5a0`, branch `recovery-harga` = `37307ed` + `harga.py`, `harga_aturan.py`, `harga_validasi.py`,
+  `schema_harga.py`, `kelas_store.py`, `kelas_rincian.py`, `kelas_status.py`, `paket_belajar_katalog.py`, `pesanan_refund_aturan.py` byte-identik dengan main + commit kontrak).
+  Kontrak bergeser **1bd09a6…** → **9d20466…** (`schema_harga` dan `kelas_store`). Branch wajib dipush sebelum `main`. Anchor koleksi 27.849 (tanpa tes baru di pohon recovery).
+- **Probe skema live** `PROBE_HARGA_SKEMA` di `scripts/deploy.py` (mode=ro; tabel belum ada lulus; bila ada harus persis DDL) dan blok `PROBE_IMAGE` (migrasi dua kali + `foreign_key_check`).
+  Deployer berubah (hash baru): dipasang atomik lewat langkah `install-deployer` kit.
+- **Probe pasangan** `scripts/release_harga_pair.py` (kandidat tulis, recovery LAMA yang belum mengenal harga baca mentah, kandidat lanjut: konflik basi, Peta tidak bisa diubah, riwayat append-only) dan
+  `harga_pair_checks` 8 pada bukti manifest.
+- **Backup/rehearsal** opt-in `skema_harga`/`target_harga` (berdiri sendiri, tanpa kunci asing; tidak boleh turun; parsial ditolak); validator backup image lama tidak menolak bundle ber-`harga_*`.
+- **Migrasi live** memakai `harga_migrasi.py` / `schema_harga.migrasikan` di dalam hold setelah backup tersalin lokal; skema aditif, tanpa bump `user_version`, tanpa seed (baris tak ada = nilai awal kode).
+- **Rollback:** recovery `d91a1c5` membaca DB ber-`harga_*` dan mengabaikan tabelnya (harga kembali ke nilai awal kode); mengembalikan data ke sebelum migrasi hanya lewat bundle backup.
+
 ## Deploy perbaikan hasil uji penguji, guru mandiri, dan tab Akun guru — 25 November 2026
 
 Controlled `deploy-v2` memasang **cf97b4d** (`cf97b4d1db0606315f705a62138dfde3999a3244`, digest `sha256:887876c3…61d0`), healthy, menggantikan

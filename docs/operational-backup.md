@@ -387,3 +387,5 @@ retensi, batas umur, alert SSH gagal) semuanya tertangkap.
    Telegram dan jalur gagalnya sudah diuji end-to-end. Drill restore ke kontainer sementara lulus (21 Nov); restore
    ke produksi sungguhan belum pernah dilakukan. Kunci enkripsi `offsite.key` hanya ada di Mac: tanpa salinan aman
    terpisah, kehilangan Mac berarti seluruh backup R2 tidak bisa dibuka. Retensi per domain dan bukti penghapusan tetap perlu dioperasionalkan.
+
+- `harga_*` (harga admin): opt-in `skema_harga` pada validasi bundle dan `target_harga` pada rehearsal (berdiri sendiri; tidak boleh turun; parsial ditolak).
