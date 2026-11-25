@@ -12,6 +12,9 @@ local.properties
 .gradle/
 
 # Setelan/catatan alat per mesin, bukan bagian aplikasi
+# Panduan agent (CLAUDE.md, AGENTS.md) hanya lokal: tidak masuk repo (permintaan Pemilik 25 Nov 2026).
+/CLAUDE.md
+/AGENTS.md
 .claude/settings.local.json
 .commandcode/
 .hermes/
