@@ -80,7 +80,8 @@ def test_private_membuat_delapan_sesi_dan_lepas_menghapus(kon):
     assert ringkas["lokasi"] == schema_jadwal.LOKASI_PRIVATE
     assert len(ringkas["sesi"]) == 8 and ringkas["sesi"][0]["mulai"] == "2026-11-23T09:30:00"
     assert ringkas["sesi"][1]["mulai"] == "2026-11-26T09:30:00"
-    js.lepas_penempatan(kon, "admin_sintetis", tagihan.order_id, sekarang=kelas_kit.SESUDAH_UPLOAD)
+    js.lepas_penempatan(kon, "admin_sintetis", tagihan.order_id, versi=ringkas["dibuat"],
+                        sekarang=kelas_kit.SESUDAH_UPLOAD)
     assert js.ringkas_order(kon, tagihan.order_id) is None
     assert kon.execute("SELECT COUNT(*) FROM jadwal_pertemuan WHERE order_id=?",
                        (tagihan.order_id,)).fetchone()[0] == 0
@@ -208,9 +209,9 @@ def test_mini_kelompok_semua_pertemuan_dibatalkan_dianggap_selesai(kon):
 
 
 def test_mini_kelompok_masih_punya_pertemuan_mendatang_boleh_dimasuki(kon):
-    kid = _kelompok(kon)                                           # ke-8 = 15 Des 09.00 WIB
+    kid = _kelompok(kon)                                           # baru ke-1 yang mulai (21 Nov); ke-8 = 15 Des
     mini = kelas_kit.lunas(kon, 1, "mini")
-    js.tempatkan(kon, "admin_sintetis", mini.order_id, kelompok_id=kid, sekarang="2026-12-14T00:00:00")
+    js.tempatkan(kon, "admin_sintetis", mini.order_id, kelompok_id=kid, sekarang="2026-11-21T03:00:00")
     assert js.detail_kelompok(kon, kid)["terisi"] == 1
 
 

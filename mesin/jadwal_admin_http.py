@@ -34,10 +34,12 @@ RUTE_PENEMPATAN = "/admin/kelas/penempatan"
 RUTE_LEPAS = "/admin/kelas/penempatan/lepas"
 RUTE_PERTEMUAN = "/admin/kelas/pertemuan"
 RUTE_PERTEMUAN_BATAL = "/admin/kelas/pertemuan/batal"
-COPY_KONFLIK = ("Jadwal tidak dapat disimpan: kelompok mungkin penuh, sudah selesai, atau kembar (nama dan waktu "
+COPY_KONFLIK = ("Jadwal tidak dapat disimpan: kelompok mungkin penuh, sudah selesai, sudah ditutup (dua pertemuan "
+                "pertama sudah berlangsung), atau kembar (nama dan waktu "
                 "mulai sama), anak masih punya penempatan yang aksesnya belum berakhir, pertemuan order ini sudah "
                 "pernah dijadwalkan, Private sudah mulai berlangsung (tidak bisa dilepas), atau paket belum aktif. "
-                "Lepas penempatan lama / pilih kelompok lain. Tidak ada yang diubah.")
+                "Lepas penempatan lama / pilih kelompok lain. Bila ini form Lepas: penempatan sudah berubah sejak halaman "
+                "dibuka, muat ulang halaman. Tidak ada yang diubah.")
 COPY_ISIAN = ("Isian jadwal tidak sah: periksa nama, lokasi, guru, kuota (1-5), tanggal, dan jam; pertemuan "
               "tidak boleh sudah lewat atau melewati masa akses paket (delapan pertemuan memakan 24 hari). "
               "Tidak ada yang diubah.")
@@ -193,8 +195,9 @@ def _lepas(penangan, principal) -> None:
     tinjauan, data = _terima(penangan, principal, AKSI_LEPAS)
     aksi.wajib_field(data, frozenset())
     order_id = dasar.periksa_order_id(tinjauan["data"].get("order_id"))
+    versi = tinjauan["data"].get("target_revisi")  # = dibuat penempatan yang dilihat admin; tanpa itu ditolak store (409)
     with _buka(tulis=True) as kon:
-        js.lepas_penempatan(kon, principal.id_akun, order_id, sekarang=alur.waktu_sekarang())
+        js.lepas_penempatan(kon, principal.id_akun, order_id, versi=versi, sekarang=alur.waktu_sekarang())
     h._redirect(penangan, "/admin/kelas/verifikasi?order=%s" % order_id)
 
 

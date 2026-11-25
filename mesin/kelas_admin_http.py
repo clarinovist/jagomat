@@ -171,11 +171,14 @@ def _get_detail(penangan, principal) -> None:
                 guru = jadwal_http.guru_map()
             except (OSError, ValueError):
                 guru = {}
-            tokens = {nama: jadwal_http.bentuk_token(penangan, principal, kode, {"order_id": order_id})
-                      for nama, kode in (("tempatkan", jadwal_http.AKSI_TEMPATKAN),
-                                         ("lepas", jadwal_http.AKSI_LEPAS),
-                                         ("sesi_ubah", jadwal_http.AKSI_SESI_UBAH),
-                                         ("sesi_batal", jadwal_http.AKSI_SESI_BATAL))}
+            isi_lepas = {"order_id": order_id}
+            if ringkas is not None:                   # versi = penempatan yang dilihat admin; form lama ditolak
+                isi_lepas = {**isi_lepas, "target_revisi": ringkas["dibuat"]}
+            tokens = {nama: jadwal_http.bentuk_token(penangan, principal, kode, isi)
+                      for nama, kode, isi in (("tempatkan", jadwal_http.AKSI_TEMPATKAN, {"order_id": order_id}),
+                                              ("lepas", jadwal_http.AKSI_LEPAS, isi_lepas),
+                                              ("sesi_ubah", jadwal_http.AKSI_SESI_UBAH, {"order_id": order_id}),
+                                              ("sesi_batal", jadwal_http.AKSI_SESI_BATAL, {"order_id": order_id}))}
             isi += jadwal_ui.blok_penempatan({"paket": detail["kode_paket"]}, ringkas, kelompok, guru,
                                              detail["status"] == dasar.STATUS_AKTIF, tokens)
     _kirim(penangan, principal, isi)

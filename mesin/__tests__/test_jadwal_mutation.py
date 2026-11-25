@@ -24,6 +24,11 @@ H = "mesin/__tests__/test_jadwal_admin_pages.py::"
 P = "mesin/__tests__/test_jadwal_perpanjangan.py::"
 K = "mesin/__tests__/test_kelas_pages.py::"
 W = "mesin/__tests__/test_jadwal_murid_http.py::"
+TB = "mesin/__tests__/test_jadwal_tutup_bentrok.py::"
+PG = "mesin/__tests__/test_jadwal_admin_peringatan.py::"
+HT = "mesin/__tests__/test_jadwal_admin_http.py::"
+HTTP_JADWAL = "mesin/jadwal_admin_http.py"
+HTTP_KELAS = "mesin/kelas_admin_http.py"
 STORE = "mesin/jadwal_store.py"
 SKEMA = "mesin/schema_jadwal.py"
 DASAR = "mesin/jadwal_dasar.py"
@@ -82,7 +87,8 @@ KASUS = (
      ((STORE, "s.dibatalkan=0 AND s.mulai>=?) AS berikut", "s.dibatalkan=0 AND ?<>'') AS berikut"),),
      (S + "test_daftar_kelompok_berikut_adalah_pertemuan_aktif_mendatang",)),
     ("dropdown-sembunyikan-selesai",
-     ((HALAMAN, 'if sisa > 0 and b.get("berikut"):', "if sisa > 0:"),),
+     ((HALAMAN, 'if sisa > 0 and b.get("berikut") and b.get("terbuka", True):',
+       'if sisa > 0 and b.get("terbuka", True):'),),
      (H + "test_penempatan_mini_menyembunyikan_kelompok_selesai",)),
     ("pensiun-tidak-menyambung-akses",
      ((STORE, "    return mulai_baru is not None and akhir <= mulai_baru and not _sesi_lama_tersisa(kon, order_lama, kini)\n",
@@ -145,6 +151,64 @@ KASUS = (
      ((DASAR, "if waktu.date() > h.tanggal_wib(sekarang) + timedelta(days=BATAS_MAJU_HARI):", "if False:"),),
      (D + "test_pertemuan_pertama_menolak_lebih_dari_366_hari_ke_depan",
       D + "test_tahun_ekstrem_jadwal_tidak_sah_bukan_overflow")),
+    # --- 25 Nov (tutup pendaftaran, peringatan bentrok, versi lepas) ---
+    ("tutup-setelah-dua-pertemuan",
+     ((STORE, '''            if _jumlah_sudah_mulai(kon, kid, kini) >= TUTUP_SETELAH_PERTEMUAN_MULAI:
+                raise jd.JadwalKonflik(PESAN_DITUTUP)
+''', ""),),
+     (TB + "test_mini_ditolak_setelah_dua_pertemuan_mulai_tanpa_efek_tulis",
+      HT + "test_pendaftaran_kelompok_ditutup_setelah_dua_pertemuan_mulai_lewat_http")),
+    ("tutup-hitung-pertemuan-dibatalkan",
+     ((STORE, "WHERE kelompok_id=? AND dibatalkan=0 AND mulai<?", "WHERE kelompok_id=? AND mulai<?"),),
+     (TB + "test_pertemuan_dibatalkan_tidak_dihitung_untuk_penutupan",)),
+    ("tutup-batas-tepat-mulai",
+     ((STORE, "WHERE kelompok_id=? AND dibatalkan=0 AND mulai<?", "WHERE kelompok_id=? AND dibatalkan=0 AND mulai<=?"),),
+     (TB + "test_tepat_saat_pertemuan_kedua_mulai_belum_dihitung",)),
+    ("daftar-terbuka-abaikan-penutupan",
+     ((STORE, 'b["berikut"] is not None and b["sudah_mulai"] < TUTUP_SETELAH_PERTEMUAN_MULAI',
+       'b["berikut"] is not None'),),
+     (TB + "test_daftar_kelompok_menandai_terbuka_sesuai_penutupan_dan_selesai",
+      HT + "test_pendaftaran_kelompok_ditutup_setelah_dua_pertemuan_mulai_lewat_http")),
+    ("dropdown-sembunyikan-ditutup",
+     ((HALAMAN, 'if sisa > 0 and b.get("berikut") and b.get("terbuka", True):', 'if sisa > 0 and b.get("berikut"):'),),
+     (PG + "test_dropdown_menyembunyikan_kelompok_ditutup_dan_pesan_menyebut_ditutup",)),
+    ("lepas-cek-versi-store",
+     ((STORE, '''        if type(versi) is not str or versi != ada["dibuat"]:
+            raise jd.JadwalKonflik(PESAN_VERSI_BASI)
+''', ""),),
+     (TB + "test_lepas_dengan_versi_basi_ditolak_tanpa_efek_dan_versi_baru_berhasil",
+      TB + "test_lepas_private_versi_basi_tidak_menghapus_sesi",
+      TB + "test_versi_kosong_atau_bukan_milik_penempatan_ditolak",
+      HT + "test_form_lepas_lama_tidak_bisa_diputar_ulang_setelah_ditempatkan_ulang")),
+    ("lepas-versi-tidak-masuk-tinjauan-halaman",
+     ((HTTP_KELAS, '''                isi_lepas = {**isi_lepas, "target_revisi": ringkas["dibuat"]}
+''', "                isi_lepas = dict(isi_lepas)\n"),),
+     (HT + "test_form_lepas_dari_halaman_segar_berhasil",)),
+    ("lepas-handler-membuang-versi",
+     ((HTTP_JADWAL, 'versi=versi, sekarang=alur.waktu_sekarang())', 'versi=None, sekarang=alur.waktu_sekarang())'),),
+     (HT + "test_form_lepas_dari_halaman_segar_berhasil",)),
+    ("bentrok-sentuhan-dihitung",
+     ((STORE, "aktif = [(akhir, sid) for akhir, sid in aktif if akhir > mulai]",
+       "aktif = [(akhir, sid) for akhir, sid in aktif if akhir >= mulai]"),),
+     (TB + "test_bersentuhan_tepat_bukan_bentrok",)),
+    ("bentrok-guru-diabaikan",
+     ((STORE, 'if b["guru"] != guru_kini:', "if False:"),),
+     (TB + "test_guru_beda_tidak_bentrok",)),
+    ("bentrok-hitung-sesi-dibatalkan",
+     ((STORE, "WHERE s.dibatalkan=0 AND COALESCE(k.guru_id, p.guru_id) IS NOT NULL",
+       "WHERE COALESCE(k.guru_id, p.guru_id) IS NOT NULL"),),
+     (TB + "test_sesi_dibatalkan_tidak_bentrok",)),
+    ("bentrok-sapuan-tidak-menandai-sesi-aktif-sebelumnya",
+     ((STORE, "            bentrok.update(sid for _akhir, sid in aktif)\n", ""),),
+     (TB + "test_private_dan_mini_guru_sama_overlap_ditandai_dua_arah",
+      TB + "test_rantai_beririsan_menandai_semuanya_dan_sesi_bercelah_tidak")),
+    ("bentrok-kolom-daftar-hitung-semua-sesi",
+     ((STORE, 'if sesi["id"] in bentrok:', "if True:"),),
+     (TB + "test_guru_beda_tidak_bentrok",)),
+    ("bentrok-teks-status-sesi",
+     ((HALAMAN, 'if s.get("bentrok"):', "if False:"),),
+     (PG + "test_halaman_kelompok_menandai_sesi_bentrok_dengan_teks_dan_satu_baris_peringatan",
+      PG + "test_detail_order_private_menandai_sesi_bentrok_dan_tanpa_bentrok_bersih")),
 )
 
 

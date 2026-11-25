@@ -46,6 +46,10 @@ def _mini(kon, order_id, kid, sekarang=SEKARANG):
     return js.tempatkan(kon, ADMIN, order_id, kelompok_id=kid, sekarang=sekarang)
 
 
+def _versi(kon, order_id):
+    return js.ringkas_order(kon, order_id)["dibuat"]
+
+
 def _jumlah(kon, tabel, **kolom):
     sql = "SELECT COUNT(*) FROM %s" % tabel
     if kolom:
@@ -172,7 +176,7 @@ def test_private_order_bersesi_ditolak_sebelum_menulis_apa_pun(kon):
 def test_lepas_private_diizinkan_bila_semua_sesi_di_masa_depan_dan_sesi_terhapus(kon):
     tagihan = kelas_kit.lunas(kon, 1, "private")
     _privat(kon, tagihan.order_id)                         # sesi 1 = 2026-11-23T09:30:00
-    js.lepas_penempatan(kon, ADMIN, tagihan.order_id, sekarang="2026-11-23T09:30:00")   # tepat saat mulai: masih boleh
+    js.lepas_penempatan(kon, ADMIN, tagihan.order_id, versi=_versi(kon, tagihan.order_id), sekarang="2026-11-23T09:30:00")   # tepat saat mulai: masih boleh
     assert _jumlah(kon, "jadwal_penempatan", order_id=tagihan.order_id) == 0
     assert _jumlah(kon, "jadwal_pertemuan", order_id=tagihan.order_id) == 0
 
@@ -181,7 +185,7 @@ def test_lepas_private_ditolak_setelah_ada_sesi_yang_sudah_mulai_tanpa_efek(kon)
     tagihan = kelas_kit.lunas(kon, 1, "private")
     _privat(kon, tagihan.order_id)
     with pytest.raises(jd.JadwalKonflik, match="sudah berlangsung"):
-        js.lepas_penempatan(kon, ADMIN, tagihan.order_id, sekarang="2026-11-23T09:30:01")   # satu detik lewat
+        js.lepas_penempatan(kon, ADMIN, tagihan.order_id, versi=_versi(kon, tagihan.order_id), sekarang="2026-11-23T09:30:01")   # satu detik lewat
     assert _jumlah(kon, "jadwal_penempatan", order_id=tagihan.order_id) == 1
     assert _jumlah(kon, "jadwal_pertemuan", order_id=tagihan.order_id) == 8
 
@@ -190,7 +194,7 @@ def test_lepas_private_ditolak_bila_hanya_sebagian_sesi_yang_sudah_mulai(kon):
     tagihan = kelas_kit.lunas(kon, 1, "private")
     _privat(kon, tagihan.order_id)
     with pytest.raises(jd.JadwalKonflik):
-        js.lepas_penempatan(kon, ADMIN, tagihan.order_id, sekarang="2026-12-10T00:00:00")
+        js.lepas_penempatan(kon, ADMIN, tagihan.order_id, versi=_versi(kon, tagihan.order_id), sekarang="2026-12-10T00:00:00")
     assert _jumlah(kon, "jadwal_pertemuan", order_id=tagihan.order_id) == 8
 
 
@@ -198,7 +202,7 @@ def test_lepas_mini_tetap_boleh_kapan_saja_dan_sesi_kelompok_utuh(kon):
     kid = _kelompok(kon)
     mini = kelas_kit.lunas(kon, 1, "mini")
     _mini(kon, mini.order_id, kid)
-    js.lepas_penempatan(kon, ADMIN, mini.order_id, sekarang="2026-12-16T00:00:00")   # semua sesi kelompok lewat
+    js.lepas_penempatan(kon, ADMIN, mini.order_id, versi=_versi(kon, mini.order_id), sekarang="2026-12-16T00:00:00")   # semua sesi kelompok lewat
     assert js.detail_kelompok(kon, kid)["terisi"] == 0
     assert len(js.detail_kelompok(kon, kid)["sesi"]) == 8
 
@@ -330,5 +334,5 @@ def test_lepas_private_diizinkan_bila_sesi_yang_sudah_lewat_semuanya_dibatalkan(
     _privat(kon, tagihan.order_id)
     pertama = js.ringkas_order(kon, tagihan.order_id)["sesi"][0]
     js.batalkan_pertemuan(kon, ADMIN, pertama["id"], batal=True, sekarang=SEKARANG)
-    js.lepas_penempatan(kon, ADMIN, tagihan.order_id, sekarang="2026-11-23T10:00:00")   # sesi 1 lewat tetapi dibatalkan
+    js.lepas_penempatan(kon, ADMIN, tagihan.order_id, versi=_versi(kon, tagihan.order_id), sekarang="2026-11-23T10:00:00")   # sesi 1 lewat tetapi dibatalkan
     assert _jumlah(kon, "jadwal_penempatan", order_id=tagihan.order_id) == 0

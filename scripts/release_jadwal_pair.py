@@ -89,6 +89,8 @@ with jadwal_store.buka(pa) as kon:
     assert [a['order_id'] for a in detail['anggota']] == [meta['mini']], detail['anggota']
     ringkas = jadwal_store.ringkas_order(kon, meta['privat'])
     assert ringkas['guru_id'] == GURU and len(ringkas['sesi']) == 8, ringkas
+    daftar = jadwal_store.daftar_kelompok(kon, UNGGAH)     # jalur baca antrean admin; store baru + dasar lama harus mandiri
+    assert [k['terisi'] for k in daftar] == [1], daftar
 with admin_store.buka_baca(pa) as kon:
     assert schema_pesanan.validasi(kon) and schema_transfer.validasi(kon)
     assert schema_jadwal.validasi(kon)
@@ -114,7 +116,8 @@ with jadwal_store.buka(pa, tulis_data=True) as kon:
     jadwal_store.batalkan_pertemuan(kon, ADMIN, kedua, batal=True, sekarang=UNGGAH)
     sesi = jadwal_store.pertemuan_dari(kon, kedua)
     assert sesi['dibatalkan'] == 1 and sesi['mulai'] == '2026-11-25T03:00:00', sesi
-    jadwal_store.lepas_penempatan(kon, ADMIN, meta['privat'], sekarang=UNGGAH)
+    jadwal_store.lepas_penempatan(kon, ADMIN, meta['privat'],
+                                  versi=jadwal_store.ringkas_order(kon, meta['privat'])['dibuat'], sekarang=UNGGAH)
     assert jadwal_store.ringkas_order(kon, meta['privat']) is None
     jadwal_store.tempatkan(kon, ADMIN, meta['privat'], guru_id=GURU2, tanggal=TANGGAL_PRIVATE,
                            jam=JAM_PRIVATE, sekarang=UNGGAH)

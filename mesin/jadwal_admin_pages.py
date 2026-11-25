@@ -20,7 +20,13 @@ COPY_PETUNJUK = ("Mini Class dijadwalkan per kelompok (maksimal 5 anak): satu lo
                  "pertemuan, dua kali seminggu selama empat pekan (selesai dalam masa akses 1 bulan). "
                  "Private dijadwalkan per anak dari halaman detail order.")
 COPY_TANPA_GURU = "Belum ada akun guru aktif. Tambah akun guru dulu sebelum menjadwalkan."
-COPY_KUOTA_PENUH = "Semua kelompok sudah penuh atau selesai; buat kelompok baru atau lepaskan anggota."
+COPY_KUOTA_PENUH = ("Semua kelompok sudah penuh, selesai, atau ditutup (pendaftaran ditutup setelah dua pertemuan "
+                    "mulai); buat kelompok baru atau lepaskan anggota.")
+COPY_BENTROK_SESI = "Bentrok dengan jadwal guru lain"
+COPY_BENTROK_PERINGATAN = ("Guru ini punya pertemuan lain di jam yang sama; periksa dan geser bila perlu. "
+                           "Penyimpanan tidak diblokir.")
+COPY_BENTROK_KOLOM = "Bentrok jadwal guru: %d pertemuan"
+STRIP = "—"
 COPY_TANPA_KELOMPOK = "Belum ada kelompok Mini Class. Buat kelompok dulu di halaman antrean."
 COPY_SESI_KOSONG = "Belum ada pertemuan."
 COPY_TANPA_ANGGOTA = "Belum ada anak ditempatkan di kelompok ini."
@@ -51,7 +57,13 @@ def _hidden(token) -> str:
 
 
 def _waktu(baku: Optional[str]) -> str:
-    return "—" if not baku else waktu_wib(baku)
+    return STRIP if not baku else waktu_wib(baku)
+
+
+def _peringatan_kelompok(kelompok: Mapping) -> str:
+    """Teks peringatan bentrok per kelompok (angka dipaksa int); strip bila tidak ada."""
+    jumlah = int(kelompok.get("bentrok", 0))
+    return COPY_BENTROK_KOLOM % jumlah if jumlah > 0 else STRIP
 
 
 def _form_buat(token, guru: Mapping[str, str]) -> str:
@@ -78,12 +90,13 @@ def blok_daftar(daftar: Sequence[Mapping], guru: Mapping[str, str], token) -> st
         catatan = '<p class="admin-meta">%s</p>' % _e(COPY_TANPA_GURU)
     baris = "".join(
         "<tr><td><a class=\"admin-tautan\" href=\"%s?id=%s\">%s</a></td><td>%s</td><td>%s</td>"
-        "<td>%d/%d</td><td>%s</td></tr>"
+        "<td>%d/%d</td><td>%s</td><td>%s</td></tr>"
         % (RUTE_KELOMPOK, _e(b["id"]), _e(b["nama"]), _e(b["lokasi"]),
            _e(guru.get(b["guru_id"], "Akun guru tidak aktif")), b["terisi"], b["kuota"],
-           _waktu(b["berikut"]))
+           _waktu(b["berikut"]), _e(_peringatan_kelompok(b)))
         for b in daftar)
-    tabel = vp._tabel("Kelompok", ("Nama", "Lokasi", "Guru", "Terisi", "Pertemuan berikut"), baris, COPY_KOSONG)
+    tabel = vp._tabel("Kelompok", ("Nama", "Lokasi", "Guru", "Terisi", "Pertemuan berikut", "Peringatan"),
+                      baris, COPY_KOSONG)
     return ('<section class="admin-kartu"><h2>%s</h2><p class="admin-meta">%s</p>%s%s</section>'
             % (_e(JUDUL_DAFTAR), _e(COPY_PETUNJUK), tabel, form + catatan))
 
@@ -114,10 +127,15 @@ def _baris_sesi(sesi: Sequence[Mapping], token_ubah, token_batal, *, bisa_ubah: 
     baris = []
     for s in sesi:
         status = "Dibatalkan" if s["dibatalkan"] else "Aktif"
+        if s.get("bentrok"):
+            status += " · " + COPY_BENTROK_SESI
         aksi = _aksi_sesi(s, token_ubah, token_batal) if bisa_ubah else ""
         baris.append("<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td></tr>"
                      % (s["ke"], _e(_waktu(s["mulai"])), _e(status), aksi))
-    return vp._tabel("Delapan pertemuan", ("Ke", "Waktu (WIB)", "Status", "Aksi"), "".join(baris), COPY_SESI_KOSONG)
+    peringatan = ('<p class="admin-catatan" role="note">%s</p>' % _e(COPY_BENTROK_PERINGATAN)
+                  if any(s.get("bentrok") for s in sesi) else "")
+    return peringatan + vp._tabel("Delapan pertemuan", ("Ke", "Waktu (WIB)", "Status", "Aksi"),
+                                  "".join(baris), COPY_SESI_KOSONG)
 
 
 def halaman_kelompok(detail: Mapping, guru: Mapping[str, str], tokens: Mapping) -> str:
@@ -149,11 +167,11 @@ def halaman_kelompok(detail: Mapping, guru: Mapping[str, str], tokens: Mapping) 
 
 
 def _sisa_kelompok(daftar: Sequence[Mapping]) -> str:
-    """Opsi kelompok yang masih bisa dimasuki: masih punya pertemuan berikut (belum selesai) dan belum penuh."""
+    """Opsi kelompok yang masih bisa dimasuki: belum penuh, belum selesai, dan belum ditutup (`terbuka`)."""
     opsi = []
     for b in daftar:
         sisa = b["kuota"] - b["terisi"]
-        if sisa > 0 and b.get("berikut"):
+        if sisa > 0 and b.get("berikut") and b.get("terbuka", True):
             opsi.append('<option value="%s">%s — sisa %d anak</option>'
                         % (_e(b["id"]), _e(b["nama"]), sisa))
     return "".join(opsi)

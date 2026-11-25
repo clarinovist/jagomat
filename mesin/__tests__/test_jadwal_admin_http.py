@@ -1,7 +1,9 @@
 """Admin jadwal lewat HTTP nyata: kelompok, penempatan, kuota, sesi, dan palang akses."""
 from __future__ import annotations
 
+import html
 import http.cookies
+import re
 
 import pytest
 
@@ -66,6 +68,14 @@ def _tempat_mini(server, cookie, order_id, kid):
     data = _token(cookie, "jadwal_tempatkan", {"order_id": order_id})
     data["kelompok_id"] = kid
     return minta_admin(server, PENEMPATAN, cookie, data)
+
+
+def _versi(order_id: str) -> str:
+    return _baris("SELECT dibuat FROM jadwal_penempatan WHERE order_id=?", (order_id,))[0]["dibuat"]
+
+
+def _token_lepas(cookie, order_id):
+    return _token(cookie, "jadwal_lepas", {"order_id": order_id, "target_revisi": _versi(order_id)})
 
 
 def _baris(sql, args=()):
@@ -165,7 +175,7 @@ def test_lepas_membebaskan_kuota_dan_menghapus_sesi_private(siap, admin):
     kid = _buat_kelompok(siap, admin, kuota=1)
     mini = _aktif("mini")
     assert _tempat_mini(siap, admin, mini, kid)[0] == 303
-    data = _token(admin, "jadwal_lepas", {"order_id": mini})
+    data = _token_lepas(admin, mini)
     assert minta_admin(siap, LEPAS, admin, data)[0] == 303
     assert _baris("SELECT COUNT(*) AS n FROM jadwal_penempatan WHERE order_id=?", (mini,))[0]["n"] == 0
     lain = _aktif("mini", 2, 2)
@@ -175,7 +185,7 @@ def test_lepas_membebaskan_kuota_dan_menghapus_sesi_private(siap, admin):
         __import__("jadwal_store").tempatkan(kon, "admin_sintetis", privat, guru_id=_guru(),
                                              tanggal="2026-11-25", jam="16:30",
                                              sekarang=kelas_kit.SESUDAH_UPLOAD)
-    lepas = _token(admin, "jadwal_lepas", {"order_id": privat})
+    lepas = _token_lepas(admin, privat)
     assert minta_admin(siap, LEPAS, admin, lepas)[0] == 303
     assert _baris("SELECT COUNT(*) AS n FROM jadwal_pertemuan WHERE order_id=?", (privat,))[0]["n"] == 0
 
@@ -244,11 +254,11 @@ def test_klik_ganda_buat_kelompok_ditolak_409_tanpa_kembaran(siap, admin):
 
 def test_kelompok_selesai_tidak_muncul_di_dropdown_dan_ditolak_http(siap, admin, jam):
     selesai = _buat_kelompok(siap, admin, nama="Sudah Selesai")                       # 24 Nov .. 18 Des
-    _buat_kelompok(siap, admin, nama="Masih Jalan", tanggal="2026-11-26")             # sampai 20 Des
+    _buat_kelompok(siap, admin, nama="Belum Mulai", tanggal="2026-12-19")             # belum ada pertemuan mulai
     order = _aktif("mini")
     jam.nilai = "2026-12-19T00:00:00"                                                  # kelompok pertama selesai
     kode, isi, _ = minta_admin(siap, "%s?order=%s" % (DETAIL, order), admin)
-    assert kode == 200 and "Masih Jalan" in isi and "Sudah Selesai" not in isi
+    assert kode == 200 and "Belum Mulai" in isi and "Sudah Selesai" not in isi
     assert _tempat_mini(siap, admin, order, selesai)[0] == 409
     assert _baris("SELECT COUNT(*) AS n FROM jadwal_penempatan")[0]["n"] == 0
 
@@ -274,3 +284,75 @@ def test_guru_map_melewati_akun_tanpa_id_dan_halaman_kelas_tetap_terbuka(siap, a
     assert "tanpa-id" not in peta.values() and "id-kosong" not in peta.values()
     assert _guru() in peta
     assert minta_admin(siap, DAFTAR, admin)[0] == 200
+
+
+# --- lepas anti-putar-ulang dan penutupan pendaftaran ------------------------------------------
+
+def _form_lepas_dari_halaman(server, cookie, order_id) -> dict:
+    kode, isi, _ = minta_admin(server, "%s?order=%s" % (DETAIL, order_id), cookie)
+    assert kode == 200
+    form = re.search(r'<form method="post" action="/admin/kelas/penempatan/lepas"[^>]*>(.*?)</form>', isi, re.S)
+    assert form is not None
+    return {nama: html.unescape(nilai)
+            for nama, nilai in re.findall(r'name="(csrf|tinjauan)" value="([^"]*)"', form.group(1))}
+
+
+def test_form_lepas_dari_halaman_segar_berhasil(siap, admin):
+    kid = _buat_kelompok(siap, admin)
+    mini = _aktif("mini")
+    assert _tempat_mini(siap, admin, mini, kid)[0] == 303
+    form = _form_lepas_dari_halaman(siap, admin, mini)
+    assert set(form) == {"csrf", "tinjauan"}
+    assert minta_admin(siap, LEPAS, admin, form)[0] == 303
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_penempatan WHERE order_id=?", (mini,))[0]["n"] == 0
+
+
+def test_form_lepas_lama_tidak_bisa_diputar_ulang_setelah_ditempatkan_ulang(siap, admin, jam):  # noqa: F811
+    kid = _buat_kelompok(siap, admin)
+    mini = _aktif("mini")
+    assert _tempat_mini(siap, admin, mini, kid)[0] == 303
+    form_lama = _form_lepas_dari_halaman(siap, admin, mini)
+    assert minta_admin(siap, LEPAS, admin, _token_lepas(admin, mini))[0] == 303      # dilepas lewat form lain
+    jam.maju_jam(1)
+    assert _tempat_mini(siap, admin, mini, kid)[0] == 303                             # ditempatkan ulang
+    baru = _versi(mini)
+    kode, isi, _ = minta_admin(siap, LEPAS, admin, form_lama)
+    assert kode == 409 and "muat ulang" in isi.lower()
+    assert _versi(mini) == baru                                                       # tidak ada efek
+    form_baru = _form_lepas_dari_halaman(siap, admin, mini)
+    assert minta_admin(siap, LEPAS, admin, form_baru)[0] == 303
+
+
+def test_tinjauan_lepas_tanpa_versi_ditolak_409_tanpa_efek(siap, admin):
+    kid = _buat_kelompok(siap, admin)
+    mini = _aktif("mini")
+    assert _tempat_mini(siap, admin, mini, kid)[0] == 303
+    lama = _token(admin, "jadwal_lepas", {"order_id": mini})                          # bentuk lama, tanpa versi
+    assert minta_admin(siap, LEPAS, admin, lama)[0] == 409
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_penempatan WHERE order_id=?", (mini,))[0]["n"] == 1
+
+
+def test_pendaftaran_kelompok_ditutup_setelah_dua_pertemuan_mulai_lewat_http(siap, admin, jam):  # noqa: F811
+    kid = _buat_kelompok(siap, admin, nama="Mini Tutup")             # 24 Nov, 27 Nov, ... 09.00 WIB
+    satu, dua = _aktif("mini", 1, 1), _aktif("mini", 2, 2)
+    jam.nilai = "2026-11-25T00:00:00"                                # satu pertemuan sudah mulai
+    assert _tempat_mini(siap, admin, satu, kid)[0] == 303
+    jam.nilai = "2026-11-27T03:00:00"                                # dua pertemuan sudah mulai
+    kode, isi, _ = minta_admin(siap, "%s?order=%s" % (DETAIL, dua), admin)
+    assert kode == 200 and "Mini Tutup" not in isi and "Tempatkan ke kelompok" not in isi
+    assert _tempat_mini(siap, admin, dua, kid)[0] == 409
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_penempatan WHERE kelompok_id=?", (kid,))[0]["n"] == 1
+
+
+def test_bentrok_guru_tampil_sebagai_peringatan_dan_penyimpanan_tidak_diblokir(siap, admin):
+    kid = _buat_kelompok(siap, admin, nama="Mini Bentrok", tanggal="2026-11-24")
+    order = _aktif("private", 3, 3)
+    data = _token(admin, "jadwal_tempatkan", {"order_id": order})
+    data.update({"guru_id": _guru(), "tanggal": "2026-11-24", "jam": "09:30"})     # guru sama, overlap
+    assert minta_admin(siap, PENEMPATAN, admin, data)[0] == 303                      # tetap tersimpan
+    _, daftar, _ = minta_admin(siap, DAFTAR, admin)
+    assert "Bentrok jadwal guru:" in daftar
+    _, detail, _ = minta_admin(siap, "%s?id=%s" % (KELOMPOK, kid), admin)
+    assert "Bentrok dengan jadwal guru lain" in detail
+    _, order_halaman, _ = minta_admin(siap, "%s?order=%s" % (DETAIL, order), admin)
+    assert "Bentrok dengan jadwal guru lain" in order_halaman
