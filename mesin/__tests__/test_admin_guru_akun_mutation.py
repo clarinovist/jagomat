@@ -24,7 +24,7 @@ KASUS = (
         ("and op in profil", "and op not in profil"),
     ], TES_DOMAIN, "test_hanya_guru_aktif_bukan_orang_tua_lama"),
     ("nonaktif_ikut_daftar", D, [
-        ('akun_mentah = [a for a in akun_mentah if not a.get("dinonaktifkan")]', "akun_mentah = list(akun_mentah)"),
+        ('akun_mentah = [a for a in akun_mentah if not a.get("dinonaktifkan") or guru_status.nonaktif_admin(a)]', "akun_mentah = list(akun_mentah)"),
     ], TES_DOMAIN, "test_hanya_guru_aktif_bukan_orang_tua_lama"),
     ("filter_asing_diterima", D, [
         ('    if saring not in SARING:\n        raise Q.InputQueryTidakSah("filter guru tidak sah")\n', ""),

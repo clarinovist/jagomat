@@ -4,7 +4,8 @@ Akun peran guru bercampur dengan akun orang tua alur lama (pendaftaran lama memb
 receipt pendaftaran (`operasi_registrasi`, teacher_created) yang operasinya punya entri `registrasi_profil`; akun itu tetap di menu
 Keluarga dan tidak masuk daftar ini. Asal akun sisanya: "mandiri" (receipt tanpa profil, jalur guru daftar sendiri) atau "admin" (tanpa
 receipt: dibuat admin atau akun lama). Jumlah anak, sesi, dan aktivitas dari query keluarga yang sama dengan menu Keluarga. Tanpa kredensial,
-hash, atau kontak. Akun dinonaktifkan tidak ditampilkan.
+hash, atau kontak. Akun yang dinonaktifkan admin hanya tampil di chip "Nonaktif" (bisa diaktifkan kembali); tombstone
+penghapusan keluarga tidak pernah ditampilkan.
 """
 from __future__ import annotations
 
@@ -13,6 +14,7 @@ from typing import Iterable, Mapping, Optional, Tuple
 
 import admin_antrean_guru as antrean_guru
 import admin_queries as Q
+import guru_status
 import lembaga_store
 
 ASAL_MANDIRI = "mandiri"
@@ -20,7 +22,7 @@ ASAL_ADMIN = "admin"
 LABEL_ASAL = {ASAL_MANDIRI: "Daftar sendiri", ASAL_ADMIN: "Dibuat admin atau akun lama"}
 PERAN_KOORDINATOR = "Koordinator"
 PERAN_ANGGOTA = "Anggota"
-SARING = ("semua", "belum_lembaga", "mandiri", "di_lembaga")
+SARING = ("semua", "belum_lembaga", "mandiri", "di_lembaga", "nonaktif")
 BATAS_BARIS = 500
 
 
@@ -34,6 +36,9 @@ class GuruRingkas:
     jumlah_siswa: int
     jumlah_sesi: int
     aktivitas_terakhir: Optional[str]
+    nonaktif: bool = False
+    nonaktif_oleh: Optional[str] = None
+    nonaktif_pada: Optional[int] = None
 
 
 def id_orang_tua_lama(mentah) -> frozenset:
@@ -59,10 +64,13 @@ def _peta_lembaga(kon) -> dict:
 
 
 def _semua_guru(kon, akun_mentah: Iterable[Mapping], mentah) -> Tuple[GuruRingkas, ...]:
-    """Semua guru aktif bukan orang tua alur lama, urut nama (tanpa pemotongan)."""
-    akun_mentah = [a for a in akun_mentah if not a.get("dinonaktifkan")]
+    """Semua guru bukan orang tua alur lama, urut nama (tanpa pemotongan). Nonaktif-admin ikut (bertanda), tombstone tidak."""
+    akun_mentah = [a for a in akun_mentah if not a.get("dinonaktifkan") or guru_status.nonaktif_admin(a)]
+    nama_akun = {a.get("id_akun"): a.get("pengguna") for a in akun_mentah}
     konteks = Q.buat_konteks(kon, akun_mentah)
     mandiri, lama = antrean_guru.id_guru_mandiri(mentah), id_orang_tua_lama(mentah)
+    marka_nonaktif = {a.get("id_akun"): (a[guru_status.KUNCI_MARKA]["oleh"], a[guru_status.KUNCI_MARKA]["pada"])
+                      for a in akun_mentah if guru_status.nonaktif_admin(a)}
     keluarga = {k.id_akun: k for k in Q._keluarga_semua(kon, konteks) if k.id_akun}
     lembaga = _peta_lembaga(kon)
     hasil = []
@@ -71,15 +79,21 @@ def _semua_guru(kon, akun_mentah: Iterable[Mapping], mentah) -> Tuple[GuruRingka
             continue
         nama_lembaga, peran = lembaga.get(akun.pengguna, (None, None))
         ringkas = keluarga.get(akun.id_akun)
+        marka = marka_nonaktif.get(akun.id_akun)
         hasil.append(GuruRingkas(
             akun.id_akun, akun.pengguna, ASAL_MANDIRI if akun.id_akun in mandiri else ASAL_ADMIN,
             nama_lembaga, peran, ringkas.jumlah_siswa if ringkas else 0, ringkas.jumlah_sesi if ringkas else 0,
-            ringkas.aktivitas_terakhir if ringkas else None))
+            ringkas.aktivitas_terakhir if ringkas else None,
+            marka is not None, nama_akun.get(marka[0], marka[0]) if marka else None, marka[1] if marka else None))
     hasil.sort(key=lambda g: (g.pengguna.casefold(), g.pengguna))
     return tuple(hasil)
 
 
 def _lolos(g: GuruRingkas, saring: str) -> bool:
+    if saring == "nonaktif":
+        return g.nonaktif
+    if g.nonaktif:
+        return False
     if saring == "belum_lembaga":
         return g.lembaga is None
     if saring == "di_lembaga":

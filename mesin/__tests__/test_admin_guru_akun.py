@@ -83,7 +83,7 @@ def test_filter_tak_dikenal_ditolak(kon):
 
 
 def test_hitungan_chip(kon, lembaga):
-    assert G.hitung_per_saring(kon, AKUN, MENTAH) == {"semua": 4, "belum_lembaga": 2, "mandiri": 1, "di_lembaga": 2}
+    assert G.hitung_per_saring(kon, AKUN, MENTAH) == {"semua": 4, "belum_lembaga": 2, "mandiri": 1, "di_lembaga": 2, "nonaktif": 0}
 
 
 def test_satu_guru_hanya_untuk_guru_yang_tampil(kon, lembaga):
@@ -102,3 +102,16 @@ def test_guru_di_luar_batas_tabel_tetap_bisa_dikelola(kon, lembaga, monkeypatch)
 def test_tanpa_kredensial_di_hasil(kon, lembaga):
     akun = [{**a, "garam": "RAHASIA", "kunci": "RAHASIA", "iterasi": 1} for a in AKUN]
     assert "RAHASIA" not in repr(G.daftar_guru(kon, akun, MENTAH))
+
+
+def test_nonaktif_admin_hanya_di_chip_nonaktif_dan_tombstone_tersembunyi(kon, lembaga):
+    marka = {"oleh": _id(7), "pada": 1_800_000_000}
+    akun = AKUN + [_akun(9, "dinonaktifkan-admin", dinonaktifkan=True, nonaktif_admin=marka)]
+    assert "dinonaktifkan-admin" not in [g.pengguna for g in G.daftar_guru(kon, akun, MENTAH)]
+    for saring in ("belum_lembaga", "mandiri", "di_lembaga"):
+        assert "dinonaktifkan-admin" not in [g.pengguna for g in G.daftar_guru(kon, akun, MENTAH, saring)]
+    (g,) = G.daftar_guru(kon, akun, MENTAH, "nonaktif")        # tombstone "nonaktif" (id 6, tanpa marka) tidak ikut
+    assert (g.pengguna, g.nonaktif, g.nonaktif_oleh, g.nonaktif_pada) == ("dinonaktifkan-admin", True, "admin-x", 1_800_000_000)
+    assert G.hitung_per_saring(kon, akun, MENTAH) == {"semua": 4, "belum_lembaga": 2, "mandiri": 1, "di_lembaga": 2, "nonaktif": 1}
+    assert G.satu_guru(kon, akun, MENTAH, _id(9)).nonaktif is True
+    assert G.satu_guru(kon, akun, MENTAH, _id(6)) is None

@@ -12,6 +12,15 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Nonaktifkan guru oleh admin — kode lokal, belum dirilis (25 November 2026)
+
+Jalur Kritis (auth/sesi); rincian perilaku di spec.md ("Admin menonaktifkan / mengaktifkan kembali guru"). Untuk rilis:
+- **Image-swap tanpa migrasi dan tanpa pin recovery baru**, seperti rilis cf97b4d. Tidak ada skema baru dan tidak ada berkas kontrak yang berubah; sidik kontrak lokal tetap **9d204665…**, jadi `recovery_revision` tetap **d91a1c5**, langkah `migrate` hanya pemeriksaan, dan tidak perlu `install-deployer` (hash deployer sudah `7d1ff8a5…`).
+- Sebelum rilis berikutnya, approval `/opt/osn/rollout-approval.json` milik f434094 harus diarsipkan dulu (`archive_approval.py --target=approval-consumed-f434094.json`, dry-run dulu lalu `--apply`).
+- **Flag `SENSOR_KOLEKSI_SIAP=1` di produksi (dicek read-only 25 Nov 2026, env container `osn-mesin`; tidak ada di `visual.conf`):** `sensor_cleanup` menghapus episode dan chat sensor akun `dinonaktifkan` pada putaran maintenance berikutnya. Hanya berdampak pada guru yang ikut consent sensor, dan penghapusan itu tidak kembali saat guru diaktifkan lagi. Perilaku ini sudah berlaku untuk semua akun nonaktif; fitur ini hanya menambah jalur admin menuju keadaan itu.
+- **Rollback ke image lama:** rute `/admin/guru/*` hilang (404) dan chip "nonaktif" tidak tampil; guru yang sudah dinonaktifkan tetap terkunci (sinyal `dinonaktifkan` dan `revisi_auth` dihormati kode lama; penanda `nonaktif_admin` diabaikan), hanya tidak bisa diaktifkan kembali dari admin sampai image baru dipasang lagi.
+- **Tanpa jurnal /admin/riwayat** (sengaja, lihat spec). Cek setelah deploy: `/admin/guru/nonaktifkan` anonim 404; nonaktifkan lalu aktifkan guru sintetis dan pastikan login/cookie lama mati; koordinator lembaga ditolak.
+
 ## Perbaikan hasil uji penguji (butir QA 1-9, 12) — LIVE sejak 25 November 2026 (lihat bagian deploy di bawah)
 
 Sepuluh commit lokal di `main` (201f585 sampai commit antrean "belum ditempatkan"; di antaranya ada commit harga sesi lain,

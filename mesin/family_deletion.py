@@ -392,6 +392,7 @@ def _ubah_auth(path, perintah: c.PerintahHapusKeluarga, pseudonim: str, siswa_id
         target.update(auth.buat_hash(hashlib.sha256(pseudonim.encode()).hexdigest()))
         target["revisi_auth"] = perintah.target_revisi + 1
         target["dinonaktifkan"] = True
+        target.pop("nonaktif_admin", None)  # tombstone bukan nonaktif-admin: tidak boleh diaktifkan kembali
         akun = [a for a in akun if not (
             a.get("peran") == "murid" and a.get("siswa_id") in set(siswa_ids))]
         hasil = auth._bungkus_akun(mentah, akun)
