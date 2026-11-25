@@ -12,6 +12,18 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Pin recovery jadwal-3 (tutup pendaftaran, bentrok guru, versi lepas) — disiapkan 25 November 2026, BELUM deploy
+
+Kode `a005c85`: pendaftaran kelompok Mini ditutup setelah dua pertemuan aktif mulai, peringatan bentrok jadwal guru
+(hanya baca), dan form Lepas membawa versi penempatan (409 bila basi). Skema `jadwal_*` TIDAK berubah: tanpa migrasi,
+deployer tidak berubah. **Kontrak bergeser** `50a32be…` → **`1bd09a6…`** (`jadwal_store`; sidik kandidat = sidik recovery,
+dihitung dengan `deploy.PROBE_KONTRAK` lokal). Recovery baru **37307ed** (`37307ed58f93d766f90225d1075169b1b91b867e`, branch `recovery-jadwal-3` = `36eb20d` +
+`jadwal_store.py` byte-identik dengan main `a005c85` + commit kontrak); branch wajib dipush sebelum `main`. Anchor koleksi 27.849.
+Konstanta penutupan sengaja di `jadwal_store.py` (bukan `jadwal_dasar`) agar store itu mandiri di atas `jadwal_dasar` lama:
+jalur baca (`daftar_kelompok`, `detail_kelompok`) dan "tempatkan Mini" tetap jalan di image recovery (probe pasangan memanggil
+`daftar_kelompok` di recovery). Catatan rollback: `jadwal_admin_http.py` lama memanggil `lepas_penempatan` tanpa `versi`,
+jadi aksi admin "Lepas" gagal di image recovery sampai maju lagi ke image baru. Sakelar `PAKET_BELAJAR` tetap MATI.
+
 ## Deploy perpanjangan jadwal + kartu jadwal orang tua — 25 November 2026
 
 Controlled `deploy-v2` memasang **0d5d046** (`0d5d046d57a882bc98adc3ca521c586fac493911`, digest `sha256:be6480ad…bdb9`),

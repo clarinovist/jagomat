@@ -13,7 +13,7 @@ AKAR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(AKAR / 'scripts'))
 import release_jadwal_pair as jadwal
 
-RECOVERY = '36eb20d9ded0e2ef460b6ce8b6d7a0cf541e97e9'
+RECOVERY = '37307ed58f93d766f90225d1075169b1b91b867e'
 RECOVERY_KELAS_LAMA = '85bbd528264b221148d522d958bcb31bb66ce907'
 
 

@@ -93,6 +93,9 @@ JUMLAH_RECOVERY = {
     # Koleksi recovery jadwal-2 36eb20d (6142611 + jadwal_store perpanjangan byte-identik dengan main 17bd0b6 + kontrak 50a32be):
     # tanpa tes baru di pohon recovery, jumlah sama dengan 6142611. Diverifikasi ulang oleh test_pytest_shard.
     "36eb20d9ded0e2ef460b6ce8b6d7a0cf541e97e9": 27849,
+    # Koleksi recovery jadwal-3 37307ed (36eb20d + jadwal_store tutup/bentrok/versi byte-identik dengan main a005c85 + kontrak 1bd09a6):
+    # tanpa tes baru di pohon recovery, jumlah sama dengan 36eb20d. Diverifikasi ulang oleh test_pytest_shard.
+    "37307ed58f93d766f90225d1075169b1b91b867e": 27849,
     "ff6acb158985f78ef0287ec18fb045d273921bdc": 13507,
     "c228749faef8acf29b7d6895173ead6aa5bc9e66": 13572,
     # Arsip exact reader katalog; nodeid identik empat manifest CI39596225447
