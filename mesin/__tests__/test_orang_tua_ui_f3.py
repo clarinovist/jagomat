@@ -261,3 +261,26 @@ def test_banner_paket_hanya_saat_tautan_dan_setelah_banner_langganan():
 def test_banner_paket_tanpa_masa_tidak_menambah_banner():
     data = _data(langganan=LANGGANAN_SEGERA)
     assert 'id="ortu-paket-banner"' not in _isi_masa(data, True, ())
+
+
+# Butir QA #1 (25 Nov 2026): pembeli yang sudah transfer jangan diminta "lanjutkan pembayaran".
+def _kartu_pesanan(status):
+    kartu = _badan(_isi(_data(pesanan=status)))
+    awal = kartu.index('id="ortu-pesanan"')
+    return kartu[awal:kartu.index("</section>", awal)]
+
+
+@pytest.mark.parametrize("status", [pesanan_pages.STATUS_MENUNGGU_VERIFIKASI, pesanan_pages.STATUS_PERLU_DIPERIKSA,
+                                    pesanan_pages.STATUS_DIREFUND])
+def test_pesanan_yang_tidak_butuh_bayar_lagi_tidak_menyuruh_lanjutkan_pembayaran(status):
+    kartu = _kartu_pesanan(status)
+    assert "Lanjutkan pembayaran" not in kartu and "Buka halaman pembayaran" not in kartu
+    assert pesanan_pages.COPY_STATUS[status][1] in kartu
+    assert kartu.count("<a ") == 1  # satu pintu ke halaman status, bukan ke pembayaran
+
+
+@pytest.mark.parametrize("status", [pesanan_pages.STATUS_BELUM_BAYAR, pesanan_pages.STATUS_KEDALUWARSA,
+                                    pesanan_pages.STATUS_DITOLAK])
+def test_pesanan_yang_masih_butuh_tindakan_tetap_menyuruh_lanjutkan_pembayaran(status):
+    kartu = _kartu_pesanan(status)
+    assert "Lanjutkan pembayaran atau lihat statusnya" in kartu and "Buka halaman pembayaran" in kartu

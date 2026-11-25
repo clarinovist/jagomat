@@ -55,6 +55,11 @@ COPY_PESANAN_TAWARAN = (
     "Peta Kemampuan Rp49.000, dibayar sekali tanpa tagihan berulang."
 )
 COPY_PESANAN_LANJUT = "Lanjutkan pembayaran atau lihat statusnya di halaman pembayaran."
+COPY_PESANAN_LIHAT_STATUS = "Lihat status pembayaran"
+# Status yang tidak meminta pembeli membayar lagi: kalimat dari `COPY_STATUS` dipakai apa adanya (butir QA #1).
+STATUS_PESANAN_TANPA_TINDAKAN = frozenset((
+    pesanan_pages.STATUS_MENUNGGU_VERIFIKASI, pesanan_pages.STATUS_PERLU_DIPERIKSA, pesanan_pages.STATUS_DIREFUND,
+))
 COPY_PESANAN_TERBIT = "Pembayaran diterima. Laporan Peta Kemampuan sudah tersedia di halaman ini."
 COPY_PESANAN_LIHAT_DEPOSIT = "Lihat potongan & rincian pesanan"
 COPY_PIN_MASUK_JUDUL = "Masukkan PIN"
@@ -189,10 +194,12 @@ def _blok_pesanan(status, cek_selesai: bool, purna=None) -> str:
     if status in pesanan_pages.COPY_STATUS:
         judul, kalimat = pesanan_pages.COPY_STATUS[status]
         sudah = status == pesanan_pages.STATUS_SUDAH_DIBAYAR
+        tanpa_tindakan = status in STATUS_PESANAN_TANPA_TINDAKAN
         teks = (COPY_PESANAN_TERBIT if sudah and purna is not None and purna.terbit is not None
-                else kalimat if sudah else COPY_PESANAN_LANJUT)
+                else kalimat if sudah or tanpa_tindakan else COPY_PESANAN_LANJUT)
         isi = C.lencana(judul, "hijau" if sudah else "kuning") + f'<p>{_e(teks)}</p>'
-        tombol = "" if sudah else _tautan_bayar("Buka halaman pembayaran")
+        tombol = "" if sudah else _tautan_bayar(
+            COPY_PESANAN_LIHAT_STATUS if tanpa_tindakan else "Buka halaman pembayaran")
         if sudah and purna is not None:
             isi += f'<p>{_e(pesanan_voucher_pages.teks_janji(purna))}</p>'
             tombol = _tautan_bayar(COPY_PESANAN_LIHAT_DEPOSIT)
