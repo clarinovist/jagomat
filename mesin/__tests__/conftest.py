@@ -68,6 +68,15 @@ def jurnal_status_guru_sintetis(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def jadwal_private_sintetis(monkeypatch):
+    """Setiap test memakai DB jadwal private sendiri; tidak pernah /data."""
+    with tempfile.TemporaryDirectory(prefix="osn-jadwal-private-test-") as direktori:
+        path = Path(direktori) / "jadwal-private.db"
+        monkeypatch.setenv("JADWAL_PRIVATE_DB", str(path))
+        yield
+
+
+@pytest.fixture(autouse=True)
 def isolasi_pembatas_laju():
     """Pembatas laju menyimpan state global; test tidak boleh mewarisi hitungan.
 
