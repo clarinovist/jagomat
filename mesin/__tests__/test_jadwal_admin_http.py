@@ -11,6 +11,7 @@ import admin_http
 import admin_security
 import admin_store
 import auth
+import jadwal_admin_http as ah
 import jadwal_dasar as jd
 import kelas_kit
 import pesanan
@@ -27,6 +28,8 @@ PERTEMUAN = "/admin/kelas/pertemuan"
 BATAL = "/admin/kelas/pertemuan/batal"
 DETAIL = "/admin/kelas/verifikasi"
 TAK_ADA = "/admin/tidak-ada"
+TAUTAN = "https://zoom.us/j/123456789"
+TAUTAN_MEET = "https://meet.google.com/abc-defg-hij"
 
 
 @pytest.fixture()
@@ -50,9 +53,10 @@ def _guru() -> str:
     return auth.cari_akun("guru-b")["id_akun"]
 
 
-def _buat_kelompok(server, cookie, *, kuota=5, nama="Mini A", tanggal="2026-11-24", jam="09:00") -> str:
+def _buat_kelompok(server, cookie, *, kuota=5, nama="Mini A", tanggal="2026-11-24", jam="09:00",
+                   lokasi=TAUTAN) -> str:
     data = _token(cookie, "jadwal_kelompok_buat", {"section": "kelas_belajar"})
-    data.update({"nama": nama, "lokasi": "Ruang 1", "guru_id": _guru(), "kuota": str(kuota),
+    data.update({"nama": nama, "lokasi": lokasi, "guru_id": _guru(), "kuota": str(kuota),
                  "tanggal": tanggal, "jam": jam})
     kode, _, tajuk = minta_admin(server, KELOMPOK, cookie, data)
     assert kode == 303, kode
@@ -110,7 +114,7 @@ def test_buat_kelompok_lewat_http_menulis_delapan_sesi(siap, admin):
 
 def test_buat_kelompok_isian_asing_dan_csrf_salah_ditolak_tanpa_tulis(siap, admin):
     data = _token(admin, "jadwal_kelompok_buat", {"section": "kelas_belajar"})
-    data.update({"nama": "Mini", "lokasi": "Ruang", "guru_id": _guru(), "kuota": "5",
+    data.update({"nama": "Mini", "lokasi": TAUTAN, "guru_id": _guru(), "kuota": "5",
                  "tanggal": "2026-11-24", "jam": "09:00", "order_id": "kor_" + "0" * 32})
     assert minta_admin(siap, KELOMPOK, admin, data)[0] == 400
     data.pop("order_id")
@@ -209,7 +213,7 @@ def test_kuota_tidak_boleh_turun_di_bawah_anggota_lewat_http(siap, admin):
     for n in (1, 2):
         assert _tempat_mini(siap, admin, _aktif("mini", n, n), kid)[0] == 303
     data = _token(admin, "jadwal_kelompok_ubah", {"kelompok_id": kid})
-    data.update({"nama": "Mini A", "lokasi": "Ruang 1", "guru_id": _guru(), "kuota": "1"})
+    data.update({"nama": "Mini A", "lokasi": TAUTAN, "guru_id": _guru(), "kuota": "1"})
     assert minta_admin(siap, KELOMPOK + "/ubah", admin, data)[0] == 409
     assert _baris("SELECT kuota FROM jadwal_kelompok WHERE id=?", (kid,))[0]["kuota"] == 2
 
@@ -245,7 +249,7 @@ def test_ubah_pertemuan_private_melewati_akses_lewat_http_ditolak(siap, admin):
 def test_klik_ganda_buat_kelompok_ditolak_409_tanpa_kembaran(siap, admin):
     _buat_kelompok(siap, admin)
     data = _token(admin, "jadwal_kelompok_buat", {"section": "kelas_belajar"})
-    data.update({"nama": "mini a", "lokasi": "Ruang 1", "guru_id": _guru(), "kuota": "5",
+    data.update({"nama": "mini a", "lokasi": TAUTAN, "guru_id": _guru(), "kuota": "5",
                  "tanggal": "2026-11-24", "jam": "09:00"})
     assert minta_admin(siap, KELOMPOK, admin, data)[0] == 409
     assert _baris("SELECT COUNT(*) AS n FROM jadwal_kelompok")[0]["n"] == 1
@@ -356,3 +360,57 @@ def test_bentrok_guru_tampil_sebagai_peringatan_dan_penyimpanan_tidak_diblokir(s
     assert "Bentrok dengan jadwal guru lain" in detail
     _, order_halaman, _ = minta_admin(siap, "%s?order=%s" % (DETAIL, order), admin)
     assert "Bentrok dengan jadwal guru lain" in order_halaman
+
+
+# --- tautan meeting Mini Class (keputusan Pemilik 25 Nov 2026: tanpa lokasi fisik) ----------------
+
+TAUTAN_TOLAK = ("http://zoom.us/j/1", "javascript:alert(1)", "https://evil.example/j/1",
+                "https://zoom.us.evil.com/j/1", "https://meet.google.com", "Ruang 1")
+
+
+def _isi_buat(admin, lokasi: str, nama: str = "Mini Tautan") -> dict:
+    data = _token(admin, "jadwal_kelompok_buat", {"section": "kelas_belajar"})
+    data.update({"nama": nama, "lokasi": lokasi, "guru_id": _guru(), "kuota": "5",
+                 "tanggal": "2026-11-24", "jam": "09:00"})
+    return data
+
+
+def test_buat_kelompok_tautan_sah_tersimpan_lewat_http(siap, admin):
+    kid = _buat_kelompok(siap, admin, lokasi=TAUTAN_MEET)
+    assert _baris("SELECT lokasi FROM jadwal_kelompok WHERE id=?", (kid,))[0]["lokasi"] == TAUTAN_MEET
+
+
+@pytest.mark.parametrize("lokasi", TAUTAN_TOLAK)
+def test_buat_kelompok_tautan_tidak_sah_ditolak_tanpa_efek_tulis(siap, admin, lokasi):
+    kode, isi, _ = minta_admin(siap, KELOMPOK, admin, _isi_buat(admin, lokasi))
+    assert kode == 400 and ah.COPY_ISIAN in isi
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_kelompok")[0]["n"] == 0
+    assert _baris("SELECT COUNT(*) AS n FROM jadwal_pertemuan")[0]["n"] == 0
+
+
+def test_ubah_kelompok_tautan_tidak_sah_ditolak_tanpa_ubah_data(siap, admin):
+    kid = _buat_kelompok(siap, admin)
+    data = _token(admin, "jadwal_kelompok_ubah", {"kelompok_id": kid})
+    data.update({"nama": "Mini Baru", "lokasi": "javascript:alert(1)", "guru_id": _guru(), "kuota": "5"})
+    kode, isi, _ = minta_admin(siap, KELOMPOK + "/ubah", admin, data)
+    assert kode == 400 and ah.COPY_ISIAN in isi
+    baris = _baris("SELECT nama,lokasi FROM jadwal_kelompok WHERE id=?", (kid,))[0]
+    assert baris["nama"] == "Mini A" and baris["lokasi"] == TAUTAN
+
+
+def test_ubah_kelompok_tautan_sah_tersimpan_lewat_http(siap, admin):
+    kid = _buat_kelompok(siap, admin)
+    data = _token(admin, "jadwal_kelompok_ubah", {"kelompok_id": kid})
+    data.update({"nama": "Mini A", "lokasi": TAUTAN_MEET, "guru_id": _guru(), "kuota": "5"})
+    assert minta_admin(siap, KELOMPOK + "/ubah", admin, data)[0] == 303
+    assert _baris("SELECT lokasi FROM jadwal_kelompok WHERE id=?", (kid,))[0]["lokasi"] == TAUTAN_MEET
+
+
+def test_halaman_admin_memuat_isian_tautan_zoom_atau_meet(siap, admin):
+    kid = _buat_kelompok(siap, admin)
+    for jalur in (DAFTAR, "%s?id=%s" % (KELOMPOK, kid)):
+        kode, isi, _ = minta_admin(siap, jalur, admin)
+        assert kode == 200
+        assert "Tautan Zoom atau Google Meet" in isi
+        assert "<label>Lokasi<input" not in isi
+        assert re.search(r'<input[^>]*type="url"[^>]*name="lokasi"', isi)

@@ -1,6 +1,9 @@
 """Halaman pilih dan tagihan Paket Belajar 1 Bulan (murni render, data sintetis)."""
 import re
+from html import escape as _escape
 from pathlib import Path
+
+import pytest
 
 import kelas_pages as halaman
 import paket_belajar_katalog as k
@@ -224,6 +227,37 @@ def test_tanpa_jadwal_tidak_ada_kartu_jadwal():
 def test_kartu_jadwal_escape_lokasi_dan_tanpa_skrip():
     html = _pilih(_dua_kartu(), jadwal=_jadwal("<script>alert(1)</script>"))
     assert "<script>alert" not in html and "&lt;script&gt;" in html
+
+
+def test_kartu_jadwal_tautan_sah_jadi_anchor_aman_dan_teks_tautan():
+    html = _pilih(_dua_kartu(), jadwal=_jadwal("https://zoom.us/j/123456789"))
+    assert 'href="https://zoom.us/j/123456789"' in html
+    assert 'target="_blank" rel="noopener noreferrer nofollow"' in html
+    teks = _teks(html)
+    assert "Tautan kelas: https://zoom.us/j/123456789" in teks and "Lokasi:" not in teks
+
+
+def test_kartu_jadwal_tautan_sah_diescape_di_atribut():
+    tautan = "https://us02web.zoom.us/j/123?pwd=abc&x=1"
+    html = _pilih(_dua_kartu(), jadwal=_jadwal(tautan))
+    assert 'href="%s"' % _escape(tautan, quote=True) in html
+    assert "&amp;x=1" in html and 'href="https://us02web.zoom.us/j/123?pwd=abc&x=1"' not in html
+
+
+@pytest.mark.parametrize("lokasi", [
+    "javascript:alert(1)", "https://evil.example/", "http://zoom.us/j/1",
+    "data:text/html,<b>x</b>", "Ruang Melati", "<script>alert(1)</script>",
+])
+def test_kartu_jadwal_lokasi_tak_sah_di_db_tidak_pernah_jadi_anchor(lokasi):
+    html = _pilih(_dua_kartu(), jadwal=_jadwal(lokasi))
+    assert 'target="_blank"' not in html
+    assert 'href="%s"' % _escape(lokasi, quote=True) not in html
+    assert "<script>" not in html and "Lokasi: " in _teks(html)
+
+
+def test_kartu_jadwal_private_online_tetap_teks_lokasi_tanpa_anchor():
+    html = _pilih(_dua_kartu(), jadwal=_jadwal("Online"))
+    assert "Lokasi: Online" in _teks(html) and 'target="_blank"' not in html
 
 
 def test_kartu_jadwal_tanpa_hex_id_dan_guru():

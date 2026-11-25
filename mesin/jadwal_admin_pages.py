@@ -16,8 +16,8 @@ from pesanan_transfer_pages import waktu_wib
 RUTE_KELOMPOK = "/admin/kelas/kelompok"
 JUDUL_DAFTAR = "Kelompok Mini Class & jadwal"
 COPY_KOSONG = "Belum ada kelompok Mini Class."
-COPY_PETUNJUK = ("Mini Class dijadwalkan per kelompok (maksimal 5 anak): satu lokasi, satu guru, delapan "
-                 "pertemuan, dua kali seminggu selama empat pekan (selesai dalam masa akses 1 bulan). "
+COPY_PETUNJUK = ("Mini Class dijadwalkan per kelompok (maksimal 5 anak): satu tautan Zoom atau Google Meet, "
+                 "satu guru, delapan pertemuan, dua kali seminggu selama empat pekan (selesai dalam masa akses 1 bulan). "
                  "Private dijadwalkan per anak dari halaman detail order.")
 COPY_TANPA_GURU = "Belum ada akun guru aktif. Tambah akun guru dulu sebelum menjadwalkan."
 COPY_KUOTA_PENUH = ("Semua kelompok sudah penuh, selesai, atau ditutup (pendaftaran ditutup setelah dua pertemuan "
@@ -71,7 +71,8 @@ def _form_buat(token, guru: Mapping[str, str]) -> str:
         '<section class="admin-kartu admin-form-pendek"><h2>Buat kelompok Mini Class</h2>'
         '<form method="post" action="%s">%s'
         '<label>Nama kelompok<input type="text" name="nama" required maxlength="80" autocomplete="off"></label>'
-        '<label>Lokasi<input type="text" name="lokasi" required maxlength="200" autocomplete="off"></label>'
+        '<label>Tautan Zoom atau Google Meet<input type="url" inputmode="url" name="lokasi" required maxlength="200" '
+        'autocomplete="off" placeholder="https://..."></label>'
         '<label>Guru<select name="guru_id" required>%s</select></label>'
         '<label>Kuota<input type="number" name="kuota" min="1" max="5" value="5" required></label>'
         '<label>Tanggal mulai<input type="date" name="tanggal" required></label>'
@@ -95,7 +96,7 @@ def blok_daftar(daftar: Sequence[Mapping], guru: Mapping[str, str], token) -> st
            _e(guru.get(b["guru_id"], "Akun guru tidak aktif")), b["terisi"], b["kuota"],
            _waktu(b["berikut"]), _e(_peringatan_kelompok(b)))
         for b in daftar)
-    tabel = vp._tabel("Kelompok", ("Nama", "Lokasi", "Guru", "Terisi", "Pertemuan berikut", "Peringatan"),
+    tabel = vp._tabel("Kelompok", ("Nama", "Tautan", "Guru", "Terisi", "Pertemuan berikut", "Peringatan"),
                       baris, COPY_KOSONG)
     return ('<section class="admin-kartu"><h2>%s</h2><p class="admin-meta">%s</p>%s%s</section>'
             % (_e(JUDUL_DAFTAR), _e(COPY_PETUNJUK), tabel, form + catatan))
@@ -145,7 +146,8 @@ def halaman_kelompok(detail: Mapping, guru: Mapping[str, str], tokens: Mapping) 
         '<section class="admin-kartu admin-form-pendek"><h2>Ubah kelompok</h2>'
         '<form method="post" action="%s/ubah">%s'
         '<label>Nama kelompok<input type="text" name="nama" value="%s" required maxlength="80"></label>'
-        '<label>Lokasi<input type="text" name="lokasi" value="%s" required maxlength="200"></label>'
+        '<label>Tautan Zoom atau Google Meet<input type="url" inputmode="url" name="lokasi" value="%s" required '
+        'maxlength="200" placeholder="https://..."></label>'
         '<label>Guru<select name="guru_id" required>%s</select></label>'
         '<label>Kuota<input type="number" name="kuota" min="1" max="5" value="%d" required></label>'
         '<button class="admin-tombol" type="submit">Simpan perubahan</button></form></section>'
@@ -158,7 +160,7 @@ def halaman_kelompok(detail: Mapping, guru: Mapping[str, str], tokens: Mapping) 
     tabel_anggota = vp._tabel("Anggota", ("Order", "Anak", "Akses berakhir"), anggota, COPY_TANPA_ANGGOTA)
     return (
         '<section class="admin-kartu"><h2>%s</h2>'
-        '<p>%s · %s · Guru %s · %d/%d anak</p>'
+        '<p>%s · Tautan: %s · Guru %s · %d/%d anak</p>'
         '<p><a class="admin-tautan" href="/admin/kelas">Kembali ke antrean</a></p></section>'
         % (_e(b["nama"]), _e(b["lokasi"]), _e(katalog.ambil(b["paket"]).nama),
            _e(guru.get(b["guru_id"], "Akun guru tidak aktif")), detail["terisi"], b["kuota"])
@@ -210,7 +212,7 @@ def blok_penempatan(order: Mapping, ringkas: Optional[Mapping], kelompok: Sequen
             % (_hidden(tokens["tempatkan"]), _opsi_guru(guru)))
     if ringkas["kelompok_id"]:
         sesi = _baris_sesi(ringkas["sesi"], None, None, bisa_ubah=False)
-        isi = ('<p>Kelompok <a class="admin-tautan" href="%s?id=%s">%s</a> · %s · Guru %s</p>'
+        isi = ('<p>Kelompok <a class="admin-tautan" href="%s?id=%s">%s</a> · Tautan: %s · Guru %s</p>'
                % (RUTE_KELOMPOK, _e(ringkas["kelompok_id"]), _e(ringkas["kelompok_nama"]),
                   _e(ringkas["kelompok_lokasi"]), _e(guru.get(ringkas["kelompok_guru"], "Akun guru tidak aktif"))))
     else:

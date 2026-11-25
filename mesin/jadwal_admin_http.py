@@ -20,6 +20,7 @@ import jadwal_admin_pages as ui
 import jadwal_dasar as jd
 import kelas_dasar as dasar
 import jadwal_store as js
+import jadwal_tautan as jt
 import pesanan
 import pesanan_alur as alur
 
@@ -40,7 +41,7 @@ COPY_KONFLIK = ("Jadwal tidak dapat disimpan: kelompok mungkin penuh, sudah sele
                 "pernah dijadwalkan, Private sudah mulai berlangsung (tidak bisa dilepas), atau paket belum aktif. "
                 "Lepas penempatan lama / pilih kelompok lain. Bila ini form Lepas: penempatan sudah berubah sejak halaman "
                 "dibuka, muat ulang halaman. Tidak ada yang diubah.")
-COPY_ISIAN = ("Isian jadwal tidak sah: periksa nama, lokasi, guru, kuota (1-5), tanggal, dan jam; pertemuan "
+COPY_ISIAN = ("Isian jadwal tidak sah: periksa nama, tautan Zoom/Google Meet, guru, kuota (1-5), tanggal, dan jam; pertemuan "
               "tidak boleh sudah lewat atau melewati masa akses paket (delapan pertemuan memakan 24 hari). "
               "Tidak ada yang diubah.")
 COPY_LAYANAN = "Jadwal belum siap di server. Coba lagi beberapa saat; tidak ada yang diubah."
@@ -86,7 +87,7 @@ def _kirim(penangan, principal, isi: str, kode: int = 200) -> None:
         return h._tidak_ada(penangan)
     h._kirim_privat(penangan, h._halaman_admin(
         principal, "kelas_belajar", isi, penangan=penangan, skrip=True, judul="Paket Belajar 1 Bulan",
-        subjudul="Kelompok, guru, lokasi, dan jadwal pertemuan."), kode, skrip=True)
+        subjudul="Kelompok, guru, tautan pertemuan, dan jadwal pertemuan."), kode, skrip=True)
 
 
 def _jalankan(penangan, fungsi) -> None:
@@ -150,13 +151,16 @@ def tangani_get(penangan, jalur) -> bool:
 
 # --- POST -----------------------------------------------------------------------------------
 
+# Field/kolom `lokasi` kelompok Mini menyimpan TAUTAN meeting Zoom/Google Meet (keputusan Pemilik 25 Nov 2026,
+# tanpa lokasi fisik). Nama field HTTP tetap `lokasi` agar whitelist dan wajib_field tidak berubah.
 def _buat(penangan, principal) -> None:
     _tinjauan, data = _terima(penangan, principal, AKSI_BUAT)
     aksi.wajib_field(data, frozenset({"nama", "lokasi", "guru_id", "kuota", "tanggal", "jam"}))
+    tautan = jt.periksa_tautan_meeting(data["lokasi"])
     guru = guru_map()
     with _buka(tulis=True) as kon:
         kid = js.buat_kelompok(
-            kon, principal.id_akun, nama=data["nama"], lokasi=data["lokasi"],
+            kon, principal.id_akun, nama=data["nama"], lokasi=tautan,
             guru_id=_guru_sah(guru, data["guru_id"]), kuota=_angka(data["kuota"]),
             tanggal=data["tanggal"], jam=data["jam"], sekarang=alur.waktu_sekarang())
     h._redirect(penangan, "%s?id=%s" % (RUTE_KELOMPOK, kid))
@@ -165,10 +169,11 @@ def _buat(penangan, principal) -> None:
 def _ubah(penangan, principal) -> None:
     tinjauan, data = _terima(penangan, principal, AKSI_UBAH)
     aksi.wajib_field(data, frozenset({"nama", "lokasi", "guru_id", "kuota"}))
+    tautan = jt.periksa_tautan_meeting(data["lokasi"])
     kid = jd.periksa_kelompok_id(tinjauan["data"].get("kelompok_id"))
     guru = guru_map()
     with _buka(tulis=True) as kon:
-        js.ubah_kelompok(kon, principal.id_akun, kid, nama=data["nama"], lokasi=data["lokasi"],
+        js.ubah_kelompok(kon, principal.id_akun, kid, nama=data["nama"], lokasi=tautan,
                          guru_id=_guru_sah(guru, data["guru_id"]), kuota=_angka(data["kuota"]),
                          sekarang=alur.waktu_sekarang())
     h._redirect(penangan, "%s?id=%s" % (RUTE_KELOMPOK, kid))

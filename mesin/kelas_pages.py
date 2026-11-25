@@ -6,7 +6,8 @@ Aturan isi:
   transfer hanya dari tagihan (nominal + kode unik), tidak pernah dari form.
 - Token form disuntik pemanggil lewat `token_untuk(aksi)` (pola Latihan Harian); tanpa JS baru, tanpa gambar baru.
 - Halaman uang = tenang: tanpa maskot di tagihan; status selalu berupa teks (lencana), bukan hanya warna.
-- Lokasi kelas offline belum ditetapkan, jadi kartu hanya menulis bahwa lokasi diumumkan setelah pendaftaran.
+- Mini Class online tanpa lokasi fisik (keputusan Pemilik 25 Nov 2026): kolom lokasi kelompok berupa tautan Zoom
+  atau Google Meet. Kartu jadwal menampilkannya sebagai tautan hanya bila lolos validasi ulang; selain itu teks biasa.
 - Tidak ada klaim hasil belajar, id order, atau kontak. Semua nilai dinamis di-escape.
 """
 from __future__ import annotations
@@ -16,6 +17,7 @@ from typing import Callable, Optional, Sequence
 
 import harian_langganan_dasar as h
 import harian_langganan_style
+import jadwal_tautan as jt
 import kelas_masa as km
 import paket_belajar_katalog as k
 import pesanan_murid_pages
@@ -47,6 +49,7 @@ COPY_LABEL_NOMINAL = "Total yang harus Anda transfer:"
 COPY_MENUNGGU = "Bukti sudah kami terima. Tim sedang memeriksanya; paket aktif setelah bukti disetujui."
 COPY_AKTIF_ISI = "Penjadwalan pertemuan diatur tim setelah pembayaran disetujui."
 COPY_JUDUL_JADWAL = "Jadwal pertemuan"
+COPY_TAUTAN_KELAS = "Tautan kelas"
 COPY_DIBATALKAN = "Dibatalkan"
 COPY_KEDALUWARSA = "Waktu pembayaran tagihan ini sudah habis. Silakan daftar lagi dari halaman pilih paket."
 COPY_KEMBALI = "Kembali ke pilih paket"
@@ -141,12 +144,25 @@ def _baris_pertemuan(sesi: dict) -> str:
     return _p(teks, "lg-ket")
 
 
+def _baris_tautan(tautan: str) -> str:
+    """Tautan Zoom/Meet yang sudah lolos validasi: buka di tab baru; href dan teks sama-sama di-escape."""
+    return (f'<p>{_e(COPY_TAUTAN_KELAS)}: <strong><a href="{_e(tautan)}" target="_blank" '
+            f'rel="noopener noreferrer nofollow">{_e(tautan)}</a></strong></p>')
+
+
+def _baris_lokasi(lokasi: str) -> str:
+    """Lokasi Mini sebagai tautan bila lolos validasi ulang (DB tidak dipercaya); selain itu teks biasa."""
+    if not jt.tautan_meeting_sah(lokasi):
+        return _baris("Lokasi", lokasi)
+    return _baris_tautan(lokasi.strip())
+
+
 def _kartu_jadwal(jadwal: Optional[dict]) -> str:
-    """Kartu 'Jadwal pertemuan': lokasi lalu pertemuan berurut. Hanya lokasi dan waktu; tanpa guru atau id apa pun."""
+    """Kartu 'Jadwal pertemuan': lokasi (atau tautan kelas) lalu pertemuan berurut. Tanpa guru atau id apa pun."""
     if jadwal is None:
         return ""
     sesi = "".join(_baris_pertemuan(x) for x in jadwal["sesi"])
-    return _kartu(f"<h2>{_e(COPY_JUDUL_JADWAL)}</h2>{_baris('Lokasi', jadwal['lokasi'])}{sesi}")
+    return _kartu(f"<h2>{_e(COPY_JUDUL_JADWAL)}</h2>{_baris_lokasi(jadwal['lokasi'])}{sesi}")
 
 
 def halaman_pilih_paket(kartu: Sequence[k.KartuPaket], tagihan: Optional[k.TagihanKelas],

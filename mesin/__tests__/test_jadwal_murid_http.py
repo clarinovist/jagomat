@@ -94,6 +94,23 @@ def test_anak_lain_tidak_melihat_jadwal_anak_lain_dan_kueri_diabaikan(siap, jam)
     assert kode == 200 and "Ruang Beta" not in isi and "Ruang Alfa" in isi
 
 
+def test_kartu_jadwal_mini_tautan_sah_jadi_tautan_kelas_aman(siap):
+    order_id = _aktifkan(siap, siap.a, "mini", JPEG)
+    _tempat_mini(order_id, _kelompok("https://us02web.zoom.us/j/123?pwd=abc"))
+    isi = halaman(siap, siap.a)
+    assert 'href="https://us02web.zoom.us/j/123?pwd=abc"' in isi
+    assert 'target="_blank" rel="noopener noreferrer nofollow"' in isi
+    assert "Tautan kelas: https://us02web.zoom.us/j/123?pwd=abc" in teks(isi)
+
+
+def test_kartu_jadwal_mini_lokasi_db_berbahaya_tidak_jadi_anchor(siap):
+    order_id = _aktifkan(siap, siap.a, "mini", JPEG)
+    _tempat_mini(order_id, _kelompok("javascript:alert(1)"))
+    isi = halaman(siap, siap.a)
+    assert SEBELUM in isi and 'target="_blank"' not in isi and 'href="javascript:' not in isi
+    assert "Lokasi: javascript:alert(1)" in teks(isi)
+
+
 def test_anak_tanpa_jadwal_tidak_melihat_kartu_walau_anak_lain_punya(siap):
     _tempat_mini(_aktifkan(siap, siap.b, "mini", PNG), _kelompok("Ruang Beta"))
     isi = halaman(siap, siap.a)
