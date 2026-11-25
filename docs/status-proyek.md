@@ -16,6 +16,7 @@ CLAUDE.md. Catatan lama harus dibaca menurut tanggal dan scope-nya.
   pembayaran Paket Coba** (`FUNNEL_AKTIF=1`, ledger `pesanan_*` dimigrasikan);
   deliverable Fase 4 masih menyusul/manual. Status baris F1 di tabel bawah.
 - **LIVE (25 November 2026, cf97b4d dari cabang `rilis-qa-20261125`, tanpa lapisan harga):** perbaikan hasil uji penguji (ganti paket, banner tagihan, pilih jadwal Mini sendiri, antrean admin, tab Akun guru, guru mandiri di balik sakelar `DAFTAR_GURU` MATI). Lapisan harga + tirai PIN LIVE menyusul di f434094 (25 Nov, migrasi `harga_*`, recovery `d91a1c5`); lihat `docs/production-release.md`.
+- **LIVE (25 November 2026 21.44 WIB, 7ca9ac9):** admin bisa menonaktifkan/mengaktifkan kembali guru (`/admin/guru/nonaktifkan|aktifkan`, tab Akun guru); image-swap tanpa migrasi dan tanpa pin (recovery `d91a1c5`, kontrak `9d20466`, deployer `7d1ff8a5…`). Tanpa jurnal di /admin/riwayat (jurnal penuh = pekerjaan lanjutan, tabel aditif + pin). Peringatan di konfirmasi: nonaktifkan menghapus data sensor guru peserta secara permanen (produksi `SENSOR_KOLEKSI_SIAP=1`, 12 peserta). Sakelar `PAKET_BELAJAR` dan `DAFTAR_GURU` tetap MATI. Sisa menunggu Pemilik: jadwal Private oleh orang tua, butir QA 11/13/14.
   dan antrean admin, hero Peta, tombol Daftar, Tanya Ayah/Bunda, label Buat akun guru); tanpa migrasi dan tanpa pin
   baru, rincian di production-release.md. Belum ada: guru mendaftar sendiri, kode kelas/tautan guru, jadwal-tugas-absensi
   di sisi anak (butuh keputusan Pemilik).
