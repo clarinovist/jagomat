@@ -6,6 +6,8 @@ dicentang (tidak tersimpan) dan jawaban tantangan terbuka lewat `<details>`.
 """
 from __future__ import annotations
 
+from typing import Optional
+
 import paket_belajar_katalog as katalog
 from peta_ikon import ikon, ubin_materi
 from peta_komponen import kepala_panel
@@ -94,10 +96,17 @@ def _centang(teks: str) -> str:
     return '<li>%s<span>%s</span></li>' % (ikon("cek", 20, "2.6"), e(teks))
 
 
-def _program(cta_html: str) -> str:
+def _paket_mini(harga_mini: Optional[int]) -> katalog.PaketBelajar:
+    """Paket Mini Class dari katalog, atau salinannya dengan harga bulanan aktif bila diberikan."""
+    if harga_mini is None:
+        return katalog.ambil(katalog.KODE_MINI)
+    return katalog.paket_dengan_harga(katalog.KODE_MINI, harga_mini)
+
+
+def _program(cta_html: str, *, harga_mini: Optional[int] = None) -> str:
     from funnel_pages import COPY_DEPOSIT, COPY_KONSULTASI, COPY_TIDAK_WAJIB_KELAS
 
-    mini = katalog.ambil(katalog.KODE_MINI)
+    mini = _paket_mini(harga_mini)
     kelas = (
         "Mulai dari fokus di laporan ini.",
         "Kelas kecil maksimal %d anak, %s, %d menit per pertemuan, dipandu Guru."

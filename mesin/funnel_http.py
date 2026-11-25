@@ -83,6 +83,22 @@ def _kirim_funnel(penangan, isi: bytes, kode: int = 200) -> None:
     penangan.wfile.write(isi)
 
 
+def _harga_mini_aktif():
+    """Harga bulanan Mini Class untuk contoh publik: harga aktif admin, atau None (pakai katalog).
+
+    Baca-saja (`buka_baca`). Galat baca diperlakukan seperti `_baca_profil`: halaman publik tetap tampil dengan
+    harga katalog, tidak 500. Tagihan TIDAK memakai fungsi ini: tagihan gagal tertutup di `kelas_rincian`.
+    """
+    import admin_store
+    import harga
+
+    try:
+        with admin_store.buka_baca(admin_store.BAWAAN) as kon:
+            return harga.harga_aktif(kon, "mini")
+    except (admin_store.StoreBelumSiap, OSError, RuntimeError, ValueError, sqlite3.Error):
+        return None
+
+
 def _halaman(jalur: str, dukungan) -> bytes:
     import funnel_contoh
     import funnel_pages
@@ -90,7 +106,7 @@ def _halaman(jalur: str, dukungan) -> bytes:
     if jalur == "/cek-kemampuan":
         return funnel_pages.halaman_cek_kemampuan(dukungan)
     if jalur == "/contoh-peta-kemampuan":
-        return funnel_contoh.halaman_contoh_peta(dukungan, _profil_guru())
+        return funnel_contoh.halaman_contoh_peta(dukungan, _profil_guru(), harga_mini=_harga_mini_aktif())
     if jalur == JALUR_LEMBAR_CONTOH:
         return funnel_contoh.halaman_lembar_contoh()
     return funnel_pages.halaman_paket_coba(dukungan, _profil_guru())

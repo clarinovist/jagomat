@@ -62,11 +62,14 @@ def halaman_lembar_contoh() -> bytes:
     return peta_lembar.halaman_lembar(peta_contoh_data.DATA_CONTOH, contoh=True)
 
 
-def halaman_contoh_peta(dukungan=None, profil=None) -> bytes:
-    """Contoh laporan Peta Kemampuan v1 (sintetis) dengan satu CTA utama."""
+def halaman_contoh_peta(dukungan=None, profil=None, *, harga_mini=None) -> bytes:
+    """Contoh laporan Peta Kemampuan v1 (sintetis) dengan satu CTA utama.
+
+    `harga_mini` = harga bulanan Mini Class aktif dari admin; None = harga katalog.
+    """
     blok_laporan = peta_laporan_ortu_pages.blok_peta(CONTOH_PETA_V1)
     batas = P._kartu_batas()
-    program = peta_misi._program(P._cta_utama(P.COPY_CTA))
+    program = peta_misi._program(P._cta_utama(P.COPY_CTA), harga_mini=harga_mini)
     isi = f"""{P._topbar(tautan_funnel=True)}
 <main class="landing-bungkus-st funnel-halaman-st" id="konten" tabindex="-1">
 <header class="funnel-bagian-st">

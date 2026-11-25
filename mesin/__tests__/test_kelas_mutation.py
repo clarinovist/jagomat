@@ -70,7 +70,7 @@ KASUS = (
       S + "test_kartu_memuat_semua_paket_katalog_dengan_rincian_dan_penanda_tagihan")),
     ("harga-mini-turun-ke-250rb",
      ((KATALOG_HARGA, "HARGA_MINI = 300_000\n", "HARGA_MINI = 250_000\n"),),
-     (KATALOG + "test_mini_300rb_offline_60_menit_kuota_5",
+     (KATALOG + "test_mini_300rb_online_60_menit_kuota_5",
       S + "test_tagihan_tanpa_deposit_memakai_harga_katalog")),
     # --- uang: total = nominal + kode, kode unik, hitungan ---
     ("total-tidak-sama-nominal-tambah-kode-saat-setujui",

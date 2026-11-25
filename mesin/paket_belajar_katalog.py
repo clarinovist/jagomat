@@ -1,6 +1,6 @@
 """Katalog Paket Belajar 1 Bulan (Private dan Mini Class), aturan nominal, dan model data bersama.
 
-Tanpa DB, jaringan, atau env. Semua harga HANYA konstanta di sini (server); tidak pernah dari form.
+Tanpa DB, jaringan, atau env. Harga katalog konstanta di sini (server); harga aktif admin masuk lewat argumen dari pemanggil yang membaca DB; tidak pernah dari form.
 Keputusan Pemilik 24 Nov 2026 (plan `docs/plan/2026-11-24-paket-belajar-bulanan.md` §4a), direvisi
 25 Nov 2026: harga Mini naik dan diskon anak kedua dihapus total.
 - Private: Rp80.000 x 8 pertemuan, 60 menit, online. Mini Class: Rp300.000, 8 pertemuan, 60 menit,
@@ -13,7 +13,7 @@ Model di bagian bawah adalah kontrak antara store, halaman, dan HTTP.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional, Tuple
 
 import pesanan_dasar as d
@@ -110,16 +110,33 @@ def _periksa_bool(nama: str, nilai) -> bool:
     return nilai
 
 
-def hitung_rincian(kode: str, *, deposit_aktif: bool) -> Rincian:
+def paket_dengan_harga(kode: str, harga_bulanan: int) -> PaketBelajar:
+    """Salinan paket katalog dengan harga BULANAN dari harga aktif admin; katalog sendiri tidak berubah.
+
+    Harga bulanan dipakai apa adanya (Private Rp640.000 per bulan, bukan dikali pertemuan). Fungsi murni: pemanggil
+    yang membaca DB, bukan modul ini.
+    """
+    return replace(ambil(kode), harga=_periksa_harga(harga_bulanan))
+
+
+def _periksa_harga(nilai) -> int:
+    if type(nilai) is not int or nilai <= 0:
+        raise ValueError("harga paket harus bilangan bulat positif")
+    return nilai
+
+
+def hitung_rincian(kode: str, *, deposit_aktif: bool, harga_paket: Optional[int] = None) -> Rincian:
     """Nominal tagihan: harga paket dikurangi deposit Peta bila aktif; hasil selalu > 0.
 
+    `harga_paket` None = harga katalog; selain itu harga bulanan aktif (wajib bilangan bulat positif asli).
     `potongan_diskon` selalu 0: diskon anak kedua sudah dihapus (25 Nov 2026). Kolomnya dipertahankan di
     `kelas_tagihan` agar skema dan tagihan lama tetap utuh.
     """
     paket = ambil(kode)
     deposit = _periksa_bool("deposit_aktif", deposit_aktif)
+    harga = paket.harga if harga_paket is None else _periksa_harga(harga_paket)
     potongan_deposit = RUPIAH_DEPOSIT if deposit else 0
-    nominal = paket.harga - potongan_deposit
+    nominal = harga - potongan_deposit
     if nominal <= 0:
         raise ValueError("nominal tagihan harus positif")
-    return Rincian(paket.kode, paket.harga, potongan_deposit, 0, nominal)
+    return Rincian(paket.kode, harga, potongan_deposit, 0, nominal)
