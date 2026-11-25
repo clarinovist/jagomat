@@ -38,7 +38,9 @@ jadi pisahkan sebelum push). Rincian perilaku di spec.md (Paket Belajar, "Perbai
 - **Tab Akun guru di admin:** tanpa migrasi dan tanpa berkas kontrak; rute `/admin?section=guru` baru dan parameter `dari=guru` pada /admin/tinjau. Rollback ke image lama: tab hilang, `section=guru` jatuh ke Ringkasan, aksi akun lewat menu Keluarga tetap. Cek setelah deploy: tab tampil untuk admin, non-admin 404, reset sandi guru sintetis dari tab.
 - Tes mutasi `test_peta_laporan_ortu_mutation` kasus M8 sudah gagal di HEAD sebelum perubahan ini.
 
-## Pin recovery harga (`harga_*`, harga admin) — disiapkan 25 November 2026, BELUM deploy
+## Pin recovery harga (`harga_*`, harga admin) — LIVE 25 November 2026 (f434094)
+
+**Deploy:** controlled `deploy-v2` memasang **f434094** (`f4340940fcd44121107d4c1d9a2e22e811e28a64`, digest `sha256:23fbbc40…b793`) dengan recovery `d91a1c5` (digest `sha256:79fb514a…588b`), ±20.25–20.29 WIB (situs ditutup ±3 menit). Dari `main` (memuat harga + tirai PIN + perbaikan QA). Deployer baru (hash `7d1ff8a5…9018`, cadangan lama `osn-deploy.bak-20261125T202456`), approval cf97b4d diarsipkan, migrasi `harga_*` nyata (tabel 0 baris, `user_version` tetap 9), rehearsal C–B–C, postcheck hijau (`harga_schema_valid`, `harga_awal_utuh`, `/admin/harga` anonim 404). Harga tetap bawaan kode sampai admin mengubahnya di `/admin/harga`; `PAKET_BELAJAR` dan `DAFTAR_GURU` tetap MATI.
 
 Perkakas rilis lapisan harga (`6da1fe8`, `3e4f755`, `a16a4e1`; domain `harga*.py`, `schema_harga.py`, layar `/admin/harga`) mengikuti pola `jadwal_*`:
 - **Pin recovery baru `d91a1c5`** (`d91a1c50e8a3458c17a35635542307bd43aaa5a0`, branch `recovery-harga` = `37307ed` + `harga.py`, `harga_aturan.py`, `harga_validasi.py`,
