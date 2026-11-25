@@ -6,7 +6,6 @@ hanya lewat ganti, nominal dari katalog di server, deposit Peta pindah, tanpa bu
 """
 import pytest
 
-import harga
 import kelas_dasar as k
 import kelas_ganti as G
 import kelas_kit as kk
@@ -58,7 +57,7 @@ def test_tagihan_terbaru_menang_walau_jam_server_mundur(kon_kelas):
 def test_nominal_baru_dari_katalog_server_dan_kode_unik_beda(kon_kelas):
     lama = kk.tagih(kon_kelas, paket="mini")
     baru = _ganti(kon_kelas, "private")
-    harapan = katalog.hitung_rincian("private", deposit_aktif=False, harga_paket=harga.harga_aktif(kon_kelas, "private"))
+    harapan = katalog.hitung_rincian("private", deposit_aktif=False)
     assert baru.rincian.nominal == harapan.nominal and baru.total == harapan.nominal + baru.kode_unik
     assert baru.total != lama.total
 
