@@ -8,6 +8,7 @@ import admin_operations
 import admin_queries as Q
 import admin_store
 import admin_antrean_bayar
+import admin_antrean_guru
 import admin_transfer_menunggu
 import admin_verifikasi_pages
 import harian_langganan_admin_pages
@@ -25,6 +26,9 @@ JALUR_KESIAPAN = "/admin/sakelar#kesiapan"  # Pengaturan layanan, bagian Kesiapa
 JALUR_SISWA_TANPA_LOGIN = "/admin?section=siswa&status=student_without_login"
 KALIMAT_TINDAK_LANJUT_TUNGGAKAN = "Hubungi orang tua: ajak ikut kelas lagi atau tanyakan umpan balik."
 JALUR_BELUM_BAYAR = "/admin/pembayaran?status=belum_bayar"
+JALUR_GURU_BARU = "/admin/lembaga"
+KALIMAT_GURU_BARU = ("Guru ini mendaftar sendiri dan belum dimasukkan ke lembaga mana pun. Buka Lembaga, lalu pakai Tambah guru "
+                     "bila perlu; boleh dibiarkan bila memang tidak bergabung.")
 JALUR_BELUM_DITEMPATKAN = kelas_admin_pages.RUTE
 KALIMAT_BELUM_DITEMPATKAN = ("Sudah bayar dan disetujui, tetapi jadwal belum ada. Buka Paket belajar, tempatkan anak ke kelompok atau "
                             "jadwalkan Private, atau hubungi orang tua bila jadwalnya perlu dicocokkan.")
@@ -117,6 +121,15 @@ def _item_belum_ditempatkan(path_admin, sekarang: float) -> Tuple[ItemAntrean, .
         return ()
     return (ItemAntrean("penting", "%d paket aktif belum ditempatkan" % jumlah, KALIMAT_BELUM_DITEMPATKAN,
                         JALUR_BELUM_DITEMPATKAN, "Buka paket belajar"),)
+
+
+def _item_guru_baru() -> Tuple[ItemAntrean, ...]:
+    """Satu butir tinjau bila ada guru yang mendaftar sendiri dan belum dimasukkan ke lembaga (tanpa nama akun)."""
+    jumlah = admin_antrean_guru.jumlah()
+    if not jumlah:
+        return ()
+    return (ItemAntrean("tinjau", "%d guru baru belum masuk lembaga" % jumlah, KALIMAT_GURU_BARU,
+                        JALUR_GURU_BARU, "Buka lembaga"),)
 
 
 def _urutkan_tingkat(item: Tuple[ItemAntrean, ...]) -> Tuple[ItemAntrean, ...]:
@@ -243,14 +256,15 @@ def kumpulkan(konteks: Q.KonteksAdmin, path_admin, *, sekarang: float) -> Antrea
     tunggakan = _item_tunggakan(path_admin, sekarang)
     belum_bayar = _item_belum_bayar(path_admin, sekarang)
     belum_tempat = _item_belum_ditempatkan(path_admin, sekarang)
+    guru_baru = _item_guru_baru()
     lain = item_pengguna(konteks)
-    semua = _urutkan_tingkat(transfer + harian + kelas + operasi + backup + tunggakan + belum_bayar + belum_tempat + lain)
+    semua = _urutkan_tingkat(transfer + harian + kelas + operasi + backup + tunggakan + belum_bayar + belum_tempat + guru_baru + lain)
     menunggu_semua = len(transfer) + len(harian) + len(kelas)
     mendesak = total_operasi + menunggu_semua
     penting = sum(1 for i in backup + tunggakan + belum_tempat + lain if i.tingkat == "penting")
     return AntreanAdmin(
         item=semua[:BATAS_BARIS],
-        total=menunggu_semua + total_operasi + len(backup) + len(tunggakan) + len(belum_bayar) + len(belum_tempat) + len(lain),
+        total=menunggu_semua + total_operasi + len(backup) + len(tunggakan) + len(belum_bayar) + len(belum_tempat) + len(guru_baru) + len(lain),
         mendesak=mendesak,
         layanan_tersedia=tersedia,
         bukti_backup=bukti,

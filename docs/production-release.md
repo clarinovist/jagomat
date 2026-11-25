@@ -33,7 +33,7 @@ jadi pisahkan sebelum push). Rincian perilaku di spec.md (Paket Belajar, "Perbai
   pertama kali diubah, seperti sakelar sebelumnya; `feature_switch.py` dan `guru_daftar_*` bukan berkas kontrak. Cadangkan
   `sakelar.db` sebelum perubahan sakelar pertama sesudah deploy. Mati = `/daftar?peran=guru` menampilkan "belum dibuka" dan POST
   ditolak 403. Setelah dinyalakan, cek dengan akun sintetis dan pastikan akun itu tidak muncul di lembaga mana pun.
-  Rollback ke image lama: parameter `peran` diabaikan; DB sakelar yang sudah diperlebar tetap terbaca kode lama (baris `DAFTAR_GURU`
+  Butir antrean "guru baru belum masuk lembaga" hanya membaca receipt yang sudah ada (tanpa data baru). Rollback ke image lama: parameter `peran` diabaikan; DB sakelar yang sudah diperlebar tetap terbaca kode lama (baris `DAFTAR_GURU`
   diabaikan); akun guru yang sudah dibuat tetap sah.
 - Tes mutasi `test_peta_laporan_ortu_mutation` kasus M8 sudah gagal di HEAD sebelum perubahan ini.
 
