@@ -463,8 +463,8 @@ def render_detail_siswa(data: Q.DetailSiswa, *, tindakan: Optional[str] = None) 
 def form_buat_keluarga(csrf: str, token: str) -> str:
     return (
         '<p class="admin-jejak"><a href="/admin?section=keluarga">← Kembali ke daftar keluarga</a></p>'
-        '<section class="admin-kartu admin-form-pendek"><h2>Buat akun orang tua</h2>'
-        '<p class="admin-meta">Alias baru tidak boleh mengambil alih keluarga lama.</p>'
+        '<section class="admin-kartu admin-form-pendek"><h2>Buat akun guru</h2>'
+        '<p class="admin-meta">Alias baru tidak boleh mengambil alih keluarga lama. Setelah dibuat, ikat guru ke lembaga di Lembaga les.</p>'
         '<form method="post" action="/admin/akun">'
         '<input type="hidden" name="aksi" value="account_teacher_create">'
         '<input type="hidden" name="csrf" value="%s">'
@@ -472,7 +472,7 @@ def form_buat_keluarga(csrf: str, token: str) -> str:
         '<label>Alias akun<input name="alias" required maxlength="40" autocomplete="off"></label>'
         '<label>Sandi baru<input type="password" name="sandi_baru" required minlength="12" autocomplete="new-password"></label>'
         '<label>Sandi admin saat ini<input type="password" name="reauth" required autocomplete="current-password"></label>'
-        '<button class="admin-tombol" type="submit">Buat akun orang tua</button>'
+        '<button class="admin-tombol" type="submit">Buat akun guru</button>'
         '</form></section>' % (_e(csrf), _e(token))
     )
 
@@ -657,8 +657,8 @@ def render_bagian_pendaftaran(status, *, csrf: str, token: str) -> str:
 
 def render_bulk_awal(csrf: str, token: str) -> str:
     return (
-        '<p><a class="admin-tautan" href="/admin/bulk/pilih?peran=guru">Kelola akun orang tua terpilih</a></p>'
-        '<details class="admin-kartu"><summary>Buat akun orang tua massal</summary>'
+        '<p><a class="admin-tautan" href="/admin/bulk/pilih?peran=guru">Kelola akun guru terpilih</a></p>'
+        '<details class="admin-kartu"><summary>Buat akun guru massal</summary>'
         '<p class="admin-meta">CSV UTF-8 satu kolom <code>pengguna</code>; maksimal 100 akun dan 64 KiB. Tahap ini hanya meninjau alias, bukan membuat akun.</p>'
         '<p><a class="admin-tautan" href="/admin/bulk/templat">Unduh templat CSV kosong</a></p>'
         '<form method="post" action="/admin/bulk/impor" enctype="multipart/form-data">'
@@ -680,7 +680,7 @@ def render_bulk_batch(batch, hasil, csrf, tokens, aliases):
         'running': 'Sedang diproses', 'partial': 'Sebagian selesai',
         'stopped': 'Dihentikan', 'attention': 'Perlu pemeriksaan',
     }
-    aksi = {'account_teacher_create': 'Buat orang tua', 'account_password_reset': 'Reset sandi unik',
+    aksi = {'account_teacher_create': 'Buat guru', 'account_password_reset': 'Reset sandi unik',
             'account_session_revoke': 'Keluarkan perangkat'}[batch.aksi]
     fresh = {x.item_id: x.credential_sekali for x in hasil if x.credential_sekali}
     hitung = {}

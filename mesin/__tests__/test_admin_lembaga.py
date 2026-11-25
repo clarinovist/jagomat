@@ -576,3 +576,14 @@ def test_hapus_login_guru_diizinkan_setelah_dilepas(data):
     assert _post(data, BUBARKAN, _sah(data, BUBARKAN, lid=lid))[0] == 303
     assert _hapus_login(data, "guru-x1")[0] == 303
     assert auth.cari_akun("guru-x1") is None
+
+
+# Butir QA #5 (25 Nov 2026): "Tambah guru" hanya mengikat guru yang sudah ada; admin perlu jalan ke pembuatan akun guru.
+def test_form_tambah_guru_menaut_ke_buat_akun_guru_baik_ada_calon_maupun_kosong():
+    import admin_lembaga_pages as P
+    token = P.TokenLembaga(csrf="c", buat="b", tambah={1: "tinjauan"})
+    tautan = 'href="/admin/tinjau?aksi=account_teacher_create">Buat akun guru baru</a>'
+    assert tautan in P._form_tambah(token, 1, ["guru-a"])
+    kosong = P._form_tambah(token, 1, [])
+    assert "Semua guru sudah terikat pada lembaga." in kosong and tautan in kosong
+    assert P._form_tambah(P.TokenLembaga(csrf="c", buat="b"), 1, ["guru-a"]) == ""

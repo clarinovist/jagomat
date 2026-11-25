@@ -217,7 +217,7 @@ def render_keluarga(
         )
     tersembunyi = "" if data.cari else hidden_filter({"status": data.status, "memiliki_anak": data.memiliki_anak})
     buat = (
-        '<a class="admin-tautan admin-tautan-kecil" href="/admin/tinjau?aksi=account_teacher_create">Buat akun orang tua</a>'
+        '<a class="admin-tautan admin-tautan-kecil" href="/admin/tinjau?aksi=account_teacher_create">Buat akun guru</a>'
         if tampilkan_aksi else ""
     )
     filter_data = {

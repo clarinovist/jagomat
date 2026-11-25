@@ -113,4 +113,4 @@ def test_buat_akun_ikut_grup_pencarian_di_header_keluarga():
     import admin_pages as P
     halaman = P.halaman_admin("keluarga", D.render_keluarga(_keluarga(), csrf="x"), pengguna="Demo").decode()
     header = re.search(r'<header class="admin-kepala admin-kepala-aksi">.*?</header>', halaman, re.S).group(0)
-    assert "Buat akun orang tua" in header and 'class="admin-grup-cari"' in header
+    assert "Buat akun guru" in header and 'class="admin-grup-cari"' in header

@@ -684,7 +684,7 @@ def test_audit_ui_tidak_memuat_credential_atau_alias(server):
         headers={"Origin": server.alamat, "Sec-Fetch-Site": "same-origin"},
     )
     kode, isi, _ = _minta(server, "/admin?section=riwayat", cookie=token)
-    assert kode == 200 and "Buat orang tua" in isi
+    assert kode == 200 and "Buat guru" in isi
     assert rahasia not in isi and "Audit-C" not in isi
 
 

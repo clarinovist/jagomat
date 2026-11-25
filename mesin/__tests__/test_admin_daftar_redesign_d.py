@@ -88,10 +88,10 @@ def test_keluarga_chip_sama_di_mode_cari_dan_pencarian_tetap_post():
 
 def test_keluarga_buat_akun_tautan_sekunder_kecil_tanpa_tombol_utama():
     isi = D.render_keluarga(_keluarga(), csrf="x", sekarang=SEKARANG)
-    assert '<a class="admin-tautan admin-tautan-kecil" href="/admin/tinjau?aksi=account_teacher_create">Buat akun orang tua</a>' in isi
+    assert '<a class="admin-tautan admin-tautan-kecil" href="/admin/tinjau?aksi=account_teacher_create">Buat akun guru</a>' in isi
     assert "admin-tombol\" href" not in isi
     baca_saja = D.render_keluarga(_keluarga(), csrf="x", tampilkan_aksi=False, sekarang=SEKARANG)
-    assert "Buat akun orang tua" not in baca_saja
+    assert "Buat akun guru" not in baca_saja
 
 
 def test_keluarga_filter_lanjutan_di_details_dan_kontrak_hidden_tidak_berubah():
@@ -199,7 +199,7 @@ def test_http_riwayat_dikelompokkan_per_hari_rentang_get_dan_tanpa_alias(server)
     _buat_orang_tua(server, token)
     kode, isi, _ = _minta(server, "/admin?section=riwayat", cookie=token)
     assert kode == 200 and "<h3>Hari ini</h3>" in isi
-    assert "Pengelola melakukan <strong>buat orang tua</strong> pada akun baru." in isi
+    assert "Pengelola melakukan <strong>buat guru</strong> pada akun baru." in isi
     assert "Filter cepat aksi" not in isi and "Audit-D" not in isi and "sandi-sintetis-d" not in isi
     tautan = re.findall(r'<a class="admin-chip" href="([^"]+)">Hari ini</a>', isi)
     assert len(tautan) == 1

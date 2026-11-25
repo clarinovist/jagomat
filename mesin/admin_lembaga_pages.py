@@ -99,19 +99,24 @@ def _bagian_anggota(token: TokenLembaga, lembaga_id: int, anggota: Tuple[str, ..
     return '<div class="admin-bagian"><h3>Anggota</h3>%s</div>' % isi
 
 
+# Tombol "Tambah guru" hanya mengikat akun guru yang sudah ada; akun barunya dibuat lewat alur Buat akun guru (butir QA #5).
+_TAUTAN_BUAT_GURU = '<a class="admin-tautan" href="/admin/tinjau?aksi=account_teacher_create">Buat akun guru baru</a>'
+
+
 def _form_tambah(token: TokenLembaga, lembaga_id: int, calon: Sequence[str]) -> str:
     tinjauan = token.tambah.get(lembaga_id)
     if tinjauan is None:
         return ""
     if not calon:
         return ('<div class="admin-bagian"><h3>Tambah guru</h3>'
-                '<p class="admin-meta">Semua guru sudah terikat pada lembaga.</p></div>')
+                '<p class="admin-meta">Semua guru sudah terikat pada lembaga. %s</p></div>' % _TAUTAN_BUAT_GURU)
     return (
         '<div class="admin-bagian"><h3>Tambah guru</h3>'
         '<form class="admin-form-bagian admin-form-pendek" method="post" action="/admin/lembaga/anggota">%s'
         '<label>Guru yang belum bergabung<select name="guru" required>%s</select></label>%s'
-        '<button class="admin-tombol admin-tombol-sekunder" type="submit">Tambah guru</button></form></div>'
-    ) % (_tersembunyi(token.csrf, tinjauan, lembaga_id), _pilihan(calon), _kolom_sandi())
+        '<button class="admin-tombol admin-tombol-sekunder" type="submit">Tambah guru</button></form>'
+        '<p class="admin-meta">Guru belum ada di daftar? %s</p></div>'
+    ) % (_tersembunyi(token.csrf, tinjauan, lembaga_id), _pilihan(calon), _kolom_sandi(), _TAUTAN_BUAT_GURU)
 
 
 def _zona_bahaya(token: TokenLembaga, lembaga_id: int, nama: str) -> str:
