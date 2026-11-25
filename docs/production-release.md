@@ -12,6 +12,17 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Deploy surel E1 + copy Mini/Peta — 25 November 2026
+
+Controlled `deploy-v2` memasang **3c3d427** (`3c3d4273a7c58073cbcf338767f8db552d31606a`, digest `sha256:2a6f00d8…e341`),
+healthy, menggantikan **6e3e3ee**, ±14.48–14.53 WIB (situs ditutup ±5 menit). Isi: perapian copy Peta Kemampuan/Mini
+(Mini online lewat Zoom/Meet), kolom tautan meeting kelompok Mini, dan email E1 (`surel_resend.py`,
+`surel_tunggakan_admin.py`; cron `/etc/cron.d/osn-surel-tunggakan` 08.30 WIB, kirim hanya bila ada tunggakan). Kontrak
+`1bd09a6…` di kedua sisi; recovery tetap **37307ed**; tanpa migrasi, tanpa pin/flag baru; deployer `9f8ce27c…` tidak berubah.
+`reopen` pertama berhenti karena sakelar `PAKET_BELAJAR` ternyata sudah menyala (diubah admin 12.26 WIB, sengaja oleh Pemilik);
+asersi kit dilonggarkan atas izin Pemilik, `reopen` diulang, postcheck hijau. Sakelar `PAKET_BELAJAR` kini **menyala** di produksi.
+Approval `/opt/osn/rollout-approval.json` tersisa (kedaluwarsa); arsipkan sebelum rilis berikutnya.
+
 ## Pin recovery jadwal-3 (tutup pendaftaran, bentrok guru, versi lepas) — disiapkan 25 November 2026, BELUM deploy
 
 Kode `a005c85`: pendaftaran kelompok Mini ditutup setelah dua pertemuan aktif mulai, peringatan bentrok jadwal guru
