@@ -320,7 +320,7 @@ def test_gagal_catat_menghapus_berkas(dua, monkeypatch):
     def gagal(*_a, **_k):
         raise OSError("disk penuh")
 
-    monkeypatch.setattr(kelas_murid_http.store, "catat_bukti", gagal)
+    monkeypatch.setattr(kelas_murid_http.kelas_unggah, "catat_bukti_terbaru", gagal)
     assert unggah(dua, dua.a)[0] == 503
     assert semua_berkas(dua) == [] and hitung()["kelas_bukti"] == 0
 

@@ -3,12 +3,11 @@
 Dipanggil `registration_http` hanya bila query persis `peran=guru` (selain itu `/daftar` berjalan seperti biasa, tidak ada eskalasi
 peran dari form). Membuat akun guru TANPA profil anak lewat `admin_registration.daftar_publik` (guard registrasi, kunci DB
 pemilik, dan receipt idempoten yang sudah ada). Akun baru tidak masuk lembaga mana pun: pemasukan oleh admin di /admin/lembaga.
-Validasi server otoritatif sebelum menulis; form persis `{nama, sandi, setuju, token_form}`. Laju: lima akun baru per IP per 15 menit
-(kunci laju khusus yang tidak bisa menjadi nama pengguna). Sandi tidak pernah dikembalikan ke halaman, log, atau galat.
+Validasi server otoritatif sebelum menulis; form persis `{nama, sandi, setuju, token_form}`. Laju: lima percobaan pembuatan per IP dan 30 global per 15 menit
+(`jatah_pendaftaran`, terpisah dari pembatas login). Sandi tidak pernah dikembalikan ke halaman, log, atau galat.
 """
 from __future__ import annotations
 
-import threading
 import time
 import urllib.parse
 
@@ -16,14 +15,13 @@ import auth
 import database
 import guru_daftar_gate as gerbang
 import ip_klien
+import jatah_pendaftaran
 import laju_masuk
 import sessions
 
-_KUNCI_JATAH = threading.Lock()
 PARAMETER = "peran"
 NILAI = "guru"
 KUNCI_FORM = frozenset({"nama", "sandi", "setuju", "token_form"})
-KUNCI_LAJU = "!daftar-guru"          # karakter "!" tidak sah dalam nama pengguna, jadi tidak bisa bentrok dengan akun
 PESAN_NAMA = "Nama pengguna wajib diisi."
 PESAN_SANDI = "Kata sandi minimal 8 karakter."
 PESAN_SETUJU = "Centang persetujuan Syarat Penggunaan dan Kebijakan Privasi dulu, ya."
@@ -83,16 +81,6 @@ def _baca_isian(penangan) -> dict:
     return data
 
 
-def ambil_jatah(kunci_ip: str) -> bool:
-    """Ambil satu jatah pendaftaran untuk IP ini; False bila jatah habis. Cek dan catat satu langkah (atomik per proses),
-    jadi permintaan paralel tidak bisa sama-sama lolos sebelum hitungan naik."""
-    with _KUNCI_JATAH:
-        if laju_masuk.sedang_diblokir(KUNCI_LAJU, kunci_ip):
-            return False
-        laju_masuk.catat_gagal(KUNCI_LAJU, kunci_ip)
-        return True
-
-
 def _periksa(data: dict) -> str:
     """Pesan galat ramah pertama atau '' bila lolos (urutan = urutan tampil di form)."""
     if not data["nama"].strip():
@@ -104,11 +92,10 @@ def _periksa(data: dict) -> str:
     return ""
 
 
-def _daftarkan(data: dict):
+def _daftarkan(data: dict, tinjauan: dict):
     import admin_http
     import admin_registration
     import admin_store
-    tinjauan = admin_http.periksa_token_pendaftaran(data["token_form"])
     return admin_registration.daftar_publik(
         admin_store.BAWAAN, auth.BERKAS_SANDI, database.BAWAAN,
         operasi_id=tinjauan["op"], alias=data["nama"].strip(), sandi=data["sandi"],
@@ -163,10 +150,11 @@ def tangani_post(penangan) -> None:
         if pesan:
             penangan._kirim(_halaman(pesan, galat=True, nama=nama, token_form=token_baru))
             return
-        if not ambil_jatah(kunci_ip):                          # satu percobaan pembuatan = satu hitungan laju
+        tinjauan = admin_http.periksa_token_pendaftaran(data["token_form"])   # token palsu ditolak SEBELUM jatah terpakai
+        if not jatah_pendaftaran.ambil(kunci_ip):              # satu percobaan pembuatan = satu jatah (per IP dan global)
             penangan._kirim(_halaman(PESAN_LAJU, galat=True, nama=nama, token_form=data["token_form"]), 429)
             return
-        akun_baru = _daftarkan(data)
+        akun_baru = _daftarkan(data, tinjauan)
     except admin_registration.RegistrasiBelumSelesai:
         penangan._kirim(_halaman(PESAN_BELUM_SELESAI, galat=True, nama=nama, token_form=data.get("token_form", "")), 503)
         return

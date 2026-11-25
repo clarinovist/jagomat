@@ -37,12 +37,16 @@ KASUS = (
     ("form_longgar_menerima_field_asing", HTTP, [
         ("    if set(data) != KUNCI_FORM:", "    if not KUNCI_FORM <= set(data):"),
     ], "test_field_asing_ditolak_tanpa_akun"),
-    ("laju_per_ip_dimatikan", HTTP, [
-        ("        if laju_masuk.sedang_diblokir(KUNCI_LAJU, kunci_ip):\n            return False\n", ""),
-    ], "test_laju_per_ip_menutup_keran_setelah_lima_akun or test_jatah_per_ip_atomik_di_bawah_permintaan_paralel"),
-    ("laju_tidak_mencatat_jatah", HTTP, [
-        ("        laju_masuk.catat_gagal(KUNCI_LAJU, kunci_ip)\n        return True", "        return True"),
-    ], "test_laju_per_ip_menutup_keran_setelah_lima_akun or test_jatah_per_ip_atomik_di_bawah_permintaan_paralel"),
+    ("jatah_pendaftaran_dilewati", HTTP, [
+        ("        if not jatah_pendaftaran.ambil(kunci_ip):", "        if False:"),
+    ], "test_laju_per_ip_menutup_keran_setelah_lima_percobaan or test_banjir_kunci_login_tidak_membuka_jatah_pendaftaran"),
+    ("token_diperiksa_sesudah_jatah", HTTP, [
+        ('        tinjauan = admin_http.periksa_token_pendaftaran(data["token_form"])   # token palsu ditolak SEBELUM jatah terpakai\n        if not jatah_pendaftaran.ambil(kunci_ip):', '        if not jatah_pendaftaran.ambil(kunci_ip):'),
+        ('        akun_baru = _daftarkan(data, tinjauan)', '        akun_baru = _daftarkan(data, admin_http.periksa_token_pendaftaran(data["token_form"]))'),
+    ], "test_token_form_palsu_tidak_membakar_jatah"),
+    ("persetujuan_dilewati_setelah_daftar", HTTP, [
+        ('    tujuan = "/persetujuan" if policy_http.perlu(akun_baru) else "/guru"', '    tujuan = "/guru"'),
+    ], "test_guru_baru_wajib_persetujuan_sebelum_memakai_beranda_guru"),
     ("query_peran_ganda_dianggap_guru", HTTP, [
         ("    return nilai == [NILAI]", "    return NILAI in nilai"),
     ], "test_daftar_biasa_dan_peran_lain_tidak_berubah"),

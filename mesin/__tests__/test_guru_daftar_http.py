@@ -14,6 +14,7 @@ import admin_registration as reg
 import admin_store
 import auth
 import database
+import jatah_pendaftaran
 import laju_masuk
 import lembaga_store
 from http_test_kit import ServerUji
@@ -30,9 +31,11 @@ def server(tmp_path, monkeypatch):
     auth.tambah_akun("admin-sintetis", "sandi-admin-sintetis", "admin")
     reg.migrasikan_profil_registrasi(database.BAWAAN)
     laju_masuk._reset()
+    jatah_pendaftaran._reset()
     yield s
     s.berhenti()
     laju_masuk._reset()
+    jatah_pendaftaran._reset()
 
 
 @pytest.fixture
@@ -63,6 +66,31 @@ def _form(server, path=GURU_PATH, **tambahan):
     token = re.search(r'name="token_form" value="([^"]+)"', isi).group(1)
     data = dict(nama="bu-ratna", sandi="sandi-guru-sintetis", setuju="1", token_form=token)
     return {**data, **tambahan}
+
+
+def _form_html(isi: str) -> dict:
+    """{action: {name: value}} dari input form di halaman (cukup untuk form persetujuan sintetis)."""
+    from html.parser import HTMLParser
+
+    class Pembaca(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.hasil, self.kini = {}, None
+
+        def handle_starttag(self, tag, atribut):
+            a = dict(atribut)
+            if tag == "form":
+                self.kini = self.hasil.setdefault(a.get("action", ""), {})
+            elif tag == "input" and self.kini is not None and a.get("name") and a.get("type") != "checkbox":
+                self.kini[a["name"]] = a.get("value", "")
+
+        def handle_endtag(self, tag):
+            if tag == "form":
+                self.kini = None
+
+    pembaca = Pembaca()
+    pembaca.feed(isi)
+    return pembaca.hasil
 
 
 def _tanpa_akun(nama="bu-ratna"):
@@ -131,6 +159,21 @@ def test_daftar_biasa_dan_peran_lain_tidak_berubah(hidup):
 
 
 # --- pendaftaran -----------------------------------------------------------
+
+def test_guru_baru_wajib_persetujuan_sebelum_memakai_beranda_guru(hidup, monkeypatch):
+    import policy_schema
+    import sensor_http
+    policy_schema.migrasikan(admin_store.BAWAAN)
+    monkeypatch.setattr(sensor_http, "SIAP", True)
+    kode, _, header = _post(hidup, GURU_PATH, _form(hidup))
+    assert kode == 303 and header["Location"] == "/persetujuan"
+    kuki = header["Set-Cookie"].split(";")[0].split("=", 1)[1]
+    kode, isi, _ = hidup.minta("/guru", cookie=kuki)
+    assert kode == 200 and "Satu persetujuan" in isi                     # gerbang persetujuan menutup beranda guru
+    form = _form_html(hidup.minta("/persetujuan", cookie=kuki)[1])["/persetujuan"]
+    assert hidup.minta("/persetujuan", cookie=kuki, data={**form, "policy_aksi": "pilihan"})[0] in (200, 303)   # minta() mengikuti redirect
+    assert "Satu persetujuan" not in hidup.minta("/guru", cookie=kuki)[1]  # setelah memilih, beranda terbuka
+
 
 def test_daftar_membuat_akun_guru_tanpa_profil_anak_dan_sesi_masuk(hidup):
     kode, _, header = _post(hidup, GURU_PATH, _form(hidup))
@@ -211,26 +254,24 @@ def test_pendaftaran_ditutup_admin_ditolak(hidup, monkeypatch):
     _tanpa_akun()
 
 
-def test_jatah_per_ip_atomik_di_bawah_permintaan_paralel(hidup):
-    import threading
-    import guru_daftar_http as gdh
-    hasil, gerbang = [], threading.Barrier(24)
-
-    def coba():
-        gerbang.wait()
-        hasil.append(gdh.ambil_jatah("203.0.113.9"))
-
-    pekerja = [threading.Thread(target=coba) for _ in range(24)]
-    for t in pekerja:
-        t.start()
-    for t in pekerja:
-        t.join()
-    assert sum(hasil) == laju_masuk.BATAS_GAGAL and len(hasil) == 24
-
-
-def test_laju_per_ip_menutup_keran_setelah_lima_akun(hidup):
-    for n in range(laju_masuk.BATAS_GAGAL):
+def test_laju_per_ip_menutup_keran_setelah_lima_percobaan(hidup):
+    for n in range(jatah_pendaftaran.BATAS_PER_IP):
         assert _post(hidup, GURU_PATH, _form(hidup, nama="guru-%d" % n))[0] == 303
     kode, _, _ = _post(hidup, GURU_PATH, _form(hidup, nama="guru-baru"))
     assert kode == 429
     _tanpa_akun("guru-baru")
+
+
+def test_token_form_palsu_tidak_membakar_jatah(hidup):
+    for _ in range(jatah_pendaftaran.BATAS_GLOBAL + 5):
+        kode, _, _ = _post(hidup, GURU_PATH, _form(hidup, token_form="x" * 64))
+        assert kode in (400, 403)
+    assert _post(hidup, GURU_PATH, _form(hidup))[0] == 303               # pendaftar sah tetap lolos
+
+
+def test_banjir_kunci_login_tidak_membuka_jatah_pendaftaran(hidup):
+    for n in range(jatah_pendaftaran.BATAS_PER_IP):
+        assert _post(hidup, GURU_PATH, _form(hidup, nama="guru-%d" % n))[0] == 303
+    for n in range(laju_masuk.BATAS_KUNCI + 100):
+        laju_masuk.catat_gagal("acak-%d" % n, "9.9.9.9")
+    assert _post(hidup, GURU_PATH, _form(hidup, nama="guru-baru"))[0] == 429

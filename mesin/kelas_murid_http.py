@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import hashlib
 import sqlite3
-import threading
 
 import admin_store
 import admin_store_core
@@ -41,12 +40,15 @@ import jadwal_store
 import kelas_berkas as berkas
 import kelas_dasar as dasar
 import kelas_ganti
+import kelas_unggah
 import kelas_status as ks
 import kelas_pages as halaman
 import kelas_store as store
 import paket_belajar_gate
 import paket_belajar_katalog as katalog
 import pesanan_alur as alur
+import pin_orang_tua_store as pin_store
+import tirai_orang_tua as tirai
 import pesanan_dasar as d
 import pesanan_http
 import pesanan_rekening
@@ -64,6 +66,7 @@ KODE_BERKAS_KOSONG = 400
 KODE_BERKAS_BESAR = 413
 KODE_TIPE_TIDAK_DIDUKUNG = 415
 KODE_TIDAK_SIAP = 503
+KODE_TIRAI = 403
 COPY_BELUM_DIBUKA = "Pendaftaran paket belajar belum dibuka. Coba lagi nanti."
 COPY_BELUM_SIAP = "Belum bisa diproses sekarang. Coba lagi nanti."
 COPY_GAGAL_BUAT = "Tagihan belum bisa dibuat. Selesaikan tagihan yang sedang berjalan, atau coba lagi nanti."
@@ -71,6 +74,9 @@ COPY_GAGAL_GANTI = ("Paket belum bisa diganti. Ganti hanya bisa selagi tagihan b
                    "dan hanya sekali sampai tagihan lama habis. Hubungi tim bila masih perlu bantuan.")
 COPY_GAGAL_PILIH_JADWAL = ("Kelompok itu belum bisa dipilih. Mungkin sudah penuh atau ditutup, atau jadwal anak sudah ditentukan. "
                           "Muat ulang halaman, atau hubungi tim bila masih perlu bantuan.")
+COPY_TIRAI_TERTUTUP = ("Tindakan ini untuk Ayah/Bunda. Minta Ayah/Bunda membuka halaman orang tua dengan PIN dulu, lalu coba lagi. "
+                       "Halaman orang tua ada di menu akun anak.")
+COPY_TIRAI_KABAR = "Halaman ini terkunci PIN. Minta Ayah/Bunda membuka halaman orang tua dulu sebelum memilih paket, jadwal, atau mengunggah bukti."
 COPY_KODE_HABIS = "Tagihan belum bisa dibuat sekarang. Coba lagi nanti atau hubungi tim."
 COPY_TIDAK_TERIMA = "Tidak ada tagihan yang sedang menerima bukti. Daftar paket dulu, atau waktu pembayaran sudah habis."
 COPY_BATAS_BUKTI = "Batas bukti untuk tagihan ini sudah tercapai. Hubungi tim bila masih perlu bantuan."
@@ -124,15 +130,20 @@ def _token_untuk(penangan, principal):
     return lambda aksi: pesanan_http.buat_token(principal, sesi, aksi)
 
 
-# Unggah bukti dan ganti paket untuk anak yang sama diserialkan: unggah membaca tagihan lalu menulis bukti di transaksi terpisah, jadi
-# tanpa ini ganti paket dari tab lain bisa menyelip dan bukti masuk ke tagihan LAMA yang sudah digantikan. Satu proses server
-# (ThreadingHTTPServer), jadi kunci proses cukup; kunci dibagi per hash (tanpa pertumbuhan memori).
-_JUMLAH_KUNCI_ANAK = 64
-_KUNCI_ANAK = tuple(threading.Lock() for _ in range(_JUMLAH_KUNCI_ANAK))
+def _tirai_tertutup(penangan, principal, siswa_id: int) -> bool:
+    """True bila anak punya PIN tirai dan tirai orang tuanya sedang tertutup untuk sesi ini (fail-closed bila PIN tak terbaca).
 
-
-def _kunci_anak(akun_id: str, siswa_id: int):
-    return _KUNCI_ANAK[hash((akun_id, siswa_id)) % _JUMLAH_KUNCI_ANAK]
+    Tindakan di halaman paket (daftar, ganti, jadwal, bukti) adalah keputusan orang tua, jadi mengikuti tirai yang sama dengan halaman
+    orang tua. Tanpa PIN tidak ada perubahan perilaku. Sesi Basic tidak punya token sesi sehingga tidak pernah membuka tirai.
+    """
+    try:
+        with database.buka() as kon:
+            if not pin_store.ada_pin(kon, siswa_id):
+                return False
+    except sqlite3.Error:
+        return True
+    token = penangan._ambil_token() if principal.metode == "cookie" else None     # cookie mati + Basic: tirai tak ikut
+    return not (token is not None and tirai.terbuka(token, principal.id_akun, siswa_id))
 
 
 def _tagihan_berjalan(kon, akun_id: str, siswa_id: int, kini: str):
@@ -187,7 +198,11 @@ def _badan_get(penangan, principal, siswa_id: int, rekening: str):
         kartu = store.kartu_paket(kon, principal.id_akun, siswa_id, kini)
         kabar = _kabar_aktif(kon, principal.id_akun, siswa_id, kini)
     jadwal = _jadwal_anak(principal.id_akun, siswa_id, kini)
-    pilihan = _pilihan_jadwal(principal.id_akun, siswa_id, kini)
+    if _tirai_tertutup(penangan, principal, siswa_id):
+        kabar = (kabar + " " if kabar else "") + COPY_TIRAI_KABAR
+        pilihan = ()
+    else:
+        pilihan = _pilihan_jadwal(principal.id_akun, siswa_id, kini)
     return halaman.halaman_pilih_paket(kartu, None, token_untuk, kabar=kabar, jadwal=jadwal, pilihan_jadwal=pilihan)
 
 
@@ -289,7 +304,7 @@ def _post_ganti(penangan, principal, siswa_id: int) -> None:
     if kode is None:
         return
     try:
-        with _kunci_anak(principal.id_akun, siswa_id), _buka(tulis=True) as kon:
+        with _buka(tulis=True) as kon:
             kelas_ganti.ganti_paket(kon, principal.id_akun, siswa_id, kode, alur.waktu_sekarang())
     except _GALAT_LAYANAN as galat:
         _galat_ganti(penangan, galat)
@@ -370,12 +385,12 @@ def _baca_unggahan(penangan, principal):
     return form
 
 
-def _simpan_dan_catat(kon, akun_id: str, siswa_id: int, kode_paket: str, isi: bytes, mime: str, kini: str) -> None:
+def _simpan_dan_catat(kon, akun_id: str, siswa_id: int, isi: bytes, mime: str, kini: str) -> None:
     """Tulis berkas atomik lalu catat; gagal atau duplikat -> berkas dihapus."""
     nama = berkas.simpan(isi)
     try:
-        hasil = store.catat_bukti(kon, akun_id, siswa_id, kode_paket, mime, len(isi),
-                                  hashlib.sha256(isi).hexdigest(), nama, kini)
+        hasil = kelas_unggah.catat_bukti_terbaru(kon, akun_id, siswa_id, mime, len(isi),
+                                                 hashlib.sha256(isi).hexdigest(), nama, kini)
     except BaseException:
         berkas.hapus(nama)
         raise
@@ -396,13 +411,13 @@ def _unggah_sah(penangan, akun_id: str, siswa_id: int, form) -> None:
         _info(penangan, "Berkas belum bisa diterima", pesan, kode)
         return
     kini = alur.waktu_sekarang()
-    with _kunci_anak(akun_id, siswa_id), _buka(tulis=True) as kon:
+    with _buka(tulis=True) as kon:
         tagihan = _tagihan_berjalan(kon, akun_id, siswa_id, kini)
         hambatan = _hambatan(tagihan)
         if hambatan is not None:
             _info(penangan, "Bukti belum bisa diterima", hambatan, KODE_BENTROK)
             return
-        _simpan_dan_catat(kon, akun_id, siswa_id, tagihan.kode_paket, form.isi, mime, kini)
+        _simpan_dan_catat(kon, akun_id, siswa_id, form.isi, mime, kini)
     _alihkan(penangan, halaman.RUTE)
 
 
@@ -435,6 +450,9 @@ def tangani_post(penangan, jalur: str) -> bool:
         return False
     if _rekening() is None:  # gerbang pembayaran tertutup: 404 murid, tanpa efek
         _tidak_ada(penangan)
+        return True
+    if _tirai_tertutup(penangan, *pembeli):  # PIN terpasang dan tirai tertutup: tanpa efek
+        _info(penangan, "Untuk Ayah/Bunda", COPY_TIRAI_TERTUTUP, KODE_TIRAI)
         return True
     {halaman.RUTE_BUAT: _post_buat, halaman.RUTE_BUKTI: _post_bukti, halaman.RUTE_GANTI: _post_ganti,
      halaman.RUTE_JADWAL: _post_jadwal}[jalur](

@@ -1,7 +1,8 @@
 """Unggah bukti dan ganti paket yang berebut (butir QA #3, 25 Nov 2026; data sintetis, HTTP nyata).
 
-Celah lama: unggah membaca tagihan lalu menulis bukti, ganti paket menulis tagihan baru di antaranya, sehingga bukti masuk ke tagihan
-LAMA yang sudah digantikan. Sekarang keduanya diserialkan per anak; yang kedua melihat keadaan akhir yang konsisten.
+Celah lama: unggah memilih tagihan dari kode paket yang dibaca lebih dulu, ganti paket menulis tagihan baru di antaranya, sehingga bukti
+masuk ke tagihan LAMA yang sudah digantikan. Sekarang tagihan penerima dipilih di dalam transaksi tulis yang sama (`kelas_unggah`),
+jadi urutan antar-proses ditentukan SQLite, bukan kunci proses: bukti selalu masuk ke tagihan terbaru yang terbuka.
 """
 from __future__ import annotations
 
@@ -28,29 +29,37 @@ def _order() -> list:
     return baca_admin("SELECT id,paket FROM kelas_order ORDER BY rowid")
 
 
-def test_ganti_yang_masuk_saat_unggah_berjalan_menunggu_lalu_ditolak_karena_bukti_sudah_ada(kidup, murid, jam, monkeypatch):
+def _bukti() -> list:
+    return [b["order_id"] for b in baca_admin("SELECT order_id FROM kelas_bukti")]
+
+
+def test_ganti_yang_menyelip_di_antara_baca_dan_tulis_tidak_membuat_bukti_jatuh_ke_tagihan_lama(kidup, murid, jam, monkeypatch):
     assert buat(kidup, murid, "mini")[0] == 303
     jam.maju_jam(1)
     hasil = {}
     asli = KM._simpan_dan_catat
 
     def sambil_ganti(*a, **k):
-        # Di sini unggah sudah membaca tagihan Mini tetapi belum menulis bukti: ganti paket datang dari tab lain.
+        # Unggah sudah membaca tagihan Mini (halaman menampilkannya) tetapi belum menulis bukti: ganti datang dari tab lain.
         pekerja = threading.Thread(target=lambda: hasil.update(ganti=_ganti(kidup, murid, "private")[0]))
         pekerja.start()
-        pekerja.join(timeout=1.0)
-        hasil["selesai_sebelum_bukti"] = not pekerja.is_alive()
-        hasil["pekerja"] = pekerja
+        pekerja.join(timeout=10)
         return asli(*a, **k)
 
     monkeypatch.setattr(KM, "_simpan_dan_catat", sambil_ganti)
     assert unggah(kidup, murid)[0] == 303
-    hasil["pekerja"].join(timeout=10)
-    assert hasil["selesai_sebelum_bukti"] is False         # ganti tidak boleh menyelip di antara baca dan tulis
-    assert hasil["ganti"] == 409                           # sesudah bukti ada, ganti paket ditolak
-    order = _order()
-    assert [o["paket"] for o in order] == ["mini"]
-    assert [b["order_id"] for b in baca_admin("SELECT order_id FROM kelas_bukti")] == [order[0]["id"]]
+    assert hasil["ganti"] == 303
+    private = [o["id"] for o in _order() if o["paket"] == "private"]
+    assert len(private) == 1 and _bukti() == private          # bukti ke tagihan terbaru, tidak ke Mini yang digantikan
+
+
+def test_ganti_sesudah_bukti_ada_ditolak_dan_bukti_tetap_di_tagihan_asal(kidup, murid, jam):
+    assert buat(kidup, murid, "mini")[0] == 303
+    jam.maju_jam(1)
+    assert unggah(kidup, murid)[0] == 303
+    assert _ganti(kidup, murid, "private")[0] == 409
+    mini = [o["id"] for o in _order()]
+    assert len(mini) == 1 and _bukti() == mini
 
 
 def test_ganti_lebih_dulu_membuat_unggah_masuk_ke_tagihan_baru(kidup, murid, jam):
@@ -58,5 +67,5 @@ def test_ganti_lebih_dulu_membuat_unggah_masuk_ke_tagihan_baru(kidup, murid, jam
     jam.maju_jam(1)
     assert _ganti(kidup, murid, "private")[0] == 303
     assert unggah(kidup, murid)[0] == 303
-    private = [o["id"] for o in _order() if o["paket"] == "private"][0]
-    assert [b["order_id"] for b in baca_admin("SELECT order_id FROM kelas_bukti")] == [private]
+    private = [o["id"] for o in _order() if o["paket"] == "private"]
+    assert _bukti() == private
