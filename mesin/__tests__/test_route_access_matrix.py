@@ -52,6 +52,7 @@ _PROBE_GET = {
     "/admin/pesanan/rekening": "/admin/pesanan/rekening",
     "/admin/sakelar": "/admin/sakelar",
     "/admin/langganan": "/admin/langganan",
+    "/admin/pembayaran": "/admin/pembayaran",
     "/admin/kelas": "/admin/kelas",
     "/admin/kelas/kelompok": "/admin/kelas/kelompok?id=klp_" + "0" * 32,
     "/admin/kurikulum": "/admin/kurikulum",

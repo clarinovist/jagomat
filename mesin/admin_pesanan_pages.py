@@ -28,6 +28,7 @@ RUTE_VERIFIKASI = RUTE + "/verifikasi"
 RUTE_REKENING = RUTE + "/rekening"
 RUTE_ORDER = RUTE + "/order"
 RUTE_PENGATURAN_REKENING = "/admin/sakelar#rekening"
+RUTE_SEMUA_PEMBAYARAN = "/admin/pembayaran"  # daftar gabungan tiga jalur (anak menu Pesanan)
 RUTE_LANGGANAN = "/admin/langganan"  # ledger dan ACC terpisah: Latihan Harian
 RUTE_KELAS = "/admin/kelas"  # ledger dan ACC terpisah: Paket Belajar
 SARING_MENUNGGU = "menunggu"
@@ -252,9 +253,10 @@ def _strip_layanan(gerbang_terbuka: bool, rekening_terisi: Optional[bool]) -> st
 
 def _catatan_jalur_lain() -> str:
     """Daftar ini hanya Peta Kemampuan; bukti transfer Latihan Harian dan Paket Belajar ada di halaman masing-masing."""
-    return ('<p class="admin-meta">Daftar ini hanya pesanan Peta Kemampuan. Bukti transfer lain ada di '
+    return ('<p class="admin-meta">Daftar ini hanya pesanan Peta Kemampuan. Lihat '
+            '<a class="admin-tautan" href="%s">Semua pembayaran</a> (tiga jalur dalam satu daftar), atau bukti transfer di '
             '<a class="admin-tautan" href="%s">Langganan Harian</a> dan '
-            '<a class="admin-tautan" href="%s">Paket belajar</a>.</p>' % (RUTE_LANGGANAN, RUTE_KELAS))
+            '<a class="admin-tautan" href="%s">Paket belajar</a>.</p>' % (RUTE_SEMUA_PEMBAYARAN, RUTE_LANGGANAN, RUTE_KELAS))
 
 
 def umpan_balik(hasil: Optional[str]) -> str:

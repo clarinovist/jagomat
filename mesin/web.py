@@ -79,6 +79,7 @@ AKSES_RUTE_GET: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/rekening", "admin"),
     ("/admin/sakelar", "admin"),  # sakelar fitur: empat sakelar admin; sudah tercakup prefix `/admin`
     ("/admin/langganan", "admin"),  # F5: antrean bukti langganan Latihan Harian (+ /verifikasi, /bukti); sakelar mati = 404 rute tak dikenal
+    ("/admin/pembayaran", "admin"),  # Semua pembayaran: daftar baca-saja Peta + Latihan Harian + Paket Belajar
     ("/admin/kelas", "admin"),  # Paket Belajar: antrean bukti (+ /verifikasi, /bukti); admin tetap terbuka walau sakelar mati
     ("/admin/kelas/kelompok", "admin"),  # Jadwal: detail kelompok Mini Class (GET) dan buat/ubah (POST)
     ("/admin/kurikulum", "admin"),  # Kurikulum Merdeka: tabel materi per kelas (exact; tanpa query)

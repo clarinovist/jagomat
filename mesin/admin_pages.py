@@ -30,6 +30,7 @@ from templates import LEVEL_TINGKAT
 SECTION = (
     ("ringkasan", "Ringkasan", "/admin"),
     ("perhatian", "Perlu ditangani", "/admin?section=perhatian"),
+    ("pembayaran", "Semua pembayaran", "/admin/pembayaran"),
     ("pesanan", "Pesanan & transfer", "/admin/pesanan"),
     ("rekening", "Rekening transfer", "/admin/sakelar#rekening"),
     ("langganan_harian", "Langganan Harian", "/admin/langganan"),
@@ -63,7 +64,7 @@ GRUP_SECTION = (
 # Id section yang valid tetapi tidak punya butir menu sendiri: menyorot butir menu induknya.
 MENU_INDUK = {
     "perhatian": "ringkasan", "profil_guru": "pemakaian", "sakelar": "operasional", "kurikulum": "cek-topik",
-    "pendaftaran": "operasional",
+    "pendaftaran": "operasional", "pembayaran": "pesanan",
 }
 # Fitur yang dijadwalkan mati (docs/plan/2026-11-20-matikan-kpi-dan-ai.md): diberi tanda kecil di menu.
 SECTION_AKAN_DIMATIKAN = frozenset(("kpi", "ai"))
