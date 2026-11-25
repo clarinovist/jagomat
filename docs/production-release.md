@@ -12,6 +12,21 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
+## Perbaikan hasil uji penguji (butir QA 1, 3-9, 12) — kode lokal 25 November 2026, BELUM push/deploy
+
+Sepuluh commit lokal di `main` (201f585 sampai commit antrean "belum ditempatkan"; di antaranya ada commit harga sesi lain,
+jadi pisahkan sebelum push). Rincian perilaku di spec.md (Paket Belajar, "Perbaikan hasil uji penguji"). Untuk rilis:
+- **Tanpa migrasi, tanpa pin recovery baru.** Tidak ada berkas bernama schema/migrat/database/store yang berubah di commit
+  QA (dicek dengan daftar nama dari `deploy.PROBE_KONTRAK`); modul baru `kelas_ganti`, `kelas_peserta`, `peta_hero` sengaja
+  bukan berkas `*store*`. Commit harga sesi lain (skema `harga_*`) TERPISAH dan punya urusan kontrak sendiri.
+- **Rollback ke image lama:** rute `/murid/paket/ganti` hilang; anak yang sudah mengganti paket punya dua tagihan terbuka
+  (lama dan baru) sampai yang lama habis; image lama menampilkan paket pertama di katalog yang terbuka, bukan yang terbaru.
+  Tidak ada data yang rusak; admin tetap hanya melihat tagihan yang punya bukti.
+- **Batas yang diketahui:** unggah bukti dan ganti paket bersamaan dari dua tab (lihat spec). Tutup di rilis yang memang butuh pin.
+- **Cek setelah deploy (uji dulu):** tombol Daftar di topbar, hero `/paket-coba` dan halaman bayar (maskot dan CSP funnel),
+  tombol Tanya Ayah/Bunda, `/admin/kelas` (tabel peserta), "Perlu ditangani" (dua butir baru), ganti paket end-to-end dengan data sintetis.
+- Tes mutasi `test_peta_laporan_ortu_mutation` kasus M8 sudah gagal di HEAD sebelum perubahan ini.
+
 ## Deploy surel E1 + copy Mini/Peta — 25 November 2026
 
 Controlled `deploy-v2` memasang **3c3d427** (`3c3d4273a7c58073cbcf338767f8db552d31606a`, digest `sha256:2a6f00d8…e341`),

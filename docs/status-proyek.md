@@ -15,6 +15,10 @@ atau izin aktivasi. Kontrak detail tetap pada dokumen domain; aturan kerja di
   kandidat Fase 1–3 ter-deploy dan **funnel diaktifkan 19 November 2026 termasuk
   pembayaran Paket Coba** (`FUNNEL_AKTIF=1`, ledger `pesanan_*` dimigrasikan);
   deliverable Fase 4 masih menyusul/manual. Status baris F1 di tabel bawah.
+- **Kode lokal belum dirilis (25 November 2026):** perbaikan hasil uji penguji (ganti paket, banner tagihan, peserta aktif
+  dan antrean admin, hero Peta, tombol Daftar, Tanya Ayah/Bunda, label Buat akun guru); tanpa migrasi dan tanpa pin
+  baru, rincian di production-release.md. Belum ada: guru mendaftar sendiri, kode kelas/tautan guru, jadwal-tugas-absensi
+  di sisi anak (butuh keputusan Pemilik).
 - Artifact aplikasi produksi terakhir yang diverifikasi: **`0d5d046`** (25 November 2026; perpanjangan jadwal + kartu
   jadwal orang tua, sakelar `PAKET_BELAJAR` mati, recovery 36eb20d kontrak 50a32be; rincian di production-release.md).
   Sebelumnya **`5c7849f`** (jadwal `jadwal_*` admin, recovery 6142611). Sebelumnya **`c2d89fe`** (25 November 2026; Paket Belajar 1 Bulan `kelas_*`, recovery
