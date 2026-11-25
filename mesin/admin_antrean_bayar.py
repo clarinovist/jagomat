@@ -15,6 +15,7 @@ import admin_pembayaran_semua
 import admin_transfer_menunggu as menunggu
 import database
 import harian_langganan_putusan
+import kelas_peserta
 import kelas_store
 import kelas_tunggakan as kt
 
@@ -53,6 +54,19 @@ def belum_bayar(path_admin, sekarang_iso: str) -> int:
     except menunggu.GALAT_BACA:
         return 0
     return admin_pembayaran_semua.hitung(baris)["belum_bayar"]
+
+
+def belum_ditempatkan(path_admin, sekarang_iso: str) -> int:
+    """Paket belajar yang sudah disetujui dan masih aktif tetapi belum ditempatkan (jadwal belum ada); galat baca = 0.
+
+    Penempatan yang tidak diketahui (tabel `jadwal_*` belum ada) tidak dihitung. Hanya angka, tanpa nama anak atau kontak.
+    """
+    try:
+        with kelas_store.buka(path_admin) as kon:
+            daftar = kelas_peserta.daftar_peserta_aktif(kon, sekarang_iso)
+    except menunggu.GALAT_BACA:
+        return 0
+    return sum(1 for p in daftar if p.ditempatkan is False)
 
 
 def kelas_tunggakan(path_admin, sekarang_iso: str) -> Tuple[kt.Tunggakan, ...]:

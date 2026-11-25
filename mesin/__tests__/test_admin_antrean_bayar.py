@@ -199,3 +199,49 @@ def test_belum_bayar_nol_tidak_menambah_butir(belajar, db_kelas):
 def test_pembaca_belum_bayar_ledger_tak_terbaca_berarti_nol(tmp_path, monkeypatch):
     monkeypatch.setattr(database, "BAWAAN", tmp_path / "kosong-belajar.db")
     assert B.belum_bayar(tmp_path / "tidak-ada.db", "2026-11-24T00:00:00") == 0
+
+
+# --- paket aktif belum ditempatkan (butir QA #4, notifikasi admin; 25 Nov 2026) ---------------------------------
+# Pembeli sudah bayar dan disetujui, tetapi jadwal belum ada: admin perlu menindaklanjuti (menempatkan atau menghubungi).
+
+JALUR_PERLU_DITEMPATKAN = "/admin/kelas"
+GURU_UJI = "akun_" + "9" * 32
+
+
+def _item_perlu_ditempatkan(antrean):
+    return [i for i in antrean.item if "belum ditempatkan" in i.judul]
+
+
+def test_paket_aktif_belum_ditempatkan_jadi_butir_penting_dengan_tautan_ke_admin_kelas(db_kelas, kon_kelas):
+    import schema_jadwal
+    schema_jadwal.migrasikan(db_kelas)
+    kk.lunas(kon_kelas, siswa=7, n=1)
+    kk.lunas(kon_kelas, siswa=8, n=2)
+    antrean = _kumpulkan(db_kelas)
+    (item,) = _item_perlu_ditempatkan(antrean)
+    assert item.judul.startswith("2 paket aktif belum ditempatkan") and item.tingkat == "penting"
+    assert item.jalur == JALUR_PERLU_DITEMPATKAN
+    assert antrean.mendesak == 0 and antrean.perlu_keputusan == 1 and antrean.total == 1
+    assert AP.sinyal_dari(antrean).total == 1
+
+
+def test_paket_yang_sudah_ditempatkan_tidak_dihitung(db_kelas, kon_kelas):
+    import jadwal_store as js
+    import schema_jadwal
+    schema_jadwal.migrasikan(db_kelas)
+    tagihan = kk.lunas(kon_kelas, siswa=7)
+    with js.buka(db_kelas, tulis_data=True) as kon:
+        kelompok = js.buat_kelompok(kon, ADMIN, nama="Mini A", lokasi="https://meet.google.com/abc-defg-hij",
+                                    guru_id=GURU_UJI, kuota=5, tanggal="2026-11-26", jam="09:00", sekarang=kk.KINI)
+        js.tempatkan(kon, ADMIN, tagihan.order_id, kelompok_id=kelompok, sekarang=kk.SESUDAH_UPLOAD)
+    assert _item_perlu_ditempatkan(_kumpulkan(db_kelas)) == []
+
+
+def test_tanpa_tabel_jadwal_penempatan_tidak_diketahui_tidak_dihitung(db_kelas, kon_kelas):
+    kk.lunas(kon_kelas, siswa=7)
+    assert _item_perlu_ditempatkan(_kumpulkan(db_kelas)) == []
+    assert B.belum_ditempatkan(db_kelas, "2026-11-24T00:00:00") == 0
+
+
+def test_pembaca_belum_ditempatkan_ledger_tak_terbaca_berarti_nol(tmp_path):
+    assert B.belum_ditempatkan(tmp_path / "tidak-ada.db", "2026-11-24T00:00:00") == 0
