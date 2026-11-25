@@ -10,12 +10,15 @@ LAMA anak yang sama dipensiunkan (baris penempatan dihapus, sesi Private tetap s
 lamanya sudah berakhir pada waktu penempatan, atau menyambung ke akses order baru dan semua pertemuan lamanya sudah
 lewat/dibatalkan; selain itu lepas dulu.
 Pertemuan tidak boleh jatuh setelah akses paket berakhir (`_batas_akses_*`): delapan pertemuan harus selesai
-dalam masa akses satu bulan.
+dalam masa akses satu bulan. Pendaftaran kelompok ditutup begitu dua pertemuan aktif sudah mulai.
+Bentrok jadwal guru (sesi aktif guru yang sama beririsan waktu) hanya DITANDAI untuk peringatan; tidak pernah menolak.
+Lepas penempatan wajib membawa `versi` (= `dibuat` penempatan saat halaman dibuka) supaya form lama tidak bisa diputar ulang.
 """
 from __future__ import annotations
 
 import sqlite3
 from contextlib import contextmanager
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 import jadwal_dasar as jd
@@ -29,6 +32,11 @@ import schema_kelas
 
 PESAN_LEWAT_AKSES = "pertemuan terakhir jatuh setelah masa akses paket berakhir; mulai lebih awal"
 PESAN_GESER_LEWAT_AKSES = "pertemuan tidak boleh digeser melewati masa akses paket berakhir"
+# Pendaftaran kelompok Mini ditutup begitu sekian pertemuan aktif sudah mulai ("boleh masuk sampai pertemuan ke-2").
+# Sengaja di store (bukan jadwal_dasar): store byte-identik dipakai sebagai pin recovery dan harus berdiri sendiri.
+TUTUP_SETELAH_PERTEMUAN_MULAI = 2
+PESAN_DITUTUP = "pendaftaran kelompok sudah ditutup (dua pertemuan pertama sudah berlangsung)"
+PESAN_VERSI_BASI = "penempatan sudah berubah sejak halaman dibuka; muat ulang"
 
 
 @contextmanager
@@ -70,6 +78,44 @@ def _batas_akses_kelompok(kon, kelompok_id) -> Optional[str]:
 def _pertemuan_aktif_terakhir(kon, kelompok_id) -> Optional[str]:
     return kon.execute("SELECT MAX(mulai) FROM jadwal_pertemuan WHERE kelompok_id=? AND dibatalkan=0",
                        (kelompok_id,)).fetchone()[0]
+
+
+def _jumlah_sudah_mulai(kon, kelompok_id, kini) -> int:
+    """Pertemuan aktif (tidak dibatalkan) kelompok yang sudah mulai: `mulai < kini` (tepat saat mulai belum dihitung)."""
+    return kon.execute("SELECT COUNT(*) FROM jadwal_pertemuan WHERE kelompok_id=? AND dibatalkan=0 AND mulai<?",
+                       (kelompok_id, kini)).fetchone()[0]
+
+
+def _id_sesi_bentrok(kon) -> frozenset:
+    """Id sesi aktif yang beririsan waktu dengan sesi aktif LAIN milik guru yang sama (hanya baca, untuk peringatan).
+
+    Guru sesi kelompok = guru kelompok; guru sesi Private = guru penempatannya. Penempatan yang sudah dipensiunkan
+    tidak punya guru (NULL) sehingga sesi riwayatnya tidak dihitung. Bersentuhan tepat (akhir A = mulai B) bukan bentrok.
+    """
+    baris = kon.execute(
+        """SELECT s.id AS id, s.mulai AS mulai, s.menit AS menit, COALESCE(k.guru_id, p.guru_id) AS guru
+             FROM jadwal_pertemuan s
+             LEFT JOIN jadwal_kelompok k ON k.id=s.kelompok_id
+             LEFT JOIN jadwal_penempatan p ON p.order_id=s.order_id
+            WHERE s.dibatalkan=0 AND COALESCE(k.guru_id, p.guru_id) IS NOT NULL
+            ORDER BY guru, s.mulai""").fetchall()
+    # Sapuan terurut per guru (O(n log n), bukan self-join kuadratik): `aktif` = sesi guru ini yang belum selesai
+    # pada waktu mulai sesi berjalan; sesi yang akhirnya tepat = mulai sesi berjalan sudah tidak aktif (bersentuhan).
+    bentrok, aktif, guru_kini = set(), [], None
+    for b in baris:
+        if b["guru"] != guru_kini:
+            guru_kini, aktif = b["guru"], []
+        mulai = datetime.strptime(b["mulai"], jd.FORMAT_BAKU)
+        aktif = [(akhir, sid) for akhir, sid in aktif if akhir > mulai]
+        if aktif:
+            bentrok.add(b["id"])
+            bentrok.update(sid for _akhir, sid in aktif)
+        aktif.append((mulai + timedelta(minutes=b["menit"]), b["id"]))
+    return frozenset(bentrok)
+
+
+def _tandai_bentrok(sesi: List[dict], bentrok: frozenset) -> List[dict]:
+    return [{**s, "bentrok": s["id"] in bentrok} for s in sesi]
 
 
 def _pertemuan_mendatang(kon, kelompok_id, kini) -> Optional[str]:
@@ -186,20 +232,37 @@ def ubah_kelompok(kon, admin_id, kelompok_id, *, nama, lokasi, guru_id, kuota, s
 
 
 def daftar_kelompok(kon, sekarang) -> List[dict]:
-    """Semua kelompok + terisi/kuota + pertemuan aktif berikutnya (mulai >= `sekarang`; None bila selesai)."""
+    """Semua kelompok + terisi/kuota + pertemuan aktif berikutnya (mulai >= `sekarang`; None bila selesai).
+
+    Tambahan: `terbuka` (masih menerima anak baru: belum selesai dan kurang dari dua pertemuan aktif yang sudah mulai)
+    dan `bentrok` (jumlah pertemuan aktif kelompok yang beririsan dengan jadwal guru yang sama; peringatan saja).
+    """
     d.periksa_koneksi(kon)
     kini = dasar.ke_baku(sekarang)
     baris = kon.execute(
         """SELECT k.id,k.nama,k.lokasi,k.guru_id,k.kuota,
                   (SELECT COUNT(*) FROM jadwal_penempatan p WHERE p.kelompok_id=k.id) AS terisi,
                   (SELECT MIN(s.mulai) FROM jadwal_pertemuan s
-                    WHERE s.kelompok_id=k.id AND s.dibatalkan=0 AND s.mulai>=?) AS berikut
-             FROM jadwal_kelompok k ORDER BY k.nama,k.id""", (kini,))
-    return [dict(b) for b in baris]
+                    WHERE s.kelompok_id=k.id AND s.dibatalkan=0 AND s.mulai>=?) AS berikut,
+                  (SELECT COUNT(*) FROM jadwal_pertemuan s
+                    WHERE s.kelompok_id=k.id AND s.dibatalkan=0 AND s.mulai<?) AS sudah_mulai
+             FROM jadwal_kelompok k ORDER BY k.nama,k.id""", (kini, kini))
+    bentrok = _id_sesi_bentrok(kon)
+    per_kelompok = {}
+    for sesi in kon.execute("SELECT id,kelompok_id FROM jadwal_pertemuan WHERE kelompok_id IS NOT NULL"):
+        if sesi["id"] in bentrok:
+            per_kelompok[sesi["kelompok_id"]] = per_kelompok.get(sesi["kelompok_id"], 0) + 1
+    hasil = []
+    for b in baris:
+        isi = {k: b[k] for k in b.keys() if k != "sudah_mulai"}
+        isi["terbuka"] = b["berikut"] is not None and b["sudah_mulai"] < TUTUP_SETELAH_PERTEMUAN_MULAI
+        isi["bentrok"] = per_kelompok.get(b["id"], 0)
+        hasil.append(isi)
+    return hasil
 
 
 def detail_kelompok(kon, kelompok_id) -> dict:
-    """Kelompok + anggota (order/anak/akhir akses) + delapan pertemuan."""
+    """Kelompok + anggota (order/anak/akhir akses) + delapan pertemuan (tiap sesi dengan `bentrok`: bool)."""
     d.periksa_koneksi(kon)
     kid = jd.periksa_kelompok_id(kelompok_id)
     kelompok = _group(kon, kid)
@@ -214,7 +277,8 @@ def detail_kelompok(kon, kelompok_id) -> dict:
     sesi = [dict(b) for b in kon.execute(
         """SELECT id,ke,mulai,menit,dibatalkan FROM jadwal_pertemuan
             WHERE kelompok_id=? ORDER BY ke,id""", (kid,))]
-    return {"kelompok": kelompok, "anggota": anggota, "sesi": sesi, "terisi": _isi_kelompok(kon, kid)}
+    return {"kelompok": kelompok, "anggota": anggota, "sesi": _tandai_bentrok(sesi, _id_sesi_bentrok(kon)),
+            "terisi": _isi_kelompok(kon, kid)}
 
 
 # --- penempatan -----------------------------------------------------------------------------
@@ -249,6 +313,8 @@ def tempatkan(kon, admin_id, order_id, *, kelompok_id=None, guru_id=None, tangga
                 raise jd.JadwalTidakDitemukan()
             if _pertemuan_mendatang(kon, kid, kini) is None:
                 raise jd.JadwalKonflik("kelompok sudah selesai")
+            if _jumlah_sudah_mulai(kon, kid, kini) >= TUTUP_SETELAH_PERTEMUAN_MULAI:
+                raise jd.JadwalKonflik(PESAN_DITUTUP)
             _pastikan_dalam_akses(_pertemuan_aktif_terakhir(kon, kid), _batas_akses_order(kon, order_id))
             _pensiunkan_penempatan_lama(kon, order_id, kini)
             if _isi_kelompok(kon, kid) >= kelompok["kuota"]:
@@ -305,8 +371,11 @@ def _peta_integritas(galat):
     return jd.JadwalTidakSah("penempatan bentrok dengan catatan yang ada")
 
 
-def lepas_penempatan(kon, admin_id, order_id, *, sekarang) -> None:
+def lepas_penempatan(kon, admin_id, order_id, *, versi, sekarang) -> None:
     """Lepas penempatan. Mini boleh kapan saja (sesi tetap milik kelompok).
+
+    `versi` WAJIB sama dengan `dibuat` penempatan sekarang (nilai yang dilihat admin saat halaman dibuka): form lama
+    dari penempatan sebelumnya (sudah dilepas lalu ditempatkan ulang) ditolak JadwalKonflik tanpa efek.
 
     Private hanya sebelum ada pertemuan yang mulai (semua `mulai >= sekarang`); sesinya ikut dihapus. Sesudah itu
     sesi adalah riwayat, jadi penempatan tidak dilepas (JadwalKonflik, tanpa efek).
@@ -316,10 +385,12 @@ def lepas_penempatan(kon, admin_id, order_id, *, sekarang) -> None:
     order_id = dasar.periksa_order_id(order_id)
     kini = dasar.ke_baku(sekarang)
     with d.tulis(kon):
-        ada = kon.execute("SELECT kelompok_id FROM jadwal_penempatan WHERE order_id=?",
+        ada = kon.execute("SELECT kelompok_id,dibuat FROM jadwal_penempatan WHERE order_id=?",
                           (order_id,)).fetchone()
         if ada is None:
             raise jd.JadwalTidakDitemukan()
+        if type(versi) is not str or versi != ada["dibuat"]:
+            raise jd.JadwalKonflik(PESAN_VERSI_BASI)
         if ada["kelompok_id"] is None:
             if _sesi_sudah_mulai(kon, order_id, kini):
                 raise jd.JadwalKonflik("sebagian pertemuan sudah berlangsung; penempatan tidak dilepas")
@@ -328,7 +399,7 @@ def lepas_penempatan(kon, admin_id, order_id, *, sekarang) -> None:
 
 
 def ringkas_order(kon, order_id) -> Optional[dict]:
-    """Penempatan satu order + kelompok + sesi (Private) untuk halaman detail admin."""
+    """Penempatan satu order + kelompok + sesi (tiap sesi dengan `bentrok`: bool) untuk halaman detail admin."""
     d.periksa_koneksi(kon)
     order_id = dasar.periksa_order_id(order_id)
     baris = kon.execute(
@@ -341,10 +412,11 @@ def ringkas_order(kon, order_id) -> Optional[dict]:
     if baris is None:
         return None
     hasil = dict(baris)
-    hasil["sesi"] = [dict(b) for b in kon.execute(
+    sesi = [dict(b) for b in kon.execute(
         """SELECT id,ke,mulai,menit,dibatalkan FROM jadwal_pertemuan
             WHERE kelompok_id=? OR order_id=? ORDER BY ke,id""",
         (baris["kelompok_id"], order_id))]
+    hasil["sesi"] = _tandai_bentrok(sesi, _id_sesi_bentrok(kon))
     return hasil
 
 
