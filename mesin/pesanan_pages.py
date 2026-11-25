@@ -17,6 +17,8 @@ from __future__ import annotations
 import brand
 from cek_pages import RUTE_HASIL, _a, _bungkus, _e, _kepala
 from funnel_pages import COPY_HARGA
+from peta_hero import hero_peta
+from playful_style import GAYA_CERIA
 from pesanan_dasar import (
     STATUS_BELUM_BAYAR, STATUS_DIREFUND, STATUS_DITOLAK, STATUS_KEDALUWARSA,
     STATUS_MENUNGGU_VERIFIKASI, STATUS_PERLU_DIPERIKSA, STATUS_SUDAH_DIBAYAR,
@@ -127,14 +129,14 @@ def _kepala_ident(ident, nama_anak: str = "") -> str:
                    beranda="" if _murid(ident) else rute.beranda, label_beranda=rute.label_beranda)
 
 
-def _bungkus_ident(ident, isi: str) -> bytes:
-    """Guru: bingkai pengelola lama; murid: shell murid (isi kartu sama)."""
+def _bungkus_ident(ident, isi: str, css_tambahan: str = "") -> bytes:
+    """Guru: bingkai pengelola lama; murid: shell murid (isi kartu sama); `css_tambahan` hanya untuk shell murid."""
     if not _murid(ident):
         return _bungkus(ident, COPY_JUDUL, ID_JUDUL, isi)
     import pesanan_murid_pages
     rute = _rute(ident)
     return pesanan_murid_pages.halaman_murid(
-        COPY_JUDUL, ID_JUDUL, isi, rute.beranda, rute.label_beranda)
+        COPY_JUDUL, ID_JUDUL, isi, rute.beranda, rute.label_beranda, css_tambahan)
 
 
 def _kartu(isi: str) -> str:
@@ -222,8 +224,11 @@ def halaman_status(ident, tampilan: dict, token) -> bytes:
         kalimat = COPY_STATUS_TERBIT
     maskot = (brand.maskot("terima-kasih", 96, kelas="funnel-maskot-st")
               if tampilan["status"] == STATUS_SUDAH_DIBAYAR and not pilih_cara else "")
+    # Penawaran ramai di atas (lead magnet, butir QA #9/#10); blok bayar di bawahnya tetap tenang.
+    ramai = _murid(ident) and tampilan["status"] == STATUS_BELUM_BAYAR
     isi = (
         _kepala_ident(ident, tampilan["nama_anak"])
+        + (hero_peta() if ramai else "")
         + _kartu(f"{maskot}<h2>{_e(judul)}</h2><p>{_e(kalimat)}</p>"
                  f'<p class="funnel-catatan-st">{_e(COPY_HARGA)}</p>')
     )
@@ -236,7 +241,7 @@ def halaman_status(ident, tampilan: dict, token) -> bytes:
     if tampilan["aksi"] is not None:
         isi += _kartu(_form(_rute(ident), tampilan["aksi"], token))
     isi += _catatan_refund()
-    return _bungkus_ident(ident, isi)
+    return _bungkus_ident(ident, isi, GAYA_CERIA if ramai else "")
 
 
 def halaman_belum_memesan(ident, token: str) -> bytes:

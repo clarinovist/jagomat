@@ -15,6 +15,8 @@ import html
 import brand
 import design_tokens as T
 import landing
+import peta_hero
+from playful_style import GAYA_CERIA
 
 JALUR_DAFTAR_CEK = "/daftar?jalur=cek"
 MASKOT_MENYAPA = "/aset/maskot-menyapa-v3-240.png"
@@ -70,7 +72,7 @@ COPY_PAKET_SUB = (
     "Latihan yang tepat sasaran membantu nilai matematika anak naik. "
     "Mulai dari satu langkah yang jelas minggu ini."
 )
-COPY_JUDUL_PAKET_HALAMAN = "Lihat di materi mana anak masih sering salah. Tahu satu langkah berikutnya."
+COPY_JUDUL_PAKET_HALAMAN = peta_hero.JUDUL_PETA
 COPY_PENGANTAR_PAKET = (
     "Guru kami membaca hasil cek anak Anda, menulis laporannya, lalu ngobrol 20 menit "
     "supaya hasilnya jadi langkah yang bisa dilakukan di rumah."
@@ -287,8 +289,7 @@ def halaman_paket_coba(dukungan=None, profil=None) -> bytes:
     isi = f"""{_topbar(tautan_funnel=True)}
 <main class="landing-bungkus-st funnel-halaman-st" id="konten" tabindex="-1">
 <section class="funnel-bagian-st" aria-labelledby="judul-paket">
-  <p class="funnel-alis-st">{_e(NAMA_PAKET)}</p>
-  <h1 class="funnel-judul-halaman-st" id="judul-paket">{_e(COPY_JUDUL_PAKET_HALAMAN)}</h1>
+  {peta_hero.hero_peta(tingkat=1, id_judul="judul-paket", tanpa_gaya_inline=True)}
   <p class="funnel-pengantar-st">{_e(COPY_PENGANTAR_PAKET)}</p>
   <div class="funnel-dua-st">{_kartu_harga()}{_kartu_batas()}
   </div>{kartu_profil_guru(profil)}
@@ -300,4 +301,4 @@ def halaman_paket_coba(dukungan=None, profil=None) -> bytes:
 {_faq()}
 </main>
 {_footer(dukungan)}"""
-    return _bungkus(NAMA_PAKET, isi)
+    return _bungkus(NAMA_PAKET, isi, css_tambahan=GAYA_CERIA + peta_hero.GAYA_HERO_PETA)
