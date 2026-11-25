@@ -28,6 +28,10 @@ jadi pisahkan sebelum push). Rincian perilaku di spec.md (Paket Belajar, "Perbai
 - **Pilih jadwal sendiri (butir QA 4):** rute baru `POST /murid/paket/jadwal`; modul `jadwal_pilih` bukan berkas `*store*`.
   Rollback ke image lama: kartu pilih hilang, penempatan yang sudah dipilih orang tua tetap valid (baris `jadwal_penempatan` biasa,
   `dibuat_oleh` = id akun). Cek setelah deploy: kartu "Pilih jadwal kelas" muncul hanya untuk Mini aktif yang belum ditempatkan.
+- **Guru mendaftar sendiri (butir QA 5):** env baru `DAFTAR_GURU` (bawaan mati; nyalakan lewat konfigurasi server seperti
+  flag lain, hanya setelah Pemilik memutuskan). Tanpa migrasi; `guru_daftar_*` bukan berkas kontrak. Mati = `/daftar?peran=guru`
+  menampilkan "belum dibuka" dan POST ditolak 403. Setelah dinyalakan, cek dengan akun sintetis, lalu pastikan akun itu tidak muncul di
+  lembaga mana pun. Rollback ke image lama: parameter `peran` diabaikan, `/daftar` kembali ke form biasa; akun yang sudah dibuat tetap sah.
 - Tes mutasi `test_peta_laporan_ortu_mutation` kasus M8 sudah gagal di HEAD sebelum perubahan ini.
 
 ## Deploy surel E1 + copy Mini/Peta — 25 November 2026

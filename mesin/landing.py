@@ -71,7 +71,7 @@ def halaman_daftar(
     pendaftaran_dibuka: bool = True, token_form: str = "", belum_tersedia: bool = False,
     analitik: str = "", kesepakatan: str = "", nama_anak: str = "", kelas_sekolah=None,
     profil_parameter: str = "", jalur_cek: bool = False, wa: str = "",
-    mode_anak: bool = False, nama_lengkap: str = "",
+    mode_anak: bool = False, nama_lengkap: str = "", mode_guru: bool = False,
 ) -> bytes:
     """Form pendaftaran mandiri pendamping (orang tua / guru / les).
 
@@ -116,6 +116,12 @@ def halaman_daftar(
         f'<input type="hidden" name="profil_parameter" value="{html.escape(profil_parameter, quote=True)}">'
         if tingkat_valid(profil_parameter) else ''
     )
+    if mode_guru:
+        import guru_daftar_pages
+
+        return _halaman_publik_stitch(f"Daftar guru — {T.NAMA_PRODUK}", guru_daftar_pages.isi_daftar_guru(
+            kotak=kotak, deskripsi=deskripsi, token=token, nama=nama,
+        ))
     if mode_anak:
         import daftar_anak_pages
 
