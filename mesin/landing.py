@@ -261,7 +261,7 @@ def halaman_kebijakan(dukungan=None) -> bytes:
 <p class="dukungan-alis-st">CATATAN TENTANG DATAMU</p>
 <div id="judul-privasi"><h1>Kebijakan Privasi</h1></div>
 <p class="publik-sub-st">Ringkas dan jujur, tanpa bahasa hukum.
-Versi jagomat-2026-10-18-v2 · Diperbarui 18 Oktober 2026.</p>
+Versi jagomat-2026-10-18-v2 · Diperbarui 25 November 2026 (penjelasan nomor WhatsApp orang tua).</p>
 
 <div class="publik-isi-st">
 <h2>Data yang dikumpulkan</h2>
@@ -269,6 +269,9 @@ Versi jagomat-2026-10-18-v2 · Diperbarui 18 Oktober 2026.</p>
 <li>Nama akun orang tua/guru dan kata sandinya (disimpan sebagai hash).</li>
 <li>Nama panggilan anak dan kelas sekolah opsional (kelas 1–6; akses awal
 berfokus pada pendampingan kelas 3–6).</li>
+<li>Nomor WhatsApp orang tua pada pendaftaran akun anak dan jalur cek kemampuan.
+Nomor WhatsApp orang tua disimpan untuk penagihan dan dukungan, tidak tampil
+ke anak, dan tidak dipakai untuk iklan.</li>
 <li>Hasil latihan: jawaban/cara anak, catatan tinjauan, diagnosis kerja
 (K/B/H/E/T/N), laporan, dan bukti belajar yang dikonfirmasi.</li>
 <li>Foto lembar jawaban — hanya jika pengguna sengaja mengunggahnya sebagai
@@ -324,7 +327,7 @@ pelacakan, atau analitik.</li>
 
 <h2>Data yang tidak dikumpulkan</h2>
 <ul>
-<li>Aplikasi tidak meminta email atau alamat. Nomor telepon hanya tersimpan bila
+<li>Aplikasi tidak meminta email atau alamat. Nomor telepon lain hanya tersimpan bila
 Anda menuliskannya sendiri di chat Pendamping.</li>
 <li>Tidak ada cookie pelacak atau analitik pihak ketiga.</li>
 <li>Cukup tulis nama panggilan anak — jangan nama lengkap atau data
@@ -387,8 +390,8 @@ akan ditinjau setelah konfirmasi profesional.</p>
 def halaman_lupa_sandi(dukungan=None) -> bytes:
     """Panduan publik "Lupa sandi?" — murni teks, tanpa form apa pun.
 
-    Aplikasi ini SENGAJA tidak menyimpan email (nomor WhatsApp hanya untuk jalur
-    funnel dan tidak dipakai reset), jadi reset mandiri via email mustahil: tidak ada jalur kirim-ulang sandi otomatis dan tidak
+    Aplikasi ini SENGAJA tidak menyimpan email (nomor WhatsApp orang tua hanya untuk
+    penagihan/dukungan dan tidak dipakai reset), jadi reset mandiri via email mustahil: tidak ada jalur kirim-ulang sandi otomatis dan tidak
     boleh diarang seolah ada. Sandi hanya bisa disetel ulang oleh manusia
     yang tepat — guru/orang tua untuk murid, pengelola untuk orang tua.
     Halaman ini menunjukkan jalurnya supaya yang terkunci tidak buntu di
@@ -671,8 +674,8 @@ kemampuan global, atau janji prestasi kompetisi.</p></details>
 pendaftaran tidak mengaktifkan paket, masa coba, promo, atau pembayaran.</p></details>
 <details><summary>Bagaimana Jagomat memakai data dan AI?</summary>
 <p>Data belajar disimpan di penyimpanan aplikasi pada server pengelola. Tidak
-ada iklan atau pelacak pihak ketiga; pendaftaran tidak meminta email atau nomor
-telepon. Fitur AI memakai layanan AI pihak ketiga hanya pada alur yang
+ada iklan atau pelacak pihak ketiga; pendaftaran tidak meminta email; pendaftaran akun anak meminta nomor
+WhatsApp orang tua. Fitur AI memakai layanan AI pihak ketiga hanya pada alur yang
 dijelaskan, hasilnya perlu pemeriksaan manusia, dan penggunaan foto memerlukan
 izin orang tua/wali. Pendamping memerlukan persetujuan terpisah. Rinciannya
 ada di <a href="/kebijakan-privasi">Kebijakan Privasi</a>.</p></details>

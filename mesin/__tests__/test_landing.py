@@ -119,7 +119,7 @@ def test_kebijakan_sebut_laporan_pihak_ketiga():
     """Keterbukaan jujur: variasi cerita mengirim teks soal ke layanan AI."""
     h = _html(halaman_kebijakan)
     assert "layanan AI" in h
-    assert "Diperbarui 18 Oktober 2026" in h
+    assert "Diperbarui 25 November 2026" in h
     assert "jagomat-2026-10-18-v2" in h
     assert "sengaja mengunggah foto" in h
     assert "Pastikan izin orang tua/wali sudah ada" in h

@@ -29,8 +29,11 @@ def test_kebijakan_tidak_lagi_klaim_tanpa_nomor_telepon():
 def test_kebijakan_data_tidak_dikumpulkan_jujur_soal_telepon_di_chat():
     teks = _kebijakan()
     assert "Aplikasi tidak meminta email atau alamat." in teks
-    assert ("Nomor telepon hanya tersimpan bila Anda menuliskannya sendiri "
+    assert ("Nomor WhatsApp orang tua disimpan untuk penagihan dan dukungan, tidak tampil "
+            "ke anak, dan tidak dipakai untuk iklan.") in teks
+    assert ("Nomor telepon lain hanya tersimpan bila Anda menuliskannya sendiri "
             "di chat Pendamping.") in teks
+    assert "Nomor telepon hanya tersimpan bila Anda menuliskannya sendiri" not in teks
 
 
 def test_kebijakan_tetap_menolak_email_dan_mengungkap_deepseek():
@@ -43,8 +46,17 @@ def test_bantuan_langganan_tidak_klaim_tanpa_nomor_telepon():
     teks = _teks(halaman_langganan._bantuan())
     assert "tidak menyimpan email atau nomor telepon" not in teks
     assert "Aplikasi ini tidak menyimpan email." in teks
-    assert ("Nomor telepon hanya tersimpan bila kamu menuliskannya sendiri "
+    assert ("Nomor WhatsApp orang tua disimpan untuk penagihan dan dukungan. "
+            "Nomor lain hanya tersimpan bila kamu menuliskannya sendiri "
             "di chat Pendamping.") in teks
+    assert "Nomor telepon hanya tersimpan bila kamu menuliskannya sendiri" not in teks
+
+
+def test_faq_data_tidak_lagi_klaim_tanpa_nomor_telepon():
+    teks = _teks(landing.halaman_landing())
+    assert "pendaftaran tidak meminta email atau nomor telepon" not in teks
+    assert ("pendaftaran tidak meminta email; pendaftaran akun anak meminta nomor "
+            "WhatsApp orang tua.") in teks
 
 
 def test_klaim_pendaftaran_tanpa_kontak_tetap_benar():
