@@ -1,4 +1,4 @@
-"""Admin Paket Belajar lewat HTTP nyata: antrean, detail, pratinjau, setujui/tolak, deposit, keluarga, keamanan aksi.
+"""Admin Paket Belajar lewat HTTP nyata: antrean, detail, pratinjau, setujui/tolak, deposit, keamanan aksi.
 
 Efek (atau ketiadaannya) dibuktikan dari DB admin sintetis, bukan hanya status HTTP. Pola keamanan sama dengan
 verifikasi transfer: sesi berkuki, CSRF, tinjauan bertanda tangan (order + bukti terakhir), sandi admin ulang.
@@ -30,7 +30,7 @@ SETUJUI = DAFTAR + "/setujui"
 TOLAK = DAFTAR + "/tolak"
 KELUARGA = DAFTAR + "/keluarga"
 TAK_ADA = "/admin/tidak-ada"
-AKSI = {SETUJUI: "setujui_kelas", TOLAK: "tolak_kelas", KELUARGA: "tautkan_keluarga_kelas"}
+AKSI = {SETUJUI: "setujui_kelas", TOLAK: "tolak_kelas"}
 ORDER_ASING = "kor_" + "0" * 32
 
 
@@ -109,7 +109,7 @@ def test_antrean_memuat_paket_nominal_persis_dan_tautan_tanpa_nama_anak(kidup, m
     isi = minta_admin(kidup, DAFTAR, admin)[1]
     assert "Mini Class" in isi and 'href="%s?order=%s"' % (DETAIL, oid) in isi
     unik = order_terakhir()["kode_unik"]
-    assert 'Rp250.<mark class="admin-digit-unik">%03d</mark>' % unik in isi
+    assert 'Rp300.<mark class="admin-digit-unik">%03d</mark>' % unik in isi
     assert "Anak Alfa" not in isi and "murid-a" not in isi and str(murid.id_akun) not in isi
 
 
@@ -131,7 +131,7 @@ def test_antrean_terlama_dulu(kidup, admin, jam):
     assert isi.index(oid[b.siswa_id]) < isi.index(oid[a.siswa_id])
 
 
-def test_detail_dua_form_token_pratinjau_dan_form_keluarga_di_antrean(kidup, menunggu, admin):
+def test_detail_dua_form_token_dan_pratinjau_tanpa_form_keluarga(kidup, menunggu, admin):
     _, oid = menunggu
     kode, isi, _ = minta_admin(kidup, "%s?order=%s" % (DETAIL, oid), admin)
     assert kode == 200
@@ -139,7 +139,7 @@ def test_detail_dua_form_token_pratinjau_dan_form_keluarga_di_antrean(kidup, men
     assert isi.count('name="reauth"') >= 2 and 'name="tinjauan"' in isi and 'name="csrf"' in isi
     assert "%s?id=%d" % (BUKTI, bukti_terakhir(oid)) in isi and "Menunggu verifikasi" in isi
     antrean = minta_admin(kidup, DAFTAR, admin)[1]
-    assert 'action="%s"' % KELUARGA in antrean and 'name="siswa_a"' in antrean
+    assert KELUARGA not in antrean and 'name="siswa_a"' not in antrean
 
 
 @pytest.mark.parametrize("query", ["", "?order=x", "?order=" + ORDER_ASING, "?order=ord_" + "0" * 32,
@@ -323,46 +323,17 @@ def test_deposit_tidak_lagi_berlaku_setujui_ditolak_pesan_jelas_tanpa_akses(kidu
     assert putus(kidup, admin, TOLAK, oid, alasan="Deposit tidak berlaku")[0] == 303
 
 
-# --- keluarga ------------------------------------------------------------------------------------
+# --- tautan keluarga dihapus (25 Nov 2026) ---------------------------------------------------------
 
-def keluarga(server, cookie, a, b, **kw):
-    data = token(cookie, AKSI[KELUARGA], None, None, isi={"section": "kelas_belajar"}, **kw)
-    data.update({"siswa_a": str(a), "siswa_b": str(b)})
-    return minta_mentah(server, KELUARGA, None, data, {"Cookie": "osn_sesi=" + cookie})
-
-
-def test_tautkan_keluarga_menulis_dan_idempoten(kidup, admin):
+def test_rute_keluarga_sudah_dihapus_sama_dengan_rute_tak_dikenal_tanpa_efek(kidup, admin):
+    """Regression: POST /keluarga tidak lagi punya handler; hasilnya identik dengan rute admin tak dikenal."""
     a = buat_murid(kidup, "murid-a", "Anak A")
     b = buat_murid(kidup, "murid-b", "Anak B")
-    kode, _, tajuk = keluarga(kidup, admin, a.siswa_id, b.siswa_id)
-    assert (kode, tajuk["Location"]) == (303, DAFTAR + "?hasil=kelas_keluarga")
-    assert {r["siswa_id"] for r in baca_admin("SELECT siswa_id FROM kelas_keluarga")} == {a.siswa_id, b.siswa_id}
-    assert keluarga(kidup, admin, a.siswa_id, b.siswa_id)[0] == 303
-    assert hitung()["kelas_keluarga"] == 2
-    assert "ditautkan" in minta_admin(kidup, DAFTAR + "?hasil=kelas_keluarga", admin)[1]
-
-
-@pytest.mark.parametrize("a,b", [(1, 1), (0, 2), ("-1", 2), ("x", 2), ("", 2), ("1" * 25, 2)])
-def test_tautkan_keluarga_isian_tidak_sah_400_tanpa_efek(kidup, admin, a, b):
-    assert keluarga(kidup, admin, a, b)[0] == 400
+    data = token(admin, AKSI[SETUJUI], None, None, isi={"section": "kelas_belajar"})
+    data.update({"siswa_a": str(a.siswa_id), "siswa_b": str(b.siswa_id)})
+    cookie = {"Cookie": "osn_sesi=" + admin}
+    assert minta_mentah(kidup, KELUARGA, None, data, cookie)[:2] == minta_mentah(kidup, TAK_ADA, None, data, cookie)[:2]
     assert hitung()["kelas_keluarga"] == 0
-
-
-def test_tautkan_keluarga_butuh_sandi_dan_tinjauan_dan_field_asing_ditolak(kidup, admin):
-    assert keluarga(kidup, admin, 1, 2, sandi="salah")[0] == 403
-    data = token(admin, AKSI[KELUARGA], None, None, isi={"section": "kelas_belajar"})
-    data.update({"siswa_a": "1", "siswa_b": "2", "admin_id": "lain"})
-    assert minta_mentah(kidup, KELUARGA, None, data, {"Cookie": "osn_sesi=" + admin})[0] == 400
-    salah = token(admin, AKSI[SETUJUI], None, None, isi={"section": "kelas_belajar"})
-    salah.update({"siswa_a": "1", "siswa_b": "2"})
-    assert minta_mentah(kidup, KELUARGA, None, salah, {"Cookie": "osn_sesi=" + admin})[0] == 403
-    assert hitung()["kelas_keluarga"] == 0
-
-
-def test_tautkan_keluarga_beda_keluarga_konflik_409(kidup, admin):
-    assert keluarga(kidup, admin, 1, 2)[0] == 303 and keluarga(kidup, admin, 3, 4)[0] == 303
-    assert keluarga(kidup, admin, 2, 3)[0] == 409
-    assert hitung()["kelas_keluarga"] == 4
 
 
 # --- XSS dan privasi -------------------------------------------------------------------------------

@@ -20,7 +20,7 @@ ADMIN = "kelas_admin_http.py"
 _GERBANG_MURID = "test_sakelar_mati_semua_rute_sama_dengan_jalur_murid_tak_dikenal"
 _ADMIN_SAJA = "test_non_admin_404_identik_rute_tak_dikenal_sakelar_mati_atau_hidup or test_post_non_admin_tanpa_efek"
 _SISWA_SESI = "test_kueri_siswa_diabaikan_get_dan_post or test_isolasi_murid_a_b_tagihan_status_dan_bukti"
-_FORM_KETAT = "test_nominal_tidak_bisa_dari_form or test_pembeli_tidak_bisa_mengaku_anak_kedua_lewat_form"
+_FORM_KETAT = "test_nominal_tidak_bisa_dari_form"
 _TOKEN_KODE = "test_token_salah_atau_untuk_kode_lain_atau_akun_lain_ditolak"
 _SATU_TAGIHAN = "test_satu_tagihan_terbuka_per_anak_idempoten_dan_paket_lain_konflik"
 _REKENING = "test_rekening_kosong_halaman_jujur_dan_post_404_tanpa_efek"
@@ -33,7 +33,7 @@ _BERKAS_SAMA = "test_unggah_berkas_sama_tidak_ganda_dan_batas_lima"
 _ADMIN_GET_ANTREAN = ("    principal = h._principal_admin(penangan)\n    if principal is None:\n"
                       "        h._tidak_ada(penangan)\n        return True\n    {ui.RUTE: _get_antrean")
 _ADMIN_POST_PALANG = ("    principal = h._principal_admin(penangan)\n    if principal is None:\n"
-                      "        h._tidak_ada(penangan)\n        return True\n    if jalur == ui.RUTE_KELUARGA:")
+                      "        h._tidak_ada(penangan)\n        return True\n    aksi.jalankan_aman(")
 
 # (nama, berkas, [(lama, baru), ...], berkas tes, ekspresi -k)
 KASUS = (
@@ -49,7 +49,7 @@ KASUS = (
     ], TES_ADMIN, _ADMIN_SAJA),
     ("admin_post_tanpa_palang_admin", ADMIN, [
         (_ADMIN_POST_PALANG, "    principal = penangan._principal()\n    if principal is None:\n"
-                             "        h._tidak_ada(penangan)\n        return True\n    if jalur == ui.RUTE_KELUARGA:"),
+                             "        h._tidak_ada(penangan)\n        return True\n    aksi.jalankan_aman("),
     ], TES_ADMIN, _ADMIN_SAJA),
     ("admin_get_kembali_dibatasi_sakelar", ADMIN, [
         ("import paket_belajar_katalog as katalog\n", "import paket_belajar_katalog as katalog\nimport paket_belajar_gate\n"),

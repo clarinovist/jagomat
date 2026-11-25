@@ -11,8 +11,7 @@ murid ke siswanya. Aturan yang ditegakkan di sini, bukan di halaman:
   (`students.siswa_dari_akun`), BUKAN dari URL/form/kueri. Anonim, guru, dan admin tidak ditangani (False: GET 303
   /masuk, POST 401 seperti jalur murid lain).
 - Form buat tagihan persis `{token, kode}`; kode hanya salah satu paket katalog dan token terikat ke kode itu.
-  Nominal selalu dari katalog + deposit/keluarga di server (`kelas_store.buat_tagihan`), tidak pernah dari form. Status
-  anak kedua tidak bisa dipilih pembeli (hanya admin menautkan keluarga).
+  Nominal selalu dari katalog + deposit di server (`kelas_store.buat_tagihan`), tidak pernah dari form.
 - Satu tagihan terbuka per anak LINTAS paket: form bukti tidak memuat kode paket, jadi paket yang menerima bukti
   diturunkan dari tagihan terbuka sesi. Membuat tagihan paket lain saat satu masih terbuka = 409, dicek di transaksi
   tulis yang sama dengan pembuatan (`tolak_paket_lain_terbuka`), jadi dua tab tidak bisa melahirkan dua tagihan terbuka.

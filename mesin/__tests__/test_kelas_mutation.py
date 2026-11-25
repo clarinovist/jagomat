@@ -24,9 +24,11 @@ AKAR = Path(__file__).resolve().parents[2]
 T = "mesin/__tests__/"
 P = T + "test_kelas_putusan.py::"
 S = T + "test_kelas_store.py::"
+KATALOG = T + "test_paket_belajar_katalog.py::"
 D = T + "test_purna_dalam_transaksi.py::"
 PUTUSAN, STORE, STATUS, RINCIAN, PURNA = ("mesin/kelas_putusan.py", "mesin/kelas_store.py", "mesin/kelas_status.py",
                                          "mesin/kelas_rincian.py", "mesin/purna.py")
+KATALOG_HARGA = "mesin/paket_belajar_katalog.py"
 
 KASUS = (
     # --- deposit: tepat sekali, hanya akun yang sama, dicek ulang saat lunas ---
@@ -65,13 +67,10 @@ KASUS = (
        "        if False:\n"),),
      (S + "test_deposit_tidak_dipegang_dua_tagihan_terbuka_sekaligus",
       S + "test_kartu_memuat_semua_paket_katalog_dengan_rincian_dan_penanda_tagihan")),
-    ("diskon-anak-kedua-menumpuk-dengan-peta-sendiri",
-     ((RINCIAN, "    return anggota_lain_mulai_lebih_dulu(kon, siswa_id) and not membayar_peta_sendiri(kon, siswa_id, kini)\n",
-       "    return anggota_lain_mulai_lebih_dulu(kon, siswa_id)\n"),),
-     (S + "test_anak_yang_membayar_peta_sendiri_bukan_anak_kedua_walau_deposit_sudah_dipakai",)),
-    ("anak-kedua-tanpa-urutan-mulai",
-     ((RINCIAN, "    return sendiri is None or lain < sendiri\n", "    return True\n"),),
-     (S + "test_anak_kedua_ditentukan_akses_yang_mulai_lebih_dulu_bukan_urutan_tautan",)),
+    ("harga-mini-turun-ke-250rb",
+     ((KATALOG_HARGA, "HARGA_MINI = 300_000\n", "HARGA_MINI = 250_000\n"),),
+     (KATALOG + "test_mini_300rb_offline_60_menit_kuota_5",
+      S + "test_tagihan_tanpa_deposit_memakai_harga_katalog")),
     # --- uang: total = nominal + kode, kode unik, hitungan ---
     ("total-tidak-sama-nominal-tambah-kode-saat-setujui",
      ((PUTUSAN, '    if nominal <= 0 or tagihan["nominal"] != nominal or tagihan["total_transfer"] != nominal + '
@@ -79,7 +78,7 @@ KASUS = (
      (P + "test_hitungan_tagihan_tidak_konsisten_ditolak_saat_setujui",)),
     ("total-tagihan-tidak-sama-nominal-tambah-kode",
      ((STORE, "rincian.nominal + kode, kini))", "rincian.nominal + kode + 1, kini))"),),
-     (S + "test_tagihan_tanpa_deposit_dan_tanpa_keluarga_memakai_harga_katalog",
+     (S + "test_tagihan_tanpa_deposit_memakai_harga_katalog",
       S + "test_kode_unik_acak_server_dalam_rentang_dan_nominal_tidak_pernah_dari_pemanggil")),
     ("kode-unik-tidak-melihat-nominal-dipegang",
      ((STORE, "if nominal + kode not in dipegang]", "if True]"),),

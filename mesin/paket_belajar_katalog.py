@@ -1,11 +1,11 @@
 """Katalog Paket Belajar 1 Bulan (Private dan Mini Class), aturan nominal, dan model data bersama.
 
 Tanpa DB, jaringan, atau env. Semua harga HANYA konstanta di sini (server); tidak pernah dari form.
-Keputusan Pemilik 24 Nov 2026 (plan `docs/plan/2026-11-24-paket-belajar-bulanan.md` §4a):
-- Private: Rp80.000 x 8 pertemuan, 60 menit, online. Mini Class: Rp250.000, 8 pertemuan, 60 menit,
+Keputusan Pemilik 24 Nov 2026 (plan `docs/plan/2026-11-24-paket-belajar-bulanan.md` §4a), direvisi
+25 Nov 2026: harga Mini naik dan diskon anak kedua dihapus total.
+- Private: Rp80.000 x 8 pertemuan, 60 menit, online. Mini Class: Rp300.000, 8 pertemuan, 60 menit,
   offline, kuota 5 anak.
-- Deposit Peta (Rp49.000) memotong bulan pertama. Anak kedua (tertaut keluarga, tanpa deposit sendiri)
-  dapat diskon 20%. Deposit dan diskon saling lepas: anak yang membayar Peta sendiri BUKAN anak kedua.
+- Deposit Peta (Rp49.000) memotong bulan pertama sekali, untuk semua paket. Tidak ada diskon lain.
 
 Total transfer = nominal + kode unik 1..999, jadi semua nominal (termasuk produk lain: Peta Rp49.000,
 Latihan Harian Rp39.000 dan Rp349.000) harus berjarak lebih dari 999 satu sama lain; dijaga tes.
@@ -26,10 +26,9 @@ MODE_OFFLINE = "offline"
 PERTEMUAN_PER_BULAN = 8
 MENIT_PER_PERTEMUAN = 60
 HARGA_PRIVATE_PER_PERTEMUAN = 80_000
-HARGA_MINI = 250_000
+HARGA_MINI = 300_000
 KUOTA_MINI = 5
 RUPIAH_DEPOSIT = d.RUPIAH_PAKET
-DISKON_ANAK_KEDUA_PERSEN = 20
 
 STATUS_BELUM_BAYAR = "belum_bayar"
 STATUS_MENUNGGU = "menunggu"
@@ -111,14 +110,16 @@ def _periksa_bool(nama: str, nilai) -> bool:
     return nilai
 
 
-def hitung_rincian(kode: str, *, deposit_aktif: bool, anak_kedua: bool) -> Rincian:
-    """Nominal tagihan: deposit menang atas diskon anak kedua (tidak menumpuk); hasil selalu > 0."""
+def hitung_rincian(kode: str, *, deposit_aktif: bool) -> Rincian:
+    """Nominal tagihan: harga paket dikurangi deposit Peta bila aktif; hasil selalu > 0.
+
+    `potongan_diskon` selalu 0: diskon anak kedua sudah dihapus (25 Nov 2026). Kolomnya dipertahankan di
+    `kelas_tagihan` agar skema dan tagihan lama tetap utuh.
+    """
     paket = ambil(kode)
     deposit = _periksa_bool("deposit_aktif", deposit_aktif)
-    kedua = _periksa_bool("anak_kedua", anak_kedua)
     potongan_deposit = RUPIAH_DEPOSIT if deposit else 0
-    potongan_diskon = paket.harga * DISKON_ANAK_KEDUA_PERSEN // 100 if kedua and not deposit else 0
-    nominal = paket.harga - potongan_deposit - potongan_diskon
+    nominal = paket.harga - potongan_deposit
     if nominal <= 0:
         raise ValueError("nominal tagihan harus positif")
-    return Rincian(paket.kode, paket.harga, potongan_deposit, potongan_diskon, nominal)
+    return Rincian(paket.kode, paket.harga, potongan_deposit, 0, nominal)

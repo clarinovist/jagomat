@@ -18,8 +18,12 @@ def kartu(kon, siswa=1, akun=AKUN_A, sekarang=KINI):
     return {c.paket.kode: c for c in kelas_store.kartu_paket(kon, akun, siswa, sekarang)}
 
 
-def tautkan(kon, a, b, sekarang=KINI):
-    return kelas_store.tautkan_keluarga(kon, ADMIN, a, b, sekarang)
+def _tautan_langsung(kon, a, b):
+    """Tautan keluarga LAMA (tabel masih ada di skema, modul penulisnya sudah dihapus) ditulis langsung ke DB."""
+    keluarga = k.id_keluarga_baru()
+    kon.executemany("INSERT INTO kelas_keluarga(keluarga_id,siswa_id,ditautkan_oleh,waktu) VALUES(?,?,?,?)",
+                    [(keluarga, a, ADMIN, KINI), (keluarga, b, ADMIN, KINI)])
+    kon.commit()                                   # jangan biarkan transaksi implisit terbuka untuk d.tulis berikutnya
 
 
 # --- pemasangan -----------------------------------------------------------------------------------
@@ -41,9 +45,9 @@ def test_buka_memberi_koneksi_untuk_baca_dan_tulis(db_kelas):
 
 # --- nominal dari server ---------------------------------------------------------------------------
 
-def test_tagihan_tanpa_deposit_dan_tanpa_keluarga_memakai_harga_katalog(kon_kelas):
+def test_tagihan_tanpa_deposit_memakai_harga_katalog(kon_kelas):
     mini, private = tagih(kon_kelas, 1, "mini"), tagih(kon_kelas, 2, "private")
-    for tagihan, harga in ((mini, 250_000), (private, 640_000)):
+    for tagihan, harga in ((mini, 300_000), (private, 640_000)):
         assert (tagihan.rincian.harga_dasar, tagihan.rincian.potongan_deposit, tagihan.rincian.potongan_diskon,
                 tagihan.rincian.nominal) == (harga, 0, 0, harga)
         assert tagihan.total == harga + tagihan.kode_unik
@@ -55,7 +59,7 @@ def test_tagihan_dengan_deposit_aktif_dipotong_sekali_untuk_semua_paket(kon_kela
     peta_lunas(kon_kelas, 1)
     peta_lunas(kon_kelas, 2)
     mini, private = tagih(kon_kelas, 1, "mini"), tagih(kon_kelas, 2, "private")
-    assert (mini.rincian.nominal, mini.rincian.potongan_deposit) == (201_000, 49_000)
+    assert (mini.rincian.nominal, mini.rincian.potongan_deposit) == (251_000, 49_000)
     assert (private.rincian.nominal, private.rincian.potongan_deposit) == (591_000, 49_000)
     deposit = {r[0]: r[1] for r in kon_kelas.execute("SELECT order_id, deposit_order_id FROM kelas_tagihan")}
     assert set(deposit.values()) == {pesanan_kit.ord_id(1), pesanan_kit.ord_id(2)}
@@ -64,7 +68,7 @@ def test_tagihan_dengan_deposit_aktif_dipotong_sekali_untuk_semua_paket(kon_kela
 def test_deposit_hanya_dari_order_peta_milik_akun_yang_sama(kon_kelas):
     peta_lunas(kon_kelas, 1, AKUN_B)             # Peta anak 1 dibayar akun B; pembeli kelas adalah akun A
     tagihan = tagih(kon_kelas, 1, "mini", akun=AKUN_A)
-    assert tagihan.rincian.potongan_deposit == 0 and tagihan.rincian.nominal == 250_000
+    assert tagihan.rincian.potongan_deposit == 0 and tagihan.rincian.nominal == 300_000
     assert kon_kelas.execute("SELECT deposit_order_id FROM kelas_tagihan").fetchone()[0] is None
 
 
@@ -72,7 +76,7 @@ def test_deposit_hanya_dari_order_peta_milik_akun_yang_sama(kon_kelas):
 def test_deposit_kedaluwarsa_tidak_dipotongkan(kon_kelas, sekarang):
     peta_lunas(kon_kelas, 1)
     tagihan = tagih(kon_kelas, 1, "mini", sekarang=sekarang)
-    assert tagihan.rincian.potongan_deposit == 0 and tagihan.rincian.nominal == 250_000
+    assert tagihan.rincian.potongan_deposit == 0 and tagihan.rincian.nominal == 300_000
 
 
 def test_deposit_direfund_atau_sudah_dipakai_tidak_dipotongkan(kon_kelas):
@@ -89,42 +93,22 @@ def test_deposit_peta_belum_lunas_tidak_dipotongkan(kon_kelas):
     assert tagih(kon_kelas, 1).rincian.potongan_deposit == 0
 
 
-def test_anak_kedua_dapat_diskon_20_persen_dan_deposit_tidak_menumpuk(kon_kelas):
-    lunas(kon_kelas, 1, "mini", 1)                   # anak 1 mulai lebih dulu
-    tautkan(kon_kelas, 1, 2)
-    peta_lunas(kon_kelas, 3)
-    tautkan(kon_kelas, 1, 3)
-    kedua_mini, kedua_private = tagih(kon_kelas, 2, "mini"), tagih(kon_kelas, 2, "private")
-    assert (kedua_mini.rincian.potongan_diskon, kedua_mini.rincian.nominal) == (50_000, 200_000)
-    assert (kedua_private.rincian.potongan_diskon, kedua_private.rincian.nominal) == (128_000, 512_000)
-    ketiga = tagih(kon_kelas, 3, "mini")             # punya deposit aktif: deposit menang, tanpa diskon
-    assert (ketiga.rincian.potongan_deposit, ketiga.rincian.potongan_diskon, ketiga.rincian.nominal) == (
-        49_000, 0, 201_000)
+def test_tautan_keluarga_lama_tidak_menurunkan_harga_anak_kedua(kon_kelas):
+    """Regression (25 Nov 2026): diskon anak kedua dihapus. Tautan lama di DB tidak lagi mengubah nominal."""
+    lunas(kon_kelas, 1, "mini", 1)                   # anak 1 mulai lebih dulu: dulu anak 2 kena diskon 20%
+    _tautan_langsung(kon_kelas, 1, 2)
+    assert (tagih(kon_kelas, 2, "mini").rincian.potongan_diskon, tagih(kon_kelas, 2, "mini").rincian.nominal) == (
+        0, 300_000)
+    assert tagih(kon_kelas, 2, "private").rincian.nominal == 640_000
 
 
-def test_anak_yang_membayar_peta_sendiri_bukan_anak_kedua_walau_deposit_sudah_dipakai(kon_kelas):
+def test_tautan_keluarga_lama_dengan_deposit_tetap_normal_minus_deposit(kon_kelas):
     lunas(kon_kelas, 1, "mini", 1)
-    peta = peta_lunas(kon_kelas, 2)
-    purna.catat_pakai(kon_kelas, peta, pesanan_kit.operasi(2), ADMIN, "lainnya", KINI)
-    tautkan(kon_kelas, 1, 2)
+    _tautan_langsung(kon_kelas, 1, 2)
+    peta_lunas(kon_kelas, 2)
     tagihan = tagih(kon_kelas, 2, "mini")
     assert (tagihan.rincian.potongan_deposit, tagihan.rincian.potongan_diskon, tagihan.rincian.nominal) == (
-        0, 0, 250_000)
-
-
-def test_anak_pertama_dan_anak_tanpa_tautan_tidak_dapat_diskon(kon_kelas):
-    tautkan(kon_kelas, 1, 2)
-    assert tagih(kon_kelas, 1, "mini").rincian.potongan_diskon == 0       # belum ada yang mulai: bukan anak kedua
-    assert tagih(kon_kelas, 3, "mini").rincian.potongan_diskon == 0       # tidak tertaut
-
-
-def test_anak_kedua_ditentukan_akses_yang_mulai_lebih_dulu_bukan_urutan_tautan(kon_kelas):
-    tautkan(kon_kelas, 1, 2)
-    lunas(kon_kelas, 2, "mini", 1)                   # anak 2 yang mulai lebih dulu
-    assert tagih(kon_kelas, 1, "mini").rincian.potongan_diskon == 50_000
-    lunas(kon_kelas, 1, "mini", 2, sekarang="2026-11-21T00:00:00", putus="2026-11-21T00:30:00")
-    assert tagih(kon_kelas, 2, "private", sekarang="2026-11-21T01:00:00").rincian.potongan_diskon == 0
-    assert tagih(kon_kelas, 1, "private", sekarang="2026-11-21T01:00:00").rincian.potongan_diskon == 128_000
+        49_000, 0, 251_000)
 
 
 def test_deposit_tidak_dipegang_dua_tagihan_terbuka_sekaligus(kon_kelas):
@@ -148,11 +132,11 @@ def test_kartu_memuat_semua_paket_katalog_dengan_rincian_dan_penanda_tagihan(kon
     sebelum = kartu(kon_kelas)
     assert set(sebelum) == {p.kode for p in katalog.DAFTAR_PAKET}
     assert [c.ada_tagihan_terbuka for c in sebelum.values()] == [False, False]
-    assert (sebelum["mini"].rincian.nominal, sebelum["private"].rincian.nominal) == (201_000, 591_000)
+    assert (sebelum["mini"].rincian.nominal, sebelum["private"].rincian.nominal) == (251_000, 591_000)
     tagih(kon_kelas, 1, "mini")
     sesudah = kartu(kon_kelas)
     assert (sesudah["mini"].ada_tagihan_terbuka, sesudah["private"].ada_tagihan_terbuka) == (True, False)
-    assert sesudah["mini"].rincian.nominal == 201_000                   # rincian tersimpan di tagihan itu
+    assert sesudah["mini"].rincian.nominal == 251_000                   # rincian tersimpan di tagihan itu
     assert sesudah["private"].rincian.nominal == 640_000                # deposit sudah dipegang tagihan mini
 
 
@@ -183,7 +167,7 @@ def test_tagihan_terbuka_dikembalikan_apa_adanya_tanpa_menulis_lagi(kon_kelas):
 
 def test_paket_lain_dan_anak_lain_mendapat_tagihan_sendiri_dengan_kode_berbeda_di_nominal_sama(kon_kelas):
     a, b = tagih(kon_kelas, 1, "mini"), tagih(kon_kelas, 2, "mini")
-    assert a.rincian.nominal == b.rincian.nominal == 250_000
+    assert a.rincian.nominal == b.rincian.nominal == 300_000
     assert a.total != b.total and a.kode_unik != b.kode_unik
     assert tagih(kon_kelas, 1, "private").order_id != a.order_id
 

@@ -16,7 +16,7 @@ def _item(kode=k.KODE_PRIVATE, total=591_427, siswa=7654321):
 
 
 def _tagihan(status=k.STATUS_MENUNGGU):
-    r = k.hitung_rincian(k.KODE_PRIVATE, deposit_aktif=True, anak_kedua=False)
+    r = k.hitung_rincian(k.KODE_PRIVATE, deposit_aktif=True)
     return k.TagihanKelas(ORDER, k.KODE_PRIVATE, r, 427, r.nominal + 427, status, "2026-11-25T03:00:00", 1, None)
 
 
@@ -30,9 +30,9 @@ def _teks(html):
 
 
 def test_antrean_memuat_paket_nominal_tersorot_dan_tautan_detail():
-    html = ui.halaman_antrean([_item(), _item(k.KODE_MINI, 201_427)])
+    html = ui.halaman_antrean([_item(), _item(k.KODE_MINI, 251_427)])
     assert "Private" in html and "Mini Class" in html
-    assert "Rp591." + SOROT in html and "Rp201." + SOROT in html
+    assert "Rp591." + SOROT in html and "Rp251." + SOROT in html
     assert f'href="/admin/kelas/verifikasi?order={ORDER}"' in html
 
 
@@ -99,8 +99,8 @@ def test_id_bukti_hanya_bilangan_bulat_dari_ledger():
         assert "/admin/kelas/bukti?id=" not in html, salah
 
 
-def test_form_keluarga_dua_angka_token_dan_sandi():
-    html = ui.form_keluarga("csrf-k", "tinjauan-k")
-    assert 'action="/admin/kelas/keluarga"' in html and 'name="siswa_a"' in html and 'name="siswa_b"' in html
-    assert 'value="csrf-k"' in html and 'value="tinjauan-k"' in html and 'name="reauth"' in html
-    assert ui.AKSI_KELUARGA == "tautkan_keluarga_kelas" and ui.RUTE_KELUARGA == "/admin/kelas/keluarga"
+def test_tanpa_konsep_keluarga_di_halaman_admin():
+    html = ui.halaman_antrean([_item()]) + ui.halaman_detail(_item(), _tagihan(), [_bukti()], FORMS)
+    assert "keluarga" not in html.lower() and "anak kedua" not in html.lower()
+    assert not hasattr(ui, "form_keluarga") and not hasattr(ui, "RUTE_KELUARGA")
+    assert not hasattr(ui, "AKSI_KELUARGA")

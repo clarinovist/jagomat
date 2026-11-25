@@ -1,5 +1,5 @@
-"""Rute admin Paket Belajar 1 Bulan: antrean `/admin/kelas`, detail `/verifikasi`, pratinjau `/bukti`, aksi `/setujui`,
-`/tolak`, dan `/keluarga` (tautkan dua anak untuk diskon anak kedua).
+"""Rute admin Paket Belajar 1 Bulan: antrean `/admin/kelas`, detail `/verifikasi`, pratinjau `/bukti`, aksi `/setujui`
+dan `/tolak`.
 
 Dijawab `admin_http` sebelum palang guru, jadi anonim, murid, dan guru menerima 404 yang sama dengan rute admin tak
 dikenal SEBELUM DB atau berkas disentuh. Rute admin TIDAK bergantung pada sakelar `PAKET_BELAJAR`: antrean tetap
@@ -15,7 +15,6 @@ yang sama dengan verifikasi transfer dan Latihan Harian):
   lagi berlaku = pesan jelas khusus (tolak bukti, minta pembeli mendaftar ulang); TIDAK ada yang disetujui.
 - Pratinjau memakai pembaca berkas dan header yang sama dengan bukti Paket Coba (tipe dari ledger dan magic bytes,
   `nosniff`, CSP ketat, nama unduhan generik); berkas dari subfolder `kelas`. Id bukti = bilangan ledger.
-- Tautkan keluarga: dua id siswa angka; hanya admin; tinjauan bertanda tangan tanpa target; field lain = 400.
 - Tidak ada `str(galat)` di respons; PRG 303 dengan kode hasil dari enum tetap.
 """
 from __future__ import annotations
@@ -44,17 +43,12 @@ from schema_transfer import BATAS_UKURAN_BUKTI, MIME_BUKTI
 
 HASIL_SETUJU = "kelas_setuju"
 HASIL_TOLAK = "kelas_tolak"
-HASIL_KELUARGA = "kelas_keluarga"
 PESAN_HASIL = {HASIL_SETUJU: "Bukti disetujui. Paket langsung aktif.",
-               HASIL_TOLAK: "Bukti ditolak. Pembeli dapat mengunggah ulang selama waktu pembayaran terbuka.",
-               HASIL_KELUARGA: "Kedua anak ditautkan sebagai satu keluarga."}
+               HASIL_TOLAK: "Bukti ditolak. Pembeli dapat mengunggah ulang selama waktu pembayaran terbuka."}
 COPY_DEPOSIT_TIDAK_AKTIF = ("Deposit pembeli tidak lagi berlaku; tolak bukti ini dan minta pembeli mendaftar ulang "
                             "(nominal baru). Tidak ada yang disetujui.")
-COPY_GALAT_KELUARGA = ("Tautan keluarga tidak dapat dibuat: pastikan dua id siswa angka berbeda dan belum berada di "
-                       "keluarga yang berlainan. Tidak ada yang diubah.")
-MAKS_ANGKA_SISWA = 12
 RUTE_GET = frozenset({ui.RUTE, ui.RUTE_VERIFIKASI, ui.RUTE_BUKTI})
-_AKSI_POST = {ui.RUTE_SETUJUI: ui.AKSI_SETUJUI, ui.RUTE_TOLAK: ui.AKSI_TOLAK, ui.RUTE_KELUARGA: ui.AKSI_KELUARGA}
+_AKSI_POST = {ui.RUTE_SETUJUI: ui.AKSI_SETUJUI, ui.RUTE_TOLAK: ui.AKSI_TOLAK}
 _GALAT_BACA = (admin_store.StoreBelumSiap, pesanan.PesananError, sqlite3.Error, OSError)
 
 
@@ -81,11 +75,6 @@ def _token_form(penangan, principal, kode_aksi: str, isi: dict):
 
 # --- antrean dan detail -----------------------------------------------------------------------
 
-def _form_keluarga(penangan, principal) -> str:
-    token = _token_form(penangan, principal, ui.AKSI_KELUARGA, {"section": ui.SECTION})
-    return "" if token is None else ui.form_keluarga(*token)
-
-
 def _get_antrean(penangan, principal) -> None:
     try:
         hasil = h._query(penangan, diizinkan={"hasil"}).get("hasil")
@@ -100,20 +89,19 @@ def _get_antrean(penangan, principal) -> None:
                 kelompok = jadwal_store.daftar_kelompok(kon, alur.waktu_sekarang())
             except (sqlite3.OperationalError, ValueError):
                 kelompok = None
-        formulir = _form_keluarga(penangan, principal)
+        # Token dibuat di dalam try: bentuk_token bisa melempar PermissionError (sesi cookie tanpa token) -> 403.
+        token_jadwal = jadwal_http.bentuk_token(penangan, principal, jadwal_http.AKSI_BUAT, {"section": ui.SECTION})
     except PermissionError:
         return h._galat(penangan, 403, daftar_ui.COPY_GALAT_FORM)
     except _GALAT_BACA:
         return _kirim(penangan, principal, daftar_ui.halaman_tidak_siap(), 503)
-    isi = ui.halaman_antrean(daftar, PESAN_HASIL.get(hasil, "")) + formulir
-    if kelompok is not None:
-        token = jadwal_http.bentuk_token(penangan, principal, jadwal_http.AKSI_BUAT, {"section": ui.SECTION})
-        if token is not None:
-            try:
-                guru = jadwal_http.guru_map()
-            except (OSError, ValueError):
-                guru = {}
-            isi += jadwal_ui.blok_daftar(kelompok, guru, token)
+    isi = ui.halaman_antrean(daftar, PESAN_HASIL.get(hasil, ""))
+    if kelompok is not None and token_jadwal is not None:
+        try:
+            guru = jadwal_http.guru_map()
+        except (OSError, ValueError):
+            guru = {}
+        isi += jadwal_ui.blok_daftar(kelompok, guru, token_jadwal)
     _kirim(penangan, principal, isi)
 
 
@@ -270,31 +258,12 @@ def _putuskan_dengan_deposit(penangan, principal, jalur: str) -> None:
         h._galat(penangan, 409, COPY_DEPOSIT_TIDAK_AKTIF)
 
 
-def _angka_siswa(nilai) -> int:
-    if type(nilai) is not str or not nilai.isascii() or not nilai.isdigit() or len(nilai) > MAKS_ANGKA_SISWA:
-        raise ValueError("id siswa tidak sah")
-    return int(nilai)
-
-
-def _tautkan(penangan, principal) -> None:
-    _tinjauan, data = aksi.terima_form(penangan, principal, ui.AKSI_KELUARGA)
-    aksi.wajib_field(data, frozenset({"siswa_a", "siswa_b"}))
-    siswa_a, siswa_b = _angka_siswa(data["siswa_a"]), _angka_siswa(data["siswa_b"])
-    with _buka(tulis=True) as kon:
-        store.tautkan_keluarga(kon, principal.id_akun, siswa_a, siswa_b, alur.waktu_sekarang())
-    h._redirect(penangan, "%s?hasil=%s" % (ui.RUTE, HASIL_KELUARGA))
-
-
 def tangani_post(penangan, jalur) -> bool:
     if jalur not in _AKSI_POST:
         return False
     principal = h._principal_admin(penangan)
     if principal is None:
         h._tidak_ada(penangan)
-        return True
-    if jalur == ui.RUTE_KELUARGA:
-        aksi.jalankan_aman(penangan, lambda: _tautkan(penangan, principal), copy_konflik=COPY_GALAT_KELUARGA,
-                           copy_isian=COPY_GALAT_KELUARGA)
         return True
     aksi.jalankan_aman(
         penangan, lambda: _putuskan_dengan_deposit(penangan, principal, jalur),

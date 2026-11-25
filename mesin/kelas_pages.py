@@ -111,8 +111,6 @@ def _ringkas_isi(paket: k.PaketBelajar) -> str:
 def _rincian_khusus(rincian: k.Rincian) -> str:
     if rincian.potongan_deposit:
         baris = f"Sudah dipotong deposit Peta {rupiah(rincian.potongan_deposit)}"
-    elif rincian.potongan_diskon:
-        baris = f"Diskon anak kedua {k.DISKON_ANAK_KEDUA_PERSEN}%"
     else:
         return ""
     return _p(baris, "lg-hemat") + _p(f"Yang Anda bayar bulan ini: {rupiah(rincian.nominal)}", "lg-ket")
@@ -176,8 +174,6 @@ def _baris_rincian(tagihan: k.TagihanKelas) -> str:
     baris = [_baris("Harga paket", rupiah(r.harga_dasar))]
     if r.potongan_deposit:
         baris.append(_baris("Potongan deposit Peta", "-" + rupiah(r.potongan_deposit)))
-    if r.potongan_diskon:
-        baris.append(_baris(f"Diskon anak kedua {k.DISKON_ANAK_KEDUA_PERSEN}%", "-" + rupiah(r.potongan_diskon)))
     baris.append(_baris("Kode unik", str(tagihan.kode_unik)))
     return f'<div class="lg-rincian">{"".join(baris)}</div>'
 

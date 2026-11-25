@@ -16,13 +16,13 @@ def _token(aksi):
     return "tok." + aksi
 
 
-def _kartu(kode, *, deposit=False, kedua=False, terbuka=False):
-    return k.KartuPaket(k.ambil(kode), k.hitung_rincian(kode, deposit_aktif=deposit, anak_kedua=kedua), terbuka)
+def _kartu(kode, *, deposit=False, terbuka=False):
+    return k.KartuPaket(k.ambil(kode), k.hitung_rincian(kode, deposit_aktif=deposit), terbuka)
 
 
-def _tagihan(kode=k.KODE_PRIVATE, status=k.STATUS_BELUM_BAYAR, *, deposit=False, kedua=False, unik=427,
+def _tagihan(kode=k.KODE_PRIVATE, status=k.STATUS_BELUM_BAYAR, *, deposit=False, unik=427,
              bukti=0, berakhir=None):
-    r = k.hitung_rincian(kode, deposit_aktif=deposit, anak_kedua=kedua)
+    r = k.hitung_rincian(kode, deposit_aktif=deposit)
     return k.TagihanKelas(ORDER, kode, r, unik, r.nominal + unik, status, KEDALUWARSA, bukti, berakhir)
 
 
@@ -47,7 +47,7 @@ def _dua_kartu(**kw):
 
 def test_dua_kartu_memuat_nama_isi_dan_harga_normal():
     teks = _teks(_pilih(_dua_kartu()))
-    for harapan in ("Private", "Mini Class", "8 pertemuan x 60 menit", "maksimal 5 anak", "Rp640.000", "Rp250.000"):
+    for harapan in ("Private", "Mini Class", "8 pertemuan x 60 menit", "maksimal 5 anak", "Rp640.000", "Rp300.000"):
         assert harapan in teks
 
 
@@ -75,19 +75,18 @@ def test_form_daftar_memuat_token_dan_kode_paket_tanpa_nominal():
 def test_rincian_deposit_tampil_dan_total_bulan_pertama():
     teks = _teks(_pilih(_dua_kartu(deposit=True)))
     assert "Sudah dipotong deposit Peta Rp49.000" in teks
-    assert "Rp591.000" in teks and "Rp201.000" in teks
-
-
-def test_rincian_diskon_anak_kedua():
-    teks = _teks(_pilih(_dua_kartu(kedua=True)))
-    assert "Diskon anak kedua 20%" in teks
-    assert "Rp512.000" in teks and "Rp200.000" in teks
-    assert "deposit" not in teks.lower()
+    assert "Rp591.000" in teks and "Rp251.000" in teks
 
 
 def test_tanpa_potongan_tidak_ada_baris_rincian_khusus():
     teks = _teks(_pilih(_dua_kartu()))
     assert "deposit" not in teks.lower() and "Diskon" not in teks
+
+
+def test_tidak_ada_label_diskon_anak_kedua_di_kartu():
+    teks = _teks(_pilih(_dua_kartu(deposit=True)))
+    assert "anak kedua" not in teks.lower() and "diskon" not in teks.lower()
+    assert "Sudah dipotong deposit Peta Rp49.000" in teks and "Rp251.000" in teks
 
 
 def test_tagihan_terbuka_mengganti_form_dengan_catatan():
@@ -123,11 +122,11 @@ def test_tagihan_polos_memuat_harga_total_kode_unik_dan_jendela():
     assert "25 November 2026" in teks
 
 
-def test_tagihan_deposit_dan_diskon_menunjukkan_potongan():
+def test_tagihan_deposit_menunjukkan_potongan_tanpa_diskon():
     deposit = _teks(_tagih(_tagihan(deposit=True)))
     assert "Rp49.000" in deposit and "Rp591.427" in deposit and "Diskon" not in deposit
-    kedua = _teks(_tagih(_tagihan(k.KODE_MINI, kedua=True)))
-    assert "Rp50.000" in kedua and "Rp200.427" in kedua
+    mini = _teks(_tagih(_tagihan(k.KODE_MINI, deposit=True)))
+    assert "Rp49.000" in mini and "Rp251.427" in mini and "Diskon" not in mini and "anak kedua" not in mini.lower()
 
 
 def test_form_unggah_bukti_hanya_saat_belum_aktif_dan_bisa_diunggah():
@@ -164,7 +163,7 @@ def test_order_id_tidak_dirender():
 # --- lintas halaman ----------------------------------------------------------------------------
 
 def test_tanpa_kata_terlarang_dan_tanpa_klaim():
-    semua = [_pilih(_dua_kartu(deposit=True)), _pilih(_dua_kartu(kedua=True)), _tagih(_tagihan()),
+    semua = [_pilih(_dua_kartu(deposit=True)), _pilih(_dua_kartu()), _tagih(_tagihan()),
              _tagih(_tagihan(k.KODE_MINI, status=k.STATUS_MENUNGGU))]
     for html in semua:
         teks = _teks(html).lower()

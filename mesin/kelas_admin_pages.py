@@ -24,13 +24,11 @@ RUTE_VERIFIKASI = RUTE + "/verifikasi"
 RUTE_BUKTI = RUTE + "/bukti"
 RUTE_SETUJUI = RUTE + "/setujui"
 RUTE_TOLAK = RUTE + "/tolak"
-RUTE_KELUARGA = RUTE + "/keluarga"
 SECTION = "kelas_belajar"
 JUDUL = "Paket Belajar 1 Bulan"
 SUBJUDUL = "Periksa bukti transfer paket Private/Mini Class terhadap nominal persis, lalu setujui atau tolak."
 AKSI_SETUJUI = "setujui_kelas"
 AKSI_TOLAK = "tolak_kelas"
-AKSI_KELUARGA = "tautkan_keluarga_kelas"
 COPY_ANTREAN_KOSONG = "Tidak ada bukti paket belajar yang menunggu verifikasi."
 COPY_KONFIRMASI_SETUJUI = ("Setujui transfer ini? Paket aktif bila semua syaratnya terpenuhi (termasuk deposit Peta). "
                           "Keputusan tidak dapat dibatalkan.")
@@ -42,10 +40,6 @@ COPY_GALAT_KONFLIK = ("Bukti ini tidak sedang menunggu verifikasi, sudah diputus
                       "membuka halaman verifikasi. Buka ulang halaman verifikasi; tidak ada yang diubah.")
 COPY_GALAT_ALASAN = ("Alasan penolakan wajib diisi (1 sampai %d karakter, tanpa karakter kontrol). "
                      "Tidak ada yang diubah." % BATAS_ALASAN)
-COPY_JUDUL_KELUARGA ="Tautkan keluarga (diskon anak kedua)"
-COPY_CATATAN_KELUARGA = ("Tautkan dua anak yang satu keluarga. Anak ke-2 dan seterusnya tanpa deposit Peta sendiri "
-                         "mendapat diskon pada paket belajar. Pembeli tidak dapat memilih ini sendiri.")
-COPY_KONFIRMASI_KELUARGA = "Tautkan kedua anak sebagai satu keluarga? Tautan tidak dapat dilepas dari halaman ini."
 COPY_STATUS = {k.STATUS_AKTIF: "Disetujui", k.STATUS_MENUNGGU: "Menunggu verifikasi",
                k.STATUS_DITOLAK: "Ditolak (menunggu unggah ulang)", k.STATUS_KEDALUWARSA: "Kedaluwarsa",
                k.STATUS_BELUM_BAYAR: "Menunggu pembayaran"}
@@ -129,8 +123,6 @@ def _rincian(tagihan: k.TagihanKelas) -> str:
     baris = ["<p>Harga paket: <strong>%s</strong></p>" % e(rupiah(r.harga_dasar))]
     if r.potongan_deposit:
         baris.append("<p>Potongan deposit Peta: <strong>-%s</strong></p>" % e(rupiah(r.potongan_deposit)))
-    if r.potongan_diskon:
-        baris.append("<p>Diskon anak kedua: <strong>-%s</strong></p>" % e(rupiah(r.potongan_diskon)))
     return "".join(baris)
 
 
@@ -155,16 +147,3 @@ def halaman_detail(item: k.ItemAntrean, tagihan: k.TagihanKelas, bukti: Sequence
     tabel = vp._tabel("Bukti transfer", ("No.", "Diunggah", "Jenis", "Ukuran", "Pratinjau"), baris,
                       vp.COPY_TIDAK_ADA_BUKTI)
     return _ringkasan(item, tagihan) + sesi + tabel + keputusan
-
-
-def form_keluarga(csrf: str, tinjauan: str) -> str:
-    """Form kecil admin: tautkan dua anak (id siswa angka) sebagai satu keluarga untuk diskon anak kedua."""
-    return ('<section class="admin-kartu admin-form-tindakan admin-form-pendek"><h2>%s</h2><p class="admin-meta">%s</p>'
-            '<form method="post" action="%s" data-konfirmasi="%s">%s'
-            '<label>Id siswa pertama<input type="number" name="siswa_a" required min="1" inputmode="numeric" '
-            'autocomplete="off"></label>'
-            '<label>Id siswa kedua<input type="number" name="siswa_b" required min="1" inputmode="numeric" '
-            'autocomplete="off"></label>%s<button class="admin-tombol" type="submit">Tautkan keluarga</button>'
-            '</form></section>'
-            % (e(COPY_JUDUL_KELUARGA), e(COPY_CATATAN_KELUARGA), RUTE_KELUARGA, e(COPY_KONFIRMASI_KELUARGA),
-               vp._hidden(csrf, tinjauan), vp._SANDI))

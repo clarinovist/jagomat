@@ -139,7 +139,7 @@ AKSES_RUTE_POST: tuple[tuple[str, str], ...] = (
     ("/admin/pesanan/rekening", "admin"),
     ("/admin/sakelar", "admin"),  # ubah sakelar fitur; tinjauan bertanda tangan + sandi ulang
     ("/admin/langganan", "admin"),  # F5: POST /setujui dan /tolak langganan; tinjauan bertanda tangan + sandi ulang
-    ("/admin/kelas", "admin"),  # Paket Belajar: POST /setujui, /tolak, /keluarga; tinjauan bertanda tangan + sandi ulang
+    ("/admin/kelas", "admin"),  # Paket Belajar: POST /setujui, /tolak; tinjauan bertanda tangan + sandi ulang
     ("/admin/kelas/kelompok", "admin"),  # Jadwal: buat kelompok Mini (+ 8 pertemuan)
     ("/admin/kelas/kelompok/ubah", "admin"),  # Jadwal: ubah nama/lokasi/guru/kuota kelompok
     ("/admin/kelas/penempatan", "admin"),  # Jadwal: tempatkan order aktif (kelompok/private)

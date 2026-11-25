@@ -12,6 +12,7 @@ import pytest
 
 import admin_store as _admin_store
 import database
+import kelas_dasar
 import kelas_putusan
 import kelas_store
 import paket_belajar_gate
@@ -89,7 +90,7 @@ def test_lintas_situs_post_ditolak_sebelum_efek(dua):
 def test_halaman_dua_kartu_harga_dari_katalog_tanpa_rekening(dua):
     isi = halaman(dua, dua.a)
     t = teks(isi)
-    assert "Private" in t and "Mini Class" in t and "Rp640.000" in t and "Rp250.000" in t
+    assert "Private" in t and "Mini Class" in t and "Rp640.000" in t and "Rp300.000" in t
     assert isi.count('action="/murid/paket/buat"') == 2
     assert "Lokasi diumumkan setelah pendaftaran" in t
     assert "Bank Contoh" not in t  # rekening baru tampil bersama tagihan
@@ -131,13 +132,13 @@ def test_buat_tagihan_nominal_dari_server_dan_halaman_tagihan(dua):
     kode, _, tajuk = buat(dua, dua.a, "mini")
     assert (kode, tajuk["Location"]) == (303, M)
     o = order_terakhir()
-    assert (o["siswa_id"], o["paket"], o["nominal"]) == (dua.a.siswa_id, "mini", 250_000)
-    assert o["total_transfer"] == 250_000 + o["kode_unik"] and 1 <= o["kode_unik"] <= 999
+    assert (o["siswa_id"], o["paket"], o["nominal"]) == (dua.a.siswa_id, "mini", 300_000)
+    assert o["total_transfer"] == 300_000 + o["kode_unik"] and 1 <= o["kode_unik"] <= 999
     isi = halaman(dua, dua.a)
     t = teks(isi)
     assert "Bank Contoh" in t and "1234 5678 90" in t and "PT Contoh Sintetis" in t
     assert "Unggah bukti" in t and "Daftar paket ini" not in t and "Batas waktu" in t
-    assert "Rp250.%03d" % o["kode_unik"] in t
+    assert "Rp300.%03d" % o["kode_unik"] in t
 
 
 def test_private_dengan_deposit_peta_dipotong_49_ribu(dua):
@@ -150,24 +151,22 @@ def test_private_dengan_deposit_peta_dipotong_49_ribu(dua):
     assert o["total_transfer"] == 591_000 + o["kode_unik"]
 
 
-def test_anak_kedua_tertaut_keluarga_diskon_20_persen_tanpa_deposit(dua):
+def test_tautan_keluarga_lama_tidak_menurunkan_harga_anak_kedua_lewat_http(dua):
+    """Regression (25 Nov 2026): tautan keluarga lama di DB tidak lagi memberi diskon anak kedua."""
+    keluarga = kelas_dasar.id_keluarga_baru()
     with kelas_store.buka(_admin_store.BAWAAN, tulis_data=True) as kon:
-        kelas_store.tautkan_keluarga(kon, ADMIN, dua.a.siswa_id, dua.b.siswa_id, AWAL)
+        kon.executemany("INSERT INTO kelas_keluarga(keluarga_id,siswa_id,ditautkan_oleh,waktu) VALUES(?,?,?,?)",
+                        [(keluarga, dua.a.siswa_id, ADMIN, AWAL), (keluarga, dua.b.siswa_id, ADMIN, AWAL)])
     setujui(buat_dan_unggah(dua, dua.a, "mini"))     # anak pertama: harga normal, akses mulai lebih dulu
     assert buat(dua, dua.b, "mini")[0] == 303
     nominal = {r["siswa_id"]: (r["nominal"], r["potongan_diskon"]) for r in baca_admin(
         "SELECT o.siswa_id,t.nominal,t.potongan_diskon FROM kelas_order o JOIN kelas_tagihan t ON t.order_id=o.id")}
-    assert nominal[dua.a.siswa_id] == (250_000, 0) and nominal[dua.b.siswa_id] == (200_000, 50_000)
-
-
-def test_pembeli_tidak_bisa_mengaku_anak_kedua_lewat_form(dua):
-    assert buat(dua, dua.a, ekstra={"anak_kedua": "1", "keluarga": "kel_x"})[0] == 400
-    assert hitung() == KOSONG
-    assert buat(dua, dua.a, "mini")[0] == 303 and order_terakhir()["nominal"] == 250_000
+    assert nominal[dua.a.siswa_id] == (300_000, 0) and nominal[dua.b.siswa_id] == (300_000, 0)
 
 
 def test_nominal_tidak_bisa_dari_form(dua):
-    for ekstra in ({"nominal": "1000"}, {"total": "1"}, {"siswa_id": str(dua.b.siswa_id)}, {"akun_id": "x"}):
+    for ekstra in ({"nominal": "1000"}, {"total": "1"}, {"siswa_id": str(dua.b.siswa_id)}, {"akun_id": "x"},
+                   {"anak_kedua": "1"}, {"keluarga": "kel_x"}):
         assert buat(dua, dua.a, ekstra=ekstra)[0] == 400, ekstra
     assert buat(dua, dua.a, ekstra={"kode": "1000"})[0] == 400
     assert hitung() == KOSONG

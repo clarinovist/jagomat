@@ -195,9 +195,9 @@ def test_satu_tombol_utama_dan_harga_kelas_tampil_di_akhir_laporan():
     isi = _laporan()
     assert isi.count('class="tombol-coral"') == 1 and isi.count('href="/daftar?jalur=cek"') == 1
     assert "Kelas kecil Jagomat" in isi and "Rp49.000" in isi
-    assert "Rp250.000 per bulan" in _teks_tampak(isi)
+    assert "Rp300.000 per bulan" in _teks_tampak(isi)
     # Titik penutup kalimat ("... dipotong Rp49.000.") bukan bagian angka.
-    assert {x.rstrip(".") for x in re.findall(r"Rp\s?[\d.]+", _teks_tampak(isi))} == {"Rp49.000", "Rp250.000"}
+    assert {x.rstrip(".") for x in re.findall(r"Rp\s?[\d.]+", _teks_tampak(isi))} == {"Rp49.000", "Rp300.000"}
 
 
 def test_cek_ulang_bagian_kelas_dan_tidak_wajib_dengan_bingkai_baru():
@@ -411,7 +411,7 @@ def test_kartu_kelas_kecil_membaca_katalog_mini_class(monkeypatch):
     """Angka kartu kelas = katalog Mini Class (24 Nov 2026), bukan teks lama; lokasi belum ada, jadi tidak dijanjikan."""
     import paket_belajar_katalog as katalog
     teks = _teks_tampak(_laporan())
-    for harapan in ("Rp250.000 per bulan, 8 pertemuan.", "Kelas kecil maksimal 5 anak, tatap muka, 60 menit per pertemuan",
+    for harapan in ("Rp300.000 per bulan, 8 pertemuan.", "Kelas kecil maksimal 5 anak, tatap muka, 60 menit per pertemuan",
                     "Lokasi diumumkan setelah pendaftaran."):
         assert harapan in teks, harapan
     for lama in ("Dua pertemuan seminggu", "45 menit, dipandu", "Rp200.000"):

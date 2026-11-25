@@ -176,7 +176,7 @@ def test_tolak_dan_kedaluwarsa_melepas_deposit_untuk_tagihan_baru(kon_kelas):
 def test_setujui_dengan_deposit_mencatat_pemakaian_di_transaksi_yang_sama(kon_kelas):
     peta = peta_lunas(kon_kelas, 1)
     tagihan, bukti = menunggu(kon_kelas, 1, "mini", 1)
-    assert (tagihan.rincian.nominal, baris(kon_kelas, "purna_voucher_pakai")) == (201_000, [])
+    assert (tagihan.rincian.nominal, baris(kon_kelas, "purna_voucher_pakai")) == (251_000, [])
     setuju(kon_kelas, tagihan, bukti, admin=ADMIN_B)
     assert baris(kon_kelas, "purna_voucher_pakai") == [(operasi_deposit(tagihan), peta, ADMIN_B, "kelas", PUTUS)]
     assert purna.keadaan(kon_kelas, peta, PUTUS).voucher == "dipakai"
@@ -257,8 +257,8 @@ def test_deposit_milik_akun_lain_ditolak_domain_walau_lapis_db_hilang(kon_kelas)
     tagihan, bukti = menunggu(kon_kelas, 1, "mini", 1, akun=AKUN_A)      # tagihan akun A tanpa deposit
     _hapus_pelindung_db(kon_kelas, "kelas_tagihan_deposit_milik")
     _hapus_pelindung_db(kon_kelas, "kelas_tagihan_tolak_update")
-    kon_kelas.execute("UPDATE kelas_tagihan SET potongan_deposit=49000,deposit_order_id=?,nominal=201000,"
-                      "total_transfer=201000+kode_unik WHERE order_id=?", (pesanan_kit.ord_id(1), tagihan.order_id))
+    kon_kelas.execute("UPDATE kelas_tagihan SET potongan_deposit=49000,deposit_order_id=?,nominal=251000,"
+                      "total_transfer=251000+kode_unik WHERE order_id=?", (pesanan_kit.ord_id(1), tagihan.order_id))
     kon_kelas.commit()
     sebelum = tulisan(kon_kelas)
     with pytest.raises(k.DepositTidakAktif):
@@ -271,8 +271,8 @@ def test_deposit_anak_lain_ditolak_domain_walau_lapis_db_hilang(kon_kelas):
     tagihan, bukti = menunggu(kon_kelas, 1, "mini", 1)
     _hapus_pelindung_db(kon_kelas, "kelas_tagihan_deposit_milik")
     _hapus_pelindung_db(kon_kelas, "kelas_tagihan_tolak_update")
-    kon_kelas.execute("UPDATE kelas_tagihan SET potongan_deposit=49000,deposit_order_id=?,nominal=201000,"
-                      "total_transfer=201000+kode_unik WHERE order_id=?", (pesanan_kit.ord_id(2), tagihan.order_id))
+    kon_kelas.execute("UPDATE kelas_tagihan SET potongan_deposit=49000,deposit_order_id=?,nominal=251000,"
+                      "total_transfer=251000+kode_unik WHERE order_id=?", (pesanan_kit.ord_id(2), tagihan.order_id))
     kon_kelas.commit()
     with pytest.raises(k.DepositTidakAktif):
         setuju(kon_kelas, tagihan, bukti)

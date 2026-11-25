@@ -23,7 +23,6 @@ from typing import List, Optional
 import kelas_dasar as k
 import kelas_rincian
 import kelas_status as ks
-from kelas_keluarga import tautkan_keluarga  # noqa: F401  (antarmuka admin)
 import paket_belajar_katalog as katalog
 import pesanan_dasar as d
 import pesanan_transfer
@@ -178,7 +177,7 @@ def buat_tagihan(kon, akun_id, siswa_id, kode_paket, sekarang, *, acak=None,
                  tolak_paket_lain_terbuka=False) -> katalog.TagihanKelas:
     """Order + tagihan transfer paket untuk anak `siswa_id` atas nama `akun_id` (atomik, idempoten per paket terbuka).
 
-    Nominal dihitung server: katalog + deposit Peta aktif + status anak kedua (`kelas_rincian`); tidak ada angka dari
+    Nominal dihitung server: katalog + deposit Peta aktif (`kelas_rincian`); tidak ada angka dari
     pemanggil. Paket asing -> PesananDataTidakSah. Anak yang sudah punya order atas nama akun lain ->
     PesananTidakDitemukan. Sudah ada tagihan terbuka untuk paket itu: dikembalikan apa adanya. Kode unik dari
     `secrets` (atau `acak(bebas)` suntikan tes); habis -> KodeUnikHabis. `tolak_paket_lain_terbuka` (jalur HTTP): bila
