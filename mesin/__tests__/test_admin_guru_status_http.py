@@ -49,6 +49,8 @@ def test_halaman_konfirmasi_menampilkan_form_tanpa_efek(isi):
     sebelum = auth.BERKAS_SANDI.read_bytes()
     kode, halaman, _ = _minta(isi, "%s?id=%s" % (NONAKTIFKAN, _id(GURU)), cookie=token)
     assert kode == 200 and 'name="tinjauan"' in halaman and 'name="reauth"' in halaman and "Nonaktifkan akun" in halaman
+    assert "dihapus permanen" in halaman and "koleksi sensor" in halaman  # efek samping tak terbalik harus tampil
+    assert "Tindakan ini bisa dibatalkan" not in halaman
     for rahasia in (SANDI_ORANG_TUA, SANDI_ADMIN, "garam", "pbkdf2"):
         assert rahasia not in halaman
     assert auth.BERKAS_SANDI.read_bytes() == sebelum

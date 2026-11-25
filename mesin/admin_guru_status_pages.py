@@ -21,7 +21,8 @@ SUBJUDUL = "Nonaktifkan atau aktifkan kembali akun guru."
 COPY_NONAKTIF = (
     "Guru ini langsung keluar dari semua perangkat dan tidak bisa masuk lagi sampai diaktifkan kembali. "
     "Data anak, lembaga, dan jadwal tidak diubah, tetapi guru nonaktif tidak muncul di pilihan penempatan baru. "
-    "Tindakan ini bisa dibatalkan.")
+    "Akun bisa diaktifkan kembali. Pengecualian: bila guru ini ikut koleksi sensor, episode dan chat sensornya dihapus "
+    "permanen pada pemeliharaan berikutnya dan tidak kembali saat diaktifkan.")
 COPY_AKTIF = "Guru ini bisa masuk lagi dengan sandinya yang lama. Perangkat yang sudah keluar tetap harus masuk ulang."
 COPY_TAHAN_KOORDINATOR = (
     "Tidak bisa dinonaktifkan: akun ini masih pemilik lembaga %s. Pendaftaran publik membutuhkan koordinator yang aktif. "
