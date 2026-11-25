@@ -155,3 +155,47 @@ def test_halaman_pesanan_menautkan_langganan_harian_dan_paket_belajar():
     isi = pesanan_ui.halaman({"items": [], "total": 0}, halaman=1, gerbang_terbuka=True, hasil=None)
     assert 'href="/admin/langganan"' in isi and 'href="/admin/kelas"' in isi
     assert "hanya pesanan Peta Kemampuan" in isi
+
+
+# --- pembayaran belum dibayar (butir QA #8, 25 Nov 2026) ----------------------------------------
+# Order yang dibuat tetapi belum ada bukti transfer tidak boleh tampil sebagai "mendesak" (belum ada yang
+# diperiksa), tetapi admin perlu melihat bahwa ada pembeli yang menggantung. Satu butir tinjau, terpisah dari
+# hitungan menunggu verifikasi, tanpa nama atau kontak.
+
+TAUTAN_BELUM_BAYAR = "/admin/pembayaran?status=belum_bayar"
+KINI_BELUM_BAYAR = "2026-11-23T20:00:00"  # 4 jam sebelum SEKARANG: jendela 24 jam masih terbuka
+
+
+def _item_belum_bayar(antrean):
+    return [i for i in antrean.item if i.jalur == TAUTAN_BELUM_BAYAR]
+
+
+def test_belum_bayar_dua_jalur_jadi_satu_butir_tinjau_tanpa_mengubah_hitungan_mendesak(belajar, db_kelas, kon_kelas):
+    hs.buat_tagihan(belajar, _anak(belajar, "Nama Rahasia"), "bulanan", T0)
+    kk.tagih(kon_kelas, sekarang=KINI_BELUM_BAYAR)
+    antrean = _kumpulkan(db_kelas)
+    (item,) = _item_belum_bayar(antrean)
+    assert item.tingkat == "tinjau" and item.judul.startswith("2 pembayaran belum dibayar")
+    assert "Rahasia" not in item.judul + item.deskripsi
+    assert (antrean.mendesak, antrean.perlu_keputusan) == (0, 0)
+    assert (antrean.transfer_menunggu, antrean.harian_menunggu, antrean.kelas_menunggu) == (0, 0, 0)
+    assert antrean.total == 1
+    assert AP.sinyal_dari(antrean).total == 0
+
+
+def test_belum_bayar_kedaluwarsa_dan_sudah_ada_bukti_tidak_dihitung(belajar, db_kelas, kon_kelas):
+    kk.tagih(kon_kelas, sekarang=kk.KINI)  # jendela 24 jam sudah lewat pada SEKARANG
+    _harian_menunggu(belajar)  # sudah ada bukti: urusan antrean transfer, bukan belum bayar
+    antrean = _kumpulkan(db_kelas)
+    assert _item_belum_bayar(antrean) == []
+    assert antrean.harian_menunggu == 1
+
+
+def test_belum_bayar_nol_tidak_menambah_butir(belajar, db_kelas):
+    antrean = _kumpulkan(db_kelas)
+    assert _item_belum_bayar(antrean) == [] and antrean.total == 0
+
+
+def test_pembaca_belum_bayar_ledger_tak_terbaca_berarti_nol(tmp_path, monkeypatch):
+    monkeypatch.setattr(database, "BAWAAN", tmp_path / "kosong-belajar.db")
+    assert B.belum_bayar(tmp_path / "tidak-ada.db", "2026-11-24T00:00:00") == 0

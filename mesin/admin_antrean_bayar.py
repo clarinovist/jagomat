@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import Tuple
 
+import admin_pembayaran_semua
 import admin_transfer_menunggu as menunggu
 import database
 import harian_langganan_putusan
@@ -39,6 +40,19 @@ def kelas_menunggu(path_admin) -> Tuple[menunggu.TransferMenunggu, ...]:
     except menunggu.GALAT_BACA:
         return ()
     return tuple(menunggu.TransferMenunggu(i.order_id, i.total, i.bukti_terakhir) for i in daftar)
+
+
+def belum_bayar(path_admin, sekarang_iso: str) -> int:
+    """Order tiga jalur yang sudah dibuat tetapi belum ada bukti transfer, jendela 24 jam belum lewat; galat baca = 0.
+
+    Sumbernya pembaca "Semua pembayaran" (status turunan yang sama, jadi order kedaluwarsa tidak ikut), terbatas pada
+    order terbaru per jalur. Hanya angka: tanpa nama anak atau kontak.
+    """
+    try:
+        baris, _gagal = admin_pembayaran_semua.baca(path_admin, sekarang_iso)
+    except menunggu.GALAT_BACA:
+        return 0
+    return admin_pembayaran_semua.hitung(baris)["belum_bayar"]
 
 
 def kelas_tunggakan(path_admin, sekarang_iso: str) -> Tuple[kt.Tunggakan, ...]:
