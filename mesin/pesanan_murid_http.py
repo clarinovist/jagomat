@@ -23,6 +23,7 @@ import database
 import pesanan_http
 import pesanan_permukaan as permukaan
 import pesanan_transfer_http
+import tirai_aksi
 
 _RUTE = permukaan.RUTE_MURID
 _GET = frozenset({_RUTE.status, _RUTE.qr, _RUTE.pesan})
@@ -39,6 +40,21 @@ def _pembeli(penangan):
     with database.buka() as kon:
         siswa_id = students.siswa_dari_akun(kon, principal.pengguna)
     return None if siswa_id is None else principal
+
+
+def _tirai_tertutup(penangan, principal) -> bool:
+    """Tirai PIN anak yang tertaut ke akun murid ini tertutup (lihat `tirai_aksi`); anak dari akun sesi, bukan input."""
+    import students
+    with database.buka() as kon:
+        siswa_id = students.siswa_dari_akun(kon, principal.pengguna)
+    return siswa_id is None or tirai_aksi.tertutup(penangan, principal, siswa_id)
+
+
+def _tolak_tirai(penangan) -> None:
+    from support_pages import halaman_pesan_murid
+    import html
+    penangan._kirim(halaman_pesan_murid(str(tirai_aksi.KODE_TERTUTUP), "<h1>Untuk Ayah/Bunda</h1><p>%s</p>"
+                                        % html.escape(tirai_aksi.COPY_TERTUTUP)), tirai_aksi.KODE_TERTUTUP)
 
 
 def tangani_get(penangan, jalur: str, jalur_penuh: str = "") -> bool:
@@ -63,6 +79,9 @@ def tangani_post(penangan, jalur: str) -> bool:
     if principal is None:
         return False
     kanonik = permukaan.MURID_KE_KANONIK[jalur]
+    if _tirai_tertutup(penangan, principal):  # PIN terpasang dan tirai tertutup: tanpa efek
+        _tolak_tirai(penangan)
+        return True
     if pesanan_http.layani_post(penangan, kanonik, principal):
         return True
     if pesanan_transfer_http.layani_post(penangan, kanonik, principal):

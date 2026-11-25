@@ -103,5 +103,6 @@ def test_pin_tidak_terbaca_gagal_tertutup(kidup, murid, monkeypatch):
     def rusak(*a, **k):
         raise sqlite3.OperationalError("db rusak")
 
-    monkeypatch.setattr(KM.pin_store, "ada_pin", rusak)
+    import tirai_aksi
+    monkeypatch.setattr(tirai_aksi.pin_store, "ada_pin", rusak)
     assert buat(kidup, murid, "mini")[0] == 403

@@ -30,6 +30,7 @@ import harian_langganan_pages as halaman
 import harian_langganan_ringkas as ringkas
 import harian_langganan_store as store
 import paket_belajar_gate
+import tirai_aksi
 import pesanan_alur as alur
 import pesanan_dasar as d
 import pesanan_http
@@ -249,6 +250,9 @@ def tangani_post(penangan, jalur: str) -> bool:
         return False
     if _rekening() is None:  # gerbang pembayaran tertutup: 404 murid, tanpa efek
         _tidak_ada(penangan)
+        return True
+    if tirai_aksi.tertutup(penangan, *pembeli):  # PIN terpasang dan tirai tertutup: tanpa efek
+        _info(penangan, "Untuk Ayah/Bunda", tirai_aksi.COPY_TERTUTUP, tirai_aksi.KODE_TERTUTUP)
         return True
     (_post_buat if jalur == halaman.RUTE_BUAT else _post_bukti)(penangan, *pembeli)
     return True

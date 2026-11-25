@@ -47,8 +47,7 @@ import kelas_store as store
 import paket_belajar_gate
 import paket_belajar_katalog as katalog
 import pesanan_alur as alur
-import pin_orang_tua_store as pin_store
-import tirai_orang_tua as tirai
+import tirai_aksi
 import pesanan_dasar as d
 import pesanan_http
 import pesanan_rekening
@@ -74,8 +73,7 @@ COPY_GAGAL_GANTI = ("Paket belum bisa diganti. Ganti hanya bisa selagi tagihan b
                    "dan hanya sekali sampai tagihan lama habis. Hubungi tim bila masih perlu bantuan.")
 COPY_GAGAL_PILIH_JADWAL = ("Kelompok itu belum bisa dipilih. Mungkin sudah penuh atau ditutup, atau jadwal anak sudah ditentukan. "
                           "Muat ulang halaman, atau hubungi tim bila masih perlu bantuan.")
-COPY_TIRAI_TERTUTUP = ("Tindakan ini untuk Ayah/Bunda. Minta Ayah/Bunda membuka halaman orang tua dengan PIN dulu, lalu coba lagi. "
-                       "Halaman orang tua ada di menu akun anak.")
+COPY_TIRAI_TERTUTUP = tirai_aksi.COPY_TERTUTUP
 COPY_TIRAI_KABAR = "Halaman ini terkunci PIN. Minta Ayah/Bunda membuka halaman orang tua dulu sebelum memilih paket, jadwal, atau mengunggah bukti."
 COPY_KODE_HABIS = "Tagihan belum bisa dibuat sekarang. Coba lagi nanti atau hubungi tim."
 COPY_TIDAK_TERIMA = "Tidak ada tagihan yang sedang menerima bukti. Daftar paket dulu, atau waktu pembayaran sudah habis."
@@ -131,19 +129,8 @@ def _token_untuk(penangan, principal):
 
 
 def _tirai_tertutup(penangan, principal, siswa_id: int) -> bool:
-    """True bila anak punya PIN tirai dan tirai orang tuanya sedang tertutup untuk sesi ini (fail-closed bila PIN tak terbaca).
-
-    Tindakan di halaman paket (daftar, ganti, jadwal, bukti) adalah keputusan orang tua, jadi mengikuti tirai yang sama dengan halaman
-    orang tua. Tanpa PIN tidak ada perubahan perilaku. Sesi Basic tidak punya token sesi sehingga tidak pernah membuka tirai.
-    """
-    try:
-        with database.buka() as kon:
-            if not pin_store.ada_pin(kon, siswa_id):
-                return False
-    except sqlite3.Error:
-        return True
-    token = penangan._ambil_token() if principal.metode == "cookie" else None     # cookie mati + Basic: tirai tak ikut
-    return not (token is not None and tirai.terbuka(token, principal.id_akun, siswa_id))
+    """Tindakan di halaman paket (daftar, ganti, jadwal, bukti) mengikuti tirai PIN orang tua (lihat `tirai_aksi`)."""
+    return tirai_aksi.tertutup(penangan, principal, siswa_id)
 
 
 def _tagihan_berjalan(kon, akun_id: str, siswa_id: int, kini: str):
