@@ -17,6 +17,8 @@ import database
 import harian_langganan_putusan
 import kelas_peserta
 import kelas_store
+import pesanan
+import purna
 import kelas_tunggakan as kt
 
 JUDUL_HARIAN = "Langganan Latihan Harian: transfer menunggu verifikasi"
@@ -67,6 +69,34 @@ def belum_ditempatkan(path_admin, sekarang_iso: str) -> int:
     except menunggu.GALAT_BACA:
         return 0
     return sum(1 for p in daftar if p.ditempatkan is False)
+
+
+BATAS_KANDIDAT_PETA = 200
+_SQL_PETA_LUNAS_TANPA_LAPORAN = (
+    "SELECT o.order_id FROM pesanan_order o "
+    "WHERE NOT EXISTS (SELECT 1 FROM purna_laporan_terbit t WHERE t.order_id=o.order_id) "
+    "AND (EXISTS (SELECT 1 FROM pesanan_receipt r WHERE r.order_id=o.order_id AND r.hasil='lunas')%s) "
+    "ORDER BY o.dibuat LIMIT ?")
+_ATAU_TRANSFER_LUNAS = " OR EXISTS (SELECT 1 FROM transfer_lunas l WHERE l.order_id=o.order_id)"
+
+
+def peta_belum_terbit(path_admin, sekarang_iso: str) -> Tuple[int, int]:
+    """(Peta lunas tanpa laporan terbit, dari itu yang sudah lewat janji 48 jam); galat baca atau purna belum dipasang = (0, 0).
+
+    Keadaan (lunas, ditahan, direfund, terbit, terlambat) dari domain `purna`, jadi order yang direfund atau pembayarannya perlu
+    diperiksa tidak ikut. Hanya angka: tanpa nama anak, akun, atau id.
+    """
+    try:
+        with pesanan.buka(path_admin) as kon:
+            if not purna.terpasang(kon):
+                return 0, 0
+            transfer = _ATAU_TRANSFER_LUNAS if purna._ada_tabel(kon, "transfer_lunas") else ""
+            ids = [b[0] for b in kon.execute(_SQL_PETA_LUNAS_TANPA_LAPORAN % transfer, (BATAS_KANDIDAT_PETA,))]
+            keadaan = [purna.keadaan(kon, i, sekarang_iso) for i in ids]
+    except menunggu.GALAT_BACA:
+        return 0, 0
+    menanti = [k for k in keadaan if k.lunas and not k.direfund and not k.ditahan and k.terbit is None]
+    return len(menanti), sum(1 for k in menanti if k.terlambat)
 
 
 def kelas_tunggakan(path_admin, sekarang_iso: str) -> Tuple[kt.Tunggakan, ...]:

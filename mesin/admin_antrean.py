@@ -26,6 +26,10 @@ JALUR_KESIAPAN = "/admin/sakelar#kesiapan"  # Pengaturan layanan, bagian Kesiapa
 JALUR_SISWA_TANPA_LOGIN = "/admin?section=siswa&status=student_without_login"
 KALIMAT_TINDAK_LANJUT_TUNGGAKAN = "Hubungi orang tua: ajak ikut kelas lagi atau tanyakan umpan balik."
 JALUR_BELUM_BAYAR = "/admin/pembayaran?status=belum_bayar"
+JALUR_PETA_BELUM_TERBIT = "/admin/pembayaran?status=dibayar"
+KALIMAT_PETA_TERLAMBAT = ("%d di antaranya sudah lewat janji terbit 48 jam. Guru perlu menulis dan menerbitkan laporannya; "
+                          "hubungi Guru bila perlu.")
+KALIMAT_PETA_DALAM_JANJI = "Masih dalam janji terbit 48 jam. Guru menulis dan menerbitkan laporan dari halaman Peta anak."
 JALUR_GURU_BARU = "/admin?section=guru&status=belum_lembaga"
 KALIMAT_GURU_BARU = ("Guru ini mendaftar sendiri dan belum dimasukkan ke lembaga mana pun. Buka Akun guru, lalu pakai Tambah ke "
                      "lembaga bila perlu; boleh dibiarkan bila memang tidak bergabung.")
@@ -121,6 +125,16 @@ def _item_belum_ditempatkan(path_admin, sekarang: float) -> Tuple[ItemAntrean, .
         return ()
     return (ItemAntrean("penting", "%d paket aktif belum ditempatkan" % jumlah, KALIMAT_BELUM_DITEMPATKAN,
                         JALUR_BELUM_DITEMPATKAN, "Buka paket belajar"),)
+
+
+def _item_peta_belum_terbit(path_admin, sekarang: float) -> Tuple[ItemAntrean, ...]:
+    """Satu butir bila ada Peta yang sudah dibayar tetapi laporannya belum terbit: penting bila sudah lewat janji 48 jam."""
+    menanti, terlambat = admin_antrean_bayar.peta_belum_terbit(path_admin, admin_transfer_menunggu.waktu_iso(sekarang))
+    if not menanti:
+        return ()
+    kalimat = KALIMAT_PETA_TERLAMBAT % terlambat if terlambat else KALIMAT_PETA_DALAM_JANJI
+    return (ItemAntrean("penting" if terlambat else "tinjau", "%d Peta dibayar, laporan belum terbit" % menanti, kalimat,
+                        JALUR_PETA_BELUM_TERBIT, "Lihat pembayaran"),)
 
 
 def _item_guru_baru() -> Tuple[ItemAntrean, ...]:
@@ -257,14 +271,15 @@ def kumpulkan(konteks: Q.KonteksAdmin, path_admin, *, sekarang: float) -> Antrea
     belum_bayar = _item_belum_bayar(path_admin, sekarang)
     belum_tempat = _item_belum_ditempatkan(path_admin, sekarang)
     guru_baru = _item_guru_baru()
+    peta_belum = _item_peta_belum_terbit(path_admin, sekarang)
     lain = item_pengguna(konteks)
-    semua = _urutkan_tingkat(transfer + harian + kelas + operasi + backup + tunggakan + belum_bayar + belum_tempat + guru_baru + lain)
+    semua = _urutkan_tingkat(transfer + harian + kelas + operasi + backup + tunggakan + belum_bayar + belum_tempat + peta_belum + guru_baru + lain)
     menunggu_semua = len(transfer) + len(harian) + len(kelas)
     mendesak = total_operasi + menunggu_semua
-    penting = sum(1 for i in backup + tunggakan + belum_tempat + lain if i.tingkat == "penting")
+    penting = sum(1 for i in backup + tunggakan + belum_tempat + peta_belum + lain if i.tingkat == "penting")
     return AntreanAdmin(
         item=semua[:BATAS_BARIS],
-        total=menunggu_semua + total_operasi + len(backup) + len(tunggakan) + len(belum_bayar) + len(belum_tempat) + len(guru_baru) + len(lain),
+        total=menunggu_semua + total_operasi + len(backup) + len(tunggakan) + len(belum_bayar) + len(belum_tempat) + len(peta_belum) + len(guru_baru) + len(lain),
         mendesak=mendesak,
         layanan_tersedia=tersedia,
         bukti_backup=bukti,
