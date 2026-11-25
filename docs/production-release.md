@@ -12,7 +12,7 @@ jalur `docker run` untuk container `osn-mesin` (rollback memanggil fungsi yang s
 konfigurasi lama). Jalur `/opt/osn/osn-deploy` pada catatan lama sudah tidak ada. Perubahan
 deployer tetap perlu persetujuan, dan pasang ulang hanya dengan salinan yang sama dengan commit.
 
-## Perbaikan hasil uji penguji (butir QA 1, 3-9, 12) — kode lokal 25 November 2026, BELUM push/deploy
+## Perbaikan hasil uji penguji (butir QA 1, 3-9, 12) — kode di main 25 November 2026, BELUM deploy
 
 Sepuluh commit lokal di `main` (201f585 sampai commit antrean "belum ditempatkan"; di antaranya ada commit harga sesi lain,
 jadi pisahkan sebelum push). Rincian perilaku di spec.md (Paket Belajar, "Perbaikan hasil uji penguji"). Untuk rilis:
@@ -25,6 +25,9 @@ jadi pisahkan sebelum push). Rincian perilaku di spec.md (Paket Belajar, "Perbai
 - **Batas yang diketahui:** unggah bukti dan ganti paket bersamaan dari dua tab (lihat spec). Tutup di rilis yang memang butuh pin.
 - **Cek setelah deploy (uji dulu):** tombol Daftar di topbar, hero `/paket-coba` dan halaman bayar (maskot dan CSP funnel),
   tombol Tanya Ayah/Bunda, `/admin/kelas` (tabel peserta), "Perlu ditangani" (dua butir baru), ganti paket end-to-end dengan data sintetis.
+- **Pilih jadwal sendiri (butir QA 4):** rute baru `POST /murid/paket/jadwal`; modul `jadwal_pilih` bukan berkas `*store*`.
+  Rollback ke image lama: kartu pilih hilang, penempatan yang sudah dipilih orang tua tetap valid (baris `jadwal_penempatan` biasa,
+  `dibuat_oleh` = id akun). Cek setelah deploy: kartu "Pilih jadwal kelas" muncul hanya untuk Mini aktif yang belum ditempatkan.
 - Tes mutasi `test_peta_laporan_ortu_mutation` kasus M8 sudah gagal di HEAD sebelum perubahan ini.
 
 ## Deploy surel E1 + copy Mini/Peta — 25 November 2026

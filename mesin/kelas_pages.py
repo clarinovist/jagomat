@@ -30,6 +30,8 @@ RUTE = "/murid/paket"
 RUTE_BUAT = RUTE + "/buat"
 RUTE_BUKTI = RUTE + "/bukti"
 RUTE_GANTI = RUTE + "/ganti"
+RUTE_JADWAL = RUTE + "/jadwal"
+AKSI_JADWAL = "jadwal_pilih:"
 AKSI_BUAT = "kelas_buat:"
 AKSI_GANTI = "kelas_ganti:"
 AKSI_BUKTI = "kelas_bukti"
@@ -51,6 +53,10 @@ COPY_LABEL_NOMINAL = "Total yang harus Anda transfer:"
 COPY_MENUNGGU = "Bukti sudah kami terima. Tim sedang memeriksanya; paket aktif setelah bukti disetujui."
 COPY_AKTIF_ISI = "Penjadwalan pertemuan diatur tim setelah pembayaran disetujui."
 COPY_JUDUL_JADWAL = "Jadwal pertemuan"
+COPY_JUDUL_PILIH_JADWAL = "Pilih jadwal kelas"
+COPY_PENGANTAR_PILIH_JADWAL = ("Pembayaran sudah disetujui. Pilih kelompok belajar untuk anak. Pilihan hanya bisa sekali; "
+                               "bila perlu pindah, hubungi tim.")
+COPY_TOMBOL_PILIH_JADWAL = "Pilih kelompok ini"
 COPY_TAUTAN_KELAS = "Tautan kelas"
 COPY_DIBATALKAN = "Dibatalkan"
 COPY_KEDALUWARSA = "Waktu pembayaran tagihan ini sudah habis. Silakan daftar lagi dari halaman pilih paket."
@@ -171,14 +177,33 @@ def _kartu_jadwal(jadwal: Optional[dict]) -> str:
     return _kartu(f"<h2>{_e(COPY_JUDUL_JADWAL)}</h2>{_baris_lokasi(jadwal['lokasi'])}{sesi}")
 
 
+def _form_pilih_jadwal(pilihan, token_untuk: TokenUntuk) -> str:
+    """Satu kelompok: nama, pertemuan pertama (WIB), sisa kursi, dan tombol pilih. Tanpa guru atau lokasi."""
+    ringkas = f"{pilihan.nama} · mulai {waktu_wib(pilihan.mulai)} · sisa {int(pilihan.sisa)} kursi"
+    return (f'<form method="post" action="{RUTE_JADWAL}">{_p(ringkas, "lg-ket")}'
+            f'<input type="hidden" name="token" value="{_e(token_untuk(AKSI_JADWAL + pilihan.kelompok_id))}">'
+            f'<input type="hidden" name="kelompok" value="{_e(pilihan.kelompok_id)}">'
+            f'{_tombol(COPY_TOMBOL_PILIH_JADWAL)}</form>')
+
+
+def _kartu_pilih_jadwal(pilihan: Sequence, token_untuk: TokenUntuk) -> str:
+    """Kartu 'Pilih jadwal kelas' untuk Mini aktif yang belum ditempatkan (butir QA #4); kosong = tanpa kartu."""
+    if not pilihan:
+        return ""
+    daftar = "".join(_form_pilih_jadwal(x, token_untuk) for x in pilihan)
+    return _kartu(f"<h2>{_e(COPY_JUDUL_PILIH_JADWAL)}</h2>{_p(COPY_PENGANTAR_PILIH_JADWAL, 'lg-kecil')}{daftar}")
+
+
 def halaman_pilih_paket(kartu: Sequence[k.KartuPaket], tagihan: Optional[k.TagihanKelas],
                         token_untuk: TokenUntuk, galat: str = "", kabar: str = "",
-                        jadwal: Optional[dict] = None) -> bytes:
+                        jadwal: Optional[dict] = None, pilihan_jadwal: Sequence = ()) -> bytes:
     """Halaman /murid/paket: status tagihan terakhir (bila ada) + kartu paket dengan rincian khusus pembeli.
 
     `jadwal` (bacaan `jadwal_store.jadwal_untuk_murid`) menambah kartu jadwal pertemuan; None = tanpa kartu.
+    `pilihan_jadwal` (`jadwal_pilih.pilihan_untuk`) menambah kartu pilih kelompok; kosong = tanpa kartu.
     """
-    pesan = (_kartu(_p(galat)) if galat else "") + (_kartu(_p(kabar)) if kabar else "") + _kartu_jadwal(jadwal)
+    pesan = ((_kartu(_p(galat)) if galat else "") + (_kartu(_p(kabar)) if kabar else "") + _kartu_jadwal(jadwal)
+             + _kartu_pilih_jadwal(pilihan_jadwal, token_untuk))
     status = _kartu_status(tagihan) if tagihan is not None else ""
     sapa = C.maskot_bicara("menunjuk", COPY_SAPA)
     judul = f'<div class="lg-pilih-judul"><h2>Pilih paket</h2>{_p(COPY_PENGANTAR)}</div>'

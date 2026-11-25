@@ -1,6 +1,7 @@
 """Rute murid Paket Belajar 1 Bulan: orang tua memilih Private/Mini Class, membayar transfer, dan mengunggah bukti lewat akun anak.
 
-Titik masuk GET `/murid/paket`; POST `/murid/paket/buat` (buat tagihan) dan `/murid/paket/bukti` (unggah bukti).
+Titik masuk GET `/murid/paket`; POST `/murid/paket/buat` (buat tagihan), `/murid/paket/bukti` (unggah bukti), `/murid/paket/ganti`
+(ganti paket) dan `/murid/paket/jadwal` (orang tua memilih kelompok Mini sekali saja; aturan di `jadwal_pilih`).
 Pola sama dengan `harian_langganan_murid_http`; beda utama: tabel `kelas_*` ada di admin-control.db (bukan DB belajar),
 jadi semua baca/tulis lewat `kelas_store.buka(admin_store.BAWAAN)` dan DB belajar hanya dipakai untuk memetakan akun
 murid ke siswanya. Aturan yang ditegakkan di sini, bukan di halaman:
@@ -33,6 +34,8 @@ import admin_store_core
 import bukti_berkas
 import bukti_multipart
 import database
+import jadwal_dasar
+import jadwal_pilih
 import jadwal_store
 import kelas_berkas as berkas
 import kelas_dasar as dasar
@@ -65,13 +68,16 @@ COPY_BELUM_SIAP = "Belum bisa diproses sekarang. Coba lagi nanti."
 COPY_GAGAL_BUAT = "Tagihan belum bisa dibuat. Selesaikan tagihan yang sedang berjalan, atau coba lagi nanti."
 COPY_GAGAL_GANTI = ("Paket belum bisa diganti. Ganti hanya bisa selagi tagihan belum dibayar dan belum ada bukti, "
                    "dan hanya sekali sampai tagihan lama habis. Hubungi tim bila masih perlu bantuan.")
+COPY_GAGAL_PILIH_JADWAL = ("Kelompok itu belum bisa dipilih. Mungkin sudah penuh atau ditutup, atau jadwal anak sudah ditentukan. "
+                          "Muat ulang halaman, atau hubungi tim bila masih perlu bantuan.")
 COPY_KODE_HABIS = "Tagihan belum bisa dibuat sekarang. Coba lagi nanti atau hubungi tim."
 COPY_TIDAK_TERIMA = "Tidak ada tagihan yang sedang menerima bukti. Daftar paket dulu, atau waktu pembayaran sudah habis."
 COPY_BATAS_BUKTI = "Batas bukti untuk tagihan ini sudah tercapai. Hubungi tim bila masih perlu bantuan."
 COPY_BERKAS = {"kosong": COPY_BERKAS_KOSONG, "besar": COPY_BERKAS_BESAR, "tipe": COPY_TIPE_TIDAK_DIDUKUNG,
                "terbaca": COPY_BERKAS_TAK_TERBACA}
 _GET = frozenset({halaman.RUTE})
-_POST = frozenset({halaman.RUTE_BUAT, halaman.RUTE_BUKTI, halaman.RUTE_GANTI})
+_POST = frozenset({halaman.RUTE_BUAT, halaman.RUTE_BUKTI, halaman.RUTE_GANTI, halaman.RUTE_JADWAL})
+KUNCI_FORM_JADWAL = frozenset({"token", "kelompok"})
 _GALAT_LAYANAN = (d.PesananError, sqlite3.Error, OSError, bukti_berkas.BuktiBerkasError, ValueError,
                   admin_store_core.StoreBelumSiap)
 
@@ -150,6 +156,15 @@ def _jadwal_anak(akun_id: str, siswa_id: int, kini: str):
         return None
 
 
+def _pilihan_jadwal(akun_id: str, siswa_id: int, kini: str):
+    """Kelompok yang boleh dipilih orang tua, atau () (gagal-diam seperti kartu jadwal: tidak pernah merusak halaman)."""
+    try:
+        with jadwal_store.buka(admin_store.BAWAAN) as kon:
+            return jadwal_pilih.pilihan_untuk(kon, akun_id, siswa_id, kini)
+    except (admin_store_core.StoreBelumSiap, sqlite3.Error, ValueError, d.PesananError):
+        return ()
+
+
 def _badan_get(penangan, principal, siswa_id: int, rekening: str):
     kini = alur.waktu_sekarang()
     token_untuk = _token_untuk(penangan, principal)
@@ -160,7 +175,8 @@ def _badan_get(penangan, principal, siswa_id: int, rekening: str):
         kartu = store.kartu_paket(kon, principal.id_akun, siswa_id, kini)
         kabar = _kabar_aktif(kon, principal.id_akun, siswa_id, kini)
     jadwal = _jadwal_anak(principal.id_akun, siswa_id, kini)
-    return halaman.halaman_pilih_paket(kartu, None, token_untuk, kabar=kabar, jadwal=jadwal)
+    pilihan = _pilihan_jadwal(principal.id_akun, siswa_id, kini)
+    return halaman.halaman_pilih_paket(kartu, None, token_untuk, kabar=kabar, jadwal=jadwal, pilihan_jadwal=pilihan)
 
 
 def _get_halaman(penangan, principal, siswa_id: int) -> None:
@@ -269,6 +285,48 @@ def _post_ganti(penangan, principal, siswa_id: int) -> None:
     _alihkan(penangan, halaman.RUTE)
 
 
+# --- POST: pilih jadwal kelompok -----------------------------------------------------------
+
+def _form_jadwal(penangan, principal):
+    """Id kelompok sah dari form `{token, kelompok}` bertoken (`AKSI_JADWAL` + kelompok), atau None (respons sudah dikirim)."""
+    data = _baca_form(penangan)
+    if data is None or set(data) != KUNCI_FORM_JADWAL:
+        penangan._tolak_isian()
+        return None
+    try:
+        kelompok = jadwal_dasar.periksa_kelompok_id(data["kelompok"])
+    except d.PesananDataTidakSah:
+        penangan._tolak_isian()
+        return None
+    if not pesanan_http.token_sah(principal, penangan._ambil_token(), halaman.AKSI_JADWAL + kelompok, data["token"]):
+        penangan._tolak_isian(403)
+        return None
+    return kelompok
+
+
+def _post_jadwal(penangan, principal, siswa_id: int) -> None:
+    """Orang tua memilih kelompok Mini sekali saja; semua syarat dicek di transaksi penempatan."""
+    if not pesanan_http._izinkan(penangan, principal):
+        pesanan_http._tolak_laju(penangan)
+        return
+    kelompok = _form_jadwal(penangan, principal)
+    if kelompok is None:
+        return
+    try:
+        with jadwal_store.buka(admin_store.BAWAAN, tulis_data=True) as kon:
+            jadwal_pilih.pilih_kelompok(kon, principal.id_akun, siswa_id, kelompok, alur.waktu_sekarang())
+    except d.PesananTidakDitemukan:
+        _tidak_ada(penangan)
+        return
+    except d.PesananKonflik:
+        _info(penangan, "Kelompok belum bisa dipilih", COPY_GAGAL_PILIH_JADWAL, KODE_BENTROK)
+        return
+    except _GALAT_LAYANAN:
+        _info(penangan, "Belum bisa diproses", COPY_BELUM_SIAP, KODE_TIDAK_SIAP)
+        return
+    _alihkan(penangan, halaman.RUTE)
+
+
 # --- POST: unggah bukti ----------------------------------------------------------------------
 
 def _periksa_isi(isi: bytes):
@@ -366,6 +424,7 @@ def tangani_post(penangan, jalur: str) -> bool:
     if _rekening() is None:  # gerbang pembayaran tertutup: 404 murid, tanpa efek
         _tidak_ada(penangan)
         return True
-    {halaman.RUTE_BUAT: _post_buat, halaman.RUTE_BUKTI: _post_bukti, halaman.RUTE_GANTI: _post_ganti}[jalur](
+    {halaman.RUTE_BUAT: _post_buat, halaman.RUTE_BUKTI: _post_bukti, halaman.RUTE_GANTI: _post_ganti,
+     halaman.RUTE_JADWAL: _post_jadwal}[jalur](
         penangan, *pembeli)
     return True
