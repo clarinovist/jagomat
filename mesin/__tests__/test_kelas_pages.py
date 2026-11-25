@@ -51,16 +51,18 @@ def test_dua_kartu_memuat_nama_isi_dan_harga_normal():
         assert harapan in teks
 
 
-def test_mode_online_untuk_private_dan_offline_untuk_mini():
+def test_semua_paket_online_dan_hanya_mini_menyebut_zoom_atau_meet():
     private, mini = _pilih(_dua_kartu()).split('<section class="lg-paket">')[1:3]
     assert "online" in private.lower() and "offline" not in private.lower()
-    assert "offline" in mini.lower() and "online" not in mini.lower()
+    assert "offline" not in mini.lower() and "online" in mini.lower()
+    assert "Zoom atau Google Meet" in mini and "Zoom" not in private
 
 
-def test_lokasi_hanya_diumumkan_di_mini_dan_tidak_dikarang():
+def test_tautan_meeting_hanya_dijanjikan_di_mini_dan_tanpa_lokasi_fisik():
     private, mini = _pilih(_dua_kartu()).split('<section class="lg-paket">')[1:3]
-    assert "Lokasi diumumkan setelah pendaftaran" in _teks(mini)
-    assert "Lokasi" not in _teks(private)
+    assert "Kelas berlangsung online lewat Zoom atau Google Meet. Tautan dikirim setelah Anda daftar." in _teks(mini)
+    assert "Lokasi" not in _teks(mini)
+    assert "Lokasi" not in _teks(private) and "Zoom" not in _teks(private)
 
 
 def test_form_daftar_memuat_token_dan_kode_paket_tanpa_nominal():
@@ -146,9 +148,10 @@ def test_lencana_status_tagihan():
     assert "Aktif sampai 23 Des 2026" in _teks(_tagih(_tagihan(status=k.STATUS_AKTIF, berakhir=AKHIR)))
 
 
-def test_tagihan_mini_menyebut_offline_dan_lokasi_belum_dikarang():
+def test_tagihan_mini_menyebut_zoom_atau_meet_tanpa_lokasi_fisik():
     teks = _teks(_tagih(_tagihan(k.KODE_MINI)))
-    assert "offline" in teks.lower() and "Lokasi diumumkan setelah pendaftaran" in teks
+    assert "offline" not in teks.lower() and "Kelas berlangsung online lewat Zoom atau Google Meet. Tautan dikirim setelah Anda daftar." in teks
+    assert "Lokasi diumumkan" not in teks
 
 
 def test_rekening_ter_escape_dan_galat_tampil():

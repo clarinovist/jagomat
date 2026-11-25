@@ -13,8 +13,8 @@ from pesanan_transfer_pages import rupiah, waktu_wib
 
 def test_judul_dan_baris_deposit_memakai_nominal_dari_rupiah_paket():
     isi = hv.kartu_voucher(DASAR)
-    assert "<h2>Deposit dan laporan</h2>" in isi
-    assert "Deposit " + rupiah(pesanan_dasar.RUPIAH_PAKET) in isi and "Deposit Rp49.000" in isi
+    assert "<h2>Potongan dan laporan</h2>" in isi
+    assert "Potongan " + rupiah(pesanan_dasar.RUPIAH_PAKET) in isi and "Potongan Rp49.000" in isi
 
 
 def test_baris_potongan_dan_berlaku_hingga_dalam_wib():
@@ -27,15 +27,15 @@ def test_baris_potongan_dan_berlaku_hingga_dalam_wib():
 def test_kamus_status_total_untuk_semua_status_dan_ditahan_punya_kalimat_awam():
     semua = {nilai for nama, nilai in vars(purna).items() if nama.startswith("VOUCHER_")}
     assert semua == set(hv.COPY_STATUS_VOUCHER)
-    assert hv.COPY_STATUS_VOUCHER[purna.VOUCHER_DITAHAN] == "Deposit ditahan sampai pembayaran selesai diperiksa tim."
+    assert hv.COPY_STATUS_VOUCHER[purna.VOUCHER_DITAHAN] == "Potongan ditahan sampai pembayaran selesai diperiksa tim."
 
 
 def test_status_deposit_aktif_terpakai_kedaluwarsa_ditahan_batal_tampil_di_kartu():
     harapan = {
-        purna.VOUCHER_AKTIF: "Deposit aktif.",
-        purna.VOUCHER_DIPAKAI: "Deposit sudah terpakai.",
-        purna.VOUCHER_KEDALUWARSA: "Deposit sudah kedaluwarsa.",
-        purna.VOUCHER_DITAHAN: "Deposit ditahan sampai pembayaran selesai diperiksa tim.",
+        purna.VOUCHER_AKTIF: "Potongan aktif.",
+        purna.VOUCHER_DIPAKAI: "Potongan sudah terpakai.",
+        purna.VOUCHER_KEDALUWARSA: "Potongan sudah kedaluwarsa.",
+        purna.VOUCHER_DITAHAN: "Potongan ditahan sampai pembayaran selesai diperiksa tim.",
     }
     for status, kalimat in harapan.items():
         assert kalimat in hv.kartu_voucher(replace(DASAR, voucher=status))

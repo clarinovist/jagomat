@@ -81,16 +81,17 @@ def test_harga_hanya_di_faq_dan_pembatalan_15_soal(halaman):
     utama = _utama(halaman)
     faq = utama.split('id="judul-faq"', 1)[1]
     assert utama.count("Rp49.000") == faq.count("Rp49.000") == 2      # harga sekali bayar + deposit, keduanya di FAQ
-    assert "tidak dapat dikembalikan" in faq
+    assert "tidak bisa dikembalikan" in faq
     # DRAF 5 (24 Nov 2026, deposit): deposit memotong tagihan kelas 90 hari, janji 48 jam, hubungi tim bila terlambat.
-    assert "deposit yang memotong tagihan kelas bersama Guru (berlaku 90 hari)" in faq and "48 jam" in faq
+    assert "Rp49.000 Bunda menjadi potongan biaya bulan pertama kelas Jagomat, bila Bunda daftar dalam 90 hari." in faq
+    assert "48 jam" in faq
     assert "Tidak ada uang kembali otomatis" in faq and "hubungi tim lewat WhatsApp" in faq
     for lama in ("3×24 jam", "uang kembali penuh", "voucher", "memilih menunggu", "halaman pesanan", "program belajar"):
         assert lama not in faq, lama
     assert "15 soal" in faq
     assert "25 menit" not in halaman
     assert "cek-tiket-st" not in utama
-    assert funnel_pages.COPY_KUOTA_AWAL not in utama
+    assert "20 keluarga" not in utama
 
 
 def test_tautan_ke_contoh_tanpa_tiket_peta(halaman):

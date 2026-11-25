@@ -16,20 +16,20 @@ import purna
 from pesanan_transfer_pages import rupiah, waktu_wib
 
 ID_KARTU = "kartu-voucher"
-COPY_JUDUL = "Deposit dan laporan"
-COPY_DEPOSIT = "Deposit "
+COPY_JUDUL = "Potongan dan laporan"
+COPY_DEPOSIT = "Potongan "
 COPY_POTONGAN = "Memotong tagihan bulan pertama kelas bersama Guru bila Anda mendaftar."
 COPY_BERLAKU = "Berlaku hingga "
 COPY_STATUS_VOUCHER = {
-    purna.VOUCHER_BELUM_LUNAS: "Deposit aktif setelah pembayaran diterima.",
-    purna.VOUCHER_AKTIF: "Deposit aktif.",
-    purna.VOUCHER_DIPAKAI: "Deposit sudah terpakai.",
-    purna.VOUCHER_KEDALUWARSA: "Deposit sudah kedaluwarsa.",
-    purna.VOUCHER_BATAL: "Deposit tidak berlaku lagi karena uang sudah dikembalikan.",
-    purna.VOUCHER_DITAHAN: "Deposit ditahan sampai pembayaran selesai diperiksa tim.",
+    purna.VOUCHER_BELUM_LUNAS: "Potongan aktif setelah pembayaran diterima.",
+    purna.VOUCHER_AKTIF: "Potongan aktif.",
+    purna.VOUCHER_DIPAKAI: "Potongan sudah terpakai.",
+    purna.VOUCHER_KEDALUWARSA: "Potongan sudah kedaluwarsa.",
+    purna.VOUCHER_BATAL: "Potongan tidak berlaku lagi karena uang sudah dikembalikan.",
+    purna.VOUCHER_DITAHAN: "Potongan ditahan sampai pembayaran selesai diperiksa tim.",
 }
 COPY_TERBIT = "Laporan sudah terbit."
-COPY_JANJI = "Laporan lengkap dijanjikan terbit "
+COPY_JANJI = "Laporan lengkap terbit paling lambat "
 COPY_TERLAMBAT = (
     "Laporan belum terbit dan sudah lewat janji. Mohon maaf, tim sedang menyiapkannya; "
     "silakan hubungi tim lewat WhatsApp bila perlu bantuan."

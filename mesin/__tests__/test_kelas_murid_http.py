@@ -92,7 +92,7 @@ def test_halaman_dua_kartu_harga_dari_katalog_tanpa_rekening(dua):
     t = teks(isi)
     assert "Private" in t and "Mini Class" in t and "Rp640.000" in t and "Rp300.000" in t
     assert isi.count('action="/murid/paket/buat"') == 2
-    assert "Lokasi diumumkan setelah pendaftaran" in t
+    assert "Zoom atau Google Meet" in t and "Lokasi diumumkan" not in t
     assert "Bank Contoh" not in t  # rekening baru tampil bersama tagihan
 
 

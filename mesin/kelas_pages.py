@@ -37,7 +37,7 @@ COPY_SAPA = "Pilih yang cocok ya, Ayah/Bunda!"
 COPY_TOMBOL_DAFTAR = "Daftar paket ini"
 COPY_TOMBOL_UNGGAH = "Unggah bukti"
 COPY_TOMBOL_UNGGAH_ULANG = "Unggah ulang bukti"
-COPY_LOKASI = "Lokasi diumumkan setelah pendaftaran"
+COPY_LOKASI = "Kelas berlangsung online lewat Zoom atau Google Meet. Tautan dikirim setelah Anda daftar."
 COPY_ADA_TAGIHAN = "Selesaikan tagihan yang sedang berjalan dulu sebelum mendaftar paket lain."
 COPY_JUDUL_STATUS = "Status paket"
 COPY_JUDUL_TAGIHAN = "Bayar lewat transfer"
@@ -104,7 +104,7 @@ def _ringkas_isi(paket: k.PaketBelajar) -> str:
     baris = [f"{paket.pertemuan} pertemuan x {paket.menit} menit", _LABEL_MODE.get(paket.mode, paket.mode)]
     if paket.kuota:
         baris.append(f"Kelas kecil, maksimal {paket.kuota} anak")
-    if paket.mode == k.MODE_OFFLINE:
+    if paket.kode == k.KODE_MINI:
         baris.append(COPY_LOKASI)
     return "".join(_p(b, "lg-ket") for b in baris)
 
@@ -182,7 +182,7 @@ def _baris_rincian(tagihan: k.TagihanKelas) -> str:
 def _tentang_paket(paket: k.PaketBelajar) -> str:
     baris = [f"Paket: {paket.nama}", _LABEL_MODE.get(paket.mode, paket.mode),
              f"{paket.pertemuan} pertemuan x {paket.menit} menit"]
-    if paket.mode == k.MODE_OFFLINE:
+    if paket.kode == k.KODE_MINI:
         baris.append(COPY_LOKASI)
     return "".join(_p(b, "lg-kecil") for b in baris)
 

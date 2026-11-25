@@ -25,9 +25,9 @@ def test_private_80rb_x_8_pertemuan_online_60_menit():
     assert (p.harga, p.pertemuan, p.menit, p.mode, p.kuota) == (640_000, 8, 60, k.MODE_ONLINE, None)
 
 
-def test_mini_300rb_offline_60_menit_kuota_5():
+def test_mini_300rb_online_60_menit_kuota_5():
     p = k.ambil(k.KODE_MINI)
-    assert (p.harga, p.pertemuan, p.menit, p.mode, p.kuota) == (300_000, 8, 60, k.MODE_OFFLINE, 5)
+    assert (p.harga, p.pertemuan, p.menit, p.mode, p.kuota) == (300_000, 8, 60, k.MODE_ONLINE, 5)
 
 
 def test_kode_tak_dikenal_ditolak():

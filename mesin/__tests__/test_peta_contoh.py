@@ -411,8 +411,8 @@ def test_kartu_kelas_kecil_membaca_katalog_mini_class(monkeypatch):
     """Angka kartu kelas = katalog Mini Class (24 Nov 2026), bukan teks lama; lokasi belum ada, jadi tidak dijanjikan."""
     import paket_belajar_katalog as katalog
     teks = _teks_tampak(_laporan())
-    for harapan in ("Rp300.000 per bulan, 8 pertemuan.", "Kelas kecil maksimal 5 anak, tatap muka, 60 menit per pertemuan",
-                    "Lokasi diumumkan setelah pendaftaran."):
+    for harapan in ("Rp300.000 per bulan, 8 pertemuan.", "Kelas kecil maksimal 5 anak, online, 60 menit per pertemuan",
+                    "Kelas berlangsung online lewat Zoom atau Google Meet. Tautan dikirim setelah Anda daftar."):
         assert harapan in teks, harapan
     for lama in ("Dua pertemuan seminggu", "45 menit, dipandu", "Rp200.000"):
         assert lama not in teks, lama

@@ -50,10 +50,13 @@ RUTE_BERANDA_ANAK = "/murid#judul-cek-murid"  # kartu cek ada di beranda; tombol
 COPY_LAPORAN_JUDUL = "Laporan dari Guru"
 COPY_LAPORAN_KOSONG = "Belum ada laporan dari Guru."
 COPY_PESANAN_JUDUL = "Peta Kemampuan"
-COPY_PESANAN_TAWARAN = "Laporan lengkap dikerjakan guru dari hasil cek ini. " + __import__("funnel_pages").COPY_HARGA
+COPY_PESANAN_TAWARAN = (
+    "Laporan lengkap dikerjakan Guru dari hasil cek ini. "
+    "Peta Kemampuan Rp49.000, dibayar sekali tanpa tagihan berulang."
+)
 COPY_PESANAN_LANJUT = "Lanjutkan pembayaran atau lihat statusnya di halaman pembayaran."
 COPY_PESANAN_TERBIT = "Pembayaran diterima. Laporan Peta Kemampuan sudah tersedia di halaman ini."
-COPY_PESANAN_LIHAT_DEPOSIT = "Lihat deposit & rincian pesanan"
+COPY_PESANAN_LIHAT_DEPOSIT = "Lihat potongan & rincian pesanan"
 COPY_PIN_MASUK_JUDUL = "Masukkan PIN"
 COPY_PIN_MASUK_TEKS = "Halaman ini ditutup dengan PIN. Masukkan 4 angka PIN Ayah/Bunda untuk membukanya."
 COPY_PIN_SALAH = "PIN belum cocok. Coba lagi."

@@ -20,7 +20,7 @@ JALUR_MULAI = "#mulai"
 
 COPY_H1 = ("Sudah les matematika, tapi nilainya ", "masih begitu-begitu saja?")
 COPY_CTA_LANDING = "Mulai tes gratis"
-COPY_GELEMBUNG = "Halo! Aku bantu lihat di materi mana salahnya mengumpul."
+COPY_GELEMBUNG = "Halo! Aku bantu lihat di materi mana anak masih sering salah."
 COPY_FAKTA = ("Kelas 1–6 SD", "Soal sesuai kelas", "Laporan lengkap dibaca Guru")
 COPY_ARIA_PANGGUNG = "Contoh hasil, data sintetis"
 
@@ -118,10 +118,10 @@ COPY_FAQ_ALIS = "Tanya jawab"
 COPY_FAQ_JUDUL = "Biar Bunda tenang sebelum mulai."
 COPY_FAQ_BAYAR = (
     "Cek Kemampuan gratis. Pembayaran hanya bila Bunda membuka Peta Kemampuan "
-    "(Rp49.000 sekali bayar) dari halaman hasil. Peta Kemampuan tidak dapat "
-    "dikembalikan, jadi Rp49.000 menjadi deposit yang memotong tagihan kelas bersama Guru "
-    "(berlaku 90 hari) bila Bunda daftar. Laporan dijanjikan terbit dalam 48 jam setelah pembayaran. "
-    "Tidak ada uang kembali otomatis; bila terlambat, hubungi tim lewat WhatsApp."
+    "(Rp49.000 sekali bayar) dari halaman hasil. Peta Kemampuan tidak bisa dikembalikan karena Guru langsung mengerjakan laporannya. Rp49.000 Bunda menjadi potongan biaya "
+    "bulan pertama kelas Jagomat, bila Bunda daftar dalam 90 hari. Laporan terbit dalam 48 jam "
+    "setelah pembayaran. Kalau terlambat, hubungi tim lewat WhatsApp. Kami bantu sampai laporan "
+    "Bunda terbit. Tidak ada uang kembali otomatis."
 )
 # (ikon, warna, pertanyaan, jawaban teks, atau None bila jawabannya daftar batas hasil)
 COPY_FAQ = (

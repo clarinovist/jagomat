@@ -129,12 +129,12 @@ def test_kartu_tampil_untuk_order_lunas_dengan_deposit_tenggat_dan_janji_tanpa_t
     isi = kartu(halaman(siap))
     assert isi is not None
     tampak = teks_tampak(isi)
-    assert "Deposit dan laporan" in tampak
-    assert "Deposit " + rupiah(pesanan_dasar.RUPIAH_PAKET) in tampak
+    assert "Potongan dan laporan" in tampak
+    assert "Potongan " + rupiah(pesanan_dasar.RUPIAH_PAKET) in tampak
     assert "Memotong tagihan bulan pertama kelas bersama Guru bila Anda mendaftar." in tampak
     assert "otomatis" not in tampak.lower()
     assert "Berlaku hingga " + waktu_wib(k.berlaku_hingga) in tampak
-    assert "Laporan lengkap dijanjikan terbit " + waktu_wib(k.janji_terbit) in tampak
+    assert "Laporan lengkap terbit paling lambat " + waktu_wib(k.janji_terbit) in tampak
     assert hv.COPY_STATUS_VOUCHER[purna.VOUCHER_AKTIF] in tampak
     assert "<form" not in isi and "<button" not in isi and "<input" not in isi
 
@@ -165,7 +165,7 @@ def test_kartu_tidak_tampil_sebelum_lunas(sakelar_hidup, bayar_purna):
     assert kirim(bayar_purna, M + "/pesan", murid.akun, aksi="pesan")[0] == 303
     kode, isi, _ = minta_mentah(bayar_purna, M, murid.akun)
     assert kode == 200 and "Menunggu pembayaran" in teks_tampak(isi)         # halaman lama tetap tampil utuh
-    assert "kartu-voucher" not in isi and "Deposit dan laporan" not in isi
+    assert "kartu-voucher" not in isi and "Potongan dan laporan" not in isi
 
 
 def test_kartu_tidak_tampil_untuk_order_direfund(lunas_murid, jam):
@@ -181,7 +181,7 @@ def test_kartu_tidak_tampil_bila_skema_purna_belum_dipasang(transfer_lunas_tanpa
     jam.maju_jam(JAM_LEWAT_BATAS)
     isi = halaman(siap)
     assert "Pembayaran diterima" in teks_tampak(isi)             # perilaku lama tetap
-    assert "kartu-voucher" not in isi and "Deposit dan laporan" not in isi
+    assert "kartu-voucher" not in isi and "Potongan dan laporan" not in isi
 
 
 def test_kartu_tidak_tampil_untuk_order_perlu_diperiksa_ditahan(lunas_murid, jam):
@@ -206,7 +206,7 @@ def test_kartu_terlambat_tanpa_tombol_dengan_kalimat_maaf_lalu_terbit_menurut_ke
     isi = kartu(hal_terbit)
     assert "Laporan sudah terbit" in teks_tampak(isi) and "<form" not in isi
     assert "sudah lewat janji" not in teks_tampak(isi)
-    assert "Akses laporan lengkap menyusul" not in teks_tampak(hal_terbit)
+    assert "Perkiraan terbit menyusul" not in teks_tampak(hal_terbit)
 
 
 def test_kartu_tidak_menyebut_uang_kembali_pilihan_atau_voucher(lunas_murid, jam):
@@ -267,7 +267,7 @@ def test_murid_lain_tanpa_order_tidak_melihat_kartu_atau_identitas_order_milik_l
     siap = lunas_murid
     b = buat_murid(siap.server, "murid-b", NAMA_ANAK_B)            # belum punya order
     kode, isi, _ = minta_mentah(siap.server, M, b.akun)
-    assert kode == 200 and "kartu-voucher" not in isi and "Deposit dan laporan" not in isi
+    assert kode == 200 and "kartu-voucher" not in isi and "Potongan dan laporan" not in isi
     assert siap.order_id not in isi and keadaan(siap).kode not in isi and NAMA_ANAK_A not in isi
 
 
@@ -301,7 +301,7 @@ def test_halaman_orang_tua_memuat_satu_baris_janji_tanpa_tombol_dan_beranda_teta
     k = keadaan(siap)
     terlambat(siap, jam)
     isi = minta_mentah(siap.server, "/murid/orang-tua", siap.murid.akun)[1]
-    assert "Laporan lengkap dijanjikan terbit " + waktu_wib(k.janji_terbit) in teks_tampak(isi)
+    assert "Laporan lengkap terbit paling lambat " + waktu_wib(k.janji_terbit) in teks_tampak(isi)
     assert PILIH not in isi and "<button" not in isi.split('id="ortu-pesanan"')[1].split("</section>")[0]
     beranda = minta_mentah(siap.server, "/murid", siap.murid.akun)[1]
     assert beranda.count('href="/murid/orang-tua"') == 1

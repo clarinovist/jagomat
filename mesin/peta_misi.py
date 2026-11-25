@@ -17,7 +17,7 @@ KUNCI_STIKER = "jagomat-peta-hari"
 MINGGU_CEK_ULANG = "Cek ulang bersama Guru, lalu peta baru"
 # Keputusan 20 poin 7 (21 Nov 2026): harga kelas tampil di akhir laporan. Angka kelas dari katalog Mini Class
 # (`paket_belajar_katalog`, keputusan Pemilik 24 Nov 2026), bukan tulis tangan di sini.
-COPY_LOKASI_KELAS = "Lokasi diumumkan setelah pendaftaran."
+COPY_LOKASI_KELAS = "Kelas berlangsung online lewat Zoom atau Google Meet. Tautan dikirim setelah Anda daftar."
 _LABEL_MODE = {katalog.MODE_ONLINE: "online", katalog.MODE_OFFLINE: "tatap muka"}
 
 
