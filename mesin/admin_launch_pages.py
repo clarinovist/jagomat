@@ -6,6 +6,7 @@ from datetime import datetime
 import product_analytics as d
 import support_settings as dukungan
 import admin_labels as L
+import admin_harga_pages as hg
 import admin_sakelar_pages as sak
 from admin_daftar_pages import kartu_tabel, sel_nama
 from admin_komponen import kartu_akan_dimatikan, kepala_cari, lipat_aksi  # noqa: F401 (dipakai admin_launch_http)
@@ -256,7 +257,7 @@ def _kelompok_penjualan(r,sakelar,pembayaran,rekening,status_rekening):
         qris_tutup=None if not cfg else cfg['tahap'] in TAHAP_QRIS_TUTUP,
         transfer_aktif=status.get(sak.TRANSFER,False)) if sak.TRANSFER in status else ''
     kartu=dict(sakelar.penjualan)
-    isi=kartu.pop(sak.FUNNEL,'')+pembayaran+kartu.pop(sak.TRANSFER,'')+checklist+''.join(kartu.values())+rekening
+    isi=kartu.pop(sak.FUNNEL,'')+pembayaran+kartu.pop(sak.TRANSFER,'')+checklist+''.join(kartu.values())+rekening+hg.tautan_pengaturan()
     return _kelompok('penjualan',sak.LABEL_KELOMPOK['penjualan'],isi)
 
 
