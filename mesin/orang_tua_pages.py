@@ -262,15 +262,19 @@ def _kaki() -> str:
     return (f'<p class="ortu-kaki-st">{_e(COPY_PIN_CATATAN)}</p><p class="ortu-kaki-st">{_e(COPY_KALIMAT)}</p>')
 
 
-def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan_paket: bool = False) -> bytes:
+def halaman_isi(data, ada_pin: bool, kabar: str = "", galat: str = "", *, tautan_paket: bool = False,
+                masa_paket=()) -> bytes:
     """Isi halaman (tirai terbuka atau anak tanpa PIN); `data` = `orang_tua_data.DataOrangTua`.
 
-    Urutan: banner perpanjang, hero ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, kartu paket belajar (hanya bila `tautan_paket`), laporan Guru, PIN (lipat).
+    Urutan: banner perpanjang Latihan Harian, banner paket belajar (hanya bila `tautan_paket`, isi `masa_paket`), hero
+    ringkasan, hasil cek, pesanan Peta, Peta lengkap (bila terbit dan lunas), Latihan Harian, langganan, kartu paket belajar (hanya bila `tautan_paket`), laporan Guru, PIN (lipat).
     """
     pin_terbuka = bool(KABAR.get(kabar) or galat)
+    banner_paket = kelas_pages.banner_orang_tua(masa_paket, data.nama_anak) if tautan_paket else ""
     badan = (
         '<div class="funnel-alur-st">' + _pesan(kabar, galat)
         + harian_langganan_pages.banner_orang_tua(data.langganan, data.nama_anak)
+        + banner_paket
         + _hero_ringkasan(data.nama_anak, data.harian)
         + _blok_cek(data.hasil_cek, data.nama_anak)
         + _blok_pesanan(data.status_pesanan, data.hasil_cek.get("status") == "selesai", data.purna)

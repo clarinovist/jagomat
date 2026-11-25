@@ -12,6 +12,7 @@ import admin_transfer_menunggu
 import admin_verifikasi_pages
 import harian_langganan_admin_pages
 import kelas_admin_pages
+import kelas_tunggakan as kt
 from admin_antrean_pages import AntreanAdmin, BATAS_BARIS, ItemAntrean
 from pesanan_transfer_pages import rupiah
 
@@ -22,6 +23,8 @@ PERINGATAN_LUNAS = "Periksa hasil operasinya; jangan mengulang atau memaksa stat
 CATATAN_BACKUP = "Bukti ini tidak menyatakan jadwal atau salinan di luar server."
 JALUR_KESIAPAN = "/admin/sakelar#kesiapan"  # Pengaturan layanan, bagian Kesiapan layanan
 JALUR_SISWA_TANPA_LOGIN = "/admin?section=siswa&status=student_without_login"
+KALIMAT_TINDAK_LANJUT_TUNGGAKAN = "Hubungi orang tua: ajak ikut kelas lagi atau tanyakan umpan balik."
+PERINGKAT_TINGKAT = {"mendesak": 0, "penting": 1, "tinjau": 2}
 CATATAN_TANPA_LOGIN = ("Normal: anak masuk lewat QR atau tautan HP dari guru. "
                        "Buka daftar hanya bila perlu membuat login.")
 
@@ -74,6 +77,27 @@ def _item_bayar_lain(path_admin, sekarang: float):
         tuple(_item_transfer_satu(t, sekarang, admin_antrean_bayar.JUDUL_KELAS,
                                   kelas_admin_pages.RUTE_VERIFIKASI) for t in kelas),
     )
+
+
+def _item_tunggakan_satu(tunggakan: kt.Tunggakan) -> ItemAntrean:
+    """Paket kelas habis dan belum diperpanjang; 60 hari ke atas naik jadi penting. Tanpa nama atau kontak."""
+    penting = tunggakan.hari_lewat >= kt.HARI_TUNGGAKAN_PENTING
+    return ItemAntrean(
+        "penting" if penting else "tinjau",
+        "Paket %s anak #%d belum diperpanjang" % (tunggakan.nama_paket, tunggakan.siswa_id),
+        "berakhir %d hari lalu. %s" % (tunggakan.hari_lewat, KALIMAT_TINDAK_LANJUT_TUNGGAKAN),
+        kelas_admin_pages.RUTE, "Tinjau paket", umur_hari=tunggakan.hari_lewat,
+    )
+
+
+def _item_tunggakan(path_admin, sekarang: float) -> Tuple[ItemAntrean, ...]:
+    daftar = admin_antrean_bayar.kelas_tunggakan(path_admin, admin_transfer_menunggu.waktu_iso(sekarang))
+    return tuple(_item_tunggakan_satu(t) for t in daftar)
+
+
+def _urutkan_tingkat(item: Tuple[ItemAntrean, ...]) -> Tuple[ItemAntrean, ...]:
+    """Mendesak, lalu penting, lalu tinjau; dalam satu tingkat urutan asal dipertahankan (sort stabil)."""
+    return tuple(sorted(item, key=lambda i: PERINGKAT_TINGKAT.get(i.tingkat, PERINGKAT_TINGKAT["tinjau"])))
 
 
 def _item_operasi(baris, sekarang: float) -> ItemAntrean:
@@ -184,7 +208,7 @@ def item_pengguna(konteks: Q.KonteksAdmin) -> Tuple[ItemAntrean, ...]:
 
 
 def kumpulkan(konteks: Q.KonteksAdmin, path_admin, *, sekarang: float) -> AntreanAdmin:
-    """Antrean terurut transfer (Peta, Latihan Harian, Paket Belajar) → operasi → backup → pengguna, dipotong ``BATAS_BARIS`` baris."""
+    """Antrean diurutkan per tingkat (mendesak, penting, tinjau); di dalam tingkat: transfer, operasi, backup, tunggakan paket, pengguna. Dipotong ``BATAS_BARIS``."""
     transfer = _item_transfer(path_admin, sekarang)
     harian, kelas = _item_bayar_lain(path_admin, sekarang)
     operasi, total_operasi, tersedia = _item_operasi_semua(path_admin, sekarang)
@@ -192,14 +216,15 @@ def kumpulkan(konteks: Q.KonteksAdmin, path_admin, *, sekarang: float) -> Antrea
         operasi = _fallback_operasi(path_admin)
         total_operasi = len(operasi)
     backup, bukti, terverifikasi = _item_backup(sekarang)
+    tunggakan = _item_tunggakan(path_admin, sekarang)
     lain = item_pengguna(konteks)
-    semua = transfer + harian + kelas + operasi + backup + lain
+    semua = _urutkan_tingkat(transfer + harian + kelas + operasi + backup + tunggakan + lain)
     menunggu_semua = len(transfer) + len(harian) + len(kelas)
     mendesak = total_operasi + menunggu_semua
-    penting = len(backup) + sum(1 for i in lain if i.tingkat == "penting")
+    penting = sum(1 for i in backup + tunggakan + lain if i.tingkat == "penting")
     return AntreanAdmin(
         item=semua[:BATAS_BARIS],
-        total=menunggu_semua + total_operasi + len(backup) + len(lain),
+        total=menunggu_semua + total_operasi + len(backup) + len(tunggakan) + len(lain),
         mendesak=mendesak,
         layanan_tersedia=tersedia,
         bukti_backup=bukti,

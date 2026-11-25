@@ -16,6 +16,7 @@ from typing import Callable, Optional, Sequence
 
 import harian_langganan_dasar as h
 import harian_langganan_style
+import kelas_masa as km
 import paket_belajar_katalog as k
 import pesanan_murid_pages
 import playful_components as C
@@ -245,6 +246,32 @@ def kartu_orang_tua() -> str:
     isi = _p(f"Pilih {nama}, {k.PERTEMUAN_PER_BULAN} pertemuan sebulan. Daftar lewat transfer, tim kami yang memeriksa.")
     return C.kartu_navy(_e(COPY_JUDUL_KARTU_ORTU), isi, RUTE, COPY_TOMBOL_KARTU_ORTU, label=COPY_LABEL_KARTU_ORTU,
                         id_="ortu-paket", level=2)
+
+
+def _baris_banner(masa: km.MasaPaket, nama_anak: str) -> str:
+    """Satu baris banner untuk paket yang segera berakhir atau sudah habis; semua nilai dinamis di-escape."""
+    anak = _e(nama_anak or "anak")
+    paket = _e(masa.nama)
+    tautan = f'<a href="{RUTE}">Perpanjang</a>'
+    if masa.status == km.STATUS_SEGERA:
+        teks = f"Paket {paket} {anak} berakhir {masa.sisa_hari} hari lagi. {tautan}"
+        lencana = "Segera berakhir"
+    else:
+        teks = f"Paket {paket} {anak} sudah berakhir. {tautan} untuk mendapat jadwal baru."
+        lencana = "Sudah berakhir"
+    return f'{C.lencana(lencana, "koral")} {teks}'
+
+
+def banner_orang_tua(masa: Sequence[km.MasaPaket], nama_anak: str) -> str:
+    """Banner perpanjang paket belajar: satu elemen `ortu-paket-banner`, satu baris per paket segera/habis; '' bila tak ada.
+
+    Paket aktif (sisa di atas batas pengingat) tidak tampil. Pemanggil hanya memanggil bila sakelar PAKET_BELAJAR aktif.
+    """
+    baris = [_baris_banner(m, nama_anak) for m in masa
+             if m.status in (km.STATUS_SEGERA, km.STATUS_HABIS)]
+    if not baris:
+        return ""
+    return ('<p class="ortu-banner-st" id="ortu-paket-banner" role="status">' + "<br>".join(baris) + "</p>")
 
 
 def kalimat_aktif(nama_paket: str, berakhir: str) -> str:

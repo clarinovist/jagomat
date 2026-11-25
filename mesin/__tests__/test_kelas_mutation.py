@@ -29,6 +29,7 @@ D = T + "test_purna_dalam_transaksi.py::"
 PUTUSAN, STORE, STATUS, RINCIAN, PURNA = ("mesin/kelas_putusan.py", "mesin/kelas_store.py", "mesin/kelas_status.py",
                                          "mesin/kelas_rincian.py", "mesin/purna.py")
 KATALOG_HARGA = "mesin/paket_belajar_katalog.py"
+MASA, MASA_T = "mesin/kelas_masa.py", T + "test_kelas_masa.py::"
 
 KASUS = (
     # --- deposit: tepat sekali, hanya akun yang sama, dicek ulang saat lunas ---
@@ -120,6 +121,15 @@ KASUS = (
     ("rantai-akses-lintas-paket",
      ((PUTUSAN, 'WHERE a.siswa_id=? AND o.paket=? ORDER BY a.id DESC"', 'WHERE a.siswa_id=? AND ? IS NOT NULL ORDER BY a.id DESC"'),),
      (P + "test_rantai_per_paket_mini_tidak_menunggu_akhir_private",)),
+    # --- masa paket per anak (banner perpanjang): kepemilikan dan order terbuka ---
+    ("masa-paket-tanpa-filter-akun",
+     ((MASA, "WHERE o.akun_id=? AND a.siswa_id=? AND o.paket=?", "WHERE ? IS NOT NULL AND a.siswa_id=? AND o.paket=?"),),
+     (MASA_T + "test_akses_milik_akun_lain_tidak_terbaca_dan_pembacaan_tanpa_tulis",)),
+    ("masa-paket-order-terbuka-tidak-dilewati",
+     ((MASA, "    if ks.order_terbuka(kon, akun_id, siswa_id, paket.kode, kini) is not None:\n        return None\n",
+       "    if False:\n        return None\n"),),
+     (MASA_T + "test_order_belum_bayar_menyembunyikan_paket_itu_dan_tidak_paket_lain",
+      MASA_T + "test_order_menunggu_bukti_juga_menyembunyikan_banner")),
 )
 
 

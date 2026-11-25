@@ -5,6 +5,7 @@ import pytest
 
 import harian_langganan_ringkas as ringkas
 import harian_latihan_store as hs
+import kelas_masa as km
 import orang_tua_data
 import orang_tua_pages as P
 import pesanan_pages
@@ -239,3 +240,24 @@ def test_kartu_paket_belajar_setelah_langganan_sebelum_laporan_guru():
     assert 'href="/murid/paket"' in kartu and "Belajar bersama Guru" in kartu
     for klaim in ("nilai naik", "pasti", "dijamin", "Rp"):
         assert klaim not in kartu
+
+
+# --- banner perpanjang paket belajar (hanya bila `tautan_paket`; isi dari `masa_paket`) ---------------
+
+def _isi_masa(data, tautan, masa):
+    return _badan(P.halaman_isi(data, False, "", "", tautan_paket=tautan, masa_paket=masa).decode())
+
+
+def test_banner_paket_hanya_saat_tautan_dan_setelah_banner_langganan():
+    data = _data(langganan=LANGGANAN_SEGERA)
+    masa = (km.MasaPaket("mini", "Mini Class", "2026-12-20T09:30:00", 2, km.STATUS_SEGERA),)
+    mati = _isi_masa(data, False, masa)
+    assert mati == _badan(_isi(data)) and 'id="ortu-paket-banner"' not in mati
+    html = _isi_masa(data, True, masa)
+    posisi = [html.index(p) for p in ('id="ortu-langganan-banner"', 'id="ortu-paket-banner"', 'id="judul-ortu"')]
+    assert posisi == sorted(posisi)
+
+
+def test_banner_paket_tanpa_masa_tidak_menambah_banner():
+    data = _data(langganan=LANGGANAN_SEGERA)
+    assert 'id="ortu-paket-banner"' not in _isi_masa(data, True, ())

@@ -15,16 +15,22 @@ Dijawab di permukaan murid (sebelum `_lolos_sandi`, dipanggil `student_http`). A
 from __future__ import annotations
 
 from dataclasses import dataclass
+import sqlite3
 import time
 import urllib.parse
 from typing import Optional
 
+import admin_store
+import admin_store_core
 import daftar_anak_gate
 import database
+import kelas_masa
+import kelas_store
 import laju_masuk
 import orang_tua_data
 import orang_tua_pages as halaman
 import paket_belajar_gate
+import pesanan_alur as alur
 import pin_orang_tua_store as pin_store
 import tirai_orang_tua as tirai
 from orang_tua_style import RUTE
@@ -102,8 +108,19 @@ def _tampilkan(penangan, kon, ctx: _Konteks, *, kabar: str = "", galat: str = ""
         _kirim(penangan, halaman.halaman_pin(), kode)
         return
     data = orang_tua_data.kumpulkan(kon, ctx.id_akun, ctx.siswa_id)
-    _kirim(penangan, halaman.halaman_isi(data, ada_pin, kabar=kabar, galat=galat,
-                                      tautan_paket=paket_belajar_gate.aktif()), kode)
+    tautan = paket_belajar_gate.aktif()
+    isi = halaman.halaman_isi(data, ada_pin, kabar=kabar, galat=galat, tautan_paket=tautan,
+                              masa_paket=_masa_paket(ctx) if tautan else ())
+    _kirim(penangan, isi, kode)
+
+
+def _masa_paket(ctx: _Konteks) -> tuple:
+    """Masa paket anak dari DB kelas (baca-saja, anak dari sesi). Galat DB (belum dipasang, rusak) = tanpa banner."""
+    try:
+        with kelas_store.buka(admin_store.BAWAAN) as kon_kelas:
+            return kelas_masa.masa_paket_anak(kon_kelas, ctx.id_akun, ctx.siswa_id, alur.waktu_sekarang())
+    except (admin_store_core.StoreBelumSiap, sqlite3.Error, ValueError):
+        return ()
 
 
 def tangani_get(penangan, kon, siswa_id: int) -> bool:

@@ -41,10 +41,10 @@ KASUS = (
      ((HTTP, "    if laju_masuk.sedang_diblokir(*kunci):", "    if False:"),),
      (H + "test_blokir_setelah_batas_laju_tanpa_menjalankan_pbkdf2",)),
     ("F5-kontak-dirender",
-     ((HTTP, "    data = orang_tua_data.kumpulkan(kon, ctx.id_akun, ctx.siswa_id)\n    _kirim(penangan, halaman.halaman_isi(data, ada_pin, kabar=kabar, galat=galat), kode)",
-       "    data = orang_tua_data.kumpulkan(kon, ctx.id_akun, ctx.siswa_id)\n    import kontak_akun\n"
+     ((HTTP, "    _kirim(penangan, isi, kode)\n",
+       "    import kontak_akun\n"
        '    wa = (kontak_akun.ambil(kon, ctx.id_akun) or {}).get("wa", "")\n'
-       '    _kirim(penangan, halaman.halaman_isi(data, ada_pin, kabar=kabar, galat=galat).replace(b"</main>", ("<p>" + wa + "</p></main>").encode(), 1), kode)'),),
+       '    _kirim(penangan, isi.replace(b"</main>", ("<p>" + wa + "</p></main>").encode(), 1), kode)\n'),),
      (H + "test_kontak_wa_tidak_pernah_dirender_dan_kalimat_ortu_ada",)),
     ("F6a-gerbang-get-dimatikan",
      ((HTTP, "    if not tersedia():\n        return False\n    principal = penangan._principal()\n    if principal is None:\n        return False",
