@@ -60,6 +60,7 @@ _DDL = (
     "    diputuskan_oleh TEXT\n"
     ")",
     "CREATE UNIQUE INDEX private_pengajuan_aktif ON private_pengajuan(order_id) WHERE status = 'diajukan'",
+    "CREATE INDEX private_pengajuan_order ON private_pengajuan(order_id, id)",
     "CREATE TRIGGER private_pengajuan_transisi BEFORE UPDATE ON private_pengajuan\n"
     "WHEN NOT (OLD.status = 'diajukan' AND NEW.status IN ('disetujui','ditolak','dibatalkan')\n"
     "          AND NEW.id IS OLD.id AND NEW.order_id IS OLD.order_id AND NEW.slot_id IS OLD.slot_id\n"
@@ -164,8 +165,10 @@ def ambil_slot(kon, slot_id: int) -> BarisSlot:
 
 def siapkan_berkas(tujuan: Path) -> None:
     """Berkas baru dibuat 0600 sebelum SQLite membukanya; berkas yang sudah ada tidak diubah."""
-    if not tujuan.exists():
-        os.close(os.open(tujuan, os.O_CREAT | os.O_WRONLY, 0o600))
+    try:
+        os.close(os.open(tujuan, os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_NOFOLLOW", 0), 0o600))
+    except FileExistsError:
+        pass  # berkas sudah ada (atau dibuat proses lain): tidak diubah
 
 
 def _hubung(tujuan: Path, ro: bool) -> sqlite3.Connection:

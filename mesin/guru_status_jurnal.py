@@ -119,8 +119,10 @@ def _pastikan_skema(kon) -> None:
 
 def _siapkan_berkas(tujuan: Path) -> None:
     """Berkas baru dibuat 0600 sebelum SQLite membukanya; berkas yang sudah ada tidak diubah."""
-    if not tujuan.exists():
-        os.close(os.open(tujuan, os.O_CREAT | os.O_WRONLY, 0o600))
+    try:
+        os.close(os.open(tujuan, os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_NOFOLLOW", 0), 0o600))
+    except FileExistsError:
+        pass  # berkas sudah ada (atau dibuat proses lain): tidak diubah
 
 
 def catat(aksi: str, id_akun: str, oleh: str, pada: int, revisi: int, path=None) -> None:
