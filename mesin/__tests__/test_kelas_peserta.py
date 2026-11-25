@@ -82,3 +82,14 @@ def test_blok_halaman_menampilkan_status_tautan_detail_dan_tanpa_nama(kon):
 
 def test_blok_halaman_kosong_pesan_jujur():
     assert "Belum ada paket aktif" in ui.blok_peserta(())
+
+
+def test_kode_paket_tak_dikenal_katalog_tidak_menjatuhkan_daftar(kon, monkeypatch):
+    kelas_kit.lunas(kon, siswa=7)
+
+    def tak_dikenal(kode):
+        raise ValueError("paket tidak dikenal")
+
+    monkeypatch.setattr(kp.katalog, "ambil", tak_dikenal)
+    (peserta,) = kp.daftar_peserta_aktif(kon, KINI)
+    assert peserta.nama_paket == peserta.kode_paket == "mini"

@@ -40,8 +40,11 @@ class PesertaAktif:
 
 def _peserta(baris) -> PesertaAktif:
     ditempatkan = None if baris["ditempatkan"] is None else bool(baris["ditempatkan"])
-    return PesertaAktif(baris["order_id"], baris["siswa_id"], baris["paket"], katalog.ambil(baris["paket"]).nama,
-                        baris["berakhir"], ditempatkan)
+    try:
+        nama = katalog.ambil(baris["paket"]).nama
+    except ValueError:        # kode sudah dicabut dari katalog (rollback/perubahan katalog): tampilkan kodenya saja
+        nama = baris["paket"]
+    return PesertaAktif(baris["order_id"], baris["siswa_id"], baris["paket"], nama, baris["berakhir"], ditempatkan)
 
 
 def daftar_peserta_aktif(kon, sekarang: str) -> Tuple[PesertaAktif, ...]:
