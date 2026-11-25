@@ -110,8 +110,18 @@ def _tampilkan(penangan, kon, ctx: _Konteks, *, kabar: str = "", galat: str = ""
     data = orang_tua_data.kumpulkan(kon, ctx.id_akun, ctx.siswa_id)
     tautan = paket_belajar_gate.aktif()
     isi = halaman.halaman_isi(data, ada_pin, kabar=kabar, galat=galat, tautan_paket=tautan,
-                              masa_paket=_masa_paket(ctx) if tautan else ())
+                              masa_paket=_masa_paket(ctx) if tautan else (),
+                              tagihan_paket=_tagihan_paket(ctx) if tautan else ())
     _kirim(penangan, isi, kode)
+
+
+def _tagihan_paket(ctx: _Konteks) -> tuple:
+    """Tagihan paket belajar anak yang belum dibayar (baca-saja). Galat DB (belum dipasang, rusak) = tanpa banner."""
+    try:
+        with kelas_store.buka(admin_store.BAWAAN) as kon_kelas:
+            return kelas_masa.tagihan_belum_dibayar(kon_kelas, ctx.id_akun, ctx.siswa_id, alur.waktu_sekarang())
+    except (admin_store_core.StoreBelumSiap, sqlite3.Error, ValueError):
+        return ()
 
 
 def _masa_paket(ctx: _Konteks) -> tuple:

@@ -151,3 +151,37 @@ def test_dua_paket_satu_elemen_dengan_satu_baris_per_paket():
                                     _m("mini", masa.STATUS_HABIS, 0, "Mini Class")), "Raka")
     assert isi.count('id="ortu-paket-banner"') == 1
     assert isi.count("<br>") == 1 and isi.count("Perpanjang") == 2
+
+
+# --- tagihan belum dibayar (butir QA #3, notifikasi gantung) ----------------------------------------------
+
+def test_tagihan_belum_dibayar_terbaca_dan_hilang_setelah_bukti_menunggu(kon_kelas):
+    from kelas_kit import tagih, unggah
+    tagih(kon_kelas, paket="mini")
+    (item,) = masa.tagihan_belum_dibayar(kon_kelas, AKUN_A, 1, KINI)
+    assert (item.kode_paket, item.nama, item.status) == ("mini", "Mini Class", "belum_bayar")
+    unggah(kon_kelas, paket="mini", sekarang=SESUDAH_UPLOAD)
+    assert masa.tagihan_belum_dibayar(kon_kelas, AKUN_A, 1, SESUDAH_UPLOAD) == ()
+
+
+def test_tagihan_ditolak_masih_terbaca_selama_jendela_terbuka(kon_kelas):
+    import kelas_putusan
+    from kelas_kit import ADMIN
+    tagihan, bukti_id = menunggu(kon_kelas, paket="mini")
+    kelas_putusan.tolak(kon_kelas, tagihan.order_id, ADMIN, "Nominal kurang", SESUDAH_UPLOAD, bukti_dilihat=bukti_id)
+    (item,) = masa.tagihan_belum_dibayar(kon_kelas, AKUN_A, 1, SESUDAH_UPLOAD)
+    assert item.status == "ditolak"
+
+
+def test_tagihan_kedaluwarsa_dan_akun_lain_tidak_terbaca(kon_kelas):
+    from kelas_kit import SESUDAH_JENDELA, tagih
+    tagih(kon_kelas, paket="private")
+    assert masa.tagihan_belum_dibayar(kon_kelas, AKUN_B, 1, KINI) == ()
+    assert masa.tagihan_belum_dibayar(kon_kelas, AKUN_A, 1, SESUDAH_JENDELA) == ()
+
+
+def test_banner_tagihan_kosong_dan_escape():
+    assert halaman.banner_tagihan((), "Anak") == ""
+    item = masa.TagihanBelumBayar("mini", "Mini <b>", "2026-11-21T09:00:00", "belum_bayar")
+    isi = halaman.banner_tagihan((item,), "<script>")
+    assert "<script>" not in isi and "&lt;script&gt;" in isi and "Mini &lt;b&gt;" in isi

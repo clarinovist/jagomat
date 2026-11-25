@@ -43,6 +43,15 @@ _SQL_BERAKHIR_SEMUA_PAKET = ("SELECT MAX(a.berakhir) FROM kelas_akses a JOIN kel
 
 
 @dataclass(frozen=True)
+class TagihanBelumBayar:
+    """Tagihan paket yang masih menunggu pembayaran atau unggah ulang bukti (butir QA #3, notifikasi gantung)."""
+    kode_paket: str
+    nama: str
+    kedaluwarsa: str
+    status: str
+
+
+@dataclass(frozen=True)
 class MasaPaket:
     kode_paket: str
     nama: str
@@ -80,6 +89,21 @@ def _masa_paket(kon, akun_id: str, siswa_id: int, paket: katalog.PaketBelajar, k
         return None
     sisa = _sisa_hari(berakhir, kini)
     return MasaPaket(paket.kode, paket.nama, berakhir, sisa, _status(sisa))
+
+
+def tagihan_belum_dibayar(kon, akun_id: str, siswa_id: int, sekarang) -> Tuple[TagihanBelumBayar, ...]:
+    """Tagihan terbuka milik akun untuk anak ini yang belum ada bukti menunggu: belum_bayar atau ditolak (boleh unggah ulang).
+
+    Jendela bayar yang sudah lewat tidak terbuka, jadi tidak ikut. Tanpa tulis; akun selalu ikut di kueri.
+    """
+    d.periksa_koneksi(kon)
+    d.periksa_akun_id(akun_id)
+    k.periksa_siswa_id(siswa_id)
+    kini = k.ke_baku(sekarang)
+    return tuple(
+        TagihanBelumBayar(o["paket"], katalog.ambil(o["paket"]).nama, o["kedaluwarsa"], status)
+        for o, _fakta, status in ks.order_terbuka_siswa(kon, akun_id, siswa_id, kini)
+        if status in (k.STATUS_BELUM_BAYAR, k.STATUS_DITOLAK))
 
 
 def masa_paket_anak(kon, akun_id: str, siswa_id: int, sekarang) -> Tuple[MasaPaket, ...]:

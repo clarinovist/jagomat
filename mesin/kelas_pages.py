@@ -53,6 +53,7 @@ COPY_TAUTAN_KELAS = "Tautan kelas"
 COPY_DIBATALKAN = "Dibatalkan"
 COPY_KEDALUWARSA = "Waktu pembayaran tagihan ini sudah habis. Silakan daftar lagi dari halaman pilih paket."
 COPY_KEMBALI = "Kembali ke pilih paket"
+COPY_TAUTAN_TAGIHAN = "Lanjutkan pembayaran"
 _ACCEPT_BUKTI = "image/jpeg,image/png,application/pdf"
 _LABEL_MODE = {k.MODE_ONLINE: "Belajar online", k.MODE_OFFLINE: "Tatap muka (offline)"}
 _STATUS = {k.STATUS_BELUM_BAYAR: ("kuning", "Menunggu pembayaran"),
@@ -288,6 +289,27 @@ def banner_orang_tua(masa: Sequence[km.MasaPaket], nama_anak: str) -> str:
     if not baris:
         return ""
     return ('<p class="ortu-banner-st" id="ortu-paket-banner" role="status">' + "<br>".join(baris) + "</p>")
+
+
+def _baris_tagihan(tagihan: km.TagihanBelumBayar, nama_anak: str) -> str:
+    anak = _e(nama_anak or "anak")
+    paket = _e(tagihan.nama)
+    tautan = f'<a href="{RUTE}">{_e(COPY_TAUTAN_TAGIHAN)}</a>'
+    if tagihan.status == k.STATUS_DITOLAK:
+        return f'{C.lencana("Bukti belum sesuai", "koral")} Tagihan {paket} {anak} belum dibayar: bukti ditolak. {tautan}'
+    return f'{C.lencana("Belum dibayar", "kuning")} Tagihan {paket} {anak} belum dibayar. {tautan}'
+
+
+def banner_tagihan(tagihan: Sequence[km.TagihanBelumBayar], nama_anak: str) -> str:
+    """Banner pengingat tagihan paket belajar yang menggantung: satu elemen `ortu-tagihan-banner`; '' bila tak ada.
+
+    Menaut ke halaman pilih paket, yang menampilkan tagihan berjalan dan rekening. Pemanggil hanya memanggil bila
+    sakelar PAKET_BELAJAR aktif.
+    """
+    if not tagihan:
+        return ""
+    baris = "<br>".join(_baris_tagihan(t, nama_anak) for t in tagihan)
+    return f'<p class="ortu-banner-st" id="ortu-tagihan-banner" role="status">{baris}</p>'
 
 
 def kalimat_aktif(nama_paket: str, berakhir: str) -> str:
